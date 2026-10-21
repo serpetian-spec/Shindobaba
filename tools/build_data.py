@@ -77,6 +77,10 @@ for c in C['clans']:
         if c['name'].startswith(k):
             clans[cid] = dict(name=c['name'].replace(' Clan', ''), desc=c.get('game_suggestion', '')[:200],
                               kg=str(c.get('kekkei_genkai_or_hiden', ''))[:80], eye=eyes[cid])
+for cid, nm, kg, desc in [('hyuga', 'Hyūga', 'Byakugan', 'Byakugan ile duvar arkasını görür; Yumuşak Yumruk ile chakra noktalarını kapatır, Hakkeshō Kaiten ile döner kalkan.'),
+                           ('hozuki', 'Hōzuki', 'Hydrification', 'Bedenini suya dönüştürür; fiziksel darbelerden kaçar, Suiton yatkın.')]:
+    if cid not in clans:
+        clans[cid] = dict(name=nm, desc=desc, kg=kg, eye=eyes[cid])
 json.dump(clans, open(os.path.join(ROOT, 'godot', 'data', 'clans.json'), 'w', encoding='utf8'), ensure_ascii=False, indent=1)
 print(len(out) - 1, 'jutsu,', len(items), 'items,', len(clans), 'clans')
 print(out['katon_goukakyuu']['seals'], out['raiton_chidori']['seals'])

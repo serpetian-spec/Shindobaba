@@ -108,5 +108,25 @@
    0.6,
    0.75
   ]
+ },
+ "hyuga": {
+  "name": "Hyūga",
+  "desc": "Byakugan ile duvar arkasını görür; Yumuşak Yumruk ile chakra noktalarını kapatır, Hakkeshō Kaiten ile döner kalkan.",
+  "kg": "Byakugan",
+  "eye": [
+   0.9,
+   0.9,
+   0.96
+  ]
+ },
+ "hozuki": {
+  "name": "Hōzuki",
+  "desc": "Bedenini suya dönüştürür; fiziksel darbelerden kaçar, Suiton yatkın.",
+  "kg": "Hydrification",
+  "eye": [
+   0.6,
+   0.45,
+   0.75
+  ]
  }
 }
