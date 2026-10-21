@@ -1,0 +1,505 @@
+{
+ "world": {
+  "x0": -3584,
+  "x1": 4096,
+  "y0": -2560,
+  "y1": 3840,
+  "res": 4.0,
+  "w": 1920,
+  "h": 1600
+ },
+ "countries": [
+  {
+   "id": "fire",
+   "name": "Ateş Ülkesi",
+   "x": 194,
+   "y": -560,
+   "r": 1250,
+   "biome": "forest",
+   "mount": 0.15
+  },
+  {
+   "id": "rivers",
+   "name": "Nehirler Ülkesi",
+   "x": -662,
+   "y": -1148,
+   "r": 480,
+   "biome": "rock",
+   "mount": 0.45
+  },
+  {
+   "id": "wind",
+   "name": "Rüzgar Ülkesi",
+   "x": -2167,
+   "y": -900,
+   "r": 1250,
+   "biome": "desert",
+   "mount": 0.25
+  },
+  {
+   "id": "rain",
+   "name": "Yağmur Ülkesi",
+   "x": -1246,
+   "y": 0,
+   "r": 480,
+   "biome": "rain",
+   "mount": 0.05
+  },
+  {
+   "id": "grass",
+   "name": "Çimen Ülkesi",
+   "x": -1138,
+   "y": 441,
+   "r": 440,
+   "biome": "grass",
+   "mount": 0.12
+  },
+  {
+   "id": "stone",
+   "name": "Taş Sınır Toprakları",
+   "x": -2050,
+   "y": 350,
+   "r": 520,
+   "biome": "rock",
+   "mount": 0.5
+  },
+  {
+   "id": "earth",
+   "name": "Toprak Ülkesi",
+   "x": -2110,
+   "y": 2100,
+   "r": 1250,
+   "biome": "rock",
+   "mount": 1.0
+  },
+  {
+   "id": "waterfall",
+   "name": "Şelale Ülkesi",
+   "x": -648,
+   "y": 1270,
+   "r": 500,
+   "biome": "forest",
+   "mount": 0.45
+  },
+  {
+   "id": "sound",
+   "name": "Ses Ülkesi",
+   "x": 259,
+   "y": 1038,
+   "r": 500,
+   "biome": "rice",
+   "mount": 0.25
+  },
+  {
+   "id": "hotwater",
+   "name": "Sıcak Su Ülkesi",
+   "x": 900,
+   "y": 700,
+   "r": 520,
+   "biome": "grass",
+   "mount": 0.4
+  },
+  {
+   "id": "frost",
+   "name": "Don Ülkesi",
+   "x": 1044,
+   "y": 1241,
+   "r": 450,
+   "biome": "snow",
+   "mount": 0.45
+  },
+  {
+   "id": "lightning",
+   "name": "Yıldırım Ülkesi",
+   "x": 2614,
+   "y": 2343,
+   "r": 1100,
+   "biome": "mountain",
+   "mount": 0.9
+  },
+  {
+   "id": "iron",
+   "name": "Demir Ülkesi",
+   "x": 504,
+   "y": 3132,
+   "r": 750,
+   "biome": "snow",
+   "mount": 0.7
+  },
+  {
+   "id": "north",
+   "name": "Kuzey Toprakları",
+   "x": -700,
+   "y": 2600,
+   "r": 900,
+   "biome": "rock",
+   "mount": 0.6
+  },
+  {
+   "id": "water",
+   "name": "Su Ülkesi",
+   "x": 3300,
+   "y": -600,
+   "r": 950,
+   "biome": "swamp",
+   "mount": 0.3
+  },
+  {
+   "id": "waves",
+   "name": "Dalga Ülkesi",
+   "x": 202,
+   "y": -1860,
+   "r": 400,
+   "biome": "forest",
+   "mount": 0.12
+  },
+  {
+   "id": "whirlpool",
+   "name": "Girdap Ülkesi (harabe)",
+   "x": 1700,
+   "y": -580,
+   "r": 260,
+   "biome": "grass",
+   "mount": 0.15
+  }
+ ],
+ "villages": [
+  {
+   "id": "konoha",
+   "name": "Konohagakure",
+   "country": "fire",
+   "x": -50,
+   "y": -75,
+   "r": 430,
+   "base": 8,
+   "kage": "Hokage"
+  },
+  {
+   "id": "suna",
+   "name": "Sunagakure",
+   "country": "wind",
+   "x": -1822,
+   "y": -1340,
+   "r": 300,
+   "base": 14,
+   "kage": "Kazekage"
+  },
+  {
+   "id": "kiri",
+   "name": "Kirigakure",
+   "country": "water",
+   "x": 3204,
+   "y": -708,
+   "r": 270,
+   "base": 6,
+   "kage": "Mizukage"
+  },
+  {
+   "id": "kumo",
+   "name": "Kumogakure",
+   "country": "lightning",
+   "x": 2261,
+   "y": 1839,
+   "r": 300,
+   "base": 40,
+   "kage": "Raikage"
+  },
+  {
+   "id": "iwa",
+   "name": "Iwagakure",
+   "country": "earth",
+   "x": -1267,
+   "y": 1752,
+   "r": 300,
+   "base": 45,
+   "kage": "Tsuchikage"
+  },
+  {
+   "id": "ame",
+   "name": "Amegakure",
+   "country": "rain",
+   "x": -1246,
+   "y": -12,
+   "r": 260,
+   "base": 5,
+   "kage": null
+  },
+  {
+   "id": "kusa",
+   "name": "Kusagakure",
+   "country": "grass",
+   "x": -1138,
+   "y": 441,
+   "r": 190,
+   "base": 12,
+   "kage": null
+  },
+  {
+   "id": "taki",
+   "name": "Takigakure",
+   "country": "waterfall",
+   "x": -648,
+   "y": 1270,
+   "r": 230,
+   "base": 16,
+   "kage": null
+  },
+  {
+   "id": "oto",
+   "name": "Otogakure",
+   "country": "sound",
+   "x": 259,
+   "y": 1038,
+   "r": 170,
+   "base": 12,
+   "kage": null
+  },
+  {
+   "id": "yu",
+   "name": "Yugakure",
+   "country": "hotwater",
+   "x": 626,
+   "y": 1015,
+   "r": 180,
+   "base": 14,
+   "kage": null
+  },
+  {
+   "id": "shimo",
+   "name": "Shimogakure",
+   "country": "frost",
+   "x": 1044,
+   "y": 1241,
+   "r": 160,
+   "base": 20,
+   "kage": null
+  },
+  {
+   "id": "tani",
+   "name": "Tanigakure",
+   "country": "rivers",
+   "x": -662,
+   "y": -1148,
+   "r": 160,
+   "base": 10,
+   "kage": null
+  },
+  {
+   "id": "nami",
+   "name": "Dalga Kasabası",
+   "country": "waves",
+   "x": 202,
+   "y": -1860,
+   "r": 200,
+   "base": 5,
+   "kage": null
+  },
+  {
+   "id": "uzushio",
+   "name": "Uzushiogakure Harabeleri",
+   "country": "whirlpool",
+   "x": 1700,
+   "y": -580,
+   "r": 150,
+   "base": 8,
+   "kage": null
+  },
+  {
+   "id": "tetsu",
+   "name": "Demir Kalesi (Samuraylar)",
+   "country": "iron",
+   "x": 504,
+   "y": 3132,
+   "r": 230,
+   "base": 30,
+   "kage": null
+  }
+ ],
+ "landmarks": [
+  {
+   "id": "valley_end",
+   "name": "Sonun Vadisi",
+   "x": 120,
+   "y": 600,
+   "r": 220,
+   "base": 28.65965418424335
+  },
+  {
+   "id": "forest_death",
+   "name": "Ölüm Ormanı (44. Alan)",
+   "x": 430,
+   "y": -300,
+   "r": 280,
+   "base": 27.077459958117792
+  },
+  {
+   "id": "nara_forest",
+   "name": "Nara Ormanı",
+   "x": -560,
+   "y": 40,
+   "r": 200,
+   "base": 26.29463453117448
+  },
+  {
+   "id": "sage_falls",
+   "name": "Gizli Şelale (Sennin Eğitimi)",
+   "x": -420,
+   "y": -900,
+   "r": 160,
+   "base": 41.90206044669961
+  },
+  {
+   "id": "naruto_bridge",
+   "name": "Büyük Naruto Köprüsü",
+   "x": 200,
+   "y": -1450,
+   "r": 60,
+   "base": 4.0
+  },
+  {
+   "id": "hideout",
+   "name": "Kızıl Bulut Sığınağı",
+   "x": -1000,
+   "y": 260,
+   "r": 140,
+   "base": 13.195106270867223
+  },
+  {
+   "id": "storm_canyon",
+   "name": "Fırtına Kanyonu (Raijū)",
+   "x": 1900,
+   "y": 2050,
+   "r": 200,
+   "base": 60.0
+  },
+  {
+   "id": "bandit_camp",
+   "name": "Haydut Kampı",
+   "x": 650,
+   "y": -450,
+   "r": 120,
+   "base": 27.14120315823868
+  },
+  {
+   "id": "border_post",
+   "name": "Ateş Batı Sınır Karakolu",
+   "x": -850,
+   "y": -550,
+   "r": 120,
+   "base": 31.971620152446093
+  }
+ ],
+ "biomes": [
+  "sea",
+  "beach",
+  "forest",
+  "desert",
+  "rain",
+  "rock",
+  "rice",
+  "grass",
+  "snow",
+  "mountain",
+  "swamp",
+  "village",
+  "road"
+ ],
+ "roads": [
+  [
+   "konoha",
+   "tani"
+  ],
+  [
+   "tani",
+   "suna"
+  ],
+  [
+   "konoha",
+   "ame"
+  ],
+  [
+   "ame",
+   "kusa"
+  ],
+  [
+   "kusa",
+   "taki"
+  ],
+  [
+   "taki",
+   "iwa"
+  ],
+  [
+   "konoha",
+   "valley_end"
+  ],
+  [
+   "valley_end",
+   "oto"
+  ],
+  [
+   "oto",
+   "yu"
+  ],
+  [
+   "yu",
+   "shimo"
+  ],
+  [
+   "shimo",
+   "kumo"
+  ],
+  [
+   "konoha",
+   "naruto_bridge"
+  ],
+  [
+   "naruto_bridge",
+   "nami"
+  ],
+  [
+   "konoha",
+   "forest_death"
+  ],
+  [
+   "konoha",
+   "nara_forest"
+  ],
+  [
+   "konoha",
+   "bandit_camp"
+  ],
+  [
+   "konoha",
+   "border_post"
+  ],
+  [
+   "border_post",
+   "tani"
+  ],
+  [
+   "ame",
+   "suna"
+  ],
+  [
+   "oto",
+   "tetsu"
+  ],
+  [
+   "kumo",
+   "tetsu"
+  ],
+  [
+   "kusa",
+   "hideout"
+  ],
+  [
+   "konoha",
+   "sage_falls"
+  ],
+  [
+   "konoha",
+   "yu"
+  ]
+ ]
+}

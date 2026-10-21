@@ -1,0 +1,689 @@
+{
+  "_meta": {
+    "source": "Narutopedia (naruto.fandom.com) via MediaWiki API, plus general franchise knowledge",
+    "note": "No canon character biographies. All player/NPC characters in the game are original; canon data here is used only for clans, factions, creatures, items and culture."
+  },
+  "clans": [
+    {
+      "name": "Uchiha Clan",
+      "village": "Konohagakure (Leaf)",
+      "kekkei_genkai_or_hiden": "Sharingan (dojutsu; evolves 1 -> 2 -> 3 tomoe, rare Mangekyo Sharingan); strong Fire Release affinity",
+      "signature_abilities": [
+        "Sharingan: read/predict movement, copy observed techniques, see chakra",
+        "Hypnotic genjutsu through eye contact",
+        "Great Fireball Technique",
+        "Phoenix Flower (multiple small fireballs)",
+        "Shuriken mastery incl. wire-guided shuriken",
+        "Mangekyo-tier: black flames, ribcage-like chakra avatar (Susanoo)"
+      ],
+      "crest_description": "Uchiwa paper fan: upper half red, lower half white, with a short white handle; usually worn on the back of shirts",
+      "typical_appearance": "Black/dark hair, pale skin, black eyes that turn red with black tomoe when Sharingan is active; dark-blue or black high-collared shirts with the fan crest on the back, white or dark shorts/pants",
+      "compound_description": "Walled district on the edge of Konoha with fan crests painted on walls, lanterns and signboards; traditional wooden houses, a shrine (Naka Shrine) with a secret meeting hall under a tatami mat, close to the Military Police headquarters",
+      "game_suggestion": "Glass-cannon fire/genjutsu duelist. Passive: Sharingan Perception (slow-motion telegraph of enemy attacks, timed-dodge window +X%). Unique: Copy Technique (learn an observed enemy jutsu temporarily or permanently after N observations). Progression milestones: Awaken 1 tomoe (lvl ~10, enhanced dodge), 2 tomoe (copy unlock), 3 tomoe (genjutsu stun on eye contact), Mangekyo as rare endgame quest with eyesight-loss drawback (screen blur stacks when overused)."
+    },
+    {
+      "name": "Hyuga Clan",
+      "village": "Konohagakure (Leaf)",
+      "kekkei_genkai_or_hiden": "Byakugan (dojutsu: near-360-degree vision with one blind spot, x-ray sight, sees chakra pathways and tenketsu); Gentle Fist (Juken) taijutsu",
+      "signature_abilities": [
+        "Byakugan long-range vision and chakra-point detection",
+        "Gentle Fist: palm strikes that damage internal organs and seal tenketsu",
+        "Eight Trigrams Sixty-Four Palms",
+        "Eight Trigrams Palm Rotation (spinning chakra dome defense)",
+        "Eight Trigrams Vacuum Palm (air-pressure palm projectile)"
+      ],
+      "crest_description": "Stylised flame/teardrop-like symbol (the clan mark seen on robes); the branch family bears a green 'caged bird' seal on the forehead",
+      "typical_appearance": "Pale lavender/white pupil-less eyes, veins bulge around eyes when Byakugan is active; long dark hair; traditional light-colored robes or loose white/beige clothes; branch members wear forehead coverings over the caged-bird seal",
+      "compound_description": "Large, formal traditional estate with a training dojo, tatami halls, koi gardens and strict main-house / branch-house separation",
+      "game_suggestion": "Precision melee + scout. Passive: Byakugan pulse reveals enemies, traps and weak points through walls in a radius. Unique: Gentle Fist combo that drains enemy chakra and seals a jutsu slot per landed hit; Palm Rotation as a parry/AoE knockback. Milestones: Byakugan range upgrades, 8 -> 16 -> 32 -> 64 Palms combo chain, blind-spot weakness mechanic (attacks from a specific rear angle bypass detection). Optional faction storyline: main vs branch family."
+    },
+    {
+      "name": "Nara Clan",
+      "village": "Konohagakure (Leaf)",
+      "kekkei_genkai_or_hiden": "Hiden: Shadow Techniques (Kagemane)",
+      "signature_abilities": [
+        "Shadow Imitation (bind target to mirror your movements)",
+        "Shadow Neck Bind",
+        "Shadow Sewing (shadow tendrils pierce)",
+        "Shadow Gathering",
+        "Strategic genius, deer-medicine knowledge"
+      ],
+      "crest_description": "Stylised circular emblem resembling a deer/shadow motif (often rendered as a simple ring-and-line symbol) (approximate; verify against the wiki image before modelling)",
+      "typical_appearance": "Dark hair tied in a high spiky ponytail, narrow tired-looking eyes, laid-back posture; earrings commonly given by teammates",
+      "compound_description": "Rural estate in a forest on Konoha's outskirts where the clan raises sacred deer whose antlers are used for medicine; quiet, shady, many trees",
+      "game_suggestion": "Controller/tactician. Passive: shadow range scales with available shadows (more powerful at dusk, in forests, near large objects; uses the game's lighting system). Unique: Shadow Possession roots a target and forces it to mirror the player. Milestones: multi-target bind, shadow strangle damage, 'Strategist' perk that shows enemy AI intent and party command wheel. Side activity: deer herding/medicine crafting."
+    },
+    {
+      "name": "Akimichi Clan",
+      "village": "Konohagakure (Leaf)",
+      "kekkei_genkai_or_hiden": "Hiden: Body expansion (Baika no Jutsu), converting calories to chakra",
+      "signature_abilities": [
+        "Multi-Size Technique (enlarge body/limbs)",
+        "Human Bullet Tank (rolling expanded ball)",
+        "Super Multi-Size",
+        "Butterfly Mode via secret pills (green/yellow/red pills)",
+        "Calorie Control"
+      ],
+      "crest_description": "Kanji for 'food' (食) inside a circle / clan swirl mark worn on armor and scarves",
+      "typical_appearance": "Large build, swirl marks on the cheeks, spiky reddish-brown hair; red samurai-style armor plating, scarves with the kanji for 'food'",
+      "compound_description": "Konoha district with barbecue restaurants and big family dining halls; shares strong ties with the Nara and Yamanaka (Ino-Shika-Cho)",
+      "game_suggestion": "Tank/bruiser. Passive: food items restore extra chakra and grant temporary size buffs (calories as a resource bar). Unique: Expansion stance (larger hitbox, high poise and damage, slower move speed), Human Bullet Tank rolling dash. Milestones: limb expansion, full-body giant form, risky three-pill system (huge buff, then heavy HP penalty). Synergy bonus when partied with Nara/Yamanaka NPCs."
+    },
+    {
+      "name": "Yamanaka Clan",
+      "village": "Konohagakure (Leaf)",
+      "kekkei_genkai_or_hiden": "Hiden: Mind Body Switch and mind/telepathy techniques; sensory skills",
+      "signature_abilities": [
+        "Mind Body Switch (possess target, own body left vulnerable)",
+        "Mind Transmission (telepathic network)",
+        "Mind Destruction",
+        "Mind Body Disturbance (confuse movements)",
+        "Sensory perception; flower knowledge"
+      ],
+      "crest_description": "Clan symbol often shown as a stylised flower/three-petal mark; family flower shop sign (approximate; verify against the wiki image before modelling)",
+      "typical_appearance": "Blond hair, pale blue/aqua eyes without visible pupils, purple or light outfits",
+      "compound_description": "Run the Yamanaka Flower Shop in Konoha; house filled with flowers and herbs; the clan also staffs Konoha's interrogation and intelligence departments",
+      "game_suggestion": "Support/possession specialist. Passive: telepathic link shows allies' HP and lets the player issue commands to the party. Unique: Mind Body Switch to temporarily control an enemy (player's body becomes AFK and vulnerable). Milestones: longer possession, interrogation minigame to extract mission intel, radio-like map link. Profession: flower/herb gathering feeding potion crafting."
+    },
+    {
+      "name": "Aburame Clan",
+      "village": "Konohagakure (Leaf)",
+      "kekkei_genkai_or_hiden": "Hiden: Insect symbiosis (kikaichu chakra-eating beetles live inside the body)",
+      "signature_abilities": [
+        "Parasitic Destruction Insects (drain chakra)",
+        "Insect Clone",
+        "Insect Sphere / Insect Jar",
+        "Tracking via female beetle scent markers",
+        "Poison bug variants"
+      ],
+      "crest_description": "Clan mark is usually a simple stylised insect/hex shape; often not visibly worn (approximate; verify against the wiki image before modelling)",
+      "typical_appearance": "Round dark sunglasses, high collars and hooded long coats hiding the face, quiet and logical; insects crawling from skin pores",
+      "compound_description": "Secluded, dimly lit houses with insect breeding rooms, hives and terrariums",
+      "game_suggestion": "Summoner/DoT controller. Passive: insect swarm auto-attacks and drains enemy chakra over time. Unique: plant a tracker beetle on an enemy (minimap marker), insect clones as decoys. Milestones: swarm size upgrades, breeding minigame to unlock specialised insect types (poison, explosive, shield). Weakness: fire-based attacks kill swarm units."
+    },
+    {
+      "name": "Inuzuka Clan",
+      "village": "Konohagakure (Leaf)",
+      "kekkei_genkai_or_hiden": "Hiden: Ninken partnership techniques; enhanced smell/hearing",
+      "signature_abilities": [
+        "Fang Over Fang / Passing Fang (drill-like spinning attacks)",
+        "Four Legs Technique (feral speed)",
+        "Beast Human Clone (dog turns into a copy of the user)",
+        "Dynamic Marking (urine tracking)",
+        "Two-headed Wolf combination"
+      ],
+      "crest_description": "Red fang-like triangle marks on each cheek serve as the clan's identity",
+      "typical_appearance": "Red fang tattoos on cheeks, slit-like pupils, sharp canines, wild hair, fur-lined hooded jackets; always accompanied by a ninken dog",
+      "compound_description": "Large kennel compound and veterinary clinic with dog runs, training yards and doghouses",
+      "game_suggestion": "Pet-class skirmisher. Passive: companion ninken (AI pet) that grows from puppy to giant dog; scent tracking reveals footprints. Unique: combination drill attacks with the pet; 'Beast Clone' turns the pet into a decoy copy of the player. Milestones: pet growth stages, pet gear, fused Two-Headed Wolf transformation. Pet can be revived with a cooldown."
+    },
+    {
+      "name": "Senju Clan",
+      "village": "Konohagakure (Leaf), co-founders",
+      "kekkei_genkai_or_hiden": "Extraordinary chakra/life force; very rare Wood Release (Mokuton) kekkei genkai; medical-ninjutsu aptitude",
+      "signature_abilities": [
+        "Wood Release: tree growth, wooden prisons, wooden golems/dragons",
+        "Water Release mastery",
+        "Strong vitality and fast healing",
+        "Sealing and barrier techniques"
+      ],
+      "crest_description": "Senju crest is a stylised emblem worn on warring-states armor (exact design varies by source); the founding clan's legacy is mainly expressed through the Konoha leaf symbol",
+      "typical_appearance": "Varied; red armour plates in the warring-states era; known for strong bodies and large chakra reserves",
+      "compound_description": "Clan was largely absorbed into the general Konoha population; historical sites, founder statues on the Hokage Rock cliff and warring-states battlefield ruins",
+      "game_suggestion": "Durable all-rounder / rare bloodline unlock. Passive: HP regeneration and larger chakra pool. Unique: Wood Release as a rare legendary skill line (create cover walls, root-binding, wooden clones). Milestones: Wood Release awakening quest, wooden golem summon. Good fit for 'lost bloodline' story arcs."
+    },
+    {
+      "name": "Uzumaki Clan",
+      "village": "Uzushiogakure (Whirlpool, destroyed); scattered survivors in Konoha and elsewhere",
+      "kekkei_genkai_or_hiden": "Exceptional life force and chakra; master sealing techniques (fuinjutsu); rare Adamantine Sealing Chains",
+      "signature_abilities": [
+        "Advanced sealing jutsu (seal enemies, items, beasts)",
+        "Adamantine Sealing Chains",
+        "Healing by having chakra drawn (bite-healing)",
+        "Very long lifespan and stamina"
+      ],
+      "crest_description": "Red spiral/whirlpool swirl; worn on the back of Konoha flak jackets and as the sign of the ruined village",
+      "typical_appearance": "Commonly bright red hair, high vitality",
+      "compound_description": "Ruins of Uzushiogakure: island village of whirlpool seas, shattered spiral walls, sealed vaults; a mask shrine in Konoha holds Uzumaki masks",
+      "game_suggestion": "Sealing specialist with huge stamina. Passive: chakra pool +50%, slow chakra regen even in combat. Unique: Seal Tags (place seals on terrain to trap, store items, seal summoned creatures or bosses for loot). Milestones: Sealing Chains (grab/pull/bind giant bosses), Jinchuriki-like containment storyline, ruins-exploration dungeon of Uzushio."
+    },
+    {
+      "name": "Sarutobi Clan",
+      "village": "Konohagakure (Leaf)",
+      "kekkei_genkai_or_hiden": "No kekkei genkai; famed for broad jutsu mastery, Fire Release and the monkey summoning contract (Enma line)",
+      "signature_abilities": [
+        "Fire Release: Burning Ash / ash cloud ignition",
+        "Shuriken Shadow Clone",
+        "Monkey summoning (staff transformation)",
+        "Wind Release chakra blades"
+      ],
+      "crest_description": "Sarutobi crest is a stylised circle with fire/monkey motif; clan members strongly linked to Konoha leadership (approximate; verify against the wiki image before modelling)",
+      "typical_appearance": "No fixed physical traits; often goatees, cigarettes/pipes among elders",
+      "compound_description": "Traditional Konoha residence near the Hokage administration; dojo for academy-style teaching",
+      "game_suggestion": "Jack-of-all-trades. Passive: +1 jutsu slot and faster jutsu learning. Unique: monkey summon that transforms into an unbreakable staff weapon. Milestones: unlock five nature-element affinities over time ('The Professor' path)."
+    },
+    {
+      "name": "Hatake Clan",
+      "village": "Konohagakure (Leaf)",
+      "kekkei_genkai_or_hiden": "No kekkei genkai; tantō mastery (White Light Chakra Sabre lineage), Lightning Release, ninken summoning",
+      "signature_abilities": [
+        "Short-sword/tanto techniques infused with chakra",
+        "Lightning Release: Chidori-style piercing",
+        "Ninken tracking summons",
+        "Exceptional tactical talent"
+      ],
+      "crest_description": "No widely seen crest; recognised by the white chakra sabre",
+      "typical_appearance": "Silver/white spiky hair, often a face mask",
+      "compound_description": "Small, modest family home in Konoha; the clan is very small",
+      "game_suggestion": "Use as a design reference for a 'small-family genius' background: Passive tanto damage bonus, unique lightning-infused blade attacks, ninken summon pack at mid-level."
+    },
+    {
+      "name": "Kaguya Clan",
+      "village": "Formerly Land of Water / Kirigakure region (clan wiped out in a reckless attack on Kiri)",
+      "kekkei_genkai_or_hiden": "Shikotsumyaku (Dead Bone Pulse): control of bone growth, density and structure",
+      "signature_abilities": [
+        "Bone bullets fired from fingertips",
+        "Bone swords pulled from the arm/spine",
+        "Willow / Larch / Clematis Dance (bone spikes from body)",
+        "Bracken Dance (forest of bone spikes from the ground)"
+      ],
+      "crest_description": "No common crest; identified by two red dots on the forehead",
+      "typical_appearance": "Two red forehead dots, pale skin, white or light hair; bloodthirsty warrior culture",
+      "compound_description": "Isolated war-like camp or cave settlement in the Land of Water; bone ornaments, arena-like grounds",
+      "game_suggestion": "Melee bruiser/self-armor. Passive: bone armor reduces damage, regenerates out of combat. Unique: bone weapons (crafted from own body: sword, spear, drill) that never break. Milestones: bone bullets ranged, Bracken Dance AoE. Drawback idea: rare disease debuff at very high usage."
+    },
+    {
+      "name": "Yuki Clan",
+      "village": "Land of Water / Kirigakure (persecuted during the Bloody Mist era)",
+      "kekkei_genkai_or_hiden": "Ice Release (Hyoton): combines Wind and Water",
+      "signature_abilities": [
+        "Demonic Ice Mirrors (dome of mirrors you can teleport between)",
+        "Thousand Flying Water Needles",
+        "Ice spears, ice prisons",
+        "Senbon acupuncture to induce false death"
+      ],
+      "crest_description": "No standard crest; ice/snowflake motif appropriate",
+      "typical_appearance": "Pale skin, long dark hair, often ANBU-style hunter masks; light kimono-like clothing",
+      "compound_description": "Hidden snowy villages and huts; forced into secrecy due to bloodline persecution",
+      "game_suggestion": "Ranged precision/zone control. Passive: senbon crit vs. pressure points, slow on hit. Unique: Ice Mirror dome (trap enemy, teleport between mirrors). Milestones: freezing terrain, ice armour, environmental freeze puzzles (freeze rivers to cross)."
+    },
+    {
+      "name": "Hozuki Clan",
+      "village": "Kirigakure (Mist)",
+      "kekkei_genkai_or_hiden": "Hydrification Technique (body turns to water); clan secret abilities",
+      "signature_abilities": [
+        "Hydrification (become liquid, immune to physical blows)",
+        "Water Gun (finger-shot water bullets)",
+        "Great Water Arm (pumped muscle)",
+        "Water clones"
+      ],
+      "crest_description": "No common crest; water/droplet motif",
+      "typical_appearance": "Pale blue/white hair, purple or violet eyes, sharp pointed teeth; carry water bottles to stay hydrated",
+      "compound_description": "Seaside Kiri houses, misty waterfront docks",
+      "game_suggestion": "Evasive water fighter. Passive: hydration meter (dodge-roll converts body to water for i-frames; drains hydration; refill from water sources/bottles). Weakness: lightning damage x2. Unique: water gun ranged, muscle pump heavy attack. Milestones: wielding giant blades (affinity with the Swordsmen tree)."
+    },
+    {
+      "name": "Kurama Clan",
+      "village": "Konohagakure (Leaf) (anime-only)",
+      "kekkei_genkai_or_hiden": "Kurama Clan kekkei genkai: extremely powerful genjutsu; rare members make illusory damage physically real",
+      "signature_abilities": [
+        "Genjutsu that becomes physically real",
+        "Illusory painted/drawn creatures",
+        "Mental split personality controlling the power"
+      ],
+      "crest_description": "Kurama crest (symbol stylised in the anime); simple formal emblem",
+      "typical_appearance": "Noble family appearance, refined clothing",
+      "compound_description": "Wealthy estate with art rooms and sealed chambers",
+      "game_suggestion": "Illusionist. Passive: genjutsu cast speed. Unique: 'Reality Illusion' — illusions deal real damage. Drawback: sanity/control meter; when it overflows an uncontrolled alter-ego takes over (AI-controlled berserk mode)."
+    },
+    {
+      "name": "Chinoike Clan",
+      "village": "Land of Lightning (mercenaries), later exiled to the Valley of Hell in the Land of Hot Water (anime/novel)",
+      "kekkei_genkai_or_hiden": "Ketsuryugan (blood dojutsu): manipulate liquids high in iron, especially blood; blood-red eyes",
+      "signature_abilities": [
+        "Blood manipulation: blood weapons, blood bind",
+        "Ketsuryugan genjutsu",
+        "Blood-iron hardening",
+        "Blood-induced illness/control"
+      ],
+      "crest_description": "Red droplet/blood motif (stylised) (approximate; verify against the wiki image before modelling)",
+      "typical_appearance": "Red eyes with dark ring patterns when active",
+      "compound_description": "Valley of Hell: dark, hellish canyon of hot springs and red mist where the exiled clan lived",
+      "game_suggestion": "Dark bloodline/HP-as-resource class. Passive: spend HP instead of chakra for jutsu (high risk). Unique: blood weapons and binding. Milestones: blood genjutsu, life-steal. Natural fit for a villain clan or a cursed-bloodline storyline."
+    }
+  ],
+  "organizations": [
+    {
+      "name": "Akatsuki",
+      "description": "Small criminal organisation of S-rank missing-nin operating in two-person cells, funding itself through bounty hunting and mercenary work; aim was to capture all tailed beasts and seal them into a giant statue to revive the Ten-Tails. Hideouts in caves sealed by barrier techniques (Five Seals Barrier).",
+      "visual_identity": "Black high-collared cloaks with red clouds outlined in white; straw hats with hanging bells/paper strips; slashed (scratched-through) village forehead protectors; purple nail polish; each member wears a ring on a specific finger bearing a single kanji, the ring position corresponding to a pose on the Demonic Statue. Members communicate via a projection technique as 'phantom' silhouettes.",
+      "game_suggestion": "Inspire an ORIGINAL criminal syndicate (avoid canon members). Endgame enemy organisation operating in duos; bounty-hunter missions; ring-collecting system (each defeated pair drops a ring; collect a set for a legendary reward). Cloak + rings make a great cosmetic unlock after the main story."
+    },
+    {
+      "name": "Anbu (Assassination and Tactical Special Forces)",
+      "description": "Elite black-ops unit directly under the Kage: assassinations, high-risk missions, guarding the Kage, hunting missing-nin (Hunter-nin corps in other villages dispose of rogue ninja bodies to protect village secrets). Identities hidden.",
+      "visual_identity": "Porcelain animal masks (cat, bird, dog, weasel, boar, etc.), grey or black sleeveless armor vests, arm guards, a red spiral tattoo on the left upper arm, black long-sleeved undershirt, straight sword (ninjato) on the back",
+      "game_suggestion": "Joinable elite faction at high rank (chunin/jonin). Unlock animal mask customisation, stealth assassination missions, special codename. Rival Hunter-nin from other villages appear as enemies when the player becomes a missing-nin."
+    },
+    {
+      "name": "Root (Ne)",
+      "description": "Secret, officially disbanded Anbu training division that continued underground; members are raised to erase emotions and bound by a cursed seal on the tongue that paralyses them if they reveal secrets. Headquarters deep underground beneath Konoha.",
+      "visual_identity": "Anbu-like masks (often blank or with the kanji 'ne'), black outfits, tanto; tongue-seal mark",
+      "game_suggestion": "Shadowy mission giver with morally grey quests (high rewards, reputation penalty with village). Possible secret faction route; tongue-seal mechanic that blocks the player from revealing info in dialogue."
+    },
+    {
+      "name": "Konoha Military Police Force",
+      "description": "Police force of Konoha maintaining internal order and arresting criminal ninja, historically run by the Uchiha clan.",
+      "visual_identity": "Emblem: Uchiha fan inside a four-pointed star/shuriken shape; dark uniforms with green flak jackets or vests, armbands",
+      "game_suggestion": "In-village law enforcement: crime/bounty system (getting caught stealing or fighting in town triggers police NPCs); investigative side-quest chains; joinable as a detective career path."
+    },
+    {
+      "name": "Seven Ninja Swordsmen of the Mist",
+      "description": "Kirigakure's legendary group of seven elite swordsmen each wielding one of the seven famous blades; the swords are passed down to successors. Present the swords as legendary loot (see legendary_weapons).",
+      "visual_identity": "Mist headbands, sharp-toothed fighters, swords carried on the back, dark bandages/wraps",
+      "game_suggestion": "Legendary-weapon hunt: seven boss duels (original NPC sword-bearers) each dropping one blade. Collecting all seven unlocks a 'Swordsman' title and Mist faction rank."
+    },
+    {
+      "name": "Samurai of the Land of Iron",
+      "description": "Neutral country without a ninja village, defended by samurai who use chakra flowing through their blades. Led by a general (Mifune-style). Hosts neutral summits (Five Kage Summit).",
+      "visual_identity": "Full samurai armor with large shoulder plates, horned/crested helmets, flowing capes, kanji emblems; snowy mountain fortress with a giant bridge",
+      "game_suggestion": "Neutral region with honor-based duels; samurai enemies parry jutsu and channel chakra into blades (iaido one-hit attacks). Mission giver for escort/diplomacy. Possible samurai class path for the player."
+    },
+    {
+      "name": "Puppet Brigade (Kugutsu Butai)",
+      "description": "Sunagakure organisation of elite puppeteers active at least during the Second Shinobi World War, using chakra threads to control combat puppets loaded with poison blades and hidden weapons; researched a forbidden technique to bring puppets to life (labelled kinjutsu due to its cost).",
+      "visual_identity": "Suna clothing, face paint (kabuki-style purple paint), bandaged scrolls carrying puppets, visible chakra threads from fingertips",
+      "game_suggestion": "Puppeteer class or faction: craftable modular puppets (arms, blades, poison gas, shields); puppet repair workshop; desert enemy groups using swarms of puppets (target the puppeteer to cut threads)."
+    },
+    {
+      "name": "Hunter-nin (Oinin)",
+      "description": "Special tracking units of each village that hunt down missing-nin and destroy their bodies to keep village secrets.",
+      "visual_identity": "Village-specific masks (Mist hunter masks with swirl/eye-slit designs), cloaks",
+      "game_suggestion": "Bounty-hunter enemies that pursue the player if they betray their village; mission givers for bounty contracts."
+    },
+    {
+      "name": "Twelve Guardian Ninja",
+      "description": "Elite ninja guarding the Fire Daimyo; wear sashes with the kanji for 'fire'.",
+      "visual_identity": "Grey robes, sash with 'fire' kanji (火)",
+      "game_suggestion": "Escort/VIP protection missions for the feudal lord; prestige rank for veteran players."
+    }
+  ],
+  "village_ninja_uniforms": [
+    {
+      "village": "Konohagakure (Leaf, Land of Fire)",
+      "flak_jacket_color": "Olive/forest green with scroll pouches on chest, red Uzumaki swirl on back",
+      "headband_symbol_description": "Leaf with spiral (swirl inside a leaf outline with a stem)",
+      "clothing": "Dark navy long-sleeved shirt and pants with a red swirl patch on the shoulders, taped shins/ninja sandals, shuriken holster on thigh; green flak jacket for chunin/jonin"
+    },
+    {
+      "village": "Sunagakure (Sand, Land of Wind)",
+      "flak_jacket_color": "Tan/beige with single shoulder strap, simpler cut than Konoha",
+      "headband_symbol_description": "Hourglass shape (two triangles facing each other with a line through the middle)",
+      "clothing": "Loose beige/sand-colored robes, turban-like head cloths and veils against sandstorms, gourds/scrolls for puppets"
+    },
+    {
+      "village": "Kirigakure (Mist, Land of Water)",
+      "flak_jacket_color": "Grey-blue / olive with horizontal ridged lines, collar",
+      "headband_symbol_description": "Four wavy vertical lines (water/mist ripples)",
+      "clothing": "Dark shirts with striped camouflage, bandages over the face for some, swords common; wet coastal gear"
+    },
+    {
+      "village": "Kumogakure (Cloud, Land of Lightning)",
+      "flak_jacket_color": "White/cream, one-shoulder strap, no high collar",
+      "headband_symbol_description": "Cloud shape: horizontal lines under a rounded cloud outline",
+      "clothing": "Dark sleeveless or long-sleeved tops, many ninja with tattoos, broadswords; mountain gear"
+    },
+    {
+      "village": "Iwagakure (Stone, Land of Earth)",
+      "flak_jacket_color": "Red-brown with a single shoulder strap and one sleeve (left arm)",
+      "headband_symbol_description": "Two rocks/mountain peaks forming stacked shapes",
+      "clothing": "Earth-tone clothing, sleeve on one arm, cloths on the head, rough rugged gear for mountains"
+    },
+    {
+      "village": "Otogakure (Sound, Land of Rice Fields)",
+      "flak_jacket_color": "None standard",
+      "headband_symbol_description": "A musical eighth note",
+      "clothing": "Camouflage pants, camouflage-patterned tops, purple rope belts tied in a bow; experimental cursed-seal fighters"
+    },
+    {
+      "village": "Amegakure (Rain)",
+      "flak_jacket_color": "None standard; raincoats",
+      "headband_symbol_description": "Four vertical lines (rain)",
+      "clothing": "Raincoats, breathing apparatus masks, umbrellas, industrial steel towers village"
+    },
+    {
+      "village": "Takigakure (Waterfall)",
+      "flak_jacket_color": "None standard",
+      "headband_symbol_description": "Symbol of a waterfall with a stylised drop",
+      "clothing": "Light clothing, green tones"
+    },
+    {
+      "village": "Kusagakure (Grass)",
+      "flak_jacket_color": "None standard",
+      "headband_symbol_description": "Three vertical grass-like strokes",
+      "clothing": "Earthy/green clothing, wide-brim straw hats"
+    }
+  ],
+  "tailed_beasts": [
+    {
+      "tails": 1,
+      "animal": "Tanuki (raccoon dog) made of sand, blue markings",
+      "element_or_ability": "Sand manipulation, Wind Release (Air Bullets); Magnet Release-like sand control; sealing-pattern body",
+      "game_suggestion": "Desert boss with huge hitbox; arena hazards of quicksand; weak point on forehead; phase 2 when sand armor breaks."
+    },
+    {
+      "tails": 2,
+      "animal": "Giant cat made of blue/black flames (two-tailed nekomata)",
+      "element_or_ability": "Blue cursed flames, Fire Release, agility",
+      "game_suggestion": "Fast-moving boss; burning ground puddles; pounce attacks with large frontal hitbox."
+    },
+    {
+      "tails": 3,
+      "animal": "Giant turtle with coral-like shell and spikes",
+      "element_or_ability": "Water Release, coral, hallucinogenic mist",
+      "game_suggestion": "Lake/sea boss; shell is invulnerable, expose its face/belly; fog that causes illusions."
+    },
+    {
+      "tails": 4,
+      "animal": "Giant red gorilla/ape with horns",
+      "element_or_ability": "Lava Release (Fire + Earth)",
+      "game_suggestion": "Volcano arena; lava geysers, ground-pound shockwaves; hitbox per arm."
+    },
+    {
+      "tails": 5,
+      "animal": "White dolphin-horse (horse with dolphin head and horns)",
+      "element_or_ability": "Boil Release (steam/acid), charge",
+      "game_suggestion": "Steam field damage over time; charging attack with long horn hitbox."
+    },
+    {
+      "tails": 6,
+      "animal": "Giant white slug",
+      "element_or_ability": "Corrosive alkali bubbles, acid",
+      "game_suggestion": "Swamp boss; acid trails, bubble projectiles; splits into smaller slugs."
+    },
+    {
+      "tails": 7,
+      "animal": "Giant rhinoceros beetle-like insect with six wings plus a single wing-shaped tail",
+      "element_or_ability": "Flight, scale powder (blinding), sticky secretions",
+      "game_suggestion": "Aerial boss; airborne hitbox, blinding dust clouds, cocoon trap."
+    },
+    {
+      "tails": 8,
+      "animal": "Ox head with octopus tentacles (ushi-oni)",
+      "element_or_ability": "Tailed Beast Bomb, ink clouds, physical strength",
+      "game_suggestion": "Coastal/island boss; tentacle grabs; ink blinds; tentacles are separate targetable hitboxes."
+    },
+    {
+      "tails": 9,
+      "animal": "Giant fox with nine tails",
+      "element_or_ability": "Massive chakra, Tailed Beast Ball, hate-sensing, sealing-ready",
+      "game_suggestion": "Penultimate super-boss; tails used as sweep attacks; destruction across a whole zone."
+    },
+    {
+      "tails": 10,
+      "animal": "Primordial monster with one eye (Rinne-Sharingan), many forms; progenitor of the nine beasts",
+      "element_or_ability": "All elements, God Tree origin",
+      "game_suggestion": "Optional secret ultimate raid boss (or replace with an original creature to avoid canon)."
+    }
+  ],
+  "summons": [
+    {
+      "animal": "Toads",
+      "home": "Mount Myoboku (giant mushrooms, toad oil waterfall, Sage training grounds)",
+      "traits": "Varied sizes from tiny scouts to giant warrior toads carrying swords/pipes; Toad Oil Flame Bullet; Sage Mode training via natural energy",
+      "game_suggestion": "Summon contract quest at Mount Myoboku; earn Sage Mode buff (natural energy meter: stand still to charge, gain power but risk turning into a toad statue if overfilled)."
+    },
+    {
+      "animal": "Snakes",
+      "home": "Ryuchi Cave (cave full of giant white snakes)",
+      "traits": "Huge serpents, swallow and hide summoner, poison, sensing; Sage Mode with snake-like traits",
+      "game_suggestion": "Dark-path summoning (villains, Sound region). Snake summon to burrow, ambush and swallow enemies."
+    },
+    {
+      "animal": "Slugs",
+      "home": "Shikkotsu Forest (giant bones, humid forest)",
+      "traits": "Katsuyu-type giant slug that splits into many small slugs; healing; acid spray",
+      "game_suggestion": "Healer summon: small slugs attach to allies for HoT. Medical-ninja quest line."
+    },
+    {
+      "animal": "Ninken (ninja dogs)",
+      "home": "Varies (clan kennels); summoned by scroll",
+      "traits": "Excellent sense of smell, tracking, biting to restrain; often wear Konoha headbands/vests",
+      "game_suggestion": "Early tracking summon; follows scent trails to mission targets."
+    },
+    {
+      "animal": "Hawks / Birds",
+      "home": "Various (mountain aeries)",
+      "traits": "Aerial transport and scouting; message carriers",
+      "game_suggestion": "Fast-travel/scouting: summon hawk to reveal a map area or carry the player."
+    },
+    {
+      "animal": "Monkeys",
+      "home": "Mountain of Monkeys (Enma line, summoned for staff transformations)",
+      "traits": "Monkey King turns into an unbreakable adamantine staff",
+      "game_suggestion": "Weapon-summon: monkey transforms into staff, combos with staff skill tree."
+    },
+    {
+      "animal": "Ninja Cats",
+      "home": "Cat Ruins (Neko Baa's hideout, anime)",
+      "traits": "Cat ninja that sell ninja tools and weapons, paw prints",
+      "game_suggestion": "Black-market merchant/blacksmith hub."
+    },
+    {
+      "animal": "Salamander",
+      "home": "Varies",
+      "traits": "Giant salamander spewing poison mist",
+      "game_suggestion": "Boss summon for enemy jonin; poison gas area denial."
+    },
+    {
+      "animal": "Weasels / Tool summons, Crows",
+      "home": "Various",
+      "traits": "Crows used for genjutsu, scouting; weasel wind blades",
+      "game_suggestion": "Genjutsu-aligned summon: crow flocks blinding enemies."
+    },
+    {
+      "animal": "Spiders",
+      "home": "Varies (Sound region)",
+      "traits": "Giant spiders, webs, golden sticky threads",
+      "game_suggestion": "Forest dungeon trap enemies or player summon for web traps."
+    },
+    {
+      "animal": "Giant animals of the Forest of Death (Training Ground 44)",
+      "home": "Forest of Death in Konoha: enormous trees, rivers, fenced with 44 gates",
+      "traits": "Giant tigers, giant centipedes, giant leeches, giant snakes, man-eating bears and insects",
+      "game_suggestion": "Exam zone filled with wild giant beasts; survival exam event (Heaven/Earth scroll pairing mechanic)."
+    }
+  ],
+  "legendary_weapons": [
+    {
+      "name": "Kubikiribocho (Executioner's Blade)",
+      "description": "Huge cleaver-like sword with a round hole near the tip (to cut necks) and a semicircle cut near the handle; regenerates damage by absorbing iron from blood of victims",
+      "game_suggestion": "Heavy cleaver: slow, huge damage; durability self-repairs on hit (lifesteal for weapon durability)."
+    },
+    {
+      "name": "Samehada (Shark Skin)",
+      "description": "Sentient sword covered with scales/bandages, absorbs chakra from enemies and transfers it to the wielder; can choose its owner",
+      "game_suggestion": "Chakra-leeching sword; loyalty system (weapon can reject the player)."
+    },
+    {
+      "name": "Kiba (Fangs)",
+      "description": "Pair of lightning-imbued twin swords, sharpest of the seven",
+      "game_suggestion": "Dual-wield lightning swords with chain-lightning procs."
+    },
+    {
+      "name": "Nuibari (Sewing Needle)",
+      "description": "Long needle-like sword with a long wire attached to the hilt, can stitch multiple enemies together",
+      "game_suggestion": "Piercing + wire pull; skewer multiple enemies in a line and bind them."
+    },
+    {
+      "name": "Shibuki (Splash)",
+      "description": "Sword with a scroll of explosive tags on the blade; explosive slashes",
+      "game_suggestion": "Explosive melee with ammo (explosive tags) replenished at shops."
+    },
+    {
+      "name": "Kabutowari (Helmet Splitter)",
+      "description": "Combination of an axe and a hammer connected by a chain; can break any defense",
+      "game_suggestion": "Armor-break weapon: ignores block, shatters shields and ice/earth walls."
+    },
+    {
+      "name": "Hiramekarei (Twin Sword)",
+      "description": "Twin-handled broad blade wrapped in bandages that stores chakra and releases it as shaped weapons",
+      "game_suggestion": "Charge-store mechanic: store chakra, release as a hammer/sword shape AoE."
+    },
+    {
+      "name": "Gunbai / Fan-type war weapons",
+      "description": "Large war fans that reflect attacks and generate wind",
+      "game_suggestion": "Reflect projectiles back; wind gust knockback."
+    },
+    {
+      "name": "Chakra Blades / Trench Knives",
+      "description": "Knuckle knives that channel wind chakra to extend cutting power",
+      "game_suggestion": "Wind affinity weapon class; extends range per chakra infusion."
+    },
+    {
+      "name": "Chakra-conducting metal (ninjato)",
+      "description": "Standard Anbu straight swords made of chakra-conductive metal",
+      "game_suggestion": "Base for weapon-elemental infusion upgrades."
+    }
+  ],
+  "culture": [
+    {
+      "topic": "Will of Fire",
+      "description": "Konoha's philosophy that the entire village is a family and that love of the village is passed from generation to generation; protecting the young ('the king') is the highest duty",
+      "game_suggestion": "Reputation/morale system: protective actions boost village bond, unlocking passive buffs near allies."
+    },
+    {
+      "topic": "Forehead protector (hitai-ate)",
+      "description": "Metal plate with village symbol on cloth; sign of ninja status after graduating the academy; worn on forehead, arm, waist, neck. Scratched line through the symbol marks a missing-nin",
+      "game_suggestion": "Customisable equipment slot (cloth color, position). Scratching it = defection choice that changes faction state."
+    },
+    {
+      "topic": "Flak jacket",
+      "description": "Protective vest with scroll pouches worn by chunin and jonin; varies by village",
+      "game_suggestion": "Rank-gated armor; equipped after chunin promotion."
+    },
+    {
+      "topic": "Ninja ranks",
+      "description": "Academy student -> Genin -> Chunin (via Chunin Exam) -> Jonin / Special Jonin -> Kage; Anbu as special forces; missing-nin ranked by bingo book (D to S)",
+      "game_suggestion": "Core progression ladder; Chunin Exam as a major story event; Bingo Book bounty board."
+    },
+    {
+      "topic": "Mission ranks",
+      "description": "D-rank (chores), C-rank (escort, low danger), B, A, S (top secret, extremely dangerous); payment scaled accordingly",
+      "game_suggestion": "Mission board with rank requirements and ryo rewards."
+    },
+    {
+      "topic": "Ryo (currency)",
+      "description": "Currency used in the Naruto world, e.g. mission payments and bounties; items like ramen cost a few hundred ryo",
+      "game_suggestion": "Main currency; mission rewards, bounties, shops."
+    },
+    {
+      "topic": "Ramen and food",
+      "description": "Konoha has popular ramen stands (Ichiraku-style counter with noren curtains), barbecue restaurants, dango shops, tea houses; soldier pills and food pills for ninja",
+      "game_suggestion": "Food buffs (ramen = stamina regen, barbecue = strength, dango = speed); create original shops."
+    },
+    {
+      "topic": "Festivals",
+      "description": "Seasonal festivals with lanterns, yukata, food stalls, fireworks; Konoha festivals celebrate founding or heroes",
+      "game_suggestion": "Seasonal events with minigames (goldfish scooping, shuriken target booth), cosmetic yukata."
+    },
+    {
+      "topic": "Memorial Stone (Cenotaph)",
+      "description": "Stone monument in a Konoha training ground where names of ninja killed in action are engraved; also the stone where 'heroes' are remembered",
+      "game_suggestion": "Place for quiet story moments; fallen companion NPCs' names added; permadeath mode memorial."
+    },
+    {
+      "topic": "Ninja way (nindo)",
+      "description": "Personal creed each ninja chooses and holds to, e.g. never going back on one's word",
+      "game_suggestion": "Character creation choice granting passive perk (e.g. 'Never give up': low-HP buff)."
+    },
+    {
+      "topic": "Hand seals",
+      "description": "Twelve zodiac hand seals (Rat, Ox, Tiger, Hare, Dragon, Snake, Horse, Ram, Monkey, Bird, Dog, Boar) used to mould chakra for jutsu",
+      "game_suggestion": "Seal input combos for jutsu casting (skill = faster sequences)."
+    },
+    {
+      "topic": "Chakra nature affinities",
+      "description": "Fire, Wind, Lightning, Earth, Water with a rock-paper-scissors relationship (Fire > Wind > Lightning > Earth > Water > Fire); chakra paper test reveals affinity",
+      "game_suggestion": "Elemental damage matrix; chakra paper affinity test at character creation."
+    },
+    {
+      "topic": "Kage and Five Great Nations",
+      "description": "Hokage, Kazekage, Mizukage, Raikage, Tsuchikage lead villages under feudal daimyo",
+      "game_suggestion": "Political map with original Kage NPCs."
+    },
+    {
+      "topic": "Ninja Academy and Chunin Exams",
+      "description": "Academy teaches basics (clone, transformation, substitution); Chunin Exams have a written test, survival test (Forest of Death), and a tournament",
+      "game_suggestion": "Tutorial region and first major story arc."
+    }
+  ],
+  "enemy_archetypes": [
+    {
+      "name": "Missing-nin of the Mist",
+      "region": "Land of Water / borders",
+      "abilities": "Hidden Mist Technique, silent killing, water clones, Water Prison, large swords",
+      "game_suggestion": "Fog encounters where visibility drops; swordsmen elite variant."
+    },
+    {
+      "name": "Sound village ninja",
+      "region": "Land of Rice Fields / Sound hideouts",
+      "abilities": "Sound-wave attacks via arm devices, cursed seal transformations, poison, snake summons",
+      "game_suggestion": "Cursed-seal enemies with a second phase; underground lab dungeons."
+    },
+    {
+      "name": "Bandits and Rogue Mercenaries",
+      "region": "Roads and borderlands everywhere",
+      "abilities": "Swords, simple taijutsu, ambushes, some low-rank ninja",
+      "game_suggestion": "Early-game random encounters on escort missions."
+    },
+    {
+      "name": "Samurai",
+      "region": "Land of Iron",
+      "abilities": "Chakra-blade iaido, armor, discipline",
+      "game_suggestion": "Parry-heavy duel enemies; honor duels."
+    },
+    {
+      "name": "Cloud ninja (Kumo)",
+      "region": "Land of Lightning",
+      "abilities": "Lightning Release, sword arts, Lariat-style strong taijutsu",
+      "game_suggestion": "Fast, aggressive enemies; lightning shield mechanics."
+    },
+    {
+      "name": "Stone ninja (Iwa)",
+      "region": "Land of Earth",
+      "abilities": "Earth Release walls, clay explosives, flight/weight jutsu",
+      "game_suggestion": "Defensive enemies with destructible walls; explosive clay specialists."
+    },
+    {
+      "name": "Sand ninja and Puppeteers",
+      "region": "Land of Wind",
+      "abilities": "Wind Release, puppets, poison",
+      "game_suggestion": "Desert enemy packs with puppet adds."
+    },
+    {
+      "name": "Rain ninja",
+      "region": "Amegakure",
+      "abilities": "Rain-based sensing, umbrella senbon, breathing masks with gas",
+      "game_suggestion": "Rainy urban stealth zone enemies."
+    },
+    {
+      "name": "Hunter-nin squads",
+      "region": "Any (if player is a missing-nin)",
+      "abilities": "Tracking, sealing, senbon, coordinated squads",
+      "game_suggestion": "Dynamic pursuit system."
+    },
+    {
+      "name": "Wild giant animals",
+      "region": "Forest of Death, wilderness",
+      "abilities": "Giant tigers, centipedes, bears, snakes",
+      "game_suggestion": "Wildlife combat; materials for crafting."
+    },
+    {
+      "name": "Criminal syndicate duos (Akatsuki-inspired)",
+      "region": "Worldwide",
+      "abilities": "S-rank, diverse kekkei genkai, coordinated pair attacks",
+      "game_suggestion": "Endgame boss pairs from an original organisation."
+    }
+  ]
+}

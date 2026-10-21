@@ -2,3 +2,8 @@
 Test/
 Oyun/
 __pycache__/
+tools/*.exe
+tools/*.zip
+assets_src/
+godot/.godot/
+*.import.bak

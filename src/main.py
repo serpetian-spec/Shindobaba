@@ -45,7 +45,7 @@ class Controls(Entity):
         state.world.phys.separate_bodies()
 
 
-Controls()
+Controls(ignore_paused=True)
 
 # otomatik test: ekran görüntüsü alıp kapanır
 if '--shot' in sys.argv:

@@ -1,0 +1,1306 @@
+{
+  "meta": {
+    "source": "Narutopedia (naruto.fandom.com) wikitext via MediaWiki API, fetched 2026-10-22",
+    "grid": "0-100; x increases to the east, y increases to the north",
+    "map_basis": "approx_xy derived from the clickable imagemap coordinates on Narutopedia's 'Geography' page (Naruto World Map.svg, ~1340x880 px): x = px/13.4, y = 100 - py/8.8. Village dots are exact map positions; country values are rough polygon centroids. Entries with approx_xy_confidence='low' are not on the canon map and are placed from text descriptions only.",
+    "world_overview": "One large continent. Land of Fire sits in the centre/south-centre; Land of Earth in the north-west (mountainous, landlocked toward the map edge); Land of Lightning on a north-east peninsula with a crooked coastline; Land of Wind is desert in the south-west; Land of Water is an archipelago of misty islands in the eastern sea, off the continent (south-east of Lightning, east of Fire). A belt of small countries sits between the great nations: Rivers (between Wind and Fire), Rain and Grass (between Earth, Wind and Fire), Waterfalls (south of Earth, north of Grass), Sound, Hot Water and Frost (a chain along Fire's northern border running toward Lightning). Islands off Fire's coast: Land of Waves (south, linked to the mainland by the Great Naruto Bridge), former Land of Whirlpools (east), Land of Tea (two islands off the eastern shore).",
+    "seas_and_coasts": [
+      "Southern sea: the southern edges of Wind, Rivers and Fire reach the bottom of the map; Land of Waves is an island off Fire's south coast.",
+      "Eastern sea: between Fire's east coast and the Land of Water archipelago; contains the former Land of Whirlpools island and the Land of Tea islands (Nagi Island, Ouza Island).",
+      "North-east: Land of Lightning peninsula; rivers from its central mountains create a heavily indented coastline. The Island Turtle (a giant moving turtle-island) roams its waters.",
+      "Land of Earth is bordered by rocky mountain ranges; north wind carries pebbles over them ('Rock Rain').",
+      "Land of Water: many islands, many lakes, cool misty weather, colder snowy regions; 'Sea of Death' is a windy sea route there."
+    ]
+  },
+  "countries": [
+    {
+      "id": "fire",
+      "name_en": "Land of Fire",
+      "name_jp": "火の国 (Hi no Kuni)",
+      "village": "Konohagakure",
+      "village_jp": "木ノ葉隠れの里 (Konohagakure no Sato) - 'Village Hidden by Tree Leaves'",
+      "position": "Centre of the continent; Earth to the north-west, Lightning to the north-east, Water across the eastern sea, Wind to the south-west (Land of Rivers lies between Fire and Wind). Southern and eastern coasts.",
+      "approx_xy": [
+        50.7,
+        27.3
+      ],
+      "village_xy": [
+        47.3,
+        36.7
+      ],
+      "approx_size": "large",
+      "biome": "temperate broadleaf forest with rivers, hills and farmland",
+      "climate": "very bright and warm; mild seasons",
+      "terrain_features": [
+        "vast dense forests with giant trees",
+        "rolling hills",
+        "rivers and waterfalls",
+        "cliff-faced mountain behind Konoha (Hokage Rock)",
+        "southern and eastern coastline",
+        "Valley of the End on the northern border with Sound"
+      ],
+      "village_architecture": "Konoha is the largest hidden village: a roughly circular town in a forest clearing, ringed by an enormous perimeter wall (with torii arches built around it) and four entrance gates. It fans out from the Hokage Rock cliff, which has the Hokage faces carved in it. Most buildings are 2-4 storey boxes in cream, beige or tan plaster with red-orange, green or blue tiled or flat roofs. Many roofs have cylindrical water tanks, and streets are lined with wooden utility poles and shop signs. The administration complex is a large red-orange cylinder with 火 (fire) painted on it. Build it as a dense grid of small boxes with flat or low-pitched roofs on narrow streets, with a cliff behind and a tall wall ringing everything.",
+      "village_landmarks": [
+        {
+          "name": "Hokage Rock",
+          "description": "Mountain cliff overlooking the village with the faces of every Hokage carved into it; the village fans out from it. It contains the Archive Library and a hidden shelter chamber."
+        },
+        {
+          "name": "Main Gate (A-Un Gate)",
+          "description": "Huge double doors in the perimeter wall. The hiragana あ and ん are painted one on each door (together 'an', meaning 'hermitage'). Konoha's four entrance gates all carry this marking."
+        },
+        {
+          "name": "Academy / Hokage's Office",
+          "description": "Huge multi-building complex directly at the base of the Hokage Rock with a large 火 sign. A tree with a swing stands in front. The Hokage's office, with a big window over the village, is in the administrative part."
+        },
+        {
+          "name": "Hokage Residence",
+          "description": "Large circular mansion with 火 on the roof, near the Academy and directly beneath the carved faces; one of the tallest buildings; stores forbidden scrolls."
+        },
+        {
+          "name": "Konoha Hospital",
+          "description": "Large building marked with the kanji 医 (medicine)."
+        },
+        {
+          "name": "Memorial Stone",
+          "description": "Lists shinobi killed in service. It is a polished kunai-shaped monument in the anime and a slab in the manga, and stands by the Third Training Ground."
+        },
+        {
+          "name": "Naka Shrine",
+          "description": "Uchiha clan shrine in the Uchiha District, downstream on the Naka River, with a secret meeting hall under the seventh tatami mat."
+        },
+        {
+          "name": "Ramen Ichiraku",
+          "description": "Small ramen stand with a noren curtain and a counter with stools, on a shopping street."
+        }
+      ],
+      "notable_locations": [
+        {
+          "name": "Valley of the End",
+          "description": "Waterfall gorge on the Fire-Sound border with two colossal statues facing each other across it."
+        },
+        {
+          "name": "Fire Temple",
+          "description": "Large Shaolin-like ninja-monk monastery in forest. In the anime it is enclosed by mountains on three sides with a field to the south, and has tengu statues at the gates, sealed iron walls and four guardian graves at the cardinal points."
+        },
+        {
+          "name": "Tanzaku Quarters",
+          "description": "Lively gambling and festival town a fair distance south-west of Konoha. Its castle is a tourist landmark."
+        },
+        {
+          "name": "Great Naruto Bridge",
+          "description": "Long, wide bridge connecting the Land of Fire's south coast to the island Land of Waves."
+        },
+        {
+          "name": "Nara Clan Forest",
+          "description": "Clan-owned deer forest on Konoha's outskirts; outsiders need permission to enter."
+        },
+        {
+          "name": "Hachō Village / Tonika Village",
+          "description": "Small border villages of the Land of Fire."
+        }
+      ],
+      "kage_title": "Hokage (火影, 'Fire Shadow')",
+      "symbol_description": "Stylised leaf: a spiral swirl with a small triangular point at its lower-left. Konoha flak jackets also carry the red Uzushiogakure spiral on the back.",
+      "specialties": [
+        "largest military",
+        "Fire Release",
+        "many famous clans and secret clan techniques (e.g. Byakugan, shadow and body-expansion techniques)",
+        "medical ninjutsu",
+        "Anbu / Root black-ops",
+        "Will of Fire ideology"
+      ],
+      "nature_affinity_common": "fire"
+    },
+    {
+      "id": "wind",
+      "name_en": "Land of Wind",
+      "name_jp": "風の国 (Kaze no Kuni)",
+      "village": "Sunagakure",
+      "village_jp": "砂隠れの里 (Sunagakure no Sato) - 'Village Hidden by Sand'",
+      "position": "South-west of the Land of Fire. Borders the Land of Rivers (which separates it from Fire) and Amegakure's country, and has a southern coast. Largest landmass of the south-west.",
+      "approx_xy": [
+        17.9,
+        22.7
+      ],
+      "village_xy": [
+        22.7,
+        14.9
+      ],
+      "approx_size": "large",
+      "biome": "desert (about 80% desert) with oases",
+      "climate": "hot, arid, very little rainfall, sandstorms",
+      "terrain_features": [
+        "sand dunes",
+        "oasis settlements",
+        "rock cliffs and canyons",
+        "ancient ruined cities buried in the desert",
+        "Demon Desert (enclosed exam desert with quicksand, sand currents, a sand-waterfall pit, poison cacti)"
+      ],
+      "village_architecture": "Sunagakure sits in a sunken valley fortified by sheer rock cliffs. The only way in or out is a single narrow cleft between two cliff faces. Inside are rounded clay or stucco buildings in sand and ochre colours: squat cylinders and boxes with domed or flat tops, small round windows and few sharp edges. The Kazekage building is a large round sand-coloured building with rows of windows, 風 (wind) painted in a circle on its side, and a flat tiled top with a water tower. Build it from cylinders, domes and boxes with rounded edges, ringed by a high rock wall that has one gap.",
+      "village_landmarks": [
+        {
+          "name": "Kazekage's Office",
+          "description": "Large round building with 風 painted in a circle. It houses the council chamber with statues of past Kazekage, where violence is forbidden."
+        },
+        {
+          "name": "Village cleft entrance",
+          "description": "The only ground entrance, a narrow passage between two cliff walls."
+        },
+        {
+          "name": "Suna Hospital",
+          "description": "Village hospital."
+        },
+        {
+          "name": "Suna Greenhouse",
+          "description": "Greenhouse growing plants in the desert village."
+        },
+        {
+          "name": "Suna Aviary",
+          "description": "Messenger-bird facility."
+        }
+      ],
+      "notable_locations": [
+        {
+          "name": "Demon Desert",
+          "description": "Walled desert exam ground with a central tower, giant three-tailed scorpions, giant ants and old ruins."
+        },
+        {
+          "name": "Rōran",
+          "description": "Ancient desert city in the Land of Wind."
+        },
+        {
+          "name": "Ancient desert cities",
+          "description": "Many dormant ruins said to predate the desert."
+        }
+      ],
+      "kage_title": "Kazekage (風影, 'Wind Shadow')",
+      "symbol_description": "Hourglass-like sand symbol: two rounded shapes stacked and pinched in the middle.",
+      "specialties": [
+        "Puppet Technique / Puppet Brigade",
+        "poisons",
+        "Wind Release with large war fans",
+        "sand manipulation",
+        "Cloth Binding sealing",
+        "village made of families rather than clans"
+      ],
+      "nature_affinity_common": "wind"
+    },
+    {
+      "id": "water",
+      "name_en": "Land of Water",
+      "name_jp": "水の国 (Mizu no Kuni), also 'Land of Mist' 霧の国",
+      "village": "Kirigakure",
+      "village_jp": "霧隠れの里 (Kirigakure no Sato) - 'Village Hidden by Mist'",
+      "position": "Archipelago in the eastern sea, remote from the continent; east of the Land of Fire and south-east of Lightning. Smallest of the five in land area.",
+      "approx_xy": [
+        94.8,
+        26.1
+      ],
+      "village_xy": [
+        92.5,
+        25.8
+      ],
+      "approx_size": "medium",
+      "biome": "misty islands with lakes, coastal cliffs and mountains; some snowy regions",
+      "climate": "cool, foggy; some areas very cold with heavy snow",
+      "terrain_features": [
+        "many islands each with its own traditions",
+        "many lakes",
+        "thick mist",
+        "mountains behind Kirigakure",
+        "Sea of Death (fierce-wind sea route)",
+        "Dotō Island",
+        "Shinonome sea stations"
+      ],
+      "village_architecture": "Kirigakure is wrapped in thick mist with mountains behind it. Most buildings are squat cylinders in muted blue-grey and stone tones, and most have grass or vegetation growing on their flat round roofs. The Mizukage's office is the widest, largest cylinder, in the centre of the village, with 水 (water) on the front. Build it from clustered cylinders of varied height with green caps, by water, under dense fog.",
+      "village_landmarks": [
+        {
+          "name": "Mizukage's Office",
+          "description": "Largest cylindrical building in the village centre, with 水 on its face. A world-map painting hangs inside."
+        },
+        {
+          "name": "Kirigakure Academy",
+          "description": "Academy, historically infamous for fight-to-the-death graduation ('Village of the Bloody Mist')."
+        },
+        {
+          "name": "Memorial Park",
+          "description": "Park in the village."
+        },
+        {
+          "name": "Kirigakure Sealing Chamber",
+          "description": "Sealing facility."
+        }
+      ],
+      "notable_locations": [
+        {
+          "name": "Sea of Death",
+          "description": "Sea route known for violent winds."
+        },
+        {
+          "name": "Dotō Island",
+          "description": "Island of the Land of Water."
+        },
+        {
+          "name": "Shinonome",
+          "description": "Sea stations off the Land of Water."
+        }
+      ],
+      "kage_title": "Mizukage (水影, 'Water Shadow')",
+      "symbol_description": "Four short wavy/zigzag lines side by side, like ripples or falling water.",
+      "specialties": [
+        "Water Release",
+        "Hiding in Mist / silent killing",
+        "Seven Ninja Swordsmen of the Mist (legendary blades)",
+        "hunter-nin who track defectors",
+        "historically feared kekkei genkai clans"
+      ],
+      "nature_affinity_common": "water"
+    },
+    {
+      "id": "lightning",
+      "name_en": "Land of Lightning",
+      "name_jp": "雷の国 (Kaminari no Kuni)",
+      "village": "Kumogakure",
+      "village_jp": "雲隠れの里 (Kumogakure no Sato) - 'Village Hidden by Clouds'",
+      "position": "North-east peninsula, north-east of the Land of Fire. The Land of Frost lies on its western border, with a desert along that border.",
+      "approx_xy": [
+        84.3,
+        78.4
+      ],
+      "village_xy": [
+        79.4,
+        69.7
+      ],
+      "approx_size": "large",
+      "biome": "high mountain ranges, cloud forests, rugged coast",
+      "climate": "stormy mountains with frequent thunderstorms; hot springs",
+      "terrain_features": [
+        "vast central mountain ranges with constant thunderstorms",
+        "many rivers to the sea",
+        "very crooked, scenic coastline",
+        "many hot springs",
+        "desert along the western Frost border",
+        "Valley of Clouds and Lightning (fog-filled water valley with a dark training cavern)",
+        "Island Turtle offshore"
+      ],
+      "village_architecture": "Kumogakure is built high among tall needle-like rock spires and pillars, literally inside the clouds. Its buildings are white and pale-blue cylindrical towers with dome tops, perched on and built into the spires and joined by bridges and walkways. The Raikage's office is a large blue domed structure on the tallest peak with 雷 (lightning) on the front. Build it from tall thin rock cylinders and cones with dome-capped cylinders on top and plank bridges between them, plus a cloud layer partway up.",
+      "village_landmarks": [
+        {
+          "name": "Raikage's Office",
+          "description": "Large blue structure in the tallest tower/mountain, marked 雷."
+        },
+        {
+          "name": "Allied Shinobi Forces' Headquarters",
+          "description": "War-time headquarters located in the Land of Lightning."
+        }
+      ],
+      "notable_locations": [
+        {
+          "name": "Valley of Clouds and Lightning",
+          "description": "Cloud-covered, water-filled valley in the mountains with a dark training cavern."
+        },
+        {
+          "name": "Island Turtle (Genbu)",
+          "description": "Colossal grey spiked turtle whose shell is a jungle island with ferocious beasts, the Falls of Truth, a guardian giant squid and a barrier. It moves, so it can only be found from the air."
+        }
+      ],
+      "kage_title": "Raikage (雷影, 'Lightning Shadow')",
+      "symbol_description": "Stylised cloud: a rounded cloud outline with horizontal lines inside.",
+      "specialties": [
+        "Lightning Release",
+        "powerful taijutsu / lightning armour",
+        "strongest economy of the five",
+        "kanji shoulder tattoos common"
+      ],
+      "nature_affinity_common": "lightning"
+    },
+    {
+      "id": "earth",
+      "name_en": "Land of Earth",
+      "name_jp": "土の国 (Tsuchi no Kuni)",
+      "village": "Iwagakure",
+      "village_jp": "岩隠れの里 (Iwagakure no Sato) - 'Village Hidden by Rocks'",
+      "position": "North-west of the Land of Fire. Rocky mountain ranges along its border separate it from Grass, Waterfalls, Rain and the stone-village country.",
+      "approx_xy": [
+        18.7,
+        75.0
+      ],
+      "village_xy": [
+        30.4,
+        68.2
+      ],
+      "approx_size": "large",
+      "biome": "desolate rocky highlands and canyons",
+      "climate": "dry, windy; north winds carry pebbles over the border mountains ('Rock Rain')",
+      "terrain_features": [
+        "desolate rocky terrain",
+        "border mountain ranges",
+        "canyons and mesas",
+        "Rock Rain phenomenon"
+      ],
+      "village_architecture": "Iwagakure is surrounded by rocky mountain ranges that act as a natural fortress. Its buildings are carved and built from the surrounding rock: tall brown-grey stone towers and pillars with windows, joined by a network of bridges. The Tsuchikage's residence is the tallest tower, with a cone-shaped roof bearing 土 (earth). Build it from clustered rock cylinders and boxes of uneven height with rope or plank bridges between them, set in a canyon.",
+      "village_landmarks": [
+        {
+          "name": "Tsuchikage's residence",
+          "description": "Tallest tower in the village, with a cone roof marked 土."
+        },
+        {
+          "name": "Stone Monument",
+          "description": "Ornate pedestal holding a smooth stone, set in a pool of similar stones; symbol of the 'Will of Stone'."
+        }
+      ],
+      "notable_locations": [],
+      "kage_title": "Tsuchikage (土影, 'Earth Shadow')",
+      "symbol_description": "Two upright stone/mountain shapes side by side (stylised rocks).",
+      "specialties": [
+        "Earth Release",
+        "absolute obedience to the Tsuchikage ('rock-hard attitude')",
+        "explosive and stone-based fighting",
+        "natural fortress defence"
+      ],
+      "nature_affinity_common": "earth"
+    },
+    {
+      "id": "rain",
+      "name_en": "Land of Rain (unnamed country of Amegakure)",
+      "name_jp": "雨の国 (Ame no Kuni, fan/common name; officially unnamed)",
+      "village": "Amegakure",
+      "village_jp": "雨隠れの里 (Amegakure no Sato) - 'Village Hidden by Rain'",
+      "position": "Small country wedged between Fire (east), Wind (south-west), Earth (north) and Grass (north). It was the battleground of the great wars.",
+      "approx_xy": [
+        30.7,
+        37.8
+      ],
+      "village_xy": [
+        30.7,
+        37.8
+      ],
+      "approx_size": "small",
+      "biome": "rain-soaked plains, lakes and industrial city",
+      "climate": "almost constant rain",
+      "terrain_features": [
+        "huge lake surrounding the village",
+        "war-scarred land",
+        "constant rainfall"
+      ],
+      "village_architecture": "Amegakure is a small, highly industrialised city in the middle of a large lake. It is a dense cluster of dark grey metal skyscrapers and towers covered in pipes, under constant rain. Pain's Tower is the tallest: it has a giant humanoid face on each side with tongues stuck out and pipes, and it is connected to two smaller towers. Build it from tall dark boxes and cylinders with pipe cylinders, on an island in a lake, with heavy rain particles.",
+      "village_landmarks": [
+        {
+          "name": "Pain's Tower",
+          "description": "Tallest tower with four huge faces, one per side; connected to two smaller towers."
+        },
+        {
+          "name": "Nagato and Yahiko's Shrine",
+          "description": "Shrine in Amegakure."
+        }
+      ],
+      "notable_locations": [],
+      "kage_title": null,
+      "symbol_description": "Four vertical parallel lines (falling rain).",
+      "specialties": [
+        "assassination missions",
+        "genjutsu",
+        "rebreathers",
+        "short-tempered, self-made original techniques"
+      ],
+      "nature_affinity_common": "water"
+    },
+    {
+      "id": "grass",
+      "name_en": "Land of Grass (unnamed country of Kusagakure)",
+      "name_jp": "草の国 (Kusa no Kuni, common name; officially unnamed)",
+      "village": "Kusagakure",
+      "village_jp": "草隠れの里 (Kusagakure no Sato) - 'Village Hidden in the Grass'",
+      "position": "Borders Fire to the east, Earth to the north-west, Takigakure (Waterfalls) to the north and Amegakure to the south. Landlocked. It was a front line between Iwa and Konoha in the Third War.",
+      "approx_xy": [
+        32.2,
+        45.6
+      ],
+      "village_xy": [
+        32.2,
+        45.6
+      ],
+      "approx_size": "small",
+      "biome": "lush forests including giant-mushroom and bamboo forests",
+      "climate": "temperate, humid",
+      "terrain_features": [
+        "dense forests",
+        "giant mushroom forests",
+        "bamboo groves",
+        "many rivers",
+        "deep ravines (Tenchi Bridge, Kannabi Bridge)"
+      ],
+      "village_architecture": "Little is shown of the village itself. The country is forest, giant-mushroom and bamboo groves cut by deep ravines spanned by bridges. A reasonable approach is low wooden houses hidden among tall grass and bamboo.",
+      "village_landmarks": [
+        {
+          "name": "Hōzuki Castle (Blood Prison)",
+          "description": "Large castle prison controlled by Kusagakure, surrounded by hōzuki (lantern) plants; shown on a sea cliff in the film."
+        }
+      ],
+      "notable_locations": [
+        {
+          "name": "Kannabi Bridge",
+          "description": "Large bridge over a river; a vital Iwa supply line in the Third War; destroyed."
+        },
+        {
+          "name": "Tenchi Bridge",
+          "description": "Medium-sized arch bridge over a deep ravine; destroyed."
+        },
+        {
+          "name": "Orochimaru's Kusagakure hideout",
+          "description": "Underground base entered at the foot of a rock formation, with a giant coiled-snake statue inside."
+        }
+      ],
+      "kage_title": null,
+      "symbol_description": "Three-stroke grass sprout mark.",
+      "specialties": [
+        "diplomacy and reading other nations' movements",
+        "analysing other villages' techniques"
+      ],
+      "nature_affinity_common": "unspecified"
+    },
+    {
+      "id": "waterfalls",
+      "name_en": "Land of Waterfalls (unnamed country of Takigakure)",
+      "name_jp": "滝の国 (Taki no Kuni, common name; officially unnamed)",
+      "village": "Takigakure",
+      "village_jp": "滝隠れの里 (Takigakure no Sato) - 'Village Hidden by a Waterfall'",
+      "position": "North of the Land of Grass, south-east of Earth, west of Sound; north-west of Konoha.",
+      "approx_xy": [
+        39.0,
+        59.9
+      ],
+      "village_xy": [
+        39.0,
+        59.9
+      ],
+      "approx_size": "small",
+      "biome": "forested river highlands with waterfalls",
+      "climate": "temperate, humid",
+      "terrain_features": [
+        "giant waterfall concealing the village",
+        "underwater cave system",
+        "large inner lake",
+        "giant central tree"
+      ],
+      "village_architecture": "Takigakure is hidden behind a huge waterfall and reached through underwater caves that open into a large lake in the middle of the village. A giant tree stands at the centre, with a small pavilion holding the Hero Water among its roots. Housing is simple wooden huts with Southeast-Asian styling; the village head lives in a small hut marked 滝. Build it as a lake basin enclosed by cliffs and a waterfall plane, with a giant cylinder trunk and sphere canopy in the centre and small huts around the shore.",
+      "village_landmarks": [
+        {
+          "name": "Great waterfall entrance",
+          "description": "Access is through an underwater cave system under the falls."
+        },
+        {
+          "name": "Central great tree / Hero Water pavilion",
+          "description": "Pavilion deep within the roots of the large central tree."
+        },
+        {
+          "name": "Village Head's Residence",
+          "description": "Small spartan wooden hut with a 滝 sign."
+        }
+      ],
+      "notable_locations": [
+        {
+          "name": "Mountains' Graveyard",
+          "description": "Northern forested mountain region between Takigakure and Otogakure with giant creature bones jutting out; hides an abandoned mine connected to ancient ruins."
+        }
+      ],
+      "kage_title": null,
+      "symbol_description": "Stylised droplet/waterfall mark.",
+      "specialties": [
+        "Hero Water (anime)",
+        "village concealment"
+      ],
+      "nature_affinity_common": "water"
+    },
+    {
+      "id": "sound",
+      "name_en": "Land of Sound (formerly Land of Rice Fields)",
+      "name_jp": "音の国 (Oto no Kuni); formerly 田の国 (Ta no Kuni)",
+      "village": "Otogakure",
+      "village_jp": "音隠れの里 (Otogakure no Sato) - 'Village Hidden by Sound'",
+      "position": "Small country on the northern border of the Land of Fire; west of Hot Water, east of Waterfalls. The Valley of the End marks the Fire-Sound border.",
+      "approx_xy": [
+        51.5,
+        55.7
+      ],
+      "village_xy": [
+        51.6,
+        55.9
+      ],
+      "approx_size": "small",
+      "biome": "rice paddies, forests and rocky hills",
+      "climate": "temperate",
+      "terrain_features": [
+        "rice fields",
+        "forest",
+        "hidden underground lairs"
+      ],
+      "village_architecture": "Otogakure is not really a village but a network of laboratories and hideouts, most of them underground. The main base was built beneath a tree, with snake markings and a snake-skull shape at the top. Other lairs have snake-mouth entrances, snake candle-holders, and glass cylinders filled with liquid. Build it as small surface entrances (rock or tree with a snake-head arch) that lead to underground corridors.",
+      "village_landmarks": [
+        {
+          "name": "Land of Sound Base",
+          "description": "Former HQ built below a tree, marked with snake motifs."
+        }
+      ],
+      "notable_locations": [
+        {
+          "name": "Valley of the End",
+          "description": "Border waterfall with two giant statues; the Sound side holds the statue of the defector."
+        },
+        {
+          "name": "Northern / Southern / Eastern Hideouts",
+          "description": "Scattered labs: Southern is an island prison, Northern is a large experiment base, Eastern is underground with a snake-mouth entrance."
+        }
+      ],
+      "kage_title": null,
+      "symbol_description": "A musical eighth note.",
+      "specialties": [
+        "human experimentation / cursed seals",
+        "sound-based techniques",
+        "hideout network"
+      ],
+      "nature_affinity_common": "varied"
+    },
+    {
+      "id": "hot_water",
+      "name_en": "Land of Hot Water",
+      "name_jp": "湯の国 (Yu no Kuni)",
+      "village": "Yugakure",
+      "village_jp": "湯隠れの里 (Yugakure no Sato) - 'Village Hidden in Hot Water'",
+      "position": "North-east of the Land of Fire; borders Frost (north), Sound (west) and Fire (south).",
+      "approx_xy": [
+        61.9,
+        48.9
+      ],
+      "village_xy": [
+        56.7,
+        55.5
+      ],
+      "approx_size": "medium",
+      "biome": "volcanic hills and forests full of hot springs",
+      "climate": "temperate, steamy",
+      "terrain_features": [
+        "hot springs everywhere",
+        "remote spa settlements",
+        "potato fields",
+        "Valley of Hell",
+        "Bamboo Village"
+      ],
+      "village_architecture": "Yugakure is a resort village wrapped in thick steam from the many hot springs around it. Resort hotels are spread throughout. Build it from traditional inn buildings (boxes with pitched tiled roofs), steaming pools (flat cylinders with particle steam), and stone paths.",
+      "village_landmarks": [
+        {
+          "name": "Hot-spring resort hotels",
+          "description": "Many hotels and inns serving spa tourists."
+        }
+      ],
+      "notable_locations": [
+        {
+          "name": "Valley of Hell",
+          "description": "Location in the Land of Hot Water."
+        },
+        {
+          "name": "Bamboo Village",
+          "description": "Settlement in the Land of Hot Water."
+        }
+      ],
+      "kage_title": null,
+      "symbol_description": "Steam-like wavy lines (hot-spring motif).",
+      "specialties": [
+        "pacifism ('village that has forgotten wars')",
+        "guarding roads for tourists",
+        "medicinal spring water",
+        "potatoes"
+      ],
+      "nature_affinity_common": "unspecified"
+    },
+    {
+      "id": "frost",
+      "name_en": "Land of Frost",
+      "name_jp": "霜の国 (Shimo no Kuni)",
+      "village": "Shimogakure",
+      "village_jp": "霜隠れの里 (Shimogakure no Sato) - 'Village Hidden in Frost'",
+      "position": "Between the Land of Hot Water (south-west) and the Land of Lightning (east). A desert lies along its border with Lightning.",
+      "approx_xy": [
+        61.6,
+        60.2
+      ],
+      "village_xy": [
+        62.5,
+        59.4
+      ],
+      "approx_size": "small",
+      "biome": "cold upland",
+      "climate": "cold, frosty",
+      "terrain_features": [
+        "frosty plains",
+        "desert along the Lightning border"
+      ],
+      "village_architecture": "Not depicted in detail.",
+      "village_landmarks": [],
+      "notable_locations": [],
+      "kage_title": null,
+      "symbol_description": "Unknown / not described.",
+      "specialties": [],
+      "nature_affinity_common": "unspecified"
+    },
+    {
+      "id": "rivers",
+      "name_en": "Land of Rivers",
+      "name_jp": "川の国 (Kawa no Kuni)",
+      "village": "Tanigakure",
+      "village_jp": "谷隠れの里 (Tanigakure no Sato) - 'Village Hidden in Valleys'",
+      "position": "Buffer country between Wind (west) and Fire (east), south of Rain; reaches the southern coast.",
+      "approx_xy": [
+        38.8,
+        17.0
+      ],
+      "village_xy": [
+        38.8,
+        18.2
+      ],
+      "approx_size": "small",
+      "biome": "isolated river valleys, canyons and forest",
+      "climate": "temperate to warm",
+      "terrain_features": [
+        "many rivers",
+        "valleys and caverns ideal for hideouts",
+        "Katabami Gold Mine (anime)"
+      ],
+      "village_architecture": "Not depicted in detail; a valley village.",
+      "village_landmarks": [],
+      "notable_locations": [
+        {
+          "name": "Former Akatsuki hideout",
+          "description": "Cavern hideout in a cliff, sealed by a huge boulder; destroyed."
+        },
+        {
+          "name": "Katabami Gold Mine",
+          "description": "Gold mine, village and processing centre (anime)."
+        },
+        {
+          "name": "Takumi Village",
+          "description": "Village in the Land of Rivers."
+        }
+      ],
+      "kage_title": null,
+      "symbol_description": "Not described.",
+      "specialties": [],
+      "nature_affinity_common": "unspecified"
+    },
+    {
+      "id": "waves",
+      "name_en": "Land of Waves",
+      "name_jp": "波の国 (Nami no Kuni)",
+      "village": null,
+      "village_jp": null,
+      "position": "Island just off the Land of Fire's southern coast, south/south-east of Konoha. Linked to the mainland by the Great Naruto Bridge.",
+      "approx_xy": [
+        50.8,
+        11.2
+      ],
+      "village_xy": null,
+      "approx_size": "small",
+      "biome": "island with mangroves, rivers and fishing towns",
+      "climate": "mild, misty sea climate",
+      "terrain_features": [
+        "mangrove swamps",
+        "many rivers",
+        "coastal fishing town on stilts",
+        "sea strait crossed by the Great Naruto Bridge"
+      ],
+      "village_architecture": "No hidden village. Poor fishing and shipping towns of wooden houses, some on stilts over water, with docks.",
+      "village_landmarks": [],
+      "notable_locations": [
+        {
+          "name": "Great Naruto Bridge",
+          "description": "Long, wide bridge to the Land of Fire."
+        },
+        {
+          "name": "Sector D",
+          "description": "Area that once flooded."
+        }
+      ],
+      "kage_title": null,
+      "symbol_description": "None (no hidden village).",
+      "specialties": [
+        "shipping",
+        "carpentry/bridge-building"
+      ],
+      "nature_affinity_common": null
+    },
+    {
+      "id": "whirlpools",
+      "name_en": "Land of Whirlpools (former)",
+      "name_jp": "渦の国 (Uzu no Kuni)",
+      "village": "Uzushiogakure (destroyed)",
+      "village_jp": "渦潮隠れの里 (Uzushiogakure no Sato) - 'Village Hidden by Whirling Tides'",
+      "position": "Island off the eastern coast of the Land of Fire; destroyed country.",
+      "approx_xy": [
+        70.5,
+        28.2
+      ],
+      "village_xy": [
+        71.1,
+        28.3
+      ],
+      "approx_size": "small",
+      "biome": "sea island with whirlpool currents",
+      "climate": "maritime",
+      "terrain_features": [
+        "island",
+        "surrounding whirlpools"
+      ],
+      "village_architecture": "Ruins of a destroyed village. Use the red spiral crest as the dominant motif.",
+      "village_landmarks": [],
+      "notable_locations": [],
+      "kage_title": null,
+      "symbol_description": "Spiral (the same red swirl worn on Konoha flak jackets).",
+      "specialties": [
+        "fūinjutsu (sealing techniques)",
+        "longevity ('Village of Longevity')"
+      ],
+      "nature_affinity_common": "unspecified"
+    },
+    {
+      "id": "iron",
+      "name_en": "Land of Iron",
+      "name_jp": "鉄の国 (Tetsu no Kuni)",
+      "village": null,
+      "village_jp": null,
+      "position": "Icy, neutral country among three mountains called the Three Wolves (三狼). It is not drawn on the canon map; typically placed in the cold far north between Earth and Lightning.",
+      "approx_xy": [
+        55,
+        92
+      ],
+      "approx_xy_confidence": "low",
+      "village_xy": null,
+      "approx_size": "small",
+      "biome": "snow-covered mountains",
+      "climate": "freezing, constant snow",
+      "terrain_features": [
+        "Three Wolves mountains",
+        "snowfields",
+        "stone bridges"
+      ],
+      "village_architecture": "No shinobi village; a samurai nation. The neutral summit hall sits among snow mountains. Samurai Bridge: a blue-grey stone bridge with a torii-like gate marked 侍, topped by a statue of a sheathed sword with weights hanging from both ends.",
+      "village_landmarks": [
+        {
+          "name": "Samurai Bridge",
+          "description": "Blue stone bridge with a torii-like gate marked 侍 and a sheathed-sword statue on top."
+        },
+        {
+          "name": "Summit venue",
+          "description": "Neutral meeting place for Kage Summits; Shinobi Union headquarters."
+        }
+      ],
+      "notable_locations": [],
+      "kage_title": null,
+      "symbol_description": "Not described (samurai nation).",
+      "specialties": [
+        "samurai with chakra-flow swords",
+        "political neutrality"
+      ],
+      "nature_affinity_common": null
+    },
+    {
+      "id": "stone_village_country",
+      "name_en": "Unnamed country of Ishigakure",
+      "name_jp": "unnamed",
+      "village": "Ishigakure",
+      "village_jp": "石隠れの里 (Ishigakure no Sato) - 'Village Hidden in Stones'",
+      "position": "Between the Land of Earth (north) and the Land of Wind (south), west of Rain.",
+      "approx_xy": [
+        21.4,
+        42.2
+      ],
+      "village_xy": [
+        21.4,
+        42.2
+      ],
+      "approx_size": "small",
+      "biome": "rocky borderland",
+      "climate": "dry",
+      "terrain_features": [
+        "rocky terrain"
+      ],
+      "village_architecture": "Not depicted.",
+      "village_landmarks": [],
+      "notable_locations": [],
+      "kage_title": null,
+      "symbol_description": "Not described.",
+      "specialties": [
+        "kekkei genkai users (novel)"
+      ],
+      "nature_affinity_common": "unspecified"
+    },
+    {
+      "id": "birds",
+      "name_en": "Land of Birds",
+      "name_jp": "鳥の国 (Tori no Kuni)",
+      "village": null,
+      "village_jp": null,
+      "position": "Small country between the Land of Wind and the Land of Earth (anime). Not on the canon map.",
+      "approx_xy": [
+        12,
+        45
+      ],
+      "approx_xy_confidence": "low",
+      "village_xy": null,
+      "approx_size": "small",
+      "biome": "unspecified",
+      "climate": "unspecified",
+      "terrain_features": [],
+      "village_architecture": "Not depicted in detail.",
+      "village_landmarks": [],
+      "notable_locations": [],
+      "kage_title": null,
+      "symbol_description": "None.",
+      "specialties": [],
+      "nature_affinity_common": null
+    },
+    {
+      "id": "tea",
+      "name_en": "Land of Tea",
+      "name_jp": "茶の国 (Cha no Kuni)",
+      "village": null,
+      "village_jp": null,
+      "position": "Small country near the Land of Fire made of two islands off the eastern shore (Nagi Island and Ouza Island). Not on the canon map.",
+      "approx_xy": [
+        72,
+        40
+      ],
+      "approx_xy_confidence": "low",
+      "village_xy": null,
+      "approx_size": "small",
+      "biome": "coastal islands",
+      "climate": "maritime, mild",
+      "terrain_features": [
+        "Nagi Island",
+        "Ouza Island"
+      ],
+      "village_architecture": "No hidden village.",
+      "village_landmarks": [],
+      "notable_locations": [],
+      "kage_title": null,
+      "symbol_description": "None.",
+      "specialties": [
+        "tea"
+      ],
+      "nature_affinity_common": null
+    },
+    {
+      "id": "snow",
+      "name_en": "Land of Snow (later Land of Spring)",
+      "name_jp": "雪の国 (Yuki no Kuni)",
+      "village": "Yukigakure",
+      "village_jp": "雪隠れの里 (Yukigakure no Sato)",
+      "position": "Remote snowbound country reached by ship (film). Not on the canon map.",
+      "approx_xy": [
+        40,
+        97
+      ],
+      "approx_xy_confidence": "low",
+      "village_xy": null,
+      "approx_size": "small",
+      "biome": "frozen mountains and glaciers",
+      "climate": "perpetual winter",
+      "terrain_features": [
+        "snow mountains",
+        "glaciers",
+        "ice coast"
+      ],
+      "village_architecture": "Kazahana Castle: a beautiful Japanese-style castle in the mountains.",
+      "village_landmarks": [
+        {
+          "name": "Kazahana Castle",
+          "description": "Japanese-style castle in the snowy mountains."
+        }
+      ],
+      "notable_locations": [],
+      "kage_title": null,
+      "symbol_description": "Snowflake-like mark.",
+      "specialties": [
+        "chakra armour (film)"
+      ],
+      "nature_affinity_common": "ice/water"
+    },
+    {
+      "id": "demons",
+      "name_en": "Land of Demons",
+      "name_jp": "鬼乃国 (Oni no Kuni)",
+      "village": null,
+      "village_jp": null,
+      "position": "Two countries away from the Land of Swamps (film). Not on the canon map.",
+      "approx_xy": null,
+      "approx_xy_confidence": "none",
+      "village_xy": null,
+      "approx_size": "small",
+      "biome": "mountains and forest",
+      "climate": "unspecified",
+      "terrain_features": [
+        "waterfall behind the priestess compound",
+        "sealed cavern"
+      ],
+      "village_architecture": "Priestess' Compound: a temple complex with torii and a secret passage to a waterfall behind it. The spirit-seal shrine is a large stone building that opens into a cavern holding pits of a stone army, ropes hung with paper seals, and a central shrine ringed by five pillars.",
+      "village_landmarks": [],
+      "notable_locations": [],
+      "kage_title": null,
+      "symbol_description": "None.",
+      "specialties": [
+        "sealing priestesses"
+      ],
+      "nature_affinity_common": null
+    }
+  ],
+  "landmarks": [
+    {
+      "name": "Hokage Rock",
+      "country": "Land of Fire",
+      "description": "Mountain above Konoha with the carved faces of every Hokage. It contains the Archive Library and a hidden shelter chamber, and the village fans out from it. In the post-war era the city expanded onto the plateau above it.",
+      "visual_description": "Vertical cliff band 60-100 m high at the back edge of the village with 4-7 giant head reliefs in a row; tree-covered top; Hokage Residence centred below the faces."
+    },
+    {
+      "name": "Valley of the End",
+      "country": "Land of Fire / Land of Sound border",
+      "description": "Gorge carved by an ancient battle. Its waterfall forms the Fire-Sound border, with two colossal statues facing each other in the Seal of Confrontation hand sign.",
+      "visual_description": "Deep U-shaped canyon with a wide waterfall between two giant standing statues (one on each bank) that face each other across the river; river pool and rocks at the base."
+    },
+    {
+      "name": "Great Naruto Bridge",
+      "country": "Land of Waves / Land of Fire",
+      "description": "Long, wide bridge across the strait from the Land of Waves island to the Fire mainland.",
+      "visual_description": "Long straight wooden/stone deck on many pillars over open sea, with mist; low railings; town docks at the Waves end."
+    },
+    {
+      "name": "Forest of Death (Training Ground 44)",
+      "country": "Land of Fire (Konoha outskirts)",
+      "description": "Chūnin Exam survival ground with giant, often poisonous flora and fauna (giant centipedes, flying leeches, tigers, bears). A river crosses it and a tower stands at the exact centre. Radius about 10 km.",
+      "visual_description": "Metal fence ring with 44 gates around a dark forest of enormous trees with roots above ground; a river runs through it; a tall tower in the middle."
+    },
+    {
+      "name": "Naka Shrine",
+      "country": "Land of Fire (Konoha, Uchiha District)",
+      "description": "Uchiha shrine downstream on the Naka River. A secret hall under a tatami mat holds an ancient stone tablet.",
+      "visual_description": "Small Shinto shrine with a torii, wooden hall on a stone base, and a sealed stone trapdoor leading down to an underground chamber."
+    },
+    {
+      "name": "Fire Temple",
+      "country": "Land of Fire",
+      "description": "Large ninja-monk monastery in the forest with sealed iron walls and four guardian graves at the cardinal points.",
+      "visual_description": "Walled temple complex with pagoda-roofed halls and tengu statues flanking the gate; mountains on three sides and an open field to the south."
+    },
+    {
+      "name": "Tanzaku Quarters and Tanzaku Castle",
+      "country": "Land of Fire",
+      "description": "Gambling and festival town south-west of Konoha; its castle is a cultural heritage site.",
+      "visual_description": "Busy lantern-lit streets with stalls; a multi-tier Japanese castle on a stone base above the town."
+    },
+    {
+      "name": "Demon Desert",
+      "country": "Land of Wind",
+      "description": "Walled exam desert off the coast from Sunagakure with a central tower, quicksand, sand currents, a sand-waterfall pit, poisonous cacti, ruins, giant scorpions and ants.",
+      "visual_description": "Dunes enclosed by a fortress wall, rock formations, a sand cascading into a pit, broken ruins, and a central tower."
+    },
+    {
+      "name": "Kannabi Bridge",
+      "country": "Land of Grass",
+      "description": "Large bridge over a river; a wartime Iwa supply route; destroyed.",
+      "visual_description": "Large wooden bridge spanning a river gorge in a rocky forest canyon."
+    },
+    {
+      "name": "Tenchi Bridge",
+      "country": "Land of Grass",
+      "description": "Medium arch bridge over a deep ravine; destroyed.",
+      "visual_description": "Single concrete/stone arch spanning a deep forested ravine."
+    },
+    {
+      "name": "Hōzuki Castle (Blood Prison)",
+      "country": "Land of Grass",
+      "description": "Castle used as a prison by Kusagakure, surrounded by lantern plants.",
+      "visual_description": "Imposing castle-prison on a sea cliff with crashing waves below, orange lantern-plant fields around it."
+    },
+    {
+      "name": "Pain's Tower",
+      "country": "Amegakure",
+      "description": "Tallest tower in Amegakure, with a huge face on each side; linked to two smaller towers.",
+      "visual_description": "Dark grey skyscraper with four giant faces near the top, tongues sticking out, pipes everywhere; rain."
+    },
+    {
+      "name": "Stone Monument",
+      "country": "Land of Earth (Iwagakure)",
+      "description": "Symbol of the 'Will of Stone': an ornate pedestal holding a smooth stone, set in a pool full of stones.",
+      "visual_description": "Shallow square pool full of pebbles with a carved pedestal in the centre topped by a single smooth stone."
+    },
+    {
+      "name": "Samurai Bridge",
+      "country": "Land of Iron",
+      "description": "Bridge on the outskirts of the Land of Iron.",
+      "visual_description": "Blue-grey stone bridge with a torii-like gate marked 侍; on top, a big sheathed-sword statue with weights hanging from each end; snow."
+    },
+    {
+      "name": "Island Turtle (Genbu)",
+      "country": "Land of Lightning (sea)",
+      "description": "Colossal ancient turtle whose shell is a jungle island used for training. It holds the Falls of Truth, is guarded by a giant squid and hidden by a barrier.",
+      "visual_description": "Mountainous jungle island on a grey spiked shell; turtle head and flippers visible at sea level; dense trees and cliffs."
+    },
+    {
+      "name": "Valley of Clouds and Lightning",
+      "country": "Land of Lightning",
+      "description": "Water-filled valley among the mountains, covered in cloud and fog, with a dark training cavern.",
+      "visual_description": "Narrow lake between steep peaks, fog layer, cave mouth in a cliff."
+    },
+    {
+      "name": "Mountains' Graveyard",
+      "country": "Between Takigakure and Otogakure (north)",
+      "description": "Dense forested mountains with giant creature bones; an abandoned mine connects to ancient underground ruins.",
+      "visual_description": "Forested peaks with huge white rib and skull bones jutting out; mine entrance leading to a cavern of bone platforms."
+    },
+    {
+      "name": "Mount Myōboku",
+      "country": "Unknown (hidden sage realm)",
+      "description": "Legendary land of the toads and one of the three great sage regions. Its location is hidden ('Mountain of Bewilderment').",
+      "visual_description": "Lush fantasy landscape of giant mushrooms and toadstools, oversized plants, oil waterfalls and toad statues; huge toads."
+    },
+    {
+      "name": "Ryūchi Cave",
+      "country": "Unknown (hidden sage realm)",
+      "description": "Legendary home of the snakes, ruled by the White Snake Sage; one of the three sage regions.",
+      "visual_description": "Vast dark limestone cavern network with huge snake skeletons and stone snake carvings; pale mist."
+    },
+    {
+      "name": "Shikkotsu Forest",
+      "country": "Unknown (hidden sage realm)",
+      "description": "'Damp Bone Forest', legendary home of the slugs; one of the three sage regions.",
+      "visual_description": "Humid, dripping forest of pale trees and bone-like formations with moss and pools."
+    },
+    {
+      "name": "Kazahana Castle",
+      "country": "Land of Snow",
+      "description": "Japanese-style castle in snowy mountains.",
+      "visual_description": "White multi-tier castle on a snowy mountainside."
+    },
+    {
+      "name": "Akagahara",
+      "country": "Land of Fire (OVA)",
+      "description": "Old Chūnin Exam ground full of traps. A Jizō-like statue stands at its centre amid crimson clovers.",
+      "visual_description": "Red-tinted field ringed by traps, with a small stone guardian statue on a clover patch in the middle."
+    },
+    {
+      "name": "Former Akatsuki Hideout (Land of Rivers)",
+      "country": "Land of Rivers",
+      "description": "Cavern hideout sealed by a giant boulder and barrier tags.",
+      "visual_description": "Cliff face over a river with a huge round boulder plugging a cave mouth, marked with a paper seal."
+    }
+  ],
+  "konoha_detail": {
+    "layout_description": "Canon facts: Konoha lies deep in a forest in the central Land of Fire at the base of the Hokage Rock mountain. It is the largest hidden village and is surrounded on all sides by enormous walls, with torii arches built around the perimeter and four entrance gates, each pair of doors painted あ/ん. The village is built around the Hokage Rock in a fan-like formation, with shops and buildings lining the streets. The Academy sits directly at the base of the rock, and the Hokage Residence is always centred beneath the faces. The Naka River runs through the village (Uchiha land) and passes through a ravine. The Forest of Death, the cemetery, the Nara deer forest and the relocated Uchiha compound are on the outskirts. Suggested game layout (convention, not canon): put the Hokage Rock along the north edge facing south, so the village spreads south in a half-circle or fan. Administration (Academy, Hokage Residence, Jōnin station, archives) sits at the north base. A main commercial street runs from the centre south to the Main A-Un Gate. Residential and clan quarters fill the east and west; the Uchiha District is at the far edge; training grounds and forests lie inside and just outside the wall; the Forest of Death is beyond the wall.",
+    "districts": [
+      {
+        "name": "Administrative core",
+        "description": "Academy complex (with Hokage's office and mission desk), Hokage Residence, Jōnin Standby Station beside the Academy, and the Archive Library inside the mountain.",
+        "position_in_village": "north centre, at the foot of the Hokage Rock"
+      },
+      {
+        "name": "Central market / main street",
+        "description": "Dense shopping streets: Ramen Ichiraku, Dango Shop, Yakiniku Q, Yamanaka Flowers, Amaguriama sweet shop, ninja tool shops, Konoha Bank, public library (centrally located), and hot-spring bathhouse.",
+        "position_in_village": "centre, running from the administrative core toward the main gate"
+      },
+      {
+        "name": "Uchiha District",
+        "description": "Uchiha clan quarter with traditional houses and walls bearing the red-and-white uchiwa fan crest. It contains the Military Police headquarters (built next to a prison; four-point star emblem), the Naka River (with a ravine) and the Naka Shrine downstream. After the Nine-Tails attack the clan was moved to a compound on the outskirts; after the massacre it is a deserted ghost quarter.",
+        "position_in_village": "outer edge / outskirts of the village"
+      },
+      {
+        "name": "Hyūga Compound",
+        "description": "Large, walled, traditional clan estate with a main house and a branch house, a courtyard training dojo, a garden and gates. Its position is not given in canon.",
+        "position_in_village": "unspecified in canon; suggest an older residential quarter near the centre"
+      },
+      {
+        "name": "Nara Clan Forest and Nara estate",
+        "description": "Clan-owned forest full of deer; only Nara may enter freely. It hides a secret burial site.",
+        "position_in_village": "outskirts"
+      },
+      {
+        "name": "Akimichi quarter",
+        "description": "Clan of big eaters closely tied to Konoha's restaurants (e.g. Yakiniku Q). Its estate location is not given in canon.",
+        "position_in_village": "unspecified in canon; suggest beside the restaurant district"
+      },
+      {
+        "name": "Senju Park",
+        "description": "Large wooded park associated with the Senju, with a giant tree surrounded by a pond and a playground.",
+        "position_in_village": "inside the village (exact position unspecified)"
+      },
+      {
+        "name": "Training grounds belt",
+        "description": "Numbered training fields (forest, river and clearings).",
+        "position_in_village": "periphery inside and outside the walls"
+      },
+      {
+        "name": "New Era expansion (post-war, optional)",
+        "description": "Skyscrapers on the plateau above the Hokage Rock, the Thunder Rail train, a modern Information & Receiving Centre, and a taller hospital.",
+        "position_in_village": "behind/above the Hokage Rock"
+      }
+    ],
+    "buildings": [
+      {
+        "name": "Main Gate (A-Un Gate)",
+        "description": "Massive pair of green-painted doors in the perimeter wall with あ and ん in red (one per door), under a roofed gate frame. A small guard booth stands just inside the gate. Konoha has four gates in total.",
+        "visual_hint": "two tall flat panels in a thick wall, a roof beam over them, a small hut beside them"
+      },
+      {
+        "name": "Perimeter Wall",
+        "description": "Enormous wall encircling the village, with torii arches around the perimeter.",
+        "visual_hint": "tall ring of thick wall segments"
+      },
+      {
+        "name": "Academy (with Hokage's Office)",
+        "description": "Several connected buildings at the foot of the Hokage Rock with a giant 火 sign and a swing tree in front. The administrative wing holds the oval Hokage's office, with a big window over the village and the mission desk. In fan/game depictions it is a red-orange cylindrical tower with a flat roof.",
+        "visual_hint": "large red-orange cylinder + attached boxes, 火 sign, tree with swing"
+      },
+      {
+        "name": "Hokage Residence",
+        "description": "Large circular mansion with 火 on the roof, among the tallest buildings, centred beneath the Hokage faces; stores forbidden scrolls.",
+        "visual_hint": "wide round building, tiled roof"
+      },
+      {
+        "name": "Jōnin Standby Station",
+        "description": "Beside the Academy. Outside are a round green sign with 上 and a brown proverb sign. Inside is a round lounge with red sofas around a planted central pillar.",
+        "visual_hint": "small round building with round green sign"
+      },
+      {
+        "name": "Konoha Archive Library",
+        "description": "Built inside the Hokage Rock mountain; ninja records and secrets. It survived the village's destruction.",
+        "visual_hint": "doorway set into the cliff base"
+      },
+      {
+        "name": "Hokage Rock Hidden Chamber",
+        "description": "Emergency shelter inside the mountain for civilians.",
+        "visual_hint": "cave entrance in cliff"
+      },
+      {
+        "name": "Konoha Hospital",
+        "description": "Large multi-storey building marked 医 on the front.",
+        "visual_hint": "large white/cream box with 医 sign"
+      },
+      {
+        "name": "Konoha Library",
+        "description": "Central public library.",
+        "visual_hint": "medium civic building"
+      },
+      {
+        "name": "Konoha Military Police HQ",
+        "description": "Police station in the Uchiha District next to a prison. Emblem: a four-point star with the Uchiha fan crest.",
+        "visual_hint": "walled building with star emblem"
+      },
+      {
+        "name": "Anbu / Root headquarters",
+        "description": "Black-ops reporting directly to the Hokage. Root's base is hidden underground. Location unspecified in canon.",
+        "visual_hint": "concealed underground entrance"
+      },
+      {
+        "name": "Torture & Interrogation / Intelligence Division",
+        "description": "Intelligence and interrogation facility (Konohagakure Intelligence Division).",
+        "visual_hint": "grim windowless block"
+      },
+      {
+        "name": "Chūnin Exam Stadium",
+        "description": "Venue for the Chūnin Exam finals: a large round arena with an earth/grass floor, tiered spectator stands and an elevated Kage viewing box. It was rebuilt in the new era.",
+        "visual_hint": "open-top ring of stands around a flat oval field, a raised booth with a roof"
+      },
+      {
+        "name": "Forest of Death Central Tower",
+        "description": "Tower at the exact centre of Training Ground 44, where exam preliminaries are held in a hall with a giant statue of hands forming a hand sign.",
+        "visual_hint": "tall round tower in forest"
+      },
+      {
+        "name": "Konoha Aviary",
+        "description": "Circular messenger-bird building on top of a tall tree, reached by a spiral staircase; walls lined with cages.",
+        "visual_hint": "round hut atop a tall trunk with spiral stairs"
+      },
+      {
+        "name": "Ramen Ichiraku",
+        "description": "Small open-front ramen stand with noren curtains and a stool counter.",
+        "visual_hint": "small box with counter and cloth flaps"
+      },
+      {
+        "name": "Yakiniku Q",
+        "description": "Large barbecue restaurant with wide windows, green booths and a charcoal grill in every table.",
+        "visual_hint": "wide single-storey building, big windows"
+      },
+      {
+        "name": "Dango Shop",
+        "description": "Sweet shop whose sign is a giant dango skewer marked だんご.",
+        "visual_hint": "shopfront with skewer sign"
+      },
+      {
+        "name": "Yamanaka Flowers",
+        "description": "Flower shop run by the Yamanaka clan since the village's founding era.",
+        "visual_hint": "shopfront with flower displays"
+      },
+      {
+        "name": "Konoha Hot Springs",
+        "description": "Public bath split by gender, also used for water-walking training.",
+        "visual_hint": "walled bathhouse with steaming pools"
+      },
+      {
+        "name": "Konoha Cemetery",
+        "description": "On the outskirts. Its front sculpture represents the Will of Fire, with 火影 on the base.",
+        "visual_hint": "field of headstones, statue at entrance"
+      },
+      {
+        "name": "Memorial Stone",
+        "description": "Monument listing fallen shinobi: polished kunai-shaped (anime) or a slab (manga). It stands beside the Third Training Ground.",
+        "visual_hint": "dark polished stone obelisk on a small plinth"
+      },
+      {
+        "name": "Naka Shrine",
+        "description": "Uchiha shrine on the Naka River with a secret underground meeting hall.",
+        "visual_hint": "small shrine + torii"
+      },
+      {
+        "name": "Ninjutsu Research Centre",
+        "description": "Scientific ninja tool lab (new era).",
+        "visual_hint": "modern lab block"
+      },
+      {
+        "name": "Information & Receiving Centre",
+        "description": "Large modern mission-assignment building built after the village's reconstruction.",
+        "visual_hint": "modern office block"
+      }
+    ],
+    "training_grounds": [
+      {
+        "name": "Third Training Ground",
+        "description": "Inside Konoha. Mountains in view, a large, deep river with forest on both sides, and a glade with three wooden stumps in a row; the Memorial Stone stands nearby. Used for the classic bell test.",
+        "position": "village periphery (inside the wall)"
+      },
+      {
+        "name": "Forty-Fourth Training Ground (Forest of Death)",
+        "description": "Fenced forest with 44 gates, a river, giant dangerous creatures, central tower, radius ~10 km.",
+        "position": "outskirts of the village, north of the Forty-Third Training Ground (beyond the main walls)"
+      },
+      {
+        "name": "Forty-Third Training Ground",
+        "description": "Training ground directly south of the Forest of Death.",
+        "position": "outskirts, between the village and the Forest of Death"
+      },
+      {
+        "name": "Zeroth Training Ground",
+        "description": "Anime-only training ground.",
+        "position": "unspecified"
+      },
+      {
+        "name": "Training Hall",
+        "description": "Indoor training facility in Konoha.",
+        "position": "unspecified"
+      },
+      {
+        "name": "Generic numbered grounds",
+        "description": "Konoha has many numbered training grounds: forest clearings with wooden target posts, logs and stumps, rivers and waterfalls, rock fields.",
+        "position": "ring around the village"
+      }
+    ],
+    "forest_of_death_relative_position": "On the village outskirts beyond the residential area, north of Training Ground 43. A fenced circle about 20 km across, much larger than a district; in a game, place it just outside the perimeter wall."
+  }
+}

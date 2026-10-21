@@ -1,0 +1,119 @@
+func _head_center() -> Vector3:
+	if eyes_mesh:
+		var ab: AABB = eyes_mesh.get_aabb()
+		return ab.get_center() + Vector3(0, 0.05, -0.075)
+	return skel.get_bone_global_rest(skel.find_bone("Head")).origin + Vector3(0, 0.1, 0)
+
+
+const HAIR_FILES := {
+	"diken": ["Hair_SimpleParted", true], "kısa": ["Hair_Buzzed", false], "uzun": ["Hair_Long", false],
+	"atkuyruğu": ["Hair_Buns", false], "kase": ["Hair_SimpleParted", false], "dağınık": ["Hair_SimpleParted", true],
+}
+
+
+func _attachments() -> void:
+	var hc = _head_center()
+	var female: bool = look["gender"] == "f"
+	var hair_col: Color = look["hair"]
+	# --- gözler (klan rengi) ve kaşlar
+	if eyes_mesh:
+		eye_mat = ShaderMaterial.new()
+		eye_mat.shader = load("res://shaders/toon.gdshader")
+		eye_mat.set_shader_parameter("eye_mode", true)
+		eye_mat.set_shader_parameter("use_vertex_color", false)
+		eye_mat.set_shader_parameter("rim_amount", 0.0)
+		var em = eyes_mesh.mesh.surface_get_material(0)
+		if em is BaseMaterial3D:
+			eye_mat.set_shader_parameter("tex", em.albedo_texture)
+		eye_mat.set_shader_parameter("eye_color", look["eye"])
+		eyes_mesh.material_override = eye_mat
+	var hair_mat = ShaderMaterial.new()
+	hair_mat.shader = load("res://shaders/toon.gdshader")
+	hair_mat.set_shader_parameter("luma_tint", true)
+	hair_mat.set_shader_parameter("use_vertex_color", false)
+	hair_mat.set_shader_parameter("tint", hair_col)
+	hair_mat.set_shader_parameter("rim_amount", 0.6)
+	hair_mat.set_shader_parameter("spec_amount", 0.35)
+	hair_mat.set_shader_parameter("tex", load("res://assets/chars/T_Hair_1_BaseColor.png"))
+	materials.append(hair_mat)
+	if brows_mesh:
+		brows_mesh.material_override = hair_mat
+	# --- saç modeli (model uzayında kafada konumlu) + anime dikenleri
+	var hf: Array = HAIR_FILES.get(look["hair_style"], HAIR_FILES["kase"])
+	var file: String = hf[0]
+	if female and file == "Hair_Buzzed":
+		file = "Hair_BuzzedFemale"
+	var hs: PackedScene = load("res://assets/chars/hair/%s.gltf" % file)
+	if hs:
+		var hn = hs.instantiate()
+		var ba = _attach("Head", Transform3D.IDENTITY)
+		ba.get_child(0).add_child(hn)
+		for mi in hn.find_children("*", "MeshInstance3D", true, false):
+			mi.material_override = hair_mat
+	if hf[1]:
+		var b = MB.new()
+		_hair_mesh(b, look["hair_style"], 1.0)
+		var sp = _mesh_on("Head", b.build(hair_mat), Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * 0.82), hc + Vector3(0, -0.005, 0)))
+		sp.material_override = hair_mat
+	# --- alın koruyucu
+	if look["band"] != null and look["band_style"] != "none":
+		var band = MB.new()
+		var bc: Color = look["band"]
+		if look["band_style"] == "neck":
+			band.add("torus", Vector3.ZERO, Vector3(0.24, 0.24, 0.24), bc, Vector3.ZERO, 16)
+			_mesh_on("Neck", band.build(Props.toon()), Transform3D(Basis.IDENTITY, skel.get_bone_global_rest(skel.find_bone("Neck")).origin + Vector3(0, 0.03, 0)))
+		else:
+			band.add("cyl", Vector3.ZERO, Vector3(0.205, 0.04, 0.228), bc, Vector3.ZERO, 18)
+			band.add("box", Vector3(0, 0, 0.111), Vector3(0.088, 0.04, 0.01), Color(0.8, 0.82, 0.86))
+			band.add("box", Vector3(-0.012, -0.03, -0.12), Vector3(0.026, 0.11, 0.008), bc, Vector3(-25, 0, 8))
+			band.add("box", Vector3(0.012, -0.03, -0.12), Vector3(0.026, 0.11, 0.008), bc, Vector3(-25, 0, -10))
+			_mesh_on("Head", band.build(Props.toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0, 0.025, 0)))
+			var q = QuadMesh.new()
+			q.size = Vector2(0.08, 0.034)
+			var sm = StandardMaterial3D.new()
+			sm.albedo_texture = symbol_texture(look["village"], look["band_style"] == "slashed")
+			sm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+			sm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			q.material = sm
+			_mesh_on("Head", q, Transform3D(Basis.IDENTITY, hc + Vector3(0, 0.025, 0.117)))
+	# --- yelek
+	if look["vest"] != null:
+		var v = MB.new()
+		var vc: Color = look["vest"]
+		var ch = skel.get_bone_global_rest(skel.find_bone("UpperChest")).origin
+		var k = 0.92 if female else 1.0
+		v.add("box", Vector3(0, -0.07, 0.01), Vector3(0.4, 0.36, 0.27) * k, vc)
+		v.add("cyl", Vector3(0, 0.13, -0.01), Vector3(0.25, 0.08, 0.23), vc.darkened(0.08), Vector3.ZERO, 10)
+		for sx in [-1.0, 1.0]:
+			v.add("box", Vector3(0.09 * sx, -0.08, 0.15), Vector3(0.1, 0.11, 0.03), vc.darkened(0.12))
+			v.add("box", Vector3(0.09 * sx, -0.025, 0.155), Vector3(0.1, 0.012, 0.025), vc.darkened(0.25))
+		_mesh_on("UpperChest", v.build(Props.toon()), Transform3D(Basis.IDENTITY, ch))
+	# --- çanta + kunai kılıfı
+	var hip = skel.get_bone_global_rest(skel.find_bone("Hips")).origin
+	var pouch = MB.new()
+	pouch.add("box", Vector3.ZERO, Vector3(0.14, 0.09, 0.07), Color(0.42, 0.33, 0.22))
+	_mesh_on("Hips", pouch.build(Props.toon()), Transform3D(Basis.IDENTITY, hip + Vector3(0.0, 0.02, -0.14)))
+	var th = skel.get_bone_global_rest(skel.find_bone("RightUpperLeg")).origin
+	var holster = MB.new()
+	holster.add("box", Vector3.ZERO, Vector3(0.05, 0.12, 0.1), Color(0.12, 0.12, 0.14))
+	holster.add("box", Vector3(0, 0.07, 0), Vector3(0.06, 0.02, 0.11), Color(0.85, 0.85, 0.85))
+	_mesh_on("RightUpperLeg", holster.build(Props.toon()), Transform3D(Basis.IDENTITY, th + Vector3(-0.11, -0.16, 0.0)))
+	# --- pelerin (Akatsuki tarzı)
+	if look["cloak"] != null:
+		var c = MB.new()
+		var cc: Color = look["cloak"]
+		var ch = skel.get_bone_global_rest(skel.find_bone("UpperChest")).origin
+		c.add("cyl", Vector3(0, -0.45, 0), Vector3(0.5, 1.05, 0.38), cc, Vector3.ZERO, 12)
+		c.add("cyl", Vector3(0, 0.1, 0), Vector3(0.34, 0.2, 0.32), cc, Vector3.ZERO, 10)
+		for pp in [Vector3(-0.12, -0.2, 0.18), Vector3(0.14, -0.6, 0.18), Vector3(0.05, -0.1, -0.19), Vector3(-0.1, -0.7, -0.18)]:
+			c.add("sphere", pp, Vector3(0.12, 0.07, 0.02), Color(0.75, 0.1, 0.12), Vector3.ZERO, 6)
+		_mesh_on("UpperChest", c.build(Props.toon()), Transform3D(Basis.IDENTITY, ch))
+	if look["mask"] == "anbu":
+		var m = MB.new()
+		m.add("sphere", Vector3.ZERO, Vector3(0.19, 0.24, 0.1), Color(0.95, 0.95, 0.95), Vector3.ZERO, 10)
+		m.add("box", Vector3(0.04, 0.0, 0.05), Vector3(0.012, 0.09, 0.005), Color(0.75, 0.1, 0.1), Vector3(0, 0, 30))
+		_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0, -0.03, 0.08)))
+	elif look["mask"] == "cloth":
+		var m = MB.new()
+		m.add("box", Vector3.ZERO, Vector3(0.2, 0.09, 0.2), Color(0.15, 0.15, 0.2))
+		_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0, -0.075, 0.02)))

@@ -1,0 +1,86 @@
+{
+ "kunai": {
+  "name": "Kunai",
+  "price": 10,
+  "kind": "throw",
+  "desc": "Fırlat [R]. 10 hasar."
+ },
+ "shuriken": {
+  "name": "Shuriken",
+  "price": 8,
+  "kind": "throw",
+  "desc": "Üçlü yelpaze atış."
+ },
+ "tag": {
+  "name": "Patlayıcı Etiketli Kunai",
+  "price": 45,
+  "kind": "throw",
+  "desc": "Saplandığı yerde patlar."
+ },
+ "smoke": {
+  "name": "Duman Bombası",
+  "price": 30,
+  "kind": "throw",
+  "desc": "Düşmanlar seni kaybeder."
+ },
+ "salve": {
+  "name": "Şifalı Merhem",
+  "price": 35,
+  "kind": "use",
+  "desc": "+50 can [H]."
+ },
+ "pill": {
+  "name": "Asker Hapı",
+  "price": 70,
+  "kind": "use",
+  "desc": "+60 chakra, 20sn güç [Y]."
+ },
+ "herb": {
+  "name": "Şifalı Ot",
+  "price": 0,
+  "kind": "quest",
+  "sell": 6,
+  "desc": "Görev eşyası."
+ },
+ "package": {
+  "name": "Teslimat Paketi",
+  "price": 0,
+  "kind": "quest",
+  "desc": "Görev eşyası."
+ },
+ "scroll_katon_housenka": {
+  "name": "Parşömen: Housenka",
+  "price": 400,
+  "kind": "scroll",
+  "jutsu": "katon_housenka",
+  "desc": "Katon kullanıcıları öğrenebilir."
+ },
+ "scroll_suiton_suijinheki": {
+  "name": "Parşömen: Suijinheki",
+  "price": 400,
+  "kind": "scroll",
+  "jutsu": "suiton_suijinheki",
+  "desc": "Suiton kullanıcıları."
+ },
+ "scroll_fuuton_daitoppa": {
+  "name": "Parşömen: Daitoppa",
+  "price": 400,
+  "kind": "scroll",
+  "jutsu": "fuuton_daitoppa",
+  "desc": "Fuuton kullanıcıları."
+ },
+ "scroll_doton_doryuheki": {
+  "name": "Parşömen: Doryuheki",
+  "price": 400,
+  "kind": "scroll",
+  "jutsu": "doton_doryuheki",
+  "desc": "Doton kullanıcıları."
+ },
+ "scroll_kokuangyo": {
+  "name": "Parşömen: Kokuangyo",
+  "price": 900,
+  "kind": "scroll",
+  "jutsu": "kokuangyo",
+  "desc": "Seviye 15 + Chunin."
+ }
+}

@@ -1,0 +1,112 @@
+{
+ "none": {
+  "name": "Klansız",
+  "desc": "Saf çaba: taijutsu +%15. İleride Sekiz Kapı.",
+  "kg": "Yok",
+  "eye": [
+   0.25,
+   0.45,
+   0.8
+  ]
+ },
+ "uchiha": {
+  "name": "Uchiha",
+  "desc": "Glass-cannon fire/genjutsu duelist. Passive: Sharingan Perception (slow-motion telegraph of enemy attacks, timed-dodge window +X%). Unique: Copy Technique (learn an observed enemy jutsu temporarily or",
+  "kg": "Sharingan (dojutsu; evolves 1 -> 2 -> 3 tomoe, rare Mangekyo Sharingan); strong ",
+  "eye": [
+   0.12,
+   0.1,
+   0.12
+  ]
+ },
+ "nara": {
+  "name": "Nara",
+  "desc": "Controller/tactician. Passive: shadow range scales with available shadows (more powerful at dusk, in forests, near large objects; uses the game's lighting system). Unique: Shadow Possession roots a ta",
+  "kg": "Hiden: Shadow Techniques (Kagemane)",
+  "eye": [
+   0.2,
+   0.18,
+   0.15
+  ]
+ },
+ "akimichi": {
+  "name": "Akimichi",
+  "desc": "Tank/bruiser. Passive: food items restore extra chakra and grant temporary size buffs (calories as a resource bar). Unique: Expansion stance (larger hitbox, high poise and damage, slower move speed), ",
+  "kg": "Hiden: Body expansion (Baika no Jutsu), converting calories to chakra",
+  "eye": [
+   0.3,
+   0.2,
+   0.12
+  ]
+ },
+ "yamanaka": {
+  "name": "Yamanaka",
+  "desc": "Support/possession specialist. Passive: telepathic link shows allies' HP and lets the player issue commands to the party. Unique: Mind Body Switch to temporarily control an enemy (player's body become",
+  "kg": "Hiden: Mind Body Switch and mind/telepathy techniques; sensory skills",
+  "eye": [
+   0.4,
+   0.7,
+   0.85
+  ]
+ },
+ "aburame": {
+  "name": "Aburame",
+  "desc": "Summoner/DoT controller. Passive: insect swarm auto-attacks and drains enemy chakra over time. Unique: plant a tracker beetle on an enemy (minimap marker), insect clones as decoys. Milestones: swarm s",
+  "kg": "Hiden: Insect symbiosis (kikaichu chakra-eating beetles live inside the body)",
+  "eye": [
+   0.1,
+   0.1,
+   0.1
+  ]
+ },
+ "inuzuka": {
+  "name": "Inuzuka",
+  "desc": "Pet-class skirmisher. Passive: companion ninken (AI pet) that grows from puppy to giant dog; scent tracking reveals footprints. Unique: combination drill attacks with the pet; 'Beast Clone' turns the ",
+  "kg": "Hiden: Ninken partnership techniques; enhanced smell/hearing",
+  "eye": [
+   0.45,
+   0.25,
+   0.12
+  ]
+ },
+ "senju": {
+  "name": "Senju",
+  "desc": "Durable all-rounder / rare bloodline unlock. Passive: HP regeneration and larger chakra pool. Unique: Wood Release as a rare legendary skill line (create cover walls, root-binding, wooden clones). Mil",
+  "kg": "Extraordinary chakra/life force; very rare Wood Release (Mokuton) kekkei genkai;",
+  "eye": [
+   0.3,
+   0.22,
+   0.15
+  ]
+ },
+ "uzumaki": {
+  "name": "Uzumaki",
+  "desc": "Sealing specialist with huge stamina. Passive: chakra pool +50%, slow chakra regen even in combat. Unique: Seal Tags (place seals on terrain to trap, store items, seal summoned creatures or bosses for",
+  "kg": "Exceptional life force and chakra; master sealing techniques (fuinjutsu); rare A",
+  "eye": [
+   0.25,
+   0.45,
+   0.85
+  ]
+ },
+ "kaguya": {
+  "name": "Kaguya",
+  "desc": "Melee bruiser/self-armor. Passive: bone armor reduces damage, regenerates out of combat. Unique: bone weapons (crafted from own body: sword, spear, drill) that never break. Milestones: bone bullets ra",
+  "kg": "Shikotsumyaku (Dead Bone Pulse): control of bone growth, density and structure",
+  "eye": [
+   0.55,
+   0.4,
+   0.65
+  ]
+ },
+ "yuki": {
+  "name": "Yuki",
+  "desc": "Ranged precision/zone control. Passive: senbon crit vs. pressure points, slow on hit. Unique: Ice Mirror dome (trap enemy, teleport between mirrors). Milestones: freezing terrain, ice armour, environm",
+  "kg": "Ice Release (Hyoton): combines Wind and Water",
+  "eye": [
+   0.45,
+   0.6,
+   0.75
+  ]
+ }
+}

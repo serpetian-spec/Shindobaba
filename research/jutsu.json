@@ -1,0 +1,2411 @@
+{
+ "_meta": {
+  "source": "Narutopedia (naruto.fandom.com) via MediaWiki API, 2026-10-22. Rank/seals with rank_source='canon' come from the wiki infoboxes; 'estimated' means the wiki lists no rank and one was assigned for game balance. Hand seals listed are the primary canon sequence (some jutsu have alternative sequences in different media).",
+  "notes": "Learn requirements, ranges and game mechanics are design suggestions, not canon."
+ },
+ "hand_seals": [
+  {
+   "name_jp": "Ne",
+   "animal_en": "Rat"
+  },
+  {
+   "name_jp": "Ushi",
+   "animal_en": "Ox"
+  },
+  {
+   "name_jp": "Tora",
+   "animal_en": "Tiger"
+  },
+  {
+   "name_jp": "U",
+   "animal_en": "Hare/Rabbit"
+  },
+  {
+   "name_jp": "Tatsu",
+   "animal_en": "Dragon"
+  },
+  {
+   "name_jp": "Mi",
+   "animal_en": "Snake"
+  },
+  {
+   "name_jp": "Uma",
+   "animal_en": "Horse"
+  },
+  {
+   "name_jp": "Hitsuji",
+   "animal_en": "Ram"
+  },
+  {
+   "name_jp": "Saru",
+   "animal_en": "Monkey"
+  },
+  {
+   "name_jp": "Tori",
+   "animal_en": "Bird"
+  },
+  {
+   "name_jp": "Inu",
+   "animal_en": "Dog"
+  },
+  {
+   "name_jp": "I",
+   "animal_en": "Boar"
+  }
+ ],
+ "special_seals": [
+  {
+   "name": "Clone Seal",
+   "description": "Cross-shaped seal (index and middle fingers of both hands crossed) used for Shadow Clone Technique variants."
+  },
+  {
+   "name": "Seal of Confrontation",
+   "description": "Half Tiger/Ram one-handed seal; universal sign of engagement before a spar."
+  },
+  {
+   "name": "Seal of Reconciliation",
+   "description": "Two hands linked by middle and index fingers after a spar, showing the opponents remain comrades."
+  },
+  {
+   "name": "Yang Water (Jin)",
+   "description": "Non-zodiac seal used in long Water Release sequences such as Water Dragon Bullet."
+  }
+ ],
+ "nature_cycle": {
+  "basic_natures": {
+   "fire": "Katon",
+   "wind": "Fūton",
+   "lightning": "Raiton",
+   "earth": "Doton",
+   "water": "Suiton"
+  },
+  "strong_against": {
+   "fire": "wind",
+   "wind": "lightning",
+   "lightning": "earth",
+   "earth": "water",
+   "water": "fire"
+  },
+  "weak_against": {
+   "fire": "water",
+   "wind": "fire",
+   "lightning": "wind",
+   "earth": "lightning",
+   "water": "earth"
+  },
+  "rules": [
+   "Same-level clash: the superior nature wins.",
+   "A weaker nature can still overpower a stronger one if its technique is of a higher level (rank/chakra).",
+   "Same nature, same level: the techniques counterbalance and cancel out; different level: the higher wins.",
+   "Supporting combos exist in practice (e.g. wind feeding fire makes a stronger flame)."
+  ],
+  "yin_yang": {
+   "yin": "spiritual energy / imagination - basis of genjutsu",
+   "yang": "physical energy / vitality - basis of body-enhancing techniques"
+  },
+  "kekkei_genkai_natures": {
+   "wood": "earth + water",
+   "ice": "wind + water",
+   "lava": "fire + earth",
+   "storm": "water + lightning",
+   "explosion": "earth + lightning",
+   "boil": "fire + water",
+   "magnet": "wind + earth",
+   "scorch": "fire + wind",
+   "dead_bone_pulse": "not a nature; bloodline control over one's own bone structure"
+  },
+  "game_suggestion": "Rock-paper-scissors damage multiplier (e.g. x1.5 superior, x0.75 inferior) applied when jutsu clash or when hitting an enemy with an elemental affinity; rank difference can override. Players get 1 random affinity at Academy graduation (affinity paper test), may train a 2nd at chunin and a 3rd+ at jonin. Kekkei genkai natures are bloodline-locked at character creation."
+ },
+ "jutsu": [
+  {
+   "id": "clone_technique",
+   "name_en": "Clone Technique",
+   "name_jp": "Bunshin no Jutsu",
+   "type": "ninjutsu",
+   "nature": null,
+   "rank": "E",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Ram",
+    "Snake",
+    "Tiger"
+   ],
+   "class": "supplementary",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "academy",
+    "general_skill",
+    "clone"
+   ],
+   "canon_description": "Creates intangible illusory copies of the user that vanish when struck; cannot attack.",
+   "game_suggestion": "Spawns 1-3 decoy AI dummies that draw enemy aggro and pop on hit. Learn: academy (required for graduation exam); taught by Academy instructor after a hand-seal drill minigame."
+  },
+  {
+   "id": "transformation_technique",
+   "name_en": "Transformation Technique",
+   "name_jp": "Henge no Jutsu",
+   "type": "ninjutsu",
+   "nature": null,
+   "rank": "E",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Dog",
+    "Boar",
+    "Ram"
+   ],
+   "class": "supplementary",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "academy",
+    "general_skill"
+   ],
+   "canon_description": "Changes the user's appearance into another person, animal or object; it is an illusion-like disguise that breaks under strong impact.",
+   "game_suggestion": "Swap player model to an NPC/prop for stealth and infiltration quests; breaks on damage. Learn: academy; class lesson plus a 'fool the guard' practical."
+  },
+  {
+   "id": "body_replacement_technique",
+   "name_en": "Body Replacement Technique",
+   "name_jp": "Kawarimi no Jutsu",
+   "type": "ninjutsu",
+   "nature": null,
+   "rank": "E",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Tiger",
+    "Boar",
+    "Ox",
+    "Dog",
+    "Snake"
+   ],
+   "class": "supplementary",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "academy",
+    "general_skill"
+   ],
+   "canon_description": "Instantly swaps the user's position with a nearby object (usually a log) just before an attack lands.",
+   "game_suggestion": "Perfect-timed dodge: on hit within a parry window, leave a log and teleport a short distance behind/side; chakra cost + cooldown. Learn: academy; dodge-timing training."
+  },
+  {
+   "id": "rope_escape_technique",
+   "name_en": "Rope Escape Technique",
+   "name_jp": "Nawanuke no Jutsu",
+   "type": "ninjutsu",
+   "nature": null,
+   "rank": "E",
+   "rank_source": "canon",
+   "hand_seals": [],
+   "class": "supplementary",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "academy",
+    "general_skill"
+   ],
+   "canon_description": "Lets the user slip out of ropes or bindings by manipulating joints and body position.",
+   "game_suggestion": "Passive/active escape: reduces duration of bind/grab status effects; mash-to-escape bonus. Learn: academy."
+  },
+  {
+   "id": "body_flicker_technique",
+   "name_en": "Body Flicker Technique",
+   "name_jp": "Shunshin no Jutsu",
+   "type": "ninjutsu",
+   "nature": null,
+   "rank": "D",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Tiger"
+   ],
+   "class": "supplementary",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "general_skill",
+    "movement"
+   ],
+   "canon_description": "High-speed movement technique that lets the user travel short-to-long distances almost instantly, often hidden by smoke or leaves.",
+   "game_suggestion": "Mid-range blink dash (8-15 m) with leaf/smoke VFX; also fast-travel between nearby map points out of combat. Learn: genin; taught by jonin-sensei after mastering chakra control."
+  },
+  {
+   "id": "temporary_paralysis_technique",
+   "name_en": "Temporary Paralysis Technique",
+   "name_jp": "Kanashibari no Jutsu",
+   "type": "ninjutsu",
+   "nature": null,
+   "rank": "D",
+   "rank_source": "canon",
+   "hand_seals": [],
+   "class": "supplementary",
+   "range": "mid",
+   "clan": null,
+   "tags": [
+    "bind"
+   ],
+   "canon_description": "Paralyses the target's body for a short time, preventing movement.",
+   "game_suggestion": "Targeted short stun (1-2 s) with line-of-sight; bosses resist. Learn: genin; scroll from village library."
+  },
+  {
+   "id": "shadow_clone_technique",
+   "name_en": "Shadow Clone Technique",
+   "name_jp": "Kage Bunshin no Jutsu",
+   "type": "ninjutsu",
+   "nature": null,
+   "rank": "B",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Clone Seal"
+   ],
+   "class": "supplementary",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "clone",
+    "forbidden_scroll"
+   ],
+   "canon_description": "Creates solid clones that can fight independently; each holds an equal share of the user's chakra and their experience returns to the user when dispelled.",
+   "game_suggestion": "Summon 1-4 combat clones that use the player's basic attacks; dispelling grants training XP bonus (training multiplier). Learn: chunin or late genin; forbidden scroll quest or special teacher."
+  },
+  {
+   "id": "shadow_shuriken_technique",
+   "name_en": "Shadow Shuriken Technique",
+   "name_jp": "Kage Shuriken no Jutsu",
+   "type": "ninjutsu",
+   "nature": null,
+   "rank": "D",
+   "rank_source": "canon",
+   "hand_seals": [],
+   "class": "offensive",
+   "range": "long",
+   "clan": null,
+   "tags": [
+    "tool_jutsu"
+   ],
+   "canon_description": "A second shuriken is hidden in the shadow of the first so the target only sees one.",
+   "game_suggestion": "Thrown shuriken spawns a delayed hidden second projectile; hard to dodge. Learn: genin; weapons instructor."
+  },
+  {
+   "id": "shuriken_shadow_clone_technique",
+   "name_en": "Shuriken Shadow Clone Technique",
+   "name_jp": "Shuriken Kage Bunshin no Jutsu",
+   "type": "ninjutsu",
+   "nature": null,
+   "rank": "A",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Ox",
+    "Dog",
+    "Dragon",
+    "Rat",
+    "Dog",
+    "Boar",
+    "Snake",
+    "Tiger"
+   ],
+   "class": "offensive",
+   "range": "mid",
+   "clan": null,
+   "tags": [
+    "tool_jutsu",
+    "clone"
+   ],
+   "canon_description": "Multiplies a thrown shuriken or kunai into a storm of real copies.",
+   "game_suggestion": "Single throw becomes a wide fan of 20-50 solid projectiles. Learn: jonin; requires Shadow Clone + weapons mastery."
+  },
+  {
+   "id": "summoning_technique",
+   "name_en": "Summoning Technique",
+   "name_jp": "Kuchiyose no Jutsu",
+   "type": "ninjutsu",
+   "nature": null,
+   "rank": "C",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Boar",
+    "Dog",
+    "Bird",
+    "Monkey",
+    "Ram"
+   ],
+   "class": "supplementary",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "space_time",
+    "summoning"
+   ],
+   "canon_description": "Space-time technique that calls an animal (or object) the user has signed a blood contract with, using blood and chakra.",
+   "game_suggestion": "Costs HP + chakra; summons an allied AI creature whose size scales with chakra spent (small helper -> giant boss-scale ally). Learn: genin/chunin; sign a contract scroll found via quest or offered by a teacher."
+  },
+  {
+   "id": "reverse_summoning_technique",
+   "name_en": "Reverse Summoning Technique",
+   "name_jp": "Gyaku Kuchiyose no Jutsu",
+   "type": "ninjutsu",
+   "nature": null,
+   "rank": "B",
+   "rank_source": "estimated",
+   "hand_seals": [],
+   "class": "supplementary",
+   "range": "long",
+   "clan": null,
+   "tags": [
+    "space_time",
+    "summoning"
+   ],
+   "canon_description": "The contracted animals summon the user to their location instead.",
+   "game_suggestion": "Out-of-combat teleport to a summon realm hub (training / sage area). Learn: unlocked by summon-contract questline."
+  },
+  {
+   "id": "great_fireball",
+   "name_en": "Fire Release: Great Fireball Technique",
+   "name_jp": "Katon: Gōkakyū no Jutsu",
+   "type": "ninjutsu",
+   "nature": "fire",
+   "rank": "C",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Snake",
+    "Ram",
+    "Monkey",
+    "Boar",
+    "Horse",
+    "Tiger"
+   ],
+   "class": "offensive",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "breath"
+   ],
+   "canon_description": "Kneads chakra into fire and exhales it as a large fireball (or stream) that craters the ground on impact; size scales with chakra.",
+   "game_suggestion": "Charged slow projectile that explodes in an AoE and leaves burning ground; hold to grow. Learn: genin with Fire affinity; practice at a lake/dock until fireball reaches size threshold (rite-of-passage quest)."
+  },
+  {
+   "id": "phoenix_sage_fire",
+   "name_en": "Fire Release: Phoenix Sage Fire Technique",
+   "name_jp": "Katon: Hōsenka no Jutsu",
+   "type": "ninjutsu",
+   "nature": "fire",
+   "rank": "C",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Rat",
+    "Tiger",
+    "Dog",
+    "Ox",
+    "Rabbit",
+    "Tiger"
+   ],
+   "class": "offensive",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "breath",
+    "multi_projectile"
+   ],
+   "canon_description": "Exhales several small, independently guided fireballs; shuriken can be hidden inside them.",
+   "game_suggestion": "Fan of 5-8 homing-lite fireballs; upgrade hides shuriken inside for bonus damage. Learn: genin, Fire affinity; scroll."
+  },
+  {
+   "id": "dragon_fire_technique",
+   "name_en": "Fire Release: Dragon Fire Technique",
+   "name_jp": "Katon: Ryūka no Jutsu",
+   "type": "ninjutsu",
+   "nature": "fire",
+   "rank": "C",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Snake",
+    "Dragon",
+    "Rabbit",
+    "Tiger"
+   ],
+   "class": "offensive",
+   "range": "mid",
+   "clan": null,
+   "tags": [
+    "combo"
+   ],
+   "canon_description": "Breathes fire along a wire or string toward the target, burning them at the other end.",
+   "game_suggestion": "Combo finisher: if target is tethered by Ninja Wire, fire travels along the wire for high damage; else a mid-range flame line. Learn: chunin; teacher."
+  },
+  {
+   "id": "flame_bullet",
+   "name_en": "Fire Release: Flame Bullet",
+   "name_jp": "Katon: Endan",
+   "type": "ninjutsu",
+   "nature": "fire",
+   "rank": "C",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Snake",
+    "Ram",
+    "Monkey",
+    "Boar",
+    "Horse",
+    "Tiger"
+   ],
+   "class": "offensive",
+   "range": "mid",
+   "clan": null,
+   "tags": [
+    "breath"
+   ],
+   "canon_description": "Fires a large stream/bullet of flame from the mouth; commonly used in combination with other natures.",
+   "game_suggestion": "Fast straight projectile; doubled damage when combined with an ally's Wind jutsu (combo system). Learn: genin; scroll."
+  },
+  {
+   "id": "fire_dragon_flame_bullet",
+   "name_en": "Fire Release: Fire Dragon Flame Bullet",
+   "name_jp": "Katon: Karyū Endan",
+   "type": "ninjutsu",
+   "nature": "fire",
+   "rank": "B",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Ram",
+    "Horse",
+    "Snake",
+    "Dragon",
+    "Rat",
+    "Ox",
+    "Tiger"
+   ],
+   "class": "offensive",
+   "range": "mid",
+   "clan": null,
+   "tags": [
+    "breath"
+   ],
+   "canon_description": "Exhales a large stream of fire that takes the shape of a dragon.",
+   "game_suggestion": "Sweeping flame-dragon beam over 2 s, leaves burning trail. Learn: chunin; scroll from a mission reward."
+  },
+  {
+   "id": "ash_pile_burning",
+   "name_en": "Fire Release: Ash Pile Burning",
+   "name_jp": "Katon: Haisekishō",
+   "type": "ninjutsu",
+   "nature": "fire",
+   "rank": "B",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Snake",
+    "Rat",
+    "Snake",
+    "Tiger"
+   ],
+   "class": "offensive",
+   "range": "mid",
+   "clan": null,
+   "tags": [
+    "cloud",
+    "trap"
+   ],
+   "canon_description": "Exhales a cloud of chakra-laden ash that the user ignites by clicking their teeth, causing an explosion.",
+   "game_suggestion": "Two-stage cast: place an ash cloud (blinds), then detonate for AoE burn. Learn: chunin."
+  },
+  {
+   "id": "great_fire_annihilation",
+   "name_en": "Fire Release: Great Fire Annihilation",
+   "name_jp": "Katon: Gōka Mekkyaku",
+   "type": "ninjutsu",
+   "nature": "fire",
+   "rank": "B",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Horse"
+   ],
+   "class": "offensive",
+   "range": "mid",
+   "clan": null,
+   "tags": [
+    "breath",
+    "wide_area"
+   ],
+   "canon_description": "Exhales a massive wall of fire covering a huge area.",
+   "game_suggestion": "Huge cone/wave ultimate with long cooldown. Learn: jonin; requires mastering Great Fireball + large chakra pool."
+  },
+  {
+   "id": "great_flame_technique",
+   "name_en": "Fire Release: Great Flame Technique",
+   "name_jp": "Katon: Gōen no Jutsu",
+   "type": "hiden",
+   "nature": "fire",
+   "rank": "B",
+   "rank_source": "estimated",
+   "hand_seals": [
+    "Tiger"
+   ],
+   "class": "offensive",
+   "range": "long",
+   "clan": "Sarutobi",
+   "tags": [
+    "breath",
+    "clan"
+   ],
+   "canon_description": "A clan secret that releases a large torrent of flames.",
+   "game_suggestion": "Clan-locked long cone of fire; only for players from a Sarutobi-like fire clan. Learn: clan elder."
+  },
+  {
+   "id": "hiding_in_mist",
+   "name_en": "Hiding in Mist Technique",
+   "name_jp": "Kirigakure no Jutsu",
+   "type": "ninjutsu",
+   "nature": "water",
+   "rank": "D",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Ox",
+    "Snake",
+    "Ram"
+   ],
+   "class": "supplementary",
+   "range": "mid",
+   "clan": null,
+   "tags": [
+    "stealth",
+    "field"
+   ],
+   "canon_description": "Creates a dense mist that hides the user; usable near water and amplified by the user's chakra.",
+   "game_suggestion": "Creates a fog zone: player gains stealth, enemies lose lock-on; pairs with Silent Killing backstabs. Learn: genin, Water affinity; scroll."
+  },
+  {
+   "id": "water_clone_technique",
+   "name_en": "Water Clone Technique",
+   "name_jp": "Mizu Bunshin no Jutsu",
+   "type": "ninjutsu",
+   "nature": "water",
+   "rank": "C",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Tiger"
+   ],
+   "class": "supplementary",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "clone"
+   ],
+   "canon_description": "Creates solid clones made of water that can fight but are weaker than the user and burst when hit hard.",
+   "game_suggestion": "Water-clone pets with ~10% player stats; better near water. Learn: genin; Water teacher."
+  },
+  {
+   "id": "water_prison_technique",
+   "name_en": "Water Prison Technique",
+   "name_jp": "Suirō no Jutsu",
+   "type": "ninjutsu",
+   "nature": "water",
+   "rank": "C",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Snake",
+    "Ram",
+    "Horse",
+    "Hare",
+    "Ram",
+    "Horse",
+    "Hare"
+   ],
+   "class": "supplementary",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "bind"
+   ],
+   "canon_description": "Traps the target inside a sphere of heavy water; the user must keep a hand inside to maintain it.",
+   "game_suggestion": "Channelled bind: target trapped while the player stands still holding the prison; clones can maintain it. Learn: chunin."
+  },
+  {
+   "id": "water_bullet_technique",
+   "name_en": "Water Release: Water Bullet Technique",
+   "name_jp": "Suiton: Suidan no Jutsu",
+   "type": "ninjutsu",
+   "nature": "water",
+   "rank": "C",
+   "rank_source": "estimated",
+   "hand_seals": [
+    "Tiger",
+    "Ox",
+    "Tiger",
+    "Rat"
+   ],
+   "class": "offensive",
+   "range": "long",
+   "clan": null,
+   "tags": [
+    "projectile"
+   ],
+   "canon_description": "Fires high-pressure bullets of water at the target.",
+   "game_suggestion": "Rapid-fire water bolts; cheap ranged poke. Learn: genin; Water affinity scroll."
+  },
+  {
+   "id": "water_formation_wall",
+   "name_en": "Water Release: Water Formation Wall",
+   "name_jp": "Suiton: Suijinheki",
+   "type": "ninjutsu",
+   "nature": "water",
+   "rank": "B",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Tiger",
+    "Snake",
+    "Rat",
+    "Snake",
+    "Tiger"
+   ],
+   "class": "defensive",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "wall"
+   ],
+   "canon_description": "Spits or raises water into a wall around/in front of the user to block attacks (especially fire).",
+   "game_suggestion": "Temporary dome/wall that absorbs projectiles; doubles block vs Fire. Learn: chunin."
+  },
+  {
+   "id": "water_shark_bullet",
+   "name_en": "Water Release: Water Shark Bullet Technique",
+   "name_jp": "Suiton: Suikōdan no Jutsu",
+   "type": "ninjutsu",
+   "nature": "water",
+   "rank": "B",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Tiger",
+    "Ox",
+    "Dragon",
+    "Hare",
+    "Dog",
+    "Bird",
+    "Rat",
+    "Clone Seal",
+    "Dragon",
+    "Ram"
+   ],
+   "class": "offensive",
+   "range": "mid",
+   "clan": null,
+   "tags": [
+    "projectile",
+    "homing"
+   ],
+   "canon_description": "Forms water into a large shark that tracks and rams the target.",
+   "game_suggestion": "Homing projectile shark; bigger near water sources. Learn: chunin; Water teacher."
+  },
+  {
+   "id": "water_dragon_bullet",
+   "name_en": "Water Release: Water Dragon Bullet Technique",
+   "name_jp": "Suiton: Suiryūdan no Jutsu",
+   "type": "ninjutsu",
+   "nature": "water",
+   "rank": "B",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Ox",
+    "Monkey",
+    "Hare",
+    "Rat",
+    "Boar",
+    "Bird",
+    "Ox",
+    "Horse",
+    "Bird",
+    "Rat",
+    "Tiger",
+    "Dog",
+    "Tiger",
+    "Snake",
+    "Ox",
+    "Ram",
+    "Snake",
+    "Boar",
+    "Ram",
+    "Rat",
+    "Yang Water",
+    "Monkey",
+    "Bird",
+    "Dragon",
+    "Bird",
+    "Ox",
+    "Horse",
+    "Ram",
+    "Tiger",
+    "Snake",
+    "Rat",
+    "Monkey",
+    "Hare",
+    "Boar",
+    "Dragon",
+    "Ram",
+    "Rat",
+    "Ox",
+    "Monkey",
+    "Bird",
+    "Yang Water",
+    "Rat",
+    "Boar",
+    "Bird"
+   ],
+   "class": "offensive",
+   "range": "long",
+   "clan": null,
+   "tags": [
+    "projectile",
+    "famous_44_seals"
+   ],
+   "canon_description": "Shapes a large body of water into a dragon that crashes into the target; requires 44 hand seals.",
+   "game_suggestion": "Big line projectile with knockback; long cast time that shortens with seal-speed skill (good showcase for a hand-seal minigame). Learn: chunin; requires nearby water."
+  },
+  {
+   "id": "exploding_water_colliding_wave",
+   "name_en": "Water Release: Exploding Water Colliding Wave",
+   "name_jp": "Suiton: Bakusui Shōha",
+   "type": "ninjutsu",
+   "nature": "water",
+   "rank": "B",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Snake"
+   ],
+   "class": "offensive",
+   "range": "long",
+   "clan": null,
+   "tags": [
+    "wide_area",
+    "terrain"
+   ],
+   "canon_description": "Spews a massive volume of water that floods the area, creating a lake for further water techniques.",
+   "game_suggestion": "Turns arena into water terrain (buffs Water jutsu, slows enemies). Learn: jonin."
+  },
+  {
+   "id": "great_waterfall_technique",
+   "name_en": "Water Release: Great Waterfall Technique",
+   "name_jp": "Suiton: Daibakufu no Jutsu",
+   "type": "ninjutsu",
+   "nature": "water",
+   "rank": "A",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Tiger",
+    "Ox",
+    "Monkey",
+    "Rabbit",
+    "Ram",
+    "Boar",
+    "Ox",
+    "Horse",
+    "Monkey",
+    "Tiger",
+    "Dog",
+    "Tiger",
+    "Snake",
+    "Tiger",
+    "Ox",
+    "Monkey",
+    "Rabbit",
+    "Bird"
+   ],
+   "class": "offensive",
+   "range": "long",
+   "clan": null,
+   "tags": [
+    "wide_area"
+   ],
+   "canon_description": "Raises a huge vortex of water from a nearby source and crashes it onto the target like a waterfall.",
+   "game_suggestion": "Large AoE wave with knockdown; needs water nearby. Learn: jonin."
+  },
+  {
+   "id": "great_breakthrough",
+   "name_en": "Wind Release: Great Breakthrough",
+   "name_jp": "Fūton: Daitoppa",
+   "type": "ninjutsu",
+   "nature": "wind",
+   "rank": "C",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Tiger",
+    "Ox",
+    "Dog",
+    "Rabbit",
+    "Snake"
+   ],
+   "class": "offensive",
+   "range": "mid",
+   "clan": null,
+   "tags": [
+    "cone",
+    "knockback"
+   ],
+   "canon_description": "Releases a powerful gust of wind that blows away everything in front of the user.",
+   "game_suggestion": "Cone knockback, deflects incoming projectiles and boosts Fire jutsu passing through. Learn: genin, Wind affinity."
+  },
+  {
+   "id": "gale_palm",
+   "name_en": "Wind Release: Gale Palm",
+   "name_jp": "Fūton: Reppūshō",
+   "type": "ninjutsu",
+   "nature": "wind",
+   "rank": "C",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Snake",
+    "Ram",
+    "Boar",
+    "Horse",
+    "Bird"
+   ],
+   "class": "offensive",
+   "range": "mid",
+   "clan": null,
+   "tags": [
+    "combo"
+   ],
+   "canon_description": "Claps hands to release a gust that accelerates thrown weapons or other techniques.",
+   "game_suggestion": "Buff: next thrown weapon gains speed/damage; also small push. Learn: genin."
+  },
+  {
+   "id": "sickle_weasel_technique",
+   "name_en": "Wind Release: Sickle Weasel Technique",
+   "name_jp": "Kamaitachi no Jutsu",
+   "type": "ninjutsu",
+   "nature": "wind",
+   "rank": "C",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Snake",
+    "Dragon",
+    "Bird"
+   ],
+   "class": "offensive",
+   "range": "mid",
+   "clan": null,
+   "tags": [
+    "cone",
+    "bleed"
+   ],
+   "canon_description": "Creates a slashing whirlwind (often with a fan) that cuts everything it hits.",
+   "game_suggestion": "Wide slicing wave with bleed; stronger with a war fan weapon. Learn: genin/chunin."
+  },
+  {
+   "id": "air_bullets",
+   "name_en": "Wind Release: Air Bullets",
+   "name_jp": "Fūton",
+   "type": "ninjutsu",
+   "nature": "wind",
+   "rank": "C",
+   "rank_source": "estimated",
+   "hand_seals": [
+    "Bird"
+   ],
+   "class": "offensive",
+   "range": "long",
+   "clan": null,
+   "tags": [
+    "projectile"
+   ],
+   "canon_description": "Fires compressed bullets of air at the target.",
+   "game_suggestion": "Cheap fast invisible-ish projectiles (distortion VFX). Learn: genin."
+  },
+  {
+   "id": "vacuum_sphere",
+   "name_en": "Wind Release: Vacuum Sphere",
+   "name_jp": "Fūton: Shinkūgyoku",
+   "type": "ninjutsu",
+   "nature": "wind",
+   "rank": "B",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Rat",
+    "Rabbit",
+    "Dog"
+   ],
+   "class": "offensive",
+   "range": "long",
+   "clan": null,
+   "tags": [
+    "projectile",
+    "barrage"
+   ],
+   "canon_description": "Exhales a rapid barrage of compressed wind bullets that pierce targets.",
+   "game_suggestion": "Machine-gun burst of wind bullets (stand-in for 'Vacuum Bullet'). Learn: chunin."
+  },
+  {
+   "id": "vacuum_wave",
+   "name_en": "Wind Release: Vacuum Wave",
+   "name_jp": "Fūton: Shinkūha",
+   "type": "ninjutsu",
+   "nature": "wind",
+   "rank": "B",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Rat",
+    "Snake",
+    "Horse",
+    "Dog"
+   ],
+   "class": "offensive",
+   "range": "mid",
+   "clan": null,
+   "tags": [
+    "360",
+    "cutting"
+   ],
+   "canon_description": "Exhales a sweeping blade of wind that cuts in a wide arc.",
+   "game_suggestion": "Spin-sweep 180-360 deg slash wave. Learn: chunin."
+  },
+  {
+   "id": "pressure_damage",
+   "name_en": "Wind Release: Pressure Damage",
+   "name_jp": "Fūton: Atsugai",
+   "type": "ninjutsu",
+   "nature": "wind",
+   "rank": "B",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Ram"
+   ],
+   "class": "offensive",
+   "range": "long",
+   "clan": null,
+   "tags": [
+    "aoe"
+   ],
+   "canon_description": "Releases a highly compressed tornado-like blast that devastates a wide area.",
+   "game_suggestion": "Large AoE blast at target location. Learn: jonin."
+  },
+  {
+   "id": "rasenshuriken",
+   "name_en": "Wind Release: Rasenshuriken",
+   "name_jp": "Fūton: Rasenshuriken",
+   "type": "ninjutsu",
+   "nature": "wind",
+   "rank": "S",
+   "rank_source": "canon",
+   "hand_seals": [],
+   "class": "offensive",
+   "range": "long",
+   "clan": null,
+   "tags": [
+    "kinjutsu",
+    "shape_and_nature"
+   ],
+   "canon_description": "Adds wind nature to a Rasengan, forming a shuriken of microscopic wind blades that damages the target at the cellular level.",
+   "game_suggestion": "Ultimate: thrown projectile that expands into a huge cutting sphere; inflicts self-damage debuff on overuse. Learn: late-game jonin; requires Rasengan + Wind nature mastery + extensive Shadow Clone training."
+  },
+  {
+   "id": "hiding_like_a_mole",
+   "name_en": "Earth Release: Hiding Like a Mole Technique",
+   "name_jp": "Doton: Moguragakure no Jutsu",
+   "type": "ninjutsu",
+   "nature": "earth",
+   "rank": "C",
+   "rank_source": "canon",
+   "hand_seals": [],
+   "class": "supplementary",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "movement",
+    "stealth"
+   ],
+   "canon_description": "User burrows through the ground like a mole to move unseen or ambush.",
+   "game_suggestion": "Burrow state: untargetable underground movement, ends with an uppercut ambush. Learn: genin, Earth affinity."
+  },
+  {
+   "id": "earth_style_wall",
+   "name_en": "Earth Release: Earth-Style Wall",
+   "name_jp": "Doton: Doryūheki",
+   "type": "ninjutsu",
+   "nature": "earth",
+   "rank": "B",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Tiger",
+    "Hare",
+    "Boar",
+    "Dog"
+   ],
+   "class": "defensive",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "wall"
+   ],
+   "canon_description": "Raises a thick wall of earth from the ground (or spat mud) to block attacks.",
+   "game_suggestion": "Placeable destructible wall/cover; blocks all projectiles until broken. Learn: genin/chunin."
+  },
+  {
+   "id": "earth_flow_spears",
+   "name_en": "Earth Release: Earth Flow Spears",
+   "name_jp": "Doton: Doryūsō",
+   "type": "ninjutsu",
+   "nature": "earth",
+   "rank": "B",
+   "rank_source": "estimated",
+   "hand_seals": [
+    "Snake",
+    "Rat",
+    "Bird"
+   ],
+   "class": "offensive",
+   "range": "mid",
+   "clan": null,
+   "tags": [
+    "ground_spikes"
+   ],
+   "canon_description": "Shapes the ground into sharp spikes of rock that impale opponents.",
+   "game_suggestion": "Line of erupting ground spikes along the floor, launches enemies. Learn: chunin."
+  },
+  {
+   "id": "earth_dragon_bullet",
+   "name_en": "Earth Release: Earth Dragon Bullet",
+   "name_jp": "Doton: Doryūdan",
+   "type": "ninjutsu",
+   "nature": "earth",
+   "rank": "B",
+   "rank_source": "estimated",
+   "hand_seals": [
+    "Ram",
+    "Horse",
+    "Dragon"
+   ],
+   "class": "offensive",
+   "range": "long",
+   "clan": null,
+   "tags": [
+    "projectile",
+    "combo"
+   ],
+   "canon_description": "Raises an earthen dragon head that spits mud bullets; combined with fire they become flaming bullets.",
+   "game_suggestion": "Turret summon that fires mud balls; Fire combo turns them into fireballs. Learn: chunin."
+  },
+  {
+   "id": "rock_shelter",
+   "name_en": "Earth Release: Rock Shelter",
+   "name_jp": "Doton",
+   "type": "ninjutsu",
+   "nature": "earth",
+   "rank": "C",
+   "rank_source": "estimated",
+   "hand_seals": [],
+   "class": "defensive",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "dome"
+   ],
+   "canon_description": "Encloses the user and allies in a protective dome of rock.",
+   "game_suggestion": "Group shield dome for 3 s. Learn: chunin."
+  },
+  {
+   "id": "swamp_of_the_underworld",
+   "name_en": "Earth Release: Swamp of the Underworld",
+   "name_jp": "Doton: Yomi Numa",
+   "type": "ninjutsu",
+   "nature": "earth",
+   "rank": "A",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Boar",
+    "Tiger"
+   ],
+   "class": "offensive",
+   "range": "mid",
+   "clan": null,
+   "tags": [
+    "terrain",
+    "bind"
+   ],
+   "canon_description": "Turns the ground into a deep swamp of mud that swallows anything on it.",
+   "game_suggestion": "Ground AoE that roots and sinks enemies (damage over time, giants become stuck). Learn: jonin."
+  },
+  {
+   "id": "chidori",
+   "name_en": "Chidori",
+   "name_jp": "Chidori",
+   "type": "ninjutsu",
+   "nature": "lightning",
+   "rank": "A",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Ox",
+    "Rabbit",
+    "Monkey"
+   ],
+   "class": "offensive",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "dash",
+    "thrust"
+   ],
+   "canon_description": "Concentrates lightning chakra in the hand, producing chirping birds' sound, then charges into the target with a piercing thrust.",
+   "game_suggestion": "Charge then straight dash-thrust with armor-pierce; needs high speed stat (tunnel-vision weakness: easy to counter). Learn: chunin/jonin; Lightning teacher + speed training."
+  },
+  {
+   "id": "lightning_cutter",
+   "name_en": "Lightning Cutter",
+   "name_jp": "Raikiri",
+   "type": "ninjutsu",
+   "nature": "lightning",
+   "rank": "S",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Ox",
+    "Rabbit",
+    "Monkey"
+   ],
+   "class": "offensive",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "dash",
+    "thrust"
+   ],
+   "canon_description": "A refined, more powerful form of Chidori capable of cutting through almost anything.",
+   "game_suggestion": "Upgrade of Chidori (skill tree evolution); higher damage, lightning-clash cancel. Learn: jonin."
+  },
+  {
+   "id": "false_darkness",
+   "name_en": "Lightning Release: False Darkness",
+   "name_jp": "Raiton: Gian",
+   "type": "ninjutsu",
+   "nature": "lightning",
+   "rank": "B",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Snake"
+   ],
+   "class": "offensive",
+   "range": "long",
+   "clan": null,
+   "tags": [
+    "beam"
+   ],
+   "canon_description": "Fires a spear-like bolt of lightning from the mouth that pierces targets.",
+   "game_suggestion": "Fast piercing beam that chains to a second target. Learn: chunin."
+  },
+  {
+   "id": "four_pillar_bind",
+   "name_en": "Lightning Release: Four Pillar Bind",
+   "name_jp": "Raiton: Shichū Shibari",
+   "type": "ninjutsu",
+   "nature": "lightning",
+   "rank": "B",
+   "rank_source": "estimated",
+   "hand_seals": [
+    "Ram",
+    "Boar",
+    "Dog",
+    "Bird",
+    "Hare"
+   ],
+   "class": "supplementary",
+   "range": "mid",
+   "clan": null,
+   "tags": [
+    "bind",
+    "trap"
+   ],
+   "canon_description": "Raises four pillars around the target which emit lightning, trapping and paralysing them.",
+   "game_suggestion": "Placeable square trap; enemies inside are stunned and shocked. Learn: chunin."
+  },
+  {
+   "id": "thunderbolt",
+   "name_en": "Lightning Release: Thunderbolt",
+   "name_jp": "Raiton: Sandāboruto",
+   "type": "ninjutsu",
+   "nature": "lightning",
+   "rank": "B",
+   "rank_source": "estimated",
+   "hand_seals": [
+    "Tiger",
+    "Snake",
+    "Tiger",
+    "Bird",
+    "Tiger",
+    "Ram"
+   ],
+   "class": "offensive",
+   "range": "long",
+   "clan": null,
+   "tags": [
+    "aoe",
+    "sky"
+   ],
+   "canon_description": "Calls down a bolt of lightning on the target.",
+   "game_suggestion": "Targeted delayed strike from above with AoE stun. Learn: chunin."
+  },
+  {
+   "id": "lightning_chakra_mode",
+   "name_en": "Lightning Release Chakra Mode",
+   "name_jp": "Raiton Chakura Mōdo",
+   "type": "ninjutsu",
+   "nature": "lightning",
+   "rank": "B",
+   "rank_source": "canon",
+   "hand_seals": [],
+   "class": "supplementary",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "buff",
+    "chakra_flow"
+   ],
+   "canon_description": "Cloaks the body in lightning chakra, stimulating nerves for extreme speed and reflexes while also acting as armour.",
+   "game_suggestion": "Toggle buff draining chakra/sec: +move speed, +attack speed, damage reduction, unlocks lightning taijutsu (e.g. Hell Stab). Learn: jonin."
+  },
+  {
+   "id": "hell_stab",
+   "name_en": "Hell Stab",
+   "name_jp": "Jigokuzuki",
+   "type": "taijutsu",
+   "nature": "lightning",
+   "rank": "B",
+   "rank_source": "canon",
+   "hand_seals": [],
+   "class": "offensive",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "nintaijutsu"
+   ],
+   "canon_description": "Coats the fingertips in lightning chakra to pierce the target with a spear-hand strike.",
+   "game_suggestion": "Melee thrust combo-ender; requires Lightning Chakra Mode active for full damage. Learn: jonin."
+  },
+  {
+   "id": "rasengan",
+   "name_en": "Rasengan",
+   "name_jp": "Rasengan",
+   "type": "ninjutsu",
+   "nature": null,
+   "rank": "A",
+   "rank_source": "canon",
+   "hand_seals": [],
+   "class": "offensive",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "shape_transformation",
+    "no_seals"
+   ],
+   "canon_description": "A sphere of rapidly rotating, compressed chakra held in the palm that grinds into the target; needs no hand seals.",
+   "game_suggestion": "Melee charge-orb: hold to charge, release on contact for big knockback/spin damage. Learn: chunin; 3-stage training (water balloon -> rubber ball -> balloon) from a master."
+  },
+  {
+   "id": "hell_viewing_technique",
+   "name_en": "Demonic Illusion: Hell Viewing Technique",
+   "name_jp": "Magen: Narakumi no Jutsu",
+   "type": "genjutsu",
+   "nature": "yin",
+   "rank": "D",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Snake",
+    "Rat"
+   ],
+   "class": "supplementary",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "fear"
+   ],
+   "canon_description": "Makes the target see a horrifying vision of their worst fears.",
+   "game_suggestion": "Fear debuff: target flees / attacks lowered for 3 s. Learn: genin; genjutsu teacher."
+  },
+  {
+   "id": "sly_mind_affect_technique",
+   "name_en": "Sly Mind Affect Technique",
+   "name_jp": "Kori Shinchū no Jutsu",
+   "type": "genjutsu",
+   "nature": "yin",
+   "rank": "C",
+   "rank_source": "canon",
+   "hand_seals": [],
+   "class": "supplementary",
+   "range": "mid",
+   "clan": null,
+   "tags": [
+    "confusion"
+   ],
+   "canon_description": "Makes targets believe they are walking in a straight line while they are actually led in circles.",
+   "game_suggestion": "Field genjutsu: enemies/pursuers inside zone wander or patrol in circles; great for stealth/escape. Learn: genin/chunin."
+  },
+  {
+   "id": "tree_binding_death",
+   "name_en": "Demonic Illusion: Tree Binding Death",
+   "name_jp": "Magen: Jubaku Satsu",
+   "type": "genjutsu",
+   "nature": "yin",
+   "rank": "B",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Dog",
+    "Snake",
+    "Monkey",
+    "Ox",
+    "Tiger"
+   ],
+   "class": "offensive",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "bind"
+   ],
+   "canon_description": "Makes the target believe they are bound by a tree, letting the user strike them.",
+   "game_suggestion": "Bind + guaranteed crit on next hit; break with Genjutsu Release (chakra disruption). Learn: chunin."
+  },
+  {
+   "id": "bringer_of_darkness",
+   "name_en": "Bringer-of-Darkness Technique",
+   "name_jp": "Kokuangyo no Jutsu",
+   "type": "genjutsu",
+   "nature": "yin",
+   "rank": "A",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Tiger"
+   ],
+   "class": "supplementary",
+   "range": "mid",
+   "clan": null,
+   "tags": [
+    "blind",
+    "aoe"
+   ],
+   "canon_description": "Plunges targets into complete darkness, cutting off their vision.",
+   "game_suggestion": "AoE blind: enemies lose screen/lock-on; for the player it darkens their vignette. Learn: jonin."
+  },
+  {
+   "id": "mystical_palm",
+   "name_en": "Mystical Palm Technique",
+   "name_jp": "Shōsen Jutsu",
+   "type": "ninjutsu",
+   "nature": null,
+   "rank": "A",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Ox",
+    "Tiger"
+   ],
+   "class": "supplementary",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "medical",
+    "heal"
+   ],
+   "canon_description": "Medical technique that channels chakra through the hands to accelerate healing of wounds.",
+   "game_suggestion": "Channelled heal (self/ally) while standing still; requires high chakra control stat. Learn: genin/chunin medical path; hospital training (heal fish/plants minigame)."
+  },
+  {
+   "id": "chakra_scalpel",
+   "name_en": "Chakra Scalpel",
+   "name_jp": "Chakura no Mesu",
+   "type": "ninjutsu",
+   "nature": null,
+   "rank": "B",
+   "rank_source": "estimated",
+   "hand_seals": [
+    "Tiger",
+    "Horse",
+    "Rabbit",
+    "Rat",
+    "Dog"
+   ],
+   "class": "offensive",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "medical"
+   ],
+   "canon_description": "Forms chakra into a fine blade on the hand that can cut muscle and tendons internally without an open wound.",
+   "game_suggestion": "Melee stance applying 'severed' debuffs (slow, weaker attacks). Learn: chunin medical path."
+  },
+  {
+   "id": "delicate_illness_extraction",
+   "name_en": "Delicate Illness Extraction Technique",
+   "name_jp": "Saikan Chūshutsu no Jutsu",
+   "type": "ninjutsu",
+   "nature": null,
+   "rank": "B",
+   "rank_source": "canon",
+   "hand_seals": [],
+   "class": "supplementary",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "medical",
+    "cleanse"
+   ],
+   "canon_description": "Draws poison out of a patient's body using a sphere of water and chakra.",
+   "game_suggestion": "Cleanse poison/DOT from ally; quest utility. Learn: chunin medical path."
+  },
+  {
+   "id": "poison_mist",
+   "name_en": "Poison Mist",
+   "name_jp": "Dokugiri",
+   "type": "ninjutsu",
+   "nature": null,
+   "rank": "B",
+   "rank_source": "canon",
+   "hand_seals": [],
+   "class": "offensive",
+   "range": "mid",
+   "clan": null,
+   "tags": [
+    "medical",
+    "poison",
+    "cloud"
+   ],
+   "canon_description": "Exhales a large cloud of poison gas created through medical knowledge.",
+   "game_suggestion": "Poison cloud AoE with DOT. Learn: chunin; requires medical knowledge."
+  },
+  {
+   "id": "cherry_blossom_impact",
+   "name_en": "Cherry Blossom Impact",
+   "name_jp": "Ōkashō",
+   "type": "taijutsu",
+   "nature": null,
+   "rank": "C",
+   "rank_source": "canon",
+   "hand_seals": [],
+   "class": "offensive",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "medical_strength",
+    "chakra_control"
+   ],
+   "canon_description": "Gathers chakra in a fist and releases it at the moment of impact for devastating strength that shatters the ground.",
+   "game_suggestion": "Ground-pound punch shockwave; scales with chakra control. Learn: chunin medical path."
+  },
+  {
+   "id": "strength_of_a_hundred",
+   "name_en": "Strength of a Hundred Technique",
+   "name_jp": "Byakugō no Jutsu",
+   "type": "ninjutsu",
+   "nature": null,
+   "rank": "S",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Tiger"
+   ],
+   "class": "supplementary",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "medical",
+    "kinjutsu",
+    "regen"
+   ],
+   "canon_description": "Stores chakra in a seal on the forehead over years and releases it to power regeneration and techniques.",
+   "game_suggestion": "Late-game passive: chakra bank fills slowly over time; activate for auto-regen + unlimited chakra for a short window. Learn: jonin medical master quest."
+  },
+  {
+   "id": "creation_rebirth",
+   "name_en": "Creation Rebirth",
+   "name_jp": "Sōzō Saisei",
+   "type": "ninjutsu",
+   "nature": null,
+   "rank": "S",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Tiger"
+   ],
+   "class": "supplementary",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "medical",
+    "kinjutsu",
+    "regen"
+   ],
+   "canon_description": "Accelerates cell division to regenerate organs and tissue instantly, at the cost of the user's lifespan.",
+   "game_suggestion": "Full-heal ability that permanently costs a tiny bit of max HP per use. Learn: endgame."
+  },
+  {
+   "id": "leaf_hurricane",
+   "name_en": "Leaf Hurricane",
+   "name_jp": "Konoha Senpū",
+   "type": "taijutsu",
+   "nature": null,
+   "rank": "D",
+   "rank_source": "canon",
+   "hand_seals": [],
+   "class": "offensive",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "kick"
+   ],
+   "canon_description": "A spinning roundhouse kick sequence.",
+   "game_suggestion": "Spinning kick AoE knockback; combo starter. Learn: academy/genin; taijutsu dojo."
+  },
+  {
+   "id": "leaf_rising_wind",
+   "name_en": "Leaf Rising Wind",
+   "name_jp": "Konoha Shōfū",
+   "type": "taijutsu",
+   "nature": null,
+   "rank": "C",
+   "rank_source": "canon",
+   "hand_seals": [],
+   "class": "offensive",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "launcher"
+   ],
+   "canon_description": "An upward kick that launches the opponent into the air.",
+   "game_suggestion": "Launcher for air combos. Learn: genin; dojo."
+  },
+  {
+   "id": "dynamic_entry",
+   "name_en": "Dynamic Entry",
+   "name_jp": "Dainamikku Entorī",
+   "type": "taijutsu",
+   "nature": null,
+   "rank": "D",
+   "rank_source": "canon",
+   "hand_seals": [],
+   "class": "offensive",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "dash"
+   ],
+   "canon_description": "A flying kick used to enter a battle and strike an opponent.",
+   "game_suggestion": "Jump-kick gap closer. Learn: genin."
+  },
+  {
+   "id": "front_lotus",
+   "name_en": "Front Lotus",
+   "name_jp": "Omote Renge",
+   "type": "taijutsu",
+   "nature": null,
+   "rank": "B",
+   "rank_source": "canon",
+   "hand_seals": [],
+   "class": "offensive",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "kinjutsu",
+    "eight_gates"
+   ],
+   "canon_description": "Launches the opponent high, binds them with bandages and piledrives them into the ground; requires opening the first gate.",
+   "game_suggestion": "Cinematic grab finisher, costs HP. Learn: chunin; requires Eight Gates gate 1."
+  },
+  {
+   "id": "eight_gates",
+   "name_en": "Eight Gates",
+   "name_jp": "Hachimon",
+   "type": "taijutsu",
+   "nature": null,
+   "rank": "S",
+   "rank_source": "estimated",
+   "hand_seals": [],
+   "class": "supplementary",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "buff",
+    "self_damage"
+   ],
+   "canon_description": "Forcibly opens chakra limiters in the body, giving immense power at the cost of severe physical damage; opening all eight is fatal.",
+   "game_suggestion": "Tiered self-buff: each gate opened gives big stat boost and HP drain; gate 8 = death (game over or permanent loss). Learn: gated progression via a taijutsu master; one gate per arc."
+  },
+  {
+   "id": "gentle_fist",
+   "name_en": "Gentle Fist",
+   "name_jp": "Jūken",
+   "type": "hiden",
+   "nature": null,
+   "rank": "C",
+   "rank_source": "estimated",
+   "hand_seals": [],
+   "class": "offensive",
+   "range": "short",
+   "clan": "Hyūga",
+   "tags": [
+    "fighting_style",
+    "needs_byakugan"
+   ],
+   "canon_description": "A fighting style that strikes the chakra pathway system with chakra-infused palm strikes, damaging internal organs.",
+   "game_suggestion": "Alternate melee moveset dealing chakra-drain damage and sealing enemy jutsu. Learn: Hyūga-style clan only."
+  },
+  {
+   "id": "eight_trigrams_64_palms",
+   "name_en": "Eight Trigrams Sixty-Four Palms",
+   "name_jp": "Hakke Rokujūyon Shō",
+   "type": "hiden",
+   "nature": null,
+   "rank": "A",
+   "rank_source": "estimated",
+   "hand_seals": [],
+   "class": "offensive",
+   "range": "short",
+   "clan": "Hyūga",
+   "tags": [
+    "needs_byakugan"
+   ],
+   "canon_description": "A rapid sequence of 64 strikes that seals the target's chakra points.",
+   "game_suggestion": "Stance-then-flurry; target cannot use jutsu for several seconds. Learn: clan, chunin."
+  },
+  {
+   "id": "eight_trigrams_palm_rotation",
+   "name_en": "Eight Trigrams Palms Revolving Heaven",
+   "name_jp": "Hakkeshō Kaiten",
+   "type": "hiden",
+   "nature": null,
+   "rank": "A",
+   "rank_source": "estimated",
+   "hand_seals": [],
+   "class": "defensive",
+   "range": "short",
+   "clan": "Hyūga",
+   "tags": [
+    "360",
+    "deflect"
+   ],
+   "canon_description": "Releases chakra from all tenketsu while spinning, creating a rotating dome that deflects attacks.",
+   "game_suggestion": "360 deg spin shield that reflects projectiles and knocks back. Learn: clan, chunin."
+  },
+  {
+   "id": "shadow_imitation",
+   "name_en": "Shadow Imitation Technique",
+   "name_jp": "Kagemane no Jutsu",
+   "type": "hiden",
+   "nature": "yin",
+   "rank": "C",
+   "rank_source": "estimated",
+   "hand_seals": [
+    "Rat"
+   ],
+   "class": "supplementary",
+   "range": "mid",
+   "clan": "Nara",
+   "tags": [
+    "bind",
+    "shadow"
+   ],
+   "canon_description": "Extends the user's shadow to connect with the target's, forcing them to mimic the user's movements.",
+   "game_suggestion": "Ground-line bind whose range depends on light/shadows in the scene; while bound, enemy copies your movement. Learn: clan."
+  },
+  {
+   "id": "shadow_neck_bind",
+   "name_en": "Shadow Neck Bind Technique",
+   "name_jp": "Kage Kubishibari no Jutsu",
+   "type": "hiden",
+   "nature": "yin",
+   "rank": "B",
+   "rank_source": "estimated",
+   "hand_seals": [
+    "Dragon",
+    "Tiger",
+    "Rat"
+   ],
+   "class": "offensive",
+   "range": "mid",
+   "clan": "Nara",
+   "tags": [
+    "bind",
+    "shadow"
+   ],
+   "canon_description": "After capturing a target with shadow, the shadow climbs up their body and strangles them.",
+   "game_suggestion": "Follow-up to Shadow Imitation: DOT while bound. Learn: clan."
+  },
+  {
+   "id": "shadow_sewing",
+   "name_en": "Shadow Sewing Technique",
+   "name_jp": "Kage Nui no Jutsu",
+   "type": "hiden",
+   "nature": "yin",
+   "rank": "B",
+   "rank_source": "estimated",
+   "hand_seals": [
+    "Rat",
+    "Bird"
+   ],
+   "class": "offensive",
+   "range": "mid",
+   "clan": "Nara",
+   "tags": [
+    "shadow"
+   ],
+   "canon_description": "Sharpens shadow tendrils into needles that pierce and bind multiple targets.",
+   "game_suggestion": "Multi-target piercing tendrils + root. Learn: clan, chunin."
+  },
+  {
+   "id": "multi_size",
+   "name_en": "Multi-Size Technique",
+   "name_jp": "Baika no Jutsu",
+   "type": "hiden",
+   "nature": "yang",
+   "rank": "C",
+   "rank_source": "estimated",
+   "hand_seals": [
+    "Ram"
+   ],
+   "class": "supplementary",
+   "range": "short",
+   "clan": "Akimichi",
+   "tags": [
+    "transform",
+    "size"
+   ],
+   "canon_description": "Converts calories into chakra to enlarge the user's body (or parts of it).",
+   "game_suggestion": "Grow: bigger hitboxes, more damage and HP, slower; consumes 'calorie' resource restored by eating. Learn: clan."
+  },
+  {
+   "id": "human_bullet_tank",
+   "name_en": "Human Bullet Tank",
+   "name_jp": "Nikudan Sensha",
+   "type": "taijutsu",
+   "nature": "yang",
+   "rank": "C",
+   "rank_source": "canon",
+   "hand_seals": [],
+   "class": "offensive",
+   "range": "mid",
+   "clan": "Akimichi",
+   "tags": [
+    "dash",
+    "rolling"
+   ],
+   "canon_description": "After expanding, the user rolls at high speed as a giant ball to crush enemies.",
+   "game_suggestion": "Steerable rolling charge with knockdown. Learn: clan; requires Multi-Size."
+  },
+  {
+   "id": "parasitic_insects",
+   "name_en": "Parasitic Destruction Insect Technique",
+   "name_jp": "Kikaichū no Jutsu",
+   "type": "hiden",
+   "nature": null,
+   "rank": "C",
+   "rank_source": "estimated",
+   "hand_seals": [],
+   "class": "offensive",
+   "range": "mid",
+   "clan": "Aburame",
+   "tags": [
+    "swarm",
+    "chakra_drain"
+   ],
+   "canon_description": "Directs chakra-eating insects hosted in the body to swarm and drain targets or form shields and clones.",
+   "game_suggestion": "Swarm projectile that drains enemy chakra over time; insect resource meter. Learn: clan."
+  },
+  {
+   "id": "insect_clone",
+   "name_en": "Insect Clone Technique",
+   "name_jp": "Mushi Bunshin no Jutsu",
+   "type": "hiden",
+   "nature": null,
+   "rank": "C",
+   "rank_source": "estimated",
+   "hand_seals": [],
+   "class": "supplementary",
+   "range": "short",
+   "clan": "Aburame",
+   "tags": [
+    "clone"
+   ],
+   "canon_description": "Forms a clone out of insects that can disperse to escape attacks.",
+   "game_suggestion": "Decoy that, when hit, becomes a drain swarm. Learn: clan."
+  },
+  {
+   "id": "fang_passing_fang",
+   "name_en": "Fang Passing Fang",
+   "name_jp": "Gatsūga",
+   "type": "taijutsu",
+   "nature": null,
+   "rank": "C",
+   "rank_source": "canon",
+   "hand_seals": [],
+   "class": "offensive",
+   "range": "short",
+   "clan": "Inuzuka",
+   "tags": [
+    "collaboration",
+    "dash"
+   ],
+   "canon_description": "The user and ninken partner spin like drills and slam into the target together.",
+   "game_suggestion": "Drill-dash done together with a dog companion pet. Learn: clan; requires ninken companion bond level."
+  },
+  {
+   "id": "mind_body_switch",
+   "name_en": "Mind Body Switch Technique",
+   "name_jp": "Shintenshin no Jutsu",
+   "type": "hiden",
+   "nature": null,
+   "rank": "C",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Special Seal (Yamanaka)"
+   ],
+   "class": "supplementary",
+   "range": "long",
+   "clan": "Yamanaka",
+   "tags": [
+    "possession"
+   ],
+   "canon_description": "Projects the user's mind into a target to take control of their body; the user's own body is left defenceless.",
+   "game_suggestion": "Slow projectile; on hit player controls the enemy for X s while own body is vulnerable. Learn: clan."
+  },
+  {
+   "id": "mind_body_transmission",
+   "name_en": "Mind Body Transmission Technique",
+   "name_jp": "Shindenshin no Jutsu",
+   "type": "hiden",
+   "nature": null,
+   "rank": "C",
+   "rank_source": "estimated",
+   "hand_seals": [
+    "Ram"
+   ],
+   "class": "supplementary",
+   "range": "long",
+   "clan": "Yamanaka",
+   "tags": [
+    "comms"
+   ],
+   "canon_description": "Links minds to let several people communicate telepathically.",
+   "game_suggestion": "Party telepathy: reveals ally positions/quest markers. Learn: clan."
+  },
+  {
+   "id": "wood_clone",
+   "name_en": "Wood Clone Technique",
+   "name_jp": "Moku Bunshin no Jutsu",
+   "type": "kekkei_genkai",
+   "nature": "wood",
+   "rank": "B",
+   "rank_source": "estimated",
+   "hand_seals": [
+    "Tiger",
+    "Dog",
+    "Snake"
+   ],
+   "class": "supplementary",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "wood_release",
+    "clone"
+   ],
+   "canon_description": "Creates clones made of wood that can travel far and merge with trees.",
+   "game_suggestion": "Long-range scout clones. Learn: Wood Release bloodline only."
+  },
+  {
+   "id": "four_pillar_house",
+   "name_en": "Wood Release: Four-Pillar House Technique",
+   "name_jp": "Mokuton: Shichūka no Jutsu",
+   "type": "kekkei_genkai",
+   "nature": "wood",
+   "rank": "B",
+   "rank_source": "estimated",
+   "hand_seals": [
+    "Snake",
+    "Rat",
+    "Ox",
+    "Ram",
+    "Snake"
+   ],
+   "class": "supplementary",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "wood_release",
+    "utility"
+   ],
+   "canon_description": "Grows a full wooden house from the ground.",
+   "game_suggestion": "Camp/rest point anywhere in the open world (save + heal). Learn: Wood Release bloodline."
+  },
+  {
+   "id": "demonic_mirroring_ice_crystals",
+   "name_en": "Demonic Mirroring Ice Crystals",
+   "name_jp": "Makyō Hyōshō",
+   "type": "kekkei_genkai",
+   "nature": "ice",
+   "rank": "A",
+   "rank_source": "estimated",
+   "hand_seals": [
+    "Special Seal"
+   ],
+   "class": "offensive",
+   "range": "mid",
+   "clan": "Yuki",
+   "tags": [
+    "ice_release",
+    "dome"
+   ],
+   "canon_description": "Surrounds the target with ice mirrors; the user moves between them at great speed attacking from all angles.",
+   "game_suggestion": "Arena-trap: dome of mirrors, player teleports mirror-to-mirror firing senbon. Learn: Ice Release bloodline."
+  },
+  {
+   "id": "dance_of_the_willow",
+   "name_en": "Dance of the Willow",
+   "name_jp": "Yanagi no Mai",
+   "type": "kekkei_genkai",
+   "nature": null,
+   "rank": "B",
+   "rank_source": "estimated",
+   "hand_seals": [],
+   "class": "offensive",
+   "range": "short",
+   "clan": "Kaguya",
+   "tags": [
+    "dead_bone_pulse"
+   ],
+   "canon_description": "Grows bone blades from the user's body and attacks in a fluid dance.",
+   "game_suggestion": "Bone-blade melee moveset with wide arcs. Learn: Dead Bone Pulse bloodline."
+  },
+  {
+   "id": "melting_apparition",
+   "name_en": "Lava Release: Melting Apparition Technique",
+   "name_jp": "Yōton: Yōkai no Jutsu",
+   "type": "kekkei_genkai",
+   "nature": "lava",
+   "rank": "A",
+   "rank_source": "estimated",
+   "hand_seals": [
+    "Dog",
+    "Boar",
+    "Tiger",
+    "Ox",
+    "Rat",
+    "Bird"
+   ],
+   "class": "offensive",
+   "range": "mid",
+   "clan": null,
+   "tags": [
+    "lava_release",
+    "acid"
+   ],
+   "canon_description": "Spits a corrosive fluid that melts whatever it touches.",
+   "game_suggestion": "Acid spray cone that melts armor (defence down). Learn: Lava Release bloodline."
+  },
+  {
+   "id": "laser_circus",
+   "name_en": "Storm Release: Laser Circus",
+   "name_jp": "Ranton: Reizā Sākasu",
+   "type": "kekkei_genkai",
+   "nature": "storm",
+   "rank": "A",
+   "rank_source": "estimated",
+   "hand_seals": [
+    "Rat",
+    "Tiger",
+    "Dog",
+    "Snake",
+    "Dragon"
+   ],
+   "class": "offensive",
+   "range": "long",
+   "clan": null,
+   "tags": [
+    "storm_release",
+    "homing"
+   ],
+   "canon_description": "Fires multiple beams of energy that can be steered to chase targets.",
+   "game_suggestion": "Volley of homing lasers. Learn: Storm Release bloodline."
+  },
+  {
+   "id": "landmine_fist",
+   "name_en": "Explosion Release: Landmine Fist",
+   "name_jp": "Bakuton: Jiraiken",
+   "type": "kekkei_genkai",
+   "nature": "explosion",
+   "rank": "B",
+   "rank_source": "estimated",
+   "hand_seals": [],
+   "class": "offensive",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "explosion_release"
+   ],
+   "canon_description": "Infuses a punch with explosive chakra that detonates on contact.",
+   "game_suggestion": "Explosive punch with AoE. Learn: Explosion Release bloodline."
+  },
+  {
+   "id": "five_elements_seal",
+   "name_en": "Five Elements Seal",
+   "name_jp": "Gogyō Fūin",
+   "type": "fuinjutsu",
+   "nature": null,
+   "rank": "A",
+   "rank_source": "canon",
+   "hand_seals": [
+    "Special Seal"
+   ],
+   "class": "supplementary",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "seal"
+   ],
+   "canon_description": "Places a seal with the five fingertips that disrupts the target's chakra flow.",
+   "game_suggestion": "Debuff: disables target's jutsu for long duration; also used for quest 'seal the beast' events. Learn: jonin; sealing master."
+  },
+  {
+   "id": "puppet_technique",
+   "name_en": "Puppet Technique",
+   "name_jp": "Kugutsu no Jutsu",
+   "type": "ninjutsu",
+   "nature": null,
+   "rank": "C",
+   "rank_source": "canon",
+   "hand_seals": [],
+   "class": "offensive",
+   "range": "mid",
+   "clan": null,
+   "tags": [
+    "chakra_threads",
+    "fighting_style"
+   ],
+   "canon_description": "Uses chakra threads from the fingertips to control combat puppets loaded with weapons and poison.",
+   "game_suggestion": "Pet-control class: puppet with its own loadout (blades, poison darts, shield); player is weak while puppeteering. Learn: Sand-village-style puppet workshop."
+  },
+  {
+   "id": "sage_mode",
+   "name_en": "Sage Mode",
+   "name_jp": "Sennin Mōdo",
+   "type": "senjutsu",
+   "nature": null,
+   "rank": "S",
+   "rank_source": "estimated",
+   "hand_seals": [],
+   "class": "supplementary",
+   "range": "short",
+   "clan": null,
+   "tags": [
+    "natural_energy",
+    "buff"
+   ],
+   "canon_description": "Blends natural energy with chakra to dramatically enhance physical power, jutsu, and senses; gathering it requires remaining perfectly still and too much energy turns the user to stone.",
+   "game_suggestion": "Meditate in place to fill a nature meter (vulnerable), then transform: big buff to all stats, sensing, enhanced jutsu. Overfill = petrification debuff. Learn: endgame; train at a summon-animal sanctuary."
+  }
+ ],
+ "dojutsu": [
+  {
+   "name": "Sharingan",
+   "clan": "Uchiha",
+   "abilities": [
+    "Clairvoyance-level perception of chakra and fast movement",
+    "Predicts movements",
+    "Copies observed ninjutsu, genjutsu and taijutsu (not kekkei genkai)",
+    "Casts genjutsu through eye contact",
+    "Matures from 1 to 3 tomoe"
+   ],
+   "game_suggestion": "Bloodline-locked awakening event (emotional story trigger). Toggle mode draining chakra: slow-mo dodge windows, enemy attack telegraphs, and a 'copy' mechanic that learns an enemy jutsu after observing it N times. Tomoe level = upgrade tiers."
+  },
+  {
+   "name": "Mangekyō Sharingan",
+   "clan": "Uchiha",
+   "abilities": [
+    "Unique per-user techniques (e.g. Amaterasu black flames, Tsukuyomi genjutsu, Kamui space-time, Susanoo chakra avatar)",
+    "Use causes progressive blindness"
+   ],
+   "game_suggestion": "Endgame evolution; each use adds a permanent 'eye strain' stat that reduces vision until cured by a rare quest. Best avoided or kept as NPC-only power."
+  },
+  {
+   "name": "Byakugan",
+   "clan": "Hyūga",
+   "abilities": [
+    "Near-360 degree vision (one blind spot)",
+    "Telescopic and X-ray vision",
+    "Sees chakra pathway system and tenketsu points",
+    "Enables Gentle Fist"
+   ],
+   "game_suggestion": "Toggle detection mode: highlights enemies/loot through walls, shows weak points (crit zones) and a small blind-spot cone the player must cover. Enables the Gentle Fist moveset."
+  },
+  {
+   "name": "Rinnegan",
+   "clan": "Ōtsutsuki / Uchiha-Senju lineage (extremely rare)",
+   "abilities": [
+    "Use of all five natures plus yin and yang",
+    "Six Paths techniques (attraction/repulsion, soul removal, summoning, etc.)",
+    "See invisible things"
+   ],
+   "game_suggestion": "Legendary tier; keep for bosses or a secret ending rather than as a player progression item."
+  },
+  {
+   "name": "Ketsuryūgan",
+   "clan": "Chinoike",
+   "abilities": [
+    "Red eyes that cast genjutsu",
+    "Manipulate iron in blood"
+   ],
+   "game_suggestion": "Optional obscure bloodline: blood-manipulation hemorrhage debuffs and eye-contact genjutsu."
+  }
+ ],
+ "tools": [
+  {
+   "name": "Kunai",
+   "description": "Standard double-edged dagger with a ring pommel; used for stabbing, throwing, climbing, and carrying explosive tags or wire.",
+   "game_suggestion": "Default melee + throwable; ammo stack (e.g. 10). Can carry an explosive tag or a teleport marker in advanced builds."
+  },
+  {
+   "name": "Shuriken",
+   "description": "Small throwing stars (typically four points) used to wound, distract, or pin; often thrown in volleys.",
+   "game_suggestion": "Fast low-damage projectile volley (3 per throw); can curve with skill. Academy target-practice minigame."
+  },
+  {
+   "name": "Fūma Shuriken",
+   "description": "Large folding windmill shuriken thrown with great force.",
+   "game_suggestion": "Heavy boomerang-like projectile with return arc."
+  },
+  {
+   "name": "Senbon",
+   "description": "Thin throwing needles aimed at vital points, sometimes poisoned or used medically to induce a false death state.",
+   "game_suggestion": "Precision projectile with weak-point crit and status (poison/paralysis)."
+  },
+  {
+   "name": "Explosive Tag",
+   "description": "Paper tag inscribed with a seal that explodes when activated; often attached to kunai or set as traps.",
+   "game_suggestion": "Consumable: stick to kunai, wall or enemy; remote or timed detonation; trap-laying for stealth missions."
+  },
+  {
+   "name": "Smoke Bomb",
+   "description": "Small sphere that releases a thick smoke cloud to cover escape or ambush.",
+   "game_suggestion": "Consumable: breaks aggro/lock-on, enables escape from fights and stealth repositioning."
+  },
+  {
+   "name": "Soldier Pill",
+   "description": "Ration pill that restores stamina and chakra for a long period; a strong variant can produce exhaustion afterwards.",
+   "game_suggestion": "Consumable chakra/stamina restore over time with a post-effect fatigue debuff; craftable by clans/medical path."
+  },
+  {
+   "name": "Ninja Wire",
+   "description": "Strong thin wire used for traps, binding, and channelling techniques.",
+   "game_suggestion": "Tether tool: bind enemies between posts, set tripwires, conduct Fire (Dragon Fire Technique)."
+  },
+  {
+   "name": "Makibishi",
+   "description": "Caltrops scattered on the ground to slow pursuers.",
+   "game_suggestion": "Ground trap slowing and damaging enemies that walk over it."
+  },
+  {
+   "name": "Scroll",
+   "description": "Used to store sealed weapons/objects, summon contracts, and record techniques.",
+   "game_suggestion": "Inventory expansion (sealed weapons) and the main item form for learning jutsu."
+  },
+  {
+   "name": "Forehead Protector",
+   "description": "Metal plate on cloth bearing the village symbol; proof of graduation from the Academy.",
+   "game_suggestion": "Earned at graduation; cosmetic identity item that unlocks missions board access."
+  },
+  {
+   "name": "Flak Jacket",
+   "description": "Protective vest with scroll pouches worn by chūnin and above.",
+   "game_suggestion": "Armor unlocked at chunin promotion, adds extra consumable slots."
+  }
+ ],
+ "ranks": [
+  {
+   "name": "Academy Student",
+   "description": "Child trainee learning chakra basics, hand seals, the three academy techniques, shuriken and taijutsu.",
+   "how_promoted": "Pass the graduation exam (written + practical) administered by a chūnin instructor; receive a forehead protector."
+  },
+  {
+   "name": "Genin",
+   "description": "Lowest ninja rank; placed in a three-man cell under a jōnin-sensei; mainly D- and C-rank missions.",
+   "how_promoted": "Graduate the Academy, then pass the jōnin-sensei's own test (failure can send students back to the Academy)."
+  },
+  {
+   "name": "Chūnin",
+   "description": "Mid-rank ninja valued for leadership and tactics; leads squads; C- and B-rank missions; may wear the flak jacket.",
+   "how_promoted": "Pass the Chūnin Exams; promotion is judged on overall ability and judgment, not simply winning matches."
+  },
+  {
+   "name": "Tokubetsu Jōnin",
+   "description": "Special jōnin: a specialist in one area (e.g. interrogation, a particular combat skill) between chūnin and jōnin.",
+   "how_promoted": "Appointed for specialised expertise."
+  },
+  {
+   "name": "Jōnin",
+   "description": "Elite, highly experienced ninja serving as captains; usually command two or more elemental natures; A-rank missions, can lead genin teams.",
+   "how_promoted": "Recommendation by the Kage and peers (an exam may be required in some cases; anime shows a Jōnin Exam)."
+  },
+  {
+   "name": "Anbu",
+   "description": "Masked special operations unit under the Kage's direct command handling assassination, special missions and hunting missing-nin.",
+   "how_promoted": "Hand-picked by the Kage."
+  },
+  {
+   "name": "Kage",
+   "description": "Leader of a great shinobi village; the strongest ninja.",
+   "how_promoted": "Chosen by the village leadership and the country's daimyō."
+  }
+ ],
+ "missions": {
+  "ranks": [
+   {
+    "rank": "D",
+    "description": "Assigned to genin fresh from the Academy; almost no risk.",
+    "typical_examples": [
+     "farm work",
+     "babysitting",
+     "finding lost pets",
+     "weeding/cleaning"
+    ],
+    "pay_ryo_range": [
+     5000,
+     50000
+    ]
+   },
+   {
+    "rank": "C",
+    "description": "For experienced genin or chūnin; little to no chance of combat with ninja.",
+    "typical_examples": [
+     "escort against bandits",
+     "background investigation",
+     "capturing thieves",
+     "suppressing wild animals"
+    ],
+    "pay_ryo_range": [
+     30000,
+     100000
+    ]
+   },
+   {
+    "rank": "B",
+    "description": "For experienced chūnin; combat with other ninja expected.",
+    "typical_examples": [
+     "bodyguard duty",
+     "espionage",
+     "killing enemy ninja"
+    ],
+    "pay_ryo_range": [
+     80000,
+     200000
+    ]
+   },
+   {
+    "rank": "A",
+    "description": "For jōnin; village- or state-level matters.",
+    "typical_examples": [
+     "guarding VIPs",
+     "suppressing ninja forces"
+    ],
+    "pay_ryo_range": [
+     150000,
+     1000000
+    ]
+   },
+   {
+    "rank": "S",
+    "description": "For experienced jōnin; state-level classified matters.",
+    "typical_examples": [
+     "assassinating VIPs",
+     "transporting highly classified documents"
+    ],
+    "pay_ryo_range": [
+     1000000,
+     null
+    ]
+   }
+  ],
+  "notes": "If a client lies about the danger (mission exceeds its rank), ninja are no longer obligated to finish it. Mercenary missions are unranked. Konoha tradition: a ninja's first mission is received directly from the Hokage.",
+  "game_suggestion": "Mission board filtered by rank; pay goes to the squad/village with a share to the player. A 'misranked mission' twist (C-rank that becomes B/A) is a great early-story hook."
+ },
+ "chunin_exam": {
+  "description": "Joint exam held twice a year by allied villages; genin enter as three-man teams nominated by their jōnin-sensei; entrants sign waivers for injury/death; trickery is allowed.",
+  "stages": [
+   {
+    "stage": "First Stage - Written Test",
+    "description": "Hour-long 10-question test where the first nine are too hard; the hidden objective is to gather information (cheat) without being caught (penalty points). The tenth question tests resolve: accept risk of never retaking the exam or forfeit with the team.",
+    "game_suggestion": "Stealth/perception minigame: use jutsu (Byakugan, mind/insect techniques, clones) to copy answers without being spotted by proctors; final moral-choice question."
+   },
+   {
+    "stage": "Second Stage - Survival (Forest of Death)",
+    "description": "Five days in a dangerous forest; each team gets a Heaven or Earth scroll and must obtain the other and reach the central tower with all members; opening scrolls early is punished.",
+    "game_suggestion": "Open-zone survival with team PvE/PvNPC battles for scrolls, foraging, traps, night ambushes and a time limit."
+   },
+   {
+    "stage": "Preliminaries",
+    "description": "If too many pass, random one-on-one matches; only winners advance, independent of teammates.",
+    "game_suggestion": "Randomised 1v1 bracket against rival NPC genin."
+   },
+   {
+    "stage": "Finals",
+    "description": "Held one month later in a stadium before an audience including feudal lords; one-on-one tournament. Promotion is decided on demonstrated skill and judgment, not only victory.",
+    "game_suggestion": "One-month training interlude (choose a teacher, learn a new jutsu), then tournament; promotion score based on style/tactics, so losing can still promote."
+   }
+  ]
+ },
+ "academy_graduation": {
+  "description": "Graduation usually consists of a written exam and a practical exam, administered by a chūnin instructor (classically demonstrating a technique such as the Clone Technique). Graduates receive a forehead protector and are placed into three-man genin squads under a jōnin-sensei, who may give their own test and can send failing students back. Not every lesson must be mastered to pass (strong taijutsu or another technique can compensate). Typical admission age is about six.",
+  "curriculum": [
+   "chakra theory and control",
+   "hand seals",
+   "Clone / Transformation / Body Replacement techniques",
+   "shuriken and kunai throwing",
+   "taijutsu",
+   "history and written subjects"
+  ],
+  "game_suggestion": "Tutorial chapter: lessons unlock hand seals one by one, then the three academy techniques; final exam = written quiz + practical (perform Clone Technique via seal-input minigame) + optional sparring. Then a sensei 'survival test' (e.g. take bells/items from the sensei as a team) decides squad placement."
+ },
+ "training_methods": [
+  {
+   "name": "Hand Seal Drills",
+   "description": "Memorising and speeding up the twelve seals; skilled ninja need fewer seals for the same technique.",
+   "game_suggestion": "Seal-input combo minigame (keys/controller directions = animals); seal speed stat lowers cast times and lets you drop seals."
+  },
+  {
+   "name": "Leaf Concentration Exercise",
+   "description": "Sticking a leaf to the forehead with chakra as a basic chakra control drill.",
+   "game_suggestion": "Academy-level chakra control tutorial."
+  },
+  {
+   "name": "Tree Climbing Practice",
+   "description": "Walking up a tree using only the feet by focusing a precise amount of chakra in the soles; too much repels, too little slips.",
+   "game_suggestion": "Meter-balancing minigame; reward: wall-running ability + chakra control stat + max chakra up."
+  },
+  {
+   "name": "Water Surface Walking Practice",
+   "description": "Harder control drill: continuously emit and adjust chakra from the feet to stand and walk on water.",
+   "game_suggestion": "Unlocks water-walking traversal (lakes become walkable) and higher chakra control; prerequisite for many Water jutsu."
+  },
+  {
+   "name": "Chakra Nature Affinity Test",
+   "description": "Chakra paper reacts to the user's nature: burns (fire), splits (wind), wrinkles (lightning), crumbles (earth), dampens (water).",
+   "game_suggestion": "Post-graduation event that assigns elemental affinity."
+  },
+  {
+   "name": "Nature Transformation Training",
+   "description": "Element-specific drills, e.g. cutting a leaf with wind chakra, splitting a waterfall for wind/water, burning a leaf for fire.",
+   "game_suggestion": "Per-element training quests that raise nature mastery, unlocking higher-rank jutsu of that nature."
+  },
+  {
+   "name": "Rasengan Three-Step Training",
+   "description": "Rotation (pop a water balloon), power (burst a rubber ball), and containment (keep a balloon still while rotating chakra inside).",
+   "game_suggestion": "Three-stage quest chain with escalating minigames; reward Rasengan."
+  },
+  {
+   "name": "Shadow Clone Training",
+   "description": "Experience gained by shadow clones returns to the user when they are dispelled, multiplying training speed (but chakra and mental fatigue too).",
+   "game_suggestion": "Training XP multiplier equal to clone count, with fatigue cost."
+  },
+  {
+   "name": "Weighted Taijutsu Training",
+   "description": "Training with heavy weights and extreme physical regimens to build speed and strength.",
+   "game_suggestion": "Equip weights to gain bonus taijutsu XP; remove in combat for a temporary speed burst."
+  },
+  {
+   "name": "Senjutsu Training",
+   "description": "Learning to stay perfectly still and absorb natural energy at a sacred summon-animal location; failure risks turning to stone.",
+   "game_suggestion": "Late-game meditation minigame unlocking Sage Mode."
+  },
+  {
+   "name": "Genjutsu Release Practice",
+   "description": "Disrupting one's own chakra flow (or having an ally do it) to break an illusion.",
+   "game_suggestion": "Teach a 'Kai' button press/QTE that breaks genjutsu debuffs."
+  }
+ ]
+}

@@ -12,7 +12,7 @@ from .ninja_model import NinjaModel
 from .actors import ShadowClone, Kunai
 from . import state
 
-WALK, RUN = 7.0, 16.0
+WALK, RUN = 12.0, 20.0
 GRAV = 34.0
 JUMP_V = 13.0
 WALL_SPEED = 11.0
@@ -331,7 +331,7 @@ class Player(Entity):
                 n = Vec3(nx, 0, nz)
                 tall = col.y1 - self.y > 1.6
                 into = wish.dot(-n)
-                if tall and into > .45 and (running or not self.grounded or self.dash_t > 0):
+                if tall and into > .35:
                     self.wall = (nx, nz)
                     self.vel = Vec3(0, 0, 0)
                     self.grounded = False
@@ -348,7 +348,7 @@ class Player(Entity):
         elif not self.grounded:
             mode = 'air'
         else:
-            mode = 'run' if running else 'ground'
+            mode = 'run' if sp > 9 else 'ground'
         self.model_.animate(dt, sp, mode)
 
     def update_wall(self, dt):
@@ -362,11 +362,6 @@ class Player(Entity):
         run = held_keys['left shift'] or held_keys['right shift']
         spd = WALL_SPEED * (1.35 if run else 1)
         move = Vec3(0, up_amt, 0) * spd + side * side_amt * spd
-        self.chakra = max(0, self.chakra - (7 if move.length() > .1 else 3) * dt)
-        if self.chakra <= 0:
-            self.leave_wall(push=2)
-            state.hud.message('Chakra bitti, duvardan düştün!', '#7fd0ff')
-            return
 
         p = self.position + move * dt
         # duvara bastır, temas devam ediyor mu?
