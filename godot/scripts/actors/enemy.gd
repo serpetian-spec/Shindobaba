@@ -77,8 +77,12 @@ func _ready() -> void:
 	nameplate = Label3D.new()
 	nameplate.text = "%s  Sv.%d" % [display_name, level]
 	nameplate.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	nameplate.fixed_size = true
-	nameplate.pixel_size = 0.0012
+	# uzaktaki isimler üst üste binmesin: dünya boyutunda, 30 m'den sonra solarak kaybolur
+	nameplate.fixed_size = false
+	nameplate.pixel_size = 0.0045
+	nameplate.visibility_range_end = 30.0
+	nameplate.visibility_range_end_margin = 6.0
+	nameplate.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 	nameplate.font_size = 36
 	nameplate.outline_size = 8
 	nameplate.modulate = Color(1, 0.6, 0.55)
