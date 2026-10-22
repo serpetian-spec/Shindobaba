@@ -23,4 +23,5 @@ func _ready() -> void:
 ## 100 seviye uzun vadeli hedef: erken seviyeler hızlı, 50'den sonra yavaşlar
 const MAX_LEVEL := 100
 func xp_for_level(lv: int) -> int:
-	return int(120.0 + 70.0 * pow(lv, 1.3) + (0.0 if lv < 50 else 40.0 * pow(lv - 49, 1.45)))
+	# erken seviyeler hızlı (Genin ~Sv.5'e kısa sürede), Sv.100 toplamı ~1.47M
+	return int(40.0 + 14.0 * pow(lv, 1.7) + (0.0 if lv < 50 else 30.0 * pow(lv - 49, 1.45)))

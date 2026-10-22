@@ -86,6 +86,9 @@ func story() -> int:
 
 
 func set_story(i: int) -> void:
+	# hikâye adımı tamamlama ödülü (erken adımlar seviye atlatır)
+	if i > int(p().get("story", 0)):
+		add_xp(80 + 60 * i)
 	p()["story"] = i
 	# D-rank adımına gelmeden önce yapılan görevler de sayılır
 	if i == 6 and int(p()["missions_done"].get("D", 0)) >= 3:
@@ -398,6 +401,9 @@ func on_dummy_hit(_d: Node, _dmg: float) -> void:
 
 func on_dummy_broken(_d: Node) -> void:
 	var pr = p()
+	# antrenman: düşük seviyede kukla devirmek biraz XP verir (Sv.10'dan sonra vermez)
+	if int(pr.get("level", 1)) < 10:
+		add_xp(25)
 	if story() == 3:
 		pr["flags"]["grad_broken"] = int(pr["flags"].get("grad_broken", 0)) + 1
 		Hud.objective_progress("Devrilen kukla: %d/3" % pr["flags"]["grad_broken"])

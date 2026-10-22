@@ -4,7 +4,7 @@ extends Node
 ## kendi hedef işareti (pusula/ışık sütunu/mini harita) ve metni vardır. Konumlar procedural: görev masasının köyü çevresinden seçilir.
 ## Ayrıca Bingo Kitabı (Aranıyor listesi): ödüllü kaçak ninjalar, saklandıkları bölge, muhbirler.
 
-const REWARD := {"D": [60, 50], "C": [220, 140], "B": [600, 380], "A": [1600, 900], "S": [6000, 2500]}
+const REWARD := {"D": [80, 110], "C": [240, 260], "B": [600, 380], "A": [1600, 900], "S": [6000, 2500]}
 const RANK_FOR := {0: ["D"], 1: ["D", "C"], 2: ["C", "B"], 3: ["B", "A", "S"], 4: ["A", "S"], 5: ["A", "S"], 6: ["A", "S"]}
 const RANK_IDX := {"D": 0, "C": 1, "B": 2, "A": 3, "S": 4}
 const REP_GAIN := {"D": 2, "C": 5, "B": 10, "A": 20, "S": 40}
