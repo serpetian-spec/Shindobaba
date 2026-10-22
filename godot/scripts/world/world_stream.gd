@@ -12,6 +12,8 @@ var feat_by_region := {}       # Vector2i -> [feature]
 var poi_by_region := {}        # Vector2i -> [poi]
 var regions := {}              # Vector2i -> {node, inter: Array, pois: bool}
 var _queue: Array = []
+var _road_job := {}
+var _prof := OS.get_cmdline_user_args().has("--prof")
 var _t := 0.0
 
 
@@ -27,6 +29,8 @@ func _ready() -> void:
 		if not poi_by_region.has(k):
 			poi_by_region[k] = []
 		poi_by_region[k].append(p)
+	# yol kenarı noktaları + evlere/POI'lere patikalar (yol dokusu ilk çizilmeden önce)
+	Roadside.init()
 
 
 func _focus() -> Vector2:
@@ -61,17 +65,72 @@ func _process(dt: float) -> void:
 					continue
 				var reg = regions.get(k)
 				var want_pois := d < POI_R + REGION * 0.7
-				if reg == null or (want_pois and not reg["pois"] and poi_by_region.has(k)):
-					if feat_by_region.has(k) or poi_by_region.has(k):
+				if reg == null or (want_pois and not reg["pois"] and (poi_by_region.has(k) or Roadside.slots_by_region.has(k))):
+					if feat_by_region.has(k) or poi_by_region.has(k) or Roadside.has_region(k):
 						_queue.append([d, k, want_pois])
 		_queue.sort_custom(func(a, b): return a[0] < b[0])
 		for k in regions.keys():
 			if _rdist(k, m) > BUILD_R + FREE_PAD:
 				_free(k)
+	_road_jobs()
 	# bölge kurulumu pahalı: üç karede bir (bitki parçalarıyla aynı kareye düşmesin)
 	if not _queue.is_empty() and Engine.get_process_frames() % 3 == 1:
 		var q: Array = _queue.pop_front()
+		var tb := Time.get_ticks_usec()
 		_build(q[1], q[2])
+		if _prof:
+			print("BOLGE_US ", Time.get_ticks_usec() - tb, " pois=", q[2])
+
+
+## Yol kenarı süsleri: bölge başına onlarca ms sürebiliyor -> adımlara bölünüp karede ~2 ms bütçeyle kurulur
+const ROAD_BUDGET_US := 1200
+func _road_jobs() -> void:
+	var t0 := Time.get_ticks_usec()
+	while Time.get_ticks_usec() - t0 < ROAD_BUDGET_US:
+		if _road_job.is_empty():
+			if not _start_road_job():
+				return
+		var reg = regions.get(_road_job["k"])
+		if reg == null or not is_instance_valid(_road_job["node"]):
+			_road_job = {}
+			continue
+		var steps: Array = _road_job["steps"]
+		if _road_job["i"] >= steps.size():
+			for it in _road_job["holder"]["inter"]:
+				Interact.add(it)
+				reg["inter"].append(it)
+			if reg["pois"]:
+				Roadside.spawn_npcs_deferred(_road_job["node"], _road_job["holder"]["npcs"])
+			_road_job = {}
+			continue
+		var ts := Time.get_ticks_usec()
+		(steps[_road_job["i"]] as Callable).call()
+		if _prof and Time.get_ticks_usec() - ts > 6000:
+			print("YOLADIM_US ", Time.get_ticks_usec() - ts, " adım ", _road_job["i"], "/", steps.size())
+		_road_job["i"] += 1
+
+
+func _start_road_job() -> bool:
+	var m := _focus()
+	var best = null
+	var bd := 1e18
+	for k in regions:
+		if regions[k]["road"] or not Roadside.has_region(k):
+			continue
+		var d := _rdist(k, m)
+		if d < bd:
+			bd = d
+			best = k
+	if best == null:
+		return false
+	var node := Node3D.new()
+	node.name = "YolKenari"
+	regions[best]["node"].add_child(node)
+	regions[best]["road"] = true
+	_road_job = Roadside.make_job(node, best)
+	_road_job["k"] = best
+	_road_job["node"] = node
+	return true
 
 
 func _free(k: Vector2i) -> void:
@@ -109,4 +168,4 @@ func _build(k: Vector2i, with_pois: bool) -> void:
 		for p in poi_by_region.get(k, []):
 			PoiBuilder.build(node, p)
 	var inter: Array = Interact.items.slice(before)
-	regions[k] = {"node": node, "inter": inter, "pois": with_pois}
+	regions[k] = {"node": node, "inter": inter, "pois": with_pois, "road": false}

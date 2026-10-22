@@ -195,9 +195,10 @@ class Placer:
 		rc.shape = rs
 		rc.transform = Transform3D(xf.basis.orthonormalized(), pos + Vector3(0, (t["h"] + (t["roof_top"] - t["h"]) * 0.3) * scale, 0))
 		body.add_child(rc)
-		if not Builder.roof_points.has(key):
-			Builder.roof_points[key] = []
-		Builder.roof_points[key].append(pos + Vector3(0, t["roof_top"] * scale, 0))
+		if key != "" and not key.begins_with("yolkenari"):   # iş parçacığında kurulan yol kenarı evleri paylaşılan sözlüğe yazmaz
+			if not Builder.roof_points.has(key):
+				Builder.roof_points[key] = []
+			Builder.roof_points[key].append(pos + Vector3(0, t["roof_top"] * scale, 0))
 		return t
 
 	func finish() -> void:

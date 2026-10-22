@@ -95,6 +95,9 @@ void fragment() {
 	float road = smoothstep(0.3, 0.6, rmask + (n2 - 0.5) * 0.22);
 	vec3 dirt = vec3(0.74, 0.56, 0.36) * (0.85 + n3 * 0.2);
 	if (b == 14 || b == 15) dirt = vec3(0.62, 0.6, 0.56) * (0.88 + n3 * 0.16);
+	if (b == 8 || b == 9) dirt = vec3(0.52, 0.47, 0.42) * (0.88 + n3 * 0.18);  // karlı/dağ yolu: ıslak çakıl
+	// yol kenarı: tekerlek izi ortası hafif çimenli, kenarlarda çakıl
+	dirt *= 1.0 - 0.06 * smoothstep(0.75, 0.95, rmask);
 	base = mix(base, dirt, road * 0.92);
 	// yarlar: katmanlı kaya
 	float rock = smoothstep(0.3, 0.5, slope + (n2 - 0.5) * 0.18);

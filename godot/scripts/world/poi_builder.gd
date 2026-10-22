@@ -120,15 +120,41 @@ static func _campfire(b: Builder, x: float, n: float) -> void:
 
 
 # ------------------------------------------------------------------ mezra: birkaç ev, tarla, çit, kuyu, köylüler
+## Mezra ev konumları (Roadside patikaları da aynı noktaları kullanır: ayrı, deterministik tohum)
+static func hamlet_spots(p: Dictionary) -> Array:
+	var r2 := RandomNumberGenerator.new()
+	r2.seed = hash(String(p["id"]) + "_evler")
+	var out: Array = []
+	var nh = r2.randi_range(4, 8)
+	for i in nh:
+		var a = TAU * i / nh + r2.randf_range(-0.3, 0.3)
+		var r = r2.randf_range(16, 38)
+		out.append(Vector3(cos(a) * r, 0, sin(a) * r))
+	return out
+
+
 static func _hamlet(b: Builder, node: Node3D, p: Dictionary, rng: RandomNumberGenerator, style: String) -> void:
-	var n_houses = rng.randi_range(4, 8)
-	var spots: Array = []
-	for i in n_houses:
-		var a = TAU * i / n_houses + rng.randf_range(-0.3, 0.3)
-		var r = rng.randf_range(16, 38)
-		spots.append(Vector3(cos(a) * r, 0, sin(a) * r))
-		b.house(cos(a) * r, sin(a) * r, rng.randf_range(7, 11), rng.randf_range(6, 9), rng.randi_range(1, 2),
-			rad_to_deg(-a) + 90.0 + rng.randf_range(-10, 10), style, rng)
+	var spots: Array = hamlet_spots(p)
+	for sp in spots:
+		var a = atan2(sp.z, sp.x)
+		b.house(sp.x, sp.z, rng.randf_range(7, 11), rng.randf_range(6, 9), rng.randi_range(1, 2),
+			rad_to_deg(-a) + 90.0, style, rng)
+	# mezra süsleri: ambar, odun yığını, saman, çiçek, taş fenerler, bank
+	for i in spots.size():
+		var sp: Vector3 = spots[i]
+		var q = sp * 1.35 + Vector3(sp.z, 0, -sp.x).normalized() * 6.0
+		match i % 4:
+			0:
+				var gy = _ground(b, q.x, q.z)
+				b.cone(Vector3(q.x, gy + 1.3, q.z), 3.0, 2.6, Color(0.85, 0.72, 0.38), 9)
+				b.cyl(Vector3(q.x, gy + 0.5, q.z), 2.8, 1.0, Color(0.8, 0.66, 0.34), false, 9)
+			1:
+				_cart(b, q.x, q.z, rng.randf() * 360.0)
+			2:
+				BuildFeatures._build(b, {"t": "lantern", "x": q.x, "y": q.z, "g": _ground(b, q.x, q.z), "yaw": 0.0}, rng)
+			3:
+				var gy3 = _ground(b, q.x, q.z)
+				b.box(Vector3(q.x, gy3 + 0.45, q.z), Vector3(2.0, 0.12, 0.6), Color(0.55, 0.4, 0.26), rng.randf() * 180.0)
 	# kuyu
 	var gy = _ground(b, 0, 0)
 	b.cyl(Vector3(0, gy + 0.5, 0), 2.0, 1.0, Color(0.55, 0.53, 0.5), true, 10)

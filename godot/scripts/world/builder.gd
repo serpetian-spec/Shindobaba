@@ -121,10 +121,16 @@ static func rot(lx: float, ln: float, yaw: float) -> Vector2:
 	return Vector2(lx * cos(a) + ln * sin(a), -lx * sin(a) + ln * cos(a))
 
 
+var defer_interact = null   # Array ise etkileşimler buraya toplanır (iş parçacığında kurulum)
+
+
 func interact(p: Vector3, radius: float, kind: String, label: String, data := {}) -> void:
 	var d = {"pos": w(p), "radius": radius, "kind": kind, "label": label}
 	d.merge(data)
-	Interact.add(d)
+	if defer_interact != null:
+		defer_interact.append(d)
+	else:
+		Interact.add(d)
 
 
 func finish() -> void:

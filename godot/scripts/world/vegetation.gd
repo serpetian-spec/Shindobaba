@@ -7,7 +7,7 @@ const CH := 256.0
 const NEAR_FULL := 420.0      # tam model görünürlüğü
 const FAR_R := 2300.0         # en uzak parça
 const DETAIL_R := 700.0       # bu mesafeden yakın parçalar tam kontrolle (eğim, küçük bitkiler) üretilir
-const SMALL := [8, 10, 12]    # küçük bitkiler: sadece yakında
+const SMALL := [8, 10, 12, 13, 14, 15, 16, 17, 18, 19, 20]    # küçük bitkiler / yer örtüsü: sadece yakında
 const CONVEX := [4, 11]
 const MAX_TASKS := 2
 const MAX_BUILDS_PER_FRAME := 1
@@ -16,14 +16,17 @@ const DMAX := 0.02            # aday yoğunluğu (m² başına)
 
 ## biyom -> [yoğunluk / m², tipler]  (0 geniş ağaç, 1 çam, 2 kuru ağaç, 3 kaktüs, 4 kaya, 5 dev ağaç, 6 bambu,
 ## 7 palmiye, 8 çalı, 9 Konoha orman ağacı (dev, dallı), 10 eğrelti, 11 büyük kaya kümesi, 12 çiçek öbeği)
-const DENS := {2: [0.0125, [9, 9, 9, 9, 9, 0, 0, 8, 10, 10, 12, 6]], 4: [0.003, [2, 2, 0, 8, 10]], 5: [0.0016, [4, 11, 1, 8]],
-	6: [0.0012, [0, 8, 6, 12]], 7: [0.002, [0, 9, 8, 12, 12, 10]], 8: [0.003, [1, 1, 1, 4]], 9: [0.0028, [1, 1, 4, 11, 8]],
-	10: [0.004, [2, 2, 0, 8, 10]], 3: [0.00035, [3, 3, 4, 11]], 1: [0.0006, [7, 8]]}
+## 13 devrik kütük, 14 mantar, 15 uzun çimen, 16 saz, 17 kuru çalı, 18 meyveli çalı, 19 yosunlu kaya, 20 karlı kaya
+const DENS := {2: [0.0125, [9, 9, 9, 9, 9, 0, 0, 8, 10, 10, 12, 6, 13, 14, 15, 18, 19, 15]], 4: [0.0035, [2, 2, 0, 8, 10, 16, 19, 14, 15]],
+	5: [0.0032, [4, 11, 1, 8, 19, 17, 19, 15, 19]], 6: [0.0022, [0, 8, 6, 12, 15, 15, 16, 18]], 7: [0.005, [0, 9, 8, 12, 12, 10, 15, 15, 18, 13, 19, 15, 12, 15]],
+	8: [0.0055, [1, 1, 1, 1, 4, 20, 20, 20, 17]], 9: [0.0045, [1, 1, 4, 11, 8, 19, 20, 1]], 10: [0.0045, [2, 2, 0, 8, 10, 16, 16, 14, 13]],
+	3: [0.0024, [3, 3, 4, 11, 17, 17, 17, 17, 4, 3]], 1: [0.0012, [7, 8, 15, 7]]}
 
 var meshes = {}
 var lods = {}
 ## görünen gövde yarıçapları (çarpışma görselle birebir olsun: ayak havada kalmasın)
-var radii = {0: 0.38, 1: 0.36, 2: 0.3, 3: 0.36, 4: 1.0, 5: 3.2, 6: 0.0, 7: 0.25, 8: 0.0, 9: Props.FOREST_TRUNK_R, 10: 0.0, 11: 1.0, 12: 0.0}
+var radii = {0: 0.38, 1: 0.36, 2: 0.3, 3: 0.36, 4: 1.0, 5: 3.2, 6: 0.0, 7: 0.25, 8: 0.0, 9: Props.FOREST_TRUNK_R, 10: 0.0, 11: 1.0, 12: 0.0,
+	13: 0.0, 14: 0.0, 15: 0.0, 16: 0.0, 17: 0.0, 18: 0.0, 19: 0.0, 20: 0.0}
 var convex = {}
 var bodies: Array[StaticBody3D] = []
 var chunks := {}        # Vector2i -> {node, detail: bool, trees: Array}
@@ -36,7 +39,7 @@ var _specials: Array = []   # [x, y(harita), iç r, dış r, tip, yoğunluk]
 
 
 func _ready() -> void:
-	for t in 13:
+	for t in 21:
 		meshes[t] = Props.vegetation_mesh(t)
 		lods[t] = Props.vegetation_lod(t)
 	for t in CONVEX:
@@ -176,18 +179,29 @@ func _generate(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 			continue
 		var clear := Game._wh_vn(x / 260.0, z / 260.0, 11) * 0.6 + Game._wh_vn(x / 130.0, z / 130.0, 12) * 0.4
 		var local := 0.35 + 1.3 * Game._wh_vn(x / 400.0, z / 400.0, 13)
-		if u > dens * area_scale * local * smoothstep(0.3, 0.42, clear):
-			continue
 		var t: int = types[int(pick * types.size()) % types.size()]
+		# açıklıklar yalnız ağaçları seyreltir; yer örtüsü (çalı, kaya, çimen, çiçek) açıklıkta da azalarak sürer
+		var cf := smoothstep(0.3, 0.42, clear)
+		if not t in [0, 1, 2, 5, 9, 6, 7]:
+			cf = 0.4 + 0.6 * cf
+		if u > dens * area_scale * local * cf:
+			continue
 		if not detail and t in SMALL:
 			continue
-		if Game.wet_at(x, z) > 0.4:
+		var wet := Game.wet_at(x, z)
+		if wet > 0.4:
+			# su kenarı: saz ve kamış
+			if detail and wet < 0.8 and rng.randf() < 0.5:
+				t = 16
+			else:
+				continue
+		if not Roadside.is_clear(x, -z, 11.0 if t in [9, 5] else (3.0 if t in [0, 1, 2] else 0.0), 0.35 if t in SMALL else 1.0):
 			continue
 		var rdist := Game.road_dist(x, z)
-		if rdist < (16.0 if t in [9, 5] else 8.0):
+		if rdist < (16.0 if t in [9, 5] else (3.5 if t in [15, 12, 19, 14] else 8.0)):
 			continue
 		var h := Game.terrain_height(x, z)
-		if h < 0.8:
+		if h < (0.15 if t == 16 else 0.8):
 			continue
 		if detail:
 			var hx := Game.terrain_height(x + 2.0, z) - h
@@ -233,7 +247,7 @@ func _install(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 		var n := buf.size() / 16
 		if n == 0:
 			continue
-		var near_end = (NEAR_FULL if not t in SMALL else 120.0) * view
+		var near_end = (NEAR_FULL if not t in SMALL else (240.0 if t in [13, 19, 20, 17] else 130.0)) * view
 		if t in [5, 11, 4, 9]:
 			near_end = 650.0 * view
 		var has_lod = lods[t] != null

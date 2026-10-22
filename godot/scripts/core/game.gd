@@ -61,7 +61,7 @@ var rivers: Array = []
 var pois: Array = []
 var _road_grid := {}               # Vector2i(256 m) -> [[yol idx, parça idx]]
 const ROAD_CELL := 256.0
-const ROAD_HALF := {"road": 5.0, "street": 6.0}
+const ROAD_HALF := {"road": 5.0, "street": 6.0, "path": 2.0}
 
 
 func _load_world() -> void:

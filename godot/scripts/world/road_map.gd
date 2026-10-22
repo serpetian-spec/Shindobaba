@@ -158,7 +158,7 @@ func _ribbons(segs: Array, width_mul: float, colored: bool) -> ArrayMesh:
 		var pts: PackedVector2Array = rl["pts"]
 		var a: Vector2 = pts[e.y]
 		var b: Vector2 = pts[e.y + 1]
-		var half = (8.0 if rl["kind"] == "road" else 9.0) * width_mul
+		var half = {"road": 8.0, "street": 9.0, "path": 2.6}.get(rl["kind"], 8.0) * width_mul
 		var A = Vector3(a.x, 0, -a.y)
 		var B = Vector3(b.x, 0, -b.y)
 		var dir = (B - A)
@@ -168,7 +168,7 @@ func _ribbons(segs: Array, width_mul: float, colored: bool) -> ArrayMesh:
 		var side = Vector3(-dir.z, 0, dir.x) * half
 		A -= dir * half * 0.6
 		B += dir * half * 0.6
-		var col = road_col if rl["kind"] == "road" else street_col
+		var col = road_col if rl["kind"] != "street" else street_col
 		var quad = [[A - side, 0.0], [A + side, 1.0], [B + side, 1.0], [A - side, 0.0], [B + side, 1.0], [B - side, 0.0]]
 		for q in quad:
 			st.set_uv(Vector2(q[1], 0))
