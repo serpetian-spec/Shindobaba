@@ -429,6 +429,7 @@ func _on_jutsu_cast(caster: Node, id: String) -> void:
 func _process(dt: float) -> void:
 	if Game.paused or p == null:
 		return
+	check_awaken(dt)
 	for s in cd:
 		cd[s] = maxf(0.0, cd[s] - dt)
 	strain = maxf(0.0, strain - dt * 0.01)
@@ -471,6 +472,77 @@ func _process(dt: float) -> void:
 				f.set_meta("eye_prompt", true)
 				Combat.popup_text(f.global_position + Vector3.UP * 1.5, "[F] Gözleri al", Color(1, 0.4, 0.4))
 			break
+
+
+# ------------------------------------------------------------------ uyanış ve gelişim (gözler eşya değil)
+var _awaken_cd = 0.0
+## Uyuyan klan gözü: hayatın tehlikedeyken (can < %20) yakında düşman varken uyanır
+func check_awaken(dt: float) -> void:
+	_awaken_cd -= dt
+	var pr = Game.profile
+	var dormant = String(pr.get("flags", {}).get("dormant_eye", ""))
+	if dormant != "" and _awaken_cd <= 0.0 and p.hp < p.max_hp * 0.2 and not _enemies_in(20.0).is_empty():
+		_awaken_cd = 5.0
+		if randf() < 0.5:
+			pr["flags"].erase("dormant_eye")
+			Gear.grant(pr, dormant, "sag_goz", null, null, {"lvl": 1, "origin": "dogustan", "xp": 0.0})
+			Gear.grant(pr, dormant, "sol_goz", null, null, {"lvl": 1, "origin": "dogustan", "xp": 0.0})
+			Gear.apply_look(pr)
+			p.rebuild_model()
+			Hud.banner("SHARINGAN UYANDI", "Ölümün eşiğinde gözlerin açıldı", Color(1, 0.2, 0.2))
+			Sfx.play("genjutsu", p.global_position, 1.3)
+			if not active:
+				toggle.call_deferred()
+	# tomoe ilerlemesi: gözler açıkken dövüş
+	if active and not _enemies_in(25.0).is_empty():
+		for slot in ["sag_goz", "sol_goz"]:
+			var g = Gear.equipped(pr, slot)
+			if g.is_empty() or g["id"] != "goz_sharingan" or int(g.get("lvl", 1)) >= 3:
+				continue
+			g["xp"] = float(g.get("xp", 0.0)) + dt
+			if g["xp"] >= 120.0 * int(g.get("lvl", 1)):
+				g["xp"] = 0.0
+				g["lvl"] = int(g.get("lvl", 1)) + 1
+				Hud.banner("SHARINGAN GELİŞTİ", "%d tomoe" % int(g["lvl"]), Color(1, 0.3, 0.3))
+				refresh_visual()
+
+
+## Mangekyō uyanışı: 3 tomoe iken yakın bir müttefik (eskort, rehine, takım arkadaşı) gözlerinin önünde ölürse
+func on_ally_died(ally: Node3D) -> void:
+	if not is_instance_valid(ally) or ally.global_position.distance_to(p.global_position) > 40.0:
+		return
+	var pr = Game.profile
+	var ok = false
+	for slot in ["sag_goz", "sol_goz"]:
+		var g = Gear.equipped(pr, slot)
+		if not g.is_empty() and g["id"] == "goz_sharingan" and int(g.get("lvl", 1)) >= 3:
+			g["id"] = "goz_mangekyo"
+			g.erase("design")
+			ok = true
+	if ok:
+		Gear.apply_look(pr)
+		p.rebuild_model()
+		Hud.banner("MANGEKYŌ SHARINGAN", "Acı, gözlerini sonsuza dek değiştirdi", Color(0.8, 0.05, 0.1))
+		Sfx.play("roar", p.global_position, 0.7, 0.5)
+
+
+## Hastanede nakil: saklanan bir gözü seçilen yuvaya takar (eski göz kavanoza)
+static func transplant(pr: Dictionary, uid: int, slot: String) -> void:
+	var g = Gear.find(pr, uid)
+	if g.is_empty():
+		return
+	# Mangekyō sahibine başka bir Mangekyō nakli = Ebedi Mangekyō
+	var cur = Gear.equipped(pr, slot)
+	if not cur.is_empty() and cur["id"] == "goz_mangekyo" and g["id"] == "goz_mangekyo":
+		g["id"] = "goz_ems"
+		g["origin"] = "dogustan"
+		g.erase("design")
+		Hud.banner("EBEDİ MANGEKYŌ", "Gözlerin artık hiç kararmayacak", Color(0.9, 0.2, 0.3))
+	pr["equip"][slot] = uid
+	Buffs.add("nakil", 120.0, {"speed": 0.85, "melee": 0.85})
+	Gear.apply_look(pr)
+	if Game.player:
+		Game.player.rebuild_model()
 
 
 ## Kaçma şansı (Sharingan öngörüsü): PlayerModes.on_player_hit çağırır

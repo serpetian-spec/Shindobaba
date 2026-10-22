@@ -133,6 +133,54 @@ static func _tile(content: Control, text: String, accent: Color, selected: bool,
 	return b
 
 
+## Gözler eşya değil, bedenin parçası: durum, uyanış ilerlemesi, saklanan gözler (nakil hastanede)
+static func _eye_panel(main: Node, dv: VBoxContainer, pr: Dictionary) -> void:
+	var cur = Gear.equipped(pr, _eq_slot)
+	var side = "Sağ" if _eq_slot == "sag_goz" else "Sol"
+	if cur.is_empty():
+		dv.add_child(UI.label("%s gözün normal bir göz." % side, 16, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true))
+		var cl = Data.clans.get(String(pr.get("clan", "")), {})
+		if cl.has("dojutsu"):
+			dv.add_child(UI.label("Soyunda bir göz tekniği var ama henüz uyanmadı. Ölümcül bir dövüşte, hayatın tehlikedeyken uyanabilir.", 14, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
+	else:
+		var it = Gear.item(cur["id"])
+		var e: Dictionary = it.get("eye", {})
+		var lvl = int(cur.get("lvl", 3))
+		var title = String(e.get("name", it["name"]))
+		if int(e.get("kind", 0)) == 1:
+			title += "  (%d tomoe)" % lvl
+		dv.add_child(UI.label(title, 22, Color(1, 0.45, 0.45), HORIZONTAL_ALIGNMENT_LEFT, true))
+		dv.add_child(UI.label("%s göz  •  %s" % [side, "doğuştan" if cur.get("origin", "dogustan") == "dogustan" else "nakil (daha çok chakra harcar)"], 14, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
+		var d = UI.label(String(it.get("desc", "")), 14, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)
+		d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		dv.add_child(d)
+		var k = int(e.get("kind", 0))
+		if k == 1 and lvl < 3:
+			var xp = float(cur.get("xp", 0.0))
+			var need = 120.0 * lvl
+			dv.add_child(UI.label("Sonraki tomoe: gözler açıkken dövüşerek  %d / %d" % [int(xp), int(need)], 14, Color(1, 0.7, 0.6), HORIZONTAL_ALIGNMENT_LEFT, true))
+		elif k == 1 and lvl >= 3:
+			dv.add_child(UI.label("Mangekyō, yakın birini kaybetmenin acısıyla uyanır...", 14, Color(1, 0.7, 0.6), HORIZONTAL_ALIGNMENT_LEFT, true))
+		var sk = Eyes.SKILLS.get(k, [])
+		if not sk.is_empty():
+			var si = sk[0 if _eq_slot == "sag_goz" else 1]
+			dv.add_child(UI.label("Göz tekniği (%s): %s" % ["Z" if _eq_slot == "sag_goz" else "X", si[0]], 15, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
+		if k in [4, 5]:
+			_ms_editor(main, dv, Eyes.design_for(pr, _eq_slot))
+	# saklanan gözler (kavanozda)
+	var jars = []
+	for g in pr.get("gear", []):
+		if Gear.item(g["id"]).get("slot", "") == "goz" and not int(g["uid"]) in pr["equip"].values():
+			jars.append(g)
+	dv.add_child(HSeparator.new())
+	dv.add_child(UI.label("SAKLANAN GÖZLER (%d)" % jars.size(), 16, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
+	if jars.is_empty():
+		dv.add_child(UI.label("Kavanozunda göz yok. Yendiğin dōjutsu sahiplerinin gözlerini alabilirsin.", 14, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
+	for g in jars:
+		dv.add_child(UI.label("• %s%s" % [Gear.item(g["id"])["name"], ("  (%d tomoe)" % int(g.get("lvl", 3))) if g["id"] == "goz_sharingan" else ""], 14, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true))
+	dv.add_child(UI.label("Göz nakli yalnızca hastanede, bir tıbbi ninja tarafından yapılır.", 13, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
+
+
 static func _swatch(c: Color, on: bool, cb: Callable) -> Button:
 	var b = Button.new()
 	b.custom_minimum_size = Vector2(34, 34)
@@ -816,6 +864,9 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 		_susanoo_panel(main, dv, null)
 		return
 	var cur = Gear.equipped(pr, _eq_slot)
+	if _eq_slot in ["sag_goz", "sol_goz"]:
+		_eye_panel(main, dv, pr)
+		return
 	var list = Gear.owned_for(pr, _eq_slot)
 	if list.is_empty():
 		dv.add_child(UI.label("Bu yuvaya uygun eşyan yok. Dükkânlardan alabilir, görevlerden kazanabilirsin.", 15, UI.MUTED))

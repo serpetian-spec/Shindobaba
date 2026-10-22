@@ -561,15 +561,7 @@ static func _hokage_faces(b: Builder, rock: Dictionary, cliff_n: float, v: Dicti
 			nn += 2.0
 		var fc = rc.lightened(0.04 + 0.02 * (i % 2))
 		var s = top / 165.0 * 1.45
-		b.box(Vector3(fx, fy, fn + 4.0 * s), Vector3(54 * s, 70 * s, 14 * s), fc, 0, false)  # yüz levhası
-		b.box(Vector3(fx, fy + 34 * s, fn + 6.0 * s), Vector3(60 * s, 14 * s, 16 * s), fc.darkened(0.12), 0, false)  # saç
-		b.box(Vector3(fx, fy + 22 * s, fn - 3.5 * s), Vector3(50 * s, 6 * s, 3 * s), fc.darkened(0.1), 0, false)  # alın bandı
-		for ex in [-12.0, 12.0]:
-			b.box(Vector3(fx + ex * s, fy + 8 * s, fn - 3.2 * s), Vector3(11 * s, 4 * s, 2 * s), Color(0.34, 0.31, 0.28), 0, false)  # gözler
-			b.box(Vector3(fx + ex * s, fy + 13 * s, fn - 3.4 * s), Vector3(13 * s, 2.4 * s, 2.4 * s), fc.darkened(0.15), 0, false)  # kaşlar
-		b.box(Vector3(fx, fy - 4 * s, fn - 5.0 * s), Vector3(6 * s, 14 * s, 6 * s), fc, 0, false)  # burun
-		b.box(Vector3(fx, fy - 18 * s, fn - 3.0 * s), Vector3(18 * s, 2.6 * s, 2 * s), Color(0.34, 0.31, 0.28), 0, false)  # ağız
-		b.box(Vector3(fx, fy - 30 * s, fn + 2.0 * s), Vector3(30 * s, 10 * s, 12 * s), fc.darkened(0.06), 0, false)  # çene
+		_stone_head(b, i, Vector3(fx, fy - 8 * s, fn), 92.0 * s, fc.darkened(0.12))
 	# tepe seyir yeri (uçurumun hemen arkası)
 	var ln = cliff_n + 35.0
 	b.box(Vector3(cx, _gy(b, cx, ln) + 0.5, ln), Vector3(70, 1, 24), Color(0.55, 0.45, 0.35), 0, false)
@@ -577,6 +569,44 @@ static func _hokage_faces(b: Builder, rock: Dictionary, cliff_n: float, v: Dicti
 		b.box(Vector3(cx - 34 + k * 9.7, _gy(b, cx, ln) + 1.6, ln - 12), Vector3(0.3, 1.2, 0.3), Color(0.42, 0.3, 0.2), 0, false)
 	_act(b, cx, ln, 14, "lookout", "[F] Köyü seyret (kayıt)")
 	_act(b, cx + 30, ln, 4, "shrine", "[F] Kayadaki küçük sunakta dua et")
+
+
+## Gerçek karakter kafasından oyulmuş dev taş yüz: her Hokage farklı saç, yüz ve bant
+const HOKAGE_LOOKS := [
+	{"hair_style": "uzun", "face": "köşeli", "band": null, "beard": false},
+	{"hair_style": "dağınık", "face": "keskin", "band": Color.WHITE, "band_style": "head"},
+	{"hair_style": "kase", "face": "yuvarlak", "band": Color.WHITE, "band_style": "head", "beard": true},
+	{"hair_style": "diken", "face": "normal", "band": Color.WHITE, "band_style": "head"},
+	{"hair_style": "atkuyruğu", "face": "ince", "band": Color.WHITE, "band_style": "head", "gender": "f"},
+]
+static func _stone_head(b: Builder, i: int, at: Vector3, height: float, col: Color) -> void:
+	var look = {"gender": "m", "age": "adult", "top_style": "uzun", "vest": null}
+	look.merge(HOKAGE_LOOKS[i % HOKAGE_LOOKS.size()], true)
+	var hm = CharacterModel.new()
+	b.root.add_child(hm)
+	hm.setup(look)
+	hm.anim.stop()
+	hm.set_process(false)
+	var sk = hm.skel
+	var head_y = sk.get_bone_global_rest(sk.find_bone("Head")).origin.y
+	var neck_y = sk.get_bone_global_rest(sk.find_bone("Neck")).origin.y
+	var sc = height / 0.3   # kafa ~0.3 m -> hedef yükseklik
+	hm.scale = Vector3.ONE * sc
+	hm.rotation.y = PI      # yüz güneye (köye) bakar
+	# kafa merkezi uçurum yüzüne yarı gömülü
+	var wp = b.w(at + Vector3(0, 0, height * 0.18))
+	hm.global_position = wp - Vector3(0, (head_y + 0.08) * sc, 0)
+	var m = ShaderMaterial.new()
+	m.shader = load("res://shaders/stone_head.gdshader")
+	m.set_shader_parameter("stone", col)
+	m.set_shader_parameter("cut_world_y", hm.global_position.y + (neck_y - 0.02) * sc)
+	for mi in hm.find_children("*", "MeshInstance3D", true, false):
+		var nm = String(mi.name).to_lower()
+		if nm.contains("eye") and not nm.contains("brow"):
+			mi.visible = false
+			continue
+		mi.material_override = m
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 
 
 static func _free(x: float, n: float, occ: Array, pad: float) -> bool:

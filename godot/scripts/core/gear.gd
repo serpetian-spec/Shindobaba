@@ -56,6 +56,10 @@ const ITEMS := {
 	"samuray_zirh": {"name": "Hafif Samuray Zırhı", "slot": "zirh", "price": 1400, "rank": 3, "desc": "Lamel plakalı göğüslük ve omuzluklar. Ağır ama sağlam.", "stats": {"def": 18, "hp": 40, "speed": -0.05}, "look": {"vest_style": 6}, "c1": Color(0.35, 0.2, 0.18)},
 	"deri_yelek": {"name": "Deri Yelek", "slot": "zirh", "price": 350, "rank": 1, "desc": "Paralı askerlerin sevdiği kalın yelek.", "stats": {"def": 6}, "look": {"vest_style": 0}, "c1": Color(0.4, 0.3, 0.2)},
 	# --- dış giysi
+	"kage_cubbesi": {"name": "Kage Cübbesi", "slot": "dis", "price": 0, "rank": 6, "desc": "Köyün liderinin beyaz cübbesi; eteğinde köyün rengi ve Kage yazısı.", "stats": {"def": 10, "chakra": 60, "hp": 40}, "look": {"outer_style": "palto"}, "c1": Color(0.96, 0.95, 0.92)},
+	"kage_sapkasi": {"name": "Kage Şapkası", "slot": "kafa", "price": 0, "rank": 6, "desc": "Geniş kenarlı tören şapkası. Önünde köyün kanjisi.", "stats": {"def": 4, "chakra": 30}, "look": {"head_style": "kasa"}, "c1": Color(0.95, 0.94, 0.9)},
+	"jonin_komutan_paltosu": {"name": "Jōnin Komutanı Haorisi", "slot": "dis", "price": 0, "rank": 3, "desc": "Jōnin komutanlarına verilen yeşil-gri haori.", "stats": {"def": 6, "chakra": 25}, "look": {"outer_style": "haori"}, "c1": Color(0.3, 0.38, 0.3)},
+	"kok_maskesi": {"name": "Kök Birliği Maskesi", "slot": "yuz", "price": 0, "rank": 4, "desc": "Kök (Ne) biriminin ifadesiz beyaz maskesi. Varlığı resmî kayıtlarda yok.", "stats": {"def": 6, "speed": 0.04}, "look": {"face_style": "anbu_kus"}, "c1": Color(0.88, 0.88, 0.86)},
 	"seyahat_pelerini": {"name": "Seyahat Pelerini", "slot": "dis", "price": 280, "rank": 0, "desc": "Dizlere inen kalın yolcu pelerini.", "stats": {"def": 3, "hp": 15}, "look": {"outer_style": "pelerin"}, "c1": Color(0.4, 0.32, 0.24)},
 	"kisa_pelerin": {"name": "Kısa Pelerin ve Atkı", "slot": "dis", "price": 220, "rank": 0, "desc": "Omuzdan sırta inen pelerin, boyunda kalın atkı.", "stats": {"def": 2, "speed": 0.02}, "look": {"outer_style": "kisa"}, "c1": Color(0.6, 0.15, 0.15)},
 	"uzun_palto": {"name": "Komutan Paltosu", "slot": "dis", "price": 1100, "rank": 3, "desc": "Önü açık, eteği dalgalanan uzun palto.", "stats": {"def": 6, "chakra": 30}, "look": {"outer_style": "palto"}, "c1": Color(0.9, 0.9, 0.88)},
@@ -225,6 +229,13 @@ static func _ensure_eyes(p: Dictionary) -> bool:
 	for g in p["gear"]:
 		if item(g["id"]).get("slot", "") == "goz":
 			return false
+	if eid == "goz_sharingan":
+		# Sharingan doğuştan uyanmaz: ölümcül bir dövüşte uyanır (Eyes.check_awaken)
+		if not p.has("flags"):
+			p["flags"] = {}
+		p["flags"]["born_eyes"] = true
+		p["flags"]["dormant_eye"] = eid
+		return false
 	grant(p, eid, "sag_goz", null, null, {"lvl": 1, "origin": "dogustan"})
 	grant(p, eid, "sol_goz", null, null, {"lvl": 1, "origin": "dogustan"})
 	if not p.has("flags"):
@@ -292,6 +303,9 @@ static func apply_look(p: Dictionary) -> void:
 				L["weapon_r"] = g["id"]
 			"sol":
 				L["weapon_l"] = g["id"]
+	# kaçak ninja: alın bandının sembolü çizik
+	if p.get("flags", {}).get("rogue", false) and L.get("band") != null and String(L.get("band_style", "none")) != "none":
+		L["band_style"] = "slashed"
 
 
 ## Takılı parçaların toplam istatistiği
