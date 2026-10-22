@@ -92,6 +92,10 @@ func _ready() -> void:
 	await main.shot("m3b_ayarlar")
 	await _click("Kaydet ve Geri")
 	await get_tree().create_timer(0.3).timeout
+	var names = []
+	for b in Hud.dialog_layer.find_children("*", "Button", true, false):
+		names.append(b.text)
+	print("BUTONLAR: ", names)
 	await _click("Devam")
 	await get_tree().create_timer(0.3).timeout
 	print("esc devam: ", not Game.paused)

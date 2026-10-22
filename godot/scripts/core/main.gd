@@ -75,7 +75,7 @@ func _setup_input() -> void:
 		"forward": [KEY_W], "back": [KEY_S], "left": [KEY_A], "right": [KEY_D],
 		"jump": [KEY_SPACE], "leap": [KEY_CTRL], "dash": [KEY_SHIFT], "substitute": [KEY_Q], "charge": [KEY_C],
 		"throw": [KEY_R], "tool_next": [KEY_T], "interact": [KEY_F], "lock": [KEY_E], "menu": [KEY_TAB], "salve": [KEY_H], "pill": [KEY_Y],
-		"slot1": [KEY_1], "slot2": [KEY_2], "slot3": [KEY_3], "slot4": [KEY_4],
+		"slot1": [KEY_1], "slot2": [KEY_2], "slot3": [KEY_3], "slot4": [KEY_4], "slot5": [KEY_5], "slot6": [KEY_6],
 		"inventory": [KEY_I], "skills": [KEY_K], "map": [KEY_M], "pause": [KEY_ESCAPE], "dojutsu": [KEY_V],
 		"sage": [KEY_Z], "beast": [KEY_X], "gates": [KEY_B], "seal_mode": [KEY_G],
 	}
@@ -233,6 +233,11 @@ func _begin_game(pos: Vector3) -> void:
 	for k in look.keys():
 		if look[k] is String and String(look[k]).begins_with("("):
 			look[k] = str_to_var("Color" + look[k])
+	# eski kayıtlar 4 slotluydu: 6'ya tamamla
+	var sl: Array = Game.profile.get("slots", [])
+	while sl.size() < 6:
+		sl.append("")
+	Game.profile["slots"] = sl
 	Gear.ensure(Game.profile)
 	Gear.apply_look(Game.profile)
 	player = Player.new()

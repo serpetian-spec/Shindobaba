@@ -22,12 +22,30 @@ static func clear() -> void:
 		c.queue_free()
 
 
+static var _fresh := false
+
+
 static func _full() -> Control:
+	_fresh = Hud.dialog_layer.get_child_count() == 0
 	clear()
 	var bg = ColorRect.new()
-	bg.color = Color(0, 0, 0, 0.55)
+	bg.color = Color(0.02, 0.015, 0.025, 0.62)
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	Hud.dialog_layer.add_child(bg)
+	# kenarlarda koyulaşma + alt köşede eğik turuncu fırça izi
+	var deco = Control.new()
+	deco.set_anchors_preset(Control.PRESET_FULL_RECT)
+	deco.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	deco.draw.connect(func():
+		var r = deco.get_rect().size
+		deco.draw_colored_polygon(PackedVector2Array([Vector2(0, r.y), Vector2(r.x * 0.42, r.y), Vector2(r.x * 0.36, r.y - 26), Vector2(0, r.y - 26)]), Color(UI.ACCENT, 0.55))
+		deco.draw_colored_polygon(PackedVector2Array([Vector2(r.x, 0), Vector2(r.x * 0.62, 0), Vector2(r.x * 0.66, 18), Vector2(r.x, 18)]), Color(UI.ACCENT, 0.4)))
+	bg.add_child(deco)
+	if _fresh:
+		bg.modulate.a = 0.0
+		var tw = bg.create_tween()
+		tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+		tw.tween_property(bg, "modulate:a", 1.0, 0.15)
 	return bg
 
 
@@ -40,6 +58,8 @@ static func _center_panel(parent: Control, w := 560.0) -> VBoxContainer:
 	cc.add_child(p)
 	var v = UI.vbox(10)
 	p.add_child(v)
+	if _fresh:
+		UI.pop_in(p)
 	return v
 
 
@@ -49,29 +69,51 @@ static func main_menu(main: Node) -> void:
 	var root = Control.new()
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	Hud.dialog_layer.add_child(root)
-	var logo = UI.label("SHINOBI YOLU", 96, UI.ACCENT)
-	logo.position = Vector2(80, 70)
+	var col = Panel.new()
+	var csb = UI._box(Color(0.03, 0.02, 0.03, 0.78), UI.ACCENT, 0, 0, 0, -0.08)
+	csb.border_width_right = 6
+	col.add_theme_stylebox_override("panel", csb)
+	col.set_anchors_preset(Control.PRESET_LEFT_WIDE)
+	col.offset_left = -40
+	col.offset_right = 640
+	root.add_child(col)
+	var logo = UI.label("SHINOBI", 104, UI.ACCENT)
+	logo.position = Vector2(70, 50)
 	root.add_child(logo)
-	var sub = UI.label("Beş Büyük Ülke'nin dünyasında kendi efsaneni yaz", 22, Color(1, 0.95, 0.85))
-	sub.position = Vector2(86, 190)
+	var logo2 = UI.label("YOLU", 72, UI.CREAM)
+	logo2.position = Vector2(300, 160)
+	root.add_child(logo2)
+	var kanji = UI.label("忍の道", 30, Color(UI.ACCENT, 0.85))
+	kanji.position = Vector2(84, 186)
+	root.add_child(kanji)
+	var sub = UI.label("Beş Büyük Ülke'nin dünyasında kendi efsaneni yaz", 20, UI.MUTED)
+	sub.position = Vector2(78, 262)
 	root.add_child(sub)
-	var v = UI.vbox(12)
-	v.position = Vector2(90, 280)
+	var v = UI.vbox(14)
+	v.position = Vector2(90, 330)
 	root.add_child(v)
-	v.add_child(UI.button("Yeni Oyun", func(): slot_select(main, true), 340))
-	v.add_child(UI.button("Devam Et", func(): slot_select(main, false), 340))
-	v.add_child(UI.button("Ayarlar", func(): settings(func(): main_menu(main)), 340))
-	v.add_child(UI.button("Çıkış", func(): main.get_tree().quit(), 340))
-	var ver = UI.label("v%s %s   •   Kanon karakter içermez; Naruto evreninde geçen özgün bir hikâye." % [Game.version, "(TEST)" if Game.build_tag == "test" else ""], 14, Color(0.85, 0.85, 0.85))
+	var items = [["Yeni Oyun", func(): slot_select(main, true)], ["Devam Et", func(): slot_select(main, false)],
+		["Ayarlar", func(): settings(func(): main_menu(main))], ["Çıkış", func(): main.get_tree().quit()]]
+	for i in items.size():
+		var b = UI.button(items[i][0], items[i][1], 380)
+		b.custom_minimum_size = Vector2(380, 52)
+		b.add_theme_font_size_override("font_size", 22)
+		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		v.add_child(b)
+		b.modulate.a = 0.0
+		var tw = b.create_tween()
+		tw.tween_interval(0.06 * i)
+		tw.tween_property(b, "modulate:a", 1.0, 0.25)
+	var ver = UI.label("v%s %s   •   Kanon karakter içermez; Naruto evreninde geçen özgün bir hikâye." % [Game.version, "(TEST)" if Game.build_tag == "test" else ""], 13, UI.MUTED)
 	ver.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
-	ver.position = Vector2(20, -34)
+	ver.position = Vector2(24, -34)
 	root.add_child(ver)
 
 
 static func slot_select(main: Node, new_game: bool) -> void:
 	var bg = _full()
 	var v = _center_panel(bg)
-	v.add_child(UI.label("Yeni Oyun — Kayıt Yuvası Seç" if new_game else "Kayıt Yükle", 28, UI.ACCENT))
+	v.add_child(UI.header("YENİ OYUN — KAYIT YUVASI SEÇ" if new_game else "KAYIT YÜKLE", 28))
 	for s in [1, 2, 3]:
 		var info = Game.slot_summary(s)
 		var txt = "Yuva %d:  %s" % [s, info if info != "" else "(boş)"]
@@ -93,7 +135,7 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 	sc.set_anchors_preset(Control.PRESET_LEFT_WIDE)
 	sc.offset_left = 30
 	sc.offset_top = 24
-	sc.offset_bottom = -24
+	sc.offset_bottom = -98
 	sc.offset_right = 600
 	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	Hud.dialog_layer.add_child(sc)
@@ -102,7 +144,7 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 	sc.add_child(p)
 	var v = UI.vbox(8)
 	p.add_child(v)
-	v.add_child(UI.label("KARAKTERİNİ YARAT", 30, UI.ACCENT))
+	v.add_child(UI.header("KARAKTERİNİ YARAT", 30))
 	var name_edit = LineEdit.new()
 	name_edit.text = state["name"]
 	name_edit.placeholder_text = "Ninja adın"
@@ -152,17 +194,31 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 		var eye_cols = [Color(0.25, 0.45, 0.8), Color(0.3, 0.2, 0.12), Color(0.25, 0.55, 0.3), Color(0.1, 0.1, 0.1), Color(0.6, 0.4, 0.15)]
 		row.call("Göz Rengi", "eye", eye_cols, ["Mavi", "Kahve", "Yeşil", "Siyah", "Kehribar"])
 	v.add_child(UI.label("İpucu: fareyle önizlemeyi döndür", 13, Color(0.7, 0.7, 0.7)))
-	var h = UI.hbox(10)
-	h.add_child(UI.button("Geri", func(): main.back_to_menu(), 200))
-	h.add_child(UI.button("Maceraya Başla!", on_start, 280))
-	v.add_child(h)
+	# alt çubuk: her zaman görünür (kaydırma alanının dışında)
+	var bar = PanelContainer.new()
+	var bsb = UI._box(Color(0.04, 0.03, 0.04, 0.9), UI.ACCENT, 0, 4, 10)
+	bsb.border_width_top = 3
+	bar.add_theme_stylebox_override("panel", bsb)
+	bar.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	bar.position = Vector2(30, -88)
+	bar.custom_minimum_size = Vector2(570, 0)
+	var h = UI.hbox(12)
+	bar.add_child(h)
+	h.add_child(UI.button("Geri", func(): main.back_to_menu(), 190))
+	var go = UI.button("Maceraya Başla!", on_start, 340)
+	var gsb = UI._box(UI.ACCENT_DARK, UI.ACCENT, 1, 3, 9, 0.12)
+	gsb.border_width_bottom = 3
+	go.add_theme_stylebox_override("normal", gsb)
+	h.add_child(go)
+	Hud.dialog_layer.add_child(bar)
 
 
 # ------------------------------------------------------------------ duraklatma
 static func pause(main: Node) -> void:
 	var bg = _full()
 	var v = _center_panel(bg, 420)
-	v.add_child(UI.label("DURAKLATILDI", 32, UI.ACCENT, HORIZONTAL_ALIGNMENT_CENTER))
+	v.add_child(UI.header("DURAKLATILDI", 32))
+	v.add_child(UI.label("%s  •  %s" % [Game.profile.get("name", ""), Game.region_name(Game.player.global_position) if Game.player else ""], 15, UI.MUTED))
 	v.add_child(UI.button("Devam", func(): main.resume(), 380))
 	v.add_child(UI.button("Ninja Menüsü — Envanter [Tab]", func(): ninja_menu(main, "inv"), 380))
 	v.add_child(UI.button("Ekipman ve Kıyafetler", func(): ninja_menu(main, "wardrobe"), 380))
@@ -182,14 +238,14 @@ static func pause(main: Node) -> void:
 static func controls(main: Node) -> void:
 	var bg = _full()
 	var v = _center_panel(bg, 760)
-	v.add_child(UI.label("KONTROLLER", 28, UI.ACCENT))
+	v.add_child(UI.header("KONTROLLER", 28))
 	var t = """WASD: hareket   •   Fare: kamera   •   Tekerlek: yakınlaştır
 Space: zıpla (havada tekrar = çift zıplama)   •   Ctrl: uzun ninja sıçrayışı (Shinobi Striker)   •   Shift: ninja koşusu, havada dash
 Duvara doğru koş: DUVARDA KOŞ (W yukarı, A/D yana)   •   Duvardayken Ctrl: duvardan sek
 Sol tık: kombo (havada: dalış tekmesi)   •   Sağ tık (basılı): blok (tam zamanında = mükemmel blok)
 Q: Kawarimi (yer değiştirme)   •   C (basılı): chakra şarjı   •   R: kunai/alet   •   T: alet değiştir
 E / orta tık: hedefe kilitlen   •   Kilitliyken Shift: chakra dash
-1-4: jutsu slotları   •   F: etkileşim   •   H: merhem   •   Y: asker hapı
+1-6: jutsu slotları   •   F: etkileşim   •   H: merhem   •   Y: asker hapı
 G (basılı) + 1-9,0,-,=: mühür ör (bırakınca jutsu / yeni jutsu keşfi)   •   V: Sharingan/Byakugan
 B: Sekiz Kapı (klansız)   •   Z: Sennin Modu   •   X: Kuyruklu Canavar modu / bombası
 Tab: ninja menüsü (envanter, kıyafetler, jutsu, yetenekler)   •   K: jutsular   •   M: harita   •   Esc: menü"""
@@ -202,7 +258,7 @@ Tab: ninja menüsü (envanter, kıyafetler, jutsu, yetenekler)   •   K: jutsul
 static func settings(back: Callable) -> void:
 	var bg = _full()
 	var v = _center_panel(bg, 560)
-	v.add_child(UI.label("AYARLAR", 28, UI.ACCENT))
+	v.add_child(UI.header("AYARLAR", 28))
 	var s = Game.settings
 	var slider = func(title: String, key: String, mn: float, mx: float, step: float) -> void:
 		var h = UI.hbox(8)
@@ -257,18 +313,30 @@ static func ninja_menu(main: Node, tab := "inv", picked := "") -> void:
 	var p = UI.panel()
 	p.custom_minimum_size = Vector2(1240, 740)
 	cc.add_child(p)
+	if _fresh:
+		UI.pop_in(p)
 	var v = UI.vbox(10)
 	p.add_child(v)
 	# başlık + sekmeler
 	var head = UI.hbox(8)
 	var pr = Game.profile
-	var who = UI.label("%s  •  %s  •  Sv.%d" % [pr["name"], Data.RANKS[int(pr["rank"])], int(pr["level"])], 22, UI.ACCENT)
-	who.custom_minimum_size = Vector2(380, 0)
-	head.add_child(who)
+	var wv = UI.vbox(0)
+	wv.custom_minimum_size = Vector2(380, 0)
+	wv.add_child(UI.label(String(pr["name"]), 26, UI.CREAM))
+	wv.add_child(UI.label("%s  •  Seviye %d  •  両 %d" % [Data.RANKS[int(pr["rank"])].to_upper(), int(pr["level"]), int(pr["ryo"])], 14, UI.ACCENT))
+	head.add_child(wv)
+	var icons = {"inv": "🎒 ", "wardrobe": "🥋 ", "jutsu": "🌀 ", "skills": "✦ "}
 	for t in TABS:
 		var b = UI.button(t[1], func(): ninja_menu(main, t[0]), 170)
+		b.icon = null
+		b.text = t[1]
+		b.tooltip_text = icons.get(t[0], "") + t[1]
 		if t[0] == tab:
-			b.modulate = Color(1, 0.75, 0.4)
+			var sel = UI._box(UI.ACCENT_DARK, UI.ACCENT, 1, 3, 9, 0.12)
+			sel.border_width_bottom = 4
+			for k in ["normal", "hover", "pressed", "focus", "disabled"]:
+				b.add_theme_stylebox_override(k, sel)
+			b.add_theme_color_override("font_disabled_color", Color(1, 0.95, 0.85))
 			b.disabled = true
 		head.add_child(b)
 	v.add_child(head)
@@ -287,7 +355,14 @@ static func ninja_menu(main: Node, tab := "inv", picked := "") -> void:
 		"skills":
 			_tab_skills(main, body)
 	var foot = UI.hbox(10)
-	foot.add_child(UI.label("[Tab] / [Esc] kapat   •   [I] envanter   •   [K] jutsular", 14, Color(0.7, 0.7, 0.7)))
+	foot.add_child(UI.key_badge("Tab", 13))
+	foot.add_child(UI.label("/", 14, UI.MUTED))
+	foot.add_child(UI.key_badge("Esc", 13))
+	foot.add_child(UI.label("kapat     ", 14, UI.MUTED))
+	foot.add_child(UI.key_badge("I", 13))
+	foot.add_child(UI.label("envanter     ", 14, UI.MUTED))
+	foot.add_child(UI.key_badge("K", 13))
+	foot.add_child(UI.label("jutsular", 14, UI.MUTED))
 	var sp = Control.new()
 	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	foot.add_child(sp)
@@ -311,7 +386,7 @@ static func _tab_inventory(main: Node, body: Control) -> void:
 	var h = UI.hbox(24)
 	body.add_child(h)
 	var v = _scroll(h, 760)
-	v.add_child(UI.label("ÇANTA   —   %d Ryō" % int(pr["ryo"]), 22, UI.ACCENT))
+	v.add_child(UI.header("ÇANTA   —   %d Ryō" % int(pr["ryo"]), 22))
 	var inv: Dictionary = pr["inventory"]
 	var grid = GridContainer.new()
 	grid.columns = 2
@@ -351,7 +426,7 @@ static func _tab_inventory(main: Node, body: Control) -> void:
 	var s = UI.vbox(8)
 	s.custom_minimum_size = Vector2(380, 0)
 	h.add_child(s)
-	s.add_child(UI.label("DURUM", 22, UI.ACCENT))
+	s.add_child(UI.header("DURUM", 22))
 	var pl = Game.player
 	if pl:
 		s.add_child(UI.label("Can: %d / %d" % [int(pl.hp), int(pl.max_hp)], 17))
@@ -384,7 +459,7 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 	var left = UI.vbox(6)
 	left.custom_minimum_size = Vector2(330, 0)
 	h.add_child(left)
-	left.add_child(UI.label("EKİPMAN", 22, UI.ACCENT))
+	left.add_child(UI.header("EKİPMAN", 22))
 	for sl in Gear.SLOTS + [["sac", "Saç"]]:
 		var nm = "—"
 		if sl[0] == "sac":
@@ -423,7 +498,7 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 		for sl in Gear.SLOTS:
 			if sl[0] == _eq_slot:
 				title = sl[1]
-		mid.add_child(UI.label(title.to_upper(), 20, UI.ACCENT))
+		mid.add_child(UI.header(title.to_upper(), 20))
 		var list = Gear.owned_for(pr, _eq_slot)
 		if list.is_empty():
 			mid.add_child(UI.label("Bu yuvaya uygun eşyan yok. Dükkânlardan alabilir, görevlerden kazanabilirsin.", 15, Color(0.75, 0.75, 0.75)))
@@ -498,7 +573,7 @@ static func _swatch(c: Color, on: bool, cb: Callable) -> Button:
 
 
 static func _hair_panel(v: VBoxContainer, look: Dictionary, refresh: Callable) -> void:
-	v.add_child(UI.label("SAÇ (berber ücretsiz)", 20, UI.ACCENT))
+	v.add_child(UI.header("SAÇ (berber ücretsiz)", 20))
 	var styles = {"diken": "Dikenli", "dağınık": "Dağınık", "kase": "Kâse", "kısa": "Kısa", "uzun": "Uzun", "atkuyruğu": "At kuyruğu"}
 	var g = GridContainer.new()
 	g.columns = 3
@@ -561,7 +636,7 @@ static func _model_preview(look: Dictionary) -> Control:
 static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 	var pr = Game.profile
 	var v = _scroll(body, 1200)
-	v.add_child(UI.label("JUTSULAR  — bir jutsu seç, sonra aşağıdan slota ata", 22, UI.ACCENT))
+	v.add_child(UI.header("JUTSULAR  — bir jutsu seç, sonra aşağıdan slota ata", 22))
 	var learned: Array = pr["learned"]
 	if learned.is_empty():
 		v.add_child(UI.label("Henüz bir jutsu bilmiyorsun. Akademi hocanla konuş!", 16))
@@ -583,25 +658,29 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 		d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		d.custom_minimum_size = Vector2(1150, 0)
 		v.add_child(d)
-	v.add_child(UI.label("Slotlar (1-4):", 18, UI.ACCENT))
+	v.add_child(HSeparator.new())
+	v.add_child(UI.header("SLOTLAR (1-6)", 18))
 	var sh = UI.hbox(8)
-	for i in 4:
+	for i in 6:
 		var cur = pr["slots"][i]
 		var nm: String = Data.jutsu.get(cur, {}).get("name", "—") if cur != null and cur != "" else "—"
-		sh.add_child(UI.button("[%d] %s" % [i + 1, nm.split(":")[-1].strip_edges()], func():
+		var b = UI.button("[%d] %s" % [i + 1, nm.split(":")[-1].split("(")[0].strip_edges()], func():
 			if picked != "":
-				for k in 4:
+				for k in 6:
 					if pr["slots"][k] == picked:
 						pr["slots"][k] = ""
 				pr["slots"][i] = picked
-			ninja_menu(main, "jutsu"), 285))
+			ninja_menu(main, "jutsu"), 186)
+		b.clip_text = true
+		b.tooltip_text = nm
+		sh.add_child(b)
 	v.add_child(sh)
 
 
 static func _tab_skills(main: Node, body: Control) -> void:
 	var pr = Game.profile
 	var v = _scroll(body, 1200)
-	v.add_child(UI.label("YETENEK AĞACI  — Puan: %d" % int(pr["sp"]), 22, UI.ACCENT))
+	v.add_child(UI.header("YETENEK AĞACI  — Puan: %d" % int(pr["sp"]), 22))
 	var cat = ""
 	for sid in SKILLS:
 		var s: Array = SKILLS[sid]
@@ -662,7 +741,7 @@ static func world_map(main: Node) -> void:
 	tr.size = sz
 	tr.position = (vp - sz) * 0.5 + Vector2(0, 20)
 	bg.add_child(tr)
-	var title = UI.label("SHINOBİ DÜNYASI — keşfettiğin köylere tıkla: hızlı seyahat", 22, UI.ACCENT)
+	var title = UI.label("◆ SHINOBİ DÜNYASI — keşfettiğin köylere tıkla: hızlı seyahat", 22, UI.ACCENT)
 	title.position = Vector2(tr.position.x, tr.position.y - 36)
 	bg.add_child(title)
 	var W = Game.hw * Game.res

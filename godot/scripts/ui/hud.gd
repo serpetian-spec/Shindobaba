@@ -35,6 +35,20 @@ var compass: Control
 var compass_lbl: Label
 var compass_dir = Vector2.UP
 var beam: MeshInstance3D
+const SLOT_COUNT := 6
+var slot_state: Array = []
+var portrait: Control
+var portrait_hp = 1.0
+var rank_lbl: Label
+var ryo_lbl: Label
+var hp_txt: Label
+var ck_txt: Label
+var tool_box: PanelContainer
+var item_box: PanelContainer
+var item_lbl: Label
+var prompt_box: PanelContainer
+var prompt_key: PanelContainer
+var mm_region: Label
 
 
 func _ready() -> void:
@@ -80,98 +94,232 @@ func _build_vitals() -> void:
 	sm.shader = sh
 	vignette.material = sm
 	game_hud.add_child(vignette)
-	var box = UI.vbox(4)
-	box.position = Vector2(24, 20)
-	game_hud.add_child(box)
-	name_lbl = UI.label("", 20, Color(1, 0.85, 0.6))
-	box.add_child(name_lbl)
+	# --- oyuncu çerçevesi (sol üst): portre + isim + barlar
+	var frame = Control.new()
+	frame.position = Vector2(18, 14)
+	frame.size = Vector2(500, 130)
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	game_hud.add_child(frame)
+	# arka eğik mürekkep şeridi
+	var strip = Panel.new()
+	strip.position = Vector2(44, 10)
+	strip.size = Vector2(440, 104)
+	var ssb = UI._box(Color(0.04, 0.03, 0.04, 0.62), Color(0, 0, 0, 0), 0, 3, 0, 0.28)
+	ssb.border_width_bottom = 3
+	ssb.border_color = UI.ACCENT
+	strip.add_theme_stylebox_override("panel", ssb)
+	strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.add_child(strip)
+	portrait = Control.new()
+	portrait.position = Vector2(0, 8)
+	portrait.size = Vector2(108, 108)
+	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	portrait.draw.connect(_draw_portrait)
+	frame.add_child(portrait)
+	name_lbl = UI.label("", 22, UI.CREAM)
+	name_lbl.position = Vector2(118, 10)
+	frame.add_child(name_lbl)
+	rank_lbl = UI.label("", 14, UI.ACCENT)
+	rank_lbl.position = Vector2(120, 38)
+	frame.add_child(rank_lbl)
 	var hp_stack = Control.new()
-	hp_stack.custom_minimum_size = Vector2(380, 22)
-	box.add_child(hp_stack)
-	hp_trail = UI.bar(Color(1, 0.85, 0.5), 380, 22)
+	hp_stack.position = Vector2(116, 60)
+	hp_stack.size = Vector2(340, 20)
+	hp_stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.add_child(hp_stack)
+	hp_trail = UI.bar(Color(1, 0.88, 0.55), 340, 20)
 	hp_stack.add_child(hp_trail)
-	hp_bar = UI.bar(Color(0.9, 0.22, 0.2), 380, 22)
-	var transparent = StyleBoxEmpty.new()
-	hp_bar.add_theme_stylebox_override("background", transparent)
+	hp_bar = UI.bar(Color(0.35, 0.9, 0.35), 340, 20)
+	hp_bar.add_theme_stylebox_override("background", StyleBoxEmpty.new())
 	hp_stack.add_child(hp_bar)
-	ck_bar = UI.bar(Color(0.2, 0.55, 1.0), 340, 16)
-	box.add_child(ck_bar)
-	var row = UI.hbox(6)
-	box.add_child(row)
+	hp_txt = UI.label("", 13, Color(1, 1, 1), HORIZONTAL_ALIGNMENT_RIGHT)
+	hp_txt.position = Vector2(116, 61)
+	hp_txt.size = Vector2(330, 18)
+	frame.add_child(hp_txt)
+	ck_bar = UI.bar(Color(0.25, 0.6, 1.0), 300, 13)
+	ck_bar.position = Vector2(110, 85)
+	frame.add_child(ck_bar)
+	ck_txt = UI.label("", 11, Color(0.85, 0.93, 1), HORIZONTAL_ALIGNMENT_RIGHT)
+	ck_txt.position = Vector2(110, 83)
+	ck_txt.size = Vector2(292, 14)
+	frame.add_child(ck_txt)
+	xp_bar = UI.bar(Color(0.98, 0.8, 0.3), 280, 5, 0.6)
+	xp_bar.position = Vector2(104, 104)
+	frame.add_child(xp_bar)
+	# kawarimi elmasları
+	var row = UI.hbox(5)
+	row.position = Vector2(394, 102)
+	frame.add_child(row)
 	for i in 4:
 		var p = Panel.new()
-		p.custom_minimum_size = Vector2(26, 10)
-		var s = StyleBoxFlat.new()
-		s.bg_color = Color(0.4, 0.85, 0.5)
-		s.set_corner_radius_all(2)
-		p.add_theme_stylebox_override("panel", s)
+		p.custom_minimum_size = Vector2(14, 10)
+		p.add_theme_stylebox_override("panel", UI._box(Color(0.45, 0.95, 0.55), Color(0, 0, 0, 0.9), 1, 1, 0, 0.6))
+		p.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(p)
 		sub_pips.append(p)
-	row.add_child(UI.label("Kawarimi", 12, Color(0.75, 0.85, 0.75)))
-	xp_bar = UI.bar(Color(0.95, 0.8, 0.3), 380, 6)
-	box.add_child(xp_bar)
-	fps_lbl = UI.label("", 14, Color(0.7, 0.9, 0.7))
-	fps_lbl.position = Vector2(24, 4)
+	ryo_lbl = UI.label("", 15, Color(1, 0.86, 0.4))
+	ryo_lbl.position = Vector2(26, 124)
+	frame.add_child(ryo_lbl)
+	fps_lbl = UI.label("", 13, Color(0.7, 0.9, 0.7))
+	fps_lbl.position = Vector2(20, 154)
 	game_hud.add_child(fps_lbl)
 
 
+## Portre: element renkli halka içinde köy sembolü ve ismin baş harfi
+func _draw_portrait() -> void:
+	var c = Vector2(54, 54)
+	var pr = Game.profile
+	var el: String = pr.get("elements", [""])[0] if not pr.is_empty() else ""
+	var ec: Color = UI.ELEMENT_COLORS.get(el, UI.ACCENT)
+	portrait.draw_circle(c + Vector2(3, 4), 52, Color(0, 0, 0, 0.45))
+	portrait.draw_circle(c, 52, UI.INK)
+	portrait.draw_circle(c, 46, Color(0.16, 0.12, 0.12))
+	portrait.draw_circle(c, 40, ec.darkened(0.55))
+	portrait.draw_arc(c, 50, 0, TAU, 48, UI.ACCENT, 4.0, true)
+	portrait.draw_arc(c, 44, -PI * 0.5, -PI * 0.5 + TAU * portrait_hp, 48, Color(0.4, 0.95, 0.45), 4.0, true)
+	var nm: String = String(pr.get("name", "?")) if not pr.is_empty() else "?"
+	var ch = nm.substr(0, 1).to_upper()
+	var f = ThemeDB.fallback_font
+	var fs = 50
+	var w = f.get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+	portrait.draw_string_outline(f, c + Vector2(-w * 0.5, 18), ch, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 6, Color(0, 0, 0, 0.9))
+	portrait.draw_string(f, c + Vector2(-w * 0.5, 18), ch, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, UI.CREAM)
+	# rütbe şeridi
+	var rk = int(pr.get("rank", 0)) if not pr.is_empty() else 0
+	for i in rk + 1:
+		portrait.draw_circle(c + Vector2(-18 + i * 9, 40), 3.5, UI.ACCENT)
+
+
 func _build_slots() -> void:
-	slots_box = UI.hbox(10)
+	slots_box = UI.hbox(8)
 	slots_box.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	slots_box.position = Vector2(-260, -110)
+	slots_box.position = Vector2(-327, -112)
 	game_hud.add_child(slots_box)
-	for i in 4:
-		var p = PanelContainer.new()
-		p.custom_minimum_size = Vector2(110, 74)
-		var v = UI.vbox(0)
-		p.add_child(v)
-		var key = UI.label("[%d]" % (i + 1), 14, UI.ACCENT, HORIZONTAL_ALIGNMENT_CENTER)
-		var nm = UI.label("—", 13, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER)
+	for i in SLOT_COUNT:
+		var p = Control.new()
+		p.custom_minimum_size = Vector2(102, 96)
+		p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		p.draw.connect(_draw_slot.bind(i))
+		var nm = UI.label("—", 12, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER)
 		nm.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		nm.custom_minimum_size = Vector2(100, 0)
-		var cd = UI.label("", 16, Color(0.6, 0.8, 1), HORIZONTAL_ALIGNMENT_CENTER)
-		v.add_child(key); v.add_child(nm); v.add_child(cd)
+		nm.position = Vector2(4, 26)
+		nm.size = Vector2(94, 44)
+		nm.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		p.add_child(nm)
+		var cd = UI.label("", 13, Color(0.7, 0.85, 1), HORIZONTAL_ALIGNMENT_CENTER)
+		cd.position = Vector2(4, 70)
+		cd.size = Vector2(94, 20)
+		p.add_child(cd)
 		slots_box.add_child(p)
 		slot_nodes.append([p, nm, cd])
-	tool_lbl = UI.label("", 15, Color(0.85, 0.85, 0.85))
-	tool_lbl.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	tool_lbl.position = Vector2(230, -100)
-	game_hud.add_child(tool_lbl)
+		slot_state.append({"el": "", "cd": 0.0, "max": 1.0, "ok": true, "empty": true})
+	# sol: atılabilir alet kutusu, sağ: eşya kutusu
+	tool_box = _side_box(Vector2(-327 - 214, -100))
+	tool_lbl = UI.label("", 15, UI.TEXT)
+	tool_box.get_child(0).add_child(tool_lbl)
+	item_box = _side_box(Vector2(327 + 14, -100))
+	item_lbl = UI.label("", 15, UI.TEXT)
+	item_box.get_child(0).add_child(item_lbl)
 	seal_box = UI.hbox(6)
 	seal_box.set_anchors_preset(Control.PRESET_CENTER)
 	seal_box.position = Vector2(-150, 120)
 	game_hud.add_child(seal_box)
 
 
+func _side_box(pos: Vector2) -> PanelContainer:
+	var p = PanelContainer.new()
+	var sb = UI._box(Color(0.05, 0.04, 0.05, 0.78), UI.ACCENT, 0, 3, 8, 0.2)
+	sb.border_width_bottom = 3
+	p.add_theme_stylebox_override("panel", sb)
+	p.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	p.position = pos
+	p.custom_minimum_size = Vector2(200, 76)
+	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var v = UI.vbox(2)
+	p.add_child(v)
+	game_hud.add_child(p)
+	return p
+
+
+## Jutsu slotu: eğik kart, üstte element şeridi, sol üstte tuş rozeti, bekleme süresi için saat yönünde karartma
+func _draw_slot(i: int) -> void:
+	var p: Control = slot_nodes[i][0]
+	var st: Dictionary = slot_state[i]
+	var sz = p.size
+	var ec: Color = UI.ELEMENT_COLORS.get(st["el"], UI.ELEMENT_COLORS[""])
+	var sk = 10.0
+	var poly = PackedVector2Array([Vector2(sk, 0), Vector2(sz.x, 0), Vector2(sz.x - sk, sz.y), Vector2(0, sz.y)])
+	p.draw_colored_polygon(PackedVector2Array([Vector2(sk + 3, 4), Vector2(sz.x + 3, 4), Vector2(sz.x - sk + 3, sz.y + 4), Vector2(3, sz.y + 4)]), Color(0, 0, 0, 0.45))
+	p.draw_colored_polygon(poly, Color(0.07, 0.055, 0.065, 0.9) if not st["empty"] else Color(0.05, 0.04, 0.05, 0.6))
+	if not st["empty"]:
+		p.draw_colored_polygon(PackedVector2Array([Vector2(sk, 0), Vector2(sz.x, 0), Vector2(sz.x - 1.2, 7), Vector2(sk - 1.2, 7)]), ec)
+		p.draw_colored_polygon(PackedVector2Array([Vector2(sk * 0.5, sz.y * 0.5), Vector2(sz.x - sk * 0.5, sz.y * 0.5), Vector2(sz.x - sk, sz.y), Vector2(0, sz.y)]), Color(ec, 0.12))
+	# bekleme süresi süpürmesi
+	if st["cd"] > 0.0:
+		# kalan süre kadar karttan aşağı doğru inen karartma (eğik kartın içinde kalır)
+		var k = clampf(st["cd"] / maxf(0.01, st["max"]), 0.0, 1.0)
+		var y = sz.y * k
+		var xl = sk * (1.0 - y / sz.y)
+		var xr = sz.x - sk * (y / sz.y)
+		p.draw_colored_polygon(PackedVector2Array([Vector2(sk, 0), Vector2(sz.x, 0), Vector2(xr, y), Vector2(xl, y)]), Color(0, 0, 0, 0.62))
+		p.draw_line(Vector2(xl, y), Vector2(xr, y), Color(UI.ACCENT, 0.9), 2.0)
+	elif not st["ok"] and not st["empty"]:
+		p.draw_colored_polygon(poly, Color(0.05, 0.08, 0.25, 0.45))
+	var bc = UI.ACCENT if not st["empty"] else Color(0.35, 0.3, 0.28)
+	p.draw_polyline(PackedVector2Array([poly[0], poly[1], poly[2], poly[3], poly[0]]), bc, 2.0, true)
+	# tuş rozeti
+	var kb = Rect2(Vector2(-4, -8), Vector2(24, 22))
+	p.draw_rect(kb, UI.CREAM)
+	p.draw_rect(kb, UI.INK, false, 2.0)
+	p.draw_string(ThemeDB.fallback_font, Vector2(3, 9), str(i + 1), HORIZONTAL_ALIGNMENT_LEFT, -1, 16, UI.INK)
+
+
 func _build_texts() -> void:
 	msg_lbl = UI.label("", 22, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER)
 	msg_lbl.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	msg_lbl.position = Vector2(-500, -190)
+	msg_lbl.position = Vector2(-500, -210)
 	msg_lbl.size = Vector2(1000, 30)
 	game_hud.add_child(msg_lbl)
-	prompt_lbl = UI.label("", 20, Color(1, 0.88, 0.5), HORIZONTAL_ALIGNMENT_CENTER)
-	prompt_lbl.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	prompt_lbl.position = Vector2(-400, -150)
-	prompt_lbl.size = Vector2(800, 30)
-	game_hud.add_child(prompt_lbl)
-	region_lbl = UI.label("", 40, Color(1, 0.95, 0.85), HORIZONTAL_ALIGNMENT_CENTER)
+	# etkileşim ipucu: tuş rozeti + metin, mürekkep hap
+	prompt_box = PanelContainer.new()
+	var psb = UI._box(Color(0.05, 0.04, 0.05, 0.82), UI.ACCENT, 0, 14, 6, 0.0)
+	psb.border_width_bottom = 2
+	psb.content_margin_left = 10; psb.content_margin_right = 16
+	prompt_box.add_theme_stylebox_override("panel", psb)
+	prompt_box.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	prompt_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var ph = UI.hbox(10)
+	prompt_box.add_child(ph)
+	prompt_key = UI.key_badge("F", 16)
+	ph.add_child(prompt_key)
+	prompt_lbl = UI.label("", 19, Color(1, 0.9, 0.6))
+	ph.add_child(prompt_lbl)
+	prompt_box.visible = false
+	game_hud.add_child(prompt_box)
+	region_lbl = UI.label("", 40, UI.CREAM, HORIZONTAL_ALIGNMENT_CENTER)
 	region_lbl.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	region_lbl.position = Vector2(-400, 118)
+	region_lbl.position = Vector2(-400, 122)
 	region_lbl.size = Vector2(800, 60)
 	region_lbl.modulate.a = 0.0
 	game_hud.add_child(region_lbl)
+	# görev paneli (sağda, minimap altında)
 	var obj = PanelContainer.new()
+	var osb = UI._box(Color(0.05, 0.04, 0.05, 0.72), UI.ACCENT, 0, 3, 12)
+	osb.border_width_left = 4
+	obj.add_theme_stylebox_override("panel", osb)
 	obj.anchor_left = 1.0; obj.anchor_right = 1.0
-	obj.offset_left = -432; obj.offset_right = -22; obj.offset_top = 280
-	obj.custom_minimum_size = Vector2(400, 0)
+	obj.offset_left = -392; obj.offset_right = -18; obj.offset_top = 312
+	obj.custom_minimum_size = Vector2(374, 0)
+	obj.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var ov = UI.vbox(4)
 	obj.add_child(ov)
-	ov.add_child(UI.label("GÖREV", 14, UI.ACCENT))
-	objective_lbl = UI.label("", 16)
+	ov.add_child(UI.label("◆ GÖREV", 15, UI.ACCENT))
+	objective_lbl = UI.label("", 15)
 	objective_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	objective_lbl.custom_minimum_size = Vector2(370, 0)
+	objective_lbl.custom_minimum_size = Vector2(346, 0)
 	ov.add_child(objective_lbl)
-	obj_progress_lbl = UI.label("", 15, Color(0.7, 0.95, 0.7))
+	obj_progress_lbl = UI.label("", 14, UI.GOOD)
+	obj_progress_lbl.visible = false
 	ov.add_child(obj_progress_lbl)
 	game_hud.add_child(obj)
 	banner_box = Control.new()
@@ -192,15 +340,25 @@ func _build_texts() -> void:
 func _build_minimap() -> void:
 	minimap = Control.new()
 	minimap.anchor_left = 1.0; minimap.anchor_right = 1.0
-	minimap.offset_left = -262; minimap.offset_right = -22; minimap.offset_top = 20; minimap.offset_bottom = 260
+	minimap.offset_left = -270; minimap.offset_right = -30; minimap.offset_top = 20; minimap.offset_bottom = 260
 	minimap.custom_minimum_size = Vector2(240, 240)
 	minimap.size = Vector2(240, 240)
+	minimap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# çerçeve gölgesi + mürekkep halkası
+	var ring = Control.new()
+	ring.size = Vector2(240, 240)
+	ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ring.draw.connect(func():
+		ring.draw_circle(Vector2(124, 125), 126, Color(0, 0, 0, 0.45))
+		ring.draw_circle(Vector2(120, 120), 126, UI.INK))
+	minimap.add_child(ring)
 	var tr = TextureRect.new()
 	tr.texture = map_tex
 	tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	tr.stretch_mode = TextureRect.STRETCH_SCALE
 	tr.custom_minimum_size = Vector2(240, 240)
 	tr.size = Vector2(240, 240)
+	tr.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var sm = ShaderMaterial.new()
 	var sh = Shader.new()
 	sh.code = """shader_type canvas_item;
@@ -212,8 +370,11 @@ void fragment(){
 	vec2 r = vec2(q.x * c - q.y * s, q.x * s + q.y * c);
 	vec2 uv = center + r * zoom;
 	vec4 col = texture(TEXTURE, uv);
-	float edge = smoothstep(0.47, 0.5, length(q));
-	COLOR = mix(col, vec4(0.96, 0.55, 0.16, 1.0), edge);
+	col.rgb = mix(col.rgb, col.rgb * vec3(1.05, 1.0, 0.9), 0.5);
+	float vig = smoothstep(0.3, 0.5, length(q));
+	col.rgb *= 1.0 - vig * 0.35;
+	float edge = smoothstep(0.465, 0.48, length(q)) - smoothstep(0.49, 0.5, length(q));
+	COLOR = mix(col, vec4(0.98, 0.55, 0.12, 1.0), edge);
 }"""
 	sm.shader = sh
 	tr.material = sm
@@ -221,9 +382,23 @@ void fragment(){
 	minimap.set_meta("mat", sm)
 	var over = Control.new()
 	over.size = Vector2(240, 240)
+	over.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	over.draw.connect(_draw_minimap_markers.bind(over))
 	minimap.add_child(over)
 	minimap.set_meta("over", over)
+	# bölge adı şeridi (haritanın altında)
+	var rp = PanelContainer.new()
+	var rsb = UI._box(Color(0.05, 0.04, 0.05, 0.82), UI.ACCENT, 0, 3, 5, 0.25)
+	rsb.border_width_bottom = 2
+	rsb.content_margin_left = 14; rsb.content_margin_right = 14
+	rp.add_theme_stylebox_override("panel", rsb)
+	rp.position = Vector2(10, 236)
+	rp.custom_minimum_size = Vector2(220, 0)
+	rp.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mm_region = UI.label("", 15, UI.CREAM, HORIZONTAL_ALIGNMENT_CENTER)
+	mm_region.clip_text = true
+	rp.add_child(mm_region)
+	minimap.add_child(rp)
 	game_hud.add_child(minimap)
 
 
@@ -300,12 +475,12 @@ func _update_objective_pointer(pl: Node3D) -> void:
 
 
 func _build_boss() -> void:
-	boss_box = UI.vbox(2)
+	boss_box = UI.vbox(3)
 	boss_box.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	boss_box.position = Vector2(-300, 24)
-	boss_lbl = UI.label("", 20, Color(1, 0.6, 0.5), HORIZONTAL_ALIGNMENT_CENTER)
-	boss_lbl.custom_minimum_size = Vector2(600, 0)
-	boss_bar_pb = UI.bar(Color(0.85, 0.15, 0.2), 600, 18)
+	boss_box.position = Vector2(-310, 22)
+	boss_lbl = UI.label("", 22, Color(1, 0.62, 0.5), HORIZONTAL_ALIGNMENT_CENTER)
+	boss_lbl.custom_minimum_size = Vector2(620, 0)
+	boss_bar_pb = UI.bar(Color(0.9, 0.16, 0.2), 620, 20)
 	boss_box.add_child(boss_lbl)
 	boss_box.add_child(boss_bar_pb)
 	boss_box.visible = false
@@ -320,12 +495,16 @@ func msg(text: String, col := Color(1, 1, 1), dur := 3.5) -> void:
 
 
 func float_text(text: String, col: Color) -> void:
-	var l = UI.label(text, 20, col, HORIZONTAL_ALIGNMENT_CENTER)
+	var l = UI.label(text, 24, col, HORIZONTAL_ALIGNMENT_CENTER)
+	l.add_theme_constant_override("outline_size", 8)
 	l.set_anchors_preset(Control.PRESET_CENTER)
 	l.position = Vector2(120 + randf_range(-30, 30), -40 + randf_range(-20, 20))
+	l.pivot_offset = Vector2(40, 15)
+	l.scale = Vector2.ONE * 1.6
 	game_hud.add_child(l)
 	var tw = l.create_tween().set_parallel(true)
-	tw.tween_property(l, "position:y", l.position.y - 60, 1.2)
+	tw.tween_property(l, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(l, "position:y", l.position.y - 70, 1.2)
 	tw.tween_property(l, "modulate:a", 0.0, 0.5).set_delay(0.7)
 	tw.chain().tween_callback(l.queue_free)
 
@@ -334,22 +513,23 @@ func float_text(text: String, col: Color) -> void:
 func banner(title: String, sub: String, col: Color) -> void:
 	for c in banner_box.get_children():
 		c.queue_free()
-	var strip = ColorRect.new()
-	strip.color = Color(0, 0, 0, 0.6)
+	var strip = Panel.new()
+	var ssb = UI._box(Color(0.03, 0.02, 0.03, 0.72), col, 0, 0, 0, 0.0)
+	ssb.border_width_top = 4
+	ssb.border_width_bottom = 4
+	strip.add_theme_stylebox_override("panel", ssb)
 	strip.set_anchors_preset(Control.PRESET_CENTER)
 	strip.position = Vector2(-2000, -70)
 	strip.size = Vector2(4000, 120)
 	strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	banner_box.add_child(strip)
-	var line = ColorRect.new()
-	line.color = col
-	line.size = Vector2(4000, 4)
-	line.position = Vector2(0, 0)
-	strip.add_child(line)
-	var line2 = line.duplicate()
-	line2.position = Vector2(0, 116)
-	strip.add_child(line2)
-	var t = UI.label(title, 52, col, HORIZONTAL_ALIGNMENT_CENTER)
+	var brush = Panel.new()
+	brush.add_theme_stylebox_override("panel", UI._box(Color(col, 0.22), Color(0, 0, 0, 0), 0, 0, 0, 0.5))
+	brush.position = Vector2(1640, 10)
+	brush.size = Vector2(720, 100)
+	brush.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	strip.add_child(brush)
+	var t = UI.label(title, 54, col, HORIZONTAL_ALIGNMENT_CENTER)
 	t.size = Vector2(4000, 70)
 	t.position = Vector2(0, 4)
 	strip.add_child(t)
@@ -361,6 +541,8 @@ func banner(title: String, sub: String, col: Color) -> void:
 	strip.pivot_offset = Vector2(2000, 60)
 	var tw = strip.create_tween()
 	tw.tween_property(strip, "scale:y", 1.0, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	var tw2 = brush.create_tween()
+	tw2.tween_property(brush, "position:x", 1560.0, 3.0)
 	tw.tween_interval(2.4)
 	tw.tween_property(strip, "modulate:a", 0.0, 0.5)
 	tw.tween_callback(strip.queue_free)
@@ -391,10 +573,12 @@ func objective_changed() -> void:
 		t += "\n\n[%s] %s: %s (%d/%d)" % [m["rank"], m["title"], m["desc"], m.get("progress", 0), m["count"]]
 	objective_lbl.text = t
 	obj_progress_lbl.text = ""
+	obj_progress_lbl.visible = false
 
 
 func objective_progress(t: String) -> void:
 	obj_progress_lbl.text = t
+	obj_progress_lbl.visible = t != ""
 
 
 func boss_bar(b: Node) -> void:
@@ -417,7 +601,7 @@ func dialog(title: String, text: String, options: Array) -> void:
 	p.position = Vector2(-380, -380)
 	var v = UI.vbox(10)
 	p.add_child(v)
-	v.add_child(UI.label(title, 24, UI.ACCENT))
+	v.add_child(UI.header(title, 24))
 	var body = UI.label(text, 18)
 	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	body.custom_minimum_size = Vector2(720, 0)
@@ -432,6 +616,10 @@ func dialog(title: String, text: String, options: Array) -> void:
 	v.add_child(UI.button("Kapat [Esc]", close_dialog, 720))
 	dialog_layer.add_child(p)
 	p.set_meta("dialog", true)
+	var tw = p.create_tween()
+	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	p.modulate.a = 0.0
+	tw.tween_property(p, "modulate:a", 1.0, 0.12)
 
 
 func close_dialog() -> void:
@@ -526,32 +714,54 @@ func _process(dt: float) -> void:
 		return
 	var pr = Game.profile
 	fps_lbl.text = "FPS %d" % Engine.get_frames_per_second() if Game.settings["show_fps"] else ""
-	name_lbl.text = "%s  •  %s  •  Sv.%d   %d Ryō" % [pr.get("name", ""), Data.RANKS[int(pr.get("rank", 0))], int(pr.get("level", 1)), int(pr.get("ryo", 0))]
+	name_lbl.text = String(pr.get("name", ""))
+	rank_lbl.text = "%s  •  Seviye %d" % [Data.RANKS[int(pr.get("rank", 0))].to_upper(), int(pr.get("level", 1))]
+	ryo_lbl.text = "両 %d Ryō" % int(pr.get("ryo", 0))
 	hp_bar.max_value = pl.max_hp; hp_bar.value = pl.hp
+	var hk = clampf(pl.hp / maxf(1.0, pl.max_hp), 0.0, 1.0)
+	var hcol = Color(0.35, 0.9, 0.35) if hk > 0.5 else (Color(1, 0.8, 0.2) if hk > 0.25 else Color(1, 0.3, 0.25))
+	(hp_bar.get_theme_stylebox("fill") as StyleBoxFlat).bg_color = hcol
+	hp_txt.text = "%d / %d" % [int(pl.hp), int(pl.max_hp)]
+	if absf(portrait_hp - hk) > 0.005:
+		portrait_hp = hk
+		portrait.queue_redraw()
+	elif Engine.get_process_frames() % 60 == 0:
+		portrait.queue_redraw()
 	hp_trail.max_value = pl.max_hp
 	hp_trail.value = move_toward(hp_trail.value, pl.hp, dt * pl.max_hp * 0.35) if hp_trail.value > pl.hp else pl.hp
 	ck_bar.max_value = pl.max_chakra; ck_bar.value = pl.chakra
+	ck_txt.text = "%d" % int(pl.chakra)
 	xp_bar.max_value = Data.xp_for_level(int(pr.get("level", 1))); xp_bar.value = int(pr.get("xp", 0))
 	var comb = pl.combat
 	if comb:
 		for i in 4:
-			sub_pips[i].modulate.a = 1.0 if comb.sub_bars >= i + 1 else 0.2
+			sub_pips[i].modulate.a = 1.0 if comb.sub_bars >= i + 1 else 0.18
 	(vignette.material as ShaderMaterial).set_shader_parameter("amount", clampf(1.0 - pl.hp / pl.max_hp * 2.5, 0.0, 0.8))
 	var slots: Array = pr.get("slots", [])
-	for i in 4:
+	for i in SLOT_COUNT:
 		var jid = slots[i] if i < slots.size() else ""
 		var sn: Array = slot_nodes[i]
+		var st: Dictionary = slot_state[i]
 		if jid == null or jid == "":
 			sn[1].text = "—"; sn[2].text = ""
+			if not st["empty"]:
+				st["empty"] = true; st["cd"] = 0.0
+				sn[0].queue_redraw()
 			continue
 		var j: Dictionary = Data.jutsu.get(jid, {})
-		sn[1].text = j.get("name", jid).split(":")[-1].strip_edges()
+		sn[1].text = String(j.get("name", jid)).split(":")[-1].split("(")[0].strip_edges()
 		var cd: float = comb.cooldowns.get(jid, 0.0) if comb else 0.0
-		sn[2].text = ("%.1f" % cd) if cd > 0.0 else "%d ck" % int(j.get("cost", 0))
-		sn[0].modulate = Color(0.55, 0.55, 0.6) if cd > 0.0 or pl.chakra < float(j.get("cost", 0)) else Color(1, 1, 1)
+		var ok = pl.chakra >= float(j.get("cost", 0))
+		sn[2].text = ("%.1f sn" % cd) if cd > 0.0 else "%d ck" % int(j.get("cost", 0))
+		sn[2].add_theme_color_override("font_color", Color(0.7, 0.85, 1) if ok else Color(1, 0.5, 0.45))
+		var el = String(j.get("element", ""))
+		var mx = maxf(float(j.get("cd", 5)), cd)
+		if st["empty"] or st["el"] != el or absf(st["cd"] - cd) > 0.001 or st["ok"] != ok or st["max"] != mx:
+			st["empty"] = false; st["el"] = el; st["cd"] = cd; st["ok"] = ok; st["max"] = mx
+			sn[0].queue_redraw()
 	var tool: String = pr.get("throw_sel", "kunai")
-	tool_lbl.text = "[R] %s x%d   [T] değiştir\n[H] Merhem x%d  [Y] Asker Hapı x%d" % [Data.items.get(tool, {"name": tool})["name"], int(pr["inventory"].get(tool, 0)),
-		int(pr["inventory"].get("salve", 0)), int(pr["inventory"].get("pill", 0))]
+	tool_lbl.text = "[R]  %s  ×%d\n[T]  alet değiştir" % [Data.items.get(tool, {"name": tool})["name"], int(pr["inventory"].get(tool, 0))]
+	item_lbl.text = "[H]  Merhem  ×%d\n[Y]  Asker Hapı  ×%d" % [int(pr["inventory"].get("salve", 0)), int(pr["inventory"].get("pill", 0))]
 	if msg_t > 0.0:
 		msg_t -= dt
 		if msg_t <= 0.0:
@@ -559,11 +769,18 @@ func _process(dt: float) -> void:
 	var it = Interact.nearest(pl.global_position)
 	var catch = _near_catchable(pl)
 	var tk = _near_talker(pl) if it.is_empty() and not catch else null
-	prompt_lbl.text = it.get("label", "") if not it.is_empty() else ("[F] Yakala!" if catch else ("[F] Konuş: %s" % tk.display if tk else ""))
+	var ptxt = it.get("label", "") if not it.is_empty() else ("Yakala!" if catch else ("Konuş: %s" % tk.display if tk else ""))
+	ptxt = String(ptxt).replace("[F] ", "").replace("[F]", "").strip_edges()
+	prompt_box.visible = ptxt != ""
+	if prompt_box.visible and prompt_lbl.text != ptxt:
+		prompt_lbl.text = ptxt
+		prompt_box.reset_size()
+		prompt_box.position = Vector2(-prompt_box.size.x * 0.5, -168)
 	var rn = Game.region_name(pl.global_position) if Engine.get_process_frames() % 20 == 0 else region_name
 	if rn != region_name:
 		region_name = rn
 		region_lbl.text = rn
+		mm_region.text = rn
 		var tw = region_lbl.create_tween()
 		tw.tween_property(region_lbl, "modulate:a", 1.0, 0.4)
 		tw.tween_interval(2.5)
