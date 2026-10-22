@@ -1135,6 +1135,16 @@ static func _model_preview(look: Dictionary, cam_pos := Vector3(0, 1.0, -4.4), t
 
 
 # ------------------------------------------------------------------ jutsular
+static var _jf_mode := "learned"
+static var _jf_cat := ""
+static var _jf_el := ""
+static var _jf_text := ""
+const JUTSU_CATS := [["", "Tümü"], ["ninjutsu", "Ninjutsu"], ["taijutsu", "Taijutsu"], ["genjutsu", "Genjutsu"], ["fuinjutsu", "Fūinjutsu"], ["kekkei_genkai", "Kekkei Genkai"],
+	["dojutsu", "Dōjutsu"], ["hiden", "Hiden"], ["senjutsu", "Senjutsu"], ["kinjutsu", "Kinjutsu"], ["medical", "Tıbbi"], ["space_time", "Uzay-Zaman"], ["summoning", "Çağırma"]]
+const JUTSU_ELEMS := [["", "Tüm elementler"], ["katon", "Katon"], ["suiton", "Suiton"], ["fuuton", "Fūton"], ["raiton", "Raiton"], ["doton", "Doton"],
+	["mokuton", "Mokuton"], ["hyoton", "Hyōton"], ["yoton", "Yōton"], ["futton", "Futton"], ["ranton", "Ranton"], ["bakuton", "Bakuton"], ["jinton", "Jinton"]]
+
+
 static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 	var pr = Game.profile
 	var h = UI.hbox(26)
@@ -1146,6 +1156,47 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 	var learned: Array = pr["learned"]
 	if picked == "" and not learned.is_empty():
 		picked = learned[0]
+	# filtreler: öğrendiklerim / jutsu kitabı (tümü), kategori, element, arama
+	var fbar = UI.hbox(8)
+	left.add_child(fbar)
+	for m in [["learned", "Öğrendiklerim (%d)" % learned.size()], ["all", "Jutsu Kitabı (%d)" % Data.jutsu.size()]]:
+		fbar.add_child(UI.chip(m[1], _jf_mode == m[0], func():
+			_jf_mode = m[0]
+			ninja_menu(main, "jutsu", picked)))
+	var search = LineEdit.new()
+	search.placeholder_text = "Ara..."
+	search.text = _jf_text
+	search.custom_minimum_size = Vector2(200, 36)
+	search.text_submitted.connect(func(t):
+		_jf_text = t
+		ninja_menu(main, "jutsu", picked))
+	fbar.add_child(search)
+	var cbar = HFlowContainer.new()
+	cbar.add_theme_constant_override("h_separation", 6)
+	left.add_child(cbar)
+	for c in JUTSU_CATS:
+		cbar.add_child(UI.chip(c[1], _jf_cat == c[0], func():
+			_jf_cat = c[0]
+			ninja_menu(main, "jutsu", picked)))
+	var ebar = HFlowContainer.new()
+	ebar.add_theme_constant_override("h_separation", 6)
+	left.add_child(ebar)
+	for e in JUTSU_ELEMS:
+		ebar.add_child(UI.chip(e[1], _jf_el == e[0], func():
+			_jf_el = e[0]
+			ninja_menu(main, "jutsu", picked)))
+	var shown: Array = []
+	for jid in (learned if _jf_mode == "learned" else Data.jutsu.keys()):
+		var jj: Dictionary = Data.jutsu.get(jid, {})
+		if _jf_cat != "" and String(jj.get("category", "")) != _jf_cat:
+			continue
+		if _jf_el != "" and String(jj.get("element", "")) != _jf_el and not _jf_el in jj.get("elements", []):
+			continue
+		if _jf_text != "" and not String(jj.get("name", jid)).to_lower().contains(_jf_text.to_lower()):
+			continue
+		shown.append(jid)
+		if shown.size() >= 120:
+			break
 	var sc = ScrollContainer.new()
 	sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -1155,10 +1206,15 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 	grid.add_theme_constant_override("v_separation", 12)
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sc.add_child(grid)
-	if learned.is_empty():
+	if learned.is_empty() and _jf_mode == "learned":
 		left.add_child(UI.label("Henüz bir jutsu bilmiyorsun. Akademi hocanla konuş!", 16, UI.MUTED))
-	for jid in learned:
-		grid.add_child(_jutsu_card(jid, jid == picked, func(): ninja_menu(main, "jutsu", jid)))
+	for jid in shown:
+		var card = _jutsu_card(jid, jid == picked, func(): ninja_menu(main, "jutsu", jid))
+		if not jid in learned:
+			card.modulate = Color(1, 1, 1, 0.45)
+		grid.add_child(card)
+	if shown.size() >= 120:
+		left.add_child(UI.label("İlk 120 sonuç gösteriliyor — filtreyi daralt.", 13, UI.MUTED))
 	# slot çubuğu
 	var bar = UI.card()
 	left.add_child(bar)
@@ -1196,6 +1252,23 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 	var j: Dictionary = Data.jutsu.get(picked, {})
 	var el = String(j.get("element", ""))
 	var ec: Color = UI.ELEMENT_COLORS.get(el, UI.GOLD)
+	if not picked in learned:
+		var why = Progress.can_learn(picked) if Progress.has_method("can_learn") else ""
+		var how = {"academy": "Akademide öğrenilir", "scroll": "Silah dükkânında parşömeni satılır", "clan": "Klan tekniği", "kinjutsu": "Yasak teknik — hikâye ile",
+			"element": "Element başlangıç tekniği"}
+		var lp = String(j.get("learn", ""))
+		var txt = how.get(lp, "")
+		if lp.begins_with("trainer"):
+			txt = "Hocadan öğrenilir (%s)" % lp.trim_prefix("trainer").trim_prefix(":")
+		elif lp.begins_with("kg"):
+			txt = "Kekkei genkai gerekir (%s)" % lp.trim_prefix("kg:")
+		elif lp.begins_with("eye"):
+			txt = "Göz tekniği gerekir"
+		elif lp.begins_with("sage"):
+			txt = "Sennin eğitimi gerekir (%s)" % lp.trim_prefix("sage:")
+		elif lp.begins_with("special") or lp == "signature":
+			txt = "Özel görev ile açılır"
+		rv.add_child(UI.label("🔒 Öğrenilmedi — " + (txt if txt != "" else lp) + ((".  " + why) if why != "" else ""), 14, Color(1, 0.75, 0.45), HORIZONTAL_ALIGNMENT_LEFT, true))
 	var top = UI.hbox(14)
 	var badge = Panel.new()
 	badge.custom_minimum_size = Vector2(76, 76)

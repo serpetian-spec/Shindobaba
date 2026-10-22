@@ -374,7 +374,7 @@ func _ground_air_move(dt: float) -> void:
 	elif dash_t > 0.0:
 		dash_t -= dt
 	else:
-		var spd_mul = Buffs.mod("speed") * (1.12 if "tai2" in Game.profile.get("skills", []) else 1.0) * (1.0 + Gear.stat(Game.profile, "speed")) * status_speed()
+		var spd_mul = Buffs.mod("speed") * (1.12 if "tai2" in Game.profile.get("skills", []) else 1.0) * (1.0 + Gear.stat(Game.profile, "speed") + Stats.clan_bonus(Game.profile, "speed")) * status_speed()
 		var target = wish * (DASH if sprint else RUN) * spd_mul
 		if swimming:
 			target *= 0.35
