@@ -129,6 +129,9 @@ func step_move(wish: Vector3, dt: float, turn := true) -> void:
 	velocity.y -= 32.0 * dt
 	move_and_slide()
 	var g = Game.ground_height(global_position.x, global_position.z)
+	var snap = maxf(0.3, hv.length() * dt * 1.6)
+	if grounded and velocity.y <= 0 and global_position.y > g and global_position.y - g < snap:
+		global_position.y = g
 	if global_position.y <= g and velocity.y <= 0:
 		global_position.y = g
 		velocity.y = 0

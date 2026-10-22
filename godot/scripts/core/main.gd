@@ -233,6 +233,8 @@ func _begin_game(pos: Vector3) -> void:
 	for k in look.keys():
 		if look[k] is String and String(look[k]).begins_with("("):
 			look[k] = str_to_var("Color" + look[k])
+	Gear.ensure(Game.profile)
+	Gear.apply_look(Game.profile)
 	player = Player.new()
 	add_child(player)
 	player.global_position = pos

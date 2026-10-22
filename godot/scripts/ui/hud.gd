@@ -31,6 +31,10 @@ var fps_lbl: Label
 var dialog_layer: Control
 var game_hud: Control
 var map_tex: Texture2D
+var compass: Control
+var compass_lbl: Label
+var compass_dir = Vector2.UP
+var beam: MeshInstance3D
 
 
 func _ready() -> void:
@@ -52,6 +56,7 @@ func _ready() -> void:
 	_build_texts()
 	_build_minimap()
 	_build_boss()
+	_build_compass()
 	dialog_layer = Control.new()
 	dialog_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
 	dialog_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -60,6 +65,8 @@ func _ready() -> void:
 
 func show_game_hud(on: bool) -> void:
 	game_hud.visible = on
+	if beam and is_instance_valid(beam) and not on:
+		beam.visible = false
 
 
 # ------------------------------------------------------------------ yapım
@@ -149,7 +156,7 @@ func _build_texts() -> void:
 	game_hud.add_child(prompt_lbl)
 	region_lbl = UI.label("", 40, Color(1, 0.95, 0.85), HORIZONTAL_ALIGNMENT_CENTER)
 	region_lbl.set_anchors_preset(Control.PRESET_CENTER_TOP)
-	region_lbl.position = Vector2(-400, 70)
+	region_lbl.position = Vector2(-400, 118)
 	region_lbl.size = Vector2(800, 60)
 	region_lbl.modulate.a = 0.0
 	game_hud.add_child(region_lbl)
@@ -218,6 +225,78 @@ void fragment(){
 	minimap.add_child(over)
 	minimap.set_meta("over", over)
 	game_hud.add_child(minimap)
+
+
+# ------------------------------------------------------------------ hedef oku (pusula) + dünyadaki ışık sütunu
+func _build_compass() -> void:
+	compass = Control.new()
+	compass.set_anchors_preset(Control.PRESET_CENTER_TOP)
+	compass.position = Vector2(-170, 14)
+	compass.size = Vector2(340, 96)
+	compass.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	compass.draw.connect(_draw_compass)
+	game_hud.add_child(compass)
+	compass_lbl = UI.label("", 18, Color(1, 0.92, 0.6), HORIZONTAL_ALIGNMENT_CENTER)
+	compass_lbl.position = Vector2(0, 62)
+	compass_lbl.size = Vector2(340, 28)
+	compass.add_child(compass_lbl)
+
+
+func _draw_compass() -> void:
+	var c = Vector2(170, 32)
+	compass.draw_circle(c, 29, Color(0.05, 0.04, 0.06, 0.6))
+	compass.draw_arc(c, 29, 0, TAU, 40, Color(0.96, 0.55, 0.16, 0.9), 2.5)
+	var d = compass_dir.normalized()
+	var side = Vector2(-d.y, d.x)
+	var tip = c + d * 24
+	var back = c - d * 14
+	var pts = PackedVector2Array([tip, back + side * 13, c - d * 6, back - side * 13])
+	compass.draw_colored_polygon(pts, Color(1, 0.8, 0.2))
+	compass.draw_polyline(PackedVector2Array([tip, back + side * 13, c - d * 6, back - side * 13, tip]), Color(0.25, 0.1, 0.0), 2.0)
+
+
+## Hedefin kameraya göre ekrandaki yönü (yukarı = kameranın baktığı yön); minimap ile aynı dönüşüm
+func _target_screen_dir(pl: Node3D, wp: Vector3) -> Vector2:
+	var d = Vector2(wp.x - pl.global_position.x, wp.z - pl.global_position.z)
+	return d.rotated(deg_to_rad(pl.yaw))
+
+
+func _update_objective_pointer(pl: Node3D) -> void:
+	var on = Missions.has_marker and not Game.paused
+	compass.visible = on
+	if on:
+		var wp: Vector3 = Missions.target_marker
+		compass_dir = _target_screen_dir(pl, wp)
+		var dist = Vector2(wp.x - pl.global_position.x, wp.z - pl.global_position.z).length()
+		var nm: String = Missions.target_name if Missions.target_name != "" else "Hedef"
+		compass_lbl.text = "%s — %d m" % [nm, int(dist)] if dist > 6.0 else "%s — buradasın" % nm
+		compass.position.y = 84.0 if boss_box.visible else 14.0
+		compass.queue_redraw()
+	# dünyadaki ışık sütunu
+	if beam == null or not is_instance_valid(beam):
+		if not Missions.has_marker or pl.get_parent() == null:
+			return
+		beam = MeshInstance3D.new()
+		var cm = CylinderMesh.new()
+		cm.top_radius = 1.6
+		cm.bottom_radius = 1.6
+		cm.height = 260.0
+		cm.radial_segments = 16
+		cm.rings = 1
+		cm.cap_top = false
+		cm.cap_bottom = false
+		beam.mesh = cm
+		var sm = ShaderMaterial.new()
+		sm.shader = load("res://shaders/beam.gdshader")
+		beam.material_override = sm
+		beam.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		pl.get_parent().add_child(beam)
+	beam.visible = Missions.has_marker
+	if beam.visible:
+		var tp: Vector3 = Missions.target_marker
+		beam.global_position = Vector3(tp.x, Game.terrain_height(tp.x, tp.z) + 130.0, tp.z)
+		var dist = Vector2(tp.x - pl.global_position.x, tp.z - pl.global_position.z).length()
+		(beam.material_override as ShaderMaterial).set_shader_parameter("fade", clampf((dist - 8.0) / 14.0, 0.0, 1.0))
 
 
 func _build_boss() -> void:
@@ -379,6 +458,35 @@ func shop(title: String, items: Array) -> void:
 	dialog("%s   (Ryō: %d)" % [title, int(Game.profile["ryo"])], "Ne almak istersin?", opts)
 
 
+## Ekipman dükkânı: silah ve kıyafetler (alınca Tab > Ekipman'dan giyilir)
+func gear_shop(title: String, ids: Array) -> void:
+	var pr = Game.profile
+	Gear.ensure(pr)
+	var opts = []
+	for id in ids:
+		var it = Gear.item(id)
+		var have = 0
+		for g in pr["gear"]:
+			if g["id"] == id:
+				have += 1
+		var locked = int(it.get("rank", 0)) > int(pr["rank"])
+		var lbl = "%s — %d Ryō   [%s]%s" % [it["name"], int(it["price"]), Gear.stats_text(id), ("   (sende: %d)" % have) if have > 0 else ""]
+		if locked:
+			lbl = "🔒 %s — %s rütbesi gerekir" % [it["name"], Data.RANKS[int(it["rank"])]]
+		opts.append({"label": lbl, "tip": it["desc"], "cb": func():
+			if locked:
+				msg("Bu ekipman için rütben yetersiz.", Color(1, 0.6, 0.4))
+			elif int(pr["ryo"]) < int(it["price"]):
+				msg("Yeterli Ryō yok!", Color(1, 0.5, 0.4))
+			else:
+				Progress.add_ryo(-int(it["price"]))
+				Gear.grant(pr, id)
+				Sfx.play("coin")
+				msg("%s alındı! Giymek için: Tab > Ekipman" % it["name"], Color(0.6, 1, 0.6))
+			gear_shop(title, ids)})
+	dialog("%s   (Ryō: %d)" % [title, int(pr["ryo"])], "Ne almak istersin?", opts)
+
+
 func _buy(id: String, title: String, items: Array) -> void:
 	var it: Dictionary = Data.items[id]
 	if int(Game.profile["ryo"]) < int(it["price"]):
@@ -470,6 +578,7 @@ func _process(dt: float) -> void:
 		lock_ret.queue_redraw()
 	else:
 		lock_ret.visible = false
+	_update_objective_pointer(pl)
 	if boss and is_instance_valid(boss):
 		boss_bar_pb.value = boss.hp
 	elif boss_box.visible:
@@ -521,10 +630,17 @@ func _draw_minimap_markers(c: Control) -> void:
 	if Missions.has_marker:
 		var q: Vector2 = to_mm.call(Missions.target_marker)
 		var dv = q - Vector2(R, R)
-		if dv.length() > R - 10:
-			q = Vector2(R, R) + dv.normalized() * (R - 10)
-		c.draw_circle(q, 7, Color(1, 0.85, 0.2))
-		c.draw_circle(q, 4, Color(0.2, 0.1, 0.0))
+		if dv.length() > R - 12:
+			# menzil dışı: kenarda hedefe bakan ok
+			var dn = dv.normalized()
+			var sd = Vector2(-dn.y, dn.x)
+			var tp = Vector2(R, R) + dn * (R - 4)
+			var bk = Vector2(R, R) + dn * (R - 22)
+			c.draw_colored_polygon(PackedVector2Array([tp, bk + sd * 9, bk - sd * 9]), Color(1, 0.85, 0.2))
+			c.draw_polyline(PackedVector2Array([tp, bk + sd * 9, bk - sd * 9, tp]), Color(0.25, 0.1, 0.0), 2.0)
+		else:
+			c.draw_circle(q, 8, Color(1, 0.85, 0.2))
+			c.draw_circle(q, 4, Color(0.2, 0.1, 0.0))
 	# oyuncu oku (yukarı = kamera yönü)
 	var fr = pl.facing - deg_to_rad(pl.yaw)
 	var tip = Vector2(R, R) + Vector2(0, -12).rotated(-fr)

@@ -165,7 +165,7 @@ static func pause(main: Node) -> void:
 	v.add_child(UI.label("DURAKLATILDI", 32, UI.ACCENT, HORIZONTAL_ALIGNMENT_CENTER))
 	v.add_child(UI.button("Devam", func(): main.resume(), 380))
 	v.add_child(UI.button("Ninja Menüsü — Envanter [Tab]", func(): ninja_menu(main, "inv"), 380))
-	v.add_child(UI.button("Kıyafetler", func(): ninja_menu(main, "wardrobe"), 380))
+	v.add_child(UI.button("Ekipman ve Kıyafetler", func(): ninja_menu(main, "wardrobe"), 380))
 	v.add_child(UI.button("Jutsu ve Yetenekler [K]", func(): ninja_menu(main, "jutsu"), 380))
 	v.add_child(UI.button("Dünya Haritası [M]", func(): world_map(main), 380))
 	v.add_child(UI.button("Ayarlar", func(): settings(func(): pause(main)), 380))
@@ -244,7 +244,7 @@ static func settings(back: Callable) -> void:
 
 
 # ------------------------------------------------------------------ ninja menüsü [Tab]: envanter / kıyafetler / jutsu / yetenekler
-const TABS := [["inv", "Envanter"], ["wardrobe", "Kıyafetler"], ["jutsu", "Jutsular"], ["skills", "Yetenekler"]]
+const TABS := [["inv", "Envanter"], ["wardrobe", "Ekipman"], ["jutsu", "Jutsular"], ["skills", "Yetenekler"]]
 const SWATCHES := [Color(0.15, 0.2, 0.33), Color(0.12, 0.12, 0.14), Color(0.45, 0.15, 0.15), Color(0.95, 0.5, 0.12), Color(0.2, 0.38, 0.22),
 	Color(0.35, 0.25, 0.45), Color(0.85, 0.82, 0.75), Color(0.15, 0.4, 0.45), Color(0.55, 0.42, 0.3), Color(0.75, 0.2, 0.25)]
 
@@ -365,100 +365,159 @@ static func _tab_inventory(main: Node, body: Control) -> void:
 	s.add_child(UI.label("Görevler  D:%d  C:%d  B:%d  A:%d  S:%d" % [md["D"], md["C"], md["B"], md["A"], md["S"]], 17))
 
 
-## Kıyafet dolabı: stil + renk seçimi, sağda dönen önizleme
+static var _eq_slot := "govde"
+
+
+## Ekipman: solda yuvalar (kafa, üst, alt, ayak, yelek, sağ el, sol el, saç), ortada sahip olunanlar + boya, sağda önizleme
 static func _tab_wardrobe(main: Node, body: Control) -> void:
 	var pr = Game.profile
-	var look: Dictionary = pr["look"]
-	var rank = int(pr["rank"])
-	var h = UI.hbox(24)
+	Gear.ensure(pr)
+	var h = UI.hbox(16)
 	body.add_child(h)
-	var v = _scroll(h, 760)
-	var apply = func() -> void:
+	var refresh = func() -> void:
+		Gear.apply_look(pr)
 		if Game.player:
 			Game.player.rebuild_model()
+			Game.player.apply_profile_stats()
 		ninja_menu(main, "wardrobe")
-	var choice = func(title: String, key: String, opts: Dictionary, default: String) -> void:
-		var r = UI.hbox(6)
-		var l = UI.label(title, 17)
-		l.custom_minimum_size = Vector2(170, 0)
-		r.add_child(l)
-		for k in opts:
-			var b = UI.button(opts[k], func():
-				look[key] = k
-				apply.call(), 180)
-			if look.get(key, default) == k:
-				b.modulate = Color(1, 0.75, 0.4)
-			r.add_child(b)
-		v.add_child(r)
-	var colors = func(title: String, key: String) -> void:
-		var r = UI.hbox(5)
-		var l = UI.label(title, 17)
-		l.custom_minimum_size = Vector2(170, 0)
-		r.add_child(l)
-		for c in SWATCHES:
-			var b = Button.new()
-			b.custom_minimum_size = Vector2(44, 34)
-			var sb = StyleBoxFlat.new()
-			sb.bg_color = c
-			sb.set_corner_radius_all(4)
-			var cur = look.get(key)
-			var on: bool = cur != null and Color(cur).is_equal_approx(c)
-			sb.border_color = UI.ACCENT if on else Color(0, 0, 0, 0.6)
-			sb.set_border_width_all(3 if on else 1)
-			for st in ["normal", "hover", "pressed", "focus"]:
-				b.add_theme_stylebox_override(st, sb)
-			b.pressed.connect(func():
-				Sfx.play("click")
-				look[key] = c
-				apply.call())
-			r.add_child(b)
-		v.add_child(r)
-	v.add_child(UI.label("KIYAFETLER", 22, UI.ACCENT))
-	var tops = CharacterModel.TOP_STYLES.duplicate()
-	choice.call("Üst", "top_style", {"tisort": tops["tisort"], "uzun": "Uzun Kollu"}, "uzun")
-	choice.call("", "top_style", {"ceket": tops["ceket"], "yakali": tops["yakali"]}, "uzun")
-	choice.call("Alt", "pants_style", CharacterModel.PANTS_STYLES, "ninja")
-	colors.call("Üst rengi", "top")
-	colors.call("Vurgu rengi", "top2")
-	colors.call("Alt rengi", "pants")
-	colors.call("Sandalet", "sandal")
-	colors.call("Sargılar", "wraps")
-	v.add_child(HSeparator.new())
-	v.add_child(UI.label("EKİPMAN", 22, UI.ACCENT))
-	# yelek: Chunin ve üstü
-	var r = UI.hbox(6)
-	var l = UI.label("Taktik yelek", 17)
-	l.custom_minimum_size = Vector2(170, 0)
-	r.add_child(l)
-	if rank >= 2:
-		var vest_col = Color(0.75, 0.75, 0.78) if rank >= 4 else Color(0.38, 0.48, 0.28)
-		var b1 = UI.button("Giy", func():
-			look["vest"] = vest_col
-			apply.call(), 180)
-		var b2 = UI.button("Çıkar", func():
-			look["vest"] = null
-			apply.call(), 180)
-		(b1 if look.get("vest") != null else b2).modulate = Color(1, 0.75, 0.4)
-		r.add_child(b1)
-		r.add_child(b2)
+	# --- sol: yuvalar
+	var left = UI.vbox(6)
+	left.custom_minimum_size = Vector2(330, 0)
+	h.add_child(left)
+	left.add_child(UI.label("EKİPMAN", 22, UI.ACCENT))
+	for sl in Gear.SLOTS + [["sac", "Saç"]]:
+		var nm = "—"
+		if sl[0] == "sac":
+			nm = String(pr["look"].get("hair_style", "diken")).capitalize()
+		else:
+			var g = Gear.equipped(pr, sl[0])
+			if not g.is_empty():
+				nm = Gear.item(g["id"])["name"]
+		var b = UI.button("%s:  %s" % [sl[1], nm], func():
+			_eq_slot = sl[0]
+			ninja_menu(main, "wardrobe"), 330)
+		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		b.clip_text = true
+		if sl[0] == _eq_slot:
+			b.modulate = Color(1, 0.75, 0.4)
+		left.add_child(b)
+	left.add_child(HSeparator.new())
+	var tot = []
+	for k in [["def", "Savunma", false], ["hp", "Can", false], ["chakra", "Chakra", false], ["speed", "Hız", true], ["melee", "Yakın dövüş", true]]:
+		var v = Gear.stat(pr, k[0])
+		if v != 0.0:
+			tot.append(("%s %+d%%" % [k[1], int(round(v * 100))]) if k[2] else ("%s %+d" % [k[1], int(v)]))
+	var w = Gear.weapon(pr)
+	tot.append("Silah hasarı x%.2f" % w["dmg"])
+	var tl = UI.label("Toplam: " + ", ".join(tot), 15, Color(0.85, 0.95, 0.85))
+	tl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	tl.custom_minimum_size = Vector2(320, 0)
+	left.add_child(tl)
+	# --- orta: bu yuvaya giyilebilenler
+	var mid = _scroll(h, 470)
+	if _eq_slot == "sac":
+		_hair_panel(mid, pr["look"], refresh)
 	else:
-		r.add_child(UI.label("Chunin rütbesinde açılır", 15, Color(0.7, 0.7, 0.7)))
-	v.add_child(r)
-	if look.get("band") != null:
-		choice.call("Alın koruyucu", "band_style", {"head": "Alında", "neck": "Boyunda", "none": "Takma"}, "head")
-	else:
-		var r2 = UI.hbox(6)
-		var l2 = UI.label("Alın koruyucu", 17)
-		l2.custom_minimum_size = Vector2(170, 0)
-		r2.add_child(l2)
-		r2.add_child(UI.label("Genin olunca verilir", 15, Color(0.7, 0.7, 0.7)))
-		v.add_child(r2)
-	v.add_child(HSeparator.new())
-	v.add_child(UI.label("SAÇ", 22, UI.ACCENT))
-	choice.call("Stil", "hair_style", {"diken": "Dikenli", "dağınık": "Dağınık", "kase": "Kâse"}, "diken")
-	choice.call("", "hair_style", {"kısa": "Kısa", "uzun": "Uzun", "atkuyruğu": "At kuyruğu"}, "diken")
-	# sağ: önizleme
-	h.add_child(_model_preview(Game.player._look_with_age() if Game.player else look))
+		var cur = Gear.equipped(pr, _eq_slot)
+		var title = ""
+		for sl in Gear.SLOTS:
+			if sl[0] == _eq_slot:
+				title = sl[1]
+		mid.add_child(UI.label(title.to_upper(), 20, UI.ACCENT))
+		var list = Gear.owned_for(pr, _eq_slot)
+		if list.is_empty():
+			mid.add_child(UI.label("Bu yuvaya uygun eşyan yok. Dükkânlardan alabilir, görevlerden kazanabilirsin.", 15, Color(0.75, 0.75, 0.75)))
+		for g in list:
+			var it = Gear.item(g["id"])
+			var card = UI.panel()
+			var cv = UI.vbox(3)
+			card.add_child(cv)
+			var on: bool = not cur.is_empty() and int(cur["uid"]) == int(g["uid"])
+			var used_other = false
+			for sl in Gear.SLOTS:
+				if sl[0] != _eq_slot and int(pr["equip"].get(sl[0], -1)) == int(g["uid"]):
+					used_other = true
+			var head = UI.hbox(6)
+			var sw = ColorRect.new()
+			sw.color = Color.html(g["c1"])
+			sw.custom_minimum_size = Vector2(18, 18)
+			head.add_child(sw)
+			head.add_child(UI.label(it["name"] + ("   (takılı)" if on else ("   (diğer elde)" if used_other else "")), 17, Color(1, 0.9, 0.6) if on else UI.TEXT))
+			cv.add_child(head)
+			cv.add_child(UI.label(Gear.stats_text(g["id"]), 14, Color(0.7, 0.95, 0.7)))
+			var d = UI.label(it["desc"], 13, Color(0.8, 0.8, 0.78))
+			d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			d.custom_minimum_size = Vector2(420, 0)
+			cv.add_child(d)
+			if on:
+				if not _eq_slot in Gear.REQUIRED:
+					cv.add_child(UI.button("Çıkar", func():
+						pr["equip"].erase(_eq_slot)
+						refresh.call(), 140))
+			elif not used_other:
+				cv.add_child(UI.button("Giy / Kuşan", func():
+					pr["equip"][_eq_slot] = int(g["uid"])
+					refresh.call(), 140))
+			mid.add_child(card)
+		# boya (silah hariç)
+		if not cur.is_empty() and not Gear.item(cur["id"]).has("weapon"):
+			mid.add_child(HSeparator.new())
+			var names = {"govde": ["Ana renk", "Vurgu (omuz/yaka)"], "ayak": ["Sandalet", "Sargılar"]}.get(_eq_slot, ["Renk"])
+			for ci in names.size():
+				var key = "c%d" % (ci + 1)
+				var r = UI.hbox(4)
+				var l = UI.label(names[ci], 15)
+				l.custom_minimum_size = Vector2(150, 0)
+				r.add_child(l)
+				var sc = GridContainer.new()
+				sc.columns = 5
+				for c in SWATCHES:
+					sc.add_child(_swatch(c, Color.html(cur[key]).is_equal_approx(c), func():
+						cur[key] = c.to_html(false)
+						refresh.call()))
+				r.add_child(sc)
+				mid.add_child(r)
+	# --- sağ: önizleme
+	h.add_child(_model_preview(Game.player._look_with_age() if Game.player else pr["look"]))
+
+
+static func _swatch(c: Color, on: bool, cb: Callable) -> Button:
+	var b = Button.new()
+	b.custom_minimum_size = Vector2(40, 30)
+	var sb = StyleBoxFlat.new()
+	sb.bg_color = c
+	sb.set_corner_radius_all(4)
+	sb.border_color = UI.ACCENT if on else Color(0, 0, 0, 0.6)
+	sb.set_border_width_all(3 if on else 1)
+	for st in ["normal", "hover", "pressed", "focus"]:
+		b.add_theme_stylebox_override(st, sb)
+	b.pressed.connect(func():
+		Sfx.play("click")
+		cb.call())
+	return b
+
+
+static func _hair_panel(v: VBoxContainer, look: Dictionary, refresh: Callable) -> void:
+	v.add_child(UI.label("SAÇ (berber ücretsiz)", 20, UI.ACCENT))
+	var styles = {"diken": "Dikenli", "dağınık": "Dağınık", "kase": "Kâse", "kısa": "Kısa", "uzun": "Uzun", "atkuyruğu": "At kuyruğu"}
+	var g = GridContainer.new()
+	g.columns = 3
+	for k in styles:
+		var b = UI.button(styles[k], func():
+			look["hair_style"] = k
+			refresh.call(), 140)
+		if look.get("hair_style", "") == k:
+			b.modulate = Color(1, 0.75, 0.4)
+		g.add_child(b)
+	v.add_child(g)
+	v.add_child(UI.label("Renk", 16))
+	var cg = GridContainer.new()
+	cg.columns = 8
+	for c in [Color(0.3, 0.2, 0.12), Color(0.08, 0.08, 0.1), Color(0.95, 0.8, 0.25), Color(0.75, 0.25, 0.15), Color(0.9, 0.9, 0.92), Color(0.2, 0.3, 0.6), Color(0.9, 0.55, 0.7), Color(0.25, 0.45, 0.25)]:
+		cg.add_child(_swatch(c, Color(look.get("hair", Color.BLACK)).is_equal_approx(c), func():
+			look["hair"] = c
+			refresh.call()))
+	v.add_child(cg)
 
 
 ## Ayrı dünyada dönen karakter önizlemesi (oyun duraklatılmışken de çalışır)

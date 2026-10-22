@@ -9,6 +9,18 @@ var board_village = ""
 var pickups: Array = []
 var target_marker = Vector3.ZERO
 var has_marker = false
+var target_name = ""          # hedef okunun yanında yazan isim
+var story_target = false      # hedef görevden değil hikâye adımından geliyor
+
+## Hikâye adımı -> hedef: [etkileşim türü | "village", etiket filtresi | köy id, gösterilen isim]
+const STORY_TARGETS := {
+	0: ["academy", "", "Ninja Akademisi"], 1: ["academy", "", "Akademi Avlusu"], 2: ["academy", "", "Akademi Hocası"],
+	3: ["academy", "", "Akademi Avlusu"], 4: ["lookout", "", "Hokage Kayası (tırman)"], 5: ["training", "", "Antrenman Alanı 3"],
+	6: ["mission_board", "Hokage", "Görev Masası"], 7: ["mission_board", "Hokage", "Hokage Kulesi"], 8: ["village", "bandit_camp", "Haydut Kampı"],
+	9: ["chunin_exam", "", "Stadyum — Chunin Sınavı"], 10: ["chunin_exam", "", "Chunin Sınavı"], 11: ["sage", "", "Gizli Şelale"],
+	12: ["mission_board", "Hokage", "Görev Masası (A-rank)"], 13: ["anbu", "", "ANBU Karargâhı"],
+}
+var _story_cache := {}
 
 
 func active() -> Dictionary:
@@ -238,11 +250,27 @@ func on_interact(it: Dictionary) -> void:
 
 
 func _process(_dt: float) -> void:
-	var m = active()
-	if m.is_empty():
+	if Game.profile.is_empty():
 		has_marker = false
 		return
+	var m = active()
+	if m.is_empty():
+		# görev yoksa hikâye adımının hedefini göster
+		var t = story_target_for(Progress.story())
+		story_target = not t.is_empty()
+		has_marker = story_target
+		if story_target:
+			target_marker = t["pos"]
+			target_name = t["name"]
+		return
+	story_target = false
 	has_marker = true
+	target_name = m.get("title", "Görev Hedefi")
+	if m.get("type", "") == "story" and target_marker == Vector3.ZERO:
+		# kayıttan yüklenen hikâye görevi: hedefi başlığından bul
+		var vid = "forest_death" if String(m.get("title", "")).contains("Orman") else "bandit_camp"
+		if not Game.village(vid).is_empty():
+			target_marker = _vpos(vid)
 	if m["type"] == "cat" and not pickups.is_empty() and is_instance_valid(pickups[0]):
 		target_marker = pickups[0].global_position
 	if m["type"] == "collect":
@@ -252,6 +280,26 @@ func _process(_dt: float) -> void:
 				var d: float = pk.global_position.distance_to(Game.player.global_position)
 				if d < best:
 					best = d; target_marker = pk.global_position
+
+
+## Hikâye adımının dünyadaki hedefi: {pos, name} (yoksa boş)
+func story_target_for(s: int) -> Dictionary:
+	if _story_cache.has(s):
+		return _story_cache[s]
+	var spec = STORY_TARGETS.get(s)
+	var res = {}
+	if spec != null:
+		if spec[0] == "village":
+			if not Game.village(spec[1]).is_empty():
+				res = {"pos": _vpos(spec[1]), "name": spec[2]}
+		else:
+			for it in Interact.items:
+				if it["kind"] == spec[0] and (spec[1] == "" or String(it.get("label", "")).contains(spec[1])):
+					res = {"pos": it["pos"], "name": spec[2]}
+					break
+	if not res.is_empty():
+		_story_cache[s] = res
+	return res
 
 
 func spawn_scroll_thief() -> void:

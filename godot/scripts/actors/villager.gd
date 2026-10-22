@@ -38,6 +38,7 @@ func _ready() -> void:
 		"band": null, "hair_style": ["kısa", "uzun", "atkuyruğu", "kase", "dağınık", "diken"].pick_random(),
 		"hair": [Color(0.1, 0.08, 0.06), Color(0.35, 0.22, 0.12), Color(0.6, 0.6, 0.62), Color(0.75, 0.45, 0.2), Color(0.85, 0.75, 0.4)].pick_random(),
 		"sleeves": randf() < 0.6, "pants_style": "sivil", "sandal": Color(0.3, 0.22, 0.15), "skin": [Color(0.96, 0.8, 0.66), Color(0.88, 0.7, 0.55), Color(0.98, 0.86, 0.75)].pick_random()}
+	lk["face_mark"] = ["yok", "yok", "yok", "yok", "çil", "burun yarası", "yanak çizgisi"].pick_random()
 	match role:
 		"kid":
 			lk["age"] = "child"

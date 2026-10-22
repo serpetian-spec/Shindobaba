@@ -9,7 +9,7 @@ static func max_hp(p: Dictionary) -> float:
 		v += 40.0
 	if p.get("clan", "") == "senju":
 		v += 40.0
-	return v
+	return v + Gear.stat(p, "hp")
 
 
 static func max_chakra(p: Dictionary) -> float:
@@ -18,7 +18,7 @@ static func max_chakra(p: Dictionary) -> float:
 		v += 50.0
 	if p.get("clan", "") == "uzumaki":
 		v += 60.0
-	return v
+	return v + Gear.stat(p, "chakra")
 
 
 static func melee_mult(p: Dictionary) -> float:
@@ -27,7 +27,7 @@ static func melee_mult(p: Dictionary) -> float:
 	if "tai1" in s: m += 0.2
 	if "tai4" in s: m += 0.3
 	if p.get("clan", "") in ["none", "akimichi"]: m += 0.15
-	m *= Buffs.mod("melee")
+	m *= Buffs.mod("melee") * (1.0 + Gear.stat(p, "melee"))
 	return m
 
 

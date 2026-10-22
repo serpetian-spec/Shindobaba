@@ -95,7 +95,7 @@ func face_to(target: Node3D) -> void:
 # ------------------------------------------------------------------ saldırı
 func attack() -> void:
 	if action == "attack":
-		if t > COMBO[step]["dur"] * 0.4:
+		if t > _combo(step)["dur"] * 0.4:
 			buffered = true
 		return
 	if action != "" and action != "guard":
@@ -110,7 +110,7 @@ func attack() -> void:
 
 
 func _start_step() -> void:
-	var c: Dictionary = COMBO[step]
+	var c: Dictionary = _combo(step)
 	action = "attack"
 	t = 0.0
 	did_hit = false
@@ -188,7 +188,7 @@ func move_override(dt: float) -> bool:
 
 
 func _do_attack(dt: float) -> bool:
-	var c: Dictionary = COMBO[step]
+	var c: Dictionary = _combo(step)
 	var tgt = _auto_target()
 	if air_attack:
 		p.velocity.y -= Player.GRAV * dt * 0.5
@@ -237,6 +237,21 @@ func _do_attack(dt: float) -> bool:
 			if step >= COMBO.size() - 1:
 				step = -1
 	return true
+
+
+## Kombo adımı, eldeki silaha göre (hasar, menzil, kılıçla kesiş animasyonları)
+func _combo(i: int) -> Dictionary:
+	var c: Dictionary = COMBO[clampi(i, 0, COMBO.size() - 1)].duplicate()
+	var w = Gear.weapon(Game.profile)
+	c["dmg"] = float(c["dmg"]) * float(w["dmg"])
+	c["reach"] = float(c["reach"]) + float(w["reach"])
+	if w["style"] == "sword" and i < 3:
+		c["anim"] = ["slash_a", "slash_b", "slash_c"][i]
+		c["speed"] = 1.5
+	elif w["style"] == "blade" and i == 2:
+		c["anim"] = "slash_a"
+		c["speed"] = 1.7
+	return c
 
 
 func _hit_info(c: Dictionary) -> Dictionary:

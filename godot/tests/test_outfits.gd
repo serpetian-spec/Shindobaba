@@ -3,10 +3,10 @@ extends Node
 var main: Node
 
 const LOOKS := [
-	{"gender": "m", "hair_style": "diken", "hair": Color(0.95, 0.8, 0.25), "top": Color(0.95, 0.5, 0.12), "top2": Color(0.12, 0.12, 0.15), "top_style": "ceket", "pants": Color(0.95, 0.5, 0.12), "band": Color(0.15, 0.22, 0.55), "age": "child"},
+	{"gender": "m", "hair_style": "diken", "hair": Color(0.95, 0.8, 0.25), "top": Color(0.95, 0.5, 0.12), "top2": Color(0.12, 0.12, 0.15), "top_style": "ceket", "pants": Color(0.95, 0.5, 0.12), "band": Color(0.15, 0.22, 0.55), "age": "child", "weapon_r": "kunai"},
 	{"gender": "m", "hair_style": "dağınık", "hair": Color(0.08, 0.08, 0.1), "top": Color(0.15, 0.2, 0.33), "top_style": "yakali", "pants": Color(0.85, 0.82, 0.75), "pants_style": "sort", "band": Color(0.15, 0.22, 0.55), "age": "teen"},
 	{"gender": "f", "hair_style": "uzun", "hair": Color(0.9, 0.55, 0.7), "top": Color(0.75, 0.15, 0.15), "top_style": "tisort", "pants": Color(0.15, 0.15, 0.17), "pants_style": "sort", "band": Color(0.15, 0.22, 0.55), "age": "teen"},
-	{"gender": "m", "hair_style": "kase", "hair": Color(0.08, 0.08, 0.1), "top": Color(0.15, 0.2, 0.33), "top_style": "uzun", "pants": Color(0.15, 0.2, 0.33), "vest": Color(0.38, 0.48, 0.28), "band": Color(0.15, 0.22, 0.55), "age": "adult"},
+	{"gender": "m", "hair_style": "kase", "hair": Color(0.08, 0.08, 0.1), "top": Color(0.15, 0.2, 0.33), "top_style": "uzun", "pants": Color(0.15, 0.2, 0.33), "vest": Color(0.38, 0.48, 0.28), "band": Color(0.15, 0.22, 0.55), "age": "adult", "weapon_r": "katana", "weapon_l": "tanto"},
 	{"gender": "f", "hair_style": "atkuyruğu", "hair": Color(0.95, 0.85, 0.4), "top": Color(0.35, 0.25, 0.45), "top_style": "uzun", "pants": Color(0.15, 0.15, 0.17), "band": Color(0.15, 0.22, 0.55), "band_style": "neck", "age": "young"},
 	{"gender": "m", "hair_style": "kısa", "hair": Color(0.6, 0.6, 0.62), "top": Color(0.15, 0.2, 0.33), "top_style": "uzun", "pants": Color(0.15, 0.2, 0.33), "vest": Color(0.38, 0.48, 0.28), "band": Color(0.15, 0.22, 0.55), "age": "adult"},
 ]

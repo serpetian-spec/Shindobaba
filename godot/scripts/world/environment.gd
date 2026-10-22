@@ -23,7 +23,7 @@ const PAL := {
 	# zaman: [zenith, horizon, sun color, sun energy, ambient]
 	"night": [Color(0.02, 0.04, 0.12), Color(0.08, 0.12, 0.22), Color(0.55, 0.65, 0.95), 0.25, Color(0.18, 0.22, 0.38)],
 	"dawn": [Color(0.25, 0.32, 0.6), Color(0.98, 0.62, 0.42), Color(1.0, 0.62, 0.4), 0.9, Color(0.55, 0.45, 0.5)],
-	"day": [Color(0.22, 0.5, 0.92), Color(0.72, 0.86, 0.98), Color(1.0, 0.96, 0.88), 1.6, Color(0.6, 0.68, 0.82)],
+	"day": [Color(0.16, 0.45, 0.95), Color(0.62, 0.82, 1.0), Color(1.0, 0.97, 0.9), 1.55, Color(0.55, 0.66, 0.88)],
 	"dusk": [Color(0.18, 0.2, 0.48), Color(1.0, 0.5, 0.3), Color(1.0, 0.5, 0.28), 0.8, Color(0.5, 0.38, 0.45)],
 }
 
@@ -38,10 +38,10 @@ func _ready() -> void:
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_energy = 0.3
-	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	env.ambient_light_energy = 0.38
+	# anime görünüm: filmic ton eşleme renkleri soldurur; lineer + yüksek doygunluk
+	env.tonemap_mode = Environment.TONE_MAPPER_LINEAR
 	env.tonemap_exposure = 1.0
-	env.tonemap_white = 6.0
 	env.glow_enabled = true
 	env.glow_intensity = 0.45
 	env.glow_strength = 1.1
@@ -61,8 +61,8 @@ func _ready() -> void:
 	env.ssao_radius = 1.2
 	env.ssao_intensity = 1.6
 	env.adjustment_enabled = true
-	env.adjustment_saturation = 1.18
-	env.adjustment_contrast = 1.06
+	env.adjustment_saturation = 1.32
+	env.adjustment_contrast = 1.1
 	var we = WorldEnvironment.new()
 	we.environment = env
 	add_child(we)
@@ -159,13 +159,13 @@ func _process(dt: float) -> void:
 
 	# bölgesel hava durumu
 	_update_weather(dt)
-	var zen: Color = p[0].lerp(Color(0.4, 0.42, 0.48), overcast * 0.7)
-	var hor: Color = p[1].lerp(Color(0.55, 0.57, 0.62), overcast * 0.7)
+	var zen: Color = p[0].lerp(Color(0.4, 0.42, 0.48), overcast * 0.45)
+	var hor: Color = p[1].lerp(Color(0.55, 0.57, 0.62), overcast * 0.45)
 	sun.light_color = p[2]
-	sun.light_energy = p[3] * (1.0 - overcast * 0.55)
-	env.ambient_light_color = p[4].lerp(Color(0.5, 0.52, 0.58), overcast * 0.5)
+	sun.light_energy = p[3] * (1.0 - overcast * 0.4)
+	env.ambient_light_color = p[4].lerp(Color(0.5, 0.52, 0.58), overcast * 0.35)
 	env.fog_light_color = hor
-	var fog_base = 0.0007 / maxf(0.4, float(Game.settings["view"]))
+	var fog_base = 0.00045 / maxf(0.4, float(Game.settings["view"]))
 	env.fog_density = lerpf(fog_base, 0.006, overcast * (1.0 if weather in ["sis", "kum fırtınası"] else 0.25))
 	sky_mat.set_shader_parameter("zenith", zen)
 	sky_mat.set_shader_parameter("horizon", hor)
@@ -198,7 +198,7 @@ func _update_weather(dt: float) -> void:
 	weather_t -= dt
 	if weather_t <= 0.0:
 		weather_t = randf_range(120, 300)
-		region_weather = ["açık", "açık", "açık", "bulutlu", "yağmur"].pick_random()
+		region_weather = ["açık", "açık", "açık", "açık", "açık", "bulutlu", "yağmur"].pick_random()
 	weather = reg if reg != "açık" else region_weather
 	var target_overcast = {"açık": 0.0, "bulutlu": 0.5, "yağmur": 0.85, "sis": 0.7, "kum fırtınası": 0.8, "kar": 0.6}.get(weather, 0.0)
 	overcast = move_toward(overcast, target_overcast, dt * 0.08)

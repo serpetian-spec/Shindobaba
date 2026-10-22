@@ -58,11 +58,23 @@ func _ready() -> void:
 	await _key(KEY_TAB)
 	await get_tree().create_timer(0.6).timeout
 	await main.shot("m5_tab_envanter")
-	await _click("Kıyafetler")
+	Gear.grant(Game.profile, "katana")
+	Gear.grant(Game.profile, "tanto")
+	Game.profile["rank"] = 2
+	await _click("Ekipman")
+	await get_tree().create_timer(0.6).timeout
+	await _click("Sağ El")
+	await get_tree().create_timer(0.4).timeout
+	await _click("Giy / Kuşan")
+	await get_tree().create_timer(0.4).timeout
+	await _click("Sol El")
+	await get_tree().create_timer(0.4).timeout
+	await _click("Giy / Kuşan")
 	await get_tree().create_timer(1.2).timeout
-	await main.shot("m6_tab_kiyafet")
-	await _click("Fermuarlı")
+	await main.shot("m6_tab_ekipman")
+	await _click("Üst Kıyafet")
 	await get_tree().create_timer(1.2).timeout
+	await main.shot("m6b_ekipman_ust")
 	await _click("Jutsular")
 	await get_tree().create_timer(0.4).timeout
 	await main.shot("m7_tab_jutsu")

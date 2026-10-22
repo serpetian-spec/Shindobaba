@@ -112,13 +112,19 @@ func promote(rank: int) -> void:
 	var pr = p()
 	pr["rank"] = rank
 	var look: Dictionary = pr["look"]
+	Gear.ensure(pr)
 	match rank:
 		1:
-			look["band"] = Color(0.15, 0.22, 0.55)
+			Gear.grant(pr, "alin_koruyucu", "kafa")
+			Gear.grant(pr, "alin_boyun")
+			Hud.msg("Yeni ekipman: Alın Koruyucu  [Tab > Ekipman]", Color(0.6, 0.9, 1.0))
 		2:
-			look["vest"] = Color(0.38, 0.48, 0.28)
+			Gear.grant(pr, "chunin_yelek", "zirh")
+			Hud.msg("Yeni ekipman: Taktik Yelek  [Tab > Ekipman]", Color(0.6, 0.9, 1.0))
 		4:
-			look["vest"] = Color(0.75, 0.75, 0.78)
+			Gear.grant(pr, "anbu_zirh", "zirh")
+			Hud.msg("Yeni ekipman: ANBU Zırhı  [Tab > Ekipman]", Color(0.6, 0.9, 1.0))
+	Gear.apply_look(pr)
 	Hud.banner(Data.RANKS[rank].to_upper(), "Rütbe atladın!", Color(1, 0.6, 0.25))
 	Sfx.play("levelup", null, 0.7)
 	if Game.player:
@@ -241,6 +247,12 @@ func interact(it: Dictionary) -> void:
 		"gate":
 			Hud.dialog("Kapı Nöbetçisi", "Dışarısı tehlikeli genç ninja. Haritayı [M] aç, yolları takip et. Diğer köylere varınca hızlı seyahat açılır.", [])
 		"shop_weapons":
+			Hud.dialog("Silah Dükkânı", "Hoş geldin! Ne bakıyorsun?", [
+				{"label": "Ninja aletleri ve parşömenler", "cb": func(): Hud.shop("Silah Dükkânı", ["kunai", "shuriken", "tag", "smoke", "scroll_katon_housenka", "scroll_suiton_suijinheki", "scroll_fuuton_daitoppa", "scroll_doton_doryuheki"])},
+				{"label": "Silahlar (sağ el / sol el)", "cb": func(): Hud.gear_shop("Silahçı", Gear.SHOP_WEAPONS)},
+				{"label": "Kıyafetler ve zırhlar", "cb": func(): Hud.gear_shop("Terzi", Gear.SHOP_CLOTHES)},
+			])
+		"shop_weapons_old":
 			Hud.shop("Silah Dükkânı", ["kunai", "shuriken", "tag", "smoke", "scroll_katon_housenka", "scroll_suiton_suijinheki", "scroll_fuuton_daitoppa", "scroll_doton_doryuheki"])
 		"shop_items":
 			Hud.shop("Eczane", ["salve", "pill", "smoke", "scroll_kokuangyo"])

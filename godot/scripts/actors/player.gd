@@ -212,7 +212,7 @@ func _ground_air_move(dt: float) -> void:
 	elif dash_t > 0.0:
 		dash_t -= dt
 	else:
-		var spd_mul = Buffs.mod("speed") * (1.12 if "tai2" in Game.profile.get("skills", []) else 1.0)
+		var spd_mul = Buffs.mod("speed") * (1.12 if "tai2" in Game.profile.get("skills", []) else 1.0) * (1.0 + Gear.stat(Game.profile, "speed"))
 		var target = wish * (DASH if sprint else RUN) * spd_mul
 		if swimming:
 			target *= 0.35
@@ -240,6 +240,10 @@ func _ground_air_move(dt: float) -> void:
 		ground = -1.3
 		if not on_water or chakra > 25.0 and Input.is_action_just_pressed("jump"):
 			swimming = false
+	# yokuş aşağı: yerdeyken arazi hızla alçalıyorsa havaya kalkma, zemine yapış
+	var snap = maxf(0.3, Vector2(velocity.x, velocity.z).length() * dt * 1.6)
+	if was_grounded and velocity.y <= 0.0 and p.y > ground and p.y - ground < snap and not swimming:
+		p.y = ground
 	if p.y <= ground + 0.02 and velocity.y <= 0.0:
 		p.y = ground
 		velocity.y = 0.0
@@ -394,7 +398,8 @@ func is_dead() -> bool:
 func take_hit(info: Dictionary) -> void:
 	if Buffs.has("henge"):
 		Jutsu.end_henge(self)
-	var armor = Buffs.mod("armor")
+	# ekipman savunması: her puan ~%1.2 azaltır (en fazla %50)
+	var armor = Buffs.mod("armor") * (1.0 - clampf(Gear.stat(Game.profile, "def") * 0.012, 0.0, 0.5))
 	info = info.duplicate()
 	info["dmg"] = info.get("dmg", 5.0) * armor
 	if combat:
