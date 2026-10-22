@@ -27,6 +27,8 @@ var eyes_mesh: MeshInstance3D
 var brows_mesh: MeshInstance3D
 var eye_mat: ShaderMaterial
 var overlay: PoseOverlay
+var cloth_shell_mat: ShaderMaterial
+var head_ab := AABB()
 var current = ""
 var materials: Array[ShaderMaterial] = []
 var eye_mats: Array[StandardMaterial3D] = []
@@ -354,6 +356,7 @@ func _paint_body() -> void:
 	body_mesh.mesh = _body_cache[key]
 	body_mesh.set_surface_override_material(0, _cloth_mat(0))
 	var shell_mat = _cloth_mat(1)
+	cloth_shell_mat = shell_mat
 	_add_shell(_shell_cache[key], shell_mat)
 	var vest_mat = null
 	if look["vest"] != null:
@@ -391,11 +394,11 @@ func _cloth_rings(g: Dictionary, mat: ShaderMaterial, vest_mat) -> void:
 
 
 ## Gövde kesitinin (düzlemde) dış çizgisini izleyen tüp halka
-static func _ring_mesh(g: Dictionary, axis: int, value: float, side: float, extra: float, thick: float, shift: Vector3, neck_y: float) -> ArrayMesh:
+static func _ring_mesh(g: Dictionary, axis: int, value: float, side: float, extra: float, thick: float, shift: Vector3, neck_y: float, ymax := 99.0) -> ArrayMesh:
 	var wpos: PackedVector3Array = g["wpos"]
 	var pts = []
 	for p in wpos:
-		if absf(p[axis] - value) > 0.012:
+		if absf(p[axis] - value) > 0.012 or p.y > ymax:
 			continue
 		if axis == 0:
 			if p.y < neck_y - 0.32:
@@ -414,7 +417,7 @@ static func _ring_mesh(g: Dictionary, axis: int, value: float, side: float, extr
 	c /= pts.size()
 	c[axis] = value
 	var ua = Vector3.UP if axis == 0 else Vector3.RIGHT
-	var ub = Vector3.BACK
+	var ub = Vector3.UP if axis == 2 else Vector3.BACK
 	var bins = 20
 	var rad = PackedFloat32Array()
 	rad.resize(bins)
@@ -437,7 +440,7 @@ static func _ring_mesh(g: Dictionary, axis: int, value: float, side: float, extr
 		var dir = (ua * cos(a) + ub * sin(a)).normalized()
 		var r = rad[k] + extra
 		ring_pts.append([c + dir * r, dir])
-	var normal_axis = Vector3.RIGHT if axis == 0 else Vector3.UP
+	var normal_axis = [Vector3.RIGHT, Vector3.UP, Vector3.BACK][axis]
 	for k in bins:
 		var A = ring_pts[k]; var B = ring_pts[(k + 1) % bins]
 		for q in sides:
@@ -541,29 +544,102 @@ func _build_shell(g: Dictionary, offset_of: Callable, iters: int) -> ArrayMesh:
 	return m
 
 
-## Sandalet (açık burunlu taban + kayışlar), yaka, fermuar, bel bağı
-func _cloth_details() -> void:
-	var ts = top_style()
-	var sc: Color = look["sandal"]
+## Ninja sandaleti: ayak izine göre biçimli taban + parmak kayışı, ayak üstü kayışı, bilek kayışı, topuk
+static var _sole_cache := {}
+func _sandals() -> void:
+	var g = _geo_for(look["gender"])
+	var wpos: PackedVector3Array = g["wpos"]
+	var neck = skel.get_bone_global_rest(skel.find_bone("Neck")).origin.y
 	for side in ["Left", "Right"]:
+		var sx = 1.0 if side == "Left" else -1.0
 		var fb = skel.find_bone(side + "Foot")
-		var tb = skel.find_bone(side + "Toes")
 		if fb < 0:
 			continue
 		var fp = skel.get_bone_global_rest(fb).origin
-		var tp = skel.get_bone_global_rest(tb).origin if tb >= 0 else fp + Vector3(0, -0.06, 0.12)
-		var fwd = Vector3(tp.x - fp.x, 0, tp.z - fp.z).normalized()
-		var yaw = atan2(fwd.x, fwd.z)
-		var s = MB.new()
-		var heel = Vector3(fp.x, 0.012, fp.z) - fwd * 0.06
-		var sole_len = (Vector2(tp.x, tp.z) - Vector2(heel.x, heel.z)).length() + 0.07
-		var mid = heel + fwd * sole_len * 0.5
-		var bs = Basis(Vector3.UP, yaw)
-		s.add_xf("box", Transform3D(bs * Basis.from_scale(Vector3(0.095, 0.022, sole_len)), mid), sc.darkened(0.25))
-		# üst kayışlar: ayak üstü + bilek arkası
-		s.add_xf("box", Transform3D(bs * Basis.from_scale(Vector3(0.1, 0.03, 0.045)), Vector3(fp.x, 0.055, fp.z) + fwd * 0.07), sc)
-		s.add_xf("box", Transform3D(bs * Basis.from_scale(Vector3(0.09, 0.075, 0.03)), Vector3(fp.x, 0.06, fp.z) - fwd * 0.055), sc)
-		_mesh_on(side + "Foot", s.build(Props.toon()), Transform3D.IDENTITY)
+		var key = "%s|%s" % [look["gender"], side]
+		if not _sole_cache.has(key):
+			_sole_cache[key] = _sole_mesh(wpos, sx)
+		var parts = [_sole_cache[key]]
+		var ring_defs = [[2, fp.z + 0.13, 0.004, 0.007, 0.075], [2, fp.z + 0.06, 0.004, 0.008, 0.11], [1, fp.y + 0.02, 0.006, 0.008, 99.0]]
+		for rd in ring_defs:
+			var rk = "%s|%d|%.3f" % [key, rd[0], rd[1]]
+			if not _ring_cache.has(rk):
+				_ring_cache[rk] = _ring_mesh(g, rd[0], rd[1], sx, rd[2], rd[3], Vector3(0, -10, 0), neck, rd[4])
+			parts.append(_ring_cache[rk])
+		for m in parts:
+			if m == null:
+				continue
+			var mi = _mesh_on(side + "Foot", m, Transform3D.IDENTITY)
+			mi.material_override = cloth_shell_mat
+
+
+## Taban: ayağın yere yakın köşelerinden çıkarılan dış hat, 1.6 cm kalınlık
+static func _sole_mesh(wpos: PackedVector3Array, sx: float) -> ArrayMesh:
+	var bins = 12
+	var zmin = 1e9; var zmax = -1e9
+	var pts = []
+	for p in wpos:
+		if p.y < 0.05 and signf(p.x) == sx and absf(p.x) < 0.35:
+			pts.append(p)
+			zmin = minf(zmin, p.z); zmax = maxf(zmax, p.z)
+	if pts.size() < 10:
+		return null
+	zmin -= 0.012; zmax += 0.015
+	var lo = PackedFloat32Array(); var hi = PackedFloat32Array()
+	lo.resize(bins); hi.resize(bins)
+	for k in bins:
+		lo[k] = 1e9; hi[k] = -1e9
+	for p in pts:
+		var k = clampi(int((p.z - zmin) / (zmax - zmin) * bins), 0, bins - 1)
+		lo[k] = minf(lo[k], p.x); hi[k] = maxf(hi[k], p.x)
+	var cx = 0.0
+	for p in pts:
+		cx += p.x
+	cx /= pts.size()
+	for it in 3:
+		for k in bins:
+			if lo[k] > 1e8:
+				var nb = k - 1 if k > 0 and lo[k - 1] < 1e8 else mini(k + 1, bins - 1)
+				lo[k] = lo[nb]; hi[k] = hi[nb]
+	var outline = []
+	for k in bins:
+		var z = zmin + (float(k) + 0.5) / bins * (zmax - zmin)
+		var round_k = sin(PI * (float(k) + 0.5) / bins)
+		var hw = maxf(0.02, (hi[k] - lo[k]) * 0.5 + 0.01) * lerpf(0.75, 1.0, round_k)
+		var mx = (hi[k] + lo[k]) * 0.5
+		outline.append(Vector2(mx + hw, z))
+	for k in range(bins - 1, -1, -1):
+		var z = zmin + (float(k) + 0.5) / bins * (zmax - zmin)
+		var round_k = sin(PI * (float(k) + 0.5) / bins)
+		var hw = maxf(0.02, (hi[k] - lo[k]) * 0.5 + 0.01) * lerpf(0.75, 1.0, round_k)
+		var mx = (hi[k] + lo[k]) * 0.5
+		outline.append(Vector2(mx - hw, z))
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_custom_format(0, SurfaceTool.CUSTOM_RGBA_FLOAT)
+	var y0 = -0.004; var y1 = 0.014
+	var c3 = Vector2(cx, (zmin + zmax) * 0.5)
+	var n = outline.size()
+	var dark = Color(0, -20, 0, 0)  # shader: çok negatif y = koyu taban rengi
+	for i in n:
+		var a: Vector2 = outline[i]; var b: Vector2 = outline[(i + 1) % n]
+		for tri in [[c3, a, b, y1, Vector3.UP], [c3, b, a, y0, Vector3.DOWN]]:
+			for q in [tri[0], tri[1], tri[2]]:
+				st.set_normal(tri[4])
+				st.set_custom(0, dark)
+				st.add_vertex(Vector3(q.x, tri[3], q.y))
+		var sn = Vector3(b.y - a.y, 0, -(b.x - a.x)).normalized()
+		for q in [[a, y0], [b, y0], [b, y1], [a, y0], [b, y1], [a, y1]]:
+			st.set_normal(sn)
+			st.set_custom(0, dark)
+			st.add_vertex(Vector3(q[0].x, q[1], q[0].y))
+	return st.commit(null, Mesh.ARRAY_CUSTOM_RGBA_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM0_SHIFT)
+
+
+## Yaka, fermuar, bel bağı
+func _cloth_details() -> void:
+	var ts = top_style()
+	_sandals()
 	var neck = skel.find_bone("Neck")
 	if neck >= 0 and ts in ["yakali", "ceket"] and look["vest"] == null:
 		var np = skel.get_bone_global_rest(neck).origin
@@ -794,14 +870,26 @@ func _attachments() -> void:
 		for mi in hn.find_children("*", "MeshInstance3D", true, false):
 			mi.material_override = hair_mat
 		var hk = "%s|%s" % [look["hair_style"], file]
+		# kafa ölçüsü hep kısa saç tabanından (uzun saç modeli bandı dev yapmasın)
+		var base_file = "Hair_BuzzedFemale" if female else "Hair_Buzzed"
+		if file == base_file:
+			head_ab = _scalp(file, hn)
+		elif _scalp_cache.has(base_file):
+			head_ab = _scalp_cache[base_file]
+		else:
+			var tmp = (load("res://assets/chars/hair/%s.gltf" % base_file) as PackedScene).instantiate()
+			var tb = _attach("Head", Transform3D.IDENTITY)
+			tb.get_child(0).add_child(tmp)
+			head_ab = _scalp(base_file, tmp)
+			tb.queue_free()
 		if not _hair_cache.has(hk):
-			var ab = _scalp(file, hn)
+			var ab = head_ab
 			_hair_cache[hk] = _hair_clumps(look["hair_style"], ab.get_center() + Vector3(0, -ab.size.y * 0.12, 0), ab.size * 0.5)
 		var cm = ShaderMaterial.new()
 		cm.shader = load("res://shaders/toon.gdshader")
 		cm.set_shader_parameter("tint", hair_col)
-		cm.set_shader_parameter("rim_amount", 0.6)
-		cm.set_shader_parameter("spec_amount", 0.3)
+		cm.set_shader_parameter("rim_amount", 0.45)
+		cm.set_shader_parameter("spec_amount", 0.1)
 		materials.append(cm)
 		var cl = _mesh_on("Head", _hair_cache[hk], Transform3D.IDENTITY)
 		cl.material_override = cm
@@ -820,13 +908,23 @@ func _attachments() -> void:
 			band.add("torus", Vector3.ZERO, Vector3(0.24, 0.24, 0.24), bc, Vector3.ZERO, 16)
 			_mesh_on("Neck", band.build(Props.toon()), Transform3D(Basis.IDENTITY, skel.get_bone_global_rest(skel.find_bone("Neck")).origin + Vector3(0, 0.03, 0)))
 		else:
-			band.add("cyl", Vector3.ZERO, Vector3(0.205, 0.075, 0.228), bc, Vector3.ZERO, 18)
-			band.add("box", Vector3(0, 0, 0.111), Vector3(0.088, 0.04, 0.01), Color(0.8, 0.82, 0.86))
-			band.add("box", Vector3(-0.012, -0.03, -0.12), Vector3(0.026, 0.11, 0.008), bc, Vector3(-25, 0, 8))
-			band.add("box", Vector3(0.012, -0.03, -0.12), Vector3(0.026, 0.11, 0.008), bc, Vector3(-25, 0, -10))
-			_mesh_on("Head", band.build(Props.toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0, 0.025, 0)))
+			# kafaya oturan ince bez bant + metal plaka (saç tabanının ölçüsünden)
+			var bw = 0.19; var bd = 0.21
+			var bcen = hc + Vector3(0, 0.025, 0)
+			if head_ab.size.x > 0.05:
+				bw = head_ab.size.x * 1.17
+				bd = head_ab.size.z * 1.1
+				bcen.x = head_ab.get_center().x
+				bcen.z = head_ab.get_center().z - 0.004
+			var front = bd * 0.5 - (bcen.z - hc.z)
+			band.add("cyl", Vector3(0, 0, bcen.z - hc.z), Vector3(bw, 0.032, bd), bc, Vector3.ZERO, 22)
+			band.add("box", Vector3(0, 0, front + 0.002), Vector3(0.072, 0.03, 0.006), Color(0.8, 0.82, 0.86))
+			band.add("box", Vector3(-0.01, -0.035, -bd * 0.5 + (bcen.z - hc.z) - 0.005), Vector3(0.018, 0.075, 0.005), bc, Vector3(-20, 0, 8))
+			band.add("box", Vector3(0.01, -0.035, -bd * 0.5 + (bcen.z - hc.z) - 0.005), Vector3(0.018, 0.075, 0.005), bc, Vector3(-20, 0, -10))
+			_mesh_on("Head", band.build(Props.toon()), Transform3D(Basis.IDENTITY, Vector3(bcen.x, bcen.y, hc.z)))
+			hc.z = hc.z + front - 0.111 + 0.0025
 			var q = QuadMesh.new()
-			q.size = Vector2(0.08, 0.034)
+			q.size = Vector2(0.066, 0.026)
 			var sm = StandardMaterial3D.new()
 			sm.albedo_texture = symbol_texture(look["village"], look["band_style"] == "slashed")
 			sm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR

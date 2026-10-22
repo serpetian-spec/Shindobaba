@@ -298,8 +298,10 @@ func explosion(pos: Vector3, s := 1.0, col := Color(1.0, 0.55, 0.15)) -> void:
 	Sfx.play("boom", pos)
 
 
-## Sürekli (döngüsel) emitter: chakra aurası, jutsu çekirdekleri vb. Dönen düğümü kapatınca durur.
-func aura(parent: Node3D, col: Color, s := 1.0, offset := Vector3(0, 0.9, 0)) -> GPUParticles3D:
+## Döngüsel emitter: chakra aurası, jutsu çekirdekleri vb.
+## dur > 0: o kadar saniye sonra kendiliğinden söner (iyileşme/seviye atlama gibi tek seferlik parıltılar).
+## dur <= 0: kalıcı; çağıran durdurmalı (emitting = false + queue_free).
+func aura(parent: Node3D, col: Color, s := 1.0, offset := Vector3(0, 0.9, 0), dur := 1.6) -> GPUParticles3D:
 	var p = GPUParticles3D.new()
 	p.amount = int(60 * s)
 	p.lifetime = 0.8
@@ -323,4 +325,11 @@ func aura(parent: Node3D, col: Color, s := 1.0, offset := Vector3(0, 0.9, 0)) ->
 	parent.add_child(p)
 	p.position = offset
 	p.emitting = true
+	if dur > 0.0:
+		get_tree().create_timer(dur).timeout.connect(func():
+			if is_instance_valid(p):
+				p.emitting = false
+				get_tree().create_timer(p.lifetime + 0.1).timeout.connect(func():
+					if is_instance_valid(p):
+						p.queue_free()))
 	return p

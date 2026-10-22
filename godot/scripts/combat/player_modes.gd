@@ -343,7 +343,7 @@ func _set_aura(key: String, col, s := 1.0) -> void:
 		get_tree().create_timer(1.0).timeout.connect(a.queue_free)
 	auras.erase(key)
 	if col != null:
-		auras[key] = FX.aura(p, col, s)
+		auras[key] = FX.aura(p, col, s, Vector3(0, 0.9, 0), 0.0)
 
 
 # ------------------------------------------------------------------ güncelleme

@@ -12,6 +12,8 @@ const GRAV := 32.0
 const JUMP := 13.5
 const WALL_SPEED := 12.0
 const AIR_DASH := 28.0
+const LEAP_FWD := 23.0   # Ctrl: Shinobi Striker uzun ninja sıçrayışı
+const LEAP_UP := 14.5
 
 var model: CharacterModel
 var cam_pivot: Node3D
@@ -25,6 +27,7 @@ var height = 1.8
 
 var grounded = true
 var jumps = 0
+var leaping = false
 var air_dash_ok = true
 var dash_t = 0.0
 var wall_n = Vector3.ZERO  # 0 ise duvarda değil
@@ -103,7 +106,9 @@ func _unhandled_input(e: InputEvent) -> void:
 			cam_dist = maxf(2.2, cam_dist - 0.5)
 		elif e.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			cam_dist = minf(14.0, cam_dist + 0.5)
-	if e.is_action_pressed("jump"):
+	if e.is_action_pressed("leap"):
+		_leap()
+	elif e.is_action_pressed("jump"):
 		_jump()
 	elif e.is_action_pressed("dash"):
 		if not grounded and not wall_n and air_dash_ok and input_locked <= 0.0:
@@ -163,6 +168,33 @@ func _jump() -> void:
 		model.play("roll", 0.05, 1.8, true)
 
 
+## Ctrl: ileri doğru uzun, yüksek ninja sıçrayışı (yerde ya da havada bir kez; duvarda duvardan sek)
+func _leap() -> void:
+	if input_locked > 0.0:
+		return
+	if wall_n != Vector3.ZERO:
+		_jump()
+		return
+	if not (grounded or swimming or jumps < 2):
+		return
+	var d = wish_dir()
+	if d.length() < 0.1:
+		d = cam_forward()
+	d = d.normalized()
+	var air = not (grounded or swimming)
+	velocity = d * LEAP_FWD + Vector3.UP * (LEAP_UP * (0.8 if air else 1.0))
+	facing = atan2(-d.x, -d.z)
+	grounded = false
+	swimming = false
+	leaping = true
+	jumps = 2 if air else 1
+	FX.dust(global_position, 0.9)
+	FX.speed_lines(global_position + Vector3.UP, d)
+	Sfx.play("jump", global_position, 0.9)
+	Sfx.play("whoosh", global_position, 0.8)
+	model.play("jump", 0.05, 1.5, true)
+
+
 func _air_dash() -> void:
 	if chakra < 6.0:
 		return
@@ -220,6 +252,8 @@ func _ground_air_move(dt: float) -> void:
 		var accel = 14.0 if grounded else 3.5
 		if not grounded and wish.length() < 0.1:
 			target = hv
+		elif leaping and not grounded:
+			target = wish.normalized() * maxf(hv.length(), RUN)  # sıçrayışta yön verilir, hız korunur
 		hv = hv.lerp(target, minf(1.0, accel * dt))
 		velocity.x = hv.x; velocity.z = hv.z
 		if not swimming:
@@ -259,6 +293,7 @@ func _ground_air_move(dt: float) -> void:
 			Sfx.play("land", global_position)
 		jumps = 0
 		air_dash_ok = true
+		leaping = false
 	# duvar koşusuna geç
 	if is_on_wall() and wall_cd <= 0.0 and not swimming:
 		var n = get_wall_normal()

@@ -93,7 +93,13 @@ func face_to(target: Node3D) -> void:
 
 
 # ------------------------------------------------------------------ saldırı
+func _break_henge() -> void:
+	if Buffs.has("henge"):
+		Jutsu.end_henge(p)
+
+
 func attack() -> void:
+	_break_henge()
 	if action == "attack":
 		if t > _combo(step)["dur"] * 0.4:
 			buffered = true
@@ -293,7 +299,7 @@ func _update_charge(dt: float) -> void:
 			action = "charge"
 			p.model.play("cast", 0.15)
 			if aura == null:
-				aura = FX.aura(p, Color(0.35, 0.7, 1.0), 1.2)
+				aura = FX.aura(p, Color(0.35, 0.7, 1.0), 1.2, Vector3(0, 0.9, 0), 0.0)
 			Sfx.play("wind", p.global_position, 0.8, 0.6)
 		p.chakra = minf(p.max_chakra, p.chakra + 32.0 * dt)
 	elif action == "charge":
@@ -349,6 +355,7 @@ func _spawn_log(at: Vector3) -> void:
 
 # ------------------------------------------------------------------ kunai/shuriken
 func throw_tool() -> void:
+	_break_henge()
 	if action != "" and action != "guard":
 		return
 	var inv: Dictionary = Game.profile.get("inventory", {})
@@ -386,7 +393,7 @@ func chakra_dash() -> void:
 	dash_target = lock_target
 	p.model.play("run", 0.05, 1.6)
 	p.model.overlay.set_pose("ninja_run", 1.0)
-	aura = FX.aura(p, Color(0.4, 0.75, 1.0), 0.8)
+	aura = FX.aura(p, Color(0.4, 0.75, 1.0), 0.8, Vector3(0, 0.9, 0), 0.0)
 	Sfx.play("whoosh", p.global_position, 0.8)
 
 
@@ -410,6 +417,8 @@ func _do_chakra_dash(dt: float) -> bool:
 
 # ------------------------------------------------------------------ jutsu
 func begin_cast(jid: String) -> void:
+	if jid != "henge":
+		_break_henge()
 	if action != "" and action != "guard" and action != "charge":
 		return
 	var j: Dictionary = Data.jutsu.get(jid, {})

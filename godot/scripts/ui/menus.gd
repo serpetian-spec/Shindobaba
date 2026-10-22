@@ -184,7 +184,7 @@ static func controls(main: Node) -> void:
 	var v = _center_panel(bg, 760)
 	v.add_child(UI.label("KONTROLLER", 28, UI.ACCENT))
 	var t = """WASD: hareket   •   Fare: kamera   •   Tekerlek: yakınlaştır
-Ctrl / Space: zıpla (havada tekrar = çift zıplama)   •   Shift: ninja koşusu, havada dash
+Space: zıpla (havada tekrar = çift zıplama)   •   Ctrl: uzun ninja sıçrayışı (Shinobi Striker)   •   Shift: ninja koşusu, havada dash
 Duvara doğru koş: DUVARDA KOŞ (W yukarı, A/D yana)   •   Duvardayken Ctrl: duvardan sek
 Sol tık: kombo (havada: dalış tekmesi)   •   Sağ tık (basılı): blok (tam zamanında = mükemmel blok)
 Q: Kawarimi (yer değiştirme)   •   C (basılı): chakra şarjı   •   R: kunai/alet   •   T: alet değiştir

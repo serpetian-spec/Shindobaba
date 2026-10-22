@@ -73,7 +73,7 @@ func _parse_args() -> void:
 func _setup_input() -> void:
 	var keys = {
 		"forward": [KEY_W], "back": [KEY_S], "left": [KEY_A], "right": [KEY_D],
-		"jump": [KEY_CTRL, KEY_SPACE], "dash": [KEY_SHIFT], "substitute": [KEY_Q], "charge": [KEY_C],
+		"jump": [KEY_SPACE], "leap": [KEY_CTRL], "dash": [KEY_SHIFT], "substitute": [KEY_Q], "charge": [KEY_C],
 		"throw": [KEY_R], "tool_next": [KEY_T], "interact": [KEY_F], "lock": [KEY_E], "menu": [KEY_TAB], "salve": [KEY_H], "pill": [KEY_Y],
 		"slot1": [KEY_1], "slot2": [KEY_2], "slot3": [KEY_3], "slot4": [KEY_4],
 		"inventory": [KEY_I], "skills": [KEY_K], "map": [KEY_M], "pause": [KEY_ESCAPE], "dojutsu": [KEY_V],

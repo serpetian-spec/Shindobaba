@@ -20,7 +20,7 @@ func _ready() -> void:
 			b.add("box", Vector3(0, 0.3, 0), Vector3(0.4, 0.3, 0.3), Color(0.8, 0.6, 0.3))
 	vis.mesh = b.build(Props.toon())
 	add_child(vis)
-	FX.aura(self, Color(0.6, 1.0, 0.5), 0.35, Vector3(0, 0.3, 0))
+	FX.aura(self, Color(0.6, 1.0, 0.5), 0.35, Vector3(0, 0.3, 0), 0.0)
 
 
 func _process(dt: float) -> void:

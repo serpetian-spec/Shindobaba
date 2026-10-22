@@ -189,7 +189,7 @@ func j_suiton_suijinheki(c: Node3D, _t: Node3D) -> void:
 	dome.scale = Vector3(7, 5, 7)
 	c.add_child(dome)
 	dome.position = Vector3(0, 1.5, 0)
-	var e = FX.aura(c, Color(0.4, 0.75, 1.0), 2.5, Vector3(0, 0.5, 0))
+	var e = FX.aura(c, Color(0.4, 0.75, 1.0), 2.5, Vector3(0, 0.5, 0), 0.0)
 	var tw = create_tween()
 	for i in 16:
 		tw.tween_callback(func():
@@ -423,7 +423,7 @@ func j_rasengan(c: Node3D, t: Node3D) -> void:
 	var inner = Projectile.energy_mesh(Color(1, 1, 1), Color(0.5, 0.8, 1.0), 0.45, -18.0, 0.0, 3.5)
 	hand.add_child(outer)
 	hand.add_child(inner)
-	FX.aura(hand, Color(0.5, 0.8, 1.0), 0.4, Vector3.ZERO)
+	FX.aura(hand, Color(0.5, 0.8, 1.0), 0.4, Vector3.ZERO, 0.0)
 	Sfx.play("rasengan", c.global_position)
 	_hand_dash(c, t, hand, 0.6, 26.0, {"dmg": 42.0 * m, "knock": 22.0, "launch": 6.0, "kind": "heavy", "hitstop": 0.16},
 		Color(0.4, 0.7, 1.0), true)
@@ -498,7 +498,7 @@ func j_raiton_nagashi(c: Node3D, _t: Node3D) -> void:
 
 
 func j_raiton_armor(c: Node3D, _t: Node3D) -> void:
-	var a = FX.aura(c, Color(0.6, 0.85, 1.0), 1.4)
+	var a = FX.aura(c, Color(0.6, 0.85, 1.0), 1.4, Vector3(0, 0.9, 0), 0.0)
 	var arcs = Arcs.new()
 	arcs.color = Color(0.6, 0.85, 1.0)
 	arcs.radius = 1.1
@@ -525,24 +525,63 @@ func j_bunshin(c: Node3D, _t: Node3D) -> void:
 	Hud.msg("Kage Bunshin no Jutsu!", Color(1, 1, 1))
 
 
+## Kılık modeli: gizlenen asıl modelin konumunu, yönünü ve animasyonunu her karede kopyalar
+class HengeSync extends Node:
+	var owner_body: Node3D
+	var disguise: CharacterModel
+	func _process(_dt: float) -> void:
+		if not is_instance_valid(owner_body) or not is_instance_valid(disguise):
+			queue_free()
+			return
+		var m: CharacterModel = owner_body.model
+		if m.visible:
+			m.visible = false  # model yeniden kurulduysa tekrar gizle
+		disguise.position = m.position
+		disguise.rotation = m.rotation
+		if m.current != "" and (m.current != disguise.current or not disguise.anim.is_playing()):
+			disguise.play(m.current, 0.12)
+		disguise.anim.speed_scale = m.anim.speed_scale
+
+
 func j_henge(c: Node3D, _t: Node3D) -> void:
-	FX.smoke_puff(c.global_position + Vector3.UP, 1.0, 16)
-	if c is Player:
-		Buffs.add("henge", 25.0, {"stealth": 1.0})
-		c.model.visible = false
-		var disguise = CharacterModel.new()
-		disguise.name = "Disguise"
-		c.add_child(disguise)
-		disguise.setup({"top": Color(0.5, 0.6, 0.45), "top2": Color(0.5, 0.6, 0.45), "pants": Color(0.4, 0.35, 0.3), "band": null, "hair_style": "kısa"})
-		Hud.msg("Henge: köylü kılığındasın. Saldırırsan bozulur.", Color(0.9, 0.9, 0.7))
+	if not c is Player:
+		FX.smoke_puff(c.global_position + Vector3.UP, 1.0, 16)
+		return
+	if c.get_node_or_null("Disguise"):
+		end_henge(c)
+	FX.smoke_puff(c.global_position + Vector3.UP, 1.2, 22)
+	FX.ring(c.global_position + Vector3.UP, Color(1, 1, 1, 0.8), 3.0, 0.3, false)
+	Buffs.add("henge", 25.0, {"stealth": 1.0})
+	c.model.visible = false
+	var disguise = CharacterModel.new()
+	disguise.name = "Disguise"
+	c.add_child(disguise)
+	var tops = [Color(0.5, 0.6, 0.45), Color(0.6, 0.35, 0.3), Color(0.8, 0.75, 0.55), Color(0.4, 0.45, 0.6)]
+	var t0: Color = tops.pick_random()
+	disguise.setup({"gender": ["m", "f"].pick_random(), "top": t0, "top2": t0.darkened(0.15), "top_style": "uzun", "pants_style": "sivil",
+		"pants": Color(0.35, 0.3, 0.28), "sandal": Color(0.3, 0.22, 0.15), "band": null, "vest": null, "hair_style": ["kısa", "uzun", "kase"].pick_random(),
+		"hair": Color(0.25, 0.18, 0.1), "age": "adult"})
+	disguise.position = c.model.position
+	disguise.rotation = c.model.rotation
+	var sync = HengeSync.new()
+	sync.name = "HengeSync"
+	sync.owner_body = c
+	sync.disguise = disguise
+	c.add_child(sync)
+	Hud.msg("Henge: köylü kılığındasın. Saldırırsan bozulur.", Color(0.9, 0.9, 0.7))
 
 
 func end_henge(c: Node3D) -> void:
+	var s = c.get_node_or_null("HengeSync")
+	if s:
+		s.free()
 	var d = c.get_node_or_null("Disguise")
 	if d:
+		d.name = "DisguiseOld"
 		d.queue_free()
+		FX.smoke_puff(c.global_position + Vector3.UP, 1.0, 14)
+	if c.get("model") and is_instance_valid(c.model):
 		c.model.visible = true
-		FX.smoke_puff(c.global_position + Vector3.UP, 0.8, 10)
 	Buffs.remove("henge")
 
 
@@ -568,7 +607,7 @@ func j_shunshin(c: Node3D, t: Node3D) -> void:
 
 
 func j_shousen(c: Node3D, _t: Node3D) -> void:
-	var a = FX.aura(c, Color(0.4, 1.0, 0.5), 1.0)
+	var a = FX.aura(c, Color(0.4, 1.0, 0.5), 1.0, Vector3(0, 0.9, 0), 0.0)
 	Sfx.play("heal", c.global_position)
 	var tw = create_tween()
 	for i in 10:
@@ -891,7 +930,7 @@ func j_shintenshin(c: Node3D, t: Node3D) -> void:
 	t.team = "player"
 	t.target = null
 	t.state = "chase"
-	var a = FX.aura(t, Color(0.7, 0.45, 1.0), 0.9)
+	var a = FX.aura(t, Color(0.7, 0.45, 1.0), 0.9, Vector3(0, 0.9, 0), 0.0)
 	t.nameplate.modulate = Color(0.75, 0.6, 1.0)
 	Combat.popup_text(t.global_position + Vector3.UP * 2.6, "Zihin ele geçirildi!", Color(0.8, 0.65, 1))
 	get_tree().create_timer(12.0).timeout.connect(func():
@@ -1093,7 +1132,7 @@ func j_chakra_chains(c: Node3D, t: Node3D) -> void:
 func j_suika(c: Node3D, _t: Node3D) -> void:
 	if c is Player:
 		Buffs.add("suika", 15.0, {})
-		var a = FX.aura(c, Color(0.35, 0.65, 1.0), 1.0)
+		var a = FX.aura(c, Color(0.35, 0.65, 1.0), 1.0, Vector3(0, 0.9, 0), 0.0)
 		get_tree().create_timer(15.0).timeout.connect(func():
 			if is_instance_valid(a):
 				a.emitting = false

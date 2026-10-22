@@ -81,6 +81,8 @@ float fold_h(vec3 p, int slot) {
 
 // dinlenme pozundaki konuma göre renk yuvası: 0 ten, 1 üst, 2 vurgu, 3 alt, 4 sargı, 5 yelek
 int cloth_slot(vec3 p) {
+	if (p.y < -15.0) return 7;  // sandalet tabanı
+	if (p.y < -5.0) return 6;   // sandalet kayışı
 	float ax = abs(p.x);
 	bool arm = ax > rig_a.x * 0.9 && p.y > rig_a.w - 0.32;
 	if (arm) {
