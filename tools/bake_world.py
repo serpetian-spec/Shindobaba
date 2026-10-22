@@ -27,7 +27,8 @@ X, Y = np.meshgrid(xs, ys)
 rng = np.random.default_rng(42)
 print('grid', W, H)
 
-BIOMES = ['sea', 'beach', 'forest', 'desert', 'rain', 'rock', 'rice', 'grass', 'snow', 'mountain', 'swamp', 'village', 'road']
+BIOMES = ['sea', 'beach', 'forest', 'desert', 'rain', 'rock', 'rice', 'grass', 'snow', 'mountain', 'swamp', 'village', 'road',
+          'village_sand', 'village_stone', 'village_snow']
 BID = {b: i for i, b in enumerate(BIOMES)}
 
 
@@ -147,6 +148,19 @@ for pts in RIVERS:
 named = {v['id']: v for v in VILLAGES + LANDMARKS}
 road = np.zeros_like(h)
 road_lines = []
+# Konoha kapıları (yerel x=doğu, y=kuzey): güney A-Un ana kapısı, doğu ve batı kapıları.
+# Yol önce köy içindeki caddeyi izler, kapıdan çıkar, sonra hedefe kıvrılır.
+KONOHA_R = 410.0
+KONOHA_GATES = {180.0: [(0, -110), (0, -KONOHA_R), (0, -KONOHA_R - 90)],
+                105.5: [(0, -110), (395, -110), (480, -134)],
+                254.5: [(0, -110), (-395, -110), (-480, -134)]}
+gates = {v['id']: [] for v in VILLAGES}
+
+
+def _compass(dx, dy):
+    return math.degrees(math.atan2(dx, dy)) % 360.0
+
+
 for a, b in ROADS:
     A, B = named[a], named[b]
     # hafif kıvrımlı yol: orta noktayı kaydır
@@ -154,10 +168,37 @@ for a, b in ROADS:
     nx, ny = -(B['y'] - A['y']), B['x'] - A['x']
     ln = math.hypot(nx, ny) or 1
     off = rng.uniform(-.12, .12) * math.hypot(B['x'] - A['x'], B['y'] - A['y'])
-    pts = [(A['x'], A['y']), (mx + nx / ln * off, my + ny / ln * off), (B['x'], B['y'])]
+    mid = (mx + nx / ln * off, my + ny / ln * off)
+    pts = [(A['x'], A['y']), mid, (B['x'], B['y'])]
+    # köy uçları: Konoha'da en yakın kapıdan çık, diğer köylerde kapı açısını kaydet
+    for end in (0, 1):
+        V = A if end == 0 else B
+        if V['id'] not in gates:
+            continue
+        ang = _compass(mid[0] - V['x'], mid[1] - V['y'])
+        if V['id'] == 'konoha':
+            g = min(KONOHA_GATES, key=lambda k: abs((ang - k + 180) % 360 - 180))
+            way = [(V['x'] + x, V['y'] + y) for x, y in KONOHA_GATES[g]]
+            pts = [pts[0]] + way + pts[1:] if end == 0 else pts[:-1] + way[::-1] + [pts[-1]]
+            ang = g
+        if not any(abs((ang - q + 180) % 360 - 180) < 12 for q in gates[V['id']]):
+            gates[V['id']].append(round(ang, 1))
     d = dist_to_polyline(pts)
     road = np.maximum(road, 1 - smoothstep(4, 9, d))
     road_lines.append(pts)
+for v in VILLAGES:
+    v['gates'] = gates[v['id']]
+# Konoha iç caddeleri (araziye toprak yol olarak işlenir)
+KV = named['konoha']
+streets = [[(0, 65), (0, -KONOHA_R)]]
+for rn in (-260, -110, 40, 160):
+    hw = math.sqrt(max(KONOHA_R ** 2 - rn ** 2, 0)) - 12
+    streets.append([(-hw, rn), (hw, rn)])
+for rx in (-200, 200):
+    streets.append([(rx, -340), (rx, 280)])
+for st in streets:
+    d = dist_to_polyline([(KV['x'] + x, KV['y'] + y) for x, y in st])
+    road = np.maximum(road, 1 - smoothstep(3.5, 7.5, d))
 
 # ---------------------------------------------------------------- köy düzlükleri
 for v in VILLAGES + LANDMARKS:
@@ -203,21 +244,25 @@ slope = np.hypot(*np.gradient(h, R))
 biome[(h < 2.5) & (h > -.5)] = BID['beach']
 biome[h <= -.5] = BID['sea']
 biome[(h > 170) & (biome != BID['sea'])] = BID['snow']
+CBIO = {c['id']: c['biome'] for c in COUNTRIES}
 for v in VILLAGES:
-    biome[np.hypot(X - v['x'], Y - v['y']) < v['r'] * .9] = BID['village']
+    cb = CBIO.get(v.get('country', ''), 'forest')
+    vb = {'desert': 'village_sand', 'rock': 'village_stone', 'mountain': 'village_stone', 'swamp': 'village_stone',
+          'snow': 'village_snow'}.get(cb, 'village')
+    biome[np.hypot(X - v['x'], Y - v['y']) < v['r'] * .9] = BID[vb]
 
 PAL = {
-    'sea': (40, 90, 130), 'beach': (222, 206, 160), 'forest': (78, 128, 52), 'desert': (226, 196, 136),
-    'rain': (78, 98, 82), 'rock': (140, 124, 100), 'rice': (128, 168, 70), 'grass': (150, 182, 80),
-    'snow': (236, 240, 245), 'mountain': (112, 118, 104), 'swamp': (78, 112, 88), 'village': (150, 160, 100),
-    'road': (180, 154, 110),
+    'sea': (30, 95, 150), 'beach': (238, 214, 158), 'forest': (72, 132, 58), 'desert': (232, 196, 132),
+    'rain': (66, 112, 78), 'rock': (156, 128, 94), 'rice': (112, 166, 70), 'grass': (120, 172, 74),
+    'snow': (236, 242, 250), 'mountain': (120, 130, 104), 'swamp': (64, 124, 86), 'village': (108, 158, 74),
+    'road': (196, 152, 102), 'village_sand': (216, 182, 132), 'village_stone': (150, 146, 136), 'village_snow': (226, 232, 240),
 }
 wn = weights ** 3
 wn = wn / (wn.sum(0) + 1e-9)
 col = np.zeros(h.shape + (3,), dtype=np.float32)
 for i, c in enumerate(COUNTRIES):
     col += wn[i][..., None] * np.array(PAL[c['biome']], dtype=np.float32)
-for name in ('beach', 'sea', 'snow', 'village'):
+for name in ('beach', 'sea', 'snow', 'village', 'village_sand', 'village_stone', 'village_snow'):
     m = biome == BID[name]
     col[m] = PAL[name]
 # yamaçlar kaya, yükseklik ile soğuk tonlar, gürültü ile canlılık
@@ -235,7 +280,8 @@ col = np.clip(col, 0, 255).astype(np.uint8)
 DENS = {'forest': (.0105, [9, 9, 9, 9, 0, 0, 8, 10, 10, 12, 6]), 'rain': (.003, [2, 2, 0, 8, 10]),
         'rock': (.0016, [4, 11, 1, 8]), 'rice': (.0012, [0, 8, 6, 12]), 'grass': (.002, [0, 9, 8, 12, 12, 10]),
         'snow': (.003, [1, 1, 1, 4]), 'mountain': (.0028, [1, 1, 4, 11, 8]), 'swamp': (.004, [2, 2, 0, 8, 10]),
-        'desert': (.00035, [3, 3, 4, 11]), 'beach': (.0006, [7, 8]), 'village': (0, []), 'sea': (0, []), 'road': (0, [])}
+        'desert': (.00035, [3, 3, 4, 11]), 'beach': (.0006, [7, 8]), 'village': (0, []), 'sea': (0, []), 'road': (0, []),
+        'village_sand': (0, []), 'village_stone': (0, []), 'village_snow': (0, [])}
 clearing = fbm(260, 3, 91)
 veg = []
 area = R * R

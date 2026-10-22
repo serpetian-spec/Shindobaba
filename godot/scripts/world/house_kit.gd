@@ -223,6 +223,7 @@ class Placer:
 						mm.set_instance_transform(i, arr[i][0])
 						mm.set_instance_color(i, arr[i][1])
 					var mmi = MultiMeshInstance3D.new()
+					mmi.layers = 2
 					mmi.multimesh = mm
 					mmi.material_override = Props.toon()
 					mmi.visibility_range_end = view * float(Game.settings["view"])

@@ -21,6 +21,8 @@ static func build_all(parent: Node3D) -> void:
 			"nami": nami(parent, v)
 			"uzushio": uzushio(parent, v)
 			"tetsu": tetsu(parent, v)
+		if v["id"] != "konoha":
+			_gates(parent, v)
 	for l in Game.world_info["landmarks"]:
 		match l["id"]:
 			"valley_end": valley_end(parent, l)
@@ -31,6 +33,25 @@ static func build_all(parent: Node3D) -> void:
 			"bandit_camp": camp(parent, l, "bandit")
 			"border_post": outpost(parent, l)
 			"storm_canyon": storm_canyon(parent, l)
+
+
+## Yolların köye girdiği yerlere köy tarzında giriş kapısı
+const GATE_STYLE := {
+	"suna": [Color(0.78, 0.62, 0.42), Color(0.6, 0.45, 0.3)], "kiri": [Color(0.45, 0.52, 0.58), Color(0.28, 0.38, 0.5)],
+	"kumo": [Color(0.85, 0.85, 0.82), Color(0.25, 0.45, 0.7)], "iwa": [Color(0.5, 0.4, 0.3), Color(0.35, 0.27, 0.2)],
+	"ame": [Color(0.4, 0.42, 0.45), Color(0.3, 0.31, 0.33)], "oto": [Color(0.35, 0.3, 0.4), Color(0.45, 0.3, 0.55)],
+	"shimo": [Color(0.6, 0.62, 0.66), Color(0.92, 0.94, 0.97)], "tetsu": [Color(0.4, 0.4, 0.42), Color(0.22, 0.22, 0.25)],
+}
+static func _gates(parent: Node3D, v: Dictionary) -> void:
+	var angles: Array = v.get("gates", [])
+	if angles.is_empty():
+		return
+	var b = Builder.new(parent, v["x"], v["y"], v["base"], "Gate_" + String(v["id"]))
+	var st: Array = GATE_STYLE.get(v["id"], [Color(0.45, 0.3, 0.2), Color(0.62, 0.2, 0.18)])
+	var r = 285.0 if v["id"] == "suna" else float(v["r"]) * 0.8
+	for a in angles:
+		b.village_gate(float(a), r, 7.0 if v["id"] != "suna" else 9.0, 13.0 if v["id"] != "suna" else 22.0, st[0], st[1], String(v["id"]))
+	b.finish()
 
 
 static func _rng(s: int) -> RandomNumberGenerator:
@@ -70,7 +91,11 @@ static func suna(parent: Node3D, v: Dictionary) -> void:
 	# krater duvarları (doğuda kanyon girişi)
 	var a = 0.0
 	while a < 360.0:
-		if absf(fmod(a - 90.0 + 540.0, 360.0) - 180.0) > 7.0:
+		var open = absf(fmod(a - 90.0 + 540.0, 360.0) - 180.0) <= 7.0
+		for ga in v.get("gates", []):
+			if absf(fmod(a - float(ga) + 540.0, 360.0) - 180.0) <= 6.0:
+				open = true
+		if not open:
 			var rad = deg_to_rad(a)
 			var hh = rng.randf_range(55, 75)
 			b.box(Vector3(285 * sin(rad), hh * 0.5 - 2, 285 * cos(rad)), Vector3(32, hh, 36), sand.darkened(rng.randf_range(0.05, 0.18)), a)

@@ -88,7 +88,7 @@ func _process(dt: float) -> void:
 	# 2 orman, 4 yağmur, 7 çimen, 10 bataklık, 11 köy
 	leaves.emitting = biome in [2, 7, 11] and not night
 	fireflies.emitting = night and biome in [2, 4, 6, 7, 10]
-	sand.emitting = biome == 3
+	sand.emitting = biome == 3 or biome == 13
 	for e in [leaves, fireflies, sand]:
 		e.global_position = p + Vector3(0, 6 if e == leaves else 1.5, 0)
 	for f in birds:

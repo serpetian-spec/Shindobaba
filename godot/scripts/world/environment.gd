@@ -61,7 +61,7 @@ func _ready() -> void:
 	env.ssao_radius = 1.2
 	env.ssao_intensity = 1.6
 	env.adjustment_enabled = true
-	env.adjustment_saturation = 1.32
+	env.adjustment_saturation = 1.22
 	env.adjustment_contrast = 1.1
 	var we = WorldEnvironment.new()
 	we.environment = env

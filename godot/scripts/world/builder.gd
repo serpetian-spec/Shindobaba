@@ -13,6 +13,7 @@ var view_dist = 1400.0
 var interactables: Array = []
 var key := ""
 var placer = null  # HouseKit.Placer (Japon tarzı detaylı evler)
+var yoff := 0.0  # geçici dikey ofset (eğimli arazide bina tabanı)
 var last_house := {}  # son yerleştirilen şablon ev (w, d, h, roof_top)
 
 static var roof_points := {}  # köy id -> [çatı tepe noktaları] (çatıdan çatıya koşan ninjalar için)
@@ -31,7 +32,7 @@ func _init(parent: Node3D, map_x: float, map_y: float, base_h: float, name := "Y
 
 ## yerel (x, y, n) -> Godot dünya
 func w(p: Vector3) -> Vector3:
-	return origin + Vector3(p.x, p.y, -p.z)
+	return origin + Vector3(p.x, p.y + yoff, -p.z)
 
 
 func _mb(wp: Vector3) -> MB:
@@ -130,6 +131,7 @@ func finish() -> void:
 		if mb.is_empty():
 			continue
 		var mi = MeshInstance3D.new()
+		mi.layers = 2  # yapılar: sokak fenerleri (yalnız katman 1) bunları aydınlatmaz
 		mi.mesh = mb.build(Props.toon())
 		mi.visibility_range_end = view_dist * float(Game.settings["view"])
 		mi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
@@ -140,7 +142,19 @@ func finish() -> void:
 
 # ------------------------------------------------------------------ hazır yapılar
 ## Japon tarzı ev. style: konoha | suna | kiri | iwa | kumo | ame | wood | snow
+## Bina arazinin üstüne oturur: taban = ayak izindeki en yüksek nokta, alçak taraf taş temelle doldurulur
 func house(x: float, n: float, wdt: float, dep: float, floors: int, yaw: float, style: String, rng: RandomNumberGenerator) -> void:
+	var g = _ground_off(x, n, maxf(wdt, dep) * 0.6)
+	if g.y - g.x > 0.25:
+		var stone = Color(0.56, 0.53, 0.5) if style != "suna" else Color(0.74, 0.62, 0.45)
+		var fh = g.y - g.x + 0.8
+		box(Vector3(x, g.x - 0.6 + fh * 0.5, n), Vector3(wdt + 0.8, fh, dep + 0.8), stone, yaw)
+	yoff = g.y
+	_house_body(x, n, wdt, dep, floors, yaw, style, rng)
+	yoff = 0.0
+
+
+func _house_body(x: float, n: float, wdt: float, dep: float, floors: int, yaw: float, style: String, rng: RandomNumberGenerator) -> void:
 	var hgt = floors * 4.2
 	match style:
 		"suna":
@@ -262,6 +276,35 @@ func wall_ring(r: float, h: float, thick: float, col: Color, gaps: Array, step :
 			box(Vector3(r * sin(rad), (bot + top) * 0.5, r * cos(rad)), Vector3(L, top - bot, thick), col, mid)
 			box(Vector3(r * sin(rad), top + 0.4, r * cos(rad)), Vector3(L, 0.8, thick + 0.8), top_col, mid, false)
 		a += step
+
+
+## Köy giriş kapısı: yolun köye girdiği açıda (0 = kuzey) iki dikme, çatılı kiriş, amblem, yan duvarlar, fenerler.
+## gap_deg > 0 ise sur boşluğunu yan duvarlarla kapatır.
+func village_gate(ang: float, r: float, half_open: float, height: float, post_col: Color, roof_col: Color, emblem: String, gap_deg := 0.0) -> void:
+	var a = deg_to_rad(ang)
+	var c = Vector2(r * sin(a), r * cos(a))
+	var t = Vector2(cos(a), -sin(a))
+	var g = _ground_off(c.x, c.y, half_open + 4.0)
+	var y0 = g.x - 1.0
+	var top = g.y + height
+	for sx in [-1.0, 1.0]:
+		var pp = c + t * (half_open + 1.6) * sx
+		box(Vector3(pp.x, (y0 + top) * 0.5, pp.y), Vector3(3.2, top - y0, 3.2), post_col, ang)
+		box(Vector3(pp.x, g.x + 0.8, pp.y), Vector3(4.4, 1.6, 4.4), Color(0.55, 0.52, 0.48), ang)
+		var wing = (gap_deg / 360.0 * TAU * r * 0.5) - (half_open + 3.2) if gap_deg > 0.0 else 7.0
+		if wing > 0.5:
+			var wc = c + t * (half_open + 3.2 + wing * 0.5) * sx
+			var wh = height * 0.62 if gap_deg <= 0.0 else 22.0
+			box(Vector3(wc.x, (y0 + g.y + wh) * 0.5, wc.y), Vector3(wing + 0.6, g.y + wh - y0, 3.0), Color(0.82, 0.74, 0.58) if gap_deg > 0.0 else post_col.lightened(0.25), ang)
+		var lo = c + t * (half_open + 1.6) * sx + Vector2(sin(a), cos(a)) * 3.0
+		lantern(lo.x, lo.y, 3.2)
+	box(Vector3(c.x, top + 1.0, c.y), Vector3(half_open * 2.0 + 7.0, 2.0, 3.4), post_col.darkened(0.2), ang)
+	box(Vector3(c.x, top + 2.4, c.y), Vector3(half_open * 2.0 + 10.0, 0.9, 6.0), roof_col, ang, false)
+	box(Vector3(c.x, top + 3.1, c.y), Vector3(half_open * 2.0 + 8.0, 0.6, 3.6), roof_col.darkened(0.15), ang, false)
+	var e = c + Vector2(sin(a), cos(a)) * 1.9
+	disc(Vector3(e.x, top - 1.4, e.y), 3.2, 0.25, Color(0.94, 0.9, 0.82), ang)
+	var e2 = c + Vector2(sin(a), cos(a)) * 2.05
+	disc(Vector3(e2.x, top - 1.4, e2.y), 1.8, 0.25, post_col.darkened(0.3), ang)
 
 
 func tree(x: float, n: float, s: float, rng: RandomNumberGenerator, y := 0.0) -> void:

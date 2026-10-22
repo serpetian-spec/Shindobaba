@@ -89,6 +89,7 @@ func _mmi(mesh: Mesh, xforms: Array, cols: Array, center: Vector3, begin: float,
 		mm.set_instance_transform(j, xforms[j])
 		mm.set_instance_color(j, cols[j])
 	var mmi = MultiMeshInstance3D.new()
+	mmi.layers = 2
 	mmi.multimesh = mm
 	mmi.position = center
 	mmi.visibility_range_begin = begin

@@ -172,7 +172,12 @@
    "y": -75,
    "r": 430,
    "base": 8,
-   "kage": "Hokage"
+   "kage": "Hokage",
+   "gates": [
+    180.0,
+    254.5,
+    105.5
+   ]
   },
   {
    "id": "suna",
@@ -182,7 +187,11 @@
    "y": -1340,
    "r": 300,
    "base": 14,
-   "kage": "Kazekage"
+   "kage": "Kazekage",
+   "gates": [
+    78.9,
+    32.4
+   ]
   },
   {
    "id": "kiri",
@@ -192,7 +201,8 @@
    "y": -708,
    "r": 270,
    "base": 6,
-   "kage": "Mizukage"
+   "kage": "Mizukage",
+   "gates": []
   },
   {
    "id": "kumo",
@@ -202,7 +212,11 @@
    "y": 1839,
    "r": 300,
    "base": 40,
-   "kage": "Raikage"
+   "kage": "Raikage",
+   "gates": [
+    240.3,
+    299.3
+   ]
   },
   {
    "id": "iwa",
@@ -212,7 +226,10 @@
    "y": 1752,
    "r": 300,
    "base": 45,
-   "kage": "Tsuchikage"
+   "kage": "Tsuchikage",
+   "gates": [
+    140.8
+   ]
   },
   {
    "id": "ame",
@@ -222,7 +239,12 @@
    "y": -12,
    "r": 260,
    "base": 5,
-   "kage": null
+   "kage": null,
+   "gates": [
+    102.8,
+    8.0,
+    194.5
+   ]
   },
   {
    "id": "kusa",
@@ -232,7 +254,12 @@
    "y": 441,
    "r": 190,
    "base": 12,
-   "kage": null
+   "kage": null,
+   "gates": [
+    198.8,
+    41.6,
+    146.7
+   ]
   },
   {
    "id": "taki",
@@ -242,7 +269,11 @@
    "y": 1270,
    "r": 230,
    "base": 16,
-   "kage": null
+   "kage": null,
+   "gates": [
+    199.6,
+    295.0
+   ]
   },
   {
    "id": "oto",
@@ -252,7 +283,12 @@
    "y": 1038,
    "r": 170,
    "base": 12,
-   "kage": null
+   "kage": null,
+   "gates": [
+    205.4,
+    103.7,
+    3.1
+   ]
   },
   {
    "id": "yu",
@@ -262,7 +298,12 @@
    "y": 1015,
    "r": 180,
    "base": 14,
-   "kage": null
+   "kage": null,
+   "gates": [
+    263.5,
+    63.0,
+    222.5
+   ]
   },
   {
    "id": "shimo",
@@ -272,7 +313,11 @@
    "y": 1241,
    "r": 160,
    "base": 20,
-   "kage": null
+   "kage": null,
+   "gates": [
+    240.2,
+    67.4
+   ]
   },
   {
    "id": "tani",
@@ -282,7 +327,12 @@
    "y": -1148,
    "r": 160,
    "base": 10,
-   "kage": null
+   "kage": null,
+   "gates": [
+    37.2,
+    262.3,
+    330.7
+   ]
   },
   {
    "id": "nami",
@@ -292,7 +342,10 @@
    "y": -1860,
    "r": 200,
    "base": 5,
-   "kage": null
+   "kage": null,
+   "gates": [
+    3.7
+   ]
   },
   {
    "id": "uzushio",
@@ -302,7 +355,8 @@
    "y": -580,
    "r": 150,
    "base": 8,
-   "kage": null
+   "kage": null,
+   "gates": []
   },
   {
    "id": "tetsu",
@@ -312,7 +366,11 @@
    "y": 3132,
    "r": 230,
    "base": 30,
-   "kage": null
+   "kage": null,
+   "gates": [
+    190.3,
+    133.4
+   ]
   }
  ],
  "landmarks": [
@@ -402,7 +460,10 @@
   "mountain",
   "swamp",
   "village",
-  "road"
+  "road",
+  "village_sand",
+  "village_stone",
+  "village_snow"
  ],
  "roads": [
   [

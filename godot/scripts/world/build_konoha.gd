@@ -11,29 +11,21 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	rng.seed = 1234
 	var occupied: Array = []  # [x, n, r] binaların yerleşmeyeceği alanlar
 
-	# ---- yollar (görsel, toprak)
-	var road = Color(0.74, 0.62, 0.45)
-	b.box(Vector3(0, 0.03, -170), Vector3(18, 0.1, 470), road, 0, false)   # ana cadde (güney kapı -> kule)
-	for rn in [-260, -110, 40, 160]:
-		b.box(Vector3(0, 0.04, rn), Vector3(760, 0.1, 12), road, 0, false)
-	for rx in [-200, 200]:
-		b.box(Vector3(rx, 0.045, -40), Vector3(10, 0.1, 620), road, 0, false)
+	# ---- yollar: araziye toprak yol olarak işlendi (bake_world.py); burada sadece bina yasak alanı
 	occupied.append([0, -170, 14, 240])  # dikdörtgen: [x, n, yarı genişlik, yarı uzunluk]
 
-	# ---- surlar + A-Un kapısı (güney)
+	# ---- surlar + kapılar (güney A-Un ana kapısı, doğu ve batı kapıları; yollar bunlardan çıkar)
 	var wall_c = Color(0.86, 0.76, 0.58)
-	b.wall_ring(R, 22.0, 4.0, wall_c, [[0.0, 76.0], [180.0, 9.0]], 3.0)
-	var gn = -R
-	for sx in [-1.0, 1.0]:
-		b.box(Vector3(17 * sx, 15, gn), Vector3(6, 30, 7), Color(0.22, 0.4, 0.24))
-		b.box(Vector3(19 * sx, 11, gn + 9), Vector3(1.5, 22, 15), Color(0.24, 0.42, 0.26), -8 * sx)  # açık kapı kanatları
-	b.box(Vector3(0, 31, gn), Vector3(42, 4, 8), Color(0.22, 0.4, 0.24))
-	b.box(Vector3(0, 27, gn - 4.2), Vector3(14, 3.2, 0.4), Color(0.92, 0.88, 0.78), 0, false)
-	b.box(Vector3(0, 27, gn - 4.45), Vector3(9, 1.2, 0.1), Color(0.15, 0.15, 0.18), 0, false)  # "あうん" yazısı yerine şerit
-	for sx in [-1.0, 1.0]:  # nöbetçi kulübesi
-		b.box(Vector3(30 * sx, 1.6, gn + 16), Vector3(9, 3.2, 5), Color(0.62, 0.46, 0.3))
-		b.box(Vector3(30 * sx, 3.5, gn + 16), Vector3(10, 0.5, 6), Color(0.2, 0.36, 0.55), 0, false)
-	b.interact(Vector3(30, 0, gn + 13), 5, "gate", "[F] Kapı nöbetçisiyle konuş")
+	var gate_angles: Array = v.get("gates", [180.0, 105.5, 254.5])
+	var gaps = [[0.0, 76.0]]
+	for ga in gate_angles:
+		gaps.append([float(ga), 9.0 if absf(float(ga) - 180.0) < 1.0 else 5.5])
+	b.wall_ring(R, 22.0, 4.0, wall_c, gaps, 3.0)
+	for ga in gate_angles:
+		if absf(float(ga) - 180.0) < 1.0:
+			_aun_gate(b)
+		else:
+			b.village_gate(float(ga), R, 16.0, 20.0, Color(0.22, 0.42, 0.26), Color(0.16, 0.3, 0.2), "konoha", 5.5)
 
 	# ---- Hokage Kayası (kuzey)
 	var rock = Color(0.6, 0.55, 0.48)
@@ -282,6 +274,39 @@ static func _face_road(x: float, n: float) -> float:
 		return [0.0, 90.0, 180.0, 270.0][int(absf(x * 7.0 + n * 3.0)) % 4]
 	var yaw = rad_to_deg(atan2(-best.x, -best.y))
 	return round(yaw / 90.0) * 90.0
+
+
+## Konoha'nın simge A-Un kapısı (güney): iki dev yeşil kanat, çatılı kemer, "あうん" levhası, nöbetçi kulübesi
+static func _aun_gate(b: Builder) -> void:
+	var gn = -R
+	var g = b._ground_off(0, gn, 26)
+	var y0 = g.x - 1.0
+	var green = Color(0.2, 0.44, 0.27)
+	var dark = Color(0.13, 0.28, 0.18)
+	for sx in [-1.0, 1.0]:
+		# dev dikmeler + taban taşı
+		b.box(Vector3(20 * sx, y0 + 17, gn), Vector3(5, 34, 6), dark)
+		b.box(Vector3(20 * sx, y0 + 1.2, gn), Vector3(7, 2.4, 8), Color(0.55, 0.52, 0.48))
+		# kapı boşluğunu sur ile birleştiren ara duvar
+		b.box(Vector3(28.5 * sx, y0 + 11.5, gn), Vector3(12, 23, 4.5), Color(0.86, 0.76, 0.58))
+		# içe doğru tam açılmış dev kanatlar ("あ" ve "うん" amblemleri yola bakar)
+		b.box(Vector3(17.2 * sx, y0 + 13.5, gn + 8.5), Vector3(1.2, 26, 15), green)
+		b.disc(Vector3(16.4 * sx, y0 + 16, gn + 8.5), 7.0, 0.3, Color(0.95, 0.92, 0.85), 90.0)
+		b.disc(Vector3(16.2 * sx, y0 + 16, gn + 8.5), 4.2, 0.3, Color(0.75, 0.15, 0.12), 90.0)
+	# kemer: kiriş + kiremit çatı + levha
+	b.box(Vector3(0, y0 + 32.5, gn), Vector3(46, 3.2, 7), dark)
+	b.box(Vector3(0, y0 + 35.0, gn), Vector3(52, 1.4, 11), Color(0.16, 0.33, 0.22), 0, false)
+	b.box(Vector3(0, y0 + 36.3, gn), Vector3(46, 1.2, 7), Color(0.12, 0.25, 0.17), 0, false)
+	b.box(Vector3(0, y0 + 28.5, gn - 4.0), Vector3(16, 3.6, 0.5), Color(0.95, 0.92, 0.85), 0, false)
+	b.box(Vector3(-3.2, y0 + 28.5, gn - 4.3), Vector3(2.4, 2.4, 0.1), Color(0.75, 0.15, 0.12), 0, false)
+	b.box(Vector3(3.2, y0 + 28.5, gn - 4.3), Vector3(2.4, 2.4, 0.1), Color(0.75, 0.15, 0.12), 0, false)
+	# nöbetçi kulübesi (içeride sağda, çatılı)
+	b.box(Vector3(30, y0 + 1.6 + 1.0, gn + 18), Vector3(10, 3.2, 5), Color(0.62, 0.46, 0.3))
+	b.box(Vector3(30, y0 + 3.9 + 1.0, gn + 18), Vector3(11.5, 0.5, 6.5), Color(0.2, 0.36, 0.55), 0, false)
+	b.box(Vector3(30, y0 + 2.4 + 1.0, gn + 15.4), Vector3(8, 0.15, 0.6), Color(0.85, 0.78, 0.6), 0, false)
+	b.interact(Vector3(30, 0, gn + 14), 5, "gate", "[F] Kapı nöbetçisiyle konuş")
+	for sx in [-1.0, 1.0]:
+		b.lantern(11 * sx, gn + 14, 4.0)
 
 
 static func _free(x: float, n: float, occ: Array, pad: float) -> bool:

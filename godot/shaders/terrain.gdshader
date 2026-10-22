@@ -59,13 +59,29 @@ void fragment() {
 		float rip = sin(wpos.x * 1.6 + wpos.z * 0.7 + n1 * 6.0) * 0.5 + 0.5;
 		base *= 0.92 + rip * 0.1 + n2 * 0.06;
 	}
+	// çöl köyü: sıkıştırılmış kum, hafif dalga
+	if (b == 13) {
+		float rip = sin(wpos.x * 1.1 + wpos.z * 0.5 + n1 * 5.0) * 0.5 + 0.5;
+		base *= 0.93 + rip * 0.06 + n2 * 0.06;
+	}
+	// taş köy (Kiri/Iwa/Kumo): taş döşeme
+	if (b == 14) {
+		vec2 tt = wpos.xz / 1.7;
+		tt.x += step(0.5, fract(tt.y * 0.5)) * 0.5;
+		vec2 f = abs(fract(tt) - 0.5);
+		float joint = smoothstep(0.45, 0.49, max(f.x, f.y));
+		base *= (0.9 + hash(floor(tt)) * 0.18) * (1.0 - joint * 0.4);
+	}
+	if (b == 15) {
+		base = mix(base, vec3(1.0), 0.1) + step(0.985, n3) * 0.2;
+	}
 	// kar parıltısı
 	if (b == 8) {
 		base = mix(base, vec3(1.0), 0.15) + step(0.985, n3) * 0.25;
 	}
 	// yol: keskin kenarlı toprak + tekerlek izleri
 	float road = smoothstep(0.35, 0.6, bio.g + (n2 - 0.5) * 0.25);
-	vec3 dirt = vec3(0.62, 0.5, 0.36) * (0.85 + n3 * 0.2);
+	vec3 dirt = vec3(0.74, 0.56, 0.36) * (0.85 + n3 * 0.2);
 	base = mix(base, dirt, road * 0.92);
 	// yarlar: katmanlı kaya (yüksekliğe göre tabaka bantları)
 	float rock = smoothstep(0.3, 0.5, slope + (n2 - 0.5) * 0.18);
@@ -78,6 +94,9 @@ void fragment() {
 	base = mix(base, rockc, rock);
 	// sahil ıslaklığı
 	base *= mix(0.72, 1.0, smoothstep(-0.2, 1.4, wpos.y));
+	// anime canlılığı: doygunluğu artır
+	float lum = dot(base, vec3(0.299, 0.587, 0.114));
+	base = max(mix(vec3(lum), base, 1.12), vec3(0.0));
 	ALBEDO = base;
 	ROUGHNESS = 0.95;
 }
@@ -85,7 +104,12 @@ void fragment() {
 void light() {
 	float ndl = dot(NORMAL, LIGHT);
 	float t = smoothstep(-0.03, 0.05, ndl) * 0.6 + smoothstep(0.42, 0.5, ndl) * 0.4;
-	float lit = t * ATTENUATION;
-	vec3 shade = mix(vec3(0.42, 0.44, 0.55), vec3(1.0), lit);
-	DIFFUSE_LIGHT += LIGHT_COLOR * shade / PI;
+	if (LIGHT_IS_DIRECTIONAL) {
+		// anime gölgesi: soğuk, doygun; tamamen kararmaz
+		vec3 shade = mix(vec3(0.5, 0.52, 0.7), vec3(1.0), t * ATTENUATION);
+		DIFFUSE_LIGHT += LIGHT_COLOR * shade / PI;
+	} else {
+		// fener/omni: taban gölge eklenmez (yoksa küme hücreleri kare kare yanar)
+		DIFFUSE_LIGHT += LIGHT_COLOR * (0.35 + 0.65 * t) * ATTENUATION / PI;
+	}
 }

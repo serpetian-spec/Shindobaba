@@ -13,10 +13,14 @@ func add(p: Vector3) -> void:
 func _ready() -> void:
 	for i in 16:
 		var l = OmniLight3D.new()
-		l.light_color = Color(1.0, 0.75, 0.45)
+		l.light_color = Color(1.0, 0.68, 0.38)
 		l.light_energy = 0.0
-		l.omni_range = 14.0
+		l.omni_range = 9.0
+		l.omni_attenuation = 1.6  # yumuşak, küçük sıcak ışık havuzu
 		l.shadow_enabled = false
+		# toon.gdshader'daki taban gölge payı nokta ışıklarda küme hücrelerini kare kare boyar;
+		# fenerler yalnızca katman 1'i (arazi, çimen, karakterler) aydınlatır, yapılar katman 2'de.
+		l.light_cull_mask = 1
 		add_child(l)
 		pool.append(l)
 
@@ -39,6 +43,6 @@ func _process(dt: float) -> void:
 	for i in pool.size():
 		if i < near.size() and night > 0.05:
 			pool[i].global_position = near[i][1]
-			pool[i].light_energy = 2.2 * night
+			pool[i].light_energy = 1.1 * night
 		else:
 			pool[i].light_energy = 0.0

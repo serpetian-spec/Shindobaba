@@ -27,6 +27,7 @@ void vertex() {
 	float ok = (b == 2 || b == 4 || b == 6 || b == 7 || b == 10) ? 1.0 : (b == 9 ? 0.5 : 0.0);
 	// köy içinde sadece duvar diplerinde/bahçelerde seyrek öbekler
 	if (b == 11) ok = step(0.82, hash(floor(root.xz * 0.18)));
+	// 13 çöl köyü, 14 taş köy, 15 karlı köy: çimen yok
 	ok *= 1.0 - step(0.25, bio.g);          // yol
 	ok *= 1.0 - step(0.5, bio.b);           // ıslak
 	ok *= step(0.6, h);                     // su altı
@@ -49,12 +50,18 @@ void vertex() {
 void fragment() {
 	vec3 c = base_col * mix(0.62, 1.25, tip);
 	c = mix(c, c * vec3(1.05, 1.12, 0.85), tip * 0.5);
+	float lum = dot(c, vec3(0.299, 0.587, 0.114));
+	c = max(mix(vec3(lum), c, 1.08), vec3(0.0));
 	ALBEDO = c;
 	ROUGHNESS = 0.02;  // çizgi efekti için işaret
 }
 
 void light() {
 	float ndl = abs(dot(NORMAL, LIGHT));
-	float lit = mix(0.55, 1.0, smoothstep(0.0, 0.2, ndl)) * mix(0.55, 1.0, ATTENUATION);
-	DIFFUSE_LIGHT += LIGHT_COLOR * lit / PI;
+	if (LIGHT_IS_DIRECTIONAL) {
+		float lit = mix(0.6, 1.0, smoothstep(0.0, 0.2, ndl)) * mix(0.6, 1.0, ATTENUATION);
+		DIFFUSE_LIGHT += LIGHT_COLOR * lit / PI;
+	} else {
+		DIFFUSE_LIGHT += LIGHT_COLOR * mix(0.4, 1.0, smoothstep(0.0, 0.2, ndl)) * ATTENUATION / PI;
+	}
 }
