@@ -1055,7 +1055,7 @@ func complete() -> void:
 	Game.profile["missions_done"][m["rank"]] = int(Game.profile["missions_done"].get(m["rank"], 0)) + 1
 	Hud.banner("GÖREV TAMAMLANDI", "%s  (+%d Ryō)" % [m["title"], ryo], Color(0.5, 1, 0.6))
 	Progress.add_ryo(ryo)
-	Progress.add_xp(rw[1])
+	Progress.add_xp(int(rw[1] * (1.0 + float(Game.profile.get("level", 1)) / 20.0)))
 	_rep(m.get("village", Progress.home()), int(REP_GAIN[m["rank"]] * (1.5 if m.get("local", false) else 1.0)))
 	if randf() < GEAR_CHANCE[m["rank"]]:
 		var gid = ""

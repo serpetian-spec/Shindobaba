@@ -19,13 +19,13 @@ const STORY_T := [
 	"Chakra kontrolü: duvar koşusuyla 35 m yüksekliğe tırman ({lookout} ideal).",
 	"Antrenman alanında ({vn}) chakra kâğıdı testini yap.",
 	"{kage} Kulesi'ndeki görev masasından 3 D-rank görev tamamla.",
-	"Seviye 6 ol ve {kage} Kulesi'ne git: Yasak Parşömen görevi.",
+	"Seviye 8 ol ve {kage} Kulesi'ne git: Yasak Parşömen görevi.",
 	"Yasak Parşömen: köyün dışındaki Haydut Kampı'nda haydut liderini yen.",
-	"Seviye 10'a ulaş ve Chunin Sınavına başvur (bu dönem sınav Konoha Stadyumu'nda — haritadan yola çık).",
+	"Seviye 15'e ulaş ve Chunin Sınavına başvur (bu dönem sınav Konoha Stadyumu'nda — haritadan yola çık).",
 	"Chunin Sınavı devam ediyor...",
-	"Chunin oldun! Diğer köylere görevlerle seyahat et. Rasengan ve çağırma için Gizli Şelale'ye git (Sv.12).",
-	"Jōnin terfisi: Seviye 20 + 3 A-rank + ikinci chakra doğası; {kage} Kulesi'nde değerlendirmeye başvur.",
-	"ANBU seçmeleri: Seviye 30 + 1 S-rank görev. ANBU Karargâhı ({vn}). Kage olmak için: Sv.35, 150 itibar, 3 S-rank.",
+	"Chunin oldun! Diğer köylere görevlerle seyahat et. Çağırma için Sv.22, Rasengan için Sv.25'te Gizli Şelale'ye git.",
+	"Tokubetsu Jōnin uzmanlığı Sv.35, Jōnin terfisi Sv.45 + 3 A-rank + ikinci chakra doğası ({kage} Kulesi).",
+	"ANBU seçmeleri: Seviye 65 + 1 S-rank görev. ANBU Karargâhı ({vn}). Kage adaylığı Sv.90; Kage olmak için Sv.100.",
 	"Efsane bir shinobi oldun. Dünya senin.",
 ]
 var STORY: Array = []
@@ -114,7 +114,10 @@ func add_xp(amount: int) -> void:
 	amount = int(amount * Exams.xp_mult())
 	pr["xp"] = int(pr["xp"]) + amount
 	Hud.float_text("+%d XP" % amount, Color(0.7, 0.9, 1.0))
-	while int(pr["xp"]) >= Data.xp_for_level(int(pr["level"])):
+	if int(pr["level"]) >= Data.MAX_LEVEL:
+		pr["xp"] = 0
+		return
+	while int(pr["level"]) < Data.MAX_LEVEL and int(pr["xp"]) >= Data.xp_for_level(int(pr["level"])):
 		pr["xp"] = int(pr["xp"]) - Data.xp_for_level(int(pr["level"]))
 		pr["level"] = int(pr["level"]) + 1
 		pr["sp"] = int(pr["sp"]) + 1
@@ -422,11 +425,11 @@ func _process(_dt: float) -> void:
 
 func _check_story_levels() -> void:
 	var lv = int(p()["level"])
-	if story() == 7 and lv >= 6:
+	if story() == 7 and lv >= 8:
 		Hud.msg("%s Kulesi'ne git: önemli bir görev var!" % home_info()["kage"], Color(1, 0.8, 0.4))
-	if story() == 9 and lv >= 10:
+	if story() == 9 and lv >= 15:
 		Hud.msg("Chunin Sınavı başvuruları açık! (Stadyum)", Color(1, 0.8, 0.4))
-	if story() == 12 and lv >= 20 and int(p()["missions_done"].get("A", 0)) >= 3:
+	if story() == 12 and lv >= 45 and int(p()["missions_done"].get("A", 0)) >= 3:
 		Hud.msg("Jōnin terfi değerlendirmesine başvurabilirsin (%s Kulesi)." % home_info()["kage"], Color(1, 0.8, 0.4))
 
 
@@ -682,9 +685,9 @@ func _training_ground() -> void:
 		set_story(6)
 		return
 	var opts = []
-	if int(pr["rank"]) >= 2 and int(pr["level"]) >= 12 and "raiton" in pr["elements"] and not "raiton_chidori" in pr["learned"]:
+	if int(pr["rank"]) >= 2 and int(pr["level"]) >= 25 and "raiton" in pr["elements"] and not "raiton_chidori" in pr["learned"]:
 		opts.append({"label": "Chidori eğitimi (800 Ryō)", "cb": func(): _buy_learn("raiton_chidori", 800)})
-	if int(pr["rank"]) >= 2 and int(pr["level"]) >= 16 and "katon" in pr["elements"] and not "katon_karyuu" in pr["learned"]:
+	if int(pr["rank"]) >= 2 and int(pr["level"]) >= 30 and "katon" in pr["elements"] and not "katon_karyuu" in pr["learned"]:
 		opts.append({"label": "Karyuu Endan eğitimi (1200 Ryō)", "cb": func(): _buy_learn("katon_karyuu", 1200)})
 	opts.append_array(village_trainer_options(home()))
 	Hud.dialog("Antrenman Alanı 3", "Kuklalarla kombolarını çalışabilirsin. Chakra şarjı [C], blok [Sağ tık], Kawarimi [Q].", opts)
@@ -693,11 +696,11 @@ func _training_ground() -> void:
 func _sage_falls() -> void:
 	var pr = p()
 	var opts = []
-	if int(pr["rank"]) >= 2 and int(pr["level"]) >= 12 and not "rasengan" in pr["learned"]:
+	if int(pr["rank"]) >= 2 and int(pr["level"]) >= 25 and not "rasengan" in pr["learned"]:
 		opts.append({"label": "Rasengan eğitimi (3 aşama)", "cb": func(): RasenganTraining.start()})
-	if int(pr["rank"]) >= 2 and int(pr["level"]) >= 12 and not "kuchiyose" in pr["learned"]:
+	if int(pr["rank"]) >= 2 and int(pr["level"]) >= 22 and not "kuchiyose" in pr["learned"]:
 		opts.append({"label": "Kurbağa sözleşmesini imzala", "cb": func(): Contracts.sign("kurbağa")})
-	if int(pr["rank"]) >= 2 and int(pr["level"]) >= 20 and not "sage" in pr["skills"]:
+	if int(pr["rank"]) >= 2 and int(pr["level"]) >= 40 and not "sage" in pr["skills"]:
 		opts.append({"label": "Sennin eğitimi (doğa enerjisi meditasyonu)", "cb": func():
 			if Game.player and Game.player.combat and Game.player.combat.modes:
 				Game.player.combat.modes.start_sage_training("kurbağa")})
@@ -707,12 +710,12 @@ func _sage_falls() -> void:
 func _mission_board(it: Dictionary) -> void:
 	var pr = p()
 	var s = story()
-	if s == 7 and int(pr["level"]) >= 6 and _in_home(it):
+	if s == 7 and int(pr["level"]) >= 8 and _in_home(it):
 		Hud.dialog(home_info()["kage"], "Bir haydut çetesi köyün Yasak Parşömenini çaldı! Köyün dışındaki Haydut Kampı'na git ve liderlerini yen. Pusulayı takip et.", [])
 		Missions.spawn_scroll_thief()
 		set_story(8)
 		return
-	if s == 9 and int(pr["level"]) >= 10:
+	if s == 9 and int(pr["level"]) >= 15:
 		Hud.msg("Chunin Sınavı için Stadyuma git!", Color(1, 0.8, 0.4))
 	if _in_home(it):
 		var rk = int(pr["rank"])
@@ -724,11 +727,11 @@ func _mission_board(it: Dictionary) -> void:
 		var opts = []
 		if s >= 12 and rk == 2:
 			opts.append({"label": "Jōnin terfi değerlendirmesi", "cb": func(): Exams.jonin_offer()})
-		if rk >= 3 and String(pr.get("specialty", "")) == "":
+		if rk >= 2 and int(pr["level"]) >= 35 and String(pr.get("specialty", "")) == "":
 			opts.append({"label": "Tokubetsu Jōnin uzmanlığı seç", "cb": func(): Exams.specialty_offer()})
-		if rk in [3, 4]:
+		if rk in [3, 4] and int(pr["level"]) >= 90:
 			opts.append({"label": "%s adaylığı" % home_info()["kage"], "cb": func(): Kage.offer_candidacy()})
-		if s == 9 and int(pr["level"]) >= 10 and rk == 1:
+		if s == 9 and int(pr["level"]) >= 15 and rk == 1:
 			opts.append({"label": "Chūnin Sınavına başvur", "cb": func(): ChuninExam.apply()})
 		if not opts.is_empty():
 			opts.push_front({"label": "Görev panosu", "cb": func(): Missions.open_board(it)})

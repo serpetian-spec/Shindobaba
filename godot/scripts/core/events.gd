@@ -83,8 +83,8 @@ func apply() -> void:
 	if stage != 0:
 		Hud.dialog("Sınav Gözetmeni", "Sınav devam ediyor. Hedefine odaklan!", [])
 		return
-	if int(pr["level"]) < 10 or Progress.story() < 9:
-		Hud.dialog("Sınav Gözetmeni", "Chūnin Sınavı için en az Seviye 10 Genin olmalısın ve Yasak Parşömen görevini tamamlamış olmalısın.", [])
+	if int(pr["level"]) < 15 or Progress.story() < 9:
+		Hud.dialog("Sınav Gözetmeni", "Chūnin Sınavı için en az Seviye 15 Genin olmalısın ve Yasak Parşömen görevini tamamlamış olmalısın.", [])
 		return
 	host = current_host()
 	var hn = String(Game.village(host).get("name", host))
@@ -181,7 +181,7 @@ func _forest() -> void:
 func _rival_enemy(r: Dictionary, scale: float, i := 0) -> Enemy:
 	var e = Enemy.new()
 	var a = Enemy.archetype("genin_rival", i)
-	var lv = maxi(10, int(p()["level"]))
+	var lv = maxi(15, int(p()["level"]))
 	a["name"] = r["name"]
 	a["respawn"] = false
 	a["level"] = lv

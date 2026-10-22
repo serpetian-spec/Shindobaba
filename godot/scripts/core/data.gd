@@ -19,5 +19,7 @@ func _ready() -> void:
 		seals = jutsu["_seals"]
 
 
+## 100 seviye uzun vadeli hedef: erken seviyeler hızlı, 50'den sonra yavaşlar
+const MAX_LEVEL := 100
 func xp_for_level(lv: int) -> int:
-	return int(90.0 * pow(lv, 1.5))
+	return int(120.0 + 70.0 * pow(lv, 1.3) + (0.0 if lv < 50 else 40.0 * pow(lv - 49, 1.45)))

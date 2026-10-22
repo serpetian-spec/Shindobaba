@@ -203,6 +203,9 @@ func academy_talk() -> void:
 	if cur.begins_with("academy"):
 		Hud.dialog(sensei, "Sınav devam ediyor, odaklan!", [])
 		return
+	if int(pr["level"]) < 5:
+		Hud.dialog(sensei, "Mezuniyet sınavı için en az Seviye 5 olmalısın (şu an %d). Kuklalarla çalış, D-rank işlere yardım et, sonra gel." % int(pr["level"]), [])
+		return
 	Hud.dialog(sensei, "Mezuniyet sınavı üç bölüm: önce yazılı sınav, sonra benim önümde Bunshin, Henge ve Kawarimi, en son da hedef parkuru. Toplamda %60 başarı yeterli. Hazır mısın %s?" % pr["name"], [
 		{"label": "Hazırım! (yazılı sınav)", "cb": academy_written},
 		{"label": "Biraz daha çalışayım", "cb": func(): pass}])
@@ -412,8 +415,8 @@ func jonin_offer() -> bool:
 	var a = int(pr["missions_done"].get("A", 0))
 	var el = (pr["elements"] as Array).size()
 	var kage = Progress.home_info()["kage"]
-	if lv < 20 or a < 3 or el < 2:
-		Hud.dialog(kage, "Jōnin olmak için: Seviye 20 (%d), 3 A-rank görev (%d) ve ikinci bir chakra doğasında ustalık (%d/2) gerekli. İkinci doğa için yetenek ağacına bak." % [lv, a, el], [])
+	if lv < 45 or a < 3 or el < 2:
+		Hud.dialog(kage, "Jōnin olmak için: Seviye 45 (%d), 3 A-rank görev (%d) ve ikinci bir chakra doğasında ustalık (%d/2) gerekli. İkinci doğa için yetenek ağacına bak." % [lv, a, el], [])
 		return true
 	if Missions.active().get("hook", "") == "Exams.jonin_done":
 		return false
@@ -441,7 +444,7 @@ func _jonin_mission() -> Dictionary:
 				"choices": [{"label": "Genin'leri geri çektirip düşmanı oyalarım", "ok": true, "vote": 1, "reply": "Lider en son çekilir. Tavsiye mektubunu yazıyorum."},
 					{"label": "Hepimiz birden saldırırız", "ok": false, "vote": 0, "reply": "Cesur ama savruk. Yine de kriz sınavına gir, görelim."}]},
 			{"kind": "kill", "at": camp, "enemy": "rogue", "n": 4, "camp": true, "night": true, "hostage": host,
-				"boss": {"name": "Kaçak Jōnin Kurozame", "hp": 1600.0, "level": 28, "power": 2.4},
+				"boss": {"name": "Kaçak Jōnin Kurozame", "hp": 3200.0, "level": 48, "power": 2.8},
 				"text": "KRİZ: 4 dakika içinde kaçak jōnini yen, rehineyi kurtar."},
 			{"kind": "talk", "npc_id": "rehine", "text": "Rehineyi çöz.", "say": "Beni kurtardın! Amcam Daimyō bunu asla unutmayacak.", "then": "follow"},
 			{"kind": "goto", "at": Missions._inside(vid, 0.0, 0.25), "r": 20.0, "followers": true, "name": "Kage Kulesi", "text": "Rehineyi köye getir ve rapor ver."}]}
@@ -466,6 +469,9 @@ func jonin_done(m: Dictionary, ok: bool) -> void:
 
 # ================================================================== TOKUBETSU JŌNİN UZMANLIĞI
 func specialty_offer() -> void:
+	if int(p()["rank"]) < 2 or int(p()["level"]) < 35:
+		Hud.dialog("Uzmanlık", "Tokubetsu Jōnin uzmanlığı için en az Chūnin ve Seviye 35 olmalısın.", [])
+		return
 	if p().get("specialty", "") != "":
 		var s = _spec(p()["specialty"])
 		Hud.dialog("Uzmanlık", "Uzmanlık alanın: %s.\n%s" % [s["title"], s["desc"]], [])
@@ -545,8 +551,8 @@ func anbu_offer() -> void:
 	if int(pr["rank"]) >= 4:
 		Orgs.anbu_hq()
 		return
-	if int(pr["rank"]) < 3 or int(pr["level"]) < 30 or int(pr["missions_done"].get("S", 0)) < 1:
-		Hud.dialog("ANBU", "Burası yetkisiz girişe kapalı. ANBU seçmelerine yalnızca Jōnin + Seviye 30 + en az 1 S-rank görevi olanlar çağrılır.", [])
+	if int(pr["rank"]) < 3 or int(pr["level"]) < 65 or int(pr["missions_done"].get("S", 0)) < 1:
+		Hud.dialog("ANBU", "Burası yetkisiz girişe kapalı. ANBU seçmelerine yalnızca Jōnin + Seviye 65 + en az 1 S-rank görevi olanlar çağrılır.", [])
 		return
 	if Missions.active().get("hook", "") == "Exams.anbu_done":
 		Hud.dialog("Maskeli Muhafız", "Seçmeler sürüyor. Görevine dön.", [])
@@ -567,7 +573,7 @@ func _anbu_mission() -> Dictionary:
 		"steps": [
 			{"kind": "goto", "at": Missions._near_spot(camp, 80, 100), "r": 10.0, "name": "Hedef Bölge", "night": true, "text": "Gece olunca hedef bölgeye git."},
 			{"kind": "stealth", "at": camp, "enemy": "rogue", "n": 5, "goal": "Şifreli Liste", "text": "Fark edilmeden şifreli listeyi al [F]."},
-			{"kind": "kill", "at": Missions._near_spot(camp, 160, 240), "enemy": "rogue", "n": 2, "boss": {"name": "Hain Chūnin Sagiri", "hp": 1800.0, "level": 32, "power": 2.5, "flee": true}, "text": "Listedeki haini etkisiz hale getir."},
+			{"kind": "kill", "at": Missions._near_spot(camp, 160, 240), "enemy": "rogue", "n": 2, "boss": {"name": "Hain Jōnin Sagiri", "hp": 4200.0, "level": 68, "power": 3.0, "flee": true}, "text": "Listedeki haini etkisiz hale getir."},
 			{"kind": "talk", "at": [hq.x + 12, hq.y - 6], "npc": root_agent, "text": "Karargâhın gölgesinde biri seni bekliyor.",
 				"say": "Seçmeleri geçtin. Ama ANBU'nun da göremediği bir kök vardır. Bize katıl: Kage'nin bile bilmediği görevler, köyü gölgeden koruyan ellerin olursun. Kimse bu konuşmayı bilmeyecek.",
 				"choices": [{"label": "Kök'e gizlice katılıyorum", "ok": true, "vote": 100, "reply": "Akıllıca. Mühür dilinin altına işlendi; konuşursan dilin kilitlenir. Görevlerin sana ulaşacak."},

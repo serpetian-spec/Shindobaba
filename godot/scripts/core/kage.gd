@@ -78,8 +78,8 @@ func candidacy_ready() -> String:
 	var pr = p()
 	if int(pr["rank"]) < 3:
 		return "En az Jōnin olmalısın."
-	if int(pr["level"]) < 35:
-		return "Seviye 35 gerekli (şu an %d)." % int(pr["level"])
+	if int(pr["level"]) < 90:
+		return "Kage adaylığı için Seviye 90 gerekli (şu an %d)." % int(pr["level"])
 	if Missions.rep(Progress.home()) < 150:
 		return "Köyünde 150 itibar gerekli (şu an %d)." % Missions.rep(Progress.home())
 	if int(pr["missions_done"].get("S", 0)) < 3:
@@ -150,7 +150,12 @@ func selection_done(m: Dictionary, ok: bool) -> void:
 		return
 	var votes = int(m.get("flags", {}).get("votes", 0)) + int(Missions.rep(Progress.home()) / 100)
 	if votes >= 6:
-		inaugurate()
+		if int(p()["level"]) >= 100:
+			inaugurate()
+		else:
+			Exams.flags()["kage_elect"] = true
+			Hud.dialog("Köy Konseyi", "Konsey oybirliğiyle seni seçti! Ancak gelenek gereği yemin, ancak ninjalığın zirvesinde (Seviye 100) edilebilir. O güne kadar Seçilmiş %s olarak köyün en önemli görevlerini üstleneceksin." % kt, [])
+			return
 	else:
 		Progress.promote(3)
 		Hud.dialog("Köy Konseyi", "Oylar yetersiz (%d/6). Konsey seni henüz hazır görmüyor; itibarını artır ve tekrar dene." % votes, [])
@@ -551,7 +556,12 @@ func decorate() -> void:
 
 # ================================================================== güncelleme
 func _process(dt: float) -> void:
-	if Game.player == null or Game.profile.is_empty() or Game.paused or not is_kage():
+	if Game.player == null or Game.profile.is_empty() or Game.paused:
+		return
+	if not is_kage():
+		if Exams.flags().get("kage_elect", false) and int(p().get("level", 1)) >= 100:
+			Exams.flags().erase("kage_elect")
+			inaugurate()
 		return
 	var k = st()
 	_ensure_squads()

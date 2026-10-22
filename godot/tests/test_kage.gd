@@ -26,6 +26,7 @@ func _ready() -> void:
 	Hud.close_dialog()
 	# ---- AKADEMİ: yazılı
 	Progress.set_story(3)
+	pr["level"] = 5
 	Exams.academy_written()
 	await _shot("k01_akademi_yazili")
 	# cevapla: ilk şık doğruysa
@@ -72,7 +73,7 @@ func _ready() -> void:
 	print("RANK after bell=", pr["rank"], " story=", Progress.story())
 	Hud.close_dialog()
 	# ---- CHŪNİN: yazılı
-	pr["level"] = 12
+	pr["level"] = 16
 	Progress.set_story(9)
 	ChuninExam.host = "konoha"
 	ChuninExam._register()
