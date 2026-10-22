@@ -13,6 +13,8 @@ func element_mult(atk: String, dfn: String) -> float:
 
 ## Bir noktanın savaşçının kapsülüne (boyutuna göre) değip değmediği
 func capsule_hit(point: Vector3, f: Node3D, extra: float) -> bool:
+	if f.has_method("hit_test"):  # dev canavarlar: parça kutularıyla isabet
+		return f.hit_test(point, extra)
 	var base = f.global_position
 	var h: float = f.height
 	var y = clampf(point.y, base.y + f.radius, base.y + h - f.radius)

@@ -9,6 +9,7 @@ var c: PlayerCombat
 var p: Player
 var dojutsu = false   # eski alan (Eyes.active ile senkron)
 var eyes: Eyes
+var cloak: BeastCloak   # jinchūriki modları (X)
 var gates = 0
 var sage = false
 var sage_t = 0.0
@@ -45,6 +46,10 @@ func setup(combat: PlayerCombat) -> void:
 	eyes.name = "Eyes"
 	add_child(eyes)
 	eyes.setup.call_deferred(combat)
+	cloak = BeastCloak.new()
+	cloak.name = "BeastCloak"
+	add_child(cloak)
+	cloak.setup(combat)
 
 
 func clan() -> String:
@@ -81,6 +86,8 @@ func handle_input(e: InputEvent) -> bool:
 		return true
 	if e.is_action_pressed("sage"):
 		toggle_sage()
+		return true
+	if cloak and cloak.handle_input(e):
 		return true
 	if e.is_action_pressed("beast"):
 		beast_key()
