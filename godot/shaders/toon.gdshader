@@ -11,7 +11,8 @@ uniform vec4 emission_color : source_color = vec4(0.0);
 uniform float hit_flash = 0.0;
 uniform float detail_noise = 0.0;
 uniform float sway = 0.0;
-uniform bool cloth_mode = false;   // doku (ten) + vertex rengi (kıyafet, alfa = maske)
+uniform bool cloth_mode = false;
+uniform bool hide_masked = false;  // vertex alfa=1 olan bölgeler çizilmez (kıyafet altı)   // doku (ten) + vertex rengi (kıyafet, alfa = maske)
 uniform bool luma_tint = false;    // saç: doku parlaklığı x tint
 uniform bool eye_mode = false;     // göz: iris tint, beyaz korunur
 uniform vec4 eye_color : source_color = vec4(0.3, 0.5, 0.9, 1.0);
@@ -48,6 +49,7 @@ void fragment() {
 		float sclera = smoothstep(0.55, 0.75, l);
 		c = vec4(mix(eye_color.rgb * (0.5 + l * 1.2), tx.rgb, sclera), 1.0);
 	}
+	if (hide_masked && COLOR.a > 0.5) discard;
 	if (cloth_mode) {
 		float sl = dot(tx.rgb, vec3(0.3, 0.59, 0.11));
 		c.rgb = tint.rgb * (0.55 + sl * 1.5);

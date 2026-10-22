@@ -26,6 +26,7 @@ var body_mesh: MeshInstance3D
 var eyes_mesh: MeshInstance3D
 var brows_mesh: MeshInstance3D
 var eye_mat: ShaderMaterial
+var outfit := {}
 var overlay: PoseOverlay
 var current = ""
 var materials: Array[ShaderMaterial] = []
@@ -62,7 +63,9 @@ func setup(l: Dictionary) -> void:
 			elif c.name == "Eyebrows":
 				brows_mesh = c
 	inst.rotation.y = PI  # model +Z'ye bakıyor, biz -Z ileri kullanıyoruz
+	outfit = _outfit_for_look()
 	_paint_body()
+	_equip_outfit()
 	_attachments()
 	anim = AnimationPlayer.new()
 	anim.name = "Anim"
@@ -221,122 +224,107 @@ static func _region_code(bn: String, p: Vector3) -> int:
 	return 12
 
 
-func _code_color(code: int) -> Color:
-	var L = look
-	var c = Color(1, 1, 1, 0)
-	match code:
-		10: c = L["top"]
-		11: c = L["vest"] if L["vest"] != null else L["top2"]
-		12: c = L["vest"] if L["vest"] != null else L["top"]
-		13: c = L["top"] if L["sleeves"] else Color(1, 1, 1, 0)
-		14: c = L["wraps"]
-		20, 21, 22: c = L["pants"]
-		23: c = L["wraps"]
-		30: c = L["sandal"]
-		40: c = L["vest"] if L["vest"] != null else Color(1, 1, 1, 0)
-	if code == 0 or (code == 13 and not L["sleeves"]) or (code == 40 and L["vest"] == null):
-		return Color(1, 1, 1, 0)
-	return Color(c.r, c.g, c.b, 1.0)
+## Giyilen parçaların altında kalan vücut bölgeleri (görünmez yapılır, içinden vücut sızmasın)
+func _hidden_codes() -> Array:
+	var h = []
+	if outfit.get("body", "") != "":
+		h.append_array([10, 11, 12, 20])
+	if outfit.get("arms", "") != "":
+		h.append_array([10, 13, 14])
+	if outfit.get("legs", "") != "":
+		h.append_array([20, 21, 22])
+	if outfit.get("feet", "") != "":
+		h.append_array([22, 23, 30])
+	return h
 
 
-func _color_key() -> String:
+func _outfit_for_look() -> Dictionary:
 	var L = look
-	return "%s|%s|%s|%s|%s|%s|%s|%s|%s" % [L["gender"], L["top"], L["top2"], L["pants"], L["vest"], L["wraps"], L["sandal"], L["sleeves"], L["skin"]]
+	if L.has("outfit") and L["outfit"] is Dictionary:
+		return L["outfit"]
+	var o = {"body": "Peasant", "arms": "Peasant" if L["sleeves"] else "", "legs": "Peasant", "feet": "Peasant", "hood": false, "pauldron": false}
+	if L["vest"] != null:
+		o["body"] = "Ranger"
+		o["arms"] = "Peasant"  # yelek altı uzun kollu ninja tişörtü
+	if L.get("band_style", "") == "slashed" and L.get("mask", null) == null:
+		o["hood"] = randf() < 0.5
+	return o
 
 
 func _paint_body() -> void:
 	var g = _geo_for(look["gender"])
-	var key = _color_key()
+	var hidden = _hidden_codes()
+	var key = "%s|%s" % [look["gender"], str(hidden)]
 	if not _body_cache.has(key):
 		var arr: Array = (g["arrays"] as Array).duplicate()
 		var regions: PackedInt32Array = g["regions"]
 		var cols = PackedColorArray()
 		cols.resize(regions.size())
 		for i in regions.size():
-			cols[i] = _code_color(regions[i])
+			cols[i] = Color(1, 1, 1, 1.0 if regions[i] in hidden else 0.0)
 		arr[Mesh.ARRAY_COLOR] = cols
 		var m = ArrayMesh.new()
 		m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr, [], {}, Mesh.ARRAY_FLAG_USE_8_BONE_WEIGHTS if g["per"] == 8 else 0)
-		_body_cache[key] = [m, _build_shell(g, cols)]
-	var pair: Array = _body_cache[key]
-	body_mesh.mesh = pair[0]
+		_body_cache[key] = m
+	body_mesh.mesh = _body_cache[key]
 	var mat = ShaderMaterial.new()
 	mat.shader = load("res://shaders/toon.gdshader")
 	mat.set_shader_parameter("rim_amount", 0.5)
 	mat.set_shader_parameter("spec_amount", 0.12)
 	mat.set_shader_parameter("cloth_mode", true)
+	mat.set_shader_parameter("hide_masked", true)
 	if g["tex"]:
 		mat.set_shader_parameter("tex", g["tex"])
 	mat.set_shader_parameter("tint", Color(look["skin"]))
 	body_mesh.set_surface_override_material(0, mat)
 	materials.append(mat)
-	# kumaş katmanı: aynı iskelete bağlı, kasları gizleyen pürüzsüz kıyafet
-	if pair[1] != null:
-		var shell = MeshInstance3D.new()
-		shell.name = "Cloth"
-		shell.mesh = pair[1]
-		skel.add_child(shell)
-		shell.skin = body_mesh.skin
-		shell.skeleton = shell.get_path_to(skel)
-		var cm = ShaderMaterial.new()
-		cm.shader = load("res://shaders/toon.gdshader")
-		cm.set_shader_parameter("rim_amount", 0.45)
-		cm.set_shader_parameter("detail_noise", 0.06)
-		shell.material_override = cm
-		materials.append(cm)
 
 
-## Kıyafet bölgelerini pürüzsüzleştirip normal yönünde şişirerek kumaş kabuğu üretir (cinsiyet+kol tipi başına bir kez)
-func _build_shell(g: Dictionary, cols: PackedColorArray) -> ArrayMesh:
-	var arr: Array = (g["arrays"] as Array).duplicate(true)
-	var regions: PackedInt32Array = g["regions"]
-	var adj: Array = g["adj"]
-	var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
-	var nrm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
-	var cloth = PackedByteArray()
-	cloth.resize(v.size())
-	for i in v.size():
-		var c = regions[i]
-		cloth[i] = 1 if c >= 10 and c <= 23 and cols[i].a > 0.5 else 0
-	var pos = v.duplicate()
-	for it in 5:
-		var nxt = pos.duplicate()
-		for i in pos.size():
-			if cloth[i] == 0:
-				continue
-			var nb: PackedInt32Array = adj[i]
-			if nb.is_empty():
-				continue
-			var s = Vector3.ZERO
-			for j in nb:
-				s += pos[j]
-			nxt[i] = pos[i].lerp(s / nb.size(), 0.6)
-		pos = nxt
-	for i in pos.size():
-		if cloth[i] == 0:
+## Quaternius modüler kıyafet parçalarını bizim iskelete giydirir, her parçayı kendi rengine boyar
+func _equip_outfit() -> void:
+	var gp = "Female" if look["gender"] == "f" else "Male"
+	var L = look
+	var parts = []
+	if outfit.get("body", "") != "":
+		parts.append(["%s_%s_Body" % [gp, outfit["body"]], L["vest"] if outfit["body"] == "Ranger" and L["vest"] != null else L["top"]])
+	if outfit.get("arms", "") != "":
+		parts.append(["%s_%s_Arms" % [gp, outfit["arms"]], L["top"]])
+	if outfit.get("legs", "") != "":
+		parts.append(["%s_%s_Legs" % [gp, outfit["legs"]], L["pants"]])
+	if outfit.get("feet", "") != "":
+		var fname = "%s_%s_Feet" % [gp, outfit["feet"]]
+		if gp == "Male" and outfit["feet"] == "Ranger":
+			fname = "Male_Ranger_Feet_Boots"
+		parts.append([fname, L["sandal"]])
+	if outfit.get("hood", false):
+		parts.append(["%s_Ranger_Head_Hood" % gp, Color(L["top"]).darkened(0.35)])
+	if outfit.get("pauldron", false):
+		parts.append(["Female_Ranger_Acc_Pauldrons" if gp == "Female" else "Male_Ranger_Acc_Pauldron", Color(0.45, 0.47, 0.5)])
+	for p in parts:
+		var path = "res://assets/outfits/%s.gltf" % p[0]
+		if not ResourceLoader.exists(path):
 			continue
-		var c = regions[i]
-		var off = 0.016
-		if c == 21:
-			off = 0.03 + clampf((v[i].y - 0.55) * 0.05, 0.0, 0.02)  # bol uyluk
-		elif c == 22 or c == 20:
-			off = 0.025
-		elif c == 11 or c == 12:
-			off = 0.02
-		pos[i] = pos[i] + nrm[i] * off
-	arr[Mesh.ARRAY_VERTEX] = pos
-	arr[Mesh.ARRAY_COLOR] = cols
-	var idx: PackedInt32Array = arr[Mesh.ARRAY_INDEX]
-	var keep = PackedInt32Array()
-	for t in range(0, idx.size(), 3):
-		if cloth[idx[t]] == 1 and cloth[idx[t + 1]] == 1 and cloth[idx[t + 2]] == 1:
-			keep.append(idx[t]); keep.append(idx[t + 1]); keep.append(idx[t + 2])
-	if keep.is_empty():
-		return null
-	arr[Mesh.ARRAY_INDEX] = keep
-	var m = ArrayMesh.new()
-	m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr, [], {}, Mesh.ARRAY_FLAG_USE_8_BONE_WEIGHTS if g["per"] == 8 else 0)
-	return m
+		var inst = (load(path) as PackedScene).instantiate()
+		for mi in inst.find_children("*", "MeshInstance3D", true, false):
+			var src_mat = mi.mesh.surface_get_material(0)
+			mi.get_parent().remove_child(mi)
+			mi.owner = null
+			skel.add_child(mi)
+			mi.skeleton = mi.get_path_to(skel)
+			var m = ShaderMaterial.new()
+			m.shader = load("res://shaders/toon.gdshader")
+			m.set_shader_parameter("use_vertex_color", false)
+			m.set_shader_parameter("luma_tint", true)
+			var tint: Color = p[1]
+			if String(mi.name).contains("Belt"):
+				tint = Color(0.3, 0.22, 0.15)
+			m.set_shader_parameter("tint", tint)
+			m.set_shader_parameter("rim_amount", 0.4)
+			if src_mat is BaseMaterial3D and src_mat.albedo_texture:
+				m.set_shader_parameter("tex", src_mat.albedo_texture)
+			mi.material_override = m
+			materials.append(m)
+		inst.free()
 
 
 # ------------------------------------------------------------------ eklentiler (saç, bant, göz, çanta)
