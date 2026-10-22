@@ -104,15 +104,16 @@ static func _make(rng: RandomNumberGenerator, i: int) -> Dictionary:
 			var rh = 2.4 + top_d * 0.12
 			roof.add("prism", Vector3(0, h + rh * 0.5, 0), Vector3(top_w + 2.0, rh, top_d + 2.0), white)
 			det.add("box", Vector3(0, h + 0.06, 0), Vector3(top_w + 2.2, 0.16, top_d + 2.2), DARK)
-			det.add("box", Vector3(0, h + rh + 0.12, 0), Vector3(top_w + 2.2, 0.32, 0.45), DARK)
-			for sx in [-1.0, 1.0]:  # mahya uçları
-				det.add("box", Vector3(sx * (top_w * 0.5 + 1.0), h + rh + 0.3, 0), Vector3(0.4, 0.5, 0.6), DARK)
+			det.add("box", Vector3(0, h + rh + 0.12, 0), Vector3(0.45, 0.32, top_d + 2.2), DARK)
+			for sz in [-1.0, 1.0]:  # mahya uçları
+				det.add("box", Vector3(0, h + rh + 0.3, sz * (top_d * 0.5 + 1.0)), Vector3(0.6, 0.5, 0.4), DARK)
 			roof_top = h + rh
 		1:  # Konoha yuvarlak çatı (yarım silindir)
 			var rr = top_d * 0.5 + 0.6
-			roof.add_xf("cyl", Transform3D(Basis(Vector3.FORWARD, PI * 0.5) * Basis.from_scale(Vector3(2.8, top_w + 0.6, top_d + 0.8)), Vector3(0, h - 0.1, 0)), white, 20)
-			det.add("box", Vector3(0, h + 0.05, 0), Vector3(top_w + 1.2, 0.12, top_d + 0.8), DARK)
-			roof_top = h + 1.3
+			var rise = clampf(top_d * 0.16, 1.1, 1.7)
+			roof.add_xf("halfcyl", Transform3D(Basis.from_scale(Vector3(top_w + 0.8, rise * 2.0, top_d + 1.2)), Vector3(0, h + 0.1, 0)), white, 16)
+			det.add("box", Vector3(0, h + 0.05, 0), Vector3(top_w + 1.0, 0.2, top_d + 1.3), DARK)  # saçak bandı
+			roof_top = h + 0.1 + rise
 		2:  # düz çatı: korkuluk + su tankı
 			roof.add("box", Vector3(0, h + 0.2, 0), Vector3(top_w + 0.6, 0.4, top_d + 0.6), white)
 			for sx in [-1.0, 1.0]:
@@ -129,7 +130,7 @@ static func _make(rng: RandomNumberGenerator, i: int) -> Dictionary:
 	if rng.randf() < 0.3:
 		var aw = w * 0.4; var ad = d * 0.55; var ah = 3.2
 		walls.add("box", Vector3(-w * 0.5 - aw * 0.5 + 0.1, 0.5 + ah * 0.5, d * 0.1), Vector3(aw, ah, ad), white)
-		roof.add("prism", Vector3(-w * 0.5 - aw * 0.5 + 0.1, 0.5 + ah + 0.6, d * 0.1), Vector3(aw + 1.0, 1.2, ad + 1.0), white, Vector3(0, 90, 0))
+		roof.add("prism", Vector3(-w * 0.5 - aw * 0.5 + 0.1, 0.5 + ah + 0.6, d * 0.1), Vector3(aw + 1.0, 1.2, ad + 1.0), white)
 		_window(det, Vector3(-w * 0.5 - aw * 0.5, 0.5 + ah * 0.55, d * 0.1 - ad * 0.5), 0.0, rng)
 	return {"walls": walls.build(), "roof": roof.build(), "detail": det.build(), "w": w, "d": d, "h": h, "roof_top": roof_top}
 
@@ -139,18 +140,18 @@ static func _window(b: MB, p: Vector3, yaw: float, rng: RandomNumberGenerator) -
 	var fwd = r * Vector3(0, 0, -1)
 	var right = r * Vector3(1, 0, 0)
 	var shoji = rng.randf() < 0.5
-	b.add_xf("box", Transform3D(r.scaled(Vector3(1.5, 1.35, 0.12)), p + fwd * 0.05), WOOD)
-	b.add_xf("box", Transform3D(r.scaled(Vector3(1.3, 1.15, 0.06)), p + fwd * 0.09), SHOJI if shoji else GLASS)
-	b.add_xf("box", Transform3D(r.scaled(Vector3(0.05, 1.15, 0.04)), p + fwd * 0.12), DARK)
-	b.add_xf("box", Transform3D(r.scaled(Vector3(1.3, 0.05, 0.04)), p + fwd * 0.12), DARK)
+	b.add_xf("box", Transform3D(r * Basis.from_scale(Vector3(1.5, 1.35, 0.12)), p + fwd * 0.05), WOOD)
+	b.add_xf("box", Transform3D(r * Basis.from_scale(Vector3(1.3, 1.15, 0.06)), p + fwd * 0.09), SHOJI if shoji else GLASS)
+	b.add_xf("box", Transform3D(r * Basis.from_scale(Vector3(0.05, 1.15, 0.04)), p + fwd * 0.12), DARK)
+	b.add_xf("box", Transform3D(r * Basis.from_scale(Vector3(1.3, 0.05, 0.04)), p + fwd * 0.12), DARK)
 	if shoji:
 		for k in [-1.0, 1.0]:
-			b.add_xf("box", Transform3D(r.scaled(Vector3(1.3, 0.03, 0.04)), p + fwd * 0.12 + Vector3(0, k * 0.3, 0)), DARK)
+			b.add_xf("box", Transform3D(r * Basis.from_scale(Vector3(1.3, 0.03, 0.04)), p + fwd * 0.12 + Vector3(0, k * 0.3, 0)), DARK)
 	if rng.randf() < 0.35:  # küçük saçak
-		b.add_xf("box", Transform3D(Basis(right, deg_to_rad(18)) * r.scaled(Vector3(1.8, 0.1, 0.7)), p + Vector3(0, 0.85, 0) + fwd * 0.35), Color(0.35, 0.3, 0.28))
+		b.add_xf("box", Transform3D(Basis(right, deg_to_rad(18)) * r * Basis.from_scale(Vector3(1.8, 0.1, 0.7)), p + Vector3(0, 0.85, 0) + fwd * 0.35), Color(0.35, 0.3, 0.28))
 	elif rng.randf() < 0.3:  # kepenkler
 		for sx in [-1.0, 1.0]:
-			b.add_xf("box", Transform3D(r.scaled(Vector3(0.35, 1.3, 0.06)), p + right * sx * 0.95 + fwd * 0.08), WOOD.lightened(0.1))
+			b.add_xf("box", Transform3D(r * Basis.from_scale(Vector3(0.35, 1.3, 0.06)), p + right * sx * 0.95 + fwd * 0.08), WOOD.lightened(0.1))
 
 
 ## Bir köy için yerleştirici: evleri toplar, sonunda MultiMesh'leri ve çarpışmaları kurar

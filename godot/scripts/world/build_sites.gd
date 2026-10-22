@@ -78,7 +78,7 @@ static func suna(parent: Node3D, v: Dictionary) -> void:
 	# Kazekage kulesi (büyük kubbe) + "風"
 	b.cyl(Vector3(0, 14, 0), 60, 28, sand.lightened(0.05), true, 32)
 	b.dome(Vector3(0, 28, 0), 60, 22, sand.lightened(0.1), 32)
-	b.cyl(Vector3(0, 30, -29.5), 10, 10, Color(0.35, 0.55, 0.35), false, 16)
+	b.disc(Vector3(0, 22, -30.1), 10, 0.5, Color(0.35, 0.55, 0.35))
 	b.interact(Vector3(0, 0, -34), 7, "mission_board", "[F] Kazekage Ofisi (görevler)")
 	_fill(b, 240, 50, 22, "suna", rng)
 	b.interact(Vector3(60, 0, 20), 5, "shop_items", "[F] Suna Pazarı")
@@ -91,7 +91,7 @@ static func kiri(parent: Node3D, v: Dictionary) -> void:
 	var rng = _rng(3)
 	b.cyl(Vector3(0, 20, 0), 36, 40, Color(0.58, 0.66, 0.7), true, 24)
 	b.dome(Vector3(0, 40, 0), 38, 14, Color(0.3, 0.42, 0.55), 24)
-	b.cyl(Vector3(0, 30, -17.8), 8, 8, Color(0.25, 0.45, 0.65), false, 16)  # "水"
+	b.disc(Vector3(0, 30, -18.1), 8, 0.5, Color(0.25, 0.45, 0.65))  # "水"
 	b.interact(Vector3(0, 0, -21), 6, "mission_board", "[F] Mizukage Ofisi (görevler)")
 	_fill(b, 230, 35, 20, "kiri", rng)
 	# kanallar ve köprüler
@@ -144,7 +144,7 @@ static func iwa(parent: Node3D, v: Dictionary) -> void:
 		b.box(Vector3(px, h * 0.5, pn), Vector3(rng.randf_range(14, 24), h, rng.randf_range(14, 24)), Color(0.52, 0.42, 0.32), rng.randf() * 90)
 		for f in int(h / 10):
 			b.box(Vector3(px, f * 10 + 5, pn - 9), Vector3(3, 2, 0.4), Color(0.25, 0.2, 0.15), 0, false)
-	b.cone(Vector3(0, 0, 0), 60, 90, Color(0.5, 0.4, 0.3), 12, true)
+	b.cone(Vector3(0, 40, 0), 60, 80, Color(0.5, 0.4, 0.3), 12, true)
 	b.box(Vector3(0, 30, -18), Vector3(8, 8, 1), Color(0.35, 0.28, 0.2), 0, false)  # "土"
 	b.interact(Vector3(0, 0, -26), 6, "mission_board", "[F] Tsuchikage Ofisi (görevler)")
 	_fill(b, 220, 45, 24, "iwa", rng)
@@ -351,7 +351,7 @@ static func forest_death(parent: Node3D, l: Dictionary) -> void:
 	b.wall_ring_at(0, 0, float(l["r"]), 6.0, Color(0.35, 0.3, 0.25), [[270.0, 8.0]], 4.0)
 	b.box(Vector3(-float(l["r"]), 7, 0), Vector3(2, 2, 10), Color(0.6, 0.15, 0.12), 0, false)
 	b.cyl(Vector3(0, 20, 0), 40, 40, Color(0.75, 0.7, 0.62), true, 16)
-	b.cone(Vector3(0, 40, 0), 46, 14, Color(0.4, 0.4, 0.45), 16, true)
+	b.cone(Vector3(0, 47, 0), 46, 14, Color(0.4, 0.4, 0.45), 16, true)
 	b.interact(Vector3(0, 0, -22), 6, "fod_tower", "[F] Merkez Kule")
 	b.interact(Vector3(-float(l["r"]) + 4, 0, 0), 6, "fod_gate", "[F] 44. Alan Kapısı")
 	b.finish()

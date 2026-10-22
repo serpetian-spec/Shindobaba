@@ -32,13 +32,14 @@ static func _full() -> Control:
 
 
 static func _center_panel(parent: Control, w := 560.0) -> VBoxContainer:
+	var cc = CenterContainer.new()
+	cc.set_anchors_preset(Control.PRESET_FULL_RECT)
+	parent.add_child(cc)
 	var p = UI.panel()
-	p.set_anchors_preset(Control.PRESET_CENTER)
 	p.custom_minimum_size = Vector2(w, 0)
-	parent.add_child(p)
+	cc.add_child(p)
 	var v = UI.vbox(10)
 	p.add_child(v)
-	p.resized.connect(func(): p.position = -p.size * 0.5, CONNECT_DEFERRED)
 	return v
 
 
@@ -88,10 +89,17 @@ static func slot_select(main: Node, new_game: bool) -> void:
 # ------------------------------------------------------------------ karakter yaratma
 static func creator(main: Node, state: Dictionary, on_change: Callable, on_start: Callable) -> void:
 	clear()
+	var sc = ScrollContainer.new()
+	sc.set_anchors_preset(Control.PRESET_LEFT_WIDE)
+	sc.offset_left = 30
+	sc.offset_top = 24
+	sc.offset_bottom = -24
+	sc.offset_right = 600
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	Hud.dialog_layer.add_child(sc)
 	var p = UI.panel()
-	p.position = Vector2(30, 30)
-	p.custom_minimum_size = Vector2(520, 0)
-	Hud.dialog_layer.add_child(p)
+	p.custom_minimum_size = Vector2(540, 0)
+	sc.add_child(p)
 	var v = UI.vbox(8)
 	p.add_child(v)
 	v.add_child(UI.label("KARAKTERİNİ YARAT", 30, UI.ACCENT))
@@ -133,7 +141,10 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 	var hair_cols = [Color(0.3, 0.2, 0.12), Color(0.08, 0.08, 0.1), Color(0.95, 0.8, 0.25), Color(0.75, 0.25, 0.15), Color(0.9, 0.9, 0.92), Color(0.2, 0.3, 0.6), Color(0.9, 0.55, 0.7), Color(0.25, 0.45, 0.25)]
 	row.call("Saç Rengi", "hair", hair_cols, ["Kahve", "Siyah", "Sarı", "Kızıl", "Beyaz", "Lacivert", "Pembe", "Yeşil"])
 	var outfit_cols = [Color(0.15, 0.2, 0.33), Color(0.15, 0.15, 0.17), Color(0.45, 0.15, 0.15), Color(0.95, 0.5, 0.12), Color(0.2, 0.38, 0.22), Color(0.35, 0.25, 0.45), Color(0.85, 0.82, 0.75), Color(0.15, 0.4, 0.45)]
+	row.call("Üst Kıyafet", "top_style", CharacterModel.TOP_STYLES.keys(), CharacterModel.TOP_STYLES.values())
+	row.call("Alt Kıyafet", "pants_style", CharacterModel.PANTS_STYLES.keys(), CharacterModel.PANTS_STYLES.values())
 	row.call("Üst Rengi", "top", outfit_cols, ["Lacivert", "Siyah", "Bordo", "Turuncu", "Yeşil", "Mor", "Krem", "Petrol"])
+	row.call("Vurgu Rengi", "top2", outfit_cols, ["Lacivert", "Siyah", "Bordo", "Turuncu", "Yeşil", "Mor", "Krem", "Petrol"])
 	row.call("Alt Rengi", "pants", outfit_cols, ["Lacivert", "Siyah", "Bordo", "Turuncu", "Yeşil", "Mor", "Krem", "Petrol"])
 	var skin = [Color(0.96, 0.8, 0.66), Color(0.86, 0.68, 0.52), Color(0.68, 0.5, 0.36), Color(0.98, 0.88, 0.8)]
 	row.call("Ten", "skin", skin, ["Açık", "Buğday", "Esmer", "Çok açık"])
@@ -153,8 +164,9 @@ static func pause(main: Node) -> void:
 	var v = _center_panel(bg, 420)
 	v.add_child(UI.label("DURAKLATILDI", 32, UI.ACCENT, HORIZONTAL_ALIGNMENT_CENTER))
 	v.add_child(UI.button("Devam", func(): main.resume(), 380))
-	v.add_child(UI.button("Envanter [I]", func(): inventory(main), 380))
-	v.add_child(UI.button("Jutsu ve Yetenekler [K]", func(): jutsu_skills(main), 380))
+	v.add_child(UI.button("Ninja Menüsü — Envanter [Tab]", func(): ninja_menu(main, "inv"), 380))
+	v.add_child(UI.button("Kıyafetler", func(): ninja_menu(main, "wardrobe"), 380))
+	v.add_child(UI.button("Jutsu ve Yetenekler [K]", func(): ninja_menu(main, "jutsu"), 380))
 	v.add_child(UI.button("Dünya Haritası [M]", func(): world_map(main), 380))
 	v.add_child(UI.button("Ayarlar", func(): settings(func(): pause(main)), 380))
 	v.add_child(UI.button("Kaydet", func():
@@ -176,11 +188,11 @@ Ctrl / Space: zıpla (havada tekrar = çift zıplama)   •   Shift: ninja koşu
 Duvara doğru koş: DUVARDA KOŞ (W yukarı, A/D yana)   •   Duvardayken Ctrl: duvardan sek
 Sol tık: kombo (havada: dalış tekmesi)   •   Sağ tık (basılı): blok (tam zamanında = mükemmel blok)
 Q: Kawarimi (yer değiştirme)   •   C (basılı): chakra şarjı   •   R: kunai/alet   •   T: alet değiştir
-Tab / orta tık: hedefe kilitlen   •   Kilitliyken Shift: chakra dash
+E / orta tık: hedefe kilitlen   •   Kilitliyken Shift: chakra dash
 1-4: jutsu slotları   •   F: etkileşim   •   H: merhem   •   Y: asker hapı
 G (basılı) + 1-9,0,-,=: mühür ör (bırakınca jutsu / yeni jutsu keşfi)   •   V: Sharingan/Byakugan
 B: Sekiz Kapı (klansız)   •   Z: Sennin Modu   •   X: Kuyruklu Canavar modu / bombası
-I: envanter   •   K: jutsu/yetenekler   •   M: dünya haritası   •   Esc: menü"""
+Tab: ninja menüsü (envanter, kıyafetler, jutsu, yetenekler)   •   K: jutsular   •   M: harita   •   Esc: menü"""
 	var l = UI.label(t, 17)
 	v.add_child(l)
 	v.add_child(UI.button("Geri", func(): pause(main), 720))
@@ -231,65 +243,289 @@ static func settings(back: Callable) -> void:
 		back.call(), 520))
 
 
-# ------------------------------------------------------------------ envanter
-static func inventory(main: Node) -> void:
+# ------------------------------------------------------------------ ninja menüsü [Tab]: envanter / kıyafetler / jutsu / yetenekler
+const TABS := [["inv", "Envanter"], ["wardrobe", "Kıyafetler"], ["jutsu", "Jutsular"], ["skills", "Yetenekler"]]
+const SWATCHES := [Color(0.15, 0.2, 0.33), Color(0.12, 0.12, 0.14), Color(0.45, 0.15, 0.15), Color(0.95, 0.5, 0.12), Color(0.2, 0.38, 0.22),
+	Color(0.35, 0.25, 0.45), Color(0.85, 0.82, 0.75), Color(0.15, 0.4, 0.45), Color(0.55, 0.42, 0.3), Color(0.75, 0.2, 0.25)]
+
+
+static func ninja_menu(main: Node, tab := "inv", picked := "") -> void:
 	var bg = _full()
-	var v = _center_panel(bg, 620)
+	var cc = CenterContainer.new()
+	cc.set_anchors_preset(Control.PRESET_FULL_RECT)
+	bg.add_child(cc)
+	var p = UI.panel()
+	p.custom_minimum_size = Vector2(1240, 740)
+	cc.add_child(p)
+	var v = UI.vbox(10)
+	p.add_child(v)
+	# başlık + sekmeler
+	var head = UI.hbox(8)
 	var pr = Game.profile
-	v.add_child(UI.label("ENVANTER   (%d Ryō)" % int(pr["ryo"]), 28, UI.ACCENT))
+	var who = UI.label("%s  •  %s  •  Sv.%d" % [pr["name"], Data.RANKS[int(pr["rank"])], int(pr["level"])], 22, UI.ACCENT)
+	who.custom_minimum_size = Vector2(380, 0)
+	head.add_child(who)
+	for t in TABS:
+		var b = UI.button(t[1], func(): ninja_menu(main, t[0]), 170)
+		if t[0] == tab:
+			b.modulate = Color(1, 0.75, 0.4)
+			b.disabled = true
+		head.add_child(b)
+	v.add_child(head)
+	v.add_child(HSeparator.new())
+	var body = Control.new()
+	body.custom_minimum_size = Vector2(1200, 600)
+	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	v.add_child(body)
+	match tab:
+		"inv":
+			_tab_inventory(main, body)
+		"wardrobe":
+			_tab_wardrobe(main, body)
+		"jutsu":
+			_tab_jutsu(main, body, picked)
+		"skills":
+			_tab_skills(main, body)
+	var foot = UI.hbox(10)
+	foot.add_child(UI.label("[Tab] / [Esc] kapat   •   [I] envanter   •   [K] jutsular", 14, Color(0.7, 0.7, 0.7)))
+	var sp = Control.new()
+	sp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	foot.add_child(sp)
+	foot.add_child(UI.button("Kapat", func(): main.resume(), 200))
+	v.add_child(foot)
+
+
+static func _scroll(parent: Control, w: float) -> VBoxContainer:
+	var sc = ScrollContainer.new()
+	sc.custom_minimum_size = Vector2(w, 600)
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	parent.add_child(sc)
+	var v = UI.vbox(6)
+	v.custom_minimum_size = Vector2(w - 20, 0)
+	sc.add_child(v)
+	return v
+
+
+static func _tab_inventory(main: Node, body: Control) -> void:
+	var pr = Game.profile
+	var h = UI.hbox(24)
+	body.add_child(h)
+	var v = _scroll(h, 760)
+	v.add_child(UI.label("ÇANTA   —   %d Ryō" % int(pr["ryo"]), 22, UI.ACCENT))
 	var inv: Dictionary = pr["inventory"]
-	if inv.is_empty():
-		v.add_child(UI.label("Çantan boş.", 16))
+	var grid = GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 10)
+	grid.add_theme_constant_override("v_separation", 10)
+	v.add_child(grid)
+	var any = false
 	for id in inv.keys():
 		if int(inv[id]) <= 0:
 			continue
+		any = true
 		var it: Dictionary = Data.items.get(id, {"name": id, "desc": "", "kind": "misc"})
-		var h = UI.hbox(8)
-		var l = UI.label("%s  x%d — %s" % [it["name"], int(inv[id]), it.get("desc", "")], 16)
-		l.custom_minimum_size = Vector2(440, 0)
-		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		h.add_child(l)
+		var card = UI.panel()
+		card.custom_minimum_size = Vector2(360, 96)
+		var cv = UI.vbox(4)
+		card.add_child(cv)
+		cv.add_child(UI.label("%s   x%d" % [it["name"], int(inv[id])], 18, Color(1, 0.9, 0.7)))
+		var d = UI.label(it.get("desc", ""), 13, Color(0.85, 0.85, 0.8))
+		d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		d.custom_minimum_size = Vector2(320, 0)
+		cv.add_child(d)
 		if it.get("kind", "") == "throw":
-			h.add_child(UI.button("Seç" if pr["throw_sel"] != id else "Seçili", func():
+			var sel: bool = pr["throw_sel"] == id
+			var b = UI.button("Kuşanıldı" if sel else "Kuşan [R]", func():
 				pr["throw_sel"] = id
-				inventory(main), 110))
+				ninja_menu(main, "inv"), 150)
+			b.disabled = sel
+			cv.add_child(b)
 		elif it.get("kind", "") == "use":
-			h.add_child(UI.button("Kullan", func():
+			cv.add_child(UI.button("Kullan", func():
 				main.use_item(id)
-				inventory(main), 110))
-		v.add_child(h)
-	v.add_child(UI.button("Geri", func(): pause(main), 580))
+				ninja_menu(main, "inv"), 150))
+		grid.add_child(card)
+	if not any:
+		v.add_child(UI.label("Çantan boş.", 16))
+	# sağ: durum
+	var s = UI.vbox(8)
+	s.custom_minimum_size = Vector2(380, 0)
+	h.add_child(s)
+	s.add_child(UI.label("DURUM", 22, UI.ACCENT))
+	var pl = Game.player
+	if pl:
+		s.add_child(UI.label("Can: %d / %d" % [int(pl.hp), int(pl.max_hp)], 17))
+		s.add_child(UI.label("Chakra: %d / %d" % [int(pl.chakra), int(pl.max_chakra)], 17))
+	s.add_child(UI.label("Rütbe: %s" % Data.RANKS[int(pr["rank"])], 17))
+	s.add_child(UI.label("Seviye %d  (XP %d)" % [int(pr["level"]), int(pr["xp"])], 17))
+	s.add_child(UI.label("Klan: %s" % Data.clans.get(pr["clan"], {}).get("name", "Klansız"), 17))
+	s.add_child(UI.label("Chakra doğası: %s" % ", ".join(pr["elements"]), 17))
+	s.add_child(UI.label("Yetenek puanı: %d" % int(pr["sp"]), 17))
+	var md: Dictionary = pr["missions_done"]
+	s.add_child(UI.label("Görevler  D:%d  C:%d  B:%d  A:%d  S:%d" % [md["D"], md["C"], md["B"], md["A"], md["S"]], 17))
 
 
-# ------------------------------------------------------------------ jutsu + yetenek ağacı
-static func jutsu_skills(main: Node, picked := "") -> void:
-	var bg = _full()
-	var p = UI.panel()
-	p.set_anchors_preset(Control.PRESET_CENTER)
-	p.position = Vector2(-640, -380)
-	p.custom_minimum_size = Vector2(1280, 760)
-	bg.add_child(p)
-	var cols = UI.hbox(24)
-	p.add_child(cols)
+## Kıyafet dolabı: stil + renk seçimi, sağda dönen önizleme
+static func _tab_wardrobe(main: Node, body: Control) -> void:
 	var pr = Game.profile
-	# sol: öğrenilen jutsular
-	var left = UI.vbox(6)
-	left.custom_minimum_size = Vector2(600, 0)
-	cols.add_child(left)
-	left.add_child(UI.label("JUTSULAR  — bir jutsu seç, sonra slota ata", 22, UI.ACCENT))
+	var look: Dictionary = pr["look"]
+	var rank = int(pr["rank"])
+	var h = UI.hbox(24)
+	body.add_child(h)
+	var v = _scroll(h, 760)
+	var apply = func() -> void:
+		if Game.player:
+			Game.player.rebuild_model()
+		ninja_menu(main, "wardrobe")
+	var choice = func(title: String, key: String, opts: Dictionary, default: String) -> void:
+		var r = UI.hbox(6)
+		var l = UI.label(title, 17)
+		l.custom_minimum_size = Vector2(170, 0)
+		r.add_child(l)
+		for k in opts:
+			var b = UI.button(opts[k], func():
+				look[key] = k
+				apply.call(), 180)
+			if look.get(key, default) == k:
+				b.modulate = Color(1, 0.75, 0.4)
+			r.add_child(b)
+		v.add_child(r)
+	var colors = func(title: String, key: String) -> void:
+		var r = UI.hbox(5)
+		var l = UI.label(title, 17)
+		l.custom_minimum_size = Vector2(170, 0)
+		r.add_child(l)
+		for c in SWATCHES:
+			var b = Button.new()
+			b.custom_minimum_size = Vector2(44, 34)
+			var sb = StyleBoxFlat.new()
+			sb.bg_color = c
+			sb.set_corner_radius_all(4)
+			var cur = look.get(key)
+			var on: bool = cur != null and Color(cur).is_equal_approx(c)
+			sb.border_color = UI.ACCENT if on else Color(0, 0, 0, 0.6)
+			sb.set_border_width_all(3 if on else 1)
+			for st in ["normal", "hover", "pressed", "focus"]:
+				b.add_theme_stylebox_override(st, sb)
+			b.pressed.connect(func():
+				Sfx.play("click")
+				look[key] = c
+				apply.call())
+			r.add_child(b)
+		v.add_child(r)
+	v.add_child(UI.label("KIYAFETLER", 22, UI.ACCENT))
+	var tops = CharacterModel.TOP_STYLES.duplicate()
+	choice.call("Üst", "top_style", {"tisort": tops["tisort"], "uzun": "Uzun Kollu"}, "uzun")
+	choice.call("", "top_style", {"ceket": tops["ceket"], "yakali": tops["yakali"]}, "uzun")
+	choice.call("Alt", "pants_style", CharacterModel.PANTS_STYLES, "ninja")
+	colors.call("Üst rengi", "top")
+	colors.call("Vurgu rengi", "top2")
+	colors.call("Alt rengi", "pants")
+	colors.call("Sandalet", "sandal")
+	colors.call("Sargılar", "wraps")
+	v.add_child(HSeparator.new())
+	v.add_child(UI.label("EKİPMAN", 22, UI.ACCENT))
+	# yelek: Chunin ve üstü
+	var r = UI.hbox(6)
+	var l = UI.label("Taktik yelek", 17)
+	l.custom_minimum_size = Vector2(170, 0)
+	r.add_child(l)
+	if rank >= 2:
+		var vest_col = Color(0.75, 0.75, 0.78) if rank >= 4 else Color(0.38, 0.48, 0.28)
+		var b1 = UI.button("Giy", func():
+			look["vest"] = vest_col
+			apply.call(), 180)
+		var b2 = UI.button("Çıkar", func():
+			look["vest"] = null
+			apply.call(), 180)
+		(b1 if look.get("vest") != null else b2).modulate = Color(1, 0.75, 0.4)
+		r.add_child(b1)
+		r.add_child(b2)
+	else:
+		r.add_child(UI.label("Chunin rütbesinde açılır", 15, Color(0.7, 0.7, 0.7)))
+	v.add_child(r)
+	if look.get("band") != null:
+		choice.call("Alın koruyucu", "band_style", {"head": "Alında", "neck": "Boyunda", "none": "Takma"}, "head")
+	else:
+		var r2 = UI.hbox(6)
+		var l2 = UI.label("Alın koruyucu", 17)
+		l2.custom_minimum_size = Vector2(170, 0)
+		r2.add_child(l2)
+		r2.add_child(UI.label("Genin olunca verilir", 15, Color(0.7, 0.7, 0.7)))
+		v.add_child(r2)
+	v.add_child(HSeparator.new())
+	v.add_child(UI.label("SAÇ", 22, UI.ACCENT))
+	choice.call("Stil", "hair_style", {"diken": "Dikenli", "dağınık": "Dağınık", "kase": "Kâse"}, "diken")
+	choice.call("", "hair_style", {"kısa": "Kısa", "uzun": "Uzun", "atkuyruğu": "At kuyruğu"}, "diken")
+	# sağ: önizleme
+	h.add_child(_model_preview(Game.player._look_with_age() if Game.player else look))
+
+
+## Ayrı dünyada dönen karakter önizlemesi (oyun duraklatılmışken de çalışır)
+static func _model_preview(look: Dictionary) -> Control:
+	var svc = SubViewportContainer.new()
+	svc.custom_minimum_size = Vector2(400, 600)
+	svc.stretch = true
+	svc.process_mode = Node.PROCESS_MODE_ALWAYS
+	var sv = SubViewport.new()
+	sv.own_world_3d = true
+	sv.transparent_bg = true
+	sv.msaa_3d = Viewport.MSAA_4X
+	svc.add_child(sv)
+	var env = WorldEnvironment.new()
+	env.environment = Environment.new()
+	env.environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.environment.ambient_light_color = Color(0.75, 0.78, 0.9)
+	env.environment.ambient_light_energy = 0.5
+	env.environment.tonemap_mode = Environment.TONE_MAPPER_FILMIC
+	sv.add_child(env)
+	var sun = DirectionalLight3D.new()
+	sun.rotation_degrees = Vector3(-40, 35, 0)
+	sun.light_energy = 1.3
+	sv.add_child(sun)
+	var m = CharacterModel.new()
+	sv.add_child(m)
+	m.setup(look)
+	m.play("idle")
+	m.scale = Vector3.ONE  # önizlemede tam boy
+	var cam = Camera3D.new()
+	cam.fov = 32
+	sv.add_child(cam)
+	var cp = Vector3(0, 1.0, -4.2)
+	cam.transform = Transform3D(Basis.looking_at(Vector3(0, 0.92, 0) - cp), cp)
+	var tw = m.create_tween().set_loops()
+	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tw.tween_property(m, "rotation:y", TAU, 9.0).from(0.0)
+	return svc
+
+
+static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
+	var pr = Game.profile
+	var v = _scroll(body, 1200)
+	v.add_child(UI.label("JUTSULAR  — bir jutsu seç, sonra aşağıdan slota ata", 22, UI.ACCENT))
 	var learned: Array = pr["learned"]
 	if learned.is_empty():
-		left.add_child(UI.label("Henüz bir jutsu bilmiyorsun. Akademi hocanla konuş!", 16))
+		v.add_child(UI.label("Henüz bir jutsu bilmiyorsun. Akademi hocanla konuş!", 16))
+	var grid = GridContainer.new()
+	grid.columns = 2
+	v.add_child(grid)
 	for jid in learned:
 		var j: Dictionary = Data.jutsu.get(jid, {})
 		var seals: Array = j.get("seals", [])
 		var b = UI.button("%s  [%s] — %d ck%s" % [j.get("name", jid), j.get("canon_rank", "?"), int(j.get("cost", 0)), ("  •  " + "-".join(seals)) if not seals.is_empty() else ""],
-			func(): jutsu_skills(main, jid), 590)
+			func(): ninja_menu(main, "jutsu", jid), 585)
 		b.tooltip_text = j.get("desc", "")
+		b.clip_text = true
 		if jid == picked:
 			b.modulate = Color(1, 0.8, 0.5)
-		left.add_child(b)
-	var sh = UI.hbox(6)
+		grid.add_child(b)
+	if picked != "":
+		var d = UI.label(Data.jutsu.get(picked, {}).get("desc", ""), 15, Color(0.9, 0.9, 0.85))
+		d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		d.custom_minimum_size = Vector2(1150, 0)
+		v.add_child(d)
+	v.add_child(UI.label("Slotlar (1-4):", 18, UI.ACCENT))
+	var sh = UI.hbox(8)
 	for i in 4:
 		var cur = pr["slots"][i]
 		var nm: String = Data.jutsu.get(cur, {}).get("name", "—") if cur != null and cur != "" else "—"
@@ -299,20 +535,20 @@ static func jutsu_skills(main: Node, picked := "") -> void:
 					if pr["slots"][k] == picked:
 						pr["slots"][k] = ""
 				pr["slots"][i] = picked
-			jutsu_skills(main), 142))
-	left.add_child(UI.label("Slotlar:", 16))
-	left.add_child(sh)
-	# sağ: yetenek ağacı
-	var right = UI.vbox(6)
-	right.custom_minimum_size = Vector2(600, 0)
-	cols.add_child(right)
-	right.add_child(UI.label("YETENEK AĞACI  — Puan: %d" % int(pr["sp"]), 22, UI.ACCENT))
+			ninja_menu(main, "jutsu"), 285))
+	v.add_child(sh)
+
+
+static func _tab_skills(main: Node, body: Control) -> void:
+	var pr = Game.profile
+	var v = _scroll(body, 1200)
+	v.add_child(UI.label("YETENEK AĞACI  — Puan: %d" % int(pr["sp"]), 22, UI.ACCENT))
 	var cat = ""
 	for sid in SKILLS:
 		var s: Array = SKILLS[sid]
 		if s[2] != cat:
 			cat = s[2]
-			right.add_child(UI.label(cat, 18, Color(1, 0.85, 0.6)))
+			v.add_child(UI.label(cat, 18, Color(1, 0.85, 0.6)))
 		var owned: bool = sid in pr["skills"]
 		var can: bool = not owned and int(pr["sp"]) > 0 and int(pr["level"]) >= int(s[4]) and (s[3] == "" or s[3] in pr["skills"])
 		if sid == "elem2" and int(pr["rank"]) < 2:
@@ -324,12 +560,19 @@ static func jutsu_skills(main: Node, picked := "") -> void:
 			pr["skills"].append(sid)
 			pr["sp"] = int(pr["sp"]) - 1
 			Game.player.apply_profile_stats()
-			jutsu_skills(main), 590)
+			ninja_menu(main, "skills"), 760)
 		b.disabled = not can
 		if owned:
 			b.modulate = Color(0.6, 1, 0.6)
-		right.add_child(b)
-	right.add_child(UI.button("Geri", func(): pause(main), 590))
+		v.add_child(b)
+
+
+static func inventory(main: Node) -> void:
+	ninja_menu(main, "inv")
+
+
+static func jutsu_skills(main: Node, picked := "") -> void:
+	ninja_menu(main, "jutsu", picked)
 
 
 static func _pick_element(main: Node) -> void:

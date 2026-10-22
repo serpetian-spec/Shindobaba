@@ -3,6 +3,36 @@ extends Node
 
 var pending: Array = []
 var ready_to_spawn = false
+## Karakter/kıyafet/saç sahneleri bellekte tutulur: referansı kalmayan glTF her NPC doğumunda
+## diskten yeniden yükleniyordu (~120 ms takılma). Arka planda yüklenip burada saklanır.
+const WARM_DIRS := ["res://assets/chars", "res://assets/chars/hair", "res://assets/anim"]
+var cache: Dictionary = {}
+var _loading: Array = []
+
+
+func _ready() -> void:
+	for d in WARM_DIRS:
+		for f in ResourceLoader.list_directory(d):
+			var path = d.path_join(f)
+			if f.ends_with(".gltf") or f.ends_with(".glb") or f.ends_with(".png") or f.ends_with(".tres"):
+				if ResourceLoader.load_threaded_request(path, "", true) == OK:
+					_loading.append(path)
+	for path in ["res://shaders/toon.gdshader"]:
+		if ResourceLoader.load_threaded_request(path) == OK:
+			_loading.append(path)
+
+
+func _process(_dt: float) -> void:
+	if _loading.is_empty():
+		set_process(false)
+		return
+	for path in _loading.duplicate():
+		var st = ResourceLoader.load_threaded_get_status(path)
+		if st == ResourceLoader.THREAD_LOAD_LOADED:
+			cache[path] = ResourceLoader.load_threaded_get(path)
+			_loading.erase(path)
+		elif st != ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+			_loading.erase(path)
 
 
 func dummy(pos: Vector3) -> void:

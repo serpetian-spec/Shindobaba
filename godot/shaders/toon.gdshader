@@ -13,6 +13,14 @@ uniform float detail_noise = 0.0;
 uniform float sway = 0.0;
 uniform bool cloth_mode = false;
 uniform bool hide_masked = false;  // vertex alfa=1 olan bölgeler çizilmez (kıyafet altı)   // doku (ten) + vertex rengi (kıyafet, alfa = maske)
+uniform bool palette_mode = false;  // vertex COLOR.r = renk yuvası*0.1 (0 = ten dokusu)
+uniform vec4 pal[8] : source_color;
+uniform vec4 rig_a = vec4(0.21, 0.46, 0.7, 1.52);   // üst kol x, dirsek x, el x, boyun y (dinlenme pozu)
+uniform vec4 rig_b = vec4(0.95, 0.54, 0.09, 1.31);  // kalça y, diz y, ayak bileği y, üst göğüs y
+uniform int top_style = 1;    // 0 tişört, 1 uzun kollu, 2 ceket, 3 yüksek yakalı
+uniform int pants_style = 0;  // 0 ninja pantolonu, 1 şort, 2 sivil uzun pantolon
+uniform int layer = 0;        // 0 vücut, 1 kumaş kabuğu, 2 yelek
+varying vec3 rest;
 uniform bool luma_tint = false;    // saç: doku parlaklığı x tint
 uniform bool eye_mode = false;     // göz: iris tint, beyaz korunur
 uniform vec4 eye_color : source_color = vec4(0.3, 0.5, 0.9, 1.0);
@@ -35,6 +43,34 @@ void vertex() {
 		VERTEX.z += s * 0.7;
 	}
 	wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	rest = CUSTOM0.xyz;
+}
+
+// dinlenme pozundaki konuma göre renk yuvası: 0 ten, 1 üst, 2 vurgu, 3 alt, 4 sargı, 5 yelek
+int cloth_slot(vec3 p) {
+	float ax = abs(p.x);
+	bool arm = ax > rig_a.x * 0.9 && p.y > rig_a.w - 0.32;
+	if (arm) {
+		if (ax > rig_a.z - 0.035) return 0;
+		float sleeve = top_style == 0 || top_style == 3 ? mix(rig_a.x, rig_a.y, 0.5) : rig_a.z - 0.035;
+		if (ax < sleeve) return (top_style == 2 && ax < rig_a.x + 0.07) ? 2 : 1;
+		if (top_style == 3 && ax > rig_a.y - 0.02) return 4;
+		return 0;
+	}
+	if (p.y > rig_a.w) {
+		bool collar = (top_style == 2 || top_style == 3) && p.y < rig_a.w + 0.075;
+		return collar ? (top_style == 2 ? 2 : 1) : 0;
+	}
+	float waist = rig_b.x + 0.035;
+	if (p.y > waist) {
+		if (top_style == 2 && p.y > rig_a.w - 0.1) return 2;
+		return 1;
+	}
+	if (p.y < rig_b.z + 0.03) return 0;
+	float cut = pants_style == 0 ? rig_b.y - 0.17 : (pants_style == 1 ? rig_b.y - 0.05 : rig_b.z + 0.04);
+	if (p.y > cut) return 3;
+	float wrap_top = pants_style == 0 ? cut + 0.02 : rig_b.y - 0.16;
+	return p.y < wrap_top ? 4 : 0;
 }
 
 void fragment() {
@@ -50,7 +86,18 @@ void fragment() {
 		c = vec4(mix(eye_color.rgb * (0.5 + l * 1.2), tx.rgb, sclera), 1.0);
 	}
 	if (hide_masked && COLOR.a > 0.5) discard;
-	if (cloth_mode) {
+	if (palette_mode) {
+		int slot = cloth_slot(rest);
+		if (layer == 2) {
+			if (rest.y < rig_b.x + 0.03 || rest.y > rig_a.w - 0.01 || abs(rest.x) > rig_a.x * 1.08) discard;
+			slot = 5;
+		} else if (layer == 1 && slot == 0) discard;
+		if (slot > 0) {
+			float n = vnoise(UV * 90.0) * 0.5 + vnoise(UV * 23.0) * 0.5;
+			c.rgb = pal[slot].rgb * (0.94 + n * 0.12);
+			if (slot == 4) c.rgb *= 0.86 + 0.14 * smoothstep(0.1, 0.25, fract(rest.y * 55.0 + rest.x * 8.0));  // sargı bezi katları
+		}
+	} else if (cloth_mode) {
 		float sl = dot(tx.rgb, vec3(0.3, 0.59, 0.11));
 		c.rgb = tint.rgb * (0.55 + sl * 1.5);
 		vec3 vc = COLOR.rgb;

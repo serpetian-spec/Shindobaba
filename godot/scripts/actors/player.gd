@@ -60,8 +60,13 @@ func _ready() -> void:
 	add_child(model)
 	model.setup(_look_with_age())
 	_fit_capsule()
+	# fizik 60 Hz, ekran daha hızlı olabilir: sadece oyuncu gövdesi kareler arası yumuşatılır (dünyanın geri kalanı _process'te
+	# hareket ettiği için kökte kapalı), kamera her karede yumuşatılmış konumu izler -> takılma/titreme olmaz
+	get_tree().root.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
+	physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_ON
 	cam_pivot = Node3D.new()
 	cam_pivot.top_level = true
+	cam_pivot.physics_interpolation_mode = Node.PHYSICS_INTERPOLATION_MODE_OFF
 	add_child(cam_pivot)
 	cam = Camera3D.new()
 	cam.fov = float(Game.settings["fov"])
@@ -191,6 +196,11 @@ func _physics_process(dt: float) -> void:
 		_wall_move(dt)
 	else:
 		_ground_air_move(dt)
+
+
+func _process(dt: float) -> void:
+	if Game.paused:
+		return
 	_update_camera(dt)
 
 
@@ -350,7 +360,7 @@ func _animate(sp: float, sprint: bool) -> void:
 
 
 func _update_camera(dt: float) -> void:
-	var target = global_position + Vector3.UP * (1.6 * (model.age_scale if model else 1.0))
+	var target = get_global_transform_interpolated().origin + Vector3.UP * (1.6 * (model.age_scale if model else 1.0))
 	cam_pivot.global_position = cam_pivot.global_position.lerp(target, minf(1.0, dt * 16.0))
 	cam_pivot.rotation = Vector3(deg_to_rad(pitch), deg_to_rad(yaw), 0)
 	# kamera duvarlara ve araziye girmesin
@@ -405,11 +415,13 @@ func respawn(pos: Vector3) -> void:
 		combat.action = ""
 	model.transform = Transform3D.IDENTITY
 	model.play("idle", 0.0)
+	reset_physics_interpolation()
 	cam_pivot.global_position = global_position + Vector3.UP * 1.6
 
 
 func sit(at: Vector3) -> void:
 	global_position = at
+	reset_physics_interpolation()
 	velocity = Vector3.ZERO
 	model.play("sit", 0.2)
 	input_locked = 2.0

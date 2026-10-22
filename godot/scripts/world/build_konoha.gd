@@ -37,10 +37,30 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 
 	# ---- Hokage Kayası (kuzey)
 	var rock = Color(0.6, 0.55, 0.48)
-	b.box(Vector3(0, 36, 430), Vector3(620, 80, 120), rock)
-	b.box(Vector3(0, 60, 520), Vector3(800, 130, 90), rock.darkened(0.15))
-	for sx in [-1.0, 1.0]:
-		b.box(Vector3(330 * sx, 30, 380), Vector3(80, 70, 160), rock.darkened(0.08))
+	# düz duvar yerine düzensiz kaya sütunları + katman çizgileri + yeşil tepe
+	var crng = RandomNumberGenerator.new()
+	crng.seed = 77
+	var cx = -330.0
+	while cx < 330.0:
+		var cw = crng.randf_range(16.0, 26.0)
+		var ch = 74.0 + crng.randf_range(-5.0, 9.0) - maxf(0.0, absf(cx) - 220.0) * 0.35
+		var cf = 371.0 + crng.randf_range(0.0, 7.0) + maxf(0.0, absf(cx) - 220.0) * 0.4
+		var cc = rock.darkened(crng.randf_range(-0.04, 0.1))
+		b.box(Vector3(cx + cw * 0.5, ch * 0.5 - 2.0, cf + 60.0), Vector3(cw + 1.5, ch + 4.0, 120), cc, crng.randf_range(-3.0, 3.0))
+		for k in 3:  # katman çıkıntıları
+			var ly = ch * (0.25 + k * 0.25) + crng.randf_range(-3.0, 3.0)
+			b.box(Vector3(cx + cw * 0.5, ly, cf - 0.6), Vector3(cw + 1.0, 1.2, 2.0), cc.darkened(0.12), 0, false)
+		b.box(Vector3(cx + cw * 0.5, ch - 0.5, cf + 60.0), Vector3(cw + 2.0, 2.4, 121), Color(0.36, 0.55, 0.26), 0, false)  # çimen örtüsü
+		if crng.randf() < 0.6:
+			b.tree(cx + cw * 0.5 + crng.randf_range(-5, 5), cf + crng.randf_range(12, 60), crng.randf_range(1.2, 1.8), crng, ch)
+		cx += cw
+	var mx = -420.0
+	while mx < 420.0:  # arka dağ: düzensiz zirveler
+		var mw = crng.randf_range(40.0, 80.0)
+		var mh = crng.randf_range(95.0, 135.0) - maxf(0.0, absf(mx) - 250.0) * 0.3
+		b.box(Vector3(mx + mw * 0.5, mh * 0.5 - 5.0, 540.0 + crng.randf_range(-15.0, 15.0)), Vector3(mw + 6.0, mh, 90), rock.darkened(crng.randf_range(0.1, 0.22)), crng.randf_range(-6.0, 6.0))
+		b.box(Vector3(mx + mw * 0.5, mh - 4.0, 540.0), Vector3(mw * 0.7, 10.0, 70), rock.darkened(0.18), crng.randf_range(-8.0, 8.0), false, Vector3(0, 0, crng.randf_range(-12.0, 12.0)))
+		mx += mw
 	var faces = [-120.0, -60.0, 0.0, 60.0, 120.0]
 	for i in faces.size():
 		var fx: float = faces[i]
@@ -65,8 +85,8 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	b.cyl(Vector3(0, 16, tn), 46, 32, Color(0.92, 0.86, 0.72), true, 32)
 	b.cyl(Vector3(0, 33, tn), 50, 3, Color(0.72, 0.18, 0.15), true, 32)
 	b.cyl(Vector3(0, 40, tn), 34, 12, Color(0.92, 0.86, 0.72), true, 28)
-	b.cone(Vector3(0, 52, tn), 44, 9, Color(0.72, 0.18, 0.15), 28, true)
-	b.cyl(Vector3(0, 36.5, tn - 16.6), 9, 9, Color(0.72, 0.18, 0.15), false, 16)  # "火" plakası (daire)
+	b.cone(Vector3(0, 50.5, tn), 44, 9, Color(0.72, 0.18, 0.15), 28, true)
+	b.disc(Vector3(0, 36.5, tn - 17.0), 9, 0.6, Color(0.72, 0.18, 0.15))  # "火" plakası (daire)
 	b.box(Vector3(0, 36.5, tn - 17.4), Vector3(4.5, 5.5, 0.4), Color(0.95, 0.92, 0.85), 0, false)
 	b.box(Vector3(0, 3.5, tn - 23.2), Vector3(7, 7, 1), Color(0.35, 0.24, 0.16), 0, false)
 	for k in 8:  # pencereler
@@ -142,7 +162,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	b.box(Vector3(hpx, 12, hpn), Vector3(50, 24, 30), Color(0.96, 0.95, 0.92))
 	b.box(Vector3(hpx, 24.6, hpn), Vector3(52, 1.2, 32), Color(0.75, 0.25, 0.22))
 	b.box(Vector3(hpx + 30, 8, hpn), Vector3(14, 16, 22), Color(0.94, 0.93, 0.9))
-	b.cyl(Vector3(hpx, 20, hpn - 15.2), 6, 6, Color(0.75, 0.25, 0.22), false, 16)
+	b.disc(Vector3(hpx, 20, hpn - 15.2), 6, 0.4, Color(0.75, 0.25, 0.22))
 	b.box(Vector3(hpx, 20, hpn - 15.5), Vector3(1.2, 3.6, 0.3), Color(1, 1, 1), 0, false)
 	b.box(Vector3(hpx, 20, hpn - 15.5), Vector3(3.6, 1.2, 0.3), Color(1, 1, 1), 0, false)
 	b.interact(Vector3(hpx, 0, hpn - 18), 6, "hospital", "[F] Hastane: iyileş (ücretsiz)")
@@ -171,8 +191,8 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 		var rr = 50.0 if k % 2 == 0 else 32.0
 		var hxp = ux + rr * sin(deg_to_rad(a)); var hnp = un + rr * cos(deg_to_rad(a))
 		b.house(hxp, hnp, 11, 9, 1 + (k % 2), a + 180.0, "konoha", rng)
-		var fo = Builder.rot(0, -4.6, a + 180.0)
-		b.cyl(Vector3(hxp + fo.x, 5.2, hnp + fo.y), 1.8, 0.1, Color(0.8, 0.15, 0.15), false, 12)  # yelpaze arması
+		var fo = Builder.rot(2.4, -float(b.last_house.get("d", 9.0)) * 0.5 - 0.1, a + 180.0)
+		b.disc(Vector3(hxp + fo.x, 2.6, hnp + fo.y), 1.4, 0.12, Color(0.8, 0.15, 0.15), a + 180.0, 12)  # yelpaze arması
 	b.box(Vector3(ux, 3.5, un), Vector3(12, 7, 9), Color(0.55, 0.32, 0.22))  # Naka tapınağı
 	b.roof(Vector3(ux, 7, un), Vector3(15, 4, 12), Color(0.25, 0.25, 0.3))
 	b.box(Vector3(ux, 5, un - 12), Vector3(9, 0.8, 0.8), Color(0.8, 0.2, 0.15), 0, false)  # torii

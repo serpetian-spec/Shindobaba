@@ -13,6 +13,7 @@ var view_dist = 1400.0
 var interactables: Array = []
 var key := ""
 var placer = null  # HouseKit.Placer (Japon tarzı detaylı evler)
+var last_house := {}  # son yerleştirilen şablon ev (w, d, h, roof_top)
 
 static var roof_points := {}  # köy id -> [çatı tepe noktaları] (çatıdan çatıya koşan ninjalar için)
 
@@ -91,9 +92,15 @@ func sphere(p: Vector3, size: Vector3, col: Color, seg := 12, collide := false) 
 		_collide(wp, size * 0.75, 0.0)
 
 
+## Dikey disk (arma/plaka): ön yüzü yaw yönüne (yerel -n) bakar
+func disc(p: Vector3, d: float, thick: float, col: Color, yaw := 0.0, seg := 16) -> void:
+	var wp = w(p)
+	_mb(wp).add("cyl", wp, Vector3(d, thick, d), col, Vector3(90, -yaw, 0), seg)
+
+
 func dome(p: Vector3, d: float, h: float, col: Color, seg := 16) -> void:
 	var wp = w(p)
-	_mb(wp).add("hemi", wp + Vector3(0, h * 0.5, 0), Vector3(d, h * 2.0, d), col, Vector3.ZERO, seg)
+	_mb(wp).add("hemi", wp, Vector3(d, h * 2.0, d), col, Vector3.ZERO, seg)  # yarım küre tabanı y=0, tepe h
 
 
 ## Çatı: üçgen prizma (yaw ile döner). p: çatı tabanının merkezi
@@ -177,7 +184,7 @@ func house(x: float, n: float, wdt: float, dep: float, floors: int, yaw: float, 
 		wcol = Color(0.62, 0.47, 0.32).darkened(rng.randf_range(0, 0.2))
 	elif style == "snow":
 		rcol = Color(0.93, 0.95, 0.98)
-	placer.add(w(Vector3(x, 0, n)), yaw, wcol, rcol, rng)
+	last_house = placer.add(w(Vector3(x, 0, n)), yaw, wcol, rcol, rng)
 	return
 	var wc: Color = walls[rng.randi() % walls.size()]
 	if style == "wood":
@@ -224,6 +231,18 @@ func house(x: float, n: float, wdt: float, dep: float, floors: int, yaw: float, 
 		box(Vector3(x + bo.x, 4.2, n + bo.y), Vector3(wdt * 0.7, 0.2, 1.2), wc.darkened(0.15), yaw)
 
 
+## Yerel (x, n) çevresinde arazinin köy tabanına göre en düşük/en yüksek ofseti (duvarlar araziye otursun)
+func _ground_off(x: float, n: float, rad: float) -> Vector2:
+	var lo = 1e9
+	var hi = -1e9
+	for o in [Vector2.ZERO, Vector2(rad, 0), Vector2(-rad, 0), Vector2(0, rad), Vector2(0, -rad)]:
+		var wp = w(Vector3(x + o.x, 0, n + o.y))
+		var gh = Game.terrain_height(wp.x, wp.z) - origin.y
+		lo = minf(lo, gh)
+		hi = maxf(hi, gh)
+	return Vector2(lo, hi)
+
+
 ## Dairesel duvar halkası. gaps: [[açı, genişlik derece]]
 func wall_ring(r: float, h: float, thick: float, col: Color, gaps: Array, step := 4.0, top_col := Color(0.5, 0.2, 0.15)) -> void:
 	var a = 0.0
@@ -237,13 +256,15 @@ func wall_ring(r: float, h: float, thick: float, col: Color, gaps: Array, step :
 		if not skip:
 			var rad = deg_to_rad(mid)
 			var L = 2.0 * PI * r * step / 360.0 + 0.4
-			box(Vector3(r * sin(rad), h * 0.5, r * cos(rad)), Vector3(L, h, thick), col, mid)
-			box(Vector3(r * sin(rad), h + 0.4, r * cos(rad)), Vector3(L, 0.8, thick + 0.8), top_col, mid, false)
+			var g = _ground_off(r * sin(rad), r * cos(rad), L * 0.5)
+			var bot = minf(g.x, 0.0) - 2.0
+			var top = g.y + h
+			box(Vector3(r * sin(rad), (bot + top) * 0.5, r * cos(rad)), Vector3(L, top - bot, thick), col, mid)
+			box(Vector3(r * sin(rad), top + 0.4, r * cos(rad)), Vector3(L, 0.8, thick + 0.8), top_col, mid, false)
 		a += step
 
 
-func tree(x: float, n: float, s: float, rng: RandomNumberGenerator) -> void:
-	var y = 0.0
+func tree(x: float, n: float, s: float, rng: RandomNumberGenerator, y := 0.0) -> void:
 	cyl(Vector3(x, y + 2.6 * s, n), 0.7 * s, 5.2 * s, Color(0.42, 0.29, 0.18), true, 7)
 	var g = Color(0.28, 0.55, 0.22).lightened(rng.randf_range(-0.05, 0.08))
 	sphere(Vector3(x, y + 6.6 * s, n), Vector3(5.2, 4.0, 5.2) * s, g, 9)
@@ -269,7 +290,9 @@ func wall_ring_at(cx: float, cn: float, r: float, h: float, col: Color, gaps: Ar
 		if not skip:
 			var rad = deg_to_rad(mid)
 			var L = 2.0 * PI * r * step / 360.0 + 0.3
-			box(Vector3(cx + r * sin(rad), h * 0.5, cn + r * cos(rad)), Vector3(L, h, 1.0), col, mid)
+			var g = _ground_off(cx + r * sin(rad), cn + r * cos(rad), L * 0.5)
+			var bot = minf(g.x, 0.0) - 1.0
+			box(Vector3(cx + r * sin(rad), (bot + g.y + h) * 0.5, cn + r * cos(rad)), Vector3(L, g.y + h - bot, 1.0), col, mid)
 		a += step
 
 

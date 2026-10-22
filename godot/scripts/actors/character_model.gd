@@ -26,7 +26,6 @@ var body_mesh: MeshInstance3D
 var eyes_mesh: MeshInstance3D
 var brows_mesh: MeshInstance3D
 var eye_mat: ShaderMaterial
-var outfit := {}
 var overlay: PoseOverlay
 var current = ""
 var materials: Array[ShaderMaterial] = []
@@ -63,9 +62,8 @@ func setup(l: Dictionary) -> void:
 			elif c.name == "Eyebrows":
 				brows_mesh = c
 	inst.rotation.y = PI  # model +Z'ye bakıyor, biz -Z ileri kullanıyoruz
-	outfit = _outfit_for_look()
 	_paint_body()
-	_equip_outfit()
+	_cloth_details()
 	_attachments()
 	anim = AnimationPlayer.new()
 	anim.name = "Anim"
@@ -135,10 +133,14 @@ func anim_progress() -> float:
 	return anim.current_animation_position / maxf(0.01, anim.current_animation_length)
 
 
-# ------------------------------------------------------------------ boyama + kumaş katmanı
-## Bölge kodları: 0 ten, 10 omuz/üst kol, 11 göğüs, 12 bel, 13 ön kol, 14 bilek sargısı,
-## 20 kalça, 21 uyluk, 22 baldır, 23 baldır sargısı, 30 sandalet, 40 boyun
-static var _geo := {}      # cinsiyet -> {arrays, regions, adj, per, tex}
+# ------------------------------------------------------------------ kıyafet (vücuttan türetilen kumaş katmanları)
+## Bölge kodları: 0 ten, 10 omuz/üst kol, 11 göğüs, 12 bel, 13 ön kol, 14 bilek,
+## 20 kalça, 21 uyluk, 22 baldır, 23 baldır altı, 30 ayak, 40 boyun
+## Renk yuvaları (vertex COLOR.r = yuva * 0.1, toon shader palette_mode): 0 ten, 1 üst, 2 üst-vurgu, 3 alt, 4 sargı, 5 yelek
+const TOP_STYLES := {"tisort": "Kısa Kollu Tişört", "uzun": "Uzun Kollu Ninja Gömleği", "ceket": "Fermuarlı Ceket", "yakali": "Yüksek Yakalı Gömlek"}
+const PANTS_STYLES := {"ninja": "Ninja Pantolonu", "sort": "Diz Altı Şort", "sivil": "Uzun Pantolon"}
+
+static var _geo := {}       # cinsiyet -> {arrays, regions, weld, wadj, wnrm, per, tex}
 static var _body_cache := {}
 static var _shell_cache := {}
 
@@ -159,6 +161,7 @@ func _geo_for(gender: String) -> Dictionary:
 	for k in [Mesh.ARRAY_CUSTOM0, Mesh.ARRAY_CUSTOM1, Mesh.ARRAY_CUSTOM2, Mesh.ARRAY_CUSTOM3, Mesh.ARRAY_TEX_UV2]:
 		arr[k] = null
 	var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+	var nrm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
 	var bones = arr[Mesh.ARRAY_BONES]
 	var weights = arr[Mesh.ARRAY_WEIGHTS]
 	var per = 4
@@ -176,22 +179,46 @@ func _geo_for(gender: String) -> Dictionary:
 					best = w
 					bn = bind_names.get(bones[i * per + k], "")
 		regions[i] = _region_code(bn, v[i])
-	# komşuluk (pürüzsüzleştirme için)
-	var idx: PackedInt32Array = arr[Mesh.ARRAY_INDEX]
-	var adj: Array = []
-	adj.resize(v.size())
+	# UV dikişlerinde çoğaltılmış köşeleri birleştir (yumuşatmada çatlak olmasın)
+	var weld = PackedInt32Array()
+	weld.resize(v.size())
+	var uniq = {}
+	var wpos = PackedVector3Array()
+	var wnrm = PackedVector3Array()
 	for i in v.size():
-		adj[i] = PackedInt32Array()
+		var key = v[i].snapped(Vector3.ONE * 0.0001)
+		if not uniq.has(key):
+			uniq[key] = wpos.size()
+			wpos.append(v[i])
+			wnrm.append(Vector3.ZERO)
+		weld[i] = uniq[key]
+		wnrm[weld[i]] += nrm[i]
+	for i in wnrm.size():
+		wnrm[i] = wnrm[i].normalized()
+	var idx: PackedInt32Array = arr[Mesh.ARRAY_INDEX]
+	var sets: Array = []
+	sets.resize(wpos.size())
+	for i in wpos.size():
+		sets[i] = {}
 	for t in range(0, idx.size(), 3):
-		var a = idx[t]; var b = idx[t + 1]; var c = idx[t + 2]
-		adj[a].append(b); adj[a].append(c)
-		adj[b].append(a); adj[b].append(c)
-		adj[c].append(a); adj[c].append(b)
+		var a = weld[idx[t]]; var b = weld[idx[t + 1]]; var c = weld[idx[t + 2]]
+		sets[a][b] = 1; sets[a][c] = 1
+		sets[b][a] = 1; sets[b][c] = 1
+		sets[c][a] = 1; sets[c][b] = 1
+	var wadj: Array = []
+	wadj.resize(wpos.size())
+	for i in wpos.size():
+		wadj[i] = PackedInt32Array(sets[i].keys())
 	var src_tex = null
 	var src_mat = mesh.surface_get_material(0)
 	if src_mat is BaseMaterial3D:
 		src_tex = src_mat.albedo_texture
-	var g = {"arrays": arr, "regions": regions, "adj": adj, "per": per, "tex": src_tex}
+	var rest = PackedFloat32Array()
+	rest.resize(v.size() * 4)
+	for i in v.size():
+		rest[i * 4] = v[i].x; rest[i * 4 + 1] = v[i].y; rest[i * 4 + 2] = v[i].z
+	arr[Mesh.ARRAY_CUSTOM0] = rest
+	var g = {"arrays": arr, "regions": regions, "weld": weld, "wpos": wpos, "wadj": wadj, "wnrm": wnrm, "per": per, "tex": src_tex}
 	_geo[gender] = g
 	return g
 
@@ -224,107 +251,205 @@ static func _region_code(bn: String, p: Vector3) -> int:
 	return 12
 
 
-## Giyilen parçaların altında kalan vücut bölgeleri (görünmez yapılır, içinden vücut sızmasın)
-func _hidden_codes() -> Array:
-	var h = []
-	if outfit.get("body", "") != "":
-		h.append_array([10, 11, 12, 20])
-	if outfit.get("arms", "") != "":
-		h.append_array([10, 13, 14])
-	if outfit.get("legs", "") != "":
-		h.append_array([20, 21, 22])
-	if outfit.get("feet", "") != "":
-		h.append_array([22, 23, 30])
-	return h
+func top_style() -> String:
+	var s = look.get("top_style", "")
+	if TOP_STYLES.has(s):
+		return s
+	return "uzun" if look.get("sleeves", true) else "tisort"
 
 
-func _outfit_for_look() -> Dictionary:
+func pants_style() -> String:
+	var s = look.get("pants_style", "")
+	return s if PANTS_STYLES.has(s) else "ninja"
+
+
+## Kumaş kabuğu kalınlığı (0 = kabuk yok). Hangi kısmın görüneceğine shader karar verir.
+static func _shell_offset(code: int) -> float:
+	return {10: 0.014, 11: 0.02, 12: 0.024, 13: 0.014, 14: 0.01, 20: 0.03, 21: 0.038, 22: 0.022, 23: 0.012}.get(code, 0.0)
+
+
+func _palette() -> PackedColorArray:
 	var L = look
-	if L.has("outfit") and L["outfit"] is Dictionary:
-		return L["outfit"]
-	var o = {"body": "Peasant", "arms": "Peasant" if L["sleeves"] else "", "legs": "Peasant", "feet": "Peasant", "hood": false, "pauldron": false}
-	if L["vest"] != null:
-		o["body"] = "Ranger"
-		o["arms"] = "Peasant"  # yelek altı uzun kollu ninja tişörtü
-	if L.get("band_style", "") == "slashed" and L.get("mask", null) == null:
-		o["hood"] = randf() < 0.5
-	return o
+	var vest = L["vest"] if L["vest"] != null else L["top"]
+	return PackedColorArray([Color(L["skin"]), Color(L["top"]), Color(L["top2"]), Color(L["pants"]), Color(L["wraps"]), Color(vest), Color(L["sandal"]), Color(0.12, 0.1, 0.1)])
+
+
+func _surface_flags(g: Dictionary) -> int:
+	var f = Mesh.ARRAY_CUSTOM_RGBA_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM0_SHIFT
+	return f | (Mesh.ARRAY_FLAG_USE_8_BONE_WEIGHTS if g["per"] == 8 else 0)
+
+
+func _cloth_mat(layer: int) -> ShaderMaterial:
+	var g = _geo_for(look["gender"])
+	var mat = ShaderMaterial.new()
+	mat.shader = load("res://shaders/toon.gdshader")
+	mat.set_shader_parameter("rim_amount", 0.45)
+	mat.set_shader_parameter("spec_amount", 0.1 if layer == 0 else 0.0)
+	mat.set_shader_parameter("palette_mode", true)
+	mat.set_shader_parameter("pal", _palette())
+	mat.set_shader_parameter("layer", layer)
+	mat.set_shader_parameter("top_style", TOP_STYLES.keys().find(top_style()))
+	mat.set_shader_parameter("pants_style", PANTS_STYLES.keys().find(pants_style()))
+	var bp = func(n: String) -> Vector3: return skel.get_bone_global_rest(skel.find_bone(n)).origin
+	mat.set_shader_parameter("rig_a", Vector4(bp.call("LeftUpperArm").x, bp.call("LeftLowerArm").x, bp.call("LeftHand").x, bp.call("Neck").y))
+	mat.set_shader_parameter("rig_b", Vector4(bp.call("Hips").y, bp.call("LeftLowerLeg").y, bp.call("LeftFoot").y, bp.call("UpperChest").y))
+	if g["tex"]:
+		mat.set_shader_parameter("tex", g["tex"])
+	mat.set_shader_parameter("tint", Color(look["skin"]))
+	materials.append(mat)
+	return mat
 
 
 func _paint_body() -> void:
 	var g = _geo_for(look["gender"])
-	var hidden = _hidden_codes()
-	var key = "%s|%s" % [look["gender"], str(hidden)]
+	var key = look["gender"]
 	if not _body_cache.has(key):
-		var arr: Array = (g["arrays"] as Array).duplicate()
-		var regions: PackedInt32Array = g["regions"]
-		var cols = PackedColorArray()
-		cols.resize(regions.size())
-		for i in regions.size():
-			cols[i] = Color(1, 1, 1, 1.0 if regions[i] in hidden else 0.0)
-		arr[Mesh.ARRAY_COLOR] = cols
 		var m = ArrayMesh.new()
-		m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr, [], {}, Mesh.ARRAY_FLAG_USE_8_BONE_WEIGHTS if g["per"] == 8 else 0)
+		m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, g["arrays"], [], {}, _surface_flags(g))
 		_body_cache[key] = m
+		_shell_cache[key] = _build_shell(g, func(c): return _shell_offset(c), 22)
+		_shell_cache[key + "|vest"] = _build_shell(g, func(c): return {10: 0.035, 11: 0.055, 12: 0.058, 20: 0.05}.get(c, 0.0), 14)
 	body_mesh.mesh = _body_cache[key]
-	var mat = ShaderMaterial.new()
-	mat.shader = load("res://shaders/toon.gdshader")
-	mat.set_shader_parameter("rim_amount", 0.5)
-	mat.set_shader_parameter("spec_amount", 0.12)
-	mat.set_shader_parameter("cloth_mode", true)
-	mat.set_shader_parameter("hide_masked", true)
-	if g["tex"]:
-		mat.set_shader_parameter("tex", g["tex"])
-	mat.set_shader_parameter("tint", Color(look["skin"]))
-	body_mesh.set_surface_override_material(0, mat)
-	materials.append(mat)
+	body_mesh.set_surface_override_material(0, _cloth_mat(0))
+	_add_shell(_shell_cache[key], _cloth_mat(1))
+	if look["vest"] != null:
+		_add_shell(_shell_cache[key + "|vest"], _cloth_mat(2))
 
 
-## Quaternius modüler kıyafet parçalarını bizim iskelete giydirir, her parçayı kendi rengine boyar
-func _equip_outfit() -> void:
-	var gp = "Female" if look["gender"] == "f" else "Male"
-	var L = look
-	var parts = []
-	if outfit.get("body", "") != "":
-		parts.append(["%s_%s_Body" % [gp, outfit["body"]], L["vest"] if outfit["body"] == "Ranger" and L["vest"] != null else L["top"]])
-	if outfit.get("arms", "") != "":
-		parts.append(["%s_%s_Arms" % [gp, outfit["arms"]], L["top"]])
-	if outfit.get("legs", "") != "":
-		parts.append(["%s_%s_Legs" % [gp, outfit["legs"]], L["pants"]])
-	if outfit.get("feet", "") != "":
-		var fname = "%s_%s_Feet" % [gp, outfit["feet"]]
-		if gp == "Male" and outfit["feet"] == "Ranger":
-			fname = "Male_Ranger_Feet_Boots"
-		parts.append([fname, L["sandal"]])
-	if outfit.get("hood", false):
-		parts.append(["%s_Ranger_Head_Hood" % gp, Color(L["top"]).darkened(0.35)])
-	if outfit.get("pauldron", false):
-		parts.append(["Female_Ranger_Acc_Pauldrons" if gp == "Female" else "Male_Ranger_Acc_Pauldron", Color(0.45, 0.47, 0.5)])
-	for p in parts:
-		var path = "res://assets/outfits/%s.gltf" % p[0]
-		if not ResourceLoader.exists(path):
+func _add_shell(m: ArrayMesh, mat: ShaderMaterial) -> void:
+	if m == null:
+		return
+	var shell = MeshInstance3D.new()
+	shell.name = "Cloth"
+	shell.mesh = m
+	skel.add_child(shell)
+	shell.skin = body_mesh.skin
+	shell.skeleton = shell.get_path_to(skel)
+	shell.material_override = mat
+
+
+## Seçili bölgeleri kaslardan arındırıp (Taubin yumuşatma) normal yönünde şişirerek kumaş kabuğu üretir
+func _build_shell(g: Dictionary, offset_of: Callable, iters: int) -> ArrayMesh:
+	var arr: Array = (g["arrays"] as Array).duplicate(true)
+	var regions: PackedInt32Array = g["regions"]
+	var weld: PackedInt32Array = g["weld"]
+	var wadj: Array = g["wadj"]
+	var wnrm: PackedVector3Array = g["wnrm"]
+	var pos: PackedVector3Array = (g["wpos"] as PackedVector3Array).duplicate()
+	var n = pos.size()
+	var off = PackedFloat32Array()
+	off.resize(n)
+	var code_w = PackedInt32Array()
+	code_w.resize(n)
+	for i in regions.size():
+		var o: float = offset_of.call(regions[i])
+		off[weld[i]] = maxf(off[weld[i]], o)
+		code_w[weld[i]] = regions[i]
+	# sınır köşeleri (kumaşın bittiği yer) sabit kalır, iç kısım yumuşar
+	var movable = PackedByteArray()
+	movable.resize(n)
+	for i in n:
+		if off[i] <= 0.0:
 			continue
-		var inst = (load(path) as PackedScene).instantiate()
-		for mi in inst.find_children("*", "MeshInstance3D", true, false):
-			var src_mat = mi.mesh.surface_get_material(0)
-			mi.get_parent().remove_child(mi)
-			mi.owner = null
-			skel.add_child(mi)
-			mi.skeleton = mi.get_path_to(skel)
-			var m = ShaderMaterial.new()
-			m.shader = load("res://shaders/toon.gdshader")
-			m.set_shader_parameter("use_vertex_color", false)
-			m.set_shader_parameter("luma_tint", true)
-			var tint: Color = p[1]
-			if String(mi.name).contains("Belt"):
-				tint = Color(0.3, 0.22, 0.15)
-			m.set_shader_parameter("tint", tint)
-			m.set_shader_parameter("rim_amount", 0.4)
-			if src_mat is BaseMaterial3D and src_mat.albedo_texture:
-				m.set_shader_parameter("tex", src_mat.albedo_texture)
-			mi.material_override = m
-			materials.append(m)
-		inst.free()
+		var inner = 1
+		for j in wadj[i]:
+			if off[j] <= 0.0:
+				inner = 0
+				break
+		movable[i] = inner
+	# kalınlık alanını yay: kabuk kenarlarda vücuda yumuşakça otursun (çizgi/kırık kenar olmasın)
+	for it in 6:
+		var o2 = off.duplicate()
+		for i in n:
+			if off[i] <= 0.0:
+				continue
+			var nb: PackedInt32Array = wadj[i]
+			var s = off[i]
+			for j in nb:
+				s += off[j]
+			o2[i] = maxf(0.001, s / (nb.size() + 1))
+		off = o2
+	for it in iters * 2:
+		var lam = 0.55 if it % 2 == 0 else -0.58
+		var nxt = pos.duplicate()
+		for i in n:
+			if movable[i] == 0:
+				continue
+			var nb: PackedInt32Array = wadj[i]
+			var s = Vector3.ZERO
+			for j in nb:
+				s += pos[j]
+			nxt[i] = pos[i] + (s / nb.size() - pos[i]) * lam
+		pos = nxt
+	var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+	var keep_v = PackedByteArray()
+	keep_v.resize(v.size())
+	for i in v.size():
+		var w = weld[i]
+		if off[w] <= 0.0:
+			continue
+		keep_v[i] = 1
+		v[i] = pos[w] + wnrm[w] * off[w]
+	arr[Mesh.ARRAY_VERTEX] = v
+	var idx: PackedInt32Array = arr[Mesh.ARRAY_INDEX]
+	var keep = PackedInt32Array()
+	for t in range(0, idx.size(), 3):
+		if keep_v[idx[t]] == 1 and keep_v[idx[t + 1]] == 1 and keep_v[idx[t + 2]] == 1:
+			keep.append(idx[t]); keep.append(idx[t + 1]); keep.append(idx[t + 2])
+	if keep.is_empty():
+		return null
+	arr[Mesh.ARRAY_INDEX] = keep
+	var m = ArrayMesh.new()
+	m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr, [], {}, _surface_flags(g))
+	return m
+
+
+## Sandalet (açık burunlu taban + kayışlar), yaka, fermuar, bel bağı
+func _cloth_details() -> void:
+	var ts = top_style()
+	var sc: Color = look["sandal"]
+	for side in ["Left", "Right"]:
+		var fb = skel.find_bone(side + "Foot")
+		var tb = skel.find_bone(side + "Toes")
+		if fb < 0:
+			continue
+		var fp = skel.get_bone_global_rest(fb).origin
+		var tp = skel.get_bone_global_rest(tb).origin if tb >= 0 else fp + Vector3(0, -0.06, 0.12)
+		var fwd = Vector3(tp.x - fp.x, 0, tp.z - fp.z).normalized()
+		var yaw = atan2(fwd.x, fwd.z)
+		var s = MB.new()
+		var heel = Vector3(fp.x, 0.012, fp.z) - fwd * 0.06
+		var sole_len = (Vector2(tp.x, tp.z) - Vector2(heel.x, heel.z)).length() + 0.07
+		var mid = heel + fwd * sole_len * 0.5
+		var bs = Basis(Vector3.UP, yaw)
+		s.add_xf("box", Transform3D(bs * Basis.from_scale(Vector3(0.095, 0.022, sole_len)), mid), sc.darkened(0.25))
+		# üst kayışlar: ayak üstü + bilek arkası
+		s.add_xf("box", Transform3D(bs * Basis.from_scale(Vector3(0.1, 0.03, 0.045)), Vector3(fp.x, 0.055, fp.z) + fwd * 0.07), sc)
+		s.add_xf("box", Transform3D(bs * Basis.from_scale(Vector3(0.09, 0.075, 0.03)), Vector3(fp.x, 0.06, fp.z) - fwd * 0.055), sc)
+		_mesh_on(side + "Foot", s.build(Props.toon()), Transform3D.IDENTITY)
+	var neck = skel.find_bone("Neck")
+	if neck >= 0 and ts in ["yakali", "ceket"] and look["vest"] == null:
+		var np = skel.get_bone_global_rest(neck).origin
+		var c = MB.new()
+		var cc: Color = look["top"] if ts == "yakali" else look["top2"]
+		c.add("cyl", Vector3(0, 0.035, 0.0), Vector3(0.15, 0.12, 0.15), cc, Vector3.ZERO, 16)
+		if ts == "ceket":
+			c.add("box", Vector3(0, 0.03, 0.074), Vector3(0.012, 0.09, 0.006), Color(0.85, 0.85, 0.85))
+		_mesh_on("Neck", c.build(Props.toon()), Transform3D(Basis.IDENTITY, np))
+	if ts == "ceket" and look["vest"] == null:
+		var cb = skel.find_bone("UpperChest")
+		if cb >= 0:
+			var cp = skel.get_bone_global_rest(cb).origin
+			var z = MB.new()
+			z.add("box", Vector3(0, -0.12, 0.13), Vector3(0.012, 0.42, 0.01), Color(0.85, 0.85, 0.85), Vector3(-6, 0, 0))
+			_mesh_on("UpperChest", z.build(Props.toon()), Transform3D(Basis.IDENTITY, cp))
+	# bel bağı (pantolon kemeri)
+	var hb = skel.find_bone("Hips")
+	if hb >= 0:
+		var hp = skel.get_bone_global_rest(hb).origin
+		var w = MB.new()
+		w.add("cyl", Vector3(0, 0.07, 0.0), Vector3(0.33, 0.07, 0.24), Color(look["pants"]).darkened(0.3), Vector3.ZERO, 16)
+		_mesh_on("Hips", w.build(Props.toon()), Transform3D(Basis.IDENTITY, hp))
 
 
 # ------------------------------------------------------------------ eklentiler (saç, bant, göz, çanta)
@@ -356,9 +481,126 @@ func _head_center() -> Vector3:
 
 
 const HAIR_FILES := {
-	"diken": ["Hair_SimpleParted", true], "kısa": ["Hair_Buzzed", false], "uzun": ["Hair_Long", false],
-	"atkuyruğu": ["Hair_Buns", false], "kase": ["Hair_SimpleParted", false], "dağınık": ["Hair_SimpleParted", true],
+	"diken": "Hair_Buzzed", "kısa": "Hair_SimpleParted", "uzun": "Hair_Long",
+	"atkuyruğu": "Hair_Buzzed", "kase": "Hair_Buzzed", "dağınık": "Hair_Buzzed",
 }
+static var _scalp_cache := {}
+static var _hair_cache := {}
+
+
+## Saç tabanı modelinin sınırlarından kafa elipsoidini çıkarır (model uzayı)
+func _scalp(file: String, hn: Node) -> AABB:
+	if _scalp_cache.has(file):
+		return _scalp_cache[file]
+	var ab := AABB()
+	var first = true
+	for mi in hn.find_children("*", "MeshInstance3D", true, false):
+		var b: AABB = mi.get_aabb()
+		ab = b if first else ab.merge(b)
+		first = false
+	_scalp_cache[file] = ab
+	return ab
+
+
+## Anime saç tutamı: kökten uca incelen, kavisli, yassı baklava kesitli tüp
+static func _clump(st: SurfaceTool, root: Vector3, d: Vector3, grav: Vector3, length: float, width: float, flat := 0.45) -> void:
+	var segs = 5
+	var side = d.cross(Vector3.UP)
+	if side.length() < 0.1:
+		side = d.cross(Vector3.FORWARD)
+	side = side.normalized()
+	var rings = []
+	for k in segs + 1:
+		var t = float(k) / segs
+		var p = root + d * length * t + grav * length * t * t
+		var tan = (d + grav * 2.0 * t).normalized()
+		var sd = (side - tan * side.dot(tan)).normalized()
+		var up = tan.cross(sd).normalized()
+		var w = width * pow(1.0 - t, 0.85)
+		rings.append([p, sd * w, up * w * flat])
+	for k in segs:
+		var a = rings[k]; var b = rings[k + 1]
+		var ca = [a[0] + a[1], a[0] + a[2], a[0] - a[1], a[0] - a[2]]
+		var cb = [b[0] + b[1], b[0] + b[2], b[0] - b[1], b[0] - b[2]]
+		var shade_a = 0.55 + 0.45 * float(k) / segs
+		var shade_b = 0.55 + 0.45 * float(k + 1) / segs
+		for q in 4:
+			var q2 = (q + 1) % 4
+			for vv in [[ca[q], shade_a], [cb[q], shade_b], [cb[q2], shade_b], [ca[q], shade_a], [cb[q2], shade_b], [ca[q2], shade_a]]:
+				st.set_color(Color(vv[1], vv[1], vv[1]))
+				st.add_vertex(vv[0])
+
+
+## Saç stili tutamları (kafa elipsoidi: merkez c, yarıçap r; +Z yüz)
+static func _hair_clumps(style: String, c: Vector3, r: Vector3) -> ArrayMesh:
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var rng = RandomNumberGenerator.new()
+	rng.seed = hash(style)
+	var at = func(yaw_deg: float, pitch_deg: float) -> Array:
+		var yw = deg_to_rad(yaw_deg); var pt = deg_to_rad(pitch_deg)
+		var n = Vector3(sin(yw) * sin(pt), cos(pt), cos(yw) * sin(pt))
+		return [c + n * r * 0.92, n]
+	var bangs = func(count: int, spread: float, length: float, width: float) -> void:
+		for i in count:
+			var yw = lerpf(-spread, spread, (float(i) + 0.5) / count) + rng.randf_range(-5, 5)
+			var a = at.call(yw, 52.0 + rng.randf_range(-6, 6))
+			var d = (a[1] * 0.45 + Vector3(0, -0.7, 0.35)).normalized()
+			_clump(st, a[0], d, Vector3(0, -0.15, 0.1), length * rng.randf_range(0.85, 1.15), width)
+	match style:
+		"diken":
+			for ring in [[15.0, 4], [45.0, 8], [78.0, 10], [108.0, 8]]:
+				for i in ring[1]:
+					var yw = 360.0 * (float(i) + 0.5) / ring[1] + ring[0] * 1.7 + rng.randf_range(-8, 8)
+					var wy = wrapf(yw, -180.0, 180.0)
+					if ring[0] > 70.0 and absf(wy) < 55.0:
+						continue  # yüzün önü açık kalır
+					var a = at.call(yw, ring[0])
+					var d = (a[1] + Vector3(0, 0.05, -0.3)).normalized()
+					_clump(st, a[0], d, Vector3(0, -0.12, -0.08), rng.randf_range(0.11, 0.16), rng.randf_range(0.065, 0.08))
+			bangs.call(5, 50.0, 0.11, 0.045)
+		"dağınık":
+			for i in 14:
+				var yw = rng.randf_range(100, 260); var pt = rng.randf_range(20, 105)
+				var a = at.call(yw, pt)
+				var d = (a[1] + Vector3(0, 0.45, -0.5)).normalized()
+				_clump(st, a[0], d, Vector3(0, 0.1, -0.15), rng.randf_range(0.12, 0.18), 0.06)
+			for i in 9:
+				var a = at.call(rng.randf_range(-80, 80), rng.randf_range(15, 60))
+				_clump(st, a[0], (a[1] + Vector3(0, 0.1, 0.0)).normalized(), Vector3(0, -0.3, 0), 0.1, 0.06)
+			for sx in [-1.0, 1.0]:  # yüzü çerçeveleyen uzun perçemler
+				var a = at.call(62.0 * sx, 62.0)
+				_clump(st, a[0], Vector3(0.15 * sx, -1, 0.25).normalized(), Vector3(0, -0.1, 0.05), 0.2, 0.045)
+			bangs.call(3, 25.0, 0.12, 0.045)
+		"kase":
+			for ring in [[25.0, 10], [55.0, 16], [85.0, 20]]:
+				for i in ring[1]:
+					var yw = 360.0 * (float(i) + 0.5) / ring[1]
+					var a = at.call(yw, ring[0])
+					var front = absf(wrapf(yw, -180.0, 180.0)) < 70.0
+					if front and ring[0] > 70.0:
+						continue
+					var d = (a[1] * 0.35 + Vector3(0, -1, 0)).normalized()
+					var ln = 0.07 if front else 0.13
+					if ring[0] < 50.0:
+						ln = 0.14
+					_clump(st, a[0], d, a[1] * 0.08, ln, 0.07, 0.35)
+		"atkuyruğu":
+			var tie = c + Vector3(0, r.y * 0.55, -r.z * 0.95)
+			for i in 14:
+				var a = at.call(rng.randf_range(-150, 150), rng.randf_range(15, 95))
+				var to = (tie - a[0])
+				_clump(st, a[0], to.normalized(), Vector3.ZERO, to.length() * 1.05, 0.06, 0.3)
+			for i in 7:
+				var d = Vector3(rng.randf_range(-0.25, 0.25), -0.35, -1).normalized()
+				_clump(st, tie, d, Vector3(0, -0.9, 0.05), rng.randf_range(0.26, 0.36), 0.06)
+			bangs.call(4, 45.0, 0.1, 0.045)
+		"uzun":
+			bangs.call(5, 50.0, 0.12, 0.045)
+		"kısa":
+			bangs.call(3, 30.0, 0.07, 0.04)
+	st.generate_normals()
+	return st.commit()
 
 
 func _attachments() -> void:
@@ -389,8 +631,7 @@ func _attachments() -> void:
 	if brows_mesh:
 		brows_mesh.material_override = hair_mat
 	# --- saç modeli (model uzayında kafada konumlu) + anime dikenleri
-	var hf: Array = HAIR_FILES.get(look["hair_style"], HAIR_FILES["kase"])
-	var file: String = hf[0]
+	var file: String = HAIR_FILES.get(look["hair_style"], "Hair_SimpleParted")
 	if female and file == "Hair_Buzzed":
 		file = "Hair_BuzzedFemale"
 	var hs: PackedScene = load("res://assets/chars/hair/%s.gltf" % file)
@@ -400,11 +641,18 @@ func _attachments() -> void:
 		ba.get_child(0).add_child(hn)
 		for mi in hn.find_children("*", "MeshInstance3D", true, false):
 			mi.material_override = hair_mat
-	if hf[1]:
-		var b = MB.new()
-		_hair_mesh(b, look["hair_style"], 1.0)
-		var sp = _mesh_on("Head", b.build(hair_mat), Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * 0.82), hc + Vector3(0, -0.005, 0)))
-		sp.material_override = hair_mat
+		var hk = "%s|%s" % [look["hair_style"], file]
+		if not _hair_cache.has(hk):
+			var ab = _scalp(file, hn)
+			_hair_cache[hk] = _hair_clumps(look["hair_style"], ab.get_center() + Vector3(0, -ab.size.y * 0.12, 0), ab.size * 0.5)
+		var cm = ShaderMaterial.new()
+		cm.shader = load("res://shaders/toon.gdshader")
+		cm.set_shader_parameter("tint", hair_col)
+		cm.set_shader_parameter("rim_amount", 0.6)
+		cm.set_shader_parameter("spec_amount", 0.3)
+		materials.append(cm)
+		var cl = _mesh_on("Head", _hair_cache[hk], Transform3D.IDENTITY)
+		cl.material_override = cm
 	# --- alın koruyucu
 	if look["band"] != null and look["band_style"] != "none":
 		var band = MB.new()
@@ -413,7 +661,7 @@ func _attachments() -> void:
 			band.add("torus", Vector3.ZERO, Vector3(0.24, 0.24, 0.24), bc, Vector3.ZERO, 16)
 			_mesh_on("Neck", band.build(Props.toon()), Transform3D(Basis.IDENTITY, skel.get_bone_global_rest(skel.find_bone("Neck")).origin + Vector3(0, 0.03, 0)))
 		else:
-			band.add("cyl", Vector3.ZERO, Vector3(0.205, 0.04, 0.228), bc, Vector3.ZERO, 18)
+			band.add("cyl", Vector3.ZERO, Vector3(0.205, 0.075, 0.228), bc, Vector3.ZERO, 18)
 			band.add("box", Vector3(0, 0, 0.111), Vector3(0.088, 0.04, 0.01), Color(0.8, 0.82, 0.86))
 			band.add("box", Vector3(-0.012, -0.03, -0.12), Vector3(0.026, 0.11, 0.008), bc, Vector3(-25, 0, 8))
 			band.add("box", Vector3(0.012, -0.03, -0.12), Vector3(0.026, 0.11, 0.008), bc, Vector3(-25, 0, -10))
@@ -434,7 +682,7 @@ func _attachments() -> void:
 		v.add("torus", Vector3(0, 0.15, -0.005), Vector3(0.3, 0.3, 0.28), vc.darkened(0.1), Vector3.ZERO, 14)
 		for sx in [-1.0, 1.0]:
 			for k in 2:
-				v.add("box", Vector3(0.075 * sx, -0.06 - k * 0.09, 0.135), Vector3(0.07, 0.08, 0.035), vc.darkened(0.15))
+				v.add("box", Vector3(0.075 * sx, -0.08 - k * 0.09, 0.17), Vector3(0.075, 0.085, 0.04), vc.darkened(0.15))
 		_mesh_on("UpperChest", v.build(Props.toon()), Transform3D(Basis.IDENTITY, ch))
 	# --- çanta + kunai kılıfı
 	var hip = skel.get_bone_global_rest(skel.find_bone("Hips")).origin
@@ -465,41 +713,6 @@ func _attachments() -> void:
 		var m = MB.new()
 		m.add("box", Vector3.ZERO, Vector3(0.2, 0.09, 0.2), Color(0.15, 0.15, 0.2))
 		_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0, -0.075, 0.02)))
-
-
-func _hair_mesh(b: MB, style: String, _hs: float) -> void:
-	var c = Color.WHITE  # renk materyalden gelir
-	# taban: kafatasını saran kapak
-	b.add("hemi", Vector3(0, 0.03, -0.01), Vector3(0.235, 0.28, 0.255), c, Vector3.ZERO, 14)
-	b.add("sphere", Vector3(0, -0.02, -0.04), Vector3(0.23, 0.2, 0.22), c, Vector3.ZERO, 12)
-	match style:
-		"diken":
-			var spikes = [[0, 25, 0.14], [30, 40, 0.13], [-30, 40, 0.13], [70, 55, 0.12], [-70, 55, 0.12], [120, 60, 0.13],
-				[-120, 60, 0.13], [180, 55, 0.15], [150, 35, 0.12], [-150, 35, 0.12], [0, 70, 0.12], [90, 20, 0.1], [-90, 20, 0.1]]
-			for s in spikes:
-				var yaw = deg_to_rad(s[0]); var pitch = deg_to_rad(s[1])
-				var dir = Vector3(sin(yaw) * sin(pitch), cos(pitch), cos(yaw) * sin(pitch))
-				var basis = Basis(Quaternion(Vector3.UP, dir))
-				b.add_xf("cone", Transform3D(basis.scaled(Vector3(0.07, s[2], 0.07)), Vector3(0, 0.05, -0.01) + dir * 0.13), c, 6)
-			for sx in [-1.0, 1.0]:  # favoriler / perçem
-				b.add_xf("cone", Transform3D(Basis(Vector3.RIGHT, PI * 0.95).rotated(Vector3.FORWARD, 0.25 * sx).scaled(Vector3(0.05, 0.1, 0.04)), Vector3(0.1 * sx, -0.04, 0.07)), c, 5)
-			b.add_xf("cone", Transform3D(Basis(Vector3.RIGHT, PI * 0.8).scaled(Vector3(0.06, 0.09, 0.04)), Vector3(0.03, 0.08, 0.11)), c, 5)
-		"kısa":
-			b.add("sphere", Vector3(0, 0.07, 0.0), Vector3(0.25, 0.18, 0.27), c, Vector3.ZERO, 12)
-		"uzun":
-			b.add("box", Vector3(0, -0.2, -0.1), Vector3(0.24, 0.42, 0.08), c, Vector3(8, 0, 0))
-			for sx in [-1.0, 1.0]:
-				b.add("box", Vector3(0.11 * sx, -0.12, 0.02), Vector3(0.04, 0.3, 0.12), c)
-		"atkuyruğu":
-			b.add("sphere", Vector3(0, 0.1, -0.15), Vector3(0.08, 0.08, 0.08), c, Vector3.ZERO, 6)
-			b.add("cone", Vector3(0, 0.0, -0.22), Vector3(0.09, 0.28, 0.09), c, Vector3(-150, 0, 0), 6)
-		"kase":
-			b.add("cyl", Vector3(0, 0.02, 0.0), Vector3(0.265, 0.17, 0.275), c, Vector3.ZERO, 16)
-		"dağınık":
-			for i in 14:
-				var yaw = randf() * TAU; var pitch = randf_range(0.2, 1.3)
-				var dir = Vector3(sin(yaw) * sin(pitch), cos(pitch), cos(yaw) * sin(pitch))
-				b.add_xf("cone", Transform3D(Basis(Quaternion(Vector3.UP, dir)).scaled(Vector3(0.06, 0.09, 0.06)), Vector3(0, 0.05, -0.01) + dir * 0.12), c, 5)
 
 
 func _eye_texture(iris: Color, right: bool) -> ImageTexture:

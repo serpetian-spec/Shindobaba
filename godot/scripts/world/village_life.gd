@@ -8,6 +8,7 @@ var npcs: Array = []
 var current := ""
 var t := 0.0
 var street_cache := {}
+var queue: Array = []  # bekleyen doğumlar: her karede en fazla bir karakter modeli yaratılır (takılma olmasın)
 
 
 func _village_at(p: Vector3) -> Dictionary:
@@ -40,56 +41,81 @@ func _streets(v: Dictionary) -> Array:
 
 
 func _process(dt: float) -> void:
+	if Game.player == null or Game.paused:
+		return
+	if not queue.is_empty():
+		_spawn(queue.pop_front())
 	t -= dt
-	if t > 0.0 or Game.player == null or Game.paused:
+	if t > 0.0:
 		return
 	t = 0.8
 	var p = Game.player.global_position
 	var v = _village_at(p)
-	# uzaklaşanları temizle
+	# uzaklaşanları temizle (karede birkaç tane)
+	var freed = 0
 	for n in npcs.duplicate():
 		if not is_instance_valid(n):
 			npcs.erase(n)
-		elif n.global_position.distance_to(p) > 150.0 or v.is_empty():
+		elif (n.global_position.distance_to(p) > 150.0 or v.is_empty()) and freed < 6:
+			freed += 1
 			n.queue_free()
 			npcs.erase(n)
 	if v.is_empty():
 		current = ""
+		queue.clear()
 		return
 	var target = 55 if v["id"] == "konoha" else 26
 	var streets = _streets(v)
 	var roofs: Array = Builder.roof_points.get(v["id"], [])
-	var spawned = 0
-	while npcs.size() < target and spawned < 4:
-		spawned += 1
+	var planned = npcs.size() + queue.size()
+	var groups = 0
+	while planned < target and groups < 3:
+		groups += 1
 		var role = _pick_role()
 		var near: Array = streets.filter(func(q): return q.distance_to(p) < 120.0 and q.distance_to(p) > (35.0 if current == v["id"] else 4.0))
 		if near.is_empty():
 			break
 		var at: Vector3 = near.pick_random()
 		match role:
-			"animal":
-				var c = CatNPC.new()
-				c.ambient = true
-				c.is_dog = randf() < 0.5
-				add_child(c)
-				c.global_position = at
-				npcs.append(c)
 			"chat":
-				var a = _villager("chat", at, streets)
-				var b = _villager("chat", at + Vector3(1.4, 0, 0.3), streets)
-				a.buddy = b
-				b.buddy = a
+				queue.append(["chat2", at, streets])
+				planned += 2
 			"kid":
 				for k in randi_range(2, 4):
-					_villager("kid", at + Vector3(randf_range(-3, 3), 0, randf_range(-3, 3)), streets)
+					queue.append(["kid", at + Vector3(randf_range(-3, 3), 0, randf_range(-3, 3)), streets])
+					planned += 1
 			"roof":
 				var near_roofs: Array = roofs.filter(func(q): return q.distance_to(p) < 110.0)
 				if near_roofs.size() > 3:
-					_villager("roof", near_roofs.pick_random(), near_roofs)
+					queue.append(["roof", near_roofs.pick_random(), near_roofs])
+					planned += 1
 			_:
-				_villager(role, at, streets)
+				queue.append([role, at, streets])
+				planned += 1
 	current = v["id"]
+
+
+func _spawn(req: Array) -> void:
+	match req[0]:
+		"animal":
+			var c = CatNPC.new()
+			c.ambient = true
+			c.is_dog = randf() < 0.5
+			add_child(c)
+			c.global_position = req[1]
+			npcs.append(c)
+		"chat2":
+			# sohbet çifti: ikinci kişi bir sonraki karede gelir
+			var a = _villager("chat", req[1], req[2])
+			queue.push_front(["chat_b", req[1] + Vector3(1.4, 0, 0.3), req[2], a])
+		"chat_b":
+			var b = _villager("chat", req[1], req[2])
+			var a = req[3]
+			if is_instance_valid(a):
+				a.buddy = b
+				b.buddy = a
+		_:
+			_villager(req[0], req[1], req[2])
 
 
 func _pick_role() -> String:

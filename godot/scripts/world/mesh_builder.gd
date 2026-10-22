@@ -20,15 +20,18 @@ static func _prim_arrays(kind: String, seg: int = 8) -> Array:
 		"box":
 			m = BoxMesh.new()
 		"cyl":
-			var c := CylinderMesh.new(); c.radial_segments = seg; c.rings = 1; m = c
+			var c := CylinderMesh.new(); c.height = 1.0; c.radial_segments = seg; c.rings = 1; m = c
 		"cone":
-			var c := CylinderMesh.new(); c.top_radius = 0.0; c.radial_segments = seg; c.rings = 1; m = c
+			var c := CylinderMesh.new(); c.height = 1.0; c.top_radius = 0.0; c.radial_segments = seg; c.rings = 1; m = c
 		"sphere":
 			var s := SphereMesh.new(); s.radial_segments = seg; s.rings = maxi(3, seg / 2); s.radius = 0.5; s.height = 1.0; m = s
 		"hemi":
 			var s := SphereMesh.new(); s.radial_segments = seg; s.rings = maxi(3, seg / 2); s.radius = 0.5; s.height = 0.5; s.is_hemisphere = true; m = s
 		"prism":
 			m = PrismMesh.new()
+		"halfcyl":
+			_cache[key] = _halfcyl(seg)
+			return _cache[key]
 		"torus":
 			var t := TorusMesh.new(); t.inner_radius = 0.42; t.outer_radius = 0.5; t.rings = seg; t.ring_segments = 6; m = t
 	var a := m.get_mesh_arrays()
@@ -36,11 +39,44 @@ static func _prim_arrays(kind: String, seg: int = 8) -> Array:
 	return a
 
 
+## Yarım silindir (tonoz çatı): ekseni X, kesit YZ'de üst yarım daire. x -0.5..0.5, y 0..0.5, z -0.5..0.5, uç kapaklı
+static func _halfcyl(seg: int) -> Array:
+	var v = PackedVector3Array()
+	var n = PackedVector3Array()
+	var ii = PackedInt32Array()
+	for k in seg + 1:  # kavisli yüzey (yumuşak normaller)
+		var t = PI * float(k) / seg
+		var dir = Vector3(0, sin(t), cos(t))
+		v.append(Vector3(-0.5, 0, 0) + dir * 0.5)
+		v.append(Vector3(0.5, 0, 0) + dir * 0.5)
+		n.append(dir); n.append(dir)
+		if k > 0:
+			var a = (k - 1) * 2
+			ii.append_array([a, a + 2, a + 1, a + 1, a + 2, a + 3])
+	for sx in [-1.0, 1.0]:  # uç kapakları (yarım disk)
+		var c = v.size()
+		v.append(Vector3(0.5 * sx, 0, 0)); n.append(Vector3(sx, 0, 0))
+		for k in seg + 1:
+			var t = PI * float(k) / seg
+			v.append(Vector3(0.5 * sx, sin(t) * 0.5, cos(t) * 0.5)); n.append(Vector3(sx, 0, 0))
+			if k > 0:
+				if sx > 0:
+					ii.append_array([c, c + k, c + k + 1])
+				else:
+					ii.append_array([c, c + k + 1, c + k])
+	var a = []
+	a.resize(Mesh.ARRAY_MAX)
+	a[Mesh.ARRAY_VERTEX] = v
+	a[Mesh.ARRAY_NORMAL] = n
+	a[Mesh.ARRAY_INDEX] = ii
+	return a
+
+
 ## Primitif ekler. pos merkez, size ölçek (box: kenarlar, cyl/cone/sphere: çap x yükseklik x çap), rot derece (x,y,z)
 func add(kind: String, pos: Vector3, size: Vector3, col: Color, rot := Vector3.ZERO, seg := 8) -> void:
 	var a := _prim_arrays(kind, seg)
 	var b := Basis.from_euler(Vector3(deg_to_rad(rot.x), deg_to_rad(rot.y), deg_to_rad(rot.z)))
-	var xf := Transform3D(b.scaled(size), pos)
+	var xf := Transform3D(b * Basis.from_scale(size), pos)  # ölçek yerel eksenlerde (dönmüş kutular çarpılmasın)
 	add_arrays(a, xf, col)
 
 
@@ -48,7 +84,7 @@ func add(kind: String, pos: Vector3, size: Vector3, col: Color, rot := Vector3.Z
 func add_grad(kind: String, pos: Vector3, size: Vector3, top: Color, bottom: Color, rot := Vector3.ZERO, seg := 8) -> void:
 	var a := _prim_arrays(kind, seg)
 	var b := Basis.from_euler(Vector3(deg_to_rad(rot.x), deg_to_rad(rot.y), deg_to_rad(rot.z)))
-	var xf := Transform3D(b.scaled(size), pos)
+	var xf := Transform3D(b * Basis.from_scale(size), pos)  # ölçek yerel eksenlerde (dönmüş kutular çarpılmasın)
 	var base := verts.size()
 	var v: PackedVector3Array = a[Mesh.ARRAY_VERTEX]
 	var n: PackedVector3Array = a[Mesh.ARRAY_NORMAL]

@@ -34,6 +34,14 @@ func _ready() -> void:
 	world.name = "World"
 	add_child(world)
 	await world.build(func(v, label): _loading_progress(v, label))
+	# kıyafet kabuklarını yükleme ekranında hazırla (oyunda ilk NPC'de takılma olmasın)
+	_loading_progress(0.98, "Ninjalar giydiriliyor")
+	await get_tree().process_frame
+	for g in ["m", "f"]:
+		var cm = CharacterModel.new()
+		add_child(cm)
+		cm.setup({"gender": g, "vest": Color(0.38, 0.48, 0.28)})
+		cm.queue_free()
 	actors = Node3D.new()
 	actors.name = "Actors"
 	add_child(actors)
@@ -66,7 +74,7 @@ func _setup_input() -> void:
 	var keys = {
 		"forward": [KEY_W], "back": [KEY_S], "left": [KEY_A], "right": [KEY_D],
 		"jump": [KEY_CTRL, KEY_SPACE], "dash": [KEY_SHIFT], "substitute": [KEY_Q], "charge": [KEY_C],
-		"throw": [KEY_R], "tool_next": [KEY_T], "interact": [KEY_F], "lock": [KEY_TAB], "salve": [KEY_H], "pill": [KEY_Y],
+		"throw": [KEY_R], "tool_next": [KEY_T], "interact": [KEY_F], "lock": [KEY_E], "menu": [KEY_TAB], "salve": [KEY_H], "pill": [KEY_Y],
 		"slot1": [KEY_1], "slot2": [KEY_2], "slot3": [KEY_3], "slot4": [KEY_4],
 		"inventory": [KEY_I], "skills": [KEY_K], "map": [KEY_M], "pause": [KEY_ESCAPE], "dojutsu": [KEY_V],
 		"sage": [KEY_Z], "beast": [KEY_X], "gates": [KEY_B], "seal_mode": [KEY_G],
@@ -157,7 +165,8 @@ func back_to_menu() -> void:
 func start_creator(slot: int) -> void:
 	mode = "creator"
 	creator_state = {"slot": slot, "name": "", "gender": "m", "clan": "none", "element": "katon", "hair_style": "diken",
-		"hair": Color(0.3, 0.2, 0.12), "top": Color(0.15, 0.2, 0.33), "pants": Color(0.15, 0.15, 0.17),
+		"hair": Color(0.3, 0.2, 0.12), "top": Color(0.15, 0.2, 0.33), "top2": Color(0.15, 0.15, 0.17), "pants": Color(0.15, 0.15, 0.17),
+		"top_style": "ceket", "pants_style": "ninja",
 		"skin": Color(0.96, 0.8, 0.66), "eye": Color(0.25, 0.45, 0.8)}
 	_update_preview()
 	Menus.creator(self, creator_state, _update_preview, _start_new_game)
@@ -170,7 +179,7 @@ func _creator_look() -> Dictionary:
 		var e: Array = Data.clans[s["clan"]]["eye"]
 		eye = Color(e[0], e[1], e[2])
 	return {"gender": s["gender"], "hair_style": s["hair_style"], "hair": s["hair"], "top": s["top"],
-		"top2": Color(s["top"]).lightened(0.15), "pants": s["pants"], "skin": s["skin"], "eye": eye, "band": null, "age": "child"}
+		"top2": s.get("top2", Color(s["top"]).darkened(0.3)), "pants": s["pants"], "top_style": s.get("top_style", "ceket"), "pants_style": s.get("pants_style", "ninja"), "skin": s["skin"], "eye": eye, "band": null, "age": "child"}
 
 
 func _update_preview() -> void:
@@ -263,10 +272,12 @@ func _route(e: InputEvent) -> void:
 		return
 	if Game.ui_open and not Game.paused:
 		return
-	if e.is_action_pressed("inventory"):
-		_toggle_panel(func(): Menus.inventory(self))
+	if e.is_action_pressed("menu"):
+		_toggle_panel(func(): Menus.ninja_menu(self, "inv"))
+	elif e.is_action_pressed("inventory"):
+		_toggle_panel(func(): Menus.ninja_menu(self, "inv"))
 	elif e.is_action_pressed("skills"):
-		_toggle_panel(func(): Menus.jutsu_skills(self))
+		_toggle_panel(func(): Menus.ninja_menu(self, "jutsu"))
 	elif e.is_action_pressed("map"):
 		_toggle_panel(func(): Menus.world_map(self))
 	elif Game.paused:

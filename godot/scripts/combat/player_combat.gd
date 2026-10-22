@@ -2,7 +2,7 @@ class_name PlayerCombat
 extends Node
 ## Oyuncunun Storm tarzı dövüşü.
 ## Sol tık: kombo | Sağ tık (basılı): blok | Q: Kawarimi | C (basılı): chakra şarjı | R: kunai
-## Tab/orta tık: hedefe kilitlen | Kilitliyken Shift: chakra dash | 1-4: jutsu slotları
+## E/orta tık: hedefe kilitlen | Kilitliyken Shift: chakra dash | 1-4: jutsu slotları
 
 const COMBO := [
 	{"anim": "jab", "speed": 1.5, "hit": 0.10, "dur": 0.32, "dmg": 6.0, "reach": 1.3, "lunge": 4.0, "knock": 2.0},
