@@ -506,6 +506,10 @@ func interact(it: Dictionary) -> void:
 			Hud.dialog("Kaplıca", "Sıcak su tüm yorgunluğunu aldı. Tamamen iyileştin.", [])
 		"sage":
 			_sage_falls()
+		"contract_realm":
+			Contracts.realm_interact(it)
+		"contract_keeper":
+			Contracts.keeper_interact(it)
 		"valley":
 			Hud.dialog("Sonun Vadisi", "İki dev heykelin arasında nehir köpürüyor. Burada bir zamanlar büyük bir savaş olmuş... (Sv.35'te gizli bir uyanış seni bekliyor)", [])
 		"anbu":
@@ -671,15 +675,11 @@ func _sage_falls() -> void:
 	if int(pr["rank"]) >= 2 and int(pr["level"]) >= 12 and not "rasengan" in pr["learned"]:
 		opts.append({"label": "Rasengan eğitimi (3 aşama)", "cb": func(): RasenganTraining.start()})
 	if int(pr["rank"]) >= 2 and int(pr["level"]) >= 12 and not "kuchiyose" in pr["learned"]:
-		opts.append({"label": "Kurbağa sözleşmesini imzala", "cb": func():
-			pr["summon"] = "kurbağa"
-			if not "contract" in pr["skills"]:
-				pr["skills"].append("contract")
-			learn("kuchiyose")})
+		opts.append({"label": "Kurbağa sözleşmesini imzala", "cb": func(): Contracts.sign("kurbağa")})
 	if int(pr["rank"]) >= 2 and int(pr["level"]) >= 20 and not "sage" in pr["skills"]:
 		opts.append({"label": "Sennin eğitimi (doğa enerjisi meditasyonu)", "cb": func():
 			if Game.player and Game.player.combat and Game.player.combat.modes:
-				Game.player.combat.modes.start_sage_training()})
+				Game.player.combat.modes.start_sage_training("kurbağa")})
 	Hud.dialog("Yaşlı Kurbağa Bilge", "Doğanın enerjisini dinle genç... Sabırlı olanlar burada güç bulur." if opts.is_empty() else "Hazırsın. Ne öğrenmek istersin?", opts)
 
 

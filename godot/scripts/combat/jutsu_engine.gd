@@ -613,6 +613,11 @@ static func _genjutsu(c: Node3D, d: Dictionary, t: Node3D) -> void:
 
 static func _summon(c: Node3D, d: Dictionary) -> void:
 	var s = String(d.get("name_en", "")).to_lower()
+	# hayvan sözleşmesi çağırmaları (Kuchiyose ailesi) sözleşme sistemine gider
+	var jid = String(d.get("id", ""))
+	if String(d.get("category", "")) == "summoning" and (s.contains("summoning technique") or jid.begins_with("kuchiyose")) and not (jid.contains("edo") or jid.contains("gedo")):
+		Contracts.summon(c, d)
+		return
 	var kind = Game.profile.get("summon", "kurbağa") if c is Player else "kurbağa"
 	if s.contains("snake") or s.contains("serpent"):
 		kind = "yılan"

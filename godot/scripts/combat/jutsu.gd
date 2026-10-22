@@ -739,18 +739,15 @@ func j_kokuangyo(c: Node3D, _t: Node3D) -> void:
 
 
 func j_kuchiyose(c: Node3D, _t: Node3D) -> void:
-	var pos = _aim_ground(c, null, 6.0, 10.0)
-	pos.y = Game.ground_height(pos.x, pos.z)
-	FX.smoke_puff(pos + Vector3.UP * 3, 4.0, 40)
-	FX.burst(pos + Vector3.UP * 0.2, {"amount": 1, "life": 0.6, "size": 8.0, "vmin": 0, "vmax": 0, "colors": [Color(0.1, 0.1, 0.1, 0.8), Color(0, 0, 0, 0)]})
-	var s = Summon.new()
-	s.kind = Game.profile.get("summon", "kurbağa")
-	s.team = c.team
-	get_tree().current_scene.add_child(s)
-	s.global_position = pos
-	if Game.world:
-		Game.world.env.add_shake(1.2)
-	Sfx.play("boom", pos, 0.6)
+	Contracts.summon(c, Data.jutsu.get("kuchiyose", {"id": "kuchiyose"}))
+
+
+func j_zofuku_kuchiyose_no_jutsu(c: Node3D, _t: Node3D) -> void:
+	Contracts.summon(c, Data.jutsu.get("zofuku_kuchiyose_no_jutsu", {"id": "zofuku_kuchiyose_no_jutsu"}))
+
+
+func j_reverse_summoning_technique(c: Node3D, _t: Node3D) -> void:
+	Contracts.reverse_summon(c)
 
 
 # ================================================================== KLAN TEKNİKLERİ

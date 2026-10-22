@@ -24,6 +24,13 @@ var markers := {}
 var marker_t = 0.0
 var training = false
 var training_t = 0.0
+var sage_kind = ""          # aktif sennin modunun sözleşmesi (kurbağa/yılan/sümüklü)
+var train_contract = ""
+var train_energy = 0.0      # 0..1.2 doğa enerjisi (0.85-1.0 arası bırakınca denge)
+var stone_t = 0.0           # taşa dönüşme süresi
+var sage_marks := {}
+var sage_mark_t = 0.0
+var gather_t = -1.0
 var base_radius = 0.38
 var base_height = 1.8
 
@@ -220,46 +227,197 @@ func next_gate() -> void:
 	Sfx.play("roar", p.global_position, 1.6, 0.5)
 
 
-# ------------------------------------------------------------------ Sennin Modu (Z)
+# ------------------------------------------------------------------ Sennin Modu (Z): sözleşmeye özel
+const SAGE_FX := {
+	"kurbağa": {"mods": {"melee": 1.6, "jutsu": 1.5, "speed": 1.15, "armor": 0.8, "reach": 1.6}, "col": Color(1.0, 0.6, 0.15), "visual": 1,
+		"desc": "Kurbağa Kata: görünmez menzil, güçlü vuruşlar, chakra algısı"},
+	"yılan": {"mods": {"melee": 1.4, "jutsu": 1.35, "speed": 1.35, "armor": 0.7}, "col": Color(0.7, 0.4, 0.95), "visual": 2,
+		"desc": "Yılan hızı ve yenilenme, zehirli vuruşlar"},
+	"sümüklü": {"mods": {"melee": 1.3, "jutsu": 1.4, "armor": 0.6}, "col": Color(0.5, 0.95, 0.6), "visual": 3,
+		"desc": "Hızlı iyileşme, chakra yenilenmesi, dayanıklılık"},
+}
+
+
+func sage_contracts() -> Array:
+	Contracts.ensure()
+	var out = []
+	for id in Game.profile.get("contracts", {}):
+		if Game.profile["contracts"][id].get("sage", false):
+			out.append(id)
+	if out.is_empty() and "sage" in Game.profile.get("skills", []):
+		out.append("kurbağa")
+	return out
+
+
 func toggle_sage() -> void:
-	if not "sage" in Game.profile.get("skills", []):
-		Hud.msg("Sennin Modu için Gizli Şelale'de doğa enerjisi eğitimi gerekli (Sv.20, Chunin).", Color(0.9, 0.8, 0.5))
+	var list = sage_contracts()
+	if list.is_empty():
+		Hud.msg("Sennin Modu için bir sözleşme diyarında doğa enerjisi eğitimi gerekli (Kurbağa Dağı, Yılan Mağarası, Sümüklüböcek Ormanı).", Color(0.9, 0.8, 0.5))
 		return
 	if sage:
 		_end_sage()
 		return
-	if c.action != "":
+	if c.action != "" or gather_t >= 0.0:
 		return
-	# doğa enerjisini topla: kısa meditasyon
+	var a = Contracts.active()
+	sage_kind = a if a in list else list[0]
+	# doğa enerjisini topla: kıpırdamadan bekle (hareket edersen bozulur)
+	gather_t = 0.0
 	c.action = "cast"
 	c.t = -10.0
 	p.model.play("crouch", 0.15)
-	Hud.msg("Doğa enerjisini topluyorsun...", Color(1, 0.8, 0.4), 1.5)
-	get_tree().create_timer(1.4).timeout.connect(func():
-		c.action = ""
-		sage = true
-		sage_t = 45.0
-		Buffs.add("sage", 45.0, {"melee": 1.5, "jutsu": 1.5, "speed": 1.15, "armor": 0.8})
-		p.model.set_eye_color(Color(1.0, 0.65, 0.1))
-		_set_aura("sage", Color(1.0, 0.7, 0.2), 1.2)
-		Hud.banner("SENNIN MODU", "Doğa enerjisiyle bir oldun (45 sn)", Color(1, 0.75, 0.3))
-		Sfx.play("levelup", p.global_position, 0.7))
+	Hud.msg("Doğa enerjisini topluyorsun... kıpırdama!", SAGE_FX[sage_kind]["col"], 1.5)
+
+
+func _enter_sage() -> void:
+	gather_t = -1.0
+	c.action = ""
+	var fx: Dictionary = SAGE_FX.get(sage_kind, SAGE_FX["kurbağa"])
+	var m = Contracts.mastery(sage_kind)
+	sage = true
+	sage_t = 50.0 + clampf(m / 20.0, 0.0, 40.0)
+	Buffs.add("sage", sage_t, fx["mods"])
+	_set_aura("sage", fx["col"], 1.2)
+	if p.model.has_method("set_sage"):
+		p.model.set_sage(fx["visual"])
+	else:
+		p.model.set_eye_color(fx["col"])
+	Hud.banner(Contracts.DEFS.get(sage_kind, {}).get("sage_name", "SENNIN MODU").to_upper(), "%s (%d sn)" % [fx["desc"], int(sage_t)], fx["col"])
+	Sfx.play("levelup", p.global_position, 0.7)
+	FX.ring(p.global_position + Vector3.UP * 0.2, fx["col"], 6.0, 0.6)
 
 
 func _end_sage() -> void:
 	sage = false
 	Buffs.remove("sage")
 	_set_aura("sage", null)
+	if p.model.has_method("set_sage"):
+		p.model.set_sage(0)
 	var base_eye: Array = Data.clans.get(clan(), {}).get("eye", [0.25, 0.45, 0.8])
 	if not dojutsu:
 		p.model.set_eye_color(Color(base_eye[0], base_eye[1], base_eye[2]))
+	for k in sage_marks.keys():
+		if is_instance_valid(sage_marks[k]):
+			sage_marks[k].queue_free()
+	sage_marks.clear()
 	Hud.msg("Sennin Modu sona erdi.", Color(0.9, 0.8, 0.6))
 
 
-func start_sage_training() -> void:
+## Sözleşme diyarında eğitim: C basılı + kıpırdama; enerji %85-100 iken C'yi bırak = denge.
+## %100'ü aşarsa hayvanlaşıp taşa dönersin (kısa süre). 3 başarılı denge = o sözleşmenin Sennin Modu.
+func start_sage_training(contract := "kurbağa") -> void:
 	training = true
 	training_t = 0.0
-	Hud.banner("SENNİN EĞİTİMİ", "[C] basılı tut ve kıpırdama: doğa enerjisini hisset (12 sn)", Color(1, 0.75, 0.3))
+	train_contract = contract
+	train_energy = 0.0
+	Hud.banner("SENNİN EĞİTİMİ", "[C] basılı tut, kıpırdama. Enerji %85-100 arasındayken C'yi bırak! Aşarsan taşa dönersin.", Contracts.DEFS.get(contract, {}).get("color", Color(1, 0.75, 0.3)))
+
+
+func _train(dt: float) -> void:
+	if stone_t > 0.0:
+		stone_t -= dt
+		if stone_t <= 0.0:
+			p.model.visible = true
+			_stone_visual(false)
+			Hud.msg("Taşlaşma çözüldü... Bilge seni kurtardı. Tekrar dene.", Color(0.85, 0.85, 0.8))
+		return
+	var still = p.velocity.length() < 0.5
+	if Input.is_action_pressed("charge") and still:
+		train_energy += dt * 0.11
+		p.model.play("crouch", 0.2)
+		var bar = ""
+		for i in 20:
+			bar += "▮" if i < int(train_energy * 20.0 / 1.2) else "▯"
+		Hud.objective_progress("Doğa enerjisi: %d%%  %s  (%%85-100 arası bırak)" % [int(train_energy * 100.0), bar])
+		if train_energy > 1.0:
+			# fazla doğa enerjisi: hayvanlaşma ve taşa dönüşme
+			stone_t = 4.0
+			train_energy = 0.0
+			p.input_locked = maxf(p.input_locked, 4.0)
+			_stone_visual(true)
+			Hud.banner("TAŞA DÖNÜŞÜYORSUN!", "Fazla doğa enerjisi emdin", Color(0.6, 0.6, 0.58))
+			Sfx.play("earth", p.global_position, 0.6)
+	elif Input.is_action_just_released("charge") and train_energy > 0.05:
+		var cs: Dictionary = Game.profile["contracts"].get(train_contract, {})
+		if train_energy >= 0.85:
+			cs["sage_trials"] = int(cs.get("sage_trials", 0)) + 1
+			Hud.msg("Denge sağlandı! (%d/3)" % cs["sage_trials"], Color(0.6, 1, 0.6))
+			FX.ring(p.global_position + Vector3.UP * 0.2, Color(1, 0.8, 0.3), 4.0, 0.5)
+			Sfx.play("seal", p.global_position, 1.2)
+			if int(cs["sage_trials"]) >= 3:
+				training = false
+				cs["sage"] = true
+				if not "sage" in Game.profile["skills"]:
+					Game.profile["skills"].append("sage")
+				if Data.jutsu.has("sennin_modo") and not "sennin_modo" in Game.profile["learned"]:
+					Progress.learn("sennin_modo", false)
+				Hud.banner(Contracts.DEFS[train_contract]["sage_name"].to_upper() + " AÇILDI", "[Z] ile doğa enerjisini kullan. Bilgeden sennin sanatlarını öğren.", Color(1, 0.75, 0.3))
+				Sfx.play("levelup")
+				Game.save_game()
+		else:
+			Hud.msg("Yetersiz doğa enerjisi (%d%%). Tekrar dene." % int(train_energy * 100.0), Color(0.9, 0.8, 0.6))
+		train_energy = 0.0
+	elif not still:
+		train_energy = maxf(0.0, train_energy - dt * 0.4)
+
+
+func _stone_visual(on: bool) -> void:
+	var m = StandardMaterial3D.new()
+	m.albedo_color = Color(0.55, 0.55, 0.52)
+	m.roughness = 1.0
+	for mi in p.model.find_children("*", "MeshInstance3D", true, false):
+		if on:
+			mi.set_meta("pre_stone", mi.material_override)
+			mi.material_override = m
+		elif mi.has_meta("pre_stone"):
+			mi.material_override = mi.get_meta("pre_stone")
+			mi.remove_meta("pre_stone")
+	if on:
+		p.model.anim.pause()
+	else:
+		p.model.anim.play()
+
+
+func _sage_tick(dt: float) -> void:
+	if gather_t >= 0.0:
+		if p.velocity.length() > 1.0:
+			gather_t = -1.0
+			c.action = ""
+			Hud.msg("Kıpırdadın, doğa enerjisi dağıldı!", Color(1, 0.6, 0.4))
+			return
+		gather_t += dt
+		var need = maxf(0.6, 1.6 - Contracts.mastery(sage_kind) / 400.0)
+		if gather_t >= need:
+			_enter_sage()
+		return
+	if not sage:
+		return
+	sage_t -= dt
+	p.chakra = minf(p.max_chakra, p.chakra + (14.0 if sage_kind == "sümüklü" else 6.0) * dt)
+	if sage_kind == "yılan":
+		p.hp = minf(p.max_hp, p.hp + 6.0 * dt)
+	elif sage_kind == "sümüklü":
+		p.hp = minf(p.max_hp, p.hp + 12.0 * dt)
+	elif sage_kind == "kurbağa":
+		# chakra algısı: yakındaki düşmanları işaretle
+		sage_mark_t -= dt
+		if sage_mark_t <= 0.0:
+			sage_mark_t = 0.6
+			for f in get_tree().get_nodes_in_group("fighters"):
+				if Combat.hostile(p, f) and not f.is_dead() and f.global_position.distance_to(p.global_position) < 80.0 and not sage_marks.has(f.get_instance_id()):
+					var l = Label3D.new()
+					l.text = "◈"
+					l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+					l.no_depth_test = true
+					l.fixed_size = true
+					l.pixel_size = 0.002
+					l.font_size = 44
+					l.modulate = Color(1.0, 0.6, 0.15, 0.9)
+					f.add_child(l)
+					l.position = Vector3(0, f.height * 0.6, 0)
+					sage_marks[f.get_instance_id()] = l
+	if sage_t <= 0.0:
+		_end_sage()
 
 
 # ------------------------------------------------------------------ Kuyruklu Canavar (X)
@@ -374,11 +532,7 @@ func _process(dt: float) -> void:
 			Buffs.remove("gates")
 			_set_aura("gates", null)
 			Hud.msg("Bedenin dayanamıyor! Kapılar kapandı.", Color(1, 0.5, 0.4))
-	if sage:
-		sage_t -= dt
-		p.chakra = minf(p.max_chakra, p.chakra + 6.0 * dt)
-		if sage_t <= 0.0:
-			_end_sage()
+	_sage_tick(dt)
 	if beast:
 		beast_t -= dt
 		if beast_t <= 0.0:
@@ -389,16 +543,4 @@ func _process(dt: float) -> void:
 			FX.smoke_puff(p.global_position + Vector3.UP * 2.0, 2.0, 20)
 			set_size(1.0, 0.0)
 	if training:
-		if Input.is_action_pressed("charge") and p.velocity.length() < 0.5:
-			training_t += dt
-			p.model.play("crouch", 0.2)
-			Hud.objective_progress("Doğa enerjisi: %d%%" % int(training_t / 12.0 * 100.0))
-			if training_t >= 12.0:
-				training = false
-				if not "sage" in Game.profile["skills"]:
-					Game.profile["skills"].append("sage")
-				Hud.banner("SENNİN MODU AÇILDI", "[Z] ile doğa enerjisini kullan", Color(1, 0.75, 0.3))
-				Sfx.play("levelup")
-				Game.save_game()
-		else:
-			training_t = maxf(0.0, training_t - dt * 3.0)
+		_train(dt)

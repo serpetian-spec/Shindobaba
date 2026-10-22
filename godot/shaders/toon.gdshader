@@ -38,6 +38,8 @@ uniform bool luma_tint = false;    // saç: doku parlaklığı x tint
 uniform bool eye_mode = false;     // göz: iris tint, beyaz korunur
 uniform vec4 eye_color : source_color = vec4(0.3, 0.5, 0.9, 1.0);
 uniform int dojutsu = 0;      // 0 yok, 1 sharingan, 2 byakugan, 3 ketsuryugan, 4 mangekyo
+uniform int sage_eyes = 0;    // sennin modu gözü: 1 kurbağa (yatay göz bebeği), 2 yılan (dikey yarık), 3 sümüklü
+uniform int sage_marks = 0;   // sennin yüz izleri: 1 turuncu pigment, 2 mor yılan çizgileri, 3 yeşil çizgiler
 uniform int tomoe = 3;
 uniform int dojutsu_l = 0;    // sol göz (model +X)
 uniform int tomoe_l = 3;
@@ -147,6 +149,17 @@ void fragment() {
 		float sclera = smoothstep(0.55, 0.75, l);
 		c = vec4(mix(eye_color.rgb * (0.5 + l * 1.2), tx.rgb, sclera), 1.0);
 		int dk = eye_side > 0.0 ? dojutsu_l : dojutsu;
+		if (sage_eyes > 0 && dk == 0) {
+			vec2 sq = (UV - vec2(0.5)) / iris_r;
+			float sr = length(sq);
+			if (sr < 1.0) {
+				vec3 scol = sage_eyes == 2 ? vec3(0.95, 0.8, 0.15) : (sage_eyes == 3 ? vec3(0.75, 0.95, 0.55) : vec3(1.0, 0.78, 0.15));
+				scol = mix(scol, scol * 0.6, smoothstep(0.55, 1.0, sr));
+				bool pupil = sage_eyes == 1 ? (abs(sq.y) < 0.16 && abs(sq.x) < 0.62) : (sage_eyes == 2 ? (abs(sq.x) < 0.12 && abs(sq.y) < 0.75) : sr < 0.22);
+				if (pupil) scol = vec3(0.03);
+				c = vec4(mix(scol, c.rgb, smoothstep(0.92, 1.0, sr) * 0.5), 1.0);
+			}
+		}
 		int tm = eye_side > 0.0 ? tomoe_l : tomoe;
 		if (dk > 0) {
 			vec2 q = (UV - vec2(0.5)) / iris_r;
@@ -209,6 +222,13 @@ void fragment() {
 			if (vest_style == 3 && rest.x < -0.05 && rest.y > rig_b.w - 0.04) discard;
 			slot = 5;
 		} else if (layer == 1 && slot == 0) discard;
+		if (slot == 0 && sage_marks > 0 && rest.y > face_ref.y - 0.07 && rest.y < face_ref.y + 0.05 && rest.z > face_ref.z - 0.05) {
+			float ax = abs(rest.x);
+			vec2 e = vec2((ax - 0.034) / 0.034, (rest.y - (face_ref.y - 0.003)) / 0.024);
+			if (sage_marks == 1 && length(e) < 1.0 && length(e) > 0.55) c.rgb = mix(c.rgb, vec3(0.95, 0.4, 0.08), 0.85);  // göz çevresi turuncu pigment
+			if (sage_marks == 2 && ax > 0.045 && ax < 0.075 && abs(rest.y - (face_ref.y - 0.012) + (ax - 0.045) * 0.9) < 0.004) c.rgb = vec3(0.45, 0.15, 0.55);  // mor yılan izi
+			if (sage_marks == 3 && ax > 0.03 && ax < 0.06 && rest.y < face_ref.y - 0.02 && abs(fract(ax * 90.0) - 0.5) < 0.12) c.rgb = mix(c.rgb, vec3(0.35, 0.75, 0.4), 0.8);  // yeşil çizgiler
+		}
 		if (slot == 0 && byakugan_veins > 0.0 && rest.y > face_ref.y - 0.05 && rest.y < face_ref.y + 0.06) {
 			float ax = abs(rest.x);
 			float v = abs(sin((rest.y - face_ref.y) * 180.0 + ax * 90.0));
