@@ -8,25 +8,123 @@ static func clan_bonus(p: Dictionary, key: String) -> float:
 	return float(Data.clans.get(p.get("clan", "none"), {}).get("bonus", {}).get(key, 0.0))
 
 
+# ------------------------------------------------------------------ yetenek ağacı (data/skills.json)
+## Öğrenilen düğümlerin bir etkisinin toplamı (ör. "melee", "seal_speed", "leap")
+static func skill(p: Dictionary, key: String) -> float:
+	var nodes: Dictionary = Data.skills.get("nodes", {})
+	var v = 0.0
+	for sid in p.get("skills", []):
+		var n = nodes.get(sid)
+		if n != null:
+			v += float(n["fx"].get(key, 0.0))
+	return v
+
+
+## Öğrenilen düğümler bu bayrağı açıyor mu (ör. "genjutsu", "gentle_fist", "elem2")
+static func has_unlock(p: Dictionary, flag: String) -> bool:
+	if flag in p.get("skills", []):
+		return true
+	var nodes: Dictionary = Data.skills.get("nodes", {})
+	for sid in p.get("skills", []):
+		var n = nodes.get(sid)
+		if n != null and flag in n.get("unlock", []):
+			return true
+	return false
+
+
+## Element bonusu: el_main (ana doğa), el_all, el_<doğa>
+static func element_bonus(p: Dictionary, el: String) -> float:
+	if el == "":
+		return 0.0
+	var v = skill(p, "el_all") + skill(p, "el_" + el)
+	var els: Array = p.get("elements", [])
+	if not els.is_empty() and els[0] == el:
+		v += skill(p, "el_main")
+	return v
+
+
+## Silah stili bonusu (w_<stil> + w_all)
+static func weapon_bonus(p: Dictionary, style: String) -> float:
+	return skill(p, "w_all") + skill(p, "w_" + style)
+
+
+## Düğüm öğrenilebilir mi? "" = evet, değilse Türkçe sebep
+static func skill_block(p: Dictionary, sid: String) -> String:
+	var n = Data.skills.get("nodes", {}).get(sid)
+	if n == null:
+		return "Bilinmeyen yetenek"
+	if sid in p.get("skills", []):
+		return "Zaten öğrenildi"
+	if int(p.get("level", 1)) < int(n["level"]):
+		return "Seviye %d gerekli" % int(n["level"])
+	if int(p.get("sp", 0)) < int(n["cost"]):
+		return "%d yetenek puanı gerekli" % int(n["cost"])
+	for r in n["req"]:
+		if not r in p.get("skills", []):
+			return "Önce: %s" % Data.skills["nodes"].get(r, {}).get("name", r)
+	var need: Dictionary = n.get("need", {})
+	if need.get("clanless", false) and String(p.get("clan", "none")) != "none":
+		return "Yalnızca klansız ninjalar"
+	if need.has("rank") and int(p.get("rank", 0)) < int(need["rank"]):
+		return "%s rütbesi gerekli" % Data.RANKS[mini(int(need["rank"]), Data.RANKS.size() - 1)]
+	if need.get("eye", false) and p.get("look", {}).get("eye_r") == null and p.get("look", {}).get("eye_l") == null:
+		return "Bir dōjutsu gözü gerekli"
+	if need.has("clan_any") and not String(p.get("clan", "")) in need["clan_any"]:
+		var ek = int(need.get("or_eye", 0))
+		var has_eye = false
+		for k in ["eye_r", "eye_l"]:
+			var e = p.get("look", {}).get(k)
+			if e != null and int(e.get("kind", 0)) == ek:
+				has_eye = true
+		if not has_eye:
+			return "Klan şartı: %s" % ", ".join(need["clan_any"])
+	if need.get("kg", false) and p.get("natures", []).is_empty() and not Data.clans.get(String(p.get("clan", "")), {}).has("kg_natures"):
+		return "Bir kekkei genkai gerekli"
+	return ""
+
+
+## Öğren: puanı düşer, etkileri uygular. elem2/elem3 için doğa seçimi çağıranın işidir.
+static func learn_skill(p: Dictionary, sid: String) -> bool:
+	if skill_block(p, sid) != "":
+		return false
+	p["sp"] = int(p["sp"]) - int(Data.skills["nodes"][sid]["cost"])
+	p["skills"].append(sid)
+	return true
+
+
+## Sıfırlama: ağaç düğümlerinin puanı geri verilir (sennin, jinchūriki gibi hikâye bayrakları kalır)
+static func respec(p: Dictionary) -> int:
+	var nodes: Dictionary = Data.skills.get("nodes", {})
+	var back = 0
+	var keep = []
+	for sid in p.get("skills", []):
+		if nodes.has(sid) and not sid in ["elem2", "elem3", "genjutsu"]:
+			back += int(nodes[sid]["cost"])
+		else:
+			keep.append(sid)
+	p["skills"] = keep
+	p["sp"] = int(p.get("sp", 0)) + back
+	return back
+
+
+## Dükkân fiyatı (Pazarlıkçı, Tüccar Dostu, Diplomat): en fazla %35 indirim
+static func price(base: int) -> int:
+	return int(round(base * clampf(1.0 + skill(Game.profile, "shop"), 0.65, 1.0)))
+
+
 static func max_hp(p: Dictionary) -> float:
 	var v = 100.0 + (int(p.get("level", 1)) - 1) * 14.0
-	if "vit1" in p.get("skills", []):
-		v += 40.0
-	return v + Gear.stat(p, "hp") + clan_bonus(p, "hp")
+	return v + Gear.stat(p, "hp") + clan_bonus(p, "hp") + skill(p, "hp")
 
 
 static func max_chakra(p: Dictionary) -> float:
 	var v = 80.0 + (int(p.get("level", 1)) - 1) * 10.0
-	if "nin2" in p.get("skills", []):
-		v += 50.0
-	return v + Gear.stat(p, "chakra") + clan_bonus(p, "chakra")
+	return v + Gear.stat(p, "chakra") + clan_bonus(p, "chakra") + skill(p, "chakra")
 
 
 static func melee_mult(p: Dictionary) -> float:
 	var m = 1.0 + (int(p.get("level", 1)) - 1) * 0.04
-	var s: Array = p.get("skills", [])
-	if "tai1" in s: m += 0.2
-	if "tai4" in s: m += 0.3
+	m += skill(p, "melee")
 	m += clan_bonus(p, "melee")
 	m *= Buffs.mod("melee") * (1.0 + Gear.stat(p, "melee"))
 	return m
@@ -34,7 +132,7 @@ static func melee_mult(p: Dictionary) -> float:
 
 static func jutsu_mult(p: Dictionary) -> float:
 	var m = 1.0 + (int(p.get("level", 1)) - 1) * 0.05
-	if "nin4" in p.get("skills", []): m += 0.3
+	m += skill(p, "jutsu")
 	m += clan_bonus(p, "jutsu")
 	m *= Buffs.mod("jutsu")
 	return m

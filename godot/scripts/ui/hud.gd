@@ -773,7 +773,7 @@ func shop(title: String, items: Array) -> void:
 				locked = true
 				lock_text = "Bunu zaten biliyorsun."
 		var iid = id
-		entries.append({"id": id, "name": it["name"], "price": int(it["price"]), "desc": it.get("desc", ""), "stats": "",
+		entries.append({"id": id, "name": it["name"], "price": Stats.price(int(it["price"])), "desc": it.get("desc", ""), "stats": "",
 			"locked": locked, "lock_text": lock_text, "owned": int(Game.profile["inventory"].get(id, 0)), "rarity": 1 if it.get("kind", "") == "scroll" else 0,
 			"view": func(): return Thumbs.item_view(iid, 96)})
 	Menus.shop_screen(title, entries, func(id): _buy(id, title, items))
@@ -794,15 +794,15 @@ func gear_shop(title: String, ids: Array) -> void:
 				have += 1
 		var locked = int(it.get("rank", 0)) > int(pr["rank"])
 		var gid = id
-		entries.append({"id": id, "name": it["name"], "price": int(it.get("price", 0)), "desc": it.get("desc", ""), "stats": Gear.stats_text(id),
+		entries.append({"id": id, "name": it["name"], "price": Stats.price(int(it.get("price", 0))), "desc": it.get("desc", ""), "stats": Gear.stats_text(id),
 			"locked": locked, "lock_text": "%s rütbesi gerekir" % Data.RANKS[int(it.get("rank", 0))], "owned": have, "rarity": UI.rarity_of_gear(id),
 			"view": func(): return Thumbs.gear_view(gid, 96)})
 	Menus.shop_screen(title, entries, func(id):
 		var it = Gear.item(id)
-		if int(pr["ryo"]) < int(it["price"]):
+		if int(pr["ryo"]) < Stats.price(int(it["price"])):
 			msg("Yeterli Ryō yok!", Color(1, 0.5, 0.4))
 		else:
-			Progress.add_ryo(-int(it["price"]))
+			Progress.add_ryo(-Stats.price(int(it["price"])))
 			Gear.grant(pr, id)
 			Sfx.play("coin")
 			msg("%s alındı! Giymek için: Tab > Ekipman" % it["name"], Color(0.6, 1, 0.6))
@@ -811,7 +811,7 @@ func gear_shop(title: String, ids: Array) -> void:
 
 func _buy(id: String, title: String, items: Array) -> void:
 	var it: Dictionary = Data.items[id]
-	if int(Game.profile["ryo"]) < int(it["price"]):
+	if int(Game.profile["ryo"]) < Stats.price(int(it["price"])):
 		msg("Yeterli Ryō yok!", Color(1, 0.5, 0.4))
 	else:
 		if it["kind"] == "scroll":
@@ -829,10 +829,10 @@ func _buy(id: String, title: String, items: Array) -> void:
 				msg("Bunu zaten biliyorsun.", Color(1, 0.8, 0.5))
 				shop(title, items)
 				return
-			Progress.add_ryo(-int(it["price"]))
+			Progress.add_ryo(-Stats.price(int(it["price"])))
 			Progress.learn(jid)
 		else:
-			Progress.add_ryo(-int(it["price"]))
+			Progress.add_ryo(-Stats.price(int(it["price"])))
 			var n = 5 if id in ["kunai", "shuriken"] else 1
 			Game.profile["inventory"][id] = int(Game.profile["inventory"].get(id, 0)) + n
 			Sfx.play("coin")

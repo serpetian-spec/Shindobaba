@@ -265,7 +265,7 @@ const STYLE_COMBOS := {
 func _combo(i: int) -> Dictionary:
 	var c: Dictionary = COMBO[clampi(i, 0, COMBO.size() - 1)].duplicate()
 	var w = Gear.weapon(Game.profile)
-	c["dmg"] = float(c["dmg"]) * float(w["dmg"])
+	c["dmg"] = float(c["dmg"]) * float(w["dmg"]) * (1.0 + Stats.weapon_bonus(Game.profile, String(w.get("style", "fist"))))
 	c["reach"] = float(c["reach"]) + float(w["reach"])
 	var st: Dictionary = STYLE_COMBOS.get(w["style"], {})
 	if st.is_empty():
@@ -458,6 +458,8 @@ func throw_tool() -> void:
 	p.model.play("throw", 0.05, 1.8, true)
 	Sfx.play("kunai", start)
 	var n = 3 if tool == "shuriken" else 1
+	if Stats.has_unlock(Game.profile, "multi_throw") and tool in ["kunai", "shuriken"]:
+		n += 2  # Silah Yağmuru
 	for i in n:
 		var dir = aim.rotated(Vector3.UP, deg_to_rad((i - (n - 1) * 0.5) * 8.0))
 		Projectile.tool(p, start, dir, tool, tgt)
@@ -507,7 +509,7 @@ func begin_cast(jid: String) -> void:
 	if cooldowns.get(jid, 0.0) > 0.0:
 		Hud.msg("%s hazır değil (%.1fsn)" % [j["name"], cooldowns[jid]], Color(0.8, 0.8, 1))
 		return
-	var cost = float(j.get("cost", 0)) * (0.9 if "nin1" in Game.profile.get("skills", []) else 1.0)
+	var cost = float(j.get("cost", 0)) * clampf(1.0 + Stats.skill(Game.profile, "jutsu_cost"), 0.4, 1.0)
 	if p.chakra < cost:
 		Hud.msg("Yeterli chakra yok! [C] ile chakra topla", Color(0.5, 0.8, 1))
 		return
@@ -568,7 +570,7 @@ func take_hit(info: Dictionary) -> void:
 				if atk.has_method("stagger"):
 					atk.stagger(1.0)
 				return
-			dmg *= 0.2
+			dmg *= 0.2 * (1.0 - clampf(Stats.skill(Game.profile, "guard"), 0.0, 0.8))
 			FX.hit_spark(p.global_position + Vector3.UP * 1.2 + p.face_dir() * 0.5, Color(0.6, 0.85, 1.0), 0.6)
 			Sfx.play("block", p.global_position)
 			p.velocity += info.get("dir", Vector3.ZERO) * 3.0

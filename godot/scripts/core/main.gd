@@ -353,7 +353,7 @@ func use_item(id: String) -> void:
 	inv[id] = int(inv[id]) - 1
 	match id:
 		"salve":
-			player.hp = minf(player.max_hp, player.hp + 50.0)
+			player.hp = minf(player.max_hp, player.hp + 50.0 * (1.0 + Stats.skill(Game.profile, "heal")))
 			FX.aura(player, Color(0.5, 1, 0.6), 0.8)
 			Sfx.play("heal", player.global_position)
 		"pill":

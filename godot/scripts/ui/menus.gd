@@ -3,19 +3,7 @@ extends RefCounted
 ## Tam ekran menüler (modern): bulanık oyun arka planı, sol simge rayı, cam paneller, simgeli kartlar.
 ## Hepsi Hud.dialog_layer'a eklenir.
 
-const SKILLS := {
-	"tai1": ["Demir Yumruk", "Yakın dövüş +%20", "Taijutsu", "", 1],
-	"tai2": ["Rüzgar Adım", "Koşu hızı +%12", "Taijutsu", "tai1", 4],
-	"tai4": ["Usta Savaşçı", "Yakın dövüş +%30", "Taijutsu", "tai2", 14],
-	"nin1": ["Chakra Kontrolü", "Jutsu maliyeti -%10", "Ninjutsu", "", 1],
-	"nin2": ["Geniş Chakra", "Maks chakra +50", "Ninjutsu", "nin1", 4],
-	"nin3": ["Hızlı Mühür", "Mühür süresi -%40", "Ninjutsu", "nin2", 8],
-	"nin4": ["Jutsu Ustası", "Jutsu hasarı +%30", "Ninjutsu", "nin3", 16],
-	"elem2": ["İkinci Element", "Yeni bir chakra doğası (Chunin)", "Ninjutsu", "nin2", 12],
-	"vit1": ["Dayanıklılık", "Maks can +40", "Destek", "", 1],
-	"vit2": ["Yenilenme", "Chakra yenilenmesi x2", "Destek", "vit1", 10],
-	"genjutsu": ["Genjutsu Eğitimi", "Genjutsu teknikleri", "Destek", "", 5],
-}
+## Yetenek ağacı verisi: data/skills.json (tools/build_skills.py), ekran: SkillTree
 const SKILL_ICONS := {"Taijutsu": "hand", "Ninjutsu": "chakra", "Destek": "heart"}
 
 static var _fresh := false
@@ -1450,115 +1438,7 @@ static var _skill_sel := ""
 
 
 static func _tab_skills(main: Node, body: Control) -> void:
-	var pr = Game.profile
-	var h = UI.hbox(26)
-	h.set_anchors_preset(Control.PRESET_FULL_RECT)
-	body.add_child(h)
-	var graph = Control.new()
-	graph.custom_minimum_size = Vector2(900, 680)
-	graph.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	h.add_child(graph)
-	var cats = ["Taijutsu", "Ninjutsu", "Destek"]
-	var pos = {}
-	var col_x = {"Taijutsu": 120.0, "Ninjutsu": 400.0, "Destek": 700.0}
-	var depth = {}
-	for sid in SKILLS:
-		var s: Array = SKILLS[sid]
-		var d = 0 if s[3] == "" else int(depth.get(s[3], 0)) + 1
-		depth[sid] = d
-	var col_count = {}
-	for sid in SKILLS:
-		var s: Array = SKILLS[sid]
-		var cat: String = s[2]
-		var d = int(depth[sid])
-		var key = "%s|%d" % [cat, d]
-		var k = int(col_count.get(key, 0))
-		col_count[key] = k + 1
-		pos[sid] = Vector2(col_x[cat] + k * 130.0, 110.0 + d * 150.0)
-	# bağlantı çizgileri
-	var lines = Control.new()
-	lines.set_anchors_preset(Control.PRESET_FULL_RECT)
-	lines.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	lines.draw.connect(func():
-		for sid in SKILLS:
-			var s: Array = SKILLS[sid]
-			if s[3] != "":
-				var owned = sid in pr["skills"]
-				lines.draw_line(pos[s[3]], pos[sid], Color(UI.GOLD, 0.8) if owned else Color(1, 1, 1, 0.15), 3.0 if owned else 2.0, true))
-	graph.add_child(lines)
-	for c in cats:
-		var cl = UI.icon_label(SKILL_ICONS[c], c.to_upper(), 16, UI.GOLD)
-		cl.position = Vector2(col_x[c] - 60, 20)
-		graph.add_child(cl)
-	for sid in SKILLS:
-		var s: Array = SKILLS[sid]
-		var owned: bool = sid in pr["skills"]
-		var can: bool = not owned and int(pr["sp"]) > 0 and int(pr["level"]) >= int(s[4]) and (s[3] == "" or s[3] in pr["skills"])
-		if sid == "elem2" and int(pr["rank"]) < 2:
-			can = false
-		var b = Button.new()
-		b.custom_minimum_size = Vector2(72, 72)
-		b.size = Vector2(72, 72)
-		b.position = pos[sid] - Vector2(36, 36)
-		var col = UI.GOLD if owned else (UI.TEXT if can else Color(1, 1, 1, 0.25))
-		var n = UI._box(Color(UI.GOLD, 0.22) if owned else Color(0.08, 0.09, 0.12, 0.95), col, 3 if (owned or can) else 1, 36, 0)
-		var hv = n.duplicate()
-		hv.border_color = UI.GOLD
-		hv.set_border_width_all(3)
-		var selb = hv.duplicate()
-		selb.shadow_color = Color(UI.GOLD, 0.5)
-		selb.shadow_size = 12
-		b.add_theme_stylebox_override("normal", selb if _skill_sel == sid else n)
-		b.add_theme_stylebox_override("hover", selb if _skill_sel == sid else hv)
-		b.add_theme_stylebox_override("pressed", selb)
-		b.add_theme_stylebox_override("focus", selb if _skill_sel == sid else hv)
-		var ic = Icons.view(SKILL_ICONS[s[2]] if sid != "elem2" else "chakra", 34, col)
-		ic.position = Vector2(19, 19)
-		b.add_child(ic)
-		b.pressed.connect(func():
-			Sfx.play("click")
-			_skill_sel = sid
-			ninja_menu(main, "skills"))
-		graph.add_child(b)
-		var nl = UI.label(s[0], 13, col, HORIZONTAL_ALIGNMENT_CENTER, true)
-		nl.position = pos[sid] + Vector2(-70, 42)
-		nl.size = Vector2(140, 18)
-		graph.add_child(nl)
-	# sağ: ayrıntı
-	var right = UI.card()
-	right.custom_minimum_size = Vector2(420, 0)
-	right.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	h.add_child(right)
-	var rv = UI.vbox(10)
-	right.add_child(rv)
-	rv.add_child(UI.icon_label("star", "Yetenek puanı: %d" % int(pr["sp"]), 18, UI.GOLD))
-	if _skill_sel == "" or not SKILLS.has(_skill_sel):
-		rv.add_child(UI.label("Bir düğüm seç.", 15, UI.MUTED))
-		return
-	var s: Array = SKILLS[_skill_sel]
-	var owned: bool = _skill_sel in pr["skills"]
-	var can: bool = not owned and int(pr["sp"]) > 0 and int(pr["level"]) >= int(s[4]) and (s[3] == "" or s[3] in pr["skills"])
-	if _skill_sel == "elem2" and int(pr["rank"]) < 2:
-		can = false
-	rv.add_child(UI.label(s[0], 24, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true))
-	rv.add_child(UI.label("%s   •   Seviye %d" % [s[2], int(s[4])], 14, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
-	rv.add_child(UI.label(s[1], 17, UI.GOOD))
-	if s[3] != "":
-		rv.add_child(UI.label("Gerekli: %s" % SKILLS[s[3]][0], 14, UI.MUTED))
-	var sid = _skill_sel
-	if owned:
-		rv.add_child(UI.icon_label("check", "Öğrenildi", 16, UI.GOLD))
-	else:
-		var b = UI.primary("Öğren (1 puan)", func():
-			if sid == "elem2":
-				_pick_element(main)
-				return
-			pr["skills"].append(sid)
-			pr["sp"] = int(pr["sp"]) - 1
-			Game.player.apply_profile_stats()
-			ninja_menu(main, "skills"), 380, "plus")
-		b.disabled = not can
-		rv.add_child(b)
+	SkillTree.build(main, body)
 
 
 # ------------------------------------------------------------------ görevler sekmesi

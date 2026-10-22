@@ -36,6 +36,7 @@ var leap_bar: ProgressBar
 var leap_arc: MeshInstance3D
 const LEAP_CHARGE_TIME := 0.75
 var air_dash_ok = true
+var air_dash_used = 0
 var dash_t = 0.0
 var wall_n = Vector3.ZERO  # 0 ise duvarda değil
 var wall_cd = 0.0
@@ -178,6 +179,7 @@ func _jump() -> void:
 		wall_cd = 0.3
 		jumps = 1
 		air_dash_ok = true
+		air_dash_used = 0
 		Sfx.play("jump", global_position)
 		model.play("jump", 0.05, 1.4, true)
 		return
@@ -189,7 +191,7 @@ func _jump() -> void:
 		Sfx.play("jump", global_position)
 		model.play("jump", 0.05, 1.3, true)
 		FX.dust(global_position, 0.6)
-	elif jumps < 2:
+	elif jumps < 2 + int(Stats.skill(Game.profile, "jumps")):
 		velocity.y = JUMP * 0.92
 		jumps = 2
 		var d = wish_dir()
@@ -209,7 +211,7 @@ func _leap(power := 1.0) -> void:
 	if wall_n != Vector3.ZERO:
 		_jump()
 		return
-	if not (grounded or swimming or jumps < 2):
+	if not (grounded or swimming or jumps < 2 + int(Stats.skill(Game.profile, "jumps"))):
 		return
 	var d = wish_dir()
 	if d.length() < 0.1:
@@ -217,7 +219,8 @@ func _leap(power := 1.0) -> void:
 	d = d.normalized()
 	var air = not (grounded or swimming)
 	var k = clampf(power, 0.0, 1.0)
-	velocity = d * lerpf(21.0, 48.0, k) + Vector3.UP * lerpf(12.0, 22.5, k) * (0.8 if air else 1.0)
+	var lm = 1.0 + Stats.skill(Game.profile, "leap")
+	velocity = d * lerpf(21.0, 48.0, k) * lm + Vector3.UP * lerpf(12.0, 22.5, k) * sqrt(lm) * (0.8 if air else 1.0)
 	flip_t = 0.0 if k > 0.45 else -1.0
 	facing = atan2(-d.x, -d.z)
 	grounded = false
@@ -288,7 +291,8 @@ func _update_leap_charge(dt: float) -> void:
 	facing = lerp_angle(facing, atan2(-d.x, -d.z), minf(1.0, dt * 12.0))
 	model.play("crouch", 0.12)
 	# iniş yayı: balistik yörünge araziye çarpana kadar
-	var v = d * lerpf(21.0, 48.0, leap_charge) + Vector3.UP * lerpf(12.0, 22.5, leap_charge)
+	var lmul = 1.0 + Stats.skill(Game.profile, "leap")
+	var v = d * lerpf(21.0, 48.0, leap_charge) * lmul + Vector3.UP * lerpf(12.0, 22.5, leap_charge) * sqrt(lmul)
 	var p = global_position + Vector3.UP * 0.3
 	var im: ImmediateMesh = leap_arc.mesh
 	im.clear_surfaces()
@@ -326,7 +330,8 @@ func _air_dash() -> void:
 	if chakra < 6.0:
 		return
 	chakra -= 6.0
-	air_dash_ok = false
+	air_dash_used += 1
+	air_dash_ok = air_dash_used < 1 + int(Stats.skill(Game.profile, "air_dash"))
 	dash_t = 0.24
 	var d = wish_dir()
 	if d.length() < 0.1:
@@ -345,10 +350,10 @@ func _physics_process(dt: float) -> void:
 	wall_cd -= dt
 	_tick_status(dt)
 	land_t -= dt
-	var regen = 2.0 * (2.0 if "vit2" in Game.profile.get("skills", []) else 1.0)
+	var regen = 2.0 * (1.0 + Stats.skill(Game.profile, "regen_chakra"))
 	chakra = minf(max_chakra, chakra + regen * dt)
 	if hp > 0.0:
-		hp = minf(max_hp, hp + 0.5 * dt)
+		hp = minf(max_hp, hp + 0.5 * (1.0 + Stats.skill(Game.profile, "regen_hp")) * dt)
 	if hp <= 0.0:
 		model.play("death", 0.1)
 		return
@@ -374,7 +379,7 @@ func _ground_air_move(dt: float) -> void:
 	elif dash_t > 0.0:
 		dash_t -= dt
 	else:
-		var spd_mul = Buffs.mod("speed") * (1.12 if "tai2" in Game.profile.get("skills", []) else 1.0) * (1.0 + Gear.stat(Game.profile, "speed") + Stats.clan_bonus(Game.profile, "speed")) * status_speed()
+		var spd_mul = Buffs.mod("speed") * (1.0 + Stats.skill(Game.profile, "speed")) * (1.0 + Gear.stat(Game.profile, "speed") + Stats.clan_bonus(Game.profile, "speed")) * status_speed()
 		var target = wish * (DASH if sprint else RUN) * spd_mul
 		if swimming:
 			target *= 0.35
@@ -400,7 +405,7 @@ func _ground_air_move(dt: float) -> void:
 	var ground = terr
 	if on_water and not swimming:
 		ground = 0.0
-		chakra -= 1.5 * dt  # su üstünde durmak chakra ister
+		chakra -= 1.5 * maxf(0.1, 1.0 + Stats.skill(Game.profile, "water_cost")) * dt  # su üstünde durmak chakra ister
 		if chakra <= 0.0:
 			swimming = true
 	if swimming:
@@ -432,6 +437,7 @@ func _ground_air_move(dt: float) -> void:
 			Sfx.play("land", global_position)
 		jumps = 0
 		air_dash_ok = true
+		air_dash_used = 0
 		if leaping:
 			model.overlay.set_pose("leap", 0.0)
 			flip_t = -1.0
@@ -447,6 +453,7 @@ func _ground_air_move(dt: float) -> void:
 				velocity = Vector3.ZERO
 				grounded = false
 				air_dash_ok = true
+				air_dash_used = 0
 				Sfx.play("land", global_position, 1.3)
 	# yön + animasyon
 	var hv = Vector3(velocity.x, 0, velocity.z)
@@ -494,7 +501,7 @@ func _wall_move(dt: float) -> void:
 	var wish = wish_dir()
 	var up_amt = wish.dot(-n)
 	var side_amt = wish.dot(side)
-	var spd = WALL_SPEED * (1.4 if Input.is_action_pressed("dash") else 1.0)
+	var spd = WALL_SPEED * (1.4 if Input.is_action_pressed("dash") else 1.0) * (1.0 + Stats.skill(Game.profile, "wall_run"))
 	var move = Vector3.UP * up_amt * spd + side * side_amt * spd
 	velocity = move - n * 3.0  # duvara bastır
 	move_and_slide()
@@ -594,7 +601,7 @@ func take_hit(info: Dictionary) -> void:
 	if Buffs.has("henge"):
 		Jutsu.end_henge(self)
 	# ekipman savunması: her puan ~%1.2 azaltır (en fazla %50)
-	var armor = Buffs.mod("armor") * (1.0 - clampf(Gear.stat(Game.profile, "def") * 0.012, 0.0, 0.5))
+	var armor = Buffs.mod("armor") * (1.0 - clampf(Gear.stat(Game.profile, "def") * 0.012, 0.0, 0.5)) * (1.0 - clampf(Stats.skill(Game.profile, "def"), 0.0, 0.5))
 	info = info.duplicate()
 	info["dmg"] = info.get("dmg", 5.0) * armor
 	if combat:
@@ -620,7 +627,7 @@ func _tick_status(dt: float) -> void:
 		if statuses[k] <= 0.0:
 			statuses.erase(k)
 	if has_status("burn"):
-		hp -= 4.0 * dt
+		hp -= 4.0 * clampf(1.0 - Stats.skill(Game.profile, "poison_resist"), 0.2, 1.0) * dt
 		if randf() < dt * 8.0:
 			FX.burst(global_position + Vector3.UP * randf_range(0.3, 1.6), {"amount": 3, "life": 0.5, "size": 0.6, "vmin": 1, "vmax": 2, "gravity": Vector3(0, 3, 0),
 				"colors": [Color(1, 0.8, 0.3, 1), Color(1, 0.3, 0.05, 0)]})

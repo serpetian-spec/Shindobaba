@@ -111,7 +111,7 @@ func new_profile(opts: Dictionary) -> Dictionary:
 # ------------------------------------------------------------------ XP / seviye
 func add_xp(amount: int) -> void:
 	var pr = p()
-	amount = int(amount * Exams.xp_mult())
+	amount = int(amount * Exams.xp_mult() * (1.0 + Stats.skill(pr, "xp")))
 	pr["xp"] = int(pr["xp"]) + amount
 	Hud.float_text("+%d XP" % amount, Color(0.7, 0.9, 1.0))
 	if int(pr["level"]) >= Data.MAX_LEVEL:
@@ -120,8 +120,10 @@ func add_xp(amount: int) -> void:
 	while int(pr["level"]) < Data.MAX_LEVEL and int(pr["xp"]) >= Data.xp_for_level(int(pr["level"])):
 		pr["xp"] = int(pr["xp"]) - Data.xp_for_level(int(pr["level"]))
 		pr["level"] = int(pr["level"]) + 1
-		pr["sp"] = int(pr["sp"]) + 1
-		Hud.banner("SEVİYE %d" % pr["level"], "Yetenek puanı kazandın [K]", Color(1, 0.85, 0.35))
+		# her seviye 1 puan, her 10 seviyede +2 bonus (yetenek ağacı: data/skills.json)
+		var gain = int(Data.skills.get("sp_per_level", 1)) + (int(Data.skills.get("sp_milestone", 2)) if int(pr["level"]) % 10 == 0 else 0)
+		pr["sp"] = int(pr["sp"]) + gain
+		Hud.banner("SEVİYE %d" % pr["level"], "+%d yetenek puanı  [Tab > Yetenekler]" % gain, Color(1, 0.85, 0.35))
 		Sfx.play("levelup")
 		if Game.player:
 			Game.player.apply_profile_stats()
@@ -293,6 +295,8 @@ func scroll_shop_items(max_n := 10) -> Array:
 
 
 func add_ryo(amount: int) -> void:
+	if amount > 0:
+		amount = int(amount * (1.0 + Stats.skill(p(), "ryo")))
 	p()["ryo"] = int(p()["ryo"]) + amount
 	if amount > 0:
 		Hud.float_text("+%d Ryō" % amount, Color(1, 0.85, 0.4))
@@ -464,7 +468,7 @@ func interact(it: Dictionary) -> void:
 			Buffs.add("shrine", 300.0, {"armor": 0.9, "melee": 1.05})
 			Game.player.chakra = Game.player.max_chakra
 			Game.save_game()
-			Hud.dialog("Tapınak", "Ellerini birleştirip dua ettin. İçin huzurla doldu: 5 dakika boyunca alınan hasar -%10, güç +%5. Chakran yenilendi. (Oyun kaydedildi)", [])
+			Hud.dialog("Tapınak", "Ellerini birleştirip dua ettin. İçin huzurla doldu: 5 dakika boyunca alınan hasar -%10, güç +%5. Chakran yenilendi. (Oyun kaydedildi)", [respec_option()])
 		"trainer":
 			var vid: String = it.get("village", home())
 			var topts = trainer_options(it["kinds"]) if it.has("kinds") else village_trainer_options(vid)
@@ -668,6 +672,21 @@ func _academy() -> void:
 			Hud.dialog(sensei, "Seninle gurur duyuyorum %s. Ateşin İradesi seninle!" % pr["name"], opts)
 
 
+## Yetenek ağacını sıfırlama (tapınak / antrenman alanı): puanlar geri verilir
+func respec_option() -> Dictionary:
+	var cost = int(Data.skills.get("respec_cost", 500)) * maxi(1, int(p()["level"]) / 10)
+	return {"label": "Yeteneklerini sıfırla (%d Ryō)" % cost, "cb": func():
+		var pr = p()
+		if int(pr["ryo"]) < cost:
+			Hud.msg("Yeterli Ryō yok.", Color(1, 0.5, 0.4))
+			return
+		add_ryo(-cost)
+		var back = Stats.respec(pr)
+		if Game.player:
+			Game.player.apply_profile_stats()
+		Hud.msg("Yetenekler sıfırlandı: %d puan geri döndü." % back, Color(0.7, 1, 0.7))}
+
+
 func _training_ground() -> void:
 	var pr = p()
 	var s = story()
@@ -684,7 +703,7 @@ func _training_ground() -> void:
 		learn(starter)
 		set_story(6)
 		return
-	var opts = []
+	var opts = [respec_option()]
 	if int(pr["rank"]) >= 2 and int(pr["level"]) >= 25 and "raiton" in pr["elements"] and not "raiton_chidori" in pr["learned"]:
 		opts.append({"label": "Chidori eğitimi (800 Ryō)", "cb": func(): _buy_learn("raiton_chidori", 800)})
 	if int(pr["rank"]) >= 2 and int(pr["level"]) >= 30 and "katon" in pr["elements"] and not "katon_karyuu" in pr["learned"]:

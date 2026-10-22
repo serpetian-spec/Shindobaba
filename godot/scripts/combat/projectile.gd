@@ -208,7 +208,7 @@ static func tool(who: Node3D, start: Vector3, dir: Vector3, kind: String, target
 	pr.gravity = 3.0
 	pr.radius = 0.15
 	pr.stick = kind in ["kunai", "shuriken"]
-	var mult = Stats.melee_mult(Game.profile) if who is Player else 1.0
+	var mult = Stats.melee_mult(Game.profile) * (1.0 + Stats.skill(Game.profile, "throw_dmg") + (Stats.skill(Game.profile, "tag_dmg") if kind == "tag" else 0.0)) if who is Player else 1.0
 	pr.info = {"dmg": (10.0 if kind == "kunai" else 6.0) * mult, "knock": 1.5, "kind": "light", "hitstop": 0.02}
 	var mi = MeshInstance3D.new()
 	var b = MB.new()

@@ -197,12 +197,12 @@ func use_skill(side: String) -> void:
 		Hud.msg("%s hazır değil (%.0f sn)" % [_skill_name(side), cd[side]], Color(0.9, 0.8, 0.6))
 		return
 	var sk: Array = SKILLS[k][0 if side == "sag" else 1]
-	var cost: float = sk[1] * _transplant_mult()
+	var cost: float = sk[1] * _transplant_mult() * maxf(0.3, 1.0 + Stats.skill(Game.profile, "eye_cost"))
 	if p.chakra < cost:
 		Hud.msg("Yeterli chakra yok.", Color(0.6, 0.7, 1))
 		return
 	p.chakra -= cost
-	cd[side] = sk[2]
+	cd[side] = sk[2] * maxf(0.3, 1.0 + Stats.skill(Game.profile, "eye_cd"))
 	Combat.popup_text(p.global_position + Vector3.UP * 2.4, sk[0], Color(1, 0.5, 0.5) if k != 2 else Color(0.85, 0.9, 1))
 	var t = Combat.nearest_enemy(p, 30.0, p.face_dir(), 0.3)
 	if t == null:
@@ -451,7 +451,7 @@ func _process(dt: float) -> void:
 		var drain = 2.0 * _transplant_mult() + ((4.0 + 2.0 * susanoo_node.tier) if susanoo and is_instance_valid(susanoo_node) else 0.0)
 		if _kind("sag") == 5 or _kind("sol") == 5:
 			drain *= 0.6
-		p.chakra -= drain * dt
+		p.chakra -= drain * maxf(0.3, 1.0 + Stats.skill(Game.profile, "eye_cost")) * dt
 		if p.chakra <= 0.0:
 			p.chakra = 0.0
 			Hud.msg("Chakra bitti, gözlerin kapandı.", Color(0.8, 0.8, 1))
@@ -553,7 +553,7 @@ func dodge_chance() -> float:
 	for s in ["sag", "sol"]:
 		var k = _kind(s)
 		if k in [1, 4, 5]:
-			best = maxf(best, 0.1 * _lvl(s) + (0.15 if k >= 4 else 0.0))
+			best = maxf(best, 0.1 * _lvl(s) + (0.15 if k >= 4 else 0.0) + Stats.skill(Game.profile, "eye_dodge"))
 	return best
 
 

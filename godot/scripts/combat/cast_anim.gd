@@ -205,8 +205,7 @@ func _plan(fit: float) -> void:
 	# mühür hızı: Hızlı Mühür (nin3) yetisi + seviye ile hızlanır
 	per = 0.11
 	if is_player:
-		if "nin3" in Game.profile.get("skills", []):
-			per *= 0.55
+		per /= 1.0 + Stats.skill(Game.profile, "seal_speed")  # Hızlı Mühür, Tek El Mühürü
 		per *= clampf(1.08 - int(Game.profile.get("level", 1)) * 0.015, 0.6, 1.0)
 	var pre: float = st.get("pre", 0.2)
 	var post: float = st.get("post", 0.35)

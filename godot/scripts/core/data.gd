@@ -6,11 +6,12 @@ const RANKS := ["Akademi Öğrencisi", "Genin", "Chunin", "Jonin", "ANBU", "Kage
 var jutsu = {}
 var clans = {}
 var items = {}
+var skills = {}   # yetenek ağacı: {branches, nodes, sp_per_level, ...}
 var seals: Array = []
 
 
 func _ready() -> void:
-	for pair in [["jutsu", "res://data/jutsu.json"], ["clans", "res://data/clans.json"], ["items", "res://data/items.json"]]:
+	for pair in [["jutsu", "res://data/jutsu.json"], ["clans", "res://data/clans.json"], ["items", "res://data/items.json"], ["skills", "res://data/skills.json"]]:
 		if FileAccess.file_exists(pair[1]):
 			var d = JSON.parse_string(FileAccess.get_file_as_string(pair[1]))
 			if d != null:
