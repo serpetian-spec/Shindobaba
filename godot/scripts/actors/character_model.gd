@@ -35,6 +35,227 @@ var eye_mats: Array[StandardMaterial3D] = []
 var hit_flash = 0.0
 
 
+## VRoid: iskelet uzayında yüz -Z; tüm prosedürel kod +Z ön kabul ediyor -> 180° çevrilmiş "model uzayı"
+const VROID_SCALE := 1.1
+## VRoid glb'lerinin kök kemiği 180° çevrildi (model +Z ön); ek dönüşüm gerekmiyor
+static var FLIP := Transform3D.IDENTITY
+const FACE_DONORS_M := ["masc_vroid", "AvatarSample_C", "HairSample_Male", "Sakurada_Fumiriya"]
+const FACE_DONORS_F := ["fem_vroid", "AvatarSample_A", "AvatarSample_B", "Sendagaya_Shibu", "Darkness_Shibu", "HairSample_Female"]
+## saç stili -> [VRoid modeli, mesh adı] (saç kafaya sabitlenir, renk oyuncunun saç rengi)
+const HAIR_DONORS := {
+	"diken": ["Sakurada_Fumiriya", "Hair001"], "dağınık": ["HairSample_Male", "Hair001"], "kısa": ["AvatarSample_C", "Hair001"],
+	"kase": ["Sendagaya_Shibu", "Hair001"], "uzun": ["AvatarSample_B", "Hair001"], "atkuyruğu": ["HairSample_Female", "Hair001"],
+	"kisa_kakul": ["AvatarSample_A", "Hair001"], "kakul": ["Darkness_Shibu", "Hair001"], "geriye": ["AvatarSample_C", "Hair001"],
+	"ananas": ["Sakurada_Fumiriya", "Hair001"], "topuz": ["HairSample_Female", "Hair001"], "ikiz_topuz": ["HairSample_Female", "Hair001"],
+	"yele": ["HairSample_Male", "Hair001"], "orgu": ["AvatarSample_B", "Hair001"], "mohikan": ["Sakurada_Fumiriya", "Hair001"],
+	"kirpik": ["masc_vroid", "Body"], "kel": ["", ""],
+}
+const VROID_SKIN := Color(0.99, 0.89, 0.82)  # VRoid doku ten rengi (oyuncu teni bununla oranlanır)
+static var _scenes := {}
+static var _donor_cache := {}
+var face_mi: MeshInstance3D
+var eye_center_model := Vector3(0, 1.62, 0.08)
+
+
+static var _inv_mat: StandardMaterial3D
+static func _invisible_mat() -> StandardMaterial3D:
+	if _inv_mat == null:
+		_inv_mat = StandardMaterial3D.new()
+		_inv_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		_inv_mat.albedo_color = Color(0, 0, 0, 0)
+	return _inv_mat
+
+
+static var _part_mats := {}
+## Yüz parçası malzemesi (göz beyazı/ağız: alfa kesme; kirpik/vurgu: saydam), ışıksız anime
+static func _face_part_mat(src: BaseMaterial3D, mname: String) -> StandardMaterial3D:
+	var key = src.get_instance_id()
+	if _part_mats.has(key):
+		return (_part_mats[key] as StandardMaterial3D).duplicate()
+	var m = StandardMaterial3D.new()
+	m.albedo_texture = src.albedo_texture
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.cull_mode = BaseMaterial3D.CULL_BACK
+	if mname.contains("EyeHighlight") or mname.contains("Eyelash") or mname.contains("Eyeline") or mname.contains("FaceBrow"):
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		m.render_priority = 2 if mname.contains("EyeHighlight") else 1
+	else:
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+		m.alpha_scissor_threshold = 0.5
+	_part_mats[key] = m
+	return m.duplicate()
+
+
+static func _scene(n: String) -> PackedScene:
+	if not _scenes.has(n):
+		_scenes[n] = load("res://assets/vrm/%s.glb" % n)
+	return _scenes[n]
+
+
+## Kemiğin dinlenme dönüşümü, +Z-ön model uzayında
+func _grest(bi: int) -> Transform3D:
+	return FLIP * skel.get_bone_global_rest(bi)
+
+
+func _skin_ratio() -> Color:
+	var sk: Color = look["skin"]
+	return Color(clampf(sk.r / VROID_SKIN.r, 0.2, 1.3), clampf(sk.g / VROID_SKIN.g, 0.2, 1.3), clampf(sk.b / VROID_SKIN.b, 0.2, 1.3))
+
+
+## Bir VRoid modelinin bir mesh'ini kafa kemiği uzayına sabitleyip malzemeye göre birleştirir
+static func _donor_part(donor: String, mesh_name: String, mat_filter := "") -> Dictionary:
+	var key = "%s|%s|%s" % [donor, mesh_name, mat_filter]
+	if _donor_cache.has(key):
+		return _donor_cache[key]
+	var out = {}
+	var inst: Node = _scene(donor).instantiate()
+	var sk: Skeleton3D = inst.find_child("GeneralSkeleton", true, false)
+	var mi: MeshInstance3D = sk.get_node_or_null(mesh_name) if sk else null
+	if mi == null or mi.skin == null:
+		inst.free()
+		_donor_cache[key] = out
+		return out
+	var skin: Skin = mi.skin
+	var hb := Transform3D.IDENTITY
+	for i in skin.get_bind_count():
+		var nm = String(skin.get_bind_name(i))
+		if nm == "":
+			nm = String(sk.get_bone_name(skin.get_bind_bone(i)))
+		if nm == "Head":
+			hb = skin.get_bind_pose(i)
+			break
+	var groups = {}
+	var mesh: Mesh = mi.mesh
+	for si in mesh.get_surface_count():
+		var mat: Material = mesh.surface_get_material(si)
+		var mname = mat.resource_name if mat else ""
+		if mat_filter != "" and not mname.contains(mat_filter):
+			continue
+		var arr = mesh.surface_get_arrays(si)
+		if not groups.has(mname):
+			groups[mname] = {"v": PackedVector3Array(), "n": PackedVector3Array(), "uv": PackedVector2Array(), "i": PackedInt32Array(), "mat": mat}
+		var gr = groups[mname]
+		var base = gr["v"].size()
+		var vv: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+		var nn: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+		var uu = arr[Mesh.ARRAY_TEX_UV]
+		for k in vv.size():
+			gr["v"].append(hb * vv[k])
+			gr["n"].append((hb.basis * nn[k]).normalized())
+			gr["uv"].append(uu[k] if uu != null else Vector2.ZERO)
+		var ii = arr[Mesh.ARRAY_INDEX]
+		if ii == null:
+			for k in vv.size():
+				gr["i"].append(base + k)
+		else:
+			for k in ii:
+				gr["i"].append(base + k)
+	var am = ArrayMesh.new()
+	var mats = []
+	var aabb := AABB()
+	var first = true
+	var iris := AABB()
+	for mname in groups:
+		var gr = groups[mname]
+		var a = []
+		a.resize(Mesh.ARRAY_MAX)
+		a[Mesh.ARRAY_VERTEX] = gr["v"]
+		a[Mesh.ARRAY_NORMAL] = gr["n"]
+		a[Mesh.ARRAY_TEX_UV] = gr["uv"]
+		a[Mesh.ARRAY_INDEX] = gr["i"]
+		am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, a)
+		mats.append(gr["mat"])
+		for q in gr["v"]:
+			if first:
+				aabb = AABB(q, Vector3.ZERO); first = false
+			else:
+				aabb = aabb.expand(q)
+		if String(mname).contains("EyeIris"):
+			iris = AABB(gr["v"][0], Vector3.ZERO)
+			for q in gr["v"]:
+				iris = iris.expand(q)
+	inst.free()
+	out = {"mesh": am, "mats": mats, "aabb": aabb, "iris": iris}
+	_donor_cache[key] = out
+	return out
+
+
+## Yüz (VRoid) + saç (VRoid) kafaya; göz malzemesi dōjutsu desteğiyle
+func _face_and_hair() -> void:
+	var female = look["gender"] == "f"
+	var donors: Array = FACE_DONORS_F if female else FACE_DONORS_M
+	var fi = int(look.get("face_id", -1))
+	if fi < 0:
+		var f = look.get("face")
+		var h = hash(str(f)) if f != null else randi()
+		fi = absi(h) % donors.size()
+		look["face_id"] = fi
+	var fd = _donor_part(donors[fi % donors.size()], "Face")
+	var head_bi = skel.find_bone("Head")
+	var head_rest = _grest(head_bi)
+	if not fd.is_empty():
+		var holder = _attach("Head", head_rest).get_child(0)
+		face_mi = MeshInstance3D.new()
+		face_mi.name = "VFace"
+		face_mi.mesh = fd["mesh"]
+		holder.add_child(face_mi)
+		eyes_mesh = face_mi
+		var ratio = _skin_ratio()
+		for si in fd["mats"].size():
+			var mat: Material = fd["mats"][si]
+			var mname = mat.resource_name if mat else ""
+			var tex = mat.albedo_texture if mat is BaseMaterial3D else null
+			if mname.contains("EyeIris"):
+				eye_mat = ShaderMaterial.new()
+				eye_mat.shader = load("res://shaders/vroid_eye.gdshader")
+				eye_mat.set_shader_parameter("tex", tex)
+				eye_mat.set_shader_parameter("eye_color", look["eye"])
+				face_mi.set_surface_override_material(si, eye_mat)
+				materials.append(eye_mat)
+			elif mname.contains("SKIN"):
+				var sm = ShaderMaterial.new()
+				sm.shader = load("res://shaders/vroid_toon.gdshader")
+				sm.set_shader_parameter("tex", tex)
+				sm.set_shader_parameter("tint", ratio)
+				face_mi.set_surface_override_material(si, sm)
+				materials.append(sm)
+			elif mname.contains("EyeExtra"):
+				face_mi.set_surface_override_material(si, _invisible_mat())
+			elif mat is BaseMaterial3D:
+				# VRoid MToon kesme/saydamlık: göz beyazı, ağız, kirpik vb. alfa ile kesilmeli
+				var cm = _face_part_mat(mat, mname)
+				if mname.contains("FaceBrow"):
+					cm.albedo_color = Color(look["hair"]).lerp(Color(0.1, 0.08, 0.08), 0.4)
+				face_mi.set_surface_override_material(si, cm)
+		var ir: AABB = fd["iris"]
+		var ic = ir.get_center() if ir.size != Vector3.ZERO else fd["aabb"].get_center()
+		eye_center_model = head_rest * ic
+		var fa: AABB = fd["aabb"]
+		head_ab = AABB(head_rest * fa.position, Vector3.ZERO).expand(head_rest * fa.end)
+		head_ab = head_ab.abs()
+	# saç
+	var hd: Array = HAIR_DONORS.get(look.get("hair_style", "diken"), HAIR_DONORS["diken"])
+	if hd[0] != "":
+		var hp = _donor_part(hd[0], hd[1], "HAIR")
+		if not hp.is_empty():
+			var holder2 = _attach("Head", head_rest).get_child(0)
+			var hair_mi = MeshInstance3D.new()
+			hair_mi.name = "VHair"
+			hair_mi.mesh = hp["mesh"]
+			holder2.add_child(hair_mi)
+			for si in hp["mats"].size():
+				var mat: Material = hp["mats"][si]
+				var hm = ShaderMaterial.new()
+				hm.shader = load("res://shaders/vroid_toon.gdshader")
+				hm.set_shader_parameter("tex", mat.albedo_texture if mat is BaseMaterial3D else null)
+				hm.set_shader_parameter("mode", 1)
+				hm.set_shader_parameter("use_alpha", true)
+				hm.set_shader_parameter("tint", look["hair"])
+				hm.set_shader_parameter("rim_amount", 0.5)
+				hair_mi.set_surface_override_material(si, hm)
+				materials.append(hm)
+
+
 static func default_look() -> Dictionary:
 	return {
 		"gender": "m", "skin": Color(0.96, 0.8, 0.66), "hair": Color(0.3, 0.2, 0.12), "hair_style": "diken",
@@ -53,22 +274,24 @@ func setup(l: Dictionary) -> void:
 	if look.get("outer_style") == null and look.get("cloak") != null:
 		look["outer_style"] = "pelerin"
 		look["outer"] = look["cloak"]
-	var src: PackedScene = load("res://assets/chars/Superhero_Female_FullBody.gltf" if look["gender"] == "f" else "res://assets/chars/Superhero_Male_FullBody.gltf")
+	# anime taban gövde (VRoid): yüz ve saç başka VRoid modellerinden kafaya takılır
+	var src: PackedScene = _scene("fem_vroid" if look["gender"] == "f" else "masc_vroid")
 	var inst = src.instantiate()
 	add_child(inst)
 	var old_ap = inst.find_child("AnimationPlayer", true, false)
 	if old_ap:
 		old_ap.queue_free()
 	skel = inst.find_child("GeneralSkeleton", true, false)
-	for c in skel.get_children():
-		if c is MeshInstance3D:
-			if String(c.name).to_lower().begins_with("superhero"):
-				body_mesh = c
-			elif c.name == "Eyes":
-				eyes_mesh = c
-			elif c.name == "Eyebrows":
-				brows_mesh = c
-	inst.rotation.y = PI  # model +Z'ye bakıyor, biz -Z ileri kullanıyoruz
+	body_mesh = skel.get_node_or_null("Body")
+	var base_face = skel.get_node_or_null("Face")
+	if base_face:
+		base_face.queue_free()
+	var sec = inst.get_node_or_null("secondary")
+	if sec:
+		sec.queue_free()
+	inst.scale = Vector3.ONE * VROID_SCALE  # VRoid ~1.6 m -> ~1.78 m
+	inst.rotation.y = PI  # VRoid kökü +Z'ye çevrildi (glb); biz -Z ileri kullanıyoruz
+	_face_and_hair()
 	_paint_body()
 	_cloth_details()
 	_attachments()
@@ -184,21 +407,25 @@ func _geo_for(gender: String) -> Dictionary:
 		arr[k] = null
 	var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
 	var nrm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
-	# kalça/kalça arkası: süper kahraman modelinin iri kalçasını küçült (geriye taşma ve genişlik)
-	var hb = skel.find_bone("Hips")
-	var hp = skel.get_bone_global_rest(hb).origin if hb >= 0 else Vector3(0, 0.95, -0.04)
+	# VRoid: köşeleri 180° çevir (model uzayı +Z ön); deri bağları buna göre (bind * FLIP^-1)
+	# VRoid: mesh uzayı -Z önde, iskelet (kök 180° çevrildi) +Z önde -> köşeleri iskelet uzayına çevir, bağları uyarla
+	var r180 = Transform3D(Basis(Vector3(-1, 0, 0), Vector3(0, 1, 0), Vector3(0, 0, -1)), Vector3.ZERO)
 	for i in v.size():
-		var q = v[i]
-		if absf(q.x) > 0.3:
-			continue
-		var w = 1.0 - clampf(absf(q.y - (hp.y - 0.08)) / 0.26, 0.0, 1.0)
-		w = w * w * (3.0 - 2.0 * w)
-		if w <= 0.0:
-			continue
-		if q.z < hp.z:
-			q.z = hp.z + (q.z - hp.z) * (1.0 - 0.45 * w)
-		q.x *= 1.0 - 0.1 * w
-		v[i] = q
+		v[i] = Vector3(-v[i].x, v[i].y, -v[i].z)
+		nrm[i] = Vector3(-nrm[i].x, nrm[i].y, -nrm[i].z)
+	arr[Mesh.ARRAY_NORMAL] = nrm
+	var tg = arr[Mesh.ARRAY_TANGENT]
+	if tg != null:
+		for i in range(0, tg.size(), 4):
+			tg[i] = -tg[i]; tg[i + 2] = -tg[i + 2]
+		arr[Mesh.ARRAY_TANGENT] = tg
+	var skin2: Skin = skin.duplicate()
+	for i in skin2.get_bind_count():
+		skin2.set_bind_pose(i, skin2.get_bind_pose(i) * r180)
+	# bölge eşikleri bu gövdeye göre
+	_rc_wrist = absf(_grest(skel.find_bone("LeftHand")).origin.x) - 0.06
+	_rc_hip = _grest(skel.find_bone("Hips")).origin.y + 0.01
+	_rc_shin = _grest(skel.find_bone("LeftFoot")).origin.y + 0.2
 	arr[Mesh.ARRAY_VERTEX] = v
 	var bones = arr[Mesh.ARRAY_BONES]
 	var weights = arr[Mesh.ARRAY_WEIGHTS]
@@ -256,11 +483,14 @@ func _geo_for(gender: String) -> Dictionary:
 	for i in v.size():
 		rest[i * 4] = v[i].x; rest[i * 4 + 1] = v[i].y; rest[i * 4 + 2] = v[i].z
 	arr[Mesh.ARRAY_CUSTOM0] = rest
-	var g = {"arrays": arr, "regions": regions, "weld": weld, "wpos": wpos, "wadj": wadj, "wnrm": wnrm, "per": per, "tex": src_tex}
+	var g = {"arrays": arr, "regions": regions, "weld": weld, "wpos": wpos, "wadj": wadj, "wnrm": wnrm, "per": per, "tex": src_tex, "skin": skin2}
 	_geo[gender] = g
 	return g
 
 
+static var _rc_wrist := 0.55
+static var _rc_hip := 1.0
+static var _rc_shin := 0.3
 static func _region_code(bn: String, p: Vector3) -> int:
 	if bn.contains("Head") or bn == "":
 		return 0
@@ -269,7 +499,7 @@ static func _region_code(bn: String, p: Vector3) -> int:
 	if bn.contains("Hand") or bn.contains("Thumb") or bn.contains("Index") or bn.contains("Middle") or bn.contains("Ring") or bn.contains("Little") or bn.contains("leaf"):
 		return 0
 	if bn.contains("LowerArm"):
-		return 14 if absf(p.x) > 0.55 else 13
+		return 14 if absf(p.x) > _rc_wrist else 13
 	if bn.contains("UpperArm") or bn.contains("Shoulder"):
 		return 10
 	if bn.contains("Chest"):
@@ -277,11 +507,11 @@ static func _region_code(bn: String, p: Vector3) -> int:
 	if bn == "Spine":
 		return 12
 	if bn.contains("Hips"):
-		return 12 if p.y > 1.0 else 20
+		return 12 if p.y > _rc_hip else 20
 	if bn.contains("UpperLeg"):
 		return 21
 	if bn.contains("LowerLeg"):
-		return 23 if p.y < 0.3 else 22
+		return 23 if p.y < _rc_shin else 22
 	if bn.contains("Toes"):
 		return 0
 	if bn.contains("Foot"):
@@ -336,12 +566,12 @@ func _cloth_mat(layer: int) -> ShaderMaterial:
 	mat.set_shader_parameter("arm_wraps", bool(look.get("arm_wraps", false)))
 	mat.set_shader_parameter("outer_sleeves", 1 if look.get("outer_style") in ["palto", "haori"] else 0)
 	mat.set_shader_parameter("foot_cover", look.get("foot_style", "sandal") == "tabi")
-	var bp = func(n: String) -> Vector3: return skel.get_bone_global_rest(skel.find_bone(n)).origin
+	var bp = func(n: String) -> Vector3: return _grest(skel.find_bone(n)).origin
 	mat.set_shader_parameter("rig_a", Vector4(bp.call("LeftUpperArm").x, bp.call("LeftLowerArm").x, bp.call("LeftHand").x, bp.call("Neck").y))
 	mat.set_shader_parameter("rig_b", Vector4(bp.call("Hips").y, bp.call("LeftLowerLeg").y, bp.call("LeftFoot").y, bp.call("UpperChest").y))
 	if g["tex"]:
 		mat.set_shader_parameter("tex", g["tex"])
-	mat.set_shader_parameter("tint", Color(look["skin"]))
+	mat.set_shader_parameter("tint", _skin_ratio())
 	var f = look.get("face")
 	if f is String:
 		f = FACES.get(f, FACES["normal"])
@@ -350,11 +580,9 @@ func _cloth_mat(layer: int) -> ShaderMaterial:
 		look["face"] = f
 	var young = {"child": 1.0, "teen": 0.5}.get(look.get("age", "adult"), 0.0)
 	# çocuk yüzü: dar çene, küçük burun, dolgun yanak
-	mat.set_shader_parameter("face_a", Vector4(f[0] - 0.012 * young, f[1] - 0.006 * young, f[2] + 0.006 * young, f[3] - 0.004 * young))
+	mat.set_shader_parameter("face_a", Vector4.ZERO)
 	mat.set_shader_parameter("face_b", Vector4(f[4], FACE_MARKS.get(look.get("face_mark", "yok"), 0), 0, 0))
-	if eyes_mesh:
-		var ec = eyes_mesh.get_aabb().get_center()
-		mat.set_shader_parameter("face_ref", Vector4(0, ec.y, ec.z, 0))
+	mat.set_shader_parameter("face_ref", Vector4(0, eye_center_model.y, eye_center_model.z, 0))
 	materials.append(mat)
 	return mat
 
@@ -369,6 +597,7 @@ func _paint_body() -> void:
 		_shell_cache[key] = _build_shell(g, func(c): return _shell_offset(c), 22)
 		_shell_cache[key + "|vest"] = _build_shell(g, func(c): return {10: 0.035, 11: 0.055, 12: 0.058, 20: 0.05}.get(c, 0.0), 14)
 	body_mesh.mesh = _body_cache[key]
+	body_mesh.skin = g["skin"]
 	body_mesh.set_surface_override_material(0, _cloth_mat(0))
 	var shell_mat = _cloth_mat(1)
 	cloth_shell_mat = shell_mat
@@ -384,7 +613,7 @@ func _paint_body() -> void:
 ## Kollarda manşet, belde gömlek eteği, paçada büzgü: kıyafete gerçek kalınlık/katman verir
 static var _ring_cache := {}
 func _cloth_rings(g: Dictionary, mat: ShaderMaterial, vest_mat) -> void:
-	var bp = func(n: String) -> Vector3: return skel.get_bone_global_rest(skel.find_bone(n)).origin
+	var bp = func(n: String) -> Vector3: return _grest(skel.find_bone(n)).origin
 	var ua = bp.call("LeftUpperArm").x; var el = bp.call("LeftLowerArm").x; var ha = bp.call("LeftHand").x
 	var neck = bp.call("Neck").y; var hips = bp.call("Hips").y; var knee = bp.call("LeftLowerLeg").y; var ank = bp.call("LeftFoot").y
 	var ts = top_style(); var ps = pants_style()
@@ -565,13 +794,13 @@ static var _sole_cache := {}
 func _sandals() -> void:
 	var g = _geo_for(look["gender"])
 	var wpos: PackedVector3Array = g["wpos"]
-	var neck = skel.get_bone_global_rest(skel.find_bone("Neck")).origin.y
+	var neck = _grest(skel.find_bone("Neck")).origin.y
 	for side in ["Left", "Right"]:
 		var sx = 1.0 if side == "Left" else -1.0
 		var fb = skel.find_bone(side + "Foot")
 		if fb < 0:
 			continue
-		var fp = skel.get_bone_global_rest(fb).origin
+		var fp = _grest(fb).origin
 		var key = "%s|%s" % [look["gender"], side]
 		if not _sole_cache.has(key):
 			_sole_cache[key] = _sole_mesh(wpos, sx)
@@ -663,7 +892,7 @@ static var _garment_cache := {}
 
 
 func _bp(n: String) -> Vector3:
-	return skel.get_bone_global_rest(skel.find_bone(n)).origin
+	return _grest(skel.find_bone(n)).origin
 
 
 ## Vücut köşeleri için ızgara (en yakın köşe araması) + eksene göre kovalar
@@ -1084,7 +1313,7 @@ func _cloth_details() -> void:
 	_sandals()
 	var neck = skel.find_bone("Neck")
 	if neck >= 0 and ts in ["yakali", "ceket"] and look["vest"] == null:
-		var np = skel.get_bone_global_rest(neck).origin
+		var np = _grest(neck).origin
 		var c = MB.new()
 		var cc: Color = look["top"] if ts == "yakali" else look["top2"]
 		c.add("cyl", Vector3(0, 0.035, 0.0), Vector3(0.15, 0.12, 0.15), cc, Vector3.ZERO, 16)
@@ -1094,14 +1323,14 @@ func _cloth_details() -> void:
 	if ts == "ceket" and look["vest"] == null:
 		var cb = skel.find_bone("UpperChest")
 		if cb >= 0:
-			var cp = skel.get_bone_global_rest(cb).origin
+			var cp = _grest(cb).origin
 			var z = MB.new()
 			z.add("box", Vector3(0, -0.12, 0.13), Vector3(0.012, 0.42, 0.01), Color(0.85, 0.85, 0.85), Vector3(-6, 0, 0))
 			_mesh_on("UpperChest", z.build(Props.toon()), Transform3D(Basis.IDENTITY, cp))
 	# bel bağı (pantolon kemeri)
 	var hb = skel.find_bone("Hips")
 	if hb >= 0:
-		var hp = skel.get_bone_global_rest(hb).origin
+		var hp = _grest(hb).origin
 		var w = MB.new()
 		w.add("cyl", Vector3(0, 0.07, 0.0), Vector3(0.33, 0.07, 0.24), Color(look["pants"]).darkened(0.3), Vector3.ZERO, 16)
 		_mesh_on("Hips", w.build(Props.toon()), Transform3D(Basis.IDENTITY, hp))
@@ -1115,7 +1344,7 @@ func _attach(bone: String, model_xf: Transform3D) -> BoneAttachment3D:
 	var holder = Node3D.new()
 	ba.add_child(holder)
 	var bi = skel.find_bone(bone)
-	var rest = skel.get_bone_global_rest(bi)
+	var rest = _grest(bi)
 	holder.transform = rest.affine_inverse() * model_xf
 	return ba
 
@@ -1129,10 +1358,9 @@ func _mesh_on(bone: String, mesh: Mesh, model_xf: Transform3D) -> MeshInstance3D
 
 
 func _head_center() -> Vector3:
-	if eyes_mesh:
-		var ab: AABB = eyes_mesh.get_aabb()
-		return ab.get_center() + Vector3(0, 0.05, -0.075)
-	return skel.get_bone_global_rest(skel.find_bone("Head")).origin + Vector3(0, 0.1, 0)
+	if face_mi:
+		return eye_center_model + Vector3(0, 0.03, -0.07)
+	return _grest(skel.find_bone("Head")).origin + Vector3(0, 0.1, 0)
 
 
 const HAIR_FILES := {
@@ -1339,18 +1567,7 @@ func _attachments() -> void:
 	var hc = _head_center()
 	var female: bool = look["gender"] == "f"
 	var hair_col: Color = look["hair"]
-	# --- gözler (klan rengi) ve kaşlar
-	if eyes_mesh:
-		eye_mat = ShaderMaterial.new()
-		eye_mat.shader = load("res://shaders/toon.gdshader")
-		eye_mat.set_shader_parameter("eye_mode", true)
-		eye_mat.set_shader_parameter("use_vertex_color", false)
-		eye_mat.set_shader_parameter("rim_amount", 0.0)
-		var em = eyes_mesh.mesh.surface_get_material(0)
-		if em is BaseMaterial3D:
-			eye_mat.set_shader_parameter("tex", em.albedo_texture)
-		eye_mat.set_shader_parameter("eye_color", look["eye"])
-		eyes_mesh.material_override = eye_mat
+	# gözler ve saç: _face_and_hair (VRoid)
 	var hair_mat = ShaderMaterial.new()
 	hair_mat.shader = load("res://shaders/toon.gdshader")
 	hair_mat.set_shader_parameter("luma_tint", true)
@@ -1362,58 +1579,13 @@ func _attachments() -> void:
 	materials.append(hair_mat)
 	if brows_mesh:
 		brows_mesh.material_override = hair_mat
-	# --- saç modeli (model uzayında kafada konumlu) + anime dikenleri
-	var file: String = HAIR_FILES.get(look["hair_style"], "Hair_SimpleParted")
-	if file == "":
-		file = "Hair_BuzzedFemale" if female else "Hair_Buzzed"
-		hair_mat.set_shader_parameter("tint", Color(look["skin"]).darkened(0.08))  # kel: ten rengi kafa
-	if female and file == "Hair_Buzzed":
-		file = "Hair_BuzzedFemale"
-	var hs: PackedScene = load("res://assets/chars/hair/%s.gltf" % file)
-	if hs:
-		var hn = hs.instantiate()
-		var ba = _attach("Head", Transform3D.IDENTITY)
-		ba.get_child(0).add_child(hn)
-		for mi in hn.find_children("*", "MeshInstance3D", true, false):
-			mi.material_override = hair_mat
-		var hk = "%s|%s" % [look["hair_style"], file]
-		# kafa ölçüsü hep kısa saç tabanından (uzun saç modeli bandı dev yapmasın)
-		var base_file = "Hair_BuzzedFemale" if female else "Hair_Buzzed"
-		if file == base_file:
-			head_ab = _scalp(file, hn)
-		elif _scalp_cache.has(base_file):
-			head_ab = _scalp_cache[base_file]
-		else:
-			var tmp = (load("res://assets/chars/hair/%s.gltf" % base_file) as PackedScene).instantiate()
-			var tb = _attach("Head", Transform3D.IDENTITY)
-			tb.get_child(0).add_child(tmp)
-			head_ab = _scalp(base_file, tmp)
-			tb.queue_free()
-		if not _hair_cache.has(hk):
-			var ab = head_ab
-			_hair_cache[hk] = _hair_clumps(look["hair_style"], ab.get_center() + Vector3(0, -ab.size.y * 0.12, 0), ab.size * 0.5)
-		var cm = ShaderMaterial.new()
-		cm.shader = load("res://shaders/toon.gdshader")
-		cm.set_shader_parameter("tint", hair_col)
-		cm.set_shader_parameter("rim_amount", 0.45)
-		cm.set_shader_parameter("spec_amount", 0.1)
-		materials.append(cm)
-		var cl = _mesh_on("Head", _hair_cache[hk], Transform3D.IDENTITY)
-		cl.material_override = cm
-	if look.get("beard", false) and not female:
-		var bs: PackedScene = load("res://assets/chars/hair/Hair_Beard.gltf")
-		if bs:
-			var bn = bs.instantiate()
-			_attach("Head", Transform3D.IDENTITY).get_child(0).add_child(bn)
-			for mi in bn.find_children("*", "MeshInstance3D", true, false):
-				mi.material_override = hair_mat
 	# --- alın koruyucu
 	if look["band"] != null and look["band_style"] != "none":
 		var band = MB.new()
 		var bc: Color = look["band"]
 		if look["band_style"] == "neck":
 			band.add("torus", Vector3.ZERO, Vector3(0.24, 0.24, 0.24), bc, Vector3.ZERO, 16)
-			_mesh_on("Neck", band.build(Props.toon()), Transform3D(Basis.IDENTITY, skel.get_bone_global_rest(skel.find_bone("Neck")).origin + Vector3(0, 0.03, 0)))
+			_mesh_on("Neck", band.build(Props.toon()), Transform3D(Basis.IDENTITY, _grest(skel.find_bone("Neck")).origin + Vector3(0, 0.03, 0)))
 		else:
 			# kafaya oturan ince bez bant + metal plaka (saç tabanının ölçüsünden)
 			var bw = 0.19; var bd = 0.21
@@ -1442,7 +1614,7 @@ func _attachments() -> void:
 	if look["vest"] != null:
 		var v = MB.new()
 		var vc: Color = look["vest"]
-		var ch = skel.get_bone_global_rest(skel.find_bone("UpperChest")).origin
+		var ch = _grest(skel.find_bone("UpperChest")).origin
 		v.add("torus", Vector3(0, 0.15, -0.005), Vector3(0.3, 0.3, 0.28), vc.darkened(0.1), Vector3.ZERO, 14)
 		for sx in [-1.0, 1.0]:
 			for k in 2:
@@ -1456,15 +1628,15 @@ func _attachments() -> void:
 		var hb = skel.find_bone(pair[1] + "Hand")
 		if hb < 0:
 			continue
-		var hp = skel.get_bone_global_rest(hb).origin
+		var hp = _grest(hb).origin
 		var sx = 1.0 if pair[1] == "Left" else -1.0
 		_mesh_on(pair[1] + "Hand", weapon_mesh(String(wid)), Transform3D(Basis.IDENTITY, hp + Vector3(0.075 * sx, -0.015, 0.01)))
 	# --- çanta + kunai kılıfı
-	var hip = skel.get_bone_global_rest(skel.find_bone("Hips")).origin
+	var hip = _grest(skel.find_bone("Hips")).origin
 	var pouch = MB.new()
 	pouch.add("box", Vector3.ZERO, Vector3(0.14, 0.09, 0.07), Color(0.42, 0.33, 0.22))
 	_mesh_on("Hips", pouch.build(Props.toon()), Transform3D(Basis.IDENTITY, hip + Vector3(0.0, 0.02, -0.14)))
-	var th = skel.get_bone_global_rest(skel.find_bone("RightUpperLeg")).origin
+	var th = _grest(skel.find_bone("RightUpperLeg")).origin
 	var holster = MB.new()
 	holster.add("box", Vector3.ZERO, Vector3(0.05, 0.12, 0.1), Color(0.12, 0.12, 0.14))
 	holster.add("box", Vector3(0, 0.07, 0), Vector3(0.06, 0.02, 0.11), Color(0.85, 0.85, 0.85))
