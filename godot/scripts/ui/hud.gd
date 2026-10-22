@@ -367,6 +367,7 @@ void fragment(){
 	tr.material = sm
 	minimap.add_child(tr)
 	minimap.set_meta("mat", sm)
+	minimap.set_meta("tex", tr)
 	var over = Control.new()
 	over.size = Vector2(240, 240)
 	over.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -935,11 +936,23 @@ func _process(dt: float) -> void:
 		boss_box.visible = false
 	# mini harita
 	var sm: ShaderMaterial = minimap.get_meta("mat")
-	var m = Game.to_map(pl.global_position)
-	var W = Game.hw * Game.res
-	var H = Game.hh * Game.res
-	sm.set_shader_parameter("center", Vector2((m.x - Game.x0) / W, (Game.y1 - m.y) / H))
-	sm.set_shader_parameter("zoom", 900.0 / W)
+	var rm = Game.world.get("road_map") if Game.world else null
+	if rm != null and rm.local_map != null and rm.local_rect.z > 0.0:
+		# yüksek çözünürlüklü yerel harita (yollar, nehirler, köyler; 1.6 km, kuzey yukarı)
+		var tr: TextureRect = minimap.get_meta("tex")
+		if minimap.get_meta("map_ver", -1) != rm.version:
+			tr.texture = rm.local_map
+			minimap.set_meta("map_ver", rm.version)
+		var r: Vector4 = rm.local_rect
+		var gp = pl.global_position
+		sm.set_shader_parameter("center", Vector2((gp.x - r.x) / r.z, (gp.z - r.y) / r.z))
+		sm.set_shader_parameter("zoom", 900.0 / r.z)
+	else:
+		var m = Game.to_map(pl.global_position)
+		var W = Game.hw * Game.res
+		var H = Game.hh * Game.res
+		sm.set_shader_parameter("center", Vector2((m.x - Game.x0) / W, (Game.y1 - m.y) / H))
+		sm.set_shader_parameter("zoom", 900.0 / W)
 	sm.set_shader_parameter("rot", deg_to_rad(pl.yaw) * -1.0)
 	(minimap.get_meta("over") as Control).queue_redraw()
 

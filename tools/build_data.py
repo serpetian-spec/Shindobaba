@@ -98,6 +98,140 @@ for (jid, name, cid, cost, cd, el, clan, lv, rk, learn, desc) in J:
                     seals=SEAL_OVERRIDE.get(jid, seals(cid)), canon_rank=rank_of.get(cid, '?'))
     if jid in IMPL:
         out[jid]['impl'] = IMPL[jid]
+
+# ================================================================== tam jutsu listesi (research/jutsu_full.json, 653 jutsu)
+FULL = json.load(open(os.path.join(ROOT, 'research', 'jutsu_full.json'), encoding='utf8'))['jutsu']
+EL_MAP = {'futon': 'fuuton', 'katon': 'katon', 'suiton': 'suiton', 'doton': 'doton', 'raiton': 'raiton', 'mokuton': 'mokuton',
+          'hyoton': 'hyoton', 'yoton': 'yoton', 'futton': 'futton', 'ranton': 'ranton', 'shakuton': 'shakuton', 'bakuton': 'bakuton',
+          'jiton': 'jiton', 'shoton': 'shoton', 'jinton': 'jinton', 'inton': 'inton', 'yang': 'yang', 'onmyoton': 'onmyoton'}
+COMBAT_EL = set(['katon', 'suiton', 'fuuton', 'doton', 'raiton', 'mokuton', 'hyoton', 'yoton', 'futton', 'ranton', 'shakuton', 'bakuton', 'jiton', 'shoton', 'jinton'])
+RANK_I = {'E': 0, 'D': 1, 'C': 2, 'B': 3, 'A': 4, 'S': 5}
+SEAL_EN = {'Rat': 'Ne', 'Ox': 'Ushi', 'Tiger': 'Tora', 'Rabbit': 'U', 'Hare': 'U', 'Dragon': 'Tatsu', 'Snake': 'Mi', 'Horse': 'Uma',
+           'Ram': 'Hitsuji', 'Monkey': 'Saru', 'Bird': 'Tori', 'Dog': 'Inu', 'Boar': 'I'}
+KG_MAP = {'Wood Release': 'mokuton', 'Ice Release': 'hyoton', 'Lava Release': 'yoton', 'Boil Release': 'futton', 'Storm Release': 'ranton',
+          'Scorch Release': 'shakuton', 'Explosion Release': 'bakuton', 'Magnet Release': 'jiton', 'Crystal Release': 'shoton',
+          'Dust Release': 'jinton', 'Shikotsumyaku': 'shikotsumyaku', "Jūgo's Clan's Kekkei Genkai": 'senjutsu_beden'}
+EYE_MAP = {'Sharingan': 'sharingan', 'Mangekyō Sharingan': 'mangekyo', 'Eternal Mangekyō Sharingan': 'ems', 'Rinnegan': 'rinnegan',
+           'Rinne Sharingan': 'rinne_sharingan', 'Byakugan': 'byakugan', 'Tenseigan': 'tenseigan', 'Jōgan': 'jogan',
+           'Ketsuryūgan': 'ketsuryugan', 'Kokugan': 'kokugan'}
+CLAN_MAP = {'Hyūga Clan': 'hyuga', 'Nara Clan': 'nara', 'Yamanaka Clan': 'yamanaka', 'Akimichi Clan': 'akimichi', 'Hōzuki Clan': 'hozuki',
+            'Aburame Clan': 'aburame', 'Uzumaki Clan': 'uzumaki', 'Yuki Clan': 'yuki', 'Sarutobi Clan': 'sarutobi', 'Senju Clan': 'senju',
+            'Uchiha Clan': 'uchiha', 'Inuzuka Clan': 'inuzuka', 'Kaguya Clan': 'kaguya', 'Hatake Clan': 'hatake'}
+VILLAGE_OF = {'katon': 'konoha', 'fuuton': 'suna', 'suiton': 'kiri', 'raiton': 'kumo', 'doton': 'iwa'}
+# şekil -> (maliyet çarpanı, bekleme çarpanı)
+SHAPE_K = {'projectile': (1.0, 1.0), 'melee': (0.8, 0.8), 'aoe': (1.2, 1.3), 'bind': (1.0, 1.4), 'summon': (1.8, 3.0), 'buff': (1.2, 2.2),
+           'clone': (1.2, 1.6), 'seal': (1.3, 1.8), 'genjutsu_stun': (1.0, 1.5), 'wall': (0.9, 1.5), 'field': (1.3, 1.8),
+           'utility': (0.6, 1.0), 'transform': (0.8, 1.6), 'beam': (1.4, 1.4), 'stealth': (0.8, 1.6), 'trap': (0.8, 1.2),
+           'teleport': (0.5, 0.4), 'debuff': (0.9, 1.3), 'counter': (0.8, 1.2), 'sensor': (0.5, 1.5), 'mode': (1.8, 3.0),
+           'rush': (0.9, 0.8), 'heal': (1.0, 1.6), 'revive': (2.5, 4.0), 'dash': (0.6, 0.5)}
+COST = [5, 10, 18, 28, 42, 60]
+CD = [3, 4, 6, 9, 14, 22]
+LEVEL = [1, 2, 5, 10, 18, 28]
+NRANK = [0, 0, 1, 2, 3, 3]
+SCROLL_PRICE = [100, 200, 400, 800, 1500, 3000]
+
+# mevcut elle yazılmış jutsular hangi araştırma kaydına denk geliyor (legacy_id = eski canon id)
+cid_of = {jid: cid for (jid, name, cid, *_r) in J if cid}
+best = {}
+for r in FULL:
+    lid = r.get('legacy_id')
+    if not lid:
+        continue
+    cur = best.get(lid)
+    if cur is None or (len(r.get('elements') or []), len(r['id'])) < (len(cur.get('elements') or []), len(cur['id'])):
+        best[lid] = r
+covered = set()
+
+
+def research_fields(r):
+    els = [EL_MAP.get(e, e) for e in (r.get('elements') or [])]
+    combat = [e for e in els if e in COMBAT_EL]
+    ri = RANK_I.get(r.get('canon_rank') or 'C', 2)
+    req = r.get('requires') or {}
+    return els, combat, ri, req
+
+
+def learn_path(r, combat, ri, req, cat):
+    h = sum(ord(ch) for ch in r['id'])
+    if r.get('signature'):
+        return 'quest:signature'
+    if r.get('kinjutsu') or cat == 'kinjutsu' or req.get('otsutsuki_power'):
+        return 'kinjutsu'
+    if req.get('eye'):
+        return 'eye:' + EYE_MAP.get(req['eye'][0], 'sharingan')
+    if req.get('kekkei_genkai'):
+        return 'kg:' + KG_MAP.get(req['kekkei_genkai'][0], 'kekkei')
+    if req.get('clan_or_lineage'):
+        c = CLAN_MAP.get(req['clan_or_lineage'][0])
+        return ('clan:' + c) if c else 'quest:hiden'
+    if req.get('sage_mode') or cat == 'senjutsu':
+        return 'sage:any'
+    if cat == 'summoning':
+        return 'quest:contract'
+    if cat == 'space_time':
+        return 'kinjutsu' if ri >= 4 else 'trainer:jonin'
+    if cat == 'medical':
+        return 'trainer:hospital'
+    if cat == 'genjutsu':
+        return 'scroll' if ri <= 2 else 'trainer:genjutsu'
+    if cat == 'taijutsu':
+        return 'academy' if ri <= 1 else 'trainer:taijutsu'
+    if cat == 'fuinjutsu':
+        return 'scroll' if ri <= 3 else 'trainer:fuin'
+    if cat in ('kekkei_genkai', 'hiden', 'dojutsu'):
+        return 'quest:hiden'
+    if ri <= 1 and not combat:
+        return 'academy'
+    if combat and combat[0] in VILLAGE_OF:
+        if ri <= 2 or (ri == 3 and h % 2 == 0):
+            return 'scroll'
+        return 'trainer:' + VILLAGE_OF[combat[0]]
+    return 'scroll' if ri <= 3 else 'trainer:jonin'
+
+
+for gid, cid in cid_of.items():
+    r = best.get(cid)
+    if r is None or gid not in out:
+        continue
+    covered.add(r['id'])
+    els, combat, ri, req = research_fields(r)
+    g = out[gid]
+    g.setdefault('category', r.get('category', 'ninjutsu'))
+    g.setdefault('shape', r.get('shape', 'projectile'))
+    g['elements'] = [g['element']] if g.get('element') else combat
+    g['tier'] = ri
+    g['name_en'] = r.get('name_en', '')
+    g['research_id'] = r['id']
+# elle yazılmışlara kategori/şekil varsayılanı (araştırmada karşılığı olmayanlar)
+for gid, g in out.items():
+    if gid.startswith('_'):
+        continue
+    g.setdefault('category', 'hiden' if g.get('clan') else 'ninjutsu')
+    g.setdefault('shape', 'projectile')
+    g.setdefault('elements', [g['element']] if g.get('element') else [])
+    g.setdefault('tier', RANK_I.get(g.get('canon_rank', 'C'), 2))
+
+new_count = 0
+for r in FULL:
+    jid = r['id']
+    if jid in covered or jid in out:
+        continue
+    els, combat, ri, req = research_fields(r)
+    cat = r.get('category', 'ninjutsu')
+    shape = r.get('shape') or 'projectile'
+    ck, dk = SHAPE_K.get(shape, (1.0, 1.0))
+    learn = learn_path(r, combat, ri, req, cat)
+    seals_ = [SEAL_EN[s] for s in (r.get('seals') or []) if s in SEAL_EN][:10]
+    clan = learn[5:] if learn.startswith('clan:') else ''
+    out[jid] = dict(
+        id=jid, name=r['name'], name_en=r.get('name_en', ''), cost=int(round(COST[ri] * ck)), cd=round(CD[ri] * dk, 1),
+        element=combat[0] if combat else '', elements=combat, natures=els, clan=clan, level=LEVEL[ri], rank=NRANK[ri],
+        learn=learn, desc=r.get('desc', ''), seals=seals_, canon_rank=r.get('canon_rank') or 'C', tier=ri,
+        category=cat, shape=shape, range=r.get('range') or '', requires=req, signature=bool(r.get('signature')),
+        kinjutsu=bool(r.get('kinjutsu')), series=(r.get('first_appears') or {}).get('series', ''))
+    new_count += 1
+print(new_count, 'yeni jutsu araştırmadan eklendi;', len(covered), 'mevcut jutsu zenginleştirildi')
+
 out['_seals'] = [s['name_jp'] for s in R['hand_seals'][:12]]
 os.makedirs(os.path.join(ROOT, 'godot', 'data'), exist_ok=True)
 json.dump(out, open(os.path.join(ROOT, 'godot', 'data', 'jutsu.json'), 'w', encoding='utf8'), ensure_ascii=False, indent=1)
@@ -117,6 +251,14 @@ items = {
     'scroll_doton_doryuheki': dict(name='Parşömen: Doryuheki', price=400, kind='scroll', jutsu='doton_doryuheki', desc="Doton kullanıcıları."),
     'scroll_kokuangyo': dict(name='Parşömen: Kokuangyo', price=900, kind='scroll', jutsu='kokuangyo', desc="Seviye 15 + Chunin."),
 }
+# satılık jutsu parşömenleri: 'scroll' yolu olan her jutsu için
+have_scroll = set(v.get('jutsu') for v in items.values() if v.get('kind') == 'scroll')
+for jid, j in out.items():
+    if jid.startswith('_') or j.get('learn') != 'scroll' or jid in have_scroll:
+        continue
+    short = j['name'].split(' (')[0]
+    items['scroll_' + jid] = dict(name='Parşömen: ' + short, price=SCROLL_PRICE[j.get('tier', 2)], kind='scroll', jutsu=jid,
+                                  desc=('%s — %s' % (j.get('canon_rank', '?'), j.get('desc', '')))[:160])
 json.dump(items, open(os.path.join(ROOT, 'godot', 'data', 'items.json'), 'w', encoding='utf8'), ensure_ascii=False, indent=1)
 
 C = json.load(open(os.path.join(ROOT, 'research', 'clans_factions.json'), encoding='utf8'))
@@ -154,6 +296,11 @@ BONUS = {  # hp, chakra (düz); melee, jutsu, speed (oran)
     'hozuki': dict(hp=15, chakra=15), 'sarutobi': dict(chakra=25, jutsu=0.08), 'hatake': dict(melee=0.12, speed=0.04), 'chinoike': dict(chakra=20, jutsu=0.05),
     'hoshigaki': dict(chakra=80, hp=20), 'kurama': dict(chakra=30), 'fuma': dict(melee=0.08, speed=0.05), 'kamizuru': dict(hp=20, chakra=20),
 }
+KG_NATURES = {'senju': (['mokuton'], 15), 'yuki': (['hyoton'], 1), 'kaguya': (['shikotsumyaku'], 1), 'hozuki': (['hydrification'], 1)}
+for cid, c in clans.items():
+    if cid in KG_NATURES:
+        c['kg_natures'] = KG_NATURES[cid][0]
+        c['kg_level'] = KG_NATURES[cid][1]
 for cid, c in clans.items():
     if cid in DOJUTSU:
         c['dojutsu'] = DOJUTSU[cid]

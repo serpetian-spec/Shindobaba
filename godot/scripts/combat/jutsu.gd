@@ -54,6 +54,24 @@ func _hand(caster: Node3D) -> Vector3:
 	return caster.global_position + Vector3.UP * 1.35 + caster.face_dir() * 0.55
 
 
+## Ağız: kafa kemiğinin dünya konumu + ileri (Katon gibi üfleme jutsuları buradan çıkar)
+func _mouth(caster: Node3D) -> Vector3:
+	var m = caster.get("model")
+	if m and is_instance_valid(m) and m.skel:
+		var hb = m.skel.find_bone("Head")
+		if hb >= 0:
+			var hp: Vector3 = (m.skel.global_transform * m.skel.get_bone_global_pose(hb)).origin
+			return hp + Vector3.UP * 0.04 + caster.face_dir() * 0.28
+	return caster.global_position + Vector3.UP * 1.6 * (m.age_scale if m else 1.0) + caster.face_dir() * 0.35
+
+
+## Jutsunun çıkış noktası: CastAnim stili "breath" ise ağız, değilse el
+func _cast_origin(caster: Node3D, jid: String) -> Vector3:
+	if CastAnim.style_for(jid, Data.jutsu.get(jid, {})) == "breath":
+		return _mouth(caster)
+	return _hand(caster)
+
+
 ## Her jutsu kullanımında yayılır (ör. Sharingan kopyalama)
 signal jutsu_cast(caster: Node, id: String)
 
@@ -63,6 +81,8 @@ func execute(caster: Node3D, id: String, target: Node3D) -> void:
 	id = String(Data.jutsu.get(id, {}).get("impl", id))  # klan jutsuları ortak uygulamayı kullanabilir
 	if has_method("j_" + id):
 		call("j_" + id, caster, target)
+	elif Data.jutsu.has(id):
+		JutsuEngine.cast(caster, id, target)  # veri güdümlü: şekil × element × kademe
 	else:
 		Hud.msg("%s henüz uygulanmadı" % id, Color(1, 0.6, 0.4))
 
@@ -71,7 +91,7 @@ func execute(caster: Node3D, id: String, target: Node3D) -> void:
 func j_katon_goukakyuu(c: Node3D, t: Node3D) -> void:
 	var m = _mult(c) * _elem_bonus(c, "katon")
 	var dir = _aim(c, t)
-	var start = _hand(c) + dir * 1.2
+	var start = _mouth(c) + dir * 0.9
 	# ağızdan alev patlaması
 	FX.burst(start, {"amount": 40, "life": 0.45, "size": 1.6, "vmin": 6, "vmax": 14, "dir": dir, "spread": 25.0,
 		"colors": [Color(1, 1, 0.7, 1), Color(1, 0.55, 0.1, 0.9), Color(0.6, 0.1, 0.0, 0)]})
@@ -115,7 +135,7 @@ func j_katon_housenka(c: Node3D, t: Node3D) -> void:
 		pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
 			FX.explosion(pos, 0.45)
 		get_tree().current_scene.add_child(pr)
-		pr.global_position = _hand(c) + d * 0.8
+		pr.global_position = _mouth(c) + d * 0.6
 
 
 func j_katon_karyuu(c: Node3D, t: Node3D) -> void:
@@ -164,7 +184,7 @@ func _stream(c: Node3D, t: Node3D, dur: float, col: Color, el: String, tick_dmg:
 			if e.get_meta("stopped", false):
 				return
 			var d = _aim(c, t)
-			e.global_transform = Transform3D(Basis.looking_at(d, Vector3.UP), c.global_position + Vector3.UP * 1.4 + d * 0.6)
+			e.global_transform = Transform3D(Basis.looking_at(d, Vector3.UP), _mouth(c) + d * 0.4)
 			for pr in get_tree().get_nodes_in_group("projectiles"):
 				if pr.dead or pr.element() == "" or pr.shooter == null or not is_instance_valid(pr.shooter) or not Combat.hostile(c, pr.shooter):
 					continue
@@ -302,9 +322,10 @@ func j_fuuton_daitoppa(c: Node3D, t: Node3D) -> void:
 	var d = _aim(c, t)
 	d.y = clampf(d.y, -0.2, 0.3)
 	Sfx.play("wind", c.global_position)
-	FX.burst(c.global_position + Vector3.UP * 1.3 + d, {"amount": 70, "life": 0.5, "tex": FX.tex_spark, "size": 3.0, "vmin": 25, "vmax": 40,
+	var mo = _mouth(c)
+	FX.burst(mo + d, {"amount": 70, "life": 0.5, "tex": FX.tex_spark, "size": 3.0, "vmin": 25, "vmax": 40,
 		"dir": d, "spread": 18.0, "radius": 0.8, "damp": 2.0, "colors": [Color(1, 1, 1, 0.9), Color(0.75, 1.0, 0.85, 0.5), Color(0.7, 1, 0.9, 0)]})
-	FX.burst(c.global_position + Vector3.UP * 1.3 + d * 3.0, {"amount": 25, "life": 0.7, "tex": FX.tex_smoke, "add": false, "size": 4.0,
+	FX.burst(mo + d * 3.0, {"amount": 25, "life": 0.7, "tex": FX.tex_smoke, "add": false, "size": 4.0,
 		"vmin": 15, "vmax": 25, "dir": d, "spread": 20.0, "damp": 3.0, "colors": [Color(0.9, 1, 0.95, 0.4), Color(0.9, 1, 0.95, 0)]})
 	for k in 5:
 		var pos = c.global_position + Vector3.UP * 1.2 + d * (2.0 + k * 2.4)
@@ -329,7 +350,7 @@ func j_fuuton_shinkuu(c: Node3D, t: Node3D) -> void:
 			pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
 				FX.ring(pos, Color(0.85, 1, 0.9), 2.5, 0.2, false)
 			get_tree().current_scene.add_child(pr)
-			pr.global_position = _hand(c))
+			pr.global_position = _mouth(c))
 
 
 func j_fuuton_rasenshuriken(c: Node3D, t: Node3D) -> void:

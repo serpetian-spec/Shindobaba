@@ -104,6 +104,10 @@
    0.22,
    0.15
   ],
+  "kg_natures": [
+   "mokuton"
+  ],
+  "kg_level": 15,
   "bonus": {
    "hp": 40,
    "chakra": 20
@@ -132,6 +136,10 @@
    0.4,
    0.65
   ],
+  "kg_natures": [
+   "shikotsumyaku"
+  ],
+  "kg_level": 1,
   "bonus": {
    "hp": 20,
    "melee": 0.12
@@ -146,6 +154,10 @@
    0.6,
    0.75
   ],
+  "kg_natures": [
+   "hyoton"
+  ],
+  "kg_level": 1,
   "bonus": {
    "chakra": 20,
    "jutsu": 0.05
@@ -174,6 +186,10 @@
    0.45,
    0.75
   ],
+  "kg_natures": [
+   "hydrification"
+  ],
+  "kg_level": 1,
   "bonus": {
    "hp": 15,
    "chakra": 15
