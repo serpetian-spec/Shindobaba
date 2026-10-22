@@ -223,6 +223,7 @@ func _chase(dt: float) -> void:
 		if not jl.is_empty() and randf() < 0.6:
 			set_meta("cast_id", jl.pick_random())
 			state = "cast"
+			CastAnim.play(self, get_meta("cast_id"), 0.55)  # mühür + atma koreografisi
 			state_t = 0.0
 			model.play("idle", 0.05)
 			model.overlay.set_pose("seal", 1.0)

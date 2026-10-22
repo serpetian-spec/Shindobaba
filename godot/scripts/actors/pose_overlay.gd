@@ -10,6 +10,13 @@ var poses = {}
 var head_scale = 1.0   # çocuk/genç oranları: büyük kafa
 var chest_scale = 1.0
 var limb_scale = 1.0    # çocuk: ince kol ve bacaklar
+## Jutsu atma koreografisi (CastAnim her kare doldurur):
+## {"arms": [[kemik, model-uzayı yön], ...] (ebeveynden çocuğa sırayla), "fL"/"fR": [işaret, orta, yüzük, serçe, başparmak] kıvrım (rad),
+##  "spine": derece, "neck": derece, "hips_yaw": derece}
+var cast_pose := {}
+const FINGERS := ["Index", "Middle", "Ring", "Little"]
+const FINGER_SEG := ["Proximal", "Intermediate", "Distal"]
+const THUMB_SEG := ["Metacarpal", "Proximal", "Distal"]
 const STANCE := {
 	"w_blade": [["RightUpperArm", Vector3(-0.3, -0.75, 0.55)], ["RightLowerArm", Vector3(0.25, 0.35, 0.9)], ["LeftUpperArm", Vector3(0.35, -0.8, 0.45)], ["LeftLowerArm", Vector3(-0.1, 0.2, 0.97)]],
 	"w_sword": [["RightUpperArm", Vector3(-0.15, -0.8, 0.55)], ["RightLowerArm", Vector3(0.3, -0.2, 0.93)], ["LeftUpperArm", Vector3(0.2, -0.8, 0.55)], ["LeftLowerArm", Vector3(-0.45, -0.15, 0.88)]],
@@ -31,6 +38,7 @@ func _ready() -> void:
 		"kick": {"_Kick": 1},
 		"guard": {"_Guard": 1},
 		"leap": {"_Leap": 1},
+		"cast": {"_Cast": 1},
 		# silah duruşları (bekleme/koşu): ters tutuş kunai, iki elle kılıç, omuzda ağır silah, çift bıçak alçak, yelpaze yanda
 		"w_blade": {}, "w_sword": {}, "w_shoulder": {}, "w_dual": {}, "w_fan": {},
 	}
@@ -94,6 +102,9 @@ func _process_modification() -> void:
 		_rot_model(sk, "RightUpperLeg", Vector3(0.05, 0.25, 0.97), w_kick)
 		_rot_model(sk, "RightLowerLeg", Vector3(0.05, 0.3, 0.95), w_kick)
 		_add_local(sk, "Spine", Vector3(deg_to_rad(-14), 0, 0), w_kick)
+	var w_cast: float = weights.get("cast", 0.0)
+	if w_cast > 0.0 and not cast_pose.is_empty():
+		_apply_cast(sk, w_cast)
 	# yaş oranları (kemik ölçeği çocuk kemiklere de geçer: saç/bant kafayla büyür)
 	if head_scale != 1.0:
 		var hb = sk.find_bone("Head")
@@ -108,6 +119,42 @@ func _process_modification() -> void:
 		var cb = sk.find_bone("UpperChest")
 		if cb >= 0:
 			sk.set_bone_pose_scale(cb, Vector3(chest_scale, 1.0, chest_scale))
+
+
+## Jutsu pozu: gövde, kollar (sırayla), parmaklar
+func _apply_cast(sk: Skeleton3D, w: float) -> void:
+	var cp = cast_pose
+	var cr: float = cp.get("crouch", 0.0) * w
+	if cr > 0.0:
+		# çömelme: kalça alçalır, uyluklar öne, baldırlar geriye (ayaklar yerde kalır)
+		var hb = sk.find_bone("Hips")
+		if hb >= 0:
+			sk.set_bone_pose_position(hb, sk.get_bone_pose_position(hb) + Vector3(0, -0.32 * cr, 0.05 * cr))
+		for side in [["Left", 1.0], ["Right", -1.0]]:
+			_rot_model(sk, side[0] + "UpperLeg", Vector3(0.12 * side[1], -0.45, 0.88), cr)
+			_rot_model(sk, side[0] + "LowerLeg", Vector3(0.0, -0.9, -0.42), cr)
+			_rot_model(sk, side[0] + "Foot", Vector3(0.0, -0.45, 0.89), cr)
+	if cp.get("hips_yaw", 0.0) != 0.0:
+		_add_local(sk, "Hips", Vector3(0, deg_to_rad(cp["hips_yaw"]), 0), w)
+	if cp.get("spine", 0.0) != 0.0:
+		_add_local(sk, "Spine", Vector3(deg_to_rad(cp["spine"]) * 0.5, 0, 0), w)
+		_add_local(sk, "Chest", Vector3(deg_to_rad(cp["spine"]) * 0.5, 0, 0), w)
+	if cp.get("neck", 0.0) != 0.0:
+		_add_local(sk, "Neck", Vector3(deg_to_rad(cp["neck"]), 0, 0), w)
+	for a in cp.get("arms", []):
+		_rot_model(sk, a[0], a[1], w)
+	for side in ["L", "R"]:
+		var f: Array = cp.get("f" + side, [])
+		if f.size() < 5:
+			continue
+		var pre = "Left" if side == "L" else "Right"
+		var sgn = 1.0 if side == "L" else -1.0
+		for i in 4:
+			for seg in FINGER_SEG:
+				_add_local(sk, pre + FINGERS[i] + seg, Vector3(f[i] * 0.55 * sgn, 0, 0), w)
+		# başparmak: avuca doğru katla
+		for seg in THUMB_SEG:
+			_add_local(sk, pre + "Thumb" + seg, Vector3(f[4] * 0.4 * sgn, 0, -f[4] * 0.3), w)
 
 
 ## Kemiği, model uzayında verilen yöne (kemik +Y ekseni = kemik doğrultusu) döndürür.
