@@ -9,6 +9,7 @@ var speed = 10.0
 var poses = {}
 var head_scale = 1.0   # çocuk/genç oranları: büyük kafa
 var chest_scale = 1.0
+var limb_scale = 1.0    # çocuk: ince kol ve bacaklar
 
 
 func _ready() -> void:
@@ -69,6 +70,11 @@ func _process_modification() -> void:
 		var hb = sk.find_bone("Head")
 		if hb >= 0:
 			sk.set_bone_pose_scale(hb, Vector3.ONE * head_scale / chest_scale)
+	if limb_scale != 1.0:
+		for b in ["LeftUpperArm", "RightUpperArm", "LeftUpperLeg", "RightUpperLeg"]:
+			var li = sk.find_bone(b)
+			if li >= 0:
+				sk.set_bone_pose_scale(li, Vector3(limb_scale, 1.0, limb_scale))
 	if chest_scale != 1.0:
 		var cb = sk.find_bone("UpperChest")
 		if cb >= 0:

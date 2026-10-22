@@ -109,7 +109,7 @@ func play(key: String, blend := 0.15, speed := 1.0, restart := false) -> void:
 		anim.seek(0.0, true)
 
 
-const AGES := {"child": [0.76, 1.1, 0.9], "teen": [0.84, 1.05, 0.94], "young": [0.92, 1.02, 0.97], "adult": [1.0, 1.0, 1.0]}
+const AGES := {"child": [0.76, 1.1, 0.86, 0.8], "teen": [0.84, 1.05, 0.92, 0.88], "young": [0.92, 1.02, 0.97, 0.95], "adult": [1.0, 1.0, 1.0, 1.0]}
 var age_scale = 1.0
 
 
@@ -120,6 +120,7 @@ func apply_age(age: String) -> void:
 	scale = Vector3.ONE * age_scale
 	overlay.head_scale = a[1]
 	overlay.chest_scale = a[2]
+	overlay.limb_scale = a[3]
 
 
 func anim_length(key: String) -> float:
@@ -330,7 +331,9 @@ func _cloth_mat(layer: int) -> ShaderMaterial:
 	if not f is Array or f.size() < 5:
 		f = random_face()
 		look["face"] = f
-	mat.set_shader_parameter("face_a", Vector4(f[0], f[1], f[2], f[3]))
+	var young = {"child": 1.0, "teen": 0.5}.get(look.get("age", "adult"), 0.0)
+	# çocuk yüzü: dar çene, küçük burun, dolgun yanak
+	mat.set_shader_parameter("face_a", Vector4(f[0] - 0.012 * young, f[1] - 0.006 * young, f[2] + 0.006 * young, f[3] - 0.004 * young))
 	mat.set_shader_parameter("face_b", Vector4(f[4], FACE_MARKS.get(look.get("face_mark", "yok"), 0), 0, 0))
 	if eyes_mesh:
 		var ec = eyes_mesh.get_aabb().get_center()
