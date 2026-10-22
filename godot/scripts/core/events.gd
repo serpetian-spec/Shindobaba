@@ -121,7 +121,7 @@ func _next_duel(i: int, arena: Vector3) -> void:
 		Progress.add_xp(800)
 		Progress.add_ryo(1000)
 		Progress.set_story(11)
-		Hud.dialog("Hokage", "Turnuvadaki stratejin ve cesaretin takdire değer. Bugünden itibaren bir CHUNIN'sin!", [])
+		Hud.dialog(Progress.home_info()["kage"], "Turnuvadaki stratejin ve cesaretin takdire değer. Bugünden itibaren bir CHUNIN'sin!", [])
 		return
 	var e = Enemy.new()
 	var a = Enemy.archetype("genin_rival", i + 1)

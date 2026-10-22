@@ -164,7 +164,7 @@ func back_to_menu() -> void:
 
 func start_creator(slot: int) -> void:
 	mode = "creator"
-	creator_state = {"slot": slot, "name": "", "gender": "m", "clan": "none", "element": "katon", "hair_style": "diken",
+	creator_state = {"slot": slot, "name": "", "gender": "m", "clan": "none", "element": "katon", "village": "konoha", "hair_style": "diken",
 		"hair": Color(0.3, 0.2, 0.12), "top": Color(0.15, 0.2, 0.33), "top2": Color(0.15, 0.15, 0.17), "pants": Color(0.15, 0.15, 0.17),
 		"top_style": "ceket", "pants_style": "ninja",
 		"skin": Color(0.96, 0.8, 0.66), "eye": Color(0.25, 0.45, 0.8)}
@@ -179,7 +179,7 @@ func _creator_look() -> Dictionary:
 		var e: Array = Data.clans[s["clan"]]["eye"]
 		eye = Color(e[0], e[1], e[2])
 	return {"gender": s["gender"], "hair_style": s["hair_style"], "hair": s["hair"], "top": s["top"],
-		"top2": s.get("top2", Color(s["top"]).darkened(0.3)), "pants": s["pants"], "top_style": s.get("top_style", "ceket"), "pants_style": s.get("pants_style", "ninja"), "skin": s["skin"], "eye": eye, "band": null, "age": "child"}
+		"top2": s.get("top2", Color(s["top"]).darkened(0.3)), "pants": s["pants"], "top_style": s.get("top_style", "ceket"), "pants_style": s.get("pants_style", "ninja"), "skin": s["skin"], "eye": eye, "band": null, "age": "child", "village": s.get("village", "konoha")}
 
 
 func _update_preview() -> void:
@@ -202,11 +202,12 @@ func _start_new_game() -> void:
 	if String(s["name"]).strip_edges() == "":
 		s["name"] = ["Kaito", "Hiro", "Ren", "Sora", "Aki", "Yuki"].pick_random()
 	Game.profile = Progress.new_profile({"slot": s["slot"], "name": s["name"], "gender": s["gender"], "clan": s["clan"],
-		"element": s["element"], "look": _creator_look()})
-	var v = Game.village("konoha")
+		"element": s["element"], "look": _creator_look(), "village": s.get("village", "konoha")})
 	Game.profile["pos"] = null
-	_begin_game(Game.from_map(Vector2(v["x"] - 120, v["y"] + 120)))
-	Hud.banner("KONOHAGAKURE", "Akademi öğrencisi %s'nin hikâyesi başlıyor" % s["name"], UI.ACCENT)
+	Progress.refresh_story()
+	_begin_game(Progress.home_spawn())
+	var vname = String(Game.village(Progress.home()).get("name", "Konoha"))
+	Hud.banner(vname.to_upper(), "Akademi öğrencisi %s'nin hikâyesi başlıyor" % s["name"], UI.ACCENT)
 
 
 func load_slot(slot: int) -> void:
@@ -217,8 +218,7 @@ func load_slot(slot: int) -> void:
 	if pos != null:
 		p = Vector3(pos[0], pos[1], pos[2])
 	else:
-		var v = Game.village("konoha")
-		p = Game.from_map(Vector2(v["x"], v["y"] - 300))
+		p = Progress.home_spawn()
 	world.env.time_of_day = float(Game.profile.get("time", 0.35))
 	_begin_game(p)
 
@@ -233,6 +233,14 @@ func _begin_game(pos: Vector3) -> void:
 	for k in look.keys():
 		if look[k] is String and String(look[k]).begins_with("("):
 			look[k] = str_to_var("Color" + look[k])
+	# eski kayıtlar: köy/itibar alanları yoksa Konoha
+	if not Game.profile.has("village"):
+		Game.profile["village"] = "konoha"
+	if not Game.profile.has("rep"):
+		Game.profile["rep"] = {}
+	look["village"] = Game.profile["village"]
+	Progress.refresh_story()
+	Missions._story_cache.clear()
 	# eski kayıtlar 4 slotluydu: 6'ya tamamla
 	var sl: Array = Game.profile.get("slots", [])
 	while sl.size() < 6:

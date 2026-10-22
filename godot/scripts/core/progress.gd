@@ -1,23 +1,80 @@
 extends Node
 ## RPG ilerleme (autoload "Progress"): XP/seviye, rütbe, hikâye zinciri, hocalar, etkileşimler, öğrenme.
 
-const STORY := [
-	"Ninja Akademisi'ne git ve hocan Hoshino-sensei ile konuş. (Akademi, köyün kuzeybatısı)",
+## Oyuncunun köyüne göre: Kage unvanı, hocalar, alın koruyucu/yelek rengi, önerilen element
+const HOME_VILLAGES := {
+	"konoha": {"kage": "Hokage", "s1": "Hoshino-sensei", "s2": "Kurogane-sensei", "band": Color(0.15, 0.22, 0.55), "vest": Color(0.38, 0.48, 0.28), "element": "katon", "lookout": "Hokage Kayası", "dir": "köyün kuzeybatısı"},
+	"suna": {"kage": "Kazekage", "s1": "Takeru-sensei", "s2": "Saji-sensei", "band": Color(0.42, 0.33, 0.22), "vest": Color(0.72, 0.62, 0.45), "element": "fuuton", "lookout": "Gözetleme Kulesi", "dir": "köyün kenarındaki Akademi yerleşkesi"},
+	"kiri": {"kage": "Mizukage", "s1": "Nagisa-sensei", "s2": "Shiozaki-sensei", "band": Color(0.2, 0.26, 0.38), "vest": Color(0.42, 0.5, 0.45), "element": "suiton", "lookout": "Sis Kulesi", "dir": "köyün kenarındaki Akademi yerleşkesi"},
+	"kumo": {"kage": "Raikage", "s1": "Raizo-sensei", "s2": "Kumoji-sensei", "band": Color(0.12, 0.12, 0.14), "vest": Color(0.85, 0.85, 0.82), "element": "raiton", "lookout": "Bulut Kayası", "dir": "köyün kenarındaki Akademi yerleşkesi"},
+	"iwa": {"kage": "Tsuchikage", "s1": "Ganseki-sensei", "s2": "Tsuchiya-sensei", "band": Color(0.45, 0.18, 0.15), "vest": Color(0.55, 0.25, 0.2), "element": "doton", "lookout": "Taş Kule", "dir": "köyün kenarındaki Akademi yerleşkesi"},
+}
+
+## Hikâye metinleri (köye göre {kage}, {vn}, {s1}... doldurulur). HUD Progress.STORY dizisini okur.
+const STORY_T := [
+	"Ninja Akademisi'ne git ve hocan {s1} ile konuş. (Akademi, {dir})",
 	"Akademi avlusundaki kuklalara 25 darbe vur, sonra hocana dön.",
 	"Hocandan Henge no Jutsu'yu öğren ve bir kez kullan [slot 1].",
 	"Mezuniyet Sınavı: avludaki 3 kuklayı devir, sonra hocana rapor ver.",
-	"Chakra kontrolü: duvar koşusuyla 35 m yüksekliğe tırman (Hokage Kayası ideal).",
-	"Antrenman Alanı 3'te (köyün doğusu) chakra kâğıdı testini yap.",
-	"Hokage Kulesi'ndeki görev masasından 3 D-rank görev tamamla.",
-	"Seviye 6 ol ve Hokage Kulesi'ne git: Yasak Parşömen görevi.",
-	"Yasak Parşömen: Haydut Kampı'ndaki (köyün güneydoğusu) haydut liderini yen.",
-	"Seviye 10'a ulaş ve Stadyumda Chunin Sınavına başvur.",
+	"Chakra kontrolü: duvar koşusuyla 35 m yüksekliğe tırman ({lookout} ideal).",
+	"Antrenman alanında ({vn}) chakra kâğıdı testini yap.",
+	"{kage} Kulesi'ndeki görev masasından 3 D-rank görev tamamla.",
+	"Seviye 6 ol ve {kage} Kulesi'ne git: Yasak Parşömen görevi.",
+	"Yasak Parşömen: köyün dışındaki Haydut Kampı'nda haydut liderini yen.",
+	"Seviye 10'a ulaş ve Chunin Sınavına başvur (bu dönem sınav Konoha Stadyumu'nda — haritadan yola çık).",
 	"Chunin Sınavı devam ediyor...",
 	"Chunin oldun! Diğer köylere görevlerle seyahat et. Rasengan ve çağırma için Gizli Şelale'ye git (Sv.12).",
 	"Jonin olmak için: Seviye 20 + 3 A-rank görev.",
-	"ANBU için: Seviye 30 + 1 S-rank görev. ANBU Karargâhı.",
+	"ANBU için: Seviye 30 + 1 S-rank görev. ANBU Karargâhı ({vn}).",
 	"Efsane bir shinobi oldun. Dünya senin.",
 ]
+var STORY: Array = []
+
+
+func _ready() -> void:
+	refresh_story()
+
+
+func home() -> String:
+	var h = String(Game.profile.get("village", "konoha")) if not Game.profile.is_empty() else "konoha"
+	return h if HOME_VILLAGES.has(h) else "konoha"
+
+
+func home_info() -> Dictionary:
+	return HOME_VILLAGES[home()]
+
+
+func kage_title(vid: String) -> String:
+	return HOME_VILLAGES.get(vid, {}).get("kage", "Köy Lideri")
+
+
+## Hikâye metinlerini oyuncunun köyüne göre yeniden kurar (yeni oyun / kayıt yükleme)
+func refresh_story() -> void:
+	var info = home_info()
+	var vn = String(Game.village(home()).get("name", "Konoha")) if Game.world_info.has("villages") else "Konoha"
+	STORY.clear()
+	for t in STORY_T:
+		STORY.append(String(t).replace("{kage}", info["kage"]).replace("{vn}", vn).replace("{s1}", info["s1"]).replace("{s2}", info["s2"])
+			.replace("{lookout}", info["lookout"]).replace("{dir}", info["dir"]))
+
+
+## Yeni oyunda doğma noktası: akademinin önü (Konoha'da eski nokta)
+func home_spawn() -> Vector3:
+	var vid = home()
+	var v = Game.village(vid)
+	if vid == "konoha":
+		return Game.from_map(Vector2(v["x"] - 120, v["y"] + 120))
+	var c = Vector2(v["x"], v["y"])
+	var best = {}
+	var bd = 1e12
+	for it in Interact.items:
+		if it["kind"] == "academy":
+			var d = Game.to_map(it["pos"]).distance_to(c)
+			if d < bd:
+				bd = d; best = it
+	if not best.is_empty():
+		return best["pos"] + Vector3(0, 0.5, 10)
+	return Game.from_map(c + Vector2(0, -float(v["r"]) * 0.4))
 
 
 func p() -> Dictionary:
@@ -40,10 +97,12 @@ func new_profile(opts: Dictionary) -> Dictionary:
 		"slot": opts.get("slot", 1), "name": opts.get("name", "İsimsiz"), "gender": opts.get("gender", "m"),
 		"clan": opts.get("clan", "none"), "elements": [opts.get("element", "katon")], "element_known": false,
 		"look": opts.get("look", {}), "level": 1, "xp": 0, "rank": 0, "ryo": 150, "sp": 0, "skills": [],
-		"learned": [], "slots": ["", "", "", ""], "inventory": {"kunai": 12, "shuriken": 6, "salve": 2},
+		"learned": [], "slots": ["", "", "", "", "", ""], "inventory": {"kunai": 12, "shuriken": 6, "salve": 2},
 		"throw_sel": "kunai", "summon": "kurbağa", "story": 0, "flags": {}, "missions_done": {"D": 0, "C": 0, "B": 0, "A": 0, "S": 0},
-		"active_mission": {}, "visited": ["konoha"], "stats": {"kills": 0}, "time": 0.32,
+		"active_mission": {}, "visited": [opts.get("village", "konoha")], "stats": {"kills": 0}, "time": 0.32,
+		"village": opts.get("village", "konoha"), "rep": {}, "bingo": {"list": [], "next": 1, "refresh": 900.0},
 	}
+	pr["look"]["village"] = pr["village"]
 	# akademi öğrencisi: alın koruyucu yok
 	pr["look"]["band"] = null
 	return pr
@@ -70,18 +129,163 @@ func add_xp(amount: int) -> void:
 
 
 ## Klan teknikleri: seviye şartı karşılanınca otomatik öğrenilir
+## Seviye/klan/göz/doğa ile kendiliğinden açılan jutsular: klan hiden'leri, uyanmış kekkei genkai,
+## takılı dōjutsu gözü teknikleri, sennin modu teknikleri. Seviye atlayınca ve ekipman değişince çağrılır.
 func clan_unlocks(announce := true) -> void:
 	var pr = p()
 	if pr.is_empty():
 		return
+	_check_kg_awaken(announce)
+	var lv = int(pr["level"])
+	for jid in Data.jutsu.keys():
+		if jid.begins_with("_") or jid in pr["learned"]:
+			continue
+		var j: Dictionary = Data.jutsu[jid]
+		var lp = String(j.get("learn", ""))
+		var ok = false
+		if lp == "clan" or lp == "clan:" + String(pr.get("clan", "")):
+			ok = lp != "clan" or j.get("clan", "") == pr.get("clan", "")
+		elif lp.begins_with("kg:"):
+			ok = has_nature(lp.substr(3))
+		elif lp.begins_with("eye:"):
+			ok = has_eye(lp.substr(4))
+		elif lp == "sage:any":
+			ok = "sage" in pr.get("skills", [])
+		if ok and lv >= int(j.get("level", 1)) and int(pr.get("rank", 0)) >= int(j.get("rank", 0)):
+			learn(jid, announce)
+
+
+# ------------------------------------------------------------------ doğalar (element + kekkei genkai) ve öğrenme şartları
+const EYE_KINDS := {"sharingan": [1, 4, 5], "mangekyo": [4, 5], "ems": [5], "rinnegan": [6], "rinne_sharingan": [6], "byakugan": [2],
+	"tenseigan": [7], "jogan": [8], "ketsuryugan": [3], "kokugan": []}
+
+
+## Temel chakra doğası ya da uyanmış kekkei genkai (mokuton, hyoton, yoton, ... shikotsumyaku)
+func has_nature(n: String) -> bool:
+	var pr = p()
+	if pr.is_empty():
+		return false
+	if n in pr.get("elements", []) or n in pr.get("natures", []):
+		return true
+	return false
+
+
+## Kekkei genkai uyanışı (klan soyu, nadir olay ya da görev ödülü)
+func awaken_nature(n: String, announce := true) -> void:
+	var pr = p()
+	if pr.is_empty() or has_nature(n):
+		return
+	if not pr.has("natures"):
+		pr["natures"] = []
+	pr["natures"].append(n)
+	if announce:
+		Hud.banner("KEKKEI GENKAI UYANDI", Elements.NAMES.get(n, n.capitalize()), Color(0.9, 0.75, 0.3))
+		Sfx.play("levelup", null, 0.6)
+	clan_unlocks(announce)
+
+
+func _check_kg_awaken(announce: bool) -> void:
+	var pr = p()
+	var cl: Dictionary = Data.clans.get(pr.get("clan", "none"), {})
+	for n in cl.get("kg_natures", []):
+		if int(pr["level"]) >= int(cl.get("kg_level", 1)) and not has_nature(n):
+			if not pr.has("natures"):
+				pr["natures"] = []
+			pr["natures"].append(n)
+			if announce:
+				Hud.banner("KEKKEI GENKAI UYANDI", Elements.NAMES.get(n, n.capitalize()), Color(0.9, 0.75, 0.3))
+
+
+func has_eye(kind: String) -> bool:
+	var want: Array = EYE_KINDS.get(kind, [])
+	for slot in ["sag_goz", "sol_goz"]:
+		var g = Gear.equipped(p(), slot)
+		if not g.is_empty() and int(Gear.item(g["id"]).get("eye", {}).get("kind", 0)) in want:
+			return true
+	return false
+
+
+## Bir jutsuyu şu an öğrenebilir mi? "" = evet, değilse sebep
+func can_learn(jid: String) -> String:
+	var pr = p()
+	var j: Dictionary = Data.jutsu.get(jid, {})
+	if j.is_empty():
+		return "Bilinmeyen jutsu"
+	if jid in pr["learned"]:
+		return "Zaten biliyorsun"
+	if int(pr["level"]) < int(j.get("level", 1)):
+		return "Seviye %d gerekli" % int(j.get("level", 1))
+	if int(pr.get("rank", 0)) < int(j.get("rank", 0)):
+		return "%s rütbesi gerekli" % Data.RANKS[int(j.get("rank", 0))]
+	for el in j.get("elements", []):
+		if not has_nature(el):
+			return "%s doğası gerekli" % Elements.NAMES.get(el, el)
+	var lp = String(j.get("learn", ""))
+	if lp.begins_with("kg:") and not has_nature(lp.substr(3)):
+		return "Kekkei genkai gerekli: %s" % lp.substr(3)
+	if lp.begins_with("eye:") and not has_eye(lp.substr(4)):
+		return "Göz gerekli: %s" % lp.substr(4)
+	if lp.begins_with("clan:") and lp.substr(5) != pr.get("clan", ""):
+		return "Klan tekniği"
+	if lp == "sage:any" and not "sage" in pr.get("skills", []):
+		return "Sennin modu gerekli"
+	if lp in ["kinjutsu", "quest:signature", "quest:hiden", "quest:contract"]:
+		return "Özel görevle öğrenilir"
+	return ""
+
+
+## Eğitmen seçenekleri: kinds = ["konoha", "jonin", "taijutsu", ...] -> Hud.dialog seçenekleri
+func trainer_options(kinds: Array, max_n := 8) -> Array:
+	var pr = p()
+	var list = []
 	for jid in Data.jutsu.keys():
 		if jid.begins_with("_"):
 			continue
 		var j: Dictionary = Data.jutsu[jid]
-		if j.get("learn", "") != "clan" or j.get("clan", "") != pr.get("clan", ""):
+		var lp = String(j.get("learn", ""))
+		if not lp.begins_with("trainer:") or not lp.substr(8) in kinds or jid in pr["learned"]:
 			continue
-		if int(pr["level"]) >= int(j.get("level", 1)) and not jid in pr["learned"]:
-			learn(jid, announce)
+		if can_learn(jid) != "":
+			continue
+		list.append(jid)
+	list.sort_custom(func(a, b): return int(Data.jutsu[a].get("level", 1)) < int(Data.jutsu[b].get("level", 1)))
+	var opts = []
+	for jid in list.slice(0, max_n):
+		var j: Dictionary = Data.jutsu[jid]
+		var price = [150, 300, 600, 1200, 2200, 4000][clampi(int(j.get("tier", 2)), 0, 5)]
+		opts.append({"label": "%s [%s] — %d Ryō" % [j["name"], j.get("canon_rank", "?"), price], "tip": j.get("desc", ""),
+			"cb": func(): _buy_learn(jid, price)})
+	return opts
+
+
+## Köy eğitmeni: köyün element uzmanlığı + genel dallar (rütbeye göre)
+func village_trainer_options(vid: String) -> Array:
+	var kinds = [vid, "taijutsu", "genjutsu", "academy"]
+	if int(p().get("rank", 0)) >= 2:
+		kinds.append_array(["jonin", "fuin"])
+	return trainer_options(kinds)
+
+
+## Dükkânda gösterilecek jutsu parşömenleri: oyuncunun doğasına uygun, seviyesine yakın
+func scroll_shop_items(max_n := 10) -> Array:
+	var pr = p()
+	var out = []
+	for iid in Data.items.keys():
+		var it: Dictionary = Data.items[iid]
+		if it.get("kind", "") != "scroll":
+			continue
+		var jid = String(it.get("jutsu", ""))
+		var j: Dictionary = Data.jutsu.get(jid, {})
+		if j.is_empty() or jid in pr["learned"] or int(j.get("level", 1)) > int(pr["level"]) + 4:
+			continue
+		var natured = true
+		for el in j.get("elements", []):
+			if not has_nature(el):
+				natured = false
+		if natured:
+			out.append(iid)
+	out.sort_custom(func(a, b): return int(Data.jutsu[Data.items[a]["jutsu"]].get("level", 1)) > int(Data.jutsu[Data.items[b]["jutsu"]].get("level", 1)))
+	return out.slice(0, max_n)
 
 
 func add_ryo(amount: int) -> void:
@@ -113,13 +317,17 @@ func promote(rank: int) -> void:
 	pr["rank"] = rank
 	var look: Dictionary = pr["look"]
 	Gear.ensure(pr)
+	var hi = home_info()
 	match rank:
 		1:
-			Gear.grant(pr, "alin_koruyucu", "kafa")
-			Gear.grant(pr, "alin_boyun")
+			Gear.grant(pr, "alin_koruyucu", "kafa", hi["band"])
+			Gear.grant(pr, "alin_boyun", "", hi["band"])
 			Hud.msg("Yeni ekipman: Alın Koruyucu  [Tab > Ekipman]", Color(0.6, 0.9, 1.0))
 		2:
-			Gear.grant(pr, "chunin_yelek", "zirh")
+			var vest_id = "%s_yelek" % home()
+			if home() == "konoha" or Gear.item(vest_id).is_empty():
+				vest_id = "chunin_yelek"
+			Gear.grant(pr, vest_id, "zirh", hi["vest"])
 			Hud.msg("Yeni ekipman: Taktik Yelek  [Tab > Ekipman]", Color(0.6, 0.9, 1.0))
 		4:
 			Gear.grant(pr, "anbu_zirh", "zirh")
@@ -142,7 +350,7 @@ func on_enemy_killed(e: Node) -> void:
 		Game.profile["active_mission"] = {}
 		Missions.has_marker = false
 		learn("bunshin")
-		Hud.dialog("Hokage", "Yasak Parşömeni geri getirdin. İçindeki Kage Bunshin tekniğini öğrenmeyi hak ettin.", [])
+		Hud.dialog(home_info()["kage"], "Yasak Parşömeni geri getirdin. İçindeki Kage Bunshin tekniğini öğrenmeyi hak ettin.", [])
 		set_story(9)
 
 
@@ -178,8 +386,7 @@ func on_player_died() -> void:
 	var pr = p()
 	pr["ryo"] = int(int(pr["ryo"]) * 0.9)
 	get_tree().create_timer(2.5).timeout.connect(func():
-		var v = Game.village("konoha")
-		var pos = Game.from_map(Vector2(v["x"] + 140, v["y"] + 60))
+		var pos = _hospital_pos()
 		Game.player.respawn(pos))
 
 
@@ -191,7 +398,7 @@ func _process(_dt: float) -> void:
 		var pl = Game.player
 		var h: float = pl.global_position.y - Game.terrain_height(pl.global_position.x, pl.global_position.z)
 		if pl.wall_n != Vector3.ZERO and h > 35.0:
-			Hud.dialog("Kurogane-sensei", "Harika! Chakrayı ayaklarında dengeleyip tırmandın. Şimdi Antrenman Alanı 3'e gel, doğanı öğrenelim.", [])
+			Hud.dialog(home_info()["s2"], "Harika! Chakrayı ayaklarında dengeleyip tırmandın. Şimdi antrenman alanına gel, doğanı öğrenelim.", [])
 			if not "nin1" in p()["skills"]:
 				p()["skills"].append("nin1")
 			set_story(5)
@@ -207,7 +414,7 @@ func _process(_dt: float) -> void:
 func _check_story_levels() -> void:
 	var lv = int(p()["level"])
 	if story() == 7 and lv >= 6:
-		Hud.msg("Hokage Kulesi'ne git: önemli bir görev var!", Color(1, 0.8, 0.4))
+		Hud.msg("%s Kulesi'ne git: önemli bir görev var!" % home_info()["kage"], Color(1, 0.8, 0.4))
 	if story() == 9 and lv >= 10:
 		Hud.msg("Chunin Sınavı başvuruları açık! (Stadyum)", Color(1, 0.8, 0.4))
 	if story() == 12 and lv >= 20 and int(p()["missions_done"].get("A", 0)) >= 3:
@@ -225,7 +432,24 @@ func interact(it: Dictionary) -> void:
 		"mission_board":
 			_mission_board(it)
 		"ramen":
-			_eat(50, "Sıcak bir kase miso chashu ramen... Can ve chakra doldu!", "Teuchi'nin çırağı")
+			_sit_at(it.get("seats", []))
+			_eat(50, "Sıcak bir kase miso chashu ramen... Can ve chakra doldu!", "Ramen Ustası")
+		"enter":
+			if Interiors.inst:
+				Interiors.inst.enter(it)
+		"exit":
+			if Interiors.inst:
+				Interiors.inst.exit()
+		"bed":
+			_sleep(0, "Futonuna uzanıp gözlerini kapattın... Sabah oldu. (Oyun kaydedildi)")
+		"inn_sleep":
+			_sleep(30, "Han odasında rahat bir gece geçirdin. Sabah oldu! (Oyun kaydedildi)")
+		"tailor":
+			Hud.gear_shop("Terzi", Gear.SHOP_CLOTHES)
+		"home_note":
+			var lv = int(pr["level"])
+			Hud.dialog("Notlar", "Kendi el yazınla: \"Hokage olacağım!\"\nSeviye %d • %s • %d Ryō\nGörevler: D%d C%d B%d A%d S%d" % [lv, Data.RANKS[int(pr["rank"])], int(pr["ryo"]),
+				pr["missions_done"]["D"], pr["missions_done"]["C"], pr["missions_done"]["B"], pr["missions_done"]["A"], pr["missions_done"]["S"]], [])
 		"bbq":
 			_eat(80, "Yakiniku! Can ve chakra doldu, 60sn boyunca +%20 güç.", "Garson")
 			Buffs.add("bbq", 60.0, {"melee": 1.2})
@@ -234,6 +458,7 @@ func interact(it: Dictionary) -> void:
 			var opts = []
 			if int(pr["level"]) >= 4 and not "shousen" in pr["learned"]:
 				opts.append({"label": "Tıbbi ninjutsu öğren (200 Ryō)", "cb": func(): _buy_learn("shousen", 200)})
+			opts.append_array(trainer_options(["hospital"], 5))
 			Hud.dialog("Hastane", "Yaraların sarıldı. Tamamen iyileştin.", opts)
 		"training":
 			_training_ground()
@@ -241,14 +466,14 @@ func interact(it: Dictionary) -> void:
 			Game.player.sit(it["pos"])
 		"lookout":
 			Game.save_game()
-			Hud.dialog("Hokage Kayası", "Köy ayaklarının altında. Ateşin İradesi'ni hissediyorsun... (Oyun kaydedildi)", [])
+			Hud.dialog(home_info()["lookout"], "Köy ayaklarının altında. Köyünü koruma iraden güçleniyor... (Oyun kaydedildi)", [])
 		"memorial":
 			Hud.dialog("Anıt Taşı", "Köy için canını veren shinobilerin isimleri burada yazılı. Bir an saygıyla eğiliyorsun.", [])
 		"gate":
 			Hud.dialog("Kapı Nöbetçisi", "Dışarısı tehlikeli genç ninja. Haritayı [M] aç, yolları takip et. Diğer köylere varınca hızlı seyahat açılır.", [])
 		"shop_weapons":
 			Hud.dialog("Silah Dükkânı", "Hoş geldin! Ne bakıyorsun?", [
-				{"label": "Ninja aletleri ve parşömenler", "cb": func(): Hud.shop("Silah Dükkânı", ["kunai", "shuriken", "tag", "smoke", "scroll_katon_housenka", "scroll_suiton_suijinheki", "scroll_fuuton_daitoppa", "scroll_doton_doryuheki"])},
+				{"label": "Ninja aletleri ve parşömenler", "cb": func(): Hud.shop("Silah Dükkânı", ["kunai", "shuriken", "tag", "smoke"] + scroll_shop_items())},
 				{"label": "Silahlar (sağ el / sol el)", "cb": func(): Hud.gear_shop("Silahçı", Gear.SHOP_WEAPONS)},
 				{"label": "Kıyafetler ve zırhlar", "cb": func(): Hud.gear_shop("Terzi", Gear.SHOP_CLOTHES)},
 			])
@@ -258,6 +483,8 @@ func interact(it: Dictionary) -> void:
 			Hud.shop("Eczane", ["salve", "pill", "smoke", "scroll_kokuangyo"])
 		"chunin_exam":
 			ChuninExam.apply()
+		"quest", "bounty_board":
+			pass  # Missions.on_interact ele alır
 		"teahouse":
 			_eat(20, "Sıcak yeşil çay ve dango... Dinlendin, can ve chakra doldu.", "Çay Evi Sahibi")
 		"onsen":
@@ -277,6 +504,67 @@ func interact(it: Dictionary) -> void:
 		_:
 			Hud.dialog(it.get("label", "").replace("[F] ", ""), "Burada şimdilik yapacak bir şey yok.", [])
 	Missions.on_interact(it)
+
+
+func _in_home(it: Dictionary) -> bool:
+	var v = Game.village(home())
+	return Game.to_map(it["pos"]).distance_to(Vector2(v["x"], v["y"])) < float(v["r"]) * 1.6
+
+
+func _hospital_pos() -> Vector3:
+	var v = Game.village(home())
+	var c = Vector2(v["x"], v["y"])
+	var best = {}
+	var bd = float(v["r"]) * 1.6
+	for it in Interact.items:
+		if it["kind"] == "hospital":
+			var d = Game.to_map(it["pos"]).distance_to(c)
+			if d < bd:
+				bd = d; best = it
+	if not best.is_empty():
+		return best["pos"] + Vector3(0, 0.5, 4)
+	if home() == "konoha":
+		return Game.from_map(Vector2(v["x"] + 140, v["y"] + 60))
+	return home_spawn()
+
+
+## Tezgâhtaki en yakın tabureye oturt (ramen)
+func _sit_at(seats: Array) -> void:
+	var pl = Game.player
+	if seats.is_empty() or pl == null:
+		return
+	var best: Vector3 = seats[0]
+	for q in seats:
+		if q.distance_to(pl.global_position) < best.distance_to(pl.global_position):
+			best = q
+	pl.global_position = best
+	pl.velocity = Vector3.ZERO
+	pl.reset_physics_interpolation()
+	pl.facing = 0.0
+	pl.model.rotation.y = 0.0
+	pl.model.play("sit", 0.2)
+	pl.input_locked = 3.5
+
+
+## Uyu: sabaha atla, iyileş, kaydet (ekran kararır)
+func _sleep(price: int, text: String) -> void:
+	if price > 0 and int(p()["ryo"]) < price:
+		Hud.dialog("Han Sahibi", "Bir gece %d Ryō, kusura bakma." % price, [])
+		return
+	if price > 0:
+		add_ryo(-price)
+	var pl = Game.player
+	if Interiors.inst:
+		await Interiors.inst._fade(1.0, 0.6)
+	if Game.world:
+		Game.world.env.time_of_day = 0.27
+	pl.hp = pl.max_hp
+	pl.chakra = pl.max_chakra
+	Game.save_game()
+	if Interiors.inst:
+		await get_tree().create_timer(0.6).timeout
+		await Interiors.inst._fade(0.0, 0.8)
+	Hud.dialog("Uyku", text, [])
 
 
 func _eat(price: int, text: String, who: String) -> void:
@@ -301,7 +589,8 @@ func _buy_learn(jid: String, price: int) -> void:
 func _academy() -> void:
 	var s = story()
 	var pr = p()
-	var sensei = "Hoshino-sensei"
+	var sensei = home_info()["s1"]
+	var vn = String(Game.village(home()).get("name", "Konoha"))
 	match s:
 		0:
 			Hud.dialog(sensei, "Hoş geldin %s! Bir ninja olmak için önce temeli sağlam atmalısın. Avludaki kuklalara 25 darbe vur [Sol tık], kombolarını çalış. Kawarimi [Q] ile kaçmayı da unutma!" % pr["name"], [])
@@ -322,7 +611,7 @@ func _academy() -> void:
 				Hud.dialog(sensei, "Henge'yi [1] tuşuyla kullan ve bana göster.", [])
 		3:
 			if int(pr["flags"].get("grad_broken", 0)) >= 3:
-				Hud.dialog(sensei, "Tebrikler... Bu alın koruyucuyu takmayı hak ettin. Artık Konoha'nın bir Genin'isin! Jonin hocan Kurogane-sensei seni bekliyor: önce chakra kontrolünü geliştir, duvarlara tırman!", [])
+				Hud.dialog(sensei, "Tebrikler... Bu alın koruyucuyu takmayı hak ettin. Artık %s'nin bir Genin'isin! Jonin hocan %s seni bekliyor: önce chakra kontrolünü geliştir, duvarlara tırman!" % [vn, home_info()["s2"]], [])
 				promote(1)
 				add_xp(150)
 				add_ryo(200)
@@ -349,7 +638,7 @@ func _training_ground() -> void:
 		var names = {"katon": "kâğıt yanıp kül oldu: ATEŞ (Katon)", "suiton": "kâğıt ıslandı: SU (Suiton)", "fuuton": "kâğıt ikiye bölündü: RÜZGAR (Fuuton)",
 			"doton": "kâğıt ufalandı: TOPRAK (Doton)", "raiton": "kâğıt buruştu: YILDIRIM (Raiton)"}
 		pr["element_known"] = true
-		Hud.dialog("Kurogane-sensei", "Chakra kâğıdına chakranı akıt... %s! İlk element tekniğini öğretiyorum." % names[el], [])
+		Hud.dialog(home_info()["s2"], "Chakra kâğıdına chakranı akıt... %s! İlk element tekniğini öğretiyorum." % names[el], [])
 		var starter = {"katon": "katon_goukakyuu", "suiton": "suiton_suikoudan", "fuuton": "fuuton_shinkuu", "doton": "doton_doryuusou", "raiton": "raiton_nagashi"}[el]
 		learn(starter)
 		set_story(6)
@@ -359,6 +648,7 @@ func _training_ground() -> void:
 		opts.append({"label": "Chidori eğitimi (800 Ryō)", "cb": func(): _buy_learn("raiton_chidori", 800)})
 	if int(pr["rank"]) >= 2 and int(pr["level"]) >= 16 and "katon" in pr["elements"] and not "katon_karyuu" in pr["learned"]:
 		opts.append({"label": "Karyuu Endan eğitimi (1200 Ryō)", "cb": func(): _buy_learn("katon_karyuu", 1200)})
+	opts.append_array(village_trainer_options(home()))
 	Hud.dialog("Antrenman Alanı 3", "Kuklalarla kombolarını çalışabilirsin. Chakra şarjı [C], blok [Sağ tık], Kawarimi [Q].", opts)
 
 
@@ -383,8 +673,8 @@ func _sage_falls() -> void:
 func _mission_board(it: Dictionary) -> void:
 	var pr = p()
 	var s = story()
-	if s == 7 and int(pr["level"]) >= 6 and it["label"].contains("Hokage"):
-		Hud.dialog("Hokage", "Bir haydut çetesi köyün Yasak Parşömenini çaldı! Köyün güneydoğusundaki Haydut Kampı'na git ve liderlerini yen.", [])
+	if s == 7 and int(pr["level"]) >= 6 and _in_home(it):
+		Hud.dialog(home_info()["kage"], "Bir haydut çetesi köyün Yasak Parşömenini çaldı! Köyün dışındaki Haydut Kampı'na git ve liderlerini yen. Pusulayı takip et.", [])
 		Missions.spawn_scroll_thief()
 		set_story(8)
 		return
