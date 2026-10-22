@@ -11,6 +11,7 @@ const SMALL := [8, 10, 12]    # küçük bitkiler: sadece yakında
 const CONVEX := [4, 11]
 const MAX_TASKS := 2
 const MAX_BUILDS_PER_FRAME := 1
+const INSTALL_BUDGET_US := 1500   # karede en fazla bu kadar kurulum (takılma olmasın)
 const DMAX := 0.02            # aday yoğunluğu (m² başına)
 
 ## biyom -> [yoğunluk / m², tipler]  (0 geniş ağaç, 1 çam, 2 kuru ağaç, 3 kaktüs, 4 kaya, 5 dev ağaç, 6 bambu,
@@ -28,6 +29,7 @@ var bodies: Array[StaticBody3D] = []
 var chunks := {}        # Vector2i -> {node, detail: bool, trees: Array}
 var tasks := {}         # Vector2i -> [task_id, detail, result holder]
 var ready_q: Array = []
+var queued := {}        # ready_q'daki anahtarlar (tekrar istenmesin)
 var last_cell = Vector2i(999999, 999999)
 var _mutex := Mutex.new()
 var _specials: Array = []   # [x, y(harita), iç r, dış r, tip, yoğunluk]
@@ -85,14 +87,23 @@ func _process(_dt: float) -> void:
 		if WorkerThreadPool.is_task_completed(t[0]):
 			WorkerThreadPool.wait_for_task_completion(t[0])
 			ready_q.append([key, t[1], t[2]])
+			queued[key] = t[1]
 			tasks.erase(key)
-	# 2) en fazla N parçayı sahneye ekle (yakın olan önce)
-	ready_q.sort_custom(func(a, b): return _cdist(a[0], pc) < _cdist(b[0], pc))
-	var built := 0
-	while not ready_q.is_empty() and built < MAX_BUILDS_PER_FRAME and Engine.get_process_frames() % 3 != 1:
-		var r: Array = ready_q.pop_front()
-		_install(r[0], r[1], r[2])
-		built += 1
+	# 2) hazır parçaları zaman bütçesiyle sahneye ekle (en yakın önce; sıralama yerine doğrusal seçim)
+	var t0 := Time.get_ticks_usec()
+	while not ready_q.is_empty() and Time.get_ticks_usec() - t0 < INSTALL_BUDGET_US:
+		var bi := 0
+		var bd := 1e18
+		for i in ready_q.size():
+			var d := _cdist(ready_q[i][0], pc)
+			if d < bd:
+				bd = d
+				bi = i
+		var r: Array = ready_q[bi]
+		ready_q.remove_at(bi)
+		queued.erase(r[0])
+		if bd <= far_r + CH:
+			_install(r[0], r[1], r[2])
 	# 3) gerekli parçaları iste, uzaktakileri sil
 	var ck := Vector2i(floori(p.x / CH), floori(p.z / CH))
 	var rad := int(ceil(far_r / CH)) + 1
@@ -108,6 +119,8 @@ func _process(_dt: float) -> void:
 			if have != null and (have["detail"] or not need_detail):
 				continue
 			if tasks.has(k) and (tasks[k][1] or not need_detail):
+				continue
+			if queued.has(k) and (queued[k] or not need_detail):
 				continue
 			want.append([d, k, need_detail])
 	want.sort_custom(func(a, b): return a[0] < b[0])

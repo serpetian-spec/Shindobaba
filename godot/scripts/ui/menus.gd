@@ -477,6 +477,15 @@ static func settings(back: Callable) -> void:
 	slider.call(g1, "Fare hassasiyeti", "sens", 0.2, 3.0, 0.05)
 	check.call(g1, "Fareyi ters çevir (Y)", "invert_y")
 	var g2 = group.call("monitor", "Görüntü")
+	var qr = UI.hbox(8)
+	var ql = UI.label("Grafik kalitesi", 15)
+	ql.custom_minimum_size = Vector2(150, 0)
+	qr.add_child(ql)
+	for qi in 3:
+		qr.add_child(UI.chip(Game.QUALITY_NAMES[qi], int(s.get("quality", 2)) == qi, func():
+			Game.set_quality(qi)
+			settings(back)))
+	g2.add_child(qr)
 	slider.call(g2, "Görüş alanı (FOV)", "fov", 55.0, 100.0, 1.0)
 	slider.call(g2, "Görüş mesafesi", "view", 0.5, 1.6, 0.05)
 	var gr = HFlowContainer.new()
@@ -492,8 +501,7 @@ static func settings(back: Callable) -> void:
 		if Game.player:
 			Game.player.cam.fov = s["fov"]
 		if Game.world:
-			Game.world.env.sun.shadow_enabled = s["shadows"]
-			Game.world.env.post.visible = s["outline"]
+			Game.apply_graphics()
 		Sfx.music_a.volume_db = linear_to_db(maxf(0.001, float(s["music"]) * 0.6))
 		back.call(), 584, "check"))
 

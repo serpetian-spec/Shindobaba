@@ -53,6 +53,7 @@ func build(progress: Callable = Callable()) -> void:
 	var wild = preload("res://scripts/world/wildlife.gd").new()
 	wild.name = "Wildlife"
 	add_child(wild)
+	Game.apply_graphics.call_deferred()  # kalite ayarı (gölge, çimen, NPC yoğunluğu)
 
 
 func _p(cb: Callable, v: float, label: String) -> void:

@@ -156,7 +156,7 @@ func _process(dt: float) -> void:
 		current = ""
 		queue = queue.filter(func(r): return r[0] == "__never")
 		return
-	var base = 32 if v["id"] == "konoha" else 22
+	var base = int((32 if v["id"] == "konoha" else 22) * Game.npc_scale)
 	var target = base if phase != "gece" else int(base * 0.4)
 	var streets = _streets(v)
 	var roofs: Array = Builder.roof_points.get(v["id"], [])

@@ -17,7 +17,7 @@ var biome_img: Image
 
 var settings := {
 	"sens": 1.0, "fov": 70.0, "music": 0.5, "sfx": 0.8, "view": 1.0, "fullscreen": false,
-	"shadows": true, "outline": true, "invert_y": false, "show_fps": false,
+	"shadows": true, "outline": true, "invert_y": false, "show_fps": false, "quality": 2,
 }
 var profile: Dictionary = {}
 var paused := false
@@ -359,6 +359,39 @@ func load_settings() -> void:
 		for k in settings.keys():
 			settings[k] = cf.get_value("ayarlar", k, settings[k])
 	apply_settings()
+
+
+## Grafik kalitesi hazır ayarı: 0 Düşük, 1 Orta, 2 Yüksek (görüş, gölge, çizgi değerlerini de ayarlar)
+const QUALITY_NAMES := ["Düşük", "Orta", "Yüksek"]
+func set_quality(q: int) -> void:
+	settings["quality"] = clampi(q, 0, 2)
+	settings["view"] = [0.65, 1.0, 1.3][settings["quality"]]
+	settings["shadows"] = settings["quality"] > 0
+	settings["outline"] = settings["quality"] > 0
+	apply_graphics()
+
+
+## Ayarları sahneye uygula: gölge mesafesi/bölme, çizgiler, çimen yarıçapı, NPC yoğunluğu
+func apply_graphics() -> void:
+	var q = int(settings.get("quality", 2))
+	if world == null:
+		return
+	var env = world.get("env")
+	if env:
+		env.sun.shadow_enabled = bool(settings["shadows"])
+		env.sun.directional_shadow_max_distance = [90.0, 140.0, 220.0][q]
+		env.sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS if q < 2 else DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
+		if env.post:
+			env.post.visible = bool(settings["outline"])
+	var grass = world.get_node_or_null("Grass")
+	if grass:
+		grass.visible = q > 0
+		if grass.get("mat"):
+			grass.mat.set_shader_parameter("radius", [30.0, 42.0, 58.0][q])
+	npc_scale = [0.5, 0.8, 1.0][q]
+
+
+var npc_scale := 1.0
 
 
 func save_settings() -> void:
