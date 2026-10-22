@@ -1,0 +1,482 @@
+extends Node
+## Örgütler ve dünya olayları (autoload "Orgs"):
+##  ANBU ve Kök (Ne) özel görevleri, kaçak ninja olmak (alın bandı çizik, av-ninjaları peşinde, Bingo Kitabı'nda kendi kaydın),
+##  Akatsuki (özgün üyeler) — geç oyunda kuyruklu canavar avı (kuyruklu canavar ajanı için sinyaller/API),
+##  dünya olayları: sınır savaşı, Chūnin finalinde istila (dev yılanlar), Büyük Ninja Savaşı.
+
+signal beast_hunt_started()
+signal jinchuriki_targeted(beast_id: int, where: Vector3)
+signal jinchuriki_captured(beast_id: int)
+signal war_started()
+signal war_ended(won: bool)
+signal player_defected()
+signal player_pardoned()
+
+## Akatsuki: iki kişilik takımlar (özgün üyeler; kanon karakter yok)
+const AKATSUKI := [
+	{"name": "Kuroshio Ren", "alias": "Derinlerin Dişi", "v": "kiri", "el": "suiton", "j": ["suiton_suiryuudan", "suiton_suikoudan"], "weapon": "nodachi", "hair": "dağınık", "hp": 3200.0, "pair": 0},
+	{"name": "Hibana Seiji", "alias": "Kül Yağmuru", "v": "iwa", "el": "katon", "j": ["katon_goukakyuu", "katon_housenka"], "weapon": "", "hair": "uzun", "hp": 2900.0, "pair": 0},
+	{"name": "Raikō Tsubasa", "alias": "Mavi Şimşek", "v": "kumo", "el": "raiton", "j": ["raiton_chidori", "raiton_nagashi"], "weapon": "katana", "hair": "diken", "hp": 3000.0, "pair": 1},
+	{"name": "Sunagami Ezo", "alias": "Kum Kuklacısı", "v": "suna", "el": "fuuton", "j": ["fuuton_daitoppa", "fuuton_shinkuu"], "weapon": "", "hair": "kısa", "hp": 2800.0, "pair": 1},
+	{"name": "Mukuro Shinya", "alias": "Mezar Bekçisi", "v": "konoha", "el": "doton", "j": ["doton_doryuheki", "doton_doryuusou"], "weapon": "kusarigama", "hair": "kase", "hp": 3400.0, "pair": 2},
+	{"name": "Amane Kiyoha", "alias": "Kağıt Melek", "v": "ame", "el": "fuuton", "j": ["fuuton_shinkuu"], "weapon": "", "hair": "uzun", "hp": 2700.0, "pair": 2, "f": true},
+	{"name": "Gekkō Saizō", "alias": "Ay Gölgesi", "v": "oto", "el": "katon", "j": ["katon_goukakyuu"], "weapon": "katana", "hair": "uzun", "hp": 3100.0, "pair": 3},
+	{"name": "Tsuchigumo Bō", "alias": "Bin Yaralı", "v": "taki", "el": "doton", "j": ["doton_doryuusou"], "weapon": "savas_cekici", "hair": "kısa", "hp": 3800.0, "pair": 3},
+	{"name": "Yoake no Kami", "alias": "Örgütün Lideri", "v": "ame", "el": "suiton", "j": ["suiton_suiryuudan", "raiton_nagashi", "fuuton_daitoppa"], "weapon": "", "hair": "diken", "hp": 6500.0, "pair": 4, "leader": true},
+]
+
+var _t := 0.0
+var _hunt_t := 0.0
+var _hunter_t := 0.0
+var _spawned: Array = []
+var _invasion := {}
+
+
+func p() -> Dictionary:
+	return Game.profile
+
+
+func state() -> Dictionary:
+	if not p().has("orgs") or not p()["orgs"] is Dictionary:
+		p()["orgs"] = {"hunt": false, "captured": [], "events": {}, "war": "none", "bounty": 0, "summit": false}
+	return p()["orgs"]
+
+
+func flags() -> Dictionary:
+	return Exams.flags()
+
+
+func is_rogue() -> bool:
+	return not Game.profile.is_empty() and bool(flags().get("rogue", false))
+
+
+# ================================================================== Akatsuki API (kuyruklu canavar ajanı için)
+func members() -> Array:
+	return AKATSUKI
+
+
+func is_hunting() -> bool:
+	return bool(state().get("hunt", false))
+
+
+func captured() -> Array:
+	return state().get("captured", [])
+
+
+## Kuyruklu canavar avını başlat (oyun ilerleyişi ya da kuyruklu canavar sistemi çağırır)
+func start_beast_hunt() -> void:
+	if is_hunting():
+		return
+	state()["hunt"] = true
+	beast_hunt_started.emit()
+	Hud.banner("AKATSUKİ HAREKETE GEÇTİ", "Kızıl bulutlu pelerinliler jinchūriki avına çıktı", Color(0.85, 0.15, 0.15))
+	Hud.dialog(Progress.home_info()["kage"], "İstihbarat doğrulandı: Akatsuki adlı kaçak ninja örgütü kuyruklu canavarları topluyor. Dokuz S-rank kaçak, ikişerli takımlar halinde. Yollarda dikkatli ol; karşılaşırsan tek başına savaşma!", [])
+
+
+## Bir jinchūriki hedef alındığında (kuyruklu canavar sistemi çağırır) — çifti yakına çıkarır
+func target_jinchuriki(beast_id: int, where: Vector3) -> Array:
+	jinchuriki_targeted.emit(beast_id, where)
+	return spawn_pair(randi() % 4, where + Vector3(40, 0, 0))
+
+
+func report_captured(beast_id: int) -> void:
+	if not beast_id in captured():
+		state()["captured"].append(beast_id)
+	jinchuriki_captured.emit(beast_id)
+	Hud.banner("JİNCHŪRİKİ YAKALANDI", "%d kuyruklu Akatsuki'nin elinde (%d/9)" % [beast_id, captured().size()], Color(0.85, 0.15, 0.15))
+
+
+func akatsuki_look(m: Dictionary) -> Dictionary:
+	return {"gender": "f" if m.get("f", false) else "m", "hair_style": m["hair"], "hair": Color(0.1, 0.08, 0.1) if randf() < 0.5 else Color(0.55, 0.15, 0.15),
+		"top": Color(0.12, 0.12, 0.14), "top2": Color(0.12, 0.12, 0.14), "pants": Color(0.12, 0.12, 0.14), "outer_style": "pelerin", "outer": Color(0.06, 0.06, 0.08),
+		"band": Color(0.2, 0.2, 0.25), "band_style": "slashed", "village": m["v"], "face_mark": "yok", "age": "adult", "weapon_r": m["weapon"] if m["weapon"] != "" else null}
+
+
+func spawn_member(m: Dictionary, at: Vector3) -> Enemy:
+	var e = Enemy.new()
+	var a = Enemy.archetype("rogue", 0)
+	var lv = maxi(40, int(p().get("level", 1)) + 5)
+	a["name"] = "%s «%s»" % [m["name"], m["alias"]]
+	a["hp"] = float(m["hp"])
+	a["level"] = lv
+	a["power"] = 3.0 if not m.get("leader", false) else 3.8
+	a["element"] = m["el"]
+	a["jutsu"] = m["j"]
+	a["guard"] = 0.5
+	a["sub"] = 0.4
+	a["aggr"] = 0.85
+	a["xp"] = lv * 40
+	a["ryo"] = lv * 60
+	a["respawn"] = false
+	a["look"] = akatsuki_look(m)
+	e.setup(a)
+	e.set_meta("akatsuki", m["name"])
+	get_tree().current_scene.add_child(e)
+	at.y = Game.ground_height(at.x, at.z)
+	e.global_position = at
+	e.home = at
+	_spawned.append(e)
+	return e
+
+
+func spawn_pair(pair: int, at: Vector3) -> Array:
+	var out = []
+	for m in AKATSUKI:
+		if int(m["pair"]) == pair:
+			out.append(spawn_member(m, at + Vector3(randf_range(-6, 6), 0, randf_range(-6, 6))))
+	return out
+
+
+# ================================================================== ANBU / Kök
+func anbu_hq() -> void:
+	var opts = []
+	for m in anbu_missions():
+		opts.append({"label": "[%s] %s" % [m["rank"], m["title"]], "tip": m["brief"], "cb": func(): Missions.accept(m)})
+	if flags().get("root_member", false):
+		opts.append({"label": "◼ Kök'ün gölgesindeki görevler", "cb": root_board})
+	Hud.dialog("ANBU Karargâhı", "Maskeni tak. Bugünün özel görevleri:", opts)
+
+
+func anbu_missions() -> Array:
+	var vid = Progress.home()
+	var out = []
+	var rogue_camp = Missions._spot(vid, 600, 1200)
+	out.append({"title": "ANBU: Kaçak Takibi", "rank": "A", "village": vid, "giver": "ANBU Komutanı", "brief": "Köyden kaçan bir chūnin gizli belgelerle sınıra ilerliyor. Yakala ya da etkisiz bırak.",
+		"steps": [{"kind": "goto", "at": Missions._near_spot(rogue_camp, 120, 160), "r": 12.0, "name": "Son Görülen Yer", "text": "Kaçağın son görüldüğü yere git."},
+			{"kind": "kill", "at": rogue_camp, "enemy": "rogue", "n": 3, "camp": true, "boss": {"name": "Kaçak Chūnin Hyōma", "hp": 1500.0, "level": 30, "power": 2.3, "flee": true}, "text": "Kaçağı ve yardakçılarını yakala."}]})
+	var spy = Missions._spot(vid, 300, 800)
+	out.append({"title": "ANBU: Casus Ağı", "rank": "S", "village": vid, "giver": "ANBU Komutanı", "brief": "Başka bir köyün casusları Kage'ye suikast planlıyor. Kampa gece sız, planı ele geçir, liderlerini sustur.",
+		"steps": [{"kind": "goto", "at": Missions._near_spot(spy, 80, 100), "r": 10.0, "night": true, "name": "Casus Kampı", "text": "Gece kampın yakınına git."},
+			{"kind": "stealth", "at": spy, "enemy": ["kumo", "iwa", "kiri", "suna"].pick_random(), "n": 5, "goal": "Suikast Planı", "text": "Planı fark edilmeden al [F]."},
+			{"kind": "kill", "at": Missions._near_spot(spy, 120, 200), "enemy": "rogue", "n": 3, "boss": {"name": "Casus Şefi Kagerō", "hp": 2400.0, "level": 36, "power": 2.6}, "text": "Casus şefini sustur."}]})
+	var bd = Missions._spot(vid, 400, 900)
+	out.append({"title": "ANBU: Kage Muhafızlığı", "rank": "A", "village": vid, "giver": "ANBU Komutanı", "brief": "Kage sınırdaki bir görüşmeye gidiyor. Pusuya düşürülmeden geri getir.",
+		"steps": [{"kind": "defend", "at": bd, "enemy": "rogue", "waves": [4, 4, 5], "text": "Görüşme yerini pusulara karşı koru."},
+			{"kind": "goto", "at": Missions._inside(vid, 0.0, 0.25), "r": 20.0, "name": "Kage Kulesi", "text": "Köye dön."}]})
+	return out
+
+
+func root_board() -> void:
+	var vid = Progress.home()
+	var target = Missions._npc("hedef", "Muhalif Konsey Üyesi Sanada", "vip")
+	var spot = Missions._inside(vid, 0.3, 0.6)
+	var m = {"title": "Kök: Sessiz Emir", "rank": "S", "village": vid, "giver": "Kök", "brief": "Köyün içinde savaşa karşı çıkan bir konsey üyesi var. Kök onun 'ortadan kaybolmasını' istiyor. Ama gerçekten hain mi?",
+		"steps": [{"kind": "talk", "at": spot, "npc": target, "text": "Hedefle gizlice konuş.", "say": "Sen... Kök'ten misin? Ben sadece barış istiyorum. Kök'ün gölgedeki yöntemleri köyü zehirliyor... (Yaşlı adam titreyerek sana bakıyor.)",
+			"choices": [{"label": "Emri uygula", "ok": true, "vote": 0, "reply": "...Gölgeler sessizdir. Görev tamamlandı. Bu yükü taşıyacaksın."},
+				{"label": "Onu köyden kaçır, Kök'e öldü de", "ok": true, "vote": 1, "reply": "Teşekkür ederim... Asla unutmayacağım. (Kök şüphelenebilir.)"},
+				{"label": "Kage'ye götür, Kök'ü ifşa et", "ok": true, "vote": 2, "reply": "Gerçek ortaya çıkacak. (Kök senden intikam isteyecek.)"}]},
+			{"kind": "goto", "at": Missions._inside(vid, 0.0, 0.2), "r": 16.0, "name": "Kök Karargâhı", "text": "Rapor ver."}], "hook": "Orgs.root_done"}
+	Hud.dialog("Kök", "Görev kâğıdı yok. Sadece fısıltı: 'Köy için.'", [{"label": "Görevi al", "cb": func(): Missions.accept(m)}])
+
+
+func root_done(m: Dictionary, ok: bool) -> void:
+	if not ok:
+		return
+	var v = int(m.get("flags", {}).get("votes", 0))
+	match v:
+		0:
+			Progress.add_ryo(3000)
+			Missions._rep(Progress.home(), -10)
+			Hud.msg("Kök ödülünü bıraktı. Vicdanın ağırlaştı (−10 itibar).", Color(0.7, 0.7, 0.8))
+		1:
+			Missions._rep(Progress.home(), 10)
+			Hud.msg("Bir hayat kurtardın. Kök henüz bir şey sezmedi.", Color(0.7, 0.9, 0.8))
+		2:
+			flags()["root_member"] = false
+			Missions._rep(Progress.home(), 40)
+			Hud.banner("KÖK İFŞA EDİLDİ", "Kage gizli birimi dağıttı (+40 itibar). Kök'ün kalıntıları sana düşman.", Color(0.9, 0.8, 0.4))
+
+
+# ================================================================== kaçak ninja (köyü terk etmek)
+func defect_prompt() -> void:
+	if is_rogue():
+		pardon_prompt()
+		return
+	Hud.dialog("Köy Kapısı", "Alın koruyucunun sembolünü çizip köyü terk etmek üzeresin. Bundan sonra kaçak ninja olarak anılacaksın: av-ninjaları peşine düşer, köyünde düşman sayılırsın ve adın Bingo Kitabı'na yazılır. Emin misin?", [
+		{"label": "Sembolü çiz ve köyü terk et", "cb": defect},
+		{"label": "Hayır, köyüme sadığım", "cb": func(): pass}])
+
+
+func defect() -> void:
+	var f = flags()
+	f["rogue"] = true
+	f["rogue_from"] = Progress.home()
+	state()["bounty"] = 5000 + int(p()["level"]) * 400
+	Missions._rep(Progress.home(), -200)
+	Gear.apply_look(p())
+	if Game.player:
+		Game.player.rebuild_model()
+	player_defected.emit()
+	Hud.banner("KAÇAK NİNJA", "Alın koruyucundaki sembol artık bir çizik. Av-ninjaları peşinde.", Color(0.85, 0.2, 0.2))
+	Sfx.play("roar", null, 0.6, 0.5)
+	Game.save_game()
+
+
+func pardon_prompt() -> void:
+	Hud.dialog("Kapı Nöbetçisi", "Dur! Sen kaçak %s'sin! ...Ama gözlerinde pişmanlık var. Kage seni ancak köye büyük bir hizmetle affeder: Akatsuki'nin ya da bir S-rank kaçağın başını getir." % p()["name"], [
+		{"label": "Af için görevi kabul et", "cb": func(): Missions.accept(_pardon_mission())},
+		{"label": "Uzaklaş", "cb": func(): pass}])
+
+
+func _pardon_mission() -> Dictionary:
+	var vid = String(flags().get("rogue_from", Progress.home()))
+	var camp = Missions._spot(vid, 900, 1600)
+	return {"title": "Kefaret", "rank": "S", "village": vid, "giver": "Kapı Nöbetçisi", "hook": "Orgs.pardon_done",
+		"brief": "Köye dönmenin tek yolu kanıtla: köyün en çok aradığı kaçağı yen.",
+		"steps": [{"kind": "kill", "at": camp, "enemy": "rogue", "n": 3, "camp": true, "boss": {"name": "Aranan Kaçak Shinra", "hp": 3000.0, "level": maxi(30, int(p()["level"])), "power": 2.8, "flee": true}, "text": "S-rank kaçağı yen."},
+			{"kind": "goto", "at": Missions._inside(vid, 0.0, 0.25), "r": 20.0, "name": "Kage Kulesi", "text": "Kanıtla köye dön."}]}
+
+
+func pardon_done(_m: Dictionary, ok: bool) -> void:
+	if not ok:
+		return
+	var f = flags()
+	f["rogue"] = false
+	state()["bounty"] = 0
+	Game.profile["rep"][String(f.get("rogue_from", Progress.home()))] = 0
+	Gear.apply_look(p())
+	if Game.player:
+		Game.player.rebuild_model()
+	player_pardoned.emit()
+	Hud.banner("AFFEDİLDİN", "Köyüne yeniden hoş geldin. İtibarın sıfırdan başlıyor.", Color(0.6, 1, 0.7))
+
+
+## Bingo Kitabı'nda kendi kaydın (kaçaksan)
+func own_bingo_entry() -> Dictionary:
+	if not is_rogue():
+		return {}
+	var pr = p()
+	var L: Dictionary = (pr.get("look", {}) as Dictionary).duplicate(true)
+	var vid = String(flags().get("rogue_from", Progress.home()))
+	return {"id": -1, "self": true, "name": pr["name"], "alias": "Kaçak " + String(Game.village(vid).get("name", vid)), "village": vid,
+		"village_name": Game.village(vid).get("name", vid), "rank": "S" if int(pr["rank"]) >= 3 else ("A" if int(pr["rank"]) >= 2 else "B"),
+		"bounty": int(state().get("bounty", 5000)), "crimes": ["Köyünü terk etti", "Av-ninjalarına direndi (%d)" % int(flags().get("hunters_beaten", 0))],
+		"element": (pr["elements"] as Array)[0], "status": "alive", "tracked": false, "level": int(pr["level"]), "look": L,
+		"region": Game.region_name(Game.player.global_position) if Game.player else "", "area": [0, 0], "hide": [0, 0], "known": 0.0}
+
+
+func _hunter_tick(dt: float) -> void:
+	if not is_rogue() or Game.player == null:
+		return
+	_hunter_t += dt
+	if _hunter_t < 150.0:
+		return
+	# köy içinde değilken av-ninjaları gelir
+	var m = Game.to_map(Game.player.global_position)
+	for v in Game.world_info.get("villages", []):
+		if m.distance_to(Vector2(v["x"], v["y"])) < float(v["r"]):
+			return
+	_hunter_t = 0.0
+	var vid = String(flags().get("rogue_from", "konoha"))
+	var kind = vid if vid in ["kumo", "kiri", "iwa", "suna"] else "rogue"
+	var pp = Game.player.global_position
+	Hud.banner("AV-NİNJALARI", "%s seni buldu!" % Game.village(vid).get("name", vid), Color(0.9, 0.3, 0.3))
+	for i in 3:
+		var e = Enemy.new()
+		var a = Enemy.archetype(kind, i)
+		a["name"] = "Av-Ninjası"
+		a["respawn"] = false
+		a["level"] = maxi(15, int(p()["level"]))
+		a["hp"] = 300.0 + a["level"] * 20.0
+		a["power"] = 1.8 + a["level"] * 0.02
+		a["look"]["face_style"] = ["anbu_kedi", "anbu_kurt", "anbu_kus"][i]
+		a["look"]["village"] = vid
+		e.setup(a)
+		e.set_meta("hunter_nin", true)
+		get_tree().current_scene.add_child(e)
+		var q = pp + Vector3(cos(i * 2.1), 0, sin(i * 2.1)) * 30.0
+		q.y = Game.ground_height(q.x, q.z)
+		e.global_position = q
+		e.home = q
+		_spawned.append(e)
+
+
+func on_enemy_killed(e: Node) -> void:
+	if e.has_meta("hunter_nin"):
+		flags()["hunters_beaten"] = int(flags().get("hunters_beaten", 0)) + 1
+		state()["bounty"] = int(state().get("bounty", 5000)) + 1500
+	if e.has_meta("akatsuki"):
+		var n = String(e.get_meta("akatsuki"))
+		var dead: Array = state().get("akatsuki_dead", [])
+		if not n in dead:
+			dead.append(n)
+		state()["akatsuki_dead"] = dead
+		Hud.banner("AKATSUKİ ÜYESİ DÜŞTÜ", n, Color(0.95, 0.4, 0.3))
+		Missions._rep(Progress.home(), 30)
+
+
+# ================================================================== Chūnin finalinde istila
+## Ses ninjaları + dev yılanlar stadyumu basar. done(won: bool)
+func exam_invasion(center: Vector3, done: Callable) -> void:
+	_invasion = {"done": done, "enemies": [], "t": 0.0}
+	Hud.banner("İSTİLA!", "Ses ninjaları ve dev yılanlar stadyumu bastı!", Color(0.9, 0.2, 0.2))
+	Sfx.play("roar", center, 0.6, 0.9)
+	FX.smoke_puff(center + Vector3.UP * 6, 4.0, 40)
+	for i in 8:
+		var e = Enemy.new()
+		var a = Enemy.archetype("oto", i)
+		a["respawn"] = false
+		a["level"] = maxi(12, int(p()["level"]))
+		e.setup(a)
+		get_tree().current_scene.add_child(e)
+		var q = center + Vector3(cos(i * 0.8), 0, sin(i * 0.8)) * randf_range(15, 30)
+		q.y = Game.ground_height(q.x, q.z)
+		e.global_position = q
+		e.home = q
+		_invasion["enemies"].append(e)
+	# dev yılanlar (Konoha Yıkımı'ndaki gibi tribünleri yıkarak gelir)
+	for i in 3:
+		var s = Summon.new()
+		s.contract = "yılan"
+		s.tier = 2 if i == 0 else 1
+		s.def = Contracts.DEFS["yılan"]["tiers"][s.tier]
+		s.team = "enemy"
+		s.owner_f = null
+		get_tree().current_scene.add_child(s)
+		s.life = 99999.0
+		var q = center + Vector3(-45 + i * 45, 0, 40 + (25 if i == 0 else 0))
+		q.y = Game.ground_height(q.x, q.z)
+		s.global_position = q
+		_invasion["enemies"].append(s)
+	Missions.target_marker = center
+	Missions.has_marker = true
+	Missions.target_name = "İstila — Stadyum"
+
+
+func _invasion_tick(dt: float) -> void:
+	if _invasion.is_empty():
+		return
+	_invasion["t"] = float(_invasion["t"]) + dt
+	var alive = 0
+	for e in _invasion["enemies"]:
+		if is_instance_valid(e) and not e.is_dead():
+			alive += 1
+	Hud.objective_progress("İstilacılar: %d kaldı" % alive)
+	if alive == 0 or float(_invasion["t"]) > 300.0:
+		var cb: Callable = _invasion["done"]
+		var won = alive == 0
+		for e in _invasion["enemies"]:
+			if is_instance_valid(e):
+				e.queue_free()
+		_invasion = {}
+		Missions.has_marker = false
+		if won:
+			Progress.add_xp(500)
+			Missions._rep(Progress.home(), 20)
+		cb.call(won)
+
+
+# ================================================================== dünya olayları (hikâyeye göre zamanlanır)
+func _events_tick() -> void:
+	var pr = p()
+	var ev: Dictionary = state()["events"]
+	var rank = int(pr["rank"])
+	if not Missions.active().is_empty() or Game.ui_open:
+		return
+	# Sınır savaşı: chūnin olduktan bir süre sonra
+	if rank >= 2 and Progress.story() >= 11 and not ev.has("border_war") and randf() < 0.02:
+		ev["border_war"] = "active"
+		_border_war()
+		return
+	# Kuyruklu canavar avı: jōnin olunca
+	if rank >= 3 and not is_hunting() and randf() < 0.03:
+		start_beast_hunt()
+		return
+	# Büyük Ninja Savaşı: Kage zirvesinden sonra
+	if state().get("summit", false) and state().get("war", "none") == "none" and randf() < 0.05:
+		_great_war_prompt()
+
+
+func _border_war() -> void:
+	var home = Progress.home()
+	var rival = ["konoha", "suna", "kiri", "kumo", "iwa"].filter(func(x): return x != home and not Game.village(x).is_empty()).pick_random()
+	if has_node("/root/Kage"):
+		Kage.change_relation(rival, -30)
+	var outpost = Missions._spot(home, 700, 1300)
+	var kind = rival if rival in ["kumo", "kiri", "iwa", "suna"] else "rogue"
+	var m = {"title": "Sınır Savaşı: %s Öncüleri" % Game.village(rival).get("name", rival), "rank": "B", "village": home, "giver": Progress.home_info()["kage"], "hook": "Orgs.event_done", "event": "border_war",
+		"brief": "%s sınır karakolumuza saldırdı. Karakolu savun, komutanlarını püskürt; bu bir savaşa dönüşmeden önce." % Game.village(rival).get("name", rival),
+		"steps": [{"kind": "goto", "at": Missions._near_spot(outpost, 60, 80), "r": 14.0, "name": "Sınır Karakolu", "text": "Sınır karakoluna yetiş."},
+			{"kind": "defend", "at": outpost, "enemy": kind, "waves": [3, 4, 5], "text": "Saldırı dalgalarını püskürt."},
+			{"kind": "kill", "at": Missions._near_spot(outpost, 80, 120), "enemy": kind, "n": 2, "boss": {"name": "Öncü Komutanı", "hp": 1800.0, "level": maxi(20, int(p()["level"])), "power": 2.3}, "text": "Öncü komutanını yen."}]}
+	Hud.dialog("Ulak", "Acil haber! %s sınır karakolumuza saldırdı. %s seni hemen çağırıyor!" % [Game.village(rival).get("name", rival), Progress.home_info()["kage"]], [
+		{"label": "Hemen yola çık", "cb": func(): Missions.accept(m)}, {"label": "Şimdi gidemem (itibar kaybı)", "cb": func():
+			Missions._rep(Progress.home(), -15)
+			state()["events"]["border_war"] = "ignored"}])
+
+
+func event_done(m: Dictionary, ok: bool) -> void:
+	var id = String(m.get("event", ""))
+	if id != "":
+		state()["events"][id] = "won" if ok else "lost"
+	if ok:
+		Missions._rep(Progress.home(), 25)
+
+
+func _great_war_prompt() -> void:
+	state()["war"] = "called"
+	war_started.emit()
+	Hud.banner("DÖRDÜNCÜ BÜYÜK NİNJA SAVAŞI", "Müttefik Shinobi Kuvvetleri toplanıyor", Color(1, 0.55, 0.2))
+	var field = null
+	for l in Game.world_info.get("landmarks", []):
+		if l.get("arena", false):
+			field = [float(l["x"]), float(l["y"])]
+			break
+	if field == null:
+		field = Missions._spot(Progress.home(), 2000, 3000)
+	var lead = AKATSUKI[AKATSUKI.size() - 1]
+	var m = {"title": "Büyük Ninja Savaşı", "rank": "S", "village": Progress.home(), "giver": "Müttefik Kuvvetler Başkomutanı", "hook": "Orgs.war_done",
+		"brief": "Beş büyük köy tek bir orduda birleşti. Akatsuki'nin beyaz klon ordusu ve liderleri savaş alanında. Cepheyi tut, liderleri düşür.",
+		"steps": [{"kind": "goto", "at": Missions._near_spot(field, 150, 200), "r": 25.0, "name": "Müttefik Karargâhı", "text": "Savaş alanındaki müttefik karargâhına git."},
+			{"kind": "defend", "at": field, "enemy": "rogue", "ename": "Beyaz Klon", "waves": [6, 7, 8, 9], "text": "Beyaz klon ordusunun dalgalarını durdur."},
+			{"kind": "kill", "at": Missions._near_spot(field, 60, 100), "enemy": "rogue", "n": 1, "boss": {"name": "%s «%s»" % [AKATSUKI[0]["name"], AKATSUKI[0]["alias"]], "hp": 3600.0, "level": 45, "power": 3.0, "look": akatsuki_look(AKATSUKI[0])}, "text": "Akatsuki komutanını yen."},
+			{"kind": "kill", "at": field, "enemy": "rogue", "n": 2, "boss": {"name": "%s «%s»" % [lead["name"], lead["alias"]], "hp": 7000.0, "level": 55, "power": 3.8, "look": akatsuki_look(lead)}, "text": "Örgütün liderini yen."}]}
+	Hud.dialog("Müttefik Kuvvetler Başkomutanı", "Kage Zirvesi'nde verdiğimiz söz yerine geliyor: beş köy tek bir ordu. Sen cephenin kalbinde olacaksın.", [{"label": "Savaşa katıl", "cb": func(): Missions.accept(m)}, {"label": "Hazırlanmam lazım", "cb": func(): state()["war"] = "none"}])
+
+
+func war_done(_m: Dictionary, ok: bool) -> void:
+	state()["war"] = "won" if ok else "none"
+	war_ended.emit(ok)
+	if ok:
+		Hud.banner("SAVAŞ BİTTİ", "Beş köy birlikte kazandı. Adın efsanelere yazıldı.", Color(1, 0.85, 0.4))
+		Progress.add_xp(5000)
+		var gid = Gear.random_legendary()
+		if gid != "":
+			Gear.grant(p(), gid)
+		for v in ["konoha", "suna", "kiri", "kumo", "iwa"]:
+			Missions._rep(v, 50)
+
+
+# ================================================================== güncelleme
+func _process(dt: float) -> void:
+	if Game.player == null or Game.profile.is_empty() or Game.paused:
+		return
+	_invasion_tick(dt)
+	_hunter_tick(dt)
+	_t += dt
+	if _t >= 20.0:
+		_t = 0.0
+		_events_tick()
+	# Akatsuki avı sürerken: vahşi doğada ara sıra bir çift belirir
+	if is_hunting() and int(p()["rank"]) >= 3:
+		_hunt_t += dt
+		if _hunt_t > 600.0:
+			_hunt_t = 0.0
+			var m = Game.to_map(Game.player.global_position)
+			var inside = false
+			for v in Game.world_info.get("villages", []):
+				if m.distance_to(Vector2(v["x"], v["y"])) < float(v["r"]) * 1.2:
+					inside = true
+			if not inside and randf() < 0.5:
+				var dead: Array = state().get("akatsuki_dead", [])
+				var pairs = [0, 1, 2, 3].filter(func(i): return AKATSUKI.filter(func(x): return int(x["pair"]) == i and not String(x["name"]) in dead).size() > 0)
+				if not pairs.is_empty():
+					var pp = Game.player.global_position
+					spawn_pair(pairs.pick_random(), pp + Vector3(50, 0, 30))
+					Hud.banner("KIZIL BULUTLAR", "İki Akatsuki üyesi yolunu kesti!", Color(0.85, 0.15, 0.15))
+	for e in _spawned.duplicate():
+		if not is_instance_valid(e):
+			_spawned.erase(e)
+		elif e.global_position.distance_to(Game.player.global_position) > 600.0:
+			e.queue_free()
+			_spawned.erase(e)

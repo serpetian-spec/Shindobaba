@@ -15,7 +15,7 @@ const STORY_T := [
 	"Ninja Akademisi'ne git ve hocan {s1} ile konuş. (Akademi, {dir})",
 	"Akademi avlusundaki kuklalara 25 darbe vur, sonra hocana dön.",
 	"Hocandan Henge no Jutsu'yu öğren ve bir kez kullan [slot 1].",
-	"Mezuniyet Sınavı: avludaki 3 kuklayı devir, sonra hocana rapor ver.",
+	"Mezuniyet Sınavı: hocanla konuş (yazılı + Bunshin/Henge/Kawarimi + hedef parkuru), ardından {s2} ile Zil Testi.",
 	"Chakra kontrolü: duvar koşusuyla 35 m yüksekliğe tırman ({lookout} ideal).",
 	"Antrenman alanında ({vn}) chakra kâğıdı testini yap.",
 	"{kage} Kulesi'ndeki görev masasından 3 D-rank görev tamamla.",
@@ -24,8 +24,8 @@ const STORY_T := [
 	"Seviye 10'a ulaş ve Chunin Sınavına başvur (bu dönem sınav Konoha Stadyumu'nda — haritadan yola çık).",
 	"Chunin Sınavı devam ediyor...",
 	"Chunin oldun! Diğer köylere görevlerle seyahat et. Rasengan ve çağırma için Gizli Şelale'ye git (Sv.12).",
-	"Jonin olmak için: Seviye 20 + 3 A-rank görev.",
-	"ANBU için: Seviye 30 + 1 S-rank görev. ANBU Karargâhı ({vn}).",
+	"Jōnin terfisi: Seviye 20 + 3 A-rank + ikinci chakra doğası; {kage} Kulesi'nde değerlendirmeye başvur.",
+	"ANBU seçmeleri: Seviye 30 + 1 S-rank görev. ANBU Karargâhı ({vn}). Kage olmak için: Sv.35, 150 itibar, 3 S-rank.",
 	"Efsane bir shinobi oldun. Dünya senin.",
 ]
 var STORY: Array = []
@@ -111,6 +111,7 @@ func new_profile(opts: Dictionary) -> Dictionary:
 # ------------------------------------------------------------------ XP / seviye
 func add_xp(amount: int) -> void:
 	var pr = p()
+	amount = int(amount * Exams.xp_mult())
 	pr["xp"] = int(pr["xp"]) + amount
 	Hud.float_text("+%d XP" % amount, Color(0.7, 0.9, 1.0))
 	while int(pr["xp"]) >= Data.xp_for_level(int(pr["level"])):
@@ -332,6 +333,10 @@ func promote(rank: int) -> void:
 		4:
 			Gear.grant(pr, "anbu_zirh", "zirh")
 			Hud.msg("Yeni ekipman: ANBU Zırhı  [Tab > Ekipman]", Color(0.6, 0.9, 1.0))
+		5:
+			Hud.msg("Kage adaylığın resmen ilan edildi.", Color(1, 0.85, 0.5))
+		6:
+			pass  # Kage.inaugurate cübbe ve şapkayı verir
 	Gear.apply_look(pr)
 	Hud.banner(Data.RANKS[rank].to_upper(), "Rütbe atladın!", Color(1, 0.6, 0.25))
 	Sfx.play("levelup", null, 0.7)
@@ -346,6 +351,7 @@ func on_enemy_killed(e: Node) -> void:
 	add_ryo(int(e.ryo))
 	p()["stats"]["kills"] = int(p()["stats"].get("kills", 0)) + 1
 	Missions.on_kill(e)
+	Orgs.on_enemy_killed(e)
 	if story() == 8 and e.get_meta("scroll_thief", false):
 		Game.profile["active_mission"] = {}
 		Missions.has_marker = false
@@ -354,8 +360,8 @@ func on_enemy_killed(e: Node) -> void:
 		set_story(9)
 
 
-func on_hit_landed(_t: Node) -> void:
-	pass
+func on_hit_landed(t: Node) -> void:
+	Exams.on_hit(t)
 
 
 func on_dummy_hit(_d: Node, _dmg: float) -> void:
@@ -373,9 +379,12 @@ func on_dummy_broken(_d: Node) -> void:
 		pr["flags"]["grad_broken"] = int(pr["flags"].get("grad_broken", 0)) + 1
 		Hud.objective_progress("Devrilen kukla: %d/3" % pr["flags"]["grad_broken"])
 	Missions.on_dummy_broken()
+	Exams.on_dummy_broken(_d)
 
 
 func on_technique_used(id: String) -> void:
+	Exams.on_technique(id)
+	ChuninExam.on_technique(id)
 	if story() == 2 and id == "henge":
 		p()["flags"]["henge_used"] = true
 		Hud.objective_progress("Henge kullanıldı! Hocana dön.")
@@ -418,8 +427,7 @@ func _check_story_levels() -> void:
 	if story() == 9 and lv >= 10:
 		Hud.msg("Chunin Sınavı başvuruları açık! (Stadyum)", Color(1, 0.8, 0.4))
 	if story() == 12 and lv >= 20 and int(p()["missions_done"].get("A", 0)) >= 3:
-		promote(3)
-		set_story(13)
+		Hud.msg("Jōnin terfi değerlendirmesine başvurabilirsin (%s Kulesi)." % home_info()["kage"], Color(1, 0.8, 0.4))
 
 
 # ------------------------------------------------------------------ etkileşimler [F]
@@ -427,6 +435,8 @@ func interact(it: Dictionary) -> void:
 	var kind: String = it["kind"]
 	var pr = p()
 	match kind:
+		"beast_seal", "beast_talk", "mind_exit":
+			TailedBeasts.interact(it)
 		"academy":
 			_academy()
 		"mission_board":
@@ -472,6 +482,19 @@ func interact(it: Dictionary) -> void:
 			if int(pr["level"]) >= 4 and not "shousen" in pr["learned"]:
 				opts.append({"label": "Tıbbi ninjutsu öğren (200 Ryō)", "cb": func(): _buy_learn("shousen", 200)})
 			opts.append_array(trainer_options(["hospital"], 5))
+			# göz nakli: kavanozdaki gözler
+			for g in pr.get("gear", []):
+				if Gear.item(g["id"]).get("slot", "") == "goz" and not int(g["uid"]) in pr["equip"].values():
+					for sl in [["sag_goz", "sağ"], ["sol_goz", "sol"]]:
+						var uid = int(g["uid"])
+						var slot = sl[0]
+						opts.append({"label": "Göz nakli: %s → %s göz (500 Ryō)" % [Gear.item(g["id"])["name"], sl[1]], "cb": func():
+							if int(pr["ryo"]) < 500:
+								Hud.msg("Yeterli Ryō yok.", Color(1, 0.5, 0.4))
+								return
+							add_ryo(-500)
+							Eyes.transplant(pr, uid, slot)
+							Hud.msg("Nakil başarılı. Bir süre gözlerin ağrıyacak.", Color(0.7, 1, 0.7))})
 			Hud.dialog("Hastane", "Yaraların sarıldı. Tamamen iyileştin.", opts)
 		"training":
 			_training_ground()
@@ -483,7 +506,13 @@ func interact(it: Dictionary) -> void:
 		"memorial":
 			Hud.dialog("Anıt Taşı", "Köy için canını veren shinobilerin isimleri burada yazılı. Bir an saygıyla eğiliyorsun.", [])
 		"gate":
-			Hud.dialog("Kapı Nöbetçisi", "Dışarısı tehlikeli genç ninja. Haritayı [M] aç, yolları takip et. Diğer köylere varınca hızlı seyahat açılır.", [])
+			var gopts = []
+			if Orgs.is_rogue():
+				Orgs.pardon_prompt()
+			else:
+				if _in_home(it) and int(pr["rank"]) >= 1 and int(pr["rank"]) < 6:
+					gopts.append({"label": "Köyü terk et (kaçak ninja ol)", "cb": Orgs.defect_prompt})
+				Hud.dialog("Kapı Nöbetçisi", "Dışarısı tehlikeli genç ninja. Haritayı [M] aç, yolları takip et. Diğer köylere varınca hızlı seyahat açılır.", gopts)
 		"shop_weapons":
 			Hud.dialog("Silah Dükkânı", "Hoş geldin! Ne bakıyorsun?", [
 				{"label": "Ninja aletleri ve parşömenler", "cb": func(): Hud.shop("Silah Dükkânı", ["kunai", "shuriken", "tag", "smoke"] + scroll_shop_items())},
@@ -513,11 +542,7 @@ func interact(it: Dictionary) -> void:
 		"valley":
 			Hud.dialog("Sonun Vadisi", "İki dev heykelin arasında nehir köpürüyor. Burada bir zamanlar büyük bir savaş olmuş... (Sv.35'te gizli bir uyanış seni bekliyor)", [])
 		"anbu":
-			if int(pr["rank"]) >= 3 and int(pr["level"]) >= 30 and int(pr["missions_done"].get("S", 0)) >= 1:
-				promote(4)
-				set_story(14)
-			else:
-				Hud.dialog("ANBU", "Burası yetkisiz girişe kapalı. (Jonin + Sv.30 + 1 S-rank görev)", [])
+			Exams.anbu_offer()
 		_:
 			Hud.dialog(it.get("label", "").replace("[F] ", ""), "Burada şimdilik yapacak bir şey yok.", [])
 	Missions.on_interact(it)
@@ -621,20 +646,13 @@ func _academy() -> void:
 				Hud.dialog(sensei, "Daha %d darbe kaldı. Tembellik yok!" % (25 - int(pr["flags"].get("dummy_hits", 0))), [])
 		2:
 			if pr["flags"].get("henge_used", false):
-				Hud.dialog(sensei, "Mükemmel dönüşüm! Mezuniyet sınavına hazırsın. Avludaki 3 kuklayı devir ve bana rapor ver.", [])
+				Hud.dialog(sensei, "Mükemmel dönüşüm! Mezuniyet sınavına hazırsın: yazılı sınav, üç akademi tekniği ve hedef parkuru. Hazır olduğunda benimle konuş.", [])
 				pr["flags"]["grad_broken"] = 0
 				set_story(3)
 			else:
 				Hud.dialog(sensei, "Henge'yi [1] tuşuyla kullan ve bana göster.", [])
 		3:
-			if int(pr["flags"].get("grad_broken", 0)) >= 3:
-				Hud.dialog(sensei, "Tebrikler... Bu alın koruyucuyu takmayı hak ettin. Artık %s'nin bir Genin'isin! Jonin hocan %s seni bekliyor: önce chakra kontrolünü geliştir, duvarlara tırman!" % [vn, home_info()["s2"]], [])
-				promote(1)
-				add_xp(150)
-				add_ryo(200)
-				set_story(4)
-			else:
-				Hud.dialog(sensei, "Henüz %d kukla devrildi. 3 lazım!" % int(pr["flags"].get("grad_broken", 0)), [])
+			Exams.academy_talk()
 		_:
 			var opts = []
 			if int(pr["level"]) >= 3 and not "shunshin" in pr["learned"]:
@@ -650,6 +668,9 @@ func _academy() -> void:
 func _training_ground() -> void:
 	var pr = p()
 	var s = story()
+	if s == 3 and pr["flags"].get("academy_passed", false):
+		Hud.dialog(home_info()["s2"], "Demek mezun oldun. Ama gerçek ninjalar bu testten sonra belli olur: Zil Testi. Hazır mısın?", [{"label": "Zil Testine başla", "cb": Exams.bell_start}, {"label": "Biraz sonra", "cb": func(): pass}])
+		return
 	if s == 5:
 		var el: String = pr["elements"][0]
 		var names = {"katon": "kâğıt yanıp kül oldu: ATEŞ (Katon)", "suiton": "kâğıt ıslandı: SU (Suiton)", "fuuton": "kâğıt ikiye bölündü: RÜZGAR (Fuuton)",
@@ -693,8 +714,24 @@ func _mission_board(it: Dictionary) -> void:
 		return
 	if s == 9 and int(pr["level"]) >= 10:
 		Hud.msg("Chunin Sınavı için Stadyuma git!", Color(1, 0.8, 0.4))
-	if s >= 12 and int(pr["rank"]) == 2 and int(pr["level"]) >= 20 and int(pr["missions_done"].get("A", 0)) >= 3:
-		promote(3)
-		set_story(13)
-		return
+	if _in_home(it):
+		var rk = int(pr["rank"])
+		if rk >= 6:
+			Hud.dialog(home_info()["kage"] + " Kulesi", "Masan seni bekliyor, %s." % home_info()["kage"], [
+				{"label": "Kage masasına otur", "cb": func(): KageDesk.open()},
+				{"label": "Görev panosuna bak", "cb": func(): Missions.open_board(it)}])
+			return
+		var opts = []
+		if s >= 12 and rk == 2:
+			opts.append({"label": "Jōnin terfi değerlendirmesi", "cb": func(): Exams.jonin_offer()})
+		if rk >= 3 and String(pr.get("specialty", "")) == "":
+			opts.append({"label": "Tokubetsu Jōnin uzmanlığı seç", "cb": func(): Exams.specialty_offer()})
+		if rk in [3, 4]:
+			opts.append({"label": "%s adaylığı" % home_info()["kage"], "cb": func(): Kage.offer_candidacy()})
+		if s == 9 and int(pr["level"]) >= 10 and rk == 1:
+			opts.append({"label": "Chūnin Sınavına başvur", "cb": func(): ChuninExam.apply()})
+		if not opts.is_empty():
+			opts.push_front({"label": "Görev panosu", "cb": func(): Missions.open_board(it)})
+			Hud.dialog(home_info()["kage"] + " Kulesi", "Ne için geldin?", opts)
+			return
 	Missions.open_board(it)

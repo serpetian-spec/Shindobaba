@@ -1,7 +1,7 @@
 extends Node
 ## Statik oyun verisi (autoload "Data"). Jutsu/klan/eşya tabloları research/ JSON'larından derlenmiş data/*.json'dan yüklenir.
 
-const RANKS := ["Akademi Öğrencisi", "Genin", "Chunin", "Jonin", "ANBU"]
+const RANKS := ["Akademi Öğrencisi", "Genin", "Chunin", "Jonin", "ANBU", "Kage Adayı", "Kage"]
 
 var jutsu = {}
 var clans = {}

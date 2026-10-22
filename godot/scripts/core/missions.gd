@@ -5,7 +5,7 @@ extends Node
 ## Ayrıca Bingo Kitabı (Aranıyor listesi): ödüllü kaçak ninjalar, saklandıkları bölge, muhbirler.
 
 const REWARD := {"D": [60, 50], "C": [220, 140], "B": [600, 380], "A": [1600, 900], "S": [6000, 2500]}
-const RANK_FOR := {0: ["D"], 1: ["D", "C"], 2: ["C", "B"], 3: ["B", "A", "S"], 4: ["A", "S"]}
+const RANK_FOR := {0: ["D"], 1: ["D", "C"], 2: ["C", "B"], 3: ["B", "A", "S"], 4: ["A", "S"], 5: ["A", "S"], 6: ["A", "S"]}
 const RANK_IDX := {"D": 0, "C": 1, "B": 2, "A": 3, "S": 4}
 const REP_GAIN := {"D": 2, "C": 5, "B": 10, "A": 20, "S": 40}
 const GEAR_CHANCE := {"D": 0.15, "C": 0.35, "B": 0.6, "A": 0.9, "S": 1.0}
@@ -605,6 +605,7 @@ func fail(reason: String) -> void:
 		return
 	Hud.banner("GÖREV BAŞARISIZ", reason, Color(1, 0.4, 0.35))
 	Sfx.play("hurt", null, 0.7)
+	_call_hook(String(m.get("hook", "")), m.duplicate(true), false)
 	_rep(m.get("village", Progress.home()), -REP_GAIN.get(m.get("rank", "D"), 2) * 2)
 	_cleanup()
 	Game.profile["active_mission"] = {}
@@ -1067,8 +1068,19 @@ func complete() -> void:
 			Hud.msg("Ödül ekipmanı: %s  [Tab > Ekipman]" % Gear.item(gid)["name"], Color(0.7, 0.9, 1.0))
 	if Progress.story() == 6 and int(Game.profile["missions_done"]["D"]) >= 3:
 		Progress.set_story(7)
+	_call_hook(String(m.get("hook", "")), m, true)
 	Hud.objective_changed()
 	Game.save_game()
+
+
+## Sınav/terfi/Kage görevleri bitince sahibine haber ver: "Autoload.metot"
+func _call_hook(hk: String, m: Dictionary, ok: bool) -> void:
+	if hk == "" or not hk.contains("."):
+		return
+	var parts = hk.split(".")
+	var n = get_node_or_null("/root/" + parts[0])
+	if n and n.has_method(parts[1]):
+		n.call_deferred(parts[1], m, ok)
 
 
 # ------------------------------------------------------------------ olaylar
@@ -1175,6 +1187,8 @@ func on_quest_talk(npc: QuestNPC) -> bool:
 				var m = active()
 				if not c.get("ok", true):
 					m["flags"]["wrong"] = true
+				if c.has("vote"):  # Kage seçimi / konsey oyu
+					m["flags"]["votes"] = int(m["flags"].get("votes", 0)) + int(c["vote"])
 				Hud.dialog(npc.display, c.get("reply", ""), [{"label": "Devam", "cb": func():
 					if not c.get("ok", true) and c.get("wrong", "") == "ambush":
 						_spawn("rogue", npc.global_position + Vector3(6, 0, 6), 3, 6.0)
@@ -1197,6 +1211,8 @@ func on_quest_npc_died(npc: QuestNPC) -> void:
 	if s.is_empty():
 		return
 	if s["kind"] == "escort" or s.get("followers", false) or s["kind"] == "babysit":
+		if Game.player and Game.player.combat and Game.player.combat.modes and Game.player.combat.modes.eyes:
+			Game.player.combat.modes.eyes.on_ally_died(npc)  # Mangekyō uyanışı tetiklenebilir
 		fail("%s öldü." % npc.display)
 
 
@@ -1650,7 +1666,7 @@ func _bingo() -> Dictionary:
 
 
 func _bb_ranks() -> Array:
-	return {0: ["C"], 1: ["C", "B"], 2: ["C", "B", "A"], 3: ["B", "A", "S"], 4: ["A", "S"]}[int(Game.profile.get("rank", 0))]
+	return {0: ["C"], 1: ["C", "B"], 2: ["C", "B", "A"], 3: ["B", "A", "S"], 4: ["A", "S"], 5: ["A", "S"], 6: ["A", "S"]}[int(Game.profile.get("rank", 0))]
 
 
 func _bb_new() -> Dictionary:
@@ -1797,6 +1813,13 @@ func _tracked_bounty() -> Dictionary:
 
 ## Bingo Kitabı girdileri (menü/diyalog için): look Color'a çevrilmiş kopyalar
 func bingo_entries() -> Array:
+	var own = Orgs.own_bingo_entry() if has_node("/root/Orgs") else {}
+	if not own.is_empty():
+		return [own] + _bingo_entries_raw()
+	return _bingo_entries_raw()
+
+
+func _bingo_entries_raw() -> Array:
 	var out = []
 	for e in _bingo()["list"]:
 		var x = e.duplicate(true)
