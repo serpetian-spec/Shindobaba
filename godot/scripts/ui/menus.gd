@@ -166,11 +166,18 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 		ob.item_selected.connect(func(i):
 			state[key] = options[i]
 			on_change.call()
-			if key == "clan":
+			if key == "village":
+				state["element"] = Progress.HOME_VILLAGES[options[i]]["element"]
+			if key == "clan" or key == "village":
 				creator(main, state, on_change, on_start))
 		h.add_child(ob)
 		v.add_child(h)
 	row.call("Cinsiyet", "gender", ["m", "f"], ["Erkek", "Kadın"])
+	var vids = Progress.HOME_VILLAGES.keys()
+	row.call("Köy", "village", vids, vids.map(func(x): return "%s (%s)" % [Game.village(x).get("name", x), Progress.HOME_VILLAGES[x]["kage"]]))
+	var vinfo = Progress.HOME_VILLAGES.get(state.get("village", "konoha"), {})
+	var vd = UI.label("Önerilen chakra doğası: %s  •  Hocan: %s" % [vinfo.get("element", "katon").capitalize(), vinfo.get("s1", "")], 13, Color(0.85, 0.85, 0.8))
+	v.add_child(vd)
 	var clan_ids: Array = Data.clans.keys()
 	var clan_names: Array = clan_ids.map(func(c): return Data.clans[c]["name"])
 	row.call("Klan", "clan", clan_ids, clan_names)
@@ -456,14 +463,17 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 			Game.player.apply_profile_stats()
 		ninja_menu(main, "wardrobe")
 	# --- sol: yuvalar
-	var left = UI.vbox(6)
-	left.custom_minimum_size = Vector2(330, 0)
-	h.add_child(left)
+	var left = _scroll(h, 350)
 	left.add_child(UI.header("EKİPMAN", 22))
-	for sl in Gear.SLOTS + [["sac", "Saç"]]:
+	var extra = [["sac", "Saç"]]
+	if Susanoo.max_tier(pr) > 0:
+		extra.append(["susanoo", "Susanoo"])
+	for sl in Gear.SLOTS + extra:
 		var nm = "—"
 		if sl[0] == "sac":
 			nm = String(pr["look"].get("hair_style", "diken")).capitalize()
+		elif sl[0] == "susanoo":
+			nm = "Kademe %d" % Susanoo.cur_tier(pr)
 		else:
 			var g = Gear.equipped(pr, sl[0])
 			if not g.is_empty():
@@ -492,6 +502,9 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 	var mid = _scroll(h, 470)
 	if _eq_slot == "sac":
 		_hair_panel(mid, pr["look"], refresh)
+	elif _eq_slot == "susanoo":
+		_susanoo_panel(main, mid, h)
+		return
 	else:
 		var cur = Gear.equipped(pr, _eq_slot)
 		var title = ""
@@ -534,8 +547,11 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 					pr["equip"][_eq_slot] = int(g["uid"])
 					refresh.call(), 140))
 			mid.add_child(card)
+		# Mangekyō / Ebedi Mangekyō desen düzenleyici
+		if _eq_slot in ["sag_goz", "sol_goz"] and not Eyes.design_for(pr, _eq_slot).is_empty():
+			_ms_editor(main, mid, Eyes.design_for(pr, _eq_slot))
 		# boya (silah hariç)
-		if not cur.is_empty() and not Gear.item(cur["id"]).has("weapon"):
+		if not cur.is_empty() and not Gear.item(cur["id"]).has("weapon") and not Gear.item(cur["id"]).has("eye"):
 			mid.add_child(HSeparator.new())
 			var names = {"govde": ["Ana renk", "Vurgu (omuz/yaka)"], "ayak": ["Sandalet", "Sargılar"]}.get(_eq_slot, ["Renk"])
 			for ci in names.size():
@@ -554,6 +570,165 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 				mid.add_child(r)
 	# --- sağ: önizleme
 	h.add_child(_model_preview(Game.player._look_with_age() if Game.player else pr["look"]))
+
+
+## Özel Mangekyō deseni: canlı 2B önizleme + stil/kanat/kıvrım/kalınlık/halka/renk
+const MS_STYLES := ["Çark", "Yıldız", "Taç Yaprak", "Shuriken", "Sarmal", "Haç", "Tomoe Halkası"]
+const MS_COLORS := [[0.9, 0.05, 0.06], [0.6, 0.0, 0.05], [0.55, 0.2, 0.85], [0.15, 0.4, 0.95], [0.95, 0.7, 0.1], [0.1, 0.7, 0.4]]
+static func _ms_editor(main: Node, v: VBoxContainer, d: Dictionary) -> void:
+	v.add_child(HSeparator.new())
+	v.add_child(UI.header("MANGEKYŌ DESENİ (sana özel)", 18))
+	var row = UI.hbox(12)
+	v.add_child(row)
+	var pv = ColorRect.new()
+	pv.custom_minimum_size = Vector2(170, 170)
+	var sm = ShaderMaterial.new()
+	sm.shader = load("res://shaders/ms_preview.gdshader")
+	pv.material = sm
+	row.add_child(pv)
+	var apply_pv = func() -> void:
+		var vv = Eyes.design_vecs(d)
+		sm.set_shader_parameter("ms_a", vv[0])
+		sm.set_shader_parameter("ms_b", vv[1])
+		sm.set_shader_parameter("col", vv[2])
+		if Game.player and Game.player.combat and Game.player.combat.modes and Game.player.combat.modes.eyes:
+			Game.player.combat.modes.eyes.refresh_visual()
+	apply_pv.call()
+	var ctl = UI.vbox(4)
+	row.add_child(ctl)
+	var sg = GridContainer.new()
+	sg.columns = 4
+	for i in MS_STYLES.size():
+		var b = UI.button(MS_STYLES[i], func():
+			d["style"] = i
+			ninja_menu(main, "wardrobe"), 100)
+		if int(d.get("style", 0)) == i:
+			b.modulate = Color(1, 0.75, 0.4)
+		sg.add_child(b)
+	ctl.add_child(sg)
+	var slider = func(title: String, key: String, mn: float, mx: float, stp: float) -> void:
+		var hh = UI.hbox(6)
+		var l = UI.label(title, 14)
+		l.custom_minimum_size = Vector2(95, 0)
+		hh.add_child(l)
+		var sl = HSlider.new()
+		sl.min_value = mn
+		sl.max_value = mx
+		sl.step = stp
+		sl.value = float(d.get(key, mn))
+		sl.custom_minimum_size = Vector2(160, 22)
+		sl.value_changed.connect(func(x):
+			d[key] = x
+			apply_pv.call())
+		hh.add_child(sl)
+		ctl.add_child(hh)
+	slider.call("Kanat sayısı", "blades", 2, 8, 1)
+	slider.call("Kıvrım", "curve", -3.0, 3.0, 0.05)
+	slider.call("Kalınlık", "thick", 0.2, 0.9, 0.01)
+	slider.call("Göz bebeği", "inner", 0.08, 0.4, 0.01)
+	slider.call("Dönüş hızı", "spin", 0.0, 2.0, 0.05)
+	var tg = UI.hbox(6)
+	for opt in [["ring", "Dış halka"], ["invert", "Ters renk"]]:
+		var cb = CheckBox.new()
+		cb.text = opt[1]
+		cb.button_pressed = bool(d.get(opt[0], false))
+		cb.toggled.connect(func(x):
+			d[opt[0]] = x
+			apply_pv.call())
+		tg.add_child(cb)
+	ctl.add_child(tg)
+	var cr = UI.hbox(4)
+	for c in MS_COLORS:
+		cr.add_child(_swatch(Color(c[0], c[1], c[2]), false, func():
+			d["col"] = c
+			apply_pv.call()))
+	cr.add_child(UI.button("Rastgele", func():
+		var nd = Eyes.random_design()
+		for k in nd:
+			d[k] = nd[k]
+		ninja_menu(main, "wardrobe"), 120))
+	ctl.add_child(cr)
+
+
+## Susanoo özelleştirme: kademe, renk, zırh, yüz, silah, kanat + önizleme
+static func _susanoo_panel(main: Node, v: VBoxContainer, h: HBoxContainer) -> void:
+	var pr = Game.profile
+	var cfg = Susanoo.config(pr)
+	var mt = Susanoo.max_tier(pr)
+	var redraw = func() -> void:
+		ninja_menu(main, "wardrobe")
+	v.add_child(UI.header("SUSANOO", 20))
+	var m = float(cfg.get("mastery", 0.0))
+	var nxt = mt + 1
+	var info = "Ustalık: %d sn" % int(m)
+	if nxt <= 5:
+		info += "   •   Kademe %d için: %d sn%s" % [nxt, int(Susanoo.MASTERY_STEPS[nxt]), "  (Ebedi Mangekyō gerekir)" if nxt >= 4 else ""]
+	v.add_child(UI.label(info, 14, Color(0.8, 0.85, 1.0)))
+	var opt_row = func(title: String, labels: Array, cur, key: String, values: Array, limit := 99) -> void:
+		var r = UI.hbox(5)
+		var l = UI.label(title, 15)
+		l.custom_minimum_size = Vector2(80, 0)
+		r.add_child(l)
+		for i in labels.size():
+			var b = UI.button(labels[i], func():
+				cfg[key] = values[i]
+				redraw.call(), 118)
+			b.disabled = i + 1 > limit
+			if cur == values[i]:
+				b.modulate = Color(1, 0.75, 0.4)
+			r.add_child(b)
+		v.add_child(r)
+	var tp = int(cfg.get("tier_pref", 5))
+	opt_row.call("Kademe", ["1 Kaburga", "2 İskelet", "3 İnsansı"], tp, "tier_pref", [1, 2, 3], mt)
+	opt_row.call("", ["4 Zırhlı", "5 Mükemmel"], tp, "tier_pref", [4, 5], mt - 3)
+	opt_row.call("Zırh", Susanoo.ARMORS, int(cfg.get("armor", 0)), "armor", [0, 1, 2])
+	opt_row.call("Yüz", Susanoo.FACES, int(cfg.get("face", 0)), "face", [0, 1, 2])
+	opt_row.call("Silah", Susanoo.WEAPONS.values().slice(0, 3), cfg.get("weapon", "kilic"), "weapon", Susanoo.WEAPONS.keys().slice(0, 3))
+	opt_row.call("", Susanoo.WEAPONS.values().slice(3), cfg.get("weapon", "kilic"), "weapon", Susanoo.WEAPONS.keys().slice(3))
+	var cr = UI.hbox(4)
+	var cl = UI.label("Renk", 15)
+	cl.custom_minimum_size = Vector2(80, 0)
+	cr.add_child(cl)
+	for c in Susanoo.COLORS:
+		var cc: Array = cfg.get("color", Susanoo.COLORS[0])
+		cr.add_child(_swatch(Color(c[0], c[1], c[2]), Color(cc[0], cc[1], cc[2]).is_equal_approx(Color(c[0], c[1], c[2])), func():
+			cfg["color"] = c
+			redraw.call()))
+	v.add_child(cr)
+	var wb = CheckBox.new()
+	wb.text = "Kanatlar (Mükemmel Susanoo)"
+	wb.button_pressed = bool(cfg.get("wings", true))
+	wb.toggled.connect(func(x):
+		cfg["wings"] = x
+		redraw.call())
+	v.add_child(wb)
+	v.add_child(UI.label("Kullanım: gözler açıkken V basılı tut. Sol tık dev savuruş, sağ tık silah saldırısı.", 13, Color(0.75, 0.75, 0.75)))
+	var svc = SubViewportContainer.new()
+	svc.custom_minimum_size = Vector2(380, 600)
+	svc.stretch = true
+	svc.process_mode = Node.PROCESS_MODE_ALWAYS
+	var sv = SubViewport.new()
+	sv.own_world_3d = true
+	sv.transparent_bg = true
+	svc.add_child(sv)
+	var env = WorldEnvironment.new()
+	env.environment = Environment.new()
+	env.environment.background_mode = Environment.BG_COLOR
+	env.environment.background_color = Color(0.03, 0.02, 0.06)
+	sv.add_child(env)
+	var sn = Susanoo.new()
+	sv.add_child(sn)
+	sn.build(pr, maxi(1, Susanoo.cur_tier(pr)))
+	sn.scale = Vector3.ONE * (2.0 / 1.8)
+	var cam = Camera3D.new()
+	cam.fov = 40
+	sv.add_child(cam)
+	var cp = Vector3(0, 1.3, -4.6)
+	cam.transform = Transform3D(Basis.looking_at(Vector3(0, 1.1, 0) - cp), cp)
+	var tw = sn.create_tween().set_loops()
+	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tw.tween_property(sn, "rotation:y", TAU, 10.0).from(0.0)
+	h.add_child(svc)
 
 
 static func _swatch(c: Color, on: bool, cb: Callable) -> Button:

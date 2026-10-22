@@ -2,7 +2,7 @@ class_name PlayerCombat
 extends Node
 ## Oyuncunun Storm tarzı dövüşü.
 ## Sol tık: kombo | Sağ tık (basılı): blok | Q: Kawarimi | C (basılı): chakra şarjı | R: kunai
-## E/orta tık: hedefe kilitlen | Kilitliyken Shift: chakra dash | 1-4: jutsu slotları
+## E/orta tık: hedefe kilitlen | Kilitliyken Shift: chakra dash | 1-6: jutsu slotları
 
 const COMBO := [
 	{"anim": "jab", "speed": 1.5, "hit": 0.10, "dur": 0.32, "dmg": 6.0, "reach": 1.3, "lunge": 4.0, "knock": 2.0},
@@ -31,6 +31,7 @@ var cooldowns = {}
 var dash_target: Node3D = null
 var air_attack = false
 var modes: PlayerModes
+var cast_anim: CastAnim
 
 
 func _ready() -> void:
@@ -60,7 +61,7 @@ func _unhandled_input(e: InputEvent) -> void:
 		toggle_lock()
 	elif e.is_action_pressed("dash") and lock_target and p.grounded and action == "":
 		chakra_dash()
-	for i in 4:
+	for i in 6:
 		if e.is_action_pressed("slot%d" % (i + 1)):
 			var slots: Array = Game.profile.get("slots", [])
 			if i < slots.size() and slots[i] != null and slots[i] != "":
@@ -232,6 +233,7 @@ func _do_attack(dt: float) -> bool:
 			_on_hit_fx(pt, c)
 			for h in hits:
 				Progress.on_hit_landed(h)
+				_special_hit(h, pt, c)
 	if t >= c["dur"]:
 		p.model.overlay.set_pose("kick", 0.0)
 		combo_reset = 0.5
@@ -245,22 +247,98 @@ func _do_attack(dt: float) -> bool:
 	return true
 
 
-## Kombo adımı, eldeki silaha göre (hasar, menzil, kılıçla kesiş animasyonları)
+## Silah stillerine özel kombolar: 5 adımın animasyonları ("" = temel adım/tekme), hız, süre ve savurma çarpanı, vuruş rengi/sesi
+const STYLE_COMBOS := {
+	"blade": {"anims": ["a/Punch_Jab", "b/Melee_Hook", "b/Sword_Regular_A", "", "b/Sword_Regular_C"], "speed": 1.75, "dur": 0.9, "knock": 1.0, "fx": Color(0.85, 0.92, 1.0), "snd": "clink"},
+	"dual": {"anims": ["b/Sword_Regular_A", "b/Sword_Regular_B", "b/Sword_Regular_A", "b/Sword_Regular_B", "b/Sword_Regular_Combo"], "speed": 2.0, "dur": 0.78, "knock": 0.8, "fx": Color(0.7, 0.9, 1.0), "snd": "clink"},
+	"sword": {"anims": ["b/Sword_Regular_A", "b/Sword_Regular_B", "b/Sword_Regular_C", "a/Sword_Attack", "b/Sword_Dash_RM"], "speed": 1.5, "dur": 1.05, "knock": 1.25, "fx": Color(0.8, 0.9, 1.0), "snd": "clink"},
+	"heavy": {"anims": ["b/TreeChopping", "b/Sword_Regular_C", "a/Sword_Attack", "b/Shield_OneShot", "b/TreeChopping"], "speed": 1.12, "dur": 1.45, "knock": 2.2, "fx": Color(1.0, 0.6, 0.3), "snd": "hit_heavy"},
+	"staff": {"anims": ["a/Punch_Jab", "b/Sword_Regular_B", "b/Farm_Harvest", "a/Sword_Attack", "b/Sword_Regular_Combo"], "speed": 1.45, "dur": 1.1, "knock": 1.6, "fx": Color(1.0, 0.85, 0.5), "snd": "punch"},
+	"chain": {"anims": ["b/Farm_Harvest", "b/Sword_Regular_B", "b/OverhandThrow", "b/Farm_Harvest", "b/Sword_Regular_Combo"], "speed": 1.8, "dur": 1.05, "knock": 1.3, "fx": Color(0.9, 0.95, 1.0), "snd": "clink"},
+	"sickle": {"anims": ["b/Farm_Harvest", "b/Sword_Regular_A", "b/Farm_Harvest", "", "b/Sword_Regular_C"], "speed": 2.0, "dur": 0.85, "knock": 1.0, "fx": Color(0.9, 0.95, 1.0), "snd": "clink"},
+	"claw": {"anims": ["b/Zombie_Scratch", "b/Zombie_Scratch", "b/Melee_Hook", "", "b/Zombie_Scratch"], "speed": 2.1, "dur": 0.8, "knock": 0.9, "fx": Color(1.0, 0.4, 0.35), "snd": "punch"},
+	"fan": {"anims": ["b/Sword_Regular_B", "b/Sword_Regular_A", "b/Sword_Regular_Combo", "a/Spell_Simple_Shoot", "b/Sword_Regular_C"], "speed": 1.5, "dur": 1.0, "knock": 1.8, "fx": Color(0.7, 1.0, 0.85), "snd": "wind"},
+}
+
+
+## Kombo adımı, eldeki silaha göre (hasar, menzil, stile özel animasyon/süre/vuruş efekti)
 func _combo(i: int) -> Dictionary:
 	var c: Dictionary = COMBO[clampi(i, 0, COMBO.size() - 1)].duplicate()
 	var w = Gear.weapon(Game.profile)
 	c["dmg"] = float(c["dmg"]) * float(w["dmg"])
 	c["reach"] = float(c["reach"]) + float(w["reach"])
-	if w["style"] == "sword" and i < 3:
-		c["anim"] = ["slash_a", "slash_b", "slash_c"][i]
-		c["speed"] = 1.5
-	elif w["style"] == "blade" and i == 2:
-		c["anim"] = "slash_a"
-		c["speed"] = 1.7
+	var st: Dictionary = STYLE_COMBOS.get(w["style"], {})
+	if st.is_empty():
+		return c
+	var an: String = st["anims"][clampi(i, 0, 4)]
+	if an != "":
+		c["anim"] = an
+		c["kick"] = false
+		c["speed"] = float(st["speed"]) * (0.85 if i == 4 else 1.0)
+	c["dur"] = float(c["dur"]) * float(st["dur"])
+	c["hit"] = float(c["hit"]) * float(st["dur"])
+	c["knock"] = float(c["knock"]) * float(st["knock"])
+	c["fx"] = st["fx"]
+	c["snd"] = st["snd"]
+	if w["style"] == "heavy" and i == 4:
+		c["launch"] = 8.0
+	c["special"] = w.get("special", "")
+	match c["special"]:
+		"extend":
+			c["reach"] = float(c["reach"]) + 0.4
+		"gust", "wind":
+			c["knock"] = float(c["knock"]) * 1.8
+		"armor_break":
+			c["heavy"] = true
 	return c
 
 
+## Efsanevi silah yetenekleri: vuruş bilgisine eklenenler
+func _special_info(info: Dictionary, c: Dictionary) -> Dictionary:
+	match c.get("special", ""):
+		"raiton":
+			info["element"] = "raiton"
+			info["stun"] = 0.5
+		"wind", "gust":
+			info["element"] = "fuuton"
+		"flow":
+			info["stun"] = 0.25
+		"armor_break":
+			info["kind"] = "heavy"
+			info["dmg"] = float(info["dmg"]) * 1.2
+	return info
+
+
+## Efsanevi silah yetenekleri: isabetten sonra (can çalma, chakra emme, patlama, çekme)
+func _special_hit(h: Node3D, pt: Vector3, c: Dictionary) -> void:
+	var dmg = float(c["dmg"]) * Stats.melee_mult(Game.profile)
+	match c.get("special", ""):
+		"lifesteal":
+			p.hp = minf(p.max_hp, p.hp + dmg * 0.25)
+			FX.hit_spark(pt, Color(0.9, 0.1, 0.15), 1.2)
+		"drain":
+			p.chakra = minf(p.max_chakra, p.chakra + 6.0)
+			if h.has_method("apply_status"):
+				h.apply_status("slow", 1.5)
+			FX.hit_spark(pt, Color(0.35, 0.5, 1.0), 1.2)
+		"explode":
+			FX.explosion(pt, 0.55)
+			Combat.hit_sphere(p, pt, 1.8, {"dmg": dmg * 0.5, "knock": 8.0, "launch": 2.0, "kind": "heavy", "burn": 2.0}, [h])
+		"pull":
+			if h is CharacterBody3D:
+				h.velocity = (p.global_position - h.global_position).normalized() * 9.0 + Vector3.UP * 2.0
+		"raiton":
+			FX.hit_spark(pt, Color(1.0, 0.95, 0.4), 1.4)
+			Sfx.play("chidori", pt, 1.4, 0.5)
+		"wind", "gust":
+			FX.hit_spark(pt, Color(0.6, 1.0, 0.8), 1.3)
+
+
 func _hit_info(c: Dictionary) -> Dictionary:
+	return _special_info(_hit_info_base(c), c)
+
+
+func _hit_info_base(c: Dictionary) -> Dictionary:
 	return {
 		"dmg": c["dmg"] * Stats.melee_mult(Game.profile), "knock": c.get("knock", 2.0), "launch": c.get("launch", 0.0),
 		"kind": "heavy" if c.get("heavy", false) else "light", "hitstop": 0.09 if c.get("heavy", false) else 0.04,
@@ -270,8 +348,10 @@ func _hit_info(c: Dictionary) -> Dictionary:
 
 func _on_hit_fx(pt: Vector3, c: Dictionary) -> void:
 	var heavy: bool = c.get("heavy", false)
-	FX.hit_spark(pt, Color(1.0, 0.85, 0.45) if not heavy else Color(1.0, 0.55, 0.25), 1.4 if heavy else 0.9)
-	Sfx.play("hit_heavy" if heavy else "punch", pt, randf_range(0.9, 1.15))
+	FX.hit_spark(pt, c.get("fx", Color(1.0, 0.85, 0.45) if not heavy else Color(1.0, 0.55, 0.25)), 1.4 if heavy else 0.9)
+	Sfx.play(c.get("snd", "hit_heavy" if heavy else "punch"), pt, randf_range(0.9, 1.15))
+	if heavy and c.has("snd"):
+		Sfx.play("hit_heavy", pt, 0.9, 0.6)
 	if Game.world:
 		Game.world.env.add_shake(0.5 if heavy else 0.18)
 		if heavy:
@@ -437,38 +517,31 @@ func begin_cast(jid: String) -> void:
 	action = "cast"
 	t = 0.0
 	var seals: Array = j.get("seals", [])
-	var per = 0.075 * (0.6 if "nin3" in Game.profile.get("skills", []) else 1.0)
-	cast_time = maxf(0.18, seals.size() * per)
 	var tgt = _auto_target(30.0)
 	if tgt:
 		face_to(tgt)
 	else:
 		var f = p.cam_forward()
 		p.facing = atan2(-f.x, -f.z)
+	# mühürler + jutsuya özel hazırlık/salınım koreografisi (CastAnim)
+	cast_anim = CastAnim.play(p, jid)
+	cast_time = cast_anim.release_t
 	if seals.size() > 0:
-		p.model.play("idle", 0.05)
-		p.model.overlay.set_pose("seal", 1.0)
 		Hud.show_seals(seals)
-	else:
-		p.model.play("cast_in", 0.05, 1.5, true)
 
 
 func _do_cast(dt: float) -> bool:
 	p.velocity.x = move_toward(p.velocity.x, 0, dt * 60); p.velocity.z = move_toward(p.velocity.z, 0, dt * 60)
 	if not p.grounded:
 		p.velocity.y -= Player.GRAV * dt * 0.3
-	var seals: Array = Data.jutsu.get(cast_jutsu, {}).get("seals", [])
-	if seals.size() > 0:
-		var idx = int(t / (cast_time / seals.size()))
-		if idx >= 0 and idx != get_meta("seal_idx", -1):
-			set_meta("seal_idx", idx)
-			Sfx.play("seal", p.global_position, 1.0 + idx * 0.05)
+	# hedefe dönük kal (mühür yaparken)
+	var tg = _auto_target(35.0)
+	if tg and t < cast_time:
+		face_to(tg)
 	if t >= cast_time:
-		p.model.overlay.set_pose("seal", 0.0)
-		set_meta("seal_idx", -1)
+		# salınım anı: koreografi ile eş zamanlı; takip pozu CastAnim'de sürer
 		action = ""
-		p.model.play("cast_out", 0.05, 1.4, true)
-		Jutsu.execute(p, cast_jutsu, _auto_target(35.0))
+		Jutsu.execute(p, cast_jutsu, tg)
 		Progress.on_technique_used(cast_jutsu)
 	return true
 
@@ -482,6 +555,7 @@ func take_hit(info: Dictionary) -> void:
 	var atk: Node3D = info.get("attacker")
 	var dmg: float = info.get("dmg", 5.0)
 	dmg *= Combat.element_mult(info.get("element", ""), Game.profile.get("elements", [""])[0])
+	dmg *= Elements.on_hit(p, info)  # ıslak/yanık/donma etkileşimleri oyuncuya da işler
 	if action == "guard" and atk:
 		var to_atk = (atk.global_position - p.global_position)
 		to_atk.y = 0

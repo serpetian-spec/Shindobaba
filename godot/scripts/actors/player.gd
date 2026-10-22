@@ -343,6 +343,7 @@ func _physics_process(dt: float) -> void:
 		return
 	input_locked -= dt
 	wall_cd -= dt
+	_tick_status(dt)
 	land_t -= dt
 	var regen = 2.0 * (2.0 if "vit2" in Game.profile.get("skills", []) else 1.0)
 	chakra = minf(max_chakra, chakra + regen * dt)
@@ -373,7 +374,7 @@ func _ground_air_move(dt: float) -> void:
 	elif dash_t > 0.0:
 		dash_t -= dt
 	else:
-		var spd_mul = Buffs.mod("speed") * (1.12 if "tai2" in Game.profile.get("skills", []) else 1.0) * (1.0 + Gear.stat(Game.profile, "speed"))
+		var spd_mul = Buffs.mod("speed") * (1.12 if "tai2" in Game.profile.get("skills", []) else 1.0) * (1.0 + Gear.stat(Game.profile, "speed")) * status_speed()
 		var target = wish * (DASH if sprint else RUN) * spd_mul
 		if swimming:
 			target *= 0.35
@@ -600,8 +601,38 @@ func take_hit(info: Dictionary) -> void:
 		combat.take_hit(info)
 
 
-func apply_status(_n: String, _d: float) -> void:
-	pass
+var statuses = {}  # element durumları: burn, wet, frozen, chilled, shocked, mud, stun, bind, slow
+
+
+func apply_status(n: String, d: float) -> void:
+	statuses[n] = maxf(statuses.get(n, 0.0), d)
+	if n in ["stun", "bind", "frozen"]:
+		input_locked = maxf(input_locked, d)
+
+
+func has_status(n: String) -> bool:
+	return statuses.get(n, 0.0) > 0.0
+
+
+func _tick_status(dt: float) -> void:
+	for k in statuses.keys():
+		statuses[k] -= dt
+		if statuses[k] <= 0.0:
+			statuses.erase(k)
+	if has_status("burn"):
+		hp -= 4.0 * dt
+		if randf() < dt * 8.0:
+			FX.burst(global_position + Vector3.UP * randf_range(0.3, 1.6), {"amount": 3, "life": 0.5, "size": 0.6, "vmin": 1, "vmax": 2, "gravity": Vector3(0, 3, 0),
+				"colors": [Color(1, 0.8, 0.3, 1), Color(1, 0.3, 0.05, 0)]})
+	if has_status("wet") and randf() < dt * 4.0:
+		FX.burst(global_position + Vector3.UP * randf_range(0.5, 1.6), {"amount": 2, "life": 0.4, "add": false, "size": 0.15, "vmin": 0.1, "vmax": 0.3, "gravity": Vector3(0, -9, 0),
+			"colors": [Color(0.6, 0.8, 1, 0.9), Color(0.6, 0.8, 1, 0)]})
+
+
+func status_speed() -> float:
+	if has_status("slow") or has_status("mud") or has_status("chilled"):
+		return 0.55
+	return 1.0
 
 
 func respawn(pos: Vector3) -> void:
