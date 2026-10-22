@@ -228,6 +228,9 @@ func flash_sphere(pos: Vector3, col: Color, size := 2.0, dur := 0.25) -> void:
 func light(pos: Vector3, col: Color, energy := 4.0, rng := 10.0, dur := 0.3) -> void:
 	var l = OmniLight3D.new()
 	l.light_color = col
+	# efekt ışıkları sahneyi beyaza boğmasın (özellikle gece): yumuşak, kısa menzil
+	energy = minf(energy * 0.28, 1.6)
+	rng *= 0.7
 	l.light_energy = energy
 	l.omni_range = rng
 	l.shadow_enabled = false

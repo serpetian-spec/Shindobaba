@@ -28,6 +28,12 @@ var height = 1.8
 var grounded = true
 var jumps = 0
 var leaping = false
+var leap_charge = -1.0     # Ctrl basılı: 0..1 şarj (Striker süper zıplaması), -1 = şarj yok
+var flip_t = -1.0          # havada takla zamanlayıcısı
+var leap_ui: Control
+var leap_bar: ProgressBar
+var leap_arc: MeshInstance3D
+const LEAP_CHARGE_TIME := 0.75
 var air_dash_ok = true
 var dash_t = 0.0
 var wall_n = Vector3.ZERO  # 0 ise duvarda değil
@@ -107,7 +113,15 @@ func _unhandled_input(e: InputEvent) -> void:
 		elif e.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			cam_dist = minf(14.0, cam_dist + 0.5)
 	if e.is_action_pressed("leap"):
-		_leap()
+		if (grounded or swimming) and wall_n == Vector3.ZERO:
+			leap_charge = 0.0
+			Sfx.play("whoosh", global_position, 0.6, 0.35)
+		else:
+			_leap(0.55)
+	elif e.is_action_released("leap") and leap_charge >= 0.0:
+		var p = leap_charge
+		leap_charge = -1.0
+		_leap(p)
 	elif e.is_action_pressed("jump"):
 		_jump()
 	elif e.is_action_pressed("dash"):
@@ -169,7 +183,8 @@ func _jump() -> void:
 
 
 ## Ctrl: ileri doğru uzun, yüksek ninja sıçrayışı (yerde ya da havada bir kez; duvarda duvardan sek)
-func _leap() -> void:
+func _leap(power := 1.0) -> void:
+	_show_leap_ui(false)
 	if input_locked > 0.0:
 		return
 	if wall_n != Vector3.ZERO:
@@ -182,7 +197,9 @@ func _leap() -> void:
 		d = cam_forward()
 	d = d.normalized()
 	var air = not (grounded or swimming)
-	velocity = d * LEAP_FWD + Vector3.UP * (LEAP_UP * (0.8 if air else 1.0))
+	var k = clampf(power, 0.0, 1.0)
+	velocity = d * lerpf(13.0, 30.0, k) + Vector3.UP * lerpf(9.5, 18.0, k) * (0.8 if air else 1.0)
+	flip_t = 0.0 if k > 0.45 else -1.0
 	facing = atan2(-d.x, -d.z)
 	grounded = false
 	swimming = false
@@ -193,6 +210,97 @@ func _leap() -> void:
 	Sfx.play("jump", global_position, 0.9)
 	Sfx.play("whoosh", global_position, 0.8)
 	model.play("jump", 0.05, 1.5, true)
+	model.overlay.set_pose("leap", 1.0)
+	model.overlay.set_pose("ninja_run", 0.0)
+	if k > 0.8:
+		FX.impact(global_position, Color(0.85, 0.8, 0.65), 0.5)
+		Sfx.play("land", global_position, 0.7)
+
+
+## Şarj çubuğu + iniş yayı (Shinobi Striker süper zıplama önizlemesi)
+func _show_leap_ui(on: bool) -> void:
+	if leap_ui == null:
+		var cl = CanvasLayer.new()
+		add_child(cl)
+		leap_ui = Control.new()
+		leap_ui.set_anchors_preset(Control.PRESET_CENTER)
+		leap_ui.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		cl.add_child(leap_ui)
+		leap_bar = UI.bar(Color(0.3, 0.85, 1.0), 180, 10)
+		leap_bar.max_value = 1.0
+		leap_bar.position = Vector2(-90, 60)
+		leap_ui.add_child(leap_bar)
+		var l = UI.label("SÜPER ZIPLAMA", 13, Color(0.75, 0.95, 1.0), HORIZONTAL_ALIGNMENT_CENTER)
+		l.position = Vector2(-90, 40)
+		l.size = Vector2(180, 18)
+		leap_ui.add_child(l)
+		leap_arc = MeshInstance3D.new()
+		leap_arc.mesh = ImmediateMesh.new()
+		var m = StandardMaterial3D.new()
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.albedo_color = Color(0.4, 0.9, 1.0, 0.85)
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		m.no_depth_test = true
+		m.cull_mode = BaseMaterial3D.CULL_DISABLED
+		leap_arc.material_override = m
+		leap_arc.top_level = true
+		leap_arc.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(leap_arc)
+	leap_ui.visible = on
+	leap_arc.visible = on
+
+
+func _update_leap_charge(dt: float) -> void:
+	if leap_charge < 0.0:
+		return
+	if not (grounded or swimming) or input_locked > 0.0:
+		leap_charge = -1.0
+		_show_leap_ui(false)
+		return
+	leap_charge = minf(1.0, leap_charge + dt / LEAP_CHARGE_TIME)
+	_show_leap_ui(true)
+	leap_bar.value = leap_charge
+	# çömel, yönü kameraya çevir
+	velocity.x *= 0.8; velocity.z *= 0.8
+	var d = wish_dir()
+	if d.length() < 0.1:
+		d = cam_forward()
+	d = d.normalized()
+	facing = lerp_angle(facing, atan2(-d.x, -d.z), minf(1.0, dt * 12.0))
+	model.play("crouch", 0.12)
+	# iniş yayı: balistik yörünge araziye çarpana kadar
+	var v = d * lerpf(13.0, 30.0, leap_charge) + Vector3.UP * lerpf(9.5, 18.0, leap_charge)
+	var p = global_position + Vector3.UP * 0.3
+	var im: ImmediateMesh = leap_arc.mesh
+	im.clear_surfaces()
+	var pts = [p]
+	for i in 70:
+		var t = 0.03
+		v.y -= GRAV * t
+		p += v * t
+		pts.append(p)
+		if p.y < Game.terrain_height(p.x, p.z) and i > 4:
+			break
+	var eye = cam.global_position
+	im.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
+	for i in range(0, pts.size() - 1):
+		if i % 3 == 2:
+			continue  # kesikli şerit
+		var a: Vector3 = pts[i]; var b: Vector3 = pts[i + 1]
+		var side = (b - a).cross(eye - a).normalized() * 0.09
+		for q in [a - side, a + side, b + side, a - side, b + side, b - side]:
+			im.surface_add_vertex(q)
+	# iniş halkası
+	var land: Vector3 = pts[-1]
+	land.y = Game.terrain_height(land.x, land.z) + 0.08
+	for k in 24:
+		var a0 = TAU * k / 24.0; var a1 = TAU * (k + 1) / 24.0
+		var r0 = 0.9; var r1 = 1.15
+		var p0 = land + Vector3(cos(a0), 0, sin(a0)) * r0; var p1 = land + Vector3(cos(a1), 0, sin(a1)) * r0
+		var q0 = land + Vector3(cos(a0), 0, sin(a0)) * r1; var q1 = land + Vector3(cos(a1), 0, sin(a1)) * r1
+		for q in [p0, q0, q1, p0, q1, p1]:
+			im.surface_add_vertex(q)
+	im.surface_end()
 
 
 func _air_dash() -> void:
@@ -224,10 +332,12 @@ func _physics_process(dt: float) -> void:
 	if hp <= 0.0:
 		model.play("death", 0.1)
 		return
+	_update_leap_charge(dt)
 	if wall_n != Vector3.ZERO:
 		_wall_move(dt)
 	else:
 		_ground_air_move(dt)
+	_apply_flip(dt)
 
 
 func _process(dt: float) -> void:
@@ -293,6 +403,9 @@ func _ground_air_move(dt: float) -> void:
 			Sfx.play("land", global_position)
 		jumps = 0
 		air_dash_ok = true
+		if leaping:
+			model.overlay.set_pose("leap", 0.0)
+			flip_t = -1.0
 		leaping = false
 	# duvar koşusuna geç
 	if is_on_wall() and wall_cd <= 0.0 and not swimming:
@@ -320,6 +433,24 @@ func _ground_air_move(dt: float) -> void:
 	model.position = Vector3(0, -drop, 0)
 	if combat == null or not combat.busy():
 		_animate(sp, sprint)
+
+
+## Süper zıplamanın tepesinde öne takla (kalça etrafında)
+func _apply_flip(dt: float) -> void:
+	if flip_t < 0.0 or wall_n != Vector3.ZERO:
+		return
+	if velocity.y < 4.0 or flip_t > 0.0:
+		flip_t += dt
+	var dur = 0.5
+	var k = clampf(flip_t / dur, 0.0, 1.0)
+	var ang = -TAU * (k * k * (3.0 - 2.0 * k))
+	var c = Vector3(0, 0.95 * model.age_scale, 0)
+	var b = Basis(Vector3.UP, facing) * Basis(Vector3.RIGHT, ang)
+	model.transform = Transform3D(b, model.position + c - b * c + Basis(Vector3.UP, facing) * Vector3.ZERO)
+	model.scale = Vector3.ONE * model.age_scale
+	if k >= 1.0:
+		flip_t = -1.0
+		model.overlay.set_pose("leap", 0.35)
 
 
 func _wall_tall(n: Vector3) -> bool:
@@ -500,3 +631,5 @@ func rebuild_model() -> void:
 	model.rotation.y = facing
 	old.queue_free()
 	FX.smoke_puff(global_position + Vector3.UP, 0.8, 10)
+	if combat and combat.modes and combat.modes.eyes:
+		combat.modes.eyes.refresh_visual.call_deferred()

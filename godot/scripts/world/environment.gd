@@ -43,9 +43,9 @@ func _ready() -> void:
 	env.tonemap_mode = Environment.TONE_MAPPER_LINEAR
 	env.tonemap_exposure = 1.0
 	env.glow_enabled = true
-	env.glow_intensity = 0.45
+	env.glow_intensity = 0.3
 	env.glow_strength = 1.1
-	env.glow_bloom = 0.08
+	env.glow_bloom = 0.0
 	env.glow_hdr_threshold = 1.25
 	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SOFTLIGHT
 	env.set_glow_level(2, 1.0)
@@ -54,15 +54,15 @@ func _ready() -> void:
 	env.fog_enabled = true
 	env.fog_mode = Environment.FOG_MODE_EXPONENTIAL
 	env.fog_density = 0.0009
-	env.fog_sky_affect = 0.15
+	env.fog_sky_affect = 0.0
 	env.fog_height = 60.0
-	env.fog_height_density = 0.004
+	env.fog_height_density = 0.0  # yer sisi yok: puslu görünüm olmasın
 	env.ssao_enabled = true
 	env.ssao_radius = 1.2
 	env.ssao_intensity = 1.6
 	env.adjustment_enabled = true
-	env.adjustment_saturation = 1.22
-	env.adjustment_contrast = 1.1
+	env.adjustment_saturation = 1.3
+	env.adjustment_contrast = 1.15
 	var we = WorldEnvironment.new()
 	we.environment = env
 	add_child(we)
@@ -164,9 +164,9 @@ func _process(dt: float) -> void:
 	sun.light_color = p[2]
 	sun.light_energy = p[3] * (1.0 - overcast * 0.4)
 	env.ambient_light_color = p[4].lerp(Color(0.5, 0.52, 0.58), overcast * 0.35)
-	env.fog_light_color = hor
-	var fog_base = 0.00045 / maxf(0.4, float(Game.settings["view"]))
-	env.fog_density = lerpf(fog_base, 0.006, overcast * (1.0 if weather in ["sis", "kum fırtınası"] else 0.25))
+	env.fog_light_color = hor.lerp(Color(0.45, 0.65, 0.95), 0.4)  # pus beyaz değil, gök mavisi
+	var fog_base = 0.00012 / maxf(0.4, float(Game.settings["view"]))
+	env.fog_density = lerpf(fog_base, 0.006, overcast * (1.0 if weather in ["sis", "kum fırtınası"] else 0.08))
 	sky_mat.set_shader_parameter("zenith", zen)
 	sky_mat.set_shader_parameter("horizon", hor)
 	sky_mat.set_shader_parameter("sun_tint", p[2])

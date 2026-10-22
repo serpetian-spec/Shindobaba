@@ -7,7 +7,8 @@ const SEAL_KEYS = [KEY_1, KEY_2, KEY_3, KEY_4, KEY_5, KEY_6, KEY_7, KEY_8, KEY_9
 
 var c: PlayerCombat
 var p: Player
-var dojutsu = false
+var dojutsu = false   # eski alan (Eyes.active ile senkron)
+var eyes: Eyes
 var gates = 0
 var sage = false
 var sage_t = 0.0
@@ -33,6 +34,10 @@ func setup(combat: PlayerCombat) -> void:
 	base_radius = p.radius
 	base_height = p.height
 	Progress.clan_unlocks.call_deferred(false)
+	eyes = Eyes.new()
+	eyes.name = "Eyes"
+	add_child(eyes)
+	eyes.setup.call_deferred(combat)
 
 
 func clan() -> String:
@@ -61,8 +66,8 @@ func handle_input(e: InputEvent) -> bool:
 				Hud.msg("Mühürler: " + " - ".join(seal_seq), Color(1, 0.9, 0.7), 2.0)
 				return true
 		return e is InputEventKey
-	if e.is_action_pressed("dojutsu"):
-		toggle_dojutsu()
+	if eyes and eyes.handle_input(e):
+		dojutsu = eyes.active
 		return true
 	if e.is_action_pressed("gates"):
 		next_gate()
@@ -325,7 +330,7 @@ func on_player_hit(info: Dictionary) -> bool:
 		Sfx.play("water", p.global_position, 1.5, 0.6)
 		c.invuln = 0.25
 		return true
-	if dojutsu and clan() == "uchiha" and info.get("kind", "light") != "heavy" and randf() < 0.35:
+	if eyes and info.get("kind", "light") != "heavy" and randf() < eyes.dodge_chance():
 		var side = p.global_transform.basis.x * (1.0 if randf() < 0.5 else -1.0)
 		p.global_position += side * 1.6
 		Combat.popup_text(p.global_position + Vector3.UP * 2.2, "Okundu!", Color(1, 0.4, 0.4))

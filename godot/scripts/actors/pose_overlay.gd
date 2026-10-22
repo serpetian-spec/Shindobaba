@@ -10,6 +10,13 @@ var poses = {}
 var head_scale = 1.0   # çocuk/genç oranları: büyük kafa
 var chest_scale = 1.0
 var limb_scale = 1.0    # çocuk: ince kol ve bacaklar
+const STANCE := {
+	"w_blade": [["RightUpperArm", Vector3(-0.3, -0.75, 0.55)], ["RightLowerArm", Vector3(0.25, 0.35, 0.9)], ["LeftUpperArm", Vector3(0.35, -0.8, 0.45)], ["LeftLowerArm", Vector3(-0.1, 0.2, 0.97)]],
+	"w_sword": [["RightUpperArm", Vector3(-0.15, -0.8, 0.55)], ["RightLowerArm", Vector3(0.3, -0.2, 0.93)], ["LeftUpperArm", Vector3(0.2, -0.8, 0.55)], ["LeftLowerArm", Vector3(-0.45, -0.15, 0.88)]],
+	"w_shoulder": [["RightUpperArm", Vector3(-0.75, -0.25, 0.6)], ["RightLowerArm", Vector3(0.15, 0.95, 0.2)]],
+	"w_dual": [["LeftUpperArm", Vector3(0.4, -0.8, 0.45)], ["LeftLowerArm", Vector3(0.1, -0.35, 0.93)], ["RightUpperArm", Vector3(-0.4, -0.8, 0.45)], ["RightLowerArm", Vector3(-0.1, -0.35, 0.93)]],
+	"w_fan": [["RightUpperArm", Vector3(-0.85, -0.45, 0.25)], ["RightLowerArm", Vector3(-0.5, 0.3, 0.8)]],
+}
 
 
 func _ready() -> void:
@@ -23,6 +30,9 @@ func _ready() -> void:
 		"seal": {"_Seal": 1},
 		"kick": {"_Kick": 1},
 		"guard": {"_Guard": 1},
+		"leap": {"_Leap": 1},
+		# silah duruşları (bekleme/koşu): ters tutuş kunai, iki elle kılıç, omuzda ağır silah, çift bıçak alçak, yelpaze yanda
+		"w_blade": {}, "w_sword": {}, "w_shoulder": {}, "w_dual": {}, "w_fan": {},
 	}
 
 
@@ -48,6 +58,25 @@ func _process_modification() -> void:
 		_rot_model(sk, "RightLowerArm", Vector3(0.1, -0.3, -0.95), w_run)
 		_add_local(sk, "Spine", Vector3(deg_to_rad(16), 0, 0), w_run)
 		_add_local(sk, "Neck", Vector3(deg_to_rad(-14), 0, 0), w_run)
+	var w_leap: float = weights.get("leap", 0.0)
+	if w_leap > 0.0:
+		# Striker sıçrayışı: gövde öne yatık, kollar arkaya savrulmuş, bacaklar geride süzülür
+		_rot_model(sk, "LeftUpperArm", Vector3(-0.25, -0.35, -0.9), w_leap)
+		_rot_model(sk, "RightUpperArm", Vector3(0.25, -0.35, -0.9), w_leap)
+		_rot_model(sk, "LeftLowerArm", Vector3(-0.15, -0.2, -0.97), w_leap)
+		_rot_model(sk, "RightLowerArm", Vector3(0.15, -0.2, -0.97), w_leap)
+		_add_local(sk, "Spine", Vector3(deg_to_rad(28), 0, 0), w_leap)
+		_add_local(sk, "Neck", Vector3(deg_to_rad(-25), 0, 0), w_leap)
+		_rot_model(sk, "LeftUpperLeg", Vector3(0.05, -0.75, -0.65), w_leap)
+		_rot_model(sk, "RightUpperLeg", Vector3(-0.05, -0.95, 0.3), w_leap)
+		_rot_model(sk, "LeftLowerLeg", Vector3(0.0, -0.25, -0.97), w_leap)
+		_rot_model(sk, "RightLowerLeg", Vector3(0.0, -0.8, -0.6), w_leap)
+	# silah duruşları (mühür/blok/tekme sonra gelir ve bunları ezer)
+	for st in STANCE:
+		var ws: float = weights.get(st, 0.0)
+		if ws > 0.0:
+			for e in STANCE[st]:
+				_rot_model(sk, e[0], e[1], ws)
 	if w_seal > 0.0:
 		# eller göğüs önünde birleşir
 		_rot_model(sk, "LeftUpperArm", Vector3(0.45, -0.75, 0.48), w_seal)
