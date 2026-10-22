@@ -247,6 +247,8 @@ func _physics_process(dt: float) -> void:
 	if dist > 65.0:
 		# uzaktakiler: animasyon ve hareket durur (performans)
 		if model.anim.is_playing():
+			# durdurmadan önce mevcut kareyi iskelete uygula (yoksa yeni doğan NPC T-pozda kalır)
+			model.anim.seek(model.anim.current_animation_position, true)
 			model.anim.pause()
 		return
 	elif not model.anim.is_playing():
