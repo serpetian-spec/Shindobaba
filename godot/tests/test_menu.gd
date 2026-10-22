@@ -65,11 +65,11 @@ func _ready() -> void:
 	await get_tree().create_timer(0.6).timeout
 	await _click("Sağ El")
 	await get_tree().create_timer(0.4).timeout
-	await _click("Giy / Kuşan")
+	await _click("Katana")
 	await get_tree().create_timer(0.4).timeout
 	await _click("Sol El")
 	await get_tree().create_timer(0.4).timeout
-	await _click("Giy / Kuşan")
+	await _click("Tant")
 	await get_tree().create_timer(1.2).timeout
 	await main.shot("m6_tab_ekipman")
 	await _click("Üst Kıyafet")

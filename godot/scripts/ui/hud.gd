@@ -65,6 +65,8 @@ func _ready() -> void:
 	game_hud.visible = false
 	root.add_child(game_hud)
 	map_tex = load("res://data/world/map.png")
+	Icons.ensure(self)
+	Thumbs.ensure(self)
 	_build_vitals()
 	_build_slots()
 	_build_texts()
@@ -94,131 +96,117 @@ func _build_vitals() -> void:
 	sm.shader = sh
 	vignette.material = sm
 	game_hud.add_child(vignette)
-	# --- oyuncu çerçevesi (sol üst): portre + isim + barlar
+	# --- oyuncu çerçevesi (sol üst): yuvarlak portre + isim + ince çubuklar
 	var frame = Control.new()
-	frame.position = Vector2(18, 14)
-	frame.size = Vector2(500, 130)
+	frame.position = Vector2(26, 22)
+	frame.size = Vector2(460, 120)
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	game_hud.add_child(frame)
-	# arka eğik mürekkep şeridi
-	var strip = Panel.new()
-	strip.position = Vector2(44, 10)
-	strip.size = Vector2(440, 104)
-	var ssb = UI._box(Color(0.04, 0.03, 0.04, 0.62), Color(0, 0, 0, 0), 0, 3, 0, 0.28)
-	ssb.border_width_bottom = 3
-	ssb.border_color = UI.ACCENT
-	strip.add_theme_stylebox_override("panel", ssb)
-	strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	frame.add_child(strip)
 	portrait = Control.new()
-	portrait.position = Vector2(0, 8)
-	portrait.size = Vector2(108, 108)
+	portrait.position = Vector2(0, 0)
+	portrait.size = Vector2(96, 96)
 	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	portrait.draw.connect(_draw_portrait)
 	frame.add_child(portrait)
-	name_lbl = UI.label("", 22, UI.CREAM)
-	name_lbl.position = Vector2(118, 10)
+	name_lbl = UI.label("", 21, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)
+	name_lbl.position = Vector2(110, 2)
 	frame.add_child(name_lbl)
-	rank_lbl = UI.label("", 14, UI.ACCENT)
-	rank_lbl.position = Vector2(120, 38)
+	rank_lbl = UI.label("", 13, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true)
+	rank_lbl.position = Vector2(112, 30)
 	frame.add_child(rank_lbl)
 	var hp_stack = Control.new()
-	hp_stack.position = Vector2(116, 60)
-	hp_stack.size = Vector2(340, 20)
+	hp_stack.position = Vector2(110, 54)
+	hp_stack.size = Vector2(300, 12)
 	hp_stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	frame.add_child(hp_stack)
-	hp_trail = UI.bar(Color(1, 0.88, 0.55), 340, 20)
+	hp_trail = UI.bar(Color(1, 0.85, 0.55, 0.9), 300, 12)
 	hp_stack.add_child(hp_trail)
-	hp_bar = UI.bar(Color(0.35, 0.9, 0.35), 340, 20)
+	hp_bar = UI.bar(Color(0.4, 0.9, 0.45), 300, 12)
 	hp_bar.add_theme_stylebox_override("background", StyleBoxEmpty.new())
 	hp_stack.add_child(hp_bar)
-	hp_txt = UI.label("", 13, Color(1, 1, 1), HORIZONTAL_ALIGNMENT_RIGHT)
-	hp_txt.position = Vector2(116, 61)
-	hp_txt.size = Vector2(330, 18)
+	hp_txt = UI.label("", 12, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)
+	hp_txt.position = Vector2(418, 50)
+	hp_txt.size = Vector2(80, 18)
 	frame.add_child(hp_txt)
-	ck_bar = UI.bar(Color(0.25, 0.6, 1.0), 300, 13)
-	ck_bar.position = Vector2(110, 85)
+	ck_bar = UI.bar(Color(0.3, 0.62, 1.0), 260, 8)
+	ck_bar.position = Vector2(110, 74)
 	frame.add_child(ck_bar)
-	ck_txt = UI.label("", 11, Color(0.85, 0.93, 1), HORIZONTAL_ALIGNMENT_RIGHT)
-	ck_txt.position = Vector2(110, 83)
-	ck_txt.size = Vector2(292, 14)
+	ck_txt = UI.label("", 11, Color(0.7, 0.85, 1), HORIZONTAL_ALIGNMENT_LEFT, true)
+	ck_txt.position = Vector2(378, 70)
+	ck_txt.size = Vector2(60, 14)
 	frame.add_child(ck_txt)
-	xp_bar = UI.bar(Color(0.98, 0.8, 0.3), 280, 5, 0.6)
-	xp_bar.position = Vector2(104, 104)
+	xp_bar = UI.bar(Color(0.98, 0.8, 0.35), 260, 3)
+	xp_bar.position = Vector2(110, 90)
 	frame.add_child(xp_bar)
-	# kawarimi elmasları
-	var row = UI.hbox(5)
-	row.position = Vector2(394, 102)
+	# kawarimi hapları
+	var row = UI.hbox(4)
+	row.position = Vector2(110, 100)
 	frame.add_child(row)
 	for i in 4:
 		var p = Panel.new()
-		p.custom_minimum_size = Vector2(14, 10)
-		p.add_theme_stylebox_override("panel", UI._box(Color(0.45, 0.95, 0.55), Color(0, 0, 0, 0.9), 1, 1, 0, 0.6))
+		p.custom_minimum_size = Vector2(20, 5)
+		p.add_theme_stylebox_override("panel", UI._box(Color(0.5, 0.95, 0.6), Color(0, 0, 0, 0), 0, 3, 0))
 		p.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(p)
 		sub_pips.append(p)
-	ryo_lbl = UI.label("", 15, Color(1, 0.86, 0.4))
-	ryo_lbl.position = Vector2(26, 124)
+	ryo_lbl = UI.label("", 14, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true)
+	ryo_lbl.position = Vector2(220, 94)
 	frame.add_child(ryo_lbl)
 	fps_lbl = UI.label("", 13, Color(0.7, 0.9, 0.7))
-	fps_lbl.position = Vector2(20, 154)
+	fps_lbl.position = Vector2(26, 150)
 	game_hud.add_child(fps_lbl)
 
 
-## Portre: element renkli halka içinde köy sembolü ve ismin baş harfi
+## Portre: element renginde ince halka, içinde baş harf, dışında can yayı
 func _draw_portrait() -> void:
-	var c = Vector2(54, 54)
+	var c = Vector2(48, 48)
 	var pr = Game.profile
-	var el: String = pr.get("elements", [""])[0] if not pr.is_empty() else ""
-	var ec: Color = UI.ELEMENT_COLORS.get(el, UI.ACCENT)
-	portrait.draw_circle(c + Vector2(3, 4), 52, Color(0, 0, 0, 0.45))
-	portrait.draw_circle(c, 52, UI.INK)
-	portrait.draw_circle(c, 46, Color(0.16, 0.12, 0.12))
-	portrait.draw_circle(c, 40, ec.darkened(0.55))
-	portrait.draw_arc(c, 50, 0, TAU, 48, UI.ACCENT, 4.0, true)
-	portrait.draw_arc(c, 44, -PI * 0.5, -PI * 0.5 + TAU * portrait_hp, 48, Color(0.4, 0.95, 0.45), 4.0, true)
+	var el: String = pr.get("elements", [""])[0] if not pr.is_empty() and not pr.get("elements", []).is_empty() else ""
+	var ec: Color = UI.ELEMENT_COLORS.get(el, UI.GOLD)
+	portrait.draw_circle(c + Vector2(0, 3), 47, Color(0, 0, 0, 0.35))
+	portrait.draw_circle(c, 46, Color(0.05, 0.06, 0.08, 0.85))
+	portrait.draw_circle(c, 38, Color(ec.darkened(0.6), 0.9))
+	portrait.draw_arc(c, 44, 0, TAU, 64, Color(1, 1, 1, 0.12), 3.0, true)
+	portrait.draw_arc(c, 44, -PI * 0.5, -PI * 0.5 + TAU * portrait_hp, 64, Color(0.45, 0.95, 0.5) if portrait_hp > 0.3 else Color(1, 0.35, 0.3), 3.5, true)
 	var nm: String = String(pr.get("name", "?")) if not pr.is_empty() else "?"
 	var ch = nm.substr(0, 1).to_upper()
-	var f = ThemeDB.fallback_font
-	var fs = 50
+	var f = UI.font(true)
+	var fs = 40
 	var w = f.get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-	portrait.draw_string_outline(f, c + Vector2(-w * 0.5, 18), ch, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, 6, Color(0, 0, 0, 0.9))
-	portrait.draw_string(f, c + Vector2(-w * 0.5, 18), ch, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, UI.CREAM)
-	# rütbe şeridi
+	portrait.draw_string(f, c + Vector2(-w * 0.5, 14), ch, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, UI.TEXT)
 	var rk = int(pr.get("rank", 0)) if not pr.is_empty() else 0
 	for i in rk + 1:
-		portrait.draw_circle(c + Vector2(-18 + i * 9, 40), 3.5, UI.ACCENT)
+		portrait.draw_circle(c + Vector2(-(rk * 4.5) + i * 9, 36), 3.0, UI.GOLD)
 
 
 func _build_slots() -> void:
-	slots_box = UI.hbox(8)
+	slots_box = UI.hbox(12)
 	slots_box.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	slots_box.position = Vector2(-327, -112)
+	slots_box.position = Vector2(-(SLOT_COUNT * 92 - 12) * 0.5, -120)
 	game_hud.add_child(slots_box)
 	for i in SLOT_COUNT:
 		var p = Control.new()
-		p.custom_minimum_size = Vector2(102, 96)
+		p.custom_minimum_size = Vector2(80, 104)
 		p.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		p.draw.connect(_draw_slot.bind(i))
-		var nm = UI.label("—", 12, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER)
-		nm.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		nm.position = Vector2(4, 26)
-		nm.size = Vector2(94, 44)
-		nm.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		var nm = UI.label("", 11, UI.MUTED, HORIZONTAL_ALIGNMENT_CENTER, true)
+		nm.position = Vector2(-6, 84)
+		nm.size = Vector2(92, 16)
+		nm.clip_text = true
 		p.add_child(nm)
-		var cd = UI.label("", 13, Color(0.7, 0.85, 1), HORIZONTAL_ALIGNMENT_CENTER)
-		cd.position = Vector2(4, 70)
-		cd.size = Vector2(94, 20)
+		var cd = UI.label("", 13, Color(0.7, 0.85, 1), HORIZONTAL_ALIGNMENT_CENTER, true)
+		cd.position = Vector2(0, 52)
+		cd.size = Vector2(80, 20)
 		p.add_child(cd)
 		slots_box.add_child(p)
 		slot_nodes.append([p, nm, cd])
 		slot_state.append({"el": "", "cd": 0.0, "max": 1.0, "ok": true, "empty": true})
-	# sol: atılabilir alet kutusu, sağ: eşya kutusu
-	tool_box = _side_box(Vector2(-327 - 214, -100))
-	tool_lbl = UI.label("", 15, UI.TEXT)
+	# sol: atılabilir alet, sağ: eşyalar (küçük cam haplar)
+	tool_box = _side_box(Vector2(-(SLOT_COUNT * 92) * 0.5 - 230, -104))
+	tool_lbl = UI.label("", 14, UI.TEXT)
 	tool_box.get_child(0).add_child(tool_lbl)
-	item_box = _side_box(Vector2(327 + 14, -100))
-	item_lbl = UI.label("", 15, UI.TEXT)
+	item_box = _side_box(Vector2((SLOT_COUNT * 92) * 0.5 + 14, -104))
+	item_lbl = UI.label("", 14, UI.TEXT)
 	item_box.get_child(0).add_child(item_lbl)
 	seal_box = UI.hbox(6)
 	seal_box.set_anchors_preset(Control.PRESET_CENTER)
@@ -228,12 +216,10 @@ func _build_slots() -> void:
 
 func _side_box(pos: Vector2) -> PanelContainer:
 	var p = PanelContainer.new()
-	var sb = UI._box(Color(0.05, 0.04, 0.05, 0.78), UI.ACCENT, 0, 3, 8, 0.2)
-	sb.border_width_bottom = 3
-	p.add_theme_stylebox_override("panel", sb)
+	p.add_theme_stylebox_override("panel", UI._box(Color(0.04, 0.05, 0.07, 0.55), Color(1, 1, 1, 0.08), 1, 14, 10))
 	p.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	p.position = pos
-	p.custom_minimum_size = Vector2(200, 76)
+	p.custom_minimum_size = Vector2(216, 64)
 	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var v = UI.vbox(2)
 	p.add_child(v)
@@ -241,37 +227,40 @@ func _side_box(pos: Vector2) -> PanelContainer:
 	return p
 
 
-## Jutsu slotu: eğik kart, üstte element şeridi, sol üstte tuş rozeti, bekleme süresi için saat yönünde karartma
+## Jutsu slotu: yuvarlak köşeli cam kare, element simgesi, saat yönünde bekleme süresi, tuş rozeti
 func _draw_slot(i: int) -> void:
 	var p: Control = slot_nodes[i][0]
 	var st: Dictionary = slot_state[i]
-	var sz = p.size
+	var sz = Vector2(80, 80)
 	var ec: Color = UI.ELEMENT_COLORS.get(st["el"], UI.ELEMENT_COLORS[""])
-	var sk = 10.0
-	var poly = PackedVector2Array([Vector2(sk, 0), Vector2(sz.x, 0), Vector2(sz.x - sk, sz.y), Vector2(0, sz.y)])
-	p.draw_colored_polygon(PackedVector2Array([Vector2(sk + 3, 4), Vector2(sz.x + 3, 4), Vector2(sz.x - sk + 3, sz.y + 4), Vector2(3, sz.y + 4)]), Color(0, 0, 0, 0.45))
-	p.draw_colored_polygon(poly, Color(0.07, 0.055, 0.065, 0.9) if not st["empty"] else Color(0.05, 0.04, 0.05, 0.6))
+	var sb = UI._box(Color(0.04, 0.05, 0.07, 0.62) if not st["empty"] else Color(0.04, 0.05, 0.07, 0.35), Color(ec, 0.85) if not st["empty"] else Color(1, 1, 1, 0.1), 2 if not st["empty"] else 1, 16, 0)
+	sb.shadow_color = Color(0, 0, 0, 0.3)
+	sb.shadow_size = 6
+	p.draw_style_box(sb, Rect2(Vector2.ZERO, sz))
 	if not st["empty"]:
-		p.draw_colored_polygon(PackedVector2Array([Vector2(sk, 0), Vector2(sz.x, 0), Vector2(sz.x - 1.2, 7), Vector2(sk - 1.2, 7)]), ec)
-		p.draw_colored_polygon(PackedVector2Array([Vector2(sk * 0.5, sz.y * 0.5), Vector2(sz.x - sk * 0.5, sz.y * 0.5), Vector2(sz.x - sk, sz.y), Vector2(0, sz.y)]), Color(ec, 0.12))
-	# bekleme süresi süpürmesi
+		var ic = Icons.tex(UI.ELEMENT_ICONS.get(st["el"], "chakra"))
+		var col = ec if st["ok"] else Color(ec.darkened(0.5), 0.8)
+		p.draw_texture_rect(ic, Rect2(Vector2(18, 14), Vector2(44, 44)), false, col)
 	if st["cd"] > 0.0:
-		# kalan süre kadar karttan aşağı doğru inen karartma (eğik kartın içinde kalır)
 		var k = clampf(st["cd"] / maxf(0.01, st["max"]), 0.0, 1.0)
-		var y = sz.y * k
-		var xl = sk * (1.0 - y / sz.y)
-		var xr = sz.x - sk * (y / sz.y)
-		p.draw_colored_polygon(PackedVector2Array([Vector2(sk, 0), Vector2(sz.x, 0), Vector2(xr, y), Vector2(xl, y)]), Color(0, 0, 0, 0.62))
-		p.draw_line(Vector2(xl, y), Vector2(xr, y), Color(UI.ACCENT, 0.9), 2.0)
+		var c = sz * 0.5
+		var pts = PackedVector2Array([c])
+		var n = 32
+		for j in n + 1:
+			var a = -PI * 0.5 + TAU * k * float(j) / n
+			pts.append(c + Vector2(cos(a), sin(a)) * 56.0)
+		# kareye kırp: köşeleri aşan noktaları sınırla
+		for j in pts.size():
+			pts[j] = pts[j].clamp(Vector2(2, 2), sz - Vector2(2, 2))
+		p.draw_colored_polygon(pts, Color(0, 0, 0, 0.62))
 	elif not st["ok"] and not st["empty"]:
-		p.draw_colored_polygon(poly, Color(0.05, 0.08, 0.25, 0.45))
-	var bc = UI.ACCENT if not st["empty"] else Color(0.35, 0.3, 0.28)
-	p.draw_polyline(PackedVector2Array([poly[0], poly[1], poly[2], poly[3], poly[0]]), bc, 2.0, true)
+		p.draw_style_box(UI._box(Color(0.1, 0.2, 0.5, 0.35), Color(0, 0, 0, 0), 0, 16, 0), Rect2(Vector2.ZERO, sz))
 	# tuş rozeti
-	var kb = Rect2(Vector2(-4, -8), Vector2(24, 22))
-	p.draw_rect(kb, UI.CREAM)
-	p.draw_rect(kb, UI.INK, false, 2.0)
-	p.draw_string(ThemeDB.fallback_font, Vector2(3, 9), str(i + 1), HORIZONTAL_ALIGNMENT_LEFT, -1, 16, UI.INK)
+	p.draw_circle(Vector2(12, 12), 11, Color(1, 1, 1, 0.92))
+	var f = UI.font(true)
+	var t = str(i + 1)
+	var w = f.get_string_size(t, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x
+	p.draw_string(f, Vector2(12 - w * 0.5, 17), t, HORIZONTAL_ALIGNMENT_LEFT, -1, 13, UI.INK)
 
 
 func _build_texts() -> void:
@@ -282,9 +271,8 @@ func _build_texts() -> void:
 	game_hud.add_child(msg_lbl)
 	# etkileşim ipucu: tuş rozeti + metin, mürekkep hap
 	prompt_box = PanelContainer.new()
-	var psb = UI._box(Color(0.05, 0.04, 0.05, 0.82), UI.ACCENT, 0, 14, 6, 0.0)
-	psb.border_width_bottom = 2
-	psb.content_margin_left = 10; psb.content_margin_right = 16
+	var psb = UI._box(Color(0.04, 0.05, 0.07, 0.72), Color(1, 1, 1, 0.1), 1, 22, 7, 0.0)
+	psb.content_margin_left = 10; psb.content_margin_right = 18
 	prompt_box.add_theme_stylebox_override("panel", psb)
 	prompt_box.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	prompt_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -292,7 +280,7 @@ func _build_texts() -> void:
 	prompt_box.add_child(ph)
 	prompt_key = UI.key_badge("F", 16)
 	ph.add_child(prompt_key)
-	prompt_lbl = UI.label("", 19, Color(1, 0.9, 0.6))
+	prompt_lbl = UI.label("", 17, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)
 	ph.add_child(prompt_lbl)
 	prompt_box.visible = false
 	game_hud.add_child(prompt_box)
@@ -304,8 +292,7 @@ func _build_texts() -> void:
 	game_hud.add_child(region_lbl)
 	# görev paneli (sağda, minimap altında)
 	var obj = PanelContainer.new()
-	var osb = UI._box(Color(0.05, 0.04, 0.05, 0.72), UI.ACCENT, 0, 3, 12)
-	osb.border_width_left = 4
+	var osb = UI._box(Color(0.04, 0.05, 0.07, 0.5), Color(1, 1, 1, 0.07), 1, 14, 14)
 	obj.add_theme_stylebox_override("panel", osb)
 	obj.anchor_left = 1.0; obj.anchor_right = 1.0
 	obj.offset_left = -392; obj.offset_right = -18; obj.offset_top = 312
@@ -313,8 +300,8 @@ func _build_texts() -> void:
 	obj.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var ov = UI.vbox(4)
 	obj.add_child(ov)
-	ov.add_child(UI.label("◆ GÖREV", 15, UI.ACCENT))
-	objective_lbl = UI.label("", 15)
+	ov.add_child(UI.icon_label("mission", "GÖREV", 13, UI.GOLD))
+	objective_lbl = UI.label("", 14, Color(UI.TEXT, 0.92))
 	objective_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	objective_lbl.custom_minimum_size = Vector2(346, 0)
 	ov.add_child(objective_lbl)
@@ -349,8 +336,8 @@ func _build_minimap() -> void:
 	ring.size = Vector2(240, 240)
 	ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ring.draw.connect(func():
-		ring.draw_circle(Vector2(124, 125), 126, Color(0, 0, 0, 0.45))
-		ring.draw_circle(Vector2(120, 120), 126, UI.INK))
+		ring.draw_circle(Vector2(120, 124), 126, Color(0, 0, 0, 0.3))
+		ring.draw_circle(Vector2(120, 120), 124, Color(0.04, 0.05, 0.07, 0.85)))
 	minimap.add_child(ring)
 	var tr = TextureRect.new()
 	tr.texture = map_tex
@@ -388,14 +375,13 @@ void fragment(){
 	minimap.set_meta("over", over)
 	# bölge adı şeridi (haritanın altında)
 	var rp = PanelContainer.new()
-	var rsb = UI._box(Color(0.05, 0.04, 0.05, 0.82), UI.ACCENT, 0, 3, 5, 0.25)
-	rsb.border_width_bottom = 2
+	var rsb = UI._box(Color(0.04, 0.05, 0.07, 0.7), Color(1, 1, 1, 0.08), 1, 14, 5, 0.0)
 	rsb.content_margin_left = 14; rsb.content_margin_right = 14
 	rp.add_theme_stylebox_override("panel", rsb)
 	rp.position = Vector2(10, 236)
 	rp.custom_minimum_size = Vector2(220, 0)
 	rp.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	mm_region = UI.label("", 15, UI.CREAM, HORIZONTAL_ALIGNMENT_CENTER)
+	mm_region = UI.label("", 14, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, true)
 	mm_region.clip_text = true
 	rp.add_child(mm_region)
 	minimap.add_child(rp)
@@ -509,43 +495,54 @@ func float_text(text: String, col: Color) -> void:
 	tw.chain().tween_callback(l.queue_free)
 
 
-## Storm tarzı büyük fırça banner'ı
+## Sinematik afiş: ince altın çizgiler arasında büyük başlık, yumuşak kararma
 func banner(title: String, sub: String, col: Color) -> void:
 	for c in banner_box.get_children():
 		c.queue_free()
-	var strip = Panel.new()
-	var ssb = UI._box(Color(0.03, 0.02, 0.03, 0.72), col, 0, 0, 0, 0.0)
-	ssb.border_width_top = 4
-	ssb.border_width_bottom = 4
-	strip.add_theme_stylebox_override("panel", ssb)
-	strip.set_anchors_preset(Control.PRESET_CENTER)
-	strip.position = Vector2(-2000, -70)
-	strip.size = Vector2(4000, 120)
-	strip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	banner_box.add_child(strip)
-	var brush = Panel.new()
-	brush.add_theme_stylebox_override("panel", UI._box(Color(col, 0.22), Color(0, 0, 0, 0), 0, 0, 0, 0.5))
-	brush.position = Vector2(1640, 10)
-	brush.size = Vector2(720, 100)
-	brush.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	strip.add_child(brush)
-	var t = UI.label(title, 54, col, HORIZONTAL_ALIGNMENT_CENTER)
-	t.size = Vector2(4000, 70)
-	t.position = Vector2(0, 4)
-	strip.add_child(t)
-	var s = UI.label(sub, 20, Color(1, 1, 1), HORIZONTAL_ALIGNMENT_CENTER)
-	s.size = Vector2(4000, 30)
-	s.position = Vector2(0, 76)
-	strip.add_child(s)
-	strip.scale = Vector2(1, 0.0)
-	strip.pivot_offset = Vector2(2000, 60)
-	var tw = strip.create_tween()
-	tw.tween_property(strip, "scale:y", 1.0, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	var tw2 = brush.create_tween()
-	tw2.tween_property(brush, "position:x", 1560.0, 3.0)
-	tw.tween_interval(2.4)
-	tw.tween_property(strip, "modulate:a", 0.0, 0.5)
-	tw.tween_callback(strip.queue_free)
+	var root = Control.new()
+	root.set_anchors_preset(Control.PRESET_CENTER)
+	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	banner_box.add_child(root)
+	var shade = TextureRect.new()
+	var gt = GradientTexture2D.new()
+	var g = Gradient.new()
+	g.set_color(0, Color(0, 0, 0, 0.0))
+	g.add_point(0.5, Color(0.01, 0.015, 0.03, 0.55))
+	g.set_color(g.get_point_count() - 1, Color(0, 0, 0, 0.0))
+	gt.gradient = g
+	gt.fill_from = Vector2(0, 0)
+	gt.fill_to = Vector2(1, 0)
+	shade.texture = gt
+	shade.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	shade.stretch_mode = TextureRect.STRETCH_SCALE
+	shade.position = Vector2(-700, -70)
+	shade.size = Vector2(1400, 140)
+	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(shade)
+	for y in [-58.0, 56.0]:
+		var ln = ColorRect.new()
+		ln.color = Color(col, 0.85)
+		ln.position = Vector2(-260, y)
+		ln.size = Vector2(520, 2)
+		ln.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		root.add_child(ln)
+	var t = UI.label(title, 52, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, true)
+	t.position = Vector2(-700, -50)
+	t.size = Vector2(1400, 64)
+	root.add_child(t)
+	var s2 = UI.label(sub, 19, col.lightened(0.25), HORIZONTAL_ALIGNMENT_CENTER, true)
+	s2.position = Vector2(-700, 18)
+	s2.size = Vector2(1400, 28)
+	root.add_child(s2)
+	root.modulate.a = 0.0
+	root.scale = Vector2(1.06, 1.06)
+	var tw = root.create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(root, "modulate:a", 1.0, 0.25)
+	tw.tween_property(root, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw.chain().tween_interval(2.4)
+	tw.chain().tween_property(root, "modulate:a", 0.0, 0.6)
+	tw.chain().tween_callback(root.queue_free)
 
 
 func show_seals(seals: Array) -> void:
@@ -591,35 +588,151 @@ func boss_bar(b: Node) -> void:
 
 
 # ------------------------------------------------------------------ diyalog / dükkân
+## Görsel roman tarzı diyalog: altta cam kutu, solda konuşanın portresi, isim plakası, daktilo metin, hap seçenekler
 func dialog(title: String, text: String, options: Array) -> void:
+	# görev masası ve bingo kitabı kendi ekranlarında
+	if title.begins_with("Görev Masası — ") and Missions.board_village != "":
+		show_mission_board(Missions.board_village)
+		return
+	if title.begins_with("BINGO KİTABI"):
+		Menus.bingo_book(get_tree().current_scene)
+		return
 	close_dialog()
 	Game.ui_open = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	var p = UI.panel()
-	p.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	p.custom_minimum_size = Vector2(760, 0)
-	p.position = Vector2(-380, -380)
+	var root = Control.new()
+	root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	dialog_layer.add_child(root)
+	root.set_meta("dialog", true)
+	# alttan koyulaşan degrade
+	var grad = TextureRect.new()
+	var gt = GradientTexture2D.new()
+	var g = Gradient.new()
+	g.set_color(0, Color(0, 0, 0, 0.0))
+	g.set_color(1, Color(0.01, 0.015, 0.03, 0.85))
+	gt.gradient = g
+	gt.fill_from = Vector2(0, 0)
+	gt.fill_to = Vector2(0, 1)
+	grad.texture = gt
+	grad.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	grad.stretch_mode = TextureRect.STRETCH_SCALE
+	grad.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	grad.offset_top = -420
+	grad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(grad)
+	var many = options.size() > 4
+	var box = PanelContainer.new()
+	box.add_theme_stylebox_override("panel", UI.glass(18, 24, 0.84))
+	box.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	box.custom_minimum_size = Vector2(1180, 230)
+	box.position = Vector2(-590, -280 - (180 if many else 0))
+	root.add_child(box)
+	var h = UI.hbox(24)
+	box.add_child(h)
+	h.add_child(_dialog_portrait(title))
 	var v = UI.vbox(10)
-	p.add_child(v)
-	v.add_child(UI.header(title, 24))
-	var body = UI.label(text, 18)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	h.add_child(v)
+	var plate = UI.label(title, 22, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true)
+	v.add_child(plate)
+	var body = UI.label(text, 19, UI.TEXT)
 	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	body.custom_minimum_size = Vector2(720, 0)
+	body.custom_minimum_size = Vector2(560 if not many else 900, 0)
 	v.add_child(body)
+	# daktilo efekti (tıklayınca tamamlanır)
+	body.visible_ratio = 0.0
+	var tw = body.create_tween()
+	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	tw.tween_property(body, "visible_ratio", 1.0, clampf(text.length() / 70.0, 0.25, 2.2))
+	box.gui_input.connect(func(e):
+		if e is InputEventMouseButton and e.pressed:
+			tw.kill()
+			body.visible_ratio = 1.0)
+	var opt_parent: Container
+	if many:
+		var sc = ScrollContainer.new()
+		sc.custom_minimum_size = Vector2(900, 200)
+		sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		v.add_child(sc)
+		var ov = UI.vbox(8)
+		ov.custom_minimum_size = Vector2(880, 0)
+		sc.add_child(ov)
+		opt_parent = ov
+	else:
+		var ov = UI.vbox(8)
+		ov.custom_minimum_size = Vector2(380, 0)
+		ov.alignment = BoxContainer.ALIGNMENT_CENTER
+		h.add_child(ov)
+		opt_parent = ov
 	for o in options:
-		var b = UI.button(o["label"], func():
+		var b = _pill(String(o["label"]), func():
 			close_dialog()
-			o["cb"].call(), 720)
+			o["cb"].call(), 860 if many else 380)
 		if o.has("tip"):
 			b.tooltip_text = o["tip"]
-		v.add_child(b)
-	v.add_child(UI.button("Kapat [Esc]", close_dialog, 720))
-	dialog_layer.add_child(p)
-	p.set_meta("dialog", true)
-	var tw = p.create_tween()
-	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-	p.modulate.a = 0.0
-	tw.tween_property(p, "modulate:a", 1.0, 0.12)
+		opt_parent.add_child(b)
+	var cl = _pill("Kapat [Esc]", close_dialog, 860 if many else 380, true)
+	opt_parent.add_child(cl)
+	box.modulate.a = 0.0
+	var t2 = box.create_tween().set_parallel(true)
+	t2.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	t2.tween_property(box, "modulate:a", 1.0, 0.16)
+	t2.tween_property(box, "position:y", box.position.y, 0.2).from(box.position.y + 24).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+
+
+## Hap şeklinde diyalog seçeneği
+func _pill(text: String, cb: Callable, w: float, muted := false) -> Button:
+	var b = Button.new()
+	b.text = text
+	b.custom_minimum_size = Vector2(w, 44)
+	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	b.clip_text = true
+	b.add_theme_font_override("font", UI.font(not muted))
+	b.add_theme_font_size_override("font_size", 16)
+	var n = UI._box(Color(1, 1, 1, 0.03 if muted else 0.07), Color(1, 1, 1, 0.06 if muted else 0.12), 1, 22, 8)
+	n.content_margin_left = 22
+	var hv = n.duplicate()
+	hv.bg_color = Color(UI.GOLD, 0.9)
+	hv.border_color = Color(1, 1, 1, 0.3)
+	for k in [["normal", n], ["hover", hv], ["pressed", hv], ["focus", hv]]:
+		b.add_theme_stylebox_override(k[0], k[1])
+	b.add_theme_color_override("font_color", UI.MUTED if muted else UI.TEXT)
+	b.add_theme_color_override("font_hover_color", UI.INK)
+	b.add_theme_color_override("font_focus_color", UI.INK)
+	b.add_theme_color_override("font_pressed_color", UI.INK)
+	b.pressed.connect(func():
+		Sfx.play("click")
+		cb.call())
+	b.mouse_entered.connect(func(): Sfx.play("click", null, 1.8, 0.15))
+	return b
+
+
+## Konuşanın portresi: yakındaki NPC ise yüzü canlı çizilir, değilse amblem
+func _dialog_portrait(title: String) -> Control:
+	var frame = Panel.new()
+	frame.custom_minimum_size = Vector2(170, 170)
+	frame.add_theme_stylebox_override("panel", UI._box(Color(0.03, 0.035, 0.05, 0.9), Color(UI.GOLD, 0.65), 2, 85, 0))
+	frame.clip_contents = true
+	var who: Node = null
+	if Game.player:
+		for c in get_tree().get_nodes_in_group("talkers"):
+			if c.get("display") == title and c.global_position.distance_to(Game.player.global_position) < 8.0:
+				who = c
+				break
+	if who != null and who.get("look") is Dictionary:
+		var lk: Dictionary = who.look.duplicate()
+		var pv = Menus._model_preview(lk, Vector3(0, 1.56, -1.15), Vector3(0, 1.5, 0), 28.0, false, Vector2(162, 162))
+		pv.position = Vector2(4, 4)
+		frame.add_child(pv)
+		var mdl = pv.get_meta("model")
+		if mdl:
+			mdl.play("talk")
+	else:
+		var ic = Icons.view("person" if title.length() < 26 else "scroll", 86, Color(UI.GOLD, 0.8))
+		ic.position = Vector2(42, 36)
+		frame.add_child(ic)
+	return frame
 
 
 func close_dialog() -> void:
@@ -634,45 +747,65 @@ func dialog_open() -> bool:
 	return dialog_layer.get_child_count() > 0
 
 
+## Görev masası: ahşap pano + asılı parşömenler (missions.gd çağırır)
+func show_mission_board(village_id: String) -> void:
+	Menus.mission_board(village_id)
+
+
 func shop(title: String, items: Array) -> void:
-	var opts = []
+	var entries = []
 	for id in items:
 		var it: Dictionary = Data.items.get(id, {})
 		if it.is_empty():
 			continue
-		var have = int(Game.profile["inventory"].get(id, 0))
-		var lbl = "%s — %d Ryō   (sende: %d)" % [it["name"], it["price"], have]
-		opts.append({"label": lbl, "tip": it["desc"], "cb": func(): _buy(id, title, items)})
-	dialog("%s   (Ryō: %d)" % [title, int(Game.profile["ryo"])], "Ne almak istersin?", opts)
+		var locked = false
+		var lock_text = ""
+		if it.get("kind", "") == "scroll":
+			var j: Dictionary = Data.jutsu.get(it.get("jutsu", ""), {})
+			if String(j.get("element", "")) != "" and not j["element"] in Game.profile["elements"]:
+				locked = true
+				lock_text = "Bu parşömen %s doğası olanlar için." % String(j["element"]).capitalize()
+			elif int(Game.profile["level"]) < int(j.get("level", 1)):
+				locked = true
+				lock_text = "Seviye %d gerekli." % int(j.get("level", 1))
+			elif it.get("jutsu", "") in Game.profile["learned"]:
+				locked = true
+				lock_text = "Bunu zaten biliyorsun."
+		var iid = id
+		entries.append({"id": id, "name": it["name"], "price": int(it["price"]), "desc": it.get("desc", ""), "stats": "",
+			"locked": locked, "lock_text": lock_text, "owned": int(Game.profile["inventory"].get(id, 0)), "rarity": 1 if it.get("kind", "") == "scroll" else 0,
+			"view": func(): return Thumbs.item_view(iid, 96)})
+	Menus.shop_screen(title, entries, func(id): _buy(id, title, items))
 
 
 ## Ekipman dükkânı: silah ve kıyafetler (alınca Tab > Ekipman'dan giyilir)
 func gear_shop(title: String, ids: Array) -> void:
 	var pr = Game.profile
 	Gear.ensure(pr)
-	var opts = []
+	var entries = []
 	for id in ids:
 		var it = Gear.item(id)
+		if it.is_empty():
+			continue
 		var have = 0
 		for g in pr["gear"]:
 			if g["id"] == id:
 				have += 1
 		var locked = int(it.get("rank", 0)) > int(pr["rank"])
-		var lbl = "%s — %d Ryō   [%s]%s" % [it["name"], int(it["price"]), Gear.stats_text(id), ("   (sende: %d)" % have) if have > 0 else ""]
-		if locked:
-			lbl = "🔒 %s — %s rütbesi gerekir" % [it["name"], Data.RANKS[int(it["rank"])]]
-		opts.append({"label": lbl, "tip": it["desc"], "cb": func():
-			if locked:
-				msg("Bu ekipman için rütben yetersiz.", Color(1, 0.6, 0.4))
-			elif int(pr["ryo"]) < int(it["price"]):
-				msg("Yeterli Ryō yok!", Color(1, 0.5, 0.4))
-			else:
-				Progress.add_ryo(-int(it["price"]))
-				Gear.grant(pr, id)
-				Sfx.play("coin")
-				msg("%s alındı! Giymek için: Tab > Ekipman" % it["name"], Color(0.6, 1, 0.6))
-			gear_shop(title, ids)})
-	dialog("%s   (Ryō: %d)" % [title, int(pr["ryo"])], "Ne almak istersin?", opts)
+		var gid = id
+		entries.append({"id": id, "name": it["name"], "price": int(it.get("price", 0)), "desc": it.get("desc", ""), "stats": Gear.stats_text(id),
+			"locked": locked, "lock_text": "%s rütbesi gerekir" % Data.RANKS[int(it.get("rank", 0))], "owned": have, "rarity": UI.rarity_of_gear(id),
+			"view": func(): return Thumbs.gear_view(gid, 96)})
+	Menus.shop_screen(title, entries, func(id):
+		var it = Gear.item(id)
+		if int(pr["ryo"]) < int(it["price"]):
+			msg("Yeterli Ryō yok!", Color(1, 0.5, 0.4))
+		else:
+			Progress.add_ryo(-int(it["price"]))
+			Gear.grant(pr, id)
+			Sfx.play("coin")
+			msg("%s alındı! Giymek için: Tab > Ekipman" % it["name"], Color(0.6, 1, 0.6))
+		gear_shop(title, ids))
 
 
 func _buy(id: String, title: String, items: Array) -> void:
@@ -716,7 +849,7 @@ func _process(dt: float) -> void:
 	fps_lbl.text = "FPS %d" % Engine.get_frames_per_second() if Game.settings["show_fps"] else ""
 	name_lbl.text = String(pr.get("name", ""))
 	rank_lbl.text = "%s  •  Seviye %d" % [Data.RANKS[int(pr.get("rank", 0))].to_upper(), int(pr.get("level", 1))]
-	ryo_lbl.text = "両 %d Ryō" % int(pr.get("ryo", 0))
+	ryo_lbl.text = "%d Ryō" % int(pr.get("ryo", 0))
 	hp_bar.max_value = pl.max_hp; hp_bar.value = pl.hp
 	var hk = clampf(pl.hp / maxf(1.0, pl.max_hp), 0.0, 1.0)
 	var hcol = Color(0.35, 0.9, 0.35) if hk > 0.5 else (Color(1, 0.8, 0.2) if hk > 0.25 else Color(1, 0.3, 0.25))
@@ -743,7 +876,7 @@ func _process(dt: float) -> void:
 		var sn: Array = slot_nodes[i]
 		var st: Dictionary = slot_state[i]
 		if jid == null or jid == "":
-			sn[1].text = "—"; sn[2].text = ""
+			sn[1].text = ""; sn[2].text = ""
 			if not st["empty"]:
 				st["empty"] = true; st["cd"] = 0.0
 				sn[0].queue_redraw()
@@ -752,16 +885,16 @@ func _process(dt: float) -> void:
 		sn[1].text = String(j.get("name", jid)).split(":")[-1].split("(")[0].strip_edges()
 		var cd: float = comb.cooldowns.get(jid, 0.0) if comb else 0.0
 		var ok = pl.chakra >= float(j.get("cost", 0))
-		sn[2].text = ("%.1f sn" % cd) if cd > 0.0 else "%d ck" % int(j.get("cost", 0))
-		sn[2].add_theme_color_override("font_color", Color(0.7, 0.85, 1) if ok else Color(1, 0.5, 0.45))
+		sn[2].text = ("%.1f" % cd) if cd > 0.0 else ""
+		sn[2].add_theme_color_override("font_color", Color(1, 1, 1))
 		var el = String(j.get("element", ""))
 		var mx = maxf(float(j.get("cd", 5)), cd)
 		if st["empty"] or st["el"] != el or absf(st["cd"] - cd) > 0.001 or st["ok"] != ok or st["max"] != mx:
 			st["empty"] = false; st["el"] = el; st["cd"] = cd; st["ok"] = ok; st["max"] = mx
 			sn[0].queue_redraw()
 	var tool: String = pr.get("throw_sel", "kunai")
-	tool_lbl.text = "[R]  %s  ×%d\n[T]  alet değiştir" % [Data.items.get(tool, {"name": tool})["name"], int(pr["inventory"].get(tool, 0))]
-	item_lbl.text = "[H]  Merhem  ×%d\n[Y]  Asker Hapı  ×%d" % [int(pr["inventory"].get("salve", 0)), int(pr["inventory"].get("pill", 0))]
+	tool_lbl.text = "R   %s  ×%d\nT   değiştir" % [Data.items.get(tool, {"name": tool})["name"], int(pr["inventory"].get(tool, 0))]
+	item_lbl.text = "H   Merhem  ×%d\nY   Asker Hapı  ×%d" % [int(pr["inventory"].get("salve", 0)), int(pr["inventory"].get("pill", 0))]
 	if msg_t > 0.0:
 		msg_t -= dt
 		if msg_t <= 0.0:
