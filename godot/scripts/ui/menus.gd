@@ -1457,7 +1457,7 @@ static func _tab_missions(main: Node, body: Control) -> void:
 	sc.add_child(sv)
 	sv.add_child(UI.icon_label("book", "HİKÂYE", 15, UI.GOLD))
 	var s = Progress.story()
-	var st = UI.label(String(Progress.STORY[mini(s, Progress.STORY.size() - 1)]), 18)
+	var st = UI.label(String(Progress.objective_text()), 18)
 	st.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	st.custom_minimum_size = Vector2(700, 0)
 	sv.add_child(st)

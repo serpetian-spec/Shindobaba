@@ -87,9 +87,25 @@ func story() -> int:
 
 func set_story(i: int) -> void:
 	p()["story"] = i
+	# D-rank adımına gelmeden önce yapılan görevler de sayılır
+	if i == 6 and int(p()["missions_done"].get("D", 0)) >= 3:
+		i = 7
+		p()["story"] = 7
 	Hud.objective_changed()
 	Sfx.play("levelup", null, 1.3, 0.5)
 	Game.save_game()
+
+
+## Hikâye hedef metni + ilerleme sayacı (HUD ve Görevler sekmesi kullanır)
+func objective_text() -> String:
+	var s = story()
+	var t: String = STORY[mini(s, STORY.size() - 1)] if not STORY.is_empty() else ""
+	var pr = p()
+	if s == 6:
+		t += "  (%d/3)" % mini(3, int(pr["missions_done"].get("D", 0)))
+	elif s == 7 or s == 9:
+		t += "  (Seviye %d)" % int(pr.get("level", 1))
+	return t
 
 
 func new_profile(opts: Dictionary) -> Dictionary:

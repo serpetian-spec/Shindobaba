@@ -565,7 +565,7 @@ func objective_changed() -> void:
 	if Game.profile.is_empty():
 		return
 	var s = Progress.story()
-	var t: String = Progress.STORY[mini(s, Progress.STORY.size() - 1)]
+	var t: String = Progress.objective_text()
 	var m: Dictionary = Game.profile.get("active_mission", {})
 	if not m.is_empty():
 		t += "\n\n[%s] %s: %s (%d/%d)" % [m["rank"], m["title"], m["desc"], m.get("progress", 0), m["count"]]
