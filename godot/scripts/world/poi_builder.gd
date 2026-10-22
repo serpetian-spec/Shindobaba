@@ -4,7 +4,7 @@ extends RefCounted
 ## NPC ve düşmanlar POI'nin bölge düğümüne eklenir: bölge silinince onlar da gider.
 
 const STYLE := {"fire": "wood", "waves": "wood", "rivers": "wood", "grass": "wood", "sound": "wood", "rain": "ame",
-	"wind": "suna", "earth": "iwa", "stone": "iwa", "north": "iwa", "lightning": "kumo", "frost": "snow", "iron": "snow",
+	"wind": "suna", "earth": "iwa", "stone": "iwa", "north": "snow", "lightning": "kumo", "frost": "snow", "iron": "snow",
 	"water": "kiri", "hotwater": "wood", "waterfall": "wood", "whirlpool": "wood"}
 
 
@@ -20,6 +20,11 @@ static func build(parent: Node3D, p: Dictionary) -> void:
 	var b := Builder.new(node, x, y, g, p["id"])
 	b.view_dist = 1800.0
 	var style: String = STYLE.get(p.get("country", "fire"), "wood")
+	# arazi biyomu ülkeden baskın: çölde kerpiç, karda ahşap-karlı, kayalıkta taş
+	match Game.biome_at(x, -y):
+		3, 13: style = "suna"
+		8, 15: style = "snow"
+		5, 9, 14: style = "iwa" if style in ["wood", "kumo"] else style
 	match p["t"]:
 		"hamlet":
 			_hamlet(b, node, p, rng, style)

@@ -8,3 +8,7 @@ assets_src/
 godot/.godot/
 *.import.bak
 .claude/settings.local.json
+.sketchfab_token
+godot/assets/sketchfab/
+tools/godot_export_templates/
+_tmp/

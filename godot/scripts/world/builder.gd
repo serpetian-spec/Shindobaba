@@ -115,6 +115,54 @@ func roof(p: Vector3, size: Vector3, col: Color, yaw := 0.0) -> void:
 	_collide(wp - Vector3(0, size.y * 0.25, 0), Vector3(size.x * 0.7, size.y * 0.5, size.z), -yaw)
 
 
+## Pürüzlü katmanlı kaya sütunu (Kumo/Iwa kuleleri, krater duvarı). p: taban merkezi
+func crag(p: Vector3, d: float, h: float, col: Color, variant := 0, collide := true, yaw := 0.0) -> void:
+	var wp = w(p)
+	_mb(wp).add("crag", wp + Vector3(0, h * 0.5, 0), Vector3(d, h, d), col, Vector3(0, yaw, 0), (100 + variant % 16) if variant >= 100 else variant % 16)
+	if collide:
+		_collide_cyl(wp + Vector3(0, h * 0.5, 0), d * 0.38, h)
+
+
+## Düzensiz kaya. p: merkez
+func boulder(p: Vector3, size: Vector3, col: Color, variant := 0, collide := false, yaw := 0.0) -> void:
+	var wp = w(p)
+	_mb(wp).add("boulder", wp, size, col, Vector3(0, yaw, 0), variant % 16)
+	if collide:
+		_collide(wp, size * 0.8, yaw)
+
+
+## Yukarı daralan silindir (kule gövdesi). p: merkez
+func frustum(p: Vector3, d: float, h: float, col: Color, collide := true, seg := 16) -> void:
+	var wp = w(p)
+	_mb(wp).add("frustum", wp, Vector3(d, h, d), col, Vector3.ZERO, seg)
+	if collide:
+		_collide_cyl(wp, d * 0.43, h)
+
+
+static var _kanji_font: SystemFont
+## Büyük kanji tabelası (風 雷 水 土...): ön yüzü yaw yönüne bakar
+func kanji(p: Vector3, text: String, size: float, col: Color, yaw := 0.0) -> void:
+	if not is_instance_valid(root):
+		return
+	if _kanji_font == null:
+		_kanji_font = SystemFont.new()
+		_kanji_font.font_names = PackedStringArray(["Yu Gothic UI", "Yu Gothic", "Meiryo", "MS Gothic", "Noto Sans CJK JP", "Microsoft YaHei"])
+		_kanji_font.font_weight = 800
+	var l = Label3D.new()
+	l.text = text
+	l.font = _kanji_font
+	l.font_size = 128
+	l.pixel_size = size / 128.0
+	l.modulate = col
+	l.outline_size = 0
+	l.double_sided = false
+	l.shaded = false
+	l.visibility_range_end = view_dist
+	root.add_child(l)
+	l.global_position = w(p)
+	l.rotation.y = deg_to_rad(-yaw)
+
+
 ## Yerel uzayda döndürülmüş ofset
 static func rot(lx: float, ln: float, yaw: float) -> Vector2:
 	var a = deg_to_rad(yaw)
@@ -170,35 +218,24 @@ func _house_body(x: float, n: float, wdt: float, dep: float, floors: int, yaw: f
 	var hgt = floors * 4.2
 	match style:
 		"suna":
-			var c = Color(0.86, 0.74, 0.55).darkened(rng.randf_range(0, 0.12))
-			var d = maxf(wdt, dep)
-			cyl(Vector3(x, hgt * 0.5, n), d, hgt, c, true, 16)
-			dome(Vector3(x, hgt, n), d, d * 0.35, c.lightened(0.05), 16)
-			for k in 4:
-				var o = rot(0, d * 0.5, yaw + k * 90)
-				cyl(Vector3(x + o.x, hgt * 0.6, n + o.y), 1.3, 1.3, Color(0.25, 0.2, 0.15), false, 8)
+			VillageStyles.suna_house(self, x, n, wdt, dep, floors, yaw, rng)
 			return
 		"kiri":
-			var c = Color(0.62, 0.7, 0.74).darkened(rng.randf_range(0, 0.15))
-			var d = maxf(wdt, dep)
-			cyl(Vector3(x, hgt * 0.5, n), d, hgt, c, true, 14)
-			dome(Vector3(x, hgt, n), d + 0.8, d * 0.3, Color(0.35, 0.45, 0.55), 14)
-			cyl(Vector3(x, hgt + d * 0.3 + 0.8, n), 0.8, 1.6, Color(0.5, 0.55, 0.6), false, 8)
+			VillageStyles.kiri_house(self, x, n, wdt, dep, floors, yaw, rng)
 			return
 		"iwa", "rock":
-			var c = Color(0.55, 0.47, 0.38).darkened(rng.randf_range(0, 0.15))
-			box(Vector3(x, hgt * 0.5, n), Vector3(wdt, hgt, dep), c, yaw)
-			box(Vector3(x, hgt + 0.4, n), Vector3(wdt + 1, 0.8, dep + 1), Color(0.42, 0.32, 0.25), yaw)
+			VillageStyles.iwa_house(self, x, n, wdt, dep, floors, yaw, rng)
 			return
 		"ame":
-			var c = Color(0.42, 0.44, 0.47).darkened(rng.randf_range(0, 0.1))
-			box(Vector3(x, hgt * 0.5, n), Vector3(wdt, hgt, dep), c, yaw)
-			for k in floors:
-				box(Vector3(x, k * 4.2 + 2.6, n), Vector3(wdt + 0.3, 0.3, dep + 0.3), Color(0.3, 0.31, 0.33), yaw)
-			var po = rot(wdt * 0.5 + 0.4, 0, yaw)
-			cyl(Vector3(x + po.x, hgt * 0.5, n + po.y), 0.6, hgt, Color(0.35, 0.36, 0.38), false, 8)
+			VillageStyles.ame_house(self, x, n, wdt, dep, floors, yaw, rng)
 			return
-	# konoha / ahşap / kar: detaylı şablon evler (HouseKit)
+		"kumo":
+			VillageStyles.kumo_house(self, x, n, wdt, dep, floors, yaw, rng)
+			return
+		"snow":
+			VillageStyles.snow_house(self, x, n, wdt, dep, floors, yaw, rng)
+			return
+	# konoha / ahşap: detaylı şablon evler (HouseKit)
 	var walls = [Color(0.96, 0.92, 0.84), Color(0.93, 0.87, 0.72), Color(0.98, 0.96, 0.9), Color(0.9, 0.84, 0.7), Color(0.86, 0.8, 0.7), Color(0.95, 0.88, 0.8)]
 	var roofs = [Color(0.78, 0.22, 0.18), Color(0.22, 0.4, 0.62), Color(0.28, 0.52, 0.32), Color(0.85, 0.45, 0.18), Color(0.5, 0.32, 0.58), Color(0.65, 0.2, 0.24), Color(0.35, 0.35, 0.4)]
 	if placer == null:

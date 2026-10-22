@@ -524,8 +524,12 @@ static func _farm(b: Builder, node: Node3D, s: Dictionary, rng: RandomNumberGene
 	var yaw: float = s["yaw"]
 	var style := "wood"
 	var bio := Game.biome_at(x, -n)
-	if bio == 3:
+	if bio == 3 or bio == 13:
 		style = "suna"
+	elif bio == 8 or bio == 15:
+		style = "snow"
+	elif bio == 5 or bio == 9 or bio == 14:
+		style = "iwa"
 	var hw := rng.randf_range(8, 11)
 	var hd := rng.randf_range(7, 9)
 	var hf := rng.randi_range(1, 2)

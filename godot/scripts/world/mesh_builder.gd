@@ -34,9 +34,69 @@ static func _prim_arrays(kind: String, seg: int = 8) -> Array:
 			return _cache[key]
 		"torus":
 			var t := TorusMesh.new(); t.inner_radius = 0.42; t.outer_radius = 0.5; t.rings = seg; t.ring_segments = 6; m = t
+		"frustum":  # alt yarıçap 0.5, üst 0.36 (kule gövdeleri)
+			var c := CylinderMesh.new(); c.height = 1.0; c.top_radius = 0.36; c.radial_segments = seg; c.rings = 1; m = c
+		"crag", "boulder":  # pürüzlü kaya sütunu / kaya (seg = varyant tohumu)
+			_cache[key] = _rocky(kind, seg)
+			return _cache[key]
 	var a := m.get_mesh_arrays()
 	_cache[key] = a
 	return a
+
+
+## Pürüzlü kaya: "crag" = taban r 0.5, tepe daralan, katmanlı (strata) ve eğik sütun (y 0..1 ölçeğinde -0.5..0.5);
+## "boulder" = düzensiz yuvarlak kaya. Yassı gölgeli (faceted) kenarlar kaya hissi verir.
+static func _rocky(kind: String, variant: int) -> Array:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 7919 * variant + (1 if kind == "crag" else 2)
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var sides := 8
+	var rings := 9 if kind == "crag" else 6
+	var pts := []
+	var lean := Vector2(rng.randf_range(-0.08, 0.08), rng.randf_range(-0.08, 0.08))
+	for r in rings + 1:
+		var t := float(r) / rings
+		var row := []
+		var rr: float
+		var y: float
+		if kind == "crag":
+			y = t - 0.5
+			var top_r := 0.36 if variant >= 100 else 0.2  # 100+: mesa (geniş düz tepe)
+			rr = lerpf(0.5, top_r, pow(t, 1.3)) * (1.0 + (0.12 if r % 2 == 1 else -0.04))  # strata çıkıntıları
+		else:
+			var ang := lerpf(-PI * 0.5, PI * 0.5, t)
+			y = sin(ang) * 0.5
+			rr = cos(ang) * 0.5
+		var c := lean * t * t if kind == "crag" else Vector2.ZERO
+		for k in sides:
+			var a := TAU * (float(k) + rng.randf_range(-0.12, 0.12)) / sides + float(r) * 0.06
+			var j := rng.randf_range(0.78, 1.12)
+			row.append(Vector3(c.x + cos(a) * rr * j, y + rng.randf_range(-0.012, 0.012), c.y + sin(a) * rr * j))
+		pts.append(row)
+	for r in rings:
+		for k in sides:
+			var a0: Vector3 = pts[r][k]; var a1: Vector3 = pts[r][(k + 1) % sides]
+			var b0: Vector3 = pts[r + 1][k]; var b1: Vector3 = pts[r + 1][(k + 1) % sides]
+			for v in [a0, b0, a1, a1, b0, b1]:
+				st.add_vertex(v)
+	# tepe kapağı
+	var top: Array = pts[rings]
+	var tc := Vector3.ZERO
+	for v in top:
+		tc += v
+	tc /= sides
+	tc.y += 0.03 if kind == "crag" else 0.0
+	for k in sides:
+		st.add_vertex(tc); st.add_vertex(top[(k + 1) % sides]); st.add_vertex(top[k])
+	st.generate_normals()
+	var arr := st.commit_to_arrays()
+	if arr[Mesh.ARRAY_INDEX] == null:
+		var ii := PackedInt32Array()
+		for i in (arr[Mesh.ARRAY_VERTEX] as PackedVector3Array).size():
+			ii.append(i)
+		arr[Mesh.ARRAY_INDEX] = ii
+	return arr
 
 
 ## Yarım silindir (tonoz çatı): ekseni X, kesit YZ'de üst yarım daire. x -0.5..0.5, y 0..0.5, z -0.5..0.5, uç kapaklı

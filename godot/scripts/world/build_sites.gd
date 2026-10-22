@@ -123,9 +123,10 @@ static func _fill(b: Builder, r: float, inner: float, spacing: float, style: Str
 	var count = 0
 	var ring = inner
 	while ring < r and count < max_houses:
-		var dens = clampf(1.0 - (ring - inner) / maxf(r - inner, 1.0) * 0.75, 0.2, 1.0)
+		var f = (ring - inner) / maxf(r - inner, 1.0)
+		var dens = clampf(1.0 - f * 0.55, 0.45, 1.0)
 		var circ = TAU * ring
-		var n = int(circ / spacing * dens)
+		var n = int(circ / (spacing * (1.0 + f * 1.4)) * dens)
 		var off = rng.randf() * TAU
 		for i in n:
 			if count >= max_houses:
@@ -148,7 +149,7 @@ static func _fill(b: Builder, r: float, inner: float, spacing: float, style: Str
 				await _yield()
 				if not is_instance_valid(b.root):
 					return
-		ring += spacing * (1.0 + (1.0 - dens) * 1.5)
+		ring += spacing * (1.0 + f * 1.6)
 
 
 ## Dev kaya halkası (krater/uçurum duvarı): boşluklar kapı açılarında
@@ -223,178 +224,454 @@ static func far_silhouette(parent: Node3D, v: Dictionary) -> void:
 			c.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 
-# ------------------------------------------------------------------ Sunagakure: dev kayalık krater içinde kubbe şehir
+# ------------------------------------------------------------------ Sunagakure: katmanlı kaya krateri içinde kerpiç kubbe şehir
 static func suna(parent: Node3D, v: Dictionary) -> void:
 	var b = Builder.new(parent, v["x"], v["y"], v["base"], "Suna")
 	b.view_dist = 6000.0
 	var rng = _rng(2)
-	var sand = Color(0.84, 0.7, 0.5)
+	var sand = Color(0.87, 0.74, 0.54)
 	var r = float(v["r"])
-	_rock_ring(b, r * 0.97, 120, 170, 120, Color(0.78, 0.6, 0.4), v.get("gates", []), rng, 3.0, 4.0)
+	await _crag_ring(b, r * 0.97, 120, 175, 120, Color(0.78, 0.6, 0.4), v.get("gates", []), rng, 3.6, 5.0)
+	# Kazekage binası: dev kubbe, yuvarlak pencere halkaları, önünde "風"
+	b.cyl(Vector3(0, 2, 0), 140, 4, sand.darkened(0.1), true, 40)
+	b.cyl(Vector3(0, 28, 0), 110, 48, sand.lightened(0.04), true, 40)
+	b.cyl(Vector3(0, 52.5, 0), 114, 2, sand.darkened(0.12), false, 40)
+	b.dome(Vector3(0, 53, 0), 108, 44, sand.lightened(0.1), 40)
+	b.cyl(Vector3(0, 98, 0), 10, 8, sand.darkened(0.05), false, 16)
+	for ring in 3:
+		for k in 18:
+			var a = 360.0 * k / 18.0 + ring * 10.0
+			var o = Builder.rot(0, 55.2, a)
+			b.disc(Vector3(o.x, 14 + ring * 12, o.y), 3.4, 0.4, VillageStyles.DARK, a + 180.0, 12)
+	b.disc(Vector3(0, 30, -55.6), 22, 0.6, Color(0.95, 0.92, 0.85), 0, 24)
+	b.kanji(Vector3(0, 30, -56.3), "風", 18.0, Color(0.12, 0.35, 0.18), 0)
+	b.box(Vector3(0, 3.5, -58), Vector3(12, 7, 6), VillageStyles.DARK, 0, false)
+	b.interact(Vector3(0, 0, -64), 8, "mission_board", "[F] Kazekage Ofisi (görevler)")
 	await _yield()
-	# Kazekage kulesi: dev kubbe + "風"
-	b.cyl(Vector3(0, 24, 0), 110, 48, sand.lightened(0.05), true, 40)
-	b.dome(Vector3(0, 48, 0), 110, 40, sand.lightened(0.1), 40)
-	b.disc(Vector3(0, 36, -55.2), 18, 0.8, Color(0.35, 0.55, 0.35))
-	b.interact(Vector3(0, 0, -60), 8, "mission_board", "[F] Kazekage Ofisi (görevler)")
-	# kubbeli kuleler halkası
+	# kubbeli kuleler halkası + aralarında yüksek geçitler
+	var towers = []
 	for k in 10:
 		var a = TAU * k / 10
-		var o = Vector2(sin(a), cos(a)) * 200
-		b.cyl(Vector3(o.x, 20, o.y), 36, 40, sand.darkened(0.05), true, 20)
-		b.dome(Vector3(o.x, 40, o.y), 36, 16, sand, 20)
-	await _fill(b, r * 0.85, 130, 26, "suna", rng, [], 380)
-	b.interact(Vector3(90, 0, 30), 6, "shop_items", "[F] Suna Pazarı")
+		var o = Vector2(sin(a), cos(a)) * 210
+		var h = rng.randf_range(34, 52)
+		b.cyl(Vector3(o.x, h * 0.5, o.y), 38, h, sand.darkened(0.05), true, 22)
+		b.cyl(Vector3(o.x, h + 0.6, o.y), 40, 1.2, sand.darkened(0.15), false, 22)
+		b.dome(Vector3(o.x, h + 1.2, o.y), 36, 14, sand, 22)
+		for f in int(h / 9):
+			for j in 8:
+				var aa = 360.0 * j / 8.0 + f * 22.0
+				var oo = Builder.rot(0, 19.1, aa)
+				b.disc(Vector3(o.x + oo.x, 6 + f * 9, o.y + oo.y), 2.0, 0.3, VillageStyles.DARK, aa + 180.0, 10)
+		towers.append(Vector3(o.x, h * 0.6, o.y))
+	for k in 10:
+		var p0: Vector3 = towers[k]
+		var p1: Vector3 = towers[(k + 1) % 10]
+		var y = minf(p0.y, p1.y)
+		var d = Vector3(p1.x - p0.x, 0, p1.z - p0.z)
+		b.box(Vector3((p0.x + p1.x) * 0.5, y, (p0.z + p1.z) * 0.5), Vector3(4.5, 1.2, d.length() - 36), sand.darkened(0.08), rad_to_deg(atan2(d.x, d.z)))
+		b.box(Vector3((p0.x + p1.x) * 0.5, y + 1.4, (p0.z + p1.z) * 0.5), Vector3(5.0, 1.6, d.length() - 36), sand.darkened(0.02), rad_to_deg(atan2(d.x, d.z)), false)
+	await _yield()
+	# pazar: tenteli tezgâhlar meydan çevresinde
+	for k in 16:
+		var a = 360.0 * k / 16.0
+		var o = Builder.rot(0, 95, a)
+		var aw = [Color(0.75, 0.25, 0.2), Color(0.25, 0.45, 0.6), Color(0.85, 0.65, 0.25), Color(0.55, 0.35, 0.55)][k % 4]
+		b.box(Vector3(o.x, 0.6, o.y), Vector3(5, 1.2, 2.4), Color(0.55, 0.4, 0.26), a)
+		b.box(Vector3(o.x, 3.4, o.y), Vector3(6, 0.15, 4), aw, a, false, Vector3(-10, 0, 0))
+		for sx in [-1.0, 1.0]:
+			var po = Builder.rot(2.6 * sx, 0, a)
+			b.box(Vector3(o.x + po.x, 1.7, o.y + po.y), Vector3(0.15, 3.4, 0.15), VillageStyles.WOOD, a, false)
+	b.interact(Vector3(0, 0, 95), 6, "shop_items", "[F] Suna Pazarı")
+	# kum yığıntıları (duvar diplerinde, sokaklarda)
+	for k in 70:
+		var a = rng.randf() * TAU
+		var rr = rng.randf_range(r * 0.3, r * 0.93)
+		b.dome(Vector3(rr * sin(a), -0.2, rr * cos(a)), rng.randf_range(10, 30), rng.randf_range(0.8, 2.5), Color(0.9, 0.78, 0.56), 12)
+	await _fill(b, r * 0.88, 140, 28, "suna", rng, [], 640)
+	await _streets(b, v, "suna", rng)
 	b.finish()
 
 
-# ------------------------------------------------------------------ Kirigakure: sisli uçurumlar, kanallar, kubbeli kuleler
+## Kapılardan merkeze uzanan ana caddeler: fenerler, ağaçlar, tezgâhlar, bayraklar (köyün havasına göre)
+static func _streets(b: Builder, v: Dictionary, style: String, rng: RandomNumberGenerator) -> void:
+	var r = float(v["r"])
+	var gates: Array = v.get("gates", [])
+	if gates.is_empty():
+		gates = [180.0, 0.0, 90.0, 270.0]
+	var flag = {"suna": Color(0.55, 0.3, 0.2), "kiri": Color(0.25, 0.4, 0.6), "kumo": Color(0.85, 0.85, 0.82), "iwa": Color(0.6, 0.25, 0.18), "ame": Color(0.35, 0.36, 0.42)}.get(style, Color(0.6, 0.2, 0.2))
+	var count = 0
+	for ga in gates:
+		var a = float(ga)
+		var d = 140.0
+		while d < r * 0.9:
+			for sx in [-1.0, 1.0]:
+				var o = Builder.rot(9.0 * sx, d, a)
+				var g = b._ground_off(o.x, o.y, 1.0).x
+				match int(d / 40.0) % 3:
+					0:
+						BuildFeatures._build(b, {"t": "lantern", "x": o.x, "y": o.y, "g": g, "yaw": a}, rng)
+					1:
+						if style == "suna" or style == "ame":
+							b.cyl(Vector3(o.x, g + 2.5, o.y), 0.25, 5.0, Color(0.35, 0.3, 0.25), false, 6)
+							b.box(Vector3(o.x, g + 3.8, o.y), Vector3(0.05, 2.4, 1.4), flag, a + 90.0, false)
+						else:
+							b.tree(o.x, o.y, rng.randf_range(0.8, 1.2), rng, g)
+					2:
+						b.box(Vector3(o.x, g + 0.5, o.y), Vector3(1.6, 1.0, 1.0), Color(0.5, 0.38, 0.25), a + rng.randf() * 30.0, false)
+			count += 1
+			if count % 20 == 0:
+				await _yield()
+				if not is_instance_valid(b.root):
+					return
+			d += 40.0
+
+
+## Katmanlı kaya sütunlarından krater/uçurum duvarı (kapı açılarında boşluk)
+static func _crag_ring(b: Builder, r: float, hmin: float, hmax: float, thick: float, col: Color, gates: Array, rng: RandomNumberGenerator, step := 4.0, gap := 8.0) -> void:
+	var a = 0.0
+	var i = 0
+	while a < 360.0:
+		var open = false
+		for ga in gates:
+			if absf(fmod(a - float(ga) + 540.0, 360.0) - 180.0) <= gap:
+				open = true
+		if not open:
+			var rad = deg_to_rad(a)
+			var rr = r + rng.randf_range(-thick * 0.15, thick * 0.15)
+			var hh = rng.randf_range(hmin, hmax)
+			var c = col.darkened(rng.randf_range(0.0, 0.14))
+			var cx = rr * sin(rad)
+			var cn = rr * cos(rad)
+			var gl = minf(b._ground_off(cx, cn, thick * 0.5).x, 0.0) - 12.0  # dış yamaç alçaksa kaya oraya kadar insin
+			b.crag(Vector3(cx, gl, cn), thick * rng.randf_range(0.95, 1.3), hh - 8.0 - gl, c, 100 + i, true, rng.randf() * 360.0)
+			# önde alçak kayalar (taban kırığı)
+			if i % 2 == 0:
+				var r2 = rr - thick * 0.55
+				b.crag(Vector3(r2 * sin(rad), -20, r2 * cos(rad)), thick * 0.55, hh * rng.randf_range(0.25, 0.45) + 16, c.lightened(0.05), i + 7, false, rng.randf() * 360.0)
+			i += 1
+			if i % 12 == 0:
+				await _yield()
+				if not is_instance_valid(b.root):
+					return
+		a += step
+
+
+# ------------------------------------------------------------------ Kirigakure: göl kıyısında sisli kule şehri, kanallar, iskeleler
 static func kiri(parent: Node3D, v: Dictionary) -> void:
 	var b = Builder.new(parent, v["x"], v["y"], v["base"], "Kiri")
 	b.view_dist = 6000.0
 	var rng = _rng(3)
 	var r = float(v["r"])
-	_rock_ring(b, r * 0.97, 80, 130, 90, Color(0.55, 0.6, 0.62), v.get("gates", []), rng, 3.0, 4.0)
+	await _crag_ring(b, r * 0.97, 70, 130, 90, Color(0.5, 0.56, 0.58), v.get("gates", []), rng, 4.0, 5.0)
+	# kuzeyde göl + iskeleler
+	VillageStyles.water(b, Vector3(0, -0.4, r * 0.55), Vector2(r * 1.5, r * 0.7))
+	for k in 9:
+		var x = -r * 0.55 + k * r * 0.14
+		b.box(Vector3(x, 0.4, r * 0.24), Vector3(5, 0.5, 70), Color(0.42, 0.33, 0.24), 0)
+		for j in 6:
+			for sx in [-1.0, 1.0]:
+				b.cyl(Vector3(x + 2.3 * sx, -1.0, r * 0.24 - 30 + j * 12), 0.6, 3.0, Color(0.3, 0.24, 0.18), false, 6)
+		if k % 3 == 1:
+			b.box(Vector3(x + 5, 0.0, r * 0.24 + 25), Vector3(3.2, 1.0, 9), Color(0.5, 0.36, 0.24), 0, false)  # tekne
+	# Mizukage binası: geniş silindir, mavi kubbe, "水"
+	b.cyl(Vector3(0, 30, 0), 64, 60, Color(0.68, 0.74, 0.76), true, 32)
+	for f in 5:
+		b.cyl(Vector3(0, 10 + f * 11, 0), 66, 0.6, Color(0.5, 0.56, 0.6), false, 32)
+	b.cyl(Vector3(0, 60.5, 0), 70, 1.0, Color(0.24, 0.38, 0.52), false, 32)
+	b.dome(Vector3(0, 61, 0), 66, 22, Color(0.26, 0.42, 0.58), 32)
+	b.disc(Vector3(0, 38, -32.4), 16, 0.6, Color(0.92, 0.94, 0.96), 0, 24)
+	b.kanji(Vector3(0, 38, -32.9), "水", 13.0, Color(0.15, 0.32, 0.55), 0)
+	b.interact(Vector3(0, 0, -38), 7, "mission_board", "[F] Mizukage Ofisi (görevler)")
 	await _yield()
-	b.cyl(Vector3(0, 45, 0), 60, 90, Color(0.58, 0.66, 0.7), true, 32)
-	b.dome(Vector3(0, 90, 0), 64, 24, Color(0.3, 0.42, 0.55), 32)
-	b.disc(Vector3(0, 60, -30.2), 14, 0.6, Color(0.25, 0.45, 0.65))
-	b.interact(Vector3(0, 0, -34), 7, "mission_board", "[F] Mizukage Ofisi (görevler)")
-	for k in 8:
-		var a = TAU * k / 8 + 0.2
-		var o = Vector2(sin(a), cos(a)) * rng.randf_range(160, 420)
-		var h = rng.randf_range(40, 80)
-		b.cyl(Vector3(o.x, h * 0.5, o.y), 26, h, Color(0.6, 0.66, 0.68), true, 18)
-		b.dome(Vector3(o.x, h, o.y), 28, 10, Color(0.3, 0.42, 0.55), 18)
+	# yüksek boru kuleleri
+	for k in 16:
+		var a = rng.randf() * TAU
+		var rr = rng.randf_range(90, r * 0.7)
+		var px = rr * sin(a)
+		var pn = rr * cos(a)
+		if pn > r * 0.2:
+			continue
+		VillageStyles.kiri_house(b, px, pn, rng.randf_range(14, 22), 14, rng.randi_range(5, 10), rng.randf() * 360.0, rng)
+	# kanallar (radyal) + küçük köprüler
 	for k in 6:
 		var a = k * 60.0 + 30.0
-		var o = Builder.rot(0, 300, a)
-		b.box(Vector3(o.x, 0.5, o.y), Vector3(8, 1.0, 60), Color(0.4, 0.33, 0.25), a)
-	await _fill(b, r * 0.85, 60, 24, "kiri", rng, [], 360)
+		var o = Builder.rot(0, r * 0.4, a)
+		VillageStyles.water(b, Vector3(o.x, 0.15, o.y), Vector2(7, r * 0.6), a)
+		var bo = Builder.rot(0, r * 0.3, a)
+		b.box(Vector3(bo.x, 0.8, bo.y), Vector3(10, 0.5, 4), VillageStyles.WOOD, a + 90.0)
+	VillageStyles.mist(b, 90, 0, r * 0.95, 3, 28, 40, rng, 0.3)
+	await _fill(b, r * 0.85, 60, 26, "kiri", rng, [[0, r * 0.55, r * 0.4]], 560)
+	await _streets(b, v, "kiri", rng)
 	b.finish()
 
 
-# ------------------------------------------------------------------ Kumogakure: yüzlerce metrelik kaya sivri tepeleri, tepelerinde şehir
+# ------------------------------------------------------------------ Kumogakure: bulutlar arasında katmanlı kaya sütunları, tepelerinde şehir
 static func kumo(parent: Node3D, v: Dictionary) -> void:
 	var b = Builder.new(parent, v["x"], v["y"], v["base"], "Kumo")
 	b.view_dist = 6000.0
 	var rng = _rng(4)
-	var rock = Color(0.55, 0.57, 0.55)
+	var rock = Color(0.56, 0.57, 0.55)
 	var r = float(v["r"])
 	var pillars = []
-	for k in 30:
-		var a = rng.randf() * TAU
-		var rr = rng.randf_range(90, r * 0.85)
+	for k in 40:
+		var a = TAU * (k + rng.randf_range(-0.3, 0.3)) / 40.0 * 3.0
+		var rr = lerpf(130, r * 0.9, sqrt(rng.randf()))
 		var px = rr * sin(a)
 		var pn = rr * cos(a)
-		var d = rng.randf_range(40, 85)
+		var d = rng.randf_range(55, 100)
 		var h = rng.randf_range(110, 290)
-		# katmanlı sivri tepe: aşağıda geniş, yukarıda daralan
-		var y = -4.0
-		var layers = 5
-		for i in layers:
-			var lh = (h + 4.0) / layers
-			var dd = d * (1.0 - float(i) / layers * 0.35)
-			b.cyl(Vector3(px, y + lh * 0.5, pn), dd, lh, rock.darkened(0.1 * float(i % 2) + rng.randf_range(0, 0.08)), true, 12)
-			y += lh
-		pillars.append([px, pn, d * 0.65, h])
-		# tepede beyaz kubbeli yapılar
-		b.cyl(Vector3(px, h + 7, pn), d * 0.5, 14, Color(0.88, 0.88, 0.85), true, 14)
-		b.dome(Vector3(px, h + 14, pn), d * 0.52, 7, Color(0.3, 0.5, 0.7), 14)
-		if k % 6 == 5:
+		var c = rock.darkened(rng.randf_range(0.0, 0.14))
+		b.crag(Vector3(px, -6, pn), d, h + 6, c, 100 + k, true, rng.randf() * 360.0)
+		# yan kayalık çıkıntılar
+		for j in 2:
+			var oa = rng.randf() * 360.0
+			var oo = Builder.rot(0, d * 0.35, oa)
+			b.crag(Vector3(px + oo.x, -6, pn + oo.y), d * 0.45, h * rng.randf_range(0.3, 0.6), c.lightened(0.04), k + 20 + j, false, oa)
+		var top_r = d * 0.34   # mesa tepe yarıçapı
+		# tepe: taş platform + 2-4 beyaz kubbeli kule kümesi
+		b.cyl(Vector3(px, h - 0.4, pn), top_r * 2.1, 1.6, Color(0.8, 0.8, 0.77), true, 18)
+		var nh = rng.randi_range(2, 4)
+		for j in nh:
+			var ja = 360.0 * j / nh + rng.randf_range(-20, 20)
+			var jo = Builder.rot(0, top_r * 0.5 if nh > 1 else 0.0, ja)
+			var hd = top_r * rng.randf_range(0.55, 0.8)
+			var yo = b.yoff
+			b.yoff = h + 0.4
+			VillageStyles.kumo_house(b, px + jo.x, pn + jo.y, hd, hd, rng.randi_range(2, 5), ja, rng)
+			b.yoff = yo
+		# yamaca tutunan ev (konsol platform + payandalar)
+		if k % 2 == 0:
+			var sa = rng.randf() * 360.0
+			var sy = h * rng.randf_range(0.45, 0.75)
+			var sr = d * (0.5 - 0.14 * pow(sy / h, 1.3)) + 6.0
+			var so = Builder.rot(0, sr, sa)
+			b.cyl(Vector3(px + so.x, sy, pn + so.y), 14, 1.2, Color(0.75, 0.75, 0.72), true, 12)
+			for sx in [-1.0, 1.0]:
+				var po = Builder.rot(4.0 * sx, sr - 4.0, sa)
+				b.box(Vector3(px + po.x, sy - 4, pn + po.y), Vector3(0.6, 8, 0.6), VillageStyles.WOOD, sa, false, Vector3(30, 0, 0))
+			var yo2 = b.yoff
+			b.yoff = sy + 0.6
+			VillageStyles.kumo_house(b, px + so.x, pn + so.y, 9, 9, 2, sa, rng)
+			b.yoff = yo2
+		pillars.append([px, pn, d, h])
+		if k % 4 == 3:
 			await _yield()
-	for i in pillars.size() - 1:
+			if not is_instance_valid(b.root):
+				return
+	# yakın sütunlar arası asma köprüler
+	for i in pillars.size():
 		var p0: Array = pillars[i]
-		var p1: Array = pillars[i + 1]
-		var L = Vector2(p1[0] - p0[0], p1[1] - p0[1]).length()
-		if L < 260:
-			var mid = Vector3((p0[0] + p1[0]) * 0.5, minf(p0[3], p1[3]) - 6, (p0[1] + p1[1]) * 0.5)
-			b.box(mid, Vector3(5, 1.0, L - p0[2] * 0.5), Color(0.45, 0.35, 0.25), rad_to_deg(atan2(p1[0] - p0[0], p1[1] - p0[1])))
-	# Raikage kulesi
-	b.cyl(Vector3(0, 130, 0), 80, 260, rock, true, 24)
-	b.cyl(Vector3(0, 268, 0), 60, 18, Color(0.9, 0.9, 0.88), true, 24)
-	b.dome(Vector3(0, 277, 0), 64, 18, Color(0.25, 0.45, 0.7), 24)
-	b.interact(Vector3(0, 0, -44), 7, "mission_board", "[F] Raikage Ofisi (görevler) — tepeye duvardan koş!")
-	await _fill(b, r * 0.85, 70, 30, "rock", rng, [], 300)
+		for j in range(i + 1, pillars.size()):
+			var p1: Array = pillars[j]
+			var L = Vector2(p1[0] - p0[0], p1[1] - p0[1]).length()
+			if L < 170 and L > 60:
+				var y = minf(p0[3], p1[3]) * 0.92
+				var dir = Vector3(p1[0] - p0[0], 0, p1[1] - p0[1]).normalized()
+				var a0 = Vector3(p0[0], y, p0[1]) + dir * (p0[2] * 0.3)
+				var a1 = Vector3(p1[0], y, p1[1]) - dir * (p1[2] * 0.3)
+				VillageStyles.rope_bridge(b, a0, a1, 3.0, 4.0)
+				break
+	await _yield()
+	# Raikage kulesi: en yüksek sütun, çevresinde sarmal merdiven, tepede beyaz kule + "雷"
+	b.crag(Vector3(0, -6, 0), 120, 266, rock.darkened(0.06), 115, true, 0)
+	for s in 140:
+		var t = float(s) / 140.0
+		var y = t * 250.0
+		var rr = 60.0 * (1.0 - 0.28 * pow(t, 1.3)) + 4.0
+		var a = t * 360.0 * 4.0
+		var o = Builder.rot(0, rr, a)
+		b.box(Vector3(o.x, y, o.y), Vector3(6, 0.6, 3.2), Color(0.72, 0.7, 0.66), a + 90.0)
+	b.cyl(Vector3(0, 260.5, 0), 70, 2, Color(0.85, 0.85, 0.82), true, 24)
+	b.frustum(Vector3(0, 278, 0), 46, 34, Color(0.92, 0.92, 0.9), true, 24)
+	b.cyl(Vector3(0, 285, 0), 44, 2, Color(0.22, 0.45, 0.72), false, 24)
+	b.cyl(Vector3(0, 295.5, 0), 36, 1.5, Color(0.2, 0.4, 0.66), false, 24)
+	b.dome(Vector3(0, 296, 0), 34, 14, Color(0.22, 0.45, 0.72), 24)
+	b.disc(Vector3(0, 279, -20.5), 13, 0.5, Color(0.95, 0.95, 0.95), 0, 20)
+	b.kanji(Vector3(0, 279, -20.9), "雷", 10.0, Color(0.15, 0.3, 0.6), 0)
+	b.interact(Vector3(0, 0, -64), 7, "mission_board", "[F] Raikage Ofisi (görevler) — sarmal merdivenden ya da duvardan koşarak çık!")
+	# bulutlar sütunlar arasında
+	VillageStyles.mist(b, 70, 40, r * 0.9, 60, 200, 70, rng, 0.42)
+	if not _fx_done.has("kumo_falls"):
+		_fx_done["kumo_falls"] = true
+		for k in 2:
+			var p: Array = pillars[k * 7]
+			Waterfalls.add(b.w(Vector3(p[0], 0, p[1] - p[2] * 0.45)), p[3] * 0.7, 14.0, 0.0)
+	await _fill(b, r * 0.85, 80, 34, "kumo", rng, [], 380)
+	await _streets(b, v, "kumo", rng)
 	b.finish()
 
 
-# ------------------------------------------------------------------ Iwagakure: dev kaya kuleler, taş köprüler
+# ------------------------------------------------------------------ Iwagakure: kayaya oyulmuş kule şehir, asma köprüler
 static func iwa(parent: Node3D, v: Dictionary) -> void:
 	var b = Builder.new(parent, v["x"], v["y"], v["base"], "Iwa")
 	b.view_dist = 6000.0
 	var rng = _rng(5)
 	var r = float(v["r"])
+	var stone = Color(0.55, 0.44, 0.33)
+	var red = Color(0.58, 0.24, 0.17)
 	var towers = []
-	for k in 22:
-		var a = rng.randf() * TAU
-		var rr = rng.randf_range(100, r * 0.85)
+	for k in 30:
+		var a = TAU * (k + rng.randf_range(-0.3, 0.3)) / 30.0 * 2.0
+		var rr = lerpf(150, r * 0.88, sqrt(rng.randf()))
 		var px = rr * sin(a)
 		var pn = rr * cos(a)
-		var h = rng.randf_range(60, 150)
-		var w = rng.randf_range(30, 56)
-		var yaw = rng.randf() * 90
-		b.box(Vector3(px, h * 0.5, pn), Vector3(w, h, w * rng.randf_range(0.8, 1.2)), Color(0.52, 0.42, 0.32).darkened(rng.randf() * 0.1), yaw)
-		b.box(Vector3(px, h + 2, pn), Vector3(w * 1.1, 4, w * 1.1), Color(0.45, 0.35, 0.26), yaw)
-		for f in int(h / 12):
-			var o = Builder.rot(0, -w * 0.5 - 0.3, yaw)
-			b.box(Vector3(px + o.x, f * 12 + 6, pn + o.y), Vector3(5, 3, 0.4), Color(0.95, 0.8, 0.45) if f % 3 == 0 else Color(0.25, 0.2, 0.15), yaw, false)
-		towers.append([px, pn, h])
-		if k % 6 == 5:
+		var h = rng.randf_range(90, 230)
+		var d = rng.randf_range(60, 110)
+		var c = stone.darkened(rng.randf_range(0.0, 0.14))
+		b.crag(Vector3(px, -4, pn), d, h + 4, c, 100 + k, true, rng.randf() * 360.0)
+		# oyma pencereler ve balkonlar (yamaçta)
+		for f in int(h / 14):
+			var y = 8 + f * 14
+			var rad_here = d * (0.5 - 0.14 * pow(y / h, 1.3)) * 0.92
+			for j in 3:
+				var wa = rng.randf() * 360.0
+				var o = Builder.rot(0, rad_here, wa)
+				b.box(Vector3(px + o.x, y, pn + o.y), Vector3(2.4, 3.2, 1.0), VillageStyles.DARK, wa, false)
+				if j == 0:
+					var bo = Builder.rot(0, rad_here + 1.5, wa)
+					b.box(Vector3(px + bo.x, y - 1.8, pn + bo.y), Vector3(5, 0.5, 3), c.darkened(0.2), wa)
+					b.box(Vector3(px + bo.x, y + 2.3, pn + bo.y), Vector3(5.6, 0.4, 3.4), red, wa, false)
+		# tepede taş ev kümesi + kırmızı çatılar
+		var tr = d * 0.34
+		b.cyl(Vector3(px, h - 0.4, pn), tr * 2.0, 1.6, c.darkened(0.12), true, 12)
+		for j in rng.randi_range(1, 3):
+			var ja = rng.randf() * 360.0
+			var jo = Builder.rot(0, tr * 0.45 * j / 2.0, ja)
+			var yo = b.yoff
+			b.yoff = h + 0.4
+			VillageStyles.iwa_house(b, px + jo.x, pn + jo.y, tr * 0.7, tr * 0.6, rng.randi_range(1, 3), ja, rng)
+			b.yoff = yo
+		towers.append([px, pn, h, d])
+		if k % 5 == 4:
 			await _yield()
-	for i in towers.size() - 1:
+			if not is_instance_valid(b.root):
+				return
+	for i in towers.size():
 		var t0: Array = towers[i]
-		var t1: Array = towers[i + 1]
-		var L = Vector2(t1[0] - t0[0], t1[1] - t0[1]).length()
-		if L < 220:
-			b.box(Vector3((t0[0] + t1[0]) * 0.5, minf(t0[2], t1[2]) * 0.7, (t0[1] + t1[1]) * 0.5), Vector3(8, 3, L), Color(0.5, 0.42, 0.34), rad_to_deg(atan2(t1[0] - t0[0], t1[1] - t0[1])))
-	b.cone(Vector3(0, 90, 0), 140, 180, Color(0.5, 0.4, 0.3), 16, true)
-	b.box(Vector3(0, 60, -40), Vector3(16, 16, 1), Color(0.35, 0.28, 0.2), 0, false)
-	b.interact(Vector3(0, 0, -52), 7, "mission_board", "[F] Tsuchikage Ofisi (görevler)")
-	await _fill(b, r * 0.85, 90, 28, "iwa", rng, [], 300)
+		for j in range(i + 1, towers.size()):
+			var t1: Array = towers[j]
+			var L = Vector2(t1[0] - t0[0], t1[1] - t0[1]).length()
+			if L < 160 and L > 50:
+				var y = minf(t0[2], t1[2]) * 0.6
+				var dir = Vector3(t1[0] - t0[0], 0, t1[1] - t0[1]).normalized()
+				VillageStyles.rope_bridge(b, Vector3(t0[0], y, t0[1]) + dir * t0[3] * 0.32, Vector3(t1[0], y, t1[1]) - dir * t1[3] * 0.32, 3.0, 3.5)
+				break
+	await _yield()
+	# Tsuchikage kulesi: dev kaya, oyma katlar, kırmızı çatı katmanları, "土"
+	b.crag(Vector3(0, -4, 0), 150, 180, stone.darkened(0.05), 77, true, 0)
+	for f in 8:
+		var y = 14 + f * 18
+		var rad_here = 150 * (0.5 - 0.3 * pow(y / 180.0, 1.3)) * 0.9
+		for j in 6:
+			var wa = j * 60.0 + f * 15.0
+			var o = Builder.rot(0, rad_here, wa)
+			b.box(Vector3(o.x, y, o.y), Vector3(4, 5, 1.2), VillageStyles.DARK, wa, false)
+	for t in 3:
+		b.cone(Vector3(0, 182 + t * 7, 0), 48 - t * 12, 7, red.darkened(0.06 * t), 12)
+	b.disc(Vector3(0, 70, -60.5), 18, 0.6, Color(0.88, 0.82, 0.72), 0, 20)
+	b.kanji(Vector3(0, 70, -61.1), "土", 14.0, Color(0.42, 0.18, 0.12), 0)
+	b.box(Vector3(0, 4, -64), Vector3(14, 8, 6), VillageStyles.DARK, 0, false)
+	b.interact(Vector3(0, 0, -70), 7, "mission_board", "[F] Tsuchikage Ofisi (görevler)")
+	await _fill(b, r * 0.85, 110, 30, "iwa", rng, [], 520)
+	await _streets(b, v, "iwa", rng)
 	b.finish()
 
 
-# ------------------------------------------------------------------ Amegakure: devasa sanayi kuleleri, borular, sürekli yağmur
+# ------------------------------------------------------------------ Amegakure: göl üstünde koyu sanayi kuleleri, borular, yüzlü merkez kule
 static func ame(parent: Node3D, v: Dictionary) -> void:
 	var b = Builder.new(parent, v["x"], v["y"], v["base"], "Ame")
 	b.view_dist = 6000.0
 	var rng = _rng(6)
-	var metal = Color(0.38, 0.4, 0.43)
+	var metal = Color(0.36, 0.38, 0.41)
 	var r = float(v["r"])
-	b.box(Vector3(0, 150, 0), Vector3(50, 300, 50), metal.darkened(0.1))
-	b.cyl(Vector3(0, 306, 0), 36, 16, metal, true, 16)
-	for k in 10:
-		b.cyl(Vector3(0, 260 - k * 24, 26), 5, 5, metal.lightened(0.1), false, 8)
-	b.interact(Vector3(0, 0, -30), 7, "mission_board", "[F] Ame Kulesi (görevler)")
+	VillageStyles.water(b, Vector3(0, 0.45, 0), Vector2(r * 1.85, r * 1.85))
+	# merkez kule: basamaklı gövde, borular, tepede dikenli antenler, cephede yüz
+	b.box(Vector3(0, 110, 0), Vector3(60, 220, 60), metal.darkened(0.12))
+	b.box(Vector3(0, 250, 0), Vector3(46, 60, 46), metal.darkened(0.08))
+	b.box(Vector3(0, 292, 0), Vector3(30, 24, 30), metal)
+	for k in 6:
+		b.cone(Vector3(-12 + k * 5, 312, 0), 2.5, 16 + (k % 3) * 6, metal.darkened(0.2), 6)
+	for k in 4:
+		var a = k * 90.0 + 45.0
+		var o = Builder.rot(0, 34, a)
+		b.cyl(Vector3(o.x, 120, o.y), 4.5, 240, metal.lightened(0.05), false, 10)
+	# yüz (kule cephesi, güneye bakar): kaş, göz çukurları, burun, sivri dişli ağız, borudan piercingler
+	var fz = -30.6
+	for sx in [-1.0, 1.0]:
+		b.box(Vector3(12 * sx, 200, fz), Vector3(14, 3, 2), metal.darkened(0.35), 0, false, Vector3(0, 0, -18 * sx))
+		b.box(Vector3(12 * sx, 190, fz), Vector3(10, 6, 1.5), Color(0.05, 0.05, 0.06), 0, false)
+		b.box(Vector3(12 * sx, 190, fz - 0.4), Vector3(3, 3, 1), Color(0.9, 0.75, 0.3), 0, false)
+		for k in 3:
+			b.cyl(Vector3(20 * sx, 175 - k * 5, fz - 1.5), 1.2, 1.2, Color(0.65, 0.67, 0.7), false, 8)
+	b.box(Vector3(0, 178, fz - 1.5), Vector3(5, 14, 3), metal.darkened(0.2), 0, false)
+	b.box(Vector3(0, 158, fz), Vector3(30, 12, 1.5), Color(0.04, 0.04, 0.05), 0, false)
+	for k in 9:
+		var tx = -13 + k * 3.25
+		b.box(Vector3(tx, 163, fz - 0.6), Vector3(1.6, 3.5, 1.2), Color(0.85, 0.85, 0.8), 0, false, Vector3(0, 0, 180))
+		b.box(Vector3(tx + 1.6, 153, fz - 0.6), Vector3(1.6, 3.5, 1.2), Color(0.85, 0.85, 0.8), 0, false)
+	b.interact(Vector3(0, 0, -36), 7, "mission_board", "[F] Ame Kulesi (görevler)")
+	await _yield()
+	var tw = []
 	for k in 26:
 		var a = rng.randf() * TAU
-		var rr = rng.randf_range(70, r * 0.85)
-		var h = rng.randf_range(60, 200)
+		var rr = rng.randf_range(80, r * 0.85)
 		var px = rr * sin(a)
 		var pn = rr * cos(a)
+		var h = rng.randf_range(60, 200)
 		var w = rng.randf_range(18, 34)
 		b.box(Vector3(px, h * 0.5, pn), Vector3(w, h, w), metal.darkened(rng.randf_range(0, 0.15)))
-		b.cyl(Vector3(px + w * 0.5 + 2, h * 0.4, pn), 3.6, h * 0.8, metal.lightened(0.05), false, 8)
-		if k % 8 == 7:
+		b.box(Vector3(px, h + 4, pn), Vector3(w * 0.6, 8, w * 0.6), metal.darkened(0.2))
+		b.cyl(Vector3(px, h + 14, pn), 0.6, 14, metal.darkened(0.3), false, 6)
+		for f in int(h / 8):
+			if rng.randf() < 0.5:
+				var o = Builder.rot(rng.randf_range(-w * 0.35, w * 0.35), -w * 0.5 - 0.1, 0)
+				b.box(Vector3(px + o.x, f * 8 + 5, pn + o.y), Vector3(2, 2.5, 0.2), Color(0.95, 0.8, 0.45) if rng.randf() < 0.35 else Color(0.12, 0.13, 0.16), 0, false)
+		for j in 2:
+			var po = Builder.rot((w * 0.5 + 1.5) * (1 if j == 0 else -1), 0, 0)
+			b.cyl(Vector3(px + po.x, h * 0.45, pn + po.y), 3.0, h * 0.9, metal.lightened(0.04), false, 8)
+		tw.append([px, pn, h])
+		if k % 6 == 5:
 			await _yield()
-	await _fill(b, r * 0.85, 80, 26, "ame", rng, [], 260)
+			if not is_instance_valid(b.root):
+				return
+	# kuleler arası yatay boru köprüleri
+	for i in tw.size() - 1:
+		var t0: Array = tw[i]
+		var t1: Array = tw[i + 1]
+		var d = Vector3(t1[0] - t0[0], 0, t1[1] - t0[1])
+		if d.length() < 200:
+			var y = minf(t0[2], t1[2]) * 0.55
+			var mid = Vector3((t0[0] + t1[0]) * 0.5, y, (t0[1] + t1[1]) * 0.5)
+			var wpm = b.w(mid)
+			b._mb(wpm).add("cyl", wpm, Vector3(2.5, d.length(), 2.5), metal.lightened(0.08), Vector3(90, rad_to_deg(atan2(d.x, d.z)), 0), 8)
+	await _fill(b, r * 0.85, 90, 28, "ame", rng, [], 420)
+	await _streets(b, v, "ame", rng)
 	b.finish()
 
 
-# ------------------------------------------------------------------ Otogakure: gizli yeraltı sığınakları
+# ------------------------------------------------------------------ Otogakure: kaya tepesine gizlenmiş yeraltı sığınağı
 static func oto(parent: Node3D, v: Dictionary) -> void:
 	var b = Builder.new(parent, v["x"], v["y"], v["base"], "Oto")
 	var rng = _rng(7)
-	for k in 8:
-		var a = k * 45.0
-		var o = Builder.rot(0, 120, a)
-		b.dome(Vector3(o.x, 0, o.y), 40, 16, Color(0.42, 0.4, 0.36), 14)
-		b.box(Vector3(o.x, 4, o.y - 18), Vector3(8, 8, 3), Color(0.15, 0.13, 0.12), a, false)
-	b.box(Vector3(0, 10, 0), Vector3(50, 20, 50), Color(0.32, 0.3, 0.33))
-	b.box(Vector3(0, 14, -25.2), Vector3(8, 8, 0.4), Color(0.5, 0.35, 0.6), 0, false)
-	b.interact(Vector3(0, 0, -30), 7, "oto_lair", "[F] Ses Sığınağı")
-	await _fill(b, float(v["r"]) * 0.8, 160, 28, "rock", rng, [], 120)
+	var rock = Color(0.42, 0.4, 0.38)
+	b.boulder(Vector3(0, 6, 40), Vector3(150, 60, 120), rock, 3, true)
+	for k in 10:
+		var a = rng.randf() * 360.0
+		var o = Builder.rot(0, rng.randf_range(60, 110), a)
+		b.boulder(Vector3(o.x, 2, o.y + 40), Vector3(rng.randf_range(12, 30), rng.randf_range(8, 20), rng.randf_range(12, 26)), rock.darkened(rng.randf() * 0.15), k)
+	# mağara ağzı: koyu kemer, taş çerçeve, mor fenerler, yılan heykelleri
+	b.box(Vector3(0, 6, -16), Vector3(16, 12, 6), Color(0.04, 0.03, 0.05), 0, false)
+	b.disc(Vector3(0, 12, -19.2), 16, 0.6, Color(0.04, 0.03, 0.05), 0, 16)
+	b.box(Vector3(0, 19, -19), Vector3(22, 3, 3), rock.darkened(0.2), 0, false)
+	b.box(Vector3(0, 21.5, -19.4), Vector3(4, 4, 0.3), Color(0.5, 0.35, 0.6), 0, false)
+	b.kanji(Vector3(0, 21.5, -19.7), "音", 3.2, Color(0.95, 0.9, 1.0), 0)
+	for sx in [-1.0, 1.0]:
+		b.cyl(Vector3(11 * sx, 3, -18), 1.6, 6, rock.darkened(0.25), false, 8)
+		b.sphere(Vector3(11 * sx, 6.5, -18), Vector3(1.6, 1.6, 1.6), Color(0.6, 0.3, 0.75), 8)
+		for k in 6:
+			b.sphere(Vector3(16 * sx + sin(k * 0.9) * 2.0, 1.0 + k * 1.6, -22 + k * 0.4), Vector3(2.0, 1.8, 2.0), Color(0.45, 0.4, 0.5), 8)
+	b.interact(Vector3(0, 0, -24), 7, "oto_lair", "[F] Ses Sığınağı")
+	await _fill(b, float(v["r"]) * 0.8, 180, 30, "rock", rng, [[0, 40, 110]], 90)
 	b.finish()
 
 
@@ -422,65 +699,99 @@ static func kusa(parent: Node3D, v: Dictionary) -> void:
 	b.finish()
 
 
-# ------------------------------------------------------------------ Takigakure: göl ortasında 250 m'lik dev ağaç + şelaleler
+# ------------------------------------------------------------------ Takigakure: göl ortasında dev ağaç, arkada şelaleli uçurumlar
 static func taki(parent: Node3D, v: Dictionary) -> void:
 	var b = Builder.new(parent, v["x"], v["y"], v["base"], "Taki")
 	b.view_dist = 6000.0
 	var rng = _rng(9)
 	var r = float(v["r"])
-	b.box(Vector3(0, -1.5, 0), Vector3(360, 0.2, 360), Color(0.25, 0.5, 0.6), 0, false)
-	var bark = Color(0.4, 0.28, 0.18)
-	b.cyl(Vector3(0, 125, 0), 70, 250, bark, true, 20)
-	for k in 8:
-		var a = TAU * k / 8
-		b.box(Vector3(cos(a) * 40, 8, sin(a) * 40), Vector3(10, 18, 40), bark.darkened(0.1), rad_to_deg(-a) + 90)
-	b.sphere(Vector3(0, 270, 0), Vector3(300, 110, 300), Color(0.22, 0.48, 0.24), 16)
-	b.sphere(Vector3(80, 240, 50), Vector3(160, 70, 160), Color(0.26, 0.52, 0.26), 12)
-	b.sphere(Vector3(-70, 230, -60), Vector3(150, 60, 150), Color(0.24, 0.5, 0.25), 12)
-	for k in 12:
-		var a = k * 30.0
+	VillageStyles.water(b, Vector3(0, -0.5, 0), Vector2(420, 420))
+	var bark = Color(0.42, 0.29, 0.19)
+	# gövde: pürüzlü kabuk sütunu + kök payandaları
+	b.crag(Vector3(0, -6, 0), 80, 256, bark, 5, true, 0)
+	for k in 9:
+		var a = k * 40.0 + rng.randf_range(-10, 10)
 		var o = Builder.rot(0, 42, a)
-		b.box(Vector3(o.x, 20 + k * 16, o.y), Vector3(24, 1.5, 18), Color(0.55, 0.4, 0.25), a)
+		var wp = b.w(Vector3(o.x, 10, o.y))
+		b._mb(wp).add("crag", wp, Vector3(18, 60, 18), bark.darkened(0.1), Vector3(-55, a, 0), k)
+	# taç: kat kat yaprak kümeleri
+	for k in 18:
+		var a = rng.randf() * 360.0
+		var rr = rng.randf_range(0, 150)
+		var o = Builder.rot(0, rr, a)
+		var y = rng.randf_range(215, 285) - rr * 0.18
+		var s = rng.randf_range(70, 130)
+		var wp2 = b.w(Vector3(o.x, y, o.y))
+		b._mb(wp2).add_grad("sphere", wp2, Vector3(s, s * 0.5, s), Color(0.34, 0.62, 0.3), Color(0.16, 0.38, 0.18), Vector3.ZERO, 12)
+	# gövdeye sarılan merdiven-platformlar + dallara asılı evler
+	for k in 14:
+		var a = k * 26.0
+		var o = Builder.rot(0, 41 - k * 0.6, a)
+		b.box(Vector3(o.x, 16 + k * 14, o.y), Vector3(22, 1.5, 16), Color(0.55, 0.4, 0.25), a)
+		if k % 3 == 1:
+			var ho = Builder.rot(0, 50, a)
+			b.box(Vector3(ho.x, 15.2 + k * 14, ho.y), Vector3(12, 1.2, 12), Color(0.5, 0.36, 0.22), a)
+			var yo = b.yoff
+			b.yoff = 15.8 + k * 14
+			b._house_body(ho.x, ho.y, 9, 8, 1, a, "wood", rng)
+			b.yoff = yo
 	await _yield()
 	for k in 3:
 		var a = k * 120.0 + 30.0
 		var o = Builder.rot(0, r * 0.8, a)
-		b.box(Vector3(o.x, 60, o.y), Vector3(160, 130, 60), Color(0.5, 0.48, 0.44), a)
+		b.crag(Vector3(o.x, -6, o.y), 150, 140, Color(0.5, 0.48, 0.44), 30 + k, true, a)
+		b.crag(Vector3(o.x + 60, -6, o.y + 20), 110, 110, Color(0.46, 0.45, 0.42), 33 + k, true, a + 40)
 		if not _fx_done.has("taki_%d" % k):
 			_fx_done["taki_%d" % k] = true
-			var fo = Builder.rot(0, r * 0.8 - 32, a)
+			var fo = Builder.rot(0, r * 0.8 - 62, a)
 			Waterfalls.add(b.w(Vector3(fo.x, 0, fo.y)), 120.0, 40.0, a)
-	b.interact(Vector3(0, 0, -40), 7, "mission_board", "[F] Taki Liderleri (görevler)")
-	await _fill(b, r * 0.75, 220, 26, "wood", rng, [], 180)
+	VillageStyles.mist(b, 30, 150, r * 0.8, 2, 20, 40, rng, 0.25)
+	b.interact(Vector3(0, 0, -48), 7, "mission_board", "[F] Taki Liderleri (görevler)")
+	await _fill(b, r * 0.75, 240, 26, "wood", rng, [], 180)
 	b.finish()
 
 
-# ------------------------------------------------------------------ Yugakure: kaplıca kasabası
+# ------------------------------------------------------------------ Yugakure: kaplıca kasabası, kayalarla çevrili havuzlar, fenerler
 static func yu(parent: Node3D, v: Dictionary) -> void:
 	var b = Builder.new(parent, v["x"], v["y"], v["base"], "Yu")
 	var rng = _rng(10)
 	for k in 10:
 		var a = k * 36.0
 		var o = Builder.rot(0, 110, a)
-		b.cyl(Vector3(o.x, -0.6, o.y), 30, 1.2, Color(0.55, 0.52, 0.48), false, 18)
-		b.cyl(Vector3(o.x, 0.05, o.y), 27, 0.1, Color(0.55, 0.78, 0.82), false, 18)
+		VillageStyles.water(b, Vector3(o.x, 0.05, o.y), Vector2(24, 24), a)
+		for j in 14:
+			var ja = j * 360.0 / 14.0
+			var jo = Builder.rot(0, 13.5, ja)
+			b.boulder(Vector3(o.x + jo.x, 0.4, o.y + jo.y), Vector3(rng.randf_range(2.5, 4.5), rng.randf_range(1.5, 2.6), rng.randf_range(2.5, 4.0)), Color(0.5, 0.48, 0.45).darkened(rng.randf() * 0.15), j, false)
+		for sx in [-1.0, 1.0]:
+			var lo = Builder.rot(16 * sx, 0, a)
+			BuildFeatures._build(b, {"t": "lantern", "x": o.x + lo.x, "y": o.y + lo.y, "g": 0.0, "yaw": a}, rng)
+		# bambu paravan
+		var so = Builder.rot(0, 17, a)
+		b.box(Vector3(o.x + so.x, 1.2, o.y + so.y), Vector3(20, 2.4, 0.3), Color(0.62, 0.55, 0.32), a)
 		if not _fx_done.has("yu_%d" % k):
 			_fx_done["yu_%d" % k] = true
 			Steam.add(b.w(Vector3(o.x, 0.3, o.y)))
-	b.box(Vector3(0, 9, 0), Vector3(50, 18, 32), Color(0.58, 0.4, 0.26))
-	b.roof(Vector3(0, 18, 0), Vector3(56, 9, 38), Color(0.25, 0.25, 0.3))
-	b.interact(Vector3(0, 0, -20), 7, "onsen", "[F] Kaplıcaya gir (tam iyileşme)")
-	await _fill(b, float(v["r"]) * 0.8, 160, 22, "wood", rng, [], 200)
+	# büyük han (iki katlı, noren, fenerler)
+	b.house(0, 0, 28, 18, 2, 0, "konoha", rng)
+	b.house(-30, 6, 16, 12, 2, 0, "konoha", rng)
+	b.house(30, 6, 16, 12, 2, 0, "konoha", rng)
+	b.interact(Vector3(0, 0, -14), 7, "onsen", "[F] Kaplıcaya gir (tam iyileşme)")
+	await _fill(b, float(v["r"]) * 0.8, 170, 22, "konoha", rng, [], 180)
 	b.finish()
 
 
 static func small_town(parent: Node3D, v: Dictionary, style: String) -> void:
 	var b = Builder.new(parent, v["x"], v["y"], v["base"], v["id"])
 	var rng = _rng(hash(v["id"]))
-	b.box(Vector3(0, 8, 0), Vector3(36, 16, 26), Color(0.6, 0.5, 0.4))
-	b.roof(Vector3(0, 16, 0), Vector3(40, 8, 30), Color(0.9, 0.92, 0.95) if style == "snow" else Color(0.3, 0.3, 0.35))
+	b.house(0, 0, 30, 20, 2, 0, style, rng)
 	b.interact(Vector3(0, 0, -16), 7, "mission_board", "[F] Köy Meclisi (görevler)")
-	await _fill(b, float(v["r"]) * 0.8, 40, 22, style, rng, [], 200)
+	if style == "snow":
+		for k in 40:
+			var a = rng.randf() * TAU
+			var rr = rng.randf_range(20, float(v["r"]) * 0.8)
+			b.dome(Vector3(rr * sin(a), -0.2, rr * cos(a)), rng.randf_range(4, 12), rng.randf_range(0.6, 1.6), Color(0.95, 0.97, 1.0), 10)
+	await _fill(b, float(v["r"]) * 0.8, 40, 22, style, rng, [[0, 0, 25]], 200)
 	b.finish()
 
 
@@ -490,26 +801,88 @@ static func tani(parent: Node3D, v: Dictionary) -> void:
 	var rng = _rng(11)
 	var L = float(v["r"]) * 1.6
 	for sx in [-1.0, 1.0]:
-		b.box(Vector3(150 * sx, 60, 0), Vector3(100, 130, L), Color(0.55, 0.45, 0.35))
+		for k in 14:
+			var n = -L * 0.5 + (k + 0.5) * L / 14.0
+			b.crag(Vector3(150 * sx + rng.randf_range(-15, 15), -6, n), 120, rng.randf_range(110, 150), Color(0.58, 0.46, 0.35).darkened(rng.randf() * 0.12), k + (20 if sx > 0 else 0), true, rng.randf() * 360.0)
 		for k in 30:
 			var n = -L * 0.45 + k * L * 0.9 / 30.0
-			b.box(Vector3(99 * sx, 10 + (k % 4) * 22, n), Vector3(4, 10, 14), Color(0.62, 0.5, 0.36))
-			b.box(Vector3(96 * sx, 5 + (k % 4) * 22, n), Vector3(8, 0.6, 16), Color(0.45, 0.33, 0.22))
+			var y = 10 + (k % 4) * 22
+			b.box(Vector3(102 * sx, y, n), Vector3(4, 8, 12), VillageStyles.DARK, 0, false)
+			b.box(Vector3(99 * sx, y - 4.3, n), Vector3(9, 0.6, 16), Color(0.45, 0.33, 0.22))
+			b.box(Vector3(99 * sx, y + 4.6, n), Vector3(10, 0.4, 17), Color(0.55, 0.25, 0.18), 0, false)
+			if k % 3 == 0:
+				for j in 4:
+					b.box(Vector3(95 * sx, y - 4.3 - j * 5.5, n + 8 + j * 1.5), Vector3(3, 0.4, 3), Color(0.45, 0.33, 0.22), 0, false)
 	b.interact(Vector3(0, 0, -30), 7, "mission_board", "[F] Tani Muhtarı (görevler)")
 	await _fill(b, 90, 0, 20, "wood", rng, [], 60)
 	b.finish()
 
 
-# ------------------------------------------------------------------ Dalga Kasabası: iskeleler
+# ------------------------------------------------------------------ Dalga Ülkesi kasabası: denize uzanan kazık evler, iskeleler, Büyük Köprü
 static func nami(parent: Node3D, v: Dictionary) -> void:
 	var b = Builder.new(parent, v["x"], v["y"], v["base"], "Nami")
 	var rng = _rng(12)
-	await _fill(b, float(v["r"]) * 0.75, 20, 20, "wood", rng, [], 220)
-	for k in 8:
-		var a = k * 22.0 + 120.0
-		var o = Builder.rot(0, float(v["r"]) * 0.95, a)
-		b.box(Vector3(o.x, -3.5, o.y), Vector3(6, 0.5, 80), Color(0.5, 0.38, 0.25), a)
+	var r = float(v["r"])
+	# denizin olduğu yönü bul (en alçak kıyı)
+	var sea_a = 0.0
+	var lowest = 1e9
+	for k in 24:
+		var a = 360.0 * k / 24.0
+		for dd in [r * 1.2, r * 2.0, r * 3.0, r * 4.5, r * 6.0]:
+			var o = Builder.rot(0, dd, a)
+			var g = b._ground_off(o.x, o.y, 1.0).x
+			if g < lowest:
+				lowest = g
+				sea_a = a
+	var shore = -1.0
+	for k in 40:
+		var o = Builder.rot(0, r * 0.6 + k * 30.0, sea_a)
+		if b._ground_off(o.x, o.y, 1.0).x < -1.5:
+			shore = r * 0.6 + k * 30.0 - 30.0
+			break
+	await _fill(b, r * 0.6, 20, 20, "wood", rng, [], 160)
 	b.interact(Vector3(0, 0, 0), 7, "mission_board", "[F] Kasaba Halkı (görevler)")
+	if shore < 0.0 or shore > 1400.0:
+		b.finish()   # yakında deniz yok: kazık evler ve köprü kurulmaz
+		return
+	# kıyıda ve suyun üstünde kazık evler + yürüme iskeleleri
+	for k in 30:
+		var lx = -150.0 + (k % 10) * 32.0
+		var ln = shore + 10.0 + int(k / 10) * 28.0
+		var o = Builder.rot(lx, ln, sea_a)
+		var g = b._ground_off(o.x, o.y, 6.0).y
+		var deck = maxf(g, -1.0) + 2.6
+		b.box(Vector3(o.x, deck, o.y), Vector3(13, 0.6, 13), Color(0.45, 0.34, 0.24), sea_a)
+		for sx in [-1.0, 1.0]:
+			for sz in [-1.0, 1.0]:
+				var po = Builder.rot(lx + 5.5 * sx, ln + 5.5 * sz, sea_a)
+				b.cyl(Vector3(po.x, deck - 6.0, po.y), 0.7, 12.0, Color(0.32, 0.24, 0.17), false, 6)
+		var yo = b.yoff
+		b.yoff = deck + 0.3
+		b._house_body(o.x, o.y, 9, 8, 1, sea_a + 180.0, "wood", rng)
+		b.yoff = yo
+		var wo = Builder.rot(lx, ln - 12.0, sea_a)
+		b.box(Vector3(wo.x, deck, wo.y), Vector3(3, 0.4, 12), Color(0.45, 0.34, 0.24), sea_a, false)
+		if k % 10 == 9:
+			await _yield()
+			if not is_instance_valid(b.root):
+				return
+	# Büyük Köprü: kıyıdan denize uzanan geniş köprü, ayaklar ve kemer kirişleri
+	var bl = 900.0
+	var bs = shore - 40.0
+	var mid = Builder.rot(180.0, bs + bl * 0.5, sea_a)
+	b.box(Vector3(mid.x, 8, mid.y), Vector3(16, 1.6, bl), Color(0.62, 0.6, 0.57), sea_a)
+	for sx in [-1.0, 1.0]:
+		var ro = Builder.rot(180.0 + 7.6 * sx, bs + bl * 0.5, sea_a)
+		b.box(Vector3(ro.x, 9.4, ro.y), Vector3(0.6, 1.4, bl), Color(0.5, 0.48, 0.45), sea_a, false)
+	for k in 16:
+		var po = Builder.rot(180.0, bs + k * bl / 15.0, sea_a)
+		b.box(Vector3(po.x, -6, po.y), Vector3(12, 28, 6), Color(0.55, 0.53, 0.5), sea_a)
+		if k % 3 == 0:
+			for sx in [-1.0, 1.0]:
+				var to = Builder.rot(180.0 + 8 * sx, bs + k * bl / 15.0, sea_a)
+				b.box(Vector3(to.x, 15, to.y), Vector3(1.2, 12, 1.2), Color(0.45, 0.32, 0.22), sea_a, false)
+			b.box(Vector3(po.x, 21, po.y), Vector3(20, 1.2, 1.6), Color(0.45, 0.32, 0.22), sea_a, false)
 	b.finish()
 
 
@@ -522,23 +895,52 @@ static func uzushio(parent: Node3D, v: Dictionary) -> void:
 		var rr = rng.randf_range(20, r * 0.85)
 		var h = rng.randf_range(2, 18)
 		b.box(Vector3(rr * sin(a), h * 0.5, rr * cos(a)), Vector3(rng.randf_range(6, 24), h, rng.randf_range(2, 5)), Color(0.55, 0.5, 0.45), rng.randf() * 180)
-	b.cyl(Vector3(0, 1, 0), 40, 2, Color(0.6, 0.25, 0.22), false, 24)
+		if k % 4 == 0:
+			b.boulder(Vector3(rr * sin(a) + 4, 1, rr * cos(a)), Vector3(5, 3, 4), Color(0.5, 0.47, 0.42), k)
+	# Uzumaki sarmalı (yerde kırmızı halka + sarmal)
+	b.cyl(Vector3(0, 0.6, 0), 40, 1.2, Color(0.6, 0.25, 0.22), false, 24)
+	for k in 40:
+		var t = float(k) / 40.0
+		var a = t * 720.0
+		var o = Builder.rot(0, 4 + t * 14, a)
+		b.box(Vector3(o.x, 1.3, o.y), Vector3(2.4, 0.3, 1.2), Color(0.85, 0.82, 0.75), a, false)
 	b.interact(Vector3(0, 0, 0), 10, "ruins", "[F] Harabeleri incele")
 	b.finish()
 
 
-# ------------------------------------------------------------------ Demir Kalesi: dev samuray şatosu
+# ------------------------------------------------------------------ Demir Ülkesi: karlı dağlarda samuray şatosu
 static func tetsu(parent: Node3D, v: Dictionary) -> void:
 	var b = Builder.new(parent, v["x"], v["y"], v["base"], "Tetsu")
 	b.view_dist = 6000.0
 	var rng = _rng(14)
-	b.box(Vector3(0, 12, 0), Vector3(140, 24, 140), Color(0.5, 0.5, 0.52))
+	var stone = Color(0.55, 0.55, 0.57)
+	var white = Color(0.95, 0.95, 0.95)
+	var roofc = Color(0.22, 0.26, 0.3)
+	var snow = Color(0.95, 0.97, 1.0)
+	# eğimli taş kaide (ishigaki) + sur
+	for t in 4:
+		var s = 170.0 - t * 12.0
+		b.box(Vector3(0, 3 + t * 6, 0), Vector3(s, 6, s), stone.darkened(0.04 * t))
+	b.wall_rect(0, 0, 230, 230, 10, stone.darkened(0.1), 14)
+	# beş katlı beyaz şato kulesi: her katta kavisli koyu çatı + kar
 	for t in 5:
-		var s = 100.0 - t * 18.0
-		b.box(Vector3(0, 30 + t * 16, 0), Vector3(s, 16, s), Color(0.95, 0.95, 0.95))
-		b.roof(Vector3(0, 38 + t * 16, 0), Vector3(s + 14, 8, s + 14), Color(0.25, 0.3, 0.35))
-	b.interact(Vector3(0, 0, -74), 7, "mission_board", "[F] Samuray Generali (görevler)")
-	await _fill(b, float(v["r"]) * 0.8, 120, 26, "snow", rng, [], 200)
+		var s = 100.0 - t * 17.0
+		var y = 24 + t * 16
+		b.box(Vector3(0, y + 6, 0), Vector3(s, 12, s), white)
+		for k in int(s / 9):
+			var lx = -s * 0.5 + (k + 0.5) * s / int(s / 9)
+			b.box(Vector3(lx, y + 7, -s * 0.5 - 0.1), Vector3(2.2, 3.0, 0.3), VillageStyles.DARK, 0, false)
+		b.roof(Vector3(0, y + 12, 0), Vector3(s + 16, 7, s + 16), roofc)
+		b.roof(Vector3(0, y + 12.4, 0), Vector3(s + 15, 6.6, s + 15), snow)
+		b.box(Vector3(0, y + 12, 0), Vector3(s + 18, 0.8, s + 18), roofc.darkened(0.2), 0, false)
+	b.cone(Vector3(0, 112, 0), 10, 8, Color(0.8, 0.65, 0.25), 8)
+	b.kanji(Vector3(0, 56, -59.5), "侍", 12.0, Color(0.12, 0.12, 0.14), 0)
+	b.interact(Vector3(0, 0, -96), 7, "mission_board", "[F] Samuray Generali (görevler)")
+	for k in 60:
+		var a = rng.randf() * TAU
+		var rr = rng.randf_range(130, float(v["r"]) * 0.85)
+		b.dome(Vector3(rr * sin(a), -0.2, rr * cos(a)), rng.randf_range(6, 16), rng.randf_range(0.8, 2.0), snow, 10)
+	await _fill(b, float(v["r"]) * 0.8, 150, 26, "snow", rng, [], 200)
 	b.finish()
 
 
