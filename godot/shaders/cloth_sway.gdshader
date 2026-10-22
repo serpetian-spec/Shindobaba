@@ -13,8 +13,9 @@ varying float g_mask;
 void vertex() {
 	vec3 w = (MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
 	float k = clamp(-VERTEX.y / hang, 0.0, 1.0);
+	k = max(k - 0.35 * step(1.5, hang), 0.0);  // fener dizisi: ip kısmı sabit
 	k = k * k;
-	float ph = TIME * speed + w.x * 0.21 + w.z * 0.17;
+	float ph = TIME * speed + w.x * 0.21 + w.z * 0.17 + (VERTEX.x + VERTEX.z) * 0.9;
 	VERTEX.x += sin(ph) * amp * k;
 	VERTEX.z += sin(ph * 0.77 + 1.3) * amp * 0.6 * k;
 	g_mask = mix(1.0, COLOR.a, glow_only_alpha);

@@ -1,325 +1,619 @@
 class_name BuildKonoha
 extends RefCounted
-## Konohagakure: Ateş Ülkesi'nin gizli yaprak köyü. Yerel (x=doğu, n=kuzey), merkez (0,0), yarıçap ~430 m.
+## Konohagakure: Ateş Ülkesi'nin gizli yaprak köyü. Yerel (x=doğu, n=kuzey), merkez (0,0), yarıçap ~1500 m (plato).
+## Sokak ağı dünya verisinden (roads.json, kind "street") gelir; evler sokak boylarına dizilir (merkez sık, dış mahalleler seyrek).
+## Kuzeyde arazi uçurumu (Hokage Kayası, n≈1170) — yüzler uçuruma oyulur. Girilebilir binalar ("enter" -> Interiors),
+## canlı şehir mekânları (VillageLife.sites), süsler (CityDecor).
 
-const R := 410.0
+const VL = preload("res://scripts/world/village_life.gd")
+const WALL_H := 28.0
+
+static var R := 1460.0
+
+
+## Kapı etkileşimi: araziye oturan nokta; alias = hikâye hedefi için iç mekândaki asıl tür
+static func _door(b: Builder, x: float, n: float, radius: float, room: String, label: String, alias := "", seed := 0) -> void:
+	var wp = b.w(Vector3(x, 0, n))
+	wp.y = Game.terrain_height(wp.x, wp.z) + 0.4
+	Interact.add({"pos": wp, "radius": radius, "kind": "enter", "label": label, "room": room, "alias": alias, "seed": seed, "out": wp})
+
+
+## Araziye oturan etkileşim (Builder.interact taban yüksekliğini kullanır; burada gerçek zemin)
+static func _act(b: Builder, x: float, n: float, radius: float, kind: String, label: String, data := {}) -> void:
+	var wp = _gp(b, x, n) + Vector3(0, 0.4, 0)
+	var d = {"pos": wp, "radius": radius, "kind": kind, "label": label}
+	d.merge(data)
+	Interact.add(d)
+
+
+static func _site(b: Builder, type: String, x: float, n: float, extra := {}) -> void:
+	var d = {"type": type, "pos": _gp(b, x, n)}
+	d.merge(extra)
+	if not VL.sites.has("konoha"):
+		VL.sites["konoha"] = []
+	VL.sites["konoha"].append(d)
+
+
+## Yerel (x, n) noktasını araziye oturan Godot konumuna çevirir
+static func _gp(b: Builder, x: float, n: float) -> Vector3:
+	var wp = b.w(Vector3(x, 0, n))
+	wp.y = Game.terrain_height(wp.x, wp.z)
+	return wp
+
+
+## Yerel zemin yüksekliği (köy tabanına göre)
+static func _gy(b: Builder, x: float, n: float) -> float:
+	var wp = b.w(Vector3(x, 0, n))
+	return Game.terrain_height(wp.x, wp.z) - b.origin.y
+
+
+## Yerel bakış yönü (dx doğu, dn kuzey) -> Villager.facing (radyan)
+static func _face(dx: float, dn: float) -> float:
+	return atan2(-dx, dn)
+
+
+static func _on_road(b: Builder, x: float, n: float, clear: float) -> bool:
+	var wp = b.w(Vector3(x, 0, n))
+	return Game.road_dist(wp.x, wp.z) < clear
 
 
 static func build(parent: Node3D, v: Dictionary) -> void:
+	R = float(v.get("r", 1500.0)) - 40.0
 	var b = Builder.new(parent, v["x"], v["y"], v["base"], "Konoha")
 	var rng = RandomNumberGenerator.new()
 	rng.seed = 1234
-	var occupied: Array = []  # [x, n, r] binaların yerleşmeyeceği alanlar
+	var occupied: Array = []  # [x, n, yarı genişlik, yarı derinlik]
+	VL.sites["konoha"] = []
+	VL.doors["konoha"] = []
+	var decor = Node3D.new()
+	decor.name = "SehirSusleri"
+	b.root.add_child(decor)
+	var rock: Dictionary = v.get("hokage_rock", {})
+	var cliff_n = float(rock.get("y", float(v["y"]) + 1170.0)) - float(v["y"])
 
-	# ---- yollar: araziye toprak yol olarak işlendi (bake_world.py); burada sadece bina yasak alanı
-	occupied.append([0, -170, 14, 240])  # dikdörtgen: [x, n, yarı genişlik, yarı uzunluk]
-
-	# ---- surlar + kapılar (güney A-Un ana kapısı, doğu ve batı kapıları; yollar bunlardan çıkar)
+	# ---- sur + kapılar (güney A-Un ana kapısı; diğerleri yolların girdiği açılarda)
 	var wall_c = Color(0.86, 0.76, 0.58)
-	var gate_angles: Array = v.get("gates", [180.0, 105.5, 254.5])
-	var gaps = [[0.0, 76.0]]
+	var gate_angles: Array = v.get("gates", [180.0, 260.0, 100.0])
+	var gaps = []
 	for ga in gate_angles:
-		gaps.append([float(ga), 9.0 if absf(float(ga) - 180.0) < 1.0 else 5.5])
-	b.wall_ring(R, 22.0, 4.0, wall_c, gaps, 3.0)
+		gaps.append([float(ga), 2.4 if absf(float(ga) - 180.0) < 1.0 else 1.6])
+	# kuzey: uçurum duvarın yerini alır
+	var cliff_ang = rad_to_deg(acos(clampf(cliff_n / R, -1.0, 1.0)))
+	gaps.append([0.0, cliff_ang * 2.0 + 6.0])
+	b.wall_ring(R, WALL_H, 5.0, wall_c, gaps, 1.2)
 	for ga in gate_angles:
 		if absf(float(ga) - 180.0) < 1.0:
-			_aun_gate(b)
+			_aun_gate(b, decor)
 		else:
-			b.village_gate(float(ga), R, 16.0, 20.0, Color(0.22, 0.42, 0.26), Color(0.16, 0.3, 0.2), "konoha", 5.5)
+			b.village_gate(float(ga), R, 16.0, 24.0, Color(0.22, 0.42, 0.26), Color(0.16, 0.3, 0.2), "konoha", 1.6)
+			var ga_r = deg_to_rad(float(ga))
+			_site(b, "guard", (R - 14) * sin(ga_r) + 8 * cos(ga_r), (R - 14) * cos(ga_r) - 8 * sin(ga_r), {"face": _face(sin(ga_r), cos(ga_r))})
 
-	# ---- Hokage Kayası (kuzey)
-	var rock = Color(0.6, 0.55, 0.48)
-	# düz duvar yerine düzensiz kaya sütunları + katman çizgileri + yeşil tepe
-	var crng = RandomNumberGenerator.new()
-	crng.seed = 77
-	var cx = -330.0
-	while cx < 330.0:
-		var cw = crng.randf_range(16.0, 26.0)
-		var ch = 74.0 + crng.randf_range(-5.0, 9.0) - maxf(0.0, absf(cx) - 220.0) * 0.35
-		var cf = 371.0 + crng.randf_range(0.0, 7.0) + maxf(0.0, absf(cx) - 220.0) * 0.4
-		var cc = rock.darkened(crng.randf_range(-0.04, 0.1))
-		b.box(Vector3(cx + cw * 0.5, ch * 0.5 - 2.0, cf + 60.0), Vector3(cw + 1.5, ch + 4.0, 120), cc, crng.randf_range(-3.0, 3.0))
-		for k in 3:  # katman çıkıntıları
-			var ly = ch * (0.25 + k * 0.25) + crng.randf_range(-3.0, 3.0)
-			b.box(Vector3(cx + cw * 0.5, ly, cf - 0.6), Vector3(cw + 1.0, 1.2, 2.0), cc.darkened(0.12), 0, false)
-		b.box(Vector3(cx + cw * 0.5, ch - 0.5, cf + 60.0), Vector3(cw + 2.0, 2.4, 121), Color(0.36, 0.55, 0.26), 0, false)  # çimen örtüsü
-		if crng.randf() < 0.6:
-			b.tree(cx + cw * 0.5 + crng.randf_range(-5, 5), cf + crng.randf_range(12, 60), crng.randf_range(1.2, 1.8), crng, ch)
-		cx += cw
-	var mx = -420.0
-	while mx < 420.0:  # arka dağ: düzensiz zirveler
-		var mw = crng.randf_range(40.0, 80.0)
-		var mh = crng.randf_range(95.0, 135.0) - maxf(0.0, absf(mx) - 250.0) * 0.3
-		b.box(Vector3(mx + mw * 0.5, mh * 0.5 - 5.0, 540.0 + crng.randf_range(-15.0, 15.0)), Vector3(mw + 6.0, mh, 90), rock.darkened(crng.randf_range(0.1, 0.22)), crng.randf_range(-6.0, 6.0))
-		b.box(Vector3(mx + mw * 0.5, mh - 4.0, 540.0), Vector3(mw * 0.7, 10.0, 70), rock.darkened(0.18), crng.randf_range(-8.0, 8.0), false, Vector3(0, 0, crng.randf_range(-12.0, 12.0)))
-		mx += mw
-	var faces = [-120.0, -60.0, 0.0, 60.0, 120.0]
-	for i in faces.size():
-		var fx: float = faces[i]
-		var fz = 369.0
-		var fc = rock.lightened(0.06)
-		b.box(Vector3(fx, 46, fz + 3), Vector3(30, 34, 10), fc)
-		b.box(Vector3(fx, 64, fz + 4), Vector3(32, 7, 12), fc.darkened(0.12))  # saç hattı
-		b.box(Vector3(fx, 50, fz - 2.5), Vector3(27, 3, 2), fc.darkened(0.1), 0, false)  # alın bandı
-		for ex in [-6.5, 6.5]:
-			b.box(Vector3(fx + ex, 44, fz - 2.2), Vector3(6, 2.2, 1), Color(0.32, 0.29, 0.26), 0, false)
-		b.box(Vector3(fx, 38, fz - 3.5), Vector3(3.2, 7, 3), fc, 0, false)
-		b.box(Vector3(fx, 32, fz - 2.2), Vector3(10, 1.4, 1), Color(0.32, 0.29, 0.26), 0, false)
-	# kayaya çıkan taş merdiven (doğu ucu) + tepede seyir yeri
-	for k in 40:
-		b.box(Vector3(200 + k * 0.0, k * 2.0 + 1.0, 300 + k * 1.6), Vector3(10, 2.0, 3), Color(0.66, 0.6, 0.52))
-	b.box(Vector3(0, 76.5, 395), Vector3(60, 1, 20), Color(0.55, 0.45, 0.35), 0, false)
-	b.interact(Vector3(0, 76, 395), 12, "lookout", "[F] Köyü seyret (kayıt)")
-	occupied.append([0, 380, 330, 60])
+	# ---- Hokage Kayası: uçurum yüzüne oyulmuş beş yüz + tepede seyir yeri
+	_hokage_faces(b, rock, cliff_n, v)
 
-	# ---- Hokage Kulesi
-	var tn = 220.0
-	b.cyl(Vector3(0, 16, tn), 46, 32, Color(0.92, 0.86, 0.72), true, 32)
-	b.cyl(Vector3(0, 33, tn), 50, 3, Color(0.72, 0.18, 0.15), true, 32)
-	b.cyl(Vector3(0, 40, tn), 34, 12, Color(0.92, 0.86, 0.72), true, 28)
-	b.cone(Vector3(0, 50.5, tn), 44, 9, Color(0.72, 0.18, 0.15), 28, true)
-	b.disc(Vector3(0, 36.5, tn - 17.0), 9, 0.6, Color(0.72, 0.18, 0.15))  # "火" plakası (daire)
-	b.box(Vector3(0, 36.5, tn - 17.4), Vector3(4.5, 5.5, 0.4), Color(0.95, 0.92, 0.85), 0, false)
-	b.box(Vector3(0, 3.5, tn - 23.2), Vector3(7, 7, 1), Color(0.35, 0.24, 0.16), 0, false)
-	for k in 8:  # pencereler
-		var a = deg_to_rad(k * 45.0 + 22.5)
-		b.box(Vector3(23.2 * sin(a), 20, tn + 23.2 * cos(a)), Vector3(3, 3, 0.4), Color(0.42, 0.62, 0.78), k * 45.0 + 22.5, false)
-	b.box(Vector3(46, 9, tn + 4), Vector3(40, 18, 28), Color(0.92, 0.86, 0.72))  # idari bina
-	b.box(Vector3(46, 18.6, tn + 4), Vector3(42, 1.2, 30), Color(0.72, 0.18, 0.15))
-	b.interact(Vector3(0, 0, tn - 26), 7, "mission_board", "[F] Görev Masası (Hokage Kulesi)")
-	occupied.append([20, tn, 60, 30])
+	# ---- merkez: Hokage Kulesi meydanı
+	var tn = 600.0
+	b.yoff = _gy(b, 0, tn)
+	b.box(Vector3(0, 0.15, tn), Vector3(150, 0.3, 120), Color(0.78, 0.72, 0.62), 0, false)  # taş meydan
+	b.cyl(Vector3(0, 24, tn), 70, 48, Color(0.92, 0.86, 0.72), true, 40)
+	b.cyl(Vector3(0, 49.5, tn), 76, 3, Color(0.72, 0.18, 0.15), true, 40)
+	b.cyl(Vector3(0, 59, tn), 52, 18, Color(0.92, 0.86, 0.72), true, 32)
+	b.cone(Vector3(0, 74, tn), 66, 13, Color(0.72, 0.18, 0.15), 32, true)
+	b.disc(Vector3(0, 55, tn - 26.0), 13, 0.8, Color(0.72, 0.18, 0.15))  # "火" plakası
+	b.box(Vector3(0, 55, tn - 26.6), Vector3(6.5, 8, 0.5), Color(0.95, 0.92, 0.85), 0, false)
+	b.box(Vector3(0, 4, tn - 35.2), Vector3(8, 8, 1), Color(0.35, 0.24, 0.16), 0, false)
+	for k in 12:
+		var a = deg_to_rad(k * 30.0 + 15.0)
+		for fl in [14.0, 30.0]:
+			b.box(Vector3(35.2 * sin(a), fl, tn + 35.2 * cos(a)), Vector3(4, 4, 0.5), Color(0.42, 0.62, 0.78), k * 30.0 + 15.0, false)
+	b.box(Vector3(72, 13, tn + 6), Vector3(60, 26, 40), Color(0.92, 0.86, 0.72))  # idari bina
+	b.box(Vector3(72, 26.8, tn + 6), Vector3(63, 1.6, 43), Color(0.72, 0.18, 0.15))
+	b.box(Vector3(-72, 9, tn + 6), Vector3(44, 18, 32), Color(0.92, 0.86, 0.72))  # arşiv
+	b.box(Vector3(-72, 18.8, tn + 6), Vector3(47, 1.6, 35), Color(0.72, 0.18, 0.15))
+	b.yoff = 0.0
+	_door(b, 0, tn - 37, 5.0, "hokage", "[F] Gir: Hokage Kulesi (Görev Masası)", "mission_board")
+	for sx in [-1.0, 1.0]:
+		CityDecor.banner(decor, _gp(b, 14 * sx, tn - 46), 0.0, Color(0.72, 0.18, 0.15), Color(0.98, 0.95, 0.9))
+	_site(b, "pigeons", 30, tn - 52)
+	occupied.append([0, tn, 110, 70])
 
-	# ---- Ninja Akademisi
-	var ax = -120.0; var an = 175.0
-	b.box(Vector3(ax, 9, an), Vector3(70, 18, 26), Color(0.88, 0.78, 0.58))
-	b.box(Vector3(ax, 18.7, an), Vector3(72, 1.4, 28), Color(0.72, 0.18, 0.15))
-	b.box(Vector3(ax, 22, an), Vector3(20, 6, 14), Color(0.88, 0.78, 0.58))
-	b.box(Vector3(ax, 25.6, an), Vector3(22, 1.2, 16), Color(0.72, 0.18, 0.15))
-	for i in 10:
-		for fl in [5.0, 12.5]:
-			b.box(Vector3(ax - 30 + i * 6.6, fl, an - 13.1), Vector3(3, 2.8, 0.3), Color(0.42, 0.62, 0.78), 0, false)
-	b.box(Vector3(ax, 3, an - 13.4), Vector3(6, 6, 0.6), Color(0.35, 0.24, 0.16), 0, false)
-	# salıncaklı ağaç
-	var tx = ax + 30.0; var tz = an - 32.0
-	b.tree(tx, tz, 1.4, rng)
-	b.box(Vector3(tx + 4.5, 7.4, tz), Vector3(8, 0.5, 0.5), Color(0.42, 0.29, 0.18), 0, false)
-	for dz in [-0.6, 0.6]:
-		b.box(Vector3(tx + 7, 5.0, tz + dz), Vector3(0.05, 4.8, 0.05), Color(0.85, 0.82, 0.75), 0, false)
-	b.box(Vector3(tx + 7, 2.6, tz), Vector3(0.8, 0.12, 1.5), Color(0.55, 0.38, 0.22), 0, false)
-	b.interact(Vector3(tx + 7, 0, tz), 3, "swing", "[F] Salıncağa otur")
-	b.interact(Vector3(ax, 0, an - 18), 8, "academy", "[F] Akademi hocasıyla konuş")
-	# akademi avlusu: kuklalar
-	for i in 5:
-		Spawner.dummy(b.w(Vector3(ax - 20 + i * 10, 0, an - 45)))
-	occupied.append([ax, an - 15, 50, 40])
-
-	# ---- Ichiraku Ramen
-	var ix = 22.0; var inn = -60.0
-	b.box(Vector3(ix, 0.65, inn - 1.5), Vector3(9, 1.3, 1.2), Color(0.55, 0.35, 0.2))
-	b.box(Vector3(ix, 1.35, inn - 1.5), Vector3(9.5, 0.12, 1.6), Color(0.8, 0.62, 0.4), 0, false)
-	b.box(Vector3(ix, 1.8, inn + 2.2), Vector3(9, 3.6, 4.5), Color(0.92, 0.88, 0.8))
-	for sx in [-4.4, 4.4]:
-		b.box(Vector3(ix + sx, 1.9, inn - 2.4), Vector3(0.35, 3.8, 0.35), Color(0.35, 0.24, 0.16), 0, false)
-	b.box(Vector3(ix, 3.9, inn), Vector3(10.5, 0.5, 7.5), Color(0.72, 0.18, 0.15))
-	for i in 6:
-		b.box(Vector3(ix - 3.7 + i * 1.48, 3.1, inn - 2.55), Vector3(1.3, 1.1, 0.06), Color(0.95, 0.95, 0.95) if i % 2 else Color(0.85, 0.28, 0.22), 0, false)
-	for i in 4:
-		b.cyl(Vector3(ix - 3 + i * 2, 0.4, inn - 3.4), 0.7, 0.8, Color(0.72, 0.18, 0.15), false, 10)
-	b.interact(Vector3(ix, 0, inn - 4), 4, "ramen", "[F] Ramen ye (50 Ryō) — can + chakra")
-	occupied.append([ix, inn, 10, 8])
-
-	# ---- çarşı caddesi (n=-110): tezgahlar + silah dükkânı
+	# ---- Ninja Akademisi (kulenin batısı) + avlu
+	var ax = -540.0; var an = 610.0
+	b.yoff = _gy(b, ax, an)
+	b.box(Vector3(ax, 10, an), Vector3(100, 20, 34), Color(0.88, 0.78, 0.58))
+	b.box(Vector3(ax, 20.8, an), Vector3(103, 1.6, 37), Color(0.72, 0.18, 0.15))
+	b.box(Vector3(ax, 24.5, an), Vector3(28, 7, 18), Color(0.88, 0.78, 0.58))
+	b.box(Vector3(ax, 28.6, an), Vector3(31, 1.4, 21), Color(0.72, 0.18, 0.15))
 	for i in 14:
-		var sx = -150.0 + i * 22.0
-		if absf(sx) < 16:
+		for fl in [5.5, 14.0]:
+			b.box(Vector3(ax - 45 + i * 6.9, fl, an - 17.1), Vector3(3.2, 3, 0.3), Color(0.42, 0.62, 0.78), 0, false)
+	b.box(Vector3(ax, 3.2, an - 17.4), Vector3(7, 6.4, 0.6), Color(0.35, 0.24, 0.16), 0, false)
+	b.box(Vector3(ax, 0.1, an - 60), Vector3(110, 0.2, 70), Color(0.74, 0.66, 0.52), 0, false)  # toprak avlu
+	b.yoff = 0.0
+	var tx = ax + 48.0; var tz = an - 36.0
+	b.tree(tx, tz, 1.4, rng, _gy(b, tx, tz))
+	var ty = _gy(b, tx, tz)
+	b.box(Vector3(tx + 4.5, ty + 7.4, tz), Vector3(8, 0.5, 0.5), Color(0.42, 0.29, 0.18), 0, false)
+	for dz in [-0.6, 0.6]:
+		b.box(Vector3(tx + 7, ty + 5.0, tz + dz), Vector3(0.05, 4.8, 0.05), Color(0.85, 0.82, 0.75), 0, false)
+	b.box(Vector3(tx + 7, ty + 2.6, tz), Vector3(0.8, 0.12, 1.5), Color(0.55, 0.38, 0.22), 0, false)
+	_act(b, tx + 7, tz, 3, "swing", "[F] Salıncağa otur")
+	_door(b, ax, an - 19, 5.0, "academy", "[F] Gir: Ninja Akademisi", "academy")
+	for i in 5:
+		Spawner.dummy(_gp(b, ax - 30 + i * 15, an - 70))
+	_site(b, "academy_yard", ax, an - 60)
+	_site(b, "ball", ax + 30, an - 80)
+	_site(b, "pigeons", ax - 35, an - 75)
+	occupied.append([ax, an - 25, 65, 70])
+
+	# ---- çarşı: ana doğu-batı caddesi (n=0) boyunca tezgâhlar, arkada dükkânlar
+	for i in 26:
+		var sx = -310.0 + i * 25.0
+		if absf(sx) < 22:
 			continue
 		var side = 1.0 if i % 2 == 0 else -1.0
-		var cn = -110.0 + side * 10.0
+		var cn = side * 12.0
 		var aw = [Color(0.85, 0.3, 0.25), Color(0.25, 0.5, 0.75), Color(0.95, 0.75, 0.3), Color(0.35, 0.6, 0.35)][i % 4]
+		b.yoff = _gy(b, sx, cn)
 		b.box(Vector3(sx, 0.6, cn), Vector3(5, 1.2, 2), Color(0.55, 0.4, 0.25))
 		b.box(Vector3(sx, 2.9, cn), Vector3(6, 0.15, 3.2), aw, 0, false, Vector3(-10 * side, 0, 0))
+		for sp in [-2.8, 2.8]:
+			b.box(Vector3(sx + sp, 1.5, cn + side * 1.2), Vector3(0.12, 3.0, 0.12), Color(0.35, 0.24, 0.16), 0, false)
 		for k in 3:
 			b.box(Vector3(sx - 1.6 + k * 1.6, 1.45, cn), Vector3(0.9, 0.5, 0.9), [Color(0.9, 0.5, 0.2), Color(0.85, 0.2, 0.3), Color(0.4, 0.75, 0.3)][k], 0, false)
-	var wsx = 60.0; var wsn = -128.0
-	b.house(wsx, wsn, 14, 11, 2, 0, "konoha", rng)
-	b.box(Vector3(wsx, 9.4, wsn - 5.8), Vector3(6, 1.6, 0.3), Color(0.15, 0.15, 0.18), 0, false)
-	b.interact(Vector3(wsx, 0, wsn - 8), 5, "shop_weapons", "[F] Silah Dükkânı")
-	var hx = -60.0; var hn = -128.0
-	b.house(hx, hn, 14, 11, 2, 0, "konoha", rng)
-	b.interact(Vector3(hx, 0, hn - 8), 5, "shop_items", "[F] Eczane (merhem, haplar)")
-	occupied.append([0, -110, 170, 16])
+		b.yoff = 0.0
+		_site(b, "stall", sx, cn, {"back": _gp(b, sx, cn + side * 1.7), "front": _gp(b, sx, cn - side * 1.9), "face": _face(0, side)})
+		if i % 3 == 0:
+			CityDecor.banner(decor, _gp(b, sx + 3.2, cn - side * 1.4), 0.0, aw, Color(0.98, 0.95, 0.88))
+	_site(b, "crowd", 0, 0)
+	_site(b, "pigeons", 40, 14)
+	for k in 13:
+		var lx = -300.0 + k * 50.0
+		if absf(lx) < 20:
+			continue
+		CityDecor.lantern_string(decor, _gp(b, lx, -14.5), _gp(b, lx, 14.5), 7, [Color(0.95, 0.3, 0.25), Color(1.0, 0.95, 0.85)])
+	occupied.append([0, 0, 320, 22])
+	# dükkânlar: [x, n, oda, etiket, levha rengi, alias, genişlik]
+	var shops = [[-170.0, -36.0, "pharmacy", "[F] Gir: Eczane", Color(0.3, 0.6, 0.4), "shop_items", 14.0],
+		[170.0, -36.0, "weapon_shop", "[F] Gir: Silah Dükkânı", Color(0.15, 0.15, 0.18), "shop_weapons", 14.0],
+		[-250.0, -36.0, "tailor", "[F] Gir: Terzi (kıyafet, zırh)", Color(0.35, 0.25, 0.45), "tailor", 14.0],
+		[250.0, -36.0, "teahouse", "[F] Gir: Dango ve Çay Evi", Color(0.85, 0.45, 0.55), "teahouse", 14.0],
+		[-110.0, 36.0, "bbq", "[F] Gir: Yakiniku Restoranı", Color(0.85, 0.3, 0.2), "bbq", 16.0],
+		[230.0, 38.0, "inn", "[F] Gir: Han (konaklama)", Color(0.25, 0.4, 0.6), "inn", 18.0]]
+	for sh in shops:
+		var face_south = sh[1] > 0.0  # caddenin kuzeyindekiler güneye (caddeye) bakar
+		var yaw = 0.0 if face_south else 180.0
+		b.house(sh[0], sh[1], sh[6], 11, 2, yaw, "konoha", rng)
+		var dn = -1.0 if face_south else 1.0
+		var hd = float(b.last_house.get("d", 11.0))
+		b.box(Vector3(sh[0], _gy(b, sh[0], sh[1]) + 9.4, sh[1] + dn * (hd * 0.5 + 0.2)), Vector3(6, 1.6, 0.3), sh[4], 0, false)
+		_door(b, sh[0], sh[1] + dn * (hd * 0.5 + 1.2), 3.0, sh[2], sh[3], sh[5])
+		CityDecor.banner(decor, _gp(b, sh[0] + 5.0, sh[1] + dn * (hd * 0.5 + 2.4)), 0.0, sh[4], Color(0.98, 0.95, 0.9))
+		occupied.append([sh[0], sh[1], sh[6] * 0.5 + 3, 9])
+	_site(b, "bar", -95, 22)
 
-	# ---- Konoha Hastanesi
-	var hpx = 140.0; var hpn = 70.0
-	b.box(Vector3(hpx, 12, hpn), Vector3(50, 24, 30), Color(0.96, 0.95, 0.92))
-	b.box(Vector3(hpx, 24.6, hpn), Vector3(52, 1.2, 32), Color(0.75, 0.25, 0.22))
-	b.box(Vector3(hpx + 30, 8, hpn), Vector3(14, 16, 22), Color(0.94, 0.93, 0.9))
-	b.disc(Vector3(hpx, 20, hpn - 15.2), 6, 0.4, Color(0.75, 0.25, 0.22))
-	b.box(Vector3(hpx, 20, hpn - 15.5), Vector3(1.2, 3.6, 0.3), Color(1, 1, 1), 0, false)
-	b.box(Vector3(hpx, 20, hpn - 15.5), Vector3(3.6, 1.2, 0.3), Color(1, 1, 1), 0, false)
-	b.interact(Vector3(hpx, 0, hpn - 18), 6, "hospital", "[F] Hastane: iyileş (ücretsiz)")
-	occupied.append([hpx + 6, hpn, 34, 20])
+	# ---- Ichiraku tarzı ramen tezgâhı (caddeye açık)
+	var ix = 70.0; var inn = -30.0
+	b.yoff = _gy(b, ix, inn)
+	b.box(Vector3(ix, 0.65, inn + 1.5), Vector3(9, 1.3, 1.2), Color(0.55, 0.35, 0.2))
+	b.box(Vector3(ix, 1.35, inn + 1.5), Vector3(9.5, 0.12, 1.6), Color(0.8, 0.62, 0.4), 0, false)
+	b.box(Vector3(ix, 1.8, inn - 2.2), Vector3(9, 3.6, 4.5), Color(0.92, 0.88, 0.8))
+	for sx in [-4.4, 4.4]:
+		b.box(Vector3(ix + sx, 1.9, inn + 2.4), Vector3(0.35, 3.8, 0.35), Color(0.35, 0.24, 0.16), 0, false)
+	b.box(Vector3(ix, 3.9, inn), Vector3(10.5, 0.5, 7.5), Color(0.72, 0.18, 0.15))
+	for i in 6:
+		b.box(Vector3(ix - 3.7 + i * 1.48, 3.1, inn + 2.55), Vector3(1.3, 1.1, 0.06), Color(0.95, 0.95, 0.95) if i % 2 else Color(0.85, 0.28, 0.22), 0, false)
+	for i in 4:
+		b.cyl(Vector3(ix - 3 + i * 2, 0.4, inn + 3.4), 0.7, 0.8, Color(0.72, 0.18, 0.15), false, 10)
+	b.yoff = 0.0
+	var seats = []
+	for i in 4:
+		seats.append(_gp(b, ix - 3 + i * 2, inn + 3.0))
+	_act(b, ix, inn + 4, 4, "ramen", "[F] Tezgâha otur, ramen ye (50 Ryō)", {"seats": seats})
+	_site(b, "ramen", ix, inn + 3.0, {"back": _gp(b, ix, inn - 0.3), "seats": seats, "face": _face(0, -1)})
+	CityDecor.banner(decor, _gp(b, ix + 5.6, inn + 3.2), 0.0, Color(0.85, 0.25, 0.2), Color(0.98, 0.95, 0.9))
+	occupied.append([ix, inn, 8, 6])
 
-	# ---- Chunin Sınavı stadyumu
-	var sx0 = 260.0; var sn0 = -40.0
-	for k in 48:
-		var a = k * 7.5
+	# ---- Konoha Hastanesi (doğu)
+	var hpx = 545.0; var hpn = 230.0
+	b.yoff = _gy(b, hpx, hpn)
+	b.box(Vector3(hpx, 15, hpn), Vector3(76, 30, 42), Color(0.96, 0.95, 0.92))
+	b.box(Vector3(hpx, 30.6, hpn), Vector3(79, 1.4, 45), Color(0.75, 0.25, 0.22))
+	b.box(Vector3(hpx + 46, 10, hpn), Vector3(20, 20, 30), Color(0.94, 0.93, 0.9))
+	b.disc(Vector3(hpx, 24, hpn - 21.2), 8, 0.4, Color(0.75, 0.25, 0.22))
+	b.box(Vector3(hpx, 24, hpn - 21.5), Vector3(1.6, 5, 0.3), Color(1, 1, 1), 0, false)
+	b.box(Vector3(hpx, 24, hpn - 21.5), Vector3(5, 1.6, 0.3), Color(1, 1, 1), 0, false)
+	for i in 12:
+		for fl in [6.0, 14.0, 22.0]:
+			b.box(Vector3(hpx - 33 + i * 6, fl, hpn - 21.1), Vector3(3, 2.6, 0.3), Color(0.5, 0.68, 0.82), 0, false)
+	b.yoff = 0.0
+	_door(b, hpx, hpn - 23, 5.0, "hospital", "[F] Gir: Konoha Hastanesi", "hospital")
+	occupied.append([hpx + 10, hpn, 55, 28])
+
+	# ---- Chunin Sınavı stadyumu (güneydoğu)
+	var sx0 = 1050.0; var sn0 = -700.0
+	for k in 72:
+		var a = k * 5.0
 		var rad = deg_to_rad(a)
-		var o = Vector2(55 * sin(rad), 55 * cos(rad))
-		b.box(Vector3(sx0 + o.x, 9, sn0 + o.y), Vector3(7.6, 18, 4), Color(0.85, 0.78, 0.62), a)
-		for t in 4:  # tribün basamakları (iç)
-			var ro = 51.0 - t * 2.5
-			b.box(Vector3(sx0 + ro * sin(rad), 2 + t * 3.5, sn0 + ro * cos(rad)), Vector3(7, 1, 2.4), Color(0.7, 0.6, 0.48), a)
-	b.box(Vector3(sx0, 0.05, sn0), Vector3(70, 0.1, 70), Color(0.62, 0.72, 0.42), 0, false)
-	b.box(Vector3(sx0, 18.5, sn0 + 54), Vector3(16, 3, 8), Color(0.72, 0.18, 0.15))  # kage locası
-	b.interact(Vector3(sx0, 0, sn0 - 56), 8, "chunin_exam", "[F] Chunin Sınavı başvurusu")
-	occupied.append([sx0, sn0, 62, 62])
+		var o = Vector2(78 * sin(rad), 78 * cos(rad))
+		var gy = _gy(b, sx0 + o.x, sn0 + o.y)
+		b.box(Vector3(sx0 + o.x, gy + 11, sn0 + o.y), Vector3(7.4, 24, 4), Color(0.85, 0.78, 0.62), a)
+		for t in 5:
+			var ro = 74.0 - t * 2.6
+			b.box(Vector3(sx0 + ro * sin(rad), gy + 2 + t * 3.8, sn0 + ro * cos(rad)), Vector3(7, 1, 2.6), Color(0.7, 0.6, 0.48), a)
+	b.box(Vector3(sx0, _gy(b, sx0, sn0) + 0.05, sn0), Vector3(100, 0.1, 100), Color(0.62, 0.72, 0.42), 0, false)
+	b.box(Vector3(sx0, _gy(b, sx0, sn0 + 76) + 24, sn0 + 76), Vector3(20, 4, 10), Color(0.72, 0.18, 0.15))
+	_act(b, sx0, sn0 - 84, 8, "chunin_exam", "[F] Chunin Sınavı başvurusu")
+	occupied.append([sx0, sn0, 86, 86])
 
 	# ---- Uchiha Bölgesi (güneybatı) + Naka Tapınağı
-	var ux = -260.0; var un = -170.0
-	b.wall_ring_at(ux, un, 70.0, 5.0, Color(0.9, 0.88, 0.84), [[45.0, 18.0]])
-	for k in 14:
-		var a = k * 360.0 / 14.0
-		var rr = 50.0 if k % 2 == 0 else 32.0
-		var hxp = ux + rr * sin(deg_to_rad(a)); var hnp = un + rr * cos(deg_to_rad(a))
-		b.house(hxp, hnp, 11, 9, 1 + (k % 2), a + 180.0, "konoha", rng)
-		var fo = Builder.rot(2.4, -float(b.last_house.get("d", 9.0)) * 0.5 - 0.1, a + 180.0)
-		b.disc(Vector3(hxp + fo.x, 2.6, hnp + fo.y), 1.4, 0.12, Color(0.8, 0.15, 0.15), a + 180.0, 12)  # yelpaze arması
-	b.box(Vector3(ux, 3.5, un), Vector3(12, 7, 9), Color(0.55, 0.32, 0.22))  # Naka tapınağı
-	b.roof(Vector3(ux, 7, un), Vector3(15, 4, 12), Color(0.25, 0.25, 0.3))
-	b.box(Vector3(ux, 5, un - 12), Vector3(9, 0.8, 0.8), Color(0.8, 0.2, 0.15), 0, false)  # torii
-	for sx in [-3.8, 3.8]:
-		b.box(Vector3(ux + sx, 2.6, un - 12), Vector3(0.7, 5.2, 0.7), Color(0.8, 0.2, 0.15), 0, false)
-	b.interact(Vector3(ux, 0, un - 10), 5, "naka", "[F] Naka Tapınağı")
-	occupied.append([ux, un, 72, 72])
+	var ux = -1020.0; var un = -640.0
+	b.wall_ring_at(ux, un, 125.0, 5.0, Color(0.9, 0.88, 0.84), [[45.0, 10.0]])
+	for ring in [[95.0, 22], [62.0, 14]]:
+		for k in ring[1]:
+			var a = k * 360.0 / ring[1]
+			var rr: float = ring[0]
+			var hxp = ux + rr * sin(deg_to_rad(a)); var hnp = un + rr * cos(deg_to_rad(a))
+			b.house(hxp, hnp, 11, 9, 1 + (k % 2), a + 180.0, "konoha", rng)
+			var fo = Builder.rot(2.4, -float(b.last_house.get("d", 9.0)) * 0.5 - 0.1, a + 180.0)
+			b.disc(Vector3(hxp + fo.x, _gy(b, hxp, hnp) + 2.6, hnp + fo.y), 1.4, 0.12, Color(0.8, 0.15, 0.15), a + 180.0, 12)
+	b.yoff = _gy(b, ux, un)
+	b.box(Vector3(ux, 4.5, un), Vector3(16, 9, 12), Color(0.55, 0.32, 0.22))
+	b.roof(Vector3(ux, 9, un), Vector3(20, 5, 16), Color(0.25, 0.25, 0.3))
+	b.box(Vector3(ux, 6, un - 16), Vector3(11, 1.0, 1.0), Color(0.8, 0.2, 0.15), 0, false)
+	for sx in [-4.6, 4.6]:
+		b.box(Vector3(ux + sx, 3.2, un - 16), Vector3(0.8, 6.4, 0.8), Color(0.8, 0.2, 0.15), 0, false)
+	b.yoff = 0.0
+	_act(b, ux, un - 13, 5, "naka", "[F] Naka Tapınağı")
+	_act(b, ux + 8, un - 13, 3, "shrine", "[F] Tapınakta dua et (kısa kutsama)")
+	occupied.append([ux, un, 128, 128])
 
-	# ---- Hyuga Konağı (kuzeybatı)
-	var yx = -250.0; var yn = 90.0
-	b.wall_rect(yx, yn, 90, 70, 4.0, Color(0.9, 0.88, 0.82))
-	b.box(Vector3(yx, 4, yn + 10), Vector3(50, 8, 22), Color(0.58, 0.42, 0.28))
-	b.roof(Vector3(yx, 8, yn + 10), Vector3(56, 6, 28), Color(0.28, 0.28, 0.32))
-	b.box(Vector3(yx + 30, 3, yn - 15), Vector3(18, 6, 14), Color(0.58, 0.42, 0.28))
-	b.roof(Vector3(yx + 30, 6, yn - 15), Vector3(21, 4, 17), Color(0.28, 0.28, 0.32))
-	b.box(Vector3(yx - 15, 0.05, yn - 18), Vector3(30, 0.1, 18), Color(0.8, 0.78, 0.7), 0, false)  # çakıl avlu
-	b.interact(Vector3(yx, 0, yn - 34), 6, "hyuga", "[F] Hyuga Konağı")
-	occupied.append([yx, yn, 48, 38])
+	# ---- Hyuga Konağı (batı)
+	var yx = -1050.0; var yn = 250.0
+	b.yoff = _gy(b, yx, yn)
+	b.wall_rect(yx, yn, 150, 110, 5.0, Color(0.9, 0.88, 0.82), 14.0)
+	b.box(Vector3(yx, 5, yn + 15), Vector3(80, 10, 32), Color(0.58, 0.42, 0.28))
+	b.roof(Vector3(yx, 10, yn + 15), Vector3(88, 7, 40), Color(0.28, 0.28, 0.32))
+	b.box(Vector3(yx + 48, 3.5, yn - 22), Vector3(28, 7, 20), Color(0.58, 0.42, 0.28))
+	b.roof(Vector3(yx + 48, 7, yn - 22), Vector3(32, 5, 24), Color(0.28, 0.28, 0.32))
+	b.box(Vector3(yx - 25, 0.05, yn - 28), Vector3(50, 0.1, 30), Color(0.8, 0.78, 0.7), 0, false)
+	b.yoff = 0.0
+	_act(b, yx, yn - 56, 6, "hyuga", "[F] Hyuga Konağı")
+	occupied.append([yx, yn, 80, 60])
 
-	# ---- Akimichi barbekü restoranı
-	b.house(-40, -35, 16, 12, 2, 0, "konoha", rng)
-	b.box(Vector3(-40, 9.6, -41.2), Vector3(8, 1.8, 0.3), Color(0.85, 0.3, 0.2), 0, false)
-	b.interact(Vector3(-40, 0, -43), 5, "bbq", "[F] Barbekü (Yakiniku) ye — 80 Ryō")
-	occupied.append([-40, -35, 10, 8])
+	# ---- ANBU karargâhı (uçurumun dibinde, karanlık)
+	var anx = -480.0; var ann = cliff_n - 110.0
+	b.yoff = _gy(b, anx, ann)
+	b.box(Vector3(anx, 9, ann), Vector3(40, 18, 30), Color(0.25, 0.25, 0.28))
+	b.box(Vector3(anx, 18.5, ann), Vector3(42, 1, 32), Color(0.15, 0.15, 0.17))
+	b.yoff = 0.0
+	_act(b, anx, ann - 18, 6, "anbu", "[F] ANBU Karargâhı")
+	occupied.append([anx, ann, 26, 20])
 
-	# ---- ANBU karargâhı (kayanın dibinde, karanlık)
-	b.box(Vector3(-200, 7, 330), Vector3(30, 14, 22), Color(0.25, 0.25, 0.28))
-	b.box(Vector3(-200, 14.5, 330), Vector3(32, 1, 24), Color(0.15, 0.15, 0.17))
-	b.interact(Vector3(-200, 0, 317), 6, "anbu", "[F] ANBU Karargâhı")
-	occupied.append([-200, 330, 20, 16])
-
-	# ---- Antrenman Alanı 3 + Anıt Taşı (doğu)
-	var tgx = 300.0; var tgn = 170.0
-	b.box(Vector3(tgx, 0.04, tgn), Vector3(90, 0.1, 70), Color(0.45, 0.62, 0.3), 0, false)
+	# ---- Antrenman Alanı 3 + Anıt Taşı (doğu) + eğitmen
+	var tgx = 1050.0; var tgn = 560.0
+	b.box(Vector3(tgx, _gy(b, tgx, tgn) + 0.04, tgn), Vector3(140, 0.1, 110), Color(0.45, 0.62, 0.3), 0, false)
 	for i in 3:
-		b.cyl(Vector3(tgx - 6 + i * 6, 1.0, tgn + 12), 1.0, 2.0, Color(0.48, 0.34, 0.2), true, 10)
-	b.box(Vector3(tgx - 25, 2.2, tgn + 20), Vector3(4, 4.4, 1.2), Color(0.45, 0.45, 0.48))
-	b.interact(Vector3(tgx - 25, 0, tgn + 17), 4, "memorial", "[F] Anıt Taşı")
-	b.interact(Vector3(tgx, 0, tgn + 8), 6, "training", "[F] Antrenman yap (chakra kontrolü)")
+		b.cyl(Vector3(tgx - 6 + i * 6, _gy(b, tgx, tgn + 18) + 1.0, tgn + 18), 1.0, 2.0, Color(0.48, 0.34, 0.2), true, 10)
+	b.box(Vector3(tgx - 35, _gy(b, tgx - 35, tgn + 30) + 2.2, tgn + 30), Vector3(4, 4.4, 1.2), Color(0.45, 0.45, 0.48))
+	_act(b, tgx - 35, tgn + 27, 4, "memorial", "[F] Anıt Taşı")
+	_act(b, tgx, tgn + 12, 6, "training", "[F] Antrenman yap (chakra kontrolü)")
+	_act(b, tgx + 14, tgn + 12, 3.5, "trainer", "[F] Jonin eğitmen: jutsu öğren", {"village": "konoha"})
+	_site(b, "trainer", tgx + 14, tgn + 14, {"face": _face(0, -1)})
 	for i in 4:
-		Spawner.dummy(b.w(Vector3(tgx - 15 + i * 10, 0, tgn - 10)))
-	occupied.append([tgx, tgn, 46, 36])
+		Spawner.dummy(_gp(b, tgx - 20 + i * 13, tgn - 15))
+	_site(b, "spar", tgx - 30, tgn + 4)
+	_site(b, "spar", tgx + 35, tgn - 2)
+	occupied.append([tgx, tgn, 72, 58])
+	for k in 30:  # alan çevresi ağaçlık
+		var a = randf() * TAU
+		var tr = rng.randf_range(80.0, 120.0)
+		var tpx = tgx + cos(a) * tr; var tpn = tgn + sin(a) * tr * 0.8
+		if not _on_road(b, tpx, tpn, 12.0):
+			b.tree(tpx, tpn, rng.randf_range(1.2, 1.8), rng, _gy(b, tpx, tpn))
 
-	# ---- evler: sık mahalleler, her ev en yakın sokağa bakar, aralarda dar ara sokaklar
-	var count = 0
-	var gx = -385.0
-	while gx <= 385.0:
-		var gn2 = -395.0
-		while gn2 <= 345.0:
-			var x = gx + rng.randf_range(-1.5, 1.5)
-			var n = gn2 + rng.randf_range(-1.5, 1.5)
-			gn2 += 15.0
-			if Vector2(x, n).length() > R - 16:
-				continue
-			if not _free(x, n, occupied, 7.0):
-				continue
-			if rng.randf() < 0.07:
-				b.tree(x, n, rng.randf_range(0.9, 1.3), rng)
-				continue
-			var fl = [1, 2, 2, 2, 3].pick_random()
-			b.house(x, n, 10, 9, fl, _face_road(x, n), "konoha", rng)
-			count += 1
-		gx += 15.0
-	# sokak fenerleri
-	for n in range(-380, 200, 30):
-		b.lantern(-11, n)
-		b.lantern(11, n)
+	# ---- oyuncunun evi (başlangıç noktasının yakınında) + inşaat alanı + park
+	b.house(-150, 110, 10, 9, 2, 0, "konoha", rng)
+	var phd = float(b.last_house.get("d", 9.0))
+	b.box(Vector3(-150, _gy(b, -150, 110) + 2.6, 110 - phd * 0.5 - 0.1), Vector3(1.6, 0.5, 0.1), Color(0.9, 0.85, 0.7), 0, false)
+	_door(b, -150, 110 - phd * 0.5 - 1.0, 2.6, "home_player", "[F] Evine gir (uyu, kaydet)")
+	occupied.append([-150, 110, 8, 7])
+	var cx0 = 520.0; var cn0 = -620.0
+	var cg = _gy(b, cx0, cn0)
+	for px in [-4.0, 0.0, 4.0]:
+		for pn in [-3.0, 3.0]:
+			b.box(Vector3(cx0 + px, cg + 3.0, cn0 + pn), Vector3(0.25, 6.0, 0.25), Color(0.62, 0.48, 0.3))
+	for py in [2.0, 4.2]:
+		b.box(Vector3(cx0, cg + py, cn0 - 3), Vector3(8.5, 0.15, 0.6), Color(0.55, 0.42, 0.26), 0, false)
+	b.box(Vector3(cx0 - 2, cg + 1.2, cn0 + 3), Vector3(4.0, 2.4, 0.3), Color(0.9, 0.86, 0.76))
+	b.box(Vector3(cx0 + 3, cg + 0.6, cn0 + 3), Vector3(2.0, 1.2, 0.3), Color(0.9, 0.86, 0.76))
+	for k in 6:
+		b.box(Vector3(cx0 + 7, cg + 0.15 + k * 0.22, cn0 - 2 + (k % 2) * 0.2), Vector3(0.3, 0.2, 4.0), Color(0.68, 0.52, 0.32), 0, false)
+	_site(b, "work", cx0, cn0 - 5)
+	occupied.append([cx0, cn0, 12, 10])
+	var pkx = -520.0; var pkn = -250.0  # park: ağaçlar, banklar, top oynayan çocuklar
+	for k in 24:
+		var a = rng.randf() * TAU; var pr = rng.randf_range(15.0, 70.0)
+		b.tree(pkx + cos(a) * pr, pkn + sin(a) * pr, rng.randf_range(1.0, 1.6), rng, _gy(b, pkx + cos(a) * pr, pkn + sin(a) * pr))
+	_site(b, "ball", pkx, pkn)
+	_site(b, "pigeons", pkx + 10, pkn - 8)
+	for k in 4:
+		var bx2 = pkx - 20 + k * 13.0
+		b.box(Vector3(bx2, _gy(b, bx2, pkn - 30) + 0.45, pkn - 30), Vector3(2.2, 0.08, 0.45), Color(0.5, 0.34, 0.2), 0, false)
+		_site(b, "bench", bx2, pkn - 30.4, {"face": _face(0, 1)})
+	occupied.append([pkx, pkn, 75, 75])
+
+	# ---- ana cadde (kuzey-güney, x=0): banklar, fener dizileri, sokak lambaları
+	for nb in range(-1400, -40, 70):
+		for sx in [-1.0, 1.0]:
+			var bxp = 14.0 * sx
+			var gyb = _gy(b, bxp, nb + 7)
+			b.box(Vector3(bxp, gyb + 0.45, nb + 7), Vector3(0.45, 0.08, 2.2), Color(0.5, 0.34, 0.2), 0, false)
+			for e in [-0.9, 0.9]:
+				b.box(Vector3(bxp, gyb + 0.22, nb + 7 + e), Vector3(0.38, 0.44, 0.1), Color(0.42, 0.28, 0.16), 0, false)
+			if rng.randf() < 0.4:
+				_site(b, "bench", bxp, nb + 6.6, {"face": _face(-sx, 0)})
+	for k in 18:
+		var ln = -1380.0 + k * 75.0
+		if ln > -40.0:
+			break
+		CityDecor.lantern_string(decor, _gp(b, -12.5, ln), _gp(b, 12.5, ln), 7, [Color(0.95, 0.3, 0.25), Color(1.0, 0.95, 0.85), Color(0.95, 0.3, 0.25)])
+	for n in range(-1420, 560, 45):
+		for sx in [-11.0, 11.0]:
+			if not _on_road(b, sx * 3.0, n, 0.0):
+				b.lantern(sx, n, 3.2 + _gy(b, sx, n))
+
+	# ---- evler: sokak boylarına dizili (merkezde 3 sıra, dışarıda 1-2 sıra), her biri sokağa bakar
+	b.view_dist = 1500.0
+	var count = _street_houses(b, v, rng, occupied, decor, cliff_n)
+	count += _fill_blocks(b, rng, occupied, cliff_n)
+	# dış mahalleler: sokaklardan uzak boşluklara ağaç kümeleri (orman köyü hissi)
+	var trees = 0
+	for k in 1400:
+		var a = rng.randf() * TAU
+		var rr = sqrt(rng.randf()) * (R - 30.0)
+		var tx2 = sin(a) * rr; var tn2 = cos(a) * rr
+		if tn2 > cliff_n - 30.0 or rr < 250.0:
+			continue
+		if _on_road(b, tx2, tn2, 26.0) or not _free(tx2, tn2, occupied, 6.0):
+			continue
+		b.tree(tx2, tn2, rng.randf_range(1.1, 2.0), rng, _gy(b, tx2, tn2))
+		trees += 1
 	b.finish()
-	print("Konoha: ", count, " ev")
+	_merge_house_cells(b.root)
+	print("Konoha: ", count, " ev, ", trees, " ağaç")
 
 
-## Evin ön cephesini en yakın sokağa çeviren yaw (derece)
-static func _face_road(x: float, n: float) -> float:
-	var best = Vector2(0, -1)
-	var bd = 1e9
-	var cands = [Vector2(0, clampf(n, -400, 60))]
-	for rn in [-260, -110, 40, 160]:
-		cands.append(Vector2(clampf(x, -380, 380), rn))
-	for rx in [-200, 200]:
-		cands.append(Vector2(rx, clampf(n, -350, 270)))
-	for c in cands:
-		var d = Vector2(x, n).distance_to(c)
-		if d < bd:
-			bd = d
-			best = (c - Vector2(x, n)).normalized()
-	if bd > 60.0:
-		return [0.0, 90.0, 180.0, 270.0][int(absf(x * 7.0 + n * 3.0)) % 4]
-	var yaw = rad_to_deg(atan2(-best.x, -best.y))
-	return round(yaw / 90.0) * 90.0
+## Sokak boyunca ev dizileri. Çakışma: dolu alanlar, başka sokaklar, önceki evler.
+static func _street_houses(b: Builder, v: Dictionary, rng: RandomNumberGenerator, occupied: Array, decor: Node3D, cliff_n: float) -> int:
+	var c = Vector2(float(v["x"]), float(v["y"]))
+	var placed := {}  # 20 m ızgara -> [Vector2]
+	var lantern_xf: Array = []
+	var count = 0
+	var segs: Array = []
+	for rd in Game.roads:
+		if rd["kind"] != "street":
+			continue
+		var pts: PackedVector2Array = rd["pts"]
+		for i in range(pts.size() - 1):
+			var a: Vector2 = pts[i] - c
+			var e: Vector2 = pts[i + 1] - c
+			if a.length() > R + 50.0 and e.length() > R + 50.0:
+				continue
+			segs.append([a, e])
+	for sg in segs:
+		var a: Vector2 = sg[0]
+		var e: Vector2 = sg[1]
+		var L = a.distance_to(e)
+		var dir = (e - a) / L
+		var nrm = Vector2(-dir.y, dir.x)
+		var t = 22.0
+		while t < L - 10.0:
+			var p = a + dir * t
+			t += rng.randf_range(15.0, 19.0)
+			var dc = p.length()
+			var rows = 1 if dc > 900.0 else (2 if dc > 450.0 else 3)
+			for sd in [-1.0, 1.0]:
+				for row in rows:
+					var off = 15.5 + row * 16.5
+					var q = p + nrm * sd * off + dir * rng.randf_range(-1.5, 1.5)
+					if q.length() > R - 35.0 or q.y > cliff_n - 45.0:
+						continue
+					if not _free(q.x, q.y, occupied, 6.0):
+						continue
+					if _on_road(b, q.x, q.y, 12.5):
+						continue
+					var key = Vector2i(floori(q.x / 20.0), floori(q.y / 20.0))
+					var clash = false
+					for dx in [-1, 0, 1]:
+						for dy in [-1, 0, 1]:
+							for o in placed.get(key + Vector2i(dx, dy), []):
+								if o.distance_to(q) < 12.5:
+									clash = true
+					if clash:
+						continue
+					if not placed.has(key):
+						placed[key] = []
+					placed[key].append(q)
+					# yüz: sokağa doğru (-nrm*sd); Builder yaw: 0 = ön güneye bakar
+					var fd = -nrm * sd
+					var yaw = rad_to_deg(atan2(-fd.x, -fd.y))
+					var fl = [1, 2, 2, 2, 3].pick_random() if dc < 700.0 else [1, 1, 2].pick_random()
+					b.house(q.x, q.y, 10, 9, fl, yaw, "konoha", rng)
+					var hd = float(b.last_house.get("d", 9.0))
+					var fo = Builder.rot(0, -hd * 0.5 - 1.0, yaw)
+					if row == 0:
+						VL.doors["konoha"].append(_gp(b, q.x + fo.x, q.y + fo.y))
+					if count % 11 == 4 and row == 0:
+						_door(b, q.x + fo.x, q.y + fo.y, 2.0, "home", "[F] Kapıyı çal (misafir ol)", "", count)
+					if count % 3 == 0:
+						var lo = Builder.rot(1.1, -hd * 0.5 - 0.2, yaw)
+						var gy = b._ground_off(q.x, q.y, 6.0).y
+						var lp = b.w(Vector3(q.x + lo.x, gy + 2.55, q.y + lo.y))
+						lantern_xf.append(Transform3D(Basis(Vector3.UP, deg_to_rad(-yaw)), lp))
+					count += 1
+	CityDecor.door_lanterns(decor, lantern_xf)
+	return count
 
 
-## Konoha'nın simge A-Un kapısı (güney): iki dev yeşil kanat, çatılı kemer, "あうん" levhası, nöbetçi kulübesi
-static func _aun_gate(b: Builder) -> void:
-	var gn = -R
-	var g = b._ground_off(0, gn, 26)
-	var y0 = g.x - 1.0
-	var green = Color(0.2, 0.44, 0.27)
-	var dark = Color(0.13, 0.28, 0.18)
-	for sx in [-1.0, 1.0]:
-		# dev dikmeler + taban taşı
-		b.box(Vector3(20 * sx, y0 + 17, gn), Vector3(5, 34, 6), dark)
-		b.box(Vector3(20 * sx, y0 + 1.2, gn), Vector3(7, 2.4, 8), Color(0.55, 0.52, 0.48))
-		# kapı boşluğunu sur ile birleştiren ara duvar
-		b.box(Vector3(28.5 * sx, y0 + 11.5, gn), Vector3(12, 23, 4.5), Color(0.86, 0.76, 0.58))
-		# içe doğru tam açılmış dev kanatlar ("あ" ve "うん" amblemleri yola bakar)
-		b.box(Vector3(17.2 * sx, y0 + 13.5, gn + 8.5), Vector3(1.2, 26, 15), green)
-		b.disc(Vector3(16.4 * sx, y0 + 16, gn + 8.5), 7.0, 0.3, Color(0.95, 0.92, 0.85), 90.0)
-		b.disc(Vector3(16.2 * sx, y0 + 16, gn + 8.5), 4.2, 0.3, Color(0.75, 0.15, 0.12), 90.0)
-	# kemer: kiriş + kiremit çatı + levha
-	b.box(Vector3(0, y0 + 32.5, gn), Vector3(46, 3.2, 7), dark)
-	b.box(Vector3(0, y0 + 35.0, gn), Vector3(52, 1.4, 11), Color(0.16, 0.33, 0.22), 0, false)
-	b.box(Vector3(0, y0 + 36.3, gn), Vector3(46, 1.2, 7), Color(0.12, 0.25, 0.17), 0, false)
-	b.box(Vector3(0, y0 + 28.5, gn - 4.0), Vector3(16, 3.6, 0.5), Color(0.95, 0.92, 0.85), 0, false)
-	b.box(Vector3(-3.2, y0 + 28.5, gn - 4.3), Vector3(2.4, 2.4, 0.1), Color(0.75, 0.15, 0.12), 0, false)
-	b.box(Vector3(3.2, y0 + 28.5, gn - 4.3), Vector3(2.4, 2.4, 0.1), Color(0.75, 0.15, 0.12), 0, false)
-	# nöbetçi kulübesi (içeride sağda, çatılı)
-	b.box(Vector3(30, y0 + 1.6 + 1.0, gn + 18), Vector3(10, 3.2, 5), Color(0.62, 0.46, 0.3))
-	b.box(Vector3(30, y0 + 3.9 + 1.0, gn + 18), Vector3(11.5, 0.5, 6.5), Color(0.2, 0.36, 0.55), 0, false)
-	b.box(Vector3(30, y0 + 2.4 + 1.0, gn + 15.4), Vector3(8, 0.15, 0.6), Color(0.85, 0.78, 0.6), 0, false)
-	b.interact(Vector3(30, 0, gn + 14), 5, "gate", "[F] Kapı nöbetçisiyle konuş")
-	for sx in [-1.0, 1.0]:
-		b.lantern(11 * sx, gn + 14, 4.0)
+## Sokak araları (bloklar): merkezde sık, dışa doğru seyrek ev kümeleri; her 4. sıra ara sokak olarak boş kalır.
+## Ev en yakın sokağa bakar (yol uzaklığının azaldığı eksen yönü).
+static func _fill_blocks(b: Builder, rng: RandomNumberGenerator, occupied: Array, cliff_n: float) -> int:
+	var count = 0
+	var step = 17.0
+	var gx = -R
+	var ix = 0
+	while gx < R:
+		ix += 1
+		var gn = -R
+		var iz = 0
+		while gn < cliff_n - 50.0:
+			iz += 1
+			var x = gx + rng.randf_range(-1.2, 1.2)
+			var n = gn + rng.randf_range(-1.2, 1.2)
+			gn += step
+			if ix % 4 == 0 or iz % 4 == 0:
+				continue  # ara sokak
+			var d = Vector2(x, n).length()
+			var prob = 0.62 if d < 600.0 else (0.32 if d < 1000.0 else 0.0)
+			if rng.randf() > prob or d > R - 40.0:
+				continue
+			if not _free(x, n, occupied, 6.0) or _on_road(b, x, n, 40.0):
+				continue
+			# en yakın sokağa bak
+			var best = Vector2(0, -1)
+			var bd = 1e9
+			for dv in [Vector2(0, -1), Vector2(0, 1), Vector2(1, 0), Vector2(-1, 0)]:
+				var wp = b.w(Vector3(x + dv.x * 30.0, 0, n + dv.y * 30.0))
+				var rd = Game.road_dist(wp.x, wp.z)
+				if rd < bd:
+					bd = rd
+					best = dv
+			var yaw = rad_to_deg(atan2(-best.x, -best.y))
+			var fl = [1, 2, 2, 3].pick_random() if d < 600.0 else [1, 1, 2].pick_random()
+			b.house(x, n, 10, 9, fl, yaw, "konoha", rng)
+			count += 1
+		gx += step
+	return count
+
+
+## HouseKit 160 m hücrelerini 480 m hücrelerde birleştir (çizim çağrısı sayısı ~9 kat azalır)
+static func _merge_house_cells(root: Node3D) -> void:
+	var groups := {}
+	var olds: Array = []
+	for ch in root.get_children():
+		if not ch is MultiMeshInstance3D or ch.layers != 2:
+			continue
+		var mm: MultiMesh = ch.multimesh
+		if mm == null or not mm.use_colors:
+			continue
+		olds.append(ch)
+		for i in mm.instance_count:
+			var xf = mm.get_instance_transform(i)
+			var k = [mm.mesh, Vector2i(floori(xf.origin.x / 480.0), floori(xf.origin.z / 480.0))]
+			var ks = "%d|%d|%d" % [mm.mesh.get_instance_id(), k[1].x, k[1].y]
+			if not groups.has(ks):
+				groups[ks] = {"mesh": mm.mesh, "xf": [], "col": [], "vis": ch.visibility_range_end}
+			groups[ks]["xf"].append(xf)
+			groups[ks]["col"].append(mm.get_instance_color(i))
+	for o in olds:
+		o.queue_free()
+	for ks in groups:
+		var g: Dictionary = groups[ks]
+		var mm = MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.use_colors = true
+		mm.mesh = g["mesh"]
+		mm.instance_count = g["xf"].size()
+		for i in g["xf"].size():
+			mm.set_instance_transform(i, g["xf"][i])
+			mm.set_instance_color(i, g["col"][i])
+		var mmi = MultiMeshInstance3D.new()
+		mmi.layers = 2
+		mmi.multimesh = mm
+		mmi.material_override = Props.toon()
+		mmi.visibility_range_end = g["vis"] + 300.0
+		mmi.visibility_range_end_margin = 80.0
+		mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+		root.add_child(mmi)
+
+
+## Hokage Kayası: uçurum yüzünü tarayıp beş yüzü yüzeye oyar; tepede seyir yeri
+static func _hokage_faces(b: Builder, rock: Dictionary, cliff_n: float, v: Dictionary) -> void:
+	var top_abs = float(rock.get("top", float(v["base"]) + 165.0))
+	var top = top_abs - b.origin.y
+	var x0 = float(rock.get("x0", float(v["x"]) - 825.0)) - float(v["x"])
+	var x1 = float(rock.get("x1", float(v["x"]) + 825.0)) - float(v["x"])
+	var rc = Color(0.66, 0.6, 0.52)
+	var cx = (x0 + x1) * 0.5
+	var span = (x1 - x0) * 0.62
+	for i in 5:
+		var fx = cx - span * 0.5 + span * float(i) / 4.0
+		var fy = top * 0.62
+		# yüz yüksekliğinde uçurumun ön yüzünü bul
+		var fn = cliff_n
+		var nn = cliff_n - 140.0
+		while nn < cliff_n + 200.0:
+			if _gy(b, fx, nn) > fy:
+				fn = nn
+				break
+			nn += 2.0
+		var fc = rc.lightened(0.04 + 0.02 * (i % 2))
+		var s = top / 165.0 * 1.45
+		b.box(Vector3(fx, fy, fn + 4.0 * s), Vector3(54 * s, 70 * s, 14 * s), fc, 0, false)  # yüz levhası
+		b.box(Vector3(fx, fy + 34 * s, fn + 6.0 * s), Vector3(60 * s, 14 * s, 16 * s), fc.darkened(0.12), 0, false)  # saç
+		b.box(Vector3(fx, fy + 22 * s, fn - 3.5 * s), Vector3(50 * s, 6 * s, 3 * s), fc.darkened(0.1), 0, false)  # alın bandı
+		for ex in [-12.0, 12.0]:
+			b.box(Vector3(fx + ex * s, fy + 8 * s, fn - 3.2 * s), Vector3(11 * s, 4 * s, 2 * s), Color(0.34, 0.31, 0.28), 0, false)  # gözler
+			b.box(Vector3(fx + ex * s, fy + 13 * s, fn - 3.4 * s), Vector3(13 * s, 2.4 * s, 2.4 * s), fc.darkened(0.15), 0, false)  # kaşlar
+		b.box(Vector3(fx, fy - 4 * s, fn - 5.0 * s), Vector3(6 * s, 14 * s, 6 * s), fc, 0, false)  # burun
+		b.box(Vector3(fx, fy - 18 * s, fn - 3.0 * s), Vector3(18 * s, 2.6 * s, 2 * s), Color(0.34, 0.31, 0.28), 0, false)  # ağız
+		b.box(Vector3(fx, fy - 30 * s, fn + 2.0 * s), Vector3(30 * s, 10 * s, 12 * s), fc.darkened(0.06), 0, false)  # çene
+	# tepe seyir yeri (uçurumun hemen arkası)
+	var ln = cliff_n + 35.0
+	b.box(Vector3(cx, _gy(b, cx, ln) + 0.5, ln), Vector3(70, 1, 24), Color(0.55, 0.45, 0.35), 0, false)
+	for k in 8:
+		b.box(Vector3(cx - 34 + k * 9.7, _gy(b, cx, ln) + 1.6, ln - 12), Vector3(0.3, 1.2, 0.3), Color(0.42, 0.3, 0.2), 0, false)
+	_act(b, cx, ln, 14, "lookout", "[F] Köyü seyret (kayıt)")
+	_act(b, cx + 30, ln, 4, "shrine", "[F] Kayadaki küçük sunakta dua et")
 
 
 static func _free(x: float, n: float, occ: Array, pad: float) -> bool:
 	for o in occ:
 		if absf(x - o[0]) < o[2] + pad and absf(n - o[1]) < o[3] + pad:
 			return false
-	# yollar
-	if absf(x) < 16:
-		return false
-	for rn in [-260, -110, 40, 160]:
-		if absf(n - rn) < 11:
-			return false
-	for rx in [-200, 200]:
-		if absf(x - rx) < 10:
-			return false
 	return true
+
+
+## Konoha'nın simge A-Un kapısı (güney): iki dev yeşil kanat, çatılı kemer, levha, nöbetçi kulübesi
+static func _aun_gate(b: Builder, decor: Node3D) -> void:
+	var gn = -R
+	var g = b._ground_off(0, gn, 26)
+	var y0 = g.x - 1.0
+	var green = Color(0.2, 0.44, 0.27)
+	var dark = Color(0.13, 0.28, 0.18)
+	var s = 1.3
+	for sx in [-1.0, 1.0]:
+		b.box(Vector3(20 * s * sx, y0 + 17 * s, gn), Vector3(5 * s, 34 * s, 6 * s), dark)
+		b.box(Vector3(20 * s * sx, y0 + 1.2, gn), Vector3(7 * s, 2.4, 8 * s), Color(0.55, 0.52, 0.48))
+		b.box(Vector3(30 * s * sx, y0 + 14 * s, gn), Vector3(14 * s, 28 * s, 5), Color(0.86, 0.76, 0.58))
+		b.box(Vector3(17.2 * s * sx, y0 + 13.5 * s, gn + 8.5 * s), Vector3(1.2 * s, 26 * s, 15 * s), green)
+		b.disc(Vector3(16.4 * s * sx, y0 + 16 * s, gn + 8.5 * s), 7.0 * s, 0.3, Color(0.95, 0.92, 0.85), 90.0)
+		b.disc(Vector3(16.2 * s * sx, y0 + 16 * s, gn + 8.5 * s), 4.2 * s, 0.3, Color(0.75, 0.15, 0.12), 90.0)
+	b.box(Vector3(0, y0 + 32.5 * s, gn), Vector3(46 * s, 3.2 * s, 7 * s), dark)
+	b.box(Vector3(0, y0 + 35.0 * s, gn), Vector3(52 * s, 1.4 * s, 11 * s), Color(0.16, 0.33, 0.22), 0, false)
+	b.box(Vector3(0, y0 + 36.3 * s, gn), Vector3(46 * s, 1.2 * s, 7 * s), Color(0.12, 0.25, 0.17), 0, false)
+	b.box(Vector3(0, y0 + 28.5 * s, gn - 4.0 * s), Vector3(16 * s, 3.6 * s, 0.5), Color(0.95, 0.92, 0.85), 0, false)
+	b.box(Vector3(-3.2 * s, y0 + 28.5 * s, gn - 4.0 * s - 0.3), Vector3(2.4 * s, 2.4 * s, 0.1), Color(0.75, 0.15, 0.12), 0, false)
+	b.box(Vector3(3.2 * s, y0 + 28.5 * s, gn - 4.0 * s - 0.3), Vector3(2.4 * s, 2.4 * s, 0.1), Color(0.75, 0.15, 0.12), 0, false)
+	# nöbetçi kulübesi (içeride sağda)
+	var kg = _gy(b, 40, gn + 22)
+	b.box(Vector3(40, kg + 1.6, gn + 22), Vector3(10, 3.2, 5), Color(0.62, 0.46, 0.3))
+	b.box(Vector3(40, kg + 3.9, gn + 22), Vector3(11.5, 0.5, 6.5), Color(0.2, 0.36, 0.55), 0, false)
+	b.box(Vector3(40, kg + 2.4, gn + 19.4), Vector3(8, 0.15, 0.6), Color(0.85, 0.78, 0.6), 0, false)
+	_act(b, 40, gn + 17, 5, "gate", "[F] Kapı nöbetçisiyle konuş")
+	for sx in [-1.0, 1.0]:
+		b.lantern(13 * sx, gn + 16, 4.0 + _gy(b, 13 * sx, gn + 16))
+		_site(b, "guard", 15 * sx, gn + 9, {"face": _face(0, -1)})
+		CityDecor.banner(decor, _gp(b, 32 * sx, gn + 12), 0.0, Color(0.2, 0.44, 0.27), Color(0.95, 0.92, 0.85))

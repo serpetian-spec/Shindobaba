@@ -442,8 +442,21 @@ func interact(it: Dictionary) -> void:
 				Interiors.inst.exit()
 		"bed":
 			_sleep(0, "Futonuna uzanıp gözlerini kapattın... Sabah oldu. (Oyun kaydedildi)")
-		"inn_sleep":
-			_sleep(30, "Han odasında rahat bir gece geçirdin. Sabah oldu! (Oyun kaydedildi)")
+		"inn_sleep", "inn":
+			Hud.dialog(it.get("title", "Han Sahibi"), "Hoş geldin yolcu! Sıcak yemek de var, yumuşak futon da.", [
+				{"label": "Akşam yemeği ye (30 Ryō) — can + chakra", "cb": func(): _eat(30, "Pirinç, miso çorbası ve ızgara balık... Karnın doydu!", "Han Sahibi")},
+				{"label": "Oda tut ve uyu (40 Ryō) — sabaha kadar, kaydet", "cb": func(): _sleep(40, "Han odasında rahat bir gece geçirdin. Sabah oldu! (Oyun kaydedildi)")},
+			])
+		"shrine":
+			Buffs.add("shrine", 300.0, {"armor": 0.9, "melee": 1.05})
+			Game.player.chakra = Game.player.max_chakra
+			Game.save_game()
+			Hud.dialog("Tapınak", "Ellerini birleştirip dua ettin. İçin huzurla doldu: 5 dakika boyunca alınan hasar -%10, güç +%5. Chakran yenilendi. (Oyun kaydedildi)", [])
+		"trainer":
+			var vid: String = it.get("village", home())
+			var topts = trainer_options(it["kinds"]) if it.has("kinds") else village_trainer_options(vid)
+			var ttxt = "Hangi tekniği öğrenmek istersin? Ryō karşılığında öğretirim." if not topts.is_empty() else "Şu an sana öğretebileceğim yeni bir teknik yok. Biraz daha güçlen, sonra gel."
+			Hud.dialog(it.get("title", "Eğitmen"), ttxt, topts)
 		"tailor":
 			Hud.gear_shop("Terzi", Gear.SHOP_CLOTHES)
 		"home_note":
