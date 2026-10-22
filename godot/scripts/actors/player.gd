@@ -28,7 +28,10 @@ var height = 1.8
 var grounded = true
 var jumps = 0
 var leaping = false
+var sprint_t = 0.0
+var was_turbo = false
 var last_air_vy = 0.0
+var cam_lift = 0.0   # dev dönüşümlerde kamera hedefini yükselt (kuyruklu canavar, Susanoo)
 var leap_charge = -1.0     # Ctrl basılı: 0..1 şarj (Striker süper zıplaması), -1 = şarj yok
 var flip_t = -1.0          # havada takla zamanlayıcısı
 var leap_ui: Control
@@ -220,7 +223,7 @@ func _leap(power := 1.0) -> void:
 	var air = not (grounded or swimming)
 	var k = clampf(power, 0.0, 1.0)
 	var lm = 1.0 + Stats.skill(Game.profile, "leap")
-	velocity = d * lerpf(21.0, 48.0, k) * lm + Vector3.UP * lerpf(12.0, 22.5, k) * sqrt(lm) * (0.8 if air else 1.0)
+	velocity = d * lerpf(24.0, 56.0, k) * lm + Vector3.UP * lerpf(12.0, 22.5, k) * sqrt(lm) * (0.8 if air else 1.0)
 	flip_t = 0.0 if k > 0.45 else -1.0
 	facing = atan2(-d.x, -d.z)
 	grounded = false
@@ -292,7 +295,7 @@ func _update_leap_charge(dt: float) -> void:
 	model.play("crouch", 0.12)
 	# iniş yayı: balistik yörünge araziye çarpana kadar
 	var lmul = 1.0 + Stats.skill(Game.profile, "leap")
-	var v = d * lerpf(21.0, 48.0, leap_charge) * lmul + Vector3.UP * lerpf(12.0, 22.5, leap_charge) * sqrt(lmul)
+	var v = d * lerpf(24.0, 56.0, leap_charge) * lmul + Vector3.UP * lerpf(14.0, 27.0, leap_charge) * sqrt(lmul)
 	var p = global_position + Vector3.UP * 0.3
 	var im: ImmediateMesh = leap_arc.mesh
 	im.clear_surfaces()
@@ -374,13 +377,24 @@ func _process(dt: float) -> void:
 func _ground_air_move(dt: float) -> void:
 	var wish = wish_dir()
 	var sprint = Input.is_action_pressed("dash") and grounded and wish.length() > 0.1
+	# Shift 5 sn basılı: ikinci depar kademesi (büyük harita için)
+	if sprint:
+		sprint_t += dt
+	elif not Input.is_action_pressed("dash"):
+		sprint_t = 0.0
+	var turbo = sprint and sprint_t > 5.0
+	if turbo and not was_turbo:
+		FX.speed_lines(global_position + Vector3.UP, wish)
+		Sfx.play("whoosh", global_position, 0.7)
+		Hud.msg("Ninja koşusu: tam hız!", Color(0.7, 0.9, 1.0), 1.2)
+	was_turbo = turbo
 	if combat and combat.has_method("move_override") and combat.move_override(dt):
 		pass
 	elif dash_t > 0.0:
 		dash_t -= dt
 	else:
 		var spd_mul = Buffs.mod("speed") * (1.0 + Stats.skill(Game.profile, "speed")) * (1.0 + Gear.stat(Game.profile, "speed") + Stats.clan_bonus(Game.profile, "speed")) * status_speed()
-		var target = wish * (DASH if sprint else RUN) * spd_mul
+		var target = wish * ((DASH * 1.6 if turbo else DASH) if sprint else RUN) * spd_mul
 		if swimming:
 			target *= 0.35
 		var hv = Vector3(velocity.x, 0, velocity.z)
@@ -566,7 +580,7 @@ func _animate(sp: float, sprint: bool) -> void:
 
 
 func _update_camera(dt: float) -> void:
-	var target = get_global_transform_interpolated().origin + Vector3.UP * (1.6 * (model.age_scale if model else 1.0))
+	var target = get_global_transform_interpolated().origin + Vector3.UP * (1.6 * (model.age_scale if model else 1.0) + cam_lift)
 	cam_pivot.global_position = cam_pivot.global_position.lerp(target, minf(1.0, dt * 16.0))
 	cam_pivot.rotation = Vector3(deg_to_rad(pitch), deg_to_rad(yaw), 0)
 	# kamera duvarlara ve araziye girmesin
