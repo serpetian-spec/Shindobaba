@@ -621,3 +621,521 @@ func j_kuchiyose(c: Node3D, _t: Node3D) -> void:
 	if Game.world:
 		Game.world.env.add_shake(1.2)
 	Sfx.play("boom", pos, 0.6)
+
+
+# ================================================================== KLAN TEKNİKLERİ
+## Belirli aralıklarla n kez fn(i) çağır, sonunda done()
+func _ticks(n: int, interval: float, fn: Callable, done := Callable()) -> void:
+	var tw = create_tween()
+	for i in n:
+		tw.tween_callback(fn.bind(i))
+		tw.tween_interval(interval)
+	if done.is_valid():
+		tw.tween_callback(done)
+
+
+## Genel hücum: dur saniye boyunca hedefe/ileri koş, her karede on_tick(nokta) çağır
+func _dash(c: Node3D, t: Node3D, dur: float, speed: float, on_tick: Callable, on_end := Callable()) -> void:
+	var st = {"t": 0.0}
+	var timer = Timer.new()
+	timer.wait_time = 1.0 / 60.0
+	c.add_child(timer)
+	timer.timeout.connect(func():
+		st["t"] += 1.0 / 60.0
+		if not is_instance_valid(c):
+			timer.queue_free()
+			return
+		var d: Vector3 = c.face_dir()
+		if t and is_instance_valid(t) and not t.is_dead():
+			d = t.global_position - c.global_position
+			d.y = 0
+			d = d.normalized()
+			if c is Player:
+				c.facing = atan2(-d.x, -d.z)
+		c.velocity = Vector3(d.x * speed, c.velocity.y, d.z * speed)
+		if c is Player:
+			c.combat.action = "cast"
+			c.combat.t = -10.0
+		on_tick.call(c.global_position + Vector3.UP * 1.0 + d * 1.0)
+		if st["t"] >= dur:
+			if c is Player:
+				c.combat.action = ""
+			c.velocity = Vector3.ZERO
+			if on_end.is_valid():
+				on_end.call()
+			timer.queue_free())
+	timer.start()
+
+
+func _ground(p: Vector3) -> Vector3:
+	return Vector3(p.x, Game.ground_height(p.x, p.z), p.z)
+
+
+# ---------------------------------------------------------------- Hyuga
+func j_juuken_64(c: Node3D, t: Node3D) -> void:
+	var m = _mult(c)
+	if t == null or c.global_position.distance_to(t.global_position) > 9.0:
+		Hud.msg("Hakke 64: hedef çok uzak (en fazla 9 metre)", Color(0.8, 0.9, 1))
+		return
+	var to = t.global_position - (t.global_position - c.global_position).normalized() * (t.radius + 1.0)
+	c.global_position = _ground(to)
+	if c is Player:
+		c.combat.face_to(t)
+		c.combat.action = "cast"
+		c.combat.t = -10.0
+		c.combat.invuln = 1.6
+	Combat.popup_text(t.global_position + Vector3.UP * 2.6, "Hakke Rokujuuyon Shou!", Color(0.85, 0.9, 1))
+	var counts = [2, 4, 8, 16, 32, 64]
+	if t.has_method("apply_status"):
+		t.apply_status("stun", 1.6)
+	_ticks(16, 0.08, func(i):
+		if not is_instance_valid(t) or t.is_dead():
+			return
+		c.model.play(["jab", "cross"][i % 2], 0.02, 3.0, true)
+		var pt = t.global_position + Vector3.UP * randf_range(0.8, 1.6)
+		FX.burst(pt, {"amount": 6, "life": 0.25, "tex": FX.tex_spark, "size": 0.8, "vmin": 3, "vmax": 7, "colors": [Color(1, 1, 1, 1), Color(0.6, 0.8, 1, 0)]})
+		Combat.hit_sphere(c, pt, 1.2, {"dmg": 2.6 * m, "knock": 0.3, "kind": "light", "hitstop": 0.0})
+		if i % 3 == 0:
+			Combat.popup_text(pt + Vector3.UP * 0.8, "%d" % counts[mini(5, i / 3)], Color(0.8, 0.9, 1))
+			Sfx.play("punch", pt, 1.3), func():
+		if c is Player:
+			c.combat.action = ""
+		if is_instance_valid(t) and not t.is_dead():
+			Combat.hit_sphere(c, t.global_position + Vector3.UP, 1.6, {"dmg": 14.0 * m, "knock": 18.0, "launch": 4.0, "kind": "heavy", "hitstop": 0.12})
+			FX.ring(t.global_position + Vector3.UP, Color(0.7, 0.85, 1), 6.0, 0.3, false))
+
+
+func j_kaiten(c: Node3D, _t: Node3D) -> void:
+	var m = _mult(c)
+	var dome = Projectile.energy_mesh(Color(0.85, 0.95, 1.0), Color(0.3, 0.55, 1.0), 1.0, 22.0, 0.0, 2.2)
+	c.add_child(dome)
+	dome.position = Vector3(0, 1.0, 0)
+	var tw = dome.create_tween()
+	tw.tween_property(dome, "scale", Vector3(6.5, 5.0, 6.5), 0.15)
+	if c is Player:
+		c.combat.invuln = 1.1
+		c.combat.action = "cast"
+		c.combat.t = -10.0
+	Sfx.play("wind", c.global_position, 1.2)
+	_ticks(10, 0.1, func(_i):
+		if not is_instance_valid(c):
+			return
+		c.model.rotation.y += 1.4
+		for pr in get_tree().get_nodes_in_group("projectiles"):
+			if pr.shooter != c and pr.global_position.distance_to(c.global_position + Vector3.UP) < 4.0:
+				pr.block()
+		Combat.hit_sphere(c, c.global_position + Vector3.UP, 3.4, {"dmg": 3.0 * m, "knock": 22.0, "launch": 4.0, "kind": "heavy"}), func():
+		if c is Player:
+			c.combat.action = ""
+		var tw2 = dome.create_tween()
+		tw2.tween_property(dome, "scale", Vector3.ONE * 0.1, 0.2)
+		tw2.tween_callback(dome.queue_free))
+
+
+# ---------------------------------------------------------------- Nara
+func _shadow_line(c: Node3D, t: Node3D, dur: float) -> void:
+	var mi = MeshInstance3D.new()
+	var bm = BoxMesh.new()
+	bm.size = Vector3(0.6, 0.04, 1.0)
+	var mat = StandardMaterial3D.new()
+	mat.albedo_color = Color(0.03, 0.02, 0.05, 0.92)
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	bm.material = mat
+	mi.mesh = bm
+	get_tree().current_scene.add_child(mi)
+	var upd = func(_i):
+		if not is_instance_valid(c) or not is_instance_valid(t):
+			return
+		var a = _ground(c.global_position) + Vector3.UP * 0.05
+		var b = _ground(t.global_position) + Vector3.UP * 0.05
+		var L = maxf(0.2, a.distance_to(b))
+		var fwd = (b - a).normalized() if L > 0.3 else Vector3.FORWARD
+		mi.global_transform = Transform3D(Basis.looking_at(fwd, Vector3.UP).scaled(Vector3(1, 1, L)), (a + b) * 0.5)
+	upd.call(0)
+	_ticks(int(dur / 0.05), 0.05, upd, func(): mi.queue_free())
+
+
+func j_kagemane(c: Node3D, t: Node3D) -> void:
+	if t == null or c.global_position.distance_to(t.global_position) > 22.0:
+		Hud.msg("Kagemane: gölgen en fazla 22 metreye uzanır", Color(0.8, 0.8, 0.9))
+		return
+	Sfx.play("genjutsu", c.global_position, 0.6)
+	_shadow_line(c, t, 4.0)
+	if t.has_method("apply_status"):
+		t.apply_status("bind", 4.0)
+	Combat.popup_text(t.global_position + Vector3.UP * 2.4, "Kagemane: başarılı!", Color(0.7, 0.7, 0.9))
+
+
+func j_kage_kubi(c: Node3D, t: Node3D) -> void:
+	var m = _mult(c)
+	if t == null or c.global_position.distance_to(t.global_position) > 22.0:
+		Hud.msg("Kage Kubi Shibari: hedef çok uzak", Color(0.8, 0.8, 0.9))
+		return
+	_shadow_line(c, t, 4.0)
+	if t.has_method("apply_status"):
+		t.apply_status("bind", 4.0)
+	Sfx.play("genjutsu", c.global_position, 0.5)
+	_ticks(8, 0.5, func(_i):
+		if is_instance_valid(t) and not t.is_dead():
+			FX.burst(t.global_position + Vector3.UP * 1.5, {"amount": 8, "life": 0.5, "tex": FX.tex_smoke, "add": false, "size": 0.6, "vmin": 0.5, "vmax": 1.5, "colors": [Color(0.05, 0.03, 0.08, 0.9), Color(0.05, 0.03, 0.08, 0)]})
+			Combat.hit_sphere(c, t.global_position + Vector3.UP, 1.0, {"dmg": 6.0 * m, "knock": 0.0, "kind": "light"}))
+
+
+# ---------------------------------------------------------------- Akimichi
+func j_baika(c: Node3D, _t: Node3D) -> void:
+	if not c is Player:
+		return
+	c.combat.modes.set_size(2.6, 20.0)
+	FX.smoke_puff(c.global_position + Vector3.UP * 2.0, 2.2, 24)
+	Buffs.add("baika", 20.0, {"melee": 1.9, "speed": 0.85, "armor": 0.7, "reach": 2.2})
+	Hud.msg("Baika no Jutsu! (20 sn dev)", Color(1, 0.8, 0.5))
+
+
+func j_nikudan(c: Node3D, t: Node3D) -> void:
+	var m = _mult(c)
+	var ball = MeshInstance3D.new()
+	var sm = SphereMesh.new()
+	sm.radius = 1.6; sm.height = 3.2
+	sm.material = Props.toon_color(Color(0.85, 0.62, 0.45), 0.4)
+	ball.mesh = sm
+	c.add_child(ball)
+	ball.position = Vector3(0, 1.6, 0)
+	c.model.visible = false
+	Sfx.play("earth", c.global_position, 0.8)
+	var hit = []
+	_dash(c, t, 1.3, 22.0, func(pt):
+		ball.rotation.x -= 0.35
+		FX.dust(_ground(c.global_position), 0.5)
+		for h in Combat.hit_sphere(c, pt, 2.2, {"dmg": 18.0 * m, "knock": 16.0, "launch": 5.0, "kind": "heavy", "hitstop": 0.06}, hit):
+			hit.append(h), func():
+		ball.queue_free()
+		if is_instance_valid(c):
+			c.model.visible = true
+			FX.smoke_puff(c.global_position + Vector3.UP, 1.2, 12))
+
+
+# ---------------------------------------------------------------- Aburame
+func j_mushi_swarm(c: Node3D, t: Node3D) -> void:
+	var m = _mult(c)
+	var st = {"pos": t.global_position if t else c.global_position + c.face_dir() * 10.0}
+	var cloud = GPUParticles3D.new()
+	cloud.amount = 160
+	cloud.lifetime = 0.9
+	var pm = ParticleProcessMaterial.new()
+	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+	pm.emission_sphere_radius = 1.6
+	pm.spread = 180.0
+	pm.initial_velocity_min = 1.0; pm.initial_velocity_max = 3.0
+	pm.gravity = Vector3.ZERO
+	pm.orbit_velocity_min = 0.5; pm.orbit_velocity_max = 1.2
+	pm.scale_min = 0.6; pm.scale_max = 1.0
+	pm.color_ramp = FX._gradient([Color(0.05, 0.05, 0.05, 0.0), Color(0.08, 0.08, 0.06, 1.0), Color(0.05, 0.05, 0.05, 0.0)])
+	cloud.process_material = pm
+	var q = QuadMesh.new()
+	q.size = Vector2(0.14, 0.14)
+	q.material = FX._draw_mat(FX.tex_soft, false)
+	cloud.draw_pass_1 = q
+	cloud.local_coords = false
+	get_tree().current_scene.add_child(cloud)
+	cloud.global_position = c.global_position + Vector3.UP * 1.3
+	cloud.emitting = true
+	Sfx.play("wind", c.global_position, 2.0, 0.5)
+	_ticks(30, 0.15, func(i):
+		if t and is_instance_valid(t) and not t.is_dead():
+			st["pos"] = t.global_position
+		cloud.global_position = cloud.global_position.lerp(st["pos"] + Vector3.UP * 1.2, 0.25)
+		if i > 3 and i % 2 == 0:
+			for h in Combat.hit_sphere(c, cloud.global_position, 2.0, {"dmg": 2.4 * m, "knock": 0.0, "kind": "light"}):
+				if h.has_method("apply_status"):
+					h.apply_status("slow", 1.0), func():
+		cloud.emitting = false
+		get_tree().create_timer(1.0).timeout.connect(cloud.queue_free))
+
+
+# ---------------------------------------------------------------- Inuzuka
+func j_ninken(c: Node3D, _t: Node3D) -> void:
+	for n in get_tree().get_nodes_in_group("ninken"):
+		n.queue_free()
+	var d = Ninken.new()
+	d.owner_f = c
+	get_tree().current_scene.add_child(d)
+	d.global_position = _ground(c.global_position + c.global_transform.basis.x * 2.0)
+	FX.smoke_puff(d.global_position + Vector3.UP * 0.5, 0.8, 10)
+	Hud.msg("Ninken yanında! Düşmanlara birlikte saldırırsınız.", Color(0.9, 0.8, 0.6))
+
+
+func j_gatsuga(c: Node3D, t: Node3D) -> void:
+	var m = _mult(c)
+	var drill = Projectile.energy_mesh(Color(0.9, 0.85, 0.75), Color(0.45, 0.35, 0.25), 1.0, 30.0, 0.0, 1.2)
+	drill.scale = Vector3(2.0, 2.6, 2.0)
+	c.add_child(drill)
+	drill.position = Vector3(0, 1.0, 0)
+	Sfx.play("wind", c.global_position, 1.6)
+	var hit = []
+	for n in get_tree().get_nodes_in_group("ninken"):
+		n.gatsuga(t)
+	_dash(c, t, 0.9, 26.0, func(pt):
+		c.model.rotation.y += 1.2
+		for h in Combat.hit_sphere(c, pt, 1.7, {"dmg": 20.0 * m, "knock": 14.0, "launch": 6.0, "kind": "heavy", "hitstop": 0.05}, hit):
+			hit.append(h), func(): drill.queue_free())
+
+
+# ---------------------------------------------------------------- Yamanaka
+func j_shintenshin(c: Node3D, t: Node3D) -> void:
+	if t == null or not t is Enemy or t is Boss:
+		Hud.msg("Shintenshin: sıradan bir düşmanı hedefle (boss'lar dirençli)", Color(0.8, 0.7, 1))
+		return
+	Sfx.play("genjutsu", t.global_position, 1.2)
+	FX.ring(t.global_position + Vector3.UP, Color(0.75, 0.5, 1.0), 4.0, 0.4, false)
+	t.team = "player"
+	t.target = null
+	t.state = "chase"
+	var a = FX.aura(t, Color(0.7, 0.45, 1.0), 0.9)
+	t.nameplate.modulate = Color(0.75, 0.6, 1.0)
+	Combat.popup_text(t.global_position + Vector3.UP * 2.6, "Zihin ele geçirildi!", Color(0.8, 0.65, 1))
+	get_tree().create_timer(12.0).timeout.connect(func():
+		if is_instance_valid(t) and not t.dead:
+			t.team = "enemy"
+			t.target = null
+			t.nameplate.modulate = Color(1, 0.6, 0.55)
+			Combat.popup_text(t.global_position + Vector3.UP * 2.6, "Kendine geldi", Color(1, 0.7, 0.6))
+		if is_instance_valid(a):
+			a.emitting = false
+			get_tree().create_timer(1.0).timeout.connect(a.queue_free))
+
+
+# ---------------------------------------------------------------- Senju (Mokuton)
+func j_mokuton_spikes(c: Node3D, t: Node3D) -> void:
+	var m = _mult(c)
+	var d = _aim(c, t)
+	d.y = 0
+	d = d.normalized()
+	var origin = c.global_position
+	Sfx.play("earth", c.global_position, 0.9)
+	_ticks(9, 0.05, func(k):
+		var p = _ground(origin + d * (2.0 + k * 1.9))
+		var sp = MeshInstance3D.new()
+		var b = MB.new()
+		for s in 4:
+			b.add("cone", Vector3(randf_range(-0.7, 0.7), 1.6, randf_range(-0.7, 0.7)), Vector3(0.7, 3.2 + randf() * 1.6, 0.7), Color(0.55, 0.4, 0.24), Vector3(randf_range(-20, 20), 0, randf_range(-20, 20)), 6)
+		sp.mesh = b.build(Props.toon())
+		get_tree().current_scene.add_child(sp)
+		sp.global_position = p - Vector3(0, 4, 0)
+		var tw = sp.create_tween()
+		tw.tween_property(sp, "global_position:y", p.y, 0.12)
+		tw.tween_interval(1.6)
+		tw.tween_property(sp, "global_position:y", p.y - 4.5, 0.5)
+		tw.tween_callback(sp.queue_free)
+		FX.dust(p, 0.8)
+		for h in Combat.hit_sphere(c, p + Vector3.UP, 1.7, {"dmg": 10.0 * m, "knock": 3.0, "launch": 8.0, "kind": "heavy", "hitstop": 0.03}):
+			if h.has_method("apply_status"):
+				h.apply_status("bind", 1.0))
+
+
+func j_mokuton_wall(c: Node3D, _t: Node3D) -> void:
+	var center = _ground(c.global_position)
+	var wall = StaticBody3D.new()
+	var b = MB.new()
+	for k in 12:
+		var a = k * TAU / 12.0
+		var off = Vector3(cos(a), 0, sin(a)) * 4.2
+		b.add("box", off + Vector3(0, 2.6, 0), Vector3(1.3, 5.2, 1.0), Color(0.5, 0.36, 0.22).darkened(randf() * 0.15), Vector3(0, -rad_to_deg(a), 0))
+		var cs = CollisionShape3D.new()
+		var sh = BoxShape3D.new()
+		sh.size = Vector3(1.6, 5.2, 1.0)
+		cs.shape = sh
+		cs.transform = Transform3D(Basis(Vector3.UP, -a), off + Vector3(0, 2.6, 0))
+		wall.add_child(cs)
+	b.add("hemi", Vector3(0, 5.0, 0), Vector3(9.5, 4.0, 9.5), Color(0.47, 0.33, 0.2), Vector3.ZERO, 14)
+	var mi = MeshInstance3D.new()
+	mi.mesh = b.build(Props.toon())
+	wall.add_child(mi)
+	get_tree().current_scene.add_child(wall)
+	wall.global_position = center - Vector3(0, 7.5, 0)
+	var tw = wall.create_tween()
+	tw.tween_property(wall, "global_position:y", center.y, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(9.0)
+	tw.tween_property(wall, "global_position:y", center.y - 7.5, 0.6)
+	tw.tween_callback(wall.queue_free)
+	FX.dust(center, 2.5)
+	Sfx.play("earth", center, 0.7)
+	if Game.world:
+		Game.world.env.add_shake(0.5)
+
+
+# ---------------------------------------------------------------- Yuki (Hyoton)
+func j_hyoton_senbon(c: Node3D, t: Node3D) -> void:
+	var m = _mult(c)
+	var dir = _aim(c, t)
+	Sfx.play("kunai", c.global_position, 1.6)
+	for i in 8:
+		var d = dir.rotated(Vector3.UP, deg_to_rad(-21 + i * 6)) + Vector3.UP * randf_range(-0.03, 0.06)
+		var pr = Projectile.new()
+		pr.shooter = c
+		pr.vel = d.normalized() * 50.0
+		pr.radius = 0.25
+		pr.life = 1.4
+		pr.info = {"dmg": 4.0 * m, "knock": 1.0, "kind": "light", "hitstop": 0.01, "element": "suiton"}
+		var mi = MeshInstance3D.new()
+		var cm = CylinderMesh.new()
+		cm.top_radius = 0.0; cm.bottom_radius = 0.04; cm.height = 0.7
+		cm.material = Props.toon_color(Color(0.8, 0.95, 1.0), 0.8)
+		mi.mesh = cm
+		mi.rotation.x = -PI * 0.5
+		pr.add_child(mi)
+		Projectile.trail(pr, [Color(0.85, 0.97, 1, 0.8), Color(0.6, 0.85, 1, 0)], 0.3, 20, 0.2)
+		pr.on_hit = func(pos: Vector3, tg: Node3D) -> void:
+			if tg and tg.has_method("apply_status"):
+				tg.apply_status("slow", 2.0)
+			FX.burst(pos, {"amount": 5, "life": 0.3, "size": 0.4, "vmin": 2, "vmax": 4, "colors": [Color(0.9, 0.97, 1, 1), Color(0.7, 0.9, 1, 0)]})
+		get_tree().current_scene.add_child(pr)
+		pr.global_position = _hand(c)
+
+
+func j_hyoton_spears(c: Node3D, t: Node3D) -> void:
+	var m = _mult(c)
+	var center = _ground(t.global_position if t else c.global_position + c.face_dir() * 8.0)
+	Sfx.play("clink", center, 0.6)
+	var b = MB.new()
+	for k in 10:
+		var a = k * TAU / 10.0
+		b.add("cone", Vector3(cos(a), 0, sin(a)) * 1.6 + Vector3(0, 1.4, 0), Vector3(0.7, 3.0 + randf(), 0.7), Color(0.75, 0.92, 1.0), Vector3(cos(a) * 25, 0, -sin(a) * 25), 5)
+	b.add("sphere", Vector3(0, 1.0, 0), Vector3(2.0, 2.6, 2.0), Color(0.82, 0.95, 1.0), Vector3.ZERO, 8)
+	var ice = MeshInstance3D.new()
+	ice.mesh = b.build(Props.toon())
+	get_tree().current_scene.add_child(ice)
+	ice.global_position = center - Vector3(0, 3, 0)
+	var tw = ice.create_tween()
+	tw.tween_property(ice, "global_position:y", center.y, 0.15)
+	tw.tween_interval(2.4)
+	tw.tween_property(ice, "scale", Vector3.ONE * 0.05, 0.4)
+	tw.tween_callback(ice.queue_free)
+	# önce dondur (donmuş hedef blok yapamaz), sonra hasar
+	for f in get_tree().get_nodes_in_group("fighters"):
+		if Combat.hostile(c, f) and not f.is_dead() and Combat.capsule_hit(center + Vector3.UP, f, 2.6) and f.has_method("apply_status"):
+			f.apply_status("stun", 2.5)
+	for h in Combat.hit_sphere(c, center + Vector3.UP, 2.6, {"dmg": 22.0 * m, "knock": 0.0, "kind": "light", "element": "suiton", "hitstop": 0.06}):
+		Combat.popup_text(h.global_position + Vector3.UP * 2.4, "DONDU!", Color(0.7, 0.9, 1))
+	FX.burst(center + Vector3.UP, {"amount": 30, "life": 0.6, "tex": FX.tex_spark, "size": 1.0, "vmin": 5, "vmax": 12, "colors": [Color(1, 1, 1, 1), Color(0.7, 0.9, 1, 0)]})
+
+
+# ---------------------------------------------------------------- Kaguya
+func j_bone_bullets(c: Node3D, t: Node3D) -> void:
+	var m = _mult(c)
+	_ticks(5, 0.08, func(_i):
+		if not is_instance_valid(c):
+			return
+		var pr = Projectile.new()
+		pr.shooter = c
+		pr.vel = _aim(c, t).rotated(Vector3.UP, randf_range(-0.04, 0.04)) * 48.0
+		pr.radius = 0.25
+		pr.homing = t
+		pr.homing_turn = 1.5
+		pr.info = {"dmg": 6.0 * m, "knock": 2.0, "kind": "light", "hitstop": 0.02}
+		var mi = MeshInstance3D.new()
+		var b = MB.new()
+		b.add("cyl", Vector3.ZERO, Vector3(0.09, 0.3, 0.09), Color(0.95, 0.93, 0.85), Vector3(90, 0, 0), 6)
+		b.add("sphere", Vector3(0, 0, -0.16), Vector3(0.12, 0.12, 0.12), Color(0.95, 0.93, 0.85), Vector3.ZERO, 6)
+		mi.mesh = b.build(Props.toon())
+		pr.add_child(mi)
+		pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
+			FX.hit_spark(pos, Color(0.95, 0.93, 0.85), 0.5)
+		get_tree().current_scene.add_child(pr)
+		pr.global_position = _hand(c)
+		Sfx.play("kunai", c.global_position, 0.8, 0.6))
+
+
+func j_bone_armor(c: Node3D, _t: Node3D) -> void:
+	var b = MB.new()
+	for i in 14:
+		var a = randf() * TAU
+		var y = randf_range(0.4, 1.6)
+		var dir = Vector3(cos(a), 0, sin(a))
+		b.add_xf("cone", Transform3D(Basis(Quaternion(Vector3.UP, (dir + Vector3.UP * 0.4).normalized())).scaled(Vector3(0.12, 0.45, 0.12)), dir * 0.32 + Vector3(0, y, 0)), Color(0.96, 0.94, 0.86), 5)
+	var spikes = MeshInstance3D.new()
+	spikes.mesh = b.build(Props.toon())
+	c.add_child(spikes)
+	Sfx.play("clink", c.global_position, 0.5)
+	if c is Player:
+		Buffs.add("bone_armor", 20.0, {"armor": 0.5, "melee": 1.15})
+	get_tree().create_timer(20.0).timeout.connect(func():
+		if is_instance_valid(spikes):
+			spikes.queue_free())
+
+
+# ---------------------------------------------------------------- Uzumaki
+func j_chakra_chains(c: Node3D, t: Node3D) -> void:
+	var m = _mult(c)
+	if t == null or c.global_position.distance_to(t.global_position) > 28.0:
+		Hud.msg("Chakra zincirleri: hedef çok uzak", Color(1, 0.85, 0.4))
+		return
+	var root = Node3D.new()
+	get_tree().current_scene.add_child(root)
+	var center = _ground(t.global_position)
+	for k in 4:
+		var a = k * TAU / 4.0 + 0.4
+		var base = center + Vector3(cos(a), 0, sin(a)) * 3.5
+		var top = t.global_position + Vector3.UP * 1.2
+		var chain = Projectile.energy_mesh(Color(1.0, 0.95, 0.6), Color(1.0, 0.65, 0.1), 1.0, 2.0, 6.0, 2.0)
+		root.add_child(chain)
+		var L = base.distance_to(top)
+		chain.global_transform = Transform3D(Basis.looking_at((top - base).normalized(), Vector3.UP).scaled(Vector3(0.22, 0.22, L)), (base + top) * 0.5)
+	Sfx.play("clink", center, 0.7)
+	if t.has_method("apply_status"):
+		t.apply_status("bind", 5.0)
+	Combat.hit_sphere(c, t.global_position + Vector3.UP, 1.4, {"dmg": 12.0 * m, "knock": 0.0, "kind": "light"})
+	Combat.popup_text(t.global_position + Vector3.UP * 2.6, "Mühürlendi!", Color(1, 0.85, 0.4))
+	get_tree().create_timer(5.0).timeout.connect(root.queue_free)
+
+
+# ---------------------------------------------------------------- Hozuki
+func j_suika(c: Node3D, _t: Node3D) -> void:
+	if c is Player:
+		Buffs.add("suika", 15.0, {})
+		var a = FX.aura(c, Color(0.35, 0.65, 1.0), 1.0)
+		get_tree().create_timer(15.0).timeout.connect(func():
+			if is_instance_valid(a):
+				a.emitting = false
+				get_tree().create_timer(1.0).timeout.connect(a.queue_free))
+	Sfx.play("water", c.global_position, 1.2)
+	Hud.msg("Suika no Jutsu: 15 sn boyunca darbeler içinden geçer (chakra harcar)", Color(0.5, 0.75, 1))
+
+
+func j_water_gun(c: Node3D, t: Node3D) -> void:
+	var m = _mult(c)
+	var pr = Projectile.new()
+	pr.shooter = c
+	pr.vel = _aim(c, t) * 70.0
+	pr.radius = 0.35
+	pr.info = {"dmg": 14.0 * m, "knock": 5.0, "kind": "light", "element": "suiton", "hitstop": 0.03}
+	pr.add_child(Projectile.energy_mesh(Color(0.85, 0.97, 1.0), Color(0.15, 0.45, 1.0), 0.45, 4.0, 3.0, 2.0))
+	Projectile.trail(pr, [Color(0.85, 0.95, 1, 0.9), Color(0.3, 0.6, 1, 0)], 0.35, 30, 0.25, FX.tex_smoke, false)
+	pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
+		FX.burst(pos, {"amount": 14, "life": 0.5, "tex": FX.tex_smoke, "add": false, "size": 0.6, "vmin": 2, "vmax": 6, "gravity": Vector3(0, -12, 0), "colors": [Color(0.9, 0.97, 1, 1), Color(0.3, 0.6, 1, 0)]})
+	get_tree().current_scene.add_child(pr)
+	pr.global_position = _hand(c)
+	Sfx.play("water", c.global_position, 1.8, 0.6)
+
+
+# ---------------------------------------------------------------- Jinchuriki: kuyruklu canavar bombası
+func beast_bomb(c: Node3D, t: Node3D) -> void:
+	var m = _mult(c)
+	var pr = Projectile.new()
+	pr.shooter = c
+	pr.vel = _aim(c, t) * 30.0
+	pr.radius = 1.8
+	pr.life = 3.0
+	pr.homing = t
+	pr.homing_turn = 1.0
+	pr.info = {"dmg": 60.0 * m, "knock": 25.0, "launch": 10.0, "kind": "heavy", "hitstop": 0.15, "element": "raiton"}
+	pr.add_child(Projectile.energy_mesh(Color(0.35, 0.3, 0.9), Color(0.05, 0.05, 0.25), 3.2, 12.0, 0.0, 2.0))
+	var l = OmniLight3D.new()
+	l.light_color = Color(0.5, 0.5, 1.0); l.light_energy = 8.0; l.omni_range = 20.0
+	pr.add_child(l)
+	pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
+		FX.explosion(pos, 2.4, Color(0.45, 0.45, 1.0))
+		Combat.hit_sphere(c, pos, 8.0, {"dmg": 30.0 * m, "knock": 22.0, "launch": 8.0, "kind": "heavy"}, pr.hit_list)
+	get_tree().current_scene.add_child(pr)
+	pr.global_position = c.global_position + Vector3.UP * 2.0 + c.face_dir() * 1.5
+	Sfx.play("roar", c.global_position, 1.2)

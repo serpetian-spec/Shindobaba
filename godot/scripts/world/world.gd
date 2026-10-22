@@ -29,7 +29,16 @@ func build(progress: Callable = Callable()) -> void:
 	sites.name = "Sites"
 	add_child(sites)
 	BuildSites.build_all(sites)
-	_p(progress, 0.95, "Köyler")
+	_p(progress, 0.85, "Köyler")
+	await get_tree().process_frame
+	BuildFeatures.build_all(sites)
+	_p(progress, 0.95, "Yollar, tapınaklar, kayalıklar")
+	var grass = preload("res://scripts/world/grass.gd").new()
+	grass.name = "Grass"
+	add_child(grass)
+	var amb = preload("res://scripts/world/ambience.gd").new()
+	amb.name = "Ambience"
+	add_child(amb)
 
 
 func _p(cb: Callable, v: float, label: String) -> void:

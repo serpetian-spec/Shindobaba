@@ -39,11 +39,37 @@ J = [
     ('narakumi', 'Magen: Narakumi', 'hell_viewing_technique', 22, 12, '', '', 5, 1, 'trainer:academy_genjutsu', 'Genjutsu: hedef dehşetle donar.'),
     ('kokuangyo', 'Kokuangyo no Jutsu', 'bringer_of_darkness', 35, 22, '', '', 15, 2, 'scroll', 'Düşmanlar seni kaybeder.'),
     ('kuchiyose', 'Kuchiyose no Jutsu', 'summoning_technique', 60, 45, '', '', 12, 2, 'quest:contract', 'Sözleşmeli dev hayvanı çağır.'),
+    # ---- klan teknikleri (learn='clan': seviye gelince otomatik öğrenilir)
+    ('juuken_64', 'Hakke Rokujūyon Shō', 'eight_trigrams_64_palms', 30, 9, '', 'hyuga', 4, 0, 'clan', 'Yumuşak Yumruk: 64 avuç darbesi, chakra noktalarını kapatır.'),
+    ('kaiten', 'Hakkeshō Kaiten', 'eight_trigrams_palm_rotation', 25, 8, '', 'hyuga', 8, 0, 'clan', 'Dönen chakra kubbesi: iter ve mermileri durdurur.'),
+    ('kagemane', 'Kagemane no Jutsu', 'shadow_imitation', 20, 10, '', 'nara', 3, 0, 'clan', 'Gölgen hedefe uzanır ve onu 4 sn kilitler.'),
+    ('kage_kubi', 'Kage Kubi Shibari', 'shadow_neck_bind', 30, 12, '', 'nara', 9, 0, 'clan', 'Gölge eller hedefi boğar: kilit + sürekli hasar.'),
+    ('baika', 'Baika no Jutsu', 'multi_size', 30, 25, '', 'akimichi', 3, 0, 'clan', '20 sn devleş: dev hitbox, ağır yumruklar.'),
+    ('nikudan', 'Nikudan Sensha', 'human_bullet_tank', 25, 8, '', 'akimichi', 7, 0, 'clan', 'Dev top olup yoldakileri ez.'),
+    ('mushi_swarm', 'Kikaichū Sürüsü', 'parasitic_insects', 25, 8, '', 'aburame', 3, 0, 'clan', 'Böcek bulutu: sürekli hasar, yavaşlatır.'),
+    ('ninken', 'Ninken Yoldaşı', '', 15, 30, '', 'inuzuka', 2, 0, 'clan', 'Sadık savaş köpeğini çağır.'),
+    ('gatsuga', 'Gatsūga', 'fang_passing_fang', 25, 7, '', 'inuzuka', 5, 0, 'clan', 'Dönen matkap hücumu.'),
+    ('shintenshin', 'Shintenshin no Jutsu', 'mind_body_switch', 40, 25, '', 'yamanaka', 6, 0, 'clan', 'Düşmanın zihnine gir: 12 sn senin için savaşır.'),
+    ('mokuton_spikes', 'Mokuton: Sashiki no Jutsu', '', 35, 7, '', 'senju', 4, 0, 'clan', 'Yerden fışkıran odun mızraklar.'),
+    ('mokuton_wall', 'Mokuton: Mokujōheki', 'four_pillar_house', 30, 14, '', 'senju', 8, 0, 'clan', 'Etrafında odun kubbe yükselir.'),
+    ('hyoton_senbon', 'Hyōton: Sensatsu Suishō', '', 22, 4, '', 'yuki', 3, 0, 'clan', 'Buz iğnesi yelpazesi.'),
+    ('hyoton_spears', 'Hyōton: Tsurara', 'demonic_mirroring_ice_crystals', 35, 8, '', 'yuki', 7, 0, 'clan', 'Hedefin etrafında buz: dondurur.'),
+    ('bone_bullets', 'Teshi Sendan', '', 18, 3, '', 'kaguya', 3, 0, 'clan', 'Parmak kemiği mermileri.'),
+    ('bone_armor', 'Kemik Zırh', 'dance_of_the_willow', 30, 20, '', 'kaguya', 7, 0, 'clan', '20 sn gelen hasar yarıya iner.'),
+    ('chakra_chains', 'Fūinjutsu: Kongō Fūsa', '', 35, 12, '', 'uzumaki', 5, 0, 'clan', 'Altın chakra zincirleri hedefi bağlar.'),
+    ('suika', 'Suika no Jutsu', '', 25, 18, '', 'hozuki', 3, 0, 'clan', '15 sn bedenin suya dönüşür: darbeler içinden geçer.'),
+    ('water_gun', 'Suiton: Mizudeppō', '', 15, 3, '', 'hozuki', 5, 0, 'clan', 'Parmaktan basınçlı su mermisi.'),
 ]
+SEAL_OVERRIDE = {
+    'kagemane': ['Ne'], 'kage_kubi': ['Ne', 'Mi'], 'baika': ['Hitsuji'], 'mushi_swarm': ['Ne', 'Tori'],
+    'gatsuga': ['Inu'], 'shintenshin': ['Ne', 'Hitsuji', 'Mi'], 'mokuton_spikes': ['Tori', 'Ushi', 'Tatsu'],
+    'mokuton_wall': ['Ushi', 'Tora', 'Mi'], 'hyoton_senbon': ['Hitsuji', 'Tatsu'], 'hyoton_spears': ['Ne', 'Mi', 'Tora'],
+    'chakra_chains': ['I', 'Inu', 'Tori', 'Saru'], 'suika': ['Ushi', 'U'], 'water_gun': ['Tora', 'Ushi'],
+}
 out = {}
 for (jid, name, cid, cost, cd, el, clan, lv, rk, learn, desc) in J:
     out[jid] = dict(id=jid, name=name, cost=cost, cd=cd, element=el, clan=clan, level=lv, rank=rk, learn=learn, desc=desc,
-                    seals=seals(cid), canon_rank=rank_of.get(cid, '?'))
+                    seals=SEAL_OVERRIDE.get(jid, seals(cid)), canon_rank=rank_of.get(cid, '?'))
 out['_seals'] = [s['name_jp'] for s in R['hand_seals'][:12]]
 os.makedirs(os.path.join(ROOT, 'godot', 'data'), exist_ok=True)
 json.dump(out, open(os.path.join(ROOT, 'godot', 'data', 'jutsu.json'), 'w', encoding='utf8'), ensure_ascii=False, indent=1)

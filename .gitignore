@@ -7,3 +7,4 @@ tools/*.zip
 assets_src/
 godot/.godot/
 *.import.bak
+.claude/settings.local.json

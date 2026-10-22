@@ -40,6 +40,9 @@ void fragment() {
 	float ne = (1.0 - dot(n0, nl)) + (1.0 - dot(n0, nr)) + (1.0 - dot(n0, nu)) + (1.0 - dot(n0, nd));
 	float edge = max(smoothstep(0.10, 0.28, de), smoothstep(0.55, 1.1, ne) * (1.0 - smoothstep(30.0, 90.0, d0)));
 	edge *= 1.0 - smoothstep(max_dist * 0.4, max_dist, d0);
+	// çimen gibi ince bitkiler (roughness ~0.02 ile işaretli) çizgi almasın
+	float r0 = texture(normal_tex, uv).a;
+	edge *= mix(0.12, 1.0, step(0.06, r0));
 	edge *= strength;
 	vec2 q = uv - 0.5;
 	float vig = clamp(dot(q, q) * vignette, 0.0, 1.0);

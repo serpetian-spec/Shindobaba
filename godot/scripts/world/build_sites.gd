@@ -314,19 +314,34 @@ static func tetsu(parent: Node3D, v: Dictionary) -> void:
 
 # ------------------------------------------------------------------ Sonun Vadisi
 static func valley_end(parent: Node3D, l: Dictionary) -> void:
+	## Plato 48 m, nehir yatağı ortada (|x|<32), kuzeyde (n>230) şelale basamağı. Koordinatlar mutlak yükseklik.
 	var b = Builder.new(parent, l["x"], l["y"], 0.0, "SonunVadisi")
-	var rock = Color(0.58, 0.55, 0.5)
-	# iki dev heykel (yüzsüz, el mühürlü genel shinobi heykelleri) nehrin iki yakasında
+	var rock = Color(0.56, 0.53, 0.49)
+	var rng = _rng(77)
+	# kanyon duvarları (dik kaya yarları, tabakalı)
 	for sx in [-1.0, 1.0]:
-		var x = 75.0 * sx
-		b.box(Vector3(x, 30, 40), Vector3(30, 60, 30), rock.darkened(0.1))
-		b.box(Vector3(x, 80, 40), Vector3(20, 40, 14), rock)           # gövde
-		b.box(Vector3(x, 108, 40), Vector3(11, 14, 11), rock.lightened(0.05))  # kafa
-		b.box(Vector3(x - 7 * sx, 86, 33), Vector3(5, 18, 5), rock, 0, true, Vector3(0, 0, 25 * sx))
-		b.box(Vector3(x - 2 * sx, 92, 28), Vector3(4, 6, 6), rock.lightened(0.05))  # el mühürü
-		b.box(Vector3(x, 64, 40), Vector3(10, 10, 12), rock)
-	Waterfalls.add(b.w(Vector3(0, 0, 60)), 34.0, 60.0, 0.0)
-	b.interact(Vector3(0, 0.5, 10), 10, "valley", "[F] Sonun Vadisi'nde meditasyon yap")
+		var n = -300.0
+		while n < 236.0:
+			var hh = rng.randf_range(50, 56)
+			b.box(Vector3(43.0 * sx, hh * 0.5 - 4.0, n + 10.0), Vector3(9.0, hh, 21.0), rock.darkened(rng.randf_range(0.0, 0.15)), rng.randf_range(-3, 3))
+			n += 20.0
+	# şelale basamağı
+	b.box(Vector3(0, 15.0, 238.0), Vector3(80.0, 38.0, 14.0), rock.darkened(0.1))
+	Waterfalls.add(b.w(Vector3(0, -3.0, 230.5)), 37.0, 60.0, 0.0)
+	# iki dev heykel: birbirine bakan, el mühürlü shinobi heykelleri (yüzsüz anıt)
+	for sx in [-1.0, 1.0]:
+		var x = 70.0 * sx
+		var face = -90.0 * sx
+		var g = 48.0
+		b.box(Vector3(x, g + 6, 120), Vector3(26, 12, 26), rock.darkened(0.05))            # kaide
+		b.box(Vector3(x, g + 30, 120), Vector3(14, 36, 12), rock)                              # bacaklar+gövde
+		b.box(Vector3(x, g + 54, 120), Vector3(22, 14, 13), rock.lightened(0.04))             # omuzlar/göğüs
+		b.box(Vector3(x - 4.0 * sx, g + 66, 120), Vector3(9, 11, 10), rock.lightened(0.06))   # kafa
+		b.box(Vector3(x - 3.0 * sx, g + 72, 120), Vector3(11, 4, 12), rock.darkened(0.08))    # saç
+		b.box(Vector3(x - 9.0 * sx, g + 50, 120), Vector3(6, 6, 7), rock.lightened(0.02))     # el mühürü
+		b.box(Vector3(x - 6.0 * sx, g + 46, 116), Vector3(4, 14, 4), rock, face * 0.0)
+		b.box(Vector3(x, g + 16, 112), Vector3(16, 6, 4), rock.darkened(0.12))                 # cübbe eteği
+	b.interact(Vector3(0, -2.5, 60), 14, "valley", "[F] Sonun Vadisi'nde meditasyon yap")
 	b.finish()
 
 

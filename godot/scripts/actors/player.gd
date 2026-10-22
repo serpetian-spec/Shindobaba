@@ -58,7 +58,8 @@ func _ready() -> void:
 	add_child(cs)
 	model = CharacterModel.new()
 	add_child(model)
-	model.setup(Game.profile.get("look", {}) if not Game.profile.is_empty() else {})
+	model.setup(_look_with_age())
+	_fit_capsule()
 	cam_pivot = Node3D.new()
 	cam_pivot.top_level = true
 	add_child(cam_pivot)
@@ -262,7 +263,12 @@ func _ground_air_move(dt: float) -> void:
 	if sp > 0.5 and (combat == null or not combat.busy()):
 		facing = lerp_angle(facing, atan2(-hv.x, -hv.z), minf(1.0, dt * 14.0))
 	model.rotation = Vector3(0, facing, 0)
-	model.position = Vector3.ZERO
+	# eğimde aşağıdaki ayak yere değsin: modeli eğime göre biraz alçalt
+	var drop = 0.0
+	if grounded:
+		var tn = Game.terrain_normal(global_position.x, global_position.z)
+		drop = clampf(0.16 * tan(acos(clampf(tn.y, 0.5, 1.0))), 0.0, 0.28)
+	model.position = Vector3(0, -drop, 0)
 	if combat == null or not combat.busy():
 		_animate(sp, sprint)
 
@@ -344,7 +350,7 @@ func _animate(sp: float, sprint: bool) -> void:
 
 
 func _update_camera(dt: float) -> void:
-	var target = global_position + Vector3.UP * 1.6
+	var target = global_position + Vector3.UP * (1.6 * (model.age_scale if model else 1.0))
 	cam_pivot.global_position = cam_pivot.global_position.lerp(target, minf(1.0, dt * 16.0))
 	cam_pivot.rotation = Vector3(deg_to_rad(pitch), deg_to_rad(yaw), 0)
 	# kamera duvarlara ve araziye girmesin
@@ -410,12 +416,35 @@ func sit(at: Vector3) -> void:
 	Hud.msg("Salıncakta sallanıyorsun... Akademinin bahçesi çok huzurlu.", Color(0.9, 0.9, 0.8))
 
 
+## Rütbeye göre yaş: Akademi=çocuk, Genin=genç, Chunin=delikanlı, Jonin+=yetişkin
+static func age_for_rank(rank: int) -> String:
+	return ["child", "teen", "young", "adult", "adult"][clampi(rank, 0, 4)]
+
+
+func _look_with_age() -> Dictionary:
+	var look: Dictionary = (Game.profile.get("look", {}) if not Game.profile.is_empty() else {}).duplicate()
+	look["age"] = age_for_rank(int(Game.profile.get("rank", 0)))
+	return look
+
+
+## Boy değişince kapsül hitbox da değişir
+func _fit_capsule() -> void:
+	var k = model.age_scale
+	radius = 0.38 * k
+	height = 1.8 * k
+	for c in get_children():
+		if c is CollisionShape3D and c.shape is CapsuleShape3D:
+			c.shape.radius = radius
+			c.shape.height = height
+			c.position.y = height * 0.5
+
+
 func rebuild_model() -> void:
 	var old = model
 	model = CharacterModel.new()
 	add_child(model)
-	var look: Dictionary = Game.profile.get("look", {})
-	model.setup(look)
+	model.setup(_look_with_age())
+	_fit_capsule()
 	model.rotation.y = facing
 	old.queue_free()
 	FX.smoke_puff(global_position + Vector3.UP, 0.8, 10)

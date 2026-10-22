@@ -450,7 +450,8 @@ func _process(dt: float) -> void:
 			msg_lbl.text = ""
 	var it = Interact.nearest(pl.global_position)
 	var catch = _near_catchable(pl)
-	prompt_lbl.text = it.get("label", "") if not it.is_empty() else ("[F] Yakala!" if catch else "")
+	var tk = _near_talker(pl) if it.is_empty() and not catch else null
+	prompt_lbl.text = it.get("label", "") if not it.is_empty() else ("[F] Yakala!" if catch else ("[F] Konuş: %s" % tk.display if tk else ""))
 	var rn = Game.region_name(pl.global_position) if Engine.get_process_frames() % 20 == 0 else region_name
 	if rn != region_name:
 		region_name = rn
@@ -482,6 +483,16 @@ func _process(dt: float) -> void:
 	sm.set_shader_parameter("zoom", 900.0 / W)
 	sm.set_shader_parameter("rot", deg_to_rad(pl.yaw) * -1.0)
 	(minimap.get_meta("over") as Control).queue_redraw()
+
+
+func _near_talker(pl: Node3D) -> Node:
+	var best: Node = null
+	var bd = 2.6
+	for c in get_tree().get_nodes_in_group("talkers"):
+		var d = c.global_position.distance_to(pl.global_position)
+		if d < bd:
+			bd = d; best = c
+	return best
 
 
 func _near_catchable(pl: Node3D) -> Node:

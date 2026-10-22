@@ -304,7 +304,7 @@ func take_hit(info: Dictionary) -> void:
 	if dead:
 		return
 	# blok
-	if state in ["chase", "recover", "idle"] and randf() < arch.get("guard", 0.15) and info.get("kind", "light") == "light":
+	if state in ["chase", "recover", "idle"] and randf() < arch.get("guard", 0.15) and info.get("kind", "light") == "light" and not has_status("stun") and not has_status("bind"):
 		state = "guard"
 		state_t = 0.0
 		guarding = true

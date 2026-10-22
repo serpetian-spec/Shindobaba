@@ -178,6 +178,8 @@ Sol tık: kombo (havada: dalış tekmesi)   •   Sağ tık (basılı): blok (ta
 Q: Kawarimi (yer değiştirme)   •   C (basılı): chakra şarjı   •   R: kunai/alet   •   T: alet değiştir
 Tab / orta tık: hedefe kilitlen   •   Kilitliyken Shift: chakra dash
 1-4: jutsu slotları   •   F: etkileşim   •   H: merhem   •   Y: asker hapı
+G (basılı) + 1-9,0,-,=: mühür ör (bırakınca jutsu / yeni jutsu keşfi)   •   V: Sharingan/Byakugan
+B: Sekiz Kapı (klansız)   •   Z: Sennin Modu   •   X: Kuyruklu Canavar modu / bombası
 I: envanter   •   K: jutsu/yetenekler   •   M: dünya haritası   •   Esc: menü"""
 	var l = UI.label(t, 17)
 	v.add_child(l)

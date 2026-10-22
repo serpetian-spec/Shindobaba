@@ -44,6 +44,26 @@ func add(kind: String, pos: Vector3, size: Vector3, col: Color, rot := Vector3.Z
 	add_arrays(a, xf, col)
 
 
+## Dikey renk geçişli primitif (yaprak kümeleri: altı koyu, tepesi açık)
+func add_grad(kind: String, pos: Vector3, size: Vector3, top: Color, bottom: Color, rot := Vector3.ZERO, seg := 8) -> void:
+	var a := _prim_arrays(kind, seg)
+	var b := Basis.from_euler(Vector3(deg_to_rad(rot.x), deg_to_rad(rot.y), deg_to_rad(rot.z)))
+	var xf := Transform3D(b.scaled(size), pos)
+	var base := verts.size()
+	var v: PackedVector3Array = a[Mesh.ARRAY_VERTEX]
+	var n: PackedVector3Array = a[Mesh.ARRAY_NORMAL]
+	var nb := xf.basis.inverse().transposed()
+	for i in v.size():
+		verts.append(xf * v[i])
+		normals.append((nb * n[i]).normalized())
+		var k := clampf(v[i].y + 0.5, 0.0, 1.0)
+		colors.append(bottom.lerp(top, k * k))
+		uvs.append(Vector2.ZERO)
+	var ii: PackedInt32Array = a[Mesh.ARRAY_INDEX]
+	for i in ii:
+		idx.append(base + i)
+
+
 func add_xf(kind: String, xf: Transform3D, col: Color, seg := 8) -> void:
 	add_arrays(_prim_arrays(kind, seg), xf, col)
 

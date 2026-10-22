@@ -412,6 +412,314 @@
   ],
   "canon_rank": "C"
  },
+ "juuken_64": {
+  "id": "juuken_64",
+  "name": "Hakke Rokujūyon Shō",
+  "cost": 30,
+  "cd": 9,
+  "element": "",
+  "clan": "hyuga",
+  "level": 4,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Yumuşak Yumruk: 64 avuç darbesi, chakra noktalarını kapatır.",
+  "seals": [],
+  "canon_rank": "A"
+ },
+ "kaiten": {
+  "id": "kaiten",
+  "name": "Hakkeshō Kaiten",
+  "cost": 25,
+  "cd": 8,
+  "element": "",
+  "clan": "hyuga",
+  "level": 8,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Dönen chakra kubbesi: iter ve mermileri durdurur.",
+  "seals": [],
+  "canon_rank": "A"
+ },
+ "kagemane": {
+  "id": "kagemane",
+  "name": "Kagemane no Jutsu",
+  "cost": 20,
+  "cd": 10,
+  "element": "",
+  "clan": "nara",
+  "level": 3,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Gölgen hedefe uzanır ve onu 4 sn kilitler.",
+  "seals": [
+   "Ne"
+  ],
+  "canon_rank": "C"
+ },
+ "kage_kubi": {
+  "id": "kage_kubi",
+  "name": "Kage Kubi Shibari",
+  "cost": 30,
+  "cd": 12,
+  "element": "",
+  "clan": "nara",
+  "level": 9,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Gölge eller hedefi boğar: kilit + sürekli hasar.",
+  "seals": [
+   "Ne",
+   "Mi"
+  ],
+  "canon_rank": "B"
+ },
+ "baika": {
+  "id": "baika",
+  "name": "Baika no Jutsu",
+  "cost": 30,
+  "cd": 25,
+  "element": "",
+  "clan": "akimichi",
+  "level": 3,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "20 sn devleş: dev hitbox, ağır yumruklar.",
+  "seals": [
+   "Hitsuji"
+  ],
+  "canon_rank": "C"
+ },
+ "nikudan": {
+  "id": "nikudan",
+  "name": "Nikudan Sensha",
+  "cost": 25,
+  "cd": 8,
+  "element": "",
+  "clan": "akimichi",
+  "level": 7,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Dev top olup yoldakileri ez.",
+  "seals": [],
+  "canon_rank": "C"
+ },
+ "mushi_swarm": {
+  "id": "mushi_swarm",
+  "name": "Kikaichū Sürüsü",
+  "cost": 25,
+  "cd": 8,
+  "element": "",
+  "clan": "aburame",
+  "level": 3,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Böcek bulutu: sürekli hasar, yavaşlatır.",
+  "seals": [
+   "Ne",
+   "Tori"
+  ],
+  "canon_rank": "C"
+ },
+ "ninken": {
+  "id": "ninken",
+  "name": "Ninken Yoldaşı",
+  "cost": 15,
+  "cd": 30,
+  "element": "",
+  "clan": "inuzuka",
+  "level": 2,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Sadık savaş köpeğini çağır.",
+  "seals": [],
+  "canon_rank": "?"
+ },
+ "gatsuga": {
+  "id": "gatsuga",
+  "name": "Gatsūga",
+  "cost": 25,
+  "cd": 7,
+  "element": "",
+  "clan": "inuzuka",
+  "level": 5,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Dönen matkap hücumu.",
+  "seals": [
+   "Inu"
+  ],
+  "canon_rank": "C"
+ },
+ "shintenshin": {
+  "id": "shintenshin",
+  "name": "Shintenshin no Jutsu",
+  "cost": 40,
+  "cd": 25,
+  "element": "",
+  "clan": "yamanaka",
+  "level": 6,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Düşmanın zihnine gir: 12 sn senin için savaşır.",
+  "seals": [
+   "Ne",
+   "Hitsuji",
+   "Mi"
+  ],
+  "canon_rank": "C"
+ },
+ "mokuton_spikes": {
+  "id": "mokuton_spikes",
+  "name": "Mokuton: Sashiki no Jutsu",
+  "cost": 35,
+  "cd": 7,
+  "element": "",
+  "clan": "senju",
+  "level": 4,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Yerden fışkıran odun mızraklar.",
+  "seals": [
+   "Tori",
+   "Ushi",
+   "Tatsu"
+  ],
+  "canon_rank": "?"
+ },
+ "mokuton_wall": {
+  "id": "mokuton_wall",
+  "name": "Mokuton: Mokujōheki",
+  "cost": 30,
+  "cd": 14,
+  "element": "",
+  "clan": "senju",
+  "level": 8,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Etrafında odun kubbe yükselir.",
+  "seals": [
+   "Ushi",
+   "Tora",
+   "Mi"
+  ],
+  "canon_rank": "B"
+ },
+ "hyoton_senbon": {
+  "id": "hyoton_senbon",
+  "name": "Hyōton: Sensatsu Suishō",
+  "cost": 22,
+  "cd": 4,
+  "element": "",
+  "clan": "yuki",
+  "level": 3,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Buz iğnesi yelpazesi.",
+  "seals": [
+   "Hitsuji",
+   "Tatsu"
+  ],
+  "canon_rank": "?"
+ },
+ "hyoton_spears": {
+  "id": "hyoton_spears",
+  "name": "Hyōton: Tsurara",
+  "cost": 35,
+  "cd": 8,
+  "element": "",
+  "clan": "yuki",
+  "level": 7,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Hedefin etrafında buz: dondurur.",
+  "seals": [
+   "Ne",
+   "Mi",
+   "Tora"
+  ],
+  "canon_rank": "A"
+ },
+ "bone_bullets": {
+  "id": "bone_bullets",
+  "name": "Teshi Sendan",
+  "cost": 18,
+  "cd": 3,
+  "element": "",
+  "clan": "kaguya",
+  "level": 3,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Parmak kemiği mermileri.",
+  "seals": [],
+  "canon_rank": "?"
+ },
+ "bone_armor": {
+  "id": "bone_armor",
+  "name": "Kemik Zırh",
+  "cost": 30,
+  "cd": 20,
+  "element": "",
+  "clan": "kaguya",
+  "level": 7,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "20 sn gelen hasar yarıya iner.",
+  "seals": [],
+  "canon_rank": "B"
+ },
+ "chakra_chains": {
+  "id": "chakra_chains",
+  "name": "Fūinjutsu: Kongō Fūsa",
+  "cost": 35,
+  "cd": 12,
+  "element": "",
+  "clan": "uzumaki",
+  "level": 5,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Altın chakra zincirleri hedefi bağlar.",
+  "seals": [
+   "I",
+   "Inu",
+   "Tori",
+   "Saru"
+  ],
+  "canon_rank": "?"
+ },
+ "suika": {
+  "id": "suika",
+  "name": "Suika no Jutsu",
+  "cost": 25,
+  "cd": 18,
+  "element": "",
+  "clan": "hozuki",
+  "level": 3,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "15 sn bedenin suya dönüşür: darbeler içinden geçer.",
+  "seals": [
+   "Ushi",
+   "U"
+  ],
+  "canon_rank": "?"
+ },
+ "water_gun": {
+  "id": "water_gun",
+  "name": "Suiton: Mizudeppō",
+  "cost": 15,
+  "cd": 3,
+  "element": "",
+  "clan": "hozuki",
+  "level": 5,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Parmaktan basınçlı su mermisi.",
+  "seals": [
+   "Tora",
+   "Ushi"
+  ],
+  "canon_rank": "?"
+ },
  "_seals": [
   "Ne",
   "Ushi",

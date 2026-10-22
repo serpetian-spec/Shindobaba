@@ -34,4 +34,5 @@ static func melee_mult(p: Dictionary) -> float:
 static func jutsu_mult(p: Dictionary) -> float:
 	var m = 1.0 + (int(p.get("level", 1)) - 1) * 0.05
 	if "nin4" in p.get("skills", []): m += 0.3
+	m *= Buffs.mod("jutsu")
 	return m

@@ -7,6 +7,8 @@ var weights = {}      # poz adı -> mevcut ağırlık
 var targets = {}      # poz adı -> hedef ağırlık
 var speed = 10.0
 var poses = {}
+var head_scale = 1.0   # çocuk/genç oranları: büyük kafa
+var chest_scale = 1.0
 
 
 func _ready() -> void:
@@ -62,6 +64,15 @@ func _process_modification() -> void:
 		_rot_model(sk, "RightUpperLeg", Vector3(0.05, 0.25, 0.97), w_kick)
 		_rot_model(sk, "RightLowerLeg", Vector3(0.05, 0.3, 0.95), w_kick)
 		_add_local(sk, "Spine", Vector3(deg_to_rad(-14), 0, 0), w_kick)
+	# yaş oranları (kemik ölçeği çocuk kemiklere de geçer: saç/bant kafayla büyür)
+	if head_scale != 1.0:
+		var hb = sk.find_bone("Head")
+		if hb >= 0:
+			sk.set_bone_pose_scale(hb, Vector3.ONE * head_scale / chest_scale)
+	if chest_scale != 1.0:
+		var cb = sk.find_bone("UpperChest")
+		if cb >= 0:
+			sk.set_bone_pose_scale(cb, Vector3(chest_scale, 1.0, chest_scale))
 
 
 ## Kemiği, model uzayında verilen yöne (kemik +Y ekseni = kemik doğrultusu) döndürür.

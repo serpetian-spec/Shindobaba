@@ -12,12 +12,14 @@ var spacings: Array[float] = []
 
 func _ready() -> void:
 	var shader: Shader = load("res://shaders/terrain.gdshader")
+	var biome = load("res://data/world/biome.png")
 	for k in LEVELS:
 		var s := BASE * pow(2.0, k)
 		var mat := ShaderMaterial.new()
 		mat.shader = shader
 		mat.set_shader_parameter("heightmap", Game.height_tex)
 		mat.set_shader_parameter("albedo_map", Game.albedo_tex)
+		mat.set_shader_parameter("biome_map", biome)
 		mat.set_shader_parameter("world_rect", Game.world_rect())
 		mat.set_shader_parameter("level_eps", k * 0.12)
 		mat.set_shader_parameter("texel", maxf(Game.res, s))

@@ -66,6 +66,22 @@ func add_xp(amount: int) -> void:
 			Game.player.chakra = Game.player.max_chakra
 			FX.aura(Game.player, Color(1, 0.85, 0.4), 1.4)
 		_check_story_levels()
+		clan_unlocks()
+
+
+## Klan teknikleri: seviye şartı karşılanınca otomatik öğrenilir
+func clan_unlocks(announce := true) -> void:
+	var pr = p()
+	if pr.is_empty():
+		return
+	for jid in Data.jutsu.keys():
+		if jid.begins_with("_"):
+			continue
+		var j: Dictionary = Data.jutsu[jid]
+		if j.get("learn", "") != "clan" or j.get("clan", "") != pr.get("clan", ""):
+			continue
+		if int(pr["level"]) >= int(j.get("level", 1)) and not jid in pr["learned"]:
+			learn(jid, announce)
 
 
 func add_ryo(amount: int) -> void:
@@ -230,6 +246,8 @@ func interact(it: Dictionary) -> void:
 			Hud.shop("Eczane", ["salve", "pill", "smoke", "scroll_kokuangyo"])
 		"chunin_exam":
 			ChuninExam.apply()
+		"teahouse":
+			_eat(20, "Sıcak yeşil çay ve dango... Dinlendin, can ve chakra doldu.", "Çay Evi Sahibi")
 		"onsen":
 			Game.player.hp = Game.player.max_hp
 			Game.player.chakra = Game.player.max_chakra
@@ -343,6 +361,10 @@ func _sage_falls() -> void:
 			if not "contract" in pr["skills"]:
 				pr["skills"].append("contract")
 			learn("kuchiyose")})
+	if int(pr["rank"]) >= 2 and int(pr["level"]) >= 20 and not "sage" in pr["skills"]:
+		opts.append({"label": "Sennin eğitimi (doğa enerjisi meditasyonu)", "cb": func():
+			if Game.player and Game.player.combat and Game.player.combat.modes:
+				Game.player.combat.modes.start_sage_training()})
 	Hud.dialog("Yaşlı Kurbağa Bilge", "Doğanın enerjisini dinle genç... Sabırlı olanlar burada güç bulur." if opts.is_empty() else "Hazırsın. Ne öğrenmek istersin?", opts)
 
 

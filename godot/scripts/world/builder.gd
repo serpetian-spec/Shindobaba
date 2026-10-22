@@ -11,11 +11,16 @@ var cells = {}
 var body: StaticBody3D
 var view_dist = 1400.0
 var interactables: Array = []
+var key := ""
+var placer = null  # HouseKit.Placer (Japon tarzı detaylı evler)
+
+static var roof_points := {}  # köy id -> [çatı tepe noktaları] (çatıdan çatıya koşan ninjalar için)
 
 
 func _init(parent: Node3D, map_x: float, map_y: float, base_h: float, name := "Yapi") -> void:
 	root = Node3D.new()
 	root.name = name
+	key = name.to_lower()
 	parent.add_child(root)
 	origin = Vector3(map_x, base_h, -map_y)
 	body = StaticBody3D.new()
@@ -111,6 +116,8 @@ func interact(p: Vector3, radius: float, kind: String, label: String, data := {}
 
 
 func finish() -> void:
+	if placer != null:
+		placer.finish()
 	for key in cells:
 		var mb: MB = cells[key]
 		if mb.is_empty():
@@ -158,9 +165,20 @@ func house(x: float, n: float, wdt: float, dep: float, floors: int, yaw: float, 
 			var po = rot(wdt * 0.5 + 0.4, 0, yaw)
 			cyl(Vector3(x + po.x, hgt * 0.5, n + po.y), 0.6, hgt, Color(0.35, 0.36, 0.38), false, 8)
 			return
-	# konoha / ahşap / kar
-	var walls = [Color(0.94, 0.9, 0.82), Color(0.91, 0.85, 0.7), Color(0.96, 0.94, 0.88), Color(0.86, 0.8, 0.66), Color(0.82, 0.76, 0.66)]
-	var roofs = [Color(0.72, 0.22, 0.18), Color(0.2, 0.36, 0.55), Color(0.26, 0.48, 0.3), Color(0.8, 0.42, 0.18), Color(0.48, 0.3, 0.55), Color(0.62, 0.2, 0.22)]
+	# konoha / ahşap / kar: detaylı şablon evler (HouseKit)
+	var walls = [Color(0.96, 0.92, 0.84), Color(0.93, 0.87, 0.72), Color(0.98, 0.96, 0.9), Color(0.9, 0.84, 0.7), Color(0.86, 0.8, 0.7), Color(0.95, 0.88, 0.8)]
+	var roofs = [Color(0.78, 0.22, 0.18), Color(0.22, 0.4, 0.62), Color(0.28, 0.52, 0.32), Color(0.85, 0.45, 0.18), Color(0.5, 0.32, 0.58), Color(0.65, 0.2, 0.24), Color(0.35, 0.35, 0.4)]
+	if placer == null:
+		placer = HouseKit.Placer.new(root, key)
+		placer.view = view_dist
+	var wcol: Color = walls[rng.randi() % walls.size()]
+	var rcol: Color = roofs[rng.randi() % roofs.size()]
+	if style == "wood":
+		wcol = Color(0.62, 0.47, 0.32).darkened(rng.randf_range(0, 0.2))
+	elif style == "snow":
+		rcol = Color(0.93, 0.95, 0.98)
+	placer.add(w(Vector3(x, 0, n)), yaw, wcol, rcol, rng)
+	return
 	var wc: Color = walls[rng.randi() % walls.size()]
 	if style == "wood":
 		wc = Color(0.6, 0.45, 0.3).darkened(rng.randf_range(0, 0.2))
@@ -168,6 +186,20 @@ func house(x: float, n: float, wdt: float, dep: float, floors: int, yaw: float, 
 	if style == "snow":
 		rc = Color(0.93, 0.95, 0.98)
 	box(Vector3(x, hgt * 0.5, n), Vector3(wdt, hgt, dep), wc, yaw)
+	if not roof_points.has(key):
+		roof_points[key] = []
+	roof_points[key].append(w(Vector3(x, hgt + 0.7, n)))
+	if floors >= 2 and rng.randf() < 0.3:  # çamaşır ipi (balkondan)
+		var lo = rot(-wdt * 0.35, -dep * 0.5 - 1.0, yaw)
+		var ro2 = rot(wdt * 0.35, -dep * 0.5 - 1.0, yaw)
+		var mid = rot(0, -dep * 0.5 - 1.0, yaw)
+		box(Vector3(x + lo.x, 5.6, n + lo.y), Vector3(0.08, 2.2, 0.08), Color(0.4, 0.3, 0.2), yaw, false)
+		box(Vector3(x + ro2.x, 5.6, n + ro2.y), Vector3(0.08, 2.2, 0.08), Color(0.4, 0.3, 0.2), yaw, false)
+		box(Vector3(x + mid.x, 6.6, n + mid.y), Vector3(wdt * 0.7, 0.03, 0.03), Color(0.9, 0.9, 0.9), yaw, false)
+		for k in 4:
+			var co = rot(-wdt * 0.25 + k * wdt * 0.17, -dep * 0.5 - 1.0, yaw)
+			var cc = [Color(0.9, 0.9, 0.95), Color(0.3, 0.45, 0.75), Color(0.85, 0.35, 0.3), Color(0.95, 0.8, 0.4)][rng.randi() % 4]
+			box(Vector3(x + co.x, 6.1, n + co.y), Vector3(0.9, 1.0, 0.04), cc, yaw, false)
 	# Konoha: yuvarlatılmış/düz çatı + su tankı veya beşik çatı
 	if rng.randf() < 0.55 and style == "konoha":
 		box(Vector3(x, hgt + 0.35, n), Vector3(wdt + 1.2, 0.7, dep + 1.2), rc, yaw)

@@ -38,7 +38,9 @@ func _ready() -> void:
 	actors.name = "Actors"
 	add_child(actors)
 	Spawner.flush(actors)
-	_spawn_villagers()
+	var life = preload("res://scripts/world/village_life.gd").new()
+	life.name = "VillageLife"
+	actors.add_child(life)
 	loading.queue_free()
 	menu_cam = Camera3D.new()
 	menu_cam.far = 5000.0
@@ -67,6 +69,7 @@ func _setup_input() -> void:
 		"throw": [KEY_R], "tool_next": [KEY_T], "interact": [KEY_F], "lock": [KEY_TAB], "salve": [KEY_H], "pill": [KEY_Y],
 		"slot1": [KEY_1], "slot2": [KEY_2], "slot3": [KEY_3], "slot4": [KEY_4],
 		"inventory": [KEY_I], "skills": [KEY_K], "map": [KEY_M], "pause": [KEY_ESCAPE], "dojutsu": [KEY_V],
+		"sage": [KEY_Z], "beast": [KEY_X], "gates": [KEY_B], "seal_mode": [KEY_G],
 	}
 	for action in keys:
 		if not InputMap.has_action(action):
@@ -167,7 +170,7 @@ func _creator_look() -> Dictionary:
 		var e: Array = Data.clans[s["clan"]]["eye"]
 		eye = Color(e[0], e[1], e[2])
 	return {"gender": s["gender"], "hair_style": s["hair_style"], "hair": s["hair"], "top": s["top"],
-		"top2": Color(s["top"]).lightened(0.15), "pants": s["pants"], "skin": s["skin"], "eye": eye, "band": null}
+		"top2": Color(s["top"]).lightened(0.15), "pants": s["pants"], "skin": s["skin"], "eye": eye, "band": null, "age": "child"}
 
 
 func _update_preview() -> void:
@@ -276,6 +279,10 @@ func _route(e: InputEvent) -> void:
 			var c = Hud._near_catchable(player)
 			if c:
 				c.catch()
+			else:
+				var tk = Hud._near_talker(player)
+				if tk:
+					tk.talk()
 	elif e.is_action_pressed("tool_next"):
 		var tools = ["kunai", "shuriken", "tag", "smoke"]
 		var i = tools.find(Game.profile.get("throw_sel", "kunai"))

@@ -39,7 +39,7 @@ static func default_look() -> Dictionary:
 		"eye": Color(0.25, 0.45, 0.8), "top": Color(0.15, 0.2, 0.33), "top2": Color(0.25, 0.35, 0.5),
 		"pants": Color(0.18, 0.2, 0.25), "vest": null, "band": Color(0.15, 0.22, 0.55), "band_style": "head",
 		"village": "konoha", "wraps": Color(0.92, 0.92, 0.9), "sandal": Color(0.15, 0.2, 0.32), "cloak": null,
-		"mask": null, "sleeves": true,
+		"mask": null, "sleeves": true, "age": "adult",
 	}
 
 
@@ -71,6 +71,7 @@ func setup(l: Dictionary) -> void:
 	_add_libs()
 	overlay = PoseOverlay.new()
 	skel.add_child(overlay)
+	apply_age(look.get("age", "adult"))
 	play("idle", 0.0)
 
 
@@ -107,6 +108,19 @@ func play(key: String, blend := 0.15, speed := 1.0, restart := false) -> void:
 		anim.seek(0.0, true)
 
 
+const AGES := {"child": [0.76, 1.1, 0.9], "teen": [0.84, 1.05, 0.94], "young": [0.92, 1.02, 0.97], "adult": [1.0, 1.0, 1.0]}
+var age_scale = 1.0
+
+
+## Yaşa göre boy, kafa oranı ve omuz genişliği
+func apply_age(age: String) -> void:
+	var a: Array = AGES.get(age, AGES["adult"])
+	age_scale = a[0]
+	scale = Vector3.ONE * age_scale
+	overlay.head_scale = a[1]
+	overlay.chest_scale = a[2]
+
+
 func anim_length(key: String) -> float:
 	var full: String = ANIM.get(key, key)
 	return anim.get_animation(full).length if anim.has_animation(full) else 0.5
@@ -118,11 +132,19 @@ func anim_progress() -> float:
 	return anim.current_animation_position / maxf(0.01, anim.current_animation_length)
 
 
-# ------------------------------------------------------------------ boyama
-func _paint_body() -> void:
+# ------------------------------------------------------------------ boyama + kumaş katmanı
+## Bölge kodları: 0 ten, 10 omuz/üst kol, 11 göğüs, 12 bel, 13 ön kol, 14 bilek sargısı,
+## 20 kalça, 21 uyluk, 22 baldır, 23 baldır sargısı, 30 sandalet, 40 boyun
+static var _geo := {}      # cinsiyet -> {arrays, regions, adj, per, tex}
+static var _body_cache := {}
+static var _shell_cache := {}
+
+
+func _geo_for(gender: String) -> Dictionary:
+	if _geo.has(gender):
+		return _geo[gender]
 	var mesh: ArrayMesh = body_mesh.mesh
 	var skin: Skin = body_mesh.skin
-	var new_mesh = ArrayMesh.new()
 	var bind_names = {}
 	if skin:
 		for i in skin.get_bind_count():
@@ -130,83 +152,191 @@ func _paint_body() -> void:
 			if nm == &"":
 				nm = skel.get_bone_name(skin.get_bind_bone(i))
 			bind_names[i] = String(nm)
-	for s in mesh.get_surface_count():
-		var arr = mesh.surface_get_arrays(s)
-		var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
-		var bones = arr[Mesh.ARRAY_BONES]
-		var weights = arr[Mesh.ARRAY_WEIGHTS]
+	var arr = mesh.surface_get_arrays(0)
+	for k in [Mesh.ARRAY_CUSTOM0, Mesh.ARRAY_CUSTOM1, Mesh.ARRAY_CUSTOM2, Mesh.ARRAY_CUSTOM3, Mesh.ARRAY_TEX_UV2]:
+		arr[k] = null
+	var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+	var bones = arr[Mesh.ARRAY_BONES]
+	var weights = arr[Mesh.ARRAY_WEIGHTS]
+	var per = 4
+	if bones != null and v.size() > 0:
+		per = bones.size() / v.size()
+	var regions = PackedInt32Array()
+	regions.resize(v.size())
+	for i in v.size():
+		var bn = ""
+		if bones != null:
+			var best = -1.0
+			for k in per:
+				var w: float = weights[i * per + k]
+				if w > best:
+					best = w
+					bn = bind_names.get(bones[i * per + k], "")
+		regions[i] = _region_code(bn, v[i])
+	# komşuluk (pürüzsüzleştirme için)
+	var idx: PackedInt32Array = arr[Mesh.ARRAY_INDEX]
+	var adj: Array = []
+	adj.resize(v.size())
+	for i in v.size():
+		adj[i] = PackedInt32Array()
+	for t in range(0, idx.size(), 3):
+		var a = idx[t]; var b = idx[t + 1]; var c = idx[t + 2]
+		adj[a].append(b); adj[a].append(c)
+		adj[b].append(a); adj[b].append(c)
+		adj[c].append(a); adj[c].append(b)
+	var src_tex = null
+	var src_mat = mesh.surface_get_material(0)
+	if src_mat is BaseMaterial3D:
+		src_tex = src_mat.albedo_texture
+	var g = {"arrays": arr, "regions": regions, "adj": adj, "per": per, "tex": src_tex}
+	_geo[gender] = g
+	return g
+
+
+static func _region_code(bn: String, p: Vector3) -> int:
+	if bn.contains("Head") or bn == "":
+		return 0
+	if bn.contains("Neck"):
+		return 40
+	if bn.contains("Hand") or bn.contains("Thumb") or bn.contains("Index") or bn.contains("Middle") or bn.contains("Ring") or bn.contains("Little") or bn.contains("leaf"):
+		return 0
+	if bn.contains("LowerArm"):
+		return 14 if absf(p.x) > 0.55 else 13
+	if bn.contains("UpperArm") or bn.contains("Shoulder"):
+		return 10
+	if bn.contains("Chest"):
+		return 11
+	if bn == "Spine":
+		return 12
+	if bn.contains("Hips"):
+		return 12 if p.y > 1.0 else 20
+	if bn.contains("UpperLeg"):
+		return 21
+	if bn.contains("LowerLeg"):
+		return 23 if p.y < 0.3 else 22
+	if bn.contains("Toes"):
+		return 0
+	if bn.contains("Foot"):
+		return 30
+	return 12
+
+
+func _code_color(code: int) -> Color:
+	var L = look
+	var c = Color(1, 1, 1, 0)
+	match code:
+		10: c = L["top"]
+		11: c = L["vest"] if L["vest"] != null else L["top2"]
+		12: c = L["vest"] if L["vest"] != null else L["top"]
+		13: c = L["top"] if L["sleeves"] else Color(1, 1, 1, 0)
+		14: c = L["wraps"]
+		20, 21, 22: c = L["pants"]
+		23: c = L["wraps"]
+		30: c = L["sandal"]
+		40: c = L["vest"] if L["vest"] != null else Color(1, 1, 1, 0)
+	if code == 0 or (code == 13 and not L["sleeves"]) or (code == 40 and L["vest"] == null):
+		return Color(1, 1, 1, 0)
+	return Color(c.r, c.g, c.b, 1.0)
+
+
+func _color_key() -> String:
+	var L = look
+	return "%s|%s|%s|%s|%s|%s|%s|%s|%s" % [L["gender"], L["top"], L["top2"], L["pants"], L["vest"], L["wraps"], L["sandal"], L["sleeves"], L["skin"]]
+
+
+func _paint_body() -> void:
+	var g = _geo_for(look["gender"])
+	var key = _color_key()
+	if not _body_cache.has(key):
+		var arr: Array = (g["arrays"] as Array).duplicate()
+		var regions: PackedInt32Array = g["regions"]
 		var cols = PackedColorArray()
-		cols.resize(v.size())
-		var per = 4
-		if bones != null and v.size() > 0:
-			per = bones.size() / v.size()
-		for i in v.size():
-			var bn = ""
-			if bones != null:
-				var best = -1.0
-				for k in per:
-					var w: float = weights[i * per + k]
-					if w > best:
-						best = w
-						bn = bind_names.get(bones[i * per + k], "")
-			var rc = _region_color(bn, v[i])
-			cols[i] = rc
+		cols.resize(regions.size())
+		for i in regions.size():
+			cols[i] = _code_color(regions[i])
 		arr[Mesh.ARRAY_COLOR] = cols
-		for k in [Mesh.ARRAY_CUSTOM0, Mesh.ARRAY_CUSTOM1, Mesh.ARRAY_CUSTOM2, Mesh.ARRAY_CUSTOM3, Mesh.ARRAY_TEX_UV2]:
-			arr[k] = null
-		var flags = Mesh.ARRAY_FLAG_USE_8_BONE_WEIGHTS if per == 8 else 0
-		new_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr, [], {}, flags)
-	body_mesh.mesh = new_mesh
+		var m = ArrayMesh.new()
+		m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr, [], {}, Mesh.ARRAY_FLAG_USE_8_BONE_WEIGHTS if g["per"] == 8 else 0)
+		_body_cache[key] = [m, _build_shell(g, cols)]
+	var pair: Array = _body_cache[key]
+	body_mesh.mesh = pair[0]
 	var mat = ShaderMaterial.new()
 	mat.shader = load("res://shaders/toon.gdshader")
 	mat.set_shader_parameter("rim_amount", 0.5)
 	mat.set_shader_parameter("spec_amount", 0.12)
 	mat.set_shader_parameter("cloth_mode", true)
-	var src_mat = mesh.surface_get_material(0)
-	if src_mat is BaseMaterial3D and src_mat.albedo_texture:
-		mat.set_shader_parameter("tex", src_mat.albedo_texture)
+	if g["tex"]:
+		mat.set_shader_parameter("tex", g["tex"])
 	mat.set_shader_parameter("tint", Color(look["skin"]))
-	for s in new_mesh.get_surface_count():
-		body_mesh.set_surface_override_material(s, mat)
+	body_mesh.set_surface_override_material(0, mat)
 	materials.append(mat)
+	# kumaş katmanı: aynı iskelete bağlı, kasları gizleyen pürüzsüz kıyafet
+	if pair[1] != null:
+		var shell = MeshInstance3D.new()
+		shell.name = "Cloth"
+		shell.mesh = pair[1]
+		skel.add_child(shell)
+		shell.skin = body_mesh.skin
+		shell.skeleton = shell.get_path_to(skel)
+		var cm = ShaderMaterial.new()
+		cm.shader = load("res://shaders/toon.gdshader")
+		cm.set_shader_parameter("rim_amount", 0.45)
+		cm.set_shader_parameter("detail_noise", 0.06)
+		shell.material_override = cm
+		materials.append(cm)
 
 
-func _region_color(bn: String, p: Vector3) -> Color:
-	## alfa 0 = ten dokusu görünür, alfa 1 = kıyafet rengi
-	var L = look
-	var SKIN = Color(1, 1, 1, 0)
-	if bn.contains("Head") or bn == "":
-		return SKIN
-	if bn.contains("Neck"):
-		return _opaque(L["vest"]) if L["vest"] != null else SKIN
-	if bn.contains("Hand") or bn.contains("Thumb") or bn.contains("Index") or bn.contains("Middle") or bn.contains("Ring") or bn.contains("Little") or bn.contains("leaf"):
-		return SKIN
-	if bn.contains("LowerArm"):
-		if not L["sleeves"]:
-			return _opaque(L["wraps"]) if absf(p.x) > 0.5 else SKIN
-		return _opaque(L["wraps"]) if absf(p.x) > 0.55 else _opaque(L["top"])
-	if bn.contains("UpperArm") or bn.contains("Shoulder"):
-		return _opaque(L["top"])
-	if bn.contains("Chest") or bn == "Spine":
-		if L["vest"] != null:
-			return _opaque(L["vest"])
-		return _opaque(L["top2"]) if p.y > 1.38 else _opaque(L["top"])
-	if bn.contains("Hips"):
-		return _opaque(L["top2"]) if p.y > 1.0 else _opaque(L["pants"])
-	if bn.contains("UpperLeg"):
-		return _opaque(L["pants"])
-	if bn.contains("LowerLeg"):
-		return _opaque(L["wraps"]) if p.y < 0.3 else _opaque(L["pants"])
-	if bn.contains("Toes"):
-		return SKIN
-	if bn.contains("Foot"):
-		return _opaque(L["sandal"])
-	return _opaque(L["top"])
-
-
-func _opaque(c) -> Color:
-	var cc: Color = c
-	return Color(cc.r, cc.g, cc.b, 1.0)
+## Kıyafet bölgelerini pürüzsüzleştirip normal yönünde şişirerek kumaş kabuğu üretir (cinsiyet+kol tipi başına bir kez)
+func _build_shell(g: Dictionary, cols: PackedColorArray) -> ArrayMesh:
+	var arr: Array = (g["arrays"] as Array).duplicate(true)
+	var regions: PackedInt32Array = g["regions"]
+	var adj: Array = g["adj"]
+	var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+	var nrm: PackedVector3Array = arr[Mesh.ARRAY_NORMAL]
+	var cloth = PackedByteArray()
+	cloth.resize(v.size())
+	for i in v.size():
+		var c = regions[i]
+		cloth[i] = 1 if c >= 10 and c <= 23 and cols[i].a > 0.5 else 0
+	var pos = v.duplicate()
+	for it in 5:
+		var nxt = pos.duplicate()
+		for i in pos.size():
+			if cloth[i] == 0:
+				continue
+			var nb: PackedInt32Array = adj[i]
+			if nb.is_empty():
+				continue
+			var s = Vector3.ZERO
+			for j in nb:
+				s += pos[j]
+			nxt[i] = pos[i].lerp(s / nb.size(), 0.6)
+		pos = nxt
+	for i in pos.size():
+		if cloth[i] == 0:
+			continue
+		var c = regions[i]
+		var off = 0.016
+		if c == 21:
+			off = 0.03 + clampf((v[i].y - 0.55) * 0.05, 0.0, 0.02)  # bol uyluk
+		elif c == 22 or c == 20:
+			off = 0.025
+		elif c == 11 or c == 12:
+			off = 0.02
+		pos[i] = pos[i] + nrm[i] * off
+	arr[Mesh.ARRAY_VERTEX] = pos
+	arr[Mesh.ARRAY_COLOR] = cols
+	var idx: PackedInt32Array = arr[Mesh.ARRAY_INDEX]
+	var keep = PackedInt32Array()
+	for t in range(0, idx.size(), 3):
+		if cloth[idx[t]] == 1 and cloth[idx[t + 1]] == 1 and cloth[idx[t + 2]] == 1:
+			keep.append(idx[t]); keep.append(idx[t + 1]); keep.append(idx[t + 2])
+	if keep.is_empty():
+		return null
+	arr[Mesh.ARRAY_INDEX] = keep
+	var m = ArrayMesh.new()
+	m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr, [], {}, Mesh.ARRAY_FLAG_USE_8_BONE_WEIGHTS if g["per"] == 8 else 0)
+	return m
 
 
 # ------------------------------------------------------------------ eklentiler (saç, bant, göz, çanta)
@@ -308,17 +438,15 @@ func _attachments() -> void:
 			sm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 			q.material = sm
 			_mesh_on("Head", q, Transform3D(Basis.IDENTITY, hc + Vector3(0, 0.025, 0.117)))
-	# --- yelek
+	# --- yelek: kumaş katmanına boyanır; üstüne sadece yaka + parşömen cepleri
 	if look["vest"] != null:
 		var v = MB.new()
 		var vc: Color = look["vest"]
 		var ch = skel.get_bone_global_rest(skel.find_bone("UpperChest")).origin
-		var k = 0.92 if female else 1.0
-		v.add("box", Vector3(0, -0.07, 0.01), Vector3(0.4, 0.36, 0.27) * k, vc)
-		v.add("cyl", Vector3(0, 0.13, -0.01), Vector3(0.25, 0.08, 0.23), vc.darkened(0.08), Vector3.ZERO, 10)
+		v.add("torus", Vector3(0, 0.15, -0.005), Vector3(0.3, 0.3, 0.28), vc.darkened(0.1), Vector3.ZERO, 14)
 		for sx in [-1.0, 1.0]:
-			v.add("box", Vector3(0.09 * sx, -0.08, 0.15), Vector3(0.1, 0.11, 0.03), vc.darkened(0.12))
-			v.add("box", Vector3(0.09 * sx, -0.025, 0.155), Vector3(0.1, 0.012, 0.025), vc.darkened(0.25))
+			for k in 2:
+				v.add("box", Vector3(0.075 * sx, -0.06 - k * 0.09, 0.135), Vector3(0.07, 0.08, 0.035), vc.darkened(0.15))
 		_mesh_on("UpperChest", v.build(Props.toon()), Transform3D(Basis.IDENTITY, ch))
 	# --- çanta + kunai kılıfı
 	var hip = skel.get_bone_global_rest(skel.find_bone("Hips")).origin

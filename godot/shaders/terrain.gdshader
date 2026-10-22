@@ -1,4 +1,4 @@
-// Clipmap arazi: yükseklik GPU'da dokudan okunur, anime/toon aydınlatma
+// Clipmap arazi: yükseklik GPU'da dokudan okunur. Anime/boyalı yüzeyler: çimen lekeleri, katmanlı kaya, kum dalgası, yol.
 shader_type spatial;
 render_mode cull_back, diffuse_toon, specular_disabled;
 
@@ -11,6 +11,7 @@ uniform float texel = 4.0;
 
 varying vec3 wpos;
 varying float slope;
+varying vec3 wnrm;
 
 float h_at(vec2 xz) {
 	vec2 uv = (xz - world_rect.xy) / world_rect.zw;
@@ -25,6 +26,7 @@ void vertex() {
 	vec3 n = normalize(vec3(-hx, 2.0 * texel, -hz));
 	VERTEX.y = h - level_eps;
 	NORMAL = n;
+	wnrm = n;
 	wpos = vec3(w.x, h, w.z);
 	slope = 1.0 - n.y;
 }
@@ -35,19 +37,47 @@ float vnoise(vec2 p) {
 	vec2 u = f * f * (3.0 - 2.0 * f);
 	return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y);
 }
+float fbm(vec2 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { s += vnoise(p) * a; p *= 2.07; a *= 0.5; } return s; }
 
 void fragment() {
 	vec2 uv = (wpos.xz - world_rect.xy) / world_rect.zw;
 	vec3 base = texture(albedo_map, uv).rgb;
-	// yakın detay: çim/toprak lekeleri, kaya damarları
-	float n1 = vnoise(wpos.xz * 0.35) * 0.6 + vnoise(wpos.xz * 1.7) * 0.4;
-	float n2 = vnoise(wpos.xz * 0.05);
-	base *= 0.86 + n1 * 0.22 + (n2 - 0.5) * 0.12;
-	float rock = smoothstep(0.32, 0.55, slope + (n1 - 0.5) * 0.15);
-	vec3 rockc = vec3(0.47, 0.44, 0.40) * (0.85 + n1 * 0.3);
+	vec4 bio = texture(biome_map, uv);
+	int b = int(bio.r * 255.0 + 0.5);
+	float n1 = fbm(wpos.xz * 0.08);
+	float n2 = vnoise(wpos.xz * 0.9);
+	float n3 = vnoise(wpos.xz * 4.0);
+	// boyalı çimen: büyük açık/koyu lekeler + sarımsı çiçekli alanlar
+	if (b == 2 || b == 7 || b == 6 || b == 11 || b == 4 || b == 10) {
+		float patch = smoothstep(0.38, 0.62, n1);
+		base *= mix(0.82, 1.14, patch);
+		base = mix(base, base * vec3(1.12, 1.08, 0.7), smoothstep(0.7, 0.85, fbm(wpos.xz * 0.03 + 7.0)) * 0.6);
+		base *= 0.93 + n3 * 0.12;
+	}
+	// kum: rüzgar dalgaları
+	if (b == 3 || b == 1) {
+		float rip = sin(wpos.x * 1.6 + wpos.z * 0.7 + n1 * 6.0) * 0.5 + 0.5;
+		base *= 0.92 + rip * 0.1 + n2 * 0.06;
+	}
+	// kar parıltısı
+	if (b == 8) {
+		base = mix(base, vec3(1.0), 0.15) + step(0.985, n3) * 0.25;
+	}
+	// yol: keskin kenarlı toprak + tekerlek izleri
+	float road = smoothstep(0.35, 0.6, bio.g + (n2 - 0.5) * 0.25);
+	vec3 dirt = vec3(0.62, 0.5, 0.36) * (0.85 + n3 * 0.2);
+	base = mix(base, dirt, road * 0.92);
+	// yarlar: katmanlı kaya (yüksekliğe göre tabaka bantları)
+	float rock = smoothstep(0.3, 0.5, slope + (n2 - 0.5) * 0.18);
+	float strata = sin(wpos.y * 0.9 + n1 * 3.0) * 0.5 + 0.5;
+	float strata2 = sin(wpos.y * 3.1 + n2 * 2.0) * 0.5 + 0.5;
+	vec3 rockc = mix(vec3(0.45, 0.4, 0.36), vec3(0.62, 0.55, 0.47), strata);
+	if (b == 3 || b == 5) rockc = mix(vec3(0.62, 0.42, 0.3), vec3(0.8, 0.6, 0.42), strata);
+	rockc *= 0.85 + strata2 * 0.2;
+	rockc *= mix(0.75, 1.0, smoothstep(0.0, 0.15, abs(fract(wpos.y * 0.25 + n1) - 0.5)));
 	base = mix(base, rockc, rock);
-	// kumsal ıslaklığı
-	base *= mix(0.78, 1.0, smoothstep(-0.2, 1.2, wpos.y));
+	// sahil ıslaklığı
+	base *= mix(0.72, 1.0, smoothstep(-0.2, 1.4, wpos.y));
 	ALBEDO = base;
 	ROUGHNESS = 0.95;
 }
@@ -56,7 +86,6 @@ void light() {
 	float ndl = dot(NORMAL, LIGHT);
 	float t = smoothstep(-0.03, 0.05, ndl) * 0.6 + smoothstep(0.42, 0.5, ndl) * 0.4;
 	float lit = t * ATTENUATION;
-	// anime gölgesi: tamamen kararmaz, hafif soğuk tonlu
 	vec3 shade = mix(vec3(0.42, 0.44, 0.55), vec3(1.0), lit);
 	DIFFUSE_LIGHT += LIGHT_COLOR * shade / PI;
 }

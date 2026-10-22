@@ -30,11 +30,15 @@ var cast_time = 0.0
 var cooldowns = {}
 var dash_target: Node3D = null
 var air_attack = false
+var modes: PlayerModes
 
 
 func _ready() -> void:
 	p = get_parent()
 	p.combat = self
+	modes = PlayerModes.new()
+	add_child(modes)
+	modes.setup(self)
 
 
 func busy() -> bool:
@@ -43,6 +47,8 @@ func busy() -> bool:
 
 func _unhandled_input(e: InputEvent) -> void:
 	if Game.paused or Game.ui_open:
+		return
+	if modes and modes.handle_input(e):
 		return
 	if e.is_action_pressed("attack"):
 		attack()
@@ -215,7 +221,7 @@ func _do_attack(dt: float) -> bool:
 	if not did_hit and t >= c["hit"]:
 		did_hit = true
 		var pt = p.global_position + Vector3.UP * 1.1 + p.face_dir() * (p.radius + c["reach"] * 0.6)
-		var hits = Combat.hit_sphere(p, pt, c["reach"] * 0.65, _hit_info(c))
+		var hits = Combat.hit_sphere(p, pt, c["reach"] * 0.65 * Buffs.mod("reach"), _hit_info(c))
 		if not hits.is_empty():
 			_on_hit_fx(pt, c)
 			for h in hits:
@@ -427,7 +433,7 @@ func _do_cast(dt: float) -> bool:
 	p.velocity.x = move_toward(p.velocity.x, 0, dt * 60); p.velocity.z = move_toward(p.velocity.z, 0, dt * 60)
 	if not p.grounded:
 		p.velocity.y -= Player.GRAV * dt * 0.3
-	var seals: Array = Data.jutsu[cast_jutsu].get("seals", [])
+	var seals: Array = Data.jutsu.get(cast_jutsu, {}).get("seals", [])
 	if seals.size() > 0:
 		var idx = int(t / (cast_time / seals.size()))
 		if idx >= 0 and idx != get_meta("seal_idx", -1):
@@ -446,6 +452,8 @@ func _do_cast(dt: float) -> bool:
 # ------------------------------------------------------------------ hasar alma
 func take_hit(info: Dictionary) -> void:
 	if invuln > 0.0 or p.hp <= 0.0:
+		return
+	if modes and modes.on_player_hit(info):
 		return
 	var atk: Node3D = info.get("attacker")
 	var dmg: float = info.get("dmg", 5.0)

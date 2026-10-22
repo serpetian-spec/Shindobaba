@@ -216,36 +216,52 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 		Spawner.dummy(b.w(Vector3(tgx - 15 + i * 10, 0, tgn - 10)))
 	occupied.append([tgx, tgn, 46, 36])
 
-	# ---- evler: kalan alanı doldur
+	# ---- evler: sık mahalleler, her ev en yakın sokağa bakar, aralarda dar ara sokaklar
 	var count = 0
-	var gx = -380.0
-	while gx <= 380.0:
-		var gn2 = -390.0
-		while gn2 <= 340.0:
-			var x = gx + rng.randf_range(-3, 3)
-			var n = gn2 + rng.randf_range(-3, 3)
-			gn2 += 19.0
-			if Vector2(x, n).length() > R - 18:
+	var gx = -385.0
+	while gx <= 385.0:
+		var gn2 = -395.0
+		while gn2 <= 345.0:
+			var x = gx + rng.randf_range(-1.5, 1.5)
+			var n = gn2 + rng.randf_range(-1.5, 1.5)
+			gn2 += 15.0
+			if Vector2(x, n).length() > R - 16:
 				continue
-			if not _free(x, n, occupied, 9.0):
+			if not _free(x, n, occupied, 7.0):
 				continue
-			if rng.randf() < 0.12:
-				if rng.randf() < 0.5:
-					b.tree(x, n, rng.randf_range(0.9, 1.3), rng)
+			if rng.randf() < 0.07:
+				b.tree(x, n, rng.randf_range(0.9, 1.3), rng)
 				continue
-			var wd = rng.randf_range(8, 13); var dp = rng.randf_range(7, 11)
-			var fl = [1, 1, 2, 2, 2, 3].pick_random()
-			if Vector2(x, n).length() < 140:
-				fl += 1
-			b.house(x, n, wd, dp, fl, [0.0, 90.0, 180.0, 270.0][rng.randi() % 4], "konoha", rng)
+			var fl = [1, 2, 2, 2, 3].pick_random()
+			b.house(x, n, 10, 9, fl, _face_road(x, n), "konoha", rng)
 			count += 1
-		gx += 19.0
+		gx += 15.0
 	# sokak fenerleri
 	for n in range(-380, 200, 30):
 		b.lantern(-11, n)
 		b.lantern(11, n)
 	b.finish()
 	print("Konoha: ", count, " ev")
+
+
+## Evin ön cephesini en yakın sokağa çeviren yaw (derece)
+static func _face_road(x: float, n: float) -> float:
+	var best = Vector2(0, -1)
+	var bd = 1e9
+	var cands = [Vector2(0, clampf(n, -400, 60))]
+	for rn in [-260, -110, 40, 160]:
+		cands.append(Vector2(clampf(x, -380, 380), rn))
+	for rx in [-200, 200]:
+		cands.append(Vector2(rx, clampf(n, -350, 270)))
+	for c in cands:
+		var d = Vector2(x, n).distance_to(c)
+		if d < bd:
+			bd = d
+			best = (c - Vector2(x, n)).normalized()
+	if bd > 60.0:
+		return [0.0, 90.0, 180.0, 270.0][int(absf(x * 7.0 + n * 3.0)) % 4]
+	var yaw = rad_to_deg(atan2(-best.x, -best.y))
+	return round(yaw / 90.0) * 90.0
 
 
 static func _free(x: float, n: float, occ: Array, pad: float) -> bool:
