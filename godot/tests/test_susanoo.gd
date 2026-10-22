@@ -24,7 +24,7 @@ func _ready() -> void:
 	pl.set_process(false)
 	var em: MeshInstance3D = pl.model.eyes_mesh
 	var hp = em.global_transform * em.get_aabb().get_center()
-	pl.cam.global_position = hp + pl.face_dir() * 0.28
+	pl.cam.global_position = hp + pl.face_dir() * 0.55 + Vector3(0, 0.05, 0)
 	pl.cam.look_at(hp)
 	await get_tree().create_timer(0.3).timeout
 	await main.shot("s0_ems_gozler")

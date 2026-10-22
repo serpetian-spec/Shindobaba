@@ -1216,13 +1216,17 @@ static func _hair_clumps(style: String, c: Vector3, r: Vector3) -> ArrayMesh:
 				var wy = wrapf(yw, -180.0, 180.0)
 				if row[0] > 70.0 and absf(wy) < 60.0:
 					continue  # alın/yüz açık
+				var front_short = row[0] > 40.0 and absf(wy) < 70.0  # alın üstü: gözlere inmesin
 				var a = at.call(yw, row[0])
 				var n: Vector3 = a[1]
 				var flow = (Vector3(0, -1.0, -0.4) - n * n.dot(Vector3(0, -1.0, -0.4)))
 				if flow.length() < 0.05:
 					flow = Vector3(0, -1, 0) - n * n.y
 				var root = c + n * r * 0.86
-				_clump(st, root, (flow.normalized() + n * 0.15).normalized(), -n * 0.2, rng.randf_range(0.09, 0.12) * (0.7 if row[0] > 90.0 else 1.0), 0.08, 0.32)
+				var ln = rng.randf_range(0.09, 0.12) * (0.7 if row[0] > 90.0 else 1.0)
+				if front_short:
+					ln = 0.045
+				_clump(st, root, (flow.normalized() + n * 0.15).normalized(), -n * 0.2, ln, 0.08, 0.32)
 	match style:
 		"diken":
 			for ring in [[15.0, 4], [45.0, 8], [78.0, 10], [108.0, 8]]:
@@ -1241,9 +1245,9 @@ static func _hair_clumps(style: String, c: Vector3, r: Vector3) -> ArrayMesh:
 				var a = at.call(yw, pt)
 				var d = (a[1] + Vector3(0, 0.45, -0.5)).normalized()
 				_clump(st, a[0], d, Vector3(0, 0.1, -0.15), rng.randf_range(0.12, 0.18), 0.06)
-			for i in 9:
-				var a = at.call(rng.randf_range(-80, 80), rng.randf_range(15, 60))
-				_clump(st, a[0], (a[1] + Vector3(0, 0.1, 0.0)).normalized(), Vector3(0, -0.3, 0), 0.1, 0.06)
+			for i in 9:  # ön tepe: yukarı/geriye kalkık (yüzü kapatmaz)
+				var a = at.call(rng.randf_range(-70, 70), rng.randf_range(8, 38))
+				_clump(st, a[0], (a[1] + Vector3(0, 0.5, -0.35)).normalized(), Vector3(0, -0.1, -0.05), 0.11, 0.06)
 			for sx in [-1.0, 1.0]:  # yüzü çerçeveleyen perçemler (yüzü kapatmaz, şakaktan iner)
 				var a = at.call(80.0 * sx, 70.0)
 				_clump(st, a[0], Vector3(0.25 * sx, -1, 0.1).normalized(), Vector3(0.03 * sx, -0.1, 0.0), 0.15, 0.04)
