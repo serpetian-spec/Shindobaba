@@ -195,6 +195,11 @@ func has_nature(n: String) -> bool:
 	return false
 
 
+## Kekkei genkai görevi bitti (Missions hook)
+func kg_quest_done(m: Dictionary, ok: bool) -> void:
+	KgPaths.quest_done(m, ok)
+
+
 ## Kekkei genkai uyanışı (klan soyu, nadir olay ya da görev ödülü)
 func awaken_nature(n: String, announce := true) -> void:
 	var pr = p()
@@ -494,10 +499,13 @@ func interact(it: Dictionary) -> void:
 		"trainer":
 			var vid: String = it.get("village", home())
 			var topts = trainer_options(it["kinds"]) if it.has("kinds") else village_trainer_options(vid)
+			topts.append_array(KgPaths.trainer_options())  # Doğa Dönüşümü (birleşik doğa)
 			var ttxt = "Hangi tekniği öğrenmek istersin? Ryō karşılığında öğretirim." if not topts.is_empty() else "Şu an sana öğretebileceğim yeni bir teknik yok. Biraz daha güçlen, sonra gel."
 			Hud.dialog(it.get("title", "Eğitmen"), ttxt, topts)
 		"tailor":
 			Hud.gear_shop("Terzi", Gear.SHOP_CLOTHES)
+		"kg_site":
+			KgPaths.interact_site(it)
 		"home_note":
 			var lv = int(pr["level"])
 			Hud.dialog("Notlar", "Kendi el yazınla: \"Hokage olacağım!\"\nSeviye %d • %s • %d Ryō\nGörevler: D%d C%d B%d A%d S%d" % [lv, Data.RANKS[int(pr["rank"])], int(pr["ryo"]),

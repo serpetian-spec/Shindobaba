@@ -185,6 +185,8 @@ func _think(dt: float) -> void:
 			var d = global_position.distance_to(f.global_position)
 			if f == pl and Buffs.has("henge"):
 				continue
+			if f == pl:
+				d /= maxf(0.35, 1.0 - Stats.skill(Game.profile, "stealth"))  # gizlilik: daha yakından fark edilir
 			if d < best:
 				best = d
 				target = f

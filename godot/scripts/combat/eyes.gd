@@ -268,7 +268,9 @@ func _genjutsu_gaze(t: Node3D, stun: float, dmg: float) -> void:
 	if t == null:
 		Hud.msg("Göz göze gelecek hedef yok.", Color(0.8, 0.8, 0.8))
 		return
-	t.apply_status("stun", stun)
+	var gm = 1.0 + Stats.skill(Game.profile, "gen_power")
+	t.apply_status("stun", stun * gm)
+	dmg *= gm
 	if dmg > 0.0:
 		t.take_hit({"dmg": dmg, "knock": 0.0, "kind": "light", "dir": p.face_dir(), "element": ""})
 	FX.ring(t.global_position + Vector3.UP * 1.6, Color(0.9, 0.05, 0.05), 1.6, 0.6, false, (p.global_position - t.global_position).normalized())

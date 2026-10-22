@@ -68,6 +68,16 @@ func take_hit(info: Dictionary) -> void:
 	var em = Combat.element_mult(info.get("element", ""), element)
 	var react = Elements.on_hit(self, info)
 	var dmg: float = info.get("dmg", 5.0) * em * react
+	var atk = info.get("attacker")
+	if atk is Player:
+		var bs = Stats.skill(Game.profile, "backstab")
+		if bs > 0.0:
+			var from_atk = (atk.global_position - global_position)
+			from_atk.y = 0
+			var unaware = get("target") == null
+			if unaware or face_dir().dot(from_atk.normalized()) < -0.3:
+				dmg *= 1.0 + bs * 2.0
+				Combat.popup_text(global_position + Vector3.UP * (height + 0.8), "ARKADAN!", Color(1, 0.4, 0.8))
 	hp -= dmg
 	model.flash(0.9)
 	var col = Color(1, 0.9, 0.3) if info.get("kind", "light") == "light" else Color(1, 0.55, 0.2)

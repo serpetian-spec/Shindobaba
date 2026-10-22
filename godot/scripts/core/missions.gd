@@ -615,6 +615,8 @@ func fail(reason: String) -> void:
 func _rep(vid: String, n: int) -> void:
 	if not Game.profile.has("rep"):
 		Game.profile["rep"] = {}
+	if n > 0:
+		n = int(round(n * (1.0 + Stats.skill(Game.profile, "rep"))))
 	Game.profile["rep"][vid] = int(Game.profile["rep"].get(vid, 0)) + n
 
 
@@ -1333,7 +1335,7 @@ func _tick_stealth(dt: float, s: Dictionary) -> void:
 	var gs: Array = st["guards"]
 	var cones: Array = st["cones"]
 	var night = Game.world and (Game.world.env.time_of_day < 0.24 or Game.world.env.time_of_day > 0.78)
-	var rng = 11.0 if night else 15.0
+	var rng = (11.0 if night else 15.0) * maxf(0.4, 1.0 - Stats.skill(Game.profile, "stealth"))
 	var seen = 0.0
 	for i in gs.size():
 		var e = gs[i]

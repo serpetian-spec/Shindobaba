@@ -834,7 +834,13 @@ func _buy(id: String, title: String, items: Array) -> void:
 		else:
 			Progress.add_ryo(-Stats.price(int(it["price"])))
 			var n = 5 if id in ["kunai", "shuriken"] else 1
-			Game.profile["inventory"][id] = int(Game.profile["inventory"].get(id, 0)) + n
+			var cap = Stats.carry_cap(Game.profile, id)
+			if int(Game.profile["inventory"].get(id, 0)) >= cap:
+				Progress.add_ryo(Stats.price(int(it["price"])))  # iade
+				msg("Çantan dolu (en fazla %d). Fūin Depolama yeteneği kapasiteyi artırır." % cap, Color(1, 0.7, 0.4))
+				shop(title, items)
+				return
+			Game.profile["inventory"][id] = mini(cap, int(Game.profile["inventory"].get(id, 0)) + n)
 			Sfx.play("coin")
 	shop(title, items)
 
@@ -985,8 +991,11 @@ func _draw_minimap_markers(c: Control) -> void:
 		var d = Vector2(wp.x - pl.global_position.x, wp.z - pl.global_position.z)
 		d = d.rotated(rot)
 		return Vector2(R, R) + d * scale
+	var sense_r = Stats.sense_radius(Game.profile)
 	for f in get_tree().get_nodes_in_group("fighters"):
 		if Combat.hostile(pl, f) and f.get("team") != "dummy" and not f.is_dead():
+			if f.global_position.distance_to(pl.global_position) > sense_r:
+				continue
 			var q: Vector2 = to_mm.call(f.global_position)
 			if q.distance_to(Vector2(R, R)) < R - 4:
 				c.draw_circle(q, 3.5, Color(1, 0.25, 0.2))

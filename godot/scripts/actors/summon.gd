@@ -32,7 +32,7 @@ func _ready() -> void:
 	var long_body = length > h * 1.5
 	radius = clampf((length * 0.22 if long_body else h * 0.45), 0.25, 18.0)
 	height = h
-	max_hp = def.get("hp", 200.0) * (1.0 + float(Game.profile.get("level", 1)) * 0.02)
+	max_hp = def.get("hp", 200.0) * (1.0 + float(Game.profile.get("level", 1)) * 0.02) * (1.0 + Stats.skill(Game.profile, "summon_power"))
 	hp = max_hp
 	life = Contracts.TIER_LIFE[tier] * (1.0 + clampf(Contracts.mastery(contract) / 300.0, 0.0, 0.5))
 	add_to_group("fighters")
@@ -135,7 +135,7 @@ func _physics_process(dt: float) -> void:
 	if bubble and bubble_t <= 0.0:
 		bubble.visible = false
 	if owner_f is Player:
-		var up = Contracts.TIER_UPKEEP[tier] * dt
+		var up = Contracts.TIER_UPKEEP[tier] * dt * maxf(0.2, 1.0 + Stats.skill(Game.profile, "summon_cost"))
 		owner_f.chakra = maxf(0.0, owner_f.chakra - up)
 		var cs: Dictionary = Game.profile.get("contracts", {}).get(contract, {})
 		cs["mastery"] = float(cs.get("mastery", 0.0)) + dt
@@ -275,7 +275,7 @@ func _front(d := 0.0) -> Vector3:
 
 ## Temel saldırı: türe göre
 func _attack() -> void:
-	var dmg: float = def.get("dmg", 20.0) * (1.0 + float(Game.profile.get("level", 1)) * 0.03)
+	var dmg: float = def.get("dmg", 20.0) * (1.0 + float(Game.profile.get("level", 1)) * 0.03) * (1.0 + Stats.skill(Game.profile, "summon_power") + Stats.skill(Game.profile, "squad"))
 	var model: String = def.get("model", "")
 	var pt = _front(height * 0.15)
 	if model.begins_with("toad"):

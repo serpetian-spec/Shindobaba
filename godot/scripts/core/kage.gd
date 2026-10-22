@@ -218,7 +218,7 @@ func _gen_requests() -> void:
 
 func success_chance(squad: Dictionary, req: Dictionary) -> float:
 	var c = 0.5 + (float(squad["power"]) - float(req["diff"])) / (float(req["diff"]) * 1.4)
-	c += (float(squad["morale"]) - 50.0) * 0.003 + int(st()["upg"].get("istihbarat", 0)) * 0.06
+	c += (float(squad["morale"]) - 50.0) * 0.003 + int(st()["upg"].get("istihbarat", 0)) * 0.06 + Stats.skill(p(), "squad") * 0.5
 	return clampf(c, 0.05, 0.97)
 
 

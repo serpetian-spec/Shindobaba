@@ -60,7 +60,10 @@ static func variant(d: Dictionary) -> String:
 
 static func power(c: Node3D, d: Dictionary) -> float:
 	var el: String = d.get("element", "")
-	return J()._mult(c) * (J()._elem_bonus(c, el) if el != "" else 1.0)
+	var m = J()._mult(c) * (J()._elem_bonus(c, el) if el != "" else 1.0)
+	if c is Player:
+		m *= Stats.jutsu_cat_mult(Game.profile, String(d.get("category", "")), el)
+	return m
 
 
 static func base_dmg(c: Node3D, d: Dictionary) -> float:
@@ -599,9 +602,10 @@ static func _genjutsu(c: Node3D, d: Dictionary, t: Node3D) -> void:
 	if targets.is_empty():
 		return
 	Sfx.play("genjutsu", c.global_position)
+	var gm = (1.0 + Stats.skill(Game.profile, "gen_power")) if c is Player else 1.0
 	for tg in targets:
-		tg.apply_status("stun", 1.6 + tier * 0.4)
-		tg.apply_status("fear", 1.6 + tier * 0.4)
+		tg.apply_status("stun", (1.6 + tier * 0.4) * gm)
+		tg.apply_status("fear", (1.6 + tier * 0.4) * gm)
 		if tier >= 3:
 			tg.take_hit(info(c, d, 0.6, {"knock": 0.0, "attacker": c, "dir": Vector3.ZERO}))
 		FX.burst(tg.global_position + Vector3.UP * 1.5, {"amount": 30, "life": 1.4, "tex": FX.tex_leaf, "add": false, "size": 0.3, "radius": 1.8,
@@ -703,8 +707,9 @@ static func _seal(c: Node3D, d: Dictionary, t: Node3D) -> void:
 	tw.tween_property(mi, "scale", Vector3(0.05, 1, 0.05), 0.4)
 	tw.tween_callback(mi.queue_free)
 	if tg:
-		tg.apply_status("stun", 1.2 + tier * 0.3)
-		tg.apply_status("sealed", 6.0 + tier * 2.0)
+		var fm = (1.0 + Stats.skill(Game.profile, "fuin")) if c is Player else 1.0
+		tg.apply_status("stun", (1.2 + tier * 0.3) * fm)
+		tg.apply_status("sealed", (6.0 + tier * 2.0) * fm)
 		tg.take_hit(info(c, d, 0.8, {"knock": 0.0, "attacker": c, "dir": Vector3.ZERO}))
 	Sfx.play("seal", pos)
 

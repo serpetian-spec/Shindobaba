@@ -472,7 +472,7 @@ func _minions() -> void:
 # ------------------------------------------------------------------ boyun eğme / mühürleme
 func _subdue() -> void:
 	subdued = true
-	subdued_t = 30.0
+	subdued_t = 30.0 * (1.0 + Stats.skill(Game.profile, "fuin"))
 	atk = ""
 	if ball and is_instance_valid(ball):
 		ball.queue_free()

@@ -28,6 +28,13 @@ var height = 1.8
 var grounded = true
 var jumps = 0
 var leaping = false
+# Striker: ipli kunai (havada Q, düşüş başına bir kez) ve duvar koşusu atılımı (duvarda Ctrl)
+var rope_ok = true
+var rope_t = -1.0
+var rope_pt := Vector3.ZERO
+var rope_line: MeshInstance3D
+var wall_boost_t = -1.0
+const ROPE_RANGE := 45.0
 var sprint_t = 0.0
 var was_turbo = false
 var last_air_vy = 0.0
@@ -117,7 +124,20 @@ func _unhandled_input(e: InputEvent) -> void:
 			cam_dist = maxf(2.2, cam_dist - 0.5)
 		elif e.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			cam_dist = minf(14.0, cam_dist + 0.5)
-	if e.is_action_pressed("leap"):
+	# Kai: genjutsu/sersemletmeyi chakrayla boz
+	if e.is_action_pressed("substitute") and (has_status("stun") or has_status("fear")) and Stats.has_unlock(Game.profile, "kai") and chakra >= 12.0:
+		chakra -= 12.0
+		statuses.erase("stun")
+		statuses.erase("fear")
+		input_locked = 0.0
+		Combat.popup_text(global_position + Vector3.UP * 2.2, "KAI!", Color(0.8, 0.6, 1.0))
+		FX.ring(global_position + Vector3.UP, Color(0.8, 0.6, 1.0), 3.0, 0.3, false)
+		Sfx.play("seal", global_position, 1.2)
+		get_viewport().set_input_as_handled()
+		return
+	if e.is_action_pressed("leap") and wall_n != Vector3.ZERO:
+		_wall_boost()
+	elif e.is_action_pressed("leap"):
 		if (grounded or swimming) and wall_n == Vector3.ZERO:
 			leap_charge = 0.0
 			Sfx.play("whoosh", global_position, 0.6, 0.35)
@@ -361,7 +381,9 @@ func _physics_process(dt: float) -> void:
 		model.play("death", 0.1)
 		return
 	_update_leap_charge(dt)
-	if wall_n != Vector3.ZERO:
+	if rope_t >= 0.0:
+		_rope_move(dt)
+	elif wall_n != Vector3.ZERO:
 		_wall_move(dt)
 	else:
 		_ground_air_move(dt)
@@ -452,6 +474,7 @@ func _ground_air_move(dt: float) -> void:
 		jumps = 0
 		air_dash_ok = true
 		air_dash_used = 0
+		rope_ok = true
 		if leaping:
 			model.overlay.set_pose("leap", 0.0)
 			flip_t = -1.0
@@ -516,6 +539,14 @@ func _wall_move(dt: float) -> void:
 	var up_amt = wish.dot(-n)
 	var side_amt = wish.dot(side)
 	var spd = WALL_SPEED * (1.4 if Input.is_action_pressed("dash") else 1.0) * (1.0 + Stats.skill(Game.profile, "wall_run"))
+	if wall_boost_t > 0.0:
+		wall_boost_t -= dt
+		spd *= 2.3
+		if up_amt < 0.2 and absf(side_amt) < 0.2:
+			up_amt = 1.0  # yön verilmezse yukarı fırla
+		if Engine.get_process_frames() % 3 == 0:
+			FX.burst(global_position + Vector3.UP * 0.9, {"amount": 3, "life": 0.35, "size": 0.35, "vmin": 1, "vmax": 3, "add": true,
+				"colors": [Color(0.5, 0.85, 1.0, 0.9), Color(0.4, 0.7, 1.0, 0)]})
 	var move = Vector3.UP * up_amt * spd + side * side_amt * spd
 	velocity = move - n * 3.0  # duvara bastır
 	move_and_slide()
@@ -549,6 +580,81 @@ func _wall_move(dt: float) -> void:
 	model.global_transform = Transform3D(basis, center - wall_n * (radius - 0.02))
 	model.play("run" if move.length() > 0.5 else "idle", 0.12, clampf(move.length() / 10.0, 0.6, 1.5))
 	model.overlay.set_pose("ninja_run", 1.0 if move.length() > 0.5 else 0.0)
+
+
+## Duvarda Ctrl: chakra patlamasıyla duvar boyunca hızlı atılım (Striker)
+func _wall_boost() -> void:
+	var cost = 6.0
+	if chakra < cost or wall_boost_t > 0.0:
+		return
+	chakra -= cost
+	wall_boost_t = 0.6
+	FX.ring(global_position + Vector3.UP * 0.9, Color(0.5, 0.85, 1.0), 2.2, 0.3, false, wall_n)
+	Sfx.play("whoosh", global_position, 1.2)
+
+
+## Havada Q: ipli kunai — nişangâhtaki yüzeye/dala tutunup oraya çekil (düşüş başına bir kez)
+func rope_kunai() -> bool:
+	if grounded or wall_n != Vector3.ZERO or not rope_ok or input_locked > 0.0:
+		return false
+	var pt = aim_point(ROPE_RANGE)
+	var from = global_position + Vector3.UP * 1.2
+	if from.distance_to(pt) > ROPE_RANGE - 0.5 or from.distance_to(pt) < 3.0:
+		Hud.msg("İpli kunai: tutunacak yer yok", Color(0.85, 0.85, 0.85), 1.0)
+		return false
+	rope_ok = false
+	rope_pt = pt
+	rope_t = 0.0
+	velocity *= 0.3
+	if rope_line == null:
+		rope_line = MeshInstance3D.new()
+		rope_line.mesh = ImmediateMesh.new()
+		var m = StandardMaterial3D.new()
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.albedo_color = Color(0.85, 0.85, 0.9)
+		rope_line.material_override = m
+		rope_line.top_level = true
+		rope_line.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		add_child(rope_line)
+	rope_line.visible = true
+	model.play("throw", 0.05, 1.6, true)
+	Sfx.play("kunai", global_position)
+	FX.hit_spark(pt, Color(0.9, 0.9, 1.0), 0.5)
+	return true
+
+
+func _rope_move(dt: float) -> void:
+	rope_t += dt
+	var to = rope_pt - (global_position + Vector3.UP * 1.0)
+	var d = to.length()
+	var pull = to.normalized() * minf(34.0, 10.0 + rope_t * 60.0)
+	velocity = velocity.lerp(pull, minf(1.0, dt * 8.0))
+	move_and_slide()
+	var g = Game.ground_height(global_position.x, global_position.z)
+	if global_position.y < g:
+		global_position.y = g
+	facing = lerp_angle(facing, atan2(-to.x, -to.z), minf(1.0, dt * 10.0))
+	model.rotation = Vector3(0, facing, 0)
+	model.play("air", 0.15)
+	model.overlay.set_pose("leap", 0.8)
+	# ip çizgisi
+	var im: ImmediateMesh = rope_line.mesh
+	im.clear_surfaces()
+	im.surface_begin(Mesh.PRIMITIVE_LINES)
+	im.surface_add_vertex(global_position + Vector3.UP * 1.3 + face_dir() * 0.3)
+	im.surface_add_vertex(rope_pt)
+	im.surface_end()
+	if d < 2.2 or rope_t > 1.6 or is_on_wall() or Input.is_action_just_pressed("jump"):
+		_end_rope()
+
+
+func _end_rope() -> void:
+	rope_t = -1.0
+	if rope_line:
+		rope_line.visible = false
+	velocity += Vector3.UP * 7.0  # tutunma noktasında hafif sıçrama: dala/çatıya çık
+	model.overlay.set_pose("leap", 0.0)
+	jumps = maxi(jumps, 1)
 
 
 func _leave_wall() -> void:
@@ -626,6 +732,11 @@ var statuses = {}  # element durumları: burn, wet, frozen, chilled, shocked, mu
 
 
 func apply_status(n: String, d: float) -> void:
+	if n in ["stun", "bind", "fear"]:
+		d /= 1.0 + Stats.skill(Game.profile, "gen_resist")  # genjutsu direnci
+		if n != "bind" and Stats.has_unlock(Game.profile, "kai") and not statuses.has("_kai_tip"):
+			statuses["_kai_tip"] = 30.0
+			Hud.msg("Genjutsu! [Q] Kai ile çöz", Color(0.8, 0.6, 1.0), 2.0)
 	statuses[n] = maxf(statuses.get(n, 0.0), d)
 	if n in ["stun", "bind", "frozen"]:
 		input_locked = maxf(input_locked, d)

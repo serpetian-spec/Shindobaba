@@ -225,7 +225,8 @@ func next_gate() -> void:
 		Hud.msg("Kapılar kapandı.", Color(0.8, 0.9, 0.8))
 		return
 	var names = ["", "1. Kapı: Açılış Kapısı!", "2. Kapı: Dinlenme Kapısı!", "3. Kapı: Yaşam Kapısı!"]
-	Buffs.add("gates", 9999.0, {"speed": 1.0 + gates * 0.15, "melee": 1.0 + gates * 0.35})
+	var gm = Stats.skill(Game.profile, "gates")  # ustalık: daha güçlü kapılar, daha az beden yükü
+	Buffs.add("gates", 9999.0, {"speed": 1.0 + gates * 0.15 * (1.0 + gm), "melee": 1.0 + gates * 0.35 * (1.0 + gm)})
 	_set_aura("gates", [Color(0.3, 1.0, 0.5), Color(0.4, 0.9, 1.0), Color(0.2, 0.6, 1.0)][gates - 1], 0.9 + gates * 0.3)
 	Hud.banner("HACHIMON", names[gates], Color(0.4, 1.0, 0.6))
 	FX.ring(p.global_position + Vector3.UP * 0.2, Color(0.4, 1.0, 0.6), 6.0 + gates * 2.0, 0.4)
@@ -282,8 +283,13 @@ func _enter_sage() -> void:
 	var fx: Dictionary = SAGE_FX.get(sage_kind, SAGE_FX["kurbağa"])
 	var m = Contracts.mastery(sage_kind)
 	sage = true
-	sage_t = 50.0 + clampf(m / 20.0, 0.0, 40.0)
-	Buffs.add("sage", sage_t, fx["mods"])
+	sage_t = (50.0 + clampf(m / 20.0, 0.0, 40.0)) * (1.0 + Stats.skill(Game.profile, "sage_time"))
+	var mods: Dictionary = fx["mods"].duplicate()
+	var sp = Stats.skill(Game.profile, "sage_power")
+	for k in ["melee", "jutsu"]:
+		if mods.has(k):
+			mods[k] = float(mods[k]) * (1.0 + sp)
+	Buffs.add("sage", sage_t, mods)
 	_set_aura("sage", fx["col"], 1.2)
 	if p.model.has_method("set_sage"):
 		p.model.set_sage(fx["visual"])
@@ -533,7 +539,7 @@ func _process(dt: float) -> void:
 				marker_t = 0.5
 				_update_byakugan()
 	if gates > 0:
-		p.hp -= [0.0, 1.5, 3.0, 5.5][gates] * dt
+		p.hp -= [0.0, 1.5, 3.0, 5.5][gates] * dt * maxf(0.3, 1.0 - Stats.skill(Game.profile, "gates") * 0.8)
 		if p.hp <= p.max_hp * 0.1:
 			gates = 0
 			Buffs.remove("gates")

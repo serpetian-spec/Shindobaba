@@ -499,8 +499,8 @@ static func controls(main: Node) -> void:
 	var v = _center_panel(bg, 980)
 	v.add_child(UI.header("KONTROLLER", 26))
 	var rows = [["WASD", "Hareket"], ["Fare", "Kamera"], ["Space", "Zıpla / çift zıplama"], ["Ctrl (basılı)", "Süper zıplama (Shinobi Striker)"],
-		["Shift", "Ninja koşusu, havada dash"], ["Duvara koş", "Duvarda koşu"], ["Sol tık", "Kombo / dalış tekmesi"], ["Sağ tık", "Blok (tam zamanında: mükemmel blok)"],
-		["Q", "Kawarimi"], ["C (basılı)", "Chakra şarjı"], ["R / T", "Alet fırlat / değiştir"], ["E / orta tık", "Hedefe kilitlen"],
+		["Shift", "Ninja koşusu (5 sn: tam hız), havada dash"], ["Duvara koş", "Duvarda koşu"], ["Duvarda Ctrl", "Duvar atılımı (chakra)"], ["Havada Q", "İpli kunai: nişangâha tutun"], ["Sol tık", "Kombo / dalış tekmesi"], ["Sağ tık", "Blok (tam zamanında: mükemmel blok)"],
+		["Q", "Kawarimi (genjutsu'dayken: Kai)"], ["C (basılı)", "Chakra şarjı"], ["R / T", "Alet fırlat / değiştir"], ["E / orta tık", "Hedefe kilitlen"],
 		["1-6", "Jutsu slotları"], ["F", "Etkileşim"], ["H / Y", "Merhem / Asker hapı"], ["G + 1-9,0,-,=", "Mühür ör"],
 		["V", "Göz tekniği (basılı: Susanoo)"], ["Z / X", "Sağ / sol göz tekniği (gözler açıkken)"], ["B", "Sekiz Kapı"], ["Tab", "Ninja menüsü"],
 		["K", "Jutsular"], ["M", "Harita"], ["Esc", "Menü"]]

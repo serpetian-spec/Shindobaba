@@ -54,7 +54,9 @@ func _unhandled_input(e: InputEvent) -> void:
 	if e.is_action_pressed("attack"):
 		attack()
 	elif e.is_action_pressed("substitute"):
-		substitute()
+		# havada Q: ipli kunai (tutunacak yer yoksa normal kawarimi)
+		if not p.rope_kunai():
+			substitute()
 	elif e.is_action_pressed("throw"):
 		throw_tool()
 	elif e.is_action_pressed("lock"):
@@ -263,6 +265,17 @@ const STYLE_COMBOS := {
 
 ## Kombo adımı, eldeki silaha göre (hasar, menzil, stile özel animasyon/süre/vuruş efekti)
 func _combo(i: int) -> Dictionary:
+	var c = _combo_base(i)
+	var cm = Stats.skill(Game.profile, "combo")
+	if cm > 0.0:
+		c["dur"] = float(c["dur"]) / (1.0 + cm)
+		c["hit"] = float(c["hit"]) / (1.0 + cm)
+		c["speed"] = float(c.get("speed", 1.0)) * (1.0 + cm)
+		c["dmg"] = float(c["dmg"]) * (1.0 + cm * 0.5)
+	return c
+
+
+func _combo_base(i: int) -> Dictionary:
 	var c: Dictionary = COMBO[clampi(i, 0, COMBO.size() - 1)].duplicate()
 	var w = Gear.weapon(Game.profile)
 	c["dmg"] = float(c["dmg"]) * float(w["dmg"]) * (1.0 + Stats.weapon_bonus(Game.profile, String(w.get("style", "fist"))))

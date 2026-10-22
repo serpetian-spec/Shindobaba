@@ -108,6 +108,35 @@ static func respec(p: Dictionary) -> int:
 
 
 ## Dükkân fiyatı (Pazarlıkçı, Tüccar Dostu, Diplomat): en fazla %35 indirim
+## Kekkei genkai doğaları (kg düğümü bunlara güç verir)
+const KG_NATURES := ["mokuton", "hyoton", "yoton", "futton", "ranton", "shakuton", "bakuton", "jiton", "shoton", "jinton", "jinton_swift", "koton"]
+
+
+## Oyuncu kaynaklı jutsunun kategori/doğa çarpanı (genjutsu, fūinjutsu, kekkei genkai)
+static func jutsu_cat_mult(p: Dictionary, category: String, el: String) -> float:
+	var m = 1.0
+	if category == "genjutsu":
+		m += skill(p, "gen_power")
+	if category == "fuinjutsu":
+		m += skill(p, "fuin")
+	if el in KG_NATURES:
+		m += skill(p, "kg")
+	return m
+
+
+## Algılama yarıçapı (minimap/pusula düşman gösterimi): temel 70 m
+static func sense_radius(p: Dictionary) -> float:
+	if has_unlock(p, "sensor"):
+		return 600.0
+	return 70.0 * (1.0 + skill(p, "sense") * 4.0)
+
+
+## Sarf malzemesi istif sınırı: merhem/hap 10, atılabilir 40; "carry" ile artar
+static func carry_cap(p: Dictionary, id: String) -> int:
+	var base = 40 if id in ["kunai", "shuriken", "senbon"] else (20 if id in ["tag", "smoke"] else 10)
+	return int(base * (1.0 + skill(p, "carry")))
+
+
 static func price(base: int) -> int:
 	return int(round(base * clampf(1.0 + skill(Game.profile, "shop"), 0.65, 1.0)))
 
