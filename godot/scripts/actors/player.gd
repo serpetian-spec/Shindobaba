@@ -217,7 +217,7 @@ func _leap(power := 1.0) -> void:
 	d = d.normalized()
 	var air = not (grounded or swimming)
 	var k = clampf(power, 0.0, 1.0)
-	velocity = d * lerpf(13.0, 30.0, k) + Vector3.UP * lerpf(9.5, 18.0, k) * (0.8 if air else 1.0)
+	velocity = d * lerpf(21.0, 48.0, k) + Vector3.UP * lerpf(12.0, 22.5, k) * (0.8 if air else 1.0)
 	flip_t = 0.0 if k > 0.45 else -1.0
 	facing = atan2(-d.x, -d.z)
 	grounded = false
@@ -288,7 +288,7 @@ func _update_leap_charge(dt: float) -> void:
 	facing = lerp_angle(facing, atan2(-d.x, -d.z), minf(1.0, dt * 12.0))
 	model.play("crouch", 0.12)
 	# iniş yayı: balistik yörünge araziye çarpana kadar
-	var v = d * lerpf(13.0, 30.0, leap_charge) + Vector3.UP * lerpf(9.5, 18.0, leap_charge)
+	var v = d * lerpf(21.0, 48.0, leap_charge) + Vector3.UP * lerpf(12.0, 22.5, leap_charge)
 	var p = global_position + Vector3.UP * 0.3
 	var im: ImmediateMesh = leap_arc.mesh
 	im.clear_surfaces()

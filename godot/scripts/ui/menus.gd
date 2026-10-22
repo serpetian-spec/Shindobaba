@@ -133,6 +133,45 @@ static func _tile(content: Control, text: String, accent: Color, selected: bool,
 	return b
 
 
+## Gözler sekmesi: sağ göz / sol göz durumu, uyanış, kavanozdaki gözler, Susanoo; tuşlar
+static func _tab_eyes(main: Node, body: Control) -> void:
+	var pr = Game.profile
+	var h = UI.hbox(22)
+	h.set_anchors_preset(Control.PRESET_FULL_RECT)
+	body.add_child(h)
+	for sl in ["sag_goz", "sol_goz"]:
+		var card = UI.card()
+		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		h.add_child(card)
+		var sc = ScrollContainer.new()
+		sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		sc.custom_minimum_size = Vector2(420, 560)
+		card.add_child(sc)
+		var v = UI.vbox(10)
+		v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		sc.add_child(v)
+		v.add_child(UI.label("SAĞ GÖZ" if sl == "sag_goz" else "SOL GÖZ", 20, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
+		_eq_slot = sl
+		_eye_panel(main, v, pr)
+	var side = UI.card()
+	side.custom_minimum_size = Vector2(320, 0)
+	h.add_child(side)
+	var sv = UI.vbox(10)
+	side.add_child(sv)
+	sv.add_child(UI.label("TUŞLAR", 18, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
+	for k in [["V", "Gözleri aç / kapat"], ["Z", "Sağ göz tekniği"], ["X", "Sol göz tekniği"], ["V (basılı)", "Susanoo (iki göz Mangekyō)"], ["F", "Düşmüş dōjutsu sahibinin gözlerini al"]]:
+		var r = UI.hbox(8)
+		r.add_child(UI.key_badge(k[0], 13))
+		r.add_child(UI.label(k[1], 14, UI.TEXT))
+		sv.add_child(r)
+	if Susanoo.max_tier(pr) > 0:
+		sv.add_child(HSeparator.new())
+		sv.add_child(UI.label("Susanoo: Kademe %d" % Susanoo.cur_tier(pr), 16, Color(0.75, 0.6, 1.0), HORIZONTAL_ALIGNMENT_LEFT, true))
+		sv.add_child(UI.button("Susanoo'yu Özelleştir", func():
+			_eq_slot = "susanoo"
+			ninja_menu(main, "wardrobe"), 280))
+
+
 ## Gözler eşya değil, bedenin parçası: durum, uyanış ilerlemesi, saklanan gözler (nakil hastanede)
 static func _eye_panel(main: Node, dv: VBoxContainer, pr: Dictionary) -> void:
 	var cur = Gear.equipped(pr, _eq_slot)
@@ -559,9 +598,9 @@ static func settings(back: Callable) -> void:
 
 
 # ================================================================== ninja menüsü [Tab]
-const TABS := [["inv", "bag", "Envanter"], ["wardrobe", "armor", "Ekipman"], ["jutsu", "scroll", "Jutsular"], ["skills", "star", "Yetenekler"],
+const TABS := [["inv", "bag", "Envanter"], ["wardrobe", "armor", "Ekipman"], ["eyes", "eye", "Gözler"], ["jutsu", "scroll", "Jutsular"], ["skills", "star", "Yetenekler"],
 	["missions", "mission", "Görevler"], ["map", "map", "Harita"]]
-const TAB_TITLES := {"inv": "ENVANTER", "wardrobe": "EKİPMAN", "jutsu": "JUTSULAR", "skills": "YETENEK AĞACI", "missions": "GÖREVLER"}
+const TAB_TITLES := {"inv": "ENVANTER", "wardrobe": "EKİPMAN", "jutsu": "JUTSULAR", "skills": "YETENEK AĞACI", "missions": "GÖREVLER", "eyes": "GÖZLER (DŌJUTSU)"}
 const SWATCHES := [Color(0.15, 0.2, 0.33), Color(0.12, 0.12, 0.14), Color(0.45, 0.15, 0.15), Color(0.95, 0.5, 0.12), Color(0.2, 0.38, 0.22),
 	Color(0.35, 0.25, 0.45), Color(0.85, 0.82, 0.75), Color(0.15, 0.4, 0.45), Color(0.55, 0.42, 0.3), Color(0.75, 0.2, 0.25)]
 
@@ -618,6 +657,8 @@ static func ninja_menu(main: Node, tab := "inv", picked := "") -> void:
 			_tab_skills(main, body)
 		"missions":
 			_tab_missions(main, body)
+		"eyes":
+			_tab_eyes(main, body)
 	if _fresh:
 		UI.pop_in(body, 0.985)
 	# alt ipucu satırı

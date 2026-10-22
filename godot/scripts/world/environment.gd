@@ -34,6 +34,7 @@ func _ready() -> void:
 	var sky = Sky.new()
 	sky.sky_material = sky_mat
 	sky.radiance_size = Sky.RADIANCE_SIZE_64
+	sky.process_mode = Sky.PROCESS_MODE_INCREMENTAL
 	env = Environment.new()
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky

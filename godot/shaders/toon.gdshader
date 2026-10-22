@@ -49,7 +49,7 @@ uniform vec4 ms_l_a = vec4(0.0, 3.0, 1.5, 0.5);
 uniform vec4 ms_l_b = vec4(0.22, 0.0, 0.0, 0.6);
 uniform vec4 ms_col_r : source_color = vec4(0.9, 0.05, 0.06, 1.0);
 uniform vec4 ms_col_l : source_color = vec4(0.9, 0.05, 0.06, 1.0);
-uniform float iris_r = 0.2;   // göz dokusunda iris yarıçapı (UV)
+uniform float iris_r = 0.105;   // göz dokusunda iris yarıçapı (UV)
 uniform float byakugan_veins = 0.0;  // yüzde şakak damarları
 
 varying vec3 wpos;
