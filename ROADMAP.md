@@ -3,22 +3,23 @@
 Hedef: 1. sezon 1. bölümden son bölüme kadar Naruto evreninin tüm içeriği (karakterler hariç): jutsular, silahlar, canavarlar, görev çeşitleri, sınav mantığı, sistemler. Çok oyunculu YOK.
 
 ## Devam eden
-- [ ] Performans: yeni büyük dünya/şehir sonrası takılmaları gidermek (hedef sabit 60 FPS), kalite ayarları
-- [ ] Görsel cila: Hokage yüzleri, Kumo kuleleri, köy binaları detayı
+- [ ] Görsel cila: kuyruklu canavar ve çağırma hayvanı modelleri (renk, yüz, doku), Kumo kuleleri, diğer köylerin mimarisi, çöl/kaya mezraları
+- [ ] On Kuyruk; canavar savaşlarında ağaç/kaya devirme; Kage yardımıyla mühürleme
+- [ ] Yetenek ağacının bağlanmamış etkileri (genjutsu gücü, çağırma, sennin süresi, gizlilik, algılama...)
 
 ## Sırada
-- [ ] Kage sistemi: rütbe yolu Genin → Chūnin → Jōnin → ANBU/özel birim → Kage seçimi; Kage olarak köy yönetimi (görev dağıtma, ninja atama, savunma, Kage zirvesi, diğer köylerle ilişkiler)
 - [ ] Kekkei genkai: birleşik doğalar (Mokuton, Hyōton, Yōton, Futton, Ranton, Shakuton, Bakuton, Jiton, Shōton, Jinton...), kekkei tōta; klan/soy ile kazanım
-- [ ] Kuyruklu canavarlar (1–10), anime ölçeğinde devasa (Dokuz Kuyruk yüzlerce metre), jinchūriki sistemi
-- [ ] Çağırma hayvanları (kurbağa, yılan, sümüklüböcek, şahin, köpek, maymun...) ve sage modları
-- [ ] Sınavlar: Akademi mezuniyeti, çan testi, Chūnin sınavı (yazılı, Ölüm Ormanı, ön elemeler, final turnuvası), Jōnin terfisi
 - [ ] Shinobi Striker hareketi: şarjlı süper zıplama (yapıldı), ip kunai ile düşüşten kurtulma, duvarda hızlanma
-- [ ] Organizasyonlar, savaşlar ve dünya olayları (Büyük Ninja Savaşı gibi)
 
 ## En son
 - [ ] Jutsu efektleri: Ultimate Ninja Storm seviyesi görsel efektler
 
 ## Tamamlanan (son oturumlar)
+- Kage sistemi, tüm sınavlar (Akademi, çan testi, Chūnin, Jōnin, Tokubetsu, ANBU), Kage masası ve zirvesi, kaçak ninja, Akatsuki benzeri örgüt, seviye 100 dengesi
+- 9 kuyruklu canavar (anime boyutu), boss savaşları, mühürleme, jinchūriki (pelerin, tam dönüşüm, zihin dünyası)
+- 12 çağırma sözleşmesi, 25 çağrı, gizli diyarlar, sennin modları
+- Yetenek ağacı 98 düğüm; köylere özel klanlar; 17 saç stili; gözler bedenin parçası (uyanış, nakil); Gözler sekmesi
+- Yollar boyunca 15 tür ilgi noktası, 80 çiftlik, patikalar, köprüler, zengin bitki örtüsü; yumuşak bulutlar
 - Dünya 10x (77x64 km akışlı arazi), anime ölçekli yapılar, dev orman, mezralar, hanlar, kamplar, kervanlar, yaban hayatı
 - Konoha 1.5 km (5700 ev), girilebilen binalar, canlı şehir rutini, köy hocaları
 - Köy seçimi, köye özel görev havuzları ve itibar, çok adımlı görevler, Bingo Book
