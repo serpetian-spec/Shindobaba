@@ -33,8 +33,12 @@ func _ready() -> void:
 	label3d = Label3D.new()
 	label3d.text = display
 	label3d.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	label3d.fixed_size = true
-	label3d.pixel_size = 0.0011
+	# dünya boyutunda isim: uzaktan dev görünmez, mesafeyle söner
+	label3d.fixed_size = false
+	label3d.pixel_size = 0.005
+	label3d.visibility_range_end = 35.0
+	label3d.visibility_range_end_margin = 6.0
+	label3d.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 	label3d.font_size = 34
 	label3d.outline_size = 8
 	label3d.modulate = Color(1.0, 0.85, 0.4)
