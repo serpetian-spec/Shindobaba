@@ -43,6 +43,8 @@ func _mb(wp: Vector3) -> MB:
 
 
 func _collide(center: Vector3, size: Vector3, yaw_deg: float) -> void:
+	if not is_instance_valid(body):
+		return  # akışla kurulan yer yarıda silindi
 	var cs = CollisionShape3D.new()
 	var sh = BoxShape3D.new()
 	sh.size = size
@@ -52,6 +54,8 @@ func _collide(center: Vector3, size: Vector3, yaw_deg: float) -> void:
 
 
 func _collide_cyl(center: Vector3, r: float, h: float) -> void:
+	if not is_instance_valid(body):
+		return
 	var cs = CollisionShape3D.new()
 	var sh = CylinderShape3D.new()
 	sh.radius = r
@@ -124,6 +128,8 @@ func interact(p: Vector3, radius: float, kind: String, label: String, data := {}
 
 
 func finish() -> void:
+	if not is_instance_valid(root):
+		return
 	if placer != null:
 		placer.finish()
 	for key in cells:

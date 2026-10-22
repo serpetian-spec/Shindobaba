@@ -100,3 +100,30 @@ RIVERS = [
     [(-1246, 320), (-1246, 0), (-1050, -400), (-900, -800), (-662, -1148), (-600, -1550), (-520, -2000)],
     [(2261, 2120), (2261, 1839), (2000, 1500), (1700, 1200), (1500, 900), (1700, 400)],
 ]
+
+
+# ---------------------------------------------------------------- ölçek (anime boyutları: dünya ~77 x 64 km)
+# Yukarıdaki değerler eski 7.7 km dünyanın koordinatları; burada 10 kat büyütülür.
+# Köy/yer yarıçapları anime ölçeğine göre ayrıca verilir (köyler artık kilometrelerce).
+SCALE = 10.0
+WORLD = dict(x0=WORLD['x0'] * SCALE, x1=WORLD['x1'] * SCALE, y0=WORLD['y0'] * SCALE, y1=WORLD['y1'] * SCALE, res=32.0)
+LAND = [(cx * SCALE, cy * SCALE, rx * SCALE, ry * SCALE) for cx, cy, rx, ry in LAND]
+for _c in COUNTRIES:
+    _c['x'] *= SCALE; _c['y'] *= SCALE; _c['r'] *= SCALE
+VILLAGE_R = {'konoha': 1500, 'suna': 1100, 'kiri': 1000, 'kumo': 1100, 'iwa': 1100, 'ame': 800, 'kusa': 600, 'taki': 650,
+             'oto': 500, 'yu': 550, 'shimo': 500, 'tani': 500, 'nami': 600, 'uzushio': 500, 'tetsu': 700}
+for _v in VILLAGES:
+    _v['x'] *= SCALE; _v['y'] *= SCALE; _v['r'] = VILLAGE_R.get(_v['id'], _v['r'] * 2)
+LANDMARK_R = {'valley_end': 900, 'forest_death': 1400, 'nara_forest': 700, 'sage_falls': 450, 'naruto_bridge': 220,
+              'hideout': 350, 'storm_canyon': 900, 'bandit_camp': 260, 'border_post': 260}
+for _l in LANDMARKS:
+    _l['x'] *= SCALE; _l['y'] *= SCALE; _l['r'] = LANDMARK_R.get(_l['id'], _l['r'] * 2)
+# Kuyruklu canavar arenaları: uzak bölgelerde geniş, düzlüğe yakın alanlar (ileride dev yaratık dövüşleri)
+LANDMARKS += [
+    dict(id='arena_wind', name='Kum Fırtınası Düzlüğü', x=-27000, y=-14000, r=1600, arena=True),
+    dict(id='arena_earth', name='Kırık Taş Ovası', x=-26000, y=27000, r=1600, arena=True),
+    dict(id='arena_lightning', name='Gök Gürültüsü Platosu', x=30000, y=29000, r=1500, arena=True),
+    dict(id='arena_water', name='Sisli Göl', x=24000, y=-16000, r=1500, arena=True),
+    dict(id='arena_north', name='Donmuş Vadi', x=-9000, y=33000, r=1500, arena=True),
+]
+RIVERS = [[(x * SCALE, y * SCALE) for x, y in r] for r in RIVERS]

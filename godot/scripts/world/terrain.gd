@@ -1,36 +1,42 @@
 extends Node3D
-## Geometri clipmap'i: kameranın etrafında iç içe halkalar. Yakında 2 m, uzakta 64 m çözünürlük.
-## Yükseklik vertex shader'da dokudan okunur, böylece 7 km'lik dünya tek seferde çizilir.
+## Geometri clipmap'i: kameranın etrafında iç içe halkalar. Yakında 2 m, en uzakta 512 m aralık (~32 km görüş).
+## Yükseklik vertex shader'da makro harita + ayrıntı gürültüsünden hesaplanır (Game.terrain_height ile aynı).
 
-const LEVELS := 6
+const LEVELS := 9
 const N := 128
 const BASE := 2.0
 
 var meshes: Array[MeshInstance3D] = []
 var spacings: Array[float] = []
+var mats: Array[ShaderMaterial] = []
+var _road_ver := -1
 
 
 func _ready() -> void:
 	var shader: Shader = load("res://shaders/terrain.gdshader")
-	var biome = load("res://data/world/biome.png")
+	var vill := []
+	for v in Game.world_info["villages"]:
+		vill.append(Vector4(v["x"], -float(v["y"]), v["r"], v.get("ground", 11)))
 	for k in LEVELS:
 		var s := BASE * pow(2.0, k)
 		var mat := ShaderMaterial.new()
 		mat.shader = shader
-		mat.set_shader_parameter("heightmap", Game.height_tex)
+		Game.setup_height_material(mat)
 		mat.set_shader_parameter("albedo_map", Game.albedo_tex)
-		mat.set_shader_parameter("biome_map", biome)
-		mat.set_shader_parameter("world_rect", Game.world_rect())
+		mat.set_shader_parameter("villages", vill)
+		mat.set_shader_parameter("village_count", vill.size())
 		mat.set_shader_parameter("level_eps", k * 0.12)
-		mat.set_shader_parameter("texel", maxf(Game.res, s))
+		mat.set_shader_parameter("texel", s)
+		mat.set_shader_parameter("road_rect", Vector4.ZERO)
 		var mi := MeshInstance3D.new()
 		mi.mesh = _ring_mesh(s, k > 0)
 		mi.material_override = mat
-		mi.custom_aabb = AABB(Vector3(-1e5, -500, -1e5), Vector3(2e5, 1500, 2e5))
-		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if k < 2 else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.custom_aabb = AABB(Vector3(-1e6, -500, -1e6), Vector3(2e6, 2500, 2e6))
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if k < 3 else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(mi)
 		meshes.append(mi)
 		spacings.append(s)
+		mats.append(mat)
 
 
 func _ring_mesh(s: float, hole: bool) -> ArrayMesh:
@@ -72,3 +78,10 @@ func _process(_dt: float) -> void:
 	for k in LEVELS:
 		var snap := spacings[k] * 2.0
 		meshes[k].global_position = Vector3(floor(c.x / snap) * snap, 0.0, floor(c.z / snap) * snap)
+	# yerel yol dokusu yenilenince materyallere ver
+	var rm = Game.world.get("road_map") if Game.world else null
+	if rm and rm.version != _road_ver:
+		_road_ver = rm.version
+		for m in mats:
+			m.set_shader_parameter("road_tex", rm.texture)
+			m.set_shader_parameter("road_rect", rm.rect)

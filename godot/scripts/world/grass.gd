@@ -6,6 +6,7 @@ const RADIUS := 58.0
 
 var mat: ShaderMaterial
 var snap := SPACING * 4.0
+var _road_ver := -1
 
 
 func _ready() -> void:
@@ -29,10 +30,13 @@ func _ready() -> void:
 	multimesh = mm
 	mat = ShaderMaterial.new()
 	mat.shader = load("res://shaders/grass.gdshader")
-	mat.set_shader_parameter("heightmap", Game.height_tex)
+	Game.setup_height_material(mat)
 	mat.set_shader_parameter("albedo_map", Game.albedo_tex)
-	mat.set_shader_parameter("biome_map", load("res://data/world/biome.png"))
-	mat.set_shader_parameter("world_rect", Game.world_rect())
+	var vill := []
+	for v in Game.world_info["villages"]:
+		vill.append(Vector4(v["x"], -float(v["y"]), v["r"], v.get("ground", 11)))
+	mat.set_shader_parameter("villages", vill)
+	mat.set_shader_parameter("village_count", vill.size())
 	mat.set_shader_parameter("radius", RADIUS)
 	material_override = mat
 	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -67,3 +71,8 @@ func _process(_dt: float) -> void:
 	var p = Game.player.global_position
 	global_position = Vector3(floor(p.x / snap) * snap, 0, floor(p.z / snap) * snap)
 	mat.set_shader_parameter("player_pos", p)
+	var rm = Game.world.get("road_map") if Game.world else null
+	if rm and rm.version != _road_ver:
+		_road_ver = rm.version
+		mat.set_shader_parameter("road_tex", rm.texture)
+		mat.set_shader_parameter("road_rect", rm.rect)

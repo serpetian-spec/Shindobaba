@@ -1,11 +1,13 @@
 class_name GameWorld
 extends Node3D
-## Tüm dünyayı kurar: ortam, arazi, deniz, bitki örtüsü, köyler, yerler.
+## Tüm dünyayı kurar: ortam, arazi, deniz, bitki örtüsü (akışlı), köyler, yerler, vahşi doğa akışı, trafik, hayvanlar.
 
 var env: Node3D
 var terrain: Node3D
 var vegetation: Node3D
 var water: MeshInstance3D
+var road_map: Node        # yerel yol dokusu + küçük harita (RoadMap)
+var stream: Node3D        # yapılar + vahşi doğa noktaları akışı
 
 
 func build(progress: Callable = Callable()) -> void:
@@ -14,6 +16,9 @@ func build(progress: Callable = Callable()) -> void:
 	env.name = "Env"
 	add_child(env)
 	_p(progress, 0.1, "Gökyüzü ve ışık")
+	road_map = preload("res://scripts/world/road_map.gd").new()
+	road_map.name = "RoadMap"
+	add_child(road_map)
 	terrain = preload("res://scripts/world/terrain.gd").new()
 	terrain.name = "Terrain"
 	add_child(terrain)
@@ -29,9 +34,12 @@ func build(progress: Callable = Callable()) -> void:
 	sites.name = "Sites"
 	add_child(sites)
 	BuildSites.build_all(sites)
+	BuildVillageStory.build_all(sites)  # her büyük köyde hikâye binaları + Aranıyor panosu
 	_p(progress, 0.85, "Köyler")
 	await get_tree().process_frame
-	BuildFeatures.build_all(sites)
+	stream = preload("res://scripts/world/world_stream.gd").new()
+	stream.name = "WorldStream"
+	add_child(stream)
 	_p(progress, 0.95, "Yollar, tapınaklar, kayalıklar")
 	var grass = preload("res://scripts/world/grass.gd").new()
 	grass.name = "Grass"
@@ -39,6 +47,12 @@ func build(progress: Callable = Callable()) -> void:
 	var amb = preload("res://scripts/world/ambience.gd").new()
 	amb.name = "Ambience"
 	add_child(amb)
+	var traffic = preload("res://scripts/world/road_traffic.gd").new()
+	traffic.name = "RoadTraffic"
+	add_child(traffic)
+	var wild = preload("res://scripts/world/wildlife.gd").new()
+	wild.name = "Wildlife"
+	add_child(wild)
 
 
 func _p(cb: Callable, v: float, label: String) -> void:
@@ -49,16 +63,28 @@ func _p(cb: Callable, v: float, label: String) -> void:
 func _make_sea() -> void:
 	water = MeshInstance3D.new()
 	var pm = PlaneMesh.new()
-	pm.size = Vector2(12000, 12000)
-	pm.subdivide_width = 200
-	pm.subdivide_depth = 200
+	pm.size = Vector2(60000, 60000)
+	pm.subdivide_width = 240
+	pm.subdivide_depth = 240
 	water.mesh = pm
 	var m = ShaderMaterial.new()
 	m.shader = load("res://shaders/water.gdshader")
 	water.material_override = m
 	water.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	water.custom_aabb = AABB(Vector3(-30000, -20, -30000), Vector3(60000, 40, 60000))
 	add_child(water)
-	water.position = Vector3(250, 0.0, -640)
+
+
+func _process(_dt: float) -> void:
+	# deniz düzlemi kamerayla gelir (77 km dünya); dalga desenleri dünya koordinatında kayar, 250 m adımla kenetlenir
+	var cam = get_viewport().get_camera_3d()
+	if cam == null:
+		return
+	var c = cam.global_position
+	water.global_position = Vector3(snappedf(c.x, 250.0), 0.0, snappedf(c.z, 250.0))
+	# ufuk: dev dünya için uzak kırpma düzlemi
+	if cam.far < 32000.0:
+		cam.far = 32000.0
 
 
 func get_time_of_day() -> float:

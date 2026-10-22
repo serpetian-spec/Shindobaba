@@ -1,67 +1,55 @@
 extends Node3D
-## Bitki örtüsü: ~64 bin ağaç/kaya/çalı. 384 m'lik parçalarda MultiMesh, yakın/uzak LOD.
-## Oyuncunun çevresindeki ağaçlara gerçek çarpışma: gövde + (Konoha orman ağaçlarında) dallar -> dallarda koşulur.
+## Bitki örtüsü (akışlı): oyuncu çevresinde 256 m'lik parçalar arka plan iş parçacıklarında deterministik üretilir
+## (tohum = parça koordinatı). Yakında tam model, uzakta LOD; Ateş Ülkesi'nde 40-70 m'lik dallı dev ağaçlar.
+## Oyuncunun çevresindeki ağaçlara gerçek çarpışma: gövde + dev orman ağaçlarında dallar -> dallarda koşulur.
 
-const CHUNK := 384.0
-const NEAR_FULL := 280.0      # bu mesafeye kadar detaylı model
-const FAR_LOD := 1300.0       # uzak model görünürlüğü
+const CH := 256.0
+const NEAR_FULL := 420.0      # tam model görünürlüğü
+const FAR_R := 2300.0         # en uzak parça
+const DETAIL_R := 700.0       # bu mesafeden yakın parçalar tam kontrolle (eğim, küçük bitkiler) üretilir
 const SMALL := [8, 10, 12]    # küçük bitkiler: sadece yakında
+const CONVEX := [4, 11]
+const MAX_TASKS := 2
+const MAX_BUILDS_PER_FRAME := 1
+const DMAX := 0.02            # aday yoğunluğu (m² başına)
 
-var data: PackedFloat32Array
-var count = 0
+## biyom -> [yoğunluk / m², tipler]  (0 geniş ağaç, 1 çam, 2 kuru ağaç, 3 kaktüs, 4 kaya, 5 dev ağaç, 6 bambu,
+## 7 palmiye, 8 çalı, 9 Konoha orman ağacı (dev, dallı), 10 eğrelti, 11 büyük kaya kümesi, 12 çiçek öbeği)
+const DENS := {2: [0.0125, [9, 9, 9, 9, 9, 0, 0, 8, 10, 10, 12, 6]], 4: [0.003, [2, 2, 0, 8, 10]], 5: [0.0016, [4, 11, 1, 8]],
+	6: [0.0012, [0, 8, 6, 12]], 7: [0.002, [0, 9, 8, 12, 12, 10]], 8: [0.003, [1, 1, 1, 4]], 9: [0.0028, [1, 1, 4, 11, 8]],
+	10: [0.004, [2, 2, 0, 8, 10]], 3: [0.00035, [3, 3, 4, 11]], 1: [0.0006, [7, 8]]}
+
 var meshes = {}
 var lods = {}
 ## görünen gövde yarıçapları (çarpışma görselle birebir olsun: ayak havada kalmasın)
 var radii = {0: 0.38, 1: 0.36, 2: 0.3, 3: 0.36, 4: 1.0, 5: 3.2, 6: 0.0, 7: 0.25, 8: 0.0, 9: Props.FOREST_TRUNK_R, 10: 0.0, 11: 1.0, 12: 0.0}
-const CONVEX := [4, 11]
 var convex = {}
-var cell = {}
 var bodies: Array[StaticBody3D] = []
+var chunks := {}        # Vector2i -> {node, detail: bool, trees: Array}
+var tasks := {}         # Vector2i -> [task_id, detail, result holder]
+var ready_q: Array = []
 var last_cell = Vector2i(999999, 999999)
+var _mutex := Mutex.new()
+var _specials: Array = []   # [x, y(harita), iç r, dış r, tip, yoğunluk]
 
 
 func _ready() -> void:
-	data = FileAccess.get_file_as_bytes("res://data/world/veg.bin").to_float32_array()
-	count = data.size() / 6
 	for t in 13:
 		meshes[t] = Props.vegetation_mesh(t)
 		lods[t] = Props.vegetation_lod(t)
 	for t in CONVEX:
 		convex[t] = meshes[t].create_convex_shape(true, true)
-	var chunks = {}
-	for i in count:
-		var x = data[i * 6]; var y = data[i * 6 + 2]
-		var t = int(data[i * 6 + 5])
-		var key = Vector3i(int(floor(x / CHUNK)), int(floor(y / CHUNK)), t)
-		if not chunks.has(key):
-			chunks[key] = []
-		chunks[key].append(i)
-		var ck = Vector2i(int(floor(x / 16.0)), int(floor(y / 16.0)))
-		if not cell.has(ck):
-			cell[ck] = []
-		cell[ck].append(i)
-	var view = float(Game.settings["view"])
-	for key in chunks:
-		var ids: Array = chunks[key]
-		var t: int = key.z
-		var center = Vector3((key.x + 0.5) * CHUNK, 0, -(key.y + 0.5) * CHUNK)
-		var xforms = []
-		var cols = []
-		for j in ids.size():
-			var i: int = ids[j]
-			var s = data[i * 6 + 3]
-			var basis = Basis(Vector3.UP, data[i * 6 + 4]).scaled(Vector3(s, s, s))
-			xforms.append(Transform3D(basis, Vector3(data[i * 6], data[i * 6 + 1] - 0.3, -data[i * 6 + 2]) - center))
-			var v = randf_range(-0.1, 0.1)
-			cols.append(Color(1.0 + v, 1.0 + v * 0.6, 1.0 - v * 0.4))
-		var near_end = (NEAR_FULL if not t in SMALL else 120.0) * view
-		if t in [5, 11, 4]:
-			near_end = 700.0 * view
-		var a = _mmi(meshes[t], xforms, cols, center, 0.0, near_end if lods[t] != null else (near_end if t in SMALL else FAR_LOD * view))
-		a.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if not t in SMALL else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		if lods[t] != null:
-			var b = _mmi(lods[t], xforms, cols, center, near_end, FAR_LOD * view)
-			b.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# köy çevresi orman halkaları + özel ormanlar
+	for v in Game.world_info["villages"]:
+		if v["id"] in ["konoha", "kusa", "taki", "tani"]:
+			_specials.append([float(v["x"]), float(v["y"]), float(v["r"]) + 30.0, float(v["r"]) + 700.0, 9, 0.009])
+	for l in Game.world_info["landmarks"]:
+		match l["id"]:
+			"forest_death":
+				_specials.append([float(l["x"]), float(l["y"]), 0.0, float(l["r"]), 5, 0.0009])
+				_specials.append([float(l["x"]), float(l["y"]), 0.0, float(l["r"]), 9, 0.004])
+			"nara_forest":
+				_specials.append([float(l["x"]), float(l["y"]), 0.0, float(l["r"]), 9, 0.012])
 	# yakın ağaç çarpışma havuzu: her gövde 1 silindir + 6 dal kutusu
 	for k in 70:
 		var sb = StaticBody3D.new()
@@ -79,25 +67,188 @@ func _ready() -> void:
 		bodies.append(sb)
 
 
-func _mmi(mesh: Mesh, xforms: Array, cols: Array, center: Vector3, begin: float, end: float) -> MultiMeshInstance3D:
+func _focus() -> Vector3:
+	if Game.player:
+		return Game.player.global_position
+	var cam = get_viewport().get_camera_3d()
+	return cam.global_position if cam else Vector3.ZERO
+
+
+func _process(_dt: float) -> void:
+	var p := _focus()
+	var view = float(Game.settings["view"])
+	var far_r = FAR_R * clampf(view, 0.5, 1.6)
+	var pc := Vector2(p.x, p.z)
+	# 1) tamamlanan işleri al
+	for key in tasks.keys():
+		var t: Array = tasks[key]
+		if WorkerThreadPool.is_task_completed(t[0]):
+			WorkerThreadPool.wait_for_task_completion(t[0])
+			ready_q.append([key, t[1], t[2]])
+			tasks.erase(key)
+	# 2) en fazla N parçayı sahneye ekle (yakın olan önce)
+	ready_q.sort_custom(func(a, b): return _cdist(a[0], pc) < _cdist(b[0], pc))
+	var built := 0
+	while not ready_q.is_empty() and built < MAX_BUILDS_PER_FRAME and Engine.get_process_frames() % 3 != 1:
+		var r: Array = ready_q.pop_front()
+		_install(r[0], r[1], r[2])
+		built += 1
+	# 3) gerekli parçaları iste, uzaktakileri sil
+	var ck := Vector2i(floori(p.x / CH), floori(p.z / CH))
+	var rad := int(ceil(far_r / CH)) + 1
+	var want: Array = []
+	for dz in range(-rad, rad + 1):
+		for dx in range(-rad, rad + 1):
+			var k := ck + Vector2i(dx, dz)
+			var d := _cdist(k, pc)
+			if d > far_r:
+				continue
+			var need_detail := d < DETAIL_R
+			var have = chunks.get(k)
+			if have != null and (have["detail"] or not need_detail):
+				continue
+			if tasks.has(k) and (tasks[k][1] or not need_detail):
+				continue
+			want.append([d, k, need_detail])
+	want.sort_custom(func(a, b): return a[0] < b[0])
+	for w in want:
+		if tasks.size() >= MAX_TASKS:
+			break
+		var holder := {}
+		var key: Vector2i = w[1]
+		var det: bool = w[2]
+		var id = WorkerThreadPool.add_task(_generate.bind(key, det, holder), false, "veg")
+		tasks[key] = [id, det, holder]
+	for k in chunks.keys():
+		if _cdist(k, pc) > far_r + CH * 1.5:
+			chunks[k]["node"].queue_free()
+			chunks.erase(k)
+
+
+func _cdist(k: Vector2i, pc: Vector2) -> float:
+	return Vector2((k.x + 0.5) * CH, (k.y + 0.5) * CH).distance_to(pc)
+
+
+## İş parçacığında: parçanın bitkilerini deterministik üretir -> holder["buf"][tip] = MultiMesh tamponu
+func _generate(key: Vector2i, detail: bool, holder: Dictionary) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(Vector3i(key.x, key.y, 7177))
+	var cx := (key.x + 0.5) * CH
+	var cz := (key.y + 0.5) * CH
+	var bufs := {}
+	var trees := []
+	var cands := int(DMAX * CH * CH)
+	var area_scale := 1.0 / DMAX
+	for i in cands:
+		var x := key.x * CH + rng.randf() * CH
+		var z := key.y * CH + rng.randf() * CH
+		var u := rng.randf()
+		var pick := rng.randf()
+		var sc_r := rng.randf()
+		var yaw := rng.randf() * TAU
+		var b := Game.biome_at(x, z)
+		var row = DENS.get(b)
+		var dens := 0.0
+		var types: Array = []
+		if row != null:
+			dens = row[0]
+			types = row[1]
+		var my := -z
+		for sp in _specials:
+			var d := Vector2(x - sp[0], my - sp[1]).length()
+			if d > sp[2] and d < sp[3] and b != 11 and b < 13:
+				dens = maxf(dens, sp[5])
+				types = [sp[4], sp[4], 9, 0, 10, 8] if sp[4] == 5 else [9, 9, 9, 0, 10, 8]
+		if dens <= 0.0:
+			continue
+		var clear := Game._wh_vn(x / 260.0, z / 260.0, 11) * 0.6 + Game._wh_vn(x / 130.0, z / 130.0, 12) * 0.4
+		var local := 0.35 + 1.3 * Game._wh_vn(x / 400.0, z / 400.0, 13)
+		if u > dens * area_scale * local * smoothstep(0.3, 0.42, clear):
+			continue
+		var t: int = types[int(pick * types.size()) % types.size()]
+		if not detail and t in SMALL:
+			continue
+		if Game.wet_at(x, z) > 0.4:
+			continue
+		var rdist := Game.road_dist(x, z)
+		if rdist < (16.0 if t in [9, 5] else 8.0):
+			continue
+		var h := Game.terrain_height(x, z)
+		if h < 0.8:
+			continue
+		if detail:
+			var hx := Game.terrain_height(x + 2.0, z) - h
+			var hz := Game.terrain_height(x, z + 2.0) - h
+			var sl := Vector2(hx, hz).length() / 2.0
+			if sl > 1.1:
+				continue
+			if t in [9, 0] and sl > 0.7:
+				t = 4
+		var s := lerpf(0.8, 1.3, sc_r)
+		if t == 9:
+			s = lerpf(1.5, 2.6, sc_r)   # anime ölçeği: 40-70 m dev orman ağaçları
+		elif t == 5:
+			s = lerpf(0.9, 1.4, sc_r)
+		var col := 1.0 + (rng.randf() - 0.5) * 0.2
+		if not bufs.has(t):
+			bufs[t] = PackedFloat32Array()
+		var c := cos(yaw) * s
+		var sn := sin(yaw) * s
+		var ox := x - cx
+		var oz := z - cz
+		# MultiMesh tamponu: 3x4 satır düzeni + renk
+		bufs[t].append_array([c, 0.0, sn, ox, 0.0, s, 0.0, h - 0.3, -sn, 0.0, c, oz, col, 1.0 + (col - 1.0) * 0.6, 1.0 - (col - 1.0) * 0.4, 1.0])
+		if detail and radii[t] > 0.0:
+			trees.append([x, h, z, s, yaw, t])
+	holder["buf"] = bufs
+	holder["trees"] = trees
+
+
+func _install(key: Vector2i, detail: bool, holder: Dictionary) -> void:
+	if not holder.has("buf"):
+		return
+	var old = chunks.get(key)
+	if old != null:
+		old["node"].queue_free()
+	var node := Node3D.new()
+	node.position = Vector3((key.x + 0.5) * CH, 0, (key.y + 0.5) * CH)
+	add_child(node)
+	var view = float(Game.settings["view"])
+	var bufs: Dictionary = holder["buf"]
+	for t in bufs:
+		var buf: PackedFloat32Array = bufs[t]
+		var n := buf.size() / 16
+		if n == 0:
+			continue
+		var near_end = (NEAR_FULL if not t in SMALL else 120.0) * view
+		if t in [5, 11, 4, 9]:
+			near_end = 650.0 * view
+		var has_lod = lods[t] != null
+		var a = _mmi(node, meshes[t], buf, n, 0.0, near_end if has_lod or t in SMALL else FAR_R * 1.2 * view)
+		a.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if not t in SMALL else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		if has_lod:
+			var lb = _mmi(node, lods[t], buf, n, near_end, FAR_R * 1.2 * view)
+			lb.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	chunks[key] = {"node": node, "detail": detail, "trees": holder.get("trees", [])}
+	last_cell = Vector2i(999999, 999999)  # çarpışma havuzunu tazele
+
+
+func _mmi(parent: Node3D, mesh: Mesh, buf: PackedFloat32Array, n: int, begin: float, end: float) -> MultiMeshInstance3D:
 	var mm = MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_colors = true
 	mm.mesh = mesh
-	mm.instance_count = xforms.size()
-	for j in xforms.size():
-		mm.set_instance_transform(j, xforms[j])
-		mm.set_instance_color(j, cols[j])
+	mm.instance_count = n
+	mm.buffer = buf
 	var mmi = MultiMeshInstance3D.new()
 	mmi.layers = 2
 	mmi.multimesh = mm
-	mmi.position = center
 	mmi.visibility_range_begin = begin
 	mmi.visibility_range_begin_margin = 25.0 if begin > 0.0 else 0.0
 	mmi.visibility_range_end = end
-	mmi.visibility_range_end_margin = 30.0
+	mmi.visibility_range_end_margin = 40.0
 	mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
-	add_child(mmi)
+	parent.add_child(mmi)
 	return mmi
 
 
@@ -105,33 +256,32 @@ func _physics_process(_dt: float) -> void:
 	if Game.player == null:
 		return
 	var p = Game.player.global_position
-	var c = Vector2i(int(floor(p.x / 16.0)), int(floor(-p.z / 16.0)))
+	var c = Vector2i(int(floor(p.x / 16.0)), int(floor(p.z / 16.0)))
 	if c == last_cell:
 		return
 	last_cell = c
 	var near: Array = []
-	for dz in range(-4, 5):
-		for dx in range(-4, 5):
-			var ids = cell.get(c + Vector2i(dx, dz))
-			if ids == null:
+	var ck := Vector2i(floori(p.x / CH), floori(p.z / CH))
+	for dz in range(-1, 2):
+		for dx in range(-1, 2):
+			var ch = chunks.get(ck + Vector2i(dx, dz))
+			if ch == null:
 				continue
-			for i in ids:
-				var t = int(data[i * 6 + 5])
-				if radii[t] <= 0.0:
-					continue
-				var d2 = Vector2(data[i * 6] - p.x, -data[i * 6 + 2] - p.z).length_squared()
-				near.append([d2, i])
+			for tr in ch["trees"]:
+				var d2 = Vector2(tr[0] - p.x, tr[2] - p.z).length_squared()
+				if d2 < 90.0 * 90.0:
+					near.append([d2, tr])
 	near.sort_custom(func(a, b): return a[0] < b[0])
 	for k in bodies.size():
 		var sb = bodies[k]
 		if k >= near.size():
 			sb.position = Vector3(0, -2000, 0)
 			continue
-		var i: int = near[k][1]
-		var t = int(data[i * 6 + 5])
-		var s = data[i * 6 + 3]
-		var yaw = data[i * 6 + 4]
-		sb.global_transform = Transform3D(Basis(Vector3.UP, yaw), Vector3(data[i * 6], data[i * 6 + 1] - 0.3, -data[i * 6 + 2]))
+		var tr: Array = near[k][1]
+		var t: int = tr[5]
+		var s: float = tr[3]
+		var yaw: float = tr[4]
+		sb.global_transform = Transform3D(Basis(Vector3.UP, yaw), Vector3(tr[0], tr[1] - 0.3, tr[2]))
 		var trunk: CollisionShape3D = sb.get_child(0)
 		if t in CONVEX:
 			trunk.shape = convex[t]
@@ -164,3 +314,8 @@ func _physics_process(_dt: float) -> void:
 				var d = Vector3(sin(a), 0, cos(a))
 				(bc.shape as BoxShape3D).size = Vector3(1.4, 0.8, L) * s
 				bc.transform = Transform3D(Basis(Vector3.UP, a), (d * (Props.FOREST_TRUNK_R + L * 0.5) + Vector3(0, br[0], 0)) * s)
+
+
+## Bir noktada yüklenmiş en yakın ağaçlar (başka sistemler için: ör. hayvanlar, kamp yerleşimi)
+func is_ready_around(p: Vector3) -> bool:
+	return chunks.has(Vector2i(floori(p.x / CH), floori(p.z / CH)))
