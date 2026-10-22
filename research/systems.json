@@ -1,0 +1,3989 @@
+{
+ "_meta": {
+  "source": "Narutopedia (naruto.fandom.com) wikitext via MediaWiki API (Chūnin Exams, Missions, Jōnin, Tokubetsu Jōnin, Kage, Academy, Bell Test, Sage Mode, Six Paths Sage Mode, Juinjutsu, Cursed Seal of Heaven/Earth, Kāma, Jinchūriki, Jinchūriki Forms, Tailed Beast Ball, Eight Trigrams Sealing Style, Four Symbols Seal, Nature Transformation, Kekkei Genkai/Mōra/Tōta, Hand Seal, Category:Clans + all 52 clan pages, organisation and event pages) plus franchise knowledge",
+  "date": "2026-10-22",
+  "language": "Oyuncuya dönük metinler Türkçe; teknik görsel ipuçları (vfx/visual) bazen İngilizce.",
+  "canon_policy": "Kanon karakter yok. Kanon olaylar/örgütler yalnızca 'genel şablon' ve referans (canon_reference) olarak verildi; oyunda isimleri değiştirilmiş özgün karşılıklar kullanılmalı. Kanon karakter adları yalnızca referans alanlarında geçer.",
+  "related_files": {
+   "jutsu.json": "hand_seals/special_seals/nature_cycle/ranks/missions/chunin_exam/academy_graduation/training_methods — burada genişletildi, kopyalanmadı",
+   "clans_factions.json": "clans (16 ayrıntılı), organizations (9), culture — burada 'clans' tam liste olarak genişletildi; isimler aynı (ör. 'Uchiha Clan'); detaylı görünüm için o dosyaya bakılmalı",
+   "geography.json": "countries[].id (fire, wind, water, lightning, earth, rain, grass, waterfalls, sound, hot_water, frost, rivers, waves, whirlpools, iron, stone_village_country, birds, tea, snow, demons) — country_id alanlarında kullanıldı",
+   "parallel_files": "jutsu, dōjutsu, silah/alet ve yaratıklar ayrı dosyalarda; burada yalnızca kısa referans"
+  },
+  "sections": [
+   "ninja_ranks",
+   "lifestyle_systems",
+   "exams",
+   "mission_ranks",
+   "mission_templates",
+   "organizations",
+   "world_events",
+   "sage_modes",
+   "cursed_seals",
+   "jinchuriki",
+   "chakra_natures",
+   "hand_seals",
+   "clans"
+  ]
+ },
+ "ninja_ranks": [
+  {
+   "id": "academy_student",
+   "name": "Akademi Öğrencisi",
+   "rank_order": 0,
+   "typical_age": "6-12",
+   "mission_ranks": [],
+   "desc": "Çakra temelleri, 12 el mühürü, üç akademi tekniği (Klon, Dönüşüm, Yer Değiştirme), shuriken/kunai ve taijutsu öğrenir. Alın bandı yoktur.",
+   "promotion": "Akademi mezuniyet sınavı (yazılı + pratik) -> exams.academy_graduation",
+   "game": "Tutorial bölgesi; can/çakra düşük, görev panosu kapalı."
+  },
+  {
+   "id": "genin",
+   "name": "Genin (Alt Ninja)",
+   "rank_order": 1,
+   "typical_age": "12+",
+   "mission_ranks": [
+    "D",
+    "C"
+   ],
+   "desc": "Alın bandını alan, üç kişilik takıma ve bir jōnin-sensei'ye atanan ninja. Sensei ayrıca kendi takım sınavını (Zil Testi) uygulayabilir.",
+   "promotion": "Chūnin Sınavı (sensei önerisiyle, üç kişilik takım) -> exams.chunin_exam",
+   "game": "D/C görevleri; tek başına B görevi alamaz."
+  },
+  {
+   "id": "chunin",
+   "name": "Chūnin (Orta Ninja)",
+   "rank_order": 2,
+   "mission_ranks": [
+    "C",
+    "B",
+    "A (takımla)"
+   ],
+   "desc": "Taktik karar ve liderlik yeteneği gösterenler. Küçük birimlere komuta eder, akademi eğitmeni, kapı nöbetçisi veya sınav gözetmeni olabilir. Yelek (flak jacket) giyer.",
+   "promotion": "Jōnin terfisi -> exams.jonin_promotion",
+   "game": "Takım lideri olabilir; 4 kişilik ekip kurma; yelek slotu açılır."
+  },
+  {
+   "id": "tokubetsu_jonin",
+   "name": "Tokubetsu Jōnin (Özel Jōnin)",
+   "rank_order": 3,
+   "mission_ranks": [
+    "B",
+    "A (uzmanlık alanında)"
+   ],
+   "desc": "Tek bir alanda (sorgu, gizli operasyon, zehir, sensör, bariyer vb.) jōnin seviyesinde uzman; ordulardaki astsubaya benzer. Genin takımı eğitme hakkı da verilebilir.",
+   "promotion": "exams.special_jonin",
+   "game": "Alt-sınıf seçimi (Sorgucu, Gözcü, Zehir Ustası, Mühür Uzmanı)."
+  },
+  {
+   "id": "jonin",
+   "name": "Jōnin (Üst Ninja)",
+   "rank_order": 4,
+   "mission_ranks": [
+    "A",
+    "S"
+   ],
+   "desc": "Askerî kaptanlar; genelde en az iki çakra doğasını kullanabilir, tek başına görev alabilir. Genin takımı eğitir ve Chūnin Sınavı'na ne zaman gireceklerine karar verir. Konoha'da Hokage adayını onaylayan da jōnin'lerdir.",
+   "promotion": "Kage seçimi, Anbu kaptanlığı veya Jōnin Komutanı.",
+   "game": "S görevleri, öğrenci (NPC) eğitme, iki doğa slotu."
+  },
+  {
+   "id": "jonin_commander",
+   "name": "Jōnin Komutanı",
+   "rank_order": 5,
+   "desc": "Köyün tüm jōnin kuvvetlerini yönetir; savaşta Kage'nin sağ kolu ve Kage seçim komitesinin üyesidir.",
+   "game": "Hikâye NPC'si / savaş haritasında müttefik komutan."
+  },
+  {
+   "id": "anbu",
+   "name": "Anbu Üyesi",
+   "rank_order": "paralel",
+   "desc": "Doğrudan Kage'ye bağlı, maskeli gizli birlik. Rütbeden bağımsız seçilir (çok genç dâhiler dahi).",
+   "game": "Gizli görev hattı; maskeli ikinci kimlik (organizations.anbu)."
+  },
+  {
+   "id": "kage",
+   "name": "Kage (Gölge — köy lideri)",
+   "rank_order": 6,
+   "desc": "Beş Büyük Ülke'nin köy liderleri: Hokage (Ateş), Kazekage (Rüzgâr), Mizukage (Su), Raikage (Yıldırım), Tsuchikage (Toprak). Köyün en güçlü ninjası sayılır; emekli olsa da unvanı ömür boyu taşır.",
+   "game": "Oyunun son kariyer hedefi; köy yönetimi meta-oyunu."
+  },
+  {
+   "id": "missing_nin",
+   "name": "Nukenin (Kaçak Ninja)",
+   "rank_order": "dışlanmış",
+   "desc": "Köyünü izinsiz terk eden; alın bandının sembolü üzerine yatay çizik atılır. Bingo Kitabı'nda ödülle aranır, av-ninjaları (Oinin) peşine düşer; köy sırlarını taşıdığı için bedeni yok edilmelidir.",
+   "game": "Karma yolu: kaçak olunca köy hizmetleri kapanır, ödül avcıları gelir."
+  }
+ ],
+ "lifestyle_systems": {
+  "ninja_registration": {
+   "name": "Ninja Kaydı (Ninja Tōroku)",
+   "desc": "Mezun olan her ninja köyün kayıt dosyasına fotoğraf, ad, doğum tarihi, kan grubu, boy-kilo, rütbe, mezuniyet yaşı ve kayıt numarası (Konoha'da 6 haneli) ile işlenir. Kayıt için resmî fotoğraf çekilir ve Kage onaylar.",
+   "game": "Karakter oluşturucunun sonunda 'kayıt kartı' ekranı; oyuncu fotoğraf pozu seçer (yüz boyalı komik poz seçeneği)."
+  },
+  "ninja_info_cards": {
+   "name": "Ninja Bilgi Kartları (Ninja Jōhō Kādo)",
+   "desc": "Çakra ile kodlanmış kartlar; yalnızca sahibinin çakrasıyla açılır. Sınav adaylarının istatistikleri, geçmiş görevleri, köy haritaları kaydedilebilir.",
+   "game": "Toplanabilir kart sistemi: NPC istatistikleri (ninjutsu/taijutsu/genjutsu/zekâ/güç/hız/mühür/stamina — kanon veri kitabı 8 ekseni) gösterir; casusluk görevlerinde çalınabilir."
+  },
+  "bingo_book": {
+   "name": "Bingo Kitabı",
+   "desc": "Köylerin tehlikeli kaçak ninjalar ve düşman eliteleri hakkındaki ödül defteri; resim, yetenekler, ödül miktarı.",
+   "game": "Ödül avı görev panosu; oyuncu ünlendikçe kendisi de diğer köylerin Bingo Kitabı'na girer (aranma seviyesi)."
+  },
+  "nindo": {
+   "name": "Nindō (Ninja Yolu)",
+   "desc": "Bir ninjanın kendine koyduğu kişisel yemin/ilke ('sözümden dönmem' gibi). Karakterin ahlaki pusulası.",
+   "game": "Karakter yaratımında 1 nindō seç (Sadakat, Söz, Merhamet, Güç, İntikam, Bilgi). Nindō'ya uygun seçimler 'Kararlılık' barı doldurur -> zor anlarda bir kez ayağa kalkma."
+  },
+  "will_of_fire": {
+   "name": "Ateşin İradesi (Hi no Ishi)",
+   "desc": "Konoha felsefesi: köy bir ailedir, sevgi ve kararlılık kuşaktan kuşağa aktarılır; gençleri ('kral') korumak en yüce görevdir. Karşıt görüşler: 'Uchiha Laneti / Kin', köyü gölgeden koruyan kökçü anlayış (Root), Kirigakure'nin 'Kanlı Sis' geleneği.",
+   "game": "Köy itibarı/moral sistemi; korumacı eylemler müttefik yakınında pasif bonus açar."
+  },
+  "forehead_protector": {
+   "name": "Alın Bandı (Hitai-ate)",
+   "desc": "Rütbe değil köy üyeliği simgesi; mezuniyette verilir. Kaçaklar sembolün üzerine yatay çizik atar. Alına, kola, boyna, bele bağlanabilir. Savaşta müttefik orduda tüm köyler 'Shinobi' (忍) yazılı ortak bant takar.",
+   "game": "Kozmetik bağlama yeri seçimi; çizik = kaçak durumu."
+  },
+  "memorial_stone": {
+   "name": "Anıt Taşı",
+   "desc": "Görevde ölen ninjaların adlarının kazındığı taş.",
+   "game": "Ölen yoldaş NPC'ler buraya yazılır; ziyaret moral verir."
+  },
+  "team_structure": {
+   "name": "Dört Kişilik Hücre (Üç Genin + Sensei)",
+   "desc": "Standart birim: üç genin + bir jōnin. Sıklıkla klasik 'yakın dövüş / menzil / destek' dengesi veya klan üçlüleri (Ino-Shika-Chō geleneği).",
+   "game": "Parti sistemi: 2 NPC takım arkadaşı + sensei; klan kombinasyon jutsuları."
+  },
+  "salary_and_economy": {
+   "name": "Ryō ve Görev Ücreti",
+   "desc": "Ücreti müşteri köye öder; köy pay alıp ninjaya ödeme yapar. Ücret aralıkları mission_ranks içinde.",
+   "game": "Görev ödülünün bir yüzdesi köy hazinesine — köy gelişim meta-oyunu."
+  },
+  "traditional_sparring": {
+   "name": "Geleneksel Ninja Düellosu",
+   "desc": "Dövüş öncesi Çatışma Mühürü (Tairitsu no In), sonrası Barışma Mühürü (Wakai no In) yapılır (hand_seals.special).",
+   "game": "Dojo düellolarında zorunlu animasyonlar; barışma yapılmazsa itibar düşer."
+  },
+  "village_council": {
+   "name": "Köy Büyükleri ve Danışmanlar",
+   "desc": "Kage'ye danışmanlık yapan yaşlı ninjalar; Kage seçiminde ve kriz kararlarında söz sahibi.",
+   "game": "Siyasi diyalog düğümleri; onay/ret oyları."
+  }
+ },
+ "exams": {
+  "academy_graduation": {
+   "name": "Akademi Mezuniyet Sınavı",
+   "canon_reference": "Academy; jutsu.json academy_graduation",
+   "rules": [
+    "Yazılı sınav (ninja bilgisi, tarih, mühür teorisi).",
+    "Pratik sınav: bir chūnin eğitmen önünde belirlenen akademi tekniğini (çoğunlukla Klon Tekniği; birkaç sağlam klon) göstermek.",
+    "Shuriken/kunai isabeti ve taijutsu değerlendirmesi kayıtlara geçer.",
+    "Her dersi kusursuz bitirmek şart değildir; toplam başarı esas alınır.",
+    "Savaş dönemlerinde mezuniyet yaşı düşer (6-10 yaşında mezunlar)."
+   ],
+   "pass": "Teknik başarıyla uygulanır ve yazılı baraj geçilir -> alın bandı + kayıt fotoğrafı.",
+   "fail": "Bir yıl daha akademi; olağanüstü bir başarı (ör. çalınan yasak parşömeni kurtarıp haini durdurmak) ile istisnai mezuniyet verilebilir.",
+   "quest_design": "3 aşamalı tutorial: (1) Bilgi testi diyaloğu, (2) Klon Tekniği mühür girişi mini oyunu, (3) Hedef tahtası parkuru. Gizli yol: başarısız oyuncuya 'yasak parşömeni getir' teklifi -> ihanet gerilimi ve alternatif mezuniyet."
+  },
+  "genin_bell_test": {
+   "name": "Zil Testi (Takım Hayatta Kalma Sınavı)",
+   "canon_reference": "Bell Test",
+   "rules": [
+    "Akademi mezunlarının çoğu (kanonda ~2/3) bu jōnin sınavında elenip akademiye geri gönderilir.",
+    "Sensei'de 2 zil vardır, takımda 3 kişi; süre öğlene kadar (çalar saat).",
+    "Zili alamayan öğle yemeği yiyemez ve kütüğe bağlanır; 'öldürme niyetiyle gelin' denir; kahvaltı yapmamaları söylenir.",
+    "Gizli amaç: zil sayısı bilerek eksik verilerek takım çalışması ve fedakârlık ölçülür.",
+    "Varyantlar: sensei'ye karşı hayatta kalma, saklambaç, iz sürme gibi farklı jōnin sınavları."
+   ],
+   "pass": "Takımın birlikte saldırması, yemeği paylaşması veya zili arkadaşına bırakması. ('Kuralları çiğneyen pisliktir; arkadaşını terk eden pislikten de beterdir.')",
+   "fail": "Bireysel kahramanlık, arkadaşını terk etmek -> akademiye iade.",
+   "quest_design": "Zaman sınırlı açık alan avı: sensei NPC kaçış AI'sına sahip, tek başına yakalanamaz. Takım komutları (dikkat dağıt / tuzak kur / yakala) birleşince zil düşer. Son sahne: bağlı arkadaşla yemeği paylaşma seçimi."
+  },
+  "chunin_exam": {
+   "name": "Chūnin Seçme Sınavı (Chūnin Senbatsu Shiken)",
+   "canon_reference": "Chūnin Exams",
+   "general_rules": [
+    "Köyler arası güç dengesi için tasarlandı; 3. Dünya Savaşı'ndan sonra müttefik köylerin ortak sınavı yılda iki kez, köyler sırayla ev sahipliği yapar.",
+    "Genin yalnızca üç kişilik takım hâlinde ve sensei önerisiyle girer.",
+    "Yaralanma/ölüm feragatnamesi imzalanır; hile ve zor kullanmak serbesttir; çekilmek ayıp sayılmaz.",
+    "Sınav yapısı her seferinde değişir ki adaylar hazırlıklı gelemesin.",
+    "Gözetmenler chūnin ve tokubetsu jōnin'lerden oluşan özel birliktir; fazla aday geçerse ek ön elemeler yapılır.",
+    "Kazanmak terfiyi garanti etmez; kaybetmek engellemez. Kage, daimyō ve gözlemciler nitelik gördüğü herkesi terfi ettirebilir — hiç kimse ya da tüm finalistler terfi edebilir.",
+    "Sınav bir 'kontrollü savaş'tır: köyler gücünü müşterilere (daimyō'lar) sergiler; köyler arası ilişkiyi güçlendirir."
+   ],
+   "stages": [
+    {
+     "stage": 1,
+     "id": "written_test",
+     "name": "1. Aşama — Yazılı Sınav",
+     "rules": [
+      "Süre 1 saat, 10 soru; ilk 9 soru genin seviyesinin çok üzerindedir (şifre çözme, yörünge hesabı vb.).",
+      "Her aday 10 puanla başlar; kopya çekerken yakalanan 2 puan kaybeder, 5 kez yakalanan takımıyla birlikte atılır.",
+      "Takım puanı toplanır; bir üyenin 0 alması tüm takımı eler.",
+      "Gizli amaç: yakalanmadan bilgi toplamak — salona cevapları bilen chūnin'ler yerleştirilmiştir.",
+      "10. soru son 15 dakikada açıklanır: soruyu reddeden takımıyla elenir; kabul edip yanlış yapan ömür boyu chūnin sınavına giremez.",
+      "Asıl test: belirsizlik ve risk altında karar verme. Soruyu kabul eden herkes geçer (gerçek bir 10. soru yoktur)."
+     ],
+     "pass": "10. soruyu kabul etmek + yeterli toplam puan.",
+     "fail": "5 kopya yakalanması, sıfır puan, 10. soruyu reddetmek.",
+     "quest_design": "Gizlilik/algı mini oyunu: gözetmenlerin bakış konileri; dōjutsu, böcek, ayna, zihin transferi, klon gibi beceriler farklı kopya yolları açar. Son anda moral sorusu — korkuyu yenme seçeneği."
+    },
+    {
+     "stage": 2,
+     "id": "forest_survival",
+     "name": "2. Aşama — Ölüm Ormanı (44. Eğitim Sahası) Hayatta Kalma",
+     "rules": [
+      "Ormanın çevresinde 44 kilitli kapı, merkezde kule; yarıçap ~10 km.",
+      "Süre 120 saat (5 gün); yiyecek ormandan bulunur (dev böcekler, sülükler, kaplanlar, dev yılanlar).",
+      "Her takıma bir Cennet (Ten) veya Dünya (Chi) parşömeni verilir; diğerini rakip takımdan almak gerekir.",
+      "Takım üç üyeyle ve iki parşömenle kuleye ulaşmalı; üye kaybı eleme demektir.",
+      "Parşömenler kuleye varmadan açılamaz — açılırsa içindeki mühür (uyku/çağırma) etkinleşir.",
+      "Kulede iki parşömen birlikte açılınca bir eğitmen çağrılır; duvardaki 'Cennet ve Dünya' öğüdü okunur (Cennet = zihin/bilgi, Dünya = beden/güç; ikisi birleşince yol açılır)."
+     ],
+     "pass": "5 gün içinde iki parşömen + üç üye ile kuleye varış.",
+     "fail": "Süre aşımı, üye kaybı, parşömeni açma.",
+     "quest_design": "Açık bölge hayatta kalma: gece/gündüz, açlık barı, tuzak kurma, pusu, sahte parşömen (Dönüşüm ile kandırma). Rakip takımlar parşömen tipini gizler — iz sürme/sorgulama gerekir. Gizli olay: sınava sızmış S-rank kaçak (cursed_seals.heaven_seal tetiği)."
+    },
+    {
+     "stage": 3,
+     "id": "preliminaries",
+     "name": "Ön Elemeler",
+     "rules": [
+      "Çok aday geçerse rastgele birebir maçlar; takım bağı kalkar, yalnızca galip ilerler.",
+      "Jōnin hakem, ölüm riski veya açık üstünlükte maçı durdurur; adaylar başta çekilebilir.",
+      "Elektronik pano rastgele eşleştirir; beraberlik (çift nakavt) iki tarafı da eler."
+     ],
+     "pass": "Maçı kazanmak.",
+     "fail": "Yenilgi, çekilme, beraberlik.",
+     "quest_design": "Rastgele rakip havuzu (klan arketipleri: böcekçi, gölgeci, kum kalkanlı jinchūriki...). Çekilme seçeneği hikâyeyi etkiler."
+    },
+    {
+     "stage": 4,
+     "id": "finals",
+     "name": "Final Turnuvası",
+     "rules": [
+      "Ön elemelerden ~1 ay sonra; adaylar bu sürede yeni teknik öğrenir ve rakiplerini araştırır.",
+      "Daimyō'lar, müşteriler ve halk önünde stadyumda tek eleme birebir maçlar.",
+      "Maça zamanında gelmeyen diskalifiye edilir (önemli adaylara erteleme tanınabilir).",
+      "Terfi hakemlerin/Kage'nin değerlendirmesine bağlı: kaybeden bile terfi edebilir."
+     ],
+     "pass": "Gözlemcilerin nitelik puanı (taktik, analiz, soğukkanlılık, liderlik).",
+     "fail": "Değerlendirmede yetersiz bulunmak.",
+     "quest_design": "1 aylık eğitim arası: usta seç (çağırma sözleşmesi, doğa eğitimi, kapılar). Turnuvada stil/taktik puanı. Kanon tetik: final sırasında köy istilası (world_events.village_invasion_during_exam)."
+    }
+   ],
+   "variants": [
+    {
+     "id": "konoha_suna_joint",
+     "name": "Konoha–Suna Ortak Sınavı (anime)",
+     "desc": "1. aşama: takım üyeleri ayrı odalarda; her biri üç sorudan birini seçer, takım toplamı 100 puan; 'hangi üye yem olarak elensin' tuzak sorusu (doğru cevap: kimse, üç üye şart). Ön eleme: Şeytan Çölü'ne 3 günde ilk 30 takım. 2. aşama: Şeytan Çölü'nde 3 gün, Cennet/Dünya parşömenleriyle merkez binaya ulaşma. Kazekage'ye saldırı nedeniyle iptal; terfiyi köyler raporlardan verdi. Gizli amaç: jinchūriki'yi yem yapıp suç örgütünü çekmek.",
+     "quest_design": "Çöl versiyonu: su barı, kum fırtınası görüş kaybı, yön bulma."
+    },
+    {
+     "id": "boruto_five_village",
+     "name": "Beş Köy Ortak Sınavı (Boruto dönemi)",
+     "desc": "Beş Büyük Köy'ün ilk ortak sponsorluğu; 16 takım/48 genin. Kote (herkese çakrasız ninjutsu veren bilimsel eldiven) yasak. 1. aşama: var olmayan bir kitabın 5. cildi hakkında doğru/yanlış sorusu — takımlar bayrağa koşar, zemin açılır; dipteki mürekkebe bulanan ('kararan') elenir (anime: öncesinde zamanlı tuzaklı parkur). 2. aşama: takım vs takım bayrak kapmaca (öldürmek yasak; esir almak serbest). Final: stadyumda birebir maçlar, son tur üç kişilik serbest maç; Beş Kage izler. Ōtsutsuki saldırısıyla stadyum yıkıldı.",
+     "quest_design": "Fizik tabanlı çukur bulmacası; bayrak kapmaca modu; 3'lü final; yasak alet kullanan rakip -> diskalifiye ahlak sahnesi."
+    },
+    {
+     "id": "konoha_reexam",
+     "name": "Konoha Yeniden Sınavı (Boruto anime)",
+     "desc": "1. tur: kopya çekerek takım başına ortalama 70 puan. 2. tur: Ölüm Ormanı'nda 45 dakikada yaralı rolündeki gözetmenleri kurtarma, düşman rolündeki gözetmenlerden kaçma — bireysel değerlendirme. Final: eşleşmeler sınav günü açıklanır; adayın kendi geliştirdiği bilimsel ninja aletleri serbest; canlı yayın.",
+     "quest_design": "Kurtarma odaklı zamanlı görev; oyuncunun ürettiği (crafting) aletlerle final."
+    },
+    {
+     "id": "konoha_only_war_era",
+     "name": "Savaş Dönemi Köy İçi Sınav",
+     "desc": "3. Dünya Savaşı civarında yalnızca Konoha'nın kendi sınavı; aşamalar arası dinlenme süresi verildi; finaller ve ikinci aşama vardı.",
+     "quest_design": "Geçmiş/flashback görev hattı."
+    }
+   ]
+  },
+  "jonin_promotion": {
+   "name": "Jōnin Terfisi",
+   "canon_reference": "Jōnin",
+   "rules": [
+    "Öneriyle: yeterli sayıda köylü/jōnin ve Kage adayı uygun görürse terfi.",
+    "Chūnin Sınavı'nı geçmiş olmak gerekebilir.",
+    "Animede ayrı bir Jōnin Sınavı bulunur.",
+    "Beklenti: en az iki çakra doğası, liderlik, A-rank görev başarısı."
+   ],
+   "pass": "Kage onayı + jōnin konseyi.",
+   "quest_design": "Zincir görev: 3 A-rank görevi kayıpsız bitir -> iki jōnin'den tavsiye topla -> Kage huzurunda kriz senaryosu (rehine + zaman baskısı + düşman jōnin). İkinci doğa ustalığı şart."
+  },
+  "special_jonin": {
+   "name": "Tokubetsu Jōnin Ataması",
+   "canon_reference": "Tokubetsu Jōnin",
+   "rules": [
+    "Tek bir uzmanlık alanında jōnin yeterliliği (sorgulama, gizli operasyon, sensör, bariyer, zehir, silah, eğitmenlik).",
+    "Sınav gözetmen birlikleri genelde tokubetsu jōnin'lerden oluşur."
+   ],
+   "quest_design": "Bir uzmanlık birimine (İşkence ve Sorgu, Bariyer Takımı, Sensör Birliği) bağlanıp 3 aşamalı ustalık görevini tamamla."
+  },
+  "kage_selection": {
+   "name": "Kage Seçimi",
+   "canon_reference": "Kage; Five Kage Summit",
+   "rules": [
+    "İlk Kage unvanı ilk köyün kurucusu tarafından yaratıldı, halk ve ülke tarafından seçildi; diğer ülkeler sistemi taklit etti.",
+    "Konoha: Hokage genelde halefini atar. Ölür veya görevini yapamazsa seçim Ateş Ülkesi daimyō'suna geçer; daimyō danışmanları, köy büyükleri, Jōnin Komutanı ve Anbu temsilcisiyle karar verir; atama jōnin'lerce onaylanmalıdır.",
+    "Kumo: Üçüncü Raikage ölünce oğlu önceden kararlaştırıldığı gibi otomatik geçti (soy usulü).",
+    "Emekli Kage unvanını korur, danışmanlık yapar; halef ölürse yeniden göreve dönebilir.",
+    "Kriz anında vekil (provisional) Kage atanabilir; Kage zirvesinde müttefik ordu başkomutanı seçilebilir."
+   ],
+   "quest_design": "Oyun sonu siyasi hattı: itibar puanı, jōnin oyları, daimyō desteği ve köy büyükleriyle ittifak. Rakip aday NPC'ler; gizli örgüt komplo yan hattı. Kazanınca köy yönetim ekranı açılır."
+  },
+  "sage_training_trials": {
+   "name": "Bilge (Sennin) Eğitimi Sınavları",
+   "canon_reference": "Sage Mode — Training",
+   "rules": [
+    "Myōboku: özel kurbağa yağı sürülerek pasif doğal enerji emilir (yağ dağdan çıkınca buharlaşır); aşırı emilimde kurbağalaşmaya başlayan öğrenciye usta kurbağa özel sopa ile vurup enerjiyi boşaltır. Önce yağlı, sonra yağsız meditasyon; ardından 'kurbağa kata'.",
+    "Ryūchi Mağarası: Beyaz Yılan Bilgesi adayı ısırarak doğal enerji enjekte eder; beden dayanırsa güç kabul edilir, dayanamazsa aday yutulur.",
+    "Shikkotsu Ormanı: salyangozların bilgelik eğitimi (yaratık dosyasına bkz.).",
+    "Tüm yollarda şart: devasa çakra rezervi, dayanıklı beden ve mükemmel hareketsizlik."
+   ],
+   "pass": "Taşlaşmadan dengeli bilge çakrası üretip kata ile hedef kayayı yerinden oynatmak.",
+   "fail": "Kalıcı taşlaşma/hayvana dönüşme (oyunda: kurtarılabilir yenilgi + uyarı).",
+   "quest_design": "Denge mini oyunu: fiziksel, ruhsal ve doğal enerji çubuklarını eşitle. Fazla enerji = karakter dokusunda kurbağa/yılan izleri artar; usta NPC sopa ile resetler (sınırlı deneme)."
+  },
+  "other_trials": [
+   {
+    "id": "waterfall_of_truth",
+    "name": "Hakikat Şelalesi (Shinjitsu no Taki)",
+    "canon_reference": "Falls of Truth (Kaplumbağa Ada)",
+    "desc": "Şelale önündeki platformda oturup odaklanan kişi zihnine taşınır; şelale gerçek benliğini yansıtan aynaya dönüşür. Kara benliği yenmek değil kabullenmek gerekir. Arkasındaki tapınakta jinchūriki kuyruklu canavarıyla yüzleşir.",
+    "quest_design": "Ayna-düşman düellosu: gölge benlik oyuncunun hareketlerini kopyalar; saldırmak onu güçlendirir, kabul diyalogları yener. Ödül: jinchūriki kontrol aşaması veya genjutsu direnci."
+   },
+   {
+    "id": "tailed_beast_temple",
+    "name": "Yüzleşme Tapınağı (Jinchūriki Kontrol Eğitimi)",
+    "desc": "Şelale sonrası tapınakta mühür gevşetilir; jinchūriki canavarın çakrasını çekip ondan koparmalıdır (çakra halat çekişmesi). Canavarın nefreti zihne saldırır.",
+    "quest_design": "Çekişme QTE + nefret dalgaları; başarı = canavar çakra modu kontrolü (jinchuriki.forms)."
+   },
+   {
+    "id": "eight_gates_training",
+    "name": "Sekiz Kapı Eğitimi",
+    "desc": "Vücuttaki 8 çakra kapısını sırayla zorla açma; her kapı güç verir ama kaslar yırtılır; 8. kapı ölümcüldür.",
+    "quest_design": "Taijutsu ustalık zinciri; her kapı görevinde kalıcı HP cezası riski."
+   },
+   {
+    "id": "chakra_control_basics",
+    "name": "Ağaç Tırmanma / Su Üstünde Yürüme",
+    "desc": "Çakra kontrol temel eğitimleri (detay: jutsu.json training_methods).",
+    "quest_design": "Parkur kilit açma: duvar koşusu ve su yürüme bu sınavlarla açılır."
+   },
+   {
+    "id": "nature_transformation_training",
+    "name": "Doğa Dönüşümü Sınavı",
+    "desc": "Çakra kağıdıyla doğa tespiti (chakra_natures.affinity_test) sonrası doğaya özel ustalık: rüzgâr — yaprak kesme -> şelale kesme; ateş — yaprak yakma; su — yaprak ıslatma; toprak — yaprağı ufalama; yıldırım — kağıdı buruşturma.",
+    "quest_design": "Doğa ağacı açılış görevleri."
+   },
+   {
+    "id": "summoning_contract",
+    "name": "Çağırma Sözleşmesi Sınavı",
+    "desc": "Kanla imzalı sözleşme parşömeni; çağrılan hayvanın büyüklüğü çakraya bağlı; büyük hayvanlar sözleşmeciyi sınar (ör. reis kurbağanın sırtında bir gün kalmak).",
+    "quest_design": "Boss-binme rodeo görevi; başarınca çağırma slotu."
+   },
+   {
+    "id": "puppet_master_trial",
+    "name": "Kukla Ustası Sınavı",
+    "desc": "Suna Kukla Birliği: çakra iplikleriyle birden fazla kuklayı eşzamanlı yönetme.",
+    "quest_design": "İp kontrol mini oyunu; sınıf açılışı."
+   },
+   {
+    "id": "medical_nin_certification",
+    "name": "Tıbbi Ninja Sertifikası",
+    "desc": "Ölen balığı tıbbi çakrayla canlandırma egzersizi, zehir analizi, panzehir üretimi; savaşta tıbbi ninja asla önce ölmemeli kuralı.",
+    "quest_design": "Hasta triyajı görevi + crafting."
+   },
+   {
+    "id": "swordsmen_succession",
+    "name": "Kılıç Ustası Halefiyet Düellosu",
+    "desc": "Sis'in Yedi Kılıç Ustası'nın kılıçları genelde önceki sahibi yenilerek/öldürülerek devralınır.",
+    "quest_design": "Efsanevi kılıç başına bir düello (silah dosyasına referans)."
+   },
+   {
+    "id": "anbu_selection",
+    "name": "Anbu Seçimi",
+    "desc": "Kage tarafından gizlice seçilir; yaştan bağımsız; gizlilik ve sadakat testi.",
+    "quest_design": "Oyuncuya habersiz gizli 'izlenme' görevi; sonradan maske teklifi."
+   },
+   {
+    "id": "kumo_cloud_style_trial",
+    "name": "Uçurum/Şelale Dövüş Sınavı",
+    "desc": "Kumo ve Kiri tarzı sert eğitim gelenekleri; Kanlı Sis döneminde Kiri mezuniyeti öğrencilerin birbirini öldürmesiydi (sonradan kaldırıldı).",
+    "quest_design": "Karanlık geçmiş flashback'i; ahlaki seçim — sınıf arkadaşını öldürmeyi reddet."
+   }
+  ]
+ },
+ "mission_ranks": [
+  {
+   "rank": "D",
+   "name": "D-Rank (Ayak İşi)",
+   "pay_ryo": [
+    5000,
+    50000
+   ],
+   "pay_source": "canon (Missions)",
+   "typical_ninja_rank": "Genin (akademi yeni mezunları)",
+   "risk": "Neredeyse sıfır; savaş yok",
+   "desc": "Köy içi ayak işleri: tarla, bebek bakımı, kayıp evcil hayvan, temizlik.",
+   "game": "Kısa tutorial görevleri; itibar + az para; mini oyunlar."
+  },
+  {
+   "rank": "C",
+   "name": "C-Rank",
+   "pay_ryo": [
+    30000,
+    100000
+   ],
+   "pay_source": "canon",
+   "typical_ninja_rank": "Deneyimli genin / chūnin",
+   "risk": "Düşük; haydut/çete olası, ninja ile çatışma beklenmez",
+   "desc": "Eskort, hayvan avı, iz sürme, arka plan araştırması. Müşteri yalan söylerse görev gizlice yükselebilir (kanon: köprü inşaatçısı eskortu A-rank'e dönüştü).",
+   "game": "'Gizli rank artışı' olayı: görev ortasında düşman ninja çıkınca görev devam/geri dön seçimi."
+  },
+  {
+   "rank": "B",
+   "name": "B-Rank",
+   "pay_ryo": [
+    80000,
+    200000
+   ],
+   "pay_source": "canon",
+   "typical_ninja_rank": "Chūnin / jōnin",
+   "risk": "Orta; düşman ninjalarla çatışma beklenir",
+   "desc": "Düşman ninjaya karşı koruma, casusluk, hedefli iz sürme.",
+   "game": "Takım gerekli; elit düşman dalgaları."
+  },
+  {
+   "rank": "A",
+   "name": "A-Rank",
+   "pay_ryo": [
+    150000,
+    1000000
+   ],
+   "pay_source": "canon",
+   "typical_ninja_rank": "Jōnin (genelde takım), deneyimli chūnin destekle",
+   "risk": "Yüksek; köy/ülke düzeyinde önem",
+   "desc": "VIP koruma, istihbarat, yüksek değerli suikast önleme, sınır savaşı operasyonları.",
+   "game": "Patronlu çok aşamalı görev; ölüm kalıcı yoldaş kaybına yol açabilir."
+  },
+  {
+   "rank": "S",
+   "name": "S-Rank",
+   "pay_ryo": [
+    1000000,
+    null
+   ],
+   "pay_source": "canon (en az 1.000.000 ryō)",
+   "typical_ninja_rank": "Elit jōnin, Anbu, Kage",
+   "risk": "Çok yüksek; devlet sırrı, S-rank kaçaklar, kuyruklu canavarlar",
+   "desc": "Gizli bilgi taşıma, devlet başkanı koruma, S-rank kaçak avı, ulusal kriz.",
+   "game": "Hikâye zirve görevleri; gizlilik yemini (bilgisi sızarsa itibar cezası)."
+  }
+ ],
+ "mission_templates": [
+  {
+   "id": "lost_pet",
+   "title_tr": "Kayıp Kedi/Evcil Hayvanı Bul",
+   "rank": "D",
+   "objectives": [
+    "Hayvanın izini sür (pati izi, tüy)",
+    "Kaçan hayvanı yakala (çeviklik kovalamacası)",
+    "Sahibine teslim et"
+   ],
+   "typical_enemies": [
+    "Yok (tırmalayan kedi)"
+   ],
+   "canon_example": "Daimyō eşinin kedisi Tora'yı yakalama (Naruto böl. 5)",
+   "design_notes": "Komik kovalamaca; hayvan çatılarda parkur yapar. Tekrar eden görev — her seferinde yeni kaçış rotası."
+  },
+  {
+   "id": "harvest_help",
+   "title_tr": "Hasat Yardımı",
+   "rank": "D",
+   "objectives": [
+    "Tarlada yabani ot/patates topla",
+    "Kargaları/yaban domuzlarını kovala",
+    "Ürünü ambara taşı"
+   ],
+   "typical_enemies": [
+    "Yaban hayvanları"
+   ],
+   "canon_example": "Patates kazma ve ot yolma D-görevleri",
+   "design_notes": "Stamina mini oyunu; köylü itibarı. Ağır yük taşıma = kuvvet antrenmanı."
+  },
+  {
+   "id": "village_chores",
+   "title_tr": "Köy Ayak İşleri (Temizlik, Bebek Bakımı, Alışveriş)",
+   "rank": "D",
+   "objectives": [
+    "Nehirden çöp topla",
+    "Bebeğe bak/ödev yaptır",
+    "Yaşlı birinin alışverişini yap"
+   ],
+   "typical_enemies": [
+    "Yok"
+   ],
+   "canon_example": "Nehir temizliği, bebek bakımı, köpek gezdirme",
+   "design_notes": "Günlük görevler; NPC dostluk seviyeleri; yan hikâye tetikleyicileri."
+  },
+  {
+   "id": "dog_walking",
+   "title_tr": "Ninken/Köpek Gezdirme",
+   "rank": "D",
+   "objectives": [
+    "Köpekleri belirlenen rotada gezdir",
+    "Kaçan köpeği geri getir"
+   ],
+   "typical_enemies": [
+    "Saldırgan sokak köpekleri"
+   ],
+   "canon_example": "Köpek gezdirme D-görevi",
+   "design_notes": "Kontrol mini oyunu: tasma gerginliği."
+  },
+  {
+   "id": "treasure_dig",
+   "title_tr": "Gömülü Hazine/Eşya Kazısı",
+   "rank": "D/C",
+   "objectives": [
+    "Haritayla kazı alanını bul",
+    "Tuzakları atlat",
+    "Eşyayı müşteriye teslim et"
+   ],
+   "typical_enemies": [
+    "Hazine avcıları, kopyacı klan (Kedōin tipi)"
+   ],
+   "canon_example": "Gömülü Altın Kazısı (anime, Kedōin Klanı)",
+   "design_notes": "Kopyalanan takım arkadaşı gerçek mi? Sorgu sorusu ile ayırt et."
+  },
+  {
+   "id": "escort",
+   "title_tr": "Eskort (Tüccar/Yolcu)",
+   "rank": "C",
+   "objectives": [
+    "Müşteriyle buluş",
+    "Rota boyunca koru",
+    "Hedefe sağ salim teslim et"
+   ],
+   "typical_enemies": [
+    "Haydutlar, kaçak genin, vahşi hayvanlar"
+   ],
+   "canon_example": "Köprü ustasını Dalga Ülkesi'ne eskort (Ülke Dalgaları arkı)",
+   "design_notes": "Müşteri yalan söyleyebilir: gizli rank artışı. Müşteri AI'si yavaş; pusular yol kenarındaki su birikintisinden çıkabilir."
+  },
+  {
+   "id": "bridge_builder_protection",
+   "title_tr": "İnşaat Ustasını Koru (Köprü/Altyapı)",
+   "rank": "C->A",
+   "objectives": [
+    "Ustayı ve işçileri gece-gündüz koru",
+    "Tekel şirketinin baskın ekiplerini püskürt",
+    "Köprü bitene kadar dayan; köylülerin moralini yükselt"
+   ],
+   "typical_enemies": [
+    "Kiralık kaçak ninjalar (sis içinde kılıç ustası), tekelci tüccarın haydutları"
+   ],
+   "canon_example": "Dalga Ülkesi köprüsü — Gatō şirketi",
+   "design_notes": "Savunma + köy restorasyonu; köprü ilerleme barı; final: sis içinde kılıç ustası + buz aynalı yardımcısı."
+  },
+  {
+   "id": "cargo_transport",
+   "title_tr": "Kargo Nakliyesi",
+   "rank": "C",
+   "objectives": [
+    "Arabayı/kargoyu yükle",
+    "Dağ geçidi/çöl rotasında taşı",
+    "Hırsızlara karşı koru, teslim et"
+   ],
+   "typical_enemies": [
+    "Haydut çeteleri, kum fırtınası, sahte kontrol noktası"
+   ],
+   "canon_example": "Kervan koruma görevleri (anime dolgu arkları)",
+   "design_notes": "Araba hasar barı; rota seçimi (kısa ama tehlikeli / uzun ama güvenli)."
+  },
+  {
+   "id": "bandit_clearing",
+   "title_tr": "Haydut İnini Temizle",
+   "rank": "C",
+   "objectives": [
+    "Kamp yerini keşfet",
+    "Liderini yakala veya etkisiz bırak",
+    "Esir köylüleri kurtar"
+   ],
+   "typical_enemies": [
+    "Haydutlar, eski samuray, kiralık ronin"
+   ],
+   "canon_example": "Haydut temizliği C-görevleri",
+   "design_notes": "Gizli giriş vs cephe saldırısı; esirlere zarar gelmemeli."
+  },
+  {
+   "id": "monster_hunt",
+   "title_tr": "Vahşi Hayvan / Dev Canavar Avı",
+   "rank": "C/B",
+   "objectives": [
+    "Köylülerden ipucu topla",
+    "Canavarın inini bul",
+    "Avla veya bölgeden uzaklaştır"
+   ],
+   "typical_enemies": [
+    "Dev ayı/yaban domuzu, sınır bölgesinde çağırma kaçkını, mutasyonlu yaratık"
+   ],
+   "canon_example": "Hayvan avı görevleri",
+   "design_notes": "Yaratık dosyasına bağlı; zayıf nokta hedefleme."
+  },
+  {
+   "id": "recon",
+   "title_tr": "Keşif (Arazi/Hudut Keşfi)",
+   "rank": "C/B",
+   "objectives": [
+    "Belirlenen bölgeyi haritalandır",
+    "Düşman kamp/üs konumlarını işaretle",
+    "Görülmeden geri dön"
+   ],
+   "typical_enemies": [
+    "Düşman gözcüler, sensör ninjalar"
+   ],
+   "canon_example": "Savaş öncesi keşif ekipleri",
+   "design_notes": "Harita sisi açma; görülme = görev zorlaşır. Çağrılmış küçük hayvanlarla (kurbağa, böcek) keşif."
+  },
+  {
+   "id": "information_gathering",
+   "title_tr": "İstihbarat Toplama",
+   "rank": "B",
+   "objectives": [
+    "Kılık değiştirerek kasabaya sız",
+    "Hedef NPC'lerden söylenti topla",
+    "Gizli toplantıyı dinle",
+    "Raporu güvenli noktaya ilet"
+   ],
+   "typical_enemies": [
+    "Karşı casuslar, yakuza, düşman köy ajanları"
+   ],
+   "canon_example": "Kaçak bir sanninin izini süren istihbarat turları; casus ağı",
+   "design_notes": "Dönüşüm (Henge) + diyalog skill-check; yanlış soru = şüphe barı."
+  },
+  {
+   "id": "infiltration",
+   "title_tr": "Sızma (Düşman Köy/Üs)",
+   "rank": "A",
+   "objectives": [
+    "Bariyeri tespit et ve aş",
+    "Sensör tarandığında çakranı bastır",
+    "Hedef belgeyi/kişiyi bul",
+    "Alarm çalmadan çık"
+   ],
+   "typical_enemies": [
+    "Bariyer ekibi, sensör ninjalar, Anbu-benzeri muhafızlar"
+   ],
+   "canon_example": "Yağmur Köyü'ne sızma (Pain arkı), Ses gizli üslerine sızma",
+   "design_notes": "Gizlilik görevi; bariyer = görünmez alarm alanı (mühürlü işaretler); çakra bastırma barı."
+  },
+  {
+   "id": "investigation",
+   "title_tr": "Soruşturma (Gizemli Olay/Seri Kayıp)",
+   "rank": "C/B",
+   "objectives": [
+    "Olay yerini incele (iz, çakra kalıntısı)",
+    "Tanıkları sorgula",
+    "Şüphelileri ele",
+    "Faili yakala"
+   ],
+   "typical_enemies": [
+    "Genjutsu ile saklanan suçlu, kopyacı ninja, sahte yaratık söylentisi"
+   ],
+   "canon_example": "Anime dolgu soruşturma arkları (hayalet gemi, kayıp köylüler)",
+   "design_notes": "Dedektif modu: ipuçları defteri; yanlış suçlama = itibar kaybı."
+  },
+  {
+   "id": "tracking_deserter",
+   "title_tr": "Kaçak Ninjayı İz Sür (Kendi Köyünden Firari)",
+   "rank": "B/A",
+   "objectives": [
+    "Firarinin son görüldüğü yeri incele",
+    "Ninken/böcek/sensör ile iz sür",
+    "Sınırı geçmeden yetiş",
+    "Geri getir veya 'işini bitir'"
+   ],
+   "typical_enemies": [
+    "Firari + onu karşılayan rakip köy eskortu (dört kişilik elit ekip)"
+   ],
+   "canon_example": "Uchiha firarisini geri getirme görevi (Sasuke Retrieval arkı)",
+   "design_notes": "Zamanlı takip; ekip bölünmesi (her takım arkadaşı bir düşmanı oyalar); ahlaki son: geri ikna et/savaş."
+  },
+  {
+   "id": "hunt_rogue_ninja",
+   "title_tr": "Kaçak Ninja Avı (Bingo Kitabı Hedefi)",
+   "rank": "B/A/S",
+   "objectives": [
+    "Bingo Kitabı'ndan hedef seç",
+    "Bilgi topla, saklandığı bölgeyi bul",
+    "Yakala ya da öldür",
+    "Bedeni veya kanıtı teslim et (köy sırları için beden imhası)"
+   ],
+   "typical_enemies": [
+    "Kaçak ninja, korumaları, tuzaklar"
+   ],
+   "canon_example": "Av-ninjası görevleri; ödül avcıları",
+   "design_notes": "Ödül = Bingo Kitabı fiyatı; kaçak ninjanın kekkei genkai'si ganimet değil — beden imha edilmeli kuralı."
+  },
+  {
+   "id": "bounty_hunting",
+   "title_tr": "Ödül Avcılığı (Bağımsız)",
+   "rank": "B/A",
+   "objectives": [
+    "Ödül panosundan sözleşme al",
+    "Hedefi canlı/ölü getir",
+    "Ödül ofisinde teslim et (gizli takas noktası)"
+   ],
+   "typical_enemies": [
+    "Suçlular, diğer ödül avcıları"
+   ],
+   "canon_example": "Takas noktasında ödül tahsil eden suç örgütü üyeleri (Akatsuki ödül avı)",
+   "design_notes": "Kaçak oyuncu yolu için ana gelir; rakip avcılar aynı hedef için yarışır."
+  },
+  {
+   "id": "retrieve_stolen_scroll",
+   "title_tr": "Çalınan Parşömeni Geri Al",
+   "rank": "B",
+   "objectives": [
+    "Hırsızın kaçış yolunu belirle",
+    "Hırsızı yakala",
+    "Parşömenin açılmadığını doğrula (açılmışsa bilgi sızıntısı görevi)"
+   ],
+   "typical_enemies": [
+    "Hain chūnin, kiralık kaçaklar"
+   ],
+   "canon_example": "Yasak Mühür Parşömeni olayı (Naruto böl. 1)",
+   "design_notes": "Parşömen kopyalanmış olabilir — devam görevi tetikler."
+  },
+  {
+   "id": "retrieval_artifact",
+   "title_tr": "Kutsal Eşya/Kayıp Hazine Kurtarma",
+   "rank": "B/A",
+   "objectives": [
+    "Eşyanın izini sür",
+    "Rakip gruptan önce ulaş",
+    "Eşyayı mühürle ve teslim et"
+   ],
+   "typical_enemies": [
+    "Hazine avcıları, kendi ninjalarını gönderen küçük köyler, lanetli bekçi"
+   ],
+   "canon_example": "Anime/film arkları (Dragon Blade, Gelel taşı vb.)",
+   "design_notes": "Eşyanın laneti var: taşıyan karaktere debuff."
+  },
+  {
+   "id": "rescue",
+   "title_tr": "Kurtarma (Kaçırılan Kişi)",
+   "rank": "B/A",
+   "objectives": [
+    "Kaçıranların üssünü bul",
+    "Rehineyi bul",
+    "Güvenli çıkış yolu aç",
+    "Peşindekileri durdur"
+   ],
+   "typical_enemies": [
+    "Kaçıranlar, büyük köylerin kekkei genkai avcıları"
+   ],
+   "canon_example": "Kazekage'yi kurtarma görevi (Kazekage Kurtarma arkı)",
+   "design_notes": "Zamanla zayıflayan rehine sağlık barı."
+  },
+  {
+   "id": "hostage_rescue",
+   "title_tr": "Rehine Kurtarma",
+   "rank": "A",
+   "objectives": [
+    "Rehinelerin yerini tespit et",
+    "Muhafızları sessizce etkisiz bırak",
+    "Rehineleri tahliye et",
+    "Liderle yüzleş"
+   ],
+   "typical_enemies": [
+    "Teröristler/isyancı ninjalar, patlayıcı tuzaklar"
+   ],
+   "canon_example": "Anime arkları; Hyūga kaçırma olayı (gençken kaçırılma girişimi)",
+   "design_notes": "Paralel hedefler; bir rehine ölürse puan düşer; bölünme (klon) kullanımı."
+  },
+  {
+   "id": "bodyguard_daimyo",
+   "title_tr": "Daimyō Korumalığı",
+   "rank": "A",
+   "objectives": [
+    "Daimyō'nun yolculuğunda yakın koruma",
+    "Suikastçıları tespit et (kalabalıkta)",
+    "Zehir testi, kontrol noktası",
+    "Saray entrikasını çöz"
+   ],
+   "typical_enemies": [
+    "Suikastçı ninjalar, saray içi hain, Ninja Muhafızları dönekleri"
+   ],
+   "canon_example": "On İki Muhafız Ninja; Kar Ülkesi prensesi/aktris eskortu (film)",
+   "design_notes": "Protokol mini oyunu: kalabalık tarama; daimyō'nun kaprisleri görevi zorlaştırır."
+  },
+  {
+   "id": "vip_protection",
+   "title_tr": "VIP/Prens Koruma",
+   "rank": "A",
+   "objectives": [
+    "Hedef kişiyi suikastçılardan koru",
+    "Şatoya kadar ulaştır",
+    "Taç/hak meselesini çöz"
+   ],
+   "typical_enemies": [
+    "Darbeci ninjalar, kiralık kaçaklar"
+   ],
+   "canon_example": "Ay Ülkesi prensi eskortu, Ay Ülkesi darbesi (film)",
+   "design_notes": "Diyalogla kişilik değiştiren VIP (şımarık -> cesur) hikâye arkı."
+  },
+  {
+   "id": "assassination_prevention",
+   "title_tr": "Suikast Önleme",
+   "rank": "A",
+   "objectives": [
+    "İstihbaratla suikast planını öğren",
+    "Olası saldırı noktalarını kapat",
+    "Suikastçıyı yakala, arkasındaki eli bul"
+   ],
+   "typical_enemies": [
+    "Gizli suikastçı ekibi (sahte kimlikli), zehir uzmanları"
+   ],
+   "canon_example": "Kage zirvesi/Daimyō toplantısında güvenlik",
+   "design_notes": "Sosyal gizlilik: kalabalıktaki şüpheliyi davranışından tanı."
+  },
+  {
+   "id": "guard_duty",
+   "title_tr": "Nöbet / Kapı Muhafızlığı",
+   "rank": "C",
+   "objectives": [
+    "Köy kapısında giriş-çıkışları kontrol et",
+    "Belgeleri incele, şüpheliyi durdur",
+    "Gece devriyesi"
+   ],
+   "typical_enemies": [
+    "Kaçakçılar, kılık değiştirmiş casuslar"
+   ],
+   "canon_example": "Kapı nöbetçisi chūnin'ler",
+   "design_notes": "'Papers, please' tarzı kontrol mini oyunu (sahte izin belgesi, Henge tespiti)."
+  },
+  {
+   "id": "border_patrol",
+   "title_tr": "Sınır Devriyesi",
+   "rank": "B",
+   "objectives": [
+    "Sınır hattını devriye et",
+    "İhlal eden düşman timini durdur",
+    "Sınır taşlarını/bariyer direklerini kontrol et"
+   ],
+   "typical_enemies": [
+    "Düşman köy keşif timleri, kaçakçılar"
+   ],
+   "canon_example": "Savaş sonrası sınır gerginlikleri",
+   "design_notes": "Dinamik olay: sınır çatışması diplomatik krize dönebilir (öldür/yakala seçimi)."
+  },
+  {
+   "id": "diplomacy",
+   "title_tr": "Diplomatik Görev / Elçi Koruma",
+   "rank": "B/A",
+   "objectives": [
+    "Mektubu/elçiyi diğer köye ulaştır",
+    "Müzakerede bulun, provokasyonları engelle",
+    "Barış/ittifak anlaşmasını imzalat"
+   ],
+   "typical_enemies": [
+    "Savaş yanlısı fraksiyon, provokatörler"
+   ],
+   "canon_example": "Kumo-Konoha barış antlaşması olayı (elçi suikast girişimi, Hyūga olayı)",
+   "design_notes": "Diyalog ağacı; her söz ilişki puanını değiştirir; başarısızlık savaş tetikler."
+  },
+  {
+   "id": "seal_reinforcement",
+   "title_tr": "Mühür Güçlendirme",
+   "rank": "A",
+   "objectives": [
+    "Eski mühürlü tapınağa ulaş",
+    "Mühür taşlarını/etiketlerini yenile",
+    "Mühürden sızan yaratık/çakrayla savaş"
+   ],
+   "typical_enemies": [
+    "Mühürlü varlık, mühür bozmak isteyen tarikat"
+   ],
+   "canon_example": "Kurama/canavar mühürleri, Kodon klanının tapınak mühürü (anime)",
+   "design_notes": "Ritüel mühür sırası (el mühürü dizisi) + dalga savunması."
+  },
+  {
+   "id": "tailed_beast_capture_defense",
+   "title_tr": "Jinchūriki Koruma / Kuyruklu Canavar Yakalama Savunması",
+   "rank": "S",
+   "objectives": [
+    "Jinchūriki'yi gizli adaya/sığınağa taşı",
+    "Suç örgütü ikilisinin saldırısını savuştur",
+    "Çıkarma ritüeli başlamışsa 3 gün içinde kurtar"
+   ],
+   "typical_enemies": [
+    "Halka/pelerinli S-rank ikili (rogue_org)",
+    "Mühür heykeli ritüeli"
+   ],
+   "canon_example": "Akatsuki'nin canavar avı; Kaplumbağa Ada'da jinchūriki saklama",
+   "design_notes": "Zaman sınırı: ayıklama ~3 gün sürer. Başarısızlık = jinchūriki ölür (kalıcı dünya değişikliği)."
+  },
+  {
+   "id": "war_front",
+   "title_tr": "Savaş Cephesi Görevi",
+   "rank": "A/S",
+   "objectives": [
+    "Tümen komutanının emrini yerine getir",
+    "Cephe hattını tut",
+    "Düşman komutanı/diriltilmiş eliteyi mühürle",
+    "Yaralıları tıbbi birliğe taşı"
+   ],
+   "typical_enemies": [
+    "Beyaz zetsu benzeri sürüler, diriltilmiş eski kahramanlar, düşman ordusu"
+   ],
+   "canon_example": "4. Shinobi Dünya Savaşı tümen savaşları",
+   "design_notes": "Büyük ölçekli savaş haritası; müttefik NPC dalgaları; komut sistemi (organizations.allied_forces)."
+  },
+  {
+   "id": "sabotage",
+   "title_tr": "Sabotaj (İkmal Hattı/Köprü İmhası)",
+   "rank": "A",
+   "objectives": [
+    "Düşman ikmal deposuna sız",
+    "Patlayıcı etiketleri yerleştir",
+    "Köprü/barajı patlat",
+    "Kaçış"
+   ],
+   "typical_enemies": [
+    "Depo muhafızları, patlama birliği"
+   ],
+   "canon_example": "3. Dünya Savaşı'nda Kannabi Köprüsü imha görevi",
+   "design_notes": "Zamanlayıcı ve kaçış parkuru; çevre yıkımı."
+  },
+  {
+   "id": "assassination",
+   "title_tr": "Suikast (Gizli Operasyon)",
+   "rank": "S",
+   "objectives": [
+    "Hedefin günlük rutinini gözle",
+    "Zayıf anı bul",
+    "Sessizce etkisiz bırak",
+    "İz bırakmadan dön"
+   ],
+   "typical_enemies": [
+    "Hedefin korumaları"
+   ],
+   "canon_example": "Anbu/Root gizli görevleri",
+   "design_notes": "Kanon karakter olmadığından hedefler özgün; karma etkisi; Root benzeri hat için zorunlu görevler."
+  },
+  {
+   "id": "disaster_relief",
+   "title_tr": "Afet Yardımı / Yeniden İnşa",
+   "rank": "C",
+   "objectives": [
+    "Enkaz altındaki köylüleri çıkar",
+    "Tıbbi birliğe yaralı taşı",
+    "Geçici barınak kur (Toprak/Ağaç jutsu)"
+   ],
+   "typical_enemies": [
+    "Yağmacılar, artçı saldırı"
+   ],
+   "canon_example": "Pain saldırısı sonrası yeniden inşa",
+   "design_notes": "Barış zamanı görevleri; köy restorasyon metresi."
+  },
+  {
+   "id": "smuggling_bust",
+   "title_tr": "Kaçakçılık Baskını",
+   "rank": "B",
+   "objectives": [
+    "Liman deposunu gözetle",
+    "Kaçak mal (yasak ilaç, silah, kekkei genkai bedenleri) tespit et",
+    "Baskın yap"
+   ],
+   "typical_enemies": [
+    "Korsan klan (Funato tipi), yakuza, rüşvetçi yetkili"
+   ],
+   "canon_example": "Funato Korsan Klanı arkı, uyuşturucu (saigenzai) çetesi (Sendō Klanı)",
+   "design_notes": "Gemi güvertesinde dövüş; deniz/su yürüme mekaniği."
+  },
+  {
+   "id": "exam_proctoring",
+   "title_tr": "Sınav Gözetmenliği",
+   "rank": "B",
+   "objectives": [
+    "Sınav alanında güvenliği sağla",
+    "Hileyi/sızmayı tespit et",
+    "Yaralı adayı kurtar"
+   ],
+   "typical_enemies": [
+    "Sınava sızmış kaçak, rakip köy casusu"
+   ],
+   "canon_example": "Chūnin Sınavı gözetmen birliği",
+   "design_notes": "Chūnin+ oyuncular için tekrar edilebilir görev; sızma olayı rastgele."
+  },
+  {
+   "id": "medical_support",
+   "title_tr": "Salgın/Zehir Krizi",
+   "rank": "B",
+   "objectives": [
+    "Hastaları triyaj et",
+    "Zehrin kaynağını bul",
+    "Panzehir için nadir bitki topla",
+    "Tedaviyi uygula"
+   ],
+   "typical_enemies": [
+    "Zehir ustası kaçak, mutant böcekler"
+   ],
+   "canon_example": "Kum ninjasının zehirleriyle Suna krizi (Kazekage Kurtarma arkı)",
+   "design_notes": "Tıbbi ninja sınıfının ana içerik hattı."
+  },
+  {
+   "id": "training_dummy_escort",
+   "title_tr": "Akademi Öğrencisi Gezisi (Saha Gezisi)",
+   "rank": "D",
+   "objectives": [
+    "Öğrencileri doğa gezisinde koru",
+    "Kaybolan çocuğu bul"
+   ],
+   "typical_enemies": [
+    "Yaban hayvanı, şakacı öğrenciler"
+   ],
+   "canon_example": "Boruto dönemi saha gezileri",
+   "design_notes": "Kıdemli oyuncular için 'sensei' rol görevleri."
+  },
+  {
+   "id": "rogue_village_investigation",
+   "title_tr": "Gizli Köy/Üs Soruşturması",
+   "rank": "A",
+   "objectives": [
+    "Söylentiyi doğrula (yeni gizli köy?)",
+    "Liderin amacını öğren",
+    "İnsan deneyleri varsa kanıt topla"
+   ],
+   "typical_enemies": [
+    "Deney ürünü mutant ninjalar, lanet mühürlü askerler"
+   ],
+   "canon_example": "Orochimaru'nun gizli üsleri; Ses Köyü",
+   "design_notes": "Deney laboratuvarı zindanı; lanet mühür kaynağını bulma (cursed_seals)."
+  },
+  {
+   "id": "weather_festival",
+   "title_tr": "Festival Güvenliği",
+   "rank": "C",
+   "objectives": [
+    "Festival süresince kalabalığı koru",
+    "Hırsızlık şebekesini çökert",
+    "Havai fişek gösterisini sabote etmek isteyenleri durdur"
+   ],
+   "typical_enemies": [
+    "Yankesiciler, sabotajcılar"
+   ],
+   "canon_example": "Anime festival arkları",
+   "design_notes": "Sosyal etkinlik + mini oyunlar (balık yakalama, maske tezgahı)."
+  }
+ ],
+ "organizations": [
+  {
+   "id": "anbu",
+   "name": "Anbu (Ansatsu Senjutsu Tokushu Butai — Özel Suikast ve Taktik Birlik)",
+   "type": "village_special_forces",
+   "base": "Her büyük köy; Kage binası altı gizli karargâh",
+   "desc": "Kage'ye doğrudan bağlı; suikast, kaçak takibi, sınır tehditleri, yüksek riskli görevler. Alt birimleri: Av-ninjaları, Kage muhafızları.",
+   "insignia_uniform": "Hayvan figürlü beyaz porselen maske (kedi, kuş, ayı, kaplan...), kısa kollu siyah/koyu gri gövde + gri metal göğüs zırhı/kol koruyucular, sol omuzda köy sarmalı dövme, sırtta düz kınlı tantō",
+   "hierarchy": "Kage -> Anbu Komutanı/Kaptanlar -> 4 kişilik timler (hayvan kod adıyla); üyeler kimliklerini gizler.",
+   "recruitment": "Kage'nin seçtiği yetenekler, yaştan bağımsız (13 yaşında kaptanlar). Maske takılınca gerçek kimlik gizli; ayrılınca maske iade.",
+   "game_use": "Gizli görev hattı; maske kozmetiği; kimlik gizleme mekaniği (NPC'ler tanımaz). Kaçak avı, suikast, Kage koruması.",
+   "canon_reference": "Anbu"
+  },
+  {
+   "id": "root",
+   "name": "Ne (Kök) — Anbu Eğitim Birimi kılıfında gizli örgüt",
+   "type": "village_shadow_org",
+   "base": "Köyün altında gizli tüneller/karargâh",
+   "desc": "'Kökler toprağın altından ağacı besler' felsefesi; Kage'ye karşı darbe planları; düşman örgütle gizli işbirliği.",
+   "insignia_uniform": "Anbu benzeri maskeler (bazıları maskesiz), koyu giysi, kod adları; dilde siyah mühür (dil-mühür)",
+   "hierarchy": "Tek lider (büyük) -> üyeler; duygulardan arındırılmış, isimsiz ajanlar. Resmî olarak dağıtılmış ama gizlice sürer.",
+   "recruitment": "Yetimler ve savaş çocukları küçük yaşta alınır; duygularını bastırmak için en yakın arkadaşını öldürme sınavı.",
+   "game_use": "Ahlaki gri hikâye hattı: 'Köyü gölgeden korumak' — gizli suikastlar, komplo. Dil-mühür lanetiyle sır ifşa etmek felç eder (cursed_seals.tongue_seal).",
+   "canon_reference": "Root"
+  },
+  {
+   "id": "rogue_org",
+   "name": "Halka Örgütü (Akatsuki-benzeri — 'Şafak' tipi kaçak ninja örgütü)",
+   "type": "rogue_criminal_org",
+   "base": "Gizli mağara üsleri (dev kaya kapı + beş mühür bariyeri), yağmurlu kuleler",
+   "desc": "Başta savaşı bitirmek isteyen barış hareketi olarak kuruldu; sonra kuyruklu canavarları toplayıp dev heykelde mühürlemeye yöneldi.",
+   "insignia_uniform": "Siyah, yüksek yakalı uzun pelerin üzerinde kırmızı-beyaz kenarlı bulut desenleri; sıklıkla hasır şapka + çan/kâğıt şeritler; mor oje; parmakta kanji yazılı yüzük (her üyenin yüzüğü bir parmakta ve heykelin bir parmağına karşılık gelir); alın bandının sembolü çizik",
+   "hierarchy": "Lider (perde arkası) + vitrin lider -> 2 kişilik hücreler (her hücre bir bölge/canavar hedefi) -> casus ağı, ödül takas noktaları.",
+   "recruitment": "Yalnızca S-rank kaçaklar; genelde üyeyi yenen/ikna eden davet eder; ayrılan üye ölümle cezalandırılır.",
+   "game_use": "Ana antagonist şablonu: kuyruklu canavar avı, ödül avcılığı ile finansman, iki kişilik boss savaşları; hologram toplantısı.",
+   "canon_reference": "Akatsuki"
+  },
+  {
+   "id": "sound_village",
+   "name": "Otogakure (Ses Köyü — Gizli Ses Köyü)",
+   "type": "rogue_hidden_village",
+   "base": "Pirinç Tarlaları Ülkesi; birden çok gizli yer altı laboratuvar üssü",
+   "desc": "Ses tabanlı jutsular (ses dalgası kol cihazları), bedensel modifikasyon.",
+   "insignia_uniform": "Alın bandında müzik notası sembolü; tüylü/koyu kıyafetler, kalın mor ip kuşak (yay şeklinde); deneyle değiştirilmiş bedenler",
+   "hierarchy": "Kurucu sannin -> sağ kol (casus) -> elit dörtlü muhafız -> lanet mühürlü askerler -> deney denekleri",
+   "recruitment": "Yetimler, sürgünler, kekkei genkai sahipleri; güç vaadiyle kandırılan klanlar (Fūma, Shiin).",
+   "game_use": "Deney zindanları, lanet mühür kaynağı, istila olayı. Yeni gizli köy şablonu: lideri kaçak sannin.",
+   "canon_reference": "Otogakure"
+  },
+  {
+   "id": "seven_swordsmen",
+   "name": "Kirigakure Shinobigatana Shichinin Shū (Sis'in Yedi Ninja Kılıç Ustası)",
+   "type": "elite_squad",
+   "base": "Kirigakure (water)",
+   "insignia_uniform": "Her üyenin efsanevi kılıcı (dev kılıç, çift kılıç, ip kılıç, patlayıcı balta-çekiç, iğne kılıç, çekiç, köpekbalığı derisi kılıç); sivri dişler, yüz bandajları, kamuflaj pantolon",
+   "hierarchy": "7 kılıç = 7 koltuk; kılıç genelde önceki sahibi yenilerek devralınır.",
+   "recruitment": "Kiri'nin en iyi kılıç ustaları; Kanlı Sis döneminde vahşi düellolar.",
+   "game_use": "Efsanevi silah boss zinciri; her kılıç ayrı düello (silah dosyasında detay).",
+   "canon_reference": "Seven Ninja Swordsmen of the Mist"
+  },
+  {
+   "id": "kara",
+   "name": "Kara (Kabuk) — Ōtsutsuki kalıntılarına bağlı gizli örgüt",
+   "type": "rogue_secret_org",
+   "base": "Gizli araştırma üsleri, dünyanın dört bir yanında hücreler",
+   "insignia_uniform": "Sade beyaz/koyu kıyafet, iç çemberde alnında/elinde 'Kāma' benzeri elmas siyah işaret; dış çemberde kod adları; holografik toplantı",
+   "hierarchy": "Lider (yabancı ırk kalıntısı) -> İç Çember (Ōtsutsuki gemisi/kāma taşıyanlar, rakamlı kod adları) -> Dış Çember (Kara-Kuro/ajan) -> deney ürünleri",
+   "recruitment": "Kekkei genkai sahipleri, bilim insanları, insan dışı kaplar; amaç ilahi ağacın meyvesini yetiştirmek.",
+   "game_use": "Geç oyun antagonist şablonu: bilimsel ninja aletleri, sibernetik ninjalar, kāma laneti olayı.",
+   "canon_reference": "Kara"
+  },
+  {
+   "id": "hunter_nin",
+   "name": "Oinin Butai (Av-ninjası Birliği)",
+   "type": "village_special_forces",
+   "base": "Her köy (Anbu alt birimi)",
+   "insignia_uniform": "Anbu benzeri beyaz maske (göz yarıklı, köy sembolü), koyu kıyafet; ceset taşıma çantası",
+   "hierarchy": "Kage -> Anbu -> av timleri",
+   "recruitment": "Tıbbi ve mühür bilgisi olan Anbu.",
+   "game_use": "Kaçak oyuncuya karşı av sistemi; kaçak NPC avı görevleri. Kural: kaçak ninjanın bedeni sırların (kekkei genkai, köy jutsuları) sızmaması için yerinde yakılır/yok edilir.",
+   "canon_reference": "Hunter-nin"
+  },
+  {
+   "id": "medical_corps",
+   "name": "İryō Butai (Tıbbi Birlik)",
+   "type": "village_corps",
+   "base": "Köy hastanesi, savaşta sahra hastaneleri",
+   "insignia_uniform": "Beyaz veya yeşil yelek üzerine sarı/kırmızı tıbbi rozet; ellerde yeşil şifa çakrası",
+   "hierarchy": "Baş tıbbi ninja -> hastane şefleri -> sahra tıbbi timleri (her takımda bir tıbbi ninja ilkesi)",
+   "recruitment": "Mükemmel çakra kontrolü olanlar; tıbbi sertifika (exams.other_trials.medical_nin_certification).",
+   "game_use": "Şifacı sınıfı; triyaj görevleri; savaş haritasında revir. Kurallar: tıbbi ninja asla savaş alanında önce ölmemeli, tedaviyi bırakmamalı.",
+   "canon_reference": "Medical-nin / Medical Corps"
+  },
+  {
+   "id": "sensor_corps",
+   "name": "Kanchi Butai (Sensör Birliği)",
+   "type": "village_corps",
+   "base": "Köy savunma merkezi; savaşta karargâh",
+   "insignia_uniform": "Standart yelek + kulaklık/telsiz; sensör bağlantısı için meditasyon pozu",
+   "hierarchy": "Sensör komutanı -> zihin bağlantı ağı (iletişim timi)",
+   "recruitment": "Sensör yeteneği olanlar (Yamanaka gibi klanlar, doğuştan sensörler).",
+   "game_use": "Mini harita radar yetenekleri; savaşta zihin ağı ile emir iletimi.",
+   "canon_reference": "Sensor Ninja; Allied Shinobi Forces Sensor Division"
+  },
+  {
+   "id": "barrier_team",
+   "name": "Kekkai Han (Bariyer Takımı)",
+   "type": "village_corps",
+   "base": "Köy çevresi bariyer kulesi",
+   "insignia_uniform": "Yelek + mühür etiketleri; dört köşede oturan dörtlü ekip",
+   "hierarchy": "Bariyer lideri (Konoha'da geleneksel olarak Yamanaka klanı) -> çevre gözcüleri",
+   "recruitment": "Fūinjutsu ve sensör yeteneği.",
+   "game_use": "Görünmez algılama bariyeri: oyuncu bariyerden geçince alarm. Savunma kuşatma görevleri.",
+   "canon_reference": "Konoha Barrier Team"
+  },
+  {
+   "id": "interrogation_force",
+   "name": "Jinmon Butai / Ansatsu Senjutsu Tokushu Butai Jinmon (İşkence ve Sorgu Birliği)",
+   "type": "village_corps",
+   "base": "Köyün içinde penceresiz sorgu binası",
+   "insignia_uniform": "Uzun koyu trençkot, yüz yaraları, başörtüsü-alın bandı; sorgu odaları",
+   "hierarchy": "Sorgu şefi (tokubetsu jōnin) -> sorgucular, zihin okuyucular",
+   "recruitment": "Psikoloji ve genjutsu uzmanları; zihin klanları.",
+   "game_use": "Esir sorgulama mini oyunu (korku/güven barı); bilgi elde edilince yeni görev açılır.",
+   "canon_reference": "Konoha Torture and Interrogation Force"
+  },
+  {
+   "id": "military_police",
+   "name": "Keimu Butai (Askerî İnzibat Kuvveti)",
+   "type": "village_police",
+   "base": "Köy kenarındaki klan bölgesi (sonradan merkez karakol)",
+   "insignia_uniform": "Yelek/yakada klan arması + yuvarlak polis amblemi (Konoha'da üç noktalı yıldız benzeri), mavi-lacivert üniforma",
+   "hierarchy": "Kurucu klanın başı -> memurlar; tek bir klana teslim edilmiş polis gücü",
+   "recruitment": "Başta tek klanın üyeleri; olay sonrası çok klanlı modern polis.",
+   "game_use": "Köy içi suç sistemi (kaçakçılık, kavga); gerilim hattı: polisi kontrol eden klan ile köy yönetimi arasındaki güvensizlik -> darbe olayı.",
+   "canon_reference": "Konoha Military Police Force"
+  },
+  {
+   "id": "twelve_guardians",
+   "name": "Shugonin Jūnishi (On İki Muhafız Ninja)",
+   "type": "daimyo_guard",
+   "base": "Ateş Ülkesi başkenti, daimyō sarayı",
+   "insignia_uniform": "Bel kuşağında 'Ateş' (火) kanjili kumaş; uzun gri cübbe/boyunluk; her biri farklı silah",
+   "hierarchy": "12 elit ninja -> daimyō'ya doğrudan hizmet",
+   "recruitment": "Ülkenin her köyünden seçkin ninjalar; ihanet edenler (biri kaçıp darbe girişimi) büyük skandal.",
+   "game_use": "Daimyō koruma görevleri; dağılmış muhafızlar = yan antagonistler.",
+   "canon_reference": "Twelve Guardian Ninja"
+  },
+  {
+   "id": "samurai_of_iron",
+   "name": "Tetsu no Kuni Samurai (Demir Ülkesi Samurayları)",
+   "type": "neutral_military",
+   "base": "Demir Ülkesi (iron) — karlı dağlar, kale-şehir",
+   "desc": "Ninjutsu kullanmaz ama kılıçlarına çakra akıtırlar; Kage zirvesi için tarafsız topraktır.",
+   "insignia_uniform": "Tam samuray zırhı (kask, omuzluk), sarı-gri renkler, katana; liderinde maske ve geyik boynuzu benzeri sorguç",
+   "hierarchy": "General (Mifune-tipi) -> samuray birlikleri; ninja köylerinden bağımsız",
+   "recruitment": "Demir Ülkesi'nde doğanlar; bushidō.",
+   "game_use": "Tarafsız arabulucu hizip; Kage zirvesi ev sahibi; kılıca çakra akıtma (çakra kılıç) yeteneği.",
+   "canon_reference": "Samurai"
+  },
+  {
+   "id": "allied_forces",
+   "name": "Shinobi Rengōgun (Müttefik Shinobi Kuvvetleri)",
+   "type": "coalition_army",
+   "base": "Beş Büyük Köy; merkez karargâh (Kumo yakınları savaş sırasında)",
+   "insignia_uniform": "Tüm köylerin ortak alın bandı: '忍' (Shinobi) kanjisi; kendi köy yelekleri",
+   "hierarchy": "Başkomutan (Kage'lerden biri) -> Karargâh (istihbarat, sensör, zihin ağı) -> 5 Tümen: 1. Ön Cephe/Karma (yakın-orta mesafe), 2. Orta Mesafe, 3. Yakın Dövüş, 4. Uzun Mesafe, 5. Özel (zayıflatma/mühür) + Gözcü/Sensör, Lojistik/İkmal, Tıbbi Tümen, Gerilla birlikleri, Kage muhafız birimi.",
+   "recruitment": "Seferberlik: tüm köyler + samuraylar; tümenler yeteneğe göre karma köylerden.",
+   "game_use": "Savaş kampanyası: oyuncu bir tümene atanır; bölük rolüne göre görev havuzu. Ortak alın bandı kozmetiği.",
+   "canon_reference": "Allied Shinobi Forces"
+  },
+  {
+   "id": "kage_council",
+   "name": "Gokage Kaidan (Beş Kage Konseyi/Zirvesi)",
+   "type": "political_body",
+   "base": "Tarafsız topraklar (Demir Ülkesi zirve salonu)",
+   "insignia_uniform": "Her Kage'nin şapkası (kasa) — üzerinde köy kanjisi: 火 Ateş, 風 Rüzgâr, 水 Su, 雷 Yıldırım, 土 Toprak; Kage cübbesi; iki muhafız",
+   "hierarchy": "5 Kage + her birine 2 koruma; tarafsız moderatör (samuray generali)",
+   "recruitment": "Herhangi bir Kage toplayabilir.",
+   "game_use": "Siyasi olay merkezi; oyuncunun Kage muhafızı olarak katıldığı zirve görevi.",
+   "canon_reference": "Five Kage Summit"
+  },
+  {
+   "id": "village_elders",
+   "name": "Köy Büyükleri ve Danışman Konseyi",
+   "type": "political_body",
+   "base": "Kage binası",
+   "insignia_uniform": "Geleneksel kimonolar, yaşlı ninjalar",
+   "hierarchy": "Kage -> danışmanlar (2-3 yaşlı) -> Jōnin Komutanı",
+   "recruitment": "Eski takım arkadaşları, emekli kahramanlar.",
+   "game_use": "Siyasi diyalog; Kage seçimi oyları.",
+   "canon_reference": "Kage; Konoha Council"
+  },
+  {
+   "id": "daimyo_court",
+   "name": "Daimyō Sarayı (Feodal Lordlar)",
+   "type": "feudal_court",
+   "base": "Her ülkenin başkenti (geography.countries)",
+   "desc": "Ninja köyleri resmî olarak daimyō'ya bağlıdır; Kage'yi onaylar, savaş bütçesini belirler.",
+   "insignia_uniform": "Görkemli kimonolar, yelpaze, yüksek şapkalar (eboshi), saray muhafızları",
+   "hierarchy": "Daimyō -> danışman kurulu -> saray muhafızları/samurayları; köy ninjası ülkenin askerî gücüdür, ekonomik bağımlılık daimyō'ya",
+   "recruitment": "Soy ile.",
+   "game_use": "Görev veren büyük müşteri; Chūnin Sınavı finali izleyicisi; politik entrikalar ve bütçe kesintisi olayları.",
+   "canon_reference": "Daimyō"
+  },
+  {
+   "id": "bandit_groups",
+   "name": "Sanzoku (Haydut Çeteleri) ve Kiralık Haydutlar",
+   "type": "criminal_gang",
+   "base": "Dağ geçitleri, orman kampları, harabeler",
+   "insignia_uniform": "Yırtık kimono, bandanalar, kılıç/katana/sopalar; lider zırh parçaları taşır; bazen eski genin",
+   "hierarchy": "Lider -> çavuşlar -> haydutlar; bazen kaçak ninja koruma kiralar",
+   "recruitment": "Yoksul köylüler, savaş kaçkınları.",
+   "game_use": "C-rank düşman havuzu; tekelci tüccarın (Gatō tipi) haydutları.",
+   "canon_reference": "Bandits; Gatō Company"
+  },
+  {
+   "id": "pirate_clan",
+   "name": "Korsan Klanı (Funato tipi)",
+   "type": "criminal_clan",
+   "base": "Su Ülkesi kıyıları, gemiler",
+   "insignia_uniform": "Denizci kıyafetleri, bandanalar, yüz boyaları, kürekler ve gemi kancaları",
+   "hierarchy": "Klan reisi -> kan bağı olan çekirdek -> gönüllü askerler (ölüme hazır)",
+   "recruitment": "Doğum + benzer fikirli maceracılar.",
+   "game_use": "Deniz görevleri, gemi güvertesi savaşları.",
+   "canon_reference": "Funato Clan"
+  },
+  {
+   "id": "warrior_clan",
+   "name": "Savaşçı Klan (Kaguya tipi)",
+   "type": "warrior_clan",
+   "base": "Su Ülkesi; ıssız ada/kayalık köyler",
+   "desc": "Savaşı sanat olarak gören, plansız saldırılarla yok olan klan.",
+   "insignia_uniform": "Kırmızı göz noktaları (alında iki nokta), kemik çıkıntıları, beyaz-gri kimono; ilkel savaş boyaları",
+   "hierarchy": "Klan reisi -> savaşçılar; savaşın kendisi için savaşan kültür",
+   "recruitment": "Doğum.",
+   "game_use": "Kan dökücü klan istilası olayı; kemik silahlı düşmanlar.",
+   "canon_reference": "Kaguya Clan"
+  },
+  {
+   "id": "sound_four",
+   "name": "Ses Dörtlüsü-benzeri Elit Muhafız Ekibi",
+   "type": "elite_squad",
+   "base": "Gizli köy üsleri",
+   "desc": "Dört Mor Alev bariyeri ile lideri korurlar.",
+   "insignia_uniform": "Kalın mor ip kuşak (arkada yay), açık renk kimono/üst, alın bandı; her birinin lanet mühürü farklı yerde; seviye 2'de canavarsı formlar",
+   "hierarchy": "4 kişi (kuzey/güney/doğu/batı kapıları) + 5. lider/yedek; sannin'in kişisel muhafızları",
+   "recruitment": "Lanet mühür verilmiş seçkin çocuk askerler.",
+   "game_use": "Kaçırma/eskort boss ekibi; dörtlü bariyer (Dört Mor Alev Oluşumu benzeri) mekanikli savaş.",
+   "canon_reference": "Sound Four"
+  },
+  {
+   "id": "taka_team",
+   "name": "Taka-benzeri Kaçak Takım (Şahin)",
+   "type": "rogue_squad",
+   "base": "Gezgin",
+   "insignia_uniform": "Uyumsuz kıyafetler, beyaz yakalı kimono, kılıç; sonradan halka örgütün pelerini",
+   "hierarchy": "Lider + 3 uzman (su bedenli kılıç ustası, sensör/şifacı, doğal enerji emen dev)",
+   "recruitment": "Liderin kişisel daveti; ortak amaç (intikam).",
+   "game_use": "Rakip oyuncu partisi şablonu; tekrarlayan mini boss ekip.",
+   "canon_reference": "Taka"
+  },
+  {
+   "id": "puppet_brigade",
+   "name": "Kugutsu Butai (Kukla Birliği)",
+   "type": "village_corps",
+   "base": "Sunagakure (wind)",
+   "insignia_uniform": "Sırtta sarılı kukla, mor yüz boyaları, kapüşonlu kostüm",
+   "hierarchy": "Kukla ustası komutan -> kukla timleri",
+   "recruitment": "Suna'nın çakra ipliği yeteneklileri.",
+   "game_use": "Kukla sınıfı; çoklu birim kontrolü; zehirli silahlar.",
+   "canon_reference": "Puppet Brigade"
+  },
+  {
+   "id": "explosion_corps",
+   "name": "Bakuha Butai (Patlama Birliği)",
+   "type": "village_corps",
+   "base": "Iwagakure (earth)",
+   "insignia_uniform": "Kahverengi-kırmızı Iwa yeleği, tek kollu üniforma, eldivenlerde ağız benzeri mühür",
+   "hierarchy": "Birlik komutanı -> patlayıcı uzmanları",
+   "recruitment": "Patlama doğası (Explosion Release) yeteneklileri.",
+   "game_use": "Sabotaj ve kuşatma düşmanları; patlama yayılma alanı mekaniği.",
+   "canon_reference": "Explosion Corps (Iwa)"
+  },
+  {
+   "id": "kiri_hunter_squads",
+   "name": "Kanlı Sis Gizli Birliği / Kiri Avcı Timleri",
+   "type": "village_corps",
+   "base": "Kirigakure (water)",
+   "insignia_uniform": "Göz yarıklı beyaz maskeler, sis içinde görünmez",
+   "hierarchy": "Mizukage -> Av timleri",
+   "recruitment": "Kiri'nin vahşi mezuniyet geleneğinden çıkanlar.",
+   "game_use": "Sisli bölge düşmanları; kekkei genkai avı tarihî olayı (Yuki Klanı zulmü).",
+   "canon_reference": "Kirigakure Hunter-nin"
+  },
+  {
+   "id": "guardian_shrine_monks",
+   "name": "Ateş Tapınağı Muhafız Rahipleri",
+   "type": "religious_order",
+   "base": "Ateş Ülkesi tapınakları",
+   "insignia_uniform": "Keşiş cübbesi, tespih, kazınmış baş; ateş tapınağı işaretleri",
+   "hierarchy": "Baş rahip -> keşiş savaşçılar",
+   "recruitment": "Keşiş adaylar.",
+   "game_use": "Mühür ve tapınak görevleri; bazı eski Muhafız Ninjalar burada.",
+   "canon_reference": "Fire Temple (anime)"
+  }
+ ],
+ "world_events": [
+  {
+   "id": "warring_states",
+   "name": "Savaşan Devletler Dönemi",
+   "category": "era_war",
+   "desc": "Köylerden önce ninjalar klanlar hâlinde paralı asker olarak savaşırdı; çocuklar bile savaşta ölürdü. İki büyük rakip klan barış yapıp ilk gizli köyü kurdu, Kage sistemi doğdu.",
+   "phases": [
+    "Klan çatışmaları",
+    "Kurucu klanların barışı",
+    "İlk köyün kuruluşu",
+    "Diğer ülkelerin köy modelini taklidi"
+   ],
+   "gameplay_hooks": [
+    "Prolog/flashback bölümleri",
+    "Klan tarihi lore kitapları",
+    "Antik savaş alanı harabeleri keşfi"
+   ],
+   "canon_reference": "Warring States Period",
+   "era": "pre-village"
+  },
+  {
+   "id": "first_world_war",
+   "name": "1. Shinobi Dünya Savaşı",
+   "category": "world_war",
+   "desc": "Köyler kurulduktan sonra güç dengesi bozuldu; ilk büyük köyler arası savaş. Kuyruklu canavarların köylere dağıtılması ve ilk Kage'lerin ölümleri.",
+   "phases": [
+    "Gerginlik",
+    "Cephe savaşları",
+    "Kurucu Kage'nin ölümü",
+    "Ateşkes"
+   ],
+   "gameplay_hooks": [
+    "Eski savaş alanı zindanları",
+    "Kayıp yasak jutsu parşömenleri"
+   ],
+   "canon_reference": "First Shinobi World War",
+   "era": "early"
+  },
+  {
+   "id": "second_world_war",
+   "name": "2. Shinobi Dünya Savaşı",
+   "category": "world_war",
+   "desc": "Küçük ülkelerin büyükleri ile çatıştığı savaş; Yağmur Ülkesi savaş alanı oldu. Efsanevi üç ninja (sannin) unvanı bu savaşta verildi.",
+   "phases": [
+    "Küçük ülkeler cephe olur",
+    "Yağmur Ülkesi yıkımı",
+    "Sannin efsanesi",
+    "Yetimler ve kin"
+   ],
+   "gameplay_hooks": [
+    "Yetim karakter geçmişleri",
+    "Yağmur bölgesinde hayalet savaş anıları"
+   ],
+   "canon_reference": "Second Shinobi World War",
+   "era": "mid"
+  },
+  {
+   "id": "third_world_war",
+   "name": "3. Shinobi Dünya Savaşı",
+   "category": "world_war",
+   "desc": "Büyük köylerin zayıflaması ve sınır anlaşmazlıkları; köprü sabotajı, büyük çaplı katliamlar, genç yaşta savaşan nesil. Çakra ile genç dâhiler ve 'Sarı Şimşek' tipi efsaneler doğdu.",
+   "phases": [
+    "Cepheler (Kusa, Kiri, Suna)",
+    "Köprü sabotajı",
+    "Genç yaşta mezunlar",
+    "Barış antlaşması"
+   ],
+   "gameplay_hooks": [
+    "Savaş travması olan NPC'ler",
+    "Kannabi Köprüsü benzeri sabotaj flashback görevi",
+    "Savaş sonrası ortak Chūnin Sınavı başlangıcı"
+   ],
+   "canon_reference": "Third Shinobi World War",
+   "era": "recent past"
+  },
+  {
+   "id": "fourth_world_war",
+   "name": "4. Shinobi Dünya Savaşı (Büyük Savaş)",
+   "category": "world_war",
+   "desc": "Halka örgütün liderinin ilan ettiği savaş: diriltilmiş eski kahramanlar ordusu, beyaz klonlar, Ten-Tails'in uyanışı. Tüm köyler Müttefik Kuvvetler altında birleşir.",
+   "phases": [
+    "Kage Zirvesi ve savaş ilanı",
+    "Seferberlik ve tümenler",
+    "Diriltilmiş ölüler cephesi",
+    "Ten-Tails uyanışı",
+    "Son Savaş",
+    "Barış dönemi"
+   ],
+   "gameplay_hooks": [
+    "Büyük ölçekli savaş haritası",
+    "Ölen NPC'lerin diriltilmesi (duygusal karşılaşmalar)",
+    "Sahte düşman (dönüşmüş klonlar) tespiti",
+    "Dünya sonu (infinite_tsukuyomi) zinciri"
+   ],
+   "canon_reference": "Fourth Shinobi World War",
+   "era": "story climax"
+  },
+  {
+   "id": "tailed_beast_attack",
+   "name": "Kuyruklu Canavar Saldırısı (Dokuz Kuyruk Saldırısı-benzeri)",
+   "category": "disaster",
+   "desc": "Bir doğum anında jinchūriki mührünün zayıflaması fırsat bilinip canavar serbest bırakılır; köy yıkılır, Kage canavarı yeni doğmuş bebeğe mühürleyerek ölür. Çaresiz köylüler jinchūriki çocuğu dışlar.",
+   "phases": [
+    "Gizli doğum",
+    "Maskeli saldırgan mühürü bozar",
+    "Canavar köyü yıkar",
+    "Kage'nin feda olması ve yeni mühür",
+    "Yetim jinchūriki"
+   ],
+   "gameplay_hooks": [
+    "Prolog kara sahnesi",
+    "Köyde jinchūriki'ye karşı önyargı mekanikleri",
+    "Mührün hikâyedeki sırrı"
+   ],
+   "canon_reference": "Nine-Tailed Demon Fox's Attack"
+  },
+  {
+   "id": "clan_massacre",
+   "name": "Klan Katliamı (Klan Çöküşü)",
+   "category": "political_tragedy",
+   "desc": "Köy yönetimine darbe hazırlayan polis-klanı, köyün gizli emriyle tek bir dâhi üye tarafından bir gecede yok edilir; geriye bir çocuk kalır. Gerçek, yıllarca saklanır.",
+   "phases": [
+    "Klanın köyden dışlanması",
+    "Darbe planı",
+    "Çift ajan",
+    "Katliam gecesi",
+    "Yalnız kurtulan",
+    "Gerçeğin açığa çıkması"
+   ],
+   "gameplay_hooks": [
+    "Hayalet klan bölgesi (boş evler)",
+    "Gizli istihbarat parçaları toplama",
+    "İntikam/af seçimli karakter arkı"
+   ],
+   "canon_reference": "Uchiha Clan Downfall"
+  },
+  {
+   "id": "village_invasion_during_exam",
+   "name": "Sınav Sırasında Köy İstilası (Konoha Ezme Operasyonu-benzeri)",
+   "category": "invasion",
+   "desc": "Chūnin Sınavı finali sırasında kaçak sannin'in yeni köyü ile kandırılmış bir müttefik köy saldırır: stadyumda genjutsu uyutma, dev yılan çağırmaları, Kage çatıda bariyer içinde düelloya hapsedilir.",
+   "phases": [
+    "Sızma (sınava katılan casus genin)",
+    "Final maçında işaret",
+    "Seyirciye toplu genjutsu",
+    "Çatıda dört köşeli bariyer + Kage düellosu",
+    "Dev çağırmalar duvarları yıkar",
+    "Kage'nin feda olması, istilanın püskürtülmesi"
+   ],
+   "gameplay_hooks": [
+    "Sınav finali -> anında savunma moduna geçiş",
+    "Genjutsu'yu bozan oyuncular serbest kalır",
+    "Seçenekli savunma noktaları"
+   ],
+   "canon_reference": "Konoha Crush"
+  },
+  {
+   "id": "village_destruction",
+   "name": "Köyün Yok Edilmesi (Pain Saldırısı-benzeri)",
+   "category": "assault",
+   "desc": "Altı bedenli tek düşman, jinchūriki'yi bulmak için köye saldırır; sorgular, sonunda tek bir itme dalgasıyla köyü krater hâline getirir. Bilge eğitiminden dönen kahraman yüzleşir; düşman ikna olup ölüleri diriltir.",
+   "phases": [
+    "Sızma ve sorgu",
+    "Köy çapında çok noktalı savaş",
+    "Çekim/itme ile köy yok olur",
+    "Bilge kahramanın dönüşü",
+    "Diyalog ve affetme"
+   ],
+   "gameplay_hooks": [
+    "Dinamik yıkılabilir köy",
+    "Krater hâline gelen hub (yeniden inşa meta-oyunu)",
+    "Düşmanın 'acı' felsefesine karşı diyalog bossu"
+   ],
+   "canon_reference": "Pain's Assault"
+  },
+  {
+   "id": "kage_summit",
+   "name": "Beş Kage Zirvesi",
+   "category": "political",
+   "desc": "Kuyruklu canavar avına karşı Kage'ler tarafsız Demir Ülkesi'nde toplanır; bir intikamcı sızar, gerilim artar, halka örgüt savaş ilan eder, Müttefik Kuvvetler kurulur.",
+   "phases": [
+    "Davet ve yolculuk",
+    "Zirve tartışmaları (güvensizlik)",
+    "Sızma ve kaos",
+    "Savaş ilanı",
+    "İttifak"
+   ],
+   "gameplay_hooks": [
+    "Kage muhafızı rolü",
+    "Diplomatik diyalog seçimleri",
+    "Zirve salonunda çok taraflı boss"
+   ],
+   "canon_reference": "Five Kage Summit"
+  },
+  {
+   "id": "infinite_tsukuyomi",
+   "name": "Sonsuz Tsukuyomi-benzeri Kıyamet (Dünya Rüyası)",
+   "category": "apocalypse",
+   "desc": "Aya yansıtılan dev göz ile tüm insanlık sonsuz genjutsu'ya hapsedilir; ilahi ağacın kökleri uyuyanları kozalara sarıp çakralarını emer.",
+   "phases": [
+    "Ay'da kırmızı göz",
+    "Dünya çapında hipnoz",
+    "Kozalar ve ağaç kökleri",
+    "Bağışık birkaç kahraman",
+    "Kaynağı yenme ve uyanış"
+   ],
+   "gameplay_hooks": [
+    "Rüya dünyası görevleri (her NPC'nin arzusu)",
+    "Bağışık kalma mekaniği (Susanoo-benzeri kalkan/Rinne kalkanı)",
+    "Son boss: tanrıçanın uyanışı"
+   ],
+   "canon_reference": "Infinite Tsukuyomi"
+  },
+  {
+   "id": "otsutsuki_arrival",
+   "name": "Göksel Ziyaretçilerin İnişi (Ōtsutsuki Gelişi)",
+   "category": "cosmic_threat",
+   "desc": "Boynuzlu, beyaz cübbeli uzaylı tanrı-benzeri varlıklar yeryüzünün çakrasını hasat etmek için gelir; Kage'leri kaçırır, ilahi ağaç dikmek ister.",
+   "phases": [
+    "Gökten iniş/göktaşı",
+    "Kuyruklu canavar/çakra avı",
+    "Stadyum saldırısı",
+    "Başka boyuta takip",
+    "Kāma laneti mirası"
+   ],
+   "gameplay_hooks": [
+    "Boyut kapısı zindanları",
+    "Tanrı-seviye bosslar (çakra emen göz/el)",
+    "Oyuncuya kāma lanet ağacı (yüksek risk)"
+   ],
+   "canon_reference": "Ōtsutsuki Clan; Chūnin Exams (Boruto)"
+  },
+  {
+   "id": "kara_conflict",
+   "name": "Kabuk Örgütü Çatışması",
+   "category": "secret_war",
+   "desc": "Bir gizli örgüt, bilimsel ninja aletleri ve kāma taşıyıcıları ile köylere sızar; sahte barış döneminde siber-ninjalar ve kaçırılmalar.",
+   "phases": [
+    "Garip kaybolmalar",
+    "Bilimsel ninja deneyleri",
+    "İç çember üyeleriyle karşılaşmalar",
+    "Köye ani saldırılar",
+    "Örgütün çöküşü"
+   ],
+   "gameplay_hooks": [
+    "Bilim/teknoloji içerik hattı",
+    "Kāma taşıyan karakter seçimleri",
+    "Kara ajan avları"
+   ],
+   "canon_reference": "Kara"
+  },
+  {
+   "id": "bloody_mist_era",
+   "name": "Kanlı Sis Dönemi",
+   "category": "dark_era",
+   "desc": "Bir köyde manipüle edilen lider, kekkei genkai sahiplerine soykırım uygular; akademi mezuniyeti öğrencilerin birbirini öldürmesidir.",
+   "phases": [
+    "Kekkei genkai zulmü",
+    "Sığınma ve kaçış",
+    "İç savaş",
+    "Reform"
+   ],
+   "gameplay_hooks": [
+    "Kekkei genkai'li oyuncu karakter için gizlenme arka planı",
+    "Sürgün klan görevleri"
+   ],
+   "canon_reference": "Kirigakure Bloody Mist; Yuki Clan"
+  },
+  {
+   "id": "tailed_beast_hunt",
+   "name": "Kuyruklu Canavar Avı Dönemi",
+   "category": "manhunt",
+   "desc": "Halka örgüt iki kişilik hücrelerle jinchūriki'leri tek tek avlar, 3 gün süren ritüelle canavarları dev heykele çeker.",
+   "phases": [
+    "İlk kaçırma",
+    "Kurtarma görevleri",
+    "Jinchūriki'lerin saklanması",
+    "Son canavarların savaşı"
+   ],
+   "gameplay_hooks": [
+    "Dünya çapında 'av durumu' haritası (hangi canavar alındı)",
+    "Kaçırılan jinchūriki kurtarma görevleri"
+   ],
+   "canon_reference": "Akatsuki; Jinchūriki"
+  },
+  {
+   "id": "uzushio_fall",
+   "name": "Girdap Köyünün Yıkılışı",
+   "category": "village_destruction",
+   "desc": "Mühür ustası klanın köyü, güçlerinden korkan köylerin ortak saldırısıyla yok edilir; hayatta kalanlar dağılır.",
+   "phases": [
+    "Ortak saldırı",
+    "Köy yıkımı",
+    "Diaspora"
+   ],
+   "gameplay_hooks": [
+    "Harabe köyde mühür bulmacaları",
+    "Kayıp klan mirası (kırmızı saçlı NPC'ler)"
+   ],
+   "canon_reference": "Uzushiogakure"
+  },
+  {
+   "id": "hidden_village_coup",
+   "name": "Köy İçi Darbe Girişimi",
+   "category": "political",
+   "desc": "Gölge örgüt veya bir klan Kage'yi devirmeye çalışır.",
+   "phases": [
+    "Komplo",
+    "Suikast girişimi",
+    "Sadakat seçimi",
+    "Sonuç"
+   ],
+   "gameplay_hooks": [
+    "Oyuncunun hangi tarafı tutacağı seçim noktası"
+   ],
+   "canon_reference": "Root; Uchiha coup d'état"
+  },
+  {
+   "id": "shinobi_festival_peace_era",
+   "name": "Barış Dönemi ve Teknolojik Gelişme",
+   "category": "era_peace",
+   "desc": "Savaştan sonra köyler modernleşir: trenler, ekranlar, bilimsel ninja aletleri; ninjalar işsizlik ve anlam krizi yaşar.",
+   "phases": [
+    "Modernleşme",
+    "Görev azalması",
+    "Teknoloji ile ninja çatışması"
+   ],
+   "gameplay_hooks": [
+    "Geç oyun modern şehir bölgesi",
+    "Teknoloji vs gelenek seçimleri"
+   ],
+   "canon_reference": "Boruto era"
+  }
+ ],
+ "sage_modes": {
+  "core_rules": {
+   "senjutsu_formula": "Bilge çakrası = fiziksel enerji + ruhsal enerji (normal çakra) + doğal enerji (çevreden). Üçü dengede olmalı.",
+   "requirements": [
+    "Devasa çakra rezervi",
+    "Bedenin gücü taşıyabilmesi (aksi hâlde sannin bile tam moda giremez)",
+    "Toplama sırasında mutlak hareketsizlik"
+   ],
+   "advantages": [
+    "Güç, hız, dayanıklılık, refleks ve algıda büyük artış",
+    "Ninjutsu/genjutsu/taijutsu güçlenir",
+    "Doğal enerjiyi vücudun uzantısı yapma (Myōboku: görünmez menzil — saldırı ıskalamış gibi görünse de vurur)",
+    "Çakra algısı: görmeden saldırıyı sezme",
+    "Çakra emen düşmana karşı: düşman fazla doğal enerji emerse taşlaşır"
+   ],
+   "risks": [
+    "Az doğal enerji = teknik çalışmaz",
+    "Fazla doğal enerji = hayvanlaşma ve sonunda kalıcı taşa dönüşme (öğrenildiği okulun hayvanına; kurbağa heykeli)",
+    "Dövüşte hareket edince doğal enerji yenilenmez — süre sınırlı",
+    "Toplarken savunmasızlık"
+   ],
+   "bypass_methods": [
+    "Omuza kaynaşan iki yaşlı kurbağa (Bilge Sanatı: Amfibi Tekniği) doğal enerjiyi kullanıcı yerine toplar (uyum sorunu olabilir)",
+    "Gölge klonları uzakta toplayıp dağılınca enerjiyi aktarır (toplayan klon sınırı ~5)",
+    "Doğal enerjiyi pasif emen klanın (Jūgo klanı) hücreleri/DNA'sı",
+    "Pratikle toplama süresi kısalır",
+    "Uyumlu jinchūriki + canavar birlikte saniyeler içinde toplar"
+   ],
+   "game_mechanic": "Doğal Enerji Barı: hareketsiz bekle (meditasyon pozu) -> bar dolar; %100 ile mod açılır, süre/eylemle azalır. %100 üstü kaçırılırsa ekran taşlaşma filtresi, HP yerine 'taşlaşma' barı; reset için kaynaşmış kurbağa veya özel item."
+  },
+  "modes": [
+   {
+    "id": "myoboku_toad",
+    "name": "Myōboku Bilge Modu (Kurbağa Bilge Modu)",
+    "contract": "Kurbağalar — Myōboku Dağı",
+    "training": "Kurbağa yağı ile pasif emilim -> sopa ile reset -> yağsız meditasyon -> kurbağa kata; dağın dışına yağ götürülemez. Son aşama: dağın kenarındaki taş kurbağa heykelleri (başarısız öğrenciler) uyarı olarak gösterilir.",
+    "visual_markers": [
+     "Göz çevresinde turuncu/kırmızı pigment (tam denge)",
+     "Sarı iris + yatay dikdörtgen kurbağa göz bebeği",
+     "Dengesiz kullanımda: büyüyen siğilli burun, sivri dişler, keçi sakalı, perdeli ayaklar, kurbağa duruşu",
+     "Fused-toad varyantı: omuzlarda iki küçük yaşlı kurbağa"
+    ],
+    "abilities": [
+     "Kurbağa Kata (görünmez menzil uzatma, tek yumrukta dev çağırmaları devirme)",
+     "Bilge Sanatı: Rasen-shuriken / dev Rasengan (bilgeli)",
+     "Kurbağa ortak jutsuları: Kurbağa Yağı Ateş Mermisi, Kurbağa Şarkısı genjutsu'su (iki yaşlı kurbağa ile)",
+     "Sezgisel çakra algısı"
+    ],
+    "risks": [
+     "Taşa dönüşme",
+     "Kısa süre",
+     "Dengesiz kullanımda kurbağa özellikleri (sosyal ceza espirisi)"
+    ],
+    "vfx": "Orange eyeshadow decal around eyes, yellow iris with horizontal bar pupil; subtle natural-energy aura (pale yellow-green heat shimmer); when overfull, green stone texture creeping from extremities."
+   },
+   {
+    "id": "ryuchi_snake",
+    "name": "Ryūchi Bilge Modu (Yılan Bilge Modu)",
+    "contract": "Yılanlar — Ryūchi Mağarası",
+    "training": "Beyaz Yılan Bilgesi'nin ısırığıyla doğal enerji enjeksiyonu; beden dayanmazsa aday yutulur. Alternatif: Jūgo klanı hücreleriyle (Sage Transformation) yapay yol.",
+    "visual_markers": [
+     "Sarı yılan irisi, dikey göz bebeği",
+     "Siyah sklera",
+     "Göz çevresinden omuzlara uzanan mor pigment",
+     "İleri seviyede boynuzlar (yılandan 'ejderhaya' — 4 boynuz), pul benzeri doku",
+     "Varyant: siyan/ yeşil çakra yılanları ve alında tek boynuz"
+    ],
+    "abilities": [
+     "Cansız maddeye can verip kontrol etme (taşlardan ejderha/yılan yaratma)",
+     "Beyaz yılan dökülme (deri değiştirme) ile kaçış",
+     "Sinyal duyuları: ses/titreşimle algı (yılan pit organı)",
+     "Bilge sanatı: Beyaz Ejderha/ yaşam veren kaya ejderhaları"
+    ],
+    "risks": [
+     "Isırık sınavında ölüm",
+     "Yılanlaşma/taşlaşma",
+     "Bedenin yabancı hücreleri reddetmesi"
+    ],
+    "vfx": "Purple eyeshadow streaks down to shoulders, black sclera, yellow snake slit; horns spawn at higher tiers; stone shards animating into serpents."
+   },
+   {
+    "id": "shikkotsu_slug",
+    "name": "Shikkotsu Bilge Modu (Salyangoz Ormanı Bilgeliği)",
+    "contract": "Salyangozlar — Shikkotsu Ormanı",
+    "training": "Kanonda Shikkotsu bilgelik eğitimi bilinir; salyangozlar şifa ve aşındırıcı asit sanatları öğretir (kanonda bu ormanda tam Sage Mode kullanıcısı yok; oyun için tasarlanmış yol).",
+    "visual_markers": [
+     "(Tasarım önerisi) Göz çevresinde mavi-beyaz pigment, yarı saydam nemli cilt parıltısı",
+     "Salyangoz kabuğu desenli çakra halesi"
+    ],
+    "abilities": [
+     "(Tasarım) Bölünen salyangozlar ile alan şifası",
+     "Asit tükürme (Salyangoz Aşındırıcı Asit — kanon jutsu)",
+     "Rejenerasyon pasifi"
+    ],
+    "risks": [
+     "Taşlaşma yerine 'salyangozlaşma': yavaşlama debuff'ı"
+    ],
+    "vfx": "Soft blue-white aura, wet sheen shader; healing slug decals on allies.",
+    "canon_status": "Shikkotsu Ormanı bilgelik geleneği kanon; Bilge Modu kullanıcısı kanonda belirtilmemiş — oyun tasarımı uzantısı"
+   },
+   {
+    "id": "jugo_clan_transformation",
+    "name": "Senninka (Bilge Dönüşümü — Jūgo Klanı Doğal Enerjisi)",
+    "contract": "Sözleşme yok — kan bağı (Jūgo'nun klanı)",
+    "training": "Doğuştan: beden doğal enerjiyi pasif ve sürekli emer; eğitim kontrol ve öfke yönetimidir (hücrelerinden Orochimaru lanet mühürleri üretti).",
+    "visual_markers": [
+     "Koyulaşan ten (gri/kahverengi), siyah sklera",
+     "Alından burun köprüsüne inen siyah şerit",
+     "Yarım yüzü kaplayan kabuksu doku, kemik/kanat gibi şekil değişimleri",
+     "Ses değişimi (çılgın ikinci kişilik)"
+    ],
+    "abilities": [
+     "Vücudu silaha dönüştürme (top, jet, dev yumruk)",
+     "Doğal enerjiyle hareket hâlinde bile şarj",
+     "Başkasına hücre vererek yara iyileştirme (kendini küçülterek)"
+    ],
+    "risks": [
+     "Periyodik kontrolsüz cinnet, öldürme dürtüsü",
+     "Kendi bedenini tüketme"
+    ],
+    "vfx": "Grey tribal-crust skin overlay spreading from one side of the face; jet-thruster limb morphs; red-black sclera.",
+    "links": "cursed_seals.heaven_seal/earth_seal hücre kaynağı"
+   },
+   {
+    "id": "hashirama_style",
+    "name": "Ağaç Kurucusu Tarzı Bilge Modu (Hashirama-tipi)",
+    "contract": "Bilinmiyor/kurbağasız — tam denge",
+    "training": "Kusursuz denge ile dışa hiçbir hayvansal özellik vermeden; Ağaç Saltanatı (Wood Release) ile birlikte kullanılır.",
+    "visual_markers": [
+     "Göz çevresinden kulaklara uzanan siyah/koyu pigment",
+     "Alında içi noktalı yuvarlak işaret (kırmızı/yeşil)",
+     "Sarı iris"
+    ],
+    "abilities": [
+     "Bin Ellerin Gerçek Sayısı-benzeri dev ağaç heykel çağırma (Bilge Sanatı: Ahşap)",
+     "Kuyruklu canavarları bastıran ağaç yapıları",
+     "Çok uzak mesafe algı"
+    ],
+    "risks": [
+     "Devasa çakra ve yaşam gücü gerektirir (yalnızca efsanevi kan bağı)"
+    ],
+    "vfx": "Black eyeliner-like markings to ears, forehead diamond circle with dot; colossal wooden statue summon with many arms."
+   },
+   {
+    "id": "tailed_beast_sage",
+    "name": "Kuyruklu Canavar Bilge Modu",
+    "contract": "Kurbağa bilge modu + uyumlu canavar",
+    "training": "Jinchūriki canavarıyla tam uyum kurmuş olmalı; canavar doğal enerjiyi saniyeler içinde toplar.",
+    "visual_markers": [
+     "Turuncu iris, dikey tilki yarığı + yatay kurbağa çizgisi kesişimi (artı şekli)",
+     "Turuncu çakra pelerini"
+    ],
+    "abilities": [
+     "Bilge çakralı Kuyruklu Canavar Topu",
+     "Uçma (ileri ustalık)",
+     "Çakra kollarıyla birden fazla bilge rasengan"
+    ],
+    "risks": [
+     "Çok yüksek çakra tüketimi"
+    ],
+    "vfx": "Cross-shaped pupil, orange flame-like chakra shroud with sage shimmer."
+   },
+   {
+    "id": "six_paths_sage",
+    "name": "Altı Yol Bilge Modu (Rikudō Sennin Modo)",
+    "contract": "Altı Yol Bilgesi'nin (Hagoromo) gücü + dokuz canavarın çakrası",
+    "training": "Kanonda bilge modu ustası bir jinchūriki'ye ölüm eşiğinde efsanevi bilgenin ruhu tarafından verilir. Oyunda: tüm kuyruklu canavar çakralarından pay toplama + ruhani yüzleşme (son oyun ödülü).",
+    "visual_markers": [
+     "Göz pigmenti yok; tilki-kurbağa artı bebek",
+     "Yükselen pelerin üzerinde altı tomoe/mıknatıs-kolye deseni, sırtta dokuz Arayış Topu (siyah küreler)",
+     "Altın-sarı çakra pelerini, kolda/ellerde güneş/ay işaretleri",
+     "Havada süzülme"
+    ],
+    "abilities": [
+     "Arayış Topları (Truth-Seeking Balls — kalkan/silah/çubuk)",
+     "Uçma/levitasyon",
+     "Yin-Yang şifa ve organ yenileme",
+     "Tüm doğaları tek jutsuda birleştirme",
+     "Limbo gölgelerini sezme"
+    ],
+    "risks": [
+     "Neredeyse tanrısal — oyunda son oyun zaman sınırlı 'awakening'"
+    ],
+    "vfx": "Golden shroud with black magatama/tomoe necklace pattern, nine floating black orbs, levitation particles, white-gold rim light."
+   }
+  ]
+ },
+ "cursed_seals": {
+  "overview": "Juinjutsu (Lanet Mühür Teknikleri): kurbanın bedenine mühür yerleştirip yeteneklerini ve eylemlerini kontrol etme. Gizli bir el mühürüyle kurbana zihinsel/bedensel işkence uygulanabilir. Kaldırmak neredeyse imkânsızdır; genelde mühürlenip bastırılır. Kesin kaldırma yolu: uygulayıcının veya taşıyıcının ölümü.",
+  "seals": [
+   {
+    "id": "heaven_seal",
+    "name": "Cennet Lanet Mühürü (Ten no Juin)",
+    "type": "power_curse",
+    "applied_by": "Isırık (boynun sol arkası) — doğal enerji emen klan hücrelerinden üretilmiş enzim",
+    "visual": "Üç tomoe (mitsudomoe); aktifken turuncu-kırmızı alev desenleri tüm vücuda yayılır",
+    "levels": [
+     {
+      "level": 0,
+      "name": "Uykuda",
+      "effect": "Uygulama sırasında ateş, ağrı, bayılma; 10 kişiden 1'i hayatta kalır (ilk deneyde)."
+     },
+     {
+      "level": 1,
+      "name": "Seviye 1",
+      "effect": "Siyah alev/benek desenleri; çakra ve fiziksel güçte büyük artış, saldırganlık. Fazla kullanımda beden zarar görür ve bilinci kemirir."
+     },
+     {
+      "level": 2,
+      "name": "Seviye 2 (Bilge Dönüşümü)",
+      "effect": "Ten gri/koyu, saç uzar ve renk değiştirir, siyah sklera, alında yıldız/haç işaret, sırttan el-kanatlar çıkar. Güç ilk seviye jinchūriki dönüşümüne denk; bitince aşırı yorgunluk."
+     }
+    ],
+    "counter": "Kötülük Mühürleme Yöntemi (Evil Sealing Method) ile bastırma; taşıyıcının iradesine bağlı. Uygulayıcı bilinci mühürden diriltebilir (Evil Releasing Method).",
+    "game": "Güç-yolsuzluk mekaniği: aktivasyon = büyük buff + 'lanet barı' artar; bar dolarsa kontrol kaybı/NPC ilişkileri bozulur."
+   },
+   {
+    "id": "earth_seal",
+    "name": "Dünya Lanet Mühürü (Chi no Juin)",
+    "type": "power_curse",
+    "applied_by": "Isırık (kanonda göğüs kemiği üstü)",
+    "visual": "Yırtık gibi açılan hafif kavisli üç çizgi; Seviye 1'de turuncu-kırmızıya dönüp vücuda paralel kıvrımlı çizgiler hâlinde yayılır",
+    "levels": [
+     {
+      "level": 1,
+      "name": "Seviye 1",
+      "effect": "Çizgi desenleri; çakra, fiziksel güç ve ninjutsu etkinliği artar."
+     },
+     {
+      "level": 2,
+      "name": "Seviye 2",
+      "effect": "Koyulaşan ten, dinozor benzeri görünüm ve kuyruk, deriden fırlayan büyük kemikler, göz altı/kaş üstünde siyah kavisli işaretler; yırtılan et anında iyileşir."
+     }
+    ],
+    "counter": "Aynı bastırma mühürü.",
+    "game": "Seçilebilir lanet mutasyon ağacı (kanat/ek kol/boynuz)."
+   },
+   {
+    "id": "sound_four_variants",
+    "name": "Muhafız Dörtlüsü Lanet Mühürleri",
+    "type": "power_curse",
+    "applied_by": "Isırık; her muhafızın mühürü farklı yerde (alın, boyun, sırt, göğüs)",
+    "visual": "Seviye 2'de canavarsı formlar: ek kollar/örümcek, dev kas kütlesi, ikiz kafa, iblis boynuzları",
+    "levels": [
+     {
+      "level": 1,
+      "name": "Seviye 1"
+     },
+     {
+      "level": 2,
+      "name": "Seviye 2 — süreli; sonrasında 'asker hapı' gerekir"
+     }
+    ],
+    "game": "Elit düşman ekip faz geçişleri."
+   },
+   {
+    "id": "caged_bird_seal",
+    "name": "Kafesteki Kuş Mühürü (Kago no Tori no Juin) — Ana/Yan Aile Mühürü",
+    "type": "clan_control",
+    "applied_by": "Ana aile, yan aile çocuklarına ~3 yaşında alnına uygular",
+    "visual": "Alında yeşil X işareti, iki yanında kısa yatay çizgiler; genelde alın bandı veya bandajla gizlenir",
+    "effect": "Ana aile özel el mühürüyle beyin hücrelerini yok edip acı verebilir/öldürebilir; taşıyıcı ölünce dōjutsu gözün sırlarını korumak için mühürlenir (kopyalanamaz).",
+    "counter": "Ancak taşıyıcının ölümü (Boruto döneminde kaldırılması tartışılır).",
+    "game": "Klan politikası görevleri; yan aile oyuncusu için 'özgürlük' yan hikâyesi; düşman ana aile NPC'si acı tetikleyebilir (zaman zaman kontrol QTE)."
+   },
+   {
+    "id": "tongue_seal",
+    "name": "Dil Lanet Mühürü (Zessetsu Kotodama — Kök Dil Mühürü)",
+    "type": "secrecy_curse",
+    "applied_by": "Gölge örgütün lideri — tüm üyelerin dili",
+    "visual": "Dil üzerinde siyah, çapraz/fırça darbeli mühür",
+    "effect": "Liderle ilgili gizli bilgileri söylemeye çalışan kişiyi tüm vücut felcine uğratır.",
+    "counter": "Ancak uygulayıcının ölümüyle kalkar.",
+    "game": "Sorgu görevlerinde esirden bilgi alınamaz -> alternatif yollar (zihin okuma, belge çalma). Oyuncu Root yolunu seçerse diyalog seçenekleri kilitlenir."
+   },
+   {
+    "id": "kama",
+    "name": "Kāma (Ōtsutsuki Mührü)",
+    "type": "otherworldly_curse",
+    "applied_by": "Ölmekte olan veya planlayan göksel varlık uyumlu bir 'kap'a yerleştirir; çoğu uyumsuz kap ölümcül nöbet geçirir",
+    "visual": "Piramit şeklinde gömülü diken; avuç içinde (veya vücutta) siyah elmas/eşkenar dörtgen; aktifken siyah çizgiler yüze ve vücuda yayılır, bir gözde mavi/beyaz renk ve boynuz benzeri çıkıntı",
+    "effect": "Ötsutsuki'nin biyolojik verisinin sıkıştırılmış yedeği; kabın genetiğini yavaşça yeniden yazar, tamamlanınca ölen varlık kabın bedeninde yeniden doğar. Ara dönemde kap gücün bir kısmını kullanır (ninjutsu emme, uzay-zaman kapısı).",
+    "variant": "Beyaz Kāma: uyumsuz ama hayatta kalan kap; reenkarnasyon olmaz, emme ve uzay-zaman yok, ama büyük güç ve yeni bir Ōtsutsuki'ye dönüşme.",
+    "counter": "Kanonda kalıcı çözüm yok; kap ölümü veya varlığın imhası.",
+    "game": "Geç oyun yüksek risk-yüksek ödül ağacı: Kāma seviyesi arttıkça güç + 'benlik kaybı' barı; son karar (direnmek/teslim olmak) iki farklı son."
+   },
+   {
+    "id": "karma_like_scientific",
+    "name": "Bilimsel Lanet Mühürü Aleti (Kara-tipi)",
+    "type": "artificial_curse",
+    "applied_by": "Bilim ninjasının ürettiği mühürlü bileklik/implant",
+    "visual": "Teknolojik halka + mühür sembolleri; aktifken yeşil/mor devre deseni",
+    "effect": "Takana geçici güç dönüşümü veren yapay lanet; uzun kullanımda sağlığı kemirir.",
+    "game": "Crafting ile üretilebilen riskli güçlendirici (oyuncunun 'Kāma' yerine erişebileceği daha zayıf versiyon)."
+   },
+   {
+    "id": "five_elements_seal",
+    "name": "Beş Element Mühürü (Gogyō Fūin)",
+    "type": "chakra_disruption",
+    "applied_by": "Beş parmak ucunda beş element mühür formülü — hedefin karnına vurulur (tek özel el mühürü)",
+    "visual": "Beş parmak ucu mor ateşli; karında mevcut mühürün etrafına beş noktalı halka",
+    "effect": "Mevcut bir mühürü (ör. jinchūriki mührü) bozar ve kullanıcının çakra kontrolünü/canavar çakrasına erişimini kesintiye uğratır (tek sayılı mühür, çift sayılı mühürleri bozar).",
+    "counter": "Beş Element Mühür Açıcı (Gogyō Kaiin) — parmak uçlarıyla aynı noktaya vurmak.",
+    "game": "Düşman debuff'ı: 'çakra karışıklığı' — doğa jutsuları %50 başarısızlık; tıbbi/mühür uzmanı NPC çözer."
+   },
+   {
+    "id": "contract_seal",
+    "name": "Sözleşme Mühürü (Keiyaku Fūin)",
+    "type": "chakra_disruption",
+    "applied_by": "Avuç içine karmaşık mühür formülü yazılıp hedefin karnına basılır",
+    "visual": "Avuçta iç içe halkalı formül",
+    "effect": "Hedefin vücudundaki çakra akışını kesintiye uğratıp başka mühürlerin etkisini bozar; bir canavarın kontrolünü engellemek için kullanıldı.",
+    "game": "Mühür uzmanı sınıfı yeteneği."
+   },
+   {
+    "id": "evil_sealing_method",
+    "name": "Kötülük Mühürleme Yöntemi (Fūja Hōin)",
+    "type": "suppression",
+    "applied_by": "Kanla yazılmış formüller yerde ve bedende; ortadaki lanet mühürün etrafına",
+    "visual": "Lanet mühürünün etrafında daire biçiminde kanji halkası",
+    "effect": "Lanet mühürü bastırır; taşıyıcının iradesi gücüne bağlı — irade zayıflarsa mühür kırılır.",
+    "game": "Oyuncunun lanet barını sınırlayan ama kaldırmayan 'kilit' item/görev."
+   },
+   {
+    "id": "curse_mandala",
+    "name": "Lanet Mandalası (Fūma tipi)",
+    "type": "clan_hiden_curse",
+    "applied_by": "Gizli klan tekniği — çakra iplikleri ve özel el mühürleri",
+    "visual": "Hedefin etrafında halka/mandala desenleri",
+    "effect": "Hedefe lanet bağı kurup hareketini/hayatını kontrol eden kadim klan tekniği.",
+    "game": "Fūma klanı NPC bossu mekaniği."
+   },
+   {
+    "id": "flying_thunder_mark",
+    "name": "Işınlanma İşareti (Uçan Gök Gürültüsü Tanrısı İşareti)",
+    "type": "marking",
+    "applied_by": "Dokunma veya işaretli kunai",
+    "visual": "Kunai kabzasında veya hedef üzerinde kanji formülü",
+    "effect": "İşaretlenen hedef kullanıcının ışınlanma noktasıdır; 'ölüm hükmü' gibi lanete benzetilir.",
+    "game": "Hareket yeteneği (jutsu dosyasına referans)."
+   },
+   {
+    "id": "shukaku_markings",
+    "name": "Canavar Bedeni Mühür Desenleri",
+    "type": "natural_curse",
+    "visual": "Bir Kuyruk'un vücudundaki mavi/mor çizgiler",
+    "effect": "Canavarın bedenindeki desenler doğal bir lanet mühürüdür, rakiplerini mühürlemesini sağlar.",
+    "game": "Boss zayıf noktası/kurban mühürleme saldırısı."
+   },
+   {
+    "id": "life_extension_curse",
+    "name": "Ömür Uzatma Laneti (anime)",
+    "type": "self_curse",
+    "effect": "Kullanıcının ömrünü uzatan ama sağlığını kemiren kendine uygulanan lanet mühür.",
+    "game": "Karanlık NPC hikâyesi."
+   }
+  ]
+ },
+ "jinchuriki": {
+  "definition": "İçinde kuyruklu canavar mühürlü insan. Devasa çakra rezervi, hızlı iyileşme ve canavara özgü yetenekler kazanır; köyler için askerî güç ve caydırıcılık, ama toplum tarafından çoğunlukla dışlanır.",
+  "history": "Efsanevi bilge On Kuyruk'u kendine mühürleyip ilk jinchūriki oldu; ölmeden önce çakrasını dokuz canavara böldü. Köyler kurulunca canavarlar köylere dağıtıldı ve seçilmiş kişilere mühürlendi (koruma, araştırma veya silah amacıyla).",
+  "sealing_mechanics": [
+   {
+    "id": "four_symbols_seal",
+    "name": "Dört Sembol Mühürü (Shishō Fūin)",
+    "desc": "Büyük düşman veya kötü ruhu bir nesne/insana mühürleyen girdap klanı kökenli fūinjutsu; büyük yetenek gerektirir.",
+    "visual": "Karında dört 'sembol' ve çizgilerle sarmal desen"
+   },
+   {
+    "id": "eight_trigrams_seal",
+    "name": "Sekiz Trigram Mühürleme Stili (Hakke no Fūin Shiki)",
+    "desc": "İki Dört Sembol Mühürü üst üste: daha güçlü mühür. Tam örtüşmediği için canavarın çakrası yavaş yavaş taşıyıcıya sızar ve onunla kaynaşır. Mühürü yapan ebeveynler kendi çakralarını da içine gömebilir (kritik anda ortaya çıkıp mührü güçlendiren 'koruyucu ruh').",
+    "visual": "Karında spiral merkezli, etrafında sekiz trigram yazılı daire; yalnızca canavar çakrası kullanılırken görünür. İç dünya: borulu, su basmış bodrum koridoru ve dev demir kafes kapısı üzerinde 'mühür' kâğıdı."
+   },
+   {
+    "id": "iron_armour_seal",
+    "name": "Demir Zırh Mühürü",
+    "desc": "Sekiz Kuyruk'u mühürlemek için kullanılan, Dört Sembol'den zayıf mühür.",
+    "visual": "Omuzda/vücutta mühür formülü"
+   },
+   {
+    "id": "dead_demon_consuming_seal",
+    "name": "Ölüm Tanrısı Mühürü (Shiki Fūjin)",
+    "desc": "Kullanıcı ruhunu ölüm tanrısına feda ederek hedefin ruhunu (veya canavarın yarısını) kendi bedeniyle birlikte mühürler; kullanıcı ölür ve ruhu tanrının midesinde ebediyen kalır.",
+    "visual": "Kullanıcının arkasında beyaz saçlı, bıçak dişli, tespihli hayalet ölüm tanrısı; karında Dört Sembol izi"
+   },
+   {
+    "id": "tailed_beast_vessel_jar",
+    "name": "Mühür Kabı / Altın-Gümüş Kabak benzeri mühürler",
+    "desc": "Canavarı insana değil nesneye (çaydanlık, kabak, heykel) mühürleme.",
+    "visual": "Kanji yazılı kâğıt mühürlü kap"
+   },
+   {
+    "id": "gedo_statue_extraction",
+    "name": "Canavar Çıkarma Ritüeli (İblis Heykeli)",
+    "desc": "Örgüt üyeleri dev heykelin parmaklarında hologram gibi durur; ritüel ~3 gün sürer. Canavar çıkarılan jinchūriki ölür.",
+    "visual": "Ağzı açık dev heykel, dokuz gözü kapalı; çıkarma sırasında ejderha şeklinde çakra akışı"
+   }
+  ],
+  "rules": [
+   "Canavar çıkarılırsa jinchūriki ölür (istisna: girdap klanının güçlü yaşam gücü bir süre hayatta kalmayı sağlayabilir).",
+   "Jinchūriki ölürse canavar bir süre sonra (yıllar) başka yerde yeniden oluşur; bu yüzden jinchūriki ölmeden canavar başka kaba aktarılmak istenir.",
+   "Mühür zayıflaması: doğum anı (kadın jinchūriki), aşırı öfke, ölümcül yara, Beş Element Mühürü gibi müdahaleler.",
+   "Canavarla uyumsuz jinchūriki öfke anında kontrolü kaybeder; canavar iç dünyada taşıyıcıyı ele geçirmeye çalışır.",
+   "Mükemmel Jinchūriki: canavarla tam iletişim/uyum kurmuş, Kuyruklu Canavar Modu'nu bilinçli kullanabilen jinchūriki.",
+   "Kuyruklu canavarlar arasında çakra bağlantısı: iç dünyada birbirleriyle konuşabilirler.",
+   "Uyku: bazı canavarlar (Bir Kuyruk) jinchūriki uyuyunca kontrolü ele geçirir — taşıyıcı uykusuzluk çeker."
+  ],
+  "forms": [
+   {
+    "id": "initial",
+    "name": "Başlangıç Formu",
+    "desc": "Canavar çakrası sızar: yırtıcı göz (dikey yarık), uzayan tırnak ve dişler, kalınlaşan yüz izleri; renkli çakra buharı.",
+    "game": "Pasif öfke modu: hız/hasar artışı.",
+    "vfx": "Slit pupils, red/coloured steam aura, thicker whisker/cheek marks."
+   },
+   {
+    "id": "version_1",
+    "name": "Versiyon 1 (Çakra Pelerini — 1-3 Kuyruk)",
+    "desc": "Canavar çakrası bedeni kabarcıklı bir pelerin gibi sarar; hayvan kulakları ve 1-3 çakra kuyruğu. Taşıyıcı genelde bilincini korur; pelerin hasarı emer, uzanan çakra kolları oluşturur.",
+    "game": "Kuyruk sayısı = güç kademesi; her kuyruk eşzamanlı 'kontrol barı' riskini artırır.",
+    "vfx": "Bubbling translucent red/orange shroud with fox ears, 1-3 chakra tails, dripping chakra particles."
+   },
+   {
+    "id": "version_2",
+    "name": "Versiyon 2 (4+ Kuyruk)",
+    "desc": "Pelerin kanla karışıp koyulaşır; taşıyıcının derisi soyulur, canavarın küçük bir kopyası gibi siyah-kırmızı bir beden. Bilinç çoğunlukla kaybolur, taşıyıcı ağır yaralanır; kemik iskelet görünümü belirebilir.",
+    "game": "Berserk mod: oyuncu kontrolü kısmen AI'ya geçer, dost-düşman ayrımı yok; sonra HP hasarı.",
+    "vfx": "Dark crimson-black body with white glowing eyes and mouth, 4-8 tails, skin-peel transition, ash particles."
+   },
+   {
+    "id": "partial_transformation",
+    "name": "Kısmi Dönüşüm",
+    "desc": "Canavarın gerçek bedeninin bir parçasının (kol, kuyruk, kafa) gerçekleşmesi; Bir Kuyruk taşıyıcısında kumdan kol/yarım kafa gibi.",
+    "game": "Tek uzuv süper saldırısı.",
+    "vfx": "Single-limb giant beast arm/tail materialising from sand/chakra."
+   },
+   {
+    "id": "tailed_beast_mode",
+    "name": "Kuyruklu Canavar Modu (Bijū Modo)",
+    "desc": "Taşıyıcı tamamen canavarın çakra bedenine dönüşür (gerçek boyutta). Mükemmel jinchūriki için bilinç korunur; uyumsuzlar için kontrolsüz tam dönüşüm (taşıyıcı canavarın alnında/içinde uyur).",
+    "game": "Dev form (kaiju) bölümleri; çok büyük hitbox, kısa süre.",
+    "vfx": "Full kaiju-scale chakra body, wireframe-like flame outline with internal glowing seal patterns."
+   },
+   {
+    "id": "chakra_mode",
+    "name": "Canavar Çakra Modu (Uyumlu)",
+    "desc": "Uyum sağlandıktan sonra sarı-turuncu parlak çakra pelerini, üzerinde siyah mühür çizgileri; birden çok kol, çakra paylaşımı (müttefiklere çakra verme).",
+    "game": "Takım buff: müttefiklere çakra pelerini dağıtma; kendini kopyalayan klonlar.",
+    "vfx": "Bright yellow-orange flame shroud with black magatama/seal line patterns, glowing sclera."
+   },
+   {
+    "id": "ten_tails_jinchuriki",
+    "name": "On Kuyruk Jinchūriki'si",
+    "desc": "Tüm canavarları içeren; beyaz/solgun ten, Arayış Topları, ölümsüzlük-benzeri iyileşme.",
+    "game": "Son boss şablonu.",
+    "vfx": "Pale white skin, black orbs, staff, rinne-like eyes."
+   }
+  ],
+  "tailed_beast_ball": {
+   "name": "Kuyruklu Canavar Topu (Bijūdama)",
+   "desc": "Pozitif siyah ve negatif beyaz çakra 8:2 oranında ağızda dengelenip küre hâline getirilir ve fırlatılır (canavarlar bunu 'kusmak'a benzetir). Bazı kullanıcılar topu yutup ağızdan ışın olarak ateşler. Çok büyük çakra harcar; patlaması dağları yerle bir eder. Varyasyonlar: çoklu küçük toplar, rasengan ile birleşim, Bilge ve Canavar topu, devasa On Kuyruk topu.",
+   "game": "Ultimate yetenek: şarj süresi + hedef konisi; iki top çarpışırsa güç karşılaştırması; ışın modu.",
+   "vfx": "Black-purple sphere gathering red/blue chakra motes in front of the mouth, implosion then massive dome explosion with shockwave ring."
+  },
+  "game_design_notes": [
+   "Oyuncu kanon dışı özgün bir jinchūriki olabilir (canavar kanonik, taşıyıcı özgün).",
+   "Kontrol barı sistemi: öfke/düşük HP canavar çakrasını açar; Hakikat Şelalesi sınavı kontrolü kalıcı kılar.",
+   "Toplumsal dışlanma: köy NPC'lerinin başlangıç güveni düşük; görevlerle yükselir.",
+   "Av altında olma: halka örgüt avlanma olayları jinchūriki oyuncuya özel."
+  ]
+ },
+ "chakra_natures": {
+  "notes": "Temel döngü ve güç/zayıflık ilişkileri jutsu.json nature_cycle içinde. Burada her doğanın detayları, ileri doğalar ve görsel ipuçları.",
+  "affinity_test": {
+   "name": "Çakra Kâğıdı Testi",
+   "desc": "Çakraya duyarlı ağaçtan yapılmış kâğıda çakra akıtılır: Ateş -> kâğıt tutuşup kül olur; Rüzgâr -> ikiye kesilir; Yıldırım -> buruşur; Toprak -> ufalanıp toz olur; Su -> ıslanır/nemlenir.",
+   "game": "Karakter oluşturmada veya akademide ana doğa belirleme sahnesi; nadir 'çift tepki' kekkei genkai ipucu."
+  },
+  "rules": [
+   "Herkesin doğuştan bir yatkınlığı vardır; jōnin'ler genelde 2+ doğa kullanır.",
+   "Kekkei genkai ileri doğalar iki temel doğanın eşzamanlı birleşimidir ve kalıtımla (veya hücre nakli/çalma ile) gelir; Sharingan bile bunları kopyalayamaz.",
+   "Üç doğanın birleşimi Kekkei Tōta'dır (bilinen tek örnek: Toz). Kekkei Mōra: göksel ırkın her şeyi kapsayan güçleri.",
+   "İki farklı kekkei genkai'nin tek saldırıda birleşimi 'sahte kekkei tōta' sayılır (romanda Lav + Çelik).",
+   "Yin (ruhsal/hayal) ve Yang (bedensel/yaşam) tüm doğal olmayan tekniklerin (gölge, beden büyütme, tıp, genjutsu) kaynağıdır; Yin-Yang birleşimi yaratma/hayat verme gücüdür."
+  ],
+  "basic": [
+   {
+    "id": "fire",
+    "name_romaji": "Katon",
+    "kanji": "火遁",
+    "name_tr": "Ateş Salınımı",
+    "class": "basic",
+    "components": [],
+    "associations": {
+     "villages": [
+      "fire (Konoha)"
+     ],
+     "clans": [
+      "Uchiha Clan",
+      "Sarutobi Clan"
+     ]
+    },
+    "properties": "Yüksek hasar, alan etkisi; rüzgârla büyür, suyla söner.",
+    "vfx_hint": "Orange-red fire with ember particles; large fireballs exhaled from mouth via finger circle; dark smoke trails.",
+    "game": "Yanma (DoT); rüzgâr kombosu ile büyüyen alevler.",
+    "source": "canon"
+   },
+   {
+    "id": "wind",
+    "name_romaji": "Fūton",
+    "kanji": "風遁",
+    "name_tr": "Rüzgâr Salınımı",
+    "class": "basic",
+    "components": [],
+    "associations": {
+     "villages": [
+      "wind (Suna)"
+     ],
+     "clans": [
+      "Kazekage Clan"
+     ]
+    },
+    "properties": "Keskinlik ve menzil; yıldırıma üstün, ateşi besler.",
+    "vfx_hint": "Pale cyan/white translucent blades, distortion ripples, dust kick-up; chakra-sharpened blades with blue edge.",
+    "game": "Kesme hasarı, zırh delme; mermi geri püskürtme.",
+    "source": "canon"
+   },
+   {
+    "id": "lightning",
+    "name_romaji": "Raiton",
+    "kanji": "雷遁",
+    "name_tr": "Yıldırım Salınımı",
+    "class": "basic",
+    "components": [],
+    "associations": {
+     "villages": [
+      "lightning (Kumo)"
+     ],
+     "clans": [
+      "Yotsuki Clan"
+     ]
+    },
+    "properties": "Delme, hız, felç; toprağa üstün.",
+    "vfx_hint": "Blue-white crackling arcs, chirping-bird sound, armor of lightning around body, chakra sparks on blades.",
+    "game": "Sersemletme/felç; hız buffı (yıldırım zırhı).",
+    "source": "canon"
+   },
+   {
+    "id": "earth",
+    "name_romaji": "Doton",
+    "kanji": "土遁",
+    "name_tr": "Toprak Salınımı",
+    "class": "basic",
+    "components": [],
+    "associations": {
+     "villages": [
+      "earth (Iwa)"
+     ],
+     "clans": [
+      "Kamizuru Clan"
+     ]
+    },
+    "properties": "Savunma, duvarlar, ağırlık değiştirme; suya üstün.",
+    "vfx_hint": "Rock walls erupting from ground, mud splashes, dust clouds; golems and spikes; ground-crack decals.",
+    "game": "Kalkan duvarı, arazi şekillendirme, ağırlık hafifletme (uçma/zıplama).",
+    "source": "canon"
+   },
+   {
+    "id": "water",
+    "name_romaji": "Suiton",
+    "kanji": "水遁",
+    "name_tr": "Su Salınımı",
+    "class": "basic",
+    "components": [],
+    "associations": {
+     "villages": [
+      "water (Kiri)",
+      "waves"
+     ],
+     "clans": [
+      "Hōzuki Clan",
+      "Hoshigaki Clan"
+     ]
+    },
+    "properties": "Esneklik, su kaynağı yakınında güçlü; ateşe üstün.",
+    "vfx_hint": "Translucent blue water with foam, dragon-shaped torrents, mist; stronger near rivers/sea.",
+    "game": "Yakınlık bonusu (su kaynağı), ıslatma -> yıldırım kombosu.",
+    "source": "canon"
+   }
+  ],
+  "yin_yang": [
+   {
+    "id": "yin",
+    "name_romaji": "In'ton",
+    "kanji": "陰遁",
+    "name_tr": "Yin Salınımı",
+    "class": "yin_yang",
+    "components": [],
+    "associations": {
+     "clans": [
+      "Nara Clan",
+      "Yamanaka Clan",
+      "Kurama Clan"
+     ]
+    },
+    "properties": "Ruhsal enerji, hayal gücü; 'yoktan biçim yaratma'. Gölge manipülasyonu, genjutsu, zihin teknikleri.",
+    "vfx_hint": "Dark purple/black ink-like shadows, distorted vision post-process.",
+    "game": "Kontrol/zihin yetenekleri.",
+    "source": "canon"
+   },
+   {
+    "id": "yang",
+    "name_romaji": "Yōton",
+    "kanji": "陽遁",
+    "name_tr": "Yang Salınımı",
+    "class": "yin_yang",
+    "components": [],
+    "associations": {
+     "clans": [
+      "Akimichi Clan",
+      "Senju Clan",
+      "Uzumaki Clan"
+     ]
+    },
+    "properties": "Bedensel enerji, yaşam gücü; 'biçime hayat verme'. Beden büyütme, iyileştirme, canlılık.",
+    "vfx_hint": "Warm golden-white glow, body scaling effects.",
+    "game": "Beden büyütme, yenilenme.",
+    "source": "canon"
+   },
+   {
+    "id": "yin_yang",
+    "name_romaji": "Onmyōton",
+    "kanji": "陰陽遁",
+    "name_tr": "Yin-Yang Salınımı",
+    "class": "yin_yang",
+    "components": [
+     "yin",
+     "yang"
+    ],
+    "associations": {
+     "clans": [
+      "Ōtsutsuki Clan"
+     ],
+     "note": "Altı Yol güçleri"
+    },
+    "properties": "Yaratma (hayat verme, yeni canlı/nesne), Arayış Topları ve tüm jutsuları geçersiz kılma.",
+    "vfx_hint": "Black-white swirling orbs, taiji motif.",
+    "game": "Son oyun tanrısal yetenekler.",
+    "source": "canon"
+   }
+  ],
+  "kekkei_genkai": [
+   {
+    "id": "wood",
+    "name_romaji": "Mokuton",
+    "kanji": "木遁",
+    "name_tr": "Ağaç Salınımı",
+    "class": "kekkei_genkai",
+    "components": [
+     "earth",
+     "water"
+    ],
+    "associations": {
+     "clans": [
+      "Senju Clan"
+     ],
+     "villages": [
+      "fire"
+     ],
+     "note": "Kurucu soyundan; hücre nakliyle yapay kullanıcılar"
+    },
+    "properties": "Ağaç ve orman yaratma, kuyruklu canavar çakrasını bastırma, ahşap klonlar, ev/hapishane yapımı.",
+    "vfx_hint": "Rapidly growing wooden beams and branches with bark texture, green leaves, giant wooden dragons/statue; creaking wood SFX.",
+    "game": "Arazi yaratma (köprü, sığınak), canavar bastırma kontrol yetisi.",
+    "source": "canon"
+   },
+   {
+    "id": "ice",
+    "name_romaji": "Hyōton",
+    "kanji": "氷遁",
+    "name_tr": "Buz Salınımı",
+    "class": "kekkei_genkai",
+    "components": [
+     "wind",
+     "water"
+    ],
+    "associations": {
+     "clans": [
+      "Yuki Clan"
+     ],
+     "villages": [
+      "water",
+      "snow (kanon dışı buz varyantı)"
+     ]
+    },
+    "properties": "Buz iğneleri, buz ayna kubbesi (ayna içinde ışık hızında hareket), dondurma.",
+    "vfx_hint": "Crystalline pale-blue ice mirrors with reflections, frost fog, snowflakes; senbon ice needles.",
+    "game": "Yavaşlatma/dondurma; ayna-ışınlanma alan yeteneği.",
+    "source": "canon"
+   },
+   {
+    "id": "lava",
+    "name_romaji": "Yōton",
+    "kanji": "熔遁/溶遁",
+    "name_tr": "Lav Salınımı",
+    "class": "kekkei_genkai",
+    "components": [
+     "fire",
+     "earth"
+    ],
+    "associations": {
+     "villages": [
+      "water (Kiri — asit varyantı 溶)",
+      "earth (Iwa — kireç/sönmüş kireç)",
+      "lightning (Kumo — kauçuk)",
+      "rain (anime)",
+      "stone_village_country (roman)"
+     ],
+     "note": "Dört Kuyruk taşıyıcısına özgü"
+    },
+    "properties": "Erimiş kaya topları, asit sis (her şeyi eritir), sertleşen kireç, kauçuk kalkan.",
+    "vfx_hint": "Glowing orange magma blobs with black crust, acidic green-yellow mist variant, steam hiss.",
+    "game": "Zırh eritme (savunma düşürme); arazi tehlikesi.",
+    "source": "canon"
+   },
+   {
+    "id": "boil",
+    "name_romaji": "Futton",
+    "kanji": "沸遁",
+    "name_tr": "Kaynama Salınımı",
+    "class": "kekkei_genkai",
+    "components": [
+     "fire",
+     "water"
+    ],
+    "associations": {
+     "villages": [
+      "water (Kiri)"
+     ],
+     "note": "Beş Kuyruk taşıyıcısına özgü"
+    },
+    "properties": "Aşındırıcı buhar/sis; buhar zırhı ve buhar patlaması.",
+    "vfx_hint": "Thick white-pink steam clouds, bubbling surfaces, corroded metal decals.",
+    "game": "Alan DoT + zırh aşındırma; buhar gücüyle güç artışı.",
+    "source": "canon"
+   },
+   {
+    "id": "storm",
+    "name_romaji": "Ranton",
+    "kanji": "嵐遁",
+    "name_tr": "Fırtına Salınımı",
+    "class": "kekkei_genkai",
+    "components": [
+     "lightning",
+     "water"
+    ],
+    "associations": {
+     "villages": [
+      "lightning (Kumo)"
+     ]
+    },
+    "properties": "Lazer gibi bükülebilen ışık-yıldırım ışınları, kara bulut yağmuru ve şimşek panteri.",
+    "vfx_hint": "Bending blue-white laser beams with water-wave ripple, black storm clouds raining lightning, lightning panther.",
+    "game": "Seken ışınlar (bounce/ricochet), dolaylı atış.",
+    "source": "canon"
+   },
+   {
+    "id": "explosion",
+    "name_romaji": "Bakuton",
+    "kanji": "爆遁",
+    "name_tr": "Patlama Salınımı",
+    "class": "kekkei_genkai",
+    "components": [
+     "earth",
+     "lightning (ima edilen)"
+    ],
+    "associations": {
+     "villages": [
+      "earth (Iwa Patlama Birliği)"
+     ],
+     "note": "Elde ağız benzeri mühürle kil yoğurma varyantı"
+    },
+    "properties": "Çakra ile patlayıcı yaratma (patlayıcı kil, patlayıcı mızrak, patlayan bedenler).",
+    "vfx_hint": "White clay birds/spiders, flash then fiery explosion with shockwave; hand-mouth decals.",
+    "game": "Gecikmeli patlayıcılar, mayın yerleştirme.",
+    "source": "canon"
+   },
+   {
+    "id": "magnet",
+    "name_romaji": "Jiton",
+    "kanji": "磁遁",
+    "name_tr": "Mıknatıs Salınımı",
+    "class": "kekkei_genkai",
+    "components": [
+     "wind",
+     "earth (ima edilen)"
+    ],
+    "associations": {
+     "villages": [
+      "wind (Suna)",
+      "lightning (Kumo)",
+      "stone_village_country (roman)"
+     ],
+     "clans": [
+      "Kazekage Clan"
+     ],
+     "note": "Bir Kuyruk taşıyıcısına özgü (kum)"
+    },
+    "properties": "Demir kumu, altın tozu veya kum gibi metalleri manyetik kontrol; çivileme ve bağlama.",
+    "vfx_hint": "Black iron-sand swarms forming spikes and cubes, magnetic field line particles, gold dust variant.",
+    "game": "Metal silahları çekip etkisizleştirme; kalkan/bağlama.",
+    "source": "canon"
+   },
+   {
+    "id": "scorch",
+    "name_romaji": "Shakuton",
+    "kanji": "灼遁",
+    "name_tr": "Kavurma Salınımı",
+    "class": "kekkei_genkai",
+    "components": [
+     "fire",
+     "wind (ima edilen)"
+    ],
+    "associations": {
+     "villages": [
+      "wind (Suna)"
+     ]
+    },
+    "properties": "Ateş toplarıyla hedefin vücut sıvılarını buharlaştırıp mumya gibi kurutma.",
+    "vfx_hint": "Small orbiting suns/fire orbs, heat haze, victim mummification shrivel effect.",
+    "game": "Yörüngede dönen fırlatılabilir toplar; 'kuruma' öldürme animasyonu.",
+    "source": "canon"
+   },
+   {
+    "id": "dust",
+    "name_romaji": "Jinton",
+    "kanji": "塵遁",
+    "name_tr": "Toz Salınımı",
+    "class": "kekkei_tota",
+    "components": [
+     "fire",
+     "wind",
+     "earth"
+    ],
+    "associations": {
+     "villages": [
+      "earth (Iwa — Tsuchikage soyu, hocadan öğrenciye)"
+     ]
+    },
+    "properties": "Hedefi moleküler seviyede parçalayan geometrik (küp, koni) ışın; içine alınan her şey yok olur.",
+    "vfx_hint": "White translucent geometric prism (cube/cone) with inner glowing core, sharp white flash then disintegration particles.",
+    "game": "Son seviye tek hedef yok etme; uzun şarj; kekkei tōta (üç doğa ustalığı).",
+    "source": "canon"
+   },
+   {
+    "id": "crystal",
+    "name_romaji": "Shōton",
+    "kanji": "晶遁",
+    "name_tr": "Kristal Salınımı",
+    "class": "kekkei_genkai",
+    "components": [
+     "earth (en az)"
+    ],
+    "associations": {
+     "villages": [
+      "sound (anime)"
+     ]
+    },
+    "properties": "Çakra ve nemi kristale dönüştürme; kristal mızraklar, aynalar, hedefi kristale hapsetme.",
+    "vfx_hint": "Pink-violet faceted crystal spikes and pentagonal prisons, sparkling refractions.",
+    "game": "Hapsetme; kristal kalkan.",
+    "source": "anime"
+   },
+   {
+    "id": "steel",
+    "name_romaji": "Kōton",
+    "kanji": "鋼遁",
+    "name_tr": "Çelik Salınımı",
+    "class": "kekkei_genkai",
+    "components": [
+     "earth",
+     "lightning (oyun yorumu)"
+    ],
+    "associations": {
+     "note": "Roman/film"
+    },
+    "properties": "Bedeni çeliğe dönüştürme; neredeyse kırılmaz zırh.",
+    "vfx_hint": "Metallic chrome body shader, clanging SFX.",
+    "game": "Geçici yenilmezlik/tank modu.",
+    "source": "novel/movie"
+   },
+   {
+    "id": "swift",
+    "name_romaji": "Jinton",
+    "kanji": "迅遁",
+    "name_tr": "Hız Salınımı",
+    "class": "kekkei_genkai",
+    "components": [
+     "wind",
+     "lightning (oyun yorumu)"
+    ],
+    "associations": {
+     "note": "Film"
+    },
+    "properties": "Göz alamayacak hız; hedefe anında ulaşma.",
+    "vfx_hint": "Motion blur streaks, afterimages.",
+    "game": "Dash/teleport-benzeri hareket.",
+    "source": "movie"
+   },
+   {
+    "id": "dark",
+    "name_romaji": "Meiton",
+    "kanji": "冥遁",
+    "name_tr": "Karanlık Salınımı",
+    "class": "kekkei_genkai",
+    "components": [
+     "bilinmiyor (oyun grafiğinin merkezi)"
+    ],
+    "associations": {
+     "note": "Film — çakra emme"
+    },
+    "properties": "Jutsuları ve çakrayı emme, karanlık küreler.",
+    "vfx_hint": "Black-purple absorbing vortex, inverted light.",
+    "game": "Ninjutsu emme kalkanı.",
+    "source": "movie"
+   },
+   {
+    "id": "mud",
+    "name_romaji": "Deiton",
+    "kanji": "泥遁",
+    "name_tr": "Çamur Salınımı",
+    "class": "kekkei_genkai",
+    "components": [
+     "water",
+     "earth"
+    ],
+    "associations": {
+     "note": "Roman — Ağaç ile aynı bileşenleri paylaşan tek doğa"
+    },
+    "properties": "Çamur dalgaları, bataklık yaratma.",
+    "vfx_hint": "Thick brown mud waves and bog.",
+    "game": "Yavaşlatma alanı, tuzak.",
+    "source": "novel"
+   },
+   {
+    "id": "blaze",
+    "name_romaji": "Enton",
+    "kanji": "炎遁",
+    "name_tr": "Alev Salınımı (Kara Alev)",
+    "class": "dojutsu_variant",
+    "components": [
+     "fire",
+     "lightning (oyun yorumu)"
+    ],
+    "associations": {
+     "clans": [
+      "Uchiha Clan"
+     ],
+     "note": "Gözle kara alev şekillendirme; dōjutsu dosyasına referans"
+    },
+    "properties": "Söndürülemez kara alevleri şekil verme.",
+    "vfx_hint": "Black flames with dark purple edges.",
+    "game": "Kalıcı DoT, şekillendirilebilir alev.",
+    "source": "canon variant"
+   },
+   {
+    "id": "typhoon",
+    "name_romaji": "Taiton",
+    "kanji": "颱遁",
+    "name_tr": "Tayfun Salınımı",
+    "class": "variant",
+    "components": [
+     "wind"
+    ],
+    "associations": {
+     "note": "Roman varyantı"
+    },
+    "properties": "Rüzgârın güçlendirilmiş hâli.",
+    "vfx_hint": "Massive cyclones.",
+    "game": "Alan kontrolü.",
+    "source": "novel"
+   },
+   {
+    "id": "bone",
+    "name_romaji": "Shikotsumyaku",
+    "kanji": "屍骨脈",
+    "name_tr": "Ölü Kemik Damarı",
+    "class": "kekkei_genkai_nonelemental",
+    "components": [],
+    "associations": {
+     "clans": [
+      "Kaguya Clan"
+     ]
+    },
+    "properties": "Doğa değil; kendi kemik yapısını, yoğunluğunu ve yenilenmesini kontrol.",
+    "vfx_hint": "White bone blades emerging from skin, bone forest field.",
+    "game": "Kemik silah ve kemik zırh.",
+    "source": "canon"
+   },
+   {
+    "id": "blood_iron",
+    "name_romaji": "Ketsuryūgan",
+    "kanji": "血龍眼",
+    "name_tr": "Kan Ejderhası Gözü (kanlı demir)",
+    "class": "kekkei_genkai_dojutsu",
+    "components": [],
+    "associations": {
+     "clans": [
+      "Chinoike Clan"
+     ]
+    },
+    "properties": "Demir içeren sıvıları (kan) kontrol + kırmızı göz genjutsu'su (dōjutsu dosyası).",
+    "vfx_hint": "Crimson liquid tendrils, red eye glow.",
+    "game": "Kan bükme.",
+    "source": "canon"
+   },
+   {
+    "id": "smoke_body",
+    "name_romaji": "Iburi Duman Bedeni",
+    "kanji": "—",
+    "name_tr": "Duman Bedeni",
+    "class": "kekkei_genkai_nonelemental",
+    "components": [],
+    "associations": {
+     "clans": [
+      "Iburi Clan"
+     ]
+    },
+    "properties": "Bedeni dumana çevirme; rüzgâr ölümcüldür.",
+    "vfx_hint": "Grey wispy smoke body.",
+    "game": "Fiziksel saldırıdan kaçınma; rüzgâra zayıflık.",
+    "source": "canon"
+   },
+   {
+    "id": "hydrification",
+    "name_romaji": "Hōzuki Sulaşma",
+    "kanji": "水化の術",
+    "name_tr": "Sulaşma Tekniği",
+    "class": "hiden_nonelemental",
+    "components": [
+     "water"
+    ],
+    "associations": {
+     "clans": [
+      "Hōzuki Clan"
+     ]
+    },
+    "properties": "Bedeni sıvıya dönüştürme; sürekli su içmeleri gerekir.",
+    "vfx_hint": "Body turning into clear water with ripples.",
+    "game": "Fiziksel hasar bağışıklığı; yıldırım zayıflığı.",
+    "source": "canon"
+   }
+  ],
+  "kekkei_mora": {
+   "desc": "Göksel tanrıça ve doğrudan soyuna özgü gelişmiş dal; tüm beş doğa, Yin, Yang ve hepsini kapsayan güç. İlahi ağacın meyvesini yemekle 'hasat' edilen güçler.",
+   "examples": [
+    "Kökensel Byakugan",
+    "Altı Yol Rinnegan'ı",
+    "Geniş Arayış Topu",
+    "Boyutlar arası geçit"
+   ],
+   "game": "Yalnızca son boss/göksel düşmanlar."
+  },
+  "combo_rules_for_game": [
+   "İki doğa öğrenip ilgili klan/kan bağına sahip olan veya özel 'hücre nakli' görevini tamamlayan ileri doğaya erişir.",
+   "Kan bağı olmayan oyuncular için alternatif: iki oyuncu/NPC 'kombinasyon jutsusu' (ör. rüzgâr + ateş = ateş fırtınası) — kekkei genkai değil, ortak çalışma."
+  ]
+ },
+ "hand_seals": {
+  "notes": "12 temel mühür Çin zodyağından gelir (jutsu.json hand_seals ile aynı sıra). Usta ninjalar daha az mühürle, bazıları tek elle yapabilir (Buz klanı tek el mühürleri). Mühür hızı = yetenek göstergesi. El pozu açıklamaları animasyon için yaklaşık tariflerdir; Narutopedia Hand Seal sayfasındaki görsellerle doğrulanmalı.",
+  "basic_12": [
+   {
+    "id": "rat",
+    "name_jp": "Ne",
+    "kanji": "子",
+    "animal_en": "Rat",
+    "name_tr": "Fare",
+    "hand_pose": "Sol elin işaret+orta parmağı dik; sağ el sol elin parmaklarını yumruğunun içine alır, sağ işaret+orta parmak da dik — iki el üst üste, parmak uçları yukarı.",
+    "common_in": [
+     "Gölge Taklit (Nara)"
+    ]
+   },
+   {
+    "id": "ox",
+    "name_jp": "Ushi",
+    "kanji": "丑",
+    "animal_en": "Ox",
+    "name_tr": "Öküz",
+    "hand_pose": "Sol el dik, avuç sağa; sağ el yatay olarak sol elin üstüne dik açıyla kavuşur, sağ parmaklar sol elin sırtını kavrar; işaret+orta sol parmak ileri.",
+    "common_in": [
+     "Ateş Ejderha Alevi"
+    ]
+   },
+   {
+    "id": "tiger",
+    "name_jp": "Tora",
+    "kanji": "寅",
+    "animal_en": "Tiger",
+    "name_tr": "Kaplan",
+    "hand_pose": "İki el kenetli, işaret ve orta parmaklar birleşik ve yukarı dik; başparmaklar yan yana dik. (Ateş tekniklerinin klasik son mühürü)",
+    "common_in": [
+     "Büyük Ateş Topu",
+     "Klon/Dönüşüm"
+    ]
+   },
+   {
+    "id": "hare",
+    "name_jp": "U",
+    "kanji": "卯",
+    "animal_en": "Hare",
+    "name_tr": "Tavşan",
+    "hand_pose": "Sol el yumruk, işaret+orta parmak hafif yukarı; sağ el avucu sol yumruğun altına/yanına, sağ küçük parmak sol yumruğa değer.",
+    "common_in": [
+     "Şimşek kesiği (Chidori)"
+    ]
+   },
+   {
+    "id": "dragon",
+    "name_jp": "Tatsu",
+    "kanji": "辰",
+    "animal_en": "Dragon",
+    "name_tr": "Ejderha",
+    "hand_pose": "Eller avuç avuca kapalı ve yatay; başparmaklar yukarı; sol elin parmakları sağ elin sırtına sarılır (kapalı kutu görünümü).",
+    "common_in": [
+     "Su Ejderha Mermisi"
+    ]
+   },
+   {
+    "id": "snake",
+    "name_jp": "Mi",
+    "kanji": "巳",
+    "animal_en": "Snake",
+    "name_tr": "Yılan",
+    "hand_pose": "Parmaklar kenetli, avuçlar birleşik; sağ başparmak sol başparmağın üstünde — dua eden kenetli eller.",
+    "common_in": [
+     "Klon, Yer değiştirme",
+     "Çağırma (ilk mühür)"
+    ]
+   },
+   {
+    "id": "horse",
+    "name_jp": "Uma",
+    "kanji": "午",
+    "animal_en": "Horse",
+    "name_tr": "At",
+    "hand_pose": "İşaret parmakları ve başparmaklar uç uca değerek yukarı doğru üçgen oluşturur; diğer parmaklar içe kıvrık.",
+    "common_in": [
+     "Ateş Phoenix Çiçeği"
+    ]
+   },
+   {
+    "id": "ram",
+    "name_jp": "Hitsuji",
+    "kanji": "未",
+    "animal_en": "Ram (Sheep)",
+    "name_tr": "Koç",
+    "hand_pose": "Sağ el dik, işaret+orta parmak yukarı (yarım kaplan); sol elin işaret+orta parmağı aynı şekilde kalkık ve sağ elin önünde, sol el sağın parmaklarını kavrar.",
+    "common_in": [
+     "Çakra yoğunlaştırma",
+     "Klon"
+    ]
+   },
+   {
+    "id": "monkey",
+    "name_jp": "Saru",
+    "kanji": "申",
+    "animal_en": "Monkey",
+    "name_tr": "Maymun",
+    "hand_pose": "Avuçlar dikey ve dik açıyla üst üste: sağ avuç sol elin parmak uçlarına, kapalı 'artı' görünümü; başparmaklar katlı.",
+    "common_in": [
+     "Chidori dizisi"
+    ]
+   },
+   {
+    "id": "bird",
+    "name_jp": "Tori",
+    "kanji": "酉",
+    "animal_en": "Bird (Rooster)",
+    "name_tr": "Kuş (Horoz)",
+    "hand_pose": "Eller avuç avuca açık, parmaklar ileri; işaret ve orta parmaklar iç içe geçmiş, başparmaklar birbirine yaslı; yan profilden kanat gibi.",
+    "common_in": [
+     "Su Ejderha",
+     "Çakra yoğunlaştırma"
+    ]
+   },
+   {
+    "id": "dog",
+    "name_jp": "Inu",
+    "kanji": "戌",
+    "animal_en": "Dog",
+    "name_tr": "Köpek",
+    "hand_pose": "Sol el düz ve avuç aşağı, sağ yumruğun üzerine kapanır; sağ el yumruk.",
+    "common_in": [
+     "Çağırma (ikinci mühür)",
+     "Toprak duvar"
+    ]
+   },
+   {
+    "id": "boar",
+    "name_jp": "I",
+    "kanji": "亥",
+    "animal_en": "Boar",
+    "name_tr": "Domuz",
+    "hand_pose": "İki elin sırtı birbirine yakın, parmak uçları aşağı/ileri birleşik; avuçlar dışa — eller dikey açık ve uç uca.",
+    "common_in": [
+     "Çağırma",
+     "Gölge teknikleri"
+    ]
+   }
+  ],
+  "special": [
+   {
+    "id": "clone_seal",
+    "name": "Klon Mühürü (Bunshin no In / Jūji)",
+    "tr": "Haç Mühürü",
+    "pose": "İki elin işaret+orta parmakları birbirine çapraz geçer (artı/haç işareti); diğer parmaklar kapalı.",
+    "use": "Gölge Klon ve Ağaç Klon varyasyonları."
+   },
+   {
+    "id": "confrontation",
+    "name": "Tairitsu no In (Çatışma Mühürü)",
+    "tr": "Çatışma Mühürü",
+    "pose": "Tek el: işaret+orta parmak dik, diğerleri kapalı, göğüs hizasında (yarım kaplan/koç). Kote'de Toprak elementi mühürü olarak da geçer.",
+    "use": "Düello başlangıcı; çakra yoğunlaştırma."
+   },
+   {
+    "id": "reconciliation",
+    "name": "Wakai no In (Barışma Mühürü)",
+    "tr": "Barışma Mühürü",
+    "pose": "İki rakip çatışma mühürü yaptıkları ellerinin işaret+orta parmaklarını birbirine kenetler.",
+    "use": "Geleneksel düello sonrası 'hâlâ yoldaşız' jesti."
+   },
+   {
+    "id": "concentration",
+    "name": "Toplanma/Yoğunlaşma Mühürü (Ram/Tiger tek el veya iki el)",
+    "tr": "Odak Mühürü",
+    "pose": "Koç mühürü (iki elle işaret+orta dik) göğüs önünde, gözler kapalı.",
+    "use": "Çakra toplama, genjutsu bozma (Kai!), bilge enerjisi toplama ile birlikte."
+   },
+   {
+    "id": "clap_hands",
+    "name": "El Çırpma",
+    "tr": "El Çırpma",
+    "pose": "Avuçlar sert şekilde birleştirilir (şaklama).",
+    "use": "Çakra toplama, genjutsu kırma; Diriltme yasak jutsusunun başlangıcı."
+   },
+   {
+    "id": "slam_surface",
+    "name": "Yüzeye Vurma",
+    "tr": "Zemine El Basma",
+    "pose": "Avuç yere/yüzeye basılır; yayılan mühür yazıları.",
+    "use": "Çağırma, toprak teknikleri, mühür bariyerleri."
+   },
+   {
+    "id": "jin_yang_water",
+    "name": "Jin (Yang Su) Mühürü",
+    "tr": "Jin Mühürü",
+    "pose": "Köpek mühürüne benzer; alt elin parmakları sırtında açık (animede). Zodyak dışı.",
+    "use": "Uzun Su Ejderha dizisi, tapınak mühürü."
+   },
+   {
+    "id": "crossed_tiger",
+    "name": "Çapraz Kaplan",
+    "tr": "Çapraz Kaplan",
+    "pose": "Kaplan mühürü, ama orta parmaklar işaret parmaklarının üstünden çapraz geçer.",
+    "use": "Buz ayna kubbesi; lanet mühür verme."
+   },
+   {
+    "id": "mirrored_ram",
+    "name": "Ayna Koç",
+    "tr": "Ters Koç",
+    "pose": "Koç mühürünün aynası: sağ başparmak solun üstünde, işaret+orta parmaklar dikey.",
+    "use": "On Kuyruk tabut mühürü, Yin bilge sanatı."
+   },
+   {
+    "id": "five_elements_hand",
+    "name": "Beş Element Mühürü Pozu",
+    "tr": "Beş Element",
+    "pose": "Başparmak ve küçük parmak uçları birbirine değer; sol işaret+orta ve sağ işaret kalkık, sağ işaret soldaki ortaya değer; parmak uçlarında mor alev.",
+    "use": "cursed_seals.five_elements_seal"
+   },
+   {
+    "id": "akimichi_seal",
+    "name": "Akimichi Mühürü",
+    "tr": "Büyüme Mühürü",
+    "pose": "Önden kuş mühürüne benzer: işaret parmakları dik birleşik, diğerleri kenetli; yandan farklı.",
+    "use": "Beden Büyütme Tekniği."
+   },
+   {
+    "id": "nara_bird",
+    "name": "Gölge Kuşu (Alternatif Kuş)",
+    "tr": "Gölge Mühürü",
+    "pose": "Serçe ve yüzük parmakları dik, işaret ve orta parmaklar kuş mühüründeki gibi kenetli, başparmaklar birleşik — elden yapılmış tilki/geyik başı.",
+    "use": "Gölge dikiş/bağlama."
+   },
+   {
+    "id": "yamanaka_seal",
+    "name": "Zihin Transfer Mühürü",
+    "tr": "Zihin Çerçevesi",
+    "pose": "İki elin başparmak ve işaret parmakları birleşerek önde elmas/çerçeve yapar, hedef çerçeveden nişan alınır; dönüş için parmaklar düz ve birleşik.",
+    "use": "Zihin Beden Değiştirme."
+   },
+   {
+    "id": "one_hand_seals",
+    "name": "Tek El Mühürleri (Buz klanı/Kote)",
+    "tr": "Tek El Mühürleri",
+    "pose": "Kote element mühürleri: Ateş = tüm parmaklar açık düz el; Su = düz el, işaret başparmağın altında; Rüzgâr = başparmak ve serçe açık, diğerleri avuçta; Toprak = işaret+orta açık; Yıldırım = işaret ve serçe açık, orta ve yüzük başparmakla tutulu.",
+    "use": "Tek elle seri jutsu; diğer el silah tutarken."
+   },
+   {
+    "id": "half_tiger_one_hand",
+    "name": "Tek El Kaplan/Kuş",
+    "tr": "Tek El Kaplan",
+    "pose": "Tek elde işaret+orta parmak dik, yüz önünde dikey.",
+    "use": "Hızlı ninjutsu, ışınlanma, yer değiştirme."
+   },
+   {
+    "id": "twin_snakes",
+    "name": "İkiz Yılan Ölüm Mühürü",
+    "tr": "İkiz Yılan",
+    "pose": "Kullanıcı ve düşman birer el ile ortak yılan mühürü yapar (eller kenetli).",
+    "use": "Yasak karşılıklı ölüm tekniği."
+   },
+   {
+    "id": "daytime_tiger",
+    "name": "Gündüz Kaplanı Mühürü",
+    "tr": "Gündüz Kaplanı",
+    "pose": "İki el ileri itilir; parmaklar dış aslanın kuji-in mühürü gibi: işaret uçları ve başparmaklar birleşik, eller kaplan ağzı gibi.",
+    "use": "Sekiz Kapı hava basıncı yumruğu."
+   },
+   {
+    "id": "shark_bullet",
+    "name": "Köpekbalığı Mermisi Mühürü",
+    "tr": "Köpekbalığı",
+    "pose": "Bilekler birbirine değer, sağ el üstte, parmaklar köpekbalığı ağzı gibi kıvrık; ileri itiş.",
+    "use": "Su köpekbalığı mermisi."
+   },
+   {
+    "id": "sharingan_activation",
+    "name": "Göz Aktivasyon Mühürü",
+    "tr": "Göz Mühürü",
+    "pose": "Kaplan mühürü, işaret parmaklarının son boğumları içe bastırılmış.",
+    "use": "Dōjutsu güç aktivasyonu (dōjutsu dosyası)."
+   },
+   {
+    "id": "byakugan_seal",
+    "name": "Beyaz Göz Mühürü",
+    "tr": "Beyaz Göz Mühürü",
+    "pose": "Tek veya iki el ile kaplan benzeri mühür yüz önünde; göz çevresinde damarlar belirir.",
+    "use": "Beyaz göz aktivasyonu (animede)."
+   },
+   {
+    "id": "tearing_earth",
+    "name": "Yırtan Toprak Avuç Mühürü",
+    "tr": "Toprak Çevirme",
+    "pose": "Sol el çanak gibi aşağı döndürülür, sağın işaret+orta parmağı kalkık yanında.",
+    "use": "Toprak tekniği."
+   },
+   {
+    "id": "water_formation_wall",
+    "name": "Su Duvarı Mühürü",
+    "tr": "Su Duvarı",
+    "pose": "Tek el ağız önünde, tükürür gibi su püskürtmeden önce.",
+    "use": "Su Duvarı."
+   },
+   {
+    "id": "fuma_mandala",
+    "name": "Lanet Mandala Mühürleri",
+    "tr": "Mandala Mühürleri",
+    "pose": "Klanın gizli çok parmaklı mühür dizisi.",
+    "use": "cursed_seals.curse_mandala"
+   }
+  ],
+  "animation_notes": [
+   "Mühür girişinde her mühür ~0.08-0.2 sn; usta seviyesinde hızlandırılmış bulanık (blur) el animasyonu.",
+   "Mühür tamamlanınca 'Tiger' veya son mühür üzerinde çakra parlaması (doğa rengi).",
+   "Tek el mühürü yeteneği (perk) = koşarken/silah tutarken cast.",
+   "Kanonik dizileri jutsu.json'daki jutsu.hand_seals alanından okuyun."
+  ]
+ },
+ "clans": [
+  {
+   "id": "uchiha",
+   "name": "Uchiha Clan",
+   "type": "shinobi_clan",
+   "village": "Konohagakure",
+   "country_id": "fire",
+   "kekkei_genkai_or_hiden": "Sharingan (dojutsu; evolves 1 -> 2 -> 3 tomoe, rare Mangekyo Sharingan); strong Fire Release affinity",
+   "signature_abilities": [
+    "Gözle genjutsu ve hareket okuma",
+    "Ateş topu/ateş anka çiçeği",
+    "Shuriken ustalığı"
+   ],
+   "crest_description": "Uchiwa paper fan: upper half red, lower half white, with a short white handle; usually worn on the back of shirts",
+   "status": "Neredeyse yok (katliam)",
+   "media": "manga/anime",
+   "detailed_in": "clans_factions.json -> clans['Uchiha Clan']",
+   "game_use": "Dōjutsu uyanış hikâyesi; polis klanı gerilimi"
+  },
+  {
+   "id": "hyuga",
+   "name": "Hyūga Clan",
+   "type": "shinobi_clan",
+   "village": "Konohagakure",
+   "country_id": "fire",
+   "kekkei_genkai_or_hiden": "Byakugan (dojutsu: near-360-degree vision with one blind spot, x-ray sight, sees chakra pathways and tenketsu); Gentle Fist (Juken) taijutsu",
+   "signature_abilities": [
+    "360° görüş ve çakra damarlarını görme",
+    "Çakra noktalarını kapatma",
+    "Sekiz Trigram 64 Avuç, Dönen Savunma"
+   ],
+   "crest_description": "Stylised flame/teardrop-like symbol (the clan mark seen on robes); the branch family bears a green 'caged bird' seal on the forehead",
+   "status": "Aktif; ana ve yan aile ayrımı (cursed_seals.caged_bird_seal)",
+   "media": "manga/anime",
+   "detailed_in": "clans_factions.json -> clans['Hyuga Clan']",
+   "game_use": "Yakın dövüş/gözcü sınıfı; ana/yan aile politikası"
+  },
+  {
+   "id": "nara",
+   "name": "Nara Clan",
+   "type": "shinobi_clan",
+   "village": "Konohagakure",
+   "country_id": "fire",
+   "kekkei_genkai_or_hiden": "Hiden: Shadow Techniques (Kagemane)",
+   "signature_abilities": [
+    "Gölge Taklit (hedefi bağlama)",
+    "Gölge Dikişi, Gölge Boğma",
+    "Dahi strateji; geyik bakıcılığı ve ilaç kitabı"
+   ],
+   "crest_description": "Stylised circular emblem resembling a deer/shadow motif (often rendered as a simple ring-and-line symbol) (approximate; verify against the wiki image before modelling)",
+   "status": "Aktif",
+   "media": "manga/anime",
+   "detailed_in": "clans_factions.json -> clans['Nara Clan']",
+   "game_use": "Kontrol/strateji sınıfı; geyik ormanı bölgesi"
+  },
+  {
+   "id": "akimichi",
+   "name": "Akimichi Clan",
+   "type": "shinobi_clan",
+   "village": "Konohagakure",
+   "country_id": "fire",
+   "kekkei_genkai_or_hiden": "Hiden: Body expansion (Baika no Jutsu), converting calories to chakra",
+   "signature_abilities": [
+    "Kısmi/tam dev büyüme",
+    "İnsan Tankı (yuvarlanan top)",
+    "Kelebek modu (gizli hap)"
+   ],
+   "crest_description": "Kanji for 'food' (食) inside a circle / clan swirl mark worn on armor and scarves",
+   "status": "Aktif",
+   "media": "manga/anime",
+   "detailed_in": "clans_factions.json -> clans['Akimichi Clan']",
+   "game_use": "Tank sınıfı; hap riski (kanonda ölümcül üçlü hap)"
+  },
+  {
+   "id": "yamanaka",
+   "name": "Yamanaka Clan",
+   "type": "shinobi_clan",
+   "village": "Konohagakure",
+   "country_id": "fire",
+   "kekkei_genkai_or_hiden": "Hiden: Mind Body Switch and mind/telepathy techniques; sensory skills",
+   "signature_abilities": [
+    "Zihin-Beden Değiştirme",
+    "Telepatik ağ, zihin okuma",
+    "Bariyer Takımı liderliği; çiçek dükkânı"
+   ],
+   "crest_description": "Clan symbol often shown as a stylised flower/three-petal mark; family flower shop sign (approximate; verify against the wiki image before modelling)",
+   "status": "Aktif",
+   "media": "manga/anime",
+   "detailed_in": "clans_factions.json -> clans['Yamanaka Clan']",
+   "game_use": "Sensör/destek; sorgu"
+  },
+  {
+   "id": "aburame",
+   "name": "Aburame Clan",
+   "type": "shinobi_clan",
+   "village": "Konohagakure",
+   "country_id": "fire",
+   "kekkei_genkai_or_hiden": "Hiden: Insect symbiosis (kikaichu chakra-eating beetles live inside the body)",
+   "signature_abilities": [
+    "Çakra emen böcek sürüleri",
+    "Böcek klonları, iz böceği",
+    "Zehirli böcek türleri"
+   ],
+   "crest_description": "Clan mark is usually a simple stylised insect/hex shape; often not visibly worn (approximate; verify against the wiki image before modelling)",
+   "status": "Aktif",
+   "media": "manga/anime",
+   "detailed_in": "clans_factions.json -> clans['Aburame Clan']",
+   "game_use": "Çağırıcı/DoT; 'böcek kavanozu' envanteri"
+  },
+  {
+   "id": "inuzuka",
+   "name": "Inuzuka Clan",
+   "type": "shinobi_clan",
+   "village": "Konohagakure",
+   "country_id": "fire",
+   "kekkei_genkai_or_hiden": "Hiden: Ninken partnership techniques; enhanced smell/hearing",
+   "signature_abilities": [
+    "Diş Üstüne Diş (dönen matkap)",
+    "İnsan-Köpek dönüşümü",
+    "Koku ile iz sürme"
+   ],
+   "crest_description": "Red fang-like triangle marks on each cheek serve as the clan's identity",
+   "status": "Aktif",
+   "media": "manga/anime",
+   "detailed_in": "clans_factions.json -> clans['Inuzuka Clan']",
+   "game_use": "Evcil hayvan yoldaş sistemi"
+  },
+  {
+   "id": "senju",
+   "name": "Senju Clan",
+   "type": "shinobi_clan",
+   "village": "Konohagakure",
+   "country_id": "fire",
+   "kekkei_genkai_or_hiden": "Extraordinary chakra/life force; very rare Wood Release (Mokuton) kekkei genkai; medical-ninjutsu aptitude",
+   "signature_abilities": [
+    "Ağaç teknikleri",
+    "Güçlü iyileşme ve çakra",
+    "Ateşin İradesi felsefesi"
+   ],
+   "crest_description": "Senju crest is a stylised emblem worn on warring-states armor (exact design varies by source); the founding clan's legacy is mainly expressed through the Konoha leaf symbol",
+   "status": "Dağılmış (köye karışmış)",
+   "media": "manga/anime",
+   "detailed_in": "clans_factions.json -> clans['Senju Clan']",
+   "game_use": "Kurucu soy lore; hücre nakli görevleri"
+  },
+  {
+   "id": "uzumaki",
+   "name": "Uzumaki Clan",
+   "type": "shinobi_clan",
+   "village": "Uzushiogakure (yıkık) -> Konohagakure",
+   "country_id": "whirlpools",
+   "kekkei_genkai_or_hiden": "Exceptional life force and chakra; master sealing techniques (fuinjutsu); rare Adamantine Sealing Chains",
+   "signature_abilities": [
+    "Mühürleme (Dört Sembol)",
+    "Elmas mühür zincirleri",
+    "Uzun ömür, kırmızı saç"
+   ],
+   "crest_description": "Red spiral/whirlpool swirl; worn on the back of Konoha flak jackets and as the sign of the ruined village",
+   "status": "Dağılmış; savaştan 15 yıl sonra yeniden tanındı",
+   "media": "manga/anime",
+   "detailed_in": "clans_factions.json -> clans['Uzumaki Clan']",
+   "game_use": "Mühür uzmanı sınıfı; harabe köy görevleri"
+  },
+  {
+   "id": "sarutobi",
+   "name": "Sarutobi Clan",
+   "type": "shinobi_clan",
+   "village": "Konohagakure",
+   "country_id": "fire",
+   "kekkei_genkai_or_hiden": "No kekkei genkai; famed for broad jutsu mastery, Fire Release and the monkey summoning contract (Enma line)",
+   "signature_abilities": [
+    "Kül yakma, rüzgâr bıçağı",
+    "Çakra bıçakları",
+    "Ateşin İradesi"
+   ],
+   "crest_description": "Sarutobi crest is a stylised circle with fire/monkey motif; clan members strongly linked to Konoha leadership (approximate; verify against the wiki image before modelling)",
+   "status": "Aktif",
+   "media": "manga/anime",
+   "detailed_in": "clans_factions.json -> clans['Sarutobi Clan']",
+   "game_use": "Hokage soyu NPC'leri"
+  },
+  {
+   "id": "hatake",
+   "name": "Hatake Clan",
+   "type": "shinobi_clan",
+   "village": "Konohagakure",
+   "country_id": "fire",
+   "kekkei_genkai_or_hiden": "No kekkei genkai; tantō mastery (White Light Chakra Sabre lineage), Lightning Release, ninken summoning",
+   "signature_abilities": [
+    "Kısa kılıç ustalığı",
+    "Ninken çağırma"
+   ],
+   "crest_description": "No widely seen crest; recognised by the white chakra sabre",
+   "status": "İki bilinen üye",
+   "media": "manga/anime",
+   "detailed_in": "clans_factions.json -> clans['Hatake Clan']",
+   "game_use": "Efsanevi kılıç yan görevi"
+  },
+  {
+   "id": "kaguya",
+   "name": "Kaguya Clan",
+   "type": "shinobi_clan",
+   "village": "Su Ülkesi (köy dışı)",
+   "country_id": "water",
+   "kekkei_genkai_or_hiden": "Shikotsumyaku (Dead Bone Pulse): control of bone growth, density and structure",
+   "signature_abilities": [
+    "Kemik kılıç/mızrak",
+    "Kemik Ormanı (Toprak altından kemikler)",
+    "Kemik zırh"
+   ],
+   "crest_description": "No common crest; identified by two red dots on the forehead",
+   "status": "Yok olmuş",
+   "media": "manga/anime",
+   "detailed_in": "clans_factions.json -> clans['Kaguya Clan']",
+   "game_use": "Savaşçı klan istilası olayı; organizations.warrior_clan"
+  },
+  {
+   "id": "yuki",
+   "name": "Yuki Clan",
+   "type": "shinobi_clan",
+   "village": "Su Ülkesi",
+   "country_id": "water",
+   "kekkei_genkai_or_hiden": "Ice Release (Hyoton): combines Wind and Water",
+   "signature_abilities": [
+    "Buz ayna kubbesi",
+    "Tek el mühürleri",
+    "Buz iğneleri"
+   ],
+   "crest_description": "No standard crest; ice/snowflake motif appropriate",
+   "status": "Zulümle neredeyse yok (Kanlı Sis)",
+   "media": "manga/anime",
+   "detailed_in": "clans_factions.json -> clans['Yuki Clan']",
+   "game_use": "Gizlenmiş kekkei genkai sahibi arka planı"
+  },
+  {
+   "id": "hozuki",
+   "name": "Hōzuki Clan",
+   "type": "shinobi_clan",
+   "village": "Kirigakure",
+   "country_id": "water",
+   "kekkei_genkai_or_hiden": "Hydrification Technique (body turns to water); clan secret abilities",
+   "signature_abilities": [
+    "Bedeni suya dönüştürme",
+    "Su topu/mermi",
+    "Yedi Kılıç Ustası adayı kılıççılar"
+   ],
+   "crest_description": "No common crest; water/droplet motif",
+   "status": "Aktif",
+   "media": "manga/anime",
+   "detailed_in": "clans_factions.json -> clans['Hozuki Clan']",
+   "game_use": "Su bedenli düşman; yıldırıma zayıf"
+  },
+  {
+   "id": "kurama",
+   "name": "Kurama Clan",
+   "type": "shinobi_clan",
+   "village": "Konohagakure",
+   "country_id": "fire",
+   "kekkei_genkai_or_hiden": "Kurama Clan kekkei genkai: extremely powerful genjutsu; rare members make illusory damage physically real",
+   "signature_abilities": [
+    "Resim/mürekkep genjutsu'su",
+    "Genjutsu'da olan bedende gerçek olur",
+    "Çift kişilik"
+   ],
+   "crest_description": "Kurama crest (symbol stylised in the anime); simple formal emblem",
+   "status": "Neredeyse yok",
+   "media": "anime",
+   "detailed_in": "clans_factions.json -> clans['Kurama Clan']",
+   "game_use": "Genjutsu boss; zihin dünyası zindanı"
+  },
+  {
+   "id": "chinoike",
+   "name": "Chinoike Clan",
+   "type": "shinobi_clan",
+   "village": "Yıldırım Ülkesi (Savaşan Devletler)",
+   "country_id": "lightning",
+   "kekkei_genkai_or_hiden": "Ketsuryugan (blood dojutsu): manipulate liquids high in iron, especially blood; blood-red eyes",
+   "signature_abilities": [
+    "Kan bükme",
+    "Göz genjutsu'su",
+    "Kan ejderhası"
+   ],
+   "crest_description": "Red droplet/blood motif (stylised) (approximate; verify against the wiki image before modelling)",
+   "status": "Sürgün; Uzak Ülke'ye kaçtılar",
+   "media": "manga/anime",
+   "detailed_in": "clans_factions.json -> clans['Chinoike Clan']",
+   "game_use": "Kayıp klan arkeolojisi"
+  },
+  {
+   "id": "otsutsuki",
+   "name": "Ōtsutsuki Clan",
+   "type": "celestial_clan",
+   "village": "Ay / başka gezegenler (göksel)",
+   "country_id": "—",
+   "kekkei_genkai_or_hiden": "Byakugan, Rinnegan, Tenseigan, Jōgan, Kokugan, Wood Release vb. (kekkei mōra)",
+   "signature_abilities": [
+    "İlahi ağaç ekip meyve hasadı",
+    "Boyut kapıları",
+    "Ninjutsu emme",
+    "Kāma ile reenkarnasyon"
+   ],
+   "crest_description": "Ay ve bulut halkalı cübbe deseni; boynuzlar",
+   "status": "Aktif (kozmik)",
+   "media": "manga/anime",
+   "game_use": "world_events.otsutsuki_arrival; cursed_seals.kama"
+  },
+  {
+   "id": "fuma",
+   "name": "Fūma Clan",
+   "type": "shinobi_clan",
+   "village": "Konohagakure / Amegakure",
+   "country_id": "fire",
+   "kekkei_genkai_or_hiden": "Uchiha ile uzak akrabalık (Sharingan yok); dev Fūma Shuriken ustalığı",
+   "signature_abilities": [
+    "Dört bıçaklı dev Fūma Shuriken",
+    "Saldırgan dövüş stili"
+   ],
+   "crest_description": "Stilize dört kollu shuriken amblemi",
+   "status": "Dağınık",
+   "media": "anime/manga",
+   "game_use": "Shuriken uzmanı kahraman sınıfı ilhamı"
+  },
+  {
+   "id": "fuma_land_of_sound",
+   "name": "Fūma Clan (Land of Sound)",
+   "type": "shinobi_clan",
+   "village": "Ses Ülkesi (Pirinç Tarlaları)",
+   "country_id": "sound",
+   "kekkei_genkai_or_hiden": "Çakra iplikleri, okçuluk, Lanet Mandalası",
+   "signature_abilities": [
+    "Çakra iplikleri",
+    "Ok yağmurları",
+    "Lanet Mandala"
+   ],
+   "crest_description": "Halka içinde 'ふ' stilize sembol (önerilen)",
+   "status": "Bölünmüş; bir kısmı Ses köyüne kandırıldı",
+   "media": "anime",
+   "game_use": "Okçu düşman; bölünmüş klan diplomasi görevi"
+  },
+  {
+   "id": "hagoromo",
+   "name": "Hagoromo Clan",
+   "type": "shinobi_clan",
+   "village": "Savaşan Devletler (köysüz)",
+   "country_id": "—",
+   "kekkei_genkai_or_hiden": "Bilinmiyor",
+   "signature_abilities": [
+    "Uchiha ile ittifak hâlinde Senju'ya karşı savaştı"
+   ],
+   "crest_description": "Tüy (hagoromo) motifli sembol",
+   "status": "Tarihe karışmış",
+   "media": "manga/anime",
+   "game_use": "Antik savaş alanı lore'u"
+  },
+  {
+   "id": "hoshigaki",
+   "name": "Hoshigaki Clan",
+   "type": "shinobi_clan",
+   "village": "Kirigakure",
+   "country_id": "water",
+   "kekkei_genkai_or_hiden": "Köpekbalığı benzeri fizyoloji (hiden/kalıtsal özellik)",
+   "signature_abilities": [
+    "Su altında nefes/su kafesi",
+    "Köpekbalığı çağırma/füzyonu",
+    "Yedi Kılıç Ustası"
+   ],
+   "crest_description": "Köpekbalığı yüzgeci motifi (önerilen)",
+   "status": "Barış döneminde itibarsız",
+   "media": "manga/anime",
+   "game_use": "Su altı/kıyı bossları"
+  },
+  {
+   "id": "hoki",
+   "name": "Hōki Family",
+   "type": "shinobi_clan",
+   "village": "Sunagakure (köken Konoha)",
+   "country_id": "wind",
+   "kekkei_genkai_or_hiden": "Anaerkil tıbbi ninja ve istihbarat ailesi",
+   "signature_abilities": [
+    "Tıbbi ninjutsu",
+    "İstihbarat ve perde arkası işler"
+   ],
+   "crest_description": "—",
+   "status": "Aktif",
+   "media": "novel",
+   "game_use": "Suna tıbbi görev zinciri"
+  },
+  {
+   "id": "iburi",
+   "name": "Iburi Clan",
+   "type": "shinobi_clan",
+   "village": "Ateş Ülkesi (yeraltı)",
+   "country_id": "fire",
+   "kekkei_genkai_or_hiden": "Iburi Kekkei Genkai: duman bedeni",
+   "signature_abilities": [
+    "Dumana dönüşme ve fiziksel etkileşim",
+    "İstemsiz dönüşme",
+    "Rüzgârda dağılıp ölme"
+   ],
+   "crest_description": "—",
+   "status": "Neredeyse yok",
+   "media": "manga (Shikamaru Shinden/Boruto)",
+   "game_use": "Rüzgârsız mağara köyü; trajik NPC"
+  },
+  {
+   "id": "izuno",
+   "name": "Izuno Clan",
+   "type": "shinobi_clan",
+   "village": "Konohagakure",
+   "country_id": "fire",
+   "kekkei_genkai_or_hiden": "Kedi esinli ninjutsu (hiden)",
+   "signature_abilities": [
+    "Kedi dönüşümü/kedi stili taijutsu",
+    "Kedi ortaklar"
+   ],
+   "crest_description": "Kedi pençesi/yüzü motifi (önerilen)",
+   "status": "Aktif (küçük klan)",
+   "media": "Boruto",
+   "game_use": "Kedi yoldaş sistemi (Inuzuka alternatifi)"
+  },
+  {
+   "id": "jugo",
+   "name": "Jūgo's Clan",
+   "type": "shinobi_clan",
+   "village": "Bilinmiyor",
+   "country_id": "—",
+   "kekkei_genkai_or_hiden": "Doğal enerjiyi pasif emme; beden şekil değiştirme sıvıları",
+   "signature_abilities": [
+    "Bilge Dönüşümü",
+    "Kol-top, jet itici",
+    "Hücre aktarma ile şifa"
+   ],
+   "crest_description": "—",
+   "status": "Bilinen tek üye",
+   "media": "manga/anime",
+   "game_use": "sage_modes.jugo_clan_transformation; lanet mühür kaynağı"
+  },
+  {
+   "id": "kagetsu",
+   "name": "Kagetsu Family",
+   "type": "civilian_family",
+   "village": "Motoyoshi Köyü (Ateş Ülkesi)",
+   "country_id": "fire",
+   "kekkei_genkai_or_hiden": "Ninja değil — şifalı bitki tüccarları",
+   "signature_abilities": [
+    "Değerli şifalı bitki dağları"
+   ],
+   "crest_description": "—",
+   "status": "Aktif",
+   "media": "anime",
+   "game_use": "Sivil müşteri ailesi; sahte ölüm komedisi görevi"
+  },
+  {
+   "id": "kamizuru",
+   "name": "Kamizuru Clan",
+   "type": "shinobi_clan",
+   "village": "Iwagakure",
+   "country_id": "earth",
+   "kekkei_genkai_or_hiden": "Arı kullanımı hiden (bal, zehirli arılar)",
+   "signature_abilities": [
+    "Arı sürüleri",
+    "Bal ile yapıştırma",
+    "Dev arı çağırma"
+   ],
+   "crest_description": "Bal peteği/arı motifi (önerilen)",
+   "status": "Neredeyse yok (Aburame'ye yenildi)",
+   "media": "anime",
+   "game_use": "Böcekçi rakip klan; Aburame vs Kamizuru intikam arkı"
+  },
+  {
+   "id": "karatachi",
+   "name": "Karatachi Family",
+   "type": "shinobi_clan",
+   "village": "Kirigakure",
+   "country_id": "water",
+   "kekkei_genkai_or_hiden": "Bilinmiyor; bir kuşak Mizukage ve Üç Kuyruk taşıyıcısı çıkardı",
+   "signature_abilities": [
+    "Kılıç ustalığı (torun)",
+    "Kanlı Sis mirası"
+   ],
+   "crest_description": "—",
+   "status": "Barış döneminde itibarsız",
+   "media": "manga/anime",
+   "game_use": "Kanlı Sis dönemi mirasıyla boğuşan aile"
+  },
+  {
+   "id": "kazekage",
+   "name": "Kazekage Clan",
+   "type": "shinobi_clan",
+   "village": "Sunagakure",
+   "country_id": "wind",
+   "kekkei_genkai_or_hiden": "Mıknatıs Salınımı (altın tozu, demir kumu), kum kontrolü",
+   "signature_abilities": [
+    "Altın/demir kumu",
+    "Rüzgâr teknikleri",
+    "Kazekage soyu"
+   ],
+   "crest_description": "Sunagakure kum saati sembolü kullanılır",
+   "status": "Aktif",
+   "media": "manga/anime",
+   "game_use": "Suna siyaset NPC'leri"
+  },
+  {
+   "id": "kedoin",
+   "name": "Kedōin Clan",
+   "type": "shinobi_clan",
+   "village": "Bilinmiyor",
+   "country_id": "—",
+   "kekkei_genkai_or_hiden": "Görünüş kopyalama (ninkenle bile anlaşılmaz; teknik kopyalanmaz, birkaç gün sürer)",
+   "signature_abilities": [
+    "Tam görünüş taklidi"
+   ],
+   "crest_description": "—",
+   "status": "Küçük",
+   "media": "anime",
+   "game_use": "'Hangisi gerçek?' görev mekaniği"
+  },
+  {
+   "id": "kodon",
+   "name": "Kodon Clan",
+   "type": "shinobi_clan",
+   "village": "Uluyan Kurt Köyü",
+   "country_id": "—",
+   "kekkei_genkai_or_hiden": "Bedende tıbbi uyuşturucu (Kotarō) üretimi (kekkei genkai değil)",
+   "signature_abilities": [
+    "Kotarō salgılama",
+    "Tapınağa canavar mühürleme"
+   ],
+   "crest_description": "—",
+   "status": "Aktif",
+   "media": "anime",
+   "game_use": "Tarafsızlık politikası ve mühürlü canavar görevi"
+  },
+  {
+   "id": "kohaku",
+   "name": "Kohaku Clan",
+   "type": "shinobi_clan",
+   "village": "Ateş-Yağmur sınırında kendi köyü",
+   "country_id": "fire",
+   "kekkei_genkai_or_hiden": "Bilinmiyor",
+   "signature_abilities": [
+    "Konoha ile bağlantılı"
+   ],
+   "crest_description": "—",
+   "status": "Katledildi; zombi olarak diriltildi",
+   "media": "anime",
+   "game_use": "Zombi dalgası olayı"
+  },
+  {
+   "id": "kumanoi",
+   "name": "Kumanoi Clan",
+   "type": "industrial_clan",
+   "village": "Uluyan Kurt Köyü",
+   "country_id": "—",
+   "kekkei_genkai_or_hiden": "Mavi ateş tozu üretimi",
+   "signature_abilities": [
+    "Mavi ateş tozu (patlayıcı)"
+   ],
+   "crest_description": "—",
+   "status": "Aktif",
+   "media": "anime",
+   "game_use": "Savaş suçu/maden etiği yan hikâyesi"
+  },
+  {
+   "id": "lee",
+   "name": "Lee Clan",
+   "type": "shinobi_clan",
+   "village": "Konohagakure",
+   "country_id": "fire",
+   "kekkei_genkai_or_hiden": "Yok; saf taijutsu",
+   "signature_abilities": [
+    "Sekiz Kapı (bireysel eğitimle)",
+    "Sarhoş Yumruk"
+   ],
+   "crest_description": "—",
+   "status": "Aktif",
+   "media": "manga/anime",
+   "game_use": "Saf taijutsu yolu (çakra özürlü oyuncu yapısı)"
+  },
+  {
+   "id": "onikuma",
+   "name": "Onikuma Clan",
+   "type": "shinobi_clan",
+   "village": "Konohagakure",
+   "country_id": "fire",
+   "kekkei_genkai_or_hiden": "Sahiplenme tipi çağırma hiden'i",
+   "signature_abilities": [
+    "Ruh/ayı sahiplenme çağırması"
+   ],
+   "crest_description": "İblis ayı (Onikuma) motifi (önerilen)",
+   "status": "Aktif",
+   "media": "novel/game",
+   "game_use": "Ayı ruhu çağırıcı sınıfı"
+  },
+  {
+   "id": "rinha",
+   "name": "Rinha Clan",
+   "type": "shinobi_clan",
+   "village": "Bilinmiyor",
+   "country_id": "—",
+   "kekkei_genkai_or_hiden": "Rinha Kekkei Genkai: çakra emip kişinin mükemmel kopyasını yaratma; tıbbi ninjutsu",
+   "signature_abilities": [
+    "Üst düzey tıbbi ninjutsu",
+    "Çakra emme ile klon yaratma"
+   ],
+   "crest_description": "—",
+   "status": "Neredeyse yok",
+   "media": "game/anime",
+   "game_use": "Kopya-düşman bossu"
+  },
+  {
+   "id": "ryu",
+   "name": "Ryū Clan",
+   "type": "shinobi_clan",
+   "village": "Kōryū Dağı",
+   "country_id": "—",
+   "kekkei_genkai_or_hiden": "Beş Genryū (ejderha) ile bağ; ejderha kılıcı bekçiliği",
+   "signature_abilities": [
+    "Ejderha bağlantısı",
+    "Küçük boynuz ve sivri kulak"
+   ],
+   "crest_description": "Ejderha motifi",
+   "status": "Bilinmiyor",
+   "media": "game/anime",
+   "game_use": "Ejderha kılıcı efsanevi görev zinciri"
+  },
+  {
+   "id": "sendo",
+   "name": "Sendō Clan",
+   "type": "criminal_clan",
+   "village": "Uluyan Kurt Köyü",
+   "country_id": "—",
+   "kekkei_genkai_or_hiden": "Yok; işsiz kalan eski ninjalar",
+   "signature_abilities": [
+    "Uyuşturucu (saigenzai) kaçakçılığı"
+   ],
+   "crest_description": "—",
+   "status": "Aktif suç örgütü",
+   "media": "anime",
+   "game_use": "Uyuşturucu çetesi baskın görevi"
+  },
+  {
+   "id": "shiin",
+   "name": "Shiin Clan",
+   "type": "shinobi_clan",
+   "village": "Ses Ülkesi (Pirinç Tarlaları)",
+   "country_id": "sound",
+   "kekkei_genkai_or_hiden": "Bilinmiyor; yüksek ideal ve kararlılık",
+   "signature_abilities": [
+    "Paralı askerlik"
+   ],
+   "crest_description": "—",
+   "status": "Çöküşte (altın madeni için saldırdılar)",
+   "media": "anime",
+   "game_use": "İşsiz kalan ninja klanı trajedisi"
+  },
+  {
+   "id": "shimura",
+   "name": "Shimura Clan",
+   "type": "shinobi_clan",
+   "village": "Konohagakure",
+   "country_id": "fire",
+   "kekkei_genkai_or_hiden": "Bilinmiyor; kuruculara erken katılan klan",
+   "signature_abilities": [
+    "Rüzgâr ustalığı (bilinen üye)"
+   ],
+   "crest_description": "—",
+   "status": "Aktif",
+   "media": "manga/anime",
+   "game_use": "Gölge örgüt (Root) lideri soyu referansı"
+  },
+  {
+   "id": "shirogane",
+   "name": "Shirogane Clan",
+   "type": "shinobi_clan",
+   "village": "Rüzgâr Ülkesi sınırı",
+   "country_id": "wind",
+   "kekkei_genkai_or_hiden": "Kukla yürüteçleri (insan deneyli kukla ordusu)",
+   "signature_abilities": [
+    "Kendi kendine yürüyen kuklalar",
+    "Kukla ordusu"
+   ],
+   "crest_description": "—",
+   "status": "Yok edildi (isyan sonrası)",
+   "media": "anime",
+   "game_use": "Yasak kukla teknolojisi zindanı"
+  },
+  {
+   "id": "taketori",
+   "name": "Taketori Clan",
+   "type": "shinobi_clan",
+   "village": "Konohagakure dışı (muhtemel)",
+   "country_id": "fire",
+   "kekkei_genkai_or_hiden": "Bilinmiyor; Hyūga ile siyasi bağ",
+   "signature_abilities": [
+    "Siyasi ilişkiler"
+   ],
+   "crest_description": "Bambu (taketori = bambu kesici) motifi",
+   "status": "Aktif",
+   "media": "Boruto",
+   "game_use": "Siyasi evlilik/ittifak görevi"
+  },
+  {
+   "id": "tenro",
+   "name": "Tenrō Clan",
+   "type": "shinobi_clan",
+   "village": "Yumegakure",
+   "country_id": "—",
+   "kekkei_genkai_or_hiden": "Üç Başlı Muhafız Canavarı mühürleme; kurt dönüşümü",
+   "signature_abilities": [
+    "Taijutsu ve ninja aletleri",
+    "Kurt benzeri savaş dönüşümü"
+   ],
+   "crest_description": "Kurt motifi",
+   "status": "Köy yönetiminde",
+   "media": "game/anime",
+   "game_use": "Küçük köy darbe hikâyesi"
+  },
+  {
+   "id": "amagiri",
+   "name": "Amagiri Clan",
+   "type": "shinobi_clan",
+   "village": "Yumegakure (kurucu, sürgün)",
+   "country_id": "—",
+   "kekkei_genkai_or_hiden": "Bilinmiyor",
+   "signature_abilities": [
+    "Yumegakure kurucu klan"
+   ],
+   "crest_description": "—",
+   "status": "Sürgün",
+   "media": "game/anime",
+   "game_use": "Sürgün klanın geri dönüşü görevi"
+  },
+  {
+   "id": "hirasaka",
+   "name": "Hirasaka Clan",
+   "type": "shinobi_clan",
+   "village": "Yumegakure",
+   "country_id": "—",
+   "kekkei_genkai_or_hiden": "Çakra mühürleme ve kafa karıştırma teknikleri",
+   "signature_abilities": [
+    "Rakibi kendi müttefikine saldırtma",
+    "Çakra mühürleme parşömenleri"
+   ],
+   "crest_description": "Büyük kapüşonlar (klan kıyafeti)",
+   "status": "Aktif",
+   "media": "game/anime",
+   "game_use": "Debuff ağırlıklı düşman tipi"
+  },
+  {
+   "id": "tsuchigumo",
+   "name": "Tsuchigumo Clan",
+   "type": "shinobi_clan",
+   "village": "Ateş Ülkesi — Katsuragi Dağı kalesi",
+   "country_id": "fire",
+   "kekkei_genkai_or_hiden": "Yasak teknik: tüm bir köyü silebilen Doğanın Kırılması (Tenpenchii)",
+   "signature_abilities": [
+    "Bariyerli kale ve tuzak alanları",
+    "Örümcek temalı teknikler"
+   ],
+   "crest_description": "Örümcek (tsuchigumo) motifi",
+   "status": "Aktif; Konoha koruması altında",
+   "media": "anime",
+   "game_use": "Yasak jutsu mühürleme görevi"
+  },
+  {
+   "id": "wagarashi",
+   "name": "Wagarashi Family",
+   "type": "civilian_family",
+   "village": "Çay Ülkesi",
+   "country_id": "tea",
+   "kekkei_genkai_or_hiden": "Ninja değil — liman sahipliği için yarışan aile",
+   "signature_abilities": [
+    "Kiralık ninjalar",
+    "Todoroki Tapınağı Yarışı"
+   ],
+   "crest_description": "—",
+   "status": "Aktif",
+   "media": "anime",
+   "game_use": "Yarış eskort görevi"
+  },
+  {
+   "id": "wasabi",
+   "name": "Wasabi Family",
+   "type": "civilian_family",
+   "village": "Çay Ülkesi",
+   "country_id": "tea",
+   "kekkei_genkai_or_hiden": "Ninja değil — liman sahipliği için yarışan aile",
+   "signature_abilities": [
+    "Hızlı koşucular"
+   ],
+   "crest_description": "Wasabi yaprağı motifi",
+   "status": "Aktif",
+   "media": "anime",
+   "game_use": "Yarış eskort görevi (rakip aile)"
+  },
+  {
+   "id": "yoimura",
+   "name": "Yoimura Clan",
+   "type": "civilian_family",
+   "village": "Daidai Köyü",
+   "country_id": "—",
+   "kekkei_genkai_or_hiden": "Bilinmiyor",
+   "signature_abilities": [
+    "—"
+   ],
+   "crest_description": "—",
+   "status": "Aktif",
+   "media": "anime",
+   "game_use": "Sivil müşteri"
+  },
+  {
+   "id": "yota",
+   "name": "Yota's Clan",
+   "type": "shinobi_clan",
+   "village": "Gezgin",
+   "country_id": "—",
+   "kekkei_genkai_or_hiden": "Hava durumunu manipüle etme (yağmur satıcıları)",
+   "signature_abilities": [
+    "Yağmur/hava ritüeli",
+    "Bandajlı gezginler"
+   ],
+   "crest_description": "—",
+   "status": "Neredeyse yok",
+   "media": "anime",
+   "game_use": "Hava kontrolü görev hattı (dinamik hava sistemi bağlantısı)"
+  },
+  {
+   "id": "yotsuki",
+   "name": "Yotsuki Clan",
+   "type": "shinobi_clan",
+   "village": "Kumogakure",
+   "country_id": "lightning",
+   "kekkei_genkai_or_hiden": "Bilinmiyor; Yıldırım ustaları",
+   "signature_abilities": [
+    "Sadakat: yoldaşlarını asla satmazlar",
+    "Bulut ve Yıldırım Vadisi toprakları"
+   ],
+   "crest_description": "—",
+   "status": "Aktif",
+   "media": "manga/anime",
+   "game_use": "Kumo bölgesi NPC klanı"
+  },
+  {
+   "id": "funato",
+   "name": "Funato Clan",
+   "type": "criminal_clan",
+   "village": "Su Ülkesi kıyıları",
+   "country_id": "water",
+   "kekkei_genkai_or_hiden": "Yok; denizcilik ve korsanlık",
+   "signature_abilities": [
+    "Açık denizde güç",
+    "Adam kaçırma, yağma"
+   ],
+   "crest_description": "Gemi/çapa motifi",
+   "status": "Aktif",
+   "media": "anime",
+   "game_use": "organizations.pirate_clan"
+  }
+ ],
+ "clans_notes": [
+  {
+   "name": "Fūma/Kazama/Kurama vb. küçük Konoha klanları",
+   "note": "Animede Konoha'da birçok küçük klan var; oyun için özgün klanlar bu şablonla türetilebilir."
+  },
+  {
+   "name": "Özgün klan şablonu",
+   "fields": [
+    "id",
+    "name",
+    "village",
+    "country_id",
+    "kekkei_genkai_or_hiden",
+    "signature_abilities",
+    "crest_description",
+    "status",
+    "game_use"
+   ],
+   "note": "Oyunun özgün klanları bu alanlarla aynı formatta eklenebilir; kanon klanlar yalnızca arka plan."
+  }
+ ]
+}

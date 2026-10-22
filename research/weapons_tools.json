@@ -1,0 +1,3726 @@
+{
+ "_meta": {
+  "source": "Narutopedia (naruto.fandom.com) MediaWiki API — Category:Tools (247 pages, infobox debut/users data) + editorial knowledge",
+  "date": "2026-10-22",
+  "language": "desc/game_idea/name meaning in Turkish; visual and name_en in English",
+  "notes": [
+   "Original-characters-only rule: canon_notable_users_type describes user archetypes, not named characters. 'signature': true marks items closely tied to a single canon character — reskin or present only as lore/rare relic.",
+   "Field compatibility: desc ≈ jutsu.json tools[].description / clans_factions.json legendary_weapons[].description; game_idea ≈ game_suggestion.",
+   "slot uses the game's equipment slots: head/top/bottom/feet/vest/right_hand/left_hand; quick_slot = consumable belt (not an equipment slot).",
+   "Damage tiers: T1 light (≈5-12), T2 medium (≈14-25), T3 heavy (≈30-45), T4 legendary (≈50-65). Numbers are placeholders for balancing.",
+   "first_appears: Naruto = Part I (incl. filler/movies), Shippuden = Part II, Boruto = Boruto era. wiki_title = Narutopedia page used as reference."
+  ],
+  "count": 192,
+  "type_counts": {
+   "throwing": 7,
+   "blade": 16,
+   "projectile_launcher": 10,
+   "chain": 8,
+   "sword": 10,
+   "legendary_sword": 11,
+   "scientific_tool": 17,
+   "treasure": 14,
+   "blunt": 12,
+   "armor": 12,
+   "utility": 22,
+   "puppet": 14,
+   "explosive": 13,
+   "consumable": 16,
+   "scroll": 4,
+   "sealing_tool": 6
+  },
+  "rarity_counts": {
+   "common": 49,
+   "uncommon": 58,
+   "legendary": 34,
+   "rare": 51
+  }
+ },
+ "groups": {
+  "by_type": {
+   "throwing": [
+    "kunai",
+    "hiraishin_kunai",
+    "shuriken",
+    "fuma_shuriken",
+    "windmill_shuriken",
+    "senbon",
+    "makibishi"
+   ],
+   "blade": [
+    "kunai_large",
+    "double_bladed_scythe",
+    "retractable_spear",
+    "dako",
+    "tanto",
+    "chakra_blade_trench",
+    "konoha_chakra_blade",
+    "kokuto",
+    "weaknessless_soaring_shortswords",
+    "chakra_triple_claw",
+    "double_bladed_bracers",
+    "kama",
+    "katar",
+    "scalpel",
+    "axe",
+    "spear"
+   ],
+   "projectile_launcher": [
+    "hidden_kunai_mechanism",
+    "bow_arrow",
+    "crossbow",
+    "blowpipe",
+    "slingshot",
+    "handheld_kunai_launcher",
+    "wrist_senbon_launcher",
+    "mechanical_kunai_thrower",
+    "umbrella",
+    "marlin_harpoon"
+   ],
+   "chain": [
+    "joohyo",
+    "ninja_wire",
+    "kusarigama",
+    "kusari",
+    "metal_gauntlets_chain",
+    "triple_bladed_scythe",
+    "chain_wind_staff",
+    "whip"
+   ],
+   "sword": [
+    "ninjato",
+    "kusanagi_chokuto",
+    "kumo_swords",
+    "cleaver_sword_folding",
+    "kurosawa",
+    "samurai_katana",
+    "garian_sword",
+    "fire_sword",
+    "stone_swords",
+    "knight_sword"
+   ],
+   "legendary_sword": [
+    "white_light_chakra_sabre",
+    "kusanagi_snake",
+    "raijin_no_ken",
+    "kubikiribocho",
+    "samehada",
+    "kiba_swords",
+    "nuibari",
+    "shibuki",
+    "kabutowari",
+    "hiramekarei",
+    "seven_swords_new_gen"
+   ],
+   "scientific_tool": [
+    "kusanagi_scientific",
+    "resonating_echo_speaker",
+    "dojutsu_glasses",
+    "mind_reading_machine",
+    "shinobi_gauntlet",
+    "chakra_prosthetic",
+    "shinobi_ware",
+    "mirror_drone",
+    "spy_drone",
+    "fire_gatling",
+    "chakra_cannon",
+    "lightning_release_suit",
+    "space_time_gate",
+    "cursed_seal_device",
+    "chakra_disruption_device",
+    "mechanical_eight_trigrams_drum",
+    "mechanical_drilling_arm"
+   ],
+   "treasure": [
+    "totsuka_sword",
+    "yata_mirror",
+    "nunoboko_sword",
+    "gunbai",
+    "nyoi_staff",
+    "benihisago",
+    "kokinjo",
+    "shichiseiken",
+    "bashosen",
+    "kohaku_no_johei",
+    "secret_treasure_toads",
+    "first_hokage_necklace",
+    "shinigami_mask",
+    "stone_of_gelel"
+   ],
+   "blunt": [
+    "giant_folding_fan",
+    "tessen",
+    "bo_staff",
+    "jo_staff",
+    "shakujo",
+    "conch_shell_mace",
+    "claw_club",
+    "tonfa",
+    "nunchaku",
+    "three_section_staff",
+    "flail",
+    "club"
+   ],
+   "armor": [
+    "vambraces",
+    "tekko",
+    "forehead_protector",
+    "flak_vest",
+    "anbu_armor",
+    "shinobi_battle_armour",
+    "samurai_armor",
+    "steam_armour",
+    "chakra_armour",
+    "gloves_sandals",
+    "retractable_shield",
+    "shield"
+   ],
+   "utility": [
+    "training_weights",
+    "sasumata",
+    "demonic_flute",
+    "bubble_pipe",
+    "bells",
+    "ninja_info_cards",
+    "bingo_book",
+    "eye_scope",
+    "binoculars",
+    "radio_headset",
+    "chakra_transmission_device",
+    "ninja_pouch",
+    "grappling_hook",
+    "gama_chan",
+    "chakra_conducting_metal",
+    "sand_gourd",
+    "gold_dust",
+    "iron_sand",
+    "snowboard",
+    "winged_device",
+    "fishing_rod",
+    "prayer_beads"
+   ],
+   "puppet": [
+    "puppet_generic",
+    "puppet_karasu",
+    "puppet_kuroari",
+    "puppet_sanshouo",
+    "puppet_hiruko",
+    "puppet_human",
+    "puppet_iron_sand",
+    "puppet_mother_father",
+    "puppet_hundred_army",
+    "puppet_chikamatsu",
+    "puppet_buzzsaw",
+    "water_stream_shooters",
+    "flamethrower",
+    "otsutsuki_puppets"
+   ],
+   "explosive": [
+    "explosive_tag",
+    "explosive_tag_ball",
+    "exploding_sphere",
+    "smoke_bomb",
+    "smoke_tag",
+    "flash_bomb",
+    "smoke_flash_bomb",
+    "light_sound_bomb",
+    "chilli_pepper_bomb",
+    "ice_bomb",
+    "spike_bomb",
+    "blue_fire_powder",
+    "concealed_mouth_ember"
+   ],
+   "consumable": [
+    "poison_generic",
+    "poison_mist",
+    "antidote",
+    "soldier_pill",
+    "three_color_pills",
+    "blood_increasing_pill",
+    "mind_awakening_pill",
+    "genjutsu_pill",
+    "tailed_beast_drug",
+    "hyuga_ointment",
+    "eye_medicine_plant",
+    "injection_shot",
+    "hero_water",
+    "curry_of_life",
+    "food_ration",
+    "jutsu_cartridge"
+   ],
+   "scroll": [
+    "scroll_generic",
+    "storage_scroll",
+    "summoning_scroll",
+    "scroll_of_seals"
+   ],
+   "sealing_tool": [
+    "sealing_tag",
+    "barrier_tag",
+    "chakra_suppressing_seal",
+    "sealing_arm_braces",
+    "binding_cloth",
+    "chakra_receiver"
+   ]
+  },
+  "seven_swords_of_the_mist": [
+   "kubikiribocho",
+   "samehada",
+   "kiba_swords",
+   "nuibari",
+   "shibuki",
+   "kabutowari",
+   "hiramekarei"
+  ],
+  "sage_of_six_paths_treasures": [
+   "benihisago",
+   "kokinjo",
+   "shichiseiken",
+   "bashosen",
+   "kohaku_no_johei"
+  ],
+  "sage_treasure_combo": "kokinjo (draw word-soul) -> shichiseiken (sever) -> benihisago / kohaku_no_johei (seal)",
+  "starter_kit": [
+   "kunai",
+   "shuriken",
+   "ninja_wire",
+   "explosive_tag",
+   "smoke_bomb",
+   "soldier_pill",
+   "forehead_protector",
+   "ninja_pouch",
+   "gloves_sandals"
+  ],
+  "puppet_gimmick_modules": [
+   "gizli kol bıçakları",
+   "ağız/göğüs ok-senbon atıcı",
+   "zehir gazı haznesi",
+   "hapsetme gövdesi",
+   "kalkan sırtı",
+   "alev püskürtücü",
+   "su basınç topu",
+   "testere bıçakları",
+   "ayrılabilen uzuvlar",
+   "chakra iplik kesmeye karşı yedek iplik"
+  ],
+  "village_flak_vest_variants": {
+   "Konoha": "olive green, 4 scroll pockets",
+   "Suna": "beige/tan, single shoulder strap style",
+   "Kiri": "grey-blue, full-zip, slim",
+   "Kumo": "white, one-shoulder strap",
+   "Iwa": "red, one sleeve, armored left arm"
+  }
+ },
+ "items": [
+  {
+   "id": "kunai",
+   "name": "Kunai (Atış bıçağı)",
+   "name_en": "Kunai",
+   "type": "throwing",
+   "canon_notable_users_type": "Tüm shinobiler (standart teçhizat)",
+   "desc": "Halka kabzalı, çift ağızlı hançer; hem yakın dövüşte hem atışta kullanılır. Patlayıcı etiket veya tel bağlanabilir, tırmanma aracı olarak duvara saplanır.",
+   "abilities": [
+    "yakın dövüş saplama",
+    "atış",
+    "patlayıcı etiket taşıyıcı",
+    "tel bağlama",
+    "tırmanma/çapa",
+    "savuşturma (parry)"
+   ],
+   "game_idea": "Varsayılan sağ el silahı + 10'luk atış stoğu. Hasar T1 (8-12), atış CD 0.4s. Etiket/tel modifikatörü takılabilir. Duvara saplanırsa parkur tutamağı olur.",
+   "visual": "Leaf-shaped double-edged blade 12cm + wrapped grip 8cm + ring pommel 4cm dia; total ~24cm; dark gunmetal blade, white/brown cloth wrap.",
+   "first_appears": "Naruto (Bölüm 1, Akademi)",
+   "rarity": "common",
+   "slot": "right_hand",
+   "wiki_title": "Kunai"
+  },
+  {
+   "id": "kunai_large",
+   "name": "Ō-Kunai (Büyük atış bıçağı)",
+   "name_en": "Large Kunai / Kunai Blade",
+   "type": "blade",
+   "canon_notable_users_type": "Kapı nöbetçisi chūninler, ağır kunai kullanıcıları",
+   "desc": "Normalden iki kat büyük kunai; kısa kılıç gibi savrulur, atılabilir ama yavaştır.",
+   "abilities": [
+    "ağır kesme",
+    "savuşturma",
+    "yavaş atış"
+   ],
+   "game_idea": "Sağ el yakın dövüş T2 (16-20), atış stoğu 2, atış CD 1.2s. Savuşturma penceresi geniş.",
+   "visual": "Oversized kunai ~45cm, broad leaf blade 30cm, ring pommel 6cm, gunmetal with black wrap.",
+   "first_appears": "Shippuden (Kazekage Kurtarma)",
+   "rarity": "uncommon",
+   "slot": "right_hand",
+   "wiki_title": "Kunai Blade"
+  },
+  {
+   "id": "hiraishin_kunai",
+   "name": "Hiraishin Kunai (Uçan Yıldırım Tanrısı kunaisi)",
+   "name_en": "Flying Thunder God Kunai",
+   "type": "throwing",
+   "canon_notable_users_type": "Zaman-uzay ninjutsu ustaları",
+   "desc": "Üç çatallı, sapına mühür formülü işlenmiş özel kunai. İşaretli noktaya anında ışınlanma tekniğinin hedefidir.",
+   "abilities": [
+    "ışınlanma işareti",
+    "üç çatallı yakalama/savuşturma",
+    "atış"
+   ],
+   "game_idea": "Özel atış stoğu 3. Atılan kunai dünyada 'işaret' bırakır; ışınlanma jutsusu öğrenilmişse tuşla oraya teleport (chakra 25, CD 6s). Hasar T1. Geç oyun ödülü.",
+   "visual": "Three-pronged kunai: central blade 14cm + two curved side prongs 7cm, grip 10cm wrapped with seal-script band, ring pommel; dull silver blade, black grip with white kanji.",
+   "first_appears": "Shippuden (Kakashi Gaiden / Pain İstilası flashback)",
+   "rarity": "legendary",
+   "slot": "right_hand",
+   "signature": true,
+   "wiki_title": "Flying Thunder God Kunai"
+  },
+  {
+   "id": "hidden_kunai_mechanism",
+   "name": "Gizli Kunai Düzeneği (Kol içi fırlatıcı)",
+   "name_en": "Hidden Kunai Mechanism",
+   "type": "projectile_launcher",
+   "canon_notable_users_type": "Sürpriz saldırı ustaları",
+   "desc": "Kol veya bileğe gizlenmiş yaylı mekanizma; elle mühür yapmadan kunai fırlatır.",
+   "abilities": [
+    "hızlı ani atış",
+    "gizli taşıma"
+   ],
+   "game_idea": "Sol el aksesuarı: 2 kunai, animasyonsuz anlık atış, CD 4s, kombo kesici.",
+   "visual": "Slim forearm sleeve 20cm, dark cloth with metal spring rail, kunai tip visible at wrist.",
+   "first_appears": "Shippuden (Pain İstilası)",
+   "rarity": "uncommon",
+   "slot": "left_hand",
+   "wiki_title": "Hidden Kunai Mechanism"
+  },
+  {
+   "id": "shuriken",
+   "name": "Shuriken (El gizli bıçağı / atış yıldızı)",
+   "name_en": "Shuriken",
+   "type": "throwing",
+   "canon_notable_users_type": "Tüm shinobiler",
+   "desc": "Dört köşeli atış yıldızı; seri halinde atılarak yaralar, dikkat dağıtır veya hedefi sabitler. Ustaları havada yön değiştirtebilir.",
+   "abilities": [
+    "seri atış (3'lü)",
+    "kavisli atış",
+    "gölge shuriken kombinasyonu"
+   ],
+   "game_idea": "Atış stoğu 15, üçlü yelpaze atışı, hasar T1 düşük (4-6/adet), CD 0.3s. 'Kavisli atış' yeteneği ile hedef arkası vurulabilir. Akademi hedef mini oyunu.",
+   "visual": "Four-pointed flat star 10cm across, 3mm thick, central hole 1.5cm, dark steel with lighter edges.",
+   "first_appears": "Naruto (Bölüm 1)",
+   "rarity": "common",
+   "slot": "right_hand",
+   "wiki_title": "Shuriken"
+  },
+  {
+   "id": "fuma_shuriken",
+   "name": "Fūma Shuriken (Rüzgâr şeytanı shurikeni)",
+   "name_en": "Fūma Shuriken / Demon Wind Shuriken",
+   "type": "throwing",
+   "canon_notable_users_type": "Ağır silah ustaları, Ame ninjaları",
+   "desc": "Katlanabilir dev dört bıçaklı shuriken; büyük menzilde döner, ağaçları biçer. Gölgesine ikinci bir shuriken gizlenebilir.",
+   "abilities": [
+    "katlanabilir taşıma",
+    "bumerang benzeri dönüş",
+    "gölge shuriken (Kage Shuriken)"
+   ],
+   "game_idea": "Sırtta taşınır, sağ el ağır atış: hasar T3 (35-45), stok 1 (geri dönüş/geri alma), CD 5s, delici (birden fazla hedef). Katlı haldeyken kısa kılıç gibi savrulabilir.",
+   "visual": "Four large curved blades radiating from hub, 90cm diameter when open, folds to 60cm bundle; hub with finger ring; black-silver steel.",
+   "first_appears": "Naruto (Dalga Ülkesi)",
+   "rarity": "uncommon",
+   "slot": "right_hand",
+   "wiki_title": "Fūma Shuriken"
+  },
+  {
+   "id": "windmill_shuriken",
+   "name": "Fūsha Shuriken (Yel değirmeni shurikeni)",
+   "name_en": "Windmill Shuriken",
+   "type": "throwing",
+   "canon_notable_users_type": "Uchiha tarzı shuriken ustaları",
+   "desc": "Fūma'ya benzer, dört kavisli büyük bıçaklı dönen shuriken; tel ile kontrol edilebilir.",
+   "abilities": [
+    "tel ile yönlendirme",
+    "dönerek kesme"
+   ],
+   "game_idea": "Fūma varyantı: hasar T3, stok 1, tel takılı ise atıştan sonra yön kontrolü (fare ile kavis). CD 6s.",
+   "visual": "Windmill-like 4-blade shuriken 70cm, blades curved like sails, dark steel with red hub.",
+   "first_appears": "Naruto (Dalga Ülkesi / Orman of Death)",
+   "rarity": "uncommon",
+   "slot": "right_hand",
+   "wiki_title": "Fūma Shuriken"
+  },
+  {
+   "id": "senbon",
+   "name": "Senbon (Bin iğne)",
+   "name_en": "Senbon",
+   "type": "throwing",
+   "canon_notable_users_type": "Tıbbi ninjalar, suikastçılar",
+   "desc": "İnce uzun metal iğneler; hayati noktalara (tsubo) isabetle felç veya sahte ölüm yaratır, zehir taşıyabilir.",
+   "abilities": [
+    "hayati nokta (kritik)",
+    "zehir taşıyıcı",
+    "sahte ölüm durumu",
+    "seri atış"
+   ],
+   "game_idea": "Stok 20, 5'li yelpaze atış. Hasar çok düşük (2) ama kritik bölgeye (kafa/boyun capsule) isabet = 2s sersemletme. Zehir kaplanabilir (DoT).",
+   "visual": "Thin needle 15-20cm, 2mm dia, polished silver, sharp both ends.",
+   "first_appears": "Naruto (Dalga Ülkesi)",
+   "rarity": "common",
+   "slot": "right_hand",
+   "wiki_title": "Senbon"
+  },
+  {
+   "id": "makibishi",
+   "name": "Makibishi (Çivi dikeni)",
+   "name_en": "Makibishi Spikes / Caltrops",
+   "type": "throwing",
+   "canon_notable_users_type": "Kaçış uzmanları, takip edilen ninjalar",
+   "desc": "Yere saçılan dört uçlu dikenler; takipçiyi yavaşlatır ve yaralar.",
+   "abilities": [
+    "alan engelleme",
+    "yavaşlatma",
+    "tuzak"
+   ],
+   "game_idea": "Tüketim: 1 kullanım = 3m yarıçap alan, 8s; içinde koşan düşman %40 yavaşlar + 3 hasar/s. Stok 3.",
+   "visual": "Small spiky caltrops 3cm, four-pointed tetrahedral spikes, dark iron; also spiked seed-pod variant brown.",
+   "first_appears": "Naruto (Dalga Ülkesi)",
+   "rarity": "common",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Makibishi"
+  },
+  {
+   "id": "joohyo",
+   "name": "Jōhyō (İp hançeri)",
+   "name_en": "Rope Dart",
+   "type": "chain",
+   "canon_notable_users_type": "İp/zincir silah ustaları",
+   "desc": "Uzun ipe bağlı ağırlıklı hançer; dönerek savrulur ve uzaktan saplanır.",
+   "abilities": [
+    "uzun menzil hamle",
+    "dolama",
+    "çekme"
+   ],
+   "game_idea": "Sağ el: menzil 8m, hasar T2, vuruşta hedefi 1m çekme. CD 1.5s.",
+   "visual": "Steel dart head 15cm on 4m red rope with colored tassel.",
+   "first_appears": "Naruto (Anime filler, Kaze no Kuni)",
+   "rarity": "uncommon",
+   "slot": "right_hand",
+   "wiki_title": "Jōhyō"
+  },
+  {
+   "id": "ninja_wire",
+   "name": "Ninja Teli (Kontrol teli)",
+   "name_en": "Ninja Wire / Wire Strings",
+   "type": "chain",
+   "canon_notable_users_type": "Tuzak ustaları, kuklacılar",
+   "desc": "Neredeyse görünmez, çok dayanıklı çelik tel; hedef bağlama, tuzak ve atılan silahları kontrol etmek için kullanılır.",
+   "abilities": [
+    "bağlama",
+    "tuzak tetiği",
+    "atılan silah kontrolü",
+    "ateş tekniği iletme"
+   ],
+   "game_idea": "Modifikatör: kunai/shuriken'e takılınca atış sonrası çekip geri alma; yere 'gerilmiş tel tuzağı' (tetiklenince patlayıcı/kunai yağmuru). Stok 3 makara.",
+   "visual": "Spool 5cm with near-invisible thin silver wire (render as faint glinting line).",
+   "first_appears": "Naruto (Dalga Ülkesi)",
+   "rarity": "common",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Wire Strings"
+  },
+  {
+   "id": "kusarigama",
+   "name": "Kusarigama (Zincirli orak)",
+   "name_en": "Kusarigama",
+   "type": "chain",
+   "canon_notable_users_type": "Zincir ve orak savaşçıları",
+   "desc": "Zincirle ağırlığa bağlı orak; uzaktan dolama, yakından biçme.",
+   "abilities": [
+    "zincir dolama",
+    "orak kesme",
+    "silah kapma"
+   ],
+   "game_idea": "Sağ el: orak T2 (15), zincir menzil 6m, sol el tuşu = dolama (1.5s kök). CD 3s.",
+   "visual": "Kama sickle: wooden handle 40cm, curved steel blade 20cm; 3m iron chain with 6cm weight.",
+   "first_appears": "Naruto (Sınav ön elemeleri)",
+   "rarity": "uncommon",
+   "slot": "right_hand",
+   "wiki_title": "Kusarigama"
+  },
+  {
+   "id": "kusari",
+   "name": "Kusari (Zincir)",
+   "name_en": "Chain / Kusari",
+   "type": "chain",
+   "canon_notable_users_type": "Ağır silah ustaları, Kiri iblis kardeşler tarzı",
+   "desc": "Ağır demir zincir; dolama, savurma ve kalkan gibi döndürme.",
+   "abilities": [
+    "dolama",
+    "savurma"
+   ],
+   "game_idea": "Sağ el orta menzil 5m, hasar T1, yakalama-bağlama 1s.",
+   "visual": "Thick iron chain links 4cm, 3m long, rust-dark grey.",
+   "first_appears": "Naruto (Dalga Ülkesi)",
+   "rarity": "common",
+   "slot": "right_hand",
+   "wiki_title": "Kusari"
+  },
+  {
+   "id": "metal_gauntlets_chain",
+   "name": "Zincirli Metal Eldiven (Kanca-zincir pençe)",
+   "name_en": "Metal Gauntlets",
+   "type": "chain",
+   "canon_notable_users_type": "İkiz suikastçılar",
+   "desc": "Birbirine zincirle bağlı, pençeli metal eldivenler; zincir arasında kurban sıkıştırılır, pençeler zehirli olabilir.",
+   "abilities": [
+    "zincir ile ikili saldırı",
+    "zehirli pençe",
+    "fırlatılabilir eldiven"
+   ],
+   "game_idea": "Sol+sağ el set: T2 hasar + zehir DoT, zincir menzil 6m. Co-op'ta iki oyuncu tek zinciri paylaşabilir.",
+   "visual": "Clawed iron gauntlet with 3 hooked claws 10cm, heavy shuriken-chain 4m attached, dark grey with rust.",
+   "first_appears": "Naruto (Dalga Ülkesi)",
+   "rarity": "uncommon",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Metal Gauntlets"
+  },
+  {
+   "id": "triple_bladed_scythe",
+   "name": "Sanjin no Ōgama (Üç bıçaklı tırpan)",
+   "name_en": "Triple-Bladed Scythe",
+   "type": "chain",
+   "canon_notable_users_type": "Kan ritüeli tarikatçıları",
+   "desc": "Kabloya bağlı üç bıçaklı dev tırpan; fırlatılıp çekilerek geniş alan biçer, kan toplamaya yöneliktir.",
+   "abilities": [
+    "kablo ile fırlat-çek",
+    "geniş biçme",
+    "kan toplama (lanet ritüeli tetiği)"
+   ],
+   "game_idea": "Ağır iki el: T3 (40), fırlatma menzil 10m, yavaş. Kan toplama başarılı vuruşta 'işaret' stack'ı verir (ritüel jutsuları için).",
+   "visual": "Three parallel curved red blades 60cm on 120cm black pole, long steel cable reel on pommel.",
+   "first_appears": "Shippuden (Hidan ve Kakuzu)",
+   "rarity": "rare",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Triple-Bladed Scythe"
+  },
+  {
+   "id": "double_bladed_scythe",
+   "name": "Nijin Kama (Çift bıçaklı tırpan)",
+   "name_en": "Double-Bladed Scythe",
+   "type": "blade",
+   "canon_notable_users_type": "Ritüel savaşçıları",
+   "desc": "Üç bıçaklının hafif ve kablosuz versiyonu; hızlı ve manevralı.",
+   "abilities": [
+    "hızlı biçme",
+    "kan toplama"
+   ],
+   "game_idea": "İki el orta-ağır T2 (24), saldırı hızı +%20.",
+   "visual": "Two red curved blades 45cm on 100cm pole, lighter.",
+   "first_appears": "Boruto (Konoha Shinden / anime)",
+   "rarity": "uncommon",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Double-Bladed Scythe"
+  },
+  {
+   "id": "retractable_spear",
+   "name": "Teleskopik Mızrak (Katlanır mızrak)",
+   "name_en": "Retractable Spear",
+   "type": "blade",
+   "canon_notable_users_type": "Ritüel savaşçıları, gizli silah taşıyanlar",
+   "desc": "Cepte kalem boyunda taşınan, anında 1,5 m'ye uzayan siyah metal mızrak.",
+   "abilities": [
+    "anında uzama",
+    "saplama",
+    "atış"
+   ],
+   "game_idea": "Sağ el: uzama sırasında ilk vuruş +%50 hasar (sürpriz), T2. Çekili haldeyken envanterde yer kaplamaz.",
+   "visual": "Black metal telescoping rod 20cm collapsed, 150cm extended, sharp spike tip.",
+   "first_appears": "Shippuden (Hidan ve Kakuzu)",
+   "rarity": "uncommon",
+   "slot": "right_hand",
+   "wiki_title": "Retractable Spear"
+  },
+  {
+   "id": "dako",
+   "name": "Dakō (Kıvrılan mızrak)",
+   "name_en": "Dakō",
+   "type": "blade",
+   "canon_notable_users_type": "Deneysel silah mucitleri",
+   "desc": "Haç biçimli, uzayıp kısalan ve yön değiştirebilen prototip mızrak.",
+   "abilities": [
+    "uzama",
+    "havada yön değiştirme",
+    "sargı/kalkan"
+   ],
+   "game_idea": "Sağ el uzun menzil 7m, atış sonrası fare ile 1 kez yön kırma. T2.",
+   "visual": "Cross-shaped spear head, segmented flexible shaft 2m (extends to 7m), bronze and steel.",
+   "first_appears": "Shippuden (anime, Tenten araç arkı)",
+   "rarity": "rare",
+   "slot": "right_hand",
+   "wiki_title": "Dakō"
+  },
+  {
+   "id": "tanto",
+   "name": "Tantō (Kısa kılıç)",
+   "name_en": "Tantō",
+   "type": "blade",
+   "canon_notable_users_type": "ANBU ve suikastçılar",
+   "desc": "30 cm civarı kısa kılıç; sırtta veya belde taşınır, hızlı ve sessiz.",
+   "abilities": [
+    "hızlı kombo",
+    "arka saldırı bonusu"
+   ],
+   "game_idea": "Sağ el T2 (14), saldırı hızı yüksek, arkadan vuruş x2. ANBU yeleği seti bonusu.",
+   "visual": "Straight short sword 45cm total (blade 30cm), black lacquer saya, square tsuba, white grip wrap.",
+   "first_appears": "Naruto (Bölüm 1)",
+   "rarity": "common",
+   "slot": "right_hand",
+   "wiki_title": "Tantō"
+  },
+  {
+   "id": "ninjato",
+   "name": "Ninjatō (Ninja kılıcı)",
+   "name_en": "Ninjatō / Sword",
+   "type": "sword",
+   "canon_notable_users_type": "Jōninler, ANBU, kılıç ustaları",
+   "desc": "Düz, orta boy kılıç; standart kenjutsu silahı.",
+   "abilities": [
+    "kenjutsu kombo",
+    "savuşturma",
+    "chakra akışı (doğa kaplaması)"
+   ],
+   "game_idea": "Sağ el T2 (20), orta hız. Doğa chakrası ile kaplanabilir (+element hasarı, chakra/s tüketir).",
+   "visual": "Straight katana-like blade 60cm, total 85cm, square tsuba, black wrap, dark blue saya.",
+   "first_appears": "Naruto (Bölüm 1)",
+   "rarity": "common",
+   "slot": "right_hand",
+   "wiki_title": "Sword"
+  },
+  {
+   "id": "chakra_blade_trench",
+   "name": "Chakra Bıçağı / Siper Bıçağı (Chakura Tō)",
+   "name_en": "Chakra Blade / Trench Knives",
+   "type": "blade",
+   "canon_notable_users_type": "Rüzgâr doğalı jōninler ve öğrencileri",
+   "desc": "Chakra iletken metalden, parmak halkalı yumruk-hançer; rüzgâr chakrası verilince görünmez uzatılmış ağız oluşur.",
+   "abilities": [
+    "rüzgâr chakra kaplama (menzil+)",
+    "yumruk + kesme",
+    "atış"
+   ],
+   "game_idea": "Çift el set (sol+sağ): T2 (16 x2), rüzgâr kaplaması +1.5m menzil ve zırh delme, chakra 5/s. Atılabilir (stok 2).",
+   "visual": "Knuckle-duster grip with ring, 25cm triangular blade, dark iron with silver edge; wind aura as translucent blade extension.",
+   "first_appears": "Naruto (Sasuke Kurtarma/Asuma tanıtımı)",
+   "rarity": "rare",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Chakra Blade"
+  },
+  {
+   "id": "konoha_chakra_blade",
+   "name": "Konoha Chakra Kılıcı (Standart chakra kılıcı)",
+   "name_en": "Konoha Chakra Blade",
+   "type": "blade",
+   "canon_notable_users_type": "Boruto dönemi Konoha birlikleri",
+   "desc": "Yeni nesil standart kısa chakra kılıcı; kullanıcının doğasını kolayca iletir.",
+   "abilities": [
+    "doğa iletimi",
+    "kısa kılıç"
+   ],
+   "game_idea": "Sağ el T2, her element ile uyumlu, chakra maliyeti %50 düşük.",
+   "visual": "Short straight blade 40cm with grey guard, Konoha emblem on pommel, matte black.",
+   "first_appears": "Boruto (Boruto: Naruto the Movie)",
+   "rarity": "uncommon",
+   "slot": "right_hand",
+   "wiki_title": "Konoha Chakra Blade"
+  },
+  {
+   "id": "white_light_chakra_sabre",
+   "name": "Hakkō Chakra Tō (Beyaz ışık chakra kılıcı)",
+   "name_en": "White Light Chakra Sabre",
+   "type": "legendary_sword",
+   "canon_notable_users_type": "Efsanevi kılıç ustası soyları",
+   "desc": "Chakra verildiğinde beyaz parıldayan kısa kılıç; Sannin'lerle kıyaslanan bir ününü vardır. Kırılmaya yatkındır.",
+   "abilities": [
+    "beyaz ışık chakra kesme",
+    "yüksek hız",
+    "kırılabilir"
+   ],
+   "game_idea": "Sağ el T4 (55), chakra aktifken ışık izi + %25 hız. Dayanıklılık düşük: 'kırık' durumuna düşebilir (onarım görevi).",
+   "visual": "Tantō 50cm, blade glowing white-blue when charged, black handle, simple round guard.",
+   "first_appears": "Shippuden (Kakashi geçmişi)",
+   "rarity": "legendary",
+   "slot": "right_hand",
+   "signature": true,
+   "wiki_title": "White Light Chakra Sabre"
+  },
+  {
+   "id": "kokuto",
+   "name": "Kokutō (Kara bıçak)",
+   "name_en": "Kokutō",
+   "type": "blade",
+   "canon_notable_users_type": "Konoha özel jōnin muhafızları",
+   "desc": "Siyah, kıvrımlı kısa kılıç; açtığı yaralara lanet benzeri mühür bırakır ve kan pıhtılaşmasını engeller.",
+   "abilities": [
+    "kanayan yara (DoT)",
+    "lanet mühür"
+   ],
+   "game_idea": "Sağ el T2 + kanama DoT 4/s 5s, iyileşme -%50.",
+   "visual": "Black blade 55cm with dark purple sheen, wavy edge, red cord on handle.",
+   "first_appears": "Shippuden (Pain arkı öncesi)",
+   "rarity": "rare",
+   "slot": "right_hand",
+   "wiki_title": "Kokutō"
+  },
+  {
+   "id": "kusanagi_snake",
+   "name": "Kusanagi no Tsurugi – Yılan kılıcı (Çim biçen kılıç)",
+   "name_en": "Sword of Kusanagi (serpent-stored)",
+   "type": "legendary_sword",
+   "canon_notable_users_type": "Yasak bilim/yılan sannin soyu",
+   "desc": "Ağızdan veya yılandan çıkarılan, istediği kadar uzayan, neredeyse her şeyi kesebilen efsanevi kılıç; uzaktan yönlendirilebilir.",
+   "abilities": [
+    "uzama (10m+)",
+    "uzaktan kontrol",
+    "yüksek keskinlik"
+   ],
+   "game_idea": "Sağ el T4 (60), özel saldırı: 10m uzayan saplama (chakra 20, CD 8s). Gizli taşınır (envanter görünmez).",
+   "visual": "Straight thin double-edged sword 80cm, no guard, silver grey, can stretch as glowing lengthening blade.",
+   "first_appears": "Naruto (Chūnin Sınavı / Konoha Çöküşü)",
+   "rarity": "legendary",
+   "slot": "right_hand",
+   "signature": true,
+   "wiki_title": "Sword of Kusanagi (Orochimaru)"
+  },
+  {
+   "id": "kusanagi_chokuto",
+   "name": "Kusanagi Chokutō (Düz Kusanagi)",
+   "name_en": "Sword of Kusanagi (chokutō)",
+   "type": "sword",
+   "canon_notable_users_type": "Gezgin intikamcı kılıç ustaları",
+   "desc": "Asaya gizlenmiş düz kılıç (chokutō); yıldırım chakrasını iletir, saplamada çok güçlü.",
+   "abilities": [
+    "yıldırım akışı (Chidori Nagashi uyumlu)",
+    "saplama",
+    "asadan çekiş"
+   ],
+   "game_idea": "Sağ el T3 (35), yıldırım kaplaması ile sersemletme şansı %20. İaido çekiş vuruşu x1.5.",
+   "visual": "Chokutō with shikomizue-style plain wooden saya 90cm, no guard, straight 70cm blade, purple rope belt.",
+   "first_appears": "Shippuden (Sasuke geri dönüşü)",
+   "rarity": "rare",
+   "slot": "right_hand",
+   "wiki_title": "Sword of Kusanagi (Sasuke Uchiha)"
+  },
+  {
+   "id": "kusanagi_scientific",
+   "name": "Kusanagi (Bilimsel ninja aracı) (Tek kullanımlık rüzgâr-rasengan kılıcı)",
+   "name_en": "Sword of Kusanagi (Scientific Ninja Tool)",
+   "type": "scientific_tool",
+   "canon_notable_users_type": "Bilimsel ninja aracı test ekipleri",
+   "desc": "Bilimsel ninja araçları ile uyarlanmış Kusanagi; üretim kartuşlarıyla kombinlenebilir.",
+   "abilities": [
+    "kartuş jutsu iletimi"
+   ],
+   "game_idea": "Sağ el T3, Bilimsel Eldiven ile birlikte kartuş jutsuyu kılıca aktarır.",
+   "visual": "Straight blade 75cm with silver mechanical guard, cartridge slot near hilt.",
+   "first_appears": "Boruto (Kara Arc)",
+   "rarity": "rare",
+   "slot": "right_hand",
+   "wiki_title": "Sword of Kusanagi (Scientific Ninja Tool)"
+  },
+  {
+   "id": "totsuka_sword",
+   "name": "Totsuka no Tsurugi (On el uzunluğunda kılıç)",
+   "name_en": "Sword of Totsuka",
+   "type": "treasure",
+   "canon_notable_users_type": "Susanoo sahibi göz ustaları (efsanevi eşya)",
+   "desc": "Kehribarlı sake kabından çıkan ruhani kılıç; deldiği hedefi sonsuz bir rüya-genjutsu dünyasına mühürler.",
+   "abilities": [
+    "mühürleyen saplama",
+    "eterik (fiziksel engel aşar)"
+   ],
+   "game_idea": "Kalıcı silah değil: Susanoo üst düzey yeteneği; vurduğu boss dışı hedefi mühürler (anında yenme), CD 120s. Oyunda Hagoromo hazinesi olarak hikâye ödülü.",
+   "visual": "Ethereal liquid-like blade 200cm+, translucent orange-red, emerging from a gourd neck; no solid hilt.",
+   "first_appears": "Shippuden (Uchiha Kardeşler)",
+   "rarity": "legendary",
+   "slot": "right_hand",
+   "signature": true,
+   "wiki_title": "Sword of Totsuka"
+  },
+  {
+   "id": "yata_mirror",
+   "name": "Yata no Kagami (Sekiz karışlık ayna)",
+   "name_en": "Yata Mirror",
+   "type": "treasure",
+   "canon_notable_users_type": "Susanoo sahibi göz ustaları (efsanevi eşya)",
+   "desc": "Her saldırıyı karşı doğa ile nötralize eden efsanevi kalkan; şeklini değiştirebilir.",
+   "abilities": [
+    "tüm doğaları engelleme",
+    "şekil değiştirme"
+   ],
+   "game_idea": "Sol el efsanevi kalkan: aktif blok 3s tüm hasar %100 engel, CD 30s. Totsuka ile set bonusu.",
+   "visual": "Round shield 80cm, translucent orange with geometric convex pattern, glowing rim.",
+   "first_appears": "Shippuden (Uchiha Kardeşler)",
+   "rarity": "legendary",
+   "slot": "left_hand",
+   "signature": true,
+   "wiki_title": "Yata Mirror"
+  },
+  {
+   "id": "raijin_no_ken",
+   "name": "Raijin no Ken (Gök gürültüsü tanrısının kılıcı)",
+   "name_en": "Sword of the Thunder God",
+   "type": "legendary_sword",
+   "canon_notable_users_type": "Senju soyu efsanevi kılıç (sonradan çalınmış)",
+   "desc": "Kabzasından yıldırım chakrası ile şekillenen bıçak çıkan efsanevi kılıç; bıçağın uzunluğu chakraya bağlıdır.",
+   "abilities": [
+    "yıldırımdan bıçak",
+    "bıçak uzunluğu ayarı",
+    "sersemletme"
+   ],
+   "game_idea": "Sağ el T4 (55, yıldırım), basılı tutma ile menzil 1→6m, chakra 8/s. Elemental zayıflık: toprak.",
+   "visual": "Ornate hilt only 30cm (gold guard, purple wrap), blade made of crackling yellow lightning 80-300cm.",
+   "first_appears": "Naruto (anime filler, Raiga/Aoi arkı)",
+   "rarity": "legendary",
+   "slot": "right_hand",
+   "wiki_title": "Sword of the Thunder God"
+  },
+  {
+   "id": "nunoboko_sword",
+   "name": "Nunoboko no Ken (Yaratılış kılıcı)",
+   "name_en": "Sword of Nunoboko",
+   "type": "treasure",
+   "canon_notable_users_type": "Altı Yol Bilgesi efsanesi",
+   "desc": "Bilgenin dünyayı şekillendirdiği söylenen ruhani kılıç; gerçek dünyayı biçimlendirme gücüne sahiptir.",
+   "abilities": [
+    "arayıcı top kılıca dönüşüm",
+    "dünya şekillendirme"
+   ],
+   "game_idea": "Hikâye nesnesi / son boss silahı; oyuncuya verilmez veya kozmetik bir kalıntı olarak.",
+   "visual": "Black staff-like blade 150cm, rippling matte black truth-seeking orb texture.",
+   "first_appears": "Shippuden (Dördüncü Büyük Ninja Savaşı)",
+   "rarity": "legendary",
+   "slot": "right_hand",
+   "signature": true,
+   "wiki_title": "Sword of Nunoboko"
+  },
+  {
+   "id": "kumo_swords",
+   "name": "Kumo Kılıçları (Yedi kılıç tarzı)",
+   "name_en": "Kumogakure Swords",
+   "type": "sword",
+   "canon_notable_users_type": "Kumo kenjutsu ustaları, rap'çi jinchūriki tarzı",
+   "desc": "Kumo ninjalarının tarzı: ağızda, koltuk altında, dizlerde tutulan birden fazla tantō ile akrobatik dövüş.",
+   "abilities": [
+    "çoklu kılıç (7'ye kadar)",
+    "yıldırım kaplama",
+    "akrobatik"
+   ],
+   "game_idea": "Çift el + özel 'Çoklu Kılıç' stance: her ekstra kılıç +%10 kombo uzunluğu. T2.",
+   "visual": "Set of 7 straight tantō 50cm each, white-wrapped handles, carried on back in fan arrangement.",
+   "first_appears": "Shippuden (Sekiz Kuyruk / Kumo)",
+   "rarity": "uncommon",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Kumogakure Swords"
+  },
+  {
+   "id": "cleaver_sword_folding",
+   "name": "Katlanır Satır Kılıç (Üç menteşeli dev bıçak)",
+   "name_en": "Cleaver Sword (folding)",
+   "type": "sword",
+   "canon_notable_users_type": "Kumo yıldırım/kara yıldırım ustaları",
+   "desc": "Üç menteşesiyle katlanan geniş satır-kılıç; yıldırım chakrası ile uzunluğu ve öldürücülüğü artar.",
+   "abilities": [
+    "katlanma (taşınabilirlik)",
+    "yıldırım kaplama"
+   ],
+   "game_idea": "Sağ el ağır T3 (38), katlı haldeyken envanter küçük. Yıldırım kaplaması: zırh kırma.",
+   "visual": "Broad cleaver 110cm with 3 visible hinges, rectangular, black handle 30cm, grey steel.",
+   "first_appears": "Shippuden (Kage Zirvesi)",
+   "rarity": "rare",
+   "slot": "right_hand",
+   "wiki_title": "Cleaver Sword"
+  },
+  {
+   "id": "kurosawa",
+   "name": "Kurosawa (Kara bataklık) (Samuray kılıcı)",
+   "name_en": "Kurosawa",
+   "type": "sword",
+   "canon_notable_users_type": "Demir Ülkesi samurayları",
+   "desc": "Chakra ile iaido çekişinde muazzam kesim gücü kazanan samuray katanası.",
+   "abilities": [
+    "iaido (çekiş vuruşu)",
+    "chakra kaplama"
+   ],
+   "game_idea": "Sağ el T3, iaido karşı saldırı: savuşturma anında x2.5 hasar. Samuray zırhı seti ile bonus.",
+   "visual": "Katana 100cm, curved blade 70cm, black saya with dark green cord, round tsuba.",
+   "first_appears": "Shippuden (Kage Zirvesi)",
+   "rarity": "rare",
+   "slot": "right_hand",
+   "wiki_title": "Kurosawa"
+  },
+  {
+   "id": "samurai_katana",
+   "name": "Samuray Katanası (Demir Ülkesi kılıcı)",
+   "name_en": "Samurai Sword",
+   "type": "sword",
+   "canon_notable_users_type": "Demir Ülkesi samurayları",
+   "desc": "Kavisli tek ağızlı kılıç; samuraylar chakrayı yalnızca kılıca akıtarak savaşır.",
+   "abilities": [
+    "chakra kaplama",
+    "iaido"
+   ],
+   "game_idea": "Sağ el T2 (22), iaido saldırısı. Zırh 'Samuray zırhı' ile birlikte.",
+   "visual": "Curved katana 100cm, black-red saya, circular tsuba.",
+   "first_appears": "Shippuden (Kage Zirvesi)",
+   "rarity": "common",
+   "slot": "right_hand",
+   "wiki_title": "Sword"
+  },
+  {
+   "id": "garian_sword",
+   "name": "Gariantō (Garian kılıcı)",
+   "name_en": "Garian Sword",
+   "type": "sword",
+   "canon_notable_users_type": "Gizli düzenin yeniden doğan kılıççıları",
+   "desc": "Kırmızı-siyah, metal kütleyi büyütebilen kılıçlar; kılıcı devasa ölçeğe çıkarabilir.",
+   "abilities": [
+    "bıçak büyütme",
+    "ağır vuruş"
+   ],
+   "game_idea": "Sağ el T3, 'büyüt' becerisi: 3s boyunca menzil x3, CD 15s.",
+   "visual": "Red/black dao-like sword 90cm with jagged spine, glowing seam.",
+   "first_appears": "Naruto (anime filler, Kunihiro/Gisli arkı)",
+   "rarity": "rare",
+   "slot": "right_hand",
+   "wiki_title": "Garian Sword"
+  },
+  {
+   "id": "weaknessless_soaring_shortswords",
+   "name": "Fujaku Hishō Shōken (Zaafsız uçan kısa kılıçlar)",
+   "name_en": "Weaknessless Soaring Shortswords",
+   "type": "blade",
+   "canon_notable_users_type": "Kunoichi suikastçıları",
+   "desc": "Telekinetik benzeri yönlendirilen uçan kısa kılıç sürüsü.",
+   "abilities": [
+    "uçan kılıç sürüsü",
+    "yönlendirme"
+   ],
+   "game_idea": "Sol el yardımcı: 6 kılıç 8s yörüngede döner, T1 hasar/vuruş, CD 18s.",
+   "visual": "Six small daggers 25cm with peacock-feather blue tassels.",
+   "first_appears": "Naruto (anime filler)",
+   "rarity": "rare",
+   "slot": "left_hand",
+   "wiki_title": "Weaknessless Soaring Shortswords"
+  },
+  {
+   "id": "fire_sword",
+   "name": "Ateş Kılıcı (Alev kılıcı)",
+   "name_en": "Fire Sword",
+   "type": "sword",
+   "canon_notable_users_type": "Gizli kılıç ustaları (filler)",
+   "desc": "Kesimiyle alev püskürten kılıç.",
+   "abilities": [
+    "ateş kesme"
+   ],
+   "game_idea": "Sağ el T2 + yanma DoT.",
+   "visual": "Sword 85cm with red-orange blade and flame-licking edge.",
+   "first_appears": "Naruto (anime filler)",
+   "rarity": "uncommon",
+   "slot": "right_hand",
+   "wiki_title": "Fire Sword"
+  },
+  {
+   "id": "stone_swords",
+   "name": "Ishiken (Taş kılıçlar)",
+   "name_en": "Stone Swords",
+   "type": "sword",
+   "canon_notable_users_type": "Kurbağa yağı/sage savaşçıları",
+   "desc": "Kurbağa yağı ile tükürülen taş benzeri kılıçlar; sage modu ile birlikte.",
+   "abilities": [
+    "dayanıklı",
+    "kırılınca yeniden"
+   ],
+   "game_idea": "Kurbağa/sage modu sırasında T2 çift kılıç.",
+   "visual": "Rough stone-textured broadswords 100cm, grey-brown.",
+   "first_appears": "Shippuden (Pain ile ilk savaş)",
+   "rarity": "uncommon",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Stone Swords"
+  },
+  {
+   "id": "chakra_triple_claw",
+   "name": "Chakra Destekli Üç Bıçaklı Pençe (Tekagi-shuko)",
+   "name_en": "Chakra Enhanced Triple-Bladed Claw",
+   "type": "blade",
+   "canon_notable_users_type": "Ateş Tapınağı savaşçı rahipleri",
+   "desc": "Üç bıçaklı pençe; kullanıcının doğa chakrasını iletir, siper bıçağı gibi çalışır.",
+   "abilities": [
+    "chakra kaplama",
+    "pençe kombo"
+   ],
+   "game_idea": "Çift el T2, rüzgâr/ateş kaplaması. Tırmanışta duvara tutunma bonusu.",
+   "visual": "Back-of-hand claw with three 20cm curved blades, leather strap, steel.",
+   "first_appears": "Shippuden (anime, Sora arkı)",
+   "rarity": "uncommon",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Chakra Enhanced Triple-Bladed Claw"
+  },
+  {
+   "id": "double_bladed_bracers",
+   "name": "Çift Bıçaklı Bilezik (Bıçaklı kolluk)",
+   "name_en": "Double Bladed Bracers",
+   "type": "blade",
+   "canon_notable_users_type": "Savaş zamanı birlik liderleri",
+   "desc": "Üzerinde iki keskin bıçak olan metal kolluklar; bloklama sırasında da yaralar.",
+   "abilities": [
+    "blok + karşı hasar"
+   ],
+   "game_idea": "Sol el: blokta saldırgana 5 hasar yansıt.",
+   "visual": "Steel bracer 25cm with two forward blades 15cm.",
+   "first_appears": "Shippuden (anime)",
+   "rarity": "uncommon",
+   "slot": "left_hand",
+   "wiki_title": "Double Bladed Bracers"
+  },
+  {
+   "id": "kama",
+   "name": "Kama (Orak)",
+   "name_en": "Kama / Sickle",
+   "type": "blade",
+   "canon_notable_users_type": "Rüzgâr kullanıcıları, çiftlik ninjaları",
+   "desc": "Kısa saplı orak; tek veya çift olarak kullanılır.",
+   "abilities": [
+    "çift orak kombo",
+    "kancalama"
+   ],
+   "game_idea": "Çift el T1-T2, kancalama ile kalkan düşürme.",
+   "visual": "Sickle: wooden handle 35cm, curved blade 18cm.",
+   "first_appears": "Naruto (Bölüm 1)",
+   "rarity": "common",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Kama"
+  },
+  {
+   "id": "katar",
+   "name": "Katar (Yumruk hançeri)",
+   "name_en": "Katar",
+   "type": "blade",
+   "canon_notable_users_type": "Yakın dövüş taijutsu ninjaları",
+   "desc": "H tutamaklı yumruk hançeri; taijutsu ile birlikte kullanılır.",
+   "abilities": [
+    "yumruk saplama"
+   ],
+   "game_idea": "Sağ el T2 taijutsu kombo uyumlu (kombo sırasında silah düşmez).",
+   "visual": "Push dagger 35cm, triangular blade, H-grip.",
+   "first_appears": "Naruto / Oyunlar",
+   "rarity": "common",
+   "slot": "right_hand",
+   "wiki_title": "Katar"
+  },
+  {
+   "id": "scalpel",
+   "name": "Neşter (Tıbbi bıçak)",
+   "name_en": "Scalpel",
+   "type": "blade",
+   "canon_notable_users_type": "Tıbbi ninjalar",
+   "desc": "Cerrahi neşter; ayrıca chakra neşteri (Chakra no Mesu) için odak olarak kullanılır.",
+   "abilities": [
+    "hassas kesme",
+    "tıbbi"
+   ],
+   "game_idea": "Sağ el T1, ancak tıbbi jutsu verimini %15 artırır.",
+   "visual": "Small scalpel 15cm, silver.",
+   "first_appears": "Naruto",
+   "rarity": "common",
+   "slot": "right_hand",
+   "wiki_title": "Scalpel"
+  },
+  {
+   "id": "axe",
+   "name": "Balta (Savaş baltası)",
+   "name_en": "Axe",
+   "type": "blade",
+   "canon_notable_users_type": "Ağır silahlı haydutlar, oduncu ninjalar",
+   "desc": "Ağır tek ağızlı balta.",
+   "abilities": [
+    "ağır vuruş",
+    "kalkan kırma"
+   ],
+   "game_idea": "Sağ el T3 yavaş.",
+   "visual": "Axe 70cm, wooden haft, iron head 20cm.",
+   "first_appears": "Naruto / filler",
+   "rarity": "common",
+   "slot": "right_hand",
+   "wiki_title": "Axe"
+  },
+  {
+   "id": "kubikiribocho",
+   "name": "Kubikiribōchō (Kafa kesen satır)",
+   "name_en": "Kubikiribōchō / Executioner's Blade",
+   "type": "legendary_sword",
+   "canon_notable_users_type": "Sis'in Yedi Kılıç Ustaları geleneği",
+   "desc": "Ucunda yuvarlak delik, kabzaya yakın yarım ay oyuk olan dev satır-kılıç; kurbanların kanındaki demiri emerek kendini onarır.",
+   "abilities": [
+    "kendini onarma (kandan demir)",
+    "dev menzil",
+    "giyotin vuruşu"
+   ],
+   "game_idea": "İki el ağır T4 (65), çok yavaş. Vuruşta dayanıklılık yenileme; kırılsa bile kanla tamir. Sessiz Öldürme (Kirigakure) ile set bonusu.",
+   "visual": "Giant cleaver 180cm total, blade 140x45cm, round hole 18cm near tip, semicircle notch near hilt, grey steel, wrapped grip 35cm.",
+   "first_appears": "Naruto (Dalga Ülkesi)",
+   "rarity": "legendary",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Kubikiribōchō"
+  },
+  {
+   "id": "samehada",
+   "name": "Samehada (Köpek balığı derisi)",
+   "name_en": "Samehada / Shark Skin",
+   "type": "legendary_sword",
+   "canon_notable_users_type": "Sis'in Yedi Kılıç Ustaları geleneği",
+   "desc": "Pullarla kaplı, canlı ve sahibini seçen kılıç; dokunduğu hedefin chakrasını emer ve sahibine aktarır, ninjutsuyu yutabilir.",
+   "abilities": [
+    "chakra emme",
+    "jutsu yutma",
+    "sahibini seçme (sadakat)",
+    "canlı silah"
+   ],
+   "game_idea": "İki el T3 (40) + vuruşta 15 chakra emme. Sadakat sistemi: chakra rezervi düşük oyuncuyu reddeder. Su/ köpekbalığı jutsusu ile birleşme.",
+   "visual": "Massive club-like sword 170cm, wrapped in bandages; unwrapped shows blue-grey overlapping shark scales, shark mouth at tip; skull-shaped hilt.",
+   "first_appears": "Naruto (İtachi ve Kisame ilk görünüş)",
+   "rarity": "legendary",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Samehada"
+  },
+  {
+   "id": "kiba_swords",
+   "name": "Kiba (Dişler) (İkiz yıldırım kılıçları)",
+   "name_en": "Kiba / Fangs",
+   "type": "legendary_sword",
+   "canon_notable_users_type": "Sis'in Yedi Kılıç Ustaları geleneği",
+   "desc": "En keskin kılıçlar olarak bilinen ikiz kılıç; yıldırım chakrası iletir, kullanıcının yıldırım ile hareket etmesini sağlar.",
+   "abilities": [
+    "yıldırım iletimi",
+    "yıldırım çağırma",
+    "çift kılıç"
+   ],
+   "game_idea": "Çift el T3 (30x2) yıldırım. Özel: yıldırım yere düşürme AoE (CD 12s). Keskinlik: zırh delme %30.",
+   "visual": "Twin swords 85cm each, serrated lightning-bolt-shaped edges, blue-silver blades, blue handles.",
+   "first_appears": "Naruto (anime filler Raiga arkı) / Shippuden manga",
+   "rarity": "legendary",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Kiba (swords)"
+  },
+  {
+   "id": "nuibari",
+   "name": "Nuibari (Dikiş iğnesi)",
+   "name_en": "Nuibari / Sewing Needle",
+   "type": "legendary_sword",
+   "canon_notable_users_type": "Sis'in Yedi Kılıç Ustaları geleneği",
+   "desc": "Ucunda uzun tel olan uzun iğne-kılıç; birden fazla hedefi delip birbirine diker.",
+   "abilities": [
+    "delip dikme (çoklu hedef bağlama)",
+    "tel ile çekme"
+   ],
+   "game_idea": "Sağ el T3 (28), delici: ilk 3 hedefi deler ve tel ile birbirine bağlar (2.5s hareketsiz). CD 6s.",
+   "visual": "Long rapier-needle 150cm, thin blade, eye at pommel with 10m steel wire coil, silver.",
+   "first_appears": "Shippuden (Dördüncü Büyük Ninja Savaşı)",
+   "rarity": "legendary",
+   "slot": "right_hand",
+   "wiki_title": "Nuibari"
+  },
+  {
+   "id": "shibuki",
+   "name": "Shibuki (Sıçrama) (Patlayan kılıç)",
+   "name_en": "Shibuki / Splash",
+   "type": "legendary_sword",
+   "canon_notable_users_type": "Sis'in Yedi Kılıç Ustaları geleneği",
+   "desc": "Bıçağına patlayıcı etiket tomarı sarılı dev kılıç; her vuruşta patlama yaratır.",
+   "abilities": [
+    "vuruşta patlama",
+    "AoE"
+   ],
+   "game_idea": "İki el T4 (50 + 20 AoE patlama 3m). Etiket stoğu 10, vuruş başına 1 etiket harcar. Kendine de hasar riski.",
+   "visual": "Large blade 160cm with explosive tag scroll wound around it, paper tags overlapping, yellow-white tags with red kanji, dark steel.",
+   "first_appears": "Shippuden (Dördüncü Büyük Ninja Savaşı)",
+   "rarity": "legendary",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Shibuki (sword)"
+  },
+  {
+   "id": "kabutowari",
+   "name": "Kabutowari (Miğfer kıran)",
+   "name_en": "Kabutowari / Helmet Splitter",
+   "type": "legendary_sword",
+   "canon_notable_users_type": "Sis'in Yedi Kılıç Ustaları geleneği",
+   "desc": "Balta ve çekiçten oluşan zincirli ikili; her savunmayı kırar.",
+   "abilities": [
+    "savunma kırma",
+    "zincirli ikili saldırı"
+   ],
+   "game_idea": "Çift el T4 (45), blok/kalkan ve toprak duvarları anında kırar. Yavaş.",
+   "visual": "Axe (single blade, 50cm head) chained to a large hammer (40cm head) with 2m chain, grey iron.",
+   "first_appears": "Shippuden (Dördüncü Büyük Ninja Savaşı)",
+   "rarity": "legendary",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Kabutowari"
+  },
+  {
+   "id": "hiramekarei",
+   "name": "Hiramekarei (İkiz kılıç / Pisi balığı)",
+   "name_en": "Hiramekarei / Twin Sword",
+   "type": "legendary_sword",
+   "canon_notable_users_type": "Sis'in Yedi Kılıç Ustaları geleneği",
+   "desc": "Çift kabzalı, bandajlı kılıç; chakra depolar ve serbest bırakıp çekiç, mızrak gibi şekiller alabilir.",
+   "abilities": [
+    "chakra depolama",
+    "şekil değiştirme (çekiç/kılıç/mızrak)",
+    "çift kabza ayrılma"
+   ],
+   "game_idea": "İki el T3 (35). Chakra şarj mekaniği: vuruşta şarj, dolunca 3 form seçilebilir (çekiç AoE / uzun kılıç / mızrak delme).",
+   "visual": "Twin-handled wide blade 150cm wrapped in bandages, two grips side by side; chakra form glows cyan.",
+   "first_appears": "Shippuden (Kage Zirvesi)",
+   "rarity": "legendary",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Hiramekarei"
+  },
+  {
+   "id": "seven_swords_new_gen",
+   "name": "Yeni Nesil Yedi Kılıç (Boruto dönemi kopyalar)",
+   "name_en": "Seven Swords (Boruto era bearers)",
+   "type": "legendary_sword",
+   "canon_notable_users_type": "Boruto dönemi Kiri kılıççıları",
+   "desc": "Boruto döneminde yeni sahiplerine geçen ve kopyalanan Yedi Kılıçlar; yeni nesil kılıççılar ve kötü niyetli taklitçiler tarafından kullanılır.",
+   "abilities": [
+    "orijinal kılıç yetenekleri",
+    "Kirigakure darbesi"
+   ],
+   "game_idea": "Meta tasarım: Yedi Kılıç her biri 'eşsiz eşya' — sunucuda/dünyada tek kopya; kazanmak için Kiri düello görevleri.",
+   "visual": "Same as originals; newer polish, Kiri emblem engraved.",
+   "first_appears": "Boruto (Kirigakure arkı)",
+   "rarity": "legendary",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Seven Ninja Swordsmen of the Mist"
+  },
+  {
+   "id": "gunbai",
+   "name": "Gunbai (Savaş yelpazesi)",
+   "name_en": "Gunbai / War Fan",
+   "type": "treasure",
+   "canon_notable_users_type": "Efsanevi Uchiha liderleri (savaş yelpazesi)",
+   "desc": "Dev yuvarlak savaş yelpazesi; saldırıları emip geri yansıtır, rüzgâr savurur ve kalkan olarak kullanılır.",
+   "abilities": [
+    "saldırı yansıtma (Uchiha Gaeshi)",
+    "rüzgâr dalgası",
+    "kalkan"
+   ],
+   "game_idea": "Sol el efsanevi kalkan-silah: blok anında yansıtma (zamanlama penceresi 0.3s), T3 vuruş. Zincir orakla set.",
+   "visual": "Round fan 70cm diameter with 3 tomoe markings, red-black, 70cm handle, chain and kama attached to end.",
+   "first_appears": "Shippuden (Dördüncü Büyük Ninja Savaşı)",
+   "rarity": "legendary",
+   "slot": "left_hand",
+   "signature": true,
+   "wiki_title": "Gunbai"
+  },
+  {
+   "id": "giant_folding_fan",
+   "name": "Kyodai Sensu (Dev katlanır yelpaze)",
+   "name_en": "Giant Folding Fan",
+   "type": "blunt",
+   "canon_notable_users_type": "Rüzgâr doğalı Suna ninjaları",
+   "desc": "Sırtta taşınan dev katlanır yelpaze; rüzgâr jutsusu çıkışını büyütür, üzerinde uçulabilir.",
+   "abilities": [
+    "rüzgâr güçlendirme",
+    "savunma",
+    "uçma/süzülme platformu"
+   ],
+   "game_idea": "İki el: rüzgâr jutsusu hasar +%40, menzil +%50. Parkur: yelpazeye binip 3s süzülme. Ay işareti açıldıkça güç artar (1-3 ay).",
+   "visual": "Folding war fan 150cm closed, opens to 160cm semicircle, beige/white paper with three purple moon circles, black iron ribs.",
+   "first_appears": "Naruto (Chūnin Sınavı)",
+   "rarity": "rare",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Giant Folding Fan"
+  },
+  {
+   "id": "tessen",
+   "name": "Tessen (Demir yelpaze)",
+   "name_en": "Tessen / Iron Fan",
+   "type": "blunt",
+   "canon_notable_users_type": "Kunoichi, saray muhafızları",
+   "desc": "Kapalıyken cop, açıkken kalkan ve kesici olan küçük demir yelpaze.",
+   "abilities": [
+    "blok",
+    "kesme",
+    "rüzgâr hafif"
+   ],
+   "game_idea": "Sol el hafif kalkan-silah T1.",
+   "visual": "Iron folding fan 35cm, black ribs, red paper.",
+   "first_appears": "Naruto / oyunlar",
+   "rarity": "uncommon",
+   "slot": "left_hand",
+   "wiki_title": "Tessen"
+  },
+  {
+   "id": "bo_staff",
+   "name": "Bō (Uzun sopa)",
+   "name_en": "Bō Staff",
+   "type": "blunt",
+   "canon_notable_users_type": "Taijutsu ve sopa ustaları",
+   "desc": "Uzun ahşap sopa; menzil ve kontrol.",
+   "abilities": [
+    "süpürme",
+    "itme",
+    "sırıkla atlama"
+   ],
+   "game_idea": "İki el T1-T2, süpürme AoE. Parkur: sırıkla yüksek atlama.",
+   "visual": "Wooden staff 180cm, 3cm dia, metal end caps.",
+   "first_appears": "Naruto",
+   "rarity": "common",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Bō"
+  },
+  {
+   "id": "jo_staff",
+   "name": "Jō (Kısa sopa)",
+   "name_en": "Jō",
+   "type": "blunt",
+   "canon_notable_users_type": "Muhafızlar",
+   "desc": "Kısa sopa.",
+   "abilities": [
+    "hızlı vuruş"
+   ],
+   "game_idea": "Sağ el T1.",
+   "visual": "Wooden staff 120cm.",
+   "first_appears": "Naruto",
+   "rarity": "common",
+   "slot": "right_hand",
+   "wiki_title": "Jō"
+  },
+  {
+   "id": "nyoi_staff",
+   "name": "Nyoi Bō / Kongō Nyoi (Elmas Nyoi asası)",
+   "name_en": "Adamantine Staff / Adamantine Nyoi",
+   "type": "treasure",
+   "canon_notable_users_type": "Maymun kralı çağırma anlaşması (çağrı dönüşümü)",
+   "desc": "Maymun Kral çağrısının dönüştüğü, istediği gibi uzayıp kısalan, kırılmaz asa.",
+   "abilities": [
+    "uzama/kısalma",
+    "kırılmaz",
+    "klon oluşturma"
+   ],
+   "game_idea": "Çağrı anlaşmasına bağlı efsanevi silah: iki el T4, basılı tutup 15m uzama, kırılmaz (blok asla kırılmaz).",
+   "visual": "Black staff 170cm with gold bands and ends, extends dynamically; monkey face motif on end.",
+   "first_appears": "Naruto (Konoha Çöküşü)",
+   "rarity": "legendary",
+   "slot": "right_hand+left_hand",
+   "signature": true,
+   "wiki_title": "Adamantine Staff"
+  },
+  {
+   "id": "shakujo",
+   "name": "Shakujō (Keşiş asası)",
+   "name_en": "Shakujō",
+   "type": "blunt",
+   "canon_notable_users_type": "Gezgin keşiş ninjalar, Ateş Tapınağı rahipleri",
+   "desc": "Halkalı keşiş asası; çınlayan halkalar ruhani tekniklerin odağıdır.",
+   "abilities": [
+    "ses ile genjutsu kırma",
+    "süpürme"
+   ],
+   "game_idea": "İki el T2; vuruşta yakındaki genjutsuyu kırma şansı %25.",
+   "visual": "Metal staff 170cm with ornate top loop holding 6 jingling rings, bronze.",
+   "first_appears": "Naruto / Shippuden (Pain'in yolu)",
+   "rarity": "uncommon",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Shakujō"
+  },
+  {
+   "id": "conch_shell_mace",
+   "name": "Kyodai Konbō (Dev deniz kabuğu topuzu)",
+   "name_en": "Conch Shell Mace",
+   "type": "blunt",
+   "canon_notable_users_type": "Kapı nöbetçisi chūninler",
+   "desc": "Dikenli deniz kabuğuna benzeyen, zincirli dev topuz; tomardan çağrılır.",
+   "abilities": [
+    "ağır darbe",
+    "zincir ile savurma"
+   ],
+   "game_idea": "İki el T3, yavaş, sersemletme %30.",
+   "visual": "Spiky conch-shaped mace head 60cm, bandaged hilt 50cm, chain linking to partner's weapon.",
+   "first_appears": "Shippuden (Kazekage Kurtarma)",
+   "rarity": "uncommon",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Conch Shell Mace"
+  },
+  {
+   "id": "claw_club",
+   "name": "Kanca Kulüp (Pençe topuzu)",
+   "name_en": "Claw Club",
+   "type": "blunt",
+   "canon_notable_users_type": "Kiri yönetici tarzı (Kage silahı)",
+   "desc": "Kullanıcıdan büyük, iki ucunda kanca ve yeşil çiçek motifi olan asa-topuz.",
+   "abilities": [
+    "kanca çekme",
+    "geniş savurma"
+   ],
+   "game_idea": "İki el T3, kanca ile hedefi çekip kombo.",
+   "visual": "Large uneven staff 200cm, hooked ends, green flower ornament on larger end, dark wood.",
+   "first_appears": "Shippuden (Kiri Mizukage anısı)",
+   "rarity": "rare",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Claw Club"
+  },
+  {
+   "id": "tonfa",
+   "name": "Tonfa (Yan saplı cop)",
+   "name_en": "Tonfa",
+   "type": "blunt",
+   "canon_notable_users_type": "Taijutsu ustaları",
+   "desc": "Yan saplı cop çifti; blok ve taijutsu kombolarına uyumlu.",
+   "abilities": [
+    "blok",
+    "hızlı kombo"
+   ],
+   "game_idea": "Çift el T1, blok sırasında %50 hasar azalt.",
+   "visual": "Pair of tonfa 50cm, wooden, side handle.",
+   "first_appears": "Naruto (anime filler)",
+   "rarity": "common",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Tonfa"
+  },
+  {
+   "id": "nunchaku",
+   "name": "Nunchaku (Zincirli çift sopa)",
+   "name_en": "Nunchaku",
+   "type": "blunt",
+   "canon_notable_users_type": "Taijutsu ustaları",
+   "desc": "Zincirle bağlı iki kısa sopa.",
+   "abilities": [
+    "hızlı kombo",
+    "dolama"
+   ],
+   "game_idea": "Sağ el T1 hızlı.",
+   "visual": "Two 30cm wooden sticks linked by 10cm chain.",
+   "first_appears": "Naruto / oyunlar",
+   "rarity": "common",
+   "slot": "right_hand",
+   "wiki_title": "Nunchaku"
+  },
+  {
+   "id": "three_section_staff",
+   "name": "Sansetsukon (Üç parçalı sopa)",
+   "name_en": "Three-Section Staff",
+   "type": "blunt",
+   "canon_notable_users_type": "Silah ustası kunoichi tarzı",
+   "desc": "Zincirle bağlı üç parçalı sopa; uzun menzil, beklenmedik açılar.",
+   "abilities": [
+    "uzun menzil",
+    "dolama"
+   ],
+   "game_idea": "İki el T2, menzil 3m.",
+   "visual": "Three 60cm red wooden segments linked by short chains.",
+   "first_appears": "Naruto (Chūnin Sınavı / Tenten tarzı)",
+   "rarity": "uncommon",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Three-Section Staff"
+  },
+  {
+   "id": "chain_wind_staff",
+   "name": "Kusari Fūbō (Zincir rüzgâr sopası)",
+   "name_en": "Chain Wind Staff",
+   "type": "chain",
+   "canon_notable_users_type": "Silah tomarı uzmanları",
+   "desc": "İki ucunda ağırlıklı zincir olan kısa sopa; bumerang gibi döndürülerek fırlatılır.",
+   "abilities": [
+    "bumerang dönüş",
+    "kalkan delme"
+   ],
+   "game_idea": "Sağ el T2, atış sonra geri döner, CD 3s.",
+   "visual": "Short stick 50cm with weighted chains 1m at both ends, red/black.",
+   "first_appears": "Naruto (anime filler)",
+   "rarity": "uncommon",
+   "slot": "right_hand",
+   "wiki_title": "Chain Wind Staff"
+  },
+  {
+   "id": "flail",
+   "name": "Topuz-zincir (Gürz)",
+   "name_en": "Flail",
+   "type": "blunt",
+   "canon_notable_users_type": "Ağır silah haydutları",
+   "desc": "Zincirli dikenli gürz.",
+   "abilities": [
+    "ağır savurma"
+   ],
+   "game_idea": "Sağ el T3 yavaş.",
+   "visual": "Spiked iron ball 15cm on 80cm chain, wooden handle.",
+   "first_appears": "Naruto / oyunlar",
+   "rarity": "common",
+   "slot": "right_hand",
+   "wiki_title": "Flail"
+  },
+  {
+   "id": "club",
+   "name": "Kanabō / Sopa (Dikenli savaş sopası)",
+   "name_en": "Club",
+   "type": "blunt",
+   "canon_notable_users_type": "Haydutlar, dev savaşçılar",
+   "desc": "Ağır ahşap/demir sopa.",
+   "abilities": [
+    "sersemletme"
+   ],
+   "game_idea": "Sağ el T2.",
+   "visual": "Studded wooden club 90cm.",
+   "first_appears": "Naruto",
+   "rarity": "common",
+   "slot": "right_hand",
+   "wiki_title": "Club"
+  },
+  {
+   "id": "vambraces",
+   "name": "Kolluk (Ağır metal bilezik)",
+   "name_en": "Vambraces",
+   "type": "armor",
+   "canon_notable_users_type": "Kumo Raikage tarzı güç savaşçıları",
+   "desc": "Kalın metal bilezikler; taijutsu darbelerini güçlendirir, bloklarken kalkan görevi görür.",
+   "abilities": [
+    "blok",
+    "yumruk gücü +"
+   ],
+   "game_idea": "Sol el/yelek alt slot zırh: taijutsu hasar +%10, blok hasarı -%20.",
+   "visual": "Thick gold-colored metal bracers 20cm on forearms.",
+   "first_appears": "Shippuden (Kage Zirvesi)",
+   "rarity": "uncommon",
+   "slot": "left_hand",
+   "wiki_title": "Vambraces"
+  },
+  {
+   "id": "tekko",
+   "name": "Tekkō (Demir yumruk koruyucu)",
+   "name_en": "Tekkō",
+   "type": "armor",
+   "canon_notable_users_type": "Taijutsu ustaları",
+   "desc": "Eli kaplayan metal plakalı eldiven.",
+   "abilities": [
+    "yumruk gücü"
+   ],
+   "game_idea": "Taijutsu +%8.",
+   "visual": "Metal-plated fingerless glove, black leather.",
+   "first_appears": "Naruto",
+   "rarity": "common",
+   "slot": "left_hand",
+   "wiki_title": "Tekkō"
+  },
+  {
+   "id": "training_weights",
+   "name": "Omori (Antrenman ağırlıkları)",
+   "name_en": "Weights",
+   "type": "utility",
+   "canon_notable_users_type": "Taijutsu disiplincileri",
+   "desc": "Bacak veya kollara takılan ağırlıklar; çıkarıldığında hız muazzam artar.",
+   "abilities": [
+    "antrenman XP bonusu",
+    "çıkarınca hız patlaması"
+   ],
+   "game_idea": "Ayak slotu: takılıyken hareket -%20 ama taijutsu XP +%50. Savaşta çıkarma eylemi: 30s +%30 hız.",
+   "visual": "Orange leg-weight bands 15cm tall on shins, heavy rectangular blocks.",
+   "first_appears": "Naruto (Chūnin Sınavı ön elemeleri)",
+   "rarity": "uncommon",
+   "slot": "feet",
+   "wiki_title": "Weights"
+  },
+  {
+   "id": "spear",
+   "name": "Yari (Mızrak)",
+   "name_en": "Spear",
+   "type": "blade",
+   "canon_notable_users_type": "Muhafızlar, samuraylar",
+   "desc": "Uzun mızrak; menzil avantajı.",
+   "abilities": [
+    "saplama",
+    "menzil"
+   ],
+   "game_idea": "İki el T2, menzil 2.5m.",
+   "visual": "Spear 200cm, steel tip 25cm.",
+   "first_appears": "Naruto",
+   "rarity": "common",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Spear"
+  },
+  {
+   "id": "sasumata",
+   "name": "Sasumata (Çatallı yakalama sopası)",
+   "name_en": "Sasumata",
+   "type": "utility",
+   "canon_notable_users_type": "Muhafızlar, polis birlikleri",
+   "desc": "Ucu U şeklinde çatal; hedefi duvara sabitler.",
+   "abilities": [
+    "sabitleme"
+   ],
+   "game_idea": "İki el, vuruşta 1.5s sabitleme, hasar düşük.",
+   "visual": "U-fork head 40cm on 180cm pole.",
+   "first_appears": "Naruto",
+   "rarity": "common",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Sasumata"
+  },
+  {
+   "id": "bow_arrow",
+   "name": "Yumi (Yay ve ok)",
+   "name_en": "Bow & Arrow",
+   "type": "projectile_launcher",
+   "canon_notable_users_type": "Avcı ninjalar",
+   "desc": "Klasik yay; patlayıcı etiketli ok kullanılabilir.",
+   "abilities": [
+    "uzak menzil",
+    "etiketli ok"
+   ],
+   "game_idea": "İki el uzak menzil T2, çekme süresi ile hasar artışı, ok stoğu 20.",
+   "visual": "Longbow 150cm, wooden, quiver of 20 arrows.",
+   "first_appears": "Naruto (filler)",
+   "rarity": "common",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Bow & Arrow"
+  },
+  {
+   "id": "crossbow",
+   "name": "Arbalet",
+   "name_en": "Crossbow",
+   "type": "projectile_launcher",
+   "canon_notable_users_type": "Haydutlar, sınır muhafızları",
+   "desc": "Mekanik yay.",
+   "abilities": [
+    "delici atış"
+   ],
+   "game_idea": "Sağ el T2, yeniden doldurma 1.5s.",
+   "visual": "Crossbow 60cm, wooden stock.",
+   "first_appears": "Naruto",
+   "rarity": "common",
+   "slot": "right_hand",
+   "wiki_title": "Crossbow"
+  },
+  {
+   "id": "blowpipe",
+   "name": "Fukiya (Üfleme borusu)",
+   "name_en": "Blowpipe",
+   "type": "projectile_launcher",
+   "canon_notable_users_type": "Suikastçılar, tıbbi ninjalar",
+   "desc": "Sessiz dart ve senbon üfleme borusu; zehirle ölümcül.",
+   "abilities": [
+    "sessiz atış",
+    "zehir"
+   ],
+   "game_idea": "Sol el gizli: sesiz, uyarmadan zehir DoT; stealth bonusu.",
+   "visual": "Bamboo tube 50cm, darts with feathers.",
+   "first_appears": "Shippuden (anime)",
+   "rarity": "uncommon",
+   "slot": "left_hand",
+   "wiki_title": "Blowpipe"
+  },
+  {
+   "id": "slingshot",
+   "name": "Sapan",
+   "name_en": "Slingshot",
+   "type": "projectile_launcher",
+   "canon_notable_users_type": "Akademi öğrencileri",
+   "desc": "Basit sapan; çocuk karakterler ve dikkat dağıtma için.",
+   "abilities": [
+    "dikkat dağıtma"
+   ],
+   "game_idea": "Hasar 1, dikkat çekme mekanığı.",
+   "visual": "Y-shaped wooden slingshot 20cm.",
+   "first_appears": "Naruto",
+   "rarity": "common",
+   "slot": "left_hand",
+   "wiki_title": "Slingshot"
+  },
+  {
+   "id": "handheld_kunai_launcher",
+   "name": "El Tipi Kunai Fırlatıcı",
+   "name_en": "Handheld Kunai Launcher",
+   "type": "projectile_launcher",
+   "canon_notable_users_type": "Gök ninjaları, silah uzmanları",
+   "desc": "Yaylı/mekanik kunai fırlatıcı; seri atış.",
+   "abilities": [
+    "seri atış"
+   ],
+   "game_idea": "Sağ el: 6 kunai şarjör, hızlı atış.",
+   "visual": "Box launcher 30cm with 6 kunai barrels, brass.",
+   "first_appears": "Naruto (anime filler) / film",
+   "rarity": "uncommon",
+   "slot": "right_hand",
+   "wiki_title": "Handheld Kunai Launcher"
+  },
+  {
+   "id": "wrist_senbon_launcher",
+   "name": "Bilek Senbon Fırlatıcı",
+   "name_en": "Wrist-Mounted Senbon Launcher",
+   "type": "projectile_launcher",
+   "canon_notable_users_type": "Tıbbi ninja asistanları",
+   "desc": "Kola bağlı, zehirli senbon yaylım ateşi açan mekanizma.",
+   "abilities": [
+    "zehirli yaylım",
+    "eller serbest"
+   ],
+   "game_idea": "Sol el: 12 senbon yaylımı + zehir; doldurma 3s.",
+   "visual": "Forearm sleeve launcher 20cm, brass tubes, under kimono sleeve.",
+   "first_appears": "Naruto (Tsunade arayışı)",
+   "rarity": "uncommon",
+   "slot": "left_hand",
+   "wiki_title": "Wrist-Mounted Senbon Launcher"
+  },
+  {
+   "id": "mechanical_kunai_thrower",
+   "name": "Mekanik Kunai Atıcı (Tuzak)",
+   "name_en": "Mechanical Kunai Thrower",
+   "type": "projectile_launcher",
+   "canon_notable_users_type": "Kar Ülkesi teknolojisi",
+   "desc": "Sabit kurulabilen otomatik kunai atıcı.",
+   "abilities": [
+    "otomatik taret"
+   ],
+   "game_idea": "Yere kurulan tuzak taret 10s.",
+   "visual": "Tripod box turret 50cm.",
+   "first_appears": "Naruto (Film 1)",
+   "rarity": "uncommon",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Mechanical Kunai Thrower"
+  },
+  {
+   "id": "umbrella",
+   "name": "Kasa (Senbon şemsiyesi)",
+   "name_en": "Umbrella",
+   "type": "projectile_launcher",
+   "canon_notable_users_type": "Ame ninjaları",
+   "desc": "Havaya atılıp dönerek senbon yağdıran veya kalkan olan şemsiye.",
+   "abilities": [
+    "senbon yağmuru",
+    "kalkan"
+   ],
+   "game_idea": "Sol el: atılınca 3s boyunca 4m alana senbon yağmuru, CD 15s; açıkken önden blok.",
+   "visual": "Oil-paper umbrella 90cm diameter, dark red, with hidden needles along ribs.",
+   "first_appears": "Naruto (Chūnin Sınavı / Ame genin)",
+   "rarity": "uncommon",
+   "slot": "left_hand",
+   "wiki_title": "Umbrella"
+  },
+  {
+   "id": "resonating_echo_speaker",
+   "name": "Kyōmei Supīkā (Ses yükseltici kol)",
+   "name_en": "Resonating Echo Speaker",
+   "type": "scientific_tool",
+   "canon_notable_users_type": "Ses ninjaları",
+   "desc": "Kola takılan delikli metal düzenek; ses dalgalarını yükseltip iç kulağa saldırır.",
+   "abilities": [
+    "ses dalgası",
+    "denge bozma"
+   ],
+   "game_idea": "Sol el: konik ses dalgası 5m, sersemletme 1s + denge bozma (kamera sarsıntısı).",
+   "visual": "Bulky metal arm gauntlet with holes, 30cm, dull silver.",
+   "first_appears": "Naruto (Chūnin Sınavı)",
+   "rarity": "uncommon",
+   "slot": "left_hand",
+   "wiki_title": "Resonating Echo Speaker"
+  },
+  {
+   "id": "demonic_flute",
+   "name": "Mateki (Şeytani flüt)",
+   "name_en": "Demonic Flute",
+   "type": "utility",
+   "canon_notable_users_type": "Ses tabanlı genjutsu kullanıcıları",
+   "desc": "Melodi ile genjutsu yapan ve çağrılmış varlıkları yöneten flüt.",
+   "abilities": [
+    "ses genjutsu",
+    "çağrı kontrolü"
+   ],
+   "game_idea": "Sol el: genjutsu melodisi kanal (3s), bölge yavaşlama/halüsinasyon.",
+   "visual": "Bamboo flute 35cm, dark wood with rope.",
+   "first_appears": "Naruto (Sasuke Kurtarma)",
+   "rarity": "rare",
+   "slot": "left_hand",
+   "wiki_title": "Demonic Flute"
+  },
+  {
+   "id": "bubble_pipe",
+   "name": "Sabun Köpüğü Piposu",
+   "name_en": "Bubble-Utilising Pipe",
+   "type": "utility",
+   "canon_notable_users_type": "Su/köpük ninjutsu kullanıcıları",
+   "desc": "Altın renkli bükük pipo; çeşitli köpük jutsularının odağı.",
+   "abilities": [
+    "köpük jutsu",
+    "sağlam savunma"
+   ],
+   "game_idea": "Sol el odak: köpük jutsu chakra -%30.",
+   "visual": "Golden bent pipe 30cm with tassel.",
+   "first_appears": "Shippuden (anime)",
+   "rarity": "rare",
+   "slot": "left_hand",
+   "wiki_title": "Bubble-Utilising Pipe"
+  },
+  {
+   "id": "bells",
+   "name": "Suzu (Çan)",
+   "name_en": "Bell",
+   "type": "utility",
+   "canon_notable_users_type": "Jōnin eğitmenleri, tuzakçılar",
+   "desc": "Telli tuzak alarmı ve eğitim sınavının simgesi; ses genjutsusu için de kullanılır.",
+   "abilities": [
+    "alarm tuzağı",
+    "eğitim"
+   ],
+   "game_idea": "Tuzak modifikatörü: tel tuzağına bağlanınca tetiklenmede tüm düşmanları gösterir.",
+   "visual": "Small brass bell 3cm with red string.",
+   "first_appears": "Naruto (Çan sınavı)",
+   "rarity": "common",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Bell"
+  },
+  {
+   "id": "benihisago",
+   "name": "Benihisago (Kızıl su kabağı)",
+   "name_en": "Benihisago / Crimson Gourd",
+   "type": "treasure",
+   "canon_notable_users_type": "Altı Yol Bilgesi hazineleri (efsane)",
+   "desc": "Kırmızı kumaşlı dev su kabağı; kelime ruhu çekilip kesilen hedefi içine hapseder.",
+   "abilities": [
+    "ruh hapsetme",
+    "diğer hazinelerle zincir"
+   ],
+   "game_idea": "Set mekaniği: Kōkinjō (kelime ruhu çek) + Shichiseiken (kes) + Benihisago (hapset) = anlık yenme (boss değil). Tek başına su emme kalkanı.",
+   "visual": "Large brown gourd 90cm with red cloth band and rope, stopper on top.",
+   "first_appears": "Shippuden (Kinkaku/Ginkaku, Savaş)",
+   "rarity": "legendary",
+   "slot": "left_hand",
+   "wiki_title": "Benihisago"
+  },
+  {
+   "id": "kokinjo",
+   "name": "Kōkinjō (Altın kubbe ipi)",
+   "name_en": "Kōkinjō / Golden Canopy Rope",
+   "type": "treasure",
+   "canon_notable_users_type": "Altı Yol Bilgesi hazineleri (efsane)",
+   "desc": "Hedefin en çok söylediği kelimeyi 'kelime ruhu' olarak çekip bağlayan ip.",
+   "abilities": [
+    "kelime ruhu çekme",
+    "bağlama"
+   ],
+   "game_idea": "Sağ el kırbaç: vuruşta 2s bağlama + 'işaret'. Set parçası.",
+   "visual": "Golden thick rope 300cm, braided, glowing tip.",
+   "first_appears": "Shippuden (Savaş)",
+   "rarity": "legendary",
+   "slot": "right_hand",
+   "wiki_title": "Kōkinjō"
+  },
+  {
+   "id": "shichiseiken",
+   "name": "Shichiseiken (Yedi yıldızlı kılıç)",
+   "name_en": "Shichiseiken / Seven Star Sword",
+   "type": "treasure",
+   "canon_notable_users_type": "Altı Yol Bilgesi hazineleri (efsane)",
+   "desc": "Bıçağı kullanıcı chakrasından oluşan kılıç; kelime ruhunu bedenden keser.",
+   "abilities": [
+    "ruh kesme",
+    "chakra bıçağı"
+   ],
+   "game_idea": "Sağ el T3 chakra bıçağı, kelime ruhu işaretli hedefe x3 hasar. Chakra 6/s.",
+   "visual": "Ornate short hilt 30cm with seven dots, blade of flowing chakra 100cm.",
+   "first_appears": "Shippuden (Savaş)",
+   "rarity": "legendary",
+   "slot": "right_hand",
+   "wiki_title": "Shichiseiken"
+  },
+  {
+   "id": "bashosen",
+   "name": "Bashōsen (Muz yaprağı yelpazesi)",
+   "name_en": "Bashōsen / Banana Fan",
+   "type": "treasure",
+   "canon_notable_users_type": "Altı Yol Bilgesi hazineleri (efsane)",
+   "desc": "Beş temel doğanın hepsini üretebilen yelpaze; zihinsel emirle element seçilir.",
+   "abilities": [
+    "5 element üretimi",
+    "kalkan"
+   ],
+   "game_idea": "Sağ el: element döngüsü (1-5 tuşu), her savuruş T3 elemental AoE, chakra 15. Chakra tüketimi yüksek.",
+   "visual": "Large leaf-shaped fan 120cm, beige-brown with red handle 60cm and tassels.",
+   "first_appears": "Shippuden (Savaş)",
+   "rarity": "legendary",
+   "slot": "right_hand",
+   "wiki_title": "Bashōsen"
+  },
+  {
+   "id": "kohaku_no_johei",
+   "name": "Kohaku no Jōhei (Kehribar arındırma şişesi)",
+   "name_en": "Kohaku no Jōhei / Amber Purification Jar",
+   "type": "treasure",
+   "canon_notable_users_type": "Altı Yol Bilgesi hazineleri (efsane)",
+   "desc": "Kelime ruhu yakalanan hedefi içine çeken kehribar sürahi.",
+   "abilities": [
+    "mühürleme"
+   ],
+   "game_idea": "Sol el: Benihisago alternatif set parçası.",
+   "visual": "Amber/gold vase 60cm with dark rope.",
+   "first_appears": "Shippuden (Savaş)",
+   "rarity": "legendary",
+   "slot": "left_hand",
+   "wiki_title": "Kohaku no Jōhei"
+  },
+  {
+   "id": "secret_treasure_toads",
+   "name": "Kurbağaların Gizli Hazinesi",
+   "name_en": "Secret Treasure of the Toads",
+   "type": "treasure",
+   "canon_notable_users_type": "Kurbağa dağı ninjaları",
+   "desc": "Kurbağa dağında saklanan ve Bilge'den kalma söylenen kutsal emanet.",
+   "abilities": [
+    "hikâye nesnesi"
+   ],
+   "game_idea": "Görev ödülü.",
+   "visual": "Small ornate box.",
+   "first_appears": "Shippuden (anime filler)",
+   "rarity": "legendary",
+   "wiki_title": "Secret Treasure of the Toads"
+  },
+  {
+   "id": "puppet_generic",
+   "name": "Kugutsu (Savaş kuklası) – genel tip",
+   "name_en": "Puppet (generic)",
+   "type": "puppet",
+   "canon_notable_users_type": "Suna kuklacıları",
+   "desc": "Chakra iplikleriyle kontrol edilen ahşap savaş kuklası; gizli bıçaklar, zehirli iğneler, ok atıcılar ve hapsetme bölmeleri taşır.",
+   "abilities": [
+    "chakra iplik kontrolü",
+    "gizli silahlar",
+    "zehir",
+    "hapsetme"
+   ],
+   "game_idea": "Sağ+sol el 'kuklacı' modu: kukla ayrı bir capsule NPC, oyuncu uzaktan kontrol eder (kombo komutları). Modüller: kol bıçağı, ağız ok atıcısı, zehir gazı, kalkan. Maks. 1-3 kukla (seviyeye göre).",
+   "visual": "Humanoid wooden puppet 150cm, jointed limbs, painted face, cloth robe; blue chakra threads to puppeteer's fingers.",
+   "first_appears": "Naruto (Chūnin Sınavı)",
+   "rarity": "uncommon",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Puppet"
+  },
+  {
+   "id": "puppet_karasu",
+   "name": "Karasu tipi (Karga kukla)",
+   "name_en": "Karasu-type Puppet",
+   "type": "puppet",
+   "canon_notable_users_type": "Suna kuklacıları",
+   "desc": "Dört kollu, ayrılabilen gövdeli, çok gözlü kukla; kollarda bıçak, ağızda zehirli iğne.",
+   "abilities": [
+    "parçalanıp yeniden birleşme",
+    "zehirli bıçak"
+   ],
+   "game_idea": "Saldırı kuklası: parçalanma (gövde ayrı uçar) savunma becerisi.",
+   "visual": "Black-hooded puppet 160cm, four arms, three eyes, spiky brown hair, wooden jaw.",
+   "first_appears": "Naruto (Chūnin Sınavı)",
+   "rarity": "rare",
+   "slot": "right_hand+left_hand",
+   "signature": true,
+   "wiki_title": "Karasu"
+  },
+  {
+   "id": "puppet_kuroari",
+   "name": "Kuroari tipi (Kara karınca – hapis kuklası)",
+   "name_en": "Kuroari-type Puppet",
+   "type": "puppet",
+   "canon_notable_users_type": "Suna kuklacıları",
+   "desc": "İçine hedef hapsedilip bıçaklarla delinen gövde-tabut kukla.",
+   "abilities": [
+    "hapsetme",
+    "kombine saldırı"
+   ],
+   "game_idea": "Kontrol kuklası: yakalama sonrası diğer kukla ile kombine yenme.",
+   "visual": "Bulky black puppet 180cm, hollow torso with hinged doors, single horn.",
+   "first_appears": "Naruto (Sasuke Kurtarma)",
+   "rarity": "rare",
+   "slot": "right_hand+left_hand",
+   "signature": true,
+   "wiki_title": "Kuroari"
+  },
+  {
+   "id": "puppet_sanshouo",
+   "name": "Sanshōuo tipi (Semender – kalkan kukla)",
+   "name_en": "Sanshōuo-type Puppet",
+   "type": "puppet",
+   "canon_notable_users_type": "Suna kuklacıları",
+   "desc": "Ağır zırhlı, sırtı kalkan gibi açılan savunma kuklası.",
+   "abilities": [
+    "kalkan",
+    "taşıma"
+   ],
+   "game_idea": "Savunma kuklası: önden %90 blok, kuklacıyı içinde taşıyabilir.",
+   "visual": "Squat armoured salamander puppet 200cm long, plated shell.",
+   "first_appears": "Shippuden (Kazekage Kurtarma)",
+   "rarity": "rare",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Sanshōuo"
+  },
+  {
+   "id": "puppet_hiruko",
+   "name": "Hiruko tipi (Giyilen zırh kukla)",
+   "name_en": "Hiruko-type Armour Puppet",
+   "type": "puppet",
+   "canon_notable_users_type": "Kukla ustaları",
+   "desc": "Kuklacının içine girdiği, akrep kuyruklu zırh-kukla; zehirli kuyruk ve iğne yağmuru.",
+   "abilities": [
+    "giyilebilir",
+    "zehirli kuyruk",
+    "iğne yağmuru"
+   ],
+   "game_idea": "Yelek/üst slot 'giyilen kukla': +%40 zırh, kuyruk saldırısı T3 + zehir, hareket -%30.",
+   "visual": "Hunched beastly puppet 150cm, scorpion-like segmented tail 200cm, cloak.",
+   "first_appears": "Shippuden (Kazekage Kurtarma)",
+   "rarity": "legendary",
+   "slot": "vest",
+   "signature": true,
+   "wiki_title": "Hiruko"
+  },
+  {
+   "id": "puppet_human",
+   "name": "Hitokugutsu (İnsan kukla) – yasak tip",
+   "name_en": "Human Puppet",
+   "type": "puppet",
+   "canon_notable_users_type": "Yasak kukla sanatı",
+   "desc": "Ölü ninjanın bedeninden yapılan, o ninjanın kekkei genkaisini koruyan kukla. Yasak/etik dışı.",
+   "abilities": [
+    "kekkei genkai koruma",
+    "tam kontrol"
+   ],
+   "game_idea": "Oyunda düşman/boss tipi; oyuncu kullanamaz (karma cezası). Ör: demir kum kuklası boss.",
+   "visual": "Life-like humanoid puppet with visible joints, pale skin, glass eyes.",
+   "first_appears": "Shippuden (Kazekage Kurtarma)",
+   "rarity": "legendary",
+   "wiki_title": "Human Puppet"
+  },
+  {
+   "id": "puppet_iron_sand",
+   "name": "Demir Kum Kuklası (Satetsu kuklası)",
+   "name_en": "Third Kazekage (puppet) / Iron Sand",
+   "type": "puppet",
+   "canon_notable_users_type": "Yasak kukla sanatı (boss)",
+   "desc": "Manyetizma ile demir kumu kontrol eden insan-kukla; demir kum mızrakları ve yağmuru.",
+   "abilities": [
+    "demir kum",
+    "manyetizma"
+   ],
+   "game_idea": "Boss yeteneği; kalıntı eşya 'Demir Kum Kesesi' (sol el, demir kum mızrak).",
+   "visual": "Humanoid puppet in robe, iron sand mass black glittering particles.",
+   "first_appears": "Shippuden (Kazekage Kurtarma)",
+   "rarity": "legendary",
+   "signature": true,
+   "wiki_title": "Third Kazekage (puppet)"
+  },
+  {
+   "id": "puppet_mother_father",
+   "name": "Haha to Chichi (Anne ve Baba kuklaları)",
+   "name_en": "Mother and Father",
+   "type": "puppet",
+   "canon_notable_users_type": "Kukla ustaları",
+   "desc": "Çift kukla; kollarından ateş/rüzgâr fışkırtır, avuçlarında kilitlenen yaralar.",
+   "abilities": [
+    "çift kukla senkron",
+    "ateş+rüzgâr"
+   ],
+   "game_idea": "Çift kukla modu, kombine element saldırısı.",
+   "visual": "Pair of humanoid puppets, female and male, robes, mechanical palms.",
+   "first_appears": "Shippuden (Kazekage Kurtarma)",
+   "rarity": "legendary",
+   "slot": "right_hand+left_hand",
+   "signature": true,
+   "wiki_title": "Mother and Father"
+  },
+  {
+   "id": "puppet_hundred_army",
+   "name": "Hyakki no Sōen (Yüz kukla ordusu)",
+   "name_en": "Hundred Puppet Army",
+   "type": "puppet",
+   "canon_notable_users_type": "Usta kuklacılar",
+   "desc": "Yüz kuklalık ordu; usta kuklacının nihai tekniği.",
+   "abilities": [
+    "sürü saldırısı"
+   ],
+   "game_idea": "Nihai yetenek: 20s boyunca 10 kukla NPC, chakra 80.",
+   "visual": "Swarm of 100 red-robed puppets.",
+   "first_appears": "Shippuden (Kazekage Kurtarma)",
+   "rarity": "legendary",
+   "wiki_title": "Hundred Puppet Army"
+  },
+  {
+   "id": "puppet_chikamatsu",
+   "name": "Chikamatsu'nun On Kuklası (Kurucu koleksiyonu)",
+   "name_en": "Chikamatsu Collection",
+   "type": "puppet",
+   "canon_notable_users_type": "Kuklacılık sanatının kurucusu (efsanevi koleksiyon)",
+   "desc": "Kukla sanatının kurucusundan kalma on klasik kukla; Shishikubi Kannon gibi.",
+   "abilities": [
+    "koleksiyon",
+    "çoklu kukla"
+   ],
+   "game_idea": "Toplanabilir set (10 kukla), her biri özel modül.",
+   "visual": "Ten classic puppets, varied colors, ornate older craftsmanship.",
+   "first_appears": "Shippuden (Savaş)",
+   "rarity": "legendary",
+   "slot": "right_hand+left_hand",
+   "wiki_title": "Chikamatsu Collection"
+  },
+  {
+   "id": "puppet_buzzsaw",
+   "name": "Kukla Testere Bıçağı",
+   "name_en": "Puppet Buzzsaw",
+   "type": "puppet",
+   "canon_notable_users_type": "Suna kuklacıları",
+   "desc": "Kukla gövdesinden çıkan dairesel testereler.",
+   "abilities": [
+    "dönen testere"
+   ],
+   "game_idea": "Kukla modülü: T2 sürekli hasar.",
+   "visual": "Circular saw blades 40cm.",
+   "first_appears": "Shippuden",
+   "rarity": "uncommon",
+   "wiki_title": "Puppet Buzzsaw"
+  },
+  {
+   "id": "water_stream_shooters",
+   "name": "Su Fışkırtıcıları (Kukla su topu)",
+   "name_en": "Water Stream Shooters",
+   "type": "puppet",
+   "canon_notable_users_type": "Suna kuklacıları",
+   "desc": "Yüksek basınçlı su fışkırtan kukla modülü.",
+   "abilities": [
+    "su basıncı kesme"
+   ],
+   "game_idea": "Kukla modülü: lazer benzeri su kesişi.",
+   "visual": "Nozzles in puppet arms.",
+   "first_appears": "Shippuden (anime)",
+   "rarity": "uncommon",
+   "wiki_title": "Water Stream Shooters"
+  },
+  {
+   "id": "flamethrower",
+   "name": "Kaen Hōsha (Alev püskürtücü)",
+   "name_en": "Flamethrower",
+   "type": "puppet",
+   "canon_notable_users_type": "Suna kuklacıları",
+   "desc": "Kukla gövdesine yerleştirilmiş alev püskürtücü.",
+   "abilities": [
+    "koni alev"
+   ],
+   "game_idea": "Kukla modülü: koni 6m yanma.",
+   "visual": "Nozzle with fuel tank in puppet.",
+   "first_appears": "Shippuden (Kazekage Kurtarma)",
+   "rarity": "uncommon",
+   "wiki_title": "Flamethrower"
+  },
+  {
+   "id": "otsutsuki_puppets",
+   "name": "Ōtsutsuki Kuklaları (Otonom kuklalar)",
+   "name_en": "Ōtsutsuki Clan Puppets / Autonomous Puppets",
+   "type": "puppet",
+   "canon_notable_users_type": "Ay'daki kadim klan",
+   "desc": "Chakra verilince bağımsız hareket eden otonom kuklalar.",
+   "abilities": [
+    "otonom AI"
+   ],
+   "game_idea": "Düşman tipi / üst seviye yoldaş kukla.",
+   "visual": "Pale ceremonial humanoid puppets with white robes.",
+   "first_appears": "Naruto (The Last filmi)",
+   "rarity": "rare",
+   "wiki_title": "Ōtsutsuki Clan Puppets"
+  },
+  {
+   "id": "explosive_tag",
+   "name": "Kibaku Fuda (Patlayıcı etiket)",
+   "name_en": "Explosive Tag",
+   "type": "explosive",
+   "canon_notable_users_type": "Tüm shinobiler",
+   "desc": "Chakra ile tetiklenen, mürekkepli mühür kâğıdı; kunaiye bağlanır, yüzeye yapıştırılır veya tuzak olarak kullanılır.",
+   "abilities": [
+    "patlama",
+    "tuzak",
+    "gecikmeli/el ile tetik",
+    "zincirleme"
+   ],
+   "game_idea": "Stok 10. Kunaiye takılı atış veya yüzeye yapıştırma, hasar T3 AoE 3m, 2s gecikme veya el ile tetik. Zincirleme etiketler.",
+   "visual": "Paper tag 15x5cm, off-white with red/black kanji, burning edge when lit.",
+   "first_appears": "Naruto (Dalga Ülkesi)",
+   "rarity": "common",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Explosive Tag"
+  },
+  {
+   "id": "explosive_tag_ball",
+   "name": "Patlayıcı Etiket Topu",
+   "name_en": "Explosive Tag Ball",
+   "type": "explosive",
+   "canon_notable_users_type": "Haydut ninjalar",
+   "desc": "Etiketlerle sarılmış top; fırlatılır.",
+   "abilities": [
+    "fırlatılabilir patlama"
+   ],
+   "game_idea": "Bomba atış T3 AoE.",
+   "visual": "Ball 12cm wrapped in tags.",
+   "first_appears": "Shippuden (anime)",
+   "rarity": "common",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Explosive Tag Ball"
+  },
+  {
+   "id": "exploding_sphere",
+   "name": "Bakusaidama (Dev patlayıcı küre)",
+   "name_en": "Exploding Sphere",
+   "type": "explosive",
+   "canon_notable_users_type": "Silah tomarı uzmanları",
+   "desc": "Tomardan çağrılan dev mekanik bomba.",
+   "abilities": [
+    "büyük patlama"
+   ],
+   "game_idea": "Nadir: T4 AoE 6m, 3s gecikme.",
+   "visual": "Metal sphere 80cm with fuse, black.",
+   "first_appears": "Shippuden (Savaş)",
+   "rarity": "rare",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Exploding Sphere"
+  },
+  {
+   "id": "smoke_bomb",
+   "name": "Kemuridama (Duman bombası)",
+   "name_en": "Smoke Bomb",
+   "type": "explosive",
+   "canon_notable_users_type": "Tüm shinobiler",
+   "desc": "Yere atılınca yoğun duman çıkarır; görüşü kapatır, kaçış ve pusu sağlar.",
+   "abilities": [
+    "görüş engelleme",
+    "kaçış",
+    "pusu"
+   ],
+   "game_idea": "Stok 3, 6m duman bulutu 8s; içindeyken hedeflenme kilidi bozulur. Sharingan/Byakugan görür.",
+   "visual": "Round bomb 5cm, grey-white paper wrap with fuse; smoke volumetric grey.",
+   "first_appears": "Naruto (Bölüm 1)",
+   "rarity": "common",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Smoke Bomb"
+  },
+  {
+   "id": "smoke_tag",
+   "name": "Duman Etiketi",
+   "name_en": "Smoke Tag",
+   "type": "explosive",
+   "canon_notable_users_type": "Tuzakçılar",
+   "desc": "Patlayıcı etiket gibi ama duman çıkarır.",
+   "abilities": [
+    "uzaktan duman"
+   ],
+   "game_idea": "Kunaiye takılı duman, uzaktan bölge kapatma.",
+   "visual": "Tag with blue kanji.",
+   "first_appears": "Shippuden (anime)",
+   "rarity": "common",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Smoke Tag"
+  },
+  {
+   "id": "flash_bomb",
+   "name": "Hikaridama (Işık bombası)",
+   "name_en": "Flash Bomb",
+   "type": "explosive",
+   "canon_notable_users_type": "Taktikçiler, izci ekipler",
+   "desc": "Göz alıcı parlak ışık patlaması; düşmanı kör eder.",
+   "abilities": [
+    "körleme"
+   ],
+   "game_idea": "Stok 2, 8m yarıçap, 2.5s körleme (ekran beyaz). Kendine bakıyorsan sen de.",
+   "visual": "Small sphere 5cm, white with yellow band.",
+   "first_appears": "Naruto (Sasuke Kurtarma)",
+   "rarity": "common",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Flash Bomb"
+  },
+  {
+   "id": "smoke_flash_bomb",
+   "name": "Kemuri Senkōdan (Duman-ışık bombası)",
+   "name_en": "Smoke-Flash Bomb",
+   "type": "explosive",
+   "canon_notable_users_type": "Boruto dönemi genin ekipleri",
+   "desc": "Önce parlayıp sonra duman çıkaran kombine bomba.",
+   "abilities": [
+    "körleme+duman"
+   ],
+   "game_idea": "1.5s kör + 6s duman.",
+   "visual": "Sphere 5cm half white half grey.",
+   "first_appears": "Boruto",
+   "rarity": "uncommon",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Smoke-Flash Bomb"
+  },
+  {
+   "id": "light_sound_bomb",
+   "name": "Ses-Işık Bombası (Sersemletme bombası)",
+   "name_en": "Light/Sound Bomb (Flash-bang)",
+   "type": "explosive",
+   "canon_notable_users_type": "İzci ve baskın ekipler",
+   "desc": "Patlayınca kör eden ışık ve sağır eden ses çıkarır; ses ve duyu tabanlı ninjalara karşı etkili.",
+   "abilities": [
+    "körleme",
+    "sağırlaştırma"
+   ],
+   "game_idea": "Stok 2, 2s kör + 4s ses göstergesi devre dışı.",
+   "visual": "Sphere 6cm red-white with metal ring.",
+   "first_appears": "Naruto (oyunlar/anime)",
+   "rarity": "uncommon",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Flash Bomb"
+  },
+  {
+   "id": "chilli_pepper_bomb",
+   "name": "Biber Bombası",
+   "name_en": "Chilli Pepper Bomb",
+   "type": "explosive",
+   "canon_notable_users_type": "Genjutsu bölgeleri halkı",
+   "desc": "Acı biber tozu bombası; genjutsuyu kırar, gözleri yakar.",
+   "abilities": [
+    "genjutsu kırma",
+    "göz yakma"
+   ],
+   "game_idea": "Genjutsu durumunu temizler, 3m alanda yavaşlatma.",
+   "visual": "Red paper sphere 5cm.",
+   "first_appears": "Shippuden (anime)",
+   "rarity": "common",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Chilli Pepper Bomb"
+  },
+  {
+   "id": "ice_bomb",
+   "name": "Buz Bombası",
+   "name_en": "Ice Bomb",
+   "type": "explosive",
+   "canon_notable_users_type": "Kar Ülkesi ninjaları",
+   "desc": "Patlayıp etrafı donduran bomba.",
+   "abilities": [
+    "donma"
+   ],
+   "game_idea": "AoE 3m 2s donma.",
+   "visual": "Blue crystal sphere.",
+   "first_appears": "Naruto (Film 1)",
+   "rarity": "uncommon",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Ice Bomb"
+  },
+  {
+   "id": "spike_bomb",
+   "name": "Dikenli Bomba",
+   "name_en": "Spike Bomb",
+   "type": "explosive",
+   "canon_notable_users_type": "Kumo ninjaları",
+   "desc": "Patlayınca etrafa diken saçan bomba.",
+   "abilities": [
+    "şarapnel"
+   ],
+   "game_idea": "AoE T2 + makibishi alanı.",
+   "visual": "Spiked sphere 8cm.",
+   "first_appears": "Shippuden (anime)",
+   "rarity": "uncommon",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Spike Bomb"
+  },
+  {
+   "id": "blue_fire_powder",
+   "name": "Aobiko (Mavi ateş tozu)",
+   "name_en": "Blue Fire Powder",
+   "type": "explosive",
+   "canon_notable_users_type": "Kurt köyü klanı (roman)",
+   "desc": "Suyla temas edince patlayan toz.",
+   "abilities": [
+    "suya karşı patlama"
+   ],
+   "game_idea": "Su jutsusuna karşı tuzak: su alanında patlar T3.",
+   "visual": "Blue powder pouch.",
+   "first_appears": "Shippuden (roman)",
+   "rarity": "rare",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Blue Fire Powder"
+  },
+  {
+   "id": "concealed_mouth_ember",
+   "name": "Ağızda Gizli Kor",
+   "name_en": "Concealed Mouth Ember",
+   "type": "explosive",
+   "canon_notable_users_type": "Sorgu/işkence uzmanları",
+   "desc": "Ağızda saklanan, ısırılınca tutuşan kor; yağ/yanıcı maddeyi tutuşturur.",
+   "abilities": [
+    "tutuşturma"
+   ],
+   "game_idea": "Yağ tuzağı kombinasyonu.",
+   "visual": "Tiny ember capsule.",
+   "first_appears": "Naruto (anime filler)",
+   "rarity": "uncommon",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Concealed Mouth Ember"
+  },
+  {
+   "id": "poison_generic",
+   "name": "Doku (Zehir)",
+   "name_en": "Poison",
+   "type": "consumable",
+   "canon_notable_users_type": "Kukla ustaları, tıbbi ninjalar, suikastçılar",
+   "desc": "Silahlara kaplanan veya gaz olarak salınan zehir; felç, kan zehirlenmesi veya ölüm.",
+   "abilities": [
+    "DoT",
+    "felç",
+    "silah kaplama"
+   ],
+   "game_idea": "Silah modifikatörü: 3 vuruş boyunca zehir (5 hasar/s 6s). Seviyeler: felç zehri, sinir zehri, öldürücü zehir. Panzehir gerekir.",
+   "visual": "Small glass vial 8cm with purple liquid, cork.",
+   "first_appears": "Naruto (Dalga Ülkesi)",
+   "rarity": "common",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Poison"
+  },
+  {
+   "id": "poison_mist",
+   "name": "Kokusuz Zehir Sisi",
+   "name_en": "Odourless Poison Mist",
+   "type": "consumable",
+   "canon_notable_users_type": "Suikastçılar",
+   "desc": "Kokusuz ve görünmez zehir gazı.",
+   "abilities": [
+    "gizli DoT"
+   ],
+   "game_idea": "Alan DoT 5m, görünmez.",
+   "visual": "Small canister.",
+   "first_appears": "Film",
+   "rarity": "rare",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Odourless Poison Mist"
+  },
+  {
+   "id": "antidote",
+   "name": "Gedokuyaku (Panzehir)",
+   "name_en": "Antidote",
+   "type": "consumable",
+   "canon_notable_users_type": "Tıbbi ninjalar",
+   "desc": "Belirli zehirlere karşı hazırlanmış ilaç.",
+   "abilities": [
+    "zehir temizleme",
+    "bağışıklık"
+   ],
+   "game_idea": "Tüketim: zehri temizler + 20s bağışıklık. Craft: şifalı bitkiler.",
+   "visual": "Small pill or vial with green liquid.",
+   "first_appears": "Shippuden (Kazekage Kurtarma)",
+   "rarity": "common",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Antidote"
+  },
+  {
+   "id": "soldier_pill",
+   "name": "Hyōrōgan (Asker hapı / erzak hapı)",
+   "name_en": "Military Rations Pill / Soldier Pill",
+   "type": "consumable",
+   "canon_notable_users_type": "Tüm shinobiler",
+   "desc": "Üç gün dinlenmeden savaşabilmeyi sağlayan besin ve chakra hapı.",
+   "abilities": [
+    "chakra yenileme",
+    "stamina"
+   ],
+   "game_idea": "Stok 3, +%35 chakra anında, 30s yorgunluk bağışıklığı; CD 60s. Aşırı kullanımda bulantı debuff.",
+   "visual": "Brown pill 1cm in small pouch.",
+   "first_appears": "Naruto (Chūnin Sınavı)",
+   "rarity": "common",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Military Rations Pill"
+  },
+  {
+   "id": "three_color_pills",
+   "name": "Sanshoku no Gan'yaku (Üç renkli haplar)",
+   "name_en": "Three Coloured Pills / Akimichi Pills",
+   "type": "consumable",
+   "canon_notable_users_type": "Akimichi tarzı kalori-chakra klanları",
+   "desc": "Yeşil (ıspanak), sarı (köri), kırmızı (biber) haplar; sırasıyla 5x, 10x, 100x güç verir ama kırmızı ölümcül riski taşır.",
+   "abilities": [
+    "kademeli güç",
+    "yağdan chakra"
+   ],
+   "game_idea": "Sadece kalori-dönüşümü klanı: Yeşil +%25 güç 30s, Sarı +%50 güç 30s + kalori kaybı, Kırmızı +%150 güç 20s sonra HP %1'e düşer (ölüm riski).",
+   "visual": "Three pills 1.5cm: green, yellow, red, in lacquered case.",
+   "first_appears": "Naruto (Sasuke Kurtarma)",
+   "rarity": "rare",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Three Coloured Pills"
+  },
+  {
+   "id": "blood_increasing_pill",
+   "name": "Zōketsugan (Kan artırıcı hap)",
+   "name_en": "Blood Increasing Pill",
+   "type": "consumable",
+   "canon_notable_users_type": "Tıbbi ninjalar",
+   "desc": "Kan üretimini hızlandıran hap; ağır kan kaybından sonra savaşa devam etmeyi sağlar.",
+   "abilities": [
+    "kanama durdurma",
+    "HP yenileme"
+   ],
+   "game_idea": "Kanama debuff'ını temizle + %20 HP yenileme 10s'de.",
+   "visual": "Small red pill.",
+   "first_appears": "Naruto (Konoha Çöküşü sonrası)",
+   "rarity": "uncommon",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Blood Increasing Pill"
+  },
+  {
+   "id": "mind_awakening_pill",
+   "name": "Seishingan (Zihin uyandırma hapı)",
+   "name_en": "Mind Awakening Pill",
+   "type": "consumable",
+   "canon_notable_users_type": "Lanet mühür taşıyıcıları",
+   "desc": "Lanet mühür aşamasını zorla aktive eden hap.",
+   "abilities": [
+    "form aktivasyonu"
+   ],
+   "game_idea": "Lanet mühür taşıyanlara: form 2 zorla açma, sonra yorgunluk.",
+   "visual": "Purple pill.",
+   "first_appears": "Naruto (Sasuke Kurtarma)",
+   "rarity": "rare",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Mind Awakening Pill"
+  },
+  {
+   "id": "genjutsu_pill",
+   "name": "Genjutsu Hapı",
+   "name_en": "Genjutsu Pill",
+   "type": "consumable",
+   "canon_notable_users_type": "Yasak bilim araştırmacıları",
+   "desc": "Genjutsu etkisini güçlendiren veya kıran hap.",
+   "abilities": [
+    "genjutsu"
+   ],
+   "game_idea": "Genjutsu direnci +%50 30s.",
+   "visual": "Black pill.",
+   "first_appears": "Shippuden (anime)",
+   "rarity": "uncommon",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Genjutsu Pill"
+  },
+  {
+   "id": "tailed_beast_drug",
+   "name": "Bijūgan (Kuyruklu canavar hapı)",
+   "name_en": "Tailed Beast Drug",
+   "type": "consumable",
+   "canon_notable_users_type": "Yasak deneyciler (roman)",
+   "desc": "Kuyruklu canavar chakrası ile güç veren tehlikeli hap.",
+   "abilities": [
+    "kuyruklu chakra"
+   ],
+   "game_idea": "Yasaklı: büyük güç, sonrası kalıcı HP cezası.",
+   "visual": "Orange glowing pill.",
+   "first_appears": "Shippuden (roman)",
+   "rarity": "rare",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Tailed Beast Drug"
+  },
+  {
+   "id": "hyuga_ointment",
+   "name": "Hyūga Merhemi (Gizli klan merhemi)",
+   "name_en": "Hyūga Clan Secret Ointment",
+   "type": "consumable",
+   "canon_notable_users_type": "Göz klanı tıbbi gelenekleri",
+   "desc": "Yaraları hızla iyileştiren klan merhemi.",
+   "abilities": [
+    "yara iyileştirme"
+   ],
+   "game_idea": "HP +%25, kanama temizle.",
+   "visual": "Small round clam-shell container 5cm.",
+   "first_appears": "Naruto (Chūnin Sınavı)",
+   "rarity": "uncommon",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Hyūga Clan Secret Ointment"
+  },
+  {
+   "id": "eye_medicine_plant",
+   "name": "Megusurisō (Göz ilacı bitkisi)",
+   "name_en": "Eye Medicine Plant",
+   "type": "consumable",
+   "canon_notable_users_type": "Şifacılar",
+   "desc": "Göz yorgunluğunu ve göz hasarını iyileştiren bitki.",
+   "abilities": [
+    "dōjutsu yorgunluk iyileştirme"
+   ],
+   "game_idea": "Dōjutsu chakra maliyetini 60s boyunca -%30.",
+   "visual": "Small plant with blue leaves.",
+   "first_appears": "Shippuden (anime)",
+   "rarity": "uncommon",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Eye Medicine Plant"
+  },
+  {
+   "id": "injection_shot",
+   "name": "Enjeksiyon Atışı (Tıbbi dart)",
+   "name_en": "Injection Shot",
+   "type": "consumable",
+   "canon_notable_users_type": "Tıbbi ninjalar",
+   "desc": "Uzaktan ilaç veya zehir enjekte eden iğne-dart.",
+   "abilities": [
+    "uzaktan iyileştirme/zehir"
+   ],
+   "game_idea": "Co-op: müttefike uzaktan iyileştirme dartı.",
+   "visual": "Syringe dart 10cm.",
+   "first_appears": "Shippuden (anime)",
+   "rarity": "uncommon",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Injection Shot"
+  },
+  {
+   "id": "hero_water",
+   "name": "Eiyū no Mizu (Kahraman suyu)",
+   "name_en": "Hero Water",
+   "type": "consumable",
+   "canon_notable_users_type": "Şelale köyü yasak su",
+   "desc": "Chakrayı geçici olarak muazzam artıran ama ömrü kısaltan kutsal su.",
+   "abilities": [
+    "dev chakra artışı",
+    "ömür bedeli"
+   ],
+   "game_idea": "Nadir: 60s chakra x2, sonrasında maksimum HP kalıcı -%5.",
+   "visual": "Glowing blue water in gourd.",
+   "first_appears": "Naruto (OVA / anime)",
+   "rarity": "rare",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Hero Water"
+  },
+  {
+   "id": "curry_of_life",
+   "name": "İnochi no Karē (Hayat körisi)",
+   "name_en": "Curry of Life",
+   "type": "consumable",
+   "canon_notable_users_type": "Gezgin aşçılar",
+   "desc": "Aşırı acı köri; baygın kişiyi ayıltır ve güçlendirir.",
+   "abilities": [
+    "canlandırma"
+   ],
+   "game_idea": "Co-op: baygın müttefiki ayağa kaldırma, HP %30. Mizahi animasyon.",
+   "visual": "Bowl of red curry.",
+   "first_appears": "Naruto (anime filler)",
+   "rarity": "uncommon",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Curry of Life"
+  },
+  {
+   "id": "food_ration",
+   "name": "Askerî Erzak (Kuru yemek paketi)",
+   "name_en": "Field Rations",
+   "type": "consumable",
+   "canon_notable_users_type": "Tüm shinobiler",
+   "desc": "Uzun görevler için kuru yiyecek.",
+   "abilities": [
+    "açlık"
+   ],
+   "game_idea": "Uzun görev 'açlık' sistemi için temel tüketim.",
+   "visual": "Wrapped rice ball / bento.",
+   "first_appears": "Naruto",
+   "rarity": "common",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Military Rations Pill"
+  },
+  {
+   "id": "scroll_generic",
+   "name": "Makimono (Tomar)",
+   "name_en": "Scroll",
+   "type": "scroll",
+   "canon_notable_users_type": "Tüm shinobiler",
+   "desc": "Bilgi, jutsu talimatı veya mühürlü eşya taşıyan tomar.",
+   "abilities": [
+    "bilgi",
+    "depolama",
+    "çağrı aracı"
+   ],
+   "game_idea": "Görev eşyası / jutsu öğrenme ögesi. Büyük tomar sırtta taşınır.",
+   "visual": "Rolled scroll 30cm long, 6cm dia, wooden rods, paper with ink.",
+   "first_appears": "Naruto (Bölüm 1)",
+   "rarity": "common",
+   "wiki_title": "Scroll"
+  },
+  {
+   "id": "storage_scroll",
+   "name": "Fūin Makimono – Depolama Tomarı",
+   "name_en": "Storage Scroll",
+   "type": "scroll",
+   "canon_notable_users_type": "Silah ustaları",
+   "desc": "İçine silah mühürlenen tomar; açınca onlarca silah çağrılır.",
+   "abilities": [
+    "silah deposu",
+    "silah yağmuru"
+   ],
+   "game_idea": "Envanter genişletme: +5 silah slotu hızlı geçiş. Özel: 'Silah yağmuru' T3 AoE CD 20s.",
+   "visual": "Double scroll 60cm with red/yellow edges, unrolls showing seal circles.",
+   "first_appears": "Naruto (Chūnin Sınavı)",
+   "rarity": "uncommon",
+   "slot": "left_hand",
+   "wiki_title": "Scroll"
+  },
+  {
+   "id": "summoning_scroll",
+   "name": "Kuchiyose Tomarı (Çağırma anlaşması tomarı)",
+   "name_en": "Summoning Contract Scroll",
+   "type": "scroll",
+   "canon_notable_users_type": "Çağrı anlaşması sahipleri",
+   "desc": "Kanla imzalanan çağrı sözleşmesi; ilgili hayvan türünü çağırma hakkı verir.",
+   "abilities": [
+    "çağrı anlaşması"
+   ],
+   "game_idea": "Kalıcı açılım: türü seç (kurbağa, yılan, sümüklü böcek, köpek, maymun, şahin vs.). Hikâye görevi ödülü.",
+   "visual": "Huge scroll 150cm long, red/brown wrap, signature columns in blood.",
+   "first_appears": "Naruto (Jiraiya eğitimi)",
+   "rarity": "rare",
+   "wiki_title": "Scroll"
+  },
+  {
+   "id": "scroll_of_seals",
+   "name": "Fūin no Sho (Yasak mühürler tomarı)",
+   "name_en": "Scroll of Seals",
+   "type": "scroll",
+   "canon_notable_users_type": "Hokage arşivleri",
+   "desc": "Köyün yasaklı tekniklerini içeren büyük tomar.",
+   "abilities": [
+    "yasak jutsu öğrenimi"
+   ],
+   "game_idea": "Hikâye nesnesi: çalınması bir görev kancası.",
+   "visual": "Giant scroll 120cm, dark wood ends, 'forbidden' kanji.",
+   "first_appears": "Naruto (Bölüm 1)",
+   "rarity": "legendary",
+   "wiki_title": "Scroll of Seals"
+  },
+  {
+   "id": "sealing_tag",
+   "name": "Fūin Fuda (Mühür etiketi)",
+   "name_en": "Sealing Tag",
+   "type": "sealing_tool",
+   "canon_notable_users_type": "Mühür ustaları",
+   "desc": "Hedef veya nesneyi mühürleyen etiket; chakrayı bastırır, kapıları kilitler.",
+   "abilities": [
+    "mühürleme",
+    "chakra bastırma"
+   ],
+   "game_idea": "Yapıştırma: hedefin chakra yenilenmesi 8s durur. Kapı/sandık kilitleme bulmacaları.",
+   "visual": "Paper tag 20x6cm with black seal script.",
+   "first_appears": "Naruto (Sasuke Kurtarma)",
+   "rarity": "common",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Sealing Tag"
+  },
+  {
+   "id": "barrier_tag",
+   "name": "Kekkai Fuda (Bariyer etiketi)",
+   "name_en": "Barrier Tag",
+   "type": "sealing_tool",
+   "canon_notable_users_type": "Bariyer ekipleri",
+   "desc": "Köşelere yerleştirilerek bariyer kuran etiket.",
+   "abilities": [
+    "bariyer"
+   ],
+   "game_idea": "4 etiket = 6s alan bariyeri (kalkan).",
+   "visual": "Tag with blue seal.",
+   "first_appears": "Shippuden (Savaş)",
+   "rarity": "uncommon",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Barrier Tag"
+  },
+  {
+   "id": "chakra_suppressing_seal",
+   "name": "Chakra Bastırıcı Mühür",
+   "name_en": "Chakra-Suppressing Seal",
+   "type": "sealing_tool",
+   "canon_notable_users_type": "Sannin mühür ustaları",
+   "desc": "Kuyruklu canavar chakrasını bastıran mühür etiketi.",
+   "abilities": [
+    "kuyruklu chakra bastırma"
+   ],
+   "game_idea": "Co-op: kontrol dışı jinchūriki müttefiki sakinleştirme.",
+   "visual": "Tag with spiral seal.",
+   "first_appears": "Shippuden",
+   "rarity": "rare",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Chakra-Suppressing Seal"
+  },
+  {
+   "id": "sealing_arm_braces",
+   "name": "Mühür Kol Kelepçeleri",
+   "name_en": "Sealing Arm Braces",
+   "type": "sealing_tool",
+   "canon_notable_users_type": "Gizli örgüt liderleri",
+   "desc": "Kolu kaplayan, içindekini mühürleyen metal halkalar.",
+   "abilities": [
+    "mühür kilidi"
+   ],
+   "game_idea": "Hikâye/kozmetik.",
+   "visual": "Three gold rings on forearm.",
+   "first_appears": "Shippuden (Kage Zirvesi)",
+   "rarity": "rare",
+   "slot": "left_hand",
+   "wiki_title": "Sealing Arm Braces"
+  },
+  {
+   "id": "binding_cloth",
+   "name": "Bağlama Kumaşı",
+   "name_en": "Binding Cloth",
+   "type": "sealing_tool",
+   "canon_notable_users_type": "Suna ninjaları",
+   "desc": "Hedefi saran ve mühür etiketiyle mühürleyen kumaş.",
+   "abilities": [
+    "bağlama",
+    "mühür"
+   ],
+   "game_idea": "Sol el kırbaç: 2s kök, etiketle kombinasyon.",
+   "visual": "Long white cloth 400cm.",
+   "first_appears": "Shippuden (Savaş)",
+   "rarity": "uncommon",
+   "slot": "left_hand",
+   "wiki_title": "Binding Cloth"
+  },
+  {
+   "id": "ninja_info_cards",
+   "name": "Ninshiki Kādo (Ninja bilgi kartları)",
+   "name_en": "Ninja Info Cards",
+   "type": "utility",
+   "canon_notable_users_type": "İstihbarat ninjaları",
+   "desc": "Chakra ile okunan, ninjaların bilgilerini içeren kartlar.",
+   "abilities": [
+    "istihbarat"
+   ],
+   "game_idea": "Oyunda 'Ansiklopedi/Bestiary': düşmana bakınca kart açılır.",
+   "visual": "Deck of white cards with blank face.",
+   "first_appears": "Naruto (Chūnin Sınavı)",
+   "rarity": "uncommon",
+   "wiki_title": "Ninja Info Cards"
+  },
+  {
+   "id": "bingo_book",
+   "name": "Bingo Bukku (Aranan kişiler kitabı)",
+   "name_en": "Bingo Book",
+   "type": "utility",
+   "canon_notable_users_type": "Ödül avcıları, jōninler",
+   "desc": "Köylerin kaçak ninja listesi; ödüller ve yetenekler.",
+   "abilities": [
+    "ödül görevleri"
+   ],
+   "game_idea": "Ödül avı panosu: haftalık hedefler.",
+   "visual": "Black book 20cm with red tabs.",
+   "first_appears": "Shippuden (Kakuzu)",
+   "rarity": "uncommon",
+   "wiki_title": "Bingo Book"
+  },
+  {
+   "id": "forehead_protector",
+   "name": "Hitai-ate (Alın koruyucu)",
+   "name_en": "Forehead Protector",
+   "type": "armor",
+   "canon_notable_users_type": "Tüm köy ninjaları",
+   "desc": "Köy sembolü kazınmış metal plakalı bant; sadakat simgesi. Çizik = kaçak ninja.",
+   "abilities": [
+    "kimlik",
+    "alın koruma"
+   ],
+   "game_idea": "Kafa slotu: +3 savunma; köy itibarı. Çizik versiyon = kaçak statüsü (köy görevleri kapalı, kara pazar açık). Takma yeri seçilebilir (alın, kol, boyun, bel).",
+   "visual": "Metal plate 10x4cm with engraved village symbol on cloth band (blue/black/red), 2 rivets.",
+   "first_appears": "Naruto (Bölüm 1)",
+   "rarity": "common",
+   "slot": "head",
+   "wiki_title": "Forehead Protector"
+  },
+  {
+   "id": "flak_vest",
+   "name": "Kyōdo Yoroi (Flak yeleği)",
+   "name_en": "Flak Jacket",
+   "type": "armor",
+   "canon_notable_users_type": "Chūnin ve jōninler",
+   "desc": "Çok cepli koruyucu yelek; boyun koruması ve tomar cepleri vardır.",
+   "abilities": [
+    "savunma",
+    "tomar cepleri"
+   ],
+   "game_idea": "Yelek slotu: +%15 fiziksel hasar azaltma, +4 hızlı tüketim slotu. Köye göre renk/tasarım (Konoha yeşil, Suna bej, Kiri gri-mavi, Kumo beyaz tek omuz, Iwa kırmızı tek kol).",
+   "visual": "Olive green vest with 4 chest scroll pockets, high collar, red spiral on back; Boruto variant slimmer.",
+   "first_appears": "Naruto (Bölüm 1)",
+   "rarity": "common",
+   "slot": "vest",
+   "wiki_title": "Flak Jacket"
+  },
+  {
+   "id": "anbu_armor",
+   "name": "ANBU Zırhı (Gizli birlik zırhı)",
+   "name_en": "ANBU Armour and Mask",
+   "type": "armor",
+   "canon_notable_users_type": "ANBU birlikleri",
+   "desc": "Beyaz/gri metal göğüs plakası, kolluk ve hayvan maskesi; kimlik gizler.",
+   "abilities": [
+    "kimlik gizleme",
+    "hafif zırh"
+   ],
+   "game_idea": "Kafa (maske) + yelek seti: gizlilik +%20, sessiz adım.",
+   "visual": "Silver-grey chest plate, arm guards, porcelain animal mask with red lines.",
+   "first_appears": "Naruto (Bölüm 1)",
+   "rarity": "rare",
+   "slot": "vest",
+   "wiki_title": "Shinobi Battle Armour"
+  },
+  {
+   "id": "shinobi_battle_armour",
+   "name": "Savaşan Çağ Zırhı (Samuray tarzı plak)",
+   "name_en": "Shinobi Battle Armour",
+   "type": "armor",
+   "canon_notable_users_type": "Savaşan Ülkeler dönemi klan liderleri",
+   "desc": "Klan savaşları dönemi plakalı zırh; ağır ama koruyucu.",
+   "abilities": [
+    "yüksek savunma"
+   ],
+   "game_idea": "Üst slot: +%30 hasar azaltma, hız -%10.",
+   "visual": "Red or dark red lamellar plate armour, skirt plates, shoulder guards.",
+   "first_appears": "Naruto / Shippuden (geçmiş anılar)",
+   "rarity": "rare",
+   "slot": "top",
+   "wiki_title": "Shinobi Battle Armour"
+  },
+  {
+   "id": "samurai_armor",
+   "name": "Samuray Zırhı",
+   "name_en": "Samurai Armour",
+   "type": "armor",
+   "canon_notable_users_type": "Demir Ülkesi samurayları",
+   "desc": "Tam kapalı samuray zırhı ve miğferi.",
+   "abilities": [
+    "yüksek savunma"
+   ],
+   "game_idea": "Üst+kafa set: ninjutsuya +%10 direnç.",
+   "visual": "White-grey full armour with horned helmet.",
+   "first_appears": "Shippuden (Kage Zirvesi)",
+   "rarity": "rare",
+   "slot": "top",
+   "wiki_title": "Samurai"
+  },
+  {
+   "id": "steam_armour",
+   "name": "Jōki no Yoroi (Buhar zırhı)",
+   "name_en": "Steam Armour",
+   "type": "armor",
+   "canon_notable_users_type": "Buhar/kızgın chakra jinchūrikileri",
+   "desc": "Buharı yönlendiren baca-zırh.",
+   "abilities": [
+    "buhar yönlendirme"
+   ],
+   "game_idea": "Yelek: buhar ile itme hücumu hasarı +%25.",
+   "visual": "Red armour with chimney pipe on back.",
+   "first_appears": "Shippuden (Savaş)",
+   "rarity": "rare",
+   "slot": "vest",
+   "wiki_title": "Steam Armour"
+  },
+  {
+   "id": "chakra_armour",
+   "name": "Chakura no Yoroi (Chakra zırhı)",
+   "name_en": "Chakra Armour",
+   "type": "armor",
+   "canon_notable_users_type": "Kar Ülkesi ninjaları",
+   "desc": "Kristalle beslenen, ninjutsu/genjutsuyu engelleyen bariyer zırhı.",
+   "abilities": [
+    "ninjutsu kalkanı",
+    "uçma (kanatlı)"
+   ],
+   "game_idea": "Üst slot: kristal enerji 100, gelen ninjutsuyu emer. Aşırı yükte kristal kırılır.",
+   "visual": "Sleek armour with shoulder crystal emitter, white/grey/black.",
+   "first_appears": "Naruto (Film 1)",
+   "rarity": "rare",
+   "slot": "top",
+   "wiki_title": "Chakra Armour"
+  },
+  {
+   "id": "gloves_sandals",
+   "name": "Shinobi Sandaleti",
+   "name_en": "Shinobi Sandals",
+   "type": "armor",
+   "canon_notable_users_type": "Tüm shinobiler",
+   "desc": "Açık burunlu standart ninja sandaleti.",
+   "abilities": [
+    "sessiz adım"
+   ],
+   "game_idea": "Ayak slotu: duvar koşusu chakra -%10.",
+   "visual": "Open-toe blue/black sandals, ankle strap.",
+   "first_appears": "Naruto",
+   "rarity": "common",
+   "slot": "feet",
+   "wiki_title": "Flak Jacket"
+  },
+  {
+   "id": "eye_scope",
+   "name": "Gözlük-dürbün (Göz kapsülü)",
+   "name_en": "Eye Scope",
+   "type": "utility",
+   "canon_notable_users_type": "Patlayıcı kil sanatçıları, keskin nişancılar",
+   "desc": "Göze takılan dürbün; uzağı görme ve genjutsuya karşı eğitim.",
+   "abilities": [
+    "yakınlaştırma"
+   ],
+   "game_idea": "Kafa slotu: uzak hedef işaretleme, ADS zoom.",
+   "visual": "Monocle scope on left eye with metal frame.",
+   "first_appears": "Shippuden (Kazekage Kurtarma)",
+   "rarity": "uncommon",
+   "slot": "head",
+   "wiki_title": "Eye Scope"
+  },
+  {
+   "id": "binoculars",
+   "name": "Dürbün (Uzak görüş aleti)",
+   "name_en": "Binoculars",
+   "type": "utility",
+   "canon_notable_users_type": "İzci ninjalar",
+   "desc": "Gözetleme dürbünü.",
+   "abilities": [
+    "uzak görüş"
+   ],
+   "game_idea": "Kullanımla haritaya işaret koyma.",
+   "visual": "Small binocular 15cm.",
+   "first_appears": "Naruto",
+   "rarity": "common",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "List of Technology"
+  },
+  {
+   "id": "radio_headset",
+   "name": "Telsiz Kulaklık (Muhabere cihazı)",
+   "name_en": "Radio / Headset",
+   "type": "utility",
+   "canon_notable_users_type": "Takım ninjaları",
+   "desc": "Takım içi iletişim için kulaklık-mikrofon.",
+   "abilities": [
+    "takım iletişimi"
+   ],
+   "game_idea": "Co-op: ping sistemi ve mini harita paylaşımı.",
+   "visual": "Ear piece with small mic, black.",
+   "first_appears": "Naruto (Sasuke-Haku / Gaara takibi)",
+   "rarity": "common",
+   "slot": "head",
+   "wiki_title": "List of Technology"
+  },
+  {
+   "id": "chakra_transmission_device",
+   "name": "Chakra İletim Haberleşme Cihazı",
+   "name_en": "Chakra Transmission Communication Device",
+   "type": "utility",
+   "canon_notable_users_type": "Savaş istihbarat birimleri",
+   "desc": "Duyusal ninjaların telepati ile haber ilettiği cihaz.",
+   "abilities": [
+    "telepatik iletişim"
+   ],
+   "game_idea": "Savaş görevlerinde merkez ile bağlantı UI'ı.",
+   "visual": "Headband with seal dot.",
+   "first_appears": "Shippuden (Savaş)",
+   "rarity": "uncommon",
+   "slot": "head",
+   "wiki_title": "Chakra Transmission Communication Device"
+  },
+  {
+   "id": "ninja_pouch",
+   "name": "Ninja Çantası (Kunai/shuriken kılıfı)",
+   "name_en": "Ninja Tool Pouch / Holster",
+   "type": "utility",
+   "canon_notable_users_type": "Tüm shinobiler",
+   "desc": "Bele ve bacağa bağlanan araç kılıfları.",
+   "abilities": [
+    "stok kapasitesi"
+   ],
+   "game_idea": "Alt slot: kunai/shuriken stok +5.",
+   "visual": "Thigh holster with bandage wrap, waist pouch brown.",
+   "first_appears": "Naruto",
+   "rarity": "common",
+   "slot": "bottom",
+   "wiki_title": "Kunai"
+  },
+  {
+   "id": "grappling_hook",
+   "name": "Kagi-nawa (Kancalı ip)",
+   "name_en": "Grappling Rope",
+   "type": "utility",
+   "canon_notable_users_type": "Tüm shinobiler",
+   "desc": "Kancalı ip; tırmanma ve sallanma.",
+   "abilities": [
+    "parkur sallanma"
+   ],
+   "game_idea": "Parkur aracı: kanca at → sallanma; CD 3s.",
+   "visual": "Three-hooked grapnel 10cm on 10m rope.",
+   "first_appears": "Naruto",
+   "rarity": "common",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "List of Technology"
+  },
+  {
+   "id": "gama_chan",
+   "name": "Gama-chan (Kurbağa cüzdanı)",
+   "name_en": "Gama-chan",
+   "type": "utility",
+   "canon_notable_users_type": "Çocuk ninjalar",
+   "desc": "Kurbağa şeklinde cüzdan.",
+   "abilities": [
+    "para"
+   ],
+   "game_idea": "Kozmetik para kesesi, ryo kapasitesi.",
+   "visual": "Green frog-shaped coin purse 12cm.",
+   "first_appears": "Naruto (Jiraiya arayışı)",
+   "rarity": "common",
+   "wiki_title": "Gama-chan"
+  },
+  {
+   "id": "first_hokage_necklace",
+   "name": "Shodai Hokage'nin Kolyesi (Yeşil kristal kolye)",
+   "name_en": "First Hokage's Necklace",
+   "type": "treasure",
+   "canon_notable_users_type": "Kurucu Hokage soyu (efsane)",
+   "desc": "Bir dağ değerinde yeşil kristal kolye; ağaç doğasına bağlı bir chakra iletken olarak anılır.",
+   "abilities": [
+    "kuyruklu chakra bastırma (ağaç ile)",
+    "prestij"
+   ],
+   "game_idea": "Aksesuar: kuyruklu chakra kontrolü +%20 (hayali). Hikâye eşyası.",
+   "visual": "Elongated green crystal 4cm on black cord.",
+   "first_appears": "Naruto (Tsunade arayışı)",
+   "rarity": "legendary",
+   "slot": "head",
+   "signature": true,
+   "wiki_title": "First Hokage's Necklace"
+  },
+  {
+   "id": "chakra_receiver",
+   "name": "Chakra Alıcı Kara Çubuk (Kuroi Bō)",
+   "name_en": "Chakra Receivers",
+   "type": "sealing_tool",
+   "canon_notable_users_type": "Altı Yol tarzı karanlık dönüştürülmüş ninjalar (Rinnegan uzantıları)",
+   "desc": "Siyah metal çubuk; vücuda saplanınca chakra sinyalini bozar veya kontrol eder, uzaktan chakra alır.",
+   "abilities": [
+    "chakra bozma",
+    "saplanınca kontrol",
+    "fırlatma"
+   ],
+   "game_idea": "Atış stoğu 5: saplanan hedefin chakra kullanımı 5s engellenir; duvara saplanan çubuk chakra yönlendirme röle noktası.",
+   "visual": "Black metal rod 60cm, 2cm dia, slightly knobby surface, sharp point.",
+   "first_appears": "Shippuden (Pain İstilası)",
+   "rarity": "rare",
+   "slot": "right_hand",
+   "wiki_title": "Chakra Receivers"
+  },
+  {
+   "id": "chakra_conducting_metal",
+   "name": "Chakra İletken Metal (Hammadde)",
+   "name_en": "Chakra-Conducting Metal",
+   "type": "utility",
+   "canon_notable_users_type": "Silah ustaları, demirciler",
+   "desc": "Kullanıcının chakrasını ileten nadir metal; chakra bıçakları ve özel silahların yapımında kullanılır.",
+   "abilities": [
+    "chakra iletimi"
+   ],
+   "game_idea": "Craft malzemesi: herhangi bir silaha 'doğa iletimi' özelliği ekler. Nadir maden düğümü.",
+   "visual": "Ingot 15cm, dark blue-grey metal with faint glow lines.",
+   "first_appears": "Naruto (Sha no Sho / Asuma)",
+   "rarity": "rare",
+   "wiki_title": "Chakra Blade"
+  },
+  {
+   "id": "sand_gourd",
+   "name": "Suna Hyōtan (Kum su kabağı)",
+   "name_en": "Sand Gourd",
+   "type": "utility",
+   "canon_notable_users_type": "Kum manipülasyonu kullanıcıları",
+   "desc": "Chakra ile karıştırılmış kum taşıyan su kabağı; kum kalkanı ve saldırılar.",
+   "abilities": [
+    "kum deposu",
+    "otomatik kalkan"
+   ],
+   "game_idea": "Sırt (yelek alt slot): kum kaynak 100 birim, otomatik kalkan %25 şansla. Sadece kum kekkei/ manipülasyon.",
+   "visual": "Large clay gourd 90cm, beige-tan, cork stopper, leather strap; sand pours out.",
+   "first_appears": "Naruto (Chūnin Sınavı)",
+   "rarity": "rare",
+   "slot": "vest",
+   "signature": true,
+   "wiki_title": "Sand Gourd"
+  },
+  {
+   "id": "gold_dust",
+   "name": "Sakin (Altın tozu)",
+   "name_en": "Gold Dust",
+   "type": "utility",
+   "canon_notable_users_type": "Kazekage soy yeteneği",
+   "desc": "Manyetizma ile kontrol edilen altın tozu; ağır ve yapışkan.",
+   "abilities": [
+    "ağırlaştırma"
+   ],
+   "game_idea": "Kum alternatifi: hedefi yavaşlatma %50.",
+   "visual": "Glittering gold particles.",
+   "first_appears": "Shippuden (Savaş)",
+   "rarity": "rare",
+   "wiki_title": "Gold Dust"
+  },
+  {
+   "id": "iron_sand",
+   "name": "Satetsu (Demir kum)",
+   "name_en": "Iron Sand",
+   "type": "utility",
+   "canon_notable_users_type": "Manyetizma kullanıcıları",
+   "desc": "Manyetik chakra ile şekillenen demir kum.",
+   "abilities": [
+    "şekil oluşturma"
+   ],
+   "game_idea": "Kum alternatifi: delici dikenler.",
+   "visual": "Black glittering particles.",
+   "first_appears": "Shippuden",
+   "rarity": "rare",
+   "wiki_title": "Iron Sand"
+  },
+  {
+   "id": "snowboard",
+   "name": "Kar Kayağı (Chakra kar tahtası)",
+   "name_en": "Snowboard",
+   "type": "utility",
+   "canon_notable_users_type": "Kar ninjaları",
+   "desc": "Uçan/kayan tahta.",
+   "abilities": [
+    "süzülme"
+   ],
+   "game_idea": "Parkur: karda/kayan yüzeylerde hız.",
+   "visual": "Board 140cm, white-blue.",
+   "first_appears": "Naruto (Film 1)",
+   "rarity": "uncommon",
+   "slot": "feet",
+   "wiki_title": "Snowboard"
+  },
+  {
+   "id": "winged_device",
+   "name": "Mekanik Kanat Cihazı",
+   "name_en": "Winged Mechanical Device",
+   "type": "utility",
+   "canon_notable_users_type": "Gök ninjaları",
+   "desc": "Sırtta mekanik kanat; uçuş.",
+   "abilities": [
+    "uçuş"
+   ],
+   "game_idea": "Sınırlı uçuş 10s.",
+   "visual": "Mechanical bat-like wings 300cm span.",
+   "first_appears": "Shippuden (Film)",
+   "rarity": "rare",
+   "slot": "vest",
+   "wiki_title": "Winged Mechanical Device"
+  },
+  {
+   "id": "dojutsu_glasses",
+   "name": "Dōjutsu Gözlüğü",
+   "name_en": "Dōjutsu Glasses",
+   "type": "scientific_tool",
+   "canon_notable_users_type": "Bilim deneycileri (roman)",
+   "desc": "Bir dōjutsuyu başkasına geçiren gözlük.",
+   "abilities": [
+    "göz yeteneği aktarımı"
+   ],
+   "game_idea": "Kafa: müttefik dōjutsusunun bir kısmını paylaş.",
+   "visual": "Round lenses with seal etching.",
+   "first_appears": "Boruto (Naruto Retsuden)",
+   "rarity": "rare",
+   "slot": "head",
+   "wiki_title": "Dōjutsu Glasses"
+  },
+  {
+   "id": "mind_reading_machine",
+   "name": "Zihin Okuma Yükseltici",
+   "name_en": "Mind Reading Amplification Machine",
+   "type": "scientific_tool",
+   "canon_notable_users_type": "İstihbarat birimleri",
+   "desc": "Zihin okuma jutsusunu yükselten makine.",
+   "abilities": [
+    "sorgu"
+   ],
+   "game_idea": "Sorgu mini-oyunu.",
+   "visual": "Dome machine with cables.",
+   "first_appears": "Shippuden (Pain sonrası)",
+   "rarity": "rare",
+   "wiki_title": "Mind Reading Amplification Machine"
+  },
+  {
+   "id": "shinobi_gauntlet",
+   "name": "Shinobigote (Kartuşlu ninja eldiveni)",
+   "name_en": "Shinobi Gauntlet / Kote",
+   "type": "scientific_tool",
+   "canon_notable_users_type": "Boruto dönemi bilimsel ninja araç kullanıcıları",
+   "desc": "Önceden kaydedilmiş jutsu kartuşlarını ateşleyen kol eldiveni; mühür yapmadan jutsu kullanılır.",
+   "abilities": [
+    "kartuş jutsu",
+    "el mühürsüz atış",
+    "yeniden doldurma"
+   ],
+   "game_idea": "Sol el: 5 kartuşluk şarjör; her kartuş bir element jutsu (T2-T3), yeniden doldurma 3s. Akademi/Chūnin sınavında yasak! (kural ihlali sistemi).",
+   "visual": "Forearm gauntlet 30cm, black/grey metal, revolver-like cylinder with 5 scroll cartridges, Konoha emblem.",
+   "first_appears": "Boruto (Chūnin Sınavı / Boruto Film)",
+   "rarity": "rare",
+   "slot": "left_hand",
+   "wiki_title": "Shinobi Gauntlet"
+  },
+  {
+   "id": "jutsu_cartridge",
+   "name": "Jutsu Kartuşu (Mühürlü tomar mermisi)",
+   "name_en": "Jutsu Cartridge",
+   "type": "consumable",
+   "canon_notable_users_type": "Bilimsel ninja araç kullanıcıları",
+   "desc": "İçinde başka bir ninjanın jutsusu mühürlü küçük tomar-kartuş.",
+   "abilities": [
+    "tek kullanım jutsu"
+   ],
+   "game_idea": "Craft: kendi jutsunuzu kartuşa yükleyin (chakra 50) → sonra chakrasız kullanın.",
+   "visual": "Small scroll cylinder 6cm, metal caps colored by element.",
+   "first_appears": "Boruto",
+   "rarity": "uncommon",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Shinobi Gauntlet"
+  },
+  {
+   "id": "chakra_prosthetic",
+   "name": "Chakra Protez Kol (Hashirama hücreli)",
+   "name_en": "Chakra Prosthetic / Shinobi-Ware arm",
+   "type": "scientific_tool",
+   "canon_notable_users_type": "Kayıp uzuvlu ninjalar",
+   "desc": "Bitki hücresi tabanlı biyolojik veya mekanik protez; bazı modeller jutsu emer.",
+   "abilities": [
+    "uzuv yenileme",
+    "jutsu emme (model)"
+   ],
+   "game_idea": "Kol slotu modifiyesi: sol el sabit protez seçeneği; emme modeli ninjutsuyu 1 kez emip saklar.",
+   "visual": "Mechanical forearm with plate segments, white/grey, blue glowing lines; or organic pale wood-textured arm.",
+   "first_appears": "Boruto",
+   "rarity": "rare",
+   "slot": "left_hand",
+   "wiki_title": "Absorbing Hand"
+  },
+  {
+   "id": "shinobi_ware",
+   "name": "Shinobi-Ware (Biyonik ninja implantı)",
+   "name_en": "Shinobi-Ware",
+   "type": "scientific_tool",
+   "canon_notable_users_type": "Kaçak bilim deneycileri",
+   "desc": "Kukla mühendisliği ile birleşen biyonik implantlar: göz, kol, gövde silahları.",
+   "abilities": [
+    "implant silah",
+    "sensör"
+   ],
+   "game_idea": "Kalıcı yükseltme ağacı (göz, kol, gövde) — insanlık/karma cezası.",
+   "visual": "Cybernetic plates, exposed joints, glowing ports.",
+   "first_appears": "Boruto (Kara arkı)",
+   "rarity": "rare",
+   "wiki_title": "Shinobi-Ware"
+  },
+  {
+   "id": "mirror_drone",
+   "name": "Ayna Drone (Mikagami)",
+   "name_en": "Mirror Drone",
+   "type": "scientific_tool",
+   "canon_notable_users_type": "Kaçak bilim deneycileri",
+   "desc": "Jutsuyu yansıtan uçan aynalar.",
+   "abilities": [
+    "jutsu yansıtma"
+   ],
+   "game_idea": "Sol el: 3 drone, 1 jutsuyu yansıtır, CD 25s.",
+   "visual": "Hexagonal mirror drones 30cm.",
+   "first_appears": "Boruto",
+   "rarity": "rare",
+   "slot": "left_hand",
+   "wiki_title": "Mirror Drone"
+  },
+  {
+   "id": "spy_drone",
+   "name": "Casus Drone",
+   "name_en": "Spy Drone",
+   "type": "scientific_tool",
+   "canon_notable_users_type": "Bilimsel istihbarat",
+   "desc": "Uçan gözetleme drone'u.",
+   "abilities": [
+    "keşif"
+   ],
+   "game_idea": "Keşif modu: drone kamerasıyla 20s.",
+   "visual": "Small bird-like drone 20cm.",
+   "first_appears": "Boruto",
+   "rarity": "uncommon",
+   "slot": "quick_slot (consumable belt)",
+   "wiki_title": "Spy Drone"
+  },
+  {
+   "id": "fire_gatling",
+   "name": "Katoringu (Ateş gatling)",
+   "name_en": "Fire Gatling",
+   "type": "scientific_tool",
+   "canon_notable_users_type": "Biyonik implantlı ninjalar",
+   "desc": "Kol içine gömülü ateş topu gatling'i.",
+   "abilities": [
+    "seri ateş topu"
+   ],
+   "game_idea": "Sağ el: 10 ateş topu yaylımı T2, ısınma göstergesi.",
+   "visual": "Arm-mounted rotary cannon with 6 barrels.",
+   "first_appears": "Boruto",
+   "rarity": "rare",
+   "slot": "right_hand",
+   "wiki_title": "Fire Gatling"
+  },
+  {
+   "id": "chakra_cannon",
+   "name": "Chakra Topu",
+   "name_en": "Chakra Cannon",
+   "type": "scientific_tool",
+   "canon_notable_users_type": "Kumo ve gemi birlikleri",
+   "desc": "Birçok ninjanın chakrasıyla doldurulan dev top.",
+   "abilities": [
+    "uzun menzil ışın"
+   ],
+   "game_idea": "Yerleşik silah/etkinlik: takım chakra yükler.",
+   "visual": "Huge cannon on mount 8m barrel.",
+   "first_appears": "Naruto (The Last)",
+   "rarity": "rare",
+   "wiki_title": "Chakra Cannon"
+  },
+  {
+   "id": "lightning_release_suit",
+   "name": "Yıldırım Elementi Giysisi",
+   "name_en": "Lightning Release Suit",
+   "type": "scientific_tool",
+   "canon_notable_users_type": "Genç mucit ninjalar",
+   "desc": "Yıldırım chakrasını depolayıp vücuda dağıtan giysi.",
+   "abilities": [
+    "yıldırım hız"
+   ],
+   "game_idea": "Üst slot: hız +%15, yıldırım direnci.",
+   "visual": "Bodysuit with yellow circuit lines.",
+   "first_appears": "Boruto (anime)",
+   "rarity": "rare",
+   "slot": "top",
+   "wiki_title": "Lightning Release Suit"
+  },
+  {
+   "id": "space_time_gate",
+   "name": "Zaman-Uzay Kapısı (Tensō Sōchi)",
+   "name_en": "Space-Time Gate",
+   "type": "scientific_tool",
+   "canon_notable_users_type": "Kaçak bilim örgütü",
+   "desc": "Uzak noktalar arası anlık geçiş cihazı.",
+   "abilities": [
+    "teleport"
+   ],
+   "game_idea": "Hızlı seyahat sistemi (lore).",
+   "visual": "Circular gate 3m with tech frame.",
+   "first_appears": "Boruto",
+   "rarity": "legendary",
+   "wiki_title": "Space-Time Gate"
+  },
+  {
+   "id": "cursed_seal_device",
+   "name": "Lanet Mühür Cihazı",
+   "name_en": "Cursed Seal Device",
+   "type": "scientific_tool",
+   "canon_notable_users_type": "Yasak araştırmacılar",
+   "desc": "Sıradan insana lanet mühür gücü veren cihaz.",
+   "abilities": [
+    "lanet mühür gücü"
+   ],
+   "game_idea": "Düşman/kötü yol eşyası.",
+   "visual": "Bracelet with snake-mark core.",
+   "first_appears": "Boruto (anime)",
+   "rarity": "rare",
+   "slot": "left_hand",
+   "wiki_title": "Cursed Seal Device"
+  },
+  {
+   "id": "chakra_disruption_device",
+   "name": "Chakra Bozucu Cihaz",
+   "name_en": "Chakra Disruption Device",
+   "type": "scientific_tool",
+   "canon_notable_users_type": "Kar Ülkesi bilimcileri",
+   "desc": "Takılan hedefin chakrasını emen cihaz.",
+   "abilities": [
+    "chakra emme"
+   ],
+   "game_idea": "Düşman tuzağı: çıkarmak için QTE.",
+   "visual": "Metal clamp with glowing core.",
+   "first_appears": "Naruto (Film 1)",
+   "rarity": "rare",
+   "wiki_title": "Chakra Disruption Device"
+  },
+  {
+   "id": "mechanical_eight_trigrams_drum",
+   "name": "Mekanik Sekiz Trigram Davulu",
+   "name_en": "Mechanical Eight Trigrams Formation Drum",
+   "type": "scientific_tool",
+   "canon_notable_users_type": "Tıbbi ekipler (anime)",
+   "desc": "Bir formasyonu mekanik olarak yeniden oluşturan davul.",
+   "abilities": [
+    "alan formasyonu"
+   ],
+   "game_idea": "Alan iyileştirme/bariyer.",
+   "visual": "Ornate drum 50cm.",
+   "first_appears": "Shippuden (anime)",
+   "rarity": "rare",
+   "wiki_title": "Mechanical Eight Trigrams Formation Drum"
+  },
+  {
+   "id": "mechanical_drilling_arm",
+   "name": "Mekanik Delici Kol",
+   "name_en": "Mechanical Drilling Arm / Arm-mounted Drill",
+   "type": "scientific_tool",
+   "canon_notable_users_type": "Mekanik silah ustaları",
+   "desc": "Kola takılan dönen matkap.",
+   "abilities": [
+    "delme",
+    "kazma"
+   ],
+   "game_idea": "Sağ el T2 zırh delme; toprak duvarı kazma (parkur).",
+   "visual": "Drill cone 40cm on arm mount.",
+   "first_appears": "Naruto (filler) / oyunlar",
+   "rarity": "uncommon",
+   "slot": "right_hand",
+   "wiki_title": "Mechanical Drilling Arm"
+  },
+  {
+   "id": "retractable_shield",
+   "name": "Katlanır Kalkan",
+   "name_en": "Retractable Shield",
+   "type": "armor",
+   "canon_notable_users_type": "Kıta dışı şövalyeler",
+   "desc": "Açılır-kapanır kol kalkanı.",
+   "abilities": [
+    "blok"
+   ],
+   "game_idea": "Sol el kalkan: blok %60.",
+   "visual": "Arm-mounted folding round shield 60cm.",
+   "first_appears": "Naruto (Film 2)",
+   "rarity": "uncommon",
+   "slot": "left_hand",
+   "wiki_title": "Retractable Shield"
+  },
+  {
+   "id": "shield",
+   "name": "Tate (Kalkan)",
+   "name_en": "Shield",
+   "type": "armor",
+   "canon_notable_users_type": "Muhafızlar",
+   "desc": "Klasik kalkan.",
+   "abilities": [
+    "blok"
+   ],
+   "game_idea": "Sol el: blok %50.",
+   "visual": "Round wooden/metal shield 60cm.",
+   "first_appears": "Naruto",
+   "rarity": "common",
+   "slot": "left_hand",
+   "wiki_title": "Shield"
+  },
+  {
+   "id": "knight_sword",
+   "name": "Şövalye Kılıcı",
+   "name_en": "Knight Sword",
+   "type": "sword",
+   "canon_notable_users_type": "Kıta dışı şövalyeler",
+   "desc": "Batı tarzı düz çift ağızlı kılıç.",
+   "abilities": [
+    "çift ağız"
+   ],
+   "game_idea": "Sağ el T2.",
+   "visual": "Longsword 100cm with cross guard.",
+   "first_appears": "Naruto (Film 2)",
+   "rarity": "uncommon",
+   "slot": "right_hand",
+   "wiki_title": "Knight Sword"
+  },
+  {
+   "id": "marlin_harpoon",
+   "name": "Kılıç Balığı Zıpkını",
+   "name_en": "Marlin Harpoon",
+   "type": "projectile_launcher",
+   "canon_notable_users_type": "Denizci ninjalar",
+   "desc": "Zıpkın.",
+   "abilities": [
+    "çekme"
+   ],
+   "game_idea": "Sağ el: atış + çekme.",
+   "visual": "Harpoon 180cm.",
+   "first_appears": "Naruto (anime filler)",
+   "rarity": "uncommon",
+   "slot": "right_hand",
+   "wiki_title": "Marlin Harpoon"
+  },
+  {
+   "id": "whip",
+   "name": "Muchi (Kırbaç)",
+   "name_en": "Whip",
+   "type": "chain",
+   "canon_notable_users_type": "Haydutlar",
+   "desc": "Kırbaç.",
+   "abilities": [
+    "dolama"
+   ],
+   "game_idea": "Sağ el menzil 4m.",
+   "visual": "Leather whip 300cm.",
+   "first_appears": "Naruto",
+   "rarity": "common",
+   "slot": "right_hand",
+   "wiki_title": "Whip"
+  },
+  {
+   "id": "fishing_rod",
+   "name": "Olta",
+   "name_en": "Fishing rod",
+   "type": "utility",
+   "canon_notable_users_type": "Herkes",
+   "desc": "Balık tutma.",
+   "abilities": [
+    "balıkçılık"
+   ],
+   "game_idea": "Mini oyun: balıkçılık.",
+   "visual": "Bamboo rod 200cm.",
+   "first_appears": "Naruto",
+   "rarity": "common",
+   "slot": "right_hand",
+   "wiki_title": "Fishing rod"
+  },
+  {
+   "id": "shinigami_mask",
+   "name": "Shinigami no Men (Ölüm tanrısı maskesi)",
+   "name_en": "Death God Mask",
+   "type": "treasure",
+   "canon_notable_users_type": "Uzumaki tapınak koruyucuları",
+   "desc": "Ölüm tanrısını çağırmaya yarayan kutsal maske.",
+   "abilities": [
+    "ölüm tanrısı çağırma"
+   ],
+   "game_idea": "Hikâye nesnesi (Uzumaki harabeleri görevi).",
+   "visual": "Oni-like white mask with horns.",
+   "first_appears": "Shippuden (Savaş)",
+   "rarity": "legendary",
+   "wiki_title": "Shinigami Mask"
+  },
+  {
+   "id": "prayer_beads",
+   "name": "Tespih (Dua boncukları)",
+   "name_en": "Prayer Beads",
+   "type": "utility",
+   "canon_notable_users_type": "Keşiş ninjalar",
+   "desc": "Bariyer ve ruhani jutsular için tespih.",
+   "abilities": [
+    "ruhani odak"
+   ],
+   "game_idea": "Kafa/aksesuar: ruh jutsuları +%10.",
+   "visual": "Wooden prayer beads necklace.",
+   "first_appears": "Shippuden (anime)",
+   "rarity": "uncommon",
+   "slot": "head",
+   "wiki_title": "Prayer Beads"
+  },
+  {
+   "id": "stone_of_gelel",
+   "name": "Gelel Taşı",
+   "name_en": "Stone of Gelel",
+   "type": "treasure",
+   "canon_notable_users_type": "Kıta dışı medeniyet",
+   "desc": "Sınırsız enerji veren efsanevi taş.",
+   "abilities": [
+    "enerji"
+   ],
+   "game_idea": "Hikâye.",
+   "visual": "Glowing red stone.",
+   "first_appears": "Naruto (Film 2)",
+   "rarity": "legendary",
+   "wiki_title": "Stone of Gelel"
+  }
+ ]
+}

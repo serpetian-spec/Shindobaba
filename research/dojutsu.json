@@ -1,0 +1,387 @@
+{
+ "_meta": {
+  "source": "Narutopedia (naruto.fandom.com) dōjutsu pages + Category:Jutsu infobox data (jutsu_full.json requires.eye), 2026-10-22; visual patterns summarised for shader drawing. Gameplay notes are design suggestions, not canon.",
+  "notes": "Per-eye techniques: canon Mangekyō users awaken one unique technique per eye, plus Susanoo once both eyes are awakened. In the game, original characters can roll their own per-eye pair from the canon pool (Amaterasu/Kagutsuchi-type, Tsukuyomi, Kamui, Kotoamatsukami, etc.) or new ones. Related jutsu ids live in jutsu_full.json.",
+  "shader_conventions": "uv centred on pupil, r=1 at iris edge. 'tomoe' = comma-shaped magatama (black dot + tail curling clockwise) placed on a ring at r≈0.55. Colours given as hex."
+ },
+ "dojutsu": [
+  {
+   "id": "sharingan_1_tomoe",
+   "name": "Sharingan – 1 Tomoe (Kopya Tekerlek Göz – 1 Virgül)",
+   "family": "sharingan",
+   "stage": 1,
+   "lineage": "Uchiha klanı (kekkei genkai)",
+   "requirements_to_awaken": "Uchiha kanı + yoğun duygusal olay (ölüm tehlikesi, bir yakını koruma isteği) — beyinde özel çakra salınımı gözün sinirlerini dönüştürür.",
+   "abilities": [
+    "Çakrayı renkli görme (ninjutsu/genjutsu ayırt etme)",
+    "Hızlı hareketleri yavaşlatılmış algılama (sınırlı)",
+    "Basit genjutsuları fark etme"
+   ],
+   "per_eye": false,
+   "drawbacks": "Aktifken sürekli çakra tüketir; düşük seviyede tahmin gücü zayıf.",
+   "visual": {
+    "iris": "#C8102E red",
+    "pupil": "small black dot",
+    "pattern": "1 black tomoe on ring r=0.55 around pupil, thin dark ring at r=0.55",
+    "glow": "faint red emission"
+   },
+   "game": "Seviye 1 göz modu: düşman saldırı telegraph'ları belirgin, kısa slow-mo dodge penceresi (+%10)."
+  },
+  {
+   "id": "sharingan_2_tomoe",
+   "name": "Sharingan – 2 Tomoe (Kopya Tekerlek Göz – 2 Virgül)",
+   "family": "sharingan",
+   "stage": 2,
+   "lineage": "Uchiha klanı",
+   "requirements_to_awaken": "Sharingan'ın savaş deneyimi ve yeni duygusal eşikle olgunlaşması.",
+   "abilities": [
+    "Hareket okuma ve kısa süreli öngörü",
+    "Taijutsu ve basit ninjutsuyu görerek taklit etme",
+    "Göz temasıyla zayıf genjutsu"
+   ],
+   "per_eye": false,
+   "drawbacks": "Kopyalanan teknik için kullanıcının doğası/fiziği yeterli olmalı.",
+   "visual": {
+    "iris": "#C8102E",
+    "pattern": "2 tomoe at 180° on ring r=0.55",
+    "glow": "red"
+   },
+   "game": "Kopya mekaniği: düşman jutsusunu 3 kez gözlemleyince geçici öğrenme."
+  },
+  {
+   "id": "sharingan_3_tomoe",
+   "name": "Sharingan – 3 Tomoe (Olgun Sharingan)",
+   "family": "sharingan",
+   "stage": 3,
+   "lineage": "Uchiha klanı",
+   "requirements_to_awaken": "Tam olgunluk; yoğun savaş ve duygusal bağ.",
+   "abilities": [
+    "Tam hareket öngörüsü",
+    "Gördüğü ninjutsu/genjutsu/taijutsuyu kopyalama (kekkei genkai hariç)",
+    "Göz temasıyla genjutsu ve hipnoz (Genjutsu: Sharingan)",
+    "Genjutsu yansıtma/bozma",
+    "Kuyruklu canavar kontrolü (çok güçlü kullanıcıda)"
+   ],
+   "per_eye": false,
+   "drawbacks": "Uchiha olmayan nakil kullanıcıda kapatılamaz ve çakrayı sürekli emer.",
+   "visual": {
+    "iris": "#D0101E",
+    "pattern": "3 tomoe at 120° on ring r=0.55, connecting thin black ring",
+    "glow": "red"
+   },
+   "game": "Tam kopya, 1 sn öngörü (saldırı yönü oku), göz teması genjutsu stun."
+  },
+  {
+   "id": "mangekyo_sharingan",
+   "name": "Mangekyō Sharingan (Kaleydoskop Kopya Tekerlek Göz)",
+   "family": "sharingan",
+   "stage": 4,
+   "lineage": "Uchiha klanı",
+   "requirements_to_awaken": "Çok yakın birinin ölümünü yaşama/ona sebep olma sonucu derin travma. Desen her kullanıcıda benzersizdir.",
+   "abilities": [
+    "Sharingan yeteneklerinin üst seviyesi",
+    "Her gözde bir benzersiz teknik",
+    "İki göz uyanınca Susanoo"
+   ],
+   "per_eye": true,
+   "per_eye_technique_pool": [
+    {
+     "technique": "Tsukuyomi",
+     "typical_eye": "left",
+     "type": "genjutsu",
+     "jutsu_id_hint": "tsukuyomi",
+     "desc": "Saniyeler içinde günler süren işkence illüzyonu."
+    },
+    {
+     "technique": "Amaterasu",
+     "typical_eye": "right",
+     "type": "black flames",
+     "jutsu_id_hint": "amaterasu",
+     "desc": "Bakılan noktada sönmeyen kara alev."
+    },
+    {
+     "technique": "Blaze Release / Kagutsuchi (Amaterasu şekillendirme)",
+     "typical_eye": "left",
+     "type": "flame shaping",
+     "jutsu_id_hint": "enton_kagutsuchi_no_tsurugi",
+     "desc": "Kara alevleri şekillendirme veya söndürme."
+    },
+    {
+     "technique": "Kamui (uzun menzil)",
+     "typical_eye": "left",
+     "type": "space_time",
+     "jutsu_id_hint": "kamui",
+     "desc": "Uzaktaki hedefi boyuta emme."
+    },
+    {
+     "technique": "Kamui (yakın, dokunulmazlık/ışınlanma)",
+     "typical_eye": "right",
+     "type": "space_time",
+     "jutsu_id_hint": "kamui",
+     "desc": "Kendini boyuta geçirerek saldırılardan geçme ve ışınlanma."
+    },
+    {
+     "technique": "Kotoamatsukami",
+     "typical_eye": "either (both eyes same)",
+     "type": "genjutsu",
+     "jutsu_id_hint": "kotoamatsukami",
+     "desc": "Hedefin iradesini fark ettirmeden değiştirir; uzun bekleme süresi."
+    },
+    {
+     "technique": "Izanagi / Izanami (yasak)",
+     "typical_eye": "any Sharingan",
+     "type": "kinjutsu",
+     "jutsu_id_hint": "izanagi",
+     "desc": "Kullanılan göz kalıcı ışığını kaybeder."
+    }
+   ],
+   "susanoo_stages": [
+    "1: iskelet kaburga",
+    "2: iskelet üst gövde + kollar",
+    "3: kaslı/derili insansı gövde",
+    "4: zırhlı savaşçı (silahlar)",
+    "5: tam boy Susanoo (dağ boyutu, kanatlı olabilir)"
+   ],
+   "drawbacks": "Her kullanımda görüş azalır, sonunda körlük; gözde kanama, yoğun yorgunluk. Uchiha olmayanlarda çok daha hızlı yıpranma.",
+   "visual": {
+    "iris": "#C00010",
+    "pattern": "unique per user: common archetypes — 3-blade pinwheel (curved blades joined at pupil), 6-point star from overlapping triangles, 3 curved scythe arms around black ring, ring of 3 ellipses/petals; all black on red",
+    "glow": "strong red, blood-tear decal when using techniques"
+   },
+   "game": "Oyuncu uyanışta sağ+sol göz tekniği seçer; her kullanım 'göz yorgunluğu' kalıcı stat ekler (vinyet/bulanıklık). Eternal MS ile sıfırlanır."
+  },
+  {
+   "id": "eternal_mangekyo_sharingan",
+   "name": "Eien no Mangekyō Sharingan (Ebedi Kaleydoskop Göz)",
+   "family": "sharingan",
+   "stage": 5,
+   "lineage": "Uchiha klanı",
+   "requirements_to_awaken": "Mangekyō sahibinin, Mangekyō uyandırmış kan bağı akrabasının (ideal: kardeş) gözlerini nakletmesi.",
+   "abilities": [
+    "Körlük riski ortadan kalkar",
+    "Her iki gözün tekniklerini birleştirme",
+    "Daha güçlü ve kararlı Susanoo"
+   ],
+   "per_eye": true,
+   "drawbacks": "Yalnızca uyumlu yakın akrabanın gözüyle; nakil ameliyatı ve iyileşme süresi.",
+   "visual": {
+    "iris": "#C00010",
+    "pattern": "fusion of two MS patterns: user's pattern overlaid with donor's (e.g., pinwheel + inner star), extra concentric black shapes",
+    "glow": "red"
+   },
+   "game": "Göz yorgunluğu cezası kaldırılır, Susanoo maliyeti -%30."
+  },
+  {
+   "id": "rinnegan",
+   "name": "Rinnegan (Samsara Gözü)",
+   "family": "rinnegan",
+   "stage": 1,
+   "lineage": "Ōtsutsuki/Altı Yol çakrası; Uchiha'da Senju (Asura) ve Uchiha (Indra) çakralarının birleşmesiyle uyanır",
+   "requirements_to_awaken": "Indra ve Asura çakrası/hücrelerinin bir bedende birleşmesi (örn. Uchiha + Wood Release hücresi), ya da Altı Yol gücünün doğrudan verilmesi.",
+   "abilities": [
+    "Altı Yol: Deva (itme/çekme), Asura (mekanik beden), Human (ruh çekme), Animal (çağırma), Preta (çakra emme), Naraka (onarma, cehennem kralı)",
+    "Dış Yol: diriltme, chakra receivers, Demonic Statue",
+    "Beş temel doğa + yin/yang ustalığı",
+    "Görünmez varlıkları (Limbo) görme",
+    "Chibaku Tensei"
+   ],
+   "per_eye": false,
+   "drawbacks": "Muazzam çakra tüketimi; nakil edilen kullanıcıda bedeni çökertir (zayıflama, iskelet görünümü).",
+   "visual": {
+    "iris": "#B6A7D6 pale lavender",
+    "sclera": "white-grey",
+    "pattern": "4-6 concentric thin dark-purple rings around small black pupil, evenly spaced, no tomoe",
+    "glow": "soft violet"
+   },
+   "game": "Son oyun/efsane göz: 6 Yol yetenek ağacı; normal oyuncu yolu için çok nadir quest zinciri."
+  },
+  {
+   "id": "sharingan_rinnegan",
+   "name": "Rinnegan + Sharingan (Tomoe'lu Rinnegan)",
+   "family": "rinnegan",
+   "stage": 2,
+   "lineage": "Uchiha + Altı Yol gücü",
+   "requirements_to_awaken": "Sharingan'ın Altı Yol çakrası ile evrimleşmesi.",
+   "abilities": [
+    "Amenotejikara benzeri anlık yer değiştirme",
+    "Rinnegan + Sharingan'ın tüm yetenekleri",
+    "Boyutlar arası geçiş (Kaguya boyutları, sınırlı)"
+   ],
+   "per_eye": true,
+   "drawbacks": "Tek gözde bulunur; aşırı kullanımda bekleme süresi (canon: tekniği yeniden kullanmak için dinlenme).",
+   "visual": {
+    "iris": "#A894D0 lavender",
+    "pattern": "Rinnegan ripples (4 rings) + 6 tomoe: 3 on the 1st ring, 3 on the 2nd ring",
+    "glow": "violet with red tomoe hints"
+   },
+   "game": "Tek göz: 'swap' ışınlanma yeteneği, 6 tomoe = 6 şarj."
+  },
+  {
+   "id": "rinne_sharingan",
+   "name": "Rinne Sharingan (Samsara Kopya Tekerlek Göz)",
+   "family": "otsutsuki",
+   "stage": 1,
+   "lineage": "Ōtsutsuki (Kaguya) / On Kuyruk jinchūriki'si",
+   "requirements_to_awaken": "On Kuyruk ile bütünleşme veya Ōtsutsuki soyu; alında üçüncü göz.",
+   "abilities": [
+    "Sonsuz Tsukuyomi (ay üzerinden)",
+    "Boyutlar arası geçiş (Amenominaka)",
+    "Shinju'yu kontrol"
+   ],
+   "per_eye": false,
+   "drawbacks": "Yalnızca boss/efsane karakterler.",
+   "visual": {
+    "iris": "#C0101E red",
+    "pattern": "Rinnegan concentric rings (4) with 9 tomoe (3 per inner ring), placed vertically on forehead centre",
+    "glow": "red, very strong"
+   },
+   "game": "Yalnızca final boss / dünya olayı (Infinite Tsukuyomi benzeri)."
+  },
+  {
+   "id": "byakugan",
+   "name": "Byakugan (Beyaz Göz)",
+   "family": "byakugan",
+   "stage": 1,
+   "lineage": "Hyūga klanı (kekkei genkai), Ōtsutsuki kökenli",
+   "requirements_to_awaken": "Doğuştan; çocuklukta eğitimle aktif hale gelir. Aktivasyonda göz çevresinde damarlar kabarır.",
+   "abilities": [
+    "Neredeyse 360° görüş (birinci göğüs omurunun arkasında kör nokta)",
+    "Teleskopik görüş (km mertebesi)",
+    "Katı nesnelerin içini görme",
+    "Çakra ağı ve 361 tenketsu noktasını görme",
+    "Yumuşak Yumruk (Jūken) için gerekli"
+   ],
+   "per_eye": false,
+   "drawbacks": "Kör nokta; ana aile yan aileye Kafes Kuş Mührü uygular (gözler ölünce mühürlenir).",
+   "visual": {
+    "iris": "#E8E6F0 near-white with faint lavender",
+    "pupil": "none / very faint",
+    "pattern": "pale iris with subtle radial lines; when active: bulging veins around the eyes on skin (temples to nose bridge)",
+    "glow": "pale"
+   },
+   "game": "Algı modu: duvar arkası düşmanlar, tenketsu noktası highlight (Jūken hasar bonusu)."
+  },
+  {
+   "id": "tenseigan",
+   "name": "Tenseigan (Yeniden Doğuş Gözü)",
+   "family": "byakugan",
+   "stage": 2,
+   "lineage": "Hamura Ōtsutsuki soyu (Hyūga + Ōtsutsuki çakrası)",
+   "requirements_to_awaken": "Byakugan + Hamura soyundan (Hyūga veya Ōtsutsuki) gelen çakranın birleşmesi.",
+   "abilities": [
+    "Çekim/itme (gravitation)",
+    "Altın Tenseigan çakra modu",
+    "Arayış topları benzeri küreler"
+   ],
+   "per_eye": false,
+   "canon_status": "Film (The Last) kanonu; seri içinde sınırlı.",
+   "drawbacks": "Çok nadir; büyük çakra.",
+   "visual": {
+    "iris": "#7FC8F8 bright blue",
+    "pattern": "blue iris with a white petal/star shape around the pupil (sun-like), radial lighter streaks",
+    "glow": "cyan"
+   },
+   "game": "İsteğe bağlı gizli Byakugan evrimi; yer çekimi yetenekleri."
+  },
+  {
+   "id": "ketsuryugan",
+   "name": "Ketsuryūgan (Kan Akıntısı Gözü)",
+   "family": "ketsuryugan",
+   "stage": 1,
+   "lineage": "Chinoike klanı (kekkei genkai)",
+   "requirements_to_awaken": "Doğuştan klan yeteneği.",
+   "abilities": [
+    "Göz temasıyla genjutsu",
+    "Hedefin kanını kontrol ederek iç kanama/felç",
+    "Demir kanla mızrak/silah"
+   ],
+   "per_eye": false,
+   "drawbacks": "Klan tarihsel olarak dışlanmış ve sürgün edilmiş.",
+   "visual": {
+    "iris": "#8B0000 deep red",
+    "pattern": "red iris with three-pointed spiral/triskelion around the pupil, darker veins",
+    "glow": "dark red"
+   },
+   "game": "Kan büyüsü tarzı DoT/bind; kötü şöhret mekaniği."
+  },
+  {
+   "id": "jogan",
+   "name": "Jōgan (Saf Göz)",
+   "family": "jogan",
+   "stage": 1,
+   "lineage": "Ōtsutsuki kökenli, çok nadir",
+   "requirements_to_awaken": "Doğuştan (yalnızca bir göz); duygusal tetikleme ile aktifleşir.",
+   "abilities": [
+    "Çakra ve mühürleri görme",
+    "Boyutlar arası geçitleri görme/açma",
+    "Bariyerleri algılama",
+    "Ōtsutsuki işaretlerini algılama"
+   ],
+   "per_eye": true,
+   "drawbacks": "Kullanıcının kontrolü sınırlı; yalnız tek göz.",
+   "visual": {
+    "iris": "#7FB8FF light blue",
+    "sclera": "dark/black",
+    "pattern": "blue iris with white pupil and a diamond/rhombus-shaped white highlight, faint vein lines around eye",
+    "glow": "blue-white"
+   },
+   "game": "Tek göz: gizli kapı/bariyer görme, boyut yarıkları (zindan girişleri)."
+  },
+  {
+   "id": "kokugan",
+   "name": "Kokugan (Kara Göz)",
+   "family": "otsutsuki",
+   "stage": 1,
+   "lineage": "Ōtsutsuki göksel varlıklar",
+   "requirements_to_awaken": "Ōtsutsuki soyu.",
+   "abilities": [
+    "Sukunahikona (küçültme/büyütme)",
+    "Daikokuten (zamanı durdurulmuş cep boyutu)",
+    "Kopyalanan tekniklerin bazıları"
+   ],
+   "per_eye": false,
+   "drawbacks": "Boss-only.",
+   "visual": {
+    "iris": "#F0F0F0 white",
+    "sclera": "black",
+    "pattern": "black sclera, white iris, black pupil; small concentric marks",
+    "glow": "none"
+   },
+   "game": "Yalnız Ōtsutsuki benzeri boss'lar."
+  }
+ ],
+ "transplant_rules": [
+  "Dōjutsu gözleri nakledilebilir; yetenek gözle birlikte gelir (Sharingan, Rinnegan, Byakugan kanonda nakledilmiştir).",
+  "Uchiha olmayan Sharingan kullanıcısı gözü kapatamaz: sürekli çakra çeker, kullanıcı sık sık bitkin düşer; genelde göz bantla örtülür.",
+  "Uchiha olmayan kullanıcı Mangekyō'yu duygusal tetikle uyandırabilir ama körlük ve çakra yükü çok daha ağırdır.",
+  "Rinnegan nakli fiziksel olarak zayıflatır; dağıtılmış çakra alıcıları ve Dış Yol bedenleri gerektirebilir.",
+  "Eternal MS yalnızca yakın akrabanın Mangekyō gözüyle; nakil sonrası gözler bandajla iyileşme süreci ister.",
+  "Kol/bedene çok sayıda Sharingan yerleştirmek mümkündür (Izanagi stoklama) ama hücre uyumu için Senju/ahşap hücreleri gerekir.",
+  "Byakugan çalınmasını önlemek için Hyūga yan ailesine Kafes Kuş Mührü vurulur; ölümde göz yetenekleri mühürlenir.",
+  "Gözler parşömen veya kavanozda saklanabilir; çalıntı göz ticareti kara pazar quest'i olarak kullanılabilir."
+ ],
+ "mangekyo_blindness": {
+  "mechanic": "Her Mangekyō tekniği kullanımı göz kanaması ve görüş kaybı yaratır; uzun vadede tam körlük. Eternal MS bunu durdurur.",
+  "game_suggestion": "Kalıcı 'göz yorgunluğu' (0-100). 30+: kenar bulanıklığı; 60+: renk solması, menzil -%20; 100: kör (Sharingan kapalı). Nadir tedavi: akraba gözü nakli questi."
+ },
+ "evolution_tree": {
+  "sharingan": [
+   "sharingan_1_tomoe",
+   "sharingan_2_tomoe",
+   "sharingan_3_tomoe",
+   "mangekyo_sharingan",
+   "eternal_mangekyo_sharingan",
+   "rinnegan (Senju hücresi ile)",
+   "sharingan_rinnegan"
+  ],
+  "byakugan": [
+   "byakugan",
+   "tenseigan (Ōtsutsuki çakrası ile)"
+  ],
+  "otsutsuki": [
+   "rinne_sharingan",
+   "kokugan",
+   "jogan"
+  ]
+ }
+}

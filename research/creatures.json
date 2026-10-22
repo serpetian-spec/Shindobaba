@@ -1,0 +1,3890 @@
+{
+ "_meta": {
+  "source": "Narutopedia (naruto.fandom.com) via MediaWiki API (infobox species/nature/jutsu/height/debut) + series knowledge; generic templates and 'inspired' entries are game-original extrapolations clearly marked.",
+  "date": "2026-10-22",
+  "compat": "tailed_beasts keep tails/animal/element_or_ability/game_suggestion; summons keep animal/home/traits from clans_factions.json",
+  "schema": [
+   "id",
+   "name (romaji + Turkish meaning)",
+   "name_en",
+   "group",
+   "contract",
+   "size_m (number or [min,max])",
+   "elements",
+   "abilities",
+   "behavior",
+   "visual (EN, procedural modeling)",
+   "desc (TR)",
+   "game_role",
+   "first_appears",
+   "signature"
+  ],
+  "size_notes": "Canon heights only from Narutopedia infoboxes: Gamabunta 17 m, Gamaken/Gamahiro 19 m, Gamakichi 16.9 m (Part II), Fukasaku 0.253 m, Shima 0.25 m, Ninja tortoise 0.9 m. Tailed beast heights are not given in databooks; values are scene-based estimates (Kurama ~ Hokage Rock; Gamabunta reaches its torso; Gyūki matches the Giant Squid; Gedō Mazō taller than tailed beasts — Gyūki reaches its chin).",
+  "jinchuriki_generic": {
+   "cloak_stages": [
+    "0: Chakra leak (eyes change, aura)",
+    "1: Initial cloak (tails of chakra appear, 1-4)",
+    "2: Version 2 (skin-like dark cloak, more tails, host takes damage)",
+    "3: Partial transformation (beast skeleton/limbs)",
+    "4: Full transformation (Tailed Beast form)",
+    "Cooperation: Tailed Beast Mode / chakra avatar with stable control"
+   ],
+   "rules": [
+    "Each extra tail = more power but faster HP drain unless cooperating",
+    "Sealing marks on host stomach; seal-breaking = beast escape",
+    "Extracting a beast kills the host (lore)",
+    "Hosts historically assigned per village: Suna(1), Kumo(2,8), Kiri(3,6), Iwa(4,5), Taki(7), Konoha(9)"
+   ]
+  },
+  "canon_status_legend": {
+   "canon": "manga/anime canon",
+   "anime": "anime-only",
+   "inspired": "game-original extrapolation fitting the world"
+  },
+  "notes": "Named canon individuals are kept as signature:true references; generic species templates are the core usable entries. Original-characters-only rule: no canon person is a player-facing NPC.",
+  "counts": {
+   "tailed_beasts": 13,
+   "summons": 56,
+   "wild_animals": 22,
+   "puppets": 13,
+   "undead": 14,
+   "artificial_humans": 15,
+   "otherworldly": 13,
+   "total": 146
+  }
+ },
+ "tailed_beasts": [
+  {
+   "id": "ichibi_shukaku",
+   "name": "Shukaku (Kum Muhafızı / Bir Kuyruk)",
+   "name_en": "One-Tail Shukaku",
+   "group": "tailed_beast",
+   "size_m": 40,
+   "elements": [
+    "wind",
+    "earth",
+    "magnet"
+   ],
+   "abilities": [
+    "Sand manipulation and sand armor",
+    "Wind Release: Drilling Air Bullet (compressed air shot from belly-drum)",
+    "Wind Release: Sand Buckshot",
+    "Desert Layered Imperial Funeral Seal (sealing jutsu)",
+    "Tailed Beast Ball",
+    "Forces sleeping host to lose control (takes over when host sleeps)"
+   ],
+   "behavior": "Hyperaktif, alaycı, kana susamış; kibirli ve diğer kuyruklu canavarlara (özellikle Kurama'ya) karşı rekabetçi. Uzun süre zincirli kaldığından insanlara güvenmez.",
+   "visual": "Upright pot-bellied tanuki, short stubby legs, long thick single tail. Sandy-brown/tan body covered in dark blue-black cursed-seal-like markings (wavy bands, dots, spirals) over face, body and tail. Jagged concave toothy mouth, no tongue. Eyes: black sclera, yellow iris, black four-pointed star pupil with four black dots around it. Sand constantly streams/crumbles off its surface; can be partially formed (arm/tail only).",
+   "desc": "Çöl bölgesi bossu. Kum zırhı kırılınca 2. faz; alnındaki/başındaki konakçı (ya da mühür noktası) zayıf nokta. Arena: bataklık kumu ve kum fırtınası. Rüzgar mermileri uzak menzil baskı yapar.",
+   "game_role": "boss",
+   "first_appears": "Naruto ch.134 / Naruto ep.78",
+   "signature": true,
+   "number": 1,
+   "tails": 1,
+   "animal": "Tanuki (raccoon dog)",
+   "kekkei_genkai": [
+    "Magnet Release (sand)"
+   ],
+   "element_or_ability": "wind; earth; magnet; Sand manipulation and sand armor; Wind Release: Drilling Air Bullet (compressed air shot from belly-drum); Wind Release: Sand Buckshot",
+   "size_note": "Databook vermez; sahnelerden tahmin (Gamabunta 17 m referans).",
+   "jinchuriki_mechanics": {
+    "host_village_historic": "Sunagakure",
+    "cloak_stages": [
+     "Sand armor creeping over host's skin (partial)",
+     "Sand arm/tail growth with markings",
+     "Half-body Shukaku sand shell",
+     "Full transformation: host buried at forehead, sleep technique releases full beast"
+    ],
+    "partial": "Sand limbs, automatic Shield of Sand-like defense",
+    "full": "Full sand tanuki with host embedded in forehead; waking host ends transformation"
+   },
+   "game_suggestion": "Desert boss with huge hitbox; quicksand hazards; weak point on forehead; phase 2 when sand armor breaks.",
+   "source_page": "https://naruto.fandom.com/wiki/Shukaku"
+  },
+  {
+   "id": "nibi_matatabi",
+   "name": "Matatabi (Kedi Nanesi / İki Kuyruk)",
+   "name_en": "Two-Tails Matatabi",
+   "group": "tailed_beast",
+   "size_m": 40,
+   "elements": [
+    "fire"
+   ],
+   "abilities": [
+    "Blue/black spirit flames (body is fire)",
+    "Cat Flame Roaring Fire (fireballs)",
+    "Great Cat Claw Attack",
+    "Pounce and high agility for size",
+    "Tailed Beast Ball"
+   ],
+   "behavior": "Kibar, sakin ve nazik konuşan; kuyruklu canavarlar arasında en uysal olanlardan. Saygı görürse işbirliğine açık.",
+   "visual": "Huge feline quadruped entirely engulfed in animated cobalt-blue and black flames (no solid fur visible). Two long flaming tails. Heterochromatic pupil-less eyes: right yellow, left green. Pointed ears, fanged mouth. Flames flicker upward like a kasha spirit.",
+   "desc": "Hızlı, sıçrayan boss: pençe saldırıları ve mavi alev zemin yakması. Su elementi saldırıları ekstra hasar verir; alevi söndürmek savunmasını düşürür.",
+   "game_role": "boss",
+   "first_appears": "Naruto ch.313 / Naruto Shippūden ep.72",
+   "signature": true,
+   "number": 2,
+   "tails": 2,
+   "animal": "Bakeneko (monster cat) made of fire",
+   "kekkei_genkai": [],
+   "element_or_ability": "fire; Blue/black spirit flames (body is fire); Cat Flame Roaring Fire (fireballs); Great Cat Claw Attack",
+   "size_note": "Databook vermez; sahnelerden tahmin (Gamabunta 17 m referans).",
+   "jinchuriki_mechanics": {
+    "host_village_historic": "Kumogakure",
+    "cloak_stages": [
+     "Blue flame aura",
+     "Cat-like crouch, flame claws",
+     "Full transformation into flaming cat"
+    ],
+    "partial": "Flame claws, flame tail lash",
+    "full": "Full Two-Tails"
+   },
+   "game_suggestion": "Agile flaming cat boss; burning ground zones; water jutsu strip flame armor.",
+   "source_page": "https://naruto.fandom.com/wiki/Matatabi"
+  },
+  {
+   "id": "sanbi_isobu",
+   "name": "Isobu (Kıyı Okşayan / Üç Kuyruk)",
+   "name_en": "Three-Tails Isobu",
+   "group": "tailed_beast",
+   "size_m": 35,
+   "elements": [
+    "water",
+    "yin(anime)"
+   ],
+   "abilities": [
+    "Coral Palm (coral grows over target to imprison)",
+    "Shell Tower / Leaping Bullet (spinning shell ram)",
+    "Illusionary Mist (genjutsu fog, anime)",
+    "Water Release: Great Water Mass Bullet",
+    "Burrows underwater, causes tidal waves",
+    "Tailed Beast Ball"
+   ],
+   "behavior": "Çekingen, utangaç ve korkak; ama tehdit altında çok sert savunur. Su altında saklanmayı sever.",
+   "visual": "Massive turtle with spiky crab-like shell (grey-green), spikes over whole body and on large forehead and lower jaw. Three long shrimp-like segmented tails. Pair of human-like arms with hands, no hind legs. Red muscle-like tissue visible under shell. Face hidden between forehead plate and jaw. Red eyes with crimson (or yellow) pupils; right eye always closed (single open eye).",
+   "desc": "Göl/deniz bossu. Mercan pençesi oyuncuyu kristalleştirir (QTE ile kır). Kabuk dönüş saldırısı. Zayıf nokta: açık tek göz ve kabuk altındaki kırmızı doku.",
+   "game_role": "boss",
+   "first_appears": "Naruto ch.317 / Naruto Shippūden ep.92",
+   "signature": true,
+   "number": 3,
+   "tails": 3,
+   "animal": "Giant turtle with crab-like shell",
+   "kekkei_genkai": [
+    "Coral creation"
+   ],
+   "element_or_ability": "water; yin(anime); Coral Palm (coral grows over target to imprison); Shell Tower / Leaping Bullet (spinning shell ram); Illusionary Mist (genjutsu fog, anime)",
+   "size_note": "Databook vermez; sahnelerden tahmin (Gamabunta 17 m referans).",
+   "jinchuriki_mechanics": {
+    "host_village_historic": "Kirigakure",
+    "cloak_stages": [
+     "Water/coral aura",
+     "Shell-plated limbs",
+     "Full transformation"
+    ],
+    "partial": "Coral armor patches",
+    "full": "Full Three-Tails"
+   },
+   "game_suggestion": "Lake/sea boss; coral prison mechanic; shell-spin charge; hit the open eye.",
+   "source_page": "https://naruto.fandom.com/wiki/Isobu"
+  },
+  {
+   "id": "yonbi_son_goku",
+   "name": "Son Gokū (Göğe Eş Büyük Bilge / Dört Kuyruk)",
+   "name_en": "Four-Tails Son Gokū",
+   "group": "tailed_beast",
+   "size_m": 50,
+   "elements": [
+    "fire",
+    "earth",
+    "lava"
+   ],
+   "abilities": [
+    "Lava Release: spits lava/magma bombs",
+    "Flower–Fruit Mountain (lava bomb barrage)",
+    "Monkey Flame Arson (anime)",
+    "Brute strength grapples",
+    "Senjutsu-capable (Sage)",
+    "Tailed Beast Ball"
+   ],
+   "behavior": "Gururlu, inatçı, ateşli mizaçlı; adıyla hitap edilmeyi ve saygı görmeyi talep eder. Savaşçı onuruna önem verir.",
+   "visual": "Gorilla-build monkey with red fur and green skin (face, chest, hands). Two long upward-curving horns on forehead like a crown, elongated blunt fangs; horns and fangs dark-tipped. Yellow irises with white pupils. Four tails with spike-like protrusions along their length. Tongueless mouth with a dome-volcano-shaped opening (lava spews from it).",
+   "desc": "Volkanik bölge bossu. Lav havuzları arena tehlikesi; tutma (grab) saldırısı. Su ve rüzgar zayıflığı yok, toprak/lav dirençli.",
+   "game_role": "boss",
+   "first_appears": "Naruto ch.467 / Naruto Shippūden ep.165",
+   "signature": true,
+   "number": 4,
+   "tails": 4,
+   "animal": "Monkey/gorilla",
+   "kekkei_genkai": [
+    "Lava Release"
+   ],
+   "element_or_ability": "fire; earth; lava; Lava Release: spits lava/magma bombs; Flower–Fruit Mountain (lava bomb barrage); Monkey Flame Arson (anime)",
+   "size_note": "Databook vermez; sahnelerden tahmin (Gamabunta 17 m referans).",
+   "jinchuriki_mechanics": {
+    "host_village_historic": "Iwagakure",
+    "cloak_stages": [
+     "Lava-red chakra cloak",
+     "Lava armor coating body",
+     "Full transformation"
+    ],
+    "partial": "Lava fists, lava globules",
+    "full": "Full Four-Tails"
+   },
+   "game_suggestion": "Volcano boss with lava pools and magma bomb volleys.",
+   "source_page": "https://naruto.fandom.com/wiki/Son_Gokū"
+  },
+  {
+   "id": "gobi_kokuo",
+   "name": "Kokuō (Bilge Kral / Beş Kuyruk)",
+   "name_en": "Five-Tails Kokuō",
+   "group": "tailed_beast",
+   "size_m": 45,
+   "elements": [
+    "fire",
+    "water",
+    "boil"
+   ],
+   "abilities": [
+    "Boil Release: Unrivalled Strength (steam-boosted power)",
+    "Steam armor/vents (boiling steam damages attackers)",
+    "Horn Breaking (devastating horn charge)",
+    "Tailed Beast Ball",
+    "Tailed Beast Chakra Arms"
+   ],
+   "behavior": "Sakin, mesafeli, kendini beğenmiş ama nazik. Güveni kazanılırsa bilge bir danışman gibi konuşur.",
+   "visual": "White horse body with a dolphin head. Two long pointed horns plus three shorter horns in front. Horn ends, hooves and five bushy tails are tan, with tan spots before the tips. Red markings under dark blue-green eyes. Steam venting from body.",
+   "desc": "Kaplıca/buhar bölgesi bossu. Buhar zırhı yakın dövüşte yanma DoT'u verir; boynuz hücumundan kaçmak için parkur gerekir.",
+   "game_role": "boss",
+   "first_appears": "Naruto ch.467 / Naruto Shippūden ep.165",
+   "signature": true,
+   "number": 5,
+   "tails": 5,
+   "animal": "Horse–dolphin hybrid",
+   "kekkei_genkai": [
+    "Boil Release"
+   ],
+   "element_or_ability": "fire; water; boil; Boil Release: Unrivalled Strength (steam-boosted power); Steam armor/vents (boiling steam damages attackers); Horn Breaking (devastating horn charge)",
+   "size_note": "Databook vermez; sahnelerden tahmin (Gamabunta 17 m referans).",
+   "jinchuriki_mechanics": {
+    "host_village_historic": "Iwagakure",
+    "cloak_stages": [
+     "Steam vents (armor of steam)",
+     "Horn/hoof chakra cloak",
+     "Full transformation"
+    ],
+    "partial": "Steam-propelled punches",
+    "full": "Full Five-Tails"
+   },
+   "game_suggestion": "Steam-armored charger; melee attackers take scald damage.",
+   "source_page": "https://naruto.fandom.com/wiki/Kokuō"
+  },
+  {
+   "id": "rokubi_saiken",
+   "name": "Saiken (Gergedan Köpek / Altı Kuyruk)",
+   "name_en": "Six-Tails Saiken",
+   "group": "tailed_beast",
+   "size_m": 40,
+   "elements": [
+    "water"
+   ],
+   "abilities": [
+    "Corrosive alkaline mucus",
+    "Leech Gap / Wisdom Wolf Decay (corrosive gas)",
+    "Water Release: Starch Syrup Capturing Field (sticky)",
+    "Soap Bubble ninjutsu (anime)",
+    "Tailed Beast Ball"
+   ],
+   "behavior": "Neşeli, kibar ve iyi niyetli; kuyruklu canavarlar içinde en dost canlısı. Konuşmaları nazik.",
+   "visual": "Enormous white bipedal slug with a light bluish tint, stubby arms and feet, six long tails. Two prominent eye-stalk optical tentacles, hole-like opening as mouth. Body covered in thick glistening slime.",
+   "desc": "Bataklık bossu. Aşındırıcı balçık zırh dayanıklılığını azaltır; yapışkan alan hareketi yavaşlatır. Ateş/rüzgar ile balçığı kurutmak hasar penceresi açar.",
+   "game_role": "boss",
+   "first_appears": "Naruto ch.467 / Naruto Shippūden ep.151",
+   "signature": true,
+   "number": 6,
+   "tails": 6,
+   "animal": "Slug",
+   "kekkei_genkai": [
+    "Alkaline/corrosive secretion"
+   ],
+   "element_or_ability": "water; Corrosive alkaline mucus; Leech Gap / Wisdom Wolf Decay (corrosive gas); Water Release: Starch Syrup Capturing Field (sticky)",
+   "size_note": "Databook vermez; sahnelerden tahmin (Gamabunta 17 m referans).",
+   "jinchuriki_mechanics": {
+    "host_village_historic": "Kirigakure",
+    "cloak_stages": [
+     "Bubble/slime aura",
+     "Corrosive slime cloak",
+     "Full transformation"
+    ],
+    "partial": "Acid bubbles",
+    "full": "Full Six-Tails"
+   },
+   "game_suggestion": "Swamp boss with gear-corroding slime and sticky slow fields.",
+   "source_page": "https://naruto.fandom.com/wiki/Saiken"
+  },
+  {
+   "id": "nanabi_chomei",
+   "name": "Chōmei (Şanslı Yedi / Yedi Kuyruk)",
+   "name_en": "Seven-Tails Chōmei",
+   "group": "tailed_beast",
+   "size_m": 45,
+   "elements": [
+    "wind(implied)"
+   ],
+   "abilities": [
+    "Flight with six insect-wing tails",
+    "Glittering scale powder (blinds)",
+    "Bug Bite / spear horn charge",
+    "Shining Horn",
+    "Cocoon (anime)",
+    "Tailed Beast Ball"
+   ],
+   "behavior": "Neşeli, iyimser; kendini şanslı sayar. Özgürlüğü ve uçmayı sever.",
+   "visual": "Blue armored rhinoceros beetle. Seven tails from abdomen: six look like green-stemmed orange insect wings, one is an actual tail. Helmet-like skull covers eyes with orange glow inside. Spiked shoulders with rows of slits, six blue-armored legs with green tips, three-part face pincers over sharp teeth, large two-section horn on back behind head. (Larval stage: all green grub.)",
+   "desc": "Hava bossu: arenada uçar, pullu tozla görüşü kapatır. Duvar koşusu/parkur ile platformlardan atlayarak sırtına inme mekaniği.",
+   "game_role": "boss",
+   "first_appears": "Naruto ch.467 / Naruto Shippūden ep.165",
+   "signature": true,
+   "number": 7,
+   "tails": 7,
+   "animal": "Kabutomushi (rhinoceros beetle)",
+   "kekkei_genkai": [
+    "Flight",
+    "Scale powder"
+   ],
+   "element_or_ability": "wind(implied); Flight with six insect-wing tails; Glittering scale powder (blinds); Bug Bite / spear horn charge",
+   "size_note": "Databook vermez; sahnelerden tahmin (Gamabunta 17 m referans).",
+   "jinchuriki_mechanics": {
+    "host_village_historic": "Takigakure",
+    "cloak_stages": [
+     "Wing chakra (flight)",
+     "Armored insect cloak",
+     "Full transformation"
+    ],
+    "partial": "Chakra wings allowing flight",
+    "full": "Full Seven-Tails"
+   },
+   "game_suggestion": "Flying boss; scale powder blinds; parkur up to mount its back.",
+   "source_page": "https://naruto.fandom.com/wiki/Chōmei"
+  },
+  {
+   "id": "hachibi_gyuki",
+   "name": "Gyūki (Öküz İblis / Sekiz Kuyruk)",
+   "name_en": "Eight-Tails Gyūki",
+   "group": "tailed_beast",
+   "size_m": 55,
+   "elements": [],
+   "abilities": [
+    "Ink spray (blinds, can be used to escape)",
+    "Tentacle grapples and severable tentacle clones",
+    "Tailed Beast Ball (continuous)",
+    "Tailed Beast Heavy Cannon",
+    "Lariat with chakra arms",
+    "Regrows severed tentacles"
+   ],
+   "behavior": "Ciddi, mantıklı, sabırlı; konakçısıyla dostluk kurabilen nadir canavar. Şakalara/kafiyelere karşı sinirli ama sevgi dolu.",
+   "visual": "Muscular hunched bison-like upper body with humanoid arms (spiked elbows, opposable thumbs), four long Jacob-sheep-style curling horns, straight teeth. Lower half is eight octopus tentacles instead of legs. Dark reddish-brown/grey-purple skin, horns lighter; often shown with chipped horn/tooth.",
+   "desc": "Denizkıyısı/kayalık bossu; mürekkep görüşü kısıtlar. Kopartılan dokunaçlar küçük düşmanlara dönüşür (minion). Kumogakure arka planlı görev hattı.",
+   "game_role": "boss",
+   "first_appears": "Naruto ch.413 / Naruto Shippūden ep.143",
+   "signature": true,
+   "number": 8,
+   "tails": 8,
+   "animal": "Ushi-oni (ox–octopus)",
+   "kekkei_genkai": [
+    "Ink creation"
+   ],
+   "element_or_ability": "Ink spray (blinds, can be used to escape); Tentacle grapples and severable tentacle clones; Tailed Beast Ball (continuous)",
+   "size_note": "Databook vermez; sahnelerden tahmin (Gamabunta 17 m referans).",
+   "jinchuriki_mechanics": {
+    "host_village_historic": "Kumogakure",
+    "cloak_stages": [
+     "Chakra cloak with horns",
+     "Version 2 full cloak",
+     "Partial tentacle/horn transformation",
+     "Full transformation"
+    ],
+    "partial": "Tentacles sprout, ink",
+    "full": "Full Eight-Tails; can partially transform (tentacles only) at will in perfect control"
+   },
+   "game_suggestion": "Tentacle boss; severed tentacles spawn adds; ink blinds.",
+   "source_page": "https://naruto.fandom.com/wiki/Gyūki"
+  },
+  {
+   "id": "kyubi_kurama",
+   "name": "Kurama (Karanlık Kanatlı / Dokuz Kuyruk)",
+   "name_en": "Nine-Tails Kurama",
+   "group": "tailed_beast",
+   "size_m": [
+    60,
+    110
+   ],
+   "elements": [
+    "fire(anime)",
+    "wind(anime)"
+   ],
+   "abilities": [
+    "Negative Emotion Sensing",
+    "Massive chakra reserves and regeneration",
+    "Tailed Beast Ball / Continuous Tailed Beast Balls",
+    "Great Roar (shockwave)",
+    "Tail swipes cause tsunamis/landslides",
+    "Chakra transfer to allies"
+   ],
+   "behavior": "En güçlü kuyruklu canavar; gururlu, alaycı ve öfkeli; insanlardan nefret eder ama dostluk kazanılırsa sadık ve koruyucu olur.",
+   "visual": "Red-orange fox with black fur around red slit-pupil eyes extending up to the ears. Nine long sweeping tails. Humanoid upper body with opposable clawed hands; long jaw full of fangs. Large enough that a 17 m boss toad only reaches its torso; comparable to the Hokage Rock.",
+   "desc": "Final düzey boss / hikaye bossu (köy saldırısı olayı). Tam faz: arena ölçekli kuyruk savuruşları; mühürleme mini-oyunu. Kanon konakçı kullanılmaz; köy tarihi Konoha olarak anılabilir.",
+   "game_role": "boss",
+   "first_appears": "Naruto ch.1 / Naruto ep.1",
+   "signature": true,
+   "number": 9,
+   "tails": 9,
+   "animal": "Kitsune (fox)",
+   "kekkei_genkai": [
+    "Negative emotion sensing"
+   ],
+   "element_or_ability": "fire(anime); wind(anime); Negative Emotion Sensing; Massive chakra reserves and regeneration; Tailed Beast Ball / Continuous Tailed Beast Balls",
+   "size_note": "Databook vermez; sahnelerden tahmin (Gamabunta 17 m referans).",
+   "jinchuriki_mechanics": {
+    "host_village_historic": "Konohagakure",
+    "cloak_stages": [
+     "Initial Jinchūriki Form (red chakra aura, whiskers thicken, slit eyes)",
+     "Version 1 (one to four tails of red cloak, fox ears)",
+     "Version 2 (dark red skin-like cloak, skeleton forming, 4-6 tails)",
+     "Partial skeleton/Kurama form (6-8 tails)",
+     "Full transformation",
+     "Cooperative mode: golden Kurama Chakra Mode with black seal markings and Tailed Beast Mode avatar"
+    ],
+    "partial": "Chakra claws, tail lashes; cloak damages host (HP drain)",
+    "full": "Full fox; controlled state possible in cooperation"
+   },
+   "game_suggestion": "Endgame boss; tail sweeps, tailed beast bomb dodging; sealing puzzle.",
+   "source_page": "https://naruto.fandom.com/wiki/Kurama"
+  },
+  {
+   "id": "jubi_first_form",
+   "name": "Jūbi (On Kuyruk) – Eksik İlk Form",
+   "name_en": "Ten-Tails (incomplete first form)",
+   "group": "tailed_beast",
+   "size_m": [
+    80,
+    150
+   ],
+   "elements": [
+    "all five natures",
+    "yin",
+    "yang",
+    "wood"
+   ],
+   "abilities": [
+    "Absorbs chakra",
+    "Mass wood growth",
+    "Tailed Beast Ball",
+    "Wide-mouth bite and claw sweep",
+    "Ten-Tails Fission (spawns clones)"
+   ],
+   "behavior": "Düşünce yok; saf yıkım içgüdüsü. Kaybolan parçaları (diğer kuyruklu canavarlar) toplamaya çalışır.",
+   "visual": "Grotesque brown bulb-like body with long arms and clawed hands, no visible hind legs. Single huge eye (ringed Rinne-Sharingan-like, red with ripples and tomoe) covering most of head. Wide mouth with multiple rows of pointed teeth, single chin spike. Conch-shell spikes on back, dark veins; ten tails like gnarled tree roots.",
+   "desc": "Mega-boss faz 1. Bölünme saldırısıyla küçük klonlar çağırır. Yalnızca dünya-olayı/raid formatında.",
+   "game_role": "boss",
+   "first_appears": "Naruto ch.467 / Naruto Shippūden ep.205",
+   "signature": true,
+   "number": 10,
+   "tails": 10,
+   "animal": "Godlike chimera of the God Tree",
+   "element_or_ability": "All natures, wood, chakra absorption",
+   "size_note": "Databook vermez; sahnelerden tahmin (Gamabunta 17 m referans).",
+   "game_suggestion": "World-event raid boss; spawns fission clones; multi-phase.",
+   "source_page": "https://naruto.fandom.com/wiki/Ten-Tails"
+  },
+  {
+   "id": "jubi_second_form",
+   "name": "Jūbi – İkinci Form",
+   "name_en": "Ten-Tails (second form)",
+   "group": "tailed_beast",
+   "size_m": [
+    150,
+    250
+   ],
+   "elements": [
+    "all",
+    "wood",
+    "yin-yang"
+   ],
+   "abilities": [
+    "Tailed Beast Ball (massive)",
+    "Wood Release: Cutting Technique (wooden spike blades)",
+    "Tenpenchii (natural disasters: meteors, tornadoes, lightning)",
+    "Chakra absorption"
+   ],
+   "behavior": "Kendini gerçek formuna yaklaştırmış; daha bilinçli ve saldırgan.",
+   "visual": "Taller, more muscular humanoid-beast stance with long arms; brown hide, single ringed eye; ten writhing tails; larger back spikes like a conch.",
+   "desc": "Raid boss faz 2: doğal afet çağrısı (yıldırım/meteor/hortum) arena çapında.",
+   "game_role": "boss",
+   "first_appears": "Naruto ch.613",
+   "signature": true,
+   "number": 10,
+   "tails": 10,
+   "animal": "Chimera",
+   "element_or_ability": "Tenpenchii disasters",
+   "size_note": "Databook vermez; sahnelerden tahmin (Gamabunta 17 m referans)."
+  },
+  {
+   "id": "jubi_tree_form",
+   "name": "Jūbi – Ağaç Formu (Shinju)",
+   "name_en": "Ten-Tails (tree form)",
+   "group": "tailed_beast",
+   "size_m": [
+    500,
+    2000
+   ],
+   "elements": [
+    "wood",
+    "yin-yang"
+   ],
+   "abilities": [
+    "Roots drain chakra from all life",
+    "Flower blooms to cast Infinite Tsukuyomi",
+    "Roots ensnare and mummify"
+   ],
+   "behavior": "Bitkisel; pasif-saldırgan. Kökleri hayat enerjisini emer.",
+   "visual": "Colossal tree with trunk of twisting roots, giant flower bud with single ringed eye at the top; roots spread across the landscape with pod-like cocoons.",
+   "desc": "Final arena: ağaç gövdesine tırmanma (parkur) ve köklerin enerji emme alanından kaçış.",
+   "game_role": "boss",
+   "first_appears": "Naruto ch.640",
+   "signature": true,
+   "number": 10,
+   "tails": 10,
+   "animal": "Tree",
+   "element_or_ability": "Chakra drain, Infinite Tsukuyomi bloom",
+   "size_note": "Databook vermez; sahnelerden tahmin (Gamabunta 17 m referans)."
+  },
+  {
+   "id": "jubi_fission_clone",
+   "name": "Jūbi Bölünme Klonu",
+   "name_en": "Ten-Tails Fission Clone",
+   "group": "tailed_beast",
+   "size_m": [
+    3,
+    15
+   ],
+   "elements": [
+    "none"
+   ],
+   "abilities": [
+    "Swarming bite attacks",
+    "Self-destruct-like rush",
+    "Mimic Ten-Tails roar"
+   ],
+   "behavior": "Akılsız sürü; ana bedenden kopar, yakındaki her şeye saldırır.",
+   "visual": "Small to medium monstrous clones: grey-white rubbery skin, single big eye, large toothy mouth, stubby limbs; some look like misshapen apes, some like tadpoles.",
+   "desc": "Raid sırasında dalgalar halinde gelen sıradan düşman; alan hasarına zayıf.",
+   "game_role": "enemy",
+   "first_appears": "Naruto ch.613",
+   "signature": false,
+   "number": 10,
+   "tails": 0,
+   "animal": "Spawn",
+   "element_or_ability": "Swarm",
+   "size_note": "Estimate"
+  }
+ ],
+ "summons": [
+  {
+   "id": "toad_messenger",
+   "name": "Haberci Kurbağa (Gama – küçük)",
+   "name_en": "Messenger Toad",
+   "group": "summon",
+   "contract": "toad",
+   "size_m": [
+    0.2,
+    0.5
+   ],
+   "elements": [
+    "water"
+   ],
+   "abilities": [
+    "Carries scrolls/messages",
+    "Reverse summoning delivery",
+    "Hides in pouch",
+    "Short-range Water Gun spit"
+   ],
+   "behavior": "Konuşkan, yardımsever; atıştırmalık (şeker/yağ) karşılığında görev yapar.",
+   "visual": "Small toad, bright orange or green with darker spots, often wears tiny vest/scroll on back, big round eyes.",
+   "desc": "Görev ulaştırma ve hızlı seyahat (geri çağrılma) mekaniği; savaşta dikkat dağıtma.",
+   "game_role": "messenger",
+   "first_appears": "Naruto ch.92",
+   "signature": false,
+   "animal": "Toad",
+   "home": "Mount Myōboku (giant mushrooms, toad-oil waterfalls, Sage training grounds)",
+   "traits": "Konuşkan, yardımsever; atıştırmalık (şeker/yağ) karşılığında görev yapar."
+  },
+  {
+   "id": "toad_young",
+   "name": "Genç Kurbağa (Gamatatsu tipi)",
+   "name_en": "Young Toad",
+   "group": "summon",
+   "contract": "toad",
+   "size_m": [
+    1,
+    3
+   ],
+   "elements": [
+    "water",
+    "wind(anime)"
+   ],
+   "abilities": [
+    "Toad Oil Bullet (spit oil)",
+    "Water Gun",
+    "Swallow-and-carry ally"
+   ],
+   "behavior": "Çocuksu, aç, tembel ya da coşkulu; düşük çakra ile çağrıldığında gelen tür.",
+   "visual": "Chubby mid-sized toad, yellow-orange or red skin, small vest, round eyes, bubbles from mouth.",
+   "desc": "Düşük seviye çağrı: sınırlı süre, hafif destek; çakra az verilirse rastgele genç kurbağa gelir.",
+   "game_role": "ally_summon",
+   "first_appears": "Naruto ch.166 / Naruto ep.94",
+   "signature": false,
+   "animal": "Toad",
+   "home": "Mount Myōboku (giant mushrooms, toad-oil waterfalls, Sage training grounds)",
+   "traits": "Çocuksu, aç, tembel ya da coşkulu; düşük çakra ile çağrıldığında gelen tür.",
+   "source_page": "https://naruto.fandom.com/wiki/Gamatatsu"
+  },
+  {
+   "id": "toad_combat_mid",
+   "name": "Savaşçı Kurbağa Yavrusu (Gamakichi tipi)",
+   "name_en": "Mid-size Combat Toad",
+   "group": "summon",
+   "contract": "toad",
+   "size_m": [
+    3,
+    17
+   ],
+   "elements": [
+    "water",
+    "fire"
+   ],
+   "abilities": [
+    "Toad Oil Flame Bullet (combo with fire)",
+    "Starch Syrup Gun (sticky)",
+    "Tantō strike",
+    "Sage Mode capable when mature"
+   ],
+   "behavior": "Cesur, kendine güvenen, büyüdükçe güçlenen.",
+   "visual": "Orange-red toad with darker patterned blotches, leather-wrapped tantō, white sash around belly.",
+   "desc": "Seviye atladıkça büyüyen kalıcı yol arkadaşı çağrısı (16.9 m'ye kadar).",
+   "game_role": "ally_summon",
+   "first_appears": "Naruto ch.131 / Naruto ep.77",
+   "signature": false,
+   "animal": "Toad",
+   "home": "Mount Myōboku (giant mushrooms, toad-oil waterfalls, Sage training grounds)",
+   "traits": "Cesur, kendine güvenen, büyüdükçe güçlenen.",
+   "source_page": "https://naruto.fandom.com/wiki/Gamakichi"
+  },
+  {
+   "id": "toad_warrior_giant",
+   "name": "Dev Savaşçı Kurbağa",
+   "name_en": "Giant Warrior Toad",
+   "group": "summon",
+   "contract": "toad",
+   "size_m": [
+    15,
+    20
+   ],
+   "elements": [
+    "water",
+    "fire"
+   ],
+   "abilities": [
+    "Toad Sword Beheading",
+    "Water Release: Gunshot (water bullets)",
+    "Toad Oil + Fire combo (Toad Oil Flame Bullet)",
+    "Massive leaps that crush enemies"
+   ],
+   "behavior": "Sert mizaçlı yakuza-vari savaşçı; saygı görmeyen çağırıcıyı reddeder.",
+   "visual": "Huge reddish-brown toad with blue-grey markings around eyes, scars, short happi jacket/vest, sword (tantō) at side, smoking pipe in mouth.",
+   "desc": "Binek olarak kullanılabilir boss çağrısı; zıplama + yağ alevi kombosu.",
+   "game_role": "mount",
+   "first_appears": "Naruto ch.1 / Naruto ep.1",
+   "signature": false,
+   "animal": "Toad",
+   "home": "Mount Myōboku (giant mushrooms, toad-oil waterfalls, Sage training grounds)",
+   "traits": "Sert mizaçlı yakuza-vari savaşçı; saygı görmeyen çağırıcıyı reddeder.",
+   "source_page": "https://naruto.fandom.com/wiki/Gamabunta"
+  },
+  {
+   "id": "toad_shield_sasumata",
+   "name": "Kalkanlı Kurbağa",
+   "name_en": "Shield & Sasumata Toad",
+   "group": "summon",
+   "contract": "toad",
+   "size_m": 19,
+   "elements": [
+    "earth"
+   ],
+   "abilities": [
+    "Massive shield block",
+    "Sasumata (man-catcher fork) pin",
+    "Exploding Sasumata Attack (anime)"
+   ],
+   "behavior": "Beceriksiz, çekingen ve kendini küçümseyen ama sağlam koruyucu.",
+   "visual": "Giant purple-blue toad with heavy wooden shield and sasumata pitchfork, armor plates, nervous expression.",
+   "desc": "Tank çağrı: aggro çeker, kalkanla menzilli saldırıları bloklar.",
+   "game_role": "ally_summon",
+   "first_appears": "Naruto ch.374 / Naruto Shippūden ep.130",
+   "signature": false,
+   "animal": "Toad",
+   "home": "Mount Myōboku (giant mushrooms, toad-oil waterfalls, Sage training grounds)",
+   "traits": "Beceriksiz, çekingen ve kendini küçümseyen ama sağlam koruyucu.",
+   "source_page": "https://naruto.fandom.com/wiki/Gamaken"
+  },
+  {
+   "id": "toad_dual_blade",
+   "name": "Çift Kılıç Kurbağa",
+   "name_en": "Twin-Blade Toad",
+   "group": "summon",
+   "contract": "toad",
+   "size_m": 19,
+   "elements": [],
+   "abilities": [
+    "Dual sword slashes",
+    "Charging cleave"
+   ],
+   "behavior": "Sessiz, disiplinli savaşçı.",
+   "visual": "Giant toad with dark green/teal skin, samurai-style plates, two long swords crossed on back.",
+   "desc": "DPS çağrı: kombo kesikler.",
+   "game_role": "ally_summon",
+   "first_appears": "Naruto ch.124 / Naruto ep.73",
+   "signature": false,
+   "animal": "Toad",
+   "home": "Mount Myōboku (giant mushrooms, toad-oil waterfalls, Sage training grounds)",
+   "traits": "Sessiz, disiplinli savaşçı.",
+   "source_page": "https://naruto.fandom.com/wiki/Gamahiro"
+  },
+  {
+   "id": "toad_scroll",
+   "name": "Parşömen Kurbağa (Gerotora tipi)",
+   "name_en": "Scroll Toad",
+   "group": "summon",
+   "contract": "toad",
+   "size_m": [
+    0.5,
+    1
+   ],
+   "elements": [],
+   "abilities": [
+    "Stores secret written seal key on its scroll belly",
+    "Lives inside contractor's body",
+    "High endurance"
+   ],
+   "behavior": "Sır saklayıcı, sadık; çağıranı ölene kadar bilgiyi korur.",
+   "visual": "Small toad whose abdomen unrolls into a scroll with written seal formulae, wears tiny headband.",
+   "desc": "Mühür anahtarı / gizli bilgi taşıyıcı; görev ödül eşyası gibi davranabilir.",
+   "game_role": "messenger",
+   "first_appears": "Naruto ch.370 / Naruto Shippūden ep.130",
+   "signature": false,
+   "animal": "Toad",
+   "home": "Mount Myōboku (giant mushrooms, toad-oil waterfalls, Sage training grounds)",
+   "traits": "Sır saklayıcı, sadık; çağıranı ölene kadar bilgiyi korur.",
+   "source_page": "https://naruto.fandom.com/wiki/Gerotora"
+  },
+  {
+   "id": "toad_sage_elder",
+   "name": "Yaşlı Bilge Kurbağa",
+   "name_en": "Sage Elder Toad",
+   "group": "summon",
+   "contract": "toad",
+   "size_m": 0.25,
+   "elements": [
+    "wind",
+    "water",
+    "fire",
+    "yin"
+   ],
+   "abilities": [
+    "Sage Mode training (natural energy)",
+    "Fusion on shoulders (Sage Art: Amphibian technique support)",
+    "Demonic Illusion: Toad Confrontation Chant (genjutsu song)",
+    "Sage Art: Goemon (fire+wind+oil)",
+    "Fighting Tongue Slash / Bind",
+    "Frog Kata (taijutsu with natural energy)"
+   ],
+   "behavior": "Yüzlerce yaşında, bilge, şefkatli ama sert eğitmen; çiftler halinde gezer.",
+   "visual": "Tiny elderly toad, grey-green skin, white eyebrows/beard tufts, wearing a short cloak; female variant with lavender tone and hair bun.",
+   "desc": "Sennin Modu eğitmeni NPC; doğal enerji metresi (kıpırdama → güç, aşırı dolum → taşa dönüşen kurbağa heykeli).",
+   "game_role": "ally_summon",
+   "first_appears": "Naruto ch.375 / Naruto Shippūden ep.127",
+   "signature": false,
+   "animal": "Toad",
+   "home": "Mount Myōboku (giant mushrooms, toad-oil waterfalls, Sage training grounds)",
+   "traits": "Yüzlerce yaşında, bilge, şefkatli ama sert eğitmen; çiftler halinde gezer.",
+   "source_page": "https://naruto.fandom.com/wiki/Fukasaku"
+  },
+  {
+   "id": "toad_genjutsu",
+   "name": "Gönül Kurbağası (yanılsamacı)",
+   "name_en": "Genjutsu Toad",
+   "group": "summon",
+   "contract": "toad",
+   "size_m": [
+    3,
+    6
+   ],
+   "elements": [
+    "water",
+    "yin"
+   ],
+   "abilities": [
+    "Genjutsu Kiss (charm)",
+    "Whip of Love (tongue lash)",
+    "Water Gun"
+   ],
+   "behavior": "Gösterişli, flörtöz; genjutsu ile düşmanı oyalar.",
+   "visual": "Pink-tinged toad with lipstick-like markings, frilly scarf.",
+   "desc": "Kontrol çağrısı: düşmanları kısa süre büyüler.",
+   "game_role": "ally_summon",
+   "first_appears": "Naruto Shippūden ep.91",
+   "signature": false,
+   "animal": "Toad",
+   "home": "Mount Myōboku (giant mushrooms, toad-oil waterfalls, Sage training grounds)",
+   "traits": "Gösterişli, flörtöz; genjutsu ile düşmanı oyalar.",
+   "source_page": "https://naruto.fandom.com/wiki/Gamariki"
+  },
+  {
+   "id": "toad_mouth_trap",
+   "name": "Kurbağa Midesi Hapishanesi",
+   "name_en": "Toad Stomach Prison (summoned realm)",
+   "group": "summon",
+   "contract": "toad",
+   "size_m": 50,
+   "elements": [],
+   "abilities": [
+    "Summoning: Toad Mouth Bind (fills area with fleshy stomach walls)",
+    "Digestive fluid hazard"
+   ],
+   "behavior": "Canlı ortam; bir Myōboku kurbağasının yemek borusu.",
+   "visual": "Fleshy pink walls, sticky mucus, ribbed throat tunnels.",
+   "desc": "Tuzak arena / bulmaca zindan.",
+   "game_role": "other",
+   "first_appears": "Naruto ch.147 / Naruto ep.85",
+   "signature": false,
+   "animal": "Toad (internal)",
+   "home": "Mount Myōboku (giant mushrooms, toad-oil waterfalls, Sage training grounds)",
+   "traits": "Canlı ortam; bir Myōboku kurbağasının yemek borusu.",
+   "source_page": "https://naruto.fandom.com/wiki/Toad_Mouth_Trap"
+  },
+  {
+   "id": "toad_boss_chief",
+   "name": "Gamabunta (Kurbağa Reisi)",
+   "name_en": "Gamabunta (Chief Toad)",
+   "group": "summon",
+   "contract": "toad",
+   "size_m": 17,
+   "elements": [
+    "water",
+    "fire"
+   ],
+   "abilities": [
+    "Toad Oil Flame Bullet",
+    "Water Release: Gunshot",
+    "Toad Sword Beheading",
+    "Combination Transformation (with partners)"
+   ],
+   "behavior": "Kaba, pipo içen, onurlu yakuza patronu; gençleri test eder.",
+   "visual": "17 m reddish-brown toad, dark blue markings around eyes, smoking long pipe, blue happi vest with kanji, scarred eye, giant tantō.",
+   "desc": "Kanon imza çağrı; oyuncu kalıcı olarak almaz, ancak eğitmen/olay figürü olabilir.",
+   "game_role": "boss",
+   "first_appears": "Naruto ch.1 / Naruto ep.1",
+   "signature": true,
+   "animal": "Toad",
+   "home": "Mount Myōboku (giant mushrooms, toad-oil waterfalls, Sage training grounds)",
+   "traits": "Kaba, pipo içen, onurlu yakuza patronu; gençleri test eder.",
+   "source_page": "https://naruto.fandom.com/wiki/Gamabunta"
+  },
+  {
+   "id": "great_toad_sage",
+   "name": "Büyük Kurbağa Bilgesi (Ōgama Sennin)",
+   "name_en": "Great Toad Sage",
+   "group": "summon",
+   "contract": "toad",
+   "size_m": [
+    2,
+    4
+   ],
+   "elements": [
+    "senjutsu"
+   ],
+   "abilities": [
+    "Prophetic dreams",
+    "Senjutsu mastery",
+    "Living for over 800 years"
+   ],
+   "behavior": "Unutkan, uykucu, kehanetçi; çok saygıdeğer.",
+   "visual": "Ancient pale toad seated on a dais, wears a large hat/robe with 'oil' kanji, drooping eyelids.",
+   "desc": "Kehanet görevi veren NPC (Myōboku).",
+   "game_role": "other",
+   "first_appears": "Naruto ch.376 / Naruto Shippūden ep.127",
+   "signature": true,
+   "animal": "Toad",
+   "home": "Mount Myōboku (giant mushrooms, toad-oil waterfalls, Sage training grounds)",
+   "traits": "Unutkan, uykucu, kehanetçi; çok saygıdeğer.",
+   "source_page": "https://naruto.fandom.com/wiki/Great_Toad_Sage"
+  },
+  {
+   "id": "snake_small_swarm",
+   "name": "Küçük Yılan Sürüsü",
+   "name_en": "Snake Swarm",
+   "group": "summon",
+   "contract": "snake",
+   "size_m": [
+    0.5,
+    3
+   ],
+   "elements": [],
+   "abilities": [
+    "Striking Shadow Snakes from sleeves",
+    "Bind and poison",
+    "Hidden Shadow Snake Hands"
+   ],
+   "behavior": "İçgüdüsel; çağıranın uzantısı.",
+   "visual": "Dozens of black/purple snakes emerging from sleeves or ground, yellow slit eyes.",
+   "desc": "Yılan-sözleşmesi kullanıcısı düşmanın kısa/orta menzil saldırısı.",
+   "game_role": "enemy",
+   "first_appears": "Naruto ch.50 / Naruto ep.30",
+   "signature": false,
+   "animal": "Snake",
+   "home": "Ryūchi Cave (dark caverns, giant bones, White Snake Sage)",
+   "traits": "İçgüdüsel; çağıranın uzantısı.",
+   "source_page": "https://naruto.fandom.com/wiki/Hidden_Shadow_Snake_Hands"
+  },
+  {
+   "id": "snake_giant_generic",
+   "name": "Dev Yılan",
+   "name_en": "Giant Snake",
+   "group": "summon",
+   "contract": "snake",
+   "size_m": [
+    10,
+    40
+   ],
+   "elements": [],
+   "abilities": [
+    "Coiling constriction",
+    "Burrowing",
+    "Swallowing targets whole",
+    "Venom bite"
+   ],
+   "behavior": "Vahşi, aç, sadakatsiz; kurbanlar talep eder.",
+   "visual": "Massive snake, purple-grey or brown scales with darker bands, yellow slit eyes, forked tongue.",
+   "desc": "Ölüm Ormanı ve mağara bossu/miniboss; yeraltından çıkış saldırısı.",
+   "game_role": "miniboss",
+   "first_appears": "Naruto ch.45",
+   "signature": false,
+   "animal": "Snake",
+   "home": "Ryūchi Cave (dark caverns, giant bones, White Snake Sage)",
+   "traits": "Vahşi, aç, sadakatsiz; kurbanlar talep eder."
+  },
+  {
+   "id": "snake_boss_tyrant",
+   "name": "Manda (Yılan Reisi)",
+   "name_en": "Manda (Snake Boss)",
+   "group": "summon",
+   "contract": "snake",
+   "size_m": [
+    100,
+    150
+   ],
+   "elements": [],
+   "abilities": [
+    "Coiling Around (constriction)",
+    "Burrowing escape",
+    "Shedding skin to escape"
+   ],
+   "behavior": "Kibirli, kan dökücü; her çağrıda 100 kurban ister; çağıranı tehdit eder.",
+   "visual": "Colossal purple snake with dark markings, prominent eyebrow ridges and horn-like crests, yellow eyes, long fangs.",
+   "desc": "Kanon imza; 'kurban fiyatlı çağrı' mekaniği için ilham.",
+   "game_role": "boss",
+   "first_appears": "Naruto ch.169 / Naruto ep.95",
+   "signature": true,
+   "animal": "Snake",
+   "home": "Ryūchi Cave (dark caverns, giant bones, White Snake Sage)",
+   "traits": "Kibirli, kan dökücü; her çağrıda 100 kurban ister; çağıranı tehdit eder.",
+   "source_page": "https://naruto.fandom.com/wiki/Manda"
+  },
+  {
+   "id": "snake_loyal_giant",
+   "name": "Sadık Dev Yılan (Aoda tipi)",
+   "name_en": "Loyal Giant Snake",
+   "group": "summon",
+   "contract": "snake",
+   "size_m": [
+    20,
+    60
+   ],
+   "elements": [],
+   "abilities": [
+    "Coiling Around",
+    "Nagi Snake Tail (tail sweep)",
+    "Sensing via tongue",
+    "Mount for travel"
+   ],
+   "behavior": "Sadık, kibar ve itaatkâr; usta çağıranlara bağlı.",
+   "visual": "Huge blue-violet snake with pale belly, fangs, intelligent yellow eyes.",
+   "desc": "Binek ve ally çağrı.",
+   "game_role": "mount",
+   "first_appears": "Naruto ch.633 / Naruto Shippūden ep.373",
+   "signature": false,
+   "animal": "Snake",
+   "home": "Ryūchi Cave (dark caverns, giant bones, White Snake Sage)",
+   "traits": "Sadık, kibar ve itaatkâr; usta çağıranlara bağlı.",
+   "source_page": "https://naruto.fandom.com/wiki/Aoda"
+  },
+  {
+   "id": "snake_petrifying",
+   "name": "Taşlaştıran Yılan (Garaga tipi)",
+   "name_en": "Petrifying Venom Snake",
+   "group": "summon",
+   "contract": "snake",
+   "size_m": [
+    30,
+    60
+   ],
+   "elements": [
+    "fire"
+   ],
+   "abilities": [
+    "Flaming Fang: Petrification Poison",
+    "Coiling Around",
+    "Nagi Snake Tail"
+   ],
+   "behavior": "Huysuz, gururlu; çağıranı test etmek için kavga eder.",
+   "visual": "Huge dark-scaled snake with white/grey armored head plates, scarred face, glowing yellow eyes.",
+   "desc": "Boruto dönemi çağrı; zehri taşlaşma/dondurma statüsü verir.",
+   "game_role": "ally_summon",
+   "first_appears": "Boruto ep.76",
+   "signature": true,
+   "animal": "Snake",
+   "home": "Ryūchi Cave (dark caverns, giant bones, White Snake Sage)",
+   "traits": "Huysuz, gururlu; çağıranı test etmek için kavga eder.",
+   "source_page": "https://naruto.fandom.com/wiki/Garaga"
+  },
+  {
+   "id": "snake_white_sage",
+   "name": "Ak Yılan Bilgesi (Hakuja Sennin)",
+   "name_en": "White Snake Sage",
+   "group": "summon",
+   "contract": "snake",
+   "size_m": [
+    5,
+    50
+   ],
+   "elements": [
+    "senjutsu"
+   ],
+   "abilities": [
+    "Senjutsu training (Ryūchi)",
+    "Petrification risk for failed trainees",
+    "Prophecy"
+   ],
+   "behavior": "Gizemli, ağır başlı, ölçülü.",
+   "visual": "Enormous white serpent with long whiskers/ beard, sage robes around head area, red eyes.",
+   "desc": "Ryūchi Mağarası doğal enerji eğitimi NPC'si.",
+   "game_role": "other",
+   "first_appears": "Naruto ch.579 / Naruto Shippūden ep.334",
+   "signature": true,
+   "animal": "Snake",
+   "home": "Ryūchi Cave (dark caverns, giant bones, White Snake Sage)",
+   "traits": "Gizemli, ağır başlı, ölçülü.",
+   "source_page": "https://naruto.fandom.com/wiki/White_Snake_Sage"
+  },
+  {
+   "id": "snake_eight_branches",
+   "name": "Sekiz Başlı Yılan (Yamata)",
+   "name_en": "Eight Branches Serpent",
+   "group": "summon",
+   "contract": "snake",
+   "size_m": [
+    50,
+    100
+   ],
+   "elements": [],
+   "abilities": [
+    "Eight heads with human torsos emerging",
+    "Kusanagi sword from mouth",
+    "Regeneration"
+   ],
+   "behavior": "Kontrolsüz saldırganlık; ölümsüzlük peşindeki biri tarafından çağrılan dev form.",
+   "visual": "Eight giant white snakes joined at base, each head can contain a humanoid; pale scales, red eyes.",
+   "desc": "Raid boss / Ryūchi kötü son.",
+   "game_role": "boss",
+   "first_appears": "Naruto ch.392 / Naruto Shippūden ep.138",
+   "signature": true,
+   "animal": "Snake (form)",
+   "home": "Ryūchi Cave (dark caverns, giant bones, White Snake Sage)",
+   "traits": "Kontrolsüz saldırganlık; ölümsüzlük peşindeki biri tarafından çağrılan dev form.",
+   "source_page": "https://naruto.fandom.com/wiki/Eight_Branches_Technique"
+  },
+  {
+   "id": "slug_boss_katsuyu",
+   "name": "Katsuyu (Sümüklü Böcek Reisi)",
+   "name_en": "Katsuyu (Slug Queen)",
+   "group": "summon",
+   "contract": "slug",
+   "size_m": [
+    30,
+    100
+   ],
+   "elements": [],
+   "abilities": [
+    "Slug Great Division (splits into thousands of small slugs)",
+    "Immense Network Healing via split slugs",
+    "Tongue Tooth Sticky Acid",
+    "Chakra transfer"
+   ],
+   "behavior": "Nazik, saygılı, endişeli; şifacı.",
+   "visual": "Giant pale white-blue slug with blue stripes along the back, two eye stalks.",
+   "desc": "Kanon imza; şifa ağı mekaniği için ilham (parçalara ayrılıp ekibe dağılır).",
+   "game_role": "ally_summon",
+   "first_appears": "Naruto ch.169 / Naruto ep.95",
+   "signature": true,
+   "animal": "Slug",
+   "home": "Shikkotsu Forest (humid giant-fungus forest, healing knowledge)",
+   "traits": "Nazik, saygılı, endişeli; şifacı.",
+   "source_page": "https://naruto.fandom.com/wiki/Katsuyu"
+  },
+  {
+   "id": "slug_healing_fragment",
+   "name": "Şifa Sümüklüsü (bölünmüş)",
+   "name_en": "Healing Slug Fragment",
+   "group": "summon",
+   "contract": "slug",
+   "size_m": [
+    0.1,
+    0.5
+   ],
+   "elements": [],
+   "abilities": [
+    "Heals over time",
+    "Relays chakra",
+    "Communication link across the battlefield"
+   ],
+   "behavior": "Uysal; omuzda taşınır.",
+   "visual": "Small white-blue slug with stripes, sits on shoulder.",
+   "desc": "Takım iyileştirme buff'ı / mesajlaşma.",
+   "game_role": "ally_summon",
+   "first_appears": "Naruto Shippūden",
+   "signature": false,
+   "animal": "Slug",
+   "home": "Shikkotsu Forest (humid giant-fungus forest, healing knowledge)",
+   "traits": "Uysal; omuzda taşınır."
+  },
+  {
+   "id": "slug_acid_giant",
+   "name": "Asit Sümüklüsü",
+   "name_en": "Giant Acid Slug",
+   "group": "summon",
+   "contract": "slug",
+   "size_m": [
+    10,
+    30
+   ],
+   "elements": [],
+   "abilities": [
+    "Acid spit (melts structures)",
+    "Absorbs blunt damage",
+    "Splits when cut"
+   ],
+   "behavior": "Pasif ama yüzleşince inatçı savunucu.",
+   "visual": "Translucent pale slug with blue stripes, dripping acid.",
+   "desc": "Destek/kuşatma çağrısı.",
+   "game_role": "ally_summon",
+   "first_appears": "Naruto ch.169 / Naruto ep.95",
+   "signature": false,
+   "animal": "Slug",
+   "home": "Shikkotsu Forest (humid giant-fungus forest, healing knowledge)",
+   "traits": "Pasif ama yüzleşince inatçı savunucu.",
+   "source_page": "https://naruto.fandom.com/wiki/Katsuyu"
+  },
+  {
+   "id": "hawk_messenger",
+   "name": "Haberci Şahin",
+   "name_en": "Messenger Hawk",
+   "group": "summon",
+   "contract": "hawk",
+   "size_m": [
+    0.5,
+    1
+   ],
+   "elements": [],
+   "abilities": [
+    "Long-range message delivery",
+    "Scouting",
+    "Carries small scrolls"
+   ],
+   "behavior": "Sadık, çevik; köylere ait.",
+   "visual": "Brown/grey hawk with leg-mounted scroll canister, sometimes small headband.",
+   "desc": "Görev bildirimi, harita keşfi (kuş-göz görünümü).",
+   "game_role": "messenger",
+   "first_appears": "Naruto ch.250",
+   "signature": false,
+   "animal": "Hawk",
+   "home": "Unknown aerie / village messenger lofts",
+   "traits": "Sadık, çevik; köylere ait."
+  },
+  {
+   "id": "hawk_giant_war",
+   "name": "Dev Savaş Şahini (Garuda tipi)",
+   "name_en": "Giant War Hawk",
+   "group": "summon",
+   "contract": "hawk",
+   "size_m": [
+    10,
+    20
+   ],
+   "elements": [
+    "wind",
+    "lightning(combo)"
+   ],
+   "abilities": [
+    "Aerial mount",
+    "Dive strike",
+    "Wind gust"
+   ],
+   "behavior": "Gururlu, sessiz, hızlı.",
+   "visual": "Giant brown-and-white hawk with sharp golden eyes, wide wings, harnessable shoulders.",
+   "desc": "Uçan binek (sınırlı süre); parkur ile birleşen hava manevraları.",
+   "game_role": "mount",
+   "first_appears": "Naruto ch.477 / Naruto Shippūden ep.209",
+   "signature": true,
+   "animal": "Hawk",
+   "home": "Unknown aerie / village messenger lofts",
+   "traits": "Gururlu, sessiz, hızlı.",
+   "source_page": "https://naruto.fandom.com/wiki/Garuda"
+  },
+  {
+   "id": "bird_ink_or_clay",
+   "name": "Kil/Mürekkep Kuşu (yapay)",
+   "name_en": "Ink/Clay Bird (construct mount)",
+   "group": "summon",
+   "contract": "hawk",
+   "size_m": [
+    3,
+    10
+   ],
+   "elements": [],
+   "abilities": [
+    "Flight",
+    "Explosive clay variant",
+    "Ink beasts scouting"
+   ],
+   "behavior": "Yapıdır, kişiliği yok.",
+   "visual": "Stylized bird made of white clay or black ink lines.",
+   "desc": "Klan jutsusu ile yaratılan binek; çağrı değil ama benzer işlev.",
+   "game_role": "mount",
+   "first_appears": "Naruto ch.247 (clay birds); ink beasts Naruto Part II",
+   "signature": false,
+   "animal": "Construct bird",
+   "home": "Unknown aerie / village messenger lofts",
+   "traits": "Yapıdır, kişiliği yok."
+  },
+  {
+   "id": "ninken_tracker",
+   "name": "Takipçi Ninken (küçük)",
+   "name_en": "Tracker Ninken",
+   "group": "summon",
+   "contract": "dog",
+   "size_m": [
+    0.3,
+    0.6
+   ],
+   "elements": [],
+   "abilities": [
+    "Scent tracking",
+    "Speaks human language",
+    "Paw-pad stamp",
+    "Can deliver messages"
+   ],
+   "behavior": "Bilmiş, rahat, sadık; patilerinin yumuşaklığıyla övünür.",
+   "visual": "Small pug-like dog with brown fur, blue vest and Konoha forehead protector, droopy jowls.",
+   "desc": "İz sürme mini oyunu, keşif.",
+   "game_role": "messenger",
+   "first_appears": "Naruto ch.29 / Naruto ep.17",
+   "signature": false,
+   "animal": "Dog",
+   "home": "Ninken kennels (Konoha); contract scroll",
+   "traits": "Bilmiş, rahat, sadık; patilerinin yumuşaklığıyla övünür.",
+   "source_page": "https://naruto.fandom.com/wiki/Pakkun"
+  },
+  {
+   "id": "ninken_pack",
+   "name": "Ninken Sürüsü",
+   "name_en": "Ninken Pack",
+   "group": "summon",
+   "contract": "dog",
+   "size_m": [
+    0.5,
+    2
+   ],
+   "elements": [],
+   "abilities": [
+    "Summoning: Earth Release: Tracking Fang (bursts from ground to pin target)",
+    "Pack bite",
+    "Scent tracking"
+   ],
+   "behavior": "Disiplinli sürü; liderin emrine uyar.",
+   "visual": "Eight assorted dogs (bulldog, akita, husky, tall gaunt hound etc.) each wearing vests and headbands.",
+   "desc": "Düşmanı yerden tutan kontrol çağrısı.",
+   "game_role": "ally_summon",
+   "first_appears": "Naruto ch.29 / Naruto ep.17",
+   "signature": false,
+   "animal": "Dog",
+   "home": "Ninken kennels (Konoha); contract scroll",
+   "traits": "Disiplinli sürü; liderin emrine uyar.",
+   "source_page": "https://naruto.fandom.com/wiki/Summoning:_Earth_Release:_Tracking_Fang_Technique"
+  },
+  {
+   "id": "ninken_partner",
+   "name": "Ortak Savaşçı Köpek (Inuzuka tipi)",
+   "name_en": "Partner Combat Dog",
+   "group": "summon",
+   "contract": "dog",
+   "size_m": [
+    0.4,
+    2
+   ],
+   "elements": [],
+   "abilities": [
+    "Fang Over Fang (spinning drill)",
+    "Dynamic Marking",
+    "Transforms into clone of partner",
+    "Two-headed wolf fusion (with partner)"
+   ],
+   "behavior": "Sadık, oyuncu; partneriyle büyür.",
+   "visual": "Large white/grey dog with pink-red cheek fang markings like partner clan, collar.",
+   "desc": "Klan seçimine bağlı kalıcı yoldaş.",
+   "game_role": "ally_summon",
+   "first_appears": "Naruto ch.39 / Naruto ep.23",
+   "signature": false,
+   "animal": "Dog",
+   "home": "Ninken kennels (Konoha); contract scroll",
+   "traits": "Sadık, oyuncu; partneriyle büyür.",
+   "source_page": "https://naruto.fandom.com/wiki/Akamaru"
+  },
+  {
+   "id": "ninken_two_head_wolf",
+   "name": "İki Başlı Dev Kurt (füzyon)",
+   "name_en": "Two-Headed Wolf (fusion)",
+   "group": "summon",
+   "contract": "dog",
+   "size_m": [
+    8,
+    12
+   ],
+   "elements": [],
+   "abilities": [
+    "Fang Wolf Fang (giant spinning)"
+   ],
+   "behavior": "Vahşi füzyon formu.",
+   "visual": "Giant two-headed wolf with dark grey fur.",
+   "desc": "Klan ultimate dönüşümü.",
+   "game_role": "ally_summon",
+   "first_appears": "Naruto ch.203 / Naruto ep.120",
+   "signature": false,
+   "animal": "dog",
+   "home": "Ninken kennels (Konoha); contract scroll",
+   "traits": "Vahşi füzyon formu.",
+   "source_page": "https://naruto.fandom.com/wiki/Fang_Wolf_Fang"
+  },
+  {
+   "id": "monkey_king",
+   "name": "Maymun Kral (Enma tipi)",
+   "name_en": "Monkey King",
+   "group": "summon",
+   "contract": "monkey",
+   "size_m": [
+    1.5,
+    3
+   ],
+   "elements": [
+    "earth",
+    "fire-resistant"
+   ],
+   "abilities": [
+    "Transformation: Adamantine Staff (extendable unbreakable staff)",
+    "Adamantine Prison Wall (cage)",
+    "Shadow clones",
+    "Staff spin deflection"
+   ],
+   "behavior": "Yaşlı, onurlu, keskin dilli savaşçı; çağıranına şeref temelli bağlı.",
+   "visual": "Large grey-white-furred monkey with spiky mane and beard, wears leopard-pattern armor/vest and Konoha headband, red facial markings.",
+   "desc": "Çağrılınca silaha dönüşen yoldaş: sopa uzar/ kısalır (parkur ve menzil oyunu).",
+   "game_role": "ally_summon",
+   "first_appears": "Naruto ch.120 / Naruto ep.71",
+   "signature": true,
+   "animal": "Monkey",
+   "home": "Monkey contract (Mountain of the Monkey King – not detailed in canon)",
+   "traits": "Yaşlı, onurlu, keskin dilli savaşçı; çağıranına şeref temelli bağlı.",
+   "source_page": "https://naruto.fandom.com/wiki/Monkey_King:_Enma"
+  },
+  {
+   "id": "monkey_young_staff",
+   "name": "Genç Maymun Savaşçı (Enra tipi)",
+   "name_en": "Young Monkey Warrior",
+   "group": "summon",
+   "contract": "monkey",
+   "size_m": [
+    1,
+    2
+   ],
+   "elements": [],
+   "abilities": [
+    "Adamantine staff (smaller)",
+    "Quick acrobatics"
+   ],
+   "behavior": "Hırslı, havalı görünmek isteyen genç maymun.",
+   "visual": "Smaller monkey with lighter fur, armor vest, cocky grin.",
+   "desc": "Erken seviye maymun çağrısı.",
+   "game_role": "ally_summon",
+   "first_appears": "Boruto ep.119",
+   "signature": false,
+   "animal": "Monkey",
+   "home": "Monkey contract (Mountain of the Monkey King – not detailed in canon)",
+   "traits": "Hırslı, havalı görünmek isteyen genç maymun.",
+   "source_page": "https://naruto.fandom.com/wiki/Enra"
+  },
+  {
+   "id": "crow_messenger",
+   "name": "Göz Kargası",
+   "name_en": "Genjutsu Crow",
+   "group": "summon",
+   "contract": "crow",
+   "size_m": [
+    0.4,
+    0.6
+   ],
+   "elements": [
+    "yin"
+   ],
+   "abilities": [
+    "Carries implanted eye/genjutsu",
+    "Disperses into crow flock (body flicker)",
+    "Scouting"
+   ],
+   "behavior": "Sessiz, gizemli.",
+   "visual": "Black crow with red Sharingan-like glint in one eye.",
+   "desc": "Genjutsu tuzağı veya gözcü; görüşü paylaşır.",
+   "game_role": "messenger",
+   "first_appears": "Naruto Part I",
+   "signature": false,
+   "animal": "Crow",
+   "home": "Uchiha crow contract",
+   "traits": "Sessiz, gizemli."
+  },
+  {
+   "id": "crow_flock",
+   "name": "Karga Sürüsü",
+   "name_en": "Crow Murder",
+   "group": "summon",
+   "contract": "crow",
+   "size_m": 0.4,
+   "elements": [
+    "yin"
+   ],
+   "abilities": [
+    "Crow Clone (body dissolves into crows)",
+    "Blinding flock attack",
+    "Distraction"
+   ],
+   "behavior": "Sürü.",
+   "visual": "Dozens of black crows, feathers swirl.",
+   "desc": "Kaçış/kamuflaj efekti; düşman genjutsu kullanıcısı.",
+   "game_role": "enemy",
+   "first_appears": "Naruto ch.259 / Naruto Shippūden ep.14",
+   "signature": false,
+   "animal": "crow",
+   "home": "Uchiha crow contract",
+   "traits": "Sürü.",
+   "source_page": "https://naruto.fandom.com/wiki/Crow_Clone_Technique"
+  },
+  {
+   "id": "salamander_poison",
+   "name": "Zehirli Dev Semender (Ibuse tipi)",
+   "name_en": "Venomous Giant Salamander",
+   "group": "summon",
+   "contract": "salamander",
+   "size_m": [
+    20,
+    30
+   ],
+   "elements": [],
+   "abilities": [
+    "Poison Mist (huge toxic cloud)",
+    "Summoning: Ibuse Poisoning (summoner's body shares poison sac)",
+    "Amphibious",
+    "Summoner stands on head"
+   ],
+   "behavior": "Sessiz, yavaş ama ölümcül.",
+   "visual": "Huge Japanese giant salamander: brown-grey wrinkled warty skin, small eyes, wide flat head, ribbed sides.",
+   "desc": "Zehir sisi alanı; arena kontrol bossu (yağmur bölgesi).",
+   "game_role": "miniboss",
+   "first_appears": "Naruto ch.369 / Naruto Shippūden ep.128",
+   "signature": true,
+   "animal": "Japanese giant salamander",
+   "home": "Amegakure (Hanzō's contract)",
+   "traits": "Sessiz, yavaş ama ölümcül.",
+   "source_page": "https://naruto.fandom.com/wiki/Ibuse"
+  },
+  {
+   "id": "ninja_tortoise",
+   "name": "Ninja Kaplumbağa",
+   "name_en": "Ninja Tortoise",
+   "group": "summon",
+   "contract": "tortoise",
+   "size_m": [
+    0.9,
+    30
+   ],
+   "elements": [
+    "water"
+   ],
+   "abilities": [
+    "Ferry across water (grows to carry rider)",
+    "Referee/messenger",
+    "Shell defense"
+   ],
+   "behavior": "Ciddi ama sabırlı; sürekli konuşan bir yaşlı.",
+   "visual": "Tortoise with shell, wearing a forehead protector on head.",
+   "desc": "Su geçişi bineği ve mesaj taşıyıcı.",
+   "game_role": "mount",
+   "first_appears": "Naruto ch.37 / Naruto ep.22",
+   "signature": false,
+   "animal": "Tortoise",
+   "home": "Ninja tortoise contract",
+   "traits": "Ciddi ama sabırlı; sürekli konuşan bir yaşlı.",
+   "source_page": "https://naruto.fandom.com/wiki/Ningame"
+  },
+  {
+   "id": "sickle_weasel",
+   "name": "Orak Gelinciği (Kamaitachi)",
+   "name_en": "Sickle Weasel",
+   "group": "summon",
+   "contract": "weasel",
+   "size_m": [
+    0.5,
+    1
+   ],
+   "elements": [
+    "wind"
+   ],
+   "abilities": [
+    "Summoning: Quick Beheading Dance (wind tornado of blades)",
+    "Wields giant kama sickle"
+   ],
+   "behavior": "Hızlı, sessiz; tek gözü yaralı/kapalı.",
+   "visual": "Small white weasel with one eye scarred, carrying a large sickle on back.",
+   "desc": "Rüzgar AoE çağrısı: büyük yelpaze darbesiyle birleşik kasırga.",
+   "game_role": "ally_summon",
+   "first_appears": "Naruto ch.214 / Naruto ep.125",
+   "signature": true,
+   "animal": "Weasel",
+   "home": "Sunagakure (Temari's weasel contract)",
+   "traits": "Hızlı, sessiz; tek gözü yaralı/kapalı.",
+   "source_page": "https://naruto.fandom.com/wiki/Kamatari"
+  },
+  {
+   "id": "kamaitachi_trio",
+   "name": "Rüzgar Gelincik Üçlüsü",
+   "name_en": "Wind Weasel Triplets",
+   "group": "summon",
+   "contract": "weasel",
+   "size_m": 0.6,
+   "elements": [
+    "wind"
+   ],
+   "abilities": [
+    "Trip-cut-heal sequence (folklore kamaitachi)",
+    "Rapid wind slashes"
+   ],
+   "behavior": "Koordineli üçlü (folklor tabanlı, kanon dışı varyant).",
+   "visual": "Three weasels: first with sickle, second with blade claws, third carrying salve pot.",
+   "desc": "Oyun-orijinal varyant (kamaitachi folkloru).",
+   "game_role": "ally_summon",
+   "first_appears": "game-original (inspired by Kamatari/kamaitachi)",
+   "signature": false,
+   "animal": "Weasel",
+   "home": "Sunagakure (Temari's weasel contract)",
+   "traits": "Koordineli üçlü (folklor tabanlı, kanon dışı varyant)."
+  },
+  {
+   "id": "spider_giant",
+   "name": "Dev Örümcek",
+   "name_en": "Giant Spider",
+   "group": "summon",
+   "contract": "spider",
+   "size_m": [
+    5,
+    15
+   ],
+   "elements": [],
+   "abilities": [
+    "Rain of Spiders (releases egg sac of small spiders)",
+    "Sticky web traps",
+    "Spider Sticking Spit"
+   ],
+   "behavior": "İçgüdüsel avcı.",
+   "visual": "Massive black-and-yellow spider with hairy legs, egg sac on abdomen.",
+   "desc": "Ağ tuzakları ve yavru dalgaları; orman zindanı.",
+   "game_role": "miniboss",
+   "first_appears": "Naruto ch.194 / Naruto ep.116",
+   "signature": false,
+   "animal": "Spider",
+   "home": "Spider contract (Otogakure users)",
+   "traits": "İçgüdüsel avcı.",
+   "source_page": "https://naruto.fandom.com/wiki/Kyodaigumo"
+  },
+  {
+   "id": "nekomata_boss",
+   "name": "Nekomata (Kedi Reisi)",
+   "name_en": "Nekomata (Cat Boss)",
+   "group": "summon",
+   "contract": "cat",
+   "size_m": [
+    10,
+    20
+   ],
+   "elements": [
+    "yin"
+   ],
+   "abilities": [
+    "Cat Genjutsu",
+    "Grants access to Cat Fortress",
+    "Massive claws"
+   ],
+   "behavior": "Yaşlı, oyuncu ama otoriter; kedi nanesi (catnip) ile yumuşar.",
+   "visual": "Giant two-tailed cat with greying fur, large scarf.",
+   "desc": "Kedi Kalesi görev bossu.",
+   "game_role": "boss",
+   "first_appears": "Naruto Shippūden ep.189",
+   "signature": true,
+   "animal": "Bakeneko",
+   "home": "Cat Fortress (Ninneko underworld)",
+   "traits": "Yaşlı, oyuncu ama otoriter; kedi nanesi (catnip) ile yumuşar.",
+   "source_page": "https://naruto.fandom.com/wiki/Nekomata"
+  },
+  {
+   "id": "ninneko",
+   "name": "Ninja Kedi (Ninneko)",
+   "name_en": "Ninja Cat",
+   "group": "summon",
+   "contract": "cat",
+   "size_m": [
+    0.3,
+    1.2
+   ],
+   "elements": [],
+   "abilities": [
+    "Sneaky infiltration",
+    "Claw combos",
+    "Supply trade (black market of the cat granny)"
+   ],
+   "behavior": "Kurnaz, kaprisli.",
+   "visual": "Bipedal cats wearing ninja gear, vests, small headbands; various fur colors.",
+   "desc": "Tüccar/bilgi NPC'leri ve hızlı düşmanlar.",
+   "game_role": "enemy",
+   "first_appears": "Naruto Part I flashback / anime",
+   "signature": false,
+   "animal": "Cat",
+   "home": "Cat Fortress (Ninneko underworld)",
+   "traits": "Kurnaz, kaprisli."
+  },
+  {
+   "id": "giant_clam",
+   "name": "Dev İstiridye (Serap)",
+   "name_en": "Giant Clam (Mirage)",
+   "group": "summon",
+   "contract": "clam",
+   "size_m": [
+    3,
+    10
+   ],
+   "elements": [
+    "water",
+    "yin"
+   ],
+   "abilities": [
+    "Demonic Illusion: Steaming Multistoried Building (mirage of a castle/huge self)",
+    "Breath-mist genjutsu"
+   ],
+   "behavior": "Pasif; sadece yanılsama üretir.",
+   "visual": "Huge clam with ridged pinkish-grey shell exhaling iridescent mist.",
+   "desc": "Sis içinde gerçek düşmanı bulma bulmacası (Kiri).",
+   "game_role": "miniboss",
+   "first_appears": "Naruto ch.548 / Naruto Shippūden ep.300",
+   "signature": true,
+   "animal": "Clam",
+   "home": "Kirigakure (Second Mizukage)",
+   "traits": "Pasif; sadece yanılsama üretir.",
+   "source_page": "https://naruto.fandom.com/wiki/Giant_Clam"
+  },
+  {
+   "id": "giant_bat",
+   "name": "Dev Yarasa",
+   "name_en": "Giant Bat",
+   "group": "summon",
+   "contract": "bat",
+   "size_m": [
+    3,
+    8
+   ],
+   "elements": [],
+   "abilities": [
+    "Sonic screech",
+    "Night scouting",
+    "Carry and drop"
+   ],
+   "behavior": "Gececil, mağara sakini.",
+   "visual": "Large brown bat with tattered wings and glowing eyes.",
+   "desc": "Mağara düşmanı/ çağrısı.",
+   "game_role": "enemy",
+   "first_appears": "Naruto Shippūden ep.144",
+   "signature": false,
+   "animal": "Bat",
+   "home": "Tsuchigumo clan (Mount Katsuragi)",
+   "traits": "Gececil, mağara sakini.",
+   "source_page": "https://naruto.fandom.com/wiki/Tonbee"
+  },
+  {
+   "id": "shark_summon",
+   "name": "Köpekbalığı Çağrısı",
+   "name_en": "Summoned Shark",
+   "group": "summon",
+   "contract": "shark",
+   "size_m": [
+    2,
+    10
+   ],
+   "elements": [
+    "water"
+   ],
+   "abilities": [
+    "Water Release: Five Feeding Sharks / Thousand Feeding Sharks",
+    "Swims inside water domes",
+    "Chakra-eating bite"
+   ],
+   "behavior": "Vahşi avcı.",
+   "visual": "Grey-blue sharks with jagged teeth; sometimes made of water chakra.",
+   "desc": "Su kubbesi arenası ve köpekbalığı dalgaları.",
+   "game_role": "enemy",
+   "first_appears": "Naruto ch.258 / Naruto Shippūden ep.14",
+   "signature": false,
+   "animal": "Shark",
+   "home": "Kisame-style shark contract (Land of Water seas)",
+   "traits": "Vahşi avcı.",
+   "source_page": "https://naruto.fandom.com/wiki/Water_Release:_Five_Feeding_Sharks"
+  },
+  {
+   "id": "doki_ogres",
+   "name": "Doki (Öfke İblisleri – üçlü)",
+   "name_en": "Doki Ogres (flute summons)",
+   "group": "summon",
+   "contract": "doki",
+   "size_m": [
+    6,
+    10
+   ],
+   "elements": [],
+   "abilities": [
+    "Controlled by flute melody",
+    "Release spirit worms that eat chakra",
+    "Brute pummeling"
+   ],
+   "behavior": "Akılsız kukla iblis; melodiye bağlı.",
+   "visual": "Three tall bandaged ogres with mummy wrappings, blindfolds, horns or masks, each with different weapons (club, mace).",
+   "desc": "Müzisyen düşmanının çağrısı; flütü bozmak iblisleri durdurur.",
+   "game_role": "miniboss",
+   "first_appears": "Naruto ch.202 / Naruto ep.119",
+   "signature": false,
+   "animal": "Ogre",
+   "home": "Tayuya's flute summons (Otogakure)",
+   "traits": "Akılsız kukla iblis; melodiye bağlı.",
+   "source_page": "https://naruto.fandom.com/wiki/Doki"
+  },
+  {
+   "id": "nue_chimera",
+   "name": "Nue (Kimera)",
+   "name_en": "Nue Chimera",
+   "group": "summon",
+   "contract": "nue",
+   "size_m": [
+    1,
+    30
+   ],
+   "elements": [
+    "water",
+    "lightning(anime)"
+   ],
+   "abilities": [
+    "Absorbs chakra/jutsu",
+    "Grows huge from absorbed chakra",
+    "Gentle guardian"
+   ],
+   "behavior": "Sevimli, sadık; çağıranı korur.",
+   "visual": "Chimera with tiger body, monkey face, snake tail; plush white fur, black stripes; small form is mascot-like.",
+   "desc": "Absorbe edip büyüyen çağrı; savunma mekaniği.",
+   "game_role": "ally_summon",
+   "first_appears": "Boruto ep.3",
+   "signature": true,
+   "animal": "Chimera",
+   "home": "Sumire Kakei's chimera summon (Boruto)",
+   "traits": "Sevimli, sadık; çağıranı korur.",
+   "source_page": "https://naruto.fandom.com/wiki/Nue"
+  },
+  {
+   "id": "rashomon_gate",
+   "name": "Rashōmon (Şeytan Kapısı)",
+   "name_en": "Rashōmon Gate",
+   "group": "summon",
+   "contract": "rashomon",
+   "size_m": [
+    20,
+    40
+   ],
+   "elements": [],
+   "abilities": [
+    "Summoned demon-faced gate as absolute shield",
+    "Multiple layered gates (Triple/Quintuple Rashōmon)"
+   ],
+   "behavior": "Cansız; kalkan.",
+   "visual": "Massive purple gate with grotesque demon face carved, chained doors.",
+   "desc": "Boss kalkan mekaniği; kırılması için yüksek hasar.",
+   "game_role": "other",
+   "first_appears": "Naruto ch.204 / Naruto ep.120",
+   "signature": false,
+   "animal": "Construct",
+   "home": "Summoning: Rashōmon (gate constructs)",
+   "traits": "Cansız; kalkan.",
+   "source_page": "https://naruto.fandom.com/wiki/Rashōmon"
+  },
+  {
+   "id": "ap_giant_centipede",
+   "name": "Dev Kırkayak",
+   "name_en": "Giant Centipede (Animal Path)",
+   "group": "summon",
+   "contract": "animal_path",
+   "size_m": [
+    20,
+    40
+   ],
+   "elements": [],
+   "abilities": [
+    "Constriction",
+    "Burrowing",
+    "Mandible crush"
+   ],
+   "behavior": "Kontrollü; çağıranın iradesiyle hareket eder.",
+   "visual": "Huge red-black centipede with segmented armor, many legs, metal chakra-receiver piercings, Rinnegan eyes.",
+   "desc": "Gözdeki Rinnegan bağlantısını kırınca kaybolur.",
+   "game_role": "miniboss",
+   "first_appears": "Naruto ch.419 / Naruto Shippūden ep.157",
+   "signature": true,
+   "animal": "Centipede",
+   "home": "Rinnegan Animal Path (no blood contract; pierced with chakra receivers)",
+   "traits": "Kontrollü; çağıranın iradesiyle hareket eder.",
+   "source_page": "https://naruto.fandom.com/wiki/Giant_Centipede"
+  },
+  {
+   "id": "ap_giant_crustacean",
+   "name": "Dev Kabuklu (İstakoz)",
+   "name_en": "Giant Crustacean",
+   "group": "summon",
+   "contract": "animal_path",
+   "size_m": [
+    10,
+    20
+   ],
+   "elements": [
+    "water"
+   ],
+   "abilities": [
+    "Water Release: Wild Bubble Wave (bubble barrage)",
+    "Claw crush"
+   ],
+   "behavior": "Kontrollü.",
+   "visual": "Giant lobster/crayfish with red-orange shell, piercings, Rinnegan eyes.",
+   "desc": "Kabarcık alanı görüşü kapatır.",
+   "game_role": "miniboss",
+   "first_appears": "Naruto ch.374 / Naruto Shippūden ep.130",
+   "signature": true,
+   "animal": "Crustacean",
+   "home": "Rinnegan Animal Path (no blood contract; pierced with chakra receivers)",
+   "traits": "Kontrollü.",
+   "source_page": "https://naruto.fandom.com/wiki/Giant_Crustacean"
+  },
+  {
+   "id": "ap_giant_bird",
+   "name": "Dev Kuş",
+   "name_en": "Giant Bird",
+   "group": "summon",
+   "contract": "animal_path",
+   "size_m": [
+    10,
+    20
+   ],
+   "elements": [],
+   "abilities": [
+    "Flight transport",
+    "Talon grab",
+    "Wind gust"
+   ],
+   "behavior": "Kontrollü.",
+   "visual": "Giant bird resembling a long-legged rooster/ostrich hybrid with piercings, Rinnegan.",
+   "desc": "Uçan taşıyıcı düşman.",
+   "game_role": "enemy",
+   "first_appears": "Naruto ch.374 / Naruto Shippūden ep.130",
+   "signature": true,
+   "animal": "Bird",
+   "home": "Rinnegan Animal Path (no blood contract; pierced with chakra receivers)",
+   "traits": "Kontrollü.",
+   "source_page": "https://naruto.fandom.com/wiki/Animal_Path"
+  },
+  {
+   "id": "ap_drill_beaked_bird",
+   "name": "Matkap Gagalı Kuş",
+   "name_en": "Drill-Beaked Bird",
+   "group": "summon",
+   "contract": "animal_path",
+   "size_m": [
+    10,
+    15
+   ],
+   "elements": [],
+   "abilities": [
+    "Drill beak dive",
+    "Green Egg Bombs (anime)",
+    "Flight"
+   ],
+   "behavior": "Kontrollü.",
+   "visual": "Bird with a spiral drill-like beak, pale plumage, piercings, Rinnegan.",
+   "desc": "Dalış saldırısı; dodge zamanlaması.",
+   "game_role": "enemy",
+   "first_appears": "Naruto ch.375 / Naruto Shippūden ep.131",
+   "signature": true,
+   "animal": "Bird",
+   "home": "Rinnegan Animal Path (no blood contract; pierced with chakra receivers)",
+   "traits": "Kontrollü.",
+   "source_page": "https://naruto.fandom.com/wiki/Giant_Drill-Beaked_Bird"
+  },
+  {
+   "id": "ap_multi_headed_dog",
+   "name": "Çok Başlı Köpek (Cerberus)",
+   "name_en": "Multi-Headed Dog",
+   "group": "summon",
+   "contract": "animal_path",
+   "size_m": [
+    8,
+    20
+   ],
+   "elements": [],
+   "abilities": [
+    "Splits into more dogs when damaged (multiplies per hit)",
+    "Bite swarm"
+   ],
+   "behavior": "Kontrollü, saldırgan.",
+   "visual": "Three-headed dog with dark shaggy fur, piercings across body, Rinnegan; each struck copy spawns new dog.",
+   "desc": "Vurdukça çoğalır: tek güçlü vuruş ya da mühür ile durdur.",
+   "game_role": "miniboss",
+   "first_appears": "Naruto ch.375 / Naruto Shippūden ep.131",
+   "signature": true,
+   "animal": "Chimera dog",
+   "home": "Rinnegan Animal Path (no blood contract; pierced with chakra receivers)",
+   "traits": "Kontrollü, saldırgan.",
+   "source_page": "https://naruto.fandom.com/wiki/Giant_Multi-Headed_Dog"
+  },
+  {
+   "id": "ap_giant_rhino",
+   "name": "Dev Gergedan",
+   "name_en": "Giant Rhinoceros",
+   "group": "summon",
+   "contract": "animal_path",
+   "size_m": [
+    8,
+    15
+   ],
+   "elements": [],
+   "abilities": [
+    "Trampling charge",
+    "Horn ram"
+   ],
+   "behavior": "Kontrollü.",
+   "visual": "Armored grey rhinoceros with piercings and Rinnegan.",
+   "desc": "Hücum düşmanı; duvara çarptırma stun.",
+   "game_role": "enemy",
+   "first_appears": "Naruto ch.374 / Naruto Shippūden ep.130",
+   "signature": true,
+   "animal": "Rhinoceros",
+   "home": "Rinnegan Animal Path (no blood contract; pierced with chakra receivers)",
+   "traits": "Kontrollü.",
+   "source_page": "https://naruto.fandom.com/wiki/Animal_Path"
+  },
+  {
+   "id": "ap_giant_ox",
+   "name": "Dev Öküz",
+   "name_en": "Giant Ox",
+   "group": "summon",
+   "contract": "animal_path",
+   "size_m": [
+    8,
+    15
+   ],
+   "elements": [],
+   "abilities": [
+    "Horn charge",
+    "Stomp shockwave"
+   ],
+   "behavior": "Kontrollü.",
+   "visual": "Huge black ox with long horns, piercings, Rinnegan.",
+   "desc": "Hücum düşmanı.",
+   "game_role": "enemy",
+   "first_appears": "Naruto ch.375 / Naruto Shippūden ep.131",
+   "signature": true,
+   "animal": "Ox",
+   "home": "Rinnegan Animal Path (no blood contract; pierced with chakra receivers)",
+   "traits": "Kontrollü.",
+   "source_page": "https://naruto.fandom.com/wiki/Giant_Ox"
+  },
+  {
+   "id": "ap_giant_panda",
+   "name": "Dev Panda",
+   "name_en": "Giant Panda",
+   "group": "summon",
+   "contract": "animal_path",
+   "size_m": [
+    8,
+    12
+   ],
+   "elements": [],
+   "abilities": [
+    "Heavy slam",
+    "Shield ally from attacks"
+   ],
+   "behavior": "Kontrollü.",
+   "visual": "Huge black-and-white panda with piercings and Rinnegan.",
+   "desc": "Tank düşman.",
+   "game_role": "enemy",
+   "first_appears": "Naruto ch.377 / Naruto Shippūden ep.132",
+   "signature": true,
+   "animal": "Panda",
+   "home": "Rinnegan Animal Path (no blood contract; pierced with chakra receivers)",
+   "traits": "Kontrollü.",
+   "source_page": "https://naruto.fandom.com/wiki/Giant_Panda"
+  },
+  {
+   "id": "ap_snake_tailed_chameleon",
+   "name": "Yılan Kuyruklu Bukalemun",
+   "name_en": "Snake-Tailed Chameleon",
+   "group": "summon",
+   "contract": "animal_path",
+   "size_m": [
+    10,
+    20
+   ],
+   "elements": [],
+   "abilities": [
+    "Invisibility (can hide summoner inside)",
+    "Tongue lash"
+   ],
+   "behavior": "Kontrollü, gizlenen.",
+   "visual": "Chimera chameleon with a snake for a tail, mottled green, piercings, Rinnegan.",
+   "desc": "Görünmezlik: duyusal (sensor) yeteneklerle bulunur.",
+   "game_role": "enemy",
+   "first_appears": "Naruto ch.374 / Naruto Shippūden ep.130",
+   "signature": true,
+   "animal": "Chameleon",
+   "home": "Rinnegan Animal Path (no blood contract; pierced with chakra receivers)",
+   "traits": "Kontrollü, gizlenen.",
+   "source_page": "https://naruto.fandom.com/wiki/Giant_Snake-Tailed_Chameleon"
+  },
+  {
+   "id": "ap_king_of_hell",
+   "name": "Cehennem Kralı (Enma heykeli)",
+   "name_en": "King of Hell",
+   "group": "summon",
+   "contract": "animal_path",
+   "size_m": [
+    5,
+    10
+   ],
+   "elements": [],
+   "abilities": [
+    "Interrogates and rips soul out of liars",
+    "Revives/repairs bodies in its mouth (Naraka)",
+    "Tongue judgment"
+   ],
+   "behavior": "Yargıç varlık; yalnızca Naraka yolunu kullanan çağırabilir.",
+   "visual": "Giant demon head emerging from ground in purple flames, crowned, wide mouth, many eyes or pierced face.",
+   "desc": "Düşman iyileştirici: önce bunu kırmak gerekir.",
+   "game_role": "other",
+   "first_appears": "Naruto ch.422 / Naruto Shippūden ep.158",
+   "signature": true,
+   "animal": "Deity",
+   "home": "Rinnegan Animal Path (no blood contract; pierced with chakra receivers)",
+   "traits": "Yargıç varlık; yalnızca Naraka yolunu kullanan çağırabilir.",
+   "source_page": "https://naruto.fandom.com/wiki/King_of_Hell"
+  }
+ ],
+ "wild_animals": [
+  {
+   "id": "forest_giant_tiger",
+   "name": "Dev Kaplan (Ölüm Ormanı)",
+   "name_en": "Giant Tiger",
+   "group": "wild",
+   "size_m": [
+    3,
+    6
+   ],
+   "elements": [],
+   "abilities": [
+    "Pounce",
+    "Claw swipe",
+    "Roar stun"
+   ],
+   "behavior": "Bölgesel avcı; sinsice yaklaşır.",
+   "visual": "Oversized orange tiger with black stripes, scarred muzzle, yellow eyes.",
+   "desc": "Ölüm Ormanı (44. Eğitim Alanı) yaygın tehlike.",
+   "game_role": "enemy",
+   "first_appears": "Naruto anime (Chūnin Exams, Forest of Death)",
+   "signature": false,
+   "region": "Land of Fire – Forest of Death",
+   "canon_status": "anime"
+  },
+  {
+   "id": "forest_giant_boar",
+   "name": "Dev Yaban Domuzu",
+   "name_en": "Giant Boar",
+   "group": "wild",
+   "size_m": [
+    2,
+    5
+   ],
+   "elements": [],
+   "abilities": [
+    "Charging tusk ram",
+    "Knockback"
+   ],
+   "behavior": "Öfkeli, sürü halinde.",
+   "visual": "Brown bristled boar with huge curved tusks.",
+   "desc": "Ormanda hücum eden düşman; ağaç parkuru ile kaç.",
+   "game_role": "enemy",
+   "first_appears": "Naruto anime (various fillers)",
+   "signature": false,
+   "region": "Land of Fire forests",
+   "canon_status": "anime"
+  },
+  {
+   "id": "forest_giant_centipede",
+   "name": "Dev Orman Kırkayağı",
+   "name_en": "Giant Forest Centipede",
+   "group": "wild",
+   "size_m": [
+    5,
+    15
+   ],
+   "elements": [],
+   "abilities": [
+    "Poison bite",
+    "Wraps around trees",
+    "Burrow"
+   ],
+   "behavior": "Saldırgan, karanlık sever.",
+   "visual": "Red-brown segmented centipede with yellow legs.",
+   "desc": "Ölüm Ormanı miniboss.",
+   "game_role": "miniboss",
+   "first_appears": "Naruto (Forest of Death)",
+   "signature": false,
+   "region": "Land of Fire – Forest of Death",
+   "canon_status": "canon"
+  },
+  {
+   "id": "forest_giant_leech",
+   "name": "Dev Sülük",
+   "name_en": "Giant Leech",
+   "group": "wild",
+   "size_m": [
+    1,
+    4
+   ],
+   "elements": [],
+   "abilities": [
+    "Latches and drains chakra/HP",
+    "Swarms from swamp water"
+   ],
+   "behavior": "Pasif ama kan kokusuna hücum eder.",
+   "visual": "Slimy black-green leeches with circular toothed mouths.",
+   "desc": "Bataklık tehlikesi; ateş ile sökülür.",
+   "game_role": "enemy",
+   "first_appears": "Naruto anime (Forest of Death)",
+   "signature": false,
+   "region": "Land of Fire – Forest of Death",
+   "canon_status": "anime"
+  },
+  {
+   "id": "forest_giant_snake_wild",
+   "name": "Vahşi Dev Yılan",
+   "name_en": "Wild Giant Snake",
+   "group": "wild",
+   "size_m": [
+    10,
+    30
+   ],
+   "elements": [],
+   "abilities": [
+    "Swallow whole",
+    "Constrict"
+   ],
+   "behavior": "Aç avcı.",
+   "visual": "Brown-green giant python with yellow eyes.",
+   "desc": "Orman miniboss; yutulursa içeriden patlayıcı ile çık.",
+   "game_role": "miniboss",
+   "first_appears": "Naruto ch.45",
+   "signature": false,
+   "region": "Land of Fire",
+   "canon_status": "canon"
+  },
+  {
+   "id": "forest_giant_spider_wild",
+   "name": "Vahşi Dev Örümcek",
+   "name_en": "Wild Giant Spider",
+   "group": "wild",
+   "size_m": [
+    2,
+    6
+   ],
+   "elements": [],
+   "abilities": [
+    "Web snare",
+    "Venom bite"
+   ],
+   "behavior": "Pusucu.",
+   "visual": "Hairy brown spider with orange markings.",
+   "desc": "Mağara/orman tuzağı.",
+   "game_role": "enemy",
+   "first_appears": "game-original (canon-inspired)",
+   "signature": false,
+   "region": "Land of Fire / Land of Rice",
+   "canon_status": "inspired"
+  },
+  {
+   "id": "forest_giant_bear",
+   "name": "Dev Ayı",
+   "name_en": "Giant Bear",
+   "group": "wild",
+   "size_m": [
+    3,
+    5
+   ],
+   "elements": [],
+   "abilities": [
+    "Maul",
+    "Standing roar",
+    "Tree uproot"
+   ],
+   "behavior": "Bölgesel; yavrularını korur.",
+   "visual": "Massive dark-brown bear with crescent chest mark.",
+   "desc": "Kuzey ormanları güçlü düşmanı.",
+   "game_role": "enemy",
+   "first_appears": "Naruto anime fillers",
+   "signature": false,
+   "region": "Land of Fire north / Land of Iron",
+   "canon_status": "anime"
+  },
+  {
+   "id": "iron_snow_bear",
+   "name": "Kar Ayısı (Demir Ülkesi)",
+   "name_en": "Snow Bear",
+   "group": "wild",
+   "size_m": [
+    3,
+    5
+   ],
+   "elements": [],
+   "abilities": [
+    "Maul",
+    "Charge through snow",
+    "Thick fur resists cold/ice"
+   ],
+   "behavior": "Saldırgan, kışın aç.",
+   "visual": "White-furred bear with frost on fur, black claws.",
+   "desc": "Demir Ülkesi dağları düşmanı.",
+   "game_role": "enemy",
+   "first_appears": "game-original (canon-inspired)",
+   "signature": false,
+   "region": "Land of Iron",
+   "canon_status": "inspired"
+  },
+  {
+   "id": "snow_wolf_pack",
+   "name": "Kar Kurdu Sürüsü",
+   "name_en": "Snow Wolf Pack",
+   "group": "wild",
+   "size_m": [
+    1.2,
+    2
+   ],
+   "elements": [],
+   "abilities": [
+    "Pack flank",
+    "Howl buff",
+    "Hamstring bite"
+   ],
+   "behavior": "Sürü taktiği.",
+   "visual": "Grey-white wolves with icy blue eyes.",
+   "desc": "Kar ülkesi grup düşmanı.",
+   "game_role": "enemy",
+   "first_appears": "Naruto film 1 (Land of Snow) - inspired",
+   "signature": false,
+   "region": "Land of Snow / Land of Iron",
+   "canon_status": "inspired"
+  },
+  {
+   "id": "hot_water_macaque",
+   "name": "Kaplıca Makağı",
+   "name_en": "Hot Spring Macaque",
+   "group": "wild",
+   "size_m": [
+    0.6,
+    1
+   ],
+   "elements": [],
+   "abilities": [
+    "Steal items",
+    "Throw stones",
+    "Swarm"
+   ],
+   "behavior": "Arsız, yaramaz.",
+   "visual": "Japanese macaques with red faces, grey fur, sitting in steam.",
+   "desc": "Sıcak Su Ülkesi; çalınan eşyayı geri alma görevi.",
+   "game_role": "enemy",
+   "first_appears": "game-original (canon-inspired)",
+   "signature": false,
+   "region": "Land of Hot Water",
+   "canon_status": "inspired"
+  },
+  {
+   "id": "giant_squid",
+   "name": "Dev Mürekkep Balığı",
+   "name_en": "Giant Squid",
+   "group": "wild",
+   "size_m": [
+    30,
+    60
+   ],
+   "elements": [
+    "water"
+   ],
+   "abilities": [
+    "Tentacle grab",
+    "Ink cloud",
+    "Capsize boats"
+   ],
+   "behavior": "Derin deniz canavarı.",
+   "visual": "Huge red-purple squid with suckered tentacles and huge eyes.",
+   "desc": "Deniz rotası bossu (Bulut Ülkesi açıkları).",
+   "game_role": "boss",
+   "first_appears": "Naruto ch.491 / Naruto Shippūden ep.243",
+   "signature": false,
+   "region": "Land of Lightning seas / Land of Water",
+   "canon_status": "canon",
+   "source_page": "https://naruto.fandom.com/wiki/Giant_Squid"
+  },
+  {
+   "id": "island_turtle",
+   "name": "Ada Kaplumbağası",
+   "name_en": "Island Turtle",
+   "group": "wild",
+   "size_m": [
+    1000,
+    3000
+   ],
+   "elements": [],
+   "abilities": [
+    "Is a living island",
+    "Moves across the sea"
+   ],
+   "behavior": "Uysal, dev.",
+   "visual": "Colossal turtle whose shell carries a forested island with cliffs and a training base.",
+   "desc": "Gizli üs/bölge; canlı harita.",
+   "game_role": "other",
+   "first_appears": "Naruto ch.491 / Naruto Shippūden ep.243",
+   "signature": false,
+   "region": "Land of Lightning seas",
+   "canon_status": "canon",
+   "source_page": "https://naruto.fandom.com/wiki/Island_Turtle"
+  },
+  {
+   "id": "sea_shark_wild",
+   "name": "Vahşi Köpekbalığı",
+   "name_en": "Wild Shark",
+   "group": "wild",
+   "size_m": [
+    3,
+    8
+   ],
+   "elements": [],
+   "abilities": [
+    "Bite",
+    "Circle and ambush"
+   ],
+   "behavior": "Kan kokusuna gelir.",
+   "visual": "Grey shark with pale underbelly.",
+   "desc": "Su yüzeyinde yürürken tehlike.",
+   "game_role": "enemy",
+   "first_appears": "inspired",
+   "signature": false,
+   "region": "Land of Water",
+   "canon_status": "inspired"
+  },
+  {
+   "id": "giant_sea_serpent",
+   "name": "Deniz Yılanı",
+   "name_en": "Sea Serpent",
+   "group": "wild",
+   "size_m": [
+    20,
+    50
+   ],
+   "elements": [
+    "water"
+   ],
+   "abilities": [
+    "Wave slam",
+    "Coil ship"
+   ],
+   "behavior": "Efsanevi canavar.",
+   "visual": "Blue-green scaled serpent with fin crest.",
+   "desc": "Okyanus bossu.",
+   "game_role": "boss",
+   "first_appears": "inspired (Kirigakure legends)",
+   "signature": false,
+   "region": "Land of Water",
+   "canon_status": "inspired"
+  },
+  {
+   "id": "coast_giant_crab",
+   "name": "Dev Sahil Yengeci",
+   "name_en": "Giant Coast Crab",
+   "group": "wild",
+   "size_m": [
+    2,
+    6
+   ],
+   "elements": [
+    "water"
+   ],
+   "abilities": [
+    "Pincer crush",
+    "Shell guard",
+    "Bubble spit"
+   ],
+   "behavior": "Bölgesel.",
+   "visual": "Red-orange crab with barnacled shell.",
+   "desc": "Sahil düşmanı; kabuk arkasından vurulur.",
+   "game_role": "enemy",
+   "first_appears": "inspired",
+   "signature": false,
+   "region": "Land of Water / Land of Waves",
+   "canon_status": "inspired"
+  },
+  {
+   "id": "desert_giant_scorpion",
+   "name": "Dev Çöl Akrebi",
+   "name_en": "Giant Desert Scorpion",
+   "group": "wild",
+   "size_m": [
+    2,
+    5
+   ],
+   "elements": [],
+   "abilities": [
+    "Poison sting",
+    "Burrow ambush"
+   ],
+   "behavior": "Pusucu.",
+   "visual": "Sand-colored scorpion with dark tail tip.",
+   "desc": "Rüzgar Ülkesi çölü düşmanı; zehir (Suna zehir kültürüyle uyumlu).",
+   "game_role": "enemy",
+   "first_appears": "inspired",
+   "signature": false,
+   "region": "Land of Wind",
+   "canon_status": "inspired"
+  },
+  {
+   "id": "desert_sand_worm",
+   "name": "Kum Kurdu",
+   "name_en": "Sand Worm",
+   "group": "wild",
+   "size_m": [
+    10,
+    30
+   ],
+   "elements": [],
+   "abilities": [
+    "Emerge-swallow",
+    "Sand tremor"
+   ],
+   "behavior": "Titreşime gelir.",
+   "visual": "Pale segmented worm with circular toothed maw.",
+   "desc": "Çöl miniboss; ses tuzağı ile çağrılır.",
+   "game_role": "miniboss",
+   "first_appears": "game-original (inspired)",
+   "signature": false,
+   "region": "Land of Wind",
+   "canon_status": "inspired"
+  },
+  {
+   "id": "killer_bee_swarm",
+   "name": "Katil Arı Sürüsü",
+   "name_en": "Killer Bee Swarm",
+   "group": "wild",
+   "size_m": [
+    0.05,
+    0.1
+   ],
+   "elements": [],
+   "abilities": [
+    "Swarm stings",
+    "Poison stacks"
+   ],
+   "behavior": "Kovan savunur.",
+   "visual": "Black-yellow giant hornets.",
+   "desc": "Kovanlar (Kamizuru klanı tarzı) alan tehlikesi.",
+   "game_role": "enemy",
+   "first_appears": "Naruto anime (Kamizuru)",
+   "signature": false,
+   "region": "Land of Fire",
+   "canon_status": "anime"
+  },
+  {
+   "id": "parasitic_insects",
+   "name": "Parazit Böcek Sürüsü",
+   "name_en": "Chakra-Eating Insect Swarm",
+   "group": "wild",
+   "size_m": [
+    0.01,
+    0.02
+   ],
+   "elements": [],
+   "abilities": [
+    "Drain chakra",
+    "Swarm cloud",
+    "Tracking"
+   ],
+   "behavior": "Bir klan tarafından yetiştirilebilir; yabani formu saldırgan.",
+   "visual": "Dark beetles in a buzzing cloud.",
+   "desc": "Çakra emici bölge.",
+   "game_role": "enemy",
+   "first_appears": "Naruto (Kikaichū)",
+   "signature": false,
+   "region": "Land of Fire",
+   "canon_status": "canon-inspired"
+  },
+  {
+   "id": "giant_eagle_wild",
+   "name": "Dağ Kartalı",
+   "name_en": "Mountain Eagle",
+   "group": "wild",
+   "size_m": [
+    1,
+    3
+   ],
+   "elements": [
+    "wind"
+   ],
+   "abilities": [
+    "Dive",
+    "Steal from player"
+   ],
+   "behavior": "Bölgesel.",
+   "visual": "Brown eagle with white head.",
+   "desc": "Dağ tırmanışı sırasında taciz eden düşman.",
+   "game_role": "enemy",
+   "first_appears": "inspired",
+   "signature": false,
+   "region": "Land of Earth",
+   "canon_status": "inspired"
+  },
+  {
+   "id": "land_of_rice_giant_carp",
+   "name": "Dev Sazan",
+   "name_en": "Giant Carp",
+   "group": "wild",
+   "size_m": [
+    3,
+    8
+   ],
+   "elements": [
+    "water"
+   ],
+   "abilities": [
+    "Leap attack",
+    "Wave splash"
+   ],
+   "behavior": "Pasif.",
+   "visual": "Gold-orange koi carp with long barbels.",
+   "desc": "Balık tutma/nehir boss.",
+   "game_role": "enemy",
+   "first_appears": "inspired",
+   "signature": false,
+   "region": "Land of Rice / rivers",
+   "canon_status": "inspired"
+  },
+  {
+   "id": "ostrich_mount",
+   "name": "Koşucu Devekuşu / Dev Kuş Bineği",
+   "name_en": "Riding Bird",
+   "group": "wild",
+   "size_m": [
+    2,
+    3
+   ],
+   "elements": [],
+   "abilities": [
+    "Fast ground travel"
+   ],
+   "behavior": "Evcil.",
+   "visual": "Large flightless bird with saddle.",
+   "desc": "Binek (kara yolculuğu).",
+   "game_role": "mount",
+   "first_appears": "Naruto (filler) - inspired",
+   "signature": false,
+   "region": "Land of Wind",
+   "canon_status": "inspired"
+  }
+ ],
+ "puppets": [
+  {
+   "id": "puppet_crow_type",
+   "name": "Karasu Tipi Kukla (Karga)",
+   "name_en": "Crow-type Combat Puppet",
+   "group": "puppet",
+   "size_m": 1.8,
+   "elements": [],
+   "abilities": [
+    "Multiple arms with hidden poison blades",
+    "Detachable body segments that fly on chakra threads",
+    "Hidden kunai and senbon launchers",
+    "Can split into parts and reassemble"
+   ],
+   "behavior": "Kuklacı tarafından kontrol edilir; ipleri kesilirse durur.",
+   "visual": "Humanoid puppet with spiky brown hair, bandana hood, four eyes (two extra), wide jaw that opens, wooden joints, extra arms; purple face paint stripes.",
+   "desc": "Kuklacı düşmanın ana silahı; ipleri (çakra iplikleri) kesmek ya da kuklacıyı vurmak gerekir.",
+   "game_role": "enemy",
+   "first_appears": "Naruto ch.70 / Naruto ep.41",
+   "signature": true,
+   "source_page": "https://naruto.fandom.com/wiki/Karasu"
+  },
+  {
+   "id": "puppet_ant_type",
+   "name": "Kuroari Tipi Kukla (Kara Karınca)",
+   "name_en": "Black Ant-type Capture Puppet",
+   "group": "puppet",
+   "size_m": 2.2,
+   "elements": [],
+   "abilities": [
+    "Opens torso to trap target inside (cage)",
+    "Blades thrust through closed body (combo with crow-type)",
+    "Heavy armored body"
+   ],
+   "behavior": "Hapsedici.",
+   "visual": "Bulky black-lacquer puppet with insect-like head, single horn, six arms, hollow cage torso with hinged doors.",
+   "desc": "Yakalama mekaniği: yakalanırsa QTE ile kaç.",
+   "game_role": "enemy",
+   "first_appears": "Naruto ch.213 / Naruto ep.125",
+   "signature": true,
+   "source_page": "https://naruto.fandom.com/wiki/Kuroari"
+  },
+  {
+   "id": "puppet_salamander_type",
+   "name": "Sanshōuo Tipi Kukla (Semender)",
+   "name_en": "Salamander-type Shield Puppet",
+   "group": "puppet",
+   "size_m": 3,
+   "elements": [],
+   "abilities": [
+    "Opens into a huge shield",
+    "Hidden poison gas spray",
+    "Protects puppeteer"
+   ],
+   "behavior": "Defansif.",
+   "visual": "Wide flat salamander-shaped armored puppet, plated back, long tail; dark green-grey lacquer.",
+   "desc": "Kalkan kırılmadan kuklacıya ulaşılamaz.",
+   "game_role": "enemy",
+   "first_appears": "Naruto ch.250 / Naruto Shippūden ep.7",
+   "signature": true,
+   "source_page": "https://naruto.fandom.com/wiki/Sanshōuo"
+  },
+  {
+   "id": "puppet_scorpion_shell",
+   "name": "Hiruko Tipi Zırh Kukla",
+   "name_en": "Scorpion Shell Puppet",
+   "group": "puppet",
+   "size_m": [
+    1.5,
+    2
+   ],
+   "elements": [],
+   "abilities": [
+    "Puppeteer hides inside as armor",
+    "Segmented scorpion tail with poison stinger",
+    "Senbon volley from mouth",
+    "Arm gun"
+   ],
+   "behavior": "Ağır ve yavaş ama ölümcül.",
+   "visual": "Hunched cloaked figure with masked face, mouth covered, long segmented metal scorpion tail curving out of back.",
+   "desc": "Zırh kırılınca içinden asıl kuklacı çıkar (faz 2).",
+   "game_role": "miniboss",
+   "first_appears": "Naruto ch.247 / Naruto Shippūden ep.2",
+   "signature": true,
+   "source_page": "https://naruto.fandom.com/wiki/Hiruko"
+  },
+  {
+   "id": "puppet_human",
+   "name": "İnsan Kukla",
+   "name_en": "Human Puppet",
+   "group": "puppet",
+   "size_m": [
+    1.6,
+    1.9
+   ],
+   "elements": [
+    "varies (retains original kekkei genkai)"
+   ],
+   "abilities": [
+    "Retains chakra-based kekkei genkai of the source body",
+    "Hidden weapons inside torso",
+    "Chakra-thread control"
+   ],
+   "behavior": "Ruhsuz, kuklacının iradesi.",
+   "visual": "Lifelike human body with visible wooden ball joints at limbs, compartment seams in torso, glassy eyes, original clothing.",
+   "desc": "Elit düşman; kökenindeki klan yeteneğini kullanır.",
+   "game_role": "enemy",
+   "first_appears": "Naruto ch.247 / Naruto Shippūden ep.2",
+   "signature": false,
+   "source_page": "https://naruto.fandom.com/wiki/Sasori"
+  },
+  {
+   "id": "puppet_iron_sand",
+   "name": "Demir Kum Kuklası (Kazekage tipi)",
+   "name_en": "Iron Sand Human Puppet",
+   "group": "puppet",
+   "size_m": 1.8,
+   "elements": [
+    "magnet (iron sand)"
+   ],
+   "abilities": [
+    "Iron Sand: Gathering Assault",
+    "Iron Sand: Drizzle",
+    "Multiple hidden arms",
+    "Poison-coated iron sand"
+   ],
+   "behavior": "Kuklacının kontrolünde.",
+   "visual": "Gaunt humanoid with long dark hair, Kage robes, mouth-slits, extra arms; black magnetic iron sand swirls around.",
+   "desc": "Boss kuklası: demir kum alan saldırıları.",
+   "game_role": "boss",
+   "first_appears": "Naruto ch.690 / Naruto Shippūden ep.457",
+   "signature": true,
+   "source_page": "https://naruto.fandom.com/wiki/Third_Kazekage"
+  },
+  {
+   "id": "puppet_hundred_army",
+   "name": "Yüz Kukla Ordusu",
+   "name_en": "Hundred Puppets Army",
+   "group": "puppet",
+   "size_m": [
+    1.6,
+    1.9
+   ],
+   "elements": [
+    "fire",
+    "water",
+    "poison"
+   ],
+   "abilities": [
+    "Synchronized mass attacks",
+    "Fire/water nozzles",
+    "Encirclement formations",
+    "Blade arms"
+   ],
+   "behavior": "Bir kuklacının 100 kuklası; sürü taktikleri.",
+   "visual": "Rows of masked humanoid puppets in dark robes with red cloud-free generic design, wooden faces, hidden blades in arms.",
+   "desc": "Dalga savaşı; kuklacıyı öldürmek tüm orduyu durdurur.",
+   "game_role": "enemy",
+   "first_appears": "Naruto ch.247 / Naruto Shippūden ep.2",
+   "signature": true,
+   "source_page": "https://naruto.fandom.com/wiki/Sasori"
+  },
+  {
+   "id": "puppet_mother_father",
+   "name": "Anne-Baba Kuklası (Chikamatsu tipi)",
+   "name_en": "Mother & Father Puppets",
+   "group": "puppet",
+   "size_m": 1.8,
+   "elements": [],
+   "abilities": [
+    "Embrace binding",
+    "Hidden blades in palms",
+    "Wind/poison sprays"
+   ],
+   "behavior": "Duygusal tasarımlı kukla çifti.",
+   "visual": "Two elegant humanoid puppets (male/female) in plain robes, gentle carved faces.",
+   "desc": "Hikaye görevli miniboss.",
+   "game_role": "miniboss",
+   "first_appears": "Naruto ch.267 / Naruto Shippūden ep.22",
+   "signature": true,
+   "source_page": "https://naruto.fandom.com/wiki/Mother_and_Father"
+  },
+  {
+   "id": "puppet_core_body",
+   "name": "Çekirdek Gövdeli Kuklacı (Sasori tipi)",
+   "name_en": "Puppet-Body Puppeteer",
+   "group": "puppet",
+   "size_m": 1.6,
+   "elements": [
+    "fire",
+    "water"
+   ],
+   "abilities": [
+    "Body is itself a puppet with a living heart core",
+    "Flame thrower palms",
+    "High-pressure water jets",
+    "Spinning blade cables from back",
+    "Retractable sword-tail and propeller jets"
+   ],
+   "behavior": "Soğuk, sabırlı, sanatı ebedi güzellik olarak görür.",
+   "visual": "Youthful wooden-jointed humanoid body, torso cylinder with heart core (kanji seal), cables and blades sprouting from back, abdomen rope coil.",
+   "desc": "Boss: yalnızca çekirdek (kalp) hasar alır.",
+   "game_role": "boss",
+   "first_appears": "Naruto ch.247 / Naruto Shippūden ep.2",
+   "signature": true,
+   "source_page": "https://naruto.fandom.com/wiki/Sasori"
+  },
+  {
+   "id": "puppet_scout_bird",
+   "name": "Gözcü Kuş Kukla",
+   "name_en": "Scout Bird Puppet",
+   "group": "puppet",
+   "size_m": 0.8,
+   "elements": [],
+   "abilities": [
+    "Flying recon",
+    "Drop caltrops/bombs"
+   ],
+   "behavior": "Gözcü.",
+   "visual": "Wooden bird with spread wooden wings, chakra-thread tether.",
+   "desc": "Kuklacı alarm verir.",
+   "game_role": "enemy",
+   "first_appears": "game-original (canon-inspired)",
+   "signature": false
+  },
+  {
+   "id": "puppet_trap_coffin",
+   "name": "Tabut Tuzak Kukla",
+   "name_en": "Coffin Trap Puppet",
+   "group": "puppet",
+   "size_m": 2,
+   "elements": [],
+   "abilities": [
+    "Spring-blade ambush",
+    "Gas release"
+   ],
+   "behavior": "Pasif tuzak.",
+   "visual": "Upright wooden coffin box with sliding panels.",
+   "desc": "Zindan tuzağı.",
+   "game_role": "enemy",
+   "first_appears": "game-original (canon-inspired)",
+   "signature": false
+  },
+  {
+   "id": "mecha_puppet",
+   "name": "Mekanik Ninja Robotu",
+   "name_en": "Mecha Ninja",
+   "group": "puppet",
+   "size_m": 2,
+   "elements": [
+    "lightning",
+    "fire"
+   ],
+   "abilities": [
+    "Jet propulsion",
+    "Replicates ninjutsu via machinery",
+    "Chakra absorption"
+   ],
+   "behavior": "Programlı, duygusuz.",
+   "visual": "Mechanical humanoid copy of a ninja: metal plating, visor eyes, jet ports.",
+   "desc": "Bilimsel ninja aleti dönemi düşmanı.",
+   "game_role": "miniboss",
+   "first_appears": "Naruto Shippūden ep.376",
+   "signature": false,
+   "source_page": "https://naruto.fandom.com/wiki/Mecha-Naruto"
+  },
+  {
+   "id": "moon_puppet_guardian",
+   "name": "Ay Kuklası Muhafız",
+   "name_en": "Moon Puppet Guardian",
+   "group": "puppet",
+   "size_m": [
+    2,
+    5
+   ],
+   "elements": [],
+   "abilities": [
+    "Mass army",
+    "Tenseigan-powered strikes"
+   ],
+   "behavior": "Programlı.",
+   "visual": "White humanoid puppets with mask faces.",
+   "desc": "Ay zindanı.",
+   "game_role": "enemy",
+   "first_appears": "The Last: Naruto the Movie",
+   "signature": false
+  }
+ ],
+ "undead": [
+  {
+   "id": "edo_soldier",
+   "name": "Edo Tensei Askeri (Diriltilmiş Shinobi)",
+   "name_en": "Reincarnated Shinobi (rank-and-file)",
+   "group": "undead",
+   "size_m": 1.75,
+   "elements": [
+    "varies"
+   ],
+   "abilities": [
+    "Regenerates",
+    "Unlimited chakra",
+    "Suicide-bomb tactics (explosive tags)",
+    "Uses original jutsu"
+   ],
+   "behavior": "Kontrol edilen: kişiliği bastırılmış, emir kuklası.",
+   "visual": "Shinobi with cracked grey papery skin (fissures like dried paper/clay), black sclera with original iris color, ashen flakes falling, original uniform.",
+   "desc": "Yenmek için: mühürle, hareketsiz bırak ya da çağıranı bul. Hasar sadece geçici.",
+   "game_role": "enemy",
+   "first_appears": "Naruto ch.117 / Naruto ep.69",
+   "signature": false,
+   "defeat_rules": [
+    "Body regenerates from ash/paper fragments after any damage",
+    "Unlimited chakra, no fatigue",
+    "Cannot be killed by damage alone: seal (e.g., body-immobilizing sealing, Totsuka-like sealing), restrain permanently, or kill/force the caster to release",
+    "Genjutsu that makes the soul believe it is at peace / forcing the caster's hand-sign release returns souls",
+    "Releasing technique by caster sends all souls back (light ascends)",
+    "Soul may be freed if it fulfills its earthly regret"
+   ],
+   "source_page": "https://naruto.fandom.com/wiki/Impure_World_Reincarnation"
+  },
+  {
+   "id": "edo_elite",
+   "name": "Edo Tensei Seçkini",
+   "name_en": "Reincarnated Elite (Kage-class)",
+   "group": "undead",
+   "size_m": 1.8,
+   "elements": [
+    "varies",
+    "kekkei genkai"
+   ],
+   "abilities": [
+    "Full kekkei genkai mastery",
+    "Regenerates",
+    "Personality may be restored by caster",
+    "Summons via contracts still valid after death"
+   ],
+   "behavior": "Bazıları özgür irade gösterir, kendilerini durdurmanın yolunu söyler.",
+   "visual": "Same papery cracked skin and black sclera; heavier Kage robes, aura.",
+   "desc": "Boss: mühürleme minigame zorunlu.",
+   "game_role": "boss",
+   "first_appears": "Naruto ch.117 / Naruto ep.69",
+   "signature": false,
+   "defeat_rules": [
+    "Body regenerates from ash/paper fragments after any damage",
+    "Unlimited chakra, no fatigue",
+    "Cannot be killed by damage alone: seal (e.g., body-immobilizing sealing, Totsuka-like sealing), restrain permanently, or kill/force the caster to release",
+    "Genjutsu that makes the soul believe it is at peace / forcing the caster's hand-sign release returns souls",
+    "Releasing technique by caster sends all souls back (light ascends)",
+    "Soul may be freed if it fulfills its earthly regret"
+   ],
+   "source_page": "https://naruto.fandom.com/wiki/Impure_World_Reincarnation"
+  },
+  {
+   "id": "edo_coffin",
+   "name": "Diriltme Tabutu",
+   "name_en": "Reincarnation Coffin",
+   "group": "undead",
+   "size_m": 2.2,
+   "elements": [],
+   "abilities": [
+    "Summons undead into the field",
+    "Can be destroyed before opening"
+   ],
+   "behavior": "Nesne.",
+   "visual": "Tall wooden coffin with paper seals, lid falls forward.",
+   "desc": "Spawn noktası: açılmadan kır.",
+   "game_role": "other",
+   "first_appears": "Naruto ch.117 / Naruto ep.69",
+   "signature": false,
+   "source_page": "https://naruto.fandom.com/wiki/Impure_World_Reincarnation"
+  },
+  {
+   "id": "edo_sacrifice_shell",
+   "name": "Kurban Kabuğu (Zetsu/canlı kurban)",
+   "name_en": "Sacrifice Vessel",
+   "group": "undead",
+   "size_m": 1.7,
+   "elements": [],
+   "abilities": [
+    "Body consumed to host a soul"
+   ],
+   "behavior": "Pasif.",
+   "visual": "Body being covered by ash and paper fragments forming new face.",
+   "desc": "Hikaye olayı; diriltmeyi engelleme görevi.",
+   "game_role": "other",
+   "first_appears": "Naruto Shippūden",
+   "signature": false
+  },
+  {
+   "id": "pain_deva_path",
+   "name": "Deva Yolu (Tanrı Yolu Bedeni)",
+   "name_en": "Deva Path Corpse",
+   "group": "undead",
+   "size_m": 1.8,
+   "elements": [
+    "gravity/repulsion"
+   ],
+   "abilities": [
+    "Almighty Push (repel everything; 5 s cooldown)",
+    "Universal Pull",
+    "Chibaku Tensei (gravity satellite)"
+   ],
+   "behavior": "Uzaktan kontrol edilen ceset.",
+   "visual": "Corpse with orange spiky hair, many black chakra-receiver piercings on face/body, ripple-pattern purple Rinnegan, dark cloak.",
+   "desc": "İtiş sonrası 5 sn bekleme penceresi; vücuttaki çubukları sökmek bağlantıyı keser.",
+   "game_role": "boss",
+   "first_appears": "Naruto ch.420 / Naruto Shippūden ep.133",
+   "signature": true,
+   "defeat_rules": [
+    "Remove/destroy chakra receivers",
+    "Exploit repulsion cooldown",
+    "Find the hidden controller"
+   ],
+   "source_page": "https://naruto.fandom.com/wiki/Deva_Path"
+  },
+  {
+   "id": "pain_asura_path",
+   "name": "Asura Yolu (Savaş Makinesi Ceset)",
+   "name_en": "Asura Path Corpse",
+   "group": "undead",
+   "size_m": 1.9,
+   "elements": [],
+   "abilities": [
+    "Mechanized body: missile launch",
+    "Extra arms, blade tail",
+    "Chakra laser cannon from head",
+    "Rocket fist"
+   ],
+   "behavior": "Ceset-makine.",
+   "visual": "Corpse with mechanical augmentations, extra arms, segmented tail, piercings, Rinnegan.",
+   "desc": "Ağır silahlı düşman.",
+   "game_role": "miniboss",
+   "first_appears": "Naruto ch.383 / Naruto Shippūden ep.133",
+   "signature": true,
+   "source_page": "https://naruto.fandom.com/wiki/Asura_Path"
+  },
+  {
+   "id": "pain_human_path",
+   "name": "İnsan Yolu (Ruh Çeken)",
+   "name_en": "Human Path Corpse",
+   "group": "undead",
+   "size_m": 1.75,
+   "elements": [],
+   "abilities": [
+    "Soul Removal by touching head (reads mind, kills)"
+   ],
+   "behavior": "Ceset.",
+   "visual": "Long-haired corpse with piercings and Rinnegan.",
+   "desc": "Kafana dokunursa anında ölüm riski — mesafeyi koru.",
+   "game_role": "miniboss",
+   "first_appears": "Naruto ch.419 / Naruto Shippūden ep.157",
+   "signature": true,
+   "source_page": "https://naruto.fandom.com/wiki/Human_Path"
+  },
+  {
+   "id": "pain_animal_path",
+   "name": "Hayvan Yolu (Çağırıcı Ceset)",
+   "name_en": "Animal Path Corpse",
+   "group": "undead",
+   "size_m": 1.65,
+   "elements": [],
+   "abilities": [
+    "Summons Rinnegan beasts and other paths"
+   ],
+   "behavior": "Ceset.",
+   "visual": "Female corpse with ponytail, piercings, Rinnegan.",
+   "desc": "Çağırıcıyı önce öldür.",
+   "game_role": "miniboss",
+   "first_appears": "Naruto ch.374 / Naruto Shippūden ep.130",
+   "signature": true,
+   "source_page": "https://naruto.fandom.com/wiki/Animal_Path"
+  },
+  {
+   "id": "pain_preta_path",
+   "name": "Preta Yolu (Emici Ceset)",
+   "name_en": "Preta Path Corpse",
+   "group": "undead",
+   "size_m": 2,
+   "elements": [],
+   "abilities": [
+    "Absorbs ninjutsu/chakra (Absorption Seal)"
+   ],
+   "behavior": "Ceset.",
+   "visual": "Heavy-set bald corpse with piercings, Rinnegan.",
+   "desc": "Ninjutsu işe yaramaz; taijutsu ve silahlar.",
+   "game_role": "miniboss",
+   "first_appears": "Naruto ch.377 / Naruto Shippūden ep.132",
+   "signature": true,
+   "source_page": "https://naruto.fandom.com/wiki/Preta_Path"
+  },
+  {
+   "id": "pain_naraka_path",
+   "name": "Naraka Yolu (Cehennem Yolu Bedeni)",
+   "name_en": "Naraka Path Corpse",
+   "group": "undead",
+   "size_m": 1.7,
+   "elements": [],
+   "abilities": [
+    "Summons King of Hell to repair other bodies",
+    "Interrogation"
+   ],
+   "behavior": "Ceset.",
+   "visual": "Bald corpse with piercings, Rinnegan.",
+   "desc": "İyileştirici: önce bunu hedefle.",
+   "game_role": "miniboss",
+   "first_appears": "Naruto ch.422 / Naruto Shippūden ep.158",
+   "signature": true,
+   "source_page": "https://naruto.fandom.com/wiki/Naraka_Path"
+  },
+  {
+   "id": "chakra_receiver_corpse",
+   "name": "Çubuklu Ceset (Genel)",
+   "name_en": "Chakra-Receiver Puppet Corpse",
+   "group": "undead",
+   "size_m": 1.75,
+   "elements": [
+    "varies"
+   ],
+   "abilities": [
+    "Remote-controlled via black rods",
+    "Shared vision among linked bodies"
+   ],
+   "behavior": "Kontrol edilen ceset; birbirlerinin gözüyle görür.",
+   "visual": "Corpse with black metal chakra-receiver rods piercing face, arms and chest; dull grey skin.",
+   "desc": "Paylaşılan görüş: biri seni gördüyse hepsi gördü (stealth mekaniği).",
+   "game_role": "enemy",
+   "first_appears": "Naruto ch.369 / Naruto Shippūden ep.129",
+   "signature": false,
+   "source_page": "https://naruto.fandom.com/wiki/Six_Paths_of_Pain"
+  },
+  {
+   "id": "kakuzu_mask_beast",
+   "name": "Maske Canavarı (Toprak Kin İplikleri)",
+   "name_en": "Mask Beast",
+   "group": "undead",
+   "size_m": [
+    2,
+    3
+   ],
+   "elements": [
+    "fire",
+    "wind",
+    "lightning",
+    "water"
+   ],
+   "abilities": [
+    "Each mask beast uses one nature (Fire: Searing Migraine, Wind: Pressure Damage, Lightning: False Darkness)",
+    "Stolen hearts power them",
+    "Black thread bodies"
+   ],
+   "behavior": "Bağımsız savaşan, sahibine bağlı.",
+   "visual": "Bulky creature of writhing black threads wearing a porcelain-white animal-like mask with stitched edges.",
+   "desc": "4 maske = 4 kalp: her biri ayrı can.",
+   "game_role": "miniboss",
+   "first_appears": "Naruto ch.326 / Naruto Shippūden ep.79",
+   "signature": true,
+   "source_page": "https://naruto.fandom.com/wiki/Earth_Grudge_Fear"
+  },
+  {
+   "id": "stone_terracotta_soldier",
+   "name": "Toprak Ruh Askeri (Mōryō Ordusu)",
+   "name_en": "Terracotta Spirit Soldier",
+   "group": "undead",
+   "size_m": [
+    2,
+    3
+   ],
+   "elements": [],
+   "abilities": [
+    "Mass marching army",
+    "Regenerate from stone",
+    "Ignore pain"
+   ],
+   "behavior": "Bir iblisin ordusu.",
+   "visual": "Ancient stone/clay armored soldiers with empty eye sockets, spears.",
+   "desc": "Film kökenli dalga düşmanı.",
+   "game_role": "enemy",
+   "first_appears": "Naruto Shippūden the Movie",
+   "signature": false,
+   "source_page": "https://naruto.fandom.com/wiki/Mōryō"
+  },
+  {
+   "id": "revived_spirit_wraith",
+   "name": "Hayalet Ninja (anime)",
+   "name_en": "Vengeful Ninja Spirit",
+   "group": "undead",
+   "size_m": 1.8,
+   "elements": [
+    "yin"
+   ],
+   "abilities": [
+    "Phase through walls",
+    "Possession"
+   ],
+   "behavior": "Huzursuz ruh.",
+   "visual": "Translucent pale shinobi with tattered clothes.",
+   "desc": "Gece zindanı düşmanı.",
+   "game_role": "enemy",
+   "first_appears": "inspired (anime filler ghost arcs)",
+   "signature": false
+  }
+ ],
+ "artificial_humans": [
+  {
+   "id": "white_zetsu_soldier",
+   "name": "Ak Zetsu Askeri",
+   "name_en": "White Zetsu Soldier",
+   "group": "zetsu",
+   "size_m": 1.75,
+   "elements": [
+    "wood (Hashirama cells)"
+   ],
+   "abilities": [
+    "Spore Technique (parasitic clone drains chakra)",
+    "Mimicry: copies appearance and chakra of touched shinobi",
+    "Merges into trees/ground (Mayfly)",
+    "Regrowth"
+   ],
+   "behavior": "Neşeli, çocuksu, gevezedir; ama emre uyan sürü.",
+   "visual": "Bald pale white humanoid with smooth plant-like skin, round eyes with black pupils, wide grin; some have flytrap leaf collars. Naked or minimal clothing.",
+   "desc": "Ordu dalgası düşmanı; kimliği taklit eden casus mekaniği (dost NPC aslında Zetsu olabilir).",
+   "game_role": "enemy",
+   "first_appears": "Naruto ch.234 / Naruto ep.134",
+   "signature": false,
+   "source_page": "https://naruto.fandom.com/wiki/White_Zetsu"
+  },
+  {
+   "id": "white_zetsu_spy",
+   "name": "Sızmacı Ak Zetsu",
+   "name_en": "Infiltrator Zetsu",
+   "group": "zetsu",
+   "size_m": 1.75,
+   "elements": [],
+   "abilities": [
+    "Transformation into ally",
+    "Sensor-hidden"
+   ],
+   "behavior": "Sinsi.",
+   "visual": "Identical to a shinobi except subtle tell (smell of plant, green sap when cut).",
+   "desc": "Sosyal-çıkarım görevi: sahteyi bul.",
+   "game_role": "enemy",
+   "first_appears": "Naruto ch.234 / Naruto ep.134",
+   "signature": false,
+   "source_page": "https://naruto.fandom.com/wiki/White_Zetsu"
+  },
+  {
+   "id": "white_zetsu_spore_clone",
+   "name": "Spor Klonu",
+   "name_en": "Spore Clone",
+   "group": "zetsu",
+   "size_m": [
+    0.2,
+    1.7
+   ],
+   "elements": [],
+   "abilities": [
+    "Latches onto host, grows from body, drains chakra",
+    "Explodes into more spores"
+   ],
+   "behavior": "Parazit.",
+   "visual": "Small white pod/bud that sprouts on target and grows into a humanoid.",
+   "desc": "Debuff düşman.",
+   "game_role": "enemy",
+   "first_appears": "Naruto ch.234 / Naruto ep.134",
+   "signature": false,
+   "source_page": "https://naruto.fandom.com/wiki/White_Zetsu"
+  },
+  {
+   "id": "spiral_zetsu",
+   "name": "Sarmal Zetsu (Guruguru tipi)",
+   "name_en": "Spiral Zetsu",
+   "group": "zetsu",
+   "size_m": 1.8,
+   "elements": [
+    "wood"
+   ],
+   "abilities": [
+    "Wood Release",
+    "Armor that wraps around host body",
+    "Swirl-patterned mask face"
+   ],
+   "behavior": "Neşeli, tuhaf.",
+   "visual": "Pale humanoid with spiral-patterned face and body, single eyehole.",
+   "desc": "Zırh benzeri ortak/ düşman.",
+   "game_role": "miniboss",
+   "first_appears": "Naruto Shippūden",
+   "signature": true
+  },
+  {
+   "id": "black_zetsu",
+   "name": "Kara Zetsu (Gölge İradesi)",
+   "name_en": "Black Zetsu",
+   "group": "zetsu",
+   "size_m": 1.8,
+   "elements": [
+    "all (borrowed)"
+   ],
+   "abilities": [
+    "Possesses and controls a host body",
+    "Sinks into ground and travels",
+    "Manipulates history behind the scenes"
+   ],
+   "behavior": "Entrikacı, sabırlı, yalancı.",
+   "visual": "Pure black humanoid of tar-like flesh with yellow-white eyes; can wrap as a skin over a host.",
+   "desc": "Hikaye kötüsü; konakçı bedeni ele geçirme mekaniği.",
+   "game_role": "boss",
+   "first_appears": "Naruto ch.234 / Naruto ep.134",
+   "signature": true,
+   "source_page": "https://naruto.fandom.com/wiki/Black_Zetsu"
+  },
+  {
+   "id": "kara_cyborg_inner",
+   "name": "Kara Siborgu",
+   "name_en": "Kara Cyborg Operative",
+   "group": "construct",
+   "size_m": 1.85,
+   "elements": [
+    "scientific ninja tools"
+   ],
+   "abilities": [
+    "Prosthetic weapon arms",
+    "Chakra-absorbing gauntlets",
+    "Laser eyes (Delta type)",
+    "Jet boots"
+   ],
+   "behavior": "Soğuk profesyonel; örgüt üyesi.",
+   "visual": "Human with visible metal prosthetics (arm, eye, jaw), black robes with white cloud-like trim (Kara cloak style), glowing tech eye.",
+   "desc": "Bilimsel ninja aleti düşmanı.",
+   "game_role": "miniboss",
+   "first_appears": "Boruto ch.15 / Boruto ep.157",
+   "signature": false,
+   "source_page": "https://naruto.fandom.com/wiki/Delta"
+  },
+  {
+   "id": "kara_outer_vessel",
+   "name": "Kāma Taşıyıcı (Dış)",
+   "name_en": "Kāma Vessel",
+   "group": "construct",
+   "size_m": 1.75,
+   "elements": [],
+   "abilities": [
+    "Absorption via Kāma seal",
+    "Shape-shifting cyborg limbs",
+    "Size control (Ōtsutsuki inheritance)"
+   ],
+   "behavior": "Kontrolsüz güç patlamaları.",
+   "visual": "Young human with black diamond-shaped mark on palm/eye, metal horn growth, black markings spreading.",
+   "desc": "Kahraman-karşıtı düşman.",
+   "game_role": "boss",
+   "first_appears": "Boruto ch.1 / Boruto ep.1",
+   "signature": false,
+   "source_page": "https://naruto.fandom.com/wiki/Kāma"
+  },
+  {
+   "id": "shinju_clone",
+   "name": "Shinju Klonu",
+   "name_en": "Shinju Clone",
+   "group": "construct",
+   "size_m": [
+    1.7,
+    2.2
+   ],
+   "elements": [
+    "wood",
+    "chakra absorption"
+   ],
+   "abilities": [
+    "Wood Release-like tree branches",
+    "Absorbs chakra and life",
+    "Copies abilities of beings it absorbs",
+    "Regeneration"
+   ],
+   "behavior": "Bağımsız iradeli tanrı-ağacın insan avatarı; aç, meraklı.",
+   "visual": "Humanoid with bark-like white/grey skin, branching horns, leaf/vine hair, glowing ringed eyes (Rinne-Sharingan-like), barefoot.",
+   "desc": "Boruto Two Blue Vortex dönemi elit düşman.",
+   "game_role": "boss",
+   "first_appears": "Boruto: Two Blue Vortex",
+   "signature": false
+  },
+  {
+   "id": "shinju_clone_seedling",
+   "name": "Shinju Fidanı",
+   "name_en": "Shinju Seedling",
+   "group": "construct",
+   "size_m": [
+    0.5,
+    3
+   ],
+   "elements": [
+    "wood"
+   ],
+   "abilities": [
+    "Roots ensnare",
+    "Draws life"
+   ],
+   "behavior": "Bitkisel.",
+   "visual": "Small sapling with eye-bud.",
+   "desc": "Yayılmadan yok edilmeli (zamana karşı görev).",
+   "game_role": "enemy",
+   "first_appears": "inspired",
+   "signature": false
+  },
+  {
+   "id": "claw_grime",
+   "name": "Pençe İzi Canavarı (Code tipi)",
+   "name_en": "Claw Grime",
+   "group": "construct",
+   "size_m": [
+    2,
+    10
+   ],
+   "elements": [],
+   "abilities": [
+    "Teleports via claw-mark portals",
+    "Attacks endlessly",
+    "Chakra-fed"
+   ],
+   "behavior": "Akılsız beast.",
+   "visual": "Grey biomechanical creatures with claw-like faces and mark seals.",
+   "desc": "Portal düşmanı.",
+   "game_role": "enemy",
+   "first_appears": "Boruto",
+   "signature": false
+  },
+  {
+   "id": "akuta_soldier",
+   "name": "Akuta Askeri (Yapay İnsan)",
+   "name_en": "Akuta Soldier",
+   "group": "construct",
+   "size_m": 1.8,
+   "elements": [
+    "earth",
+    "varies"
+   ],
+   "abilities": [
+    "Modeled on legendary shinobi",
+    "Kekkei genkai replicas"
+   ],
+   "behavior": "Programlı.",
+   "visual": "Masked synthetic human in white bodysuit with stone-like seams.",
+   "desc": "Iwa yapay insan ordusu.",
+   "game_role": "enemy",
+   "first_appears": "Boruto ep.72",
+   "signature": false,
+   "source_page": "https://naruto.fandom.com/wiki/Akuta"
+  },
+  {
+   "id": "fabrication_leader",
+   "name": "Fabrikasyon Lider",
+   "name_en": "Fabrication Leader",
+   "group": "construct",
+   "size_m": 1.75,
+   "elements": [
+    "yin"
+   ],
+   "abilities": [
+    "Leads synthetic soldiers",
+    "Mind-linked"
+   ],
+   "behavior": "Sadık.",
+   "visual": "Synthetic girl with doll-like face and porcelain sheen.",
+   "desc": "Yapay ordu kumandanı.",
+   "game_role": "miniboss",
+   "first_appears": "Boruto ep.77",
+   "signature": false,
+   "source_page": "https://naruto.fandom.com/wiki/Kirara"
+  },
+  {
+   "id": "gelel_golem",
+   "name": "Gelel Taş Golem Askeri",
+   "name_en": "Gelel Stone Soldier",
+   "group": "construct",
+   "size_m": [
+    2,
+    5
+   ],
+   "elements": [
+    "earth"
+   ],
+   "abilities": [
+    "Stone armor regenerates",
+    "Gelel stone power beam"
+   ],
+   "behavior": "İradesiz ordu.",
+   "visual": "Golem in grey stone armor with glowing gelel crystal core.",
+   "desc": "Film kökenli (Gelel Taşı) arka plan.",
+   "game_role": "enemy",
+   "first_appears": "Naruto the Movie: Legend of the Stone of Gelel",
+   "signature": false,
+   "source_page": "https://naruto.fandom.com/wiki/Gelel"
+  },
+  {
+   "id": "cursed_seal_berserker",
+   "name": "Lanetli Mühür Berserkeri",
+   "name_en": "Cursed Seal Berserker",
+   "group": "construct",
+   "size_m": [
+    1.8,
+    2.5
+   ],
+   "elements": [
+    "senjutsu"
+   ],
+   "abilities": [
+    "Cursed Seal Stage 1 (black flame markings)",
+    "Stage 2 (grey/dark skin, wings or extra limbs)",
+    "Natural energy rage"
+   ],
+   "behavior": "Kontrolsüz öfke.",
+   "visual": "Human whose skin is covered by black flame-pattern markings; stage 2 dark grey/brown skin, hands transform into claws/wings.",
+   "desc": "Deney laboratuvarı düşmanı.",
+   "game_role": "miniboss",
+   "first_appears": "Naruto ch.49 / Naruto ep.30",
+   "signature": false,
+   "source_page": "https://naruto.fandom.com/wiki/Cursed_Seal_of_Heaven"
+  },
+  {
+   "id": "wood_clone_construct",
+   "name": "Ağaç Klon Yapısı",
+   "name_en": "Wood Golem",
+   "group": "construct",
+   "size_m": [
+    3,
+    20
+   ],
+   "elements": [
+    "wood"
+   ],
+   "abilities": [
+    "Wood Golem Technique (giant armored wooden soldier)",
+    "Wood dragon bind"
+   ],
+   "behavior": "Yaratıcının iradesi.",
+   "visual": "Massive armored wooden warrior with kabuto helm, wood grain texture.",
+   "desc": "Raid bossunun çağrısı.",
+   "game_role": "boss",
+   "first_appears": "Naruto Shippūden",
+   "signature": false
+  }
+ ],
+ "otherworldly": [
+  {
+   "id": "otsutsuki_matriarch",
+   "name": "Ōtsutsuki Ana Tanrıça Arketipi",
+   "name_en": "Ōtsutsuki Matriarch Archetype",
+   "group": "otsutsuki",
+   "size_m": [
+    1.8,
+    30
+   ],
+   "elements": [
+    "all",
+    "yin-yang"
+   ],
+   "abilities": [
+    "Rinne Sharingan (dimension shift)",
+    "All-Killing Ash Bones",
+    "Expansive Truth-Seeking Ball",
+    "Yomotsu Hirasaka portals",
+    "Hair bind"
+   ],
+   "behavior": "Soğuk, dünyaya hükmeden.",
+   "visual": "Pale woman with long white hair, small horns, Byakugan + third forehead eye, white kimono robe with tomoe; rabbit-like transformed form.",
+   "desc": "Final boss arketipi; boyut değiştiren arena.",
+   "game_role": "boss",
+   "first_appears": "Naruto ch.679 / Naruto Shippūden ep.458",
+   "signature": false,
+   "source_page": "https://naruto.fandom.com/wiki/Kaguya_Ōtsutsuki"
+  },
+  {
+   "id": "otsutsuki_absorber",
+   "name": "Ōtsutsuki Emici Arketipi",
+   "name_en": "Ōtsutsuki Absorber",
+   "group": "otsutsuki",
+   "size_m": 1.9,
+   "elements": [
+    "absorption"
+   ],
+   "abilities": [
+    "Rinnegan palms absorb and return ninjutsu amplified",
+    "Chakra fruit consumption power-up",
+    "Giant Meteor"
+   ],
+   "behavior": "Kibirli, insanları böcek sayar.",
+   "visual": "Pale white skin, long hair, horns, Byakugan, Rinnegan in palms, high-collar white robe with fur.",
+   "desc": "Ninjutsu yansıtan boss; taijutsu odaklı.",
+   "game_role": "boss",
+   "first_appears": "Boruto ch.2 / Boruto ep.15",
+   "signature": false,
+   "source_page": "https://naruto.fandom.com/wiki/Momoshiki_Ōtsutsuki"
+  },
+  {
+   "id": "otsutsuki_giant_guard",
+   "name": "Ōtsutsuki Dev Muhafız",
+   "name_en": "Ōtsutsuki Giant Guardian",
+   "group": "otsutsuki",
+   "size_m": [
+    2.5,
+    3
+   ],
+   "elements": [],
+   "abilities": [
+    "Conjures chakra weapons from hair (giant axe, spear)",
+    "Burns self into chakra pill for master"
+   ],
+   "behavior": "Sadık hizmetkar.",
+   "visual": "Huge muscular pale man with horn, long chakra-hair, armor.",
+   "desc": "Miniboss refakatçi.",
+   "game_role": "miniboss",
+   "first_appears": "Boruto ch.2 / Boruto ep.15",
+   "signature": false,
+   "source_page": "https://naruto.fandom.com/wiki/Kinshiki_Ōtsutsuki"
+  },
+  {
+   "id": "otsutsuki_fisher",
+   "name": "Ōtsutsuki Çakra Avcısı",
+   "name_en": "Ōtsutsuki Chakra Fisher",
+   "group": "otsutsuki",
+   "size_m": 1.75,
+   "elements": [
+    "absorption"
+   ],
+   "abilities": [
+    "Chakra fishing rod steals chakra",
+    "Time rewind (Rinne Sharingan)"
+   ],
+   "behavior": "Oyunbaz, sadist.",
+   "visual": "Pale man with short white hair, horns, Rinne-sharingan, fishing rod.",
+   "desc": "Zaman geri sarma boss.",
+   "game_role": "boss",
+   "first_appears": "Boruto ep.53",
+   "signature": false,
+   "source_page": "https://naruto.fandom.com/wiki/Urashiki_Ōtsutsuki"
+  },
+  {
+   "id": "otsutsuki_shrinker",
+   "name": "Ōtsutsuki Küçültücü",
+   "name_en": "Ōtsutsuki Size-Shifter",
+   "group": "otsutsuki",
+   "size_m": 1.8,
+   "elements": [],
+   "abilities": [
+    "Shrinks objects/re-enlarges them as projectiles (Sukunahikona)",
+    "Stores objects in pocket dimension (Daikokuten)"
+   ],
+   "behavior": "Ölçülü, üstün.",
+   "visual": "Tall horned figure in dark robe, white eye with black pupil.",
+   "desc": "Nesne-mermi boss.",
+   "game_role": "boss",
+   "first_appears": "Boruto ch.35 / Boruto ep.202",
+   "signature": false,
+   "source_page": "https://naruto.fandom.com/wiki/Isshiki_Ōtsutsuki"
+  },
+  {
+   "id": "otsutsuki_moon_heir",
+   "name": "Ay Klanı Varisi (Tenseigan)",
+   "name_en": "Moon Heir",
+   "group": "otsutsuki",
+   "size_m": 1.8,
+   "elements": [
+    "yin",
+    "gravity"
+   ],
+   "abilities": [
+    "Tenseigan Chakra Mode",
+    "Golden Wheel Reincarnation Explosion",
+    "Moon-made puppet army"
+   ],
+   "behavior": "Kibirli, kaderci.",
+   "visual": "Pale man with white hair and blindfold or blue Tenseigan eyes, cloak.",
+   "desc": "Ay boss.",
+   "game_role": "boss",
+   "first_appears": "The Last: Naruto the Movie (2014)",
+   "signature": false,
+   "source_page": "https://naruto.fandom.com/wiki/Toneri_Ōtsutsuki"
+  },
+  {
+   "id": "shinju_god_tree",
+   "name": "Shinju (Tanrı Ağacı)",
+   "name_en": "God Tree",
+   "group": "other",
+   "size_m": [
+    1000,
+    3000
+   ],
+   "elements": [
+    "wood"
+   ],
+   "abilities": [
+    "Absorbs chakra of planet",
+    "Fruits once per millennia",
+    "Roots ensnare (God: Nativity of a World of Trees)"
+   ],
+   "behavior": "Yaşayan ağaç.",
+   "visual": "Colossal gnarled tree with root network spanning the land; single giant flower bud with eye-like core.",
+   "desc": "Dünya olayı ve lore.",
+   "game_role": "other",
+   "first_appears": "Naruto (Fourth Shinobi World War)",
+   "signature": true
+  },
+  {
+   "id": "chakra_fruit",
+   "name": "Çakra Meyvesi",
+   "name_en": "Chakra Fruit",
+   "group": "other",
+   "size_m": [
+    1,
+    3
+   ],
+   "elements": [],
+   "abilities": [
+    "Grants godlike power when consumed"
+   ],
+   "behavior": "Nesne.",
+   "visual": "Large glowing violet-blue fruit with Rinne-sharingan-like ripple pattern.",
+   "desc": "Efsanevi eşya.",
+   "game_role": "other",
+   "first_appears": "Naruto (Kaguya backstory, ch.~681)",
+   "signature": true
+  },
+  {
+   "id": "infinite_tsukuyomi_cocoon",
+   "name": "Sonsuz Tsukuyomi Kozası",
+   "name_en": "God Tree Cocoon",
+   "group": "other",
+   "size_m": 2,
+   "elements": [],
+   "abilities": [
+    "Holds sleeper in dream",
+    "Drains chakra"
+   ],
+   "behavior": "Pasif.",
+   "visual": "White fibrous cocoon hanging from roots, humanoid outline inside.",
+   "desc": "Kurtarma görevi.",
+   "game_role": "other",
+   "first_appears": "Naruto ch.676 / Naruto Shippūden ep.425",
+   "signature": false,
+   "source_page": "https://naruto.fandom.com/wiki/Infinite_Tsukuyomi"
+  },
+  {
+   "id": "demonic_statue",
+   "name": "Gedō Mazō (Dış Yol Şeytani Heykeli)",
+   "name_en": "Demonic Statue of the Outer Path",
+   "group": "construct",
+   "size_m": [
+    60,
+    100
+   ],
+   "elements": [],
+   "abilities": [
+    "Seals tailed beasts",
+    "Gedō dragon sucks out souls",
+    "Chakra chains"
+   ],
+   "behavior": "İradesiz.",
+   "visual": "Mummified earthen humanoid with robe-shaped body, nine eyes, blindfold with holes, shackles, scroll bitten in mouth, spikes on back.",
+   "desc": "Raid girişi.",
+   "game_role": "boss",
+   "first_appears": "Naruto ch.254 / Naruto Shippūden ep.10",
+   "signature": true,
+   "source_page": "https://naruto.fandom.com/wiki/Demonic_Statue_of_the_Outer_Path"
+  },
+  {
+   "id": "shinigami_death_god",
+   "name": "Ölüm Tanrısı (Shinigami)",
+   "name_en": "Death God",
+   "group": "other",
+   "size_m": [
+    3,
+    5
+   ],
+   "elements": [
+    "yin"
+   ],
+   "abilities": [
+    "Reaper Death Seal (pulls soul, seals it in stomach)",
+    "Rosary-bead dagger"
+   ],
+   "behavior": "Tarafsız; bedeli ruh.",
+   "visual": "Gaunt ghostly spirit with long white hair, horns, purple skin, prayer beads, tantō in mouth.",
+   "desc": "Yasak mühür kartı / anlatı.",
+   "game_role": "other",
+   "first_appears": "Naruto ch.122 / Naruto ep.72",
+   "signature": true,
+   "source_page": "https://naruto.fandom.com/wiki/Shinigami"
+  },
+  {
+   "id": "moryo_demon",
+   "name": "Mōryō (Toprak İblisi)",
+   "name_en": "Mōryō Demon",
+   "group": "other",
+   "size_m": [
+    50,
+    100
+   ],
+   "elements": [],
+   "abilities": [
+    "Commands stone armies",
+    "Possession"
+   ],
+   "behavior": "Yıkıcı iblis.",
+   "visual": "Multi-headed serpent dragon (eight-headed) with dark aura.",
+   "desc": "Film boss.",
+   "game_role": "boss",
+   "first_appears": "Naruto Shippūden the Movie",
+   "signature": false,
+   "source_page": "https://naruto.fandom.com/wiki/Mōryō"
+  },
+  {
+   "id": "hiruko_chimera",
+   "name": "Hiruko Kimera (film)",
+   "name_en": "Chimera Shinobi",
+   "group": "otsutsuki",
+   "size_m": 2,
+   "elements": [
+    "multiple kekkei genkai"
+   ],
+   "abilities": [
+    "Absorbs kekkei genkai"
+   ],
+   "behavior": "Hırslı.",
+   "visual": "Pale humanoid with mismatched body parts, extra eyes.",
+   "desc": "Film boss.",
+   "game_role": "boss",
+   "first_appears": "Naruto Shippūden the Movie: The Will of Fire",
+   "signature": false,
+   "source_page": "https://naruto.fandom.com/wiki/Hiruko_(missing-nin)"
+  }
+ ]
+}
