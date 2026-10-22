@@ -9,8 +9,8 @@ var t := 0.0
 
 
 func _ready() -> void:
-	leaves = _emitter(140, 7.0, Vector3(30, 12, 30), Vector3(0.6, -1.2, 0.3), 0.4, 1.0, FX.tex_leaf, false,
-		[Color(0.55, 0.75, 0.3, 0), Color(0.5, 0.72, 0.28, 1), Color(0.75, 0.6, 0.25, 1), Color(0.7, 0.55, 0.2, 0)], 0.28, true)
+	leaves = _emitter(55, 7.0, Vector3(30, 12, 30), Vector3(0.6, -1.2, 0.3), 0.4, 1.0, FX.tex_leaf, false,
+		[Color(0.55, 0.75, 0.3, 0), Color(0.5, 0.72, 0.28, 1), Color(0.75, 0.6, 0.25, 1), Color(0.7, 0.55, 0.2, 0)], 0.18, true)
 	fireflies = _emitter(90, 5.0, Vector3(25, 3, 25), Vector3(0, 0.15, 0), 0.3, 0.8, FX.tex_soft, true,
 		[Color(0.7, 1.0, 0.4, 0), Color(0.8, 1.0, 0.45, 1), Color(0.8, 1.0, 0.45, 0)], 0.35, false)
 	sand = _emitter(220, 3.0, Vector3(30, 4, 30), Vector3(8, 0.5, 2), 4.0, 8.0, FX.tex_smoke, false,
@@ -86,7 +86,8 @@ func _process(dt: float) -> void:
 	var tod: float = Game.world.env.time_of_day if Game.world else 0.4
 	var night = tod < 0.23 or tod > 0.79
 	# 2 orman, 4 yağmur, 7 çimen, 10 bataklık, 11 köy
-	leaves.emitting = biome in [2, 7, 11] and not night
+	# süzülen yapraklar yalnızca ormanda (köyde/çayırda havada asılı nokta gibi duruyordu)
+	leaves.emitting = biome == 2 and not night
 	fireflies.emitting = night and biome in [2, 4, 6, 7, 10]
 	sand.emitting = biome == 3 or biome == 13
 	for e in [leaves, fireflies, sand]:
