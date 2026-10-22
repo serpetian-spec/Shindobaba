@@ -7,7 +7,10 @@
    0.25,
    0.45,
    0.8
-  ]
+  ],
+  "bonus": {
+   "melee": 0.15
+  }
  },
  "uchiha": {
   "name": "Uchiha",
@@ -17,7 +20,12 @@
    0.12,
    0.1,
    0.12
-  ]
+  ],
+  "dojutsu": "sharingan",
+  "bonus": {
+   "jutsu": 0.1,
+   "chakra": 10
+  }
  },
  "nara": {
   "name": "Nara",
@@ -27,7 +35,10 @@
    0.2,
    0.18,
    0.15
-  ]
+  ],
+  "bonus": {
+   "chakra": 20
+  }
  },
  "akimichi": {
   "name": "Akimichi",
@@ -37,7 +48,11 @@
    0.3,
    0.2,
    0.12
-  ]
+  ],
+  "bonus": {
+   "hp": 40,
+   "melee": 0.15
+  }
  },
  "yamanaka": {
   "name": "Yamanaka",
@@ -47,7 +62,10 @@
    0.4,
    0.7,
    0.85
-  ]
+  ],
+  "bonus": {
+   "chakra": 25
+  }
  },
  "aburame": {
   "name": "Aburame",
@@ -57,7 +75,11 @@
    0.1,
    0.1,
    0.1
-  ]
+  ],
+  "bonus": {
+   "chakra": 20,
+   "hp": 10
+  }
  },
  "inuzuka": {
   "name": "Inuzuka",
@@ -67,7 +89,11 @@
    0.45,
    0.25,
    0.12
-  ]
+  ],
+  "bonus": {
+   "melee": 0.1,
+   "speed": 0.05
+  }
  },
  "senju": {
   "name": "Senju",
@@ -77,7 +103,11 @@
    0.3,
    0.22,
    0.15
-  ]
+  ],
+  "bonus": {
+   "hp": 40,
+   "chakra": 20
+  }
  },
  "uzumaki": {
   "name": "Uzumaki",
@@ -87,7 +117,11 @@
    0.25,
    0.45,
    0.85
-  ]
+  ],
+  "bonus": {
+   "hp": 20,
+   "chakra": 60
+  }
  },
  "kaguya": {
   "name": "Kaguya",
@@ -97,7 +131,11 @@
    0.55,
    0.4,
    0.65
-  ]
+  ],
+  "bonus": {
+   "hp": 20,
+   "melee": 0.12
+  }
  },
  "yuki": {
   "name": "Yuki",
@@ -107,7 +145,11 @@
    0.45,
    0.6,
    0.75
-  ]
+  ],
+  "bonus": {
+   "chakra": 20,
+   "jutsu": 0.05
+  }
  },
  "hyuga": {
   "name": "Hyūga",
@@ -117,7 +159,11 @@
    0.9,
    0.9,
    0.96
-  ]
+  ],
+  "dojutsu": "byakugan",
+  "bonus": {
+   "melee": 0.12
+  }
  },
  "hozuki": {
   "name": "Hōzuki",
@@ -127,6 +173,108 @@
    0.6,
    0.45,
    0.75
-  ]
+  ],
+  "bonus": {
+   "hp": 15,
+   "chakra": 15
+  }
+ },
+ "sarutobi": {
+  "name": "Sarutobi",
+  "desc": "Konoha'nın köklü ateş klanı. Katon jutsuları güçlü, chakra yüksek. Kül ve ejderha alevi teknikleri.",
+  "kg": "Ateşin İradesi",
+  "eye": [
+   0.25,
+   0.18,
+   0.12
+  ],
+  "bonus": {
+   "chakra": 25,
+   "jutsu": 0.08
+  }
+ },
+ "hatake": {
+  "name": "Hatake",
+  "desc": "Kılıç ve ninken ustası küçük klan. Silahla yakın dövüş güçlü; Beyaz Chakra Bıçağı ve iz süren köpekler.",
+  "kg": "Beyaz Chakra",
+  "eye": [
+   0.2,
+   0.2,
+   0.22
+  ],
+  "bonus": {
+   "melee": 0.12,
+   "speed": 0.04
+  }
+ },
+ "chinoike": {
+  "name": "Chinoike",
+  "desc": "Kan rengi göze sahip lanetli klan. Güçlü genjutsu ve kan kontrolü.",
+  "kg": "Ketsuryūgan",
+  "eye": [
+   0.7,
+   0.08,
+   0.1
+  ],
+  "dojutsu": "ketsuryugan",
+  "bonus": {
+   "chakra": 20,
+   "jutsu": 0.05
+  }
+ },
+ "hoshigaki": {
+  "name": "Hoshigaki",
+  "desc": "Sis'in köpekbalığı benzeri savaşçıları. Dev chakra deposu, Suiton ustalığı.",
+  "kg": "Köpekbalığı Soyu",
+  "eye": [
+   0.85,
+   0.85,
+   0.75
+  ],
+  "bonus": {
+   "chakra": 80,
+   "hp": 20
+  }
+ },
+ "kurama": {
+  "name": "Kurama",
+  "desc": "Hayali gerçeğe çeviren nadir genjutsu yeteneği olan Konoha klanı.",
+  "kg": "Gerçeklik Genjutsusu",
+  "eye": [
+   0.45,
+   0.3,
+   0.55
+  ],
+  "bonus": {
+   "chakra": 30
+  }
+ },
+ "fuma": {
+  "name": "Fūma",
+  "desc": "Ses Ülkesi'nin eski ninja klanı. Dev shuriken ve rüzgar teknikleri.",
+  "kg": "Dev Shuriken Sanatı",
+  "eye": [
+   0.35,
+   0.3,
+   0.25
+  ],
+  "bonus": {
+   "melee": 0.08,
+   "speed": 0.05
+  }
+ },
+ "kamizuru": {
+  "name": "Kamizuru",
+  "desc": "Iwa'nın arı çağıran klanı. Böcek sürüleri ve bal mumu teknikleri.",
+  "kg": "Arı Yetiştiriciliği",
+  "eye": [
+   0.75,
+   0.6,
+   0.2
+  ],
+  "bonus": {
+   "hp": 20,
+   "chakra": 20
+  }
  }
 }

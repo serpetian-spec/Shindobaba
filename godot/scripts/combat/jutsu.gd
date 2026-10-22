@@ -16,18 +16,51 @@ func _elem_bonus(caster: Node3D, el: String) -> float:
 
 func _aim(caster: Node3D, target: Node3D) -> Vector3:
 	var s = caster.global_position + Vector3.UP * 1.4
+	# oyuncu: kilitli hedef yoksa nişangâha (baktığı yere) serbest nişan
+	if caster is Player:
+		var lt = caster.combat.lock_target if caster.combat else null
+		if lt != null and is_instance_valid(lt) and target == lt:
+			return (lt.global_position + Vector3.UP * lt.height * 0.5 - s).normalized()
+		return (caster.aim_point() - s).normalized()
 	if target and is_instance_valid(target):
 		return (target.global_position + Vector3.UP * target.height * 0.5 - s).normalized()
-	if caster is Player:
-		return -caster.cam.global_transform.basis.z
 	return caster.face_dir()
+
+
+## Yatay nişan yönü (duvar, yer jutsuları, atılmalar)
+func _aim_flat(caster: Node3D, target: Node3D) -> Vector3:
+	var d = _aim(caster, target)
+	d.y = 0.0
+	return d.normalized() if d.length() > 0.01 else caster.face_dir()
+
+
+## Yere hedefli jutsular için nokta: oyuncu kilitsizse nişangâh noktası (menzil sınırlı), değilse hedef
+func _aim_ground(caster: Node3D, target: Node3D, dist: float, max_d := 30.0) -> Vector3:
+	if caster is Player:
+		var lt = caster.combat.lock_target if caster.combat else null
+		if not (lt != null and is_instance_valid(lt) and target == lt):
+			var p: Vector3 = caster.aim_point()
+			var off = p - caster.global_position
+			off.y = 0.0
+			if off.length() > max_d:
+				p = caster.global_position + off.normalized() * max_d
+			return p
+	if target and is_instance_valid(target):
+		return target.global_position
+	return caster.global_position + caster.face_dir() * dist
 
 
 func _hand(caster: Node3D) -> Vector3:
 	return caster.global_position + Vector3.UP * 1.35 + caster.face_dir() * 0.55
 
 
+## Her jutsu kullanımında yayılır (ör. Sharingan kopyalama)
+signal jutsu_cast(caster: Node, id: String)
+
+
 func execute(caster: Node3D, id: String, target: Node3D) -> void:
+	jutsu_cast.emit(caster, id)
+	id = String(Data.jutsu.get(id, {}).get("impl", id))  # klan jutsuları ortak uygulamayı kullanabilir
 	if has_method("j_" + id):
 		call("j_" + id, caster, target)
 	else:
@@ -54,7 +87,7 @@ func j_katon_goukakyuu(c: Node3D, t: Node3D) -> void:
 	Projectile.trail(pr, [Color(1, 0.85, 0.35, 1), Color(1, 0.45, 0.05, 1), Color(0.8, 0.15, 0.05, 0.8), Color(0.3, 0.1, 0.05, 0)], 2.8, 90, 0.55, FX.tex_smoke, false)
 	Projectile.trail(pr, [Color(0.3, 0.25, 0.2, 0.0), Color(0.25, 0.2, 0.18, 0.5), Color(0.3, 0.3, 0.3, 0)], 3.0, 20, 1.2, FX.tex_smoke, false)
 	var light = OmniLight3D.new()
-	light.light_color = Color(1, 0.6, 0.2); light.light_energy = 6.0; light.omni_range = 16.0
+	light.light_color = Color(1, 0.6, 0.2); light.light_energy = 1.5; light.omni_range = 10.0
 	pr.add_child(light)
 	pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
 		FX.explosion(pos, 1.3, Color(1.0, 0.5, 0.1))
@@ -90,6 +123,16 @@ func j_katon_karyuu(c: Node3D, t: Node3D) -> void:
 	_stream(c, t, 1.6, Color(1, 0.55, 0.1), "katon", 5.0 * m, "fire")
 
 
+## Duvarı element çarpışmasına kaydet (mermi duvara girince elementlere göre çözülür)
+func _element_wall(w: Node3D, el: String, owner_: Node3D, center: Vector3, half: Vector3, pow_: float) -> void:
+	w.add_to_group("element_walls")
+	w.set_meta("element", el)
+	w.set_meta("owner", owner_)
+	w.set_meta("center", center)
+	w.set_meta("half", half)
+	w.set_meta("power", pow_)
+
+
 ## Koni şeklinde sürekli akış (alev/su/rüzgar)
 func _stream(c: Node3D, t: Node3D, dur: float, col: Color, el: String, tick_dmg: float, snd: String) -> void:
 	Sfx.play(snd, c.global_position)
@@ -118,8 +161,24 @@ func _stream(c: Node3D, t: Node3D, dur: float, col: Color, el: String, tick_dmg:
 		tw.tween_callback(func():
 			if not is_instance_valid(c):
 				return
+			if e.get_meta("stopped", false):
+				return
 			var d = _aim(c, t)
 			e.global_transform = Transform3D(Basis.looking_at(d, Vector3.UP), c.global_position + Vector3.UP * 1.4 + d * 0.6)
+			for pr in get_tree().get_nodes_in_group("projectiles"):
+				if pr.dead or pr.element() == "" or pr.shooter == null or not is_instance_valid(pr.shooter) or not Combat.hostile(c, pr.shooter):
+					continue
+				var rel: Vector3 = pr.global_position - (c.global_position + Vector3.UP * 1.2)
+				var along = rel.dot(d)
+				if along < 0.5 or along > 10.0 or (rel - d * along).length() > 1.2 + along * 0.2 + pr.radius:
+					continue
+				var r = Elements.clash({"el": el, "pow": tick_dmg * 6.0}, {"el": pr.element(), "pow": pr.power()})
+				Elements.clash_fx(pr.global_position, r["effect"], el, pr.element(), pr.radius)
+				pr.apply_clash(r["b_alive"], r["b_scale"])
+				if not r["a_alive"]:
+					e.set_meta("stopped", true)
+					e.emitting = false
+					return
 			for k in 4:
 				Combat.hit_sphere(c, c.global_position + Vector3.UP * 1.2 + d * (2.0 + k * 2.2), 1.2 + k * 0.4,
 					{"dmg": tick_dmg, "element": el, "knock": 3.0, "kind": "light", "burn": 1.0 if el == "katon" else 0.0}))
@@ -133,12 +192,13 @@ func _stream(c: Node3D, t: Node3D, dur: float, col: Color, el: String, tick_dmg:
 func j_suiton_suiryuudan(c: Node3D, t: Node3D) -> void:
 	var m = _mult(c) * _elem_bonus(c, "suiton")
 	Sfx.play("water", c.global_position)
-	var start = c.global_position + c.face_dir() * 2.0 + Vector3(0, -1, 0)
+	var fd = _aim_flat(c, t)
+	var start = c.global_position + fd * 2.0 + Vector3(0, -1, 0)
 	FX.burst(start + Vector3.UP, {"amount": 50, "life": 0.8, "size": 1.4, "vmin": 4, "vmax": 12, "dir": Vector3.UP, "spread": 35.0,
 		"gravity": Vector3(0, -14, 0), "colors": [Color(0.8, 0.95, 1, 0.9), Color(0.3, 0.6, 1.0, 0.7), Color(0.2, 0.4, 0.9, 0)]})
 	var pr = Projectile.new()
 	pr.shooter = c
-	pr.vel = Vector3.UP * 14.0 + c.face_dir() * 6.0
+	pr.vel = Vector3.UP * 14.0 + fd * 6.0
 	pr.radius = 1.8
 	pr.life = 3.5
 	pr.homing = t
@@ -196,8 +256,14 @@ func j_suiton_suijinheki(c: Node3D, _t: Node3D) -> void:
 			if not is_instance_valid(c):
 				return
 			for pr in get_tree().get_nodes_in_group("projectiles"):
-				if pr.shooter != c and pr.global_position.distance_to(c.global_position + Vector3.UP) < 4.0:
-					pr.block()
+				if pr.shooter != c and not pr.dead and pr.global_position.distance_to(c.global_position + Vector3.UP) < 4.0:
+					if pr.element() == "":
+						pr.block()
+						continue
+					# su kalkanı: ateşi söndürür; toprak/ağaç/yıldırım gibi üstün elementler geçebilir
+					var r = Elements.clash({"el": "suiton", "pow": 30.0 * _mult(c)}, {"el": pr.element(), "pow": pr.power()})
+					Elements.clash_fx(pr.global_position, r["effect"], "suiton", pr.element(), pr.radius)
+					pr.apply_clash(r["b_alive"], r["b_scale"])
 			Combat.hit_sphere(c, c.global_position + Vector3.UP, 3.6, {"dmg": 2.0, "element": "suiton", "knock": 10.0, "kind": "light"}))
 		tw.tween_interval(0.15)
 	tw.tween_callback(func():
@@ -306,7 +372,7 @@ func j_fuuton_rasenshuriken(c: Node3D, t: Node3D) -> void:
 
 # ================================================================== DOTON
 func j_doton_doryuheki(c: Node3D, _t: Node3D) -> void:
-	var d = c.face_dir()
+	var d = _aim_flat(c, _t)
 	var pos = c.global_position + d * 3.5
 	pos.y = Game.ground_height(pos.x, pos.z)
 	var wall = StaticBody3D.new()
@@ -325,6 +391,7 @@ func j_doton_doryuheki(c: Node3D, _t: Node3D) -> void:
 	mi.mesh = b.build(Props.toon())
 	wall.add_child(mi)
 	get_tree().current_scene.add_child(wall)
+	_element_wall(wall, "doton", c, Vector3(0, 3.5, 0), Vector3(6, 3.5, 1), 45.0 * _mult(c))
 	wall.global_transform = Transform3D(Basis.looking_at(d, Vector3.UP), pos - Vector3(0, 7.5, 0))
 	var tw = wall.create_tween()
 	tw.tween_property(wall, "global_position:y", pos.y, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -368,7 +435,7 @@ func j_doton_doryuusou(c: Node3D, t: Node3D) -> void:
 
 
 func j_doton_yomi(c: Node3D, t: Node3D) -> void:
-	var pos = t.global_position if t else c.global_position + c.face_dir() * 8.0
+	var pos = _aim_ground(c, t, 8.0)
 	pos.y = Game.ground_height(pos.x, pos.z) + 0.05
 	var mi = MeshInstance3D.new()
 	var cm = CylinderMesh.new()
@@ -401,7 +468,7 @@ func _lightning_ball(c: Node3D, col_core: Color, col_edge: Color, snd: String) -
 	arcs.radius = 0.9
 	hand.add_child(arcs)
 	var l = OmniLight3D.new()
-	l.light_color = col_edge; l.light_energy = 5.0; l.omni_range = 7.0
+	l.light_color = col_edge; l.light_energy = 1.2; l.omni_range = 5.0
 	hand.add_child(l)
 	Sfx.play(snd, c.global_position)
 	return hand
@@ -446,7 +513,10 @@ func _hand_dash(c: Node3D, t: Node3D, hand: Node3D, charge: float, speed: float,
 				timer.queue_free()
 				return
 			var d: Vector3
-			if t and is_instance_valid(t) and not t.is_dead():
+			if c is Player:
+				d = _aim_flat(c, t)
+				c.facing = atan2(-d.x, -d.z)
+			elif t and is_instance_valid(t) and not t.is_dead():
 				d = (t.global_position - c.global_position)
 				d.y = 0
 				d = d.normalized()
@@ -648,7 +718,7 @@ func j_kokuangyo(c: Node3D, _t: Node3D) -> void:
 
 
 func j_kuchiyose(c: Node3D, _t: Node3D) -> void:
-	var pos = c.global_position + c.face_dir() * 6.0
+	var pos = _aim_ground(c, null, 6.0, 10.0)
 	pos.y = Game.ground_height(pos.x, pos.z)
 	FX.smoke_puff(pos + Vector3.UP * 3, 4.0, 40)
 	FX.burst(pos + Vector3.UP * 0.2, {"amount": 1, "life": 0.6, "size": 8.0, "vmin": 0, "vmax": 0, "colors": [Color(0.1, 0.1, 0.1, 0.8), Color(0, 0, 0, 0)]})
@@ -685,7 +755,9 @@ func _dash(c: Node3D, t: Node3D, dur: float, speed: float, on_tick: Callable, on
 			timer.queue_free()
 			return
 		var d: Vector3 = c.face_dir()
-		if t and is_instance_valid(t) and not t.is_dead():
+		if c is Player:
+			d = _aim_flat(c, t)
+		elif t and is_instance_valid(t) and not t.is_dead():
 			d = t.global_position - c.global_position
 			d.y = 0
 			d = d.normalized()
@@ -857,7 +929,7 @@ func j_nikudan(c: Node3D, t: Node3D) -> void:
 # ---------------------------------------------------------------- Aburame
 func j_mushi_swarm(c: Node3D, t: Node3D) -> void:
 	var m = _mult(c)
-	var st = {"pos": t.global_position if t else c.global_position + c.face_dir() * 10.0}
+	var st = {"pos": _aim_ground(c, t, 10.0)}
 	var cloud = GPUParticles3D.new()
 	cloud.amount = 160
 	cloud.lifetime = 0.9
@@ -967,7 +1039,7 @@ func j_mokuton_spikes(c: Node3D, t: Node3D) -> void:
 		tw.tween_property(sp, "global_position:y", p.y - 4.5, 0.5)
 		tw.tween_callback(sp.queue_free)
 		FX.dust(p, 0.8)
-		for h in Combat.hit_sphere(c, p + Vector3.UP, 1.7, {"dmg": 10.0 * m, "knock": 3.0, "launch": 8.0, "kind": "heavy", "hitstop": 0.03}):
+		for h in Combat.hit_sphere(c, p + Vector3.UP, 1.7, {"dmg": 10.0 * m, "element": "mokuton", "knock": 3.0, "launch": 8.0, "kind": "heavy", "hitstop": 0.03}):
 			if h.has_method("apply_status"):
 				h.apply_status("bind", 1.0))
 
@@ -991,6 +1063,7 @@ func j_mokuton_wall(c: Node3D, _t: Node3D) -> void:
 	mi.mesh = b.build(Props.toon())
 	wall.add_child(mi)
 	get_tree().current_scene.add_child(wall)
+	_element_wall(wall, "mokuton", c, Vector3(0, 2.6, 0), Vector3(5, 2.6, 5), 60.0 * _mult(c))
 	wall.global_position = center - Vector3(0, 7.5, 0)
 	var tw = wall.create_tween()
 	tw.tween_property(wall, "global_position:y", center.y, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -1015,7 +1088,7 @@ func j_hyoton_senbon(c: Node3D, t: Node3D) -> void:
 		pr.vel = d.normalized() * 50.0
 		pr.radius = 0.25
 		pr.life = 1.4
-		pr.info = {"dmg": 4.0 * m, "knock": 1.0, "kind": "light", "hitstop": 0.01, "element": "suiton"}
+		pr.info = {"dmg": 4.0 * m, "knock": 1.0, "kind": "light", "hitstop": 0.01, "element": "hyoton"}
 		var mi = MeshInstance3D.new()
 		var cm = CylinderMesh.new()
 		cm.top_radius = 0.0; cm.bottom_radius = 0.04; cm.height = 0.7
@@ -1034,7 +1107,7 @@ func j_hyoton_senbon(c: Node3D, t: Node3D) -> void:
 
 func j_hyoton_spears(c: Node3D, t: Node3D) -> void:
 	var m = _mult(c)
-	var center = _ground(t.global_position if t else c.global_position + c.face_dir() * 8.0)
+	var center = _ground(_aim_ground(c, t, 8.0))
 	Sfx.play("clink", center, 0.6)
 	var b = MB.new()
 	for k in 10:
@@ -1054,7 +1127,7 @@ func j_hyoton_spears(c: Node3D, t: Node3D) -> void:
 	for f in get_tree().get_nodes_in_group("fighters"):
 		if Combat.hostile(c, f) and not f.is_dead() and Combat.capsule_hit(center + Vector3.UP, f, 2.6) and f.has_method("apply_status"):
 			f.apply_status("stun", 2.5)
-	for h in Combat.hit_sphere(c, center + Vector3.UP, 2.6, {"dmg": 22.0 * m, "knock": 0.0, "kind": "light", "element": "suiton", "hitstop": 0.06}):
+	for h in Combat.hit_sphere(c, center + Vector3.UP, 2.6, {"dmg": 22.0 * m, "knock": 0.0, "kind": "light", "element": "hyoton", "hitstop": 0.06}):
 		Combat.popup_text(h.global_position + Vector3.UP * 2.4, "DONDU!", Color(0.7, 0.9, 1))
 	FX.burst(center + Vector3.UP, {"amount": 30, "life": 0.6, "tex": FX.tex_spark, "size": 1.0, "vmin": 5, "vmax": 12, "colors": [Color(1, 1, 1, 1), Color(0.7, 0.9, 1, 0)]})
 
@@ -1170,7 +1243,7 @@ func beast_bomb(c: Node3D, t: Node3D) -> void:
 	pr.info = {"dmg": 60.0 * m, "knock": 25.0, "launch": 10.0, "kind": "heavy", "hitstop": 0.15, "element": "raiton"}
 	pr.add_child(Projectile.energy_mesh(Color(0.35, 0.3, 0.9), Color(0.05, 0.05, 0.25), 3.2, 12.0, 0.0, 2.0))
 	var l = OmniLight3D.new()
-	l.light_color = Color(0.5, 0.5, 1.0); l.light_energy = 8.0; l.omni_range = 20.0
+	l.light_color = Color(0.5, 0.5, 1.0); l.light_energy = 1.8; l.omni_range = 12.0
 	pr.add_child(l)
 	pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
 		FX.explosion(pos, 2.4, Color(0.45, 0.45, 1.0))

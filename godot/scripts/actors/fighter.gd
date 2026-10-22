@@ -65,11 +65,22 @@ func has_status(name: String) -> bool:
 func take_hit(info: Dictionary) -> void:
 	if dead:
 		return
-	var dmg: float = info.get("dmg", 5.0) * Combat.element_mult(info.get("element", ""), element)
+	var em = Combat.element_mult(info.get("element", ""), element)
+	var react = Elements.on_hit(self, info)
+	var dmg: float = info.get("dmg", 5.0) * em * react
 	hp -= dmg
 	model.flash(0.9)
 	var col = Color(1, 0.9, 0.3) if info.get("kind", "light") == "light" else Color(1, 0.55, 0.2)
-	Combat.damage_number(global_position + Vector3.UP * (height + 0.3), dmg, col, info.get("kind", "") == "heavy")
+	# element etkinliği: renk + yazı
+	var eff = em * react
+	if info.get("element", "") != "" and info.get("attacker") is Player and dmg >= 3.0 and absf(react - 1.0) < 0.01:
+		if eff >= 1.25:
+			col = Color(1, 0.35, 0.15)
+			Combat.popup_text(global_position + Vector3.UP * (height + 0.9), "Etkili!", Color(1, 0.6, 0.2))
+		elif eff <= 0.8:
+			col = Color(0.65, 0.68, 0.75)
+			Combat.popup_text(global_position + Vector3.UP * (height + 0.9), "Zayıf...", Color(0.7, 0.72, 0.8))
+	Combat.damage_number(global_position + Vector3.UP * (height + 0.3), dmg, col, info.get("kind", "") == "heavy" or eff >= 1.25)
 	if info.get("burn", 0.0) > 0.0:
 		apply_status("burn", info["burn"])
 	if info.get("stun", 0.0) > 0.0:
@@ -143,7 +154,27 @@ func step_move(wish: Vector3, dt: float, turn := true) -> void:
 	model.rotation.y = facing
 
 
+var _env_t = 0.0
+
+
 func tick_status(dt: float) -> void:
+	_env_t -= dt
+	if _env_t <= 0.0:
+		_env_t = 0.5
+		Elements.env_tick(self, 0.5)
+	if randf() < dt * 3.0:
+		var hp_ = global_position + Vector3.UP * randf_range(0.4, height)
+		if has_status("wet"):
+			FX.burst(hp_, {"amount": 2, "life": 0.5, "size": 0.25, "vmin": 0.2, "vmax": 0.6, "gravity": Vector3(0, -9, 0),
+				"colors": [Color(0.7, 0.85, 1, 0.9), Color(0.5, 0.7, 1, 0)]})
+		if has_status("frozen") or has_status("chill"):
+			FX.burst(hp_, {"amount": 3, "life": 0.7, "tex": FX.tex_spark, "size": 0.4, "vmin": 0.3, "vmax": 1.0,
+				"colors": [Color(0.9, 0.98, 1, 1), Color(0.7, 0.9, 1, 0)]})
+		if has_status("shock"):
+			FX.hit_spark(hp_, Color(0.7, 0.85, 1.0), 0.4)
+		if has_status("mud"):
+			FX.burst(global_position + Vector3.UP * 0.3, {"amount": 2, "life": 0.6, "add": false, "size": 0.3, "vmin": 0.2, "vmax": 0.5,
+				"gravity": Vector3(0, -6, 0), "colors": [Color(0.4, 0.3, 0.2, 1), Color(0.35, 0.25, 0.18, 0)]})
 	for k in statuses.keys():
 		statuses[k] -= dt
 		if statuses[k] <= 0.0:

@@ -38,6 +38,9 @@ func _physics_process(dt: float) -> void:
 	var step = vel * dt
 	var from = global_position
 	var to = from + step
+	# element çarpışmaları: karşı takımın jutsuları ve element duvarları
+	if _check_clash(to):
+		return
 	# savaşçılar (alt adımlarla)
 	var n = maxi(1, int(step.length() / maxf(radius, 0.3)) + 1)
 	for i in n:
@@ -79,6 +82,9 @@ func _finish(pos: Vector3, target: Node3D, normal := Vector3.ZERO) -> void:
 	if dead:
 		return
 	dead = true
+	var el: String = info.get("element", "")
+	if target == null and el in ["katon", "yoton", "shakuton"] and pos.y - Game.terrain_height(pos.x, pos.z) < 2.0:
+		Elements.scorch(pos, clampf(radius * 1.8, 1.2, 5.0))
 	if on_hit.is_valid():
 		on_hit.call(pos, target)
 	if stick and target == null and normal != Vector3.ZERO:
@@ -95,6 +101,95 @@ func _finish(pos: Vector3, target: Node3D, normal := Vector3.ZERO) -> void:
 			c.reparent(get_tree().current_scene)
 			get_tree().create_timer(c.lifetime + 0.2).timeout.connect(c.queue_free)
 	queue_free()
+
+
+# ------------------------------------------------------------------ element çarpışması
+func element() -> String:
+	return info.get("element", "")
+
+
+func power() -> float:
+	return float(info.get("dmg", 10.0))
+
+
+## true döndürürse mermi bu karede yok oldu
+func _check_clash(pt: Vector3) -> bool:
+	var el = element()
+	if el == "" or shooter == null or not is_instance_valid(shooter):
+		return false
+	for o in get_tree().get_nodes_in_group("projectiles"):
+		if o == self or o.dead or o.element() == "" or o.shooter == null or not is_instance_valid(o.shooter):
+			continue
+		if not Combat.hostile(shooter, o.shooter):
+			continue
+		if pt.distance_to(o.global_position) > radius + o.radius:
+			continue
+		var r = Elements.clash({"el": el, "pow": power()}, {"el": o.element(), "pow": o.power()})
+		var contact = pt.lerp(o.global_position, 0.5)
+		Elements.clash_fx(contact, r["effect"], el, o.element(), maxf(radius, o.radius))
+		o.apply_clash(r["b_alive"], r["b_scale"])
+		apply_clash(r["a_alive"], r["a_scale"])
+		if dead:
+			return true
+	for w in get_tree().get_nodes_in_group("element_walls"):
+		if not is_instance_valid(w) or not w.is_inside_tree():
+			continue
+		var owner_ = w.get_meta("owner", null)
+		if owner_ != null and is_instance_valid(owner_) and not Combat.hostile(shooter, owner_):
+			continue
+		var lp: Vector3 = w.global_transform.affine_inverse() * pt - w.get_meta("center", Vector3.ZERO)
+		var hf: Vector3 = w.get_meta("half", Vector3.ONE)
+		if absf(lp.x) > hf.x + radius or absf(lp.y) > hf.y + radius or absf(lp.z) > hf.z + radius:
+			continue
+		var wel: String = w.get_meta("element", "doton")
+		var r = Elements.clash({"el": el, "pow": power()}, {"el": wel, "pow": float(w.get_meta("power", 40.0))})
+		Elements.clash_fx(pt, r["effect"], el, wel, maxf(radius, 1.5))
+		if not r["b_alive"]:
+			break_wall(w)
+		else:
+			w.set_meta("power", float(w.get_meta("power", 40.0)) * maxf(0.3, r["b_scale"]))
+		apply_clash(r["a_alive"], r["a_scale"])
+		if dead:
+			return true
+	return false
+
+
+## Çarpışma sonucu: yok ol (patlamadan) ya da güç/boyut değiştir (rüzgarla büyüyen ateş vb.)
+func apply_clash(alive: bool, scale_: float) -> void:
+	if dead:
+		return
+	if not alive:
+		dead = true
+		for c in get_children():
+			if c is GPUParticles3D:
+				c.emitting = false
+				c.reparent(get_tree().current_scene)
+				get_tree().create_timer(c.lifetime + 0.2).timeout.connect(c.queue_free)
+		queue_free()
+		return
+	info["dmg"] = power() * scale_
+	var g = sqrt(clampf(scale_, 0.4, 2.0))
+	radius *= g
+	for c in get_children():
+		if c is Node3D and not c is GPUParticles3D:
+			c.scale *= g
+
+
+## Element duvarını (toprak/ağaç/buz) yık
+static func break_wall(w: Node3D) -> void:
+	if not is_instance_valid(w):
+		return
+	if w is CollisionObject3D:
+		w.collision_layer = 0
+	var c: Vector3 = w.global_transform * w.get_meta("center", Vector3.ZERO)
+	FX.dust(c, 3.0)
+	FX.burst(c, {"amount": 60, "life": 1.4, "tex": FX.tex_soft, "add": false, "size": 0.9, "radius": 3.0, "vmin": 6, "vmax": 14,
+		"gravity": Vector3(0, -22, 0), "colors": [Color(0.55, 0.45, 0.33, 1), Color(0.45, 0.35, 0.25, 0)]})
+	Sfx.play("earth", c, 0.8)
+	w.remove_from_group("element_walls")
+	var tw = w.create_tween()
+	tw.tween_property(w, "scale", Vector3(1.0, 0.05, 1.0), 0.35)
+	tw.tween_callback(w.queue_free)
 
 
 ## Su duvarı vb. tarafından yok edilir

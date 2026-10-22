@@ -59,6 +59,21 @@ J = [
     ('chakra_chains', 'Fūinjutsu: Kongō Fūsa', '', 35, 12, '', 'uzumaki', 5, 0, 'clan', 'Altın chakra zincirleri hedefi bağlar.'),
     ('suika', 'Suika no Jutsu', '', 25, 18, '', 'hozuki', 3, 0, 'clan', '15 sn bedenin suya dönüşür: darbeler içinden geçer.'),
     ('water_gun', 'Suiton: Mizudeppō', '', 15, 3, '', 'hozuki', 5, 0, 'clan', 'Parmaktan basınçlı su mermisi.'),
+    # ---- yeni klanlar (uygulama: IMPL ile mevcut jutsulara bağlanır)
+    ('sarutobi_haisekisho', 'Katon: Haisekishō', 'ash_pile_burning', 25, 8, 'katon', 'sarutobi', 3, 0, 'clan', 'Yanıcı kül bulutu üfle ve tutuştur.'),
+    ('sarutobi_karyu', 'Katon: Karyū Endan (Sarutobi)', 'dragon_fire_technique', 35, 10, 'katon', 'sarutobi', 8, 0, 'clan', 'Klan ateşi: ejderha alevi erken öğrenilir.'),
+    ('hatake_hakko', 'Hakkō Chakra Bıçağı', '', 25, 7, 'raiton', 'hatake', 3, 0, 'clan', 'Beyaz chakra ile parlayan bıçak hücumu.'),
+    ('hatake_ninken', 'Ninken Sürüsü', '', 20, 30, '', 'hatake', 6, 0, 'clan', 'İz süren ninja köpeklerini çağır.'),
+    ('chinoike_ketsuryugan', 'Ketsuryūgan: Kan Genjutsu', '', 25, 12, '', 'chinoike', 3, 0, 'clan', 'Kızıl gözle bakış: hedef dehşet içinde donar.'),
+    ('chinoike_kanshu', 'Kan Akışı Kontrolü', '', 35, 20, '', 'chinoike', 8, 0, 'clan', 'Düşmanların görüşünü karartan kızıl sis.'),
+    ('hoshigaki_same', 'Suiton: Gōshokuzame', 'water_shark_bullet', 28, 6, 'suiton', 'hoshigaki', 3, 0, 'clan', 'Avını kovalayan köpekbalığı sürüsü.'),
+    ('hoshigaki_ryudan', 'Suiton: Bakusui Ryūdan', 'water_dragon_bullet', 40, 10, 'suiton', 'hoshigaki', 8, 0, 'clan', 'Dev su ejderhası.'),
+    ('kurama_genjutsu', 'Kurama: Gerçeklik Genjutsusu', 'hell_viewing_technique', 25, 10, '', 'kurama', 3, 0, 'clan', 'Hayal gerçeğe dönüşür: hedef korkuyla kilitlenir.'),
+    ('kurama_kokuangyo', 'Kurama: Karanlık Perde', 'bringer_of_darkness', 35, 18, '', 'kurama', 8, 0, 'clan', 'Tüm düşmanlar seni kaybeder.'),
+    ('fuma_shuriken_j', 'Fūma Shuriken Fırlatışı', '', 20, 5, 'fuuton', 'fuma', 3, 0, 'clan', 'Rüzgar destekli dev shuriken fırtınası.'),
+    ('fuma_kaze', 'Fuuton: Kamaitachi', 'great_breakthrough', 25, 7, 'fuuton', 'fuma', 7, 0, 'clan', 'Kesen rüzgar dalgası.'),
+    ('kamizuru_bees', 'Arı Sürüsü', '', 25, 8, '', 'kamizuru', 3, 0, 'clan', 'Saldırgan arı bulutu: sürekli hasar.'),
+    ('kamizuru_wax', 'Mitsu Rensei: Bal Mumu Kalkanı', '', 25, 14, '', 'kamizuru', 7, 0, 'clan', 'Yapışkan mum duvarı: düşmanları yavaşlatır.'),
 ]
 SEAL_OVERRIDE = {
     'kagemane': ['Ne'], 'kage_kubi': ['Ne', 'Mi'], 'baika': ['Hitsuji'], 'mushi_swarm': ['Ne', 'Tori'],
@@ -66,10 +81,23 @@ SEAL_OVERRIDE = {
     'mokuton_wall': ['Ushi', 'Tora', 'Mi'], 'hyoton_senbon': ['Hitsuji', 'Tatsu'], 'hyoton_spears': ['Ne', 'Mi', 'Tora'],
     'chakra_chains': ['I', 'Inu', 'Tori', 'Saru'], 'suika': ['Ushi', 'U'], 'water_gun': ['Tora', 'Ushi'],
 }
+# yeni klan jutsuları mevcut j_* uygulamalarına bağlanır (jutsu.gd execute 'impl' alanını okur)
+IMPL = {
+    'sarutobi_haisekisho': 'katon_housenka', 'sarutobi_karyu': 'katon_karyuu', 'hatake_hakko': 'raiton_chidori',
+    'hatake_ninken': 'ninken', 'chinoike_ketsuryugan': 'narakumi', 'chinoike_kanshu': 'kokuangyo',
+    'hoshigaki_same': 'suiton_suikoudan', 'hoshigaki_ryudan': 'suiton_suiryuudan', 'kurama_genjutsu': 'narakumi',
+    'kurama_kokuangyo': 'kokuangyo', 'fuma_shuriken_j': 'fuuton_shinkuu', 'fuma_kaze': 'fuuton_daitoppa',
+    'kamizuru_bees': 'mushi_swarm', 'kamizuru_wax': 'doton_yomi',
+}
+SEAL_OVERRIDE.update({'hatake_hakko': ['Ushi', 'U', 'Saru'], 'hatake_ninken': ['I', 'Inu', 'Tori', 'Saru', 'Hitsuji'],
+                      'chinoike_ketsuryugan': ['Mi'], 'chinoike_kanshu': ['Mi', 'Hitsuji'], 'kurama_genjutsu': ['Ne', 'Mi'],
+                      'fuma_shuriken_j': ['Tora'], 'kamizuru_bees': ['Ne', 'Tori'], 'kamizuru_wax': ['Ushi', 'Mi']})
 out = {}
 for (jid, name, cid, cost, cd, el, clan, lv, rk, learn, desc) in J:
     out[jid] = dict(id=jid, name=name, cost=cost, cd=cd, element=el, clan=clan, level=lv, rank=rk, learn=learn, desc=desc,
                     seals=SEAL_OVERRIDE.get(jid, seals(cid)), canon_rank=rank_of.get(cid, '?'))
+    if jid in IMPL:
+        out[jid]['impl'] = IMPL[jid]
 out['_seals'] = [s['name_jp'] for s in R['hand_seals'][:12]]
 os.makedirs(os.path.join(ROOT, 'godot', 'data'), exist_ok=True)
 json.dump(out, open(os.path.join(ROOT, 'godot', 'data', 'jutsu.json'), 'w', encoding='utf8'), ensure_ascii=False, indent=1)
@@ -107,6 +135,29 @@ for cid, nm, kg, desc in [('hyuga', 'Hyūga', 'Byakugan', 'Byakugan ile duvar ar
                            ('hozuki', 'Hōzuki', 'Hydrification', 'Bedenini suya dönüştürür; fiziksel darbelerden kaçar, Suiton yatkın.')]:
     if cid not in clans:
         clans[cid] = dict(name=nm, desc=desc, kg=kg, eye=eyes[cid])
+# Narutopedia klanları (kanon karakter yok): yeni klanlar + pasif bonuslar + göz türü
+for cid, nm, kg, desc, eye in [
+    ('sarutobi', 'Sarutobi', 'Ateşin İradesi', "Konoha'nın köklü ateş klanı. Katon jutsuları güçlü, chakra yüksek. Kül ve ejderha alevi teknikleri.", [0.25, 0.18, 0.12]),
+    ('hatake', 'Hatake', 'Beyaz Chakra', 'Kılıç ve ninken ustası küçük klan. Silahla yakın dövüş güçlü; Beyaz Chakra Bıçağı ve iz süren köpekler.', [0.2, 0.2, 0.22]),
+    ('chinoike', 'Chinoike', 'Ketsuryūgan', 'Kan rengi göze sahip lanetli klan. Güçlü genjutsu ve kan kontrolü.', [0.7, 0.08, 0.1]),
+    ('hoshigaki', 'Hoshigaki', 'Köpekbalığı Soyu', "Sis'in köpekbalığı benzeri savaşçıları. Dev chakra deposu, Suiton ustalığı.", [0.85, 0.85, 0.75]),
+    ('kurama', 'Kurama', 'Gerçeklik Genjutsusu', 'Hayali gerçeğe çeviren nadir genjutsu yeteneği olan Konoha klanı.', [0.45, 0.3, 0.55]),
+    ('fuma', 'Fūma', 'Dev Shuriken Sanatı', "Ses Ülkesi'nin eski ninja klanı. Dev shuriken ve rüzgar teknikleri.", [0.35, 0.3, 0.25]),
+    ('kamizuru', 'Kamizuru', 'Arı Yetiştiriciliği', "Iwa'nın arı çağıran klanı. Böcek sürüleri ve bal mumu teknikleri.", [0.75, 0.6, 0.2]),
+]:
+    clans[cid] = dict(name=nm, desc=desc, kg=kg, eye=eye)
+DOJUTSU = {'uchiha': 'sharingan', 'hyuga': 'byakugan', 'chinoike': 'ketsuryugan'}
+BONUS = {  # hp, chakra (düz); melee, jutsu, speed (oran)
+    'none': dict(melee=0.15), 'uchiha': dict(jutsu=0.1, chakra=10), 'hyuga': dict(melee=0.12), 'nara': dict(chakra=20),
+    'akimichi': dict(hp=40, melee=0.15), 'yamanaka': dict(chakra=25), 'aburame': dict(chakra=20, hp=10), 'inuzuka': dict(melee=0.1, speed=0.05),
+    'senju': dict(hp=40, chakra=20), 'uzumaki': dict(hp=20, chakra=60), 'kaguya': dict(hp=20, melee=0.12), 'yuki': dict(chakra=20, jutsu=0.05),
+    'hozuki': dict(hp=15, chakra=15), 'sarutobi': dict(chakra=25, jutsu=0.08), 'hatake': dict(melee=0.12, speed=0.04), 'chinoike': dict(chakra=20, jutsu=0.05),
+    'hoshigaki': dict(chakra=80, hp=20), 'kurama': dict(chakra=30), 'fuma': dict(melee=0.08, speed=0.05), 'kamizuru': dict(hp=20, chakra=20),
+}
+for cid, c in clans.items():
+    if cid in DOJUTSU:
+        c['dojutsu'] = DOJUTSU[cid]
+    c['bonus'] = BONUS.get(cid, {})
 json.dump(clans, open(os.path.join(ROOT, 'godot', 'data', 'clans.json'), 'w', encoding='utf8'), ensure_ascii=False, indent=1)
 print(len(out) - 1, 'jutsu,', len(items), 'items,', len(clans), 'clans')
 print(out['katon_goukakyuu']['seals'], out['raiton_chidori']['seals'])

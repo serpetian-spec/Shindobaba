@@ -2,10 +2,12 @@
 shader_type spatial;
 render_mode cull_disabled, world_vertex_coords, diffuse_toon, specular_disabled, depth_draw_never;
 
-uniform sampler2D heightmap : filter_linear, repeat_disable;
+#include "res://shaders/world_height.gdshaderinc"
 uniform sampler2D albedo_map : source_color, filter_linear, repeat_disable;
-uniform sampler2D biome_map : filter_nearest, repeat_disable;
-uniform vec4 world_rect;
+uniform sampler2D road_tex : filter_linear, repeat_disable;
+uniform vec4 road_rect;
+uniform vec4 villages[16];
+uniform int village_count = 0;
 uniform vec3 player_pos;
 uniform float radius = 58.0;
 
@@ -20,15 +22,21 @@ void vertex() {
 	// köke göre ofset: bu tutamın kökü (örnek noktası) = model merkezi
 	vec3 root = (MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
 	vec2 ruv = (root.xz - world_rect.xy) / world_rect.zw;
-	float h = texture(heightmap, ruv).r;
-	vec4 bio = texture(biome_map, ruv);
-	int b = int(bio.r * 255.0 + 0.5);
+	float h = world_height(root.xz);
+	vec4 bio = wh_bilin(biome_map, root.xz);
+	ivec2 bc = clamp(ivec2((root.xz - world_rect.xy) / macro_res), ivec2(0), ivec2(macro_size) - 1);
+	int b = int(texelFetch(biome_map, bc, 0).r * 255.0 + 0.5);
+	for (int i = 0; i < village_count; i++) {
+		if (length(root.xz - villages[i].xy) < villages[i].z * 0.95) { b = int(villages[i].w); }
+	}
+	vec2 rr = (root.xz - road_rect.xy) / max(road_rect.z, 1.0);
+	float road = (road_rect.z > 0.0 && rr.x > 0.0 && rr.y > 0.0 && rr.x < 1.0 && rr.y < 1.0) ? texture(road_tex, rr).r : bio.g;
 	// 2 orman 4 yağmur 6 pirinç 7 çimen 9 dağ 10 bataklık 11 köy
 	float ok = (b == 2 || b == 4 || b == 6 || b == 7 || b == 10) ? 1.0 : (b == 9 ? 0.5 : 0.0);
 	// köy içinde sadece duvar diplerinde/bahçelerde seyrek öbekler
 	if (b == 11) ok = step(0.82, hash(floor(root.xz * 0.18)));
 	// 13 çöl köyü, 14 taş köy, 15 karlı köy: çimen yok
-	ok *= 1.0 - step(0.25, bio.g);          // yol
+	ok *= 1.0 - step(0.2, road);            // yol
 	ok *= 1.0 - step(0.5, bio.b);           // ıslak
 	ok *= step(0.6, h);                     // su altı
 	float rnd = hash(floor(root.xz * 3.0));

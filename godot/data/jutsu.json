@@ -720,6 +720,278 @@
   ],
   "canon_rank": "?"
  },
+ "sarutobi_haisekisho": {
+  "id": "sarutobi_haisekisho",
+  "name": "Katon: Haisekishō",
+  "cost": 25,
+  "cd": 8,
+  "element": "katon",
+  "clan": "sarutobi",
+  "level": 3,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Yanıcı kül bulutu üfle ve tutuştur.",
+  "seals": [
+   "Mi",
+   "Ne",
+   "Mi",
+   "Tora"
+  ],
+  "canon_rank": "B",
+  "impl": "katon_housenka"
+ },
+ "sarutobi_karyu": {
+  "id": "sarutobi_karyu",
+  "name": "Katon: Karyū Endan (Sarutobi)",
+  "cost": 35,
+  "cd": 10,
+  "element": "katon",
+  "clan": "sarutobi",
+  "level": 8,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Klan ateşi: ejderha alevi erken öğrenilir.",
+  "seals": [
+   "Mi",
+   "Tatsu",
+   "U",
+   "Tora"
+  ],
+  "canon_rank": "C",
+  "impl": "katon_karyuu"
+ },
+ "hatake_hakko": {
+  "id": "hatake_hakko",
+  "name": "Hakkō Chakra Bıçağı",
+  "cost": 25,
+  "cd": 7,
+  "element": "raiton",
+  "clan": "hatake",
+  "level": 3,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Beyaz chakra ile parlayan bıçak hücumu.",
+  "seals": [
+   "Ushi",
+   "U",
+   "Saru"
+  ],
+  "canon_rank": "?",
+  "impl": "raiton_chidori"
+ },
+ "hatake_ninken": {
+  "id": "hatake_ninken",
+  "name": "Ninken Sürüsü",
+  "cost": 20,
+  "cd": 30,
+  "element": "",
+  "clan": "hatake",
+  "level": 6,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "İz süren ninja köpeklerini çağır.",
+  "seals": [
+   "I",
+   "Inu",
+   "Tori",
+   "Saru",
+   "Hitsuji"
+  ],
+  "canon_rank": "?",
+  "impl": "ninken"
+ },
+ "chinoike_ketsuryugan": {
+  "id": "chinoike_ketsuryugan",
+  "name": "Ketsuryūgan: Kan Genjutsu",
+  "cost": 25,
+  "cd": 12,
+  "element": "",
+  "clan": "chinoike",
+  "level": 3,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Kızıl gözle bakış: hedef dehşet içinde donar.",
+  "seals": [
+   "Mi"
+  ],
+  "canon_rank": "?",
+  "impl": "narakumi"
+ },
+ "chinoike_kanshu": {
+  "id": "chinoike_kanshu",
+  "name": "Kan Akışı Kontrolü",
+  "cost": 35,
+  "cd": 20,
+  "element": "",
+  "clan": "chinoike",
+  "level": 8,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Düşmanların görüşünü karartan kızıl sis.",
+  "seals": [
+   "Mi",
+   "Hitsuji"
+  ],
+  "canon_rank": "?",
+  "impl": "kokuangyo"
+ },
+ "hoshigaki_same": {
+  "id": "hoshigaki_same",
+  "name": "Suiton: Gōshokuzame",
+  "cost": 28,
+  "cd": 6,
+  "element": "suiton",
+  "clan": "hoshigaki",
+  "level": 3,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Avını kovalayan köpekbalığı sürüsü.",
+  "seals": [
+   "Tora",
+   "Ushi",
+   "Tatsu",
+   "U",
+   "Inu",
+   "Tori",
+   "Ne",
+   "Tatsu"
+  ],
+  "canon_rank": "B",
+  "impl": "suiton_suikoudan"
+ },
+ "hoshigaki_ryudan": {
+  "id": "hoshigaki_ryudan",
+  "name": "Suiton: Bakusui Ryūdan",
+  "cost": 40,
+  "cd": 10,
+  "element": "suiton",
+  "clan": "hoshigaki",
+  "level": 8,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Dev su ejderhası.",
+  "seals": [
+   "Ushi",
+   "Saru",
+   "U",
+   "Ne",
+   "I",
+   "Tori",
+   "Ushi",
+   "Uma"
+  ],
+  "canon_rank": "B",
+  "impl": "suiton_suiryuudan"
+ },
+ "kurama_genjutsu": {
+  "id": "kurama_genjutsu",
+  "name": "Kurama: Gerçeklik Genjutsusu",
+  "cost": 25,
+  "cd": 10,
+  "element": "",
+  "clan": "kurama",
+  "level": 3,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Hayal gerçeğe dönüşür: hedef korkuyla kilitlenir.",
+  "seals": [
+   "Ne",
+   "Mi"
+  ],
+  "canon_rank": "D",
+  "impl": "narakumi"
+ },
+ "kurama_kokuangyo": {
+  "id": "kurama_kokuangyo",
+  "name": "Kurama: Karanlık Perde",
+  "cost": 35,
+  "cd": 18,
+  "element": "",
+  "clan": "kurama",
+  "level": 8,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Tüm düşmanlar seni kaybeder.",
+  "seals": [
+   "Tora"
+  ],
+  "canon_rank": "A",
+  "impl": "kokuangyo"
+ },
+ "fuma_shuriken_j": {
+  "id": "fuma_shuriken_j",
+  "name": "Fūma Shuriken Fırlatışı",
+  "cost": 20,
+  "cd": 5,
+  "element": "fuuton",
+  "clan": "fuma",
+  "level": 3,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Rüzgar destekli dev shuriken fırtınası.",
+  "seals": [
+   "Tora"
+  ],
+  "canon_rank": "?",
+  "impl": "fuuton_shinkuu"
+ },
+ "fuma_kaze": {
+  "id": "fuma_kaze",
+  "name": "Fuuton: Kamaitachi",
+  "cost": 25,
+  "cd": 7,
+  "element": "fuuton",
+  "clan": "fuma",
+  "level": 7,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Kesen rüzgar dalgası.",
+  "seals": [
+   "Tora",
+   "Ushi",
+   "Inu",
+   "U",
+   "Mi"
+  ],
+  "canon_rank": "C",
+  "impl": "fuuton_daitoppa"
+ },
+ "kamizuru_bees": {
+  "id": "kamizuru_bees",
+  "name": "Arı Sürüsü",
+  "cost": 25,
+  "cd": 8,
+  "element": "",
+  "clan": "kamizuru",
+  "level": 3,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Saldırgan arı bulutu: sürekli hasar.",
+  "seals": [
+   "Ne",
+   "Tori"
+  ],
+  "canon_rank": "?",
+  "impl": "mushi_swarm"
+ },
+ "kamizuru_wax": {
+  "id": "kamizuru_wax",
+  "name": "Mitsu Rensei: Bal Mumu Kalkanı",
+  "cost": 25,
+  "cd": 14,
+  "element": "",
+  "clan": "kamizuru",
+  "level": 7,
+  "rank": 0,
+  "learn": "clan",
+  "desc": "Yapışkan mum duvarı: düşmanları yavaşlatır.",
+  "seals": [
+   "Ushi",
+   "Mi"
+  ],
+  "canon_rank": "?",
+  "impl": "doton_yomi"
+ },
  "_seals": [
   "Ne",
   "Ushi",

@@ -25,7 +25,7 @@ var active = false
 var cd := {"sag": 0.0, "sol": 0.0}
 var strain = 0.0          # Mangekyō yorgunluğu (görüş bulanır)
 var susanoo = false
-var susanoo_node: Node3D
+var susanoo_node: Susanoo
 var v_held = -1.0
 var markers := {}
 var marker_t = 0.0
@@ -69,6 +69,37 @@ func _transplant_mult() -> float:
 	return m
 
 
+## Mangekyō deseni: her göz için benzersiz (oyuncu düzenleyebilir)
+## style 0 çark, 1 yıldız, 2 taç yaprak, 3 shuriken, 4 sarmal, 5 haç, 6 tomoe halkası
+static func random_design() -> Dictionary:
+	return {"style": randi() % 7, "blades": randi_range(3, 6), "curve": randf_range(-2.5, 2.5), "thick": randf_range(0.35, 0.75),
+		"inner": randf_range(0.14, 0.3), "ring": randf() < 0.4, "invert": randf() < 0.12, "spin": randf_range(0.2, 1.0),
+		"col": [0.9, 0.05, 0.06]}
+
+
+static func design_vecs(d: Dictionary) -> Array:
+	var c: Array = d.get("col", [0.9, 0.05, 0.06])
+	return [Vector4(d.get("style", 0), d.get("blades", 3), d.get("curve", 1.5), d.get("thick", 0.5)),
+		Vector4(d.get("inner", 0.22), 1.0 if d.get("ring", false) else 0.0, 1.0 if d.get("invert", false) else 0.0, d.get("spin", 0.6)),
+		Color(c[0], c[1], c[2])]
+
+
+## Takılı Mangekyō/EMS gözünün desen sözlüğü (yoksa üretip kaydeder)
+static func design_for(pr: Dictionary, slot: String) -> Dictionary:
+	var g = Gear.equipped(pr, slot)
+	if g.is_empty():
+		return {}
+	var kind = int(Gear.item(g["id"]).get("eye", {}).get("kind", 0))
+	if not kind in [4, 5]:
+		return {}
+	if not g.has("design"):
+		g["design"] = random_design()
+		if kind == 5:  # ebedi: iki deseni birleştiren daha karmaşık stil
+			g["design"]["ring"] = true
+			g["design"]["blades"] = int(g["design"]["blades"]) + 1
+	return g["design"]
+
+
 ## Göz dokusunu güncelle (model yeniden kurulunca da çağrılır)
 func refresh_visual() -> void:
 	if p == null or p.model == null:
@@ -77,6 +108,7 @@ func refresh_visual() -> void:
 	var vr = r if (active or r in ALWAYS_VISIBLE) else 0
 	var vl = l if (active or l in ALWAYS_VISIBLE) else 0
 	p.model.set_dojutsu_eyes(vr, _lvl("sag"), vl, _lvl("sol"), active and (r == 2 or l == 2))
+	p.model.set_ms_designs(design_for(Game.profile, "sag_goz"), design_for(Game.profile, "sol_goz"))
 
 
 # ------------------------------------------------------------------ girdi (PlayerModes'tan)
@@ -90,6 +122,13 @@ func handle_input(e: InputEvent) -> bool:
 		if held < 0.45:
 			toggle()
 		return true
+	if susanoo and is_instance_valid(susanoo_node):
+		if e.is_action_pressed("attack"):
+			susanoo_node.swipe(p, p.cam_forward() if p.wish_dir().length() < 0.1 else p.wish_dir().normalized())
+			return true
+		if e.is_action_pressed("guard"):
+			susanoo_node.special(p, p.cam_forward())
+			return true
 	if active:
 		if e.is_action_pressed("sage"):
 			use_skill("sag")
@@ -314,7 +353,7 @@ func _mark(f: Node3D, col: Color) -> void:
 
 # ------------------------------------------------------------------ Susanoo
 func _can_susanoo() -> bool:
-	return _kind("sag") in [4, 5] and _kind("sol") in [4, 5]
+	return Susanoo.max_tier(Game.profile) > 0
 
 
 func _start_susanoo() -> void:
@@ -323,40 +362,30 @@ func _start_susanoo() -> void:
 	if not active:
 		toggle()
 	susanoo = true
-	Buffs.add("susanoo", 9999.0, {"armor": 0.3, "melee": 1.6, "reach": 1.8})
-	susanoo_node = Node3D.new()
-	p.add_child(susanoo_node)
-	var mb = MB.new()
-	var col = Color(0.55, 0.35, 0.95)
-	for i in 6:  # kaburga kemikleri
-		mb.add("torus", Vector3(0, 0.8 + i * 0.28, 0), Vector3(1.6 - i * 0.12, 1.0, 1.3 - i * 0.1), col, Vector3.ZERO, 14)
-	mb.add("sphere", Vector3(0, 2.7, 0), Vector3(1.0, 1.1, 1.0), col, Vector3.ZERO, 10)
-	for sx in [-1.0, 1.0]:
-		mb.add("cyl", Vector3(1.3 * sx, 1.9, 0.3), Vector3(0.35, 1.6, 0.35), col, Vector3(60, 0, 30 * sx), 8)
-	var mi = MeshInstance3D.new()
-	mi.mesh = mb.build(null)
-	var m = StandardMaterial3D.new()
-	m.albedo_color = Color(0.55, 0.35, 1.0, 0.35)
-	m.emission_enabled = true
-	m.emission = Color(0.5, 0.3, 1.0)
-	m.emission_energy_multiplier = 0.8
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.cull_mode = BaseMaterial3D.CULL_DISABLED
-	mi.material_override = m
-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	susanoo_node.add_child(mi)
-	susanoo_node.scale = Vector3.ONE * 0.2
-	susanoo_node.create_tween().tween_property(susanoo_node, "scale", Vector3.ONE, 0.5).set_trans(Tween.TRANS_BACK)
-	Hud.msg("SUSANOO", Color(0.75, 0.55, 1.0))
-	Sfx.play("roar", p.global_position, 1.6, 0.5)
+	var sn = Susanoo.new()
+	sn.name = "Susanoo"
+	p.add_child(sn)
+	sn.build(Game.profile, -1, p.model)
+	susanoo_node = sn
+	var armor = [1.0, 0.4, 0.3, 0.22, 0.15, 0.08][sn.tier]
+	Buffs.add("susanoo", 9999.0, {"armor": armor})
+	var final_scale = sn.scale
+	sn.scale = final_scale * 0.1
+	sn.create_tween().tween_property(sn, "scale", final_scale, 0.6).set_trans(Tween.TRANS_BACK)
+	Hud.banner("SUSANOO", "Kademe %d — %s   (sol tık: dev savuruş, sağ tık: silah)" % [sn.tier, Susanoo.TIER_NAMES[sn.tier]], Color(sn.mat.get_shader_parameter("col")))
+	Sfx.play("roar", p.global_position, 1.6, 0.6)
+	if sn.tier >= 4:
+		p.cam_dist = maxf(p.cam_dist, 9.0 + sn.tier * 3.0)
 
 
 func _end_susanoo() -> void:
 	susanoo = false
 	Buffs.remove("susanoo")
 	if is_instance_valid(susanoo_node):
-		susanoo_node.queue_free()
+		var sn = susanoo_node
+		var tw = sn.create_tween()
+		tw.tween_property(sn, "scale", sn.scale * 0.05, 0.35)
+		tw.tween_callback(sn.queue_free)
 
 
 # ------------------------------------------------------------------ göz çalma / nakil
@@ -409,8 +438,16 @@ func _process(dt: float) -> void:
 		if v_held > 0.45 and _can_susanoo() and not susanoo:
 			_start_susanoo()
 			v_held = -1.0
+	if susanoo and is_instance_valid(susanoo_node):
+		susanoo_node.rotation.y = p.facing
+		susanoo_node.follow = p.model
+		var cfg = Susanoo.config(Game.profile)
+		var before = Susanoo.max_tier(Game.profile)
+		cfg["mastery"] = float(cfg.get("mastery", 0.0)) + dt
+		if Susanoo.max_tier(Game.profile) > before:
+			Hud.banner("SUSANOO USTALIĞI", "Yeni kademe açıldı: %s" % Susanoo.TIER_NAMES[Susanoo.max_tier(Game.profile)], Color(0.8, 0.6, 1.0))
 	if active:
-		var drain = 2.0 * _transplant_mult() + (6.0 if susanoo else 0.0)
+		var drain = 2.0 * _transplant_mult() + ((4.0 + 2.0 * susanoo_node.tier) if susanoo and is_instance_valid(susanoo_node) else 0.0)
 		if _kind("sag") == 5 or _kind("sol") == 5:
 			drain *= 0.6
 		p.chakra -= drain * dt

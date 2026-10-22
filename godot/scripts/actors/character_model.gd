@@ -48,6 +48,11 @@ static func default_look() -> Dictionary:
 func setup(l: Dictionary) -> void:
 	look = default_look()
 	look.merge(l, true)
+	if look.get("face_style") == null and look.get("mask") != null:
+		look["face_style"] = {"anbu": "anbu_kedi", "cloth": "cloth"}.get(look["mask"], null)
+	if look.get("outer_style") == null and look.get("cloak") != null:
+		look["outer_style"] = "pelerin"
+		look["outer"] = look["cloak"]
 	var src: PackedScene = load("res://assets/chars/Superhero_Female_FullBody.gltf" if look["gender"] == "f" else "res://assets/chars/Superhero_Male_FullBody.gltf")
 	var inst = src.instantiate()
 	add_child(inst)
@@ -67,6 +72,7 @@ func setup(l: Dictionary) -> void:
 	_paint_body()
 	_cloth_details()
 	_attachments()
+	_accessories()
 	anim = AnimationPlayer.new()
 	anim.name = "Anim"
 	inst.add_child(anim)
@@ -75,6 +81,7 @@ func setup(l: Dictionary) -> void:
 	overlay = PoseOverlay.new()
 	skel.add_child(overlay)
 	apply_age(look.get("age", "adult"))
+	stance = _stance_for_look()
 	play("idle", 0.0)
 
 
@@ -140,8 +147,8 @@ func anim_progress() -> float:
 ## Bölge kodları: 0 ten, 10 omuz/üst kol, 11 göğüs, 12 bel, 13 ön kol, 14 bilek,
 ## 20 kalça, 21 uyluk, 22 baldır, 23 baldır altı, 30 ayak, 40 boyun
 ## Renk yuvaları (vertex COLOR.r = yuva * 0.1, toon shader palette_mode): 0 ten, 1 üst, 2 üst-vurgu, 3 alt, 4 sargı, 5 yelek
-const TOP_STYLES := {"tisort": "Kısa Kollu Tişört", "uzun": "Uzun Kollu Ninja Gömleği", "ceket": "Fermuarlı Ceket", "yakali": "Yüksek Yakalı Gömlek"}
-const PANTS_STYLES := {"ninja": "Ninja Pantolonu", "sort": "Diz Altı Şort", "sivil": "Uzun Pantolon"}
+const TOP_STYLES := {"tisort": "Kısa Kollu Tişört", "uzun": "Uzun Kollu Ninja Gömleği", "ceket": "Fermuarlı Ceket", "yakali": "Yüksek Yakalı Gömlek", "kolsuz": "Kolsuz Yakalı", "kimono": "Kimono Üstü"}
+const PANTS_STYLES := {"ninja": "Ninja Pantolonu", "sort": "Diz Altı Şort", "sivil": "Uzun Pantolon", "sargi": "Sargılı Pantolon"}
 
 ## Yüz tipi: [çene genişliği, çene ucu, elmacık, burun, kaş çıkıntısı, işaret]
 const FACES := {
@@ -302,7 +309,9 @@ static func _shell_offset(code: int) -> float:
 func _palette() -> PackedColorArray:
 	var L = look
 	var vest = L["vest"] if L["vest"] != null else L["top"]
-	return PackedColorArray([Color(L["skin"]), Color(L["top"]), Color(L["top2"]), Color(L["pants"]), Color(L["wraps"]), Color(vest), Color(L["sandal"]), Color(0.12, 0.1, 0.1)])
+	var gc = func(k: String, d: Color) -> Color: return Color(L[k]) if L.get(k) != null else d
+	return PackedColorArray([Color(L["skin"]), Color(L["top"]), Color(L["top2"]), Color(L["pants"]), Color(L["wraps"]), Color(vest), Color(L["sandal"]), Color(0.12, 0.1, 0.1),
+		gc.call("outer", Color(0.4, 0.32, 0.24)), gc.call("acc", Color(0.55, 0.58, 0.62)), gc.call("headgear", Color(0.22, 0.2, 0.24)), gc.call("facegear", Color(0.15, 0.15, 0.2))])
 
 
 func _surface_flags(g: Dictionary) -> int:
@@ -321,6 +330,12 @@ func _cloth_mat(layer: int) -> ShaderMaterial:
 	mat.set_shader_parameter("layer", layer)
 	mat.set_shader_parameter("top_style", TOP_STYLES.keys().find(top_style()))
 	mat.set_shader_parameter("pants_style", PANTS_STYLES.keys().find(pants_style()))
+	mat.set_shader_parameter("top_pattern", int(look.get("top_pattern", 0)))
+	mat.set_shader_parameter("vest_style", int(look.get("vest_style", 0)))
+	mat.set_shader_parameter("gloves", bool(look.get("gloves", false)))
+	mat.set_shader_parameter("arm_wraps", bool(look.get("arm_wraps", false)))
+	mat.set_shader_parameter("outer_sleeves", 1 if look.get("outer_style") in ["palto", "haori"] else 0)
+	mat.set_shader_parameter("foot_cover", look.get("foot_style", "sandal") == "tabi")
 	var bp = func(n: String) -> Vector3: return skel.get_bone_global_rest(skel.find_bone(n)).origin
 	mat.set_shader_parameter("rig_a", Vector4(bp.call("LeftUpperArm").x, bp.call("LeftLowerArm").x, bp.call("LeftHand").x, bp.call("Neck").y))
 	mat.set_shader_parameter("rig_b", Vector4(bp.call("Hips").y, bp.call("LeftLowerLeg").y, bp.call("LeftFoot").y, bp.call("UpperChest").y))
@@ -363,6 +378,7 @@ func _paint_body() -> void:
 		vest_mat = _cloth_mat(2)
 		_add_shell(_shell_cache[key + "|vest"], vest_mat)
 	_cloth_rings(g, shell_mat, vest_mat)
+	_garments(g)
 
 
 ## Kollarda manşet, belde gömlek eteği, paçada büzgü: kıyafete gerçek kalınlık/katman verir
@@ -561,6 +577,11 @@ func _sandals() -> void:
 			_sole_cache[key] = _sole_mesh(wpos, sx)
 		var parts = [_sole_cache[key]]
 		var ring_defs = [[2, fp.z + 0.13, 0.004, 0.007, 0.075], [2, fp.z + 0.06, 0.004, 0.008, 0.11], [1, fp.y + 0.02, 0.006, 0.008, 99.0]]
+		match look.get("foot_style", "sandal"):
+			"tabi":
+				ring_defs = [[1, fp.y + 0.02, 0.004, 0.006, 99.0]]  # ayak shader'da kapalı, sadece bilek bağı
+			"zori":
+				ring_defs = [[2, fp.z + 0.11, 0.004, 0.006, 0.07]]
 		for rd in ring_defs:
 			var rk = "%s|%d|%.3f" % [key, rd[0], rd[1]]
 			if not _ring_cache.has(rk):
@@ -634,6 +655,427 @@ static func _sole_mesh(wpos: PackedVector3Array, sx: float) -> ArrayMesh:
 			st.set_custom(0, dark)
 			st.add_vertex(Vector3(q[0].x, q[1], q[0].y))
 	return st.commit(null, Mesh.ARRAY_CUSTOM_RGBA_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM0_SHIFT)
+
+
+# ------------------------------------------------------------------ giysi katmanları (palto, pelerin, hakama, kapüşon, maske, koruyucular)
+## Gövde/uzuv kesitlerinden "loft" yüzeyi örülür; her köşe en yakın vücut köşesinin kemik ağırlıklarını alır (iskeletle birlikte bükülür)
+static var _garment_cache := {}
+
+
+func _bp(n: String) -> Vector3:
+	return skel.get_bone_global_rest(skel.find_bone(n)).origin
+
+
+## Vücut köşeleri için ızgara (en yakın köşe araması) + eksene göre kovalar
+static func _skin_index(g: Dictionary) -> void:
+	if g.has("grid"):
+		return
+	var v: PackedVector3Array = g["arrays"][Mesh.ARRAY_VERTEX]
+	var grid = {}
+	for i in v.size():
+		var k = Vector3i(floor(v[i].x / 0.04), floor(v[i].y / 0.04), floor(v[i].z / 0.04))
+		if not grid.has(k):
+			grid[k] = PackedInt32Array()
+		grid[k].append(i)
+	g["grid"] = grid
+	var wpos: PackedVector3Array = g["wpos"]
+	for axis in [0, 1, 2]:
+		var buck = {}
+		for p in wpos:
+			var b = int(floor(p[axis] / 0.01))
+			if not buck.has(b):
+				buck[b] = []
+			buck[b].append(p)
+		g["buck%d" % axis] = buck
+
+
+static func _nearest(g: Dictionary, p: Vector3) -> int:
+	var v: PackedVector3Array = g["arrays"][Mesh.ARRAY_VERTEX]
+	var grid: Dictionary = g["grid"]
+	var c = Vector3i(floor(p.x / 0.04), floor(p.y / 0.04), floor(p.z / 0.04))
+	var best = -1
+	var bd = 1e9
+	for r in [1, 2, 4]:
+		for x in range(-r, r + 1):
+			for y in range(-r, r + 1):
+				for z in range(-r, r + 1):
+					var k = c + Vector3i(x, y, z)
+					if not grid.has(k):
+						continue
+					for i in grid[k]:
+						var d = v[i].distance_squared_to(p)
+						if d < bd:
+							bd = d; best = i
+		if best >= 0:
+			return best
+	return 0
+
+
+func _bind_index(bone: String) -> int:
+	var skin: Skin = body_mesh.skin
+	var bi = skel.find_bone(bone)
+	for i in skin.get_bind_count():
+		if skin.get_bind_name(i) == StringName(bone) or skin.get_bind_bone(i) == bi:
+			return i
+	return 0
+
+
+## Kesit katmanlarından çift yüzlü, iskelete bağlı giysi örer.
+## axis: 0 = x (kol), 1 = y (gövde/bacak); filt(p) kesite giren vücut köşeleri; off(t, açı) kalınlık; skip(t, açı) boş bırakılan kısımlar (ön açıklık vb.)
+func _loft(g: Dictionary, axis: int, v0: float, v1: float, rows: int, filt: Callable, off: Callable, slot: int, skip = null, skirt_y := -99.0, bins := 24) -> ArrayMesh:
+	_skin_index(g)
+	var buck: Dictionary = g["buck%d" % axis]
+	var ua = Vector3.UP if axis == 0 else Vector3.RIGHT
+	var ub = Vector3.BACK
+	var centers = []
+	var radii = []
+	for r in rows:
+		var val = lerpf(v0, v1, float(r) / (rows - 1))
+		var pts = []
+		for b in range(int(floor((val - 0.015) / 0.01)), int(floor((val + 0.015) / 0.01)) + 1):
+			if buck.has(b):
+				for p in buck[b]:
+					if absf(p[axis] - val) <= 0.015 and filt.call(p):
+						pts.append(p)
+		if pts.size() < 6:
+			centers.append(null)
+			radii.append(null)
+			continue
+		var c = Vector3.ZERO
+		for p in pts:
+			c += p
+		c /= pts.size()
+		c[axis] = val
+		var rad = PackedFloat32Array()
+		rad.resize(bins)
+		for p in pts:
+			var d = p - c
+			var a = atan2(d.dot(ub), d.dot(ua))
+			var k = int(floor((a + PI) / TAU * bins)) % bins
+			rad[k] = maxf(rad[k], Vector2(d.dot(ua), d.dot(ub)).length())
+		for it in 4:
+			for k in bins:
+				if rad[k] <= 0.0:
+					rad[k] = maxf(rad[(k + 1) % bins], rad[(k + bins - 1) % bins])
+		centers.append(c)
+		radii.append(rad)
+	# boş katmanları komşudan doldur (kesit bulunamayan uçlar)
+	for it in rows:
+		for r in rows:
+			if centers[r] == null:
+				var nb = r - 1 if r > 0 and centers[r - 1] != null else (r + 1 if r < rows - 1 and centers[r + 1] != null else -1)
+				if nb >= 0:
+					var c: Vector3 = centers[nb]
+					c[axis] = lerpf(v0, v1, float(r) / (rows - 1))
+					centers[r] = c
+					radii[r] = (radii[nb] as PackedFloat32Array).duplicate()
+	if centers[0] == null:
+		return null
+	# yarıçapları yumuşat (açıda + katmanlar arasında)
+	for it in 2:
+		for r in rows:
+			var rr: PackedFloat32Array = radii[r]
+			var nn = rr.duplicate()
+			for k in bins:
+				nn[k] = (rr[(k + bins - 1) % bins] + rr[k] * 2.0 + rr[(k + 1) % bins]) * 0.25
+			radii[r] = nn
+		for r in range(1, rows - 1):
+			var a: PackedFloat32Array = radii[r - 1]; var b: PackedFloat32Array = radii[r]; var c2: PackedFloat32Array = radii[r + 1]
+			var nn = b.duplicate()
+			for k in bins:
+				nn[k] = (a[k] + b[k] * 2.0 + c2[k]) * 0.25
+			radii[r] = nn
+	var verts = PackedVector3Array()
+	var custom = PackedFloat32Array()
+	for r in rows:
+		var t = float(r) / (rows - 1)
+		for k in bins:
+			var ang = (float(k) + 0.5) / bins * TAU - PI
+			var dir = ua * cos(ang) + ub * sin(ang)
+			var p: Vector3 = centers[r] + dir * ((radii[r] as PackedFloat32Array)[k] + float(off.call(t, ang)))
+			verts.append(p)
+			custom.append_array([p.x, p.y, p.z, float(slot)])
+	var idx = PackedInt32Array()
+	for r in rows - 1:
+		var t = (float(r) + 0.5) / (rows - 1)
+		for k in bins:
+			var ang = (float(k) + 1.0) / bins * TAU - PI
+			if skip != null and skip.call(t, ang):
+				continue
+			var a = r * bins + k; var b = r * bins + (k + 1) % bins
+			var c = (r + 1) * bins + k; var d = (r + 1) * bins + (k + 1) % bins
+			if axis == 1:
+				idx.append_array([a, c, b, b, c, d])
+			else:
+				idx.append_array([a, b, c, b, d, c])
+	if idx.is_empty():
+		return null
+	return _skinned_mesh(g, verts, custom, idx, skirt_y)
+
+
+## Normaller + ağırlık aktarımı + iç yüz (çift taraflı) → iskelete bağlanacak mesh
+func _skinned_mesh(g: Dictionary, verts: PackedVector3Array, custom: PackedFloat32Array, idx: PackedInt32Array, skirt_y: float) -> ArrayMesh:
+	var n = verts.size()
+	var nrm = PackedVector3Array()
+	nrm.resize(n)
+	for t in range(0, idx.size(), 3):
+		var fnm = (verts[idx[t + 2]] - verts[idx[t]]).cross(verts[idx[t + 1]] - verts[idx[t]])
+		for j in 3:
+			nrm[idx[t + j]] += fnm
+	for i in n:
+		nrm[i] = nrm[i].normalized() if nrm[i].length() > 0.0 else Vector3.UP
+	var per: int = g["per"]
+	var sb = g["arrays"][Mesh.ARRAY_BONES]
+	var sw = g["arrays"][Mesh.ARRAY_WEIGHTS]
+	var hips_bi = _bind_index("Hips")
+	var bones = PackedInt32Array(); var weights = PackedFloat32Array()
+	bones.resize(n * per); weights.resize(n * per)
+	for i in n:
+		var src = _nearest(g, verts[i])
+		var wb = []
+		for k in per:
+			wb.append([sb[src * per + k], sw[src * per + k]])
+		if verts[i].y < skirt_y:
+			# etek/palto alt kısmı: bacaklarla gerilmesin, çoğunlukla kalçayı izlesin
+			var blend = clampf((skirt_y - verts[i].y) / 0.25, 0.0, 0.7)
+			for e in wb:
+				e[1] = e[1] * (1.0 - blend)
+			var put = false
+			for e in wb:
+				if e[0] == hips_bi:
+					e[1] += blend
+					put = true
+			if not put:
+				wb.sort_custom(func(x, y): return x[1] < y[1])
+				wb[0] = [hips_bi, blend + wb[0][1]]
+		var tot = 0.0
+		for e in wb:
+			tot += e[1]
+		for k in per:
+			bones[i * per + k] = wb[k][0]
+			weights[i * per + k] = wb[k][1] / maxf(tot, 0.0001)
+	# iç yüz: aynı köşeler hafif içeride, ters normal, ters sarım
+	var all_v = verts.duplicate(); var all_n = nrm.duplicate(); var all_c = custom.duplicate()
+	var all_b = bones.duplicate(); var all_w = weights.duplicate()
+	for i in n:
+		all_v.append(verts[i] - nrm[i] * 0.003)
+		all_n.append(-nrm[i])
+	all_c.append_array(custom)
+	all_b.append_array(bones)
+	all_w.append_array(weights)
+	var all_i = idx.duplicate()
+	for t in range(0, idx.size(), 3):
+		all_i.append_array([idx[t] + n, idx[t + 2] + n, idx[t + 1] + n])
+	var uv = PackedVector2Array()
+	uv.resize(all_v.size())
+	for i in all_v.size():
+		uv[i] = Vector2(all_v[i].x + all_v[i].z, all_v[i].y) * 2.0
+	var arr = []
+	arr.resize(Mesh.ARRAY_MAX)
+	arr[Mesh.ARRAY_VERTEX] = all_v
+	arr[Mesh.ARRAY_NORMAL] = all_n
+	arr[Mesh.ARRAY_TEX_UV] = uv
+	arr[Mesh.ARRAY_CUSTOM0] = all_c
+	arr[Mesh.ARRAY_BONES] = all_b
+	arr[Mesh.ARRAY_WEIGHTS] = all_w
+	arr[Mesh.ARRAY_INDEX] = all_i
+	var m = ArrayMesh.new()
+	m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr, [], {}, _surface_flags(g))
+	return m
+
+
+func _garment(key: String, build: Callable) -> void:
+	var k = "%s|%s" % [look["gender"], key]
+	if not _garment_cache.has(k):
+		_garment_cache[k] = build.call()
+	if _garment_cache[k] != null:
+		_add_shell(_garment_cache[k], cloth_shell_mat)
+
+
+## Görünümdeki giysi katmanlarını kur
+func _garments(g: Dictionary) -> void:
+	var neck = _bp("Neck").y; var hips = _bp("Hips").y; var knee = _bp("LeftLowerLeg").y; var ank = _bp("LeftFoot").y
+	var chest = _bp("UpperChest").y; var ua = _bp("LeftUpperArm").x; var ha = _bp("LeftHand").x
+	var ey = neck + 0.17
+	if eyes_mesh:
+		ey = eyes_mesh.get_aabb().get_center().y
+	var torso = func(p: Vector3) -> bool: return absf(p.x) < (ua * 0.95 if p.y > neck - 0.33 else 0.45) and p.y < neck + 0.06
+	var front_gap = func(w: float, from_t: float) -> Callable:
+		return func(t: float, ang: float) -> bool: return t > from_t and absf(wrapf(ang - PI * 0.5, -PI, PI)) < w
+	var flat = func(o: float) -> Callable:
+		return func(_t: float, _a: float) -> float: return o
+	match look.get("outer_style"):
+		"palto":
+			_garment("palto", func(): return _loft(g, 1, neck - 0.01, knee + 0.02, 22, torso, func(t, _a): return 0.045 + t * t * 0.11, 8, front_gap.call(0.2, 0.12), hips - 0.06))
+		"pelerin":
+			_garment("pelerin", func(): return _loft(g, 1, neck + 0.02, knee - 0.06, 22, torso, func(t, _a): return 0.06 + t * 0.1, 8, null, hips - 0.06))
+		"haori":
+			_garment("haori", func(): return _loft(g, 1, neck - 0.01, hips - 0.16, 14, torso, func(t, _a): return 0.045 + t * 0.05, 8, front_gap.call(0.26, 0.05), hips - 0.06))
+		"kisa":
+			_garment("kisa", func(): return _loft(g, 1, neck - 0.03, chest - 0.3, 12, torso, func(t, _a): return 0.05 + t * 0.07, 8, func(_t, ang): return absf(wrapf(ang - PI * 0.5, -PI, PI)) < 1.7))
+			_garment("atki", func(): return _loft(g, 1, neck - 0.06, neck + 0.04, 5, func(p): return absf(p.x) < 0.16, flat.call(0.03), 8))
+		"atki":
+			_garment("atki", func(): return _loft(g, 1, neck - 0.06, neck + 0.04, 5, func(p): return absf(p.x) < 0.16, flat.call(0.03), 8))
+	if top_style() == "kimono":
+		_garment("obi", func(): return _loft(g, 1, hips + 0.03, hips + 0.15, 5, torso, flat.call(0.03), 2))
+	if look.get("hakama", false):
+		# hakama: belden bileğe geniş, pilili etek-pantolon (bacakların ortak kesitinden)
+		_garment("hakama", func(): return _loft(g, 1, hips + 0.06, ank + 0.06, 22, torso, func(t, _a): return 0.03 + t * 0.06, 3, null, hips - 0.12, 28))
+	var hs = look.get("head_style")
+	if hs == "kapuson":
+		_garment("kapuson", func(): return _loft(g, 1, ey + 0.17, neck - 0.04, 14, func(p): return p.y > neck - 0.1 and absf(p.x) < 0.15,
+			func(t, _a): return 0.055 + t * 0.02, 10, func(t, ang): return t > 0.32 and t < 0.9 and absf(wrapf(ang - PI * 0.5, -PI, PI)) < 1.05))
+	var fs = look.get("face_style")
+	if fs in ["cloth", "gas"]:
+		_garment("maske", func(): return _loft(g, 1, ey - 0.038, neck - 0.03, 10, func(p): return p.y > neck - 0.08 and absf(p.x) < 0.13, flat.call(0.009), 11))
+	var gd = look.get("guards")
+	if gd in ["kol", "ikisi"]:
+		for sx in [-1.0, 1.0]:
+			_garment("kolluk%d" % int(sx), func(): return _loft(g, 0, (ha - 0.17) * sx, (ha - 0.05) * sx, 6, func(p): return signf(p.x) == sx and p.y > neck - 0.32, flat.call(0.018), 9, null, -99.0, 16))
+	if gd in ["bacak", "ikisi"]:
+		for sx in [-1.0, 1.0]:
+			_garment("kaval%d" % int(sx), func(): return _loft(g, 1, knee - 0.05, ank + 0.08, 8, func(p): return signf(p.x) == sx and absf(p.x) < 0.35,
+				func(_t, ang): return 0.03 if absf(wrapf(ang - PI * 0.5, -PI, PI)) < 1.3 else 0.02, 9, null, -99.0, 16))
+
+
+## Sert (kemiğe sabit) aksesuarlar: şapka, maske detayları, sırt eşyaları, yelek kayışları, eldiven plakaları, kemer
+func _accessories() -> void:
+	var hc = _head_center()
+	var ab = head_ab
+	var hw = clampf(ab.size.x, 0.16, 0.26) if ab.size.x > 0.05 else 0.2
+	var hd = clampf(ab.size.z, 0.17, 0.28) if ab.size.z > 0.05 else 0.22
+	var hh = clampf(ab.size.y, 0.12, 0.26) if ab.size.y > 0.05 else 0.2
+	# konum hep kafa merkezinden (saç modelinin sınırları güvenilmez)
+	var htop = hc.y + hh * 0.42
+	var hcen = hc
+	var ch = _bp("UpperChest")
+	var hip = _bp("Hips")
+	var steel = Color(0.62, 0.65, 0.7)
+	var dark = Color(0.12, 0.12, 0.14)
+	var hg: Color = look.get("headgear", Color(0.5, 0.4, 0.3)) if look.get("headgear") != null else Color(0.5, 0.4, 0.3)
+	match look.get("head_style"):
+		"kasa":
+			var m = MB.new()
+			m.add("cone", Vector3(0, 0.0, 0), Vector3(hw * 3.2, 0.17, hw * 3.2), hg, Vector3.ZERO, 18)
+			m.add("cyl", Vector3(0, -0.075, 0), Vector3(hw * 3.1, 0.014, hw * 3.1), hg.darkened(0.15), Vector3.ZERO, 18)
+			m.add("cyl", Vector3(0, -0.05, 0), Vector3(hw * 1.05, 0.04, hw * 1.12), hg.darkened(0.35), Vector3.ZERO, 14)
+			_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, Vector3(hcen.x, htop + 0.02, hcen.z)))
+		"bandana":
+			var m = MB.new()
+			m.add("hemi", Vector3.ZERO, Vector3(hw * 1.16, hh * 0.8, hd * 1.12), hg, Vector3.ZERO, 16)
+			m.add("box", Vector3(0, -0.012, hd * 0.56), Vector3(0.07, 0.03, 0.006), Color(0.8, 0.82, 0.86))
+			m.add("box", Vector3(0.0, -0.03, -hd * 0.56), Vector3(0.03, 0.06, 0.02), hg, Vector3(-30, 0, 0))
+			_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, Vector3(hcen.x, hc.y - 0.005, hcen.z)))
+		"bandaj":
+			var m = MB.new()
+			m.add("cyl", Vector3.ZERO, Vector3(hw * 1.14, 0.05, hd * 1.08), hg, Vector3(6, 0, 0), 20)
+			m.add("box", Vector3(0.03, -0.04, -hd * 0.55), Vector3(0.03, 0.09, 0.006), hg, Vector3(-15, 0, 12))
+			_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, Vector3(hcen.x, hc.y + 0.02, hcen.z)))
+	var fg: Color = look.get("facegear", Color.WHITE) if look.get("facegear") != null else Color.WHITE
+	var fs = look.get("face_style")
+	if fs != null and String(fs).begins_with("anbu"):
+		var m = MB.new()
+		var red = Color(0.75, 0.1, 0.12)
+		m.add("sphere", Vector3.ZERO, Vector3(0.17, 0.22, 0.09), fg, Vector3.ZERO, 12)
+		for sx in [-1.0, 1.0]:
+			m.add("box", Vector3(0.035 * sx, 0.02, 0.043), Vector3(0.035, 0.012, 0.006), dark, Vector3(0, 0, -12 * sx))
+		match fs:
+			"anbu_kedi":
+				for sx in [-1.0, 1.0]:
+					m.add("cone", Vector3(0.06 * sx, 0.11, 0.0), Vector3(0.05, 0.06, 0.03), fg, Vector3(0, 0, -20 * sx), 4)
+					for k in 2:
+						m.add("box", Vector3(0.06 * sx, -0.03 - k * 0.018, 0.04), Vector3(0.05, 0.006, 0.004), red, Vector3(0, 0, 8 * sx * (k * 2 - 1)))
+			"anbu_kurt":
+				m.add("box", Vector3(0, -0.04, 0.06), Vector3(0.06, 0.05, 0.06), fg)
+				for sx in [-1.0, 1.0]:
+					m.add("cone", Vector3(0.065 * sx, 0.11, -0.01), Vector3(0.045, 0.07, 0.03), fg, Vector3(0, 0, -15 * sx), 4)
+					m.add("box", Vector3(0.045 * sx, 0.055, 0.04), Vector3(0.006, 0.05, 0.004), Color(0.25, 0.3, 0.55), Vector3(0, 0, 20 * sx))
+			"anbu_kus":
+				m.add("cone", Vector3(0, -0.02, 0.09), Vector3(0.05, 0.1, 0.04), Color(0.9, 0.7, 0.25), Vector3(80, 0, 0), 6)
+				m.add("box", Vector3(0, 0.07, 0.04), Vector3(0.1, 0.008, 0.004), red)
+			"anbu_ayi":
+				for sx in [-1.0, 1.0]:
+					m.add("sphere", Vector3(0.075 * sx, 0.1, -0.005), Vector3(0.05, 0.05, 0.025), fg, Vector3.ZERO, 8)
+				m.add("sphere", Vector3(0, -0.04, 0.045), Vector3(0.05, 0.035, 0.03), Color(0.3, 0.25, 0.25), Vector3.ZERO, 8)
+		_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0, -0.03, 0.085)))
+	elif fs == "gas":
+		var m = MB.new()
+		for sx in [-1.0, 1.0]:
+			m.add("cyl", Vector3(0.05 * sx, -0.02, 0.0), Vector3(0.045, 0.06, 0.045), Color(0.35, 0.38, 0.35), Vector3(80, 0, 25 * sx), 10)
+			m.add("cyl", Vector3(0.055 * sx, -0.025, 0.03), Vector3(0.05, 0.012, 0.05), dark, Vector3(80, 0, 25 * sx), 10)
+		m.add("box", Vector3(0, 0.005, 0.0), Vector3(0.05, 0.04, 0.03), fg)
+		_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0, -0.085, 0.11)))
+	elif fs == "goggles":
+		var m = MB.new()
+		m.add("cyl", Vector3(0, 0, 0), Vector3(hw * 1.14, 0.022, hd * 1.08), dark, Vector3.ZERO, 20)
+		for sx in [-1.0, 1.0]:
+			m.add("cyl", Vector3(0.036 * sx, 0, hd * 0.54 + 0.005), Vector3(0.05, 0.022, 0.05), steel, Vector3(90, 0, 0), 12)
+			m.add("cyl", Vector3(0.036 * sx, 0, hd * 0.54 + 0.017), Vector3(0.04, 0.004, 0.04), fg, Vector3(90, 0, 0), 12)
+		var gy = (eyes_mesh.get_aabb().get_center().y + 0.055) if eyes_mesh else hc.y + 0.05
+		_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, Vector3(hcen.x, gy, hcen.z)))
+	# --- sırt / bel
+	var bc: Color = look.get("backc", Color(0.4, 0.33, 0.22)) if look.get("backc") != null else Color(0.4, 0.33, 0.22)
+	match look.get("back_item"):
+		"parsomen":
+			var m = MB.new()
+			m.add("cyl", Vector3.ZERO, Vector3(0.13, 0.62, 0.13), bc, Vector3(0, 0, 90), 12)
+			for sx in [-1.0, 1.0]:
+				m.add("cyl", Vector3(0.32 * sx, 0, 0), Vector3(0.15, 0.03, 0.15), Color(0.55, 0.12, 0.12), Vector3(0, 0, 90), 12)
+			m.add("box", Vector3(0, 0.0, 0.05), Vector3(0.04, 0.5, 0.01), dark, Vector3(0, 0, 40))
+			_mesh_on("UpperChest", m.build(Props.toon()), Transform3D(Basis(Vector3.BACK, deg_to_rad(-12)), ch + Vector3(0, -0.12, -0.2)))
+		"shuriken":
+			var m = MB.new()
+			for k in 4:
+				m.add("box", Vector3(0, 0, 0), Vector3(0.09, 0.62, 0.012), bc, Vector3(0, 0, 45 * k), 4)
+			m.add("cyl", Vector3.ZERO, Vector3(0.1, 0.03, 0.1), dark, Vector3(90, 0, 0), 10)
+			_mesh_on("UpperChest", m.build(Props.toon()), Transform3D(Basis.IDENTITY, ch + Vector3(0, -0.08, -0.19)))
+		"kin":
+			var m = MB.new()
+			m.add("box", Vector3(0, -0.15, 0), Vector3(0.05, 0.75, 0.03), bc)
+			m.add("cyl", Vector3(0, 0.3, 0), Vector3(0.035, 0.2, 0.035), dark, Vector3.ZERO, 8)
+			m.add("cyl", Vector3(0, 0.2, 0), Vector3(0.08, 0.012, 0.08), Color(0.55, 0.45, 0.25), Vector3.ZERO, 10)
+			m.add("box", Vector3(0, -0.02, 0.03), Vector3(0.6, 0.03, 0.008), Color(0.3, 0.22, 0.15), Vector3(0, 0, 50))
+			_mesh_on("UpperChest", m.build(Props.toon()), Transform3D(Basis(Vector3.BACK, deg_to_rad(35)), ch + Vector3(0, -0.12, -0.17)))
+		"canta":
+			var m = MB.new()
+			m.add("box", Vector3(0, 0, 0), Vector3(0.28, 0.32, 0.12), bc)
+			m.add("box", Vector3(0, -0.06, 0.065), Vector3(0.2, 0.12, 0.03), bc.darkened(0.2))
+			m.add("cyl", Vector3(0, 0.2, 0), Vector3(0.09, 0.34, 0.09), Color(0.55, 0.15, 0.15), Vector3(0, 0, 90), 10)
+			_mesh_on("UpperChest", m.build(Props.toon()), Transform3D(Basis.IDENTITY, ch + Vector3(0, -0.15, -0.2)))
+		"kemer":
+			var m = MB.new()
+			for k in 4:
+				var a = deg_to_rad(-60 + k * 40)
+				m.add("box", Vector3(sin(a) * 0.17, 0, cos(a) * 0.13), Vector3(0.06, 0.07, 0.045), bc, Vector3(0, rad_to_deg(a), 0))
+			m.add("cyl", Vector3(0.16, -0.02, -0.05), Vector3(0.05, 0.16, 0.05), Color(0.85, 0.8, 0.65), Vector3(0, 0, 10), 8)
+			_mesh_on("Hips", m.build(Props.toon()), Transform3D(Basis.IDENTITY, hip + Vector3(0, 0.07, 0)))
+	# --- yelek detayları (köy tarzı)
+	if look["vest"] != null:
+		var vc: Color = look["vest"]
+		var vs = int(look.get("vest_style", 0))
+		var m = MB.new()
+		match vs:
+			1:  # Suna: omuzdan çapraz kayış
+				m.add("box", Vector3(0, -0.12, 0.165), Vector3(0.05, 0.62, 0.015), vc.darkened(0.3), Vector3(0, 0, -38))
+				m.add("box", Vector3(0, -0.12, -0.165), Vector3(0.05, 0.62, 0.015), vc.darkened(0.3), Vector3(0, 0, 38))
+			3:  # Kumo: tek askı
+				m.add("box", Vector3(0.1, 0.12, 0.0), Vector3(0.07, 0.025, 0.3), vc.darkened(0.15))
+			5, 6:  # ANBU / samuray: omuzluklar
+				for sx in [-1.0, 1.0]:
+					m.add("hemi", Vector3(0.2 * sx, 0.1, 0.0), Vector3(0.15, 0.08, 0.16), vc.darkened(0.1), Vector3(0, 0, -25 * sx), 10)
+					if vs == 6:
+						m.add("box", Vector3(0.22 * sx, 0.03, 0.0), Vector3(0.12, 0.05, 0.16), vc.darkened(0.25), Vector3(0, 0, -30 * sx))
+		if not m.is_empty():
+			_mesh_on("UpperChest", m.build(Props.toon()), Transform3D(Basis.IDENTITY, ch))
+	# --- eldiven plakası
+	if look.get("gloves", false):
+		var ac: Color = look.get("acc", dark) if look.get("acc") != null else dark
+		for side in ["Left", "Right"]:
+			var sx = 1.0 if side == "Left" else -1.0
+			var hp = _bp(side + "Hand")
+			var m = MB.new()
+			m.add("box", Vector3(0.04 * sx, 0.028, 0.0), Vector3(0.07, 0.008, 0.06), steel)
+			_mesh_on(side + "Hand", m.build(Props.toon()), Transform3D(Basis.IDENTITY, hp))
 
 
 ## Yaka, fermuar, bel bağı
@@ -762,7 +1204,7 @@ static func _hair_clumps(style: String, c: Vector3, r: Vector3) -> ArrayMesh:
 			_clump(st, a[0], d, Vector3(0, -0.15, 0.1), length * rng.randf_range(0.85, 1.15), width)
 	# saç örtüsü: kafa derisini yatık tutamlarla kapla (kel görünmesin)
 	if style in ["diken", "dağınık", "kase", "atkuyruğu"]:
-		for row in [[8.0, 5], [30.0, 9], [55.0, 12], [80.0, 14], [102.0, 12]]:
+		for row in [[8.0, 5], [30.0, 9], [55.0, 12], [80.0, 14], [98.0, 10]]:
 			for i in row[1]:
 				var yw = 360.0 * (float(i) + 0.5) / row[1] + row[0]
 				var wy = wrapf(yw, -180.0, 180.0)
@@ -770,11 +1212,11 @@ static func _hair_clumps(style: String, c: Vector3, r: Vector3) -> ArrayMesh:
 					continue  # alın/yüz açık
 				var a = at.call(yw, row[0])
 				var n: Vector3 = a[1]
-				var flow = (Vector3(0, -0.55, -1.0) - n * n.dot(Vector3(0, -0.55, -1.0)))
+				var flow = (Vector3(0, -1.0, -0.4) - n * n.dot(Vector3(0, -1.0, -0.4)))
 				if flow.length() < 0.05:
 					flow = Vector3(0, -1, 0) - n * n.y
 				var root = c + n * r * 0.86
-				_clump(st, root, (flow.normalized() + n * 0.25).normalized(), -n * 0.15, rng.randf_range(0.1, 0.14), 0.08, 0.32)
+				_clump(st, root, (flow.normalized() + n * 0.15).normalized(), -n * 0.2, rng.randf_range(0.09, 0.12) * (0.7 if row[0] > 90.0 else 1.0), 0.08, 0.32)
 	match style:
 		"diken":
 			for ring in [[15.0, 4], [45.0, 8], [78.0, 10], [108.0, 8]]:
@@ -796,10 +1238,10 @@ static func _hair_clumps(style: String, c: Vector3, r: Vector3) -> ArrayMesh:
 			for i in 9:
 				var a = at.call(rng.randf_range(-80, 80), rng.randf_range(15, 60))
 				_clump(st, a[0], (a[1] + Vector3(0, 0.1, 0.0)).normalized(), Vector3(0, -0.3, 0), 0.1, 0.06)
-			for sx in [-1.0, 1.0]:  # yüzü çerçeveleyen uzun perçemler
-				var a = at.call(62.0 * sx, 62.0)
-				_clump(st, a[0], Vector3(0.15 * sx, -1, 0.25).normalized(), Vector3(0, -0.1, 0.05), 0.2, 0.045)
-			bangs.call(3, 25.0, 0.12, 0.045)
+			for sx in [-1.0, 1.0]:  # yüzü çerçeveleyen perçemler (yüzü kapatmaz, şakaktan iner)
+				var a = at.call(80.0 * sx, 70.0)
+				_clump(st, a[0], Vector3(0.25 * sx, -1, 0.1).normalized(), Vector3(0.03 * sx, -0.1, 0.0), 0.15, 0.04)
+			bangs.call(3, 30.0, 0.075, 0.04)
 		"kase":
 			for ring in [[25.0, 10], [55.0, 16], [85.0, 20]]:
 				for i in ring[1]:
@@ -962,25 +1404,6 @@ func _attachments() -> void:
 	holster.add("box", Vector3.ZERO, Vector3(0.05, 0.12, 0.1), Color(0.12, 0.12, 0.14))
 	holster.add("box", Vector3(0, 0.07, 0), Vector3(0.06, 0.02, 0.11), Color(0.85, 0.85, 0.85))
 	_mesh_on("RightUpperLeg", holster.build(Props.toon()), Transform3D(Basis.IDENTITY, th + Vector3(-0.11, -0.16, 0.0)))
-	# --- pelerin (Akatsuki tarzı)
-	if look["cloak"] != null:
-		var c = MB.new()
-		var cc: Color = look["cloak"]
-		var ch = skel.get_bone_global_rest(skel.find_bone("UpperChest")).origin
-		c.add("cyl", Vector3(0, -0.45, 0), Vector3(0.5, 1.05, 0.38), cc, Vector3.ZERO, 12)
-		c.add("cyl", Vector3(0, 0.1, 0), Vector3(0.34, 0.2, 0.32), cc, Vector3.ZERO, 10)
-		for pp in [Vector3(-0.12, -0.2, 0.18), Vector3(0.14, -0.6, 0.18), Vector3(0.05, -0.1, -0.19), Vector3(-0.1, -0.7, -0.18)]:
-			c.add("sphere", pp, Vector3(0.12, 0.07, 0.02), Color(0.75, 0.1, 0.12), Vector3.ZERO, 6)
-		_mesh_on("UpperChest", c.build(Props.toon()), Transform3D(Basis.IDENTITY, ch))
-	if look["mask"] == "anbu":
-		var m = MB.new()
-		m.add("sphere", Vector3.ZERO, Vector3(0.19, 0.24, 0.1), Color(0.95, 0.95, 0.95), Vector3.ZERO, 10)
-		m.add("box", Vector3(0.04, 0.0, 0.05), Vector3(0.012, 0.09, 0.005), Color(0.75, 0.1, 0.1), Vector3(0, 0, 30))
-		_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0, -0.03, 0.08)))
-	elif look["mask"] == "cloth":
-		var m = MB.new()
-		m.add("box", Vector3.ZERO, Vector3(0.2, 0.09, 0.2), Color(0.15, 0.15, 0.2))
-		_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0, -0.075, 0.02)))
 
 
 ## Silah modeli: kabza başlangıçta, namlu +Z yönünde
@@ -1017,6 +1440,149 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			b.add("cyl", Vector3(0, 0, 0), Vector3(0.03, 0.18, 0.03), dark, Vector3(90, 0, 0), 6)
 			b.add("box", Vector3(0, 0, 0.42), Vector3(0.02, 0.16, 0.66), Color(0.85, 0.82, 0.75))
 			b.add("box", Vector3(0, 0, 0.42), Vector3(0.026, 0.03, 0.66), Color(0.6, 0.15, 0.15))
+		"altin_kunai", "patlayici_kunai", "zincirli_kunai":
+			var bl = Color(0.85, 0.7, 0.3) if id == "altin_kunai" else steel
+			b.add("cyl", Vector3(0, 0, -0.02), Vector3(0.022, 0.1, 0.022), wrap if id != "altin_kunai" else dark, Vector3(90, 0, 0), 6)
+			b.add("torus", Vector3(0, 0, -0.085), Vector3(0.05, 0.05, 0.05), dark, Vector3(90, 0, 0), 8)
+			b.add("sphere", Vector3(0, 0, 0.1), Vector3(0.05, 0.012, 0.17), bl, Vector3.ZERO, 6)
+			if id == "patlayici_kunai":
+				b.add("box", Vector3(0, 0.0, -0.02), Vector3(0.04, 0.03, 0.1), Color(0.95, 0.92, 0.82))
+				b.add("box", Vector3(0, 0.016, -0.02), Vector3(0.012, 0.002, 0.07), Color(0.75, 0.1, 0.1))
+			if id == "zincirli_kunai":
+				for k in 6:
+					b.add("torus", Vector3(0, -0.02 - k * 0.035, -0.11 - k * 0.012), Vector3(0.03, 0.03, 0.03), dark, Vector3(90 * (k % 2), 0, 0), 6)
+		"senbon":
+			for k in 3:
+				b.add("cyl", Vector3((k - 1) * 0.018, 0, 0.06), Vector3(0.004, 0.2, 0.004), steel, Vector3(90, (k - 1) * 8.0, 0), 4)
+		"ikiz_hancer":
+			b.add("cyl", Vector3(0, 0, -0.03), Vector3(0.028, 0.11, 0.028), Color(0.35, 0.22, 0.15), Vector3(90, 0, 0), 8)
+			b.add("box", Vector3(0, 0, 0.03), Vector3(0.08, 0.02, 0.015), steel)
+			b.add("box", Vector3(0, 0, 0.14), Vector3(0.01, 0.04, 0.2), steel)
+			b.add("cone", Vector3(0, 0, 0.26), Vector3(0.01, 0.045, 0.04), steel, Vector3(90, 0, 0), 4)
+		"kama":
+			b.add("cyl", Vector3(0, 0, 0.02), Vector3(0.03, 0.26, 0.03), Color(0.45, 0.32, 0.2), Vector3(90, 0, 0), 8)
+			b.add("box", Vector3(0, 0.07, 0.14), Vector3(0.01, 0.15, 0.03), steel, Vector3(-20, 0, 0))
+			b.add("box", Vector3(0, 0.13, 0.09), Vector3(0.01, 0.025, 0.1), steel, Vector3(30, 0, 0))
+		"pence":
+			b.add("box", Vector3(0, 0.0, 0.0), Vector3(0.09, 0.03, 0.08), dark)
+			for k in 3:
+				b.add("cone", Vector3((k - 1) * 0.03, 0.0, 0.12), Vector3(0.012, 0.18, 0.006), steel, Vector3(90, 0, 0), 4)
+		"chakra_bicak":
+			var glow = Color(0.55, 0.8, 1.0)
+			b.add("box", Vector3(0.0, 0.0, 0.0), Vector3(0.03, 0.1, 0.11), dark)
+			b.add("box", Vector3(0, 0.0, 0.17), Vector3(0.012, 0.04, 0.24), glow)
+			b.add("box", Vector3(0, 0.0, 0.17), Vector3(0.02, 0.06, 0.2), glow.lightened(0.45))
+		"wakizashi":
+			b.add("cyl", Vector3(0, 0, -0.05), Vector3(0.03, 0.16, 0.03), dark, Vector3(90, 0, 0), 8)
+			b.add("cyl", Vector3(0, 0, 0.04), Vector3(0.075, 0.012, 0.075), Color(0.55, 0.45, 0.25), Vector3(90, 0, 0), 12)
+			b.add("box", Vector3(0, 0.004, 0.3), Vector3(0.01, 0.032, 0.5), steel, Vector3(-3, 0, 0))
+			b.add("cone", Vector3(0, 0.018, 0.57), Vector3(0.01, 0.05, 0.032), steel, Vector3(87, 0, 0), 4)
+		"nodachi":
+			b.add("cyl", Vector3(0, 0, -0.12), Vector3(0.036, 0.36, 0.036), dark, Vector3(90, 0, 0), 8)
+			b.add("box", Vector3(0, 0, 0.08), Vector3(0.12, 0.06, 0.02), Color(0.55, 0.45, 0.25))
+			b.add("box", Vector3(0, 0.006, 0.7), Vector3(0.014, 0.06, 1.2), steel, Vector3(-2, 0, 0))
+			b.add("cone", Vector3(0, 0.03, 1.33), Vector3(0.014, 0.1, 0.06), steel, Vector3(88, 0, 0), 4)
+		"savas_cekici":
+			b.add("cyl", Vector3(0, 0, 0.25), Vector3(0.035, 0.95, 0.035), Color(0.35, 0.25, 0.15), Vector3(90, 0, 0), 8)
+			b.add("box", Vector3(0, 0, 0.72), Vector3(0.14, 0.24, 0.16), Color(0.4, 0.4, 0.42))
+			b.add("box", Vector3(0, 0, 0.72), Vector3(0.16, 0.06, 0.18), dark)
+		"bo":
+			b.add("cyl", Vector3(0, 0, 0.1), Vector3(0.036, 1.7, 0.036), Color(0.45, 0.32, 0.2), Vector3(90, 0, 0), 8)
+			for z in [-0.72, 0.92]:
+				b.add("cyl", Vector3(0, 0, z), Vector3(0.042, 0.08, 0.042), dark, Vector3(90, 0, 0), 8)
+		"mizrak":
+			b.add("cyl", Vector3(0, 0, 0.2), Vector3(0.032, 1.8, 0.032), Color(0.35, 0.22, 0.15), Vector3(90, 0, 0), 8)
+			b.add("cone", Vector3(0, 0, 1.2), Vector3(0.05, 0.24, 0.012), steel, Vector3(90, 0, 0), 4)
+			b.add("cyl", Vector3(0, 0, 1.07), Vector3(0.045, 0.04, 0.045), Color(0.6, 0.15, 0.15), Vector3(90, 0, 0), 8)
+		"kusarigama":
+			b.add("cyl", Vector3(0, 0, 0.02), Vector3(0.03, 0.3, 0.03), Color(0.45, 0.32, 0.2), Vector3(90, 0, 0), 8)
+			b.add("box", Vector3(0, 0.09, 0.16), Vector3(0.01, 0.2, 0.035), steel, Vector3(-25, 0, 0))
+			for k in 9:
+				b.add("torus", Vector3(0.0, -0.02 - k * 0.04, -0.12 - k * 0.01), Vector3(0.03, 0.03, 0.03), dark, Vector3(90 * (k % 2), 0, 0), 6)
+			b.add("sphere", Vector3(0, -0.4, -0.22), Vector3(0.06, 0.06, 0.06), dark, Vector3.ZERO, 8)
+		"el_shuriken":
+			b.add("cyl", Vector3(0, 0, 0), Vector3(0.03, 0.12, 0.03), dark, Vector3(90, 0, 0), 6)
+			for k in 4:
+				b.add_xf("box", Transform3D(Basis(Vector3.BACK, deg_to_rad(45.0 + 90.0 * k)) * Basis.from_scale(Vector3(0.09, 0.62, 0.012)), Vector3(0, 0, 0.3)), Color(0.5, 0.52, 0.56))
+			b.add("cyl", Vector3(0, 0, 0.3), Vector3(0.11, 0.03, 0.11), dark, Vector3(90, 0, 0), 10)
+		"kubikiribocho":
+			b.add("cyl", Vector3(0, 0, -0.1), Vector3(0.04, 0.34, 0.04), Color(0.35, 0.25, 0.18), Vector3(90, 0, 0), 8)
+			b.add("box", Vector3(0, -0.05, 0.12), Vector3(0.03, 0.12, 0.08), dark)
+			# geniş satır ağzı, uçta yuvarlak delik (çerçeve parçalarıyla), sırtta boyun çentiği
+			b.add("box", Vector3(0, -0.12, 0.62), Vector3(0.02, 0.36, 0.9), steel)
+			b.add("box", Vector3(0, -0.02, 1.2), Vector3(0.02, 0.16, 0.26), steel)
+			b.add("box", Vector3(0, -0.27, 1.2), Vector3(0.02, 0.06, 0.26), steel)
+			b.add("box", Vector3(0, -0.12, 1.36), Vector3(0.02, 0.36, 0.06), steel)
+			b.add("torus", Vector3(0, -0.15, 1.2), Vector3(0.2, 0.2, 0.2), steel.darkened(0.15), Vector3(0, 0, 90), 14)
+			b.add("cyl", Vector3(0, -0.3, 0.45), Vector3(0.1, 0.024, 0.1), dark, Vector3(0, 0, 90), 12)
+		"samehada":
+			b.add("cyl", Vector3(0, 0, -0.1), Vector3(0.045, 0.34, 0.045), Color(0.85, 0.82, 0.75), Vector3(90, 0, 0), 8)
+			b.add("cyl", Vector3(0, 0, 0.62), Vector3(0.2, 1.05, 0.13), Color(0.25, 0.32, 0.5), Vector3(90, 0, 0), 10)
+			for k in 14:
+				var a = k * 2.4
+				b.add("cone", Vector3(cos(a) * 0.09, sin(a) * 0.06, 0.2 + k * 0.065), Vector3(0.035, 0.06, 0.035), Color(0.2, 0.26, 0.42), Vector3(rad_to_deg(a), 0, 90), 4)
+			for z in [0.25, 0.55, 0.85]:
+				b.add("cyl", Vector3(0, 0, z), Vector3(0.215, 0.05, 0.145), Color(0.92, 0.9, 0.85), Vector3(90, 0, 0), 10)
+		"kiba":
+			b.add("cyl", Vector3(0, 0, -0.05), Vector3(0.03, 0.16, 0.03), dark, Vector3(90, 0, 0), 8)
+			b.add("box", Vector3(0, 0.0, 0.42), Vector3(0.014, 0.07, 0.72), Color(0.6, 0.65, 0.72))
+			for k in 7:
+				b.add("cone", Vector3(0, 0.045, 0.12 + k * 0.1), Vector3(0.012, 0.05, 0.04), Color(0.95, 0.88, 0.4), Vector3(0, 0, 0), 4)
+			b.add("box", Vector3(0, 0.0, 0.42), Vector3(0.022, 0.025, 0.74), Color(1.0, 0.95, 0.5))
+		"hiramekarei":
+			for sx in [-1.0, 1.0]:
+				b.add("cyl", Vector3(0.045 * sx, 0, -0.08), Vector3(0.03, 0.3, 0.03), Color(0.85, 0.82, 0.75), Vector3(90, 0, 0), 8)
+			b.add("box", Vector3(0, 0, 0.08), Vector3(0.14, 0.05, 0.04), dark)
+			b.add("box", Vector3(0, 0, 0.62), Vector3(0.24, 0.025, 1.0), Color(0.3, 0.45, 0.75))
+			b.add("cone", Vector3(0, 0, 1.17), Vector3(0.24, 0.12, 0.025), Color(0.3, 0.45, 0.75), Vector3(90, 0, 0), 4)
+			for z in [0.3, 0.55, 0.8]:
+				b.add("box", Vector3(0, 0, z), Vector3(0.25, 0.035, 0.05), Color(0.92, 0.9, 0.85))
+		"shibuki":
+			b.add("cyl", Vector3(0, 0, -0.08), Vector3(0.035, 0.28, 0.035), dark, Vector3(90, 0, 0), 8)
+			b.add("box", Vector3(0, 0, 0.55), Vector3(0.025, 0.2, 0.85), steel)
+			b.add("cyl", Vector3(0, 0.0, 0.55), Vector3(0.09, 0.82, 0.09), Color(0.85, 0.8, 0.65), Vector3(90, 0, 0), 10)
+			for k in 6:
+				b.add("box", Vector3(0, 0.05, 0.22 + k * 0.13), Vector3(0.1, 0.012, 0.06), Color(0.95, 0.92, 0.85))
+				b.add("box", Vector3(0, 0.057, 0.22 + k * 0.13), Vector3(0.03, 0.004, 0.04), Color(0.8, 0.1, 0.1))
+		"nuibari":
+			b.add("cyl", Vector3(0, 0, -0.06), Vector3(0.035, 0.22, 0.035), Color(0.35, 0.22, 0.15), Vector3(90, 0, 0), 8)
+			b.add("cyl", Vector3(0, 0, 0.7), Vector3(0.018, 1.4, 0.018), Color(0.8, 0.82, 0.86), Vector3(90, 0, 0), 6)
+			b.add("cone", Vector3(0, 0, 1.45), Vector3(0.02, 0.1, 0.02), Color(0.8, 0.82, 0.86), Vector3(90, 0, 0), 6)
+			b.add("torus", Vector3(0, -0.06, -0.15), Vector3(0.14, 0.14, 0.14), Color(0.75, 0.75, 0.8), Vector3(90, 0, 0), 12)
+		"kabutowari":
+			b.add("cyl", Vector3(0, 0, 0.15), Vector3(0.035, 0.6, 0.035), Color(0.35, 0.25, 0.15), Vector3(90, 0, 0), 8)
+			b.add("box", Vector3(0, 0.12, 0.42), Vector3(0.025, 0.26, 0.2), Color(0.45, 0.45, 0.48))
+			b.add("cyl", Vector3(0, 0.25, 0.42), Vector3(0.21, 0.025, 0.21), Color(0.55, 0.55, 0.58), Vector3(0, 0, 90), 12)
+			for k in 6:
+				b.add("torus", Vector3(0, -0.04 - k * 0.04, -0.15 - k * 0.015), Vector3(0.03, 0.03, 0.03), dark, Vector3(90 * (k % 2), 0, 0), 6)
+			b.add("cyl", Vector3(0, -0.3, -0.26), Vector3(0.11, 0.18, 0.11), Color(0.4, 0.4, 0.42), Vector3(0, 0, 90), 10)
+		"chokuto":
+			b.add("cyl", Vector3(0, 0, -0.08), Vector3(0.032, 0.22, 0.032), Color(0.85, 0.85, 0.85), Vector3(90, 0, 0), 8)
+			b.add("box", Vector3(0, 0, 0.04), Vector3(0.05, 0.05, 0.02), dark)
+			b.add("box", Vector3(0, 0, 0.5), Vector3(0.012, 0.03, 0.88), Color(0.85, 0.87, 0.9))
+			b.add("cone", Vector3(0, 0, 0.97), Vector3(0.012, 0.06, 0.03), Color(0.85, 0.87, 0.9), Vector3(90, 0, 0), 4)
+		"raijin":
+			b.add("cyl", Vector3(0, 0, -0.06), Vector3(0.035, 0.2, 0.035), Color(0.8, 0.65, 0.25), Vector3(90, 0, 0), 8)
+			b.add("cyl", Vector3(0, 0, 0.05), Vector3(0.1, 0.02, 0.1), Color(0.85, 0.7, 0.3), Vector3(90, 0, 0), 10)
+			b.add("box", Vector3(0, 0, 0.6), Vector3(0.02, 0.05, 1.05), Color(1.0, 0.95, 0.55))
+			for k in 6:
+				b.add("box", Vector3(0, (0.035 if k % 2 == 0 else -0.035), 0.2 + k * 0.17), Vector3(0.012, 0.05, 0.08), Color(1.0, 0.85, 0.2), Vector3(0, 0, 25 if k % 2 == 0 else -25))
+		"ruzgar_bicak":
+			b.add("box", Vector3(0.0, 0.0, 0.0), Vector3(0.03, 0.1, 0.11), dark)
+			b.add("box", Vector3(0, 0.0, 0.17), Vector3(0.012, 0.04, 0.24), Color(0.6, 0.62, 0.66))
+			b.add("cone", Vector3(0, 0.0, 0.42), Vector3(0.02, 0.32, 0.07), Color(0.6, 1.0, 0.8), Vector3(90, 0, 0), 4)
+		"fuma_shuriken":
+			b.add("cyl", Vector3(0, 0, 0), Vector3(0.03, 0.14, 0.03), dark, Vector3(90, 0, 0), 6)
+			for k in 4:
+				var bs = Basis(Vector3.BACK, deg_to_rad(90.0 * k))
+				b.add_xf("box", Transform3D(bs * Basis.from_scale(Vector3(0.12, 0.48, 0.012)), Vector3(0, 0, 0.5) + bs * Vector3(0, 0.26, 0)), Color(0.55, 0.57, 0.62))
+				b.add_xf("cone", Transform3D(bs * Basis(Vector3.BACK, deg_to_rad(-30)) * Basis.from_scale(Vector3(0.12, 0.2, 0.012)), Vector3(0, 0, 0.5) + bs * Vector3(0.05, 0.55, 0)), Color(0.55, 0.57, 0.62), 4)
+			b.add("cyl", Vector3(0, 0, 0.5), Vector3(0.16, 0.04, 0.16), dark, Vector3(90, 0, 0), 12)
+		"gunbai":
+			b.add("cyl", Vector3(0, 0, 0.12), Vector3(0.035, 0.4, 0.035), dark, Vector3(90, 0, 0), 8)
+			b.add("cyl", Vector3(0, 0, 0.62), Vector3(0.62, 0.025, 0.72), Color(0.75, 0.15, 0.15), Vector3(0, 0, 90), 20)
+			b.add("cyl", Vector3(0.016, 0, 0.62), Vector3(0.3, 0.012, 0.34), Color(0.95, 0.95, 0.95), Vector3(0, 0, 90), 16)
+			b.add("torus", Vector3(0, 0, 0.62), Vector3(0.64, 0.64, 0.74), dark, Vector3(0, 0, 90), 20)
 		_:
 			b.add("box", Vector3(0, 0, 0.1), Vector3(0.02, 0.03, 0.2), steel)
 	var m = b.build(Props.toon())
@@ -1091,11 +1657,66 @@ func set_eye_color(c: Color) -> void:
 		eye_mat.set_shader_parameter("eye_color", c)
 
 
+## Sağ/sol göz ayrı desen (sağ göz = karakterin sağı = model -X)
+func set_dojutsu_eyes(kind_r: int, lvl_r: int, kind_l: int, lvl_l: int, veins := false) -> void:
+	if eye_mat:
+		eye_mat.set_shader_parameter("dojutsu", kind_r)
+		eye_mat.set_shader_parameter("tomoe", lvl_r)
+		eye_mat.set_shader_parameter("dojutsu_l", kind_l)
+		eye_mat.set_shader_parameter("tomoe_l", lvl_l)
+	if body_mesh:
+		var m = body_mesh.get_surface_override_material(0)
+		if m is ShaderMaterial:
+			m.set_shader_parameter("byakugan_veins", 1.0 if veins else 0.0)
+
+
+## Özel Mangekyō desenleri (Eyes.design_vecs ile)
+func set_ms_designs(right: Dictionary, left: Dictionary) -> void:
+	if eye_mat == null:
+		return
+	for pair in [[right, "r"], [left, "l"]]:
+		if pair[0].is_empty():
+			continue
+		var v = Eyes.design_vecs(pair[0])
+		eye_mat.set_shader_parameter("ms_%s_a" % pair[1], v[0])
+		eye_mat.set_shader_parameter("ms_%s_b" % pair[1], v[1])
+		eye_mat.set_shader_parameter("ms_col_%s" % pair[1], v[2])
+
+
+## Göz tekniği görünümü: 0 yok, 1 sharingan, 2 byakugan, 3 ketsuryugan, 4 mangekyō
+func set_dojutsu(kind: int, tomoe := 3) -> void:
+	if eye_mat:
+		eye_mat.set_shader_parameter("dojutsu", kind)
+		eye_mat.set_shader_parameter("tomoe", tomoe)
+	if body_mesh:
+		var m = body_mesh.get_surface_override_material(0)
+		if m is ShaderMaterial:
+			m.set_shader_parameter("byakugan_veins", 1.0 if kind == 2 else 0.0)
+
+
 func flash(amount: float) -> void:
 	hit_flash = maxf(hit_flash, amount)
 
 
+const STANCE_OF := {"blade": "w_blade", "dual": "w_dual", "sickle": "w_dual", "claw": "w_dual", "sword": "w_sword", "heavy": "w_shoulder", "staff": "w_shoulder", "chain": "w_shoulder", "fan": "w_fan"}
+var stance := ""
+
+
+func _stance_for_look() -> String:
+	for k in ["weapon_r", "weapon_l"]:
+		var wid = look.get(k)
+		if wid != null and wid != "":
+			var w: Dictionary = Gear.ITEMS.get(String(wid), {}).get("weapon", {})
+			if not w.is_empty():
+				return STANCE_OF.get(w.get("style", ""), "")
+	return ""
+
+
 func _process(dt: float) -> void:
+	# silah duruşu: beklerken/yürürken silaha göre kollar; saldırı, mühür ve ninja koşusunda kapanır
+	if stance != "" and overlay:
+		var on = current in ["idle", "walk", "jog", "run", "air", "fall", "sword_idle"] and overlay.weights.get("ninja_run", 0.0) < 0.5 and overlay.weights.get("leap", 0.0) < 0.3
+		overlay.set_pose(stance, 1.0 if on else 0.0)
 	if hit_flash > 0.0:
 		hit_flash = maxf(0.0, hit_flash - dt * 5.0)
 		for m in materials:

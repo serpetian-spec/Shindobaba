@@ -8,8 +8,8 @@ signal died
 
 const RUN := 11.0
 const DASH := 19.0
-const GRAV := 32.0
-const JUMP := 13.5
+const GRAV := 36.0
+const JUMP := 14.2
 const WALL_SPEED := 12.0
 const AIR_DASH := 28.0
 const LEAP_FWD := 23.0   # Ctrl: Shinobi Striker uzun ninja sıçrayışı
@@ -28,6 +28,7 @@ var height = 1.8
 var grounded = true
 var jumps = 0
 var leaping = false
+var last_air_vy = 0.0
 var leap_charge = -1.0     # Ctrl basılı: 0..1 şarj (Striker süper zıplaması), -1 = şarj yok
 var flip_t = -1.0          # havada takla zamanlayıcısı
 var leap_ui: Control
@@ -138,6 +139,24 @@ func wish_dir() -> Vector3:
 	var b = Basis(Vector3.UP, deg_to_rad(yaw))
 	var d = b * Vector3(v.x, 0, -v.y)
 	return d.normalized() * minf(1.0, v.length())
+
+
+## Nişangâhın (ekran ortası) dünyada değdiği nokta: jutsu ve atışlar buraya gider
+func aim_point(max_d := 220.0) -> Vector3:
+	var from = cam.global_position
+	var dir = -cam.global_transform.basis.z
+	var q = PhysicsRayQueryParameters3D.create(from, from + dir * max_d, 0xFFFFFFFF, [get_rid()])
+	var hit = get_world_3d().direct_space_state.intersect_ray(q)
+	var pt: Vector3 = hit["position"] if not hit.is_empty() else from + dir * max_d
+	# arazi (fiziksiz yükseklik haritası) ile kesişim
+	var step = 2.0
+	var t = 0.0
+	while t < from.distance_to(pt):
+		var x = from + dir * t
+		if x.y < Game.terrain_height(x.x, x.z):
+			return x
+		t += step
+	return pt
 
 
 func cam_forward() -> Vector3:
@@ -359,7 +378,8 @@ func _ground_air_move(dt: float) -> void:
 		if swimming:
 			target *= 0.35
 		var hv = Vector3(velocity.x, 0, velocity.z)
-		var accel = 14.0 if grounded else 3.5
+		# ağırlık hissi: kalkışta yavaş ivmelen, durunca çabuk ama kaymalı dur
+		var accel = (6.5 if target.length() > hv.length() else 9.0) if grounded else 2.8
 		if not grounded and wish.length() < 0.1:
 			target = hv
 		elif leaping and not grounded:
@@ -369,6 +389,8 @@ func _ground_air_move(dt: float) -> void:
 		if not swimming:
 			velocity.y -= GRAV * dt
 	var was_grounded = grounded
+	if not grounded:
+		last_air_vy = velocity.y
 	move_and_slide()
 	# arazi + su yüzeyi
 	var p = global_position
@@ -397,8 +419,14 @@ func _ground_air_move(dt: float) -> void:
 		grounded = is_on_floor()
 	if grounded:
 		if not was_grounded and land_t < -0.3:
-			land_t = 0.25
-			model.play("land", 0.05, 1.6, true)
+			# yüksekten düşüşte ağır iniş: kısa toparlanma, hız kesilir
+			var hard = last_air_vy < -20.0
+			land_t = 0.38 if hard else 0.22
+			if hard:
+				velocity.x *= 0.35; velocity.z *= 0.35
+				input_locked = maxf(input_locked, 0.18)
+				FX.impact(global_position, Color(0.8, 0.75, 0.6), 0.7)
+			model.play("land", 0.05, 1.3 if hard else 1.6, true)
 			FX.dust(global_position, 0.5)
 			Sfx.play("land", global_position)
 		jumps = 0
@@ -423,7 +451,7 @@ func _ground_air_move(dt: float) -> void:
 	var hv = Vector3(velocity.x, 0, velocity.z)
 	var sp = hv.length()
 	if sp > 0.5 and (combat == null or not combat.busy()):
-		facing = lerp_angle(facing, atan2(-hv.x, -hv.z), minf(1.0, dt * 14.0))
+		facing = lerp_angle(facing, atan2(-hv.x, -hv.z), minf(1.0, dt * (8.0 if grounded else 4.0)))
 	model.rotation = Vector3(0, facing, 0)
 	# eğimde aşağıdaki ayak yere değsin: modeli eğime göre biraz alçalt
 	var drop = 0.0

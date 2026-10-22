@@ -6,14 +6,9 @@ const BEATS := {"katon": "fuuton", "fuuton": "raiton", "raiton": "doton", "doton
 
 
 
+## Element üstünlüğü (kekkei genkai dahil, bkz. elements.gd) x hava etkisi (yağmur)
 func element_mult(atk: String, dfn: String) -> float:
-	if atk == "" or dfn == "":
-		return 1.0
-	if BEATS.get(atk, "") == dfn:
-		return 1.5
-	if BEATS.get(dfn, "") == atk:
-		return 0.75
-	return 1.0
+	return Elements.mult(atk, dfn) * Elements.env_mult(atk)
 
 
 ## Bir noktanın savaşçının kapsülüne (boyutuna göre) değip değmediği
@@ -123,6 +118,7 @@ func popup_text(pos: Vector3, text: String, col := Color(1, 1, 1)) -> void:
 	l.outline_size = 10
 	l.modulate = col
 	get_tree().current_scene.add_child(l)
+	pos += Vector3(randf_range(-0.5, 0.5), randf_range(0.0, 0.4), randf_range(-0.5, 0.5))
 	l.global_position = pos
 	var tw = l.create_tween().set_parallel(true)
 	tw.tween_property(l, "global_position", pos + Vector3(0, 1.0, 0), 0.9)
