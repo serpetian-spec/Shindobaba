@@ -113,6 +113,8 @@ func exit() -> void:
 func _rain(on: bool) -> void:
 	if Game.world and Game.world.env and Game.world.env.rain:
 		Game.world.env.rain.visible = on
+		Game.world.env.splash.visible = on
+		Game.world.env.snow.visible = on
 
 
 func _clear() -> void:

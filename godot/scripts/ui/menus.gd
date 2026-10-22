@@ -141,6 +141,7 @@ static func _tab_eyes(main: Node, body: Control) -> void:
 		v.add_child(UI.label("SAĞ GÖZ" if sl == "sag_goz" else "SOL GÖZ", 20, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
 		_eq_slot = sl
 		_eye_panel(main, v, pr)
+	_eq_slot = "govde"
 	var side = UI.card()
 	side.custom_minimum_size = Vector2(320, 0)
 	h.add_child(side)
@@ -787,8 +788,9 @@ static func _tab_inventory(main: Node, body: Control) -> void:
 
 # ------------------------------------------------------------------ ekipman (karakter etrafında yuvalar)
 static var _eq_slot := "govde"
-const DOLL_LEFT := ["kafa", "sag_goz", "sol_goz", "yuz", "govde", "bacak", "ayak"]
-const DOLL_RIGHT := ["zirh", "dis", "kol", "sirt", "sag", "sol"]
+# gözler ekipman değil (Gözler sekmesinde)
+const DOLL_LEFT := ["kafa", "yuz", "govde", "bacak", "ayak", "kol"]
+const DOLL_RIGHT := ["zirh", "dis", "sirt", "sag", "sol"]
 
 
 static func _slot_name(sl: String) -> String:
@@ -801,6 +803,8 @@ static func _slot_name(sl: String) -> String:
 static func _tab_wardrobe(main: Node, body: Control) -> void:
 	var pr = Game.profile
 	Gear.ensure(pr)
+	if _eq_slot in ["sag_goz", "sol_goz"]:
+		_eq_slot = "govde"
 	var refresh = func() -> void:
 		Gear.apply_look(pr)
 		if Game.player:

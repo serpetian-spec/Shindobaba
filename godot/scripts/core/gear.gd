@@ -224,18 +224,18 @@ static func ensure(p: Dictionary) -> void:
 ## Doğuştan klan gözleri (eski kayıtlar dahil bir kez verilir)
 static func _ensure_eyes(p: Dictionary) -> bool:
 	var eid = {"uchiha": "goz_sharingan", "hyuga": "goz_byakugan", "chinoike": "goz_ketsuryugan"}.get(String(p.get("clan", "")), "")
+	# eski kayıt: uyuyan Sharingan -> doğrudan ver (1 tomoe)
+	var dormant = String(p.get("flags", {}).get("dormant_eye", ""))
+	if dormant != "":
+		p["flags"].erase("dormant_eye")
+		grant(p, dormant, "sag_goz", null, null, {"lvl": 1, "origin": "dogustan"})
+		grant(p, dormant, "sol_goz", null, null, {"lvl": 1, "origin": "dogustan"})
+		return true
 	if eid == "" or p.get("flags", {}).get("born_eyes", false):
 		return false
 	for g in p["gear"]:
 		if item(g["id"]).get("slot", "") == "goz":
 			return false
-	if eid == "goz_sharingan":
-		# Sharingan doğuştan uyanmaz: ölümcül bir dövüşte uyanır (Eyes.check_awaken)
-		if not p.has("flags"):
-			p["flags"] = {}
-		p["flags"]["born_eyes"] = true
-		p["flags"]["dormant_eye"] = eid
-		return false
 	grant(p, eid, "sag_goz", null, null, {"lvl": 1, "origin": "dogustan"})
 	grant(p, eid, "sol_goz", null, null, {"lvl": 1, "origin": "dogustan"})
 	if not p.has("flags"):

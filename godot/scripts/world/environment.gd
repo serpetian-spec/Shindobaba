@@ -10,6 +10,8 @@ var sky_mat: ShaderMaterial
 var post: MeshInstance3D
 var post_mat: ShaderMaterial
 var rain: GPUParticles3D
+var splash: GPUParticles3D
+var snow: GPUParticles3D
 var weather = "açık"
 var weather_t = 0.0
 var region_weather = "açık"
@@ -93,30 +95,118 @@ func _ready() -> void:
 
 
 func _make_rain() -> void:
+	# yağmur: kamerayla birlikte gelen (yerel koordinat) ince damla çizgileri; kameraya çok yakın olanlar solar
 	rain = GPUParticles3D.new()
-	rain.amount = 5000
-	rain.lifetime = 1.2
-	rain.visibility_aabb = AABB(Vector3(-40, -30, -40), Vector3(80, 60, 80))
+	rain.amount = 6000
+	rain.lifetime = 0.9
+	rain.local_coords = true
+	rain.visibility_aabb = AABB(Vector3(-30, -40, -30), Vector3(60, 60, 60))
 	var pm = ParticleProcessMaterial.new()
 	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	pm.emission_box_extents = Vector3(35, 1, 35)
-	pm.direction = Vector3(0.1, -1, 0)
-	pm.spread = 3.0
-	pm.initial_velocity_min = 38.0
-	pm.initial_velocity_max = 48.0
-	pm.gravity = Vector3(0, -20, 0)
+	pm.emission_box_extents = Vector3(24, 2, 24)
+	pm.direction = Vector3(0.12, -1, 0.05)
+	pm.spread = 2.0
+	pm.initial_velocity_min = 30.0
+	pm.initial_velocity_max = 36.0
+	pm.gravity = Vector3.ZERO
+	pm.particle_flag_align_y = true
 	rain.process_material = pm
 	var m = QuadMesh.new()
-	m.size = Vector2(0.03, 0.9)
+	m.size = Vector2(0.025, 0.7)
 	var mat = StandardMaterial3D.new()
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	mat.albedo_color = Color(0.75, 0.85, 1.0, 0.35)
+	mat.albedo_color = Color(0.82, 0.9, 1.0, 0.42)
 	mat.billboard_mode = BaseMaterial3D.BILLBOARD_FIXED_Y
+	mat.billboard_keep_scale = true
+	mat.distance_fade_mode = BaseMaterial3D.DISTANCE_FADE_PIXEL_ALPHA
+	mat.distance_fade_min_distance = 0.8
+	mat.distance_fade_max_distance = 3.5
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
 	m.material = mat
 	rain.draw_pass_1 = m
 	rain.emitting = false
+	rain.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(rain)
+	# yere düşen damla halkaları (oyuncunun etrafında)
+	splash = GPUParticles3D.new()
+	splash.amount = 260
+	splash.lifetime = 0.35
+	splash.local_coords = false
+	splash.visibility_aabb = AABB(Vector3(-20, -5, -20), Vector3(40, 10, 40))
+	var sp = ParticleProcessMaterial.new()
+	sp.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	sp.emission_box_extents = Vector3(14, 0.05, 14)
+	sp.gravity = Vector3.ZERO
+	sp.initial_velocity_min = 0.0
+	sp.initial_velocity_max = 0.0
+	sp.scale_min = 0.3
+	sp.scale_max = 0.6
+	var sc = Curve.new()
+	sc.add_point(Vector2(0, 0.2))
+	sc.add_point(Vector2(1, 1.0))
+	var sct = CurveTexture.new()
+	sct.curve = sc
+	sp.scale_curve = sct
+	var grad = Gradient.new()
+	grad.set_color(0, Color(0.85, 0.92, 1.0, 0.5))
+	grad.set_color(1, Color(0.85, 0.92, 1.0, 0.0))
+	var gt = GradientTexture1D.new()
+	gt.gradient = grad
+	sp.color_ramp = gt
+	splash.process_material = sp
+	var ring = TorusMesh.new()
+	ring.inner_radius = 0.09
+	ring.outer_radius = 0.11
+	ring.rings = 12
+	ring.ring_segments = 3
+	var rm = StandardMaterial3D.new()
+	rm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	rm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	rm.vertex_color_use_as_albedo = true
+	ring.material = rm
+	splash.draw_pass_1 = ring
+	splash.emitting = false
+	splash.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(splash)
+	# kar: yavaş süzülen yumuşak taneler (yağmur çizgisi değil)
+	snow = GPUParticles3D.new()
+	snow.amount = 2500
+	snow.lifetime = 7.0
+	snow.preprocess = 7.0
+	snow.local_coords = true
+	snow.visibility_aabb = AABB(Vector3(-30, -30, -30), Vector3(60, 50, 60))
+	var kp = ParticleProcessMaterial.new()
+	kp.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	kp.emission_box_extents = Vector3(26, 2, 26)
+	kp.direction = Vector3(0.2, -1, 0)
+	kp.spread = 25.0
+	kp.initial_velocity_min = 2.0
+	kp.initial_velocity_max = 3.5
+	kp.gravity = Vector3(0, -0.6, 0)
+	kp.turbulence_enabled = true
+	kp.turbulence_noise_strength = 1.2
+	kp.turbulence_influence_min = 0.05
+	kp.turbulence_influence_max = 0.15
+	kp.scale_min = 0.6
+	kp.scale_max = 1.3
+	snow.process_material = kp
+	var q = QuadMesh.new()
+	q.size = Vector2(0.09, 0.09)
+	var km = StandardMaterial3D.new()
+	km.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	km.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	km.albedo_texture = FX.tex_soft
+	km.albedo_color = Color(1, 1, 1, 0.9)
+	km.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+	km.distance_fade_mode = BaseMaterial3D.DISTANCE_FADE_PIXEL_ALPHA
+	km.distance_fade_min_distance = 0.4
+	km.distance_fade_max_distance = 1.5
+	q.material = km
+	snow.draw_pass_1 = q
+	snow.emitting = false
+	snow.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(snow)
 
 
 func attach_post(cam: Camera3D) -> void:
@@ -181,7 +271,10 @@ func _process(dt: float) -> void:
 	post_mat.set_shader_parameter("tint", tint)
 	var cam = get_viewport().get_camera_3d()
 	if cam:
-		rain.global_position = cam.global_position + Vector3(0, 18, 0)
+		rain.global_position = cam.global_position + Vector3(0, 14, 0)
+		snow.global_position = cam.global_position + Vector3(0, 12, 0)
+		var fp = Game.player.global_position if Game.player else cam.global_position
+		splash.global_position = Vector3(fp.x, Game.ground_height(fp.x, fp.z) + 0.03, fp.z)
 
 
 func _update_weather(dt: float) -> void:
@@ -203,14 +296,10 @@ func _update_weather(dt: float) -> void:
 	weather = reg if reg != "açık" else region_weather
 	var target_overcast = {"açık": 0.0, "bulutlu": 0.5, "yağmur": 0.85, "sis": 0.7, "kum fırtınası": 0.8, "kar": 0.6}.get(weather, 0.0)
 	overcast = move_toward(overcast, target_overcast, dt * 0.08)
-	rain.emitting = weather in ["yağmur", "kar"] and overcast > 0.4
-	var pm: ParticleProcessMaterial = rain.process_material
-	if weather == "kar":
-		pm.initial_velocity_min = 2.0; pm.initial_velocity_max = 4.0; pm.gravity = Vector3(0.5, -2, 0)
-		rain.lifetime = 8.0
-	else:
-		pm.initial_velocity_min = 38.0; pm.initial_velocity_max = 48.0; pm.gravity = Vector3(0, -20, 0)
-		rain.lifetime = 1.2
+	var indoor = Game.player != null and Game.player.global_position.y > Game.terrain_height(Game.player.global_position.x, Game.player.global_position.z) + 800.0
+	rain.emitting = weather == "yağmur" and overcast > 0.4 and not indoor
+	splash.emitting = rain.emitting
+	snow.emitting = weather == "kar" and overcast > 0.3 and not indoor
 
 
 ## Kamera sarsıntısı / ekran efektleri (dövüş için)
