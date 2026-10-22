@@ -3,16 +3,8 @@
 Hedef: 1. sezon 1. bölümden son bölüme kadar Naruto evreninin tüm içeriği (karakterler hariç): jutsular, silahlar, canavarlar, görev çeşitleri, sınav mantığı, sistemler. Çok oyunculu YOK.
 
 ## Devam eden
-- [ ] Dünya ~10x büyük, akışlı arazi; anime oranlarında dev yapılar (Hokage kayası, Son Vadisi heykelleri, dev ağaçlar)
-- [ ] Köy dışı içerik: mezralar, hanlar, haydut kampları, harabeler, tapınaklar, kervanlar, yolcular, vahşi hayvanlar, sınır karakolları
-- [ ] Canlı şehir: günlük rutinler, pazar kalabalığı, eve giren/çıkan insanlar, antrenman yapan ninjalar
-- [ ] Girilebilen binalar: ramen, mağazalar, akademi, Kage ofisi, hastane, oyuncunun evi, han
-- [ ] Görev revizyonu: çok adımlı, diyaloglu görevler (eskort, soruşturma, sızma, kurtarma, savunma, takip...)
-- [ ] Köy seçimi (Konoha, Suna, Kiri, Kumo, Iwa) + köye özel hikâye başlangıcı
-- [ ] Aranıyor listesi / Bingo Book: ödüllü kaçak ninjalar, saklanma yerleri
-- [ ] Modern arayüz: ikonlu menüler, 3B eşya önizlemeleri, karakter etrafında ekipman yuvaları, oyun içi görev panosu (parşömenler), Bingo Book kitabı, görsel roman diyalogları
-- [ ] Jutsu el mühürleri ve atma animasyonları (her jutsuya)
-- [ ] Tam içerik araştırması (Narutopedia): 400+ jutsu, dōjutsu, silah/alet, yaratık, sınav/görev/organizasyon sistemleri
+- [ ] Performans: yeni büyük dünya/şehir sonrası takılmaları gidermek (hedef sabit 60 FPS), kalite ayarları
+- [ ] Görsel cila: Hokage yüzleri, Kumo kuleleri, köy binaları detayı
 
 ## Sırada
 - [ ] Kage sistemi: rütbe yolu Genin → Chūnin → Jōnin → ANBU/özel birim → Kage seçimi; Kage olarak köy yönetimi (görev dağıtma, ninja atama, savunma, Kage zirvesi, diğer köylerle ilişkiler)
@@ -27,6 +19,12 @@ Hedef: 1. sezon 1. bölümden son bölüme kadar Naruto evreninin tüm içeriği
 - [ ] Jutsu efektleri: Ultimate Ninja Storm seviyesi görsel efektler
 
 ## Tamamlanan (son oturumlar)
+- Dünya 10x (77x64 km akışlı arazi), anime ölçekli yapılar, dev orman, mezralar, hanlar, kamplar, kervanlar, yaban hayatı
+- Konoha 1.5 km (5700 ev), girilebilen binalar, canlı şehir rutini, köy hocaları
+- Köy seçimi, köye özel görev havuzları ve itibar, çok adımlı görevler, Bingo Book
+- Modern arayüz: ekipman yuvaları karakter etrafında, parşömenli görev panosu, Bingo kitabı, görsel roman diyalogları
+- 673 jutsu (veri güdümlü motor), öğrenme yolları, kekkei genkai uyanışı; her jutsuya mühür + atma animasyonu
+- Narutopedia araştırması: research/ (jutsu, dōjutsu, silah, yaratık, sistemler)
 - 54 kıyafet (13 yuva), 34 silah (12 efsanevi: Yedi Kılıç Ustası kılıçları vb.), silaha özel kombolar, 20 klan
 - Göz sistemi: sağ/sol göz yuvası, 8 dōjutsu, göze özel teknikler, göz çalma/nakil, Sharingan kopyalama
 - Özel Mangekyō/EMS desen editörü, 5 kademeli özelleştirilebilir Susanoo (renk, zırh, yüz, silah, kanat)
