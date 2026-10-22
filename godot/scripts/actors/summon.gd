@@ -274,7 +274,13 @@ func _front(d := 0.0) -> Vector3:
 
 
 ## Temel saldırı: türe göre
+var attack_anim_t = 0.0
+
+
 func _attack() -> void:
+	if parts.get("player") and parts["player"].has_animation(parts["anims"]["attack"]):
+		parts["player"].play(parts["anims"]["attack"], 0.1)
+		attack_anim_t = 0.7
 	var dmg: float = def.get("dmg", 20.0) * (1.0 + float(Game.profile.get("level", 1)) * 0.03) * (1.0 + Stats.skill(Game.profile, "summon_power") + Stats.skill(Game.profile, "squad"))
 	var model: String = def.get("model", "")
 	var pt = _front(height * 0.15)
@@ -573,6 +579,20 @@ func _animate(dt: float) -> void:
 	root.rotation.y = facing
 	var moving = Vector2(velocity.x, velocity.z).length() > 0.5
 	match parts["anim"]:
+		"model":  # hazır modelin kendi animasyonları
+			var ap: AnimationPlayer = parts.get("player")
+			if ap and attack_anim_t <= 0.0:
+				var want = parts["anims"]["move"] if moving else parts["anims"]["idle"]
+				if ap.current_animation != want and ap.has_animation(want):
+					ap.play(want, 0.25)
+			attack_anim_t -= dt
+		"static":  # animasyonsuz hayran modeli: nefes + yürürken sallanma
+			var sfn: Node3D = parts.get("sf")
+			if sfn:
+				var br = 1.0 + sin(anim_t * 1.6) * 0.015
+				sfn.scale = Vector3(1.0, br, 1.0)
+				sfn.rotation.z = sin(anim_t * 8.0) * 0.05 if moving else lerpf(sfn.rotation.z, 0.0, dt * 4.0)
+				sfn.position.y = absf(sin(anim_t * 8.0)) * height * 0.04 if moving else 0.0
 		"hop":
 			if hop_t >= 0.0:
 				hop_t += dt / clampf(0.4 + height * 0.03, 0.4, 0.9)

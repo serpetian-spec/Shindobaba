@@ -1,0 +1,4 @@
+Quaternius modelleri (poly.pizza), lisans: CC0 1.0
+- frog.glb: https://poly.pizza/m/37wofOCOzG
+- snake.glb: https://poly.pizza/m/x9x0viZs8V
+- shiba.glb: https://poly.pizza/m/y4wdQpg767

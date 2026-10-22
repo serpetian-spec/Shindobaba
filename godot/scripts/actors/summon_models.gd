@@ -7,6 +7,27 @@ extends RefCounted
 
 static func build(model: String, h: float, length: float) -> Dictionary:
 	var out = {"root": Node3D.new(), "anim": "walk", "legs": [], "wings": [], "segments": [], "head": null, "tail": null, "mouth": Vector3(0, h * 0.5, -h * 0.5)}
+	# hayran modeli varsa onu kullan (assets/sketchfab)
+	var sf = SFModels.build(model, length if SFModels.DEFS.get(model, {}).get("fit", "h") == "len" and length > 0.0 else h)
+	if not sf.is_empty():
+		out["root"].add_child(sf["node"])
+		var names: Array = sf["anims"]
+		if sf["player"] and not names.is_empty():
+			var pick = func(keys: Array) -> String:
+				for nm in names:
+					for k in keys:
+						if String(nm).to_lower().contains(k):
+							return nm
+				return names[0]
+			out["anim"] = "model"
+			out["player"] = sf["player"]
+			out["anims"] = {"idle": pick.call(["idle"]), "move": pick.call(["walk", "move", "gallop", "takeoff", "fly", "animation", "principal"]), "attack": pick.call(["attack"])}
+		else:
+			out["anim"] = "static"
+		out["sf"] = sf["node"]
+		var sz: Vector3 = sf["size"]
+		out["mouth"] = Vector3(0, sz.y * 0.7, -sz.z * 0.45)
+		return out
 	match model:
 		"toad_small", "toad_mid", "toad_boss":
 			_toad(out, model, h)
@@ -38,6 +59,11 @@ static func build(model: String, h: float, length: float) -> Dictionary:
 			var b = MB.new()
 			b.add("sphere", Vector3(0, h * 0.5, 0), Vector3.ONE * h, Color(0.6, 0.5, 0.4), Vector3.ZERO, 10)
 			_mesh(out["root"], b)
+	var surf = {"toad": 1, "snak": 1, "slug": 3, "hawk": 0, "dog_": 0, "wolf": 0, "monk": 0, "crow": 0, "sala": 1, "turt": 2, "weas": 0, "cat_": 0, "spid": 1}.get(model.substr(0, 4), 0)
+	var bm = BeastModels.beast_material(surf, Color(0.3, 0.26, 0.4))
+	for mi in out["root"].find_children("*", "MeshInstance3D", true, false):
+		if mi.material_override == null and mi.mesh and mi.mesh.get_surface_count() > 0 and mi.mesh.surface_get_material(0) == Props.toon():
+			mi.material_override = bm
 	return out
 
 
@@ -56,106 +82,161 @@ static func _pivot(parent: Node3D, at: Vector3) -> Node3D:
 	return n
 
 
-# ------------------------------------------------------------------ kurbağalar
+# ------------------------------------------------------------------ CC0 hazır modeller (Quaternius, assets/packs): kurbağa, yılan, Shiba
+## ref_h: modelin dinlenme pozundaki yüksekliği (ölçek için); recolor: malzeme adı -> renk; anims: idle/move/attack -> klip adı
+const PACKS := {
+	"frog": {"file": "res://assets/packs/frog.glb", "ref_h": 2.7, "anims": {"idle": "CharacterArmature|Idle", "move": "CharacterArmature|Jump", "attack": "CharacterArmature|Punch"}},
+	"snake": {"file": "res://assets/packs/snake.glb", "ref_h": 3.0, "anims": {"idle": "SnakeArmature|Snake_Idle", "move": "SnakeArmature|Snake_Walk", "attack": "SnakeArmature|Snake_Attack"}},
+	"shiba": {"file": "res://assets/packs/shiba.glb", "ref_h": 3.1, "anims": {"idle": "AnimalArmature|Idle", "move": "AnimalArmature|Gallop", "attack": "AnimalArmature|Attack"}},
+}
+
+
+static func _pack(out: Dictionary, key: String, h: float, recolor: Dictionary) -> Dictionary:
+	var spec: Dictionary = PACKS[key]
+	var inst: Node3D = (load(spec["file"]) as PackedScene).instantiate()
+	var holder = Node3D.new()
+	out["root"].add_child(holder)
+	holder.add_child(inst)
+	holder.rotation.y = PI          # Quaternius +Z'ye bakar, çağrılar -Z
+	var k = h / float(spec["ref_h"])
+	holder.scale = Vector3.ONE * k
+	var bm = BeastModels.beast_material(1, Color(0.3, 0.26, 0.4))
+	for mi in inst.find_children("*", "MeshInstance3D", true, false):
+		for si in mi.mesh.get_surface_count():
+			var sm = mi.mesh.surface_get_material(si)
+			var nm = String(sm.resource_name) if sm else ""
+			var col = recolor.get(nm, sm.albedo_color if sm is BaseMaterial3D else Color.WHITE)
+			var m = ShaderMaterial.new()
+			m.shader = load("res://shaders/beast.gdshader")
+			m.set_shader_parameter("surface", 1)
+			m.set_shader_parameter("stroke", 0.25)
+			m.set_shader_parameter("shadow_tint", Color(0.3, 0.26, 0.4))
+			m.set_shader_parameter("use_tint", true)
+			m.set_shader_parameter("tint", col)
+			mi.set_surface_override_material(si, m)
+	var ap: AnimationPlayer = inst.find_child("AnimationPlayer", true, false)
+	var anims: Dictionary = spec["anims"]
+	if ap:
+		for a in ["idle", "move"]:
+			if ap.has_animation(anims[a]):
+				ap.get_animation(anims[a]).loop_mode = Animation.LOOP_LINEAR
+		if ap.has_animation(anims["idle"]):
+			ap.play(anims["idle"])
+	var sk: Skeleton3D = null
+	for c in inst.find_children("*", "Skeleton3D", true, false):
+		sk = c
+	out["anim"] = "model"
+	out["player"] = ap
+	out["anims"] = anims
+	return {"skel": sk, "scale": k, "holder": holder}
+
+
+## Aksesuarı kemiğe bağlar: model_xf model (ölçeksiz, Quaternius) uzayında
+static func _bone_mesh(pk: Dictionary, bone: String, b: MB, model_xf := Transform3D.IDENTITY) -> void:
+	var sk: Skeleton3D = pk["skel"]
+	if sk == null or sk.find_bone(bone) < 0:
+		return
+	var ba = BoneAttachment3D.new()
+	ba.bone_name = bone
+	sk.add_child(ba)
+	var hold = Node3D.new()
+	ba.add_child(hold)
+	hold.transform = sk.get_bone_global_rest(sk.find_bone(bone)).affine_inverse() * model_xf
+	var mi = MeshInstance3D.new()
+	mi.mesh = b.build(Props.toon())
+	hold.add_child(mi)
+
+
+static func _bone_pos(pk: Dictionary, bone: String) -> Vector3:
+	var sk: Skeleton3D = pk["skel"]
+	if sk == null or sk.find_bone(bone) < 0:
+		return Vector3.ZERO
+	return sk.get_bone_global_rest(sk.find_bone(bone)).origin
+
+
+# ------------------------------------------------------------------ kurbağalar (Quaternius Frog + Naruto aksesuarları)
 static func _toad(out: Dictionary, model: String, h: float) -> void:
-	out["anim"] = "hop"
-	var base = {"toad_small": Color(0.35, 0.7, 0.3), "toad_mid": Color(0.85, 0.5, 0.2), "toad_boss": Color(0.85, 0.32, 0.2)}[model]
-	var spot = base.darkened(0.3)
-	var belly = Color(0.97, 0.88, 0.65)
-	var s = h  # gövde yüksekliği birimi
-	var b = MB.new()
-	b.add("sphere", Vector3(0, s * 0.42, 0.05 * s), Vector3(1.1, 0.78, 1.15) * s, base, Vector3.ZERO, 18)
-	b.add("sphere", Vector3(0, s * 0.33, -0.22 * s), Vector3(0.88, 0.52, 0.66) * s, belly, Vector3.ZERO, 16)
-	# ağız çizgisi + gözler (yatay kurbağa göz bebeği)
-	b.add("box", Vector3(0, s * 0.43, -0.56 * s), Vector3(0.78, 0.025, 0.06) * s, Color(0.2, 0.08, 0.06), Vector3(0, 0, 0))
-	for sx in [-1.0, 1.0]:
-		b.add("sphere", Vector3(0.36 * sx, s * 0.74, -0.32 * s), Vector3(0.23, 0.23, 0.23) * s, Color(0.98, 0.85, 0.3), Vector3.ZERO, 12)
-		b.add("box", Vector3(0.36 * sx, s * 0.745, -0.435 * s), Vector3(0.14, 0.04, 0.02) * s, Color(0.05, 0.03, 0.03))
-		b.add("sphere", Vector3(0.36 * sx, s * 0.8, -0.28 * s), Vector3(0.26, 0.1, 0.24) * s, base.darkened(0.12), Vector3.ZERO, 10)  # göz kapağı
-		# arka bacak kalçaları
-		b.add("sphere", Vector3(0.5 * sx, s * 0.26, 0.28 * s), Vector3(0.42, 0.38, 0.58) * s, base.darkened(0.08), Vector3.ZERO, 12)
-		b.add("sphere", Vector3(0.6 * sx, s * 0.05, 0.05 * s), Vector3(0.3, 0.08, 0.42) * s, base.darkened(0.15), Vector3.ZERO, 10)  # perdeli ayak
-	# siğiller
-	var rng = RandomNumberGenerator.new()
-	rng.seed = hash(model)
-	for i in 18:
-		var a = rng.randf() * TAU
-		var y = rng.randf_range(0.35, 0.75)
-		b.add("sphere", Vector3(cos(a) * 0.5 * s, y * s, sin(a) * 0.52 * s + 0.05 * s), Vector3.ONE * s * rng.randf_range(0.05, 0.09), spot, Vector3.ZERO, 6)
+	var main_c = {"toad_small": Color(0.35, 0.68, 0.3), "toad_mid": Color(0.88, 0.52, 0.18), "toad_boss": Color(0.72, 0.26, 0.16)}[model]
+	var pk = _pack(out, "frog", h, {"Frog_Main": main_c, "Frog_Secondary": Color(0.96, 0.86, 0.62)})
+	var head = _bone_pos(pk, "Head")
+	var torso = _bone_pos(pk, "Torso")
 	match model:
-		"toad_small":
-			b.add("cyl", Vector3(0, s * 0.82, 0.25 * s), Vector3(0.12, 0.5, 0.12) * s, Color(0.85, 0.8, 0.65), Vector3(0, 0, 90), 8)  # sırtta parşömen
-		"toad_mid":
-			b.add("torus", Vector3(0, s * 0.55, -0.05 * s), Vector3(1.0, 0.5, 1.0) * s, Color(0.75, 0.15, 0.15), Vector3(10, 0, 0), 14)  # atkı
+		"toad_small":  # sırtta parşömen
+			var b = MB.new()
+			Loft.tube(b, [Vector3(-0.35, 0, 0), Vector3(0.35, 0, 0)], [0.09, 0.09], Color(0.9, 0.85, 0.68), 10, 1)
+			b.add("cyl", Vector3.ZERO, Vector3(0.2, 0.25, 0.2), Color(0.75, 0.15, 0.12), Vector3(0, 0, 90), 10)
+			_bone_mesh(pk, "Torso", b, Transform3D(Basis.IDENTITY, torso + Vector3(0, 0.15, -0.45)))
+		"toad_mid":  # kırmızı atkı + elde kılıç
+			var b = MB.new()
+			b.add("torus", Vector3.ZERO, Vector3(0.95, 0.5, 0.85), Color(0.78, 0.12, 0.12), Vector3.ZERO, 16)
+			Loft.tube(b, [Vector3(0.2, -0.05, -0.35), Vector3(0.35, -0.3, -0.55), Vector3(0.3, -0.6, -0.6)], [Vector2(0.12, 0.03), Vector2(0.1, 0.03), Vector2(0.08, 0.02)], Color(0.78, 0.12, 0.12), 8, 2)
+			_bone_mesh(pk, "Neck", b, Transform3D(Basis.IDENTITY, _bone_pos(pk, "Neck")))
+			var s = MB.new()
+			s.add("box", Vector3(0, 0, 0.6), Vector3(0.05, 0.12, 1.2), Color(0.8, 0.82, 0.86))
+			s.add("cyl", Vector3(0, 0, -0.05), Vector3(0.06, 0.3, 0.06), Color(0.2, 0.12, 0.1), Vector3(90, 0, 0), 8)
+			var hand = _bone_pos(pk, "LowerArm.R")
+			_bone_mesh(pk, "LowerArm.R", s, Transform3D(Basis.IDENTITY, hand + Vector3(-0.5, 0, 0)))
 		"toad_boss":
-			# yelek (kanji yaması), sırtta dev kılıç, pipo
-			b.add("sphere", Vector3(0, s * 0.5, 0.12 * s), Vector3(1.16, 0.62, 1.05) * s, Color(0.2, 0.25, 0.4), Vector3.ZERO, 16)
-			b.add("cyl", Vector3(0, s * 0.62, 0.62 * s), Vector3(0.2, 0.02, 0.2) * s, Color(0.95, 0.92, 0.85), Vector3(80, 0, 0), 14)
-			b.add("box", Vector3(0, s * 0.62, 0.64 * s), Vector3(0.025, 0.12, 0.01) * s, Color(0.1, 0.1, 0.1))
-			b.add("box", Vector3(0, s * 0.64, 0.64 * s), Vector3(0.09, 0.02, 0.01) * s, Color(0.1, 0.1, 0.1))
-			b.add("box", Vector3(0.1 * s, s * 0.95, 0.45 * s), Vector3(0.06, 1.0, 0.12) * s, Color(0.75, 0.78, 0.82), Vector3(-20, 0, 25))
-			b.add("cyl", Vector3(0.25 * s, s * 0.45, -0.62 * s), Vector3(0.04, 0.35, 0.04) * s, Color(0.35, 0.25, 0.15), Vector3(75, 0, 0), 8)
-			for sx in [-1.0, 1.0]:  # yara izi ve kaş
-				b.add("box", Vector3(0.36 * sx, s * 0.88, -0.33 * s), Vector3(0.2, 0.03, 0.05) * s, Color(0.15, 0.08, 0.06), Vector3(0, 0, -12 * sx))
-	_mesh(out["root"], b)
-	# ön kollar (zıplamada kıpırdar)
-	for sx in [-1.0, 1.0]:
-		var pv = _pivot(out["root"], Vector3(0.36 * sx, s * 0.35, -0.38 * s))
-		var lb = MB.new()
-		lb.add("cyl", Vector3(0.02 * sx, -0.17 * s, -0.02 * s), Vector3(0.13, 0.34, 0.13) * s, base.darkened(0.05), Vector3(-10, 0, 8 * sx), 8)
-		lb.add("sphere", Vector3(0.05 * sx, -0.34 * s, -0.08 * s), Vector3(0.2, 0.06, 0.22) * s, base.darkened(0.15), Vector3.ZERO, 8)
-		if model == "toad_mid":
-			lb.add("box", Vector3(0.05 * sx, -0.3 * s, -0.35 * s), Vector3(0.04, 0.05, 0.5) * s, Color(0.78, 0.8, 0.84))
-		if model == "toad_boss" and sx < 0:
-			lb.add("cyl", Vector3(-0.04 * s, -0.3 * s, -0.12 * s), Vector3(0.05, 0.25, 0.05) * s, Color(0.2, 0.15, 0.12), Vector3(-30, 0, 0), 6)
-			lb.add("box", Vector3(-0.04 * s, -0.08 * s, -0.5 * s), Vector3(0.04, 0.09, 0.85) * s, Color(0.78, 0.8, 0.84), Vector3(-30, 0, 0))
-		_mesh(pv, lb)
-		out["legs"].append(pv)
-	out["mouth"] = Vector3(0, s * 0.43, -0.6 * s)
+			# mavi yelek (gövdeyi saran açık önlü kabuk) + sırtında 油 yaması
+			var v = MB.new()
+			var vest = Color(0.18, 0.24, 0.45)
+			Loft.tube(v, [torso + Vector3(0, -0.55, 0), torso + Vector3(0, 0.1, 0), torso + Vector3(0, 0.6, 0)], [Vector2(0.78, 0.62), Vector2(0.86, 0.68), Vector2(0.72, 0.55)], vest, 20, 2, false, false,
+				func(_t: float, a: float, d: Vector3) -> Color: return Color(0.96, 0.86, 0.62) if d.z > 0.8 else vest)
+			v.add("cyl", torso + Vector3(0, 0.05, -0.7), Vector3(0.55, 0.04, 0.55), Color(0.95, 0.92, 0.85), Vector3(90, 0, 0), 16)
+			v.add("box", torso + Vector3(0, 0.05, -0.73), Vector3(0.05, 0.32, 0.02), Color(0.1, 0.1, 0.1))
+			v.add("box", torso + Vector3(0, 0.1, -0.73), Vector3(0.24, 0.05, 0.02), Color(0.1, 0.1, 0.1))
+			# sırtta çapraz kın + kabza
+			var k0 = torso + Vector3(-0.6, -0.5, -0.75); var k1 = torso + Vector3(0.55, 0.9, -0.7)
+			Loft.tube(v, [k0, k1], [Vector2(0.09, 0.05), Vector2(0.08, 0.05)], Color(0.14, 0.09, 0.07), 8, 1)
+			var hd = k1 + (k1 - k0).normalized() * 0.45
+			Loft.tube(v, [k1, hd], [0.05, 0.05], Color(0.62, 0.12, 0.1), 8, 1)
+			v.add("cyl", k1, Vector3(0.22, 0.03, 0.22), Color(0.78, 0.65, 0.25), Vector3(40, 0, -45), 12)
+			_bone_mesh(pk, "Torso", v, Transform3D.IDENTITY)
+			# pipo + kaşta yara izi
+			var p = MB.new()
+			Loft.tube(p, [head + Vector3(0.25, -0.15, 0.55), head + Vector3(0.5, -0.2, 0.95)], [0.035, 0.035], Color(0.3, 0.2, 0.12), 8, 1)
+			p.add("cyl", head + Vector3(0.52, -0.1, 0.98), Vector3(0.12, 0.16, 0.12), Color(0.3, 0.2, 0.12), Vector3.ZERO, 10)
+			p.add("box", head + Vector3(-0.28, 0.32, 0.45), Vector3(0.05, 0.3, 0.03), Color(0.2, 0.06, 0.05), Vector3(0, 0, 25))
+			_bone_mesh(pk, "Head", p, Transform3D.IDENTITY)
+	out["mouth"] = Vector3(0, h * 0.65, -h * 0.35)
+
+
+# ------------------------------------------------------------------ yılanlar (Quaternius Snake)
+static func _snake(out: Dictionary, model: String, h: float, length: float) -> void:
+	var boss = model == "snake_boss"
+	var rc = {}
+	if boss:
+		rc = {"DarkGreen": Color(0.38, 0.24, 0.55), "LightGreen": Color(0.86, 0.76, 0.46), "Purple": Color(0.25, 0.15, 0.35)}
+	var pk = _pack(out, "snake", maxf(h * 1.6, length * 0.35), rc)
+	if boss:
+		var head = _bone_pos(pk, "Head")
+		var b = MB.new()
+		for sx in [-1.0, 1.0]:
+			Loft.tube(b, [head + Vector3(0.18 * sx, 0.2, 0.05), head + Vector3(0.3 * sx, 0.45, -0.1), head + Vector3(0.32 * sx, 0.65, -0.35)], [0.06, 0.04, 0.005], Color(0.2, 0.15, 0.25), 8, 2, true, false)
+		_bone_mesh(pk, "Head", b, Transform3D.IDENTITY)
+	out["mouth"] = Vector3(0, h * 1.2, -h * 0.6)
+
+
+# ------------------------------------------------------------------ ninja köpekleri (Quaternius Shiba Inu + alın bandı, yelek)
+static func _dog(out: Dictionary, model: String, h: float) -> void:
+	if model == "wolf_giant":
+		_dog_proc(out, model, h)
+		return
+	var pk = _pack(out, "shiba", h, {"Main": Color(0.68, 0.45, 0.24), "Main_Light": Color(0.96, 0.9, 0.8)})
+	var head = _bone_pos(pk, "Head")
+	var torso = _bone_pos(pk, "Torso2")
+	var hb = MB.new()
+	hb.add("cyl", head + Vector3(0, 0.12, 0.02), Vector3(0.55, 0.1, 0.5), Color(0.2, 0.3, 0.5), Vector3.ZERO, 14)  # alın bandı
+	hb.add("box", head + Vector3(0, 0.12, 0.27), Vector3(0.2, 0.09, 0.02), Color(0.82, 0.84, 0.88))
+	_bone_mesh(pk, "Head", hb, Transform3D.IDENTITY)
+	var vb = MB.new()
+	Loft.tube(vb, [torso + Vector3(0, 0, -0.35), torso + Vector3(0, 0.02, 0.35)], [Vector2(0.42, 0.42), Vector2(0.44, 0.45)], Color(0.2, 0.3, 0.5), 16, 2, false, false,
+		func(_t: float, a: float, _d: Vector3) -> Color: return Color(0.2, 0.3, 0.5) if sin(a) > -0.35 else Color(0.25, 0.35, 0.55))
+	_bone_mesh(pk, "Torso2", vb, Transform3D.IDENTITY)
+	out["mouth"] = Vector3(0, h * 0.75, -h * 0.9)
 
 
 # ------------------------------------------------------------------ yılanlar
-static func _snake(out: Dictionary, model: String, h: float, length: float) -> void:
-	out["anim"] = "slither"
-	var boss = model == "snake_boss"
-	var c1 = Color(0.45, 0.32, 0.62) if boss else Color(0.25, 0.42, 0.3)
-	var c2 = Color(0.85, 0.75, 0.45) if boss else Color(0.75, 0.78, 0.55)
-	var n = 22
-	var r0 = h * 0.5
-	for i in n:
-		var t = float(i) / (n - 1)
-		var rr = r0 * (1.0 - t * 0.82) * (0.95 if i == 0 else 1.0)
-		var seg = Node3D.new()
-		seg.position = Vector3(0, rr, t * length)
-		out["root"].add_child(seg)
-		var b = MB.new()
-		b.add("sphere", Vector3.ZERO, Vector3(rr * 2.0, rr * 1.8, length / n * 1.6), c1.darkened(0.15 if i % 2 else 0.0), Vector3.ZERO, 12)
-		b.add("sphere", Vector3(0, -rr * 0.35, 0), Vector3(rr * 1.6, rr * 1.0, length / n * 1.5), c2, Vector3.ZERO, 10)  # karın
-		if i % 3 == 0:
-			for sx in [-1.0, 1.0]:
-				b.add("sphere", Vector3(rr * 0.6 * sx, rr * 0.55, 0), Vector3(rr * 0.5, rr * 0.25, rr * 0.5), c1.lightened(0.2), Vector3.ZERO, 6)
-		_mesh(seg, b)
-		out["segments"].append(seg)
-	# baş
-	var head = Node3D.new()
-	head.position = Vector3(0, r0 * 1.1, -r0 * 0.6)
-	out["root"].add_child(head)
-	var hb = MB.new()
-	var hs = r0 * 1.45
-	hb.add("sphere", Vector3(0, 0, -hs * 0.4), Vector3(hs * 1.7, hs * 1.1, hs * 2.2), c1, Vector3.ZERO, 14)
-	hb.add("box", Vector3(0, -hs * 0.18, -hs * 1.2), Vector3(hs * 1.2, hs * 0.06, hs * 0.9), Color(0.25, 0.05, 0.08))  # ağız
-	for sx in [-1.0, 1.0]:
-		hb.add("sphere", Vector3(hs * 0.48 * sx, hs * 0.3, -hs * 0.9), Vector3(hs * 0.32, hs * 0.26, hs * 0.26), Color(0.98, 0.82, 0.15), Vector3.ZERO, 10)
-		hb.add("box", Vector3(hs * 0.48 * sx, hs * 0.3, -hs * 1.02), Vector3(hs * 0.05, hs * 0.22, hs * 0.02), Color(0.05, 0.03, 0.03))  # dikey göz bebeği
-		hb.add("cone", Vector3(hs * 0.25 * sx, -hs * 0.3, -hs * 1.45), Vector3(hs * 0.08, hs * 0.3, hs * 0.08), Color(0.97, 0.95, 0.9), Vector3(180, 0, 0), 5)  # dişler
-		if boss:
-			hb.add("cone", Vector3(hs * 0.45 * sx, hs * 0.75, -hs * 0.2), Vector3(hs * 0.16, hs * 0.9, hs * 0.16), Color(0.25, 0.2, 0.3), Vector3(-30, 0, -20 * sx), 6)
-	hb.add("cone", Vector3(0, -hs * 0.12, -hs * 1.85), Vector3(hs * 0.06, hs * 0.7, hs * 0.02), Color(0.85, 0.15, 0.25), Vector3(-90, 0, 0), 4)  # çatal dil
-	_mesh(head, hb)
-	out["head"] = head
-	out["mouth"] = head.position + Vector3(0, -hs * 0.1, -hs * 1.6)
-
-
 static func _snake_swarm(out: Dictionary, h: float) -> void:
 	out["anim"] = "flock"
 	var rng = RandomNumberGenerator.new()
@@ -234,39 +315,117 @@ static func _hawk(out: Dictionary, model: String, h: float) -> void:
 	out["mouth"] = Vector3(0, h * 0.8, -h * 1.0)
 
 
-# ------------------------------------------------------------------ köpekler
-static func _dog(out: Dictionary, model: String, h: float) -> void:
-	out["anim"] = "walk"
-	var giant = model == "wolf_giant"
-	var c = Color(0.62, 0.48, 0.34) if not giant else Color(0.55, 0.57, 0.62)
+# ------------------------------------------------------------------ ortak dört ayaklı (köpek, kurt, kedi, gelincik): pürüzsüz Loft anatomisi
+## p: {"len": gövde uzunluğu oranı, "leg": bacak boyu oranı, "snout": burun uzunluğu, "ear": kulak boyu, "heads": [x ofsetleri], "eye": göz rengi,
+##     "tail": "bushy"|"thin"|"flame2", "belly": karın rengi, "mark": koyu işaret rengi}
+static func _quad(out: Dictionary, h: float, c: Color, p: Dictionary) -> MB:
+	var belly: Color = p.get("belly", c.lightened(0.25))
+	var dk: Color = p.get("mark", c.darkened(0.45))
+	var L = h * float(p.get("len", 1.2))
+	var leg = h * float(p.get("leg", 0.5))
+	var by = leg + h * 0.12
+	var fur = func(_t: float, a: float, _d: Vector3) -> Color:
+		return c.lerp(belly, smoothstep(-0.2, -0.85, sin(a)))
 	var b = MB.new()
-	b.add("sphere", Vector3(0, h * 0.55, 0), Vector3(h * 0.5, h * 0.5, h * 1.15), c, Vector3.ZERO, 14)
-	b.add("sphere", Vector3(0, h * 0.6, -h * 0.45), Vector3(h * 0.52, h * 0.55, h * 0.55), c.lightened(0.1), Vector3.ZERO, 12)  # göğüs yelesi
-	var heads = [0.0] if not giant else [-0.22, 0.22]
-	for hx in heads:
-		b.add("sphere", Vector3(hx * h, h * 0.85, -h * 0.68), Vector3(h * 0.36, h * 0.34, h * 0.38), c, Vector3.ZERO, 12)
-		b.add("sphere", Vector3(hx * h, h * 0.78, -h * 0.9), Vector3(h * 0.2, h * 0.17, h * 0.3), c.lightened(0.2), Vector3(10, 0, 0), 10)  # burun
-		b.add("sphere", Vector3(hx * h, h * 0.82, -h * 1.05), Vector3(h * 0.07, h * 0.06, h * 0.05), Color(0.08, 0.06, 0.06), Vector3.ZERO, 6)
+	# göğüs derin, bel ince, kalça yuvarlak
+	Loft.tube(b, [Vector3(0, by + h * 0.04, L * 0.48), Vector3(0, by + h * 0.06, L * 0.18), Vector3(0, by + h * 0.04, -L * 0.12), Vector3(0, by + h * 0.12, -L * 0.42)],
+		[Vector2(0.2, 0.2) * h, Vector2(0.17, 0.17) * h, Vector2(0.2, 0.24) * h, Vector2(0.22, 0.27) * h], c, 18, 4, true, true, fur)
+	for hx in p.get("heads", [0.0]):
+		var neck0 = Vector3(hx * h, by + h * 0.2, -L * 0.42)
+		var hp = Vector3(hx * h * 1.2, by + h * 0.48, -L * 0.62)
+		Loft.tube(b, [neck0, neck0.lerp(hp, 0.5) + Vector3(0, h * 0.04, 0), hp], [h * 0.15, h * 0.13, h * 0.12], c, 14, 3, true, true, fur)
+		# kafa + burun (tek profil)
+		var sn = float(p.get("snout", 0.3)) * h
+		Loft.tube(b, [hp + Vector3(0, h * 0.02, h * 0.1), hp + Vector3(0, h * 0.03, -h * 0.06), hp + Vector3(0, -h * 0.03, -h * 0.06 - sn * 0.6), hp + Vector3(0, -h * 0.05, -h * 0.06 - sn)],
+			[Vector2(0.15, 0.14) * h, Vector2(0.16, 0.15) * h, Vector2(0.09, 0.08) * h, Vector2(0.05, 0.045) * h], c, 16, 3, true, true, fur)
+		b.add("sphere", hp + Vector3(0, -h * 0.03, -h * 0.07 - sn), Vector3(0.07, 0.05, 0.05) * h, Color(0.06, 0.05, 0.05), Vector3.ZERO, 8)  # burun ucu
 		for sx in [-1.0, 1.0]:
-			b.add("cone", Vector3((hx + 0.11 * sx) * h, h * 1.05, -h * 0.64), Vector3(h * 0.09, h * 0.2, h * 0.07), c.darkened(0.1), Vector3(0, 0, -12 * sx), 5)
-			b.add("sphere", Vector3((hx + 0.09 * sx) * h, h * 0.9, -h * 0.84), Vector3(h * 0.05, h * 0.05, h * 0.03), Color(0.15, 0.1, 0.05) if not giant else Color(0.95, 0.75, 0.1), Vector3.ZERO, 6)
-	if not giant:
-		b.add("cyl", Vector3(0, h * 0.75, -h * 0.4), Vector3(h * 0.42, h * 0.08, h * 0.42), Color(0.2, 0.3, 0.5), Vector3(70, 0, 0), 10)  # boyun bandı
-		b.add("box", Vector3(0, h * 0.68, 0.05 * h), Vector3(h * 0.46, h * 0.3, h * 0.6), Color(0.2, 0.3, 0.5))  # yelek
-	_mesh(out["root"], b)
-	var tail = _pivot(out["root"], Vector3(0, h * 0.65, h * 0.55))
-	var tb = MB.new()
-	tb.add("cone", Vector3(0, h * 0.1, h * 0.2), Vector3(h * 0.12, h * 0.45, h * 0.12), c, Vector3(60, 0, 0), 6)
-	_mesh(tail, tb)
-	out["tail"] = tail
-	for p in [Vector3(-0.17, 0, -0.38), Vector3(0.17, 0, -0.38), Vector3(-0.17, 0, 0.38), Vector3(0.17, 0, 0.38)]:
-		var pv = _pivot(out["root"], Vector3(p.x * h, h * 0.45, p.z * h))
+			var ep = hp + Vector3(0.075 * sx * h, h * 0.05, -h * 0.13)
+			b.add("sphere", ep, Vector3(0.07, 0.045, 0.04) * h, p.get("eye", Color(0.95, 0.75, 0.2)), Vector3(0, 0, -15 * sx), 8)
+			b.add("sphere", ep + Vector3(0, 0, -h * 0.018), Vector3(0.018, 0.04, 0.02) * h, Color(0.05, 0.03, 0.03), Vector3.ZERO, 6)
+			BeastModels._brow(b, ep, sx, h * 0.09, dk)
+			# sivri kulak
+			var e0 = hp + Vector3(0.09 * sx * h, h * 0.11, h * 0.02)
+			Loft.tube(b, [e0, e0 + Vector3(0.03 * sx, float(p.get("ear", 0.16)) * 0.6, 0.02) * h, e0 + Vector3(0.05 * sx, float(p.get("ear", 0.16)), 0.04) * h], [Vector2(0.06, 0.03) * h, Vector2(0.04, 0.02) * h, Vector2(0.004, 0.004) * h], [c, c, dk], 10, 2, true, false)
+			# yanak tüyü
+			BeastRig.claw(b, hp + Vector3(0.12 * sx * h, -h * 0.04, h * 0.0), Vector3(sx, -0.3, 0.6), h * 0.1, h * 0.03, c)
+		# dişler
+		for sx in [-1.0, 1.0]:
+			BeastRig.claw(b, hp + Vector3(0.035 * sx * h, -h * 0.07, -h * 0.06 - sn * 0.8), Vector3(0, -1, 0), h * 0.05, h * 0.012, Color(0.97, 0.95, 0.9))
+	# sırt tüyü (cel)
+	for i in 5:
+		BeastRig.claw(b, Vector3(0, by + h * 0.24, -L * 0.3 + i * L * 0.12), Vector3(0, 1, 0.8), h * 0.12, h * 0.04, c.darkened(0.08))
+	# bacaklar: üst bacak + incik + pati (pivot kalçada/omuzda; yürüyüşte döner)
+	for q in [Vector3(-1, 0, -1), Vector3(1, 0, -1), Vector3(-1, 0, 1), Vector3(1, 0, 1)]:
+		var front = q.z < 0
+		var pv = _pivot(out["root"], Vector3(q.x * h * 0.13, by, q.z * L * (0.32 if front else 0.36)))
 		var lb = MB.new()
-		lb.add("cyl", Vector3(0, -h * 0.22, 0), Vector3(h * 0.11, h * 0.45, h * 0.11), c.darkened(0.08), Vector3.ZERO, 6)
-		lb.add("sphere", Vector3(0, -h * 0.44, -h * 0.03), Vector3(h * 0.13, h * 0.06, h * 0.16), c.darkened(0.15), Vector3.ZERO, 6)
+		var knee = Vector3(q.x * h * 0.02, -leg * 0.5, (h * 0.05 if front else -h * 0.1))
+		var paw = Vector3(q.x * h * 0.01, -by + h * 0.04, -h * 0.03)
+		Loft.tube(lb, [Vector3.ZERO, knee, paw], [Vector2(0.09, 0.11) * h, Vector2(0.055, 0.06) * h, Vector2(0.045, 0.045) * h], c.darkened(0.05), 12, 3)
+		lb.add("sphere", paw + Vector3(0, -h * 0.01, -h * 0.04), Vector3(0.11, 0.06, 0.14) * h, c.darkened(0.1), Vector3.ZERO, 10)
+		for f in 3:
+			BeastRig.claw(lb, paw + Vector3((f - 1) * h * 0.03, -h * 0.02, -h * 0.1), Vector3(0, -0.4, -1), h * 0.05, h * 0.012, Color(0.12, 0.1, 0.1))
 		_mesh(pv, lb)
 		out["legs"].append(pv)
-	out["mouth"] = Vector3(0, h * 0.8, -h * 1.0)
+	# kuyruk
+	var tail = _pivot(out["root"], Vector3(0, by + h * 0.12, L * 0.5))
+	var tb = MB.new()
+	match String(p.get("tail", "bushy")):
+		"bushy":
+			Loft.tube(tb, [Vector3.ZERO, Vector3(0, h * 0.15, h * 0.25), Vector3(0, h * 0.35, h * 0.45), Vector3(0, h * 0.5, h * 0.55)], [h * 0.06, h * 0.11, h * 0.1, h * 0.02], [c, c, belly, belly], 12, 3, true, false)
+		"thin":
+			Loft.tube(tb, [Vector3.ZERO, Vector3(0, h * 0.2, h * 0.3), Vector3(0, h * 0.55, h * 0.4), Vector3(0, h * 0.75, h * 0.3)], [h * 0.05, h * 0.04, h * 0.035, h * 0.01], c, 10, 3, true, false)
+		"flame2":
+			for sx in [-1.0, 1.0]:
+				Loft.tube(tb, [Vector3.ZERO, Vector3(sx * h * 0.12, h * 0.3, h * 0.25), Vector3(sx * h * 0.2, h * 0.7, h * 0.3), Vector3(sx * h * 0.15, h * 1.0, h * 0.2)], [h * 0.06, h * 0.07, h * 0.06, h * 0.01], [c, c, Color(0.35, 0.6, 1.0), Color(0.6, 0.85, 1.0)], 10, 3, true, false)
+	_mesh(tail, tb)
+	out["tail"] = tail
+	out["mouth"] = Vector3(0, by + h * 0.45, -L * 0.62 - float(p.get("snout", 0.3)) * h)
+	return b
+
+
+static func _dog_proc(out: Dictionary, model: String, h: float) -> void:
+	out["anim"] = "walk"
+	var giant = model == "wolf_giant"
+	var c = Color(0.62, 0.46, 0.3) if not giant else Color(0.5, 0.52, 0.58)
+	var b = _quad(out, h, c, {"len": 1.15, "leg": 0.5, "snout": 0.3, "ear": 0.16 if not giant else 0.2, "heads": [0.0] if not giant else [-0.18, 0.18],
+		"eye": Color(0.15, 0.1, 0.05) if not giant else Color(0.98, 0.78, 0.1), "tail": "bushy", "belly": c.lightened(0.3)})
+	if not giant:
+		var by = h * 0.62
+		b.add("cyl", Vector3(0, by + h * 0.24, -h * 0.5), Vector3(0.3, 0.06, 0.3) * h, Color(0.2, 0.3, 0.5), Vector3(65, 0, 0), 12)  # alın bandı boyunda
+		b.add("box", Vector3(0, by + h * 0.24, -h * 0.62), Vector3(0.12, 0.06, 0.02) * h, Color(0.8, 0.82, 0.86), Vector3(-25, 0, 0))
+		Loft.tube(b, [Vector3(0, by + h * 0.12, h * 0.2), Vector3(0, by + h * 0.14, -h * 0.1), Vector3(0, by + h * 0.16, -h * 0.3)], [Vector2(0.21, 0.21) * h, Vector2(0.22, 0.24) * h, Vector2(0.23, 0.27) * h], Color(0.2, 0.3, 0.5), 16, 2, false, false,
+			func(_t: float, a: float, _d: Vector3) -> Color: return Color(0.2, 0.3, 0.5) if sin(a) > -0.3 else c.lightened(0.3))  # yelek
+	_mesh(out["root"], b)
+
+
+static func _cat(out: Dictionary, model: String, h: float, length: float) -> void:
+	out["anim"] = "walk"
+	var giant = model == "cat_giant"
+	var c = Color(0.1, 0.16, 0.45) if giant else Color(0.85, 0.58, 0.28)
+	var b = _quad(out, h, c, {"len": 1.3, "leg": 0.5, "snout": 0.14, "ear": 0.2, "eye": Color(0.4, 0.95, 1.0) if giant else Color(0.95, 0.85, 0.2),
+		"tail": "flame2" if giant else "thin", "belly": c.lightened(0.3) if not giant else Color(0.3, 0.5, 1.0), "mark": Color(0.03, 0.03, 0.1)})
+	if giant:
+		BeastModels._particles(out["root"], Vector3(h * 0.3, h * 0.3, h * 0.6), [Color(0.35, 0.6, 1.0, 0.9), Color(0.05, 0.05, 0.3, 0.0)], 60, h * 0.35, Vector3(0, h, 0), 0.8, true)
+	else:
+		Loft.tube(b, [Vector3(0, h * 0.75, h * 0.25), Vector3(0, h * 0.78, -h * 0.2)], [Vector2(0.2, 0.2) * h, Vector2(0.21, 0.23) * h], Color(0.25, 0.3, 0.2), 14, 2, false, false,
+			func(_t: float, a: float, _d: Vector3) -> Color: return Color(0.25, 0.3, 0.2) if sin(a) > -0.3 else c.lightened(0.3))  # ninja yeleği
+	for sx in [-1.0, 1.0]:  # bıyık
+		for k in 2:
+			b.add("box", Vector3(h * 0.12 * sx, h * 1.02 - k * h * 0.03, -h * 1.05), Vector3(0.22, 0.006, 0.006) * h, Color(0.95, 0.95, 0.95), Vector3(0, -15 * sx, (k - 0.5) * 10 * sx))
+	_mesh(out["root"], b)
+
+
+static func _weasel(out: Dictionary, h: float) -> void:
+	out["anim"] = "walk"
+	var c = Color(0.9, 0.84, 0.7)
+	var b = _quad(out, h, c, {"len": 1.6, "leg": 0.32, "snout": 0.16, "ear": 0.08, "eye": Color(0.1, 0.05, 0.05), "tail": "bushy", "belly": Color(0.98, 0.96, 0.9), "mark": Color(0.45, 0.32, 0.2)})
+	# sırtta orak + bandana
+	Loft.tube(b, [Vector3(h * 0.05, h * 0.62, h * 0.2), Vector3(h * 0.2, h * 0.95, h * 0.15), Vector3(h * 0.3, h * 1.15, h * 0.0)], [h * 0.025, h * 0.025, h * 0.025], Color(0.35, 0.25, 0.15), 8, 2)
+	Loft.tube(b, [Vector3(h * 0.3, h * 1.15, h * 0.0), Vector3(h * 0.15, h * 1.25, -h * 0.25), Vector3(-h * 0.05, h * 1.15, -h * 0.35)], [Vector2(0.015, 0.06) * h, Vector2(0.012, 0.07) * h, Vector2(0.005, 0.02) * h], Color(0.82, 0.84, 0.88), 8, 3, true, false)
+	b.add("box", Vector3(0, h * 0.78, -h * 0.85), Vector3(0.3, 0.06, 0.25) * h, Color(0.2, 0.35, 0.6))
+	_mesh(out["root"], b)
 
 
 # ------------------------------------------------------------------ maymunlar
@@ -276,27 +435,34 @@ static func _monkey(out: Dictionary, model: String, h: float) -> void:
 	var fur = Color(0.62, 0.45, 0.3)
 	var face = Color(0.9, 0.72, 0.6)
 	var b = MB.new()
-	b.add("sphere", Vector3(0, h * 0.48, 0), Vector3(h * 0.45, h * 0.5, h * 0.38), fur, Vector3.ZERO, 12)
-	b.add("sphere", Vector3(0, h * 0.82, -h * 0.02), Vector3(h * 0.3, h * 0.3, h * 0.3), fur, Vector3.ZERO, 12)
-	b.add("sphere", Vector3(0, h * 0.8, -h * 0.13), Vector3(h * 0.22, h * 0.2, h * 0.1), face, Vector3.ZERO, 10)
+	Loft.tube(b, [Vector3(0, h * 0.3, h * 0.04), Vector3(0, h * 0.5, 0), Vector3(0, h * 0.68, -h * 0.03)], [Vector2(0.2, 0.17) * h, Vector2(0.24, 0.19) * h, Vector2(0.26, 0.2) * h], fur, 16, 3)
+	Loft.tube(b, [Vector3(0, h * 0.74, h * 0.02), Vector3(0, h * 0.84, -h * 0.02), Vector3(0, h * 0.93, -h * 0.03)], [Vector2(0.15, 0.14) * h, Vector2(0.16, 0.15) * h, Vector2(0.12, 0.11) * h], fur, 16, 3)
+	Loft.tube(b, [Vector3(0, h * 0.86, -h * 0.1), Vector3(0, h * 0.8, -h * 0.17)], [Vector2(0.11, 0.1) * h, Vector2(0.08, 0.06) * h], face, 12, 2)
 	for sx in [-1.0, 1.0]:
-		b.add("sphere", Vector3(h * 0.06 * sx, h * 0.84, -h * 0.18), Vector3(h * 0.04, h * 0.04, h * 0.02), Color(0.1, 0.08, 0.05), Vector3.ZERO, 6)
-		b.add("sphere", Vector3(h * 0.16 * sx, h * 0.84, 0), Vector3(h * 0.09, h * 0.1, h * 0.04), face, Vector3.ZERO, 6)
-		b.add("cyl", Vector3(h * 0.12 * sx, h * 0.15, 0), Vector3(h * 0.1, h * 0.32, h * 0.1), fur, Vector3.ZERO, 6)
+		var ep = Vector3(h * 0.055 * sx, h * 0.88, -h * 0.14)
+		b.add("sphere", ep, Vector3(0.04, 0.03, 0.02) * h, Color(0.95, 0.8, 0.2), Vector3.ZERO, 6)
+		BeastModels._brow(b, ep, sx, h * 0.05, fur.darkened(0.4))
+		b.add("sphere", Vector3(h * 0.15 * sx, h * 0.87, 0), Vector3(h * 0.07, h * 0.09, h * 0.035), face, Vector3.ZERO, 8)
+		# bacaklar
+		Loft.tube(b, [Vector3(h * 0.12 * sx, h * 0.32, 0), Vector3(h * 0.15 * sx, h * 0.17, -h * 0.05), Vector3(h * 0.13 * sx, h * 0.02, 0)], [h * 0.09, h * 0.07, h * 0.06], fur, 10, 3)
+		b.add("sphere", Vector3(h * 0.13 * sx, h * 0.01, -h * 0.05), Vector3(0.1, 0.04, 0.16) * h, face.darkened(0.2), Vector3.ZERO, 8)
 	if king:
-		b.add("sphere", Vector3(0, h * 0.5, 0), Vector3(h * 0.52, h * 0.42, h * 0.44), Color(0.25, 0.25, 0.3), Vector3.ZERO, 12)  # zırh
-		b.add("cyl", Vector3(0, h * 0.99, 0), Vector3(h * 0.22, h * 0.06, h * 0.22), Color(0.9, 0.75, 0.25), Vector3.ZERO, 10)  # taç
-		b.add("sphere", Vector3(0, h * 0.68, 0), Vector3(h * 0.5, h * 0.12, h * 0.4), Color(0.95, 0.92, 0.88), Vector3.ZERO, 10)  # beyaz yele
+		Loft.tube(b, [Vector3(0, h * 0.4, h * 0.02), Vector3(0, h * 0.55, 0), Vector3(0, h * 0.7, -h * 0.02)], [Vector2(0.27, 0.22) * h, Vector2(0.29, 0.23) * h, Vector2(0.3, 0.23) * h], Color(0.22, 0.22, 0.28), 16, 2, false, false)  # zırh
+		b.add("cyl", Vector3(0, h * 1.0, -h * 0.02), Vector3(h * 0.2, h * 0.07, h * 0.2), Color(0.9, 0.75, 0.25), Vector3.ZERO, 12)  # taç
+		for i in 9:
+			var aa = lerpf(-2.2, 2.2, i / 8.0)
+			BeastRig.claw(b, Vector3(sin(aa) * h * 0.2, h * 0.72, cos(aa) * h * 0.12), Vector3(sin(aa), -0.5, cos(aa) * 0.6), h * 0.12, h * 0.035, Color(0.95, 0.92, 0.88))  # beyaz yele
 	_mesh(out["root"], b)
 	for sx in [-1.0, 1.0]:
-		var pv = _pivot(out["root"], Vector3(h * 0.22 * sx, h * 0.65, 0))
+		var pv = _pivot(out["root"], Vector3(h * 0.25 * sx, h * 0.68, 0))
 		var ab = MB.new()
-		ab.add("cyl", Vector3(h * 0.05 * sx, -h * 0.25, 0), Vector3(h * 0.08, h * 0.55, h * 0.08), fur, Vector3(0, 0, 8 * sx), 6)
+		Loft.tube(ab, [Vector3.ZERO, Vector3(h * 0.06 * sx, -h * 0.28, -h * 0.03), Vector3(h * 0.05 * sx, -h * 0.58, -h * 0.06)], [h * 0.07, h * 0.055, h * 0.05], fur, 10, 3)
+		ab.add("sphere", Vector3(h * 0.05 * sx, -h * 0.63, -h * 0.07), Vector3(0.08, 0.1, 0.07) * h, face.darkened(0.2), Vector3.ZERO, 8)
 		_mesh(pv, ab)
 		out["legs"].append(pv)
 	var tail = _pivot(out["root"], Vector3(0, h * 0.35, h * 0.18))
 	var tb = MB.new()
-	tb.add("cyl", Vector3(0, h * 0.15, h * 0.2), Vector3(h * 0.05, h * 0.55, h * 0.05), fur, Vector3(50, 0, 0), 6)
+	Loft.tube(tb, [Vector3.ZERO, Vector3(0, h * 0.1, h * 0.25), Vector3(0, h * 0.35, h * 0.4), Vector3(0, h * 0.55, h * 0.3)], [h * 0.04, h * 0.035, h * 0.03, h * 0.015], fur, 8, 3)
 	_mesh(tail, tb)
 	out["tail"] = tail
 
@@ -378,60 +544,6 @@ static func _turtle(out: Dictionary, model: String, h: float, length: float) -> 
 		_mesh(pv, lb)
 		out["legs"].append(pv)
 	out["mouth"] = Vector3(0, h * 0.4, -length * 0.7)
-
-
-static func _weasel(out: Dictionary, h: float) -> void:
-	out["anim"] = "walk"
-	var c = Color(0.9, 0.85, 0.72)
-	var b = MB.new()
-	b.add("sphere", Vector3(0, h * 0.4, 0), Vector3(h * 0.35, h * 0.35, h * 1.0), c, Vector3.ZERO, 10)
-	b.add("sphere", Vector3(0, h * 0.55, -h * 0.5), Vector3(h * 0.32, h * 0.3, h * 0.36), c, Vector3.ZERO, 10)
-	for sx in [-1.0, 1.0]:
-		b.add("sphere", Vector3(h * 0.08 * sx, h * 0.6, -h * 0.66), Vector3(h * 0.05, h * 0.05, h * 0.03), Color(0.1, 0.05, 0.05), Vector3.ZERO, 6)
-		b.add("cone", Vector3(h * 0.1 * sx, h * 0.75, -h * 0.48), Vector3(h * 0.06, h * 0.12, h * 0.05), c, Vector3.ZERO, 5)
-	# orak (sırtta) + kuyruk
-	b.add("box", Vector3(h * 0.25, h * 0.75, h * 0.1), Vector3(h * 0.05, h * 0.5, h * 0.12), Color(0.8, 0.82, 0.86), Vector3(0, 0, -30))
-	b.add("cone", Vector3(0, h * 0.45, h * 0.6), Vector3(h * 0.14, h * 0.6, h * 0.14), c, Vector3(70, 0, 0), 8)
-	b.add("box", Vector3(0, h * 0.58, -h * 0.1), Vector3(h * 0.36, h * 0.08, h * 0.3), Color(0.2, 0.35, 0.6))  # bandana
-	_mesh(out["root"], b)
-	for p in [Vector3(-0.14, 0, -0.3), Vector3(0.14, 0, -0.3), Vector3(-0.14, 0, 0.3), Vector3(0.14, 0, 0.3)]:
-		var pv = _pivot(out["root"], Vector3(p.x * h, h * 0.3, p.z * h))
-		var lb = MB.new()
-		lb.add("cyl", Vector3(0, -h * 0.14, 0), Vector3(h * 0.07, h * 0.28, h * 0.07), c.darkened(0.1), Vector3.ZERO, 5)
-		_mesh(pv, lb)
-		out["legs"].append(pv)
-
-
-static func _cat(out: Dictionary, model: String, h: float, length: float) -> void:
-	out["anim"] = "walk"
-	var giant = model == "cat_giant"
-	var c = Color(0.3, 0.35, 0.55) if giant else Color(0.85, 0.6, 0.3)
-	if length <= 0.0:
-		length = h * 1.6
-	var b = MB.new()
-	b.add("sphere", Vector3(0, h * 0.55, 0), Vector3(h * 0.55, h * 0.5, length * 0.75), c, Vector3.ZERO, 14)
-	b.add("sphere", Vector3(0, h * 0.85, -length * 0.42), Vector3(h * 0.48, h * 0.42, h * 0.42), c, Vector3.ZERO, 12)
-	for sx in [-1.0, 1.0]:
-		b.add("cone", Vector3(h * 0.15 * sx, h * 1.1, -length * 0.4), Vector3(h * 0.12, h * 0.2, h * 0.08), c, Vector3(0, 0, -10 * sx), 4)
-		b.add("sphere", Vector3(h * 0.11 * sx, h * 0.9, -length * 0.42 - h * 0.2), Vector3(h * 0.1, h * 0.09, h * 0.04), Color(0.4, 0.9, 1.0) if giant else Color(0.9, 0.85, 0.2), Vector3.ZERO, 8)
-	if not giant:
-		b.add("box", Vector3(0, h * 0.62, 0), Vector3(h * 0.5, h * 0.3, length * 0.4), Color(0.25, 0.3, 0.2))  # ninja yeleği
-	_mesh(out["root"], b)
-	var tail = _pivot(out["root"], Vector3(0, h * 0.7, length * 0.35))
-	var tb = MB.new()
-	for sx in ([-1.0, 1.0] if giant else [0.0]):
-		tb.add("cone", Vector3(h * 0.15 * sx, h * 0.3, h * 0.1), Vector3(h * 0.12, h * 0.9, h * 0.12), c, Vector3(25, 0, 15 * sx), 6)
-		if giant:
-			tb.add("sphere", Vector3(h * 0.25 * sx, h * 0.75, h * 0.25), Vector3(h * 0.25, h * 0.35, h * 0.25), Color(0.3, 0.6, 1.0), Vector3.ZERO, 8)  # mavi alev
-	_mesh(tail, tb)
-	out["tail"] = tail
-	for p in [Vector3(-0.2, 0, -0.3), Vector3(0.2, 0, -0.3), Vector3(-0.2, 0, 0.3), Vector3(0.2, 0, 0.3)]:
-		var pv = _pivot(out["root"], Vector3(p.x * h, h * 0.45, p.z * length))
-		var lb = MB.new()
-		lb.add("cyl", Vector3(0, -h * 0.22, 0), Vector3(h * 0.11, h * 0.45, h * 0.11), c.darkened(0.1), Vector3.ZERO, 6)
-		_mesh(pv, lb)
-		out["legs"].append(pv)
-	out["mouth"] = Vector3(0, h * 0.8, -length * 0.62)
 
 
 static func _spider(out: Dictionary, h: float) -> void:

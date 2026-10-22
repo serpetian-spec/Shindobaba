@@ -12,7 +12,13 @@ func _ready() -> void:
 	pl.respawn(base)
 	await get_tree().create_timer(3.0).timeout
 	pl.set_process(false)
+	TailedBeasts.set_process(false)
+	for b in get_tree().get_nodes_in_group("tailed_beasts"):
+		b.queue_free()
+	await get_tree().process_frame
 	var ids = ["shukaku", "matatabi", "isobu", "son_goku", "kokuo", "saiken", "chomei", "gyuki", "kurama"]
+	if OS.get_environment("BEAST") != "":
+		ids = OS.get_environment("BEAST").split(",")
 	for id in ids:
 		var r = BeastModels.build(id)
 		main.add_child(r)
@@ -28,8 +34,10 @@ func _ready() -> void:
 		await main.shot("b_%s" % id)
 		r.play_action("roar", 1.2)
 		await get_tree().create_timer(0.6).timeout
-		pl.cam.global_position = p + Vector3(h * 0.25, h * 0.75, -h * 1.1)
-		pl.cam.look_at(p + Vector3.UP * h * 0.6)
+		var fwd = Basis(Vector3.UP, r.rotation.y) * Vector3(0, 0, -1)
+		var hp = r.rig.head.global_position if ("rig" in r and r.rig and r.rig.head) else (r.head.global_position if "head" in r and r.head else p + Vector3.UP * h * 0.75)
+		pl.cam.global_position = hp + fwd * h * 0.6 + Vector3.UP * h * 0.02 + fwd.cross(Vector3.UP) * h * 0.18
+		pl.cam.look_at(hp)
 		await get_tree().create_timer(0.1).timeout
 		await main.shot("b_%s_on" % id)
 		r.queue_free()

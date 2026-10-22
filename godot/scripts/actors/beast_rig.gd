@@ -67,24 +67,17 @@ func _mesh(parent: Node3D, mb: MB, mat: Material = null) -> MeshInstance3D:
 
 ## İki nokta arası incelen uzuv (silindir + eklem küreleri)
 static func limb(mb: MB, a: Vector3, b: Vector3, ra: float, rb: float, col: Color, seg := 10) -> void:
-	var d = b - a
-	var l = d.length()
-	if l < 0.001:
+	# pürüzsüz, kas şişkinlikli tüp (Loft) — eski silindir yığını yerine
+	if (b - a).length() < 0.001:
 		return
-	var bs = Basis(Quaternion(Vector3.UP, d.normalized()))
-	var steps = 3
-	for i in steps:
-		var k0 = float(i) / steps; var k1 = float(i + 1) / steps
-		var r = lerpf(ra, rb, (k0 + k1) * 0.5)
-		mb.add_xf("cyl", Transform3D(bs * Basis.from_scale(Vector3(r * 2.0, l / steps * 1.02, r * 2.0)), a + d * (k0 + k1) * 0.5), col, seg)
-	mb.add("sphere", a, Vector3.ONE * ra * 2.0, col, Vector3.ZERO, seg)
-	mb.add("sphere", b, Vector3.ONE * rb * 2.0, col, Vector3.ZERO, seg)
+	Loft.limb(mb, a, b, ra, rb, col, maxi(seg, 12))
 
 
 ## Pençe/tırnak: uca doğru sivri koni
 static func claw(mb: MB, base: Vector3, dir: Vector3, length: float, r: float, col: Color) -> void:
-	var bs = Basis(Quaternion(Vector3.UP, dir.normalized()))
-	mb.add_xf("cone", Transform3D(bs * Basis.from_scale(Vector3(r * 2.0, length, r * 2.0)), base + dir.normalized() * length * 0.5), col, 6)
+	var d = dir.normalized()
+	var bend = d.cross(Vector3.RIGHT if absf(d.x) < 0.9 else Vector3.UP).normalized()
+	Loft.tube(mb, [base, base + d * length * 0.55 + bend * length * 0.06, base + d * length], [r, r * 0.55, r * 0.06], col, 8, 2, true, false)
 
 
 ## Göz: parlayan (ışıksız) badem göz + bebek
@@ -118,30 +111,36 @@ func _tail(base: Node3D, yaw_deg: float, pitch_deg: float, n: int, length: float
 		var r = lerpf(r0, r_mid, sin(minf(1.0, k * 1.6) * PI * 0.5)) * (1.0 - pow(k, 3.0) * 0.85)
 		var c = col.lerp(tip, smoothstep(0.55, 1.0, k))
 		match style:
-			"fur":  # kabarık tilki/at kuyruğu: üst üste kürecikler
-				mb.add("sphere", Vector3(0, 0, seg_len * 0.5), Vector3(r * 2.1, r * 2.0, seg_len * 2.0), c, Vector3.ZERO, 12)
-				mb.add("sphere", Vector3(0, r * 0.25, seg_len * 0.1), Vector3(r * 1.7, r * 1.6, seg_len * 1.4), c.lightened(0.06), Vector3.ZERO, 10)
+			"fur":  # kabarık kuyruk: pürüzsüz tüp + uca doğru açık renk + tüy uçları
+				var rn = lerpf(r0, r_mid, sin(minf(1.0, float(i + 1) / max(1, n - 1) * 1.6) * PI * 0.5)) * (1.0 - pow(float(i + 1) / max(1, n - 1), 3.0) * 0.85)
+				var cn = col.lerp(tip, smoothstep(0.55, 1.0, float(i + 1) / max(1, n - 1)))
+				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.15), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.15)], [r * 1.05, (r + rn) * 0.55 * 1.1, rn * 1.0], [c, c.lerp(cn, 0.5), cn], 14, 2, true, true)
+				for f in (3 if i < n - 2 else 0):
+					var fa = TAU * f / 3.0 + i
+					claw(mb, Vector3(cos(fa) * r * 0.8, sin(fa) * r * 0.8, seg_len * 0.6), Vector3(cos(fa) * 0.6, sin(fa) * 0.6, 1.0), r * 0.9, r * 0.35, c.lerp(cn, 0.5))
 			"sand":
-				mb.add("sphere", Vector3(0, 0, seg_len * 0.5), Vector3(r * 2.0, r * 2.0, seg_len * 1.4), c, Vector3.ZERO, 10)
-				if i % 2 == 0:
-					mb.add("torus", Vector3(0, 0, seg_len * 0.5), Vector3(r * 2.15, r * 0.6, r * 2.15), Color(0.12, 0.14, 0.3), Vector3(90, 0, 0), 12)
+				var ink = Color(0.1, 0.12, 0.3)
+				var fn = func(tt: float, a: float, _d: Vector3) -> Color:
+					var w = sin((tt + i) * PI * 2.0 + sin(a * 3.0) * 0.6)
+					return ink if (absf(w) < 0.16 or (a > 0.6 and a < 2.4 and absf(sin(a * 5.0 + tt * 9.0)) < 0.08)) else c
+				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.2), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.2)], [r, r * 0.98, r * 0.92], c, 14, 3, true, true, fn)
 			"shrimp":  # zırh halkalı
-				mb.add("cyl", Vector3(0, 0, seg_len * 0.5), Vector3(r * 2.0, seg_len * 1.05, r * 2.0), c, Vector3(90, 0, 0), 10)
-				mb.add("torus", Vector3(0, 0, seg_len * 0.95), Vector3(r * 2.2, r * 0.8, r * 2.2), c.darkened(0.25), Vector3(90, 0, 0), 12)
+				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.05), Vector3(0, 0, seg_len * 0.55), Vector3(0, 0, seg_len * 1.05)], [r * 0.95, r * 1.08, r * 0.9], [c.darkened(0.15), c, c.darkened(0.2)], 12, 2, true, true)
 			"spike":  # dikenli maymun kuyruğu
-				mb.add("sphere", Vector3(0, 0, seg_len * 0.5), Vector3(r * 2.0, r * 2.0, seg_len * 1.4), c, Vector3.ZERO, 10)
+				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.2), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.2)], [r, r * 0.97, r * 0.9], c, 12, 2, true, true)
 				claw(mb, Vector3(0, r * 0.8, seg_len * 0.5), Vector3(0, 1, 0.4), r * 1.4, r * 0.35, Color(0.25, 0.2, 0.15))
 			"tentacle":  # ahtapot kolu + vantuz
-				mb.add("sphere", Vector3(0, 0, seg_len * 0.5), Vector3(r * 2.0, r * 2.0, seg_len * 1.3), c, Vector3.ZERO, 10)
-				mb.add("sphere", Vector3(0, -r * 0.85, seg_len * 0.5), Vector3(r * 0.7, r * 0.3, r * 0.7), c.lightened(0.35), Vector3.ZERO, 6)
+				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.2), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.2)], [r, r * 0.97, r * 0.9], c, 12, 2, true, true)
+				for v in 2:
+					mb.add("sphere", Vector3(0, -r * 0.88, seg_len * (0.25 + v * 0.5)), Vector3(r * 0.6, r * 0.25, r * 0.6), c.lightened(0.4), Vector3.ZERO, 8)
 			"slug":
-				mb.add("sphere", Vector3(0, 0, seg_len * 0.5), Vector3(r * 2.0, r * 1.8, seg_len * 1.5), c, Vector3.ZERO, 10)
+				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.2), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.2)], [r, r * 0.97, r * 0.9], c, 12, 2, true, true)
 			"wing":  # böcek kanadı: ince yarı saydam yaprak (tek parça, ilk segmentte)
 				if i == 0:
 					mb.add("sphere", Vector3(0, 0, length * 0.5), Vector3(r_mid * 2.2, 0.06, length), c, Vector3.ZERO, 14)
 					mb.add("box", Vector3(0, 0.04, length * 0.5), Vector3(0.08, 0.04, length * 0.95), Color(0.25, 0.45, 0.15))
 			"flame":
-				mb.add("sphere", Vector3(0, 0, seg_len * 0.5), Vector3(r * 2.0, r * 2.0, seg_len * 1.5), c, Vector3.ZERO, 10)
+				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.2), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.2)], [r, r * 0.97, r * 0.9], c, 12, 2, true, true)
 		if not mb.is_empty():
 			if style == "wing":
 				var wm = StandardMaterial3D.new()
@@ -150,7 +149,7 @@ func _tail(base: Node3D, yaw_deg: float, pitch_deg: float, n: int, length: float
 				wm.albedo_color = Color(1, 1, 1, 0.75)
 				wm.cull_mode = BaseMaterial3D.CULL_DISABLED
 				wm.emission_enabled = true
-				wm.emission = Color(1.0, 0.55, 0.15) * 0.4
+				wm.emission = Color(1.0, 0.5, 0.1) * 0.9
 				_mesh(piv, mb, wm)
 			else:
 				_mesh(piv, mb)

@@ -13,9 +13,9 @@ const LAIRS := {
 	"son_goku": Vector2(-26000, 27000),
 	"gyuki": Vector2(30000, 29000),
 	"matatabi": Vector2(26500, 23500),
-	"kokuo": Vector2(14000, -9000),
-	"saiken": Vector2(-9500, 7500),
-	"chomei": Vector2(-4500, 16000),
+	"kokuo": Vector2(15900, -7100),     # açık çayır (eskiden denizin içindeydi)
+	"saiken": Vector2(-10400, 5940),    # ormandan çıkarıldı, açık alan
+	"chomei": Vector2(-4500, 17500),    # ormandan çıkarıldı, açık alan
 	"kurama": Vector2(-9000, 33000),   # Donmuş Vadi arenası: en büyüğü için açık alan
 }
 const SPAWN_R := 1800.0
