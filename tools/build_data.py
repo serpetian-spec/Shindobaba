@@ -288,6 +288,31 @@ for cid, nm, kg, desc, eye in [
     ('kamizuru', 'Kamizuru', 'Arı Yetiştiriciliği', "Iwa'nın arı çağıran klanı. Böcek sürüleri ve bal mumu teknikleri.", [0.75, 0.6, 0.2]),
 ]:
     clans[cid] = dict(name=nm, desc=desc, kg=kg, eye=eye)
+# Köylere özel klanlar (kanon klan adları + bölgeye uygun özgün klanlar; kanon karakter yok)
+for cid, nm, kg, desc, eye in [
+    ('sabaku', 'Sabaku', 'Jiton (Mıknatıs)', "Suna'nın kum ve demir tozunu mıknatıs chakrasıyla yöneten klanı. Kum kalkanı, demir kum fırtınası.", [0.35, 0.55, 0.45]),
+    ('shirogane', 'Shirogane', 'Kukla Sanatı', "Suna'nın usta kuklacı klanı. Chakra iplikleriyle zehirli kuklalar yönetir.", [0.45, 0.4, 0.35]),
+    ('hoki', 'Hōki', 'Mürekkep Sanatı', "Suna'ya göçmüş, mürekkebi canlandıran klan. Çizimden yaratık ve mühür.", [0.3, 0.3, 0.35]),
+    ('kazahana', 'Kazahana', 'Çöl Rüzgarı', "Suna'nın rüzgar ustası çöl klanı. Fūton kesikleri ve kum fırtınası.", [0.55, 0.45, 0.3]),
+    ('terumi', 'Terumi', 'Yōton / Futton', "Kiri'nin iki kekkei genkai taşıyabilen asil klanı. Lav ve kaynar buhar.", [0.35, 0.55, 0.4]),
+    ('karatachi', 'Karatachi', 'Kılıç Ustalığı', "Kiri'nin kılıç ustaları yetiştiren klanı. Yedi Kılıç geleneğine yakın.", [0.4, 0.45, 0.55]),
+    ('yotsuki', 'Yotsuki', 'Raiton Zırhı', "Kumo'nun yıldırım klanı. Bedenini raiton zırhıyla sarar, inanılmaz hız.", [0.75, 0.6, 0.25]),
+    ('ikazuchi', 'Ikazuchi', 'Ranton (Fırtına)', "Kumo'nun fırtına klanı. Işın gibi bükülen fırtına chakrası.", [0.55, 0.65, 0.85]),
+    ('kako', 'Kakō', 'Yōton (Lav)', "Iwa'nın volkan klanı. Lav topları ve eriyik kayalar.", [0.6, 0.3, 0.15]),
+    ('bakuha', 'Bakuha', 'Bakuton (Patlama)', "Iwa'nın Patlama Birliği soyu. Avuçlarındaki ağızlarla patlayıcı kil.", [0.5, 0.45, 0.3]),
+    ('iwao', 'Iwao', 'Toprak Golemleri', "Iwa'nın taş dev ve golem ustası klanı. Doton savunma ve hafifletme.", [0.45, 0.4, 0.35]),
+]:
+    clans[cid] = dict(name=nm, desc=desc, kg=kg, eye=eye)
+CLAN_VILLAGE = {
+    'none': ['konoha', 'suna', 'kiri', 'kumo', 'iwa'],
+    'uchiha': ['konoha'], 'hyuga': ['konoha'], 'nara': ['konoha'], 'akimichi': ['konoha'], 'yamanaka': ['konoha'], 'aburame': ['konoha'],
+    'inuzuka': ['konoha'], 'senju': ['konoha'], 'uzumaki': ['konoha'], 'sarutobi': ['konoha'], 'hatake': ['konoha'], 'kurama': ['konoha'],
+    'sabaku': ['suna'], 'shirogane': ['suna'], 'hoki': ['suna'], 'kazahana': ['suna'],
+    'hozuki': ['kiri'], 'yuki': ['kiri'], 'kaguya': ['kiri'], 'hoshigaki': ['kiri'], 'terumi': ['kiri'], 'karatachi': ['kiri'],
+    'yotsuki': ['kumo'], 'ikazuchi': ['kumo'], 'chinoike': ['kumo'],
+    'kamizuru': ['iwa'], 'kako': ['iwa'], 'bakuha': ['iwa'], 'iwao': ['iwa'],
+    'fuma': ['konoha', 'kumo'],
+}
 DOJUTSU = {'uchiha': 'sharingan', 'hyuga': 'byakugan', 'chinoike': 'ketsuryugan'}
 BONUS = {  # hp, chakra (düz); melee, jutsu, speed (oran)
     'none': dict(melee=0.15), 'uchiha': dict(jutsu=0.1, chakra=10), 'hyuga': dict(melee=0.12), 'nara': dict(chakra=20),
@@ -295,8 +320,12 @@ BONUS = {  # hp, chakra (düz); melee, jutsu, speed (oran)
     'senju': dict(hp=40, chakra=20), 'uzumaki': dict(hp=20, chakra=60), 'kaguya': dict(hp=20, melee=0.12), 'yuki': dict(chakra=20, jutsu=0.05),
     'hozuki': dict(hp=15, chakra=15), 'sarutobi': dict(chakra=25, jutsu=0.08), 'hatake': dict(melee=0.12, speed=0.04), 'chinoike': dict(chakra=20, jutsu=0.05),
     'hoshigaki': dict(chakra=80, hp=20), 'kurama': dict(chakra=30), 'fuma': dict(melee=0.08, speed=0.05), 'kamizuru': dict(hp=20, chakra=20),
+    'sabaku': dict(hp=25, jutsu=0.08), 'shirogane': dict(chakra=30), 'hoki': dict(chakra=25, jutsu=0.05), 'kazahana': dict(jutsu=0.08, speed=0.03),
+    'terumi': dict(chakra=30, jutsu=0.1), 'karatachi': dict(melee=0.15), 'yotsuki': dict(speed=0.08, melee=0.1), 'ikazuchi': dict(jutsu=0.1, chakra=15),
+    'kako': dict(hp=25, jutsu=0.08), 'bakuha': dict(jutsu=0.12), 'iwao': dict(hp=50),
 }
-KG_NATURES = {'senju': (['mokuton'], 15), 'yuki': (['hyoton'], 1), 'kaguya': (['shikotsumyaku'], 1), 'hozuki': (['hydrification'], 1)}
+KG_NATURES = {'senju': (['mokuton'], 15), 'yuki': (['hyoton'], 1), 'kaguya': (['shikotsumyaku'], 1), 'hozuki': (['hydrification'], 1),
+              'sabaku': (['jiton'], 1), 'terumi': (['yoton', 'futton'], 8), 'ikazuchi': (['ranton'], 6), 'kako': (['yoton'], 4), 'bakuha': (['bakuton'], 4)}
 for cid, c in clans.items():
     if cid in KG_NATURES:
         c['kg_natures'] = KG_NATURES[cid][0]
@@ -305,6 +334,7 @@ for cid, c in clans.items():
     if cid in DOJUTSU:
         c['dojutsu'] = DOJUTSU[cid]
     c['bonus'] = BONUS.get(cid, {})
+    c['villages'] = CLAN_VILLAGE.get(cid, ['konoha'])
 json.dump(clans, open(os.path.join(ROOT, 'godot', 'data', 'clans.json'), 'w', encoding='utf8'), ensure_ascii=False, indent=1)
 print(len(out) - 1, 'jutsu,', len(items), 'items,', len(clans), 'clans')
 print(out['katon_goukakyuu']['seals'], out['raiton_chidori']['seals'])

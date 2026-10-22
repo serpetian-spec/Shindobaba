@@ -1138,7 +1138,13 @@ func _head_center() -> Vector3:
 const HAIR_FILES := {
 	"diken": "Hair_Buzzed", "kısa": "Hair_SimpleParted", "uzun": "Hair_Long",
 	"atkuyruğu": "Hair_Buzzed", "kase": "Hair_Buzzed", "dağınık": "Hair_Buzzed",
+	"ananas": "Hair_Buzzed", "topuz": "Hair_Buns", "ikiz_topuz": "Hair_Buzzed", "yele": "Hair_Buzzed", "kakul": "Hair_Buzzed",
+	"geriye": "Hair_Buzzed", "orgu": "Hair_Buzzed", "mohikan": "Hair_Buzzed", "kel": "", "kirpik": "Hair_Buzzed", "kisa_kakul": "Hair_Buzzed",
 }
+## Saç stilleri (arayüzde gösterilen adlar)
+const HAIR_STYLES := {"diken": "Dikenli", "dağınık": "Dağınık", "kase": "Kâse", "kısa": "Kısa", "uzun": "Uzun", "atkuyruğu": "At Kuyruğu",
+	"ananas": "Ananas Topuz", "topuz": "Topuz", "ikiz_topuz": "İkiz Topuz", "yele": "Uzun Yele", "kakul": "Tek Göz Kâkül", "geriye": "Geriye Taranmış",
+	"orgu": "Örgü", "mohikan": "Mohikan", "kirpik": "Kısa Kirpi", "kisa_kakul": "Kâküllü Kısa", "kel": "Kel"}
 static var _scalp_cache := {}
 static var _hair_cache := {}
 
@@ -1203,7 +1209,7 @@ static func _hair_clumps(style: String, c: Vector3, r: Vector3) -> ArrayMesh:
 			var d = (a[1] * 0.45 + Vector3(0, -0.7, 0.35)).normalized()
 			_clump(st, a[0], d, Vector3(0, -0.15, 0.1), length * rng.randf_range(0.85, 1.15), width)
 	# saç örtüsü: kafa derisini yatık tutamlarla kapla (kel görünmesin)
-	if style in ["diken", "dağınık", "kase", "atkuyruğu"]:
+	if style in ["diken", "dağınık", "kase", "atkuyruğu", "ananas", "ikiz_topuz", "yele", "kakul", "geriye", "orgu", "kirpik", "kisa_kakul"]:
 		for row in [[8.0, 5], [30.0, 9], [55.0, 12], [80.0, 14], [98.0, 10]]:
 			for i in row[1]:
 				var yw = 360.0 * (float(i) + 0.5) / row[1] + row[0]
@@ -1265,6 +1271,58 @@ static func _hair_clumps(style: String, c: Vector3, r: Vector3) -> ArrayMesh:
 				var d = Vector3(rng.randf_range(-0.25, 0.25), -0.35, -1).normalized()
 				_clump(st, tie, d, Vector3(0, -0.9, 0.05), rng.randf_range(0.26, 0.36), 0.06)
 			bangs.call(4, 45.0, 0.1, 0.045)
+		"ananas":  # tepede toplanmış dik, sivri at kuyruğu
+			var tie = c + Vector3(0, r.y * 0.85, -r.z * 0.75)
+			for i in 12:
+				var a = at.call(rng.randf_range(-160, 160), rng.randf_range(25, 100))
+				var to = tie - a[0]
+				_clump(st, a[0], to.normalized(), Vector3.ZERO, to.length() * 1.05, 0.06, 0.3)
+			for i in 9:
+				var ang = TAU * i / 9.0
+				var d = Vector3(cos(ang) * 0.45, 0.85, sin(ang) * 0.35 - 0.3).normalized()
+				_clump(st, tie, d, Vector3(0, -0.15, -0.1), rng.randf_range(0.13, 0.18), 0.05)
+			bangs.call(2, 30.0, 0.07, 0.04)
+		"ikiz_topuz":
+			for sx in [-1.0, 1.0]:
+				var bun = c + Vector3(r.x * 0.75 * sx, r.y * 0.85, -r.z * 0.1)
+				for i in 10:
+					var ang = TAU * i / 10.0
+					var d = Vector3(cos(ang), sin(ang) * 0.6 + 0.3, sin(ang) * 0.8).normalized()
+					_clump(st, bun - d * 0.03, d.cross(Vector3.UP).normalized(), Vector3.ZERO, 0.08, 0.06, 0.6)
+			bangs.call(5, 50.0, 0.08, 0.045)
+		"yele":  # omuzlara inen dağınık uzun yele
+			for i in 22:
+				var a = at.call(rng.randf_range(70, 290), rng.randf_range(40, 110))
+				var d = (a[1] * 0.4 + Vector3(0, -1, -0.2)).normalized()
+				_clump(st, a[0], d, Vector3(rng.randf_range(-0.1, 0.1), -0.2, -0.1), rng.randf_range(0.25, 0.4), 0.07)
+			for i in 8:
+				var a = at.call(rng.randf_range(-60, 60), rng.randf_range(10, 50))
+				_clump(st, a[0], (a[1] + Vector3(0, 0.3, -0.2)).normalized(), Vector3(0, -0.2, 0), 0.12, 0.06)
+			bangs.call(5, 55.0, 0.11, 0.045)
+		"kakul":  # tek gözü kapatan uzun kâkül
+			var a = at.call(-25.0, 58.0)
+			_clump(st, a[0], Vector3(-0.35, -0.9, 0.25).normalized(), Vector3(-0.05, -0.1, 0.05), 0.2, 0.09, 0.25)
+			bangs.call(2, 15.0, 0.07, 0.045)
+		"geriye":  # geriye taranmış, alın açık
+			for i in 10:
+				var a = at.call(rng.randf_range(-40, 40), rng.randf_range(20, 45))
+				_clump(st, a[0], Vector3(0, 0.15, -1).normalized(), Vector3(0, -0.3, 0), 0.16, 0.08, 0.25)
+		"orgu":  # ense arkasından inen tek örgü
+			var top = c + Vector3(0, -r.y * 0.2, -r.z * 0.95)
+			for k in 7:
+				var pt = top + Vector3(0.012 * (1 if k % 2 == 0 else -1), -k * 0.06, -0.01 * k)
+				_clump(st, pt, Vector3(0.3 * (1 if k % 2 == 0 else -1), -1, -0.1).normalized(), Vector3.ZERO, 0.08, 0.055, 0.7)
+			bangs.call(4, 45.0, 0.09, 0.045)
+		"mohikan":
+			for i in 9:
+				var a = at.call(180.0, -40.0 + i * 15.0) if i < 3 else at.call(0.0, 80.0 - (i - 3) * 16.0)
+				_clump(st, a[0], (a[1] + Vector3(0, 0.4, 0)).normalized(), Vector3(0, 0, -0.05), 0.15, 0.06, 0.4)
+		"kirpik":  # kısa sivri kirpi saç
+			for i in 30:
+				var a = at.call(rng.randf_range(-180, 180), rng.randf_range(0, 95))
+				_clump(st, a[0], a[1], Vector3.ZERO, rng.randf_range(0.04, 0.06), 0.035)
+		"kisa_kakul":  # kısa saç, düz kesik kâkül
+			bangs.call(9, 65.0, 0.085, 0.045)
 		"uzun":
 			bangs.call(5, 50.0, 0.12, 0.045)
 		"kısa":
@@ -1302,6 +1360,9 @@ func _attachments() -> void:
 		brows_mesh.material_override = hair_mat
 	# --- saç modeli (model uzayında kafada konumlu) + anime dikenleri
 	var file: String = HAIR_FILES.get(look["hair_style"], "Hair_SimpleParted")
+	if file == "":
+		file = "Hair_BuzzedFemale" if female else "Hair_Buzzed"
+		hair_mat.set_shader_parameter("tint", Color(look["skin"]).darkened(0.08))  # kel: ten rengi kafa
 	if female and file == "Hair_Buzzed":
 		file = "Hair_BuzzedFemale"
 	var hs: PackedScene = load("res://assets/chars/hair/%s.gltf" % file)
@@ -1658,6 +1719,16 @@ func set_eye_color(c: Color) -> void:
 
 
 ## Sağ/sol göz ayrı desen (sağ göz = karakterin sağı = model -X)
+## Sennin modu görünümü: 0 yok, 1 kurbağa, 2 yılan, 3 sümüklüböcek (göz bebeği + yüz izleri)
+func set_sage(kind: int) -> void:
+	if eye_mat:
+		eye_mat.set_shader_parameter("sage_eyes", kind)
+	if body_mesh:
+		var m = body_mesh.get_surface_override_material(0)
+		if m is ShaderMaterial:
+			m.set_shader_parameter("sage_marks", kind)
+
+
 func set_dojutsu_eyes(kind_r: int, lvl_r: int, kind_l: int, lvl_l: int, veins := false) -> void:
 	if eye_mat:
 		eye_mat.set_shader_parameter("dojutsu", kind_r)

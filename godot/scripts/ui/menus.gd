@@ -401,7 +401,11 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 				chips.call("Köy", "village", vids, vids.map(func(x): return Game.village(x).get("name", x)))
 				var vinfo = Progress.HOME_VILLAGES.get(state.get("village", "konoha"), {})
 				v.add_child(UI.label("%s  •  Önerilen doğa: %s" % [vinfo.get("kage", ""), String(vinfo.get("element", "katon")).capitalize()], 13, UI.MUTED))
-			var clan_ids: Array = Data.clans.keys()
+			# yalnızca seçilen köyün klanları (Suna'da Konoha klanı olmaz)
+			var hvil = String(state.get("village", "konoha"))
+			var clan_ids: Array = Data.clans.keys().filter(func(c): return hvil in Data.clans[c].get("villages", ["konoha"]))
+			if not state["clan"] in clan_ids:
+				state["clan"] = "none"
 			chips.call("Klan", "clan", clan_ids, clan_ids.map(func(c): return Data.clans[c]["name"]))
 			var cd = UI.label(Data.clans.get(state["clan"], {}).get("desc", ""), 14, UI.MUTED)
 			cd.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -410,7 +414,7 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 			chips.call("Chakra Doğası", "element", ["katon", "suiton", "fuuton", "doton", "raiton"], ["Ateş", "Su", "Rüzgar", "Toprak", "Yıldırım"])
 		"gorunum":
 			swatches.call("Ten", "skin", [Color(0.98, 0.88, 0.8), Color(0.96, 0.8, 0.66), Color(0.86, 0.68, 0.52), Color(0.68, 0.5, 0.36), Color(0.5, 0.36, 0.26)])
-			chips.call("Saç Stili", "hair_style", ["diken", "kısa", "uzun", "atkuyruğu", "kase", "dağınık"], ["Dikenli", "Kısa", "Uzun", "At kuyruğu", "Kâse", "Dağınık"])
+			chips.call("Saç Stili", "hair_style", CharacterModel.HAIR_STYLES.keys(), CharacterModel.HAIR_STYLES.values())
 			swatches.call("Saç Rengi", "hair", [Color(0.3, 0.2, 0.12), Color(0.08, 0.08, 0.1), Color(0.95, 0.8, 0.25), Color(0.75, 0.25, 0.15), Color(0.9, 0.9, 0.92), Color(0.2, 0.3, 0.6), Color(0.9, 0.55, 0.7), Color(0.25, 0.45, 0.25)])
 			if not state["clan"] in ["uchiha", "hyuga", "aburame"]:
 				swatches.call("Göz Rengi", "eye", [Color(0.25, 0.45, 0.8), Color(0.3, 0.2, 0.12), Color(0.25, 0.55, 0.3), Color(0.1, 0.1, 0.1), Color(0.6, 0.4, 0.15)])
@@ -1122,7 +1126,7 @@ static func _susanoo_panel(main: Node, v: VBoxContainer, _h) -> void:
 
 static func _hair_panel(v: VBoxContainer, look: Dictionary, refresh: Callable) -> void:
 	v.add_child(UI.label("Berber ücretsiz", 14, UI.MUTED))
-	var styles = {"diken": "Dikenli", "dağınık": "Dağınık", "kase": "Kâse", "kısa": "Kısa", "uzun": "Uzun", "atkuyruğu": "At kuyruğu"}
+	var styles = CharacterModel.HAIR_STYLES
 	var fl = HFlowContainer.new()
 	fl.add_theme_constant_override("h_separation", 8)
 	fl.add_theme_constant_override("v_separation", 8)

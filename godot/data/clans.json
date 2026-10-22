@@ -10,7 +10,14 @@
   ],
   "bonus": {
    "melee": 0.15
-  }
+  },
+  "villages": [
+   "konoha",
+   "suna",
+   "kiri",
+   "kumo",
+   "iwa"
+  ]
  },
  "uchiha": {
   "name": "Uchiha",
@@ -25,7 +32,10 @@
   "bonus": {
    "jutsu": 0.1,
    "chakra": 10
-  }
+  },
+  "villages": [
+   "konoha"
+  ]
  },
  "nara": {
   "name": "Nara",
@@ -38,7 +48,10 @@
   ],
   "bonus": {
    "chakra": 20
-  }
+  },
+  "villages": [
+   "konoha"
+  ]
  },
  "akimichi": {
   "name": "Akimichi",
@@ -52,7 +65,10 @@
   "bonus": {
    "hp": 40,
    "melee": 0.15
-  }
+  },
+  "villages": [
+   "konoha"
+  ]
  },
  "yamanaka": {
   "name": "Yamanaka",
@@ -65,7 +81,10 @@
   ],
   "bonus": {
    "chakra": 25
-  }
+  },
+  "villages": [
+   "konoha"
+  ]
  },
  "aburame": {
   "name": "Aburame",
@@ -79,7 +98,10 @@
   "bonus": {
    "chakra": 20,
    "hp": 10
-  }
+  },
+  "villages": [
+   "konoha"
+  ]
  },
  "inuzuka": {
   "name": "Inuzuka",
@@ -93,7 +115,10 @@
   "bonus": {
    "melee": 0.1,
    "speed": 0.05
-  }
+  },
+  "villages": [
+   "konoha"
+  ]
  },
  "senju": {
   "name": "Senju",
@@ -111,7 +136,10 @@
   "bonus": {
    "hp": 40,
    "chakra": 20
-  }
+  },
+  "villages": [
+   "konoha"
+  ]
  },
  "uzumaki": {
   "name": "Uzumaki",
@@ -125,7 +153,10 @@
   "bonus": {
    "hp": 20,
    "chakra": 60
-  }
+  },
+  "villages": [
+   "konoha"
+  ]
  },
  "kaguya": {
   "name": "Kaguya",
@@ -143,7 +174,10 @@
   "bonus": {
    "hp": 20,
    "melee": 0.12
-  }
+  },
+  "villages": [
+   "kiri"
+  ]
  },
  "yuki": {
   "name": "Yuki",
@@ -161,7 +195,10 @@
   "bonus": {
    "chakra": 20,
    "jutsu": 0.05
-  }
+  },
+  "villages": [
+   "kiri"
+  ]
  },
  "hyuga": {
   "name": "Hyūga",
@@ -175,7 +212,10 @@
   "dojutsu": "byakugan",
   "bonus": {
    "melee": 0.12
-  }
+  },
+  "villages": [
+   "konoha"
+  ]
  },
  "hozuki": {
   "name": "Hōzuki",
@@ -193,7 +233,10 @@
   "bonus": {
    "hp": 15,
    "chakra": 15
-  }
+  },
+  "villages": [
+   "kiri"
+  ]
  },
  "sarutobi": {
   "name": "Sarutobi",
@@ -207,7 +250,10 @@
   "bonus": {
    "chakra": 25,
    "jutsu": 0.08
-  }
+  },
+  "villages": [
+   "konoha"
+  ]
  },
  "hatake": {
   "name": "Hatake",
@@ -221,7 +267,10 @@
   "bonus": {
    "melee": 0.12,
    "speed": 0.04
-  }
+  },
+  "villages": [
+   "konoha"
+  ]
  },
  "chinoike": {
   "name": "Chinoike",
@@ -236,7 +285,10 @@
   "bonus": {
    "chakra": 20,
    "jutsu": 0.05
-  }
+  },
+  "villages": [
+   "kumo"
+  ]
  },
  "hoshigaki": {
   "name": "Hoshigaki",
@@ -250,7 +302,10 @@
   "bonus": {
    "chakra": 80,
    "hp": 20
-  }
+  },
+  "villages": [
+   "kiri"
+  ]
  },
  "kurama": {
   "name": "Kurama",
@@ -263,7 +318,10 @@
   ],
   "bonus": {
    "chakra": 30
-  }
+  },
+  "villages": [
+   "konoha"
+  ]
  },
  "fuma": {
   "name": "Fūma",
@@ -277,7 +335,11 @@
   "bonus": {
    "melee": 0.08,
    "speed": 0.05
-  }
+  },
+  "villages": [
+   "konoha",
+   "kumo"
+  ]
  },
  "kamizuru": {
   "name": "Kamizuru",
@@ -291,6 +353,213 @@
   "bonus": {
    "hp": 20,
    "chakra": 20
-  }
+  },
+  "villages": [
+   "iwa"
+  ]
+ },
+ "sabaku": {
+  "name": "Sabaku",
+  "desc": "Suna'nın kum ve demir tozunu mıknatıs chakrasıyla yöneten klanı. Kum kalkanı, demir kum fırtınası.",
+  "kg": "Jiton (Mıknatıs)",
+  "eye": [
+   0.35,
+   0.55,
+   0.45
+  ],
+  "kg_natures": [
+   "jiton"
+  ],
+  "kg_level": 1,
+  "bonus": {
+   "hp": 25,
+   "jutsu": 0.08
+  },
+  "villages": [
+   "suna"
+  ]
+ },
+ "shirogane": {
+  "name": "Shirogane",
+  "desc": "Suna'nın usta kuklacı klanı. Chakra iplikleriyle zehirli kuklalar yönetir.",
+  "kg": "Kukla Sanatı",
+  "eye": [
+   0.45,
+   0.4,
+   0.35
+  ],
+  "bonus": {
+   "chakra": 30
+  },
+  "villages": [
+   "suna"
+  ]
+ },
+ "hoki": {
+  "name": "Hōki",
+  "desc": "Suna'ya göçmüş, mürekkebi canlandıran klan. Çizimden yaratık ve mühür.",
+  "kg": "Mürekkep Sanatı",
+  "eye": [
+   0.3,
+   0.3,
+   0.35
+  ],
+  "bonus": {
+   "chakra": 25,
+   "jutsu": 0.05
+  },
+  "villages": [
+   "suna"
+  ]
+ },
+ "kazahana": {
+  "name": "Kazahana",
+  "desc": "Suna'nın rüzgar ustası çöl klanı. Fūton kesikleri ve kum fırtınası.",
+  "kg": "Çöl Rüzgarı",
+  "eye": [
+   0.55,
+   0.45,
+   0.3
+  ],
+  "bonus": {
+   "jutsu": 0.08,
+   "speed": 0.03
+  },
+  "villages": [
+   "suna"
+  ]
+ },
+ "terumi": {
+  "name": "Terumi",
+  "desc": "Kiri'nin iki kekkei genkai taşıyabilen asil klanı. Lav ve kaynar buhar.",
+  "kg": "Yōton / Futton",
+  "eye": [
+   0.35,
+   0.55,
+   0.4
+  ],
+  "kg_natures": [
+   "yoton",
+   "futton"
+  ],
+  "kg_level": 8,
+  "bonus": {
+   "chakra": 30,
+   "jutsu": 0.1
+  },
+  "villages": [
+   "kiri"
+  ]
+ },
+ "karatachi": {
+  "name": "Karatachi",
+  "desc": "Kiri'nin kılıç ustaları yetiştiren klanı. Yedi Kılıç geleneğine yakın.",
+  "kg": "Kılıç Ustalığı",
+  "eye": [
+   0.4,
+   0.45,
+   0.55
+  ],
+  "bonus": {
+   "melee": 0.15
+  },
+  "villages": [
+   "kiri"
+  ]
+ },
+ "yotsuki": {
+  "name": "Yotsuki",
+  "desc": "Kumo'nun yıldırım klanı. Bedenini raiton zırhıyla sarar, inanılmaz hız.",
+  "kg": "Raiton Zırhı",
+  "eye": [
+   0.75,
+   0.6,
+   0.25
+  ],
+  "bonus": {
+   "speed": 0.08,
+   "melee": 0.1
+  },
+  "villages": [
+   "kumo"
+  ]
+ },
+ "ikazuchi": {
+  "name": "Ikazuchi",
+  "desc": "Kumo'nun fırtına klanı. Işın gibi bükülen fırtına chakrası.",
+  "kg": "Ranton (Fırtına)",
+  "eye": [
+   0.55,
+   0.65,
+   0.85
+  ],
+  "kg_natures": [
+   "ranton"
+  ],
+  "kg_level": 6,
+  "bonus": {
+   "jutsu": 0.1,
+   "chakra": 15
+  },
+  "villages": [
+   "kumo"
+  ]
+ },
+ "kako": {
+  "name": "Kakō",
+  "desc": "Iwa'nın volkan klanı. Lav topları ve eriyik kayalar.",
+  "kg": "Yōton (Lav)",
+  "eye": [
+   0.6,
+   0.3,
+   0.15
+  ],
+  "kg_natures": [
+   "yoton"
+  ],
+  "kg_level": 4,
+  "bonus": {
+   "hp": 25,
+   "jutsu": 0.08
+  },
+  "villages": [
+   "iwa"
+  ]
+ },
+ "bakuha": {
+  "name": "Bakuha",
+  "desc": "Iwa'nın Patlama Birliği soyu. Avuçlarındaki ağızlarla patlayıcı kil.",
+  "kg": "Bakuton (Patlama)",
+  "eye": [
+   0.5,
+   0.45,
+   0.3
+  ],
+  "kg_natures": [
+   "bakuton"
+  ],
+  "kg_level": 4,
+  "bonus": {
+   "jutsu": 0.12
+  },
+  "villages": [
+   "iwa"
+  ]
+ },
+ "iwao": {
+  "name": "Iwao",
+  "desc": "Iwa'nın taş dev ve golem ustası klanı. Doton savunma ve hafifletme.",
+  "kg": "Toprak Golemleri",
+  "eye": [
+   0.45,
+   0.4,
+   0.35
+  ],
+  "bonus": {
+   "hp": 50
+  },
+  "villages": [
+   "iwa"
+  ]
  }
 }
