@@ -13,7 +13,7 @@ const PATHS := {
 	"yilan": {
 		"name": "Yılan Yolu", "icon": "seal", "color": Color(0.7, 0.5, 0.9),
 		"style": "Yılan elleri, Kusanagi, lanetli mühür ve yasak diriltme sanatları",
-		"site": {"country": "sound", "off": Vector2(-1900, 1300), "kind": "snake", "place": "Ryūchi İni (Ses Ülkesi dağları)"},
+		"site": {"country": "sound", "off": Vector2(-1900, 1300), "kind": "snake", "clear": 52.0, "place": "Ryūchi İni (Ses Ülkesi dağları)"},
 		"mentor": {"name": "Yamikage Jaen", "title": "Yılan Ustası",
 			"look": {"gender": "m", "skin": Color(0.94, 0.91, 0.9), "hair": Color(0.07, 0.07, 0.1), "hair_style": "uzun", "eye": Color(0.9, 0.78, 0.15),
 				"top": Color(0.88, 0.85, 0.78), "top2": Color(0.6, 0.5, 0.75), "pants": Color(0.28, 0.2, 0.38), "band": null, "vest": null, "age": "adult"}},
@@ -31,7 +31,7 @@ const PATHS := {
 	"silah": {
 		"name": "Silah Ustası Yolu", "icon": "sword", "color": Color(0.95, 0.6, 0.35),
 		"style": "Parşömenden silah çağırma, telli silah fırtınaları ve efsanevi araçlar",
-		"site": {"country": "fire", "off": Vector2(-2840, 1300), "kind": "forge", "place": "Tetsuyama Demirhanesi (Ateş Ülkesi tepeleri)"},
+		"site": {"country": "fire", "off": Vector2(-2840, 1300), "kind": "forge", "clear": 62.0, "place": "Tetsuyama Demirhanesi (Ateş Ülkesi tepeleri)"},
 		"mentor": {"name": "Tetsuno Kanae", "title": "Silah Ustası Demirci",
 			"look": {"gender": "f", "skin": Color(0.93, 0.78, 0.64), "hair": Color(0.28, 0.16, 0.1), "hair_style": "atkuyruğu", "eye": Color(0.35, 0.22, 0.12),
 				"top": Color(0.82, 0.28, 0.22), "top2": Color(0.6, 0.18, 0.14), "pants": Color(0.18, 0.17, 0.2), "vest": Color(0.42, 0.28, 0.16),
@@ -356,13 +356,10 @@ static func build_all(parent: Node3D) -> void:
 		var base = Game.terrain_height(p.x, -p.y)
 		var b = Builder.new(parent, p.x, p.y, base, "Yol_%s" % pid)
 		b.view_dist = 1800.0
-		match s["kind"]:
-			"snake":
-				_build_snake(b, pid, p, base)
-			"forge":
-				_build_forge(b, pid, p, base)
+		Roadside._add_clear(p.x, p.y, float(s.get("clear", 46.0)))   # inin çevresinde orman/ot açıklığı
+		var front = PathLairs.build(String(s["kind"]), b, pid, p, base)
 		b.finish()
-		lairs[pid] = [p.x, p.y + (9.0 if s["kind"] == "snake" else 3.0)]   # ustanın önü (yerel kuzey = harita +y)
+		lairs[pid] = [p.x, p.y + front]   # ustanın önü (yerel kuzey = harita +y)
 
 
 static func _mentor(b: Builder, pid: String, at: Vector3, yaw: float) -> void:
@@ -385,145 +382,3 @@ static func _mentor(b: Builder, pid: String, at: Vector3, yaw: float) -> void:
 	nl.visibility_range_end = 26.0
 	m.add_child(nl)
 	nl.position = Vector3(0, 2.25, 0)
-
-
-## Ryūchi İni: kayalık yarım daire, karanlık mağara ağzı, iki sarmal taş yılan, mor alevli mangallar, dökülmüş yılan derisi
-static func _build_snake(b: Builder, pid: String, p: Vector2, base: float) -> void:
-	var g = func(x: float, n: float) -> float:
-		return Game.terrain_height(p.x + x, -(p.y + n)) - base
-	var rock = Color(0.33, 0.3, 0.36)
-	var y0 = g.call(0, 0)
-	b.cyl(Vector3(0, y0 - 0.1, -2), 34.0, 0.4, Color(0.34, 0.31, 0.3), false, 24)      # taş meydan
-	for k in 11:
-		var a = deg_to_rad(195.0 + k * 15.0)
-		var r = 26.0 + (k % 3) * 3.0
-		var x = cos(a) * r
-		var n = -sin(a) * r + 6.0
-		b.crag(Vector3(x, g.call(x, n) - 1.0, n), 15.0 + (k % 4) * 3.0, 20.0 + (k % 5) * 4.0, rock.lerp(Color(0.25, 0.22, 0.3), (k % 3) * 0.3), k + 3)
-	# mağara: dev kaya kubbe + karanlık ağız + kemer
-	for k in 5:
-		var cx = (k - 2) * 6.5
-		b.crag(Vector3(cx, g.call(cx, 27.0) - 1.5, 27.0 + absf(k - 2) * 2.0), 14.0, 30.0 - absf(k - 2) * 4.0, rock.darkened(0.08), k + 9)
-	b.box(Vector3(0, y0 + 4.0, 20.4), Vector3(9.0, 8.0, 1.0), Color(0.03, 0.02, 0.04), 0.0, false)
-	for k in 9:
-		var a = PI * k / 8.0
-		b.boulder(Vector3(cos(a) * 5.8, y0 + 0.5 + sin(a) * 8.2, 19.8), Vector3(3.0, 2.6, 2.6), rock.lightened(0.05), k, false)
-	# sarmal taş yılanlar (mağaranın iki yanında)
-	for sx in [-1.0, 1.0]:
-		var cx = 9.5 * sx
-		var gy = g.call(cx, 15.0)
-		for k in 4:
-			var wp = b.w(Vector3(cx, gy + 0.9 + k * 1.25, 15.0))
-			b._mb(wp).add("torus", wp, Vector3.ONE * (3.4 - k * 0.55), Color(0.42, 0.38, 0.45).lerp(Color(0.55, 0.5, 0.42), k * 0.15), Vector3(0, k * 40, 0), 14)
-		var hp = b.w(Vector3(cx - 0.6 * sx, gy + 7.0, 14.0))
-		b._mb(hp).add("sphere", hp, Vector3(1.4, 1.1, 2.3), Color(0.45, 0.4, 0.48), Vector3(15, 20 * sx, 0), 10)
-		b._mb(hp).add("cone", hp + Vector3(0.35, -0.4, 1.05), Vector3(0.2, 0.7, 0.2), Color(0.9, 0.88, 0.8), Vector3(200, 0, 0), 4)
-		b._mb(hp).add("cone", hp + Vector3(-0.35, -0.4, 1.05), Vector3(0.2, 0.7, 0.2), Color(0.9, 0.88, 0.8), Vector3(200, 0, 0), 4)
-		b._mb(hp).add("sphere", hp + Vector3(0.45, 0.35, 0.8), Vector3(0.3, 0.2, 0.25), Color(1.0, 0.85, 0.15), Vector3.ZERO, 6)
-		b._mb(hp).add("sphere", hp + Vector3(-0.45, 0.35, 0.8), Vector3(0.3, 0.2, 0.25), Color(1.0, 0.85, 0.15), Vector3.ZERO, 6)
-		b._collide(b.w(Vector3(cx, gy + 3.0, 15.0)), Vector3(6.5, 6.0, 6.5), 0.0)
-	# mor alevli mangallar + ışık
-	for q in [Vector2(-5.5, 2.0), Vector2(5.5, 2.0), Vector2(-4.0, -9.0), Vector2(4.0, -9.0)]:
-		var gy = g.call(q.x, q.y)
-		b.cyl(Vector3(q.x, gy + 0.6, q.y), 0.9, 1.2, Color(0.2, 0.18, 0.2))
-		b.cone(Vector3(q.x, gy + 1.9, q.y), 0.8, 1.6, Color(0.75, 0.35, 1.0))
-		var l = OmniLight3D.new()
-		l.light_color = Color(0.7, 0.35, 1.0)
-		l.light_energy = 2.2
-		l.omni_range = 11.0
-		b.root.add_child(l)
-		l.global_position = b.w(Vector3(q.x, gy + 2.6, q.y))
-	# yılan kapısı (iki direk + kiriş + 蛇)
-	var gg = g.call(0, -16)
-	for sx in [-1.0, 1.0]:
-		b.box(Vector3(4.2 * sx, gg + 3.5, -16), Vector3(0.9, 7.0, 0.9), Color(0.25, 0.15, 0.32))
-	b.box(Vector3(0, gg + 7.3, -16), Vector3(10.5, 0.8, 1.2), Color(0.25, 0.15, 0.32), 0.0, false)
-	b.box(Vector3(0, gg + 6.3, -16), Vector3(8.6, 0.5, 0.8), Color(0.2, 0.12, 0.26), 0.0, false)
-	b.kanji(Vector3(0, gg + 9.0, -16.3), "蛇", 2.4, Color(0.8, 0.6, 1.0), 180.0)
-	# dökülmüş dev yılan derisi (S kıvrımı)
-	for k in 14:
-		var t = k / 13.0
-		var x = -14.0 + t * 12.0
-		var n = -4.0 + sin(t * TAU * 1.2) * 3.0
-		var wp = b.w(Vector3(x, g.call(x, n) + 0.45, n))
-		b._mb(wp).add("sphere", wp, Vector3(1.0 - t * 0.5, 0.55 - t * 0.2, 1.3), Color(0.86, 0.84, 0.72), Vector3(0, -40 + sin(t * TAU * 1.2) * 50, 0), 8)
-	Steam.add(b.w(Vector3(0, y0 + 0.5, 19.0)))   # mağaradan sızan sis
-	b.lantern(-8.0, -12.0)
-	b.lantern(8.0, -12.0)
-	_mentor(b, pid, Vector3(0, y0 + 0.05, 14.0), PI)
-	b.interact(Vector3(0, y0, 11.0), 6.5, "path_mentor", "[F] Yılan Ustası ile konuş", {"path": pid})
-
-
-## Tetsuyama Demirhanesi: taş temelli demirhane, ocak ve örs, silah rafları, hedef tahtaları, asılı dev parşömenler
-static func _build_forge(b: Builder, pid: String, p: Vector2, base: float) -> void:
-	var g = func(x: float, n: float) -> float:
-		return Game.terrain_height(p.x + x, -(p.y + n)) - base
-	var y0 = g.call(0, 0)
-	var wood = Color(0.45, 0.3, 0.18)
-	var stone = Color(0.48, 0.46, 0.44)
-	b.cyl(Vector3(0, y0 - 0.1, 0), 30.0, 0.4, Color(0.52, 0.45, 0.36), false, 24)
-	# demirhane binası (önü açık)
-	var fy = g.call(0, 10)
-	b.box(Vector3(0, fy + 0.6, 10), Vector3(14, 1.2, 9), stone)
-	b.box(Vector3(-6.6, fy + 3.4, 10), Vector3(0.8, 5.6, 9), wood)
-	b.box(Vector3(6.6, fy + 3.4, 10), Vector3(0.8, 5.6, 9), wood)
-	b.box(Vector3(0, fy + 3.4, 14.2), Vector3(14, 5.6, 0.8), wood)
-	b.roof(Vector3(0, fy + 7.4, 10), Vector3(16, 2.8, 11), Color(0.3, 0.3, 0.34))
-	b.cyl(Vector3(4.5, fy + 9.5, 12.5), 1.8, 7.0, stone.darkened(0.2))            # baca
-	Steam.add(b.w(Vector3(4.5, fy + 13.2, 12.5)))
-	# ocak + kor ışığı + örs
-	b.box(Vector3(3.5, fy + 2.0, 12.5), Vector3(3.6, 1.6, 2.2), stone.darkened(0.25))
-	b.box(Vector3(3.5, fy + 2.9, 12.5), Vector3(2.6, 0.3, 1.6), Color(1.0, 0.45, 0.1), 0.0, false)
-	var l = OmniLight3D.new()
-	l.light_color = Color(1.0, 0.55, 0.2)
-	l.light_energy = 3.0
-	l.omni_range = 12.0
-	b.root.add_child(l)
-	l.global_position = b.w(Vector3(3.5, fy + 3.6, 12.0))
-	b.box(Vector3(-1.5, fy + 1.7, 8.5), Vector3(0.9, 1.0, 0.9), Color(0.2, 0.2, 0.22))
-	b.box(Vector3(-1.5, fy + 2.35, 8.5), Vector3(1.8, 0.35, 0.7), Color(0.25, 0.25, 0.28))
-	# silah rafları: her rafta farklı silahlar
-	var pj = PathJutsu.get_pinst()
-	for r in 2:
-		var rx = -10.0 if r == 0 else 10.0
-		var ry = g.call(rx, 4.0)
-		b.box(Vector3(rx, ry + 1.6, 4.0), Vector3(0.3, 3.2, 6.0), wood, 90.0 * r)
-		b.box(Vector3(rx, ry + 3.1, 4.0), Vector3(0.6, 0.2, 6.4), wood)
-		b.box(Vector3(rx, ry + 0.3, 4.0), Vector3(0.6, 0.2, 6.4), wood)
-		for k in 7:
-			var kind: String = PathJutsu.WEAPON_KINDS[(k + r * 5) % PathJutsu.WEAPON_KINDS.size()]
-			var mi = pj.mi_of(pj.weapon_mesh(kind))
-			b.root.add_child(mi)
-			mi.global_position = b.w(Vector3(rx + (0.25 if r == 0 else -0.25), ry + 1.7, 1.4 + k * 0.85))
-			mi.rotation_degrees = Vector3(-90, 90 if r == 0 else -90, 0)
-			mi.scale = Vector3.ONE * 1.6
-	# hedef tahtaları ve saplanmış kunailer
-	for k in 4:
-		var tx = -8.0 + k * 5.3
-		var tn = -13.0
-		var ty = g.call(tx, tn)
-		b.box(Vector3(tx, ty + 1.0, tn), Vector3(0.25, 2.0, 0.25), wood)
-		var wp = b.w(Vector3(tx, ty + 2.2, tn))
-		b._mb(wp).add("cyl", wp, Vector3(1.4, 0.18, 1.4), Color(0.85, 0.75, 0.55), Vector3(90, 0, 0), 16)
-		b._mb(wp).add("cyl", wp + Vector3(0, 0, -0.01), Vector3(0.9, 0.2, 0.9), Color(0.8, 0.2, 0.18), Vector3(90, 0, 0), 16)
-		b._mb(wp).add("cyl", wp + Vector3(0, 0, -0.02), Vector3(0.35, 0.22, 0.35), Color(0.95, 0.92, 0.85), Vector3(90, 0, 0), 12)
-		for q in 2:
-			var km = pj.mi_of(pj.weapon_mesh("kunai"))
-			b.root.add_child(km)
-			km.global_position = wp + Vector3(randf_range(-0.4, 0.4), randf_range(-0.4, 0.4), 0.35)
-			km.rotation_degrees = Vector3(0, 180, 0)
-	# asılı dev parşömenler (ikiz ejderha)
-	for sx in [-1.0, 1.0]:
-		var sxp = 8.5 * sx
-		var sy = g.call(sxp, -4.0)
-		b.box(Vector3(sxp, sy + 3.5, -4.0), Vector3(0.35, 7.0, 0.35), wood)
-		b.box(Vector3(sxp, sy + 6.8, -4.0), Vector3(3.2, 0.3, 0.3), wood, 0.0, false)
-		b.box(Vector3(sxp, sy + 4.6, -4.0), Vector3(2.4, 4.0, 0.06), Color(0.96, 0.94, 0.86), 0.0, false)
-		b.box(Vector3(sxp, sy + 6.5, -4.05), Vector3(2.4, 0.25, 0.06), Color(0.75, 0.12, 0.12), 0.0, false)
-		b.box(Vector3(sxp, sy + 2.7, -4.05), Vector3(2.4, 0.25, 0.06), Color(0.75, 0.12, 0.12), 0.0, false)
-		b.kanji(Vector3(sxp, sy + 4.6, -4.1), "龍" if sx < 0 else "武", 1.8, Color(0.1, 0.08, 0.08), 180.0)
-	b.kanji(Vector3(0, fy + 8.6, 4.4), "鉄", 2.6, Color(0.95, 0.75, 0.35), 180.0)
-	b.lantern(-5.0, -2.0)
-	b.lantern(5.0, -2.0)
-	_mentor(b, pid, Vector3(-1.5, fy + 1.2, 6.5), PI)
-	b.interact(Vector3(-1.5, fy, 4.0), 6.5, "path_mentor", "[F] Silah ustasıyla konuş", {"path": pid})

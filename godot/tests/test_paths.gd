@@ -117,6 +117,10 @@ func _ready() -> void:
 	main.resume()
 	await _wait(0.5)
 	print("CAN_LEARN ", Progress.can_learn("mandara_no_jin"))
+	if "--lairs-only" in OS.get_cmdline_user_args():
+		print("PATHS_DONE")
+		get_tree().quit()
+		return
 	# 5) teknikler: açık alanda üç düşmanla
 	Hud.show_game_hud(false)
 	pr["level"] = 60
