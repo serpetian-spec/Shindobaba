@@ -45,12 +45,13 @@ const FACE_DONORS_M := ["masc_vroid", "AvatarSample_C", "HairSample_Male", "Saku
 const FACE_DONORS_F := ["fem_vroid", "AvatarSample_A", "AvatarSample_B", "Sendagaya_Shibu", "Darkness_Shibu", "HairSample_Female"]
 ## saç stili -> [VRoid modeli, mesh adı] (saç kafaya sabitlenir, renk oyuncunun saç rengi)
 const HAIR_DONORS := {
-	"kısa": ["Sakurada_Fumiriya", "Hair001", ""], "diken": ["masc_vroid", "Body", "diken"], "dağınık": ["HairSample_Male", "Hair001", "dağınık"],
-	"kase": ["Sendagaya_Shibu", "Hair001", ""], "uzun": ["AvatarSample_B", "Hair001", ""], "atkuyruğu": ["fem_vroid", "Body", "atkuyruğu"],
-	"kisa_kakul": ["AvatarSample_A", "Hair001", ""], "kakul": ["Darkness_Shibu", "Hair001", "kakul"], "geriye": ["masc_vroid", "Body", "geriye"],
-	"ananas": ["masc_vroid", "Body", "ananas"], "topuz": ["fem_vroid", "Body", "topuz"], "ikiz_topuz": ["fem_vroid", "Body", "ikiz_topuz"],
+	# taban her zaman gerçek bir VRoid saçı (eski düz "buzz" başlık kel gibi görünüyordu); tutam eklentisi üstüne gelir
+	"kısa": ["Sakurada_Fumiriya", "Hair001", ""], "diken": ["HairSample_Male", "Hair001", "diken"], "dağınık": ["HairSample_Male", "Hair001", "dağınık"],
+	"kase": ["Sendagaya_Shibu", "Hair001", ""], "uzun": ["AvatarSample_B", "Hair001", ""], "atkuyruğu": ["AvatarSample_A", "Hair001", "atkuyruğu"],
+	"kisa_kakul": ["AvatarSample_A", "Hair001", ""], "kakul": ["Darkness_Shibu", "Hair001", "kakul"], "geriye": ["Sakurada_Fumiriya", "Hair001", "geriye"],
+	"ananas": ["HairSample_Male", "Hair001", "ananas"], "topuz": ["AvatarSample_A", "Hair001", "topuz"], "ikiz_topuz": ["AvatarSample_A", "Hair001", "ikiz_topuz"],
 	"yele": ["AvatarSample_C", "Hair001", "yele"], "orgu": ["AvatarSample_A", "Hair001", "orgu"], "mohikan": ["masc_vroid", "Body", "mohikan"],
-	"kirpik": ["masc_vroid", "Body", "kirpik"], "kel": ["", "", ""],
+	"kirpik": ["Sakurada_Fumiriya", "Hair001", "kirpik"], "kel": ["", "", ""],
 }
 const VROID_SKIN := Color(0.99, 0.89, 0.82)  # VRoid doku ten rengi (oyuncu teni bununla oranlanır)
 static var _scenes := {}
@@ -109,8 +110,10 @@ func _skin_ratio() -> Color:
 var skull_c := Vector3(0, 1.63, 0)
 var skull_r := Vector3(0.1, 0.105, 0.105)
 static var _skull_cache := {}
-const HAIR_SCALE := 0.95  # VRoid saç: kafaya göre biraz büyük duruyordu
-const CLUMP_SCALE := 0.8   # prosedürel tutamlar (dikenli vb.) daha da taşkındı
+const HAIR_SCALE := 1.0   # taban saç küçültülürse kafa derisi görünüyor (kel); sadece kafa oranına uydurulur
+const CLUMP_SCALE := 1.0
+const CLUMP_LEN := 0.82    # tutam uzunluğu: kökler kafada kalır, uçlar kısalır
+const CLUMP_WID := 0.9
 var band_ring: Array = []   # alın yüksekliğinde kafa çevresi [açı -> yarıçap]
 
 
@@ -366,7 +369,7 @@ func _face_and_hair() -> void:
 			if hd[0] != donor:
 				var hf = _donor_part(hd[0], "Face")
 				if not hf.is_empty() and not fd.is_empty() and hf["aabb"].size.x > 0.01:
-					hs *= clampf(fd["aabb"].size.x / hf["aabb"].size.x, 0.8, 1.2)
+					hs *= clampf(fd["aabb"].size.x / hf["aabb"].size.x, 0.97, 1.2)
 					hc = hf["aabb"].get_center()
 			elif not fd.is_empty():
 				hc = fd["aabb"].get_center()
@@ -1562,6 +1565,8 @@ func _scalp(file: String, hn: Node) -> AABB:
 
 ## Anime saç tutamı: kökten uca incelen, kavisli, yassı baklava kesitli tüp
 static func _clump(st: SurfaceTool, root: Vector3, d: Vector3, grav: Vector3, length: float, width: float, flat := 0.45) -> void:
+	length *= CLUMP_LEN
+	width *= CLUMP_WID
 	var segs = 5
 	var side = d.cross(Vector3.UP)
 	if side.length() < 0.1:
