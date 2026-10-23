@@ -582,6 +582,8 @@ func interact(it: Dictionary) -> void:
 			Hud.shop("Eczane", ["salve", "pill", "smoke", "scroll_kokuangyo"])
 		"chunin_exam":
 			ChuninExam.apply()
+		"fod_tower":
+			ChuninExam.enter_tower()
 		"quest", "bounty_board":
 			pass  # Missions.on_interact ele alır
 		"teahouse":
@@ -842,5 +844,3 @@ func _kage_greet(it: Dictionary, home_v: bool) -> String:
 		_:
 			lines = ["%s, hoş geldin. Köyün geleceği senin gibilerin omzunda." % nm]
 	return lines.pick_random()
-		"fod_tower":
-			ChuninExam.enter_tower()
