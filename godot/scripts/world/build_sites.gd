@@ -993,7 +993,10 @@ static func valley_end(parent: Node3D, l: Dictionary) -> void:
 	var rim: float = spec["rim"]
 	if not _fx_done.has("valley"):
 		_fx_done["valley"] = true
-		Waterfalls.add(b.w(Vector3(0, spec["river"], fall_n - 4.0)), float(spec["upper"]) - float(spec["river"]) + 2.0, 120.0, 0.0)
+		# destansı şelale: kavisli perde, sis, gökkuşağı, yan sızıntılar, akan nehir, uğultu
+		Waterfalls.add_epic(b.w(Vector3(0, spec["river"], fall_n - 4.0)), float(spec["upper"]) - float(spec["river"]) + 2.0, 120.0,
+			{"throw": 16.0, "arch": 7.0, "back": 4.0, "river_len": 600.0, "river_w": float(spec["half"]) * 1.6, "upper_len": 900.0, "upper_w": 124.0,
+			"trickles": [[-72.0, 5.0, 0.75], [-86.0, 3.0, 0.45], [70.0, 4.0, 0.6], [84.0, 3.5, 0.85]]})
 	# iki dev heykel şelalenin iki yanında kanyon kenarında, birbirine bakıyor (hayran modeli; yoksa prosedürel)
 	_valley_cliffs(b, spec)
 	if not _valley_statues(b, float(spec["half"]), fall_n - 40.0, rim):
