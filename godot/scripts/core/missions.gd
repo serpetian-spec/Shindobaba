@@ -1068,7 +1068,7 @@ func complete() -> void:
 		if gid != "" and not Gear.item(gid).is_empty():
 			Gear.grant(Game.profile, gid)
 			Hud.msg("Ödül ekipmanı: %s  [Tab > Ekipman]" % Gear.item(gid)["name"], Color(0.7, 0.9, 1.0))
-	if Progress.story() == 6 and int(Game.profile["missions_done"]["D"]) >= 3:
+	if Progress.story() == 6 and Progress.genin_missions() >= 3:
 		Progress.set_story(7)
 	_call_hook(String(m.get("hook", "")), m, true)
 	Hud.objective_changed()

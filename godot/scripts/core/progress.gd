@@ -18,7 +18,7 @@ const STORY_T := [
 	"Mezuniyet Sınavı: hocanla konuş (yazılı + Bunshin/Henge/Kawarimi + hedef parkuru), ardından {s2} ile Zil Testi.",
 	"Chakra kontrolü: köyün 35 m üstüne tırman — duvar koşusu, çatılar, kule ya da {lookout} (ok seni oraya götürür).",
 	"Antrenman alanında ({vn}) chakra kâğıdı testini yap.",
-	"{kage} Kulesi'ndeki görev masasından 3 D-rank görev tamamla.",
+	"{kage} Kulesi'ndeki görev masasından 3 görev tamamla (D veya C-rank).",
 	"Seviye 8 ol ve {kage} Kulesi'ne git: Yasak Parşömen görevi.",
 	"Yasak Parşömen: köyün dışındaki Haydut Kampı'nda haydut liderini yen.",
 	"Seviye 15'e ulaş ve Chunin Sınavına başvur (bu dönem sınav Konoha Stadyumu'nda — haritadan yola çık).",
@@ -91,12 +91,21 @@ func set_story(i: int) -> void:
 		add_xp(80 + 60 * i)
 	p()["story"] = i
 	# D-rank adımına gelmeden önce yapılan görevler de sayılır
-	if i == 6 and int(p()["missions_done"].get("D", 0)) >= 3:
+	if i == 6 and genin_missions() >= 3:
 		i = 7
 		p()["story"] = 7
 	Hud.objective_changed()
 	Sfx.play("levelup", null, 1.3, 0.5)
 	Game.save_game()
+
+
+## Rütbe için sayılan görevler: D ve üstü (Genin'ken yapılan C-rank'ler de sayılır)
+func genin_missions() -> int:
+	var md: Dictionary = p().get("missions_done", {})
+	var n = 0
+	for r in ["D", "C", "B", "A", "S"]:
+		n += int(md.get(r, 0))
+	return n
 
 
 ## Hikâye hedef metni + ilerleme sayacı (HUD ve Görevler sekmesi kullanır)
@@ -109,7 +118,7 @@ func objective_text() -> String:
 	elif s == 3:
 		t = "Mezuniyet Sınavı: Akademi'de hocan %s ile konuş (Seviye %d/5)." % [home_info()["s1"], int(pr.get("level", 1))]
 	if s == 6:
-		t += "  (%d/3)" % mini(3, int(pr["missions_done"].get("D", 0)))
+		t += "  (%d/3, C-rank da sayılır)" % mini(3, genin_missions())
 	elif s == 7 or s == 9:
 		t += "  (Seviye %d)" % int(pr.get("level", 1))
 	return t
@@ -794,7 +803,42 @@ func _mission_board(it: Dictionary) -> void:
 		if s == 9 and int(pr["level"]) >= 15 and rk == 1:
 			opts.append({"label": "Chūnin Sınavına başvur", "cb": func(): ChuninExam.apply()})
 		if not opts.is_empty():
-			opts.push_front({"label": "Görev panosu", "cb": func(): Missions.open_board(it)})
-			Hud.dialog(home_info()["kage"] + " Kulesi", "Ne için geldin?", opts)
+			opts.push_front({"label": "Görevleri göster" if it.has("giver") else "Görev panosu", "cb": func(): Missions.open_board(it)})
+			if it.has("giver"):
+				Hud.dialog(it["giver"], _kage_greet(it, true), opts)
+			else:
+				Hud.dialog(home_info()["kage"] + " Kulesi", "Ne için geldin?", opts)
 			return
+	# Kage ofisinde görevleri Kage'nin kendisi verir
+	if it.has("giver"):
+		Hud.dialog(it["giver"], _kage_greet(it, _in_home(it)), [
+			{"label": "Görevleri göster", "cb": func(): Missions.open_board(it)},
+			{"label": "Şimdilik bir şey yok", "cb": func(): pass}])
+		return
 	Missions.open_board(it)
+
+
+## Kage'nin karşılaması: rütbeye ve köy aidiyetine göre
+func _kage_greet(it: Dictionary, home_v: bool) -> String:
+	var nm = String(p().get("name", "ninja"))
+	if not home_v and int(p().get("rank", 0)) >= 6:
+		return "Bir Kage'yi ofisimde ağırlamak onurdur, %s-dono. Köylerimiz arasındaki işler için masam her zaman açık." % nm
+	if not home_v:
+		var vn = String(Game.village(String(it.get("vid", ""))).get("name", "köyümüz"))
+		return "%s'ye hoş geldin, yabancı ninja. Köyümüzün itibarını kazanmak istiyorsan, sana uygun işler var. Ama unutma: burada misafirsin." % vn
+	var rk = int(p().get("rank", 0))
+	var lines = []
+	match rk:
+		0, 1:
+			lines = ["Ah, %s! Genç bir genin için her görev bir derstir — kayıp kedi bile." % nm,
+				"Hevesini görüyorum %s. D-rank işler sıkıcı gelebilir ama köy onlarla ayakta durur." % nm,
+				"Takımınla uyumun nasıl? Görevler sizi birbirinize bağlayacak, %s." % nm]
+		2:
+			lines = ["Chūnin %s. Artık sadece emir uygulamıyorsun; takımını da düşünmek zorundasın." % nm,
+				"Sınırlarda hareketlilik var %s. Sana güvenebileceğim işler hazırladım." % nm]
+		3, 4:
+			lines = ["%s, köyün en güvendiğim ninjalarındansın. Zor bir dönemden geçiyoruz." % nm,
+				"Masamdaki raporların yarısı senin adını taşıyor %s. Sıradaki görev daha da ağır." % nm]
+		_:
+			lines = ["%s, hoş geldin. Köyün geleceği senin gibilerin omzunda." % nm]
+	return lines.pick_random()
