@@ -842,3 +842,5 @@ func _kage_greet(it: Dictionary, home_v: bool) -> String:
 		_:
 			lines = ["%s, hoş geldin. Köyün geleceği senin gibilerin omzunda." % nm]
 	return lines.pick_random()
+		"fod_tower":
+			ChuninExam.enter_tower()

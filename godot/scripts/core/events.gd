@@ -239,7 +239,9 @@ func _forest_tick(dt: float) -> void:
 		Hud.objective_progress("Gün %d/5  •  ⏰ %d sn  •  Gerekli: %s ✉" % [day, int(st["forest_t"]), "Yer" if st["need"] == "earth" else "Gök"])
 	else:
 		Hud.objective_progress("Gün %d/5  •  Kuleye ulaş!" % day)
-		if Game.player.global_position.distance_to(st["tower"]) < 30.0:
+		# yatay mesafe: Konoha'nın Ölüm Ormanı kulesi 40 m yarıçaplı; merkezine 30 m yaklaşmak imkânsızdı
+		var tw: Vector3 = st["tower"]
+		if Vector2(Game.player.global_position.x - tw.x, Game.player.global_position.z - tw.z).length() < 58.0 or st.get("at_tower", false):
 			st["forest_days"] = float(st["forest_t"]) / DAY_LEN
 			var alive = 0
 			for m in team:
@@ -250,6 +252,19 @@ func _forest_tick(dt: float) -> void:
 			return
 	if float(st["forest_t"]) <= 0.0:
 		_fail("Beş gün doldu. Kuleye ulaşamadınız; elendiniz.")
+
+
+## Ölüm Ormanı kulesinin kapısı ([F] Merkez Kule)
+func enter_tower() -> void:
+	if stage != 2:
+		Hud.dialog("Merkez Kule", "Kule kapısı mühürlü. Yalnızca Chūnin Sınavı'nın ikinci aşamasında, iki parşömeni de taşıyan takımlar girebilir.", [])
+		return
+	var inv: Dictionary = p()["inventory"]
+	if int(inv.get("scroll_heaven", 0)) <= 0 or int(inv.get("scroll_earth", 0)) <= 0:
+		Hud.dialog("Merkez Kule", "Gök ve Yer parşömenlerinin ikisi de olmadan kuleye giremezsin. Eksik olanı rakip takımlardan (✉) al.", [])
+		return
+	st["at_tower"] = true
+	_forest_tick(0.0)
 
 
 # ------------------------------------------------------------------ 3. aşama: ön elemeler
@@ -380,8 +395,8 @@ func _duel_tick() -> void:
 
 func _after_final_match() -> void:
 	st["final_i"] = int(st["final_i"]) + 1
-	# ilk finalde istila (her sınavda bir kez, ilk sınavda kesin)
-	if int(st["final_i"]) == 1 and not st.get("invasion_done", false) and (int(_flags().get("chunin_attempts", 1)) <= 1 or randf() < 0.35):
+	# finalde istila (Naruto hikâyesindeki Ses istilası) kaldırıldı: oyuncu kendi hikâyesini yaşar
+	if false and int(st["final_i"]) == 1 and not st.get("invasion_done", false) and (int(_flags().get("chunin_attempts", 1)) <= 1 or randf() < 0.35):
 		st["invasion_done"] = true
 		Hud.dialog("Baş Gözetmen", "Ne oluyor?! Tribünlerde duman... Bu bir İSTİLA! Turnuva durduruldu — tüm ninjalar savunmaya!", [{"label": "Savaş!", "cb": func():
 			Orgs.exam_invasion(st["arena"], _invasion_over)}])
