@@ -379,8 +379,8 @@ func village_gate(ang: float, r: float, half_open: float, height: float, post_co
 
 
 func tree(x: float, n: float, s: float, rng: RandomNumberGenerator, y := 0.0) -> void:
-	# hazır ağaç modeli (Stylized Nature MegaKit); yoksa eski prosedürel ağaç
-	var tm = AssetLib.tree_mesh(rng.randi())
+	# prosedürel ağaç (hazır paket ağaçları doğal durmuyordu; kullanıcı eskisini tercih etti)
+	var tm = Props.vegetation_mesh(0)
 	if tm != null:
 		pack_mesh(tm, Vector3(x, y, n), rng.randf() * 360.0, s * rng.randf_range(0.85, 1.15), 1.0)
 		_collide_cyl(w(Vector3(x, y + 2.6 * s, n)), 0.35 * s, 5.2 * s)
