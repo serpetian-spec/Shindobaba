@@ -433,7 +433,19 @@ func _ground_air_move(dt: float) -> void:
 	var was_grounded = grounded
 	if not grounded:
 		last_air_vy = velocity.y
+	var pre_pos = global_position
 	move_and_slide()
+	# dik arazi (uçurum) = duvar: üstüne ışınlanma yok; içine doğru koşuyorsan duvar koşusuna geç
+	var steep_n = _steep_block(pre_pos)
+	if steep_n != Vector3.ZERO and wall_cd <= 0.0 and not swimming and wish.dot(-steep_n) > 0.35:
+		wall_n = steep_n
+		terrain_wall = true
+		velocity = Vector3.ZERO
+		grounded = false
+		air_dash_ok = true
+		air_dash_used = 0
+		Sfx.play("land", global_position, 1.3)
+		return
 	# arazi + su yüzeyi
 	var p = global_position
 	var terr = Game.terrain_height(p.x, p.z)
@@ -526,6 +538,101 @@ func _apply_flip(dt: float) -> void:
 		model.overlay.set_pose("leap", 0.35)
 
 
+## Dik arazi engeli: yeni konumda arazi, oyuncunun bir adımda çıkabileceğinden yüksekse yatay hareketi geri alır.
+## Dönüş: engel olduysa uçurumdan dışarı bakan yatay normal, yoksa ZERO.
+const STEEP_RISE := 1.4   # ~55°: bundan dik yüzey yürünemez, tırmanılır
+func _steep_block(pre: Vector3) -> Vector3:
+	var p = global_position
+	var horiz = Vector2(p.x - pre.x, p.z - pre.z).length()
+	if horiz < 0.0005:
+		return Vector3.ZERO
+	var terr = Game.terrain_height(p.x, p.z)
+	if terr < 0.0:
+		return Vector3.ZERO
+	var base_y = minf(pre.y, p.y)
+	if terr - base_y <= maxf(0.45, horiz * STEEP_RISE):
+		return Vector3.ZERO
+	# hareketi geri al (sadece yatay), arazinin içine girme
+	global_position = Vector3(pre.x, p.y, pre.z)
+	velocity.x = 0.0; velocity.z = 0.0
+	var tn = Game.terrain_normal(p.x, p.z)
+	var hn = Vector3(tn.x, 0, tn.z)
+	if hn.length() < 0.05:
+		hn = Vector3(pre.x - p.x, 0, pre.z - p.z)
+	return hn.normalized()
+
+
+## Arazi uçurumunda duvar koşusu: yüzeye yapışık yukarı/yana hareket, düz zemine varınca tepeye fırla
+var terrain_wall := false
+func _terrain_wall_move(dt: float) -> void:
+	var n = wall_n
+	var side = Vector3(n.z, 0, -n.x)
+	var wish = wish_dir()
+	var up_amt = wish.dot(-n)
+	var side_amt = wish.dot(side)
+	var spd = WALL_SPEED * (1.4 if Input.is_action_pressed("dash") else 1.0) * (1.0 + Stats.skill(Game.profile, "wall_run"))
+	if wall_boost_t > 0.0:
+		wall_boost_t -= dt
+		spd *= 2.3
+		if up_amt < 0.2 and absf(side_amt) < 0.2:
+			up_amt = 1.0
+	var p = global_position + (Vector3.UP * up_amt + side * side_amt) * spd * dt
+	# yüzeye yapış: n yönünde (dışarı) arazinin p.y yüksekliğine indiği noktayı bul
+	var found = false
+	var s_hit = 0.0
+	var s = -3.0
+	while s <= 3.0:
+		var q = Vector3(p.x, 0, p.z) - n * s
+		if Game.terrain_height(q.x, q.z) >= p.y:
+			s_hit = s
+			found = true
+			break
+		s += 0.2
+	if not found:
+		# önünde artık yükselen arazi yok: tepeye vardın
+		global_position = p
+		velocity = -n * 6.0 + Vector3.UP * 8.0
+		model.play("jump", 0.05, 1.4, true)
+		terrain_wall = false
+		_leave_wall()
+		return
+	p.x -= n.x * (s_hit - radius)
+	p.z -= n.z * (s_hit - radius)
+	var tn = Game.terrain_normal(p.x - n.x * radius, p.z - n.z * radius)
+	if tn.y > 0.72 and up_amt > 0.2:
+		# eğim yumuşadı: üst kenar, öne fırla
+		global_position = p
+		velocity = -n * 6.0 + Vector3.UP * 7.0
+		model.play("jump", 0.05, 1.4, true)
+		terrain_wall = false
+		_leave_wall()
+		return
+	var hn = Vector3(tn.x, 0, tn.z)
+	if hn.length() > 0.2:
+		wall_n = wall_n.lerp(hn.normalized(), minf(1.0, dt * 6.0)).normalized()
+	var below = Game.terrain_height(p.x + n.x * 1.2, p.z + n.z * 1.2)
+	if up_amt < -0.2 and p.y <= below + 0.1:
+		p.y = below
+		global_position = p
+		terrain_wall = false
+		_leave_wall()
+		grounded = true
+		return
+	global_position = p
+	velocity = Vector3.ZERO
+	var move = Vector3.UP * up_amt * spd + side * side_amt * spd
+	var center = global_position + Vector3.UP * 0.9
+	var fwd = move.normalized() if move.length() > 0.5 else Vector3.UP
+	var up = wall_n
+	var right = fwd.cross(up).normalized()
+	if right.length() < 0.1:
+		right = side
+	fwd = up.cross(right).normalized()
+	model.global_transform = Transform3D(Basis(right, up, -fwd), center - wall_n * (radius - 0.02))
+	model.play("run" if move.length() > 0.5 else "idle", 0.12, clampf(move.length() / 10.0, 0.6, 1.5))
+	model.overlay.set_pose("ninja_run", 1.0 if move.length() > 0.5 else 0.0)
+
+
 func _wall_tall(n: Vector3) -> bool:
 	var space = get_world_3d().direct_space_state
 	var q = PhysicsRayQueryParameters3D.create(global_position + Vector3.UP * 2.2, global_position + Vector3.UP * 2.2 - n * 1.2, 1)
@@ -533,6 +640,9 @@ func _wall_tall(n: Vector3) -> bool:
 
 
 func _wall_move(dt: float) -> void:
+	if terrain_wall:
+		_terrain_wall_move(dt)
+		return
 	var n = wall_n
 	var side = Vector3(n.z, 0, -n.x)
 	var wish = wish_dir()
@@ -658,6 +768,7 @@ func _end_rope() -> void:
 
 
 func _leave_wall() -> void:
+	terrain_wall = false
 	wall_n = Vector3.ZERO
 	wall_cd = 0.25
 	model.transform = Transform3D(Basis(Vector3.UP, facing), Vector3.ZERO)

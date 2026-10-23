@@ -129,22 +129,14 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 		for fl in [5.5, 14.0]:
 			b.box(Vector3(ax - 45 + i * 6.9, fl, an - 17.1), Vector3(3.2, 3, 0.3), Color(0.42, 0.62, 0.78), 0, false)
 	b.box(Vector3(ax, 3.2, an - 17.4), Vector3(7, 6.4, 0.6), Color(0.35, 0.24, 0.16), 0, false)
-	b.box(Vector3(ax, 0.1, an - 60), Vector3(110, 0.2, 70), Color(0.74, 0.66, 0.52), 0, false)  # toprak avlu
 	b.yoff = 0.0
-	var tx = ax + 48.0; var tz = an - 36.0
-	b.tree(tx, tz, 1.4, rng, _gy(b, tx, tz))
-	var ty = _gy(b, tx, tz)
-	b.box(Vector3(tx + 4.5, ty + 7.4, tz), Vector3(8, 0.5, 0.5), Color(0.42, 0.29, 0.18), 0, false)
-	for dz in [-0.6, 0.6]:
-		b.box(Vector3(tx + 7, ty + 5.0, tz + dz), Vector3(0.05, 4.8, 0.05), Color(0.85, 0.82, 0.75), 0, false)
-	b.box(Vector3(tx + 7, ty + 2.6, tz), Vector3(0.8, 0.12, 1.5), Color(0.55, 0.38, 0.22), 0, false)
-	_act(b, tx + 7, tz, 3, "swing", "[F] Salıncağa otur")
+	# avlu: duvar + kapı, taş yol, fenerler, antrenman alanı, gölet, salıncak ağacı, oyun parkı, sundurma
+	var arng = RandomNumberGenerator.new()
+	arng.seed = 4321  # ayrı tohum: köyün geri kalan yerleşimi değişmesin
+	AcademyGrounds.dress(b, ax, an - 17.0, 62.0, 78.0, arng, {"vid": "konoha", "climate": "green", "flag": Color(0.2, 0.42, 0.26),
+		"kanji": "忍", "flag_kanji": "木", "roof": Color(0.72, 0.18, 0.15), "bw": 100.0, "decor": decor})
 	_door(b, ax, an - 19, 5.0, "academy", "[F] Gir: Ninja Akademisi", "academy")
-	for i in 5:
-		Spawner.dummy(_gp(b, ax - 30 + i * 15, an - 70))
-	_site(b, "academy_yard", ax, an - 60)
-	_site(b, "ball", ax + 30, an - 80)
-	_site(b, "pigeons", ax - 35, an - 75)
+	_site(b, "pigeons", ax + 8, an - 40)
 	occupied.append([ax, an - 25, 65, 70])
 
 	# ---- çarşı: ana doğu-batı caddesi (n=0) boyunca tezgâhlar, arkada dükkânlar
@@ -196,7 +188,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	# ---- Ichiraku tarzı ramen tezgâhı (caddeye açık)
 	var ix = 70.0; var inn = -30.0
 	b.yoff = _gy(b, ix, inn)
-	var ich = SFProps.place_node("ichiraku")  # hayran modeli (varsa)
+	var ich = null  # hayran modeli havada duruyordu/uyumsuzdu: kendi tezgâhımız kullanılıyor
 	if ich:
 		decor.add_child(ich)
 		ich.global_position = _gp(b, ix, inn - 0.6)
@@ -553,21 +545,19 @@ static func _hokage_faces(b: Builder, rock: Dictionary, cliff_n: float, v: Dicti
 	var x1 = float(rock.get("x1", float(v["x"]) + 825.0)) - float(v["x"])
 	var rc = Color(0.66, 0.6, 0.52)
 	var cx = (x0 + x1) * 0.5
-	var span = (x1 - x0) * 0.62
+	# yüzler köyün tam karşısında, birbirine yakın dizili (animedeki gibi): x = 0 civarı
+	var gap = 92.0
+	var H = clampf(top * 0.42, 40.0, 78.0)   # kafa (çene-tepe) yüksekliği
+	var fy = top * 0.56
 	for i in 5:
-		var fx = cx - span * 0.5 + span * float(i) / 4.0
-		var fy = top * 0.62
-		# yüz yüksekliğinde uçurumun ön yüzünü bul
-		var fn = cliff_n
-		var nn = cliff_n - 140.0
-		while nn < cliff_n + 200.0:
-			if _gy(b, fx, nn) > fy:
-				fn = nn
-				break
-			nn += 2.0
-		var fc = rc.lightened(0.04 + 0.02 * (i % 2))
-		var s = top / 165.0 * 1.45
-		_stone_head(b, i, Vector3(fx, fy - 8 * s, fn), 92.0 * s, fc.darkened(0.12))
+		var fx = (float(i) - 2.0) * gap
+		var fc = rc.lightened(0.03 * float(i % 2))
+		# kafanın orta yüksekliğinde uçurum yüzeyi (kuzeye doğru arazi bu yüksekliği geçtiği ilk nokta)
+		var fn = _cliff_surface(b, fx, cliff_n, fy)
+		_stone_head(b, i, Vector3(fx, fy, fn), H, fc.darkened(0.1))
+		# başın üstünde uçurumdan çıkan ince kaya saçağı (yüzleri çerçeveler)
+		var tn = _cliff_surface(b, fx, cliff_n, fy + H * 0.66)
+		b.box(Vector3(fx, fy + H * 0.66, tn - 1.5), Vector3(gap * 0.95, 2.5, 4.0), fc.darkened(0.25), 0, true)
 	# tepe seyir yeri (uçurumun hemen arkası)
 	var ln = cliff_n + 35.0
 	b.box(Vector3(cx, _gy(b, cx, ln) + 0.5, ln), Vector3(70, 1, 24), Color(0.55, 0.45, 0.35), 0, false)
@@ -579,11 +569,11 @@ static func _hokage_faces(b: Builder, rock: Dictionary, cliff_n: float, v: Dicti
 
 ## Gerçek karakter kafasından oyulmuş dev taş yüz: her Hokage farklı saç, yüz ve bant
 const HOKAGE_LOOKS := [
-	{"hair_style": "uzun", "face": "köşeli", "band": null, "beard": false},
-	{"hair_style": "dağınık", "face": "keskin", "band": Color.WHITE, "band_style": "head"},
-	{"hair_style": "kase", "face": "yuvarlak", "band": Color.WHITE, "band_style": "head", "beard": true},
-	{"hair_style": "diken", "face": "normal", "band": Color.WHITE, "band_style": "head"},
-	{"hair_style": "atkuyruğu", "face": "ince", "band": Color.WHITE, "band_style": "head", "gender": "f"},
+	{"hair_style": "uzun", "face_id": 0, "band": null},
+	{"hair_style": "geriye", "face_id": 1, "band": Color.WHITE, "band_style": "head"},
+	{"hair_style": "kase", "face_id": 2, "band": Color.WHITE, "band_style": "head"},
+	{"hair_style": "kısa", "face_id": 3, "band": Color.WHITE, "band_style": "head"},
+	{"hair_style": "kisa_kakul", "face_id": 1, "band": Color.WHITE, "band_style": "head", "gender": "f"},
 ]
 static func _stone_head(b: Builder, i: int, at: Vector3, height: float, col: Color) -> void:
 	var look = {"gender": "m", "age": "adult", "top_style": "uzun", "vest": null}
@@ -598,21 +588,54 @@ static func _stone_head(b: Builder, i: int, at: Vector3, height: float, col: Col
 	var neck_y = sk.get_bone_global_rest(sk.find_bone("Neck")).origin.y
 	var sc = height / 0.3   # kafa ~0.3 m -> hedef yükseklik
 	hm.scale = Vector3.ONE * sc
-	hm.rotation.y = PI      # yüz güneye (köye) bakar
-	# kafa merkezi uçurum yüzüne yarı gömülü
-	var wp = b.w(at + Vector3(0, 0, height * 0.18))
-	hm.global_position = wp - Vector3(0, (head_y + 0.08) * sc, 0)
+	hm.rotation = Vector3(deg_to_rad(-8.0), PI, 0)  # yüz güneye (köye) bakar, hafif yukarı
+	# kafa uçurumdan dışarı taşar: merkezi yüzeyin biraz önünde (köy tarafı), arkası kayaya gömülü
+	var wp = b.w(at + Vector3(0, 0, -height * 0.08))
+	hm.global_position = wp - Vector3(0, (head_y + 0.05) * sc, 0)
+	# çarpışma: kafatası küresi + yüz/çene kutusu + boyun bloğu (üstünde durulabilir, içinden geçilmez)
+	var hc = b.w(at + Vector3(0, height * 0.08, -height * 0.08))
+	var body = StaticBody3D.new()
+	body.collision_layer = 1
+	b.root.add_child(body)
+	var add_shape = func(sh: Shape3D, xf: Transform3D) -> void:
+		var cs = CollisionShape3D.new()
+		cs.shape = sh
+		cs.transform = xf
+		body.add_child(cs)
+	var sp = SphereShape3D.new()
+	sp.radius = height * 0.46
+	add_shape.call(sp, Transform3D(Basis.IDENTITY, hc))
+	var bx = BoxShape3D.new()
+	bx.size = Vector3(height * 0.62, height * 0.55, height * 0.6)
+	add_shape.call(bx, Transform3D(Basis.IDENTITY, hc + Vector3(0, -height * 0.3, height * 0.05)))
 	var m = ShaderMaterial.new()
 	m.shader = load("res://shaders/stone_head.gdshader")
 	m.set_shader_parameter("stone", col)
-	m.set_shader_parameter("cut_world_y", hm.global_position.y + (neck_y - 0.02) * sc)
+	m.set_shader_parameter("cut_world_y", hm.global_position.y + (neck_y + 0.015) * sc)
 	for mi in hm.find_children("*", "MeshInstance3D", true, false):
-		var nm = String(mi.name).to_lower()
-		if nm.contains("eye") and not nm.contains("brow"):
-			mi.visible = false
-			continue
-		mi.material_override = m
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+		if mi.mesh == null:
+			continue
+		# her yüzey kendi dokusuyla taşa oyulur: göz, kaş, ağız ve saç telleri çizgi olarak okunur
+		for si in mi.mesh.get_surface_count():
+			var src = mi.get_surface_override_material(si)
+			if src == null:
+				src = mi.mesh.surface_get_material(si)
+			if src == null and mi.material_override != null:
+				src = mi.material_override
+			var t: Texture2D = null
+			if src is ShaderMaterial:
+				t = src.get_shader_parameter("tex")
+			elif src is BaseMaterial3D:
+				if src.albedo_color.a < 0.05:
+					continue  # görünmez yüz parçası
+				t = src.albedo_texture
+			var sm = m.duplicate()
+			if t != null:
+				sm.set_shader_parameter("tex", t)
+				sm.set_shader_parameter("use_tex", true)
+			mi.set_surface_override_material(si, sm)
+		mi.material_override = null
 
 
 ## Prosedürel Ichiraku tarzı tezgâh (hayran modeli yoksa)
@@ -627,6 +650,16 @@ static func _ichiraku_boxes(b: Builder, ix: float, inn: float) -> void:
 		b.box(Vector3(ix - 3.7 + i * 1.48, 3.1, inn + 2.55), Vector3(1.3, 1.1, 0.06), Color(0.95, 0.95, 0.95) if i % 2 else Color(0.85, 0.28, 0.22), 0, false)
 	for i in 4:
 		b.cyl(Vector3(ix - 3 + i * 2, 0.4, inn + 3.4), 0.7, 0.8, Color(0.72, 0.18, 0.15), false, 10)
+
+
+## Uçurum yüzeyi: verilen yükseklikte kuzeye doğru arazinin bu yüksekliği geçtiği ilk n
+static func _cliff_surface(b: Builder, x: float, cliff_n: float, y: float) -> float:
+	var nn = cliff_n - 140.0
+	while nn < cliff_n + 220.0:
+		if _gy(b, x, nn) > y:
+			return nn
+		nn += 1.0
+	return cliff_n
 
 
 static func _free(x: float, n: float, occ: Array, pad: float) -> bool:

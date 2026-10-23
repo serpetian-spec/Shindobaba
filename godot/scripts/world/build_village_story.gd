@@ -71,8 +71,10 @@ static func _compound(parent: Node3D, v: Dictionary, sty: Dictionary) -> void:
 	for i in 6:
 		b.box(Vector3(-11 + i * 4.4, ay + 7.5, -6.6), Vector3(2.0, 1.6, 0.3), Color(0.55, 0.75, 0.9), 0.0, false)
 	b.interact(Vector3(0, ay, -9), 8, "academy", "[F] Akademi hocasıyla konuş (%s Akademisi)" % vn)
-	for i in 4:
-		Spawner.dummy(b.w(Vector3(-15 + i * 10, g.call(-15 + i * 10, -24), -24)))
+	var arng = RandomNumberGenerator.new()
+	arng.seed = hash(v["id"] + "_akademi")
+	AcademyGrounds.dress(b, 0.0, -6.5, 30.0, 44.0, arng, {"vid": v["id"], "climate": {"suna": "desert", "iwa": "dry", "kumo": "dry"}.get(v["id"], "green"),
+		"flag": acc, "roof": roof, "bw": 28.0, "scale": 0.6, "flag_kanji": {"suna": "砂", "kiri": "霧", "kumo": "雲", "iwa": "岩"}.get(v["id"], "忍")})
 	# --- antrenman alanı
 	var tx = 46.0
 	var ty = g.call(tx, -6)

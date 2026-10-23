@@ -148,8 +148,15 @@ func step_move(wish: Vector3, dt: float, turn := true) -> void:
 		hv = hv.lerp(wish * slow, minf(1.0, dt * 10.0))
 	velocity.x = hv.x; velocity.z = hv.z
 	velocity.y -= 32.0 * dt
+	var pre = global_position
 	move_and_slide()
 	var g = Game.ground_height(global_position.x, global_position.z)
+	# uçuruma ışınlanma yok: adımda aşılamayacak dik arazi yatay hareketi durdurur
+	var horiz = Vector2(global_position.x - pre.x, global_position.z - pre.z).length()
+	if horiz > 0.0005 and g - minf(pre.y, global_position.y) > maxf(0.45, horiz * 1.4):
+		global_position = Vector3(pre.x, global_position.y, pre.z)
+		velocity.x = 0.0; velocity.z = 0.0
+		g = Game.ground_height(global_position.x, global_position.z)
 	var snap = maxf(0.3, hv.length() * dt * 1.6)
 	if grounded and velocity.y <= 0 and global_position.y > g and global_position.y - g < snap:
 		global_position.y = g

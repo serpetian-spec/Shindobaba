@@ -31,6 +31,7 @@ static func _make(rng: RandomNumberGenerator, i: int) -> Dictionary:
 	var walls = MB.new()
 	var roof = MB.new()
 	var det = MB.new()
+	var cols = []  # ek çarpışmalar: [merkez, boyut, x ekseni eğimi (derece)]
 	var white = Color(1, 1, 1)
 	# temel
 	det.add("box", Vector3(0, 0.25, 0), Vector3(w + 0.4, 0.5, d + 0.4), STONE)
@@ -82,11 +83,14 @@ static func _make(rng: RandomNumberGenerator, i: int) -> Dictionary:
 		for k in 7:
 			det.add("box", Vector3(-w * 0.3 + k * w * 0.1, by + 0.5, -d * 0.5 - 1.35), Vector3(0.08, 0.9, 0.08), WOOD.lightened(0.1))
 		det.add("box", Vector3(0, by + 0.95, -d * 0.5 - 1.35), Vector3(w * 0.62, 0.1, 0.1), WOOD)
+		cols.append([Vector3(0, by, -d * 0.5 - 0.7), Vector3(w * 0.6, 0.25, 1.4), 0.0])
 	# dış merdiven (yan cephe)
 	if floors >= 2 and rng.randf() < 0.3:
 		for k in 10:
 			det.add("box", Vector3(w * 0.5 + 0.7, 0.5 + k * fh / 10.0, -d * 0.3 + k * d * 0.06), Vector3(1.3, 0.16, 0.7), DARK.lightened(0.15))
 		det.add("box", Vector3(w * 0.5 + 1.35, 0.5 + fh * 0.6, 0.0), Vector3(0.08, 0.9, d * 0.7), DARK, Vector3(-25, 0, 0))
+		var run = d * 0.54; var rise = fh * 0.9
+		cols.append([Vector3(w * 0.5 + 0.7, 0.5 + rise * 0.5, -d * 0.03), Vector3(1.3, 0.25, sqrt(run * run + rise * rise)), -rad_to_deg(atan2(rise, run))])
 	# boru + çiçek saksıları
 	if rng.randf() < 0.35:
 		det.add("cyl", Vector3(-w * 0.5 - 0.15, h * 0.5, d * 0.25), Vector3(0.22, h, 0.22), Color(0.55, 0.57, 0.6), Vector3.ZERO, 6)
@@ -132,7 +136,8 @@ static func _make(rng: RandomNumberGenerator, i: int) -> Dictionary:
 		walls.add("box", Vector3(-w * 0.5 - aw * 0.5 + 0.1, 0.5 + ah * 0.5, d * 0.1), Vector3(aw, ah, ad), white)
 		roof.add("prism", Vector3(-w * 0.5 - aw * 0.5 + 0.1, 0.5 + ah + 0.6, d * 0.1), Vector3(aw + 1.0, 1.2, ad + 1.0), white)
 		_window(det, Vector3(-w * 0.5 - aw * 0.5, 0.5 + ah * 0.55, d * 0.1 - ad * 0.5), 0.0, rng)
-	return {"walls": walls.build(), "roof": roof.build(), "detail": det.build(), "w": w, "d": d, "h": h, "roof_top": roof_top}
+		cols.append([Vector3(-w * 0.5 - aw * 0.5 + 0.1, (0.5 + ah + 0.6) * 0.5, d * 0.1), Vector3(aw, 0.5 + ah + 0.6, ad), 0.0])
+	return {"walls": walls.build(), "roof": roof.build(), "detail": det.build(), "w": w, "d": d, "h": h, "roof_top": roof_top, "cols": cols}
 
 
 static func _window(b: MB, p: Vector3, yaw: float, rng: RandomNumberGenerator) -> void:
@@ -218,6 +223,13 @@ class Placer:
 		rc.shape = rs
 		rc.transform = Transform3D(xf.basis.orthonormalized(), pos + Vector3(0, (t["h"] + (t["roof_top"] - t["h"]) * 0.3) * scale, 0))
 		body.add_child(rc)
+		for c in t.get("cols", []):  # yan ek bina, balkon, dış merdiven
+			var ec = CollisionShape3D.new()
+			var es = BoxShape3D.new()
+			es.size = c[1] * scale
+			ec.shape = es
+			ec.transform = Transform3D(xf.basis.orthonormalized() * Basis(Vector3.RIGHT, deg_to_rad(c[2])), pos + xf.basis * c[0])
+			body.add_child(ec)
 		if key != "" and not key.begins_with("yolkenari"):   # iş parçacığında kurulan yol kenarı evleri paylaşılan sözlüğe yazmaz
 			if not Builder.roof_points.has(key):
 				Builder.roof_points[key] = []

@@ -1,9 +1,11 @@
 // Kayaya oyulmuş dev yüzler (Hokage Kayası): taş rengi, katman çizgileri, anime gölgesi; boyun altı çizilmez
 shader_type spatial;
-render_mode cull_back, diffuse_toon, specular_disabled;
+render_mode cull_disabled, diffuse_toon, specular_disabled;
 
 uniform vec4 stone : source_color = vec4(0.66, 0.6, 0.52, 1.0);
 uniform float cut_world_y = -1e9;
+uniform sampler2D tex : source_color, hint_default_white;
+uniform bool use_tex = false;   // yüz/saç dokusundan oyma çizgileri (göz, kaş, ağız, saç telleri)
 
 varying vec3 wp;
 
@@ -25,6 +27,12 @@ void fragment() {
 	vec3 c = stone.rgb * (0.86 + n * 0.22) * (0.94 + strata * 0.08);
 	// yaşlanma: yukarıdan inen hafif koyu lekeler
 	c *= 1.0 - 0.12 * smoothstep(0.6, 0.9, vnoise(vec2(wp.x * 0.15, wp.y * 0.02)));
+	if (use_tex) {
+		vec4 t = texture(tex, UV);
+		if (t.a < 0.4) discard;
+		float l = dot(t.rgb, vec3(0.3, 0.59, 0.11));
+		c *= mix(0.42, 1.06, smoothstep(0.12, 0.72, l));
+	}
 	ALBEDO = c;
 	ROUGHNESS = 1.0;
 }
