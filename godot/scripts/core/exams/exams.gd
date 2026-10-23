@@ -6,6 +6,7 @@ extends Node
 
 signal exam_finished(id: String, passed: bool)
 
+var _bell_greeted := false
 var cur := ""            # aktif sınav: academy_written | academy_practical | academy_targets | bell
 var data := {}
 var nodes: Array = []
@@ -668,6 +669,17 @@ func _process(dt: float) -> void:
 			if Game.player.global_position.distance_to(find_point(["training"])) < 30.0:
 				cur = ""
 				bell_start()
+		"":
+			# kayıttan dönünce de çalışsın: mezun + adım 3 + antrenman alanına gelince hoca karşılar
+			if Progress.story() == 3 and flags().get("academy_passed", false) and not Game.ui_open and Game.player:
+				if Game.player.global_position.distance_to(find_point(["training"])) < 25.0:
+					if not _bell_greeted:
+						_bell_greeted = true
+						var hi = Progress.home_info()
+						Hud.dialog(hi["s2"], "Geldin demek. Gerçek ninjalar bu testten sonra belli olur: Zil Testi. Hazır mısın?",
+							[{"label": "Zil Testine başla", "cb": bell_start}, {"label": "Biraz sonra", "cb": func(): pass}])
+				else:
+					_bell_greeted = false
 	# Jōnin krizi: 4 dakika sınırı (görevin 3. adımı)
 	var m = Missions.active()
 	if m.get("hook", "") == "Exams.jonin_done" and int(m.get("step", 0)) == 2:

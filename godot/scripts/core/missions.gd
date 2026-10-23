@@ -1570,6 +1570,10 @@ func _process_legacy(m: Dictionary) -> void:
 ## Hikâye adımının dünyadaki hedefi: {pos, name} (yoksa boş). Oyuncunun köyündeki noktalar tercih edilir.
 func story_target_for(s: int) -> Dictionary:
 	var home = Progress.home()
+	# Akademi geçildiyse adım 3'ün hedefi antrenman alanı (Zil Testi)
+	if s == 3 and Game.profile.get("flags", {}).get("academy_passed", false):
+		var tp = Exams.find_point(["training"])
+		return {"pos": tp, "name": "Antrenman Alanı — Zil Testi"}
 	var ck = "%s|%d" % [home, s]
 	if _story_cache.has(ck):
 		return _story_cache[ck]

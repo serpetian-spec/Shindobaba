@@ -104,6 +104,10 @@ func objective_text() -> String:
 	var s = story()
 	var t: String = STORY[mini(s, STORY.size() - 1)] if not STORY.is_empty() else ""
 	var pr = p()
+	if s == 3 and pr.get("flags", {}).get("academy_passed", false):
+		t = "Mezun oldun! Zil Testi: Antrenman Alanı'na git ve %s ile konuş (oku takip et)." % home_info()["s2"]
+	elif s == 3:
+		t = "Mezuniyet Sınavı: Akademi'de hocan %s ile konuş (Seviye %d/5)." % [home_info()["s1"], int(pr.get("level", 1))]
 	if s == 6:
 		t += "  (%d/3)" % mini(3, int(pr["missions_done"].get("D", 0)))
 	elif s == 7 or s == 9:
