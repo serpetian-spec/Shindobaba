@@ -416,13 +416,19 @@ func _update_charge(dt: float) -> void:
 	if want:
 		if action != "charge":
 			action = "charge"
-			p.model.play("cast", 0.15)
+			p.model.play("idle", 0.15)
+			# Naruto'daki gibi: eller göğüs önünde mühürde birleşir, ayaklar açık ve yere basık
+			p.model.overlay.set_pose("seal", 1.0)
+			p.model.overlay.set_pose("plant", 1.0)
 			if aura == null:
 				aura = FX.aura(p, Color(0.35, 0.7, 1.0), 1.2, Vector3(0, 0.9, 0), 0.0)
 			Sfx.play("wind", p.global_position, 0.8, 0.6)
 		p.chakra = minf(p.max_chakra, p.chakra + 32.0 * dt)
 	elif action == "charge":
 		action = ""
+	if action != "charge" and float(p.model.overlay.targets.get("plant", 0.0)) > 0.0:
+		p.model.overlay.set_pose("seal", 0.0)
+		p.model.overlay.set_pose("plant", 0.0)
 	if aura and action != "charge":
 		aura.emitting = false
 		var a = aura

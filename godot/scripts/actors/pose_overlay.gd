@@ -19,6 +19,7 @@ var toe_pitch = 0.0     # VRoid: içe aktarıcı ayak parmağı kemiğini yükse
 var cast_pose := {}
 var charge_k := 0.0     # süper zıplama şarjı 0..1: çömelme derinliği
 var glide_land := 0.0   # süzülmeden inişe hazırlık 0..1 (dizler öne, kollar dengede)
+var tuck := 0.0         # havada takla / kenara tırmanış: dizler göğse, kollar dizlere sarılı 0..1 (süzülmeyi ezer)
 var _t := 0.0
 const FINGERS := ["Index", "Middle", "Ring", "Little"]
 const FINGER_SEG := ["Proximal", "Intermediate", "Distal"]
@@ -45,6 +46,7 @@ func _ready() -> void:
 		"guard": {"_Guard": 1},
 		"leap": {"_Leap": 1},
 		"charge": {"_Charge": 1},
+		"plant": {"_Plant": 1},
 		"cast": {"_Cast": 1},
 		# silah duruşları (bekleme/koşu): ters tutuş kunai, iki elle kılıç, omuzda ağır silah, çift bıçak alçak, yelpaze yanda
 		"w_blade": {}, "w_sword": {}, "w_shoulder": {}, "w_dual": {}, "w_fan": {},
@@ -92,6 +94,11 @@ func _process_modification() -> void:
 	var w_leap: float = weights.get("leap", 0.0)
 	if w_leap > 0.0:
 		_glide_pose(sk, w_leap)
+	if tuck > 0.0:
+		_tuck_pose(sk, tuck)
+	var w_plant: float = weights.get("plant", 0.0)
+	if w_plant > 0.0:
+		_plant_pose(sk, w_plant)
 	# silah duruşları (mühür/blok/tekme sonra gelir ve bunları ezer)
 	for st in STANCE:
 		var ws: float = weights.get(st, 0.0)
@@ -219,6 +226,34 @@ func _glide_pose(sk: Skeleton3D, w: float) -> void:
 		_rot_model(sk, "RightLowerLeg", Vector3(-0.03, -0.95, -0.3), lw)
 		_rot_model(sk, "LeftFoot", Vector3(0.0, -0.3, 0.95), lw)
 		_rot_model(sk, "RightFoot", Vector3(0.0, -0.3, 0.95), lw)
+
+
+## Takla: top gibi toplanma; dizler göğse çekilir, baldırlar katlanır, kollar dizleri sarar, baş öne eğik
+func _tuck_pose(sk: Skeleton3D, w: float) -> void:
+	_add_local(sk, "Spine", Vector3(deg_to_rad(28), 0, 0), w)
+	_add_local(sk, "Chest", Vector3(deg_to_rad(16), 0, 0), w)
+	_add_local(sk, "Neck", Vector3(deg_to_rad(18), 0, 0), w)
+	for side in [["Left", 1.0], ["Right", -1.0]]:
+		var sx: float = side[1]
+		_rot_model(sk, side[0] + "UpperLeg", Vector3(0.16 * sx, 0.3, 0.94), w)
+		_rot_model(sk, side[0] + "LowerLeg", Vector3(0.05 * sx, -0.96, -0.28), w)
+		_rot_model(sk, side[0] + "Foot", Vector3(0.0, -0.55, -0.83), w)
+		_rot_model(sk, side[0] + "UpperArm", Vector3(0.3 * sx, -0.55, 0.78), w)
+		_rot_model(sk, side[0] + "LowerArm", Vector3(-0.3 * sx, -0.8, 0.52), w)
+
+
+## Chakra doldurma duruşu: ayaklar omuz genişliğinden açık, dizler hafif kırık, kalça biraz alçak (eller mühürde)
+func _plant_pose(sk: Skeleton3D, w: float) -> void:
+	var hb = sk.find_bone("Hips")
+	if hb >= 0:
+		sk.set_bone_pose_position(hb, sk.get_bone_pose_position(hb) + Vector3(0, -0.09 * w, 0))
+	for side in [["Left", 1.0], ["Right", -1.0]]:
+		var sx: float = side[1]
+		_rot_model(sk, side[0] + "UpperLeg", Vector3(0.3 * sx, -0.93, 0.2), w)
+		_rot_model(sk, side[0] + "LowerLeg", Vector3(0.14 * sx, -0.97, -0.2), w)
+		_rot_model(sk, side[0] + "Foot", Vector3(0.15 * sx, -0.3, 0.94), w)
+	_add_local(sk, "Spine", Vector3(deg_to_rad(6), 0, 0), w)
+	_add_local(sk, "Neck", Vector3(deg_to_rad(-6), 0, 0), w)
 
 
 ## Jutsu pozu: gövde, kollar (sırayla), parmaklar

@@ -50,6 +50,11 @@ var air_dash_used = 0
 var dash_t = 0.0
 var wall_n = Vector3.ZERO  # 0 ise duvarda değil
 var wall_cd = 0.0
+var wall_stall = 0.0       # duvarda yukarı basılıyken ilerleyemeden geçen süre (saçak/balkon altı)
+# kenara tutunup üstüne çıkma (duvar tepesi, saçak, balkon): 3 noktalı eğri boyunca kısa geçiş
+var mantle_t = -1.0
+var mantle_pts: Array = []
+var mantle_dur = 0.35
 var facing = 0.0
 var on_water = false
 var swimming = false
@@ -400,6 +405,8 @@ func _physics_process(dt: float) -> void:
 	_update_leap_charge(dt)
 	if fly_src != "":
 		_fly_move(dt)
+	elif mantle_t >= 0.0:
+		_mantle_move(dt)
 	elif rope_t >= 0.0:
 		_rope_move(dt)
 	elif wall_n != Vector3.ZERO:
@@ -457,13 +464,7 @@ func _ground_air_move(dt: float) -> void:
 	# dik arazi (uçurum) = duvar: üstüne ışınlanma yok; içine doğru koşuyorsan duvar koşusuna geç
 	var steep_n = _steep_block(pre_pos)
 	if steep_n != Vector3.ZERO and wall_cd <= 0.0 and not swimming and wish.dot(-steep_n) > 0.35:
-		wall_n = steep_n
-		terrain_wall = true
-		velocity = Vector3.ZERO
-		grounded = false
-		air_dash_ok = true
-		air_dash_used = 0
-		Sfx.play("land", global_position, 1.3)
+		_enter_wall(steep_n, true)
 		return
 	# arazi + su yüzeyi
 	var p = global_position
@@ -517,12 +518,7 @@ func _ground_air_move(dt: float) -> void:
 		if n.length() > 0.5:
 			n = n.normalized()
 			if wish.dot(-n) > 0.35 and _wall_tall(n):
-				wall_n = n
-				velocity = Vector3.ZERO
-				grounded = false
-				air_dash_ok = true
-				air_dash_used = 0
-				Sfx.play("land", global_position, 1.3)
+				_enter_wall(n, false)
 	# yön + animasyon
 	var hv = Vector3(velocity.x, 0, velocity.z)
 	var sp = hv.length()
@@ -648,6 +644,8 @@ func _fly_move(dt: float) -> void:
 ## Süper zıplamanın tepesinde öne takla (kalça etrafında)
 func _apply_flip(dt: float) -> void:
 	if flip_t < 0.0 or wall_n != Vector3.ZERO:
+		if mantle_t < 0.0 and model.overlay.tuck > 0.0:
+			model.overlay.tuck = move_toward(model.overlay.tuck, 0.0, dt * 6.0)
 		return
 	if velocity.y < 4.0 or flip_t > 0.0:
 		flip_t += dt
@@ -658,8 +656,11 @@ func _apply_flip(dt: float) -> void:
 	var b = Basis(Vector3.UP, facing) * Basis(Vector3.RIGHT, ang)
 	model.transform = Transform3D(b, model.position + c - b * c + Basis(Vector3.UP, facing) * Vector3.ZERO)
 	model.scale = Vector3.ONE * model.age_scale
+	# takla boyunca top gibi toplan (bacaklar süzülme pozunda donuk kalmasın)
+	model.overlay.tuck = clampf(sin(PI * k) * 1.6, 0.0, 1.0) if flip_t > 0.0 else 0.0
 	if k >= 1.0:
 		flip_t = -1.0
+		model.overlay.tuck = 0.0
 		model.overlay.set_pose("leap", 1.0)  # taklanın ardından süzülme
 
 
@@ -784,14 +785,33 @@ func _wall_move(dt: float) -> void:
 				"colors": [Color(0.5, 0.85, 1.0, 0.9), Color(0.4, 0.7, 1.0, 0)]})
 	var move = Vector3.UP * up_amt * spd + side * side_amt * spd
 	velocity = move - n * 3.0  # duvara bastır
+	var pre = global_position
 	move_and_slide()
+	# saçak/balkon/korkuluk altında yukarı ilerleyemiyorsan: üstüne tırman (ya da duvardan bırak, sonsuza dek yapışma)
+	if up_amt > 0.2 and global_position.y - pre.y < spd * up_amt * dt * 0.3:
+		wall_stall += dt
+	else:
+		wall_stall = 0.0
+	if wall_stall > 0.12:
+		var ledge = _find_ledge(n, true)
+		if ledge != null:
+			_start_mantle(ledge, n)
+			return
+		if wall_stall > 0.45:
+			velocity = n * 5.0 + Vector3.UP * 2.0
+			_leave_wall()
+			return
 	var space = get_world_3d().direct_space_state
 	var center = global_position + Vector3.UP * 0.9
 	var q = PhysicsRayQueryParameters3D.create(center, center - n * 1.0, 1)
 	var hit = space.intersect_ray(q)
 	if hit.is_empty():
-		# duvar bitti: yukarı gidiyorsak tepeye fırla
+		# duvar bitti: yukarı gidiyorsak kenara tutunup üstüne çık (çatı saçağı dahil); bulunamazsa tepeye fırla
 		if up_amt > 0.2:
+			var top = _find_ledge(n, false)
+			if top != null:
+				_start_mantle(top, n)
+				return
 			velocity = -n * 6.0 + Vector3.UP * 9.0
 			model.play("jump", 0.05, 1.4, true)
 		_leave_wall()
@@ -892,7 +912,84 @@ func _end_rope() -> void:
 	jumps = maxi(jumps, 1)
 
 
+## Duvara yapış: süzülme/takla pozları hemen bırakılır, yoksa bacaklar süzülme pozunda donuk kalıyordu
+func _enter_wall(n: Vector3, terrain: bool) -> void:
+	wall_n = n
+	terrain_wall = terrain
+	wall_stall = 0.0
+	velocity = Vector3.ZERO
+	grounded = false
+	air_dash_ok = true
+	air_dash_used = 0
+	leaping = false
+	flip_t = -1.0
+	model.overlay.snap("leap", 0.0)
+	model.overlay.glide_land = 0.0
+	model.overlay.tuck = 0.0
+	Sfx.play("land", global_position, 1.3)
+
+
+## Duvarın tepesinde ya da önündeki çıkıntıda (saçak, balkon, sundurma) basılabilir bir yüzey ara.
+## overhang: yukarısı tıkalı (önce dışarı taşan çıkıntının üstüne bak); değilse önce çatının/duvarın üstüne.
+func _find_ledge(n: Vector3, overhang: bool):
+	var space = get_world_3d().direct_space_state
+	var p = global_position
+	var offs = [-0.6, -1.2, -1.8, 0.8, 1.6, 2.6] if overhang else [0.8, 1.6, 2.6, 3.6, -0.6, -1.2]
+	for k in offs:
+		var c = p - n * k   # k>0: duvarın içine (çatıya), k<0: duvardan dışarı (çıkıntı)
+		var q = PhysicsRayQueryParameters3D.create(Vector3(c.x, p.y + 6.5, c.z), Vector3(c.x, p.y + 0.2, c.z), 1, [get_rid()])
+		var h = space.intersect_ray(q)
+		if h.is_empty() or (h["normal"] as Vector3).y < 0.5:
+			continue
+		var top: Vector3 = h["position"]
+		# baş için boşluk: üstü açık olmalı
+		var q2 = PhysicsRayQueryParameters3D.create(top + Vector3.UP * 0.15, top + Vector3.UP * 1.7, 1, [get_rid()])
+		if not space.intersect_ray(q2).is_empty():
+			continue
+		return top + Vector3.UP * 0.05
+	return null
+
+
+func _start_mantle(target: Vector3, n: Vector3) -> void:
+	var p = global_position
+	var out = (target - p).dot(n) > 0.2   # dışarı taşan çıkıntı: önce dışarı çık, sonra üstüne
+	var mid = (p + target) * 0.5
+	if out:
+		mid = Vector3(target.x, maxf(p.y, target.y) + 1.4, target.z) + n * 0.6
+	mid.y = maxf(p.y, target.y) + 1.3
+	mantle_pts = [p, mid, target]
+	mantle_dur = clampf(p.distance_to(target) / 10.0, 0.28, 0.55)
+	mantle_t = 0.0
+	_leave_wall()
+	var hd = target - p
+	hd.y = 0
+	if hd.length() > 0.2:
+		facing = atan2(-hd.x, -hd.z)
+	model.rotation = Vector3(0, facing, 0)
+	model.play("jump", 0.05, 1.6, true)
+	Sfx.play("whoosh", global_position, 1.3, 0.6)
+
+
+func _mantle_move(dt: float) -> void:
+	mantle_t += dt
+	var k = clampf(mantle_t / mantle_dur, 0.0, 1.0)
+	var a: Vector3 = mantle_pts[0]; var b: Vector3 = mantle_pts[1]; var c: Vector3 = mantle_pts[2]
+	global_position = a.lerp(b, k).lerp(b.lerp(c, k), k)
+	model.overlay.tuck = sin(PI * k) * 0.75
+	velocity = Vector3.ZERO
+	if k >= 1.0:
+		mantle_t = -1.0
+		model.overlay.tuck = 0.0
+		var hd = c - a
+		hd.y = 0
+		velocity = hd.normalized() * 3.0 if hd.length() > 0.1 else Vector3.ZERO
+		grounded = false
+		wall_cd = 0.15
+		land_t = 0.0
+
+
 func _leave_wall() -> void:
+	wall_stall = 0.0
 	terrain_wall = false
 	wall_n = Vector3.ZERO
 	wall_cd = 0.25
@@ -1014,6 +1111,8 @@ func respawn(pos: Vector3) -> void:
 	hp = max_hp
 	chakra = max_chakra
 	wall_n = Vector3.ZERO
+	mantle_t = -1.0
+	flip_t = -1.0
 	if combat:
 		combat.action = ""
 	model.transform = Transform3D.IDENTITY
