@@ -78,6 +78,8 @@ static func archetype(kind: String, i := 0) -> Dictionary:
 ## Tip başına en yüksek jutsu rütbesi (E0 D1 C2 B3 A4 S5); seviye de ayrıca sınırlar
 const JUTSU_CAP := {"rogue": 4, "oto": 3, "kumo": 4, "kiri": 4, "iwa": 4, "suna": 4, "genin_rival": 2}
 const RANK_I := {"E": 0, "D": 1, "C": 2, "B": 3, "A": 4, "S": 5}
+## Ünlü ninjaların imza teknikleri sıradan düşmana verilmez (Efsane Yolları ve boss'lar kullanır)
+const SIGNATURE := ["raiton_armor", "kuroi_kaminari", "joki_boi"]
 
 
 static func _lv_cap(lv: int) -> int:
@@ -103,7 +105,7 @@ static func auto_jutsu(kind: String, el: String, lv: int) -> Array:
 		if not j is Dictionary or String(j.get("element", "")) != el or String(j.get("category", "")) != "ninjutsu":
 			continue
 		var lp = String(j.get("learn", "")).split(":")[0]
-		if lp in ["clan", "kg", "eye", "kinjutsu", "quest", "sage"]:
+		if lp in ["clan", "kg", "eye", "kinjutsu", "quest", "sage"] or id in SIGNATURE:
 			continue
 		var r = int(RANK_I.get(String(j.get("canon_rank", "")), -1))
 		if r < 0 or r > cap:
