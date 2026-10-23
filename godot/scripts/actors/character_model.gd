@@ -490,6 +490,7 @@ var age_scale = 1.0
 func apply_age(age: String) -> void:
 	var a: Array = AGES.get(age, AGES["adult"])
 	age_scale = a[0]
+	look["age"] = age   # klonlar (bunshin) aynı yaşta çıksın
 	scale = Vector3.ONE * age_scale
 	overlay.head_scale = a[1]
 	overlay.chest_scale = a[2]

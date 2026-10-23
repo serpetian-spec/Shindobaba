@@ -797,7 +797,7 @@ func j_bunshin(c: Node3D, _t: Node3D) -> void:
 		var off = c.global_transform.basis.x * (2.5 if i == 0 else -2.5)
 		var cl = ShadowClone.new()
 		cl.team = c.team
-		cl.look = c.model.look
+		cl.look = c.model.look.duplicate()
 		get_tree().current_scene.add_child(cl)
 		cl.global_position = c.global_position + off
 		FX.smoke_puff(cl.global_position + Vector3.UP, 1.0, 14)

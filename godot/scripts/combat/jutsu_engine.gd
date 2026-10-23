@@ -1113,7 +1113,7 @@ static func _clone(c: Node3D, d: Dictionary) -> void:
 		var off = Vector3(cos(ang), 0, sin(ang)) * 2.6
 		var cl = ShadowClone.new()
 		cl.team = c.team
-		cl.look = c.model.look if c.get("model") else {}
+		cl.look = c.model.look.duplicate() if c.get("model") else {}
 		scene().add_child(cl)
 		cl.global_position = c.global_position + off
 		if d.get("element", "") != "":

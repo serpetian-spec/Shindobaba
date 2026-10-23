@@ -2149,11 +2149,17 @@ static func world_map(main: Node) -> void:
 	var side = PanelContainer.new()
 	side.add_theme_stylebox_override("panel", UI.glass(16, 20, 0.8))
 	side.anchor_left = 1.0; side.anchor_right = 1.0
-	side.offset_left = -side_w - 40; side.offset_right = -40; side.offset_top = 100
+	side.anchor_bottom = 1.0
+	side.offset_left = -side_w - 40; side.offset_right = -40; side.offset_top = 100; side.offset_bottom = -110
 	side.custom_minimum_size = Vector2(side_w, 0)
 	bg.add_child(side)
+	# liste uzun olunca tekerlekle aşağı kaydırılabilsin
+	var scroll = ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	side.add_child(scroll)
 	var sv = UI.vbox(8)
-	side.add_child(sv)
+	sv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(sv)
 	sv.add_child(UI.header("HIZLI SEYAHAT", 18))
 	sv.add_child(UI.label("Keşfettiğin köylere ışınlan.", 13, UI.MUTED))
 	for v in Game.world_info["villages"]:
