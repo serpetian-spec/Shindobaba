@@ -17,6 +17,9 @@ var toe_pitch = 0.0     # VRoid: içe aktarıcı ayak parmağı kemiğini yükse
 ## {"arms": [[kemik, model-uzayı yön], ...] (ebeveynden çocuğa sırayla), "fL"/"fR": [işaret, orta, yüzük, serçe, başparmak] kıvrım (rad),
 ##  "spine": derece, "neck": derece, "hips_yaw": derece}
 var cast_pose := {}
+var charge_k := 0.0     # süper zıplama şarjı 0..1: çömelme derinliği
+var glide_land := 0.0   # süzülmeden inişe hazırlık 0..1 (dizler öne, kollar dengede)
+var _t := 0.0
 const FINGERS := ["Index", "Middle", "Ring", "Little"]
 const FINGER_SEG := ["Proximal", "Intermediate", "Distal"]
 const THUMB_SEG := ["Metacarpal", "Proximal", "Distal"]
@@ -41,6 +44,7 @@ func _ready() -> void:
 		"kick": {"_Kick": 1},
 		"guard": {"_Guard": 1},
 		"leap": {"_Leap": 1},
+		"charge": {"_Charge": 1},
 		"cast": {"_Cast": 1},
 		# silah duruşları (bekleme/koşu): ters tutuş kunai, iki elle kılıç, omuzda ağır silah, çift bıçak alçak, yelpaze yanda
 		"w_blade": {}, "w_sword": {}, "w_shoulder": {}, "w_dual": {}, "w_fan": {},
@@ -49,6 +53,12 @@ func _ready() -> void:
 
 func set_pose(name: String, w: float) -> void:
 	targets[name] = w
+
+
+## Ağırlığı beklemeden ayarla (koşudan ani vuruşa geçerken kollar geride kalmasın)
+func snap(name: String, w: float) -> void:
+	targets[name] = w
+	weights[name] = w
 
 
 func _process_modification() -> void:
@@ -63,25 +73,25 @@ func _process_modification() -> void:
 	var w_kick: float = weights.get("kick", 0.0)
 	var w_guard: float = weights.get("guard", 0.0)
 	if w_run > 0.0:
-		_rot_model(sk, "LeftUpperArm", Vector3(-0.15, -0.55, -0.82), w_run)
-		_rot_model(sk, "RightUpperArm", Vector3(0.15, -0.55, -0.82), w_run)
-		_rot_model(sk, "LeftLowerArm", Vector3(-0.1, -0.3, -0.95), w_run)
-		_rot_model(sk, "RightLowerArm", Vector3(0.1, -0.3, -0.95), w_run)
+		# Naruto koşusu: omuzlar geriye çekilir, kollar dirsekten kırılmadan dümdüz geride, avuçlar açık;
+		# kol gövdenin/kalçanın arkasında kaybolmasın diye neredeyse yatay tutulur (boyu tam görünür)
+		_rot_model(sk, "LeftShoulder", Vector3(0.88, 0.08, -0.46), w_run)
+		_rot_model(sk, "RightShoulder", Vector3(-0.88, 0.08, -0.46), w_run)
+		_rot_model(sk, "LeftUpperArm", Vector3(0.2, -0.3, -0.93), w_run)
+		_rot_model(sk, "RightUpperArm", Vector3(-0.2, -0.3, -0.93), w_run)
+		_rot_model(sk, "LeftLowerArm", Vector3(0.2, -0.2, -0.96), w_run)
+		_rot_model(sk, "RightLowerArm", Vector3(-0.2, -0.2, -0.96), w_run)
+		_flat_hand(sk, "Left", Vector3(0.2, -0.16, -0.97), w_run)
+		_flat_hand(sk, "Right", Vector3(-0.2, -0.16, -0.97), w_run)
 		_add_local(sk, "Spine", Vector3(deg_to_rad(16), 0, 0), w_run)
 		_add_local(sk, "Neck", Vector3(deg_to_rad(-14), 0, 0), w_run)
+	_t += dt
+	var w_charge: float = weights.get("charge", 0.0)
+	if w_charge > 0.0:
+		_charge_pose(sk, w_charge)
 	var w_leap: float = weights.get("leap", 0.0)
 	if w_leap > 0.0:
-		# Striker sıçrayışı: gövde öne yatık, kollar arkaya savrulmuş, bacaklar geride süzülür
-		_rot_model(sk, "LeftUpperArm", Vector3(-0.25, -0.35, -0.9), w_leap)
-		_rot_model(sk, "RightUpperArm", Vector3(0.25, -0.35, -0.9), w_leap)
-		_rot_model(sk, "LeftLowerArm", Vector3(-0.15, -0.2, -0.97), w_leap)
-		_rot_model(sk, "RightLowerArm", Vector3(0.15, -0.2, -0.97), w_leap)
-		_add_local(sk, "Spine", Vector3(deg_to_rad(28), 0, 0), w_leap)
-		_add_local(sk, "Neck", Vector3(deg_to_rad(-25), 0, 0), w_leap)
-		_rot_model(sk, "LeftUpperLeg", Vector3(0.05, -0.75, -0.65), w_leap)
-		_rot_model(sk, "RightUpperLeg", Vector3(-0.05, -0.95, 0.3), w_leap)
-		_rot_model(sk, "LeftLowerLeg", Vector3(0.0, -0.25, -0.97), w_leap)
-		_rot_model(sk, "RightLowerLeg", Vector3(0.0, -0.8, -0.6), w_leap)
+		_glide_pose(sk, w_leap)
 	# silah duruşları (mühür/blok/tekme sonra gelir ve bunları ezer)
 	for st in STANCE:
 		var ws: float = weights.get(st, 0.0)
@@ -132,6 +142,83 @@ func _process_modification() -> void:
 		var cb = sk.find_bone("UpperChest")
 		if cb >= 0:
 			sk.set_bone_pose_scale(cb, Vector3(chest_scale, 1.0, chest_scale))
+
+
+## El ve parmaklar verilen yönde dümdüz (yumruk değil, açık avuç)
+func _flat_hand(sk: Skeleton3D, side: String, dir: Vector3, w: float) -> void:
+	_rot_model(sk, side + "Hand", dir, w)
+	for f in FINGERS:
+		for seg in FINGER_SEG:
+			_rot_model(sk, side + f + seg, dir, w)
+
+
+## Striker süper zıplama şarjı: geniş, derin çömelme; gövde öne, baş ileri bakar, kollar kalçanın arkasına savrulmuş.
+## Şarj doldukça daha da alçalır ve hafifçe titrer (yay gibi gerilmiş).
+func _charge_pose(sk: Skeleton3D, w: float) -> void:
+	var k = clampf(charge_k, 0.0, 1.0)
+	var d = (0.55 + 0.45 * k) * w
+	var tremble = sin(_t * 55.0) * 0.012 * k * k * w
+	var hb = sk.find_bone("Hips")
+	if hb >= 0:
+		sk.set_bone_pose_position(hb, sk.get_bone_pose_position(hb) + Vector3(tremble, -0.34 * d, -0.06 * d))
+	_add_local(sk, "Hips", Vector3(deg_to_rad(12), 0, 0), d)
+	for side in [["Left", 1.0], ["Right", -1.0]]:
+		var sx: float = side[1]
+		# sol ayak bir adım önde, sağ geride (koşucu çıkışı)
+		var fwd = 0.95 if sx > 0.0 else 0.6
+		_rot_model(sk, side[0] + "UpperLeg", Vector3(0.32 * sx, -0.42, fwd), d)
+		_rot_model(sk, side[0] + "LowerLeg", Vector3(0.05 * sx, -0.92, -0.38 if sx > 0.0 else -0.62), d)
+		_rot_model(sk, side[0] + "Foot", Vector3(0.0, -0.4, 0.92), d)
+	_add_local(sk, "Spine", Vector3(deg_to_rad(28), 0, 0), d)
+	_add_local(sk, "Chest", Vector3(deg_to_rad(16), 0, 0), d)
+	_add_local(sk, "Neck", Vector3(deg_to_rad(-26), 0, 0), d)
+	_add_local(sk, "Head", Vector3(deg_to_rad(-12), 0, 0), d)
+	# kollar geride ve aşağıda, hafif dışa açık; dirsek hafif kırık
+	_rot_model(sk, "LeftUpperArm", Vector3(0.35, -0.5, -0.79), d)
+	_rot_model(sk, "RightUpperArm", Vector3(-0.35, -0.5, -0.79), d)
+	_rot_model(sk, "LeftLowerArm", Vector3(0.3, -0.4, -0.87), d)
+	_rot_model(sk, "RightLowerArm", Vector3(-0.3, -0.4, -0.87), d)
+	_flat_hand(sk, "Left", Vector3(0.28, -0.4, -0.87), d)
+	_flat_hand(sk, "Right", Vector3(-0.28, -0.4, -0.87), d)
+
+
+## Süper zıplamada süzülme: gövde öne yatık, kollar yanlara açık ve hafif geride (kanat gibi), bacaklar geride
+## süzülür; rüzgârda hafif dalgalanır. glide_land ile inişe hazırlanır (dizler öne, kollar öne-yana dengede).
+func _glide_pose(sk: Skeleton3D, w: float) -> void:
+	var l = clampf(glide_land, 0.0, 1.0)
+	var g = w * (1.0 - l)
+	var wob = sin(_t * 3.1) * 0.06
+	var wob2 = sin(_t * 4.3 + 1.0) * 0.05
+	if g > 0.0:
+		_add_local(sk, "Spine", Vector3(deg_to_rad(18), 0, 0), g)
+		_add_local(sk, "Chest", Vector3(deg_to_rad(8), 0, 0), g)
+		_add_local(sk, "Neck", Vector3(deg_to_rad(-22), 0, 0), g)
+		_rot_model(sk, "LeftUpperArm", Vector3(0.78, -0.15 + wob, -0.6), g)
+		_rot_model(sk, "RightUpperArm", Vector3(-0.78, -0.15 - wob, -0.6), g)
+		_rot_model(sk, "LeftLowerArm", Vector3(0.7, -0.25 + wob2, -0.67), g)
+		_rot_model(sk, "RightLowerArm", Vector3(-0.7, -0.25 - wob2, -0.67), g)
+		_flat_hand(sk, "Left", Vector3(0.62, -0.32, -0.72), g)
+		_flat_hand(sk, "Right", Vector3(-0.62, -0.32, -0.72), g)
+		_rot_model(sk, "LeftUpperLeg", Vector3(0.12, -0.8, -0.58 + wob), g)
+		_rot_model(sk, "RightUpperLeg", Vector3(-0.1, -0.97, 0.12 - wob), g)
+		_rot_model(sk, "LeftLowerLeg", Vector3(0.05, -0.72, -0.69), g)
+		_rot_model(sk, "RightLowerLeg", Vector3(-0.03, -0.75, -0.66), g)
+		_rot_model(sk, "LeftFoot", Vector3(0.0, -0.85, -0.5), g)
+		_rot_model(sk, "RightFoot", Vector3(0.0, -0.8, -0.2), g)
+	var lw = w * l
+	if lw > 0.0:
+		# iniş hazırlığı: dizler yukarı/öne, gövde dik, kollar yanlarda öne açık
+		_add_local(sk, "Spine", Vector3(deg_to_rad(10), 0, 0), lw)
+		_rot_model(sk, "LeftUpperArm", Vector3(0.75, -0.35, 0.55), lw)
+		_rot_model(sk, "RightUpperArm", Vector3(-0.75, -0.35, 0.55), lw)
+		_rot_model(sk, "LeftLowerArm", Vector3(0.55, -0.15, 0.82), lw)
+		_rot_model(sk, "RightLowerArm", Vector3(-0.55, -0.15, 0.82), lw)
+		_rot_model(sk, "LeftUpperLeg", Vector3(0.2, -0.55, 0.81), lw)
+		_rot_model(sk, "RightUpperLeg", Vector3(-0.15, -0.8, 0.45), lw)
+		_rot_model(sk, "LeftLowerLeg", Vector3(0.05, -0.98, -0.1), lw)
+		_rot_model(sk, "RightLowerLeg", Vector3(-0.03, -0.95, -0.3), lw)
+		_rot_model(sk, "LeftFoot", Vector3(0.0, -0.3, 0.95), lw)
+		_rot_model(sk, "RightFoot", Vector3(0.0, -0.3, 0.95), lw)
 
 
 ## Jutsu pozu: gövde, kollar (sırayla), parmaklar

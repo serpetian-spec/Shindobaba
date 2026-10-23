@@ -229,6 +229,7 @@ func _jump() -> void:
 ## Ctrl: ileri doğru uzun, yüksek ninja sıçrayışı (yerde ya da havada bir kez; duvarda duvardan sek)
 func _leap(power := 1.0) -> void:
 	_show_leap_ui(false)
+	model.overlay.set_pose("charge", 0.0)
 	if input_locked > 0.0:
 		return
 	if wall_n != Vector3.ZERO:
@@ -256,7 +257,8 @@ func _leap(power := 1.0) -> void:
 	Sfx.play("whoosh", global_position, 0.8)
 	model.play("jump", 0.05, 1.5, true)
 	model.overlay.set_pose("leap", 1.0)
-	model.overlay.set_pose("ninja_run", 0.0)
+	model.overlay.glide_land = 0.0
+	model.overlay.snap("ninja_run", 0.0)
 	if k > 0.8:
 		FX.impact(global_position, Color(0.85, 0.8, 0.65), 0.5)
 		Sfx.play("land", global_position, 0.7)
@@ -301,6 +303,7 @@ func _update_leap_charge(dt: float) -> void:
 	if not (grounded or swimming) or input_locked > 0.0:
 		leap_charge = -1.0
 		_show_leap_ui(false)
+		model.overlay.set_pose("charge", 0.0)
 		return
 	leap_charge = minf(1.0, leap_charge + dt / LEAP_CHARGE_TIME)
 	_show_leap_ui(true)
@@ -312,7 +315,11 @@ func _update_leap_charge(dt: float) -> void:
 		d = cam_forward()
 	d = d.normalized()
 	facing = lerp_angle(facing, atan2(-d.x, -d.z), minf(1.0, dt * 12.0))
-	model.play("crouch", 0.12)
+	# Striker çıkışı: derin çömelme, şarj doldukça daha alçak ve gergin
+	model.play("idle", 0.12)
+	model.overlay.charge_k = leap_charge
+	model.overlay.set_pose("charge", 1.0)
+	model.overlay.snap("ninja_run", 0.0)
 	# iniş yayı: balistik yörünge araziye çarpana kadar
 	var lmul = 1.0 + Stats.skill(Game.profile, "leap")
 	var v = d * lerpf(24.0, 56.0, leap_charge) * lmul + Vector3.UP * lerpf(14.0, 27.0, leap_charge) * sqrt(lmul)
@@ -518,6 +525,12 @@ func _ground_air_move(dt: float) -> void:
 	model.position = Vector3(0, -drop, 0)
 	if combat == null or not combat.busy():
 		_animate(sp, sprint)
+	elif combat.action != "chakra_dash":
+		# koşarken ani vuruş/jutsu: koşu kolları ve süzülme hemen bırakılır, saldırı animasyonu tam görünür
+		model.overlay.snap("ninja_run", 0.0)
+		model.overlay.set_pose("charge", 0.0)
+		if grounded:
+			model.overlay.snap("leap", 0.0)
 
 
 ## Süper zıplamanın tepesinde öne takla (kalça etrafında)
@@ -535,7 +548,7 @@ func _apply_flip(dt: float) -> void:
 	model.scale = Vector3.ONE * model.age_scale
 	if k >= 1.0:
 		flip_t = -1.0
-		model.overlay.set_pose("leap", 0.35)
+		model.overlay.set_pose("leap", 1.0)  # taklanın ardından süzülme
 
 
 ## Dik arazi engeli: yeni konumda arazi, oyuncunun bir adımda çıkabileceğinden yüksekse yatay hareketi geri alır.
@@ -784,6 +797,11 @@ func _animate(sp: float, sprint: bool) -> void:
 		if model.current not in ["jump", "roll"] or model.anim_progress() > 0.95:
 			model.play("air", 0.25)
 		ov.set_pose("ninja_run", 0.0)
+		if leaping and rope_t < 0.0:
+			# süzülme; yere yaklaşırken inişe hazırlan (dizler öne)
+			var h = global_position.y - Game.terrain_height(global_position.x, global_position.z)
+			var want = clampf(1.0 - (h - 1.5) / 6.0, 0.0, 1.0) if velocity.y < 0.0 else 0.0
+			ov.glide_land = move_toward(ov.glide_land, want, get_physics_process_delta_time() * 4.0)
 		return
 	if land_t > 0.0:
 		return
