@@ -284,9 +284,16 @@ func _amaterasu(t: Node3D, eternal: bool) -> void:
 	t.apply_status("burn", 10.0 if eternal else 8.0)
 	t.set_meta("black_flame", true)
 	t.take_hit({"dmg": 25.0, "knock": 0.0, "kind": "light", "dir": p.face_dir(), "element": "katon"})
-	FX.aura(t, Color(0.06, 0.02, 0.08), 1.4, Vector3(0, 0.9, 0), 8.0)
-	FX.burst(t.global_position + Vector3.UP, {"amount": 30, "life": 0.8, "tex": FX.tex_smoke, "add": false, "size": 1.2, "vmin": 1, "vmax": 4, "gravity": Vector3(0, 3, 0),
-		"colors": [Color(0.05, 0.0, 0.08, 1), Color(0.2, 0.0, 0.25, 0)]})
+	# hedefi saran kara cel alev (mor konturlu), süre bitince söner
+	var flame = VFX.fireball(2.6, "black")
+	t.add_child(flame)
+	flame.position = Vector3(0, 0.9, 0)
+	t.get_tree().create_timer(10.0 if eternal else 8.0).timeout.connect(func(): if is_instance_valid(flame): flame.queue_free())
+	VFX.puffs(t.global_position + Vector3.UP, {"amount": 30, "life": 0.8, "size": 1.4, "vmin": 1, "vmax": 4, "gravity": Vector3(0, 3, 0), "glow": 1.0,
+		"outline_col": Color(0.4, 0.05, 0.45), "colors": [Color(0.12, 0.02, 0.15, 1), Color(0.05, 0.0, 0.08, 1), Color(0.02, 0.0, 0.03, 0)]})
+	if Game.world:
+		Game.world.env.set_tint(Color(0.6, 0.0, 0.05, 0.25))
+		t.get_tree().create_timer(0.35).timeout.connect(func(): Game.world.env.set_tint(Color(0, 0, 0, 0)))
 
 
 func _air_palm() -> void:
@@ -303,8 +310,18 @@ func _kaiten() -> void:
 	c.invuln = 1.4
 	_push(5.0, 16.0)
 	p.model.play("roll", 0.05, 0.6, true)
-	FX.burst(p.global_position + Vector3.UP, {"amount": 60, "life": 0.6, "tex": FX.tex_smoke, "add": true, "size": 1.0, "vmin": 6, "vmax": 10,
-		"colors": [Color(0.8, 0.9, 1, 0.8), Color(0.6, 0.7, 1, 0)]})
+	# dönen chakra kubbesi (Kaiten): spiral kabuk + yer şok dalgası + toz
+	var dome = VFX._mi(VFX._sphere(0.5, 28, 14), VFX.mat_spiral(Color(1, 1, 1), Color(0.55, 0.75, 1.0), 6.0, 3.0, 14.0, 1.6, Vector3.UP))
+	p.add_child(dome)
+	dome.position = Vector3(0, 0.6, 0)
+	dome.scale = Vector3.ONE * 0.5
+	var tw = dome.create_tween()
+	tw.tween_property(dome, "scale", Vector3(7.0, 5.5, 7.0), 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(dome, "rotation:y", TAU * 3.0, 1.2)
+	tw.tween_property(dome, "scale", Vector3.ONE * 0.1, 0.25).set_ease(Tween.EASE_IN)
+	tw.tween_callback(dome.queue_free)
+	VFX.shockwave(p.global_position + Vector3.UP * 0.1, Color(0.7, 0.85, 1.0), 12.0, 0.5)
+	FX.dust(p.global_position, 1.4)
 
 
 func _push(r: float, force: float) -> void:

@@ -1,7 +1,7 @@
 // Anime (cel) enerji kütlesi: kademeli renk bantları, dönen akış gürültüsü, yumuşak kenar.
 // Storm tarzı jutsu çekirdekleri: ateş topu, su ejderhası, rasengan, chidori...
 shader_type spatial;
-render_mode unshaded, blend_mix, cull_back, depth_draw_opaque, shadows_disabled;
+render_mode unshaded, cull_back, depth_draw_opaque, shadows_disabled;
 
 uniform vec4 core : source_color = vec4(1.0, 0.95, 0.6, 1.0);
 uniform vec4 mid : source_color = vec4(1.0, 0.55, 0.1, 1.0);
@@ -36,10 +36,12 @@ void fragment() {
 	p.y -= TIME * flow;
 	float n = vn(p) * 0.65 + vn(p * 2.7 + TIME * 1.3) * 0.35;
 	float v = fres * 0.85 + (n - 0.5) * 0.6;
+	// sert silüet: gürültüyle aşınan kenar (yumuşak bulanık kenar yok) + koyu kontur bandı
+	if (fres + (n - 0.5) * 0.35 > 0.96 || alpha < 0.05) discard;
 	vec3 col;
-	if (v < 0.35) col = core.rgb;
-	else if (v < 0.62) col = mid.rgb;
-	else col = edge.rgb;
+	if (v < 0.3) col = core.rgb;
+	else if (v < 0.58) col = mid.rgb;
+	else if (v < 0.86) col = edge.rgb;
+	else col = edge.rgb * 0.45;
 	ALBEDO = col * bright;
-	ALPHA = alpha * (1.0 - smoothstep(0.8, 1.0, fres + (n - 0.5) * 0.3));
 }

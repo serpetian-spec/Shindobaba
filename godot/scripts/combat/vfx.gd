@@ -1,0 +1,568 @@
+class_name VFX
+extends RefCounted
+## Anime (Storm tarzı) efekt araç kutusu: cel alev/su/rüzgar/şimşek malzemeleri, ateş topu, rasengan, çarpma yıldızı,
+## şok dalgası, zemin çatlağı, moloz, sıçrama tacı, kurdele iz, ekran hız çizgileri. Tüm jutsular bunları kullanır.
+
+static var _cache := {}
+static var _speed_layer: CanvasLayer
+static var _speed_rect: ColorRect
+static var _active := 0
+const MAX_ACTIVE := 90   # aynı anda canlı ağır efekt sınırı (performans)
+
+const FIRE_PRESETS := {
+	"fire": [Color(1.0, 0.99, 0.86), Color(1.0, 0.86, 0.22), Color(1.0, 0.48, 0.06), Color(0.82, 0.13, 0.03), Color(0.3, 0.04, 0.02)],
+	"blue": [Color(0.92, 1.0, 1.0), Color(0.5, 0.85, 1.0), Color(0.15, 0.45, 1.0), Color(0.08, 0.18, 0.7), Color(0.02, 0.05, 0.25)],
+	"black": [Color(0.25, 0.08, 0.3), Color(0.12, 0.03, 0.15), Color(0.06, 0.0, 0.08), Color(0.03, 0.0, 0.04), Color(0.45, 0.1, 0.5)],
+	"lava": [Color(1.0, 0.9, 0.45), Color(1.0, 0.55, 0.1), Color(0.85, 0.25, 0.05), Color(0.45, 0.1, 0.04), Color(0.15, 0.04, 0.03)],
+	"green": [Color(0.9, 1.0, 0.85), Color(0.55, 1.0, 0.45), Color(0.15, 0.8, 0.3), Color(0.05, 0.45, 0.2), Color(0.02, 0.18, 0.08)],
+	"purple": [Color(1.0, 0.9, 1.0), Color(0.85, 0.55, 1.0), Color(0.55, 0.25, 0.95), Color(0.3, 0.1, 0.6), Color(0.12, 0.03, 0.25)],
+}
+
+
+static func scene() -> Node:
+	return (Engine.get_main_loop() as SceneTree).current_scene
+
+
+static func tree() -> SceneTree:
+	return Engine.get_main_loop()
+
+
+static func busy() -> bool:
+	return _active >= MAX_ACTIVE
+
+
+static func _track(n: Node) -> void:
+	_active += 1
+	n.tree_exited.connect(func(): _active = maxi(0, _active - 1))
+
+
+# ================================================================== malzemeler
+static func mat_fire(preset := "fire", speed := 2.2, scale_ := 2.4, erode := 0.42, glow := 1.35, wobble := 0.12, flow := Vector3.UP, unique := false) -> ShaderMaterial:
+	var key = "fire_%s_%.2f_%.2f_%.2f_%.2f_%.2f_%s" % [preset, speed, scale_, erode, glow, wobble, flow]
+	if not unique and _cache.has(key):
+		return _cache[key]
+	var m = ShaderMaterial.new()
+	m.shader = load("res://shaders/vfx_fire.gdshader")
+	var p: Array = FIRE_PRESETS.get(preset, FIRE_PRESETS["fire"])
+	for i in 5:
+		m.set_shader_parameter(["c_core", "c_hot", "c_mid", "c_edge", "c_line"][i], p[i])
+	m.set_shader_parameter("speed", speed)
+	m.set_shader_parameter("scale", scale_)
+	m.set_shader_parameter("erode", erode)
+	m.set_shader_parameter("glow", glow)
+	m.set_shader_parameter("wobble", wobble)
+	m.set_shader_parameter("flow", flow)
+	if not unique:
+		_cache[key] = m
+	return m
+
+
+static func mat_water(deep := Color(0.05, 0.28, 0.78), mid := Color(0.2, 0.55, 0.98), light := Color(0.62, 0.88, 1.0), flow := Vector3(0, 0, 1), alpha := 0.88, foam := 0.5, wobble := 0.06) -> ShaderMaterial:
+	var key = "water_%s_%s_%s_%s_%.2f_%.2f_%.2f" % [deep, mid, light, flow, alpha, foam, wobble]
+	if _cache.has(key):
+		return _cache[key]
+	var m = ShaderMaterial.new()
+	m.shader = load("res://shaders/vfx_water.gdshader")
+	m.set_shader_parameter("c_deep", deep)
+	m.set_shader_parameter("c_mid", mid)
+	m.set_shader_parameter("c_light", light)
+	m.set_shader_parameter("flow", flow)
+	m.set_shader_parameter("alpha", alpha)
+	m.set_shader_parameter("foam", foam)
+	m.set_shader_parameter("wobble", wobble)
+	_cache[key] = m
+	return m
+
+
+static func mat_ice() -> ShaderMaterial:
+	return mat_water(Color(0.35, 0.65, 0.9), Color(0.6, 0.85, 1.0), Color(0.9, 0.98, 1.0), Vector3(0, 1, 0), 0.82, 0.15, 0.0)
+
+
+static func mat_wind(tint := Color(0.78, 1.0, 0.9), speed := 6.0, lines := 6.0, axis := Vector3.UP, alpha := 0.85) -> ShaderMaterial:
+	var key = "wind_%s_%.2f_%.2f_%s_%.2f" % [tint, speed, lines, axis, alpha]
+	if _cache.has(key):
+		return _cache[key]
+	var m = ShaderMaterial.new()
+	m.shader = load("res://shaders/vfx_wind.gdshader")
+	m.set_shader_parameter("tint", tint)
+	m.set_shader_parameter("speed", speed)
+	m.set_shader_parameter("lines", lines)
+	m.set_shader_parameter("axis", axis)
+	m.set_shader_parameter("alpha", alpha)
+	_cache[key] = m
+	return m
+
+
+static func mat_spiral(line := Color(0.85, 0.95, 1.0), body := Color(0.2, 0.5, 1.0), arms := 5.0, twist := 3.0, speed := 6.0, intensity := 1.6, axis := Vector3.UP) -> ShaderMaterial:
+	var key = "spiral_%s_%s_%.2f_%.2f_%.2f_%.2f_%s" % [line, body, arms, twist, speed, intensity, axis]
+	if _cache.has(key):
+		return _cache[key]
+	var m = ShaderMaterial.new()
+	m.shader = load("res://shaders/vfx_spiral.gdshader")
+	m.set_shader_parameter("c_line", line)
+	m.set_shader_parameter("c_body", body)
+	m.set_shader_parameter("arms", arms)
+	m.set_shader_parameter("twist", twist)
+	m.set_shader_parameter("speed", speed)
+	m.set_shader_parameter("intensity", intensity)
+	m.set_shader_parameter("axis", axis)
+	_cache[key] = m
+	return m
+
+
+static func mat_bolt(col: Color, intensity := 2.2) -> ShaderMaterial:
+	var key = "bolt_%s_%.2f" % [col, intensity]
+	if _cache.has(key):
+		return _cache[key]
+	var m = ShaderMaterial.new()
+	m.shader = load("res://shaders/vfx_bolt.gdshader")
+	m.set_shader_parameter("col", col)
+	m.set_shader_parameter("intensity", intensity)
+	_cache[key] = m
+	return m
+
+
+static func mat_trail(head: Color, mid: Color, tail: Color, additive := 0.0) -> ShaderMaterial:
+	var key = "trail_%s_%s_%s_%.1f" % [head, mid, tail, additive]
+	if _cache.has(key):
+		return _cache[key]
+	var m = ShaderMaterial.new()
+	m.shader = load("res://shaders/vfx_trail.gdshader")
+	m.set_shader_parameter("c_head", head)
+	m.set_shader_parameter("c_mid", mid)
+	m.set_shader_parameter("c_tail", tail)
+	m.set_shader_parameter("additive", additive)
+	_cache[key] = m
+	return m
+
+
+## Parçacık topağı malzemesi (cel duman/alev)
+static func mat_puff(glow := 1.0, hot := 0.0, outline_col := Color(0.18, 0.12, 0.12), rough := 0.32, shade := 0.3, stretch := 1.0, outline := 0.07) -> ShaderMaterial:
+	var key = "puff_%.2f_%.2f_%s_%.2f_%.2f_%.2f_%.2f" % [glow, hot, outline_col, rough, shade, stretch, outline]
+	if _cache.has(key):
+		return _cache[key]
+	var m = ShaderMaterial.new()
+	m.shader = load("res://shaders/vfx_puff.gdshader")
+	m.set_shader_parameter("glow", glow)
+	m.set_shader_parameter("hot_core", hot)
+	m.set_shader_parameter("outline_col", outline_col)
+	m.set_shader_parameter("rough", rough)
+	m.set_shader_parameter("shade", shade)
+	m.set_shader_parameter("stretch", stretch)
+	m.set_shader_parameter("outline", outline)
+	_cache[key] = m
+	return m
+
+
+## Elemente göre gövde malzemesi (mermi/ejderha/dalga/duvar gövdeleri)
+static func element_mat(el: String, col: Color) -> Material:
+	match el:
+		"katon", "shakuton":
+			return mat_fire("fire", 2.6, 2.4, 0.38, 1.35, 0.1, Vector3(0, 0, 1))
+		"yoton", "bakuton":
+			return mat_fire("lava", 1.6, 2.0, 0.3, 1.25, 0.08, Vector3(0, 0, 1))
+		"suiton", "futton":
+			return mat_water()
+		"hyoton":
+			return mat_ice()
+		"fuuton", "jinton":
+			return mat_wind(Color(0.8, 1.0, 0.92), 7.0, 6.0, Vector3(0, 0, 1))
+		"raiton", "ranton":
+			return mat_spiral(Color(1, 1, 1), col, 7.0, 6.0, 9.0, 2.0, Vector3(0, 0, 1))
+		"doton", "mokuton", "jiton", "shoton":
+			return Props.toon_color(col.darkened(0.05))
+	var m = mat_spiral(col.lightened(0.5), col, 4.0, 2.0, 4.0, 1.4)
+	return m
+
+
+static func fire_preset_for(col: Color) -> String:
+	if col.b > col.r and col.b > 0.5:
+		return "blue"
+	if col.v < 0.25:
+		return "black"
+	if col.g > col.r and col.g > 0.6:
+		return "green"
+	if col.b > 0.6 and col.r > 0.5 and col.g < 0.5:
+		return "purple"
+	return "fire"
+
+
+# ================================================================== çekirdek kütleler
+static func _sphere(r := 0.5, seg := 24, rings := 12) -> SphereMesh:
+	var key = "sph_%.2f_%d" % [r, seg]
+	if _cache.has(key):
+		return _cache[key]
+	var s = SphereMesh.new()
+	s.radius = r; s.height = r * 2.0; s.radial_segments = seg; s.rings = rings
+	_cache[key] = s
+	return s
+
+
+static func _mi(mesh: Mesh, mat: Material) -> MeshInstance3D:
+	var mi = MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.material_override = mat
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return mi
+
+
+## Katmanlı dönen ateş topu (Gōkakyū): sıcak çekirdek + iki türbülanslı alev kabuğu + kıvılcım
+static func fireball(size := 1.0, preset := "fire") -> Node3D:
+	var root = Node3D.new()
+	var outer = _mi(_sphere(0.5, 28, 14), mat_fire(preset, 2.6, 2.2, 0.5, 1.3, 0.16, Vector3(0, 0.4, 1)))
+	outer.scale = Vector3.ONE * size * 1.15
+	root.add_child(outer)
+	var mid = _mi(_sphere(0.5, 24, 12), mat_fire(preset, -1.8, 3.0, 0.3, 1.45, 0.1, Vector3(0, -0.3, 1)))
+	mid.scale = Vector3.ONE * size * 0.9
+	root.add_child(mid)
+	var core = _mi(_sphere(0.5, 16, 8), mat_fire(preset, 3.5, 1.4, 0.05, 1.7, 0.04))
+	core.scale = Vector3.ONE * size * 0.55
+	root.add_child(core)
+	var tw = root.create_tween().set_loops()
+	tw.tween_property(outer, "rotation:z", TAU, 1.6).from(0.0)
+	var tw2 = root.create_tween().set_loops()
+	tw2.tween_property(mid, "rotation:x", -TAU, 1.1).from(0.0)
+	return root
+
+
+## Su küresi (Suikōdan çekirdeği vb.)
+static func water_ball(size := 1.0) -> Node3D:
+	var root = Node3D.new()
+	var body = _mi(_sphere(0.5, 24, 12), mat_water(Color(0.05, 0.28, 0.78), Color(0.2, 0.55, 0.98), Color(0.62, 0.88, 1.0), Vector3(0, 0, 1), 0.9, 0.6, 0.1))
+	body.scale = Vector3.ONE * size
+	root.add_child(body)
+	return root
+
+
+## Rüzgar küresi: kırılan hava kabuğu + iç beyaz spiral
+static func wind_ball(size := 1.0) -> Node3D:
+	var root = Node3D.new()
+	var shell = _mi(_sphere(0.5, 24, 12), mat_wind(Color(0.8, 1.0, 0.92), 8.0, 5.0, Vector3(0, 0, 1)))
+	shell.scale = Vector3.ONE * size
+	root.add_child(shell)
+	var sp = _mi(_sphere(0.5, 20, 10), mat_spiral(Color(1, 1, 1), Color(0.5, 0.9, 0.75), 4.0, 2.5, 8.0, 1.3, Vector3(0, 0, 1)))
+	sp.scale = Vector3.ONE * size * 0.7
+	root.add_child(sp)
+	return root
+
+
+## Rasengan tipi küre: parlak çekirdek + iki eksende dönen spiral kabuk + rüzgar halkaları
+static func rasengan(size := 1.0, body := Color(0.15, 0.45, 1.0), line := Color(0.85, 0.95, 1.0)) -> Node3D:
+	var root = Node3D.new()
+	var core = Projectile.energy_mesh(Color(1, 1, 1), line, size * 0.5, 14.0, 0.0, 2.0)
+	root.add_child(core)
+	var s1 = _mi(_sphere(0.5, 28, 14), mat_spiral(line, body, 6.0, 3.0, 7.0, 1.7, Vector3.UP))
+	s1.scale = Vector3.ONE * size
+	root.add_child(s1)
+	var s2 = _mi(_sphere(0.5, 24, 12), mat_spiral(line, body * 0.6, 4.0, -2.0, -9.0, 1.2, Vector3(1, 0, 0)))
+	s2.scale = Vector3.ONE * size * 1.12
+	root.add_child(s2)
+	for k in 3:
+		var tor = TorusMesh.new()
+		tor.inner_radius = 0.46; tor.outer_radius = 0.5; tor.rings = 24; tor.ring_segments = 4
+		var ring = _mi(tor, mat_bolt(body.lightened(0.3), 1.2))
+		ring.scale = Vector3.ONE * size * (1.15 + k * 0.08)
+		ring.rotation = Vector3(randf() * TAU, randf() * TAU, 0)
+		root.add_child(ring)
+		var tw = root.create_tween().set_loops()
+		tw.tween_property(ring, "rotation:y", ring.rotation.y + TAU * (1 if k % 2 == 0 else -1), 0.35 + k * 0.1)
+	return root
+
+
+## Şimşek topu (Chidori): parlak çekirdek + kalın titreyen arklar
+static func lightning_ball(size := 1.0, col := Color(0.45, 0.7, 1.0)) -> Node3D:
+	var root = Node3D.new()
+	root.add_child(Projectile.energy_mesh(Color(1, 1, 1), col, size * 0.6, 16.0, 0.0, 2.2))
+	var arcs = Arcs.new()
+	arcs.color = col
+	arcs.radius = size * 1.3
+	arcs.count = 8
+	arcs.width = 0.06 * maxf(1.0, size)
+	root.add_child(arcs)
+	return root
+
+
+## Elemente göre mermi çekirdeği
+static func element_core(el: String, col: Color, size: float) -> Node3D:
+	match el:
+		"katon", "shakuton":
+			return fireball(size, fire_preset_for(col))
+		"yoton", "bakuton":
+			return fireball(size, "lava")
+		"suiton", "futton", "hyoton":
+			return water_ball(size)
+		"fuuton", "jinton":
+			return wind_ball(size)
+		"raiton", "ranton":
+			return lightning_ball(size * 0.8, col)
+	var root = Node3D.new()
+	root.add_child(Projectile.energy_mesh(col.lightened(0.5), col, size, 4.0, 2.0, 2.2))
+	return root
+
+
+# ================================================================== tek seferlik efektler
+static func _card(kind: int, col: Color, core := Color.WHITE, spikes := 8.0, billboard := true) -> MeshInstance3D:
+	var q = QuadMesh.new()
+	q.size = Vector2.ONE
+	var m = ShaderMaterial.new()
+	m.shader = load("res://shaders/vfx_fx2d.gdshader")
+	m.set_shader_parameter("kind", kind)
+	m.set_shader_parameter("col", col)
+	m.set_shader_parameter("core", core)
+	m.set_shader_parameter("spikes", spikes)
+	m.set_shader_parameter("seed", randf() * 100.0)
+	m.set_shader_parameter("billboard", billboard)
+	var mi = MeshInstance3D.new()
+	mi.mesh = q
+	mi.material_override = m
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return mi
+
+
+## Çarpma yıldızı: düzensiz sivri ışınlı anime flaş
+static func star(pos: Vector3, col: Color, size := 2.0, dur := 0.18) -> void:
+	if busy():
+		return
+	var mi = _card(0, col, Color(1, 1, 0.95), float(randi_range(7, 11)))
+	scene().add_child(mi)
+	_track(mi)
+	mi.global_position = pos
+	mi.scale = Vector3.ONE * size * 0.6
+	var m: ShaderMaterial = mi.material_override
+	var tw = mi.create_tween().set_parallel(true)
+	tw.tween_property(mi, "scale", Vector3.ONE * size, dur * 0.4).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tw.tween_method(func(x: float): m.set_shader_parameter("t", x), 0.0, 1.0, dur)
+	tw.chain().tween_callback(mi.queue_free)
+
+
+## Şok dalgası halkası (yere paralel ya da kameraya dönük)
+static func shockwave(pos: Vector3, col: Color, size := 6.0, dur := 0.4, flat := true, normal := Vector3.UP) -> void:
+	if busy():
+		return
+	var mi = _card(1, col, col.lightened(0.6), 8.0, not flat)
+	scene().add_child(mi)
+	_track(mi)
+	mi.global_position = pos
+	if flat:
+		var n = normal.normalized()
+		mi.global_transform = Transform3D(Basis(Quaternion(Vector3.BACK, n)), pos)
+	mi.scale = Vector3.ONE * size
+	var m: ShaderMaterial = mi.material_override
+	var tw = mi.create_tween()
+	tw.tween_method(func(x: float): m.set_shader_parameter("t", x), 0.05, 1.0, dur).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tw.tween_callback(mi.queue_free)
+
+
+## Zemin çatlağı / yanık izi
+static func cracks(pos: Vector3, size := 4.0, col := Color(0.12, 0.09, 0.07, 0.9), dur := 6.0) -> void:
+	if busy():
+		return
+	var mi = _card(2, col, col, float(randi_range(6, 9)), false)
+	scene().add_child(mi)
+	_track(mi)
+	var g = Game.ground_height(pos.x, pos.z) + 0.06
+	mi.global_transform = Transform3D(Basis(Vector3.RIGHT, -PI * 0.5).rotated(Vector3.UP, randf() * TAU), Vector3(pos.x, g, pos.z))
+	mi.scale = Vector3.ONE * size
+	var m: ShaderMaterial = mi.material_override
+	m.set_shader_parameter("t", 0.0)
+	var tw = mi.create_tween()
+	tw.tween_interval(dur * 0.7)
+	tw.tween_method(func(x: float): m.set_shader_parameter("t", x), 0.0, 1.0, dur * 0.3)
+	tw.tween_callback(mi.queue_free)
+
+
+## Cel parçacık topakları (alev/duman/toz/su) — FX.burst sarmalayıcısı
+static func puffs(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
+	cfg["cel"] = true
+	return FX.burst(pos, cfg)
+
+
+## Uçuşan kaya molozu (toprak duvarı, kırılma, ağır iniş)
+static func debris(pos: Vector3, col := Color(0.5, 0.42, 0.32), n := 14, speed := 10.0, size := 0.5) -> void:
+	if busy():
+		return
+	var p = GPUParticles3D.new()
+	p.one_shot = true
+	p.explosiveness = 0.95
+	p.amount = n
+	p.lifetime = 1.3
+	var pm = ParticleProcessMaterial.new()
+	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+	pm.emission_sphere_radius = 0.6
+	pm.direction = Vector3.UP
+	pm.spread = 55.0
+	pm.initial_velocity_min = speed * 0.5
+	pm.initial_velocity_max = speed
+	pm.gravity = Vector3(0, -28, 0)
+	pm.angular_velocity_min = -360; pm.angular_velocity_max = 360
+	pm.scale_min = 0.5; pm.scale_max = 1.4
+	pm.scale_curve = FX._curve([[0.0, 1.0], [0.8, 1.0], [1.0, 0.0]])
+	p.process_material = pm
+	var key = "rock_%s" % col
+	if not _cache.has(key):
+		var b = MB.new()
+		b.add("sphere", Vector3.ZERO, Vector3(1.0, 0.7, 0.85), col, Vector3.ZERO, 5)
+		_cache[key] = b.build(Props.toon())
+	p.draw_pass_1 = _cache[key]
+	p.transform = p.transform.scaled(Vector3.ONE * size)
+	p.visibility_aabb = AABB(Vector3(-20, -20, -20), Vector3(40, 40, 40))
+	scene().add_child(p)
+	_track(p)
+	p.global_position = pos
+	p.scale = Vector3.ONE * size
+	p.emitting = true
+	p.finished.connect(p.queue_free)
+
+
+## Kıvılcım / kor (ateş, patlama)
+static func embers(pos: Vector3, col := Color(1.0, 0.6, 0.15), n := 24, speed := 10.0, life := 0.9) -> void:
+	FX.burst(pos, {"amount": n, "life": life, "tex": FX.tex_spark, "size": 0.7, "vmin": speed * 0.4, "vmax": speed, "damp": 1.5,
+		"gravity": Vector3(0, -6, 0), "colors": [Color(1, 1, 0.85, 1), col, Color(col.r, col.g * 0.5, 0.0, 0)]})
+
+
+## Sıçrama tacı (su çarpması): yükselip dağılan su tacı + damlalar + köpük halkası
+static func splash(pos: Vector3, size := 2.0) -> void:
+	if busy():
+		return
+	var g = Game.ground_height(pos.x, pos.z)
+	var base = Vector3(pos.x, maxf(g, pos.y - size), pos.z)
+	var cm = CylinderMesh.new()
+	cm.top_radius = 1.0; cm.bottom_radius = 0.55; cm.height = 1.0; cm.radial_segments = 20; cm.rings = 1
+	cm.cap_top = false; cm.cap_bottom = false
+	var crown = _mi(cm, mat_water(Color(0.12, 0.4, 0.9), Color(0.35, 0.68, 1.0), Color(0.8, 0.95, 1.0), Vector3.UP, 0.85, 0.9, 0.12))
+	scene().add_child(crown)
+	_track(crown)
+	crown.global_position = base + Vector3.UP * 0.4
+	crown.scale = Vector3(size * 0.4, 0.2, size * 0.4)
+	var tw = crown.create_tween()
+	tw.tween_property(crown, "scale", Vector3(size * 1.3, size * 1.1, size * 1.3), 0.22).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tw.tween_property(crown, "scale", Vector3(size * 1.6, 0.05, size * 1.6), 0.35).set_ease(Tween.EASE_IN)
+	tw.tween_callback(crown.queue_free)
+	puffs(base + Vector3.UP * size * 0.5, {"amount": int(18 * size), "life": 0.9, "size": 0.9 * size, "radius": size * 0.6, "vmin": 5, "vmax": 12 + size * 2,
+		"dir": Vector3.UP, "spread": 55.0, "damp": 1.0, "gravity": Vector3(0, -22, 0), "glow": 1.05, "outline_col": Color(0.08, 0.2, 0.5),
+		"colors": [Color(0.95, 0.99, 1, 1), Color(0.55, 0.82, 1, 1), Color(0.25, 0.55, 1, 0)]})
+	shockwave(base + Vector3.UP * 0.1, Color(0.85, 0.95, 1.0), size * 4.0, 0.45)
+
+
+## Cel duman halkası (patlamanın etrafında yayılan)
+static func smoke_ring(pos: Vector3, size := 3.0, col := Color(0.3, 0.27, 0.25)) -> void:
+	var p = puffs(pos, {"amount": int(14 + size * 4), "life": 1.4, "size": 1.6 + size * 0.4, "radius": size * 0.3, "vmin": size * 2.0, "vmax": size * 3.2,
+		"dir": Vector3.UP, "spread": 90.0, "damp": 3.0, "gravity": Vector3(0, 1.0, 0), "spin": 40.0, "outline_col": col.darkened(0.6),
+		"colors": [col.lightened(0.2), col, Color(col.r, col.g, col.b, 0)], "scale_curve": [[0.0, 0.4], [0.3, 1.0], [1.0, 1.25]]})
+	if p:
+		var pm: ParticleProcessMaterial = p.process_material
+		pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_RING
+		pm.emission_ring_axis = Vector3.UP
+		pm.emission_ring_radius = size * 0.4
+		pm.emission_ring_inner_radius = size * 0.3
+		pm.emission_ring_height = 0.2
+		pm.direction = Vector3(1, 0.15, 0)
+		pm.spread = 180.0
+		pm.flatness = 0.85
+
+
+## Kalın şimşek: from→to dallanan, titreyen şerit (gökten düşen yıldırım, ışın)
+static func bolt(from: Vector3, to: Vector3, col := Color(0.5, 0.75, 1.0), width := 0.25, dur := 0.25, branches := 3) -> Arcs:
+	var a = Arcs.new()
+	a.color = col
+	a.to_point = to - from
+	a.count = branches
+	a.width = width
+	a.segs = maxi(6, int(from.distance_to(to) / 1.5))
+	a.top_level = true
+	scene().add_child(a)
+	a.global_position = from
+	if dur > 0.0:
+		tree().create_timer(dur).timeout.connect(func():
+			if is_instance_valid(a):
+				a.queue_free())
+	return a
+
+
+## Kurdele iz: hedefi takip eder, hedef ölünce kuyruğu toplanıp kaybolur
+static func trail(target: Node3D, width: float, head: Color, mid: Color, tail: Color, length := 18, additive := 0.0) -> VfxTrail:
+	var t = VfxTrail.new()
+	t.target = target
+	t.width = width
+	t.max_pts = length
+	t.material_override = mat_trail(head, mid, tail, additive)
+	scene().add_child(t)
+	return t
+
+
+## Element imzalı iz
+static func element_trail(target: Node3D, el: String, col: Color, width: float) -> VfxTrail:
+	match el:
+		"katon", "shakuton", "yoton", "bakuton":
+			return trail(target, width, Color(1, 0.97, 0.75), Color(1, 0.55, 0.08), Color(0.75, 0.12, 0.03), 16, 0.3)
+		"suiton", "futton", "hyoton":
+			return trail(target, width, Color(0.95, 0.99, 1), Color(0.45, 0.75, 1.0), Color(0.12, 0.38, 0.9), 18, 0.1)
+		"fuuton", "jinton":
+			return trail(target, width * 0.7, Color(1, 1, 1), Color(0.85, 1.0, 0.92), Color(0.6, 0.95, 0.8), 14, 0.0)
+		"raiton", "ranton":
+			return trail(target, width * 0.6, Color(1, 1, 1), col.lightened(0.4), col, 12, 0.8)
+	return trail(target, width, col.lightened(0.6), col, col.darkened(0.3), 14, 0.2)
+
+
+## Ekran kenarından hız çizgileri (ağır vuruş, atılma)
+static func screen_lines(dur := 0.35, strength := 1.0, col := Color(1, 1, 1)) -> void:
+	if _speed_layer == null or not is_instance_valid(_speed_layer):
+		_speed_layer = CanvasLayer.new()
+		_speed_layer.layer = 5
+		_speed_rect = ColorRect.new()
+		_speed_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+		_speed_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var m = ShaderMaterial.new()
+		m.shader = load("res://shaders/vfx_speedlines.gdshader")
+		_speed_rect.material = m
+		_speed_layer.add_child(_speed_rect)
+		scene().add_child(_speed_layer)
+	var m: ShaderMaterial = _speed_rect.material
+	m.set_shader_parameter("col", col)
+	var tw = _speed_rect.create_tween()
+	tw.tween_method(func(x: float): m.set_shader_parameter("strength", x), strength, 0.0, dur).set_ease(Tween.EASE_IN)
+
+
+## Büyük anime patlaması: genişleyip aşınan alev kütlesi + cel alev topakları + koyu duman + kıvılcım + şok dalgaları
+static func explosion(pos: Vector3, s := 1.0, col := Color(1.0, 0.55, 0.15)) -> void:
+	var preset = fire_preset_for(col)
+	if not busy():
+		var core = Node3D.new()
+		var m = mat_fire(preset, 3.0, 2.0, 0.5, 1.45, 0.18, Vector3.UP, true)
+		var sph = _mi(_sphere(0.5, 28, 14), m)
+		core.add_child(sph)
+		var inner = _mi(_sphere(0.5, 20, 10), mat_fire(preset, 4.0, 1.3, 0.05, 1.8, 0.05))
+		inner.scale = Vector3.ONE * 0.6
+		core.add_child(inner)
+		scene().add_child(core)
+		_track(core)
+		core.global_position = pos
+		core.scale = Vector3.ONE * 0.5 * s
+		var tw = core.create_tween()
+		tw.tween_property(core, "scale", Vector3.ONE * 5.0 * s, 0.18).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+		tw.parallel().tween_property(inner, "scale", Vector3.ZERO, 0.3)
+		tw.tween_method(func(x: float): m.set_shader_parameter("alpha_cut", x), 0.0, 1.1, 0.45)
+		tw.parallel().tween_property(core, "scale", Vector3.ONE * 6.2 * s, 0.45)
+		tw.tween_callback(core.queue_free)
+	var pr: Array = FIRE_PRESETS.get(preset, FIRE_PRESETS["fire"])
+	puffs(pos, {"amount": int(26 * s) + 6, "life": 0.75, "size": 2.4 * s, "radius": 1.0 * s, "vmin": 6, "vmax": 14 * s,
+		"damp": 6.0, "gravity": Vector3(0, 5, 0), "spin": 90.0, "glow": 1.35, "hot": 0.5, "outline_col": pr[4],
+		"colors": [pr[0], pr[1], pr[2], pr[3], Color(pr[4].r, pr[4].g, pr[4].b, 0)], "scale_curve": [[0.0, 0.5], [0.25, 1.15], [1.0, 0.8]]})
+	puffs(pos + Vector3.UP * s, {"amount": int(14 * s) + 4, "life": 1.8, "size": 3.2 * s, "radius": 1.4 * s, "vmin": 2, "vmax": 6 * s,
+		"damp": 2.0, "gravity": Vector3(0, 3.5, 0), "spin": 30.0, "outline_col": Color(0.08, 0.07, 0.07), "shade": 0.35,
+		"colors": [Color(0.35, 0.3, 0.28, 0.0), Color(0.3, 0.27, 0.25, 0.95), Color(0.42, 0.4, 0.38, 0.7), Color(0.45, 0.43, 0.42, 0)]})
+	embers(pos, pr[2], int(28 * s), 22.0 * s, 1.0)
+	star(pos, pr[1], 4.5 * s, 0.2)
+	var g = Vector3(pos.x, Game.ground_height(pos.x, pos.z) + 0.12, pos.z)
+	if pos.y - g.y < 3.0 * s:
+		shockwave(g, pr[2].lightened(0.2), 14.0 * s, 0.5)
+		smoke_ring(g + Vector3.UP * 0.3, 2.5 * s, Color(0.36, 0.32, 0.3))
+		cracks(g, 3.5 * s, Color(0.1, 0.06, 0.04, 0.85))
+	shockwave(pos, Color(1, 0.95, 0.8), 8.0 * s, 0.25, false)
+	FX.light(pos, pr[1], 12.0 * s, 25.0 * s, 0.45)
+	if Game.world:
+		Game.world.env.add_shake(0.8 * s)
+		Game.world.env.screen_flash(0.05 * s)
+	if s >= 1.2:
+		screen_lines(0.35, minf(1.0, 0.5 * s))
+	Sfx.play("boom", pos)

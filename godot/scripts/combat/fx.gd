@@ -116,6 +116,19 @@ func _curve(points: Array) -> CurveTexture:
 	return t
 
 
+## Renk rampasına göre cel topak parlaklığı: sıcak/doygun renkler (alev, enerji) parlar, gri duman parlamaz
+func _auto_glow(cfg: Dictionary) -> float:
+	var cols: Array = cfg.get("colors", [Color.WHITE])
+	var c: Color = cols[mini(1, cols.size() - 1)]
+	return 1.3 if c.s > 0.55 and c.v > 0.7 else 1.0
+
+
+func _auto_outline(cfg: Dictionary) -> Color:
+	var cols: Array = cfg.get("colors", [Color.WHITE])
+	var c: Color = cols[mini(1, cols.size() - 1)]
+	return Color.from_hsv(c.h, minf(1.0, c.s + 0.2), c.v * 0.28)
+
+
 ## Genel amaçlı tek seferlik parçacık patlaması
 func burst(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 	var p = GPUParticles3D.new()
@@ -151,12 +164,18 @@ func burst(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 	q.size = Vector2.ONE * cfg.get("size", 1.0)
 	var tex: Texture2D = cfg.get("tex", tex_soft)
 	var bb: int = cfg.get("billboard", BaseMaterial3D.BILLBOARD_PARTICLES)
-	if tex == tex_spark:
+	# sert kenarlı cel topak: açıkça istenirse ya da (duman dokusu + karışımlı) tüm eski duman/alev çağrıları
+	var cel: bool = cfg.get("cel", (tex == tex_smoke or tex == tex_soft) and not cfg.get("add", true))
+	if cel:
+		q.material = VFX.mat_puff(cfg.get("glow", _auto_glow(cfg)), cfg.get("hot", 0.0), cfg.get("outline_col", _auto_outline(cfg)),
+			cfg.get("rough", 0.32), cfg.get("shade", 0.3), cfg.get("stretch", 1.0))
+		p.draw_pass_1 = q
+	elif tex == tex_spark:
 		q.size = Vector2(0.12, 0.6) * cfg.get("size", 1.0)
 		pm.particle_flag_align_y = true
-		bb = BaseMaterial3D.BILLBOARD_FIXED_Y
 		bb = BaseMaterial3D.BILLBOARD_DISABLED
-	q.material = _draw_mat(tex, cfg.get("add", true), bb)
+	if not cel:
+		q.material = _draw_mat(tex, cfg.get("add", true), bb)
 	p.draw_pass_1 = q
 	p.visibility_aabb = AABB(Vector3(-20, -20, -20), Vector3(40, 40, 40))
 	p.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -171,57 +190,14 @@ func burst(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 	return p
 
 
-## Genişleyen parlak halka (yere paralel ya da kameraya dönük)
+## Genişleyen halka (yere paralel ya da kameraya dönük) — sert kenarlı anime şok dalgası
 func ring(pos: Vector3, col: Color, size := 4.0, dur := 0.35, flat := true, normal := Vector3.UP) -> void:
-	var mi = MeshInstance3D.new()
-	var q = QuadMesh.new()
-	q.size = Vector2.ONE
-	var m = StandardMaterial3D.new()
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.albedo_texture = tex_ring
-	m.albedo_color = col
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
-	m.cull_mode = BaseMaterial3D.CULL_DISABLED
-	if not flat:
-		m.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
-	q.material = m
-	mi.mesh = q
-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	get_tree().current_scene.add_child(mi)
-	mi.global_position = pos
-	if flat:
-		mi.look_at(pos + normal, Vector3.FORWARD if absf(normal.y) < 0.99 else Vector3.RIGHT)
-	mi.scale = Vector3.ONE * size * 0.2
-	var tw = mi.create_tween().set_parallel(true)
-	tw.tween_property(mi, "scale", Vector3.ONE * size, dur).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-	tw.tween_property(m, "albedo_color:a", 0.0, dur)
-	tw.chain().tween_callback(mi.queue_free)
+	VFX.shockwave(pos, col, size, dur, flat, normal)
 
 
-## Anlık parlak küre (çarpma flaşı / patlama çekirdeği)
+## Anlık çarpma flaşı: yumuşak beyaz küre yerine sivri anime yıldız
 func flash_sphere(pos: Vector3, col: Color, size := 2.0, dur := 0.25) -> void:
-	var mi = MeshInstance3D.new()
-	var s = SphereMesh.new()
-	s.radius = 0.5; s.height = 1.0; s.radial_segments = 16; s.rings = 8
-	var m = StandardMaterial3D.new()
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.albedo_color = col
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
-	m.emission_enabled = true
-	m.emission = col
-	m.emission_energy_multiplier = 3.0
-	s.material = m
-	mi.mesh = s
-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	get_tree().current_scene.add_child(mi)
-	mi.global_position = pos
-	mi.scale = Vector3.ONE * size * 0.3
-	var tw = mi.create_tween().set_parallel(true)
-	tw.tween_property(mi, "scale", Vector3.ONE * size, dur).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-	tw.tween_property(m, "albedo_color:a", 0.0, dur)
-	tw.chain().tween_callback(mi.queue_free)
+	VFX.star(pos, col, size * 1.1, maxf(0.14, dur * 0.8))
 
 
 ## Geçici nokta ışık (patlamalar, jutsu parıltısı)
@@ -243,16 +219,21 @@ func light(pos: Vector3, col: Color, energy := 4.0, rng := 10.0, dur := 0.3) -> 
 
 # ------------------------------------------------------------------ hazır efektler
 func dust(pos: Vector3, s := 1.0) -> void:
-	burst(pos + Vector3.UP * 0.1, {"amount": int(10 * s) + 4, "life": 0.7, "tex": tex_smoke, "add": false, "size": 1.2 * s,
-		"vmin": 1.5, "vmax": 4.0 * s, "dir": Vector3.UP, "spread": 80.0, "damp": 4.0, "gravity": Vector3(0, -1, 0),
-		"colors": [Color(0.75, 0.68, 0.55, 0.55), Color(0.7, 0.65, 0.55, 0.0)]})
+	burst(pos + Vector3.UP * 0.15, {"cel": true, "amount": int(8 * s) + 4, "life": 0.75, "size": 1.3 * s, "radius": 0.5 * s,
+		"vmin": 1.5, "vmax": 4.5 * s, "dir": Vector3.UP, "spread": 80.0, "damp": 4.5, "gravity": Vector3(0, -0.5, 0), "spin": 60.0,
+		"glow": 1.0, "outline_col": Color(0.32, 0.25, 0.18), "rough": 0.38,
+		"colors": [Color(0.86, 0.78, 0.64, 1), Color(0.78, 0.7, 0.58, 0.85), Color(0.72, 0.66, 0.56, 0.0)],
+		"scale_curve": [[0.0, 0.45], [0.3, 1.0], [1.0, 1.15]]})
 
 
+## Anime "puf" bulutu (Kawarimi, çağırma, gölge klon): beyaz kabarık cel topaklar + gri gölge + kontur
 func smoke_puff(pos: Vector3, s := 1.0, n := 14) -> void:
-	burst(pos, {"amount": n, "life": 0.9, "tex": tex_smoke, "add": false, "size": 1.8 * s, "radius": 0.5 * s,
-		"vmin": 1.0, "vmax": 3.5 * s, "damp": 3.0, "gravity": Vector3(0, 1.2, 0), "spin": 90.0,
-		"colors": [Color(1, 1, 1, 0.95), Color(0.92, 0.92, 0.95, 0.7), Color(0.9, 0.9, 0.92, 0.0)],
-		"scale_curve": [[0.0, 0.4], [0.25, 1.0], [1.0, 1.3]]})
+	burst(pos, {"cel": true, "amount": n, "life": 0.85, "size": 1.9 * s, "radius": 0.55 * s, "vmin": 1.5, "vmax": 4.0 * s,
+		"damp": 4.0, "gravity": Vector3(0, 1.5, 0), "spin": 80.0, "glow": 1.0, "shade": 0.22, "rough": 0.3,
+		"outline_col": Color(0.35, 0.36, 0.42),
+		"colors": [Color(1, 1, 1, 1), Color(0.96, 0.96, 0.98, 1), Color(0.9, 0.9, 0.93, 0.6), Color(0.88, 0.88, 0.92, 0.0)],
+		"scale_curve": [[0.0, 0.35], [0.2, 1.0], [1.0, 1.2]]})
+	VFX.star(pos, Color(1, 1, 1), 1.6 * s, 0.12)
 	Sfx.play("poof", pos)
 
 
@@ -261,44 +242,27 @@ func speed_lines(pos: Vector3, dir: Vector3) -> void:
 		"spread": 12.0, "radius": 0.8, "damp": 1.0, "colors": [Color(1, 1, 1, 0.8), Color(0.8, 0.9, 1, 0)]})
 
 
+## Vuruş kıvılcımı: sivri yıldız + kıvılcım çizgileri + küçük halka
 func hit_spark(pos: Vector3, col := Color(1.0, 0.85, 0.4), s := 1.0) -> void:
-	burst(pos, {"amount": int(16 * s), "life": 0.32, "tex": tex_spark, "size": 1.4 * s, "vmin": 6, "vmax": 14 * s,
+	burst(pos, {"amount": int(14 * s), "life": 0.28, "tex": tex_spark, "size": 1.5 * s, "vmin": 8, "vmax": 16 * s,
 		"damp": 6.0, "colors": [Color(1, 1, 1, 1), col, Color(col.r, col.g, col.b, 0)]})
-	flash_sphere(pos, col.lightened(0.3), 0.9 * s, 0.12)
-	ring(pos, col, 2.2 * s, 0.22, false)
+	VFX.star(pos, col, 1.5 * s, 0.14)
+	VFX.shockwave(pos, col.lightened(0.3), 2.6 * s, 0.2, false)
 
 
 func impact(pos: Vector3, col: Color, s := 1.0) -> void:
 	hit_spark(pos, col, s * 1.3)
-	ring(Vector3(pos.x, Game.ground_height(pos.x, pos.z) + 0.1, pos.z), col, 7.0 * s, 0.45)
-	dust(Vector3(pos.x, Game.ground_height(pos.x, pos.z), pos.z), 1.4 * s)
+	var g = Vector3(pos.x, Game.ground_height(pos.x, pos.z) + 0.1, pos.z)
+	VFX.shockwave(g, col, 7.0 * s, 0.45)
+	dust(g, 1.4 * s)
+	if s >= 1.2:
+		VFX.cracks(g, 2.5 * s)
+		VFX.debris(g + Vector3.UP * 0.3, Color(0.5, 0.42, 0.32), int(6 * s), 9.0 * s, 0.35)
 	light(pos, col, 6.0 * s, 10.0 * s, 0.25)
 
 
 func explosion(pos: Vector3, s := 1.0, col := Color(1.0, 0.55, 0.15)) -> void:
-	# anime patlama: cel çekirdek küre + doygun alev topakları + koyu duman + kıvılcım + şok dalgası
-	var core = Projectile.energy_mesh(Color(1, 1, 0.75), col, 1.0, 6.0, 2.0, 3.0)
-	get_tree().current_scene.add_child(core)
-	core.global_position = pos
-	var tw = core.create_tween()
-	tw.tween_property(core, "scale", Vector3.ONE * 3.8 * s, 0.2).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-	tw.tween_property(core, "scale", Vector3.ONE * 0.1, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
-	tw.tween_callback(core.queue_free)
-	burst(pos, {"amount": int(36 * s), "life": 0.85, "tex": tex_smoke, "add": false, "size": 3.0 * s, "radius": 1.2 * s, "vmin": 5, "vmax": 13 * s,
-		"damp": 5.0, "gravity": Vector3(0, 4, 0), "spin": 120.0,
-		"colors": [Color(1, 0.95, 0.55, 1), Color(1, 0.55, 0.1, 1), Color(0.85, 0.2, 0.05, 0.9), Color(0.25, 0.12, 0.1, 0)],
-		"scale_curve": [[0.0, 0.5], [0.25, 1.1], [1.0, 0.7]]})
-	burst(pos, {"amount": int(20 * s), "life": 2.0, "tex": tex_smoke, "add": false, "size": 4.0 * s, "radius": 1.5 * s,
-		"vmin": 1, "vmax": 5, "damp": 2.0, "gravity": Vector3(0, 2.5, 0), "spin": 40.0,
-		"colors": [Color(0.25, 0.22, 0.2, 0.0), Color(0.22, 0.2, 0.19, 0.75), Color(0.35, 0.33, 0.32, 0.0)]})
-	burst(pos, {"amount": int(30 * s), "life": 0.8, "tex": tex_spark, "size": 1.6, "vmin": 12, "vmax": 28 * s, "damp": 2.0,
-		"gravity": Vector3(0, -12, 0), "colors": [Color(1, 1, 0.8, 1), col, Color(col.r, col.g, col.b, 0)]})
-	ring(Vector3(pos.x, Game.ground_height(pos.x, pos.z) + 0.15, pos.z), col, 15.0 * s, 0.5)
-	light(pos, col, 12.0 * s, 25.0 * s, 0.5)
-	if Game.world:
-		Game.world.env.add_shake(0.8 * s)
-		Game.world.env.screen_flash(0.06 * s)
-	Sfx.play("boom", pos)
+	VFX.explosion(pos, s, col)
 
 
 ## Döngüsel emitter: chakra aurası, jutsu çekirdekleri vb.
@@ -318,12 +282,13 @@ func aura(parent: Node3D, col: Color, s := 1.0, offset := Vector3(0, 0.9, 0), du
 	pm.initial_velocity_max = 4.0
 	pm.gravity = Vector3(0, 2.0, 0)
 	pm.scale_min = 0.4; pm.scale_max = 1.0
-	pm.color_ramp = _gradient([Color(col.r, col.g, col.b, 0), Color(col.r, col.g, col.b, 0.8), Color(1, 1, 1, 0)])
+	pm.color_ramp = _gradient([Color(col.r, col.g, col.b, 0), Color(col.r, col.g, col.b, 0.85), Color(col.lightened(0.4).r, col.lightened(0.4).g, col.lightened(0.4).b, 0)])
 	pm.scale_curve = _curve([[0.0, 0.3], [0.4, 1.0], [1.0, 0.2]])
+	pm.particle_flag_align_y = true
 	p.process_material = pm
 	var q = QuadMesh.new()
-	q.size = Vector2(0.5, 0.9) * s
-	q.material = _draw_mat(tex_soft, true)
+	q.size = Vector2(0.16, 0.9) * s
+	q.material = _draw_mat(tex_spark, true, BaseMaterial3D.BILLBOARD_DISABLED)
 	p.draw_pass_1 = q
 	parent.add_child(p)
 	p.position = offset

@@ -280,10 +280,10 @@ static func energy_mesh(core: Color, edge: Color, size: float, swirl := 3.0, flo
 	gm.set_shader_parameter("edge", edge)
 	gm.set_shader_parameter("swirl", -swirl * 0.6)
 	gm.set_shader_parameter("flow", flow)
-	gm.set_shader_parameter("intensity", intensity * 0.25)
+	gm.set_shader_parameter("intensity", intensity * 0.12)
 	gs.material = gm
 	g.mesh = gs
-	g.scale = Vector3.ONE * 1.35
+	g.scale = Vector3.ONE * 1.18
 	g.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	mi.add_child(g)
 	return mi
@@ -310,7 +310,13 @@ static func trail(parent: Node3D, cols: Array, size: float, amount := 40, life :
 	p.process_material = pm
 	var q = QuadMesh.new()
 	q.size = Vector2.ONE * size
-	q.material = FX._draw_mat(tex if tex else FX.tex_soft, add)
+	if not add:
+		# karışımlı iz = sert kenarlı cel topaklar (alev/su/duman kuyruğu)
+		var c: Color = cols[mini(1, cols.size() - 1)]
+		var hot = c.s > 0.5 and c.v > 0.7
+		q.material = VFX.mat_puff(1.3 if hot else 1.0, 0.4 if hot and c.r > c.b else 0.0, Color.from_hsv(c.h, minf(1.0, c.s + 0.2), c.v * 0.3))
+	else:
+		q.material = FX._draw_mat(tex if tex else FX.tex_soft, add)
 	p.draw_pass_1 = q
 	parent.add_child(p)
 	p.emitting = true

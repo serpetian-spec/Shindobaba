@@ -1,0 +1,52 @@
+// Cel alev kütlesi (ateş topu, alev akışı, alev ejderhası): kayan 3B gürültü, 4 sert renk bandı,
+// gürültüyle aşınan dalgalı silüet, koyu kırmızı kontur. Opak (alfa testi) → sahne çizgisi de oturur.
+shader_type spatial;
+render_mode unshaded, cull_back, depth_draw_opaque, shadows_disabled;
+
+uniform vec4 c_core : source_color = vec4(1.0, 0.99, 0.86, 1.0);
+uniform vec4 c_hot : source_color = vec4(1.0, 0.86, 0.22, 1.0);
+uniform vec4 c_mid : source_color = vec4(1.0, 0.48, 0.06, 1.0);
+uniform vec4 c_edge : source_color = vec4(0.82, 0.13, 0.03, 1.0);
+uniform vec4 c_line : source_color = vec4(0.3, 0.04, 0.02, 1.0);
+uniform float speed = 2.2;
+uniform float scale = 2.4;
+uniform float erode = 0.42;        // silüet aşınması
+uniform float glow = 1.35;
+uniform float swirl = 1.2;
+uniform float wobble = 0.12;
+uniform vec3 flow = vec3(0.0, 1.0, 0.0);   // nesne uzayında akış yönü
+uniform float alpha_cut = 0.0;      // >0: tüm kütleyi eritir (sönme animasyonu)
+
+varying vec3 lp;
+
+float hash(vec3 p) { return fract(sin(dot(p, vec3(127.1, 311.7, 74.7))) * 43758.5453); }
+float vn(vec3 p) {
+	vec3 i = floor(p), f = fract(p);
+	vec3 u = f * f * (3.0 - 2.0 * f);
+	return mix(mix(mix(hash(i), hash(i + vec3(1,0,0)), u.x), mix(hash(i + vec3(0,1,0)), hash(i + vec3(1,1,0)), u.x), u.y),
+	           mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), u.x), mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), u.x), u.y), u.z);
+}
+
+void vertex() {
+	lp = VERTEX;
+	float w = vn(VERTEX * 3.1 - flow * TIME * speed * 1.4) - 0.5;
+	VERTEX += NORMAL * w * wobble * 2.0;
+}
+
+void fragment() {
+	float fres = 1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0);
+	vec3 p = lp * scale;
+	float a = TIME * swirl;
+	p.xz = mat2(vec2(cos(a), sin(a)), vec2(-sin(a), cos(a))) * p.xz;
+	p -= flow * TIME * speed;
+	float n = vn(p) * 0.55 + vn(p * 2.3 + vec3(3.1, 7.7, 1.3)) * 0.3 + vn(p * 5.2) * 0.15;
+	float v = fres * 0.95 + (n - 0.5) * 1.0;
+	if (fres + (n - 0.5) * erode * 2.2 > 0.97 - alpha_cut) discard;
+	vec3 col;
+	if (v < 0.18) col = c_core.rgb;
+	else if (v < 0.4) col = c_hot.rgb;
+	else if (v < 0.63) col = c_mid.rgb;
+	else if (v < 0.86) col = c_edge.rgb;
+	else col = c_line.rgb;
+	ALBEDO = col * glow;
+}
