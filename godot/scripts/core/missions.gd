@@ -136,6 +136,8 @@ func _npc(id: String, name: String, kind := "civ") -> Dictionary:
 			lk.merge({"top": _hex(Color(0.55, 0.12, 0.15)), "top2": _hex(Color(0.85, 0.7, 0.3)), "top_style": "uzun", "pants": _hex(Color(0.2, 0.15, 0.2))}, true)
 		"hostage":
 			lk.merge({"top": _hex(Color(0.75, 0.72, 0.65))}, true)
+	# kıyafet seti (tüccar, yaşlı, çocuk, ninja, soylu, sivil)
+	lk.merge(Outfits.roll_hex({"merchant": "merchant", "elder": "elder", "kid": "kid", "ninja": "chunin", "vip": "noble"}.get(kind, "civ"), Progress.home()), true)
 	return {"id": id, "name": name, "look": lk}
 
 
@@ -1783,6 +1785,9 @@ func _bb_new() -> Dictionary:
 			"village": vid, "band": _hex(Color(0.2, 0.2, 0.25)), "band_style": "slashed", "mask": ["cloth", null, null].pick_random(),
 			"face_mark": ["burun yarası", "yanak çizgisi", "yok"].pick_random(), "age": "adult"},
 	}
+	# kaçak ninja kıyafet seti: yırtık pelerin, eski yelek, çizik bant, yıpranmışlık
+	e["look"].merge(Outfits.roll_hex("rogue", vid), true)
+	e["look"]["band_style"] = "slashed"
 	bb["next"] = int(bb["next"]) + 1
 	return e
 

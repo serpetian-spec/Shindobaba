@@ -133,6 +133,9 @@ func _ready() -> void:
 			lk["beard"] = lk["age"] == "adult" and randf() < 0.3
 	if display_override != "":
 		display = display_override
+	# rol kıyafet seti (özel görünüm verilmişse — Kage, ANBU... — dokunma)
+	if look_extra.is_empty():
+		lk.merge(Outfits.roll(_outfit_arch(), Outfits.village_near()), true)
 	lk.merge(look_extra, true)
 	look = lk
 	super._ready()
@@ -592,3 +595,44 @@ func _roof(dt: float) -> void:
 		model.play("land", 0.05, 1.5, true)
 		if randf() < 0.3:
 			hop_t = -0.4  # kısa bekleme (negatif sayaç)
+
+
+## Rolün kıyafet arketipi (Outfits): sokak halkı çeşitli, ninjalar köy üniformalı
+func _outfit_arch() -> String:
+	match role:
+		"kid", "ball":
+			return "kid"
+		"student":
+			return "student"
+		"patrol", "roof":
+			return "chunin" if randf() < 0.8 else "jonin"
+		"guard":
+			return "guard"
+		"spar":
+			return ["genin", "genin", "chunin"].pick_random()
+		"teacher":
+			return ["chunin", "jonin"].pick_random()
+		"sitter":
+			return "elder"
+		"vendor", "keeper":
+			return "merchant"
+		"nurse":
+			return "medic"
+		"worker":
+			return "worker"
+		"drunk":
+			return ["civ", "traveler"].pick_random()
+	var r = randf()
+	if r < 0.08:
+		return "traveler"
+	if r < 0.13:
+		return "farmer"
+	if r < 0.16:
+		return "monk"
+	if r < 0.2:
+		return "merchant"
+	if r < 0.23:
+		return "noble"
+	if r < 0.3 and role in ["walker", "chat"]:
+		return ["genin", "chunin"].pick_random()
+	return "civ"

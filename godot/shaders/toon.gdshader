@@ -17,11 +17,17 @@ uniform bool palette_mode = false;  // vertex COLOR.r = renk yuvası*0.1 (0 = te
 uniform vec4 pal[12] : source_color;  // 0 ten 1 üst 2 vurgu 3 alt 4 sargı 5 yelek 6 sandalet 7 koyu 8 dış giysi 9 aksesuar 10 başlık 11 yüz
 uniform vec4 rig_a = vec4(0.21, 0.46, 0.7, 1.52);   // üst kol x, dirsek x, el x, boyun y (dinlenme pozu)
 uniform vec4 rig_b = vec4(0.95, 0.54, 0.09, 1.31);  // kalça y, diz y, ayak bileği y, üst göğüs y
-uniform int top_style = 1;    // 0 tişört, 1 uzun kollu, 2 ceket, 3 yüksek yakalı
-uniform int pants_style = 0;  // 0 ninja pantolonu, 1 şort, 2 sivil uzun pantolon
+uniform int top_style = 1;    // 0 tişört, 1 uzun kollu, 2 ceket, 3 yüksek yakalı, 4 kolsuz, 5 kimono, 6 gi, 7 uzun kollu yüksek yaka, 8 atlet, 9 tek kollu
+uniform int pants_style = 0;  // 0 ninja pantolonu, 1 şort, 2 sivil uzun pantolon, 3 sargılı, 4 bol paça, 5 kapri, 6 kısa şort
 uniform int layer = 0;        // 0 vücut, 1 kumaş kabuğu, 2 yelek
-uniform int top_pattern = 0;  // 1: zincir örgü/ağ (ten arada görünür)
-uniform int vest_style = 0;   // 0 Konoha, 1 Suna, 2 Kiri (yatay dikiş), 3 Kumo (tek askı), 4 Iwa (tek kol), 5 ANBU plaka, 6 samuray lamel
+uniform int top_pattern = 0;  // 1 zincir örgü/ağ, 2 yatay çizgili, 3 yan panelli, 4 yamalı/eskimiş, 5 sırtta arma, 6 kenar biyeli
+uniform int vest_style = 0;   // 0 Konoha, 1 Suna, 2 Kiri (yatay dikiş), 3 Kumo (tek askı), 4 Iwa (tek kol), 5 ANBU plaka, 6 samuray lamel,
+                              // 7 Kök (dikey dikiş), 8 zincir yelek, 9 kayış koşum, 10 deri pullu zırh, 11 göğüs plakası
+uniform float wear = 0.0;      // kir/yıpranma (haydut, kaçak ninja)
+uniform int foot_kind = 0;     // 0 sandalet, 1 tabi, 2 çizme (baldıra kadar), 3 dize kadar sargılı sandalet
+uniform int outer_pattern = 0; // dış giysi: 1 etek bandı, 2 alev etek, 3 hilal motifi, 4 hasır lifleri, 5 yırtık/kirli, 6 kızıl bulut
+uniform vec4 outer_accent : source_color = vec4(0.75, 0.12, 0.12, 1.0);
+uniform float outer_hem = 0.5;  // dış giysinin etek ucu (dinlenme pozu y)
 uniform bool gloves = false;
 uniform bool arm_wraps = false;
 uniform int outer_sleeves = 0; // 1: dış giysi kolları (palto/haori)
@@ -114,26 +120,38 @@ int cloth_slot(vec3 p) {
 		if (ax > rig_a.z - 0.035) return (gloves && ax < rig_a.z + 0.075) ? 9 : 0;
 		if (outer_sleeves == 1) return 8;
 		if (vest_style == 4 && layer != 0 && p.x > 0.0 && ax < rig_a.y + 0.02) return 5;
-		float sleeve = top_style == 0 || top_style == 3 ? mix(rig_a.x, rig_a.y, 0.5) : (top_style == 4 ? rig_a.x * 0.9 : rig_a.z - 0.035);
+		float sleeve = rig_a.z - 0.035;
+		if (top_style == 0 || top_style == 3) sleeve = mix(rig_a.x, rig_a.y, 0.5);
+		else if (top_style == 4 || top_style == 8 || (top_style == 9 && p.x > 0.0)) sleeve = rig_a.x * 0.9;
+		else if (top_style == 6) sleeve = rig_a.y + 0.05;
 		if (ax < sleeve) return (top_style == 2 && ax < rig_a.x + 0.07) ? 2 : 1;
 		if ((top_style == 3 || arm_wraps) && ax > rig_a.y - 0.02) return 4;
 		return 0;
 	}
 	if (p.y > rig_a.w) {
-		bool collar = (top_style == 2 || top_style == 3 || top_style == 4) && p.y < rig_a.w + 0.075;
+		bool collar = (top_style == 2 || top_style == 3 || top_style == 4 || top_style == 7) && p.y < rig_a.w + 0.075;
 		return collar ? (top_style == 2 ? 2 : 1) : 0;
 	}
 	float waist = rig_b.x + 0.035;
 	if (p.y > waist) {
 		if (top_style == 2 && p.y > rig_a.w - 0.1) return 2;
 		// kimono: çapraz (sol üstte) yaka bandı
-		if (top_style == 5 && p.z > -0.02 && p.y > rig_b.w - 0.22 && abs(p.x + (p.y - rig_a.w) * 0.55) < 0.022) return 2;
+		if ((top_style == 5 || top_style == 6) && p.z > -0.02 && p.y > rig_b.w - 0.22 && abs(p.x + (p.y - rig_a.w) * 0.55) < 0.022) return 2;
+		// gi: göğüste derin V yaka (ten görünür)
+		if (top_style == 6 && p.z > 0.0 && p.y > rig_b.w - 0.12 && ax < (p.y - (rig_b.w - 0.12)) * 0.5) return 0;
+		// atlet: omuzlar açık, ince askı
+		if (top_style == 8 && p.y > rig_b.w - 0.04 && (ax > rig_a.x * 0.62 || (ax < 0.07 && p.z > 0.0))) return 0;
 		return 1;
 	}
-	if (p.y < rig_b.z + 0.03) return foot_cover ? 6 : 0;
+	if (p.y < rig_b.z + 0.03) return (foot_cover || foot_kind == 1 || foot_kind == 2) ? 6 : 0;
+	if (foot_kind == 2 && p.y < rig_b.z + 0.2) return 6;   // çizme konçu
 	float cut = pants_style == 0 ? rig_b.y - 0.17 : (pants_style == 1 ? rig_b.y - 0.05 : (pants_style == 3 ? rig_b.y + 0.1 : rig_b.z + 0.04));
+	if (pants_style == 5) cut = mix(rig_b.y, rig_b.z, 0.45);
+	if (pants_style == 6) cut = rig_b.y + 0.12;
 	if (p.y > cut) return 3;
 	float wrap_top = (pants_style == 0 || pants_style == 3) ? cut + 0.02 : rig_b.y - 0.16;
+	if (pants_style == 5) wrap_top = rig_b.z + 0.06;
+	if (foot_kind == 3) wrap_top = max(wrap_top, rig_b.y + 0.02);
 	return p.y < wrap_top ? 4 : 0;
 }
 
@@ -220,6 +238,14 @@ void fragment() {
 			if (rest.y < rig_b.x + 0.03 || rest.y > rig_a.w - 0.01 || abs(rest.x) > rig_a.x * 1.08) discard;
 			// Kumo: sağ omuz açık (tek askı)
 			if (vest_style == 3 && rest.x < -0.05 && rest.y > rig_b.w - 0.04) discard;
+			// koşum: yalnızca çapraz kayışlar + bel kayışı
+			if (vest_style == 9) {
+				float my = rig_b.w - 0.12;
+				bool s1 = abs(rest.x - (rest.y - my) * 0.62) < 0.028;
+				bool s2 = abs(rest.x + (rest.y - my) * 0.62) < 0.028;
+				if (!(s1 || s2 || rest.y < rig_b.x + 0.1)) discard;
+			}
+			if (vest_style == 11 && rest.y < rig_b.w - 0.24) discard;
 			slot = 5;
 		} else if (layer == 1 && slot == 0) discard;
 		if (slot == 0 && sage_marks > 0 && rest.y > face_ref.y - 0.07 && rest.y < face_ref.y + 0.05 && rest.z > face_ref.z - 0.05) {
@@ -252,10 +278,77 @@ void fragment() {
 				float net = max(step(0.82, fract(q.x + q.y)), step(0.82, fract(q.x - q.y)));
 				c.rgb = mix(skin_c * 0.85, pal[1].rgb * 1.2, net);
 			}
+			if (slot == 1 && slot_ov < 0.5 && top_pattern >= 2) {
+				float ax = abs(rest.x);
+				if (top_pattern == 2) c.rgb = mix(c.rgb, pal[2].rgb, step(0.62, fract(rest.y * 13.0)));
+				if (top_pattern == 3 && ((ax > rig_a.x * 0.62 && ax < rig_a.x * 0.9) || (ax > rig_a.x * 0.9 && abs(rest.z) < 0.018))) c.rgb = pal[2].rgb;
+				if (top_pattern == 4) {
+					vec2 q = vec2(rest.x * 9.0 + rest.z * 6.0, rest.y * 7.0);
+					float hh = hash(floor(q));
+					vec2 f = fract(q);
+					if (hh > 0.8) {
+						c.rgb *= hh > 0.9 ? 0.7 : 1.2;
+						if (min(min(f.x, f.y), min(1.0 - f.x, 1.0 - f.y)) < 0.07 && fract((f.x + f.y) * 12.0) < 0.5) c.rgb *= 0.5;  // dikiş
+					}
+				}
+				if (top_pattern == 5 && rest.z < -0.02) {
+					float r = length(vec2(rest.x, rest.y - (rig_b.w - 0.1)));
+					if (r < 0.075 && (r > 0.058 || r < 0.03)) c.rgb = pal[2].rgb;
+				}
+				if (top_pattern == 6 && (rest.y < rig_b.x + 0.09 || (ax > rig_a.x * 0.9 && ax > rig_a.z - 0.075))) c.rgb = pal[2].rgb;
+			}
+			if (slot == 8 && outer_pattern > 0) {
+				float dh = rest.y - outer_hem;
+				float oa = atan(rest.z, rest.x);
+				if (outer_pattern == 1 && dh < 0.07) c.rgb = outer_accent.rgb;
+				if (outer_pattern == 2 && dh < 0.09 + 0.08 * abs(sin(oa * 7.0)) + 0.04 * sin(oa * 17.0)) c.rgb = outer_accent.rgb;
+				if (outer_pattern == 3) {
+					vec2 q = vec2(oa * 2.6, rest.y * 4.2);
+					vec2 cell = floor(q);
+					vec2 f = fract(q) - 0.5;
+					if (mod(cell.x + cell.y, 2.0) < 0.5 && hash(cell) > 0.35 && length(f) < 0.3 && length(f - vec2(0.12, 0.08)) > 0.27) c.rgb = outer_accent.rgb;  // hilal
+					if (dh < 0.04) c.rgb = outer_accent.rgb * 0.8;
+				}
+				if (outer_pattern == 6) {
+					// beyaz kenarlı kızıl bulutlar
+					vec2 q = vec2(oa * 0.95, rest.y * 2.3);
+					vec2 cell = floor(q);
+					vec2 f = (fract(q) - 0.5) * vec2(1.0, 1.25);
+					if (mod(cell.x + cell.y, 2.0) < 0.5 && hash(cell) > 0.2) {
+						// üç tümsekli bulut + düz taban, kalın beyaz kontur
+						float d = min(min(length(f - vec2(-0.2, -0.02)) - 0.13, length(f - vec2(0.0, 0.07)) - 0.17), length(f - vec2(0.2, 0.0)) - 0.12);
+						d = min(d, max(abs(f.y + 0.06) - 0.08, abs(f.x) - 0.3));
+						d = max(d, -(f.y + 0.15));
+						if (d < 0.0) c.rgb = outer_accent.rgb; else if (d < 0.045) c.rgb = vec3(0.95, 0.94, 0.92);
+					}
+				}
+				if (outer_pattern == 4) c.rgb *= 0.8 + 0.32 * step(0.45, fract(oa * 22.0 + vnoise(rest.xy * 30.0) * 0.6));
+				if (outer_pattern == 5) c.rgb *= 1.0 - 0.35 * smoothstep(0.25, 0.0, dh) * vnoise(rest.xz * 40.0) - 0.15 * smoothstep(0.55, 0.8, vnoise(rest.xy * 9.0));
+			}
 			if (slot == 5 && layer == 2) {
 				if (vest_style == 2) c.rgb *= 0.9 + 0.1 * step(0.5, fract(rest.y * 28.0));
 				if (vest_style == 5) c.rgb *= 0.85 + 0.15 * step(0.08, fract(rest.y * 9.0)) * step(0.06, fract(rest.x * 7.0 + 0.5));
 				if (vest_style == 6) c.rgb *= 0.78 + 0.22 * smoothstep(0.0, 0.7, fract(rest.y * 24.0));
+				if (vest_style == 7) c.rgb *= 0.82 + 0.18 * step(0.5, fract(rest.x * 14.0));
+				if (vest_style == 8) {
+					vec2 q = vec2((rest.x + rest.z) * 70.0, rest.y * 80.0);
+					q.x += step(0.5, fract(q.y * 0.5)) * 0.5;
+					float d = length(fract(q) - 0.5);
+					c.rgb *= mix(0.55, 1.2, smoothstep(0.18, 0.28, d) * (1.0 - smoothstep(0.38, 0.48, d)));
+				}
+				if (vest_style == 10) {
+					float row = floor(rest.y * 22.0);
+					float sc = fract(rest.x * 11.0 + rest.z * 6.0 + mod(row, 2.0) * 0.5);
+					c.rgb *= (0.72 + 0.34 * smoothstep(0.0, 0.8, fract(rest.y * 22.0))) * (0.85 + 0.3 * abs(sc - 0.5));
+				}
+				if (vest_style == 11) c.rgb *= 0.86 + 0.14 * step(0.1, fract(rest.y * 7.0));
+			}
+			// kir/yıpranma: lekeler + paçalarda çamur
+			if (wear > 0.0) {
+				float st = smoothstep(0.5, 0.85, vnoise(rest.xy * 13.0 + rest.z * 7.0));
+				float mud = smoothstep(rig_b.y, rig_b.z, rest.y);
+				c.rgb *= 1.0 - wear * (0.28 * st + 0.3 * mud);
+				c.rgb = mix(c.rgb, c.rgb * vec3(0.95, 0.85, 0.72), wear * 0.35);
 			}
 			// 3B kumaş: kıvrımlardan normal sapması (bump) + kıvrım içi gölgesi
 			float h = fold_h(rest, slot) * fold_amount;

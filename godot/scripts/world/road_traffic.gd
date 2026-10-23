@@ -112,6 +112,9 @@ class TravelGroup extends Node3D:
 				lk.merge({"vest": Color(0.38, 0.48, 0.28), "top": Color(0.18, 0.22, 0.3), "pants": Color(0.18, 0.22, 0.3), "pants_style": "ninja",
 					"band": Color(0.15, 0.22, 0.55), "top_style": "uzun", "weapon_r": "kunai"}, true)
 		lk["top2"] = Color(lk["top"]).darkened(0.2)
+		# yol kalabalığı: hacılar keşiş, ninja kafilesi köy üniforması, kervan tüccar/gezgin/çiftçi kıyafeti
+		var oa: String = {"hacı": "monk", "ninja": "chunin"}.get(kind, ["traveler", "merchant", "farmer", "traveler"][i % 4])
+		lk.merge(Outfits.roll(oa, Outfits.village_near()), true)
 		return lk
 
 	func _add_ox_cart() -> void:

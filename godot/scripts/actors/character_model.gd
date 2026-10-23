@@ -516,8 +516,10 @@ func anim_progress() -> float:
 ## Bölge kodları: 0 ten, 10 omuz/üst kol, 11 göğüs, 12 bel, 13 ön kol, 14 bilek,
 ## 20 kalça, 21 uyluk, 22 baldır, 23 baldır altı, 30 ayak, 40 boyun
 ## Renk yuvaları (vertex COLOR.r = yuva * 0.1, toon shader palette_mode): 0 ten, 1 üst, 2 üst-vurgu, 3 alt, 4 sargı, 5 yelek
-const TOP_STYLES := {"tisort": "Kısa Kollu Tişört", "uzun": "Uzun Kollu Ninja Gömleği", "ceket": "Fermuarlı Ceket", "yakali": "Yüksek Yakalı Gömlek", "kolsuz": "Kolsuz Yakalı", "kimono": "Kimono Üstü"}
-const PANTS_STYLES := {"ninja": "Ninja Pantolonu", "sort": "Diz Altı Şort", "sivil": "Uzun Pantolon", "sargi": "Sargılı Pantolon"}
+## Sıra shader'daki top_style / pants_style numaralarıyla aynı (sona ekle)
+const TOP_STYLES := {"tisort": "Kısa Kollu Tişört", "uzun": "Uzun Kollu Ninja Gömleği", "ceket": "Fermuarlı Ceket", "yakali": "Yüksek Yakalı Gömlek", "kolsuz": "Kolsuz Yakalı", "kimono": "Kimono Üstü",
+	"gi": "Dövüş Gi'si", "yakali_uzun": "Uzun Kollu Yüksek Yaka", "atlet": "Atlet", "tek_kol": "Tek Kollu Üst"}
+const PANTS_STYLES := {"ninja": "Ninja Pantolonu", "sort": "Diz Altı Şort", "sivil": "Uzun Pantolon", "sargi": "Sargılı Pantolon", "bol": "Bol Paçalı Pantolon", "kapri": "Kapri", "kisa_sort": "Kısa Şort"}
 
 ## Yüz tipi: [çene genişliği, çene ucu, elmacık, burun, kaş çıkıntısı, işaret]
 const FACES := {
@@ -719,6 +721,7 @@ func _cloth_mat(layer: int) -> ShaderMaterial:
 	mat.set_shader_parameter("arm_wraps", bool(look.get("arm_wraps", false)))
 	mat.set_shader_parameter("outer_sleeves", 1 if look.get("outer_style") in ["palto", "haori"] else 0)
 	mat.set_shader_parameter("foot_cover", look.get("foot_style", "sandal") == "tabi")
+	OutfitParts.mat_params(self, mat)
 	var bp = func(n: String) -> Vector3: return _grest(skel.find_bone(n)).origin
 	mat.set_shader_parameter("rig_a", Vector4(bp.call("LeftUpperArm").x, bp.call("LeftLowerArm").x, bp.call("LeftHand").x, bp.call("Neck").y))
 	mat.set_shader_parameter("rig_b", Vector4(bp.call("Hips").y, bp.call("LeftLowerLeg").y, bp.call("LeftFoot").y, bp.call("UpperChest").y))
@@ -770,9 +773,9 @@ func _cloth_rings(g: Dictionary, mat: ShaderMaterial, vest_mat) -> void:
 	var ua = bp.call("LeftUpperArm").x; var el = bp.call("LeftLowerArm").x; var ha = bp.call("LeftHand").x
 	var neck = bp.call("Neck").y; var hips = bp.call("Hips").y; var knee = bp.call("LeftLowerLeg").y; var ank = bp.call("LeftFoot").y
 	var ts = top_style(); var ps = pants_style()
-	var short_sleeve = ts in ["tisort", "yakali"]
-	var sleeve = lerpf(ua, el, 0.5) if short_sleeve else ha - 0.035
-	var cut = {"ninja": knee - 0.17, "sort": knee - 0.05}.get(ps, ank + 0.04)
+	var short_sleeve = ts in ["tisort", "yakali", "gi"]
+	var sleeve = (el + 0.05 if ts == "gi" else lerpf(ua, el, 0.5)) if short_sleeve else ha - 0.035
+	var cut = {"ninja": knee - 0.17, "sort": knee - 0.05, "kapri": lerpf(knee, ank, 0.45), "kisa_sort": knee + 0.12}.get(ps, ank + 0.04)
 	var rings = []
 	for sx in [-1.0, 1.0]:
 		var side = "Left" if sx > 0 else "Right"
@@ -964,6 +967,8 @@ func _sandals() -> void:
 				ring_defs = [[1, fp.y + 0.02, 0.004, 0.006, 99.0]]  # ayak shader'da kapalı, sadece bilek bağı
 			"zori":
 				ring_defs = [[2, fp.z + 0.11, 0.004, 0.006, 0.07]]
+			"cizme", "yuksek_sandal":
+				ring_defs = OutfitParts.foot_rings(look["foot_style"], fp)
 		for rd in ring_defs:
 			var rk = "%s|%d|%.3f" % [key, rd[0], rd[1]]
 			if not _ring_cache.has(rk):
@@ -1090,7 +1095,12 @@ static func _nearest(g: Dictionary, p: Vector3) -> int:
 							bd = d; best = i
 		if best >= 0:
 			return best
-	return 0
+	# ızgarada komşu yok (kafanın üstü / uzak giysi köşesi): tüm köşelerde ara — yoksa 0. köşenin (bacak) ağırlığını alıp yere sarkar
+	for i in v.size():
+		var d = v[i].distance_squared_to(p)
+		if d < bd:
+			bd = d; best = i
+	return maxi(best, 0)
 
 
 func _bind_index(bone: String) -> int:
@@ -1278,9 +1288,8 @@ func _garment(key: String, build: Callable) -> void:
 func _garments(g: Dictionary) -> void:
 	var neck = _bp("Neck").y; var hips = _bp("Hips").y; var knee = _bp("LeftLowerLeg").y; var ank = _bp("LeftFoot").y
 	var chest = _bp("UpperChest").y; var ua = _bp("LeftUpperArm").x; var ha = _bp("LeftHand").x
-	var ey = neck + 0.17
-	if eyes_mesh:
-		ey = eyes_mesh.get_aabb().get_center().y
+	# göz yüksekliği model uzayında (VRoid yüz parçasının iris merkezi); göz mesh'inin AABB'si yerel uzayda, kullanma
+	var ey = eye_center_model.y if face_mi else neck + 0.17
 	var torso = func(p: Vector3) -> bool: return absf(p.x) < (ua * 0.95 if p.y > neck - 0.33 else 0.45) and p.y < neck + 0.06
 	var front_gap = func(w: float, from_t: float) -> Callable:
 		return func(t: float, ang: float) -> bool: return t > from_t and absf(wrapf(ang - PI * 0.5, -PI, PI)) < w
@@ -1318,6 +1327,7 @@ func _garments(g: Dictionary) -> void:
 		for sx in [-1.0, 1.0]:
 			_garment("kaval%d" % int(sx), func(): return _loft(g, 1, knee - 0.05, ank + 0.08, 8, func(p): return signf(p.x) == sx and absf(p.x) < 0.35,
 				func(_t, ang): return 0.03 if absf(wrapf(ang - PI * 0.5, -PI, PI)) < 1.3 else 0.02, 9, null, -99.0, 16))
+	OutfitParts.garments(self, g)
 
 
 ## Hayran modeli aksesuar: SFProps.ACCESSORIES[id] kemiğe, ref noktasına göre "off" ofsetle takılır
@@ -1413,7 +1423,7 @@ func _accessories() -> void:
 		for sx in [-1.0, 1.0]:
 			m.add("cyl", Vector3(0.036 * sx, 0, hd * 0.54 + 0.005), Vector3(0.05, 0.022, 0.05), steel, Vector3(90, 0, 0), 12)
 			m.add("cyl", Vector3(0.036 * sx, 0, hd * 0.54 + 0.017), Vector3(0.04, 0.004, 0.04), fg, Vector3(90, 0, 0), 12)
-		var gy = (eyes_mesh.get_aabb().get_center().y + 0.055) if eyes_mesh else hc.y + 0.05
+		var gy = (eye_center_model.y + 0.055) if face_mi else hc.y + 0.05
 		_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, Vector3(hcen.x, gy, hcen.z)))
 	# --- sırt / bel
 	var bc: Color = look.get("backc", Color(0.4, 0.33, 0.22)) if look.get("backc") != null else Color(0.4, 0.33, 0.22)
@@ -1478,6 +1488,7 @@ func _accessories() -> void:
 			var m = MB.new()
 			m.add("box", Vector3(0.04 * sx, 0.028, 0.0), Vector3(0.07, 0.008, 0.06), steel)
 			_mesh_on(side + "Hand", m.build(Props.toon()), Transform3D(Basis.IDENTITY, hp))
+	OutfitParts.accessories(self)
 
 
 ## Yaka, fermuar, bel bağı
@@ -1485,10 +1496,10 @@ func _cloth_details() -> void:
 	var ts = top_style()
 	_sandals()
 	var neck = skel.find_bone("Neck")
-	if neck >= 0 and ts in ["yakali", "ceket"] and look["vest"] == null:
+	if neck >= 0 and ts in ["yakali", "ceket", "yakali_uzun"] and look["vest"] == null:
 		var np = _grest(neck).origin
 		var c = MB.new()
-		var cc: Color = look["top"] if ts == "yakali" else look["top2"]
+		var cc: Color = look["top2"] if ts == "ceket" else look["top"]
 		c.add("cyl", Vector3(0, 0.035, 0.0), Vector3(0.15, 0.12, 0.15), cc, Vector3.ZERO, 16)
 		if ts == "ceket":
 			c.add("box", Vector3(0, 0.03, 0.074), Vector3(0.012, 0.09, 0.006), Color(0.85, 0.85, 0.85))

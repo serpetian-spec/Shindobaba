@@ -87,9 +87,11 @@ func report_captured(beast_id: int) -> void:
 
 
 func akatsuki_look(m: Dictionary) -> Dictionary:
-	return {"gender": "f" if m.get("f", false) else "m", "hair_style": m["hair"], "hair": Color(0.1, 0.08, 0.1) if randf() < 0.5 else Color(0.55, 0.15, 0.15),
-		"top": Color(0.12, 0.12, 0.14), "top2": Color(0.12, 0.12, 0.14), "pants": Color(0.12, 0.12, 0.14), "outer_style": "pelerin", "outer": Color(0.06, 0.06, 0.08),
-		"band": Color(0.2, 0.2, 0.25), "band_style": "slashed", "village": m["v"], "face_mark": "yok", "age": "adult", "weapon_r": m["weapon"] if m["weapon"] != "" else null}
+	# dik yakalı, bileğe inen siyah pelerin: beyaz kenarlı kızıl bulutlar
+	var lk = Outfits.roll("akatsuki", m["v"])
+	lk.merge({"gender": "f" if m.get("f", false) else "m", "hair_style": m["hair"], "hair": Color(0.1, 0.08, 0.1) if randf() < 0.5 else Color(0.55, 0.15, 0.15),
+		"band": Color(0.2, 0.2, 0.25), "band_style": "slashed", "village": m["v"], "face_mark": "yok", "age": "adult", "weapon_r": m["weapon"] if m["weapon"] != "" else null}, true)
+	return lk
 
 
 func spawn_member(m: Dictionary, at: Vector3) -> Enemy:

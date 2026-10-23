@@ -57,6 +57,13 @@ static func archetype(kind: String, i := 0) -> Dictionary:
 			base.merge({"hp": 140.0, "level": 10, "power": 1.3, "element": ["katon", "fuuton", "suiton"][i % 3], "aggr": 0.75, "name": "Rakip Genin",
 				"xp": 100, "ryo": 0, "guard": 0.35, "sub": 0.25}, true)
 			base["jutsu"] = {"katon": ["katon_goukakyuu", "katon_housenka"], "fuuton": ["fuuton_daitoppa"], "suiton": ["suiton_suikoudan"]}[base["element"]]
+	# kıyafet seti: her arketip kendi havuzundan (haydut, kaçak, köy chūnin/jōnin, samuray...) rastgele giyinir
+	var oarch: String = {"bandit": "bandit", "rogue": "rogue", "oto": "chunin", "kumo": "chunin", "kiri": "chunin", "iwa": "chunin", "suna": "chunin",
+		"samurai": "samurai", "genin_rival": "genin"}.get(kind, "")
+	if oarch == "chunin" and randf() < 0.3:
+		oarch = "jonin"
+	if oarch != "":
+		L.merge(Outfits.roll(oarch, String(L.get("village", "konoha"))), true)
 	base["look"] = L
 	return base
 

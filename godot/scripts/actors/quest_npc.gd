@@ -19,8 +19,8 @@ var label3d: Label3D
 
 func _ready() -> void:
 	if look.is_empty():
-		look = {"gender": ["m", "f"].pick_random(), "top": Color(0.6, 0.45, 0.3), "pants": Color(0.3, 0.28, 0.25), "pants_style": "sivil",
-			"band": null, "hair_style": ["kısa", "uzun", "kase"].pick_random(), "age": "adult"}
+		look = Outfits.roll("civ", Outfits.village_near())
+		look.merge({"gender": ["m", "f"].pick_random(), "hair_style": ["kısa", "uzun", "kase"].pick_random(), "age": "adult"}, true)
 	super._ready()
 	add_to_group("talkers")
 	if team == "neutral":

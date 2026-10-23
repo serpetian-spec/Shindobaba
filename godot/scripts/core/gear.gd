@@ -82,6 +82,95 @@ const ITEMS := {
 	"kilic_kini": {"name": "Sırt Kılıç Kını", "slot": "sirt", "price": 120, "rank": 0, "desc": "Çapraz takılan kılıç kını.", "stats": {"melee": 0.03}, "look": {"back_item": "kin"}, "c1": Color(0.15, 0.12, 0.12)},
 	"sirt_cantasi": {"name": "Sırt Çantası", "slot": "sirt", "price": 100, "rank": 0, "desc": "Uzun görevler için erzak çantası ve rulo yatak.", "stats": {"hp": 20}, "look": {"back_item": "canta"}, "c1": Color(0.4, 0.33, 0.22)},
 	"aletli_kemer": {"name": "Alet Kemeri", "slot": "sirt", "price": 150, "rank": 0, "desc": "Belde dört alet cebi ve parşömen tutucu.", "stats": {"def": 1, "chakra": 10}, "look": {"back_item": "kemer"}, "c1": Color(0.3, 0.24, 0.16)},
+	# ================================================================ genişletilmiş gardırop
+	# --- kafa
+	"hachimaki": {"name": "Hachimaki", "slot": "kafa", "price": 60, "rank": 0, "desc": "Alına sıkıca bağlanan, uçları ensede uçuşan kararlılık bandı.", "stats": {"melee": 0.03}, "look": {"head_style": "hachimaki"}, "c1": Color(0.95, 0.94, 0.9)},
+	"hachimaki_kizil": {"name": "Kızıl Hachimaki", "slot": "kafa", "price": 90, "rank": 0, "desc": "Savaş yemini edenlerin kırmızı alın bandı.", "stats": {"melee": 0.04}, "look": {"head_style": "hachimaki"}, "c1": Color(0.78, 0.12, 0.12)},
+	"haydut_bandana": {"name": "Haydut Bandanası", "slot": "kafa", "price": 50, "rank": 0, "desc": "Başa bağlanan, arkası düğümlü kaba bez.", "stats": {"def": 1, "speed": 0.01}, "look": {"head_style": "basortu"}, "c1": Color(0.55, 0.2, 0.15)},
+	"col_sarigi": {"name": "Çöl Sarığı", "slot": "kafa", "price": 180, "rank": 0, "desc": "Kat kat sarılmış kum rengi sarık. Güneşten ve kum fırtınasından korur.", "stats": {"def": 2, "hp": 15}, "look": {"head_style": "sarik"}, "c1": Color(0.85, 0.76, 0.58)},
+	"jingasa": {"name": "Jingasa", "slot": "kafa", "price": 240, "rank": 1, "desc": "Lake kaplı yassı asker şapkası; önünde pirinç arma.", "stats": {"def": 4}, "look": {"head_style": "jingasa"}, "c1": Color(0.16, 0.14, 0.14)},
+	"kabuto": {"name": "Samuray Kabutosu", "slot": "kafa", "price": 1300, "rank": 3, "desc": "Katmanlı boyun korumalı, altın boynuz armalı savaş miğferi.", "stats": {"def": 10, "hp": 30, "speed": -0.03}, "look": {"head_style": "kabuto"}, "c1": Color(0.22, 0.2, 0.22)},
+	"kabuto_kizil": {"name": "Kızıl Lake Kabuto", "slot": "kafa", "price": 1600, "rank": 3, "desc": "Komutanların kırmızı lake miğferi.", "stats": {"def": 11, "hp": 35, "speed": -0.03}, "look": {"head_style": "kabuto"}, "c1": Color(0.55, 0.1, 0.1)},
+	"tengai": {"name": "Tengai", "slot": "kafa", "price": 220, "rank": 0, "desc": "Yüzü tamamen örten derin hasır sepet şapka. Gezgin keşişlerin kimliği gizlidir.", "stats": {"def": 2, "chakra": 25}, "look": {"head_style": "tengai"}, "c1": Color(0.72, 0.6, 0.38)},
+	"golge_kapuson": {"name": "Gölge Kapüşonu", "slot": "kafa", "price": 380, "rank": 1, "desc": "Koyu, derin kapüşon. Suikastçıların sevdiği.", "stats": {"def": 2, "speed": 0.04}, "look": {"head_style": "kapuson"}, "c1": Color(0.1, 0.1, 0.12)},
+	"col_kapusonu": {"name": "Çöl Kapüşonu", "slot": "kafa", "price": 160, "rank": 0, "desc": "Kum rengi hafif kapüşon.", "stats": {"def": 2, "hp": 10}, "look": {"head_style": "kapuson"}, "c1": Color(0.78, 0.68, 0.5)},
+	"yirtik_kasa": {"name": "Yırtık Gezgin Kasası", "slot": "kafa", "price": 70, "rank": 0, "desc": "Kenarları yıpranmış eski hasır şapka. Ronin işi.", "stats": {"def": 1}, "look": {"head_style": "kasa"}, "c1": Color(0.48, 0.4, 0.28)},
+	"cizik_alin": {"name": "Çizik Alın Koruyucu", "slot": "kafa", "price": 0, "rank": 1, "desc": "Köyüne sırt çevirenlerin sembolü üstünden çizilmiş plakası.", "stats": {"def": 2, "melee": 0.04}, "look": {"band_style": "slashed"}, "c1": Color(0.2, 0.2, 0.24)},
+	# --- yüz
+	"mempo": {"name": "Mempo", "slot": "yuz", "price": 700, "rank": 2, "desc": "Samurayların dişli, bıyıklı demir alt yüz zırhı.", "stats": {"def": 5, "hp": 20}, "look": {"face_style": "mempo"}, "c1": Color(0.2, 0.18, 0.2)},
+	"mempo_kizil": {"name": "Kızıl Mempo", "slot": "yuz", "price": 900, "rank": 3, "desc": "Kırmızı lake, korkutucu yüz zırhı.", "stats": {"def": 6, "melee": 0.04}, "look": {"face_style": "mempo"}, "c1": Color(0.6, 0.1, 0.1)},
+	"goz_bandi": {"name": "Göz Bandı", "slot": "yuz", "price": 40, "rank": 0, "desc": "Eski bir yaradan kalan siyah göz bandı.", "stats": {"melee": 0.02}, "look": {"face_style": "goz_bandi"}, "c1": Color(0.1, 0.1, 0.1)},
+	"col_pecesi": {"name": "Çöl Peçesi", "slot": "yuz", "price": 110, "rank": 0, "desc": "Burun ve ağzı örten ince kumaş. Kum ve zehre karşı.", "stats": {"def": 1, "hp": 10}, "look": {"face_style": "pece"}, "c1": Color(0.82, 0.74, 0.58)},
+	"kizil_maske": {"name": "Kızıl Bez Maske", "slot": "yuz", "price": 120, "rank": 0, "desc": "Yüzün alt yarısını saran kırmızı bez.", "stats": {"def": 1, "speed": 0.02}, "look": {"face_style": "cloth"}, "c1": Color(0.55, 0.1, 0.12)},
+	"anbu_tilki": {"name": "ANBU Maskesi: Tilki", "slot": "yuz", "price": 900, "rank": 4, "desc": "Sivri burunlu tilki maskesi: kurnazlık.", "stats": {"def": 5, "chakra": 30}, "look": {"face_style": "anbu_tilki"}, "c1": Color(0.95, 0.95, 0.95)},
+	"anbu_kaplan": {"name": "ANBU Maskesi: Kaplan", "slot": "yuz", "price": 900, "rank": 4, "desc": "Çizgili kaplan maskesi: saldırganlık.", "stats": {"def": 5, "melee": 0.08}, "look": {"face_style": "anbu_kaplan"}, "c1": Color(0.95, 0.95, 0.95)},
+	"anbu_yilan": {"name": "ANBU Maskesi: Yılan", "slot": "yuz", "price": 900, "rank": 4, "desc": "Ortasından yeşil çizgi inen yılan maskesi: sinsilik.", "stats": {"def": 4, "speed": 0.06}, "look": {"face_style": "anbu_yilan"}, "c1": Color(0.95, 0.95, 0.95)},
+	"anbu_maymun": {"name": "ANBU Maskesi: Maymun", "slot": "yuz", "price": 900, "rank": 4, "desc": "Kulaklı maymun maskesi: çeviklik.", "stats": {"def": 4, "speed": 0.05, "melee": 0.03}, "look": {"face_style": "anbu_maymun"}, "c1": Color(0.95, 0.95, 0.95)},
+	# --- üst
+	"gi_beyaz": {"name": "Beyaz Dövüş Gi'si", "slot": "govde", "price": 160, "rank": 0, "desc": "Geniş V yakalı, dirsek boyu kollu taijutsu gi'si; siyah kuşaklı.", "stats": {"melee": 0.06}, "look": {"top_style": "gi"}, "c1": Color(0.94, 0.93, 0.9), "c2": Color(0.85, 0.84, 0.8)},
+	"gi_siyah": {"name": "Siyah Dövüş Gi'si", "slot": "govde", "price": 200, "rank": 0, "desc": "Gece antrenmanlarının koyu gi'si.", "stats": {"melee": 0.07}, "look": {"top_style": "gi"}, "c1": Color(0.12, 0.12, 0.14), "c2": Color(0.55, 0.1, 0.1)},
+	"kesis_ustu": {"name": "Keşiş Üstü", "slot": "govde", "price": 140, "rank": 0, "desc": "Safran rengi, çapraz yakalı tapınak giysisi.", "stats": {"chakra": 25}, "look": {"top_style": "gi"}, "c1": Color(0.9, 0.55, 0.15), "c2": Color(0.7, 0.35, 0.1)},
+	"arma_gomlek": {"name": "Armalı Yüksek Yakalı Gömlek", "slot": "govde", "price": 340, "rank": 1, "desc": "Uzun kollu, dik yakalı klan gömleği; sırtında yuvarlak klan arması.", "stats": {"def": 3, "chakra": 20}, "look": {"top_style": "yakali_uzun", "top_pattern": 5}, "c1": Color(0.12, 0.13, 0.2), "c2": Color(0.85, 0.15, 0.15)},
+	"beyaz_arma": {"name": "Beyaz Klan Cübbe-Gömleği", "slot": "govde", "price": 360, "rank": 1, "desc": "Soluk lila-beyaz, kenarları biyeli soylu klan üstü.", "stats": {"def": 2, "chakra": 30}, "look": {"top_style": "yakali_uzun", "top_pattern": 6}, "c1": Color(0.92, 0.9, 0.95), "c2": Color(0.55, 0.5, 0.7)},
+	"cizgili_tisort": {"name": "Çizgili Tişört", "slot": "govde", "price": 60, "rank": 0, "desc": "Enine çizgili rahat tişört.", "stats": {"speed": 0.03}, "look": {"top_style": "tisort", "top_pattern": 2}, "c1": Color(0.85, 0.85, 0.82), "c2": Color(0.2, 0.3, 0.55)},
+	"denizci_ust": {"name": "Çizgili Uzun Kollu", "slot": "govde", "price": 110, "rank": 0, "desc": "Liman köylerinin çizgili gömleği.", "stats": {"def": 1, "hp": 10}, "look": {"top_style": "uzun", "top_pattern": 2}, "c1": Color(0.9, 0.9, 0.88), "c2": Color(0.15, 0.25, 0.45)},
+	"panel_ceket": {"name": "Yan Panelli Eğitim Ceketi", "slot": "govde", "price": 260, "rank": 0, "desc": "Yanlarından ve kollarından şerit geçen fermuarlı ceket.", "stats": {"def": 3, "speed": 0.03}, "look": {"top_style": "ceket", "top_pattern": 3}, "c1": Color(0.2, 0.35, 0.6), "c2": Color(0.95, 0.75, 0.2)},
+	"kizil_ceket": {"name": "Kızıl Dövüş Ceketi", "slot": "govde", "price": 260, "rank": 0, "desc": "Kırmızı gövde, siyah omuzlu yüksek yakalı ceket.", "stats": {"def": 3, "melee": 0.04}, "look": {"top_style": "ceket", "top_pattern": 3}, "c1": Color(0.7, 0.12, 0.12), "c2": Color(0.1, 0.1, 0.12)},
+	"atlet": {"name": "Atlet", "slot": "govde", "price": 30, "rank": 0, "desc": "Askılı, kolları ve omuzları açık atlet.", "stats": {"speed": 0.04}, "look": {"top_style": "atlet"}, "c1": Color(0.9, 0.9, 0.88), "c2": Color(0.9, 0.9, 0.88)},
+	"tek_kol_ust": {"name": "Tek Kollu Savaş Üstü", "slot": "govde", "price": 230, "rank": 1, "desc": "Bir kolu açık, asimetrik kesim. Bulut köyü tarzı.", "stats": {"melee": 0.06, "speed": 0.02}, "look": {"top_style": "tek_kol"}, "c1": Color(0.22, 0.24, 0.28), "c2": Color(0.22, 0.24, 0.28)},
+	"yamali_gomlek": {"name": "Yamalı Gömlek", "slot": "govde", "price": 20, "rank": 0, "desc": "Yamalarla tutturulmuş, eskimiş gömlek.", "stats": {"hp": 5}, "look": {"top_style": "uzun", "top_pattern": 4}, "c1": Color(0.48, 0.38, 0.28), "c2": Color(0.48, 0.38, 0.28)},
+	"yamali_kolsuz": {"name": "Yırtık Kolsuz Üst", "slot": "govde", "price": 20, "rank": 0, "desc": "Kolları kopmuş, yamalı kaba üst.", "stats": {"melee": 0.03}, "look": {"top_style": "kolsuz", "top_pattern": 4}, "c1": Color(0.4, 0.34, 0.26), "c2": Color(0.4, 0.34, 0.26)},
+	"file_kolsuz": {"name": "File Kolsuz", "slot": "govde", "price": 140, "rank": 0, "desc": "Ağ örgü kolsuz fanila.", "stats": {"def": 2, "speed": 0.03}, "look": {"top_style": "kolsuz", "top_pattern": 1}, "c1": Color(0.15, 0.15, 0.17), "c2": Color(0.15, 0.15, 0.17)},
+	"biyeli_kimono": {"name": "Biyeli Kimono", "slot": "govde", "price": 420, "rank": 1, "desc": "Etek ve kol ağızları kontrast biyeli soylu kimono.", "stats": {"chakra": 35}, "look": {"top_style": "kimono", "top_pattern": 6}, "c1": Color(0.2, 0.22, 0.35), "c2": Color(0.85, 0.75, 0.45)},
+	"yukata": {"name": "Çizgili Yukata", "slot": "govde", "price": 160, "rank": 0, "desc": "Hafif yazlık kimono. Festival akşamları için.", "stats": {"hp": 10}, "look": {"top_style": "kimono", "top_pattern": 2}, "c1": Color(0.9, 0.88, 0.82), "c2": Color(0.25, 0.35, 0.6)},
+	"tunik": {"name": "Biyeli Tunik", "slot": "govde", "price": 150, "rank": 0, "desc": "Uzun kollu, kenarları biyeli gezgin tuniği.", "stats": {"def": 1, "chakra": 10}, "look": {"top_style": "uzun", "top_pattern": 6}, "c1": Color(0.45, 0.32, 0.22), "c2": Color(0.75, 0.6, 0.35)},
+	"deri_ceket": {"name": "Deri Ceket", "slot": "govde", "price": 280, "rank": 1, "desc": "Kalın deri, yüksek yakalı paralı asker ceketi.", "stats": {"def": 5, "speed": -0.01}, "look": {"top_style": "ceket"}, "c1": Color(0.38, 0.25, 0.15), "c2": Color(0.22, 0.15, 0.1)},
+	"golge_ust": {"name": "Gölge Ninja Üstü", "slot": "govde", "price": 320, "rank": 2, "desc": "Uzun kollu, yüksek yakalı simsiyah üst. Gece görevleri için.", "stats": {"def": 2, "speed": 0.05}, "look": {"top_style": "yakali_uzun"}, "c1": Color(0.08, 0.08, 0.1), "c2": Color(0.08, 0.08, 0.1)},
+	# --- alt
+	"bol_pantolon": {"name": "Bol Paçalı Pantolon", "slot": "bacak", "price": 120, "rank": 0, "desc": "Baldırda balon gibi kabaran, bilekte toplanan pantolon.", "stats": {"def": 2, "speed": 0.02}, "look": {"pants_style": "bol"}, "c1": Color(0.25, 0.28, 0.35)},
+	"col_salvari": {"name": "Çöl Şalvarı", "slot": "bacak", "price": 140, "rank": 0, "desc": "Kum rengi bol şalvar. Sıcakta serin tutar.", "stats": {"hp": 15}, "look": {"pants_style": "bol"}, "c1": Color(0.8, 0.7, 0.5)},
+	"kapri": {"name": "Kapri", "slot": "bacak", "price": 70, "rank": 0, "desc": "Baldır ortasında biten hafif pantolon.", "stats": {"speed": 0.03}, "look": {"pants_style": "kapri"}, "c1": Color(0.3, 0.3, 0.33)},
+	"kisa_sort": {"name": "Kısa Şort", "slot": "bacak", "price": 50, "rank": 0, "desc": "Diz üstü şort. Bacaklar serbest.", "stats": {"speed": 0.05}, "look": {"pants_style": "kisa_sort"}, "c1": Color(0.18, 0.18, 0.2)},
+	"yamali_pant": {"name": "Yamalı Pantolon", "slot": "bacak", "price": 15, "rank": 0, "desc": "Dizleri yamalı, eskimiş pantolon.", "stats": {}, "look": {"pants_style": "sivil"}, "c1": Color(0.38, 0.32, 0.25)},
+	"kizil_hakama": {"name": "Kızıl Hakama", "slot": "bacak", "price": 380, "rank": 1, "desc": "Tapınak muhafızlarının kırmızı hakaması.", "stats": {"def": 3, "chakra": 15}, "look": {"pants_style": "sivil", "hakama": true}, "c1": Color(0.65, 0.12, 0.12)},
+	"siyah_pant": {"name": "Siyah Taktik Pantolon", "slot": "bacak", "price": 180, "rank": 1, "desc": "Baldırdan sargılı koyu pantolon.", "stats": {"def": 2, "speed": 0.03}, "look": {"pants_style": "ninja"}, "c1": Color(0.1, 0.1, 0.12)},
+	# --- ayak
+	"deri_cizme": {"name": "Deri Çizme", "slot": "ayak", "price": 220, "rank": 0, "desc": "Baldıra kadar çıkan kalın çizme.", "stats": {"def": 3}, "look": {"foot_style": "cizme"}, "c1": Color(0.28, 0.2, 0.14), "c2": Color(0.28, 0.2, 0.14)},
+	"zirhli_cizme": {"name": "Zırhlı Çizme", "slot": "ayak", "price": 520, "rank": 2, "desc": "Metal plakalı ağır çizme.", "stats": {"def": 6, "speed": -0.02}, "look": {"foot_style": "cizme"}, "c1": Color(0.35, 0.36, 0.4), "c2": Color(0.35, 0.36, 0.4)},
+	"yuksek_sandal": {"name": "Dize Sargılı Sandalet", "slot": "ayak", "price": 140, "rank": 0, "desc": "Bacağı dize kadar saran bandajlı sandalet.", "stats": {"speed": 0.04, "melee": 0.02}, "look": {"foot_style": "yuksek_sandal"}, "c1": Color(0.12, 0.12, 0.14), "c2": Color(0.92, 0.92, 0.9)},
+	"siyah_tabi": {"name": "Siyah Tabi", "slot": "ayak", "price": 220, "rank": 1, "desc": "Sessiz adım için koyu tabi.", "stats": {"speed": 0.06}, "look": {"foot_style": "tabi"}, "c1": Color(0.06, 0.06, 0.08), "c2": Color(0.92, 0.92, 0.9)},
+	# --- yelek / zırh
+	"kok_yelek": {"name": "Kök Birliği Yeleği", "slot": "zirh", "price": 0, "rank": 4, "desc": "Dikey dikişli simsiyah gizli birlik yeleği.", "stats": {"def": 11, "speed": 0.04}, "look": {"vest_style": 7}, "c1": Color(0.1, 0.1, 0.12)},
+	"zincir_yelek": {"name": "Zincir Örgü Yelek", "slot": "zirh", "price": 600, "rank": 1, "desc": "Halka halka örülmüş metal yelek.", "stats": {"def": 9, "speed": -0.02}, "look": {"vest_style": 8}, "c1": Color(0.55, 0.57, 0.6)},
+	"kayis_kosum": {"name": "Kayış Koşum", "slot": "zirh", "price": 90, "rank": 0, "desc": "Göğüste çapraz deri kayışlar ve bel kemeri.", "stats": {"def": 2, "melee": 0.03}, "look": {"vest_style": 9}, "c1": Color(0.35, 0.24, 0.15)},
+	"deri_pul_zirh": {"name": "Deri Pullu Zırh", "slot": "zirh", "price": 720, "rank": 2, "desc": "Sıra sıra deri pullarla kaplı hafif zırh.", "stats": {"def": 11, "hp": 20, "speed": -0.02}, "look": {"vest_style": 10}, "c1": Color(0.42, 0.28, 0.18)},
+	"gogus_plakasi": {"name": "Göğüs Plakası", "slot": "zirh", "price": 480, "rank": 1, "desc": "Yalnızca göğsü saran hafif metal plaka.", "stats": {"def": 7, "speed": 0.01}, "look": {"vest_style": 11}, "c1": Color(0.6, 0.62, 0.66)},
+	"lake_zirh": {"name": "Kızıl Lake Zırh", "slot": "zirh", "price": 1800, "rank": 3, "desc": "Kırmızı lakeli lamel zırh, omuzluklarıyla birlikte.", "stats": {"def": 20, "hp": 45, "speed": -0.05}, "look": {"vest_style": 6}, "c1": Color(0.55, 0.1, 0.1)},
+	"ame_yelek": {"name": "Yağmur Köyü Yeleği", "slot": "zirh", "price": 700, "rank": 2, "desc": "Gri, nem tutmayan dikişli yelek.", "stats": {"def": 8, "chakra": 15}, "look": {"vest_style": 2}, "c1": Color(0.45, 0.48, 0.52)},
+	"jonin_koyu": {"name": "Gece Taktik Yeleği", "slot": "zirh", "price": 900, "rank": 2, "desc": "Koyu zeytin rengi, parşömen cepli yelek.", "stats": {"def": 10, "speed": 0.02}, "look": {"vest_style": 0}, "c1": Color(0.2, 0.26, 0.18)},
+	# --- dış giysi
+	"org_pelerini": {"name": "Kızıl Hilal Pelerini", "slot": "dis", "price": 0, "rank": 3, "desc": "Bilinmeyen bir örgütün dik yakalı, kızıl hilal desenli uzun pelerini.", "stats": {"def": 8, "chakra": 40, "hp": 30}, "look": {"outer_style": "org_pelerin", "outer_pattern": 3}, "c1": Color(0.08, 0.08, 0.12), "c2": Color(0.75, 0.1, 0.12)},
+	"panco": {"name": "Panço", "slot": "dis", "price": 150, "rank": 0, "desc": "Omuzlardan kalçaya inen geniş yağmurluk.", "stats": {"def": 2, "hp": 15}, "look": {"outer_style": "panco", "outer_pattern": 1}, "c1": Color(0.45, 0.35, 0.25), "c2": Color(0.7, 0.3, 0.15)},
+	"yirtik_pelerin": {"name": "Yırtık Gezgin Pelerini", "slot": "dis", "price": 90, "rank": 0, "desc": "Eteği parça parça olmuş, delikli eski pelerin.", "stats": {"def": 2, "speed": 0.02}, "look": {"outer_style": "yirtik", "outer_pattern": 5}, "c1": Color(0.3, 0.27, 0.24)},
+	"jinbaori": {"name": "Jinbaori", "slot": "dis", "price": 900, "rank": 2, "desc": "Samuray komutanlarının kolsuz, yandan yırtmaçlı savaş cüppesi.", "stats": {"def": 6, "hp": 30}, "look": {"outer_style": "jinbaori", "outer_pattern": 1}, "c1": Color(0.15, 0.15, 0.22), "c2": Color(0.85, 0.68, 0.25)},
+	"kesis_cubbesi": {"name": "Keşiş Cübbesi", "slot": "dis", "price": 260, "rank": 0, "desc": "Ayak bileğine inen kollu tapınak cübbesi.", "stats": {"chakra": 40}, "look": {"outer_style": "cuppe", "outer_pattern": 1}, "c1": Color(0.3, 0.28, 0.35), "c2": Color(0.9, 0.55, 0.15)},
+	"kesa": {"name": "Kesa", "slot": "dis", "price": 120, "rank": 0, "desc": "Tek omuzdan çapraz inen keşiş örtüsü.", "stats": {"chakra": 25}, "look": {"outer_style": "kesa"}, "c1": Color(0.62, 0.18, 0.1)},
+	"sennin_haorisi": {"name": "Alev Etekli Uzun Haori", "slot": "dis", "price": 1400, "rank": 3, "desc": "Dize inen, eteği alev desenli uzun haori.", "stats": {"chakra": 45, "def": 4}, "look": {"outer_style": "haori_uzun", "outer_pattern": 2}, "c1": Color(0.9, 0.88, 0.84), "c2": Color(0.8, 0.15, 0.1)},
+	"bantli_palto": {"name": "Bantlı Komutan Paltosu", "slot": "dis", "price": 1200, "rank": 3, "desc": "Eteği renkli bantla biten uzun palto.", "stats": {"def": 6, "chakra": 35}, "look": {"outer_style": "palto", "outer_pattern": 1}, "c1": Color(0.2, 0.22, 0.28), "c2": Color(0.85, 0.65, 0.2)},
+	"mino": {"name": "Hasır Yağmurluk (Mino)", "slot": "dis", "price": 80, "rank": 0, "desc": "Saman liflerinden örülmüş kaba yağmurluk. Köylü ve gezgin işi.", "stats": {"def": 2, "hp": 20}, "look": {"outer_style": "mino", "outer_pattern": 4}, "c1": Color(0.68, 0.58, 0.36)},
+	"gece_pelerini": {"name": "Gece Pelerini", "slot": "dis", "price": 520, "rank": 2, "desc": "Bileğe inen kapalı, koyu pelerin.", "stats": {"def": 4, "speed": 0.03}, "look": {"outer_style": "org_pelerin", "outer_pattern": 1}, "c1": Color(0.1, 0.1, 0.12), "c2": Color(0.25, 0.25, 0.3)},
+	# --- kol / koruma
+	"omuz_zirhi": {"name": "Omuz Zırhı", "slot": "kol", "price": 300, "rank": 1, "desc": "Tek omuza takılan katmanlı plaka ve göğüs kayışı.", "stats": {"def": 5}, "look": {"guards": "omuz"}, "c1": Color(0.5, 0.52, 0.56)},
+	"dizlik": {"name": "Dizlik", "slot": "kol", "price": 120, "rank": 0, "desc": "Dizleri koruyan sert ped.", "stats": {"def": 3, "melee": 0.02}, "look": {"guards": "dizlik"}, "c1": Color(0.3, 0.3, 0.32)},
+	"agir_zirh": {"name": "Ağır Zırh Takımı", "slot": "kol", "price": 950, "rank": 2, "desc": "İki omuzluk ve dizlikler. Darbeleri sırtında taşırsın.", "stats": {"def": 10, "hp": 30, "speed": -0.04}, "look": {"guards": "agir", "gloves": true}, "c1": Color(0.4, 0.42, 0.46)},
+	"uzun_sargi_eldiven": {"name": "Sargılı Eldiven", "slot": "kol", "price": 110, "rank": 0, "desc": "Parmaksız eldiven ve ön kol sargısı bir arada.", "stats": {"melee": 0.06}, "look": {"gloves": true, "arm_wraps": true}, "c1": Color(0.15, 0.15, 0.17)},
+	# --- sırt / bel
+	"tespih": {"name": "Dev Tespih", "slot": "sirt", "price": 200, "rank": 0, "desc": "Boyuna asılan iri ahşap tespih.", "stats": {"chakra": 30}, "look": {"back_item": "tespih"}, "c1": Color(0.35, 0.22, 0.12)},
+	"sirt_sepeti": {"name": "Sırt Sepeti", "slot": "sirt", "price": 60, "rank": 0, "desc": "Tüccar ve gezginlerin hasır sırt sepeti.", "stats": {"hp": 25}, "look": {"back_item": "sepet"}, "c1": Color(0.7, 0.58, 0.35)},
+	"bel_parsomenleri": {"name": "Bel Parşömenleri", "slot": "sirt", "price": 260, "rank": 1, "desc": "Kalçanın iki yanında taşınan çağırma parşömenleri.", "stats": {"chakra": 25}, "look": {"back_item": "bel_parsomen"}, "c1": Color(0.88, 0.82, 0.65)},
+	"bel_cantasi": {"name": "Bel Çantası Takımı", "slot": "sirt", "price": 130, "rank": 0, "desc": "Yan cep, arka kese ve sarkan kunai kılıfı.", "stats": {"def": 1, "hp": 10}, "look": {"back_item": "kemer_canta"}, "c1": Color(0.3, 0.26, 0.2)},
+	"sashimono": {"name": "Sashimono Bayrağı", "slot": "sirt", "price": 400, "rank": 2, "desc": "Sırta takılan samuray birlik sancağı.", "stats": {"def": 2, "hp": 20}, "look": {"back_item": "sashimono"}, "c1": Color(0.55, 0.12, 0.12)},
+	"ip_kangali": {"name": "İp Kangalı", "slot": "sirt", "price": 25, "rank": 0, "desc": "Belde taşınan sağlam ip. Tırmanış ve tuzak için.", "stats": {"speed": 0.01}, "look": {"back_item": "ip_kangal"}, "c1": Color(0.7, 0.62, 0.45)},
 	# --- silahlar (el = iki ele de takılabilir)
 	"kunai": {"name": "Kunai", "slot": "el", "price": 30, "rank": 0, "desc": "Her ninjanın yakın dövüş bıçağı.", "stats": {}, "weapon": {"dmg": 1.15, "reach": 0.15, "style": "blade"}, "c1": Color(0.6, 0.62, 0.66)},
 	"altin_kunai": {"name": "Chakra Metali Kunai", "slot": "el", "price": 600, "rank": 2, "desc": "Chakra iletebilen özel metalden kunai.", "stats": {"chakra": 15}, "weapon": {"dmg": 1.35, "reach": 0.2, "style": "blade"}, "c1": Color(0.85, 0.7, 0.3)},
@@ -143,13 +232,27 @@ const SHOP_CLOTHES := ["kitsune_maske", "tengu_maske", "oni_maske", "kum_kabagi"
 	"kasa", "kapuson", "kafa_bandaji", "bandana", "bez_maske", "gozluk", "gaz_maskesi", "anbu_maske", "anbu_kurt", "anbu_kus", "anbu_ayi",
 	"deri_yelek", "suna_yelek", "kiri_yelek", "kumo_yelek", "iwa_yelek", "samuray_zirh",
 	"atki", "kisa_pelerin", "seyahat_pelerini", "haori", "uzun_palto",
-	"kol_sargisi", "eldiven", "kolluk", "bacak_koruma", "tam_koruma", "aletli_kemer", "kilic_kini", "sirt_cantasi", "dev_parsomen", "sirt_shuriken"]
+	"kol_sargisi", "eldiven", "kolluk", "bacak_koruma", "tam_koruma", "aletli_kemer", "kilic_kini", "sirt_cantasi", "dev_parsomen", "sirt_shuriken",
+	# genişletilmiş gardırop
+	"hachimaki", "hachimaki_kizil", "haydut_bandana", "col_sarigi", "jingasa", "kabuto", "tengai", "golge_kapuson", "col_kapusonu", "yirtik_kasa",
+	"mempo", "goz_bandi", "col_pecesi", "kizil_maske", "anbu_tilki", "anbu_kaplan", "anbu_yilan", "anbu_maymun",
+	"gi_beyaz", "gi_siyah", "kesis_ustu", "arma_gomlek", "beyaz_arma", "cizgili_tisort", "denizci_ust", "panel_ceket", "kizil_ceket", "atlet", "tek_kol_ust",
+	"yamali_gomlek", "yamali_kolsuz", "file_kolsuz", "biyeli_kimono", "yukata", "tunik", "deri_ceket", "golge_ust",
+	"bol_pantolon", "col_salvari", "kapri", "kisa_sort", "yamali_pant", "kizil_hakama", "siyah_pant",
+	"deri_cizme", "zirhli_cizme", "yuksek_sandal", "siyah_tabi",
+	"zincir_yelek", "kayis_kosum", "deri_pul_zirh", "gogus_plakasi", "ame_yelek", "jonin_koyu",
+	"panco", "yirtik_pelerin", "jinbaori", "kesis_cubbesi", "kesa", "bantli_palto", "mino", "gece_pelerini",
+	"omuz_zirhi", "dizlik", "agir_zirh", "uzun_sargi_eldiven", "tespih", "sirt_sepeti", "bel_parsomenleri", "bel_cantasi", "sashimono", "ip_kangali"]
 const SHOP_WEAPONS := ["sai", "kunai", "senbon", "ikiz_hancer", "tonfa", "bo", "tanto", "kama", "patlayici_kunai", "zincirli_kunai", "pence", "musta",
 	"wakizashi", "altin_kunai", "katana", "mizrak", "yelpaze", "el_shuriken", "kusarigama", "savas_cekici", "chakra_bicak", "nodachi"]
 ## Sadece görev ödülü olarak düşen (dükkânda satılmayan) parçalar dahil ödül havuzu
 const REWARD_POOL := ["kafa_bandaji", "gozluk", "kasa", "kapuson", "atki", "kol_sargisi", "eldiven", "kolluk", "bacak_koruma", "tabi", "hakama",
 	"kisa_pelerin", "haori", "dev_parsomen", "sirt_shuriken", "senbon", "kama", "pence", "zincirli_kunai", "wakizashi", "altin_kunai",
-	"suna_yelek", "kiri_yelek", "kumo_yelek", "iwa_yelek", "chakra_bicak", "nodachi", "samuray_zirh", "uzun_palto", "anbu_kurt", "anbu_kus", "anbu_ayi"]
+	"suna_yelek", "kiri_yelek", "kumo_yelek", "iwa_yelek", "chakra_bicak", "nodachi", "samuray_zirh", "uzun_palto", "anbu_kurt", "anbu_kus", "anbu_ayi",
+	"hachimaki_kizil", "jingasa", "kabuto", "kabuto_kizil", "mempo", "mempo_kizil", "golge_kapuson", "arma_gomlek", "beyaz_arma", "golge_ust", "panel_ceket",
+	"siyah_pant", "kizil_hakama", "zirhli_cizme", "siyah_tabi", "zincir_yelek", "deri_pul_zirh", "lake_zirh", "jonin_koyu", "jinbaori", "sennin_haorisi",
+	"bantli_palto", "gece_pelerini", "omuz_zirhi", "agir_zirh", "bel_parsomenleri", "sashimono", "anbu_tilki", "anbu_kaplan", "anbu_yilan", "anbu_maymun",
+	"org_pelerini", "kok_yelek", "cizik_alin"]
 
 
 ## Görev ödülü: rütbeye uygun rastgele parça (yoksa "")
@@ -263,6 +366,10 @@ static func apply_look(p: Dictionary) -> void:
 	L["hakama"] = false
 	L["vest_style"] = 0
 	L["foot_style"] = "sandal"
+	L["outer_pattern"] = 0
+	L["outer_accent"] = null
+	L["wear"] = 0.0
+	L["rope_belt"] = false
 	for s in SLOTS:
 		var g = equipped(p, s[0])
 		if g.is_empty():
@@ -300,6 +407,8 @@ static func apply_look(p: Dictionary) -> void:
 				L["vest"] = c1
 			"dis":
 				L["outer"] = c1
+				if it.has("c2"):
+					L["outer_accent"] = c2
 			"kol":
 				L["acc"] = c1
 			"sirt":
