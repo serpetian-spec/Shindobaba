@@ -139,19 +139,18 @@ static func vegetation_mesh(t: int) -> ArrayMesh:
 			b.add_grad("sphere", Vector3(0, 1.4, 0), Vector3(6.5, 4.5, 5.5), rc, rc.darkened(0.4), Vector3(6, 30, 4), 7)
 			b.add_grad("sphere", Vector3(2.6, 0.9, 1.6), Vector3(3.6, 2.8, 3.2), rc.lightened(0.05), rc.darkened(0.4), Vector3(0, 70, 8), 6)
 			b.add_grad("sphere", Vector3(-2.4, 0.7, -1.2), Vector3(3.0, 2.2, 2.6), rc, rc.darkened(0.45), Vector3(10, 10, 0), 6)
-		12:  # çiçek öbeği
-			var fc = [Color(0.95, 0.85, 0.3), Color(0.95, 0.5, 0.6), Color(0.8, 0.85, 1.0), Color(0.95, 0.95, 0.95)][randi() % 4]
+		12:  # yonca / küçük yeşil bitki öbeği (renkli çiçek yok)
 			for i in 9:
-				var p = Vector3(randf_range(-1.2, 1.2), 0, randf_range(-1.2, 1.2))
-				b.add("cyl", p + Vector3(0, 0.25, 0), Vector3(0.03, 0.5, 0.03), Color(0.3, 0.55, 0.22), Vector3.ZERO, 4)
-				b.add("sphere", p + Vector3(0, 0.52, 0), Vector3(0.16, 0.08, 0.16), fc, Vector3.ZERO, 6)
+				var p = Vector3(randf_range(-1.0, 1.0), 0, randf_range(-1.0, 1.0))
+				b.add("cyl", p + Vector3(0, 0.12, 0), Vector3(0.025, 0.24, 0.025), Color(0.3, 0.55, 0.22), Vector3.ZERO, 4)
+				b.add_grad("sphere", p + Vector3(0, 0.26, 0), Vector3(0.26, 0.07, 0.26), Color(0.42, 0.7, 0.3), Color(0.22, 0.45, 0.16), Vector3.ZERO, 6)
 		13:  # devrik, yosunlu kütük
 			b.add_grad("cyl", Vector3(0, 0.45, 0), Vector3(0.9, 5.2, 0.9), bark.lightened(0.05), bark.darkened(0.3), Vector3(0, 0, 90), 8)
 			b.add("box", Vector3(0, 0.88, 0), Vector3(4.2, 0.12, 0.55), Color(0.35, 0.56, 0.26), Vector3.ZERO)
 			b.add("cyl", Vector3(1.4, 0.95, 0.2), Vector3(0.18, 1.2, 0.18), bark, Vector3(30, 0, -20), 5)
 			b.add("cyl", Vector3(-2.6, 0.45, 0), Vector3(1.0, 0.1, 1.0), Color(0.75, 0.62, 0.45), Vector3(0, 0, 90), 8)
 		14:  # mantar öbeği
-			var caps = [Color(0.85, 0.25, 0.2), Color(0.75, 0.55, 0.35), Color(0.95, 0.85, 0.7)]
+			var caps = [Color(0.62, 0.45, 0.3), Color(0.75, 0.58, 0.4), Color(0.9, 0.82, 0.68)]
 			for i in 5:
 				var p = Vector3(randf_range(-0.6, 0.6), 0, randf_range(-0.6, 0.6))
 				var h = randf_range(0.15, 0.4)
@@ -175,12 +174,9 @@ static func vegetation_mesh(t: int) -> ArrayMesh:
 			for i in 9:
 				b.add("cyl", Vector3(0, 0.45, 0), Vector3(0.05, 1.1, 0.05), dc2, Vector3(randf_range(-55, 55), randf() * 360.0, randf_range(-55, 55)), 4)
 			b.add("sphere", Vector3(0, 0.4, 0), Vector3(1.1, 0.7, 1.1), Color(0.62, 0.55, 0.38), Vector3.ZERO, 6)
-		18:  # meyveli / çiçekli çalı
+		18:  # sade yeşil çalı (meyve/çiçek yok)
 			_leaf_cluster(b, Vector3(0, 0.55, 0), 1.6, 0)
-			var bc = [Color(0.85, 0.15, 0.2), Color(0.35, 0.3, 0.75), Color(0.98, 0.95, 0.95)][randi() % 3]
-			for i in 10:
-				var a = randf() * TAU
-				b.add("sphere", Vector3(cos(a) * 0.7, 0.5 + randf() * 0.5, sin(a) * 0.7), Vector3(0.12, 0.12, 0.12), bc, Vector3.ZERO, 5)
+			_leaf_cluster(b, Vector3(0.5, 0.4, -0.3), 1.1, 2)
 		19:  # yosunlu küçük kaya
 			b.add_grad("sphere", Vector3(0, 0.3, 0), Vector3(1.4, 0.9, 1.2), Color(0.6, 0.58, 0.54), Color(0.38, 0.36, 0.33), Vector3(5, 30, 0), 6)
 			b.add("sphere", Vector3(0.1, 0.62, 0), Vector3(1.0, 0.25, 0.9), Color(0.36, 0.58, 0.28), Vector3.ZERO, 6)

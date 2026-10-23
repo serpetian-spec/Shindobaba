@@ -12,6 +12,8 @@ const CONVEX := [4, 11]
 const MAX_TASKS := 2
 const MAX_BUILDS_PER_FRAME := 1
 const INSTALL_BUDGET_US := 1500   # karede en fazla bu kadar kurulum (takılma olmasın)
+const FAR_A := 1000.0          # bu mesafeden sonra yalnız seyreltilmiş vekil ağaçlar
+const PROXY_T := [0, 1, 5, 9]
 const DMAX := 0.02            # aday yoğunluğu (m² başına)
 
 ## biyom -> [yoğunluk / m², tipler]  (0 geniş ağaç, 1 çam, 2 kuru ağaç, 3 kaktüs, 4 kaya, 5 dev ağaç, 6 bambu,
@@ -30,6 +32,7 @@ var radii = {0: 0.38, 1: 0.36, 2: 0.3, 3: 0.36, 4: 1.0, 5: 3.2, 6: 0.0, 7: 0.25,
 var convex = {}
 var var_count = {}     # tip -> varyant sayısı (iş parçacıkları okur)
 var bodies: Array[StaticBody3D] = []
+var body_tree: Array = []   # gövde -> atanmış ağaç kimliği
 var chunks := {}        # Vector2i -> {node, detail: bool, trees: Array}
 var tasks := {}         # Vector2i -> [task_id, detail, result holder]
 var ready_q: Array = []
@@ -41,17 +44,10 @@ var _specials: Array = []   # [x, y(harita), iç r, dış r, tip, yoğunluk]
 
 func _ready() -> void:
 	for t in 21:
-		# hazır model varyantları varsa onlar (yakın + orta mesafe), yoksa prosedürel model
-		var pv: Array = Props.pack_variants(t)
-		if t == 9:
-			var ft = Props.forest_tree_pack()
-			if ft:
-				pv = [[ft, AssetLib.lod(ft, 0.25), AssetLib.lod(ft, 0.08)]]
-		if pv.is_empty():
-			pv = [[Props.vegetation_mesh(t), null]]
-		meshes[t] = pv
-		var_count[t] = pv.size()
-		lods[t] = Props.vegetation_lod(t) if pv[0].size() < 3 else null
+		# prosedürel bitki örtüsü (hazır model ağaçlar doğal durmuyordu, kaldırıldı): yakın tam model + uzak LOD
+		meshes[t] = [[Props.vegetation_mesh(t), null]]
+		var_count[t] = 1
+		lods[t] = Props.vegetation_lod(t)
 	for t in CONVEX:
 		convex[t] = []
 		for v in meshes[t]:
@@ -82,6 +78,7 @@ func _ready() -> void:
 		sb.position = Vector3(0, -2000, 0)
 		add_child(sb)
 		bodies.append(sb)
+		body_tree.append(null)
 
 
 func _focus() -> Vector3:
@@ -215,14 +212,14 @@ func _generate(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 		var h := Game.terrain_height(x, z)
 		if h < (0.15 if t == 16 else 0.8):
 			continue
-		if detail:
-			var hx := Game.terrain_height(x + 2.0, z) - h
-			var hz := Game.terrain_height(x, z + 2.0) - h
-			var sl := Vector2(hx, hz).length() / 2.0
-			if sl > 1.1:
-				continue
-			if t in [9, 0] and sl > 0.7:
-				t = 4
+		# eğim filtresi detaylı/uzak üretimde AYNI olmalı: yoksa yaklaşınca parça yeniden kurulurken ağaçlar kaybolur
+		var hx := Game.terrain_height(x + 2.0, z) - h
+		var hz := Game.terrain_height(x, z + 2.0) - h
+		var sl := Vector2(hx, hz).length() / 2.0
+		if sl > 1.1:
+			continue
+		if t in [9, 0] and sl > 0.7:
+			t = 4
 		var s := lerpf(0.8, 1.3, sc_r)
 		if t == 9:
 			s = lerpf(1.5, 2.6, sc_r)   # anime ölçeği: 40-70 m dev orman ağaçları
@@ -231,6 +228,15 @@ func _generate(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 		var col := 1.0 + (rng.randf() - 0.5) * 0.2
 		var nv: int = var_count.get(t, 1)
 		var vi := int(rng.randf() * nv) % nv
+		# yer örtüsü: düzgün serpme yerine doğal öbekler; her öbekte tek tür
+		if t in [8, 10, 12, 15, 18]:
+			var patch := Game._wh_vn(x / 38.0, z / 38.0, 20 + t)
+			var need := 0.62 if t in [12, 18] else 0.5
+			if b == 2 and t in [12, 18]:
+				need = 0.74   # orman zemininde çiçek az
+			if patch < need:
+				continue
+			vi = int(Game._wh_vn(x / 90.0, z / 90.0, 40 + t) * 7.0) % nv
 		var bk := t * 100 + vi
 		if not bufs.has(bk):
 			bufs[bk] = PackedFloat32Array()
@@ -239,7 +245,7 @@ func _generate(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 		var ox := x - cx
 		var oz := z - cz
 		# MultiMesh tamponu: 3x4 satır düzeni + renk
-		bufs[bk].append_array([c, 0.0, sn, ox, 0.0, s, 0.0, h - 0.15, -sn, 0.0, c, oz, col, 1.0 + (col - 1.0) * 0.6, 1.0 - (col - 1.0) * 0.4, 1.0])
+		bufs[bk].append_array([c, 0.0, sn, ox, 0.0, s, 0.0, h - 0.3, -sn, 0.0, c, oz, col, 1.0 + (col - 1.0) * 0.6, 1.0 - (col - 1.0) * 0.4, 1.0])
 		if detail and radii[t] > 0.0:
 			trees.append([x, h, z, s, yaw, t, vi])
 	holder["buf"] = bufs
@@ -272,15 +278,28 @@ func _install(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 		var has_lod = lods[t] != null
 		if pv.size() >= 3 and pv[1] != null and not t in SMALL:
 			# hazır model: yakında tam detay, orta mesafede basitleştirilmiş, en uzakta çok basit kopya
-			var full_end = (75.0 if t in [0, 1, 2, 8, 6] else 140.0) * view
-			var mid_end = 420.0 * view
+			var full_end = (75.0 if t in [0, 1, 2, 8, 6] else (110.0 if t == 9 else 140.0)) * view
+			# yapraklı ağaçlarda orta kopya (seyreltilmiş yaprak kartları) 260 m'ye kadar; ötesi opak vekil
+			var mid_end = (260.0 if t in [0, 1] else 420.0) * view
 			var a = _mmi(node, pv[0], buf, n, 0.0, full_end)
-			a.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+			# gölgeyi tam model değil basit kopya atar (yaprak alfa-kesme + binlerce üçgen x 4 gölge katmanı GPU'yu boğuyordu)
+			a.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			if not t in [8, 10, 12, 14, 15, 18, 19]:
+				# yapraklı ağaçlar: gölge opak vekilden (alfa-kesmeli yaprak gölgesi 4 katmanda çok pahalı)
+				var sh = _mmi(node, _proxy(t) if t in PROXY_T else pv[2], buf, n, 0.0, full_end)
+				sh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
 			var m2 = _mmi(node, pv[1], buf, n, full_end, mid_end)
 			m2.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			if not t in [8, 10, 12, 14, 15, 18, 19]:
-				var m3 = _mmi(node, pv[2], buf, n, mid_end, FAR_R * 1.2 * view)
+				# uzak: 420-1000 m arası pakete ait basit kopya (tümü), ötesi sadece büyük ağaçlar için seyreltilmiş ucuz vekil
+				var far_a = FAR_A * view
+				# yapraklı ağaçlarda uzak kopya opak vekil (yaprak kartları uzakta pahalı ve basitleştirince bozuluyor)
+				var m3 = _mmi(node, _proxy(t) if t in PROXY_T else pv[2], buf, n, mid_end, far_a if t in PROXY_T else FAR_A * 0.75 * view)
 				m3.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				if t in PROXY_T:
+					var sub := _subsample(buf, n, 3)
+					var m4 = _mmi(node, _proxy(t), sub, sub.size() / 16, far_a, FAR_R * 1.2 * view)
+					m4.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		else:
 			var a = _mmi(node, pv[0], buf, n, 0.0, near_end if has_lod or t in SMALL else FAR_R * 1.2 * view)
 			a.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if not t in SMALL else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -294,6 +313,36 @@ func _install(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 			lb.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	chunks[key] = {"node": node, "detail": detail, "trees": holder.get("trees", [])}
 	last_cell = Vector2i(999999, 999999)  # çarpışma havuzunu tazele
+
+
+## Her n'inci örnek (uzak mesafe seyreltme; deterministik)
+static func _subsample(buf: PackedFloat32Array, n: int, step: int) -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	for i in range(0, n, step):
+		out.append_array(buf.slice(i * 16, i * 16 + 16))
+	return out
+
+
+var _proxies := {}
+## Çok uzak ağaç vekili: ~30 üçgen (gövde yok; koyu tepe + tek renk taç)
+func _proxy(t: int) -> ArrayMesh:
+	if _proxies.has(t):
+		return _proxies[t]
+	var b = MB.new()
+	match t:
+		1:
+			b.add_grad("cone", Vector3(0, 7.5, 0), Vector3(5.4, 13, 5.4), Color(0.2, 0.42, 0.3), Color(0.07, 0.2, 0.14), Vector3.ZERO, 5)
+		5:
+			b.add_grad("sphere", Vector3(0, 52, 0), Vector3(34, 20, 34), Color(0.22, 0.42, 0.2), Color(0.06, 0.16, 0.07), Vector3.ZERO, 4)
+			b.add("cyl", Vector3(0, 22, 0), Vector3(5.0, 44, 5.0), Color(0.3, 0.2, 0.14), Vector3.ZERO, 3)
+		9:
+			b.add_grad("sphere", Vector3(0, Props.FOREST_TRUNK_H - 4.0, 0), Vector3(22, 16, 22), Color(0.32, 0.6, 0.24), Color(0.1, 0.26, 0.1), Vector3.ZERO, 4)
+			b.add("cyl", Vector3(0, Props.FOREST_TRUNK_H * 0.4, 0), Vector3(Props.FOREST_TRUNK_R * 2.0, Props.FOREST_TRUNK_H * 0.8, Props.FOREST_TRUNK_R * 2.0), Color(0.36, 0.25, 0.17), Vector3.ZERO, 3)
+		_:
+			b.add_grad("sphere", Vector3(0, 7.0, 0), Vector3(8.5, 7.0, 8.5), Color(0.34, 0.6, 0.24), Color(0.12, 0.3, 0.12), Vector3.ZERO, 4)
+	var m = b.build(Props.foliage())
+	_proxies[t] = m
+	return m
 
 
 func _mmi(parent: Node3D, mesh: Mesh, buf: PackedFloat32Array, n: int, begin: float, end: float) -> MultiMeshInstance3D:
@@ -335,12 +384,30 @@ func _physics_process(_dt: float) -> void:
 				if d2 < 90.0 * 90.0:
 					near.append([d2, tr])
 	near.sort_custom(func(a, b): return a[0] < b[0])
+	near = near.slice(0, bodies.size())
+	var want := {}
+	for e in near:
+		var tr: Array = e[1]
+		want[Vector3i(int(tr[0] * 10.0), int(tr[2] * 10.0), int(tr[5]))] = tr
+	# hâlâ yakında olan ağaçların gövdelerine dokunma; serbest kalanları yeni ağaçlara ver
+	var free_b: Array = []
 	for k in bodies.size():
+		var id = body_tree[k]
+		if id != null and want.has(id):
+			want.erase(id)
+		else:
+			body_tree[k] = null
+			free_b.append(k)
+	var todo: Array = want.keys()
+	for k in free_b:
 		var sb = bodies[k]
-		if k >= near.size():
-			sb.position = Vector3(0, -2000, 0)
+		if todo.is_empty():
+			if sb.position.y > -1000.0:
+				sb.position = Vector3(0, -2000, 0)
 			continue
-		var tr: Array = near[k][1]
+		var tid = todo.pop_back()
+		body_tree[k] = tid
+		var tr: Array = want[tid]
 		var t: int = tr[5]
 		var s: float = tr[3]
 		var yaw: float = tr[4]
