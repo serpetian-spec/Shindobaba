@@ -79,12 +79,25 @@ signal jutsu_cast(caster: Node, id: String)
 func execute(caster: Node3D, id: String, target: Node3D) -> void:
 	jutsu_cast.emit(caster, id)
 	id = String(Data.jutsu.get(id, {}).get("impl", id))  # klan jutsuları ortak uygulamayı kullanabilir
+	var jd: Dictionary = Data.jutsu.get(id, {})
+	if not has_method("j_" + id) and jd.is_empty():
+		Hud.msg("%s henüz uygulanmadı" % id, Color(1, 0.6, 0.4))
+		return
+	# destan ölçeği: rütbe × ustalık; bırakış anı (flaş, şok halkası, toz, B+ yavaş çekim + kamera)
+	var g = JutsuEngine.grand(caster, jd.merged({"id": id}))
+	var tier = int(jd.get("tier", 2))
+	var shp = String(jd.get("shape", ""))
+	if tier < 3 and JutsuEngine.SIGNATURE_SCALE.has(id):
+		tier = 3   # imza element jutsuları B gibi sahnelenir
+	var calm = shp in ["transform", "stealth", "sensor", "utility", "heal", "revive", "teleport", "clone", "counter"]
+	VFX.release(caster, _cast_origin(caster, id), JutsuEngine.color_of(jd), g, tier if not calm else mini(tier, 2), not calm)
+	var prev = VFX.epic
+	VFX.epic = g
 	if has_method("j_" + id):
 		call("j_" + id, caster, target)
-	elif Data.jutsu.has(id):
-		JutsuEngine.cast(caster, id, target)  # veri güdümlü: şekil × element × kademe
 	else:
-		Hud.msg("%s henüz uygulanmadı" % id, Color(1, 0.6, 0.4))
+		JutsuEngine.cast(caster, id, target)  # veri güdümlü: şekil × element × kademe
+	VFX.epic = prev
 
 
 # ================================================================== KATON
@@ -92,35 +105,81 @@ func j_katon_goukakyuu(c: Node3D, t: Node3D) -> void:
 	var m = _mult(c) * _elem_bonus(c, "katon")
 	var dir = _aim(c, t)
 	var start = _mouth(c) + dir * 0.9
-	# ağızdan püsküren alev dili + kor
-	VFX.puffs(start, {"amount": 26, "life": 0.4, "size": 1.3, "vmin": 8, "vmax": 16, "dir": dir, "spread": 22.0, "damp": 3.0, "glow": 1.1, "hot": 0.3,
-		"outline_col": Color(0.3, 0.04, 0.02), "colors": [Color(1, 0.82, 0.22, 1), Color(1, 0.55, 0.08, 1), Color(0.95, 0.3, 0.04, 0.9), Color(0.7, 0.1, 0.03, 0)]})
+	var g = VFX.epic
+	var fcols = [Color(1, 0.82, 0.22, 1), Color(1, 0.55, 0.08, 1), Color(0.95, 0.3, 0.04, 0.9), Color(0.7, 0.1, 0.03, 0)]
+	# ısı dalgası halkası + ağızdan püsküren alev
+	VFX.shockwave(start, Color(1, 0.7, 0.3), 5.0, 0.35, false)
 	VFX.embers(start, Color(1, 0.55, 0.1), 18, 12.0)
-	Sfx.play("fire", start)
+	Sfx.play("fire", start, 0.8, 1.4)
 	var pr = Projectile.new()
 	pr.shooter = c
-	pr.vel = dir * 20.0
-	pr.radius = 1.4
-	pr.life = 2.8
-	pr.info = {"dmg": 26.0 * m, "element": "katon", "knock": 10.0, "launch": 4.0, "kind": "heavy", "hitstop": 0.07, "burn": 3.0}
-	# nefesle büyüyen, kendi etrafında yuvarlanan dev ateş topu
-	var ball = VFX.fireball(3.6)
-	ball.scale = Vector3.ONE * 0.25
+	pr.vel = dir * 5.0
+	pr.radius = 2.4
+	pr.life = 3.6
+	pr.info = {"dmg": 26.0 * m, "element": "katon", "knock": 14.0, "launch": 6.0, "kind": "heavy", "hitstop": 0.09, "burn": 3.0}
+	# 1) nefesle ağzın önünde şişen dev ateş topu (8–12 m), 2) yuvarlanarak ilerler, altında yanık izi bırakır
+	var ball = VFX.fireball(5.0)
+	ball.scale = Vector3.ONE * 0.12
 	pr.add_child(ball)
 	var gt = ball.create_tween()
-	gt.tween_property(ball, "scale", Vector3.ONE, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	gt.tween_property(ball, "scale", Vector3.ONE, 0.75).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 	var rt = ball.create_tween().set_loops()
-	rt.tween_property(ball, "rotation:x", -TAU, 0.9).from(0.0)
-	Projectile.trail(pr, [Color(1, 0.75, 0.18, 1), Color(1, 0.45, 0.06, 1), Color(0.8, 0.16, 0.03, 0.8), Color(0.3, 0.06, 0.03, 0)], 2.0, 44, 0.4, FX.tex_smoke, false)
+	rt.tween_property(ball, "rotation:x", -TAU, 1.1).from(0.0)
 	var light = OmniLight3D.new()
-	light.light_color = Color(1, 0.6, 0.2); light.light_energy = 1.5; light.omni_range = 10.0
+	light.light_color = Color(1, 0.6, 0.2); light.light_energy = 3.0; light.omni_range = 18.0 * g
 	pr.add_child(light)
+	# sürekli nefes akışı (~1 sn): ağızdan topa doğru büyüyen alev dili
+	_ticks(9, 0.1, func(k):
+		if not is_instance_valid(c) or not is_instance_valid(pr):
+			return
+		var mo = _mouth(c) + dir * 0.6
+		var to_ball = (pr.global_position - mo)
+		VFX.puffs(mo, {"amount": 10, "life": 0.35, "size": 0.9 + k * 0.12, "vmin": 6, "vmax": maxf(8.0, to_ball.length() * 2.2), "dir": to_ball.normalized(),
+			"spread": 14.0, "damp": 2.0, "glow": 1.1, "hot": 0.3, "stretch": 1.4, "outline_col": Color(0.3, 0.04, 0.02), "colors": fcols}))
+	var st = {"age": 0.0, "scar": 0.0}
+	pr.on_tick = func(p: Projectile, dt: float) -> void:
+		st["age"] += dt
+		if st["age"] < 0.75:
+			p.vel = dir * 5.0
+		else:
+			p.vel = p.vel.move_toward(dir * 24.0, dt * 40.0)
+		# top yerin üstünde yuvarlansın (merkez görsel yarıçapın yarısı kadar yukarıda)
+		var gy = Game.ground_height(p.global_position.x, p.global_position.z)
+		p.global_position.y = lerpf(p.global_position.y, gy + 2.2 * g, minf(1.0, dt * 3.0))
+		st["scar"] -= dt
+		if st["scar"] <= 0.0 and st["age"] > 0.3:
+			st["scar"] = 0.12
+			VFX.cracks(Vector3(p.global_position.x, gy, p.global_position.z), 2.6, Color(0.1, 0.05, 0.02, 0.9), 6.0)
+			VFX.puffs(Vector3(p.global_position.x, gy + 0.3, p.global_position.z), {"amount": 4, "life": 0.5, "size": 1.2, "radius": 1.5, "vmin": 1, "vmax": 3,
+				"dir": Vector3.UP, "spread": 30.0, "glow": 1.1, "hot": 0.2, "outline_col": Color(0.3, 0.04, 0.02), "colors": fcols})
 	pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
-		VFX.explosion(pos, 1.7, Color(1.0, 0.5, 0.1))
-		Combat.hit_sphere(c, pos, 4.0, {"dmg": 14.0 * m, "element": "katon", "knock": 12.0, "launch": 5.0, "kind": "heavy", "burn": 3.0}, pr.hit_list)
+		var ge = VFX.epic
+		VFX.explosion(pos, 1.3, Color(1.0, 0.5, 0.1))
+		# göğe yükselen ateş sütunu + kalıcı alevler
+		var gp = Vector3(pos.x, Game.ground_height(pos.x, pos.z), pos.z)
+		var cm = CylinderMesh.new()
+		cm.top_radius = 0.35; cm.bottom_radius = 0.5; cm.height = 1.0; cm.radial_segments = 20; cm.rings = 6
+		cm.cap_top = false; cm.cap_bottom = false
+		var fm = VFX.mat_fire("fire", 4.0, 1.6, 0.45, 1.15, 0.2, Vector3.UP, true)
+		var colm = VFX._mi(cm, fm)
+		get_tree().current_scene.add_child(colm)
+		colm.global_position = gp
+		colm.scale = Vector3(3.5 * ge, 0.5, 3.5 * ge)
+		var ct = colm.create_tween()
+		ct.tween_property(colm, "scale", Vector3(3.0 * ge, 9.0 * ge, 3.0 * ge), 0.35).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+		ct.parallel().tween_property(colm, "global_position:y", gp.y + 4.5 * ge, 0.35).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+		ct.tween_method(func(x: float): fm.set_shader_parameter("alpha_cut", x), 0.0, 1.1, 1.1)
+		ct.tween_callback(colm.queue_free)
+		VFX.linger(pos, "katon", Color(1, 0.5, 0.1), ge * 1.2, 4.0)
+		VFX.shockwave(gp + Vector3.UP * 0.15, Color(1, 0.6, 0.2), 22.0, 0.6)
+		VFX.screen_lines(0.5, 0.8, Color(1, 0.85, 0.6))
+		if Game.world:
+			Game.world.env.add_shake(1.2)
+			Game.world.env.screen_flash(0.15)
+		Combat.hit_sphere(c, pos, 4.0, {"dmg": 14.0 * m, "element": "katon", "knock": 16.0, "launch": 7.0, "kind": "heavy", "burn": 3.0}, pr.hit_list)
 	get_tree().current_scene.add_child(pr)
-	pr.global_position = start
-	VFX.element_trail(pr, "katon", Color(1, 0.5, 0.1), 2.4)
+	pr.global_position = start + dir * 2.0
+	VFX.element_trail(pr, "katon", Color(1, 0.5, 0.1), 2.0)
 
 
 func j_katon_housenka(c: Node3D, t: Node3D) -> void:
@@ -174,7 +233,10 @@ func _stream(c: Node3D, t: Node3D, dur: float, col: Color, el: String, tick_dmg:
 	pm.scale_min = 1.0; pm.scale_max = 2.4
 	pm.damping_min = 4.0; pm.damping_max = 8.0
 	var q = QuadMesh.new()
-	q.size = Vector2(1.6, 1.6)
+	var sg = minf(VFX.epic, 2.0)
+	q.size = Vector2(1.6, 1.6) * sg
+	pm.spread = 14.0 + sg * 5.0
+	pm.initial_velocity_min *= sqrt(sg); pm.initial_velocity_max *= sqrt(sg)
 	match el:
 		"katon", "yoton", "shakuton", "bakuton":
 			var pr: Array = VFX.FIRE_PRESETS[VFX.fire_preset_for(col)]
@@ -262,8 +324,8 @@ func j_suiton_suiryuudan(c: Node3D, t: Node3D) -> void:
 	var age = {"t": 0.0}
 	pr.on_tick = func(p: Projectile, dt: float) -> void:
 		age["t"] += dt
-		if age["t"] < 0.55:   # yüksel ve kıvrıl
-			p.vel = (Vector3.UP * 16.0 + fd.cross(Vector3.UP) * cos(age["t"] * 9.0) * 9.0 + fd * 3.0)
+		if age["t"] < 0.85:   # yüksel ve kıvrıl (15–20 m)
+			p.vel = (Vector3.UP * 21.0 + fd.cross(Vector3.UP) * cos(age["t"] * 7.0) * 11.0 + fd * 3.0)
 			return
 		p.homing_turn = 6.0   # sonra hedefe dal
 		if not t and p.life < 2.8:
@@ -359,6 +421,8 @@ func j_fuuton_daitoppa(c: Node3D, t: Node3D) -> void:
 
 ## Ağızdan/elden ileri fırlayan saydam, kırılan hava konisi
 func _wind_cone(from: Vector3, d: Vector3, length: float, width: float, dur: float) -> void:
+	length *= VFX.epic
+	width *= VFX.epic
 	var cm = CylinderMesh.new()
 	cm.top_radius = 0.3; cm.bottom_radius = 0.5; cm.height = 1.0; cm.radial_segments = 20; cm.rings = 2
 	cm.cap_top = false; cm.cap_bottom = false
@@ -461,9 +525,10 @@ func j_doton_doryuheki(c: Node3D, _t: Node3D) -> void:
 	var wall = StaticBody3D.new()
 	var cs = CollisionShape3D.new()
 	var sh = BoxShape3D.new()
-	sh.size = Vector3(12, 7, 2)
+	var wk = clampf(VFX.epic, 1.0, 1.4)
+	sh.size = Vector3(12, 7, 2) * wk
 	cs.shape = sh
-	cs.position.y = 3.5
+	cs.position.y = 3.5 * wk
 	wall.add_child(cs)
 	var b = MB.new()
 	# kaya katmanları: her biri biraz farklı kalınlık/renk/çıkıntı
@@ -498,10 +563,11 @@ func j_doton_doryuheki(c: Node3D, _t: Node3D) -> void:
 				b.add("cone", Vector3(fx + tx, 2.85, z + side * 0.9), Vector3(0.16, 0.42, 0.16), Color(0.9, 0.86, 0.76), Vector3(180, 0, 0), 4)
 	var mi = MeshInstance3D.new()
 	mi.mesh = b.build(Props.toon())
+	mi.scale = Vector3.ONE * wk
 	wall.add_child(mi)
 	get_tree().current_scene.add_child(wall)
-	_element_wall(wall, "doton", c, Vector3(0, 3.5, 0), Vector3(6, 3.5, 1), 45.0 * _mult(c))
-	wall.global_transform = Transform3D(Basis.looking_at(d, Vector3.UP), pos - Vector3(0, 7.5, 0))
+	_element_wall(wall, "doton", c, Vector3(0, 3.5, 0) * wk, Vector3(6, 3.5, 1) * wk, 45.0 * _mult(c))
+	wall.global_transform = Transform3D(Basis.looking_at(d, Vector3.UP), pos - Vector3(0, 7.5 * wk, 0))
 	var tw = wall.create_tween()
 	tw.tween_property(wall, "global_position:y", pos.y, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	# yükselirken taban boyunca toz perdesi ve tepeden dökülen taşlar
@@ -513,7 +579,7 @@ func j_doton_doryuheki(c: Node3D, _t: Node3D) -> void:
 				"outline_col": Color(0.3, 0.22, 0.14), "shade": 0.3, "colors": [Color(0.72, 0.6, 0.45, 1), Color(0.62, 0.5, 0.36, 1), Color(0.55, 0.45, 0.33, 0)]})
 		VFX.debris(pos + Vector3.UP * (2.0 + i * 1.6) + side_v * randf_range(-5, 5), Color(0.52, 0.42, 0.3), 6, 7.0, 0.45))
 	tw.tween_interval(14.0)
-	tw.tween_property(wall, "global_position:y", pos.y - 7.5, 0.6)
+	tw.tween_property(wall, "global_position:y", pos.y - 7.5 * wk, 0.6)
 	tw.tween_callback(wall.queue_free)
 	FX.dust(pos, 3.0)
 	VFX.debris(pos + Vector3.UP * 0.5, Color(0.5, 0.4, 0.3), 26, 14.0, 0.6)
@@ -613,7 +679,7 @@ func j_rasengan(c: Node3D, t: Node3D) -> void:
 	ras.create_tween().tween_property(ras, "scale", Vector3.ONE, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	FX.aura(hand, Color(0.5, 0.8, 1.0), 0.4, Vector3.ZERO, 0.0)
 	Sfx.play("rasengan", c.global_position)
-	_hand_dash(c, t, hand, 0.6, 26.0, {"dmg": 42.0 * m, "knock": 22.0, "launch": 6.0, "kind": "heavy", "hitstop": 0.16},
+	_hand_dash(c, t, hand, 0.6, 26.0, {"dmg": 42.0 * m, "knock": 32.0, "launch": 9.0, "kind": "heavy", "hitstop": 0.16},
 		Color(0.4, 0.7, 1.0), true)
 
 
@@ -876,11 +942,20 @@ func j_reverse_summoning_technique(c: Node3D, _t: Node3D) -> void:
 ## Belirli aralıklarla n kez fn(i) çağır, sonunda done()
 func _ticks(n: int, interval: float, fn: Callable, done := Callable()) -> void:
 	var tw = create_tween()
+	var ep = VFX.epic   # gecikmeli adımlar da yayının ölçeğiyle çizilsin
+	var run = func(f: Callable, i):
+		var o = VFX.epic
+		VFX.epic = ep
+		if i == null:
+			f.call()
+		else:
+			f.call(i)
+		VFX.epic = o
 	for i in n:
-		tw.tween_callback(fn.bind(i))
+		tw.tween_callback(run.bind(fn, i))
 		tw.tween_interval(interval)
 	if done.is_valid():
-		tw.tween_callback(done)
+		tw.tween_callback(run.bind(done, null))
 
 
 ## Genel hücum: dur saniye boyunca hedefe/ileri koş, her karede on_tick(nokta) çağır
@@ -1512,7 +1587,7 @@ func j_katon_goryuka_no_jutsu(c: Node3D, t: Node3D) -> void:
 			if not is_instance_valid(c):
 				return
 			var dd = (dir + Vector3(randf_range(-0.25, 0.25), 0.35 + randf_range(0, 0.3), randf_range(-0.25, 0.25))).normalized()
-			JutsuEngine.spawn_projectile(c, d, _mouth(c) + dir, dd, "dragon", 1.8, 20.0, _inf(c, "katon_goryuka_no_jutsu", 0.45), t))
+			JutsuEngine.spawn_projectile(c, d, _mouth(c) + dir, dd, "dragon", 2.2, 20.0, _inf(c, "katon_goryuka_no_jutsu", 0.45), t))
 	if c is Player:
 		VFX.screen_lines(0.5, 0.5, Color(1, 0.8, 0.5))
 
@@ -1547,7 +1622,7 @@ func j_suiro_no_jutsu(c: Node3D, t: Node3D) -> void:
 ## Daibakufu: dev şelale dalgası — çevreyi su basar, önündeki her şeyi süpürür
 func j_suiton_daibakufu_no_jutsu(c: Node3D, t: Node3D) -> void:
 	var dir = _aim_flat(c, t)
-	var start = _ground(c.global_position + dir * 2.0)
+	var start = _ground(c.global_position + dir * 7.0)   # sütun oyuncu kamerasını yutmasın
 	Sfx.play("water", start, 0.6)
 	VFX.splash(start, 4.0)
 	# yükselen su sütunu
@@ -1654,8 +1729,8 @@ func j_shinra_tensei(c: Node3D, _t: Node3D) -> void:
 	get_tree().current_scene.add_child(wb)
 	wb.global_position = pos
 	var tw = wb.create_tween()
-	tw.tween_property(wb, "scale", Vector3.ONE * r * 1.2, 0.35).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-	tw.tween_property(wb, "scale", Vector3.ONE * r * 1.35, 0.2)
+	tw.tween_property(wb, "scale", Vector3.ONE * r * 0.8, 0.35).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tw.tween_property(wb, "scale", Vector3.ONE * r * 0.9, 0.2)
 	tw.tween_callback(wb.queue_free)
 	VFX.star(pos, Color(1, 1, 1), 8.0, 0.2)
 	VFX.shockwave(_ground(pos) + Vector3.UP * 0.15, Color(0.9, 0.9, 1.0), r * 2.6, 0.55)
@@ -1699,7 +1774,7 @@ func j_odama_rasengan(c: Node3D, t: Node3D) -> void:
 	ras.create_tween().tween_property(ras, "scale", Vector3.ONE, 0.6).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	FX.aura(c, Color(0.5, 0.8, 1.0), 1.2, Vector3(0, 0.9, 0), 1.6)
 	Sfx.play("rasengan", c.global_position, 0.7)
-	_hand_dash(c, t, hand, 0.75, 24.0, {"dmg": 60.0 * m, "knock": 30.0, "launch": 9.0, "kind": "heavy", "hitstop": 0.2}, Color(0.4, 0.7, 1.0), true)
+	_hand_dash(c, t, hand, 0.75, 24.0, {"dmg": 60.0 * m, "knock": 44.0, "launch": 12.0, "kind": "heavy", "hitstop": 0.2}, Color(0.4, 0.7, 1.0), true)
 
 
 ## Amaterasu: baktığın noktada söndürülemeyen kara alevler tutuşur

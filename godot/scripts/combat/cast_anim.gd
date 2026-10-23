@@ -392,8 +392,12 @@ func _on_seal(idx: int) -> void:
 	Sfx.play("seal", f.global_position, 1.0 + idx * 0.05, 0.7 if is_player else 0.4)
 	# mühür anında ellerde chakra kıvılcımı
 	var hp = (_hand_pos("Left") + _hand_pos("Right")) * 0.5
-	FX.burst(hp, {"amount": 6, "life": 0.25, "tex": FX.tex_spark, "size": 0.18, "vmin": 0.5, "vmax": 1.5, "gravity": Vector3.ZERO,
-		"colors": [Color(0.55, 0.8, 1.0, 0.9), Color(0.4, 0.6, 1.0, 0.0)]})
+	var ec = _elem_color()
+	FX.burst(hp, {"amount": 8, "life": 0.25, "tex": FX.tex_spark, "size": 0.25, "vmin": 0.5, "vmax": 1.8, "gravity": Vector3.ZERO,
+		"colors": [Color(1, 1, 1, 0.95), Color(ec.r, ec.g, ec.b, 0.0)]})
+	# son mühür: rütbe ölçekli hazırlık (içe çöken halka + toplanan chakra)
+	if idx == seals.size() - 1:
+		VFX.gather(hp, ec, JutsuEngine.grand(f, j))
 	# mühür adı oyuncu için HUD'da (Hud.show_seals) gösterilir; düşmanda başın üstünde küçük yazı
 	if not is_player and f.global_position.distance_to(Game.player.global_position if Game.player else f.global_position) < 18.0:
 		Combat.popup_text(f.global_position + Vector3.UP * 2.3, sname, Color(0.85, 0.92, 1.0, 0.8))

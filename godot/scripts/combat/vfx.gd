@@ -7,6 +7,8 @@ static var _cache := {}
 static var _speed_layer: CanvasLayer
 static var _speed_rect: ColorRect
 static var _active := 0
+## Destan ölçeği: yayın sırasında jutsunun rütbe/ustalık büyüklüğü (E 0.7 … S 2.2+). Kurucular ve tek seferlik efektler bununla büyür.
+static var epic := 1.0
 const MAX_ACTIVE := 90   # aynı anda canlı ağır efekt sınırı (performans)
 
 const FIRE_PRESETS := {
@@ -208,6 +210,7 @@ static func _mi(mesh: Mesh, mat: Material) -> MeshInstance3D:
 
 ## Katmanlı dönen ateş topu (Gōkakyū): sıcak çekirdek + iki türbülanslı alev kabuğu + kıvılcım
 static func fireball(size := 1.0, preset := "fire") -> Node3D:
+	size *= epic
 	var root = Node3D.new()
 	var outer = _mi(_sphere(0.5, 28, 14), mat_fire(preset, 2.6, 2.2, 0.5, 1.3, 0.16, Vector3(0, 0.4, 1)))
 	outer.scale = Vector3.ONE * size * 1.15
@@ -227,6 +230,7 @@ static func fireball(size := 1.0, preset := "fire") -> Node3D:
 
 ## Su küresi (Suikōdan çekirdeği vb.)
 static func water_ball(size := 1.0) -> Node3D:
+	size *= epic
 	var root = Node3D.new()
 	var body = _mi(_sphere(0.5, 24, 12), mat_water(Color(0.05, 0.28, 0.78), Color(0.2, 0.55, 0.98), Color(0.62, 0.88, 1.0), Vector3(0, 0, 1), 0.9, 0.6, 0.1))
 	body.scale = Vector3.ONE * size
@@ -236,6 +240,7 @@ static func water_ball(size := 1.0) -> Node3D:
 
 ## Rüzgar küresi: kırılan hava kabuğu + iç beyaz spiral
 static func wind_ball(size := 1.0) -> Node3D:
+	size *= epic
 	var root = Node3D.new()
 	var shell = _mi(_sphere(0.5, 24, 12), mat_wind(Color(0.8, 1.0, 0.92), 8.0, 5.0, Vector3(0, 0, 1)))
 	shell.scale = Vector3.ONE * size
@@ -248,6 +253,7 @@ static func wind_ball(size := 1.0) -> Node3D:
 
 ## Rasengan tipi küre: parlak çekirdek + iki eksende dönen spiral kabuk + rüzgar halkaları
 static func rasengan(size := 1.0, body := Color(0.15, 0.45, 1.0), line := Color(0.85, 0.95, 1.0)) -> Node3D:
+	size *= epic
 	var root = Node3D.new()
 	var core = Projectile.energy_mesh(Color(1, 1, 1), line, size * 0.5, 14.0, 0.0, 2.0)
 	root.add_child(core)
@@ -273,6 +279,7 @@ static func rasengan(size := 1.0, body := Color(0.15, 0.45, 1.0), line := Color(
 
 ## Şimşek topu (Chidori): parlak çekirdek + kalın titreyen arklar
 static func lightning_ball(size := 1.0, col := Color(0.45, 0.7, 1.0)) -> Node3D:
+	size *= epic
 	var root = Node3D.new()
 	root.add_child(Projectile.energy_mesh(Color(1, 1, 1), col, size * 0.6, 16.0, 0.0, 2.2))
 	var arcs = Arcs.new()
@@ -298,7 +305,7 @@ static func element_core(el: String, col: Color, size: float) -> Node3D:
 		"raiton", "ranton":
 			return lightning_ball(size * 0.8, col)
 	var root = Node3D.new()
-	root.add_child(Projectile.energy_mesh(col.lightened(0.5), col, size, 4.0, 2.0, 2.2))
+	root.add_child(Projectile.energy_mesh(col.lightened(0.5), col, size * epic, 4.0, 2.0, 2.2))
 	return root
 
 
@@ -323,6 +330,7 @@ static func _card(kind: int, col: Color, core := Color.WHITE, spikes := 8.0, bil
 
 ## Çarpma yıldızı: düzensiz sivri ışınlı anime flaş
 static func star(pos: Vector3, col: Color, size := 2.0, dur := 0.18) -> void:
+	size *= sqrt(epic)   # flaş kartı kamerayı kaplamasın
 	if busy():
 		return
 	var mi = _card(0, col, Color(1, 1, 0.95), float(randi_range(7, 11)))
@@ -339,6 +347,7 @@ static func star(pos: Vector3, col: Color, size := 2.0, dur := 0.18) -> void:
 
 ## Şok dalgası halkası (yere paralel ya da kameraya dönük)
 static func shockwave(pos: Vector3, col: Color, size := 6.0, dur := 0.4, flat := true, normal := Vector3.UP) -> void:
+	size *= epic if flat else sqrt(epic)
 	if busy():
 		return
 	var mi = _card(1, col, col.lightened(0.6), 8.0, not flat)
@@ -357,6 +366,7 @@ static func shockwave(pos: Vector3, col: Color, size := 6.0, dur := 0.4, flat :=
 
 ## Zemin çatlağı / yanık izi
 static func cracks(pos: Vector3, size := 4.0, col := Color(0.12, 0.09, 0.07, 0.9), dur := 6.0) -> void:
+	size *= epic
 	if busy():
 		return
 	var mi = _card(2, col, col, float(randi_range(6, 9)), false)
@@ -375,12 +385,20 @@ static func cracks(pos: Vector3, size := 4.0, col := Color(0.12, 0.09, 0.07, 0.9
 
 ## Cel parçacık topakları (alev/duman/toz/su) — FX.burst sarmalayıcısı
 static func puffs(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
+	if epic != 1.0:
+		cfg = cfg.duplicate()
+		var e = sqrt(epic)   # büyük ama kamerayı kaplamadan / aşırı örtüşmesiz (overdraw)
+		cfg["size"] = float(cfg.get("size", 1.0)) * e
+		cfg["radius"] = float(cfg.get("radius", 0.0)) * epic
+		cfg["vmax"] = float(cfg.get("vmax", 3.0)) * sqrt(epic)
 	cfg["cel"] = true
 	return FX.burst(pos, cfg)
 
 
 ## Uçuşan kaya molozu (toprak duvarı, kırılma, ağır iniş)
 static func debris(pos: Vector3, col := Color(0.5, 0.42, 0.32), n := 14, speed := 10.0, size := 0.5) -> void:
+	size *= sqrt(epic)
+	speed *= sqrt(epic)
 	if busy():
 		return
 	var p = GPUParticles3D.new()
@@ -418,12 +436,13 @@ static func debris(pos: Vector3, col := Color(0.5, 0.42, 0.32), n := 14, speed :
 
 ## Kıvılcım / kor (ateş, patlama)
 static func embers(pos: Vector3, col := Color(1.0, 0.6, 0.15), n := 24, speed := 10.0, life := 0.9) -> void:
+	speed *= epic
 	FX.burst(pos, {"amount": n, "life": life, "tex": FX.tex_spark, "size": 0.7, "vmin": speed * 0.4, "vmax": speed, "damp": 1.5,
 		"gravity": Vector3(0, -6, 0), "colors": [Color(1, 1, 0.85, 1), col, Color(col.r, col.g * 0.5, 0.0, 0)]})
 
 
 ## Sıçrama tacı (su çarpması): yükselip dağılan su tacı + damlalar + köpük halkası
-static func splash(pos: Vector3, size := 2.0) -> void:
+static func _splash(pos: Vector3, size := 2.0) -> void:
 	if busy():
 		return
 	var g = Game.ground_height(pos.x, pos.z)
@@ -447,7 +466,7 @@ static func splash(pos: Vector3, size := 2.0) -> void:
 
 
 ## Cel duman halkası (patlamanın etrafında yayılan)
-static func smoke_ring(pos: Vector3, size := 3.0, col := Color(0.3, 0.27, 0.25)) -> void:
+static func _smoke_ring(pos: Vector3, size := 3.0, col := Color(0.3, 0.27, 0.25)) -> void:
 	var p = puffs(pos, {"amount": int(14 + size * 4), "life": 1.4, "size": 1.6 + size * 0.4, "radius": size * 0.3, "vmin": size * 2.0, "vmax": size * 3.2,
 		"dir": Vector3.UP, "spread": 90.0, "damp": 3.0, "gravity": Vector3(0, 1.0, 0), "spin": 40.0, "outline_col": col.darkened(0.6),
 		"colors": [col.lightened(0.2), col, Color(col.r, col.g, col.b, 0)], "scale_curve": [[0.0, 0.4], [0.3, 1.0], [1.0, 1.25]]})
@@ -465,6 +484,7 @@ static func smoke_ring(pos: Vector3, size := 3.0, col := Color(0.3, 0.27, 0.25))
 
 ## Kalın şimşek: from→to dallanan, titreyen şerit (gökten düşen yıldırım, ışın)
 static func bolt(from: Vector3, to: Vector3, col := Color(0.5, 0.75, 1.0), width := 0.25, dur := 0.25, branches := 3) -> Arcs:
+	width *= epic
 	var a = Arcs.new()
 	a.color = col
 	a.to_point = to - from
@@ -483,6 +503,7 @@ static func bolt(from: Vector3, to: Vector3, col := Color(0.5, 0.75, 1.0), width
 
 ## Kurdele iz: hedefi takip eder, hedef ölünce kuyruğu toplanıp kaybolur
 static func trail(target: Node3D, width: float, head: Color, mid: Color, tail: Color, length := 18, additive := 0.0) -> VfxTrail:
+	width *= epic
 	var t = VfxTrail.new()
 	t.target = target
 	t.width = width
@@ -526,7 +547,7 @@ static func screen_lines(dur := 0.35, strength := 1.0, col := Color(1, 1, 1)) ->
 
 
 ## Büyük anime patlaması: genişleyip aşınan alev kütlesi + cel alev topakları + koyu duman + kıvılcım + şok dalgaları
-static func explosion(pos: Vector3, s := 1.0, col := Color(1.0, 0.55, 0.15)) -> void:
+static func _explosion(pos: Vector3, s := 1.0, col := Color(1.0, 0.55, 0.15)) -> void:
 	var preset = fire_preset_for(col)
 	if not busy():
 		var core = Node3D.new()
@@ -578,6 +599,7 @@ static func explosion(pos: Vector3, s := 1.0, col := Color(1.0, 0.55, 0.15)) -> 
 
 ## Amaterasu kara alevi: hedefi saran, yukarı yalayan sivri alev dilleri (iç siyah, kenar koyu mor)
 static func black_flames(size := 1.0) -> Node3D:
+	size *= epic
 	var root = Node3D.new()
 	var n = 7
 	for i in n:
@@ -597,7 +619,7 @@ static func black_flames(size := 1.0) -> Node3D:
 
 
 ## Yerde için için yanan kara alev lekesi
-static func black_smolder(pos: Vector3, size := 2.0, dur := 6.0) -> void:
+static func _black_smolder(pos: Vector3, size := 2.0, dur := 6.0) -> void:
 	var m = mat_fire("black", 1.6, 3.0, 0.6, 1.0, 0.1, Vector3.UP, true)
 	m.set_shader_parameter("tongue", 0.6)
 	var mi = _mi(_sphere(0.5, 20, 8), m)
@@ -683,3 +705,164 @@ static func warmup() -> void:
 		await tree().process_frame
 	anchor.queue_free()
 	sv.queue_free()
+
+
+static func splash(pos: Vector3, size := 2.0) -> void:
+	var ep = epic
+	epic = 1.0
+	_splash(pos, size * sqrt(ep))
+	epic = ep
+
+
+static func smoke_ring(pos: Vector3, size := 3.0, col := Color(0.3, 0.27, 0.25)) -> void:
+	var ep = epic
+	epic = 1.0
+	_smoke_ring(pos, size * sqrt(ep), col)
+	epic = ep
+
+
+static func explosion(pos: Vector3, s := 1.0, col := Color(1.0, 0.55, 0.15)) -> void:
+	var ep = epic
+	epic = 1.0
+	_explosion(pos, s * ep, col)
+	epic = ep
+
+
+static func black_smolder(pos: Vector3, size := 2.0, dur := 6.0) -> void:
+	var ep = epic
+	epic = 1.0
+	_black_smolder(pos, size * ep, dur)
+	epic = ep
+
+
+# ================================================================== destan anları (rütbe ölçekli)
+## Bırakış anı (her jutsu): el/ağızda flaş, ayakta şok halkası ve toz; B+ oyuncu yayınında yavaş çekim, hız çizgileri, kamera geri çekilmesi
+static func release(c: Node3D, origin: Vector3, col: Color, g: float, tier: int, big := true) -> void:
+	var ep = epic
+	epic = 1.0
+	var feet = Vector3(c.global_position.x, Game.ground_height(c.global_position.x, c.global_position.z) + 0.08, c.global_position.z)
+	star(origin, col.lightened(0.35), 1.2 + 1.1 * g, 0.14)
+	shockwave(feet, col.lightened(0.2), 3.0 + 3.5 * g, 0.35)
+	if tier >= 4:
+		smoke_ring(feet, 0.5 + 0.2 * g, Color(0.74, 0.68, 0.6))
+	if tier >= 3:
+		shockwave(origin, Color(1, 1, 1), 2.0 + 2.0 * g, 0.2, false)
+	var is_pl = c is Player
+	if Game.world:
+		Game.world.env.add_shake((0.08 + 0.1 * tier) * (1.0 if is_pl else 0.5))
+		if tier >= 4 and is_pl:
+			Game.world.env.screen_flash(0.05 * tier)
+	if is_pl and big and tier >= 3:
+		screen_lines(0.25 + 0.08 * tier, 0.35 + 0.12 * tier, col.lightened(0.6))
+		slowmo(0.35, 0.08 + 0.03 * tier)
+		cinematic(c, 1.2 + tier * 0.8, 0.3 + 0.1 * tier)
+	epic = ep
+
+
+## Kısa yavaş çekim (gerçek zamanla ölçülür; Sharingan vb. başka yavaşlatma varsa dokunmaz)
+static func slowmo(scale_: float, real_dur: float) -> void:
+	if Combat.base_time_scale < 0.99:
+		return
+	Combat.base_time_scale = scale_
+	Engine.time_scale = scale_
+	tree().create_timer(real_dur, true, false, true).timeout.connect(func():
+		if absf(Combat.base_time_scale - scale_) < 0.001:
+			Combat.base_time_scale = 1.0)
+
+
+## Sinematik an: oyuncu kamerası kısa süre geri çekilir (rahatsız etmez, kendiliğinden döner)
+static func cinematic(c: Node3D, extra: float, hold: float) -> void:
+	if not "cam_dist" in c or c.has_meta("cine"):
+		return
+	var base: float = c.cam_dist
+	c.set_meta("cine", true)
+	var tw = c.create_tween().set_ignore_time_scale(true)
+	tw.tween_property(c, "cam_dist", base + extra, 0.18).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(hold)
+	tw.tween_property(c, "cam_dist", base, 0.4).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_callback(func(): c.remove_meta("cine"))
+
+
+## Hazırlık (mühürler biterken): içe çöken halka + toplanan kıvılcımlar + ayakta yükselen chakra
+static func gather(pos: Vector3, col: Color, g: float) -> void:
+	if busy():
+		return
+	var mi = _card(1, col, col.lightened(0.6), 8.0, true)
+	scene().add_child(mi)
+	_track(mi)
+	mi.global_position = pos
+	mi.scale = Vector3.ONE * 3.2 * g
+	var m: ShaderMaterial = mi.material_override
+	var tw = mi.create_tween()
+	tw.tween_property(mi, "scale", Vector3.ONE * 0.3, 0.25).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_method(func(x: float): m.set_shader_parameter("t", x), 0.6, 0.15, 0.25)
+	tw.tween_callback(mi.queue_free)
+	FX.burst(pos, {"amount": int(10 + 6 * g), "life": 0.3, "tex": FX.tex_spark, "add": true, "size": 0.35 * g, "radius": 1.4 * g, "vmin": 0.5, "vmax": 2.0,
+		"gravity": Vector3.ZERO, "colors": [Color(1, 1, 1, 1), col, Color(col.r, col.g, col.b, 0)]})
+
+
+## Çarpma sonrası kalıcı iz (rütbe ölçekli): yerde alev dilleri, su birikintisi, buz kristali, moloz, artık şimşek
+static func linger(pos: Vector3, el: String, col: Color, g: float, dur := 3.0) -> void:
+	if busy() or g < 1.1:
+		return
+	var gp = Vector3(pos.x, Game.ground_height(pos.x, pos.z), pos.z)
+	if pos.y - gp.y > 4.0:
+		return
+	var root = Node3D.new()
+	scene().add_child(root)
+	_track(root)
+	root.global_position = gp
+	var n = 2 + int(g * 1.5)
+	match el:
+		"katon", "yoton", "shakuton", "bakuton":
+			var pr = "lava" if el == "yoton" else fire_preset_for(col)
+			for k in n:
+				var m = mat_fire(pr, 2.6, 2.4, 0.5, 1.15, 0.15, Vector3.UP, true)
+				m.set_shader_parameter("tongue", 0.7)
+				var t = _mi(_sphere(0.5, 14, 8), m)
+				var a = randf() * TAU
+				t.position = Vector3(cos(a), 0.1, sin(a)) * randf_range(0.3, 1.6) * g
+				t.scale = Vector3(1.0, 1.7, 1.0) * randf_range(0.7, 1.2) * g * 0.7
+				root.add_child(t)
+				var tw = t.create_tween()
+				tw.tween_interval(dur * randf_range(0.6, 1.0))
+				tw.tween_method(func(x: float): m.set_shader_parameter("alpha_cut", x), 0.0, 1.1, 0.6)
+			cracks(gp, 2.2 * g, Color(0.08, 0.04, 0.02, 0.9), dur + 3.0)
+		"suiton", "futton":
+			var pd = _mi(_sphere(0.5, 20, 6), mat_water(Color(0.05, 0.28, 0.78), Color(0.2, 0.55, 0.98), Color(0.7, 0.92, 1.0), Vector3.UP, 0.75, 0.6, 0.02))
+			pd.scale = Vector3(3.0 * g, 0.08, 3.0 * g)
+			root.add_child(pd)
+		"hyoton":
+			for k in n:
+				var sh = _mi(_sphere(0.5, 6, 4), mat_ice())
+				var a = randf() * TAU
+				sh.position = Vector3(cos(a), 0.3, sin(a)) * randf_range(0.4, 1.5) * g
+				sh.scale = Vector3(0.35, randf_range(1.0, 1.8), 0.35) * g
+				sh.rotation = Vector3(randf_range(-0.4, 0.4), 0, randf_range(-0.4, 0.4))
+				root.add_child(sh)
+		"doton", "mokuton", "jiton", "shoton":
+			var rm = Props.toon_color(col.darkened(0.25) if el != "shoton" else col)
+			for k in n:
+				var rk = _mi(_sphere(0.5, 7, 5), rm)
+				var a = randf() * TAU
+				rk.position = Vector3(cos(a), 0.15, sin(a)) * randf_range(0.5, 1.8) * g
+				rk.scale = Vector3(randf_range(0.6, 1.1), randf_range(0.4, 0.8), randf_range(0.6, 1.0)) * g * 0.8
+				rk.rotation = Vector3(randf(), randf(), randf())
+				root.add_child(rk)
+			cracks(gp, 2.6 * g, Color(0.12, 0.09, 0.07, 0.9), dur + 3.0)
+		"raiton", "ranton":
+			var ar = Arcs.new()
+			ar.color = col
+			ar.radius = 1.4 * g
+			ar.count = 4
+			ar.width = 0.05 * g
+			ar.position = Vector3.UP * 0.3
+			root.add_child(ar)
+			dur = 1.2
+			cracks(gp, 2.0 * g, Color(0.08, 0.08, 0.12, 0.9), 4.0)
+		_:
+			cracks(gp, 2.0 * g, Color(0.12, 0.09, 0.07, 0.85), dur + 2.0)
+	var tw2 = root.create_tween()
+	tw2.tween_interval(dur + 0.6)
+	tw2.tween_property(root, "scale", Vector3(1, 0.05, 1), 0.4)
+	tw2.tween_callback(root.queue_free)

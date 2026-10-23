@@ -109,7 +109,22 @@ static func vcolor(d: Dictionary) -> Color:
 
 
 ## Elemente göre çarpma (patlama / sıçrama / buz kırığı / rüzgar patlaması / şimşek / kaya)
+## Destan ölçeği: rütbe (E küçük … S devasa) × ustalık (oyuncu seviyesi). İmza element jutsuları rütbesinden büyük görünür.
+const SIGNATURE_SCALE := {"katon_goukakyuu": 1.9, "katon_karyuu": 1.6, "fuuton_daitoppa": 1.7, "katon_housenka": 1.3, "suiton_suikoudan": 1.4,
+	"fuuton_shinkuu": 1.3, "doton_doryuusou": 1.4, "suiton_suijinheki": 1.5}
+
+
+static func grand(c: Node3D, d: Dictionary) -> float:
+	var t = clampi(int(d.get("tier", 2)), 0, 5)
+	var g: float = [0.7, 0.85, 1.15, 1.4, 1.75, 2.2][t]
+	g = maxf(g, float(SIGNATURE_SCALE.get(String(d.get("id", "")), 0.0)))
+	if c is Player:
+		g *= 0.9 + clampf(float(Game.profile.get("level", 1)), 1.0, 60.0) / 60.0 * 0.3
+	return g
+
+
 static func impact_for(el: String, pos: Vector3, col: Color, s := 1.0) -> void:
+	VFX.linger(pos, el, col, VFX.epic * s)
 	match el:
 		"katon", "yoton", "bakuton", "shakuton":
 			VFX.explosion(pos, 0.5 * s + 0.3, col)
@@ -141,6 +156,8 @@ static func impact_for(el: String, pos: Vector3, col: Color, s := 1.0) -> void:
 
 ## Varyanta göre mermi gövdesi (ileri = -Z), element malzemesiyle
 static func shape_mesh(v: String, col: Color, size: float, el := "") -> Node3D:
+	var ep = VFX.epic
+	VFX.epic = 1.0
 	var root = Node3D.new()
 	var mat: Material = VFX.element_mat(el, col) if el != "" else VFX.mat_spiral(col.lightened(0.5), col, 4.0, 2.0, 5.0, 1.5, Vector3(0, 0, 1))
 	var eye = Color(1, 1, 0.75) if not el in ["suiton", "hyoton"] else Color(0.9, 1, 1)
@@ -202,7 +219,8 @@ static func shape_mesh(v: String, col: Color, size: float, el := "") -> Node3D:
 				root.add_child(bi)
 		_:
 			root.add_child(VFX.element_core(el, col, 1.0))
-	root.scale = Vector3.ONE * size
+	root.scale = Vector3.ONE * size * ep
+	VFX.epic = ep
 	return root
 
 
@@ -227,7 +245,7 @@ static func spawn_projectile(c: Node3D, d: Dictionary, start: Vector3, dir: Vect
 	if el in ["katon", "yoton", "shakuton", "bakuton"]:
 		var p: Array = VFX.FIRE_PRESETS[VFX.fire_preset_for(col) if el != "yoton" else "lava"]
 		tc = [p[0], p[2], p[3], Color(p[4].r, p[4].g, p[4].b, 0)]
-	Projectile.trail(pr, tc, size * 0.9, 34, 0.4, FX.tex_smoke, el in ["fuuton", "raiton", "ranton", "jinton"])
+	Projectile.trail(pr, tc, size * 0.9 * minf(VFX.epic, 1.8), 34, 0.4, FX.tex_smoke, el in ["fuuton", "raiton", "ranton", "jinton"])
 	if v == "dragon":
 		var body = VfxSerpent.new()
 		body.head = pr
@@ -403,6 +421,7 @@ static func _beam(c: Node3D, d: Dictionary, t: Node3D) -> void:
 		var inner = VFX._mi(cm, VFX.mat_spiral(Color(1, 1, 1), col.lightened(0.2), 4.0, 6.0, 14.0, 1.6))
 		inner.scale = Vector3(0.45, 1, 0.45)
 		beam.add_child(inner)
+	var vis_w = minf(VFX.epic, 2.0)   # ışın görsel kalınlığı (isabet genişliği aynı)
 	Sfx.play(_snd(d), c.global_position, 0.8)
 	if c is Player:
 		VFX.screen_lines(dur, 0.45, col.lightened(0.5))
@@ -426,7 +445,7 @@ static func _beam(c: Node3D, d: Dictionary, t: Node3D) -> void:
 		if not hit.is_empty():
 			length = from.distance_to(hit["position"])
 		var grow = minf(1.0, st["t"] / 0.15)
-		var w = width * 2.0 * (1.0 + 0.12 * sin(st["t"] * 40.0)) * grow
+		var w = width * 2.0 * vis_w * (1.0 + 0.12 * sin(st["t"] * 40.0)) * grow
 		if bolt and is_instance_valid(bolt):
 			bolt.global_position = from
 			bolt.to_point = dir * length
@@ -537,6 +556,7 @@ static func _ice_burst(pos: Vector3, r: float, tier: int) -> void:
 		b.add("cone", Vector3(cos(a) * dd, h * 0.4, sin(a) * dd), Vector3(0.5, h, 0.5), Color.WHITE, Vector3(randf_range(-30, 30), 0, randf_range(-30, 30)), 5)
 	var mi = VFX._mi(b.build(null), VFX.mat_ice())
 	scene().add_child(mi)
+	mi.scale = Vector3.ONE * VFX.epic
 	mi.global_position = pos - Vector3.UP * 3.0
 	var tw = mi.create_tween()
 	tw.tween_property(mi, "global_position:y", pos.y, 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -559,6 +579,7 @@ static func _spikes_ring(c: Node3D, pos: Vector3, r: float, col: Color, el: Stri
 	if el == "shoton":
 		mi.material_override = VFX.mat_spiral(Color(1, 0.9, 1), col, 3.0, 1.0, 2.0, 1.3)
 	scene().add_child(mi)
+	mi.scale = Vector3.ONE * VFX.epic
 	mi.global_position = pos - Vector3.UP * 4.0
 	var tw = mi.create_tween()
 	tw.tween_property(mi, "global_position:y", pos.y, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -581,6 +602,7 @@ static func _spikes(c: Node3D, d: Dictionary, t: Node3D) -> void:
 		mat = VFX.mat_ice()
 	elif el == "shoton":
 		mat = VFX.mat_spiral(Color(1, 0.9, 1), col, 3.0, 1.0, 2.0, 1.3)
+	var g = VFX.epic
 	for k in int((5 + tier * 2) * vr["count"]):
 		tree().create_timer(k * 0.05).timeout.connect(func():
 			if not is_instance_valid(c):
@@ -599,6 +621,7 @@ static func _spikes(c: Node3D, d: Dictionary, t: Node3D) -> void:
 			if not mat is StandardMaterial3D:
 				sp.material_override = mat
 			scene().add_child(sp)
+			sp.scale = Vector3.ONE * g
 			sp.global_position = p - Vector3(0, 3, 0)
 			var tw = sp.create_tween()
 			tw.tween_property(sp, "global_position:y", p.y, 0.1)
@@ -635,8 +658,9 @@ static func _wave(c: Node3D, d: Dictionary, t: Node3D) -> void:
 	scene().add_child(mi)
 	var start = J()._ground(c.global_position + dir * 2.0)
 	mi.global_transform = Transform3D(Basis.looking_at(dir, Vector3.UP), start + Vector3.UP * h * 0.4)
-	mi.scale = Vector3(1, 0.2, 1)
-	mi.create_tween().tween_property(mi, "scale", Vector3.ONE, 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	var g = minf(VFX.epic, 2.0)
+	mi.scale = Vector3(g, 0.2, g)
+	mi.create_tween().tween_property(mi, "scale", Vector3.ONE * g, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	Sfx.play(_snd(d), start)
 	var inf = info(c, d, 1.0, {"knock": 14.0 + tier * 2})
 	var tw = mi.create_tween()
@@ -652,7 +676,7 @@ static func _wave(c: Node3D, d: Dictionary, t: Node3D) -> void:
 				"colors": [Color(1, 1, 1, 1), col.lightened(0.3), Color(col.r, col.g, col.b, 0)]})
 		if el in ["doton", "mokuton"] and randf() < 0.3:
 			VFX.debris(p, col.darkened(0.2), 3, 6.0, 0.35), 0.0, 1.0, 1.0)
-	tw.tween_property(mi, "scale", Vector3(1, 0.05, 1), 0.3)
+	tw.tween_property(mi, "scale", Vector3(g, 0.05, g), 0.3)
 	tw.tween_callback(mi.queue_free)
 
 
@@ -688,8 +712,9 @@ static func _tornado(c: Node3D, d: Dictionary, t: Node3D) -> void:
 	Sfx.play("wind", pos)
 	var inf = info(c, d, 0.18, {"knock": 2.0, "launch": 5.0, "kind": "light"})
 	root.scale = Vector3(0.2, 0.2, 0.2)
+	var g = VFX.epic
 	var tw = root.create_tween()
-	tw.tween_property(root, "scale", Vector3.ONE, 0.25).set_trans(Tween.TRANS_BACK)
+	tw.tween_property(root, "scale", Vector3.ONE * g, 0.25).set_trans(Tween.TRANS_BACK)
 	for i in 16:
 		tw.tween_callback(func():
 			Combat.hit_sphere(c, pos + Vector3.UP * 2.0, 3.0 + tier * 0.5, inf)
@@ -699,7 +724,7 @@ static func _tornado(c: Node3D, d: Dictionary, t: Node3D) -> void:
 				if Combat.hostile(c, f) and not f.is_dead() and "velocity" in f and f.global_position.distance_to(pos) < 9.0:
 					f.velocity += (pos - f.global_position).normalized() * 2.0)
 		tw.tween_interval(0.15)
-	tw.tween_property(root, "scale", Vector3(0.1, 1.0, 0.1), 0.3)
+	tw.tween_property(root, "scale", Vector3(0.1, g, 0.1), 0.3)
 	tw.tween_callback(root.queue_free)
 
 
@@ -724,7 +749,7 @@ static func _wall(c: Node3D, d: Dictionary, t: Node3D) -> void:
 	var el: String = d.get("element", "")
 	var dir: Vector3 = J()._aim_flat(c, t)
 	var pos = J()._ground(c.global_position + dir * 3.5)
-	var size = Vector3((7.0 + tier * 1.5) * vary(d)["size"], 4.0 + tier * 0.8, 1.6)
+	var size = Vector3((7.0 + tier * 1.5) * vary(d)["size"], 4.0 + tier * 0.8, 1.6) * Vector3(clampf(VFX.epic, 1.0, 1.6), clampf(VFX.epic, 1.0, 1.8), 1.0)
 	var wall = StaticBody3D.new()
 	var cs = CollisionShape3D.new()
 	var sh = BoxShape3D.new()
@@ -785,7 +810,7 @@ static func _dome(c: Node3D, d: Dictionary) -> void:
 	var tier = int(d.get("tier", 2))
 	var col = vcolor(d)
 	var el: String = d.get("element", "")
-	var r = 3.0 + tier * 0.4
+	var r = (3.0 + tier * 0.4) * clampf(VFX.epic, 1.0, 1.5)
 	var m: Material = VFX.element_mat(el, col) if el not in ["doton", "mokuton", "jiton", "shoton", ""] else VFX.mat_spiral(col.lightened(0.5), col, 6.0, 2.0, 3.0, 1.2)
 	if el in ["doton", "mokuton"]:
 		m = Props.toon_color(col.darkened(0.15))
@@ -936,6 +961,10 @@ static func _summon(c: Node3D, d: Dictionary) -> void:
 	# hayvan sözleşmesi çağırmaları (Kuchiyose ailesi) sözleşme sistemine gider
 	var jid = String(d.get("id", ""))
 	if String(d.get("category", "")) == "summoning" and (s.contains("summoning technique") or jid.begins_with("kuchiyose")) and not (jid.contains("edo") or jid.contains("gedo")):
+		var sp = J()._ground(J()._aim_ground(c, null, 6.0, 10.0))
+		FX.smoke_puff(sp + Vector3.UP * 3.0, 2.0 * sqrt(VFX.epic), 24)
+		VFX.shockwave(sp + Vector3.UP * 0.1, Color(0.9, 0.9, 0.85), 16.0, 0.5)
+		VFX.smoke_ring(sp, 3.0, Color(0.85, 0.85, 0.82))
 		Contracts.summon(c, d)
 		return
 	var el: String = d.get("element", "")
@@ -962,7 +991,9 @@ static func _summon(c: Node3D, d: Dictionary) -> void:
 	elif s.contains("toad") or s.contains("frog"):
 		kind = "kurbağa"
 	var pos: Vector3 = J()._ground(J()._aim_ground(c, null, 6.0, 10.0))
-	FX.smoke_puff(pos + Vector3.UP * 3, 4.0, 40)
+	FX.smoke_puff(pos + Vector3.UP * 3, 2.6 * sqrt(VFX.epic), 30)
+	VFX.shockwave(pos + Vector3.UP * 0.1, Color(0.9, 0.9, 0.85), 16.0, 0.5)
+	VFX.smoke_ring(pos, 3.0, Color(0.85, 0.85, 0.82))
 	var sm = Summon.new()
 	if "kind" in sm:
 		sm.kind = kind

@@ -3,6 +3,7 @@ extends Node3D
 ## Genel mermi: kunai, shuriken, ateş topu, su ejderhası... Kapsül hitbox'lara ve dünyaya çarpar.
 
 var shooter: Node3D
+var epic := VFX.epic   # yaratıldığı yayının destan ölçeği (çarpma/iz efektleri bununla büyür)
 var vel = Vector3.ZERO
 var gravity = 0.0
 var radius = 0.2
@@ -58,7 +59,10 @@ func _physics_process(dt: float) -> void:
 					_finish(pt, f)
 					return
 				elif on_hit.is_valid():
+					var ep = VFX.epic
+					VFX.epic = epic
 					on_hit.call(pt, f)
+					VFX.epic = ep
 	# dünya
 	var space = get_world_3d().direct_space_state
 	var q = PhysicsRayQueryParameters3D.create(from, to, 1)
@@ -75,7 +79,10 @@ func _physics_process(dt: float) -> void:
 	elif vel.length() > 0.1:
 		look_at(global_position + vel, Vector3.UP if absf(vel.normalized().y) < 0.98 else Vector3.RIGHT)
 	if on_tick.is_valid():
+		var ep = VFX.epic
+		VFX.epic = epic
 		on_tick.call(self, dt)
+		VFX.epic = ep
 
 
 func _finish(pos: Vector3, target: Node3D, normal := Vector3.ZERO) -> void:
@@ -86,7 +93,10 @@ func _finish(pos: Vector3, target: Node3D, normal := Vector3.ZERO) -> void:
 	if target == null and el in ["katon", "yoton", "shakuton"] and pos.y - Game.terrain_height(pos.x, pos.z) < 2.0:
 		Elements.scorch(pos, clampf(radius * 1.8, 1.2, 5.0))
 	if on_hit.is_valid():
+		var ep = VFX.epic
+		VFX.epic = epic
 		on_hit.call(pos, target)
+		VFX.epic = ep
 	if stick and target == null and normal != Vector3.ZERO:
 		global_position = pos - vel.normalized() * 0.15
 		Sfx.play("clink", pos)

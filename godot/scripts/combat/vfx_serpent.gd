@@ -13,11 +13,14 @@ var ring_mat: Material   # varsa her parçaya koyu boğum halkası (tahta/kabuk 
 var segs: Array[Node3D] = []
 var hist: Array[Vector3] = []
 var dying = false
+var ep := VFX.epic   # yaratıldığı yayının destan ölçeği
 var phase = randf() * TAU
 
 
 func _ready() -> void:
 	top_level = true
+	spacing *= ep
+	radius *= ep
 	for i in count:
 		var k = float(i) / count
 		var seg = Node3D.new()
@@ -140,5 +143,5 @@ static func dragon_head(mat: Material, size: float, eye := Color(1, 1, 0.75)) ->
 	ti.mesh = VFX._cache[tk]
 	ti.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	root.add_child(ti)
-	root.scale = Vector3.ONE * size
+	root.scale = Vector3.ONE * size * VFX.epic
 	return root

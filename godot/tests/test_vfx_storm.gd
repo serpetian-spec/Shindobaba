@@ -4,14 +4,16 @@ extends Node
 var main: Node
 var cam: Camera3D
 var dummy: Node3D
-var worst := 0.0   # yayın sırasında en uzun kare (ms)
+var worst := 0.0
+var tp := false        # --tp: oyun içi üçüncü şahıs kamerası (oyuncunun arkasından)
+var prefix := "vx_"   # --prefix=before_
 
 
 func _process(dt: float) -> void:
 	worst = maxf(worst, dt * 1000.0)
 
 const SET := [
-	["katon_goukakyuu", 0.35, 0.95], ["katon_housenka", 0.3, 0.9], ["katon_karyuu", 0.5, 1.0],
+	["katon_goukakyuu", 0.6, 1.7], ["katon_housenka", 0.3, 0.9], ["katon_karyuu", 0.5, 1.0],
 	["suiton_suiryuudan", 0.7, 1.6], ["suiton_suikoudan", 0.3, 0.8], ["suiton_suijinheki", 0.4, 1.0],
 	["fuuton_daitoppa", 0.15, 0.45], ["fuuton_shinkuu", 0.15, 0.4], ["fuuton_rasenshuriken", 0.35, 0.9],
 	["doton_doryuheki", 0.3, 0.9], ["doton_doryuusou", 0.3, 0.6], ["raiton_chidori", 0.4, 0.95],
@@ -51,6 +53,10 @@ func _ready() -> void:
 			only = a.substr(7).split(",")
 		if a.begins_with("--sample="):
 			sample = int(a.substr(9))
+		if a == "--tp":
+			tp = true
+		if a.begins_with("--prefix="):
+			prefix = a.substr(9)
 		if a.begins_with("--ids="):
 			ids_arg = a.substr(6).split(",")
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)   # kare süresi vsync'e yuvarlanmasın
@@ -62,7 +68,11 @@ func _ready() -> void:
 	pl.set_process(false)
 	if not ids_arg.is_empty():
 		for id in ids_arg:
-			await _cast(id, 0.3, 0.8)
+			var tm = [0.3, 0.8]
+			for e in SET:
+				if e[0] == id:
+					tm = [e[1], e[2]]
+			await _cast(id, tm[0], tm[1])
 		get_tree().quit()
 		return
 	if sample > 0:
@@ -135,7 +145,11 @@ func _cast(id: String, t1: float, t2: float, one := false) -> void:
 	pl.combat.lock_target = dummy
 	await get_tree().create_timer(0.3).timeout
 	_frame(pl.global_position.lerp(tp, 0.5) + Vector3.UP * 1.5, 14.0)
-	if id == "doton_doryuheki":   # duvar yüzü: düşman tarafından bak
+	if tp:
+		var f = pl.face_dir()
+		cam.global_position = pl.global_position - f * 6.5 + Vector3.UP * 3.0 + f.cross(Vector3.UP) * 1.4
+		cam.look_at(pl.global_position + f * 12.0 + Vector3.UP * 2.0)
+	elif id == "doton_doryuheki":   # duvar yüzü: düşman tarafından bak
 		var f = pl.face_dir()
 		cam.global_position = pl.global_position + f * 13.0 + f.cross(Vector3.UP) * 3.0 + Vector3.UP * 2.5
 		cam.look_at(pl.global_position + f * 3.5 + Vector3.UP * 3.5)
@@ -151,9 +165,9 @@ func _cast(id: String, t1: float, t2: float, one := false) -> void:
 		await main.shot("sm_%s" % tag)
 		await get_tree().create_timer(1.2).timeout
 		return
-	await main.shot("vx_%s_a" % tag)
+	await main.shot(prefix + "%s_a" % tag)
 	await get_tree().create_timer(maxf(0.05, t2 - t1)).timeout
-	await main.shot("vx_%s_b" % tag)
+	await main.shot(prefix + "%s_b" % tag)
 	await get_tree().create_timer(1.6).timeout
 	print("VXPERF %s worst=%.1fms" % [id, w1])
 	pl.global_position = pl.global_position  # yerinde kalsın
