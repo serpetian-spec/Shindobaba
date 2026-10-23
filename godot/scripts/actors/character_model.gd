@@ -1853,6 +1853,9 @@ var _swapped := false
 var rig: WeaponRig
 
 
+const HAND_FRAME := ["tonfa", "pence", "kama", "kusarigama"]
+
+
 static func sheath_kind(id: String) -> String:
 	if SHEATH_ID.has(id):
 		return SHEATH_ID[id]
@@ -1878,6 +1881,13 @@ func _weapons() -> void:
 			var mi = MeshInstance3D.new()
 			mi.mesh = weapon_mesh(id)
 			node = mi
+		if id in HAND_FRAME and side == "Right":
+			# tutuş çerçevesi sağ elde z etrafında 180° dönük: yönü ele göre olan silahlar (tonfa gövdesi dirseğe,
+			# pençe el sırtına, kama bıçağı parmak eklemlerine) iki elde de aynı tarafa baksın
+			var wrap = Node3D.new()
+			wrap.add_child(node)
+			node.transform.basis = Basis(Vector3.BACK, PI)
+			node = wrap
 		var hand: Node3D = _attach(side + "Hand", _grip_xf(side)).get_child(0)
 		hand.add_child(node)
 		var kind = sheath_kind(id)
@@ -2070,8 +2080,11 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			b.add("box", Vector3(0.0, 0.0, 0.0), Vector3(0.03, 0.1, 0.12), dark)
 			b.add("box", Vector3(0, 0, 0.16), Vector3(0.01, 0.03, 0.2), steel)
 		"tonfa":
-			b.add("cyl", Vector3(0, 0, 0), Vector3(0.03, 0.1, 0.03), Color(0.35, 0.25, 0.15), Vector3(90, 0, 0), 6)
-			b.add("cyl", Vector3(0, -0.04, -0.05), Vector3(0.035, 0.45, 0.035), Color(0.3, 0.22, 0.14), Vector3(90, 0, 0), 8)
+			# yan kabza yumrukta (z ekseni), gövde serçe parmak altında ön kol boyunca (-x: dirseğe doğru) uzanır
+			b.add("cyl", Vector3(0, 0, -0.01), Vector3(0.03, 0.12, 0.03), Color(0.35, 0.25, 0.15), Vector3(90, 0, 0), 8)
+			b.add("cyl", Vector3(-0.14, 0, -0.085), Vector3(0.038, 0.56, 0.038), Color(0.3, 0.22, 0.14), Vector3(0, 0, 90), 10)
+			for xx in [-0.41, 0.13]:
+				b.add("cyl", Vector3(xx, 0, -0.085), Vector3(0.042, 0.03, 0.042), Color(0.18, 0.13, 0.09), Vector3(0, 0, 90), 10)
 		"yelpaze":
 			b.add("cyl", Vector3(0, 0, 0), Vector3(0.03, 0.18, 0.03), dark, Vector3(90, 0, 0), 6)
 			b.add("box", Vector3(0, 0, 0.42), Vector3(0.02, 0.16, 0.66), Color(0.85, 0.82, 0.75))
@@ -2100,9 +2113,11 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			b.add("box", Vector3(0, 0.07, 0.14), Vector3(0.01, 0.15, 0.03), steel, Vector3(-20, 0, 0))
 			b.add("box", Vector3(0, 0.13, 0.09), Vector3(0.01, 0.025, 0.1), steel, Vector3(30, 0, 0))
 		"pence":
-			b.add("box", Vector3(0, 0.0, 0.0), Vector3(0.09, 0.03, 0.08), dark)
+			# el sırtı plakası (+y), pençeler parmak eklemlerinin üstünden ileri (+x) uzanır, yumruk boyunca (z) dizilir
+			b.add("box", Vector3(-0.02, 0.045, 0.0), Vector3(0.1, 0.02, 0.09), dark)
+			b.add("box", Vector3(0.035, 0.035, 0.0), Vector3(0.03, 0.035, 0.085), dark)
 			for k in 3:
-				b.add("cone", Vector3((k - 1) * 0.03, 0.0, 0.12), Vector3(0.012, 0.18, 0.006), steel, Vector3(90, 0, 0), 4)
+				b.add("cone", Vector3(0.15, 0.04, (k - 1) * 0.028), Vector3(0.012, 0.22, 0.006), steel, Vector3(0, 0, -90), 4)
 		"chakra_bicak":
 			var glow = Color(0.55, 0.8, 1.0)
 			b.add("box", Vector3(0.0, 0.0, 0.0), Vector3(0.03, 0.1, 0.11), dark)

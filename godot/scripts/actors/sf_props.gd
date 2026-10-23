@@ -12,10 +12,11 @@ const WEAPONS := {
 	"patlayici_kunai": {"file": "kunai_explosive", "len": 0.34, "grip": 0.33, "flip": true},
 	"tanto": {"file": "tanto_game_ready", "len": 0.45, "grip": 0.15},
 	"wakizashi": {"file": "tanto_game_ready", "len": 0.7, "grip": 0.13},
-	"kama": {"file": "kama_yanez", "len": 0.55, "grip": 0.2, "pca": false},
-	"musta": {"file": "trench_knives", "len": 0.3, "grip": 0.25},
-	"chakra_bicak": {"file": "trench_knives", "len": 0.33, "grip": 0.25},
-	"ruzgar_bicak": {"file": "trench_knives", "len": 0.33, "grip": 0.25, "tint": Color(0.6, 0.85, 1.0), "glow": Color(0.4, 0.8, 1.0)},
+	"kama": {"file": "kama_yanez", "len": 0.55, "grip": 0.22, "pca": false, "yaw": 33.0, "handle": 0.55, "roll": 180.0},
+	# muşta/chakra bıçağı: halkalar parmaklara geçer (tutuş halkaların ortası), bıçak başparmak tarafında (+Z)
+	"musta": {"file": "trench_knives", "len": 0.3, "grip": 0.3, "flip": true},
+	"chakra_bicak": {"file": "trench_knives", "len": 0.33, "grip": 0.3, "flip": true},
+	"ruzgar_bicak": {"file": "trench_knives", "len": 0.33, "grip": 0.3, "flip": true, "tint": Color(0.6, 0.85, 1.0), "glow": Color(0.4, 0.8, 1.0)},
 	"mizrak": {"file": "naginata_lowpoly", "len": 2.1, "grip": 0.35},
 	"el_shuriken": {"file": "big_shuriken", "len": 0.95, "grip": 0.5, "center": true, "pca": false},
 	"fuma_shuriken": {"file": "fuma_shuriken", "len": 1.15, "grip": 0.5, "center": true, "pca": false},
@@ -109,18 +110,23 @@ static func _prepare(ps: PackedScene, d: Dictionary) -> Node3D:
 		0: rot = Basis(Vector3.UP, -PI * 0.5)        # +X -> +Z
 		1: rot = Basis(Vector3.RIGHT, PI * 0.5)      # +Y -> +Z
 	# model kendi uzayında çapraz duruyorsa (ör. kunai, Kubikiribōchō) AABB ekseni yanlış: gerçek uzun ekseni (PCA) +Z'ye oturt
-	var pts: PackedVector3Array = _points(inst) if d.get("pca", true) else PackedVector3Array()
-	var tilted = false
+	var pts: PackedVector3Array = _points(inst) if (d.get("pca", true) or d.has("handle")) else PackedVector3Array()
+	var tilted = d.has("handle") and pts.size() > 8
 	if pts.size() > 8:
 		var av: Vector3 = [Vector3.RIGHT, Vector3.UP, Vector3.BACK][axis]
 		var e = _principal(pts)
-		if e != Vector3.ZERO and absf(e.dot(av)) < cos(deg_to_rad(8.0)):
+		if d.get("pca", true) and e != Vector3.ZERO and absf(e.dot(av)) < cos(deg_to_rad(8.0)):
 			if e.dot(av) < 0.0:
 				e = -e
 			rot = rot * Basis(Quaternion(e, av))
 			tilted = true
 	if d.get("flip", false):
 		rot = Basis(Vector3.UP, PI) * rot
+	# L biçimli silahlar (kama): kabza ekseni AABB'ye göre yatık; elle düzeltme (derece, Y ve X etrafında)
+	if d.has("yaw"):
+		rot = Basis(Vector3.UP, deg_to_rad(float(d["yaw"]))) * rot
+	if d.has("pitch"):
+		rot = Basis(Vector3.RIGHT, deg_to_rad(float(d["pitch"]))) * rot
 	rot = Basis(Vector3.BACK, deg_to_rad(float(d.get("roll", 0.0)))) * rot
 	var holder = Node3D.new()
 	var pivot = Node3D.new()
@@ -137,7 +143,22 @@ static func _prepare(ps: PackedScene, d: Dictionary) -> Node3D:
 	var grip_z = ab3.position.z + ab3.size.z * float(d.get("grip", 0.1))
 	if d.get("center", false):
 		grip_z = ab3.get_center().z
-	pivot.position = Vector3(-ab3.get_center().x, -ab3.get_center().y, -grip_z)
+	var cx = ab3.get_center().x
+	var cy = ab3.get_center().y
+	if d.has("handle") and tilted:
+		# eksen ortası yerine kabza bölümünün ortası (kama: bıçak yana taşar, el kabzayı tutmalı)
+		var zl = ab3.position.z + ab3.size.z * float(d["handle"])
+		var acc = Vector3.ZERO
+		var n = 0
+		for p in pts:
+			var q = pivot.transform * p
+			if q.z <= zl:
+				acc += q
+				n += 1
+		if n > 0:
+			cx = acc.x / n
+			cy = acc.y / n
+	pivot.position = Vector3(-cx, -cy, -grip_z)
 	_toon(inst, d.get("tint", null), d.get("glow", null))
 	return holder
 
