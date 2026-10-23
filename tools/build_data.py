@@ -356,6 +356,74 @@ out['doton_keijugan_no_jutsu']['shape'] = 'mode'
 out['doton_keijugan_no_jutsu']['desc'] = 'Bedenini hafiflet: havalan ve serbestçe uç (Space yüksel, Ctrl alçal). Chakra tüketir; tekrar yapınca inersin.'
 out['doton_kajugan_no_jutsu']['desc'] = 'Dokunduğun hedefi ağırlaştır: yere çakılır, ağır ağır hareket eder.'
 out['doton_chokajugan_no_jutsu']['desc'] = 'Hedef dev bir ağırlıkla yere mıhlanır, altındaki zemin çöker; 4 sn kımıldayamaz.'
+# ================================================================== Efsane Yolları: kanon imza teknikleri özgün ustalardan öğrenilir
+# Her teknik "path:<yol>" ile öğrenilir (usta öğretir, bazıları görevle). Uygulama: godot/scripts/combat/path_jutsu.gd (PathJutsu)
+# Yol tanımları (usta, in, sınav, sıra): godot/scripts/core/legend_paths.gd
+# (id, isim, name_en, yol, kademe, şekil, kategori, element, seviye, açıklama, mühürler)
+NEW_PATH = [
+    ('kusanagi_kuchi', 'Kusanagi no Tsurugi: Kuchiyose (Ağızdan Çekilen Kılıç)', 'Sword of Kusanagi: Drawn from the Mouth', 'yilan', 3, 'melee', 'ninjutsu', '', 20,
+     'Ağzından çıkan yılan, dişlerinde Kusanagi kılıcını tutar: kılıç 25 metreye uzayıp hattaki her şeyi deler; 15 sn boyunca vuruşların kılıçla uzar.', []),
+    ('juin_ni_no_dankai', 'Juin: Ni no Dankai (Lanetli Mühür — İkinci Aşama)', 'Cursed Seal: Second State', 'yilan', 5, 'mode', 'kinjutsu', '', 34,
+     'Ten rengi griye döner, sırtından el biçimli kanatlar çıkar: güç ve hız patlar, uçabilirsin; can her saniye hızla erir.', ['Mi', 'Hitsuji']),
+    ('hakuja_sennin_modo', 'Hakuja Sennin Mōdo (Beyaz Yılan Bilge Modu)', 'White Snake Sage Mode', 'yilan', 5, 'mode', 'senjutsu', '', 32,
+     'Doğa chakrası beyaz yılan pullarıyla bedenini sarar: yaraların hızla kapanır, her vuruşundan zehirli yılanlar fırlar, yakındaki düşmanları sezersin.', ['Tora']),
+    ('buki_kuchiyose', 'Kuchiyose: Buki Rensō (Silah Yağmuru Parşömeni)', 'Summoning: Weapon Barrage', 'silah', 2, 'projectile', 'ninjutsu', '', 6,
+     'Parşömeni aç: içinden fırlayan on iki farklı silah (kunai, kama, kılıç, sai, dev shuriken) art arda hedefe yağar.', []),
+    ('tesso_kusari', 'Kuchiyose: Tessō Kusari (Demir Pençe Zinciri)', 'Summoning: Iron Claw Chain', 'silah', 2, 'bind', 'ninjutsu', '', 10,
+     'Parşömenden fırlayan pençeli zincir hedefe dolanır ve onu sana doğru çeker; çekilen hedef 2 sn sersem kalır.', []),
+    ('soshoryu', 'Sōshōryū (İkiz Yükselen Ejderhalar)', 'Rising Twin Dragons', 'silah', 3, 'aoe', 'ninjutsu', '', 14,
+     'İki parşömen ejderha gibi sarmal çizerek göğe yükselir; arasında sıçrayıp yüzlerce silahı geniş bir alana yağdırırsın.', []),
+    ('tekkosen', 'Kuchiyose: Tekkōsen (Demir Yelpaze)', 'Summoning: Iron Fan', 'silah', 3, 'wall', 'ninjutsu', '', 18,
+     'Dev demir yelpaze önünde açılır: 6 sn boyunca gelen mermileri durdurur, kapanırken savurduğu rüzgar düşmanları uçurur.', []),
+    ('ito_buki_arashi', 'Sōshōryū: Ito Arashi (Telli Silah Fırtınası)', 'Rising Twin Dragons: Wire Storm', 'silah', 4, 'aoe', 'ninjutsu', '', 22,
+     'Chakra telleriyle bağlı silahlar etrafında döner; telleri çektikçe yakındaki düşmanlara tekrar tekrar saplanıp geri döner, tele dolananları bağlar.', []),
+    ('kuchiyose_tetsuzan', 'Kuchiyose: Tetsuzan (Dev Demir Topuz)', 'Summoning: Iron Mountain', 'silah', 4, 'aoe', 'ninjutsu', '', 26,
+     'Gökten çivili dev demir topuz düşer: yeri çökertip krater açar, çevredekileri ezer ve fırlatır.', []),
+    ('bashosen_rai_no_maki', 'Bashōsen: Rai no Maki (Şimşek Sargısı)', "Bashōsen: Coil of Lightning", 'silah', 5, 'aoe', 'ninjutsu', 'raiton', 38,
+     'Efsanevi yelpazeyi savur: ileriye yayılan şimşek tarlası her saniye çarpıp sersemletir. Chakranı hızla emer.', []),
+    ('bashosen_mizu_no_maki', 'Bashōsen: Mizu no Maki (Su Sargısı)', 'Bashōsen: Coil of Water', 'silah', 5, 'aoe', 'ninjutsu', 'suiton', 42,
+     'Efsanevi yelpazeyi savur: dev su seli ileri akar, önüne kattığını sürükler. Chakranı hızla emer.', []),
+]
+for (jid, nm, en, path, ti, shape, cat, el, lv, desc, sl) in NEW_PATH:
+    ck, dk = SHAPE_K.get(shape, (1.0, 1.0))
+    out[jid] = dict(id=jid, name=nm, name_en=en, cost=int(round(COST[ti] * ck)), cd=round(CD[ti] * dk, 1),
+                    element=el if el in COMBAT_EL else '', elements=[], natures=[el] if el else [], clan='', level=lv, rank=0,
+                    learn='path:' + path, path=path, desc=desc, seals=sl, canon_rank=['E', 'D', 'C', 'B', 'A', 'S'][ti], tier=ti,
+                    category=cat, shape=shape)
+# var olan kanon teknikleri yollara bağla: (id, yol, seviye, yeni isim/açıklama — boşsa korunur)
+PATH_TAG = [
+    ('sen_ei_jashu', 'yilan', 8, '', 'Yenden fırlayan yılanlar hedefi ısırıp sarar ve sana doğru çeker.'),
+    ('jagei_jubaku', 'yilan', 10, '', 'Yılan bakışı: hedef dev bir yılan hayali görüp dehşetle donar.'),
+    ('hebi_bunshin_no_jutsu', 'yilan', 12, '', 'Yılan klonu: vurulunca yılan sürüsüne dağılıp çevresindekileri ısırır.'),
+    ('sen_ei_tajashu', 'yilan', 15, '', 'İki koldan onlarca yılan yelpaze gibi açılır, yakaladığı her düşmanı zehirleyip bağlar.'),
+    ('kuchiyose_rashomon', 'yilan', 18, '', 'Yerden şeytan yüzlü dev kapı yükselir: önündeki her saldırıyı durdurur.'),
+    ('gogyo_fuin', 'yilan', 22, '', 'Beş parmak ucunda beş element: karnına bastırdığın mühür hedefin chakrasını 12 sn kilitler, jutsu yapamaz.'),
+    ('sen_ei_ranjashu', 'yilan', 24, '', 'Yerden vahşi yılan sürüsü fışkırır, koni boyunca kıvranarak yayılır.'),
+    ('ten_no_juin', 'yilan', 25, 'Ten no Juin: Ichi no Dankai (Lanetli Mühür — Birinci Aşama)',
+     'Boynundaki mühürden kara alev desenleri bedenine yayılır: güç ve hız artar, canın yavaşça erir.'),
+    ('mandara_no_jin', 'yilan', 28, '', 'Ağzından on binlerce yılan seli fışkırır: geniş bir alanı kaplayıp her şeyi ısırarak sürükler.'),
+    ('orochimaru_ryu_no_kawarimi_no_jutsu', 'yilan', 30, '', 'Yılan stili kabuk değiştirme: eski bedenin yarılır, ağzından yepyeni bedenle çıkarsın; yaraların kapanır.'),
+    ('kuchiyose_sanju_rashomon', 'yilan', 36, '', 'Üç dev Rashōmon kapısı üst üste yükselir: en güçlü saldırıları bile durdurur.'),
+    ('yamata_no_jutsu', 'yilan', 40, '', 'Sekiz başlı dev yılana dönüşürsün: her baş ayrı saldırır, yolundaki her şeyi ezer.'),
+    ('kuchiyose_edo_tensei', 'yilan', 45, '', 'Yasak: topraktan iki tabut yükselir, çatlak tenli diriltilmiş ninjalar senin için savaşır.'),
+    ('sojasosai_no_jutsu', 'yilan', 50, '', 'Yasak: ikiz yılanların ortak ölümü — canının yarısı karşılığında hedefe ölümcül darbe.'),
+    ('bashosen_kaze_no_maki', 'silah', 30, '', 'Efsanevi yelpazeyi savur: ileri yürüyen dev hortum her şeyi havaya kaldırıp savurur. Chakranı hızla emer.'),
+    ('bashosen_hi_no_maki', 'silah', 34, '', 'Efsanevi yelpazeyi savur: dev alev dalgası ilerleyip yolunu yakar. Chakranı hızla emer.'),
+]
+for (jid, path, lv, nm, desc) in PATH_TAG:
+    assert jid in out, jid
+    j = out[jid]
+    j['learn'] = 'path:' + path
+    j['path'] = path
+    j['level'] = lv
+    j['rank'] = 0
+    j['clan'] = ''
+    j['elements'] = []   # yolun tekniği doğa şartı istemez (usta öğretir)
+    if nm:
+        j['name'] = nm
+    if desc:
+        j['desc'] = desc
+    j.pop('impl', None)
 print(new_count, 'yeni jutsu araştırmadan eklendi;', len(covered), 'mevcut jutsu zenginleştirildi')
 
 out['_seals'] = [s['name_jp'] for s in R['hand_seals'][:12]]

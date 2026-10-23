@@ -27,14 +27,23 @@ static func build(model: String, h: float, length: float) -> Dictionary:
 		out["sf"] = sf["node"]
 		var sz: Vector3 = sf["size"]
 		out["mouth"] = Vector3(0, sz.y * 0.7, -sz.z * 0.45)
+		if model == "snake_boss":
+			_coil_anim(out, sf["node"], sz)
 		return out
 	match model:
 		"toad_small", "toad_mid", "toad_boss":
 			_toad(out, model, h)
 		"snake_swarm":
 			_snake_swarm(out, h)
-		"snake_giant", "snake_boss":
-			_snake(out, model, h, length)
+		"snake_giant":
+			# stilize toon yılan (gerçekçi kobra modeli oyunun cel tarzıyla çakışıyordu)
+			var sg = toon_snake(out["root"], length, h, h * 0.19, Color(0.16, 0.12, 0.28), Color(0.95, 0.86, 0.6), Color(0.55, 0.3, 0.9), true)
+			out["anim"] = "shader"
+			out["mouth"] = sg["mouth"]
+		"snake_boss":
+			var sb = toon_snake(out["root"], length, h, h * 0.22, Color(0.5, 0.22, 0.8), Color(0.97, 0.88, 0.62), Color(0.3, 0.1, 0.5), true)
+			out["anim"] = "shader"
+			out["mouth"] = sb["mouth"]
 		"slug_frag", "slug_acid", "slug_queen":
 			_slug(out, model, h, length)
 		"hawk_small", "hawk_mount", "hawk_giant":
@@ -236,22 +245,129 @@ static func _dog(out: Dictionary, model: String, h: float) -> void:
 	out["mouth"] = Vector3(0, h * 0.75, -h * 0.9)
 
 
-# ------------------------------------------------------------------ yılanlar
+# ------------------------------------------------------------------ yılanlar (stilize toon)
 static func _snake_swarm(out: Dictionary, h: float) -> void:
 	out["anim"] = "flock"
 	var rng = RandomNumberGenerator.new()
 	rng.seed = 7
+	var pal = [[Color(0.25, 0.62, 0.3), Color(0.95, 0.9, 0.55), Color(0.1, 0.3, 0.12)], [Color(0.5, 0.28, 0.82), Color(0.96, 0.86, 0.66), Color(0.25, 0.1, 0.45)],
+		[Color(0.9, 0.7, 0.15), Color(0.98, 0.95, 0.75), Color(0.45, 0.25, 0.05)]]
 	for k in 6:
 		var n = Node3D.new()
 		n.position = Vector3(rng.randf_range(-1.2, 1.2), 0, rng.randf_range(-1.2, 1.2))
 		out["root"].add_child(n)
-		var b = MB.new()
-		var col = [Color(0.3, 0.5, 0.3), Color(0.45, 0.35, 0.6), Color(0.6, 0.55, 0.3)][k % 3]
-		for i in 8:
-			b.add("sphere", Vector3(sin(i * 0.9) * 0.12, h * 0.15, i * 0.16), Vector3(0.16, 0.13, 0.22) * (1.0 - i * 0.07), col, Vector3.ZERO, 6)
-		b.add("sphere", Vector3(0, h * 0.18, -0.12), Vector3(0.2, 0.14, 0.24), col.darkened(0.1), Vector3.ZERO, 8)
-		_mesh(n, b)
+		var c: Array = pal[k % 3]
+		toon_snake(n, 1.7, h * 0.6, 0.075, c[0], c[1], c[2], false)
 		out["segments"].append(n)
+
+
+## Stilize toon yılan: tek parça gövde (yükselen boyun + yere yatan gövde, incelen kuyruk), krem karın, sırtta koyu baklava
+## desenleri, iri anime gözleri, sivri dişler, isteğe bağlı kobra başlığı. beast.gdshader "sürünme" deformasyonu ve
+## SnakeAnim ile canlanır (yanal sinüs dalgası, baş salınımı, ısırma atılışı, çatal dil). Ön -Z, taban y=0, uzunluk ortalı.
+static func toon_snake(parent: Node3D, L: float, raise: float, r: float, back: Color, belly: Color, mark: Color, hood: bool) -> Dictionary:
+	var holder = Node3D.new()
+	parent.add_child(holder)
+	var mb = MB.new()
+	var z0 = -L * 0.5
+	var hr = r * 1.25   # baş yarıçapı
+	var pts = [Vector3(0, raise, z0 + hr * 1.2), Vector3(0, raise * 0.92, z0 + L * 0.07), Vector3(0, raise * 0.55, z0 + L * 0.15),
+		Vector3(0, r * 1.3, z0 + L * 0.26), Vector3(0, r * 0.95, z0 + L * 0.4), Vector3(0, r * 0.9, z0 + L * 0.6), Vector3(0, r * 0.7, z0 + L * 0.8),
+		Vector3(0, r * 0.35, z0 + L * 0.98)]
+	var rads = [Vector2(r * 0.85, r * 0.8), Vector2(r * 0.9, r * 0.85), Vector2(r, r * 0.92), Vector2(r * 1.1, r * 0.95), Vector2(r * 1.15, r * 0.95),
+		Vector2(r * 1.0, r * 0.88), Vector2(r * 0.6, r * 0.55), Vector2(r * 0.08, r * 0.08)]
+	var col_fn = func(tt: float, a: float, d: Vector3) -> Color:
+		if d.y < -0.35:
+			return belly
+		var band = absf(fposmod(tt * 16.0, 1.0) - 0.5) * 2.0
+		var side = absf(sin(a))
+		if band + (1.0 - side) * 0.6 < 0.55 and d.y > -0.1:
+			return mark
+		return back.lerp(back.lightened(0.18), clampf(d.y, 0.0, 1.0))
+	Loft.tube(mb, pts, rads, back, 14, 4, false, true, col_fn)
+	# baş: yassı, öne sivrilen; çene alt kısmı krem
+	var hc = Vector3(0, raise, z0 + hr * 0.4)
+	mb.add("sphere", hc, Vector3(hr * 2.0, hr * 1.25, hr * 2.6), back, Vector3.ZERO, 14)
+	mb.add("sphere", hc + Vector3(0, -hr * 0.28, -hr * 0.2), Vector3(hr * 1.7, hr * 0.7, hr * 2.4), belly, Vector3.ZERO, 12)
+	mb.add("sphere", hc + Vector3(0, hr * 0.15, -hr * 0.9), Vector3(hr * 1.2, hr * 0.8, hr * 1.4), back.lightened(0.08), Vector3.ZERO, 10)   # burun
+	for sx in [-1.0, 1.0]:
+		# iri anime gözü: sarı iris + dikey kara göz bebeği + parlama, üstünde kaş sırtı
+		var ep = hc + Vector3(hr * 0.72 * sx, hr * 0.32, -hr * 0.35)
+		mb.add("sphere", ep, Vector3(hr * 0.55, hr * 0.6, hr * 0.55), Color(1.0, 0.85, 0.15), Vector3.ZERO, 10)
+		mb.add("sphere", ep + Vector3(hr * 0.12 * sx, 0, -hr * 0.05), Vector3(hr * 0.12, hr * 0.5, hr * 0.3), Color(0.05, 0.03, 0.05), Vector3.ZERO, 8)
+		mb.add("sphere", ep + Vector3(hr * 0.2 * sx, hr * 0.15, -hr * 0.15), Vector3(hr * 0.12, hr * 0.12, hr * 0.12), Color(1, 1, 1), Vector3.ZERO, 6)
+		mb.add("sphere", ep + Vector3(-hr * 0.05 * sx, hr * 0.28, 0), Vector3(hr * 0.6, hr * 0.2, hr * 0.6), back.darkened(0.25), Vector3(0, 0, 18 * sx), 8)
+		# sivri diş
+		mb.add("cone", hc + Vector3(hr * 0.35 * sx, -hr * 0.45, -hr * 1.05), Vector3(hr * 0.16, hr * 0.5, hr * 0.16), Color(0.98, 0.97, 0.92), Vector3(180, 0, 0), 6)
+	if hood:
+		# kobra başlığı: boynun arkasında açılan yelpaze, içi açık renk desenli
+		var hp = Vector3(0, raise * 0.88, z0 + L * 0.085)
+		mb.add("sphere", hp, Vector3(r * 4.2, r * 3.4, r * 0.9), back, Vector3(-12, 0, 0), 16)
+		mb.add("sphere", hp + Vector3(0, 0, -r * 0.3), Vector3(r * 3.2, r * 2.6, r * 0.6), belly.lerp(mark, 0.25), Vector3(-12, 0, 0), 14)
+		for sx in [-1.0, 1.0]:
+			mb.add("sphere", hp + Vector3(r * 0.9 * sx, r * 0.4, -r * 0.55), Vector3(r * 0.8, r * 1.0, r * 0.2), mark, Vector3(-12, 0, 0), 10)
+	var mat = ShaderMaterial.new()
+	mat.shader = load("res://shaders/beast.gdshader")
+	mat.set_shader_parameter("surface", 1)
+	mat.set_shader_parameter("stroke", 0.3)
+	mat.set_shader_parameter("shadow_tint", Color(0.3, 0.22, 0.42))
+	var mi = MeshInstance3D.new()
+	mi.mesh = mb.build(mat)
+	mi.material_override = mat
+	holder.add_child(mi)
+	var size = Vector3(r * 4.2 if hood else r * 2.4, raise + hr, L)
+	var mouth = hc + Vector3(0, -hr * 0.2, -hr * 1.4)
+	var an = SnakeAnim.new()
+	an.name = "SnakeAnim"
+	holder.add_child(an)
+	an.setup(2, holder, [mat], size, Vector3.ZERO, mouth, hr * 1.6)
+	return {"node": holder, "mouth": mouth, "anim": an}
+
+
+## Çöreklenmiş hayran modeli (Manda benzeri): boyun pivotu ve ağız ucu köşe noktalarından bulunur, SnakeAnim (mod 1) bağlanır
+static func _coil_anim(out: Dictionary, node: Node3D, sz: Vector3) -> void:
+	var H = sz.y
+	var mats = []
+	var tip = Vector3(0, H, 0)
+	var best = INF
+	var neck = Vector3.ZERO
+	var nn = 0
+	var inv = node.global_transform.affine_inverse() if node.is_inside_tree() else Transform3D.IDENTITY
+	for mi in node.find_children("*", "MeshInstance3D", true, false):
+		if mi.mesh == null:
+			continue
+		for si in mi.mesh.get_surface_count():
+			var m = mi.get_surface_override_material(si)
+			if m is ShaderMaterial and not m in mats:
+				mats.append(m)
+		# düğüm henüz ağaçta değil: yerel zinciri elle çarp
+		var xf = Transform3D.IDENTITY
+		var c: Node = mi
+		var chain = []
+		while c != node and c != null:
+			chain.push_front(c)
+			c = c.get_parent()
+		for k in chain:
+			xf = xf * (k as Node3D).transform
+		var arr = mi.mesh.surface_get_arrays(0)
+		var vs: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+		var step = maxi(1, vs.size() / 4000)
+		for i in range(0, vs.size(), step):
+			var v = xf * vs[i]
+			if v.y > H * 0.82 and v.z < best:
+				best = v.z
+				tip = v
+			if v.y > H * 0.38 and v.y < H * 0.5:
+				neck += v
+				nn += 1
+	if nn > 0:
+		neck /= nn
+	neck.y = H * 0.42
+	var an = SnakeAnim.new()
+	an.name = "SnakeAnim"
+	node.add_child(an)
+	an.setup(1, node, mats, sz, neck, tip, H * 0.12)
+	out["anim"] = "shader"
+	out["mouth"] = tip
 
 
 # ------------------------------------------------------------------ sümüklüböcekler

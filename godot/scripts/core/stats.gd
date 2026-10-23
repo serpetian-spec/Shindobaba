@@ -17,7 +17,7 @@ static func skill(p: Dictionary, key: String) -> float:
 		var n = nodes.get(sid)
 		if n != null:
 			v += float(n["fx"].get(key, 0.0))
-	return v
+	return v + LegendPaths.passive(p, key)   # Efsane Yolu bonusları
 
 
 ## Öğrenilen düğümler bu bayrağı açıyor mu (ör. "genjutsu", "gentle_fist", "elem2")

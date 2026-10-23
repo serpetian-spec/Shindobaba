@@ -72,9 +72,16 @@ static func build(id: String, height_m := -1.0) -> BeastRig:
 			if not String(mi.get_parent().name).begins_with("weak"):
 				mi.visible = false
 		var node: Node3D = sf["node"]
-		r.hips.add_child(node)
-		node.transform = (root.transform * r.hips.transform).affine_inverse()
+		# iskeletsiz modeli kalçaya değil kök düğüme bağla: kalça animasyonu onu havaya kaldırmasın;
+		# canlandırma (kuyruk, nefes, baş, adım, pençe) ve zemine oturtma SFBeastAnim'de
+		r.add_child(node)
+		node.transform = Transform3D.IDENTITY
 		r.set_meta("sf_model", node)
+		if sf.get("player") == null or (sf.get("anims", []) as Array).is_empty():
+			var an = SFBeastAnim.new()
+			an.name = "SFAnim"
+			r.add_child(an)
+			an.setup(r, node, sf["size"], SFModels.regions(id))
 	for mi in root.find_children("*", "MeshInstance3D", true, false):
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if mi.get_aabb().size.length() > 1.5 else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	return r

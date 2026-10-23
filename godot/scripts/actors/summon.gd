@@ -281,6 +281,8 @@ func _attack() -> void:
 	if parts.get("player") and parts["player"].has_animation(parts["anims"]["attack"]):
 		parts["player"].play(parts["anims"]["attack"], 0.1)
 		attack_anim_t = 0.7
+	for sa in parts["root"].find_children("SnakeAnim*", "", true, false):   # yılan: ısırma atılışı
+		sa.bite()
 	var dmg: float = def.get("dmg", 20.0) * (1.0 + float(Game.profile.get("level", 1)) * 0.03) * (1.0 + Stats.skill(Game.profile, "summon_power") + Stats.skill(Game.profile, "squad"))
 	var model: String = def.get("model", "")
 	var pt = _front(height * 0.15)

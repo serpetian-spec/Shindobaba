@@ -265,6 +265,8 @@ func can_learn(jid: String) -> String:
 		return "Sennin modu gerekli"
 	if lp in ["kinjutsu", "quest:signature", "quest:hiden", "quest:contract"]:
 		return "Özel görevle öğrenilir"
+	if lp.begins_with("path:"):
+		return "Efsane Yolu: %s ustası öğretir" % LegendPaths.PATHS.get(lp.substr(5), {}).get("name", "bir yolun")
 	return ""
 
 
@@ -506,6 +508,8 @@ func interact(it: Dictionary) -> void:
 			Hud.gear_shop("Terzi", Gear.SHOP_CLOTHES)
 		"kg_site":
 			KgPaths.interact_site(it)
+		"path_mentor":
+			LegendPaths.interact(it)
 		"home_note":
 			var lv = int(pr["level"])
 			Hud.dialog("Notlar", "Kendi el yazınla: \"Hokage olacağım!\"\nSeviye %d • %s • %d Ryō\nGörevler: D%d C%d B%d A%d S%d" % [lv, Data.RANKS[int(pr["rank"])], int(pr["ryo"]),

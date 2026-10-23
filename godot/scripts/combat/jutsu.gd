@@ -81,7 +81,7 @@ func execute(caster: Node3D, id: String, target: Node3D) -> void:
 	var own_id = id   # klan/kekkei genkai jutsularının kendi uygulaması (ClanJutsu) önceliklidir
 	id = String(Data.jutsu.get(id, {}).get("impl", id))  # klan jutsuları ortak uygulamayı kullanabilir
 	var jd: Dictionary = Data.jutsu.get(id, {})
-	if not has_method("j_" + id) and jd.is_empty() and not ClanJutsu.handles(own_id):
+	if not has_method("j_" + id) and jd.is_empty() and not ClanJutsu.handles(own_id) and not PathJutsu.handles_path(own_id):
 		Hud.msg("%s henüz uygulanmadı" % id, Color(1, 0.6, 0.4))
 		return
 	# destan ölçeği: rütbe × ustalık; bırakış anı (flaş, şok halkası, toz, B+ yavaş çekim + kamera)
@@ -94,7 +94,9 @@ func execute(caster: Node3D, id: String, target: Node3D) -> void:
 	VFX.release(caster, _cast_origin(caster, id), JutsuEngine.color_of(jd), g, tier if not calm else mini(tier, 2), not calm)
 	var prev = VFX.epic
 	VFX.epic = g
-	if ClanJutsu.handles(own_id):
+	if PathJutsu.handles_path(own_id):   # Efsane Yolları teknikleri
+		PathJutsu.cast_path(caster, own_id, target)
+	elif ClanJutsu.handles(own_id):
 		ClanJutsu.cast(caster, own_id, target)
 	elif has_method("j_" + id):
 		call("j_" + id, caster, target)

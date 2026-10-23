@@ -57,9 +57,16 @@ static func archetype(kind: String, i := 0) -> Dictionary:
 			base.merge({"hp": 140.0, "level": 10, "power": 1.3, "element": ["katon", "fuuton", "suiton"][i % 3], "aggr": 0.75, "name": "Rakip Genin",
 				"xp": 100, "ryo": 0, "guard": 0.35, "sub": 0.25}, true)
 			base["jutsu"] = {"katon": ["katon_goukakyuu", "katon_housenka"], "fuuton": ["fuuton_daitoppa"], "suiton": ["suiton_suikoudan"]}[base["element"]]
+		"jinchuriki":
+			# içinde kuyruklu canavar taşıyan kaçak ninja: pelerin aurası + canavarın kendi teknikleri (BijuuArts)
+			var bid: String = ["shukaku", "matatabi", "isobu", "son_goku", "kokuo", "saiken", "chomei", "gyuki"][i % 8]
+			L.merge({"top": Color(0.22, 0.2, 0.24), "top2": Color(0.15, 0.14, 0.17), "pants": Color(0.18, 0.18, 0.2), "band": Color(0.2, 0.2, 0.25),
+				"band_style": "slashed", "hair_style": ["uzun", "dağınık", "diken"][i % 3]}, true)
+			base.merge({"hp": 900.0, "level": 40, "power": 3.0, "element": BeastModels.INFO[bid]["element"], "aggr": 0.8, "xp": 900, "ryo": 400,
+				"name": "Jinchūriki — %s" % String(BeastModels.INFO[bid]["name"]).split(" — ")[0], "guard": 0.4, "sub": 0.25, "beast": bid}, true)
 	# kıyafet seti: her arketip kendi havuzundan (haydut, kaçak, köy chūnin/jōnin, samuray...) rastgele giyinir
 	var oarch: String = {"bandit": "bandit", "rogue": "rogue", "oto": "chunin", "kumo": "chunin", "kiri": "chunin", "iwa": "chunin", "suna": "chunin",
-		"samurai": "samurai", "genin_rival": "genin"}.get(kind, "")
+		"samurai": "samurai", "genin_rival": "genin", "jinchuriki": "rogue"}.get(kind, "")
 	if oarch == "chunin" and randf() < 0.3:
 		oarch = "jonin"
 	if oarch != "":
@@ -166,6 +173,8 @@ func _ready() -> void:
 	add_child(nameplate)
 	facing = randf() * TAU
 	wander_to = home
+	if arch.has("beast"):
+		FX.aura(self, BeastModels.INFO[arch["beast"]]["chakra"], 1.2, Vector3(0, 0.9, 0), 0.0)   # sönmeyen canavar chakrası
 
 
 func lose_target(t: float) -> void:
@@ -297,6 +306,11 @@ func _chase(dt: float) -> void:
 	v.y = 0
 	var d = v.length() - target.radius - radius
 	facing = lerp_angle(facing, atan2(-v.x, -v.z), minf(1.0, dt * 8.0))
+	# jinchūriki: canavarın kendi teknikleri
+	if arch.has("beast") and d < 30.0 and ranged_cd <= 0.0 and randf() < 0.6:
+		ranged_cd = randf_range(3.5, 6.0) / arch["aggr"]
+		_beast_tech(d)
+		return
 	# menzilli: jutsu ya da kunai
 	if d > 5.0 and d < 24.0 and ranged_cd <= 0.0 and randf() < 0.5:
 		ranged_cd = randf_range(3.0, 6.0) / arch["aggr"]
@@ -338,6 +352,20 @@ func _chase(dt: float) -> void:
 			state = "attack"
 			state_t = 0.0
 			_swing()
+
+
+func _beast_tech(d: float) -> void:
+	var bid: String = arch["beast"]
+	var key = BijuuArts.pick_key(bid, d, 1.0)
+	if key == "" or target == null:
+		return
+	state = "recover"
+	state_t = 0.0
+	model.play("throw", 0.05, 1.4, true)
+	var col: Color = BeastModels.INFO[bid]["chakra"]
+	BijuuArts.use(self, bid, key, {"s": 1.15, "dmg": 16.0 * power, "from": global_position + Vector3.UP * 1.4 + face_dir(), "aim": target.global_position + Vector3.UP,
+		"tgt": target, "col": col})
+	Combat.popup_text(global_position + Vector3.UP * (height + 1.2), String(BijuuArts.tech(bid, key).get("name", "")), col.lightened(0.3))
 
 
 func _swing() -> void:

@@ -1795,6 +1795,10 @@ func _bb_new() -> Dictionary:
 	# kaçak ninja kıyafet seti: yırtık pelerin, eski yelek, çizik bant, yıpranmışlık
 	e["look"].merge(Outfits.roll_hex("rogue", vid), true)
 	e["look"]["band_style"] = "slashed"
+	# S-rank: bazen içinde kuyruklu canavar taşıyan kaçak jinchūriki (canavarın kendi teknikleriyle savaşır)
+	if rank == "S" and randf() < 0.35:
+		e["beast"] = ["shukaku", "matatabi", "isobu", "son_goku", "kokuo", "saiken", "chomei", "gyuki"].pick_random()
+		e["crimes"].append("İçinde bir Kuyruklu Canavar taşıyor (%s)" % String(BeastModels.INFO[e["beast"]]["name"]).split(" — ")[0])
 	bb["next"] = int(bb["next"]) + 1
 	return e
 
@@ -1867,6 +1871,10 @@ func _bb_spawn(e: Dictionary, at: Vector3) -> void:
 	a["jutsu"] = {"suiton": ["suiton_suikoudan", "suiton_suiryuudan"], "doton": ["doton_doryuusou", "doton_doryuheki"], "raiton": ["raiton_nagashi", "raiton_chidori"],
 		"katon": ["katon_goukakyuu", "katon_housenka"], "fuuton": ["fuuton_shinkuu", "fuuton_daitoppa"]}.get(e["element"], [])
 	a["look"] = _bb_look(e)
+	if e.has("beast"):
+		a["beast"] = e["beast"]
+		a["name"] = "«%s» %s — Jinchūriki" % [e["alias"], e["name"]]
+		a["hp"] = float(e["hp"]) * 1.6
 	var b = Enemy.new()
 	b.setup(a)
 	b.set_meta("bingo_id", int(e["id"]))

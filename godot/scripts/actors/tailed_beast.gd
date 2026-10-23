@@ -213,9 +213,9 @@ func _walk_to(p: Vector3, dt: float, mul: float) -> void:
 func _choose(dist: float) -> void:
 	var opts = []
 	if dist < height * 0.8:
-		opts += ["stomp", "swipe", "tail", "swipe"]
+		opts += ["stomp", "swipe", "tail", "swipe", "elem"]
 	else:
-		opts += ["elem", "elem", "roar"]
+		opts += ["elem", "elem", "elem", "roar"]
 	if phase >= 2:
 		opts += ["ball", "elem"]
 	if phase >= 3:
@@ -238,7 +238,7 @@ func _begin(a: String, dur: float) -> void:
 		"roar":
 			d = maxf(d, 1.6); rig.play_action("roar", d)
 		"elem":
-			d = 1.6; rig.play_action("charge" if id in ["kokuo", "chomei"] else "roar", d)
+			d = 1.6; rig.play_action("charge" if id in ["kokuo", "chomei", "isobu", "matatabi"] else "roar", d)
 		"ball":
 			d = 3.4; rig.play_action("ball", d)
 			_ball_start()
@@ -265,8 +265,7 @@ func _run_attack(_dt: float) -> void:
 			if k > 0.42 and not atk_hit:
 				atk_hit = true
 				var pt = global_position + fwd * height * 0.45 + Vector3.UP * height * 0.15
-				Combat.hit_sphere(self, pt, height * 0.28, {"dmg": _dmg(34.0), "knock": 30.0, "launch": 6.0, "kind": "heavy", "dir": fwd})
-				FX.impact(pt, info["chakra"], height * 0.05)
+				BijuuArts.melee(self, id, pt, height * 0.28, _dmg(34.0), fwd)   # canavara özgü pençe: kum, mavi alev, lav, asit...
 				Sfx.play("whoosh", pt, 0.5)
 		"tail":
 			if k > 0.35 and not atk_hit:
@@ -325,8 +324,23 @@ func _crater(c: Vector3, r: float) -> void:
 	tw.tween_callback(dc.queue_free)
 
 
-## Canavara özel element saldırısı
+## Canavara özel teknik (BijuuArts): Renkūdan, mercan, lav fışkırması, asit baloncukları, mürekkep, chakra kolu...
 func _element_attack() -> void:
+	var pl = Game.player
+	var dist = (pl.global_position - global_position).length()
+	# teknik ölçeği: dev ama oyuncunun ekranını kaplamayacak kadar (alan teknikleri oyuncunun çevresine iner)
+	var ts = clampf(height / 14.0, 2.0, 3.5)
+	var key = BijuuArts.pick_key(id, dist, ts)
+	if key != "":
+		var td = BijuuArts.tech(id, key)
+		BijuuArts.use(self, id, key, {"s": ts, "dmg": _dmg(30.0), "from": rig.mouth_pos(), "aim": pl.global_position + Vector3.UP, "tgt": pl, "col": info["chakra"]})
+		Combat.popup_text(rig.mouth_pos() + Vector3.UP * 6.0, String(td.get("name", "")), info["chakra"].lightened(0.3))
+		Sfx.play("roar", rig.mouth_pos(), 0.8, 0.5)
+		return
+	_element_attack_old()
+
+
+func _element_attack_old() -> void:
 	var pl = Game.player
 	var from = rig.mouth_pos()
 	var aim = (pl.global_position + Vector3.UP - from).normalized()

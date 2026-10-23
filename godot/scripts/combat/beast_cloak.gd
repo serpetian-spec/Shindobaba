@@ -3,7 +3,8 @@ extends Node
 ## Jinchūriki modları (X):
 ##   X dokun: Sürüm 1 pelerin (1→4 kuyruk) → Sürüm 2 → Tam Kuyruklu Canavar dönüşümü; en üst seviyede X = Kuyruklu Canavar Topu
 ##   X basılı (açıkken): modu kapat   •   X basılı (kapalıyken, savaş dışında): zihin dünyası
-##   Tam dönüşümde: sol tık dev pençe, sağ tık Kuyruklu Canavar Topu
+##   Tam dönüşümde: sol tık canavara özgü pençe, sağ tık Kuyruklu Canavar Topu
+##   Canavarın kendi teknikleri (BijuuArts): [R] 1. teknik (Sürüm 1), [T] 2. teknik (3+ kuyruk), [C] 3. teknik (Sürüm 2 ve üstü)
 ## Güven (bağ) düşükken üst seviyeler canavarın kontrolü ele geçirmesine (öfke krizi) yol açabilir.
 
 const NAMES := ["", "Sürüm 1 — Tek Kuyruk", "Sürüm 1 — İki Kuyruk", "Sürüm 1 — Üç Kuyruk", "Sürüm 1 — Dört Kuyruk", "Sürüm 2", "Tam Dönüşüm"]
@@ -23,6 +24,10 @@ var tail_root: Node3D
 var rig: BeastRig            # tam dönüşüm modeli
 var saved_cam = 5.5
 var t = 0.0
+var tech_cd := {}            # teknik anahtarı -> kalan bekleme
+const TECH_KEYS := ["throw", "tool_next", "charge"]
+const TECH_LABEL := ["R", "T", "C"]
+const TECH_NEED := [1, 3, 5]
 
 
 func setup(combat: PlayerCombat) -> void:
@@ -44,6 +49,9 @@ func max_level() -> int:
 
 
 func chakra_col() -> Color:
+	# Kurama ile tam bağ (Sürüm 2+): altın "Kurama Bağı" pelerini
+	if beast_id() == "kurama" and level >= 5 and TailedBeasts.trust() >= 55.0:
+		return Color(1.0, 0.82, 0.28)
 	return BeastModels.INFO.get(beast_id(), BeastModels.INFO["kurama"])["chakra"]
 
 
@@ -60,6 +68,11 @@ func handle_input(e: InputEvent) -> bool:
 		if h < 0.45 and rampage_t <= 0.0:
 			_tap()
 		return true
+	if level > 0 and rampage_t <= 0.0:
+		for i in TECH_KEYS.size():
+			if e.is_action_pressed(TECH_KEYS[i]):
+				_tech(i)
+				return true
 	if level == 6 and rampage_t <= 0.0:
 		if e.is_action_pressed("attack"):
 			_giant_swipe()
@@ -87,6 +100,9 @@ func set_level(l: int) -> void:
 	var col = chakra_col()
 	Buffs.add("beast", 9999.0, {"melee": 1.2 + level * 0.15, "speed": 1.08 + level * 0.06, "armor": maxf(0.35, 1.0 - level * 0.1), "jutsu": 1.1 + level * 0.1})
 	Hud.banner("JİNCHŪRİKİ: %s" % NAMES[level].to_upper(), "Güven %d/100%s" % [int(tr), "  —  DİKKAT: canavar kontrolü ele geçirebilir!" if tr < SAFE_TRUST[level] else ""], col)
+	var hint = tech_hint()
+	if hint != "":
+		Hud.msg(hint, col.lightened(0.3), 6.0)
 	Sfx.play("roar", p.global_position, 1.3 - level * 0.08, 0.7)
 	FX.ring(p.global_position + Vector3.UP * 0.3, col, 6.0 + level * 3.0, 0.5)
 	if Game.world:
@@ -98,7 +114,8 @@ func set_level(l: int) -> void:
 			_end_transform()
 		_ensure_cloak()
 		_set_tails(mini(level, 4) if level <= 4 else BeastModels.INFO.get(beast_id(), {}).get("tails", 4))
-		mat.set_shader_parameter("dark", 0.85 if level == 5 else 0.0)
+		mat.set_shader_parameter("col", chakra_col())
+		mat.set_shader_parameter("dark", 0.85 if level == 5 and chakra_col() == BeastModels.INFO.get(beast_id(), {}).get("chakra", Color.BLACK) else 0.0)
 		mat.set_shader_parameter("grow", 0.05 + level * 0.012)
 
 
@@ -229,10 +246,10 @@ func _giant_swipe() -> void:
 	rig.play_action(["swipe_l", "swipe_r"].pick_random(), 0.9)
 	var h = rig.height_m
 	var dir = p.cam_forward()
+	var id = beast_id()
 	get_tree().create_timer(0.35).timeout.connect(func():
 		var pt = p.global_position + dir * h * 0.5 + Vector3.UP * h * 0.2
-		Combat.hit_sphere(p, pt, h * 0.3, {"dmg": 90.0 * Stats.melee_mult(Game.profile), "knock": 30.0, "launch": 8.0, "kind": "heavy", "dir": dir})
-		FX.impact(pt, chakra_col(), h * 0.05)
+		BijuuArts.melee(p, id, pt, h * 0.3, 90.0 * Stats.melee_mult(Game.profile), dir)
 		Sfx.play("whoosh", pt, 0.5))
 
 
@@ -262,11 +279,81 @@ func _bomb() -> void:
 	var dir = (p.aim_point() - from).normalized()
 	var dmg = (70.0 + level * 35.0) * Stats.melee_mult(Game.profile)
 	var delay = 0.9 if level == 6 else 0.4
+	if beast_id() == "gyuki":
+		# Gyūki: Renzoku Bijūdama — art arda dört küçük top
+		for i in 4:
+			get_tree().create_timer(delay + i * 0.28).timeout.connect(func():
+				var f3 = rig.mouth_pos() if (level == 6 and is_instance_valid(rig)) else p.global_position + Vector3.UP * 1.6 + p.face_dir() * 1.2
+				var d3 = (p.aim_point() - f3).normalized()
+				TailedBeasts.fire_ball(p, f3, d3, size * 0.6, chakra_col(), dmg * 0.45, 90.0))
+		return
 	FX.burst(from, {"amount": 50, "life": delay, "tex": FX.tex_spark, "add": true, "size": size, "vmin": -6, "vmax": -2, "gravity": Vector3.ZERO,
 		"colors": [Color(0.7, 0.4, 1.0, 0.9), Color(0.1, 0.0, 0.2, 0.0)]})
 	get_tree().create_timer(delay).timeout.connect(func():
 		var f2 = rig.mouth_pos() if (level == 6 and is_instance_valid(rig)) else from
 		TailedBeasts.fire_ball(p, f2, dir, size, chakra_col(), dmg, 80.0))
+
+
+# ------------------------------------------------------------------ canavarın kendi teknikleri (BijuuArts)
+## HUD ipucu: açık teknikler ve tuşları
+func tech_hint() -> String:
+	var l = BijuuArts.techs(beast_id())
+	var parts = []
+	for i in l.size():
+		if level >= TECH_NEED[i]:
+			parts.append("[%s] %s" % [TECH_LABEL[i], l[i]["name"]])
+	if parts.is_empty():
+		return ""
+	return "  •  ".join(parts) + ("  •  [Sol] pençe  [Sağ] Kuyruklu Canavar Topu" if level == 6 else "")
+
+
+func _scale() -> float:
+	if level == 6 and is_instance_valid(rig):
+		return rig.height_m / 7.0
+	return 1.0 + level * 0.12
+
+
+func _tech(i: int) -> void:
+	var l = BijuuArts.techs(beast_id())
+	if i >= l.size():
+		return
+	var tdef: Dictionary = l[i]
+	if level < TECH_NEED[i]:
+		Hud.msg("%s için en az: %s" % [tdef["name"], NAMES[TECH_NEED[i]]], chakra_col())
+		return
+	var key: String = tdef["key"]
+	if float(tech_cd.get(key, 0.0)) > 0.0:
+		Hud.msg("%s hazırlanıyor (%.1f)" % [tdef["name"], float(tech_cd[key])], chakra_col())
+		return
+	var cost = float(tdef["cost"]) * (1.6 if level == 6 else 1.0)
+	if p.chakra < cost:
+		Hud.msg("Yeterli chakra yok!", Color(0.6, 0.8, 1))
+		return
+	p.chakra -= cost
+	tech_cd[key] = float(tdef["cd"]) * (0.75 if level == 6 else 1.0)
+	var aim = p.aim_point()
+	var lt = c.lock_target
+	if lt and is_instance_valid(lt) and not lt.is_dead():
+		aim = lt.global_position + Vector3.UP * float(lt.height) * 0.5   # kilitliyse hedefe
+	var v = aim - p.global_position
+	p.facing = atan2(-v.x, -v.z)
+	var giant = level == 6 and is_instance_valid(rig)
+	var s = _scale()
+	var from = rig.mouth_pos() if giant else p.global_position + Vector3.UP * 1.4 + p.face_dir() * 1.0
+	if giant:
+		rig.rotation.y = p.facing
+		rig.play_action({"neko_pounce": "charge", "shell_roll": "charge", "horn_ram": "charge", "kaen_breath": "roar", "sumi": "roar", "biju_hoko": "roar",
+			"renkudan": "ball", "bijudama_rasengan": "ball"}.get(key, ["swipe_l", "swipe_r"].pick_random()), 1.0)
+	else:
+		p.model.play("throw", 0.05, 1.6, true)
+	var dmg = (45.0 + level * 14.0) * Stats.jutsu_mult(Game.profile) * (2.4 if giant else 1.0)
+	var ctx = {"s": s, "dmg": dmg, "from": from, "aim": aim, "tgt": c.lock_target, "col": chakra_col()}
+	if giant:
+		ctx["base_h"] = rig.height_m * 0.45
+		ctx["from_fn"] = func() -> Vector3: return rig.mouth_pos() if is_instance_valid(rig) else p.global_position + Vector3.UP * 2.0
+	BijuuArts.use(p, beast_id(), key, ctx)
+	if Game.world:
+		Game.world.env.add_shake(0.15 + (0.4 if giant else 0.0))
 
 
 # ------------------------------------------------------------------ öfke krizi (güven düşükken)
@@ -291,6 +378,10 @@ func _process(dt: float) -> void:
 		return
 	t += dt
 	bomb_cd = maxf(0.0, bomb_cd - dt)
+	for k in tech_cd.keys():
+		tech_cd[k] = float(tech_cd[k]) - dt
+		if tech_cd[k] <= 0.0:
+			tech_cd.erase(k)
 	if held >= 0.0:
 		held += dt
 		if held >= 0.45 and level > 0:

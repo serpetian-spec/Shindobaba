@@ -37,6 +37,7 @@ func build(progress: Callable = Callable()) -> void:
 	BuildVillageStory.build_all(sites)  # her büyük köyde hikâye binaları + Aranıyor panosu
 	ContractRealms.build_all(sites)  # gizli sözleşme diyarları (kurbağa/yılan/sümüklüböcek) + köy sözleşme ustaları
 	KgPaths.build_all(sites)  # keşiş kulübesi (Hyōton), volkan krateri (Yōton), toz tapınağı (Jinton)
+	LegendPaths.build_all(sites)  # Efsane Yolları: ustaların inleri (yılan ini, demirhane...)
 	_p(progress, 0.85, "Köyler")
 	await get_tree().process_frame
 	stream = preload("res://scripts/world/world_stream.gd").new()

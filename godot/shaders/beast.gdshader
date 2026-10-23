@@ -13,8 +13,71 @@ uniform bool tex_luma = false;   // dokunun sadece parlaklığı (yeniden renkle
 uniform bool use_tex = false;    // hazır modelin kendi dokusu (tint ile çarpılır)
 uniform sampler2D tex : source_color, filter_linear_mipmap, hint_default_white;
 
+// --- hazır (iskeletsiz) hayran modelleri için bölgesel prosedürel deformasyon (SFBeastAnim her kare doldurur)
+// Canavar-yerel uzay: taban y=0, ön -Z; bölgeler normalize boy/uzunluğa göre maskelenir.
+uniform bool deform = false;
+uniform mat4 to_beast = mat4(1.0);     // dünya -> canavar-yerel
+uniform mat4 from_beast = mat4(1.0);   // canavar-yerel -> dünya
+uniform vec4 dims = vec4(10.0, -5.0, 5.0, 3.0);   // boy H, ön z, arka z, yarı genişlik
+uniform vec4 regions = vec4(0.62, 0.28, 0.3, 0.55); // kuyruk başlangıcı (z0..1), ayak boyu (y0..1), baş bitişi (z0..1), baş alt sınırı (y0..1)
+uniform float anim_t = 0.0;
+uniform float walk = 0.0;            // 0..1 yürüyüş
+uniform float gait = 0.0;            // yürüyüş evresi (radyan)
+uniform float tail_amp = 0.06;       // kuyruk dalga genliği (H oranı)
+uniform float tail_sweep = 0.0;      // kuyruk süpürmesi (-1..1)
+uniform vec2 head_rot = vec2(0.0);   // baş: x eğim, y sapma (radyan)
+uniform float roar = 0.0;            // kükreme titremesi 0..1
+uniform float breath = 0.0;          // nefes (göğüs şişmesi)
+uniform vec2 swipe = vec2(0.0);      // pençe: (taraf -1/1, miktar 0..1)
+// yılanlar: 0 canavar, 1 çöreklenmiş dev yılan (boyun/baş salınır, halkalar dalgalanır), 2 sürünen yılan (yanal sinüs dalgası)
+uniform int deform_mode = 0;
+uniform vec3 pivot = vec3(0.0);      // çöreklenmiş yılan: boyun dönme noktası (canavar-yerel)
+uniform float strike = 0.0;          // ısırma atılışı 0..1
+uniform float wave_speed = 1.5;
+
 varying vec3 lp;
 varying vec3 ln;
+
+vec3 rot_y(vec3 v, float a) { float c = cos(a), s = sin(a); return vec3(c * v.x + s * v.z, v.y, -s * v.x + c * v.z); }
+vec3 rot_x(vec3 v, float a) { float c = cos(a), s = sin(a); return vec3(v.x, c * v.y - s * v.z, s * v.y + c * v.z); }
+
+vec3 deform_pt(vec3 b) {
+	float H = dims.x;
+	float zn = clamp((b.z - dims.y) / max(0.001, dims.z - dims.y), 0.0, 1.0);   // 0 ön, 1 arka
+	float yn = b.y / H;
+	float xn = b.x / max(0.001, dims.w);
+	// kuyruklar: gövdeden uzaklaştıkça artan, her kuyruğa ayrı evreli dalga
+	float tm = smoothstep(regions.x, regions.x + 0.12, zn);
+	float d = clamp((zn - regions.x) / max(0.001, 1.0 - regions.x), 0.0, 1.0);
+	float ang = atan(b.x, b.y - H * 0.35);
+	float dd = d * d;
+	b.x += (sin(anim_t * 1.7 - d * 3.2 + ang * 3.0) * tail_amp + tail_sweep * 0.45 * d) * H * dd * tm;
+	b.y += cos(anim_t * 1.25 - d * 2.6 + ang * 2.2) * tail_amp * 0.65 * H * dd * tm;
+	// göğüs nefesi
+	float cm = (1.0 - tm) * smoothstep(0.2, 0.4, yn) * (1.0 - smoothstep(0.7, 0.9, yn)) * (1.0 - smoothstep(0.35, 0.55, zn));
+	b.xz *= 1.0 + breath * cm;
+	// bacaklar: alt bölge, taraf ve ön/arka evre farkıyla adım
+	float lm = (1.0 - smoothstep(regions.y * 0.55, regions.y, yn)) * (1.0 - tm);
+	float side = xn >= 0.0 ? 0.0 : 3.14159;
+	float fb = zn < 0.5 ? 3.14159 : 0.0;
+	float ph = gait + side + fb;
+	float lift = (1.0 - yn / max(0.001, regions.y));
+	b.z += sin(ph) * 0.07 * H * walk * lm * lift;
+	b.y += max(0.0, cos(ph)) * 0.05 * H * walk * lm * lift;
+	// kollar / pençe savurma: yan-ön-orta bölge
+	float am = smoothstep(0.35, 0.6, abs(xn)) * smoothstep(0.3, 0.45, yn) * (1.0 - smoothstep(0.7, 0.85, yn)) * (1.0 - smoothstep(0.35, 0.6, zn)) * (1.0 - tm);
+	float sw = swipe.y * step(0.0, swipe.x * xn);
+	b.z -= sw * 0.18 * H * am;
+	b.y += sw * 0.08 * H * am;
+	b.x -= sign(xn) * sw * 0.08 * H * am;
+	// baş: boyun pivotu etrafında eğim/sapma + kükreme titremesi
+	float hm = (1.0 - smoothstep(regions.z - 0.08, regions.z + 0.08, zn)) * smoothstep(regions.w - 0.1, regions.w + 0.05, yn) * (1.0 - tm);
+	vec3 piv = vec3(0.0, H * regions.w, dims.y + (dims.z - dims.y) * (regions.z + 0.05));
+	vec3 r = rot_x(rot_y(b - piv, head_rot.y), head_rot.x) + piv;
+	b = mix(b, r, hm);
+	b += vec3(sin(anim_t * 47.0), cos(anim_t * 39.0), sin(anim_t * 53.0)) * roar * 0.004 * H * hm;
+	return b;
+}
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float vnoise(vec2 p) {
@@ -23,9 +86,45 @@ float vnoise(vec2 p) {
 	return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y);
 }
 
+vec3 deform_coil(vec3 b) {
+	float H = dims.x;
+	float yn = b.y / H;
+	float hm = smoothstep(0.32, 0.62, yn);              // yükselen boyun + baş
+	float ang = atan(b.x, b.z);
+	float act = 1.0 + walk * 2.5;
+	b.y += sin(anim_t * 2.2 * act + ang * 3.0) * 0.014 * H * (1.0 - hm);   // halkalarda dalga
+	b.xz *= 1.0 + sin(anim_t * 1.6 + ang * 2.0) * 0.012 * (1.0 - hm);
+	vec3 r = b - pivot;
+	r = rot_y(r, head_rot.y * hm);
+	r = rot_x(r, (head_rot.x - strike * 0.55) * hm);
+	b = pivot + r;
+	b.z -= strike * 0.22 * H * hm * hm;
+	b.x += sin(anim_t * 1.1) * 0.03 * H * hm * hm;     // baş sallanması
+	return b;
+}
+
+vec3 deform_slither(vec3 b) {
+	float H = dims.x;
+	float L = max(0.001, dims.z - dims.y);
+	float zn = clamp((b.z - dims.y) / L, 0.0, 1.0);
+	float body = smoothstep(0.06, 0.3, zn);
+	b.x += sin(anim_t * wave_speed - zn * 9.0) * tail_amp * L * (0.25 + zn) * body;
+	b.x += (sin(anim_t * 1.3) * 0.05 * L + head_rot.y * 0.25 * L) * (1.0 - body);
+	b.z -= strike * 0.22 * L * (1.0 - body);
+	b.y += (strike * 0.08 * L + sin(anim_t * 1.7) * 0.02 * L) * (1.0 - body);
+	return b;
+}
+
 void vertex() {
 	lp = VERTEX;
 	ln = NORMAL;
+	if (deform) {
+		vec3 w = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+		vec3 b = (to_beast * vec4(w, 1.0)).xyz;
+		vec3 b2 = deform_mode == 1 ? deform_coil(b) : (deform_mode == 2 ? deform_slither(b) : deform_pt(b));
+		vec3 w2 = (from_beast * vec4(b2, 1.0)).xyz;
+		VERTEX = (inverse(MODEL_MATRIX) * vec4(w2, 1.0)).xyz;
+	}
 }
 
 void fragment() {

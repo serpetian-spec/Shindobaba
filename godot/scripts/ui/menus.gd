@@ -600,8 +600,8 @@ static func settings(back: Callable) -> void:
 
 # ================================================================== ninja menüsü [Tab]
 const TABS := [["inv", "bag", "Envanter"], ["wardrobe", "armor", "Ekipman"], ["eyes", "eye", "Gözler"], ["jutsu", "scroll", "Jutsular"], ["skills", "star", "Yetenekler"],
-	["missions", "mission", "Görevler"], ["map", "map", "Harita"]]
-const TAB_TITLES := {"inv": "ENVANTER", "wardrobe": "EKİPMAN", "jutsu": "JUTSULAR", "skills": "YETENEK AĞACI", "missions": "GÖREVLER", "eyes": "GÖZLER (DŌJUTSU)"}
+	["missions", "mission", "Görevler"], ["paths", "book", "Yollar"], ["map", "map", "Harita"]]
+const TAB_TITLES := {"inv": "ENVANTER", "wardrobe": "EKİPMAN", "jutsu": "JUTSULAR", "skills": "YETENEK AĞACI", "missions": "GÖREVLER", "eyes": "GÖZLER (DŌJUTSU)", "paths": "EFSANE YOLLARI"}
 const SWATCHES := [Color(0.15, 0.2, 0.33), Color(0.12, 0.12, 0.14), Color(0.45, 0.15, 0.15), Color(0.95, 0.5, 0.12), Color(0.2, 0.38, 0.22),
 	Color(0.35, 0.25, 0.45), Color(0.85, 0.82, 0.75), Color(0.15, 0.4, 0.45), Color(0.55, 0.42, 0.3), Color(0.75, 0.2, 0.25)]
 
@@ -660,6 +660,8 @@ static func ninja_menu(main: Node, tab := "inv", picked := "") -> void:
 			_tab_missions(main, body)
 		"eyes":
 			_tab_eyes(main, body)
+		"paths":
+			PathsTab.build(main, body)
 	if _fresh:
 		UI.pop_in(body, 0.985)
 	# alt ipucu satırı

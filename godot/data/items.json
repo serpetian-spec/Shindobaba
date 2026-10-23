@@ -489,13 +489,6 @@
   "jutsu": "kamaitachi_no_jutsu",
   "desc": "C — Yelpazeyle kesici rüzgâr dalgası."
  },
- "scroll_hebi_bunshin_no_jutsu": {
-  "name": "Parşömen: Hebi Bunshin no Jutsu",
-  "price": 400,
-  "kind": "scroll",
-  "jutsu": "hebi_bunshin_no_jutsu",
-  "desc": "C — Yılanlardan klon."
- },
  "scroll_isshi_tojin": {
   "name": "Parşömen: Isshi Tōjin",
   "price": 800,
