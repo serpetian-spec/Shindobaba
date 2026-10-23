@@ -37,23 +37,26 @@ var hit_flash = 0.0
 
 ## VRoid: iskelet uzayında yüz -Z; tüm prosedürel kod +Z ön kabul ediyor -> 180° çevrilmiş "model uzayı"
 const VROID_SCALE := 1.1
+const TOE_PITCH := 0.0
+const FOOT_PITCH_F := 0.0
 ## VRoid glb'lerinin kök kemiği 180° çevrildi (model +Z ön); ek dönüşüm gerekmiyor
 static var FLIP := Transform3D.IDENTITY
 const FACE_DONORS_M := ["masc_vroid", "AvatarSample_C", "HairSample_Male", "Sakurada_Fumiriya"]
 const FACE_DONORS_F := ["fem_vroid", "AvatarSample_A", "AvatarSample_B", "Sendagaya_Shibu", "Darkness_Shibu", "HairSample_Female"]
 ## saç stili -> [VRoid modeli, mesh adı] (saç kafaya sabitlenir, renk oyuncunun saç rengi)
 const HAIR_DONORS := {
-	"diken": ["Sakurada_Fumiriya", "Hair001"], "dağınık": ["HairSample_Male", "Hair001"], "kısa": ["AvatarSample_C", "Hair001"],
-	"kase": ["Sendagaya_Shibu", "Hair001"], "uzun": ["AvatarSample_B", "Hair001"], "atkuyruğu": ["HairSample_Female", "Hair001"],
-	"kisa_kakul": ["AvatarSample_A", "Hair001"], "kakul": ["Darkness_Shibu", "Hair001"], "geriye": ["AvatarSample_C", "Hair001"],
-	"ananas": ["Sakurada_Fumiriya", "Hair001"], "topuz": ["HairSample_Female", "Hair001"], "ikiz_topuz": ["HairSample_Female", "Hair001"],
-	"yele": ["HairSample_Male", "Hair001"], "orgu": ["AvatarSample_B", "Hair001"], "mohikan": ["Sakurada_Fumiriya", "Hair001"],
-	"kirpik": ["masc_vroid", "Body"], "kel": ["", ""],
+	"kısa": ["Sakurada_Fumiriya", "Hair001", ""], "diken": ["masc_vroid", "Body", "diken"], "dağınık": ["HairSample_Male", "Hair001", "dağınık"],
+	"kase": ["Sendagaya_Shibu", "Hair001", ""], "uzun": ["AvatarSample_B", "Hair001", ""], "atkuyruğu": ["fem_vroid", "Body", "atkuyruğu"],
+	"kisa_kakul": ["AvatarSample_A", "Hair001", ""], "kakul": ["Darkness_Shibu", "Hair001", "kakul"], "geriye": ["masc_vroid", "Body", "geriye"],
+	"ananas": ["masc_vroid", "Body", "ananas"], "topuz": ["fem_vroid", "Body", "topuz"], "ikiz_topuz": ["fem_vroid", "Body", "ikiz_topuz"],
+	"yele": ["AvatarSample_C", "Hair001", "yele"], "orgu": ["AvatarSample_A", "Hair001", "orgu"], "mohikan": ["masc_vroid", "Body", "mohikan"],
+	"kirpik": ["masc_vroid", "Body", "kirpik"], "kel": ["", "", ""],
 }
 const VROID_SKIN := Color(0.99, 0.89, 0.82)  # VRoid doku ten rengi (oyuncu teni bununla oranlanır)
 static var _scenes := {}
 static var _donor_cache := {}
 var face_mi: MeshInstance3D
+var head_fix := Transform3D.IDENTITY
 var eye_center_model := Vector3(0, 1.62, 0.08)
 
 
@@ -103,6 +106,82 @@ func _skin_ratio() -> Color:
 
 
 ## Bir VRoid modelinin bir mesh'ini kafa kemiği uzayına sabitleyip malzemeye göre birleştirir
+var skull_c := Vector3(0, 1.63, 0)
+var skull_r := Vector3(0.1, 0.105, 0.105)
+static var _skull_cache := {}
+var band_ring: Array = []   # alın yüksekliğinde kafa çevresi [açı -> yarıçap]
+
+
+## Kafa derisinden kafatası elipsoidi ve alın bandı halkası
+func _measure_skull(m: ArrayMesh, xf: Transform3D) -> void:
+	var pts = PackedVector3Array()
+	for si in m.get_surface_count():
+		var vv: PackedVector3Array = m.surface_get_arrays(si)[Mesh.ARRAY_VERTEX]
+		for q in vv:
+			pts.append(xf * q)
+	if pts.size() < 50:
+		return
+	var ey = eye_center_model.y
+	var top = -1e9; var back = 1e9; var front = -1e9; var half_w = 0.0
+	for q in pts:
+		top = maxf(top, q.y)
+		if q.y > ey - 0.02:
+			back = minf(back, q.z); front = maxf(front, q.z)
+			half_w = maxf(half_w, absf(q.x))
+	skull_c = Vector3(0, (top + ey) * 0.5 - 0.01, (back + front) * 0.5)
+	skull_r = Vector3(half_w * 0.98, (top - ey) * 0.5 + 0.04, (front - back) * 0.5)
+	# bant halkası: alın yüksekliğinde 24 yönde en dış deri
+	var by = ey + 0.052
+	var bins = 24
+	var rad = PackedFloat32Array()
+	rad.resize(bins)
+	for q in pts:
+		if absf(q.y - by) > 0.014:
+			continue
+		var d = Vector2(q.x - skull_c.x, q.z - skull_c.z)
+		var k = int(floor((atan2(d.y, d.x) + PI) / TAU * bins)) % bins
+		rad[k] = maxf(rad[k], d.length())
+	for it in 4:
+		for k in bins:
+			if rad[k] <= 0.0:
+				rad[k] = maxf(rad[(k + 1) % bins], rad[(k + bins - 1) % bins])
+	band_ring = [by, rad]
+
+
+## Alın bandı: kafayı saran ince şerit (önü hafif aşağı eğik) + alında metal plaka
+func _band_mesh(col: Color) -> Array:
+	var by: float = band_ring[0]
+	var rad: PackedFloat32Array = band_ring[1]
+	var bins = rad.size()
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var h = 0.034
+	var ring = []
+	for k in bins + 1:
+		var kk = k % bins
+		var a = (float(kk) + 0.5) / bins * TAU - PI
+		var dir = Vector3(cos(a), 0, sin(a))
+		var r = rad[kk] + 0.007
+		var tilt = -0.012 * maxf(0.0, dir.z)  # önde hafif aşağı
+		var p = Vector3(skull_c.x, by + tilt, skull_c.z) + dir * r
+		ring.append([p, dir])
+	for k in bins:
+		var A = ring[k]; var B = ring[k + 1]
+		var a0: Vector3 = A[0]; var b0: Vector3 = B[0]
+		var quad = [a0 - Vector3(0, h * 0.5, 0), b0 - Vector3(0, h * 0.5, 0), b0 + Vector3(0, h * 0.5, 0), a0 - Vector3(0, h * 0.5, 0), b0 + Vector3(0, h * 0.5, 0), a0 + Vector3(0, h * 0.5, 0)]
+		var ns = [A[1], B[1], B[1], A[1], B[1], A[1]]
+		for i in 6:
+			st.set_color(col)
+			st.set_normal(ns[i])
+			st.add_vertex(quad[i])
+	st.generate_tangents()
+	var mesh = st.commit()
+	# ön: +Z yönündeki yarıçap
+	var kf = int(floor((atan2(1.0, 0.0) + PI) / TAU * bins)) % bins
+	var fz = skull_c.z + rad[kf] + 0.011
+	return [mesh, Vector3(skull_c.x, by - 0.012, fz)]
+
+
 static func _donor_part(donor: String, mesh_name: String, mat_filter := "") -> Dictionary:
 	var key = "%s|%s|%s" % [donor, mesh_name, mat_filter]
 	if _donor_cache.has(key):
@@ -115,6 +194,7 @@ static func _donor_part(donor: String, mesh_name: String, mat_filter := "") -> D
 		inst.free()
 		_donor_cache[key] = out
 		return out
+	# bağışçının özgün kafa kemiği uzayı (bind): tüm VRoid modellerinde aynı çerçeve
 	var skin: Skin = mi.skin
 	var hb := Transform3D.IDENTITY
 	for i in skin.get_bind_count():
@@ -190,14 +270,29 @@ func _face_and_hair() -> void:
 		var h = hash(str(f)) if f != null else randi()
 		fi = absi(h) % donors.size()
 		look["face_id"] = fi
-	var fd = _donor_part(donors[fi % donors.size()], "Face")
+	var donor = donors[fi % donors.size()]
+	if not female and look.get("age", "adult") in ["child", "teen"]:
+		donor = ["HairSample_Male", "Sakurada_Fumiriya"][fi % 2]
+	var fd = _donor_part(donor, "Face")
 	var head_bi = skel.find_bone("Head")
 	var head_rest = _grest(head_bi)
+	# bağışçı kafa-yerel -> bizim gövdenin özgün kafa konumu (gövde bağları düzeltilmiş dinlenmeye göre)
+	var r180 = Transform3D(Basis(Vector3(-1, 0, 0), Vector3(0, 1, 0), Vector3(0, 0, -1)), Vector3.ZERO)
+	var g0 = Transform3D.IDENTITY
+	var bskin: Skin = body_mesh.skin if body_mesh else null
+	if bskin:
+		for i in bskin.get_bind_count():
+			if String(bskin.get_bind_name(i)) == "Head":
+				g0 = bskin.get_bind_pose(i).affine_inverse()
+				break
+	head_fix = head_rest.affine_inverse() * r180 * g0
+	var place = head_rest * head_fix
 	if not fd.is_empty():
 		var holder = _attach("Head", head_rest).get_child(0)
 		face_mi = MeshInstance3D.new()
 		face_mi.name = "VFace"
 		face_mi.mesh = fd["mesh"]
+		face_mi.transform = head_fix
 		holder.add_child(face_mi)
 		eyes_mesh = face_mi
 		var ratio = _skin_ratio()
@@ -229,12 +324,30 @@ func _face_and_hair() -> void:
 				face_mi.set_surface_override_material(si, cm)
 		var ir: AABB = fd["iris"]
 		var ic = ir.get_center() if ir.size != Vector3.ZERO else fd["aabb"].get_center()
-		eye_center_model = head_rest * ic
+		eye_center_model = place * ic
 		var fa: AABB = fd["aabb"]
-		head_ab = AABB(head_rest * fa.position, Vector3.ZERO).expand(head_rest * fa.end)
+		head_ab = AABB(place * fa.position, Vector3.ZERO).expand(place * fa.end)
 		head_ab = head_ab.abs()
-	# saç
+		var sk_key = "%s|%s|%s" % [look["gender"], donor, look.get("age", "adult")]
+		if _skull_cache.has(sk_key):
+			var sc = _skull_cache[sk_key]
+			skull_c = sc[0]; skull_r = sc[1]; band_ring = sc[2]
+		else:
+			_measure_skull(fd["mesh"], place)
+			_skull_cache[sk_key] = [skull_c, skull_r, band_ring]
+	# saç: VRoid saç mesh'i + gerekirse prosedürel tutam eklentisi (diken, topuz, at kuyruğu...)
 	var hd: Array = HAIR_DONORS.get(look.get("hair_style", "diken"), HAIR_DONORS["diken"])
+	if hd.size() > 2 and hd[2] != "" and head_ab.size.x > 0.05:
+		var hk = "vroid|%s" % hd[2]
+		if not _hair_cache.has(hk):
+			_hair_cache[hk] = _hair_clumps(hd[2], skull_c, skull_r)
+		var cm = ShaderMaterial.new()
+		cm.shader = load("res://shaders/toon.gdshader")
+		cm.set_shader_parameter("tint", look["hair"])
+		cm.set_shader_parameter("rim_amount", 0.45)
+		materials.append(cm)
+		var cl = _mesh_on("Head", _hair_cache[hk], Transform3D.IDENTITY)
+		cl.material_override = cm
 	if hd[0] != "":
 		var hp = _donor_part(hd[0], hd[1], "HAIR")
 		if not hp.is_empty():
@@ -242,6 +355,7 @@ func _face_and_hair() -> void:
 			var hair_mi = MeshInstance3D.new()
 			hair_mi.name = "VHair"
 			hair_mi.mesh = hp["mesh"]
+			hair_mi.transform = head_fix
 			holder2.add_child(hair_mi)
 			for si in hp["mats"].size():
 				var mat: Material = hp["mats"][si]
@@ -322,6 +436,14 @@ func _add_libs() -> void:
 			var nm = full.substr(2)
 			if lib.has_animation(nm):
 				lib.get_animation(nm).loop_mode = Animation.LOOP_LINEAR
+		for k2 in _libs:
+			var lib2: AnimationLibrary = _libs[k2]
+			for an in lib2.get_animation_list():
+				var A: Animation = lib2.get_animation(an)
+				for ti in range(A.get_track_count() - 1, -1, -1):
+					var tp = String(A.track_get_path(ti))
+					if tp.ends_with(":LeftToes") or tp.ends_with(":RightToes"):
+						A.remove_track(ti)
 	for k in _libs:
 		anim.add_animation_library(k, _libs[k])
 
@@ -341,7 +463,8 @@ func play(key: String, blend := 0.15, speed := 1.0, restart := false) -> void:
 		anim.seek(0.0, true)
 
 
-const AGES := {"child": [0.76, 1.1, 0.86, 0.8], "teen": [0.84, 1.05, 0.92, 0.88], "young": [0.92, 1.02, 0.97, 0.95], "adult": [1.0, 1.0, 1.0, 1.0]}
+## [boy, kafa, göğüs genişliği, uzuv kalınlığı, bacak boyu]
+const AGES := {"child": [0.78, 1.2, 0.84, 0.82, 1.0], "teen": [0.87, 1.09, 0.91, 0.9, 1.0], "young": [0.94, 1.03, 0.97, 0.96, 1.0], "adult": [1.0, 1.0, 1.0, 1.0, 1.0]}
 var age_scale = 1.0
 
 
@@ -353,6 +476,10 @@ func apply_age(age: String) -> void:
 	overlay.head_scale = a[1]
 	overlay.chest_scale = a[2]
 	overlay.limb_scale = a[3]
+	overlay.leg_len = a[4]
+	overlay.toe_pitch = TOE_PITCH
+	overlay.foot_pitch = FOOT_PITCH_F if look["gender"] == "f" else 0.0
+
 
 
 func anim_length(key: String) -> float:
@@ -419,9 +546,16 @@ func _geo_for(gender: String) -> Dictionary:
 		for i in range(0, tg.size(), 4):
 			tg[i] = -tg[i]; tg[i + 2] = -tg[i + 2]
 		arr[Mesh.ARRAY_TANGENT] = tg
+	# bağ pozları düzeltilmiş dinlenme pozundan (içe aktarıcının rest fixer'ı ayak/göğüs/boyun dinlenmesini döndürüyor;
+	# eski bağlarla ayaklar yukarı kalkık, göğüs eğik deforme oluyordu)
 	var skin2: Skin = skin.duplicate()
 	for i in skin2.get_bind_count():
-		skin2.set_bind_pose(i, skin2.get_bind_pose(i) * r180)
+		var nm = String(skin2.get_bind_name(i))
+		var bi = skel.find_bone(nm) if nm != "" else skin2.get_bind_bone(i)
+		if bi >= 0:
+			skin2.set_bind_pose(i, skel.get_bone_global_rest(bi).affine_inverse())
+		else:
+			skin2.set_bind_pose(i, skin2.get_bind_pose(i) * r180)
 	# bölge eşikleri bu gövdeye göre
 	_rc_wrist = absf(_grest(skel.find_bone("LeftHand")).origin.x) - 0.06
 	_rc_hip = _grest(skel.find_bone("Hips")).origin.y + 0.01
@@ -1167,6 +1301,19 @@ func _garments(g: Dictionary) -> void:
 				func(_t, ang): return 0.03 if absf(wrapf(ang - PI * 0.5, -PI, PI)) < 1.3 else 0.02, 9, null, -99.0, 16))
 
 
+## Hayran modeli aksesuar: SFProps.ACCESSORIES[id] kemiğe, ref noktasına göre "off" ofsetle takılır
+func _sf_acc(id: String, ref: Vector3) -> bool:
+	if id == "" or not SFProps.has_accessory(id):
+		return false
+	var d: Dictionary = SFProps.ACCESSORIES[id]
+	var n = SFProps.accessory_node(id)
+	if n == null:
+		return false
+	var a = _attach(String(d["bone"]), Transform3D(Basis.IDENTITY, ref + Vector3(d.get("off", Vector3.ZERO))))
+	a.get_child(0).add_child(n)
+	return true
+
+
 ## Sert (kemiğe sabit) aksesuarlar: şapka, maske detayları, sırt eşyaları, yelek kayışları, eldiven plakaları, kemer
 func _accessories() -> void:
 	var hc = _head_center()
@@ -1182,7 +1329,11 @@ func _accessories() -> void:
 	var steel = Color(0.62, 0.65, 0.7)
 	var dark = Color(0.12, 0.12, 0.14)
 	var hg: Color = look.get("headgear", Color(0.5, 0.4, 0.3)) if look.get("headgear") != null else Color(0.5, 0.4, 0.3)
-	match look.get("head_style"):
+	# hayran modelleri (varsa): şapka / maske / sırt eşyası; yoksa aşağıdaki prosedürel modeller
+	var sf_head = _sf_acc(SFProps.HEAD_MAP.get(look.get("head_style"), ""), hc)
+	var sf_face = _sf_acc(SFProps.FACE_MAP.get(look.get("face_style"), ""), hc)
+	var sf_back = _sf_acc(SFProps.BACK_MAP.get(look.get("back_item"), ""), ch)
+	match (null if sf_head else look.get("head_style")):
 		"kasa":
 			var m = MB.new()
 			m.add("cone", Vector3(0, 0.0, 0), Vector3(hw * 3.2, 0.17, hw * 3.2), hg, Vector3.ZERO, 18)
@@ -1201,7 +1352,7 @@ func _accessories() -> void:
 			m.add("box", Vector3(0.03, -0.04, -hd * 0.55), Vector3(0.03, 0.09, 0.006), hg, Vector3(-15, 0, 12))
 			_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, Vector3(hcen.x, hc.y + 0.02, hcen.z)))
 	var fg: Color = look.get("facegear", Color.WHITE) if look.get("facegear") != null else Color.WHITE
-	var fs = look.get("face_style")
+	var fs = null if sf_face else look.get("face_style")
 	if fs != null and String(fs).begins_with("anbu"):
 		var m = MB.new()
 		var red = Color(0.75, 0.1, 0.12)
@@ -1244,7 +1395,7 @@ func _accessories() -> void:
 		_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, Vector3(hcen.x, gy, hcen.z)))
 	# --- sırt / bel
 	var bc: Color = look.get("backc", Color(0.4, 0.33, 0.22)) if look.get("backc") != null else Color(0.4, 0.33, 0.22)
-	match look.get("back_item"):
+	match (null if sf_back else look.get("back_item")):
 		"parsomen":
 			var m = MB.new()
 			m.add("cyl", Vector3.ZERO, Vector3(0.13, 0.62, 0.13), bc, Vector3(0, 0, 90), 12)
@@ -1539,6 +1690,16 @@ static func _hair_clumps(style: String, c: Vector3, r: Vector3) -> ArrayMesh:
 			for i in 10:
 				var a = at.call(rng.randf_range(-40, 40), rng.randf_range(20, 45))
 				_clump(st, a[0], Vector3(0, 0.15, -1).normalized(), Vector3(0, -0.3, 0), 0.16, 0.08, 0.25)
+		"topuz":  # tepe arkasında tek topuz
+			var bun = c + Vector3(0, r.y * 0.75, -r.z * 0.55)
+			for i in 14:
+				var ang = TAU * i / 14.0
+				var d = Vector3(cos(ang), sin(ang) * 0.7 + 0.25, sin(ang) * 0.7).normalized()
+				_clump(st, bun - d * 0.035, d.cross(Vector3.UP).normalized(), Vector3.ZERO, 0.1, 0.075, 0.6)
+			for i in 10:
+				var a = at.call(rng.randf_range(-150, 150), rng.randf_range(20, 90))
+				var to = bun - a[0]
+				_clump(st, a[0], to.normalized(), Vector3.ZERO, to.length(), 0.06, 0.3)
 		"orgu":  # ense arkasından inen tek örgü
 			var top = c + Vector3(0, -r.y * 0.2, -r.z * 0.95)
 			for k in 7:
@@ -1587,29 +1748,29 @@ func _attachments() -> void:
 			band.add("torus", Vector3.ZERO, Vector3(0.24, 0.24, 0.24), bc, Vector3.ZERO, 16)
 			_mesh_on("Neck", band.build(Props.toon()), Transform3D(Basis.IDENTITY, _grest(skel.find_bone("Neck")).origin + Vector3(0, 0.03, 0)))
 		else:
-			# kafaya oturan ince bez bant + metal plaka (saç tabanının ölçüsünden)
-			var bw = 0.19; var bd = 0.21
-			var bcen = hc + Vector3(0, 0.025, 0)
-			if head_ab.size.x > 0.05:
-				bw = head_ab.size.x * 1.17
-				bd = head_ab.size.z * 1.1
-				bcen.x = head_ab.get_center().x
-				bcen.z = head_ab.get_center().z - 0.004
-			var front = bd * 0.5 - (bcen.z - hc.z)
-			band.add("cyl", Vector3(0, 0, bcen.z - hc.z), Vector3(bw, 0.032, bd), bc, Vector3.ZERO, 22)
-			band.add("box", Vector3(0, 0, front + 0.002), Vector3(0.072, 0.03, 0.006), Color(0.8, 0.82, 0.86))
-			band.add("box", Vector3(-0.01, -0.035, -bd * 0.5 + (bcen.z - hc.z) - 0.005), Vector3(0.018, 0.075, 0.005), bc, Vector3(-20, 0, 8))
-			band.add("box", Vector3(0.01, -0.035, -bd * 0.5 + (bcen.z - hc.z) - 0.005), Vector3(0.018, 0.075, 0.005), bc, Vector3(-20, 0, -10))
-			_mesh_on("Head", band.build(Props.toon()), Transform3D(Basis.IDENTITY, Vector3(bcen.x, bcen.y, hc.z)))
-			hc.z = hc.z + front - 0.111 + 0.0025
-			var q = QuadMesh.new()
-			q.size = Vector2(0.066, 0.026)
-			var sm = StandardMaterial3D.new()
-			sm.albedo_texture = symbol_texture(look["village"], look["band_style"] == "slashed")
-			sm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
-			sm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-			q.material = sm
-			_mesh_on("Head", q, Transform3D(Basis.IDENTITY, hc + Vector3(0, 0.025, 0.117)))
+			if band_ring.is_empty():
+				band.add("cyl", Vector3.ZERO, Vector3(0.2, 0.034, 0.21), bc, Vector3.ZERO, 22)
+				_mesh_on("Head", band.build(Props.toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0, 0.025, 0)))
+			else:
+				var bm = _band_mesh(bc)
+				var bmi = _mesh_on("Head", bm[0], Transform3D.IDENTITY)
+				bmi.material_override = Props.toon()
+				var plate: Vector3 = bm[1]
+				var pl = MB.new()
+				pl.add("box", plate, Vector3(0.07, 0.03, 0.006), Color(0.8, 0.82, 0.86))
+				# arkada sarkan bağ uçları
+				var bz = skull_c.z - (plate.z - skull_c.z) - 0.005
+				pl.add("box", Vector3(-0.01, plate.y - 0.03, bz), Vector3(0.016, 0.07, 0.005), bc, Vector3(20, 0, 8))
+				pl.add("box", Vector3(0.01, plate.y - 0.03, bz), Vector3(0.016, 0.07, 0.005), bc, Vector3(20, 0, -10))
+				_mesh_on("Head", pl.build(Props.toon()), Transform3D.IDENTITY)
+				var q = QuadMesh.new()
+				q.size = Vector2(0.058, 0.023)
+				var sm = StandardMaterial3D.new()
+				sm.albedo_texture = symbol_texture(look["village"], look["band_style"] == "slashed")
+				sm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+				sm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+				q.material = sm
+				_mesh_on("Head", q, Transform3D(Basis.IDENTITY, plate + Vector3(0, 0, 0.0035)))
 	# --- yelek: kumaş katmanına boyanır; üstüne sadece yaka + parşömen cepleri
 	if look["vest"] != null:
 		var v = MB.new()
@@ -1630,7 +1791,12 @@ func _attachments() -> void:
 			continue
 		var hp = _grest(hb).origin
 		var sx = 1.0 if pair[1] == "Left" else -1.0
-		_mesh_on(pair[1] + "Hand", weapon_mesh(String(wid)), Transform3D(Basis.IDENTITY, hp + Vector3(0.075 * sx, -0.015, 0.01)))
+		var wxf = Transform3D(Basis.IDENTITY, hp + Vector3(0.075 * sx, -0.015, 0.01))
+		var wn = SFProps.weapon_node(String(wid))  # hayran modeli varsa (yoksa prosedürel)
+		if wn:
+			_attach(pair[1] + "Hand", wxf).get_child(0).add_child(wn)
+		else:
+			_mesh_on(pair[1] + "Hand", weapon_mesh(String(wid)), wxf)
 	# --- çanta + kunai kılıfı
 	var hip = _grest(skel.find_bone("Hips")).origin
 	var pouch = MB.new()

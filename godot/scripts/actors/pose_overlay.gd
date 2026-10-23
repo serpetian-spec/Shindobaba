@@ -10,6 +10,9 @@ var poses = {}
 var head_scale = 1.0   # çocuk/genç oranları: büyük kafa
 var chest_scale = 1.0
 var limb_scale = 1.0    # çocuk: ince kol ve bacaklar
+var leg_len = 1.0       # çocuk: kısa bacaklar (model yere indirilir)
+var foot_pitch = 0.0    # VRoid kadın ayağı (topuklu ayakkabı kalıbı): ayağı düzle (derece)
+var toe_pitch = 0.0     # VRoid: içe aktarıcı ayak parmağı kemiğini yükseltiyor; parmakları yere indirir (derece)
 ## Jutsu atma koreografisi (CastAnim her kare doldurur):
 ## {"arms": [[kemik, model-uzayı yön], ...] (ebeveynden çocuğa sırayla), "fL"/"fR": [işaret, orta, yüzük, serçe, başparmak] kıvrım (rad),
 ##  "spine": derece, "neck": derece, "hips_yaw": derece}
@@ -110,11 +113,21 @@ func _process_modification() -> void:
 		var hb = sk.find_bone("Head")
 		if hb >= 0:
 			sk.set_bone_pose_scale(hb, Vector3.ONE * head_scale / chest_scale)
-	if limb_scale != 1.0:
+	if foot_pitch != 0.0:
+		for b in ["LeftFoot", "RightFoot"]:
+			var fi = sk.find_bone(b)
+			if fi >= 0:
+				sk.set_bone_pose_rotation(fi, sk.get_bone_pose_rotation(fi) * Quaternion(Vector3.RIGHT, deg_to_rad(foot_pitch)))
+	if toe_pitch != 0.0:
+		for b in ["LeftToes", "RightToes"]:
+			var ti = sk.find_bone(b)
+			if ti >= 0:
+				sk.set_bone_pose_rotation(ti, sk.get_bone_rest(ti).basis.get_rotation_quaternion() * Quaternion(Vector3.RIGHT, deg_to_rad(toe_pitch)))
+	if limb_scale != 1.0 or leg_len != 1.0:
 		for b in ["LeftUpperArm", "RightUpperArm", "LeftUpperLeg", "RightUpperLeg"]:
 			var li = sk.find_bone(b)
 			if li >= 0:
-				sk.set_bone_pose_scale(li, Vector3(limb_scale, 1.0, limb_scale))
+				sk.set_bone_pose_scale(li, Vector3(limb_scale, leg_len if b.ends_with("Leg") else 1.0, limb_scale))
 	if chest_scale != 1.0:
 		var cb = sk.find_bone("UpperChest")
 		if cb >= 0:
