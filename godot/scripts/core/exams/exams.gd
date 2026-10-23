@@ -70,7 +70,7 @@ func find_point(kinds: Array, vid := "") -> Vector3:
 	var best = null
 	var bd = 1e12
 	for it in Interact.items:
-		if not String(it.get("kind", "")) in kinds or it.get("interior", false):
+		if not (String(it.get("kind", "")) in kinds or String(it.get("alias", "")) in kinds) or it.get("interior", false):
 			continue
 		var d = Game.to_map(it["pos"]).distance_to(c)
 		if d < bd and d < float(v.get("r", 300)) * 1.6:

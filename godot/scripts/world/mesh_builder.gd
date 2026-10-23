@@ -160,6 +160,48 @@ func add_grad(kind: String, pos: Vector3, size: Vector3, top: Color, bottom: Col
 		idx.append(base + i)
 
 
+## Ağaç kökü: gövdeden çıkıp yana kıvrılarak (hafif sarmal) yere yatan, toprağa gömülerek sivrilen yassı tüp.
+## base: gövde merkezi (yer seviyesi), dir: dışa yön, trunk_r: gövde yarıçapı, L: yatay uzunluk, r0: kök kalınlığı
+func add_root(base: Vector3, dir: Vector3, trunk_r: float, L: float, r0: float, col: Color, curl := 0.3, h0 := -1.0, rings := 9, sides := 7) -> void:
+	dir = Vector3(dir.x, 0, dir.z).normalized()
+	var side_v := dir.cross(Vector3.UP).normalized()
+	if h0 < 0.0:
+		h0 = r0 * 2.6
+	var pts := PackedVector3Array()
+	var rad := PackedFloat32Array()
+	for i in rings + 1:
+		var t := float(i) / rings
+		var r := r0 * (pow(1.0 - t, 0.9) * 0.85 + 0.15)
+		# gövdede yüksekten başlar, hızla yere iner, sonra toprağa yapışık sürünür; uçta toprağa dalar
+		var y := h0 * pow(1.0 - t, 2.4) + r * 0.3 - smoothstep(0.7, 1.0, t) * r * 1.2
+		var out := trunk_r * (0.35 + 0.65 * smoothstep(0.0, 0.35, t)) + L * t
+		var sway := sin(t * PI * 1.3) * L * curl * 0.35   # yana kıvrılma (sarmal his)
+		pts.append(base + dir * out + side_v * sway + Vector3.UP * y)
+		rad.append(r)
+	var base_i := verts.size()
+	for i in pts.size():
+		var tng: Vector3 = (pts[mini(i + 1, pts.size() - 1)] - pts[maxi(i - 1, 0)]).normalized()
+		var sd := tng.cross(Vector3.UP).normalized()
+		if sd.length() < 0.1:
+			sd = side_v
+		var up := sd.cross(tng).normalized()
+		var t := float(i) / rings
+		var c := col.darkened(0.12 * t)
+		for k in sides + 1:
+			var a := TAU * k / sides
+			# köküler yassı: dikey yarıçap daha kısa, alt yüz yere oturur
+			var nrm := (sd * cos(a) + up * sin(a)).normalized()
+			verts.append(pts[i] + sd * cos(a) * rad[i] * (1.0 + 0.25 * t) + up * sin(a) * rad[i] * lerpf(1.0, 0.55, t))
+			normals.append(nrm)
+			colors.append(c)
+			uvs.append(Vector2(float(k) / sides, t))
+	for i in pts.size() - 1:
+		for k in sides:
+			var a0 := base_i + i * (sides + 1) + k
+			var b0 := a0 + sides + 1
+			idx.append_array([a0, b0, a0 + 1, a0 + 1, b0, b0 + 1])
+
+
 func add_xf(kind: String, xf: Transform3D, col: Color, seg := 8) -> void:
 	add_arrays(_prim_arrays(kind, seg), xf, col)
 

@@ -49,6 +49,7 @@ var display := "Köylü"
 var interior := false
 var display_override := ""
 var lines_override: Array = []
+var look_extra := {}         # rol görünümünün üstüne yazılır (Kage cüppesi, ANBU maskesi...)
 var eat_mode := false
 var floor_sit := false
 var wander_r := 0.0
@@ -132,6 +133,7 @@ func _ready() -> void:
 			lk["beard"] = lk["age"] == "adult" and randf() < 0.3
 	if display_override != "":
 		display = display_override
+	lk.merge(look_extra, true)
 	look = lk
 	super._ready()
 	remove_from_group("fighters")

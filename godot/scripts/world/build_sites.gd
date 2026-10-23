@@ -246,7 +246,18 @@ static func suna(parent: Node3D, v: Dictionary) -> void:
 	b.disc(Vector3(0, 30, -55.6), 22, 0.6, Color(0.95, 0.92, 0.85), 0, 24)
 	b.kanji(Vector3(0, 30, -56.3), "風", 18.0, Color(0.12, 0.35, 0.18), 0)
 	b.box(Vector3(0, 3.5, -58), Vector3(12, 7, 6), VillageStyles.DARK, 0, false)
-	b.interact(Vector3(0, 0, -64), 8, "mission_board", "[F] Kazekage Ofisi (görevler)")
+	# giriş revakı: kubbeli kemer, iki sütun, yeşil perde
+	for sx in [-1.0, 1.0]:
+		b.cyl(Vector3(sx * 8.0, 10.0, -62.0), 2.4, 12.0, sand.lightened(0.06), true, 12)
+		b.cyl(Vector3(sx * 8.0, 16.4, -62.0), 3.0, 0.8, sand.darkened(0.15), false, 12)
+	b.box(Vector3(0, 17.6, -60.0), Vector3(20.0, 2.0, 6.0), sand.darkened(0.06), 0, false)
+	b.dome(Vector3(0, 18.6, -60.0), 12.0, 4.0, sand.lightened(0.1), 20)
+	b.box(Vector3(0, 9.0, -58.6), Vector3(9.0, 9.0, 0.3), Color(0.16, 0.45, 0.38), 0, false)
+	b.kanji(Vector3(0, 10.5, -58.9), "風影", 2.4, Color(0.98, 0.95, 0.88), 0)
+	KageHall.door(b, 0, -62.0, 4.0, "suna", "[F] Gir: Kazekage Ofisi (Kazekage ile görüş, görevler)", 6.0)
+	KageHall.plaza(b, {"vid": "suna", "front": -70.0, "hw": 34.0, "depth": 48.0, "climate": "desert", "stone": Color(0.86, 0.74, 0.56),
+		"trim": Color(0.66, 0.52, 0.36), "acc": Color(0.16, 0.45, 0.38), "gate": Color(0.62, 0.48, 0.32), "kanji": "風",
+		"terrace_h": 4.0, "terrace_w": 24.0, "terrace_d": 0.6})
 	await _yield()
 	# kubbeli kuleler halkası + aralarında yüksek geçitler
 	var towers = []
@@ -274,6 +285,8 @@ static func suna(parent: Node3D, v: Dictionary) -> void:
 	# pazar: tenteli tezgâhlar meydan çevresinde
 	for k in 16:
 		var a = 360.0 * k / 16.0
+		if absf(a - 180.0) < 40.0:
+			continue  # Kazekage meydanı
 		var o = Builder.rot(0, 95, a)
 		var aw = [Color(0.75, 0.25, 0.2), Color(0.25, 0.45, 0.6), Color(0.85, 0.65, 0.25), Color(0.55, 0.35, 0.55)][k % 4]
 		b.box(Vector3(o.x, 0.6, o.y), Vector3(5, 1.2, 2.4), Color(0.55, 0.4, 0.26), a)
@@ -381,7 +394,15 @@ static func kiri(parent: Node3D, v: Dictionary) -> void:
 	b.dome(Vector3(0, 61, 0), 66, 22, Color(0.26, 0.42, 0.58), 32)
 	b.disc(Vector3(0, 38, -32.4), 16, 0.6, Color(0.92, 0.94, 0.96), 0, 24)
 	b.kanji(Vector3(0, 38, -32.9), "水", 13.0, Color(0.15, 0.32, 0.55), 0)
-	b.interact(Vector3(0, 0, -38), 7, "mission_board", "[F] Mizukage Ofisi (görevler)")
+	# giriş: mavi saçaklı revak + kapı
+	for sx in [-1.0, 1.0]:
+		b.cyl(Vector3(sx * 5.0, 3.6, -36.0), 1.0, 7.2, Color(0.6, 0.66, 0.7), true, 10)
+	b.roof(Vector3(0, 7.2, -35.0), Vector3(14.0, 2.4, 7.0), Color(0.24, 0.38, 0.55))
+	b.box(Vector3(0, 3.2, -32.2), Vector3(6.0, 6.0, 0.4), Color(0.2, 0.22, 0.26), 0, false)
+	b.kanji(Vector3(0, 10.2, -38.6), "水影", 1.4, Color(0.95, 0.97, 1.0), 0)
+	KageHall.door(b, 0, -36.0, 0.6, "kiri", "[F] Gir: Mizukage Ofisi (Mizukage ile görüş, görevler)", 6.0)
+	KageHall.plaza(b, {"vid": "kiri", "front": -39.0, "hw": 36.0, "depth": 34.0, "climate": "mist", "stone": Color(0.68, 0.72, 0.74),
+		"trim": Color(0.46, 0.5, 0.54), "acc": Color(0.18, 0.38, 0.72), "gate": Color(0.3, 0.36, 0.42), "kanji": "水", "terrace_h": 0.6, "terrace_w": 20.0, "terrace_d": 3.0})
 	await _yield()
 	# yüksek boru kuleleri
 	for k in 16:
@@ -400,7 +421,7 @@ static func kiri(parent: Node3D, v: Dictionary) -> void:
 		var bo = Builder.rot(0, r * 0.3, a)
 		b.box(Vector3(bo.x, 0.8, bo.y), Vector3(10, 0.5, 4), VillageStyles.WOOD, a + 90.0)
 	VillageStyles.mist(b, 90, 0, r * 0.95, 3, 28, 40, rng, 0.3)
-	await _fill(b, r * 0.85, 60, 26, "kiri", rng, [[0, r * 0.55, r * 0.4]], 560)
+	await _fill(b, r * 0.85, 60, 26, "kiri", rng, [[0, r * 0.55, r * 0.4], [0, -62, 34]], 560)
 	await _streets(b, v, "kiri", rng)
 	b.finish()
 
@@ -488,7 +509,15 @@ static func kumo(parent: Node3D, v: Dictionary) -> void:
 	b.dome(Vector3(0, 296, 0), 34, 14, Color(0.22, 0.45, 0.72), 24)
 	b.disc(Vector3(0, 279, -20.5), 13, 0.5, Color(0.95, 0.95, 0.95), 0, 20)
 	b.kanji(Vector3(0, 279, -20.9), "雷", 10.0, Color(0.15, 0.3, 0.6), 0)
-	b.interact(Vector3(0, 0, -64), 7, "mission_board", "[F] Raikage Ofisi (görevler) — sarmal merdivenden ya da duvardan koşarak çık!")
+	# kaya dibinde oyma giriş: beyaz revak, mavi saçak, sarı perde
+	b.box(Vector3(0, 6.0, -58.0), Vector3(16.0, 12.0, 8.0), Color(0.9, 0.9, 0.88))
+	b.box(Vector3(0, 12.4, -58.5), Vector3(18.0, 0.8, 9.0), Color(0.22, 0.45, 0.72), 0, false)
+	b.box(Vector3(0, 4.0, -62.1), Vector3(7.0, 8.0, 0.3), Color(0.15, 0.15, 0.18), 0, false)
+	b.box(Vector3(0, 7.2, -62.3), Vector3(7.4, 1.4, 0.1), Color(0.92, 0.74, 0.14), 0, false)
+	b.kanji(Vector3(0, 9.9, -62.4), "雷影", 1.7, Color(0.2, 0.4, 0.66), 0)
+	KageHall.door(b, 0, -64.0, 0.0, "kumo", "[F] Gir: Raikage Ofisi (Raikage ile görüş, görevler)", 6.0)
+	KageHall.plaza(b, {"vid": "kumo", "front": -62.4, "hw": 34.0, "depth": 30.0, "climate": "cloud", "stone": Color(0.82, 0.82, 0.8),
+		"trim": Color(0.55, 0.56, 0.6), "acc": Color(0.2, 0.42, 0.7), "gate": Color(0.92, 0.92, 0.9), "kanji": "雷", "terrace_h": 0.0})
 	# bulutlar sütunlar arasında
 	VillageStyles.mist(b, 70, 40, r * 0.9, 60, 200, 70, rng, 0.42)
 	if not _fx_done.has("kumo_falls"):
@@ -496,7 +525,7 @@ static func kumo(parent: Node3D, v: Dictionary) -> void:
 		for k in 2:
 			var p: Array = pillars[k * 7]
 			Waterfalls.add(b.w(Vector3(p[0], 0, p[1] - p[2] * 0.45)), p[3] * 0.7, 14.0, 0.0)
-	await _fill(b, r * 0.85, 80, 34, "kumo", rng, [], 380)
+	await _fill(b, r * 0.85, 80, 34, "kumo", rng, [[0, -80, 34]], 380)
 	await _streets(b, v, "kumo", rng)
 	b.finish()
 
@@ -571,8 +600,18 @@ static func iwa(parent: Node3D, v: Dictionary) -> void:
 	b.disc(Vector3(0, 70, -60.5), 18, 0.6, Color(0.88, 0.82, 0.72), 0, 20)
 	b.kanji(Vector3(0, 70, -61.1), "土", 14.0, Color(0.42, 0.18, 0.12), 0)
 	b.box(Vector3(0, 4, -64), Vector3(14, 8, 6), VillageStyles.DARK, 0, false)
-	b.interact(Vector3(0, 0, -70), 7, "mission_board", "[F] Tsuchikage Ofisi (görevler)")
-	await _fill(b, r * 0.85, 110, 30, "iwa", rng, [], 520)
+	# taş kapı: kalın sütunlar, kırmızı katlı saçak, kanji
+	for sx in [-1.0, 1.0]:
+		b.box(Vector3(sx * 9.0, 6.0, -68.0), Vector3(3.6, 12.0, 3.6), stone.darkened(0.12))
+		b.box(Vector3(sx * 9.0, 12.4, -68.0), Vector3(4.4, 0.8, 4.4), stone.darkened(0.25), 0, false)
+	b.box(Vector3(0, 13.4, -68.0), Vector3(24.0, 2.0, 5.0), stone.darkened(0.18), 0, false)
+	b.roof(Vector3(0, 14.4, -68.0), Vector3(27.0, 3.0, 7.0), red)
+	b.box(Vector3(0, 10.4, -70.6), Vector3(5.0, 2.2, 0.3), Color(0.9, 0.84, 0.72), 0, false)
+	b.kanji(Vector3(0, 10.4, -70.8), "土影", 1.7, Color(0.42, 0.18, 0.12), 0)
+	KageHall.door(b, 0, -68.0, 0.0, "iwa", "[F] Gir: Tsuchikage Ofisi (Tsuchikage ile görüş, görevler)", 6.0)
+	KageHall.plaza(b, {"vid": "iwa", "front": -71.0, "hw": 36.0, "depth": 32.0, "climate": "rock", "stone": Color(0.62, 0.52, 0.42),
+		"trim": Color(0.44, 0.34, 0.26), "acc": Color(0.58, 0.24, 0.17), "gate": Color(0.5, 0.4, 0.32), "kanji": "土", "terrace_h": 0.0})
+	await _fill(b, r * 0.85, 110, 30, "iwa", rng, [[0, -96, 34]], 520)
 	await _streets(b, v, "iwa", rng)
 	b.finish()
 

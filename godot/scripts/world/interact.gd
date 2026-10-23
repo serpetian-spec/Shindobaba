@@ -25,7 +25,7 @@ const LANDMARKS := {
 	"pharmacy": ["Eczane", "E", Color(0.45, 0.95, 0.55)], "shop_items": ["Pazar / Eczane", "E", Color(0.45, 0.95, 0.55)],
 	"tailor": ["Terzi", "T", Color(0.95, 0.6, 0.85)], "bbq": ["Yakiniku", "Y", Color(1, 0.55, 0.3)], "ramen": ["Ramen", "R", Color(1, 0.75, 0.3)],
 	"teahouse": ["Çay Evi", "Ç", Color(0.95, 0.7, 0.75)], "inn": ["Han", "H", Color(0.55, 0.75, 1)], "inn_sleep": ["Han", "H", Color(0.55, 0.75, 1)],
-	"hospital": ["Hastane", "+", Color(1, 0.35, 0.35)], "hokage": ["Kage Kulesi / Görevler", "G", Color(1, 0.85, 0.2)],
+	"hospital": ["Hastane", "+", Color(1, 0.35, 0.35)], "hokage": ["Kage Kulesi / Görevler", "G", Color(1, 0.85, 0.2)], "kage": ["Kage Kulesi / Görevler", "G", Color(1, 0.85, 0.2)],
 	"mission_board": ["Görev Masası", "G", Color(1, 0.85, 0.2)], "bounty_board": ["Aranıyor Panosu", "A", Color(1, 0.4, 0.3)],
 	"academy": ["Akademi", "A", Color(0.6, 0.85, 1)], "training": ["Antrenman Alanı", "Ö", Color(0.7, 1, 0.6)],
 	"trainer": ["Hoca", "Ö", Color(0.7, 1, 0.6)], "home_player": ["Evin", "⌂", Color(1, 1, 1)], "contract_keeper": ["Sözleşme Ustası", "Ç", Color(0.8, 0.6, 1)],

@@ -79,14 +79,17 @@ func enter(it: Dictionary) -> void:
 	entry_yaw = Game.player.yaw
 	Sfx.play("step", Game.player.global_position, 0.8)
 	await _fade(1.0)
-	var v = Game.village("konoha")
-	origin = Game.from_map(Vector2(v["x"], v["y"])) + Vector3(0, ALT, 0)
+	# oda kapının tam üstünde kurulur (görev masası vb. hangi köyde olduğunu konumdan anlar)
+	var op: Vector3 = it.get("out", it["pos"])
+	origin = Vector3(op.x, Game.terrain_height(op.x, op.z) + ALT, op.z)
 	var kind: String = it.get("room", "home")
 	_build(kind, int(it.get("seed", 0)))
 	inside = kind
 	_teleport(origin + Vector3(0, 0.05, -2.4), 0.0)
 	_rain(false)
 	title_lbl.text = TITLES.get(kind, "İç Mekân")
+	if kind in ["hokage", "kage"]:
+		title_lbl.text = "%s Kulesi — Kage Ofisi" % Progress.kage_title(String(it.get("vid", "konoha")))
 	await _fade(0.0)
 	var tw = create_tween()
 	tw.tween_property(title_lbl, "modulate:a", 1.0, 0.3)
@@ -202,8 +205,11 @@ func _spawn_npc(req: Dictionary) -> void:
 		vg.display_override = req["display"]
 	vg.lines_override = req["lines"]
 	for k in req["extra"]:
-		vg.set(k, req["extra"][k])
+		if k != "kage_vid":
+			vg.set(k, req["extra"][k])
 	room.add_child(vg)
+	if req["extra"].has("kage_vid"):
+		KageAttire.hat(vg.model, req["extra"]["kage_vid"])
 	vg.global_position = req["pos"]
 	vg.home = req["pos"]
 	vg.facing = deg_to_rad(180.0 + float(req["face"]))
@@ -390,7 +396,7 @@ func _build(kind: String, seed: int) -> void:
 	glow_mb = MB.new()
 	match kind:
 		"academy": _academy()
-		"hokage": _hokage()
+		"hokage", "kage": _kage_office(String(door.get("vid", "konoha")))
 		"weapon_shop": _weapon_shop()
 		"pharmacy": _pharmacy()
 		"tailor": _tailor()
@@ -452,35 +458,172 @@ func _academy() -> void:
 	person("teacher", -4.2, D - 1.0, 0.0, "Yardımcı Hoca", ["Temel teknikleri öğrenmeden ileri gidemezsin.", "Kawarimi, Henge, Bunshin: üç temel!"], {"wander_r": 0.6})
 
 
-func _hokage() -> void:
-	var W = 11.0; var D = 11.0; var H = 4.0
-	shell(W, D, H, Color(0.95, 0.9, 0.78), Color(0.55, 0.38, 0.24))
-	# büyük pencere (köy manzarası hissi): arka duvar parlak panel + çerçeve
-	gl("box", 0, 2.1, D - 0.02, Vector3(6.5, 2.4, 0.04), Color(0.62, 0.82, 1.0))
-	for k in 5:
-		bx(-3.25 + k * 1.625, 2.1, D - 0.06, 0.08, 2.5, 0.06, Color(0.4, 0.27, 0.16))
-	bx(0, 0.88, D - 0.06, 6.7, 0.08, 0.1, Color(0.4, 0.27, 0.16))
-	# büyük masa + kâğıt yığınları + mühür
-	bx(0, 0.5, D - 3.0, 3.6, 1.0, 1.4, Color(0.42, 0.26, 0.14), true)
-	bx(0, 1.02, D - 3.0, 3.7, 0.05, 1.5, Color(0.55, 0.36, 0.2))
+## Köy temaları: [duvar, zemin, vurgu, kanji, gök (pencere), çatı silueti]
+const OFFICE := {
+	"konoha": [Color(0.95, 0.9, 0.78), Color(0.55, 0.38, 0.24), Color(0.72, 0.16, 0.13), "火", Color(0.55, 0.8, 1.0), Color(0.36, 0.5, 0.36)],
+	"suna": [Color(0.9, 0.8, 0.62), Color(0.66, 0.5, 0.34), Color(0.16, 0.45, 0.38), "風", Color(0.98, 0.84, 0.6), Color(0.72, 0.58, 0.42)],
+	"kiri": [Color(0.82, 0.86, 0.88), Color(0.36, 0.4, 0.44), Color(0.18, 0.38, 0.72), "水", Color(0.72, 0.82, 0.9), Color(0.42, 0.5, 0.56)],
+	"kumo": [Color(0.95, 0.95, 0.93), Color(0.48, 0.48, 0.52), Color(0.92, 0.74, 0.14), "雷", Color(0.62, 0.78, 0.98), Color(0.5, 0.52, 0.58)],
+	"iwa": [Color(0.72, 0.62, 0.5), Color(0.42, 0.32, 0.25), Color(0.58, 0.22, 0.15), "土", Color(0.95, 0.75, 0.55), Color(0.48, 0.38, 0.3)],
+}
+const KAGE_LINES := {
+	"konoha": ["Ateşin İradesi bu köyün her taşında yaşar.", "Bir ninjanın değeri, koruduğu insanlarla ölçülür.", "Kayadaki yüzlere bak... onlar da senin gibi başladı."],
+	"suna": ["Çöl acımasızdır; köyümüz onun içinde bir vaha.", "Rüzgâr yön değiştirir ama Suna eğilmez.", "Kum fırtınası çıkmadan görevini bitir."],
+	"kiri": ["Sis, gerçeği saklar ama yok etmez.", "Kanlı Sis günleri geride kaldı. Artık köyü birlikte kuruyoruz.", "Suyun sabrını öğren; taşı bile deler."],
+	"kumo": ["Bulutların üstünde güç, disiplinle kazanılır!", "Yıldırım tek seferde düşer — sen de öyle hareket et.", "Bu köyde zayıflığa yer yok, ama yoldaşa hep yer var."],
+	"iwa": ["Taş sabırlıdır; sen de sabırlı ol.", "Dağ rüzgârla eğilmez, Iwa da baskıyla.", "Sağlam temel, sağlam ninja."],
+}
+
+
+static func kage_name(vid: String) -> String:
+	return Kage.KAGE_NAMES.get(vid, Progress.kage_title(vid))
+
+
+## Kage ofisi: köy temalı geniş oda, büyük manzara penceresi, masa, eski Kage portreleri, ANBU muhafızlar, Kage'nin kendisi
+func _kage_office(vid: String) -> void:
+	var th: Array = OFFICE.get(vid, OFFICE["konoha"])
+	var wall: Color = th[0]
+	var floor_c: Color = th[1]
+	var acc: Color = th[2]
+	var kj: String = th[3]
+	var W = 18.0; var D = 15.0; var H = 5.4
+	var wood = Color(0.36, 0.23, 0.13)
+	var gold = Color(0.85, 0.68, 0.3)
+	shell(W, D, H, wall, floor_c)
+	# halı: kapıdan masaya köy renginde yol + altın kenar
+	bx(0, 0.025, 6.0, 2.8, 0.02, 9.6, acc.darkened(0.1))
+	for sx in [-1.0, 1.0]:
+		bx(sx * 1.32, 0.03, 6.0, 0.12, 0.02, 9.6, gold)
+	bx(0, 0.03, 6.0, 1.2, 0.025, 1.2, gold, false, Vector3(0, 45, 0))
+	# --- arka duvar: panoramik pencere (gökyüzü + köy silueti) + çerçeve
+	var sky: Color = th[4]
+	var ww = 12.0
+	gl("box", 0, 3.35, D - 0.03, Vector3(ww, 1.5, 0.04), sky.lightened(0.15))
+	gl("box", 0, 2.0, D - 0.03, Vector3(ww, 1.3, 0.04), sky)
+	var sil: Color = th[5]
+	var srng = RandomNumberGenerator.new()
+	srng.seed = hash(vid)
+	var x = -ww * 0.5 + 0.4
+	while x < ww * 0.5 - 0.4:
+		var bw = srng.randf_range(0.4, 1.0)
+		var bh = srng.randf_range(0.25, 0.9)
+		bx(x + bw * 0.5, 1.35 + bh * 0.5, D - 0.07, bw, bh, 0.02, sil.darkened(srng.randf_range(0.0, 0.2)))
+		if srng.randf() < 0.5:
+			bx(x + bw * 0.5, 1.35 + bh + 0.07, D - 0.075, bw + 0.15, 0.14, 0.02, sil.darkened(0.3))
+		x += bw + srng.randf_range(0.05, 0.3)
+	bx(0, 1.3, D - 0.08, ww, 0.1, 0.03, sil.darkened(0.35))
+	for k in 9:
+		bx(-ww * 0.5 + k * ww / 8.0, 2.7, D - 0.1, 0.14, 2.9, 0.1, wood)
+	for yy in [1.25, 2.7, 4.12]:
+		bx(0, yy, D - 0.1, ww + 0.14, 0.12, 0.1, wood)
+	bx(0, 1.0, D - 0.3, ww + 0.6, 0.12, 0.5, wood)  # pencere pervazı
+	# köy amblemi + iki yanda uzun sancak
+	cy(0, 4.75, D - 0.08, 1.1, 0.06, acc, 20, Vector3(90, 0, 0))
+	cy(0, 4.75, D - 0.06, 1.25, 0.04, gold, 20, Vector3(90, 0, 0))
+	_kj(kj, Vector3(0, 4.75, D - 0.13), 0.75, Color(0.98, 0.96, 0.9))
+	for sx in [-1.0, 1.0]:
+		bx(sx * 7.6, 2.7, D - 0.12, 1.3, 4.2, 0.04, acc)
+		bx(sx * 7.6, 4.85, D - 0.15, 1.5, 0.1, 0.1, gold)
+		bx(sx * 7.6, 0.55, D - 0.15, 1.5, 0.1, 0.1, gold)
+		bx(sx * 7.6, 2.7, D - 0.15, 0.9, 3.2, 0.01, acc.lightened(0.12))
+		_kj(kj, Vector3(sx * 7.6, 3.3, D - 0.17), 0.8, Color(0.98, 0.95, 0.88))
+		_kj("影", Vector3(sx * 7.6, 2.2, D - 0.17), 0.65, Color(0.98, 0.95, 0.88))
+	# --- masa: geniş, köy renginde ön panel; kâğıt yığınları, mühür, mürekkep, fırça, lamba
+	var dd = D - 3.6
+	bx(0, 0.52, dd, 4.4, 1.04, 1.6, wood, true)
+	bx(0, 1.07, dd, 4.6, 0.07, 1.75, wood.lightened(0.18))
+	bx(0, 0.55, dd - 0.81, 3.6, 0.7, 0.02, acc)
+	cy(0, 0.55, dd - 0.83, 0.5, 0.02, gold, 16, Vector3(90, 0, 0))
+	for k in 7:
+		var h = rng.randf_range(0.06, 0.22)
+		bx(-1.9 + k * 0.28 + rng.randf_range(-0.04, 0.04), 1.1 + h * 0.5, dd + rng.randf_range(-0.35, 0.3), 0.26, h, 0.34, Color(0.97, 0.95, 0.9).darkened(rng.randf_range(0.0, 0.08)))
+	cy(1.3, 1.16, dd - 0.2, 0.14, 0.14, Color(0.8, 0.14, 0.12))
+	bx(1.75, 1.12, dd - 0.1, 0.4, 0.04, 0.3, Color(0.12, 0.12, 0.14))
+	cy(1.95, 1.22, dd + 0.25, 0.1, 0.22, Color(0.3, 0.22, 0.15), 8)
+	for k in 3:
+		cy(1.92 + k * 0.03, 1.4, dd + 0.25, 0.015, 0.25, Color(0.2, 0.15, 0.1), 4)
+	cy(-1.9, 1.32, dd + 0.4, 0.06, 0.5, Color(0.2, 0.2, 0.2), 6)
+	gl("sphere", -1.9, 1.62, dd + 0.4, Vector3(0.3, 0.26, 0.3), Color(1.0, 0.9, 0.7))
+	lamp(-1.9, 1.7, dd + 0.2, Color(1.0, 0.86, 0.6), 0.8, 4.0)
+	# yüksek arkalıklı koltuk
+	bx(0, 0.5, D - 1.6, 1.1, 0.12, 0.9, acc.darkened(0.2))
+	bx(0, 1.35, D - 1.15, 1.1, 1.7, 0.14, acc.darkened(0.2))
+	bx(0, 2.25, D - 1.15, 1.25, 0.12, 0.2, gold)
+	for sx in [-1.0, 1.0]:
+		bx(sx * 0.6, 0.7, D - 1.6, 0.12, 0.5, 0.9, wood)
+	# --- sol duvar: eski Kage portreleri (çerçeve, renkli arka plan, siluet, şapka, isim plakası)
+	for k in 4:
+		var pd = 3.4 + k * 2.6
+		var px = -W * 0.5 + 0.06
+		bx(px, 3.25, pd, 0.06, 1.7, 1.35, gold.darkened(0.2))
+		bx(px + 0.03, 3.25, pd, 0.04, 1.5, 1.15, acc.lightened(0.35).lerp(Color(0.9, 0.88, 0.8), 0.5))
+		sp(px + 0.06, 3.5, pd, Vector3(0.04, 0.42, 0.36), Color(0.25, 0.22, 0.2))
+		bx(px + 0.06, 2.95, pd, 0.04, 0.5, 0.8, Color(0.92, 0.92, 0.9))
+		bx(px + 0.08, 3.74, pd, 0.03, 0.12, 0.66, Color(0.95, 0.95, 0.93))
+		bx(px + 0.09, 3.84, pd, 0.03, 0.1, 0.36, acc)
+		bx(px + 0.05, 2.25, pd, 0.04, 0.16, 0.7, gold)
+	# --- sağ duvar: parşömen rafları + çerçeveli harita
+	shelf(W * 0.5 - 0.3, 4.2, 3.6, 2.2, -1.0, [Color(0.95, 0.9, 0.75), acc, Color(0.3, 0.4, 0.6), Color(0.85, 0.82, 0.7)], 0.45)
+	shelf(W * 0.5 - 0.3, 10.8, 3.2, 2.2, -1.0, [Color(0.95, 0.9, 0.75), Color(0.55, 0.3, 0.25), acc], 0.45)
+	var mx = W * 0.5 - 0.06
+	bx(mx, 3.0, 7.5, 0.06, 1.8, 2.6, wood)
+	bx(mx - 0.03, 3.0, 7.5, 0.04, 1.6, 2.4, Color(0.93, 0.87, 0.7))
 	for k in 6:
-		var h = rng.randf_range(0.15, 0.55)
-		bx(-1.4 + k * 0.32 + rng.randf_range(-0.05, 0.05), 1.05 + h * 0.5, D - 3.0 + rng.randf_range(-0.3, 0.3), 0.28, h, 0.36, Color(0.96, 0.95, 0.9))
-	cy(1.2, 1.12, D - 2.7, 0.12, 0.14, Color(0.8, 0.15, 0.12))
-	# görev ilan panosu (sol duvar)
-	bx(-W * 0.5 + 0.05, 1.8, D * 0.5, 0.05, 1.8, 3.6, Color(0.5, 0.36, 0.22))
-	for k in 12:
-		var r = Color(0.95, 0.93, 0.85) if k % 4 else Color(1.0, 0.85, 0.8)
-		bx(-W * 0.5 + 0.1, 1.2 + (k / 4) * 0.55, D * 0.5 - 1.3 + (k % 4) * 0.85, 0.02, 0.4, 0.6, r)
-	shelf(W * 0.5 - 0.3, D * 0.5, 4.0, 1.8, -1.0, [Color(0.9, 0.85, 0.7), Color(0.75, 0.3, 0.25), Color(0.3, 0.4, 0.6)], 0.4)
-	scroll(-2.5, 3.2, D - 0.05, 0.0, Color(0.98, 0.95, 0.85))
-	scroll(2.5, 3.2, D - 0.05, 0.0, Color(0.98, 0.95, 0.85))
-	plant(-W * 0.5 + 0.7, D - 0.8)
-	lamp(0, H - 0.6, 3.0, Color(1.0, 0.94, 0.85), 1.3, 10.0)
-	lamp(0, H - 0.6, 8.0, Color(1.0, 0.94, 0.85), 1.3, 10.0)
-	person("keeper", 0, D - 2.1, 0.0, "Görev Dağıtım Memuru", ["Rütbene uygun görevler masada.", "Hokage-sama toplantıda, görevleri ben dağıtıyorum."])
-	person("keeper", 2.6, D - 3.6, -90.0, "Chunin Yardımcı", ["Raporunu teslim etmeyi unutma.", "Bugün D-rank çok, kediler yine kaçmış..."])
-	act(0, D - 4.4, 2.4, "mission_board", "[F] Görev Masası (Hokage Kulesi)")
+		sp(mx - 0.06, 2.6 + rng.randf() * 0.8, 6.6 + rng.randf() * 1.8, Vector3(0.03, rng.randf_range(0.2, 0.45), rng.randf_range(0.3, 0.6)), [Color(0.45, 0.62, 0.35), Color(0.75, 0.62, 0.4), Color(0.4, 0.55, 0.75)][k % 3])
+	# --- misafir köşesi: alçak masa, minderler, çay takımı
+	low_table(-5.6, 3.6, 1.6, 1.0)
+	for c in [[-6.6, 3.6], [-4.6, 3.6], [-5.6, 2.6], [-5.6, 4.6]]:
+		cushion(c[0], c[1], acc.darkened(0.15))
+	cy(-5.6, 0.45, 3.6, 0.18, 0.18, Color(0.3, 0.42, 0.35), 10)
+	for k in 3:
+		cy(-6.0 + k * 0.4, 0.41, 3.9, 0.09, 0.1, Color(0.92, 0.9, 0.85), 8)
+	# --- sağ ön: görev kayıt masası (memur)
+	counter(5.6, 3.4, 2.8, wood)
+	for k in 5:
+		cy(4.6 + k * 0.45, 1.12, 3.4, 0.12, 0.3, Color(0.95, 0.92, 0.82), 8, Vector3(0, 0, 90))
+	# --- köşelerde bitki, tavanda vurgu halkası, fenerler
+	for c in [[-W * 0.5 + 0.8, D - 0.9], [W * 0.5 - 0.8, D - 0.9], [-W * 0.5 + 0.8, 0.9]]:
+		plant(c[0], c[1])
+	cy(0, H - 0.05, D * 0.5, 4.0, 0.08, acc, 24)
+	cy(0, H - 0.1, D * 0.5, 3.2, 0.08, gold, 24)
+	for c in [[-4.0, 7.0], [4.0, 7.0], [-4.0, 12.0], [4.0, 12.0]]:
+		paper_lantern(c[0], H - 1.0, c[1], Color(1.0, 0.88, 0.65))
+	lamp(0, H - 0.6, 3.5, Color(1.0, 0.94, 0.85), 1.4, 11.0)
+	lamp(0, H - 0.6, 10.5, Color(1.0, 0.94, 0.85), 1.5, 11.0)
+	# --- insanlar: Kage (oyuncu bu köyün Kage'si değilse), ANBU muhafızlar, memur
+	var title = Progress.kage_title(vid)
+	var player_is_kage = Kage.is_kage() and Progress.home() == vid
+	var kn = kage_name(vid)
+	if player_is_kage:
+		person("keeper", 2.4, D - 2.2, -30.0, "Kıdemli Danışman", ["Masan seni bekliyor, %s-sama." % title, "Konsey raporları masanın sağında.", "Bugün üç diplomatik mektup geldi."])
+	else:
+		person("keeper", 0, D - 2.15, 0.0, kn, KAGE_LINES.get(vid, KAGE_LINES["konoha"]), {"look_extra": KageAttire.look(vid), "kage_vid": vid})
+	var masks = ["anbu_kedi", "anbu_kurt", "anbu_kus", "anbu_ayi"]
+	for sx in [-1.0, 1.0]:
+		var mk = masks[(absi(hash(vid)) + int(sx + 1.0)) % masks.size()]
+		person("guard", sx * 4.6, D - 1.2, sx * 25.0, "ANBU Muhafız", ["...", "%s-sama'nın güvenliği bizden sorulur." % title, "Masaya fazla yaklaşma."],
+			{"look_extra": {"face_style": mk, "facegear": Color(0.96, 0.96, 0.94), "vest": Color(0.62, 0.62, 0.64), "top": Color(0.12, 0.12, 0.15), "top2": Color(0.12, 0.12, 0.15),
+				"pants": Color(0.12, 0.12, 0.15), "top_style": "kolsuz", "band": null}})
+	var clerk = "Raporlar sıraya kondu, efendim." if player_is_kage else "%s seni bekliyor; görevleri bizzat dağıtır." % kn
+	person("keeper", 5.6, 4.3, 0.0, "Görev Kayıt Memuru", [clerk, "Raporunu teslim etmeyi unutma.", "Bugün D-rank çok, kediler yine kaçmış..."])
+	var lbl = "[F] Kage masana geç" if player_is_kage else "[F] %s ile konuş (görevler)" % kn
+	act(0, D - 5.2, 2.8, "mission_board", lbl, {"giver": kn, "vid": vid, "kage_office": true})
+
+
+## İç mekân kanjisi (ön yüzü kapıya bakar)
+func _kj(text: String, p: Vector3, size: float, col: Color) -> void:
+	var l = Label3D.new()
+	l.text = text
+	l.font = KageAttire._font()
+	l.font_size = 96
+	l.pixel_size = size / 96.0
+	l.modulate = col
+	l.outline_size = 0
+	l.shaded = false
+	l.double_sided = false
+	room.add_child(l)
+	l.global_position = L(p.x, p.y, p.z)
+	l.rotation.y = 0.0  # Label3D +Z yönüne bakar: kapıdan bakana dönük
 
 
 func _weapon_shop() -> void:

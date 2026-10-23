@@ -92,31 +92,14 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	# ---- Hokage Kayası: uçurum yüzüne oyulmuş beş yüz + tepede seyir yeri
 	_hokage_faces(b, rock, cliff_n, v)
 
-	# ---- merkez: Hokage Kulesi meydanı
+	# ---- merkez: Hokage Kulesi + tören meydanı (KageHall)
 	var tn = 600.0
-	b.yoff = _gy(b, 0, tn)
-	b.box(Vector3(0, 0.15, tn), Vector3(150, 0.3, 120), Color(0.78, 0.72, 0.62), 0, false)  # taş meydan
-	b.cyl(Vector3(0, 24, tn), 70, 48, Color(0.92, 0.86, 0.72), true, 40)
-	b.cyl(Vector3(0, 49.5, tn), 76, 3, Color(0.72, 0.18, 0.15), true, 40)
-	b.cyl(Vector3(0, 59, tn), 52, 18, Color(0.92, 0.86, 0.72), true, 32)
-	b.cone(Vector3(0, 74, tn), 66, 13, Color(0.72, 0.18, 0.15), 32, true)
-	b.disc(Vector3(0, 55, tn - 26.0), 13, 0.8, Color(0.72, 0.18, 0.15))  # "火" plakası
-	b.box(Vector3(0, 55, tn - 26.6), Vector3(6.5, 8, 0.5), Color(0.95, 0.92, 0.85), 0, false)
-	b.box(Vector3(0, 4, tn - 35.2), Vector3(8, 8, 1), Color(0.35, 0.24, 0.16), 0, false)
-	for k in 12:
-		var a = deg_to_rad(k * 30.0 + 15.0)
-		for fl in [14.0, 30.0]:
-			b.box(Vector3(35.2 * sin(a), fl, tn + 35.2 * cos(a)), Vector3(4, 4, 0.5), Color(0.42, 0.62, 0.78), k * 30.0 + 15.0, false)
-	b.box(Vector3(72, 13, tn + 6), Vector3(60, 26, 40), Color(0.92, 0.86, 0.72))  # idari bina
-	b.box(Vector3(72, 26.8, tn + 6), Vector3(63, 1.6, 43), Color(0.72, 0.18, 0.15))
-	b.box(Vector3(-72, 9, tn + 6), Vector3(44, 18, 32), Color(0.92, 0.86, 0.72))  # arşiv
-	b.box(Vector3(-72, 18.8, tn + 6), Vector3(47, 1.6, 35), Color(0.72, 0.18, 0.15))
-	b.yoff = 0.0
-	_door(b, 0, tn - 37, 5.0, "hokage", "[F] Gir: Hokage Kulesi (Görev Masası)", "mission_board")
-	for sx in [-1.0, 1.0]:
-		CityDecor.banner(decor, _gp(b, 14 * sx, tn - 46), 0.0, Color(0.72, 0.18, 0.15), Color(0.98, 0.95, 0.9))
-	_site(b, "pigeons", 30, tn - 52)
-	occupied.append([0, tn, 110, 70])
+	var tfront = KageHall.konoha_tower(b, decor, tn)
+	_door(b, 0, tn - 37, 5.0, "hokage", "[F] Gir: Hokage Kulesi (Hokage ile görüş, görevler)", "mission_board")
+	Interact.items[Interact.items.size() - 1]["vid"] = "konoha"
+	KageHall.plaza(b, {"vid": "konoha", "front": tfront, "hw": 58.0, "depth": 74.0, "climate": "green", "stone": Color(0.8, 0.74, 0.64),
+		"trim": Color(0.6, 0.52, 0.44), "acc": Color(0.72, 0.18, 0.15), "gate": Color(0.72, 0.18, 0.15), "kanji": "火", "terrace_h": 0.9, "terrace_w": 34.0, "decor": decor})
+	occupied.append([0, tn - 18, 116, 98])
 
 	# ---- Ninja Akademisi (kulenin batısı) + avlu
 	var ax = -540.0; var an = 610.0
@@ -179,7 +162,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 		b.house(sh[0], sh[1], sh[6], 11, 2, yaw, "konoha", rng)
 		var dn = -1.0 if face_south else 1.0
 		var hd = float(b.last_house.get("d", 11.0))
-		b.box(Vector3(sh[0], _gy(b, sh[0], sh[1]) + 9.4, sh[1] + dn * (hd * 0.5 + 0.2)), Vector3(6, 1.6, 0.3), sh[4], 0, false)
+		SpecialBuildings.shop_front(b, decor, sh[0], sh[1] + dn * hd * 0.5, dn, sh[2], sh[4], sh[6])
 		_door(b, sh[0], sh[1] + dn * (hd * 0.5 + 1.2), 3.0, sh[2], sh[3], sh[5])
 		CityDecor.banner(decor, _gp(b, sh[0] + 5.0, sh[1] + dn * (hd * 0.5 + 2.4)), 0.0, sh[4], Color(0.98, 0.95, 0.9))
 		occupied.append([sh[0], sh[1], sh[6] * 0.5 + 3, 9])
@@ -206,21 +189,11 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	CityDecor.banner(decor, _gp(b, ix + 5.6, inn + 3.2), 0.0, Color(0.85, 0.25, 0.2), Color(0.98, 0.95, 0.9))
 	occupied.append([ix, inn, 8, 6])
 
-	# ---- Konoha Hastanesi (doğu)
+	# ---- Konoha Hastanesi (doğu): giriş kulesi, kanopi, çatı, yan kanat, ön bahçe
 	var hpx = 545.0; var hpn = 230.0
-	b.yoff = _gy(b, hpx, hpn)
-	b.box(Vector3(hpx, 15, hpn), Vector3(76, 30, 42), Color(0.96, 0.95, 0.92))
-	b.box(Vector3(hpx, 30.6, hpn), Vector3(79, 1.4, 45), Color(0.75, 0.25, 0.22))
-	b.box(Vector3(hpx + 46, 10, hpn), Vector3(20, 20, 30), Color(0.94, 0.93, 0.9))
-	b.disc(Vector3(hpx, 24, hpn - 21.2), 8, 0.4, Color(0.75, 0.25, 0.22))
-	b.box(Vector3(hpx, 24, hpn - 21.5), Vector3(1.6, 5, 0.3), Color(1, 1, 1), 0, false)
-	b.box(Vector3(hpx, 24, hpn - 21.5), Vector3(5, 1.6, 0.3), Color(1, 1, 1), 0, false)
-	for i in 12:
-		for fl in [6.0, 14.0, 22.0]:
-			b.box(Vector3(hpx - 33 + i * 6, fl, hpn - 21.1), Vector3(3, 2.6, 0.3), Color(0.5, 0.68, 0.82), 0, false)
-	b.yoff = 0.0
-	_door(b, hpx, hpn - 23, 5.0, "hospital", "[F] Gir: Konoha Hastanesi", "hospital")
-	occupied.append([hpx + 10, hpn, 55, 28])
+	SpecialBuildings.hospital(b, decor, hpx, hpn, rng)
+	_door(b, hpx, hpn - 27.5, 5.0, "hospital", "[F] Gir: Konoha Hastanesi", "hospital")
+	occupied.append([hpx + 12, hpn - 26, 64, 58])
 
 	# ---- Chunin Sınavı stadyumu (güneydoğu)
 	var sx0 = 1050.0; var sn0 = -700.0
@@ -282,12 +255,9 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 
 	# ---- ANBU karargâhı (uçurumun dibinde, karanlık)
 	var anx = -480.0; var ann = cliff_n - 110.0
-	b.yoff = _gy(b, anx, ann)
-	b.box(Vector3(anx, 9, ann), Vector3(40, 18, 30), Color(0.25, 0.25, 0.28))
-	b.box(Vector3(anx, 18.5, ann), Vector3(42, 1, 32), Color(0.15, 0.15, 0.17))
-	b.yoff = 0.0
+	SpecialBuildings.anbu(b, decor, anx, ann)
 	_act(b, anx, ann - 18, 6, "anbu", "[F] ANBU Karargâhı")
-	occupied.append([anx, ann, 26, 20])
+	occupied.append([anx, ann + 2, 40, 30])
 
 	# ---- Antrenman Alanı 3 + Anıt Taşı (doğu) + eğitmen
 	var tgx = 1050.0; var tgn = 560.0

@@ -45,8 +45,7 @@ static func suna_house(b: Builder, x: float, n: float, wdt: float, dep: float, f
 					b.disc(Vector3(x + o.x, f * 4.0 + 2.4, n + o.y), 1.25, 0.2, DARK, yaw + (180.0 if side > 0 else 0.0), 10)
 	# kapı (kemerli), kumaş tente, su deposu, merdiven/kenar
 	var fo = Builder.rot(0, -(d * 0.5 if round_type else dep * 0.5) - 0.05, yaw)
-	b.box(Vector3(x + fo.x, 1.4, n + fo.y), Vector3(2.0, 2.8, 0.3), DARK, yaw, false)
-	b.disc(Vector3(x + fo.x, 2.8, n + fo.y), 2.0, 0.3, DARK, yaw, 12)
+	DoorKit.door(b, x + fo.x, n + fo.y, 0.0, yaw, "suna", rng)
 	if rng.randf() < 0.6:
 		var aw = [Color(0.75, 0.25, 0.2), Color(0.25, 0.45, 0.6), Color(0.85, 0.65, 0.25), Color(0.55, 0.35, 0.55)][rng.randi() % 4]
 		var ao = Builder.rot(0, -(d * 0.5 if round_type else dep * 0.5) - 1.3, yaw)
@@ -101,7 +100,7 @@ static func kiri_house(b: Builder, x: float, n: float, wdt: float, dep: float, f
 		var wpr = b.w(Vector3(x, by + 1.2, n))
 		b._mb(wpr).add("torus", wpr, Vector3(d + 2.3, 0.6, d + 2.3), WOOD, Vector3.ZERO, 16)
 	var fo = Builder.rot(0, -d * 0.5 - 0.05, yaw)
-	b.box(Vector3(x + fo.x, 1.3, n + fo.y), Vector3(1.8, 2.6, 0.25), DARK, yaw, false)
+	DoorKit.door(b, x + fo.x, n + fo.y, 0.0, yaw, "kiri", rng)
 
 
 ## ---------------------------------------------------------------- Iwa: kayaya oyulmuş taş evler, kırmızı-kahve basamaklı çatılar
@@ -128,8 +127,7 @@ static func iwa_house(b: Builder, x: float, n: float, wdt: float, dep: float, fl
 	var co = Builder.rot(wdt * 0.25, dep * 0.2, yaw)
 	b.box(Vector3(x + co.x, hgt + 1.8, n + co.y), Vector3(1.0, 2.2, 1.0), c.darkened(0.1), yaw, false)
 	var fo = Builder.rot(0, -dep * 0.5 - 0.05, yaw)
-	b.box(Vector3(x + fo.x, 1.3, n + fo.y), Vector3(1.8, 2.6, 0.25), DARK, yaw, false)
-	b.box(Vector3(x + fo.x, 2.75, n + fo.y), Vector3(2.4, 0.35, 0.6), WOOD, yaw, false)
+	DoorKit.door(b, x + fo.x, n + fo.y, 0.0, yaw, "iwa", rng)
 
 
 ## ---------------------------------------------------------------- Ame: koyu sanayi blokları, borular, ışıklı pencere ızgarası, anten
@@ -151,6 +149,8 @@ static func ame_house(b: Builder, x: float, n: float, wdt: float, dep: float, fl
 		b.cyl(Vector3(x + o.x, hgt * 0.5, n + o.y), 0.8, hgt + 2.0, Color(0.32, 0.33, 0.35), false, 8)
 	b.cyl(Vector3(x, hgt + 3.0, n), 0.2, 6.0, Color(0.25, 0.25, 0.27), false, 6)
 	b.box(Vector3(x, hgt + 0.6, n), Vector3(wdt * 0.5, 1.2, dep * 0.5), c.darkened(0.1), yaw, false)
+	var fo = Builder.rot(0, -dep * 0.5 - 0.04, yaw)
+	DoorKit.door(b, x + fo.x, n + fo.y, 0.0, yaw, "ame", rng)
 
 
 ## ---------------------------------------------------------------- Kumo: beyaz yuvarlak kuleler, mavi kubbe, kemer bantları
@@ -169,8 +169,8 @@ static func kumo_house(b: Builder, x: float, n: float, wdt: float, dep: float, f
 			var a = yaw + 360.0 * k / cnt
 			var o = Builder.rot(0, d * 0.42 * (1.0 - 0.14 * (f * 4.0 + 2.2) / hgt) + 0.1, a)
 			b.disc(Vector3(x + o.x, f * 4.0 + 2.2, n + o.y), 1.2, 0.2, Color(0.16, 0.24, 0.35), a + 180.0, 10)
-	var fo = Builder.rot(0, -d * 0.5 - 0.05, yaw)
-	b.box(Vector3(x + fo.x, 1.3, n + fo.y), Vector3(1.8, 2.6, 0.25), DARK, yaw, false)
+	var fo = Builder.rot(0, -d * 0.43 - 0.05, yaw)  # gövde (frustum) tabanda ~0.43d yarıçaplı
+	DoorKit.door(b, x + fo.x, n + fo.y, 0.0, yaw, "kumo", rng)
 
 
 ## ---------------------------------------------------------------- Kar: ahşap ev, kalın karlı çatı, saçak buzları, odun yığını
@@ -200,7 +200,7 @@ static func snow_house(b: Builder, x: float, n: float, wdt: float, dep: float, f
 		var wi = b.w(Vector3(x + o.x, hgt + 0.45, n + o.y))
 		b._mb(wi).add("cone", wi, Vector3(0.25, 0.8, 0.25), Color(0.85, 0.92, 1.0), Vector3(180, 0, 0), 5)
 	var fo = Builder.rot(0, -dep * 0.5 - 0.05, yaw)
-	b.box(Vector3(x + fo.x, 1.9, n + fo.y), Vector3(1.6, 2.4, 0.25), DARK, yaw, false)
+	DoorKit.door(b, x + fo.x, n + fo.y, 0.8, yaw, "snow", rng)
 	# yan duvara dayalı odun yığını + kar yığını
 	var wo = Builder.rot(wdt * 0.5 + 0.8, 0, yaw)
 	b.box(Vector3(x + wo.x, 0.8, n + wo.y), Vector3(1.2, 1.6, dep * 0.6), Color(0.45, 0.32, 0.2), yaw, false)

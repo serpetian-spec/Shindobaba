@@ -120,7 +120,7 @@ static func _bounty_board(parent: Node3D, v: Dictionary) -> void:
 	var best = {}
 	var bd = float(v.get("r", 250)) * 1.2
 	for it in Interact.items:
-		if it["kind"] != "mission_board":
+		if (it["kind"] != "mission_board" and it.get("alias", "") != "mission_board") or it.get("interior", false):
 			continue
 		var d = Game.to_map(it["pos"]).distance_to(c)
 		if d < bd:
@@ -129,7 +129,7 @@ static func _bounty_board(parent: Node3D, v: Dictionary) -> void:
 	if best.is_empty():
 		at = c + Vector2(12, -20)
 	else:
-		at = Game.to_map(best["pos"]) + Vector2(7, -3)
+		at = Game.to_map(best["pos"]) + Vector2(16, -13)  # Kage meydanında merdivenin yanı
 	var base = Game.terrain_height(at.x, -at.y)
 	var b = Builder.new(parent, at.x, at.y, base, "Bounty_%s" % v["id"])
 	b.cyl(Vector3(-1.4, 1.4, 0), 0.22, 2.8 + 1.0, Color(0.35, 0.25, 0.15), true, 6)
@@ -163,7 +163,7 @@ class BoardWatcher extends Node:
 				continue
 			var c = Vector2(float(v["x"]), float(v["y"]))
 			for it in Interact.items:
-				if it["kind"] == "mission_board" and Game.to_map(it["pos"]).distance_to(c) < float(v.get("r", 250)) * 1.2:
+				if (it["kind"] == "mission_board" or it.get("alias", "") == "mission_board") and not it.get("interior", false) and Game.to_map(it["pos"]).distance_to(c) < float(v.get("r", 250)) * 1.2:
 					BuildVillageStory._bounty_board(parent3d, v)
 					done[vid] = true
 					break

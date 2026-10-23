@@ -61,6 +61,9 @@ static func vegetation_mesh(t: int) -> ArrayMesh:
 	match t:
 		0:  # geniş yapraklı anime ağacı
 			b.add("cyl", Vector3(0, 3.0, 0), Vector3(0.75, 6.0, 0.75), bark, Vector3.ZERO, 8)
+			for i in 5:
+				var ra = deg_to_rad(i * 72.0 + 25.0)
+				b.add_root(Vector3.ZERO, Vector3(sin(ra), 0, cos(ra)), 0.375, 0.8 + 0.25 * (i % 2), 0.24, bark.darkened(0.05), 0.35 * (1 if i % 2 == 0 else -1), 0.9)
 			b.add("cyl", Vector3(0.7, 5.0, 0), Vector3(0.3, 2.4, 0.3), bark, Vector3(0, 0, -42), 6)
 			b.add("cyl", Vector3(-0.6, 5.4, 0.3), Vector3(0.28, 2.2, 0.28), bark, Vector3(20, 0, 38), 6)
 			_leaf_cluster(b, Vector3(0, 7.4, 0), 6.2, 0)
@@ -89,7 +92,8 @@ static func vegetation_mesh(t: int) -> ArrayMesh:
 			var bk = Color(0.3, 0.2, 0.14)
 			b.add_grad("cyl", Vector3(0, 28, 0), Vector3(6.4, 56, 6.4), bk.lightened(0.08), bk.darkened(0.25), Vector3.ZERO, 12)
 			for i in 7:
-				b.add("cone", Vector3(sin(i * 0.9) * 3.2, 1.8, cos(i * 0.9) * 3.2), Vector3(2.2, 7.0, 2.2), bk, Vector3(-60 * cos(i * 0.9), 0, 60 * sin(i * 0.9)), 6)
+				var ra = i * 0.9
+				b.add_root(Vector3.ZERO, Vector3(sin(ra), 0, cos(ra)), 3.2, 7.0, 2.1, bk.darkened(0.05), 0.45 * (1 if i % 2 == 0 else -1), 7.0, 11, 9)
 			for i in 6:
 				var a = i * 60.0 + 20.0
 				var y = 14.0 + i * 6.0
@@ -116,10 +120,12 @@ static func vegetation_mesh(t: int) -> ArrayMesh:
 		9:  # Konoha orman ağacı: düz uzun gövde, kök çıkıntıları, kalın dallar, katmanlı yaprak kümeleri
 			var tk = Color(0.43, 0.29, 0.18)
 			b.add_grad("cyl", Vector3(0, FOREST_TRUNK_H * 0.5, 0), Vector3(FOREST_TRUNK_R * 2.0, FOREST_TRUNK_H, FOREST_TRUNK_R * 2.0), tk.lightened(0.06), tk.darkened(0.3), Vector3.ZERO, 10)
-			for i in 6:
-				var a = i * 60.0 + 15.0
+			# kökler: gövdeden kıvrılarak yere yatar, toprağa gömülür
+			for i in 8:
+				var big = i % 2 == 0
+				var a = i * 45.0 + 15.0 + (9.0 if i % 3 == 1 else -6.0)
 				var d = Vector3(sin(deg_to_rad(a)), 0, cos(deg_to_rad(a)))
-				b.add("cone", d * 1.3 + Vector3(0, 1.2, 0), Vector3(0.9, 3.2, 0.9), tk.darkened(0.1), Vector3(-55 * d.z, 0, 55 * d.x), 6)
+				b.add_root(Vector3.ZERO, d, FOREST_TRUNK_R, (2.3 if big else 1.4) + 0.3 * (i % 3), 0.62 if big else 0.4, tk.darkened(0.08), 0.3 * (1 if i % 4 < 2 else -1), 2.4 if big else 1.4)
 			var ci = 0
 			for br in FOREST_BRANCHES:
 				var a: float = br[1]

@@ -59,10 +59,9 @@ static func _make(rng: RandomNumberGenerator, i: int) -> Dictionary:
 				_window(det, Vector3(sx * (w - inset) * 0.5, y0 + fh * 0.55, rng.randf_range(-d * 0.2, d * 0.2)), 90.0 * sx, rng)
 	# kapı: sürgülü shoji + noren ya da ahşap kapı
 	var shop = rng.randf() < 0.45
-	det.add("box", Vector3(0, 0.5 + 1.25, -d * 0.5 - 0.06), Vector3(2.4, 2.5, 0.12), WOOD)
-	det.add("box", Vector3(0, 0.5 + 1.2, -d * 0.5 - 0.1), Vector3(2.1, 2.3, 0.06), SHOJI if shop else WOOD.lightened(0.15))
-	for k in 3:
-		det.add("box", Vector3(-0.7 + k * 0.7, 0.5 + 1.2, -d * 0.5 - 0.14), Vector3(0.05, 2.3, 0.03), DARK)
+	var drng = RandomNumberGenerator.new()  # ayrı tohum: şablonların geri kalanı değişmesin
+	drng.seed = 9000 + i
+	DoorKit.jp_template(det, -d * 0.5, 0.5, shop, drng)
 	if shop:
 		var nc = [Color(0.15, 0.25, 0.55), Color(0.75, 0.15, 0.12), Color(0.2, 0.35, 0.25), Color(0.5, 0.2, 0.45)][rng.randi() % 4]
 		for k in 3:
