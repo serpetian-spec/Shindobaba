@@ -210,3 +210,136 @@ static func vegetation_lod(t: int) -> ArrayMesh:
 		_:
 			return null
 	return b.build(foliage())
+
+
+# ------------------------------------------------------------------ hazır model paketleri (Quaternius Stylized Nature MegaKit vb.)
+## tip -> [dosyalar, hedef yükseklik (m), seçenekler]
+const PACK := {
+	0: [["CommonTree_1", "CommonTree_2", "CommonTree_3", "CommonTree_4", "CommonTree_5"], 10.5, {}],
+	1: [["Pine_1", "Pine_2", "Pine_3", "Pine_4", "Pine_5"], 14.0, {}],
+	2: [["DeadTree_1", "DeadTree_2", "DeadTree_3", "DeadTree_4", "DeadTree_5"], 9.0, {}],
+	4: [["Rock_Medium_1", "Rock_Medium_2", "Rock_Medium_3"], 2.4, {}],
+	5: [["TwistedTree_1", "TwistedTree_2", "TwistedTree_3", "TwistedTree_4"], 58.0, {"sway_amt": 0.0}],
+	8: [["Bush_Common", "Bush_Common_Flowers"], 1.7, {"sway_amt": 0.04, "sway_h": 1.6}],
+	10: [["Fern_1", "Plant_1_Big", "Plant_7_Big", "Plant_1"], 1.0, {"sway_amt": 0.05, "sway_h": 1.0}],
+	11: [["Rock_Medium_1", "Rock_Medium_2", "Rock_Medium_3"], 5.0, {}],
+	12: [["Flower_3_Group", "Flower_4_Group", "Flower_3_Single", "Flower_4_Single"], 0.75, {"sway_amt": 0.05, "sway_h": 0.7}],
+	14: [["Mushroom_Common", "Mushroom_Laetiporus"], 0.45, {"sway": false}],
+	15: [["Grass_Common_Tall", "Grass_Wispy_Tall", "Grass_Common_Short", "Grass_Wispy_Short"], 1.0, {"sway_amt": 0.08, "sway_h": 1.0}],
+	18: [["Bush_Common_Flowers"], 1.5, {"sway_amt": 0.04, "sway_h": 1.5}],
+	19: [["Rock_Medium_1", "Rock_Medium_2", "Rock_Medium_3"], 0.9, {"tint": Color(0.85, 0.95, 0.8)}],
+	20: [["Rock_Medium_1", "Rock_Medium_2", "Rock_Medium_3"], 2.0, {"tint": Color(0.92, 0.95, 1.05)}],
+}
+const PACK_BAMBOO := "res://assets/packs/japan/bamboo_auVD.glb"
+
+
+## Tip için hazır model varyantları: [[yakın mesh, orta mesafe mesh], ...] (paket yoksa boş)
+static func pack_variants(t: int) -> Array:
+	var out = []
+	if t == 6 and ResourceLoader.exists(PACK_BAMBOO):
+		var m = AssetLib.mesh(PACK_BAMBOO, 11.0, 1.0, {"sway_amt": 0.12, "sway_h": 10.0})
+		if m:
+			out.append([m, AssetLib.lod(m, 0.3), AssetLib.lod(m, 0.1)])
+		return out
+	if not PACK.has(t):
+		return out
+	var spec: Array = PACK[t]
+	for f in spec[0]:
+		var path = AssetLib.NATURE + f + ".gltf"
+		var m = AssetLib.mesh(path, float(spec[1]), 1.0, spec[2])
+		if m == null:
+			continue
+		out.append([m, AssetLib.lod(m, 0.1 if t in [0, 1, 2, 5] else 0.3), AssetLib.lod(m, 0.03 if t in [0, 1, 2, 5] else 0.12)])
+	return out
+
+
+## Konoha orman ağacı (9): dallı gövde (yürünebilir çarpışmalarla birebir) + hazır modelden yaprak kümeleri
+static func forest_tree_pack() -> ArrayMesh:
+	var leaves: Array = []
+	for f in ["CommonTree_1", "CommonTree_3", "CommonTree_5"]:
+		var lm = AssetLib.mesh(AssetLib.NATURE + f + ".gltf", 0.0, 1.0, {"only": "leaves", "sway_amt": 0.05, "sway_h": 8.0})
+		if lm and lm.get_surface_count() > 0:
+			leaves.append(AssetLib.lod(lm, 0.25))  # dev ağaçta 9 küme var: hafif yaprak modeli yeter
+	if leaves.is_empty():
+		return null
+	# kabuk dokulu gövde, kökler ve dallar (UV'li silindirler)
+	var bark = ShaderMaterial.new()
+	bark.shader = load("res://shaders/asset_toon.gdshader")
+	bark.set_shader_parameter("tex", load(AssetLib.NATURE + "Bark_NormalTree.png"))
+	bark.set_shader_parameter("uv_scale", Vector2(3.0, 6.0))
+	bark.set_shader_parameter("tint", Color(0.82, 0.74, 0.7))
+	bark.set_shader_parameter("saturation", 0.95)
+	var st_b = SurfaceTool.new()
+	st_b.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var trunk = CylinderMesh.new()
+	trunk.top_radius = FOREST_TRUNK_R * 0.8
+	trunk.bottom_radius = FOREST_TRUNK_R * 1.15
+	trunk.height = FOREST_TRUNK_H
+	trunk.radial_segments = 14
+	trunk.rings = 4
+	st_b.append_from(trunk, 0, Transform3D(Basis.IDENTITY, Vector3(0, FOREST_TRUNK_H * 0.5, 0)))
+	for i in 5:
+		var ra = i * 72.0 + 10.0
+		var rd = Vector3(sin(deg_to_rad(ra)), 0, cos(deg_to_rad(ra)))
+		var root_m = CylinderMesh.new()
+		root_m.top_radius = 0.08
+		root_m.bottom_radius = 0.42
+		root_m.height = 2.0
+		root_m.radial_segments = 8
+		root_m.rings = 1
+		# kök: geniş ucu gövdede, ince ucu dışarıda ve yerin içinde
+		var axis_r = (rd * 0.8 - Vector3.UP * 0.6).normalized()
+		var rb = Basis(Quaternion(Vector3.UP, axis_r))
+		st_b.append_from(root_m, 0, Transform3D(rb, rd * (FOREST_TRUNK_R * 0.9 + 0.7) + Vector3(0, 0.35, 0)))
+	for br in FOREST_BRANCHES:
+		var a2: float = br[1]
+		var L: float = br[2]
+		var d2 = Vector3(sin(deg_to_rad(a2)), 0, cos(deg_to_rad(a2)))
+		var bm = CylinderMesh.new()
+		bm.top_radius = 0.22
+		bm.bottom_radius = 0.48
+		bm.height = L
+		bm.radial_segments = 8
+		bm.rings = 1
+		var axis = d2.cross(Vector3.UP).normalized()
+		var bb = Basis(axis, deg_to_rad(-80.0))
+		st_b.append_from(bm, 0, Transform3D(bb, d2 * (FOREST_TRUNK_R + L * 0.5) + Vector3(0, br[0], 0)))
+	st_b.generate_normals()
+	var base := ArrayMesh.new()
+	var ba = st_b.commit_to_arrays()
+	var nv = (ba[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()
+	var wc = PackedColorArray()
+	wc.resize(nv)
+	wc.fill(Color.WHITE)
+	ba[Mesh.ARRAY_COLOR] = wc
+	base.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, ba)
+	base.surface_set_material(0, bark)
+
+	# yaprak kümeleri: dal uçlarında + tepede (hazır yaprak modelleri, büyütülmüş)
+	var st_leaf = {}
+	var k = 0
+	var places = []
+	for br in FOREST_BRANCHES:
+		var a3: float = br[1]
+		var L3: float = br[2]
+		var d3 = Vector3(sin(deg_to_rad(a3)), 0, cos(deg_to_rad(a3)))
+		places.append([d3 * (FOREST_TRUNK_R + L3 * 0.75) + Vector3(0, br[0] - 2.0, 0), 1.45, a3])
+	places.append([Vector3(0, FOREST_TRUNK_H - 7.0, 0), 2.2, 0.0])
+	places.append([Vector3(3.0, FOREST_TRUNK_H - 9.0, 2.0), 1.6, 120.0])
+	places.append([Vector3(-3.2, FOREST_TRUNK_H - 8.0, -1.6), 1.6, 240.0])
+	for pl in places:
+		var lm: ArrayMesh = leaves[k % leaves.size()]
+		k += 1
+		var xf = Transform3D(Basis(Vector3.UP, deg_to_rad(pl[2])).scaled(Vector3.ONE * pl[1]), pl[0])
+		for si in lm.get_surface_count():
+			var mat = lm.surface_get_material(si)
+			if not st_leaf.has(mat):
+				var stn = SurfaceTool.new()
+				stn.begin(Mesh.PRIMITIVE_TRIANGLES)
+				st_leaf[mat] = stn
+			st_leaf[mat].append_from(lm, si, xf)
+	for mat in st_leaf:
+		var arr = st_leaf[mat].commit_to_arrays()
+		base.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+		base.surface_set_material(base.get_surface_count() - 1, mat)
+	return base

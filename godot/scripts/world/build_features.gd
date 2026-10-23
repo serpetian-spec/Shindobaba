@@ -137,6 +137,12 @@ static func _pillar(b: Builder, x: float, n: float, g: float, h: float, r: float
 
 
 static func _torii(b: Builder, x: float, n: float, g: float, yaw: float, s: float) -> void:
+	# hazır torii modeli (kırmızı, siyah üst kiriş)
+	if b.prop("torii_red", Vector3(x, g - 0.1, n), yaw, 7.2 * s):
+		for sx2 in [-1.0, 1.0]:
+			var o2 = Builder.rot(2.6 * s * sx2, 0, yaw)
+			b._collide_cyl(b.w(Vector3(x + o2.x, g + 3.0 * s, n + o2.y)), 0.35 * s, 6.0 * s)
+		return
 	var red = Color(0.85, 0.18, 0.12)
 	for sx in [-1.0, 1.0]:
 		var o = Builder.rot(2.4 * s * sx, 0, yaw)

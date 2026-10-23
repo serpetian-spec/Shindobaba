@@ -14,6 +14,7 @@ var interactables: Array = []
 var key := ""
 var placer = null  # HouseKit.Placer (Japon tarzı detaylı evler)
 var yoff := 0.0  # geçici dikey ofset (eğimli arazide bina tabanı)
+var packs := {}  # hücre+mesh -> [mesh, Array[Transform3D]] (hazır modeller: MultiMesh)
 var last_house := {}  # son yerleştirilen şablon ev (w, d, h, roof_top)
 
 static var roof_points := {}  # köy id -> [çatı tepe noktaları] (çatıdan çatıya koşan ninjalar için)
@@ -186,6 +187,25 @@ func finish() -> void:
 		return
 	if placer != null:
 		placer.finish()
+	for pk in packs:
+		var pe: Array = packs[pk]
+		var xfs: Array = pe[1]
+		var mm = MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.use_colors = true
+		mm.mesh = pe[0]
+		mm.instance_count = xfs.size()
+		for i in xfs.size():
+			mm.set_instance_transform(i, xfs[i])
+			mm.set_instance_color(i, Color.WHITE)
+		var mmi = MultiMeshInstance3D.new()
+		mmi.layers = 2
+		mmi.multimesh = mm
+		mmi.visibility_range_end = view_dist * float(Game.settings["view"]) * float(pe[2])
+		mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+		mmi.visibility_range_end_margin = 60.0
+		root.add_child(mmi)
+	packs.clear()
 	for key in cells:
 		var mb: MB = cells[key]
 		if mb.is_empty():
@@ -241,6 +261,8 @@ func _house_body(x: float, n: float, wdt: float, dep: float, floors: int, yaw: f
 	if placer == null:
 		placer = HouseKit.Placer.new(root, key)
 		placer.view = view_dist
+		# Konoha: evlerin bir kısmı hazır renkli Japon kasaba evleri
+		placer.pack_chance = 0.3 if style == "konoha" else 0.0
 	var wcol: Color = walls[rng.randi() % walls.size()]
 	var rcol: Color = roofs[rng.randi() % roofs.size()]
 	if style == "wood":
@@ -357,6 +379,12 @@ func village_gate(ang: float, r: float, half_open: float, height: float, post_co
 
 
 func tree(x: float, n: float, s: float, rng: RandomNumberGenerator, y := 0.0) -> void:
+	# hazır ağaç modeli (Stylized Nature MegaKit); yoksa eski prosedürel ağaç
+	var tm = AssetLib.tree_mesh(rng.randi())
+	if tm != null:
+		pack_mesh(tm, Vector3(x, y, n), rng.randf() * 360.0, s * rng.randf_range(0.85, 1.15), 1.0)
+		_collide_cyl(w(Vector3(x, y + 2.6 * s, n)), 0.35 * s, 5.2 * s)
+		return
 	cyl(Vector3(x, y + 2.6 * s, n), 0.7 * s, 5.2 * s, Color(0.42, 0.29, 0.18), true, 7)
 	var g = Color(0.28, 0.55, 0.22).lightened(rng.randf_range(-0.05, 0.08))
 	sphere(Vector3(x, y + 6.6 * s, n), Vector3(5.2, 4.0, 5.2) * s, g, 9)
@@ -364,7 +392,36 @@ func tree(x: float, n: float, s: float, rng: RandomNumberGenerator, y := 0.0) ->
 	sphere(Vector3(x - 1.2 * s, y + 7.6 * s, n - 0.6 * s), Vector3(3.2, 2.6, 3.2) * s, g.lightened(0.05), 8)
 
 
+## Hazır bir modeli (AssetLib) bu yapı grubuna ekler: hücre başına MultiMesh. dist: görünürlük çarpanı
+func pack_mesh(m: Mesh, p: Vector3, yaw_deg := 0.0, scale := 1.0, dist := 1.0) -> void:
+	if m == null:
+		return
+	var wp = w(p)
+	var k = "%d|%d|%d" % [int(floor(wp.x / CELL)), int(floor(wp.z / CELL)), m.get_instance_id()]
+	if not packs.has(k):
+		packs[k] = [m, [], dist]
+	packs[k][1].append(Transform3D(Basis(Vector3.UP, deg_to_rad(-yaw_deg)).scaled(Vector3.ONE * scale), wp))
+
+
+## Hazır aksesuar (AssetLib.PROPS anahtarı): torii, pagoda, stone_lamp, red_lantern, post_lantern, bench, shrine...
+## collide: >0 ise o yarıçapta silindir çarpışma
+func prop(kind: String, p: Vector3, yaw_deg := 0.0, height := 0.0, collide := 0.0) -> bool:
+	var m = AssetLib.prop(kind, height)
+	if m == null:
+		return false
+	pack_mesh(m, p, yaw_deg, 1.0, 0.7)
+	if collide > 0.0:
+		var hh = maxf(1.0, height if height > 0.0 else 2.0)
+		_collide_cyl(w(p + Vector3(0, hh * 0.5, 0)), collide, hh)
+	return true
+
+
 func lantern(x: float, n: float, h := 3.2) -> void:
+	# taş fener (tōrō) hazır modeli; h: tepe yüksekliği (zemin dahil)
+	var gy = h - 3.2
+	if prop("stone_lamp", Vector3(x, gy, n), 0.0, 2.6):
+		Lights.add(w(Vector3(x, gy + 1.9, n)))
+		return
 	box(Vector3(x, h * 0.5, n), Vector3(0.2, h, 0.2), Color(0.3, 0.22, 0.15), 0, false)
 	box(Vector3(x, h + 0.35, n), Vector3(0.6, 0.7, 0.6), Color(1.0, 0.85, 0.55), 0, false)
 	Lights.add(w(Vector3(x, h + 0.35, n)))

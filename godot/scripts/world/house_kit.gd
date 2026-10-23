@@ -173,7 +173,30 @@ class Placer:
 		parent.add_child(body)
 
 	## pos: Godot dünya (taban merkezi), yaw: derece (Builder yerel yaw), ön cephe sokağa
+	var pack_items := {}   # mesh -> [Transform3D]
+	var pack_chance := 0.0  # 0..1: bu oranda ev hazır modelden (renkli Japon kasaba evi)
+
 	func add(pos: Vector3, yaw: float, wall_col: Color, roof_col: Color, rng: RandomNumberGenerator, scale := 1.0) -> Dictionary:
+		if pack_chance > 0.0 and rng.randf() < pack_chance:
+			var hs: Array = AssetLib.town_houses()
+			if not hs.is_empty():
+				var e: Array = hs[rng.randi() % hs.size()]
+				var sz: Vector3 = e[1]
+				var xf2 = Transform3D(Basis(Vector3.UP, deg_to_rad(-yaw)).scaled(Vector3.ONE * scale), pos)
+				if not pack_items.has(e[0]):
+					pack_items[e[0]] = []
+				pack_items[e[0]].append(xf2)
+				var cs2 = CollisionShape3D.new()
+				var sh2 = BoxShape3D.new()
+				sh2.size = Vector3(sz.x * 0.9, sz.y, sz.z * 0.9) * scale
+				cs2.shape = sh2
+				cs2.transform = Transform3D(xf2.basis.orthonormalized(), pos + Vector3(0, sz.y * 0.5 * scale, 0))
+				body.add_child(cs2)
+				if key != "" and not key.begins_with("yolkenari"):
+					if not Builder.roof_points.has(key):
+						Builder.roof_points[key] = []
+					Builder.roof_points[key].append(pos + Vector3(0, sz.y * scale, 0))
+				return {"w": sz.x, "d": sz.z, "h": sz.y * 0.8, "roof_top": sz.y}
 		var ti = rng.randi() % HouseKit.templates.size()
 		var t: Dictionary = HouseKit.templates[ti]
 		var xf = Transform3D(Basis(Vector3.UP, deg_to_rad(-yaw) + PI).scaled(Vector3.ONE * scale), pos)
@@ -202,6 +225,39 @@ class Placer:
 		return t
 
 	func finish() -> void:
+		for pm in pack_items:
+			var xfs: Array = pack_items[pm]
+			var cells2 = {}
+			for x in xfs:
+				var c2 = Vector2i(int(floor(x.origin.x / 160.0)), int(floor(x.origin.z / 160.0)))
+				if not cells2.has(c2):
+					cells2[c2] = []
+				cells2[c2].append(x)
+			# yakın: tam model, orta: %12, uzak: %3 (hazır evler çok detaylı)
+			var lv = [[pm, 0.0, 110.0], [AssetLib.lod(pm, 0.12), 110.0, 450.0], [AssetLib.lod(pm, 0.03), 450.0, 1500.0]]
+			for c2 in cells2:
+				var arr: Array = cells2[c2]
+				for l in lv:
+					var mm = MultiMesh.new()
+					mm.transform_format = MultiMesh.TRANSFORM_3D
+					mm.use_colors = true
+					mm.mesh = l[0]
+					mm.instance_count = arr.size()
+					for i in arr.size():
+						mm.set_instance_transform(i, arr[i])
+						mm.set_instance_color(i, Color.WHITE)
+					var mmi = MultiMeshInstance3D.new()
+					mmi.layers = 2
+					mmi.multimesh = mm
+					mmi.visibility_range_begin = l[1] * float(Game.settings["view"])
+					mmi.visibility_range_begin_margin = 15.0 if l[1] > 0.0 else 0.0
+					mmi.visibility_range_end = l[2] * float(Game.settings["view"])
+					mmi.visibility_range_end_margin = 30.0
+					mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+					if l[1] > 0.0:
+						mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+					parent.add_child(mmi)
+		pack_items.clear()
 		for pair in [[walls, "walls"], [roofs, "roof"], [dets, "detail"]]:
 			var dict: Dictionary = pair[0]
 			for ti in dict:

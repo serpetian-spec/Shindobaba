@@ -28,6 +28,7 @@ var lods = {}
 var radii = {0: 0.38, 1: 0.36, 2: 0.3, 3: 0.36, 4: 1.0, 5: 3.2, 6: 0.0, 7: 0.25, 8: 0.0, 9: Props.FOREST_TRUNK_R, 10: 0.0, 11: 1.0, 12: 0.0,
 	13: 0.0, 14: 0.0, 15: 0.0, 16: 0.0, 17: 0.0, 18: 0.0, 19: 0.0, 20: 0.0}
 var convex = {}
+var var_count = {}     # tip -> varyant sayısı (iş parçacıkları okur)
 var bodies: Array[StaticBody3D] = []
 var chunks := {}        # Vector2i -> {node, detail: bool, trees: Array}
 var tasks := {}         # Vector2i -> [task_id, detail, result holder]
@@ -40,10 +41,21 @@ var _specials: Array = []   # [x, y(harita), iç r, dış r, tip, yoğunluk]
 
 func _ready() -> void:
 	for t in 21:
-		meshes[t] = Props.vegetation_mesh(t)
-		lods[t] = Props.vegetation_lod(t)
+		# hazır model varyantları varsa onlar (yakın + orta mesafe), yoksa prosedürel model
+		var pv: Array = Props.pack_variants(t)
+		if t == 9:
+			var ft = Props.forest_tree_pack()
+			if ft:
+				pv = [[ft, AssetLib.lod(ft, 0.25), AssetLib.lod(ft, 0.08)]]
+		if pv.is_empty():
+			pv = [[Props.vegetation_mesh(t), null]]
+		meshes[t] = pv
+		var_count[t] = pv.size()
+		lods[t] = Props.vegetation_lod(t) if pv[0].size() < 3 else null
 	for t in CONVEX:
-		convex[t] = meshes[t].create_convex_shape(true, true)
+		convex[t] = []
+		for v in meshes[t]:
+			convex[t].append((v[0] as ArrayMesh).create_convex_shape(true, true))
 	# köy çevresi orman halkaları + özel ormanlar
 	for v in Game.world_info["villages"]:
 		if v["id"] in ["konoha", "kusa", "taki", "tani"]:
@@ -217,16 +229,19 @@ func _generate(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 		elif t == 5:
 			s = lerpf(0.9, 1.4, sc_r)
 		var col := 1.0 + (rng.randf() - 0.5) * 0.2
-		if not bufs.has(t):
-			bufs[t] = PackedFloat32Array()
+		var nv: int = var_count.get(t, 1)
+		var vi := int(rng.randf() * nv) % nv
+		var bk := t * 100 + vi
+		if not bufs.has(bk):
+			bufs[bk] = PackedFloat32Array()
 		var c := cos(yaw) * s
 		var sn := sin(yaw) * s
 		var ox := x - cx
 		var oz := z - cz
 		# MultiMesh tamponu: 3x4 satır düzeni + renk
-		bufs[t].append_array([c, 0.0, sn, ox, 0.0, s, 0.0, h - 0.3, -sn, 0.0, c, oz, col, 1.0 + (col - 1.0) * 0.6, 1.0 - (col - 1.0) * 0.4, 1.0])
+		bufs[bk].append_array([c, 0.0, sn, ox, 0.0, s, 0.0, h - 0.15, -sn, 0.0, c, oz, col, 1.0 + (col - 1.0) * 0.6, 1.0 - (col - 1.0) * 0.4, 1.0])
 		if detail and radii[t] > 0.0:
-			trees.append([x, h, z, s, yaw, t])
+			trees.append([x, h, z, s, yaw, t, vi])
 	holder["buf"] = bufs
 	holder["trees"] = trees
 
@@ -242,19 +257,40 @@ func _install(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 	add_child(node)
 	var view = float(Game.settings["view"])
 	var bufs: Dictionary = holder["buf"]
-	for t in bufs:
-		var buf: PackedFloat32Array = bufs[t]
+	var lod_done := {}
+	for bk in bufs:
+		var t: int = int(bk) / 100
+		var vi: int = int(bk) % 100
+		var buf: PackedFloat32Array = bufs[bk]
 		var n := buf.size() / 16
 		if n == 0:
 			continue
+		var pv: Array = meshes[t][mini(vi, meshes[t].size() - 1)]
 		var near_end = (NEAR_FULL if not t in SMALL else (240.0 if t in [13, 19, 20, 17] else 130.0)) * view
 		if t in [5, 11, 4, 9]:
 			near_end = 650.0 * view
 		var has_lod = lods[t] != null
-		var a = _mmi(node, meshes[t], buf, n, 0.0, near_end if has_lod or t in SMALL else FAR_R * 1.2 * view)
-		a.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if not t in SMALL else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		if has_lod:
-			var lb = _mmi(node, lods[t], buf, n, near_end, FAR_R * 1.2 * view)
+		if pv.size() >= 3 and pv[1] != null and not t in SMALL:
+			# hazır model: yakında tam detay, orta mesafede basitleştirilmiş, en uzakta çok basit kopya
+			var full_end = (75.0 if t in [0, 1, 2, 8, 6] else 140.0) * view
+			var mid_end = 420.0 * view
+			var a = _mmi(node, pv[0], buf, n, 0.0, full_end)
+			a.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+			var m2 = _mmi(node, pv[1], buf, n, full_end, mid_end)
+			m2.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			if not t in [8, 10, 12, 14, 15, 18, 19]:
+				var m3 = _mmi(node, pv[2], buf, n, mid_end, FAR_R * 1.2 * view)
+				m3.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		else:
+			var a = _mmi(node, pv[0], buf, n, 0.0, near_end if has_lod or t in SMALL else FAR_R * 1.2 * view)
+			a.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if not t in SMALL else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		if has_lod and not lod_done.has(t):
+			lod_done[t] = true
+			var all_buf := PackedFloat32Array()
+			for bk2 in bufs:
+				if int(bk2) / 100 == t:
+					all_buf.append_array(bufs[bk2])
+			var lb = _mmi(node, lods[t], all_buf, all_buf.size() / 16, near_end, FAR_R * 1.2 * view)
 			lb.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	chunks[key] = {"node": node, "detail": detail, "trees": holder.get("trees", [])}
 	last_cell = Vector2i(999999, 999999)  # çarpışma havuzunu tazele
@@ -311,7 +347,7 @@ func _physics_process(_dt: float) -> void:
 		sb.global_transform = Transform3D(Basis(Vector3.UP, yaw), Vector3(tr[0], tr[1] - 0.3, tr[2]))
 		var trunk: CollisionShape3D = sb.get_child(0)
 		if t in CONVEX:
-			trunk.shape = convex[t]
+			trunk.shape = convex[t][mini(int(tr[6]) if tr.size() > 6 else 0, convex[t].size() - 1)]
 			trunk.scale = Vector3.ONE * s
 			trunk.position = Vector3(0, 0.3, 0)
 			for b in Props.FOREST_BRANCHES.size():
