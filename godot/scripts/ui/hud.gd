@@ -999,6 +999,22 @@ func _draw_minimap_markers(c: Control) -> void:
 			var q: Vector2 = to_mm.call(f.global_position)
 			if q.distance_to(Vector2(R, R)) < R - 4:
 				c.draw_circle(q, 3.5, Color(1, 0.25, 0.2))
+	# önemli yerler (dükkân, hastane, görev masası, han...): harf rozeti, yakındakilerin adı da yazılır
+	var t_ms = Time.get_ticks_msec()
+	if t_ms - int(c.get_meta("lm_t", 0)) > 1000:
+		c.set_meta("lm_t", t_ms)
+		c.set_meta("lm", Interact.landmarks(pl.global_position, 460.0))
+	var fnt = ThemeDB.fallback_font
+	for lm in c.get_meta("lm", []):
+		var q: Vector2 = to_mm.call(lm["pos"])
+		if q.distance_to(Vector2(R, R)) > R - 8:
+			continue
+		c.draw_circle(q, 7.5, Color(0.08, 0.06, 0.08, 0.9))
+		c.draw_arc(q, 7.5, 0, TAU, 16, lm["col"], 1.6)
+		c.draw_string(fnt, q + Vector2(-4, 4.5), lm["glyph"], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, lm["col"])
+		if lm["pos"].distance_to(pl.global_position) < 90.0:
+			c.draw_string_outline(fnt, q + Vector2(9, 4), lm["name"], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, 3, Color(0, 0, 0, 0.9))
+			c.draw_string(fnt, q + Vector2(9, 4), lm["name"], HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(1, 1, 1))
 	if Missions.has_marker:
 		var q: Vector2 = to_mm.call(Missions.target_marker)
 		var dv = q - Vector2(R, R)

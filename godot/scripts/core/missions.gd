@@ -1233,6 +1233,19 @@ func _process(dt: float) -> void:
 			target_marker = Game.from_map(Vector2(tb["area"][0], tb["area"][1]))
 			target_name = "Aranan: %s (~%d m)" % [tb["alias"], int(tb["known"])]
 			return
+		# haritadan seçilen yer (dükkân, hastane...) varsa önce onu göster; varınca silinir
+		var wp = Game.profile.get("waypoint")
+		if wp is Array and wp.size() >= 4 and Game.player:
+			var wv = Vector3(wp[0], wp[1], wp[2])
+			if Vector2(wv.x - Game.player.global_position.x, wv.z - Game.player.global_position.z).length() < 8.0:
+				Game.profile.erase("waypoint")
+				Hud.msg("Vardın: %s" % wp[3], Color(0.7, 1, 0.7))
+			else:
+				story_target = false
+				has_marker = true
+				target_marker = wv
+				target_name = String(wp[3])
+				return
 		# görev yoksa hikâye adımının hedefini göster
 		var t = story_target_for(Progress.story())
 		story_target = not t.is_empty()

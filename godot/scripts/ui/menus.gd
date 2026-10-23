@@ -2162,6 +2162,28 @@ static func world_map(main: Node) -> void:
 			continue
 		var vid: String = v["id"]
 		sv.add_child(UI.button(v["name"], func(): main.fast_travel(vid), side_w - 40, "village"))
+	# yakındaki önemli yerler: tıkla -> ok ve ışık sütunu oraya yönlendirir
+	if Game.player:
+		var near = Interact.landmarks(Game.player.global_position, 2500.0)
+		near.sort_custom(func(a, b): return a["pos"].distance_to(Game.player.global_position) < b["pos"].distance_to(Game.player.global_position))
+		if not near.is_empty():
+			sv.add_child(UI.spacer(0, 8, false))
+			sv.add_child(UI.header("YAKINDAKİ YERLER", 18))
+			sv.add_child(UI.label("Tıkla: ok seni oraya götürsün.", 13, UI.MUTED))
+			var seen = {}
+			for lm in near:
+				if seen.has(lm["name"]) or seen.size() >= 12:
+					continue
+				seen[lm["name"]] = true
+				var d = int(lm["pos"].distance_to(Game.player.global_position))
+				var lp: Vector3 = lm["pos"]
+				var nm: String = lm["name"]
+				var b = UI.button("%s  %s  (%d m)" % [lm["glyph"], nm, d], func():
+					Game.profile["waypoint"] = [lp.x, lp.y, lp.z, nm]
+					Hud.msg("Yol gösteriliyor: %s" % nm, Color(1, 0.85, 0.4))
+					main.resume(), side_w - 40)
+				b.add_theme_color_override("font_color", lm["col"])
+				sv.add_child(b)
 	sv.add_child(UI.spacer(0, 10, false))
 	sv.add_child(UI.icon_label("person", "Sen", 14, Color(0.4, 0.7, 1.0)))
 	sv.add_child(UI.icon_label("target", "Görev hedefi", 14, UI.GOLD))
