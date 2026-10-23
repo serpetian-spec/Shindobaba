@@ -312,7 +312,15 @@ func _install(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 			var lb = _mmi(node, lods[t], all_buf, all_buf.size() / 16, near_end, FAR_R * 1.2 * view)
 			lb.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	chunks[key] = {"node": node, "detail": detail, "trees": holder.get("trees", [])}
+	if detail:
+		# ağaç tamponlarının CPU kopyası: WorldDamage örnekleri GPU'dan geri okumadan (takılmasız) gizler/karartır
+		var wb := {}
+		for bk in bufs:
+			if int(bk) / 100 in WorldDamage.TREE_T:
+				wb[int(bk)] = bufs[bk]
+		chunks[key]["wdbufs"] = wb
 	last_cell = Vector2i(999999, 999999)  # çarpışma havuzunu tazele
+	WorldDamage.veg_installed(key, node)   # yanmış/devrilmiş ağaçlar yeni örneklerde de öyle kalsın
 
 
 ## Her n'inci örnek (uzak mesafe seyreltme; deterministik)
@@ -381,7 +389,7 @@ func _physics_process(_dt: float) -> void:
 				continue
 			for tr in ch["trees"]:
 				var d2 = Vector2(tr[0] - p.x, tr[2] - p.z).length_squared()
-				if d2 < 90.0 * 90.0:
+				if d2 < 90.0 * 90.0 and not WorldDamage.gone.has(Vector3i(int(tr[0] * 10.0), int(tr[2] * 10.0), int(tr[5]))):
 					near.append([d2, tr])
 	near.sort_custom(func(a, b): return a[0] < b[0])
 	near = near.slice(0, bodies.size())

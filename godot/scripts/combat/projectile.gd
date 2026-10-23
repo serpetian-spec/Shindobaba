@@ -74,6 +74,8 @@ func _physics_process(dt: float) -> void:
 		_finish(Vector3(to.x, Game.terrain_height(to.x, to.z), to.z), null, Vector3.UP)
 		return
 	global_position = to
+	if radius >= 1.0 and (WorldDamage.fire_el(info.get("element", "")) or info.has("burn")):
+		WorldDamage.graze(to, radius * 1.3, info)   # yaladığı ağaçları tutuşturur
 	if spin != Vector3.ZERO:
 		rotation += spin * dt
 	elif vel.length() > 0.1:
@@ -92,6 +94,8 @@ func _finish(pos: Vector3, target: Node3D, normal := Vector3.ZERO) -> void:
 	var el: String = info.get("element", "")
 	if target == null and el in ["katon", "yoton", "shakuton"] and pos.y - Game.terrain_height(pos.x, pos.z) < 2.0:
 		Elements.scorch(pos, clampf(radius * 1.8, 1.2, 5.0))
+	if target == null:
+		WorldDamage.impact(pos, maxf(radius * 1.6, 1.0), info, normal)
 	if on_hit.is_valid():
 		var ep = VFX.epic
 		VFX.epic = epic

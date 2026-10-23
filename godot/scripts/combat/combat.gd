@@ -36,6 +36,7 @@ func hostile(a: Node, b: Node) -> bool:
 ## Küre içinde kalan düşman savaşçılara vurur. Vurulanları döndürür.
 func hit_sphere(attacker: Node3D, center: Vector3, radius: float, info: Dictionary, exclude: Array = []) -> Array:
 	var hits: Array = []
+	WorldDamage.impact(center, radius, info)   # ağaçlar/evler yanar, devrilir, yıkılır
 	for f in get_tree().get_nodes_in_group("fighters"):
 		if f in exclude or not hostile(attacker, f) or f.is_dead():
 			continue

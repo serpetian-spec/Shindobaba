@@ -178,6 +178,7 @@ class Placer:
 
 	## pos: Godot dünya (taban merkezi), yaw: derece (Builder yerel yaw), ön cephe sokağa
 	var pack_items := {}   # mesh -> [Transform3D]
+	var recs: Array = []   # WorldDamage kayıtları (yanma / yıkılma)
 	var pack_chance := 0.0  # 0..1: bu oranda ev hazır modelden (renkli Japon kasaba evi)
 
 	func add(pos: Vector3, yaw: float, wall_col: Color, roof_col: Color, rng: RandomNumberGenerator, scale := 1.0) -> Dictionary:
@@ -204,11 +205,13 @@ class Placer:
 		var ti = rng.randi() % HouseKit.templates.size()
 		var t: Dictionary = HouseKit.templates[ti]
 		var xf = Transform3D(Basis(Vector3.UP, deg_to_rad(-yaw) + PI).scaled(Vector3.ONE * scale), pos)
+		var rec = {"pos": pos, "basis": xf.basis, "ti": ti, "scale": scale, "wall": wall_col, "roof": roof_col, "body": body, "mm": [], "shapes": []}
+		recs.append(rec)
 		for pair in [[walls, wall_col], [roofs, roof_col], [dets, Color(1, 1, 1)]]:
 			var dict: Dictionary = pair[0]
 			if not dict.has(ti):
 				dict[ti] = []
-			dict[ti].append([xf, pair[1]])
+			dict[ti].append([xf, pair[1], rec])
 		# çarpışma: gövde + çatı
 		var cs = CollisionShape3D.new()
 		var sh = BoxShape3D.new()
@@ -222,6 +225,7 @@ class Placer:
 		rc.shape = rs
 		rc.transform = Transform3D(xf.basis.orthonormalized(), pos + Vector3(0, (t["h"] + (t["roof_top"] - t["h"]) * 0.3) * scale, 0))
 		body.add_child(rc)
+		rec["shapes"] = [cs, rc]
 		for c in t.get("cols", []):  # yan ek bina, balkon, dış merdiven
 			var ec = CollisionShape3D.new()
 			var es = BoxShape3D.new()
@@ -229,6 +233,7 @@ class Placer:
 			ec.shape = es
 			ec.transform = Transform3D(xf.basis.orthonormalized() * Basis(Vector3.RIGHT, deg_to_rad(c[2])), pos + xf.basis * c[0])
 			body.add_child(ec)
+			rec["shapes"].append(ec)
 		if key != "" and not key.begins_with("yolkenari"):   # iş parçacığında kurulan yol kenarı evleri paylaşılan sözlüğe yazmaz
 			if not Builder.roof_points.has(key):
 				Builder.roof_points[key] = []
@@ -290,6 +295,7 @@ class Placer:
 					for i in arr.size():
 						mm.set_instance_transform(i, arr[i][0])
 						mm.set_instance_color(i, arr[i][1])
+						arr[i][2]["mm"].append([mm, i, pair[1], arr[i][0]])
 					var mmi = MultiMeshInstance3D.new()
 					mmi.layers = 2
 					mmi.multimesh = mm
@@ -298,3 +304,6 @@ class Placer:
 					mmi.visibility_range_end_margin = 60.0
 					mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 					parent.add_child(mmi)
+		if not recs.is_empty():
+			WorldDamage.register_houses(recs)
+			recs = []
