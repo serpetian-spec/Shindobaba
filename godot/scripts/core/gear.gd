@@ -300,12 +300,45 @@ static func equipped(p: Dictionary, slot: String) -> Dictionary:
 	return find(p, p.get("equip", {}).get(slot, -1))
 
 
+## Yuvaya uyan tüm eşyalar; şartı tutmayanlar da listelenir (kilitli gösterilir, takılamaz)
 static func owned_for(p: Dictionary, slot: String) -> Array:
 	var out = []
 	for g in p.get("gear", []):
-		if fits(g["id"], slot) and int(item(g["id"]).get("rank", 0)) <= int(p.get("rank", 0)):
+		if fits(g["id"], slot):
 			out.append(g)
 	return out
+
+
+## Takma şartı karşılanmıyorsa nedenini döndürür ("Chunin rütbesi gerekli"); karşılanıyorsa ""
+static func req_text(id: String, p: Dictionary) -> String:
+	var it = item(id)
+	var need = int(it.get("rank", 0))
+	if need > int(p.get("rank", 0)):
+		return "%s rütbesi gerekli" % Data.RANKS[mini(need, Data.RANKS.size() - 1)]
+	var cl = String(it.get("clan", ""))
+	if cl != "" and cl != String(p.get("clan", "")):
+		return "Yalnızca %s klanı giyebilir" % Data.clans.get(cl, {}).get("name", cl.capitalize())
+	var lv = int(it.get("level", 0))
+	if lv > int(p.get("level", 1)):
+		return "Seviye %d gerekli" % lv
+	return ""
+
+
+## Eşyanın şartlarının kısa özeti (şart yoksa ""): kartlarda her zaman gösterilir
+static func req_summary(id: String) -> String:
+	var it = item(id)
+	var parts = []
+	if int(it.get("rank", 0)) > 0:
+		parts.append("%s rütbesi" % Data.RANKS[mini(int(it["rank"]), Data.RANKS.size() - 1)])
+	if String(it.get("clan", "")) != "":
+		parts.append("%s klanı" % Data.clans.get(String(it["clan"]), {}).get("name", String(it["clan"]).capitalize()))
+	if int(it.get("level", 0)) > 0:
+		parts.append("Seviye %d" % int(it["level"]))
+	return ("Gerekli: " + ", ".join(parts)) if not parts.is_empty() else ""
+
+
+static func is_eye(id: String) -> bool:
+	return String(item(id).get("slot", "")) == "goz"
 
 
 ## Eski kayıtlar / yeni karakter: görünümden başlangıç ekipmanı üretir

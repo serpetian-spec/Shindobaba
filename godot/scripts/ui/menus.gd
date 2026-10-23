@@ -195,6 +195,14 @@ static func _eye_panel(main: Node, dv: VBoxContainer, pr: Dictionary) -> void:
 			dv.add_child(UI.label("Göz tekniği (%s): %s" % ["Z" if _eq_slot == "sag_goz" else "X", si[0]], 15, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
 		if k in [4, 5]:
 			_ms_editor(main, dv, Eyes.design_for(pr, _eq_slot))
+		# gözü çıkar: kavanoza konur, yerine normal göz kalır (geri takmak için aşağıdaki listeden)
+		var slot_now = _eq_slot
+		dv.add_child(UI.button("Gözü çıkar (kavanoza koy)", func():
+			Hud.dialog("Gözü Çıkar", "%s %s gözünden çıkarılıp kavanoza konacak. Göz teknikleri bu gözle kullanılamaz. Emin misin?" % [title, side.to_lower()], [
+				{"label": "Evet, çıkar", "cb": func():
+					_eye_remove(pr, slot_now)
+					ninja_menu(main, "eyes")},
+				{"label": "Vazgeç", "cb": func(): ninja_menu(main, "eyes")}]), 380, "close"))
 	# saklanan gözler (kavanozda)
 	var jars = []
 	for g in pr.get("gear", []):
@@ -204,9 +212,54 @@ static func _eye_panel(main: Node, dv: VBoxContainer, pr: Dictionary) -> void:
 	dv.add_child(UI.label("SAKLANAN GÖZLER (%d)" % jars.size(), 16, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
 	if jars.is_empty():
 		dv.add_child(UI.label("Kavanozunda göz yok. Yendiğin dōjutsu sahiplerinin gözlerini alabilirsin.", 14, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
+	var slot_here = _eq_slot
 	for g in jars:
-		dv.add_child(UI.label("• %s%s" % [Gear.item(g["id"])["name"], ("  (%d tomoe)" % int(g.get("lvl", 3))) if g["id"] == "goz_sharingan" else ""], 14, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true))
-	dv.add_child(UI.label("Göz nakli yalnızca hastanede, bir tıbbi ninja tarafından yapılır.", 13, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
+		var gname = "%s%s" % [Gear.item(g["id"])["name"], ("  (%d tomoe)" % int(g.get("lvl", 3))) if g["id"] == "goz_sharingan" else ""]
+		var own = String(g.get("origin", "dogustan")) == "dogustan" and bool(g.get("own", false))
+		var row = UI.hbox(8)
+		row.add_child(UI.label("• " + gname, 14, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true))
+		dv.add_child(row)
+		if own:
+			# kendi çıkardığın gözü geri takmak nakil gerektirmez
+			var uid = int(g["uid"])
+			dv.add_child(UI.button("Bu göze geri tak", func():
+				_eye_insert(pr, uid, slot_here)
+				ninja_menu(main, "eyes"), 300, "eye"))
+	dv.add_child(UI.label("Kendi gözünü buradan geri takabilirsin. Başkasından alınan gözlerin nakli yalnızca hastanede, bir tıbbi ninja tarafından yapılır.", 13, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
+
+
+## Takılı gözü kavanoza koyar (yuvası boşalır = normal göz); açık gözler kapanır
+static func _eye_remove(pr: Dictionary, slot: String) -> void:
+	var g = Gear.equipped(pr, slot)
+	if g.is_empty():
+		return
+	g["own"] = String(g.get("origin", "dogustan")) == "dogustan"
+	pr["equip"].erase(slot)
+	_eye_refresh(pr)
+	Hud.msg("Göz çıkarıldı ve kavanoza kondu.", Color(1, 0.8, 0.6))
+
+
+static func _eye_insert(pr: Dictionary, uid: int, slot: String) -> void:
+	var cur = Gear.equipped(pr, slot)
+	if not cur.is_empty():
+		cur["own"] = String(cur.get("origin", "dogustan")) == "dogustan"
+	pr["equip"][slot] = uid
+	_eye_refresh(pr)
+	Hud.msg("Göz yerine takıldı.", Color(0.7, 1, 0.7))
+
+
+static func _eye_refresh(pr: Dictionary) -> void:
+	var eyes = null
+	if Game.player and Game.player.get("combat") and Game.player.combat.get("modes") and Game.player.combat.modes.get("eyes"):
+		eyes = Game.player.combat.modes.eyes
+	if eyes and eyes.active:
+		eyes._close()
+	Gear.apply_look(pr)
+	if Game.player:
+		Game.player.rebuild_model()
+		Game.player.apply_profile_stats()
+	if eyes:
+		eyes.refresh_visual()
 
 
 static func _swatch(c: Color, on: bool, cb: Callable) -> Button:
@@ -514,7 +567,7 @@ static func controls(main: Node) -> void:
 		["Shift", "Ninja koşusu (5 sn: tam hız), havada dash"], ["Duvara koş", "Duvarda koşu"], ["Duvarda Ctrl", "Duvar atılımı (chakra)"], ["Havada Q", "İpli kunai: nişangâha tutun"], ["Sol tık", "Kombo / dalış tekmesi"], ["Sağ tık", "Blok (tam zamanında: mükemmel blok)"],
 		["Q", "Kawarimi (genjutsu'dayken: Kai)"], ["C (basılı)", "Chakra şarjı"], ["R / T", "Alet fırlat / değiştir"], ["N", "Silahı çek / kınına sok"], ["E / orta tık", "Hedefe kilitlen"],
 		["1-6", "Jutsu slotları"], ["F", "Etkileşim"], ["H / Y", "Merhem / Asker hapı"], ["G + 1-9,0,-,=", "Mühür ör"],
-		["V", "Göz tekniği (basılı: Susanoo)"], ["Z / X", "Sağ / sol göz tekniği (gözler açıkken)"], ["B", "Sekiz Kapı"], ["Tab", "Ninja menüsü"],
+		["V", "Dōjutsu: gözleri aç / kapat (basılı: Susanoo)"], ["Z / X", "Sağ / sol göz tekniği (gözler açıkken)"], ["B", "Sekiz Kapı"], ["Tab", "Ninja menüsü"],
 		["K", "Jutsular"], ["M", "Harita"], ["Esc", "Menü"]]
 	var grid = GridContainer.new()
 	grid.columns = 2
@@ -715,6 +768,8 @@ static func _tab_inventory(main: Node, body: Control) -> void:
 		Gear.ensure(pr)
 		var counts = {}
 		for g in pr.get("gear", []):
+			if Gear.is_eye(g["id"]):
+				continue   # gözler eşya değil: Gözler (dōjutsu) sekmesinde
 			counts[g["id"]] = int(counts.get(g["id"], 0)) + 1
 		for gid in counts:
 			var gi = Gear.item(gid)
@@ -755,6 +810,10 @@ static func _tab_inventory(main: Node, body: Control) -> void:
 			var r = UI.rarity_of_gear(sel["id"])
 			tv.add_child(UI.label(UI.RARITY_NAMES[r], 14, UI.RARITY[r], HORIZONTAL_ALIGNMENT_LEFT, true))
 			tv.add_child(UI.label(Gear.stats_text(sel["id"]), 14, UI.GOOD))
+			var rs = Gear.req_summary(sel["id"])
+			if rs != "":
+				var why = Gear.req_text(sel["id"], pr)
+				tv.add_child(UI.icon_label("lock" if why != "" else "check", rs + ("  —  henüz takamazsın" if why != "" else ""), 14, UI.BAD if why != "" else UI.GOOD))
 		tv.add_child(UI.label("Adet: %d" % sel["count"], 14, UI.MUTED))
 		top.add_child(tv)
 		dv.add_child(top)
@@ -774,7 +833,10 @@ static func _tab_inventory(main: Node, body: Control) -> void:
 				main.use_item(sel["id"])
 				ninja_menu(main, "inv"), 380, "potion"))
 		elif sel["type"] == "gear":
-			dv.add_child(UI.button("Ekipmanda göster", func(): ninja_menu(main, "wardrobe"), 380, "armor"))
+			dv.add_child(UI.button("Ekipmanda göster", func():
+				var gs = String(Gear.item(sel["id"]).get("slot", "govde"))
+				_eq_slot = "sag" if gs == "el" else gs
+				ninja_menu(main, "wardrobe"), 380, "armor"))
 	# durum kartı
 	var st = UI.card()
 	right.add_child(st)
@@ -971,8 +1033,14 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 		d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		d.custom_minimum_size = Vector2(460, 0)
 		detail_v.add_child(d)
+		var rs = Gear.req_summary(g["id"])
+		var why = Gear.req_text(g["id"], pr)
+		if rs != "":
+			detail_v.add_child(UI.icon_label("lock" if why != "" else "check", rs, 14, UI.BAD if why != "" else UI.GOOD))
 		var on = not cur.is_empty() and int(cur["uid"]) == int(g["uid"])
-		if on:
+		if why != "" and not on:
+			detail_v.add_child(UI.label("Takamazsın: %s." % why, 15, UI.BAD, HORIZONTAL_ALIGNMENT_LEFT, true))
+		elif on:
 			if not _eq_slot in Gear.REQUIRED:
 				detail_v.add_child(UI.button("Çıkar", func():
 					pr["equip"].erase(_eq_slot)
@@ -988,13 +1056,20 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 			if sl[0] != _eq_slot and int(pr["equip"].get(sl[0], -1)) == int(g["uid"]):
 				used_other = true
 		var on = not cur.is_empty() and int(cur["uid"]) == int(g["uid"])
-		var t = _tile(Thumbs.gear_view(g["id"], 60, Color.html(g["c1"])), it["name"], UI.RARITY[UI.rarity_of_gear(g["id"])], on, func():
+		var why = Gear.req_text(g["id"], pr)
+		var t = _tile(Thumbs.gear_view(g["id"], 60, Color.html(g["c1"])), it["name"], UI.RARITY[UI.rarity_of_gear(g["id"])] if why == "" else Color(1, 1, 1, 0.12), on, func():
+			if why != "" and not on:
+				Hud.msg("Takamazsın: %s" % why, Color(1, 0.5, 0.4))
+				show_detail.call(g)
+				return
 			if used_other:
 				Hud.msg("Bu eşya diğer elde takılı.", Color(1, 0.8, 0.5))
 				return
 			pr["equip"][_eq_slot] = int(g["uid"])
-			refresh.call(), 92, "✓" if on else ("◐" if used_other else ""))
-		t.tooltip_text = "%s\n%s" % [it["name"], Gear.stats_text(g["id"])]
+			refresh.call(), 92, "✓" if on else ("◐" if used_other else ("Kilitli" if why != "" else "")))
+		if why != "" and not on:
+			t.modulate = Color(1, 1, 1, 0.5)
+		t.tooltip_text = "%s\n%s%s" % [it["name"], Gear.stats_text(g["id"]), ("\n" + why) if why != "" else ""]
 		t.mouse_entered.connect(func(): show_detail.call(g))
 		grid.add_child(t)
 	dv.add_child(detail)
@@ -1321,6 +1396,13 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 		var card = _jutsu_card(jid, jid == picked, func(): ninja_menu(main, "jutsu", jid))
 		if not jid in learned:
 			card.modulate = Color(1, 1, 1, 0.45)
+		else:
+			# sürükle: öğrenilmiş jutsu kartı slot çubuğuna bırakılabilir
+			var cref = card
+			var drag_card = func(_at):
+				cref.set_drag_preview(_jutsu_drag_preview(jid))
+				return {"jutsu": jid, "from_slot": -1}
+			card.set_drag_forwarding(drag_card, Callable(), Callable())
 		grid.add_child(card)
 	if shown.size() >= 120:
 		left.add_child(UI.label("İlk 120 sonuç gösteriliyor — filtreyi daralt.", 13, UI.MUTED))
@@ -1329,9 +1411,28 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 	left.add_child(bar)
 	var bv = UI.vbox(8)
 	bar.add_child(bv)
-	bv.add_child(UI.label("Seçili jutsuyu bir slota ata", 14, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
+	bv.add_child(UI.label("Jutsu kartını bir slota sürükle-bırak (ya da seç ve slota tıkla). Slotlar arasında sürükleyerek yer değiştir, slottan çıkarmak için çöpe sürükle ya da sağ tıkla.", 14, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
 	var sh = UI.hbox(10)
 	bv.add_child(sh)
+	var refresh_j = func() -> void:
+		(func(): ninja_menu(main, "jutsu", picked)).call_deferred()
+	# i: hedef slot, jid: bırakılan jutsu, from: kaynak slot (-1 = kitaptan)
+	var assign = func(i: int, jid: String, from: int) -> void:
+		while pr["slots"].size() < 6:
+			pr["slots"].append("")
+		if from >= 0 and from != i:
+			var other = pr["slots"][i]
+			pr["slots"][i] = jid
+			pr["slots"][from] = other if other != null else ""
+		elif from < 0:
+			for k in 6:
+				if pr["slots"][k] == jid:
+					pr["slots"][k] = ""
+			pr["slots"][i] = jid
+		Sfx.play("click")
+		refresh_j.call()
+	var accepts = func(_at, data) -> bool:
+		return data is Dictionary and data.has("jutsu") and String(data["jutsu"]) in learned
 	for i in 6:
 		var cur = pr["slots"][i] if i < pr["slots"].size() else ""
 		var j: Dictionary = Data.jutsu.get(cur, {}) if cur != null and cur != "" else {}
@@ -1339,16 +1440,38 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 		var view = Icons.view(UI.ELEMENT_ICONS.get(el, "chakra") if not j.is_empty() else "plus", 40, UI.ELEMENT_COLORS.get(el, UI.TEXT) if not j.is_empty() else Color(1, 1, 1, 0.15))
 		var nm = String(j.get("name", "Boş")).split(":")[-1].split("(")[0].strip_edges()
 		var t = _tile(view, "[%d] %s" % [i + 1, nm], UI.ELEMENT_COLORS.get(el, Color(1, 1, 1, 0.2)) if not j.is_empty() else Color(1, 1, 1, 0.15), false, func():
-			if picked != "":
-				while pr["slots"].size() < 6:
-					pr["slots"].append("")
-				for k in 6:
-					if pr["slots"][k] == picked:
-						pr["slots"][k] = ""
-				pr["slots"][i] = picked
-			ninja_menu(main, "jutsu", picked), 112)
+			if picked != "" and picked in learned:
+				assign.call(i, picked, -1)
+			elif picked != "":
+				Hud.msg("Önce bu jutsuyu öğrenmelisin.", Color(1, 0.6, 0.4)), 112)
 		t.tooltip_text = nm
+		var tref = t
+		var cur_id = String(cur) if cur != null else ""
+		var drag_slot = func(_at):
+			if cur_id == "":
+				return null
+			tref.set_drag_preview(_jutsu_drag_preview(cur_id))
+			return {"jutsu": cur_id, "from_slot": i}
+		var drop_slot = func(_at, data) -> void:
+			assign.call(i, String(data["jutsu"]), int(data.get("from_slot", -1)))
+		t.set_drag_forwarding(drag_slot, accepts, drop_slot)
+		t.gui_input.connect(func(e):
+			if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_RIGHT and cur_id != "":
+				pr["slots"][i] = ""
+				Sfx.play("click")
+				refresh_j.call())
 		sh.add_child(t)
+	# çöp: slottan sürüklenen jutsu buraya bırakılınca slot boşalır
+	var trash = _tile(Icons.view("close", 36, Color(1, 0.5, 0.45)), "Çıkar", Color(1, 0.4, 0.35, 0.5), false, func(): pass, 112)
+	trash.tooltip_text = "Slottan çıkarmak için buraya sürükle"
+	var trash_ok = func(_at, data) -> bool:
+		return data is Dictionary and int(data.get("from_slot", -1)) >= 0
+	var trash_drop = func(_at, data) -> void:
+		pr["slots"][int(data["from_slot"])] = ""
+		Sfx.play("click")
+		refresh_j.call()
+	trash.set_drag_forwarding(Callable(), trash_ok, trash_drop)
+	sh.add_child(trash)
 	# sağ: ayrıntı
 	var right = UI.card()
 	right.custom_minimum_size = Vector2(440, 0)
@@ -1418,6 +1541,21 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	d.custom_minimum_size = Vector2(400, 0)
 	rv.add_child(d)
+
+
+## Sürüklenirken imlecin yanında görünen küçük jutsu rozeti
+static func _jutsu_drag_preview(jid: String) -> Control:
+	var j: Dictionary = Data.jutsu.get(jid, {})
+	var el = String(j.get("element", ""))
+	var ec: Color = UI.ELEMENT_COLORS.get(el, UI.GOLD)
+	var p = PanelContainer.new()
+	p.add_theme_stylebox_override("panel", UI._box(Color(0.05, 0.06, 0.09, 0.92), ec, 2, 14, 8))
+	var hb = UI.hbox(8)
+	p.add_child(hb)
+	hb.add_child(Icons.view(UI.ELEMENT_ICONS.get(el, "chakra"), 32, ec))
+	hb.add_child(UI.label(String(j.get("name", jid)).split("(")[0].strip_edges(), 15, UI.TEXT))
+	p.position = Vector2(-20, -20)
+	return p
 
 
 static func _jutsu_card(jid: String, selected: bool, cb: Callable) -> Button:
