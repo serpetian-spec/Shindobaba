@@ -47,6 +47,7 @@ func _village_at(p: Vector3) -> Dictionary:
 ## Köyün sokak noktaları: yol ağındaki "street" parçalarından örneklenir (yanlara hafif sapma)
 func _streets(v: Dictionary) -> Array:
 	if street_cache.has(v["id"]):
+		VillageSpots.top_up(street_cache[v["id"]], v)   # ara sokak / avlu / park noktaları (parklar sonradan kurulur)
 		return street_cache[v["id"]]
 	var pts: Array = []
 	var c = Vector2(float(v["x"]), float(v["y"]))
@@ -70,6 +71,7 @@ func _streets(v: Dictionary) -> Array:
 		for i in 120:
 			var a2 = randf() * TAU
 			pts.append(Game.from_map(c + Vector2(cos(a2), sin(a2)) * sqrt(randf()) * r * 0.9))
+	VillageSpots.top_up(pts, v)
 	street_cache[v["id"]] = pts
 	return pts
 

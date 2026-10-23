@@ -28,6 +28,9 @@ func _ready() -> void:
 func _physics_process(dt: float) -> void:
 	if dead:
 		return
+	if typeof(shooter) == TYPE_OBJECT and not is_instance_valid(shooter):   # atan düşman silindi (karşılaşma/aranan kaybolunca): mermi de söner
+		queue_free()
+		return
 	life -= dt
 	if life <= 0.0:
 		_finish(global_position, null)

@@ -423,6 +423,7 @@ func _end_susanoo() -> void:
 ## Düşman göz sahibi yapar (Bingo Book hedefleri, kaçak klan ninjaları)
 static func give_enemy_eyes(f: Node, kind: int, lvl := 3) -> void:
 	f.set_meta("eyes", {"kind": kind, "lvl": lvl})
+	f.add_to_group("dojutsu_bearers")   # öldükten sonra "fighters"tan çıkar; göz çalma bu grubu tarar
 	if f.get("model") and f.model and f.model.has_method("set_dojutsu_eyes"):
 		f.model.set_dojutsu_eyes(kind, lvl, kind, lvl, kind == 2)
 
@@ -496,7 +497,7 @@ func _process(dt: float) -> void:
 					_mark(f, Color(0.75, 0.85, 1.0, 0.9))
 	# göz çalma: yakında gözleri alınmamış düşmüş dōjutsu sahibi
 	steal_target = null
-	for f in get_tree().get_nodes_in_group("fighters"):
+	for f in get_tree().get_nodes_in_group("dojutsu_bearers"):
 		if f != p and f.has_meta("eyes") and not f.has_meta("eyes_taken") and f.is_dead() and f.global_position.distance_to(p.global_position) < 3.0:
 			steal_target = f
 			if not f.has_meta("eye_prompt"):

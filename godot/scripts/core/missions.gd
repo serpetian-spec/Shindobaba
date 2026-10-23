@@ -1799,6 +1799,7 @@ func _bb_new() -> Dictionary:
 	if rank == "S" and randf() < 0.35:
 		e["beast"] = ["shukaku", "matatabi", "isobu", "son_goku", "kokuo", "saiken", "chomei", "gyuki"].pick_random()
 		e["crimes"].append("İçinde bir Kuyruklu Canavar taşıyor (%s)" % String(BeastModels.INFO[e["beast"]]["name"]).split(" — ")[0])
+	ClanWorld.decorate_bingo(e)   # bazen bir klanın kaçağı (gözleri alınabilir)
 	bb["next"] = int(bb["next"]) + 1
 	return e
 
@@ -1875,6 +1876,7 @@ func _bb_spawn(e: Dictionary, at: Vector3) -> void:
 		a["beast"] = e["beast"]
 		a["name"] = "«%s» %s — Jinchūriki" % [e["alias"], e["name"]]
 		a["hp"] = float(e["hp"]) * 1.6
+	ClanWorld.bingo_arch(e, a)   # klan / efsane jutsuları
 	var b = Enemy.new()
 	b.setup(a)
 	b.set_meta("bingo_id", int(e["id"]))
@@ -1884,6 +1886,7 @@ func _bb_spawn(e: Dictionary, at: Vector3) -> void:
 	b.global_position = p
 	b.home = p
 	nodes[0] = b
+	ClanWorld.after_bingo_spawn(e, b)
 	for i in int(e["escorts"]):
 		var x = Enemy.new()
 		var xa = Enemy.archetype(e["escort_kind"], i)

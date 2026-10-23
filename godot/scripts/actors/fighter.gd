@@ -128,7 +128,7 @@ func die(_info: Dictionary) -> void:
 	collision_layer = 0
 	remove_from_group("fighters")
 	var tw = create_tween()
-	tw.tween_interval(3.0)
+	tw.tween_interval(3.0 if not has_meta("eyes") else 45.0)   # dōjutsu sahibi: gözleri alınabilsin diye beden bir süre kalır
 	tw.tween_callback(func(): FX.smoke_puff(global_position + Vector3.UP * 0.5, 0.8, 10))
 	tw.tween_property(self, "scale", Vector3.ONE * 0.01, 0.3)
 	tw.tween_callback(queue_free)
