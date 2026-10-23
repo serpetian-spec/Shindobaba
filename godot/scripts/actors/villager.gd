@@ -66,6 +66,7 @@ var call_cd := 0.0
 var bubble: Label3D
 var bubble_t := 0.0
 var kick_t := -1.0
+var nav := {}               # NpcNav durumu (engelden dolaşma, takılma)
 var fading := false
 
 
@@ -331,14 +332,15 @@ func _physics_process(dt: float) -> void:
 			return
 		_new_goal()
 		return
+	var mv = NpcNav.steer(self, v.normalized(), dt)
 	if role == "drunk":
 		var wob = sin(Time.get_ticks_msec() * 0.003 + home.x) * 0.9
-		v = v.normalized().rotated(Vector3.UP, wob)
+		mv = mv.rotated(Vector3.UP, wob)
 		_call(dt, dist)
-	step_move(v.normalized() * speed, dt)
+	step_move(mv * speed, dt)
 	model.play("run" if speed > 5.0 else "walk", 0.2, 0.75 if role == "drunk" else 1.0)
-	if is_on_wall():
-		_new_goal()
+	if NpcNav.stuck(self, goal, dt):
+		_unstick(dist)
 
 
 func _wander_small(dt: float) -> void:
@@ -357,10 +359,11 @@ func _wander_small(dt: float) -> void:
 		goal = home + Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)) * maxf(1.0, wander_r)
 		wait = randf_range(2.5, 6.0)
 		return
-	step_move(tv.normalized() * 1.2, dt)
+	step_move(NpcNav.steer(self, tv.normalized(), dt) * 1.2, dt)
 	model.play("walk", 0.2)
-	if is_on_wall():
+	if NpcNav.stuck(self, goal, dt):
 		goal = home
+		wait = randf_range(1.0, 3.0)
 
 
 ## Selamlama + çarpma tepkisi + balon süresi
@@ -495,10 +498,14 @@ func _shop(dt: float) -> void:
 	if v.length() < 0.9:
 		wait = randf_range(6.0, 14.0)
 		return
-	step_move(v.normalized() * 2.4, dt)
+	step_move(NpcNav.steer(self, v.normalized(), dt) * 2.4, dt)
 	model.play("walk", 0.2)
-	if is_on_wall():
-		_pick_stall()
+	if NpcNav.stuck(self, goal, dt):
+		if int(nav.get("n", 0)) >= 3 and global_position.distance_to(Game.player.global_position) > 30.0:
+			global_position = goal  # görünmezken sıkıştıysa yerine al
+			nav["n"] = 0
+		else:
+			_pick_stall()
 
 
 func _pick_stall() -> void:
@@ -540,8 +547,12 @@ func kick_ball() -> void:
 func _new_goal() -> void:
 	match role:
 		"kid":
-			# kovalamaca: ev noktası etrafında hızlı koşuşturma
-			goal = home + Vector3(randf_range(-14, 14), 0, randf_range(-14, 14))
+			# kovalamaca: ev noktası etrafında hızlı koşuşturma (düz hattı açık nokta)
+			var ks: Array = []
+			for k in 4:
+				ks.append(home + Vector3(randf_range(-14, 14), 0, randf_range(-14, 14)))
+			var kq = NpcNav.pick_clear(self, ks)
+			goal = kq if kq != null else home
 			wait = randf_range(0.0, 0.6)
 			if randf() < 0.15:
 				Sfx.play("jump", global_position, 1.5, 0.4)
@@ -551,12 +562,47 @@ func _new_goal() -> void:
 			if randf() < 0.3:
 				model.play("dance", 0.3)
 		_:
-			if not points.is_empty() and randf() < 0.8:
-				var q = points.pick_random()
-				goal = q["front"] if q is Dictionary else q
+			# sokak noktalarından yakın (8-70 m) ve düz hattı açık olanı seç: köyün öbür ucuna,
+			# evlerin içinden geçen bir hatta yürüyüp duvara yapışmasın
+			var cands: Array = []
+			if not points.is_empty():
+				for k in 10:
+					var q = points.pick_random()
+					var qp: Vector3 = q["front"] if q is Dictionary else q
+					var dq = qp.distance_to(global_position)
+					if dq > 8.0 and dq < 70.0:
+						cands.append(qp)
+					if cands.size() >= 5:
+						break
+			var pq = NpcNav.pick_clear(self, cands)
+			if pq != null:
+				goal = pq
+			elif not cands.is_empty():
+				goal = cands[0]
 			else:
-				goal = home + Vector3(randf_range(-40, 40), 0, randf_range(-40, 40))
+				goal = home
 			wait = randf_range(0.5, 6.0) if role == "walker" else randf_range(0.0, 1.0)
+	NpcNav.reset(self)
+
+
+## Takıldı: önce yeni hedef; art arda takılırsa başladığı sokak noktasına dön; görünmezken hâlâ
+## sıkışıksa oraya yerleş (duvara yapışık kalmasın)
+func _unstick(dist: float) -> void:
+	var k = int(nav.get("n", 0))
+	if going_home:
+		if k >= 2:
+			vanish()  # kapıya ulaşamadı: yine de "eve girdi"
+		return
+	if k >= 4 and dist > 30.0:
+		global_position = home
+		velocity = Vector3.ZERO
+		nav["n"] = 0
+		_new_goal()
+	elif k >= 2:
+		goal = home
+		NpcNav.reset(self)
+	else:
+		_new_goal()
 
 
 ## Çatıdan çatıya sekerek koşan ninja

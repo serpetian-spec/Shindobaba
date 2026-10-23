@@ -16,6 +16,12 @@ var placer = null  # HouseKit.Placer (Japon tarzı detaylı evler)
 var yoff := 0.0  # geçici dikey ofset (eğimli arazide bina tabanı)
 var packs := {}  # hücre+mesh -> [mesh, Array[Transform3D]] (hazır modeller: MultiMesh)
 var last_house := {}  # son yerleştirilen şablon ev (w, d, h, roof_top)
+var houses: Array = []  # [x, n, gen, der, yaw, taban, stil] (peyzaj bahçeleri için)
+var solids := {}  # 16 m ızgara (dünya xz) -> [[cx, cz, yarı_x, yarı_z, açı]] (peyzaj çakışma kontrolü)
+var landscape := true  # finish()'te yeterince ev varsa CityLandscape ile bahçe/sokak ağacı/park
+const SCELL := 16.0
+static var _tree_mesh: Mesh
+static var landscape_on := true  # testlerde karşılaştırma için kapatılabilir
 
 static var roof_points := {}  # köy id -> [çatı tepe noktaları] (çatıdan çatıya koşan ninjalar için)
 
@@ -52,6 +58,7 @@ func _collide(center: Vector3, size: Vector3, yaw_deg: float) -> void:
 	cs.shape = sh
 	cs.transform = Transform3D(Basis(Vector3.UP, deg_to_rad(yaw_deg)), center)
 	body.add_child(cs)
+	add_solid(center, size.x * 0.5, size.z * 0.5, deg_to_rad(yaw_deg))
 
 
 func _collide_cyl(center: Vector3, r: float, h: float) -> void:
@@ -64,6 +71,42 @@ func _collide_cyl(center: Vector3, r: float, h: float) -> void:
 	cs.shape = sh
 	cs.position = center
 	body.add_child(cs)
+	add_solid(center, r, r, 0.0)
+
+
+## Çakışma ızgarasına dönmüş dikdörtgen ekle (dünya merkezi, yarı boyutlar, Godot y açısı)
+func add_solid(center: Vector3, hx: float, hz: float, ang: float) -> void:
+	var e = maxf(hx, hz) * 1.415
+	var x0 = floori((center.x - e) / SCELL); var x1 = floori((center.x + e) / SCELL)
+	var z0 = floori((center.z - e) / SCELL); var z1 = floori((center.z + e) / SCELL)
+	if (x1 - x0 + 1) * (z1 - z0 + 1) > 400:
+		return  # çok büyük düz alanlar (meydan zemini vb.) kontrolü boğmasın
+	var rec = [center.x, center.z, hx, hz, ang]
+	for cx in range(x0, x1 + 1):
+		for cz in range(z0, z1 + 1):
+			var k = Vector2i(cx, cz)
+			if not solids.has(k):
+				solids[k] = []
+			solids[k].append(rec)
+
+
+## Dünya xz noktası çevresinde r yarıçaplı daire hiçbir çarpışma kutusuna değmiyor mu
+func area_free(p: Vector2, r: float) -> bool:
+	for cx in range(floori((p.x - r) / SCELL), floori((p.x + r) / SCELL) + 1):
+		for cz in range(floori((p.y - r) / SCELL), floori((p.y + r) / SCELL) + 1):
+			var lst = solids.get(Vector2i(cx, cz))
+			if lst == null:
+				continue
+			for rec in lst:
+				var dx: float = p.x - rec[0]
+				var dz: float = p.y - rec[1]
+				var a: float = rec[4]
+				var ca = cos(a); var sa = sin(a)
+				var lx = absf(ca * dx - sa * dz) - rec[2]
+				var lz = absf(sa * dx + ca * dz) - rec[3]
+				if Vector2(maxf(lx, 0.0), maxf(lz, 0.0)).length() < r:
+					return false
+	return true
 
 
 ## p: yerel taban-merkez değil, MERKEZ. yaw: derece (kuzeyden doğuya). Godot'da y ekseni etrafında -yaw.
@@ -185,6 +228,9 @@ func interact(p: Vector3, radius: float, kind: String, label: String, data := {}
 func finish() -> void:
 	if not is_instance_valid(root):
 		return
+	if landscape and landscape_on and houses.size() >= 12 and not key.begins_with("yolkenari"):
+		landscape = false
+		CityLandscape.dress(self)
 	if placer != null:
 		placer.finish()
 	for pk in packs:
@@ -230,8 +276,25 @@ func house(x: float, n: float, wdt: float, dep: float, floors: int, yaw: float, 
 		var fh = g.y - g.x + 0.8
 		box(Vector3(x, g.x - 0.6 + fh * 0.5, n), Vector3(wdt + 0.8, fh, dep + 0.8), stone, yaw)
 	yoff = g.y
+	last_house = {}
 	_house_body(x, n, wdt, dep, floors, yaw, style, rng)
 	yoff = 0.0
+	_record_house(x, n, wdt, dep, yaw, g.y, style)
+
+
+## Evin ayak izini (yan ekleri dahil) peyzaj için kaydet
+func _record_house(x: float, n: float, wdt: float, dep: float, yaw: float, base: float, style: String) -> void:
+	var hw = float(last_house.get("w", wdt))
+	var hd = float(last_house.get("d", dep))
+	houses.append([x, n, hw, hd, yaw, base, style])
+	var c = w(Vector3(x, 0, n))
+	add_solid(c, hw * 0.5 + 0.3, hd * 0.5 + 0.3, deg_to_rad(-yaw))
+	var cols: Array = last_house.get("cols", [])
+	if not cols.is_empty():
+		var bs = Basis(Vector3.UP, deg_to_rad(-yaw) + PI)
+		for e in cols:
+			var sz: Vector3 = e[1]
+			add_solid(c + bs * Vector3(e[0]), sz.x * 0.5 + 0.2, sz.z * 0.5 + 0.2, deg_to_rad(-yaw) + PI)
 
 
 func _house_body(x: float, n: float, wdt: float, dep: float, floors: int, yaw: float, style: String, rng: RandomNumberGenerator) -> void:
@@ -380,7 +443,9 @@ func village_gate(ang: float, r: float, half_open: float, height: float, post_co
 
 func tree(x: float, n: float, s: float, rng: RandomNumberGenerator, y := 0.0) -> void:
 	# prosedürel ağaç (hazır paket ağaçları doğal durmuyordu; kullanıcı eskisini tercih etti)
-	var tm = Props.vegetation_mesh(0)
+	if _tree_mesh == null:
+		_tree_mesh = Props.vegetation_mesh(0)  # tek mesh: hücre başına tek MultiMesh (her ağaca ayrı çizim değil)
+	var tm = _tree_mesh
 	if tm != null:
 		pack_mesh(tm, Vector3(x, y, n), rng.randf() * 360.0, s * rng.randf_range(0.85, 1.15), 1.0)
 		_collide_cyl(w(Vector3(x, y + 2.6 * s, n)), 0.35 * s, 5.2 * s)
