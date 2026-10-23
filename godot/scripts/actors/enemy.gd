@@ -65,7 +65,64 @@ static func archetype(kind: String, i := 0) -> Dictionary:
 	if oarch != "":
 		L.merge(Outfits.roll(oarch, String(L.get("village", "konoha"))), true)
 	base["look"] = L
+	# jutsu seviyeye ve tipe göre seçilir: haydut jutsu atmaz, düşük seviye kaçak ninja köpekbalığı fırlatmaz
+	if kind in JUTSU_CAP:
+		var auto = auto_jutsu(kind, String(base["element"]), int(base["level"]))
+		if not auto.is_empty():
+			base["jutsu"] = auto
+		base["auto_jutsu"] = base["jutsu"].duplicate()
+		base["auto_lv"] = int(base["level"])
 	return base
+
+
+## Tip başına en yüksek jutsu rütbesi (E0 D1 C2 B3 A4 S5); seviye de ayrıca sınırlar
+const JUTSU_CAP := {"rogue": 4, "oto": 3, "kumo": 4, "kiri": 4, "iwa": 4, "suna": 4, "genin_rival": 2}
+const RANK_I := {"E": 0, "D": 1, "C": 2, "B": 3, "A": 4, "S": 5}
+
+
+static func _lv_cap(lv: int) -> int:
+	if lv < 6:
+		return 1
+	if lv < 12:
+		return 2
+	if lv < 25:
+		return 3
+	if lv < 45:
+		return 4
+	return 5
+
+
+## Element havuzundan, klan/kekkei genkai/göz/yasak/imza jutsuları hariç, rütbesi izin verilen 2-3 jutsu
+static func auto_jutsu(kind: String, el: String, lv: int) -> Array:
+	if el == "":
+		return []
+	var cap = mini(int(JUTSU_CAP.get(kind, 2)), _lv_cap(lv))
+	var by_rank = {}
+	for id in Data.jutsu:
+		var j = Data.jutsu[id]
+		if not j is Dictionary or String(j.get("element", "")) != el or String(j.get("category", "")) != "ninjutsu":
+			continue
+		var lp = String(j.get("learn", "")).split(":")[0]
+		if lp in ["clan", "kg", "eye", "kinjutsu", "quest", "sage"]:
+			continue
+		var r = int(RANK_I.get(String(j.get("canon_rank", "")), -1))
+		if r < 0 or r > cap:
+			continue
+		if not by_rank.has(r):
+			by_rank[r] = []
+		by_rank[r].append(id)
+	var out = []
+	# en üst izinli rütbeden 1, alttakilerden 1-2 (çeşit olsun)
+	for r in range(cap, -1, -1):
+		if not by_rank.has(r):
+			continue
+		var pool: Array = by_rank[r].duplicate()
+		pool.shuffle()
+		for id in pool.slice(0, 1 if out.is_empty() else 2):
+			out.append(id)
+		if out.size() >= 3:
+			break
+	return out.slice(0, 3)
 
 
 func setup(a: Dictionary) -> void:
@@ -76,6 +133,11 @@ func setup(a: Dictionary) -> void:
 	level = a["level"]; xp = a["xp"]; ryo = a["ryo"]
 	size = a.get("size", 1.0)
 	display_name = a["name"]
+	# görev seviyeyi değiştirdiyse ve jutsu elle verilmediyse yeni seviyeye göre yeniden seç
+	if a.has("auto_jutsu") and a["jutsu"] == a["auto_jutsu"] and int(a["level"]) != int(a.get("auto_lv", 0)):
+		var auto = auto_jutsu(String(a["kind"]), String(a["element"]), int(a["level"]))
+		if not auto.is_empty():
+			a["jutsu"] = auto
 
 
 func _ready() -> void:
