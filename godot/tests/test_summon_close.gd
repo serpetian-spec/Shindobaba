@@ -12,7 +12,10 @@ func _ready() -> void:
 	pl.set_process(false)
 	TailedBeasts.set_process(false)
 	var base = pl.global_position + Vector3(0, 0, -30)
-	for spec in [["hawk_giant", 8.0, 8.0], ["monkey_small", 2.0, 2.0], ["toad_boss", 17.0, 17.0], ["toad_mid", 4.0, 4.0], ["toad_small", 1.0, 1.0], ["snake_giant", 4.0, 30.0], ["dog_small", 0.6, 0.8], ["snake_boss", 8.0, 70.0], ["slug_queen", 6.0, 14.0], ["wolf_giant", 6.0, 10.0], ["monkey_king", 9.0, 9.0], ["cat_giant", 6.0, 10.0], ["turtle_giant", 6.0, 14.0]]:
+	var specs = [["hawk_giant", 8.0, 8.0], ["monkey_small", 2.0, 2.0], ["toad_boss", 17.0, 17.0], ["toad_mid", 4.0, 4.0], ["toad_small", 1.0, 1.0], ["snake_giant", 4.0, 30.0], ["dog_small", 0.6, 0.8], ["snake_boss", 8.0, 70.0], ["slug_queen", 6.0, 14.0], ["wolf_giant", 6.0, 10.0], ["monkey_king", 9.0, 9.0], ["cat_giant", 6.0, 10.0], ["turtle_giant", 6.0, 14.0]]
+	if OS.get_environment("SPECS") != "":
+		specs = str_to_var(OS.get_environment("SPECS"))
+	for spec in specs:
 		var d = SummonModels.build(spec[0], spec[1], spec[2])
 		var root: Node3D = d["root"]
 		main.add_child(root)

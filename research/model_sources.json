@@ -1,0 +1,795 @@
+{
+ "meta": {
+  "date": "2026-10-22",
+  "purpose": "Free fan-made / generic 3D models for a personal, non-distributed Naruto fan game (Godot 4). Nothing downloaded.",
+  "method": "Sketchfab public API v3 (/v3/search?downloadable=true and /v3/models/{uid}), ~90 query terms; thumbnails reviewed visually; WebSearch over Free3D, CGTrader, TurboSquid, RigModels, itch.io, Cults3D, MakerWorld; Poly Pizza / Quaternius pages fetched.",
+  "sketchfab_note": "Sketchfab: free account login (or API token) required; download offers original upload + auto-converted glTF/GLB/USDZ",
+  "rip_policy": "Excluded anything stated or strongly implied to be extracted from a commercial game (Naruto Storm, Naruto Online, Free Fire, Fortnite...). 'suspected_rip' = uploader pattern suggests game rips without saying so.",
+  "excluded_examples": [
+   {
+    "name": "Naruto 4 Tails / Naruto (Kyubi) Ultimate Ninja Storm",
+    "author": "20062020year",
+    "url": "https://sketchfab.com/3d-models/3612f90f04d542868dbd1fd4ba0ce730",
+    "reason": "titled Ultimate Ninja Storm (game rip)"
+   },
+   {
+    "name": "Kurama",
+    "author": "witsanusuperball",
+    "url": "https://sketchfab.com/3d-models/4740ec530150447382648c06ab3bb4b9",
+    "reason": "'Naruto Online MMORPG', 9 game animations: rip"
+   },
+   {
+    "name": "Naruto Kurama | FREE FIRE / kurama Mounts freefire / KURAMA ANIMATION FREE FIRE",
+    "author": "3DKINGFF, rocklee.ff",
+    "url": "https://sketchfab.com/3d-models/e7d269e0e5344f7399f135a44003b587",
+    "reason": "Free Fire collab assets (game rips)"
+   },
+   {
+    "name": "Freefire gamabunta emote",
+    "author": "kyroxffx",
+    "url": "https://sketchfab.com/3d-models/de7ea1c97f214afd80c6d026bc923012",
+    "reason": "Free Fire rip"
+   },
+   {
+    "name": "Kurama (Armored Susanoo) / Kurama (Fox With Nine Tails) / Ten tails (mokugenandmugenuser)",
+    "url": "https://sketchfab.com/3d-models/578323a8fd834f3b8f50c2c167161792",
+    "reason": "AI-generated (Rodin/Meshy), low quality"
+   },
+   {
+    "name": "Kurama (s4iy4n_1)",
+    "url": "https://sketchfab.com/3d-models/892ab1a8c7994198946e917c66f3526e",
+    "reason": "Yu Yu Hakusho Kurama, wrong character"
+   }
+  ],
+  "sources_with_no_usable_hits": {
+   "Free3D": "403 to fetcher; search engines index only a Naruto character model, no beasts/summons",
+   "CGTrader": "only a paid Gamabunta ($2, ZTL/OBJ/FBX/STL/BLEND stylized sculpt: https://www.cgtrader.com/3d-models/animal/reptile/gamabunta-frog-naruto) and 3D-print statues",
+   "TurboSquid / RigModels / Clara.io": "no free Naruto beast/summon hits (Clara.io is defunct)",
+   "Cults3D / MakerWorld": "3D-print figurines only (Kurama, chibi Gyuki); MakerWorld license forbids redistribution; print meshes not game-ready",
+   "itch.io": "no tailed beasts or summons; generic Japanese house packs only"
+  }
+ },
+ "tailed_beasts": {
+  "Shukaku": {
+   "candidates": [
+    {
+     "name": "Shukaku Naruto",
+     "url": "https://sketchfab.com/3d-models/7e3b464111194543925b64e85f6cc1b9",
+     "source": "Sketchfab",
+     "author": "ursulucigas",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "13104 faces",
+     "quality_notes": "Only Shukaku on Sketchfab. Small stylized textured tanuki, sitting pose, sand colour; looks hand-made (2021). Needs rig + markings.",
+     "suitability_1to5": 3
+    }
+   ],
+   "best": "Shukaku Naruto (ursulucigas)",
+   "coverage": "poor"
+  },
+  "Matatabi": {
+   "candidates": [],
+   "best": null,
+   "coverage": "none found; adapt a cat base mesh + blue-flame shader"
+  },
+  "Isobu": {
+   "candidates": [],
+   "best": null,
+   "coverage": "none found; adapt a turtle base mesh"
+  },
+  "Son Goku (Four-Tails)": {
+   "candidates": [],
+   "best": null,
+   "coverage": "none clean (only a Storm rip, excluded); adapt an ape/gorilla base"
+  },
+  "Kokuo": {
+   "candidates": [],
+   "best": null,
+   "coverage": "none found; adapt Quaternius horse (Ultimate Animated Animals)"
+  },
+  "Saiken": {
+   "candidates": [
+    {
+     "name": "Sea Slug - Chromodoris Annae (proxy)",
+     "url": "https://sketchfab.com/3d-models/0bf40ea6694f4abcb27cbf81bc8a36ea",
+     "source": "Sketchfab",
+     "author": "Nestaeric",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "yes, 8 animations",
+     "polycount": "20275 faces",
+     "quality_notes": "Generic animated sea slug; recolour + add horns/tentacles as a Saiken stand-in.",
+     "suitability_1to5": 2
+    }
+   ],
+   "best": "none canon; sea-slug proxy",
+   "coverage": "none canon"
+  },
+  "Chomei": {
+   "candidates": [],
+   "best": null,
+   "coverage": "none found; adapt a beetle/insect base mesh"
+  },
+  "Gyuki": {
+   "candidates": [
+    {
+     "name": "Gyuki CGT116",
+     "url": "https://sketchfab.com/3d-models/f4d7e838a3dc4684a893b1cce5e76a10",
+     "source": "Sketchfab",
+     "author": "1TylerWright",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "22724 faces",
+     "quality_notes": "Student project (2019) on a rocky base plate; low fidelity, needs cleanup. Only Gyuki found.",
+     "suitability_1to5": 2
+    }
+   ],
+   "best": "Gyuki CGT116 (weak)",
+   "coverage": "poor"
+  },
+  "Kurama": {
+   "candidates": [
+    {
+     "name": "The Nine Tailed Fox",
+     "url": "https://sketchfab.com/3d-models/9ce3de6fd9504ca18d9b70e7309b31d8",
+     "source": "Sketchfab",
+     "author": "Calfan",
+     "license": "CC Attribution-NonCommercial",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "1469843 faces",
+     "quality_notes": "Best-looking fan sculpt, hand texture-painted, anime-accurate. 1.47M faces: decimate/retopo to ~30-60k and rig. NC fine for personal use.",
+     "suitability_1to5": 4
+    },
+    {
+     "name": "Kyubi Kurama Mode Bijudama By Jdavid6120",
+     "url": "https://sketchfab.com/3d-models/92ad0aadbca04969b9a2c0b24a5c1815",
+     "source": "Sketchfab",
+     "author": "jdavid612",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "39362 faces",
+     "quality_notes": "Kurama with Tailed-Beast Bomb, game-friendly polycount; thumbnail did not render so visuals unverified.",
+     "suitability_1to5": 3
+    },
+    {
+     "name": "SUSANOO X KURAMA",
+     "url": "https://sketchfab.com/3d-models/5921dfab83564e7ea0778705d8c37469",
+     "source": "Sketchfab",
+     "author": "deiongordon58",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "22571 faces",
+     "quality_notes": "Purple Susanoo-armoured Kurama with sword; Blender fan model, game-ready polycount.",
+     "suitability_1to5": 3
+    },
+    {
+     "name": "Kurama-Kyubi",
+     "url": "https://sketchfab.com/3d-models/5ab8141d05bf47aab604938be8c61ad8",
+     "source": "Sketchfab",
+     "author": "MiguelAguileraPeinado",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "29086 faces",
+     "quality_notes": "Gold chakra-form Kurama, simple stylized.",
+     "suitability_1to5": 2
+    }
+   ],
+   "best": "The Nine Tailed Fox (Calfan) after decimation; jdavid612 as low-poly fallback",
+   "coverage": "good"
+  },
+  "Ten-Tails": {
+   "candidates": [
+    {
+     "name": "Ten- Tails (juubi)",
+     "url": "https://sketchfab.com/3d-models/1e42d1d71eb74b56a448c4f629708bff",
+     "source": "Sketchfab",
+     "author": "serienreviewer",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "15226 faces",
+     "quality_notes": "Dark Juubi form. SUSPECTED RIP: uploader mass-uploaded ~10 Naruto models on 2015-01-04, no descriptions, game-rip polycounts.",
+     "suitability_1to5": 2,
+     "suspected_rip": true
+    }
+   ],
+   "best": "none clean (serienreviewer Juubi, suspected rip)",
+   "coverage": "poor"
+  }
+ },
+ "summons": {
+  "Giant toad (Gamabunta-like)": {
+   "candidates": [
+    {
+     "name": "Battle Toad (Mount)",
+     "url": "https://sketchfab.com/3d-models/c0d9b186cdb942b29894a9340f1ca337",
+     "source": "Sketchfab",
+     "author": "Sam.Hendy",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "161036 faces",
+     "quality_notes": "High-quality original fantasy war-toad, textured, squat muscular silhouette reads as Gamabunta. Decimate; add pipe/vest/sword.",
+     "suitability_1to5": 4
+    },
+    {
+     "name": "Naruto Frog",
+     "url": "https://sketchfab.com/3d-models/317895774b2240fc8892c2c3082ad165",
+     "source": "Sketchfab",
+     "author": "allanromanreyes",
+     "license": "Free Standard",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "18994 faces",
+     "quality_notes": "Naruto toad sculpt, untextured. Needs texture + rig.",
+     "suitability_1to5": 3
+    },
+    {
+     "name": "Toad The Frog Rogue",
+     "url": "https://sketchfab.com/3d-models/1efa73c1646c49ce95b311e8c7f2d845",
+     "source": "Sketchfab",
+     "author": "sch0i",
+     "license": "CC Attribution-NonCommercial",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "rigged (T-pose version)",
+     "polycount": "4331 faces",
+     "quality_notes": "Stylized bipedal frog with hood/bandages, 4.3k tris, 2K texture; good humanoid toad/sage-toad.",
+     "suitability_1to5": 4
+    }
+   ],
+   "best": "Battle Toad (Mount) for boss toad; Toad The Frog Rogue for humanoid toads",
+   "coverage": "ok"
+  },
+  "Toads (small)": {
+   "candidates": [
+    {
+     "name": "Frog",
+     "url": "https://poly.pizza/m/37wofOCOzG",
+     "source": "Poly Pizza",
+     "author": "Quaternius",
+     "license": "CC0",
+     "formats": "GLB, FBX, OBJ",
+     "download_without_login": true,
+     "rigged_animated": "yes (tagged Animated)",
+     "polycount": "low poly (<5k tris typical)",
+     "quality_notes": "Clean low-poly cartoon frog; recolour orange/red for Gamakichi-like toads.",
+     "suitability_1to5": 4
+    },
+    {
+     "name": "Froggy Knight - Low-Poly Rigged Character",
+     "url": "https://sketchfab.com/3d-models/60c7949612f6467da418a7b7a929ef24",
+     "source": "Sketchfab",
+     "author": "spuk220",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "yes, 1 animation",
+     "polycount": "4872 faces",
+     "quality_notes": "Cute low-poly frog warrior with sword.",
+     "suitability_1to5": 3
+    }
+   ],
+   "best": "Quaternius Frog (CC0, no login)",
+   "coverage": "good"
+  },
+  "Giant snake (Manda-like)": {
+   "candidates": [
+    {
+     "name": "Snake attack Animations (Multiple)",
+     "url": "https://sketchfab.com/3d-models/83c4290cd4b648fd942d4bbc2280a3f6",
+     "source": "Sketchfab",
+     "author": "Imagigoo",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "yes (attack + killed anims)",
+     "polycount": "4380 faces",
+     "quality_notes": "Textured cobra/snake models with attack animations, game-ready; scale up + recolour purple.",
+     "suitability_1to5": 4
+    },
+    {
+     "name": "Snake",
+     "url": "https://poly.pizza/m/x9x0viZs8V",
+     "source": "Poly Pizza",
+     "author": "Quaternius",
+     "license": "CC0",
+     "formats": "GLB, FBX, OBJ",
+     "download_without_login": true,
+     "rigged_animated": "yes (tagged Animated)",
+     "polycount": "low poly (<5k tris typical)",
+     "quality_notes": "Cartoon low-poly snake, cel-shade friendly.",
+     "suitability_1to5": 4
+    },
+    {
+     "name": "Aoda (Sasuke)",
+     "url": "https://sketchfab.com/3d-models/05efd966a8cf49e7ae1bfbc8f556ed46",
+     "source": "Sketchfab",
+     "author": "NearDoctor",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "45906 faces",
+     "quality_notes": "Naruto summon-snake fan sculpt, untextured. Needs texture + spine rig.",
+     "suitability_1to5": 3
+    }
+   ],
+   "best": "Imagigoo Snake (animated) or Quaternius Snake (CC0)",
+   "coverage": "good"
+  },
+  "Slug (Katsuyu-like)": {
+   "candidates": [
+    {
+     "name": "Arion Rufus",
+     "url": "https://sketchfab.com/3d-models/1777b0ce4ecb420193fe12f2cd597ebe",
+     "source": "Sketchfab",
+     "author": "BrandonHolt",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "24432 faces",
+     "quality_notes": "Realistic roundback slug, good silhouette; recolour white with blue stripes.",
+     "suitability_1to5": 3
+    },
+    {
+     "name": "Sea Slug - Chromodoris Annae",
+     "url": "https://sketchfab.com/3d-models/0bf40ea6694f4abcb27cbf81bc8a36ea",
+     "source": "Sketchfab",
+     "author": "Nestaeric",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "yes, 8 animations",
+     "polycount": "20275 faces",
+     "quality_notes": "Only rigged slug found.",
+     "suitability_1to5": 3
+    }
+   ],
+   "best": "Arion Rufus (shape); Katsuyu is also simple to model procedurally",
+   "coverage": "weak"
+  },
+  "Ninja dogs (Pakkun-like)": {
+   "candidates": [
+    {
+     "name": "Shiba Inu",
+     "url": "https://poly.pizza/m/y4wdQpg767",
+     "source": "Poly Pizza",
+     "author": "Quaternius",
+     "license": "CC0",
+     "formats": "GLB, FBX, OBJ",
+     "download_without_login": true,
+     "rigged_animated": "yes (Ultimate Animated Animals, 12+ anims)",
+     "polycount": "low poly (<5k tris typical)",
+     "quality_notes": "Low-poly animated Shiba; add headband/vest. Same pack has Husky (https://poly.pizza/m/wcWiuEqwzq). Pack: https://quaternius.com/packs/ultimateanimatedanimals.html (FBX/OBJ/Blend/glTF, CC0).",
+     "suitability_1to5": 5
+    },
+    {
+     "name": "Stylized Low Poly German Shepherd",
+     "url": "https://sketchfab.com/3d-models/18d8fbe184c5448283762893b6ea9752",
+     "source": "Sketchfab",
+     "author": "DreamNoms",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "yes, 13 animations",
+     "polycount": "852 faces",
+     "quality_notes": "Very low poly stylized dog: run, lie, scratch, jump...",
+     "suitability_1to5": 4
+    },
+    {
+     "name": "Pakkun(Naruto)",
+     "url": "https://sketchfab.com/3d-models/e454a6b36cec43ceae15e5ccd467109e",
+     "source": "Sketchfab",
+     "author": "Patrickart.hk",
+     "license": "CC Attribution-NonCommercial-NoDerivs",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "378086 faces",
+     "quality_notes": "Accurate Pakkun sculpt, untextured, ND license: reference only.",
+     "suitability_1to5": 2
+    }
+   ],
+   "best": "Quaternius Shiba Inu / Husky (CC0, animated, no login)",
+   "coverage": "good"
+  },
+  "Hawk": {
+   "candidates": [
+    {
+     "name": "White Eagle Animation Fast Fly",
+     "url": "https://sketchfab.com/3d-models/30203bf39e5145f19c79e83c550139d3",
+     "source": "Sketchfab",
+     "author": "GremorySaiyan",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "yes, rigged + flight anim (FBX)",
+     "polycount": "3128 faces",
+     "quality_notes": "Low-poly textured eagle with flight loop, 969 likes.",
+     "suitability_1to5": 5
+    },
+    {
+     "name": "Hawk",
+     "url": "https://poly.pizza/m/0qIgSrL5qEn",
+     "source": "Poly Pizza",
+     "author": "jeremy",
+     "license": "check page (Poly Pizza CC0/CC-BY)",
+     "formats": "GLB, FBX, OBJ",
+     "download_without_login": true,
+     "rigged_animated": "no",
+     "polycount": "low poly (<5k tris typical)",
+     "quality_notes": "Simple low-poly hawk.",
+     "suitability_1to5": 3
+    }
+   ],
+   "best": "White Eagle Animation Fast Fly",
+   "coverage": "good"
+  },
+  "Monkey king (Enma-like)": {
+   "candidates": [
+    {
+     "name": "Lowpoly Monkey King Wukong",
+     "url": "https://sketchfab.com/3d-models/aabe2e20e11741459332da1b99efdf93",
+     "source": "Sketchfab",
+     "author": "Khyoocumber",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "3038 faces",
+     "quality_notes": "Hand-painted low-poly armoured monkey king with staff; very close to Enma. Needs rig.",
+     "suitability_1to5": 4
+    },
+    {
+     "name": "Monkey",
+     "url": "https://sketchfab.com/3d-models/c2f52afa064f44a6a8aa1e73bf92b4ae",
+     "source": "Sketchfab",
+     "author": "tomkranis",
+     "license": "CC Attribution (orig. public domain, OpenGameArt)",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "yes, rigged + jump",
+     "polycount": "5679 faces",
+     "quality_notes": "Cartoon monkey, rig usable as base.",
+     "suitability_1to5": 3
+    },
+    {
+     "name": "Rigged Stylized Monkey",
+     "url": "https://sketchfab.com/3d-models/0560ce7d141342bba89cdba69facd8a3",
+     "source": "Sketchfab",
+     "author": "ummehaani719",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "yes, 9 animations",
+     "polycount": "56666 faces",
+     "quality_notes": "Stylized animated monkey.",
+     "suitability_1to5": 3
+    }
+   ],
+   "best": "Lowpoly Monkey King Wukong",
+   "coverage": "ok"
+  },
+  "Crows": {
+   "candidates": [
+    {
+     "name": "Crow",
+     "url": "https://sketchfab.com/3d-models/d5a9b0df4da3493688b63ce42c8a83e2",
+     "source": "Sketchfab",
+     "author": "alexanders823",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "yes, 1 animation",
+     "polycount": "2208 faces",
+     "quality_notes": "Highly liked (1443) low-poly animated crow; ideal for crow-clone swarms.",
+     "suitability_1to5": 5
+    },
+    {
+     "name": "Game ready crow",
+     "url": "https://sketchfab.com/3d-models/7f41fdc16ea3442788355809271cc50d",
+     "source": "Sketchfab",
+     "author": "charliecatling",
+     "license": "Free Standard",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "yes, 2 animations incl. landing",
+     "polycount": "7008 faces",
+     "quality_notes": "Stylized crow.",
+     "suitability_1to5": 4
+    },
+    {
+     "name": "Crow",
+     "url": "https://poly.pizza/m/1MIvWQ5Q3R9",
+     "source": "Poly Pizza",
+     "author": "Poly by Google",
+     "license": "CC-BY",
+     "formats": "GLB, FBX, OBJ",
+     "download_without_login": true,
+     "rigged_animated": "no",
+     "polycount": "low poly (<5k tris typical)",
+     "quality_notes": "Ultra low-poly static crow.",
+     "suitability_1to5": 3
+    }
+   ],
+   "best": "Crow (alexanders823)",
+   "coverage": "good"
+  }
+ },
+ "optional": {
+  "Susanoo": {
+   "candidates": [
+    {
+     "name": "Naruto - Susanoo Esqueleto",
+     "url": "https://sketchfab.com/3d-models/7757909327f14a92a3a05ece05ed2784",
+     "source": "Sketchfab",
+     "author": "GremorySaiyan",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "rigged (FBX w/ textures + rig)",
+     "polycount": "4696 faces",
+     "quality_notes": "Skeletal Susanoo, purple, low poly; ideal FX mesh with additive/fresnel shader.",
+     "suitability_1to5": 5
+    },
+    {
+     "name": "SUSANOO X KURAMA",
+     "url": "https://sketchfab.com/3d-models/5921dfab83564e7ea0778705d8c37469",
+     "source": "Sketchfab",
+     "author": "deiongordon58",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "22571 faces",
+     "quality_notes": "Armoured Kurama variant.",
+     "suitability_1to5": 3
+    },
+    {
+     "name": "Perfect Susanoo",
+     "url": "https://sketchfab.com/3d-models/41e8fe2cab25423c966cc2ab2d909314",
+     "source": "Sketchfab",
+     "author": "serienreviewer",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "31237 faces",
+     "quality_notes": "Full Susanoo; SUSPECTED RIP (see Ten-Tails). Same uploader: d85996a0daaa4aaca63271f012d57010, 233f0f5a30b24534807fc64655478e84.",
+     "suitability_1to5": 2,
+     "suspected_rip": true
+    }
+   ],
+   "best": "Naruto - Susanoo Esqueleto (rigged)"
+  },
+  "Weapons": {
+   "candidates": [
+    {
+     "name": "Exposive Kunai",
+     "url": "https://sketchfab.com/3d-models/819165867a3041eeb984a42afa65055c",
+     "source": "Sketchfab",
+     "author": "matoteus",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "1980 faces",
+     "quality_notes": "Naruto kunai with paper tag, 370 likes.",
+     "suitability_1to5": 5
+    },
+    {
+     "name": "Shuriken pack",
+     "url": "https://sketchfab.com/3d-models/26a03f5679064edf92292e0bebac50b4",
+     "source": "Sketchfab",
+     "author": "Pablo88",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "3628 faces",
+     "quality_notes": "Game-ready low-poly shuriken set.",
+     "suitability_1to5": 5
+    },
+    {
+     "name": "Big Ninja Shuriken",
+     "url": "https://sketchfab.com/3d-models/aa7068a1de2541488182be52fbe0f592",
+     "source": "Sketchfab",
+     "author": "sirerdees",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "1720 faces",
+     "quality_notes": "Fuma (giant) shuriken.",
+     "suitability_1to5": 4
+    },
+    {
+     "name": "Stylized Katana",
+     "url": "https://sketchfab.com/3d-models/760dcf6835b148828cda4927cf70ab0d",
+     "source": "Sketchfab",
+     "author": "MKoegler3D",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "22544 faces",
+     "quality_notes": "Clean stylized katana.",
+     "suitability_1to5": 4
+    },
+    {
+     "name": "Executioner Blade (Naruto)",
+     "url": "https://sketchfab.com/3d-models/967a9db875cb4ba493b5e2d4dd2e8362",
+     "source": "Sketchfab",
+     "author": "Yanez-Designs",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "7736 faces",
+     "quality_notes": "Kubikiribocho giant sword.",
+     "suitability_1to5": 4
+    },
+    {
+     "name": "Naruto Shippuden - Samehada",
+     "url": "https://sketchfab.com/3d-models/5bacda6b788c44f9a1e98b6fc0e9c254",
+     "source": "Sketchfab",
+     "author": "XDaniXSin",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "2243 faces",
+     "quality_notes": "Low-poly Samehada.",
+     "suitability_1to5": 4
+    }
+   ],
+   "best": "Exposive Kunai + Shuriken pack + Executioner Blade"
+  },
+  "Japanese village buildings": {
+   "candidates": [
+    {
+     "name": "Stylized Little Japanese Town Street",
+     "url": "https://sketchfab.com/3d-models/200fc33b8a2b4da98e71590feeb255a8",
+     "source": "Sketchfab",
+     "author": "misiek13",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "234744 faces",
+     "quality_notes": "Colourful stylized street (1814 likes), anime-friendly; split into props.",
+     "suitability_1to5": 5
+    },
+    {
+     "name": "Japanese Temple",
+     "url": "https://sketchfab.com/3d-models/a210febbec4f454dbd0df1d142be06bc",
+     "source": "Sketchfab",
+     "author": "spectraut2",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "29702 faces",
+     "quality_notes": "Hand-painted temple, 808 likes.",
+     "suitability_1to5": 4
+    },
+    {
+     "name": "Shirakawago Village Set House 1",
+     "url": "https://sketchfab.com/3d-models/f94da738aefc4674ab2062df5c01cd43",
+     "source": "Sketchfab",
+     "author": "THEOJANG",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "15965 faces",
+     "quality_notes": "Half hand-painted thatched farmhouse.",
+     "suitability_1to5": 4
+    },
+    {
+     "name": "Japanese Town",
+     "url": "https://sketchfab.com/3d-models/6f58f3bdef404321b8850aab870e110f",
+     "source": "Sketchfab",
+     "author": "Nazareno_rojas",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "96308 faces",
+     "quality_notes": "Town block on 3 texture atlases (efficient).",
+     "suitability_1to5": 4
+    },
+    {
+     "name": "Low Poly Japanese Houses",
+     "url": "https://yarenkrmn.itch.io/low-poly-japanese-houses",
+     "source": "itch.io",
+     "author": "yarenkrmn",
+     "license": "free, commercial OK, no redistribution (not CC0)",
+     "formats": "FBX",
+     "download_without_login": true,
+     "rigged_animated": "no",
+     "polycount": "low",
+     "quality_notes": "3 houses + wall + electric poles (modern-ish).",
+     "suitability_1to5": 3
+    }
+   ],
+   "best": "Stylized Little Japanese Town Street",
+   "note": "No CC0 feudal-Japan pack found; Kenney/Quaternius have none."
+  },
+  "Rock pillars": {
+   "candidates": [
+    {
+     "name": "Free Pack - Rocks Stylized",
+     "url": "https://sketchfab.com/3d-models/7c60b4d1b8ab4187965f30c5e0212fc0",
+     "source": "Sketchfab",
+     "author": "polyone",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "3076 faces",
+     "quality_notes": "Stylized rock pack, 1722 likes.",
+     "suitability_1to5": 5
+    },
+    {
+     "name": "70 stylized rocks",
+     "url": "https://sketchfab.com/3d-models/bf0051544c9c41f998c154c546b09669",
+     "source": "Sketchfab",
+     "author": "ondrasaur",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "5628 faces",
+     "quality_notes": "Large low-poly rock collection.",
+     "suitability_1to5": 4
+    },
+    {
+     "name": "Stylized sand stone pillar 1",
+     "url": "https://sketchfab.com/3d-models/a09b1eb506ab4e198edc30c87848e843",
+     "source": "Sketchfab",
+     "author": "gamesastoater",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "1336 faces",
+     "quality_notes": "Low-poly pillar from author's Unity game; variant 2: b68e45706b434ce7aa8c3e1db11ecc86.",
+     "suitability_1to5": 4
+    },
+    {
+     "name": "Rock Tower",
+     "url": "https://sketchfab.com/3d-models/9021389231044fe6a289c9e2f3e82282",
+     "source": "Sketchfab",
+     "author": "Blender3D",
+     "license": "CC Attribution",
+     "formats": "glTF/GLB (auto-converted) + original upload",
+     "download_without_login": false,
+     "rigged_animated": "no",
+     "polycount": "20976 faces",
+     "quality_notes": "Tall rock spire.",
+     "suitability_1to5": 4
+    }
+   ],
+   "best": "Free Pack - Rocks Stylized + gamesastoater pillars"
+  }
+ }
+}

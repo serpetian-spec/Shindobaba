@@ -1309,7 +1309,10 @@ func _sf_acc(id: String, ref: Vector3) -> bool:
 	var n = SFProps.accessory_node(id)
 	if n == null:
 		return false
-	var a = _attach(String(d["bone"]), Transform3D(Basis.IDENTITY, ref + Vector3(d.get("off", Vector3.ZERO))))
+	var bone = String(d["bone"])
+	if bone == "Hips":
+		ref = _bp("Hips")
+	var a = _attach(bone, Transform3D(Basis.IDENTITY, ref + Vector3(d.get("off", Vector3.ZERO))))
 	a.get_child(0).add_child(n)
 	return true
 

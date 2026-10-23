@@ -227,7 +227,13 @@ static func tool(who: Node3D, start: Vector3, dir: Vector3, kind: String, target
 		"smoke":
 			b.add("sphere", Vector3.ZERO, Vector3(0.18, 0.18, 0.18), Color(0.2, 0.2, 0.22))
 	mi.mesh = b.build(Props.toon())
-	pr.add_child(mi)
+	# hayran modeli varsa kunai görseli (namlu uçuş yönüne, -Z)
+	var tn = SFProps.weapon_node(kind, SFProps.THROWN) if kind in ["kunai", "tag"] else null
+	if tn:
+		tn.rotation.y = PI
+		pr.add_child(tn)
+	else:
+		pr.add_child(mi)
 	if kind == "tag":
 		pr.stick = false
 		pr.on_hit = func(pos: Vector3, _t: Node3D) -> void:

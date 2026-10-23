@@ -31,8 +31,35 @@ for f in os.listdir(out_dir):  # eski (Python sürümü) exe'leri temizle
     if f.endswith('.exe') or f.endswith('.pck'):
         os.remove(os.path.join(out_dir, f))
 exe = os.path.join(out_dir, name + '.exe')
-subprocess.run([GODOT, '--headless', '--path', PROJ, '--import'], capture_output=True)
-r = subprocess.run([GODOT, '--headless', '--path', PROJ, '--export-release', 'Windows', exe], capture_output=True, text=True)
+
+
+def used_sketchfab():
+    """Kodda kullanılan hayran modeli klasörleri (sf_models.gd + sf_props.gd içindeki "file": "...")."""
+    import re
+    used = set()
+    for rel in ('scripts/actors/sf_models.gd', 'scripts/actors/sf_props.gd'):
+        f = os.path.join(PROJ, rel)
+        if os.path.exists(f):
+            used |= set(re.findall(r'"file":\s*"([^"]+)"', open(f, encoding='utf8').read()))
+    return used
+
+
+# kullanılmayan Sketchfab modellerini paketten çıkar (assets/sketchfab ~1.4 GB)
+presets = os.path.join(PROJ, 'export_presets.cfg')
+presets_orig = open(presets, encoding='utf8', newline='').read()
+sf_dir = os.path.join(PROJ, 'assets', 'sketchfab')
+excl = ['tests/*']
+if os.path.isdir(sf_dir):
+    used = used_sketchfab()
+    unused = sorted(d for d in os.listdir(sf_dir) if os.path.isdir(os.path.join(sf_dir, d)) and d not in used)
+    excl += ['assets/sketchfab/%s/*' % d for d in unused]
+    print(f'Sketchfab: {len(used & set(os.listdir(sf_dir)))} model pakette, {len(unused)} dışarıda')
+open(presets, 'w', encoding='utf8', newline='').write(presets_orig.replace('exclude_filter="tests/*"', 'exclude_filter="%s"' % ', '.join(excl), 1))
+try:
+    subprocess.run([GODOT, '--headless', '--path', PROJ, '--import'], capture_output=True)
+    r = subprocess.run([GODOT, '--headless', '--path', PROJ, '--export-release', 'Windows', exe], capture_output=True, text=True)
+finally:
+    open(presets, 'w', encoding='utf8', newline='').write(presets_orig)
 json.dump({'build': 'dev', 'version': version}, open(build_json, 'w'))
 errors = [l for l in (r.stdout + r.stderr).splitlines() if 'ERROR' in l and 'leaked' not in l and 'still in use' not in l]
 if not os.path.exists(exe):

@@ -11,9 +11,11 @@ const DEFS := {
 	"toad_boss": {"file": "battle_toad", "yaw": 180.0, "fit": "h", "surface": 1, "drop_flat": true},
 	"toad_mid": {"file": "naruto_frog", "yaw": 180.0, "fit": "h", "surface": 1, "tint": Color(0.92, 0.55, 0.2)},
 	"snake_boss": {"file": "aoda", "yaw": 180.0, "fit": "len", "surface": 1, "tint": Color(0.5, 0.36, 0.68)},
-	"snake_giant": {"file": "snake_anim", "yaw": 180.0, "fit": "len", "surface": 1},
 	"slug_queen": {"file": "slug_arion", "yaw": 180.0, "fit": "len", "surface": 3, "tint": Color(0.86, 0.92, 1.0), "luma": true},
 	"monkey_king": {"file": "monkey_king", "yaw": 180.0, "fit": "h", "surface": 1},
+	"snake_giant": {"file": "cobra_anim", "yaw": 180.0, "fit": "len", "surface": 1, "mul": 1.0},
+	"weasel_trio": {"file": "mink_lowpoly_anim", "yaw": 180.0, "fit": "len", "surface": 0},
+	"crow_flock": {"file": "crow", "yaw": 180.0, "fit": "len", "surface": 0},
 }
 
 

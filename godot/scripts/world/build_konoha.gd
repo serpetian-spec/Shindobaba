@@ -196,16 +196,15 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	# ---- Ichiraku tarzı ramen tezgâhı (caddeye açık)
 	var ix = 70.0; var inn = -30.0
 	b.yoff = _gy(b, ix, inn)
-	b.box(Vector3(ix, 0.65, inn + 1.5), Vector3(9, 1.3, 1.2), Color(0.55, 0.35, 0.2))
-	b.box(Vector3(ix, 1.35, inn + 1.5), Vector3(9.5, 0.12, 1.6), Color(0.8, 0.62, 0.4), 0, false)
-	b.box(Vector3(ix, 1.8, inn - 2.2), Vector3(9, 3.6, 4.5), Color(0.92, 0.88, 0.8))
-	for sx in [-4.4, 4.4]:
-		b.box(Vector3(ix + sx, 1.9, inn + 2.4), Vector3(0.35, 3.8, 0.35), Color(0.35, 0.24, 0.16), 0, false)
-	b.box(Vector3(ix, 3.9, inn), Vector3(10.5, 0.5, 7.5), Color(0.72, 0.18, 0.15))
-	for i in 6:
-		b.box(Vector3(ix - 3.7 + i * 1.48, 3.1, inn + 2.55), Vector3(1.3, 1.1, 0.06), Color(0.95, 0.95, 0.95) if i % 2 else Color(0.85, 0.28, 0.22), 0, false)
-	for i in 4:
-		b.cyl(Vector3(ix - 3 + i * 2, 0.4, inn + 3.4), 0.7, 0.8, Color(0.72, 0.18, 0.15), false, 10)
+	var ich = SFProps.place_node("ichiraku")  # hayran modeli (varsa)
+	if ich:
+		decor.add_child(ich)
+		ich.global_position = _gp(b, ix, inn - 0.6)
+		ich.rotation.y = PI
+		b._collide(b.w(Vector3(ix, 0.65, inn + 1.5)), Vector3(9, 1.3, 1.2), 0.0)  # tezgâh ve arka duvar çarpışması
+		b._collide(b.w(Vector3(ix, 1.8, inn - 2.2)), Vector3(9, 3.6, 4.5), 0.0)
+	else:
+		_ichiraku_boxes(b, ix, inn)
 	b.yoff = 0.0
 	var seats = []
 	for i in 4:
@@ -259,8 +258,15 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 			var fo = Builder.rot(2.4, -float(b.last_house.get("d", 9.0)) * 0.5 - 0.1, a + 180.0)
 			b.disc(Vector3(hxp + fo.x, _gy(b, hxp, hnp) + 2.6, hnp + fo.y), 1.4, 0.12, Color(0.8, 0.15, 0.15), a + 180.0, 12)
 	b.yoff = _gy(b, ux, un)
-	b.box(Vector3(ux, 4.5, un), Vector3(16, 9, 12), Color(0.55, 0.32, 0.22))
-	b.roof(Vector3(ux, 9, un), Vector3(20, 5, 16), Color(0.25, 0.25, 0.3))
+	var tm = AssetLib.temple(28.0)
+	if tm != null:
+		b.pack_mesh(tm, Vector3(ux, 0, un + 4), 180.0, 1.0, 1.5)
+		b._collide(b.w(Vector3(ux, 4.0, un + 4)), Vector3(14, 8, 14), 0.0)
+		for sx2 in [-7.0, 7.0]:
+			b.prop("stone_lamp", Vector3(ux + sx2, 0, un - 20), 0.0, 2.4, 0.4)
+	else:
+		b.box(Vector3(ux, 4.5, un), Vector3(16, 9, 12), Color(0.55, 0.32, 0.22))
+		b.roof(Vector3(ux, 9, un), Vector3(20, 5, 16), Color(0.25, 0.25, 0.3))
 	b.box(Vector3(ux, 6, un - 16), Vector3(11, 1.0, 1.0), Color(0.8, 0.2, 0.15), 0, false)
 	for sx in [-4.6, 4.6]:
 		b.box(Vector3(ux + sx, 3.2, un - 16), Vector3(0.8, 6.4, 0.8), Color(0.8, 0.2, 0.15), 0, false)
@@ -506,15 +512,15 @@ static func _merge_house_cells(root: Node3D) -> void:
 		if not ch is MultiMeshInstance3D or ch.layers != 2:
 			continue
 		var mm: MultiMesh = ch.multimesh
-		if mm == null or not mm.use_colors:
-			continue
+		if mm == null or not mm.use_colors or ch.material_override == null:
+			continue  # hazır modeller (kendi malzemesi + LOD aralıkları) birleştirilmez
 		olds.append(ch)
 		for i in mm.instance_count:
 			var xf = mm.get_instance_transform(i)
 			var k = [mm.mesh, Vector2i(floori(xf.origin.x / 480.0), floori(xf.origin.z / 480.0))]
 			var ks = "%d|%d|%d" % [mm.mesh.get_instance_id(), k[1].x, k[1].y]
 			if not groups.has(ks):
-				groups[ks] = {"mesh": mm.mesh, "xf": [], "col": [], "vis": ch.visibility_range_end}
+				groups[ks] = {"mesh": mm.mesh, "xf": [], "col": [], "vis": ch.visibility_range_end, "mat": ch.material_override}
 			groups[ks]["xf"].append(xf)
 			groups[ks]["col"].append(mm.get_instance_color(i))
 	for o in olds:
@@ -532,7 +538,7 @@ static func _merge_house_cells(root: Node3D) -> void:
 		var mmi = MultiMeshInstance3D.new()
 		mmi.layers = 2
 		mmi.multimesh = mm
-		mmi.material_override = Props.toon()
+		mmi.material_override = g["mat"]  # hazır modeller kendi malzemelerini kullanır (override yok)
 		mmi.visibility_range_end = g["vis"] + 300.0
 		mmi.visibility_range_end_margin = 80.0
 		mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
@@ -607,6 +613,20 @@ static func _stone_head(b: Builder, i: int, at: Vector3, height: float, col: Col
 			continue
 		mi.material_override = m
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+
+
+## Prosedürel Ichiraku tarzı tezgâh (hayran modeli yoksa)
+static func _ichiraku_boxes(b: Builder, ix: float, inn: float) -> void:
+	b.box(Vector3(ix, 0.65, inn + 1.5), Vector3(9, 1.3, 1.2), Color(0.55, 0.35, 0.2))
+	b.box(Vector3(ix, 1.35, inn + 1.5), Vector3(9.5, 0.12, 1.6), Color(0.8, 0.62, 0.4), 0, false)
+	b.box(Vector3(ix, 1.8, inn - 2.2), Vector3(9, 3.6, 4.5), Color(0.92, 0.88, 0.8))
+	for sx in [-4.4, 4.4]:
+		b.box(Vector3(ix + sx, 1.9, inn + 2.4), Vector3(0.35, 3.8, 0.35), Color(0.35, 0.24, 0.16), 0, false)
+	b.box(Vector3(ix, 3.9, inn), Vector3(10.5, 0.5, 7.5), Color(0.72, 0.18, 0.15))
+	for i in 6:
+		b.box(Vector3(ix - 3.7 + i * 1.48, 3.1, inn + 2.55), Vector3(1.3, 1.1, 0.06), Color(0.95, 0.95, 0.95) if i % 2 else Color(0.85, 0.28, 0.22), 0, false)
+	for i in 4:
+		b.cyl(Vector3(ix - 3 + i * 2, 0.4, inn + 3.4), 0.7, 0.8, Color(0.72, 0.18, 0.15), false, 10)
 
 
 static func _free(x: float, n: float, occ: Array, pad: float) -> bool:

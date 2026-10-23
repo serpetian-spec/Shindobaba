@@ -23,6 +23,9 @@ const ITEMS := {
 	"anbu_kurt": {"name": "ANBU Maskesi: Kurt", "slot": "yuz", "price": 900, "rank": 4, "desc": "Kurt maskesi: avcı içgüdüsü.", "stats": {"def": 5, "melee": 0.08}, "look": {"face_style": "anbu_kurt"}, "c1": Color(0.95, 0.95, 0.95)},
 	"anbu_kus": {"name": "ANBU Maskesi: Kuş", "slot": "yuz", "price": 900, "rank": 4, "desc": "Gagalı kuş maskesi: hız ve keşif.", "stats": {"def": 5, "speed": 0.05}, "look": {"face_style": "anbu_kus"}, "c1": Color(0.95, 0.95, 0.95)},
 	"anbu_ayi": {"name": "ANBU Maskesi: Ayı", "slot": "yuz", "price": 900, "rank": 4, "desc": "Yuvarlak kulaklı ayı maskesi: dayanıklılık.", "stats": {"def": 8, "hp": 30}, "look": {"face_style": "anbu_ayi"}, "c1": Color(0.95, 0.95, 0.95)},
+	"kitsune_maske": {"name": "Kitsune Maskesi", "slot": "yuz", "price": 420, "rank": 1, "desc": "Festival tilki maskesi. Kimliğini gizler.", "stats": {"def": 2, "chakra": 15}, "look": {"face_style": "kitsune"}, "c1": Color(0.95, 0.95, 0.95)},
+	"tengu_maske": {"name": "Tengu Maskesi", "slot": "yuz", "price": 650, "rank": 2, "desc": "Uzun burunlu dağ ruhu maskesi.", "stats": {"def": 3, "speed": 0.04}, "look": {"face_style": "tengu"}, "c1": Color(0.75, 0.12, 0.1)},
+	"oni_maske": {"name": "Oni Maskesi", "slot": "yuz", "price": 800, "rank": 2, "desc": "Samuray iblis yüz zırhı. Düşmanı korkutur.", "stats": {"def": 5, "melee": 0.04}, "look": {"face_style": "oni"}, "c1": Color(0.2, 0.2, 0.22)},
 	"gaz_maskesi": {"name": "Gaz Maskesi", "slot": "yuz", "price": 380, "rank": 1, "desc": "Zehirli bulutlara karşı filtreli maske.", "stats": {"def": 3, "hp": 15}, "look": {"face_style": "gas"}, "c1": Color(0.2, 0.22, 0.2)},
 	"gozluk": {"name": "Ninja Gözlüğü", "slot": "yuz", "price": 140, "rank": 0, "desc": "Rüzgar ve kum fırtınasında gözleri korur.", "stats": {"speed": 0.02, "chakra": 5}, "look": {"face_style": "goggles"}, "c1": Color(0.95, 0.55, 0.15)},
 	# --- üst
@@ -57,7 +60,7 @@ const ITEMS := {
 	"deri_yelek": {"name": "Deri Yelek", "slot": "zirh", "price": 350, "rank": 1, "desc": "Paralı askerlerin sevdiği kalın yelek.", "stats": {"def": 6}, "look": {"vest_style": 0}, "c1": Color(0.4, 0.3, 0.2)},
 	# --- dış giysi
 	"kage_cubbesi": {"name": "Kage Cübbesi", "slot": "dis", "price": 0, "rank": 6, "desc": "Köyün liderinin beyaz cübbesi; eteğinde köyün rengi ve Kage yazısı.", "stats": {"def": 10, "chakra": 60, "hp": 40}, "look": {"outer_style": "palto"}, "c1": Color(0.96, 0.95, 0.92)},
-	"kage_sapkasi": {"name": "Kage Şapkası", "slot": "kafa", "price": 0, "rank": 6, "desc": "Geniş kenarlı tören şapkası. Önünde köyün kanjisi.", "stats": {"def": 4, "chakra": 30}, "look": {"head_style": "kasa"}, "c1": Color(0.95, 0.94, 0.9)},
+	"kage_sapkasi": {"name": "Kage Şapkası", "slot": "kafa", "price": 0, "rank": 6, "desc": "Geniş kenarlı tören şapkası. Önünde köyün kanjisi.", "stats": {"def": 4, "chakra": 30}, "look": {"head_style": "kage"}, "c1": Color(0.95, 0.94, 0.9)},
 	"jonin_komutan_paltosu": {"name": "Jōnin Komutanı Haorisi", "slot": "dis", "price": 0, "rank": 3, "desc": "Jōnin komutanlarına verilen yeşil-gri haori.", "stats": {"def": 6, "chakra": 25}, "look": {"outer_style": "haori"}, "c1": Color(0.3, 0.38, 0.3)},
 	"kok_maskesi": {"name": "Kök Birliği Maskesi", "slot": "yuz", "price": 0, "rank": 4, "desc": "Kök (Ne) biriminin ifadesiz beyaz maskesi. Varlığı resmî kayıtlarda yok.", "stats": {"def": 6, "speed": 0.04}, "look": {"face_style": "anbu_kus"}, "c1": Color(0.88, 0.88, 0.86)},
 	"seyahat_pelerini": {"name": "Seyahat Pelerini", "slot": "dis", "price": 280, "rank": 0, "desc": "Dizlere inen kalın yolcu pelerini.", "stats": {"def": 3, "hp": 15}, "look": {"outer_style": "pelerin"}, "c1": Color(0.4, 0.32, 0.24)},
@@ -72,6 +75,8 @@ const ITEMS := {
 	"bacak_koruma": {"name": "Kaval Koruyucu", "slot": "kol", "price": 180, "rank": 0, "desc": "Kaval kemiğini saran metal plaka.", "stats": {"def": 3, "melee": 0.03}, "look": {"guards": "bacak"}, "c1": Color(0.55, 0.58, 0.62)},
 	"tam_koruma": {"name": "Tam Takım Koruyucu", "slot": "kol", "price": 520, "rank": 1, "desc": "Kolluk, eldiven ve kaval koruyucu bir arada.", "stats": {"def": 8, "melee": 0.05, "speed": -0.02}, "look": {"guards": "ikisi", "gloves": true}, "c1": Color(0.45, 0.47, 0.52)},
 	# --- sırt / bel
+	"kum_kabagi": {"name": "Kum Su Kabağı", "slot": "sirt", "price": 900, "rank": 2, "desc": "Sırtta taşınan dev kabak. Sabaku klanı kumunu içinde saklar.", "stats": {"def": 4, "chakra": 25}, "look": {"back_item": "kabak"}, "c1": Color(0.7, 0.5, 0.35)},
+	"sake_kabagi": {"name": "Sake Kabağı", "slot": "sirt", "price": 60, "rank": 0, "desc": "Belde taşınan küçük kabak matara.", "stats": {"hp": 10}, "look": {"back_item": "sake"}, "c1": Color(0.75, 0.5, 0.25)},
 	"dev_parsomen": {"name": "Dev Parşömen", "slot": "sirt", "price": 300, "rank": 1, "desc": "Sırtta taşınan çağırma parşömeni. Chakra deposu.", "stats": {"chakra": 35}, "look": {"back_item": "parsomen"}, "c1": Color(0.85, 0.78, 0.6)},
 	"sirt_shuriken": {"name": "Sırt Shurikeni", "slot": "sirt", "price": 350, "rank": 1, "desc": "Sırtta taşınan dev katlanır shuriken.", "stats": {"melee": 0.05, "def": 1}, "look": {"back_item": "shuriken"}, "c1": Color(0.45, 0.48, 0.52)},
 	"kilic_kini": {"name": "Sırt Kılıç Kını", "slot": "sirt", "price": 120, "rank": 0, "desc": "Çapraz takılan kılıç kını.", "stats": {"melee": 0.03}, "look": {"back_item": "kin"}, "c1": Color(0.15, 0.12, 0.12)},
@@ -121,23 +126,25 @@ const ITEMS := {
 	"ruzgar_bicak": {"name": "Rüzgar Chakra Bıçakları", "slot": "el", "price": 0, "rank": 3, "legend": true, "desc": "Fuuton chakrası akıtılan muşta bıçakları: görünmez ağız menzili uzatır.", "stats": {"melee": 0.12}, "weapon": {"dmg": 1.75, "reach": 0.8, "style": "dual", "special": "wind"}, "c1": Color(0.55, 1.0, 0.75)},
 	"fuma_shuriken": {"name": "Fūma Shuriken", "slot": "sag", "price": 0, "rank": 3, "legend": true, "desc": "Yel değirmeni gibi açılan dev dört kollu shuriken.", "stats": {"speed": 0.02}, "weapon": {"dmg": 1.9, "reach": 1.1, "style": "heavy", "special": "wind"}, "c1": Color(0.55, 0.57, 0.62)},
 	"gunbai": {"name": "Gunbai Savaş Yelpazesi", "slot": "sag", "price": 0, "rank": 4, "legend": true, "desc": "Dev yuvarlak demir yelpaze. Savuruşu fırtına gibi iter, kendisi kalkan olur.", "stats": {"def": 10, "chakra": 20}, "weapon": {"dmg": 1.8, "reach": 1.1, "style": "fan", "special": "gust"}, "c1": Color(0.75, 0.15, 0.15)},
+	"uc_tirpan": {"name": "Üç Bıçaklı Tırpan", "slot": "sag", "price": 0, "rank": 4, "legend": true, "desc": "Kırmızı üç bıçaklı dev tırpan, ucunda ip. Geniş savuruşlu, ağır.", "stats": {"melee": 0.1}, "weapon": {"dmg": 2.15, "reach": 1.4, "style": "heavy"}, "c1": Color(0.75, 0.12, 0.12)},
+	"sai": {"name": "Sai", "slot": "el", "price": 380, "rank": 1, "desc": "Üç dişli savunma hançeri. Bloklarken saldırıyı kilitler.", "stats": {"def": 3}, "weapon": {"dmg": 1.25, "reach": 0.2, "style": "dual"}, "c1": Color(0.7, 0.72, 0.76)},
 }
 
 ## Efsanevi silahlar (dükkânda yok; A/S görevleri, boss düşürmesi)
-const LEGENDARY := ["kubikiribocho", "samehada", "kiba", "hiramekarei", "shibuki", "nuibari", "kabutowari", "chokuto", "raijin", "ruzgar_bicak", "fuma_shuriken", "gunbai"]
+const LEGENDARY := ["kubikiribocho", "samehada", "kiba", "hiramekarei", "shibuki", "nuibari", "kabutowari", "chokuto", "raijin", "ruzgar_bicak", "fuma_shuriken", "gunbai", "uc_tirpan"]
 
 
 static func random_legendary() -> String:
 	return LEGENDARY.pick_random()
 
 ## Mağazada satılanlar
-const SHOP_CLOTHES := ["tisort", "uzun_gomlek", "ceket", "yakali", "kolsuz_yakali", "sargili_kolsuz", "file_atlet", "zirhli_gomlek", "kimono_ust",
+const SHOP_CLOTHES := ["kitsune_maske", "tengu_maske", "oni_maske", "kum_kabagi", "sake_kabagi", "tisort", "uzun_gomlek", "ceket", "yakali", "kolsuz_yakali", "sargili_kolsuz", "file_atlet", "zirhli_gomlek", "kimono_ust",
 	"ninja_pant", "sort", "sivil_pant", "sargili_pant", "hakama", "sandalet", "takviyeli_sandalet", "tabi", "zori",
 	"kasa", "kapuson", "kafa_bandaji", "bandana", "bez_maske", "gozluk", "gaz_maskesi", "anbu_maske", "anbu_kurt", "anbu_kus", "anbu_ayi",
 	"deri_yelek", "suna_yelek", "kiri_yelek", "kumo_yelek", "iwa_yelek", "samuray_zirh",
 	"atki", "kisa_pelerin", "seyahat_pelerini", "haori", "uzun_palto",
 	"kol_sargisi", "eldiven", "kolluk", "bacak_koruma", "tam_koruma", "aletli_kemer", "kilic_kini", "sirt_cantasi", "dev_parsomen", "sirt_shuriken"]
-const SHOP_WEAPONS := ["kunai", "senbon", "ikiz_hancer", "tonfa", "bo", "tanto", "kama", "patlayici_kunai", "zincirli_kunai", "pence", "musta",
+const SHOP_WEAPONS := ["sai", "kunai", "senbon", "ikiz_hancer", "tonfa", "bo", "tanto", "kama", "patlayici_kunai", "zincirli_kunai", "pence", "musta",
 	"wakizashi", "altin_kunai", "katana", "mizrak", "yelpaze", "el_shuriken", "kusarigama", "savas_cekici", "chakra_bicak", "nodachi"]
 ## Sadece görev ödülü olarak düşen (dükkânda satılmayan) parçalar dahil ödül havuzu
 const REWARD_POOL := ["kafa_bandaji", "gozluk", "kasa", "kapuson", "atki", "kol_sargisi", "eldiven", "kolluk", "bacak_koruma", "tabi", "hakama",
