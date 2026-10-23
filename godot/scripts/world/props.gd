@@ -220,13 +220,14 @@ const PACK := {
 	2: [["DeadTree_1", "DeadTree_2", "DeadTree_3", "DeadTree_4", "DeadTree_5"], 9.0, {}],
 	4: [["Rock_Medium_1", "Rock_Medium_2", "Rock_Medium_3"], 2.4, {}],
 	5: [["TwistedTree_1", "TwistedTree_2", "TwistedTree_3", "TwistedTree_4"], 58.0, {"sway_amt": 0.0}],
-	8: [["Bush_Common", "Bush_Common_Flowers"], 1.7, {"sway_amt": 0.04, "sway_h": 1.6}],
+	8: [["Bush_Common"], 1.7, {"sway_amt": 0.04, "sway_h": 1.6}],
 	10: [["Fern_1", "Plant_1_Big", "Plant_7_Big", "Plant_1"], 1.0, {"sway_amt": 0.05, "sway_h": 1.0}],
 	11: [["Rock_Medium_1", "Rock_Medium_2", "Rock_Medium_3"], 5.0, {}],
-	12: [["Flower_3_Group", "Flower_4_Group", "Flower_3_Single", "Flower_4_Single"], 0.75, {"sway_amt": 0.05, "sway_h": 0.7}],
+	# kırmızı/mor çiçekler kötü görünüyordu: yerine yonca ve küçük yeşil bitkiler
+	12: [["Clover_1", "Clover_2", "Plant_1"], 0.5, {"sway_amt": 0.05, "sway_h": 0.5}],
 	14: [["Mushroom_Common", "Mushroom_Laetiporus"], 0.45, {"sway": false}],
 	15: [["Grass_Common_Tall", "Grass_Wispy_Tall", "Grass_Common_Short", "Grass_Wispy_Short"], 1.0, {"sway_amt": 0.08, "sway_h": 1.0}],
-	18: [["Bush_Common_Flowers"], 1.5, {"sway_amt": 0.04, "sway_h": 1.5}],
+	18: [["Bush_Common"], 1.5, {"sway_amt": 0.04, "sway_h": 1.5}],
 	19: [["Rock_Medium_1", "Rock_Medium_2", "Rock_Medium_3"], 0.9, {"tint": Color(0.85, 0.95, 0.8)}],
 	20: [["Rock_Medium_1", "Rock_Medium_2", "Rock_Medium_3"], 2.0, {"tint": Color(0.92, 0.95, 1.05)}],
 }
