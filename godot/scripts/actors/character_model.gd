@@ -109,6 +109,8 @@ func _skin_ratio() -> Color:
 var skull_c := Vector3(0, 1.63, 0)
 var skull_r := Vector3(0.1, 0.105, 0.105)
 static var _skull_cache := {}
+const HAIR_SCALE := 0.95  # VRoid saç: kafaya göre biraz büyük duruyordu
+const CLUMP_SCALE := 0.8   # prosedürel tutamlar (dikenli vb.) daha da taşkındı
 var band_ring: Array = []   # alın yüksekliğinde kafa çevresi [açı -> yarıçap]
 
 
@@ -347,7 +349,9 @@ func _face_and_hair() -> void:
 		cm.set_shader_parameter("tint", look["hair"])
 		cm.set_shader_parameter("rim_amount", 0.45)
 		materials.append(cm)
-		var cl = _mesh_on("Head", _hair_cache[hk], Transform3D.IDENTITY)
+		# tutamlar kafaya göre biraz küçültülür (kafa merkezi etrafında)
+		var cs = Transform3D(Basis.IDENTITY, skull_c) * Transform3D(Basis.from_scale(Vector3.ONE * CLUMP_SCALE), Vector3.ZERO) * Transform3D(Basis.IDENTITY, -skull_c)
+		var cl = _mesh_on("Head", _hair_cache[hk], cs)
 		cl.material_override = cm
 	if hd[0] != "":
 		var hp = _donor_part(hd[0], hd[1], "HAIR")
@@ -356,7 +360,17 @@ func _face_and_hair() -> void:
 			var hair_mi = MeshInstance3D.new()
 			hair_mi.name = "VHair"
 			hair_mi.mesh = hp["mesh"]
-			hair_mi.transform = head_fix
+			# saç bağışçısının kafası bizim yüz bağışçısından büyük/küçük olabilir: yüz genişliğine göre ölçekle + hafif küçült
+			var hs = HAIR_SCALE
+			var hc = Vector3.ZERO
+			if hd[0] != donor:
+				var hf = _donor_part(hd[0], "Face")
+				if not hf.is_empty() and not fd.is_empty() and hf["aabb"].size.x > 0.01:
+					hs *= clampf(fd["aabb"].size.x / hf["aabb"].size.x, 0.8, 1.2)
+					hc = hf["aabb"].get_center()
+			elif not fd.is_empty():
+				hc = fd["aabb"].get_center()
+			hair_mi.transform = head_fix * Transform3D(Basis.IDENTITY, hc) * Transform3D(Basis.from_scale(Vector3.ONE * hs), Vector3.ZERO) * Transform3D(Basis.IDENTITY, -hc)
 			holder2.add_child(hair_mi)
 			for si in hp["mats"].size():
 				var mat: Material = hp["mats"][si]
