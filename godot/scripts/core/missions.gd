@@ -1100,8 +1100,7 @@ func complete() -> void:
 		if gid != "" and not Gear.item(gid).is_empty():
 			Gear.grant(Game.profile, gid)
 			Hud.msg("Ödül ekipmanı: %s  [Tab > Ekipman]" % Gear.item(gid)["name"], Color(0.7, 0.9, 1.0))
-	if Progress.story() == 6 and Progress.genin_missions() >= 3:
-		Progress.set_story(7)
+	Journal.add("[%s] %s görevini tamamladın." % [m["rank"], m["title"]], "mission")
 	_call_hook(String(m.get("hook", "")), m, true)
 	Hud.objective_changed()
 	Game.save_game()
@@ -1278,6 +1277,11 @@ func _apply_track() -> void:
 		has_marker = not t.is_empty()
 		if has_marker:
 			target_marker = t["pos"]; target_name = t["name"]; story_target = true
+	elif tr.begins_with("goal:"):
+		var gt = Journal.goal_target(tr.substr(5))
+		has_marker = not gt.is_empty()
+		if has_marker:
+			target_marker = gt["pos"]; target_name = gt["name"]; story_target = true
 	elif tr == "waypoint":
 		var wp = Game.profile.get("waypoint")
 		if not (wp is Array and wp.size() >= 4):
@@ -1656,6 +1660,9 @@ func _process_legacy(m: Dictionary) -> void:
 # ------------------------------------------------------------------ hikâye
 ## Hikâye adımının dünyadaki hedefi: {pos, name} (yoksa boş). Oyuncunun köyündeki noktalar tercih edilir.
 func story_target_for(s: int) -> Dictionary:
+	# serbest oyun: sabit hikâye yok; ok oyuncunun seçtiği ilk hedefi gösterir (seçmediyse hiçbir şeyi)
+	if s >= Journal.FREE:
+		return Journal.primary_target() if Game.player else {}
 	var home = Progress.home()
 	# Akademi geçildiyse adım 3'ün hedefi antrenman alanı (Zil Testi)
 	if s == 3 and Game.profile.get("flags", {}).get("academy_passed", false):

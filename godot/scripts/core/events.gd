@@ -83,8 +83,8 @@ func apply() -> void:
 	if stage != 0:
 		Hud.dialog("Sınav Gözetmeni", "Sınav devam ediyor. Hedefine odaklan!", [])
 		return
-	if int(pr["level"]) < 15 or Progress.story() < 9:
-		Hud.dialog("Sınav Gözetmeni", "Chūnin Sınavı için en az Seviye 15 Genin olmalısın ve Yasak Parşömen görevini tamamlamış olmalısın.", [])
+	if int(pr["level"]) < 15 or Progress.story() < Journal.FREE:
+		Hud.dialog("Sınav Gözetmeni", "Chūnin Sınavı için en az Seviye 15 Genin olmalısın.", [])
 		return
 	host = current_host()
 	var hn = String(Game.village(host).get("name", host))
@@ -94,7 +94,7 @@ func apply() -> void:
 
 
 func _register() -> void:
-	Progress.set_story(10)
+	Journal.add("Chūnin Sınavı'na kaydoldun.", "exam")
 	_flags()["chunin_attempts"] = int(_flags().get("chunin_attempts", 0)) + 1
 	st = {"written": 0, "forest_days": 0.0, "prelim_wins": 0, "final_wins": 0, "jutsu": {}, "kawarimi": 0, "hp_lost": 0.0, "invasion": false, "mates_alive": 2}
 	var sp = stadium_pos()
@@ -134,7 +134,7 @@ func _written_done(r: Dictionary) -> void:
 	st["written"] = maxi(0, int(r["correct"]) - int(r["caught"]) * 2)
 	if r.get("q10", "") != "kabul":
 		stage = 0
-		Progress.set_story(9)
+		Journal.add("Chūnin Sınavı'nın yazılı aşamasında çekilmeyi seçtin.", "exam")
 		Game.profile["active_mission"] = {}
 		Hud.dialog("Baş Gözetmen", "Çekilmeyi seçtin. Bu da bir karardır... ama bir chūnin, takımı için bilinmezliğe adım atabilmeli. Bir sonraki dönem tekrar dene.", [])
 		return
@@ -439,10 +439,10 @@ func _judge() -> void:
 			Progress.promote(2)
 			Progress.add_xp(900)
 			Progress.add_ryo(1500)
-			Progress.set_story(11)
+			Journal.add("Chūnin oldun! Jüri liderliğini takdir etti.", "milestone")
 			Exams.exam_finished.emit("chunin", true))
 	else:
-		Progress.set_story(9)
+		Journal.add("Chūnin Sınavı'nda jüri seni bu dönem terfi ettirmedi.", "exam")
 		ExamUI.scorecard("Chūnin Sınavı — Jüri Kararı", rows, "Jüri seni bu dönem terfi ettirmedi. Güçlenip bir sonraki dönem tekrar katıl (ev sahibi sırayla değişir).", false, func():
 			Exams.exam_finished.emit("chunin", false), "Tamam")
 	Hud.objective_changed()
@@ -461,7 +461,7 @@ func _fail(text: String) -> void:
 	p()["inventory"].erase("scroll_earth")
 	Missions.has_marker = false
 	Game.profile["active_mission"] = {}
-	Progress.set_story(9)
+	Journal.add("Chūnin Sınavı'ndan elendin.", "exam")
 	Hud.dialog("Sınav Gözetmeni", text, [])
 
 

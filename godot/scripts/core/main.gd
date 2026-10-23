@@ -216,6 +216,7 @@ func _start_new_game() -> void:
 func load_slot(slot: int) -> void:
 	if not Game.load_game(slot):
 		return
+	Journal.migrate(Game.profile)   # eski kayıtlardaki Naruto hikâye adımları -> serbest oyun
 	var pos = Game.profile.get("pos")
 	var p: Vector3
 	if pos != null:

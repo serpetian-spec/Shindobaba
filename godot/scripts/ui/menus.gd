@@ -1480,12 +1480,12 @@ static func _tab_missions(main: Node, body: Control) -> void:
 	left.add_child(sc)
 	var sv = UI.vbox(8)
 	sc.add_child(sv)
-	sv.add_child(UI.icon_label("book", "HİKÂYE", 15, UI.GOLD))
-	var s = Progress.story()
+	sv.add_child(UI.icon_label("book", "YOLUN" if Journal.is_free() else "AKADEMİ", 15, UI.GOLD))
 	var st = UI.label(String(Progress.objective_text()), 18)
 	st.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	st.custom_minimum_size = Vector2(700, 0)
 	sv.add_child(st)
+	JournalUI.build_story(main, sv)   # kişisel hedefler, yaşam yolu, rakip (sabit hikâye yok)
 	# aktif görev
 	var m: Dictionary = pr.get("active_mission", {})
 	var mc = UI.card()
@@ -1522,7 +1522,7 @@ static func _tab_missions(main: Node, body: Control) -> void:
 	trow.add_theme_constant_override("h_separation", 8)
 	trow.add_theme_constant_override("v_separation", 8)
 	tv2.add_child(trow)
-	var topts = [["", "Otomatik (aktif görev)"], ["story", "Hikâye hedefi"]]
+	var topts = [["", "Otomatik (aktif görev)"], ["story", "İlk hedefim" if Journal.is_free() else "Akademi hedefi"]]
 	var wp = pr.get("waypoint")
 	if wp is Array and wp.size() >= 4:
 		topts.append(["waypoint", "Seçilen yer: %s" % wp[3]])
@@ -1563,6 +1563,7 @@ static func _tab_missions(main: Node, body: Control) -> void:
 		cv.add_child(UI.label(str(int(md.get(r, 0))), 18, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, true))
 		grid.add_child(cv)
 	rv.add_child(grid)
+	JournalUI.build_chronicle(rv)   # yaşadıklarının günlüğü
 
 
 ## Kırmızı mürekkep rütbe damgası

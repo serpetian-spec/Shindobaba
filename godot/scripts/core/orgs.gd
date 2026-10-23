@@ -376,7 +376,7 @@ func _events_tick() -> void:
 	if not Missions.active().is_empty() or Game.ui_open:
 		return
 	# Sınır savaşı: chūnin olduktan bir süre sonra
-	if rank >= 2 and Progress.story() >= 11 and not ev.has("border_war") and randf() < 0.02:
+	if rank >= 2 and Progress.story() >= Journal.FREE and not ev.has("border_war") and randf() < 0.02:
 		ev["border_war"] = "active"
 		_border_war()
 		return

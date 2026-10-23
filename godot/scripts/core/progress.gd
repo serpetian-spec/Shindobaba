@@ -10,23 +10,14 @@ const HOME_VILLAGES := {
 	"iwa": {"kage": "Tsuchikage", "s1": "Ganseki-sensei", "s2": "Tsuchiya-sensei", "band": Color(0.45, 0.18, 0.15), "vest": Color(0.55, 0.25, 0.2), "element": "doton", "lookout": "Taş Kule", "dir": "köyün kenarındaki Akademi yerleşkesi"},
 }
 
-## Hikâye metinleri (köye göre {kage}, {vn}, {s1}... doldurulur). HUD Progress.STORY dizisini okur.
+## Akademi başlangıcı (0..3) metinleri; sonrası serbest oyun (Journal). Köye göre {kage}, {vn}, {s1}... doldurulur.
 const STORY_T := [
 	"Ninja Akademisi'ne git ve hocan {s1} ile konuş. (Akademi, {dir})",
 	"Akademi avlusundaki kuklalara 25 darbe vur, sonra hocana dön.",
 	"Hocandan Henge no Jutsu'yu öğren ve bir kez kullan [slot 1].",
 	"Mezuniyet Sınavı: hocanla konuş (yazılı + Bunshin/Henge/Kawarimi + hedef parkuru), ardından {s2} ile Zil Testi.",
-	"Chakra kontrolü: köyün 35 m üstüne tırman — duvar koşusu, çatılar, kule ya da {lookout} (ok seni oraya götürür).",
-	"Antrenman alanında ({vn}) chakra kâğıdı testini yap.",
-	"{kage} Kulesi'ndeki görev masasından 3 görev tamamla (D veya C-rank).",
-	"Seviye 8 ol ve {kage} Kulesi'ne git: Yasak Parşömen görevi.",
-	"Yasak Parşömen: köyün dışındaki Haydut Kampı'nda haydut liderini yen.",
-	"Seviye 15'e ulaş ve Chunin Sınavına başvur (bu dönem sınav Konoha Stadyumu'nda — haritadan yola çık).",
-	"Chunin Sınavı devam ediyor...",
-	"Chunin oldun! Diğer köylere görevlerle seyahat et. Çağırma için Sv.22, Rasengan için Sv.25'te Gizli Şelale'ye git.",
-	"Tokubetsu Jōnin uzmanlığı Sv.35, Jōnin terfisi Sv.45 + 3 A-rank + ikinci chakra doğası ({kage} Kulesi).",
-	"ANBU seçmeleri: Seviye 65 + 1 S-rank görev. ANBU Karargâhı ({vn}). Kage adaylığı Sv.90; Kage olmak için Sv.100.",
-	"Efsane bir shinobi oldun. Dünya senin.",
+	# 4: serbest oyun — sabit ana hikâye yok; metin Journal.objective_text() ile oyuncunun kendi hedeflerinden kurulur
+	"Yolun açık.",
 ]
 var STORY: Array = []
 
@@ -87,13 +78,15 @@ func story() -> int:
 
 func set_story(i: int) -> void:
 	# hikâye adımı tamamlama ödülü (erken adımlar seviye atlatır)
-	if i > int(p().get("story", 0)):
+	i = mini(i, Journal.FREE)
+	var prev = int(p().get("story", 0))
+	if i > prev:
 		add_xp(80 + 60 * i)
 	p()["story"] = i
-	# D-rank adımına gelmeden önce yapılan görevler de sayılır
-	if i == 6 and genin_missions() >= 3:
-		i = 7
-		p()["story"] = 7
+	if i == Journal.FREE and prev < Journal.FREE:
+		# mezuniyet: bundan sonrası oyuncunun kendi hikâyesi
+		Journal.add("Akademiden mezun oldun ve alın koruyucunu taktın. Bundan sonrasını sen yazacaksın.", "milestone")
+		Hud.banner("YOLUN AÇIK", "Sabit bir hikâye yok — Tab > Görevler > Yolun", Color(1, 0.85, 0.45))
 	Hud.objective_changed()
 	Sfx.play("levelup", null, 1.3, 0.5)
 	Game.save_game()
@@ -111,16 +104,14 @@ func genin_missions() -> int:
 ## Hikâye hedef metni + ilerleme sayacı (HUD ve Görevler sekmesi kullanır)
 func objective_text() -> String:
 	var s = story()
+	if s >= Journal.FREE:
+		return Journal.objective_text()
 	var t: String = STORY[mini(s, STORY.size() - 1)] if not STORY.is_empty() else ""
 	var pr = p()
 	if s == 3 and pr.get("flags", {}).get("academy_passed", false):
 		t = "Mezun oldun! Zil Testi: Antrenman Alanı'na git ve %s ile konuş (oku takip et)." % home_info()["s2"]
 	elif s == 3:
 		t = "Mezuniyet Sınavı: Akademi'de hocan %s ile konuş (Seviye %d/5)." % [home_info()["s1"], int(pr.get("level", 1))]
-	if s == 6:
-		t += "  (%d/3, C-rank da sayılır)" % mini(3, genin_missions())
-	elif s == 7 or s == 9:
-		t += "  (Seviye %d)" % int(pr.get("level", 1))
 	return t
 
 
@@ -130,7 +121,7 @@ func new_profile(opts: Dictionary) -> Dictionary:
 		"clan": opts.get("clan", "none"), "elements": [opts.get("element", "katon")], "element_known": false,
 		"look": opts.get("look", {}), "level": 1, "xp": 0, "rank": 0, "ryo": 150, "sp": 0, "skills": [],
 		"learned": [], "slots": ["", "", "", "", "", ""], "inventory": {"kunai": 12, "shuriken": 6, "salve": 2},
-		"throw_sel": "kunai", "summon": "kurbağa", "story": 0, "flags": {}, "missions_done": {"D": 0, "C": 0, "B": 0, "A": 0, "S": 0},
+		"throw_sel": "kunai", "summon": "kurbağa", "story": 0, "seed": randi(), "journal": [], "goals": [], "flags": {}, "missions_done": {"D": 0, "C": 0, "B": 0, "A": 0, "S": 0},
 		"active_mission": {}, "visited": [opts.get("village", "konoha")], "stats": {"kills": 0}, "time": 0.32,
 		"village": opts.get("village", "konoha"), "rep": {}, "bingo": {"list": [], "next": 1, "refresh": 900.0},
 	}
@@ -396,12 +387,7 @@ func on_enemy_killed(e: Node) -> void:
 	p()["stats"]["kills"] = int(p()["stats"].get("kills", 0)) + 1
 	Missions.on_kill(e)
 	Orgs.on_enemy_killed(e)
-	if story() == 8 and e.get_meta("scroll_thief", false):
-		Game.profile["active_mission"] = {}
-		Missions.has_marker = false
-		learn("bunshin")
-		Hud.dialog(home_info()["kage"], "Yasak Parşömeni geri getirdin. İçindeki Kage Bunshin tekniğini öğrenmeyi hak ettin.", [])
-		set_story(9)
+	Journal.on_enemy_killed(e)
 
 
 func on_hit_landed(t: Node) -> void:
@@ -438,6 +424,7 @@ func on_technique_used(id: String) -> void:
 
 
 func on_player_died() -> void:
+	Journal.on_player_defeated()   # seni yenen kişi rakibin olur; bir gün geri döner
 	Hud.banner("YENİLDİN", "Hastanede uyanıyorsun...", Color(0.9, 0.3, 0.3))
 	var pr = p()
 	pr["ryo"] = int(int(pr["ryo"]) * 0.9)
@@ -449,38 +436,31 @@ func on_player_died() -> void:
 func _process(_dt: float) -> void:
 	if Game.player == null or Game.profile.is_empty():
 		return
-	# hikâye: yüksekliğe tırman
-	if story() == 4:
-		# köy zemininden 35 m yükseğe çık: duvar koşusu, çatılar, kule, Hokage Kayası, dev ağaç... hangisi olursa
-		var pl = Game.player
-		var hv = Game.village(home())
-		var base = float(hv.get("base", Game.terrain_height(pl.global_position.x, pl.global_position.z)))
-		var h: float = pl.global_position.y - base
-		var best = maxf(float(p()["flags"].get("climb_best", 0.0)), h)
-		if best > float(p()["flags"].get("climb_best", 0.0)) + 1.0:
-			p()["flags"]["climb_best"] = best
-			Hud.objective_progress("Yükseklik: %d / 35 m" % int(minf(best, 35.0)))
-		if h > 35.0 and (pl.grounded or pl.wall_n != Vector3.ZERO):
-			Hud.dialog(home_info()["s2"], "Harika! Chakrayı ayaklarında dengeleyip tırmandın. Şimdi antrenman alanına gel, doğanı öğrenelim.", [])
-			if not "nin1" in p()["skills"]:
-				p()["skills"].append("nin1")
-			set_story(5)
+	Journal.tick(_dt)
 	# ziyaret edilen köyler (hızlı seyahat)
 	var m = Game.to_map(Game.player.global_position)
 	for v in Game.world_info["villages"]:
 		if not v["id"] in p()["visited"] and m.distance_to(Vector2(v["x"], v["y"])) < float(v["r"]):
 			p()["visited"].append(v["id"])
 			Hud.banner(v["name"], "Keşfedildi — haritadan hızlı seyahat açıldı", Color(0.8, 0.95, 1.0))
+			Journal.add("%s'ye ilk kez ayak bastın." % v["name"], "travel")
 			add_xp(60)
+
+
+## Evdeki notta oyuncunun kendi seçtiği hedefler (kanon karakterin hayali değil)
+func _note_line() -> String:
+	var gs = Journal.goals()
+	if gs.is_empty():
+		return "Yolumu kendim çizeceğim."
+	return "Hedeflerim: " + ", ".join(gs.map(func(g): return String(Journal.GOALS[g]["name"])))
 
 
 func _check_story_levels() -> void:
 	var lv = int(p()["level"])
-	if story() == 7 and lv >= 8:
-		Hud.msg("%s Kulesi'ne git: önemli bir görev var!" % home_info()["kage"], Color(1, 0.8, 0.4))
-	if story() == 9 and lv >= 15:
-		Hud.msg("Chunin Sınavı başvuruları açık! (Stadyum)", Color(1, 0.8, 0.4))
-	if story() == 12 and lv >= 45 and int(p()["missions_done"].get("A", 0)) >= 3:
+	var rk = int(p()["rank"])
+	if story() >= Journal.FREE and rk == 1 and lv == 15:
+		Hud.msg("Chūnin Sınavı'na başvurabilirsin (Stadyum ya da %s Kulesi) — istersen." % home_info()["kage"], Color(1, 0.8, 0.4))
+	if rk == 2 and lv >= 45 and int(p()["missions_done"].get("A", 0)) >= 3:
 		Hud.msg("Jōnin terfi değerlendirmesine başvurabilirsin (%s Kulesi)." % home_info()["kage"], Color(1, 0.8, 0.4))
 
 
@@ -721,7 +701,7 @@ func _academy() -> void:
 					if not "genjutsu" in pr["skills"]:
 						pr["skills"].append("genjutsu")
 					_buy_learn("narakumi", 250)})
-			Hud.dialog(sensei, "Seninle gurur duyuyorum %s. Ateşin İradesi seninle!" % pr["name"], opts)
+			Hud.dialog(sensei, "Seninle gurur duyuyorum %s. Yolun açık olsun — hangi yolu seçersen seç, temeli unutma." % pr["name"], opts)
 
 
 ## Yetenek ağacını sıfırlama (tapınak / antrenman alanı): puanlar geri verilir
@@ -745,7 +725,8 @@ func _training_ground() -> void:
 	if s == 3 and pr["flags"].get("academy_passed", false):
 		Hud.dialog(home_info()["s2"], "Demek mezun oldun. Ama gerçek ninjalar bu testten sonra belli olur: Zil Testi. Hazır mısın?", [{"label": "Zil Testine başla", "cb": Exams.bell_start}, {"label": "Biraz sonra", "cb": func(): pass}])
 		return
-	if s == 5:
+	# chakra kâğıdı testi: mezun olmuş ama doğasını bilmeyen herkes isteğe bağlı yapabilir
+	if s >= Journal.FREE and not pr.get("element_known", false):
 		var el: String = pr["elements"][0]
 		var names = {"katon": "kâğıt yanıp kül oldu: ATEŞ (Katon)", "suiton": "kâğıt ıslandı: SU (Suiton)", "fuuton": "kâğıt ikiye bölündü: RÜZGAR (Fuuton)",
 			"doton": "kâğıt ufalandı: TOPRAK (Doton)", "raiton": "kâğıt buruştu: YILDIRIM (Raiton)"}
@@ -753,7 +734,7 @@ func _training_ground() -> void:
 		Hud.dialog(home_info()["s2"], "Chakra kâğıdına chakranı akıt... %s! İlk element tekniğini öğretiyorum." % names[el], [])
 		var starter = {"katon": "katon_goukakyuu", "suiton": "suiton_suikoudan", "fuuton": "fuuton_shinkuu", "doton": "doton_doryuusou", "raiton": "raiton_nagashi"}[el]
 		learn(starter)
-		set_story(6)
+		Journal.add("Chakra kâğıdı doğanı gösterdi: %s." % el.capitalize(), "milestone")
 		return
 	var opts = [respec_option()]
 	if int(pr["rank"]) >= 2 and int(pr["level"]) >= 25 and "raiton" in pr["elements"] and not "raiton_chidori" in pr["learned"]:
@@ -781,13 +762,9 @@ func _sage_falls() -> void:
 func _mission_board(it: Dictionary) -> void:
 	var pr = p()
 	var s = story()
-	if s == 7 and int(pr["level"]) >= 8 and _in_home(it):
-		Hud.dialog(home_info()["kage"], "Bir haydut çetesi köyün Yasak Parşömenini çaldı! Köyün dışındaki Haydut Kampı'na git ve liderlerini yen. Pusulayı takip et.", [])
-		Missions.spawn_scroll_thief()
-		set_story(8)
+	if Orgs.is_rogue() and _in_home(it):
+		Hud.dialog(home_info()["kage"] + " Kulesi", "Kaçak bir ninjaya bu köyde görev yok. Muhafızlar seni izliyor...", [])
 		return
-	if s == 9 and int(pr["level"]) >= 15:
-		Hud.msg("Chunin Sınavı için Stadyuma git!", Color(1, 0.8, 0.4))
 	if _in_home(it):
 		var rk = int(pr["rank"])
 		if rk >= 6:
@@ -796,13 +773,13 @@ func _mission_board(it: Dictionary) -> void:
 				{"label": "Görev panosuna bak", "cb": func(): Missions.open_board(it)}])
 			return
 		var opts = []
-		if s >= 12 and rk == 2:
+		if rk == 2 and int(pr["level"]) >= 45:
 			opts.append({"label": "Jōnin terfi değerlendirmesi", "cb": func(): Exams.jonin_offer()})
 		if rk >= 2 and int(pr["level"]) >= 35 and String(pr.get("specialty", "")) == "":
 			opts.append({"label": "Tokubetsu Jōnin uzmanlığı seç", "cb": func(): Exams.specialty_offer()})
 		if rk in [3, 4] and int(pr["level"]) >= 90:
 			opts.append({"label": "%s adaylığı" % home_info()["kage"], "cb": func(): Kage.offer_candidacy()})
-		if s == 9 and int(pr["level"]) >= 15 and rk == 1:
+		if s >= Journal.FREE and int(pr["level"]) >= 15 and rk == 1:
 			opts.append({"label": "Chūnin Sınavına başvur", "cb": func(): ChuninExam.apply()})
 		if not opts.is_empty():
 			opts.push_front({"label": "Görevleri göster" if it.has("giver") else "Görev panosu", "cb": func(): Missions.open_board(it)})

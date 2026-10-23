@@ -400,7 +400,7 @@ func _bell_result(passed: bool, why: String) -> void:
 		Missions.has_marker = false
 		Hud.dialog(hi["s2"], t + "
 
-Artık %s'nin bir Genin'isin! İlk dersimiz chakra kontrolü: duvarlara tırman, 35 metreye ulaş!" % String(Game.village(Progress.home()).get("name", "Köy")), [])
+Artık %s'nin bir Genin'isin! Bundan sonra kimse sana hangi yoldan yürüyeceğini söylemeyecek. Görev panosundan iş al, dünyayı dolaş, ustalar ara, rakipler edin... İstersen Tab > Görevler > Yolun bölümünden kendine hedefler seç." % String(Game.village(Progress.home()).get("name", "Köy")), [])
 		exam_finished.emit("bell", true)
 	else:
 		Hud.dialog(hi["s2"], "Yanlış cevap. Bir ninja asla takım arkadaşını yalnız bırakmaz. Yarın tekrar dene — benimle antrenman alanında konuş.", [])
@@ -410,7 +410,7 @@ Artık %s'nin bir Genin'isin! İlk dersimiz chakra kontrolü: duvarlara tırman,
 # ================================================================== JŌNİN TERFİSİ
 func jonin_offer() -> bool:
 	var pr = p()
-	if int(pr["rank"]) != 2 or Progress.story() < 12:
+	if int(pr["rank"]) != 2:
 		return false
 	var lv = int(pr["level"])
 	var a = int(pr["missions_done"].get("A", 0))
@@ -459,7 +459,7 @@ func jonin_done(m: Dictionary, ok: bool) -> void:
 	var votes = int(m.get("flags", {}).get("votes", 0))
 	if votes >= 1:
 		Progress.promote(3)
-		Progress.set_story(13)
+		Journal.add("Jōnin oldun. Artık başkalarının hayatı senin kararlarına bağlı.", "milestone")
 		Gear.grant(p(), "jonin_komutan_paltosu")
 		Hud.dialog(Progress.home_info()["kage"], "İki jōninin tavsiyesi ve kriz yönetimin oybirliğiyle kabul edildi. Bugünden itibaren bir JŌNİN'sin. Artık bir Tokubetsu Jōnin uzmanlığı da seçebilirsin (Kage Kulesi).", [])
 		exam_finished.emit("jonin", true)
@@ -597,7 +597,7 @@ func anbu_done(m: Dictionary, ok: bool) -> void:
 		Missions._rep(Progress.home(), 25)
 	Progress.promote(4)
 	Gear.grant(p(), "anbu_kurt")
-	Progress.set_story(14)
+	Journal.add("ANBU maskesini taktın. Adın artık gölgelerde.", "milestone")
 	var t = "Maskeni tak. Artık bir ANBU'sun. ANBU Karargâhı'ndan özel görevler alabilirsin."
 	if f.get("root_reported", false):
 		t += " Kök'ü bildirdiğin için Kage sana özellikle güveniyor (+25 itibar)."
