@@ -2,19 +2,23 @@ extends Node
 var main: Node
 func _ready() -> void:
 	await get_tree().process_frame
-	main.creator_state = {"slot": 3, "name": "Test", "gender": "m", "clan": "none", "element": "katon", "hair_style": "diken", "hair": Color(0.3, 0.2, 0.12), "top": Color(0.9, 0.45, 0.12), "pants": Color(0.15, 0.15, 0.17), "skin": Color(0.96, 0.8, 0.66), "eye": Color(0.25, 0.45, 0.8)}
-	main._start_new_game()
-	Hud.show_game_hud(false)
-	var pl = main.player
-	Game.world.env.time_of_day = 0.42
-	var kv = Game.village("konoha")
-	for i in 3:
-		var y = float(kv["y"]) - 600.0 + i * 500.0
-		pl.respawn(Game.from_map(Vector2(kv["x"], y)))
-		pl.yaw = 0.0
-		pl.pitch = 12.0
-		pl.cam_dist = 6.0
-		await get_tree().create_timer(4.0).timeout
-		print("pos ", i, " y=", y, " h=", Game.terrain_height(float(kv["x"]), -y), " hokage_y=", kv.get("hokage_rock", {}).get("y", 0))
-		await main.shot("k%d" % i)
+	for p in Game.pois:
+		if p["t"] == "hamlet":
+			var x = float(p["x"]); var y = float(p["y"])
+			print("HAMLET bio=", Game.biome_at(x, -y), " country=", p.get("country"))
+			break
+	for rl in Game.roads:
+		if rl["kind"] != "road": continue
+		var pts: PackedVector2Array = rl["pts"]
+		for i in range(1, pts.size() - 1, 3):
+			var q = pts[i]
+			var b = Game.biome_at(q.x, -q.y)
+			if b in [8, 9] and Roadside._village_near(q.x, q.y) > 400.0:
+				var cnt = {}
+				for k in 200:
+					var bb = Game.biome_at(q.x + randf_range(-200, 200), -q.y + randf_range(-200, 200))
+					cnt[bb] = cnt.get(bb, 0) + 1
+				print("NORTH ", q, " bio=", b, " around=", cnt, " clear=", Game._wh_vn(q.x / 260.0, -q.y / 260.0, 11))
+				get_tree().quit()
+				return
 	get_tree().quit()
