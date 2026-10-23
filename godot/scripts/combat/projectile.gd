@@ -260,8 +260,21 @@ static func tool(who: Node3D, start: Vector3, dir: Vector3, kind: String, target
 ## Anime enerji kütlesi: opak cel çekirdek (kademeli renk bantları) + üstünde bloom için additive parıltı katmanı
 static func energy_mesh(core: Color, edge: Color, size: float, swirl := 3.0, flow := 0.0, intensity := 2.5) -> MeshInstance3D:
 	var mi = MeshInstance3D.new()
-	var s = SphereMesh.new()
-	s.radius = 0.5; s.height = 1.0; s.radial_segments = 28; s.rings = 14
+	# aynı parametreli malzemeler paylaşılır: her yayında yeni ShaderMaterial yaratmak ~13 ms takılma yapıyordu
+	var key = "energy_%s_%s_%.2f_%.2f_%.2f" % [core, edge, swirl, flow, intensity]
+	if VFX._cache.has(key):
+		var cm: Array = VFX._cache[key]
+		mi.mesh = VFX._sphere(0.5, 28, 14)
+		mi.material_override = cm[0]
+		mi.scale = Vector3.ONE * size
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var g0 = MeshInstance3D.new()
+		g0.mesh = VFX._sphere(0.5, 20, 10)
+		g0.material_override = cm[1]
+		g0.scale = Vector3.ONE * 1.18
+		g0.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.add_child(g0)
+		return mi
 	var m = ShaderMaterial.new()
 	m.shader = load("res://shaders/energy_cel.gdshader")
 	var mid = core.lerp(edge, 0.55)
@@ -272,14 +285,12 @@ static func energy_mesh(core: Color, edge: Color, size: float, swirl := 3.0, flo
 	m.set_shader_parameter("swirl", swirl)
 	m.set_shader_parameter("flow", flow)
 	m.set_shader_parameter("bright", 1.0 + intensity * 0.08)
-	s.material = m
-	mi.mesh = s
+	mi.mesh = VFX._sphere(0.5, 28, 14)   # paylaşılan önbellekli küre (her yayında yeni mesh üretme)
+	mi.material_override = m
 	mi.scale = Vector3.ONE * size
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	# parıltı katmanı
 	var g = MeshInstance3D.new()
-	var gs = SphereMesh.new()
-	gs.radius = 0.5; gs.height = 1.0; gs.radial_segments = 20; gs.rings = 10
 	var gm = ShaderMaterial.new()
 	gm.shader = load("res://shaders/energy.gdshader")
 	gm.set_shader_parameter("core", core)
@@ -287,11 +298,12 @@ static func energy_mesh(core: Color, edge: Color, size: float, swirl := 3.0, flo
 	gm.set_shader_parameter("swirl", -swirl * 0.6)
 	gm.set_shader_parameter("flow", flow)
 	gm.set_shader_parameter("intensity", intensity * 0.12)
-	gs.material = gm
-	g.mesh = gs
+	g.mesh = VFX._sphere(0.5, 20, 10)
+	g.material_override = gm
 	g.scale = Vector3.ONE * 1.18
 	g.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	mi.add_child(g)
+	VFX._cache[key] = [m, gm]
 	return mi
 
 
@@ -320,7 +332,7 @@ static func trail(parent: Node3D, cols: Array, size: float, amount := 40, life :
 		# karışımlı iz = sert kenarlı cel topaklar (alev/su/duman kuyruğu)
 		var c: Color = cols[mini(1, cols.size() - 1)]
 		var hot = c.s > 0.5 and c.v > 0.7
-		q.material = VFX.mat_puff(1.3 if hot else 1.0, 0.4 if hot and c.r > c.b else 0.0, Color.from_hsv(c.h, minf(1.0, c.s + 0.2), c.v * 0.3))
+		q.material = VFX.mat_puff(1.1 if hot else 1.0, 0.25 if hot and c.r > c.b else 0.0, Color.from_hsv(c.h, minf(1.0, c.s + 0.2), c.v * 0.3))
 	else:
 		q.material = FX._draw_mat(tex if tex else FX.tex_soft, add)
 	p.draw_pass_1 = q

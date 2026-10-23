@@ -53,6 +53,7 @@ func _ready() -> void:
 			sample = int(a.substr(9))
 		if a.begins_with("--ids="):
 			ids_arg = a.substr(6).split(",")
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)   # kare süresi vsync'e yuvarlanmasın
 	cam = Camera3D.new()
 	cam.fov = 60
 	main.add_child(cam)
@@ -134,6 +135,13 @@ func _cast(id: String, t1: float, t2: float, one := false) -> void:
 	pl.combat.lock_target = dummy
 	await get_tree().create_timer(0.3).timeout
 	_frame(pl.global_position.lerp(tp, 0.5) + Vector3.UP * 1.5, 14.0)
+	if id == "doton_doryuheki":   # duvar yüzü: düşman tarafından bak
+		var f = pl.face_dir()
+		cam.global_position = pl.global_position + f * 13.0 + f.cross(Vector3.UP) * 3.0 + Vector3.UP * 2.5
+		cam.look_at(pl.global_position + f * 3.5 + Vector3.UP * 3.5)
+	elif id == "amaterasu":   # hedefe yakın
+		cam.global_position = tp + pl.face_dir().cross(Vector3.UP) * 6.0 + Vector3.UP * 2.0 - pl.face_dir() * 2.0
+		cam.look_at(tp + Vector3.UP * 1.2)
 	var tag = id.substr(0, 22)
 	worst = 0.0
 	Jutsu.execute(pl, id, dummy)

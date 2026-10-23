@@ -46,12 +46,14 @@ void fragment() {
 	float l = dot(nrm, normalize(vec3(-0.45, 0.75, 0.55))) + (n - 0.5) * 0.5;
 	vec3 c = COLOR.rgb;
 	c *= (l > 0.08) ? 1.0 : (1.0 - shade);
-	if (l > 0.72) c = mix(c, vec3(1.0), 0.18);
+	if (l > 0.72 && hot_core <= 0.0) c = mix(c, vec3(1.0), 0.12);
 	if (hot_core > 0.0) {
-		float core = shape - thr - 0.35 * hot_core;
-		if (core > 0.0) c = mix(c, vec3(1.0, 0.97, 0.78), 0.85);
+		// küçük sarı-turuncu çekirdek (topağın yalnızca merkezi)
+		if (d > 0.62 - 0.25 * hot_core) c = mix(c, vec3(1.0, 0.86, 0.3), 0.75);
 	}
 	c *= glow;
+	float mx = max(c.r, max(c.g, c.b));
+	if (mx > 1.0) c = c / mx * (1.0 + (mx - 1.0) * 0.2);   // tonu koru: doygun kalsın, beyaza kırpılmasın
 	if (d < outline) c = mix(c, outline_col.rgb, outline_col.a);
 	ALBEDO = c;
 }

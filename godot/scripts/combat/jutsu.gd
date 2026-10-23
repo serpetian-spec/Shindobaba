@@ -93,24 +93,30 @@ func j_katon_goukakyuu(c: Node3D, t: Node3D) -> void:
 	var dir = _aim(c, t)
 	var start = _mouth(c) + dir * 0.9
 	# ağızdan püsküren alev dili + kor
-	VFX.puffs(start, {"amount": 26, "life": 0.4, "size": 1.3, "vmin": 8, "vmax": 16, "dir": dir, "spread": 22.0, "damp": 3.0, "glow": 1.35, "hot": 0.5,
-		"outline_col": Color(0.3, 0.04, 0.02), "colors": [Color(1, 0.99, 0.86, 1), Color(1, 0.8, 0.2, 1), Color(1, 0.45, 0.06, 0.9), Color(0.8, 0.12, 0.03, 0)]})
+	VFX.puffs(start, {"amount": 26, "life": 0.4, "size": 1.3, "vmin": 8, "vmax": 16, "dir": dir, "spread": 22.0, "damp": 3.0, "glow": 1.1, "hot": 0.3,
+		"outline_col": Color(0.3, 0.04, 0.02), "colors": [Color(1, 0.82, 0.22, 1), Color(1, 0.55, 0.08, 1), Color(0.95, 0.3, 0.04, 0.9), Color(0.7, 0.1, 0.03, 0)]})
 	VFX.embers(start, Color(1, 0.55, 0.1), 18, 12.0)
 	Sfx.play("fire", start)
 	var pr = Projectile.new()
 	pr.shooter = c
-	pr.vel = dir * 24.0
+	pr.vel = dir * 20.0
 	pr.radius = 1.4
-	pr.life = 2.5
+	pr.life = 2.8
 	pr.info = {"dmg": 26.0 * m, "element": "katon", "knock": 10.0, "launch": 4.0, "kind": "heavy", "hitstop": 0.07, "burn": 3.0}
-	pr.add_child(VFX.fireball(3.0))
-	Projectile.trail(pr, [Color(1, 0.95, 0.6, 1), Color(1, 0.6, 0.12, 1), Color(0.85, 0.2, 0.04, 0.8), Color(0.3, 0.08, 0.04, 0)], 2.2, 70, 0.5, FX.tex_smoke, false)
-	Projectile.trail(pr, [Color(0.3, 0.25, 0.22, 0.0), Color(0.28, 0.24, 0.22, 0.85), Color(0.4, 0.38, 0.36, 0)], 2.6, 18, 1.1, FX.tex_smoke, false)
+	# nefesle büyüyen, kendi etrafında yuvarlanan dev ateş topu
+	var ball = VFX.fireball(3.6)
+	ball.scale = Vector3.ONE * 0.25
+	pr.add_child(ball)
+	var gt = ball.create_tween()
+	gt.tween_property(ball, "scale", Vector3.ONE, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	var rt = ball.create_tween().set_loops()
+	rt.tween_property(ball, "rotation:x", -TAU, 0.9).from(0.0)
+	Projectile.trail(pr, [Color(1, 0.75, 0.18, 1), Color(1, 0.45, 0.06, 1), Color(0.8, 0.16, 0.03, 0.8), Color(0.3, 0.06, 0.03, 0)], 2.0, 44, 0.4, FX.tex_smoke, false)
 	var light = OmniLight3D.new()
 	light.light_color = Color(1, 0.6, 0.2); light.light_energy = 1.5; light.omni_range = 10.0
 	pr.add_child(light)
 	pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
-		VFX.explosion(pos, 1.4, Color(1.0, 0.5, 0.1))
+		VFX.explosion(pos, 1.7, Color(1.0, 0.5, 0.1))
 		Combat.hit_sphere(c, pos, 4.0, {"dmg": 14.0 * m, "element": "katon", "knock": 12.0, "launch": 5.0, "kind": "heavy", "burn": 3.0}, pr.hit_list)
 	get_tree().current_scene.add_child(pr)
 	pr.global_position = start
@@ -159,7 +165,7 @@ func _element_wall(w: Node3D, el: String, owner_: Node3D, center: Vector3, half:
 func _stream(c: Node3D, t: Node3D, dur: float, col: Color, el: String, tick_dmg: float, snd: String) -> void:
 	Sfx.play(snd, c.global_position)
 	var e = GPUParticles3D.new()
-	e.amount = 220
+	e.amount = 130
 	e.lifetime = 0.55
 	var pm = ParticleProcessMaterial.new()
 	pm.direction = Vector3(0, 0, -1)
@@ -172,8 +178,8 @@ func _stream(c: Node3D, t: Node3D, dur: float, col: Color, el: String, tick_dmg:
 	match el:
 		"katon", "yoton", "shakuton", "bakuton":
 			var pr: Array = VFX.FIRE_PRESETS[VFX.fire_preset_for(col)]
-			pm.color_ramp = FX._gradient([pr[0], pr[1], pr[2], pr[3], Color(pr[4].r, pr[4].g, pr[4].b, 0)])
-			q.material = VFX.mat_puff(1.35, 0.5, pr[4], 0.36, 0.25, 1.2)
+			pm.color_ramp = FX._gradient([pr[1], pr[2], pr[3], Color(pr[4].r, pr[4].g, pr[4].b, 0)])
+			q.material = VFX.mat_puff(1.08, 0.3, pr[4], 0.36, 0.25, 1.2)
 		"suiton", "futton", "hyoton":
 			pm.color_ramp = FX._gradient([Color(0.95, 0.99, 1, 1), Color(0.5, 0.8, 1.0, 1), Color(0.18, 0.48, 0.98, 0.8), Color(0.1, 0.3, 0.85, 0)])
 			q.material = VFX.mat_puff(1.05, 0.0, Color(0.05, 0.18, 0.5), 0.3, 0.25, 1.3)
@@ -460,18 +466,36 @@ func j_doton_doryuheki(c: Node3D, _t: Node3D) -> void:
 	cs.position.y = 3.5
 	wall.add_child(cs)
 	var b = MB.new()
-	b.add("box", Vector3(0, 3.5, 0), Vector3(12, 7, 2), Color(0.55, 0.45, 0.33))
-	for k in 5:
-		b.add("box", Vector3(-4.8 + k * 2.4, 7.2, 0), Vector3(1.6, 0.8, 2.2), Color(0.5, 0.4, 0.3))
-	for fx in [-3.6, 0.0, 3.6]:
-		var fc = Color(0.47, 0.37, 0.27)
-		b.add("sphere", Vector3(fx, 4.2, -1.05), Vector3(2.4, 2.2, 0.9), fc)
-		b.add("box", Vector3(fx, 3.4, -1.45), Vector3(1.4, 0.7, 0.8), fc.darkened(0.08))
-		for ex in [-0.55, 0.55]:
-			b.add("sphere", Vector3(fx + ex, 4.6, -1.42), Vector3(0.38, 0.28, 0.2), Color(0.2, 0.15, 0.1))
-			b.add("cone", Vector3(fx + ex * 1.4, 5.4, -1.1), Vector3(0.35, 0.8, 0.35), fc, Vector3(0, 0, -ex * 40))
-		for tx in [-0.4, 0.0, 0.4]:
-			b.add("cone", Vector3(fx + tx, 3.0, -1.75), Vector3(0.18, 0.4, 0.18), Color(0.85, 0.8, 0.7), Vector3(180, 0, 0), 4)
+	# kaya katmanları: her biri biraz farklı kalınlık/renk/çıkıntı
+	var strata = [Color(0.58, 0.47, 0.34), Color(0.5, 0.4, 0.29), Color(0.63, 0.52, 0.38), Color(0.46, 0.36, 0.26), Color(0.56, 0.45, 0.32), Color(0.52, 0.41, 0.3)]
+	for k in 6:
+		var hh = 7.0 / 6.0
+		b.add("box", Vector3(randf_range(-0.15, 0.15), hh * (k + 0.5), 0), Vector3(12.0 - absf(k - 2.5) * 0.15, hh * 1.02, 2.0 + randf_range(-0.1, 0.25)), strata[k])
+	# sivri kırık tepe
+	for k in 9:
+		var tx = -5.4 + k * 1.35
+		b.add("cone", Vector3(tx, 7.4, randf_range(-0.2, 0.2)), Vector3(1.3, randf_range(0.8, 1.8), 1.6), strata[k % 3], Vector3(randf_range(-12, 12), 0, randf_range(-14, 14)), 5)
+	# iki yüzde dikey çatlaklar
+	for side in [-1.0, 1.0]:
+		for k in 5:
+			var cx = randf_range(-5.2, 5.2)
+			var cy = randf_range(0.8, 5.5)
+			for seg in 3:
+				b.add("box", Vector3(cx + randf_range(-0.25, 0.25), cy + seg * 0.55, side * 1.08), Vector3(0.09, 0.62, 0.06), Color(0.16, 0.11, 0.08), Vector3(0, 0, randf_range(-35, 35)))
+	# köpek başı kabartmaları (düşman tarafı -Z ve arka yüz)
+	for side in [-1.0, 1.0]:
+		for fx in [-3.8, 0.0, 3.8]:
+			var fc = Color(0.5, 0.39, 0.28)
+			var z = side * 1.05
+			b.add("sphere", Vector3(fx, 4.3, z), Vector3(2.6, 2.4, 1.0), fc)                       # kafa
+			b.add("box", Vector3(fx, 3.5, z + side * 0.55), Vector3(1.5, 0.9, 1.1), fc.darkened(0.06))   # burun-ağız
+			b.add("sphere", Vector3(fx, 3.85, z + side * 1.1), Vector3(0.45, 0.32, 0.3), Color(0.12, 0.08, 0.06))   # burun ucu
+			b.add("box", Vector3(fx, 3.05, z + side * 0.75), Vector3(1.3, 0.12, 0.8), Color(0.14, 0.09, 0.07))     # ağız çizgisi
+			for ex in [-0.6, 0.6]:
+				b.add("box", Vector3(fx + ex, 4.75, z + side * 0.42), Vector3(0.45, 0.16, 0.2), Color(0.1, 0.07, 0.05), Vector3(0, 0, ex * 25))   # kaş-göz
+				b.add("cone", Vector3(fx + ex * 1.5, 5.55, z), Vector3(0.5, 1.1, 0.45), fc, Vector3(0, 0, -ex * 45), 5)   # kulak
+			for tx in [-0.45, -0.15, 0.15, 0.45]:
+				b.add("cone", Vector3(fx + tx, 2.85, z + side * 0.9), Vector3(0.16, 0.42, 0.16), Color(0.9, 0.86, 0.76), Vector3(180, 0, 0), 4)
 	var mi = MeshInstance3D.new()
 	mi.mesh = b.build(Props.toon())
 	wall.add_child(mi)
@@ -479,7 +503,15 @@ func j_doton_doryuheki(c: Node3D, _t: Node3D) -> void:
 	_element_wall(wall, "doton", c, Vector3(0, 3.5, 0), Vector3(6, 3.5, 1), 45.0 * _mult(c))
 	wall.global_transform = Transform3D(Basis.looking_at(d, Vector3.UP), pos - Vector3(0, 7.5, 0))
 	var tw = wall.create_tween()
-	tw.tween_property(wall, "global_position:y", pos.y, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(wall, "global_position:y", pos.y, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	# yükselirken taban boyunca toz perdesi ve tepeden dökülen taşlar
+	var side_v = d.cross(Vector3.UP).normalized()
+	_ticks(4, 0.12, func(i):
+		for k in 4:
+			var bp = pos + side_v * (-5.0 + k * 3.3) + Vector3.UP * 0.3
+			VFX.puffs(bp, {"amount": 6, "life": 0.9, "size": 1.6, "radius": 1.0, "vmin": 2, "vmax": 5, "dir": Vector3.UP, "spread": 40.0, "damp": 3.0,
+				"outline_col": Color(0.3, 0.22, 0.14), "shade": 0.3, "colors": [Color(0.72, 0.6, 0.45, 1), Color(0.62, 0.5, 0.36, 1), Color(0.55, 0.45, 0.33, 0)]})
+		VFX.debris(pos + Vector3.UP * (2.0 + i * 1.6) + side_v * randf_range(-5, 5), Color(0.52, 0.42, 0.3), 6, 7.0, 0.45))
 	tw.tween_interval(14.0)
 	tw.tween_property(wall, "global_position:y", pos.y - 7.5, 0.6)
 	tw.tween_callback(wall.queue_free)
@@ -1473,8 +1505,8 @@ func j_katon_goryuka_no_jutsu(c: Node3D, t: Node3D) -> void:
 	var d = _jd("katon_goryuka_no_jutsu")
 	var dir = _aim(c, t)
 	Sfx.play("fire", c.global_position, 0.8)
-	VFX.puffs(_mouth(c) + dir, {"amount": 30, "life": 0.5, "size": 1.6, "vmin": 8, "vmax": 16, "dir": dir, "spread": 30.0, "glow": 1.35, "hot": 0.5,
-		"outline_col": Color(0.3, 0.04, 0.02), "colors": [Color(1, 0.99, 0.86, 1), Color(1, 0.8, 0.2, 1), Color(1, 0.45, 0.06, 0.9), Color(0.8, 0.12, 0.03, 0)]})
+	VFX.puffs(_mouth(c) + dir, {"amount": 30, "life": 0.5, "size": 1.6, "vmin": 8, "vmax": 16, "dir": dir, "spread": 30.0, "glow": 1.1, "hot": 0.3,
+		"outline_col": Color(0.3, 0.04, 0.02), "colors": [Color(1, 0.82, 0.22, 1), Color(1, 0.55, 0.08, 1), Color(0.95, 0.3, 0.04, 0.9), Color(0.7, 0.1, 0.03, 0)]})
 	for i in 4:
 		get_tree().create_timer(i * 0.22).timeout.connect(func():
 			if not is_instance_valid(c):
@@ -1678,21 +1710,24 @@ func j_amaterasu(c: Node3D, t: Node3D) -> void:
 	if c is Player and Game.world:
 		Game.world.env.set_tint(Color(0.6, 0.0, 0.05, 0.25))
 		get_tree().create_timer(0.35).timeout.connect(func(): Game.world.env.set_tint(Color(0, 0, 0, 0)))
-	var flame = VFX.fireball(3.0, "black")
+	var flame = VFX.black_flames(maxf(1.2, tg.height * 0.75) if tg else 1.6)
+	VFX.black_smolder(pos, 2.0, 8.0)
 	if tg:
 		tg.add_child(flame)
-		flame.position = Vector3(0, tg.height * 0.5, 0)
+		flame.position = Vector3(0, 0.1, 0)
 		tg.apply_status("burn", 10.0)
 		tg.set_meta("black_flame", true)
 	else:
 		get_tree().current_scene.add_child(flame)
-		flame.global_position = pos + Vector3.UP
+		flame.global_position = pos
 	var dur = 8.0
 	var inf = _inf(c, "amaterasu", 0.25, {"knock": 0.0, "launch": 0.0, "kind": "light", "hitstop": 0.0, "element": "katon"})
 	_ticks(int(dur / 0.4), 0.4, func(_i):
 		var p = (tg.global_position if tg and is_instance_valid(tg) else pos)
-		VFX.puffs(p + Vector3.UP * 0.8, {"amount": 10, "life": 0.9, "size": 1.7, "radius": 1.0, "vmin": 1, "vmax": 3, "dir": Vector3.UP, "spread": 25.0, "glow": 1.0,
-			"outline_col": Color(0.4, 0.05, 0.45), "colors": [Color(0.12, 0.02, 0.15, 1), Color(0.05, 0.0, 0.07, 1), Color(0.02, 0.0, 0.03, 0)]})
+		# yukarı yalayan kara alev dilleri (uzayan cel topaklar) + mor kor
+		VFX.puffs(p + Vector3.UP * 0.6, {"amount": 6, "life": 0.7, "size": 1.0, "radius": 0.8, "vmin": 2, "vmax": 4, "dir": Vector3.UP, "spread": 15.0, "glow": 1.0,
+			"stretch": 2.2, "outline_col": Color(0.5, 0.1, 0.58), "colors": [Color(0.04, 0.0, 0.06, 1), Color(0.03, 0.0, 0.05, 1), Color(0.02, 0.0, 0.03, 0)]})
+		VFX.embers(p + Vector3.UP, Color(0.6, 0.15, 0.7), 4, 3.0, 0.8)
 		Combat.hit_sphere(c, p + Vector3.UP, 1.8, inf), func():
 		if is_instance_valid(flame):
 			flame.queue_free())
@@ -1880,13 +1915,27 @@ func j_mokuton_mokuryu_no_jutsu(c: Node3D, t: Node3D) -> void:
 	var head = Node3D.new()
 	get_tree().current_scene.add_child(head)
 	head.global_position = base - Vector3.UP * 2.0
-	head.add_child(VfxSerpent.dragon_head(wood, 2.2, Color(1, 0.9, 0.4)))
+	var hn = VfxSerpent.dragon_head(wood, 2.8, Color(1, 0.85, 0.2))
+	head.add_child(hn)
+	# dallanan tahta boynuzlar + yanak kökleri + sakal kökleri
+	var ab = MB.new()
+	for sx in [-1.0, 1.0]:
+		ab.add("cyl", Vector3(0.32 * sx, 0.75, 0.55), Vector3(0.12, 1.1, 0.12), Color(0.42, 0.3, 0.18), Vector3(-50, 0, -25 * sx), 6)
+		ab.add("cyl", Vector3(0.55 * sx, 1.15, 0.85), Vector3(0.08, 0.6, 0.08), Color(0.42, 0.3, 0.18), Vector3(-20, 0, -60 * sx), 5)
+		ab.add("cyl", Vector3(0.25 * sx, 1.25, 1.05), Vector3(0.07, 0.55, 0.07), Color(0.42, 0.3, 0.18), Vector3(-70, 0, 10 * sx), 5)
+		ab.add("cone", Vector3(0.5 * sx, -0.25, -0.2), Vector3(0.12, 0.7, 0.12), Color(0.38, 0.27, 0.16), Vector3(150, 0, 30 * sx), 5)
+		ab.add("sphere", Vector3(0.62 * sx, 0.55, 0.9), Vector3(0.35, 0.25, 0.3), Color(0.32, 0.55, 0.22), Vector3.ZERO, 6)   # yaprak tutamı
+	var am = MeshInstance3D.new()
+	am.mesh = ab.build(Props.toon())
+	am.scale = Vector3.ONE * 2.8
+	head.add_child(am)
 	var body = VfxSerpent.new()
 	body.head = head
-	body.count = 16
-	body.spacing = 1.2
+	body.count = 18
+	body.spacing = 1.15
 	body.radius = 1.3
 	body.mat = wood
+	body.ring_mat = Props.toon_color(Color(0.32, 0.22, 0.13))   # gövde halkaları (kabuk boğumları)
 	body.fin_mat = Props.toon_color(Color(0.3, 0.55, 0.22))   # sırtta yapraklı filizler
 	get_tree().current_scene.add_child(body)
 	VFX.cracks(base, 5.0)

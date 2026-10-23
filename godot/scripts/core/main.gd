@@ -42,6 +42,9 @@ func _ready() -> void:
 		add_child(cm)
 		cm.setup({"gender": g, "vest": Color(0.38, 0.48, 0.28)})
 		cm.queue_free()
+	# jutsu efekt shader/parçacıklarını önceden derle (ilk yayında 50-140 ms takılma olmasın)
+	_loading_progress(0.99, "Jutsu efektleri hazırlanıyor")
+	await VFX.warmup()
 	actors = Node3D.new()
 	actors.name = "Actors"
 	add_child(actors)

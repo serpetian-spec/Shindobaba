@@ -37,7 +37,7 @@ func _process(dt: float) -> void:
 	if charging:
 		progress += dt
 		ball.scale = Vector3.ONE * (0.4 + progress / s[2] * 0.5) * (1.0 + sin(Time.get_ticks_msec() * 0.03) * 0.05)
-		var m: ShaderMaterial = ball.mesh.material
+		var m: ShaderMaterial = ball.material_override
 		m.set_shader_parameter("swirl", 2.0 + progress * 3.0)
 	else:
 		progress = maxf(0.0, progress - dt * 2.0)

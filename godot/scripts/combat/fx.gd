@@ -120,7 +120,7 @@ func _curve(points: Array) -> CurveTexture:
 func _auto_glow(cfg: Dictionary) -> float:
 	var cols: Array = cfg.get("colors", [Color.WHITE])
 	var c: Color = cols[mini(1, cols.size() - 1)]
-	return 1.3 if c.s > 0.55 and c.v > 0.7 else 1.0
+	return 1.1 if c.s > 0.55 and c.v > 0.7 else 1.0
 
 
 func _auto_outline(cfg: Dictionary) -> Color:

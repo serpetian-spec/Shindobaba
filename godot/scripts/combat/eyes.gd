@@ -285,9 +285,10 @@ func _amaterasu(t: Node3D, eternal: bool) -> void:
 	t.set_meta("black_flame", true)
 	t.take_hit({"dmg": 25.0, "knock": 0.0, "kind": "light", "dir": p.face_dir(), "element": "katon"})
 	# hedefi saran kara cel alev (mor konturlu), süre bitince söner
-	var flame = VFX.fireball(2.6, "black")
+	var flame = VFX.black_flames(maxf(1.2, t.height * 0.75) if "height" in t else 1.3)
 	t.add_child(flame)
-	flame.position = Vector3(0, 0.9, 0)
+	flame.position = Vector3(0, 0.1, 0)
+	VFX.black_smolder(t.global_position, 1.8, 8.0)
 	t.get_tree().create_timer(10.0 if eternal else 8.0).timeout.connect(func(): if is_instance_valid(flame): flame.queue_free())
 	VFX.puffs(t.global_position + Vector3.UP, {"amount": 30, "life": 0.8, "size": 1.4, "vmin": 1, "vmax": 4, "gravity": Vector3(0, 3, 0), "glow": 1.0,
 		"outline_col": Color(0.4, 0.05, 0.45), "colors": [Color(0.12, 0.02, 0.15, 1), Color(0.05, 0.0, 0.08, 1), Color(0.02, 0.0, 0.03, 0)]})

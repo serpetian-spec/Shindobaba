@@ -10,9 +10,9 @@ static var _active := 0
 const MAX_ACTIVE := 90   # aynı anda canlı ağır efekt sınırı (performans)
 
 const FIRE_PRESETS := {
-	"fire": [Color(1.0, 0.99, 0.86), Color(1.0, 0.86, 0.22), Color(1.0, 0.48, 0.06), Color(0.82, 0.13, 0.03), Color(0.3, 0.04, 0.02)],
+	"fire": [Color(1.0, 0.92, 0.42), Color(1.0, 0.72, 0.1), Color(1.0, 0.4, 0.04), Color(0.8, 0.12, 0.03), Color(0.3, 0.04, 0.02)],
 	"blue": [Color(0.92, 1.0, 1.0), Color(0.5, 0.85, 1.0), Color(0.15, 0.45, 1.0), Color(0.08, 0.18, 0.7), Color(0.02, 0.05, 0.25)],
-	"black": [Color(0.25, 0.08, 0.3), Color(0.12, 0.03, 0.15), Color(0.06, 0.0, 0.08), Color(0.03, 0.0, 0.04), Color(0.45, 0.1, 0.5)],
+	"black": [Color(0.02, 0.0, 0.03), Color(0.05, 0.01, 0.07), Color(0.1, 0.02, 0.14), Color(0.3, 0.05, 0.38), Color(0.55, 0.12, 0.62)],
 	"lava": [Color(1.0, 0.9, 0.45), Color(1.0, 0.55, 0.1), Color(0.85, 0.25, 0.05), Color(0.45, 0.1, 0.04), Color(0.15, 0.04, 0.03)],
 	"green": [Color(0.9, 1.0, 0.85), Color(0.55, 1.0, 0.45), Color(0.15, 0.8, 0.3), Color(0.05, 0.45, 0.2), Color(0.02, 0.18, 0.08)],
 	"purple": [Color(1.0, 0.9, 1.0), Color(0.85, 0.55, 1.0), Color(0.55, 0.25, 0.95), Color(0.3, 0.1, 0.6), Color(0.12, 0.03, 0.25)],
@@ -257,10 +257,12 @@ static func rasengan(size := 1.0, body := Color(0.15, 0.45, 1.0), line := Color(
 	var s2 = _mi(_sphere(0.5, 24, 12), mat_spiral(line, body * 0.6, 4.0, -2.0, -9.0, 1.2, Vector3(1, 0, 0)))
 	s2.scale = Vector3.ONE * size * 1.12
 	root.add_child(s2)
-	for k in 3:
+	if not _cache.has("ras_torus"):
 		var tor = TorusMesh.new()
 		tor.inner_radius = 0.46; tor.outer_radius = 0.5; tor.rings = 24; tor.ring_segments = 4
-		var ring = _mi(tor, mat_bolt(body.lightened(0.3), 1.2))
+		_cache["ras_torus"] = tor
+	for k in 3:
+		var ring = _mi(_cache["ras_torus"], mat_bolt(body.lightened(0.3), 1.2))
 		ring.scale = Vector3.ONE * size * (1.15 + k * 0.08)
 		ring.rotation = Vector3(randf() * TAU, randf() * TAU, 0)
 		root.add_child(ring)
@@ -494,7 +496,7 @@ static func trail(target: Node3D, width: float, head: Color, mid: Color, tail: C
 static func element_trail(target: Node3D, el: String, col: Color, width: float) -> VfxTrail:
 	match el:
 		"katon", "shakuton", "yoton", "bakuton":
-			return trail(target, width, Color(1, 0.97, 0.75), Color(1, 0.55, 0.08), Color(0.75, 0.12, 0.03), 16, 0.3)
+			return trail(target, width, Color(1, 0.85, 0.3), Color(1, 0.45, 0.06), Color(0.75, 0.12, 0.03), 16, 0.3)
 		"suiton", "futton", "hyoton":
 			return trail(target, width, Color(0.95, 0.99, 1), Color(0.45, 0.75, 1.0), Color(0.12, 0.38, 0.9), 18, 0.1)
 		"fuuton", "jinton":
@@ -539,18 +541,24 @@ static func explosion(pos: Vector3, s := 1.0, col := Color(1.0, 0.55, 0.15)) -> 
 		core.global_position = pos
 		core.scale = Vector3.ONE * 0.5 * s
 		var tw = core.create_tween()
-		tw.tween_property(core, "scale", Vector3.ONE * 5.0 * s, 0.18).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-		tw.parallel().tween_property(inner, "scale", Vector3.ZERO, 0.3)
-		tw.tween_method(func(x: float): m.set_shader_parameter("alpha_cut", x), 0.0, 1.1, 0.45)
-		tw.parallel().tween_property(core, "scale", Vector3.ONE * 6.2 * s, 0.45)
+		tw.tween_property(core, "scale", Vector3.ONE * 5.5 * s, 0.18).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+		tw.parallel().tween_property(inner, "scale", Vector3.ONE * 0.3, 0.45)
+		tw.tween_property(core, "scale", Vector3.ONE * 6.3 * s, 0.25)   # ateş topu bir an asılı kalır
+		tw.tween_method(func(x: float): m.set_shader_parameter("alpha_cut", x), 0.0, 1.1, 0.4)
+		tw.parallel().tween_property(core, "scale", Vector3.ONE * 6.8 * s, 0.4)
+		tw.parallel().tween_property(core, "global_position:y", pos.y + 1.5 * s, 0.4)
 		tw.tween_callback(core.queue_free)
 	var pr: Array = FIRE_PRESETS.get(preset, FIRE_PRESETS["fire"])
-	puffs(pos, {"amount": int(26 * s) + 6, "life": 0.75, "size": 2.4 * s, "radius": 1.0 * s, "vmin": 6, "vmax": 14 * s,
-		"damp": 6.0, "gravity": Vector3(0, 5, 0), "spin": 90.0, "glow": 1.35, "hot": 0.5, "outline_col": pr[4],
-		"colors": [pr[0], pr[1], pr[2], pr[3], Color(pr[4].r, pr[4].g, pr[4].b, 0)], "scale_curve": [[0.0, 0.5], [0.25, 1.15], [1.0, 0.8]]})
-	puffs(pos + Vector3.UP * s, {"amount": int(14 * s) + 4, "life": 1.8, "size": 3.2 * s, "radius": 1.4 * s, "vmin": 2, "vmax": 6 * s,
-		"damp": 2.0, "gravity": Vector3(0, 3.5, 0), "spin": 30.0, "outline_col": Color(0.08, 0.07, 0.07), "shade": 0.35,
-		"colors": [Color(0.35, 0.3, 0.28, 0.0), Color(0.3, 0.27, 0.25, 0.95), Color(0.42, 0.4, 0.38, 0.7), Color(0.45, 0.43, 0.42, 0)]})
+	# alev dilleri: sarı→turuncu→kırmızı bantlar (beyaz yok)
+	puffs(pos, {"amount": int(18 * s) + 6, "life": 0.7, "size": 1.9 * s, "radius": 1.0 * s, "vmin": 6, "vmax": 13 * s,
+		"damp": 6.0, "gravity": Vector3(0, 5, 0), "spin": 90.0, "glow": 1.1, "hot": 0.3, "outline_col": pr[4],
+		"colors": [pr[1], pr[2], pr[3], Color(pr[4].r, pr[4].g, pr[4].b, 0)], "scale_curve": [[0.0, 0.5], [0.25, 1.1], [1.0, 0.7]]})
+	# duman: daha küçük, koyu gri-kahve ve ateş sönerken gelir
+	var smoke_at = pos + Vector3.UP * s * 1.6
+	scene().get_tree().create_timer(0.3).timeout.connect(func():
+		puffs(smoke_at, {"amount": int(8 * s) + 3, "life": 1.5, "size": 2.0 * s, "radius": 1.3 * s, "vmin": 1.5, "vmax": 4 * s,
+			"damp": 2.0, "gravity": Vector3(0, 3.0, 0), "spin": 30.0, "outline_col": Color(0.06, 0.05, 0.04), "shade": 0.35, "glow": 1.0,
+			"colors": [Color(0.26, 0.21, 0.18, 0.0), Color(0.24, 0.2, 0.17, 0.95), Color(0.32, 0.28, 0.25, 0.7), Color(0.35, 0.31, 0.28, 0)]}))
 	embers(pos, pr[2], int(28 * s), 22.0 * s, 1.0)
 	star(pos, pr[1], 4.5 * s, 0.2)
 	var g = Vector3(pos.x, Game.ground_height(pos.x, pos.z) + 0.12, pos.z)
@@ -566,3 +574,112 @@ static func explosion(pos: Vector3, s := 1.0, col := Color(1.0, 0.55, 0.15)) -> 
 	if s >= 1.2:
 		screen_lines(0.35, minf(1.0, 0.5 * s))
 	Sfx.play("boom", pos)
+
+
+## Amaterasu kara alevi: hedefi saran, yukarı yalayan sivri alev dilleri (iç siyah, kenar koyu mor)
+static func black_flames(size := 1.0) -> Node3D:
+	var root = Node3D.new()
+	var n = 7
+	for i in n:
+		var m = mat_fire("black", 2.6 + randf() * 1.2, 2.6, 0.55, 1.0, 0.2, Vector3.UP, true)
+		m.set_shader_parameter("tongue", 0.45 + randf() * 0.35)
+		var t = _mi(_sphere(0.5, 16, 10), m)
+		var a = TAU * i / n + randf() * 0.4
+		var r = 0.0 if i == 0 else 0.45
+		t.position = Vector3(cos(a) * r, 0.2 + randf() * 0.4, sin(a) * r) * size
+		t.scale = Vector3(1.0, 1.4 + randf() * 0.7, 1.0) * size * (1.1 if i == 0 else 0.75)
+		root.add_child(t)
+		var tw = t.create_tween().set_loops()
+		var s0 = t.scale
+		tw.tween_property(t, "scale", s0 * Vector3(0.9, 1.15, 0.9), 0.22 + randf() * 0.15)
+		tw.tween_property(t, "scale", s0, 0.22 + randf() * 0.15)
+	return root
+
+
+## Yerde için için yanan kara alev lekesi
+static func black_smolder(pos: Vector3, size := 2.0, dur := 6.0) -> void:
+	var m = mat_fire("black", 1.6, 3.0, 0.6, 1.0, 0.1, Vector3.UP, true)
+	m.set_shader_parameter("tongue", 0.6)
+	var mi = _mi(_sphere(0.5, 20, 8), m)
+	scene().add_child(mi)
+	mi.global_position = Vector3(pos.x, Game.ground_height(pos.x, pos.z), pos.z)
+	mi.scale = Vector3(size * 2.0, size * 0.5, size * 2.0)
+	cracks(pos, size * 2.2, Color(0.04, 0.0, 0.05, 0.95), dur + 2.0)
+	var tw = mi.create_tween()
+	tw.tween_interval(dur)
+	tw.tween_method(func(x: float): m.set_shader_parameter("alpha_cut", x), 0.0, 1.1, 0.8)
+	tw.tween_callback(mi.queue_free)
+
+
+## Yükleme ekranında tüm VFX shader/parçacık türlerini bir kez ekran dışı çizdirir (ilk yayında takılma olmasın).
+## Ana dünyayı paylaşan küçük SubViewport'un kamerası, dünyanın uzak bir köşesinde oluşturulan efektleri görür.
+static func warmup() -> void:
+	var host = scene()
+	var W = Vector3(0, 2600, 0)
+	var sv = SubViewport.new()
+	sv.size = Vector2i(320, 180)
+	sv.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	sv.world_3d = host.get_viewport().world_3d
+	host.add_child(sv)
+	var cam = Camera3D.new()
+	sv.add_child(cam)
+	cam.global_position = W + Vector3(0, 2, 16)
+	cam.look_at(W)
+	cam.current = true
+	var sl = ColorRect.new()   # 2B hız çizgisi shader'ı
+	sl.size = Vector2(320, 180)
+	var slm = ShaderMaterial.new()
+	slm.shader = load("res://shaders/vfx_speedlines.gdshader")
+	slm.set_shader_parameter("strength", 0.5)
+	sl.material = slm
+	sv.add_child(sl)
+	var anchor = Node3D.new()
+	host.add_child(anchor)
+	anchor.global_position = W
+	var x = -8.0
+	var put = func(n: Node3D) -> void:
+		anchor.add_child(n)
+		n.position = Vector3(x, 0, 0)
+		x += 1.6
+	for p in FIRE_PRESETS:
+		put.call(fireball(1.0, p))
+	put.call(black_flames(0.6))
+	put.call(water_ball(1.0))
+	put.call(wind_ball(1.0))
+	put.call(rasengan(1.0))
+	put.call(lightning_ball(1.0))
+	for el in ["hyoton", "doton", "mokuton", "fuuton", "suiton", "raiton", ""]:
+		put.call(element_core(el, Color(0.5, 0.7, 1.0), 0.8))
+	for v in ["dragon", "shark", "bird", "beast", "needles", "disc", ""]:
+		put.call(JutsuEngine.shape_mesh(v, Color(1, 0.5, 0.1), 0.6, "katon"))
+	put.call(VfxSerpent.dragon_head(mat_water(), 0.6))
+	put.call(Projectile.energy_mesh(Color.WHITE, Color(0.3, 0.6, 1.0), 0.8))
+	for k in 3:
+		var cd = _card(k, Color(1, 0.6, 0.2), Color.WHITE, 8.0, k != 2)
+		put.call(cd)
+	var mover = Node3D.new()
+	put.call(mover)
+	trail(mover, 0.8, Color.WHITE, Color(1, 0.5, 0.1), Color(1, 0.2, 0, 0), 10, 0.0)
+	trail(mover, 0.8, Color.WHITE, Color(0.5, 0.8, 1.0), Color(0, 0.3, 1, 0), 10, 1.0)
+	var ar = Arcs.new()
+	ar.color = Color(0.6, 0.8, 1.0)
+	put.call(ar)
+	bolt(W, W + Vector3(2, 3, 0), Color(0.6, 0.8, 1.0), 0.2, 0.3, 2)
+	# parçacık süreç malzemesi türleri
+	FX.burst(W, {"amount": 4, "life": 0.4})
+	FX.burst(W, {"amount": 4, "life": 0.4, "tex": FX.tex_spark, "add": true})
+	puffs(W, {"amount": 4, "life": 0.4, "glow": 1.1, "hot": 0.3, "colors": [Color(1, 0.7, 0.1), Color(1, 0.3, 0, 0)]})
+	FX.smoke_puff(W, 0.5, 4)
+	FX.dust(W, 0.5)
+	FX.aura(anchor, Color(0.5, 0.8, 1.0), 0.6, Vector3.ZERO, 0.5)
+	debris(W, Color(0.5, 0.4, 0.3), 4, 4.0, 0.3)
+	embers(W, Color(1, 0.6, 0.2), 4, 4.0, 0.4)
+	splash(W, 0.6)
+	smoke_ring(W, 1.0)
+	explosion(W + Vector3(4, 0, 0), 0.6)
+	black_smolder(W + Vector3(-4, 0, 0), 0.6, 0.3)
+	for i in 8:
+		mover.position.y = i * 0.3
+		await tree().process_frame
+	anchor.queue_free()
+	sv.queue_free()

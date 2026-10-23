@@ -27,10 +27,18 @@ float vn(vec3 p) {
 	           mix(mix(hash(i + vec3(0,0,1)), hash(i + vec3(1,0,1)), u.x), mix(hash(i + vec3(0,1,1)), hash(i + vec3(1,1,1)), u.x), u.y), u.z);
 }
 
+uniform float tongue = 0.0;   // >0: üst yarı sivri, titreyen alev dillerine çekilir (Amaterasu, meşale)
+
 void vertex() {
 	lp = VERTEX;
 	float w = vn(VERTEX * 3.1 - flow * TIME * speed * 1.4) - 0.5;
 	VERTEX += NORMAL * w * wobble * 2.0;
+	if (tongue > 0.0) {
+		float up = max(0.0, lp.y + 0.1);
+		float lick = vn(vec3(lp.x * 4.0, lp.z * 4.0, TIME * speed * 1.7)) ;
+		VERTEX.xz *= 1.0 - clamp(up * tongue * 1.5, 0.0, 0.85);
+		VERTEX.y += up * tongue * (0.6 + lick * 1.6);
+	}
 }
 
 void fragment() {
@@ -48,5 +56,8 @@ void fragment() {
 	else if (v < 0.63) col = c_mid.rgb;
 	else if (v < 0.86) col = c_edge.rgb;
 	else col = c_line.rgb;
-	ALBEDO = col * glow;
+	col *= glow;
+	float mx = max(col.r, max(col.g, col.b));
+	if (mx > 1.0) col = col / mx * (1.0 + (mx - 1.0) * 0.2);   // tonu koru
+	ALBEDO = col;
 }

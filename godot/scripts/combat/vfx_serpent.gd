@@ -9,6 +9,7 @@ var spacing = 1.1
 var radius = 1.0
 var mat: Material
 var fin_mat: Material
+var ring_mat: Material   # varsa her parçaya koyu boğum halkası (tahta/kabuk gövde)
 var segs: Array[Node3D] = []
 var hist: Array[Vector3] = []
 var dying = false
@@ -27,11 +28,26 @@ func _ready() -> void:
 		var r = radius * (1.0 - k * 0.7)
 		mi.scale = Vector3(r * 2.0, r * 1.8, spacing * 2.2)
 		seg.add_child(mi)
+		if ring_mat:
+			var ring = MeshInstance3D.new()
+			if not VFX._cache.has("seg_ring"):
+				var tm = TorusMesh.new()
+				tm.inner_radius = 0.42; tm.outer_radius = 0.56; tm.rings = 16; tm.ring_segments = 6
+				VFX._cache["seg_ring"] = tm
+			ring.mesh = VFX._cache["seg_ring"]
+			ring.material_override = ring_mat
+			ring.rotation_degrees = Vector3(90, 0, 0)
+			ring.scale = Vector3(r * 2.05, r * 1.6, r * 1.9)
+			ring.position = Vector3(0, 0, spacing * 0.5)
+			ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			seg.add_child(ring)
 		if fin_mat and i % 2 == 0 and i < count - 2:
 			var fin = MeshInstance3D.new()
-			var cm = CylinderMesh.new()
-			cm.top_radius = 0.0; cm.bottom_radius = 0.5; cm.height = 1.0; cm.radial_segments = 4
-			fin.mesh = cm
+			if not VFX._cache.has("seg_fin"):
+				var cm = CylinderMesh.new()
+				cm.top_radius = 0.0; cm.bottom_radius = 0.5; cm.height = 1.0; cm.radial_segments = 4
+				VFX._cache["seg_fin"] = cm
+			fin.mesh = VFX._cache["seg_fin"]
 			fin.material_override = fin_mat
 			fin.scale = Vector3(r * 0.35, r * 1.2, r * 0.8)
 			fin.position = Vector3(0, r * 0.95, 0.1)
@@ -94,27 +110,34 @@ static func dragon_head(mat: Material, size: float, eye := Color(1, 1, 0.75)) ->
 		["cone", Vector3(0.45, 0.0, 0.2), Vector3(0.1, 0.6, 0.1), Vector3(-70, 0, -60)],  # yanak dikenleri
 		["cone", Vector3(-0.45, 0.0, 0.2), Vector3(0.1, 0.6, 0.1), Vector3(-70, 0, 60)],
 	]
-	var b = MB.new()
-	for p in parts:
-		b.add(p[0], p[1], p[2], Color.WHITE, p[3], 8)
+	# kafa ve diş meshleri önbellekte: her yayında MB ile yeniden üretmek kare takılması yapıyordu
+	var hk = "dhead"
+	if not VFX._cache.has(hk):
+		var b = MB.new()
+		for p in parts:
+			b.add(p[0], p[1], p[2], Color.WHITE, p[3], 8)
+		VFX._cache[hk] = b.build(null)
 	var mi = MeshInstance3D.new()
-	mi.mesh = b.build(null)
+	mi.mesh = VFX._cache[hk]
 	mi.material_override = mat
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	root.add_child(mi)
-	# dişler
-	var t = MB.new()
-	for k in 5:
-		var x = -0.22 + k * 0.11
-		t.add("cone", Vector3(x, -0.1, -1.15 + absf(x) * 0.6), Vector3(0.06, 0.18, 0.06), Color(1, 1, 1), Vector3(180, 0, 0), 4)
-		t.add("cone", Vector3(x, -0.2, -1.05 + absf(x) * 0.6), Vector3(0.05, 0.14, 0.05), Color(1, 1, 1), Vector3.ZERO, 4)
-	for sx in [-1.0, 1.0]:
-		t.add("sphere", Vector3(0.3 * sx, 0.22, -0.45), Vector3(0.2, 0.1, 0.14), eye, Vector3(0, 0, 12 * sx), 6)
+	# dişler + gözler
+	var tk = "dteeth_%s" % eye
+	if not VFX._cache.has(tk):
+		var t = MB.new()
+		for k in 5:
+			var x = -0.22 + k * 0.11
+			t.add("cone", Vector3(x, -0.1, -1.15 + absf(x) * 0.6), Vector3(0.06, 0.18, 0.06), Color(1, 1, 1), Vector3(180, 0, 0), 4)
+			t.add("cone", Vector3(x, -0.2, -1.05 + absf(x) * 0.6), Vector3(0.05, 0.14, 0.05), Color(1, 1, 1), Vector3.ZERO, 4)
+		for sx in [-1.0, 1.0]:
+			t.add("sphere", Vector3(0.3 * sx, 0.22, -0.45), Vector3(0.2, 0.1, 0.14), eye, Vector3(0, 0, 12 * sx), 6)
+		var um = StandardMaterial3D.new()
+		um.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		um.vertex_color_use_as_albedo = true
+		VFX._cache[tk] = t.build(um)
 	var ti = MeshInstance3D.new()
-	var um = StandardMaterial3D.new()
-	um.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	um.vertex_color_use_as_albedo = true
-	ti.mesh = t.build(um)
+	ti.mesh = VFX._cache[tk]
 	ti.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	root.add_child(ti)
 	root.scale = Vector3.ONE * size
