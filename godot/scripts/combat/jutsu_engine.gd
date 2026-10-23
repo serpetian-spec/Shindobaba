@@ -98,7 +98,7 @@ static func info(c: Node3D, d: Dictionary, mul := 1.0, extra := {}) -> Dictionar
 static func vary(d: Dictionary) -> Dictionary:
 	var h = hash(String(d.get("id", d.get("name", ""))))
 	var r = func(k: int) -> float: return float((h >> (k * 5)) & 31) / 31.0
-	return {"hue": (r.call(0) - 0.5) * 0.06, "size": 0.85 + r.call(1) * 0.35, "count": 0.8 + r.call(2) * 0.5, "speed": 0.85 + r.call(3) * 0.3,
+	return {"hue": (r.call(0) - 0.5) * 0.06, "size": (0.85 + r.call(1) * 0.35) * float(ANIME_SCALE.get(String(d.get("id", "")), 1.0)), "count": 0.8 + r.call(2) * 0.5, "speed": 0.85 + r.call(3) * 0.3,
 		"pick": int((h >> 21) & 7), "light": (r.call(4) - 0.5) * 0.2}
 
 
@@ -110,6 +110,12 @@ static func vcolor(d: Dictionary) -> Color:
 
 ## Elemente göre çarpma (patlama / sıçrama / buz kırığı / rüzgar patlaması / şimşek / kaya)
 ## Destan ölçeği: rütbe (E küçük … S devasa) × ustalık (oyuncu seviyesi). İmza element jutsuları rütbesinden büyük görünür.
+## Animede devasa olan teknikler: veri güdümlü boyut çarpanı (karakter ~1.7 m'ye göre)
+const ANIME_SCALE := {"suiton_daibakufu_no_jutsu": 1.8, "katon_goka_messhitsu": 2.4, "doton_doryu_taiga": 2.0, "doton_dosekiryu": 1.6,
+	"mokuton_jukai_kotan": 3.0, "sabaku_taiso": 2.2, "ryusa_bakuryu": 2.2, "suiton_hato": 1.8, "katon_bakufu_ranbu": 1.6, "suiton_suijinchu": 1.5,
+	"katon_goka_senpu": 1.5, "suiton_ukojizai_no_jutsu": 1.6, "bashosen_kaze_no_maki": 1.6, "bashosen_hi_no_maki": 1.6}
+## Alan şekilli olsa da animede ileri akan sel/dalga olan teknikler
+const WAVE_IDS := ["katon_goka_messhitsu", "doton_doryu_taiga", "doton_dosekiryu", "suiton_hato", "ryusa_bakuryu", "sabaku_taiso"]
 const SIGNATURE_SCALE := {"katon_goukakyuu": 1.9, "katon_karyuu": 1.6, "fuuton_daitoppa": 1.7, "katon_housenka": 1.3, "suiton_suikoudan": 1.4,
 	"fuuton_shinkuu": 1.3, "doton_doryuusou": 1.4, "suiton_suijinheki": 1.5}
 
@@ -292,7 +298,7 @@ static func cast(c: Node3D, id: String, t: Node3D) -> void:
 				J()._stream(c, t, 1.2 + int(d.get("tier", 2)) * 0.3, color_of(d), d.get("element", ""), base_dmg(c, d) * 0.25, _snd(d))
 			elif v == "tornado":
 				_tornado(c, d, t)
-			elif v == "wave":
+			elif v == "wave" or String(d.get("id", "")) in WAVE_IDS:
 				_wave(c, d, t)
 			elif v == "barrage":
 				_barrage(c, d, t)
@@ -641,7 +647,7 @@ static func _wave(c: Node3D, d: Dictionary, t: Node3D) -> void:
 	var dir: Vector3 = J()._aim_flat(c, t)
 	var vr = vary(d)
 	var w = (5.0 + tier * 2.0) * vr["size"]
-	var h = 2.0 + tier * 0.8
+	var h = (2.0 + tier * 0.8) * clampf(vr["size"], 1.0, 2.6)
 	# yarım silindir dalga duvarı (öne doğru kıvrılan tepe)
 	var b = MB.new()
 	b.add("cyl", Vector3.ZERO, Vector3(h * 1.2, w, h * 0.8), Color.WHITE, Vector3(0, 0, 90), 16)
@@ -667,7 +673,7 @@ static func _wave(c: Node3D, d: Dictionary, t: Node3D) -> void:
 	var hit = []
 	tw.tween_interval(0.15)
 	tw.tween_method(func(k: float):
-		var p = start + dir * k * (14.0 + tier * 3.0)
+		var p = start + dir * k * (14.0 + tier * 3.0) * maxf(1.0, vr["size"] * 0.8)
 		mi.global_position = p + Vector3.UP * h * 0.4
 		var got = Combat.hit_sphere(c, p + Vector3.UP, w * 0.5, inf, hit)
 		hit.append_array(got)
@@ -967,6 +973,27 @@ static func _summon(c: Node3D, d: Dictionary) -> void:
 		VFX.smoke_ring(sp, 3.0, Color(0.85, 0.85, 0.82))
 		Contracts.summon(c, d)
 		return
+	# klan çağrıları: savaş kuklası, mürekkep canavarı, taş golem, dev arı (bkz. ClanConstruct)
+	var ck = construct_kind(d)
+	if ck != "":
+		var tier = int(d.get("tier", 2))
+		var full = (s + " " + String(d.get("name", ""))).to_lower()
+		var n = {"puppet": 1, "ink": 2 + tier / 2, "golem": 1, "bee": 3 + tier / 2}[ck]
+		if full.contains("ten puppets") or full.contains("jikki"):
+			n = 4
+		elif full.contains("hundred") or full.contains("hyakki"):
+			n = 6
+		elif full.contains("god") or full.contains("shin giga"):
+			n = 1
+		var list = ClanConstruct.spawn(c, ck, n, d)
+		if full.contains("god") or full.contains("shin giga"):
+			for u in list:   # Chōshin Giga: tek dev mürekkep canavarı
+				u.vis.scale = Vector3.ONE * 2.2
+				u.dmg *= 2.5
+				u.max_hp *= 3.0
+				u.hp = u.max_hp
+		Sfx.play("boom" if ck == "golem" else "whoosh", c.global_position, 0.8)
+		return
 	var el: String = d.get("element", "")
 	if el != "" and not (s.contains("toad") or s.contains("snake") or s.contains("slug") or s.contains("frog")):
 		# element yaratığı: yerden yükselen ejderha / canavar, hedefe saldırır
@@ -1003,6 +1030,17 @@ static func _summon(c: Node3D, d: Dictionary) -> void:
 	if Game.world:
 		Game.world.env.add_shake(1.0)
 	Sfx.play("boom", pos, 0.6)
+
+
+## Jutsu bir klan çağrısı mı? "" değilse ClanConstruct türü
+static func construct_kind(d: Dictionary) -> String:
+	var full = (String(d.get("name_en", "")) + " " + String(d.get("name", "")) + " " + String(d.get("id", ""))).to_lower()
+	for pair in [["puppet", "puppet"], ["kugutsu", "puppet"], ["chikamatsu", "puppet"], ["kukla", "puppet"],
+			["drawing", "ink"], [" giga", "ink"], ["mürekkep", "ink"], ["golem", "golem"], ["gōremu", "golem"], ["iwa kyojin", "golem"],
+			["hornet", "bee"], ["giant bee", "bee"], ["dev arı", "bee"]]:
+		if full.contains(pair[0]):
+			return pair[1]
+	return ""
 
 
 static func _buff(c: Node3D, d: Dictionary, kind: String) -> void:

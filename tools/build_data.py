@@ -230,6 +230,132 @@ for r in FULL:
         category=cat, shape=shape, range=r.get('range') or '', requires=req, signature=bool(r.get('signature')),
         kinjutsu=bool(r.get('kinjutsu')), series=(r.get('first_appears') or {}).get('series', ''))
     new_count += 1
+# ================================================================== klan teknikleri: yeni jutsular, klan etiketleri, kopya birleştirme
+# Her klan jutsusunun kendi uygulaması var: godot/scripts/combat/clan_jutsu.gd (ClanJutsu)
+# (id, isim, name_en, klan, kademe, şekil, kategori, element, açıklama, mühürler)
+NEW_CLAN = [
+    ('hakke_sanjuni_sho', 'Hakke Sanjūni Shō (Sekiz Trigram 32 Avuç)', 'Eight Trigrams Thirty-Two Palms', 'hyuga', 3, 'melee', 'taijutsu', '',
+     'Yerde trigram çemberi açılır: 32 avuç darbesi chakra noktalarını kapatır, hedef 5 sn jutsu yapamaz.', []),
+    ('hakke_hyakunijuhachi_sho', 'Hakke Hyakunijūhachi Shō (Sekiz Trigram 128 Avuç)', 'Eight Trigrams One Hundred Twenty-Eight Palms', 'hyuga', 4, 'melee', 'taijutsu', '',
+     'Dev trigram çemberi: 128 darbe, çemberdeki herkesin chakra noktaları 10 sn kapanır.', []),
+    ('hakke_hasangeki', 'Hakke Hasangeki (Sekiz Trigram Dağ Kıran)', 'Eight Trigrams Mountain Crusher', 'hyuga', 4, 'aoe', 'taijutsu', '',
+     'Dev avuç şeklinde chakra dalgası ilerler: yolundaki herkesi ezip geriye savurur.', []),
+    ('mushi_kabe', 'Mushi Kabe no Jutsu (Böcek Duvarı)', 'Insect Wall Technique', 'aburame', 3, 'wall', 'hiden', '',
+     'Böceklerden dönen kubbe: mermileri yutar, kubbeye dokunanın chakrasını emer.', ['Ne', 'Tori']),
+    ('garoga', 'Garōga (Çift Kurt Dişi)', 'Double Wolf Fang', 'inuzuka', 4, 'rush', 'taijutsu', '',
+     'Sen ve ninken iki dev kurt matkabına dönüşüp hedefe iki yandan çarparsınız.', ['Inu', 'I']),
+    ('dainamikku_makingu', 'Dainamikku Mākingu (İz İşaretleme)', 'Dynamic Marking', 'inuzuka', 2, 'debuff', 'hiden', '',
+     'Hedefi kokuyla işaretle: 20 sn boyunca %25 fazla hasar alır ve saklanamaz.', []),
+    ('sarutobi_hien', 'Fūton: Hien (Uçan Kırlangıç)', 'Wind Release: Flying Swallow', 'sarutobi', 3, 'melee', 'hiden', 'fuuton',
+     'Chakra bıçaklarına rüzgar akıt: bıçaklar uzar, menzilli kesikler savrulur.', ['Tora', 'Ushi']),
+    ('hatake_tsubame', 'Hakkō Tō: Tsubame Gaeshi (Kırlangıç Dönüşü)', 'White Light Blade: Swallow Return', 'hatake', 4, 'melee', 'hiden', '',
+     'Beyaz chakra bıçağıyla ileri ve geri iki hilal kesik: geçtiğin yoldan geri dönersin.', []),
+    ('chinoike_tetsu', 'Ketsuryūgan: Kettetsu Sō (Kan Demiri Mızrakları)', 'Blood Iron Spears', 'chinoike', 3, 'aoe', 'hiden', '',
+     'Kandaki demir yerden kızıl mızraklar halinde sıra sıra fışkırarak ilerler.', ['Mi', 'Tora']),
+    ('chinoike_kekkai', 'Ketsuryūgan: Kekkai Rō (Kan Hapsi)', 'Blood Prison', 'chinoike', 4, 'bind', 'hiden', '',
+     'Kızıl kan kafesi hedefi 3 sn hapseder ve canını sana aktarır.', ['Mi', 'Hitsuji', 'Ne']),
+    ('chinoike_chi_no_ame', 'Chi no Ame (Kan Yağmuru)', 'Blood Rain', 'chinoike', 4, 'aoe', 'hiden', '',
+     'Gökten kan iğneleri yağar; ıslananlar kanar.', []),
+    ('fuma_kaze_guruma', 'Fūma Shuriken: Kaze Guruma (Rüzgar Çarkı)', 'Demon Wind Shuriken: Wind Wheel', 'fuma', 3, 'projectile', 'hiden', 'fuuton',
+     'Dev Fūma shurikeni bumerang gibi gider gelir, iki kez keser.', ['Tora']),
+    ('kamizuru_hachi', 'Kuchiyose: Ōbachi (Dev Eşek Arıları)', 'Summoning: Giant Hornets', 'kamizuru', 3, 'summon', 'hiden', '',
+     'Dev eşek arıları çağır: uçarak dalış yapar, zehirli iğne sokarlar.', ['I', 'Inu', 'Tori']),
+    ('kamizuru_hari', 'Hachi Senbon (Arı İğnesi Yağmuru)', 'Bee Stinger Needles', 'kamizuru', 2, 'projectile', 'hiden', '',
+     'Sürüden fırlayan zehirli iğne yaylımı: zehirler ve yavaşlatır.', []),
+    ('kamizuru_mitsu_bunshin', 'Mitsu Bunshin (Bal Klonu)', 'Honey Clone', 'kamizuru', 3, 'clone', 'hiden', '',
+     'Baldan klon: vurulunca patlayıp yapışkan mum saçar, çevredeki düşmanlar yere yapışır.', []),
+    ('kazahana_sajin_senpu', 'Fūton: Sajin Senpū (Kum Kasırgası)', 'Wind Release: Sand Dust Whirlwind', 'kazahana', 3, 'aoe', 'hiden', 'fuuton',
+     'Kumlu hortum ileri yürür, yakaladıklarını havaya kaldırıp savurur.', ['Tora', 'Tatsu', 'Inu']),
+    ('kazahana_kazekiri_mai', 'Kazekiri no Mai (Rüzgar Kesen Dans)', 'Wind Cutting Dance', 'kazahana', 3, 'melee', 'hiden', 'fuuton',
+     'Etrafında dönerek rüzgar bıçakları savur: dört dalga kesik her yöne.', []),
+    ('kazahana_sabaku_arashi', 'Sabaku Arashi (Çöl Fırtınası)', 'Desert Storm', 'kazahana', 4, 'field', 'hiden', 'fuuton',
+     'Kum fırtınası çöker: içindeki düşmanlar kör ve yavaş, sen rüzgarla hızlanırsın.', ['Tatsu', 'Tora']),
+    ('kazahana_fujin_ya', 'Fūjin no Ya (Rüzgar Tanrısı Okları)', 'Wind God Arrows', 'kazahana', 2, 'projectile', 'hiden', 'fuuton',
+     'Üç sıkıştırılmış rüzgar oku: yolundaki herkesi deler geçer.', ['Tori']),
+    ('karatachi_suijin_giri', 'Suijin Giri (Su Bıçağı Kesiği)', 'Water Blade Slash', 'karatachi', 3, 'melee', 'hiden', 'suiton',
+     'Kılıç çekilişinde basınçlı su yayı: uzun yatay kesik.', []),
+    ('karatachi_kirisame', 'Kirisame (Sis Yağmuru)', 'Mist Rain', 'karatachi', 3, 'field', 'hiden', 'suiton',
+     'Sis çöker, sen kaybolursun; sisin içindeki düşmanlara su iğneleri yağar.', ['Hitsuji', 'Tora']),
+    ('karatachi_nanatachi', 'Nanatachi no Mai (Yedi Kılıç Dansı)', 'Seven Blades Dance', 'karatachi', 4, 'rush', 'hiden', '',
+     'Yedi ışık hızında atılış: yakındaki düşmanlar arasında zikzak çizerek kesersin.', []),
+    ('karatachi_kubikiri', 'Kubikiri (Baş Kesen Çekiliş)', 'Decapitating Draw', 'karatachi', 4, 'melee', 'hiden', '',
+     'Kılıcı yükle ve tek dev kesik indir: canı azalmış hedeflere iki kat hasar.', []),
+    ('ikazuchi_reiza_ame', 'Ranton: Reizā Ame (Lazer Yağmuru)', 'Storm Release: Laser Rain', 'ikazuchi', 4, 'aoe', 'kekkei_genkai', 'ranton',
+     'Fırtına bulutu toplanır, aşağı bükülerek inen ışın yağmuru.', ['Tatsu', 'Ne', 'Tori']),
+    ('ikazuchi_koga', 'Ranton: Kōga (Fırtına Tazısı)', 'Storm Release: Storm Hound', 'ikazuchi', 3, 'projectile', 'kekkei_genkai', 'ranton',
+     'Su ve yıldırımdan tazı zikzak çizerek koşar, çarptığını sersemletir.', ['Inu', 'Tora']),
+    ('ikazuchi_raiun', 'Ranton: Raiun (Gök Gürültüsü Bulutu)', 'Storm Release: Thunder Cloud', 'ikazuchi', 4, 'field', 'kekkei_genkai', 'ranton',
+     'Kara bulut alanı: içindeki düşmanlara her saniye şimşek iner.', ['Mi', 'Tatsu']),
+    ('ikazuchi_kosen', 'Ranton: Kōsen (Bükülen Işın)', 'Storm Release: Bending Beam', 'ikazuchi', 3, 'beam', 'kekkei_genkai', 'ranton',
+     'Işın kıvrılarak engellerin üstünden aşar ve kilitli hedefe iner.', ['Tora']),
+    ('sabaku_suna_no_kumo', 'Ryūsa no Kumo (Uçan Kum Bulutu)', 'Flying Sand Cloud', 'sabaku', 3, 'mode', 'hiden', '',
+     'Ayağının altında kum bulutu toplanır: üstüne binip uçarsın (Space yüksel, Ctrl alçal). Tekrar yapınca inersin.', ['Tora', 'Hitsuji']),
+    ('bakuha_jirai', 'Bakuton: Jirai Jin (Mayın Tarlası)', 'Explosion Release: Landmine Formation', 'bakuha', 3, 'trap', 'kekkei_genkai', 'bakuton',
+     'Avuçlarındaki ağızlar yere kil mayınlar tükürür: üstüne basan düşmanın altında patlar.', ['Tori', 'Hitsuji']),
+    ('bakuha_kibaku_te', 'Bakuton: Kibaku Shō (Patlayan Avuç)', 'Explosion Release: Exploding Palm', 'bakuha', 3, 'melee', 'kekkei_genkai', 'bakuton',
+     'Avucundaki ağza chakra yükle ve hedefe yapıştır: iki saniye sonra içeriden patlar.', ['Tori']),
+    ('bakuha_rensa', 'Bakuton: Rensa Bakuha (Zincirleme Patlama)', 'Explosion Release: Chain Explosion', 'bakuha', 4, 'aoe', 'kekkei_genkai', 'bakuton',
+     'Yerden ileriye doğru sıra sıra patlamalar: her biri bir öncekinden büyük.', ['Tori', 'Hitsuji', 'Tora']),
+    ('jinton_kaku', 'Jinton: Kaku (Toz Küpü)', 'Dust Release: Cube', 'none', 4, 'aoe', 'kekkei_genkai', 'jinton',
+     'Şeffaf küp genişler ve içindekileri atomlarına ayırır: ağaç, ev, düşman; geriye toz kalır.', ['Tora', 'Ne', 'Tori']),
+    ('jinton_ensui', 'Jinton: Ensui (Toz Koni Işını)', 'Dust Release: Cone Beam', 'none', 5, 'beam', 'kekkei_genkai', 'jinton',
+     'Uzun koni ışın: hattaki her şeyi deler ve toza çevirir.', ['Tora', 'Ne', 'Tori', 'Hitsuji']),
+    ('jinton_ento', 'Jinton: Entō (Toz Silindiri)', 'Dust Release: Cylinder', 'none', 5, 'aoe', 'kekkei_genkai', 'jinton',
+     'Gökten inen geniş silindir: büyük bir alanı tamamen siler.', ['Tora', 'Ne', 'Tori', 'I']),
+]
+LEVEL_OF = [1, 2, 5, 10, 18, 28]
+for (jid, nm, en, clan, ti, shape, cat, el, desc, sl) in NEW_CLAN:
+    learn = 'kg:jinton' if el == 'jinton' else 'clan:' + clan
+    ck, dk = SHAPE_K.get(shape, (1.0, 1.0))
+    out[jid] = dict(id=jid, name=nm, name_en=en, cost=int(round(COST[ti] * ck)), cd=round(CD[ti] * dk, 1),
+                    element=el if el in COMBAT_EL else '', elements=[el] if el in COMBAT_EL else [], natures=[el] if el else [],
+                    clan='' if clan == 'none' else clan, level=LEVEL_OF[ti] if el != 'jinton' else 30 + ti * 4, rank=NRANK[ti],
+                    learn=learn, desc=desc, seals=sl, canon_rank=['E', 'D', 'C', 'B', 'A', 'S'][ti], tier=ti, category=cat, shape=shape)
+# mevcut kanon jutsuların klana bağlanması (hiden: klan üyesi seviye gelince kendiliğinden öğrenir)
+CLAN_TAG = {
+    'uchiha': ['uchiha_ryu_kenjutsu', 'uchiha_ryu_shurikenjutsu_ikazuchi_sanren', 'uchiha_kaenjin', 'uchihagaeshi', 'katon_hosenka_tsumabeni', 'katon_goka_mekkyaku'],
+    'akimichi': ['chodan_bakugeki', 'cho_modo', 'choharite', 'nikudan_hari_sensha'],
+    'aburame': ['mushikui'],
+    'inuzuka': ['tsuga', 'jujin_bunshin', 'shikyaku_no_jutsu'],
+    'uzumaki': ['shikoku_fuin', 'fuka_hoin', 'hakke_no_fuin_shiki', 'fuja_hoin'],
+    'sarutobi': ['katon_haijingakure_no_jutsu'],
+    'hatake': ['chakura_to_maichimonji', 'raikiri'],
+    'hoshigaki': ['suiton_daikodan_no_jutsu', 'suiton_senshokuko', 'suiro_sameodori_no_jutsu'],
+    'kurama': ['magen_jubaku_satsu', 'magen_kokoni_arazu_no_jutsu', 'magen_niju_kokoni_arazu_no_jutsu'],
+    'fuma': ['sofushasan_no_tachi', 'shuriken_kage_bunshin_no_jutsu'],
+    'sabaku': ['suna_no_yoroi', 'sabaku_kyu', 'sabaku_soso', 'suna_shuriken', 'suna_bunshin', 'kusa_boheki', 'gokusa_maiso'],
+    'shirogane': ['kugutsu_no_jutsu', 'kurohigi_kiki_ippatsu', 'shirohigi_jikki_chikamatsu_no_shu', 'akahigi_hyakki_no_soen', 'kiko_junbu'],
+    'hoki': ['choju_giga', 'choshin_giga', 'sumi_bunshin_no_jutsu', 'sumigasumi_no_jutsu', 'fuinjutsu_okutopasu_horudo'],
+    'kazahana': ['futon_mugen_sajin_daitoppa'],
+    'karatachi': ['sairento_kiringu', 'chigiri_toho_honenuki'],
+    'yotsuki': ['raiga_bomu', 'girochin_doroppu', 'raiton_rariatto', 'erubo', 'jigokuzuki'],
+    'ikazuchi': ['ranton_reiza_sakasu'],
+    'iwao': ['doton_goremu_no_jutsu', 'doton_keijugan_no_jutsu', 'doton_kakogan', 'doton_koka_jutsu', 'doton_iwayado_kuzushi'],
+}
+for clan, ids in CLAN_TAG.items():
+    for jid in ids:
+        assert jid in out, jid
+        out[jid]['clan'] = clan
+        out[jid]['learn'] = 'clan:' + clan
+        out[jid]['level'] = min(out[jid].get('level', 1), 22)   # klan tekniği klan içinde erken açılır
+# hiden klan jutsularının kendi uygulaması var (ClanJutsu): eski ortak uygulama bağlantıları kalkar
+for jid in ['sarutobi_haisekisho', 'hatake_hakko', 'hatake_ninken', 'chinoike_ketsuryugan', 'chinoike_kanshu', 'hoshigaki_same',
+            'kurama_genjutsu', 'kurama_kokuangyo', 'fuma_shuriken_j', 'fuma_kaze', 'kamizuru_bees', 'kamizuru_wax']:
+    out[jid].pop('impl', None)
+# kopyalar: araştırmadan gelen ikinci kayıt elle yazılanla birleşir (kayıtlar _aliases ile taşınır)
+ALIASES = {'kongo_fusa': 'chakra_chains', 'suika_no_jutsu': 'suika', 'sensatsu_suisho': 'hyoton_senbon',
+           'mizudeppo_no_jutsu': 'water_gun', 'suiton_goshokuzame': 'hoshigaki_same', 'teshi_sendan': 'bone_bullets'}
+for old, new in ALIASES.items():
+    if old in out:
+        if not out[new].get('name_en'):
+            out[new]['name_en'] = out[old].get('name_en', '')
+        del out[old]
+out['_aliases'] = ALIASES
+# ağırlık teknikleri: Keijūgan = hafifleyip uçmak, Kajūgan / Chōkajūgan = hedefi ağırlaştırmak
+out['doton_keijugan_no_jutsu']['shape'] = 'mode'
+out['doton_keijugan_no_jutsu']['desc'] = 'Bedenini hafiflet: havalan ve serbestçe uç (Space yüksel, Ctrl alçal). Chakra tüketir; tekrar yapınca inersin.'
+out['doton_kajugan_no_jutsu']['desc'] = 'Dokunduğun hedefi ağırlaştır: yere çakılır, ağır ağır hareket eder.'
+out['doton_chokajugan_no_jutsu']['desc'] = 'Hedef dev bir ağırlıkla yere mıhlanır, altındaki zemin çöker; 4 sn kımıldayamaz.'
 print(new_count, 'yeni jutsu araştırmadan eklendi;', len(covered), 'mevcut jutsu zenginleştirildi')
 
 out['_seals'] = [s['name_jp'] for s in R['hand_seals'][:12]]

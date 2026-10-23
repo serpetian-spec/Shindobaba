@@ -68,6 +68,8 @@ func take_hit(info: Dictionary) -> void:
 	var em = Combat.element_mult(info.get("element", ""), element)
 	var react = Elements.on_hit(self, info)
 	var dmg: float = info.get("dmg", 5.0) * em * react
+	if has_status("marked"):
+		dmg *= 1.25   # Dinamik İşaretleme / algılama: işaretli hedef fazla hasar alır
 	var atk = info.get("attacker")
 	if atk is Player:
 		var bs = Stats.skill(Game.profile, "backstab")

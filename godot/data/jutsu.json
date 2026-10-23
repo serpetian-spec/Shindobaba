@@ -861,7 +861,8 @@
   "category": "hiden",
   "shape": "projectile",
   "elements": [],
-  "tier": 2
+  "tier": 2,
+  "name_en": "Thousand Flying Water Needles of Death"
  },
  "hyoton_spears": {
   "id": "hyoton_spears",
@@ -905,7 +906,8 @@
   "category": "hiden",
   "shape": "projectile",
   "elements": [],
-  "tier": 2
+  "tier": 2,
+  "name_en": "Ten-Finger Drilling Bullets"
  },
  "bone_armor": {
   "id": "bone_armor",
@@ -948,7 +950,8 @@
   "category": "hiden",
   "shape": "projectile",
   "elements": [],
-  "tier": 2
+  "tier": 2,
+  "name_en": "Adamantine Sealing Chains"
  },
  "suika": {
   "id": "suika",
@@ -969,7 +972,8 @@
   "category": "hiden",
   "shape": "projectile",
   "elements": [],
-  "tier": 2
+  "tier": 2,
+  "name_en": "Hydrification Technique"
  },
  "water_gun": {
   "id": "water_gun",
@@ -990,7 +994,8 @@
   "category": "hiden",
   "shape": "projectile",
   "elements": [],
-  "tier": 2
+  "tier": 2,
+  "name_en": "Water Gun Technique"
  },
  "sarutobi_haisekisho": {
   "id": "sarutobi_haisekisho",
@@ -1010,7 +1015,6 @@
    "Tora"
   ],
   "canon_rank": "B",
-  "impl": "katon_housenka",
   "category": "ninjutsu",
   "shape": "aoe",
   "elements": [
@@ -1065,7 +1069,6 @@
    "Saru"
   ],
   "canon_rank": "?",
-  "impl": "raiton_chidori",
   "category": "hiden",
   "shape": "projectile",
   "elements": [
@@ -1092,7 +1095,6 @@
    "Hitsuji"
   ],
   "canon_rank": "?",
-  "impl": "ninken",
   "category": "hiden",
   "shape": "projectile",
   "elements": [],
@@ -1113,7 +1115,6 @@
    "Mi"
   ],
   "canon_rank": "?",
-  "impl": "narakumi",
   "category": "hiden",
   "shape": "projectile",
   "elements": [],
@@ -1135,7 +1136,6 @@
    "Hitsuji"
   ],
   "canon_rank": "?",
-  "impl": "kokuangyo",
   "category": "hiden",
   "shape": "projectile",
   "elements": [],
@@ -1163,7 +1163,6 @@
    "Tatsu"
   ],
   "canon_rank": "B",
-  "impl": "suiton_suikoudan",
   "category": "ninjutsu",
   "shape": "projectile",
   "elements": [
@@ -1221,7 +1220,6 @@
    "Mi"
   ],
   "canon_rank": "D",
-  "impl": "narakumi",
   "category": "genjutsu",
   "shape": "genjutsu_stun",
   "elements": [],
@@ -1244,7 +1242,6 @@
    "Tora"
   ],
   "canon_rank": "A",
-  "impl": "kokuangyo",
   "category": "genjutsu",
   "shape": "genjutsu_stun",
   "elements": [],
@@ -1267,7 +1264,6 @@
    "Tora"
   ],
   "canon_rank": "?",
-  "impl": "fuuton_shinkuu",
   "category": "hiden",
   "shape": "projectile",
   "elements": [
@@ -1294,7 +1290,6 @@
    "Mi"
   ],
   "canon_rank": "C",
-  "impl": "fuuton_daitoppa",
   "category": "ninjutsu",
   "shape": "aoe",
   "elements": [
@@ -1320,7 +1315,6 @@
    "Tori"
   ],
   "canon_rank": "?",
-  "impl": "mushi_swarm",
   "category": "hiden",
   "shape": "projectile",
   "elements": [],
@@ -1342,7 +1336,6 @@
    "Mi"
   ],
   "canon_rank": "?",
-  "impl": "doton_yomi",
   "category": "hiden",
   "shape": "projectile",
   "elements": [],
@@ -1398,35 +1391,6 @@
   "kinjutsu": false,
   "series": "Naruto Part I"
  },
- "kongo_fusa": {
-  "id": "kongo_fusa",
-  "name": "Kongō Fūsa (Elmas Mühür Zincirleri)",
-  "name_en": "Adamantine Sealing Chains",
-  "cost": 42,
-  "cd": 19.6,
-  "element": "",
-  "elements": [],
-  "natures": [],
-  "clan": "uzumaki",
-  "level": 18,
-  "rank": 3,
-  "learn": "clan:uzumaki",
-  "desc": "Vücuttan fırlayan çakra zincirleri hedefi bağlar, kuyruklu canavarları bile zapt eder ve bariyer kurar.",
-  "seals": [],
-  "canon_rank": "A",
-  "tier": 4,
-  "category": "fuinjutsu",
-  "shape": "bind",
-  "range": "Short, Mid",
-  "requires": {
-   "clan_or_lineage": [
-    "Uzumaki Clan"
-   ]
-  },
-  "signature": false,
-  "kinjutsu": false,
-  "series": "Naruto Shippūden"
- },
  "zanko": {
   "id": "zanko",
   "name": "Zankō (Akşam Işıltısı)",
@@ -1461,10 +1425,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "sabaku",
   "level": 10,
   "rank": 2,
-  "learn": "scroll",
+  "learn": "clan:sabaku",
   "desc": "Havaya kaldırılan kum ani bir kalkan duvarına dönüşür.",
   "seals": [],
   "canon_rank": "B",
@@ -1808,10 +1772,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "sabaku",
   "level": 10,
   "rank": 2,
-  "learn": "scroll",
+  "learn": "clan:sabaku",
   "desc": "Bedeni ince kum tabakası kaplar; hasarı emer, sürekli çakra tüketir.",
   "seals": [],
   "canon_rank": "B",
@@ -2124,10 +2088,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "inuzuka",
   "level": 2,
   "rank": 0,
-  "learn": "academy",
+  "learn": "clan:inuzuka",
   "desc": "Ninja köpeği sahibinin kılığına girer; ikili saldırı için.",
   "seals": [
    "Tora"
@@ -2315,10 +2279,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "shirogane",
   "level": 10,
   "rank": 2,
-  "learn": "scroll",
+  "learn": "clan:shirogane",
   "desc": "Kukla gövdesi hedefi içine kapatır, ardından içinden zehirli bıçaklar saplanır.",
   "seals": [],
   "canon_rank": "B",
@@ -2464,10 +2428,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "karatachi",
   "level": 18,
   "rank": 3,
-  "learn": "trainer:jonin",
+  "learn": "clan:karatachi",
   "desc": "Çakra kılıcını dalgalandırıp ana kemiklere vuran ölümcül kılıç tekniği.",
   "seals": [
    "Ne"
@@ -2674,10 +2638,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "aburame",
   "level": 5,
   "rank": 1,
-  "learn": "quest:hiden",
+  "learn": "clan:aburame",
   "desc": "Kanatlı böcek tarzı hızlı çene/kanat saldırısı.",
   "seals": [],
   "canon_rank": "C",
@@ -2699,10 +2663,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "akimichi",
   "level": 10,
   "rank": 2,
-  "learn": "quest:signature",
+  "learn": "clan:akimichi",
   "desc": "Kelebek modu ile tüm çakrayı yumrukta toplayıp tek dev darbe.",
   "seals": [],
   "canon_rank": "B",
@@ -2724,10 +2688,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
-  "level": 28,
+  "clan": "akimichi",
+  "level": 22,
   "rank": 3,
-  "learn": "quest:signature",
+  "learn": "clan:akimichi",
   "desc": "Vücut kalorilerini saf çakraya çevirir; çakra kanatları ve devasa güç, ağır bedenle.",
   "seals": [],
   "canon_rank": "S",
@@ -3048,10 +3012,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "hatake",
   "level": 10,
   "rank": 2,
-  "learn": "trainer:taijutsu",
+  "learn": "clan:hatake",
   "desc": "Rüzgâr çakrası verilmiş bıçaklarla uzatılmış kesik.",
   "seals": [],
   "canon_rank": "B",
@@ -4351,10 +4315,10 @@
   "natures": [
    "inton"
   ],
-  "clan": "",
+  "clan": "kurama",
   "level": 5,
   "rank": 1,
-  "learn": "scroll",
+  "learn": "clan:kurama",
   "desc": "Çevreyi yanıltıcı biçimde değiştirerek kaybolmaya yol açar.",
   "seals": [],
   "canon_rank": "C",
@@ -4440,10 +4404,10 @@
   "natures": [
    "inton"
   ],
-  "clan": "",
+  "clan": "kurama",
   "level": 10,
   "rank": 2,
-  "learn": "trainer:genjutsu",
+  "learn": "clan:kurama",
   "desc": "Hedef ağaca bağlandığını sanır; kullanıcı arkadan saldırır.",
   "seals": [
    "Inu",
@@ -4815,7 +4779,7 @@
   "level": 10,
   "rank": 2,
   "learn": "scroll",
-  "desc": "Dokunulan hedefi ağırlaştırır; yere yapıştırır.",
+  "desc": "Dokunduğun hedefi ağırlaştır: yere çakılır, ağır ağır hareket eder.",
   "seals": [
    "Mi"
   ],
@@ -4998,10 +4962,10 @@
   "natures": [
    "doton"
   ],
-  "clan": "",
+  "clan": "iwao",
   "level": 18,
   "rank": 3,
-  "learn": "trainer:iwa",
+  "learn": "clan:iwao",
   "desc": "Dev bir taş golem yaratır.",
   "seals": [
    "Mi"
@@ -5087,16 +5051,16 @@
   "natures": [
    "doton"
   ],
-  "clan": "",
+  "clan": "iwao",
   "level": 10,
   "rank": 2,
-  "learn": "trainer:iwa",
-  "desc": "Kendini veya nesneyi hafifleterek uçma ve dev nesneleri taşıma.",
+  "learn": "clan:iwao",
+  "desc": "Bedenini hafiflet: havalan ve serbestçe uç (Space yüksel, Ctrl alçal). Chakra tüketir; tekrar yapınca inersin.",
   "seals": [],
   "canon_rank": "B",
   "tier": 3,
   "category": "ninjutsu",
-  "shape": "buff",
+  "shape": "mode",
   "range": "Short",
   "requires": {},
   "signature": false,
@@ -5219,10 +5183,10 @@
   "natures": [
    "doton"
   ],
-  "clan": "",
+  "clan": "iwao",
   "level": 10,
   "rank": 2,
-  "learn": "trainer:iwa",
+  "learn": "clan:iwao",
   "desc": "Hedefi kayalar arasında sıkıştırır.",
   "seals": [
    "Tora",
@@ -5350,7 +5314,7 @@
   "level": 18,
   "rank": 3,
   "learn": "trainer:iwa",
-  "desc": "Dev nesneleri ağırlaştırıp çöktürür.",
+  "desc": "Hedef dev bir ağırlıkla yere mıhlanır, altındaki zemin çöker; 4 sn kımıldayamaz.",
   "seals": [],
   "canon_rank": "A",
   "tier": 4,
@@ -5450,10 +5414,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
-  "level": 28,
+  "clan": "uzumaki",
+  "level": 22,
   "rank": 3,
-  "learn": "trainer:fuin",
+  "learn": "clan:uzumaki",
   "desc": "Kuyruklu canavarı insana mühürleyen güçlü mühür.",
   "seals": [],
   "canon_rank": "S",
@@ -5543,10 +5507,10 @@
   "natures": [
    "raiton"
   ],
-  "clan": "",
+  "clan": "yotsuki",
   "level": 10,
   "rank": 2,
-  "learn": "trainer:taijutsu",
+  "learn": "clan:yotsuki",
   "desc": "Şimşek zırhlı ağır dirsek darbesi.",
   "seals": [],
   "canon_rank": "B",
@@ -5678,10 +5642,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "uzumaki",
   "level": 18,
   "rank": 3,
-  "learn": "trainer:fuin",
+  "learn": "clan:uzumaki",
   "desc": "Lanetli mühür gibi kötü çakrayı bastırır.",
   "seals": [
    "U",
@@ -5892,10 +5856,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "uzumaki",
   "level": 5,
   "rank": 1,
-  "learn": "scroll",
+  "learn": "clan:uzumaki",
   "desc": "Parmakla kurbağaya yazılan bilgi mührü.",
   "seals": [],
   "canon_rank": "C",
@@ -6085,10 +6049,10 @@
   "natures": [
    "katon"
   ],
-  "clan": "",
+  "clan": "uchiha",
   "level": 10,
   "rank": 2,
-  "learn": "trainer:konoha",
+  "learn": "clan:uchiha",
   "desc": "Ufku kaplayan dev alev duvarı.",
   "seals": [
    "Uma"
@@ -6188,10 +6152,10 @@
   "natures": [
    "katon"
   ],
-  "clan": "",
+  "clan": "sarutobi",
   "level": 10,
   "rank": 2,
-  "learn": "scroll",
+  "learn": "clan:sarutobi",
   "desc": "Kül bulutuyla gizlenme ve ardından patlatma.",
   "seals": [],
   "canon_rank": "B",
@@ -6250,10 +6214,10 @@
   "natures": [
    "katon"
   ],
-  "clan": "",
+  "clan": "uchiha",
   "level": 10,
   "rank": 2,
-  "learn": "scroll",
+  "learn": "clan:uchiha",
   "desc": "Ateş topları içine gizlenmiş şurikenler.",
   "seals": [
    "Ne",
@@ -6283,10 +6247,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "uzumaki",
   "level": 10,
   "rank": 2,
-  "learn": "scroll",
+  "learn": "clan:uzumaki",
   "desc": "Ateşi parşömene mühürleyip söndürür.",
   "seals": [
    "Ne",
@@ -6691,10 +6655,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "inuzuka",
   "level": 2,
   "rank": 0,
-  "learn": "academy",
+  "learn": "clan:inuzuka",
   "desc": "Hayvan gibi dört ayak üstünde hareket; hız ve çeviklik artar.",
   "seals": [],
   "canon_rank": "D",
@@ -7107,10 +7071,10 @@
   "natures": [
    "raiton"
   ],
-  "clan": "",
+  "clan": "yotsuki",
   "level": 18,
   "rank": 3,
-  "learn": "trainer:taijutsu",
+  "learn": "clan:yotsuki",
   "desc": "Şimşekle hızlanıp yukarıdan bacakla dev darbe.",
   "seals": [],
   "canon_rank": "A",
@@ -7268,10 +7232,10 @@
   "natures": [
    "raiton"
   ],
-  "clan": "",
+  "clan": "yotsuki",
   "level": 10,
   "rank": 2,
-  "learn": "trainer:taijutsu",
+  "learn": "clan:yotsuki",
   "desc": "Şimşek kaplı parmaklarla mızrak gibi saplama.",
   "seals": [],
   "canon_rank": "B",
@@ -7485,39 +7449,6 @@
   "kinjutsu": false,
   "series": "Naruto Shippūden"
  },
- "suika_no_jutsu": {
-  "id": "suika_no_jutsu",
-  "name": "Suika no Jutsu (Sulaşma)",
-  "name_en": "Hydrification Technique",
-  "cost": 34,
-  "cd": 19.8,
-  "element": "suiton",
-  "elements": [
-   "suiton"
-  ],
-  "natures": [
-   "suiton"
-  ],
-  "clan": "hozuki",
-  "level": 10,
-  "rank": 2,
-  "learn": "clan:hozuki",
-  "desc": "Bedeni suya çevirip fiziksel darbelerden kaçar.",
-  "seals": [],
-  "canon_rank": "B",
-  "tier": 3,
-  "category": "hiden",
-  "shape": "buff",
-  "range": "",
-  "requires": {
-   "clan_or_lineage": [
-    "Hōzuki Clan"
-   ]
-  },
-  "signature": false,
-  "kinjutsu": false,
-  "series": "Naruto Shippūden"
- },
  "hyuga_soke_no_juinjutsu": {
   "id": "hyuga_soke_no_juinjutsu",
   "name": "Hyūga Sōke no Juinjutsu (Kafes Kuş Mührü)",
@@ -7702,10 +7633,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "hoki",
   "level": 5,
   "rank": 1,
-  "learn": "scroll",
+  "learn": "clan:hoki",
   "desc": "Mürekkepten klon yaratır.",
   "seals": [],
   "canon_rank": "C",
@@ -7727,10 +7658,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "hoki",
   "level": 5,
   "rank": 1,
-  "learn": "scroll",
+  "learn": "clan:hoki",
   "desc": "Mürekkep püskürterek görüşü kapatır.",
   "seals": [],
   "canon_rank": "C",
@@ -8615,10 +8546,10 @@
   "natures": [
    "raiton"
   ],
-  "clan": "",
+  "clan": "yotsuki",
   "level": 10,
   "rank": 2,
-  "learn": "trainer:taijutsu",
+  "learn": "clan:yotsuki",
   "desc": "Şimşek zırhıyla hedefi kaldırıp yere çakan güreş atışı.",
   "seals": [],
   "canon_rank": "B",
@@ -8644,10 +8575,10 @@
   "natures": [
    "raiton"
   ],
-  "clan": "",
-  "level": 28,
+  "clan": "hatake",
+  "level": 22,
   "rank": 3,
-  "learn": "trainer:kumo",
+  "learn": "clan:hatake",
   "desc": "Chidori'nin rafine hali; şimşeği yaran el bıçağı.",
   "seals": [
    "Ushi",
@@ -8766,10 +8697,10 @@
   "natures": [
    "raiton"
   ],
-  "clan": "",
+  "clan": "yotsuki",
   "level": 18,
   "rank": 3,
-  "learn": "trainer:taijutsu",
+  "learn": "clan:yotsuki",
   "desc": "Şimşek hızında kol çarpması.",
   "seals": [],
   "canon_rank": "A",
@@ -9180,10 +9111,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "fuma",
   "level": 5,
   "rank": 1,
-  "learn": "scroll",
+  "learn": "clan:fuma",
   "desc": "İp bağlı şurikenlerle hedefi sarma.",
   "seals": [],
   "canon_rank": "C",
@@ -9205,10 +9136,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "shirogane",
   "level": 10,
   "rank": 2,
-  "learn": "scroll",
+  "learn": "clan:shirogane",
   "desc": "Kuklalarla kalkan duvarı.",
   "seals": [],
   "canon_rank": "B",
@@ -9984,10 +9915,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "inuzuka",
   "level": 2,
   "rank": 0,
-  "learn": "academy",
+  "learn": "clan:inuzuka",
   "desc": "Hayvan gibi hızla geçerek pençe saldırısı.",
   "seals": [],
   "canon_rank": "D",
@@ -10118,10 +10049,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "sabaku",
   "level": 18,
   "rank": 3,
-  "learn": "trainer:jonin",
+  "learn": "clan:sabaku",
   "desc": "Hedefi kum içinde sıkıştırır.",
   "seals": [
    "Hitsuji"
@@ -10170,10 +10101,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "shirogane",
   "level": 5,
   "rank": 1,
-  "learn": "scroll",
+  "learn": "clan:shirogane",
   "desc": "Çakra ipleriyle kuklayı yönetir.",
   "seals": [],
   "canon_rank": "C",
@@ -10265,10 +10196,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
-  "level": 28,
+  "clan": "shirogane",
+  "level": 22,
   "rank": 3,
-  "learn": "quest:signature",
+  "learn": "clan:shirogane",
   "desc": "Aynı anda yüz kuklayı yönetir.",
   "seals": [],
   "canon_rank": "S",
@@ -10640,10 +10571,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "sabaku",
   "level": 10,
   "rank": 2,
-  "learn": "scroll",
+  "learn": "clan:sabaku",
   "desc": "Hedefi kumla sarıp hareketsiz bırakır.",
   "seals": [],
   "canon_rank": "B",
@@ -10665,10 +10596,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "sabaku",
   "level": 10,
   "rank": 2,
-  "learn": "scroll",
+  "learn": "clan:sabaku",
   "desc": "Kumdan klon.",
   "seals": [],
   "canon_rank": "B",
@@ -10690,10 +10621,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "sabaku",
   "level": 5,
   "rank": 1,
-  "learn": "scroll",
+  "learn": "clan:sabaku",
   "desc": "Kumdan keskin şurikenler.",
   "seals": [],
   "canon_rank": "C",
@@ -10715,10 +10646,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
-  "level": 28,
+  "clan": "sabaku",
+  "level": 22,
   "rank": 3,
-  "learn": "trainer:jonin",
+  "learn": "clan:sabaku",
   "desc": "Kum tabutundaki hedefi ezer.",
   "seals": [],
   "canon_rank": "S",
@@ -11306,10 +11237,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "fuma",
   "level": 18,
   "rank": 3,
-  "learn": "trainer:jonin",
+  "learn": "clan:fuma",
   "desc": "Fırlatılan şurikeni yüzlerce kopyaya çoğaltır.",
   "seals": [
    "Ushi",
@@ -11373,10 +11304,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "karatachi",
   "level": 10,
   "rank": 2,
-  "learn": "scroll",
+  "learn": "clan:karatachi",
   "desc": "Sisle saklanıp sessizce öldürme tekniği.",
   "seals": [],
   "canon_rank": "B",
@@ -11883,10 +11814,10 @@
   "natures": [
    "yang"
   ],
-  "clan": "",
+  "clan": "akimichi",
   "level": 5,
   "rank": 1,
-  "learn": "trainer:taijutsu",
+  "learn": "clan:akimichi",
   "desc": "Kunailerle dikenli dönen top.",
   "seals": [],
   "canon_rank": "C",
@@ -12137,10 +12068,10 @@
   "natures": [
    "ranton"
   ],
-  "clan": "",
+  "clan": "ikazuchi",
   "level": 18,
   "rank": 3,
-  "learn": "quest:signature",
+  "learn": "clan:ikazuchi",
   "desc": "Güdümlü çoklu enerji ışınları.",
   "seals": [
    "Ne",
@@ -12578,10 +12509,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "hoki",
   "level": 10,
   "rank": 2,
-  "learn": "scroll",
+  "learn": "clan:hoki",
   "desc": "Çizilen hayvanları canlandırır.",
   "seals": [],
   "canon_rank": "B",
@@ -12661,10 +12592,10 @@
   "natures": [
    "yang"
   ],
-  "clan": "",
+  "clan": "akimichi",
   "level": 10,
   "rank": 2,
-  "learn": "trainer:taijutsu",
+  "learn": "clan:akimichi",
   "desc": "Dev büyütülmüş el ile tokat.",
   "seals": [],
   "canon_rank": "B",
@@ -12889,35 +12820,6 @@
   "kinjutsu": false,
   "series": "Naruto Part I"
  },
- "teshi_sendan": {
-  "id": "teshi_sendan",
-  "name": "Teshi Sendan (On Parmak Kemik Mermileri)",
-  "name_en": "Ten-Finger Drilling Bullets",
-  "cost": 42,
-  "cd": 14.0,
-  "element": "",
-  "elements": [],
-  "natures": [],
-  "clan": "",
-  "level": 18,
-  "rank": 3,
-  "learn": "kg:shikotsumyaku",
-  "desc": "Parmak kemiklerini mermi gibi fırlatır.",
-  "seals": [],
-  "canon_rank": "A",
-  "tier": 4,
-  "category": "kekkei_genkai",
-  "shape": "projectile",
-  "range": "Short, Mid",
-  "requires": {
-   "kekkei_genkai": [
-    "Shikotsumyaku"
-   ]
-  },
-  "signature": false,
-  "kinjutsu": false,
-  "series": "Naruto Part I"
- },
  "tengai_shinsei": {
   "id": "tengai_shinsei",
   "name": "Tengai Shinsei (Gök Yıldızı)",
@@ -12947,39 +12849,6 @@
   "signature": true,
   "kinjutsu": false,
   "series": "Naruto Shippūden"
- },
- "sensatsu_suisho": {
-  "id": "sensatsu_suisho",
-  "name": "Sensatsu Suishō (Bin Uçan Su İğnesi)",
-  "name_en": "Thousand Flying Water Needles of Death",
-  "cost": 28,
-  "cd": 9.0,
-  "element": "suiton",
-  "elements": [
-   "suiton"
-  ],
-  "natures": [
-   "suiton"
-  ],
-  "clan": "yuki",
-  "level": 10,
-  "rank": 2,
-  "learn": "clan:yuki",
-  "desc": "Sudan iğne yağmuru.",
-  "seals": [],
-  "canon_rank": "B",
-  "tier": 3,
-  "category": "hiden",
-  "shape": "projectile",
-  "range": "Short, Mid",
-  "requires": {
-   "clan_or_lineage": [
-    "Yuki Clan"
-   ]
-  },
-  "signature": false,
-  "kinjutsu": false,
-  "series": "Naruto Part I"
  },
  "kinbaku_kingusari_no_jutsu": {
   "id": "kinbaku_kingusari_no_jutsu",
@@ -13221,10 +13090,10 @@
   "natures": [
    "katon"
   ],
-  "clan": "",
+  "clan": "uchiha",
   "level": 10,
   "rank": 2,
-  "learn": "trainer:konoha",
+  "learn": "clan:uchiha",
   "desc": "Ateş bariyeri saldırıyı engeller.",
   "seals": [],
   "canon_rank": "B",
@@ -13250,10 +13119,10 @@
   "natures": [
    "fuuton"
   ],
-  "clan": "",
+  "clan": "uchiha",
   "level": 10,
   "rank": 2,
-  "learn": "trainer:suna",
+  "learn": "clan:uchiha",
   "desc": "Yelpaze ile saldırıyı yansıtır.",
   "seals": [],
   "canon_rank": "B",
@@ -13347,39 +13216,6 @@
   "kinjutsu": false,
   "series": "Naruto Part I"
  },
- "mizudeppo_no_jutsu": {
-  "id": "mizudeppo_no_jutsu",
-  "name": "Mizudeppō no Jutsu (Su Tabancası)",
-  "name_en": "Water Gun Technique",
-  "cost": 28,
-  "cd": 9.0,
-  "element": "suiton",
-  "elements": [
-   "suiton"
-  ],
-  "natures": [
-   "suiton"
-  ],
-  "clan": "hozuki",
-  "level": 10,
-  "rank": 2,
-  "learn": "clan:hozuki",
-  "desc": "Parmakla mermi gibi su ateşleme.",
-  "seals": [],
-  "canon_rank": "B",
-  "tier": 3,
-  "category": "hiden",
-  "shape": "projectile",
-  "range": "Short, Mid, Long",
-  "requires": {
-   "clan_or_lineage": [
-    "Hōzuki Clan"
-   ]
-  },
-  "signature": false,
-  "kinjutsu": false,
-  "series": "Naruto Shippūden"
- },
  "suiro_sameodori_no_jutsu": {
   "id": "suiro_sameodori_no_jutsu",
   "name": "Suirō Sameodori no Jutsu (Su Hapsi Köpekbalığı Dansı)",
@@ -13393,10 +13229,10 @@
   "natures": [
    "suiton"
   ],
-  "clan": "",
-  "level": 28,
+  "clan": "hoshigaki",
+  "level": 22,
   "rank": 3,
-  "learn": "trainer:kiri",
+  "learn": "clan:hoshigaki",
   "desc": "Dev su küresi içinde düşman sınırlanır.",
   "seals": [],
   "canon_rank": "S",
@@ -13459,10 +13295,10 @@
   "natures": [
    "suiton"
   ],
-  "clan": "",
+  "clan": "hoshigaki",
   "level": 10,
   "rank": 2,
-  "learn": "trainer:kiri",
+  "learn": "clan:hoshigaki",
   "desc": "Binlerce su köpekbalığı.",
   "seals": [],
   "canon_rank": "B",
@@ -13506,35 +13342,6 @@
   "kinjutsu": false,
   "series": "Naruto Shippūden"
  },
- "suiton_goshokuzame": {
-  "id": "suiton_goshokuzame",
-  "name": "Suiton: Goshokuzame (Beş Köpekbalığı)",
-  "name_en": "Water Release: Five Feeding Sharks",
-  "cost": 28,
-  "cd": 9.0,
-  "element": "suiton",
-  "elements": [
-   "suiton"
-  ],
-  "natures": [
-   "suiton"
-  ],
-  "clan": "",
-  "level": 10,
-  "rank": 2,
-  "learn": "scroll",
-  "desc": "Beş su köpekbalığı hedefe saldırır.",
-  "seals": [],
-  "canon_rank": "B",
-  "tier": 3,
-  "category": "ninjutsu",
-  "shape": "projectile",
-  "range": "Short, Mid, Long",
-  "requires": {},
-  "signature": false,
-  "kinjutsu": false,
-  "series": "Naruto Shippūden"
- },
  "suiton_daikodan_no_jutsu": {
   "id": "suiton_daikodan_no_jutsu",
   "name": "Suiton: Daikōdan no Jutsu (Büyük Köpekbalığı Mermisi)",
@@ -13548,10 +13355,10 @@
   "natures": [
    "suiton"
   ],
-  "clan": "",
+  "clan": "hoshigaki",
   "level": 18,
   "rank": 3,
-  "learn": "trainer:kiri",
+  "learn": "clan:hoshigaki",
   "desc": "Dev su köpekbalığı mermisi.",
   "seals": [
    "Mi"
@@ -13809,10 +13616,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
-  "level": 28,
+  "clan": "shirogane",
+  "level": 22,
   "rank": 3,
-  "learn": "trainer:jonin",
+  "learn": "clan:shirogane",
   "desc": "On kuklayla saldırı.",
   "seals": [],
   "canon_rank": "S",
@@ -14842,10 +14649,10 @@
   "natures": [
    "fuuton"
   ],
-  "clan": "",
+  "clan": "kazahana",
   "level": 18,
   "rank": 3,
-  "learn": "trainer:suna",
+  "learn": "clan:kazahana",
   "desc": "Kumla karışmış dev rüzgâr patlaması.",
   "seals": [],
   "canon_rank": "A",
@@ -16508,10 +16315,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "uchiha",
   "level": 10,
   "rank": 2,
-  "learn": "trainer:taijutsu",
+  "learn": "clan:uchiha",
   "desc": "Uchiha kılıç stili; hız ve keskinlik.",
   "seals": [],
   "canon_rank": "B",
@@ -16537,10 +16344,10 @@
   "natures": [
    "raiton"
   ],
-  "clan": "",
+  "clan": "uchiha",
   "level": 18,
   "rank": 3,
-  "learn": "trainer:kumo",
+  "learn": "clan:uchiha",
   "desc": "Şimşek yüklü üç şuriken.",
   "seals": [],
   "canon_rank": "A",
@@ -16664,10 +16471,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "hoki",
   "level": 10,
   "rank": 2,
-  "learn": "scroll",
+  "learn": "clan:hoki",
   "desc": "Ahtapot kollarıyla hedefi sarar ve mürekkeple mühürler.",
   "seals": [],
   "canon_rank": "B",
@@ -16743,10 +16550,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
+  "clan": "hoki",
   "level": 10,
   "rank": 2,
-  "learn": "scroll",
+  "learn": "clan:hoki",
   "desc": "Dev mürekkep tanrı figürü.",
   "seals": [],
   "canon_rank": "B",
@@ -17221,10 +17028,10 @@
   "natures": [
    "doton"
   ],
-  "clan": "",
+  "clan": "iwao",
   "level": 10,
   "rank": 2,
-  "learn": "trainer:iwa",
+  "learn": "clan:iwao",
   "desc": "Taş yüzeyini cilalayıp sertleştirir.",
   "seals": [],
   "canon_rank": "B",
@@ -17666,10 +17473,10 @@
   "natures": [
    "inton"
   ],
-  "clan": "",
+  "clan": "kurama",
   "level": 10,
   "rank": 2,
-  "learn": "trainer:genjutsu",
+  "learn": "clan:kurama",
   "desc": "Katmanlı ortam illüzyonu.",
   "seals": [],
   "canon_rank": "B",
@@ -17859,10 +17666,10 @@
   "natures": [
    "doton"
   ],
-  "clan": "",
+  "clan": "iwao",
   "level": 10,
   "rank": 2,
-  "learn": "trainer:iwa",
+  "learn": "clan:iwao",
   "desc": "Bedeni kaya gibi sertleştirir.",
   "seals": [],
   "canon_rank": "B",
@@ -19388,6 +19195,838 @@
   "signature": false,
   "kinjutsu": false,
   "series": ""
+ },
+ "hakke_sanjuni_sho": {
+  "id": "hakke_sanjuni_sho",
+  "name": "Hakke Sanjūni Shō (Sekiz Trigram 32 Avuç)",
+  "name_en": "Eight Trigrams Thirty-Two Palms",
+  "cost": 22,
+  "cd": 7.2,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "hyuga",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:hyuga",
+  "desc": "Yerde trigram çemberi açılır: 32 avuç darbesi chakra noktalarını kapatır, hedef 5 sn jutsu yapamaz.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "taijutsu",
+  "shape": "melee"
+ },
+ "hakke_hyakunijuhachi_sho": {
+  "id": "hakke_hyakunijuhachi_sho",
+  "name": "Hakke Hyakunijūhachi Shō (Sekiz Trigram 128 Avuç)",
+  "name_en": "Eight Trigrams One Hundred Twenty-Eight Palms",
+  "cost": 34,
+  "cd": 11.2,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "hyuga",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:hyuga",
+  "desc": "Dev trigram çemberi: 128 darbe, çemberdeki herkesin chakra noktaları 10 sn kapanır.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "taijutsu",
+  "shape": "melee"
+ },
+ "hakke_hasangeki": {
+  "id": "hakke_hasangeki",
+  "name": "Hakke Hasangeki (Sekiz Trigram Dağ Kıran)",
+  "name_en": "Eight Trigrams Mountain Crusher",
+  "cost": 50,
+  "cd": 18.2,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "hyuga",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:hyuga",
+  "desc": "Dev avuç şeklinde chakra dalgası ilerler: yolundaki herkesi ezip geriye savurur.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "taijutsu",
+  "shape": "aoe"
+ },
+ "mushi_kabe": {
+  "id": "mushi_kabe",
+  "name": "Mushi Kabe no Jutsu (Böcek Duvarı)",
+  "name_en": "Insect Wall Technique",
+  "cost": 25,
+  "cd": 13.5,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "aburame",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:aburame",
+  "desc": "Böceklerden dönen kubbe: mermileri yutar, kubbeye dokunanın chakrasını emer.",
+  "seals": [
+   "Ne",
+   "Tori"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "hiden",
+  "shape": "wall"
+ },
+ "garoga": {
+  "id": "garoga",
+  "name": "Garōga (Çift Kurt Dişi)",
+  "name_en": "Double Wolf Fang",
+  "cost": 38,
+  "cd": 11.2,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "inuzuka",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:inuzuka",
+  "desc": "Sen ve ninken iki dev kurt matkabına dönüşüp hedefe iki yandan çarparsınız.",
+  "seals": [
+   "Inu",
+   "I"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "taijutsu",
+  "shape": "rush"
+ },
+ "dainamikku_makingu": {
+  "id": "dainamikku_makingu",
+  "name": "Dainamikku Mākingu (İz İşaretleme)",
+  "name_en": "Dynamic Marking",
+  "cost": 16,
+  "cd": 7.8,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "inuzuka",
+  "level": 5,
+  "rank": 1,
+  "learn": "clan:inuzuka",
+  "desc": "Hedefi kokuyla işaretle: 20 sn boyunca %25 fazla hasar alır ve saklanamaz.",
+  "seals": [],
+  "canon_rank": "C",
+  "tier": 2,
+  "category": "hiden",
+  "shape": "debuff"
+ },
+ "sarutobi_hien": {
+  "id": "sarutobi_hien",
+  "name": "Fūton: Hien (Uçan Kırlangıç)",
+  "name_en": "Wind Release: Flying Swallow",
+  "cost": 22,
+  "cd": 7.2,
+  "element": "fuuton",
+  "elements": [
+   "fuuton"
+  ],
+  "natures": [
+   "fuuton"
+  ],
+  "clan": "sarutobi",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:sarutobi",
+  "desc": "Chakra bıçaklarına rüzgar akıt: bıçaklar uzar, menzilli kesikler savrulur.",
+  "seals": [
+   "Tora",
+   "Ushi"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "hiden",
+  "shape": "melee"
+ },
+ "hatake_tsubame": {
+  "id": "hatake_tsubame",
+  "name": "Hakkō Tō: Tsubame Gaeshi (Kırlangıç Dönüşü)",
+  "name_en": "White Light Blade: Swallow Return",
+  "cost": 34,
+  "cd": 11.2,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "hatake",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:hatake",
+  "desc": "Beyaz chakra bıçağıyla ileri ve geri iki hilal kesik: geçtiğin yoldan geri dönersin.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "hiden",
+  "shape": "melee"
+ },
+ "chinoike_tetsu": {
+  "id": "chinoike_tetsu",
+  "name": "Ketsuryūgan: Kettetsu Sō (Kan Demiri Mızrakları)",
+  "name_en": "Blood Iron Spears",
+  "cost": 34,
+  "cd": 11.7,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "chinoike",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:chinoike",
+  "desc": "Kandaki demir yerden kızıl mızraklar halinde sıra sıra fışkırarak ilerler.",
+  "seals": [
+   "Mi",
+   "Tora"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "hiden",
+  "shape": "aoe"
+ },
+ "chinoike_kekkai": {
+  "id": "chinoike_kekkai",
+  "name": "Ketsuryūgan: Kekkai Rō (Kan Hapsi)",
+  "name_en": "Blood Prison",
+  "cost": 42,
+  "cd": 19.6,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "chinoike",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:chinoike",
+  "desc": "Kızıl kan kafesi hedefi 3 sn hapseder ve canını sana aktarır.",
+  "seals": [
+   "Mi",
+   "Hitsuji",
+   "Ne"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "hiden",
+  "shape": "bind"
+ },
+ "chinoike_chi_no_ame": {
+  "id": "chinoike_chi_no_ame",
+  "name": "Chi no Ame (Kan Yağmuru)",
+  "name_en": "Blood Rain",
+  "cost": 50,
+  "cd": 18.2,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "chinoike",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:chinoike",
+  "desc": "Gökten kan iğneleri yağar; ıslananlar kanar.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "hiden",
+  "shape": "aoe"
+ },
+ "fuma_kaze_guruma": {
+  "id": "fuma_kaze_guruma",
+  "name": "Fūma Shuriken: Kaze Guruma (Rüzgar Çarkı)",
+  "name_en": "Demon Wind Shuriken: Wind Wheel",
+  "cost": 28,
+  "cd": 9.0,
+  "element": "fuuton",
+  "elements": [
+   "fuuton"
+  ],
+  "natures": [
+   "fuuton"
+  ],
+  "clan": "fuma",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:fuma",
+  "desc": "Dev Fūma shurikeni bumerang gibi gider gelir, iki kez keser.",
+  "seals": [
+   "Tora"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "hiden",
+  "shape": "projectile"
+ },
+ "kamizuru_hachi": {
+  "id": "kamizuru_hachi",
+  "name": "Kuchiyose: Ōbachi (Dev Eşek Arıları)",
+  "name_en": "Summoning: Giant Hornets",
+  "cost": 50,
+  "cd": 27.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "kamizuru",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:kamizuru",
+  "desc": "Dev eşek arıları çağır: uçarak dalış yapar, zehirli iğne sokarlar.",
+  "seals": [
+   "I",
+   "Inu",
+   "Tori"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "hiden",
+  "shape": "summon"
+ },
+ "kamizuru_hari": {
+  "id": "kamizuru_hari",
+  "name": "Hachi Senbon (Arı İğnesi Yağmuru)",
+  "name_en": "Bee Stinger Needles",
+  "cost": 18,
+  "cd": 6.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "kamizuru",
+  "level": 5,
+  "rank": 1,
+  "learn": "clan:kamizuru",
+  "desc": "Sürüden fırlayan zehirli iğne yaylımı: zehirler ve yavaşlatır.",
+  "seals": [],
+  "canon_rank": "C",
+  "tier": 2,
+  "category": "hiden",
+  "shape": "projectile"
+ },
+ "kamizuru_mitsu_bunshin": {
+  "id": "kamizuru_mitsu_bunshin",
+  "name": "Mitsu Bunshin (Bal Klonu)",
+  "name_en": "Honey Clone",
+  "cost": 34,
+  "cd": 14.4,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "kamizuru",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:kamizuru",
+  "desc": "Baldan klon: vurulunca patlayıp yapışkan mum saçar, çevredeki düşmanlar yere yapışır.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "hiden",
+  "shape": "clone"
+ },
+ "kazahana_sajin_senpu": {
+  "id": "kazahana_sajin_senpu",
+  "name": "Fūton: Sajin Senpū (Kum Kasırgası)",
+  "name_en": "Wind Release: Sand Dust Whirlwind",
+  "cost": 34,
+  "cd": 11.7,
+  "element": "fuuton",
+  "elements": [
+   "fuuton"
+  ],
+  "natures": [
+   "fuuton"
+  ],
+  "clan": "kazahana",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:kazahana",
+  "desc": "Kumlu hortum ileri yürür, yakaladıklarını havaya kaldırıp savurur.",
+  "seals": [
+   "Tora",
+   "Tatsu",
+   "Inu"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "hiden",
+  "shape": "aoe"
+ },
+ "kazahana_kazekiri_mai": {
+  "id": "kazahana_kazekiri_mai",
+  "name": "Kazekiri no Mai (Rüzgar Kesen Dans)",
+  "name_en": "Wind Cutting Dance",
+  "cost": 22,
+  "cd": 7.2,
+  "element": "fuuton",
+  "elements": [
+   "fuuton"
+  ],
+  "natures": [
+   "fuuton"
+  ],
+  "clan": "kazahana",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:kazahana",
+  "desc": "Etrafında dönerek rüzgar bıçakları savur: dört dalga kesik her yöne.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "hiden",
+  "shape": "melee"
+ },
+ "kazahana_sabaku_arashi": {
+  "id": "kazahana_sabaku_arashi",
+  "name": "Sabaku Arashi (Çöl Fırtınası)",
+  "name_en": "Desert Storm",
+  "cost": 55,
+  "cd": 25.2,
+  "element": "fuuton",
+  "elements": [
+   "fuuton"
+  ],
+  "natures": [
+   "fuuton"
+  ],
+  "clan": "kazahana",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:kazahana",
+  "desc": "Kum fırtınası çöker: içindeki düşmanlar kör ve yavaş, sen rüzgarla hızlanırsın.",
+  "seals": [
+   "Tatsu",
+   "Tora"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "hiden",
+  "shape": "field"
+ },
+ "kazahana_fujin_ya": {
+  "id": "kazahana_fujin_ya",
+  "name": "Fūjin no Ya (Rüzgar Tanrısı Okları)",
+  "name_en": "Wind God Arrows",
+  "cost": 18,
+  "cd": 6.0,
+  "element": "fuuton",
+  "elements": [
+   "fuuton"
+  ],
+  "natures": [
+   "fuuton"
+  ],
+  "clan": "kazahana",
+  "level": 5,
+  "rank": 1,
+  "learn": "clan:kazahana",
+  "desc": "Üç sıkıştırılmış rüzgar oku: yolundaki herkesi deler geçer.",
+  "seals": [
+   "Tori"
+  ],
+  "canon_rank": "C",
+  "tier": 2,
+  "category": "hiden",
+  "shape": "projectile"
+ },
+ "karatachi_suijin_giri": {
+  "id": "karatachi_suijin_giri",
+  "name": "Suijin Giri (Su Bıçağı Kesiği)",
+  "name_en": "Water Blade Slash",
+  "cost": 22,
+  "cd": 7.2,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "karatachi",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:karatachi",
+  "desc": "Kılıç çekilişinde basınçlı su yayı: uzun yatay kesik.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "hiden",
+  "shape": "melee"
+ },
+ "karatachi_kirisame": {
+  "id": "karatachi_kirisame",
+  "name": "Kirisame (Sis Yağmuru)",
+  "name_en": "Mist Rain",
+  "cost": 36,
+  "cd": 16.2,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "karatachi",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:karatachi",
+  "desc": "Sis çöker, sen kaybolursun; sisin içindeki düşmanlara su iğneleri yağar.",
+  "seals": [
+   "Hitsuji",
+   "Tora"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "hiden",
+  "shape": "field"
+ },
+ "karatachi_nanatachi": {
+  "id": "karatachi_nanatachi",
+  "name": "Nanatachi no Mai (Yedi Kılıç Dansı)",
+  "name_en": "Seven Blades Dance",
+  "cost": 38,
+  "cd": 11.2,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "karatachi",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:karatachi",
+  "desc": "Yedi ışık hızında atılış: yakındaki düşmanlar arasında zikzak çizerek kesersin.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "hiden",
+  "shape": "rush"
+ },
+ "karatachi_kubikiri": {
+  "id": "karatachi_kubikiri",
+  "name": "Kubikiri (Baş Kesen Çekiliş)",
+  "name_en": "Decapitating Draw",
+  "cost": 34,
+  "cd": 11.2,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "karatachi",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:karatachi",
+  "desc": "Kılıcı yükle ve tek dev kesik indir: canı azalmış hedeflere iki kat hasar.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "hiden",
+  "shape": "melee"
+ },
+ "ikazuchi_reiza_ame": {
+  "id": "ikazuchi_reiza_ame",
+  "name": "Ranton: Reizā Ame (Lazer Yağmuru)",
+  "name_en": "Storm Release: Laser Rain",
+  "cost": 50,
+  "cd": 18.2,
+  "element": "ranton",
+  "elements": [
+   "ranton"
+  ],
+  "natures": [
+   "ranton"
+  ],
+  "clan": "ikazuchi",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:ikazuchi",
+  "desc": "Fırtına bulutu toplanır, aşağı bükülerek inen ışın yağmuru.",
+  "seals": [
+   "Tatsu",
+   "Ne",
+   "Tori"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "kekkei_genkai",
+  "shape": "aoe"
+ },
+ "ikazuchi_koga": {
+  "id": "ikazuchi_koga",
+  "name": "Ranton: Kōga (Fırtına Tazısı)",
+  "name_en": "Storm Release: Storm Hound",
+  "cost": 28,
+  "cd": 9.0,
+  "element": "ranton",
+  "elements": [
+   "ranton"
+  ],
+  "natures": [
+   "ranton"
+  ],
+  "clan": "ikazuchi",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:ikazuchi",
+  "desc": "Su ve yıldırımdan tazı zikzak çizerek koşar, çarptığını sersemletir.",
+  "seals": [
+   "Inu",
+   "Tora"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "kekkei_genkai",
+  "shape": "projectile"
+ },
+ "ikazuchi_raiun": {
+  "id": "ikazuchi_raiun",
+  "name": "Ranton: Raiun (Gök Gürültüsü Bulutu)",
+  "name_en": "Storm Release: Thunder Cloud",
+  "cost": 55,
+  "cd": 25.2,
+  "element": "ranton",
+  "elements": [
+   "ranton"
+  ],
+  "natures": [
+   "ranton"
+  ],
+  "clan": "ikazuchi",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:ikazuchi",
+  "desc": "Kara bulut alanı: içindeki düşmanlara her saniye şimşek iner.",
+  "seals": [
+   "Mi",
+   "Tatsu"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "kekkei_genkai",
+  "shape": "field"
+ },
+ "ikazuchi_kosen": {
+  "id": "ikazuchi_kosen",
+  "name": "Ranton: Kōsen (Bükülen Işın)",
+  "name_en": "Storm Release: Bending Beam",
+  "cost": 39,
+  "cd": 12.6,
+  "element": "ranton",
+  "elements": [
+   "ranton"
+  ],
+  "natures": [
+   "ranton"
+  ],
+  "clan": "ikazuchi",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:ikazuchi",
+  "desc": "Işın kıvrılarak engellerin üstünden aşar ve kilitli hedefe iner.",
+  "seals": [
+   "Tora"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "kekkei_genkai",
+  "shape": "beam"
+ },
+ "sabaku_suna_no_kumo": {
+  "id": "sabaku_suna_no_kumo",
+  "name": "Ryūsa no Kumo (Uçan Kum Bulutu)",
+  "name_en": "Flying Sand Cloud",
+  "cost": 50,
+  "cd": 27.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "sabaku",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:sabaku",
+  "desc": "Ayağının altında kum bulutu toplanır: üstüne binip uçarsın (Space yüksel, Ctrl alçal). Tekrar yapınca inersin.",
+  "seals": [
+   "Tora",
+   "Hitsuji"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "hiden",
+  "shape": "mode"
+ },
+ "bakuha_jirai": {
+  "id": "bakuha_jirai",
+  "name": "Bakuton: Jirai Jin (Mayın Tarlası)",
+  "name_en": "Explosion Release: Landmine Formation",
+  "cost": 22,
+  "cd": 10.8,
+  "element": "bakuton",
+  "elements": [
+   "bakuton"
+  ],
+  "natures": [
+   "bakuton"
+  ],
+  "clan": "bakuha",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:bakuha",
+  "desc": "Avuçlarındaki ağızlar yere kil mayınlar tükürür: üstüne basan düşmanın altında patlar.",
+  "seals": [
+   "Tori",
+   "Hitsuji"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "kekkei_genkai",
+  "shape": "trap"
+ },
+ "bakuha_kibaku_te": {
+  "id": "bakuha_kibaku_te",
+  "name": "Bakuton: Kibaku Shō (Patlayan Avuç)",
+  "name_en": "Explosion Release: Exploding Palm",
+  "cost": 22,
+  "cd": 7.2,
+  "element": "bakuton",
+  "elements": [
+   "bakuton"
+  ],
+  "natures": [
+   "bakuton"
+  ],
+  "clan": "bakuha",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan:bakuha",
+  "desc": "Avucundaki ağza chakra yükle ve hedefe yapıştır: iki saniye sonra içeriden patlar.",
+  "seals": [
+   "Tori"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "kekkei_genkai",
+  "shape": "melee"
+ },
+ "bakuha_rensa": {
+  "id": "bakuha_rensa",
+  "name": "Bakuton: Rensa Bakuha (Zincirleme Patlama)",
+  "name_en": "Explosion Release: Chain Explosion",
+  "cost": 50,
+  "cd": 18.2,
+  "element": "bakuton",
+  "elements": [
+   "bakuton"
+  ],
+  "natures": [
+   "bakuton"
+  ],
+  "clan": "bakuha",
+  "level": 18,
+  "rank": 3,
+  "learn": "clan:bakuha",
+  "desc": "Yerden ileriye doğru sıra sıra patlamalar: her biri bir öncekinden büyük.",
+  "seals": [
+   "Tori",
+   "Hitsuji",
+   "Tora"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "kekkei_genkai",
+  "shape": "aoe"
+ },
+ "jinton_kaku": {
+  "id": "jinton_kaku",
+  "name": "Jinton: Kaku (Toz Küpü)",
+  "name_en": "Dust Release: Cube",
+  "cost": 50,
+  "cd": 18.2,
+  "element": "jinton",
+  "elements": [
+   "jinton"
+  ],
+  "natures": [
+   "jinton"
+  ],
+  "clan": "",
+  "level": 46,
+  "rank": 3,
+  "learn": "kg:jinton",
+  "desc": "Şeffaf küp genişler ve içindekileri atomlarına ayırır: ağaç, ev, düşman; geriye toz kalır.",
+  "seals": [
+   "Tora",
+   "Ne",
+   "Tori"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "kekkei_genkai",
+  "shape": "aoe"
+ },
+ "jinton_ensui": {
+  "id": "jinton_ensui",
+  "name": "Jinton: Ensui (Toz Koni Işını)",
+  "name_en": "Dust Release: Cone Beam",
+  "cost": 84,
+  "cd": 30.8,
+  "element": "jinton",
+  "elements": [
+   "jinton"
+  ],
+  "natures": [
+   "jinton"
+  ],
+  "clan": "",
+  "level": 50,
+  "rank": 3,
+  "learn": "kg:jinton",
+  "desc": "Uzun koni ışın: hattaki her şeyi deler ve toza çevirir.",
+  "seals": [
+   "Tora",
+   "Ne",
+   "Tori",
+   "Hitsuji"
+  ],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "kekkei_genkai",
+  "shape": "beam"
+ },
+ "jinton_ento": {
+  "id": "jinton_ento",
+  "name": "Jinton: Entō (Toz Silindiri)",
+  "name_en": "Dust Release: Cylinder",
+  "cost": 72,
+  "cd": 28.6,
+  "element": "jinton",
+  "elements": [
+   "jinton"
+  ],
+  "natures": [
+   "jinton"
+  ],
+  "clan": "",
+  "level": 50,
+  "rank": 3,
+  "learn": "kg:jinton",
+  "desc": "Gökten inen geniş silindir: büyük bir alanı tamamen siler.",
+  "seals": [
+   "Tora",
+   "Ne",
+   "Tori",
+   "I"
+  ],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "kekkei_genkai",
+  "shape": "aoe"
+ },
+ "_aliases": {
+  "kongo_fusa": "chakra_chains",
+  "suika_no_jutsu": "suika",
+  "sensatsu_suisho": "hyoton_senbon",
+  "mizudeppo_no_jutsu": "water_gun",
+  "suiton_goshokuzame": "hoshigaki_same",
+  "teshi_sendan": "bone_bullets"
  },
  "_seals": [
   "Ne",

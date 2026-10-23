@@ -301,7 +301,7 @@ func _chase(dt: float) -> void:
 	if d > 5.0 and d < 24.0 and ranged_cd <= 0.0 and randf() < 0.5:
 		ranged_cd = randf_range(3.0, 6.0) / arch["aggr"]
 		var jl: Array = arch["jutsu"]
-		if not jl.is_empty() and randf() < 0.6:
+		if not jl.is_empty() and randf() < 0.6 and not has_status("sealed"):   # chakra noktaları kapalıysa jutsu yok
 			set_meta("cast_id", jl.pick_random())
 			state = "cast"
 			CastAnim.play(self, get_meta("cast_id"), 0.55)  # mühür + atma koreografisi

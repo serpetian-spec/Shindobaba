@@ -78,9 +78,10 @@ signal jutsu_cast(caster: Node, id: String)
 
 func execute(caster: Node3D, id: String, target: Node3D) -> void:
 	jutsu_cast.emit(caster, id)
+	var own_id = id   # klan/kekkei genkai jutsularının kendi uygulaması (ClanJutsu) önceliklidir
 	id = String(Data.jutsu.get(id, {}).get("impl", id))  # klan jutsuları ortak uygulamayı kullanabilir
 	var jd: Dictionary = Data.jutsu.get(id, {})
-	if not has_method("j_" + id) and jd.is_empty():
+	if not has_method("j_" + id) and jd.is_empty() and not ClanJutsu.handles(own_id):
 		Hud.msg("%s henüz uygulanmadı" % id, Color(1, 0.6, 0.4))
 		return
 	# destan ölçeği: rütbe × ustalık; bırakış anı (flaş, şok halkası, toz, B+ yavaş çekim + kamera)
@@ -93,7 +94,9 @@ func execute(caster: Node3D, id: String, target: Node3D) -> void:
 	VFX.release(caster, _cast_origin(caster, id), JutsuEngine.color_of(jd), g, tier if not calm else mini(tier, 2), not calm)
 	var prev = VFX.epic
 	VFX.epic = g
-	if has_method("j_" + id):
+	if ClanJutsu.handles(own_id):
+		ClanJutsu.cast(caster, own_id, target)
+	elif has_method("j_" + id):
 		call("j_" + id, caster, target)
 	else:
 		JutsuEngine.cast(caster, id, target)  # veri güdümlü: şekil × element × kademe
@@ -310,14 +313,14 @@ func j_suiton_suiryuudan(c: Node3D, t: Node3D) -> void:
 	pr.homing_turn = 3.0
 	pr.info = {"dmg": 30.0 * m, "element": "suiton", "knock": 16.0, "launch": 9.0, "kind": "heavy", "hitstop": 0.08}
 	var wm = VFX.mat_water(Color(0.04, 0.25, 0.75), Color(0.18, 0.52, 0.98), Color(0.6, 0.87, 1.0), Vector3(0, 0, 1), 0.92, 0.7, 0.08)
-	var head = VfxSerpent.dragon_head(wm, 2.6)
+	var head = VfxSerpent.dragon_head(wm, 4.0)
 	pr.add_child(head)
 	# ejderha gövdesi: başın izini takip eden kıvrılan su halkaları + sırt yüzgeçleri
 	var body = VfxSerpent.new()
 	body.head = pr
-	body.count = 14
-	body.spacing = 1.3
-	body.radius = 1.6
+	body.count = 22
+	body.spacing = 1.9
+	body.radius = 2.6
 	body.mat = wm
 	body.fin_mat = VFX.mat_water(Color(0.5, 0.8, 1.0), Color(0.75, 0.93, 1.0), Color(0.95, 1.0, 1.0), Vector3.UP, 0.95, 0.2, 0.0)
 	get_tree().current_scene.add_child(body)
@@ -325,7 +328,7 @@ func j_suiton_suiryuudan(c: Node3D, t: Node3D) -> void:
 	pr.on_tick = func(p: Projectile, dt: float) -> void:
 		age["t"] += dt
 		if age["t"] < 0.85:   # yüksel ve kıvrıl (15–20 m)
-			p.vel = (Vector3.UP * 21.0 + fd.cross(Vector3.UP) * cos(age["t"] * 7.0) * 11.0 + fd * 3.0)
+			p.vel = (Vector3.UP * 28.0 + fd.cross(Vector3.UP) * cos(age["t"] * 7.0) * 14.0 + fd * 3.0)
 			return
 		p.homing_turn = 6.0   # sonra hedefe dal
 		if not t and p.life < 2.8:
@@ -1132,7 +1135,7 @@ func j_kage_kubi(c: Node3D, t: Node3D) -> void:
 func j_baika(c: Node3D, _t: Node3D) -> void:
 	if not c is Player:
 		return
-	c.combat.modes.set_size(2.6, 20.0)
+	c.combat.modes.set_size(3.0, 20.0)
 	FX.smoke_puff(c.global_position + Vector3.UP * 2.0, 2.2, 24)
 	Buffs.add("baika", 20.0, {"melee": 1.9, "speed": 0.85, "armor": 0.7, "reach": 2.2})
 	Hud.msg("Baika no Jutsu! (20 sn dev)", Color(1, 0.8, 0.5))
@@ -1531,19 +1534,19 @@ func j_kirin(c: Node3D, t: Node3D) -> void:
 		get_tree().current_scene.add_child(head)
 		head.global_position = sky
 		var hm = VFX.mat_spiral(Color(1, 1, 1), col, 8.0, 4.0, 16.0, 2.4, Vector3(0, 0, 1))
-		var dh = VfxSerpent.dragon_head(hm, 3.2, Color(1, 1, 1))
+		var dh = VfxSerpent.dragon_head(hm, 5.5, Color(1, 1, 1))
 		head.add_child(dh)
 		var body = VfxSerpent.new()
 		body.head = head
-		body.count = 16
-		body.spacing = 1.8
-		body.radius = 2.0
+		body.count = 26
+		body.spacing = 2.6
+		body.radius = 3.4
 		body.mat = hm
 		get_tree().current_scene.add_child(body)
 		var arcs = Arcs.new()
 		arcs.color = col
-		arcs.radius = 5.0
-		arcs.count = 10
+		arcs.radius = 8.0
+		arcs.count = 14
 		arcs.width = 0.12
 		head.add_child(arcs)
 		var tw = head.create_tween()
@@ -1622,20 +1625,20 @@ func j_suiro_no_jutsu(c: Node3D, t: Node3D) -> void:
 ## Daibakufu: dev şelale dalgası — çevreyi su basar, önündeki her şeyi süpürür
 func j_suiton_daibakufu_no_jutsu(c: Node3D, t: Node3D) -> void:
 	var dir = _aim_flat(c, t)
-	var start = _ground(c.global_position + dir * 7.0)   # sütun oyuncu kamerasını yutmasın
+	var start = _ground(c.global_position + dir * 14.0)   # sütun oyuncu kamerasını yutmasın
 	Sfx.play("water", start, 0.6)
 	VFX.splash(start, 4.0)
 	# yükselen su sütunu
 	var cm = CylinderMesh.new()
-	cm.top_radius = 2.2; cm.bottom_radius = 3.5; cm.height = 1.0; cm.radial_segments = 24; cm.rings = 4
+	cm.top_radius = 5.0; cm.bottom_radius = 8.5; cm.height = 1.0; cm.radial_segments = 32; cm.rings = 4
 	var wm = VFX.mat_water(Color(0.04, 0.25, 0.75), Color(0.18, 0.52, 0.98), Color(0.65, 0.9, 1.0), Vector3.UP, 0.92, 0.9, 0.15)
 	var col_ = VFX._mi(cm, wm)
 	get_tree().current_scene.add_child(col_)
 	col_.global_position = start
 	col_.scale = Vector3(1, 0.1, 1)
 	var tw = col_.create_tween()
-	tw.tween_property(col_, "scale", Vector3(1.4, 16.0, 1.4), 0.5).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-	tw.parallel().tween_property(col_, "global_position:y", start.y + 8.0, 0.5)
+	tw.tween_property(col_, "scale", Vector3(1.4, 40.0, 1.4), 0.6).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(col_, "global_position:y", start.y + 20.0, 0.6)
 	tw.tween_interval(0.3)
 	tw.tween_property(col_, "scale", Vector3(3.0, 0.1, 3.0), 0.5).set_ease(Tween.EASE_IN)
 	tw.parallel().tween_property(col_, "global_position:y", start.y, 0.5)
@@ -1647,8 +1650,8 @@ func j_suiton_daibakufu_no_jutsu(c: Node3D, t: Node3D) -> void:
 		var d = _jd("suiton_daibakufu_no_jutsu").duplicate()
 		d["tier"] = 5
 		JutsuEngine._wave(c, d, t)
-		JutsuEngine._wave_ring(start, 40.0, wm, 1.2)
-		Combat.hit_sphere(c, start + dir * 10.0 + Vector3.UP, 12.0, _inf(c, "suiton_daibakufu_no_jutsu", 1.4, {"knock": 22.0, "launch": 6.0}))
+		JutsuEngine._wave_ring(start, 70.0, wm, 1.4)
+		Combat.hit_sphere(c, start + dir * 10.0 + Vector3.UP, 20.0, _inf(c, "suiton_daibakufu_no_jutsu", 1.4, {"knock": 22.0, "launch": 6.0}))
 		if Game.world: Game.world.env.add_shake(1.2))
 	if c is Player:
 		VFX.screen_lines(0.6, 0.5, Color(0.7, 0.9, 1.0))

@@ -9,7 +9,7 @@ const SAMPLES := [
 	"suiton_daibakufu_no_jutsu", "katon_goka_mekkyaku", "futon_atsugai", "suiro_no_jutsu", "ranton_reiza_sakasu",
 	"mokuton_jukai_kotan", "hyoton_hyogan_domu", "yoton_yokai_no_jutsu", "bakuton_jiraiken", "kirigakure_no_jutsu",
 	"kage_nui_no_jutsu", "doton_doryu_joheki", "magen_jubaku_satsu", "shiki_fujin", "mizu_bunshin_no_jutsu",
-	"konoha_senpu", "katon_dai_endan", "kongo_fusa", "futton_komu_no_jutsu", "jibaku_bunshin", "kanchi_no_jutsu",
+	"konoha_senpu", "katon_dai_endan", "chakra_chains", "futton_komu_no_jutsu", "jibaku_bunshin", "kanchi_no_jutsu",
 	"suna_no_yoroi", "sennin_modo", "raiton_rariatto", "hiraishin_no_jutsu", "doton_goremu_no_jutsu", "sozo_saisei",
 	"futon_shinku_renpa", "jinton_genkai_hakuri_no_jutsu", "kakuremino_no_jutsu", "uchihagaeshi", "bashosen_kaze_no_maki",
 ]

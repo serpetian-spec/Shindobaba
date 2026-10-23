@@ -90,20 +90,6 @@
   "jutsu": "kongo_roheki",
   "desc": "B — Dev maymun asasının dönüştüğü kafes; hedefi içine hapseder ya da kalkan olur. Maymun kontratı gerekir."
  },
- "scroll_kusa_boheki": {
-  "name": "Parşömen: Kūsa Bōheki",
-  "price": 800,
-  "kind": "scroll",
-  "jutsu": "kusa_boheki",
-  "desc": "B — Havaya kaldırılan kum ani bir kalkan duvarına dönüşür."
- },
- "scroll_suna_no_yoroi": {
-  "name": "Parşömen: Suna no Yoroi",
-  "price": 800,
-  "kind": "scroll",
-  "jutsu": "suna_no_yoroi",
-  "desc": "B — Bedeni ince kum tabakası kaplar; hasarı emer, sürekli çakra tüketir."
- },
  "scroll_kekkai_hojin": {
   "name": "Parşömen: Kekkai Hōjin",
   "price": 800,
@@ -124,13 +110,6 @@
   "kind": "scroll",
   "jutsu": "kekkai_tengai_hojin",
   "desc": "B — Geniş kubbe bariyer; içeri giren her şeyi kullanıcıya bildirir."
- },
- "scroll_kurohigi_kiki_ippatsu": {
-  "name": "Parşömen: Kurohigi Kiki Ippatsu",
-  "price": 800,
-  "kind": "scroll",
-  "jutsu": "kurohigi_kiki_ippatsu",
-  "desc": "B — Kukla gövdesi hedefi içine kapatır, ardından içinden zehirli bıçaklar saplanır."
  },
  "scroll_bubitorappu": {
   "name": "Parşömen: Būbītorappu",
@@ -216,13 +195,6 @@
   "jutsu": "mateki_genbu_sokyoku",
   "desc": "B — Flütle çağrılan iblis savaşçıları yönetir."
  },
- "scroll_magen_kokoni_arazu_no_jutsu": {
-  "name": "Parşömen: Magen: Kokoni Arazu no Jutsu",
-  "price": 400,
-  "kind": "scroll",
-  "jutsu": "magen_kokoni_arazu_no_jutsu",
-  "desc": "C — Çevreyi yanıltıcı biçimde değiştirerek kaybolmaya yol açar."
- },
  "scroll_sabaku_fuyu": {
   "name": "Parşömen: Sabaku Fuyū",
   "price": 800,
@@ -256,7 +228,7 @@
   "price": 800,
   "kind": "scroll",
   "jutsu": "doton_kajugan_no_jutsu",
-  "desc": "B — Dokunulan hedefi ağırlaştırır; yere yapıştırır."
+  "desc": "B — Dokunduğun hedefi ağırlaştır: yere çakılır, ağır ağır hareket eder."
  },
  "scroll_doton_shinju_zanshu_no_jutsu": {
   "name": "Parşömen: Doton: Shinjū Zanshu no Jutsu",
@@ -356,13 +328,6 @@
   "jutsu": "tanuki_neiri_no_jutsu",
   "desc": "B — Uyuyormuş gibi yapıp canavarı açığa çıkarır."
  },
- "scroll_shikoku_fuin": {
-  "name": "Parşömen: Shikoku Fūin",
-  "price": 400,
-  "kind": "scroll",
-  "jutsu": "shikoku_fuin",
-  "desc": "C — Parmakla kurbağaya yazılan bilgi mührü."
- },
  "scroll_katon_goryuka_no_jutsu": {
   "name": "Parşömen: Katon: Gōryūka no Jutsu",
   "price": 800,
@@ -370,33 +335,12 @@
   "jutsu": "katon_goryuka_no_jutsu",
   "desc": "B — Gökten düşen çoklu ejder başlı alev mermileri."
  },
- "scroll_katon_haijingakure_no_jutsu": {
-  "name": "Parşömen: Katon: Haijingakure no Jutsu",
-  "price": 800,
-  "kind": "scroll",
-  "jutsu": "katon_haijingakure_no_jutsu",
-  "desc": "B — Kül bulutuyla gizlenme ve ardından patlatma."
- },
  "scroll_katon_zukokku": {
   "name": "Parşömen: Katon: Zukokku",
   "price": 800,
   "kind": "scroll",
   "jutsu": "katon_zukokku",
   "desc": "B — Maske canavarının ağzından dev alev patlaması."
- },
- "scroll_katon_hosenka_tsumabeni": {
-  "name": "Parşömen: Katon: Hōsenka Tsumabeni",
-  "price": 800,
-  "kind": "scroll",
-  "jutsu": "katon_hosenka_tsumabeni",
-  "desc": "B — Ateş topları içine gizlenmiş şurikenler."
- },
- "scroll_fuka_hoin": {
-  "name": "Parşömen: Fūka Hōin",
-  "price": 800,
-  "kind": "scroll",
-  "jutsu": "fuka_hoin",
-  "desc": "B — Ateşi parşömene mühürleyip söndürür."
  },
  "scroll_gofu_kekkai": {
   "name": "Parşömen: Gofū Kekkai",
@@ -433,20 +377,6 @@
   "jutsu": "kirigakure_no_jutsu",
   "desc": "D — Kalın sis bulutu yaratır; görüş sıfırlanır."
  },
- "scroll_sumi_bunshin_no_jutsu": {
-  "name": "Parşömen: Sumi Bunshin no Jutsu",
-  "price": 400,
-  "kind": "scroll",
-  "jutsu": "sumi_bunshin_no_jutsu",
-  "desc": "C — Mürekkepten klon yaratır."
- },
- "scroll_sumigasumi_no_jutsu": {
-  "name": "Parşömen: Sumigasumi no Jutsu",
-  "price": 400,
-  "kind": "scroll",
-  "jutsu": "sumigasumi_no_jutsu",
-  "desc": "C — Mürekkep püskürterek görüşü kapatır."
- },
  "scroll_uchi_naru_sakura": {
   "name": "Parşömen: Uchi Naru Sakura",
   "price": 400,
@@ -482,20 +412,6 @@
   "jutsu": "soshujin",
   "desc": "C — İplerle bağlı kunai/bıçakların yönünü değiştirme."
  },
- "scroll_sofushasan_no_tachi": {
-  "name": "Parşömen: Sōfūshasan no Tachi",
-  "price": 400,
-  "kind": "scroll",
-  "jutsu": "sofushasan_no_tachi",
-  "desc": "C — İp bağlı şurikenlerle hedefi sarma."
- },
- "scroll_kiko_junbu": {
-  "name": "Parşömen: Kikō Junbū",
-  "price": 800,
-  "kind": "scroll",
-  "jutsu": "kiko_junbu",
-  "desc": "B — Kuklalarla kalkan duvarı."
- },
  "scroll_kasumi_jusha_no_jutsu": {
   "name": "Parşömen: Kasumi Jūsha no Jutsu",
   "price": 200,
@@ -517,40 +433,12 @@
   "jutsu": "kami_bunshin",
   "desc": "B — Kâğıttan klon."
  },
- "scroll_kugutsu_no_jutsu": {
-  "name": "Parşömen: Kugutsu no Jutsu",
-  "price": 400,
-  "kind": "scroll",
-  "jutsu": "kugutsu_no_jutsu",
-  "desc": "C — Çakra ipleriyle kuklayı yönetir."
- },
  "scroll_kyomeisen": {
   "name": "Parşömen: Kyōmeisen",
   "price": 400,
   "kind": "scroll",
   "jutsu": "kyomeisen",
   "desc": "C — Sesle iç kulağa saldırıp dengeyi bozar."
- },
- "scroll_sabaku_kyu": {
-  "name": "Parşömen: Sabaku Kyū",
-  "price": 800,
-  "kind": "scroll",
-  "jutsu": "sabaku_kyu",
-  "desc": "B — Hedefi kumla sarıp hareketsiz bırakır."
- },
- "scroll_suna_bunshin": {
-  "name": "Parşömen: Suna Bunshin",
-  "price": 800,
-  "kind": "scroll",
-  "jutsu": "suna_bunshin",
-  "desc": "B — Kumdan klon."
- },
- "scroll_suna_shuriken": {
-  "name": "Parşömen: Suna Shuriken",
-  "price": 400,
-  "kind": "scroll",
-  "jutsu": "suna_shuriken",
-  "desc": "C — Kumdan keskin şurikenler."
  },
  "scroll_sanzengarasu_no_jutsu": {
   "name": "Parşömen: Sanzengarasu no Jutsu",
@@ -601,13 +489,6 @@
   "jutsu": "kamaitachi_no_jutsu",
   "desc": "C — Yelpazeyle kesici rüzgâr dalgası."
  },
- "scroll_sairento_kiringu": {
-  "name": "Parşömen: Sairento Kiringu",
-  "price": 800,
-  "kind": "scroll",
-  "jutsu": "sairento_kiringu",
-  "desc": "B — Sisle saklanıp sessizce öldürme tekniği."
- },
  "scroll_hebi_bunshin_no_jutsu": {
   "name": "Parşömen: Hebi Bunshin no Jutsu",
   "price": 400,
@@ -628,13 +509,6 @@
   "kind": "scroll",
   "jutsu": "narikawari_no_jutsu",
   "desc": "C — Ayrı bedenle darbe yerine ikameyi koyma."
- },
- "scroll_choju_giga": {
-  "name": "Parşömen: Chōjū Giga",
-  "price": 800,
-  "kind": "scroll",
-  "jutsu": "choju_giga",
-  "desc": "B — Çizilen hayvanları canlandırır."
  },
  "scroll_kusanagi_no_tsurugi_chidorigatana": {
   "name": "Parşömen: Kusanagi no Tsurugi: Chidorigatana",
@@ -684,13 +558,6 @@
   "kind": "scroll",
   "jutsu": "suiro_no_jutsu",
   "desc": "C — Hedefi su küresinde hapseder; kullanıcı eli içeride kalmalı."
- },
- "scroll_suiton_goshokuzame": {
-  "name": "Parşömen: Suiton: Goshokuzame",
-  "price": 800,
-  "kind": "scroll",
-  "jutsu": "suiton_goshokuzame",
-  "desc": "B — Beş su köpekbalığı hedefe saldırır."
  },
  "scroll_suiton_suidan_no_jutsu": {
   "name": "Parşömen: Suiton: Suidan no Jutsu",
@@ -860,26 +727,12 @@
   "jutsu": "katon_endan",
   "desc": "C — Ağızdan alev mermisi."
  },
- "scroll_fuinjutsu_okutopasu_horudo": {
-  "name": "Parşömen: Fūinjutsu: Okutopasu Hōrudo",
-  "price": 800,
-  "kind": "scroll",
-  "jutsu": "fuinjutsu_okutopasu_horudo",
-  "desc": "B — Ahtapot kollarıyla hedefi sarar ve mürekkeple mühürler."
- },
  "scroll_takoashi_bunshin_no_jutsu": {
   "name": "Parşömen: Takoashi Bunshin no Jutsu",
   "price": 800,
   "kind": "scroll",
   "jutsu": "takoashi_bunshin_no_jutsu",
   "desc": "B — Ahtapot kollarından klon."
- },
- "scroll_choshin_giga": {
-  "name": "Parşömen: Chōshin Giga",
-  "price": 800,
-  "kind": "scroll",
-  "jutsu": "choshin_giga",
-  "desc": "B — Dev mürekkep tanrı figürü."
  },
  "scroll_zesshi_nensan": {
   "name": "Parşömen: Zesshi Nensan",

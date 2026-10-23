@@ -439,6 +439,18 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 			cd.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			cd.custom_minimum_size = Vector2(480, 0)
 			v.add_child(cd)
+			# klanın hiden teknikleri: seviye geldikçe kendiliğinden öğrenilir
+			var cj = []
+			for k in Data.jutsu.keys():
+				if not k.begins_with("_") and String(Data.jutsu[k].get("clan", "")) == state["clan"]:
+					cj.append(Data.jutsu[k])
+			cj.sort_custom(func(a, b): return int(a.get("level", 1)) < int(b.get("level", 1)))
+			if not cj.is_empty():
+				var names = cj.map(func(x): return "%s (Sv.%d)" % [String(x["name"]).split(" (")[0], int(x.get("level", 1))])
+				var cl = UI.label("Klan teknikleri: " + ", ".join(names), 13, UI.GOLD)
+				cl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+				cl.custom_minimum_size = Vector2(480, 0)
+				v.add_child(cl)
 			chips.call("Chakra Doğası", "element", ["katon", "suiton", "fuuton", "doton", "raiton"], ["Ateş", "Su", "Rüzgar", "Toprak", "Yıldırım"])
 		"gorunum":
 			swatches.call("Ten", "skin", [Color(0.98, 0.88, 0.8), Color(0.96, 0.8, 0.66), Color(0.86, 0.68, 0.52), Color(0.68, 0.5, 0.36), Color(0.5, 0.36, 0.26)])
@@ -1247,7 +1259,12 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 	# filtreler: öğrendiklerim / jutsu kitabı (tümü), kategori, element, arama
 	var fbar = UI.hbox(8)
 	left.add_child(fbar)
-	for m in [["learned", "Öğrendiklerim (%d)" % learned.size()], ["all", "Jutsu Kitabı (%d)" % Data.jutsu.size()]]:
+	var my_clan = String(pr.get("clan", "none"))
+	var clan_ids: Array = Data.jutsu.keys().filter(func(k): return not k.begins_with("_") and String(Data.jutsu[k].get("clan", "")) == my_clan and my_clan != "none")
+	var modes = [["learned", "Öğrendiklerim (%d)" % learned.size()], ["all", "Jutsu Kitabı (%d)" % Data.jutsu.size()]]
+	if not clan_ids.is_empty():
+		modes.append(["clan", "%s Teknikleri (%d)" % [Data.clans.get(my_clan, {}).get("name", my_clan), clan_ids.size()]])
+	for m in modes:
 		fbar.add_child(UI.chip(m[1], _jf_mode == m[0], func():
 			_jf_mode = m[0]
 			ninja_menu(main, "jutsu", picked)))
@@ -1274,7 +1291,9 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 			_jf_el = e[0]
 			ninja_menu(main, "jutsu", picked)))
 	var shown: Array = []
-	for jid in (learned if _jf_mode == "learned" else Data.jutsu.keys()):
+	for jid in (learned if _jf_mode == "learned" else (clan_ids if _jf_mode == "clan" else Data.jutsu.keys())):
+		if String(jid).begins_with("_"):
+			continue
 		var jj: Dictionary = Data.jutsu.get(jid, {})
 		if _jf_cat != "" and String(jj.get("category", "")) != _jf_cat:
 			continue
@@ -1348,6 +1367,8 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 		var txt = how.get(lp, "")
 		if lp.begins_with("trainer"):
 			txt = "Hocadan öğrenilir (%s)" % lp.trim_prefix("trainer").trim_prefix(":")
+		elif lp.begins_with("clan:"):
+			txt = "%s klan tekniği — klan üyeleri Sv.%d'de kendiliğinden öğrenir" % [Data.clans.get(lp.substr(5), {}).get("name", lp.substr(5)), int(j.get("level", 1))]
 		elif lp.begins_with("kg"):
 			txt = "Kekkei genkai gerekir (%s)" % lp.trim_prefix("kg:")
 		elif lp.begins_with("eye"):

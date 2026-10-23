@@ -438,7 +438,27 @@ func load_game(slot: int) -> bool:
 	if int(profile.get("world_ver", 1)) != WORLD_VERSION:
 		profile["pos"] = null  # dünya ölçeği değişti: eski konum anlamsız, köyde başla
 		profile["world_ver"] = WORLD_VERSION
+	_migrate_jutsu_ids()
 	return true
+
+
+## Birleştirilen kopya jutsular (Data jutsu._aliases) ve kaldırılan eşyalar eski kayıtlarda güncellenir
+func _migrate_jutsu_ids() -> void:
+	var al: Dictionary = Data.jutsu.get("_aliases", {})
+	var learned: Array = []
+	for j in profile.get("learned", []):
+		var nj = String(al.get(j, j))
+		if Data.jutsu.has(nj) and not nj in learned:
+			learned.append(nj)
+	profile["learned"] = learned
+	var slots: Array = profile.get("slots", [])
+	for i in slots.size():
+		var sj = String(al.get(slots[i], slots[i]))
+		slots[i] = sj if Data.jutsu.has(sj) else ""
+	var inv: Dictionary = profile.get("inventory", {})
+	for k in inv.keys():   # klan tekniğine dönüşen jutsuların satılık parşömenleri kalktı
+		if String(k).begins_with("scroll_") and Data.jutsu.has(String(k).substr(7)) and not Data.items.has(k):
+			inv.erase(k)
 
 
 func slot_summary(slot: int) -> String:

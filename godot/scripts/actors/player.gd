@@ -63,6 +63,10 @@ var hp = 100.0
 var max_chakra = 100.0
 var chakra = 100.0
 var stamina = 100.0
+# uçuş kipi: kaynak ("light" Keijūgan, "sand" kum bulutu, "susanoo" kanatlar...) ve ayarları
+var fly_src := ""
+var fly_cfg := {}
+var fly_vis: Node3D = null
 
 
 func _ready() -> void:
@@ -134,6 +138,12 @@ func _unhandled_input(e: InputEvent) -> void:
 		FX.ring(global_position + Vector3.UP, Color(0.8, 0.6, 1.0), 3.0, 0.3, false)
 		Sfx.play("seal", global_position, 1.2)
 		get_viewport().set_input_as_handled()
+		return
+	if fly_src != "":
+		# uçarken Space/Ctrl yükselip alçalır (_fly_move); havada zıplamada kanatlı Susanoo da burada değil
+		return
+	if e.is_action_pressed("jump") and not grounded and wall_n == Vector3.ZERO and has_meta("wing_flight"):
+		start_flight("susanoo", get_meta("wing_flight"))
 		return
 	if e.is_action_pressed("leap") and wall_n != Vector3.ZERO:
 		_wall_boost()
@@ -388,7 +398,9 @@ func _physics_process(dt: float) -> void:
 		model.play("death", 0.1)
 		return
 	_update_leap_charge(dt)
-	if rope_t >= 0.0:
+	if fly_src != "":
+		_fly_move(dt)
+	elif rope_t >= 0.0:
 		_rope_move(dt)
 	elif wall_n != Vector3.ZERO:
 		_wall_move(dt)
@@ -531,6 +543,106 @@ func _ground_air_move(dt: float) -> void:
 		model.overlay.set_pose("charge", 0.0)
 		if grounded:
 			model.overlay.snap("leap", 0.0)
+
+
+# ------------------------------------------------------------------ uçuş kipi
+## Herhangi bir kaynak uçuş başlatabilir: cfg = {speed, lift, drain (chakra/sn), vis (Node3D), name, land_stop, dur}
+## Space yükselir, Ctrl alçalır, Shift hızlanır; chakra biterse ya da süre dolarsa iner.
+func start_flight(src: String, cfg := {}) -> void:
+	if fly_src != "":
+		stop_flight()
+	fly_src = src
+	fly_cfg = cfg.duplicate()
+	fly_cfg["t"] = 0.0
+	if cfg.get("vis") is Node3D:
+		fly_vis = cfg["vis"]
+		fly_cfg.erase("vis")
+		if fly_vis.get_parent():
+			fly_vis.reparent(self)
+		else:
+			add_child(fly_vis)
+		fly_vis.position = Vector3.ZERO
+	leap_charge = -1.0
+	_show_leap_ui(false)
+	if wall_n != Vector3.ZERO:
+		_leave_wall()
+	if rope_t >= 0.0:
+		_end_rope()
+	grounded = false
+	velocity.y = maxf(velocity.y, 6.0)
+	FX.smoke_puff(global_position + Vector3.UP * 0.3, 0.8, 10)
+	Hud.msg("%s: Space yüksel, Ctrl alçal, Shift hızlan" % String(cfg.get("name", "Uçuş")), Color(0.8, 0.9, 1.0), 2.5)
+
+
+func stop_flight() -> void:
+	if fly_src == "":
+		return
+	fly_src = ""
+	if is_instance_valid(fly_vis):
+		var v = fly_vis
+		var tw = v.create_tween()
+		tw.tween_property(v, "scale", Vector3.ONE * 0.05, 0.3)
+		tw.tween_callback(v.queue_free)
+	fly_vis = null
+	model.overlay.set_pose("leap", 0.0)
+	FX.smoke_puff(global_position + Vector3.UP * 0.3, 0.6, 8)
+
+
+func flight_source() -> String:
+	return fly_src
+
+
+func is_flying() -> bool:
+	return fly_src != ""
+
+
+func _fly_move(dt: float) -> void:
+	fly_cfg["t"] = float(fly_cfg.get("t", 0.0)) + dt
+	var drain = float(fly_cfg.get("drain", 2.0))
+	chakra -= drain * dt
+	if chakra <= 0.0 or (fly_cfg.has("dur") and fly_cfg["t"] > float(fly_cfg["dur"])):
+		chakra = maxf(chakra, 0.0)
+		Hud.msg("Uçuş bitti" + (" (chakra tükendi)" if chakra <= 0.0 else ""), Color(0.9, 0.8, 0.6))
+		stop_flight()
+		return
+	var wish = wish_dir()
+	var fast = Input.is_action_pressed("dash")
+	var spd = float(fly_cfg.get("speed", 14.0)) * (1.8 if fast else 1.0) * Buffs.mod("speed")
+	var vy = 0.0
+	var lift = float(fly_cfg.get("lift", 8.0))
+	if input_locked <= 0.0:
+		if Input.is_action_pressed("jump"):
+			vy = lift
+		elif Input.is_action_pressed("leap"):
+			vy = -lift * 1.3
+	var target = wish * spd + Vector3.UP * vy
+	var k = minf(1.0, (3.5 if target.length() > velocity.length() else 2.5) * dt)
+	velocity = velocity.lerp(target, k)
+	if combat and combat.has_method("move_override") and combat.move_override(dt):
+		pass
+	move_and_slide()
+	var g = Game.ground_height(global_position.x, global_position.z)
+	if global_position.y < g + 0.25:
+		global_position.y = g + 0.25
+		velocity.y = maxf(velocity.y, 0.0)
+		if fly_cfg.get("land_stop", false) and vy < 0.0:
+			stop_flight()
+			return
+	grounded = false
+	jumps = 1
+	var hv = Vector3(velocity.x, 0, velocity.z)
+	if hv.length() > 0.5 and (combat == null or not combat.busy()):
+		facing = lerp_angle(facing, atan2(-hv.x, -hv.z), minf(1.0, dt * 5.0))
+	model.rotation = Vector3(0, facing, -clampf(wish.dot(global_transform.basis.x) * 0.25, -0.3, 0.3))
+	model.position = Vector3.ZERO
+	if combat == null or not combat.busy():
+		if model.current != "air":
+			model.play("air", 0.25)
+		model.overlay.set_pose("ninja_run", 0.0)
+		model.overlay.set_pose("leap", clampf(hv.length() / maxf(spd, 1.0), 0.25, 1.0))
+	if is_instance_valid(fly_vis):
+		fly_vis.rotation.y = facing
+		fly_vis.position.y = sin(fly_cfg["t"] * 2.5) * 0.06
 
 
 ## Süper zıplamanın tepesinde öne takla (kalça etrafında)

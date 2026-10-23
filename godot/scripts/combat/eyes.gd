@@ -399,10 +399,18 @@ func _start_susanoo() -> void:
 	Sfx.play("roar", p.global_position, 1.6, 0.6)
 	if sn.tier >= 4:
 		p.cam_dist = maxf(p.cam_dist, 9.0 + sn.tier * 3.0)
+	# kanatlı tam Susanoo: havadayken Space ile uçuşa geç
+	if sn.tier >= 5 and Susanoo.config(Game.profile).get("wings", true) and p.has_method("start_flight"):
+		p.set_meta("wing_flight", {"speed": 24.0, "lift": 13.0, "drain": 1.2, "name": "Susanoo kanatları", "land_stop": true})
+		Hud.msg("Kanatlar: havadayken Space ile uç", Color(0.8, 0.9, 1.0))
 
 
 func _end_susanoo() -> void:
 	susanoo = false
+	if p.has_meta("wing_flight"):
+		p.remove_meta("wing_flight")
+	if p.has_method("flight_source") and p.flight_source() == "susanoo":
+		p.stop_flight()
 	Buffs.remove("susanoo")
 	if is_instance_valid(susanoo_node):
 		var sn = susanoo_node

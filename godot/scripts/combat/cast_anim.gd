@@ -122,6 +122,8 @@ const JUTSU_STYLE := {
 
 
 static func style_for(jid: String, j: Dictionary = {}) -> String:
+	if ClanJutsu.STYLE.has(jid):
+		return ClanJutsu.STYLE[jid]
 	if JUTSU_STYLE.has(jid):
 		return JUTSU_STYLE[jid]
 	var shape = String(j.get("shape", ""))
