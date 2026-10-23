@@ -41,6 +41,10 @@ def used_sketchfab():
         f = os.path.join(PROJ, rel)
         if os.path.exists(f):
             used |= set(re.findall(r'"file":\s*"([^"]+)"', open(f, encoding='utf8').read()))
+    # yerler için doğrudan yolla yüklenen modeller (ör. Sonun Vadisi: res://assets/sketchfab/valley_of_end/...)
+    f = os.path.join(PROJ, 'scripts/world/build_sites.gd')
+    if os.path.exists(f):
+        used |= set(re.findall(r'res://assets/sketchfab/([^/"]+)/', open(f, encoding='utf8').read()))
     return used
 
 

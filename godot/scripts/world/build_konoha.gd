@@ -545,25 +545,32 @@ const HOKAGE_LOOKS := [
 	{"hair_style": "kısa", "face_id": 3, "band": Color.WHITE, "band_style": "head"},
 	{"hair_style": "kisa_kakul", "face_id": 1, "band": Color.WHITE, "band_style": "head", "gender": "f"},
 ]
-static func _stone_head(b: Builder, i: int, at: Vector3, height: float, col: Color) -> void:
+## look_extra: başka büstler (Sonun Vadisi heykelleri) için görünüm; yaw: yüzün baktığı yön (PI = güney/köy)
+static func _stone_head(b: Builder, i: int, at: Vector3, height: float, col: Color, look_extra := {}, yaw := PI) -> void:
 	var look = {"gender": "m", "age": "adult", "top_style": "uzun", "vest": null}
-	look.merge(HOKAGE_LOOKS[i % HOKAGE_LOOKS.size()], true)
+	look.merge(HOKAGE_LOOKS[i % HOKAGE_LOOKS.size()] if look_extra.is_empty() else look_extra, true)
 	var hm = CharacterModel.new()
 	b.root.add_child(hm)
 	hm.setup(look)
 	hm.anim.stop()
 	hm.set_process(false)
 	var sk = hm.skel
+	# T-pozundaki kollar boyun kesiminin üstüne taşıyor, kayadan dev bir kol uzanıyordu: kolları omuza büzüp gizle
+	for bn in ["LeftUpperArm", "RightUpperArm"]:
+		var bi = sk.find_bone(bn)
+		if bi >= 0:
+			sk.set_bone_pose_scale(bi, Vector3.ONE * 0.001)
 	var head_y = sk.get_bone_global_rest(sk.find_bone("Head")).origin.y
 	var neck_y = sk.get_bone_global_rest(sk.find_bone("Neck")).origin.y
 	var sc = height / 0.3   # kafa ~0.3 m -> hedef yükseklik
 	hm.scale = Vector3.ONE * sc
-	hm.rotation = Vector3(deg_to_rad(-8.0), PI, 0)  # yüz güneye (köye) bakar, hafif yukarı
+	hm.rotation = Vector3(deg_to_rad(-8.0), yaw, 0)  # yüz güneye (köye) bakar, hafif yukarı
 	# kafa uçurumdan dışarı taşar: merkezi yüzeyin biraz önünde (köy tarafı), arkası kayaya gömülü
-	var wp = b.w(at + Vector3(0, 0, -height * 0.08))
+	var fwd = Vector3(-sin(yaw), 0, cos(yaw)) * height * 0.08   # yüz yönüne biraz öne (yerel x, y, n)
+	var wp = b.w(at + fwd)
 	hm.global_position = wp - Vector3(0, (head_y + 0.05) * sc, 0)
 	# çarpışma: kafatası küresi + yüz/çene kutusu + boyun bloğu (üstünde durulabilir, içinden geçilmez)
-	var hc = b.w(at + Vector3(0, height * 0.08, -height * 0.08))
+	var hc = b.w(at + Vector3(0, height * 0.08, 0) + fwd)
 	var body = StaticBody3D.new()
 	body.collision_layer = 1
 	b.root.add_child(body)
