@@ -175,12 +175,18 @@ static func build(main: Node, body: Control) -> void:
 	# --- sağ: ayrıntı kartı
 	var right = UI.card()
 	right.custom_minimum_size = Vector2(400, 0)
+	right.size_flags_horizontal = Control.SIZE_SHRINK_END
 	right.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	h.add_child(right)
 	var rv = UI.vbox(10)
 	right.add_child(rv)
 	var detail = func(sid: String) -> void:
 		_detail(main, rv, sid)
+		# kart genişliği içeriğe göre değişmesin: değişirse grafik sağa sola kayar
+		for c in rv.get_children():
+			if c is Label:
+				c.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+				c.custom_minimum_size.x = 360.0
 	# düğümler
 	var bicon = "star"
 	for b in Data.skills.get("branches", []):
