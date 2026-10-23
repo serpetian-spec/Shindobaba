@@ -16,7 +16,7 @@ const STORY_T := [
 	"Akademi avlusundaki kuklalara 25 darbe vur, sonra hocana dön.",
 	"Hocandan Henge no Jutsu'yu öğren ve bir kez kullan [slot 1].",
 	"Mezuniyet Sınavı: hocanla konuş (yazılı + Bunshin/Henge/Kawarimi + hedef parkuru), ardından {s2} ile Zil Testi.",
-	"Chakra kontrolü: duvar koşusuyla 35 m yüksekliğe tırman ({lookout} ideal).",
+	"Chakra kontrolü: köyün 35 m üstüne tırman — duvar koşusu, çatılar, kule ya da {lookout} (ok seni oraya götürür).",
 	"Antrenman alanında ({vn}) chakra kâğıdı testini yap.",
 	"{kage} Kulesi'ndeki görev masasından 3 D-rank görev tamamla.",
 	"Seviye 8 ol ve {kage} Kulesi'ne git: Yasak Parşömen görevi.",
@@ -442,9 +442,16 @@ func _process(_dt: float) -> void:
 		return
 	# hikâye: yüksekliğe tırman
 	if story() == 4:
+		# köy zemininden 35 m yükseğe çık: duvar koşusu, çatılar, kule, Hokage Kayası, dev ağaç... hangisi olursa
 		var pl = Game.player
-		var h: float = pl.global_position.y - Game.terrain_height(pl.global_position.x, pl.global_position.z)
-		if pl.wall_n != Vector3.ZERO and h > 35.0:
+		var hv = Game.village(home())
+		var base = float(hv.get("base", Game.terrain_height(pl.global_position.x, pl.global_position.z)))
+		var h: float = pl.global_position.y - base
+		var best = maxf(float(p()["flags"].get("climb_best", 0.0)), h)
+		if best > float(p()["flags"].get("climb_best", 0.0)) + 1.0:
+			p()["flags"]["climb_best"] = best
+			Hud.objective_progress("Yükseklik: %d / 35 m" % int(minf(best, 35.0)))
+		if h > 35.0 and (pl.grounded or pl.wall_n != Vector3.ZERO):
 			Hud.dialog(home_info()["s2"], "Harika! Chakrayı ayaklarında dengeleyip tırmandın. Şimdi antrenman alanına gel, doğanı öğrenelim.", [])
 			if not "nin1" in p()["skills"]:
 				p()["skills"].append("nin1")

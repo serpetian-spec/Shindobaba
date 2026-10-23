@@ -338,7 +338,8 @@ func _face_and_hair() -> void:
 	# saç: VRoid saç mesh'i + gerekirse prosedürel tutam eklentisi (diken, topuz, at kuyruğu...)
 	var hd: Array = HAIR_DONORS.get(look.get("hair_style", "diken"), HAIR_DONORS["diken"])
 	if hd.size() > 2 and hd[2] != "" and head_ab.size.x > 0.05:
-		var hk = "vroid|%s" % hd[2]
+		# önbellek anahtarı kafa ölçüsüne bağlı (yaş/cinsiyet/yüz değişince saç kafada kalsın)
+		var hk = "vroid|%s|%s|%s|%s" % [hd[2], look["gender"], donor, look.get("age", "adult")]
 		if not _hair_cache.has(hk):
 			_hair_cache[hk] = _hair_clumps(hd[2], skull_c, skull_r)
 		var cm = ShaderMaterial.new()

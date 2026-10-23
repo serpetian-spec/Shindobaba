@@ -55,6 +55,9 @@ func _kind(side: String) -> int:
 
 
 func _lvl(side: String) -> int:
+	var g = Gear.equipped(Game.profile, "sag_goz" if side == "sag" else "sol_goz")
+	if not g.is_empty():
+		return int(g.get("lvl", 3))
 	var e = eye(side)
 	return int(e.get("lvl", 3)) if e != null else 0
 
@@ -524,6 +527,7 @@ func check_awaken(dt: float) -> void:
 				g["xp"] = 0.0
 				g["lvl"] = int(g.get("lvl", 1)) + 1
 				Hud.banner("SHARINGAN GELİŞTİ", "%d tomoe" % int(g["lvl"]), Color(1, 0.3, 0.3))
+				Gear.apply_look(pr)  # görünüm sözlüğü (eye_r/eye_l lvl) güncellensin, yoksa göz eski tomoe'da kalır
 				refresh_visual()
 
 
