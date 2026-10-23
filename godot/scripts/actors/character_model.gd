@@ -435,6 +435,10 @@ func setup(l: Dictionary) -> void:
 	_add_libs()
 	overlay = PoseOverlay.new()
 	skel.add_child(overlay)
+	rig = WeaponRig.new()   # overlay'den sonra: silahlı el yumruk, kın hareketi
+	skel.add_child(rig)
+	drawn = look.get("drawn", true)
+	_place_weapons()
 	apply_age(look.get("age", "adult"))
 	stance = _stance_for_look()
 	play("idle", 0.0)
@@ -1816,22 +1820,8 @@ func _attachments() -> void:
 			for k in 2:
 				v.add("box", Vector3(0.075 * sx, -0.08 - k * 0.09, 0.17), Vector3(0.075, 0.085, 0.04), vc.darkened(0.15))
 		_mesh_on("UpperChest", v.build(Props.toon()), Transform3D(Basis.IDENTITY, ch))
-	# --- eldeki silahlar (ekipman: sağ el / sol el)
-	for pair in [["weapon_r", "Right"], ["weapon_l", "Left"]]:
-		var wid = look.get(pair[0])
-		if wid == null or wid == "":
-			continue
-		var hb = skel.find_bone(pair[1] + "Hand")
-		if hb < 0:
-			continue
-		var hp = _grest(hb).origin
-		var sx = 1.0 if pair[1] == "Left" else -1.0
-		var wxf = Transform3D(Basis.IDENTITY, hp + Vector3(0.075 * sx, -0.015, 0.01))
-		var wn = SFProps.weapon_node(String(wid))  # hayran modeli varsa (yoksa prosedürel)
-		if wn:
-			_attach(pair[1] + "Hand", wxf).get_child(0).add_child(wn)
-		else:
-			_mesh_on(pair[1] + "Hand", weapon_mesh(String(wid)), wxf)
+	# --- eldeki silahlar (ekipman: sağ el / sol el) ve kınları
+	_weapons()
 	# --- çanta + kunai kılıfı
 	var hip = _grest(skel.find_bone("Hips")).origin
 	var pouch = MB.new()
@@ -1842,6 +1832,214 @@ func _attachments() -> void:
 	holster.add("box", Vector3.ZERO, Vector3(0.05, 0.12, 0.1), Color(0.12, 0.12, 0.14))
 	holster.add("box", Vector3(0, 0.07, 0), Vector3(0.06, 0.02, 0.11), Color(0.85, 0.85, 0.85))
 	_mesh_on("RightUpperLeg", holster.build(Props.toon()), Transform3D(Basis.IDENTITY, th + Vector3(-0.11, -0.16, 0.0)))
+
+
+# ------------------------------------------------------------------ silahlar: tutuş, kın, çekme/sokma
+## Silah kını yeri: pouch = kunai çantası/kılıfı (görünmez), hip = sol kalçada kınlı kılıç (çapraz çekiş),
+## back = sırtta çapraz (dev kılıçlar, sopalar), low_back = belin arkasında yatay, belt = yan kalçada asılı
+const SHEATH_OF := {"blade": "pouch", "dual": "pouch", "claw": "pouch", "sickle": "belt", "sword": "hip", "heavy": "back", "staff": "back", "chain": "belt", "fan": "back"}
+const SHEATH_ID := {"tanto": "low_back", "ikiz_hancer": "low_back", "tonfa": "belt", "sai": "belt", "kiba": "back", "nodachi": "back"}
+## Kınlı kılıçlar: [kın başı z, kın ucu z, kalınlık, genişlik] (silah uzayında, kabza 0, namlu +Z)
+const SAYA := {"katana": [0.075, 0.84, 0.042, 0.06], "wakizashi": [0.05, 0.6, 0.04, 0.055], "nodachi": [0.1, 1.38, 0.05, 0.11],
+	"tanto": [0.06, 0.4, 0.045, 0.045], "chokuto": [0.13, 0.9, 0.05, 0.05], "raijin": [0.08, 0.86, 0.045, 0.06]}
+const SHEATH_DUR := 0.42
+const BACK_TIP_UP := ["savas_cekici", "uc_tirpan", "mizrak"]
+
+var weapons: Array = []     # [{id, side, kind, node, hand, sheath}]
+var drawn := true           # silah elde mi (oyuncu: kınında başlar, saldırınca çekilir)
+var _stowed := false        # mühür/jutsu sırasında eller boşalır, silah geçici olarak kına girer
+var _sheath_t := -1.0
+var _swapped := false
+var rig: WeaponRig
+
+
+static func sheath_kind(id: String) -> String:
+	if SHEATH_ID.has(id):
+		return SHEATH_ID[id]
+	var st = String(Gear.ITEMS.get(id, {}).get("weapon", {}).get("style", "blade"))
+	return SHEATH_OF.get(st, "pouch")
+
+
+func has_weapon() -> bool:
+	return not weapons.is_empty()
+
+
+func _weapons() -> void:
+	for pair in [["weapon_r", "Right"], ["weapon_l", "Left"]]:
+		var wid = look.get(pair[0])
+		if wid == null or wid == "":
+			continue
+		var side: String = pair[1]
+		var id = String(wid)
+		if skel.find_bone(side + "Hand") < 0:
+			continue
+		var node: Node3D = SFProps.weapon_node(id)  # hayran modeli varsa (yoksa prosedürel)
+		if node == null:
+			var mi = MeshInstance3D.new()
+			mi.mesh = weapon_mesh(id)
+			node = mi
+		var hand: Node3D = _attach(side + "Hand", _grip_xf(side)).get_child(0)
+		hand.add_child(node)
+		var kind = sheath_kind(id)
+		weapons.append({"id": id, "side": side, "kind": kind, "node": node, "hand": hand, "sheath": _sheath_holder(kind, side, id, node)})
+
+
+## Avuç içindeki tutma noktası: parmak kökü hizasında, avucun altında; kabza parmaklara dik, namlu başparmak tarafında (+Z ön)
+func _grip_xf(side: String) -> Transform3D:
+	var hp = _grest(skel.find_bone(side + "Hand")).origin
+	var sx = 1.0 if side == "Left" else -1.0
+	var mb = skel.find_bone(side + "MiddleProximal")
+	var f = (_grest(mb).origin - hp) if mb >= 0 else Vector3(0.085 * sx, 0, 0)
+	var x = (f * sx).normalized()
+	var z = (Vector3.BACK - x * x.dot(Vector3.BACK)).normalized()
+	var y = z.cross(x)
+	return Transform3D(Basis(x, y, z), hp + f * 0.8 - y * 0.022)
+
+
+## z = namlu yönü, xh = silahın kalınlık ekseni (yassı yüzün normali) için ipucu
+static func _frame(z: Vector3, xh: Vector3) -> Basis:
+	z = z.normalized()
+	var x = (xh - z * z.dot(xh)).normalized()
+	return Basis(x, z.cross(x), z)
+
+
+## Silahın kabza->uç uzunluk aralığı (silah uzayında z)
+static func _z_span(n: Node3D) -> Vector2:
+	var ab: AABB
+	if n is MeshInstance3D:
+		ab = (n as MeshInstance3D).mesh.get_aabb()
+	else:
+		ab = SFProps._bounds(n)
+	return Vector2(ab.position.z, ab.end.z)
+
+
+func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Node3D:
+	if kind == "pouch":
+		return null
+	var sx = 1.0 if side == "Left" else -1.0
+	var span = _z_span(node)
+	var mid = (span.x + span.y) * 0.5
+	var xf: Transform3D
+	match kind:
+		"hip":
+			# sağ el kılıcı sol kalçada: kabza önde-yukarıda, uç geride-aşağıda
+			var hp = _grest(skel.find_bone("Hips")).origin
+			var b = _frame(Vector3(-sx * 0.07, -0.62, -1.0), Vector3(-sx, 0, 0))
+			xf = Transform3D(b, hp + Vector3(-sx * 0.16, 0.12, 0.15))
+		"back":
+			# sırtta çapraz: kabza sağ omzun üstünde, uç sol kalçaya doğru; yassı yüz sırta yaslı
+			var ch = _grest(skel.find_bone("UpperChest")).origin
+			var L = span.y - span.x
+			var steep = 1.35 if L > 1.9 else (0.7 if L > 1.2 else 0.55)  # uzun sopalar sırtı daha yatık çaprazlar
+			var dir = Vector3(-sx * steep, -1.0, 0.0)
+			if id in BACK_TIP_UP:
+				dir = -dir   # ağır başlı silahlar: baş yukarıda (çekiç, tırpan, mızrak)
+			var b = _frame(dir, Vector3(0, 0, -1))
+			var center = ch + Vector3(0, -0.06, -0.2 - 0.02 * L)
+			xf = Transform3D(b, center - b.z * (mid if L > 1.2 else mid * 0.8))
+		"low_back":
+			var hp = _grest(skel.find_bone("Hips")).origin
+			var b = _frame(Vector3(-sx, 0.12, 0.0), Vector3(0, 0, -1))
+			xf = Transform3D(b, hp + Vector3(0, 0.12, -0.17) - b.z * mid)
+		_:
+			# belt: yan kalçada aşağı sarkar
+			var hp = _grest(skel.find_bone("Hips")).origin
+			var b = _frame(Vector3(sx * 0.12, -1.0, 0.18), Vector3(sx, 0, 0))
+			xf = Transform3D(b, hp + Vector3(sx * 0.2, 0.1, 0.03))
+	var holder: Node3D = _attach("UpperChest" if kind == "back" else "Hips", xf).get_child(0)
+	if SAYA.has(id):
+		var s: Array = SAYA[id]
+		var m = MB.new()
+		var lacq = Color(0.09, 0.08, 0.1)
+		var gold = Color(0.72, 0.58, 0.3)
+		var ln: float = s[1] - s[0]
+		m.add("cyl", Vector3(0, 0, s[0] + ln * 0.5), Vector3(s[2], ln, s[3]), lacq, Vector3(90, 0, 0), 10)
+		m.add("cyl", Vector3(0, 0, s[0] + 0.012), Vector3(s[2] * 1.15, 0.024, s[3] * 1.12), gold, Vector3(90, 0, 0), 10)
+		m.add("cyl", Vector3(0, 0, s[1] - 0.02), Vector3(s[2] * 1.12, 0.04, s[3] * 1.08), gold, Vector3(90, 0, 0), 10)
+		# sageo bağı (kına sarılı ip)
+		m.add("cyl", Vector3(0, 0, s[0] + ln * 0.14), Vector3(s[2] * 1.18, 0.03, s[3] * 1.16), Color(0.55, 0.1, 0.12), Vector3(90, 0, 0), 10)
+		var smi = MeshInstance3D.new()
+		smi.mesh = m.build(Props.toon())
+		holder.add_child(smi)
+	return holder
+
+
+## Silahları duruma göre ele ya da kına yerleştir
+func _place_weapons() -> void:
+	var in_hand = drawn and not _stowed
+	if rig:
+		rig.hold = {"Left": 0.0, "Right": 0.0}
+	for w in weapons:
+		var n: Node3D = w["node"]
+		var tgt: Node3D = w["hand"] if (in_hand or w["sheath"] == null) else w["sheath"]
+		if n.get_parent() != tgt:
+			n.get_parent().remove_child(n)
+			tgt.add_child(n)
+			n.transform = Transform3D.IDENTITY
+		n.visible = in_hand or w["sheath"] != null
+		if rig and in_hand:
+			rig.hold[w["side"]] = 1.0
+
+
+## Silahı çek / kınına sok (animate: kol kına uzanır, silah yer değiştirir, kol geri döner)
+func set_drawn(on: bool, animate := true) -> void:
+	look["drawn"] = on   # klonlar (bunshin) aynı durumda çıksın
+	if weapons.is_empty() or rig == null:
+		drawn = on
+		return
+	if on == drawn and _sheath_t < 0.0:
+		return
+	drawn = on
+	if not animate or _stowed:
+		_sheath_t = -1.0
+		rig.reach_w = 0.0
+		_place_weapons()
+		return
+	var w0: Dictionary = weapons[0]
+	rig.reach_side = w0["side"]
+	rig.reach_arms = _reach_pose(w0["kind"], w0["side"])
+	_sheath_t = 0.0
+	_swapped = false
+
+
+## Kına uzanan kol pozu (model uzayı yönleri, +Z ön, +X karakterin solu)
+static func _reach_pose(kind: String, side: String) -> Array:
+	var sx = 1.0 if side == "Left" else -1.0
+	var ua = side + "UpperArm"
+	var la = side + "LowerArm"
+	match kind:
+		"back":
+			return [[ua, Vector3(sx * 0.3, 0.92, -0.2)], [la, Vector3(-sx * 0.55, 0.35, -0.75)]]
+		"hip":
+			return [[ua, Vector3(-sx * 0.3, -0.8, 0.5)], [la, Vector3(-sx * 0.92, -0.3, 0.25)]]
+		"low_back":
+			return [[ua, Vector3(sx * 0.3, -0.75, -0.6)], [la, Vector3(-sx * 0.8, -0.2, -0.55)]]
+		"belt":
+			return [[ua, Vector3(sx * 0.3, -0.94, -0.1)], [la, Vector3(sx * 0.05, -0.95, 0.3)]]
+	return [[ua, Vector3(sx * 0.25, -0.96, -0.05)], [la, Vector3(sx * 0.1, -0.97, 0.2)]]
+
+
+func _weapon_process(dt: float) -> void:
+	if weapons.is_empty() or rig == null:
+		return
+	if _sheath_t >= 0.0:
+		_sheath_t += dt / SHEATH_DUR
+		var k = _sheath_t
+		var r = k / 0.4 if k < 0.4 else (1.0 - k) / 0.6
+		rig.reach_w = smoothstep(0.0, 1.0, clampf(r, 0.0, 1.0))
+		if k >= 0.4 and not _swapped:
+			_swapped = true
+			_place_weapons()
+			Sfx.play("whoosh", global_position, 1.6 if drawn else 1.25, 0.35)
+		if k >= 1.0:
+			_sheath_t = -1.0
+			rig.reach_w = 0.0
+	# mühür ve jutsu pozunda eller boşalır
+	var busy = overlay.weights.get("seal", 0.0) > 0.3 or overlay.weights.get("cast", 0.0) > 0.3
+	if busy != _stowed:
+		_stowed = busy
+		if _sheath_t < 0.0 or _swapped:
+			_place_weapons()
 
 
 ## Silah modeli: kabza başlangıçta, namlu +Z yönünde
@@ -2162,8 +2360,9 @@ func _stance_for_look() -> String:
 
 func _process(dt: float) -> void:
 	# silah duruşu: beklerken/yürürken silaha göre kollar; saldırı, mühür ve ninja koşusunda kapanır
+	_weapon_process(dt)
 	if stance != "" and overlay:
-		var on = current in ["idle", "walk", "jog", "run", "air", "fall", "sword_idle"] and overlay.weights.get("ninja_run", 0.0) < 0.5 and overlay.weights.get("leap", 0.0) < 0.3
+		var on = drawn and not _stowed and current in ["idle", "walk", "jog", "run", "air", "fall", "sword_idle"] and overlay.weights.get("ninja_run", 0.0) < 0.5 and overlay.weights.get("leap", 0.0) < 0.3
 		overlay.set_pose(stance, 1.0 if on else 0.0)
 	if hit_flash > 0.0:
 		hit_flash = maxf(0.0, hit_flash - dt * 5.0)

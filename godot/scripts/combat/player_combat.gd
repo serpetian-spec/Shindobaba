@@ -59,6 +59,8 @@ func _unhandled_input(e: InputEvent) -> void:
 			substitute()
 	elif e.is_action_pressed("throw"):
 		throw_tool()
+	elif e.is_action_pressed("weapon_draw"):
+		toggle_weapon()
 	elif e.is_action_pressed("lock"):
 		toggle_lock()
 	elif e.is_action_pressed("dash") and lock_target and p.grounded and action == "":
@@ -95,6 +97,29 @@ func face_to(target: Node3D) -> void:
 	p.facing = atan2(-v.x, -v.z)
 
 
+# ------------------------------------------------------------------ silah kını
+## Silahı çek / kınına sok [N]; durum kayıtta tutulur (model yeniden kurulsa da korunur)
+func toggle_weapon() -> void:
+	if p.model == null or not p.model.has_weapon() or busy():
+		return
+	var on = not bool(Game.profile.get("weapon_drawn", false))
+	Game.profile["weapon_drawn"] = on
+	p.model.set_drawn(on, true)
+
+
+## Kınındaki silahla saldırınca silah anında çekilir (iai çekişi)
+func _quick_draw() -> void:
+	if p.model and p.model.has_weapon() and not Game.profile.get("weapon_drawn", false):
+		Game.profile["weapon_drawn"] = true
+		p.model.set_drawn(true, false)
+
+
+func _process(_dt: float) -> void:
+	# ekipman değişip model yeniden kurulunca kın durumu geri gelsin
+	if p and p.model and p.model.has_weapon() and p.model.drawn != bool(Game.profile.get("weapon_drawn", false)) and p.model._sheath_t < 0.0:
+		p.model.set_drawn(bool(Game.profile.get("weapon_drawn", false)), false)
+
+
 # ------------------------------------------------------------------ saldırı
 func _break_henge() -> void:
 	if Buffs.has("henge"):
@@ -103,6 +128,7 @@ func _break_henge() -> void:
 
 func attack() -> void:
 	_break_henge()
+	_quick_draw()
 	if action == "attack":
 		if t > _combo(step)["dur"] * 0.4:
 			buffered = true

@@ -9,27 +9,27 @@ const WEAPONS := {
 	"kunai": {"file": "kunai_yanez", "len": 0.3, "grip": 0.18},
 	"altin_kunai": {"file": "kunai_yanez", "len": 0.32, "grip": 0.18, "tint": Color(1.0, 0.82, 0.45)},
 	"zincirli_kunai": {"file": "kunai_yanez", "len": 0.3, "grip": 0.18},
-	"patlayici_kunai": {"file": "kunai_explosive", "len": 0.34, "grip": 0.2},
+	"patlayici_kunai": {"file": "kunai_explosive", "len": 0.34, "grip": 0.33, "flip": true},
 	"tanto": {"file": "tanto_game_ready", "len": 0.45, "grip": 0.15},
 	"wakizashi": {"file": "tanto_game_ready", "len": 0.7, "grip": 0.13},
-	"kama": {"file": "kama_yanez", "len": 0.55, "grip": 0.2},
+	"kama": {"file": "kama_yanez", "len": 0.55, "grip": 0.2, "pca": false},
 	"musta": {"file": "trench_knives", "len": 0.3, "grip": 0.25},
 	"chakra_bicak": {"file": "trench_knives", "len": 0.33, "grip": 0.25},
 	"ruzgar_bicak": {"file": "trench_knives", "len": 0.33, "grip": 0.25, "tint": Color(0.6, 0.85, 1.0), "glow": Color(0.4, 0.8, 1.0)},
 	"mizrak": {"file": "naginata_lowpoly", "len": 2.1, "grip": 0.35},
-	"el_shuriken": {"file": "big_shuriken", "len": 0.95, "grip": 0.5, "center": true},
-	"fuma_shuriken": {"file": "fuma_shuriken", "len": 1.15, "grip": 0.5, "center": true},
-	"yelpaze": {"file": "tessen_lowpoly", "len": 0.75, "grip": 0.1},
+	"el_shuriken": {"file": "big_shuriken", "len": 0.95, "grip": 0.5, "center": true, "pca": false},
+	"fuma_shuriken": {"file": "fuma_shuriken", "len": 1.15, "grip": 0.5, "center": true, "pca": false},
+	"yelpaze": {"file": "tessen_lowpoly", "len": 0.75, "grip": 0.1, "pca": false},
 	"gunbai": {"file": "gunbai_bluue", "len": 1.5, "grip": 0.2},
 	"chokuto": {"file": "kusanagi_multipain", "len": 1.0, "grip": 0.12},
-	"kubikiribocho": {"file": "kubikiribocho_ezequiel", "len": 1.75, "grip": 0.1},
+	"kubikiribocho": {"file": "kubikiribocho_ezequiel", "len": 1.75, "grip": 0.1, "flip": true},
 	"samehada": {"file": "samehada", "len": 1.6, "grip": 0.12},
 	"kiba": {"file": "kiba_swords", "len": 0.95, "grip": 0.12, "first_half": true},
 	"hiramekarei": {"file": "hiramekarei", "len": 1.6, "grip": 0.08},
 	"shibuki": {"file": "shibuki", "len": 1.35, "grip": 0.1},
 	"nuibari": {"file": "nuibari", "len": 1.8, "grip": 0.1},
-	"kabutowari": {"file": "kabutowari", "len": 0.95, "grip": 0.15},
-	"uc_tirpan": {"file": "triple_scythe_lowpoly", "len": 1.7, "grip": 0.3},
+	"kabutowari": {"file": "kabutowari", "len": 0.95, "grip": 0.15, "pca": false},
+	"uc_tirpan": {"file": "triple_scythe_lowpoly", "len": 1.7, "grip": 0.3, "pca": false},
 	"sai": {"file": "sai", "len": 0.5, "grip": 0.15},
 }
 
@@ -108,6 +108,17 @@ static func _prepare(ps: PackedScene, d: Dictionary) -> Node3D:
 	match axis:
 		0: rot = Basis(Vector3.UP, -PI * 0.5)        # +X -> +Z
 		1: rot = Basis(Vector3.RIGHT, PI * 0.5)      # +Y -> +Z
+	# model kendi uzayında çapraz duruyorsa (ör. kunai, Kubikiribōchō) AABB ekseni yanlış: gerçek uzun ekseni (PCA) +Z'ye oturt
+	var pts: PackedVector3Array = _points(inst) if d.get("pca", true) else PackedVector3Array()
+	var tilted = false
+	if pts.size() > 8:
+		var av: Vector3 = [Vector3.RIGHT, Vector3.UP, Vector3.BACK][axis]
+		var e = _principal(pts)
+		if e != Vector3.ZERO and absf(e.dot(av)) < cos(deg_to_rad(8.0)):
+			if e.dot(av) < 0.0:
+				e = -e
+			rot = rot * Basis(Quaternion(e, av))
+			tilted = true
 	if d.get("flip", false):
 		rot = Basis(Vector3.UP, PI) * rot
 	rot = Basis(Vector3.BACK, deg_to_rad(float(d.get("roll", 0.0)))) * rot
@@ -116,19 +127,71 @@ static func _prepare(ps: PackedScene, d: Dictionary) -> Node3D:
 	holder.add_child(pivot)
 	pivot.add_child(inst)
 	pivot.transform.basis = rot
-	var ab2 = Transform3D(rot, Vector3.ZERO) * ab  # dönmüş sınırlar
+	var ab2 = _pts_aabb(Transform3D(rot, Vector3.ZERO), pts) if tilted else Transform3D(rot, Vector3.ZERO) * ab  # dönmüş sınırlar
 	var length = ab2.size.z
 	var k = float(d["len"]) / maxf(length, 0.0001)
 	pivot.scale = Vector3.ONE * k
 	pivot.transform.basis = rot.scaled(Vector3.ONE * k)
 	# kabza ucu z=0'a, eksen ortası x/y=0'a; tutma noktası (grip) orijine
-	var ab3 = pivot.transform * ab
+	var ab3 = _pts_aabb(pivot.transform, pts) if tilted else pivot.transform * ab
 	var grip_z = ab3.position.z + ab3.size.z * float(d.get("grip", 0.1))
 	if d.get("center", false):
 		grip_z = ab3.get_center().z
 	pivot.position = Vector3(-ab3.get_center().x, -ab3.get_center().y, -grip_z)
 	_toon(inst, d.get("tint", null), d.get("glow", null))
 	return holder
+
+
+## Görünür meshlerin köşe noktaları (model uzayında, en fazla ~6000 örnek)
+static func _points(root: Node3D) -> PackedVector3Array:
+	var out := PackedVector3Array()
+	var mis = root.find_children("*", "MeshInstance3D", true, false)
+	var total = 0
+	for mi in mis:
+		if mi.visible and mi.mesh:
+			for si in mi.mesh.get_surface_count():
+				total += (mi.mesh.surface_get_arrays(si)[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()
+	var stride = maxi(1, total / 6000)
+	for mi in mis:
+		if not mi.visible or mi.mesh == null:
+			continue
+		var xf = Transform3D.IDENTITY
+		var c: Node = mi
+		while c != root and c != null:
+			xf = (c as Node3D).transform * xf
+			c = c.get_parent()
+		for si in mi.mesh.get_surface_count():
+			var vs: PackedVector3Array = mi.mesh.surface_get_arrays(si)[Mesh.ARRAY_VERTEX]
+			for i in range(0, vs.size(), stride):
+				out.append(xf * vs[i])
+	return out
+
+
+## Nokta bulutunun ana ekseni (kovaryansın en büyük öz vektörü, kuvvet yöntemi)
+static func _principal(pts: PackedVector3Array) -> Vector3:
+	var m = Vector3.ZERO
+	for p in pts:
+		m += p
+	m /= float(pts.size())
+	var xx = 0.0; var yy = 0.0; var zz = 0.0; var xy = 0.0; var xz = 0.0; var yz = 0.0
+	for p in pts:
+		var q = p - m
+		xx += q.x * q.x; yy += q.y * q.y; zz += q.z * q.z
+		xy += q.x * q.y; xz += q.x * q.z; yz += q.y * q.z
+	var v = Vector3(0.577, 0.578, 0.579)
+	for it in 40:
+		var n = Vector3(xx * v.x + xy * v.y + xz * v.z, xy * v.x + yy * v.y + yz * v.z, xz * v.x + yz * v.y + zz * v.z)
+		if n.length() < 1e-12:
+			return Vector3.ZERO
+		v = n.normalized()
+	return v
+
+
+static func _pts_aabb(xf: Transform3D, pts: PackedVector3Array) -> AABB:
+	var ab = AABB(xf * pts[0], Vector3.ZERO)
+	for p in pts:
+		ab = ab.expand(xf * p)
+	return ab
 
 
 static func _bounds_single(root: Node3D, mi: MeshInstance3D) -> AABB:
