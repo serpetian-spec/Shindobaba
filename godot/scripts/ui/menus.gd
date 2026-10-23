@@ -1490,6 +1490,36 @@ static func _tab_missions(main: Node, body: Control) -> void:
 		for i in steps.size():
 			var done = i < cur_step
 			mv.add_child(UI.icon_label("check" if done else ("play" if i == cur_step else "target"), String(steps[i].get("text", "")), 15, UI.GOOD if done else (UI.TEXT if i == cur_step else UI.MUTED)))
+	# takip: ok neyi göstersin (her an aynı yeri göstermesin)
+	var tc = UI.card()
+	left.add_child(tc)
+	var tv2 = UI.vbox(8)
+	tc.add_child(tv2)
+	tv2.add_child(UI.icon_label("target", "TAKİP — ok ve ışık sütunu neyi göstersin?", 15, UI.GOLD))
+	var cur_tr = String(pr.get("track", ""))
+	var trow = HFlowContainer.new()
+	trow.add_theme_constant_override("h_separation", 8)
+	trow.add_theme_constant_override("v_separation", 8)
+	tv2.add_child(trow)
+	var topts = [["", "Otomatik (aktif görev)"], ["story", "Hikâye hedefi"]]
+	var wp = pr.get("waypoint")
+	if wp is Array and wp.size() >= 4:
+		topts.append(["waypoint", "Seçilen yer: %s" % wp[3]])
+	topts.append(["none", "Takibi kapat"])
+	for o in topts:
+		var key: String = o[0]
+		trow.add_child(UI.chip(o[1], cur_tr == key or (key == "" and cur_tr == "mission"), func():
+			pr["track"] = key
+			Sfx.play("click")
+			ninja_menu(main, "missions")))
+	if wp is Array and wp.size() >= 4:
+		tv2.add_child(UI.button("Seçilen yeri sil", func():
+			pr.erase("waypoint")
+			if String(pr.get("track", "")) == "waypoint":
+				pr["track"] = ""
+			ninja_menu(main, "missions"), 240, "close"))
+		tv2.get_child(tv2.get_child_count() - 1).size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	tv2.add_child(UI.label("Yeni yer seçmek için: Harita > Yakındaki Yerler.", 13, UI.MUTED))
 	var acts = UI.hbox(12)
 	left.add_child(acts)
 	acts.add_child(UI.button("Haritada göster", func(): world_map(main), 240, "map"))
@@ -2186,6 +2216,7 @@ static func world_map(main: Node) -> void:
 				var nm: String = lm["name"]
 				var b = UI.button("%s  %s  (%d m)" % [lm["glyph"], nm, d], func():
 					Game.profile["waypoint"] = [lp.x, lp.y, lp.z, nm]
+					Game.profile["track"] = "waypoint"
 					Hud.msg("Yol gösteriliyor: %s" % nm, Color(1, 0.85, 0.4))
 					main.resume(), side_w - 40)
 				b.add_theme_color_override("font_color", lm["col"])

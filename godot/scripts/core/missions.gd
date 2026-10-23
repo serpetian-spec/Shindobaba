@@ -579,6 +579,7 @@ func accept(m) -> void:
 	m = m.duplicate(true)
 	if not m.has("steps"):
 		m["steps"] = [{"kind": "goto", "at": [0, 0], "text": m.get("desc", "")}]
+	_skip_middleman(m)
 	m["id"] = "q%d" % Time.get_ticks_msec()
 	m["step"] = 0
 	m["progress"] = 0
@@ -586,9 +587,38 @@ func accept(m) -> void:
 	m["flags"] = {}
 	m["type"] = "quest"
 	Game.profile["active_mission"] = m
+	Game.profile["track"] = ""   # yeni görev alınınca ok ona dönsün
 	Hud.banner("GÖREV: %s" % m["title"], "%s-rank" % m["rank"], Color(1, 0.75, 0.35))
 	_setup(m)
 
+
+## Panodan/Kage'den alınan görevde köy içindeki aracıya uğramak yok: ilk "git konuş" adımı köyün içindeyse
+## atlanır, sözü görev açıklamasına eklenir; aracı görev sonunda rapor verilecek kişi olarak bekler.
+func _skip_middleman(m: Dictionary) -> void:
+	var steps: Array = m.get("steps", [])
+	if steps.size() < 2:
+		return
+	var s0: Dictionary = steps[0]
+	if s0.get("kind", "") != "talk" or not s0.has("npc") or not s0.has("at") or s0.has("choices") or s0.has("then"):
+		return
+	var v = Game.village(String(m.get("village", Progress.home())))
+	if v.is_empty():
+		return
+	if Vector2(float(s0["at"][0]), float(s0["at"][1])).distance_to(Vector2(float(v["x"]), float(v["y"]))) > float(v.get("r", 200)):
+		return   # müşteri görev yerinde bekliyor (savunma, eskort...) -> o gerçek görev adımı
+	var spec: Dictionary = s0["npc"]
+	var id = String(spec.get("id", ""))
+	if String(s0.get("say", "")) != "":
+		m["brief"] = "%s
+
+%s: \"%s\"" % [m.get("brief", ""), spec.get("name", ""), s0["say"]]
+	steps.remove_at(0)
+	for st2 in steps:
+		if st2.get("npc_id", "") == id and not st2.has("npc"):
+			st2.erase("npc_id")
+			st2["npc"] = spec
+			st2["at"] = s0["at"]
+			break
 
 func abandon() -> void:
 	var m = active()
@@ -1219,7 +1249,49 @@ func on_quest_npc_died(npc: QuestNPC) -> void:
 
 
 # ------------------------------------------------------------------ adım güncellemesi
+## Tab > Görevler'den seçilen takip: "" otomatik, "story" hikâye, "waypoint" seçilen yer, "none" ok gizli
+var _track_base = null
+
+
 func _process(dt: float) -> void:
+	# takip başka şeyi gösterdiyse görev adımının kendi işaretini geri koy (adım mantığı onu kullanır)
+	if _track_base != null:
+		has_marker = _track_base[0]; target_marker = _track_base[1]; target_name = _track_base[2]; story_target = _track_base[3]
+		_track_base = null
+	_process_steps(dt)
+	_apply_track()
+
+
+func _apply_track() -> void:
+	if Game.profile.is_empty():
+		return
+	var tr = String(Game.profile.get("track", ""))
+	if tr == "" or tr == "mission":
+		return
+	var base = [has_marker, target_marker, target_name, story_target]
+	if tr == "none":
+		has_marker = false
+	elif tr == "story":
+		var t = story_target_for(Progress.story())
+		has_marker = not t.is_empty()
+		if has_marker:
+			target_marker = t["pos"]; target_name = t["name"]; story_target = true
+	elif tr == "waypoint":
+		var wp = Game.profile.get("waypoint")
+		if not (wp is Array and wp.size() >= 4):
+			Game.profile["track"] = ""
+			return
+		var wv = Vector3(wp[0], wp[1], wp[2])
+		if Game.player and Vector2(wv.x - Game.player.global_position.x, wv.z - Game.player.global_position.z).length() < 8.0:
+			Game.profile.erase("waypoint")
+			Game.profile["track"] = ""
+			Hud.msg("Vardın: %s" % wp[3], Color(0.7, 1, 0.7))
+			return
+		has_marker = true; target_marker = wv; target_name = String(wp[3]); story_target = false
+	_track_base = base
+
+
+func _process_steps(dt: float) -> void:
 	if Game.profile.is_empty():
 		has_marker = false
 		return
