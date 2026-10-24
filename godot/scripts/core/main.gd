@@ -303,7 +303,11 @@ func _route(e: InputEvent) -> void:
 		return
 	elif e.is_action_pressed("interact"):
 		var it = Interact.nearest(player.global_position)
-		if not it.is_empty():
+		# önce yerdeki dōjutsu sahibinin gözleri (yakındaki etkileşimler F'yi yutuyordu)
+		var ey = player.combat.modes.eyes if player.combat and player.combat.modes else null
+		if ey and ey.steal_target != null and is_instance_valid(ey.steal_target):
+			ey._steal(ey.steal_target)
+		elif not it.is_empty():
 			Progress.interact(it)
 		else:
 			var c = Hud._near_catchable(player)

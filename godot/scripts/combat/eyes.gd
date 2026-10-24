@@ -147,7 +147,7 @@ func handle_input(e: InputEvent) -> bool:
 
 func toggle() -> void:
 	if not has_eyes():
-		Hud.msg("Bir göz tekniğin yok. (Göz ekipmanı: Tab > Ekipman > Sağ/Sol Göz)", Color(0.8, 0.8, 0.8))
+		Hud.msg("Bir göz tekniğin yok. (Gözler: Tab > Gözler)", Color(0.8, 0.8, 0.8))
 		return
 	if susanoo:
 		_end_susanoo()
@@ -436,7 +436,7 @@ func _steal(f: Node3D) -> void:
 	for i in 2:
 		Gear.grant(Game.profile, id, "", null, null, {"lvl": int(e.get("lvl", 3)), "origin": "nakil"})
 	Game.profile["flags"]["goz_hirsizi"] = int(Game.profile["flags"].get("goz_hirsizi", 0)) + 1
-	Hud.banner("GÖZLER ALINDI", "%s x2 — Tab > Ekipman > Sağ/Sol Göz ile nakledebilirsin" % KINDS.get(int(e["kind"]), "Göz"), Color(0.9, 0.3, 0.3))
+	Hud.banner("GÖZLER ALINDI", "%s x2 kavanoza kondu — Tab > Gözler > Saklanan Gözler; nakil hastanede" % KINDS.get(int(e["kind"]), "Göz"), Color(0.9, 0.3, 0.3))
 	Sfx.play("seal", p.global_position, 0.7)
 
 
@@ -498,7 +498,7 @@ func _process(dt: float) -> void:
 	# göz çalma: yakında gözleri alınmamış düşmüş dōjutsu sahibi
 	steal_target = null
 	for f in get_tree().get_nodes_in_group("dojutsu_bearers"):
-		if f != p and f.has_meta("eyes") and not f.has_meta("eyes_taken") and f.is_dead() and f.global_position.distance_to(p.global_position) < 3.0:
+		if f != p and f.has_meta("eyes") and not f.has_meta("eyes_taken") and f.is_dead() and f.global_position.distance_to(p.global_position) < 4.5:
 			steal_target = f
 			if not f.has_meta("eye_prompt"):
 				f.set_meta("eye_prompt", true)
