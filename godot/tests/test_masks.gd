@@ -7,10 +7,12 @@ func _ready() -> void:
 	main._start_new_game()
 	await get_tree().create_timer(3.0).timeout
 	Hud.show_game_hud(false)
-	var styles = ["anbu_tilki", "kitsune"]
+	var styles = ["kitsune", "anbu_kedi"]
 	for i in styles.size():
 		var lk = Game.profile["look"].duplicate()
 		lk["face_style"] = styles[i]
+		lk["weapon_r"] = "tanto"
+		lk["drawn"] = true
 		var m = CharacterModel.new()
 		get_tree().current_scene.add_child(m)
 		m.setup(lk)
@@ -23,7 +25,7 @@ func _ready() -> void:
 	cam.fov = 30
 	for i in styles.size():
 		var c = main.player.global_position + Vector3(i * 6.0, 1.5, -4)
-		for v in [["on", Vector3(0, 0.05, 1.3)], ["yan", Vector3(1.2, 0.05, 0.4)]]:
+		for v in [["on", Vector3(0, 0.05, 1.3)], ["yan", Vector3(1.2, 0.05, 0.4)], ["capraz", Vector3(0.8, 0.05, 1.0)], ["tam", Vector3(0.8, -0.4, 2.4)], ["el", Vector3(1.0, -0.4, 0.9)]]:
 			cam.global_position = c + v[1]
 			cam.look_at(c)
 			cam.current = true

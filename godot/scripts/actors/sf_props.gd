@@ -10,8 +10,8 @@ const WEAPONS := {
 	"altin_kunai": {"file": "kunai_yanez", "len": 0.32, "grip": 0.18, "tint": Color(1.0, 0.82, 0.45)},
 	"zincirli_kunai": {"file": "kunai_yanez", "len": 0.3, "grip": 0.18},
 	"patlayici_kunai": {"file": "kunai_explosive", "len": 0.34, "grip": 0.33, "flip": true},
-	"tanto": {"file": "tanto_game_ready", "len": 0.45, "grip": 0.15},
-	"wakizashi": {"file": "tanto_game_ready", "len": 0.7, "grip": 0.13},
+	"tanto": {"file": "tanto_game_ready", "len": 0.45, "grip": 0.15, "flip": true},   # sapından tutulsun (ters tutuluyordu)
+	"wakizashi": {"file": "tanto_game_ready", "len": 0.7, "grip": 0.13, "flip": true},
 	"kama": {"file": "kama_yanez", "len": 0.55, "grip": 0.22, "pca": false, "yaw": 33.0, "handle": 0.55, "roll": 180.0},
 	# muşta/chakra bıçağı: halkalar parmaklara geçer (tutuş halkaların ortası), bıçak başparmak tarafında (+Z)
 	"musta": {"file": "trench_knives", "len": 0.3, "grip": 0.3, "flip": true},
@@ -267,7 +267,7 @@ const ACCESSORIES := {
 	"hokage_sapka": {"file": "hokage_hat", "bone": "Head", "size": 0.4, "off": Vector3(0, 0.1, -0.01)},
 	"hasir_sapka": {"file": "akatsuki_hat", "bone": "Head", "size": 0.5, "off": Vector3(0, 0.02, 0.0)},
 	"anbu_kedi": {"file": "anbu_mask", "bone": "Head", "size": 0.22, "off": Vector3(0, -0.01, 0.11), "rot": Vector3(0, 180, 0)},
-	"kitsune": {"file": "kitsune_mask", "bone": "Head", "size": 0.21, "off": Vector3(0, -0.01, 0.11), "rot": Vector3(0, 180, 0)},
+	"kitsune": {"file": "kitsune_mask", "bone": "Head", "size": 0.27, "off": Vector3(0, -0.005, 0.12), "rot": Vector3(0, 180, 0)},   # öne: karakterin burnu maskeyi deliyordu
 	"tengu": {"file": "tengu_mask", "bone": "Head", "size": 0.25, "off": Vector3(0, -0.01, 0.13)},
 	"oni": {"file": "oni_mask_samurai", "bone": "Head", "size": 0.2, "off": Vector3(0, -0.05, 0.1)},
 	"su_kabagi": {"file": "gourd_doverlock", "bone": "UpperChest", "size": 0.55, "off": Vector3(0, -0.12, -0.2)},
