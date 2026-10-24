@@ -38,31 +38,31 @@ static func hat(model: Node, vid: String) -> void:
 	var ab: AABB = model.head_ab
 	var hw = clampf(ab.size.x, 0.16, 0.26) if ab.size.x > 0.05 else 0.2
 	var hh = clampf(ab.size.y, 0.12, 0.26) if ab.size.y > 0.05 else 0.2
-	var D = hw * 4.3   # kenar çapı
-	var H = 0.3
+	var D = hw * 2.7   # kenar çapı (anime oranı: başın ~2.7 katı; eskiden 4.3 idi, fazla büyüktü)
+	var H = 0.19
 	var m = MB.new()
 	m.add("cone", Vector3.ZERO, Vector3(D, H, D), white, Vector3.ZERO, 24)
 	m.add("cone", Vector3(0, H * 0.25 + 0.004, 0), Vector3(D * 0.5, H * 0.5, D * 0.5), c, Vector3.ZERO, 24)
 	m.add("cyl", Vector3(0, -H * 0.5 + 0.006, 0), Vector3(D * 1.01, 0.012, D * 1.01), white.darkened(0.12), Vector3.ZERO, 24)
 	m.add("cyl", Vector3(0, -H * 0.5 - 0.02, 0), Vector3(hw * 1.08, 0.05, hw * 1.16), c.darkened(0.3), Vector3.ZERO, 14)
-	m.add("sphere", Vector3(0, H * 0.5, 0), Vector3(0.035, 0.035, 0.035), c.darkened(0.2), Vector3.ZERO, 8)
+	m.add("sphere", Vector3(0, H * 0.5, 0), Vector3(0.025, 0.025, 0.025), c.darkened(0.2), Vector3.ZERO, 8)
 	# arkadan ve yanlardan sarkan beyaz örtü
 	for k in 5:
 		var a = deg_to_rad(110.0 + k * 35.0)
 		var r = D * 0.36
-		m.add("box", Vector3(sin(a) * r, -H * 0.5 - 0.11, cos(a) * r), Vector3(0.16, 0.22, 0.01), white.darkened(0.04), Vector3(-8, rad_to_deg(a), 0))
+		m.add("box", Vector3(sin(a) * r, -H * 0.5 - 0.11, cos(a) * r), Vector3(0.11, 0.17, 0.01), white.darkened(0.04), Vector3(-8, rad_to_deg(a), 0))
 	# önde: kanji çevresinde beyaz eşkenar dörtgen
 	var slope = rad_to_deg(atan2(H, D * 0.5))
 	var fy = H * 0.06
 	var fz = D * 0.5 * (0.5 - fy / H) + 0.012
-	m.add("box", Vector3(0, fy, fz), Vector3(0.11, 0.11, 0.006), white, Vector3(-(90.0 - slope), 0, 45))
+	m.add("box", Vector3(0, fy, fz), Vector3(0.075, 0.075, 0.006), white, Vector3(-(90.0 - slope), 0, 45))
 	var top = hc.y + hh * 0.42
 	var mi = model._mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, Vector3(hc.x, top + 0.05, hc.z)))
 	var l = Label3D.new()
 	l.text = KANJI.get(vid, "影")
 	l.font = _font()
 	l.font_size = 64
-	l.pixel_size = 0.0013
+	l.pixel_size = 0.0009
 	l.modulate = c.darkened(0.1)
 	l.outline_size = 0
 	l.shaded = false
