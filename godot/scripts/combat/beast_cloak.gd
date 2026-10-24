@@ -68,11 +68,6 @@ func handle_input(e: InputEvent) -> bool:
 		if h < 0.45 and rampage_t <= 0.0:
 			_tap()
 		return true
-	if level > 0 and rampage_t <= 0.0:
-		for i in TECH_KEYS.size():
-			if e.is_action_pressed(TECH_KEYS[i]):
-				_tech(i)
-				return true
 	if level == 6 and rampage_t <= 0.0:
 		if e.is_action_pressed("attack"):
 			_giant_swipe()
@@ -316,10 +311,10 @@ func tech_hint() -> String:
 	var parts = []
 	for i in l.size():
 		if level >= TECH_NEED[i]:
-			parts.append("[%s] %s" % [TECH_LABEL[i], l[i]["name"]])
+			parts.append(l[i]["name"])
 	if parts.is_empty():
 		return ""
-	return "  •  ".join(parts) + ("  •  [Sol] pençe  [Sağ] Kuyruklu Canavar Topu" if level == 6 else "")
+	return "Slottan kullanılabilir: " + "  •  ".join(parts) + ("  •  [Sol] pençe  [Sağ] Kuyruklu Canavar Topu" if level == 6 else "")
 
 
 func _scale() -> float:

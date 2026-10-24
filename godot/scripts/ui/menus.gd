@@ -1402,7 +1402,7 @@ static var _jf_cat := ""
 static var _jf_el := ""
 static var _jf_text := ""
 const JUTSU_CATS := [["", "Tümü"], ["ninjutsu", "Ninjutsu"], ["taijutsu", "Taijutsu"], ["genjutsu", "Genjutsu"], ["fuinjutsu", "Fūinjutsu"], ["kekkei_genkai", "Kekkei Genkai"],
-	["dojutsu", "Dōjutsu"], ["hiden", "Hiden"], ["senjutsu", "Senjutsu"], ["kinjutsu", "Kinjutsu"], ["medical", "Tıbbi"], ["space_time", "Uzay-Zaman"], ["summoning", "Çağırma"]]
+	["dojutsu", "Dōjutsu"], ["bijuu", "Kuyruklu Canavar"], ["hiden", "Hiden"], ["senjutsu", "Senjutsu"], ["kinjutsu", "Kinjutsu"], ["medical", "Tıbbi"], ["space_time", "Uzay-Zaman"], ["summoning", "Çağırma"]]
 const JUTSU_ELEMS := [["", "Tüm elementler"], ["katon", "Katon"], ["suiton", "Suiton"], ["fuuton", "Fūton"], ["raiton", "Raiton"], ["doton", "Doton"],
 	["mokuton", "Mokuton"], ["hyoton", "Hyōton"], ["yoton", "Yōton"], ["futton", "Futton"], ["ranton", "Ranton"], ["bakuton", "Bakuton"], ["jinton", "Jinton"]]
 
@@ -1415,7 +1415,8 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 	var left = UI.vbox(16)
 	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	h.add_child(left)
-	var learned: Array = pr["learned"]
+	# göz ve kuyruklu canavar teknikleri de slota konabilir (sanal jutsu)
+	var learned: Array = (pr["learned"] as Array) + SpecialSlots.refresh(pr)
 	if picked == "" and not learned.is_empty():
 		picked = learned[0]
 	# filtreler: öğrendiklerim / jutsu kitabı (tümü), kategori, element, arama

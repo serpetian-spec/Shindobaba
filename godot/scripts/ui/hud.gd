@@ -9,6 +9,7 @@ var xp_bar: ProgressBar
 var name_lbl: Label
 var sub_pips: Array[Panel] = []
 var slots_box: HBoxContainer
+var _ss_t := 0   # sanal (göz/canavar) slot girdilerini yenileme zamanı
 var slot_nodes: Array = []
 var tool_lbl: Label
 var msg_lbl: Label
@@ -888,9 +889,12 @@ func _process(dt: float) -> void:
 				st["empty"] = true; st["cd"] = 0.0
 				sn[0].queue_redraw()
 			continue
+		if not Data.jutsu.has(jid) and (jid in SpecialSlots.EYE_IDS or jid in SpecialSlots.BIJUU_IDS) and Time.get_ticks_msec() > _ss_t:
+			_ss_t = Time.get_ticks_msec() + 2000
+			SpecialSlots.refresh(pr)
 		var j: Dictionary = Data.jutsu.get(jid, {})
 		sn[1].text = String(j.get("name", jid)).split(":")[-1].split("(")[0].strip_edges()
-		var cd: float = comb.cooldowns.get(jid, 0.0) if comb else 0.0
+		var cd: float = SpecialSlots.cooldown(pl, jid) if j.has("virtual") else (comb.cooldowns.get(jid, 0.0) if comb else 0.0)
 		var ok = pl.chakra >= float(j.get("cost", 0))
 		sn[2].text = ("%.1f" % cd) if cd > 0.0 else ""
 		sn[2].add_theme_color_override("font_color", Color(1, 1, 1))

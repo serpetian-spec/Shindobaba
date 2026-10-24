@@ -335,12 +335,14 @@ func _mind_dialog() -> void:
 	var b: Dictionary = beasts().get(id, {})
 	var tr = float(b.get("trust", 0.0))
 	var nm = BeastModels.INFO.get(id, {}).get("name", id).split(" — ")[0]
-	var day = int(Time.get_unix_time_from_system() / 600.0)  # gerçek 10 dakikada bir konuşma bağı artırır
+	var slot = int(Time.get_unix_time_from_system() / 120.0)  # gerçek 2 dakikada bir konuşma bağı +10 artırır
 	var opts = []
-	opts.append({"label": "Konuş", "cb": func():
-		if int(b.get("last_talk", -1)) != day:
-			b["last_talk"] = day
-			add_trust(5.0, id)
+	opts.append({"label": "Konuş", "tip": "Her konuşma güveni +10 artırır (2 dakikada bir)", "cb": func():
+		if int(b.get("last_talk", -1)) != slot:
+			b["last_talk"] = slot
+			add_trust(10.0, id)
+		else:
+			Hud.msg("%s şimdilik konuşmak istemiyor (biraz sonra tekrar dene)" % nm, Color(0.9, 0.7, 0.5))
 		Hud.dialog(nm, LINES.get(id, LINES["kurama"]).pick_random() + "\n\n(Güven: %d/100)" % int(trust(id)), [])})
 	opts.append({"label": "Gücünü iste", "tip": "Güven 30+: chakra yenilenir. Düşük güvende canavar öfkelenir.", "cb": func():
 		if trust(id) >= 30.0:

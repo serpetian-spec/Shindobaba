@@ -544,6 +544,8 @@ func _do_chakra_dash(dt: float) -> bool:
 
 # ------------------------------------------------------------------ jutsu
 func begin_cast(jid: String) -> void:
+	if SpecialSlots.cast(p, jid):   # göz / kuyruklu canavar tekniği (slotta)
+		return
 	if jid != "henge":
 		_break_henge()
 	if action != "" and action != "guard" and action != "charge":

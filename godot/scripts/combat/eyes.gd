@@ -132,13 +132,6 @@ func handle_input(e: InputEvent) -> bool:
 		if e.is_action_pressed("guard"):
 			susanoo_node.special(p, p.cam_forward())
 			return true
-	if active:
-		if e.is_action_pressed("sage"):
-			use_skill("sag")
-			return true
-		if e.is_action_pressed("beast"):
-			use_skill("sol")
-			return true
 	if e.is_action_pressed("interact") and steal_target != null:
 		_steal(steal_target)
 		return true
