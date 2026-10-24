@@ -40,6 +40,7 @@ var was_turbo = false
 var last_air_vy = 0.0
 var cam_lift = 0.0   # dev dönüşümlerde kamera hedefini yükselt (kuyruklu canavar, Susanoo)
 var cam_range := Vector2(2.2, 14.0)   # fare tekeri yakınlaştırma sınırı (dev dönüşümde büyür)
+var model_lift := 0.0   # model görsel olarak bu kadar yukarıda (Susanoo içinde süzülme)
 var cam_giant := false   # dev form: kamera küçük engellere (ağaç, ev) çarpıp canavarın içine sıçramasın
 var leap_charge = -1.0     # Ctrl basılı: 0..1 şarj (Striker süper zıplaması), -1 = şarj yok
 var flip_t = -1.0          # havada takla zamanlayıcısı
@@ -537,7 +538,7 @@ func _ground_air_move(dt: float) -> void:
 	if grounded:
 		var tn = Game.terrain_normal(global_position.x, global_position.z)
 		drop = clampf(0.16 * tan(acos(clampf(tn.y, 0.5, 1.0))), 0.0, 0.28)
-	model.position = Vector3(0, -drop, 0)
+	model.position = Vector3(0, model_lift - drop, 0)
 	if combat == null or not combat.busy():
 		_animate(sp, sprint)
 	elif combat.action != "chakra_dash":
@@ -637,7 +638,7 @@ func _fly_move(dt: float) -> void:
 	if hv.length() > 0.5 and (combat == null or not combat.busy()):
 		facing = lerp_angle(facing, atan2(-hv.x, -hv.z), minf(1.0, dt * 5.0))
 	model.rotation = Vector3(0, facing, -clampf(wish.dot(global_transform.basis.x) * 0.25, -0.3, 0.3))
-	model.position = Vector3.ZERO
+	model.position = Vector3(0, model_lift, 0)
 	if combat == null or not combat.busy():
 		if model.current != "air":
 			model.play("air", 0.25)

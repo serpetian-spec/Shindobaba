@@ -397,11 +397,15 @@ func _start_susanoo() -> void:
 	sn.create_tween().tween_property(sn, "scale", final_scale, 0.6).set_trans(Tween.TRANS_BACK)
 	Hud.banner("SUSANOO", "Kademe %d — %s   (sol tık: dev savuruş, sağ tık: silah)" % [sn.tier, Susanoo.TIER_NAMES[sn.tier]], Color(sn.mat.get_shader_parameter("col")))
 	Sfx.play("roar", p.global_position, 1.6, 0.6)
-	if sn.tier >= 4:
-		p.set_meta("susanoo_cam", p.cam_dist)
-		p.cam_range = Vector2(6.0, 24.0 + sn.tier * 4.0)
-		p.cam_dist = maxf(p.cam_dist, 9.0 + sn.tier * 3.0)
-		p.cam_giant = true
+	var h = Susanoo.TIER_HEIGHT[sn.tier]
+	if sn.tier >= 2:
+		# kamera Susanoo boyuna göre; kullanıcı Susanoo'nun içinde (göğüs / alın) süzülür
+		p.set_meta("susanoo_cam", [p.cam_dist, p.cam_lift])
+		p.cam_range = Vector2(maxf(3.0, h * 0.7), maxf(14.0, h * 3.0))
+		p.cam_dist = h * 1.5 + 3.0
+		p.cam_lift = h * (0.55 if sn.tier >= 3 else 0.3)
+		p.cam_giant = sn.tier >= 3
+		p.model_lift = h * Susanoo.USER_SEAT[sn.tier]
 	# kanatlı tam Susanoo: havadayken Space ile uçuşa geç
 	if sn.tier >= 5 and Susanoo.config(Game.profile).get("wings", true) and p.has_method("start_flight"):
 		p.set_meta("wing_flight", {"speed": 24.0, "lift": 13.0, "drain": 1.2, "name": "Susanoo kanatları", "land_stop": true})
@@ -410,8 +414,11 @@ func _start_susanoo() -> void:
 
 func _end_susanoo() -> void:
 	susanoo = false
+	p.model_lift = 0.0
 	if p.has_meta("susanoo_cam"):
-		p.cam_dist = float(p.get_meta("susanoo_cam"))
+		var sc: Array = p.get_meta("susanoo_cam")
+		p.cam_dist = float(sc[0])
+		p.cam_lift = float(sc[1])
 		p.remove_meta("susanoo_cam")
 		p.cam_range = Vector2(2.2, 14.0)
 		p.cam_giant = false

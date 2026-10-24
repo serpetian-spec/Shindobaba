@@ -41,6 +41,12 @@ func _ready() -> void:
 		pl.cam.look_at(pl.global_position + Vector3.UP * h * 0.5)
 		await get_tree().create_timer(0.3).timeout
 		await main.shot("s%d_susanoo" % t)
+		if t >= 3:   # Susanoo içindeki kullanıcı yakın
+			var mp = pl.model.global_position + Vector3.UP * 1.2
+			pl.cam.global_position = mp + pl.face_dir() * 6.0 + Vector3(2.0, 1.0, 0)
+			pl.cam.look_at(mp)
+			await get_tree().create_timer(0.2).timeout
+			await main.shot("s%d_icinde" % t)
 		eyes._end_susanoo()
 		await get_tree().create_timer(0.5).timeout
 	get_tree().quit()

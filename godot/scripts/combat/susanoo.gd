@@ -7,7 +7,9 @@ extends Node3D
 ## Özelleştirme (profile["susanoo"]): renk, zırh stili, yüz, silah, kanat, tercih edilen kademe.
 
 const TIER_NAMES := ["", "Kaburga", "İskelet", "İnsansı", "Zırhlı Savaşçı", "Mükemmel Susanoo"]
-const TIER_HEIGHT := [0.0, 2.05, 4.8, 7.5, 13.0, 34.0]   # 1: oyuncunun etrafını saran kaburga (kafasının üstünde değil)
+const TIER_HEIGHT := [0.0, 2.05, 7.0, 16.0, 36.0, 78.0]   # 1: oyuncuyu saran kaburga .. 5: kuyruklu canavar boyunda Mükemmel Susanoo
+## Kullanıcının Susanoo içindeki yeri (Susanoo boyuna oran): 3-4 göğüs, 5 alındaki mücevher (animedeki gibi)
+const USER_SEAT := [0.0, 0.0, 0.0, 0.2, 0.64, 0.86]   # 3: kalça yere gömülü olduğundan göğüs alçakta
 const ARMORS := ["Samuray", "Keşiş Cübbesi", "İblis Dikenleri"]
 const FACES := ["Tengu", "Oni Boynuzlu", "Vizörlü Savaşçı"]
 const WEAPONS := {"kilic": "Kılıç", "yay": "Yay ve Ok", "kalkan": "Kalkan", "mizrak": "Mızrak", "yok": "Silahsız"}
@@ -39,8 +41,11 @@ static func max_tier(pr: Dictionary) -> int:
 	var kr = int(Gear.item(r["id"]).get("eye", {}).get("kind", 0)); var kl = int(Gear.item(l["id"]).get("eye", {}).get("kind", 0))
 	if not (kr in [4, 5] and kl in [4, 5]):
 		return 0
+	# Ebedi Mangekyō: tam beden (Zırhlı Savaşçı / Mükemmel Susanoo) hemen açık; Mangekyō ustalıkla en fazla İnsansı'ya çıkar
+	if kr == 5 and kl == 5:
+		return 5
 	var m = float(config(pr).get("mastery", 0.0))
-	var cap = 5 if (kr == 5 and kl == 5) else 3
+	var cap = 3
 	var t = 1
 	for i in range(2, 6):
 		if m >= MASTERY_STEPS[i]:
@@ -107,6 +112,8 @@ func build(pr: Dictionary, preview_tier := -1, follow_model: CharacterModel = nu
 		_skeleton()
 	_details(armor)
 	scale = Vector3.ONE * (TIER_HEIGHT[tier] / 1.8)
+	# İnsansı (üst gövde): kalça yere gömülü, gövde kullanıcının etrafında yerden yükselir (havada asılı durmasın)
+	position.y = -0.95 * TIER_HEIGHT[tier] / 1.8 if tier == 3 else 0.0
 
 
 ## Kemik "çubukları": gerçek iskeletten, kemiğe bağlı (animasyonla oynar)
