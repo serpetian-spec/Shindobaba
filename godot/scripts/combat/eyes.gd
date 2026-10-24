@@ -441,6 +441,7 @@ func _steal(f: Node3D) -> void:
 
 
 # ------------------------------------------------------------------ Sharingan kopyalama
+var _copy_warned := {}   # kopyalanamayan teknik uyarısı jutsu başına bir kez
 func _on_jutsu_cast(caster: Node, id: String) -> void:
 	if not active or caster == p or not is_instance_valid(caster):
 		return
@@ -451,6 +452,14 @@ func _on_jutsu_cast(caster: Node, id: String) -> void:
 	if tl == 0 or caster.global_position.distance_to(p.global_position) > 35.0:
 		return
 	if id in Game.profile.get("learned", []) or not Data.jutsu.has(id):
+		return
+	# Sharingan yalnızca senin de yapabileceğin teknikleri kopyalar: seviye/rütbe sınırını aşar ama
+	# sahip olmadığın element, başka klanın hiden tekniği, kekkei genkai, göz/sennin gerektiren ve yasak/özel teknikler kopyalanamaz
+	var why = Progress.can_learn(id)
+	if why != "" and not why.begins_with("Seviye") and not why.ends_with("rütbesi gerekli"):
+		if not _copy_warned.has(id):
+			_copy_warned[id] = true
+			Hud.msg("Sharingan gördü ama kopyalayamaz: %s (%s)" % [Data.jutsu[id].get("name", id), why], Color(0.75, 0.55, 0.55))
 		return
 	if randf() < 0.2 * tl:
 		Progress.learn(id)
