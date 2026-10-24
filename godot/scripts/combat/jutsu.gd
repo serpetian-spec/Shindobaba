@@ -1227,26 +1227,41 @@ func j_mushi_swarm(c: Node3D, t: Node3D) -> void:
 	var m = _mult(c)
 	var st = {"pos": _aim_ground(c, t, 10.0)}
 	var cloud = GPUParticles3D.new()
-	cloud.amount = 160
-	cloud.lifetime = 0.9
+	cloud.amount = 520
+	cloud.lifetime = 1.1
 	var pm = ParticleProcessMaterial.new()
 	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
-	pm.emission_sphere_radius = 1.6
+	pm.emission_sphere_radius = 2.4
 	pm.spread = 180.0
 	pm.initial_velocity_min = 1.0; pm.initial_velocity_max = 3.0
 	pm.gravity = Vector3.ZERO
 	pm.orbit_velocity_min = 0.5; pm.orbit_velocity_max = 1.2
-	pm.scale_min = 0.6; pm.scale_max = 1.0
+	pm.scale_min = 0.8; pm.scale_max = 1.6
 	pm.color_ramp = FX._gradient([Color(0.05, 0.05, 0.05, 0.0), Color(0.08, 0.08, 0.06, 1.0), Color(0.05, 0.05, 0.05, 0.0)])
 	cloud.process_material = pm
 	var q = QuadMesh.new()
-	q.size = Vector2(0.14, 0.14)
+	q.size = Vector2(0.22, 0.22)
 	q.material = FX._draw_mat(FX.tex_soft, false)
+	q.material.albedo_color = Color(0.0, 0.0, 0.0, 1.0)
 	cloud.draw_pass_1 = q
 	cloud.local_coords = false
 	get_tree().current_scene.add_child(cloud)
 	cloud.global_position = c.global_position + Vector3.UP * 1.3
 	cloud.emitting = true
+	# sürünün koyu pusu: içi görünmeyen kara bulut çekirdeği
+	var haze = MeshInstance3D.new()
+	haze.mesh = VFX._sphere(0.5, 16, 8)
+	var hm = StandardMaterial3D.new()
+	hm.albedo_color = Color(0.01, 0.01, 0.01, 0.82)
+	hm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	hm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	hm.disable_fog = true
+	haze.material_override = hm
+	haze.scale = Vector3.ONE * 3.2
+	cloud.add_child(haze)
+	var hw = haze.create_tween().set_loops()
+	hw.tween_property(haze, "scale", Vector3(3.6, 2.8, 3.4), 0.3)
+	hw.tween_property(haze, "scale", Vector3(3.0, 3.4, 3.1), 0.3)
 	Sfx.play("wind", c.global_position, 2.0, 0.5)
 	_ticks(30, 0.15, func(i):
 		if t and is_instance_valid(t) and not t.is_dead():
@@ -1274,8 +1289,7 @@ func j_ninken(c: Node3D, _t: Node3D) -> void:
 
 func j_gatsuga(c: Node3D, t: Node3D) -> void:
 	var m = _mult(c)
-	var drill = Projectile.energy_mesh(Color(0.9, 0.85, 0.75), Color(0.45, 0.35, 0.25), 1.0, 30.0, 0.0, 1.2)
-	drill.scale = Vector3(2.0, 2.6, 2.0)
+	var drill = gatsuga_drill(1.0)
 	c.add_child(drill)
 	drill.position = Vector3(0, 1.0, 0)
 	Sfx.play("wind", c.global_position, 1.6)
@@ -1286,6 +1300,23 @@ func j_gatsuga(c: Node3D, t: Node3D) -> void:
 		c.model.rotation.y += 1.2
 		for h in Combat.hit_sphere(c, pt, 1.7, {"dmg": 20.0 * m, "knock": 14.0, "launch": 6.0, "kind": "heavy", "hitstop": 0.05}, hit):
 			hit.append(h), func(): drill.queue_free())
+
+
+## Gatsūga matkabı: yatay dönen gri-beyaz rüzgâr hortumu (iki kat koni) + uç kıvılcımı; karakteri içine alır
+func gatsuga_drill(size: float) -> Node3D:
+	var root = Node3D.new()
+	for k in 2:
+		var cm = CylinderMesh.new()
+		cm.top_radius = 0.12; cm.bottom_radius = 1.15 - k * 0.3; cm.height = 3.2 - k * 0.6; cm.radial_segments = 20; cm.rings = 6
+		cm.cap_top = false; cm.cap_bottom = false
+		var mi = VFX._mi(cm, Props.toon_color(Color(0.58, 0.54, 0.5), 0.5) if k == 1 else VFX.mat_wind(Color(1, 1, 1), 16.0, 6.0, Vector3.UP, 1.0))   # içte opak gri dönen gövde, dışta beyaz rüzgâr çizgileri
+		mi.rotation_degrees = Vector3(-90, 0, 0)   # sivri uç ileri (-Z)
+		mi.position = Vector3(0, 0, -0.4)
+		root.add_child(mi)
+		var sp = mi.create_tween().set_loops()
+		sp.tween_property(mi, "rotation:y", TAU * (1 if k == 0 else -1), 0.25 - k * 0.08).from(0.0)
+	root.scale = Vector3.ONE * size * 1.3
+	return root
 
 
 # ---------------------------------------------------------------- Yamanaka

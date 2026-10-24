@@ -1013,8 +1013,19 @@ func tt_pos(t: Node3D, fallback: Vector3) -> Vector3:
 
 
 func _insects_cling(c: Node3D, e: Node3D, dur: float, id: String) -> void:
-	var cloud = Projectile.trail(e, [Color(0.06, 0.06, 0.05), Color(0.08, 0.08, 0.06), Color(0.06, 0.06, 0.05, 0)], 0.25, 50, 0.6, null, false)
+	var cloud = Projectile.trail(e, [Color(0.0, 0.0, 0.0), Color(0.02, 0.02, 0.01), Color(0.0, 0.0, 0.0, 0)], 0.6, 260, 0.7, null, false)
 	cloud.position = Vector3.UP * e.height * 0.5
+	# bedeni saran kara böcek kabuğu: dalgalanır
+	var shell = MeshInstance3D.new()
+	shell.mesh = VFX._sphere(0.5, 14, 8)
+	var shm = StandardMaterial3D.new()
+	shm.albedo_color = Color(0.01, 0.01, 0.01, 0.8)
+	shm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	shm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	shm.disable_fog = true
+	shell.material_override = shm
+	shell.scale = Vector3(e.radius * 2.6, e.height * 0.9, e.radius * 2.6)
+	attach(e, shell, dur, Vector3.UP * e.height * 0.5)
 	after(dur, func():
 		if is_instance_valid(cloud):
 			cloud.emitting = false)
@@ -1122,8 +1133,7 @@ func c_gatsuga(c: Node3D, t: Node3D) -> void:
 func c_tsuga(c: Node3D, t: Node3D) -> void:
 	var chain = []
 	var tt = tg(c, t, 14.0)
-	var drill = Projectile.energy_mesh(Color(0.9, 0.85, 0.75), Color(0.5, 0.4, 0.3), 0.8, 30.0, 0.0, 1.0)
-	drill.scale = Vector3(1.4, 2.0, 1.4)
+	var drill = Jutsu.gatsuga_drill(0.75)
 	c.add_child(drill)
 	drill.position = Vector3(0, 1.0, 0)
 	var step = func(next_t):
