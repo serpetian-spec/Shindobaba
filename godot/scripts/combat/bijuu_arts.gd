@@ -202,9 +202,7 @@ static func _blind(f: Node3D, t: float, col := Color(1, 1, 0.92, 0.75)) -> void:
 static func _tint(col: Color, dur: float) -> void:
 	if Game.world == null:
 		return
-	Game.world.env.set_tint(col)
-	VFX.tree().create_timer(dur).timeout.connect(func():
-		if Game.world: Game.world.env.set_tint(Color(0, 0, 0, 0)))
+	Game.world.env.flash_tint(col, dur)
 
 
 ## Aşındırma (Saiken asidi, Kokuō buharı): oyuncuda zırh erir, düşmanda süreli eriyen can + yavaşlık

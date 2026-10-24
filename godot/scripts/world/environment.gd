@@ -313,3 +313,9 @@ func screen_flash(a: float) -> void:
 
 func set_tint(c: Color) -> void:
 	tint_target = c
+
+
+## Geçici renk: süre dolunca kendisi temizler (çağıran düşman ölse bile ekran renkli kalmaz)
+func flash_tint(c: Color, dur: float) -> void:
+	tint_target = c
+	get_tree().create_timer(dur).timeout.connect(set_tint.bind(Color(0, 0, 0, 0)))

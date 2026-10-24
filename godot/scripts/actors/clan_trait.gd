@@ -133,8 +133,7 @@ func _sharingan(t: Node3D) -> void:
 	tw.chain().tween_callback(ring.queue_free)
 	if t == Game.player:
 		Game.world.env.screen_flash(0.45)
-		Game.world.env.set_tint(Color(1.0, 0.55, 0.55))
-		get_tree().create_timer(1.6).timeout.connect(func(): if Game.world: Game.world.env.set_tint(Color.WHITE))
+		Game.world.env.flash_tint(Color(0.9, 0.1, 0.1, 0.22), 1.6)   # eskiden opak renk + düşman ölünce sıfırlanmayan zamanlayıcı: ekran kırmızı kalıyordu
 	_stun(t, 1.4)
 	Sfx.play("seal", f.global_position, 0.7)
 
@@ -220,8 +219,7 @@ func _blood_gaze(t: Node3D) -> void:
 	FX.burst(f.global_position + Vector3.UP * 1.6, {"amount": 40, "life": 1.2, "add": false, "size": 0.9, "vmin": 2, "vmax": 6,
 		"colors": [Color(0.6, 0.02, 0.05, 0.9), Color(0.3, 0.0, 0.02, 0)]})
 	if t == Game.player:
-		Game.world.env.set_tint(Color(1.0, 0.35, 0.35))
-		get_tree().create_timer(2.0).timeout.connect(func(): if Game.world: Game.world.env.set_tint(Color.WHITE))
+		Game.world.env.flash_tint(Color(0.7, 0.0, 0.05, 0.28), 2.0)
 	_stun(t, 1.8)
 	if t.has_method("apply_status"):
 		t.apply_status("burn", 3.0)   # iç kanama: zamanla can kaybı

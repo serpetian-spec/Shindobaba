@@ -379,15 +379,11 @@ func _element_attack_old() -> void:
 		"chomei":  # pul tozu: görüşü bulandırır + hücum
 			_field(pl.global_position, height * 0.3, Color(0.9, 1.0, 0.6), 5.0, _dmg(5.0), "fuuton")
 			if Game.world:
-				Game.world.env.set_tint(Color(0.85, 1.0, 0.5, 0.25))
-				get_tree().create_timer(3.0).timeout.connect(func():
-					if Game.world: Game.world.env.set_tint(Color(0, 0, 0, 0)))
+				Game.world.env.flash_tint(Color(0.85, 1.0, 0.5, 0.25), 3.0)
 		"gyuki":  # mürekkep püskürtme (görüş kararır) + dokunaç
 			_field(pl.global_position, height * 0.2, Color(0.05, 0.03, 0.08), 6.0, _dmg(8.0), "suiton")
 			if Game.world:
-				Game.world.env.set_tint(Color(0, 0, 0, 0.55))
-				get_tree().create_timer(2.5).timeout.connect(func():
-					if Game.world: Game.world.env.set_tint(Color(0, 0, 0, 0)))
+				Game.world.env.flash_tint(Color(0, 0, 0, 0.55), 2.5)
 			Combat.hit_sphere(self, global_position + face_dir() * height * 0.5, height * 0.3, {"dmg": _dmg(30.0), "knock": 20.0, "kind": "heavy"})
 		_:  # kurama: art arda küçük canavar topları
 			for i in 3:
