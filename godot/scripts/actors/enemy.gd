@@ -261,7 +261,7 @@ func _think(dt: float) -> void:
 	elif target == null or not is_instance_valid(target) or target.is_dead():
 		target = null
 		# görüş: ninja düşmanlar uzaktan fark eder (eskiden 26 m, yanına kadar gelmek gerekiyordu)
-		var best = (55.0 if not arch["jutsu"].is_empty() else 40.0) if not Buffs.has("henge") else 0.0
+		var best = (55.0 if not (arch.get("jutsu", []) as Array).is_empty() else 40.0) if not Buffs.has("henge") else 0.0
 		for f in get_tree().get_nodes_in_group("fighters"):
 			if not Combat.hostile(self, f) or f.is_dead():
 				continue
@@ -314,7 +314,7 @@ func _chase(dt: float) -> void:
 		return
 	# menzilli: jutsu ya da kunai
 	# jutsu kullanan düşman: uzaktan ve sık atar, yakında da arada bir (eskiden 5-24 m, %30)
-	var jl: Array = arch["jutsu"]
+	var jl: Array = arch.get("jutsu", [])
 	var far_ok = d > 4.0 and d < 42.0
 	var near_ok = d <= 4.0 and not jl.is_empty() and randf() < 0.15
 	if (far_ok or near_ok) and ranged_cd <= 0.0 and randf() < 0.8:

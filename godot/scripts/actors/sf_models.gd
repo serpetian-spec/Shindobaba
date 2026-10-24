@@ -6,15 +6,7 @@ extends RefCounted
 ## hide: gizlenecek düğüm adı parçaları (zemin plakası, alakasız aksesuar)
 
 ## kurama / shukaku: hayran modelleri oyunun tarzına uymuyordu (sırıtıyordu), kendi prosedürel modellerimiz kullanılır
-const DEFS := {
-	"toad_boss": {"file": "battle_toad", "yaw": 180.0, "fit": "h", "surface": 1, "drop_flat": true},
-	"toad_mid": {"file": "naruto_frog", "yaw": 180.0, "fit": "h", "surface": 1, "tint": Color(0.92, 0.55, 0.2)},
-	"snake_boss": {"file": "aoda", "yaw": 180.0, "fit": "len", "surface": 1, "tint": Color(0.62, 0.3, 0.95), "luma": true},
-	"slug_queen": {"file": "slug_arion", "yaw": 180.0, "fit": "len", "surface": 3, "tint": Color(0.86, 0.92, 1.0), "luma": true},
-	"monkey_king": {"file": "monkey_king", "yaw": 180.0, "fit": "h", "surface": 1},
-	"weasel_trio": {"file": "mink_lowpoly_anim", "yaw": 180.0, "fit": "len", "surface": 0},
-	"crow_flock": {"file": "crow", "yaw": 180.0, "fit": "len", "surface": 0},
-}
+const DEFS := {}   # çağrı/canavar hayran modellerinin hepsi kaldırıldı (kendi modellerimiz)
 
 
 ## İskeletsiz canavar modellerinde deformasyon bölgeleri: (kuyruk başlangıcı z, ayak boyu y, baş bitişi z, baş alt sınırı y) — 0..1 oranları

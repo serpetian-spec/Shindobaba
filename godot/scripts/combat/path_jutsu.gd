@@ -214,17 +214,30 @@ func p_jagei_jubaku(c: Node3D, t: Node3D) -> void:
 	var d = fwd(c, t)
 	busy(c, 0.8)
 	var victims = cone_enemies(c, d, 18.0, 110.0)
-	var illus = snake_head(Color(0.25, 0.12, 0.32), 9.0)
-	var base = c.global_position - d * 3.0 + Vector3.UP * 5.5
-	scene_add(illus, base)
-	toward(illus, d + Vector3.DOWN * 0.25)
-	illus.scale = Vector3.ONE * 0.2
-	var tw = illus.create_tween()
-	tw.tween_property(illus, "scale", Vector3.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(illus, "global_position", base + d * 3.5 + Vector3.DOWN * 1.0, 0.3)
-	tw.tween_interval(1.2)
-	tw.tween_property(illus, "scale", Vector3.ONE * 0.01, 0.4)
-	tw.tween_callback(illus.queue_free)
+	# bakıştan doğan illüzyon: arkasından yerden kıvrılarak yükselen dev mor yılan, ağzını açıp kurbanların üstüne eğilir
+	var side = d.cross(Vector3.UP).normalized()
+	var root_p = gp(c.global_position - d * 4.0)
+	var head = make_snake(root_p + Vector3.DOWN * 2.0, Color(0.5, 0.25, 0.62), 3.2, 22)
+	var top = root_p + Vector3.UP * 9.0 + side * 2.0
+	var strike = c.global_position + d * 6.0 + Vector3.UP * 5.0
+	var path = [root_p + side * 3.0 + Vector3.UP * 2.0, root_p - side * 2.5 + Vector3.UP * 5.0, top, strike]
+	var seq = head.create_tween()
+	for k in path.size():
+		seq.tween_property(head, "global_position", path[k], 0.16 if k < 3 else 0.22).set_trans(Tween.TRANS_SINE)
+	seq.tween_callback(func():
+		toward(head, d + Vector3.DOWN * 0.6)
+		VFX.shockwave(strike, Color(0.75, 0.4, 1.0), 9.0, 0.35, false, d))
+	seq.tween_interval(1.0)
+	seq.tween_property(head, "global_position", root_p + Vector3.DOWN * 6.0, 0.5).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	seq.tween_callback(head.queue_free)
+	every(0.6, 1.0 / 30.0, func(_i, _k):
+		if is_instance_valid(head):
+			var nx = head.global_position + d * 0.5 + Vector3.DOWN * 0.15
+			head.look_at(nx, Vector3.UP))
+	FX.burst(root_p + Vector3.UP * 0.5, {"amount": 40, "life": 1.2, "tex": FX.tex_smoke, "add": false, "size": 2.0, "radius": 3.0, "vmin": 1, "vmax": 3,
+		"colors": [Color(0.35, 0.15, 0.45, 0.6), Color(0.2, 0.05, 0.25, 0)]})
+	if Game.world and c is Player:
+		Game.world.env.flash_tint(Color(0.35, 0.1, 0.45, 0.18), 1.4)
 	VFX.screen_lines(0.5, 0.8, Color(0.6, 0.3, 0.8))
 	Sfx.play("genjutsu", c.global_position, 0.6)
 	FX.flash_sphere(c.global_position + Vector3.UP * 1.6 + d * 0.3, Color(1.0, 0.85, 0.15), 0.6, 0.25)
@@ -375,8 +388,10 @@ func p_kuchiyose_sanju_rashomon(c: Node3D, t: Node3D) -> void:
 func kusanagi_blade(len_: float) -> MeshInstance3D:
 	var mesh = cached("kusanagi", func():
 		var b = MB.new()
-		b.add_grad("box", Vector3(0, 0, -0.5), Vector3(0.07, 0.016, 1.0), Color(0.95, 0.97, 1.0), Color(0.7, 0.75, 0.82))
-		b.add("box", Vector3(0, 0, 0.04), Vector3(0.13, 0.05, 0.05), Color(0.6, 0.55, 0.3))
+		b.add_grad("box", Vector3(0, 0, -0.5), Vector3(0.12, 0.025, 1.0), Color(1.0, 1.0, 1.0), Color(0.78, 0.85, 0.95))
+		b.add("box", Vector3(0, 0.0, -0.5), Vector3(0.04, 0.03, 1.0), Color(0.6, 0.7, 0.9))   # oluk
+		b.add("box", Vector3(0, 0, 0.04), Vector3(0.2, 0.07, 0.06), Color(0.7, 0.6, 0.3))
+		b.add("cyl", Vector3(0, 0, 0.16), Vector3(0.05, 0.22, 0.05), Color(0.2, 0.12, 0.25), Vector3(90, 0, 0), 6)
 		return b)
 	var mi = mi_of(mesh)
 	mi.scale = Vector3(1, 1, len_)
@@ -399,7 +414,8 @@ func p_kusanagi_kuchi(c: Node3D, t: Node3D) -> void:
 	after(0.28, func():
 		if not is_instance_valid(blade):
 			return
-		VFX.trail(blade, 0.15, Color(1, 1, 1), Color(0.75, 0.85, 1.0), Color(0.5, 0.6, 1.0, 0.0), 10)
+		VFX.trail(blade, 0.5, Color(1, 1, 1), Color(0.75, 0.85, 1.0), Color(0.5, 0.6, 1.0, 0.0), 12, 0.5)
+		VFX.star(mouth + d * 0.6, Color(0.85, 0.9, 1.0), 2.5, 0.15)
 		var tw = blade.create_tween()
 		tw.tween_property(blade, "scale", Vector3(1.6, 1.6, 25.0), 0.16).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
 		tw.tween_interval(0.25)
@@ -411,7 +427,10 @@ func p_kusanagi_kuchi(c: Node3D, t: Node3D) -> void:
 				for h in hit(c, p, 0.9, inf(c, "kusanagi_kuchi", 1.6, {"knock": 6.0, "kind": "heavy", "pierce_guard": true, "burn": 2.0, "hitstop": 0.08}), hits):
 					hits.append(h)
 					FX.hit_spark(h.global_position + Vector3.UP, Color(0.85, 0.9, 1.0), 1.4)
-			FX.speed_lines(mouth + d * 12.0, d)))
+			FX.speed_lines(mouth + d * 12.0, d)
+			for k in 5:
+				VFX.shockwave(mouth + d * (4.0 + k * 5.0), Color(0.8, 0.9, 1.0), 2.5, 0.25, false, d)
+			shake(0.4)))
 	fade_free(head, 1.0, 0.2)
 	# kılıç 15 sn sağ elde: vuruşlar uzar ve güçlenir
 	if c is Player:
@@ -730,6 +749,10 @@ func p_yamata_no_jutsu(c: Node3D, _t: Node3D) -> void:
 		m.visible = false
 	if c is Player:
 		Buffs.add("yamata", dur, {"armor": 0.45, "speed": 0.85})
+		# dev beden: kamera geri çekilip yükselir (kamera gövdenin içinde kalıyordu)
+		var cd0 = c.cam_dist
+		c.cam_dist = 26.0
+		after(dur, func(): if is_instance_valid(c): c.cam_dist = cd0)
 	var col = Color(0.36, 0.28, 0.42)
 	var mound = MB.new()
 	mound.add_grad("sphere", Vector3(0, 1.5, 0), Vector3(9.0, 5.0, 10.0), col.lightened(0.1), col.darkened(0.3), Vector3.ZERO, 14)
@@ -1315,17 +1338,22 @@ func p_bashosen_hi_no_maki(c: Node3D, t: Node3D) -> void:
 	var side = d.cross(Vector3.UP).normalized()
 	bashosen_fan(c, Color(1.0, 0.55, 0.15))
 	after(0.35, func():
-		var wall = MeshInstance3D.new()
-		var bm = BoxMesh.new()
-		bm.size = Vector3(22.0, 9.0, 3.0)
-		wall.mesh = bm
-		wall.material_override = VFX.mat_fire("fire", 3.0, 2.0, 0.38, 1.6, 0.18, Vector3.UP, true)
+		var wall = Node3D.new()
 		var start = gp(c.global_position + d * 4.0)
-		scene_add(wall, start + Vector3.UP * 4.0)
+		scene_add(wall, start)
 		toward(wall, d)
-		wall.scale = Vector3(0.2, 0.2, 1)
-		var tw = wall.create_tween()
-		tw.tween_property(wall, "scale", Vector3.ONE, 0.3)
+		for n in 11:
+			var cm = CylinderMesh.new()
+			cm.top_radius = 0.3; cm.bottom_radius = 1.2; cm.height = 1.0; cm.radial_segments = 12; cm.rings = 4
+			cm.cap_top = false; cm.cap_bottom = false
+			var col = VFX._mi(cm, VFX.mat_fire("fire", 3.2, 1.8, 0.4, 1.4, 0.24, Vector3.UP, true))
+			wall.add_child(col)
+			var hh = 8.0 - absf(n - 5) * 0.55
+			col.position = Vector3((n - 5) * 2.1, hh * 0.5, absf(n - 5) * 0.35)
+			col.scale = Vector3(2.0, 0.1, 2.0)
+			var ct = col.create_tween()
+			ct.tween_interval(absf(n - 5) * 0.03)
+			ct.tween_property(col, "scale", Vector3(2.0, hh, 2.0), 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		Sfx.play("fire", start, 0.6)
 		shake(0.7)
 		var hits = {}
@@ -1333,7 +1361,7 @@ func p_bashosen_hi_no_maki(c: Node3D, t: Node3D) -> void:
 			if not is_instance_valid(wall):
 				return
 			var p = gp(start + d * (k * 36.0))
-			wall.global_position = p + Vector3.UP * 4.0
+			wall.global_position = p
 			if i % 3 == 0:
 				VFX.embers(p + side * randf_range(-10, 10) + Vector3.UP * 2.0, Color(1, 0.55, 0.15), 10, 10.0)
 				if i % 9 == 0:

@@ -8,7 +8,8 @@ extends RefCounted
 static func build(model: String, h: float, length: float) -> Dictionary:
 	var out = {"root": Node3D.new(), "anim": "walk", "legs": [], "wings": [], "segments": [], "head": null, "tail": null, "mouth": Vector3(0, h * 0.5, -h * 0.5)}
 	# hayran modeli varsa onu kullan (assets/sketchfab)
-	var sf = SFModels.build(model, length if SFModels.DEFS.get(model, {}).get("fit", "h") == "len" and length > 0.0 else h)
+	# hayran modelleri kaldırıldı: tüm çağrılar kendi prosedürel modellerimiz
+	var sf = {}
 	if not sf.is_empty():
 		out["root"].add_child(sf["node"])
 		var names: Array = sf["anims"]
@@ -163,86 +164,110 @@ static func _bone_pos(pk: Dictionary, bone: String) -> Vector3:
 	return sk.get_bone_global_rest(sk.find_bone(bone)).origin
 
 
-# ------------------------------------------------------------------ kurbağalar (Quaternius Frog + Naruto aksesuarları)
+# ------------------------------------------------------------------ kurbağalar (kendi modelimiz: geniş basık gövde, iri göz kubbeleri, kocaman ağız, katlanmış arka bacaklar)
 static func _toad(out: Dictionary, model: String, h: float) -> void:
-	var main_c = {"toad_small": Color(0.35, 0.68, 0.3), "toad_mid": Color(0.88, 0.52, 0.18), "toad_boss": Color(0.72, 0.26, 0.16)}[model]
-	var pk = _pack(out, "frog", h, {"Frog_Main": main_c, "Frog_Secondary": Color(0.96, 0.86, 0.62)})
-	var head = _bone_pos(pk, "Head")
-	var torso = _bone_pos(pk, "Torso")
+	out["anim"] = "hop"
+	var main_c: Color = {"toad_small": Color(0.35, 0.68, 0.3), "toad_mid": Color(0.88, 0.52, 0.18), "toad_boss": Color(0.78, 0.3, 0.16)}[model]
+	var belly = Color(0.97, 0.88, 0.64)
+	var wart = main_c.darkened(0.25)
+	var root: Node3D = out["root"]
+	var W = h * 1.25   # gövde genişliği
+	var L = h * 1.35   # gövde boyu
+	var by = h * 0.5
+	var skin = func(_t: float, a: float, d: Vector3) -> Color:
+		if d.y < -0.25:
+			return belly
+		if sin(a * 5.0 + _t * 9.0) > 0.93:
+			return wart
+		return main_c.lerp(main_c.lightened(0.12), smoothstep(0.2, 0.9, d.y))
+	var b = MB.new()
+	# basık, öne doğru alçalan gövde
+	Loft.tube(b, [Vector3(0, by + h * 0.02, L * 0.42), Vector3(0, by + h * 0.12, L * 0.12), Vector3(0, by + h * 0.12, -L * 0.18), Vector3(0, by + h * 0.02, -L * 0.42)],
+		[Vector2(W * 0.38, h * 0.3), Vector2(W * 0.5, h * 0.44), Vector2(W * 0.5, h * 0.42), Vector2(W * 0.42, h * 0.3)], main_c, 22, 4, true, true, skin)
+	# kocaman ağız çizgisi ve dudak
+	var mz = -L * 0.46
+	b.add("torus", Vector3(0, by - h * 0.02, mz + L * 0.12), Vector3(W * 0.84, h * 0.08, L * 0.36), main_c.darkened(0.35), Vector3.ZERO, 24)
+	b.add("sphere", Vector3(0, by - h * 0.12, mz + L * 0.1), Vector3(W * 0.78, h * 0.24, L * 0.3), belly, Vector3.ZERO, 16)   # gırtlak kesesi
+	# iri göz kubbeleri + göz kapağı + yatay göz bebeği
+	for sx in [-1.0, 1.0]:
+		var ec = Vector3(W * 0.28 * sx, by + h * 0.4, -L * 0.24)
+		b.add_grad("sphere", ec, Vector3(h * 0.36, h * 0.32, h * 0.36), main_c.lightened(0.08), main_c.darkened(0.1), Vector3.ZERO, 14)
+		b.add("sphere", ec + Vector3(0.02 * sx * h, h * 0.02, -h * 0.12), Vector3(h * 0.26, h * 0.24, h * 0.14), Color(1.0, 0.86, 0.3), Vector3.ZERO, 12)
+		b.add("box", ec + Vector3(0.02 * sx * h, h * 0.02, -h * 0.19), Vector3(h * 0.16, h * 0.05, h * 0.02), Color(0.05, 0.03, 0.02))
+		b.add("sphere", ec + Vector3(0, h * 0.12, -h * 0.05), Vector3(h * 0.3, h * 0.1, h * 0.28), main_c.darkened(0.15), Vector3(-15, 0, 0), 12)   # kaş/kapak
+		b.add("sphere", Vector3(W * 0.12 * sx, by + h * 0.12, -L * 0.48), Vector3(h * 0.04, h * 0.03, h * 0.03), Color(0.08, 0.05, 0.04), Vector3.ZERO, 6)   # burun deliği
+	# sırtta siğil sırası
+	for i in 6:
+		for sx in [-1.0, 1.0]:
+			b.add("sphere", Vector3(W * (0.12 + 0.08 * (i % 2)) * sx, by + h * 0.44, -L * 0.1 + i * L * 0.09), Vector3.ONE * h * 0.07, wart, Vector3.ZERO, 6)
+	_mesh(root, b)
+	# ön kollar (kısa, perdeli el) ve katlanmış iri arka bacaklar: pivotlar zıplamada döner
+	for side in [-1.0, 1.0]:
+		var fa = _pivot(root, Vector3(W * 0.36 * side, by - h * 0.05, -L * 0.3))
+		var am = MB.new()
+		Loft.tube(am, [Vector3.ZERO, Vector3(W * 0.08 * side, -h * 0.22, -h * 0.08), Vector3(W * 0.1 * side, -by + h * 0.06, -h * 0.14)], [h * 0.12, h * 0.09, h * 0.07], main_c, 12, 3, true, true)
+		for f in 4:
+			var fd = Vector3((f - 1.5) * 0.35 * side + 0.3 * side, 0, -1).normalized()
+			am.add("sphere", Vector3(W * 0.1 * side, -by + h * 0.03, -h * 0.14) + fd * h * 0.16, Vector3(h * 0.07, h * 0.03, h * 0.07), belly, Vector3.ZERO, 6)
+		_mesh(fa, am)
+		out["legs"].append(fa)
+		var hl = _pivot(root, Vector3(W * 0.42 * side, by - h * 0.02, L * 0.3))
+		var lm = MB.new()
+		var knee = Vector3(W * 0.22 * side, h * 0.08, -h * 0.2)
+		var ankle = Vector3(W * 0.12 * side, -by + h * 0.18, h * 0.12)
+		Loft.tube(lm, [Vector3.ZERO, knee, ankle, Vector3(W * 0.14 * side, -by + h * 0.04, -h * 0.25)], [h * 0.24, h * 0.17, h * 0.1, h * 0.07], main_c, 14, 3, true, true, skin)
+		for f in 4:
+			var fd2 = Vector3((f - 1.5) * 0.4, 0, -1).normalized()
+			lm.add("sphere", Vector3(W * 0.14 * side, -by + h * 0.03, -h * 0.28) + fd2 * h * 0.18, Vector3(h * 0.08, h * 0.03, h * 0.09), belly, Vector3.ZERO, 6)
+		_mesh(hl, lm)
+		out["legs"].append(hl)
+	out["head"] = root
+	var torso = Vector3(0, by + h * 0.1, 0)
+	var head = Vector3(0, by + h * 0.3, -L * 0.3)
 	match model:
 		"toad_small":  # sırtta parşömen
-			var b = MB.new()
-			Loft.tube(b, [Vector3(-0.35, 0, 0), Vector3(0.35, 0, 0)], [0.09, 0.09], Color(0.9, 0.85, 0.68), 10, 1)
-			b.add("cyl", Vector3.ZERO, Vector3(0.2, 0.25, 0.2), Color(0.75, 0.15, 0.12), Vector3(0, 0, 90), 10)
-			_bone_mesh(pk, "Torso", b, Transform3D(Basis.IDENTITY, torso + Vector3(0, 0.15, -0.45)))
-		"toad_mid":  # kırmızı atkı + elde kılıç
-			var b = MB.new()
-			b.add("torus", Vector3.ZERO, Vector3(0.95, 0.5, 0.85), Color(0.78, 0.12, 0.12), Vector3.ZERO, 16)
-			Loft.tube(b, [Vector3(0.2, -0.05, -0.35), Vector3(0.35, -0.3, -0.55), Vector3(0.3, -0.6, -0.6)], [Vector2(0.12, 0.03), Vector2(0.1, 0.03), Vector2(0.08, 0.02)], Color(0.78, 0.12, 0.12), 8, 2)
-			_bone_mesh(pk, "Neck", b, Transform3D(Basis.IDENTITY, _bone_pos(pk, "Neck")))
 			var s = MB.new()
-			s.add("box", Vector3(0, 0, 0.6), Vector3(0.05, 0.12, 1.2), Color(0.8, 0.82, 0.86))
-			s.add("cyl", Vector3(0, 0, -0.05), Vector3(0.06, 0.3, 0.06), Color(0.2, 0.12, 0.1), Vector3(90, 0, 0), 8)
-			var hand = _bone_pos(pk, "LowerArm.R")
-			_bone_mesh(pk, "LowerArm.R", s, Transform3D(Basis.IDENTITY, hand + Vector3(-0.5, 0, 0)))
-		"toad_boss":
-			# mavi yelek (gövdeyi saran açık önlü kabuk) + sırtında 油 yaması
+			Loft.tube(s, [torso + Vector3(-h * 0.35, h * 0.45, h * 0.1), torso + Vector3(h * 0.35, h * 0.45, h * 0.1)], [h * 0.09, h * 0.09], Color(0.9, 0.85, 0.68), 10, 1)
+			s.add("cyl", torso + Vector3(0, h * 0.45, h * 0.1), Vector3(h * 0.2, h * 0.25, h * 0.2), Color(0.75, 0.15, 0.12), Vector3(0, 0, 90), 10)
+			_mesh(root, s)
+		"toad_mid":  # kırmızı atkı + elde kılıç
+			var s = MB.new()
+			s.add("torus", head + Vector3(0, -h * 0.12, h * 0.25), Vector3(W * 0.7, h * 0.2, h * 0.6), Color(0.78, 0.12, 0.12), Vector3.ZERO, 18)
+			Loft.tube(s, [head + Vector3(W * 0.2, -h * 0.15, h * 0.4), head + Vector3(W * 0.32, -h * 0.4, h * 0.7), head + Vector3(W * 0.3, -h * 0.7, h * 0.8)], [Vector2(0.12, 0.03) * h, Vector2(0.1, 0.03) * h, Vector2(0.08, 0.02) * h], Color(0.78, 0.12, 0.12), 8, 2)
+			s.add("box", Vector3(W * 0.5, by + h * 0.1, -L * 0.6), Vector3(h * 0.05, h * 0.1, h * 1.2), Color(0.82, 0.84, 0.88), Vector3(-20, 0, 0))
+			s.add("cyl", Vector3(W * 0.5, by + h * 0.3, -L * 0.1), Vector3(h * 0.06, h * 0.3, h * 0.06), Color(0.2, 0.12, 0.1), Vector3(70, 0, 0), 8)
+			_mesh(root, s)
+		"toad_boss":  # mavi yelek, sırtta çapraz kın, pipo, kaşta yara izi
 			var v = MB.new()
 			var vest = Color(0.18, 0.24, 0.45)
-			Loft.tube(v, [torso + Vector3(0, -0.55, 0), torso + Vector3(0, 0.1, 0), torso + Vector3(0, 0.6, 0)], [Vector2(0.78, 0.62), Vector2(0.86, 0.68), Vector2(0.72, 0.55)], vest, 20, 2, false, false,
-				func(_t: float, a: float, d: Vector3) -> Color: return Color(0.96, 0.86, 0.62) if d.z > 0.8 else vest)
-			v.add("cyl", torso + Vector3(0, 0.05, -0.7), Vector3(0.55, 0.04, 0.55), Color(0.95, 0.92, 0.85), Vector3(90, 0, 0), 16)
-			v.add("box", torso + Vector3(0, 0.05, -0.73), Vector3(0.05, 0.32, 0.02), Color(0.1, 0.1, 0.1))
-			v.add("box", torso + Vector3(0, 0.1, -0.73), Vector3(0.24, 0.05, 0.02), Color(0.1, 0.1, 0.1))
-			# sırtta çapraz kın + kabza
-			var k0 = torso + Vector3(-0.6, -0.5, -0.75); var k1 = torso + Vector3(0.55, 0.9, -0.7)
-			Loft.tube(v, [k0, k1], [Vector2(0.09, 0.05), Vector2(0.08, 0.05)], Color(0.14, 0.09, 0.07), 8, 1)
-			var hd = k1 + (k1 - k0).normalized() * 0.45
-			Loft.tube(v, [k1, hd], [0.05, 0.05], Color(0.62, 0.12, 0.1), 8, 1)
-			v.add("cyl", k1, Vector3(0.22, 0.03, 0.22), Color(0.78, 0.65, 0.25), Vector3(40, 0, -45), 12)
-			_bone_mesh(pk, "Torso", v, Transform3D.IDENTITY)
-			# pipo + kaşta yara izi
-			var p = MB.new()
-			Loft.tube(p, [head + Vector3(0.25, -0.15, 0.55), head + Vector3(0.5, -0.2, 0.95)], [0.035, 0.035], Color(0.3, 0.2, 0.12), 8, 1)
-			p.add("cyl", head + Vector3(0.52, -0.1, 0.98), Vector3(0.12, 0.16, 0.12), Color(0.3, 0.2, 0.12), Vector3.ZERO, 10)
-			p.add("box", head + Vector3(-0.28, 0.32, 0.45), Vector3(0.05, 0.3, 0.03), Color(0.2, 0.06, 0.05), Vector3(0, 0, 25))
-			_bone_mesh(pk, "Head", p, Transform3D.IDENTITY)
-	out["mouth"] = Vector3(0, h * 0.65, -h * 0.35)
+			Loft.tube(v, [torso + Vector3(0, -h * 0.1, L * 0.3), torso + Vector3(0, h * 0.05, 0), torso + Vector3(0, -h * 0.05, -L * 0.25)], [Vector2(W * 0.53, h * 0.47), Vector2(W * 0.55, h * 0.49), Vector2(W * 0.5, h * 0.44)], vest, 22, 2, false, false,
+				func(_t: float, a: float, d: Vector3) -> Color: return Color(0.96, 0.86, 0.62) if d.y < -0.45 else vest)
+			v.add("cyl", torso + Vector3(0, h * 0.5, h * 0.2), Vector3(h * 0.55, h * 0.04, h * 0.55), Color(0.95, 0.92, 0.85), Vector3.ZERO, 16)
+			v.add("box", torso + Vector3(0, h * 0.53, h * 0.2), Vector3(h * 0.05, h * 0.02, h * 0.32), Color(0.1, 0.1, 0.1))
+			v.add("box", torso + Vector3(0, h * 0.53, h * 0.15), Vector3(h * 0.24, h * 0.02, h * 0.05), Color(0.1, 0.1, 0.1))
+			var k0 = torso + Vector3(-W * 0.4, h * 0.3, L * 0.35); var k1 = torso + Vector3(W * 0.35, h * 0.75, -L * 0.15)
+			Loft.tube(v, [k0, k1], [Vector2(0.09, 0.05) * h, Vector2(0.08, 0.05) * h], Color(0.14, 0.09, 0.07), 8, 1)
+			var hd = k1 + (k1 - k0).normalized() * h * 0.45
+			Loft.tube(v, [k1, hd], [h * 0.05, h * 0.05], Color(0.62, 0.12, 0.1), 8, 1)
+			v.add("cyl", k1, Vector3(h * 0.22, h * 0.03, h * 0.22), Color(0.78, 0.65, 0.25), Vector3(40, 0, -45), 12)
+			Loft.tube(v, [Vector3(W * 0.3, by - h * 0.02, -L * 0.45), Vector3(W * 0.55, by + h * 0.05, -L * 0.75)], [h * 0.035, h * 0.035], Color(0.3, 0.2, 0.12), 8, 1)   # pipo
+			v.add("cyl", Vector3(W * 0.57, by + h * 0.12, -L * 0.78), Vector3(h * 0.12, h * 0.16, h * 0.12), Color(0.3, 0.2, 0.12), Vector3.ZERO, 10)
+			v.add("box", Vector3(-W * 0.28, by + h * 0.55, -L * 0.3), Vector3(h * 0.05, h * 0.3, h * 0.03), Color(0.2, 0.06, 0.05), Vector3(0, 0, 25))   # yara izi
+			_mesh(root, v)
+	out["mouth"] = Vector3(0, by + h * 0.05, -L * 0.5)
 
 
-# ------------------------------------------------------------------ yılanlar (Quaternius Snake)
+# ------------------------------------------------------------------ yılanlar (stilize toon; eski paket modeli kaldırıldı)
 static func _snake(out: Dictionary, model: String, h: float, length: float) -> void:
 	var boss = model == "snake_boss"
-	var rc = {}
-	if boss:
-		rc = {"DarkGreen": Color(0.38, 0.24, 0.55), "LightGreen": Color(0.86, 0.76, 0.46), "Purple": Color(0.25, 0.15, 0.35)}
-	var pk = _pack(out, "snake", maxf(h * 1.6, length * 0.35), rc)
-	if boss:
-		var head = _bone_pos(pk, "Head")
-		var b = MB.new()
-		for sx in [-1.0, 1.0]:
-			Loft.tube(b, [head + Vector3(0.18 * sx, 0.2, 0.05), head + Vector3(0.3 * sx, 0.45, -0.1), head + Vector3(0.32 * sx, 0.65, -0.35)], [0.06, 0.04, 0.005], Color(0.2, 0.15, 0.25), 8, 2, true, false)
-		_bone_mesh(pk, "Head", b, Transform3D.IDENTITY)
-	out["mouth"] = Vector3(0, h * 1.2, -h * 0.6)
+	var sg = toon_snake(out["root"], maxf(length, h * 6.0), h, h * 0.2, Color(0.5, 0.22, 0.8) if boss else Color(0.2, 0.42, 0.24), Color(0.97, 0.88, 0.62), Color(0.3, 0.1, 0.5) if boss else Color(0.1, 0.22, 0.1), boss)
+	out["anim"] = "shader"
+	out["mouth"] = sg["mouth"]
 
 
-# ------------------------------------------------------------------ ninja köpekleri (Quaternius Shiba Inu + alın bandı, yelek)
+# ------------------------------------------------------------------ ninja köpekleri (kendi modelimiz)
 static func _dog(out: Dictionary, model: String, h: float) -> void:
-	if model == "wolf_giant":
-		_dog_proc(out, model, h)
-		return
-	var pk = _pack(out, "shiba", h, {"Main": Color(0.68, 0.45, 0.24), "Main_Light": Color(0.96, 0.9, 0.8)})
-	var head = _bone_pos(pk, "Head")
-	var torso = _bone_pos(pk, "Torso2")
-	var hb = MB.new()
-	hb.add("cyl", head + Vector3(0, 0.12, 0.02), Vector3(0.55, 0.1, 0.5), Color(0.2, 0.3, 0.5), Vector3.ZERO, 14)  # alın bandı
-	hb.add("box", head + Vector3(0, 0.12, 0.27), Vector3(0.2, 0.09, 0.02), Color(0.82, 0.84, 0.88))
-	_bone_mesh(pk, "Head", hb, Transform3D.IDENTITY)
-	var vb = MB.new()
-	Loft.tube(vb, [torso + Vector3(0, 0, -0.35), torso + Vector3(0, 0.02, 0.35)], [Vector2(0.42, 0.42), Vector2(0.44, 0.45)], Color(0.2, 0.3, 0.5), 16, 2, false, false,
-		func(_t: float, a: float, _d: Vector3) -> Color: return Color(0.2, 0.3, 0.5) if sin(a) > -0.35 else Color(0.25, 0.35, 0.55))
-	_bone_mesh(pk, "Torso2", vb, Transform3D.IDENTITY)
-	out["mouth"] = Vector3(0, h * 0.75, -h * 0.9)
+	_dog_proc(out, model, h)
 
 
 # ------------------------------------------------------------------ yılanlar (stilize toon)

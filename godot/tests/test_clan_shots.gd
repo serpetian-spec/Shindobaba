@@ -94,4 +94,9 @@ func _ready() -> void:
 				cc.queue_free()
 		await _wait(0.8)
 		_clear()
+		for b in Buffs.active.keys() if "active" in Buffs else []:
+			Buffs.remove(b)
+		pl.combat.modes.set_size(1.0, 0.0)
+		pl.rebuild_model()
+		await _wait(0.4)
 	get_tree().quit()
