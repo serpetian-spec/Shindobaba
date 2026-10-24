@@ -169,7 +169,7 @@ func _templates(rank: String, here: String) -> Array:
 			t.append(_q_escort(here, "A"))
 			t.append(_q_defend(here, "A"))
 		"S":
-			t.append({"title": "Fırtınanın Kalbi: Raijū", "giver": kage, "brief": "Yıldırım Ülkesi'ndeki Fırtına Kanyonu'nda dev bir canavar uyandı. Yen ve mühürle!",
+			t.append({"title": "Fırtınanın Kalbi: Raijū", "giver": kage, "brief": "Yıldırım Ülkesi'ndeki Fırtına Kanyonu'nda bir kaçak ninjanın çağırdığı dev yıldırım canavarı köyleri yakıyor. Onu yen ve dağıt.",
 				"steps": [{"kind": "boss", "boss": "raiju", "near": "storm_canyon", "text": "Fırtına Kanyonu'na git ve Raijū'yu yen."}]})
 			t.append({"title": "Kuklacı Mukuro", "giver": kage, "brief": "Rüzgar Ülkesi'nde köyleri yağmalayan efsanevi kuklacı. Onu durdur.",
 				"steps": [{"kind": "boss", "boss": "puppeteer", "near": "suna", "text": "Rüzgar Ülkesi'ne git ve kuklacıyı yen."}]})

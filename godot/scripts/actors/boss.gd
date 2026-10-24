@@ -150,8 +150,5 @@ func take_hit(info: Dictionary) -> void:
 func die(info: Dictionary) -> void:
 	super.die(info)
 	Hud.boss_bar(null)
-	if kind == "raiju":
-		var pr = Game.profile
-		if not "jinchuriki" in pr["skills"]:
-			pr["skills"].append("jinchuriki")
-		Hud.banner("RAIJŪ MÜHÜRLENDİ", "Artık bir Jinchuriki'sin [X]", Color(0.5, 0.8, 1.0))
+	if kind == "raiju":   # Raijū bir çağrı canavarı: mühürlenmez (yalnız kuyruklu canavarlar mühürlenir), yenilince dağılır
+		Hud.banner("RAIJŪ DAĞILDI", "Fırtına dindi. Kanyonda bir kudretli chakra kalıntısı kaldı.", Color(0.5, 0.8, 1.0))

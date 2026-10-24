@@ -40,9 +40,12 @@ func beasts() -> Dictionary:
 		for id in LAIRS:
 			pr["beasts"][id] = {"state": "wild", "trust": 0.0}
 	# eski Raijū jinchūriki kaydı
+	# eski sürümde Raijū yenilince "jinchūriki" yapıyordu: gerçek bir kuyruklu canavar yoksa kaldır
+	if String(pr.get("jinchuriki", "")) == "raiju":
+		pr["jinchuriki"] = ""
+		pr["beasts"].erase("raiju")
 	if "jinchuriki" in pr.get("skills", []) and String(pr.get("jinchuriki", "")) == "":
-		pr["jinchuriki"] = "raiju"
-		pr["beasts"]["raiju"] = {"state": "sealed_player", "trust": 20.0}
+		pr["skills"].erase("jinchuriki")
 	return pr["beasts"]
 
 
