@@ -44,7 +44,7 @@ static func build(model: String, h: float, length: float) -> Dictionary:
 			out["anim"] = "shader"
 			out["mouth"] = sg["mouth"]
 		"snake_boss":
-			var sb = toon_snake(out["root"], length, h, h * 0.22, Color(0.5, 0.22, 0.8), Color(0.97, 0.88, 0.62), Color(0.3, 0.1, 0.5), true)
+			var sb = manda_snake(out["root"], length, h, h * 0.5)
 			out["anim"] = "shader"
 			out["mouth"] = sb["mouth"]
 		"slug_frag", "slug_acid", "slug_queen":
@@ -508,6 +508,91 @@ static func toon_snake(parent: Node3D, L: float, raise: float, r: float, back: C
 	holder.add_child(mi)
 	var size = Vector3(r * 4.2 if hood else r * 2.4, raise + hr, L)
 	var mouth = hc + Vector3(0, -hr * 0.2, -hr * 1.4)
+	var an = SnakeAnim.new()
+	an.name = "SnakeAnim"
+	holder.add_child(an)
+	an.setup(2, holder, [mat], size, Vector3.ZERO, mouth, hr * 1.6)
+	return {"node": holder, "mouth": mouth, "anim": an}
+
+
+## Yılan hükümdarı (REFERANS: Manda): tozlu mor-gri kalın gövde, kenarları tırtıklı koyu zeytin-kahve halka bantlar,
+## sırt boyunca açık parlak şerit; zırh plakalı yassı iri baş, geriye savrulan dört boynuz (iki büyük alın, iki küçük yan),
+## ağır kaş altında çekik yeşil göz, geniş açık ağız (kızıl-kahve iç, sivri dişler), kobra başlığı yok
+static func manda_snake(parent: Node3D, L: float, raise: float, r: float) -> Dictionary:
+	var holder = Node3D.new()
+	parent.add_child(holder)
+	var back = Color(0.44, 0.38, 0.46); var dark = Color(0.16, 0.15, 0.08); var hi = Color(0.8, 0.76, 0.8)
+	var belly = Color(0.55, 0.48, 0.54); var mouth_c = Color(0.48, 0.22, 0.18); var tooth = Color(0.96, 0.95, 0.9)
+	var mb = MB.new()
+	var z0 = -L * 0.5
+	var hr = r * 1.15   # baş yarıçapı
+	var pts = [Vector3(0, raise, z0 + hr * 1.6), Vector3(0, raise * 0.9, z0 + L * 0.08), Vector3(0, raise * 0.5, z0 + L * 0.16),
+		Vector3(0, r * 1.25, z0 + L * 0.27), Vector3(0, r * 1.0, z0 + L * 0.42), Vector3(0, r * 0.95, z0 + L * 0.6), Vector3(0, r * 0.7, z0 + L * 0.8),
+		Vector3(0, r * 0.3, z0 + L * 0.985)]
+	var rads = [Vector2(r * 0.95, r * 0.9), Vector2(r * 1.0, r * 0.95), Vector2(r * 1.1, r * 1.0), Vector2(r * 1.2, r * 1.05), Vector2(r * 1.22, r * 1.05),
+		Vector2(r * 1.05, r * 0.92), Vector2(r * 0.62, r * 0.56), Vector2(r * 0.08, r * 0.08)]
+	var col_fn = func(tt: float, a: float, d: Vector3) -> Color:
+		if d.y < -0.45:
+			return belly
+		# tırtıklı kenarlı koyu bant: bant fazı açıya göre dalgalanır (fırça darbesi gibi)
+		var ph = fposmod(tt * 19.0 + sin(a * 7.0 + tt * 40.0) * 0.06 + sin(a * 3.0) * 0.05, 1.0)
+		if ph < 0.2:
+			return dark
+		if ph < 0.24 or ph > 0.97:
+			return dark.lerp(back, 0.55)
+		# sırtta açık parlak şerit
+		if d.y > 0.82:
+			return hi
+		return back.lerp(back.lightened(0.12), clampf(d.y, 0.0, 1.0))
+	Loft.tube(mb, pts, rads, back, 18, 6, false, true, col_fn)
+	# ---- baş: yassı, geniş, öne doğru daralan; plaka dikişleri
+	var hc = Vector3(0, raise, z0 + hr * 0.5)
+	# uzun kama baş: arkası geniş, burun öne uzar ve basıklaşır
+	var hsp = [hc + Vector3(0, 0.0, hr * 1.2), hc + Vector3(0, hr * 0.1, 0.0), hc + Vector3(0, 0.0, -hr * 1.3), hc + Vector3(0, -hr * 0.15, -hr * 2.6), hc + Vector3(0, -hr * 0.22, -hr * 3.2)]
+	var hrd = [Vector2(hr * 1.0, hr * 0.62), Vector2(hr * 1.3, hr * 0.66), Vector2(hr * 1.15, hr * 0.52), Vector2(hr * 0.85, hr * 0.38), Vector2(hr * 0.45, hr * 0.22)]
+	Loft.tube(mb, hsp, hrd, back, 18, 5, true, true, func(_t: float, _a: float, d: Vector3) -> Color: return back.lightened(0.06) if d.y > -0.2 else belly)
+	var plates = [[0.0, 0.66, -0.2, 0.9], [0.0, 0.56, -1.2, 0.8], [0.45, 0.5, -0.6, 0.6], [-0.45, 0.5, -0.6, 0.6], [0.0, 0.4, -2.1, 0.6], [0.3, 0.38, -2.4, 0.4], [-0.3, 0.38, -2.4, 0.4], [0.3, 0.6, 0.5, 0.5], [-0.3, 0.6, 0.5, 0.5]]
+	for pl in plates:   # zırh plakası çizgileri: baş yüzeyine oturan ince koyu dikişler
+		var sp = BeastModels._tube_pt(hsp, hrd, clampf(0.5 - float(pl[2]) / 4.4, 0.05, 0.95), PI * 0.5 - float(pl[0]) * 0.9, hr * 0.01)
+		mb.add_xf("box", Transform3D(Basis.looking_at(-(sp[1] as Vector3), Vector3(0, 0, -1)) * Basis(Vector3.BACK, deg_to_rad(35.0 * signf(float(pl[0]) + 0.001))) * Basis.from_scale(Vector3(hr * float(pl[3]), hr * 0.035, hr * 0.03)), sp[0]), dark, 1)
+	for sx in [-1.0, 1.0]:
+		# ağır kaş çıkıntısı
+		mb.add("sphere", hc + Vector3(hr * 0.55 * sx, hr * 0.55, -hr * 0.45), Vector3(hr * 0.75, hr * 0.3, hr * 0.85), back.lightened(0.04), Vector3(0, 0, -14 * sx), 10)
+		# çekik yeşil göz (kaşın altında, yana-öne bakar)
+		var ep = hc + Vector3(hr * 0.88 * sx, hr * 0.34, -hr * 0.55)
+		mb.add("sphere", ep, Vector3(hr * 0.7, hr * 0.32, hr * 0.5), Color(0.06, 0.05, 0.05), Vector3(0, -25 * sx, -10 * sx), 10)
+		mb.add("sphere", ep + Vector3(hr * 0.07 * sx, 0, -hr * 0.03), Vector3(hr * 0.56, hr * 0.24, hr * 0.42), Color(0.4, 0.85, 0.65), Vector3(0, -25 * sx, -10 * sx), 10)
+		mb.add("sphere", ep + Vector3(hr * 0.12 * sx, 0, -hr * 0.06), Vector3(hr * 0.08, hr * 0.22, hr * 0.36), Color(0.02, 0.02, 0.02), Vector3.ZERO, 6)
+		# boynuzlar: alında büyük ve yanda küçük, geriye-yukarı savrulur, halka çizgili
+		for h in 2:
+			var h0 = hc + Vector3(hr * (0.45 + h * 0.5) * sx, hr * (0.6 - h * 0.15), hr * (0.1 + h * 0.3))
+			var L2 = hr * (3.4 - h * 1.4)
+			var hd = Vector3((0.3 + h * 0.55) * sx, 0.32 - h * 0.2, 1.0).normalized()   # geriye savrulur
+			Loft.tube(mb, [h0, h0 + hd * L2 * 0.5 + Vector3(0, L2 * 0.08, 0), h0 + hd * L2], [hr * (0.26 - h * 0.08), hr * (0.17 - h * 0.05), hr * 0.02], [back.lightened(0.1), back.lightened(0.15), back.lightened(0.2)], 10, 3, true, false)
+			for k in 3:
+				mb.add_xf("torus", Transform3D(Basis.looking_at(hd, Vector3.UP) * Basis(Vector3.RIGHT, PI * 0.5) * Basis.from_scale(Vector3.ONE * hr * (0.42 - k * 0.1 - h * 0.12)), h0 + hd * L2 * (0.15 + k * 0.2)), dark.lerp(back, 0.4), 10)
+	# ---- açık ağız: alt çene aşağı açılı, kızıl-kahve iç, üst ve alt sivri dişler, iki büyük zehir dişi
+	var jc = hc + Vector3(0, -hr * 0.42, -hr * 1.3)
+	mb.add_xf("sphere", Transform3D(Basis(Vector3.RIGHT, deg_to_rad(16)) * Basis.from_scale(Vector3(hr * 1.7, hr * 0.32, hr * 3.6)), jc + Vector3(0, -hr * 0.2, 0)), belly, 12)   # alt çene
+	mb.add_xf("sphere", Transform3D(Basis.from_scale(Vector3(hr * 1.5, hr * 0.3, hr * 3.3)), jc + Vector3(0, hr * 0.06, -hr * 0.05)), mouth_c, 12)   # ağız içi
+	for k in 9:
+		var u = k / 8.0
+		for sx in [-1.0, 1.0]:
+			var tp = jc + Vector3(lerpf(0.75, 0.25, u) * hr * sx, hr * 0.2, lerpf(1.2, -1.7, u) * hr)
+			var big = k == 7
+			mb.add("cone", tp, Vector3(hr * (0.1 if not big else 0.16), hr * (0.22 if not big else 0.55), hr * 0.1), tooth, Vector3(180, 0, 0), 5)
+			mb.add("cone", tp + Vector3(0, -hr * 0.3, hr * 0.15), Vector3(hr * 0.08, hr * 0.18, hr * 0.08), tooth, Vector3.ZERO, 5)
+	var mat = ShaderMaterial.new()
+	mat.shader = load("res://shaders/beast.gdshader")
+	mat.set_shader_parameter("surface", 1)
+	mat.set_shader_parameter("stroke", 0.3)
+	mat.set_shader_parameter("shadow_tint", Color(0.3, 0.24, 0.34))
+	var mi = MeshInstance3D.new()
+	mi.mesh = mb.build(mat)
+	mi.material_override = mat
+	holder.add_child(mi)
+	var size = Vector3(r * 2.6, raise + hr, L)
+	var mouth = hc + Vector3(0, -hr * 0.3, -hr * 3.0)
 	var an = SnakeAnim.new()
 	an.name = "SnakeAnim"
 	holder.add_child(an)
