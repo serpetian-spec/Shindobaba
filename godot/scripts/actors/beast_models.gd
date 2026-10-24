@@ -761,7 +761,7 @@ static func _son_goku(r: BeastRig, root: Node3D) -> void:
 	# REFERANS (anime): koyu kırmızı, püskül püskül kürklü kambur dev maymun; dev kaslı omuzlar, uzun kollar;
 	# soluk gri-yeşil çıplak göğüs/karın; kırmızı yeleyle çevrili soluk yeşil yüz, ARDINA KADAR AÇIK dikey ağız (mor-pembe gırtlak, çevresinde diş halkası),
 	# alt köşelerden sarkan iki koyu kıvrık diş; küçük sarı-turuncu gözler, kalın kaş; öne-yukarı kıvrılan bej boynuz tacı; bej kemik plakalı kalın kuyruklar
-	var c = Color(0.48, 0.07, 0.05); var cd = Color(0.3, 0.04, 0.04); var g = Color(0.62, 0.7, 0.6); var gd = Color(0.45, 0.53, 0.46)
+	var c = Color(0.7, 0.12, 0.06); var cd = Color(0.48, 0.07, 0.05); var g = Color(0.66, 0.74, 0.62); var gd = Color(0.45, 0.53, 0.46)
 	var bone = Color(0.86, 0.76, 0.58); var dk = Color(0.1, 0.05, 0.05); var gum = Color(0.45, 0.08, 0.12)
 	var fur = func(t: float, a: float, d: Vector3) -> Color:
 		if d.z < -0.5 and absf(d.x) < 0.7 and t > 0.15 and t < 0.8:
@@ -822,10 +822,16 @@ static func _son_goku(r: BeastRig, root: Node3D) -> void:
 	mh.add_xf("sphere", Transform3D(mb_basis * Basis.from_scale(Vector3(1.25, 1.65, 0.3)), md[0] + (md[1] as Vector3) * 0.05), gum, 14)    # dudak/diş eti halkası
 	mh.add_xf("sphere", Transform3D(mb_basis * Basis.from_scale(Vector3(1.0, 1.38, 0.34)), md[0] + (md[1] as Vector3) * 0.06), Color(0.72, 0.45, 0.62), 14)   # mor-pembe ağız içi
 	mh.add_xf("sphere", Transform3D(mb_basis * Basis.from_scale(Vector3(0.42, 0.6, 0.36)), md[0] + (md[1] as Vector3) * 0.07 + mb_basis.y * 0.05), Color(0.2, 0.05, 0.1), 10)   # koyu gırtlak
-	for i in 16:   # diş halkası: ağız kenarından içe bakan sivri dişler
-		var ang = TAU * i / 16.0
-		var rim = mb_basis.x * cos(ang) * 0.6 + mb_basis.y * sin(ang) * 0.8
-		BeastRig.claw(mh, md[0] + (md[1] as Vector3) * 0.16 + rim, (-rim.normalized() + (md[1] as Vector3) * 0.3).normalized(), 0.34 + 0.12 * (i % 2), 0.09, bone)
+	# maymun burnu: ağzın üstünde öne çıkan soluk yeşil namlu, iki burun deliği
+	var nz: Vector3 = md[0] + (md[1] as Vector3) * 0.12 + mb_basis.y * 0.95
+	mh.add_xf("sphere", Transform3D(mb_basis * Basis.from_scale(Vector3(1.15, 0.5, 0.5)), nz), g, 14)
+	for sx in [-1.0, 1.0]:
+		mh.add_xf("sphere", Transform3D(mb_basis * Basis.from_scale(Vector3(0.22, 0.14, 0.12)), nz + mb_basis.x * 0.28 * sx + (md[1] as Vector3) * 0.22 - mb_basis.y * 0.1), dk, 8)
+	# üst ve alt kare dişler (ağzın üst ve alt kenarında, halka değil)
+	for i in 7:
+		var x = lerpf(-0.48, 0.48, i / 6.0)
+		mh.add_xf("box", Transform3D(mb_basis * Basis.from_scale(Vector3(0.14, 0.24, 0.1)), md[0] + (md[1] as Vector3) * 0.22 + mb_basis.x * x + mb_basis.y * (0.68 - absf(x) * 0.25)), bone, 1)
+		mh.add_xf("box", Transform3D(mb_basis * Basis.from_scale(Vector3(0.13, 0.2, 0.1)), md[0] + (md[1] as Vector3) * 0.22 + mb_basis.x * x * 0.9 - mb_basis.y * (0.72 - absf(x) * 0.25)), bone, 1)
 	for sx in [-1.0, 1.0]:
 		# alt köşelerden aşağı sarkan iki koyu kıvrık diş
 		var fp: Vector3 = md[0] + (md[1] as Vector3) * 0.2 + mb_basis.x * 0.62 * sx - mb_basis.y * 0.55
@@ -841,9 +847,18 @@ static func _son_goku(r: BeastRig, root: Node3D) -> void:
 		# sivri soluk yeşil kulaklar
 		Loft.tube(mh, [Vector3(1.6 * sx, 0.4, -0.2), Vector3(2.2 * sx, 0.75, 0.0), Vector3(2.6 * sx, 1.1, 0.25)], [Vector2(0.5, 0.2), Vector2(0.35, 0.15), Vector2(0.03, 0.03)], g, 10, 3)
 		# bej boynuz tacı: alından öne, sonra yukarı kıvrılır; uçları koyu
-		var hp = dome.call(0.32 * sx, 0.8, -0.1)
+		# koç boynuzu gibi: şakaktan geriye-yukarı çıkar, tepede öne kıvrılıp alnın üstüne iner; uçları koyu
+		var hp = dome.call(0.75 * sx, 0.6, -0.1)
 		var h0: Vector3 = hp[0]
-		Loft.tube(mh, [h0, h0 + Vector3(0.2 * sx, 0.4, -0.55), h0 + Vector3(0.35 * sx, 1.05, -0.85), h0 + Vector3(0.3 * sx, 1.75, -0.7), h0 + Vector3(0.18 * sx, 2.15, -0.35)], [0.32, 0.28, 0.21, 0.12, 0.03], [bone, bone, bone, bone.lerp(dk, 0.5), dk], 10, 3, true, false)
+		Loft.tube(mh, [h0, h0 + Vector3(0.35 * sx, 0.55, 0.55), h0 + Vector3(0.3 * sx, 1.35, 0.5), h0 + Vector3(0.12 * sx, 1.75, -0.2), h0 + Vector3(-0.05 * sx, 1.55, -0.85), h0 + Vector3(-0.12 * sx, 1.05, -1.1)], [0.36, 0.33, 0.28, 0.22, 0.14, 0.03], [bone, bone, bone, bone, bone.lerp(dk, 0.5), dk], 10, 4, true, false)
+	# alnı saran bej taç bandı (boynuzları birleştirir)
+	var cb: Array = []
+	for k in 7:
+		cb.append((dome.call(lerpf(-0.8, 0.8, k / 6.0), 0.68, 0.05)[0] as Vector3))
+	var cbr: Array = []
+	cbr.resize(cb.size())
+	cbr.fill(Vector2(0.16, 0.12))
+	Loft.tube(mh, cb, cbr, bone, 8, 3)
 	r._mesh(r.head, mh)
 	r._collider(r.head, Vector3(0, 0, -0.4), Vector3(3.6, 3.4, 3.4))
 	r.jaw = r._pivot(r.head, (md[0] as Vector3) - mb_basis.y * 0.9, "cene")
@@ -854,7 +869,8 @@ static func _son_goku(r: BeastRig, root: Node3D) -> void:
 	for sx in [-1.0, 1.0]:
 		_arm(r, r.chest, sx, Vector3(3.4 * sx, 1.1, -0.2), Vector3(1.1 * sx, -3.3, -0.6), Vector3(0.2 * sx, -3.0, -1.2), 1.45, 1.15, 0.95, c, g, dk, 5, 1.6)
 		_leg(r, r.hips, sx, Vector3(1.6 * sx, -1.2, 0.2), Vector3(0.6 * sx, -1.3, -0.5), Vector3(0, -1.1, 0.1), 1.35, 1.1, 0.85, c, g, dk, false, false, 1.3)
-	_tail_fan(r, r.hips, Vector3(0, 0.4, 2.0), 4, 62.0, -22.0, 13.0, 0.7, 1.05, c, cd, "spike", 9)
+	r.tail_curl = -0.02   # arkadan yukarı kalkar
+	_tail_fan(r, r.hips, Vector3(0, 0.4, 2.0), 4, 55.0, -48.0, 15.0, 1.25, 1.55, c, cd, "spike", 9)
 	_particles(r.mouth, Vector3(0.4, 0.4, 0.3), [Color(1.0, 0.5, 0.1, 0.9), Color(0.3, 0.05, 0.0, 0.0)], 30, 0.7, Vector3(0, 1, -2), 0.8, true)
 	r._weak(r.head, Vector3(0, 1.6, 0.0))
 	r._weak(r.chest, Vector3(0, 1.8, 1.8))
