@@ -72,7 +72,8 @@ static func build(model: String, h: float, length: float) -> Dictionary:
 			b.add("sphere", Vector3(0, h * 0.5, 0), Vector3.ONE * h, Color(0.6, 0.5, 0.4), Vector3.ZERO, 10)
 			_mesh(out["root"], b)
 	var surf = {"toad": 1, "snak": 1, "slug": 3, "hawk": 0, "dog_": 0, "wolf": 0, "monk": 0, "crow": 0, "sala": 1, "turt": 2, "weas": 0, "cat_": 0, "spid": 1}.get(model.substr(0, 4), 0)
-	var bm = BeastModels.beast_material(surf, Color(0.3, 0.26, 0.4))
+	# beyaz sümüklüböcek gölgede maviye kaçıyordu: açık gölge tonu
+	var bm = BeastModels.beast_material(surf, Color(0.86, 0.86, 0.84) if model.begins_with("slug") else Color(0.3, 0.26, 0.4))
 	for mi in out["root"].find_children("*", "MeshInstance3D", true, false):
 		if mi.material_override == null and mi.mesh and mi.mesh.get_surface_count() > 0 and mi.mesh.surface_get_material(0) == Props.toon():
 			mi.material_override = bm
@@ -647,36 +648,99 @@ static func _coil_anim(out: Dictionary, node: Node3D, sz: Vector3) -> void:
 	out["mouth"] = tip
 
 
-# ------------------------------------------------------------------ sümüklüböcekler
+
+## Sümüklüböcekler (REFERANS: Katsuyu): beyaz gövdenin ön yarısı sütun gibi dikilir, arka yarısı yerde sivri kuyruğa iner;
+## iki yanda başın tepesinden kuyruğa tırtıklı kenarlı turkuaz şerit, kalkık gövdenin önü açık nane, ince yatay kırışıklar,
+## tabanda koyu kenar; kubbe başta iki ince göz sapı (yuvarlak gri gözler), kapalı kıvrık gözler ve küçük "w" ağız.
+## Şifa parçacıkları aynı desenin yerde sürünen minik damla hali.
 static func _slug(out: Dictionary, model: String, h: float, length: float) -> void:
 	out["anim"] = "crawl"
+	var raise = {"slug_frag": 0.0, "slug_acid": 0.6, "slug_queen": 1.0}[model]
 	if model == "slug_frag":
-		length = h * 2.2
-	var white = Color(0.94, 0.96, 0.98)
-	var stripe = {"slug_frag": Color(0.4, 0.6, 0.95), "slug_acid": Color(0.45, 0.8, 0.25), "slug_queen": Color(0.35, 0.5, 0.9)}[model]
+		length = h * 2.6
+	else:
+		length = h * (1.7 if raise >= 1.0 else 2.2)   # referans: kuyruk boyu ≈ yüksekliğin 1.7 katı
+	var white = Color(0.94, 0.96, 0.95)
+	var mint = Color(0.84, 0.92, 0.89)
+	var teal = Color(0.18, 0.52, 0.5) if model != "slug_acid" else Color(0.35, 0.62, 0.22)
+	var rim = Color(0.72, 0.78, 0.76)
+	var L = length
+	var W = h * (0.31 if raise > 0.0 else 0.55)        # kalkık gövdenin yarı eni (referans: eni boyunun ~yarısı)
+	var gh = W * (0.85 if raise > 0.0 else 0.75)       # yerdeki gövdenin yüksekliği
+	var top = h if raise > 0.0 else gh * 1.6
+	var pts = [Vector3(0, gh * 0.2, L * 0.5), Vector3(0, gh * 0.5, L * 0.3), Vector3(0, gh * 0.68, L * 0.06)]
+	var rads = [Vector2(W * 0.12, gh * 0.12), Vector2(W * 0.62, gh * 0.5), Vector2(W * 0.86, gh * 0.72)]
+	if raise > 0.0:
+		pts += [Vector3(0, gh * 0.8 + top * 0.08, -L * 0.13), Vector3(0, lerpf(gh, top, 0.45), -L * 0.2), Vector3(0, lerpf(gh, top, 0.75), -L * 0.215), Vector3(0, top - W * 0.85, -L * 0.21)]
+		# dik gövdenin ön-arka derinliği kubbeden az: kubbe (ve yüz) önde kalsın
+		rads += [Vector2(W * 0.95, W * 0.78), Vector2(W, W * 0.74), Vector2(W * 0.96, W * 0.7), Vector2(W * 0.86, W * 0.66)]
+	else:
+		pts += [Vector3(0, gh * 0.72, -L * 0.2), Vector3(0, gh * 0.66, -L * 0.36)]
+		rads += [Vector2(W * 0.9, gh * 0.75), Vector2(W * 0.7, gh * 0.62)]
+	var col_fn = func(tt: float, a: float, d: Vector3) -> Color:
+		if d.y < -0.55:
+			return rim
+		# ince yatay kırışıklar
+		var wr = fposmod(tt * 60.0, 1.0) < 0.05
+		var base = white
+		if raise > 0.0 and d.z < -0.5 and tt > 0.55:
+			base = mint   # kalkık gövdenin önü
+		# yan şeritler: tırtıklı kenarlı bant (kalkık kısımda arka-yanlarda)
+		# kalın, kesintisiz şerit: yanların üst yarısında (kalkık kısımda yan-arka), kenarı ince tırtıklı
+		var jag = sin(tt * 220.0 + a * 3.0) * 0.025
+		var side = absf(d.x)
+		var up = d.y if raise <= 0.0 or tt < 0.45 else d.z   # dik kısımda sırt arkaya (+Z) bakar
+		var band = side > 0.42 + jag and side < 0.86 + jag and up > -0.25
+		if band and d.y > -0.4 and tt > 0.04:
+			base = teal
+		# başın tepesinde turkuaz yama (iki şerit burada birleşir)
+		if tt > 0.86 and d.y > 0.55 and d.z > -0.3:
+			base = teal
+		return base.darkened(0.1) if wr else base
 	var body = Node3D.new()
 	out["root"].add_child(body)
 	var b = MB.new()
-	b.add("sphere", Vector3(0, h * 0.45, 0), Vector3(h * 1.05, h * 0.9, length), white, Vector3.ZERO, 18)
-	b.add("sphere", Vector3(0, h * 0.18, 0.05 * length), Vector3(h * 1.25, h * 0.35, length * 1.08), white.darkened(0.08), Vector3.ZERO, 14)  # taban
-	b.add("sphere", Vector3(0, h * 0.5, 0), Vector3(h * 0.25, h * 0.86, length * 0.86), stripe, Vector3.ZERO, 12)  # sırt şeridi
-	for sx in [-1.0, 1.0]:
-		b.add("sphere", Vector3(h * 0.33 * sx, h * 0.45, 0), Vector3(h * 0.4, h * 0.6, length * 0.8), stripe.lightened(0.25), Vector3(0, 0, 0), 12)
-	b.add("sphere", Vector3(0, h * 0.45, 0), Vector3(h * 1.0, h * 0.84, length * 0.97), white, Vector3.ZERO, 18)  # şeritleri çerçeveleyen gövde
-	if model == "slug_queen":
-		for i in 5:  # kraliçe sırt benekleri
-			b.add("sphere", Vector3(0, h * 0.88, -length * 0.3 + i * length * 0.15), Vector3(h * 0.16, h * 0.08, h * 0.2), stripe.darkened(0.2), Vector3.ZERO, 8)
+	Loft.tube(b, pts, rads, white, 18, 6, false, true, col_fn)
+	# taban kenarı: gövdenin altında yere yayılan koyu, hafif geniş şerit
+	var fpts = [Vector3(0, 0.02 * h, L * 0.5), Vector3(0, 0.04 * h, L * 0.25), Vector3(0, 0.05 * h, 0.0), Vector3(0, 0.05 * h, -L * 0.2), Vector3(0, 0.04 * h, -L * (0.3 if raise > 0.0 else 0.38))]
+	Loft.tube(b, fpts, [Vector2(W * 0.15, gh * 0.06), Vector2(W * 0.75, gh * 0.12), Vector2(W * 1.0, gh * 0.14), Vector2(W * 1.08, gh * 0.15), Vector2(W * 0.9, gh * 0.12)], rim, 14, 4, true, true)
+	var hc: Vector3 = pts[pts.size() - 1]
+	var hr = rads[rads.size() - 1].x
+	if raise > 0.0:
+		# kubbe baş: gövdenin tepesini yuvarlar (düz kesik değil)
+		b.add("sphere", hc + Vector3(0, hr * 0.1, 0), Vector3(hr * 2.0, hr * 2.3, hr * 1.9), white, Vector3.ZERO, 22)
+		b.add("sphere", hc + Vector3(0, hr * 0.9, hr * 0.2), Vector3(hr * 1.1, hr * 0.55, hr * 1.1), teal, Vector3.ZERO, 14)   # tepe yaması
 	_mesh(body, b)
 	out["segments"].append(body)
-	# göz sapları
-	var head = _pivot(out["root"], Vector3(0, h * 0.7, -length * 0.42))
+	# baş: kubbenin önünde yüz, tepesinde göz sapları
+	var head = _pivot(out["root"], hc)
 	var eb = MB.new()
+	var ink = Color(0.12, 0.14, 0.14)
+	# yüz kubbenin gövdeden taşan üst yarısında, yüzeyin hemen önünde (gövde tüpünün içine gömülmesin)
+	var fy = -hr * 0.05 if raise > 0.0 else hr * 0.1
+	var fz = -(hr * 0.95 * sqrt(maxf(0.0, 1.0 - pow(fy / (hr * 0.95), 2.0))) + hr * 0.03) if raise > 0.0 else -hr * 0.97
 	for sx in [-1.0, 1.0]:
-		eb.add("cyl", Vector3(h * 0.16 * sx, h * 0.25, -h * 0.05), Vector3(h * 0.07, h * 0.55, h * 0.07), white, Vector3(-20, 0, 12 * sx), 8)
-		eb.add("sphere", Vector3(h * 0.22 * sx, h * 0.52, -h * 0.14), Vector3(h * 0.14, h * 0.14, h * 0.14), Color(0.1, 0.1, 0.15), Vector3.ZERO, 8)
+		# kapalı kıvrık göz: aşağı kıvrık yay + uçta küçük kıvrım
+		for k in 7:
+			var u = (k - 3) / 3.0
+			eb.add("box", Vector3(sx * hr * (0.36 + u * 0.15), fy + hr * (0.1 - u * u * 0.08), fz + (absf(u) * 0.08 + 0.02) * hr), Vector3(hr * 0.09, hr * 0.035, hr * 0.04), ink, Vector3(0, 0, -u * 35.0 * sx))
+		eb.add("torus", Vector3(sx * hr * 0.56, fy - hr * 0.02, fz + hr * 0.14), Vector3(hr * 0.12, hr * 0.12, hr * 0.12), ink, Vector3(80, 0, 0), 10)
+		# göz sapı: tepeden dışa-yukarı ince sap, ucunda gri göz ve koyu halka
+		var s0 = Vector3(sx * hr * 0.42, hr * 0.95, hr * 0.05)
+		var sd = Vector3(sx * 0.45, 1.0, -0.15).normalized()
+		var sl = hr * (1.2 if raise > 0.0 else 0.8)
+		var mid = s0 + sd * sl * 0.5
+		eb.add_xf("cyl", Transform3D(Basis(Quaternion(Vector3.UP, sd)) * Basis.from_scale(Vector3(hr * 0.14, sl, hr * 0.14)), mid), white, 8)
+		var ep = s0 + sd * sl
+		eb.add("sphere", ep, Vector3.ONE * hr * 0.4, Color(0.88, 0.9, 0.9), Vector3.ZERO, 12)
+		eb.add("sphere", ep + Vector3(0, 0, -hr * 0.11), Vector3(hr * 0.16, hr * 0.16, hr * 0.1), Color(0.35, 0.4, 0.42), Vector3.ZERO, 8)
+	# küçük "w" ağız
+	for k in 4:
+		var x = (k - 1.5) * hr * 0.13
+		eb.add("box", Vector3(x, fy - hr * 0.02 + (0.03 if k % 2 else -0.03) * hr, fz - hr * 0.02), Vector3(hr * 0.15, hr * 0.045, hr * 0.04), ink, Vector3(0, 0, 40 if k % 2 else -40))
 	_mesh(head, eb)
 	out["head"] = head
-	out["mouth"] = Vector3(0, h * 0.4, -length * 0.5)
+	out["mouth"] = hc + Vector3(0, fy - hr * 0.12, fz)
 
 
 # ------------------------------------------------------------------ şahinler
