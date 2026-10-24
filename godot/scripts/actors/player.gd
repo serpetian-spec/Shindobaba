@@ -484,6 +484,8 @@ func _ground_air_move(dt: float) -> void:
 		chakra -= 1.5 * maxf(0.1, 1.0 + Stats.skill(Game.profile, "water_cost")) * dt  # su üstünde durmak chakra ister
 		if chakra <= 0.0:
 			swimming = true
+			leaping = false
+			model.overlay.set_pose("leap", 0.0)
 	if swimming:
 		ground = -1.3
 		if not on_water or chakra > 25.0 and Input.is_action_just_pressed("jump"):
@@ -556,6 +558,8 @@ func start_flight(src: String, cfg := {}) -> void:
 	if fly_src != "":
 		stop_flight()
 	fly_src = src
+	leaping = false
+	flip_t = -1.0
 	fly_cfg = cfg.duplicate()
 	fly_cfg["t"] = 0.0
 	if cfg.get("vis") is Node3D:
@@ -1016,12 +1020,22 @@ func _animate(sp: float, sprint: bool) -> void:
 		if model.current not in ["jump", "roll"] or model.anim_progress() > 0.95:
 			model.play("air", 0.25)
 		ov.set_pose("ninja_run", 0.0)
+		# süper zıplama dışındaki düşüşlerde kollar açık süzülme pozu kalmasın (duvar/ip/vuruş/uçuş sonrası takılıyordu)
+		if not leaping and flip_t < 0.0:
+			ov.set_pose("leap", 0.0)
+			ov.glide_land = move_toward(ov.glide_land, 0.0, get_physics_process_delta_time() * 4.0)
 		if leaping and rope_t < 0.0:
 			# süzülme; yere yaklaşırken inişe hazırlan (dizler öne)
 			var h = global_position.y - Game.terrain_height(global_position.x, global_position.z)
 			var want = clampf(1.0 - (h - 1.5) / 6.0, 0.0, 1.0) if velocity.y < 0.0 else 0.0
 			ov.glide_land = move_toward(ov.glide_land, want, get_physics_process_delta_time() * 4.0)
 		return
+	# yerdeyken süzülme/takla pozları her durumda bırakılır
+	if not leaping:
+		ov.set_pose("leap", 0.0)
+		ov.glide_land = 0.0
+		if mantle_t < 0.0 and flip_t < 0.0:
+			ov.tuck = 0.0
 	if land_t > 0.0:
 		return
 	if sp > 0.6:
