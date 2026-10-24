@@ -303,6 +303,40 @@ static func _swirls(r: BeastRig, parent: Node3D, spine: Array, rad: Array, n: in
 	r._mesh(parent, mb)
 
 
+## Kaplan çizgisi gibi yassı fırça izleri: yüzeye yapışık, iki ucu sivrilen, ortası kalın, kırık (V/şimşek) biçimli koyu desenler (Shukaku lanet mührü)
+static func _brush_marks(r: BeastRig, parent: Node3D, spine: Array, rad: Array, n: int, seed_v: int, col: Color, w: float, ln := 1.0) -> void:
+	var mb = MB.new()
+	var rng = RandomNumberGenerator.new()
+	rng.seed = seed_v
+	for v in n:
+		var t0 = rng.randf_range(0.04, 0.96)
+		var a0 = rng.randf_range(-PI, PI)
+		var ang = rng.randf_range(-0.8, 0.8) + (PI * 0.5 if rng.randf() < 0.3 else 0.0)   # çoğu enine (çevre boyunca), bazısı dikey
+		var l = ln * rng.randf_range(0.5, 1.3)
+		var kink = rng.randf_range(-0.6, 0.6)
+		var pts: Array = []
+		var rr: Array = []
+		var ups: Array = []
+		for k in 5:
+			var u = k / 4.0
+			var off = (u - 0.5) * l
+			var bend = (0.5 - absf(u - 0.5)) * kink * l * 0.5
+			var da = (cos(ang) * off + sin(ang) * bend) / maxf(0.5, (rad[0] as Vector2).x)
+			var dt = (sin(ang) * off - cos(ang) * bend) * 0.045
+			var d = _tube_pt(spine, rad, clampf(t0 + dt, 0.01, 0.99), a0 + da, 0.035)
+			pts.append(d[0])
+			ups.append(d[1])
+			var wk = w * sin(u * PI) + 0.01
+			rr.append(Vector2(wk, 0.025))
+		# yüzeye yassı: up = yüzey normali (orta noktanınki)
+		Loft.tube(mb, pts, rr, col, 4, 2, true, true, Callable(), ups[2])
+		if rng.randf() < 0.45:   # yan çatal (fırça izinin kenarından çıkan kısa diken)
+			var mid: Vector3 = pts[2]
+			var e = _tube_pt(spine, rad, clampf(t0 + rng.randf_range(-0.04, 0.04), 0.01, 0.99), a0 + rng.randf_range(-0.35, 0.35), 0.035)
+			Loft.tube(mb, [mid, mid.lerp(e[0], 0.5), e[0]], [Vector2(w * 0.55, 0.025), Vector2(w * 0.35, 0.025), Vector2(0.01, 0.02)], col, 4, 2, true, true, Callable(), ups[2])
+	r._mesh(parent, mb)
+
+
 ## Gövde tüpünün yüzeyinde nokta + normal (Loft ile aynı Catmull-Rom); t: 0..1 omurga boyunca, a: kesit açısı (90° = üst)
 static func _tube_pt(spine: Array, rad: Array, t: float, a: float, lift := 0.0) -> Array:
 	var x = clampf(t, 0.0, 0.999) * (spine.size() - 1)
@@ -511,7 +545,7 @@ static func _shukaku(r: BeastRig, root: Node3D) -> void:
 	# devasa yuvarlak göbekli tombul gövde, gövdeye gömülü küçük yuvarlak baş, sivri üçgen kulaklar (içi lacivert);
 	# gözlerin çevresinde siyah maske bandı, sarı gözler, dört köşeli yıldız bebek; küçük siyah burun; yüzün altında zikzak dişli ağız;
 	# kalın, pul pul plakalı tek kuyruk
-	var c = Color(0.74, 0.66, 0.53); var sh = Color(0.6, 0.52, 0.42); var mk = Color(0.14, 0.18, 0.46); var dark = Color(0.04, 0.04, 0.06)
+	var c = Color(0.74, 0.66, 0.53); var sh = Color(0.6, 0.52, 0.42); var mk = Color(0.13, 0.15, 0.36); var dark = Color(0.04, 0.04, 0.06)
 	# lanetli mühür: alev gibi kıvrılan ince lacivert damarlar + damla kıvrımları (yüksek çözünürlüklü tüplerde)
 	var curse = func(_t: float, _a: float, d: Vector3) -> Color:
 		return c if d.y > -0.4 else sh
@@ -519,21 +553,22 @@ static func _shukaku(r: BeastRig, root: Node3D) -> void:
 	# devasa yuvarlak göbek: alt ve öne doğru şişkin
 	_tube(r, r.hips, [Vector3(0, -2.9, 0.2), Vector3(0, -1.6, -0.5), Vector3(0, 0.2, -0.7), Vector3(0, 1.9, -0.3), Vector3(0, 3.2, 0.0)],
 		[Vector2(3.0, 2.8), Vector2(3.9, 3.7), Vector2(4.1, 3.9), Vector2(3.5, 3.2), Vector2(2.6, 2.3)], c, curse, 40, 10)
-	_veins(r, r.hips, [Vector3(0, -2.9, 0.2), Vector3(0, -1.6, -0.5), Vector3(0, 0.2, -0.7), Vector3(0, 1.9, -0.3), Vector3(0, 3.2, 0.0)],
-		[Vector2(3.0, 2.8), Vector2(3.9, 3.7), Vector2(4.1, 3.9), Vector2(3.5, 3.2), Vector2(2.6, 2.3)], 120, 11, mk, 0.08)
+	_brush_marks(r, r.hips, [Vector3(0, -2.9, 0.2), Vector3(0, -1.6, -0.5), Vector3(0, 0.2, -0.7), Vector3(0, 1.9, -0.3), Vector3(0, 3.2, 0.0)],
+		[Vector2(3.0, 2.8), Vector2(3.9, 3.7), Vector2(4.1, 3.9), Vector2(3.5, 3.2), Vector2(2.6, 2.3)], 170, 11, mk, 0.2, 1.9)
 	r._collider(r.hips, Vector3(0, 0.2, -0.3), Vector3(7.6, 6.4, 7.0))
 	r.chest = r._pivot(r.hips, Vector3(0, 3.0, -0.1), "gogus")
 	_tube(r, r.chest, [Vector3(0, -0.6, 0.1), Vector3(0, 0.5, -0.1), Vector3(0, 1.3, -0.1)], [Vector2(2.9, 2.6), Vector2(2.6, 2.3), Vector2(2.0, 1.8)], c, curse, 36, 8)
-	_veins(r, r.chest, [Vector3(0, -0.6, 0.1), Vector3(0, 0.5, -0.1), Vector3(0, 1.3, -0.1)], [Vector2(2.9, 2.6), Vector2(2.6, 2.3), Vector2(2.0, 1.8)], 55, 23, mk, 0.08)
+	_brush_marks(r, r.chest, [Vector3(0, -0.6, 0.1), Vector3(0, 0.5, -0.1), Vector3(0, 1.3, -0.1)], [Vector2(2.9, 2.6), Vector2(2.6, 2.3), Vector2(2.0, 1.8)], 80, 23, mk, 0.19, 1.7)
 	var mc = MB.new()
 	for sx in [-1.0, 1.0]:   # yuvarlak, kambur omuzlar
 		mc.add("sphere", Vector3(2.4 * sx, 0.5, 0.0), Vector3(2.0, 1.8, 2.0), c, Vector3.ZERO, 14)
 	r._mesh(r.chest, mc)
 	# baş: gövdeye gömülü (boyunsuz), yuvarlak ve kısa burunlu
-	r.head = r._pivot(r.chest, Vector3(0, 1.9, -0.6), "bas")
+	r.head = r._pivot(r.chest, Vector3(0, 1.1, -1.1), "bas")
+	r.head.scale = Vector3.ONE * 1.25
 	_tube(r, r.head, [Vector3(0, 0.1, 1.2), Vector3(0, 0.3, 0.2), Vector3(0, -0.05, -0.9), Vector3(0, -0.1, -1.45)],
 		[Vector2(1.9, 1.7), Vector2(2.15, 1.95), Vector2(1.95, 1.75), Vector2(1.45, 1.2)], c, curse, 36, 8)
-	_veins(r, r.head, [Vector3(0, 0.1, 1.2), Vector3(0, 0.3, 0.2), Vector3(0, -0.05, -0.9)], [Vector2(1.9, 1.7), Vector2(2.15, 1.95), Vector2(1.95, 1.75)], 22, 37, mk, 0.07)
+	_brush_marks(r, r.head, [Vector3(0, 0.1, 1.2), Vector3(0, 0.3, 0.2), Vector3(0, -0.05, -0.9)], [Vector2(1.9, 1.7), Vector2(2.15, 1.95), Vector2(1.95, 1.75)], 30, 37, mk, 0.12, 0.9)
 	# yüz = tüpün ön kubbesi (elipsoid): yüz parçaları bu yüzeye oturtulur (içine gömülmez)
 	var dc = Vector3(0, -0.1, -1.45); var dr = Vector3(1.45, 1.2, 0.94)
 	var dome = func(a: float, e: float, lift := 0.0) -> Array:
@@ -553,7 +588,7 @@ static func _shukaku(r: BeastRig, root: Node3D) -> void:
 	for sx in [-1.0, 1.0]:
 		# sivri üçgen kulaklar, içi lacivert
 		var e0 = Vector3(1.3 * sx, 1.5, 0.3)
-		Loft.tube(mh, [e0, e0 + Vector3(0.35 * sx, 0.9, 0.0), e0 + Vector3(0.75 * sx, 1.9, 0.15)], [Vector2(0.85, 0.32), Vector2(0.6, 0.25), Vector2(0.04, 0.04)], c, 12, 3)
+		Loft.tube(mh, [e0, e0 + Vector3(0.3 * sx, 0.5, 0.0), e0 + Vector3(0.6 * sx, 1.05, 0.1)], [Vector2(0.75, 0.3), Vector2(0.5, 0.22), Vector2(0.04, 0.04)], c, 12, 3)
 		mh.add_xf("sphere", Transform3D(Basis(Vector3.BACK, deg_to_rad(-20 * sx)) * Basis.from_scale(Vector3(0.75, 1.5, 0.1)), e0 + Vector3(0.35 * sx, 0.75, -0.24)), mk, 10)
 		# maskenin dış uçları sivri kanat gibi yukarı-dışa uzanır
 		var wt = dome.call(1.3 * sx, 0.55, 0.0)
@@ -587,7 +622,8 @@ static func _shukaku(r: BeastRig, root: Node3D) -> void:
 		_arm(r, r.chest, sx, Vector3(2.9 * sx, 0.4, 0), Vector3(1.0 * sx, -2.2, -0.9), Vector3(0.4 * sx, -1.9, -1.0), 1.25, 1.0, 0.8, c, c, Color(0.9, 0.85, 0.72), 4, 1.25)
 		_leg(r, r.hips, sx, Vector3(2.0 * sx, -2.2, 0.2), Vector3(0.4 * sx, -1.0, -0.4), Vector3(0, -0.7, -0.1), 1.5, 1.25, 1.0, c, c, Color(0.9, 0.85, 0.72), false, false, 1.4)
 	# kalın, pul pul plakalı kuyruk: yere değip yana kıvrılır
-	_tail_fan(r, r.hips, Vector3(0, -1.6, 3.2), 1, 0.0, -14.0, 15.0, 1.7, 2.6, c, c.lightened(0.08), "sand", 9)
+	r.tail_curl = -0.1   # yukarı kıvrılıp kalkar
+	_tail_fan(r, r.hips, Vector3(0, -1.4, 3.2), 1, 0.0, -28.0, 22.0, 2.4, 3.0, c, c.lightened(0.08), "sand", 10)
 	_particles(r.hips, Vector3(3.5, 4.0, 3.0), [Color(0.78, 0.7, 0.56, 0.8), Color(0.78, 0.7, 0.56, 0.0)], 60, 1.2, Vector3(0, -3, 0), 2.0)
 	r._weak(r.head, Vector3(0, 2.0, -0.2))
 	r._weak(r.hips, Vector3(0, 0.6, -4.0))
