@@ -321,10 +321,18 @@ static func _kurama(r: BeastRig, root: Node3D) -> void:
 	var hb = MB.new()
 	# kafatası: önden V — kulaklar arası geniş alın, aşağı/öne doğru daralan UZUN sivri burun
 	var ksp = [Vector3(0, 0.55, 1.2), Vector3(0, 0.6, 0.2), Vector3(0, 0.3, -0.9), Vector3(0, 0.0, -1.9), Vector3(0, -0.2, -2.7)]
-	var krd = [Vector2(1.6, 1.35), Vector2(1.75, 1.45), Vector2(1.35, 1.12), Vector2(0.85, 0.7), Vector2(0.36, 0.3)]
+	var krd = [Vector2(1.6, 1.3), Vector2(1.85, 1.3), Vector2(1.5, 0.95), Vector2(0.92, 0.55), Vector2(0.4, 0.26)]
 	Loft.tube(hb, ksp, krd, c, 20, 5, true, true,
 		func(_t: float, _a: float, d: Vector3) -> Color:
 			return c if d.y > -0.35 else belly)
+	# burun sırtı: alından burun ucuna yassı, keskin kenarlı sırt (huni gibi yuvarlak değil)
+	Loft.tube(hb, [Vector3(0, 0.95, -0.4), Vector3(0, 0.62, -1.4), Vector3(0, 0.22, -2.55)], [Vector2(0.55, 0.12), Vector2(0.48, 0.1), Vector2(0.24, 0.07)], c, 8, 3)
+	# geniş, kemikli yanak elmacıkları + aşağı-geriye savrulan yanak yelesi (yüzü elmas/V yapar)
+	for sx in [-1.0, 1.0]:
+		hb.add_xf("sphere", Transform3D(Basis(Vector3.UP, deg_to_rad(-25 * sx)) * Basis.from_scale(Vector3(0.9, 0.75, 1.3)), Vector3(1.45 * sx, 0.05, -0.55)), c, 12)
+		for k in 6:
+			var cy = 0.35 - k * 0.2
+			BeastRig.claw(hb, Vector3((1.75 + 0.05 * k) * sx, cy, -0.4 + k * 0.12), Vector3(sx * 0.9, -0.45 - k * 0.08, 0.35).normalized(), 1.7 - k * 0.12, 0.32, c if k % 2 == 0 else sh)
 	var nose = _tube_pt(ksp, krd, 0.99, deg_to_rad(80.0), 0.0)
 	hb.add("sphere", nose[0] + Vector3(0, 0.02, -0.12), Vector3(0.42, 0.32, 0.3), dark, Vector3.ZERO, 10)   # siyah burun
 	for k in 4:   # alında çatık kırışıklar (V biçimli)
@@ -353,14 +361,14 @@ static func _kurama(r: BeastRig, root: Node3D) -> void:
 				BeastRig.claw(hb, (lp[0] as Vector3) - Vector3(0, 0.2, 0) + (lp[1] as Vector3) * 0.03, (Vector3(0, 1, 0) + (lp[1] as Vector3) * 0.25).normalized(), tl * 0.8, 0.06, cl)
 	for sx in [-1.0, 1.0]:
 		# çok uzun kulaklar: tabanı geniş yaprak, yukarı-dışa-geriye, içi koyu lacivert
-		var e0 = Vector3(0.95 * sx, 0.95, 0.6)
-		var ed = Vector3(2.6 * sx, 6.4, 1.9)
+		var e0 = Vector3(0.85 * sx, 1.05, 0.55)
+		var ed = Vector3(3.9 * sx, 6.0, 1.7)
 		var eax = ed.normalized()
 		var ebn = Vector3(0, 0, -1).cross(eax).normalized() * sx
-		Loft.tube(hb, [e0, e0 + ed * 0.3 + ebn * 0.15, e0 + ed * 0.65 + ebn * 0.1, e0 + ed], [Vector2(1.35, 0.32), Vector2(1.2, 0.28), Vector2(0.75, 0.2), Vector2(0.05, 0.04)], c, 14, 3, true, false, Callable(), Vector3(0, 0, -1))
+		Loft.tube(hb, [e0, e0 + ed * 0.3 + ebn * 0.15, e0 + ed * 0.65 + ebn * 0.1, e0 + ed], [Vector2(1.25, 0.26), Vector2(1.45, 0.24), Vector2(0.85, 0.18), Vector2(0.05, 0.04)], c, 14, 3, true, false, Callable(), Vector3(0, 0, -1))
 		var efr = Vector3(0, 0, -0.27)
-		Loft.tube(hb, [e0 + ed * 0.04 - ebn * 0.35 + efr, e0 + ed * 0.35 - ebn * 0.25 + efr, e0 + ed * 0.7 - ebn * 0.05 + efr, e0 + ed * 0.93 + efr * 0.6],
-			[Vector2(0.5, 0.06), Vector2(0.55, 0.06), Vector2(0.32, 0.05), Vector2(0.04, 0.03)], ear_in, 8, 3, true, true, Callable(), Vector3(0, 0, -1))
+		Loft.tube(hb, [e0 + ed * 0.04 - ebn * 0.45 + efr, e0 + ed * 0.35 - ebn * 0.55 + efr, e0 + ed * 0.7 - ebn * 0.25 + efr, e0 + ed * 0.93 + efr * 0.6],
+			[Vector2(0.5, 0.06), Vector2(0.62, 0.06), Vector2(0.36, 0.05), Vector2(0.03, 0.03)], ear_in, 8, 3, true, true, Callable(), Vector3(0, 0, -1))
 		# ÇEKİK KIRMIZI GÖZ: kafa yüzeyinde; koyu çerçeve kulağın lacivert içine doğru uzar
 		var eg = _tube_pt(ksp, krd, 0.42, deg_to_rad(90.0 - 48.0 * sx), 0.0)
 		var nrm: Vector3 = ((eg[1] as Vector3) + Vector3(0, 0, -0.6)).normalized()
