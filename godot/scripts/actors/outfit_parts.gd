@@ -197,7 +197,7 @@ static func accessories(m: CharacterModel) -> void:
 			var red = Color(0.75, 0.1, 0.12)
 			match fs:
 				"anbu_tilki":
-					mb.add("cone", Vector3(0, -0.035, 0.075), Vector3(0.07, 0.11, 0.05), fg, Vector3(80, 0, 0), 6)
+					mb.add("cone", Vector3(0, -0.03, 0.105), Vector3(0.065, 0.09, 0.045), fg, Vector3(-80, 0, 0), 6)   # burun öne bakar (ters takılıyordu: sivri uç ense tarafına dönüktü)
 					for sx in [-1.0, 1.0]:
 						mb.add("cone", Vector3(0.065 * sx, 0.12, -0.01), Vector3(0.05, 0.09, 0.03), fg, Vector3(0, 0, -22 * sx), 4)
 						mb.add("box", Vector3(0.05 * sx, 0.04, 0.045), Vector3(0.006, 0.05, 0.004), red, Vector3(0, 0, 35 * sx))
