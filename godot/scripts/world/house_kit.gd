@@ -173,8 +173,7 @@ class Placer:
 		key = k
 		HouseKit.ensure()
 		body = StaticBody3D.new()
-		body.collision_layer = 1
-		parent.add_child(body)
+		body.collision_layer = 1   # sahneye finish()'te eklenir (bkz. Builder._init)
 
 	## pos: Godot dünya (taban merkezi), yaw: derece (Builder yerel yaw), ön cephe sokağa
 	var pack_items := {}   # mesh -> [Transform3D]
@@ -241,6 +240,8 @@ class Placer:
 		return t
 
 	func finish() -> void:
+		if is_instance_valid(body) and body.get_parent() == null and is_instance_valid(parent):
+			parent.add_child(body)
 		for pm in pack_items:
 			var xfs: Array = pack_items[pm]
 			var cells2 = {}

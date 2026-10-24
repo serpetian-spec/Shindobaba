@@ -34,7 +34,9 @@ func _init(parent: Node3D, map_x: float, map_y: float, base_h: float, name := "Y
 	origin = Vector3(map_x, base_h, -map_y)
 	body = StaticBody3D.new()
 	body.collision_layer = 1
-	root.add_child(body)
+	# gövde sahneye finish()'te eklenir: ağaçtaki bir gövdeye her şekil eklemek fizik sunucusunda tüm şekilleri
+	# yeniden kurar (O(n²)); Konoha'nın ~20 bin kutusu açılışı ~40 sn uzatıyordu
+	root.tree_exiting.connect(func(): if is_instance_valid(body) and body.get_parent() == null: body.free())
 
 
 ## yerel (x, y, n) -> Godot dünya
@@ -228,6 +230,8 @@ func interact(p: Vector3, radius: float, kind: String, label: String, data := {}
 func finish() -> void:
 	if not is_instance_valid(root):
 		return
+	if is_instance_valid(body) and body.get_parent() == null:
+		root.add_child(body)
 	if landscape and landscape_on and houses.size() >= 12 and not key.begins_with("yolkenari"):
 		landscape = false
 		CityLandscape.dress(self)

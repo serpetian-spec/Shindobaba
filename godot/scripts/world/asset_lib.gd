@@ -14,6 +14,7 @@ static var _sizes := {}
 
 
 ## path: glTF/GLB; height > 0 ise o yüksekliğe ölçeklenir (yoksa scale çarpanı); zemin y=0, xz merkezlenir
+static var _parts := {}   # "yol|düğüm" -> [[mesh, yüzey, xform], AABB]
 static func mesh(path: String, height := 0.0, scale := 1.0, opts := {}) -> ArrayMesh:
 	if OS.get_environment("ASSET_PACKS") == "0":
 		return null
@@ -24,23 +25,30 @@ static func mesh(path: String, height := 0.0, scale := 1.0, opts := {}) -> Array
 		push_warning("AssetLib: yok " + path)
 		_cache[key] = null
 		return null
-	var ps: PackedScene = load(path)
-	var root: Node = ps.instantiate()
-	var parts: Array = []  # [mesh, surface, xform]
-	_collect(root, Transform3D.IDENTITY, parts, true, String(opts.get("node", "")), String(opts.get("node", "")) == "")
-	# sınırlar
-	var ab := AABB()
-	var first := true
-	for p in parts:
-		var m: Mesh = p[0]
-		var arr = m.surface_get_arrays(p[1])
-		for v in (arr[Mesh.ARRAY_VERTEX] as PackedVector3Array):
-			var w: Vector3 = p[2] * v
-			if first:
-				ab = AABB(w, Vector3.ZERO)
-				first = false
-			else:
-				ab = ab.expand(w)
+	# parçalar + sınırlar (yol|düğüm başına bir kez): aynı sahneyi her çağrıda yeniden açıp tüm köşeleri
+	# GDScript'te gezmek kasaba evlerinde açılışa ~8 sn ekliyordu
+	var pk = path + "|" + String(opts.get("node", ""))
+	if not _parts.has(pk):
+		var ps: PackedScene = load(path)
+		var root: Node = ps.instantiate()
+		var pl: Array = []  # [mesh, surface, xform]
+		_collect(root, Transform3D.IDENTITY, pl, true, String(opts.get("node", "")), String(opts.get("node", "")) == "")
+		var ab0 := AABB()
+		var first := true
+		for p in pl:
+			var m: Mesh = p[0]
+			var arr = m.surface_get_arrays(p[1])
+			for v in (arr[Mesh.ARRAY_VERTEX] as PackedVector3Array):
+				var w: Vector3 = p[2] * v
+				if first:
+					ab0 = AABB(w, Vector3.ZERO)
+					first = false
+				else:
+					ab0 = ab0.expand(w)
+		root.free()
+		_parts[pk] = [pl, ab0]
+	var parts: Array = _parts[pk][0]
+	var ab: AABB = _parts[pk][1]
 	var s = scale
 	if height > 0.0 and ab.size.y > 0.001:
 		s = height / ab.size.y
@@ -84,7 +92,6 @@ static func mesh(path: String, height := 0.0, scale := 1.0, opts := {}) -> Array
 			a[Mesh.ARRAY_COLOR] = cols
 		out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, a)
 		out.surface_set_material(out.get_surface_count() - 1, groups[mk][1])
-	root.free()
 	_sizes[key] = ab.size * s
 	_cache[key] = out
 	return out
