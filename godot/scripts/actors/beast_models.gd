@@ -373,27 +373,29 @@ static func _kurama(r: BeastRig, root: Node3D) -> void:
 	for sx in [-1.0, 1.0]:
 		# çok uzun kulaklar: tabanı geniş yaprak, yukarı-dışa-geriye, içi koyu lacivert
 		var e0 = Vector3(0.85 * sx, 1.05, 0.55)
-		var ed = Vector3(3.9 * sx, 6.0, 1.7)
+		var ed = Vector3(3.0 * sx, 7.4, 1.8)
 		var eax = ed.normalized()
 		var ebn = Vector3(0, 0, -1).cross(eax).normalized() * sx
-		Loft.tube(hb, [e0, e0 + ed * 0.3 + ebn * 0.15, e0 + ed * 0.65 + ebn * 0.1, e0 + ed], [Vector2(1.25, 0.26), Vector2(1.45, 0.24), Vector2(0.85, 0.18), Vector2(0.05, 0.04)], c, 14, 3, true, false, Callable(), Vector3(0, 0, -1))
+		Loft.tube(hb, [e0, e0 + ed * 0.3 + ebn * 0.15, e0 + ed * 0.65 + ebn * 0.1, e0 + ed], [Vector2(0.72, 0.17), Vector2(0.66, 0.15), Vector2(0.38, 0.11), Vector2(0.03, 0.03)], c, 14, 3, true, false, Callable(), Vector3(0, 0, -1))
 		var efr = Vector3(0, 0, -0.27)
-		Loft.tube(hb, [e0 + ed * 0.04 - ebn * 0.45 + efr, e0 + ed * 0.35 - ebn * 0.55 + efr, e0 + ed * 0.7 - ebn * 0.25 + efr, e0 + ed * 0.93 + efr * 0.6],
-			[Vector2(0.5, 0.06), Vector2(0.62, 0.06), Vector2(0.36, 0.05), Vector2(0.03, 0.03)], ear_in, 8, 3, true, true, Callable(), Vector3(0, 0, -1))
+		Loft.tube(hb, [e0 + ed * 0.04 - ebn * 0.22 + efr * 0.65, e0 + ed * 0.35 - ebn * 0.2 + efr * 0.6, e0 + ed * 0.7 - ebn * 0.08 + efr * 0.5, e0 + ed * 0.93 + efr * 0.4],
+			[Vector2(0.3, 0.05), Vector2(0.3, 0.05), Vector2(0.16, 0.04), Vector2(0.02, 0.02)], ear_in, 8, 3, true, true, Callable(), Vector3(0, 0, -1))
 		# ÇEKİK KIRMIZI GÖZ: kafa yüzeyinde; koyu çerçeve kulağın lacivert içine doğru uzar
-		var eg = _tube_pt(ksp, krd, 0.34, deg_to_rad(90.0 - 58.0 * sx), 0.0)
-		var nrm: Vector3 = ((eg[1] as Vector3) + Vector3(0, 0, -0.6)).normalized()
-		var ep: Vector3 = (eg[0] as Vector3) + nrm * 0.05
+		# AVCI BAKIŞI: göz yüzeyi öne (avına) bakar — kafa aşağı eğik olduğu için hafif yukarı telafi; bebekler buruna doğru kayık
+		var eg = _tube_pt(ksp, krd, 0.36, deg_to_rad(90.0 - 62.0 * sx), 0.0)
+		var nrm: Vector3 = Vector3(0.42 * sx, 0.3, -1.0).normalized()
+		var ep: Vector3 = (eg[0] as Vector3) + nrm * 0.1
 		var eb = Basis.looking_at(-nrm, Vector3.UP) * Basis(Vector3.BACK, deg_to_rad(-24 * sx))
 		hb.add_xf("sphere", Transform3D(eb * Basis.from_scale(Vector3(0.95, 0.3, 0.2)), ep), dark, 12)
 		hb.add_xf("sphere", Transform3D(eb * Basis.from_scale(Vector3(0.74, 0.19, 0.26)), ep + nrm * 0.02), Color(0.7, 0.05, 0.04), 12)
-		hb.add_xf("sphere", Transform3D(eb * Basis.from_scale(Vector3(0.42, 0.18, 0.3)), ep + nrm * 0.03 - eb.x * 0.04 * sx), Color(1.0, 0.2, 0.12), 10)
-		hb.add_xf("sphere", Transform3D(eb * Basis.from_scale(Vector3(0.055, 0.18, 0.34)), ep + nrm * 0.035 - eb.x * 0.04 * sx), dark, 6)
-		hb.add_xf("sphere", Transform3D(eb * Basis.from_scale(Vector3(0.07, 0.05, 0.36)), ep + nrm * 0.04 - eb.x * 0.13 * sx + eb.y * 0.05), Color(1, 0.95, 0.9), 6)   # parıltı
+		hb.add_xf("sphere", Transform3D(eb * Basis.from_scale(Vector3(0.42, 0.18, 0.3)), ep + nrm * 0.03 - eb.x * 0.14 * sx - eb.y * 0.02), Color(1.0, 0.2, 0.12), 10)
+		hb.add_xf("sphere", Transform3D(eb * Basis.from_scale(Vector3(0.055, 0.18, 0.34)), ep + nrm * 0.035 - eb.x * 0.14 * sx - eb.y * 0.02), dark, 6)
+		hb.add_xf("sphere", Transform3D(eb * Basis.from_scale(Vector3(0.07, 0.05, 0.36)), ep + nrm * 0.04 - eb.x * 0.2 * sx + eb.y * 0.04), Color(1, 0.95, 0.9), 6)   # parıltı
 		# göz çerçevesinden kulağa uzanan koyu şerit
 		Loft.tube(hb, [ep - eb.x * 0.35 * sx, ep + Vector3(0.25 * sx, 0.35, 0.45), e0 + Vector3(0.0, 0.25, -0.3)], [Vector2(0.09, 0.05), Vector2(0.1, 0.05), Vector2(0.14, 0.05)], dark, 6, 3)
 		# çatık kaş kemiği
-		hb.add_xf("sphere", Transform3D(eb * Basis(Vector3.BACK, deg_to_rad(10 * sx)) * Basis.from_scale(Vector3(1.05, 0.2, 0.3)), ep + eb.y * 0.2 + nrm * 0.06), sh, 10)
+		hb.add_xf("sphere", Transform3D(eb * Basis(Vector3.BACK, deg_to_rad(8 * sx)) * Basis.from_scale(Vector3(1.15, 0.22, 0.42)), ep + eb.y * 0.15 + nrm * 0.08), sh, 10)
+		hb.add_xf("box", Transform3D(eb * Basis(Vector3.BACK, deg_to_rad(8 * sx)) * Basis.from_scale(Vector3(1.0, 0.05, 0.2)), ep + eb.y * 0.08 + nrm * 0.12), dark, 1)   # üst göz kapağı çizgisi
 		# yanaklarda yana-geriye savrulan sivri tüy tutamları
 		for k in 5:
 			var cp = _tube_pt(ksp, krd, 0.18 + k * 0.06, deg_to_rad(-15.0 * sx + (180.0 if sx < 0 else 0.0)), -0.05)
