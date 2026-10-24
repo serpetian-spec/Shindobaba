@@ -11,6 +11,7 @@ const TITLES := {
 	"academy": "Ninja Akademisi", "hokage": "Hokage Kulesi — Görev Ofisi", "weapon_shop": "Silah Dükkânı",
 	"pharmacy": "Eczane", "tailor": "Terzi", "bbq": "Yakiniku Restoranı", "hospital": "Konoha Hastanesi",
 	"home_player": "Senin Evin", "home": "Bir Ev", "teahouse": "Dango ve Çay Evi", "inn": "Han (Ryokan)",
+	"summit": "Demir Kalesi — Beş Kage Zirve Salonu",
 }
 
 var inside := ""
@@ -432,6 +433,7 @@ func _build(kind: String, seed: int) -> void:
 		"home_player": _home(true)
 		"teahouse": _teahouse()
 		"inn": _inn()
+		"summit": _summit()
 		_: _home(false)
 	var mi = MeshInstance3D.new()
 	mi.mesh = mb.build(Props.toon())
@@ -638,6 +640,42 @@ func _kage_office(vid: String) -> void:
 
 
 ## İç mekân kanjisi (ön yüzü kapıya bakar)
+## Demir Kalesi zirve salonu: yuvarlak taş masa, beş Kage koltuğu ve arkalarında köy kanjili sancaklar,
+## samuray muhafızlar, generalin kürsüsü (görev masası)
+func _summit() -> void:
+	var W = 24.0; var D = 22.0; var H = 7.5
+	var stone = Color(0.72, 0.72, 0.74)
+	shell(W, D, H, Color(0.88, 0.88, 0.9), Color(0.5, 0.5, 0.53), false)
+	var c = D * 0.55
+	cy(0, 0.55, c, 8.4, 0.18, stone.darkened(0.1), 28)      # yuvarlak masa
+	cy(0, 0.3, c, 7.6, 0.5, stone.darkened(0.25), 28)
+	cy(0, 0.66, c, 2.0, 0.05, Color(0.85, 0.68, 0.3), 20)   # ortada altın mühür
+	var kage = [["火", Color(0.85, 0.3, 0.15)], ["水", Color(0.25, 0.55, 0.85)], ["雷", Color(0.85, 0.8, 0.25)], ["土", Color(0.55, 0.4, 0.25)], ["風", Color(0.4, 0.75, 0.55)]]
+	for i in 5:
+		var a = TAU * i / 5.0 + PI
+		var x = sin(a) * 5.4
+		var d = c + cos(a) * 5.4
+		bx(x, 0.5, d, 1.1, 0.12, 1.1, Color(0.35, 0.24, 0.15), true)    # koltuk
+		bx(x + sin(a) * 0.5, 1.2, d + cos(a) * 0.5, 1.1, 1.4, 0.12, Color(0.35, 0.24, 0.15), false, Vector3(0, rad_to_deg(a), 0))
+		# arkada köy sancağı
+		var fx = sin(a) * 8.2
+		var fd = c + cos(a) * 8.2
+		cy(fx, 2.2, fd, 0.12, 4.4, Color(0.3, 0.22, 0.14))
+		bx(fx, 3.2, fd, 1.2, 2.2, 0.05, kage[i][1], false, Vector3(0, rad_to_deg(a), 0))
+		_kj(kage[i][0], L(fx - sin(a) * 0.04, 3.3, fd - cos(a) * 0.04), 1.2, Color(0.97, 0.95, 0.9))
+	for k in 6:   # taş sütunlar
+		var x = -W * 0.5 + 2.0 + (k % 3) * (W - 4.0) * 0.5
+		var d = 4.0 if k < 3 else D - 3.0
+		cy(x, H * 0.5, d, 1.0, H, stone, 12)
+	_kj("侍", L(0, H - 1.6, D - 0.06), 2.6, Color(0.12, 0.12, 0.14))
+	for k in 4:
+		lamp(-6.0 + k * 4.0, H - 0.6, c, Color(1.0, 0.92, 0.8), 1.4, 12.0)
+	person("guard", -W * 0.5 + 2.0, D - 2.0, 120.0, "Samuray Muhafız", ["Bu salonda kılıçlar kınında kalır.", "Demir Ülkesi tarafsızdır."])
+	person("guard", W * 0.5 - 2.0, D - 2.0, -120.0, "Samuray Muhafız", ["Kage'ler buraya barış için gelir.", "Generalimiz zirveyi yönetir."])
+	person("keeper", 0, D - 2.2, 180.0, "Samuray Generali Takenouchi", ["Demir Ülkesi'ne hoş geldin ninja.", "Zirve zamanı gelince Kage'ler bu masada buluşur.", "Görev mi arıyorsun? Samuraylar da iş verir."])
+	act(0, D - 3.6, 2.6, "mission_board", "[F] Samuray Generali (görevler)")
+
+
 func _kj(text: String, p: Vector3, size: float, col: Color) -> void:
 	var l = Label3D.new()
 	l.text = text

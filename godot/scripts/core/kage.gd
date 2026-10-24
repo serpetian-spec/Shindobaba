@@ -449,11 +449,12 @@ func start_summit() -> void:
 	st()["summit"] = "active"
 	var home = Progress.home()
 	var tetsu = Game.village("tetsu")
-	var hall = [float(tetsu.get("x", 0)), float(tetsu.get("y", 0))] if not tetsu.is_empty() else Missions._spot(home, 1500, 2500)
+	# zirve: kalenin önündeki açık salon (kalenin merkezi içi dolu taş kaide — NPC'ler gömülüyordu)
+	var hall = [float(tetsu.get("x", 0)), float(tetsu.get("y", 0)) - 101.0] if not tetsu.is_empty() else Missions._spot(home, 1500, 2500)
 	var gen = Missions._npc("general", "Samuray Generali Takenouchi", "ninja")
 	gen["look"]["vest"] = Missions._hex(Color(0.55, 0.57, 0.6))
-	var steps = [{"kind": "goto", "at": hall, "r": 40.0, "name": "Demir Ülkesi — Zirve Salonu", "text": "Demir Ülkesi'ndeki zirve salonuna git."},
-		{"kind": "talk", "at": [hall[0] + 10, hall[1]], "npc": gen, "text": "Arabulucu samuray generaliyle konuş.", "say": "Beş Kage Zirvesi'ne hoş geldiniz. Burada silahlar kınında kalır. Gündem: kuyruklu canavarları avlayan Akatsuki."}]
+	var steps = [{"kind": "goto", "at": hall, "r": 22.0, "name": "Demir Ülkesi — Zirve Salonu", "text": "Demir Ülkesi'ndeki zirve salonuna git."},
+		{"kind": "talk", "at": [hall[0], hall[1] - 10.0], "npc": gen, "text": "Arabulucu samuray generaliyle konuş.", "say": "Beş Kage Zirvesi'ne hoş geldiniz. Burada silahlar kınında kalır. Gündem: kuyruklu canavarları avlayan Akatsuki."}]
 	var i = 0
 	for v in GREAT:
 		if v == home:
@@ -464,14 +465,15 @@ func start_summit() -> void:
 		k["look"]["village"] = v
 		var rel = relation(v)
 		var say = ["Senin köyün de bu tehdide karşı mı, yoksa Akatsuki'yi kendi çıkarına mı kullanıyor?", "Kumo kimseye güvenmez. Neden seninle birleşelim?", "Sis köyü yalnızlığa alışkındır. Teklifin ne?", "Yaşlı bir adam olarak çok savaş gördüm. Bu sefer farklı olacak mı?"][i % 4]
-		steps.append({"kind": "talk", "at": [hall[0] - 12 + i * 8, hall[1] + 10], "npc": k, "text": "%s ile görüş." % nm,
+		var ka = TAU * (i + 1) / 5.0
+		steps.append({"kind": "talk", "at": [hall[0] + sin(ka) * 9.5, hall[1] - cos(ka) * 9.5], "npc": k, "text": "%s ile görüş." % nm,
 			"say": say + ("  (İlişki: %d)" % rel),
 			"choices": [{"label": "Birleşik bir ordu kuralım; komutayı paylaşalım", "ok": true, "vote": 1, "reply": "...Makul. Destekliyorum."},
 				{"label": "Önce eski anlaşmazlıklarımızı çözelim", "ok": true, "vote": 1 if rel > 0 else 0, "reply": "Geçmişi konuşmak cesaret ister."},
 				{"label": "Kendi köyümü korurum, siz de kendinizinkini", "ok": false, "vote": 0, "reply": "O halde neden geldin?"}]})
 		i += 1
 	var lead = Orgs.AKATSUKI[0]
-	steps.append({"kind": "kill", "at": [hall[0], hall[1] + 20], "enemy": "rogue", "n": 2, "boss": {"name": "%s «%s»" % [lead["name"], lead["alias"]], "hp": 3600.0, "level": maxi(45, int(p()["level"])), "power": 3.0, "look": Orgs.akatsuki_look(lead)},
+	steps.append({"kind": "kill", "at": [hall[0], hall[1] - 26], "enemy": "rogue", "n": 2, "boss": {"name": "%s «%s»" % [lead["name"], lead["alias"]], "hp": 3600.0, "level": maxi(45, int(p()["level"])), "power": 3.0, "look": Orgs.akatsuki_look(lead)},
 		"text": "Zirveye sızan Akatsuki üyesini durdur!"})
 	steps.append({"kind": "talk", "npc_id": "general", "text": "Zirveyi sonuçlandır.", "say": "Saldırı her şeyi netleştirdi. Kage'ler ne karar verdi?"})
 	Missions.accept({"title": "Beş Kage Zirvesi", "rank": "S", "village": home, "hook": "Kage.summit_done", "giver": "Samuray Generali", "brief": "Demir Ülkesi'nde dört Kage ile buluş. Akatsuki'ye karşı birleşik bir ordu kur — ya da köyünü yalnız bırak.", "steps": steps})
