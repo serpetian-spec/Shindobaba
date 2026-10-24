@@ -177,20 +177,71 @@ func _build_mesh() -> ArrayMesh:
 			b.add("cyl", Vector3(0, 0.95, 0.85), Vector3(0.06, 0.7, 0.06), ink, Vector3(-60, 0, 0), 5)
 			b.add("sphere", Vector3(0, 1.22, 1.12), Vector3(0.16, 0.16, 0.16), Color(0.92, 0.92, 0.9), Vector3.ZERO, 6)
 		"golem":
-			# taş golem: kaba kaya blokları, yosun, parlayan chakra çatlakları
-			var st = Color(0.5, 0.47, 0.42)
-			var mo = Color(0.32, 0.42, 0.24)
-			b.add("crag", Vector3(0, 2.6, 0), Vector3(2.0, 1.8, 1.4), st, Vector3.ZERO, 1)
-			b.add("crag", Vector3(0, 3.75, -0.1), Vector3(1.0, 0.85, 0.9), st.darkened(0.08), Vector3.ZERO, 2)
-			b.add("box", Vector3(0, 3.8, -0.52), Vector3(0.62, 0.1, 0.06), Color(1, 0.7, 0.25))          # parlayan göz yarığı
-			b.add("crag", Vector3(0, 1.55, 0), Vector3(1.4, 0.8, 1.0), st.darkened(0.12), Vector3.ZERO, 3)
-			b.add("crag", Vector3(0, 3.2, 0.3), Vector3(1.6, 0.35, 1.0), mo, Vector3.ZERO, 4)
+			# taş dev (özgün Doton golemi): kambur kaslı gövde, yere değen dev kollar, omuzlara gömülü küçük baş,
+			# üst üste binen kaya zırh plakaları, plakalar arasında parlayan chakra lav çatlakları, sırtta yosun ve dikitler
+			var st = Color(0.58, 0.54, 0.48)
+			var st2 = Color(0.46, 0.43, 0.38)
+			var dk = Color(0.3, 0.28, 0.25)
+			var mo = Color(0.36, 0.5, 0.26)
+			var lava = Color(1.0, 0.62, 0.18)
+			var rock = func(_t: float, a: float, d: Vector3) -> Color:
+				# kaya dokusu: üstte açık, altta koyu; dağınık koyu benekler
+				var band = floor((d.y + 1.0) * 2.5) / 5.0   # sert cel kademeleri (bulanık leke yok)
+				var c = st2.lerp(st, band)
+				if absf(sin(a * 5.0 + _t * 11.0)) < 0.05:
+					return dk   # ince kaya çatlağı çizgisi
+				return c
+			# gövde: geniş göğüs kafesi, öne kambur sırt, dar bel, ağır kalça (pürüzsüz tek parça kütle)
+			Loft.tube(b, [Vector3(0, 1.35, 0.05), Vector3(0, 1.75, 0.0), Vector3(0, 2.45, -0.15), Vector3(0, 3.2, -0.05), Vector3(0, 3.55, 0.25)],
+				[Vector2(0.62, 0.5), Vector2(0.52, 0.44), Vector2(0.85, 0.66), Vector2(0.95, 0.75), Vector2(0.6, 0.5)], st, 22, 4, true, true, rock)
+			# omuzlara gömülü küçük baş: alnı çıkık, çene kalın, parlayan göz yarıkları ve ağız çatlağı
+			var hc = Vector3(0, 3.62, -0.6)
+			Loft.tube(b, [hc + Vector3(0, -0.25, 0.2), hc + Vector3(0, 0.0, 0.0), hc + Vector3(0, 0.1, -0.2)], [Vector2(0.42, 0.38), Vector2(0.4, 0.36), Vector2(0.3, 0.24)], st2, 16, 3, true, true, rock)
+			b.add("boulder", hc + Vector3(0, 0.24, -0.2), Vector3(0.82, 0.26, 0.38), st, Vector3(-10, 0, 0), 3)   # çıkık alın
 			for sx in [-1.0, 1.0]:
-				b.add("crag", Vector3(1.35 * sx, 3.05, 0), Vector3(0.75, 0.75, 0.75), st, Vector3.ZERO, 5)
-				b.add("crag", Vector3(1.5 * sx, 2.0, 0), Vector3(0.55, 1.1, 0.55), st.darkened(0.05), Vector3.ZERO, 6)
-				b.add("crag", Vector3(1.55 * sx, 1.0, -0.1), Vector3(0.8, 0.75, 0.8), st.darkened(0.1), Vector3.ZERO, 7)  # yumruk
-				b.add("crag", Vector3(0.55 * sx, 0.55, 0), Vector3(0.6, 1.1, 0.6), st.darkened(0.08), Vector3.ZERO, 8)
-				b.add("box", Vector3(0.7 * sx, 2.6, -0.62), Vector3(0.06, 0.9, 0.04), Color(1, 0.6, 0.2), Vector3(0, 0, 25 * sx))
+				b.add("box", hc + Vector3(0.14 * sx, 0.06, -0.36), Vector3(0.18, 0.05, 0.04), lava, Vector3(0, 0, 12 * sx))   # göz yarığı
+				b.add("sphere", hc + Vector3(0.14 * sx, 0.06, -0.33), Vector3(0.12, 0.08, 0.05), lava.lightened(0.3), Vector3.ZERO, 6)
+			b.add("box", hc + Vector3(0, -0.2, -0.34), Vector3(0.36, 0.035, 0.04), lava.darkened(0.15))   # ağız çatlağı
+			b.add("boulder", hc + Vector3(0, -0.3, -0.25), Vector3(0.5, 0.25, 0.3), st2, Vector3(15, 0, 0), 4)   # kalın çene
+			# omuz zırhları: üst üste 3 kaya plakası + sivri dikit
+			for sx in [-1.0, 1.0]:
+				var sh = Vector3(1.05 * sx, 3.15, 0.0)
+				for k in 3:
+					b.add("boulder", sh + Vector3((0.3 + 0.14 * k) * sx, 0.25 - k * 0.22, k * 0.1), Vector3(1.15 - k * 0.2, 0.6 - k * 0.08, 1.05 - k * 0.15), st.lerp(st2, k * 0.3), Vector3(k * 12, k * 30 * sx, -20 * sx), k + 1)
+				b.add("cone", sh + Vector3(0.1 * sx, 0.55, 0.15), Vector3(0.22, 0.7, 0.22), dk, Vector3(-15, 0, -25 * sx), 6)
+				b.add("cone", sh + Vector3(-0.25 * sx, 0.45, 0.35), Vector3(0.16, 0.5, 0.16), dk, Vector3(-30, 0, -10 * sx), 6)
+				# dev kol: kalın üst kol, dirsek kayası, aşağı genişleyen ön kol, yere değen dev yumruk
+				var el = sh + Vector3(0.35 * sx, -1.05, -0.2)
+				var wr = el + Vector3(0.05 * sx, -1.0, -0.35)
+				Loft.tube(b, [sh, sh.lerp(el, 0.5) + Vector3(0.1 * sx, 0, 0), el], [0.42, 0.46, 0.36], st, 16, 3, true, true, rock)
+				b.add("boulder", el + Vector3(0.1 * sx, 0, 0.1), Vector3(0.55, 0.5, 0.55), st2, Vector3(0, 0, 0), 5)
+				Loft.tube(b, [el, el.lerp(wr, 0.5), wr], [0.38, 0.5, 0.58], st, 16, 3, true, true, rock)
+				for f in 4:
+					var fp = wr + Vector3((f - 1.5) * 0.24, -0.35, -0.2 + absf(f - 1.5) * 0.08)
+					b.add("boulder", fp, Vector3(0.28, 0.4, 0.3), st2.lerp(dk, 0.2), Vector3(-20, 0, 0), 6 + f)   # kalın parmaklar
+				b.add("boulder", wr + Vector3(0.0, -0.1, 0.15), Vector3(0.75, 0.55, 0.6), st, Vector3.ZERO, 7)   # yumruk sırtı
+				# kolda lav çatlakları
+				for k in 3:
+					b.add("box", sh.lerp(wr, 0.25 + k * 0.25) + Vector3(0.05 * sx, 0, -0.42), Vector3(0.04, 0.35, 0.03), lava, Vector3(0, 0, 25 * sx * (1 if k % 2 else -1)))
+				# kısa, kalın bacaklar + ayak kayası
+				var hp = Vector3(0.55 * sx, 1.35, 0.1)
+				var kn = hp + Vector3(0.12 * sx, -0.65, -0.1)
+				Loft.tube(b, [hp, kn, Vector3(0.7 * sx, 0.25, 0.05)], [0.5, 0.42, 0.45], st2, 16, 3, true, true, rock)
+				b.add("boulder", Vector3(0.72 * sx, 0.18, -0.12), Vector3(0.85, 0.4, 1.05), st2.darkened(0.1), Vector3.ZERO, 8)
+				b.add("boulder", kn + Vector3(0, 0, -0.3), Vector3(0.5, 0.45, 0.35), st, Vector3.ZERO, 9)   # diz kayası
+			# göğüs: büyük plaka + ortada parlayan chakra çekirdeği ve ondan yayılan çatlaklar
+			b.add("boulder", Vector3(0, 2.75, -0.72), Vector3(1.35, 1.0, 0.55), st, Vector3(-8, 0, 0), 10)
+			b.add("sphere", Vector3(0, 2.7, -0.98), Vector3(0.36, 0.36, 0.14), lava.lightened(0.2), Vector3.ZERO, 12)
+			for k in 6:
+				var a = k * TAU / 6.0 + 0.3
+				b.add("box", Vector3(cos(a) * 0.42, 2.7 + sin(a) * 0.36, -0.99), Vector3(0.34, 0.035, 0.03), lava, Vector3(0, 0, rad_to_deg(a)))
+			b.add("boulder", Vector3(0, 1.75, -0.6), Vector3(0.9, 0.5, 0.35), st2, Vector3.ZERO, 11)   # karın plakası
+			# sırt: yosun örtüsü + sırt dikitleri
+			b.add("sphere", Vector3(0, 3.3, 0.55), Vector3(1.6, 0.5, 0.9), mo, Vector3(25, 0, 0), 12)
+			for k in 5:
+				b.add("cone", Vector3((k - 2) * 0.32, 3.35 - absf(k - 2) * 0.12, 0.65 - absf(k - 2) * 0.05), Vector3(0.22, 0.6 - absf(k - 2) * 0.1, 0.22), dk, Vector3(35, 0, (k - 2) * -10), 6)
+			for k in 7:
+				b.add("sphere", Vector3(randf_range(-1.0, 1.0), randf_range(2.2, 3.4), randf_range(0.3, 0.75)), Vector3(0.25, 0.12, 0.2), mo.lightened(0.1), Vector3.ZERO, 6)
 		"beetle":
 			# dev parazit kınkanatlı: parlak kara kabuk, boynuzlu kafa, altı bacak
 			var sh = Color(0.12, 0.14, 0.1)

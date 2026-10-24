@@ -13,7 +13,7 @@ func _ready() -> void:
 	await get_tree().create_timer(2.0).timeout
 	var cam = Camera3D.new()
 	main.add_child(cam)
-	for k in ["puppet", "ink", "golem"]:
+	for k in (OS.get_environment("CN").split(",") if OS.get_environment("CN") != "" else ["puppet", "ink", "golem"]):
 		ClanConstruct.spawn(pl, k, 1, {"tier": 3})
 		await get_tree().create_timer(0.8).timeout
 		var u = null
@@ -26,7 +26,8 @@ func _ready() -> void:
 			u.vis.rotation.y = pl.facing + PI
 			var c = u.global_position + Vector3.UP * u.height * 0.55
 			var fr = Basis(Vector3.UP, u.vis.rotation.y) * Vector3(0, 0, -1)
-			for side in [["on", fr * 3.0], ["yan", fr.cross(Vector3.UP) * 3.0 + fr * 1.2]]:
+			var cd_ = maxf(3.0, u.height * 1.5)
+			for side in [["on", fr * cd_], ["yan", fr.cross(Vector3.UP) * cd_ + fr * cd_ * 0.5]]:
 				cam.global_position = c + side[1] + Vector3.UP * 0.3
 				cam.look_at(c)
 				cam.current = true
