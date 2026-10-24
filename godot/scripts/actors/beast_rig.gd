@@ -184,8 +184,13 @@ func _tail(base: Node3D, yaw_deg: float, pitch_deg: float, n: int, length: float
 						var wd = r_mid * sin(pow(u, 0.75) * PI) * (1.0 - u * 0.25)
 						for sv in [-1.0, 1.0]:
 							Loft.tube(mb, [Vector3(0, 0.07, length * u), Vector3(sv * wd * 0.5, 0.07, length * (u + 0.06)), Vector3(sv * wd * 0.92, 0.07, length * (u + 0.1))], [0.05, 0.035, 0.015], tip.darkened(0.15), 5, 2)
-			"flame":
+			"flame":  # alev kuyruğu: gövde + her segmentte dışa savrulan alev dilleri, açık mavi/koyu
 				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.2), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.2)], [r, r * 0.97, r * 0.9], c, 12, 2, true, true)
+				for f in 4:
+					var fa = TAU * f / 4.0 + i * 0.9
+					var fd = Vector3(cos(fa), sin(fa), 0.9).normalized()
+					var fl2 = r * 1.1
+					Loft.tube(mb, [Vector3(cos(fa), sin(fa), 0) * r * 0.8 + Vector3(0, 0, seg_len * 0.4), Vector3(cos(fa), sin(fa), 0) * r * 0.8 + fd * fl2 * 0.5 + Vector3(0, 0, seg_len * 0.4), Vector3(cos(fa), sin(fa), 0) * r * 0.8 + fd * fl2 + Vector3(0, 0, seg_len * 0.8)], [r * 0.3, r * 0.18, 0.02], c.lerp(tip, 0.4) if f % 2 == 0 else Color(0.02, 0.02, 0.06), 6, 2, false, false)
 		if not mb.is_empty():
 			if style == "wing":
 				var wm = StandardMaterial3D.new()
