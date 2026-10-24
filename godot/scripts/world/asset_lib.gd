@@ -13,8 +13,10 @@ static var _mats := {}
 static var _sizes := {}
 
 
-## path: glTF/GLB; height > 0 ise o yüksekliğe ölçeklenir (yoksa scale çarpanı); zemin y=0, xz merkezlenir
 static var _parts := {}   # "yol|düğüm" -> [[mesh, yüzey, xform], AABB]
+
+
+## path: glTF/GLB; height > 0 ise o yüksekliğe ölçeklenir (yoksa scale çarpanı); zemin y=0, xz merkezlenir
 static func mesh(path: String, height := 0.0, scale := 1.0, opts := {}) -> ArrayMesh:
 	if OS.get_environment("ASSET_PACKS") == "0":
 		return null
