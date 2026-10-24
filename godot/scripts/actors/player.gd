@@ -39,6 +39,8 @@ var sprint_t = 0.0
 var was_turbo = false
 var last_air_vy = 0.0
 var cam_lift = 0.0   # dev dönüşümlerde kamera hedefini yükselt (kuyruklu canavar, Susanoo)
+var cam_range := Vector2(2.2, 14.0)   # fare tekeri yakınlaştırma sınırı (dev dönüşümde büyür)
+var cam_giant := false   # dev form: kamera küçük engellere (ağaç, ev) çarpıp canavarın içine sıçramasın
 var leap_charge = -1.0     # Ctrl basılı: 0..1 şarj (Striker süper zıplaması), -1 = şarj yok
 var flip_t = -1.0          # havada takla zamanlayıcısı
 var leap_ui: Control
@@ -130,9 +132,9 @@ func _unhandled_input(e: InputEvent) -> void:
 		pitch = clampf(pitch, -70, 60)
 	elif e is InputEventMouseButton and e.pressed:
 		if e.button_index == MOUSE_BUTTON_WHEEL_UP:
-			cam_dist = maxf(2.2, cam_dist - 0.5)
+			cam_dist = maxf(cam_range.x, cam_dist - cam_range.y * 0.04)
 		elif e.button_index == MOUSE_BUTTON_WHEEL_DOWN:
-			cam_dist = minf(14.0, cam_dist + 0.5)
+			cam_dist = minf(cam_range.y, cam_dist + cam_range.y * 0.04)
 	# Kai: genjutsu/sersemletmeyi chakrayla boz
 	if e.is_action_pressed("substitute") and (has_status("stun") or has_status("fear")) and Stats.has_unlock(Game.profile, "kai") and chakra >= 12.0:
 		chakra -= 12.0
@@ -1033,13 +1035,14 @@ func _animate(sp: float, sprint: bool) -> void:
 func _update_camera(dt: float) -> void:
 	var target = get_global_transform_interpolated().origin + Vector3.UP * (1.6 * (model.age_scale if model else 1.0) + cam_lift)
 	cam_pivot.global_position = cam_pivot.global_position.lerp(target, minf(1.0, dt * 16.0))
-	cam_pivot.rotation = Vector3(deg_to_rad(pitch), deg_to_rad(yaw), 0)
+	# dev formda kamera yukarıdan bakar (kuyruklar/gövde ekranı kapatmasın)
+	cam_pivot.rotation = Vector3(deg_to_rad(pitch - (2.0 if cam_giant else 0.0)), deg_to_rad(yaw), 0)
 	# kamera duvarlara ve araziye girmesin
 	var back = cam_pivot.global_transform.basis.z
 	var want = cam_dist
 	var space = get_world_3d().direct_space_state
 	var q = PhysicsRayQueryParameters3D.create(cam_pivot.global_position, cam_pivot.global_position + back * cam_dist, 1)
-	var hit = space.intersect_ray(q)
+	var hit = {} if cam_giant else space.intersect_ray(q)
 	if not hit.is_empty():
 		want = maxf(0.8, cam_pivot.global_position.distance_to(hit["position"]) - 0.3)
 	for i in 8:

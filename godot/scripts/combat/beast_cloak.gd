@@ -217,10 +217,23 @@ func _full_transform() -> void:
 	p.add_child(rig)
 	rig.remove_colliders()   # oyuncunun kendi canavarı ona çarpmasın
 	rig.show_weak(false)
+	# kendi canavarın: kameraya yakın kısımlar (kuyruklar, sırt) noktalı şeffaflaşır, ekranı kapatmaz
+	var fades := {}
+	for mi in rig.find_children("*", "MeshInstance3D", true, false):
+		var m = mi.material_override
+		if m is ShaderMaterial and (m as ShaderMaterial).shader and String((m as ShaderMaterial).shader.resource_path).ends_with("beast.gdshader"):
+			if not fades.has(m):
+				fades[m] = m.duplicate()
+				fades[m].set_shader_parameter("near_fade", h * 1.1)
+			mi.material_override = fades[m]
 	p.model.visible = false
 	saved_cam = p.cam_dist
-	p.cam_dist = h * 1.5 + 6.0
-	p.cam_lift = h * 0.55
+	# kamera canavarın boyuna göre: omuz üstünden, tüm gövde ve önündeki alan görünür; tekerle h*0.9..h*3 arası
+	p.cam_range = Vector2(h * 1.2, h * 3.5)
+	p.cam_dist = h * 1.8
+	p.cam_lift = h * 0.8
+	p.cam_giant = true
+	p.cam.far = maxf(p.cam.far, 6000.0)
 	Buffs.add("beast", 9999.0, {"melee": 3.5, "speed": 2.0, "armor": 0.25, "jutsu": 1.8})
 	FX.smoke_puff(p.global_position + Vector3.UP * h * 0.4, h * 0.25, 30)
 	Hud.banner("KUYRUKLU CANAVAR", "%s ile tam dönüşüm!  Sol tık: pençe  •  Sağ tık / X: Kuyruklu Canavar Topu" % BeastModels.INFO[id]["name"].split(" — ")[0], chakra_col())
@@ -234,6 +247,8 @@ func _end_transform() -> void:
 	p.model.visible = true
 	p.cam_dist = saved_cam
 	p.cam_lift = 0.0
+	p.cam_range = Vector2(2.2, 14.0)
+	p.cam_giant = false
 	if is_instance_valid(cloak_mesh):
 		cloak_mesh.visible = true
 	if is_instance_valid(ears):

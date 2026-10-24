@@ -121,6 +121,7 @@ func _start_fight() -> void:
 		cam_set = true
 		Game.player.set_meta("beast_cam", Game.player.cam_dist)
 		Game.player.cam_dist = maxf(Game.player.cam_dist, clampf(height * 0.12, 8.0, 16.0))
+		Game.player.cam_range.y = maxf(Game.player.cam_range.y, 28.0)   # dev rakibi tekerle uzaktan izleyebil
 
 
 func _end_fight() -> void:
@@ -128,6 +129,8 @@ func _end_fight() -> void:
 	Hud.boss_bar(null)
 	if cam_set and Game.player and is_instance_valid(Game.player):
 		Game.player.cam_dist = float(Game.player.get_meta("beast_cam", 5.5))
+		if not Game.player.cam_giant:
+			Game.player.cam_range = Vector2(2.2, 14.0)
 	cam_set = false
 
 

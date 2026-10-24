@@ -398,7 +398,10 @@ func _start_susanoo() -> void:
 	Hud.banner("SUSANOO", "Kademe %d — %s   (sol tık: dev savuruş, sağ tık: silah)" % [sn.tier, Susanoo.TIER_NAMES[sn.tier]], Color(sn.mat.get_shader_parameter("col")))
 	Sfx.play("roar", p.global_position, 1.6, 0.6)
 	if sn.tier >= 4:
+		p.set_meta("susanoo_cam", p.cam_dist)
+		p.cam_range = Vector2(6.0, 24.0 + sn.tier * 4.0)
 		p.cam_dist = maxf(p.cam_dist, 9.0 + sn.tier * 3.0)
+		p.cam_giant = true
 	# kanatlı tam Susanoo: havadayken Space ile uçuşa geç
 	if sn.tier >= 5 and Susanoo.config(Game.profile).get("wings", true) and p.has_method("start_flight"):
 		p.set_meta("wing_flight", {"speed": 24.0, "lift": 13.0, "drain": 1.2, "name": "Susanoo kanatları", "land_stop": true})
@@ -407,6 +410,11 @@ func _start_susanoo() -> void:
 
 func _end_susanoo() -> void:
 	susanoo = false
+	if p.has_meta("susanoo_cam"):
+		p.cam_dist = float(p.get_meta("susanoo_cam"))
+		p.remove_meta("susanoo_cam")
+		p.cam_range = Vector2(2.2, 14.0)
+		p.cam_giant = false
 	if p.has_meta("wing_flight"):
 		p.remove_meta("wing_flight")
 	if p.has_method("flight_source") and p.flight_source() == "susanoo":

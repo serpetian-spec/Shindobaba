@@ -7,6 +7,7 @@ uniform int surface = 0;          // 0 kürk, 1 deri/pul, 2 kabuk/zırh, 3 süm�
 uniform float stroke = 0.35;      // fırça izi gücü
 uniform vec4 shadow_tint : source_color = vec4(0.32, 0.26, 0.42, 1.0);
 uniform float hit_flash = 0.0;
+uniform float near_fade = 0.0;     // >0: kameraya bu mesafeden yakın yüzeyler noktalı şeffaflaşır (oyuncunun kendi dev formu kamerayı kapatmasın)
 uniform bool use_tint = false;   // hazır modeller: vertex rengi yerine malzeme rengi
 uniform vec4 tint : source_color = vec4(1.0);
 uniform bool tex_luma = false;   // dokunun sadece parlaklığı (yeniden renklendirme)
@@ -128,6 +129,12 @@ void vertex() {
 }
 
 void fragment() {
+	if (near_fade > 0.0) {
+		float dv = length(VERTEX);
+		float k = smoothstep(near_fade * 0.55, near_fade, dv);   // 0 yakın .. 1 uzak
+		float dith = fract(dot(FRAGCOORD.xy, vec2(0.0671, 0.00583)) * 52.98);
+		if (k < 0.85 && dith > k * 0.9 + 0.1) { discard; }
+	}
 	vec3 c = COLOR.rgb;
 	c = mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(0.04045, c));  // sRGB -> lineer
 	if (use_tint) c = tint.rgb;

@@ -489,6 +489,8 @@ func set_size(s: float, dur: float) -> void:
 		cap.height = p.height
 		cs.position.y = p.height * 0.5
 	p.cam_dist = 5.5 * maxf(1.0, s * 0.8)
+	p.cam_range = Vector2(2.2 * maxf(1.0, s * 0.6), 14.0 * maxf(1.0, s * 0.8))
+	p.cam_giant = s > 3.0
 
 
 # ------------------------------------------------------------------ hasar kancası: true = darbe tamamen önlendi

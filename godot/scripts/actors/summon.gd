@@ -519,6 +519,7 @@ func _unhandled_input(e: InputEvent) -> void:
 		elif pl.global_position.distance_to(global_position) < radius + 3.0 + height * 0.2:
 			mounted = true
 			pl.set_meta("riding", self)
+			_ride_cam(pl, true)
 			say(def["lines"].pick_random(), 2.5)
 			get_viewport().set_input_as_handled()
 	elif mounted and e.is_action_pressed("attack"):
@@ -537,9 +538,28 @@ func _dismount() -> void:
 		return
 	mounted = false
 	if owner_f is Player and is_instance_valid(owner_f):
+		_ride_cam(owner_f, false)
 		owner_f.remove_meta("riding")
 		owner_f.global_position = global_position + face_dir().rotated(Vector3.UP, PI * 0.5) * (radius + 1.5)
 		owner_f.velocity = Vector3.UP * 6.0
+
+
+## Binekte kamera: hayvanın boyuna göre uzak ve yüksek, tekerle boyuna göre yakınlaştırma; inince eski haline döner
+func _ride_cam(pl: Player, on: bool) -> void:
+	if on:
+		pl.set_meta("ride_cam", [pl.cam_dist, pl.cam_lift, pl.cam_range, pl.cam_giant])
+		var hh = maxf(2.0, height)
+		pl.cam_range = Vector2(maxf(2.2, hh * 0.8), maxf(14.0, hh * 3.0))
+		pl.cam_dist = clampf(hh * 1.7 + 4.0, 6.0, pl.cam_range.y)
+		pl.cam_lift = hh * 0.35
+		pl.cam_giant = hh > 6.0
+	elif pl.has_meta("ride_cam"):
+		var sv: Array = pl.get_meta("ride_cam")
+		pl.cam_dist = sv[0]
+		pl.cam_lift = sv[1]
+		pl.cam_range = sv[2]
+		pl.cam_giant = sv[3]
+		pl.remove_meta("ride_cam")
 
 
 ## Binildiğinde oyuncu yön verir; uçanlar Space ile yükselir, Ctrl ile alçalır
