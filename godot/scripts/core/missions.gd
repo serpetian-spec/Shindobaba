@@ -169,8 +169,12 @@ func _templates(rank: String, here: String) -> Array:
 			t.append(_q_escort(here, "A"))
 			t.append(_q_defend(here, "A"))
 		"S":
-			t.append({"title": "Fırtınanın Kalbi: Raijū", "giver": kage, "brief": "Yıldırım Ülkesi'ndeki Fırtına Kanyonu'nda bir kaçak ninjanın çağırdığı dev yıldırım canavarı köyleri yakıyor. Onu yen ve dağıt.",
-				"steps": [{"kind": "boss", "boss": "raiju", "near": "storm_canyon", "text": "Fırtına Kanyonu'na git ve Raijū'yu yen."}]})
+			# kanondaki "dev yılan çağıran kaçak Sannin" tipi S-rank tehdit (kanon karakter değil: kendi kaçağımız)
+			var snake_spot = _spot(["oto", "kusa", "konoha"].filter(func(x): return not Game.village(x).is_empty()).pick_random(), 600, 1500)
+			t.append({"title": "Yılan İninin Efendisi", "giver": kage, "rank": "S", "brief": "Yasak jutsular üzerinde deney yapan kaçak bir Sannin adayı, ininde dev yılan hükümdarıyla sözleşme yapmış. Köylerden kaybolan çocukların izi oraya çıkıyor. Ini bas, efendiyi ve çağırdığı yılanı yen.",
+				"steps": [{"kind": "kill", "at": snake_spot, "enemy": "rogue", "n": 3, "camp": true, "night": true,
+					"boss": {"name": "Kaçak Sannin Adayı Jakotsu", "hp": 5200.0, "level": 58, "power": 3.2, "style": "kuchiyose", "contract": "yılan", "contract_tier": 2},
+					"text": "Yılan inini bas: efendiyi ve dev yılanını yen."}]})
 			t.append({"title": "Kuklacı Mukuro", "giver": kage, "brief": "Rüzgar Ülkesi'nde köyleri yağmalayan efsanevi kuklacı. Onu durdur.",
 				"steps": [{"kind": "boss", "boss": "puppeteer", "near": "suna", "text": "Rüzgar Ülkesi'ne git ve kuklacıyı yen."}]})
 	var out = []
@@ -990,6 +994,9 @@ func _spawn_boss(b: Dictionary, kind: String, at: Vector3) -> Enemy:
 	var mr = String(active().get("rank", "B"))
 	BossStyles.dress(a, String(b.get("rank", mr)), hash(String(a["name"]) + String(active().get("title", ""))), String(b.get("style", "")))
 	e.setup(a)
+	if b.has("contract"):
+		e.set_meta("contract", b["contract"])
+		e.set_meta("contract_tier", int(b.get("contract_tier", 1)))
 	e.set_meta("mission", true)
 	e.set_meta("q", _key())
 	e.set_meta("flee", b.get("flee", false))

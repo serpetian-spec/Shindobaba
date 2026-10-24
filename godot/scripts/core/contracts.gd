@@ -208,6 +208,8 @@ static func summon(c: Node3D, jd: Dictionary) -> void:
 	else:
 		id = String(c.get_meta("contract", ["kurbağa", "yılan", "köpek"].pick_random()))
 		tier = 1 if DEFS[id]["tiers"].has(1) else DEFS[id]["tiers"].keys()[0]
+		if c.has_meta("contract_tier") and DEFS[id]["tiers"].has(int(c.get_meta("contract_tier"))):
+			tier = int(c.get_meta("contract_tier"))   # boss: dev çağrı
 	var sd: Dictionary = DEFS[id]["tiers"][tier]
 	var pos: Vector3
 	if c is Player:

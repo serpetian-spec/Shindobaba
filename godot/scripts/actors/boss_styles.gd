@@ -12,6 +12,7 @@ const STYLES := {
 	"taijutsu": {"title": "Taijutsu Canavarı", "weapon": "", "skill": 0.2},
 	"fuin": {"title": "Mühür Ustası", "weapon": "", "skill": 0.05},
 	"bakuton": {"title": "Patlatıcı", "weapon": "", "skill": 0.05},
+	"kuchiyose": {"title": "Çağırıcı", "weapon": "", "skill": 0.1},
 }
 ## Rütbeye göre dövüş ustalığı (stat değil: kaçınma, blok, kombo, kawarimi sıklığı)
 const RANK_SKILL := {"D": 0.15, "C": 0.35, "B": 0.55, "A": 0.75, "S": 0.92}
@@ -72,6 +73,17 @@ static func tick(e: Enemy, dt: float) -> void:
 			if d < 22.0:
 				_tag_trap(e, t, 4 if not p2 else 7)
 				e.set_meta("bs_cd", randf_range(6.0, 8.0))
+		"kuchiyose":   # dövüşün başında ve 2. aşamada dev çağrı (sözleşme hayvanı) getirir
+			var n_sum = int(e.get_meta("bs_summons", 0))
+			if d < 45.0 and n_sum < (1 if not p2 else 2):
+				e.set_meta("bs_summons", n_sum + 1)
+				Combat.popup_text(e.global_position + Vector3.UP * 2.6, "Kuchiyose no Jutsu!", Color(0.85, 0.6, 1.0))
+				e.model.play("cast_out", 0.05, 1.0, true)
+				Contracts.summon(e, {"id": "kuchiyose"})
+				e.set_meta("bs_cd", 6.0)
+			elif d < 30.0:
+				_tag_trap(e, t, 3)
+				e.set_meta("bs_cd", randf_range(6.0, 9.0))
 		"bakuton":
 			if d < 30.0:
 				_clay_birds(e, t, 3 if not p2 else 5)
@@ -83,7 +95,7 @@ static func _phase2(e: Enemy, st: String) -> void:
 	e.skill = minf(0.98, e.skill + 0.15)
 	e.arch["aggr"] = float(e.arch.get("aggr", 0.6)) * 1.35
 	var lines = {"kenjutsu": "Kılıcımın gerçek hızını gör!", "kugutsu": "Kuklalarımın hepsi uyandı!", "genjutsu": "Gördüğün hiçbir şey gerçek değil...",
-		"taijutsu": "Kapılar... AÇILIN!", "fuin": "Bu alan artık benim mührüm.", "bakuton": "Sanat bir patlamadır!"}
+		"taijutsu": "Kapılar... AÇILIN!", "kuchiyose": "Gel bakalım... hükümdarım!", "fuin": "Bu alan artık benim mührüm.", "bakuton": "Sanat bir patlamadır!"}
 	Hud.banner(e.display_name, String(lines.get(st, "Ciddileşti!")), Color(1, 0.45, 0.35))
 	if st == "taijutsu":
 		e.arch["speed"] = float(e.arch["speed"]) * 1.45
