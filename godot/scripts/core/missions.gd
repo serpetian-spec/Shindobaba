@@ -713,6 +713,8 @@ func _key() -> String:
 # ------------------------------------------------------------------ adım başlatma
 func _begin_step() -> void:
 	var m = active()
+	if String(m.get("hook", "")) == "Kage.summit_done":
+		Kage.fix_summit_steps(m)   # eski kayıt: adımlar kalenin içi dolu merkezini gösteriyordu
 	var s = _cur()
 	if s.is_empty():
 		return

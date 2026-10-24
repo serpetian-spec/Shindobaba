@@ -479,6 +479,41 @@ func start_summit() -> void:
 	Missions.accept({"title": "Beş Kage Zirvesi", "rank": "S", "village": home, "hook": "Kage.summit_done", "giver": "Samuray Generali", "brief": "Demir Ülkesi'nde dört Kage ile buluş. Akatsuki'ye karşı birleşik bir ordu kur — ya da köyünü yalnız bırak.", "steps": steps})
 
 
+## Eski sürümde kabul edilen zirve görevi: adımlar kalenin merkezini (içi dolu kaide, tepede görünür) gösteriyordu —
+## hepsini kalenin önündeki salona kaydır (bir kez)
+func fix_summit_steps(m: Dictionary) -> void:
+	if m.get("summit_v2", false):
+		return
+	m["summit_v2"] = true
+	var t = Game.village("tetsu")
+	if t.is_empty():
+		return
+	var cx = float(t["x"])
+	var cy = float(t["y"])
+	var hall = [cx, cy - 101.0]
+	var i = 0
+	for st in m.get("steps", []):
+		if not st.has("at"):
+			continue
+		var a: Array = st["at"]
+		if Vector2(float(a[0]), float(a[1])).distance_to(Vector2(cx, cy)) > 60.0:
+			continue   # zaten yeni yerinde ya da başka yer
+		match String(st.get("kind", "")):
+			"goto":
+				st["at"] = hall
+				st["r"] = 22.0
+			"talk":
+				if st.get("npc", {}).get("id", "") == "general":
+					st["at"] = [hall[0], hall[1] - 10.0]
+				else:
+					var ka = TAU * (i + 1) / 5.0
+					st["at"] = [hall[0] + sin(ka) * 9.5, hall[1] - cos(ka) * 9.5]
+					i += 1
+			"kill":
+				st["at"] = [hall[0], hall[1] - 26.0]
+	Missions.target_marker = Missions._w(hall)
+
+
 func summit_done(m: Dictionary, ok: bool) -> void:
 	if not ok:
 		st()["summit"] = "none"
