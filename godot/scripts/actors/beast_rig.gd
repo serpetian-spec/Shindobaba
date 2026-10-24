@@ -112,12 +112,18 @@ func _tail(base: Node3D, yaw_deg: float, pitch_deg: float, n: int, length: float
 		var c = col.lerp(tip, smoothstep(0.55, 1.0, k))
 		match style:
 			"fur":  # kabarık kuyruk: pürüzsüz tüp + uca doğru açık renk + tüy uçları
-				var rn = lerpf(r0, r_mid, sin(minf(1.0, float(i + 1) / max(1, n - 1) * 1.6) * PI * 0.5)) * (1.0 - pow(float(i + 1) / max(1, n - 1), 3.0) * 0.85)
-				var cn = col.lerp(tip, smoothstep(0.55, 1.0, float(i + 1) / max(1, n - 1)))
+				var kn = minf(1.0, float(i + 1) / max(1, n - 1))   # son segmentte 1'i aşıp negatif yarıçap veriyordu (uçta balon)
+				var rn = maxf(r0 * 0.06, lerpf(r0, r_mid, sin(minf(1.0, kn * 1.6) * PI * 0.5)) * (1.0 - pow(kn, 3.0) * 0.85) * (0.15 if i == n - 1 else 1.0))
+				var cn = col.lerp(tip, smoothstep(0.55, 1.0, kn))
 				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.15), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.15)], [r * 1.05, (r + rn) * 0.55 * 1.1, rn * 1.0], [c, c.lerp(cn, 0.5), cn], 14, 2, true, true)
 				for f in (3 if i < n - 2 else 0):
 					var fa = TAU * f / 3.0 + i
 					claw(mb, Vector3(cos(fa) * r * 0.8, sin(fa) * r * 0.8, seg_len * 0.6), Vector3(cos(fa) * 0.6, sin(fa) * 0.6, 1.0), r * 0.9, r * 0.35, c.lerp(cn, 0.5))
+			"sleek":  # pürüzsüz, kalın, sivri uçlu kuyruk (tüy dikeni yok)
+				var kn2 = minf(1.0, float(i + 1) / max(1, n - 1))
+				var rn2 = maxf(r0 * 0.05, lerpf(r0, r_mid, sin(minf(1.0, kn2 * 1.6) * PI * 0.5)) * (1.0 - pow(kn2, 2.2) * 0.9) * (0.12 if i == n - 1 else 1.0))
+				var cn2 = col.lerp(tip, smoothstep(0.6, 1.0, kn2))
+				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.15), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.15)], [r, (r + rn2) * 0.52, rn2], [c, c.lerp(cn2, 0.5), cn2], 14, 2, true, true)
 			"sand":
 				var ink = Color(0.1, 0.12, 0.3)
 				var fn = func(tt: float, a: float, _d: Vector3) -> Color:

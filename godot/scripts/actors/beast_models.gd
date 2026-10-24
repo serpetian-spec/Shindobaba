@@ -235,57 +235,60 @@ static func _kurama(r: BeastRig, root: Node3D) -> void:
 	var c = Color(0.88, 0.32, 0.07); var belly = Color(0.97, 0.52, 0.2); var dark = Color(0.06, 0.02, 0.02); var cl = Color(0.97, 0.93, 0.85)
 	var fn = _belly(c, belly, c.darkened(0.12))
 	r.hips = r._pivot(root, Vector3(0, 4.2, 2.0), "kalca_kok")
-	_tube(r, r.hips, [Vector3(0, 0.6, 3.0), Vector3(0, 0.7, 1.0), Vector3(0, 0.8, -1.8), Vector3(0, 1.0, -4.2)], [Vector2(2.7, 2.6), Vector2(3.2, 2.8), Vector2(3.3, 3.0), Vector2(3.9, 3.6)], c, fn)
-	var hm = MB.new()
-	_tuft(hm, Vector3(0, 3.4, 0.0), Vector3(0, 1, 0.3), 5, 1.6, 0.4, c.darkened(0.05))
-	r._mesh(r.hips, hm)
+	# yalın, kaslı gövde: geniş kalça, ince bel (pofuduk peluş değil)
+	_tube(r, r.hips, [Vector3(0, 0.6, 2.6), Vector3(0, 0.7, 1.0), Vector3(0, 0.9, -1.6), Vector3(0, 1.2, -4.0)], [Vector2(2.2, 2.2), Vector2(2.4, 2.3), Vector2(1.7, 1.8), Vector2(2.3, 2.4)], c, fn)
 	r._collider(r.hips, Vector3(0, 0, -1.0), Vector3(4.0, 3.4, 6.0))
-	r.chest = r._pivot(r.hips, Vector3(0, 1.0, -4.0), "gogus")
-	_tube(r, r.chest, [Vector3(0, -0.2, 1.4), Vector3(0, 0.2, -0.4), Vector3(0, 1.3, -2.1), Vector3(0, 2.3, -3.3)], [Vector2(4.3, 4.0), Vector2(4.8, 4.4), Vector2(2.6, 2.4), Vector2(1.9, 1.8)], c, fn)
+	r.chest = r._pivot(r.hips, Vector3(0, 1.2, -3.8), "gogus")
+	r.chest.rotation.x = deg_to_rad(22.0)   # üst gövde kalkık: insansı göğüs, öne eğik yırtıcı duruş
+	_tube(r, r.chest, [Vector3(0, -0.4, 1.2), Vector3(0, 0.3, -0.5), Vector3(0, 1.4, -1.9), Vector3(0, 2.3, -2.9)], [Vector2(2.6, 2.6), Vector2(3.6, 3.0), Vector2(2.0, 1.9), Vector2(1.5, 1.4)], c, fn)
 	var mc = MB.new()
-	for i in 11:  # boyun yelesi (cel tüyler)
-		var a = lerpf(-2.4, 2.4, i / 10.0)
-		BeastRig.claw(mc, Vector3(sin(a) * 2.6, 2.0 + cos(a) * 1.2, -1.2), Vector3(sin(a) * 0.7, 0.35 + cos(a) * 0.4, 0.9), 2.2, 0.6, c.lerp(belly, 0.25 if absf(a) > 1.5 else 0.0))
-	for i in 5:  # göğüs tüyü
-		BeastRig.claw(mc, Vector3((i - 2) * 0.9, -0.6, -2.6), Vector3((i - 2) * 0.2, -0.8, -0.6), 1.6, 0.5, belly)
+	for i in 5:  # omuz ve boyunda birkaç sivri tutam (cel)
+		var a = lerpf(-1.6, 1.6, i / 4.0)
+		BeastRig.claw(mc, Vector3(sin(a) * 2.2, 1.6 + cos(a) * 0.6, -1.0), Vector3(sin(a) * 0.6, 0.6, 0.8), 1.3, 0.35, c)
 	r._mesh(r.chest, mc)
 	r._collider(r.chest, Vector3.ZERO, Vector3(4.6, 4.2, 4.0))
 	r.head = r._pivot(r.chest, Vector3(0, 2.7, -3.9), "bas")
-	# kafatası + uzun burun (tek pürüzsüz profil)
-	_tube(r, r.head, [Vector3(0, 0.3, 1.3), Vector3(0, 0.2, -0.2), Vector3(0, -0.2, -1.6), Vector3(0, -0.45, -3.0), Vector3(0, -0.55, -3.7)],
-		[Vector2(1.8, 1.6), Vector2(2.0, 1.75), Vector2(1.35, 1.05), Vector2(0.75, 0.55), Vector2(0.45, 0.35)], c, func(t: float, a: float, _d: Vector3) -> Color:
-			# gözlerden kulaklara uzanan siyah maske
-			if t > 0.22 and t < 0.6 and sin(a) > 0.12 and sin(a) < 0.8 and absf(cos(a)) > 0.45:
+	# anime tilki başı: iri yuvarlak kafatası, KISA ve geniş burun, gözlerden kulaklara uzanan siyah maske, geniş sırıtış
+	_tube(r, r.head, [Vector3(0, 0.5, 1.3), Vector3(0, 0.45, 0.0), Vector3(0, 0.1, -1.3), Vector3(0, -0.2, -2.4), Vector3(0, -0.3, -3.0)],
+		[Vector2(1.9, 1.8), Vector2(2.1, 1.9), Vector2(1.55, 1.2), Vector2(0.95, 0.68), Vector2(0.55, 0.42)], c, func(t: float, a: float, d: Vector3) -> Color:
+			# gözlerden kulağa siyah maske (yanaklar boyunca yukarı çekik)
+			if t > 0.3 and t < 0.62 and d.y > 0.05 and d.y < 0.62 and absf(d.x) > 0.5:
 				return dark
-			return c.lerp(belly, smoothstep(-0.15, -0.95, sin(a))))
+			return c.lerp(belly, smoothstep(-0.1, -0.85, d.y)))
 	var mh = MB.new()
-	mh.add("sphere", Vector3(0, -0.35, -3.75), Vector3(0.75, 0.5, 0.45), dark, Vector3.ZERO, 10)  # burun
+	mh.add("sphere", Vector3(0, -0.2, -3.05), Vector3(0.7, 0.45, 0.42), dark, Vector3.ZERO, 12)   # burun
 	for sx in [-1.0, 1.0]:
-		# kulaklar: dışı turuncu, iç ve uç siyah
-		Loft.tube(mh, [Vector3(1.15 * sx, 1.2, 0.3), Vector3(1.45 * sx, 2.8, 0.55), Vector3(1.6 * sx, 4.1, 0.75)], [Vector2(0.95, 0.5), Vector2(0.7, 0.36), Vector2(0.05, 0.05)], [c, c.lerp(dark, 0.4), dark], 12, 3, true, false)
-		for k in 4:  # yanak tüyü
-			BeastRig.claw(mh, Vector3(1.75 * sx, -0.15 - k * 0.32, -0.3 + k * 0.25), Vector3(sx, -0.25, 0.55), 1.3, 0.34, c)
-		_anime_eye(r, r.head, Vector3(0.98 * sx, 0.55, -1.75), Vector3(1.0, 0.45, 0.3), Color(0.98, 0.9, 0.35), Color(0.85, 0.04, 0.02), dark, Vector3(0, 30 * sx, -24 * sx), "slit")
-		_brow(mh, Vector3(0.98 * sx, 0.6, -1.75), sx, 1.0, dark)
-		_tuft(mh, Vector3(0.9 * sx, 1.2, 0.9), Vector3(0.3 * sx, 0.6, 1.0), 3, 1.6, 0.35, c)
-	for i in 6:  # üst dişler
+		# büyük tavşanımsı kulaklar: dışı turuncu, iç ve uç siyah
+		Loft.tube(mh, [Vector3(1.25 * sx, 1.45, 0.45), Vector3(1.65 * sx, 3.4, 0.8), Vector3(1.85 * sx, 5.2, 1.0)], [Vector2(1.15, 0.6), Vector2(0.85, 0.42), Vector2(0.06, 0.06)], [c, c.lerp(dark, 0.3), dark], 14, 3, true, false)
+		mh.add("sphere", Vector3(1.5 * sx, 2.6, 0.48), Vector3(0.9, 1.9, 0.12), dark.lightened(0.05), Vector3(0, 0, -12 * sx), 10)   # kulak içi
+		# kocaman, öne bakan, çekik göz: sarı göz akı + kırmızı iris + dikey yarık
+		_anime_eye(r, r.head, Vector3(1.08 * sx, 0.6, -1.8), Vector3(1.25, 0.34, 0.3), Color(1.0, 0.85, 0.2), Color(0.85, 0.04, 0.03), dark, Vector3(0, 16 * sx, -26 * sx), "slit")   # dar, çekik, tehditkâr göz
+		mh.add("box", Vector3(1.35 * sx, 1.05, -1.25), Vector3(0.22, 0.12, 1.5), dark, Vector3(-25, 32 * sx, -30 * sx))   # gözden kulağa uzanan siyah çizgi
+		mh.add("box", Vector3(0.75 * sx, 0.92, -2.0), Vector3(0.75, 0.1, 0.18), dark, Vector3(0, 10 * sx, -32 * sx))   # çatık kaş çıkıntısı
+		for k in 2:   # yanakta iki sivri tutam
+			BeastRig.claw(mh, Vector3(1.9 * sx, -0.1 - k * 0.4, -0.3 + k * 0.4), Vector3(sx, -0.2, 0.5), 1.4, 0.3, c)
+		_tuft(mh, Vector3(0.9 * sx, 1.55, 0.9), Vector3(0.3 * sx, 0.7, 1.0), 3, 1.8, 0.38, c)
+		# geniş sırıtış: ağız köşesine kadar uzanan siyah çizgi ve iri köpek dişleri
+		mh.add("box", Vector3(0.72 * sx, -0.62, -1.6), Vector3(0.1, 0.12, 2.0), dark, Vector3(0, -10 * sx, -14 * sx))   # yırtık sırıtış çizgisi
+		BeastRig.claw(mh, Vector3(0.48 * sx, -0.55, -2.0), Vector3(0, -1, -0.1), 0.95, 0.2, cl)
+	for i in 5:   # üst diş sırası
 		for sx in [-1.0, 1.0]:
-			BeastRig.claw(mh, Vector3(0.62 * sx - sx * i * 0.07, -0.85, -1.2 - i * 0.38), Vector3(0, -1, -0.1), 0.85 - (0.3 if i > 0 else 0.0), 0.14, cl)
+			BeastRig.claw(mh, Vector3((0.6 - i * 0.05) * sx, -0.62, -0.9 - i * 0.36), Vector3(0, -1, -0.1), 0.75, 0.16, cl)
 	r._mesh(r.head, mh)
-	r._collider(r.head, Vector3(0, 0, -0.8), Vector3(3.2, 2.6, 4.4) * 1.15)
-	r.jaw = r._pivot(r.head, Vector3(0, -0.9, -0.5), "cene")
+	r._collider(r.head, Vector3(0, 0, -0.6), Vector3(3.4, 2.8, 4.0) * 1.15)
+	r.jaw = r._pivot(r.head, Vector3(0, -0.7, -0.4), "cene")
 	var mj = MB.new()
-	Loft.tube(mj, [Vector3(0, -0.1, 0.2), Vector3(0, -0.15, -1.4), Vector3(0, -0.05, -2.6)], [Vector2(1.15, 0.45), Vector2(0.85, 0.35), Vector2(0.35, 0.2)], c.lerp(belly, 0.4), 14, 3)
-	mj.add("sphere", Vector3(0, 0.12, -1.4), Vector3(1.4, 0.18, 2.4), Color(0.55, 0.08, 0.1), Vector3.ZERO, 10)
-	for i in 5:
+	Loft.tube(mj, [Vector3(0, -0.1, 0.2), Vector3(0, -0.15, -1.1), Vector3(0, -0.05, -1.9)], [Vector2(1.3, 0.5), Vector2(1.0, 0.4), Vector2(0.5, 0.25)], c.lerp(belly, 0.4), 14, 3)
+	mj.add("sphere", Vector3(0, 0.12, -1.1), Vector3(1.6, 0.2, 2.0), Color(0.55, 0.08, 0.1), Vector3.ZERO, 10)
+	for i in 4:
 		for sx in [-1.0, 1.0]:
-			BeastRig.claw(mj, Vector3(0.5 * sx - sx * i * 0.06, 0.12, -0.6 - i * 0.42), Vector3(0, 1, 0), 0.4, 0.11, cl)
+			BeastRig.claw(mj, Vector3((0.55 - i * 0.06) * sx, 0.12, -0.5 - i * 0.35), Vector3(0, 1, 0), 0.45, 0.12, cl)
 	r._mesh(r.jaw, mj)
-	r.mouth = r._pivot(r.head, Vector3(0, -0.7, -3.0), "agiz")
+	r.mouth = r._pivot(r.head, Vector3(0, -0.6, -2.3), "agiz")
 	for sx in [-1.0, 1.0]:
-		_arm(r, r.chest, sx, Vector3(2.4 * sx, 0.3, -0.8), Vector3(0.5 * sx, -2.6, -1.2), Vector3(-0.1 * sx, -2.5, -0.7), 1.15, 0.85, 0.62, c, c.darkened(0.05), dark, 5, 1.25)
+		_arm(r, r.chest, sx, Vector3(2.5 * sx, 0.6, -0.9), Vector3(0.8 * sx, -2.4, -0.5), Vector3(-0.2 * sx, -2.5, -1.0), 1.0, 0.78, 0.6, c, c.darkened(0.05), cl, 5, 1.3)
 		_leg(r, r.hips, sx, Vector3(2.0 * sx, -0.5, 1.0), Vector3(0.3 * sx, -1.6, 1.6), Vector3(0, -1.9, -0.6), 1.35, 0.9, 0.58, c, c.darkened(0.05), dark, false, false, 1.25)
-	_tail_fan(r, r.hips, Vector3(0, 1.2, 2.6), 9, 75.0, -38.0, 12.0, 0.7, 1.55, c, Color(1.0, 0.72, 0.4), "fur", 8)
+	_tail_fan(r, r.hips, Vector3(0, 1.2, 2.4), 9, 70.0, -40.0, 13.0, 0.75, 1.3, c, Color(1.0, 0.66, 0.32), "sleek", 9)
 	r._weak(r.head, Vector3(0, 1.8, -0.3))
 	r._weak(r.chest, Vector3(0, 2.4, 0.6))
 	r._weak(r.hips, Vector3(0, 1.6, 2.0))
