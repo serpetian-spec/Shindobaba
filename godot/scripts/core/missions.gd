@@ -1889,9 +1889,9 @@ func _bb_ranks() -> Array:
 	return {0: ["C"], 1: ["C", "B"], 2: ["C", "B", "A"], 3: ["B", "A", "S"], 4: ["A", "S"], 5: ["A", "S"], 6: ["A", "S"]}[int(Game.profile.get("rank", 0))]
 
 
-func _bb_new() -> Dictionary:
+func _bb_new(force_rank := "") -> Dictionary:
 	var bb = _bingo()
-	var rank: String = _bb_ranks().pick_random()
+	var rank: String = _bb_ranks().pick_random() if force_rank == "" else force_rank
 	var rd: Array = BB_RANKS[rank]
 	var vid: String = BB_VILLAGES.filter(func(x): return not Game.village(x).is_empty()).pick_random()
 	var near: String = Game.world_info["villages"].pick_random()["id"]
@@ -1916,12 +1916,56 @@ func _bb_new() -> Dictionary:
 	e["look"].merge(Outfits.roll_hex("rogue", vid), true)
 	e["look"]["band_style"] = "slashed"
 	# S-rank: bazen içinde kuyruklu canavar taşıyan kaçak jinchūriki (canavarın kendi teknikleriyle savaşır)
-	if rank == "S" and randf() < 0.35:
-		e["beast"] = ["shukaku", "matatabi", "isobu", "son_goku", "kokuo", "saiken", "chomei", "gyuki"].pick_random()
-		e["crimes"].append("İçinde bir Kuyruklu Canavar taşıyor (%s)" % String(BeastModels.INFO[e["beast"]]["name"]).split(" — ")[0])
+	# (dinamik jinchūriki: canavar gerçekten o kişide — köyünden kaçan taşıyıcı; yenilince canavar serbest kalır)
+	if rank == "S" and force_rank == "" and randf() < 0.35:
+		var rh = TailedBeasts.take_rogue_host()
+		if not rh.is_empty():
+			_bb_host(e, String(rh["id"]), rh["host"])
 	ClanWorld.decorate_bingo(e)   # bazen bir klanın kaçağı (gözleri alınabilir)
 	bb["next"] = int(bb["next"]) + 1
 	return e
+
+
+func _bb_host(e: Dictionary, id: String, h: Dictionary) -> void:
+	e["beast"] = id
+	e["name"] = String(h["name"])
+	e["village"] = String(h["village"])
+	e["element"] = BB_ELEM.get(e["village"], e["element"])
+	e["level"] = maxi(int(e["level"]), int(h.get("level", 40)))
+	e["hp"] = 260.0 + int(e["level"]) * 24.0
+	e["power"] = 1.3 + int(e["level"]) * 0.035
+	e["look"]["gender"] = String(h.get("gender", "m"))
+	e["look"]["village"] = e["village"]
+	e["crimes"].append("İçinde bir Kuyruklu Canavar taşıyor (%s)" % String(BeastModels.INFO[id]["name"]).split(" — ")[0])
+	e["crimes"].append("%s köyünden kaçtı" % Game.village(e["village"]).get("name", e["village"]))
+
+
+## Dünya olayı: köy taşıyıcısı kaçtı → S-rank Bingo girdisi
+func add_rogue_jinchuriki(id: String, h: Dictionary) -> void:
+	h["rogue"] = true
+	for x in _bingo()["list"]:
+		if x["status"] == "alive" and String(x.get("beast", "")) == id:
+			return
+	var e = _bb_new("S")
+	e.erase("clan")
+	_bb_host(e, id, h)
+	_bingo()["list"].append(e)
+
+
+func remove_rogue_jinchuriki(id: String) -> void:
+	for x in _bingo()["list"]:
+		if x["status"] == "alive" and String(x.get("beast", "")) == id:
+			x["status"] = "dead"
+			x["tracked"] = false
+
+
+## Kaçak taşıyıcı şu an oyuncunun yakınında mı (o sırada dünya olayıyla silinmesin)
+func bingo_host_spawned(id: String) -> bool:
+	for x in _bingo()["list"]:
+		if x["status"] == "alive" and String(x.get("beast", "")) == id and _bb_spawned.has(int(x["id"])):
+			return true
+	return false
+
 
 
 func _bingo_tick(dt: float) -> void:
@@ -2033,6 +2077,10 @@ func _bingo_killed(boss: Node) -> void:
 			e["status"] = "dead"
 			e["tracked"] = false
 			Hud.banner("ARANAN ETKİSİZ", "«%s» %s — %d Ryō ödül" % [e["alias"], e["name"], int(e["bounty"])], Color(1, 0.8, 0.3))
+			if e.has("beast"):   # taşıyıcı yenildi: canavar bedeninden fışkırır
+				var bid = String(e["beast"])
+				var at = boss.global_position
+				get_tree().create_timer(2.5).timeout.connect(func(): TailedBeasts.release_from_host(bid, at))
 			Progress.add_ryo(int(e["bounty"]))
 			var gid = Gear.random_legendary() if e["rank"] == "S" or (e["rank"] == "A" and randf() < 0.4) else Gear.random_reward(RANK_IDX.get(e["rank"], 1) + 1)
 			if gid != "" and not Gear.item(gid).is_empty():

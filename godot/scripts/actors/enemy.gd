@@ -504,6 +504,11 @@ func take_hit(info: Dictionary) -> void:
 		info["dmg"] = info.get("dmg", 5.0) * 0.15
 		info["kind"] = "guarded"
 		hp -= info["dmg"]
+		if hp <= 0.0:   # bloklanan darbe de öldürebilir (yoksa can eksiye düşüp düşman ölümsüz kalıyordu)
+			hp = 0.0
+			guarding = false
+			die(info)
+			return
 		if skill > 0.6 and randf() < skill * 0.5:   # bloktan karşı saldırı
 			guarding = false
 			model.overlay.set_pose("guard", 0.0)

@@ -28,6 +28,15 @@ var tick = 0.0
 var last_missions = -1
 var mind: Node3D = null   # zihin dünyası sahnesi
 var mind_return := Vector3.ZERO
+var host_t := 60.0       # dünya olayı sayacı (gerçek sn)
+
+## Dinamik jinchūriki: canavarlar köylerin taşıyıcılarında ("host") ya da inlerinde ("wild") olabilir; zamanla değişir.
+## Köyün geleneksel canavarları (başlangıçta çoğunlukla taşıyıcıda):
+const HOME_VILLAGE := {"shukaku": "suna", "isobu": "kiri", "saiken": "kiri", "son_goku": "iwa", "kokuo": "iwa",
+	"matatabi": "kumo", "gyuki": "kumo", "chomei": "taki", "kurama": "konoha"}
+const HOST_GIVEN := ["Hayate", "Rinka", "Sōma", "Akane", "Kairi", "Tōya", "Mizuki", "Raiga", "Fuyu", "Jinpachi", "Sayo", "Kōen", "Nagi", "Ibuki", "Tenma", "Yura"]
+const HOST_FAMILY := ["Kazahana", "Mibu", "Kurenai", "Tsuchigumo", "Hōzuki", "Yotsuki", "Sakigake", "Kamizuru", "Shirogane", "Nanase", "Hagane", "Kirigaya"]
+const HOST_EVENT_T := 600.0   # ~10 dakikada bir dünya olayı
 
 
 # ------------------------------------------------------------------ profil durumu
@@ -46,7 +55,135 @@ func beasts() -> Dictionary:
 		pr["beasts"].erase("raiju")
 	if "jinchuriki" in pr.get("skills", []) and String(pr.get("jinchuriki", "")) == "":
 		pr["skills"].erase("jinchuriki")
+	if not pr.get("hosts_init", false):
+		pr["hosts_init"] = true
+		_init_hosts(pr["beasts"])
 	return pr["beasts"]
+
+
+# ------------------------------------------------------------------ dinamik jinchūriki (köy taşıyıcıları, kaçaklar)
+func _new_host(id: String, vid: String, rogue := false) -> Dictionary:
+	var lv = randi_range(32, 55)
+	return {"name": "%s %s" % [HOST_FAMILY.pick_random(), HOST_GIVEN.pick_random()], "village": vid, "rogue": rogue, "level": lv,
+		"gender": ["m", "f"].pick_random()}
+
+
+## Yeni ya da eski kayıt: inde duran canavarların bir kısmı köylerin taşıyıcılarına geçer (Kurama hep inde başlar — en büyük av)
+func _init_hosts(bs: Dictionary) -> void:
+	for id in LAIRS:
+		var b: Dictionary = bs.get(id, {})
+		if String(b.get("state", "wild")) != "wild" or id == "kurama" or spawned.has(id):
+			continue
+		if randf() < 0.55:
+			b["state"] = "host"
+			b["host"] = _new_host(id, HOME_VILLAGE.get(id, "kumo"))
+			bs[id] = b
+
+
+func host_of(id: String) -> Dictionary:
+	var b: Dictionary = beasts().get(id, {})
+	return b.get("host", {}) if String(b.get("state", "")) == "host" else {}
+
+
+func _bname(id: String) -> String:
+	return String(BeastModels.INFO[id]["name"]).split(" — ")[0]
+
+
+func _vname(vid: String) -> String:
+	return String(Game.village(vid).get("name", vid.capitalize()))
+
+
+func _news(title: String, text: String, col := Color(1, 0.6, 0.35)) -> void:
+	Hud.banner(title, text, col)
+	var pr = Game.profile
+	if not pr.has("beast_news"):
+		pr["beast_news"] = []
+	pr["beast_news"].append(text)
+	if pr["beast_news"].size() > 12:
+		pr["beast_news"].pop_front()
+
+
+## Bingo Kitabı S-rank kaçak jinchūriki isterse: köyden kaçan bir taşıyıcı (yoksa "")
+func take_rogue_host() -> Dictionary:
+	var ids = []
+	for id in LAIRS:
+		var h = host_of(id)
+		if not h.is_empty() and not h.get("rogue", false):
+			ids.append(id)
+	if ids.is_empty():
+		return {}
+	var id: String = ids.pick_random()
+	var h: Dictionary = host_of(id)
+	h["rogue"] = true
+	return {"id": id, "host": h}
+
+
+## Kaçak jinchūriki yenildi: canavar bedeninden fışkırır ve yorgun düşüp diz çöker — mühürlemek için kısa fırsat
+func release_from_host(id: String, at: Vector3) -> void:
+	var b: Dictionary = beasts().get(id, {})
+	if String(b.get("state", "")) != "host":
+		return
+	var h: Dictionary = b.get("host", {})
+	b["state"] = "wild"
+	b.erase("host")
+	if spawned.has(id) and is_instance_valid(spawned[id]):
+		return
+	var tb = TailedBeast.new()
+	tb.setup(id)
+	get_tree().current_scene.add_child(tb)
+	var p = at + Vector3(randf_range(-6, 6), 0, randf_range(-6, 6))
+	p.y = Game.ground_height(p.x, p.z)
+	tb.global_position = p
+	tb.home = p
+	spawned[id] = tb
+	FX.ring(p + Vector3.UP * 2.0, BeastModels.INFO[id]["chakra"], tb.height * 1.2, 1.0)
+	FX.aura(tb, BeastModels.INFO[id]["chakra"], tb.height * 0.4, Vector3(0, tb.height * 0.4, 0), 3.0)
+	if Game.world:
+		Game.world.env.add_shake(1.5)
+	tb.hp = tb.max_hp * TailedBeast.SUBDUE
+	tb._subdue()
+	Hud.banner("%s SERBEST KALDI" % _bname(id).to_upper(), "%s yenildi; canavar bedeninden fışkırıp yorgun düştü. Mühürle ya da salıver! [F]" % String(h.get("name", "Taşıyıcı")), BeastModels.INFO[id]["chakra"])
+
+
+## Dünya olayları: köyler canavar yakalar, taşıyıcılar kaçar, kaçaklar avlanır, taşıyıcılar kontrolü kaybeder
+func _host_events() -> void:
+	var bs = beasts()
+	var wild = []
+	var village_h = []
+	var rogue_h = []
+	for id in LAIRS:
+		var st = String(bs.get(id, {}).get("state", "wild"))
+		if st in ["wild", "free"] and not (spawned.has(id) and is_instance_valid(spawned[id])):
+			wild.append(id)
+		elif st == "host":
+			(rogue_h if bs[id]["host"].get("rogue", false) else village_h).append(id)
+	var roll = randf()
+	if roll < 0.35 and not wild.is_empty():
+		var id: String = wild.pick_random()
+		var vid: String = HOME_VILLAGE.get(id, "kumo") if randf() < 0.6 else ["konoha", "suna", "kiri", "kumo", "iwa"].pick_random()
+		bs[id]["state"] = "host"
+		bs[id]["host"] = _new_host(id, vid)
+		_news("SÖYLENTİ", "%s yakalandı! %s onu yeni jinchūriki'sine mühürledi: %s." % [_bname(id), _vname(vid), bs[id]["host"]["name"]])
+	elif roll < 0.6 and not village_h.is_empty():
+		var id: String = village_h.pick_random()
+		var h: Dictionary = bs[id]["host"]
+		Missions.add_rogue_jinchuriki(id, h)
+		_news("KAÇAK JİNCHŪRİKİ", "%s köyünden %s kaçtı; içinde %s var. Bingo Kitabı'na girdi." % [_vname(String(h["village"])), h["name"], _bname(id)], Color(1, 0.4, 0.3))
+	elif roll < 0.8 and not rogue_h.is_empty():
+		var id: String = rogue_h.pick_random()
+		var h: Dictionary = bs[id]["host"]
+		if Missions.bingo_host_spawned(id):
+			return
+		Missions.remove_rogue_jinchuriki(id)
+		bs[id]["state"] = "wild"
+		bs[id].erase("host")
+		_news("SÖYLENTİ", "Kaçak jinchūriki %s avcı ninjalarca öldürüldü; %s serbest kalıp inine döndü." % [h["name"], _bname(id)])
+	elif not village_h.is_empty() and randf() < 0.5:
+		var id: String = village_h.pick_random()
+		var h: Dictionary = bs[id]["host"]
+		bs[id]["state"] = "wild"
+		bs[id].erase("host")
+		_news("SÖYLENTİ", "%s köyünün jinchūriki'si %s canavarın kontrolünü kaybetti; %s köyden kaçıp inine döndü." % [_vname(String(h["village"])), h["name"], _bname(id)], Color(1, 0.45, 0.3))
 
 
 func beast_state(id: String) -> String:
@@ -116,6 +253,10 @@ func _process(dt: float) -> void:
 	if tick > 0.0:
 		return
 	tick = 0.5
+	host_t -= 0.5
+	if host_t <= 0.0:
+		host_t = HOST_EVENT_T * randf_range(0.7, 1.3)
+		_host_events()
 	var pp = Game.to_map(Game.player.global_position)
 	for id in LAIRS:
 		var st = beast_state(id)
@@ -128,7 +269,8 @@ func _process(dt: float) -> void:
 				Hud.banner("DEVASA BİR CHAKRA", "Yakında bir Kuyruklu Canavar var: %s%s" % [BeastModels.INFO[id]["name"], "  (Seviye %d+ önerilir)" % MIN_LEVEL if lvl < MIN_LEVEL else ""], Color(1, 0.4, 0.3))
 			if d < SPAWN_R and not (spawned.has(id) and is_instance_valid(spawned[id])):
 				_spawn(id, lair)
-		if spawned.has(id) and is_instance_valid(spawned[id]) and d > DESPAWN_R and not spawned[id].aggro:
+		# (uzaklık canavarın bulunduğu yerden: taşıyıcıdan fışkıran canavar inden uzakta olabilir)
+		if spawned.has(id) and is_instance_valid(spawned[id]) and pp.distance_to(Game.to_map(spawned[id].global_position)) > DESPAWN_R and not spawned[id].aggro and not spawned[id].subdued:
 			spawned[id].queue_free()
 			spawned.erase(id)
 	# görev tamamlandıkça canavarla bağ güçlenir

@@ -540,7 +540,11 @@ func _start_rumor(c: Vector3) -> void:
 		lairs.sort_custom(func(a, b): return pm.distance_to(Vector2(a["x"], a["y"])) < pm.distance_to(Vector2(b["x"], b["y"])))
 		var L: Dictionary = lairs[0]
 		var at := Game.from_map(Vector2(L["x"], L["y"]))
-		Hud.dialog(n.display, "Gördüm! Dev bir yaratık... kuyrukları vardı! %s tarafında, gökyüzü bile karardı. Oraya gitme, delilik bu!" % Game.region_name(at), [
+		var news: Array = Game.profile.get("beast_news", [])
+		var extra = ("
+
+Bir de şunu duydum: %s" % news.back()) if not news.is_empty() else ""
+		Hud.dialog(n.display, "Gördüm! Dev bir yaratık... kuyrukları vardı! %s tarafında, gökyüzü bile karardı. Oraya gitme, delilik bu!%s" % [Game.region_name(at), extra], [
 			{"label": "Yerini haritada işaretle", "cb": func():
 				Game.profile["waypoint"] = [at.x, at.y, at.z, String(L["name"]).split(" — ")[0]]
 				Game.profile["track"] = "waypoint"
