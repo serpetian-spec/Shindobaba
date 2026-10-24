@@ -93,9 +93,10 @@ func _process(dt: float) -> void:
 		m.set_shader_parameter("anim_t", t + phase)
 		m.set_shader_parameter("walk", walk)
 		m.set_shader_parameter("wave_speed", ws)
-		m.set_shader_parameter("tail_amp", 0.025 + walk * 0.03)
+		m.set_shader_parameter("tail_amp", 0.05 + walk * 0.01)
 		m.set_shader_parameter("head_rot", head)
 		m.set_shader_parameter("strike", strike)
+		m.set_shader_parameter("coil", 0.0)   # çörek kapalı: kullanıcı uzun gövdeyi görmek istiyor (çörek yılanı kafadan ibaret gösteriyordu)
 	_tongue(dt)
 
 

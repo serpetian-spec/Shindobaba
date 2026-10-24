@@ -23,6 +23,7 @@ uniform vec4 dims = vec4(10.0, -5.0, 5.0, 3.0);   // boy H, ön z, arka z, yarı
 uniform vec4 regions = vec4(0.62, 0.28, 0.3, 0.55); // kuyruk başlangıcı (z0..1), ayak boyu (y0..1), baş bitişi (z0..1), baş alt sınırı (y0..1)
 uniform float anim_t = 0.0;
 uniform float walk = 0.0;            // 0..1 yürüyüş
+uniform float coil = 0.0;            // 0..1 sürünen yılan: dururken boyun arkası yere sarmal çöreklenir
 uniform float gait = 0.0;            // yürüyüş evresi (radyan)
 uniform float tail_amp = 0.06;       // kuyruk dalga genliği (H oranı)
 uniform float tail_sweep = 0.0;      // kuyruk süpürmesi (-1..1)
@@ -113,6 +114,18 @@ vec3 deform_slither(vec3 b) {
 	b.x += (sin(anim_t * 1.3) * 0.05 * L + head_rot.y * 0.25 * L) * (1.0 - body);
 	b.z -= strike * 0.22 * L * (1.0 - body);
 	b.y += (strike * 0.08 * L + sin(anim_t * 1.7) * 0.02 * L) * (1.0 - body);
+	if (coil > 0.001) {
+		// çörek: boyundan sonraki gövde, boynun arkasında yere sarmal halinde dolanır (yarıçap içe daralır, halkalar üst üste biner)
+		float s = clamp((zn - 0.2) / 0.8, 0.0, 1.0);
+		float R0 = L * 0.12;
+		float arc = s * L * 0.8;
+		float R = R0 * (1.0 - 0.5 * s);
+		float th = arc / max(R0 * (1.0 - 0.25 * s), 0.001);
+		vec3 c = vec3(0.0, 0.0, dims.y + 0.2 * L + R0);
+		vec3 radial = vec3(sin(th), 0.0, -cos(th));
+		vec3 cp = c + radial * (R + b.x) + vec3(0.0, b.y + s * H * 0.7 + sin(anim_t * 0.8 + th) * 0.01 * L, 0.0);
+		b = mix(b, cp, coil * smoothstep(0.16, 0.26, zn));
+	}
 	return b;
 }
 

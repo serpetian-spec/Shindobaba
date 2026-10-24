@@ -243,6 +243,8 @@ func spawn_enemy(c: String, lv: int, at: Vector3, opts := {}) -> Enemy:
 	e.global_position = at
 	e.home = at
 	after_spawn_enemy(e, c, lv, int(opts.get("eye", 0)))
+	if lv >= 28 and randf() < 0.3 and not e.has_meta("contract"):   # güçlü kaçaklar zor durumda hayvan çağırır
+		e.set_meta("contract", ["kurbağa", "yılan", "köpek", "şahin"].filter(func(x): return Contracts.DEFS.has(x)).pick_random())
 	if opts.get("duel", false):
 		e.get_node("ClanTrait").duel = true
 	return e

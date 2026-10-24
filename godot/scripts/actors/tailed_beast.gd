@@ -374,7 +374,7 @@ func _element_attack_old() -> void:
 			end.y = Game.ground_height(end.x, end.z)
 			tw.tween_property(self, "global_position", end, 0.6)
 			tw.tween_callback(func():
-				Combat.hit_sphere(self, global_position + face_dir() * height * 0.4 + Vector3.UP * height * 0.3, height * 0.35, {"dmg": _dmg(40.0), "knock": 40.0, "launch": 10.0, "kind": "heavy", "element": "futton"})
+				Combat.hit_zone(self, global_position, face_dir(), height * 0.9, 50.0, height, {"dmg": _dmg(40.0), "knock": 40.0, "launch": 10.0, "kind": "heavy", "element": "futton"})
 				FX.burst(global_position + Vector3.UP * height * 0.3, {"amount": 50, "life": 1.5, "tex": FX.tex_smoke, "add": false, "size": height * 0.12, "vmin": 4, "vmax": 12,
 					"colors": [Color(1, 1, 1, 0.8), Color(1, 1, 1, 0)]}))
 		"saiken":  # aşındırıcı sümük alanı
@@ -387,7 +387,7 @@ func _element_attack_old() -> void:
 			_field(pl.global_position, height * 0.2, Color(0.05, 0.03, 0.08), 6.0, _dmg(8.0), "suiton")
 			if Game.world:
 				Game.world.env.flash_tint(Color(0, 0, 0, 0.55), 2.5)
-			Combat.hit_sphere(self, global_position + face_dir() * height * 0.5, height * 0.3, {"dmg": _dmg(30.0), "knock": 20.0, "kind": "heavy"})
+			Combat.hit_zone(self, global_position, face_dir(), height * 0.9, 55.0, height, {"dmg": _dmg(30.0), "knock": 20.0, "kind": "heavy"})
 		_:  # kurama: art arda küçük canavar topları
 			for i in 3:
 				get_tree().create_timer(i * 0.3).timeout.connect(func():

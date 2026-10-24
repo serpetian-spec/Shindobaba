@@ -259,7 +259,9 @@ func _giant_swipe() -> void:
 	var id = beast_id()
 	get_tree().create_timer(0.35).timeout.connect(func():
 		var pt = p.global_position + dir * h * 0.5 + Vector3.UP * h * 0.2
-		BijuuArts.melee(p, id, pt, h * 0.3, 90.0 * Stats.melee_mult(Game.profile), dir)
+		var got = BijuuArts.melee(p, id, pt, h * 0.3, 90.0 * Stats.melee_mult(Game.profile), dir)
+		# pençenin önündeki yelpaze alan: ayak dibindeki küçük düşmanlar da ezilir
+		Combat.hit_zone(p, p.global_position, dir, h * 0.85, 60.0, h * 1.1, {"dmg": 90.0 * Stats.melee_mult(Game.profile), "knock": 30.0, "launch": 6.0, "kind": "heavy", "dir": dir}, got)
 		Sfx.play("whoosh", pt, 0.5))
 
 

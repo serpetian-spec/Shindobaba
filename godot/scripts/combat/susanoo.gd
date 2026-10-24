@@ -419,10 +419,23 @@ func _on(bone: String, m: MB) -> void:
 func swipe(owner_f: Node3D, dir: Vector3) -> void:
 	swing_t = 0.0
 	body.play(["slash_a", "slash_b", "hook"].pick_random() if tier >= 3 else "hook", 0.05, 1.3, true)
-	var reach = TIER_HEIGHT[tier] * 0.6
-	var pt = owner_f.global_position + Vector3.UP * TIER_HEIGHT[tier] * 0.35 + dir * reach
-	Combat.hit_sphere(owner_f, pt, 1.2 + tier * 0.9, {"dmg": 22.0 * tier * Stats.melee_mult(Game.profile), "knock": 12.0 + tier * 4.0, "launch": 4.0, "kind": "heavy", "dir": dir})
-	FX.impact(pt, color(), 0.8 + tier * 0.3)
+	var H = TIER_HEIGHT[tier]
+	var reach = maxf(3.0, H * 0.75)
+	# savuruş önündeki yelpaze alanın tamamına iner (yerdeki küçük hedef dahil)
+	var gp = owner_f.global_position
+	var info = {"dmg": 22.0 * tier * Stats.melee_mult(Game.profile), "knock": 12.0 + tier * 4.0, "launch": 4.0, "kind": "heavy", "dir": dir}
+	get_tree().create_timer(0.18 if tier < 3 else 0.3).timeout.connect(func():
+		if is_instance_valid(owner_f):
+			Combat.hit_zone(owner_f, gp, dir, reach, 75.0, H * 1.1, info)
+			for k in 3:
+				var q = gp + dir.rotated(Vector3.UP, deg_to_rad((k - 1) * 40.0)) * reach * 0.6
+				q.y = Game.ground_height(q.x, q.z)
+				FX.impact(q + Vector3.UP * 0.5, color(), 0.8 + tier * 0.3)
+			if tier >= 3:
+				FX.ring(gp + Vector3.UP * 0.4 + dir * reach * 0.4, color(), reach * 0.6, 0.35)
+				if Game.world:
+					Game.world.env.add_shake(0.2 + tier * 0.1))
+	var pt = gp + Vector3.UP * H * 0.35 + dir * reach * 0.6
 	Sfx.play("whoosh", pt, 0.6, 0.8)
 
 
@@ -437,8 +450,7 @@ func special(owner_f: Node3D, dir: Vector3) -> void:
 	match wp:
 		"kilic":
 			body.play("slash_c", 0.05, 1.2, true)
-			for i in 8:
-				Combat.hit_sphere(owner_f, base + dir * (3.0 + i * 3.0), 2.0 + tier * 0.4, {"dmg": 30.0 * tier, "knock": 18.0, "kind": "heavy", "dir": dir})
+			Combat.hit_zone(owner_f, owner_f.global_position, dir, 24.0 + TIER_HEIGHT[tier] * 1.2, 22.0, TIER_HEIGHT[tier] * 1.1, {"dmg": 30.0 * tier, "knock": 18.0, "kind": "heavy", "dir": dir})
 			FX.ring(base + dir * 6.0, color(), 6.0 + tier, 0.4, false, dir)
 		"yay":   # Susanoo oku: yaydan dev chakra oku fırlar, yolu boyunca vurur, ucunda patlar
 			body.play("throw", 0.05, 1.0, true)
@@ -452,8 +464,7 @@ func special(owner_f: Node3D, dir: Vector3) -> void:
 		"mizrak":   # mızrak saplaması: önde uzanan dev chakra mızrak ucu
 			body.play("jab", 0.05, 1.0, true)
 			_fly_bolt(owner_f, base, dir, 6.0 + TIER_HEIGHT[tier] * 0.6, TIER_HEIGHT[tier] * 0.35, 0.12, {}, 0.0)
-			for i in 5:
-				Combat.hit_sphere(owner_f, base + dir * (2.0 + i * 2.5), 1.6, {"dmg": 40.0 * tier, "knock": 22.0, "launch": 6.0, "kind": "heavy", "dir": dir})
+			Combat.hit_zone(owner_f, owner_f.global_position, dir, 6.0 + TIER_HEIGHT[tier] * 0.8, 14.0, TIER_HEIGHT[tier] * 1.1, {"dmg": 40.0 * tier, "knock": 22.0, "launch": 6.0, "kind": "heavy", "dir": dir})
 	Sfx.play("boom", base, 0.8, 0.6)
 
 

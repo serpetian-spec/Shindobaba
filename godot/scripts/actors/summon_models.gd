@@ -44,7 +44,7 @@ static func build(model: String, h: float, length: float) -> Dictionary:
 			out["anim"] = "shader"
 			out["mouth"] = sg["mouth"]
 		"snake_boss":
-			var sb = manda_snake(out["root"], length, h, h * 0.5)
+			var sb = manda_snake(out["root"], length * 1.9, h, h * 0.42)   # Manda gibi upuzun (solucan değil); dururken çöreklenir
 			out["anim"] = "shader"
 			out["mouth"] = sb["mouth"]
 		"slug_frag", "slug_acid", "slug_queen":

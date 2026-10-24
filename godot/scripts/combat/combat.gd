@@ -54,6 +54,41 @@ func hit_sphere(attacker: Node3D, center: Vector3, radius: float, info: Dictiona
 	return hits
 
 
+## Dev saldırı alanı: origin (yerde) önündeki yelpaze dilimine giren HER düşmana vurur — boy farkı önemsiz
+## (Susanoo, kuyruklu canavar, dev çağrılar: küre isabeti yerdeki küçük hedefi ıskalıyordu).
+## half_deg: yelpazenin yarım açısı; reach: yatay menzil; height: origin'den yukarı kapsanan yükseklik.
+func hit_zone(attacker: Node3D, origin: Vector3, dir: Vector3, reach: float, half_deg: float, height: float, info: Dictionary, exclude: Array = []) -> Array:
+	var hits: Array = []
+	dir.y = 0
+	dir = dir.normalized() if dir.length() > 0.01 else Vector3.ZERO
+	WorldDamage.impact(origin + dir * reach * 0.55, reach * 0.45, info)
+	var cmin = cos(deg_to_rad(half_deg))
+	for f in get_tree().get_nodes_in_group("fighters"):
+		if f in exclude or not hostile(attacker, f) or f.is_dead():
+			continue
+		var v: Vector3 = f.global_position - origin
+		var fr: float = f.radius if "radius" in f else 0.5
+		if f.has_method("hit_test"):
+			fr = maxf(fr, float(f.height) * 0.3)
+		if v.y < -3.0 - fr or v.y > height:
+			continue
+		var vh = Vector3(v.x, 0, v.z)
+		var dh = vh.length()
+		if dh > reach + fr:
+			continue
+		if dir != Vector3.ZERO and dh > fr + reach * 0.15 and vh.normalized().dot(dir) < cmin:
+			continue
+		var inf = info.duplicate()
+		inf["attacker"] = attacker
+		if not inf.has("dir"):
+			inf["dir"] = vh.normalized() if dh > 0.01 else dir
+		f.take_hit(inf)
+		hits.append(f)
+	if not hits.is_empty() and info.get("hitstop", 0.0) > 0.0:
+		hitstop(info["hitstop"])
+	return hits
+
+
 func nearest_enemy(from: Node3D, max_d: float, dir := Vector3.ZERO, cone := -1.0) -> Node3D:
 	var best: Node3D = null
 	var bd = max_d

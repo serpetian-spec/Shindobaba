@@ -15,6 +15,8 @@ var combo_left = 0
 var has_token = false
 var blind_t = 0.0
 var guarding = false
+var guard_cd = 0.0     # blok bittikten sonra tekrar bloklayana kadar
+var guard_hits = 0     # bu blokta tutulan darbe; 3'te savunma kırılır
 var level = 1
 var xp = 20
 var ryo = 15
@@ -26,6 +28,7 @@ var wander_to = Vector3.ZERO
 var skill := 0.2
 var dodge_cd := 0.0
 var dodge_dir := Vector3.ZERO
+var _saw_busy := false   # oyuncunun saldırısı başına tek okuma zarı
 
 
 static func archetype(kind: String, i := 0) -> Dictionary:
@@ -189,7 +192,7 @@ func _ready() -> void:
 func _on_someone_cast(caster: Node, _id: String) -> void:
 	if dead or caster != target or not is_instance_valid(caster) or dodge_cd > 0.0:
 		return
-	if caster.global_position.distance_to(global_position) < 30.0 and randf() < skill * 0.55:
+	if caster.global_position.distance_to(global_position) < 30.0 and randf() < skill * 0.4:
 		_dodge(caster, true)
 
 
@@ -228,6 +231,7 @@ func _physics_process(dt: float) -> void:
 	attack_cd -= dt
 	ranged_cd -= dt
 	sub_cd -= dt
+	guard_cd -= dt
 	dodge_cd -= dt
 	blind_t -= dt
 	nameplate.modulate.a = 1.0 if global_position.distance_to(pl.global_position) < 30 else 0.0
@@ -251,6 +255,8 @@ func _physics_process(dt: float) -> void:
 	_think(dt)
 	if arch.has("style"):
 		BossStyles.tick(self, dt)
+	if EnemyArts.wants(self):
+		EnemyArts.tick(self, dt)
 	match state:
 		"idle":
 			_patrol(dt)
@@ -277,7 +283,8 @@ func _physics_process(dt: float) -> void:
 				attack_cd = minf(attack_cd, 0.15)   # kaçtıktan sonra hemen karşılık
 		"guard":
 			step_move(Vector3.ZERO, dt, false)
-			if state_t > 0.8:
+			if state_t > 0.6:
+				guard_cd = lerpf(3.0, 1.6, skill)
 				guarding = false
 				model.overlay.set_pose("guard", 0.0)
 				state = "chase"
@@ -321,9 +328,14 @@ func _think(dt: float) -> void:
 	if target == null and state in ["chase"]:
 		state = "idle"
 	# hedef yakında saldırıya kalktıysa: usta düşman darbeyi okuyup kaçar
-	if target and target == pl and state in ["chase", "recover", "idle"] and dodge_cd <= 0.0 and pl.combat and pl.combat.busy() \
-			and global_position.distance_to(pl.global_position) < 3.4 and randf() < skill * 0.4:
-		_dodge(pl, randf() < 0.6)
+	# (zar her karede değil, oyuncunun her saldırı dizisinde bir kez atılır — yoksa usta düşmana hiç vurulamıyordu)
+	var busy = target != null and target == pl and pl.combat != null and pl.combat.busy()
+	if busy and not _saw_busy:
+		_saw_busy = true
+		if state in ["chase", "recover", "idle"] and dodge_cd <= 0.0 and global_position.distance_to(pl.global_position) < 3.4 and randf() < skill * 0.3:
+			_dodge(pl, randf() < 0.6)
+	elif not busy:
+		_saw_busy = false
 	if global_position.distance_to(home) > 130.0 and state == "chase":
 		target = null
 		state = "idle"
@@ -461,30 +473,46 @@ func _end_attack() -> void:
 func take_hit(info: Dictionary) -> void:
 	if dead:
 		return
-	# blok
-	var kind_ok = info.get("kind", "light") == "light" or (skill > 0.75 and info.get("kind", "") == "heavy")
-	if state in ["chase", "recover", "idle"] and randf() < arch.get("guard", 0.15) + skill * 0.3 and kind_ok and not has_status("stun") and not has_status("bind"):
+	# blok: yalnız önden gelen darbe, bekleme süresiyle; ağır darbe ya da üst üste 3 darbe savunmayı kırar
+	var atk0: Node3D = info.get("attacker")
+	var front = true
+	if atk0 and is_instance_valid(atk0):
+		var to_a = atk0.global_position - global_position
+		to_a.y = 0
+		front = to_a.length() < 0.1 or face_dir().dot(to_a.normalized()) > 0.2
+	var kind_ok = info.get("kind", "light") == "light" or (skill > 0.8 and info.get("kind", "") == "heavy")
+	if not guarding and guard_cd <= 0.0 and front and state in ["chase", "recover", "idle"] and randf() < minf(0.45, arch.get("guard", 0.15) * 0.6 + skill * 0.15) and kind_ok and not has_status("stun") and not has_status("bind"):
 		state = "guard"
 		state_t = 0.0
 		guarding = true
+		guard_hits = 0
 		model.play("block", 0.05)
 		model.overlay.set_pose("guard", 1.0)
+	if guarding and (not front or info.get("kind", "") in ["heavy", "launch"] and skill <= 0.8 or guard_hits >= 2):
+		# savunma kırıldı: kısa sersemleme, darbe tam geçer
+		guarding = false
+		guard_cd = 3.0
+		model.overlay.set_pose("guard", 0.0)
+		state = "chase"
+		Combat.popup_text(global_position + Vector3.UP * 2.2, "Savunma kırıldı!", Color(1.0, 0.75, 0.4))
+		apply_status("stun", 0.7)
 	if guarding:
+		guard_hits += 1
 		FX.hit_spark(global_position + Vector3.UP * 1.2, Color(0.7, 0.85, 1.0), 0.5)
 		Sfx.play("block", global_position)
 		info = info.duplicate()
 		info["dmg"] = info.get("dmg", 5.0) * 0.15
 		info["kind"] = "guarded"
 		hp -= info["dmg"]
-		if skill > 0.45 and randf() < skill:   # bloktan karşı saldırı
+		if skill > 0.6 and randf() < skill * 0.5:   # bloktan karşı saldırı
 			guarding = false
 			model.overlay.set_pose("guard", 0.0)
 			state = "chase"
 			attack_cd = 0.0
 		return
 	# Kawarimi
-	if sub_cd <= 0.0 and randf() < maxf(arch.get("sub", 0.0), skill * 0.45) and hp < max_hp * (0.7 + skill * 0.2):
-		sub_cd = lerpf(10.0, 5.0, skill)
+	if sub_cd <= 0.0 and randf() < maxf(arch.get("sub", 0.0), skill * 0.25) and hp < max_hp * (0.7 + skill * 0.2):
+		sub_cd = lerpf(16.0, 9.0, skill)
 		FX.smoke_puff(global_position + Vector3.UP, 0.9, 14)
 		var atk: Node3D = info.get("attacker")
 		if atk:

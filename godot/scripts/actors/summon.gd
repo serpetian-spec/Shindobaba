@@ -293,12 +293,20 @@ func _attack() -> void:
 				return
 			var at = _front(height * 0.1)
 			FX.impact(at, Color(1, 0.8, 0.5), clampf(height * 0.25, 0.6, 4.0))
-			Combat.hit_sphere(self, at, 1.5 + height * 0.35, {"dmg": dmg, "knock": 8.0 + height, "launch": 3.0 + height * 0.3, "kind": "heavy", "hitstop": 0.06, "dir": face_dir()})
+			var inf = {"dmg": dmg, "knock": 8.0 + height, "launch": 3.0 + height * 0.3, "kind": "heavy", "hitstop": 0.06, "dir": face_dir()}
+			if height > 4.0:   # dev kurbağa: iniş önündeki bütün alanı ezer
+				Combat.hit_zone(self, global_position, face_dir(), radius + height * 0.9, 70.0, height, inf)
+			else:
+				Combat.hit_sphere(self, at, 1.5 + height * 0.35, inf)
 			Sfx.play("boom" if height > 5.0 else "punch", at, clampf(1.3 - height * 0.03, 0.5, 1.3))
 			if Game.world and height > 5.0:
 				Game.world.env.add_shake(clampf(height * 0.05, 0.2, 1.5)))
 	elif model.begins_with("snake") or model == "salamander":
-		Combat.hit_sphere(self, pt, 1.2 + height * 0.3, {"dmg": dmg, "knock": 6.0, "kind": "heavy", "stun": 0.6, "dir": face_dir()})
+		var inf = {"dmg": dmg, "knock": 6.0, "kind": "heavy", "stun": 0.6, "dir": face_dir()}
+		if height > 4.0:
+			Combat.hit_zone(self, global_position, face_dir(), radius + height * 0.9, 40.0, height, inf)
+		else:
+			Combat.hit_sphere(self, pt, 1.2 + height * 0.3, inf)
 		FX.hit_spark(pt, Color(0.75, 0.5, 1.0), clampf(height * 0.2, 0.6, 3.0))
 		if tgt:
 			tgt.apply_status("slow", 3.0)
@@ -306,7 +314,11 @@ func _attack() -> void:
 	elif model.begins_with("slug"):
 		_acid(pt, dmg)
 	else:
-		Combat.hit_sphere(self, pt, 1.0 + height * 0.3, {"dmg": dmg, "knock": 4.0 + height * 0.5, "kind": "light" if height < 2.0 else "heavy", "dir": face_dir()})
+		var inf = {"dmg": dmg, "knock": 4.0 + height * 0.5, "kind": "light" if height < 2.0 else "heavy", "dir": face_dir()}
+		if height > 4.0:
+			Combat.hit_zone(self, global_position, face_dir(), radius + height * 0.8, 60.0, height, inf)
+		else:
+			Combat.hit_sphere(self, pt, 1.0 + height * 0.3, inf)
 		FX.hit_spark(pt, Color(1, 0.9, 0.7), clampf(height * 0.2, 0.5, 3.0))
 		Sfx.play("punch", pt)
 

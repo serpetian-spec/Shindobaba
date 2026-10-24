@@ -857,7 +857,7 @@ func _begin_step() -> void:
 			for i in int(s["n"]):
 				var a = TAU * float(i) / float(s["n"]) + randf_range(-0.3, 0.3)
 				var q = c + Vector3(cos(a), 0, sin(a)) * float(s.get("spread", 10)) * randf_range(0.6, 1.0)
-				_quest_point(q, s["label"], i)
+				_quest_point(open_ground(q, 15.0), s["label"], i)
 		"babysit":
 			var kid = _ensure_npc({"at": s["at"], "npc": s["npc"]})
 			kid.mode = "kid"
@@ -913,6 +913,18 @@ func _ensure_npc(s: Dictionary) -> QuestNPC:
 
 
 ## Binaların üstüne/içine düşmeyen açık zemin noktası: p'den başlayıp dışa sarmal arar (çatı = zemin yüksekliği araziden çok yüksek)
+static var _og_q: PhysicsShapeQueryParameters3D = _make_og_q()
+
+
+static func _make_og_q() -> PhysicsShapeQueryParameters3D:
+	var sq = PhysicsShapeQueryParameters3D.new()
+	var sph = SphereShape3D.new()
+	sph.radius = 0.6
+	sq.shape = sph
+	sq.collision_mask = 1
+	return sq
+
+
 static func open_ground(p: Vector3, max_r := 60.0) -> Vector3:
 	var space = Game.world.get_world_3d().direct_space_state if Game.world and Game.world.is_inside_tree() else null
 	var r = 0.0
@@ -924,8 +936,16 @@ static func open_ground(p: Vector3, max_r := 60.0) -> Vector3:
 		if space:
 			# yukarıdan aşağı ışın: zeminden yüksek bir şeye çarparsa (bina, çatı, duvar) burası dolu
 			var hit = space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(q.x, gh + 60.0, q.z), Vector3(q.x, gh - 1.0, q.z), 1))
-			if not hit.is_empty() and float(hit["position"].y) > gh + 1.0:
+			# yüksek tavan/saçak altı (mağara, çardak) olabilir; alçak bir şey (kaya, duvar, çatı) varsa dolu
+			if not hit.is_empty() and float(hit["position"].y) > gh + 1.0 and float(hit["position"].y) < gh + 5.0:
 				ok = false
+			if ok:
+				# gövde boyunda çakışma (yandan değen kaya/duvar, ışının ıskaladığı içbükey kaya)
+				for hy in [0.7, 1.5]:
+					_og_q.transform = Transform3D(Basis.IDENTITY, Vector3(q.x, gh + hy, q.z))
+					if not space.intersect_shape(_og_q, 1).is_empty():
+						ok = false
+						break
 		if ok:
 			q.y = gh
 			return q
@@ -966,8 +986,8 @@ func _spawn(kind: String, at: Vector3, n: int, spread: float, nm := "") -> Array
 		e.set_meta("mission", true)
 		e.set_meta("q", _key())
 		get_tree().current_scene.add_child(e)
-		var p = at + Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)) * spread
-		p.y = Game.ground_height(p.x, p.z)
+		# kaya/duvar/ev içinde doğmasın (öldürülemeyen düşman görevi kilitliyordu)
+		var p = open_ground(at + Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)) * spread, 30.0)
 		e.global_position = p
 		e.home = p
 		e.wander_to = p
@@ -1002,8 +1022,7 @@ func _spawn_boss(b: Dictionary, kind: String, at: Vector3) -> Enemy:
 	e.set_meta("flee", b.get("flee", false))
 	e.set_meta("boss_q", true)
 	get_tree().current_scene.add_child(e)
-	var p = at
-	p.y = Game.ground_height(p.x, p.z)
+	var p = open_ground(at, 30.0)
 	e.global_position = p
 	e.home = p
 	step_nodes.append(e)
@@ -1611,6 +1630,18 @@ func _tick_defend(dt: float, s: Dictionary) -> void:
 			target_marker = from
 	else:
 		target_marker = alive[0].global_position
+		# takılan düşman (kaya/duvar içinde kıpırdayamıyor): 12 sn yerinden oynamazsa açık zemine ışınlanır
+		for e in alive:
+			var lp: Vector3 = e.get_meta("stk_p", e.global_position)
+			if e.global_position.distance_to(lp) < 0.5 and e.hp >= e.max_hp * 0.999:
+				e.set_meta("stk_t", float(e.get_meta("stk_t", 0.0)) + dt)
+				if float(e.get_meta("stk_t")) > 12.0:
+					e.set_meta("stk_t", 0.0)
+					e.global_position = open_ground(c + Vector3(randf_range(-10, 10), 0, randf_range(-10, 10)), 30.0)
+					e.velocity = Vector3.ZERO
+			else:
+				e.set_meta("stk_t", 0.0)
+			e.set_meta("stk_p", e.global_position)
 		Hud.objective_progress("Dalga %d/%d — kalan düşman: %d" % [int(st["wave"]) + 1, waves.size(), alive.size()])
 
 

@@ -1,0 +1,103 @@
+class_name EnemyArts
+extends RefCounted
+## Düşmanların "büyük" teknikleri: göz (dōjutsu) sahipleri Genjutsu / Kaiten / Amaterasu / Tsukuyomi kullanır,
+## Mangekyō sahipleri can yarıya inince Susanoo (İnsansı) açar; sözleşmeli kaçaklar (meta "contract") zorlanınca çağırma yapar.
+## Enemy._physics_process her karede tick() çağırır (yalnız ilgili düşmanlarda maliyet).
+
+
+static func wants(e: Enemy) -> bool:
+	return e.has_meta("eyes") or e.has_meta("contract")
+
+
+static func tick(e: Enemy, dt: float) -> void:
+	if e.dead:
+		return
+	var cd = float(e.get_meta("ea_cd", 4.0)) - dt
+	e.set_meta("ea_cd", cd)
+	var t = e.target
+	if t == null or not is_instance_valid(t) or t.is_dead() or e.state in ["hitstun", "knockdown", "cast"] or e.has_status("stun") or e.has_status("bind"):
+		return
+	var d = e.global_position.distance_to(t.global_position)
+	# sözleşmeli kaçak: canı %70'in altına inince bir kez çağırma (boss tarzı "kuchiyose" kendi yönetir)
+	if e.has_meta("contract") and String(e.arch.get("style", "")) != "kuchiyose" and not e.get_meta("ea_summoned", false) and e.hp < e.max_hp * 0.7 and d < 35.0:
+		e.set_meta("ea_summoned", true)
+		Combat.popup_text(e.global_position + Vector3.UP * 2.6, "Kuchiyose no Jutsu!", Color(0.85, 0.6, 1.0))
+		e.model.play("cast_out", 0.05, 1.0, true)
+		Contracts.summon(e, {"id": "kuchiyose"})
+		e.set_meta("ea_cd", 4.0)
+		return
+	if not e.has_meta("eyes"):
+		return
+	var kind = int(e.get_meta("eyes").get("kind", 0))
+	# Mangekyō: can yarıya inince Susanoo
+	if kind >= 4 and not e.has_meta("ea_susanoo") and e.hp < e.max_hp * 0.5:
+		_susanoo(e)
+	var sn = e.get_meta("ea_susanoo") if e.has_meta("ea_susanoo") else null
+	if sn and is_instance_valid(sn):
+		sn.rotation.y = e.facing
+		var sc = float(e.get_meta("ea_sus_cd", 2.5)) - dt
+		e.set_meta("ea_sus_cd", sc)
+		if sc <= 0.0 and d < Susanoo.TIER_HEIGHT[sn.tier] * 0.8:
+			e.set_meta("ea_sus_cd", randf_range(2.5, 4.0))
+			var dir = (t.global_position - e.global_position)
+			dir.y = 0
+			sn.swipe(e, dir.normalized())
+	if cd > 0.0:
+		return
+	match kind:
+		1, 3:   # Sharingan / Ketsuryūgan: göz göze gelince genjutsu
+			if d < 14.0:
+				_gaze(e, t, 1.2, Color(0.9, 0.05, 0.05), "Genjutsu!")
+				e.set_meta("ea_cd", randf_range(10.0, 14.0))
+		2:   # Byakugan: yakındayken Hakkeshō Kaiten
+			if d < 4.5:
+				Combat.popup_text(e.global_position + Vector3.UP * 2.4, "Hakkeshō Kaiten!", Color(0.85, 0.9, 1.0))
+				FX.ring(e.global_position + Vector3.UP * 1.0, Color(0.85, 0.92, 1.0), 4.5, 0.5)
+				var dir = (t.global_position - e.global_position).normalized()
+				Combat.hit_sphere(e, e.global_position + Vector3.UP, 3.5, {"dmg": 14.0 * e.power, "knock": 16.0, "launch": 5.0, "kind": "heavy", "dir": dir})
+				e.set_meta("ea_cd", randf_range(8.0, 11.0))
+		4, 5:   # Mangekyō: Amaterasu (uzak) / Tsukuyomi (yakın)
+			if d < 9.0 and randf() < 0.45:
+				_gaze(e, t, 2.6, Color(0.6, 0.0, 0.05), "Tsukuyomi!")
+				if t == Game.player and Game.world:
+					Game.world.env.flash_tint(Color(0.55, 0.0, 0.05, 0.5), 1.2)
+				e.set_meta("ea_cd", randf_range(14.0, 18.0))
+			elif d < 30.0:
+				_amaterasu(e, t)
+				e.set_meta("ea_cd", randf_range(12.0, 16.0))
+
+
+static func _gaze(e: Enemy, t: Node3D, stun: float, col: Color, label: String) -> void:
+	t.apply_status("stun", stun)
+	FX.ring(t.global_position + Vector3.UP * 1.6, col, 1.6, 0.6, false, (e.global_position - t.global_position).normalized())
+	Combat.popup_text(t.global_position + Vector3.UP * 2.2, label, col.lightened(0.3))
+	Combat.popup_text(e.global_position + Vector3.UP * 2.4, label, col.lightened(0.3))
+
+
+## Kara alev: hedefi sarar, uzun süre yakar (oyuncunun Amaterasu'suyla aynı görsel)
+static func _amaterasu(e: Enemy, t: Node3D) -> void:
+	Combat.popup_text(e.global_position + Vector3.UP * 2.4, "Amaterasu!", Color(0.9, 0.3, 0.35))
+	e.model.play("cast_out", 0.05, 1.2, true)
+	t.apply_status("burn", 6.0)
+	t.take_hit({"dmg": 12.0 * e.power, "knock": 0.0, "kind": "light", "dir": e.face_dir(), "element": "katon", "attacker": e})
+	var flame = VFX.black_flames(maxf(1.2, float(t.height) * 0.75) if "height" in t else 1.3)
+	t.add_child(flame)
+	flame.position = Vector3(0, 0.1, 0)
+	VFX.black_smolder(t.global_position, 1.8, 6.0)
+	t.get_tree().create_timer(6.0).timeout.connect(func(): if is_instance_valid(flame): flame.queue_free())
+
+
+## Düşman Susanoo'su: İnsansı kademe, kızıl; hasarı azaltır, aralıklarla dev savuruş yapar
+static func _susanoo(e: Enemy) -> void:
+	var pr = {"susanoo": {"color": [0.95, 0.25, 0.2], "rim_color": [1.0, 0.55, 0.35], "armor": 0, "face": 1, "weapon": "kilic", "wings": false, "mastery": 999.0, "tier_pref": 3}}
+	var sn = Susanoo.new()
+	sn.name = "Susanoo"
+	e.add_child(sn)
+	sn.build(pr, 3, e.model)
+	e.set_meta("ea_susanoo", sn)
+	e.arch["guard"] = 0.7   # Susanoo içinde darbeleri çoğunlukla tutar
+	var fs = sn.scale
+	sn.scale = fs * 0.1
+	sn.create_tween().tween_property(sn, "scale", fs, 0.6).set_trans(Tween.TRANS_BACK)
+	Hud.banner(e.display_name, "SUSANOO!", Color(1.0, 0.35, 0.3))
+	Sfx.play("roar", e.global_position, 1.4, 0.6)
