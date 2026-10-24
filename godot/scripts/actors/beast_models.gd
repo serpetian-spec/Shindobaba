@@ -20,7 +20,7 @@ const INFO := {
 ## yüzey: 0 kürk, 1 deri/pul, 2 kabuk/zırh, 3 sümük
 const SURFACE := {"kurama": 0, "matatabi": 0, "son_goku": 0, "kokuo": 0, "shukaku": 1, "gyuki": 1, "isobu": 2, "chomei": 2, "saiken": 3, "raiju": 0}
 const SHADOW := {"kurama": Color(0.45, 0.16, 0.2), "matatabi": Color(0.12, 0.1, 0.35), "son_goku": Color(0.35, 0.1, 0.22), "shukaku": Color(0.4, 0.3, 0.38),
-	"isobu": Color(0.22, 0.28, 0.35), "kokuo": Color(0.45, 0.5, 0.65), "saiken": Color(0.45, 0.55, 0.75), "chomei": Color(0.32, 0.33, 0.42), "gyuki": Color(0.44, 0.33, 0.4)}
+	"isobu": Color(0.22, 0.28, 0.35), "kokuo": Color(0.45, 0.5, 0.65), "saiken": Color(0.52, 0.5, 0.58), "chomei": Color(0.32, 0.33, 0.42), "gyuki": Color(0.44, 0.33, 0.4)}
 static var _bmats := {}
 static func beast_material(surface: int, shadow: Color) -> ShaderMaterial:
 	var k = "%d|%s" % [surface, shadow]
@@ -897,37 +897,132 @@ static func _kokuo(r: BeastRig, root: Node3D) -> void:
 
 # ------------------------------------------------------------------ 6 Kuyruk: Saiken (açık mavimsi beyaz dev sümüklü böcek)
 static func _saiken(r: BeastRig, root: Node3D) -> void:
-	var c = Color(0.9, 0.95, 1.0); var tint = Color(0.72, 0.84, 0.98); var dk = Color(0.32, 0.38, 0.55)
-	var slime = func(t: float, a: float, _d: Vector3) -> Color:
-		var bands = 0.5 + 0.5 * sin(t * 30.0)
-		return c.lerp(tint, smoothstep(0.1, -0.9, sin(a)) * 0.7 + bands * 0.12)
-	r.hips = r._pivot(root, Vector3(0, 1.4, 0.5), "kalca_kok")
-	_tube(r, r.hips, [Vector3(0, -0.4, 3.6), Vector3(0, 0.1, 1.2), Vector3(0, 0.3, -1.8), Vector3(0, 0.6, -3.2)], [Vector2(2.6, 1.1), Vector2(3.4, 1.6), Vector2(3.2, 1.7), Vector2(2.6, 1.7)], c, slime)
-	r._collider(r.hips, Vector3.ZERO, Vector3(5.0, 2.6, 6.4))
-	r.chest = r._pivot(r.hips, Vector3(0, 0.8, -1.4), "gogus")
-	# dik duran gövde: alttan üste incelen pürüzsüz sütun
-	_tube(r, r.chest, [Vector3(0, -0.6, 0.4), Vector3(0, 1.8, 0.1), Vector3(0, 4.4, -0.3), Vector3(0, 6.2, -0.4)], [Vector2(3.0, 2.6), Vector2(2.6, 2.3), Vector2(2.2, 2.0), Vector2(1.7, 1.6)], c, slime)
-	r._collider(r.chest, Vector3(0, 2.5, 0), Vector3(3.8, 6.0, 3.4))
-	r.head = r._pivot(r.chest, Vector3(0, 6.4, -0.4), "bas")
+	# REFERANS (anime): soluk lila-gri, ıslak parlak sümüklü gövde; alt kısmı dev göbek, yukarı daralan armut gövde;
+	# boyunsuz kubbe baş, başın yanında bir sıra koyu nokta (delikler), tepede kısa düğümlü göz sapları, sümük damlayan küçük ağız;
+	# minik güdük kollar; arkadan yukarı-yana kalkan altı kalın pürüzsüz kuyruk, uçları yassı kaşık gibi, her yerden sarkan sümük; sabun köpüğü baloncukları
+	r.quadruped = false
+	r.upright = true
+	var c = Color(0.8, 0.78, 0.84); var cd = Color(0.66, 0.63, 0.72); var hi = Color(0.97, 0.96, 1.0); var dk = Color(0.3, 0.27, 0.36)
+	var slime = func(_t: float, _a: float, d: Vector3) -> Color:
+		return c if d.y > -0.35 else cd
+	# dev göbek (yere oturan alt gövde)
+	r.hips = r._pivot(root, Vector3(0, 3.6, 0.4), "kalca_kok")
+	var hsp = [Vector3(0, -3.2, 0.2), Vector3(0, -1.6, -0.5), Vector3(0, 0.6, -0.4), Vector3(0, 2.4, 0.0)]
+	var hrd = [Vector2(3.6, 3.2), Vector2(4.4, 4.1), Vector2(4.0, 3.7), Vector2(2.9, 2.7)]
+	_tube(r, r.hips, hsp, hrd, c, slime, 30, 6)
+	r._collider(r.hips, Vector3(0, -0.8, -0.2), Vector3(8.0, 6.0, 7.4))
+	var hm = MB.new()
+	_slime_dress(hm, hsp, hrd, 26, 61, hi, c)
+	r._mesh(r.hips, hm)
+	# üst gövde: yukarı daralır
+	r.chest = r._pivot(r.hips, Vector3(0, 2.2, -0.2), "gogus")
+	var csp = [Vector3(0, -0.4, 0.1), Vector3(0, 1.0, -0.3), Vector3(0, 2.4, -0.4)]
+	var crd = [Vector2(2.9, 2.7), Vector2(2.5, 2.3), Vector2(2.3, 2.1)]
+	_tube(r, r.chest, csp, crd, c, slime, 26, 5)
+	var mc = MB.new()
+	_slime_dress(mc, csp, crd, 12, 62, hi, c)
+	r._mesh(r.chest, mc)
+	r._collider(r.chest, Vector3(0, 1.0, -0.2), Vector3(5.0, 3.4, 4.4))
+	# kubbe baş: gövdeyle birleşik, hafif öne eğik
+	r.head = r._pivot(r.chest, Vector3(0, 2.7, -0.6), "bas")
+	r.head.rotation.x = deg_to_rad(12.0)
+	var ksp = [Vector3(0, -0.6, 0.6), Vector3(0, 0.5, 0.2), Vector3(0, 1.0, -0.6), Vector3(0, 0.6, -1.6)]
+	var krd = [Vector2(2.3, 2.0), Vector2(2.5, 2.1), Vector2(2.2, 1.8), Vector2(1.4, 1.0)]
+	_tube(r, r.head, ksp, krd, c, slime, 24, 6)
 	var mh = MB.new()
-	mh.add("sphere", Vector3.ZERO, Vector3(3.2, 2.4, 3.0), c, Vector3.ZERO, 18)
-	for sx in [-1.0, 1.0]:  # göz sapları
-		Loft.tube(mh, [Vector3(0.7 * sx, 0.7, -0.4), Vector3(1.1 * sx, 1.9, -0.6), Vector3(1.35 * sx, 3.0, -1.0)], [0.4, 0.32, 0.3], c, 12, 3)
-		mh.add("sphere", Vector3(1.38 * sx, 3.2, -1.05), Vector3(0.8, 0.8, 0.8), c, Vector3.ZERO, 12)
-		_anime_eye(r, r.head, Vector3(1.38 * sx, 3.2, -1.38), Vector3(0.42, 0.42, 0.22), Color(0.12, 0.12, 0.2), Color(0.12, 0.12, 0.2), Color(0.9, 0.9, 1.0), Vector3.ZERO, "dot")
-	r._mesh(r.head, mh)
-	r.jaw = r._pivot(r.head, Vector3(0, -0.4, -1.3), "cene")
-	var mj = MB.new()
-	mj.add("torus", Vector3(0, 0, -0.1), Vector3(1.3, 0.8, 1.3), dk, Vector3(90, 0, 0), 16)
-	mj.add("sphere", Vector3(0, 0, -0.05), Vector3(0.9, 0.9, 0.3), Color(0.05, 0.05, 0.08), Vector3.ZERO, 12)
-	r._mesh(r.jaw, mj)
-	r.mouth = r._pivot(r.head, Vector3(0, -0.4, -1.6), "agiz")
+	_slime_dress(mh, ksp, krd, 8, 63, hi, c)
 	for sx in [-1.0, 1.0]:
-		_arm(r, r.chest, sx, Vector3(2.0 * sx, 2.6, -0.4), Vector3(0.9 * sx, -1.0, -0.6), Vector3(0.1 * sx, -0.9, -0.5), 0.7, 0.55, 0.45, c, c, tint, 3, 0.85)
-	_tail_fan(r, r.hips, Vector3(0, 0.4, 3.6), 6, 60.0, -25.0, 9.5, 0.65, 1.05, c, tint, "slug", 7)
-	_particles(r.hips, Vector3(2.6, 0.5, 3.4), [Color(0.85, 0.95, 1.0, 0.6), Color(0.85, 0.95, 1.0, 0.0)], 30, 1.0, Vector3(0, -2, 0), 1.5)
-	r._weak(r.head, Vector3(0, 1.3, -0.1))
-	r._weak(r.chest, Vector3(0, 3.0, 1.9))
+		# başın yanında bir sıra koyu nokta (göz/delik sırası)
+		for k in 6:
+			var d = _tube_pt(ksp, krd, lerpf(0.55, 0.9, k / 5.0), deg_to_rad(90.0 - lerpf(78.0, 50.0, k / 5.0) * sx), 0.0)
+			mh.add_xf("sphere", Transform3D(Basis.looking_at(-(d[1] as Vector3), Vector3.UP) * Basis.from_scale(Vector3(0.24, 0.3, 0.1)), d[0]), dk, 8)
+		# kısa düğümlü göz sapı (anten), ucunda yassı çatal düğme
+		var a0: Vector3 = _tube_pt(ksp, krd, 0.45, deg_to_rad(90.0 - 28.0 * sx), 0.0)[0]
+		var a1 = a0 + Vector3(0.35 * sx, 1.3, 0.1)
+		Loft.tube(mh, [a0, a0 + Vector3(0.12 * sx, 0.7, 0.1), a1], [0.26, 0.2, 0.16], c, 10, 3, true, false)
+		mh.add_xf("sphere", Transform3D(Basis(Vector3.BACK, deg_to_rad(-25 * sx)) * Basis.from_scale(Vector3(0.55, 0.25, 0.35)), a1 + Vector3(0, 0.08, 0)), c, 10)
+		# yanlardaki boru gibi sifon çıkıntıları
+		var sp: Vector3 = _tube_pt(ksp, krd, 0.7, deg_to_rad(-20.0 * sx + (180.0 if sx < 0 else 0.0)), 0.0)[0]
+		Loft.tube(mh, [sp, sp + Vector3(0.7 * sx, -0.2, -0.3), sp + Vector3(1.3 * sx, -0.1, -0.5)], [0.32, 0.26, 0.24], c, 10, 3, true, true)
+		mh.add("sphere", sp + Vector3(1.38 * sx, -0.1, -0.52), Vector3(0.28, 0.28, 0.28), dk, Vector3.ZERO, 8)
+	r._mesh(r.head, mh)
+	r._collider(r.head, Vector3(0, 0.4, -0.4), Vector3(4.6, 3.8, 4.0))
+	# küçük ağız: burun ucunun altında yatay yarık, sarkan sümük ipleri
+	r.jaw = r._pivot(r.head, Vector3(0, 0.1, -1.95), "cene")
+	var mj = MB.new()
+	mj.add_xf("sphere", Transform3D(Basis.from_scale(Vector3(1.4, 0.24, 0.3)), Vector3.ZERO), dk, 12)
+	for k in 3:
+		var x = (k - 1) * 0.35
+		Loft.tube(mj, [Vector3(x, -0.05, -0.05), Vector3(x * 1.1, -0.6, -0.1), Vector3(x * 1.1, -0.9 - k * 0.1, -0.08)], [0.08, 0.06, 0.12], hi, 6, 3)
+	r._mesh(r.jaw, mj)
+	r.mouth = r._pivot(r.head, Vector3(0, 0.1, -2.2), "agiz")
+	# minik güdük kollar (göbeğin üstünde), üç kısa parmak
+	for sx in [-1.0, 1.0]:
+		_arm(r, r.chest, sx, Vector3(2.1 * sx, 0.6, -1.0), Vector3(0.6 * sx, -1.0, -0.8), Vector3(0.0, -0.8, -0.3), 0.45, 0.38, 0.32, c, c, cd, 3, 0.6, 0.7, 0.2)
+	# altı kalın sümüklü kuyruk: arkadan yukarı-yana kalkar, uçları yassı ve aşağı sarkar
+	r.tail_curl = 0.06   # yukarı kalkar, uçları hafifçe dışa-aşağı sarkar
+	_tail_fan(r, r.hips, Vector3(0, 0.6, 2.6), 6, 70.0, -80.0, 15.0, 1.5, 1.8, c, cd, "slug", 9)
+	# sabun köpüğü baloncukları
+	_bubbles(r.hips, Vector3(6.0, 5.0, 5.0), 26)
+	_particles(r.hips, Vector3(3.4, 0.5, 3.4), [Color(0.9, 0.9, 1.0, 0.6), Color(0.9, 0.9, 1.0, 0.0)], 30, 1.0, Vector3(0, -2, 0), 1.5)
+	r._weak(r.head, Vector3(0, 2.0, -0.2))
+	r._weak(r.hips, Vector3(0, 0.5, 4.2))
+
+
+## Sümük kaplaması: yüzeyden aşağı sarkan damlalar + parlak beyaz ıslaklık çizgileri (tüp yüzeyine oturur)
+static func _slime_dress(mb: MB, spine: Array, rad: Array, n: int, seed_v: int, hi: Color, col: Color) -> void:
+	var rng = RandomNumberGenerator.new()
+	rng.seed = seed_v
+	for i in n:
+		var t = rng.randf_range(0.1, 0.92)
+		var a = rng.randf_range(-0.4, PI + 0.4)
+		var d = _tube_pt(spine, rad, t, a, 0.0)
+		var p: Vector3 = d[0]
+		var nr: Vector3 = d[1]
+		if rng.randf() < 0.55:   # parlak ıslaklık çizgisi: yüzeye yapışık kısa dikey yassı şerit
+			var ln = rng.randf_range(0.4, 0.9)
+			Loft.tube(mb, [p + nr * 0.03, p + nr * 0.03 + Vector3(0, -ln * 0.5, 0), p + nr * 0.02 + Vector3(0, -ln, 0)], [Vector2(0.08, 0.025), Vector2(0.06, 0.02), Vector2(0.02, 0.01)], hi, 5, 2, true, true, Callable(), nr)
+		else:   # sarkan sümük damlası: dışa çıkıp aşağı uzayan, ucu şişkin
+			var ln2 = rng.randf_range(0.5, 1.4)
+			var e = p + nr * 0.25 + Vector3(0, -ln2, 0)
+			Loft.tube(mb, [p, p + nr * 0.2 + Vector3(0, -ln2 * 0.4, 0), e], [0.18, 0.09, 0.07], col, 6, 3, false, false)
+			mb.add("sphere", e, Vector3.ONE * 0.2, col, Vector3.ZERO, 6)
+
+
+## Yüzen sabun köpüğü baloncukları: yarı saydam, gökkuşağı kenarlı, yavaşça yükselir
+static func _bubbles(parent: Node3D, box: Vector3, amount: int) -> void:
+	var p = GPUParticles3D.new()
+	p.amount = amount
+	p.lifetime = 6.0
+	var pm = ParticleProcessMaterial.new()
+	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	pm.emission_box_extents = box
+	pm.direction = Vector3.UP
+	pm.spread = 40.0
+	pm.initial_velocity_min = 0.3
+	pm.initial_velocity_max = 1.0
+	pm.gravity = Vector3(0, 0.15, 0)
+	pm.scale_min = 0.5
+	pm.scale_max = 2.0
+	p.process_material = pm
+	var sm = SphereMesh.new()
+	sm.radius = 0.9
+	sm.height = 1.8
+	var m = StandardMaterial3D.new()
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.albedo_color = Color(0.85, 0.9, 1.0, 0.12)
+	m.rim_enabled = true
+	m.rim = 1.0
+	m.rim_tint = 0.2
+	m.metallic_specular = 1.0
+	m.roughness = 0.05
+	m.emission_enabled = true
+	m.emission = Color(0.5, 0.35, 0.6) * 0.15
+	sm.material = m
+	p.draw_pass_1 = sm
+	p.visibility_aabb = AABB(-box * 2.0 - Vector3.ONE * 8, box * 4.0 + Vector3.ONE * 16)
+	p.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(p)
 
 
 # ------------------------------------------------------------------ 7 Kuyruk: Chōmei (mavi zırhlı gergedan böceği, turuncu kanatlar)

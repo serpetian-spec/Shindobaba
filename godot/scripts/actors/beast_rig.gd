@@ -156,8 +156,13 @@ func _tail(base: Node3D, yaw_deg: float, pitch_deg: float, n: int, length: float
 					var vs = r * 0.62
 					mb.add("sphere", vp, Vector3(vs, vs * 0.32, vs), Color(0.93, 0.9, 0.88), Vector3(0, 0, -25 if v == 0 else 25), 10)
 					mb.add("sphere", vp + Vector3(0, -vs * 0.12, 0), Vector3(vs * 0.55, vs * 0.3, vs * 0.55), c.darkened(0.25), Vector3(0, 0, -25 if v == 0 else 25), 8)
-			"slug":
-				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.2), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.2)], [r, r * 0.97, r * 0.9], c, 12, 2, true, true)
+			"slug":  # kalın pürüzsüz sümüklü kuyruk: uca doğru yassılaşıp kaşık gibi genişler, sarkan damlalar
+				var fl = smoothstep(0.55, 1.0, k)   # uçta yassılaşma
+				var rr = maxf(r, r0 * 0.55) * (1.0 + fl * 0.5)
+				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.2), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.2)], [Vector2(rr, rr * (1.0 - fl * 0.65)), Vector2(rr, rr * (1.0 - fl * 0.65)), Vector2(rr * (0.9 if i < n - 1 else 0.5), rr * (1.0 - fl * 0.7))], c, 14, 2, true, true)
+				if i % 2 == 1:
+					var dl = r0 * 0.9
+					Loft.tube(mb, [Vector3(rr * 0.3, -rr * 0.8, seg_len * 0.4), Vector3(rr * 0.32, -rr * 0.8 - dl * 0.6, seg_len * 0.45), Vector3(rr * 0.3, -rr * 0.8 - dl, seg_len * 0.45)], [r0 * 0.14, r0 * 0.07, r0 * 0.11], c, 6, 2)
 			"wing":  # böcek kanadı: ince yarı saydam yaprak (tek parça, ilk segmentte)
 				if i == 0:   # yaprak kanat: uzun sivri yaprak, kalın açık yeşil orta damar + yanlara çatallanan ince damarlar (tip = damar rengi)
 					var lp: Array = []
