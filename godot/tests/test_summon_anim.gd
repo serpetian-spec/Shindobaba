@@ -29,11 +29,11 @@ func _ready() -> void:
 	var side = f.cross(Vector3.UP)
 	var cam = Camera3D.new()
 	main.add_child(cam)
-	cam.global_position = pl.global_position + f * 4.5 + side * 3.2 + Vector3.UP * 2.0
-	cam.look_at(pl.global_position + f * 1.6 + Vector3.UP * 0.6)
+	cam.global_position = pl.global_position + f * 3.0 + side * 1.2 + Vector3.UP * 4.8
+	cam.look_at(pl.global_position + f * 1.4)
 	cam.current = true
 	pl.combat.begin_cast("kuchiyose")
-	var times = [0.4, 0.75, 0.9, 1.05, 1.35, 2.0]
+	var times = [0.85, 0.95, 1.05, 1.2, 1.45, 2.0]
 	var last = 0.0
 	for i in times.size():
 		await get_tree().create_timer(times[i] - last).timeout

@@ -272,6 +272,7 @@ static func _circle(c: Node3D, pos: Vector3, r: float, col: Color) -> void:
 	m.shader = load("res://shaders/summon_circle.gdshader")
 	m.set_shader_parameter("col", Color(0.05, 0.04, 0.06))
 	m.set_shader_parameter("glow", col)
+	m.set_shader_parameter("seed", randf() * 100.0)
 	mi.material_override = m
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	c.get_tree().current_scene.add_child(mi)
