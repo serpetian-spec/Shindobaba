@@ -40,7 +40,10 @@ def used_sketchfab():
     for rel in ('scripts/actors/sf_models.gd', 'scripts/actors/sf_props.gd'):
         f = os.path.join(PROJ, rel)
         if os.path.exists(f):
-            used |= set(re.findall(r'"file":\s*"([^"]+)"', open(f, encoding='utf8').read()))
+            src = open(f, encoding='utf8').read()
+            if 'const USE_FAN := false' in src:   # hayran silah/aksesuar modelleri kapalı: pakete girmesin
+                continue
+            used |= set(re.findall(r'"file":\s*"([^"]+)"', src))
     # yerler için doğrudan yolla yüklenen modeller (ör. Sonun Vadisi: res://assets/sketchfab/valley_of_end/...)
     f = os.path.join(PROJ, 'scripts/world/build_sites.gd')
     if os.path.exists(f):
