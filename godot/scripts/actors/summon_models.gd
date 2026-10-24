@@ -32,7 +32,9 @@ static func build(model: String, h: float, length: float) -> Dictionary:
 			_coil_anim(out, sf["node"], sz)
 		return out
 	match model:
-		"toad_small", "toad_mid", "toad_boss":
+		"toad_boss":
+			_gamabunta(out, h)
+		"toad_small", "toad_mid":
 			_toad(out, model, h)
 		"snake_swarm":
 			_snake_swarm(out, h)
@@ -255,6 +257,171 @@ static func _toad(out: Dictionary, model: String, h: float) -> void:
 			v.add("box", Vector3(-W * 0.28, by + h * 0.55, -L * 0.3), Vector3(h * 0.05, h * 0.3, h * 0.03), Color(0.2, 0.06, 0.05), Vector3(0, 0, 25))   # yara izi
 			_mesh(root, v)
 	out["mouth"] = Vector3(0, by + h * 0.05, -L * 0.5)
+
+
+## Gamabunta (kurbağa reisi): çömelik sumo duruşu, kiremit kırmızısı siğilli deri, koyu lacivert açık haori (beyaz yaka, göğüste beyaz arma),
+## beyaz sarashi karın sargısı, iri baş: ağır kaş tümsekleri, yatay bebekli sarı gözler, gözden dudağa koyu kırmızı boya, kalın koyu kırmızı dudak,
+## sol gözde yara izi, alında kırmızı sarmal; ağızda uzun ince kiseru pipo (altın halkalı), belde kısa kılıç (dosu)
+static func _gamabunta(out: Dictionary, h: float) -> void:
+	out["anim"] = "hop"
+	var root: Node3D = out["root"]
+	var c = Color(0.66, 0.4, 0.38); var cd = Color(0.5, 0.28, 0.28); var paint = Color(0.6, 0.08, 0.1); var lip = Color(0.45, 0.1, 0.13)
+	var wart = Color(0.76, 0.5, 0.46); var vest = Color(0.16, 0.17, 0.3); var white = Color(0.95, 0.94, 0.9); var gold = Color(0.82, 0.72, 0.4)
+	var skin = func(_t: float, _a: float, d: Vector3) -> Color:
+		return c if d.y > -0.4 else cd
+	var b = MB.new()
+	# gövde: armut, hafif öne eğik (oturur gibi), dizlerin arasında
+	var tsp = [Vector3(0, h * 0.18, h * 0.12), Vector3(0, h * 0.4, h * 0.04), Vector3(0, h * 0.64, -h * 0.04), Vector3(0, h * 0.78, -h * 0.08)]
+	var trd = [Vector2(h * 0.36, h * 0.3), Vector2(h * 0.42, h * 0.34), Vector2(h * 0.38, h * 0.3), Vector2(h * 0.3, h * 0.25)]
+	Loft.tube(b, tsp, trd, c, 24, 5, true, true, skin)
+	# beyaz sarashi karın sargısı
+	for k in 4:
+		var y = h * (0.2 + k * 0.055)
+		b.add_xf("torus", Transform3D(Basis.from_scale(Vector3(h * 0.86, h * 0.07, h * 0.7)), Vector3(0, y, h * 0.1 - k * h * 0.012)), white, 20)
+	# haori: gövdeyi saran açık ceket (önü açık; beyaz yaka şeritleri), kısa kollar
+	Loft.tube(b, [Vector3(0, h * 0.3, h * 0.06), Vector3(0, h * 0.56, -h * 0.01), Vector3(0, h * 0.78, -h * 0.07)], [Vector2(h * 0.47, h * 0.38), Vector2(h * 0.46, h * 0.37), Vector2(h * 0.42, h * 0.32)], vest, 24, 3, false, false,
+		func(_t: float, _a: float, d: Vector3) -> Color: return c if (d.z < -0.82 and absf(d.x) < 0.32) else vest)   # önü açık: göğüs derisi görünür
+	for sx in [-1.0, 1.0]:
+		# beyaz yaka: boyundan göğsün önüne inen şerit
+		Loft.tube(b, [Vector3(h * 0.12 * sx, h * 0.68, -h * 0.28), Vector3(h * 0.2 * sx, h * 0.56, -h * 0.4), Vector3(h * 0.26 * sx, h * 0.4, -h * 0.37)], [Vector2(h * 0.05, h * 0.02), Vector2(h * 0.05, h * 0.02), Vector2(h * 0.05, h * 0.02)], white, 6, 3)
+		# göğüste beyaz arma (yuvarlak, içinde koyu sembol)
+		b.add_xf("cyl", Transform3D(Basis(Vector3.RIGHT, deg_to_rad(80)) * Basis.from_scale(Vector3(h * 0.12, h * 0.01, h * 0.12)), Vector3(h * 0.3 * sx, h * 0.55, -h * 0.33)), white, 16)
+		b.add_xf("torus", Transform3D(Basis(Vector3.RIGHT, deg_to_rad(80)) * Basis.from_scale(Vector3(h * 0.07, h * 0.02, h * 0.07)), Vector3(h * 0.3 * sx, h * 0.55, -h * 0.345)), vest, 12)
+	# sırtta büyük beyaz arma
+	b.add_xf("cyl", Transform3D(Basis(Vector3.RIGHT, deg_to_rad(-80)) * Basis.from_scale(Vector3(h * 0.26, h * 0.01, h * 0.26)), Vector3(0, h * 0.54, h * 0.42)), white, 20)
+	b.add_xf("torus", Transform3D(Basis(Vector3.RIGHT, deg_to_rad(-80)) * Basis.from_scale(Vector3(h * 0.15, h * 0.03, h * 0.15)), Vector3(0, h * 0.54, h * 0.435)), vest, 14)
+	# göğüste kırmızı alev boyası (haori arasından görünür)
+	for k in 3:
+		Loft.tube(b, [Vector3((k - 1) * h * 0.06, h * 0.46, -h * 0.4), Vector3((k - 1) * h * 0.08, h * 0.54, -h * 0.38), Vector3((k - 1) * h * 0.04, h * 0.6, -h * 0.33)], [Vector2(h * 0.02, h * 0.005), Vector2(h * 0.025, h * 0.005), Vector2(h * 0.005, h * 0.005)], paint, 4, 3)
+	_mesh(root, b)
+	# baş: iri, geniş, gövdeye gömülü
+	var hd = _pivot(root, Vector3(0, h * 0.9, -h * 0.18))
+	hd.rotation.x = deg_to_rad(-8.0)
+	hd.scale = Vector3.ONE * 1.15
+	var hb = MB.new()
+	var ksp = [Vector3(0, -h * 0.02, h * 0.18), Vector3(0, h * 0.04, 0.0), Vector3(0, 0.0, -h * 0.16), Vector3(0, -h * 0.06, -h * 0.26)]
+	var krd = [Vector2(h * 0.3, h * 0.24), Vector2(h * 0.36, h * 0.27), Vector2(h * 0.34, h * 0.26), Vector2(h * 0.3, h * 0.22)]
+	Loft.tube(hb, ksp, krd, c, 24, 5, true, true, skin)
+	# siğiller: başta ve kaşlarda yuvarlak tümsekler
+	var rng = RandomNumberGenerator.new()
+	rng.seed = 1717
+	for i in 26:
+		var d = BeastModels._tube_pt(ksp, krd, rng.randf_range(0.15, 0.85), rng.randf_range(0.4, PI - 0.4), 0.0)
+		var w = h * rng.randf_range(0.018, 0.035)
+		hb.add("sphere", d[0], Vector3(w, w * 0.6, w), wart, Vector3.ZERO, 8)
+	# yüz = tüpün ön kubbesi (elipsoid); yüz parçaları bu yüzeye oturtulur
+	var dc: Vector3 = ksp[3]; var dr = Vector3((krd[3] as Vector2).x, (krd[3] as Vector2).y, (krd[3] as Vector2).length() * 0.5)
+	var dome = func(a: float, e: float, lift := 0.0) -> Array:
+		var pp = Vector3(dr.x * cos(e) * sin(a), dr.y * sin(e), -dr.z * cos(e) * cos(a))
+		var n = Vector3(pp.x / (dr.x * dr.x), pp.y / (dr.y * dr.y), pp.z / (dr.z * dr.z)).normalized()
+		return [dc + pp + n * lift, n]
+	var strip = func(pts: Array, w: float, col: Color) -> void:
+		var rr2: Array = []
+		for k in pts.size():
+			rr2.append(Vector2(w * (0.35 + 0.65 * sin(PI * (k + 0.5) / pts.size())), h * 0.008))
+		Loft.tube(hb, pts, rr2, col, 4, 3, true, true)
+	# alında kırmızı sarmal
+	var sw: Array = []
+	for k in 10:
+		var a = k * 0.8
+		var rr = 0.16 * (1.0 - k / 12.0)
+		sw.append(dome.call(sin(a) * rr, 0.95 + cos(a) * rr, h * 0.012)[0])
+	strip.call(sw, h * 0.022, paint)
+	for sx in [-1.0, 1.0]:
+		# ağır kaş tümseği: gözün üstünde öne çıkık
+		var bp = dome.call(0.62 * sx, 0.78, h * 0.03)
+		hb.add_xf("sphere", Transform3D(Basis.looking_at(-(bp[1] as Vector3), Vector3.UP) * Basis(Vector3.BACK, deg_to_rad(-20 * sx)) * Basis.from_scale(Vector3(h * 0.17, h * 0.07, h * 0.1)), bp[0]), c.lightened(0.04), 12)
+		# göz: kırmızı çerçeve, sarı iris, yatay koyu bebek, üst kapak (kızgın)
+		var eg = dome.call(0.6 * sx, 0.5, 0.0)
+		var nrm: Vector3 = ((eg[1] as Vector3) + Vector3(0, 0, -0.6)).normalized()
+		var ep: Vector3 = (eg[0] as Vector3) + nrm * h * 0.02
+		var eb = Basis.looking_at(-nrm, Vector3.UP)
+		hb.add_xf("sphere", Transform3D(eb * Basis.from_scale(Vector3(h * 0.16, h * 0.12, h * 0.05)), ep), paint, 12)
+		hb.add_xf("sphere", Transform3D(eb * Basis.from_scale(Vector3(h * 0.125, h * 0.095, h * 0.06)), ep + nrm * h * 0.006), Color(0.08, 0.04, 0.03), 12)
+		hb.add_xf("sphere", Transform3D(eb * Basis.from_scale(Vector3(h * 0.105, h * 0.08, h * 0.065)), ep + nrm * h * 0.01), Color(0.98, 0.82, 0.25), 12)
+		hb.add_xf("sphere", Transform3D(eb * Basis.from_scale(Vector3(h * 0.07, h * 0.018, h * 0.07)), ep + nrm * h * 0.014), Color(0.06, 0.03, 0.02), 8)
+		hb.add_xf("sphere", Transform3D(eb * Basis(Vector3.BACK, deg_to_rad(14 * sx)) * Basis.from_scale(Vector3(h * 0.15, h * 0.035, h * 0.07)), ep + eb.y * h * 0.06 + nrm * h * 0.008), cd, 10)
+		# gözden ağız köşesine inen koyu kırmızı boya şeridi + kaş üstü boya
+		var pl: Array = []
+		for k in 6:
+			var u = k / 5.0
+			pl.append(dome.call(lerpf(0.78, 1.15, u) * sx, lerpf(0.42, -0.18, u), h * 0.01)[0])
+		strip.call(pl, h * 0.04, paint)
+		var pb: Array = []
+		for k in 5:
+			var u = k / 4.0
+			pb.append(dome.call(lerpf(0.3, 0.95, u) * sx, lerpf(0.62, 0.68, u), h * 0.012)[0])
+		strip.call(pb, h * 0.018, paint)
+		# burun delikleri
+		hb.add("sphere", dome.call(0.14 * sx, 0.15, 0.0)[0], Vector3(h * 0.02, h * 0.012, h * 0.015), Color(0.2, 0.06, 0.06), Vector3.ZERO, 6)
+	# kalın dudak: ağız yüzün önünden yanlara geriye uzanır
+	var lp: Array = []
+	for k in 15:
+		var a = lerpf(-1.45, 1.45, k / 14.0)
+		lp.append(dome.call(a, -0.28 + 0.12 * absf(a) / 1.45, h * 0.012)[0])
+	var lr: Array = []
+	lr.resize(lp.size())
+	lr.fill(Vector2(h * 0.032, h * 0.022))
+	Loft.tube(hb, lp, lr, lip, 8, 3, true, true)
+	# alt dudak / çene altı kıvrımları
+	for k in 2:
+		var cl2: Array = []
+		for q in 7:
+			var a = lerpf(-0.7, 0.7, q / 6.0)
+			cl2.append(dome.call(a, -0.55 - k * 0.18, h * 0.01)[0])
+		strip.call(cl2, h * 0.012, cd)
+	# sol gözde yara izi: kaştan yanağa açık renk çizik
+	var sc: Array = []
+	for k in 5:
+		var u = k / 4.0
+		sc.append(dome.call(lerpf(-0.42, -0.7, u), lerpf(1.0, 0.05, u), h * 0.014)[0])
+	strip.call(sc, h * 0.022, wart.lightened(0.35))
+	# kiseru pipo: ağzın sağ köşesinden öne-yana uzanan ince sap, altın halkalar, ucunda çanak
+	var p0: Vector3 = dome.call(1.05, -0.22, h * 0.01)[0]
+	var p1 = p0 + Vector3(h * 0.35, -h * 0.02, -h * 0.35)
+	Loft.tube(hb, [p0, p1], [h * 0.012, h * 0.012], Color(0.35, 0.18, 0.1), 8, 2)
+	for k in 3:
+		var q = p0.lerp(p1, 0.1 + k * 0.4)
+		hb.add_xf("cyl", Transform3D(Basis.looking_at((p1 - p0).normalized(), Vector3.UP) * Basis(Vector3.RIGHT, PI * 0.5) * Basis.from_scale(Vector3(h * 0.03, h * 0.025, h * 0.03)), q), gold, 10)
+	hb.add_xf("cyl", Transform3D(Basis.from_scale(Vector3(h * 0.05, h * 0.05, h * 0.05)), p1 + Vector3(0, h * 0.02, 0)), gold, 12)   # çanak
+	_mesh(hd, hb)
+	out["head"] = hd
+	# kollar: güçlü, yere dayalı, dört kalın parmak; haori kolu omuzda
+	for side in [-1.0, 1.0]:
+		var fa = _pivot(root, Vector3(h * 0.42 * side, h * 0.68, -h * 0.08))
+		var am = MB.new()
+		var el = Vector3(h * 0.14 * side, -h * 0.3, -h * 0.06)
+		var wr = Vector3(h * 0.04 * side, -h * 0.63, -h * 0.24)
+		Loft.tube(am, [Vector3.ZERO, el, wr], [h * 0.1, h * 0.085, h * 0.07], c, 12, 3, true, true, skin)
+		Loft.tube(am, [Vector3(0, h * 0.04, 0), el * 0.55 + Vector3(0, h * 0.02, 0)], [Vector2(h * 0.15, h * 0.13), Vector2(h * 0.14, h * 0.12)], vest, 14, 2, true, true)   # haori kolu
+		for f in 4:
+			var fd = Vector3((f - 1.5) * 0.45, -0.25, -1).normalized()
+			var f1 = wr + fd * h * 0.12
+			Loft.tube(am, [wr, f1, f1 + Vector3(0, -h * 0.03, -h * 0.02)], [h * 0.035, h * 0.03, h * 0.035], c, 8, 2, true, true)
+			am.add("sphere", f1 + Vector3(0, -h * 0.03, -h * 0.025), Vector3(h * 0.045, h * 0.025, h * 0.045), wart, Vector3.ZERO, 6)
+		_mesh(fa, am)
+		out["legs"].append(fa)
+		# arka bacaklar: geniş açık çömelik (sumo), diz yukarıda-yanda, büyük perdeli ayak
+		var hl = _pivot(root, Vector3(h * 0.3 * side, h * 0.22, h * 0.12))
+		var lm = MB.new()
+		var knee = Vector3(h * 0.32 * side, h * 0.12, -h * 0.12)
+		var ankle = Vector3(h * 0.26 * side, -h * 0.18, h * 0.02)
+		Loft.tube(lm, [Vector3.ZERO, knee, ankle], [h * 0.17, h * 0.13, h * 0.08], c, 14, 3, true, true, skin)
+		for f in 4:
+			var fd2 = Vector3((f - 1.5) * 0.45 + 0.3 * side, 0, -1).normalized()
+			var f2 = ankle + Vector3(0, -h * 0.02, 0) + fd2 * h * 0.16
+			Loft.tube(lm, [ankle + Vector3(0, -h * 0.02, 0), f2], [h * 0.04, h * 0.03], c, 8, 2, true, true)
+			lm.add("sphere", f2, Vector3(h * 0.05, h * 0.025, h * 0.05), wart, Vector3.ZERO, 6)
+		_mesh(hl, lm)
+		out["legs"].append(hl)
+	# belde kısa kılıç (dosu): sağ yanda, kın + sap, sarashiye sokulu
+	var s = MB.new()
+	var k0 = Vector3(h * 0.42, h * 0.24, -h * 0.08); var k1 = k0 + Vector3(-h * 0.05, -h * 0.1, h * 0.55)
+	Loft.tube(s, [k0, k1], [Vector2(h * 0.04, h * 0.025), Vector2(h * 0.035, h * 0.022)], Color(0.3, 0.18, 0.1), 8, 1)
+	s.add_xf("cyl", Transform3D(Basis.looking_at((k1 - k0).normalized(), Vector3.UP) * Basis(Vector3.RIGHT, PI * 0.5) * Basis.from_scale(Vector3(h * 0.07, h * 0.012, h * 0.07)), k0), gold, 12)
+	Loft.tube(s, [k0, k0 - (k1 - k0).normalized() * h * 0.16], [h * 0.025, h * 0.025], Color(0.12, 0.1, 0.12), 8, 1)
+	_mesh(root, s)
+	out["mouth"] = Vector3(0, h * 0.7, -h * 0.5)
 
 
 # ------------------------------------------------------------------ yılanlar (stilize toon; eski paket modeli kaldırıldı)
