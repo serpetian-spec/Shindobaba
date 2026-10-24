@@ -36,7 +36,8 @@ func _ready() -> void:
 		eyes._start_susanoo()
 		await get_tree().create_timer(0.8).timeout
 		var h = Susanoo.TIER_HEIGHT[t]
-		pl.cam.global_position = pl.global_position + pl.face_dir() * (h * 1.3 + 3.0) + Vector3(h * 0.4, h * 0.55, 0)
+		var cd = (h * 1.3 + 3.0) if t > 1 else 3.2
+		pl.cam.global_position = pl.global_position + pl.face_dir() * cd + Vector3(h * 0.4 if t > 1 else 1.4, h * 0.55, 0)
 		pl.cam.look_at(pl.global_position + Vector3.UP * h * 0.5)
 		await get_tree().create_timer(0.3).timeout
 		await main.shot("s%d_susanoo" % t)

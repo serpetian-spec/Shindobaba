@@ -7,7 +7,7 @@ extends Node3D
 ## Özelleştirme (profile["susanoo"]): renk, zırh stili, yüz, silah, kanat, tercih edilen kademe.
 
 const TIER_NAMES := ["", "Kaburga", "İskelet", "İnsansı", "Zırhlı Savaşçı", "Mükemmel Susanoo"]
-const TIER_HEIGHT := [0.0, 3.2, 4.8, 7.5, 13.0, 34.0]
+const TIER_HEIGHT := [0.0, 2.05, 4.8, 7.5, 13.0, 34.0]   # 1: oyuncunun etrafını saran kaburga (kafasının üstünde değil)
 const ARMORS := ["Samuray", "Keşiş Cübbesi", "İblis Dikenleri"]
 const FACES := ["Tengu", "Oni Boynuzlu", "Vizörlü Savaşçı"]
 const WEAPONS := {"kilic": "Kılıç", "yay": "Yay ve Ok", "kalkan": "Kalkan", "mizrak": "Mızrak", "yok": "Silahsız"}
@@ -101,10 +101,12 @@ func build(pr: Dictionary, preview_tier := -1, follow_model: CharacterModel = nu
 func _skeleton() -> void:
 	var sk = body.skel
 	var bp = func(n: String) -> Vector3: return sk.get_bone_global_rest(sk.find_bone(n)).origin
+	var back = Vector3(0, 0, -0.28) if tier == 1 else Vector3.ZERO   # kademe 1: omurga oyuncunun sırtının arkasında
 	var stick = func(a: String, b: String, r: float) -> void:
 		if sk.find_bone(a) < 0 or sk.find_bone(b) < 0:
 			return
-		var pa: Vector3 = bp.call(a); var pb: Vector3 = bp.call(b)
+		var off = back if a in ["Hips", "Spine", "Chest", "UpperChest", "Neck"] else Vector3.ZERO
+		var pa: Vector3 = bp.call(a) + off; var pb: Vector3 = bp.call(b) + off
 		var m = MB.new()
 		var d = pb - pa
 		var basis = Basis(Quaternion(Vector3.UP, d.normalized())) * Basis.from_scale(Vector3(r, d.length(), r))
@@ -112,29 +114,32 @@ func _skeleton() -> void:
 		m.add("sphere", pb, Vector3.ONE * r * 1.5, Color.WHITE, Vector3.ZERO, 8)
 		_on(a, m)
 	for pair in BONES:
-		stick.call(pair[0], pair[1], 0.07)
+		stick.call(pair[0], pair[1], 0.07 if tier >= 2 else 0.05)
 	var sides = ["Right"] if tier == 1 else ["Right", "Left"]
 	for sd in sides:
 		for pair in ARM_BONES:
-			stick.call(sd + pair[0], sd + pair[1], 0.06)
+			stick.call(sd + pair[0], sd + pair[1], 0.06 if tier >= 2 else 0.075)
 		if tier >= 2:
 			for f in FINGERS:
 				stick.call(sd + "Hand", sd + f + "Proximal", 0.02)
 				stick.call(sd + f + "Proximal", sd + f + "Intermediate", 0.018)
 				stick.call(sd + f + "Intermediate", sd + f + "Distal", 0.016)
 	# kaburgalar: göğüs kemiğine bağlı kavisli yaylar
-	var ch: Vector3 = bp.call("Chest")
+	var ch: Vector3 = bp.call("Chest") + back
 	var ribs = MB.new()
+	var wide = 3.0 if tier == 1 else 1.0
 	for i in 6:
-		var y = -0.12 + i * 0.075
-		var w = 0.19 - absf(i - 2.5) * 0.012
+		var y = (-0.12 + i * 0.075) * (2.0 if tier == 1 else 1.0)
+		var w = (0.19 - absf(i - 2.5) * 0.012) * wide
 		for k in 9:
 			var a0 = lerpf(-PI * 0.95, PI * 0.95, float(k) / 9.0)
 			var a1 = lerpf(-PI * 0.95, PI * 0.95, float(k + 1) / 9.0)
-			var p0 = Vector3(sin(a0) * w, y - absf(sin(a0)) * 0.03, -cos(a0) * w * 0.8 + 0.02)
-			var p1 = Vector3(sin(a1) * w, y - absf(sin(a1)) * 0.03, -cos(a1) * w * 0.8 + 0.02)
+			var zc = w * 0.55 if tier == 1 else 0.02   # kademe 1: kaburga kafesinin merkezi oyuncunun göğsü
+			var p0 = Vector3(sin(a0) * w, y - absf(sin(a0)) * 0.03, -cos(a0) * w * 0.8 + zc)
+			var p1 = Vector3(sin(a1) * w, y - absf(sin(a1)) * 0.03, -cos(a1) * w * 0.8 + zc)
 			var d = p1 - p0
-			ribs.add_xf("cyl", Transform3D(Basis(Quaternion(Vector3.UP, d.normalized())) * Basis.from_scale(Vector3(0.022, d.length(), 0.022)), ch + (p0 + p1) * 0.5), Color.WHITE, 5)
+			var rt = 0.03 if tier == 1 else 0.022
+			ribs.add_xf("cyl", Transform3D(Basis(Quaternion(Vector3.UP, d.normalized())) * Basis.from_scale(Vector3(rt, d.length(), rt)), ch + (p0 + p1) * 0.5), Color.WHITE, 5)
 	_on("Chest", ribs)
 	if tier >= 2:
 		var hd: Vector3 = bp.call("Head")
