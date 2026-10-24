@@ -1326,6 +1326,11 @@ func j_shintenshin(c: Node3D, t: Node3D) -> void:
 		return
 	Sfx.play("genjutsu", t.global_position, 1.2)
 	FX.ring(t.global_position + Vector3.UP, Color(0.75, 0.5, 1.0), 4.0, 0.4, false)
+	# ruh bedenden çıkar: mor top hedefe uçar, oyuncunun bedeni yere çöker (anime Shintenshin)
+	var cj = ClanJutsu.get_inst()
+	cj._mind_orb(c, t, func(): if is_instance_valid(t): cj._mind_halo(t, 12.0))
+	if c.get("model"):
+		c.model.play("sit", 0.2)
 	t.team = "player"
 	t.target = null
 	t.state = "chase"
@@ -1408,8 +1413,10 @@ func j_hyoton_senbon(c: Node3D, t: Node3D) -> void:
 	var m = _mult(c)
 	var dir = _aim(c, t)
 	Sfx.play("kunai", c.global_position, 1.6)
-	for i in 8:
-		var d = dir.rotated(Vector3.UP, deg_to_rad(-21 + i * 6)) + Vector3.UP * randf_range(-0.03, 0.06)
+	VFX.star(_hand(c), Color(0.8, 0.95, 1.0), 2.0, 0.15)
+	FX.burst(_hand(c), {"amount": 24, "life": 0.5, "size": 0.25, "vmin": 2, "vmax": 6, "colors": [Color(0.95, 1, 1), Color(0.6, 0.85, 1, 0)]})
+	for i in 16:
+		var d = dir.rotated(Vector3.UP, deg_to_rad(-30 + i * 4)) + Vector3.UP * randf_range(-0.05, 0.1)
 		var pr = Projectile.new()
 		pr.shooter = c
 		pr.vel = d.normalized() * 50.0
@@ -1418,15 +1425,17 @@ func j_hyoton_senbon(c: Node3D, t: Node3D) -> void:
 		pr.info = {"dmg": 4.0 * m, "knock": 1.0, "kind": "light", "hitstop": 0.01, "element": "hyoton"}
 		var mi = MeshInstance3D.new()
 		var cm = CylinderMesh.new()
-		cm.top_radius = 0.0; cm.bottom_radius = 0.04; cm.height = 0.7
-		cm.material = Props.toon_color(Color(0.8, 0.95, 1.0), 0.8)
+		cm.top_radius = 0.0; cm.bottom_radius = 0.09; cm.height = 1.3
+		cm.material = JutsuEngine.glow_mat(Color(0.75, 0.93, 1.0), 1.0)
 		mi.mesh = cm
 		mi.rotation.x = -PI * 0.5
 		pr.add_child(mi)
-		Projectile.trail(pr, [Color(0.85, 0.97, 1, 0.8), Color(0.6, 0.85, 1, 0)], 0.3, 20, 0.2)
+		VFX.trail(pr, 0.18, Color(1, 1, 1), Color(0.7, 0.9, 1.0), Color(0.5, 0.8, 1.0, 0.0), 10, 0.5)
 		pr.on_hit = func(pos: Vector3, tg: Node3D) -> void:
 			if tg and tg.has_method("apply_status"):
 				tg.apply_status("slow", 2.0)
+				tg.apply_status("chilled", 3.0)
+			VFX.star(pos, Color(0.8, 0.95, 1.0), 1.0, 0.12)
 			FX.burst(pos, {"amount": 5, "life": 0.3, "size": 0.4, "vmin": 2, "vmax": 4, "colors": [Color(0.9, 0.97, 1, 1), Color(0.7, 0.9, 1, 0)]})
 		get_tree().current_scene.add_child(pr)
 		pr.global_position = _hand(c)
@@ -1462,7 +1471,7 @@ func j_hyoton_spears(c: Node3D, t: Node3D) -> void:
 # ---------------------------------------------------------------- Kaguya
 func j_bone_bullets(c: Node3D, t: Node3D) -> void:
 	var m = _mult(c)
-	_ticks(5, 0.08, func(_i):
+	_ticks(8, 0.07, func(_i):
 		if not is_instance_valid(c):
 			return
 		var pr = Projectile.new()
@@ -1474,14 +1483,19 @@ func j_bone_bullets(c: Node3D, t: Node3D) -> void:
 		pr.info = {"dmg": 6.0 * m, "knock": 2.0, "kind": "light", "hitstop": 0.02}
 		var mi = MeshInstance3D.new()
 		var b = MB.new()
-		b.add("cyl", Vector3.ZERO, Vector3(0.09, 0.3, 0.09), Color(0.95, 0.93, 0.85), Vector3(90, 0, 0), 6)
-		b.add("sphere", Vector3(0, 0, -0.16), Vector3(0.12, 0.12, 0.12), Color(0.95, 0.93, 0.85), Vector3.ZERO, 6)
+		b.add("cyl", Vector3.ZERO, Vector3(0.2, 0.7, 0.2), Color(0.97, 0.95, 0.86), Vector3(90, 0, 0), 8)
+		b.add("cone", Vector3(0, 0, -0.5), Vector3(0.2, 0.35, 0.2), Color(0.97, 0.95, 0.86), Vector3(-90, 0, 0), 8)
+		b.add("sphere", Vector3(0, 0, 0.36), Vector3(0.28, 0.28, 0.24), Color(0.92, 0.9, 0.8), Vector3.ZERO, 8)
 		mi.mesh = b.build(Props.toon())
 		pr.add_child(mi)
+		pr.spin = Vector3(0, 0, 25)
+		VFX.trail(pr, 0.22, Color(1, 1, 1), Color(0.95, 0.92, 0.8), Color(0.8, 0.75, 0.6, 0.0), 10)
 		pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
-			FX.hit_spark(pos, Color(0.95, 0.93, 0.85), 0.5)
+			FX.hit_spark(pos, Color(0.95, 0.93, 0.85), 1.2)
+			FX.burst(pos, {"amount": 10, "life": 0.5, "size": 0.25, "vmin": 3, "vmax": 7, "add": false, "gravity": Vector3(0, -12, 0), "colors": [Color(0.97, 0.95, 0.88), Color(0.9, 0.88, 0.8, 0)]})
 		get_tree().current_scene.add_child(pr)
 		pr.global_position = _hand(c)
+		FX.burst(_hand(c), {"amount": 6, "life": 0.25, "size": 0.3, "vmin": 1, "vmax": 3, "colors": [Color(1, 1, 1), Color(0.9, 0.85, 0.7, 0)]})
 		Sfx.play("kunai", c.global_position, 0.8, 0.6))
 
 
@@ -1512,14 +1526,32 @@ func j_chakra_chains(c: Node3D, t: Node3D) -> void:
 	var root = Node3D.new()
 	get_tree().current_scene.add_child(root)
 	var center = _ground(t.global_position)
-	for k in 4:
-		var a = k * TAU / 4.0 + 0.4
-		var base = center + Vector3(cos(a), 0, sin(a)) * 3.5
-		var top = t.global_position + Vector3.UP * 1.2
-		var chain = Projectile.energy_mesh(Color(1.0, 0.95, 0.6), Color(1.0, 0.65, 0.1), 1.0, 2.0, 6.0, 2.0)
-		root.add_child(chain)
+	var gold = JutsuEngine.glow_mat(Color(1.0, 0.82, 0.3), 1.0)
+	var back = c.global_position + Vector3.UP * 1.3 - (c.face_dir() if c.has_method("face_dir") else Vector3.FORWARD) * 0.3
+	for k in 5:
+		var a = k * TAU / 5.0 + 0.4
+		var base = back + Vector3(cos(a), sin(a) * 0.6, 0) * 0.3 if k < 3 else center + Vector3(cos(a), 0, sin(a)) * 3.5
+		var top = t.global_position + Vector3.UP * (0.8 + k * 0.25)
 		var L = base.distance_to(top)
-		chain.global_transform = Transform3D(Basis.looking_at((top - base).normalized(), Vector3.UP).scaled(Vector3(0.22, 0.22, L)), (base + top) * 0.5)
+		var n = int(L / 0.38)
+		var ch = Node3D.new()
+		root.add_child(ch)
+		for j in n:
+			var link = MeshInstance3D.new()
+			var tm = TorusMesh.new()
+			tm.inner_radius = 0.11; tm.outer_radius = 0.19; tm.rings = 10; tm.ring_segments = 6
+			link.mesh = tm
+			link.material_override = gold
+			ch.add_child(link)
+			var u = float(j) / n
+			var dir = (top - base).normalized()
+			link.global_transform = Transform3D(Basis.looking_at(dir, Vector3.UP if absf(dir.y) < 0.95 else Vector3.RIGHT) * Basis(Vector3.BACK, PI * 0.5 * (j % 2)) * Basis(Vector3.RIGHT, PI * 0.5), base.lerp(top, u) + Vector3.UP * sin(u * PI) * 0.4)
+			link.scale = Vector3.ONE * 0.01
+			var tw = link.create_tween()
+			tw.tween_interval(u * 0.25)
+			tw.tween_property(link, "scale", Vector3.ONE, 0.08)
+	VFX.shockwave(t.global_position + Vector3.UP * 1.2, Color(1, 0.8, 0.3), 3.0, 0.3, false)
+	FX.aura(t, Color(1.0, 0.8, 0.3), 0.9, Vector3(0, 1.0, 0), 5.0)
 	Sfx.play("clink", center, 0.7)
 	if t.has_method("apply_status"):
 		t.apply_status("bind", 5.0)
@@ -1533,6 +1565,14 @@ func j_suika(c: Node3D, _t: Node3D) -> void:
 	if c is Player:
 		Buffs.add("suika", 15.0, {})
 		var a = FX.aura(c, Color(0.35, 0.65, 1.0), 1.0, Vector3(0, 0.9, 0), 0.0)
+		var shell = MeshInstance3D.new()
+		shell.mesh = VFX._sphere(0.5, 20, 10)
+		shell.material_override = VFX.mat_water(Color(0.1, 0.35, 0.85), Color(0.3, 0.6, 1.0), Color(0.75, 0.92, 1.0), Vector3.UP, 0.45, 0.6, 0.12)
+		shell.scale = Vector3(0.9, 2.0, 0.9)
+		c.add_child(shell)
+		shell.position = Vector3(0, 0.95, 0)
+		FX.burst(c.global_position + Vector3.UP, {"amount": 40, "life": 0.7, "tex": FX.tex_smoke, "add": false, "size": 0.5, "vmin": 2, "vmax": 5, "gravity": Vector3(0, -10, 0), "colors": [Color(0.85, 0.95, 1, 1), Color(0.3, 0.6, 1, 0)]})
+		get_tree().create_timer(15.0).timeout.connect(func(): if is_instance_valid(shell): shell.queue_free())
 		get_tree().create_timer(15.0).timeout.connect(func():
 			if is_instance_valid(a):
 				a.emitting = false
@@ -1546,9 +1586,11 @@ func j_water_gun(c: Node3D, t: Node3D) -> void:
 	var pr = Projectile.new()
 	pr.shooter = c
 	pr.vel = _aim(c, t) * 70.0
-	pr.radius = 0.35
+	pr.radius = 0.5
 	pr.info = {"dmg": 14.0 * m, "knock": 5.0, "kind": "light", "element": "suiton", "hitstop": 0.03}
-	pr.add_child(Projectile.energy_mesh(Color(0.85, 0.97, 1.0), Color(0.15, 0.45, 1.0), 0.45, 4.0, 3.0, 2.0))
+	pr.add_child(VFX.water_ball(1.0))
+	VFX.trail(pr, 0.6, Color(0.9, 0.97, 1.0), Color(0.3, 0.6, 1.0), Color(0.1, 0.35, 0.9, 0.0), 14)
+	VFX.shockwave(_hand(c), Color(0.6, 0.85, 1.0), 2.5, 0.25, false, _aim(c, t))
 	Projectile.trail(pr, [Color(0.85, 0.95, 1, 0.9), Color(0.3, 0.6, 1, 0)], 0.35, 30, 0.25, FX.tex_smoke, false)
 	pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
 		FX.burst(pos, {"amount": 14, "life": 0.5, "tex": FX.tex_smoke, "add": false, "size": 0.6, "vmin": 2, "vmax": 6, "gravity": Vector3(0, -12, 0), "colors": [Color(0.9, 0.97, 1, 1), Color(0.3, 0.6, 1, 0)]})

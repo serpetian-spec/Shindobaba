@@ -700,6 +700,47 @@ func c_kagemane_kage_shibari_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 
 # ================================================================== YAMANAKA — zihin
+## Yamanaka imzası: ellerle elmas mühür, ruh mor bir kıvılcım topu olarak hedefe uçar; varınca hedefin başında zihin halkası
+func _mind_orb(c: Node3D, tt: Node3D, done: Callable) -> void:
+	if c.get("model"):
+		c.model.overlay.set_pose("seal", 1.0)
+		after(0.5, func(): if is_instance_valid(c) and c.get("model"): c.model.overlay.set_pose("seal", 0.0))
+	var from: Vector3 = Jutsu._hand(c) + Vector3.UP * 0.2
+	VFX.star(from, Color(0.85, 0.55, 1.0), 1.6, 0.15)
+	var orb = VFX.rasengan(0.5, Color(0.6, 0.25, 0.95), Color(0.95, 0.85, 1.0))
+	get_tree().current_scene.add_child(orb)
+	orb.global_position = from
+	VFX.trail(orb, 0.45, Color(1, 0.9, 1), Color(0.75, 0.4, 1.0), Color(0.4, 0.1, 0.7, 0.0), 18, 0.6)
+	var dur = clampf(from.distance_to(tt.global_position) / 30.0, 0.15, 0.7)
+	var tw = orb.create_tween()
+	tw.tween_method(func(k: float):
+		if is_instance_valid(tt):
+			var to = tt.global_position + Vector3.UP * tt.height * 0.85
+			orb.global_position = from.lerp(to, k) + Vector3.UP * sin(k * PI) * 1.5 + Vector3(sin(k * 18.0), 0, cos(k * 18.0)) * 0.15 * sin(k * PI), 0.0, 1.0, dur)
+	tw.tween_callback(func():
+		if is_instance_valid(tt):
+			VFX.shockwave(tt.global_position + Vector3.UP * tt.height * 0.85, Color(0.85, 0.55, 1.0), 3.5, 0.3, false)
+			FX.burst(tt.global_position + Vector3.UP * tt.height * 0.85, {"amount": 26, "life": 0.7, "tex": FX.tex_spark, "size": 0.4, "vmin": 2, "vmax": 6, "colors": [Color(1, 0.9, 1), Color(0.6, 0.2, 0.9, 0)]})
+		orb.queue_free()
+		done.call())
+	Sfx.play("genjutsu", c.global_position, 1.3)
+
+
+## Zihin halkası: hedefin başı üstünde dönen mor halka + göz hizasında soluk ışık (zihni ele geçirildi/karıştı)
+func _mind_halo(tt: Node3D, dur: float, col := Color(0.85, 0.5, 1.0)) -> void:
+	for k in 2:
+		var halo = MeshInstance3D.new()
+		var tm = TorusMesh.new()
+		tm.inner_radius = 0.32 + k * 0.18
+		tm.outer_radius = 0.4 + k * 0.18
+		halo.mesh = tm
+		halo.material_override = glow(col, 0.9 - k * 0.3)
+		attach(tt, halo, dur, Vector3.UP * (tt.height + 0.35 + k * 0.15))
+		var sp = halo.create_tween().set_loops()
+		sp.tween_property(halo, "rotation:y", TAU * (1 if k == 0 else -1), 1.2 + k * 0.6).from(0.0)
+	var a = FX.aura(tt, col, 0.8, Vector3(0, tt.height * 0.5, 0), dur)
+
+
 ## Zihin Karıştırma: hedef 6 sn kimin dost olduğunu bilemez, yakınındakilere saldırır
 func c_shinranshin_no_jutsu(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 20.0)
@@ -709,12 +750,8 @@ func c_shinranshin_no_jutsu(c: Node3D, t: Node3D) -> void:
 	var old = tt.team
 	tt.team = "kargasa"   # herkese düşman
 	tt.target = null
-	var halo = MeshInstance3D.new()
-	var tm = TorusMesh.new()
-	tm.inner_radius = 0.35
-	tm.outer_radius = 0.45
-	halo.mesh = tm
-	halo.material_override = glow(Color(0.85, 0.5, 1.0))
+	_mind_orb(c, tt, func(): if is_instance_valid(tt): _mind_halo(tt, 6.0))
+	var halo = Node3D.new()
 	attach(tt, halo, 6.0, Vector3.UP * (tt.height + 0.4))
 	Combat.popup_text(tt.global_position + Vector3.UP * 2.6, "Zihni karıştı!", Color(0.85, 0.6, 1))
 	Sfx.play("genjutsu", tt.global_position, 1.3)
@@ -753,6 +790,9 @@ func c_shinten_kugutsu_juin_no_jutsu(c: Node3D, t: Node3D) -> void:
 		return
 	var mark = ground_disc(tt.global_position, 1.6, Color(0.6, 0.2, 0.8), 0.6, 2, 6)
 	mark.reparent(tt)
+	_mind_orb(c, tt, func(): if is_instance_valid(tt): _mind_halo(tt, 15.0, Color(0.7, 0.25, 1.0)))
+	for k in 3:
+		tether(func(): return Jutsu._hand(c) if is_instance_valid(c) else Vector3.ZERO, func(): return tt.global_position + Vector3.UP * (1.8 - k * 0.5) if is_instance_valid(tt) else Vector3.ZERO, 0.025, glow(Color(0.85, 0.6, 1.0), 0.7), 15.0)
 	tt.team = c.team
 	tt.target = null
 	tt.power = float(tt.power) * 1.4
@@ -776,6 +816,7 @@ func c_shinten_bunshin_no_jutsu(c: Node3D, t: Node3D) -> void:
 		return
 	var others = enemies_near(c, tt.global_position, 25.0).filter(func(e): return e != tt)
 	FX.ring(tt.global_position + Vector3.UP, Color(0.8, 0.5, 1.0), 3.0, 0.3, false)
+	_mind_orb(c, tt, func(): if is_instance_valid(tt): _mind_halo(tt, 1.6))
 	if others.is_empty():
 		st(tt, "stun", 2.5)
 		return
@@ -2313,19 +2354,26 @@ func c_suna_bunshin(c: Node3D, _t: Node3D) -> void:
 func c_suna_shuriken(c: Node3D, t: Node3D) -> void:
 	for k in 8:
 		var d = Jutsu._aim(c, t).rotated(Vector3.UP, (k - 3.5) * 0.09)
-		var disc = JutsuEngine.shape_mesh("disc", Color(0.85, 0.7, 0.45), 0.5, "")
+		var sb = MB.new()
+		for n in 4:
+			var bs = Basis(Vector3.UP, n * PI * 0.5)
+			sb.add_xf("cone", Transform3D(bs * Basis(Vector3.BACK, PI * 0.5) * Basis.from_scale(Vector3(0.3, 0.75, 0.08)), bs * Vector3(0.38, 0, 0)), Color(0.88, 0.72, 0.45), 4)
+		sb.add("cyl", Vector3.ZERO, Vector3(0.28, 0.1, 0.28), Color(0.7, 0.55, 0.32), Vector3.ZERO, 10)
+		var disc = mesh_of(sb)
 		var pr = shot(c, Jutsu._hand(c), d, 34.0, disc, inf(c, "suna_shuriken", 0.15, {"knock": 2.0, "kind": "light"}), null, false, 1.4, func(_p, tgt):
 			st(tgt, "slow", 2.5))
 		pr.spin = Vector3(0, 25, 0)
+		Projectile.trail(pr, [Color(0.92, 0.8, 0.55, 0.9), Color(0.8, 0.65, 0.4, 0)], 0.35, 24, 0.35, FX.tex_smoke, false)
 	Sfx.play("earth", c.global_position, 1.8, 0.6)
 
 
 ## Kum Şelalesi Cenazesi: yerden dev kum dalgası yükselir, ileri yuvarlanıp her şeyi gömer
 func c_sabaku_soso(c: Node3D, t: Node3D) -> void:
 	var d = fwd(c, t)
-	var b = MB.new()
-	b.add_grad("sphere", Vector3(0, 0, 0), Vector3(32.0, 14.0, 9.0), Color(0.95, 0.83, 0.6), Color(0.7, 0.55, 0.33), Vector3.ZERO, 18)
-	var wave = place(b, gp(c.global_position + d * 3.0) - Vector3.UP * 3.0)
+	# kum tsunamisi: tek kabarcık değil; yüzlerce kum topağı, öne kıvrılan dalga sırtı, akış çizgileri ve dökülen kum
+	var wave = JutsuEngine.organic_mass("sand", Vector3(30.0, 12.0, 8.0))
+	get_tree().current_scene.add_child(wave)
+	wave.global_position = gp(c.global_position + d * 3.0) - Vector3.UP * 3.0
 	wave.look_at(wave.global_position + d, Vector3.UP)
 	busy(c, 0.8)
 	var hits = []

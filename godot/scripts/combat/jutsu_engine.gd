@@ -1467,3 +1467,68 @@ static func _melee(c: Node3D, d: Dictionary, t: Node3D, v: String, shape: String
 				Game.world.env.add_shake(0.3 + tier * 0.1))
 	Sfx.play("whoosh", c.global_position, 1.2)
 
+
+# ================================================================== organik kütle (tek geometrik şekil yerine)
+## Kum/toprak/su gibi maddeyi tek küre yerine onlarca düzensiz topak, akan şerit ve kıvrım olarak kurar.
+## kind: "sand", "earth", "water". size: (genişlik, yükseklik, kalınlık). seed: aynı jutsu her seferinde biraz farklı.
+## Dönen düğüm canlıdır: topaklar nefes alır gibi kıpırdar, kenarlardan madde dökülür.
+static func organic_mass(kind: String, size: Vector3, seed := 0, crest := true) -> Node3D:
+	var rng = RandomNumberGenerator.new()
+	rng.seed = seed if seed != 0 else randi()
+	var pal = {"sand": [Color(0.96, 0.84, 0.58), Color(0.86, 0.7, 0.44), Color(0.68, 0.52, 0.3)],
+		"earth": [Color(0.72, 0.58, 0.42), Color(0.55, 0.42, 0.3), Color(0.38, 0.28, 0.2)],
+		"water": [Color(0.75, 0.92, 1.0), Color(0.3, 0.6, 1.0), Color(0.1, 0.32, 0.8)]}.get(kind, [Color.WHITE, Color.GRAY, Color.DIM_GRAY])
+	var root = Node3D.new()
+	var b = MB.new()
+	var n = int(clampf(size.x * size.y * 0.35, 18, 90))
+	# 1) gövde: üst üste binen, alta doğru genişleyen düzensiz topaklar (kaba yüzeyli "boulder")
+	for i in n:
+		var u = rng.randf_range(-0.5, 0.5)
+		var hv = pow(rng.randf(), 0.8)
+		var w = size.x * (1.0 - hv * 0.55)
+		var p = Vector3(u * w, hv * size.y * 0.85, rng.randf_range(-0.5, 0.5) * size.z * (1.0 - hv * 0.4))
+		var r = lerpf(size.y * 0.32, size.y * 0.14, hv) * rng.randf_range(0.7, 1.25)
+		var col: Color = pal[1].lerp(pal[0], hv).lerp(pal[2], rng.randf() * 0.35)
+		b.add("boulder" if kind != "water" else "sphere", p, Vector3(r * 1.3, r, r * 1.1), col, Vector3(rng.randf() * 40, rng.randf() * 360, rng.randf() * 30), int(rng.randf() * 7) if kind != "water" else 10)
+	# 2) tepe: öne kıvrılan dalga sırtı (kıvrık uçlar, damlalar) - dalga hissi
+	if crest:
+		for i in int(size.x * 1.2):
+			var u = (float(i) / maxf(1.0, size.x * 1.2 - 1.0) - 0.5)
+			var top = Vector3(u * size.x * 0.85, size.y * (0.9 + 0.1 * sin(u * 9.0)), -size.z * 0.15)
+			for k in 3:
+				var cp = top + Vector3(0, -k * size.y * 0.06, -k * size.z * 0.18)
+				b.add("boulder" if kind != "water" else "sphere", cp, Vector3.ONE * size.y * (0.12 - k * 0.025), pal[0].lerp(pal[1], k * 0.3), Vector3(rng.randf() * 90, 0, 0), int(rng.randf() * 7) if kind != "water" else 8)
+	# 3) yüzeyde akış şeritleri (koyu çizgiler, hareket hissi)
+	for i in int(size.x * 0.8):
+		var u = rng.randf_range(-0.45, 0.45)
+		var hv = rng.randf_range(0.15, 0.8)
+		b.add("box", Vector3(u * size.x * (1.0 - hv * 0.5), hv * size.y * 0.85, -size.z * 0.42 * (1.0 - hv * 0.3)), Vector3(size.x * 0.06, size.y * 0.025, size.z * 0.05), pal[2], Vector3(0, 0, rng.randf_range(-25, 25)))
+	var mat = Props.toon() if kind != "water" else VFX.mat_water(pal[2], pal[1], pal[0], Vector3.UP, 0.85, 0.7, 0.1)
+	var mi = MeshInstance3D.new()
+	mi.mesh = b.build(mat)
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	root.add_child(mi)
+	# 4) canlılık: hafif kabarma + kenarlardan dökülen madde
+	var br = mi.create_tween().set_loops()
+	br.tween_property(mi, "scale", Vector3(1.03, 0.97, 1.03), 0.22)
+	br.tween_property(mi, "scale", Vector3(0.98, 1.03, 0.98), 0.22)
+	var pm = ParticleProcessMaterial.new()
+	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	pm.emission_box_extents = Vector3(size.x * 0.45, size.y * 0.35, size.z * 0.4)
+	pm.direction = Vector3(0, 1, -0.5)
+	pm.spread = 50.0
+	pm.initial_velocity_min = 2.0; pm.initial_velocity_max = 6.0
+	pm.gravity = Vector3(0, -14, 0)
+	pm.scale_min = 0.6; pm.scale_max = 1.4
+	pm.color_ramp = FX._gradient([Color(pal[0].r, pal[0].g, pal[0].b, 1), Color(pal[1].r, pal[1].g, pal[1].b, 0.8), Color(pal[1].r, pal[1].g, pal[1].b, 0)])
+	var gp = GPUParticles3D.new()
+	gp.amount = int(clampf(size.x * size.y * 2.0, 40, 220))
+	gp.lifetime = 0.9
+	gp.process_material = pm
+	var q = QuadMesh.new()
+	q.size = Vector2(0.35, 0.35) * clampf(size.y / 6.0, 0.6, 2.0)
+	q.material = FX._draw_mat(FX.tex_smoke, false)
+	gp.draw_pass_1 = q
+	gp.position = Vector3(0, size.y * 0.5, 0)
+	root.add_child(gp)
+	return root

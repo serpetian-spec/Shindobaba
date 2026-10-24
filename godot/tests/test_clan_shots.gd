@@ -46,6 +46,9 @@ func _ready() -> void:
 	var base := Game.from_map(Vector2(al["x"], al["y"]))
 	var vs = Game.village("suna")
 	base = Game.from_map(Vector2(vs["x"] + float(vs["r"]) + 400, vs["y"]))
+	if OS.get_environment("JGREEN") != "":
+		var vk = Game.village("konoha")
+		base = Game.from_map(Vector2(vk["x"] - 300, vk["y"] - float(vk["r"]) - 120))
 	pl.respawn(base)
 	pl.max_hp = 1e9
 	pl.hp = 1e9
