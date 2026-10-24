@@ -16,6 +16,7 @@ var mouth: Node3D         # top/nefes çıkış noktası (başın içinde)
 var arms: Array = []      # [{"sh": omuz, "el": dirsek, "side": ±1}]
 var legs: Array = []      # [{"hip": kalça, "kn": diz, "side": ±1, "front": bool}]
 var tails: Array = []     # her kuyruk: [segment Node3D...]
+var tail_curl := -0.05     # segment başına sabit eğim (radyan): negatif yukarı kıvırır, pozitif aşağı sarkıtır
 var tail_cfg: Array = []  # her kuyruk: {"yaw","pitch","len","amp"}
 var weak_points: Array = []   # mühür noktaları (Node3D)
 var colliders: Array = []
@@ -360,6 +361,6 @@ func _process(dt: float) -> void:
 		for j in range(1, segs.size()):
 			var sg: Node3D = segs[j]
 			sg.rotation.y = sin(t * 1.4 - j * 0.55 + cfg["phase"]) * amp + sweep * 0.25
-			sg.rotation.x = sin(t * 1.1 - j * 0.45 + cfg["phase"] * 1.3) * amp * 0.7 - 0.05
+			sg.rotation.x = sin(t * 1.1 - j * 0.45 + cfg["phase"] * 1.3) * amp * 0.7 + tail_curl
 		if cfg["style"] == "wing" and segs.size() > 0:
 			segs[0].rotation.z = sin(t * (14.0 if action == "charge" else 3.0) + cfg["phase"]) * amp
