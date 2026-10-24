@@ -98,9 +98,11 @@ func _ahead(p: Vector3, dmin := 55.0, dmax := 85.0) -> Vector3:
 	fwd.y = 0
 	for i in 12:
 		var dir := fwd.normalized().rotated(Vector3.UP, randf_range(-0.8, 0.8))
-		var q := p + dir * randf_range(dmin, dmax)
+		# hızlıysan (tam hız, uçuş) olay daha ileride çıkar, yanından geçip gitmeyesin
+		var spd := Vector2(Game.player.velocity.x, Game.player.velocity.z).length()
+		var q := p + dir * (randf_range(dmin, dmax) + minf(spd * 4.0, 260.0))
 		q.y = Game.ground_height(q.x, q.z)
-		if Game.terrain_height(q.x, q.z) > -0.5 and absf(q.y - p.y) < 25.0:
+		if Game.terrain_height(q.x, q.z) > -0.5 and absf(q.y - p.y) < 40.0:
 			return q
 	var q2 := p + Vector3(randf_range(-40, 40), 0, randf_range(-40, 40))
 	q2.y = Game.ground_height(q2.x, q2.z)
@@ -188,6 +190,7 @@ func _reward(ryo: int, xp: int, txt: String) -> void:
 func finish(delay := 25.0) -> void:
 	if cur.is_empty() or cur.get("done", false):
 		return
+	_clear_wp()
 	cur["done"] = true
 	if cur.has("label") and is_instance_valid(cur["label"]):
 		cur["label"].queue_free()
@@ -203,7 +206,15 @@ func finish(delay := 25.0) -> void:
 	dist_acc = 0.0
 
 
+func _clear_wp() -> void:
+	if cur.get("wp", false) and Game.profile.has("waypoint") and String(Game.profile["waypoint"][3]).begins_with("Olay:"):
+		Game.profile.erase("waypoint")
+		if String(Game.profile.get("track", "")) == "waypoint":
+			Game.profile["track"] = ""
+
+
 func _abort() -> void:
+	_clear_wp()
 	for n in cur.get("nodes", []):
 		if is_instance_valid(n):
 			n.queue_free()
@@ -664,9 +675,16 @@ func _tick(dt: float) -> void:
 	cur["t"] = float(cur["t"]) + dt
 	var p := Game.player.global_position
 	var c: Vector3 = cur["center"]
-	if Vector2(p.x - c.x, p.z - c.z).length() > 320.0 and cur["kind"] != "lost_child":
+	# hızlı koşarken/uçarken hemen kaybolmasın: 900 m dışında 40 sn kalınca biter, olay yeri haritada/okta gösterilir
+	var far := Vector2(p.x - c.x, p.z - c.z).length() > 900.0
+	cur["far_t"] = (float(cur.get("far_t", 0.0)) + dt) if far else 0.0
+	if float(cur["far_t"]) > 40.0 and cur["kind"] != "lost_child":
 		_abort()
 		return
+	if not Missions.active().size() and not Game.profile.has("waypoint"):
+		Game.profile["waypoint"] = [c.x, c.y, c.z, "Olay: %s" % String(cur.get("kind", "yol")).replace("_", " ").capitalize()]
+		Game.profile["track"] = "waypoint"
+		cur["wp"] = true
 	if float(cur["t"]) > 600.0:
 		finish(5.0)
 		return
