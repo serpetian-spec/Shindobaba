@@ -150,8 +150,12 @@ func _tail(base: Node3D, yaw_deg: float, pitch_deg: float, n: int, length: float
 				claw(mb, pb + pdir * r * 0.95, pdir, r * 0.5, r * 0.17, Color(0.12, 0.08, 0.06))
 			"tentacle":  # ahtapot kolu + vantuz
 				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.2), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.2)], [r, r * 0.97, r * 0.9], c, 12, 2, true, true)
-				for v in 2:
-					mb.add("sphere", Vector3(0, -r * 0.88, seg_len * (0.25 + v * 0.5)), Vector3(r * 0.6, r * 0.25, r * 0.6), c.lightened(0.4), Vector3.ZERO, 8)
+				for v in 2:   # iki sıra beyaz halka vantuz (alt yüz): dış halka açık, içi koyu çukur
+					var vx = r * 0.42 * (1.0 if v == 0 else -1.0)
+					var vp = Vector3(vx, -r * 0.82, seg_len * (0.25 + v * 0.5))
+					var vs = r * 0.62
+					mb.add("sphere", vp, Vector3(vs, vs * 0.32, vs), Color(0.93, 0.9, 0.88), Vector3(0, 0, -25 if v == 0 else 25), 10)
+					mb.add("sphere", vp + Vector3(0, -vs * 0.12, 0), Vector3(vs * 0.55, vs * 0.3, vs * 0.55), c.darkened(0.25), Vector3(0, 0, -25 if v == 0 else 25), 8)
 			"slug":
 				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.2), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.2)], [r, r * 0.97, r * 0.9], c, 12, 2, true, true)
 			"wing":  # böcek kanadı: ince yarı saydam yaprak (tek parça, ilk segmentte)
