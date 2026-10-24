@@ -3,7 +3,7 @@ extends Node
 ## seçilmiş olanların etki anında ekran görüntüsü alınır, uçuş kipi (Keijūgan, kum bulutu) denenir.
 
 var main: Node
-var IDS = ["katon_hosenka_tsumabeni", "uchiha_ryu_kenjutsu", "uchiha_ryu_shurikenjutsu_ikazuchi_sanren"]
+var IDS = ["genjutsu_sharingan", "iatsu_sharingan", "magen_shinkarasu", "magen_kasegui_no_jutsu"]
 
 
 func _wait(t: float) -> void:
@@ -79,7 +79,7 @@ func _ready() -> void:
 			for k in 2:
 				var sp = foes[k].global_position + Vector3.UP * 1.3
 				Projectile.tool(foes[k], sp, (pl.global_position + Vector3.UP * 1.2 - sp).normalized(), "kunai", pl)
-		for tt in [0.12, 0.18, 0.3, 0.3]:
+		for tt in [0.2, 0.4, 0.8]:
 			await _wait(tt)
 			await main.shot("uj_%s_%.1f" % [id, tt])
 			if tt == 0.35:

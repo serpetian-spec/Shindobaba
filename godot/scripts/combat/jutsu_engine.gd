@@ -958,8 +958,7 @@ static func _genjutsu(c: Node3D, d: Dictionary, t: Node3D) -> void:
 		twg.tween_property(ring, "scale", Vector3.ONE * 0.01, 0.3)
 		twg.tween_callback(ring.queue_free)
 	if c is Player and Game.world:
-		Game.world.env.set_tint(Color(col.r, col.g, col.b, 0.2))
-		tree().create_timer(0.7).timeout.connect(func(): Game.world.env.set_tint(Color(0, 0, 0, 0)))
+		Game.world.env.flash_tint(Color(col.r, col.g, col.b, 0.2), 0.7)
 
 
 static func _summon(c: Node3D, d: Dictionary) -> void:

@@ -3444,3 +3444,175 @@ func c_jinton_ento(c: Node3D, t: Node3D) -> void:
 	tw.tween_callback(cyl.queue_free)
 	busy(c, 1.0)
 	Sfx.play("genjutsu", c.global_position, 1.5)
+
+
+# ================================================================== SHARINGAN GENJUTSULARI (her biri ayrı)
+## Dönen üç tomoe Sharingan diski (göz göze gelme görseli)
+func _sharingan_disc(size: float) -> Node3D:
+	var b = MB.new()
+	b.add("cyl", Vector3.ZERO, Vector3(1.0, 0.02, 1.0), Color(0.85, 0.05, 0.06), Vector3(90, 0, 0), 32)
+	b.add("torus", Vector3(0, 0, 0.012), Vector3(0.62, 0.62, 0.62), Color(0.08, 0.02, 0.02), Vector3(90, 0, 0), 32)
+	b.add("cyl", Vector3(0, 0, 0.015), Vector3(0.18, 0.02, 0.18), Color(0.05, 0.02, 0.02), Vector3(90, 0, 0), 16)
+	for k in 3:
+		var a = k * TAU / 3.0
+		var p = Vector3(cos(a), sin(a), 0) * 0.31
+		b.add("cyl", p + Vector3(0, 0, 0.018), Vector3(0.12, 0.02, 0.12), Color(0.05, 0.02, 0.02), Vector3(90, 0, 0), 12)
+		b.add_xf("cone", Transform3D(Basis(Vector3.BACK, a + PI * 0.9) * Basis.from_scale(Vector3(0.07, 0.16, 0.02)), p + Vector3(cos(a + 0.6), sin(a + 0.6), 0) * 0.07 + Vector3(0, 0, 0.018)), Color(0.05, 0.02, 0.02), 6)
+	var mi = mesh_of(b)
+	var root = Node3D.new()
+	root.add_child(mi)
+	root.scale = Vector3.ONE * size
+	var spin = mi.create_tween().set_loops()
+	spin.tween_property(mi, "rotation:z", -TAU, 1.2).from(0.0)
+	return root
+
+
+func _gen_power(c: Node3D) -> float:
+	return (1.0 + Stats.skill(Game.profile, "gen_power")) if c is Player else 1.0
+
+
+## Sharingan İllüzyonu: göz göze gelinir; hedefin önünde dev dönen Sharingan, hedef donakalır (3 sn), dünya kızıla boyanır
+func c_genjutsu_sharingan(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 22.0)
+	if tt == null:
+		return
+	busy(c, 0.5)
+	var gm = _gen_power(c)
+	var eye_pos = Jutsu._mouth(c) + Vector3.UP * 0.12
+	VFX.star(eye_pos, Color(1, 0.15, 0.1), 1.4, 0.2)
+	tether(func(): return eye_pos, func(): return tt.global_position + Vector3.UP * 1.5 if is_instance_valid(tt) else eye_pos, 0.04, glow(Color(1, 0.1, 0.08)), 0.35)
+	var disc = _sharingan_disc(0.1)
+	get_tree().current_scene.add_child(disc)
+	var face = tt.global_position + Vector3.UP * 1.6
+	disc.global_position = face + (c.global_position - tt.global_position).normalized() * 1.2
+	disc.look_at(face, Vector3.UP)
+	var tw = disc.create_tween()
+	tw.tween_property(disc, "scale", Vector3.ONE * 2.6, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(0.8)
+	tw.tween_property(disc, "scale", Vector3.ONE * 0.01, 0.25)
+	tw.tween_callback(disc.queue_free)
+	st(tt, "stun", 3.0 * gm)
+	st(tt, "fear", 3.0 * gm)
+	hit(c, tt.global_position + Vector3.UP, 0.8, inf(c, "genjutsu_sharingan", 0.35, {"knock": 0.0, "dir": Vector3.ZERO}))
+	if Game.world:
+		if tt == Game.player:
+			Game.world.env.flash_tint(Color(0.85, 0.05, 0.05, 0.28), 1.4)
+		elif c is Player:
+			Game.world.env.flash_tint(Color(0.85, 0.05, 0.05, 0.14), 0.6)
+	Sfx.play("genjutsu", tt.global_position)
+
+
+## Zorlayıcı Sharingan: gözlerden yayılan kızıl baskı dalgası; 18 m içindekiler diz çöker (sersem + korku)
+func c_iatsu_sharingan(c: Node3D, _t: Node3D) -> void:
+	busy(c, 0.7)
+	var gm = _gen_power(c)
+	var center = c.global_position
+	var fd: Vector3 = c.face_dir() if c.has_method("face_dir") else Vector3.FORWARD
+	for k in 3:
+		after(k * 0.15, func():
+			VFX.shockwave(center + Vector3.UP * 1.5, Color(0.9, 0.08, 0.06), 10.0 + k * 8.0, 0.5, false)
+			VFX.shockwave(gp(center) + Vector3.UP * 0.1, Color(0.6, 0.02, 0.02), 16.0 + k * 10.0, 0.6))
+	var disc = _sharingan_disc(1.0)
+	get_tree().current_scene.add_child(disc)
+	disc.global_position = Jutsu._mouth(c) + Vector3.UP * 0.6 + fd * 0.8
+	disc.look_at(disc.global_position + fd, Vector3.UP)
+	var tw = disc.create_tween()
+	tw.tween_property(disc, "scale", Vector3.ONE * 3.5, 0.5).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(disc, "global_position:y", disc.global_position.y + 2.0, 0.5)
+	tw.tween_property(disc, "scale", Vector3.ONE * 0.01, 0.3)
+	tw.tween_callback(disc.queue_free)
+	for e in enemies_near(c, center, 18.0):
+		st(e, "stun", 2.4 * gm)
+		st(e, "fear", 3.5 * gm)
+		if e.get("model"):
+			e.model.play("crouch", 0.1)
+		FX.burst(e.global_position + Vector3.UP * 1.8, {"amount": 10, "life": 0.8, "size": 0.3, "vmin": 0.5, "vmax": 1.5, "gravity": Vector3(0, -2, 0), "colors": [Color(1, 0.2, 0.2), Color(0.5, 0, 0, 0)]})
+	var near = tg(c, null, 18.0)
+	if near:
+		hit(c, near.global_position + Vector3.UP, 0.8, inf(c, "iatsu_sharingan", 0.5, {"knock": 0.0}))
+	shake(0.5)
+	if Game.world and c is Player:
+		Game.world.env.flash_tint(Color(0.6, 0.0, 0.0, 0.18), 0.9)
+	Sfx.play("genjutsu", center, 0.7)
+
+
+## Serap Karga: kara kargalar sürüsü hedefin etrafında döner; hedef kör olur, yavaşlar; sonunda tüyler saçılır
+func c_magen_shinkarasu(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 26.0)
+	if tt == null:
+		return
+	busy(c, 0.4)
+	var gm = _gen_power(c)
+	var crows = []
+	for k in 18:
+		var cb = MB.new()
+		cb.add("sphere", Vector3.ZERO, Vector3(0.22, 0.2, 0.5), Color(0.05, 0.04, 0.07), Vector3.ZERO, 8)
+		cb.add("cone", Vector3(0, 0, -0.32), Vector3(0.06, 0.16, 0.06), Color(0.15, 0.12, 0.1), Vector3(-90, 0, 0), 5)
+		cb.add("sphere", Vector3(0.05, 0.05, -0.22), Vector3(0.04, 0.04, 0.03), Color(0.9, 0.1, 0.1), Vector3.ZERO, 5)
+		var wl = MB.new()
+		wl.add("box", Vector3(0.35, 0, 0), Vector3(0.7, 0.03, 0.3), Color(0.06, 0.05, 0.08), Vector3.ZERO)
+		var bird = mesh_of(cb)
+		for sx in [-1.0, 1.0]:
+			var w = mesh_of(wl)
+			w.scale.x = sx
+			bird.add_child(w)
+			var fl = w.create_tween().set_loops()
+			fl.tween_property(w, "rotation:z", 0.8 * sx, 0.12)
+			fl.tween_property(w, "rotation:z", -0.5 * sx, 0.12)
+		get_tree().current_scene.add_child(bird)
+		bird.global_position = c.global_position + Vector3(randf_range(-2, 2), randf_range(1, 3), randf_range(-2, 2))
+		crows.append([bird, randf() * TAU, randf_range(1.6, 3.4), randf_range(0.6, 2.8), randf_range(2.5, 4.5)])
+	every(3.5, 1.0 / 30.0, func(i, k):
+		if not live(tt):
+			return
+		var cen = tt.global_position
+		for cr in crows:
+			var b: Node3D = cr[0]
+			if not is_instance_valid(b):
+				continue
+			cr[1] += cr[4] / 30.0
+			var target_p = cen + Vector3(cos(cr[1]) * cr[2], cr[3] + sin(cr[1] * 2.0) * 0.3, sin(cr[1]) * cr[2])
+			var prev = b.global_position
+			b.global_position = prev.lerp(target_p, 0.25 if k > 0.1 else 0.08)
+			if (b.global_position - prev).length() > 0.01:
+				b.look_at(b.global_position + (b.global_position - prev), Vector3.UP)
+		if i % 10 == 0:
+			st(tt, "slow", 1.2)
+			if tt.has_method("lose_target"):
+				tt.lose_target(1.5 * gm)
+			elif tt == Game.player and Game.world:
+				Game.world.env.flash_tint(Color(0.05, 0.02, 0.08, 0.45), 0.5)
+			hit(c, tt.global_position + Vector3.UP, 0.8, inf(c, "magen_shinkarasu", 0.08, {"knock": 0.0}))
+	, func():
+		for cr in crows:
+			if is_instance_valid(cr[0]):
+				FX.burst(cr[0].global_position, {"amount": 6, "life": 1.2, "tex": FX.tex_leaf, "add": false, "cel": false, "size": 0.25, "vmin": 0.5, "vmax": 2.0, "gravity": Vector3(0, -1.5, 0), "spin": 300.0,
+					"colors": [Color(0.05, 0.04, 0.07), Color(0.05, 0.04, 0.07, 0)]})
+				cr[0].queue_free())
+	Sfx.play("genjutsu", tt.global_position, 1.2)
+
+
+## Zincirli Kazıklar: hedefin etrafında yerden kızıl kazıklar fırlar, kollarını ve bacaklarını çiviler; bağlı kalır ve kanar
+func c_magen_kasegui_no_jutsu(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 22.0)
+	if tt == null:
+		return
+	busy(c, 0.5)
+	var gm = _gen_power(c)
+	var cen = gp(tt.global_position)
+	VFX.shockwave(cen + Vector3.UP * 0.1, Color(0.5, 0.0, 0.02), 8.0, 0.5)
+	var dur = 3.5 * gm
+	for k in 7:
+		var a = k * TAU / 7.0 + randf() * 0.3
+		var base = cen + Vector3(cos(a), 0, sin(a)) * 1.6
+		var tip = tt.global_position + Vector3.UP * randf_range(0.6, 1.6)
+		var dir = (tip - base).normalized()
+		after(k * 0.05, func():
+			spike(base, (tip - base).length() + 0.5, 0.18, Color(0.55, 0.04, 0.05), dur, Vector3(-dir.z * 60.0, 0, dir.x * 60.0)))
+	st(tt, "bind", dur)
+	st(tt, "burn", dur)
+	hit(c, tt.global_position + Vector3.UP, 0.8, inf(c, "magen_kasegui_no_jutsu", 0.5, {"knock": 0.0}))
+	if Game.world:
+		Game.world.env.flash_tint(Color(0.35, 0.0, 0.05, 0.3 if tt == Game.player else 0.12), 1.2)
+	shake(0.35)
+	Sfx.play("genjutsu", cen, 0.8)
