@@ -159,9 +159,20 @@ func _tail(base: Node3D, yaw_deg: float, pitch_deg: float, n: int, length: float
 			"slug":
 				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.2), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.2)], [r, r * 0.97, r * 0.9], c, 12, 2, true, true)
 			"wing":  # böcek kanadı: ince yarı saydam yaprak (tek parça, ilk segmentte)
-				if i == 0:
-					mb.add("sphere", Vector3(0, 0, length * 0.5), Vector3(r_mid * 2.2, 0.06, length), c, Vector3.ZERO, 14)
-					mb.add("box", Vector3(0, 0.04, length * 0.5), Vector3(0.08, 0.04, length * 0.95), Color(0.25, 0.45, 0.15))
+				if i == 0:   # yaprak kanat: uzun sivri yaprak, kalın açık yeşil orta damar + yanlara çatallanan ince damarlar (tip = damar rengi)
+					var lp: Array = []
+					var lr: Array = []
+					for q in 7:
+						var u = q / 6.0
+						lp.append(Vector3(0, 0, length * u))
+						lr.append(Vector2(maxf(0.05, r_mid * sin(pow(u, 0.75) * PI) * (1.0 - u * 0.25)), 0.05))
+					Loft.tube(mb, lp, lr, [c.darkened(0.25), c, c, c.lightened(0.08), c, c.darkened(0.1), c.darkened(0.3)], 10, 3, true, true)
+					Loft.tube(mb, [Vector3(0, 0.07, 0), Vector3(0, 0.07, length * 0.5), Vector3(0, 0.06, length * 0.98)], [Vector2(0.16, 0.06), Vector2(0.11, 0.05), Vector2(0.03, 0.03)], tip, 6, 3)
+					for q in 6:
+						var u = 0.15 + q * 0.13
+						var wd = r_mid * sin(pow(u, 0.75) * PI) * (1.0 - u * 0.25)
+						for sv in [-1.0, 1.0]:
+							Loft.tube(mb, [Vector3(0, 0.07, length * u), Vector3(sv * wd * 0.5, 0.07, length * (u + 0.06)), Vector3(sv * wd * 0.92, 0.07, length * (u + 0.1))], [0.05, 0.035, 0.015], tip.darkened(0.15), 5, 2)
 			"flame":
 				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.2), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.2)], [r, r * 0.97, r * 0.9], c, 12, 2, true, true)
 		if not mb.is_empty():
@@ -169,10 +180,10 @@ func _tail(base: Node3D, yaw_deg: float, pitch_deg: float, n: int, length: float
 				var wm = StandardMaterial3D.new()
 				wm.vertex_color_use_as_albedo = true
 				wm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-				wm.albedo_color = Color(1, 1, 1, 0.75)
+				wm.albedo_color = Color(1, 1, 1, 0.92)
 				wm.cull_mode = BaseMaterial3D.CULL_DISABLED
 				wm.emission_enabled = true
-				wm.emission = Color(1.0, 0.5, 0.1) * 0.9
+				wm.emission = Color(1.0, 0.5, 0.1) * 0.25
 				_mesh(piv, mb, wm)
 			else:
 				_mesh(piv, mb)
