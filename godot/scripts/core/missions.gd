@@ -475,8 +475,15 @@ func rep(vid: String) -> int:
 ## Köy dışından gelenler itibar kazanana kadar az ve düşük rütbeli görev görür
 func board_limits(vid: String) -> Dictionary:
 	var ranks: Array = RANK_FOR[int(Game.profile["rank"])].duplicate()
+	var note = ""
+	# chūnin: jōnin terfisi 3 A-rank görev ister; Sv.30'dan itibaren panoda A-rank görevler de çıkar
+	if int(Game.profile["rank"]) == 2:
+		if int(Game.profile.get("level", 1)) >= 30:
+			ranks.append("A")
+		else:
+			note = "A-rank görevler Sv.30'da açılır (jōnin terfisi için 3 A-rank gerekli)."
 	if vid == Progress.home():
-		return {"ranks": ranks, "max": 6, "note": ""}
+		return {"ranks": ranks, "max": 6, "note": note}
 	var rp = rep(vid)
 	if rp < 20:
 		var low = ranks.filter(func(x): return x in ["D", "C"])
@@ -489,7 +496,7 @@ func board_limits(vid: String) -> Dictionary:
 ## Görev masası verisi: [{id, title, rank, village, giver, brief, objectives, rewards{ryo,xp,gear_chance,rep}, local, steps}]
 func board_missions(vid: String, refresh := false) -> Array:
 	var now = Time.get_ticks_msec()
-	if not refresh and _boards.has(vid) and now - int(_boards[vid]["t"]) < 600000 and int(_boards[vid]["rank"]) == int(Game.profile["rank"]):
+	if not refresh and _boards.has(vid) and now - int(_boards[vid]["t"]) < 600000 and int(_boards[vid]["rank"]) == int(Game.profile["rank"]) and _boards[vid].get("ranks", []) == board_limits(vid)["ranks"]:
 		return _boards[vid]["list"]
 	var lim = board_limits(vid)
 	var ranks: Array = lim["ranks"]
@@ -507,6 +514,14 @@ func board_missions(vid: String, refresh := false) -> Array:
 		ts.shuffle()
 		gen.append_array(ts.slice(0, 2 if r != "S" else 1))
 	gen.shuffle()
+	# panoda en yüksek rütbeden en az bir görev hep olsun (terfi şartı görevleri kaybolmasın)
+	var top = ranks[ranks.size() - 1]
+	if ranks.size() > 1 and not out.any(func(x): return x["rank"] == top):
+		var ti = gen.find_custom(func(x): return x["rank"] == top)
+		if ti > 0:
+			gen.push_front(gen.pop_at(ti))
+		if out.size() >= int(lim["max"]) and not gen.is_empty() and gen[0]["rank"] == top:
+			out[out.size() - 1] = gen.pop_front()
 	for m in gen:
 		if out.size() >= int(lim["max"]):
 			break
@@ -518,7 +533,7 @@ func board_missions(vid: String, refresh := false) -> Array:
 		m["objectives"] = m["steps"].map(func(x): return x["text"])
 		var rw: Array = REWARD[m["rank"]]
 		m["rewards"] = {"ryo": rw[0], "xp": rw[1], "gear_chance": GEAR_CHANCE[m["rank"]], "rep": REP_GAIN[m["rank"]]}
-	_boards[vid] = {"t": now, "list": out, "rank": int(Game.profile["rank"])}
+	_boards[vid] = {"t": now, "list": out, "rank": int(Game.profile["rank"]), "ranks": ranks}
 	return out
 
 
