@@ -1962,6 +1962,43 @@ func remove_rogue_jinchuriki(id: String) -> void:
 			x["tracked"] = false
 
 
+## Sis'in kaçak kılıç ustası → Bingo girdisi (kılıç elinde; yenilince kılıç oyuncuya geçer)
+func add_swordsman(id: String, h: Dictionary) -> void:
+	for x in _bingo()["list"]:
+		if x["status"] == "alive" and String(x.get("mist_sword", "")) == id:
+			return
+	var lv = int(h.get("level", 45))
+	var e = _bb_new("S" if lv >= 46 else "A")
+	e.erase("clan")
+	e.erase("beast")
+	e["mist_sword"] = id
+	e["name"] = String(h.get("name", e["name"]))
+	e["alias"] = (Swordsmen.INFO[id]["alias"] as Array).pick_random()
+	e["village"] = "kiri"
+	e["element"] = String(Swordsmen.INFO[id]["el"])
+	e["level"] = lv
+	e["hp"] = 300.0 + lv * 28.0
+	e["power"] = 1.3 + lv * 0.038
+	e["bounty"] = int(lv * 900 / 50) * 50
+	e["look"]["village"] = "kiri"
+	e["crimes"] = ["Sis'in Yedi Kılıç Ustası'ndan; Kirigakure'den kaçtı", "Taşıdığı kılıç: %s" % Swordsmen.sword_name(id), String(Swordsmen.INFO[id]["tech"])]
+	_bingo()["list"].append(e)
+
+
+func remove_swordsman(id: String) -> void:
+	for x in _bingo()["list"]:
+		if x["status"] == "alive" and String(x.get("mist_sword", "")) == id:
+			x["status"] = "dead"
+			x["tracked"] = false
+
+
+func swordsman_spawned(id: String) -> bool:
+	for x in _bingo()["list"]:
+		if x["status"] == "alive" and String(x.get("mist_sword", "")) == id and _bb_spawned.has(int(x["id"])):
+			return true
+	return false
+
+
 ## Kaçak taşıyıcı şu an oyuncunun yakınında mı (o sırada dünya olayıyla silinmesin)
 func bingo_host_spawned(id: String) -> bool:
 	for x in _bingo()["list"]:
@@ -1973,6 +2010,7 @@ func bingo_host_spawned(id: String) -> bool:
 
 func _bingo_tick(dt: float) -> void:
 	var bb = _bingo()
+	Swordsmen.world_tick(dt)
 	var lst: Array = bb["list"]
 	var alive = lst.filter(func(x): return x["status"] == "alive")
 	bb["refresh"] = float(bb.get("refresh", 900.0)) - dt
@@ -2043,11 +2081,17 @@ func _bb_spawn(e: Dictionary, at: Vector3) -> void:
 		a["beast"] = e["beast"]
 		a["name"] = "«%s» %s — Jinchūriki" % [e["alias"], e["name"]]
 		a["hp"] = float(e["hp"]) * 1.6
-	ClanWorld.bingo_arch(e, a)   # klan / efsane jutsuları
-	if not e.has("beast") and String(a.get("clan", "")) == "":
-		BossStyles.dress(a, String(e.get("rank", "B")), int(e["id"]) * 7919, String(e.get("style", "")))
+	if e.has("mist_sword"):
+		# Sis'in kılıç ustası: kılıcı elinde, kılıca özgü tekniklerle (Swordsmen.tick)
+		BossStyles.dress(a, String(e.get("rank", "A")), int(e["id"]) * 7919, "kenjutsu")
+		a["name"] = "«%s» %s — Sis'in Kılıç Ustası" % [e["alias"], e["name"]]
+		Swordsmen.dress(a, String(e["mist_sword"]))
 	else:
-		a["skill"] = float(BossStyles.RANK_SKILL.get(String(e.get("rank", "B")), 0.55))
+		ClanWorld.bingo_arch(e, a)   # klan / efsane jutsuları
+		if not e.has("beast") and String(a.get("clan", "")) == "":
+			BossStyles.dress(a, String(e.get("rank", "B")), int(e["id"]) * 7919, String(e.get("style", "")))
+		else:
+			a["skill"] = float(BossStyles.RANK_SKILL.get(String(e.get("rank", "B")), 0.55))
 	var b = Enemy.new()
 	b.setup(a)
 	b.set_meta("bingo_id", int(e["id"]))
@@ -2080,6 +2124,8 @@ func _bingo_killed(boss: Node) -> void:
 			e["status"] = "dead"
 			e["tracked"] = false
 			Hud.banner("ARANAN ETKİSİZ", "«%s» %s — %d Ryō ödül" % [e["alias"], e["name"], int(e["bounty"])], Color(1, 0.8, 0.3))
+			if e.has("mist_sword"):   # kılıç ustası yenildi: kılıç oyuncuya geçer
+				Swordsmen.claim(String(e["mist_sword"]))
 			if e.has("beast"):   # taşıyıcı yenildi: canavar bedeninden fışkırır
 				var bid = String(e["beast"])
 				var at = boss.global_position

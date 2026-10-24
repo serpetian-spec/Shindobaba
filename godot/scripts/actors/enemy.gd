@@ -257,6 +257,8 @@ func _physics_process(dt: float) -> void:
 		BossStyles.tick(self, dt)
 	if EnemyArts.wants(self):
 		EnemyArts.tick(self, dt)
+	if arch.has("mist_sword"):
+		Swordsmen.tick(self, dt)
 	match state:
 		"idle":
 			_patrol(dt)

@@ -230,7 +230,8 @@ const LEGENDARY := ["kubikiribocho", "samehada", "kiba", "hiramekarei", "shibuki
 
 
 static func random_legendary() -> String:
-	return LEGENDARY.pick_random()
+	# Sis'in Yedi Kılıcı ganimet olarak düşmez: sahibini yenerek alınır (Swordsmen)
+	return LEGENDARY.filter(func(x): return not x in MistSwords.IDS).pick_random()
 
 ## Mağazada satılanlar
 const SHOP_CLOTHES := ["uchiha_yakali", "uchiha_uzun", "uchiha_beyaz", "uchiha_polis", "uchiha_kolluk", "uchiha_haori", "kitsune_maske", "tengu_maske", "oni_maske", "kum_kabagi", "sake_kabagi", "tisort", "uzun_gomlek", "ceket", "yakali", "kolsuz_yakali", "sargili_kolsuz", "file_atlet", "zirhli_gomlek", "kimono_ust",

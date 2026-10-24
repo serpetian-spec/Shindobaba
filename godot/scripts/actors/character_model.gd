@@ -2499,6 +2499,28 @@ func set_dojutsu(kind: int, tomoe := 3) -> void:
 			m.set_shader_parameter("byakugan_veins", 1.0 if kind == 2 else 0.0)
 
 
+## Uzun ağızlı silahlar (Samehada, Kubikiribōchō, Kiba...) beklerken elin ekseninde kalınca başın önünden geçip yüzü kapatıyordu:
+## duruştayken ağız omzun üstünden başın arkasına yatırılır; saldırıda kolla aynı hizaya döner
+const REST_TILT := Vector3(-25.0, -55.0, 0.0)
+
+
+func _rest_tilt(on: bool, dt: float) -> void:
+	for w in weapons:
+		var n: Node3D = w["node"]
+		if n.get_parent() != w["hand"]:
+			continue
+		if not w.has("long"):
+			var sp = _z_span(n)
+			w["long"] = sp.y - sp.x > 0.85
+		if not w["long"]:
+			continue
+		var sx = 1.0 if w["side"] == "Right" else -1.0
+		var tgt = Basis.from_euler(Vector3(deg_to_rad(REST_TILT.x), deg_to_rad(REST_TILT.y * sx), 0.0)) if on else Basis.IDENTITY
+		var cur_q = n.transform.basis.get_rotation_quaternion()
+		var q = cur_q.slerp(tgt.get_rotation_quaternion(), minf(1.0, dt * (6.0 if on else 14.0)))
+		n.transform.basis = Basis(q).scaled(n.transform.basis.get_scale())
+
+
 func flash(amount: float) -> void:
 	hit_flash = maxf(hit_flash, amount)
 
@@ -2523,6 +2545,7 @@ func _process(dt: float) -> void:
 	if stance != "" and overlay:
 		var on = drawn and not _stowed and current in ["idle", "walk", "jog", "run", "air", "fall", "sword_idle"] and overlay.weights.get("ninja_run", 0.0) < 0.5 and overlay.weights.get("leap", 0.0) < 0.3
 		overlay.set_pose(stance, 1.0 if on else 0.0)
+		_rest_tilt(on, dt)
 	if hit_flash > 0.0:
 		hit_flash = maxf(0.0, hit_flash - dt * 5.0)
 		for m in materials:
