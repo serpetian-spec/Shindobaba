@@ -457,6 +457,130 @@ func special(owner_f: Node3D, dir: Vector3) -> void:
 	Sfx.play("boom", base, 0.8, 0.6)
 
 
+## Mükemmel Susanoo / Zırhlı Savaşçı teknikleri (slottan): 0 Yasaka Magatama yağmuru, 1 Dev Kılıç Yarması, 2 Göğü Yaran Ok Yağmuru
+const TECHS := [["Yasaka no Magatama", 60.0, 10.0, 4], ["Susanoo: Kılıç Yarması", 80.0, 14.0, 4], ["Susanoo: Gök Okları", 120.0, 22.0, 5]]
+var tech_cd := [0.0, 0.0, 0.0]
+
+
+func tech(owner_f: Node3D, i: int, aim: Vector3) -> void:
+	var H = TIER_HEIGHT[tier]
+	var base = owner_f.global_position + Vector3.UP * H * 0.55
+	var dir = (aim - base)
+	dir.y = clampf(dir.y, -dir.length() * 0.4, dir.length() * 0.2)
+	dir = dir.normalized() if dir.length() > 0.1 else -owner_f.global_transform.basis.z
+	swing_t = 0.0
+	match i:
+		0:   # Yasaka Magatama: elden dönen magatama çarkları fışkırır, yelpaze gibi yayılıp hedefi döver
+			body.play("throw", 0.05, 1.0, true)
+			for k in 9:
+				var a = deg_to_rad(lerpf(-28.0, 28.0, k / 8.0))
+				var d2 = dir.rotated(Vector3.UP, a)
+				get_tree().create_timer(k * 0.06).timeout.connect(func():
+					if is_instance_valid(owner_f):
+						_magatama(owner_f, base + d2 * H * 0.2, d2, 30.0 + H * 1.2))
+		1:   # Dev kılıç yarması: kılıç yukarıdan iner, önünde yer yarılır, uzun hilal dalga ilerler
+			body.play("slash_c", 0.05, 0.8, true)
+			get_tree().create_timer(0.35).timeout.connect(func():
+				if not is_instance_valid(owner_f):
+					return
+				var gp = owner_f.global_position
+				for k in 14:
+					var q = gp + dir * (H * 0.3 + k * H * 0.12)
+					q.y = Game.ground_height(q.x, q.z)
+					get_tree().create_timer(k * 0.04).timeout.connect(func():
+						FX.impact(q + Vector3.UP * 0.5, color(), H * 0.05)
+						FX.ring(q + Vector3.UP * 0.3, color(), H * 0.16, 0.5)
+						Combat.hit_sphere(owner_f, q + Vector3.UP * 2.0, H * 0.08 + 2.0, {"dmg": 70.0 * tier, "knock": 30.0, "launch": 10.0, "kind": "heavy", "dir": dir}))
+				FX.ring(base + dir * H * 0.5, color(), H * 0.6, 0.45, false, dir)
+				_crescent(owner_f, owner_f.global_position + Vector3.UP * H * 0.25, dir, H * 2.2)
+				if Game.world:
+					Game.world.env.add_shake(1.2))
+		2:   # Gök okları: göğe çekilen yaydan yükselen oklar hedef bölgeye yağmur gibi iner
+			body.play("throw", 0.05, 0.8, true)
+			var zone = aim
+			zone.y = Game.ground_height(zone.x, zone.z)
+			for k in 18:
+				var off = Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)) * (6.0 + H * 0.12)
+				var land = zone + off
+				var from = land + Vector3(randf_range(-4, 4), 60.0 + H, randf_range(-4, 4))
+				get_tree().create_timer(0.4 + k * 0.07).timeout.connect(func():
+					if is_instance_valid(owner_f):
+						_fly_bolt(owner_f, from, (land - from).normalized(), from.distance_to(land), H * 0.25, 0.35, {}, 0.0)
+						get_tree().create_timer(0.35).timeout.connect(func():
+							FX.impact(land + Vector3.UP, color(), H * 0.05)
+							FX.ring(land + Vector3.UP * 0.3, color(), H * 0.1, 0.4)
+							Combat.hit_sphere(owner_f, land + Vector3.UP, 5.0 + H * 0.04, {"dmg": 55.0 * tier, "knock": 16.0, "launch": 6.0, "kind": "heavy"})))
+	Sfx.play("boom", base, 0.7, 0.7)
+
+
+## Dönen magatama çarkı: üç virgül + halka, ileri uçar, yolu boyunca vurur
+func _magatama(owner_f: Node3D, from: Vector3, dir: Vector3, dist: float) -> void:
+	var mb = MB.new()
+	var R = maxf(2.0, TIER_HEIGHT[tier] * 0.06)
+	mb.add_xf("torus", Transform3D(Basis.from_scale(Vector3(R * 2.0, R * 0.3, R * 2.0)), Vector3.ZERO), Color.WHITE, 16)
+	for k in 3:
+		var a = TAU * k / 3.0
+		mb.add("sphere", Vector3(cos(a), 0, sin(a)) * R * 0.55, Vector3(R * 0.45, R * 0.25, R * 0.45), Color.WHITE, Vector3.ZERO, 10)
+		mb.add("cone", Vector3(cos(a + 0.6), 0, sin(a + 0.6)) * R * 0.7, Vector3(R * 0.2, R * 0.5, R * 0.1), Color.WHITE, Vector3(90, rad_to_deg(-a), 0), 6)
+	var mi = MeshInstance3D.new()
+	mi.mesh = mb.build(null)
+	mi.material_override = _fx_mat()
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	get_tree().current_scene.add_child(mi)
+	mi.global_position = from
+	var end = from + dir * dist
+	var tw = mi.create_tween().set_parallel(true)
+	tw.tween_property(mi, "global_position", end, 0.7)
+	tw.tween_property(mi, "rotation:y", TAU * 4.0, 0.7)
+	var n = int(dist / 4.0)
+	for k in n:
+		var q = from + dir * (k * 4.0)
+		get_tree().create_timer(0.7 * k / maxf(1.0, n)).timeout.connect(func():
+			if is_instance_valid(owner_f):
+				Combat.hit_sphere(owner_f, q, R + 1.0, {"dmg": 26.0 * tier, "knock": 8.0, "kind": "heavy", "dir": dir}))
+	tw.chain().tween_callback(func():
+		FX.impact(end, color(), R * 0.8)
+		mi.queue_free())
+
+
+## Fırlatılan chakra (magatama, ok, hilal): gövdeden çok daha yoğun ve parlak, uzaktan seçilsin
+var _fxm: ShaderMaterial
+func _fx_mat() -> ShaderMaterial:
+	if _fxm == null:
+		_fxm = mat.duplicate()
+		_fxm.set_shader_parameter("density", 4.0)
+		_fxm.set_shader_parameter("glow", 2.2)
+	return _fxm
+
+
+## Hilal chakra dalgası: yere dik dev yay, ileri süzülür, yolundakileri biçer
+func _crescent(owner_f: Node3D, from: Vector3, dir: Vector3, dist: float) -> void:
+	var H = TIER_HEIGHT[tier]
+	var mb = MB.new()
+	var pts: Array = []
+	var rr: Array = []
+	for k in 13:
+		var a = lerpf(-1.2, 1.2, k / 12.0)
+		pts.append(Vector3(sin(a) * H * 0.35, cos(a) * H * 0.35 - H * 0.15, -cos(a) * H * 0.08))
+		rr.append(Vector2(H * 0.02 * (1.0 - absf(a) / 1.3) + 0.2, H * 0.05 * (1.0 - absf(a) / 1.3) + 0.3))
+	Loft.tube(mb, pts, rr, Color.WHITE, 8, 3)
+	var mi = MeshInstance3D.new()
+	mi.mesh = mb.build(null)
+	mi.material_override = _fx_mat()
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	get_tree().current_scene.add_child(mi)
+	mi.global_transform = Transform3D(Basis.looking_at(dir, Vector3.UP), from)
+	var tw = mi.create_tween()
+	tw.tween_property(mi, "global_position", from + dir * dist, 0.9)
+	tw.tween_property(mi, "scale", Vector3.ONE * 0.05, 0.2)
+	tw.tween_callback(mi.queue_free)
+	for k in 10:
+		var q = from + dir * (dist * k / 10.0)
+		get_tree().create_timer(0.9 * k / 10.0).timeout.connect(func():
+			if is_instance_valid(owner_f):
+				Combat.hit_sphere(owner_f, q, H * 0.2, {"dmg": 60.0 * tier, "knock": 25.0, "launch": 8.0, "kind": "heavy", "dir": dir}))
+
+
 ## Uçan chakra oku / mızrak ucu: Susanoo malzemesinden uzun gövde + sivri uç; yol boyunca vurur, sonda patlama
 func _fly_bolt(owner_f: Node3D, from: Vector3, dir: Vector3, dist: float, length: float, dur: float, hit: Dictionary, hit_r: float) -> void:
 	var mb = MB.new()
@@ -467,7 +591,7 @@ func _fly_bolt(owner_f: Node3D, from: Vector3, dir: Vector3, dist: float, length
 		mb.add_xf("box", Transform3D(Basis(Vector3.FORWARD, sx * 0.5) * Basis.from_scale(Vector3(L * 0.12, L * 0.01, L * 0.18)), Vector3(0, 0, -L * 0.05)), Color.WHITE, 1)
 	var mi = MeshInstance3D.new()
 	mi.mesh = mb.build(null)
-	mi.material_override = mat
+	mi.material_override = _fx_mat()
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	get_tree().current_scene.add_child(mi)
 	mi.global_transform = Transform3D(Basis.looking_at(dir, Vector3.UP), from)
@@ -502,9 +626,28 @@ func _process(dt: float) -> void:
 		var rest = body.to_local(sk.global_transform * sk.get_bone_global_rest(hb).origin) - body.position
 		var dd = cur - rest
 		body.position = Vector3(-dd.x, 0.0, -dd.z)
+	for k in tech_cd.size():
+		tech_cd[k] = maxf(0.0, tech_cd[k] - dt)
 	if swing_t >= 0.0:
 		swing_t += dt
 		if swing_t > 0.6:
 			swing_t = -1.0
 	elif follow and is_instance_valid(follow) and follow.current != "":
-		body.play(follow.current, 0.2, follow.anim.speed_scale if follow.anim else 1.0)
+		var pl = get_parent()
+		var flying = pl != null and pl.has_method("is_flying") and pl.is_flying()
+		if flying and tier >= 4:
+			# uçuş: süzülme pozu (kollar hafif açık, gövde öne eğik), koşu animasyonu yok
+			body.play("air", 0.3, 0.4)
+			if body.overlay:
+				body.overlay.set_pose("leap", 0.8)
+			var hv = Vector3(pl.velocity.x, 0, pl.velocity.z).length() if "velocity" in pl else 0.0
+			body.rotation.x = lerpf(body.rotation.x, -clampf(hv / 40.0, 0.0, 0.45), minf(1.0, dt * 3.0))
+		else:
+			if body.overlay:
+				body.overlay.set_pose("leap", 0.0)
+			body.rotation.x = lerpf(body.rotation.x, 0.0, minf(1.0, dt * 4.0))
+			# dev adım: kullanıcı küçük adımlarla koşarken dev beden aynı döngüyü oynarsa bir adımda kalıyordu —
+			# animasyonu boyla yavaşlat (adım boyu ~ ölçek), ağır ve görkemli yürüsün
+			var sp = follow.anim.speed_scale if follow.anim else 1.0
+			var k = clampf(3.0 / maxf(1.0, scale.x), 0.12, 1.0) if follow.current in ["walk", "jog", "run"] else 1.0
+			body.play(follow.current, 0.25, sp * k)

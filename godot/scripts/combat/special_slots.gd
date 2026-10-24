@@ -6,6 +6,7 @@ extends RefCounted
 
 const EYE_IDS := ["goz_sag", "goz_sol"]
 const BIJUU_IDS := ["bijuu_t0", "bijuu_t1", "bijuu_t2"]
+const SUS_IDS := ["susanoo_t0", "susanoo_t1", "susanoo_t2"]
 
 
 ## Oyuncunun şu an sahip olduğu özel teknikleri Data.jutsu'ya yazar; artık sahip olmadıklarını siler. Kimlik listesi döner.
@@ -37,6 +38,16 @@ static func refresh(pr: Dictionary) -> Array:
 			out.append(id)
 		else:
 			Data.jutsu.erase(id)
+	var mt = Susanoo.max_tier(pr)
+	for i in 3:
+		var id = SUS_IDS[i]
+		var td: Array = Susanoo.TECHS[i]
+		if mt >= int(td[3]):
+			Data.jutsu[id] = {"name": String(td[0]), "cost": int(td[1]), "cd": float(td[2]), "element": "", "category": "dojutsu", "canon_rank": "S",
+				"seals": [], "virtual": "susanoo:%d" % i, "desc": "Susanoo tekniği. Susanoo açıkken (V basılı) ve en az %s kademesinde slottan kullanılır." % Susanoo.TIER_NAMES[int(td[3])]}
+			out.append(id)
+		else:
+			Data.jutsu.erase(id)
 	return out
 
 
@@ -48,6 +59,8 @@ static func cooldown(p: Player, jid: String) -> float:
 		return 0.0
 	if v.begins_with("eye:") and m.eyes:
 		return float(m.eyes.cd.get(v.substr(4), 0.0))
+	if v.begins_with("susanoo:") and m.eyes and m.eyes.susanoo and is_instance_valid(m.eyes.susanoo_node):
+		return float(m.eyes.susanoo_node.tech_cd[int(v.substr(8))])
 	if v.begins_with("bijuu:") and m.cloak:
 		var l = BijuuArts.techs(m.cloak.beast_id())
 		var i = int(v.substr(6))
@@ -71,6 +84,30 @@ static func cast(p: Player, jid: String) -> bool:
 			Hud.msg("%s için önce gözlerini aç (V)." % String(j["name"]).split(" (")[0], Color(1, 0.55, 0.5))
 			return true
 		ey.use_skill(v.substr(4))
+		return true
+	if v.begins_with("susanoo:"):
+		var i = int(v.substr(8))
+		var ey: Eyes = m.eyes
+		var td: Array = Susanoo.TECHS[i]
+		if ey == null or not ey.susanoo or not is_instance_valid(ey.susanoo_node):
+			Hud.msg("%s için önce Susanoo'yu aç (V basılı)." % td[0], Color(0.75, 0.6, 1.0))
+			return true
+		var sn: Susanoo = ey.susanoo_node
+		if sn.tier < int(td[3]):
+			Hud.msg("%s için en az %s kademesi gerekli." % [td[0], Susanoo.TIER_NAMES[int(td[3])]], Color(0.75, 0.6, 1.0))
+			return true
+		if sn.tech_cd[i] > 0.0:
+			Hud.msg("%s hazır değil (%.0f sn)" % [td[0], sn.tech_cd[i]], Color(0.9, 0.8, 0.6))
+			return true
+		if p.chakra < float(td[1]):
+			Hud.msg("Yeterli chakra yok.", Color(0.6, 0.7, 1))
+			return true
+		p.chakra -= float(td[1])
+		sn.tech_cd[i] = float(td[2])
+		var lt = p.combat.lock_target
+		var aim = lt.global_position if lt and is_instance_valid(lt) and not lt.is_dead() else p.aim_point()
+		sn.tech(p, i, aim)
+		Combat.popup_text(p.global_position + Vector3.UP * Susanoo.TIER_HEIGHT[sn.tier] * 0.9, td[0], sn.color())
 		return true
 	if v.begins_with("bijuu:"):
 		var cl: BeastCloak = m.cloak
