@@ -6,7 +6,10 @@ extends RefCounted
 ## hide: gizlenecek düğüm adı parçaları (zemin plakası, alakasız aksesuar)
 
 ## kurama / shukaku: hayran modelleri oyunun tarzına uymuyordu (sırıtıyordu), kendi prosedürel modellerimiz kullanılır
-const DEFS := {}   # çağrı/canavar hayran modellerinin hepsi kaldırıldı (kendi modellerimiz)
+## hayran modelleri kaldırıldı; burada yalnızca kullanıcının AI ile ürettiği kendi modelleri var (path: tam yol)
+const DEFS := {
+	"matatabi": {"path": "res://assets/ai/matatabi.glb", "yaw": 180.0, "fit": "h", "surface": 0, "tint": Color(0.25, 0.5, 1.0)},
+}
 
 
 ## İskeletsiz canavar modellerinde deformasyon bölgeleri: (kuyruk başlangıcı z, ayak boyu y, baş bitişi z, baş alt sınırı y) — 0..1 oranları
@@ -23,8 +26,10 @@ static func regions(key: String) -> Vector4:
 static func path_for(key: String) -> String:
 	if not DEFS.has(key):
 		return ""
-	var f = DEFS[key]["file"]
-	var p = "res://assets/sketchfab/%s/%s.glb" % [f, f]
+	var p = DEFS[key].get("path", "")
+	if p == "":
+		var f = DEFS[key]["file"]
+		p = "res://assets/sketchfab/%s/%s.glb" % [f, f]
 	return p if ResourceLoader.exists(p) else ""
 
 
