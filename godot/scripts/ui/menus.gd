@@ -659,10 +659,30 @@ const SWATCHES := [Color(0.15, 0.2, 0.33), Color(0.12, 0.12, 0.14), Color(0.45, 
 	Color(0.35, 0.25, 0.45), Color(0.85, 0.82, 0.75), Color(0.15, 0.4, 0.45), Color(0.55, 0.42, 0.3), Color(0.75, 0.2, 0.25)]
 
 
+static var _last_tab := ""
+
+
+static func _scroll_positions() -> Array:
+	var out = []
+	for sc in Hud.dialog_layer.find_children("*", "ScrollContainer", true, false):
+		out.append(sc.scroll_vertical)
+	return out
+
+
+static func _restore_scroll(vals: Array) -> void:
+	var scs = Hud.dialog_layer.find_children("*", "ScrollContainer", true, false)
+	for i in mini(scs.size(), vals.size()):
+		if is_instance_valid(scs[i]):
+			scs[i].scroll_vertical = int(vals[i])
+
+
 static func ninja_menu(main: Node, tab := "inv", picked := "") -> void:
 	if tab == "map":
 		world_map(main)
 		return
+	# aynı sekme yeniden kurulurken (eşya seçince) kaydırma yerinde kalsın; eskiden en üste dönüyordu
+	var keep = _scroll_positions() if tab == _last_tab else []
+	_last_tab = tab
 	var bg = _full(0.5)
 	var pr = Game.profile
 	# sol ray
@@ -715,7 +735,10 @@ static func ninja_menu(main: Node, tab := "inv", picked := "") -> void:
 			_tab_eyes(main, body)
 		"paths":
 			PathsTab.build(main, body)
-	if _fresh:
+	if not keep.is_empty():
+		_restore_scroll.call_deferred(keep)
+		Engine.get_main_loop().process_frame.connect(_restore_scroll.bind(keep), CONNECT_ONE_SHOT)
+	elif _fresh:
 		UI.pop_in(body, 0.985)
 	# alt ipucu satırı
 	var foot = UI.hbox(8)
