@@ -137,6 +137,14 @@ func _clear() -> void:
 func _process(_dt: float) -> void:
 	if inside == "" or Game.player == null:
 		return
+	# güvenlik ağı: oda dünyanın 1500 m üstünde; duvar koşusuyla duvarı aşıp düşen oyuncu kapıdan dışarı çıkarılır
+	var pp: Vector3 = Game.player.global_position
+	if not busy and (pp.y < origin.y - 4.0 or pp.y > origin.y + 14.0 or Vector2(pp.x - origin.x, pp.z - origin.z).length() > 45.0):
+		exit()
+		return
+	# odada duvar koşusu yok (tavana tırmanıp üstünden aşılıyordu)
+	if Game.player.wall_n != Vector3.ZERO and Game.player.has_method("_leave_wall"):
+		Game.player._leave_wall()
 	if not spawn_q.is_empty():
 		_spawn_npc(spawn_q.pop_front())
 	# odadan düşme güvenliği
