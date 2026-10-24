@@ -45,8 +45,12 @@ static func _path(file: String) -> String:
 	return p if ResourceLoader.exists(p) else ""
 
 
+## Hayran modelleri oyunun tarzına uymuyordu: silah ve aksesuarlar artık kendi prosedürel modellerimizle (USE_FAN = true eskiye döner)
+const USE_FAN := false
+
+
 static func has_weapon(id: String) -> bool:
-	return WEAPONS.has(id) and _path(WEAPONS[id]["file"]) != ""
+	return USE_FAN and WEAPONS.has(id) and _path(WEAPONS[id]["file"]) != ""
 
 
 ## Model uzayındaki görünür mesh sınırları
@@ -66,7 +70,7 @@ static func _bounds(root: Node3D) -> AABB:
 
 ## Hazır (önbellekli) sahneden bağımsız örnek döner: kabza (0,0,0), namlu +Z, toon malzeme
 static func weapon_node(id: String, defs := WEAPONS) -> Node3D:
-	if not defs.has(id):
+	if not USE_FAN or not defs.has(id):
 		return null
 	var d: Dictionary = defs[id]
 	var p = _path(d["file"])
@@ -281,7 +285,7 @@ const BACK_MAP := {"parsomen": "dev_parsomen", "kabak": "su_kabagi", "sake": "sa
 
 
 static func has_accessory(id: String) -> bool:
-	return ACCESSORIES.has(id) and _path(ACCESSORIES[id]["file"]) != ""
+	return USE_FAN and ACCESSORIES.has(id) and _path(ACCESSORIES[id]["file"]) != ""
 
 
 ## Aksesuar düğümü: merkezi orijinde, en uzun kenarı size metre (yönü defs'teki "rot" ile ayarlanır)

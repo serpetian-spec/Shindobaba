@@ -5,9 +5,8 @@ extends RefCounted
 ## yaw: modelin ön yüzünü -Z'ye çeviren dönüş (derece); fit: "h" yüksekliğe, "len" uzunluğa göre ölçek
 ## hide: gizlenecek düğüm adı parçaları (zemin plakası, alakasız aksesuar)
 
+## kurama / shukaku: hayran modelleri oyunun tarzına uymuyordu (sırıtıyordu), kendi prosedürel modellerimiz kullanılır
 const DEFS := {
-	"kurama": {"file": "kurama_calfan", "yaw": 180.0, "fit": "h", "surface": 0, "mul": 1.7},
-	"shukaku": {"file": "shukaku", "yaw": 90.0, "fit": "h", "surface": 1, "mul": 1.3},
 	"toad_boss": {"file": "battle_toad", "yaw": 180.0, "fit": "h", "surface": 1, "drop_flat": true},
 	"toad_mid": {"file": "naruto_frog", "yaw": 180.0, "fit": "h", "surface": 1, "tint": Color(0.92, 0.55, 0.2)},
 	"snake_boss": {"file": "aoda", "yaw": 180.0, "fit": "len", "surface": 1, "tint": Color(0.62, 0.3, 0.95), "luma": true},

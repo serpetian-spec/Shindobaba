@@ -1390,6 +1390,8 @@ func _accessories() -> void:
 	var sf_head = _sf_acc(SFProps.HEAD_MAP.get(look.get("head_style"), ""), hc)
 	var sf_face = _sf_acc(SFProps.FACE_MAP.get(look.get("face_style"), ""), hc)
 	var sf_back = _sf_acc(SFProps.BACK_MAP.get(look.get("back_item"), ""), ch)
+	if not sf_head and look.get("head_style") == "kage":
+		KageAttire.hat(self, String(look.get("village", "konoha")))
 	match (null if sf_head else look.get("head_style")):
 		"kasa":
 			var m = MB.new()
@@ -1435,6 +1437,40 @@ func _accessories() -> void:
 					m.add("sphere", Vector3(0.075 * sx, 0.1, -0.005), Vector3(0.05, 0.05, 0.025), fg, Vector3.ZERO, 8)
 				m.add("sphere", Vector3(0, -0.04, 0.045), Vector3(0.05, 0.035, 0.03), Color(0.3, 0.25, 0.25), Vector3.ZERO, 8)
 		_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0, -0.03, 0.085)))
+	elif fs in ["kitsune", "tengu", "oni"]:
+		# festival maskeleri (yüzü saran kabuk + desen); model önü +Z
+		var m = MB.new()
+		var red = Color(0.82, 0.1, 0.12)
+		match fs:
+			"kitsune":
+				var wt = Color(0.97, 0.96, 0.94)
+				m.add("sphere", Vector3(0, 0.0, 0.0), Vector3(0.17, 0.23, 0.1), wt, Vector3.ZERO, 14)
+				m.add("cone", Vector3(0, -0.05, 0.065), Vector3(0.07, 0.1, 0.05), wt, Vector3(-80, 0, 0), 10)   # sivri tilki burnu
+				m.add("sphere", Vector3(0, -0.055, 0.115), Vector3(0.018, 0.014, 0.014), Color(0.08, 0.06, 0.06), Vector3.ZERO, 6)
+				for sx in [-1.0, 1.0]:
+					m.add("cone", Vector3(0.06 * sx, 0.13, -0.005), Vector3(0.055, 0.08, 0.025), wt, Vector3(0, 0, -16 * sx), 4)   # kulak
+					m.add("cone", Vector3(0.06 * sx, 0.128, 0.005), Vector3(0.032, 0.05, 0.01), red, Vector3(0, 0, -16 * sx), 4)   # kulak içi
+					m.add("box", Vector3(0.042 * sx, 0.025, 0.045), Vector3(0.038, 0.008, 0.004), Color(0.06, 0.05, 0.06), Vector3(0, 0, 22 * sx))   # kısık göz
+					m.add("box", Vector3(0.045 * sx, 0.06, 0.04), Vector3(0.03, 0.006, 0.004), red, Vector3(0, 0, -28 * sx))   # kaş
+					for k in 2:
+						m.add("box", Vector3(0.06 * sx, -0.035 - k * 0.016, 0.04), Vector3(0.04, 0.005, 0.004), Color(0.25, 0.35, 0.65), Vector3(0, 0, (6 - k * 14) * sx))   # bıyık
+				m.add("box", Vector3(0, -0.095, 0.04), Vector3(0.05, 0.006, 0.004), red)   # ağız
+			"tengu":
+				m.add("sphere", Vector3.ZERO, Vector3(0.17, 0.23, 0.1), red, Vector3.ZERO, 14)
+				m.add("cone", Vector3(0, -0.01, 0.12), Vector3(0.05, 0.2, 0.05), red.darkened(0.08), Vector3(-90, 0, 0), 10)   # uzun burun
+				for sx in [-1.0, 1.0]:
+					m.add("box", Vector3(0.045 * sx, 0.04, 0.045), Vector3(0.035, 0.012, 0.006), Color(0.08, 0.05, 0.05), Vector3(0, 0, -20 * sx))
+					m.add("sphere", Vector3(0.055 * sx, 0.075, 0.04), Vector3(0.045, 0.02, 0.02), Color(0.95, 0.95, 0.92), Vector3(0, 0, -20 * sx), 6)   # beyaz kaş
+				m.add("sphere", Vector3(0, -0.12, 0.03), Vector3(0.1, 0.06, 0.04), Color(0.95, 0.95, 0.92), Vector3.ZERO, 8)   # sakal
+			"oni":
+				m.add("sphere", Vector3.ZERO, Vector3(0.18, 0.23, 0.1), Color(0.75, 0.12, 0.1), Vector3.ZERO, 14)
+				for sx in [-1.0, 1.0]:
+					m.add("cone", Vector3(0.06 * sx, 0.13, 0.0), Vector3(0.03, 0.09, 0.03), Color(0.95, 0.9, 0.75), Vector3(0, 0, -18 * sx), 6)   # boynuz
+					m.add("sphere", Vector3(0.045 * sx, 0.035, 0.045), Vector3(0.04, 0.025, 0.012), Color(1.0, 0.85, 0.2), Vector3.ZERO, 8)
+					m.add("cone", Vector3(0.035 * sx, -0.08, 0.05), Vector3(0.014, 0.035, 0.01), Color(0.97, 0.95, 0.9), Vector3(180, 0, 0), 4)   # diş
+				m.add("box", Vector3(0, -0.07, 0.045), Vector3(0.1, 0.02, 0.006), Color(0.1, 0.03, 0.03))
+				m.add("box", Vector3(0, 0.06, 0.05), Vector3(0.11, 0.015, 0.006), Color(0.1, 0.03, 0.03), Vector3(0, 0, 0))
+		_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0, -0.035, 0.1)))
 	elif fs == "gas":
 		var m = MB.new()
 		for sx in [-1.0, 1.0]:
@@ -1453,6 +1489,23 @@ func _accessories() -> void:
 	# --- sırt / bel
 	var bc: Color = look.get("backc", Color(0.4, 0.33, 0.22)) if look.get("backc") != null else Color(0.4, 0.33, 0.22)
 	match (null if sf_back else look.get("back_item")):
+		"kabak", "sake":
+			# su kabağı (sırtta dev, iki boğumlu) / sake kabağı (belde küçük)
+			var big = look.get("back_item") == "kabak"
+			var gc = Color(0.78, 0.6, 0.4) if big else Color(0.82, 0.62, 0.32)
+			var k = 1.0 if big else 0.32
+			var m = MB.new()
+			m.add("sphere", Vector3(0, -0.14 * k, 0), Vector3(0.36, 0.38, 0.34) * k, gc, Vector3.ZERO, 16)
+			m.add("sphere", Vector3(0, 0.2 * k, 0), Vector3(0.24, 0.26, 0.23) * k, gc.lightened(0.04), Vector3.ZERO, 14)
+			m.add("cyl", Vector3(0, 0.04 * k, 0), Vector3(0.13, 0.03, 0.13) * k, Color(0.55, 0.14, 0.12), Vector3.ZERO, 12)   # boğum ipi
+			m.add("cyl", Vector3(0, 0.36 * k, 0), Vector3(0.08, 0.08, 0.08) * k, Color(0.45, 0.3, 0.18), Vector3.ZERO, 10)   # tıpa
+			if big:
+				m.add("box", Vector3(0, 0.0, 0.17), Vector3(0.05, 0.6, 0.01), Color(0.3, 0.22, 0.14), Vector3(0, 0, 38))   # kayış
+				m.add("box", Vector3(0, -0.12, -0.18), Vector3(0.12, 0.12, 0.006), Color(0.6, 0.12, 0.1), Vector3(0, 0, 45))   # mühür kâğıdı
+				_mesh_on("UpperChest", m.build(Props.toon()), Transform3D(Basis(Vector3.BACK, deg_to_rad(-8)), ch + Vector3(0, -0.12, -0.33)))
+			else:
+				var hp = _grest(skel.find_bone("Hips")).origin
+				_mesh_on("Hips", m.build(Props.toon()), Transform3D(Basis.IDENTITY, hp + Vector3(0.18, -0.05, 0.02)))
 		"parsomen":
 			var m = MB.new()
 			m.add("cyl", Vector3.ZERO, Vector3(0.13, 0.62, 0.13), bc, Vector3(0, 0, 90), 12)
@@ -2314,6 +2367,22 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 				b.add_xf("box", Transform3D(bs * Basis.from_scale(Vector3(0.12, 0.48, 0.012)), Vector3(0, 0, 0.5) + bs * Vector3(0, 0.26, 0)), Color(0.55, 0.57, 0.62))
 				b.add_xf("cone", Transform3D(bs * Basis(Vector3.BACK, deg_to_rad(-30)) * Basis.from_scale(Vector3(0.12, 0.2, 0.012)), Vector3(0, 0, 0.5) + bs * Vector3(0.05, 0.55, 0)), Color(0.55, 0.57, 0.62), 4)
 			b.add("cyl", Vector3(0, 0, 0.5), Vector3(0.16, 0.04, 0.16), dark, Vector3(90, 0, 0), 12)
+		"sai":
+			b.add("cyl", Vector3(0, 0, 0.0), Vector3(0.03, 0.12, 0.03), Color(0.2, 0.12, 0.1), Vector3(90, 0, 0), 8)
+			b.add("cyl", Vector3(0, 0, 0.31), Vector3(0.018, 0.5, 0.018), steel, Vector3(90, 0, 0), 6)
+			b.add("cone", Vector3(0, 0, 0.58), Vector3(0.02, 0.05, 0.02), steel, Vector3(90, 0, 0), 6)
+			for sx in [-1.0, 1.0]:
+				b.add("cyl", Vector3(0.04 * sx, 0, 0.1), Vector3(0.013, 0.1, 0.013), steel, Vector3(0, 0, -60 * sx), 6)
+				b.add("cyl", Vector3(0.065 * sx, 0, 0.15), Vector3(0.012, 0.09, 0.012), steel, Vector3(90, 0, 0), 6)
+		"uc_tirpan":
+			# üç bıçaklı kızıl tırpan: uzun sap, ucunda yelpaze gibi açılmış üç kavisli bıçak
+			b.add("cyl", Vector3(0, 0, 0.55), Vector3(0.035, 1.3, 0.035), Color(0.15, 0.12, 0.12), Vector3(90, 0, 0), 8)
+			for k in 3:
+				var a = deg_to_rad(-25.0 + k * 25.0)
+				var bs = Basis(Vector3.BACK, a)
+				for j in 5:
+					var t = j / 4.0
+					b.add_xf("box", Transform3D(bs * Basis(Vector3.RIGHT, deg_to_rad(-t * 40.0)) * Basis.from_scale(Vector3(0.012, 0.09, 0.14 - t * 0.06)), Vector3(0, 0, 1.18) + bs * Vector3(0, 0.1 + t * 0.32, -t * t * 0.18)), Color(0.82, 0.12, 0.1))
 		"gunbai":
 			# Uchiha yelpazesi (uchiwa): uzun sap, üstte hafif basık yuvarlak kâğıt; üst yarı kırmızı, alt yarı beyaz, siyah çerçeve ve kaburgalar
 			b.add("cyl", Vector3(0, 0, 0.2), Vector3(0.032, 0.56, 0.032), Color(0.18, 0.12, 0.08), Vector3(90, 0, 0), 8)
