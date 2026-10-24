@@ -2504,10 +2504,12 @@ func _set_eye_trails(kind_r: int, kind_l: int) -> void:
 		if not int(pair[0]) in red:
 			continue
 		# model önü -Z ise göz yönü; yüz modeli eye_center_model'i model uzayında verir
-		var at = eye_center_model + Vector3(eye_half * float(pair[1]), 0.0, 0.012)
+		# iz gözün dış köşesinden çıkar: göz bebeğinin üstünde parlayıp Sharingan desenini kapatmasın
+		var at = eye_center_model + Vector3(-eye_half * 1.55 * float(pair[1]), 0.003, 0.0)
 		var ba = _attach("Head", Transform3D(Basis.IDENTITY, at))
 		var tr = EyeTrail.new()
 		tr.anchor = ba.get_child(0)
+		tr.set_meta("side", float(pair[1]))
 		if int(pair[0]) == 3:
 			tr.col = Color(0.9, 0.05, 0.12)
 		add_child(tr)
@@ -2517,6 +2519,13 @@ func _set_eye_trails(kind_r: int, kind_l: int) -> void:
 
 ## Özel Mangekyō desenleri (Eyes.design_vecs ile)
 func set_ms_designs(right: Dictionary, left: Dictionary) -> void:
+	# göz ışık izi deseninin rengini alır (sağ göz -1, sol göz +1)
+	for t in _eye_trails:
+		if t is EyeTrail and is_instance_valid(t):
+			var dd: Dictionary = right if float(t.get_meta("side", -1.0)) < 0.0 else left
+			if dd.has("col"):
+				var cc: Array = dd["col"]
+				t.set_color(Color(cc[0], cc[1], cc[2]))
 	if eye_mat == null:
 		return
 	for pair in [[right, "r"], [left, "l"]]:

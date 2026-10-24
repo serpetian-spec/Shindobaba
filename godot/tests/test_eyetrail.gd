@@ -25,4 +25,13 @@ func _ready() -> void:
 	await main.shot("eyetrail_move")
 	await get_tree().create_timer(0.6).timeout
 	await main.shot("eyetrail_still")
+	# yakın çekim: Sharingan deseni görünüyor mu
+	var hc = pl.model.skel.get_bone_global_pose(pl.model.skel.find_bone("Head")).origin
+	var head = pl.model.skel.global_transform * hc + Vector3(0, 0.06, 0)
+	var fwd = Basis(Vector3.UP, pl.facing) * Vector3(0, 0, -1)
+	cam.fov = 20
+	cam.global_position = head + fwd * 0.75 + Vector3(0, 0.02, 0)
+	cam.look_at(head)
+	await get_tree().create_timer(0.4).timeout
+	await main.shot("eyetrail_close")
 	get_tree().quit()

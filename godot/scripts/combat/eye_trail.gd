@@ -29,7 +29,7 @@ func _ready() -> void:
 	# gözün kendisinde yumuşak parıltı
 	glow = MeshInstance3D.new()
 	var q = QuadMesh.new()
-	q.size = Vector2(0.06, 0.06)
+	q.size = Vector2(0.03, 0.03)
 	glow.mesh = q
 	var gm = StandardMaterial3D.new()
 	gm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -37,12 +37,19 @@ func _ready() -> void:
 	gm.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
 	gm.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
 	gm.albedo_texture = _dot()
-	gm.albedo_color = Color(col.r, col.g, col.b, 0.55)
+	gm.albedo_color = Color(col.r, col.g, col.b, 0.35)
 	glow.material_override = gm
 	glow.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	glow.top_level = true
 	add_child(glow)
 
+
+
+## İz ve göz parıltısı rengi (Mangekyō desen rengiyle eşleşir)
+func set_color(c: Color) -> void:
+	col = c
+	if glow and glow.material_override:
+		(glow.material_override as StandardMaterial3D).albedo_color = Color(c.r, c.g, c.b, 0.35)
 
 static var _dot_tex: Texture2D
 static func _dot() -> Texture2D:

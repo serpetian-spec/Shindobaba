@@ -1116,14 +1116,24 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 			dv.add_child(fl)
 
 
-## Özel Mangekyō deseni: canlı önizleme + stil/kanat/kıvrım/kalınlık/halka/renk
-const MS_STYLES := ["Çark", "Yıldız", "Taç Yaprak", "Shuriken", "Sarmal", "Haç", "Tomoe Halkası"]
-const MS_COLORS := [[0.9, 0.05, 0.06], [0.6, 0.0, 0.05], [0.55, 0.2, 0.85], [0.15, 0.4, 0.95], [0.95, 0.7, 0.1], [0.1, 0.7, 0.4]]
+## Özel Mangekyō deseni: canlı önizleme + stil (oklu seçici)/kanat/kıvrım/kalınlık/halka/renk
+## Değişiklikler yerinde uygulanır: menü baştan kurulmaz (eskiden stil seçince başka sekmeye atlıyordu)
+const MS_STYLES := ["Çark", "Yıldız", "Taç Yaprak", "Shuriken", "Sarmal", "Haç", "Tomoe Halkası", "Orak", "Pervane", "Çiçek",
+	"Elmas", "Halkalar", "Kanca", "Dört Bıçak", "Altı Köşeli Yıldız", "Kelebek", "Kar Tanesi", "Kalkan"]
+const MS_COLORS := [[0.9, 0.05, 0.06], [0.6, 0.0, 0.05], [0.55, 0.2, 0.85], [0.15, 0.4, 0.95], [0.95, 0.7, 0.1], [0.1, 0.7, 0.4], [0.95, 0.95, 0.98], [0.05, 0.05, 0.08], [1.0, 0.4, 0.7], [0.2, 0.85, 0.95]]
 static func _ms_editor(main: Node, v: VBoxContainer, d: Dictionary) -> void:
 	v.add_child(UI.spacer(0, 6, false))
 	v.add_child(UI.header("MANGEKYŌ DESENİ", 18))
+	var box = UI.vbox(6)
+	v.add_child(box)
+	_ms_editor_fill(box, d)
+
+
+static func _ms_editor_fill(box: VBoxContainer, d: Dictionary) -> void:
+	for ch in box.get_children():
+		ch.queue_free()
 	var row = UI.hbox(18)
-	v.add_child(row)
+	box.add_child(row)
 	var pv = ColorRect.new()
 	pv.custom_minimum_size = Vector2(180, 180)
 	var sm = ShaderMaterial.new()
@@ -1140,6 +1150,25 @@ static func _ms_editor(main: Node, v: VBoxContainer, d: Dictionary) -> void:
 	apply_pv.call()
 	var ctl = UI.vbox(6)
 	row.add_child(ctl)
+	# stil: < Ad (n/N) > oklu seçici
+	var sr = UI.hbox(8)
+	var sl0 = UI.label("Desen", 13, UI.MUTED)
+	sl0.custom_minimum_size = Vector2(92, 0)
+	sr.add_child(sl0)
+	var name_l = UI.label("", 15, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, true)
+	name_l.custom_minimum_size = Vector2(190, 0)
+	var upd_name = func() -> void:
+		var st = int(d.get("style", 0)) % MS_STYLES.size()
+		name_l.text = "%s  (%d/%d)" % [MS_STYLES[st], st + 1, MS_STYLES.size()]
+	var step = func(dir: int) -> void:
+		d["style"] = posmod(int(d.get("style", 0)) + dir, MS_STYLES.size())
+		upd_name.call()
+		apply_pv.call()
+	sr.add_child(UI.button("◀", func(): step.call(-1), 44))
+	sr.add_child(name_l)
+	sr.add_child(UI.button("▶", func(): step.call(1), 44))
+	upd_name.call()
+	ctl.add_child(sr)
 	var slider = func(title: String, key: String, mn: float, mx: float, stp: float) -> void:
 		var hh = UI.hbox(8)
 		var l = UI.label(title, 13, UI.MUTED)
@@ -1151,6 +1180,7 @@ static func _ms_editor(main: Node, v: VBoxContainer, d: Dictionary) -> void:
 		sl.step = stp
 		sl.value = float(d.get(key, mn))
 		sl.custom_minimum_size = Vector2(180, 22)
+		sl.focus_mode = Control.FOCUS_NONE   # ok tuşları kaydırıcıyı değil menüyü gezsin
 		sl.value_changed.connect(func(x):
 			d[key] = x
 			apply_pv.call())
@@ -1171,15 +1201,9 @@ static func _ms_editor(main: Node, v: VBoxContainer, d: Dictionary) -> void:
 			apply_pv.call())
 		tg.add_child(cb)
 	ctl.add_child(tg)
-	var fl = HFlowContainer.new()
-	fl.add_theme_constant_override("h_separation", 6)
-	fl.add_theme_constant_override("v_separation", 6)
-	for i in MS_STYLES.size():
-		fl.add_child(UI.chip(MS_STYLES[i], int(d.get("style", 0)) == i, func():
-			d["style"] = i
-			ninja_menu(main, "wardrobe")))
-	v.add_child(fl)
-	var cr = UI.hbox(8)
+	var cr = HFlowContainer.new()
+	cr.add_theme_constant_override("h_separation", 6)
+	cr.add_theme_constant_override("v_separation", 6)
 	for c in MS_COLORS:
 		cr.add_child(_swatch(Color(c[0], c[1], c[2]), false, func():
 			d["col"] = c
@@ -1188,8 +1212,8 @@ static func _ms_editor(main: Node, v: VBoxContainer, d: Dictionary) -> void:
 		var nd = Eyes.random_design()
 		for k in nd:
 			d[k] = nd[k]
-		ninja_menu(main, "wardrobe"), 140, "star"))
-	v.add_child(cr)
+		_ms_editor_fill.call_deferred(box, d), 140, "star"))
+	box.add_child(cr)
 
 
 ## Susanoo önizlemesi (karakter yerine)
