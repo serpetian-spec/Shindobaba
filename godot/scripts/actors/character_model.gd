@@ -59,6 +59,8 @@ static var _donor_cache := {}
 var face_mi: MeshInstance3D
 var head_fix := Transform3D.IDENTITY
 var eye_center_model := Vector3(0, 1.62, 0.08)
+var eye_half := 0.032
+var _eye_trails: Array = []
 
 
 static var _inv_mat: StandardMaterial3D
@@ -330,6 +332,7 @@ func _face_and_hair() -> void:
 		var ir: AABB = fd["iris"]
 		var ic = ir.get_center() if ir.size != Vector3.ZERO else fd["aabb"].get_center()
 		eye_center_model = place * ic
+		eye_half = clampf((place.basis * ir.size).abs().x * 0.3, 0.02, 0.045) if ir.size != Vector3.ZERO else 0.032
 		var fa: AABB = fd["aabb"]
 		head_ab = AABB(place * fa.position, Vector3.ZERO).expand(place * fa.end)
 		head_ab = head_ab.abs()
@@ -2320,6 +2323,7 @@ func set_sage(kind: int) -> void:
 
 
 func set_dojutsu_eyes(kind_r: int, lvl_r: int, kind_l: int, lvl_l: int, veins := false) -> void:
+	_set_eye_trails(kind_r, kind_l)
 	if eye_mat:
 		eye_mat.set_shader_parameter("dojutsu", kind_r)
 		eye_mat.set_shader_parameter("tomoe", lvl_r)
@@ -2329,6 +2333,30 @@ func set_dojutsu_eyes(kind_r: int, lvl_r: int, kind_l: int, lvl_l: int, veins :=
 		var m = body_mesh.get_surface_override_material(0)
 		if m is ShaderMaterial:
 			m.set_shader_parameter("byakugan_veins", 1.0 if veins else 0.0)
+
+
+## Kırmızı dōjutsu (Sharingan, Mangekyō, Ketsuryūgan) açıkken gözlerden ince ışık izi (Shinobi Striker tarzı)
+func _set_eye_trails(kind_r: int, kind_l: int) -> void:
+	for t in _eye_trails:
+		if is_instance_valid(t):
+			t.queue_free()
+	_eye_trails.clear()
+	if skel == null or skel.find_bone("Head") < 0:
+		return
+	var red = [1, 3, 4, 5]
+	for pair in [[kind_r, -1.0], [kind_l, 1.0]]:
+		if not int(pair[0]) in red:
+			continue
+		# model önü -Z ise göz yönü; yüz modeli eye_center_model'i model uzayında verir
+		var at = eye_center_model + Vector3(eye_half * float(pair[1]), 0.0, 0.012)
+		var ba = _attach("Head", Transform3D(Basis.IDENTITY, at))
+		var tr = EyeTrail.new()
+		tr.anchor = ba.get_child(0)
+		if int(pair[0]) == 3:
+			tr.col = Color(0.9, 0.05, 0.12)
+		add_child(tr)
+		_eye_trails.append(tr)
+		_eye_trails.append(ba)
 
 
 ## Özel Mangekyō desenleri (Eyes.design_vecs ile)
