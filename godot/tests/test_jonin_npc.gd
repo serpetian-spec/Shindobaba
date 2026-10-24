@@ -17,7 +17,9 @@ func _ready() -> void:
 	print("STEP %s npc=%s" % [s.get("text", ""), npc])
 	if npc:
 		var p = npc.global_position
-		print("NPCPOS %s ground=%s terrain=%s" % [p, Game.ground_height(p.x, p.z), Game.terrain_height(p.x, p.z)])
+		var sp = main.player.get_world_3d().direct_space_state
+		var hit = sp.intersect_ray(PhysicsRayQueryParameters3D.create(p + Vector3.UP * 60, p + Vector3.DOWN, 1))
+		print("NPCPOS %s ground=%s roofhit=%s" % [p, Game.ground_height(p.x, p.z), hit.get("position", "yok")])
 		main.player.global_position = p + Vector3(2, 0.5, 2)
 		await get_tree().create_timer(1.0).timeout
 		var cam = main.player.cam

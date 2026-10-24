@@ -908,6 +908,29 @@ func _ensure_npc(s: Dictionary) -> QuestNPC:
 	return _make_npc(spec, _w(at))
 
 
+## Binaların üstüne/içine düşmeyen açık zemin noktası: p'den başlayıp dışa sarmal arar (çatı = zemin yüksekliği araziden çok yüksek)
+static func open_ground(p: Vector3, max_r := 60.0) -> Vector3:
+	var space = Game.world.get_world_3d().direct_space_state if Game.world and Game.world.is_inside_tree() else null
+	var r = 0.0
+	var a = 0.0
+	while r <= max_r:
+		var q = p + Vector3(cos(a) * r, 0, sin(a) * r)
+		var gh = Game.ground_height(q.x, q.z)
+		var ok = true
+		if space:
+			# yukarıdan aşağı ışın: zeminden yüksek bir şeye çarparsa (bina, çatı, duvar) burası dolu
+			var hit = space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(q.x, gh + 60.0, q.z), Vector3(q.x, gh - 1.0, q.z), 1))
+			if not hit.is_empty() and float(hit["position"].y) > gh + 1.0:
+				ok = false
+		if ok:
+			q.y = gh
+			return q
+		a += 0.9
+		r += 1.5
+	p.y = Game.ground_height(p.x, p.z)
+	return p
+
+
 func _make_npc(spec: Dictionary, pos: Vector3) -> QuestNPC:
 	var npc = QuestNPC.new()
 	var lk = {}
@@ -919,7 +942,7 @@ func _make_npc(spec: Dictionary, pos: Vector3) -> QuestNPC:
 	npc.team = "neutral"
 	npc.quest_tag = spec.get("id", "")
 	get_tree().current_scene.add_child(npc)
-	pos.y = Game.ground_height(pos.x, pos.z)
+	pos = open_ground(pos)
 	npc.global_position = pos
 	npc.home = pos
 	npcs[npc.quest_tag] = npc
@@ -1409,8 +1432,20 @@ func _process_steps(dt: float) -> void:
 				_next_step()
 		"talk":
 			var id = s.get("npc_id", s.get("npc", {}).get("id", ""))
-			if npcs.has(id) and is_instance_valid(npcs[id]):
-				target_marker = npcs[id].global_position
+			var nn = npcs.get(id)
+			# konuşulacak kişi kaybolduysa (yükleme, bina içine/zemin altına düşme, ölüm) yeniden yerine koy
+			if nn != null and is_instance_valid(nn) and not nn.dead:
+				var gh = Game.ground_height(nn.global_position.x, nn.global_position.z)
+				if nn.global_position.y < gh - 3.0 or open_ground(nn.global_position, 0.0).distance_to(nn.global_position) > 2.0 or (s.has("at") and Game.to_map(nn.global_position).distance_to(Vector2(s["at"][0], s["at"][1])) > 60.0):
+					nn.queue_free()
+					npcs.erase(id)
+					nn = null
+			if nn == null or not is_instance_valid(nn) or nn.dead:
+				npcs.erase(id)
+				nn = _ensure_npc(s)
+			if nn:
+				target_marker = nn.global_position
+				target_name = nn.display
 		"collect":
 			var best = 1e9
 			for pk in step_nodes:
