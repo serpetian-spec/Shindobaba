@@ -217,7 +217,12 @@ static func summon(c: Node3D, jd: Dictionary) -> void:
 	else:
 		pos = c.global_position + c.face_dir() * (3.0 + sd["h"] * 0.4)
 	pos.y = Game.ground_height(pos.x, pos.z)
-	_circle(c, pos, maxf(2.5, sd["h"] * 0.55), DEFS[id]["color"])
+	# avuç yere çarpar: mühür avucun altından doğar, yazı çizgileri çağrının çıkacağı yere kadar yayılır
+	var palm = c.global_position + c.face_dir() * 0.75
+	palm.y = Game.ground_height(palm.x, palm.z)
+	var col: Color = DEFS[id]["color"]
+	_slam(c, palm, col, sd["h"])
+	_circle(c, palm, maxf(2.6, palm.distance_to(pos) + maxf(1.2, sd["h"] * 0.45)), col)
 	var count = int(sd.get("count", 1))
 	var t0 = tree.create_timer(0.35)
 	t0.timeout.connect(func():
@@ -243,6 +248,19 @@ static func summon(c: Node3D, jd: Dictionary) -> void:
 				s.say(sd["lines"].pick_random(), 3.0))
 
 
+## Avuç yere vurur: çatlak, toz, yerden kalkan halka, hafif sarsıntı (çağrı büyüdükçe güçlenir)
+static func _slam(c: Node3D, palm: Vector3, col: Color, h: float) -> void:
+	var k = clampf(0.6 + h * 0.08, 0.6, 2.5)
+	FX.impact(palm + Vector3.UP * 0.1, col.lightened(0.3), 0.8 * k)
+	FX.ring(palm + Vector3.UP * 0.06, Color(0.08, 0.06, 0.05), 3.0 * k, 0.4)
+	FX.ring(palm + Vector3.UP * 0.08, col, 1.8 * k, 0.3)
+	FX.dust(palm, 0.9 * k)
+	VFX.cracks(palm, 1.6 * k, Color(0.1, 0.07, 0.05, 0.9), 2.5)
+	Sfx.play("earth", palm, 1.3, 0.6)
+	if c == Game.player and Game.world:
+		Game.world.env.add_shake(0.25 + h * 0.02)
+
+
 ## Yere yayılan mürekkep çağırma çemberi (avuçtan yayılan çizgiler + yazılar)
 static func _circle(c: Node3D, pos: Vector3, r: float, col: Color) -> void:
 	var mi = MeshInstance3D.new()
@@ -259,8 +277,8 @@ static func _circle(c: Node3D, pos: Vector3, r: float, col: Color) -> void:
 	c.get_tree().current_scene.add_child(mi)
 	mi.global_position = pos + Vector3.UP * 0.06
 	var tw = mi.create_tween()
-	tw.tween_method(func(x): m.set_shader_parameter("grow", x), 0.0, 1.0, 0.35)
-	tw.tween_interval(1.2)
+	tw.tween_method(func(x): m.set_shader_parameter("grow", x), 0.0, 1.0, 0.45).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	tw.tween_interval(1.6)
 	tw.tween_method(func(x): m.set_shader_parameter("fade", x), 0.0, 1.0, 0.8)
 	tw.tween_callback(mi.queue_free)
 

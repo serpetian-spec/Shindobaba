@@ -71,9 +71,9 @@ const STYLES := {
 		"wind": {"R": [Vector3(-0.6, 0.6, -0.5), Vector3(-0.2, 0.9, -0.4), Vector3(0.0, 1.0, -0.2)], "fR": FIST, "L": [Vector3(0.3, -0.3, 0.9), Vector3(0.0, 0.0, 1.0), Vector3(0.0, 0.3, 0.95)], "fL": OPEN, "spine": -10.0, "hips_yaw": 25.0},
 		"rel": {}},
 	# çağırma: başparmağı ısır -> çömel, avuç yere, duman
-	"summon": {"pre": 0.5, "post": 0.55, "wclip": "idle", "clip": "idle",
+	"summon": {"pre": 0.5, "post": 0.95, "wclip": "idle", "clip": "idle",
 		"wind": {"R": [Vector3(-0.25, -0.55, 0.8), Vector3(0.7, 0.65, 0.25), Vector3(0.3, 0.9, 0.2)], "fR": [1.4, 1.4, 1.4, 1.4, 0.0], "L": [Vector3(0.3, -0.85, 0.3), Vector3(0.0, -0.8, 0.6), Vector3(0.0, -0.9, 0.4)], "fL": OPEN},
-		"rel": {"R": [Vector3(-0.15, -0.6, 0.75), Vector3(0.0, -0.9, 0.4), Vector3(0.0, -0.5, 0.85)], "fR": [-0.2, -0.2, -0.2, -0.2, -0.3], "L": [Vector3(0.35, -0.7, 0.6), Vector3(0.0, -0.8, 0.6), Vector3(0.0, -0.8, 0.6)], "fL": OPEN, "spine": 45.0, "neck": -25.0, "crouch": 0.9}},
+		"rel": {"R": [Vector3(-0.1, -0.75, 0.65), Vector3(0.0, -0.97, 0.25), Vector3(0.0, -0.3, 0.95)], "fR": [-0.25, -0.25, -0.25, -0.25, -0.35], "L": [Vector3(0.45, -0.55, 0.7), Vector3(0.2, -0.75, 0.6), Vector3(0.0, -0.8, 0.6)], "fL": OPEN, "spine": 52.0, "neck": -30.0, "crouch": 1.0}},
 	# klon: çapraz mühür tut
 	"clone": {"pre": 0.25, "post": 0.3, "wclip": "idle", "clip": "idle", "seal_pose": "Bunshin"},
 	# dönüşüm: kaplan mühürü + yerinde dönüş
