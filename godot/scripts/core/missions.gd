@@ -497,7 +497,11 @@ func board_limits(vid: String) -> Dictionary:
 func board_missions(vid: String, refresh := false) -> Array:
 	var now = Time.get_ticks_msec()
 	if not refresh and _boards.has(vid) and now - int(_boards[vid]["t"]) < 600000 and int(_boards[vid]["rank"]) == int(Game.profile["rank"]) and _boards[vid].get("ranks", []) == board_limits(vid)["ranks"]:
-		return _boards[vid]["list"]
+		# en yüksek rütbeli görev alındıysa (terfi şartı: ör. 3 A-rank) pano beklemeden yenilenir
+		var rk: Array = _boards[vid]["ranks"]
+		var top0 = rk[rk.size() - 1]
+		if rk.size() <= 1 or (_boards[vid]["list"] as Array).any(func(x): return x["rank"] == top0):
+			return _boards[vid]["list"]
 	var lim = board_limits(vid)
 	var ranks: Array = lim["ranks"]
 	var out = []
@@ -516,12 +520,25 @@ func board_missions(vid: String, refresh := false) -> Array:
 	gen.shuffle()
 	# panoda en yüksek rütbeden en az bir görev hep olsun (terfi şartı görevleri kaybolmasın)
 	var top = ranks[ranks.size() - 1]
-	if ranks.size() > 1 and not out.any(func(x): return x["rank"] == top):
-		var ti = gen.find_custom(func(x): return x["rank"] == top)
-		if ti > 0:
-			gen.push_front(gen.pop_at(ti))
-		if out.size() >= int(lim["max"]) and not gen.is_empty() and gen[0]["rank"] == top:
-			out[out.size() - 1] = gen.pop_front()
+	var want_top = 2 if top == "A" and int(Game.profile["rank"]) == 2 else 1   # chūnin: jōnin için A-rank'lar hep panoda
+	if ranks.size() > 1:
+		for _k in want_top:
+			if out.filter(func(x): return x["rank"] == top).size() >= want_top:
+				break
+			var ti = gen.find_custom(func(x): return x["rank"] == top)
+			if ti < 0:
+				var extra = _templates(top, vid)
+				if extra.is_empty():
+					break
+				gen.append(extra.pick_random())
+				ti = gen.size() - 1
+			var tm = gen.pop_at(ti)
+			if out.size() >= int(lim["max"]):
+				var ri = out.find_custom(func(x): return x["rank"] != top)
+				if ri >= 0:
+					out[ri] = tm
+			else:
+				out.append(tm)
 	for m in gen:
 		if out.size() >= int(lim["max"]):
 			break

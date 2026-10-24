@@ -14,4 +14,10 @@ func _ready() -> void:
 			var l = Missions.board_missions(Progress.home(), true)
 			got.append(",".join(l.map(func(m): return m["rank"])))
 		print("BOARD lv=%d limits=%s -> %s" % [lv, Missions.board_limits(Progress.home()), got])
+	# A-rank görevi kabul et (panodan düşer): pano hemen yeni A-rank göstermeli
+	var b = Missions.board_missions(Progress.home(), true)
+	for m in b.filter(func(x): return x["rank"] == "A"):
+		Missions._boards[Progress.home()]["list"] = (Missions._boards[Progress.home()]["list"] as Array).filter(func(x): return x["id"] != m["id"])
+	var after = Missions.board_missions(Progress.home())
+	print("AFTER_TAKE -> %s" % ",".join(after.map(func(m): return m["rank"])))
 	get_tree().quit()

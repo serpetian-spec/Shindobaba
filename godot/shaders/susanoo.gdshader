@@ -1,6 +1,6 @@
 // Susanoo: yarı saydam, kenarları parlayan, içinde alev gibi akan chakra
 shader_type spatial;
-render_mode unshaded, cull_disabled, depth_draw_never, blend_add;
+render_mode unshaded, cull_disabled, depth_draw_never, blend_mix;   // yarı saydam karışım: parlak gökyüzünde de rengi okunur (toplamalı karışım beyaza doyuyordu)
 
 uniform vec4 col : source_color = vec4(0.55, 0.35, 1.0, 1.0);
 uniform vec4 rim_col : source_color = vec4(0.55, 0.35, 1.0, 1.0);   // kenar rengi (iki tonlu Susanoo)
@@ -28,7 +28,14 @@ void fragment() {
 	float rim = pow(1.0 - clamp(abs(dot(NORMAL, VIEW)), 0.0, 1.0), 2.2);
 	float tt = TIME * flow_speed;
 	float flow = vnoise(wp.xz * 0.6 + vec2(0.0, -tt * 1.4) + wp.y * 0.4) * 0.6 + vnoise(wp.xy * 1.7 - vec2(tt * 0.8, tt * 2.0)) * 0.4;
-	float a = (0.12 + flow * 0.18) * density + rim * 0.75 * glow;
-	vec3 base = mix(col.rgb, rim_col.rgb, clamp(rim * 1.3, 0.0, 1.0));
-	ALBEDO = base * (0.5 + rim * 1.6 * glow + flow * 0.5) * a;
+	// iç çizgiler: akan gürültünün eş-yükselti eğrileri (animedeki Susanoo çizgi işçiliği)
+	float n2 = vnoise(wp.xy * 0.9 + vec2(wp.z * 0.7, -tt * 0.6)) * 0.6 + vnoise(wp.zy * 1.9 + vec2(tt * 0.3, -tt * 1.1)) * 0.4;
+	float lines = 1.0 - smoothstep(0.0, 0.07, abs(fract(n2 * 6.0) - 0.5) * 2.0 - 0.86);
+	lines = clamp(1.0 - smoothstep(0.02, 0.09, abs(fract(n2 * 6.0) - 0.5)), 0.0, 1.0);
+	float flick = 0.85 + 0.15 * sin(tt * 9.0 + wp.y * 2.0);
+	// katmanlar (gövde + zırh kabukları) toplamalı karışımda beyaza doymasın: iç dolgu düşük, kontur ve çizgiler belirgin
+	float a = (0.05 + flow * 0.08) * density + rim * 0.42 * glow + lines * 0.22 * glow;
+	vec3 base = mix(col.rgb, rim_col.rgb, clamp(rim * 1.3 + lines * 0.5, 0.0, 1.0));
+	ALBEDO = base * (0.75 + rim * 0.9 * glow + flow * 0.25 + lines * 0.55) * flick;
+	ALPHA = clamp(a * 1.5, 0.0, 0.8);
 }
