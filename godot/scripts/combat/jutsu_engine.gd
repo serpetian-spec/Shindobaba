@@ -28,6 +28,10 @@ static func scene() -> Node:
 
 
 static func color_of(d: Dictionary) -> Color:
+	# kara alev teknikleri (Amaterasu / Enton): turuncu ateş değil, mor kenarlı kara alev
+	var idn = String(d.get("id", ""))
+	if idn.begins_with("enton_") or idn.contains("amaterasu"):
+		return Color(0.35, 0.05, 0.45)
 	var el: String = d.get("element", "")
 	if el != "":
 		return Elements.color_of(el)

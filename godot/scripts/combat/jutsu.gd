@@ -1942,6 +1942,167 @@ func j_amaterasu(c: Node3D, t: Node3D) -> void:
 			flame.queue_free())
 
 
+## Kara alevden bir şekil (mızrak/kılıç/magatama): kara alev malzemesiyle yanan geometri
+func _black_mat() -> ShaderMaterial:
+	var m = VFX.mat_fire("black", 3.0, 2.6, 0.55, 1.0, 0.2, Vector3.UP, true)
+	m.set_shader_parameter("tongue", 0.5)
+	return m
+
+
+func _ignite(tg: Node3D, dur: float) -> void:
+	if tg == null or not is_instance_valid(tg) or tg.is_dead():
+		return
+	tg.apply_status("burn", dur)
+	tg.set_meta("black_flame", true)
+	var fl = VFX.black_flames(maxf(1.0, float(tg.height) * 0.6) if "height" in tg else 1.2)
+	tg.add_child(fl)
+	fl.position = Vector3(0, 0.1, 0)
+	get_tree().create_timer(dur).timeout.connect(func(): if is_instance_valid(fl): fl.queue_free())
+
+
+## Enton: Kagutsuchi — kara alevler kullanıcının arkasında beş uzun mızrağa dönüşür, sırayla fırlayıp hedefi çiviler;
+## değdiği yerde kara alev tutuşur, son mızrak yere saplanıp kara alev sütunu yükseltir
+func j_enton_kagutsuchi(c: Node3D, t: Node3D) -> void:
+	var tg = _tg(c, t, 45.0)
+	var aim: Vector3 = (tg.global_position + Vector3.UP * float(tg.height) * 0.5) if tg else _aim_ground(c, t, 20.0, 45.0) + Vector3.UP
+	Sfx.play("genjutsu", c.global_position, 0.5)
+	var inf = _inf(c, "enton_kagutsuchi", 0.45, {"knock": 10.0, "launch": 2.0, "kind": "heavy", "hitstop": 0.05, "element": "katon"})
+	var right = c.face_dir().cross(Vector3.UP).normalized()
+	for k in 5:
+		var mb = MB.new()
+		mb.add("cone", Vector3(0, 0, -1.1), Vector3(0.16, 1.6, 0.16), Color.WHITE, Vector3(-90, 0, 0), 8)   # uç
+		mb.add("cyl", Vector3(0, 0, 0.6), Vector3(0.09, 2.2, 0.09), Color.WHITE, Vector3(90, 0, 0), 8)   # sap
+		for sx in [-1.0, 1.0]:   # geriye kıvrık kanatçıklar
+			mb.add("cone", Vector3(0.18 * sx, 0, -0.35), Vector3(0.07, 0.6, 0.05), Color.WHITE, Vector3(-90, 0, 35 * sx), 5)
+		var sp = MeshInstance3D.new()
+		sp.mesh = mb.build(null)
+		sp.material_override = _black_mat()
+		sp.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		get_tree().current_scene.add_child(sp)
+		var a = lerpf(-1.0, 1.0, k / 4.0)
+		var start = c.global_position + Vector3.UP * (2.0 + (1.0 - absf(a)) * 0.6) + right * a * 1.8 - c.face_dir() * 0.6
+		sp.global_position = start
+		sp.scale = Vector3.ONE * 0.05
+		sp.look_at(aim, Vector3.UP)
+		var end = aim + Vector3(randf_range(-0.6, 0.6), randf_range(-0.4, 0.4), randf_range(-0.6, 0.6))
+		var fly = start.distance_to(end) / 55.0
+		var last = k == 4
+		var tw = sp.create_tween()
+		tw.tween_property(sp, "scale", Vector3.ONE, 0.25).set_trans(Tween.TRANS_BACK)
+		tw.tween_interval(0.15 + k * 0.12)
+		tw.tween_callback(func():
+			if is_instance_valid(sp):
+				sp.look_at(end, Vector3.UP)
+				VFX.puffs(sp.global_position, {"amount": 8, "life": 0.5, "size": 0.7, "radius": 0.3, "vmin": 1, "vmax": 3, "glow": 1.0, "stretch": 2.0,
+					"outline_col": Color(0.5, 0.1, 0.58), "colors": [Color(0.04, 0.0, 0.06, 1), Color(0.02, 0.0, 0.03, 0)]}))
+		tw.tween_property(sp, "global_position", end, fly)
+		tw.tween_callback(func():
+			for h in Combat.hit_sphere(c, end, 1.4, inf):
+				_ignite(h, 6.0)
+			VFX.black_smolder(_ground(end), 1.2, 5.0)
+			VFX.embers(end, Color(0.6, 0.15, 0.7), 10, 4.0, 0.8)
+			if last:
+				var gp = _ground(end)
+				var col = VFX.black_flames(2.4)
+				get_tree().current_scene.add_child(col)
+				col.global_position = gp
+				col.scale = Vector3(1.0, 2.2, 1.0)
+				for h in Combat.hit_sphere(c, gp + Vector3.UP * 1.5, 3.2, inf):
+					_ignite(h, 8.0)
+				get_tree().create_timer(3.0).timeout.connect(func(): if is_instance_valid(col): col.queue_free()))
+		tw.tween_interval(0.8 if not last else 0.2)
+		tw.tween_property(sp, "scale", Vector3.ONE * 0.01, 0.3)
+		tw.tween_callback(sp.queue_free)
+
+
+## Enton: Yasaka no Magatama — üç dönen kara alev magatamasi kullanıcının çevresinde tur atar, sonra arka arkaya
+## farklı kavislerle hedefe dalar; patladıkları yerde kara alev halkası açılır
+func j_enton_yasaka_no_magatama(c: Node3D, t: Node3D) -> void:
+	var tg = _tg(c, t, 50.0)
+	Sfx.play("genjutsu", c.global_position, 0.6)
+	var inf = _inf(c, "enton_yasaka_no_magatama", 0.4, {"knock": 14.0, "launch": 4.0, "kind": "heavy", "hitstop": 0.06, "element": "katon"})
+	var fallback = _aim_ground(c, t, 22.0, 50.0) + Vector3.UP
+	var holder = Node3D.new()
+	get_tree().current_scene.add_child(holder)
+	holder.global_position = c.global_position + Vector3.UP * 1.6
+	var mags = []
+	for k in 3:
+		var mb = MB.new()
+		mb.add("sphere", Vector3.ZERO, Vector3(0.7, 0.7, 0.7), Color.WHITE, Vector3.ZERO, 12)
+		mb.add("cone", Vector3(0.35, 0, 0.35), Vector3(0.3, 0.9, 0.22), Color.WHITE, Vector3(90, -45, 0), 8)   # virgül kuyruğu
+		var mi = MeshInstance3D.new()
+		mi.mesh = mb.build(null)
+		mi.material_override = _black_mat()
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		holder.add_child(mi)
+		var a = TAU * k / 3.0
+		mi.position = Vector3(cos(a), 0, sin(a)) * 1.6
+		mi.scale = Vector3.ONE * 0.05
+		mi.create_tween().tween_property(mi, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_BACK)
+		mags.append(mi)
+	holder.create_tween().tween_property(holder, "rotation:y", TAU * 1.5, 0.9)
+	for k in 3:
+		get_tree().create_timer(0.9 + k * 0.22).timeout.connect(func():
+			var mi: MeshInstance3D = mags[k]
+			if not is_instance_valid(mi):
+				return
+			var from = mi.global_position
+			mi.reparent(get_tree().current_scene)
+			var tgt: Vector3 = (tg.global_position + Vector3.UP * float(tg.height) * 0.5) if tg and is_instance_valid(tg) and not tg.is_dead() else fallback
+			var mid = (from + tgt) * 0.5 + Vector3.UP * (3.0 + k) + (from - tgt).cross(Vector3.UP).normalized() * (k - 1) * 4.0
+			var dur = clampf(from.distance_to(tgt) / 40.0, 0.25, 1.2)
+			var tw = mi.create_tween()
+			tw.tween_method(func(x: float):
+				if is_instance_valid(mi):
+					mi.global_position = from.lerp(mid, x).lerp(mid.lerp(tgt, x), x)
+					mi.rotation.y += 0.5, 0.0, 1.0, dur)
+			tw.tween_callback(func():
+				for h in Combat.hit_sphere(c, tgt, 2.6, inf):
+					_ignite(h, 7.0)
+				VFX.shockwave(tgt, Color(0.2, 0.0, 0.25), 4.0, 0.5, false)
+				VFX.black_smolder(_ground(tgt), 2.0, 6.0)
+				VFX.embers(tgt, Color(0.6, 0.15, 0.7), 14, 5.0, 0.9)
+				mi.queue_free()))
+	get_tree().create_timer(2.0).timeout.connect(holder.queue_free)
+
+
+## Amaterasu: Entenka — kara alevler bedene zırh gibi sarılır: dokunanı tutuşturur, hasarı azaltır (8 sn)
+func j_amaterasu_entenka(c: Node3D, t: Node3D) -> void:
+	Sfx.play("genjutsu", c.global_position, 0.7)
+	var fl = VFX.black_flames(0.95 / maxf(1.0, VFX.epic))   # bedene oturan zırh (rütbe ölçeğiyle devleşmesin)
+	c.add_child(fl)
+	fl.position = Vector3(0, 0.15, 0)
+	fl.scale = Vector3(1.0, 1.15, 1.0)
+	if c is Player:
+		Buffs.add("entenka", 8.0, {"armor": 0.6})
+	var inf = _inf(c, "amaterasu_entenka", 0.12, {"knock": 6.0, "kind": "light", "hitstop": 0.0, "element": "katon"})
+	_ticks(16, 0.5, func(_i):
+		if not is_instance_valid(c):
+			return
+		for h in Combat.hit_sphere(c, c.global_position + Vector3.UP, 2.2, inf):
+			if not h.has_meta("black_flame"):
+				_ignite(h, 5.0)
+		VFX.embers(c.global_position + Vector3.UP, Color(0.6, 0.15, 0.7), 4, 2.0, 0.7), func():
+		if is_instance_valid(fl):
+			fl.queue_free())
+
+
+## Tensha Fūin: Amaterasu — göze mühürlenmiş kara alev: 20 sn içinde yaklaşan ilk düşmana kendiliğinden ateşlenir
+func j_tensha_fuin_amaterasu(c: Node3D, t: Node3D) -> void:
+	Sfx.play("seal", c.global_position, 0.8)
+	if c is Player:
+		Hud.msg("Kopya mühür kuruldu: yaklaşan ilk düşman kara alevle karşılanacak.", Color(0.8, 0.5, 1.0))
+	VFX.shockwave(c.global_position + Vector3.UP * 1.6, Color(0.3, 0.0, 0.35), 2.0, 0.5, false)
+	var fired = [false]
+	_ticks(40, 0.5, func(_i):
+		if fired[0] or not is_instance_valid(c):
+			return
+		var e = Combat.nearest_enemy(c, 12.0)
+		if e:
+			fired[0] = true
+			Combat.popup_text(c.global_position + Vector3.UP * 2.4, "Amaterasu!", Color(0.85, 0.35, 0.95))
+			j_amaterasu(c, e))
+
 ## Tsukuyomi: göz göze gelen hedef kırmızı-siyah illüzyon dünyasına hapsolur
 func j_tsukuyomi(c: Node3D, t: Node3D) -> void:
 	var tg = _tg(c, t, 20.0)
