@@ -74,7 +74,7 @@ func _process(dt: float) -> void:
 		return
 	var p = anchor.global_position
 	glow.global_position = p
-	glow.visible = anchor.is_visible_in_tree()
+	glow.visible = false   # gözün üstündeki parıltı deseni kapatıyordu: iz gözden biraz uzakta başlar
 	for e in pts:
 		e[1] += dt
 	while not pts.is_empty() and pts[-1][1] > LIFE:
@@ -103,7 +103,10 @@ func _rebuild() -> void:
 		var k0 = 1.0 - pts[i][1] / LIFE; var k1 = 1.0 - pts[i + 1][1] / LIFE
 		var s0 = d.cross(cp - p0).normalized() * width * 0.5 * k0
 		var s1 = d.cross(cp - p1).normalized() * width * 0.5 * k1
-		var c0 = Color(col.r, col.g, col.b, k0 * 0.9); var c1 = Color(col.r, col.g, col.b, k1 * 0.9)
+		# gözün hemen yanında iz görünmez (Sharingan deseni okunur), 4-12 cm geride belirir
+		var a0 = smoothstep(0.04, 0.12, p0.distance_to(anchor.global_position))
+		var a1 = smoothstep(0.04, 0.12, p1.distance_to(anchor.global_position))
+		var c0 = Color(col.r, col.g, col.b, k0 * 0.9 * a0); var c1 = Color(col.r, col.g, col.b, k1 * 0.9 * a1)
 		for v in [[p0 + s0, c0], [p1 + s1, c1], [p1 - s1, c1], [p0 + s0, c0], [p1 - s1, c1], [p0 - s0, c0]]:
 			im.surface_set_color(v[1])
 			im.surface_add_vertex(v[0])
