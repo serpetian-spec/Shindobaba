@@ -272,28 +272,55 @@ func _build_mesh() -> ArrayMesh:
 			for k in 7:
 				b.add("sphere", Vector3(randf_range(-1.0, 1.0), randf_range(2.2, 3.4), randf_range(0.3, 0.75)), Vector3(0.25, 0.12, 0.2), mo.lightened(0.1), Vector3.ZERO, 6)
 		"beetle":
-			# dev parazit kınkanatlı: parlak kara kabuk, boynuzlu kafa, altı bacak
-			var sh = Color(0.12, 0.14, 0.1)
-			b.add("sphere", Vector3(0, 0.55, 0.15), Vector3(1.1, 0.7, 1.5), sh, Vector3.ZERO, 10)
-			b.add("box", Vector3(0, 0.75, 0.15), Vector3(0.03, 0.3, 1.4), Color(0.3, 0.35, 0.22))
-			b.add("sphere", Vector3(0, 0.5, -0.75), Vector3(0.6, 0.45, 0.5), sh.darkened(0.2), Vector3.ZERO, 8)
-			b.add("cone", Vector3(0, 0.75, -1.05), Vector3(0.12, 0.6, 0.12), sh, Vector3(-60, 0, 0), 5)
+			# dev parazit kınkanatlı (Kidaichū): ortadan ayrılan parlak kanat kınları, iri çatallı boynuz, segmentli altı bacak, antenler
+			var sh = Color(0.1, 0.13, 0.09)
+			var hi = Color(0.32, 0.42, 0.24)
+			var dk = Color(0.05, 0.05, 0.04)
+			var shell = func(_t: float, a: float, d: Vector3) -> Color:
+				return hi if d.y > 0.75 else (sh if d.y > -0.2 else dk)
+			for sx in [-1.0, 1.0]:   # iki ayrı kanat kını, aralarında yarık
+				Loft.tube(b, [Vector3(0.2 * sx, 0.55, 0.85), Vector3(0.28 * sx, 0.7, 0.35), Vector3(0.27 * sx, 0.7, -0.15), Vector3(0.18 * sx, 0.6, -0.4)], [Vector2(0.24, 0.24), Vector2(0.3, 0.3), Vector2(0.3, 0.3), Vector2(0.22, 0.2)], sh, 14, 3, true, true, shell)
+			b.add("box", Vector3(0, 0.88, 0.2), Vector3(0.03, 0.04, 1.2), dk)   # orta yarık
+			Loft.tube(b, [Vector3(0, 0.5, -0.4), Vector3(0, 0.55, -0.62), Vector3(0, 0.52, -0.8)], [Vector2(0.4, 0.28), Vector2(0.38, 0.27), Vector2(0.28, 0.22)], sh, 14, 2, true, true, shell)   # göğüs kalkanı
+			Loft.tube(b, [Vector3(0, 0.45, -0.8), Vector3(0, 0.42, -1.0)], [Vector2(0.24, 0.18), Vector2(0.2, 0.15)], dk, 12, 1)   # baş
+			# çatallı boynuz
+			Loft.tube(b, [Vector3(0, 0.5, -1.0), Vector3(0, 0.75, -1.35), Vector3(0, 1.05, -1.45)], [0.08, 0.06, 0.035], sh, 8, 3, true, false)
 			for sx in [-1.0, 1.0]:
-				b.add("sphere", Vector3(0.18 * sx, 0.6, -0.95), Vector3(0.1, 0.08, 0.06), Color(0.85, 0.2, 0.1), Vector3.ZERO, 6)
-				for fz in [-0.35, 0.15, 0.6]:
-					b.add("cyl", Vector3(0.62 * sx, 0.3, fz), Vector3(0.07, 0.6, 0.07), sh, Vector3(0, 0, 55 * sx), 4)
+				b.add("cone", Vector3(0.08 * sx, 1.12, -1.45), Vector3(0.035, 0.18, 0.035), sh, Vector3(0, 0, -35 * sx), 5)
+				b.add("sphere", Vector3(0.16 * sx, 0.48, -0.98), Vector3(0.07, 0.06, 0.05), Color(0.95, 0.3, 0.1), Vector3.ZERO, 6)   # göz
+				Loft.tube(b, [Vector3(0.1 * sx, 0.5, -1.02), Vector3(0.22 * sx, 0.62, -1.25), Vector3(0.32 * sx, 0.6, -1.4)], [0.015, 0.012, 0.008], dk, 5, 2, true, false)   # anten
+				b.add("cone", Vector3(0.12 * sx, 0.32, -1.06), Vector3(0.04, 0.16, 0.04), dk, Vector3(-60, 0, 25 * sx), 4)   # kıskaç
+				for fz in [-0.6, -0.25, 0.15]:   # segmentli bacaklar (yukarı kıvrık diz)
+					var hip = Vector3(0.28 * sx, 0.42, fz)
+					var knee = hip + Vector3(0.32 * sx, 0.22, fz * 0.15)
+					var foot = Vector3(0.75 * sx, 0.02, fz + fz * 0.25)
+					Loft.tube(b, [hip, knee], [0.045, 0.035], dk, 6, 1)
+					Loft.tube(b, [knee, foot], [0.035, 0.015], dk, 6, 1)
+					b.add("sphere", knee, Vector3.ONE * 0.06, sh, Vector3.ZERO, 6)
 		"bee":
-			# dev eşek arısı: sarı-siyah çizgili karın, iğne, şeffafımsı kanatlar
-			var y = Color(0.95, 0.75, 0.12)
-			var k = Color(0.1, 0.08, 0.06)
-			b.add("sphere", Vector3(0, 0, -0.45), Vector3(0.36, 0.34, 0.36), k, Vector3.ZERO, 8)
-			b.add("sphere", Vector3(0, 0, 0), Vector3(0.38, 0.36, 0.5), y.darkened(0.2), Vector3.ZERO, 8)
-			for i in 4:
-				b.add("sphere", Vector3(0, -0.04, 0.4 + i * 0.16), Vector3(0.42 - i * 0.06, 0.4 - i * 0.06, 0.2), y if i % 2 == 0 else k, Vector3.ZERO, 8)
-			b.add("cone", Vector3(0, -0.05, 1.05), Vector3(0.07, 0.35, 0.07), k, Vector3(90, 0, 0), 5)
+			# dev eşek arısı: tüylü toraks, ince bel, sarı-siyah çizgili sivri karın, iğne, iri bileşik gözler, damarlı yarı saydam kanatlar
+			var y = Color(0.98, 0.78, 0.12)
+			var k = Color(0.08, 0.06, 0.05)
+			Loft.tube(b, [Vector3(0, 0, -0.68), Vector3(0, 0.02, -0.5)], [Vector2(0.2, 0.18), Vector2(0.18, 0.17)], k, 12, 1)   # baş
 			for sx in [-1.0, 1.0]:
-				b.add("sphere", Vector3(0.14 * sx, 0.06, -0.62), Vector3(0.12, 0.14, 0.1), Color(0.6, 0.1, 0.05), Vector3.ZERO, 6)
-				b.add("box", Vector3(0.45 * sx, 0.25, -0.05), Vector3(0.75, 0.02, 0.3), Color(0.85, 0.92, 1.0), Vector3(0, 10 * sx, 15 * sx))
+				b.add("sphere", Vector3(0.14 * sx, 0.04, -0.62), Vector3(0.13, 0.17, 0.14), Color(0.55, 0.1, 0.06), Vector3(0, 0, -10 * sx), 8)   # bileşik göz
+				Loft.tube(b, [Vector3(0.05 * sx, 0.14, -0.74), Vector3(0.12 * sx, 0.35, -0.88), Vector3(0.2 * sx, 0.42, -0.95)], [0.014, 0.012, 0.01], k, 5, 2, true, false)   # anten
+				b.add("cone", Vector3(0.06 * sx, -0.12, -0.78), Vector3(0.03, 0.1, 0.03), y.darkened(0.3), Vector3(-30, 0, 20 * sx), 4)   # çene
+			b.add_grad("sphere", Vector3(0, 0.03, -0.25), Vector3(0.42, 0.4, 0.46), y.darkened(0.25), k, Vector3.ZERO, 12)   # tüylü toraks
+			b.add("cyl", Vector3(0, 0, 0.02), Vector3(0.1, 0.12, 0.1), k, Vector3(90, 0, 0), 8)   # ince bel
+			var bands = 6
+			for i in bands:
+				var t = float(i) / (bands - 1)
+				var r = lerpf(0.26, 0.07, t * t)
+				b.add("sphere", Vector3(0, -0.04 - t * 0.12, 0.2 + t * 0.68), Vector3(r * 1.9, r * 1.8, 0.24), y if i % 2 == 0 else k, Vector3(-12, 0, 0), 10)
+			b.add("cone", Vector3(0, -0.2, 1.02), Vector3(0.04, 0.3, 0.04), k, Vector3(100, 0, 0), 5)   # iğne
+			for sx in [-1.0, 1.0]:
+				for wi in 2:   # ön ve arka kanat çifti
+					var wl = 0.85 - wi * 0.25
+					b.add("box", Vector3((0.15 + wl * 0.5) * sx, 0.22 - wi * 0.02, -0.25 + wi * 0.22), Vector3(wl, 0.012, 0.3 - wi * 0.06), Color(0.82, 0.92, 1.0), Vector3(0, (8 + wi * 14) * sx, 12 * sx))
+					b.add("box", Vector3((0.15 + wl * 0.5) * sx, 0.23 - wi * 0.02, -0.25 + wi * 0.22), Vector3(wl * 0.9, 0.014, 0.012), Color(0.35, 0.3, 0.25), Vector3(0, (8 + wi * 14) * sx, 12 * sx))   # damar
+				for fz in [-0.35, -0.2, -0.05]:
+					Loft.tube(b, [Vector3(0.12 * sx, -0.12, fz), Vector3(0.22 * sx, -0.3, fz + 0.05), Vector3(0.2 * sx, -0.5, fz + 0.15)], [0.025, 0.02, 0.012], k, 5, 2, true, false)
 	return b.build(Props.toon())
 
 
