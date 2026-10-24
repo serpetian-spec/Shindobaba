@@ -986,6 +986,9 @@ func _spawn_boss(b: Dictionary, kind: String, at: Vector3) -> Enemy:
 	a["ryo"] = int(b.get("level", 20)) * 20
 	if b.has("look"):
 		a["look"] = b["look"]
+	# tarz + rütbeye göre dövüş ustalığı: her boss farklı dövüşür (aynı görev hep aynı tarz)
+	var mr = String(active().get("rank", "B"))
+	BossStyles.dress(a, String(b.get("rank", mr)), hash(String(a["name"]) + String(active().get("title", ""))), String(b.get("style", "")))
 	e.setup(a)
 	e.set_meta("mission", true)
 	e.set_meta("q", _key())
@@ -1956,6 +1959,10 @@ func _bb_spawn(e: Dictionary, at: Vector3) -> void:
 		a["name"] = "«%s» %s — Jinchūriki" % [e["alias"], e["name"]]
 		a["hp"] = float(e["hp"]) * 1.6
 	ClanWorld.bingo_arch(e, a)   # klan / efsane jutsuları
+	if not e.has("beast") and String(a.get("clan", "")) == "":
+		BossStyles.dress(a, String(e.get("rank", "B")), int(e["id"]) * 7919, String(e.get("style", "")))
+	else:
+		a["skill"] = float(BossStyles.RANK_SKILL.get(String(e.get("rank", "B")), 0.55))
 	var b = Enemy.new()
 	b.setup(a)
 	b.set_meta("bingo_id", int(e["id"]))

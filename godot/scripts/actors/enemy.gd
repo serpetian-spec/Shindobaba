@@ -249,6 +249,8 @@ func _physics_process(dt: float) -> void:
 		model.play("idle" if has_status("bind") else "hit", 0.2, 0.3)
 		return
 	_think(dt)
+	if arch.has("style"):
+		BossStyles.tick(self, dt)
 	match state:
 		"idle":
 			_patrol(dt)
@@ -415,7 +417,7 @@ func _beast_tech(d: float) -> void:
 
 
 func _swing() -> void:
-	var anims = ["jab", "cross", "slash_a", "hook"] if arch.get("kind") != "samurai" else ["slash_a", "slash_b", "slash_c"]
+	var anims = ["jab", "cross", "slash_a", "hook"] if arch.get("kind") != "samurai" and arch.get("kind_anim", "") != "sword" else ["slash_a", "slash_b", "slash_c"]
 	model.play(anims.pick_random(), 0.05, 1.3 + skill * 0.45, true)
 	model.flash(0.25)  # saldırı öncesi küçük uyarı
 	set_meta("swung", false)
