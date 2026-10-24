@@ -1866,7 +1866,7 @@ func spawn_scroll_thief() -> void:
 
 # ------------------------------------------------------------------ BINGO KİTABI (Aranıyor listesi)
 const BB_GIVEN := ["Raizen", "Kurogiri", "Tsubame", "Gendo", "Hisame", "Akagane", "Somaru", "Kagenari", "Yatsume", "Onibi", "Garyu",
-	"Fuyuki", "Benizuru", "Takuro", "Nokaze", "Hagane", "Ibuse", "Kurotetsu", "Shimon", "Ugetsu", "Zanpa", "Rokuro", "Sazame", "Tobimaru"]
+	"Fuyuki", "Benizuru", "Takuro", "Nokaze", "Hagane", "Isaburo", "Kurotetsu", "Shimon", "Ugetsu", "Zanpa", "Rokuro", "Sazame", "Tobimaru"]
 const BB_FAMILY := ["Mizoguchi", "Kaneda", "Arashiyama", "Kurobane", "Hoshigane", "Kirisame", "Shirakawa", "Tsukiyama", "Iwakura",
 	"Raimon", "Sunagawa", "Kagemura", "Onizuka", "Yamikawa", "Fujimaki", "Kurokage"]
 const BB_ALIAS := ["Kızıl Tilki", "Sessiz Çekiç", "Sis Hayaleti", "Kemik Kıran", "Gece Kargası", "Kum Akrebi", "Fırtına Dişi", "Zehirli Gül",

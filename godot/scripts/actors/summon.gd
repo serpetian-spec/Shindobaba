@@ -11,7 +11,7 @@ var owner_f: Node3D = null
 var scale_m = 1.0
 var life = 60.0
 var cd = 1.0
-var special_cd = 6.0
+var special_cd = 1.0   # imza tekniği çağrılır çağrılmaz (hedef menzildeyse)
 var combo_cd = 0.0
 var tgt: Node3D = null
 var parts := {}
@@ -242,13 +242,14 @@ func _support(role: String, dt: float) -> void:
 		"genjutsu":
 			if cd <= 0.0 and tgt and tgt.global_position.distance_to(global_position) < 20.0:
 				cd = 6.0
-				tgt.apply_status("stun", 2.0)
-				Combat.popup_text(tgt.global_position + Vector3.UP * 2.2, "Karga Genjutsusu!", Color(0.8, 0.3, 0.35))
-				FX.burst(tgt.global_position + Vector3.UP * 1.5, {"amount": 20, "life": 0.8, "add": false, "size": 0.4, "vmin": 2, "vmax": 5,
-					"colors": [Color(0.08, 0.08, 0.1, 1), Color(0.1, 0.1, 0.12, 0)]})
+				_special()
 		"tank":
 			if owner_f:
 				Buffs.add("summon_tank", 1.5, {"armor": 0.75})
+	# destek çağrıları da imza tekniğini kullanır (iz sürücü, tank, şifacı değil)
+	if role in ["tracker", "tank"] and special_cd <= 0.0 and tgt and is_instance_valid(tgt) and not tgt.is_dead() and tgt.global_position.distance_to(global_position) < 25.0:
+		special_cd = 8.0
+		_special()
 
 
 func _mark(f: Node3D, col: Color) -> void:
@@ -323,54 +324,147 @@ func _attack() -> void:
 		Sfx.play("punch", pt)
 
 
-## Özel hareket: türe göre (dil kamçısı, sarma, asit dalgası, rüzgar, sis, ağ...)
+## İmza teknikleri: her çağrı kendi tekniğini çağrıldıktan hemen sonra (ilk özel bekleme ~1 sn) ve aralıklarla kullanır.
+## Tekniğin adı ekrana yazılır (oyuncu ne olduğunu görsün)
+const SIG_NAME := {"toad_small": "Kurbağa Gözcülüğü", "toad_mid": "Dil Kamçısı", "toad_boss": "Suiton: Teppōdama", "snake_swarm": "Sen'ei Jashu",
+	"snake_giant": "Yılan Sarması", "snake_boss": "Hükümdarın Sarması", "slug_acid": "Zesshi Nensan (Asit Püskürtme)", "slug_queen": "Bölünme: Şifa Dalgası",
+	"hawk_small": "Keskin Göz", "hawk_mount": "Kanat Fırtınası", "hawk_giant": "Gök Kasırgası", "dog_small": "Ninken Takibi", "dog_pack": "Doton: Ninken Tuzağı",
+	"wolf_giant": "Çift Çene Saldırısı", "monkey_small": "Maymun Atlayışı", "crow_flock": "Karga Yanılsaması", "salamander": "Zehir Sisi",
+	"turtle_small": "Kabuk Kalkanı", "turtle_giant": "Ada Kabuğu: Dönen Kale", "weasel_trio": "Kamaitachi no Jutsu", "cat_small": "Kedi Pençesi",
+	"cat_giant": "Kedi Ruhu Alevi", "spider": "Kumo Shibari (Örümcek Ağı)"}
+
+
 func _special() -> void:
 	var model: String = def.get("model", "")
 	var role: String = def.get("role", "")
+	var nm = String(SIG_NAME.get(model, ""))
+	if nm != "":
+		Combat.popup_text(global_position + Vector3.UP * (height + 1.2), nm + "!", Contracts.DEFS[contract]["color"].lightened(0.35))
+	var dmg: float = def.get("dmg", 20.0)
 	match model:
 		"toad_mid":
 			if tgt:  # dil ile yakala ve çek
+				var from = global_position + Vector3.UP * height * 0.5
+				VFX.bolt(from, tgt.global_position + Vector3.UP, Color(0.95, 0.45, 0.55), 0.18, 0.3, 0)
 				var v = global_position - tgt.global_position
 				tgt.velocity = v.normalized() * minf(25.0, v.length() * 2.0) + Vector3.UP * 3.0
 				tgt.apply_status("stun", 1.0)
-				say("Dil kamçısı!", 1.5)
 		"toad_boss":
 			_water_gun(tgt, 3.0)
+		"snake_swarm":
+			if tgt:   # yılanlar kollardan fırlayıp bağlar
+				for k in 4:
+					var a = TAU * k / 4.0
+					VFX.bolt(global_position + Vector3(cos(a), 0.3, sin(a)), tgt.global_position + Vector3.UP, Color(0.55, 0.35, 0.75), 0.12, 0.4, 0)
+				tgt.apply_status("bind", 2.0)
+				Combat.hit_sphere(self, tgt.global_position + Vector3.UP, 1.2, {"dmg": dmg * 0.5, "knock": 0.0, "kind": "light"})
 		"snake_giant", "snake_boss":
-			if tgt:  # sarma: uzun bağlama
+			if tgt:  # sarma: uzun bağlama, çevresinde dönen halkalar
 				tgt.apply_status("bind", 2.5 + tier)
-				Combat.hit_sphere(self, tgt.global_position + Vector3.UP, 2.0 + height * 0.2, {"dmg": def.get("dmg", 30.0) * 0.6, "knock": 0.0, "kind": "light"})
-				FX.ring(tgt.global_position + Vector3.UP, Color(0.6, 0.4, 0.8), 2.0 + height * 0.15, 0.6, false)
-				say("Sarıldın, kaçamazsın!", 1.6)
+				Combat.hit_sphere(self, tgt.global_position + Vector3.UP, 2.0 + height * 0.2, {"dmg": dmg * 0.6, "knock": 0.0, "kind": "light"})
+				for k in 3:
+					FX.ring(tgt.global_position + Vector3.UP * (0.5 + k * 0.6), Color(0.6, 0.4, 0.8), 1.6 + height * 0.1, 0.8, false)
+		"slug_acid":
+			if tgt:   # dilinden yere asit püskürtür, değdiği yer erir
+				var at = tgt.global_position
+				for k in 5:
+					_acid(at + Vector3(randf_range(-2, 2), 0.3, randf_range(-2, 2)), dmg * 0.4)
 		"slug_queen":
 			_split_heal()
+		"hawk_small":
+			if tgt:
+				_mark(tgt, Color(1.0, 0.85, 0.3))
+				tgt.apply_status("slow", 2.0)
 		"hawk_mount", "hawk_giant":
 			_gust()
+		"dog_small":
+			if tgt:   # izini sürüp topuğundan ısırır
+				_mark(tgt, Color(1.0, 0.6, 0.3))
+				tgt.apply_status("slow", 2.5)
+				Combat.hit_sphere(self, tgt.global_position + Vector3.UP * 0.4, 1.2, {"dmg": dmg * 0.6, "knock": 2.0, "kind": "light"})
 		"wolf_giant", "dog_pack":
-			if tgt:
+			if tgt:   # köpekler yerden fırlayıp ısırır ve tutar
+				var at = tgt.global_position
+				for k in 6:
+					var q = at + Vector3(cos(k * 1.05), 0, sin(k * 1.05)) * 1.4
+					VFX.debris(q, Color(0.5, 0.42, 0.32), 6, 6.0)
+				FX.ring(at + Vector3.UP * 0.2, Color(0.55, 0.45, 0.35), 3.0, 0.4)
 				tgt.apply_status("bind", 2.0)
-				say("Isır ve tut!", 1.5)
+				Combat.hit_sphere(self, at + Vector3.UP, 1.8, {"dmg": dmg * 0.7, "knock": 0.0, "kind": "heavy"})
+		"monkey_small":
+			if tgt:   # havaya sıçrayıp tepeden tekme
+				var land = tgt.global_position
+				var from = global_position
+				var tw = create_tween()
+				tw.tween_method(func(x: float):
+					if is_instance_valid(self):
+						global_position = from.lerp(land, x) + Vector3.UP * sin(x * PI) * 4.0, 0.0, 1.0, 0.5)
+				tw.tween_callback(func():
+					Combat.hit_sphere(self, land + Vector3.UP, 1.8, {"dmg": dmg * 1.2, "knock": 10.0, "launch": 5.0, "kind": "heavy"})
+					FX.impact(land + Vector3.UP * 0.5, Color(1, 0.85, 0.5), 1.0))
+		"crow_flock":
+			_crow_genjutsu()
 		"salamander":
 			_poison_mist(global_position + face_dir() * 6.0, 10.0 + height)
+		"turtle_small", "turtle_giant":
+			_shell(model == "turtle_giant")
 		"weasel_trio":
 			for i in 3:
 				var d = face_dir().rotated(Vector3.UP, (i - 1) * 0.3)
 				for k in 5:
-					Combat.hit_sphere(self, global_position + Vector3.UP + d * (2.0 + k * 2.5), 1.4, {"dmg": def.get("dmg", 20.0) * 0.6, "knock": 6.0, "kind": "light", "element": "fuuton", "dir": d})
+					Combat.hit_sphere(self, global_position + Vector3.UP + d * (2.0 + k * 2.5), 1.4, {"dmg": dmg * 0.6, "knock": 6.0, "kind": "light", "element": "fuuton", "dir": d})
+				FX.ring(global_position + Vector3.UP + d * 7.0, Color(0.85, 1.0, 0.9), 3.0, 0.3, false, d)
 			FX.speed_lines(global_position + Vector3.UP, face_dir())
 			Sfx.play("wind", global_position, 1.3)
+		"cat_small":
+			if tgt:   # üç pençe izi
+				for k in 3:
+					get_tree().create_timer(k * 0.12).timeout.connect(func():
+						if is_instance_valid(tgt) and is_instance_valid(self):
+							Combat.hit_sphere(self, tgt.global_position + Vector3.UP, 1.2, {"dmg": dmg * 0.45, "knock": 2.0, "kind": "light"})
+							FX.hit_spark(tgt.global_position + Vector3.UP, Color(1, 0.9, 0.7), 0.8))
 		"cat_giant":
 			if tgt:
-				Combat.hit_sphere(self, tgt.global_position + Vector3.UP, 4.0, {"dmg": def.get("dmg", 50.0) * 0.8, "knock": 10.0, "kind": "heavy", "element": "katon"})
+				Combat.hit_sphere(self, tgt.global_position + Vector3.UP, 4.0, {"dmg": dmg * 0.8, "knock": 10.0, "kind": "heavy", "element": "katon"})
 				FX.impact(tgt.global_position + Vector3.UP, Color(0.35, 0.6, 1.0), 2.5)
+				VFX.embers(tgt.global_position + Vector3.UP, Color(0.4, 0.65, 1.0), 20, 6.0, 1.0)
 		"spider":
 			if tgt:
 				tgt.apply_status("bind", 3.0)
+				for k in 6:
+					var a = TAU * k / 6.0
+					VFX.bolt(tgt.global_position + Vector3(cos(a) * 2.2, 0.2, sin(a) * 2.2), tgt.global_position + Vector3.UP * 1.2, Color(0.95, 0.95, 0.9), 0.06, 0.8, 0)
 				FX.ring(tgt.global_position + Vector3.UP * 0.5, Color(0.95, 0.95, 0.9), 2.5, 0.6)
-				say("Ağa takıldın!", 1.5)
 		_:
 			if role == "fighter" and tgt:
 				_attack()
+
+
+## Karga sürüsü: hedefin çevresinde kargalar dağılır, göz göze gelen sersemler (genjutsu)
+func _crow_genjutsu() -> void:
+	var c = tgt.global_position if tgt else global_position + face_dir() * 6.0
+	for f in get_tree().get_nodes_in_group("fighters"):
+		if Combat.hostile(self, f) and not f.is_dead() and f.global_position.distance_to(c) < 8.0:
+			f.apply_status("stun", 2.0)
+	FX.burst(c + Vector3.UP * 1.5, {"amount": 40, "life": 1.2, "add": false, "size": 0.45, "vmin": 3, "vmax": 8,
+		"colors": [Color(0.06, 0.06, 0.08, 1), Color(0.1, 0.1, 0.12, 0)]})
+	FX.ring(c + Vector3.UP * 1.6, Color(0.75, 0.1, 0.15), 3.5, 0.5, false)
+
+
+## Kaplumbağa: sahibinin önünde kabuk kalkanı (hasar azaltma); dev olanı kabuğuna çekilip dönerek çarpar
+func _shell(giant: bool) -> void:
+	if owner_f:
+		Buffs.add("summon_tank", 5.0, {"armor": 0.5})
+		FX.ring(owner_f.global_position + Vector3.UP * 1.0, Color(0.4, 0.7, 0.5), 2.4, 0.6, false)
+	if giant:
+		var o = global_position
+		var tw = create_tween()
+		tw.tween_property(parts["root"], "rotation:y", parts["root"].rotation.y + TAU * 2.0, 1.2)
+		for k in 5:
+			get_tree().create_timer(k * 0.24).timeout.connect(func():
+				if is_instance_valid(self):
+					Combat.hit_sphere(self, global_position + Vector3.UP * height * 0.4, radius + height * 0.3, {"dmg": def.get("dmg", 40.0) * 0.5, "knock": 16.0, "launch": 4.0, "kind": "heavy"})
+					FX.ring(o + Vector3.UP * 0.4, Color(0.4, 0.6, 0.45), radius + height * 0.6, 0.3))
 
 
 func _water_gun(t: Node3D, scale := 1.0) -> void:
@@ -486,21 +580,39 @@ func combo(el: String) -> void:
 
 # ------------------------------------------------------------------ maymun kral: elmas asa
 func _become_staff() -> void:
-	say("Elmas asa oluyorum!", 2.0)
+	# önce Maymun Kral görünür, sahibine döner ve konuşur; sonra dumanla elmas asaya dönüşüp ele geçer
+	say(String(def.get("lines", ["Elmas asaya dönüşüyorum!"]).pick_random()), 2.2)
+	await get_tree().create_timer(1.8).timeout
+	if dead or not is_instance_valid(owner_f):
+		return
+	FX.smoke_puff(global_position + Vector3.UP * height * 0.5, 1.4, 22)
+	Sfx.play("poof", global_position, 1.0)
+	if is_instance_valid(owner_f):
+		FX.smoke_puff(owner_f.global_position + Vector3.UP * 1.1, 0.8, 12)
 	var pr = Game.profile
 	Gear.ensure(pr)
-	var uid = Gear.grant(pr, "bo", "", Color(0.9, 0.85, 0.75), null, {"_tmp": true})
+	var prev_r = pr["equip"].get("sag", -1)
+	var uid = Gear.grant(pr, "kongo_asa", "", null, null, {"_tmp": true})
 	pr["equip"]["sag"] = uid
 	Gear.apply_look(pr)
 	if Game.player:
 		Game.player.rebuild_model()
+		await get_tree().process_frame
+		if Game.player and Game.player.model:
+			Game.player.model.set_drawn(true, false)   # asa elde (kınında/sırtta değil)
+	Hud.msg("Maymun Kral elmas asaya dönüştü: asa vuruşta uzar.", Color(0.95, 0.8, 0.35))
 	visible = false
 	collision_layer = 0
 	get_tree().create_timer(minf(life, 45.0)).timeout.connect(func():
+		# süre bitti: asa yeniden maymuna döner, sahibinin silahı geri gelir
+		if is_instance_valid(owner_f):
+			FX.smoke_puff(owner_f.global_position + Vector3.UP * 1.1, 1.0, 14)
 		var g = Gear.find(pr, uid)
 		if not g.is_empty():
 			pr["gear"].erase(g)
 		pr["equip"].erase("sag")
+		if prev_r != null and int(prev_r) >= 0 and not Gear.find(pr, int(prev_r)).is_empty():
+			pr["equip"]["sag"] = int(prev_r)
 		Gear.apply_look(pr)
 		if Game.player:
 			Game.player.rebuild_model()

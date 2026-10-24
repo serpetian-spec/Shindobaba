@@ -14,12 +14,12 @@ const TIER_LEVEL := [1, 8, 18]
 ## Sözleşmeler. realm: gizli yer (sennin eğitimi + sözleşme), sage: sennin modu var mı
 const DEFS := {
 	"kurbağa": {"name": "Kurbağa Sözleşmesi", "animal": "Kurbağalar", "realm": "Gamayama: Kurbağa Dağı", "sage": true, "color": Color(1.0, 0.55, 0.15),
-		"sage_name": "Kurbağa Sennin Modu", "elder": "Bilge Gerotora", "realm_target": Vector2(6500, -7500),
+		"sage_name": "Kurbağa Sennin Modu", "elder": "Bilge Gamasen", "realm_target": Vector2(6500, -7500),
 		"intro": "Dev mantarların ve kurbağa yağı şelalelerinin dağına hoş geldin, yavrum. Sözleşmeyi kanınla imzalarsan kurbağalar sana yoldaş olur.",
 		"tiers": {
 			0: {"name": "Haberci Kurbağa Kero", "model": "toad_small", "h": 0.55, "hp": 60.0, "role": "scout", "dmg": 8.0, "speed": 8.0,
 				"lines": ["Kero kero! Atıştırmalık getirdin mi?", "Etrafa bakarım, düşman görünce bağırırım!", "Yine mi işe çağırdın beni?"]},
-			1: {"name": "Savaşçı Kurbağa Gamaken", "model": "toad_mid", "h": 3.6, "hp": 420.0, "role": "fighter", "dmg": 28.0, "speed": 9.0,
+			1: {"name": "Savaşçı Kurbağa Gamagiri", "model": "toad_mid", "h": 3.6, "hp": 420.0, "role": "fighter", "dmg": 28.0, "speed": 9.0,
 				"lines": ["Bıçaklarım hazır, ortak!", "Arkanı ben kollarım.", "Kurbağa onuru için!"]},
 			2: {"name": "Kurbağa Reisi Gamaō", "model": "toad_boss", "h": 17.0, "hp": 2400.0, "role": "giant", "dmg": 90.0, "speed": 11.0, "mount": true,
 				"lines": ["BENİ NE DİYE ÇAĞIRDIN VELET!", "Kafama çık, şunu ezelim!", "Yağımı ateşinle birleştir, görsünler!"]},
@@ -58,7 +58,7 @@ const DEFS := {
 	"köpek": {"name": "Ninken Sözleşmesi", "animal": "Ninja Köpekleri", "realm": "", "sage": false, "color": Color(0.55, 0.45, 0.35), "keeper": "konoha",
 		"intro": "Burnumuz hiçbir izi kaçırmaz.",
 		"tiers": {
-			0: {"name": "İz Süren Ninken Hana", "model": "dog_small", "h": 0.5, "hp": 70.0, "role": "tracker", "dmg": 10.0, "speed": 13.0, "lines": ["Kokuyu aldım!", "Hav! Bu taraftan!"]},
+			0: {"name": "İz Süren Ninken Kurumi", "model": "dog_small", "h": 0.5, "hp": 70.0, "role": "tracker", "dmg": 10.0, "speed": 13.0, "lines": ["Kokuyu aldım!", "Hav! Bu taraftan!"]},
 			1: {"name": "Ninken Sürüsü", "model": "dog_pack", "h": 0.9, "hp": 120.0, "role": "pack", "dmg": 14.0, "speed": 13.0, "count": 6,
 				"lines": ["Hepimiz buradayız!", "Isır ve tut!"]},
 			2: {"name": "Çift Başlı Kurt Futago", "model": "wolf_giant", "h": 9.0, "hp": 1800.0, "role": "giant", "dmg": 70.0, "speed": 18.0, "mount": true,
@@ -79,7 +79,7 @@ const DEFS := {
 	"semender": {"name": "Semender Sözleşmesi", "animal": "Semenderler", "realm": "", "sage": false, "color": Color(0.35, 0.3, 0.45), "keeper": "kiri",
 		"intro": "Zehirli sis, bataklığın efendisinin nefesidir.",
 		"tiers": {
-			2: {"name": "Zehirli Semender Ibuse", "model": "salamander", "h": 6.0, "len": 26.0, "hp": 2600.0, "role": "giant", "dmg": 60.0, "speed": 9.0, "mount": true,
+			2: {"name": "Zehirli Semender Dokuse", "model": "salamander", "h": 6.0, "len": 26.0, "hp": 2600.0, "role": "giant", "dmg": 60.0, "speed": 9.0, "mount": true,
 				"lines": ["Zehirli sisimi koklayan uyur.", "Rüzgarınla sisimi yay!"]},
 		}},
 	"kaplumbağa": {"name": "Kaplumbağa Sözleşmesi", "animal": "Kaplumbağalar", "realm": "", "sage": false, "color": Color(0.35, 0.55, 0.4), "keeper": "kiri",
@@ -98,7 +98,7 @@ const DEFS := {
 	"kedi": {"name": "Ninneko Sözleşmesi", "animal": "Ninja Kedileri", "realm": "", "sage": false, "color": Color(0.35, 0.45, 0.8), "keeper": "kumo",
 		"intro": "Kediler sadık değildir... ama doğru mamayla belki.",
 		"tiers": {
-			0: {"name": "Ninneko Tora", "model": "cat_small", "h": 0.6, "hp": 90.0, "role": "fighter", "dmg": 12.0, "speed": 14.0, "lines": ["Miyav! Önce mama."]},
+			0: {"name": "Ninneko Shimaneko", "model": "cat_small", "h": 0.6, "hp": 90.0, "role": "fighter", "dmg": 12.0, "speed": 14.0, "lines": ["Miyav! Önce mama."]},
 			2: {"name": "İki Kuyruklu Kedi Ruhu Ayakashi", "model": "cat_giant", "h": 9.0, "len": 16.0, "hp": 2000.0, "role": "giant", "dmg": 75.0, "speed": 16.0, "mount": true,
 				"lines": ["Mavi alevlerim yakar.", "Sırtıma bin, uçar gibi koşarım."]},
 		}},

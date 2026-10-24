@@ -2275,6 +2275,15 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			b.add("cyl", Vector3(0, 0, 0.25), Vector3(0.035, 0.95, 0.035), Color(0.35, 0.25, 0.15), Vector3(90, 0, 0), 8)
 			b.add("box", Vector3(0, 0, 0.72), Vector3(0.14, 0.24, 0.16), Color(0.4, 0.4, 0.42))
 			b.add("box", Vector3(0, 0, 0.72), Vector3(0.16, 0.06, 0.18), dark)
+		"kongo_asa":
+			# elmas asa: uzun koyu gövde, uçlarda altın başlık ve halkalar, ortada sargı
+			b.add("cyl", Vector3(0, 0, 0.15), Vector3(0.045, 2.1, 0.045), Color(0.12, 0.12, 0.14), Vector3(90, 0, 0), 10)
+			for z in [-0.88, 1.18]:
+				b.add("cyl", Vector3(0, 0, z), Vector3(0.062, 0.14, 0.062), Color(0.9, 0.72, 0.25), Vector3(90, 0, 0), 10)
+				for k in 2:
+					b.add("torus", Vector3(0, 0, z + (0.12 + k * 0.07) * (1.0 if z > 0.0 else -1.0) * -1.0), Vector3(0.075, 0.075, 0.075), Color(0.95, 0.78, 0.3), Vector3(90, 0, 0), 10)
+			for k in 6:
+				b.add("torus", Vector3(0, 0, -0.18 + k * 0.06), Vector3(0.058, 0.058, 0.058), Color(0.55, 0.15, 0.12), Vector3(90, 0, 0), 8)
 		"bo":
 			b.add("cyl", Vector3(0, 0, 0.1), Vector3(0.036, 1.7, 0.036), Color(0.45, 0.32, 0.2), Vector3(90, 0, 0), 8)
 			for z in [-0.72, 0.92]:
