@@ -13,8 +13,10 @@ var vis: Node3D
 
 func _ready() -> void:
 	add_to_group("fighters")
+	# arazi yüksekliği; yükseltilmiş zeminde (teras, avlu döşemesi) verilen yükseklik korunur
 	var g = Game.ground_height(global_position.x, global_position.z)
-	global_position.y = g
+	if not has_meta("exam_target") or global_position.y < g:
+		global_position.y = g
 	vis = Node3D.new()
 	add_child(vis)
 	var b = MB.new()

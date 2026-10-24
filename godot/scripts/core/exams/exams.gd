@@ -258,18 +258,30 @@ func _practical_next(ok: bool) -> void:
 
 
 func academy_targets() -> void:
+	cur = "academy_wait"
+	var pl = Game.player
+	# akademi odası dünyanın üstünde kurulu: kuklalar aşağıdaki araziye düşüyordu (görünmez → sınav bitmiyordu).
+	# parkur akademinin bahçesinde: önce dışarı çık
+	if Interiors.inst and Interiors.inst.inside != "":
+		Hud.banner("HEDEF PARKURU", "Bahçeye çık: hedef kuklalar dışarıda!", Color(1, 0.8, 0.4))
+		await get_tree().create_timer(1.2).timeout
+		await Interiors.inst.exit()
+		await get_tree().create_timer(0.4).timeout
 	cur = "academy_targets"
 	data["t"] = 60.0
 	data["broken"] = 0
-	var pl = Game.player
+	var c = pl.global_position
 	for i in 6:
+		var a = TAU * i / 6.0 + randf_range(-0.3, 0.3)
+		var q = Missions.open_ground(c + Vector3(sin(a), 0, cos(a)) * randf_range(8, 14), 10.0)
 		var d = TrainingDummy.new()
 		d.set_meta("exam_target", true)
+		d.position = q
 		get_tree().current_scene.add_child(d)
-		var a = TAU * i / 6.0 + randf_range(-0.3, 0.3)
-		var q = pl.global_position + Vector3(sin(a), 0, cos(a)) * randf_range(9, 16)
 		d.global_position = q
 		nodes.append(d)
+		FX.smoke_puff(q + Vector3.UP, 0.7, 8)
+	Missions.target_marker = nodes.back().global_position if not nodes.is_empty() else c
 	Hud.banner("HEDEF PARKURU", "60 saniyede 6 hedef kuklayı devir!", Color(1, 0.8, 0.4))
 
 
