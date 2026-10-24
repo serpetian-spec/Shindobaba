@@ -441,7 +441,7 @@ func _jonin_mission() -> Dictionary:
 			{"kind": "talk", "at": [tp.x + 8, tp.y], "npc": j1, "text": "Kıdemli Jōnin Akizuki ile konuş.", "say": "Bir görevde iki seçeneğin var: görevi tamamlarsan iki takım arkadaşın ölebilir; geri çekilirsen görev başarısız olur. Ne yaparsın?",
 				"choices": [{"label": "Görevi yeniden planlar, kimseyi feda etmem", "ok": true, "vote": 1, "reply": "İyi. Görev önemlidir ama yoldaşlar her şeydir. Tavsiyemi alacaksın."},
 					{"label": "Görev her şeyden önce gelir", "ok": false, "vote": 0, "reply": "Soğukkanlısın... ama bir jōnin, insanlarını sayıdan ibaret görmemeli."}]},
-			{"kind": "talk", "at": [bp.x + 10, bp.y + 6], "npc": j2, "text": "Jōnin Komutanı Yamagata ile konuş.", "say": "Elinde sınırlı chakra var, düşman seni ve iki geninini kuşattı. İlk emrin ne olur?",
+			{"kind": "talk", "at": [bp.x + 16, bp.y - 12], "npc": j2, "text": "Jōnin Komutanı Yamagata ile konuş.", "say": "Elinde sınırlı chakra var, düşman seni ve iki geninini kuşattı. İlk emrin ne olur?",
 				"choices": [{"label": "Genin'leri geri çektirip düşmanı oyalarım", "ok": true, "vote": 1, "reply": "Lider en son çekilir. Tavsiye mektubunu yazıyorum."},
 					{"label": "Hepimiz birden saldırırız", "ok": false, "vote": 0, "reply": "Cesur ama savruk. Yine de kriz sınavına gir, görelim."}]},
 			{"kind": "kill", "at": camp, "enemy": "rogue", "n": 4, "camp": true, "night": true, "hostage": host,

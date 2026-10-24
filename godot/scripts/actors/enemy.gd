@@ -21,6 +21,11 @@ var ryo = 15
 var display_name = ""
 var nameplate: Label3D
 var wander_to = Vector3.ZERO
+## Dövüş ustalığı 0..1 (stat değil, davranış): kaçınma, blok/karşılık, kawarimi, kombo uzunluğu, sıra bekleme.
+## arch["skill"] verilmezse güçten türetilir: haydut ~0.1, chūnin ~0.4, jōnin ~0.6, S-rank/boss ~0.9
+var skill := 0.2
+var dodge_cd := 0.0
+var dodge_dir := Vector3.ZERO
 
 
 static func archetype(kind: String, i := 0) -> Dictionary:
@@ -146,6 +151,7 @@ func setup(a: Dictionary) -> void:
 	level = a["level"]; xp = a["xp"]; ryo = a["ryo"]
 	size = a.get("size", 1.0)
 	display_name = a["name"]
+	skill = clampf(float(a.get("skill", (float(a["power"]) - 1.0) / 2.2)), 0.05, 0.98)
 	# görev seviyeyi değiştirdiyse ve jutsu elle verilmediyse yeni seviyeye göre yeniden seç
 	if a.has("auto_jutsu") and a["jutsu"] == a["auto_jutsu"] and int(a["level"]) != int(a.get("auto_lv", 0)):
 		var auto = auto_jutsu(String(a["kind"]), String(a["element"]), int(a["level"]))
@@ -175,6 +181,32 @@ func _ready() -> void:
 	wander_to = home
 	if arch.has("beast"):
 		FX.aura(self, BeastModels.INFO[arch["beast"]]["chakra"], 1.2, Vector3(0, 0.9, 0), 0.0)   # sönmeyen canavar chakrası
+	if skill > 0.35:
+		Jutsu.jutsu_cast.connect(_on_someone_cast)
+
+
+## Usta düşman, hedefi jutsu yaparken mühürleri okur ve yana atılır
+func _on_someone_cast(caster: Node, _id: String) -> void:
+	if dead or caster != target or not is_instance_valid(caster) or dodge_cd > 0.0:
+		return
+	if caster.global_position.distance_to(global_position) < 30.0 and randf() < skill * 0.55:
+		_dodge(caster, true)
+
+
+## Kaçınma atılışı: yana (ya da geriye) hızlı chakra adımı
+func _dodge(from: Node3D, side := true) -> void:
+	if state in ["hitstun", "knockdown", "cast", "attack"] or has_status("stun") or has_status("bind"):
+		return
+	dodge_cd = lerpf(2.6, 1.0, skill)
+	var away = global_position - from.global_position
+	away.y = 0
+	away = away.normalized() if away.length() > 0.01 else -face_dir()
+	var lat = away.cross(Vector3.UP) * (1.0 if randf() < 0.5 else -1.0)
+	dodge_dir = (lat * 0.85 + away * 0.35).normalized() if side else (away + lat * 0.3).normalized()
+	state = "dodge"
+	state_t = 0.0
+	model.play("run", 0.05, 1.6)
+	FX.speed_lines(global_position + Vector3.UP, dodge_dir)
 
 
 func lose_target(t: float) -> void:
@@ -196,6 +228,7 @@ func _physics_process(dt: float) -> void:
 	attack_cd -= dt
 	ranged_cd -= dt
 	sub_cd -= dt
+	dodge_cd -= dt
 	blind_t -= dt
 	nameplate.modulate.a = 1.0 if global_position.distance_to(pl.global_position) < 30 else 0.0
 	match state:
@@ -235,6 +268,11 @@ func _physics_process(dt: float) -> void:
 			step_move(Vector3.ZERO, dt, false)
 			if state_t > 0.5:
 				state = "chase"
+		"dodge":
+			step_move(dodge_dir * (16.0 + skill * 8.0), dt, false)
+			if state_t > 0.22:
+				state = "chase"
+				attack_cd = minf(attack_cd, 0.15)   # kaçtıktan sonra hemen karşılık
 		"guard":
 			step_move(Vector3.ZERO, dt, false)
 			if state_t > 0.8:
@@ -280,6 +318,10 @@ func _think(dt: float) -> void:
 			Combat.popup_text(global_position + Vector3.UP * (height + 0.8), "!", Color(1, 0.3, 0.2))
 	if target == null and state in ["chase"]:
 		state = "idle"
+	# hedef yakında saldırıya kalktıysa: usta düşman darbeyi okuyup kaçar
+	if target and target == pl and state in ["chase", "recover", "idle"] and dodge_cd <= 0.0 and pl.combat and pl.combat.busy() \
+			and global_position.distance_to(pl.global_position) < 3.4 and randf() < skill * 0.4:
+		_dodge(pl, randf() < 0.6)
 	if global_position.distance_to(home) > 130.0 and state == "chase":
 		target = null
 		state = "idle"
@@ -339,20 +381,20 @@ func _chase(dt: float) -> void:
 		# yakın dövüş sırası yoksa etrafında dolaş
 		var sp: float = arch["speed"]
 		var dir = v.normalized()
-		if not has_token and attack_tokens >= 2 and d < 7.0:
-			dir = dir.rotated(Vector3.UP, PI * 0.5) * 0.5
-			sp *= 0.5
+		if not has_token and attack_tokens >= (2 if skill < 0.7 else 4) and d < 7.0:
+			dir = dir.rotated(Vector3.UP, PI * 0.5 * (1.0 if int(get_instance_id()) % 2 == 0 else -1.0)) * 0.6
+			sp *= 0.6
 		step_move(dir * sp, dt, false)
 		model.play("run" if sp > 6 else "walk", 0.15, 1.1)
 		model.rotation.y = facing
 	else:
 		step_move(Vector3.ZERO, dt, false)
 		model.play("idle", 0.2)
-		if attack_cd <= 0.0 and (has_token or attack_tokens < 2):
+		if attack_cd <= 0.0 and (has_token or attack_tokens < (2 if skill < 0.7 else 4)):
 			if not has_token:
 				has_token = true
 				attack_tokens += 1
-			combo_left = randi_range(2, 3)
+			combo_left = randi_range(2, 3 + int(skill * 3.0))
 			state = "attack"
 			state_t = 0.0
 			_swing()
@@ -374,7 +416,7 @@ func _beast_tech(d: float) -> void:
 
 func _swing() -> void:
 	var anims = ["jab", "cross", "slash_a", "hook"] if arch.get("kind") != "samurai" else ["slash_a", "slash_b", "slash_c"]
-	model.play(anims.pick_random(), 0.05, 1.3, true)
+	model.play(anims.pick_random(), 0.05, 1.3 + skill * 0.45, true)
 	model.flash(0.25)  # saldırı öncesi küçük uyarı
 	set_meta("swung", false)
 
@@ -387,7 +429,7 @@ func _attack(dt: float) -> void:
 	v.y = 0
 	facing = lerp_angle(facing, atan2(-v.x, -v.z), minf(1.0, dt * 10.0))
 	step_move(face_dir() * (3.0 if state_t < 0.2 else 0.0), dt, false)
-	if not get_meta("swung") and state_t > 0.28:
+	if not get_meta("swung") and state_t > 0.28 / (1.0 + skill * 0.35):
 		set_meta("swung", true)
 		var pt = global_position + Vector3.UP * 1.1 + face_dir() * (radius + 0.9)
 		var heavy = combo_left == 1 and randf() < 0.5
@@ -396,7 +438,7 @@ func _attack(dt: float) -> void:
 		if not hits.is_empty():
 			FX.hit_spark(pt, Color(1, 0.6, 0.4), 0.8)
 			Sfx.play("punch", pt)
-	if state_t > 0.6:
+	if state_t > 0.6 / (1.0 + skill * 0.35):
 		combo_left -= 1
 		if combo_left > 0:
 			state_t = 0.0
@@ -408,7 +450,7 @@ func _attack(dt: float) -> void:
 func _end_attack() -> void:
 	state = "recover"
 	state_t = 0.0
-	attack_cd = randf_range(0.8, 2.0) / arch["aggr"]
+	attack_cd = randf_range(0.8, 2.0) / arch["aggr"] / (1.0 + skill)
 	if has_token:
 		has_token = false
 		attack_tokens = maxi(0, attack_tokens - 1)
@@ -418,7 +460,8 @@ func take_hit(info: Dictionary) -> void:
 	if dead:
 		return
 	# blok
-	if state in ["chase", "recover", "idle"] and randf() < arch.get("guard", 0.15) and info.get("kind", "light") == "light" and not has_status("stun") and not has_status("bind"):
+	var kind_ok = info.get("kind", "light") == "light" or (skill > 0.75 and info.get("kind", "") == "heavy")
+	if state in ["chase", "recover", "idle"] and randf() < arch.get("guard", 0.15) + skill * 0.3 and kind_ok and not has_status("stun") and not has_status("bind"):
 		state = "guard"
 		state_t = 0.0
 		guarding = true
@@ -431,10 +474,15 @@ func take_hit(info: Dictionary) -> void:
 		info["dmg"] = info.get("dmg", 5.0) * 0.15
 		info["kind"] = "guarded"
 		hp -= info["dmg"]
+		if skill > 0.45 and randf() < skill:   # bloktan karşı saldırı
+			guarding = false
+			model.overlay.set_pose("guard", 0.0)
+			state = "chase"
+			attack_cd = 0.0
 		return
 	# Kawarimi
-	if sub_cd <= 0.0 and randf() < arch.get("sub", 0.0) and hp < max_hp * 0.7:
-		sub_cd = 9.0
+	if sub_cd <= 0.0 and randf() < maxf(arch.get("sub", 0.0), skill * 0.45) and hp < max_hp * (0.7 + skill * 0.2):
+		sub_cd = lerpf(10.0, 5.0, skill)
 		FX.smoke_puff(global_position + Vector3.UP, 0.9, 14)
 		var atk: Node3D = info.get("attacker")
 		if atk:

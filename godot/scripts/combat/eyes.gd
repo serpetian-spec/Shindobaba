@@ -405,7 +405,7 @@ func _start_susanoo() -> void:
 		p.cam_dist = h * 1.5 + 3.0
 		p.cam_lift = h * (0.55 if sn.tier >= 3 else 0.3)
 		p.cam_giant = sn.tier >= 3
-		p.model_lift = h * Susanoo.USER_SEAT[sn.tier]
+		p.model_lift = h * Susanoo.USER_SEAT[sn.tier] if sn.tier >= 4 else 0.0   # İnsansı: kullanıcı yerde durur (uçmaz)
 	# kanatlı tam Susanoo: havadayken Space ile uçuşa geç
 	if sn.tier >= 5 and Susanoo.config(Game.profile).get("wings", true) and p.has_method("start_flight"):
 		p.set_meta("wing_flight", {"speed": 24.0, "lift": 13.0, "drain": 1.2, "name": "Susanoo kanatları", "land_stop": true})

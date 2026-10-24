@@ -53,4 +53,23 @@ func _ready() -> void:
 		pl.cam.look_at(mid)
 		await get_tree().create_timer(0.3).timeout
 		await main.shot("sus_t%d_%s" % [t, s[0]])
+	# düz vuruş: Susanoo kullanıcının önüne vurmalı, ileri kaymamalı
+	pl.cam.global_position = mid + rt * h * 1.4 + Vector3.UP * h * 0.1
+	pl.cam.look_at(mid)
+	sn.rotation.y = pl.facing
+	var hb0 = sn.body.skel.find_bone("Hips")
+	var hip_before = (sn.body.skel.global_transform * sn.body.skel.get_bone_global_pose(hb0)).origin
+	sn.swipe(pl, fwd)
+	await get_tree().create_timer(0.3).timeout
+	var hip_after = (sn.body.skel.global_transform * sn.body.skel.get_bone_global_pose(hb0)).origin
+	print("HIPDRIFT %s" % (hip_after - hip_before))
+	print("SWING body_off=%s" % sn.body.position)
+	await main.shot("sus_t%d_vurus" % t)
+	eyes._end_susanoo()
+	await get_tree().create_timer(0.5).timeout
+	# gardırop önizlemesi
+	Menus._eq_slot = "susanoo"
+	Menus.ninja_menu(main, "wardrobe")
+	await get_tree().create_timer(0.8).timeout
+	await main.shot("sus_t%d_onizleme" % t)
 	get_tree().quit()

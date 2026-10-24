@@ -488,6 +488,20 @@ func _fly_bolt(owner_f: Node3D, from: Vector3, dir: Vector3, dist: float, length
 func _process(dt: float) -> void:
 	if body == null:
 		return
+	# yere gömülü kademeler (iskelet/İnsansı): zeminin altı çizilmez (ayaklar yerden görünmesin)
+	if mat and tier in [2, 3] and get_parent() is Node3D:
+		mat.set_shader_parameter("ground_y", (get_parent() as Node3D).global_position.y - 0.15)
+	# vuruş animasyonundaki ileri adım (kalça kayması) Susanoo'yu kullanıcıdan öne taşımasın: yerinde vurur
+	var sk = body.skel
+	var hb = sk.find_bone("Hips") if sk else -1
+	if hb >= 0:
+		# kalçanın dinlenme pozuna göre yatay kayması (iskelet uzayı) -> body uzayına çevir, tersini uygula
+		var d: Vector3 = sk.get_bone_global_pose(hb).origin - sk.get_bone_global_rest(hb).origin
+		# body uzayındaki kayma: kalçanın global konumu ile dinlenme konumu arasındaki fark (body yerel)
+		var cur = body.to_local(sk.global_transform * sk.get_bone_global_pose(hb).origin) - body.position
+		var rest = body.to_local(sk.global_transform * sk.get_bone_global_rest(hb).origin) - body.position
+		var dd = cur - rest
+		body.position = Vector3(-dd.x, 0.0, -dd.z)
 	if swing_t >= 0.0:
 		swing_t += dt
 		if swing_t > 0.6:

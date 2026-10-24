@@ -315,8 +315,12 @@ func _route(e: InputEvent) -> void:
 		var it = Interact.nearest(player.global_position)
 		# önce yerdeki dōjutsu sahibinin gözleri (yakındaki etkileşimler F'yi yutuyordu)
 		var ey = player.combat.modes.eyes if player.combat and player.combat.modes else null
+		# görevin konuşulacak kişisi yakındaysa önce o (kapı/görev masası alanının içinde duruyorsa F onu yutuyordu)
+		var qn = Missions.talk_target_near(player.global_position, 4.0)
 		if ey and ey.steal_target != null and is_instance_valid(ey.steal_target):
 			ey._steal(ey.steal_target)
+		elif qn != null:
+			qn.talk()
 		elif not it.is_empty():
 			Progress.interact(it)
 		else:

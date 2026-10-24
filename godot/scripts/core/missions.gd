@@ -1228,6 +1228,18 @@ func on_interact(it: Dictionary) -> void:
 				_next_step()
 
 
+## Şu anki adımın konuşulacak görev kişisi p'ye yakınsa onu döndürür ([F] önceliği için)
+func talk_target_near(p: Vector3, r: float) -> QuestNPC:
+	var s = _cur()
+	if s.is_empty() or s.get("kind", "") != "talk":
+		return null
+	var id = s.get("npc_id", s.get("npc", {}).get("id", ""))
+	var n = npcs.get(id)
+	if n != null and is_instance_valid(n) and not n.dead and n.global_position.distance_to(p) < r:
+		return n
+	return null
+
+
 ## QuestNPC [F] ile konuşulunca; true dönerse diyalog görev tarafından açıldı
 func on_quest_talk(npc: QuestNPC) -> bool:
 	var s = _cur()

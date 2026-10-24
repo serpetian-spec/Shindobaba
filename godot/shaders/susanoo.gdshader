@@ -7,6 +7,7 @@ uniform vec4 rim_col : source_color = vec4(0.55, 0.35, 1.0, 1.0);   // kenar ren
 uniform float density = 1.0;     // iç dolgu yoğunluğu (0.3 hayalet .. 2 dolu)
 uniform float glow = 1.0;        // kenar parlaklığı
 uniform float flow_speed = 1.0;  // içindeki chakra alevinin akış hızı
+uniform float ground_y = -100000.0;   // yere gömülü kademeler: zemin altı (bacaklar, ayaklar) çizilmez
 uniform float cut_y = 0.0;   // >0: dinlenme pozunda bu yüksekliğin altı çizilmez (üst gövde kademesi)
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -25,6 +26,7 @@ void vertex() {
 
 void fragment() {
 	if (cut_y > 0.0 && rest.y > 0.0001 && rest.y < cut_y) discard;
+	if (wp.y < ground_y) discard;
 	float rim = pow(1.0 - clamp(abs(dot(NORMAL, VIEW)), 0.0, 1.0), 2.2);
 	float tt = TIME * flow_speed;
 	float flow = vnoise(wp.xz * 0.6 + vec2(0.0, -tt * 1.4) + wp.y * 0.4) * 0.6 + vnoise(wp.xy * 1.7 - vec2(tt * 0.8, tt * 2.0)) * 0.4;

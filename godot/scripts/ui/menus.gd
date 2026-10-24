@@ -1231,6 +1231,8 @@ static func _susanoo_preview(pr: Dictionary) -> Control:
 	sn.build(pr, maxi(1, Susanoo.cur_tier(pr)))
 	_sus_prev = sn
 	sn.scale = Vector3.ONE * (2.1 / 1.8)
+	# yere gömülü kademeler (iskelet/İnsansı) önizlemede de belden görünsün (eskiden kadraj dışına kayıyordu)
+	sn.position.y = -0.95 * sn.scale.y * 0.55 if sn.tier in [2, 3] else 0.0
 	var cam = Camera3D.new()
 	cam.fov = 36
 	sv.add_child(cam)
