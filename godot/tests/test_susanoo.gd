@@ -15,8 +15,8 @@ func _ready() -> void:
 	pl.chakra = 99999
 	pl.max_chakra = 99999
 	Susanoo.config(pr)["mastery"] = 999.0
-	var v = Game.village("konoha")
-	pl.respawn(Game.from_map(Vector2(v["x"] + 60, v["y"] - 470)))
+	var v = Game.village("suna")   # açık çöl: binalar görüntüyü kapatmasın
+	pl.respawn(Game.from_map(Vector2(v["x"], v["y"] + float(v["r"]) + 500)))
 	await get_tree().create_timer(2.5).timeout
 	var eyes = pl.combat.modes.eyes
 	eyes.toggle()

@@ -57,6 +57,18 @@ func color() -> Color:
 	return Color(c[0], c[1], c[2])
 
 
+## Renk/kenar rengi/yoğunluk/parlaklık/akış: malzemeye uygula (menüde kaydırınca anında görünür)
+func apply_look() -> void:
+	if mat == null:
+		return
+	mat.set_shader_parameter("col", color())
+	var rc: Array = cfg.get("rim_color", cfg.get("color", COLORS[0]))
+	mat.set_shader_parameter("rim_col", Color(rc[0], rc[1], rc[2]))
+	mat.set_shader_parameter("density", float(cfg.get("density", 1.0)))
+	mat.set_shader_parameter("glow", float(cfg.get("glow", 1.0)))
+	mat.set_shader_parameter("flow_speed", float(cfg.get("flow", 1.0)))
+
+
 func build(pr: Dictionary, preview_tier := -1, follow_model: CharacterModel = null) -> void:
 	cfg = config(pr)
 	follow = follow_model
@@ -65,7 +77,7 @@ func build(pr: Dictionary, preview_tier := -1, follow_model: CharacterModel = nu
 		ch.queue_free()
 	mat = ShaderMaterial.new()
 	mat.shader = load("res://shaders/susanoo.gdshader")
-	mat.set_shader_parameter("col", color())
+	apply_look()
 	var armor = int(cfg.get("armor", 0))
 	var look = {"gender": "m", "age": "adult", "top_style": "uzun", "pants_style": "ninja", "hair_style": "kısa", "band": null, "sleeves": true,
 		"vest": Color.WHITE if (tier >= 3 and armor != 1) else null}

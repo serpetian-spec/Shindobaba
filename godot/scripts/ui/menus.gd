@@ -1216,6 +1216,7 @@ static func _ms_editor_fill(box: VBoxContainer, d: Dictionary) -> void:
 	box.add_child(cr)
 
 
+static var _sus_prev: Susanoo   # gardıroptaki önizleme (kaydırıcılar anında günceller)
 ## Susanoo önizlemesi (karakter yerine)
 static func _susanoo_preview(pr: Dictionary) -> Control:
 	var svc = SubViewportContainer.new()
@@ -1228,6 +1229,7 @@ static func _susanoo_preview(pr: Dictionary) -> Control:
 	var sn = Susanoo.new()
 	sv.add_child(sn)
 	sn.build(pr, maxi(1, Susanoo.cur_tier(pr)))
+	_sus_prev = sn
 	sn.scale = Vector3.ONE * (2.1 / 1.8)
 	var cam = Camera3D.new()
 	cam.fov = 36
@@ -1284,6 +1286,39 @@ static func _susanoo_panel(main: Node, v: VBoxContainer, _h) -> void:
 			cfg["color"] = c
 			redraw.call()))
 	v.add_child(cr)
+	v.add_child(UI.label("Kenar rengi", 14, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
+	var rr = HFlowContainer.new()
+	rr.add_theme_constant_override("h_separation", 8)
+	for c in Susanoo.COLORS + [[1.0, 1.0, 1.0], [0.05, 0.05, 0.1]]:
+		var rc: Array = cfg.get("rim_color", cfg.get("color", Susanoo.COLORS[0]))
+		rr.add_child(_swatch(Color(c[0], c[1], c[2]), Color(rc[0], rc[1], rc[2]).is_equal_approx(Color(c[0], c[1], c[2])), func():
+			cfg["rim_color"] = c
+			redraw.call()))
+	v.add_child(rr)
+	# kaydırıcılar: menüyü baştan kurmadan önizlemeye ve açıksa oyundaki Susanoo'ya uygulanır
+	var live = func() -> void:
+		if is_instance_valid(_sus_prev):
+			_sus_prev.apply_look()
+		var ey = Game.player.combat.modes.eyes if Game.player and Game.player.combat and Game.player.combat.modes else null
+		if ey and ey.susanoo and is_instance_valid(ey.susanoo_node):
+			ey.susanoo_node.apply_look()
+	for sd in [["Yoğunluk", "density", 0.3, 2.0], ["Kenar parlaklığı", "glow", 0.3, 2.0], ["Alev akışı", "flow", 0.0, 3.0]]:
+		var hh = UI.hbox(8)
+		var l = UI.label(sd[0], 13, UI.MUTED)
+		l.custom_minimum_size = Vector2(130, 0)
+		hh.add_child(l)
+		var sl = HSlider.new()
+		sl.min_value = sd[2]
+		sl.max_value = sd[3]
+		sl.step = 0.05
+		sl.value = float(cfg.get(sd[1], 1.0))
+		sl.custom_minimum_size = Vector2(240, 22)
+		sl.focus_mode = Control.FOCUS_NONE
+		sl.value_changed.connect(func(x):
+			cfg[sd[1]] = x
+			live.call())
+		hh.add_child(sl)
+		v.add_child(hh)
 	var wb = CheckBox.new()
 	wb.text = "Kanatlar (Mükemmel Susanoo)"
 	wb.button_pressed = bool(cfg.get("wings", true))
