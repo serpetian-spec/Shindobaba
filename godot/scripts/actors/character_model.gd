@@ -61,6 +61,7 @@ var head_fix := Transform3D.IDENTITY
 var eye_center_model := Vector3(0, 1.62, 0.08)
 var eye_half := 0.032
 var _eye_trails: Array = []
+var _outer_pad := 0.0   # dış giysi kabuğuna eklenen pay (yeleğin üstüne)
 
 
 static var _inv_mat: StandardMaterial3D
@@ -728,6 +729,8 @@ func _cloth_mat(layer: int) -> ShaderMaterial:
 	mat.set_shader_parameter("vest_style", int(look.get("vest_style", 0)))
 	mat.set_shader_parameter("gloves", bool(look.get("gloves", false)))
 	mat.set_shader_parameter("arm_wraps", bool(look.get("arm_wraps", false)))
+	var os_ = String(look.get("outer_style", "")) if look.get("outer_style") != null else ""
+	mat.set_shader_parameter("outer_cover", 0 if os_ in ["", "atki", "kisa", "kesa"] else 2)   # dış giysi altında yelek çizilmez (önden şerit halinde taşıyordu)
 	mat.set_shader_parameter("outer_sleeves", 1 if look.get("outer_style") in ["palto", "haori"] else 0)
 	mat.set_shader_parameter("foot_cover", look.get("foot_style", "sandal") == "tabi")
 	OutfitParts.mat_params(self, mat)
@@ -1202,7 +1205,7 @@ func _loft(g: Dictionary, axis: int, v0: float, v1: float, rows: int, filt: Call
 		for k in bins:
 			var ang = (float(k) + 0.5) / bins * TAU - PI
 			var dir = ua * cos(ang) + ub * sin(ang)
-			var p: Vector3 = centers[r] + dir * ((radii[r] as PackedFloat32Array)[k] + float(off.call(t, ang)))
+			var p: Vector3 = centers[r] + dir * ((radii[r] as PackedFloat32Array)[k] + float(off.call(t, ang)) + _outer_pad)
 			verts.append(p)
 			custom.append_array([p.x, p.y, p.z, float(slot)])
 	var idx = PackedInt32Array()
@@ -1295,7 +1298,7 @@ func _skinned_mesh(g: Dictionary, verts: PackedVector3Array, custom: PackedFloat
 
 
 func _garment(key: String, build: Callable) -> void:
-	var k = "%s|%s" % [look["gender"], key]
+	var k = "%s|%s|%.3f" % [look["gender"], key, _outer_pad]
 	if not _garment_cache.has(k):
 		_garment_cache[k] = build.call()
 	if _garment_cache[k] != null:
@@ -1313,6 +1316,8 @@ func _garments(g: Dictionary) -> void:
 		return func(t: float, ang: float) -> bool: return t > from_t and absf(wrapf(ang - PI * 0.5, -PI, PI)) < w
 	var flat = func(o: float) -> Callable:
 		return func(_t: float, _a: float) -> float: return o
+	# yelek giyiliyse dış giysi (palto, pelerin, haori...) yeleğin kabuğunun dışına alınır: yelek dışarı taşmasın
+	_outer_pad = 0.02 if look.get("vest") != null and look.get("outer_style") != null else 0.0
 	match look.get("outer_style"):
 		"palto":
 			_garment("palto", func(): return _loft(g, 1, neck - 0.01, knee + 0.02, 22, torso, func(t, _a): return 0.045 + t * t * 0.11, 8, front_gap.call(0.2, 0.12), hips - 0.06))
@@ -1325,6 +1330,7 @@ func _garments(g: Dictionary) -> void:
 			_garment("atki", func(): return _loft(g, 1, neck - 0.06, neck + 0.04, 5, func(p): return absf(p.x) < 0.16, flat.call(0.03), 8))
 		"atki":
 			_garment("atki", func(): return _loft(g, 1, neck - 0.06, neck + 0.04, 5, func(p): return absf(p.x) < 0.16, flat.call(0.03), 8))
+	_outer_pad = 0.0
 	if top_style() == "kimono":
 		_garment("obi", func(): return _loft(g, 1, hips + 0.03, hips + 0.15, 5, torso, flat.call(0.03), 2))
 	if look.get("hakama", false):
@@ -1346,6 +1352,7 @@ func _garments(g: Dictionary) -> void:
 			_garment("kaval%d" % int(sx), func(): return _loft(g, 1, knee - 0.05, ank + 0.08, 8, func(p): return signf(p.x) == sx and absf(p.x) < 0.35,
 				func(_t, ang): return 0.03 if absf(wrapf(ang - PI * 0.5, -PI, PI)) < 1.3 else 0.02, 9, null, -99.0, 16))
 	OutfitParts.garments(self, g)
+	_outer_pad = 0.0
 
 
 ## Hayran modeli aksesuar: SFProps.ACCESSORIES[id] kemiğe, ref noktasına göre "off" ofsetle takılır
@@ -1859,8 +1866,8 @@ func _attachments() -> void:
 				sm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 				q.material = sm
 				_mesh_on("Head", q, Transform3D(Basis.IDENTITY, plate + Vector3(0, 0, 0.0035)))
-	# --- yelek: kumaş katmanına boyanır; üstüne sadece yaka + parşömen cepleri
-	if look["vest"] != null:
+	# --- yelek: kumaş katmanına boyanır; üstüne sadece yaka + parşömen cepleri (dış giysi altındayken yok: taşıyordu)
+	if look["vest"] != null and (look.get("outer_style") == null or String(look.get("outer_style")) in ["atki", "kisa", "kesa"]):
 		var v = MB.new()
 		var vc: Color = look["vest"]
 		var ch = _grest(skel.find_bone("UpperChest")).origin

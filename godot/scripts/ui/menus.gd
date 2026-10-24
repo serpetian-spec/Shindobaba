@@ -660,6 +660,7 @@ const SWATCHES := [Color(0.15, 0.2, 0.33), Color(0.12, 0.12, 0.14), Color(0.45, 
 
 
 static var _last_tab := ""
+static var _last_shop := ""
 
 
 static func _scroll_positions() -> Array:
@@ -2214,6 +2215,9 @@ static var _shop_sel := ""
 ## entries: [{id, name, price, desc, stats, locked, lock_text, owned, view: Callable->Control, rarity}], buy: Callable(id)
 static func shop_screen(title: String, entries: Array, buy: Callable) -> void:
 	Game.ui_open = true
+	# aynı dükkân yeniden kurulurken (eşya seçince/alınca) liste en üste dönmesin
+	var keep = _scroll_positions() if title == _last_shop else []
+	_last_shop = title
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	var bg = _full(0.55)
 	var head = UI.label(title.to_upper(), 34, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)
@@ -2238,6 +2242,8 @@ static func shop_screen(title: String, entries: Array, buy: Callable) -> void:
 	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sc.add_child(grid)
 	var ids = entries.map(func(x): return x["id"])
+	if not keep.is_empty():
+		Engine.get_main_loop().process_frame.connect(_restore_scroll.bind(keep), CONNECT_ONE_SHOT)
 	if not _shop_sel in ids and not entries.is_empty():
 		_shop_sel = entries[0]["id"]
 	var sel = {}

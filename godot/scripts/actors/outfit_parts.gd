@@ -38,6 +38,7 @@ static func garments(m: CharacterModel, g: Dictionary) -> void:
 	var torso = func(p: Vector3) -> bool: return absf(p.x) < (ua * 0.95 if p.y > neck - 0.33 else 0.45) and p.y < neck + 0.06
 	var neck_f = func(p: Vector3) -> bool: return p.y > neck - 0.1 and absf(p.x) < 0.15
 	var front = func(ang: float) -> float: return absf(wrapf(ang - PI * 0.5, -PI, PI))
+	m._outer_pad = 0.02 if m.look.get("vest") != null and m.look.get("outer_style") != null else 0.0   # yeleğin üstüne
 	match m.look.get("outer_style"):
 		"org_pelerin":
 			# ayak bileğine inen kapalı örgüt pelerini + dik yüksek yaka
@@ -67,6 +68,7 @@ static func garments(m: CharacterModel, g: Dictionary) -> void:
 			# tek omuzdan kalçaya çapraz inen keşiş örtüsü
 			m._garment("kesa", func(): return m._loft(g, 1, neck - 0.02, hips - 0.08, 30, torso, func(_t, _a): return 0.035, 8,
 				func(t, ang): return absf(cos(ang) - (0.9 - 1.8 * t)) > 0.42, -99.0, 48))
+	m._outer_pad = 0.0
 	if m.top_style() == "gi":
 		# siyah kuşak (koyu yuva)
 		m._garment("gi_kusak", func(): return m._loft(g, 1, hips + 0.03, hips + 0.1, 4, torso, func(_t, _a): return 0.032, 7))
