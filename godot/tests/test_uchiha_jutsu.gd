@@ -3,7 +3,7 @@ extends Node
 ## seçilmiş olanların etki anında ekran görüntüsü alınır, uçuş kipi (Keijūgan, kum bulutu) denenir.
 
 var main: Node
-var IDS = ["uchihagaeshi"]
+var IDS = ["katon_hosenka_tsumabeni", "uchiha_ryu_kenjutsu", "uchiha_ryu_shurikenjutsu_ikazuchi_sanren"]
 
 
 func _wait(t: float) -> void:
@@ -42,15 +42,18 @@ func _ready() -> void:
 	Game.world.env.time_of_day = 0.45
 	Game.world.env.weather = "açık"
 	var v := Game.village("konoha")
-	var base := Game.from_map(Vector2(v["x"] + 250, v["y"] - float(v["r"]) - 260))
+	var al = Game.world_info["landmarks"].filter(func(l): return l.get("id", "") == "arena_earth")[0]
+	var base := Game.from_map(Vector2(al["x"], al["y"]))
+	var vs = Game.village("suna")
+	base = Game.from_map(Vector2(vs["x"] + float(vs["r"]) + 400, vs["y"]))
 	pl.respawn(base)
 	pl.max_hp = 1e9
 	pl.hp = 1e9
 	pl.max_chakra = 1e9
 	pl.chakra = 1e9
 	pl.yaw = 0.0
-	pl.pitch = -8.0
-	pl.cam_dist = 9.0
+	pl.pitch = -12.0
+	pl.cam_dist = 10.0
 	var pr = Game.profile
 	pr["level"] = 60
 	pr["rank"] = 4
@@ -70,13 +73,13 @@ func _ready() -> void:
 			foes[i].global_position = base + [fwd * 8.0, fwd * 12.0 + side * 3.0, fwd * 10.0 - side * 3.5][i]
 			foes[i].statuses.clear()
 		await _wait(0.4)
-		pl.yaw = -70.0
+		pl.yaw = -35.0
 		Jutsu.execute(pl, id, foes[0])
 		if id == "uchihagaeshi":
 			for k in 2:
 				var sp = foes[k].global_position + Vector3.UP * 1.3
 				Projectile.tool(foes[k], sp, (pl.global_position + Vector3.UP * 1.2 - sp).normalized(), "kunai", pl)
-		for tt in [0.25, 0.35, 0.5, 0.7, 0.8]:
+		for tt in [0.12, 0.18, 0.3, 0.3]:
 			await _wait(tt)
 			await main.shot("uj_%s_%.1f" % [id, tt])
 			if tt == 0.35:

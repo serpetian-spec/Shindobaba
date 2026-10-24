@@ -69,6 +69,9 @@ static func cast(c: Node3D, id: String, t: Node3D) -> void:
 
 
 # ================================================================== yardımcılar
+const UCHIHA_FIRE := [Color(1, 0.85, 0.3, 1), Color(1, 0.55, 0.08, 1), Color(0.95, 0.3, 0.04, 0.9), Color(0.7, 0.1, 0.03, 0)]
+
+
 func J() -> Node:
 	return Jutsu
 
@@ -3039,25 +3042,55 @@ func c_bakuha_rensa(c: Node3D, t: Node3D) -> void:
 # ================================================================== UCHİHA — ateş ve kılıç sanatı
 ## Uchiha Kılıç Sanatı: göz açıp kapayana kadar hedefin etrafında üç noktada belirip kesersin
 func c_uchiha_ryu_kenjutsu(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 10.0)
+	var tt = tg(c, t, 12.0)
 	if tt == null:
-		Hud.msg("Hedef 10 metre içinde olmalı", Color(0.8, 0.8, 0.8))
+		Hud.msg("Hedef 12 metre içinde olmalı", Color(0.8, 0.8, 0.8))
 		return
-	busy(c, 0.8)
+	busy(c, 1.0)
 	if c is Player:
-		c.combat.invuln = 0.8
-	every(0.75, 0.25, func(i, _k):
+		c.combat.invuln = 1.0
+	if c.get("model"):
+		c.model.hold_temp("katana", 1.2, "Right", 1.0, 0.0, false, true)
+	# Sharingan öngörüsüyle üç yönden ışınlanarak kesen kılıç: her kesişte kızıl ay kavisi ve ardıl görüntü
+	every(0.9, 0.3, func(i, _k):
 		if not live(tt):
 			return
 		var a = i * 2.1 + 0.5
 		var from = c.global_position
-		c.global_position = gp(tt.global_position + Vector3(cos(a), 0, sin(a)) * (tt.radius + 1.0))
-		tether(func(): return from + Vector3.UP * 1.1, func(): return c.global_position + Vector3.UP * 1.1, 0.06, glow(Color(0.9, 0.2, 0.2)), 0.15)
+		var to = gp(tt.global_position + Vector3(cos(a), 0, sin(a)) * (tt.radius + 1.2))
+		VFX.star(from + Vector3.UP * 1.1, Color(1, 0.3, 0.25), 1.6, 0.12)
+		c.global_position = to
+		tether(func(): return from + Vector3.UP * 1.1, func(): return to + Vector3.UP * 1.1, 0.08, glow(Color(0.95, 0.15, 0.12)), 0.18)
 		if c is Player:
 			c.combat.face_to(tt)
-		anim(c, ["slash_a", "slash_b", "slash_a"][i], 3.0)
-		hit(c, tt.global_position + Vector3.UP, 1.2, inf(c, "uchiha_ryu_kenjutsu", 0.5, {"knock": 3.0 if i < 2 else 12.0, "kind": "heavy", "hitstop": 0.05}))
+		anim(c, ["slash_a", "slash_b", "slash_c"][i], 3.0)
+		_slash_arc(tt.global_position + Vector3.UP * 1.1, (tt.global_position - to).normalized(), [-35.0, 30.0, 0.0][i], Color(1.0, 0.2, 0.15), 3.2 if i < 2 else 4.5)
+		hit(c, tt.global_position + Vector3.UP, 1.3, inf(c, "uchiha_ryu_kenjutsu", 0.55, {"knock": 3.0 if i < 2 else 14.0, "launch": 0.0 if i < 2 else 5.0, "kind": "heavy", "hitstop": 0.07}))
+		shake(0.2 if i < 2 else 0.45)
 		Sfx.play("kunai", c.global_position, 1.2))
+
+
+## Kılıç kesik kavisi: yarım ay biçiminde parlayan şerit, hızla açılıp söner
+func _slash_arc(pos: Vector3, dir: Vector3, roll_deg: float, col: Color, size: float) -> void:
+	var b = MB.new()
+	for k in 14:
+		var a0 = lerpf(-1.25, 1.25, k / 14.0)
+		var a1 = lerpf(-1.25, 1.25, (k + 1) / 14.0)
+		var w = sin(PI * (k + 0.5) / 14.0)
+		var p0 = Vector3(sin(a0), cos(a0) - 0.6, 0) * size
+		var p1 = Vector3(sin(a1), cos(a1) - 0.6, 0) * size
+		b.add_xf("box", Transform3D(Basis(Vector3.BACK, -(a0 + a1) * 0.5) * Basis.from_scale(Vector3((p1 - p0).length() * 1.05, 0.06 + 0.22 * w, 0.02)), (p0 + p1) * 0.5), col)
+	var mi = mesh_of(b, glow(col))
+	get_tree().current_scene.add_child(mi)
+	mi.global_position = pos
+	var d2 = Vector3(dir.x, 0, dir.z).normalized() if Vector3(dir.x, 0, dir.z).length() > 0.01 else Vector3.FORWARD
+	mi.look_at(pos + d2.cross(Vector3.UP), Vector3.UP)
+	mi.rotate_object_local(Vector3.BACK, deg_to_rad(roll_deg))
+	mi.scale = Vector3.ONE * 0.5
+	var tw = mi.create_tween()
+	tw.tween_property(mi, "scale", Vector3.ONE * 1.15, 0.12).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tw.tween_property(mi, "scale", Vector3(1.25, 0.05, 1.25), 0.18)
+	tw.tween_callback(mi.queue_free)
 
 
 ## Uchiha Şuriken Sanatı: Yıldırım Üçlüsü: telli üç shuriken farklı açılardan hedefi sarar; tellerden yıldırım akar
@@ -3069,7 +3102,7 @@ func c_uchiha_ryu_shurikenjutsu_ikazuchi_sanren(c: Node3D, t: Node3D) -> void:
 		var d = (tt.global_position + Vector3.UP - Jutsu._hand(c)).normalized().rotated(Vector3.UP, (k - 1) * 0.7)
 		var b = MB.new()
 		for n in 4:
-			b.add("cone", Vector3(cos(n * 1.57) * 0.2, 0, sin(n * 1.57) * 0.2), Vector3(0.1, 0.4, 0.03), Color(0.3, 0.3, 0.35), Vector3(0, -n * 90, -90), 4)
+			b.add("cone", Vector3(cos(n * 1.57) * 0.45, 0, sin(n * 1.57) * 0.45), Vector3(0.24, 0.9, 0.05), Color(0.3, 0.3, 0.35), Vector3(0, -n * 90, -90), 4)
 		var pr = shot(c, Jutsu._hand(c), d, 30.0, mesh_of(b), inf(c, "uchiha_ryu_shurikenjutsu_ikazuchi_sanren", 0.15), tt, false, 1.6)
 		pr.homing_turn = 4.0
 		pr.spin = Vector3(0, 0, 30)
@@ -3086,24 +3119,55 @@ func c_uchiha_ryu_shurikenjutsu_ikazuchi_sanren(c: Node3D, t: Node3D) -> void:
 	Sfx.play("kunai", c.global_position, 1.1)
 
 
-## Uchiha Alev Düzeni: etrafında 10 m çaplı alev duvarı yükselir; 8 sn içeridekiler kaçamaz, geçen yanar
+## Uchiha Alev Düzeni: yere vurulan elden halka biçiminde 20 alev sütunu fışkırır; 8 sn içeridekiler kaçamaz, duvara değen yanar
 func c_uchiha_kaenjin(c: Node3D, _t: Node3D) -> void:
 	var center = gp(c.global_position)
-	var r = 10.0
+	var r = 11.0
+	busy(c, 0.7)
+	anim(c, "cast_out", 1.0)
+	VFX.shockwave(center + Vector3.UP * 0.2, Color(1, 0.5, 0.15), r * 2.2, 0.5)
+	VFX.cracks(center, r * 0.5, Color(0.15, 0.05, 0.02, 0.8), 9.0)
+	var ring = Node3D.new()
+	get_tree().current_scene.add_child(ring)
+	ring.global_position = center
+	var mats = []
 	for k in 20:
 		var a = k * TAU / 20.0
-		var p = center + Vector3(cos(a), 0, sin(a)) * r
-		FX.burst(p + Vector3.UP, {"amount": 26, "life": 8.0, "size": 1.6, "vmin": 2, "vmax": 5, "gravity": Vector3(0, 4, 0), "spread": 15.0,
-			"colors": [Color(1, 0.85, 0.3), Color(1, 0.4, 0.08), Color(0.5, 0.1, 0.05, 0)]})
-	every(8.0, 0.2, func(_i, _k):
+		var cm = CylinderMesh.new()
+		cm.top_radius = 0.25; cm.bottom_radius = 1.1; cm.height = 1.0; cm.radial_segments = 12; cm.rings = 4
+		cm.cap_top = false; cm.cap_bottom = false
+		var fm = VFX.mat_fire("fire", 3.6, 1.6, 0.42, 1.3, 0.25, Vector3.UP, true)
+		mats.append(fm)
+		var col = VFX._mi(cm, fm)
+		ring.add_child(col)
+		col.position = Vector3(cos(a), 0, sin(a)) * r
+		col.scale = Vector3(1.6, 0.1, 1.6)
+		var h = randf_range(5.0, 7.5)
+		var tw = col.create_tween()
+		tw.tween_interval(k * 0.02)
+		tw.tween_property(col, "scale", Vector3(1.6, h, 1.6), 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw.parallel().tween_property(col, "position:y", h * 0.5, 0.25)
+	var light = OmniLight3D.new()
+	light.light_color = Color(1, 0.5, 0.2); light.light_energy = 4.0; light.omni_range = r * 2.5
+	ring.add_child(light)
+	light.position.y = 3.0
+	shake(0.5)
+	Sfx.play("fire", center, 0.6)
+	every(8.0, 0.2, func(i, _k):
 		for e in enemies_near(c, center, r + 2.0):
 			var v = e.global_position - center
 			v.y = 0
 			var dist = v.length()
-			if dist > r - 1.4 and dist < r + 1.4:
-				hit(c, e.global_position + Vector3.UP, 0.8, inf(c, "uchiha_kaenjin", 0.12, {"knock": 0.0, "element": "katon"}))
-				e.global_position = gp(center + v.normalized() * (r - 1.6)))   # duvar dışarı bırakmaz
-	Sfx.play("fire", center, 0.6)
+			if dist > r - 1.6 and dist < r + 1.6:
+				hit(c, e.global_position + Vector3.UP, 0.8, inf(c, "uchiha_kaenjin", 0.14, {"knock": 0.0, "element": "katon", "burn": 2.0}))
+				e.global_position = gp(center + v.normalized() * (r - 1.8))   # duvar dışarı bırakmaz
+		if i % 4 == 0:
+			VFX.embers(center + Vector3.UP * 4.0, Color(1, 0.55, 0.15), 10, 6.0)
+	, func():
+		for fm in mats:
+			var tw = ring.create_tween()
+			tw.tween_method(func(x: float): fm.set_shader_parameter("alpha_cut", x), 0.0, 1.1, 0.6)
+		get_tree().create_timer(0.7).timeout.connect(func(): if is_instance_valid(ring): ring.queue_free()))
 
 
 ## Uchiha Dönüşü: elde dev gunbai yelpazesi; önünde dönen kızıl chakra kalkanı gelen mermileri sahibine geri yollar,
@@ -3199,40 +3263,93 @@ func c_uchihagaeshi(c: Node3D, t: Node3D) -> void:
 		tw.tween_callback(shield.queue_free))
 
 
-## Anka Çiçek Tırnağı: altı ateş topu, her birinin içinde gizli shuriken; ateş söndürülse de shuriken hedefe ulaşır
+## Anka Çiçek Tırnağı: yelpaze gibi açılan altı ateş topu, her birinin içinde dönen gizli shuriken; ateş sönse de shuriken hedefi bulur
 func c_katon_hosenka_tsumabeni(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 30.0)
+	var tt = tg(c, t, 34.0)
+	busy(c, 0.8)
+	anim(c, "cast_out", 1.3)
+	Sfx.play("fire", c.global_position, 1.1)
 	for k in 6:
-		var d = Jutsu._aim(c, t).rotated(Vector3.UP, (k - 2.5) * 0.15)
+		var d = Jutsu._aim(c, t).rotated(Vector3.UP, (k - 2.5) * 0.18) + Vector3.UP * (0.08 if k % 2 else -0.02)
 		var root = Node3D.new()
-		root.add_child(VFX.fireball(0.55))
+		var fb = VFX.fireball(1.2)
+		root.add_child(fb)
 		var b = MB.new()
 		for n in 4:
-			b.add("cone", Vector3(cos(n * 1.57) * 0.18, 0, sin(n * 1.57) * 0.18), Vector3(0.09, 0.35, 0.03), Color(0.3, 0.3, 0.35), Vector3(0, -n * 90, -90), 4)
-		root.add_child(mesh_of(b))
-		after(k * 0.07, func():
-			var pr = shot(c, Jutsu._mouth(c), d, 28.0, root, inf(c, "katon_hosenka_tsumabeni", 0.3, {"knock": 4.0, "element": "katon"}), tt, false, 2.0)
-			pr.homing_turn = 2.5)
-	Sfx.play("fire", c.global_position, 1.1)
+			var bs = Basis(Vector3.UP, n * PI * 0.5)
+			b.add_xf("cone", Transform3D(bs * Basis(Vector3.BACK, PI * 0.5) * Basis.from_scale(Vector3(0.14, 0.42, 0.03)), bs * Vector3(0.21, 0, 0)), Color(0.32, 0.32, 0.38), 4)
+		b.add("cyl", Vector3.ZERO, Vector3(0.1, 0.04, 0.1), Color(0.2, 0.2, 0.24), Vector3.ZERO, 10)
+		var sh = mesh_of(b)
+		root.add_child(sh)
+		var spin = sh.create_tween().set_loops()
+		spin.tween_property(sh, "rotation:y", TAU, 0.18).from(0.0)
+		after(k * 0.08, func():
+			if not is_instance_valid(c):
+				return
+			var pr = shot(c, Jutsu._mouth(c) + d.normalized() * 0.8, d.normalized(), 30.0, root, inf(c, "katon_hosenka_tsumabeni", 0.32, {"knock": 5.0, "element": "katon", "burn": 2.0}), tt, false, 2.2)
+			pr.homing_turn = 3.0
+			VFX.element_trail(pr, "katon", Color(1, 0.5, 0.1), 0.9)
+			VFX.puffs(Jutsu._mouth(c), {"amount": 8, "life": 0.3, "size": 0.8, "vmin": 6, "vmax": 12, "dir": d.normalized(), "spread": 18.0, "glow": 1.1, "hot": 0.3, "colors": UCHIHA_FIRE}))
 
 
-## Büyük Ateş Yok Ediş: önünde 20 m genişliğinde ateş denizi ileri yürür
+## Büyük Ateş Yok Ediş: derin nefes, ağızdan 45 m genişliğe yayılan dev ateş duvarı ileri yürür; geçtiği yeri yakar
 func c_katon_goka_mekkyaku(c: Node3D, t: Node3D) -> void:
 	var d = fwd(c, t)
-	var side = d.cross(Vector3.UP)
-	busy(c, 1.6)
+	var side = d.cross(Vector3.UP).normalized()
+	busy(c, 2.2)
+	anim(c, "cast_out", 0.8)
+	VFX.cinematic(c, 0.6, 0.5)
+	var mo: Vector3 = Jutsu._mouth(c) + d * 0.8
+	VFX.shockwave(mo, Color(1, 0.7, 0.3), 6.0, 0.4, false)
+	Sfx.play("fire", mo, 0.5, 1.6)
+	var start: Vector3 = gp(c.global_position)
+	# ateş duvarı: yan yana 15 alev sütunu; yelpaze gibi açılarak ileri yürür
+	var wall = Node3D.new()
+	get_tree().current_scene.add_child(wall)
+	var cols = []
+	for n in 15:
+		var cm = CylinderMesh.new()
+		cm.top_radius = 0.3; cm.bottom_radius = 1.0; cm.height = 1.0; cm.radial_segments = 12; cm.rings = 4
+		cm.cap_top = false; cm.cap_bottom = false
+		var col = VFX._mi(cm, VFX.mat_fire("fire", 3.4, 1.7, 0.42, 1.3, 0.25, Vector3.UP, true))
+		wall.add_child(col)
+		cols.append(col)
+	var light = OmniLight3D.new()
+	light.light_color = Color(1, 0.55, 0.2); light.light_energy = 5.0; light.omni_range = 40.0
+	wall.add_child(light)
 	var hits = []
-	every(1.6, 0.08, func(i, k):
-		for n in 9:
-			var p = c.global_position + Vector3.UP * 2.5 + d * (5.0 + k * 32.0) + side * (n - 4) * 5.2
-			if i % 2 == 0:
-				FX.burst(p, {"amount": 12, "life": 0.8, "size": 6.0, "vmin": 2, "vmax": 6, "gravity": Vector3(0, 4, 0),
-					"colors": [Color(1, 0.9, 0.4), Color(1, 0.45, 0.08), Color(0.5, 0.1, 0.03, 0)]})
-			for h in hit(c, p, 4.4, inf(c, "katon_goka_mekkyaku", 0.7, {"knock": 8.0, "kind": "heavy", "element": "katon"}), hits):
-				hits.append(h)
-		if i % 5 == 0:
-			shake(0.3))
-	Sfx.play("fire", c.global_position, 0.5)
+	every(2.0, 0.05, func(i, k):
+		var reach = 6.0 + k * 34.0
+		var w = lerpf(5.0, 46.0, minf(1.0, k * 1.5))
+		var h = lerpf(2.5, 10.0, minf(1.0, k * 2.0))
+		var cen = gp(start + d * reach)
+		light.global_position = cen + Vector3.UP * 4.0
+		for n in cols.size():
+			var u = (n - 7) / 7.0
+			var pp = cen + side * u * w * 0.5 - d * absf(u) * 3.0
+			pp.y = Game.ground_height(pp.x, pp.z)
+			var hh = h * (1.0 - absf(u) * 0.35) * (0.85 + 0.15 * sin(i * 0.7 + n))
+			cols[n].global_position = pp + Vector3.UP * hh * 0.5
+			cols[n].scale = Vector3(2.2, hh, 2.2)
+		if i % 2 == 0:
+			VFX.puffs(Jutsu._mouth(c) if is_instance_valid(c) else start, {"amount": 10, "life": 0.4, "size": 1.4, "vmin": 10, "vmax": 26, "dir": d, "spread": 22.0, "damp": 1.5,
+				"glow": 1.2, "hot": 0.35, "stretch": 1.6, "outline_col": Color(0.3, 0.04, 0.02), "colors": UCHIHA_FIRE})
+		if i % 3 == 0:
+			for n in 5:
+				var pq = cen + side * (n - 2) * w * 0.2
+				VFX.cracks(pq, 3.5, Color(0.1, 0.05, 0.02, 0.9), 8.0)
+				WorldDamage.impact(pq, 4.0, {"dmg": 30.0, "element": "katon", "kind": "light"})
+		for n in 7:
+			var hp = cen + Vector3.UP * 1.5 + side * (n - 3) * w * 0.15
+			for e in hit(c, hp, 3.8, inf(c, "katon_goka_mekkyaku", 0.6, {"knock": 9.0, "kind": "heavy", "element": "katon", "burn": 3.0}), hits):
+				hits.append(e)
+		if i % 6 == 0:
+			shake(0.35)
+	, func():
+		var tw = wall.create_tween()
+		for col in cols:
+			tw.parallel().tween_property(col, "scale:y", 0.05, 0.5).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+		tw.tween_callback(wall.queue_free))
 
 
 # ================================================================== JİNTON — toz: atomlarına ayırma
