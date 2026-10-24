@@ -163,19 +163,48 @@ func _build_mesh() -> ArrayMesh:
 				prev = nxt
 			b.add("cone", prev + Vector3(0, 0.12, -0.08), Vector3(0.08, 0.3, 0.03), Color(0.5, 0.7, 0.45), Vector3(-30, 0, 0), 4)   # zehirli uç (yeşilimsi)
 		"ink":
-			# mürekkep aslanı: kapkara gövde, beyaz fırça çizgisi yele ve gözler
-			var ink = Color(0.05, 0.05, 0.07)
-			b.add("sphere", Vector3(0, 0.75, 0.1), Vector3(0.7, 0.62, 1.25), ink, Vector3.ZERO, 10)
-			b.add("sphere", Vector3(0, 1.05, -0.62), Vector3(0.62, 0.6, 0.6), ink, Vector3.ZERO, 10)
-			b.add("torus", Vector3(0, 1.05, -0.5), Vector3(0.78, 0.6, 0.78), Color(0.92, 0.92, 0.9), Vector3(80, 0, 0), 14)
-			b.add("box", Vector3(0, 0.9, -0.95), Vector3(0.32, 0.22, 0.3), ink)
+			# mürekkep aslanı (Chōjū Giga): fırça darbesiyle çizilmiş gibi kara gövde, beyaz kontur çizgileri,
+			# sivri yele tutamları, açık ağız ve dişler, damlayan mürekkep, kıvrık fırça kuyruğu
+			var ink = Color(0.04, 0.04, 0.06)
+			var paper = Color(0.96, 0.95, 0.9)
+			# gövde: öne yüklenmiş, karnı içe çekik yırtıcı silueti
+			Loft.tube(b, [Vector3(0, 0.82, 0.62), Vector3(0, 0.88, 0.25), Vector3(0, 0.95, -0.15), Vector3(0, 1.05, -0.45)], [Vector2(0.3, 0.3), Vector2(0.26, 0.27), Vector2(0.34, 0.36), Vector2(0.32, 0.34)], ink, 16, 3, true, true)
+			# yele: başın çevresinde dışa savrulan sivri fırça tutamları
+			var hc = Vector3(0, 1.22, -0.72)
+			for k in 16:
+				var a = k * TAU / 16.0
+				var d = Vector3(cos(a), sin(a), 0.35).normalized()
+				b.add_xf("cone", Transform3D(Basis(Quaternion(Vector3.UP, d)) * Basis.from_scale(Vector3(0.12, 0.55 + 0.15 * (k % 2), 0.08)), hc + d * 0.32 + Vector3(0, 0, 0.12)), ink, 4)
+			# baş + çene: geniş burun, açık ağız
+			Loft.tube(b, [hc + Vector3(0, 0.02, 0.12), hc + Vector3(0, 0.02, -0.12), hc + Vector3(0, -0.04, -0.35)], [Vector2(0.27, 0.25), Vector2(0.25, 0.22), Vector2(0.16, 0.13)], ink, 14, 3, true, true)
+			b.add("box", hc + Vector3(0, -0.2, -0.2), Vector3(0.24, 0.07, 0.3), ink, Vector3(18, 0, 0))   # alt çene (açık)
 			for sx in [-1.0, 1.0]:
-				b.add("sphere", Vector3(0.15 * sx, 1.12, -0.9), Vector3(0.09, 0.06, 0.04), Color(0.95, 0.95, 0.9), Vector3.ZERO, 6)
-				b.add("cone", Vector3(0.22 * sx, 1.38, -0.55), Vector3(0.12, 0.2, 0.1), ink, Vector3.ZERO, 5)
-				for fz in [-0.35, 0.45]:
-					b.add("cyl", Vector3(0.24 * sx, 0.28, fz), Vector3(0.16, 0.56, 0.16), ink, Vector3.ZERO, 6)
-			b.add("cyl", Vector3(0, 0.95, 0.85), Vector3(0.06, 0.7, 0.06), ink, Vector3(-60, 0, 0), 5)
-			b.add("sphere", Vector3(0, 1.22, 1.12), Vector3(0.16, 0.16, 0.16), Color(0.92, 0.92, 0.9), Vector3.ZERO, 6)
+				b.add("sphere", hc + Vector3(0.13 * sx, 0.1, -0.24), Vector3(0.1, 0.06, 0.04), paper, Vector3(0, 0, -18 * sx), 6)   # beyaz göz
+				b.add("box", hc + Vector3(0.13 * sx, 0.1, -0.265), Vector3(0.02, 0.05, 0.01), ink)
+				b.add("box", hc + Vector3(0.14 * sx, 0.17, -0.2), Vector3(0.16, 0.02, 0.02), paper, Vector3(0, 0, 22 * sx))   # kaş fırça çizgisi
+				for t in 2:
+					b.add("cone", hc + Vector3((0.06 + t * 0.05) * sx, -0.1, -0.36), Vector3(0.025, 0.08, 0.025), paper, Vector3(180, 0, 0), 4)   # üst diş
+				b.add("cone", hc + Vector3(0.18 * sx, 0.34, -0.02), Vector3(0.09, 0.2, 0.05), ink, Vector3(0, 0, -20 * sx), 4)   # kulak
+			# gövdede beyaz fırça kontur çizgileri (kâğıt boşluğu)
+			for k in 4:
+				b.add("box", Vector3(0, 1.08 - k * 0.04, 0.4 - k * 0.3), Vector3(0.012, 0.025, 0.22), paper, Vector3(0, 0, 0))
+			for sx in [-1.0, 1.0]:
+				b.add("box", Vector3(0.335 * sx, 0.95, -0.1), Vector3(0.008, 0.025, 0.42), paper, Vector3(12, 0, 0))   # ince fırça kontur çizgisi
+				b.add("box", Vector3(0.3 * sx, 0.88, 0.48), Vector3(0.008, 0.025, 0.28), paper, Vector3(-18, 0, 0))
+				# bacaklar: kaslı üst bacak, ince bilek, pençe; uçlarından mürekkep damlası
+				for fz in [-0.42, 0.52]:
+					var top = Vector3(0.22 * sx, 0.85, fz)
+					var knee = top + Vector3(0.03 * sx, -0.35, -0.05 if fz < 0 else 0.1)
+					var paw = Vector3(0.24 * sx, 0.06, fz - 0.06)
+					Loft.tube(b, [top, knee, paw], [0.16, 0.09, 0.08], ink, 10, 2, true, true)
+					for f in 3:
+						b.add("cone", paw + Vector3((f - 1) * 0.04, -0.03, -0.09), Vector3(0.025, 0.08, 0.025), paper, Vector3(-80, 0, 0), 4)   # pençe
+					b.add("sphere", paw + Vector3(0, -0.04, 0.02), Vector3(0.12, 0.03, 0.12), ink, Vector3.ZERO, 8)   # damlayan mürekkep göleti
+			# kuyruk: S kıvrımlı fırça darbesi, ucu dağınık püskül
+			Loft.tube(b, [Vector3(0, 0.9, 0.62), Vector3(0, 1.15, 0.85), Vector3(0, 1.45, 0.8), Vector3(0, 1.6, 0.55)], [0.06, 0.05, 0.045, 0.03], ink, 8, 3, true, false)
+			for k in 5:
+				var a = deg_to_rad(-60 + k * 30)
+				b.add_xf("cone", Transform3D(Basis(Vector3.RIGHT, -0.8) * Basis(Vector3.BACK, a) * Basis.from_scale(Vector3(0.05, 0.25, 0.05)), Vector3(0, 1.7, 0.5)), ink, 4)
 		"golem":
 			# taş dev (özgün Doton golemi): kambur kaslı gövde, yere değen dev kollar, omuzlara gömülü küçük baş,
 			# üst üste binen kaya zırh plakaları, plakalar arasında parlayan chakra lav çatlakları, sırtta yosun ve dikitler
