@@ -111,6 +111,12 @@ const ITEMS := {
 	"gi_siyah": {"name": "Siyah Dövüş Gi'si", "slot": "govde", "price": 200, "rank": 0, "desc": "Gece antrenmanlarının koyu gi'si.", "stats": {"melee": 0.07}, "look": {"top_style": "gi"}, "c1": Color(0.12, 0.12, 0.14), "c2": Color(0.55, 0.1, 0.1)},
 	"kesis_ustu": {"name": "Keşiş Üstü", "slot": "govde", "price": 140, "rank": 0, "desc": "Safran rengi, çapraz yakalı tapınak giysisi.", "stats": {"chakra": 25}, "look": {"top_style": "gi"}, "c1": Color(0.9, 0.55, 0.15), "c2": Color(0.7, 0.35, 0.1)},
 	"arma_gomlek": {"name": "Armalı Yüksek Yakalı Gömlek", "slot": "govde", "price": 340, "rank": 1, "desc": "Uzun kollu, dik yakalı klan gömleği; sırtında yuvarlak klan arması.", "stats": {"def": 3, "chakra": 20}, "look": {"top_style": "yakali_uzun", "top_pattern": 5}, "c1": Color(0.12, 0.13, 0.2), "c2": Color(0.85, 0.15, 0.15)},
+	"uchiha_yakali": {"name": "Uchiha Yüksek Yakalı", "slot": "govde", "price": 220, "rank": 0, "clan": "uchiha", "desc": "Kısa kollu, dik yakalı lacivert klan üstü; sırtında kırmızı-beyaz Uchiha yelpazesi.", "stats": {"def": 2, "chakra": 15}, "look": {"top_style": "yakali", "top_pattern": 7}, "c1": Color(0.1, 0.12, 0.22), "c2": Color(0.1, 0.12, 0.22)},
+	"uchiha_uzun": {"name": "Uchiha Uzun Kollu", "slot": "govde", "price": 300, "rank": 1, "clan": "uchiha", "desc": "Uzun kollu, boynu saran dik yakalı siyah klan gömleği; sırtta yelpaze arması.", "stats": {"def": 3, "chakra": 25}, "look": {"top_style": "yakali_uzun", "top_pattern": 7}, "c1": Color(0.08, 0.08, 0.1), "c2": Color(0.08, 0.08, 0.1)},
+	"uchiha_beyaz": {"name": "Uchiha Beyaz Yakalı", "slot": "govde", "price": 340, "rank": 1, "clan": "uchiha", "desc": "Açık yakalı beyaz klan üstü; sırtta büyük yelpaze.", "stats": {"def": 2, "chakra": 30}, "look": {"top_style": "kolsuz_yakali", "top_pattern": 7}, "c1": Color(0.94, 0.93, 0.9), "c2": Color(0.94, 0.93, 0.9)},
+	"uchiha_polis": {"name": "Uchiha Muhafız Üniforması", "slot": "govde", "price": 520, "rank": 2, "clan": "uchiha", "desc": "Köy güvenlik birliğinin koyu gri-yeşil, yakalı üniforması; sırtta arma.", "stats": {"def": 6, "hp": 25}, "look": {"top_style": "yakali_uzun", "top_pattern": 7}, "c1": Color(0.2, 0.25, 0.24), "c2": Color(0.2, 0.25, 0.24)},
+	"uchiha_kolluk": {"name": "Uchiha Kolluğu", "slot": "kol", "price": 120, "rank": 0, "clan": "uchiha", "desc": "Dirsekten bileğe uzanan koyu kol ısıtıcıları.", "stats": {"melee": 0.04, "throw_dmg": 0.04}, "look": {"arm_wraps": true, "gloves": false}, "c1": Color(0.1, 0.1, 0.14)},
+	"uchiha_haori": {"name": "Uchiha Klan Haorisi", "slot": "dis", "price": 900, "rank": 2, "clan": "uchiha", "desc": "Klan büyüklerinin siyah uzun haorisi; eteği kızıl biyeli.", "stats": {"chakra": 40, "def": 4}, "look": {"outer_style": "haori_uzun", "outer_pattern": 1}, "c1": Color(0.08, 0.08, 0.1), "c2": Color(0.8, 0.1, 0.1)},
 	"beyaz_arma": {"name": "Beyaz Klan Cübbe-Gömleği", "slot": "govde", "price": 360, "rank": 1, "desc": "Soluk lila-beyaz, kenarları biyeli soylu klan üstü.", "stats": {"def": 2, "chakra": 30}, "look": {"top_style": "yakali_uzun", "top_pattern": 6}, "c1": Color(0.92, 0.9, 0.95), "c2": Color(0.55, 0.5, 0.7)},
 	"cizgili_tisort": {"name": "Çizgili Tişört", "slot": "govde", "price": 60, "rank": 0, "desc": "Enine çizgili rahat tişört.", "stats": {"speed": 0.03}, "look": {"top_style": "tisort", "top_pattern": 2}, "c1": Color(0.85, 0.85, 0.82), "c2": Color(0.2, 0.3, 0.55)},
 	"denizci_ust": {"name": "Çizgili Uzun Kollu", "slot": "govde", "price": 110, "rank": 0, "desc": "Liman köylerinin çizgili gömleği.", "stats": {"def": 1, "hp": 10}, "look": {"top_style": "uzun", "top_pattern": 2}, "c1": Color(0.9, 0.9, 0.88), "c2": Color(0.15, 0.25, 0.45)},
@@ -227,7 +233,7 @@ static func random_legendary() -> String:
 	return LEGENDARY.pick_random()
 
 ## Mağazada satılanlar
-const SHOP_CLOTHES := ["kitsune_maske", "tengu_maske", "oni_maske", "kum_kabagi", "sake_kabagi", "tisort", "uzun_gomlek", "ceket", "yakali", "kolsuz_yakali", "sargili_kolsuz", "file_atlet", "zirhli_gomlek", "kimono_ust",
+const SHOP_CLOTHES := ["uchiha_yakali", "uchiha_uzun", "uchiha_beyaz", "uchiha_polis", "uchiha_kolluk", "uchiha_haori", "kitsune_maske", "tengu_maske", "oni_maske", "kum_kabagi", "sake_kabagi", "tisort", "uzun_gomlek", "ceket", "yakali", "kolsuz_yakali", "sargili_kolsuz", "file_atlet", "zirhli_gomlek", "kimono_ust",
 	"ninja_pant", "sort", "sivil_pant", "sargili_pant", "hakama", "sandalet", "takviyeli_sandalet", "tabi", "zori",
 	"kasa", "kapuson", "kafa_bandaji", "bandana", "bez_maske", "gozluk", "gaz_maskesi", "anbu_maske", "anbu_kurt", "anbu_kus", "anbu_ayi",
 	"deri_yelek", "suna_yelek", "kiri_yelek", "kumo_yelek", "iwa_yelek", "samuray_zirh",
@@ -351,7 +357,12 @@ static func ensure(p: Dictionary) -> void:
 	p["equip"] = {}
 	var L: Dictionary = p.get("look", {})
 	var top_id = {"tisort": "tisort", "uzun": "uzun_gomlek", "ceket": "ceket", "yakali": "yakali"}.get(L.get("top_style", "ceket"), "ceket")
-	grant(p, top_id, "govde", L.get("top", null), L.get("top2", null))
+	if String(p.get("clan", "")) == "uchiha":
+		# Uchiha: başlangıçta yelpaze armalı dik yakalı üst + kolluk; seçilen üst renkleri korunur
+		grant(p, "uchiha_yakali", "govde", L.get("top", null), L.get("top", null))
+		grant(p, "uchiha_kolluk", "kol")
+	else:
+		grant(p, top_id, "govde", L.get("top", null), L.get("top2", null))
 	grant(p, {"sort": "sort", "sivil": "sivil_pant"}.get(L.get("pants_style", "ninja"), "ninja_pant"), "bacak", L.get("pants", null))
 	grant(p, "sandalet", "ayak", L.get("sandal", null), L.get("wraps", null))
 	grant(p, "kunai", "sag")

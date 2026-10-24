@@ -169,6 +169,16 @@ static func clan_look(c: String, arch: String, vid: String, female := false, age
 	if L.has("top") and arch != "rogue":
 		lk["top"] = L["top"]
 		lk["top2"] = (L["top"] as Color).darkened(0.15)
+	# Uchiha: klan kıyafetleri (dik yaka + sırtta yelpaze, kolluk, büyüklerde haori)
+	if c == "uchiha":
+		lk["top_pattern"] = 7
+		lk["top_style"] = ["yakali", "yakali_uzun", "kolsuz_yakali"].pick_random()
+		if arch != "rogue":
+			lk["top"] = [Color(0.1, 0.12, 0.22), Color(0.08, 0.08, 0.1), Color(0.94, 0.93, 0.9), Color(0.2, 0.25, 0.24)].pick_random()
+			lk["top2"] = lk["top"]
+		lk["arm_wraps"] = randf() < 0.5
+		if age == "adult" and randf() < 0.25:
+			lk["outer_style"] = "haori_uzun"; lk["outer"] = Color(0.08, 0.08, 0.1); lk["outer_pattern"] = 1; lk["outer_accent"] = Color(0.8, 0.1, 0.1)
 	var e = Data.clans.get(c, {}).get("eye")
 	if e is Array and e.size() >= 3:
 		lk["eye"] = Color(e[0], e[1], e[2])

@@ -20,7 +20,7 @@ uniform vec4 rig_b = vec4(0.95, 0.54, 0.09, 1.31);  // kalça y, diz y, ayak bil
 uniform int top_style = 1;    // 0 tişört, 1 uzun kollu, 2 ceket, 3 yüksek yakalı, 4 kolsuz, 5 kimono, 6 gi, 7 uzun kollu yüksek yaka, 8 atlet, 9 tek kollu
 uniform int pants_style = 0;  // 0 ninja pantolonu, 1 şort, 2 sivil uzun pantolon, 3 sargılı, 4 bol paça, 5 kapri, 6 kısa şort
 uniform int layer = 0;        // 0 vücut, 1 kumaş kabuğu, 2 yelek
-uniform int top_pattern = 0;  // 1 zincir örgü/ağ, 2 yatay çizgili, 3 yan panelli, 4 yamalı/eskimiş, 5 sırtta arma, 6 kenar biyeli
+uniform int top_pattern = 0;  // 1 zincir örgü/ağ, 2 yatay çizgili, 3 yan panelli, 4 yamalı/eskimiş, 5 sırtta arma, 6 kenar biyeli, 7 Uchiha yelpazesi
 uniform int vest_style = 0;   // 0 Konoha, 1 Suna, 2 Kiri (yatay dikiş), 3 Kumo (tek askı), 4 Iwa (tek kol), 5 ANBU plaka, 6 samuray lamel,
                               // 7 Kök (dikey dikiş), 8 zincir yelek, 9 kayış koşum, 10 deri pullu zırh, 11 göğüs plakası
 uniform float wear = 0.0;      // kir/yıpranma (haydut, kaçak ninja)
@@ -294,6 +294,14 @@ void fragment() {
 				if (top_pattern == 5 && rest.z < -0.02) {
 					float r = length(vec2(rest.x, rest.y - (rig_b.w - 0.1)));
 					if (r < 0.075 && (r > 0.058 || r < 0.03)) c.rgb = pal[2].rgb;
+				}
+				// 7: Uchiha yelpazesi (uchiwa) sırtta: üst yarı kırmızı, alt yarı beyaz, altta sap
+				if (top_pattern == 7 && rest.z < -0.02) {
+					vec2 q = vec2(rest.x, rest.y - (rig_b.w - 0.035));
+					float r = length(q * vec2(1.0, 1.08));
+					if (r < 0.078) c.rgb = q.y > -0.004 ? vec3(0.82, 0.08, 0.08) : vec3(0.97, 0.96, 0.94);
+					if (r > 0.078 && r < 0.086) c.rgb = vec3(0.05, 0.05, 0.06);
+					if (abs(q.x) < 0.012 && q.y < -0.08 && q.y > -0.15) c.rgb = vec3(0.97, 0.96, 0.94);
 				}
 				if (top_pattern == 6 && (rest.y < rig_b.x + 0.09 || (ax > rig_a.x * 0.9 && ax > rig_a.z - 0.075))) c.rgb = pal[2].rgb;
 			}
