@@ -369,6 +369,47 @@ func decoy(c: Node3D, pos: Vector3, dur: float, on_pop := Callable()) -> Node3D:
 
 
 # ================================================================== HYŪGA — Yumuşak Yumruk: iç hasar + kapanan chakra noktaları
+## Hyūga ortak: Byakugan damarları + ellerde mavi chakra alevi (jutsu boyunca)
+func _byakugan_on(c: Node3D, dur: float) -> void:
+	if c.get("model") and c.model.has_method("set_dojutsu_eyes"):
+		c.model.set_dojutsu_eyes(2, 1, 2, 1, true)
+		after(dur, func():
+			if is_instance_valid(c) and c.get("model"):
+				if c is Player and c.combat and c.combat.modes and c.combat.modes.eyes:
+					c.combat.modes.eyes.refresh_visual()
+				else:
+					c.model.set_dojutsu_eyes(0, 0, 0, 0, false))
+	for side in ["LeftHand", "RightHand"]:
+		var fx = VFX.lightning_ball(0.35, Color(0.55, 0.8, 1.0))
+		if c.get("model") and c.model.skel and c.model.skel.find_bone(side) >= 0:
+			var ba = BoneAttachment3D.new()
+			ba.bone_name = side
+			c.model.skel.add_child(ba)
+			ba.add_child(fx)
+			after(dur, func(): if is_instance_valid(ba): ba.queue_free())
+
+
+## Parlayan chakra avucu izi: vuruş noktasında açılıp sönen mavi el silueti
+func _palm_flash(pos: Vector3, dir: Vector3, size := 0.9) -> void:
+	var b = MB.new()
+	b.add("sphere", Vector3.ZERO, Vector3(0.9, 1.0, 0.18), Color.WHITE, Vector3.ZERO, 12)
+	for k in 4:
+		b.add("cyl", Vector3(-0.33 + k * 0.22, 0.75 + (0.1 if k in [1, 2] else 0.0), 0), Vector3(0.16, 0.6, 0.12), Color.WHITE, Vector3(0, 0, -10 + k * 7), 6)
+	b.add("cyl", Vector3(0.55, 0.1, 0), Vector3(0.17, 0.5, 0.12), Color.WHITE, Vector3(0, 0, -55), 6)
+	var mi = mesh_of(b, glow(Color(0.6, 0.85, 1.0), 0.85))
+	get_tree().current_scene.add_child(mi)
+	mi.global_position = pos
+	var d2 = dir if dir.length() > 0.01 else Vector3.FORWARD
+	mi.look_at(pos + d2, Vector3.UP if absf(d2.normalized().y) < 0.95 else Vector3.RIGHT)
+	mi.rotate_object_local(Vector3.BACK, randf_range(-0.6, 0.6))
+	mi.scale = Vector3.ONE * size * 0.4
+	var tw = mi.create_tween()
+	tw.tween_property(mi, "scale", Vector3.ONE * size * 1.2, 0.08).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tw.tween_property(mi, "scale", Vector3.ONE * size * 1.5, 0.12)
+	tw.parallel().tween_property(mi, "transparency", 1.0, 0.12)
+	tw.tween_callback(mi.queue_free)
+
+
 ## Sekiz Trigram alanı: yerde trigram çemberi, hedefe ışınlanıp avuç dizisi, sonunda chakra noktaları kapanır
 func _hakke(c: Node3D, t: Node3D, id: String, strikes: int, r: float, seal_dur: float, all_in_circle: bool) -> void:
 	var tt = tg(c, t, 9.0)
@@ -376,7 +417,11 @@ func _hakke(c: Node3D, t: Node3D, id: String, strikes: int, r: float, seal_dur: 
 		Hud.msg("Sekiz Trigram: hedef en fazla 9 metrede olmalı", Color(0.8, 0.9, 1))
 		return
 	var center = gp((c.global_position + tt.global_position) * 0.5)
-	ground_disc(center, r, Color(0.55, 0.8, 1.0), 0.25 + strikes * 0.012, 3, 8)
+	ground_disc(center, r * 1.4, Color(0.55, 0.8, 1.0), 0.6 + strikes * 0.012, 4, 8)
+	_byakugan_on(c, 1.0 + strikes * 0.012)
+	VFX.shockwave(center + Vector3.UP * 0.1, Color(0.6, 0.85, 1.0), r * 3.0, 0.4)
+	if c is Player:
+		VFX.cinematic(c, 1.5, 0.4)
 	c.global_position = gp(tt.global_position - (tt.global_position - c.global_position).normalized() * (tt.radius + 1.0))
 	if c is Player:
 		c.combat.face_to(tt)
@@ -395,6 +440,7 @@ func _hakke(c: Node3D, t: Node3D, id: String, strikes: int, r: float, seal_dur: 
 		anim(c, ["jab", "cross"][i % 2], 3.2)
 		var pt = v.global_position + Vector3.UP * randf_range(0.7, v.height - 0.2) + Vector3(randf_range(-0.2, 0.2), 0, randf_range(-0.2, 0.2))
 		FX.burst(pt, {"amount": 5, "life": 0.22, "tex": FX.tex_spark, "size": 0.7, "vmin": 2, "vmax": 6, "colors": [Color(1, 1, 1), Color(0.55, 0.8, 1.0, 0)]})
+		_palm_flash(pt, (pt - c.global_position - Vector3.UP), 0.7 + float(strikes) / 160.0)
 		hit(c, pt, 0.9, inf(c, id, 1.2 / (strikes / per), {"knock": 0.2, "kind": "light", "hitstop": 0.0}))
 		if i % 4 == 0:
 			Combat.popup_text(pt + Vector3.UP * 0.6, "%d" % mini(strikes, (i + 1) * per * 2), Color(0.8, 0.9, 1))
@@ -403,7 +449,11 @@ func _hakke(c: Node3D, t: Node3D, id: String, strikes: int, r: float, seal_dur: 
 			if live(v):
 				hit(c, v.global_position + Vector3.UP, 1.4, inf(c, id, 0.8, {"knock": 16.0, "launch": 4.0, "kind": "heavy", "hitstop": 0.1}))
 				seal_points(v, seal_dur)
-		VFX.shockwave(center + Vector3.UP * 0.8, Color(0.7, 0.85, 1.0), r * 1.6, 0.35, false))
+				_palm_flash(v.global_position + Vector3.UP * 1.1, v.global_position - c.global_position, 2.2)
+		VFX.shockwave(center + Vector3.UP * 0.8, Color(0.7, 0.85, 1.0), r * 2.4, 0.35, false)
+		VFX.shockwave(center + Vector3.UP * 0.1, Color(0.6, 0.85, 1.0), r * 3.5, 0.5)
+		Combat.popup_text(center + Vector3.UP * 3.2, "%d AVUÇ!" % strikes, Color(0.75, 0.9, 1.0))
+		shake(0.6))
 
 
 func c_juuken_64(c: Node3D, t: Node3D) -> void:
@@ -420,11 +470,18 @@ func c_hakke_hyakunijuhachi_sho(c: Node3D, t: Node3D) -> void:
 
 ## Jūken: üç hızlı avuç; görünmez iç hasar (zırh/blok saymaz), her darbe chakra noktası kapatır
 func c_juken(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 4.0)
-	busy(c, 0.6)
+	var tt = tg(c, t, 6.0)
+	if tt and is_instance_valid(tt):
+		c.global_position = gp(tt.global_position - (tt.global_position - c.global_position).normalized() * (tt.radius + 1.0))
+		if c is Player:
+			c.combat.face_to(tt)
+	busy(c, 0.7)
+	_byakugan_on(c, 1.2)
 	every(0.6, 0.2, func(i, _k):
 		anim(c, ["jab", "cross", "jab"][i], 2.4)
 		var p = c.global_position + Vector3.UP * 1.1 + c.face_dir() * 1.1
+		_palm_flash(p, c.face_dir(), 1.0)
+		FX.ring(p, Color(0.6, 0.85, 1.0), 1.6, 0.2, false, c.face_dir())
 		for h in hit(c, p, 1.0, inf(c, "juken", 0.55, {"knock": 1.0, "kind": "light", "pierce_guard": true})):
 			var ripple = MeshInstance3D.new()
 			ripple.mesh = VFX._sphere(0.5, 16, 8)
@@ -439,15 +496,20 @@ func c_juken(c: Node3D, t: Node3D) -> void:
 ## Tek Darbe Beden: tek avuç, şok dalgası hedefin içinden geçip arkasındakileri de vurur
 func c_jukenho_ichigekishin(c: Node3D, t: Node3D) -> void:
 	var d = fwd(c, t)
-	busy(c, 0.5)
+	busy(c, 0.6)
+	_byakugan_on(c, 1.0)
 	anim(c, "cross", 1.2)
 	after(0.25, func():
 		var p = c.global_position + Vector3.UP * 1.1 + d * 1.2
-		VFX.shockwave(p, Color(0.7, 0.88, 1.0), 4.0, 0.25, false, d)
+		_palm_flash(p, d, 2.0)
+		VFX.shockwave(p, Color(0.7, 0.88, 1.0), 7.0, 0.3, false, d)
+		VFX.star(p, Color(0.8, 0.92, 1.0), 3.0, 0.15)
 		for k in 6:
 			var q = p + d * k * 1.6
 			after(k * 0.03, func():
-				FX.ring(q, Color(0.6, 0.85, 1.0), 2.0 + k * 0.4, 0.25, false, d)
+				FX.ring(q, Color(0.6, 0.85, 1.0), 2.6 + k * 0.6, 0.3, false, d)
+				if k % 2 == 0:
+					_palm_flash(q, d, 1.4 + k * 0.2)
 				hit(c, q, 1.3, inf(c, "jukenho_ichigekishin", 0.6, {"knock": 9.0, "launch": 2.0, "kind": "heavy", "hitstop": 0.05})))
 		shake(0.4))
 
