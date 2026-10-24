@@ -20,7 +20,7 @@ const INFO := {
 ## yüzey: 0 kürk, 1 deri/pul, 2 kabuk/zırh, 3 sümük
 const SURFACE := {"kurama": 0, "matatabi": 0, "son_goku": 0, "kokuo": 0, "shukaku": 1, "gyuki": 1, "isobu": 2, "chomei": 2, "saiken": 3, "raiju": 0}
 const SHADOW := {"kurama": Color(0.45, 0.16, 0.2), "matatabi": Color(0.12, 0.1, 0.35), "son_goku": Color(0.35, 0.1, 0.22), "shukaku": Color(0.4, 0.3, 0.38),
-	"isobu": Color(0.22, 0.28, 0.35), "kokuo": Color(0.62, 0.68, 0.78), "saiken": Color(0.52, 0.5, 0.58), "chomei": Color(0.32, 0.33, 0.42), "gyuki": Color(0.44, 0.33, 0.4)}
+	"isobu": Color(0.4, 0.4, 0.44), "kokuo": Color(0.62, 0.68, 0.78), "saiken": Color(0.52, 0.5, 0.58), "chomei": Color(0.32, 0.33, 0.42), "gyuki": Color(0.44, 0.33, 0.4)}
 static var _bmats := {}
 static func beast_material(surface: int, shadow: Color) -> ShaderMaterial:
 	var k = "%d|%s" % [surface, shadow]
@@ -668,12 +668,13 @@ static func _isobu(r: BeastRig, root: Node3D) -> void:
 	var flesh = Color(0.55, 0.13, 0.15); var fl2 = Color(0.32, 0.05, 0.08)
 	var shade = func(_t: float, a: float, _d: Vector3) -> Color:
 		return sh.lerp(shd, smoothstep(0.3, -0.6, sin(a)))
-	r.hips = r._pivot(root, Vector3(0, 3.0, 0.8), "kalca_kok")
+	r.hips = r._pivot(root, Vector3(0, 4.6, 0.8), "kalca_kok")
+	r.hips.rotation.x = deg_to_rad(10.0)   # ön taraf kalkık: kabuk altındaki kırmızı et görünür
 	# kabuk altı et: lifli kırmızı (koyu çizgiler)
-	var fsp = [Vector3(0, -0.7, 4.4), Vector3(0, -0.4, 0.4), Vector3(0, -0.6, -3.8)]
-	var frd = [Vector2(3.2, 1.5), Vector2(3.8, 1.9), Vector2(3.2, 1.6)]
+	var fsp = [Vector3(0, -1.0, 4.4), Vector3(0, -1.0, 0.4), Vector3(0, -0.9, -3.8)]
+	var frd = [Vector2(3.4, 2.2), Vector2(4.2, 2.9), Vector2(3.6, 2.6)]
 	_tube(r, r.hips, fsp, frd, flesh, Callable(), 24, 5)
-	_veins(r, r.hips, fsp, frd, 50, 71, fl2, 0.06)
+	_veins(r, r.hips, fsp, frd, 80, 71, fl2, 0.07)
 	# kabuk: dev kubbe
 	var ssp = [Vector3(0, -0.2, 4.8), Vector3(0, 1.2, 2.2), Vector3(0, 1.6, -0.8), Vector3(0, 1.0, -3.8)]
 	var srd = [Vector2(2.6, 1.4), Vector2(4.6, 3.0), Vector2(4.8, 3.2), Vector2(3.8, 2.2)]
@@ -700,10 +701,11 @@ static func _isobu(r: BeastRig, root: Node3D) -> void:
 		BeastRig.claw(mb, d[0], ((d[1] as Vector3) + Vector3(0, 0, 0.35)).normalized(), ln, ln * 0.24, sp)
 	r._mesh(r.hips, mb)
 	r._collider(r.hips, Vector3(0, 1.2, 0), Vector3(8.6, 3.8, 9.6))
-	r.chest = r._pivot(r.hips, Vector3(0, -0.4, -4.0), "gogus")
-	_tube(r, r.chest, [Vector3(0, 0, 1.2), Vector3(0, 0.2, -0.6)], [Vector2(2.4, 1.6), Vector2(2.0, 1.5)], flesh)
+	r.chest = r._pivot(r.hips, Vector3(0, 0.3, -4.6), "gogus")
+	_tube(r, r.chest, [Vector3(0, -0.4, 1.6), Vector3(0, 0.3, -0.2), Vector3(0, 1.0, -1.4)], [Vector2(2.6, 2.0), Vector2(2.2, 1.8), Vector2(1.6, 1.4)], flesh)   # kabuktan öne-yukarı uzanan boyun (kırmızı et)
 	# baş: gri zırhlı, kabuğun kenarının altından çıkar
-	r.head = r._pivot(r.chest, Vector3(0, 0.5, -1.8), "bas")
+	r.head = r._pivot(r.chest, Vector3(0, 1.4, -2.4), "bas")
+	r.head.rotation.x = deg_to_rad(10.0)
 	var hsp = [Vector3(0, 0.1, 1.0), Vector3(0, 0.2, 0.0), Vector3(0, 0.0, -1.0), Vector3(0, -0.3, -1.7)]
 	var hrd = [Vector2(1.8, 1.4), Vector2(2.0, 1.5), Vector2(1.6, 1.2), Vector2(0.9, 0.7)]
 	_tube(r, r.head, hsp, hrd, sh, shade, 24, 5)
@@ -743,7 +745,7 @@ static func _isobu(r: BeastRig, root: Node3D) -> void:
 	r.mouth = r._pivot(r.head, Vector3(0, -0.5, -1.7), "agiz")
 	# gri plakalı kalın kollar, dört iri pençe
 	for sx in [-1.0, 1.0]:
-		_arm(r, r.chest, sx, Vector3(2.8 * sx, 0.2, 0.3), Vector3(2.8 * sx, -0.5, -1.0), Vector3(-0.4 * sx, -2.0, -1.5), 1.05, 0.9, 0.72, sh, sh, sp, 4, 1.6)
+		_arm(r, r.chest, sx, Vector3(2.8 * sx, 0.2, 0.3), Vector3(2.8 * sx, -1.4, -1.0), Vector3(-0.4 * sx, -2.6, -1.5), 1.15, 1.0, 0.8, sh, sh, sp, 4, 1.7)
 	var am = MB.new()
 	for sx in [-1.0, 1.0]:   # omuz zırh plakası ve yuvarlak taş kabarcıklar
 		am.add("sphere", Vector3(2.8 * sx, 0.6, 0.2), Vector3(2.2, 1.6, 2.2), sh, Vector3(0, 0, -15 * sx), 12)
