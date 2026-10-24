@@ -29,8 +29,8 @@ func _ready() -> void:
 					m.global_position = p
 					m.play("idle")
 					models.append(m)
-			cam.global_position = base + Vector3(0, 1.9, -3.4)
-			cam.look_at(base + Vector3(0, 1.3, 1.0))
+			cam.global_position = base + Vector3(0, 1.9, 4.2)
+			cam.look_at(base + Vector3(0, 1.2, 0.0))
 			await get_tree().create_timer(1.2).timeout
 			await main.shot("ha_%s_%d" % [gi, page])
 			for m in models:

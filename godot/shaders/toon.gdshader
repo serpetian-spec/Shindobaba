@@ -35,7 +35,8 @@ uniform bool foot_cover = false; // tabi: ayak tamamen kapalı
 varying float slot_ov;
 uniform vec4 face_a = vec4(0.0);   // çene genişliği, çene ucu, elmacık, burun (metre)
 uniform vec4 face_b = vec4(0.0);   // kaş çıkıntısı, işaret türü (0 yok, 1 burun yarası, 2 yanak çizgisi, 3 çil, 4 kırışık), -, -
-uniform vec4 face_ref = vec4(0.0, 1.7, 0.08, 0.0);  // -, göz y, göz z
+uniform vec4 face_ref = vec4(0.0, 1.7, 0.08, 0.0);
+uniform vec4 scalp_cut = vec4(99.0, -99.0, 99.0, 0.0);  // x: bu yüksekliğin üstü, y/z: bu derinliğin arkasında z yüksekliğinin üstü  // saçlıyken gövdenin kafa derisi bu yüksekliğin üstünde çizilmez (saç arasından "kel" görünmesin)  // -, göz y, göz z
 uniform float fold_amount = 0.0032;
 varying vec3 rest;
 #include "res://shaders/mangekyo.gdshaderinc"
@@ -232,6 +233,7 @@ void fragment() {
 		}
 	}
 	if (hide_masked && COLOR.a > 0.5) discard;
+	if (layer == 0 && (rest.y > scalp_cut.x || (rest.z < scalp_cut.y && rest.y > scalp_cut.z))) discard;
 	if (palette_mode) {
 		int slot = slot_ov > 0.5 ? int(slot_ov + 0.5) : cloth_slot(rest);
 		if (layer == 2) {

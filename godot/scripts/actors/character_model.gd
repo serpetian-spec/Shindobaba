@@ -332,6 +332,8 @@ func _face_and_hair() -> void:
 		var ir: AABB = fd["iris"]
 		var ic = ir.get_center() if ir.size != Vector3.ZERO else fd["aabb"].get_center()
 		eye_center_model = place * ic
+		if body_mesh and body_mesh.get_surface_override_material(0) is ShaderMaterial:
+			body_mesh.get_surface_override_material(0).set_shader_parameter("scalp_cut", _scalp_cut())
 		eye_half = clampf((place.basis * ir.size).abs().x * 0.3, 0.02, 0.045) if ir.size != Vector3.ZERO else 0.032
 		var fa: AABB = fd["aabb"]
 		head_ab = AABB(place * fa.position, Vector3.ZERO).expand(place * fa.end)
@@ -746,8 +748,17 @@ func _cloth_mat(layer: int) -> ShaderMaterial:
 	mat.set_shader_parameter("face_a", Vector4.ZERO)
 	mat.set_shader_parameter("face_b", Vector4(f[4], FACE_MARKS.get(look.get("face_mark", "yok"), 0), 0, 0))
 	mat.set_shader_parameter("face_ref", Vector4(0, eye_center_model.y, eye_center_model.z, 0))
+	# gövde mesh'inin kafa derisi saçın arasından taşıyordu: göz hizasının biraz üstünden yukarısı gizlenir (ön yüz VFace, tepe/arka saç)
+	mat.set_shader_parameter("scalp_cut", _scalp_cut())
 	materials.append(mat)
 	return mat
+
+
+## Gövde mesh'inin kafa derisi saçın altından taşmasın ("arkadan kel"): tepe göz hizasının üstü, arka kafa ense hizasının üstü gizlenir
+func _scalp_cut() -> Vector4:
+	if look.get("hair_style", "") in ["kel", "mohikan"]:
+		return Vector4(99, -99, 99, 0)
+	return Vector4(eye_center_model.y + 0.02, eye_center_model.z - 0.065, eye_center_model.y - 0.055, 0)
 
 
 func _paint_body() -> void:
@@ -1580,6 +1591,41 @@ func _scalp(file: String, hn: Node) -> AABB:
 		first = false
 	_scalp_cache[file] = ab
 	return ab
+
+
+## Kafatasını arkadan ve tepeden saran, yüzü ve enseyi açık bırakan ince saç kabuğu (model uzayında)
+static func _scalp_cap(c: Vector3, r: Vector3, front: float, eye_y: float, hab: AABB) -> ArrayMesh:
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var la = 14; var lo = 24
+	# ölçülen kafatası yarıçapı (özellikle derinlik) yüz mesh'inden küçük çıkıyor: kabuk kafanın içinde kalıp görünmüyordu.
+	# Arka/yan/tepe için gerçek kafa kutusunun dış sınırını kullan
+	var back = maxf(r.z, (c.z - hab.position.z) if front > 0.0 else (hab.end.z - c.z))
+	var rr = Vector3(maxf(r.x, hab.size.x * 0.5) * 1.1, maxf(r.y, hab.end.y - c.y) * 1.06, back * 1.45)   # arka kafa gövdeden gelir, yüz kutusundan daha geride
+	var grid = []
+	for i in la + 1:
+		var row = []
+		var th = PI * float(i) / la   # 0 tepe, PI alt
+		for j in lo + 1:
+			var ph = TAU * float(j) / lo
+			var d = Vector3(sin(th) * sin(ph), cos(th), sin(th) * cos(ph))
+			var p = c + d * rr
+			var fwd = d.z * front
+			# yüz: önde ve kaş hizasının altında açık; ense/boyun açık
+			var keep = not (fwd > 0.2 and p.y < eye_y + r.y * 0.42) and p.y > c.y - r.y * (1.05 if fwd < -0.1 else 0.7) and not (fwd > 0.55 and p.y < eye_y + r.y * 0.7)
+			row.append([p, d, keep])
+		grid.append(row)
+	for i in la:
+		for j in lo:
+			var a = grid[i][j]; var b = grid[i + 1][j]; var cc = grid[i + 1][j + 1]; var dd = grid[i][j + 1]
+			for tri in [[a, cc, b], [a, dd, cc]]:   # dışa bakan sarım (toon shader cull_back)
+				if tri[0][2] and tri[1][2] and tri[2][2]:
+					for v in tri:
+						st.set_color(Color(0.8, 0.8, 0.8))
+						st.set_normal(v[1])
+						st.set_uv(Vector2.ZERO)
+						st.add_vertex(v[0])
+	return st.commit()
 
 
 ## Anime saç tutamı: kökten uca incelen, kavisli, yassı baklava kesitli tüp

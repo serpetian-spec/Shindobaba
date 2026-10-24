@@ -33,6 +33,15 @@ func _ready() -> void:
 		cam.look_at(base + Vector3(0, 1.45, 0))
 		await get_tree().create_timer(1.5).timeout
 		await main.shot("hs_%d" % page)
+		cam.global_position = base + Vector3(0, 1.75, 2.6)
+		cam.look_at(base + Vector3(0, 1.45, 0))
+		await get_tree().create_timer(0.3).timeout
+		await main.shot("hs_%d_arka" % page)
+		var m0 = models[0]
+		cam.global_position = m0.global_position + Vector3(0.0, 1.62, 0.9)
+		cam.look_at(m0.global_position + Vector3(0, 1.5, 0))
+		await get_tree().create_timer(0.2).timeout
+		await main.shot("hs_%d_yakin" % page)
 		for m in models:
 			m.queue_free()
 	get_tree().quit()
