@@ -1,0 +1,94 @@
+extends Node
+## Klan jutsuları testi: ClanJutsu'nun uyguladığı her jutsu sırayla atılır (hata/çökme yok mu),
+## seçilmiş olanların etki anında ekran görüntüsü alınır, uçuş kipi (Keijūgan, kum bulutu) denenir.
+
+var main: Node
+var IDS = ["uchihagaeshi"]
+
+
+func _wait(t: float) -> void:
+	await get_tree().create_timer(t).timeout
+
+
+func _enemy(pos: Vector3) -> Enemy:
+	var e := Enemy.new()
+	e.setup(Enemy.archetype("rogue", 1))
+	main.actors.add_child(e)
+	e.global_position = pos
+	e.home = pos
+	e.lose_target(999)
+	e.state = "idle"
+	e.max_hp = 1e9
+	e.hp = 1e9
+	return e
+
+
+func _clear() -> void:
+	for n in get_tree().current_scene.get_children():
+		if n is Projectile:
+			n.queue_free()
+	for f in get_tree().get_nodes_in_group("fighters"):
+		if f is ShadowClone or f is Summon or f is ClanConstruct:
+			f.queue_free()
+
+
+func _ready() -> void:
+	await get_tree().process_frame
+	main.creator_state = {"slot": 3, "name": "Test", "gender": "m", "clan": "uchiha", "element": "katon", "hair_style": "diken",
+		"hair": Color(0.9, 0.9, 0.92), "top": Color(0.15, 0.2, 0.33), "pants": Color(0.15, 0.15, 0.17), "skin": Color(0.96, 0.8, 0.66), "eye": Color(0.2, 0.2, 0.2)}
+	main._start_new_game()
+	var pl: Player = main.player
+	Hud.show_game_hud(false)
+	Game.world.env.time_of_day = 0.45
+	Game.world.env.weather = "açık"
+	var v := Game.village("konoha")
+	var base := Game.from_map(Vector2(v["x"] + 250, v["y"] - float(v["r"]) - 260))
+	pl.respawn(base)
+	pl.max_hp = 1e9
+	pl.hp = 1e9
+	pl.max_chakra = 1e9
+	pl.chakra = 1e9
+	pl.yaw = 0.0
+	pl.pitch = -8.0
+	pl.cam_dist = 9.0
+	var pr = Game.profile
+	pr["level"] = 60
+	pr["rank"] = 4
+	await _wait(1.5)
+	var fwd: Vector3 = pl.cam_forward()
+	fwd.y = 0
+	fwd = fwd.normalized()
+	var side = fwd.cross(Vector3.UP)
+	var foes = [_enemy(base + fwd * 8.0), _enemy(base + fwd * 12.0 + side * 3.0), _enemy(base + fwd * 10.0 - side * 3.5)]
+	await _wait(0.5)
+
+	for id in IDS:
+		pl.global_position = base
+		pl.facing = atan2(-fwd.x, -fwd.z)
+		pl.velocity = Vector3.ZERO
+		for i in foes.size():
+			foes[i].global_position = base + [fwd * 8.0, fwd * 12.0 + side * 3.0, fwd * 10.0 - side * 3.5][i]
+			foes[i].statuses.clear()
+		await _wait(0.4)
+		pl.yaw = -70.0
+		Jutsu.execute(pl, id, foes[0])
+		if id == "uchihagaeshi":
+			for k in 2:
+				var sp = foes[k].global_position + Vector3.UP * 1.3
+				Projectile.tool(foes[k], sp, (pl.global_position + Vector3.UP * 1.2 - sp).normalized(), "kunai", pl)
+		for tt in [0.25, 0.35, 0.5, 0.7, 0.8]:
+			await _wait(tt)
+			await main.shot("uj_%s_%.1f" % [id, tt])
+			if tt == 0.35:
+				var cc = Camera3D.new()
+				get_tree().current_scene.add_child(cc)
+				var fd = pl.face_dir()
+				cc.global_position = pl.global_position + Vector3.UP * 1.7 - fd * 0.6 + fd.cross(Vector3.UP) * 3.6
+				cc.look_at(pl.global_position + Vector3.UP * 1.4)
+				cc.current = true
+				await _wait(0.05)
+				await main.shot("uj_%s_yakin" % id)
+				cc.queue_free()
+		await _wait(0.8)
+		_clear()
+	get_tree().quit()

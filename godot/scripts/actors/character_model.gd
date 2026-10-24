@@ -1912,6 +1912,35 @@ static func sheath_kind(id: String) -> String:
 	return SHEATH_OF.get(st, "pouch")
 
 
+## Jutsu sırasında ele geçici eşya (Uchihagaeshi yelpazesi vb.): o eldeki silah gizlenir, el yumruk olur; dur sonra kaybolur
+func hold_temp(id: String, dur: float, side := "Right", scl := 1.0, roll := 0.0, flip := false, procedural := false) -> Node3D:
+	if skel == null or skel.find_bone(side + "Hand") < 0:
+		return null
+	var node: Node3D = null if procedural else SFProps.weapon_node(id)
+	if node == null:
+		var mi = MeshInstance3D.new()
+		mi.mesh = weapon_mesh(id)
+		node = mi
+	node.transform.basis = (Basis(Vector3.UP, PI) * Basis(Vector3.BACK, roll) if flip else Basis(Vector3.BACK, roll)).scaled(Vector3.ONE * scl)   # roll: uzun eksen etrafında (yelpaze yüzü öne)
+	var hand: Node3D = _attach(side + "Hand", _grip_xf(side)).get_child(0)
+	hand.add_child(node)
+	var hidden = []
+	for w in weapons:
+		if w["side"] == side and (w["node"] as Node3D).visible:
+			(w["node"] as Node3D).visible = false
+			hidden.append(w["node"])
+	if rig:
+		rig.hold[side] = 1.0
+	get_tree().create_timer(dur).timeout.connect(func():
+		if is_instance_valid(hand):
+			hand.get_parent().queue_free()
+		for h in hidden:
+			if is_instance_valid(h):
+				h.visible = true
+		_place_weapons())
+	return node
+
+
 func has_weapon() -> bool:
 	return not weapons.is_empty()
 
@@ -2279,10 +2308,15 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 				b.add_xf("cone", Transform3D(bs * Basis(Vector3.BACK, deg_to_rad(-30)) * Basis.from_scale(Vector3(0.12, 0.2, 0.012)), Vector3(0, 0, 0.5) + bs * Vector3(0.05, 0.55, 0)), Color(0.55, 0.57, 0.62), 4)
 			b.add("cyl", Vector3(0, 0, 0.5), Vector3(0.16, 0.04, 0.16), dark, Vector3(90, 0, 0), 12)
 		"gunbai":
-			b.add("cyl", Vector3(0, 0, 0.12), Vector3(0.035, 0.4, 0.035), dark, Vector3(90, 0, 0), 8)
-			b.add("cyl", Vector3(0, 0, 0.62), Vector3(0.62, 0.025, 0.72), Color(0.75, 0.15, 0.15), Vector3(0, 0, 90), 20)
-			b.add("cyl", Vector3(0.016, 0, 0.62), Vector3(0.3, 0.012, 0.34), Color(0.95, 0.95, 0.95), Vector3(0, 0, 90), 16)
-			b.add("torus", Vector3(0, 0, 0.62), Vector3(0.64, 0.64, 0.74), dark, Vector3(0, 0, 90), 20)
+			# Uchiha yelpazesi (uchiwa): uzun sap, üstte hafif basık yuvarlak kâğıt; üst yarı kırmızı, alt yarı beyaz, siyah çerçeve ve kaburgalar
+			b.add("cyl", Vector3(0, 0, 0.2), Vector3(0.032, 0.56, 0.032), Color(0.18, 0.12, 0.08), Vector3(90, 0, 0), 8)
+			b.add("cyl", Vector3(0, 0, -0.07), Vector3(0.042, 0.03, 0.042), dark, Vector3(90, 0, 0), 8)
+			var fc = Vector3(0, 0, 0.82)
+			b.add("cyl", fc, Vector3(0.72, 0.018, 0.64), dark, Vector3(0, 0, 90), 28)
+			b.add("hemi", fc + Vector3(0.012, 0, 0), Vector3(0.66, 0.6, 0.012), Color(0.82, 0.08, 0.08), Vector3(0, 90, 90), 24)
+			b.add("hemi", fc + Vector3(0.012, 0, 0), Vector3(0.66, 0.6, 0.012), Color(0.97, 0.96, 0.94), Vector3(0, 90, -90), 24)
+			b.add("hemi", fc + Vector3(-0.012, 0, 0), Vector3(0.66, 0.6, 0.012), Color(0.82, 0.08, 0.08), Vector3(0, -90, 90), 24)
+			b.add("hemi", fc + Vector3(-0.012, 0, 0), Vector3(0.66, 0.6, 0.012), Color(0.97, 0.96, 0.94), Vector3(0, -90, -90), 24)
 		_:
 			b.add("box", Vector3(0, 0, 0.1), Vector3(0.02, 0.03, 0.2), steel)
 	var m = b.build(Props.toon())

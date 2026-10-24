@@ -3106,31 +3106,97 @@ func c_uchiha_kaenjin(c: Node3D, _t: Node3D) -> void:
 	Sfx.play("fire", center, 0.6)
 
 
-## Uchiha Dönüşü: dev uçiva yelpazesi 2 sn gelen mermileri sahibine geri yollar, yakın saldıranı savurur
+## Uchiha Dönüşü: elde dev gunbai yelpazesi; önünde dönen kızıl chakra kalkanı gelen mermileri sahibine geri yollar,
+## sonunda yelpaze savrulur ve önündeki her şeyi deviren bir fırtına patlar
 func c_uchihagaeshi(c: Node3D, t: Node3D) -> void:
 	var d = fwd(c, t)
-	var b = MB.new()
-	b.add("cyl", Vector3(0, 1.4, 0), Vector3(0.12, 2.8, 0.12), Color(0.35, 0.25, 0.18), Vector3.ZERO, 6)
-	b.add("sphere", Vector3(0, 3.6, 0), Vector3(2.8, 2.4, 0.15), Color(0.95, 0.95, 0.95), Vector3.ZERO, 16)
-	b.add("sphere", Vector3(0, 3.95, -0.06), Vector3(1.2, 1.0, 0.05), Color(0.85, 0.1, 0.12), Vector3.ZERO, 12)
-	b.add("sphere", Vector3(0, 3.25, -0.07), Vector3(1.2, 1.0, 0.05), Color(0.95, 0.95, 0.95), Vector3.ZERO, 12)
-	var fan = place(b, gp(c.global_position + d * 1.2))
-	fan.look_at(fan.global_position - d, Vector3.UP)
-	every(2.0, 1.0 / 30.0, func(_i, _k):
+	var dur = 2.4
+	busy(c, dur + 0.3)
+	if c.get("model"):
+		c.model.hold_temp("gunbai", dur + 0.5, "Right", 2.2, PI * 0.5, false, true)
+		c.model.play("block", 0.08, 1.0)
+	if c is Player:
+		c.facing = atan2(-d.x, -d.z)
+	var center = func(): return c.global_position + Vector3.UP * 2.0 + (c.face_dir() if c.has_method("face_dir") else d) * 0.9
+	# yelpazenin önünde dönen kalkan: kızıl yarı saydam disk + dönen rüzgâr halkası
+	var shield = Node3D.new()
+	get_tree().current_scene.add_child(shield)
+	var disc = MeshInstance3D.new()
+	var dm = CylinderMesh.new()
+	dm.top_radius = 1.35; dm.bottom_radius = 1.35; dm.height = 0.04; dm.radial_segments = 32
+	disc.mesh = dm
+	var dmat = flat_mat(Color(1.0, 0.2, 0.15, 0.14))
+	dmat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	dmat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	disc.material_override = dmat
+	disc.rotation_degrees = Vector3(90, 0, 0)
+	shield.add_child(disc)
+	var ring = MeshInstance3D.new()
+	var tm = TorusMesh.new()
+	tm.inner_radius = 1.25; tm.outer_radius = 1.45; tm.rings = 32; tm.ring_segments = 8
+	ring.mesh = tm
+	ring.material_override = VFX.mat_wind(Color(1.0, 0.45, 0.35), 9.0, 7.0, Vector3.UP, 0.55)
+	ring.rotation_degrees = Vector3(90, 0, 0)
+	shield.add_child(ring)
+	shield.scale = Vector3.ONE * 0.2
+	shield.create_tween().tween_property(shield, "scale", Vector3.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	VFX.shockwave(center.call(), Color(1.0, 0.35, 0.3), 3.0, 0.3, true, d)
+	Sfx.play("wind", c.global_position, 0.7)
+	var reflected = [0]
+	every(dur, 1.0 / 30.0, func(_i, _k):
+		if not is_instance_valid(c):
+			return
+		var cp: Vector3 = center.call()
+		var fd: Vector3 = (cp - c.global_position - Vector3.UP * 1.3).normalized()
+		shield.global_position = cp
+		shield.look_at(cp + fd, Vector3.UP)
+		ring.rotate_object_local(Vector3.UP, 0.35)
 		for n in get_tree().current_scene.get_children():
-			if n is Projectile and not n.dead and n.shooter != c and Combat.hostile(c, n.shooter) and n.global_position.distance_to(fan.global_position + Vector3.UP * 3.0) < 3.4:
+			if n is Projectile and not n.dead and n.shooter != c and Combat.hostile(c, n.shooter) and n.global_position.distance_to(cp) < 3.2:
 				var back = n.shooter
 				n.shooter = c
 				n.hit_list.clear()
-				n.vel = -n.vel
+				n.vel = -n.vel * 1.3
 				if is_instance_valid(back):
 					n.homing = back
-					n.homing_turn = 3.0
-				FX.hit_spark(n.global_position, Color(1, 0.9, 0.6), 0.8)
-		for e in enemies_near(c, fan.global_position, 2.0):
-			hit(c, e.global_position + Vector3.UP, 0.8, inf(c, "uchihagaeshi", 0.4, {"knock": 18.0, "launch": 4.0, "kind": "heavy"})))
-	fade_free(fan, 2.0, 0.2)
-	Sfx.play("wind", c.global_position, 0.8)
+					n.homing_turn = 4.0
+				reflected[0] += 1
+				VFX.star(n.global_position, Color(1, 0.5, 0.4), 2.5, 0.2)
+				VFX.shockwave(cp, Color(1.0, 0.5, 0.4), 2.6, 0.25, true, fd)
+				shake(0.15)
+				Sfx.play("guard", cp, 0.8)
+		for e in enemies_near(c, cp, 2.2):
+			hit(c, e.global_position + Vector3.UP, 0.8, inf(c, "uchihagaeshi", 0.3, {"knock": 14.0, "launch": 3.0, "kind": "heavy"}))
+	, func():
+		# kapanış: yelpaze savrulur, önde koni biçimli fırtına
+		if not is_instance_valid(c):
+			shield.queue_free()
+			return
+		anim(c, "slash_b", 1.6)
+		var cp: Vector3 = center.call()
+		var fd: Vector3 = (cp - c.global_position - Vector3.UP * 1.3).normalized()
+		var cone = MeshInstance3D.new()
+		var cm = CylinderMesh.new()
+		cm.top_radius = 0.6; cm.bottom_radius = 4.5; cm.height = 11.0; cm.radial_segments = 24; cm.cap_top = false; cm.cap_bottom = false
+		cone.mesh = cm
+		cone.material_override = VFX.mat_wind(Color(1.0, 0.85, 0.8), 14.0, 8.0, Vector3.UP, 0.75)
+		get_tree().current_scene.add_child(cone)
+		cone.global_position = cp + fd * 5.5
+		cone.global_transform.basis = Basis(Quaternion(Vector3.UP, fd))
+		fade_free(cone, 0.35, 0.3)
+		for k in 3:
+			VFX.shockwave(cp + fd * (2.0 + k * 3.0), Color(1.0, 0.6, 0.5), 3.5 + k * 1.5, 0.35 + k * 0.08, true, fd)
+		VFX.debris(gp(cp + fd * 4.0), Color(0.55, 0.48, 0.38), 14, 12.0, 0.4)
+		var foes = enemies_near(c, cp + fd * 5.0, 6.5)
+		for e in foes:
+			var v = (e.global_position - c.global_position).normalized()
+			if v.dot(fd) > 0.2:
+				hit(c, e.global_position + Vector3.UP, 1.0, inf(c, "uchihagaeshi", 0.9 + 0.25 * reflected[0], {"knock": 26.0, "launch": 6.0, "kind": "heavy", "dir": fd}))
+		shake(0.45)
+		Sfx.play("wind", cp, 0.5)
+		var tw = shield.create_tween()
+		tw.tween_property(shield, "scale", Vector3.ONE * 0.05, 0.2)
+		tw.tween_callback(shield.queue_free))
 
 
 ## Anka Çiçek Tırnağı: altı ateş topu, her birinin içinde gizli shuriken; ateş söndürülse de shuriken hedefe ulaşır
