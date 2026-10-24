@@ -139,8 +139,14 @@ func _tail(base: Node3D, yaw_deg: float, pitch_deg: float, n: int, length: float
 					var lb = pb * Basis(Vector3.RIGHT, deg_to_rad(80))
 					mb.add_xf("cone", Transform3D(lb * Basis.from_scale(Vector3(r * 0.8, seg_len * 0.95, r * 0.16)), nrm * r * 0.9 + Vector3(0, 0, seg_len * 0.45)), c.lightened(0.05), 8)   # sivri yaprak pul
 					mb.add_xf("cone", Transform3D(lb * Basis.from_scale(Vector3(r * 0.1, seg_len * 0.7, r * 0.1)), nrm * r * 1.0 + Vector3(0, 0, seg_len * 0.45)), ink, 5)   # pulun lacivert orta damarı
-			"shrimp":  # zırh halkalı
-				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.05), Vector3(0, 0, seg_len * 0.55), Vector3(0, 0, seg_len * 1.05)], [r * 0.95, r * 1.08, r * 0.9], [c.darkened(0.15), c, c.darkened(0.2)], 12, 2, true, true)
+			"shrimp":  # karides kuyruğu: üstte gri zırh plakası + iki yanda diken, altta kırmızı boğumlu et
+				var fr = Color(0.55, 0.13, 0.15)
+				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.05), Vector3(0, 0, seg_len * 0.55), Vector3(0, 0, seg_len * 1.05)], [r * 0.95, r * 1.04, r * 0.9], c, 12, 2, true, true,
+					func(_t: float, aa: float, _d: Vector3) -> Color: return fr.darkened(0.15 * _t) if sin(aa) < -0.25 else c)
+				mb.add_xf("sphere", Transform3D(Basis.from_scale(Vector3(r * 1.25, r * 0.55, seg_len * 0.62)), Vector3(0, r * 0.62, seg_len * 0.55)), c.lightened(0.06), 10)   # sırt plakası
+				for sv in [-1.0, 1.0]:
+					claw(mb, Vector3(sv * r * 1.05, r * 0.3, seg_len * 0.7), Vector3(sv, 0.35, 0.6).normalized(), r * 1.1, r * 0.3, c.lightened(0.1))
+				claw(mb, Vector3(0, r * 1.05, seg_len * 0.75), Vector3(0, 0.8, 0.6).normalized(), r * 0.9, r * 0.25, c.lightened(0.1))
 			"spike":  # dikenli maymun kuyruğu
 				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.2), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.2)], [r, r * 0.97, r * 0.9], c, 12, 2, true, true)
 				# bej kemik plaka + koyu uç (Son Gokū kuyruk dikenleri)
