@@ -125,11 +125,19 @@ func _tail(base: Node3D, yaw_deg: float, pitch_deg: float, n: int, length: float
 				var cn2 = col.lerp(tip, smoothstep(0.6, 1.0, kn2))
 				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.15), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.15)], [r, (r + rn2) * 0.52, rn2], [c, c.lerp(cn2, 0.5), cn2], 14, 2, true, true)
 			"sand":
-				var ink = Color(0.1, 0.12, 0.3)
+				var ink = Color(0.14, 0.18, 0.46)
 				var fn = func(tt: float, a: float, _d: Vector3) -> Color:
 					var w = sin((tt + i) * PI * 2.0 + sin(a * 3.0) * 0.6)
-					return ink if (absf(w) < 0.16 or (a > 0.6 and a < 2.4 and absf(sin(a * 5.0 + tt * 9.0)) < 0.08)) else c
+					return c if w > -2.0 else ink   # köşe rengi desen lekeli görünüyordu: düz renk, desen pullarda
 				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.2), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.2)], [r, r * 0.98, r * 0.92], c, 14, 3, true, true, fn)
+				# üst üste binen sivri kum pulları (yaprak gibi geriye bakan plakalar, lacivert kenarlı)
+				for pk in 7:
+					var ang = lerpf(-2.3, 2.3, pk / 6.0) + (0.33 if i % 2 == 1 else 0.0)
+					var nrm = Vector3(sin(ang), cos(ang), 0)
+					var pb = Basis(Vector3.FORWARD, -ang) * Basis(Vector3.RIGHT, deg_to_rad(-12))
+					var lb = pb * Basis(Vector3.RIGHT, deg_to_rad(80))
+					mb.add_xf("cone", Transform3D(lb * Basis.from_scale(Vector3(r * 0.8, seg_len * 0.95, r * 0.16)), nrm * r * 0.9 + Vector3(0, 0, seg_len * 0.45)), c.lightened(0.05), 8)   # sivri yaprak pul
+					mb.add_xf("cone", Transform3D(lb * Basis.from_scale(Vector3(r * 0.1, seg_len * 0.7, r * 0.1)), nrm * r * 1.0 + Vector3(0, 0, seg_len * 0.45)), ink, 5)   # pulun lacivert orta damarı
 			"shrimp":  # zırh halkalı
 				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.05), Vector3(0, 0, seg_len * 0.55), Vector3(0, 0, seg_len * 1.05)], [r * 0.95, r * 1.08, r * 0.9], [c.darkened(0.15), c, c.darkened(0.2)], 12, 2, true, true)
 			"spike":  # dikenli maymun kuyruğu
