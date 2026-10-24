@@ -876,8 +876,10 @@ func _begin_step() -> void:
 			target_marker = c.global_position
 			target_name = "Kedi Mikan"
 		"boss":
-			var v = Game.village(s["near"])
-			var c = Game.from_map(Vector2(v["x"], v["y"]))
+			# köy merkezine (kage binasının içine / yerin altına) değil: köyün dışında açık arazi, yer kayda yazılır
+			if not s.has("at"):
+				s["at"] = _spot(s["near"], 250, 600)
+			var c = open_ground(_w(s["at"]), 40.0)
 			var b = Boss.new()
 			b.setup(Boss.make(s["boss"]))
 			root.add_child(b)
@@ -1737,8 +1739,9 @@ func _setup_legacy(m: Dictionary) -> void:
 			pickups.append(c)
 			target_marker = c.global_position
 		"boss":
-			var v = Game.village(m["near"])
-			var c = Game.from_map(Vector2(v["x"], v["y"]))
+			if not m.has("at"):
+				m["at"] = _spot(m["near"], 250, 600)
+			var c = open_ground(_w(m["at"]), 40.0)
 			var b = Boss.new()
 			b.setup(Boss.make(m["boss"]))
 			root.add_child(b)

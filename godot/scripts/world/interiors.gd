@@ -106,11 +106,30 @@ func exit() -> void:
 	_clear()
 	inside = ""
 	var p: Vector3 = door.get("out", door["pos"])
-	p.y = Game.ground_height(p.x, p.z) + 0.05
+	# çıkış noktasının altındaki gerçek zemin (kaide, basamak, teras); arazi yüksekliği bina kaidesinin içinde kalabilir
+	p = _exit_floor(p)
+	p.y += 0.05
 	_teleport(p, entry_yaw + 180.0)
 	_rain(true)
 	await _fade(0.0)
 	busy = false
+
+
+func _exit_floor(p: Vector3) -> Vector3:
+	var space = Game.player.get_world_3d().direct_space_state
+	var gh = Game.ground_height(p.x, p.z)
+	var top = maxf(p.y, gh) + 2.5
+	var hit = space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(p.x, top, p.z), Vector3(p.x, gh - 1.0, p.z), 1))
+	var fy = float(hit["position"].y) if not hit.is_empty() else gh
+	var sq = PhysicsShapeQueryParameters3D.new()
+	var sph = SphereShape3D.new()
+	sph.radius = 0.4
+	sq.shape = sph
+	sq.collision_mask = 1
+	sq.transform = Transform3D(Basis.IDENTITY, Vector3(p.x, fy + 1.0, p.z))
+	if space.intersect_shape(sq, 1).is_empty():
+		return Vector3(p.x, fy, p.z)
+	return Missions.open_ground(p, 40.0)
 
 
 func _rain(on: bool) -> void:

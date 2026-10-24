@@ -234,6 +234,88 @@ func add_mesh(other: MB, xf := Transform3D.IDENTITY) -> void:
 		idx.append(base + i)
 
 
+## Yassı profil (kılıç ağzı, balta, yaprak): (y, z) düzlemindeki dış hattı X ekseninde kalınlıkla çıkarır.
+## thick_fn(p: Vector2) -> float verilirse kalınlık noktaya göre değişir (ör. keskin ağız ince, sırt kalın).
+## Delik için hattı önce hole() ile köprüleyin.
+func add_slab(outline: PackedVector2Array, thick: float, col: Color, xf := Transform3D.IDENTITY, thick_fn := Callable(), side_col = null) -> void:
+	var pts := outline.duplicate()
+	var area := 0.0
+	for i in pts.size():
+		var a: Vector2 = pts[i]
+		var b: Vector2 = pts[(i + 1) % pts.size()]
+		area += a.x * b.y - b.x * a.y
+	if area < 0.0:
+		pts.reverse()
+	var tri := Geometry2D.triangulate_polygon(pts)
+	if tri.is_empty():
+		return
+	var n := pts.size()
+	var th := PackedFloat32Array()
+	for p in pts:
+		th.append(float(thick_fn.call(p)) if thick_fn.is_valid() else thick)
+	var nb := xf.basis.inverse().transposed()
+	# ön (+X) ve arka (-X) yüzler — profil (y,z) → yerel (x, y, z)
+	for sgn in [1.0, -1.0]:
+		var base := verts.size()
+		for i in n:
+			verts.append(xf * Vector3(sgn * th[i] * 0.5, pts[i].x, pts[i].y))
+			normals.append((nb * Vector3(sgn, 0, 0)).normalized())
+			colors.append(col)
+			uvs.append(pts[i])
+		for k in range(0, tri.size(), 3):
+			if sgn > 0.0:
+				idx.append_array([base + tri[k], base + tri[k + 2], base + tri[k + 1]])
+			else:
+				idx.append_array([base + tri[k], base + tri[k + 1], base + tri[k + 2]])
+	# yan duvar (kenar şeridi)
+	var sc: Color = side_col if side_col != null else col
+	for i in n:
+		var j := (i + 1) % n
+		var a: Vector2 = pts[i]
+		var b: Vector2 = pts[j]
+		var e := b - a
+		if e.length() < 0.00001:
+			continue
+		var nrm := (nb * Vector3(0, e.y, -e.x)).normalized()
+		var base := verts.size()
+		for q in [[a, th[i], 1.0], [b, th[j], 1.0], [b, th[j], -1.0], [a, th[i], -1.0]]:
+			verts.append(xf * Vector3(q[2] * q[1] * 0.5, q[0].x, q[0].y))
+			normals.append(nrm)
+			colors.append(sc)
+			uvs.append(q[0])
+		idx.append_array([base, base + 2, base + 1, base, base + 3, base + 2])
+
+
+## Hatta yuvarlak delik açar: en yakın köşeden ince bir köprüyle deliğin çevresini ters yönde dolanır
+static func hole(outline: PackedVector2Array, c: Vector2, r: float, seg := 16) -> PackedVector2Array:
+	var best := 0
+	var bd := INF
+	for i in outline.size():
+		var d = outline[i].distance_to(c)
+		if d < bd:
+			bd = d
+			best = i
+	var p0: Vector2 = outline[best]
+	var a0 := (p0 - c).angle()
+	var area := 0.0
+	for i in outline.size():
+		var q: Vector2 = outline[i]
+		var w: Vector2 = outline[(i + 1) % outline.size()]
+		area += q.x * w.y - w.x * q.y
+	var dirn := -1.0 if area > 0.0 else 1.0   # delik dış hattın tersi yönde dolanmalı
+	var out := PackedVector2Array()
+	for i in best + 1:
+		out.append(outline[i])
+	for k in seg + 1:
+		var a = a0 + dirn * TAU * k / float(seg)
+		out.append(c + Vector2(cos(a), sin(a)) * r)
+	out.append(p0 + (c - p0).normalized().orthogonal() * 0.0005)
+	for i in range(best + 1, outline.size()):
+		out.append(outline[i])
+	return out
+
+
+
 func is_empty() -> bool:
 	return verts.is_empty()
 

@@ -152,13 +152,16 @@ func _process(dt: float) -> void:
 			freed += 1
 			n.queue_free()
 			npcs.erase(n)
+	_relocate(v)
 	_update_sites(v, p)
 	_update_crowd(v, p)
 	if v.is_empty():
 		current = ""
 		queue = queue.filter(func(r): return r[0] == "__never")
 		return
-	var base = int((32 if v["id"] == "konoha" else 22) * Game.npc_scale)
+	# büyük gizli köyler Konoha kadar kalabalık; küçük kasabalar daha sakin (eskiden 22 kişi koca köye dağılıp boş görünüyordu)
+	var big = v["id"] in ["konoha", "suna", "kiri", "kumo", "iwa"]
+	var base = int((36 if big else 18) * maxf(0.7, Game.npc_scale))
 	var target = base if phase != "gece" else int(base * 0.4)
 	var streets = _streets(v)
 	var roofs: Array = Builder.roof_points.get(v["id"], [])
@@ -167,7 +170,16 @@ func _process(dt: float) -> void:
 	while planned < target and groups < 3:
 		groups += 1
 		var role = _pick_role()
-		var near: Array = streets.filter(func(q): return q.distance_to(p) < 120.0 and q.distance_to(p) > (35.0 if current == v["id"] else 4.0))
+		var near: Array = streets.filter(func(q): return q.distance_to(p) < 100.0 and q.distance_to(p) > (22.0 if current == v["id"] else 4.0))
+		if near.is_empty():
+			# yakında sokak noktası yok (Kiri'nin geniş meydanları, köprüler): uzaktaki sokaklar, o da yoksa çevredeki açık zemin
+			near = streets.filter(func(q): return q.distance_to(p) < 220.0)
+		if near.is_empty():
+			for k in 6:
+				var a = randf() * TAU
+				var q = Missions.open_ground(p + Vector3(cos(a), 0, sin(a)) * randf_range(25.0, 70.0), 12.0)
+				if Game.terrain_height(q.x, q.z) > 0.3:   # suya değil
+					near.append(q)
 		if near.is_empty():
 			break
 		var at: Vector3 = near.pick_random()
@@ -193,6 +205,30 @@ func _process(dt: float) -> void:
 				queue.append([role, at, streets])
 				planned += 1
 	current = v["id"]
+
+
+## Kurulumda (fizik yokken) konan tezgâhlar: oyuncu köydeyken bir kez açık zemine taşınır
+var _relocated := {}
+
+
+func _relocate(v: Dictionary) -> void:
+	if v.is_empty() or _relocated.get(v["id"], 0.0) < 0.0:
+		return
+	# köye girdikten ~3 sn sonra (binaların çarpışma gövdeleri yüklenmiş olsun)
+	_relocated[v["id"]] = float(_relocated.get(v["id"], 0.0)) + 0.8
+	if float(_relocated[v["id"]]) < 3.0:
+		return
+	_relocated[v["id"]] = -1.0
+	for it in Interact.items:
+		if not it.get("relocate", false) or String(it.get("village", "")) != String(v["id"]):
+			continue
+		var off: Vector3 = it.get("node_off", Vector3.ZERO)
+		var base: Vector3 = it["pos"] + off
+		var q = Missions.open_ground(base, 40.0)
+		it["pos"] = q - off
+		var n = it.get("node")
+		if n and is_instance_valid(n):
+			n.global_position = q
 
 
 func _stalls(v: Dictionary) -> Array:

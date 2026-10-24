@@ -2294,57 +2294,8 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			for k in 4:
 				b.add_xf("box", Transform3D(Basis(Vector3.BACK, deg_to_rad(45.0 + 90.0 * k)) * Basis.from_scale(Vector3(0.09, 0.62, 0.012)), Vector3(0, 0, 0.3)), Color(0.5, 0.52, 0.56))
 			b.add("cyl", Vector3(0, 0, 0.3), Vector3(0.11, 0.03, 0.11), dark, Vector3(90, 0, 0), 10)
-		"kubikiribocho":
-			b.add("cyl", Vector3(0, 0, -0.1), Vector3(0.04, 0.34, 0.04), Color(0.35, 0.25, 0.18), Vector3(90, 0, 0), 8)
-			b.add("box", Vector3(0, -0.05, 0.12), Vector3(0.03, 0.12, 0.08), dark)
-			# geniş satır ağzı, uçta yuvarlak delik (çerçeve parçalarıyla), sırtta boyun çentiği
-			b.add("box", Vector3(0, -0.12, 0.62), Vector3(0.02, 0.36, 0.9), steel)
-			b.add("box", Vector3(0, -0.02, 1.2), Vector3(0.02, 0.16, 0.26), steel)
-			b.add("box", Vector3(0, -0.27, 1.2), Vector3(0.02, 0.06, 0.26), steel)
-			b.add("box", Vector3(0, -0.12, 1.36), Vector3(0.02, 0.36, 0.06), steel)
-			b.add("torus", Vector3(0, -0.15, 1.2), Vector3(0.2, 0.2, 0.2), steel.darkened(0.15), Vector3(0, 0, 90), 14)
-			b.add("cyl", Vector3(0, -0.3, 0.45), Vector3(0.1, 0.024, 0.1), dark, Vector3(0, 0, 90), 12)
-		"samehada":
-			b.add("cyl", Vector3(0, 0, -0.1), Vector3(0.045, 0.34, 0.045), Color(0.85, 0.82, 0.75), Vector3(90, 0, 0), 8)
-			b.add("cyl", Vector3(0, 0, 0.62), Vector3(0.2, 1.05, 0.13), Color(0.25, 0.32, 0.5), Vector3(90, 0, 0), 10)
-			for k in 14:
-				var a = k * 2.4
-				b.add("cone", Vector3(cos(a) * 0.09, sin(a) * 0.06, 0.2 + k * 0.065), Vector3(0.035, 0.06, 0.035), Color(0.2, 0.26, 0.42), Vector3(rad_to_deg(a), 0, 90), 4)
-			for z in [0.25, 0.55, 0.85]:
-				b.add("cyl", Vector3(0, 0, z), Vector3(0.215, 0.05, 0.145), Color(0.92, 0.9, 0.85), Vector3(90, 0, 0), 10)
-		"kiba":
-			b.add("cyl", Vector3(0, 0, -0.05), Vector3(0.03, 0.16, 0.03), dark, Vector3(90, 0, 0), 8)
-			b.add("box", Vector3(0, 0.0, 0.42), Vector3(0.014, 0.07, 0.72), Color(0.6, 0.65, 0.72))
-			for k in 7:
-				b.add("cone", Vector3(0, 0.045, 0.12 + k * 0.1), Vector3(0.012, 0.05, 0.04), Color(0.95, 0.88, 0.4), Vector3(0, 0, 0), 4)
-			b.add("box", Vector3(0, 0.0, 0.42), Vector3(0.022, 0.025, 0.74), Color(1.0, 0.95, 0.5))
-		"hiramekarei":
-			for sx in [-1.0, 1.0]:
-				b.add("cyl", Vector3(0.045 * sx, 0, -0.08), Vector3(0.03, 0.3, 0.03), Color(0.85, 0.82, 0.75), Vector3(90, 0, 0), 8)
-			b.add("box", Vector3(0, 0, 0.08), Vector3(0.14, 0.05, 0.04), dark)
-			b.add("box", Vector3(0, 0, 0.62), Vector3(0.24, 0.025, 1.0), Color(0.3, 0.45, 0.75))
-			b.add("cone", Vector3(0, 0, 1.17), Vector3(0.24, 0.12, 0.025), Color(0.3, 0.45, 0.75), Vector3(90, 0, 0), 4)
-			for z in [0.3, 0.55, 0.8]:
-				b.add("box", Vector3(0, 0, z), Vector3(0.25, 0.035, 0.05), Color(0.92, 0.9, 0.85))
-		"shibuki":
-			b.add("cyl", Vector3(0, 0, -0.08), Vector3(0.035, 0.28, 0.035), dark, Vector3(90, 0, 0), 8)
-			b.add("box", Vector3(0, 0, 0.55), Vector3(0.025, 0.2, 0.85), steel)
-			b.add("cyl", Vector3(0, 0.0, 0.55), Vector3(0.09, 0.82, 0.09), Color(0.85, 0.8, 0.65), Vector3(90, 0, 0), 10)
-			for k in 6:
-				b.add("box", Vector3(0, 0.05, 0.22 + k * 0.13), Vector3(0.1, 0.012, 0.06), Color(0.95, 0.92, 0.85))
-				b.add("box", Vector3(0, 0.057, 0.22 + k * 0.13), Vector3(0.03, 0.004, 0.04), Color(0.8, 0.1, 0.1))
-		"nuibari":
-			b.add("cyl", Vector3(0, 0, -0.06), Vector3(0.035, 0.22, 0.035), Color(0.35, 0.22, 0.15), Vector3(90, 0, 0), 8)
-			b.add("cyl", Vector3(0, 0, 0.7), Vector3(0.018, 1.4, 0.018), Color(0.8, 0.82, 0.86), Vector3(90, 0, 0), 6)
-			b.add("cone", Vector3(0, 0, 1.45), Vector3(0.02, 0.1, 0.02), Color(0.8, 0.82, 0.86), Vector3(90, 0, 0), 6)
-			b.add("torus", Vector3(0, -0.06, -0.15), Vector3(0.14, 0.14, 0.14), Color(0.75, 0.75, 0.8), Vector3(90, 0, 0), 12)
-		"kabutowari":
-			b.add("cyl", Vector3(0, 0, 0.15), Vector3(0.035, 0.6, 0.035), Color(0.35, 0.25, 0.15), Vector3(90, 0, 0), 8)
-			b.add("box", Vector3(0, 0.12, 0.42), Vector3(0.025, 0.26, 0.2), Color(0.45, 0.45, 0.48))
-			b.add("cyl", Vector3(0, 0.25, 0.42), Vector3(0.21, 0.025, 0.21), Color(0.55, 0.55, 0.58), Vector3(0, 0, 90), 12)
-			for k in 6:
-				b.add("torus", Vector3(0, -0.04 - k * 0.04, -0.15 - k * 0.015), Vector3(0.03, 0.03, 0.03), dark, Vector3(90 * (k % 2), 0, 0), 6)
-			b.add("cyl", Vector3(0, -0.3, -0.26), Vector3(0.11, 0.18, 0.11), Color(0.4, 0.4, 0.42), Vector3(0, 0, 90), 10)
+		"kubikiribocho", "samehada", "kiba", "hiramekarei", "shibuki", "nuibari", "kabutowari":
+			MistSwords.build(id, b)   # Sis'in Yedi Kılıcı: referansla modellendi
 		"chokuto":
 			b.add("cyl", Vector3(0, 0, -0.08), Vector3(0.032, 0.22, 0.032), Color(0.85, 0.85, 0.85), Vector3(90, 0, 0), 8)
 			b.add("box", Vector3(0, 0, 0.04), Vector3(0.05, 0.05, 0.02), dark)

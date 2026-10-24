@@ -284,4 +284,61 @@ static func _keepers(parent: Node3D) -> void:
 		mi.mesh = b.build(Props.toon())
 		parent.add_child(mi)
 		mi.global_position = wp
-		Interact.add({"pos": wp + Vector3(0, 1.0, -1.5), "radius": 4.0, "kind": "contract_keeper", "village": vid, "label": "Sözleşme Ustası"})
+		# fizik hazır olunca (oyuncu köye gelince) açık zemine taşınır: Suna'da bir evin içinde kalıyordu
+		Interact.add({"pos": wp + Vector3(0, 1.0, -1.5), "radius": 4.0, "kind": "contract_keeper", "village": vid, "label": "Sözleşme Ustası",
+			"relocate": true, "node": mi, "node_off": Vector3(0, -1.0, 1.5)})
+	_services(parent)
+
+
+## Büyük köylerin çarşısı (Konoha'nın kendi dükkânları var): eczane, silahçı, terzi tezgâhları.
+## Kurulumda köy merkezine yakın konur; oyuncu köye ilk girdiğinde açık zemine taşınır (VillageLife).
+const SERVICES := [["shop_items", "[F] Eczane (ilaç, hap, duman bombası)", Color(0.3, 0.6, 0.4), "薬", 70.0],
+	["shop_weapons", "[F] Silahçı (alet, silah, parşömen)", Color(0.55, 0.3, 0.22), "武器", 110.0],
+	["tailor", "[F] Terzi (kıyafet, zırh)", Color(0.45, 0.28, 0.5), "呉服", 150.0]]
+
+
+static func _services(parent: Node3D) -> void:
+	for vid in ["suna", "kiri", "kumo", "iwa"]:
+		var v = Game.village(vid)
+		if v.is_empty():
+			continue
+		for sv in SERVICES:
+			var a = deg_to_rad(float(sv[4]))
+			var r = float(v.get("r", 300)) * 0.22
+			var wp = Game.from_map(Vector2(float(v["x"]) + cos(a) * r, float(v["y"]) + sin(a) * r))
+			wp.y = Game.terrain_height(wp.x, wp.z)
+			var col: Color = sv[2]
+			var b = MB.new()
+			b.add("box", Vector3(0, 0.55, 0), Vector3(3.2, 1.1, 1.3), Color(0.5, 0.36, 0.24))   # tezgâh
+			for sx in [-1.0, 1.0]:
+				for sz in [-1.0, 1.0]:
+					b.add("box", Vector3(1.5 * sx, 1.5, 0.8 * sz), Vector3(0.14, 3.0, 0.14), Color(0.35, 0.24, 0.15))
+			b.add("box", Vector3(0, 3.05, 0), Vector3(3.8, 0.16, 2.4), col, Vector3(-8, 0, 0))   # tente
+			for k in 4:   # noren şeritleri
+				b.add("box", Vector3(-1.2 + k * 0.8, 2.55, -1.15), Vector3(0.72, 0.8, 0.03), col.lightened(0.15))
+			b.add("box", Vector3(0, 3.6, -0.9), Vector3(1.8, 0.8, 0.1), Color(0.95, 0.92, 0.84))   # tabela
+			match String(sv[0]):
+				"shop_items":
+					for k in 5:
+						b.add("cyl", Vector3(-1.1 + k * 0.55, 1.28, 0), Vector3(0.22, 0.34, 0.22), Color(0.55, 0.8, 0.6).lerp(Color(0.85, 0.75, 0.5), k / 4.0), Vector3.ZERO, 8)
+				"shop_weapons":
+					for k in 4:
+						b.add("box", Vector3(-1.0 + k * 0.65, 1.7, 0.45), Vector3(0.05, 1.2, 0.08), Color(0.75, 0.78, 0.82), Vector3(0, 0, 8 - k * 5))
+				"tailor":
+					for k in 3:
+						b.add("box", Vector3(-1.0 + k * 1.0, 1.75, 0.3), Vector3(0.7, 0.9, 0.12), [Color(0.3, 0.4, 0.6), Color(0.6, 0.25, 0.25), Color(0.3, 0.5, 0.35)][k])
+			var mi = MeshInstance3D.new()
+			mi.mesh = b.build(Props.toon())
+			parent.add_child(mi)
+			mi.global_position = wp
+			var lb = Label3D.new()
+			lb.text = String(sv[3])
+			lb.font_size = 72
+			lb.pixel_size = 0.008
+			lb.modulate = Color(0.12, 0.1, 0.1)
+			lb.outline_size = 0
+			lb.position = Vector3(0, 3.6, -0.97)
+			lb.rotation.y = PI
+			mi.add_child(lb)
+			Interact.add({"pos": wp + Vector3(0, 1.0, -1.6), "radius": 3.5, "kind": sv[0], "village": vid, "label": sv[1],
+				"relocate": true, "node": mi, "node_off": Vector3(0, -1.0, 1.6)})
