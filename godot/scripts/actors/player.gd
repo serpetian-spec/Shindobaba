@@ -238,7 +238,11 @@ func _jump() -> void:
 			velocity.x = d.x * hs; velocity.z = d.z * hs
 		FX.smoke_puff(global_position + Vector3.UP * 0.3, 0.5, 6)
 		Sfx.play("whoosh", global_position)
-		model.play("roll", 0.05, 1.8, true)
+		# havada ikinci zıplama: tüm vücut top gibi toplanıp öne takla atar (eskiden yer yuvarlanması oynuyordu: süzülme pozu
+		# bacakları tuttuğu için yalnız üst gövde dönüyordu)
+		model.play("air", 0.05)
+		model.overlay.set_pose("leap", 0.0)
+		flip_t = 0.001
 
 
 ## Ctrl: ileri doğru uzun, yüksek ninja sıçrayışı (yerde ya da havada bir kez; duvarda duvardan sek)
@@ -659,6 +663,8 @@ func _apply_flip(dt: float) -> void:
 	model.scale = Vector3.ONE * model.age_scale
 	# takla boyunca top gibi toplan (bacaklar süzülme pozunda donuk kalmasın)
 	model.overlay.tuck = clampf(sin(PI * k) * 1.6, 0.0, 1.0) if flip_t > 0.0 else 0.0
+	if flip_t > 0.0:
+		model.overlay.snap("leap", 0.0)
 	if k >= 1.0:
 		flip_t = -1.0
 		model.overlay.tuck = 0.0
