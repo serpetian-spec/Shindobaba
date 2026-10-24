@@ -68,6 +68,9 @@ func _parse_args() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--test="):
 			test_script = a.substr(7)
+			# test pencereleri kullanıcının önüne çıkmasın: odak almaz, ekran dışında çizer
+			DisplayServer.window_set_flag(DisplayServer.WINDOW_FLAG_NO_FOCUS, true)
+			DisplayServer.window_set_position(Vector2i(-5000, -5000))
 		elif a.begins_with("--shots="):
 			shot_dir = a.substr(8)
 
