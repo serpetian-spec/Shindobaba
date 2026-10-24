@@ -319,8 +319,9 @@ static func _blood_sign(id: String) -> void:
 		pl.model.play("interact", 0.1, 1.0, true)
 		FX.burst(pl.global_position + Vector3.UP * 1.0 + pl.face_dir() * 0.4, {"amount": 6, "life": 0.5, "add": false, "size": 0.12, "vmin": 0.5, "vmax": 1.5,
 			"gravity": Vector3(0, -9, 0), "colors": [Color(0.75, 0.05, 0.05, 1), Color(0.5, 0.0, 0.0, 0)]})
-	Hud.dialog(DEFS[id]["elder"], "Başparmağını ısır, adını kanınla yaz... Artık bizdensin.", [])
-	sign(id)
+	# köy ustalarının sözleşmelerinde bilge yok ("elder" alanı yalnız dağlı sözleşmelerde): imzada çöküyordu, para gidip sözleşme imzalanmıyordu
+	Hud.dialog(String(DEFS[id].get("elder", "Sözleşme Ustası")), "Başparmağını ısır, adını kanınla yaz... Artık bizdensin.", [])
+	Contracts.sign(id)   # (çıplak "sign(id)" Godot'nun matematik fonksiyonuna gidiyordu: hiçbir sözleşme imzalanmıyordu)
 
 
 ## Köy sözleşme ustaları: dağsız sözleşmeler (şahin, ninken, maymun, karga, semender, kaplumbağa, gelincik, kedi, örümcek)
