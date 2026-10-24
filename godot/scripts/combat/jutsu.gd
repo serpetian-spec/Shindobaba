@@ -1082,29 +1082,63 @@ func j_kaiten(c: Node3D, _t: Node3D) -> void:
 
 # ---------------------------------------------------------------- Nara
 func _shadow_line(c: Node3D, t: Node3D, dur: float) -> void:
-	var mi = MeshInstance3D.new()
-	var bm = BoxMesh.new()
-	bm.size = Vector3(0.6, 0.04, 1.0)
+	# yerde sürünerek uzanan, kenarları dalgalanan kalın gölge şeridi (araziye yapışık); iki uçta gölge göleti
 	var mat = StandardMaterial3D.new()
-	mat.albedo_color = Color(0.03, 0.02, 0.05, 0.92)
+	mat.albedo_color = Color(0.02, 0.01, 0.04, 0.95)
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	bm.material = mat
-	mi.mesh = bm
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var rim = StandardMaterial3D.new()
+	rim.albedo_color = Color(0.45, 0.25, 0.75, 0.55)
+	rim.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	rim.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	rim.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	rim.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var im = ImmediateMesh.new()
+	var mi = MeshInstance3D.new()
+	mi.mesh = im
+	mi.top_level = true
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	get_tree().current_scene.add_child(mi)
+	var pools = []
+	for k in 2:
+		var pm = MeshInstance3D.new()
+		var cm = CylinderMesh.new()
+		cm.top_radius = 1.0; cm.bottom_radius = 1.0; cm.height = 0.02; cm.radial_segments = 24
+		pm.mesh = cm
+		pm.material_override = mat
+		get_tree().current_scene.add_child(pm)
+		pools.append(pm)
 	var upd = func(_i):
 		if not is_instance_valid(c) or not is_instance_valid(t):
 			return
-		var a = _ground(c.global_position) + Vector3.UP * 0.05
-		var b = _ground(t.global_position) + Vector3.UP * 0.05
-		var grow = clampf(_i * 0.05 / 0.45, 0.05, 1.0)   # gölge yerde sürünerek uzanır
-		var full = maxf(0.2, a.distance_to(b))
-		var L = full * grow
-		var fwd = (b - a).normalized() if full > 0.3 else Vector3.FORWARD
-		var w = 1.0 + sin(_i * 0.7) * 0.25
-		mi.global_transform = Transform3D(Basis.looking_at(fwd, Vector3.UP).scaled(Vector3(w, 1, L)), a + fwd * L * 0.5)
+		var a = _ground(c.global_position)
+		var b = _ground(t.global_position)
+		var grow = clampf(_i * 0.05 / 0.45, 0.05, 1.0)
+		var full = maxf(0.2, Vector2(b.x - a.x, b.z - a.z).length())
+		var fwd = Vector3(b.x - a.x, 0, b.z - a.z).normalized() if full > 0.3 else Vector3.FORWARD
+		var side = fwd.cross(Vector3.UP)
+		im.clear_surfaces()
+		for pass_i in 2:
+			im.surface_begin(Mesh.PRIMITIVE_TRIANGLE_STRIP, mat if pass_i == 0 else rim)
+			var n = 28
+			for k in n + 1:
+				var u = float(k) / n
+				var p = a + fwd * full * grow * u
+				p.y = Game.ground_height(p.x, p.z) + 0.06 + pass_i * 0.005
+				var w = (0.55 + 0.25 * sin(u * 18.0 - _i * 0.6) + 0.35 * (1.0 - u)) * (1.3 if pass_i == 1 else 1.0)
+				im.surface_add_vertex(p + side * w)
+				im.surface_add_vertex(p - side * w)
+			im.surface_end()
+		pools[0].global_position = a + Vector3.UP * 0.05
+		pools[0].scale = Vector3(1.3, 1, 1.3)
+		pools[1].global_position = a + fwd * full * grow + Vector3.UP * 0.05
+		pools[1].scale = Vector3.ONE * (1.6 * grow) + Vector3(0, 1.0 - 1.6 * grow, 0)
 	upd.call(0)
-	_ticks(int(dur / 0.05), 0.05, upd, func(): mi.queue_free())
+	_ticks(int(dur / 0.05), 0.05, upd, func():
+		mi.queue_free()
+		for pm in pools:
+			pm.queue_free())
 
 
 func j_kagemane(c: Node3D, t: Node3D) -> void:
@@ -1127,6 +1161,28 @@ func j_kage_kubi(c: Node3D, t: Node3D) -> void:
 	if t.has_method("apply_status"):
 		t.apply_status("bind", 4.0)
 	Sfx.play("genjutsu", c.global_position, 0.5)
+	# gölge elleri hedefin bedenine tırmanıp boynunu sarar
+	for k in 4:
+		var hand = MeshInstance3D.new()
+		var cm = CylinderMesh.new()
+		cm.top_radius = 0.06; cm.bottom_radius = 0.16; cm.height = 1.0; cm.radial_segments = 8
+		hand.mesh = cm
+		var hm = StandardMaterial3D.new()
+		hm.albedo_color = Color(0.02, 0.01, 0.04)
+		hm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		hand.material_override = hm
+		t.add_child(hand)
+		var a2 = k * TAU / 4.0
+		var off = Vector3(cos(a2), 0, sin(a2)) * (t.radius + 0.12)
+		hand.position = off + Vector3.UP * 0.1
+		hand.scale = Vector3(1, 0.05, 1)
+		var tw = hand.create_tween()
+		tw.tween_interval(0.3 + k * 0.08)
+		tw.tween_property(hand, "scale", Vector3(1, t.height * 0.85, 1), 0.6).set_trans(Tween.TRANS_CUBIC)
+		tw.parallel().tween_property(hand, "position:y", t.height * 0.45, 0.6)
+		tw.parallel().tween_property(hand, "rotation:z", 0.25 * (1 if k % 2 else -1), 0.6)
+		tw.tween_interval(2.8)
+		tw.tween_callback(hand.queue_free)
 	_ticks(8, 0.5, func(_i):
 		if is_instance_valid(t) and not t.is_dead():
 			FX.burst(t.global_position + Vector3.UP * 1.5, {"amount": 8, "life": 0.5, "tex": FX.tex_smoke, "add": false, "size": 0.6, "vmin": 0.5, "vmax": 1.5, "colors": [Color(0.05, 0.03, 0.08, 0.9), Color(0.05, 0.03, 0.08, 0)]})
