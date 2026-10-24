@@ -142,7 +142,11 @@ func _tail(base: Node3D, yaw_deg: float, pitch_deg: float, n: int, length: float
 				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.05), Vector3(0, 0, seg_len * 0.55), Vector3(0, 0, seg_len * 1.05)], [r * 0.95, r * 1.08, r * 0.9], [c.darkened(0.15), c, c.darkened(0.2)], 12, 2, true, true)
 			"spike":  # dikenli maymun kuyruğu
 				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.2), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.2)], [r, r * 0.97, r * 0.9], c, 12, 2, true, true)
-				claw(mb, Vector3(0, r * 0.8, seg_len * 0.5), Vector3(0, 1, 0.4), r * 1.4, r * 0.35, Color(0.25, 0.2, 0.15))
+				# bej kemik plaka + koyu uç (Son Gokū kuyruk dikenleri)
+				var pdir = Vector3(0, 1, 0.75).normalized()
+				var pb = Vector3(0, r * 0.75, seg_len * 0.35)
+				claw(mb, pb, pdir, r * 1.25, r * 0.45, Color(0.86, 0.76, 0.58))
+				claw(mb, pb + pdir * r * 0.95, pdir, r * 0.5, r * 0.17, Color(0.12, 0.08, 0.06))
 			"tentacle":  # ahtapot kolu + vantuz
 				Loft.tube(mb, [Vector3(0, 0, -seg_len * 0.2), Vector3(0, 0, seg_len * 0.5), Vector3(0, 0, seg_len * 1.2)], [r, r * 0.97, r * 0.9], c, 12, 2, true, true)
 				for v in 2:
