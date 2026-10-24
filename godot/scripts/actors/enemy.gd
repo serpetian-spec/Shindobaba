@@ -260,7 +260,8 @@ func _think(dt: float) -> void:
 		target = null
 	elif target == null or not is_instance_valid(target) or target.is_dead():
 		target = null
-		var best = 26.0 if not Buffs.has("henge") else 0.0
+		# görüş: ninja düşmanlar uzaktan fark eder (eskiden 26 m, yanına kadar gelmek gerekiyordu)
+		var best = (55.0 if not arch["jutsu"].is_empty() else 40.0) if not Buffs.has("henge") else 0.0
 		for f in get_tree().get_nodes_in_group("fighters"):
 			if not Combat.hostile(self, f) or f.is_dead():
 				continue
@@ -279,7 +280,7 @@ func _think(dt: float) -> void:
 			Combat.popup_text(global_position + Vector3.UP * (height + 0.8), "!", Color(1, 0.3, 0.2))
 	if target == null and state in ["chase"]:
 		state = "idle"
-	if global_position.distance_to(home) > 70.0 and state == "chase":
+	if global_position.distance_to(home) > 130.0 and state == "chase":
 		target = null
 		state = "idle"
 		wander_to = home
@@ -312,10 +313,13 @@ func _chase(dt: float) -> void:
 		_beast_tech(d)
 		return
 	# menzilli: jutsu ya da kunai
-	if d > 5.0 and d < 24.0 and ranged_cd <= 0.0 and randf() < 0.5:
-		ranged_cd = randf_range(3.0, 6.0) / arch["aggr"]
-		var jl: Array = arch["jutsu"]
-		if not jl.is_empty() and randf() < 0.6 and not has_status("sealed"):   # chakra noktaları kapalıysa jutsu yok
+	# jutsu kullanan düşman: uzaktan ve sık atar, yakında da arada bir (eskiden 5-24 m, %30)
+	var jl: Array = arch["jutsu"]
+	var far_ok = d > 4.0 and d < 42.0
+	var near_ok = d <= 4.0 and not jl.is_empty() and randf() < 0.15
+	if (far_ok or near_ok) and ranged_cd <= 0.0 and randf() < 0.8:
+		ranged_cd = randf_range(2.0, 4.0) / arch["aggr"]
+		if not jl.is_empty() and randf() < 0.85 and not has_status("sealed"):   # chakra noktaları kapalıysa jutsu yok
 			set_meta("cast_id", jl.pick_random())
 			state = "cast"
 			CastAnim.play(self, get_meta("cast_id"), 0.55)  # mühür + atma koreografisi

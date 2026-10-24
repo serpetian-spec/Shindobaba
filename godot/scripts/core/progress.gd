@@ -384,7 +384,8 @@ func promote(rank: int) -> void:
 
 # ------------------------------------------------------------------ olay kancaları
 func on_enemy_killed(e: Node) -> void:
-	add_xp(int(e.xp))
+	# düşman XP'si seviyesiyle büyür (eskiden sabit 25-120 XP, Sv.24 sonrası tıkanıyordu)
+	add_xp(int(float(e.xp) * (1.0 + float(e.get("level") if e.get("level") != null else 1) / 8.0)))
 	add_ryo(int(e.ryo))
 	p()["stats"]["kills"] = int(p()["stats"].get("kills", 0)) + 1
 	Missions.on_kill(e)
@@ -512,7 +513,7 @@ func interact(it: Dictionary) -> void:
 			LegendPaths.interact(it)
 		"home_note":
 			var lv = int(pr["level"])
-			Hud.dialog("Notlar", "Kendi el yazınla: \"Hokage olacağım!\"\nSeviye %d • %s • %d Ryō\nGörevler: D%d C%d B%d A%d S%d" % [lv, Data.RANKS[int(pr["rank"])], int(pr["ryo"]),
+			Hud.dialog("Notlar", "Kendi el yazınla: \"%s\"\nSeviye %d • %s • %d Ryō\nGörevler: D%d C%d B%d A%d S%d" % [_note_line(), lv, Data.RANKS[int(pr["rank"])], int(pr["ryo"]),
 				pr["missions_done"]["D"], pr["missions_done"]["C"], pr["missions_done"]["B"], pr["missions_done"]["A"], pr["missions_done"]["S"]], [])
 		"bbq":
 			_eat(80, "Yakiniku! Can ve chakra doldu, 60sn boyunca +%20 güç.", "Garson")

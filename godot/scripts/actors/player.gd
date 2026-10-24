@@ -259,7 +259,8 @@ func _leap(power := 1.0) -> void:
 	var air = not (grounded or swimming)
 	var k = clampf(power, 0.0, 1.0)
 	var lm = 1.0 + Stats.skill(Game.profile, "leap")
-	velocity = d * lerpf(24.0, 56.0, k) * lm + Vector3.UP * lerpf(12.0, 22.5, k) * sqrt(lm) * (0.8 if air else 1.0)
+	# 2x mesafe ve 2x yükseklik: aynı yerçekiminde yatay ve dikey hız √2 katı
+	velocity = d * lerpf(24.0, 56.0, k) * 1.414 * lm + Vector3.UP * lerpf(12.0, 22.5, k) * 1.414 * sqrt(lm) * (0.8 if air else 1.0)
 	flip_t = 0.0 if k > 0.45 else -1.0
 	facing = atan2(-d.x, -d.z)
 	grounded = false
@@ -442,7 +443,7 @@ func _ground_air_move(dt: float) -> void:
 		dash_t -= dt
 	else:
 		var spd_mul = Buffs.mod("speed") * (1.0 + Stats.skill(Game.profile, "speed")) * (1.0 + Gear.stat(Game.profile, "speed") + Stats.clan_bonus(Game.profile, "speed")) * status_speed()
-		var target = wish * ((DASH * 1.6 if turbo else DASH) if sprint else RUN) * spd_mul
+		var target = wish * ((DASH * 3.2 if turbo else DASH) if sprint else RUN) * spd_mul   # tam hız (5 sn Shift) 2x
 		if swimming:
 			target *= 0.35
 		var hv = Vector3(velocity.x, 0, velocity.z)

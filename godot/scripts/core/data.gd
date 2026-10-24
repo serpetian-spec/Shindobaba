@@ -23,5 +23,5 @@ func _ready() -> void:
 ## 100 seviye uzun vadeli hedef: erken seviyeler hızlı, 50'den sonra yavaşlar
 const MAX_LEVEL := 100
 func xp_for_level(lv: int) -> int:
-	# erken seviyeler hızlı (Genin ~Sv.5'e kısa sürede), Sv.100 toplamı ~1.47M
-	return int(40.0 + 14.0 * pow(lv, 1.7) + (0.0 if lv < 50 else 30.0 * pow(lv - 49, 1.45)))
+	# yumuşak eğri: düşman ve görev XP'si de seviyeyle büyüdüğü için yüksek seviyeler tıkanmaz
+	return int(30.0 + 9.0 * pow(lv, 1.45))   # Sv.24 ~930, Sv.50 ~2.6k, Sv.99 ~7k; Jōnin (35) ~23k, Kage (90) ~230k toplam
