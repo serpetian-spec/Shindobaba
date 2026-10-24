@@ -7,9 +7,7 @@ extends RefCounted
 
 ## kurama / shukaku: hayran modelleri oyunun tarzına uymuyordu (sırıtıyordu), kendi prosedürel modellerimiz kullanılır
 ## hayran modelleri kaldırıldı; burada yalnızca kullanıcının AI ile ürettiği kendi modelleri var (path: tam yol)
-const DEFS := {
-	"matatabi": {"path": "res://assets/ai/matatabi.glb", "yaw": 180.0, "fit": "h", "surface": 0, "tint": Color(0.25, 0.5, 1.0)},
-}
+const DEFS := {}
 
 
 ## İskeletsiz canavar modellerinde deformasyon bölgeleri: (kuyruk başlangıcı z, ayak boyu y, baş bitişi z, baş alt sınırı y) — 0..1 oranları
