@@ -87,9 +87,21 @@ static func _amaterasu(e: Enemy, t: Node3D) -> void:
 	t.get_tree().create_timer(6.0).timeout.connect(func(): if is_instance_valid(flame): flame.queue_free())
 
 
-## Düşman Susanoo'su: İnsansı kademe, kızıl; hasarı azaltır, aralıklarla dev savuruş yapar
+## Düşman Susanoo'su: İnsansı kademe; her düşmanda rengi ve yapısı farklı (renk, zırh, yüz, silah, yoğunluk rastgele,
+## her açılışta yeniden zar). Hasarı azaltır, aralıklarla dev savuruş yapar.
 static func _susanoo(e: Enemy) -> void:
-	var pr = {"susanoo": {"color": [0.95, 0.25, 0.2], "rim_color": [1.0, 0.55, 0.35], "armor": 0, "face": 1, "weapon": "kilic", "wings": false, "mastery": 999.0, "tier_pref": 3}}
+	var rng = RandomNumberGenerator.new()
+	rng.randomize()
+	var col: Array = Susanoo.COLORS[rng.randi() % Susanoo.COLORS.size()].duplicate()
+	if rng.randf() < 0.5:   # paletin arasından ara tonlar
+		var c2: Array = Susanoo.COLORS[rng.randi() % Susanoo.COLORS.size()]
+		var k = rng.randf_range(0.2, 0.5)
+		for i in 3:
+			col[i] = lerpf(col[i], c2[i], k)
+	var rim = Color(col[0], col[1], col[2]).lightened(rng.randf_range(0.2, 0.5))
+	var pr = {"susanoo": {"color": col, "rim_color": [rim.r, rim.g, rim.b], "armor": rng.randi() % Susanoo.ARMORS.size(), "face": rng.randi() % Susanoo.FACES.size(),
+		"weapon": ["kilic", "kilic", "mizrak", "kalkan", "yay", "yok"][rng.randi() % 6], "wings": false, "mastery": 999.0, "tier_pref": 3,
+		"density": rng.randf_range(0.7, 1.4), "glow": rng.randf_range(0.7, 1.5), "flow": rng.randf_range(0.5, 1.8)}}
 	var sn = Susanoo.new()
 	sn.name = "Susanoo"
 	e.add_child(sn)
@@ -99,5 +111,5 @@ static func _susanoo(e: Enemy) -> void:
 	var fs = sn.scale
 	sn.scale = fs * 0.1
 	sn.create_tween().tween_property(sn, "scale", fs, 0.6).set_trans(Tween.TRANS_BACK)
-	Hud.banner(e.display_name, "SUSANOO!", Color(1.0, 0.35, 0.3))
+	Hud.banner(e.display_name, "SUSANOO!", Color(col[0], col[1], col[2]).lightened(0.3))
 	Sfx.play("roar", e.global_position, 1.4, 0.6)
