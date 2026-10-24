@@ -74,6 +74,13 @@ func _parse_args() -> void:
 
 # ------------------------------------------------------------------ tuşlar
 func _setup_input() -> void:
+	# menüler kendi kendine aşağı kayıyordu: kaymış bir gamepad çubuğu / eksen sürekli ui_down gönderiyor.
+	# Menü odak gezintisinden analog eksenleri çıkar (ok tuşları ve d-pad kalır)
+	for ua in ["ui_up", "ui_down", "ui_left", "ui_right", "ui_focus_next", "ui_focus_prev"]:
+		if InputMap.has_action(ua):
+			for ev in InputMap.action_get_events(ua):
+				if ev is InputEventJoypadMotion:
+					InputMap.action_erase_event(ua, ev)
 	var keys = {
 		"forward": [KEY_W], "back": [KEY_S], "left": [KEY_A], "right": [KEY_D],
 		"jump": [KEY_SPACE], "leap": [KEY_CTRL], "dash": [KEY_SHIFT], "substitute": [KEY_Q], "charge": [KEY_C],
