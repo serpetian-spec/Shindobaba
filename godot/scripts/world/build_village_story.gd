@@ -70,7 +70,8 @@ static func _compound(parent: Node3D, v: Dictionary, sty: Dictionary) -> void:
 	b.disc(Vector3(0, ay + 9.0, -6.7), 3.2, 0.3, acc)
 	for i in 6:
 		b.box(Vector3(-11 + i * 4.4, ay + 7.5, -6.6), Vector3(2.0, 1.6, 0.3), Color(0.55, 0.75, 0.9), 0.0, false)
-	b.interact(Vector3(0, ay, -9), 8, "academy", "[F] Akademi hocasıyla konuş (%s Akademisi)" % vn)
+	# kapı: içeride köye özel akademi sınıfı (hoca, sınav, yardımcı hoca)
+	b.interact(Vector3(0, ay, -8.0), 4, "enter", "[F] Gir: %s Ninja Akademisi" % vn, {"room": "academy", "vid": v["id"], "out": b.w(Vector3(0, ay, -9.5))})
 	var arng = RandomNumberGenerator.new()
 	arng.seed = hash(v["id"] + "_akademi")
 	AcademyGrounds.dress(b, 0.0, -6.5, 30.0, 44.0, arng, {"vid": v["id"], "climate": {"suna": "desert", "iwa": "dry", "kumo": "dry"}.get(v["id"], "green"),
@@ -99,7 +100,8 @@ static func _compound(parent: Node3D, v: Dictionary, sty: Dictionary) -> void:
 	b.box(Vector3(0, hy + 4.5, 34), Vector3(17, 7, 11), Color(0.92, 0.92, 0.9))
 	b.roof(Vector3(0, hy + 8.0, 34), Vector3(19, 3.0, 13), Color(0.75, 0.2, 0.2))
 	b.disc(Vector3(0, hy + 5.5, 28.4), 2.4, 0.3, Color(0.85, 0.15, 0.15))
-	b.interact(Vector3(0, hy, 26), 6, "hospital", "[F] Hastane: iyileş (ücretsiz)")
+	b.box(Vector3(0, hy + 2.4, 28.4), Vector3(3.0, 4.4, 0.4), Color(0.3, 0.22, 0.15), 0.0, false)   # kapı
+	b.interact(Vector3(0, hy, 27.0), 4, "enter", "[F] Gir: %s Hastanesi" % vn, {"room": "hospital", "vid": v["id"], "out": b.w(Vector3(0, hy, 25.0))})
 	# --- ANBU / Kage muhafızları karargâhı
 	var uy = g.call(44, 34)
 	b.box(Vector3(44, uy + 0.5, 34), Vector3(12, 3.0, 12), Color(0.2, 0.2, 0.22))

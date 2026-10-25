@@ -91,6 +91,10 @@ func enter(it: Dictionary) -> void:
 	title_lbl.text = TITLES.get(kind, "İç Mekân")
 	if kind in ["hokage", "kage"]:
 		title_lbl.text = "%s Kulesi — Kage Ofisi" % Progress.kage_title(String(it.get("vid", "konoha")))
+	elif kind == "hospital" and it.has("vid"):
+		title_lbl.text = "%s Hastanesi" % String(Game.village(String(it["vid"])).get("name", "Konoha"))
+	elif kind == "academy":
+		title_lbl.text = "%s Ninja Akademisi" % String(Game.village(String(it.get("vid", "konoha"))).get("name", "Konoha"))
 	await _fade(0.0)
 	var tw = create_tween()
 	tw.tween_property(title_lbl, "modulate:a", 1.0, 0.3)
@@ -423,7 +427,7 @@ func _build(kind: String, seed: int) -> void:
 	mb = MB.new()
 	glow_mb = MB.new()
 	match kind:
-		"academy": _academy()
+		"academy": _academy(String(door.get("vid", "konoha")))
 		"hokage", "kage": _kage_office(String(door.get("vid", "konoha")))
 		"weapon_shop": _weapon_shop()
 		"pharmacy": _pharmacy()
@@ -450,38 +454,94 @@ func _build(kind: String, seed: int) -> void:
 		room.add_child(gm)
 
 
-func _academy() -> void:
-	var W = 12.0; var D = 15.0; var H = 3.6
-	shell(W, D, H, Color(0.92, 0.86, 0.7))
-	# koridor hissi: girişte ayakkabılık + duyuru panosu
+## Akademi sınıfları: her köyün kendi teması — duvar/zemin/vurgu renkleri, tahtadaki köy kanjisi ve sancak,
+## köye özgü dekor (Konoha: yapraklar ve bitkiler; Suna: kum rengi kemerler, toprak çömlekler; Kiri: su havuzu, mavi fenerler;
+## Kumo: beyaz duvar, yıldırım levhaları, ağırlıklar; Iwa: taş sütunlar, kaya duvar, kristal) ve kendi hocaları.
+const ACADEMY := {
+	"konoha": {"wall": Color(0.92, 0.86, 0.7), "floor": Color(0.62, 0.44, 0.28), "acc": Color(0.72, 0.16, 0.13), "kanji": "火", "board": Color(0.16, 0.26, 0.2),
+		"lines": ["Mühürleri ezberlemeden jutsu olmaz!", "Bugün Kawarimi'yi tekrar edeceğiz.", "Ateşin İradesi'ni unutma."]},
+	"suna": {"wall": Color(0.9, 0.78, 0.58), "floor": Color(0.7, 0.55, 0.36), "acc": Color(0.16, 0.45, 0.38), "kanji": "風", "board": Color(0.3, 0.24, 0.18),
+		"lines": ["Çölde su ve chakra aynı şeydir: israf etme!", "Kum fırtınasında bile mühürlerin şaşmamalı.", "Rüzgâr gibi hızlı ol, kaya gibi sabırlı."]},
+	"kiri": {"wall": Color(0.8, 0.85, 0.88), "floor": Color(0.36, 0.42, 0.46), "acc": Color(0.18, 0.38, 0.72), "kanji": "水", "board": Color(0.14, 0.2, 0.26),
+		"lines": ["Sis gözünü kör eder; duyuların keskin olsun.", "Kanlı Sis günleri geride kaldı. Burada birbirimizi koruruz.", "Su, en sert taşı bile deler."]},
+	"kumo": {"wall": Color(0.95, 0.95, 0.93), "floor": Color(0.5, 0.5, 0.54), "acc": Color(0.92, 0.74, 0.14), "kanji": "雷", "board": Color(0.12, 0.14, 0.18),
+		"lines": ["Önce beden! Yüz şınav, sonra mühürler!", "Yıldırım tereddüt etmez — sen de etme.", "Disiplin, gücün yarısıdır."]},
+	"iwa": {"wall": Color(0.7, 0.6, 0.48), "floor": Color(0.42, 0.33, 0.26), "acc": Color(0.58, 0.22, 0.15), "kanji": "土", "board": Color(0.2, 0.17, 0.15),
+		"lines": ["Taş sabırlıdır; sen de sabırlı ol.", "Sağlam temel, sağlam ninja.", "Dağ eğilmez — Iwa da eğilmez."]},
+}
+
+
+func _academy(vid := "konoha") -> void:
+	var th: Dictionary = ACADEMY.get(vid, ACADEMY["konoha"])
+	var W = 13.0; var D = 15.0; var H = 3.8
+	var acc: Color = th["acc"]
+	shell(W, D, H, th["wall"], th["floor"])
+	var wood = Color(0.5, 0.35, 0.2) if vid != "kumo" else Color(0.42, 0.42, 0.46)
+	# giriş: ayakkabılık + duyuru panosu
 	shelf(-W * 0.5 + 0.35, 1.6, 1.6, 1.0, 1.0, [Color(0.3, 0.25, 0.2), Color(0.2, 0.2, 0.3), Color(0.45, 0.3, 0.2)], 0.4)
 	bx(W * 0.5 - 0.05, 1.7, 2.0, 0.04, 1.0, 1.6, Color(0.55, 0.42, 0.28))
 	for k in 5:
 		bx(W * 0.5 - 0.08, 1.5 + (k % 2) * 0.35, 1.5 + k * 0.25, 0.02, 0.26, 0.2, [Color(1, 1, 0.9), Color(0.95, 0.85, 0.7), Color(0.9, 0.95, 1)][k % 3])
-	# kara tahta + öğretmen kürsüsü
-	bx(0, 1.7, D - 0.05, 6.0, 1.6, 0.06, Color(0.16, 0.26, 0.2))
-	bx(0, 0.9, D - 0.09, 6.2, 0.06, 0.12, Color(0.5, 0.35, 0.2))
-	for k in 4:  # tebeşir mühür çizimleri
-		bx(-2.2 + k * 1.4, 1.9, D - 0.1, 0.9, 0.04, 0.01, Color(0.92, 0.92, 0.9))
-		bx(-2.2 + k * 1.4, 1.6, D - 0.1, 0.5, 0.04, 0.01, Color(0.92, 0.92, 0.9))
-	bx(0, 0.5, D - 2.0, 1.8, 1.0, 0.7, Color(0.48, 0.32, 0.19), true)
-	# öğrenci sıraları: kademeli
+	# kara tahta: köy kanjisi + tebeşir mühür çizimleri; üstünde köy sancağı
+	bx(0, 1.75, D - 0.05, 6.2, 1.6, 0.06, th["board"])
+	bx(0, 0.9, D - 0.09, 6.4, 0.06, 0.12, wood)
+	_kj(String(th["kanji"]), L(0, 1.8, D - 0.1), 0.9, Color(0.93, 0.93, 0.9))
+	for k in 4:
+		var x = -2.4 + k * 1.6 + (0.8 if k >= 2 else 0.0) - 0.4
+		bx(x, 2.0, D - 0.1, 0.8, 0.04, 0.01, Color(0.92, 0.92, 0.9))
+		bx(x, 1.6, D - 0.1, 0.45, 0.04, 0.01, Color(0.92, 0.92, 0.9))
+	bx(0, 3.15, D - 0.06, 2.4, 0.9, 0.04, acc)
+	bx(0, 0.5, D - 2.0, 1.8, 1.0, 0.7, wood.darkened(0.1), true)
+	# öğrenci sıraları
 	for row in 3:
 		for col in 3:
-			var x = -3.6 + col * 3.6
+			var x = -3.8 + col * 3.8
 			var d = 4.0 + row * 2.4
-			bx(x, 0.75, d + 0.35, 2.6, 0.06, 0.5, Color(0.6, 0.42, 0.25))
-			bx(x, 0.38, d + 0.35, 2.4, 0.7, 0.05, Color(0.5, 0.34, 0.2))
+			bx(x, 0.75, d + 0.35, 2.6, 0.06, 0.5, wood.lightened(0.1))
+			bx(x, 0.38, d + 0.35, 2.4, 0.7, 0.05, wood)
 			bench(x, d - 0.15, 2.4)
 			if rng.randf() < 0.75:
 				person("student", x + rng.randf_range(-0.7, 0.7), d - 0.15, 180.0)
-	scroll(-4.5, 1.9, D - 0.05, 0.0, Color(0.95, 0.9, 0.8))
-	scroll(4.5, 1.9, D - 0.05)
-	plant(-W * 0.5 + 0.6, D - 0.7)
-	plant(W * 0.5 - 0.6, D - 0.7)
+	# yan duvarlarda vurgu renginde kumaş şeritler
+	for sx in [-1.0, 1.0]:
+		for k in 3:
+			bx(sx * (W * 0.5 - 0.06), 2.6, 4.0 + k * 4.0, 0.03, 1.4, 0.7, acc)
+	# köye özgü dekor
+	match vid:
+		"konoha":
+			plant(-W * 0.5 + 0.6, D - 0.7)
+			plant(W * 0.5 - 0.6, D - 0.7)
+			scroll(-4.6, 1.9, D - 0.05, 0.0, Color(0.95, 0.9, 0.8))
+			scroll(4.6, 1.9, D - 0.05)
+		"suna":
+			for sx in [-1.0, 1.0]:   # kum rengi kemerler + toprak çömlekler
+				for k in 2:
+					var d = 5.0 + k * 6.0
+					bx(sx * (W * 0.5 - 0.3), H * 0.5, d, 0.5, H, 0.5, Color(0.82, 0.68, 0.48), true)
+					cy(sx * (W * 0.5 - 0.9), 0.4, d + 1.4, 0.6, 0.8, Color(0.7, 0.42, 0.26), 12)
+					sp(sx * (W * 0.5 - 0.9), 0.85, d + 1.4, Vector3(0.45, 0.2, 0.45), Color(0.62, 0.36, 0.22))
+			bx(0, 0.02, 7.0, 4.0, 0.02, 6.0, Color(0.72, 0.3, 0.2))   # halı
+		"kiri":
+			bx(-W * 0.5 + 1.4, 0.06, D - 2.2, 1.8, 0.1, 2.8, Color(0.3, 0.38, 0.45), true)   # su havuzu
+			gl("box", -W * 0.5 + 1.4, 0.13, D - 2.2, Vector3(1.6, 0.02, 2.6), Color(0.35, 0.6, 0.85))
+			for k in 3:
+				paper_lantern(-4.0 + k * 4.0, H - 0.7, 3.0, Color(0.6, 0.8, 1.0))
+		"kumo":
+			for k in 2:   # yıldırım levhaları + ağırlıklar
+				bx(-4.6 + k * 9.2, 2.2, D - 0.06, 1.2, 1.2, 0.04, Color(0.12, 0.12, 0.14))
+				_kj("雷", L(-4.6 + k * 9.2, 2.2, D - 0.1), 0.8, acc)
+			for k in 4:
+				cy(W * 0.5 - 1.0, 0.15, 3.0 + k * 0.8, 0.3, 0.3, Color(0.25, 0.25, 0.28), 12, Vector3(0, 0, 90))
+		"iwa":
+			for sx in [-1.0, 1.0]:   # taş sütunlar + kristal
+				for k in 2:
+					cy(sx * (W * 0.5 - 0.6), H * 0.5, 5.0 + k * 6.0, 0.7, H, Color(0.5, 0.44, 0.38), 8)
+			gl("box", W * 0.5 - 1.2, 1.0, D - 1.0, Vector3(0.4, 1.2, 0.4), Color(0.75, 0.55, 0.95), Vector3(0, 30, 10))
+			bx(0, 0.02, 7.0, 4.0, 0.02, 6.0, Color(0.48, 0.3, 0.22))
 	lamp(0, H - 0.5, 4.0, Color(1.0, 0.92, 0.8), 1.4, 11.0)
 	lamp(0, H - 0.5, 11.0, Color(1.0, 0.92, 0.8), 1.4, 11.0)
-	person("teacher", 0, D - 1.2, 0.0, "Hoshino-sensei", ["Mühürleri ezberlemeden jutsu olmaz!", "Bugün Kawarimi'yi tekrar edeceğiz.", "Ateşin İradesi'ni unutma."])
+	var hi: Dictionary = Progress.HOME_VILLAGES.get(vid, Progress.HOME_VILLAGES["konoha"])
+	person("teacher", 0, D - 1.2, 0.0, String(hi["s1"]), th["lines"])
 	act(0, D - 2.9, 2.2, "academy", "[F] Akademi hocasıyla konuş")
 	act(-4.2, D - 1.6, 1.8, "trainer", "[F] Yardımcı hoca: temel teknikler", {"kinds": ["academy", "taijutsu", "genjutsu"], "title": "Akademi Yardımcı Hocası"})
 	person("teacher", -4.2, D - 1.0, 0.0, "Yardımcı Hoca", ["Temel teknikleri öğrenmeden ileri gidemezsin.", "Kawarimi, Henge, Bunshin: üç temel!"], {"wander_r": 0.6})
