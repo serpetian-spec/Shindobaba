@@ -73,7 +73,7 @@ static func build(model: String, h: float, length: float) -> Dictionary:
 			_mesh(out["root"], b)
 	var surf = {"toad": 1, "snak": 1, "slug": 3, "hawk": 0, "dog_": 0, "wolf": 0, "monk": 0, "crow": 0, "sala": 1, "turt": 2, "weas": 0, "cat_": 0, "spid": 1}.get(model.substr(0, 4), 0)
 	# beyaz sümüklüböcek gölgede maviye kaçıyordu: açık gölge tonu
-	var bm = BeastModels.beast_material(surf, Color(0.86, 0.86, 0.84) if model.begins_with("slug") else (Color(0.66, 0.6, 0.56) if model.begins_with("monk") or model == "salamander" or model.begins_with("turt") else Color(0.3, 0.26, 0.4)))
+	var bm = BeastModels.beast_material(surf, Color(0.86, 0.86, 0.84) if model.begins_with("slug") else (Color(0.66, 0.6, 0.56) if model.begins_with("monk") or model == "salamander" or model.begins_with("turt") or model.begins_with("weas") else Color(0.3, 0.26, 0.4)))
 	for mi in out["root"].find_children("*", "MeshInstance3D", true, false):
 		if mi.material_override == null and mi.mesh and mi.mesh.get_surface_count() > 0 and mi.mesh.surface_get_material(0) == Props.toon():
 			mi.material_override = bm
@@ -936,15 +936,58 @@ static func _cat(out: Dictionary, model: String, h: float, length: float) -> voi
 	_mesh(out["root"], b)
 
 
+## Orak gelincik (REFERANS): uzun ince beyaz gövde, yassı geniş baş, küçük yuvarlak kulaklar, koyu göz bandı (göz maskesi üzerinde bez),
+## siyah gövde yeleği (kırmızı kenarlı, çapraz bağcıklı, altın kordonlu), sargılı ön kol, sırtta altın bilezikli uzun saplı dev orak, gür beyaz kuyruk.
 static func _weasel(out: Dictionary, h: float) -> void:
 	out["anim"] = "walk"
-	var c = Color(0.9, 0.84, 0.7)
-	var b = _quad(out, h, c, {"len": 1.6, "leg": 0.32, "snout": 0.16, "ear": 0.08, "eye": Color(0.1, 0.05, 0.05), "tail": "bushy", "belly": Color(0.98, 0.96, 0.9), "mark": Color(0.45, 0.32, 0.2)})
-	# sırtta orak + bandana
-	Loft.tube(b, [Vector3(h * 0.05, h * 0.62, h * 0.2), Vector3(h * 0.2, h * 0.95, h * 0.15), Vector3(h * 0.3, h * 1.15, h * 0.0)], [h * 0.025, h * 0.025, h * 0.025], Color(0.35, 0.25, 0.15), 8, 2)
-	Loft.tube(b, [Vector3(h * 0.3, h * 1.15, h * 0.0), Vector3(h * 0.15, h * 1.25, -h * 0.25), Vector3(-h * 0.05, h * 1.15, -h * 0.35)], [Vector2(0.015, 0.06) * h, Vector2(0.012, 0.07) * h, Vector2(0.005, 0.02) * h], Color(0.82, 0.84, 0.88), 8, 3, true, false)
-	b.add("box", Vector3(0, h * 0.78, -h * 0.85), Vector3(0.3, 0.06, 0.25) * h, Color(0.2, 0.35, 0.6))
+	var c = Color(0.94, 0.94, 0.92)
+	var b = _quad(out, h, c, {"len": 2.0, "leg": 0.26, "snout": 0.1, "ear": 0.05, "eye": Color(0.1, 0.06, 0.05), "tail": "bushy", "belly": Color(0.98, 0.98, 0.96), "mark": Color(0.4, 0.36, 0.32)})
+	var L = h * 2.0
+	var by = h * 0.26 + h * 0.12
+	# yelek: gövdenin ön-orta kısmını saran siyah bant, kırmızı kenarlar, sırtta çapraz kırmızı bağcık + altın kordon düğümü
+	var vest_fn = func(tt: float, a: float, d: Vector3) -> Color:
+		if tt < 0.06 or tt > 0.94:
+			return Color(0.75, 0.12, 0.12)
+		if d.y > 0.75 and absf(fposmod(tt * 9.0, 1.0) - 0.5) < 0.12:
+			return Color(0.8, 0.15, 0.15)
+		return Color(0.08, 0.08, 0.1) if d.y > -0.55 else c
+	Loft.tube(b, [Vector3(0, by + h * 0.05, L * 0.12), Vector3(0, by + h * 0.06, -L * 0.12), Vector3(0, by + h * 0.1, -L * 0.36)],
+		[Vector2(0.185, 0.185) * h, Vector2(0.215, 0.255) * h, Vector2(0.235, 0.285) * h], Color(0.08, 0.08, 0.1), 18, 6, false, false, vest_fn)
+	for sx in [-1.0, 1.0]:   # altın kordon düğümü
+		Loft.tube(b, [Vector3(0, by + h * 0.37, -L * 0.2), Vector3(h * 0.08 * sx, by + h * 0.4, -L * 0.17), Vector3(h * 0.05 * sx, by + h * 0.36, -L * 0.1)], [h * 0.012, h * 0.012, h * 0.008], Color(0.95, 0.78, 0.25), 6, 2)
+	# göz bandı: başın çevresinde koyu yeşil-gri bez (gözlerin üstünden)
+	var hp = Vector3(0, by + h * 0.48, -L * 0.62)
+	# bant: gözleri kapatır (yüzün önünden eğik geçen geniş bez)
+	Loft.tube(b, [hp + Vector3(-0.001, h * 0.05, -h * 0.06), hp + Vector3(0.001, h * 0.05, -h * 0.06)], [Vector2(0.175, 0.16) * h, Vector2(0.175, 0.16) * h], Color(0.3, 0.36, 0.28), 16, 2, false, false)
+	b.add("box", hp + Vector3(0, h * 0.05, -h * 0.215), Vector3(0.3, 0.07, 0.02) * h, Color(0.3, 0.36, 0.28), Vector3(0, 0, -8))
+	for sx in [-1.0, 1.0]:   # yuvarlak kulaklar (koyu iç)
+		b.add("sphere", hp + Vector3(h * 0.12 * sx, h * 0.13, h * 0.04), Vector3(0.08, 0.08, 0.04) * h, c, Vector3.ZERO, 8)
+		b.add("sphere", hp + Vector3(h * 0.12 * sx, h * 0.13, h * 0.025), Vector3(0.05, 0.05, 0.02) * h, Color(0.45, 0.36, 0.32), Vector3.ZERO, 6)
+	# sırtta dev orak: sap gövdenin sırtına çapraz yaslanır (kuyruk kökünden omza), ağız omuz üstünde yukarı-geriye kıvrılır
+	var s0 = Vector3(h * 0.12, by + h * 0.27, L * 0.36)
+	var s1 = Vector3(-h * 0.06, by + h * 0.46, -L * 0.3)
+	Loft.tube(b, [s0, (s0 + s1) * 0.5 + Vector3(0, h * 0.02, 0), s1], [h * 0.03, h * 0.03, h * 0.03], Color(0.2, 0.16, 0.12), 8, 2)
+	var ax = (s1 - s0).normalized()
+	for t in [0.06, 0.97]:   # altın bilezikler
+		b.add_xf("cyl", Transform3D(Basis(Quaternion(Vector3.UP, ax)) * Basis.from_scale(Vector3(0.08, 0.12, 0.08) * h), s0.lerp(s1, t)), Color(0.92, 0.75, 0.3), 10)
+	for k in 3:   # sırta bağlayan kayış
+		b.add("box", s0.lerp(s1, 0.25 + k * 0.25) + Vector3(-h * 0.05, -h * 0.05, 0), Vector3(0.24, 0.025, 0.04) * h, Color(0.3, 0.22, 0.15), Vector3(0, 0, -20))
+	# hilal ağız: profil (y yukarı, z geri) — sap ucundan yukarı çıkıp geriye doğru kıvrılan geniş kavis
+	var blade = PackedVector2Array()
+	for k in 10:
+		var t = k / 9.0
+		blade.append(Vector2(sin(t * 2.0) * h * 0.75, (1.0 - cos(t * 2.0)) * h * 0.75))   # dış (keskin) kenar
+	for k in 10:
+		var t = 1.0 - k / 9.0
+		blade.append(Vector2(sin(t * 1.85) * h * 0.58 + h * 0.02, (1.0 - cos(t * 1.85)) * h * 0.58 + h * 0.06))   # iç kenar
+	b.add_slab(blade, h * 0.02, Color(0.42, 0.43, 0.46), Transform3D(Basis.IDENTITY, s1), func(p: Vector2) -> float: return h * 0.025, Color(0.7, 0.72, 0.75))
 	_mesh(out["root"], b)
+	# sargılı ön sol kol
+	var pv: Node3D = out["legs"][0]
+	var wb = MB.new()
+	for k in 5:
+		wb.add("torus", Vector3(-h * 0.01, -h * 0.06 - k * h * 0.045, h * 0.02), Vector3(0.12, 0.12, 0.12) * h, Color(0.96, 0.95, 0.92), Vector3(0, 0, 8 if k % 2 else -8), 8)
+	_mesh(pv, wb)
 
 
 
