@@ -27,11 +27,17 @@ static func build_all(parent: Node3D) -> void:
 
 
 ## Köy dışında yolları/kapıları kesmeyen, düz bir yer seç
+## Büyük gizli köylerde yerleşke surların İÇİNDE (merkez ile sur arasında, kapı yollarından uzak); küçüklerde dışarıda
+const INSIDE := ["suna", "kiri", "kumo", "iwa"]
+const SITE_CLEAR := 95.0   # köy evleri bu yarıçapta yerleşkeye girmez
+
+
 static func _site(v: Dictionary) -> Vector2:
 	var c = Vector2(float(v["x"]), float(v["y"]))
 	var r = float(v.get("r", 250))
 	var gates: Array = v.get("gates", [])
-	var best = c + Vector2(r + 80, 0)
+	var ring = (r * 0.58) if String(v.get("id", "")) in INSIDE else (r + 80.0)
+	var best = c + Vector2(ring, 0)
 	var best_score = -1e9
 	for k in 16:
 		var a = k * 22.5
@@ -39,7 +45,7 @@ static func _site(v: Dictionary) -> Vector2:
 		for g in gates:
 			gate_d = minf(gate_d, absf(fmod(a - float(g) + 540.0, 360.0) - 180.0))
 		var rad = deg_to_rad(a)
-		var p = c + Vector2(sin(rad), cos(rad)) * (r + 80.0)
+		var p = c + Vector2(sin(rad), cos(rad)) * ring
 		var h0 = Game.terrain_height(p.x, -p.y)
 		if h0 < 1.0:
 			continue

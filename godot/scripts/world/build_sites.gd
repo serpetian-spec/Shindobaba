@@ -300,9 +300,15 @@ static func suna(parent: Node3D, v: Dictionary) -> void:
 		var a = rng.randf() * TAU
 		var rr = rng.randf_range(r * 0.3, r * 0.93)
 		b.dome(Vector3(rr * sin(a), -0.2, rr * cos(a)), rng.randf_range(10, 30), rng.randf_range(0.8, 2.5), Color(0.9, 0.78, 0.56), 12)
-	await _fill(b, r * 0.88, 140, 28, "suna", rng, [], 640)
+	await _fill(b, r * 0.88, 140, 28, "suna", rng, [_site_clear(v)], 640)
 	await _streets(b, v, "suna", rng)
 	b.finish()
+
+
+## Akademi yerleşkesinin alanı (köy evleri buraya kurulmaz): [x, n, yarıçap] köy merkezine göre
+static func _site_clear(v: Dictionary) -> Array:
+	var s = BuildVillageStory._site(v)
+	return [s.x - float(v["x"]), s.y - float(v["y"]), BuildVillageStory.SITE_CLEAR]
 
 
 ## Kapılardan merkeze uzanan ana caddeler: fenerler, ağaçlar, tezgâhlar, bayraklar (köyün havasına göre)
@@ -421,7 +427,7 @@ static func kiri(parent: Node3D, v: Dictionary) -> void:
 		var bo = Builder.rot(0, r * 0.3, a)
 		b.box(Vector3(bo.x, 0.8, bo.y), Vector3(10, 0.5, 4), VillageStyles.WOOD, a + 90.0)
 	VillageStyles.mist(b, 90, 0, r * 0.95, 3, 28, 40, rng, 0.3)
-	await _fill(b, r * 0.85, 60, 26, "kiri", rng, [[0, r * 0.55, r * 0.4], [0, -62, 34]], 560)
+	await _fill(b, r * 0.85, 60, 26, "kiri", rng, [[0, r * 0.55, r * 0.4], [0, -62, 34], _site_clear(v)], 560)
 	await _streets(b, v, "kiri", rng)
 	b.finish()
 
@@ -525,7 +531,7 @@ static func kumo(parent: Node3D, v: Dictionary) -> void:
 		for k in 2:
 			var p: Array = pillars[k * 7]
 			Waterfalls.add(b.w(Vector3(p[0], 0, p[1] - p[2] * 0.45)), p[3] * 0.7, 14.0, 0.0)
-	await _fill(b, r * 0.85, 80, 34, "kumo", rng, [[0, -80, 34]], 380)
+	await _fill(b, r * 0.85, 80, 34, "kumo", rng, [[0, -80, 34], _site_clear(v)], 380)
 	await _streets(b, v, "kumo", rng)
 	b.finish()
 
@@ -611,7 +617,7 @@ static func iwa(parent: Node3D, v: Dictionary) -> void:
 	KageHall.door(b, 0, -68.0, 0.0, "iwa", "[F] Gir: Tsuchikage Ofisi (Tsuchikage ile görüş, görevler)", 6.0)
 	KageHall.plaza(b, {"vid": "iwa", "front": -71.0, "hw": 36.0, "depth": 32.0, "climate": "rock", "stone": Color(0.62, 0.52, 0.42),
 		"trim": Color(0.44, 0.34, 0.26), "acc": Color(0.58, 0.24, 0.17), "gate": Color(0.5, 0.4, 0.32), "kanji": "土", "terrace_h": 0.0})
-	await _fill(b, r * 0.85, 110, 30, "iwa", rng, [[0, -96, 34]], 520)
+	await _fill(b, r * 0.85, 110, 30, "iwa", rng, [[0, -96, 34], _site_clear(v)], 520)
 	await _streets(b, v, "iwa", rng)
 	b.finish()
 

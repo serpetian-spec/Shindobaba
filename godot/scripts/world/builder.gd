@@ -263,7 +263,9 @@ func finish() -> void:
 		var mi = MeshInstance3D.new()
 		mi.layers = 2  # yapılar: sokak fenerleri (yalnız katman 1) bunları aydınlatmaz
 		mi.mesh = mb.build(Props.toon())
-		mi.visibility_range_end = view_dist * float(Game.settings["view"])
+		# görünürlük mesafesi parçanın merkezinden ölçülür: dev parçalar (Suna sur kayalıkları, uzun duvarlar) yanındayken bile
+		# uzak merkezleri yüzünden yarı saydam soluyordu (çarpışma durduğu için "şeffaf ama yürünen duvar") — parça boyu kadar uzat
+		mi.visibility_range_end = view_dist * float(Game.settings["view"]) + mi.mesh.get_aabb().size.length() * 0.6
 		mi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 		mi.visibility_range_end_margin = 60.0
 		root.add_child(mi)

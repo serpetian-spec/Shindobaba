@@ -4,10 +4,10 @@ extends Node
 ## Oyuncunun köyüne göre: Kage unvanı, hocalar, alın koruyucu/yelek rengi, önerilen element
 const HOME_VILLAGES := {
 	"konoha": {"kage": "Hokage", "s1": "Hoshino-sensei", "s2": "Kurogane-sensei", "band": Color(0.15, 0.22, 0.55), "vest": Color(0.38, 0.48, 0.28), "element": "katon", "lookout": "Hokage Kayası", "dir": "köyün kuzeybatısı"},
-	"suna": {"kage": "Kazekage", "s1": "Takeru-sensei", "s2": "Saji-sensei", "band": Color(0.42, 0.33, 0.22), "vest": Color(0.72, 0.62, 0.45), "element": "fuuton", "lookout": "Gözetleme Kulesi", "dir": "köyün kenarındaki Akademi yerleşkesi"},
-	"kiri": {"kage": "Mizukage", "s1": "Nagisa-sensei", "s2": "Shiozaki-sensei", "band": Color(0.2, 0.26, 0.38), "vest": Color(0.42, 0.5, 0.45), "element": "suiton", "lookout": "Sis Kulesi", "dir": "köyün kenarındaki Akademi yerleşkesi"},
-	"kumo": {"kage": "Raikage", "s1": "Raizo-sensei", "s2": "Kumoji-sensei", "band": Color(0.12, 0.12, 0.14), "vest": Color(0.85, 0.85, 0.82), "element": "raiton", "lookout": "Bulut Kayası", "dir": "köyün kenarındaki Akademi yerleşkesi"},
-	"iwa": {"kage": "Tsuchikage", "s1": "Ganseki-sensei", "s2": "Tsuchiya-sensei", "band": Color(0.45, 0.18, 0.15), "vest": Color(0.55, 0.25, 0.2), "element": "doton", "lookout": "Taş Kule", "dir": "köyün kenarındaki Akademi yerleşkesi"},
+	"suna": {"kage": "Kazekage", "s1": "Takeru-sensei", "s2": "Saji-sensei", "band": Color(0.42, 0.33, 0.22), "vest": Color(0.72, 0.62, 0.45), "element": "fuuton", "lookout": "Gözetleme Kulesi", "dir": "köyün içindeki Akademi yerleşkesi"},
+	"kiri": {"kage": "Mizukage", "s1": "Nagisa-sensei", "s2": "Shiozaki-sensei", "band": Color(0.2, 0.26, 0.38), "vest": Color(0.42, 0.5, 0.45), "element": "suiton", "lookout": "Sis Kulesi", "dir": "köyün içindeki Akademi yerleşkesi"},
+	"kumo": {"kage": "Raikage", "s1": "Raizo-sensei", "s2": "Kumoji-sensei", "band": Color(0.12, 0.12, 0.14), "vest": Color(0.85, 0.85, 0.82), "element": "raiton", "lookout": "Bulut Kayası", "dir": "köyün içindeki Akademi yerleşkesi"},
+	"iwa": {"kage": "Tsuchikage", "s1": "Ganseki-sensei", "s2": "Tsuchiya-sensei", "band": Color(0.45, 0.18, 0.15), "vest": Color(0.55, 0.25, 0.2), "element": "doton", "lookout": "Taş Kule", "dir": "köyün içindeki Akademi yerleşkesi"},
 }
 
 ## Akademi başlangıcı (0..3) metinleri; sonrası serbest oyun (Journal). Köye göre {kage}, {vn}, {s1}... doldurulur.
