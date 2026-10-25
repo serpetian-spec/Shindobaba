@@ -279,9 +279,9 @@ var attack_anim_t = 0.0
 
 
 func _attack() -> void:
+	attack_anim_t = 0.7   # prosedürel modeller de saldırı pozunu kullanır (şahin pençeleri vb.)
 	if parts.get("player") and parts["player"].has_animation(parts["anims"]["attack"]):
 		parts["player"].play(parts["anims"]["attack"], 0.1)
-		attack_anim_t = 0.7
 	for sa in parts["root"].find_children("SnakeAnim*", "", true, false):   # yılan: ısırma atılışı
 		sa.bite()
 	var dmg: float = def.get("dmg", 20.0) * (1.0 + float(Game.profile.get("level", 1)) * 0.03) * (1.0 + Stats.skill(Game.profile, "summon_power") + Stats.skill(Game.profile, "squad"))
@@ -724,6 +724,8 @@ func _animate(dt: float) -> void:
 	var root: Node3D = parts["root"]
 	root.rotation.y = facing
 	var moving = Vector2(velocity.x, velocity.z).length() > 0.5
+	if parts["anim"] != "model":
+		attack_anim_t = maxf(0.0, attack_anim_t - dt)
 	match parts["anim"]:
 		"model":  # hazır modelin kendi animasyonları
 			var ap: AnimationPlayer = parts.get("player")
@@ -772,6 +774,12 @@ func _animate(dt: float) -> void:
 				var w: Node3D = parts["wings"][i]
 				w.rotation.z = flap * 0.6 * (1.0 if i == 0 else -1.0)
 			root.position.y = flap * height * 0.05
+			# ayaklar: uçarken geriye toplanır; saldırıda pençeler öne uzanıp açılır, dururken hafif salınır
+			var grab = clampf(attack_anim_t * 2.0, 0.0, 1.0) if "attack_anim_t" in self else 0.0
+			for i in parts["legs"].size():
+				var lg: Node3D = parts["legs"][i]
+				var tuck = 0.9 if moving else 0.25
+				lg.rotation.x = lerpf(tuck, -0.9, grab) + sin(anim_t * 3.0 + i) * 0.08
 		"walk":
 			var sw = sin(anim_t * (9.0 if moving else 0.0))
 			for i in parts["legs"].size():

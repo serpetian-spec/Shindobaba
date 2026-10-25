@@ -22,7 +22,7 @@ func _ready() -> void:
 	main.add_child(cam)
 	cam.current = true
 	var ver = OS.get_environment("VER")
-	for s in [["below", Vector3(0, -h * 0.9, -h * 3.2)], ["above", Vector3(h * 1.0, h * 2.6, -h * 2.2)], ["face", Vector3(h * 0.4, h * 0.15, -h * 1.7)]]:
+	for s in [["below", Vector3(0, -h * 0.9, -h * 3.2)], ["above", Vector3(h * 1.0, h * 2.6, -h * 2.2)], ["face", Vector3(h * 0.4, h * 0.15, -h * 1.7)], ["side", Vector3(h * 2.6, h * 0.9, -h * 0.3)], ["back", Vector3(h * 1.2, h * 1.6, h * 2.4)]]:
 		cam.global_position = p + s[1]
 		cam.look_at(p + Vector3(0, h * 0.6, -h * 0.4) if s[0] == "face" else p + Vector3(0, h * 0.5, 0))
 		await get_tree().create_timer(0.3).timeout

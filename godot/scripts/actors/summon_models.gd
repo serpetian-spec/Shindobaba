@@ -760,8 +760,11 @@ static func _hawk(out: Dictionary, model: String, h: float) -> void:
 		if d.y < -0.35:
 			return light if fposmod(tt * 14.0 + a * 0.3, 1.0) > 0.18 else brown.darkened(0.1)   # göğüs/karın çizgileri
 		return brown
-	Loft.tube(b, [Vector3(0, h * 0.42, h * 0.62), Vector3(0, h * 0.48, h * 0.25), Vector3(0, h * 0.5, -h * 0.15), Vector3(0, h * 0.6, -h * 0.5), Vector3(0, h * 0.72, -h * 0.66)],
-		[Vector2(0.08, 0.06) * h, Vector2(0.19, 0.18) * h, Vector2(0.21, 0.21) * h, Vector2(0.15, 0.16) * h, Vector2(0.1, 0.11) * h], brown, 20, 6, true, false, body_fn)
+	Loft.tube(b, [Vector3(0, h * 0.44, h * 0.62), Vector3(0, h * 0.48, h * 0.25), Vector3(0, h * 0.52, -h * 0.15), Vector3(0, h * 0.62, -h * 0.48), Vector3(0, h * 0.76, -h * 0.7)],
+		[Vector2(0.09, 0.07) * h, Vector2(0.22, 0.2) * h, Vector2(0.26, 0.25) * h, Vector2(0.2, 0.2) * h, Vector2(0.14, 0.14) * h], brown, 20, 6, true, true, body_fn)
+	# omuz kütlesi: kanat köklerini gövdeye bağlar
+	for sx in [-1.0, 1.0]:
+		b.add("sphere", Vector3(h * 0.16 * sx, h * 0.63, -h * 0.22), Vector3(0.22, 0.17, 0.4) * h, brown, Vector3.ZERO, 12)
 	# baş: açık renkli, beyaz boğaz, koyu maske çizgileri
 	var hc = Vector3(0, h * 0.8, -h * 0.76)
 	b.add("sphere", hc, Vector3(0.24, 0.22, 0.3) * h, light, Vector3.ZERO, 14)
@@ -785,26 +788,40 @@ static func _hawk(out: Dictionary, model: String, h: float) -> void:
 		var u = (k - 3) / 3.0
 		var tb = PackedVector2Array([Vector2(-h * 0.05, 0.0), Vector2(h * 0.05, 0.0), Vector2(h * 0.075, h * 0.42), Vector2(0.0, h * 0.5), Vector2(-h * 0.075, h * 0.42)])
 		b.add_slab(tb, h * 0.02, brown.darkened(0.12) if k % 2 else brown, Transform3D(Basis(Vector3.UP, -u * 0.38) * hor, Vector3(0, h * 0.43, h * 0.55)))
-	# ayaklar: sarı pullu bacak, siyah pençeler (uçarken geriye kıvrık)
-	for sx in [-1.0, 1.0]:
-		var hp = Vector3(h * 0.1 * sx, h * 0.32, h * 0.05)
-		Loft.tube(b, [hp, hp + Vector3(0, -h * 0.14, h * 0.05), hp + Vector3(0, -h * 0.22, h * 0.02)], [h * 0.05, h * 0.035, h * 0.03], [brown, yellow, yellow], 8, 3)
-		for k in 4:
-			var aa = (k - 1.5) * 0.45
-			BeastRig.claw(b, hp + Vector3(0, -h * 0.22, h * 0.02), Vector3(sin(aa) * 0.5, -0.4, -cos(aa) * (1.0 if k < 3 else -1.0)).normalized(), h * 0.1, h * 0.02, Color(0.1, 0.09, 0.08))
 	if model != "hawk_small":
 		b.add("box", Vector3(0, h * 0.82, h * 0.0), Vector3(h * 0.34, h * 0.04, h * 0.4), Color(0.6, 0.15, 0.15))   # eyer
 	_mesh(out["root"], b)
+	# ayaklar (ayrı pivot, animasyonlu): tüylü baldır, sarı pullu incik, yelpaze gibi AÇIK dört parmak (3 ön + 1 arka), kıvrık siyah pençeler
+	for sx in [-1.0, 1.0]:
+		var lp = _pivot(out["root"], Vector3(h * 0.1 * sx, h * 0.38, h * 0.02))
+		var lb = MB.new()
+		Loft.tube(lb, [Vector3.ZERO, Vector3(h * 0.02 * sx, -h * 0.08, -h * 0.02)], [h * 0.09, h * 0.07], brown.lightened(0.05), 10, 2)   # tüylü baldır
+		var ank = Vector3(h * 0.03 * sx, -h * 0.26, -h * 0.05)
+		Loft.tube(lb, [Vector3(h * 0.02 * sx, -h * 0.08, -h * 0.02), ank], [h * 0.04, h * 0.032], yellow, 8, 2)   # incik
+		for k in 6:   # pul halkaları
+			lb.add("torus", Vector3(h * 0.02 * sx, -h * 0.08, -h * 0.02).lerp(ank, k / 6.0), Vector3(0.085, 0.085, 0.085) * h, yellow.darkened(0.15), Vector3(0, 0, 0), 8)
+		lb.add("sphere", ank, Vector3(0.07, 0.05, 0.07) * h, yellow, Vector3.ZERO, 8)
+		for t in 4:
+			var back = t == 3
+			var aa = deg_to_rad(-38.0 + t * 38.0) if not back else PI
+			var d0 = Vector3(sin(aa) * 0.9, -0.15, -cos(aa)).normalized()
+			var p1 = ank + d0 * h * (0.12 if not back else 0.08)
+			var p2 = p1 + (d0 + Vector3(0, -0.5, 0)).normalized() * h * (0.08 if not back else 0.06)
+			Loft.tube(lb, [ank, p1, p2], [h * 0.03, h * 0.026, h * 0.02], yellow, 8, 2)
+			BeastRig.claw(lb, p2, (d0 + Vector3(0, -1.2, 0)).normalized(), h * 0.09, h * 0.02, Color(0.08, 0.07, 0.07))
+		_mesh(lp, lb)
+		out["legs"].append(lp)
 	# kanatlar: omuzdan profil, uçta parmak tüyleri, üstte koyu bantlar
 	var W = h * 2.1   # tek kanat açıklığı (referansta açık kanatlar gövdenin kat kat genişi)
 	for sx in [-1.0, 1.0]:
-		var pv = _pivot(out["root"], Vector3(h * 0.22 * sx, h * 0.62, -h * 0.2))
+		var pv = _pivot(out["root"], Vector3(h * 0.14 * sx, h * 0.64, -h * 0.3))   # kök omuz kütlesinin içinde
 		var wb = MB.new()
 		# profil (açıklık s, kiriş c): kanat düzlemi yatay; yerel X = kalınlık (dünya Y), yerel Y = açıklık (±X), yerel Z = kiriş (+Z geri)
 		# + yukarı V açısı (kanatlar önden bakınca görünsün, süzülme pozu)
 		var xf = Transform3D(Basis(Vector3(0, 0, 1), sx * deg_to_rad(18.0)) * Basis(Vector3(0, -sx, 0), Vector3(sx, 0, 0), Vector3(0, 0, 1)), Vector3.ZERO)
 		# geniş kanat: gövde yanında kiriş ≈ açıklığın yarısı, uca doğru daralır
-		var wing = [[0.0, -h * 0.18], [W * 0.3, -h * 0.26], [W * 0.62, -h * 0.2], [W * 0.8, -h * 0.05], [W * 0.82, h * 0.25], [W * 0.62, h * 0.62], [W * 0.32, h * 0.86], [0.0, h * 0.8]]
+		# kökte kiriş gövde boyu kadar (omuzdan kalçaya), uçta daralır
+		var wing = [[0.0, -h * 0.02], [W * 0.3, -h * 0.2], [W * 0.62, -h * 0.18], [W * 0.8, -h * 0.05], [W * 0.82, h * 0.25], [W * 0.62, h * 0.62], [W * 0.32, h * 0.8], [W * 0.05, h * 0.62], [0.0, h * 0.5]]
 		var wp = PackedVector2Array()
 		for p in wing:
 			wp.append(Vector2(p[0], p[1]))
