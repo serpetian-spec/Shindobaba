@@ -1177,7 +1177,10 @@ func complete() -> void:
 	Game.profile["missions_done"][m["rank"]] = int(Game.profile["missions_done"].get(m["rank"], 0)) + 1
 	Hud.banner("GÖREV TAMAMLANDI", "%s  (+%d Ryō)" % [m["title"], ryo], Color(0.5, 1, 0.6))
 	Progress.add_ryo(ryo)
-	Progress.add_xp(int(rw[1] * (1.0 + float(Game.profile.get("level", 1)) / 20.0)))
+	# görev XP'si: rütbeye göre bir seviyenin belli bir payıyla sınırlı (S görevi tek başına birkaç seviye atlatmasın)
+	var plv = int(Game.profile.get("level", 1))
+	var cap = Data.xp_for_level(plv) * float({"D": 0.3, "C": 0.45, "B": 0.6, "A": 0.85, "S": 1.2}.get(m["rank"], 0.6))
+	Progress.add_xp(int(minf(rw[1] * (1.0 + plv / 20.0), cap)))
 	_rep(m.get("village", Progress.home()), int(REP_GAIN[m["rank"]] * (1.5 if m.get("local", false) else 1.0)))
 	if randf() < GEAR_CHANCE[m["rank"]]:
 		var gid = ""

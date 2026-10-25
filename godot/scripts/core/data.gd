@@ -24,4 +24,4 @@ func _ready() -> void:
 const MAX_LEVEL := 100
 func xp_for_level(lv: int) -> int:
 	# yumuşak eğri: düşman ve görev XP'si de seviyeyle büyüdüğü için yüksek seviyeler tıkanmaz
-	return int(30.0 + 9.0 * pow(lv, 1.45))   # Sv.24 ~930, Sv.50 ~2.6k, Sv.99 ~7k; Jōnin (35) ~23k, Kage (90) ~230k toplam
+	return int(40.0 + 11.0 * pow(lv, 1.55))   # Sv.10 ~430, Sv.24 ~1.5k, Sv.50 ~4.6k, Sv.99 ~13.5k

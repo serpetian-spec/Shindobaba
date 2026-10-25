@@ -384,13 +384,25 @@ func promote(rank: int) -> void:
 
 # ------------------------------------------------------------------ olay kancaları
 func on_enemy_killed(e: Node) -> void:
-	# düşman XP'si seviyesiyle büyür (eskiden sabit 25-120 XP, Sv.24 sonrası tıkanıyordu)
-	add_xp(int(float(e.xp) * (1.0 + float(e.get("level") if e.get("level") != null else 1) / 8.0)))
+	add_xp(kill_xp(e))
 	add_ryo(int(e.ryo))
 	p()["stats"]["kills"] = int(p()["stats"].get("kills", 0)) + 1
 	Missions.on_kill(e)
 	Orgs.on_enemy_killed(e)
 	Journal.on_enemy_killed(e)
+
+
+## Öldürme XP'si: düşmanın seviyesiyle büyür ama oyuncunun seviyesine göre sınırlıdır.
+## (eskiden boss/Bingo XP'si hem seviye×30 hem de seviye çarpanıyla iki kez büyüyordu: tek kaçak = birkaç seviye)
+func kill_xp(e: Node) -> int:
+	var plv = int(p().get("level", 1))
+	var elv = int(e.get("level")) if e.get("level") != null else 1
+	var eff = mini(elv, plv + 4)   # çok üst seviye düşman da oyuncudan en fazla 4 seviye üstüymüş gibi sayılır
+	var diff = clampf(1.0 + (elv - plv) * 0.05, 0.25, 1.4)   # zayıf düşmanlar az, güçlüler biraz fazla
+	var xp = float(e.xp) * (1.0 + eff / 10.0) * diff
+	var big = e.has_meta("bingo_id") or e.has_meta("boss_q") or e is Boss
+	var cap = Data.xp_for_level(plv) * (0.6 if big else 0.18)   # tek öldürme: sıradan ≤ seviyenin %18'i, boss ≤ %60'ı
+	return int(minf(xp, cap))
 
 
 func on_hit_landed(t: Node) -> void:
