@@ -73,7 +73,7 @@ static func build(model: String, h: float, length: float) -> Dictionary:
 			_mesh(out["root"], b)
 	var surf = {"toad": 1, "snak": 1, "slug": 3, "hawk": 0, "dog_": 0, "wolf": 0, "monk": 0, "crow": 0, "sala": 1, "turt": 2, "weas": 0, "cat_": 0, "spid": 1}.get(model.substr(0, 4), 0)
 	# beyaz sümüklüböcek gölgede maviye kaçıyordu: açık gölge tonu
-	var bm = BeastModels.beast_material(surf, Color(0.86, 0.86, 0.84) if model.begins_with("slug") else (Color(0.66, 0.6, 0.56) if model.begins_with("monk") or model == "salamander" or model.begins_with("turt") or model.begins_with("weas") else Color(0.3, 0.26, 0.4)))
+	var bm = BeastModels.beast_material(surf, Color(0.86, 0.86, 0.84) if model.begins_with("slug") else (Color(0.66, 0.6, 0.56) if model.begins_with("monk") or model == "salamander" or model.begins_with("turt") or model.begins_with("weas") or model.begins_with("dog") or model.begins_with("wolf") else Color(0.3, 0.26, 0.4)))
 	for mi in out["root"].find_children("*", "MeshInstance3D", true, false):
 		if mi.material_override == null and mi.mesh and mi.mesh.get_surface_count() > 0 and mi.mesh.surface_get_material(0) == Props.toon():
 			mi.material_override = bm
@@ -921,19 +921,120 @@ static func _quad(out: Dictionary, h: float, c: Color, p: Dictionary) -> MB:
 	return b
 
 
+## Ninkenler (REFERANS): küçük iz sürücü — tıknaz pug: kısa kalın bacaklar, iri yuvarlak baş, koyu kahve büyük burun-ağız, sarkık koyu kulaklar,
+## ağır kapaklı uykulu gözler, alında kırışıklar; mavi kapüşonlu alın bandı (metal plaka), mavi yelek ve boyunda bağlı mavi fular, sargılı ön pati.
+## Sürü — farklı renk ve aksesuarlı köpekler (bant, gözlük, sargı). Dev kurt — beyaz gür yeleli, iki başlı, kırmızı gözlü, açık dişli ağızlar,
+## sinmiş saldırı duruşu, kıvrık uzun kuyruk, siyah pençeler.
 static func _dog_proc(out: Dictionary, model: String, h: float) -> void:
 	out["anim"] = "walk"
-	var giant = model == "wolf_giant"
-	var c = Color(0.62, 0.46, 0.3) if not giant else Color(0.5, 0.52, 0.58)
-	var b = _quad(out, h, c, {"len": 1.15, "leg": 0.5, "snout": 0.3, "ear": 0.16 if not giant else 0.2, "heads": [0.0] if not giant else [-0.18, 0.18],
-		"eye": Color(0.15, 0.1, 0.05) if not giant else Color(0.98, 0.78, 0.1), "tail": "bushy", "belly": c.lightened(0.3)})
-	if not giant:
-		var by = h * 0.62
-		b.add("cyl", Vector3(0, by + h * 0.24, -h * 0.5), Vector3(0.3, 0.06, 0.3) * h, Color(0.2, 0.3, 0.5), Vector3(65, 0, 0), 12)  # alın bandı boyunda
-		b.add("box", Vector3(0, by + h * 0.24, -h * 0.62), Vector3(0.12, 0.06, 0.02) * h, Color(0.8, 0.82, 0.86), Vector3(-25, 0, 0))
-		Loft.tube(b, [Vector3(0, by + h * 0.12, h * 0.2), Vector3(0, by + h * 0.14, -h * 0.1), Vector3(0, by + h * 0.16, -h * 0.3)], [Vector2(0.21, 0.21) * h, Vector2(0.22, 0.24) * h, Vector2(0.23, 0.27) * h], Color(0.2, 0.3, 0.5), 16, 2, false, false,
-			func(_t: float, a: float, _d: Vector3) -> Color: return Color(0.2, 0.3, 0.5) if sin(a) > -0.3 else c.lightened(0.3))  # yelek
+	match model:
+		"dog_small":
+			_pug(out, h, Color(0.8, 0.52, 0.3), true)
+		"dog_pack":
+			var cols = [Color(0.6, 0.6, 0.62), Color(0.45, 0.33, 0.22), Color(0.82, 0.8, 0.76), Color(0.3, 0.28, 0.3), Color(0.7, 0.55, 0.38)]
+			var c: Color = cols.pick_random()
+			var b = _quad(out, h, c, {"len": 1.1, "leg": 0.5, "snout": 0.26, "ear": 0.15, "eye": Color(0.12, 0.1, 0.08), "tail": "bushy", "belly": c.lightened(0.25)})
+			var by = h * 0.62
+			match randi() % 3:
+				0:   # alın bandı boynunda
+					b.add("cyl", Vector3(0, by + h * 0.24, -h * 0.5), Vector3(0.3, 0.06, 0.3) * h, Color(0.2, 0.3, 0.5), Vector3(65, 0, 0), 12)
+					b.add("box", Vector3(0, by + h * 0.24, -h * 0.62), Vector3(0.12, 0.06, 0.02) * h, Color(0.8, 0.82, 0.86), Vector3(-25, 0, 0))
+				1:   # koyu gözlük
+					for sx in [-1.0, 1.0]:
+						b.add("box", Vector3(h * 0.07 * sx, by + h * 0.52, -h * 0.82), Vector3(0.09, 0.04, 0.02) * h, Color(0.05, 0.05, 0.06))
+				2:   # gövde sargısı
+					for k in 4:
+						b.add("torus", Vector3(0, by + h * 0.1, -h * 0.15 + k * h * 0.08), Vector3(0.44, 0.44, 0.44) * h, Color(0.94, 0.93, 0.9), Vector3(90, 0, 0), 12)
+			_mesh(out["root"], b)
+		"wolf_giant":
+			_wolf2(out, h)
+
+
+static func _pug(out: Dictionary, h: float, c: Color, gear: bool) -> void:
+	var dark = Color(0.32, 0.2, 0.14)
+	var blue = Color(0.16, 0.26, 0.55)
+	var b = MB.new()
+	# tıknaz gövde (oturur gibi), kısa kalın bacaklar
+	Loft.tube(b, [Vector3(0, h * 0.35, h * 0.32), Vector3(0, h * 0.45, h * 0.05), Vector3(0, h * 0.55, -h * 0.2)], [Vector2(0.3, 0.28) * h, Vector2(0.34, 0.33) * h, Vector2(0.3, 0.3) * h], c, 18, 4, true, true,
+		func(_t: float, _a: float, d: Vector3) -> Color: return c.lightened(0.15) if d.y < -0.4 else c)
+	# baş: iri yuvarlak, gövdeye gömük boyun
+	var hc = Vector3(0, h * 0.9, -h * 0.32)
+	b.add("sphere", hc, Vector3(0.62, 0.58, 0.56) * h, c, Vector3.ZERO, 16)
+	b.add("sphere", hc + Vector3(0, -h * 0.1, -h * 0.24), Vector3(0.4, 0.3, 0.2) * h, dark, Vector3.ZERO, 14)   # koyu ağız-burun maskesi
+	b.add("sphere", hc + Vector3(0, -h * 0.02, -h * 0.33), Vector3(0.14, 0.09, 0.08) * h, Color(0.08, 0.06, 0.05), Vector3.ZERO, 10)   # burun
+	b.add("box", hc + Vector3(0, -h * 0.17, -h * 0.33), Vector3(h * 0.2, h * 0.015, h * 0.02), Color(0.1, 0.06, 0.05), Vector3(0, 0, 0))   # ağız çizgisi
+	for sx in [-1.0, 1.0]:
+		var ep = hc + Vector3(h * 0.13 * sx, h * 0.08, -h * 0.25)
+		b.add("sphere", ep, Vector3(0.12, 0.08, 0.06) * h, Color(0.96, 0.95, 0.92), Vector3.ZERO, 10)   # göz akı
+		b.add("sphere", ep + Vector3(0, -h * 0.01, -h * 0.02), Vector3(0.05, 0.05, 0.03) * h, Color(0.08, 0.06, 0.05), Vector3.ZERO, 8)
+		b.add("sphere", ep + Vector3(0, h * 0.025, -h * 0.005), Vector3(0.13, 0.05, 0.065) * h, c.darkened(0.15), Vector3(0, 0, -6 * sx), 10)   # ağır göz kapağı
+		# sarkık koyu kulak
+		Loft.tube(b, [hc + Vector3(h * 0.24 * sx, h * 0.18, -h * 0.02), hc + Vector3(h * 0.33 * sx, h * 0.08, -h * 0.04), hc + Vector3(h * 0.34 * sx, -h * 0.08, -h * 0.06)], [Vector2(0.05, 0.1) * h, Vector2(0.05, 0.12) * h, Vector2(0.03, 0.08) * h], dark, 8, 3)
+	for k in 3:   # alın kırışıkları
+		b.add("box", hc + Vector3(0, h * (0.18 + k * 0.035), -h * 0.24 + k * h * 0.01), Vector3(h * (0.16 - k * 0.03), h * 0.012, h * 0.01), c.darkened(0.3))
+	if gear:
+		# mavi kapüşonlu alın bandı + plaka
+		Loft.tube(b, [hc + Vector3(-0.001, h * 0.14, 0), hc + Vector3(0.001, h * 0.14, 0)], [Vector2(0.32, 0.3) * h, Vector2(0.32, 0.3) * h], blue, 18, 1, false, false)
+		b.add("box", hc + Vector3(0, h * 0.2, -h * 0.29), Vector3(0.22, 0.07, 0.02) * h, Color(0.75, 0.77, 0.8), Vector3(-15, 0, 0))
+		b.add("sphere", hc + Vector3(0, h * 0.12, h * 0.08), Vector3(0.6, 0.45, 0.5) * h, blue, Vector3.ZERO, 12)   # kapüşon arkası
+		# mavi yelek + boyunda bağlı fular
+		Loft.tube(b, [Vector3(0, h * 0.42, h * 0.12), Vector3(0, h * 0.5, -h * 0.08), Vector3(0, h * 0.58, -h * 0.22)], [Vector2(0.31, 0.29) * h, Vector2(0.35, 0.34) * h, Vector2(0.31, 0.31) * h], blue, 18, 3, false, false,
+			func(_t: float, _a: float, d: Vector3) -> Color: return blue if d.y > -0.35 else c.lightened(0.15))
+		b.add("box", Vector3(0, h * 0.62, -h * 0.5), Vector3(0.2, 0.12, 0.04) * h, blue.darkened(0.15), Vector3(0, 0, 45))   # fular düğümü
+		b.add("box", Vector3(0, h * 0.62, -h * 0.5), Vector3(0.2, 0.12, 0.04) * h, blue.darkened(0.15), Vector3(0, 0, -45))
 	_mesh(out["root"], b)
+	for q in [Vector3(-1, 0, -1), Vector3(1, 0, -1), Vector3(-1, 0, 1), Vector3(1, 0, 1)]:
+		var pv = _pivot(out["root"], Vector3(q.x * h * 0.17, h * 0.32, q.z * h * 0.22))
+		var lb = MB.new()
+		Loft.tube(lb, [Vector3.ZERO, Vector3(q.x * h * 0.02, -h * 0.16, -h * 0.02), Vector3(q.x * h * 0.02, -h * 0.29, -h * 0.04)], [h * 0.09, h * 0.075, h * 0.07], c, 10, 3)
+		lb.add("sphere", Vector3(q.x * h * 0.02, -h * 0.3, -h * 0.08), Vector3(0.13, 0.06, 0.15) * h, c.lightened(0.1), Vector3.ZERO, 8)
+		if gear and q.x < 0.0 and q.z < 0.0:
+			for k in 4:   # sargılı ön pati
+				lb.add("torus", Vector3(q.x * h * 0.02, -h * 0.06 - k * h * 0.05, -h * 0.03), Vector3(0.19, 0.19, 0.19) * h, Color(0.96, 0.95, 0.92), Vector3(0, 0, 8 if k % 2 else -8), 8)
+		_mesh(pv, lb)
+		out["legs"].append(pv)
+	var tail = _pivot(out["root"], Vector3(0, h * 0.5, h * 0.4))
+	var tb = MB.new()
+	Loft.tube(tb, [Vector3.ZERO, Vector3(0, h * 0.12, h * 0.06), Vector3(0, h * 0.14, -h * 0.04)], [h * 0.06, h * 0.05, h * 0.03], c, 8, 3)   # kıvrık kısa kuyruk
+	_mesh(tail, tb)
+	out["tail"] = tail
+	out["mouth"] = hc + Vector3(0, -h * 0.15, -h * 0.34)
+
+
+static func _wolf2(out: Dictionary, h: float) -> void:
+	var white = Color(0.96, 0.96, 0.97)
+	var b = _quad(out, h, white, {"len": 1.25, "leg": 0.4, "snout": 0.34, "ear": 0.18, "heads": [-0.22, 0.22], "eye": Color(0.85, 0.15, 0.1), "tail": "bushy", "belly": white, "mark": Color(0.5, 0.5, 0.55)})
+	var by = h * 0.4 + h * 0.12
+	var L = h * 1.25
+	# iri kaslı kütle: geniş göğüs, kambur omuzlar, kalça
+	b.add("sphere", Vector3(0, by + h * 0.12, -L * 0.3), Vector3(0.62, 0.55, 0.6) * h, white, Vector3.ZERO, 14)
+	b.add("sphere", Vector3(0, by + h * 0.08, L * 0.3), Vector3(0.5, 0.48, 0.5) * h, white, Vector3.ZERO, 14)
+	for hx in [-0.22, 0.22]:   # boyun yelesi: her baş için gür tüy kütlesi
+		b.add("sphere", Vector3(hx * h, by + h * 0.3, -L * 0.5), Vector3(0.34, 0.36, 0.3) * h, white, Vector3.ZERO, 12)
+	# gür beyaz yele: omuzlarda, boyunlarda ve sırtta kabarık tüy dikenleri
+	var rng = RandomNumberGenerator.new()
+	rng.seed = 11
+	for i in 70:
+		var t = rng.randf()
+		var a = rng.randf_range(-1.4, 1.4)
+		var z = lerpf(-L * 0.5, L * 0.4, t)
+		var r = h * (0.24 if z < -L * 0.2 else 0.2)
+		BeastRig.claw(b, Vector3(sin(a) * r, by + h * 0.08 + cos(a) * r, z), Vector3(sin(a) * 0.7, cos(a), 0.6).normalized(), h * rng.randf_range(0.12, 0.22), h * 0.04, white.darkened(0.04))
+	# iki başta açık çene ve sivri dişler
+	for hx in [-0.2, 0.2]:
+		var hp = Vector3(hx * h * 1.2, by + h * 0.48, -L * 0.62)
+		var sn = h * 0.34
+		b.add("sphere", hp + Vector3(0, -h * 0.11, -h * 0.06 - sn * 0.7), Vector3(0.1, 0.03, 0.2) * h, Color(0.55, 0.15, 0.18), Vector3(15, 0, 0), 8)   # ağız içi
+		Loft.tube(b, [hp + Vector3(0, -h * 0.09, -h * 0.02), hp + Vector3(0, -h * 0.15, -h * 0.06 - sn * 0.6), hp + Vector3(0, -h * 0.17, -h * 0.06 - sn * 0.9)], [Vector2(0.08, 0.04) * h, Vector2(0.06, 0.03) * h, Vector2(0.03, 0.02) * h], white, 10, 2, true, true)   # alt çene
+		for sx in [-1.0, 1.0]:
+			for k in 4:
+				BeastRig.claw(b, hp + Vector3(sx * h * 0.035, -h * 0.07, -h * 0.08 - k * sn * 0.2), Vector3(0, -1, 0), h * 0.05, h * 0.012, Color(0.97, 0.96, 0.92))
+				BeastRig.claw(b, hp + Vector3(sx * h * 0.03, -h * 0.15, -h * 0.1 - k * sn * 0.18), Vector3(0, 1, 0), h * 0.04, h * 0.01, Color(0.97, 0.96, 0.92))
+	_mesh(out["root"], b)
+	for lg in out["legs"]:   # kalın güçlü bacaklar, saldırı duruşunda yana açık
+		lg.scale = Vector3(1.9, 1.0, 1.7)
+	if out["tail"]:
+		out["tail"].scale = Vector3.ONE * 1.6
 
 
 static func _cat(out: Dictionary, model: String, h: float, length: float) -> void:
