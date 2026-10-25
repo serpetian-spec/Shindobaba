@@ -42,6 +42,7 @@ func _ready() -> void:
 		["face", top + fwd * L * 0.55 + right * L * 0.18, top],
 		["side", ctr + right * L * 1.2 + Vector3.UP * L * 0.15, ctr],
 		["back", ctr - fwd * L * 1.0 + right * L * 0.4 + Vector3.UP * L * 0.4, ctr],
+		["top", ctr + Vector3.UP * L * 1.3 + fwd * L * 0.15, ctr],
 	]
 	for s in shots:
 		pl.cam.global_position = s[1]

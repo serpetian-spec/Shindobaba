@@ -6,11 +6,11 @@ MODEL=$M H=$H LEN=$LN VER=$V timeout 400 ../tools/Godot_v4.7.2-stable_win64_cons
 cd ..
 ARGS=""
 i=0
-for s in front face side; do
+for s in front face side top; do
 	i=$((i + 1))
 	eval R=\${$i}
 	[ -n "$R" ] && ARGS="$ARGS $R _tmp/kv/${M}_${V}_$s.png"
 done
 python -I tools/ref_compare.py "Ekran görüntüleri/${M}_${V}_karsilastirma.png" $ARGS > /dev/null
-for s in front face side back; do cp _tmp/kv/${M}_${V}_$s.png "Ekran görüntüleri/${M}_${V}_$s.png"; done
+for s in front face side back top; do cp _tmp/kv/${M}_${V}_$s.png "Ekran görüntüleri/${M}_${V}_$s.png"; done
 echo "Ekran görüntüleri/${M}_${V}_karsilastirma.png"
