@@ -20,6 +20,11 @@ var state_t = 0.0
 var statuses = {}  # ad -> kalan süre
 var dead = false
 var poise = 0.0  # süper zırh (boss)
+## Sersemletme kilidi kırıcı: kısa sürede üst üste sersemletilen savaşçı bir süre sersemlemez ve çevresini iterek kurtulur
+## (klonlar ya da sonsuz hafif kombo ile kilitlenmesin)
+var stun_meter := 0.0
+var stun_last_ms := 0
+var stun_armor_ms := 0
 
 
 func _ready() -> void:
@@ -106,6 +111,20 @@ func take_hit(info: Dictionary) -> void:
 	var heavy: bool = info.get("kind", "light") == "heavy" or info.get("launch", 0.0) > 0.0
 	if poise > 0.0 and not heavy:
 		return
+	if info.get("flinch", false):   # klon gibi zayıf vuruş: sadece irkilme, sersemletmez
+		model.flash(0.5)
+		velocity += dir * 1.5
+		return
+	var now = Time.get_ticks_msec()
+	if now < stun_armor_ms:
+		return   # kilit kırıldı: kısa süre sersemlemez (hasar yine alınır)
+	# oyuncunun kendi kombosu (5 vuruş + bitiriş) tam oynansın; klon/çoklu saldırı yağmuru kilidi kırar
+	var w = 0.55 if info.get("attacker") is Player else 1.0
+	stun_meter = maxf(0.0, stun_meter - (now - stun_last_ms) / 1000.0 * 0.7) + (2.0 if heavy else 1.0) * w
+	stun_last_ms = now
+	if stun_meter >= 3.5 and size < 2.5:
+		_break_stun()
+		return
 	state_t = 0.0
 	if heavy and size < 2.5:
 		state = "knockdown"
@@ -115,6 +134,22 @@ func take_hit(info: Dictionary) -> void:
 		state = "hitstun"
 		velocity = dir * info.get("knock", 2.0) / size
 		model.play("hit" if randf() < 0.5 else "hit_head", 0.04, 1.4, true)
+
+
+## Kilit kırma: chakra patlamasıyla çevresini iter, 1.6 sn sersemlemez
+func _break_stun() -> void:
+	stun_meter = 0.0
+	stun_armor_ms = Time.get_ticks_msec() + 1600
+	state = "chase" if "target" in self else state
+	state_t = 0.0
+	Combat.popup_text(global_position + Vector3.UP * (height + 0.9), "Kurtuldu!", Color(0.7, 0.9, 1.0))
+	FX.ring(global_position + Vector3.UP * 0.9, Color(0.7, 0.9, 1.0), 4.0, 0.35)
+	for f in get_tree().get_nodes_in_group("fighters"):
+		if Combat.hostile(self, f) and not f.is_dead() and f.global_position.distance_to(global_position) < 3.2:
+			if f is ShadowClone:
+				f.vanish()
+			else:
+				f.take_hit({"dmg": 4.0, "knock": 12.0, "kind": "light", "dir": (f.global_position - global_position).normalized(), "attacker": self})
 
 
 func on_damaged(_info: Dictionary) -> void:

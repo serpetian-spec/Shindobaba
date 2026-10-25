@@ -23,6 +23,8 @@ var lock_target: Node3D = null
 var guard_t = 0.0
 var sub_bars = 4.0
 var invuln = 0.0
+var stun_meter := 0.0
+var stun_last_ms := 0
 var last_hit_t = 99.0
 var aura: GPUParticles3D
 var cast_jutsu = ""
@@ -632,6 +634,18 @@ func take_hit(info: Dictionary) -> void:
 		Game.world.env.add_shake(0.35)
 	var dir: Vector3 = info.get("dir", Vector3.ZERO)
 	var heavy: bool = info.get("kind", "light") != "light" or info.get("launch", 0.0) > 0.0
+	# kombo kilidi kırıcı: üst üste sersemletilince kısa dokunulmazlık + itme patlaması (düşman kombosunda sonsuz kilit yok)
+	var now = Time.get_ticks_msec()
+	stun_meter = maxf(0.0, stun_meter - (now - stun_last_ms) / 1000.0 * 1.2) + (2.0 if heavy else 1.0)
+	stun_last_ms = now
+	if stun_meter >= 4.0 and p.hp > 0.0:
+		stun_meter = 0.0
+		invuln = 1.0
+		action = ""
+		Combat.popup_text(p.global_position + Vector3.UP * 2.3, "Kombo kırıldı!", Color(0.7, 0.9, 1.0))
+		FX.ring(p.global_position + Vector3.UP * 0.9, Color(0.7, 0.9, 1.0), 4.5, 0.35)
+		Combat.hit_sphere(p, p.global_position + Vector3.UP, 3.2, {"dmg": 6.0, "knock": 14.0, "kind": "light"})
+		return
 	t = 0.0
 	if aura:
 		_update_charge(0)

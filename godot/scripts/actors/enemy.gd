@@ -3,6 +3,7 @@ extends Fighter
 ## Düşman ninja yapay zekâsı.
 
 static var attack_tokens = 0  # aynı anda saldıran düşman sayısı
+static var swings = 0         # toplam savuruş (dövüş temposu ölçümü)
 
 var arch = {}
 var home = Vector3.ZERO
@@ -275,8 +276,14 @@ func _physics_process(dt: float) -> void:
 				state = "recover"
 				state_t = 0.0
 		"recover", "throw":
-			step_move(Vector3.ZERO, dt, false)
-			if state_t > 0.5:
+			# toparlanırken boş durmaz: hedefin çevresinde yana adımlar (kolay hedef olmasın)
+			var side = Vector3.ZERO
+			if target and is_instance_valid(target) and state == "recover":
+				var tv = target.global_position - global_position
+				tv.y = 0
+				side = tv.normalized().cross(Vector3.UP) * (1.0 if int(get_instance_id()) % 2 == 0 else -1.0) * 3.5
+			step_move(side, dt, false)
+			if state_t > 0.35:
 				state = "chase"
 		"dodge":
 			step_move(dodge_dir * (16.0 + skill * 8.0), dt, false)
@@ -376,7 +383,7 @@ func _chase(dt: float) -> void:
 	var far_ok = d > 4.0 and d < 42.0
 	var near_ok = d <= 4.0 and not jl.is_empty() and randf() < 0.15
 	if (far_ok or near_ok) and ranged_cd <= 0.0 and randf() < 0.8:
-		ranged_cd = randf_range(2.0, 4.0) / arch["aggr"]
+		ranged_cd = randf_range(1.6, 3.2) / arch["aggr"]
 		if not jl.is_empty() and randf() < 0.85 and not has_status("sealed"):   # chakra noktaları kapalıysa jutsu yok
 			set_meta("cast_id", jl.pick_random())
 			state = "cast"
@@ -397,7 +404,11 @@ func _chase(dt: float) -> void:
 		# yakın dövüş sırası yoksa etrafında dolaş
 		var sp: float = arch["speed"]
 		var dir = v.normalized()
-		if not has_token and attack_tokens >= (2 if skill < 0.7 else 4) and d < 7.0:
+		# orta mesafeden atılma (usta ve saldırgan düşmanlar)
+		if d > 3.5 and d < 11.0 and attack_cd <= 0.0 and (has_token or attack_tokens < _max_tokens()) and randf() < dt * (1.0 + skill * 3.0) * arch["aggr"]:
+			_lunge()
+			return
+		if not has_token and attack_tokens >= _max_tokens() and d < 7.0:
 			dir = dir.rotated(Vector3.UP, PI * 0.5 * (1.0 if int(get_instance_id()) % 2 == 0 else -1.0)) * 0.6
 			sp *= 0.6
 		step_move(dir * sp, dt, false)
@@ -406,7 +417,7 @@ func _chase(dt: float) -> void:
 	else:
 		step_move(Vector3.ZERO, dt, false)
 		model.play("idle", 0.2)
-		if attack_cd <= 0.0 and (has_token or attack_tokens < (2 if skill < 0.7 else 4)):
+		if attack_cd <= 0.0 and (has_token or attack_tokens < _max_tokens()):
 			if not has_token:
 				has_token = true
 				attack_tokens += 1
@@ -414,6 +425,11 @@ func _chase(dt: float) -> void:
 			state = "attack"
 			state_t = 0.0
 			_swing()
+
+
+## Aynı anda yakın dövüşe girebilen düşman sayısı (eskiden 2: kalabalık bile sırayla bekliyordu)
+func _max_tokens() -> int:
+	return 3 if skill < 0.6 else 5
 
 
 func _beast_tech(d: float) -> void:
@@ -430,7 +446,35 @@ func _beast_tech(d: float) -> void:
 	Combat.popup_text(global_position + Vector3.UP * (height + 1.2), String(BijuuArts.tech(bid, key).get("name", "")), col.lightened(0.3))
 
 
+## Haritadan silinirken (uzaklaşınca, görev bitince) saldırı sırasını geri bırak — yoksa sayaç dolu kalıp
+## bütün düşmanlar saldırmadan etrafında dolaşıyordu (pasif düşman hatası)
+func _exit_tree() -> void:
+	if has_token:
+		has_token = false
+		attack_tokens = maxi(0, attack_tokens - 1)
+
+
+## Atılma saldırısı: orta mesafeden hedefe chakra adımıyla yaklaşıp kombo başlatır
+func _lunge() -> void:
+	var v = target.global_position - global_position
+	v.y = 0
+	var to = target.global_position - v.normalized() * (target.radius + radius + 1.0)
+	to.y = Game.ground_height(to.x, to.z)
+	FX.speed_lines(global_position + Vector3.UP, v.normalized())
+	FX.smoke_puff(global_position + Vector3.UP * 0.3, 0.5, 6)
+	global_position = to
+	facing = atan2(-v.x, -v.z)
+	if not has_token:
+		has_token = true
+		attack_tokens += 1
+	combo_left = randi_range(2, 3 + int(skill * 3.0))
+	state = "attack"
+	state_t = 0.0
+	_swing()
+
+
 func _swing() -> void:
+	swings += 1
 	var anims = ["jab", "cross", "slash_a", "hook"] if arch.get("kind") != "samurai" and arch.get("kind_anim", "") != "sword" else ["slash_a", "slash_b", "slash_c"]
 	model.play(anims.pick_random(), 0.05, 1.3 + skill * 0.45, true)
 	model.flash(0.25)  # saldırı öncesi küçük uyarı
@@ -466,7 +510,7 @@ func _attack(dt: float) -> void:
 func _end_attack() -> void:
 	state = "recover"
 	state_t = 0.0
-	attack_cd = randf_range(0.8, 2.0) / arch["aggr"] / (1.0 + skill)
+	attack_cd = randf_range(0.35, 1.1) / arch["aggr"] / (1.0 + skill)
 	if has_token:
 		has_token = false
 		attack_tokens = maxi(0, attack_tokens - 1)
