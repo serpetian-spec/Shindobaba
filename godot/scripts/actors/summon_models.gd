@@ -1064,22 +1064,46 @@ static func _monkey(out: Dictionary, model: String, h: float) -> void:
 	out["mouth"] = hc + Vector3(0, -h * 0.06, -h * 0.17)
 
 
+## Karga sürüsü (REFERANS: genjutsu kargaları): koyu arduvaz-siyah gövde, iri kalın hafif kıvrık siyah gaga, kırmızı göz;
+## açık süzülen kanatlar (ayrık uç tüyleri), kama kuyruk. Sürüde boyları ve kanat açıları hafif farklı.
 static func _crows(out: Dictionary, h: float) -> void:
 	out["anim"] = "flock"
 	var rng = RandomNumberGenerator.new()
 	rng.seed = 3
-	for k in 9:
+	var body_c = Color(0.27, 0.27, 0.31)   # arduvaz grisi (simsiyah değil)
+	var wing_c = Color(0.2, 0.2, 0.24)
+	var beak_c = Color(0.07, 0.07, 0.08)
+	for k in 11:
 		var n = Node3D.new()
-		n.position = Vector3(rng.randf_range(-2, 2), rng.randf_range(1.0, 3.0), rng.randf_range(-2, 2))
+		n.position = Vector3(rng.randf_range(-2.4, 2.4), rng.randf_range(1.0, 3.2), rng.randf_range(-2.4, 2.4))
 		out["root"].add_child(n)
+		var s = rng.randf_range(0.42, 0.58)   # gövde boyu (m)
 		var b = MB.new()
-		var c = Color(0.08, 0.08, 0.1)
-		b.add("sphere", Vector3.ZERO, Vector3(0.22, 0.2, 0.42), c, Vector3.ZERO, 8)
-		b.add("sphere", Vector3(0, 0.08, -0.22), Vector3(0.16, 0.15, 0.17), c, Vector3.ZERO, 8)
-		b.add("cone", Vector3(0, 0.07, -0.34), Vector3(0.04, 0.1, 0.04), Color(0.2, 0.2, 0.22), Vector3(-90, 0, 0), 5)
-		b.add("sphere", Vector3(0.05, 0.11, -0.28), Vector3(0.035, 0.035, 0.02), Color(0.85, 0.1, 0.1), Vector3.ZERO, 5)
+		Loft.tube(b, [Vector3(0, 0, s * 0.55), Vector3(0, s * 0.02, s * 0.15), Vector3(0, s * 0.05, -s * 0.2), Vector3(0, s * 0.12, -s * 0.42)],
+			[Vector2(0.05, 0.03) * s, Vector2(0.17, 0.16) * s, Vector2(0.19, 0.18) * s, Vector2(0.13, 0.13) * s], body_c, 12, 3, true, false)
+		var hc = Vector3(0, s * 0.16, -s * 0.5)
+		b.add("sphere", hc, Vector3(0.26, 0.24, 0.3) * s, body_c, Vector3.ZERO, 10)
+		# iri kalın gaga: kökte yüksek, uca doğru incelip hafif aşağı kıvrılır
+		Loft.tube(b, [hc + Vector3(0, 0.0, -s * 0.1), hc + Vector3(0, -s * 0.01, -s * 0.24), hc + Vector3(0, -s * 0.05, -s * 0.36)],
+			[Vector2(0.095, 0.11) * s, Vector2(0.06, 0.07) * s, Vector2(0.006, 0.006) * s], beak_c, 8, 3, true, true)
 		for sx in [-1.0, 1.0]:
-			b.add("box", Vector3(0.25 * sx, 0.02, 0.02), Vector3(0.36, 0.02, 0.18), c, Vector3(0, 0, 10 * sx))
+			b.add("sphere", hc + Vector3(s * 0.1 * sx, s * 0.04, -s * 0.06), Vector3(0.06, 0.06, 0.04) * s, Color(0.85, 0.08, 0.08), Vector3.ZERO, 6)   # kırmızı göz
+		# kama kuyruk
+		b.add_slab(PackedVector2Array([Vector2(-s * 0.06, 0.0), Vector2(s * 0.06, 0.0), Vector2(s * 0.12, s * 0.38), Vector2(0.0, s * 0.44), Vector2(-s * 0.12, s * 0.38)]), s * 0.02, wing_c,
+			Transform3D(Basis(Vector3(0, -1, 0), Vector3(1, 0, 0), Vector3(0, 0, 1)), Vector3(0, s * 0.01, s * 0.45)))
+		# açık kanatlar: V açılı profil + uçta dört ayrık tüy
+		var W = s * rng.randf_range(1.0, 1.2)
+		var dih = rng.randf_range(8.0, 24.0)
+		for sx in [-1.0, 1.0]:
+			var xf = Transform3D(Basis(Vector3(0, 0, 1), sx * deg_to_rad(dih)) * Basis(Vector3(0, -sx, 0), Vector3(sx, 0, 0), Vector3(0, 0, 1)), Vector3(s * 0.12 * sx, s * 0.08, -s * 0.1))
+			b.add_slab(PackedVector2Array([Vector2(0, -s * 0.1), Vector2(W * 0.5, -s * 0.13), Vector2(W * 0.78, -s * 0.05), Vector2(W * 0.78, s * 0.14), Vector2(W * 0.45, s * 0.3), Vector2(0, s * 0.32)]), s * 0.025, wing_c, xf)
+			for f in 4:
+				var base = Vector2(W * 0.72, -s * 0.03 + f * s * 0.05)
+				var ang = deg_to_rad(-5.0 + f * 14.0)
+				var dv = Vector2(cos(ang), sin(ang))
+				var nv = Vector2(-dv.y, dv.x)
+				var fl = s * (0.42 - f * 0.04)
+				b.add_slab(PackedVector2Array([base - nv * s * 0.035, base + dv * fl - nv * s * 0.015, base + dv * fl * 1.05, base + dv * fl + nv * s * 0.015, base + nv * s * 0.035]), s * 0.015, wing_c.darkened(0.2), xf)
 		_mesh(n, b)
 		out["segments"].append(n)
 
