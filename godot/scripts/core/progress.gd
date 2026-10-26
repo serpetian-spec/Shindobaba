@@ -405,6 +405,58 @@ func kill_xp(e: Node) -> int:
 	return int(minf(xp, cap))
 
 
+## Rinnegan uyanışı: iki gözde Ebedi Mangekyō ve Sv.70 → bir kez "Altı Yolun Mirası" görevi önerilir
+var _rinne_t := 10.0
+
+
+func _check_rinnegan_path(dt: float) -> void:
+	_rinne_t -= dt
+	if _rinne_t > 0.0:
+		return
+	_rinne_t = 8.0
+	var pr = p()
+	var f: Dictionary = pr.get("flags", {})
+	if f.get("rinne_offer", false) or int(pr.get("level", 1)) < 70 or not Missions.active().is_empty():
+		return
+	for slot in ["sag_goz", "sol_goz"]:
+		if String(Gear.equipped(pr, slot).get("id", "")) != "goz_ems":
+			return
+	f["rinne_offer"] = true
+	var tomb = Missions._spot("ame", 1800, 3200)
+	var t2 = [tomb[0] + 40.0, tomb[1] + 20.0]
+	Hud.dialog("Gözlerindeki Ses", "Ebedi Mangekyō'nun derinliklerinde bir halka belirdi... Altı Yol'un Bilgesi'nin mirası seni çağırıyor. Mezarını bul, bekçilerini yen ve altı mühür taşını uyandır: gözlerin bir sonraki aşamaya geçecek.", [
+		{"label": "Mezarı ara (S-rank görev)", "cb": func():
+			Missions.accept({"title": "Altı Yolun Mirası", "rank": "S", "village": home(), "hook": "Progress.rinnegan_done", "giver": "Gözlerindeki Ses",
+				"brief": "Altı Yol'un Bilgesi'nin unutulmuş mezarını bul. Mirasını koruyan bekçileri yen, altı yolun mühür taşlarını uyandır.",
+				"steps": [
+					{"kind": "goto", "at": tomb, "r": 30.0, "name": "Altı Yol Mezarı", "text": "Yağmur Ülkesi'nin ötesindeki unutulmuş mezarı bul."},
+					{"kind": "kill", "at": tomb, "enemy": "rogue", "n": 4, "camp": true,
+						"boss": {"name": "Mezar Bekçisi Ōgen", "hp": 9000.0, "level": 80, "power": 3.6, "style": "fuin"}, "text": "Mirası koruyan bekçileri yen."},
+					{"kind": "points", "at": t2, "n": 6, "spread": 18, "label": "[F] Yolun mühür taşını uyandır", "fx": "seal", "text": "Altı yolun mühür taşlarını uyandır (6)."},
+				]})},
+		{"label": "Şimdi değil", "cb": func(): f["rinne_offer"] = false}])
+
+
+func rinnegan_done(m: Dictionary, ok: bool) -> void:
+	if not ok:
+		p()["flags"]["rinne_offer"] = false
+		return
+	var pr = p()
+	for slot in ["sag_goz", "sol_goz"]:
+		var g = Gear.equipped(pr, slot)
+		if not g.is_empty():
+			pr["gear"].erase(g)
+		Gear.grant(pr, "goz_rinnegan", slot, null, null, {"lvl": 3, "origin": "uyanis"})
+	Gear.apply_look(pr)
+	if Game.player:
+		Game.player.rebuild_model()
+		FX.aura(Game.player, Color(0.7, 0.6, 1.0), 2.0, Vector3(0, 0.9, 0), 3.0)
+		FX.ring(Game.player.global_position + Vector3.UP, Color(0.8, 0.75, 1.0), 14.0, 0.8)
+	Hud.banner("RINNEGAN UYANDI", "Altı Yol'un gözleri artık senin. Rinnegan teknikleri açıldı [Tab > Jutsu]", Color(0.75, 0.65, 1.0))
+	Sfx.play("genjutsu", null, 0.6)
+	Game.save_game()
+
+
 func on_hit_landed(t: Node) -> void:
 	Exams.on_hit(t)
 
@@ -452,6 +504,7 @@ func _process(_dt: float) -> void:
 	if Game.player == null or Game.profile.is_empty():
 		return
 	Journal.tick(_dt)
+	_check_rinnegan_path(_dt)
 	# ziyaret edilen köyler (hızlı seyahat)
 	var m = Game.to_map(Game.player.global_position)
 	for v in Game.world_info["villages"]:

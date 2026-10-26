@@ -30,7 +30,7 @@ static func tick(e: Enemy, dt: float) -> void:
 		return
 	var kind = int(e.get_meta("eyes").get("kind", 0))
 	# Mangekyō: can yarıya inince Susanoo
-	if kind >= 4 and not e.has_meta("ea_susanoo") and e.hp < e.max_hp * 0.5:
+	if kind in [4, 5] and not e.has_meta("ea_susanoo") and e.hp < e.max_hp * 0.5:
 		_susanoo(e)
 	var sn = e.get_meta("ea_susanoo") if e.has_meta("ea_susanoo") else null
 	if sn and is_instance_valid(sn):
@@ -56,6 +56,23 @@ static func tick(e: Enemy, dt: float) -> void:
 				var dir = (t.global_position - e.global_position).normalized()
 				Combat.hit_sphere(e, e.global_position + Vector3.UP, 3.5, {"dmg": 14.0 * e.power, "knock": 16.0, "launch": 5.0, "kind": "heavy", "dir": dir})
 				e.set_meta("ea_cd", randf_range(8.0, 11.0))
+		6:   # Rinnegan: yakında Shinra Tensei (her şeyi iter), uzakta Banshō Ten'in (kendine çeker)
+			if d < 8.0:
+				Combat.popup_text(e.global_position + Vector3.UP * 2.6, "Shinra Tensei!", Color(0.75, 0.65, 1.0))
+				FX.ring(e.global_position + Vector3.UP * 1.0, Color(0.85, 0.8, 1.0), 12.0, 0.45)
+				VFX.shockwave(e.global_position + Vector3.UP, Color(0.8, 0.75, 1.0), 10.0, 0.5, false)
+				Combat.hit_zone(e, e.global_position, Vector3.ZERO, 9.0, 180.0, 6.0, {"dmg": 24.0 * e.power, "knock": 30.0, "launch": 6.0, "kind": "heavy"})
+				if Game.world:
+					Game.world.env.add_shake(0.7)
+				e.set_meta("ea_cd", randf_range(9.0, 12.0))
+			elif d < 28.0:
+				Combat.popup_text(e.global_position + Vector3.UP * 2.6, "Banshō Ten'in!", Color(0.75, 0.65, 1.0))
+				VFX.bolt(e.global_position + Vector3.UP * 1.4, t.global_position + Vector3.UP, Color(0.8, 0.75, 1.0), 0.15, 0.4, 0)
+				var pull = e.global_position + (t.global_position - e.global_position).normalized() * 2.0
+				pull.y = Game.ground_height(pull.x, pull.z)
+				t.create_tween().tween_property(t, "global_position", pull, 0.35).set_trans(Tween.TRANS_QUAD)
+				t.apply_status("stun", 0.6)
+				e.set_meta("ea_cd", randf_range(7.0, 10.0))
 		4, 5:   # Mangekyō: Amaterasu (uzak) / Tsukuyomi (yakın)
 			if d < 9.0 and randf() < 0.45:
 				_gaze(e, t, 2.6, Color(0.6, 0.0, 0.05), "Tsukuyomi!")
