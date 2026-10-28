@@ -97,71 +97,88 @@ func _build_mesh() -> ArrayMesh:
 	var b = MB.new()
 	match kind:
 		"puppet":
-			# savaş kuklası (özgün tasarım): kambur, uzun boylu; kapüşonlu yırtık pelerin, menteşeli uzun çeneli lake maske,
-			# üç gözlü yüz, eklem topları ve metal bantlı segmentli kollar, ek kol çifti, bileklerde bıçaklar, sırttan çıkan segmentli bıçaklı kuyruk
-			var wd = Color(0.66, 0.48, 0.32)
-			var wd2 = Color(0.52, 0.36, 0.24)
-			var dk = Color(0.2, 0.14, 0.1)
-			var lac = Color(0.55, 0.1, 0.12)
-			var metal = Color(0.72, 0.74, 0.78)
-			var cl = Color(0.16, 0.14, 0.2)
-			var face = Color(0.93, 0.9, 0.84)
-			# gövde: öne eğik göğüs fıçısı + bel + kalça (metal bant halkaları)
-			Loft.tube(b, [Vector3(0, 0.72, 0.02), Vector3(0, 0.95, 0.0), Vector3(0, 1.25, -0.06), Vector3(0, 1.45, -0.1)], [Vector2(0.17, 0.13), Vector2(0.14, 0.11), Vector2(0.24, 0.17), Vector2(0.2, 0.15)], wd, 14, 3, true, true)
-			for y in [0.9, 1.12, 1.32]:
-				b.add("torus", Vector3(0, y, -0.04), Vector3(0.44 if y > 1.0 else 0.32, 0.06, 0.32 if y > 1.0 else 0.25), metal, Vector3.ZERO, 14)
-			b.add("box", Vector3(0, 1.22, -0.2), Vector3(0.22, 0.24, 0.04), lac)   # göğüs plakası
-			b.add("cyl", Vector3(0, 1.22, -0.22), Vector3(0.09, 0.02, 0.09), metal, Vector3(90, 0, 0), 10)
-			# baş: lake maske, üç göz, uzun menteşeli çene, kapüşon
-			var hc = Vector3(0, 1.66, -0.14)
-			b.add_grad("sphere", hc + Vector3(0, 0, -0.04), Vector3(0.34, 0.36, 0.32), face, face.darkened(0.15), Vector3.ZERO, 12)
-			b.add("box", hc + Vector3(0, -0.21, -0.08), Vector3(0.22, 0.17, 0.22), face.darkened(0.08), Vector3(12, 0, 0))   # uzun çene
-			b.add("box", hc + Vector3(0, -0.15, -0.195), Vector3(0.2, 0.015, 0.02), dk)   # çene menteşe çizgisi
-			for sx in [-1.0, 0.0, 1.0]:
-				var ep = hc + Vector3(0.085 * sx, 0.03 + (0.08 if sx == 0.0 else 0.0), -0.205 + (0.01 if sx == 0.0 else 0.0))
-				b.add("sphere", ep, Vector3(0.075, 0.06, 0.04), Color(0.06, 0.05, 0.06), Vector3.ZERO, 8)
-				b.add("sphere", ep + Vector3(0, 0, -0.012), Vector3(0.025, 0.025, 0.012), Color(1.0, 0.25, 0.2), Vector3.ZERO, 6)
-			for sx in [-1.0, 1.0]:
-				b.add("box", hc + Vector3(0.11 * sx, -0.07, -0.205), Vector3(0.012, 0.12, 0.01), lac, Vector3(0, 0, 18 * sx))   # yanak boyası
-			Loft.tube(b, [hc + Vector3(0, -0.14, 0.17), hc + Vector3(0, 0.12, 0.14), hc + Vector3(0, 0.24, 0.2), hc + Vector3(0, 0.12, 0.4)], [Vector2(0.25, 0.23), Vector2(0.23, 0.25), Vector2(0.17, 0.16), Vector2(0.02, 0.02)], cl, 14, 3, true, false)   # kapüşon başın arkasında, yüz açık   # kapüşon
-			# pelerin: omuzlardan dizlere yırtık kenarlı
-			for k in 9:
-				var a = deg_to_rad(-120.0 + k * 30.0)
-				var top = Vector3(sin(a) * 0.26, 1.42, cos(a) * 0.2 + 0.02)
-				var L = 0.65 + 0.18 * float(k % 3)
-				b.add_xf("box", Transform3D(Basis(Vector3.UP, a) * Basis(Vector3.RIGHT, deg_to_rad(-10)) * Basis.from_scale(Vector3(0.2, L, 0.02)), top + Vector3(sin(a) * 0.06, -L * 0.5, cos(a) * 0.05)), cl.lightened(0.03 * (k % 2)))
-			# kollar: omuz topu, segmentli üst kol + bant, dirsek topu, ön kol, bilek bıçağı, pençe parmaklar
-			for pair in [[1.0, 0.0], [-1.0, 0.0], [1.0, 1.0], [-1.0, 1.0]]:
-				var sx: float = pair[0]
-				var extra = pair[1] > 0.5
-				var sh = Vector3(0.3 * sx, 1.34 - (0.24 if extra else 0.0), -0.04 + (0.08 if extra else 0.0))
-				var el = sh + Vector3(0.16 * sx, -0.3, -0.12 if not extra else 0.0)
-				var wr = el + Vector3(0.06 * sx, -0.06, -0.36)
-				b.add("sphere", sh, Vector3.ONE * (0.12 if not extra else 0.09), dk, Vector3.ZERO, 8)
-				Loft.tube(b, [sh, el], [0.065 if not extra else 0.05, 0.055], wd2, 8, 1)
-				b.add("torus", sh.lerp(el, 0.5), Vector3.ONE * 0.14, metal, Vector3(0, 0, 60 * sx), 10)
-				b.add("sphere", el, Vector3.ONE * 0.09, dk, Vector3.ZERO, 8)
-				Loft.tube(b, [el, wr], [0.05, 0.042], wd, 8, 1)
+			# savaş kuklası (REFERANS: anime savaş kuklaları): gövdeyi saran geniş yırtık gri pelerin, pelerinden çıkan açık renk eklemli
+			# ahşap kollar (yuvarlak eklem topları, segment çizgileri, yumruk eller), ince eklemli bacaklar; iki tip (slot'a göre):
+			# A — diken diken koyu kahve saç, üç gözlü yüz, aşağı sarkan menteşeli çene ve dişler;  B — kızıl çift boynuz, uzun yassı yüz, sarı gözler, dişli uzun çene
+			var wood = Color(0.8, 0.7, 0.62)
+			var wood_d = Color(0.62, 0.52, 0.45)
+			var joint = Color(0.5, 0.42, 0.36)
+			var cloak = Color(0.5, 0.48, 0.47)   # sıcak gri (gölgede laciverte kaçmasın)
+			var cloak_d = Color(0.38, 0.36, 0.35)
+			var ink = Color(0.12, 0.1, 0.1)
+			var horned = slot % 2 == 1
+			var seg = func(mb: MB, a: Vector3, c: Vector3, r: float, n: int) -> void:
+				# eklemli ahşap uzuv: n parça, aralarda koyu eklem topu ve segment çizgisi
+				for k in n:
+					var p0 = a.lerp(c, float(k) / n)
+					var p1 = a.lerp(c, float(k + 1) / n)
+					Loft.tube(mb, [p0.lerp(p1, 0.06), p1.lerp(p0, 0.06)], [r, r * 0.92], wood, 8, 1, true, true)
+					mb.add("sphere", p1, Vector3.ONE * r * 1.25, joint, Vector3.ZERO, 8)
+					mb.add("torus", p0.lerp(p1, 0.5), Vector3.ONE * r * 2.05, wood_d, Vector3(90, 0, 0), 8)
+			# gövde (pelerin altında ahşap fıçı)
+			Loft.tube(b, [Vector3(0, 0.8, 0.0), Vector3(0, 1.15, -0.02), Vector3(0, 1.45, -0.06)], [Vector2(0.17, 0.14), Vector2(0.2, 0.16), Vector2(0.18, 0.14)], wood_d, 12, 2, true, true)
+			# geniş yırtık pelerin: omuzdan dizin altına kadar, gövdeyi saran çan; alt kenarı ve yanları tırtıklı şeritler
+			Loft.tube(b, [Vector3(0, 1.52, -0.05), Vector3(0, 1.3, 0.0), Vector3(0, 0.9, 0.06), Vector3(0, 0.45, 0.1)],
+				[Vector2(0.22, 0.18), Vector2(0.44, 0.34), Vector2(0.55, 0.42), Vector2(0.6, 0.46)], cloak, 22, 4, false, false,
+				func(_t: float, a: float, _d: Vector3) -> Color: return cloak_d if fposmod(a * 3.0 + _t * 5.0, 1.0) < 0.15 else cloak)
+			for k in 22:   # alt kenar: düzensiz sarkan yırtık şeritler
+				var a = TAU * k / 22.0
+				var L = 0.12 + 0.22 * fposmod(k * 0.618, 1.0)
+				var top = Vector3(sin(a) * 0.6, 0.47, cos(a) * 0.46 + 0.1)
+				b.add_xf("cone", Transform3D(Basis(Vector3.UP, a) * Basis(Vector3.RIGHT, deg_to_rad(180.0 - 8.0)) * Basis.from_scale(Vector3(0.16, L, 0.025)), top + Vector3(0, -L * 0.5, 0)), cloak_d if k % 2 else cloak, 4)
+			b.add("torus", Vector3(0, 1.5, -0.05), Vector3(0.38, 0.12, 0.32), cloak_d, Vector3.ZERO, 14)   # yaka
+			# baş
+			var hc = Vector3(0, 1.72, -0.1)
+			if not horned:
+				b.add("sphere", hc, Vector3(0.28, 0.32, 0.27), wood, Vector3.ZERO, 12)
+				for k in 22:   # diken diken saç
+					var a = fposmod(k * 0.618, 1.0) * TAU
+					var up = fposmod(k * 0.37, 1.0)
+					var d = Vector3(sin(a) * 0.9, 0.3 + up * 0.8, cos(a) * 0.7 + 0.25).normalized()
+					if d.z < -0.45 and d.y < 0.6:
+						continue   # yüzün önü açık
+					BeastRig.claw(b, hc + d * 0.12, d, 0.16 + up * 0.08, 0.05, Color(0.32, 0.22, 0.16))
+				for p in [Vector3(-0.07, 0.03, -0.25), Vector3(0.07, 0.03, -0.25), Vector3(0.0, 0.13, -0.24)]:   # üç göz (yüz yüzeyinde)
+					b.add("sphere", hc + p, Vector3(0.075, 0.07, 0.03), Color(0.96, 0.95, 0.92), Vector3.ZERO, 8)
+					b.add("sphere", hc + p + Vector3(0, 0, -0.015), Vector3(0.028, 0.028, 0.012), ink, Vector3.ZERO, 6)
+				# sarkık çene: açık ağız, iki sıra diş
+				b.add("box", hc + Vector3(0, -0.1, -0.12), Vector3(0.15, 0.05, 0.04), Color(0.28, 0.1, 0.1))
+				b.add("box", hc + Vector3(0, -0.19, -0.1), Vector3(0.17, 0.08, 0.12), wood_d, Vector3(18, 0, 0))
+				for t in 5:
+					var x = (t - 2) * 0.03
+					b.add("box", hc + Vector3(x, -0.08, -0.14), Vector3(0.022, 0.03, 0.01), Color(0.97, 0.96, 0.92))
+					b.add("box", hc + Vector3(x, -0.15, -0.15), Vector3(0.022, 0.03, 0.01), Color(0.97, 0.96, 0.92))
+			else:
+				# uzun yassı yüz (öne-aşağı uzar), kızıl çift boynuz, sarı gözler, dişli çene, arkaya savrulan koyu saç
+				Loft.tube(b, [hc + Vector3(0, 0.1, 0.06), hc + Vector3(0, 0.0, -0.08), hc + Vector3(0, -0.22, -0.18)], [Vector2(0.14, 0.15), Vector2(0.13, 0.12), Vector2(0.11, 0.09)], wood, 12, 3, true, true)
+				for sx in [-1.0, 1.0]:
+					Loft.tube(b, [hc + Vector3(0.08 * sx, 0.12, 0.0), hc + Vector3(0.2 * sx, 0.26, 0.04), hc + Vector3(0.18 * sx, 0.44, 0.0), hc + Vector3(0.1 * sx, 0.56, -0.04)], [0.035, 0.03, 0.022, 0.004], Color(0.62, 0.12, 0.12), 8, 3, true, true)
+					b.add("sphere", hc + Vector3(0.06 * sx, 0.02, -0.12), Vector3(0.05, 0.03, 0.02), Color(0.95, 0.78, 0.2), Vector3(0, 0, -12 * sx), 6)
+					b.add("sphere", hc + Vector3(0.062 * sx, 0.02, -0.13), Vector3(0.018, 0.022, 0.01), ink, Vector3.ZERO, 6)
+				for t in 6:
+					b.add("box", hc + Vector3((t - 2.5) * 0.028, -0.2, -0.235), Vector3(0.02, 0.035, 0.01), Color(0.97, 0.96, 0.92))
+				b.add("box", hc + Vector3(0, -0.24, -0.23), Vector3(0.16, 0.012, 0.01), ink)
+				for k in 10:   # arkaya savrulan koyu saç
+					var a = lerpf(-1.4, 1.4, k / 9.0)
+					BeastRig.claw(b, hc + Vector3(sin(a) * 0.1, 0.12, 0.08), Vector3(sin(a) * 0.4, 0.2, 1.0).normalized(), 0.28, 0.05, Color(0.1, 0.1, 0.12))
+			# kollar: pelerinin önünden ve yanlarından çıkan altı eklemli kol (yumruk eller)
+			for k in 6:
+				var sx = -1.0 if k % 2 == 0 else 1.0
+				var row = k / 2
+				var sh = Vector3(0.28 * sx, 1.3 - row * 0.2, -0.12 + row * 0.04)
+				var dir = Vector3(sx * (0.55 - row * 0.1), -0.15 - row * 0.12, -0.8).normalized()
+				var L = 0.62 + row * 0.06
+				seg.call(b, sh, sh + dir * L, 0.05, 3)
+				var hand = sh + dir * (L + 0.06)
+				b.add("box", hand, Vector3(0.1, 0.09, 0.11), wood, Vector3(0, rad_to_deg(atan2(dir.x, -dir.z)), 0))   # yumruk
 				for f in 3:
-					b.add("cone", wr + Vector3((f - 1) * 0.03, -0.02, -0.06), Vector3(0.02, 0.12, 0.02), dk, Vector3(-80, 0, 0), 4)
-				b.add_xf("cone", Transform3D(Basis.looking_at((wr - el).normalized(), Vector3.UP) * Basis(Vector3.RIGHT, -PI * 0.5) * Basis.from_scale(Vector3(0.06, 0.6, 0.012)), wr + (wr - el).normalized() * 0.32), metal, 4)   # bilek bıçağı
-			# bacaklar: ince, eklemli, uçları sivri (kukla süzülür)
+					b.add("box", hand + dir * 0.05 + Vector3((f - 1) * 0.03, 0.02, 0), Vector3(0.024, 0.035, 0.03), wood_d, Vector3.ZERO)
+			# bacaklar: pelerinin altından çıkan ince eklemli bacaklar (süzülür)
 			for sx in [-1.0, 1.0]:
-				var hp = Vector3(0.12 * sx, 0.72, 0.02)
-				var kn = hp + Vector3(0.04 * sx, -0.34, -0.06)
-				var an = kn + Vector3(0, -0.3, 0.05)
-				b.add("sphere", hp, Vector3.ONE * 0.1, dk, Vector3.ZERO, 8)
-				Loft.tube(b, [hp, kn, an], [0.06, 0.05, 0.035], wd2, 8, 2)
-				b.add("sphere", kn, Vector3.ONE * 0.08, dk, Vector3.ZERO, 8)
-				b.add("cone", an + Vector3(0, -0.06, -0.03), Vector3(0.05, 0.14, 0.05), dk, Vector3(180, 0, 0), 5)
-			# sırttan çıkan segmentli kuyruk + ucunda zehirli bıçak
-			var prev = Vector3(0, 1.1, 0.16)
-			for k in 7:
-				var nxt = prev + Vector3(0, 0.12 + k * 0.02, 0.14 - k * 0.03)
-				b.add("sphere", prev, Vector3.ONE * (0.08 - k * 0.006), dk if k % 2 == 0 else metal, Vector3.ZERO, 8)
-				Loft.tube(b, [prev, nxt], [0.045 - k * 0.004, 0.04 - k * 0.004], wd, 6, 1)
-				prev = nxt
-			b.add("cone", prev + Vector3(0, 0.12, -0.08), Vector3(0.08, 0.3, 0.03), Color(0.5, 0.7, 0.45), Vector3(-30, 0, 0), 4)   # zehirli uç (yeşilimsi)
+				var hp = Vector3(0.12 * sx, 0.78, 0.04)
+				seg.call(b, hp, hp + Vector3(0.05 * sx, -0.4, -0.05), 0.055, 2)
+				seg.call(b, hp + Vector3(0.05 * sx, -0.4, -0.05), hp + Vector3(0.06 * sx, -0.72, 0.02), 0.045, 2)
+				b.add("box", hp + Vector3(0.06 * sx, -0.75, -0.04), Vector3(0.09, 0.05, 0.16), wood_d)
 		"ink":
 			# mürekkep aslanı (Chōjū Giga): fırça darbesiyle çizilmiş gibi kara gövde, beyaz kontur çizgileri,
 			# sivri yele tutamları, açık ağız ve dişler, damlayan mürekkep, kıvrık fırça kuyruğu

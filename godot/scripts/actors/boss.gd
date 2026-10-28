@@ -124,22 +124,10 @@ func _special() -> void:
 						Combat.hit_sphere(self, global_position + face_dir() * 4.0 + Vector3.UP * 2, 4.5, {"dmg": 35.0, "knock": 20.0, "launch": 7.0, "kind": "heavy", "hitstop": 0.1}))
 		"puppeteer":
 			Combat.popup_text(global_position + Vector3.UP * 2.6, "Kukla Tekniği!", Color(0.9, 0.7, 1))
-			for i in 2 + phase:
-				var e = Enemy.new()
-				var a = Enemy.archetype("bandit", i)
-				a["name"] = "Savaş Kuklası"
-				a["hp"] = 90.0
-				a["power"] = 1.8
-				a["xp"] = 30
-				a["ryo"] = 0
-				a["respawn"] = false
-				a["look"].merge({"skin": Color(0.62, 0.45, 0.3), "top": Color(0.35, 0.25, 0.18), "hair_style": "kase", "hair": Color(0.2, 0.15, 0.1)}, true)
-				e.setup(a)
-				get_tree().current_scene.add_child(e)
-				var p = global_position + Vector3(randf_range(-5, 5), 0, randf_range(-5, 5))
-				e.global_position = p
-				e.home = p
-				FX.smoke_puff(p + Vector3.UP, 0.8, 10)
+			# gerçek savaş kuklaları (iplerle bağlı, eklemli; eskiden rengi değiştirilmiş haydutlardı)
+			var n = 2 + phase - get_tree().get_nodes_in_group("clan_construct").filter(func(u): return u.owner_f == self and not u.dead).size()
+			if n > 0:
+				ClanConstruct.spawn(self, "puppet", n, {"tier": 3 + phase})
 
 
 func take_hit(info: Dictionary) -> void:
