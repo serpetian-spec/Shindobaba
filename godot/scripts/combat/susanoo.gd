@@ -39,10 +39,11 @@ static func max_tier(pr: Dictionary) -> int:
 	if r.is_empty() or l.is_empty():
 		return 0
 	var kr = int(Gear.item(r["id"]).get("eye", {}).get("kind", 0)); var kl = int(Gear.item(l["id"]).get("eye", {}).get("kind", 0))
-	if not (kr in [4, 5] and kl in [4, 5]):
+	# iki göz de Mangekyō soyundan olmalı; biri Rinnegan olabilir (Sasuke gibi) ama en az biri Mangekyō/EMS
+	if not (kr in [4, 5, 6] and kl in [4, 5, 6] and (kr in [4, 5] or kl in [4, 5])):
 		return 0
-	# Ebedi Mangekyō: tam beden (Zırhlı Savaşçı / Mükemmel Susanoo) hemen açık; Mangekyō ustalıkla en fazla İnsansı'ya çıkar
-	if kr == 5 and kl == 5:
+	# Ebedi Mangekyō (+ Rinnegan): tam beden (Zırhlı Savaşçı / Mükemmel Susanoo) hemen açık; Mangekyō ustalıkla en fazla İnsansı'ya çıkar
+	if kr in [5, 6] and kl in [5, 6]:
 		return 5
 	var m = float(config(pr).get("mastery", 0.0))
 	var cap = 3

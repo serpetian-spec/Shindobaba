@@ -89,7 +89,7 @@ static func info(c: Node3D, d: Dictionary, mul := 1.0, extra := {}) -> Dictionar
 	var el: String = d.get("element", "")
 	var t = int(d.get("tier", 2))
 	var inf = {"dmg": base_dmg(c, d) * mul, "element": el, "knock": 4.0 + t * 2.0, "launch": 1.0 + t * 0.6,
-		"kind": "heavy" if t >= 3 else "light", "hitstop": 0.03 + t * 0.012}
+		"kind": "heavy" if t >= 3 else "light", "hitstop": 0.03 + t * 0.012, "tier": t}
 	if el in ["katon", "yoton", "shakuton"]:
 		inf["burn"] = 1.5 + t * 0.4
 	if el in ["raiton", "ranton"] and t >= 2:

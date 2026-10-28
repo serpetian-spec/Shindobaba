@@ -1,7 +1,7 @@
 class_name Eyes
 extends Node
 ## Göz teknikleri (dōjutsu): sağ göz / sol göz ayrı ekipman.
-## V: gözleri aç/kapa  •  Gözler açıkken Z: sağ göz tekniği, X: sol göz tekniği
+## V: gözleri aç/kapa  •  göz teknikleri jutsu yuvalarına konur (göz açık değilse çalışmaz)
 ## V basılı (iki göz de Mangekyō/Ebedi): Susanoo  •  Düşmüş göz sahibinin yanında F: gözü al
 
 const KINDS := {1: "Sharingan", 2: "Byakugan", 3: "Ketsuryūgan", 4: "Mangekyō Sharingan", 5: "Ebedi Mangekyō", 6: "Rinnegan", 7: "Tenseigan", 8: "Jōgan"}
@@ -146,14 +146,27 @@ func toggle() -> void:
 		_end_susanoo()
 	active = not active
 	if active:
-		Sfx.play("genjutsu", p.global_position, 1.5, 0.6)
 		var r = _kind("sag"); var l = _kind("sol")
 		var main_kind = maxi(r, l)
+		var shar = r in [1, 4, 5] or l in [1, 4, 5]
+		if shar:
+			Sfx.play("sharingan", null)
+		elif r == 2 or l == 2:
+			Sfx.play("byakugan", null)
+		else:
+			Sfx.play("genjutsu", p.global_position, 1.5, 0.6)
 		var names = []
 		for k in [r, l]:
 			if k > 0 and not KINDS[k] in names:
 				names.append(KINDS[k])
-		Hud.msg("%s AÇILDI  —  Z: %s   X: %s   %s" % [" / ".join(names).to_upper(), _skill_name("sag"), _skill_name("sol"), "(V basılı: Susanoo)" if _can_susanoo() else ""], Color(1, 0.45, 0.45) if main_kind != 2 else Color(0.85, 0.9, 1))
+		var sk = []
+		for sd in ["sag", "sol"]:
+			var sn = _skill_name(sd)
+			if sn != "" and not sn in sk:
+				sk.append(sn)
+		Hud.msg("%s AÇILDI%s%s" % [" / ".join(names).to_upper(), ("  —  teknikler (jutsu yuvası): " + ", ".join(sk)) if not sk.is_empty() else "", "   (V basılı: Susanoo)" if _can_susanoo() else ""], Color(1, 0.45, 0.45) if main_kind != 2 else Color(0.85, 0.9, 1))
+		if shar or r in [6] or l in [6]:
+			_eye_closeup(r if r in [1, 4, 5, 6] else l)
 		FX.ring(p.global_position + Vector3.UP * 1.5, Color(1, 0.2, 0.2) if main_kind != 2 else Color(0.8, 0.85, 1), 2.5, 0.35, false, -p.face_dir())
 		if Game.world:
 			Game.world.env.set_tint(Color(0.9, 0.1, 0.1, 0.07) if main_kind != 2 else Color(0.6, 0.7, 1.0, 0.08))
@@ -163,6 +176,44 @@ func toggle() -> void:
 	else:
 		_close()
 	refresh_visual()
+
+
+## Sharingan açılışı: Ninja Storm tarzı göze dalan kamera (yaklaşır, göz parlar, geri döner)
+func _eye_closeup(kind: int) -> void:
+	if p.model == null or p.model.skel == null or p.cam == null or Game.world == null:
+		return
+	var sk: Skeleton3D = p.model.skel
+	var hb = sk.find_bone("Head")
+	if hb < 0:
+		return
+	var f: Vector3 = p.face_dir()
+	f.y = 0.0
+	f = f.normalized()
+	var right = f.cross(Vector3.UP).normalized()
+	var a = float(p.model.age_scale)
+	var head: Vector3 = (sk.global_transform * sk.get_bone_global_pose(hb)).origin
+	var eye_p = head + Vector3.UP * 0.075 * a + f * 0.085 * a + right * 0.05 * a
+	var cam = Camera3D.new()
+	cam.fov = 40.0
+	cam.near = 0.01
+	Game.world.add_child(cam)
+	cam.global_position = eye_p + f * 1.6 + Vector3.UP * 0.08 + right * 0.25
+	cam.look_at(eye_p)
+	cam.current = true
+	p.input_locked = maxf(p.input_locked, 1.15)
+	var col = Color(1, 0.12, 0.1) if kind != 6 else Color(0.7, 0.55, 1.0)
+	var tw = cam.create_tween()
+	tw.tween_property(cam, "global_position", eye_p + f * 0.17 + right * 0.012, 0.7).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_property(cam, "fov", 22.0, 0.7).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+	tw.tween_callback(func():
+		FX.ring(eye_p, col, 0.35, 0.25, false, -f)
+		if Game.world:
+			Game.world.env.shake = maxf(Game.world.env.shake, 0.4))
+	tw.tween_interval(0.35)
+	tw.tween_callback(func():
+		if is_instance_valid(p) and p.cam:
+			p.cam.current = true
+		cam.queue_free())
 
 
 func _close() -> void:

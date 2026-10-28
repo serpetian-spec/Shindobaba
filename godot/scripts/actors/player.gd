@@ -276,8 +276,8 @@ func _leap(power := 1.0) -> void:
 	jumps = 2 if air else 1
 	FX.dust(global_position, 0.9)
 	FX.speed_lines(global_position + Vector3.UP, d)
-	Sfx.play("jump", global_position, 0.9)
-	Sfx.play("whoosh", global_position, 0.8)
+	Sfx.play("leap", global_position)   # bırakınca (sıçrayışın kendisi), basılıyken değil
+	Sfx.play("whoosh", global_position, 0.8, 0.6)
 	model.play("jump", 0.05, 1.5, true)
 	model.overlay.set_pose("leap", 1.0)
 	model.overlay.glide_land = 0.0

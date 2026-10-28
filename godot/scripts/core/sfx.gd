@@ -19,6 +19,13 @@ func _ready() -> void:
 				base = f.replace(".import", "").get_basename()
 				if not streams.has(base):
 					streams[base] = load("res://assets/sfx/" + base + ".wav")
+			elif f.ends_with(".mp3.import"):
+				base = f.replace(".import", "").get_basename()
+				if not streams.has(base):
+					var st = load("res://assets/sfx/" + base + ".mp3")
+					if st is AudioStreamMP3:
+						st.loop = false
+					streams[base] = st
 	for i in 24:
 		var p = AudioStreamPlayer3D.new()
 		p.unit_size = 12.0

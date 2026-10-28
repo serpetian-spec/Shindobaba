@@ -75,7 +75,10 @@ func impact(pos: Vector3, radius: float, info: Dictionary, normal := Vector3.ZER
 	if water:
 		_extinguish(pos, radius * 1.6 + 2.0)
 		return
-	_hit_trees(pos, radius, fire, wind, force, dmg)
+	# ağaç yalnız güçlü tekniklerle devrilir (B-rank üstü jutsu, dev vuruşlar: bijuu, çağrı, Susanoo); sıradan jutsu/yumruk devirmez
+	var tier := int(info.get("tier", -1))
+	var strong := tier >= 3 or (tier < 0 and dmg >= 150.0) or float(info.get("topple", 0.0)) > 0.0
+	_hit_trees(pos, radius, fire, wind, force if strong else minf(force, 11.0), dmg)
 	_hit_houses(pos, radius, fire, force, dmg)
 	if fire and normal != Vector3.ZERO and absf(normal.y) < 0.6:
 		_wall_scorch(pos, normal, clampf(radius * 1.4, 1.5, 5.0))
