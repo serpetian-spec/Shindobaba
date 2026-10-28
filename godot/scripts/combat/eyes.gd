@@ -192,19 +192,19 @@ func _eye_closeup(kind: int) -> void:
 	var right = f.cross(Vector3.UP).normalized()
 	var a = float(p.model.age_scale)
 	var head: Vector3 = (sk.global_transform * sk.get_bone_global_pose(hb)).origin
-	var eye_p = head + Vector3.UP * 0.075 * a + f * 0.085 * a + right * 0.05 * a
+	var eye_p = head + Vector3.UP * 0.075 * a + f * 0.085 * a
 	var cam = Camera3D.new()
 	cam.fov = 40.0
 	cam.near = 0.01
 	Game.world.add_child(cam)
-	cam.global_position = eye_p + f * 1.6 + Vector3.UP * 0.08 + right * 0.25
+	cam.global_position = eye_p + f * 1.6 * a + Vector3.UP * 0.04
 	cam.look_at(eye_p)
 	cam.current = true
 	p.input_locked = maxf(p.input_locked, 1.15)
 	var col = Color(1, 0.12, 0.1) if kind != 6 else Color(0.7, 0.55, 1.0)
 	var tw = cam.create_tween()
-	tw.tween_property(cam, "global_position", eye_p + f * 0.17 + right * 0.012, 0.7).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
-	tw.parallel().tween_property(cam, "fov", 22.0, 0.7).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+	tw.tween_property(cam, "global_position", eye_p + f * 0.42 * a + Vector3.UP * 0.01, 0.7).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_property(cam, "fov", 30.0, 0.7).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
 	tw.tween_callback(func():
 		FX.ring(eye_p, col, 0.35, 0.25, false, -f)
 		if Game.world:

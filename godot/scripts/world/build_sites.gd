@@ -93,6 +93,16 @@ const GATE_STYLE := {
 	"ame": [Color(0.4, 0.42, 0.45), Color(0.3, 0.31, 0.33)], "oto": [Color(0.35, 0.3, 0.4), Color(0.45, 0.3, 0.55)],
 	"shimo": [Color(0.6, 0.62, 0.66), Color(0.92, 0.94, 0.97)], "tetsu": [Color(0.4, 0.4, 0.42), Color(0.22, 0.22, 0.25)],
 }
+## Örülü sur halkası olan köyler: [yükseklik, kalınlık, duvar rengi, başlık rengi]
+const RING_WALLS := {
+	"iwa": [20.0, 7.0, Color(0.52, 0.42, 0.32), Color(0.58, 0.24, 0.17)],
+	"kumo": [18.0, 6.0, Color(0.7, 0.71, 0.7), Color(0.25, 0.45, 0.7)],
+	"ame": [24.0, 5.0, Color(0.34, 0.36, 0.39), Color(0.24, 0.25, 0.28)],
+	"oto": [12.0, 5.0, Color(0.36, 0.33, 0.38), Color(0.45, 0.3, 0.55)],
+	"tetsu": [14.0, 6.0, Color(0.6, 0.6, 0.62), Color(0.22, 0.26, 0.3)],
+}
+
+
 static func _gates(parent: Node3D, v: Dictionary) -> void:
 	var angles: Array = v.get("gates", [])
 	if angles.is_empty():
@@ -103,6 +113,16 @@ static func _gates(parent: Node3D, v: Dictionary) -> void:
 	var r = float(v["r"]) * 0.95
 	# kayalık surlu köy (Suna, Kiri): kapı kanatları sur boşluğunu kayalara kadar kapatır (eskiden boşluğun ortasında yalnız duruyordu)
 	var gap = {"suna": 9.0, "kiri": 13.0}.get(v["id"], 0.0)
+	var ring = RING_WALLS.get(v["id"])
+	if ring != null:
+		# örülü sur: kapı dikmeleri surun boşluğuna tam oturur (kanat/kule gerekmez)
+		var half = 12.0 + 3.2
+		var gdeg = rad_to_deg(half * 2.0 / r)
+		var gaps = []
+		for a in angles:
+			gaps.append([float(a), gdeg])
+		b.wall_ring(r, ring[0], ring[1], ring[2], gaps, 1.0, ring[3])
+		gap = 0.001   # kanatsız kapı
 	for a in angles:
 		b.village_gate(float(a), r, 12.0, 30.0 if v["id"] != "suna" else 40.0, st[0], st[1], String(v["id"]), gap)
 	b.finish()
