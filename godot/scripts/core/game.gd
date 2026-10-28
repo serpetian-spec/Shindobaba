@@ -88,6 +88,7 @@ func _load_world() -> void:
 		patches.append({"id": pd["id"], "x0": float(pd["x0"]), "z0": -float(pd["y1"]), "size": float(pd["size"]), "n": n,
 			"res": float(pd["res"]), "fade": float(pd["fade"]), "data": pb.to_float32_array(),
 			"tex": ImageTexture.create_from_image(Image.create_from_data(n, n, false, Image.FORMAT_RF, pb))})
+	_default_gates()
 	for rl in JSON.parse_string(FileAccess.get_file_as_string("res://data/world/roads.json")):
 		var pts := PackedVector2Array()
 		for q in rl["pts"]:
@@ -340,6 +341,63 @@ func region_name(p: Vector3) -> String:
 		if d < bd:
 			bd = d; best = c["name"]
 	return best
+
+
+## Yol bağlantısı olmayan surlu köy (Kiri adası) hiç kapısız kalıyordu: rehineler/takipçiler giremiyordu.
+## Dışı kara olan, güneye en yakın açıya bir kapı aç.
+func _default_gates() -> void:
+	for v in world_info["villages"]:
+		if not CRAG_WALLS.has(v["id"]) or not (v.get("gates", []) as Array).is_empty():
+			continue
+		var best := 180.0
+		var bd := 1e9
+		var r: float = float(v["r"])
+		for k in 36:
+			var a := 10.0 * k
+			var ok := true
+			for f in [1.12, 1.3]:
+				var q: Vector2 = Vector2(v["x"], v["y"]) + Vector2(sin(deg_to_rad(a)), cos(deg_to_rad(a))) * r * f
+				if terrain_height(q.x, -q.y) < 0.8:
+					ok = false
+			var d := absf(fmod(a - 180.0 + 540.0, 360.0) - 180.0)
+			if ok and d < bd:
+				bd = d
+				best = a
+		v["gates"] = [best]
+
+
+## Kayalık surlu köyler (Suna, Kiri): sur halkası yarıçap oranı ve yarı kalınlığı (m). Bu bantta hiçbir şey doğmaz
+const CRAG_WALLS := {"suna": [0.97, 95.0], "kiri": [0.97, 75.0]}
+
+
+## Bu nokta bir köyün kayalık surunun içinde mi (görev/olay/NPC yerleşimi için)
+func in_village_wall(x: float, z: float) -> bool:
+	var m := Vector2(x, -z)
+	for v in world_info["villages"]:
+		var cw = CRAG_WALLS.get(v["id"])
+		if cw == null:
+			continue
+		var d: float = m.distance_to(Vector2(v["x"], v["y"]))
+		if absf(d - float(v["r"]) * float(cw[0])) < float(cw[1]):
+			return true
+	return false
+
+
+## Kayalık sur bandındaki noktayı en yakın kenara (köy içi ya da dışı) taşır; bant dışındaysa aynen döner
+func out_of_wall(p: Vector3) -> Vector3:
+	var m := Vector2(p.x, -p.z)
+	for v in world_info["villages"]:
+		var cw = CRAG_WALLS.get(v["id"])
+		if cw == null:
+			continue
+		var c: Vector2 = Vector2(v["x"], v["y"])
+		var d: float = m.distance_to(c)
+		var rr: float = float(v["r"]) * float(cw[0])
+		if absf(d - rr) < float(cw[1]):
+			var nd: float = (rr - float(cw[1]) - 12.0) if d < rr else (rr + float(cw[1]) + 12.0)
+			var q: Vector2 = c + (m - c).normalized() * nd
+			return Vector3(q.x, ground_height(q.x, -q.y), -q.y)
+	return p
 
 
 func village(id: String) -> Dictionary:

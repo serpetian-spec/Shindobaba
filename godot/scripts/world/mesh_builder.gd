@@ -78,7 +78,7 @@ static func _rocky(kind: String, variant: int) -> Array:
 		for k in sides:
 			var a0: Vector3 = pts[r][k]; var a1: Vector3 = pts[r][(k + 1) % sides]
 			var b0: Vector3 = pts[r + 1][k]; var b1: Vector3 = pts[r + 1][(k + 1) % sides]
-			for v in [a0, b0, a1, a1, b0, b1]:
+			for v in [a0, a1, b0, a1, b1, b0]:  # Godot'da ön yüz saat yönü: eskiden ters sarılıydı, kayalar içten görünüp "şeffaf" duruyordu
 				st.add_vertex(v)
 	# tepe kapağı
 	var top: Array = pts[rings]
@@ -88,7 +88,7 @@ static func _rocky(kind: String, variant: int) -> Array:
 	tc /= sides
 	tc.y += 0.03 if kind == "crag" else 0.0
 	for k in sides:
-		st.add_vertex(tc); st.add_vertex(top[(k + 1) % sides]); st.add_vertex(top[k])
+		st.add_vertex(tc); st.add_vertex(top[k]); st.add_vertex(top[(k + 1) % sides])
 	st.generate_normals()
 	var arr := st.commit_to_arrays()
 	if arr[Mesh.ARRAY_INDEX] == null:

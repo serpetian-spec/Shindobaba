@@ -64,7 +64,7 @@ func _spot(vid: String, dmin: float, dmax: float) -> Array:
 		var q = c + Vector2(cos(a), sin(a)) * (r + randf_range(dmin, dmax))
 		if q.x < wr.x + 50 or q.x > wr.x + wr.z - 50 or -q.y < wr.y + 50 or -q.y > wr.y + wr.w - 50:
 			continue
-		if Game.terrain_height(q.x, -q.y) < 0.8:
+		if Game.terrain_height(q.x, -q.y) < 0.8 or Game.in_village_wall(q.x, -q.y):
 			continue
 		var bad = false
 		for o in Game.world_info["villages"]:
@@ -80,9 +80,13 @@ func _inside(vid: String, frac_min := 0.25, frac_max := 0.7) -> Array:
 	var v = Game.village(vid)
 	var c = Vector2(float(v["x"]), float(v["y"]))
 	var r = float(v.get("r", 200))
-	var a = randf() * TAU
-	var d = r * randf_range(frac_min, frac_max)
-	return [c.x + cos(a) * d, c.y + sin(a) * d]
+	for i in 20:
+		var a = randf() * TAU
+		var d = r * randf_range(frac_min, frac_max)
+		var q = [c.x + cos(a) * d, c.y + sin(a) * d]
+		if not Game.in_village_wall(q[0], -q[1]):
+			return q
+	return [c.x + r * frac_min, c.y]
 
 
 ## Dünyada adı belli türden bir yer (hamlet, camp, inn, ruin ...) — yoksa null
@@ -110,7 +114,7 @@ func _near_spot(p: Array, dmin: float, dmax: float) -> Array:
 		var a = randf() * TAU
 		var d = randf_range(dmin, dmax)
 		var q = [p[0] + cos(a) * d, p[1] + sin(a) * d]
-		if Game.terrain_height(q[0], -q[1]) > 0.5:
+		if Game.terrain_height(q[0], -q[1]) > 0.5 and not Game.in_village_wall(q[0], -q[1]):
 			return q
 	return [p[0] + dmin, p[1]]
 
@@ -930,14 +934,15 @@ static func _make_og_q() -> PhysicsShapeQueryParameters3D:
 
 
 static func open_ground(p: Vector3, max_r := 60.0) -> Vector3:
+	p = Game.out_of_wall(p)
 	var space = Game.world.get_world_3d().direct_space_state if Game.world and Game.world.is_inside_tree() else null
 	var r = 0.0
 	var a = 0.0
 	while r <= max_r:
 		var q = p + Vector3(cos(a) * r, 0, sin(a) * r)
 		var gh = Game.ground_height(q.x, q.z)
-		var ok = true
-		if space:
+		var ok = not Game.in_village_wall(q.x, q.z)  # Suna/Kiri kayalık suru: içine/üstüne görev noktası düşmesin
+		if ok and space:
 			# yukarıdan aşağı ışın: zeminden yüksek bir şeye çarparsa (bina, çatı, duvar) burası dolu
 			var hit = space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(q.x, gh + 60.0, q.z), Vector3(q.x, gh - 1.0, q.z), 1))
 			# yüksek tavan/saçak altı (mağara, çardak) olabilir; alçak bir şey (kaya, duvar, çatı) varsa dolu
@@ -1681,9 +1686,18 @@ func _tick_track(s: Dictionary) -> void:
 		st["shown"] = i + 1
 	if idx < prints.size():
 		target_marker = prints[idx]
-		if pl.global_position.distance_to(prints[idx]) < 6.0:
-			st["idx"] = idx + 1
-		Hud.objective_progress("İz: %d/%d" % [idx, prints.size()])
+		# yatay mesafe, birkaç iz ilerisine atlayabilir (kaya/duvar yüzünden tam üstünden geçilemeyen iz takılmasın);
+		# izin sonuna yaklaşan oyuncu doğrudan tamamlar
+		var pp = Vector2(pl.global_position.x, pl.global_position.z)
+		for k in range(mini(idx + 10, prints.size()) - 1, idx - 1, -1):
+			var q: Vector3 = prints[k]
+			if pp.distance_to(Vector2(q.x, q.z)) < 9.0:
+				st["idx"] = k + 1
+				break
+		var last: Vector3 = prints[prints.size() - 1]
+		if pp.distance_to(Vector2(last.x, last.z)) < 25.0:
+			st["idx"] = prints.size()
+		Hud.objective_progress("İz: %d/%d" % [int(st["idx"]), prints.size()])
 	else:
 		_next_step()
 

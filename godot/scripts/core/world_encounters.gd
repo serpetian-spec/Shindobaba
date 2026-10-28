@@ -121,6 +121,7 @@ func _lv() -> int:
 
 func _npc(name: String, at: Vector3, look := {}, mode := "idle") -> EncounterNPC:
 	var n := EncounterNPC.new()
+	at = Missions.open_ground(at, 20.0)   # kayaya/duvara gömülmesin (tüccar kayboluyordu)
 	n.display = name
 	n.mode = mode
 	if not look.is_empty():
@@ -147,7 +148,7 @@ func _enemy(kind: String, at: Vector3, i := 0, mods := {}) -> Enemy:
 	var e := Enemy.new()
 	e.setup(a)
 	get_tree().current_scene.add_child(e)
-	at.y = Game.ground_height(at.x, at.z)
+	at = Missions.open_ground(at, 20.0)
 	e.global_position = at
 	e.home = at
 	cur["nodes"].append(e)
@@ -680,15 +681,14 @@ func _tick(dt: float) -> void:
 	var p := Game.player.global_position
 	var c: Vector3 = cur["center"]
 	# hızlı koşarken/uçarken hemen kaybolmasın: 900 m dışında 40 sn kalınca biter, olay yeri haritada/okta gösterilir
-	var far := Vector2(p.x - c.x, p.z - c.z).length() > 900.0
+	var dist := Vector2(p.x - c.x, p.z - c.z).length()
+	var far := dist > 700.0
 	cur["far_t"] = (float(cur.get("far_t", 0.0)) + dt) if far else 0.0
-	if float(cur["far_t"]) > 40.0 and cur["kind"] != "lost_child":
+	# uzaklaşınca olay biter (kayıp çocuk yanındaysa merkez onunla gider); 2 km'yi geçince hemen biter
+	if (float(cur["far_t"]) > 25.0 and cur["kind"] != "lost_child") or dist > 2000.0:
 		_abort()
 		return
-	if not Missions.active().size() and not Game.profile.has("waypoint"):
-		Game.profile["waypoint"] = [c.x, c.y, c.z, "Olay: %s" % String(cur.get("kind", "yol")).replace("_", " ").capitalize()]
-		Game.profile["track"] = "waypoint"
-		cur["wp"] = true
+	# olaylar pusulayı/oku ELE GEÇİRMEZ: oyuncu neyi takip edeceğini kendisi seçer (yalnız haritada işaret)
 	if float(cur["t"]) > 600.0:
 		finish(5.0)
 		return
@@ -705,6 +705,18 @@ func _tick(dt: float) -> void:
 			_tick_storm(dt, p)
 	if cur.is_empty():
 		return
+	# tüccar: haydutlar bitti ama tüccar bulunamıyor (kaçtı/ezildi) → ödül yine verilir, olay biter
+	if cur.get("kind", "") == "merchant" and cur.has("foes") and _alive(cur["foes"]).is_empty():
+		var mn = cur.get("npc")
+		if mn == null or not is_instance_valid(mn):
+			_reward(120 + _lv() * 12, 30 + _lv() * 6, "Haydutları temizledin; tüccar kaçarken kesesini bıraktı")
+			finish()
+			return
+		if not cur.get("merchant_called", false):
+			cur["merchant_called"] = true
+			mn.mode = "idle"
+			_marker(mn.global_position, "Konuş", Color(0.6, 1, 0.6))
+			Hud.msg("Tüccar güvende: yanına gidip konuş [F].", Color(0.6, 1, 0.6))
 	if cur.has("foes") and cur.get("after", "") == "loot" and not cur.get("escaped", false):
 		var al := _alive(cur["foes"])
 		if al.size() == 1 and al[0].hp < al[0].max_hp * 0.3 and al[0].hp > 0.0 and al[0].arch.get("kind", "") == "rogue" and randf() < 0.5:
