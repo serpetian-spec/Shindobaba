@@ -101,8 +101,10 @@ static func _gates(parent: Node3D, v: Dictionary) -> void:
 	b.view_dist = 5000.0
 	var st: Array = GATE_STYLE.get(v["id"], [Color(0.45, 0.3, 0.2), Color(0.62, 0.2, 0.18)])
 	var r = float(v["r"]) * 0.95
+	# kayalık surlu köy (Suna, Kiri): kapı kanatları sur boşluğunu kayalara kadar kapatır (eskiden boşluğun ortasında yalnız duruyordu)
+	var gap = {"suna": 9.0, "kiri": 13.0}.get(v["id"], 0.0)
 	for a in angles:
-		b.village_gate(float(a), r, 12.0, 30.0 if v["id"] != "suna" else 40.0, st[0], st[1], String(v["id"]))
+		b.village_gate(float(a), r, 12.0, 30.0 if v["id"] != "suna" else 40.0, st[0], st[1], String(v["id"]), gap)
 	b.finish()
 
 

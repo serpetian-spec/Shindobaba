@@ -431,11 +431,23 @@ func village_gate(ang: float, r: float, half_open: float, height: float, post_co
 		var pp = c + t * (half_open + 1.6) * sx
 		box(Vector3(pp.x, (y0 + top) * 0.5, pp.y), Vector3(3.2, top - y0, 3.2), post_col, ang)
 		box(Vector3(pp.x, g.x + 0.8, pp.y), Vector3(4.4, 1.6, 4.4), Color(0.55, 0.52, 0.48), ang)
-		var wing = (gap_deg / 360.0 * TAU * r * 0.5) - (half_open + 3.2) if gap_deg > 0.0 else 7.0
+		var wing = (gap_deg / 360.0 * TAU * r * 0.5) - (half_open + 3.2) if gap_deg > 0.0 else 22.0
 		if wing > 0.5:
 			var wc = c + t * (half_open + 3.2 + wing * 0.5) * sx
-			var wh = height * 0.62 if gap_deg <= 0.0 else 22.0
-			box(Vector3(wc.x, (y0 + g.y + wh) * 0.5, wc.y), Vector3(wing + 0.6, g.y + wh - y0, 3.0), Color(0.82, 0.74, 0.58) if gap_deg > 0.0 else post_col.lightened(0.25), ang)
+			var wh = height * 0.62 if gap_deg <= 0.0 else maxf(22.0, height * 0.85)
+			var wcol = post_col.lightened(0.12) if gap_deg > 0.0 else post_col.lightened(0.25)
+			var wg = _ground_off(wc.x, wc.y, wing * 0.5)
+			var wy0 = minf(y0, wg.x - 1.0)
+			box(Vector3(wc.x, (wy0 + g.y + wh) * 0.5, wc.y), Vector3(wing + 0.6, g.y + wh - wy0, 8.0 if gap_deg > 0.0 else 3.0), wcol, ang)
+			box(Vector3(wc.x, g.y + wh + 0.5, wc.y), Vector3(wing + 1.2, 1.0, 9.0 if gap_deg > 0.0 else 3.8), roof_col, ang, false)  # mazgal başlığı
+			if gap_deg <= 0.0:
+				# sursuz köy: kanat ucu kare gözetleme kulesiyle biter (kapı boşlukta asılı durmasın, kapı binası gibi okunsun)
+				var tp = c + t * (half_open + 3.2 + wing + 2.5) * sx
+				var tg = _ground_off(tp.x, tp.y, 3.0)
+				var th = height * 0.85
+				box(Vector3(tp.x, (tg.x - 1.0 + tg.y + th) * 0.5, tp.y), Vector3(6.0, tg.y + th - tg.x + 1.0, 6.0), post_col, ang)
+				box(Vector3(tp.x, tg.y + th + 0.8, tp.y), Vector3(8.0, 1.0, 8.0), roof_col, ang, false)
+				box(Vector3(tp.x, tg.y + th + 1.8, tp.y), Vector3(6.4, 1.0, 6.4), roof_col.darkened(0.15), ang, false)
 		var lo = c + t * (half_open + 1.6) * sx + Vector2(sin(a), cos(a)) * 3.0
 		lantern(lo.x, lo.y, 3.2)
 	box(Vector3(c.x, top + 1.0, c.y), Vector3(half_open * 2.0 + 7.0, 2.0, 3.4), post_col.darkened(0.2), ang)
