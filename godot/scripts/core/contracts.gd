@@ -197,6 +197,9 @@ static func summon(c: Node3D, jd: Dictionary) -> void:
 			Hud.msg("Hiçbir hayvanla sözleşmen yok. Gizli bilgelerin yerlerini bul ya da köy sözleşme ustalarına danış.", Color(1, 0.7, 0.5))
 			return
 		tier = best_tier(id, c.chakra + float(jd.get("cost", 0)), giant)
+		var pref = int(p()["contracts"].get(id, {}).get("tier_pref", -1))   # Tab > Kuchiyose: tercih edilen kademe
+		if pref >= 0 and DEFS[id]["tiers"].has(pref) and not giant:
+			tier = mini(tier, pref)
 		if giant and DEFS[id]["tiers"].has(2) and int(p()["level"]) >= TIER_LEVEL[2]:
 			tier = 2
 		var extra = maxf(0.0, TIER_COST[tier] - float(jd.get("cost", 0)))

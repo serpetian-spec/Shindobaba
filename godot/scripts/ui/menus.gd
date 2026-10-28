@@ -122,6 +122,109 @@ static func _tile(content: Control, text: String, accent: Color, selected: bool,
 
 
 ## Gözler sekmesi: sağ göz / sol göz durumu, uyanış, kavanozdaki gözler, Susanoo; tuşlar
+## Taşınan kuyruklu canavarlar (biri aktif) + mühür kabındakiler (içine aktarılabilir)
+static func _tab_beasts(main: Node, body: Control) -> void:
+	var sc = ScrollContainer.new()
+	sc.set_anchors_preset(Control.PRESET_FULL_RECT)
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	body.add_child(sc)
+	var v = UI.vbox(14)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sc.add_child(v)
+	var held: Array = TailedBeasts.held()
+	var jar: Array = TailedBeasts.jarred()
+	if held.is_empty() and jar.is_empty():
+		v.add_child(UI.label("Hiç kuyruklu canavarın yok. Bir canavarı yenip [F] ile mühürle: içine (Jinchūriki) ya da mühür kabına.", 17, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
+		return
+	var act = TailedBeasts.player_jinchuriki()
+	v.add_child(UI.label("İÇİNDEKİLER  (aktif olan: X pelerin / dönüşüm / zihin dünyası)", 18, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
+	for id in held:
+		v.add_child(_beast_row(main, id, "held", id == act))
+	if not jar.is_empty():
+		v.add_child(HSeparator.new())
+		v.add_child(UI.label("MÜHÜR KABINDAKİLER", 18, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
+		for id in jar:
+			v.add_child(_beast_row(main, id, "jar", false))
+
+
+static func _beast_row(main: Node, id: String, where: String, active: bool) -> Control:
+	var inf: Dictionary = BeastModels.INFO.get(id, {})
+	var col: Color = inf.get("chakra", UI.GOLD)
+	var card = UI.card(col if active else Color(0, 0, 0, 0))
+	var h = UI.hbox(16)
+	card.add_child(h)
+	var tv = UI.vbox(4)
+	tv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	h.add_child(tv)
+	tv.add_child(UI.label(String(inf.get("name", id)) + ("   — AKTİF" if active else ""), 20, col, HORIZONTAL_ALIGNMENT_LEFT, true))
+	var tr = TailedBeasts.trust(id)
+	tv.add_child(UI.label(("Güven %d / 100" % int(tr)) if where == "held" else "Mühür kabında uyuyor. İçine aktarırsan chakrasını kullanabilirsin (güven sıfırdan başlar).", 14, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
+	if where == "held" and not active:
+		h.add_child(UI.button("Aktif yap", func():
+			TailedBeasts.set_active(id)
+			ninja_menu(main, "beasts"), 200, "check"))
+	elif where == "jar":
+		h.add_child(UI.button("İçime aktar", func():
+			TailedBeasts.transfer_from_jar(id)
+			ninja_menu(main, "beasts"), 200, "seal"))
+	return card
+
+
+## İmzalı sözleşmeler: aktif sözleşme ve çağrılacak kademe seçimi
+static func _tab_summons(main: Node, body: Control) -> void:
+	Contracts.ensure()
+	var pr = Game.profile
+	var sc = ScrollContainer.new()
+	sc.set_anchors_preset(Control.PRESET_FULL_RECT)
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	body.add_child(sc)
+	var v = UI.vbox(14)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sc.add_child(v)
+	var cs: Dictionary = pr.get("contracts", {})
+	if cs.is_empty():
+		v.add_child(UI.label("Hiçbir hayvanla sözleşmen yok. Gizli bilgelerin diyarlarını bul ya da köy sözleşme ustalarına danış.", 17, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
+		return
+	var act = Contracts.active()
+	for id in cs:
+		if not Contracts.DEFS.has(id):
+			continue
+		var d: Dictionary = Contracts.DEFS[id]
+		var card = UI.card(d["color"] if id == act else Color(0, 0, 0, 0))
+		v.add_child(card)
+		var cv = UI.vbox(8)
+		card.add_child(cv)
+		var top = UI.hbox(16)
+		cv.add_child(top)
+		var t = UI.label("%s%s" % [d["name"], "   — AKTİF" if id == act else ""], 20, d["color"], HORIZONTAL_ALIGNMENT_LEFT, true)
+		t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		top.add_child(t)
+		top.add_child(UI.label("Ustalık %d" % int(Contracts.mastery(id)), 15, UI.MUTED))
+		if id != act:
+			top.add_child(UI.button("Aktif yap", func():
+				pr["summon"] = id
+				Game.save_game()
+				ninja_menu(main, "summons"), 180, "check"))
+		var pref = int(cs[id].get("tier_pref", -1))
+		var row = UI.hbox(10)
+		cv.add_child(row)
+		row.add_child(UI.button(("● " if pref < 0 else "") + "Otomatik (en büyüğü)", func():
+			cs[id]["tier_pref"] = -1
+			ninja_menu(main, "summons"), 220))
+		var tiers: Dictionary = d["tiers"]
+		for tk in [0, 1, 2]:
+			if not tiers.has(tk):
+				continue
+			var td: Dictionary = tiers[tk]
+			var ok = int(pr["level"]) >= Contracts.TIER_LEVEL[tk] and Contracts.mastery(id) >= Contracts.TIER_MASTERY[tk]
+			var lbl = ("● " if pref == tk else "") + String(td["name"]) + ("" if ok else "  (Sv.%d, ustalık %d)" % [Contracts.TIER_LEVEL[tk], int(Contracts.TIER_MASTERY[tk])])
+			var b = UI.button(lbl, func():
+				cs[id]["tier_pref"] = tk
+				ninja_menu(main, "summons"), 260)
+			b.disabled = not ok
+			row.add_child(b)
+
+
 static func _tab_eyes(main: Node, body: Control) -> void:
 	var pr = Game.profile
 	var h = UI.hbox(22)
@@ -148,7 +251,7 @@ static func _tab_eyes(main: Node, body: Control) -> void:
 	var sv = UI.vbox(10)
 	side.add_child(sv)
 	sv.add_child(UI.label("TUŞLAR", 18, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
-	for k in [["V", "Gözleri aç / kapat"], ["Z", "Sağ göz tekniği"], ["X", "Sol göz tekniği"], ["V (basılı)", "Susanoo (iki göz Mangekyō)"], ["F", "Düşmüş dōjutsu sahibinin gözlerini al"]]:
+	for k in [["V", "Gözleri aç / kapat"], ["K", "Göz tekniklerini jutsu yuvalarına koy (göz açıkken çalışır)"], ["V (basılı)", "Susanoo (iki göz Mangekyō)"], ["F", "Düşmüş dōjutsu sahibinin gözlerini al"]]:
 		var r = UI.hbox(8)
 		r.add_child(UI.key_badge(k[0], 13))
 		r.add_child(UI.label(k[1], 14, UI.TEXT))
@@ -192,7 +295,7 @@ static func _eye_panel(main: Node, dv: VBoxContainer, pr: Dictionary) -> void:
 		var sk = Eyes.SKILLS.get(k, [])
 		if not sk.is_empty():
 			var si = sk[0 if _eq_slot == "sag_goz" else 1]
-			dv.add_child(UI.label("Göz tekniği (%s): %s" % ["Z" if _eq_slot == "sag_goz" else "X", si[0]], 15, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
+			dv.add_child(UI.label("Göz tekniği: %s  (Jutsular sekmesinden yuvaya koy)" % si[0], 15, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
 		if k in [4, 5]:
 			_ms_editor(main, dv, Eyes.design_for(pr, _eq_slot))
 		# gözü çıkar: kavanoza konur, yerine normal göz kalır (geri takmak için aşağıdaki listeden)
@@ -653,8 +756,8 @@ static func settings(back: Callable) -> void:
 
 # ================================================================== ninja menüsü [Tab]
 const TABS := [["inv", "bag", "Envanter"], ["wardrobe", "armor", "Ekipman"], ["eyes", "eye", "Gözler"], ["jutsu", "scroll", "Jutsular"], ["skills", "star", "Yetenekler"],
-	["missions", "mission", "Görevler"], ["paths", "book", "Yollar"], ["map", "map", "Harita"]]
-const TAB_TITLES := {"inv": "ENVANTER", "wardrobe": "EKİPMAN", "jutsu": "JUTSULAR", "skills": "YETENEK AĞACI", "missions": "GÖREVLER", "eyes": "GÖZLER (DŌJUTSU)", "paths": "EFSANE YOLLARI"}
+	["beasts", "flame", "Canavarlar"], ["summons", "seal", "Kuchiyose"], ["missions", "mission", "Görevler"], ["paths", "book", "Yollar"], ["map", "map", "Harita"]]
+const TAB_TITLES := {"beasts": "KUYRUKLU CANAVARLAR", "summons": "KUCHİYOSE SÖZLEŞMELERİ", "inv": "ENVANTER", "wardrobe": "EKİPMAN", "jutsu": "JUTSULAR", "skills": "YETENEK AĞACI", "missions": "GÖREVLER", "eyes": "GÖZLER (DŌJUTSU)", "paths": "EFSANE YOLLARI"}
 const SWATCHES := [Color(0.15, 0.2, 0.33), Color(0.12, 0.12, 0.14), Color(0.45, 0.15, 0.15), Color(0.95, 0.5, 0.12), Color(0.2, 0.38, 0.22),
 	Color(0.35, 0.25, 0.45), Color(0.85, 0.82, 0.75), Color(0.15, 0.4, 0.45), Color(0.55, 0.42, 0.3), Color(0.75, 0.2, 0.25)]
 
@@ -695,14 +798,14 @@ static func ninja_menu(main: Node, tab := "inv", picked := "") -> void:
 	rail_bg.set_anchors_preset(Control.PRESET_LEFT_WIDE)
 	rail_bg.offset_right = 112
 	bg.add_child(rail_bg)
-	var rail = UI.vbox(10)
-	rail.position = Vector2(14, 104)
+	var rail = UI.vbox(2)
+	rail.position = Vector2(20, 92)
 	rail_bg.add_child(rail)
 	var emb = Icons.view("leaf", 44, UI.GOLD)
 	emb.position = Vector2(34, 30)
 	rail_bg.add_child(emb)
 	for t in TABS:
-		rail.add_child(UI.icon_button(t[1], t[2], func(): ninja_menu(main, t[0]), 84, t[0] == tab))
+		rail.add_child(UI.icon_button(t[1], t[2], func(): ninja_menu(main, t[0]), 72, t[0] == tab))
 	# üst çubuk: başlık + oyuncu bilgisi
 	var title = UI.label(TAB_TITLES.get(tab, ""), 34, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)
 	title.position = Vector2(150, 30)
@@ -736,6 +839,10 @@ static func ninja_menu(main: Node, tab := "inv", picked := "") -> void:
 			_tab_eyes(main, body)
 		"paths":
 			PathsTab.build(main, body)
+		"beasts":
+			_tab_beasts(main, body)
+		"summons":
+			_tab_summons(main, body)
 	if not keep.is_empty():
 		_restore_scroll.call_deferred(keep)
 		Engine.get_main_loop().process_frame.connect(_restore_scroll.bind(keep), CONNECT_ONE_SHOT)

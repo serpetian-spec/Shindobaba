@@ -197,6 +197,57 @@ func player_jinchuriki() -> String:
 	return String(Game.profile.get("jinchuriki", ""))
 
 
+## Oyuncunun içinde taşıdığı tüm canavarlar (biri aktif: pelerin/dönüşüm onunla)
+func held() -> Array:
+	var pr = Game.profile
+	if pr.is_empty():
+		return []
+	if not pr.has("beasts_held"):
+		pr["beasts_held"] = []
+	var a = String(pr.get("jinchuriki", ""))
+	if a != "" and not a in pr["beasts_held"]:
+		pr["beasts_held"].append(a)
+	return pr["beasts_held"]
+
+
+## Mühür kabında/parşömeninde tutulan canavarlar
+func jarred() -> Array:
+	var out = []
+	for id in beasts():
+		if String(beasts()[id].get("state", "")) == "sealed_jar":
+			out.append(id)
+	return out
+
+
+## Taşınan canavarlardan birini aktif yap (pelerin/dönüşüm/canavar topu artık onun)
+func set_active(id: String) -> void:
+	if not id in held() or id == player_jinchuriki():
+		return
+	if Game.player and Game.player.combat and Game.player.combat.modes and Game.player.combat.modes.cloak:
+		Game.player.combat.modes.cloak.deactivate()
+	Game.profile["jinchuriki"] = id
+	Hud.msg("Aktif canavar: %s" % _bname(id), BeastModels.INFO[id]["chakra"])
+	jinchuriki_changed.emit(id)
+	Game.save_game()
+
+
+## Mühür kabındaki canavarı kendi içine aktar
+func transfer_from_jar(id: String) -> void:
+	if beast_state(id) != "sealed_jar":
+		return
+	var tr = float(beasts()[id].get("trust", 0.0))
+	beasts()[id] = {"state": "sealed_player", "trust": tr}
+	held().append(id)
+	if player_jinchuriki() == "":
+		Game.profile["jinchuriki"] = id
+	if not "jinchuriki" in Game.profile["skills"]:
+		Game.profile["skills"].append("jinchuriki")
+	Sfx.play("seal", null, 0.6)
+	Hud.banner("AKTARILDI", "%s mühür kabından senin içine geçti. (Tab > Kuyruklu Canavarlar: aktif olanı seç)" % _bname(id), BeastModels.INFO[id]["chakra"])
+	jinchuriki_changed.emit(player_jinchuriki())
+	Game.save_game()
+
+
 func trust(id := "") -> float:
 	if id == "":
 		id = player_jinchuriki()
@@ -217,14 +268,14 @@ func add_trust(amount: float, id := "") -> void:
 
 func make_jinchuriki(id: String) -> void:
 	var pr = Game.profile
-	var old = String(pr.get("jinchuriki", ""))
-	if old != "" and beasts().has(old):
-		beasts()[old]["state"] = "free"
+	# birden çok canavar taşınabilir: eskisi serbest kalmaz, yeni gelen aktif olur
+	if not id in held():
+		held().append(id)
 	pr["jinchuriki"] = id
 	beasts()[id] = {"state": "sealed_player", "trust": float(beasts().get(id, {}).get("trust", 0.0))}
 	if not "jinchuriki" in pr["skills"]:
 		pr["skills"].append("jinchuriki")
-	Hud.banner("JİNCHŪRİKİ", "%s artık içinde mühürlü. [X] chakra pelerini • [X] basılı: zihin dünyası" % BeastModels.INFO[id]["name"].split(" — ")[0], BeastModels.INFO[id]["chakra"])
+	Hud.banner("JİNCHŪRİKİ", "%s artık içinde mühürlü. [X] chakra pelerini • [X] basılı: zihin dünyası%s" % [BeastModels.INFO[id]["name"].split(" — ")[0], "  •  Tab > Kuyruklu Canavarlar: aktif olanı seç" if held().size() > 1 else ""], BeastModels.INFO[id]["chakra"])
 	jinchuriki_changed.emit(id)
 	Game.save_game()
 
@@ -235,13 +286,15 @@ func extract_from_player() -> String:
 	if id == "":
 		return ""
 	beasts()[id]["state"] = "captured_org"
-	Game.profile["jinchuriki"] = ""
-	Game.profile["skills"].erase("jinchuriki")
+	held().erase(id)
+	Game.profile["jinchuriki"] = held()[0] if not held().is_empty() else ""
+	if held().is_empty():
+		Game.profile["skills"].erase("jinchuriki")
 	if Game.player and Game.player.combat and Game.player.combat.modes:
 		var m = Game.player.combat.modes
 		if m.cloak:
 			m.cloak.deactivate()
-	jinchuriki_changed.emit("")
+	jinchuriki_changed.emit(String(Game.profile["jinchuriki"]))
 	return id
 
 
@@ -359,11 +412,11 @@ func _seal_dialog(b) -> void:
 		return
 	var nm = String(b.display_name).split(" — ")[0]
 	var opts = []
-	if player_jinchuriki() in ["", "raiju"]:
+	if true:
 		opts.append({"label": "İçime mühürle — Jinchūriki ol", "tip": "Canavar seninle yaşar: chakra pelerini, dönüşüm, Kuyruklu Canavar Topu. Güven düşükse kontrolü kaybedebilirsin.", "cb": func():
 			pl.chakra -= cost
 			_finish_seal(b, "player")})
-	opts.append({"label": "Mühür parşömenine hapset", "tip": "Büyük ödül, canavar dünyadan çekilir.", "cb": func():
+	opts.append({"label": "Mühür kabına hapset", "tip": "Büyük ödül; canavar kabda saklanır, dilediğinde Tab > Kuyruklu Canavarlar'dan içine aktarabilirsin.", "cb": func():
 		pl.chakra -= cost
 		_finish_seal(b, "jar")})
 	opts.append({"label": "Serbest bırak", "tip": "Canavar sana saygı duyar; ileride bağ kurmak kolaylaşır.", "cb": func(): _finish_seal(b, "free")})
@@ -389,7 +442,7 @@ func _finish_seal(b, how: String) -> void:
 			if lg != "":
 				Gear.grant(pr, lg)
 				Hud.msg("Efsanevi ödül: %s" % Gear.item(lg).get("name", lg), Color(1, 0.8, 0.3))
-			Hud.banner("MÜHÜRLENDİ", "%s mühür parşömenine hapsedildi." % BeastModels.INFO[id]["name"], Color(1, 0.8, 0.4))
+			Hud.banner("MÜHÜRLENDİ", "%s mühür kabına hapsedildi. İstersen sonra kendi içine aktarabilirsin: Tab > Kuyruklu Canavarlar" % BeastModels.INFO[id]["name"], Color(1, 0.8, 0.4))
 		"free":
 			beasts()[id]["state"] = "free"
 			beasts()[id]["trust"] = 30.0
