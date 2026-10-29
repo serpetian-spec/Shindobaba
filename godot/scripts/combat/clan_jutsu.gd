@@ -93,6 +93,12 @@ func tg(c: Node3D, t: Node3D, rng: float) -> Node3D:
 
 
 func fwd(c: Node3D, t: Node3D) -> Vector3:
+	# hedef verilmişse (kilit ya da nişangâhtaki düşman) ona dön; yoksa nişangâh yönü
+	if t and is_instance_valid(t) and t != c:
+		var d = t.global_position - c.global_position
+		d.y = 0.0
+		if d.length() > 0.2:
+			return d.normalized()
 	return Jutsu._aim_flat(c, t)
 
 

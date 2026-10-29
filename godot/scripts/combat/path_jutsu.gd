@@ -26,6 +26,7 @@ const PSTYLE := {
 	"kami_bunshin": "clone", "kami_chocho": "palm", "kami_tsubasa": "power", "shikigami_no_mai": "spin", "kami_yari": "ground",
 	"kami_no_shisha_no_jutsu": "summon", "kami_shuriken": "throw",
 	# Akademi / genel
+	"doton_renga_no_jutsu": "ground", "doton_sazareishi": "palm", "doton_shinju_zanshu_no_jutsu": "ground", "kasumi_jusha_no_jutsu": "sense", "oboro_bunshin_no_jutsu": "clone", "doton_tobi_tsubute": "ground", "doton_dosekiryu": "ground", "doton_retsudo_tensho": "ground", "futon_reppusho": "palm", "futon_kazekiri_no_jutsu": "palm", "katon_endan": "breath",
 	"kage_shuriken_no_jutsu": "throw", "kage_senbon": "throw", "konoha_senpu": "rush", "konoha_reppu": "rush", "dainamikku_entori": "rush",
 	"zankuha": "two_palm", "sennen_goroshi": "rush", "kanashibari_no_jutsu": "sense",
 	# Kurbağa Bilgesi Yolu
@@ -2704,3 +2705,213 @@ func p_kanashibari_no_jutsu(c: Node3D, t: Node3D) -> void:
 	st(tt, "stun", 2.5)
 	Combat.popup_text(tt.global_position + Vector3.UP * 2.3, "Felç!", col)
 	Sfx.play("genjutsu", tt.global_position, 1.2)
+
+
+## PSTYLE: doton_renga_no_jutsu=ground doton_sazareishi=palm doton_shinju_zanshu_no_jutsu=ground kasumi_jusha_no_jutsu=sense oboro_bunshin_no_jutsu=clone doton_tobi_tsubute=ground doton_dosekiryu=ground doton_retsudo_tensho=ground futon_reppusho=palm futon_kazekiri_no_jutsu=palm katon_endan=breath
+# ------------------------------------------------------------------ Grup 2: düşük seviye toprak / rüzgâr / ateş / klon
+const EARTH := Color(0.55, 0.42, 0.3)
+
+
+func _rock(s: float, col := EARTH) -> MeshInstance3D:
+	var b = MB.new()
+	b.add("boulder", Vector3.ZERO, Vector3(s, s * 0.8, s), col, Vector3(randf() * 360, randf() * 360, 0), 3)
+	return mesh_of(b)
+
+
+## Toprak Tuğla: yerden sökülen sert tuğla blokları sırayla hedefe fırlar
+func p_doton_renga_no_jutsu(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.7)
+	anim(c, "crouch", 1.5)
+	var tt = tg(c, t, 24.0)
+	for k in 4:
+		after(0.15 + k * 0.12, func():
+			if not live(c):
+				return
+			var from = c.global_position + c.face_dir() * 0.8 + c.face_dir().cross(Vector3.UP) * (k - 1.5) * 0.5 + Vector3.UP * 0.6
+			VFX.debris(gp(from), EARTH, 10, 6.0)
+			shake(0.25)
+			var b = MB.new()
+			b.add("box", Vector3.ZERO, Vector3(0.8, 0.45, 0.55), Color(0.7, 0.4, 0.3))
+			b.add("box", Vector3(0, 0.23, 0), Vector3(0.82, 0.03, 0.57), Color(0.85, 0.8, 0.7))
+			var pr = shot(c, from, aim_at(c, tt, from), 26.0, mesh_of(b), inf(c, "doton_renga_no_jutsu", 0.4, {"knock": 6.0, "kind": "heavy", "element": "doton"}), null, false, 1.4)
+			pr.spin = Vector3(6, 0, 3))
+	Sfx.play("earth", c.global_position, 1.4)
+
+
+## Toprak Çakıl: avuçtan yelpaze halinde küçük taş saçması
+func p_doton_sazareishi(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.45)
+	anim(c, "push", 1.6)
+	var tt = tg(c, t, 18.0)
+	var from = hand_pos(c, true)
+	var dir = aim_at(c, tt, from)
+	for k in 14:
+		var d = dir.rotated(Vector3.UP, randf_range(-0.3, 0.3)) + Vector3.UP * randf_range(-0.06, 0.08)
+		shot(c, from, d.normalized(), randf_range(30.0, 40.0), _rock(0.09), inf(c, "doton_sazareishi", 0.08, {"knock": 1.0, "kind": "light", "element": "doton"}), null, false, 0.7)
+	VFX.debris(from, EARTH, 8, 6.0)
+	Sfx.play("earth", from, 1.8, 0.6)
+
+
+## Çift İntihar Başkesme: yere dalar, hedefin altından çıkar ve onu boynuna kadar toprağa çeker
+func p_doton_shinju_zanshu_no_jutsu(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 16.0)
+	if tt == null:
+		return
+	busy(c, 1.0)
+	VFX.debris(c.global_position, EARTH, 14, 5.0)
+	c.visible = false
+	after(0.45, func():
+		if not live(c):
+			return
+		c.visible = true
+		if not live(tt):
+			return
+		var at = tt.global_position
+		c.global_position = gp(at + (c.global_position - at).normalized() * 1.2)
+		VFX.debris(at, EARTH, 18, 7.0)
+		FX.ring(at + Vector3.UP * 0.05, EARTH, 2.0, 0.4)
+		st(tt, "bind", 3.0)
+		tt.take_hit(inf(c, "doton_shinju_zanshu_no_jutsu", 0.5, {"knock": 0.0, "kind": "heavy", "element": "doton"}))
+		# hedef boynuna kadar gömülür
+		var body = tt.get("model") if tt.get("model") else tt
+		var y0 = body.position.y
+		var tw = body.create_tween()
+		tw.tween_property(body, "position:y", y0 - tt.height * 0.75, 0.25)
+		tw.tween_interval(2.6)
+		tw.tween_property(body, "position:y", y0, 0.3)
+		Combat.popup_text(at + Vector3.UP * 1.2, "Toprağa gömüldü!", EARTH.lightened(0.3))
+		Sfx.play("earth", at, 1.0))
+
+
+## Sis Hizmetkârı: sisin içinden hayalet askerler çıkar — vurdukları gerçek değil ama düşmanı oyalar ve korkutur
+func p_kasumi_jusha_no_jutsu(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.6)
+	anim(c, "cast", 1.2)
+	var center = c.global_position + c.face_dir() * 3.0
+	VFX.puffs(center + Vector3.UP, {"amount": 60, "life": 2.5, "size": 2.5, "radius": 3.5, "vmin": 0.2, "vmax": 0.8, "dir": Vector3.UP, "spread": 60.0, "add": false,
+		"colors": [Color(0.85, 0.9, 0.95, 0.5), Color(0.8, 0.85, 0.9, 0)]})
+	for k in 4:
+		var a = (k - 1.5) * 0.6
+		decoy(c, center + c.face_dir().rotated(Vector3.UP, a) * 2.0, 7.0)
+	for e in enemies_near(c, center, 10.0):
+		st(e, "slow", 3.0)
+	Sfx.play("genjutsu", center, 0.9)
+
+
+## Pus Klonu: titreşen saydam kopyalar etrafa dağılır; düşmanlar onlara saldırır
+func p_oboro_bunshin_no_jutsu(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.4)
+	for k in 3:
+		var a = TAU * k / 3.0
+		var at = c.global_position + Vector3(cos(a), 0, sin(a)) * 2.2
+		VFX.puffs(at + Vector3.UP, {"amount": 14, "life": 0.6, "size": 0.9, "radius": 0.5, "vmin": 0.5, "vmax": 1.5, "dir": Vector3.UP, "spread": 40.0, "add": false,
+			"colors": [Color(0.9, 0.92, 1.0, 0.6), Color(0.9, 0.92, 1.0, 0)]})
+		decoy(c, at, 6.0)
+	Sfx.play("poof", c.global_position, 1.2)
+
+
+## Uçan Taşlar: yerden kopan taşlar havada döner, sonra hedefe yağar
+func p_doton_tobi_tsubute(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.8)
+	anim(c, "cast", 1.3)
+	var tt = tg(c, t, 22.0)
+	var rocks = []
+	for k in 8:
+		var r = _rock(randf_range(0.5, 0.8))
+		get_tree().current_scene.add_child(r)
+		var a = TAU * k / 8.0
+		var q = c.global_position + Vector3(cos(a), 0, sin(a)) * 2.0
+		r.global_position = gp(q)
+		r.create_tween().tween_property(r, "global_position", q + Vector3.UP * 1.8, 0.35).set_trans(Tween.TRANS_BACK)
+		rocks.append(r)
+	VFX.debris(c.global_position, EARTH, 24, 7.0)
+	shake(0.4)
+	Sfx.play("earth", c.global_position, 1.2)
+	after(0.55, func():
+		for k in rocks.size():
+			var r: Node3D = rocks[k]
+			if not is_instance_valid(r):
+				continue
+			var from = r.global_position
+			r.queue_free()
+			if live(c):
+				var pr = shot(c, from, aim_at(c, tt, from), 28.0, _rock(0.6), inf(c, "doton_tobi_tsubute", 0.3, {"knock": 5.0, "kind": "heavy", "element": "doton"}), tt, false, 1.4)
+				pr.spin = Vector3(5, 3, 0))
+
+
+## Çamur Kayması: önündeki zemin akan çamur seline döner — içindekileri sürükler ve yavaşlatır
+func p_doton_dosekiryu(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.8)
+	anim(c, "crouch", 1.4)
+	var d = fwd(c, t)
+	var mud = Color(0.42, 0.32, 0.22)
+	for k in 10:
+		after(k * 0.06, func():
+			var q = gp(c.global_position + d * (1.5 + k * 1.6))
+			VFX.puffs(q + Vector3.UP * 0.4, {"amount": 14, "life": 0.9, "size": 1.8, "radius": 2.2, "vmin": 3, "vmax": 7, "dir": d + Vector3.UP * 0.6, "spread": 30.0, "add": false,
+				"colors": [mud, mud.darkened(0.3), Color(0.35, 0.28, 0.2, 0)]})
+			for e in hit(c, q + Vector3.UP * 0.5, 2.0, inf(c, "doton_dosekiryu", 0.15, {"knock": 7.0, "kind": "light", "element": "doton", "dir": d})):
+				st(e, "slow", 3.0))
+	Sfx.play("earth", c.global_position, 0.8)
+
+
+## Toprak Yırtan Avuç: avuç yere basılır, çevredeki zemin döner ve yarılır — üstündekiler sendeler
+func p_doton_retsudo_tensho(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.9)
+	anim(c, "crouch", 1.2)
+	var at = gp(c.global_position + c.face_dir() * 1.0)
+	for k in 3:
+		after(0.2 + k * 0.15, func():
+			FX.ring(at + Vector3.UP * 0.05, EARTH, 6.0 + k * 4.0, 0.5)
+			for j in 4:
+				VFX.debris(at + Vector3(randf_range(-6, 6), 0, randf_range(-6, 6)), EARTH, 10, 9.0))
+	shake(0.9)
+	Sfx.play("earth", at, 0.7)
+	after(0.3, func():
+		for e in hit(c, at + Vector3.UP * 0.5, 7.0, inf(c, "doton_retsudo_tensho", 0.6, {"knock": 3.0, "launch": 3.0, "kind": "heavy", "element": "doton"})):
+			st(e, "stun", 1.4))
+
+
+## Kasırga Avuç: avuçtan tek, yoğun rüzgâr küresi — çarpınca patlayıp savurur
+func p_futon_reppusho(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.45)
+	anim(c, "push", 1.6)
+	var tt = tg(c, t, 22.0)
+	var from = hand_pos(c, true)
+	var b = MB.new()
+	b.add("sphere", Vector3.ZERO, Vector3(1.1, 1.1, 1.1), Color(0.85, 0.97, 0.95))
+	var pr = shot(c, from, aim_at(c, tt, from), 30.0, mesh_of(b, glow(Color(0.8, 1.0, 0.95), 0.35)), inf(c, "futon_reppusho", 0.7, {"knock": 16.0, "launch": 3.0, "kind": "heavy", "element": "fuuton"}), null, false, 1.0, func(p, _tg):
+		VFX.puffs(p, {"amount": 50, "life": 0.5, "size": 1.2, "radius": 0.6, "vmin": 8, "vmax": 16, "dir": Vector3.UP, "spread": 180.0,
+			"colors": [Color(0.9, 1, 0.95, 0.6), Color(0.9, 1, 0.95, 0)]}))
+	pr.spin = Vector3(0, 0, 20)
+	Projectile.trail(pr, [Color(0.85, 1.0, 0.95, 0.5), Color(0.85, 1.0, 0.95, 0)], 0.5, 16, 0.3, FX.tex_smoke, false)
+	Sfx.play("wind", from, 1.4)
+
+
+## Rüzgâr Kesici: el yatay savrulur, ince hilal rüzgâr bıçağı ileri uçar ve deler
+func p_futon_kazekiri_no_jutsu(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.4)
+	anim(c, "slash_b", 1.6)
+	var tt = tg(c, t, 24.0)
+	var from = c.global_position + Vector3.UP * 1.2 + c.face_dir() * 0.6
+	var b = MB.new()
+	for k in 9:
+		var a = deg_to_rad(-60.0 + k * 15.0)
+		b.add("box", Vector3(sin(a) * 1.6, 0, cos(a) * 1.6 - 1.6), Vector3(0.4, 0.03, 0.1), Color(0.85, 1.0, 0.95), Vector3(0, rad_to_deg(a) + 90.0, 0))
+	var pr = shot(c, from, aim_at(c, tt, from), 40.0, mesh_of(b, glow(Color(0.8, 1.0, 0.95), 0.6)), inf(c, "futon_kazekiri_no_jutsu", 0.6, {"knock": 4.0, "kind": "heavy", "element": "fuuton", "bleed": 3.0}), null, true, 0.9)
+	Projectile.trail(pr, [Color(0.85, 1.0, 0.95, 0.35), Color(0.85, 1.0, 0.95, 0)], 0.3, 10, 0.2, null, true)
+	Sfx.play("wind", from, 1.8, 0.6)
+
+
+## Alev Mermisi: ağızdan sıkıştırılmış alev topu — çarptığı yerde küçük patlama, yanık
+func p_katon_endan(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.5)
+	var tt = tg(c, t, 24.0)
+	var from = c.global_position + Vector3.UP * 1.55 + c.face_dir() * 0.4
+	var b = MB.new()
+	b.add("sphere", Vector3.ZERO, Vector3(0.95, 0.95, 1.2), Color(1.0, 0.6, 0.15))
+	var pr = shot(c, from, aim_at(c, tt, from), 28.0, mesh_of(b, glow(Color(1.0, 0.55, 0.15), 1.0)), inf(c, "katon_endan", 0.8, {"knock": 6.0, "kind": "heavy", "element": "katon", "burn": 2.5}), null, false, 1.2, func(p, _tg):
+		FX.explosion(p, 1.1)
+		shake(0.3))
+	Projectile.trail(pr, [Color(1, 0.8, 0.3, 0.9), Color(1, 0.35, 0.05, 0.6), Color(0.2, 0.1, 0.05, 0)], 0.5, 22, 0.4, FX.tex_smoke, true)
+	Sfx.play("fire", from, 1.3)
