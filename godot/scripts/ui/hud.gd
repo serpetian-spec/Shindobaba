@@ -818,6 +818,11 @@ func gear_shop(title: String, ids: Array) -> void:
 		else:
 			Progress.add_ryo(-Stats.price(int(it["price"])))
 			Gear.grant(pr, id)
+			if it.has("unique"):   # benzersiz: bir kez satılır
+				if not pr.has("unique_bought"):
+					pr["unique_bought"] = []
+				pr["unique_bought"].append(id)
+				ids = ids.filter(func(x): return x != id)
 			Sfx.play("coin")
 			msg("%s alındı! Giymek için: Tab > Ekipman" % it["name"], Color(0.6, 1, 0.6))
 		gear_shop(title, ids))

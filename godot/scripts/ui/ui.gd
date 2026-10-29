@@ -402,6 +402,8 @@ static func rarity_of_gear(id: String) -> int:
 	var it = Gear.item(id)
 	if id in Gear.LEGENDARY:
 		return 4
+	if it.has("unique"):
+		return int(it["unique"])
 	var r = int(it.get("rank", 0))
 	var p = int(it.get("price", 0))
 	if r >= 4 or p >= 2000:

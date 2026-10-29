@@ -146,6 +146,7 @@ func toggle() -> void:
 		_end_susanoo()
 	active = not active
 	if active:
+		Progress.clan_unlocks(true)   # nakil/uyanış sonrası göz teknikleri hemen açılsın
 		var r = _kind("sag"); var l = _kind("sol")
 		var main_kind = maxi(r, l)
 		var shar = r in [1, 4, 5] or l in [1, 4, 5]

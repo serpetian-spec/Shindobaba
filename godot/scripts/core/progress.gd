@@ -180,7 +180,8 @@ func clan_unlocks(announce := true) -> void:
 			ok = has_eye(lp.substr(4))
 		elif lp == "sage:any":
 			ok = "sage" in pr.get("skills", [])
-		if ok and lv >= int(j.get("level", 1)) and int(pr.get("rank", 0)) >= int(j.get("rank", 0)):
+		# göz teknikleri gözle gelir: rütbe şartı aranmaz (Rinnegan takılıyken teknikleri hiç açılmıyordu)
+		if ok and lv >= int(j.get("level", 1)) and (lp.begins_with("eye:") or int(pr.get("rank", 0)) >= int(j.get("rank", 0))):
 			learn(jid, announce)
 
 
@@ -593,7 +594,7 @@ func interact(it: Dictionary) -> void:
 			var ttxt = "Hangi tekniği öğrenmek istersin? Ryō karşılığında öğretirim." if not topts.is_empty() else "Şu an sana öğretebileceğim yeni bir teknik yok. Biraz daha güçlen, sonra gel."
 			Hud.dialog(it.get("title", "Eğitmen"), ttxt, topts)
 		"tailor":
-			Hud.gear_shop("Terzi", Gear.SHOP_CLOTHES)
+			Hud.gear_shop("Terzi", Gear.shop_stock("c", String(it.get("village", home()))))
 		"kg_site":
 			KgPaths.interact_site(it)
 		"path_mentor":
@@ -647,8 +648,8 @@ func interact(it: Dictionary) -> void:
 		"shop_weapons":
 			Hud.dialog("Silah Dükkânı", "Hoş geldin! Ne bakıyorsun?", [
 				{"label": "Ninja aletleri", "cb": func(): Hud.shop("Silah Dükkânı", ["kunai", "shuriken", "tag", "smoke"])},
-				{"label": "Silahlar (sağ el / sol el)", "cb": func(): Hud.gear_shop("Silahçı", Gear.SHOP_WEAPONS)},
-				{"label": "Kıyafetler ve zırhlar", "cb": func(): Hud.gear_shop("Terzi", Gear.SHOP_CLOTHES)},
+				{"label": "Silahlar (sağ el / sol el) — stok yarım saatte bir değişir", "cb": func(): Hud.gear_shop("Silahçı", Gear.shop_stock("w", String(it.get("village", home()))))},
+				{"label": "Kıyafetler ve zırhlar", "cb": func(): Hud.gear_shop("Terzi", Gear.shop_stock("c", String(it.get("village", home()))))},
 			])
 		"shop_weapons_old":
 			Hud.shop("Silah Dükkânı", ["kunai", "shuriken", "tag", "smoke", "scroll_katon_housenka", "scroll_suiton_suijinheki", "scroll_fuuton_daitoppa", "scroll_doton_doryuheki"])

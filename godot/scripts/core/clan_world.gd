@@ -86,7 +86,7 @@ const LEGENDS := [
 	{"key": "yugiri", "name": "Yūgiri Kamen", "alias": "Buhar Cadısı", "v": "kiri", "el": "suiton", "minlv": 32, "lv": 55, "wander": false, "f": true,
 		"j": ["joki_boi", "suiton_daibakufu_no_jutsu", "kirigakure_no_jutsu"], "nat": ["futton"], "hair": "yele", "hc": Color(0.7, 0.3, 0.14),
 		"top": Color(0.2, 0.3, 0.45), "crime": "Kaynar buharıyla bir kaleyi eritti"},
-	{"key": "rinkai", "name": "Kagerō Rinkai", "alias": "Altı Yolun Vârisi", "v": "ame", "el": "", "minlv": 60, "lv": 88, "wander": true,
+	{"key": "rinkai", "name": "Kagerō Rinkai", "alias": "Altı Yolun Vârisi", "v": "ame", "el": "", "minlv": 45, "lv": 88, "wander": true,
 		"eye": 6, "style": "fuin", "j": ["shinra_tensei", "bansho_ten_in", "kuroki_jushinki", "chibaku_tensei"], "hair": "uzun", "hc": Color(0.85, 0.35, 0.2),
 		"top": Color(0.12, 0.12, 0.16), "crime": "Halkalı gözleriyle bir dağ köyünü göğe kaldırıp yerle bir etti"},
 	{"key": "senba", "name": "Uchiha Senba", "alias": "Bin Kuşun Gözü", "v": "konoha", "clan": "uchiha", "el": "katon", "minlv": 40, "lv": 64, "wander": true,
@@ -350,7 +350,6 @@ func _seed_legends() -> void:
 		lst.append(_legend_entry(L, int(bb["next"])))
 		bb["next"] = int(bb["next"]) + 1
 		Hud.msg("Bingo Kitabı'na efsanevi bir isim eklendi: «%s»" % L["alias"], Color(1, 0.7, 0.4))
-		return   # her seferinde bir tane
 
 
 func _legend_entry(L: Dictionary, id: int) -> Dictionary:

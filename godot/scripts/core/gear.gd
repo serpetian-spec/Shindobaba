@@ -272,7 +272,93 @@ static func random_reward(rank: int) -> String:
 
 
 static func item(id: String) -> Dictionary:
-	return ITEMS.get(id, {})
+	if ITEMS.has(id):
+		return ITEMS[id]
+	if id.begins_with("u_"):
+		return _custom().get(id, {})
+	return {}
+
+
+# ------------------------------------------------------------------ benzersiz (rastgele üretilmiş) eşyalar ve dönen dükkân stoku
+## Kayıtta saklanır (profile.custom_items): id -> eşya sözlüğü (Color'lar hex)
+static var _ccache := {}   # çalışma zamanı kopyaları (renkler Color); kayıtta hex kalır
+static func _custom() -> Dictionary:
+	var pr = Game.profile
+	if pr.is_empty():
+		return {}
+	if not pr.has("custom_items"):
+		pr["custom_items"] = {}
+	var cm: Dictionary = pr["custom_items"]
+	for k in cm:
+		if not _ccache.has(k):
+			var it: Dictionary = (cm[k] as Dictionary).duplicate(true)
+			for ck in ["c1", "c2"]:
+				if it.get(ck) is String:
+					it[ck] = Color.html(it[ck])
+			_ccache[k] = it
+	return _ccache
+
+
+const U_PREFIX := {"w": ["Kan Kızılı", "Fırtına Kesen", "Sessiz Gölge", "Ejder Dişi", "Ay Işığı", "Kara Şimşek", "Kum Fısıltısı", "Sis Hayaleti", "Kaya Kıran", "Rüzgâr Çığlığı"],
+	"c": ["Usta Dokuma", "Ruh Mühürlü", "Gece Avcısı", "Savaş Ustası", "Kadim Klan", "Fırtına Gezgini", "Gölge Örtülü", "Kızıl Lotus", "Demir İrade", "Ak Turna"]}
+const U_EXTRA := ["def", "hp", "chakra", "speed", "melee"]
+
+
+## Taban eşyadan benzersiz bir sürüm üretir: güçlü istatistikler, ek özellik, özel ad ve renk (tier 3 nadir, 4 efsane)
+static func make_unique(base_id: String, kind: String, seed_v: int) -> String:
+	var b: Dictionary = ITEMS.get(base_id, {})
+	if b.is_empty():
+		return ""
+	var id = "u_%d" % (absi(seed_v) % 100000000)
+	if _custom().has(id):
+		return id
+	var cm: Dictionary = Game.profile["custom_items"]
+	var rng = RandomNumberGenerator.new()
+	rng.seed = seed_v
+	var tier = 4 if rng.randf() < 0.25 else 3
+	var it: Dictionary = b.duplicate(true)
+	var k = (1.5 if tier == 3 else 2.2) + rng.randf() * 0.5
+	var st: Dictionary = (it.get("stats", {}) as Dictionary).duplicate()
+	for s in st:
+		st[s] = float(st[s]) * k
+	var ex = U_EXTRA[rng.randi() % U_EXTRA.size()]
+	st[ex] = float(st.get(ex, 0.0)) + {"def": 4.0, "hp": 30.0, "chakra": 30.0, "speed": 0.03, "melee": 0.06}[ex] * (1.0 if tier == 3 else 1.8)
+	it["stats"] = st
+	if it.has("weapon"):
+		var w: Dictionary = (it["weapon"] as Dictionary).duplicate()
+		w["dmg"] = float(w.get("dmg", 1.0)) * (1.2 + rng.randf() * (0.2 if tier == 3 else 0.45))
+		it["weapon"] = w
+	var pre = U_PREFIX[kind][rng.randi() % U_PREFIX[kind].size()]
+	it["name"] = "%s %s" % [pre, b["name"]]
+	it["desc"] = "%s — benzersiz %s. %s" % [b.get("desc", ""), "nadir eşya" if tier == 3 else "EFSANE eşya", "Bir daha aynısı çıkmaz."]
+	it["price"] = int(maxf(400.0, float(b.get("price", 300))) * (4.0 if tier == 3 else 9.0))
+	it["unique"] = tier
+	it["rank"] = mini(int(b.get("rank", 0)), 2)
+	var hue = rng.randf()
+	it["c1"] = Color.from_hsv(hue, rng.randf_range(0.35, 0.8), rng.randf_range(0.25, 0.85)).to_html(false)
+	it["c2"] = Color.from_hsv(fmod(hue + 0.5, 1.0), 0.7, 0.75).to_html(false)
+	cm[id] = it
+	_ccache.erase(id)
+	return id
+
+
+## Dükkân stoku: her 30 dakikada (gerçek zaman) köye göre değişen rastgele seçim + 2 benzersiz eşya
+static func shop_stock(kind: String, vid: String) -> Array:
+	var pool: Array = SHOP_WEAPONS if kind == "w" else SHOP_CLOTHES
+	var period = int(Time.get_unix_time_from_system() / 1800.0)
+	var rng = RandomNumberGenerator.new()
+	rng.seed = hash("%s|%s|%d|%s" % [kind, vid, period, String(Game.profile.get("name", ""))])
+	var picks = pool.duplicate()
+	for i in range(picks.size() - 1, 0, -1):
+		var j = rng.randi() % (i + 1)
+		var t = picks[i]; picks[i] = picks[j]; picks[j] = t
+	var out = picks.slice(0, mini(picks.size(), 10 if kind == "w" else 16))
+	var bought: Array = Game.profile.get("unique_bought", [])
+	for u in 2:
+		var uid = make_unique(String(picks[(u * 7 + 3) % picks.size()]), kind, int(rng.randi()))
+		if uid != "" and not uid in bought:
+			out.insert(0, uid)
+	return out
 
 
 static func fits(id: String, slot: String) -> bool:

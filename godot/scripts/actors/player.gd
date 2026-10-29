@@ -468,6 +468,19 @@ func _ground_air_move(dt: float) -> void:
 		last_air_vy = velocity.y
 	var pre_pos = global_position
 	move_and_slide()
+	# bir dövüşçünün (düşman/klon/çağrı) kapsülünün üstüne basıp havada asılı kalmasın: kenara kayıp düş
+	for i in get_slide_collision_count():
+		var col = get_slide_collision(i)
+		var cb = col.get_collider()
+		if cb is Fighter or cb is Summon:
+			if col.get_normal().y > 0.5:
+				var away = global_position - (cb as Node3D).global_position
+				away.y = 0.0
+				away = away.normalized() if away.length() > 0.05 else -face_dir()
+				global_position += away * 0.25
+				velocity.y = minf(velocity.y, -6.0)
+				grounded = false
+			break
 	# dik arazi (uçurum) = duvar: üstüne ışınlanma yok; içine doğru koşuyorsan duvar koşusuna geç
 	var steep_n = _steep_block(pre_pos)
 	if steep_n != Vector3.ZERO and wall_cd <= 0.0 and not swimming and wish.dot(-steep_n) > 0.35:
