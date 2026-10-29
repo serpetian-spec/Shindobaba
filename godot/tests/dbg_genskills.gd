@@ -16,7 +16,7 @@ func _ready() -> void:
 	main.add_child(cam)
 	cam.current = true
 	var only = OS.get_environment("ONLY")
-	var ids = [only] if only != "" else ["kazahana_kamaitachi_rendan", "kazahana_kaze_no_yaiba", "kazahana_tatsumaki_kabe", "ikazuchi_ranton_kyu", "ikazuchi_kaminari_ryu", "ikazuchi_arashi_kabe", "iwao_ganchuro", "iwao_golem_ken", "iwao_ganseki_ame", "uzumaki_uzu_fuin", "uzumaki_kongo_kekkai", "karatachi_mizu_kagami", "karatachi_sanmai_oroshi", "yamanaka_shinkaitai", "aburame_mushi_hashira", "inuzuka_sototoro", "kaguya_hone_tate", "terumi_futton_komu", "terumi_yoton_yokai", "terumi_suiton_suiryu", "kako_yoton_kazan", "kako_yogan_ken", "kako_yoton_kansen"]
+	var ids = [only] if only != "" else ["kil_ucan_kus", "jiongu_ito_kirbac", "doton_domu", "kakuzu_maske_katon", "kakuzu_maske_futon", "kakuzu_maske_raiton", "kakuzu_kalp_calma", "hiraishin_kunai", "hiraishin_ranbu", "hiraishin_rasengan", "chidori_ranbu", "chidori_jinrai", "jashin_sanjin_kama", "jashin_kazik", "jashin_ketsueki", "jashin_fumetsu", "jashin_kurban", "hachibi_murekkep", "hachibi_lariat", "hachibi_ahtapot_kollari", "hachibi_yedi_kilic", "hachibi_kuyruk_zirhi", "hachibi_ahtapot_topu"]
 	for id in ids:
 		var e = Enemy.new()
 		var a = Enemy.archetype("bandit", 0)
@@ -41,7 +41,7 @@ func _ready() -> void:
 		await get_tree().create_timer(0.35).timeout
 		if OS.get_environment("XTRA") != "":
 			await get_tree().create_timer(float(OS.get_environment("XTRA"))).timeout
-		if id in ["hyoton_hyoryu_boppa", "hozuki_kubikiri_zan", "hoshigaki_gyojin", "kokuton_kuro_pansa", "sarutobi_enma_kongonyoi"]:
+		if id in ["kakuzu_maske_katon", "hiraishin_ranbu", "chidori_ranbu", "jashin_kurban", "hachibi_ahtapot_kollari", "hachibi_kuyruk_zirhi"]:
 			pl.set_process(false)
 			var fw = pl.face_dir()
 			if id == "kami_tsubasa":

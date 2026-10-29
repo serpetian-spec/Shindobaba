@@ -110,6 +110,102 @@ const PATHS := {
 		"quest": {"senpo_kawazu_naki": "sage"},
 		"dark": {},
 	},
+	"kil": {
+		"name": "Patlayıcı Kil Yolu", "icon": "seal", "color": Color(0.95, 0.85, 0.6),
+		"style": "Avuçtaki ağızlarla chakra yoğrulmuş kil: uçan kuşlar, örümcekler, ejderler, kasaba yıkan heykeller ve sanatın son patlaması",
+		"site": {"country": "earth", "off": Vector2(-1200, -900), "kind": "clay", "clear": 50.0, "place": "Kil Atölyesi (Toprak Ülkesi kanyonları)"},
+		"mentor": {"name": "Bakufū Gen", "title": "Kil Sanatçısı",
+			"look": {"gender": "m", "skin": Color(0.95, 0.84, 0.72), "hair": Color(0.95, 0.85, 0.45), "hair_style": "uzun", "eye": Color(0.3, 0.45, 0.75),
+				"top": Color(0.18, 0.18, 0.22), "top2": Color(0.75, 0.15, 0.15), "pants": Color(0.18, 0.18, 0.22), "band": Color(0.4, 0.35, 0.3), "age": "adult"}},
+		"rumor_level": 10, "join_level": 12,
+		"rumor": "Toprak Ülkesi'nin kanyonlarında patlamalar duyuluyormuş. Kilden kuşlar uçuran, sanatın bir an olduğuna inanan bir zanaatkâr yaşarmış.",
+		"intro": "Sarışın adam elindeki kili yoğuruyor, avucundaki ağız sırıtıyor: \"Sanat bir patlamadır! Kalıcı olan sıkıcıdır, hm. Gözlerinle görmek istiyorsan önce benim işimi kanıtla.\"",
+		"passive": {"jutsu": 0.12, "chakra": 0.05},
+		"passive_desc": "Jutsu gücü +%12, chakra +%5",
+		"order": ["nendo_bunshin", "kibaku_nendo", "shi_wan", "kil_ucan_kus", "ningyo_kibaku_nendo", "shi_tsu", "shi_suri", "shi_fo", "shi_o"],
+		"quest": {"shi_fo": "art", "shi_o": "art"},
+		"dark": {"shi_o": 10},
+	},
+	"kakuzu": {
+		"name": "Toprak Kini Yolu", "icon": "seal", "color": Color(0.35, 0.3, 0.28),
+		"style": "Bedeni dikip onaran kara iplikler, taş gibi sertleşen deri ve maskeli kalplerin ateş, rüzgâr, şimşek saldırıları",
+		"site": {"country": "waterfall", "off": Vector2(-900, 700), "kind": "thread", "clear": 50.0, "place": "Kara İplik Mezarlığı (Şelale Ülkesi)"},
+		"mentor": {"name": "Kurogane Zeni", "title": "İplik Ustası",
+			"look": {"gender": "m", "skin": Color(0.75, 0.6, 0.48), "hair": Color(0.1, 0.1, 0.12), "hair_style": "uzun", "eye": Color(0.3, 0.7, 0.3),
+				"top": Color(0.2, 0.22, 0.2), "top2": Color(0.15, 0.15, 0.15), "pants": Color(0.2, 0.2, 0.2), "band": Color(0.4, 0.4, 0.42), "age": "adult"}},
+		"rumor_level": 12, "join_level": 14,
+		"rumor": "Şelale Ülkesi'nin mezarlığında, para için ödül avlayan, yüzü dikişlerle dolu yaşlı bir paralı askerden söz ediliyor. Kalbi bir değil beşmiş...",
+		"intro": "Dikişli adam paranı sayar gibi sana bakıyor: \"Para asla ihanet etmez. Sen de etmeyeceksen... bedenini dikmeyi öğretirim. Önce ödülünü getir.\"",
+		"passive": {"hp": 0.15, "def": 0.05},
+		"passive_desc": "Can +%15, savunma +%5",
+		"order": ["jiongu_ito_kirbac", "doton_domu", "jiongu", "kakuzu_maske_katon", "kakuzu_maske_futon", "kakuzu_maske_raiton", "kakuzu_kalp_calma"],
+		"quest": {"kakuzu_kalp_calma": "heart"},
+		"dark": {"kakuzu_kalp_calma": 25},
+	},
+	"hiraishin": {
+		"name": "Uçan Yıldırım Yolu", "icon": "seal", "color": Color(1.0, 0.85, 0.3),
+		"style": "İşaretli kunailer, göz açıp kapayana kadar ışınlanma, zincirleme kesikler ve ışınlanırken Rasengan",
+		"site": {"country": "whirlpool", "off": Vector2(400, 300), "kind": "thunder", "clear": 50.0, "place": "Yıldırım Mührü Tapınağı (Girdap harabeleri)"},
+		"mentor": {"name": "Kōsoku Hayate", "title": "Sarı Şimşek",
+			"look": {"gender": "m", "skin": Color(0.95, 0.82, 0.7), "hair": Color(0.98, 0.85, 0.3), "hair_style": "diken", "eye": Color(0.25, 0.5, 0.85),
+				"top": Color(0.25, 0.35, 0.25), "top2": Color(0.95, 0.95, 0.92), "pants": Color(0.15, 0.2, 0.35), "band": Color(0.15, 0.22, 0.55), "age": "adult"}},
+		"rumor_level": 14, "join_level": 16,
+		"rumor": "Girdap Ülkesi'nin harabelerinde, sarı bir şimşek gibi göz açıp kapayana kadar yer değiştiren bir ninja görülmüş. Ardında yalnız üç kollu kunailer kalırmış.",
+		"intro": "Sarı saçlı adam gülümsüyor, bir an yerinde, bir an arkanda: \"Hız, işaret koymaktır. Nereye işaret koyarsan oradasın. Önce işaretlerimi bul.\"",
+		"passive": {"speed": 0.1, "seal_speed": 0.15},
+		"passive_desc": "Hız +%10, mühür hızı +%15",
+		"order": ["hiraishin_kunai", "hiraishingiri", "hiraishin_ranbu", "hiraishin_ni_no_dan", "hiraishin_no_jutsu", "hiraishin_rasengan", "hiraishin_dorai"],
+		"quest": {"hiraishin_no_jutsu": "marks"},
+		"dark": {},
+	},
+	"chidori": {
+		"name": "Şimşek Kılıcı Yolu", "icon": "sword", "color": Color(0.55, 0.75, 1.0),
+		"style": "Chidori'nin bin kuş sesi: elde, kılıçta, iğne ve mızrakta şimşek, bedenden akan akım ve gökten inen Kirin",
+		"site": {"country": "iron", "off": Vector2(-500, 800), "kind": "chidori", "clear": 50.0, "place": "Bin Kuş Uçurumu (Demir Ülkesi)"},
+		"mentor": {"name": "Raikō Shinobu", "title": "Şimşek Kılıcı",
+			"look": {"gender": "m", "skin": Color(0.95, 0.84, 0.74), "hair": Color(0.08, 0.08, 0.12), "hair_style": "diken", "eye": Color(0.15, 0.15, 0.2),
+				"top": Color(0.9, 0.9, 0.92), "top2": Color(0.3, 0.25, 0.45), "pants": Color(0.15, 0.15, 0.2), "band": null, "age": "adult"}},
+		"rumor_level": 12, "join_level": 14,
+		"rumor": "Demir Ülkesi'nin karlı uçurumlarında bin kuşun ötüşü gibi bir ses yankılanıyormuş. Elinde şimşek taşıyan sessiz bir kılıç ustası...",
+		"intro": "Kara saçlı adam kılıcını kınından yarım çekiyor, namlu boyunca şimşek akıyor: \"Şimşek keskinliktir. Zayıf olan kırılır. Bana keskin olduğunu göster.\"",
+		"passive": {"melee": 0.08, "el_raiton": 0.15},
+		"passive_desc": "Yakın dövüş +%8, Raiton gücü +%15",
+		"order": ["raiton_chidori", "chidori_nagashi", "chidori_senbon", "chidori_eiso", "chidori_ranbu", "kusanagi_no_tsurugi_chidorigatana", "chidori_jinrai", "kirin"],
+		"quest": {"kirin": "storm"},
+		"dark": {},
+	},
+	"jashin": {
+		"name": "Jashin Yolu", "icon": "seal", "color": Color(0.75, 0.1, 0.12),
+		"style": "Kan ritüelleri: düşmanın kanıyla lanet çemberi, üç bıçaklı tırpan, geri çekilen mızrak ve ölmeyen beden",
+		"site": {"country": "hotwater", "off": Vector2(-800, 900), "kind": "jashin", "clear": 50.0, "place": "Kanlı Ayin Tapınağı (Sıcak Su Ülkesi)"},
+		"mentor": {"name": "Chimatsuri Ren", "title": "Ayin Rahibi",
+			"look": {"gender": "m", "skin": Color(0.95, 0.88, 0.82), "hair": Color(0.85, 0.85, 0.9), "hair_style": "geriye", "eye": Color(0.7, 0.2, 0.55),
+				"top": Color(0.12, 0.12, 0.14), "top2": Color(0.7, 0.1, 0.12), "pants": Color(0.12, 0.12, 0.14), "band": Color(0.35, 0.35, 0.38), "age": "adult"}},
+		"rumor_level": 14, "join_level": 16,
+		"rumor": "Sıcak Su Ülkesi'nin terk edilmiş bir tapınağında kanla çizilmiş çemberlerin içinde dua eden, ölmeyen bir rahipten bahsediliyor.",
+		"intro": "Rahip boynundaki kolyeyi öpüyor: \"Jashin-sama acıyı sever. Acı çekmekten korkmuyor musun? O zaman ayine katıl... ama önce kurbanları getir.\"",
+		"passive": {"hp": 0.1, "regen_hp": 0.5},
+		"passive_desc": "Can +%10, can yenilenmesi artar",
+		"order": ["jashin_sanjin_kama", "jashin_kazik", "jashin_ketsueki", "jujutsu_shiji_hyoketsu", "jashin_fumetsu", "jashin_kurban"],
+		"quest": {"jujutsu_shiji_hyoketsu": "ritual"},
+		"dark": {"jujutsu_shiji_hyoketsu": 20, "jashin_kurban": 20},
+	},
+	"hachibi": {
+		"name": "Sekiz Kuyruk Yolu", "icon": "seal", "color": Color(0.85, 0.5, 0.75),
+		"style": "Ahtapot kolları, mürekkep perdesi, yedi kılıç dansı, kuyruklu lariat ve ritimle akan savaş",
+		"site": {"country": "lightning", "off": Vector2(900, -900), "kind": "octo", "clear": 50.0, "place": "Hileler ve Gerçekler Şelalesi (Yıldırım Ülkesi)"},
+		"mentor": {"name": "Hachiryū Biito", "title": "Ritim Ustası",
+			"look": {"gender": "m", "skin": Color(0.42, 0.3, 0.22), "hair": Color(0.92, 0.92, 0.9), "hair_style": "kisa", "eye": Color(0.15, 0.15, 0.15),
+				"top": Color(0.9, 0.9, 0.88), "top2": Color(0.25, 0.25, 0.28), "pants": Color(0.2, 0.2, 0.22), "band": Color(0.15, 0.22, 0.55), "age": "adult"}},
+		"rumor_level": 16, "join_level": 18,
+		"rumor": "Yıldırım Ülkesi'nin şelalesinde ritimle konuşan, sırtında yedi kılıç taşıyan güçlü bir savaşçı yaşarmış. Bazen ahtapot kolları çıkarırmış!",
+		"intro": "İri adam ritim tutarak sana bakıyor: \"Yo! Ritmini bulamazsan kılıcın da şaşar, bebeğim! Şelalenin altında kendinle yüzleş, sonra rap yapalım!\"",
+		"passive": {"melee": 0.1, "hp": 0.08},
+		"passive_desc": "Yakın dövüş +%10, can +%8",
+		"order": ["hachibi_murekkep", "takoashi_bunshin_no_jutsu", "hachibi_lariat", "hachibi_ahtapot_kollari", "hachibi_yedi_kilic", "hachibi_kuyruk_zirhi", "hachibi_ahtapot_topu"],
+		"quest": {"hachibi_ahtapot_topu": "falls"},
+		"dark": {},
+	},
 }
 ## Sıradaki yollar (ROADMAP): kurbağa sennin, kil sanatı, kukla ustası, Hiraishin, köpekbalığı...
 
@@ -125,6 +221,52 @@ const EXTRA_JUTSU := {
 		"seals": ["Mi"], "desc": "Saçın bedenini saran dikenli bir kozaya döner: 4 sn neredeyse hasar almazsın, yakın dövüşle vuranlar dikenlere batar."},
 	"katon_gamayu_endan": {"name": "Katon: Kurbağa Yağı Alev Bombası", "cost": 50, "cd": 16, "element": "katon", "level": 26, "rank": 3, "tier": 4, "shape": "breath", "learn": "path:gama", "category": "ninjutsu",
 		"seals": ["Mi", "Hitsuji", "Tora"], "desc": "Bir kurbağa yağ fışkırtır, sen ateşi üflersin: yağla büyüyen dev alev seli, yerde yanan yağ gölü bırakır."},
+	"kil_ucan_kus": {"name": "Kil Kuşu Uçuşu", "cost": 40, "cd": 30, "element": "", "level": 16, "rank": 2, "tier": 3, "shape": "transform", "learn": "path:kil", "category": "ninjutsu",
+		"seals": ["Tora"], "desc": "Dev kil kuş yoğrulur, sırtına binersin: 20 sn uçarsın, uçarken altına küçük kil bombalar düşer."},
+	"jiongu_ito_kirbac": {"name": "Kara İplik Kırbacı", "cost": 26, "cd": 8, "element": "", "level": 14, "rank": 2, "tier": 3, "shape": "melee", "learn": "path:kakuzu", "category": "kinjutsu",
+		"seals": [], "desc": "Kolundan fışkıran kara iplikler kırbaç gibi savrulur; ilk değdiği hedefi sana çeker."},
+	"doton_domu": {"name": "Doton: Domu", "cost": 30, "cd": 20, "element": "doton", "level": 15, "rank": 2, "tier": 3, "shape": "buff", "learn": "path:kakuzu", "category": "ninjutsu",
+		"seals": ["Ushi", "Tori"], "desc": "Ten kararıp taş kadar sertleşir: 8 sn fiziksel hasarı neredeyse almazsın, yumrukların ağırlaşır."},
+	"kakuzu_maske_katon": {"name": "Maskeli Kalp: Katon Zukokku", "cost": 45, "cd": 16, "element": "katon", "level": 18, "rank": 3, "tier": 4, "shape": "breath", "learn": "path:kakuzu", "category": "ninjutsu",
+		"seals": [], "desc": "Sırtından ateş maskeli canavar çıkar, ağzından dev patlayan alev topu kusar."},
+	"kakuzu_maske_futon": {"name": "Maskeli Kalp: Fūton Atsugai", "cost": 45, "cd": 16, "element": "fuuton", "level": 20, "rank": 3, "tier": 4, "shape": "beam", "learn": "path:kakuzu", "category": "ninjutsu",
+		"seals": [], "desc": "Rüzgâr maskeli canavar sıkıştırılmış kasırga üfler; geniş alanı yıkar."},
+	"kakuzu_maske_raiton": {"name": "Maskeli Kalp: Raiton Gian", "cost": 45, "cd": 16, "element": "raiton", "level": 22, "rank": 3, "tier": 4, "shape": "beam", "learn": "path:kakuzu", "category": "ninjutsu",
+		"seals": [], "desc": "Şimşek maskeli canavar kara-mavi şimşek ışını fırlatır; hattı delip geçer."},
+	"kakuzu_kalp_calma": {"name": "Kalp Çalma", "cost": 50, "cd": 40, "element": "", "level": 26, "rank": 4, "tier": 5, "shape": "melee", "learn": "path:kakuzu", "category": "kinjutsu",
+		"seals": [], "desc": "İplikli el hedefin göğsüne dalar, kalbini söker: ağır hasar; 60 sn azami canın artar."},
+	"hiraishin_kunai": {"name": "Uçan Yıldırım Kunaisi", "cost": 20, "cd": 6, "element": "", "level": 16, "rank": 2, "tier": 3, "shape": "projectile", "learn": "path:hiraishin", "category": "ninjutsu",
+		"seals": [], "desc": "Mühürlü üç kollu kunai fırlatılır; saplandığı yere 0.3 sn sonra ışınlanıp kesersin."},
+	"hiraishin_ranbu": {"name": "Uçan Yıldırım Dansı", "cost": 40, "cd": 14, "element": "", "level": 20, "rank": 3, "tier": 4, "shape": "melee", "learn": "path:hiraishin", "category": "ninjutsu",
+		"seals": [], "desc": "Çevredeki düşmanlar arasında sarı şimşek gibi zıplayıp her birini art arda kesersin."},
+	"hiraishin_rasengan": {"name": "Uçan Yıldırım Rasengan", "cost": 50, "cd": 16, "element": "", "level": 26, "rank": 4, "tier": 5, "shape": "melee", "learn": "path:hiraishin", "category": "ninjutsu",
+		"seals": [], "desc": "Elinde Rasengan yoğrulur, hedefin arkasına ışınlanıp çarparsın."},
+	"chidori_ranbu": {"name": "Chidori Kılıç Dansı", "cost": 35, "cd": 12, "element": "raiton", "level": 20, "rank": 3, "tier": 4, "shape": "melee", "learn": "path:chidori", "category": "ninjutsu",
+		"seals": [], "desc": "Kılıca akan Chidori ile beş hızlı kesik; her kesik şimşek yarığı bırakır."},
+	"chidori_jinrai": {"name": "Chidori: Jinrai", "cost": 45, "cd": 16, "element": "raiton", "level": 24, "rank": 3, "tier": 4, "shape": "melee", "learn": "path:chidori", "category": "ninjutsu",
+		"seals": [], "desc": "Chidori'yle hat boyunca şimşek gibi ileri atılır, yolundaki her düşmanı delersin."},
+	"jashin_sanjin_kama": {"name": "Üç Bıçaklı Tırpan", "cost": 25, "cd": 7, "element": "", "level": 16, "rank": 2, "tier": 3, "shape": "projectile", "learn": "path:jashin", "category": "taijutsu",
+		"seals": [], "desc": "Kabloya bağlı kızıl üç bıçaklı tırpan fırlatılır; kanatıp geri çekilir."},
+	"jashin_kazik": {"name": "Geri Çekilen Kazık", "cost": 22, "cd": 6, "element": "", "level": 17, "rank": 2, "tier": 3, "shape": "projectile", "learn": "path:jashin", "category": "taijutsu",
+		"seals": [], "desc": "Kolundan uzayan siyah kazık hedefe saplanır; kanını alırsın (ayin için)."},
+	"jashin_ketsueki": {"name": "Kan Yemini", "cost": 20, "cd": 12, "element": "", "level": 18, "rank": 2, "tier": 3, "shape": "buff", "learn": "path:jashin", "category": "kinjutsu",
+		"seals": [], "desc": "Kendi kanını içip bedeni siyah-beyaz ölüm desenine bürünür: 10 sn vuruşların kanatır ve can çalar."},
+	"jashin_fumetsu": {"name": "Ölümsüz Beden", "cost": 40, "cd": 60, "element": "", "level": 22, "rank": 3, "tier": 4, "shape": "buff", "learn": "path:jashin", "category": "kinjutsu",
+		"seals": [], "desc": "Jashin'in lütfu: 8 sn canın 1'in altına inmez, aldığın her darbe yakındaki düşmanlara da yansır."},
+	"jashin_kurban": {"name": "Kurban Ayini", "cost": 55, "cd": 30, "element": "", "level": 26, "rank": 4, "tier": 5, "shape": "aoe", "learn": "path:jashin", "category": "kinjutsu",
+		"seals": [], "desc": "Yere dev kan çemberi çizilir; içindeki düşmanlar her saniye senin aldığın kadar hasar alır."},
+	"hachibi_murekkep": {"name": "Mürekkep Perdesi", "cost": 20, "cd": 10, "element": "", "level": 18, "rank": 2, "tier": 3, "shape": "aoe", "learn": "path:hachibi", "category": "ninjutsu",
+		"seals": [], "desc": "Ağızdan fışkıran kara mürekkep: önündekiler kör olur, yapışkan mürekkep yavaşlatır."},
+	"hachibi_lariat": {"name": "Kuyruklu Lariat", "cost": 35, "cd": 12, "element": "raiton", "level": 20, "rank": 3, "tier": 4, "shape": "melee", "learn": "path:hachibi", "category": "taijutsu",
+		"seals": [], "desc": "Şimşekli kol ve ahtapot koluyla çift lariat; yolundakiler savrulur."},
+	"hachibi_ahtapot_kollari": {"name": "Ahtapot Kolları", "cost": 40, "cd": 14, "element": "", "level": 22, "rank": 3, "tier": 4, "shape": "aoe", "learn": "path:hachibi", "category": "ninjutsu",
+		"seals": [], "desc": "Sırttan çıkan dev ahtapot kolları yeri döver, yakalayıp sıkar."},
+	"hachibi_yedi_kilic": {"name": "Yedi Kılıç Dansı", "cost": 45, "cd": 16, "element": "", "level": 24, "rank": 3, "tier": 4, "shape": "melee", "learn": "path:hachibi", "category": "kenjutsu",
+		"seals": [], "desc": "Kollar, koltuk altı, ağız: yedi kılıçla dönen kasırga kesik dansı."},
+	"hachibi_kuyruk_zirhi": {"name": "Kuyruk Örtüsü", "cost": 40, "cd": 40, "element": "", "level": 26, "rank": 4, "tier": 5, "shape": "mode", "learn": "path:hachibi", "category": "ninjutsu",
+		"seals": [], "desc": "Mor çakra örtüsü ve sekiz kuyruk: 20 sn güç, dayanıklılık, kollar otomatik saldırır."},
+	"hachibi_ahtapot_topu": {"name": "Sekiz Kuyruk Topu", "cost": 60, "cd": 30, "element": "", "level": 28, "rank": 4, "tier": 5, "shape": "projectile", "learn": "path:hachibi", "category": "ninjutsu",
+		"seals": [], "desc": "Ağızda siyah-mor canavar topu sıkıştırılır ve fırlatılır: dev patlama."},
 }
 
 static var lairs := {}   # yol id -> [x, y] harita noktası (ustanın önü)
@@ -369,6 +511,82 @@ static func _quest(pid: String, kind: String, teach: String) -> Dictionary:
 	var base = {"rank": "B", "village": Progress.home(), "hook": "LegendPaths.quest_done", "path": pid, "teach": teach, "trial": kind == "trial"}
 	var q = {}
 	match pid + ":" + kind:
+		"kil:trial":
+			q = {"title": "Sanatın Kanıtı", "rank": "C",
+				"brief": "Sanatçı, kanyondaki kil damarlarından yoğrulabilir kil toplamanı ve atölyeyi soymaya gelen haydutları 'sanatla' kovmanı istiyor.",
+				"steps": [
+					{"kind": "collect", "at": _near(at, 280.0), "item": "chakra kili", "n": 6, "spread": 32, "text": "Kanyondan chakra kili topla (6)."},
+					{"kind": "defend", "at": at, "enemy": "bandit", "waves": [3, 3], "text": "Atölyeye saldıran haydutları püskürt."}]}
+		"kil:art":
+			q = {"title": "Son Sanat Eseri", "rank": "A",
+				"brief": "Ustanın en büyük eseri için eski bir taş kale yıkılmalı. Kaleyi tutan kaçak kayaninjalarını dağıt ve sanatın gürültüsünü göster.",
+				"steps": [
+					{"kind": "track", "from": at, "to": _near(at, 900.0), "text": "Taş kaleye git."},
+					{"kind": "kill", "at": _near(at, 900.0), "enemy": "rogue", "n": 4, "camp": true, "boss": {"name": "Taş Muhafız Ganseki", "hp": 3200.0, "level": 30, "power": 2.6}, "text": "Kalenin muhafızlarını yen."},
+					{"kind": "goto", "at": at, "r": 9.0, "name": "Kil Atölyesi", "text": "Atölyeye dön."}]}
+		"kakuzu:trial":
+			q = {"title": "Ödülün Bedeli", "rank": "C",
+				"brief": "İplik ustası, başına ödül konmuş üç kaçağı getirmeni istiyor. Para asla ihanet etmez.",
+				"steps": [
+					{"kind": "kill", "at": _near(at, 450.0), "enemy": "rogue", "n": 3, "camp": true, "text": "Ödüllü kaçakları avla."},
+					{"kind": "goto", "at": at, "r": 9.0, "name": "Kara İplik Mezarlığı", "text": "Ödülü ustaya getir."}]}
+		"kakuzu:heart":
+			q = {"title": "Beşinci Kalp", "rank": "A",
+				"brief": "Kalp çalmak için güçlü bir rakibin kalbini sökmen gerek. Mezarlığa dadanan şimşek ninjasını yen.",
+				"steps": [
+					{"kind": "track", "from": at, "to": _near(at, 800.0), "text": "Şimşek ninjasının izini sür."},
+					{"kind": "kill", "at": _near(at, 800.0), "enemy": "rogue", "n": 3, "camp": true, "boss": {"name": "Raijin Kogane", "hp": 3400.0, "level": 31, "power": 2.7}, "text": "Rakibi yen."},
+					{"kind": "goto", "at": at, "r": 9.0, "name": "Kara İplik Mezarlığı", "text": "Mezarlığa dön."}]}
+		"hiraishin:trial":
+			q = {"title": "Sarı Şimşeğin İşaretleri", "rank": "C",
+				"brief": "Usta harabelerin dört bir yanına mühürlü kunailer saplamış. Hepsini bul — hızlı ol!",
+				"steps": [
+					{"kind": "collect", "at": _near(at, 320.0), "item": "mühürlü kunai", "n": 6, "spread": 40, "text": "Mühürlü kunaileri topla (6)."},
+					{"kind": "goto", "at": at, "r": 9.0, "name": "Yıldırım Mührü Tapınağı", "text": "Tapınağa dön."}]}
+		"hiraishin:marks":
+			q = {"title": "Zaman-Uzay Formülü", "rank": "A",
+				"brief": "Gerçek ışınlanma için beş mühür taşına formül yaz ve formülü çalmaya gelenleri püskürt.",
+				"steps": [
+					{"kind": "points", "at": _near(at, 40.0), "n": 5, "spread": 18, "label": "[F] Mühür formülünü yaz", "fx": "seal", "text": "Beş mühür taşına formül yaz (5)."},
+					{"kind": "defend", "at": at, "enemy": "rogue", "waves": [3, 4], "text": "Formülü çalmaya gelenleri püskürt."}]}
+		"chidori:trial":
+			q = {"title": "Keskinliğin Sınavı", "rank": "C",
+				"brief": "Usta, uçurumun dibindeki samuray kaçaklarını yalnızca kılıçla yenmeni istiyor.",
+				"steps": [
+					{"kind": "kill", "at": _near(at, 420.0), "enemy": "samurai", "n": 4, "camp": true, "text": "Kaçak samurayları yen."},
+					{"kind": "goto", "at": at, "r": 9.0, "name": "Bin Kuş Uçurumu", "text": "Uçuruma dön."}]}
+		"chidori:storm":
+			q = {"title": "Gökteki Ejder", "rank": "A",
+				"brief": "Kirin için doğal bir fırtına gerekir. Beş zirvede ateş topu yakarak bulutları ısıt, sonra fırtınayı bölmeye gelenleri kov.",
+				"steps": [
+					{"kind": "points", "at": _near(at, 60.0), "n": 5, "spread": 24, "label": "[F] Zirvede bulutları ısıt", "fx": "seal", "text": "Beş zirvede bulutları ısıt (5)."},
+					{"kind": "defend", "at": at, "enemy": "rogue", "waves": [3, 4], "text": "Fırtınayı bölenleri püskürt."}]}
+		"jashin:trial":
+			q = {"title": "İlk Kurban", "rank": "C",
+				"brief": "Rahip, tapınağa saldıran kâfir paralı askerleri Jashin'e kurban etmeni istiyor.",
+				"steps": [
+					{"kind": "defend", "at": at, "enemy": "bandit", "waves": [3, 4], "text": "Tapınağa saldıranları püskürt."},
+					{"kind": "collect", "at": _near(at, 200.0), "item": "kan şişesi", "n": 4, "spread": 24, "text": "Ayin için kan şişelerini topla (4)."}]}
+		"jashin:ritual":
+			q = {"title": "Lanet Çemberi", "rank": "A",
+				"brief": "Ölüm mahkûmiyeti ayini için güçlü bir rakibin kanı gerekir. Onu bul, yen ve çembere dön.",
+				"steps": [
+					{"kind": "track", "from": at, "to": _near(at, 850.0), "text": "Kurbanın izini sür."},
+					{"kind": "kill", "at": _near(at, 850.0), "enemy": "rogue", "n": 3, "camp": true, "boss": {"name": "Gümüş Muhafız Asuka", "hp": 3300.0, "level": 31, "power": 2.6}, "text": "Kurbanı yen."},
+					{"kind": "goto", "at": at, "r": 9.0, "name": "Kanlı Ayin Tapınağı", "text": "Çembere dön."}]}
+		"hachibi:trial":
+			q = {"title": "Ritmini Bul", "rank": "C",
+				"brief": "Usta, şelalenin çevresindeki beş ritim taşını çalmanı ve ritmi bozan haydutları kovmanı istiyor. Yo!",
+				"steps": [
+					{"kind": "points", "at": _near(at, 50.0), "n": 5, "spread": 20, "label": "[F] Ritim taşını çal", "fx": "seal", "text": "Beş ritim taşını çal (5)."},
+					{"kind": "kill", "at": _near(at, 380.0), "enemy": "bandit", "n": 4, "camp": true, "text": "Ritmi bozan haydutları kov."}]}
+		"hachibi:falls":
+			q = {"title": "Gerçekler Şelalesi", "rank": "A",
+				"brief": "Canavar topu için içindeki karanlıkla yüzleşmelisin. Şelalenin altına git ve kendi gölgeni yen.",
+				"steps": [
+					{"kind": "goto", "at": _near(at, 120.0), "r": 10.0, "name": "Şelalenin Altı", "text": "Şelalenin altına git."},
+					{"kind": "kill", "at": _near(at, 120.0), "enemy": "rogue", "n": 2, "camp": true, "boss": {"name": "Karanlık Benlik", "hp": 3600.0, "level": 32, "power": 2.8}, "text": "Karanlık benliğini yen."},
+					{"kind": "goto", "at": at, "r": 9.0, "name": "Şelale", "text": "Ustaya dön."}]}
 		"kagit:trial":
 			q = {"title": "Kâğıdın Sabrı", "rank": "C",
 				"brief": "Usta, rüzgârın dağıttığı yüz kâğıt turnayı toplamanı ve onları çalmaya gelen haydutları kovmanı istiyor.",
