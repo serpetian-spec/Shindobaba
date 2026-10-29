@@ -447,7 +447,7 @@ func _kinjutsu_dialog() -> void:
 	var opts = []
 	for jid in Data.jutsu:
 		var j = Data.jutsu[jid]
-		if not j is Dictionary or String(j.get("learn", "")) != "kinjutsu" or jid in pr["learned"]:
+		if not j is Dictionary or String(j.get("learn", "")) != "kinjutsu" or jid in pr["learned"] or Progress.element_block(jid) != "":
 			continue
 		var lv = int(j.get("level", 10))
 		if lv > int(pr["level"]) + r * 2:

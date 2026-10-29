@@ -181,7 +181,7 @@ func clan_unlocks(announce := true) -> void:
 		elif lp == "sage:any":
 			ok = "sage" in pr.get("skills", [])
 		# göz teknikleri gözle gelir: rütbe şartı aranmaz (Rinnegan takılıyken teknikleri hiç açılmıyordu)
-		if ok and lv >= int(j.get("level", 1)) and (lp.begins_with("eye:") or int(pr.get("rank", 0)) >= int(j.get("rank", 0))):
+		if ok and lv >= int(j.get("level", 1)) and (lp.begins_with("eye:") or int(pr.get("rank", 0)) >= int(j.get("rank", 0))) and element_block(jid) == "":
 			learn(jid, announce)
 
 
@@ -198,6 +198,24 @@ func has_nature(n: String) -> bool:
 	if n in pr.get("elements", []) or n in pr.get("natures", []):
 		return true
 	return false
+
+
+## Element şartı: tekniğin istediği her doğaya sahip olmalısın (Su ile başlayan Ateş jutsusu öğrenemez).
+## Klan teknikleri de dahil: klanın elementini sonradan ikinci doğa olarak alınca kendiliğinden açılır.
+## İstisna: Efsane Yolu ustalarının kendi stilleri, göz ve sennin teknikleri. "" = sorun yok
+func element_block(jid: String) -> String:
+	var j: Dictionary = Data.jutsu.get(jid, {})
+	var lp = String(j.get("learn", ""))
+	# göz teknikleri göz gücüyle çalışır (Amaterasu, Enton); ama Şimşek'i göze bağlayanlar Raiton ister
+	if lp.begins_with("path:") or lp.begins_with("sage") or (lp.begins_with("eye:") and not jid in ["raiden", "kamui_raikiri", "indora_no_ya"]):
+		return ""
+	var els: Array = j.get("elements", [])
+	if els.is_empty() and String(j.get("element", "")) != "":
+		els = [String(j["element"])]
+	for el in els:
+		if not has_nature(el):
+			return "%s için %s doğası gerekli." % [String(j.get("name", jid)).split(" (")[0], Elements.NAMES.get(el, el)]
+	return ""
 
 
 ## Kekkei genkai görevi bitti (Missions hook)
@@ -356,6 +374,11 @@ func add_ryo(amount: int) -> void:
 func learn(jid: String, announce := true) -> bool:
 	var pr = p()
 	if jid in pr["learned"]:
+		return false
+	var eb = element_block(jid)
+	if eb != "":
+		if announce:
+			Hud.msg(eb, Color(1, 0.6, 0.4))
 		return false
 	pr["learned"].append(jid)
 	var slots: Array = pr["slots"]

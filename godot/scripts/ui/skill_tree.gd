@@ -324,6 +324,7 @@ static func learn(main: Node, sid: String) -> void:
 				pr["elements"].append(e)
 				var starter = {"katon": "katon_goukakyuu", "suiton": "suiton_suikoudan", "fuuton": "fuuton_shinkuu", "doton": "doton_doryuusou", "raiton": "raiton_nagashi"}[e]
 				Progress.learn(starter)
+				Progress.clan_unlocks(true)
 				if Game.player:
 					Game.player.apply_profile_stats()})
 		Hud.dialog("Yeni Chakra Doğası", "Hangi doğayı geliştireceksin?", opts)

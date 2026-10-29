@@ -555,6 +555,8 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 				state[key] = options[i]
 				if key == "village" and Progress.HOME_VILLAGES.has(options[i]):
 					state["element"] = Progress.HOME_VILLAGES[options[i]]["element"]
+				if key == "clan" and String(ClanWorld.MAIN_EL.get(options[i], "")) in ["katon", "suiton", "fuuton", "doton", "raiton"]:
+					state["element"] = ClanWorld.MAIN_EL[options[i]]   # klan teknikleri bu doğayı ister
 				on_change.call()
 				redraw.call()))
 		v.add_child(fl)
@@ -608,6 +610,22 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 				cl.custom_minimum_size = Vector2(480, 0)
 				v.add_child(cl)
 			chips.call("Chakra Doğası", "element", ["katon", "suiton", "fuuton", "doton", "raiton"], ["Ateş", "Su", "Rüzgar", "Toprak", "Yıldırım"])
+			# klan teknikleri hangi doğaları istiyor: seçilen doğada olmayanlar ikinci doğa alınana kadar kilitli
+			var need := {}
+			for k in Data.jutsu.keys():
+				var jj = Data.jutsu[k]
+				if jj is Dictionary and String(jj.get("clan", "")) == state["clan"] and String(jj.get("element", "")) in ["katon", "suiton", "fuuton", "doton", "raiton"]:
+					need[jj["element"]] = int(need.get(jj["element"], 0)) + 1
+			need.erase(state["element"])
+			if not need.is_empty():
+				var nm = {"katon": "Ateş", "suiton": "Su", "fuuton": "Rüzgar", "doton": "Toprak", "raiton": "Yıldırım"}
+				var parts = []
+				for e in need:
+					parts.append("%s (%d teknik)" % [nm[e], need[e]])
+				var wl = UI.label("⚠ Bu doğayla bazı klan teknikleri kilitli kalır: " + ", ".join(parts) + ". O doğayı ikinci doğa olarak alınca açılır.", 13, Color(1, 0.7, 0.4))
+				wl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+				wl.custom_minimum_size = Vector2(480, 0)
+				v.add_child(wl)
 		"gorunum":
 			swatches.call("Ten", "skin", [Color(0.98, 0.88, 0.8), Color(0.96, 0.8, 0.66), Color(0.86, 0.68, 0.52), Color(0.68, 0.5, 0.36), Color(0.5, 0.36, 0.26)])
 			chips.call("Saç Stili", "hair_style", CharacterModel.HAIR_STYLES.keys(), CharacterModel.HAIR_STYLES.values())
@@ -1972,7 +1990,8 @@ static func _pick_element(main: Node) -> void:
 			pr["skills"].append("elem2")
 			pr["sp"] = int(pr["sp"]) - 1
 			var starter = {"katon": "katon_goukakyuu", "suiton": "suiton_suikoudan", "fuuton": "fuuton_shinkuu", "doton": "doton_doryuusou", "raiton": "raiton_nagashi"}[e]
-			Progress.learn(starter)})
+			Progress.learn(starter)
+			Progress.clan_unlocks(true)})
 	Hud.dialog("İkinci Chakra Doğası", "Hangi doğayı geliştireceksin?", opts)
 
 
