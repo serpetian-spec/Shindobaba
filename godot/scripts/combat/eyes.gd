@@ -266,6 +266,11 @@ func _skill_name(side: String) -> String:
 
 
 # ------------------------------------------------------------------ teknikler
+## Yetenek ağacı "Göz Gücü / Göz Efendisi": göz tekniklerinin hasar çarpanı
+func _eye_pow() -> float:
+	return 1.0 + Stats.skill(Game.profile, "eye_power")
+
+
 func use_skill(side: String) -> void:
 	var k = _kind(side)
 	if k == 0:
@@ -350,7 +355,7 @@ func _genjutsu_gaze(t: Node3D, stun: float, dmg: float) -> void:
 	t.apply_status("stun", stun * gm)
 	dmg *= gm
 	if dmg > 0.0:
-		t.take_hit({"dmg": dmg, "knock": 0.0, "kind": "light", "dir": p.face_dir(), "element": ""})
+		t.take_hit({"dmg": (dmg) * _eye_pow(), "knock": 0.0, "kind": "light", "dir": p.face_dir(), "element": ""})
 	FX.ring(t.global_position + Vector3.UP * 1.6, Color(0.9, 0.05, 0.05), 1.6, 0.6, false, (p.global_position - t.global_position).normalized())
 	Combat.popup_text(t.global_position + Vector3.UP * 2.2, "Genjutsu!", Color(1, 0.3, 0.3))
 
@@ -361,7 +366,7 @@ func _amaterasu(t: Node3D, eternal: bool) -> void:
 	# söndürülemeyen kara alev: uzun yanma
 	t.apply_status("burn", 10.0 if eternal else 8.0)
 	t.set_meta("black_flame", true)
-	t.take_hit({"dmg": 25.0, "knock": 0.0, "kind": "light", "dir": p.face_dir(), "element": "katon"})
+	t.take_hit({"dmg": (25.0) * _eye_pow(), "knock": 0.0, "kind": "light", "dir": p.face_dir(), "element": "katon"})
 	# hedefi saran kara cel alev (mor konturlu), süre bitince söner
 	var flame = VFX.black_flames(maxf(1.2, t.height * 0.75) if "height" in t else 1.3)
 	t.add_child(flame)
@@ -379,7 +384,7 @@ func _air_palm() -> void:
 	var dir = p.face_dir()
 	for i in 6:
 		var pt = p.global_position + Vector3.UP * 1.1 + dir * (1.5 + i * 1.6)
-		Combat.hit_sphere(p, pt, 1.3, {"dmg": 18.0 * Stats.melee_mult(Game.profile), "knock": 14.0, "kind": "heavy", "dir": dir})
+		Combat.hit_sphere(p, pt, 1.3, {"dmg": (18.0 * Stats.melee_mult(Game.profile)) * _eye_pow(), "knock": 14.0, "kind": "heavy", "dir": dir})
 	FX.ring(p.global_position + Vector3.UP * 1.1 + dir * 2.0, Color(0.85, 0.9, 1), 2.5, 0.3, false, dir)
 	FX.speed_lines(p.global_position + Vector3.UP, dir)
 	Sfx.play("wind", p.global_position, 1.3)
@@ -407,7 +412,7 @@ func _push(r: float, force: float) -> void:
 	for f in _enemies_in(r):
 		var d = (f.global_position - p.global_position)
 		d.y = 0
-		f.take_hit({"dmg": 20.0, "knock": force, "launch": absf(force) * 0.3, "kind": "heavy", "dir": d.normalized() * signf(force), "element": ""})
+		f.take_hit({"dmg": (20.0) * _eye_pow(), "knock": force, "launch": absf(force) * 0.3, "kind": "heavy", "dir": d.normalized() * signf(force), "element": ""})
 	FX.ring(p.global_position + Vector3.UP * 0.5, Color(0.75, 0.65, 1.0), r, 0.5)
 	Sfx.play("boom", p.global_position, 0.7)
 
@@ -415,7 +420,7 @@ func _push(r: float, force: float) -> void:
 func _truth_orb(t: Node3D) -> void:
 	var dir = p.face_dir() if t == null else (t.global_position - p.global_position).normalized()
 	var at = p.global_position + Vector3.UP * 1.2 + dir * 3.0
-	Combat.hit_sphere(p, at + dir * 4.0, 3.5, {"dmg": 35.0, "knock": 18.0, "kind": "heavy", "dir": dir, "element": ""})
+	Combat.hit_sphere(p, at + dir * 4.0, 3.5, {"dmg": (35.0) * _eye_pow(), "knock": 18.0, "kind": "heavy", "dir": dir, "element": ""})
 	FX.impact(at + dir * 4.0, Color(0.1, 0.1, 0.12), 1.4)
 
 

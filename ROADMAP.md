@@ -5,17 +5,17 @@ Hedef: 1. sezon 1. bölümden son bölüme kadar Naruto evreninin tüm içeriği
 ## Devam eden
 - [ ] Görsel cila: kuyruklu canavar ve çağırma hayvanı modelleri (renk, yüz, doku), Kumo kuleleri, diğer köylerin mimarisi, çöl/kaya mezraları
 - [ ] On Kuyruk; canavar savaşlarında ağaç/kaya devirme; Kage yardımıyla mühürleme
-- [ ] Yetenek ağacının bağlanmamış etkileri (genjutsu gücü, çağırma, sennin süresi, gizlilik, algılama...)
+- [x] Yetenek ağacının bağlanmamış etkileri (genjutsu gücü, çağırma, sennin süresi, gizlilik, algılama...)
 
 ## Sırada
-- [ ] Efsane Yolları: her kanon karakterin imza tekniklerini (Orochimaru, Tenten, Jiraiya, Deidara, Kakuzu...) özgün usta NPC + görev zinciri + gizli mekânla öğretmek; karakterin kendisi yok, tarzı ve jutsuları var. İlk: Yılan Yolu
+- [x] Efsane Yolları: her kanon karakterin imza tekniklerini (Orochimaru, Tenten, Jiraiya, Deidara, Kakuzu...) özgün usta NPC + görev zinciri + gizli mekânla öğretmek; karakterin kendisi yok, tarzı ve jutsuları var. İlk: Yılan Yolu
   - [x] 12 yol: Yılan, Silah Ustası, Şifacı, Sekiz Kapı, Kâğıt, Kurbağa Bilgesi, Patlayıcı Kil, Toprak Kini, Uçan Yıldırım, Şimşek Kılıcı, Jashin, Sekiz Kuyruk
 - [ ] Kendi modellerimiz (sökülmüş model yok): patlayıcı kil (C1 kuş/örümcek/baykuş, C2 ejderha, C3, mayın), savaş kuklaları + chakra iplikleri, Gedo heykeli, Kokuo/Matatabi/Saiken/Son Goku detaylandırma, sekiz başlı yılan, Doki ogreleri
 - [ ] Kekkei genkai: birleşik doğalar (Mokuton, Hyōton, Yōton, Futton, Ranton, Shakuton, Bakuton, Jiton, Shōton, Jinton...), kekkei tōta; klan/soy ile kazanım
 - [ ] Shinobi Striker hareketi: şarjlı süper zıplama (yapıldı), ip kunai ile düşüşten kurtulma, duvarda hızlanma
 
 ## En son
-- [ ] Jutsu efektleri: Ultimate Ninja Storm seviyesi görsel efektler
+- [x] Jutsu efektleri: Ultimate Ninja Storm seviyesi görsel efektler
 
 ## Tamamlanan (son oturumlar)
 - Kage sistemi, tüm sınavlar (Akademi, çan testi, Chūnin, Jōnin, Tokubetsu, ANBU), Kage masası ve zirvesi, kaçak ninja, Akatsuki benzeri örgüt, seviye 100 dengesi
