@@ -10304,8 +10304,8 @@ func p_mokuton_jukai_kotan(c: Node3D, _t: Node3D) -> void:
 			trunk.mesh = cm
 			var m = StandardMaterial3D.new()
 			m.albedo_color = WOOD.lightened(0.15)
-	m.emission_enabled = true
-	m.emission = WOOD * 0.35
+			m.emission_enabled = true
+			m.emission = WOOD * 0.35
 			trunk.material_override = m
 			trunk.position = Vector3.UP * h * 0.5
 			tree.add_child(trunk)
