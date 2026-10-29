@@ -64,6 +64,7 @@ const PSTYLE := {
 
 
 
+
 ## Jutsuya özel koreografi (hazırlık "wind" + salınım "rel" pozları, zamanlama, gövde klibi) — CastAnim temel stilin üstüne uygular
 const PANIM := {
 	"kage_shuriken_no_jutsu": {"base": "throw", "pre": 0.3, "post": 0.35, "clip": "b/OverhandThrow", "wind": {"R": [Vector3(-0.6, 0.6, -0.5), Vector3(-0.2, 0.9, -0.4), Vector3(0.0, 1.0, -0.2)], "L": [Vector3(0.1, 0.45, 0.88), Vector3(-0.0, 0.5, 0.86), Vector3(-0.0, 0.9, 0.4)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0, 0, 0, 0, 0], "spine": -14.0, "hips_yaw": 35.0}, "rel": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.35, -0.85, -0.35), Vector3(-0.0, -0.4, 0.9), Vector3(-0.0, 0.2, 0.95)], "fR": [0, 0, 0, 0, 0], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 22.0, "hips_yaw": -25.0}},
@@ -651,6 +652,20 @@ const PANIM := {
 	"erubo": {"base": "rush", "pre": 0.15, "post": 0.4, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "crouch": 0.5}, "rel": {"R": [Vector3(-0.2, 0.8, 0.55), Vector3(-0.1, 0.85, 0.5), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": -10.0}},
 	"jigokuzuki": {"base": "rush", "pre": 0.25, "post": 0.5, "wind": {"R": [Vector3(-0.35, -0.85, -0.35), Vector3(0.0, -0.4, 0.9), Vector3(0.0, 0.2, 0.95)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0, 0, 0, 0, 0], "hips_yaw": 35.0, "crouch": 0.5}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.4, -0.7, -0.5), Vector3(-0.0, -0.3, -0.95), Vector3(-0.0, -0.6, -0.8)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 25.0, "hips_yaw": -30.0}},
 	"ranton_reiza_sakasu": {"base": "two_palm", "pre": 0.5, "post": 0.8, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4]}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 10.0}},
+	"ikazuchi_reiza_ame": {"base": "sky", "pre": 0.5, "post": 0.9, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4]}, "rel": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.15, 0.98, 0.1), Vector3(0.05, 1.0, 0.05), Vector3(-0.0, 1.0, 0.0)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -15.0, "neck": -25.0}},
+	"ikazuchi_koga": {"base": "palm", "pre": 0.3, "post": 0.6, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0, 0, 0, 0, 0]}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 10.0}},
+	"ikazuchi_raiun": {"base": "sky", "pre": 0.4, "post": 0.8, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.2, 0.8, 0.55), Vector3(-0.1, 0.85, 0.5), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0, 0, 0, 0, 0], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "spine": -8.0}},
+	"ikazuchi_kosen": {"base": "two_palm", "pre": 0.4, "post": 0.7, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4]}, "rel": {"R": [Vector3(-0.2, 0.8, 0.55), Vector3(-0.1, 0.85, 0.5), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.2, 0.8, 0.55), Vector3(0.1, 0.85, 0.5), Vector3(-0.0, 0.9, 0.4)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -6.0}},
+	"doton_goremu_no_jutsu": {"base": "summon", "pre": 0.5, "post": 0.8, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 45.0, "crouch": 0.9}},
+	"doton_keijugan_no_jutsu": {"base": "seal", "pre": 0.3, "post": 0.4, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.85, -0.45, 0.1), Vector3(-0.9, -0.3, 0.2), Vector3(-0.9, -0.2, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -8.0}},
+	"doton_iwayado_kuzushi": {"base": "ground_slam", "pre": 0.4, "post": 0.9, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3]}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 45.0, "crouch": 0.9}},
+	"doton_kakogan": {"base": "power", "pre": 0.4, "post": 0.5, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 1.5, 1.5, 1.5, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9]}, "rel": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 6.0}},
+	"doton_koka_jutsu": {"base": "power", "pre": 0.4, "post": 0.5, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 20.0, "crouch": 0.5}, "rel": {"R": [Vector3(-0.85, -0.45, 0.1), Vector3(-0.9, -0.3, 0.2), Vector3(-0.9, -0.2, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": -10.0}},
+	"doton_kajugan_no_jutsu": {"base": "rush", "pre": 0.2, "post": 0.6, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0, 0, 0, 0, 0]}, "rel": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0, 0, 0, 0, 0], "spine": 20.0}},
+	"doton_chokajugan_no_jutsu": {"base": "rush", "pre": 0.3, "post": 0.8, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0, 0, 0, 0, 0]}, "rel": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0, 0, 0, 0, 0], "spine": 30.0, "crouch": 0.4}},
+	"bakuha_jirai": {"base": "breath", "pre": 0.3, "post": 0.7, "wind": {"R": [Vector3(-0.25, -0.55, 0.8), Vector3(0.75, 0.6, 0.25), Vector3(0.5, 0.8, 0.3)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": -12.0}, "rel": {"R": [Vector3(-0.85, -0.45, 0.1), Vector3(-0.9, -0.3, 0.2), Vector3(-0.9, -0.2, 0.3)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0, 0, 0, 0, 0], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 20.0}},
+	"bakuha_kibaku_te": {"base": "rush", "pre": 0.2, "post": 0.5, "wind": {"R": [Vector3(-0.4, -0.7, -0.5), Vector3(0.0, -0.3, -0.95), Vector3(0.0, -0.6, -0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "hips_yaw": 30.0}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 18.0, "hips_yaw": -25.0}},
+	"bakuha_rensa": {"base": "ground_slam", "pre": 0.3, "post": 0.8, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3]}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0, 0, 0, 0, 0], "spine": 40.0, "crouch": 0.8}},
 }
 
 const SNAKE := Color(0.42, 0.3, 0.5)
@@ -17084,3 +17099,186 @@ func p_ranton_reiza_sakasu(c: Node3D, t: Node3D) -> void:
 					ba.queue_free())
 	VFX.star(c.global_position + Vector3.UP * 1.3 + c.face_dir(), Color(0.85, 0.95, 1.0), 3.0)
 	c_ranton_reiza_sakasu(c, t)
+
+
+# ================================================================== Klan W: Ikazuchi fırtınası / Doton ağırlık-taş / Bakuha patlama
+const STORM := Color(0.6, 0.85, 1.0)
+const BAKUHA := Color(1.0, 0.7, 0.55)
+
+
+## Taş deri: bedende gri taş plakalar (süre boyunca)
+func _stone_skin(c: Node3D, dur: float, col := Color(0.55, 0.57, 0.6)) -> void:
+	for bone in ["UpperChest", "LeftUpperArm", "RightUpperArm", "LeftLowerArm", "RightLowerArm", "Head"]:
+		var ba = bone_attach(c, bone)
+		if ba == null:
+			continue
+		var b = MB.new()
+		for k in 3:
+			b.add("box", Vector3(randf_range(-0.05, 0.05), 0.04 + k * 0.08, 0.06), Vector3(0.09, 0.06, 0.02), col.lerp(col.darkened(0.3), randf()), Vector3(randf_range(-20, 20), 0, randf_range(-30, 30)))
+		ba.add_child(mesh_of(b))
+		after(dur, func():
+			if is_instance_valid(ba):
+				ba.queue_free())
+
+
+func p_ikazuchi_reiza_ame(c: Node3D, t: Node3D) -> void:
+	var at = gp(Jutsu._aim_ground(c, t, 10.0, 22.0))
+	var cloud = MeshInstance3D.new()
+	cloud.mesh = SphereMesh.new()
+	var m = StandardMaterial3D.new()
+	m.albedo_color = Color(0.12, 0.13, 0.18, 0.85)
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	cloud.material_override = m
+	get_tree().current_scene.add_child(cloud)
+	cloud.global_position = at + Vector3.UP * 12.0
+	cloud.scale = Vector3(10, 2.2, 10)
+	var tw = cloud.create_tween()
+	tw.tween_interval(2.4)
+	tw.tween_property(cloud, "scale", Vector3(10, 0.05, 10), 0.4)
+	tw.tween_callback(cloud.queue_free)
+	c_ikazuchi_reiza_ame(c, t)
+
+
+## Fırtına Tazısı: su gövdeli şimşek yeleli tazı izi
+func p_ikazuchi_koga(c: Node3D, t: Node3D) -> void:
+	VFX.gather(hand_pos(c, true), STORM, 1.2)
+	c_ikazuchi_koga(c, t)
+	for k in 6:
+		after(0.2 + k * 0.12, func():
+			if live(c):
+				var p = c.global_position + c.face_dir() * (3.0 + k * 2.5) + Vector3.UP * 0.6
+				VFX.splash(p, 0.8)
+				VFX.bolt(p, p + Vector3(randf_range(-1.5, 1.5), randf_range(0.2, 1.5), randf_range(-1.5, 1.5)), STORM, 0.12, 0.15, 1))
+
+
+## Gök Gürültüsü Bulutu: içinde mavi şimşekler çakan kara bulut kütlesi (referans)
+func p_ikazuchi_raiun(c: Node3D, t: Node3D) -> void:
+	var at = gp(Jutsu._aim_ground(c, t, 8.0, 20.0))
+	every(8.0, 0.2, func(_i, _k):
+		var q = at + Vector3(randf_range(-4, 4), randf_range(2.5, 5.0), randf_range(-4, 4))
+		VFX.puffs(q, {"amount": 4, "life": 1.2, "size": 2.0, "radius": 1.0, "vmin": 0.2, "vmax": 0.6, "dir": Vector3.UP, "spread": 90.0, "add": false,
+			"colors": [Color(0.08, 0.08, 0.1, 0.9), Color(0.05, 0.05, 0.07, 0)]})
+		VFX.bolt(q, q + Vector3(randf_range(-2, 2), randf_range(-1, 1), randf_range(-2, 2)), STORM, 0.1, 0.15, 2), Callable())
+	c_ikazuchi_raiun(c, t)
+
+
+func p_ikazuchi_kosen(c: Node3D, t: Node3D) -> void:
+	for side in ["RightHand", "LeftHand"]:
+		var ba = bone_attach(c, side)
+		if ba:
+			ba.add_child(VFX.element_core("raiton", STORM, 0.3))
+			after(0.8, func():
+				if is_instance_valid(ba):
+					ba.queue_free())
+	c_ikazuchi_kosen(c, t)
+
+
+## Golem: yerden kaya golemi yükselir — toz ve kaya yağmuru
+func p_doton_goremu_no_jutsu(c: Node3D, t: Node3D) -> void:
+	_earth_burst(c.global_position + c.face_dir() * 2.5, 1.6)
+	VFX.cracks(gp(c.global_position + c.face_dir() * 2.5), 6.0)
+	c_doton_goremu_no_jutsu(c, t)
+
+
+## Hafif Kaya: bedenden kum taneleri dökülür, ayak altında halka
+func p_doton_keijugan_no_jutsu(c: Node3D, t: Node3D) -> void:
+	VFX.shockwave(gp(c.global_position) + Vector3.UP * 0.1, Color(0.85, 0.8, 0.65), 4.0, 0.4, true)
+	VFX.puffs(c.global_position + Vector3.UP * 0.5, {"amount": 20, "life": 1.0, "size": 0.15, "radius": 0.5, "vmin": 1, "vmax": 3, "dir": Vector3.DOWN, "spread": 40.0, "add": false,
+		"colors": [Color(0.75, 0.65, 0.5, 1), Color(0.6, 0.5, 0.4, 0)]})
+	c_doton_keijugan_no_jutsu(c, t)
+
+
+func p_doton_iwayado_kuzushi(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 24.0)
+	c_doton_iwayado_kuzushi(c, t)
+	if tt:
+		after(0.4, func():
+			if live(tt):
+				VFX.debris(tt.global_position + Vector3.UP * 3.0, EARTH, 20, 6.0, 0.7)
+				VFX.puffs(tt.global_position + Vector3.UP, {"amount": 30, "life": 1.2, "size": 1.4, "radius": 2.5, "vmin": 1, "vmax": 4, "dir": Vector3.UP, "spread": 70.0, "add": false,
+					"colors": [Color(0.6, 0.55, 0.45, 0.85), Color(0.5, 0.45, 0.38, 0)]}))
+
+
+## Taş Parlaklığı: parmak ucunda kızıl kristal parıltısı (referans), yumruklar taşlaşır
+func p_doton_kakogan(c: Node3D, t: Node3D) -> void:
+	var ba = bone_attach(c, "RightHand")
+	if ba:
+		var cr = VFX.element_core("", Color(1.0, 0.35, 0.3), 0.18)
+		cr.position = Vector3(0, 0.2, 0)
+		ba.add_child(cr)
+		after(1.2, func():
+			if is_instance_valid(ba):
+				ba.queue_free())
+	VFX.star(hand_pos(c, true), Color(1.0, 0.5, 0.45), 1.4)
+	_stone_skin(c, 15.0, Color(0.5, 0.48, 0.5))
+	c_doton_kakogan(c, t)
+
+
+## Sertleşme: ten gri taş plakalarla kaplanır (12 sn)
+func p_doton_koka_jutsu(c: Node3D, t: Node3D) -> void:
+	_stone_skin(c, 12.0)
+	VFX.cracks(gp(c.global_position), 3.0)
+	FX.dust(gp(c.global_position), 1.2)
+	c_doton_koka_jutsu(c, t)
+
+
+func p_doton_kajugan_no_jutsu(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 8.0)
+	c_doton_kajugan_no_jutsu(c, t)
+	if tt:
+		after(0.3, func():
+			if live(tt):
+				VFX.cracks(gp(tt.global_position), 3.5)
+				VFX.shockwave(gp(tt.global_position) + Vector3.UP * 0.1, EARTH, 4.0, 0.4, true))
+
+
+## Süper Ağırlık: hedefin altında zemin örümcek ağı gibi çatlar ve çöker (referans)
+func p_doton_chokajugan_no_jutsu(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 10.0)
+	c_doton_chokajugan_no_jutsu(c, t)
+	if tt:
+		after(0.3, func():
+			if live(tt):
+				VFX.cracks(gp(tt.global_position), 9.0)
+				VFX.shockwave(gp(tt.global_position) + Vector3.UP * 0.1, EARTH, 10.0, 0.5, true)
+				VFX.debris(gp(tt.global_position), EARTH, 18, 6.0, 0.5)
+				shake(0.7))
+
+
+## Patlama imzası: beyaz-pembe patlama ve keskin ışık çizgileri
+func _bakuha_burst(at: Vector3, s: float) -> void:
+	VFX.star(at, Color(1, 0.95, 0.9), 2.5 * s)
+	VFX.explosion(at, s, BAKUHA)
+	for k in 6:
+		var a = randf() * TAU
+		VFX.bolt(at, at + Vector3(cos(a), randf_range(-0.2, 0.8), sin(a)) * 3.0 * s, Color(1, 0.9, 0.85), 0.1, 0.15, 0)
+
+
+func p_bakuha_jirai(c: Node3D, t: Node3D) -> void:
+	VFX.gather(_mouth_pos(c), BAKUHA, 0.8)
+	c_bakuha_jirai(c, t)
+
+
+## Patlayan Avuç: avuç hedefe dayanır, beyaz patlama
+func p_bakuha_kibaku_te(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 10.0)
+	var ba = bone_attach(c, "RightHand")
+	if ba:
+		ba.add_child(VFX.element_core("", BAKUHA, 0.25))
+		after(0.8, func():
+			if is_instance_valid(ba):
+				ba.queue_free())
+	c_bakuha_kibaku_te(c, t)
+	if tt:
+		after(2.0, func():
+			if live(tt):
+				_bakuha_burst(tt.global_position + Vector3.UP, 1.2))
+
+
+func p_bakuha_rensa(c: Node3D, t: Node3D) -> void:
+	var d = fwd(c, t)
+	c_bakuha_rensa(c, t)
+	for k in 5:
+		after(0.2 + k * 0.15, func():
+			if live(c):
+				_bakuha_burst(gp(c.global_position + d * (3.0 + k * 3.0)) + Vector3.UP, 0.6 + k * 0.15))
