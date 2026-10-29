@@ -509,11 +509,13 @@ func on_technique_used(id: String) -> void:
 
 func on_player_died() -> void:
 	Journal.on_player_defeated()   # seni yenen kişi rakibin olur; bir gün geri döner
-	Hud.banner("YENİLDİN", "Hastanede uyanıyorsun...", Color(0.9, 0.3, 0.3))
+	var rogue = Orgs.is_rogue()
+	Hud.banner("YENİLDİN", "Sığınağında, ateşin başında uyanıyorsun..." if rogue else "Hastanede uyanıyorsun...", Color(0.9, 0.3, 0.3))
 	var pr = p()
 	pr["ryo"] = int(int(pr["ryo"]) * 0.9)
 	get_tree().create_timer(2.5).timeout.connect(func():
-		var pos = _hospital_pos()
+		# kaçak köy hastanesinde doğamaz: sığınağında uyanır
+		var pos = Missions.open_ground(Orgs.hideout_pos() + Vector3(0, 0, 6), 20.0) if Orgs.is_rogue() else _hospital_pos()
 		Game.player.respawn(pos))
 
 
@@ -627,6 +629,8 @@ func interact(it: Dictionary) -> void:
 		"lookout":
 			Game.save_game()
 			Hud.dialog(home_info()["lookout"], "Köy ayaklarının altında. Köyünü koruma iraden güçleniyor... (Oyun kaydedildi)", [])
+		"rogue_broker":
+			Orgs.broker_dialog()
 		"memorial":
 			Hud.dialog("Anıt Taşı", "Köy için canını veren shinobilerin isimleri burada yazılı. Bir an saygıyla eğiliyorsun.", [])
 		"gate":

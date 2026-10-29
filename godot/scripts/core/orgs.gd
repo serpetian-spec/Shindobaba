@@ -25,6 +25,13 @@ const AKATSUKI := [
 	{"name": "Yoake no Kami", "alias": "Örgütün Lideri", "v": "ame", "el": "suiton", "j": ["suiton_suiryuudan", "raiton_nagashi", "fuuton_daitoppa"], "weapon": "", "hair": "diken", "hp": 6500.0, "pair": 4, "leader": true},
 ]
 
+## Kaçak rütbeleri: şöhret (infamy) eşiği, ad, alınabilecek en yüksek iş rütbesi
+const ROGUE_RANKS := [[0, "Firari", "C"], [300, "Kiralık Kılıç", "B"], [900, "Kara Listede", "A"], [2000, "Aranan Gölge", "S"], [4000, "Efsanevi Kaçak", "S"]]
+## Kaçak giremez: büyük gizli köyler (muhafızlar tanır); küçük kasabalarda saklanabilir
+const ROGUE_BANNED := ["konoha", "suna", "kiri", "kumo", "iwa", "ame"]
+
+var _hideout_node: Node3D = null
+var _ban_msg_t := 0.0
 var _t := 0.0
 var _hunt_t := 0.0
 var _hunter_t := 0.0
@@ -208,8 +215,13 @@ func defect() -> void:
 	Gear.apply_look(p())
 	if Game.player:
 		Game.player.rebuild_model()
+	f["infamy"] = 0
+	f.erase("hideout")
 	player_defected.emit()
-	Hud.banner("KAÇAK NİNJA", "Alın koruyucundaki sembol artık bir çizik. Av-ninjaları peşinde.", Color(0.85, 0.2, 0.2))
+	var hp = hideout_pos()
+	Hud.banner("KAÇAK NİNJA", "Alın koruyucundaki sembol artık bir çizik. Av-ninjaları peşinde. Gizli köylere giremezsin; sığınağın: %s" % Game.region_name(hp), Color(0.85, 0.2, 0.2))
+	Game.profile["waypoint"] = [hp.x, hp.y, hp.z, "Kaçak Sığınağı"]
+	Game.profile["track"] = "waypoint"
 	Sfx.play("roar", null, 0.6, 0.5)
 	Game.save_game()
 
@@ -234,6 +246,7 @@ func pardon_done(_m: Dictionary, ok: bool) -> void:
 		return
 	var f = flags()
 	f["rogue"] = false
+	f.erase("hideout")
 	state()["bounty"] = 0
 	Game.profile["rep"][String(f.get("rogue_from", Progress.home()))] = 0
 	Gear.apply_look(p())
@@ -257,9 +270,165 @@ func own_bingo_entry() -> Dictionary:
 		"region": Game.region_name(Game.player.global_position) if Game.player else "", "area": [0, 0], "hide": [0, 0], "known": 0.0}
 
 
-func _hunter_tick(dt: float) -> void:
+# ------------------------------------------------------------------ kaçak hayatı: sığınak, rütbe, işler, köy yasağı
+## Kaçak sığınağı: terk edilen köyden uzak (1.5-3 km), karada sabit bir nokta (dünya yeri yoksa açık arazi)
+func hideout_pos() -> Vector3:
+	var f = flags()
+	if not f.has("hideout"):
+		var vid = String(f.get("rogue_from", Progress.home()))
+		var v = Game.village(vid)
+		var c = [float(v.get("x", 0)), float(v.get("y", 0))]
+		var q = Missions._poi(["ruin", "camp", "hamlet"], c, 3200.0)
+		if q == null or Vector2(q[0], q[1]).distance_to(Vector2(c[0], c[1])) < float(v.get("r", 500)) + 1200.0:
+			q = Missions._spot(vid, 1500.0, 2600.0)
+		f["hideout"] = [float(q[0]), float(q[1])]
+	var h: Array = f["hideout"]
+	var w = Game.from_map(Vector2(h[0], h[1]))
+	w.y = Game.ground_height(w.x, w.z)
+	return w
+
+
+func infamy() -> int:
+	return int(flags().get("infamy", 0))
+
+
+func add_infamy(n: int) -> void:
+	var before = rogue_rank()
+	flags()["infamy"] = infamy() + n
+	state()["bounty"] = int(state().get("bounty", 5000)) + n * 10
+	var after = rogue_rank()
+	if after > before:
+		Hud.banner("KAÇAK RÜTBESİ: %s" % String(ROGUE_RANKS[after][1]).to_upper(), "Adın yeraltında yayılıyor. Simsar artık %s-rank işler veriyor; av-ninjaları da daha güçlü." % ROGUE_RANKS[after][2], Color(0.85, 0.25, 0.25))
+
+
+func rogue_rank() -> int:
+	var r = 0
+	for i in ROGUE_RANKS.size():
+		if infamy() >= int(ROGUE_RANKS[i][0]):
+			r = i
+	return r
+
+
+func rogue_rank_name() -> String:
+	return String(ROGUE_RANKS[rogue_rank()][1])
+
+
+func _pardon_active() -> bool:
+	return String(Missions.active().get("hook", "")) == "Orgs.pardon_done"
+
+
+## Sığınak: kamp + yeraltı simsarı (iş panosu). Kaçakken sahnede durur
+func _ensure_hideout() -> void:
+	if not is_rogue():
+		if is_instance_valid(_hideout_node):
+			_hideout_node.queue_free()
+			_hideout_node = null
+			Interact.items = Interact.items.filter(func(it): return it.get("kind", "") != "rogue_broker")
+		return
+	if is_instance_valid(_hideout_node) or Game.world == null:
+		return
+	var at = hideout_pos()
+	_hideout_node = Missions._camp(at)
+	Interact.items = Interact.items.filter(func(it): return it.get("kind", "") != "rogue_broker")
+	Interact.add({"pos": at + Vector3(0, 1.0, 4.0), "radius": 4.0, "kind": "rogue_broker", "label": "[F] Yeraltı Simsarı (kaçak işleri, rütbe, dinlen)"})
+
+
+func broker_dialog() -> void:
+	var r = rogue_rank()
+	var nxt = ("  •  Sonraki rütbe: %d şöhret" % int(ROGUE_RANKS[r + 1][0])) if r + 1 < ROGUE_RANKS.size() else ""
+	var opts = []
+	if Missions.active().is_empty():
+		var top = "CBAS".find(String(ROGUE_RANKS[r][2]))
+		for rk in ["C", "B", "A", "S"]:
+			if "CBAS".find(rk) > top:
+				break
+			var job = _rogue_job(rk)
+			opts.append({"label": "[%s] %s" % [rk, job["title"]], "tip": job["brief"], "cb": func(): Missions.accept(job)})
+	else:
+		opts.append({"label": "(Önce elindeki işi bitir)", "cb": func(): pass})
+	opts.append({"label": "Ateşin başında dinlen (can/chakra, kayıt)", "cb": func():
+		if Game.player:
+			Game.player.hp = Game.player.max_hp
+			Game.player.chakra = Game.player.max_chakra
+		Game.save_game()
+		Hud.msg("Dinlendin. (Oyun kaydedildi)", Color(0.8, 0.9, 1))})
+	Hud.dialog("Yeraltı Simsarı", "Kapüşonlu adam ateşi karıştırıyor: \"Kaçaklar için iş hep vardır, %s. Ödülü yüksek olanın riski de yüksek.\"\n\nKaçak rütben: %s  (şöhret %d)%s\nBaşındaki ödül: %d Ryō" % [p()["name"], rogue_rank_name(), infamy(), nxt, int(state().get("bounty", 0))], opts)
+
+
+## Kaçak işleri: suikast, kervan soygunu, haraç, kaçakçılık (ödül + şöhret)
+func _rogue_job(rk: String) -> Dictionary:
+	var vid = String(flags().get("rogue_from", Progress.home()))
+	var h: Array = flags().get("hideout", [0, 0])
+	var back = {"kind": "goto", "at": h, "r": 14.0, "name": "Kaçak Sığınağı", "text": "Sığınağa dön, simsara haber ver."}
+	var lv = maxi(int(p()["level"]), 10)
+	var pw = float({"C": 1.4, "B": 1.9, "A": 2.4, "S": 3.0}[rk])
+	var cnt = int({"C": 2, "B": 3, "A": 4, "S": 5}[rk])
+	var far = Missions._near_spot(h, 500.0, 1100.0)
+	var base = {"rank": rk, "village": "kacak", "giver": "Yeraltı Simsarı", "hook": "Orgs.rogue_job_done"}
+	var kind = ["suikast", "soygun", "harac", "kacakcilik"].pick_random()
+	match kind:
+		"suikast":
+			var t = ["Yozlaşmış Vali Takenori", "Köle Tüccarı Gonbei", "Rüşvetçi Komutan Isao", "Tefeci Kanemaru"].pick_random()
+			return base.merged({"title": "Suikast: %s" % t, "brief": "%s korumalarıyla şehir dışında konaklıyor. Korumaları dağıt, hedefi indir." % t,
+				"steps": [{"kind": "kill", "at": far, "enemy": "samurai", "n": cnt, "camp": true, "night": true,
+					"boss": {"name": t, "hp": 500.0 + lv * 25.0, "level": lv, "power": pw}, "text": "Korumaları ve hedefi etkisiz hale getir."}, back]})
+		"soygun":
+			return base.merged({"title": "Kervan Soygunu", "brief": "Daimyo'nun vergi kervanı yakından geçiyor. Muhafızları yen, sandıkları al.",
+				"steps": [{"kind": "kill", "at": far, "enemy": "samurai", "n": cnt + 1, "camp": true, "text": "Kervan muhafızlarını yen."},
+					{"kind": "points", "at": far, "n": 3, "spread": 10, "label": "[F] Sandığı aç", "fx": "tag", "text": "Vergi sandıklarını boşalt (3)."}, back]})
+		"harac":
+			var gang = ["Kızıl Akrep", "Kara Tilki", "Demir Diş"].pick_random()
+			return base.merged({"title": "Haraç: %s Çetesi" % gang, "brief": "%s Çetesi simsarın payını ödemiyor. Liderlerine kimin patron olduğunu hatırlat." % gang,
+				"steps": [{"kind": "kill", "at": far, "enemy": "bandit", "n": cnt + 1, "camp": true,
+					"boss": {"name": "%s Lideri" % gang, "hp": 400.0 + lv * 20.0, "level": lv, "power": pw * 0.9}, "text": "Çeteyi ve liderini yen."}, back]})
+		_:
+			var drop = Missions._near_spot(h, 900.0, 1600.0)
+			return base.merged({"title": "Kaçakçılık", "brief": "Mühürlü bir sandığı sınırdaki alıcıya götür. Köyün av-ninjaları yolu tutmuş olabilir.",
+				"steps": [{"kind": "goto", "at": drop, "r": 14.0, "name": "Buluşma Noktası", "text": "Sandığı buluşma noktasına götür."},
+					{"kind": "kill", "at": drop, "enemy": vid if vid in ["kumo", "kiri", "iwa", "suna"] else "rogue", "n": cnt, "text": "Pusuya düşürüldün! Av-ninjalarını savuştur."}, back]})
+
+
+func rogue_job_done(m: Dictionary, ok: bool) -> void:
+	if not ok:
+		return
+	add_infamy(int({"C": 80, "B": 180, "A": 350, "S": 600}.get(String(m.get("rank", "C")), 80)))
+	Hud.msg("Yeraltında adın büyüyor (şöhret %d — %s)" % [infamy(), rogue_rank_name()], Color(0.9, 0.5, 0.45))
+
+
+## Kaçak büyük gizli köylere giremez: muhafızlar sur dışına iter (Kefaret görevinin son adımı hariç)
+func _village_ban(dt: float) -> void:
 	if not is_rogue() or Game.player == null:
 		return
+	_ban_msg_t -= dt
+	var pl = Game.player
+	var m = Game.to_map(pl.global_position)
+	for vid in ROGUE_BANNED:
+		var v = Game.village(vid)
+		if v.is_empty():
+			continue
+		var c = Vector2(v["x"], v["y"])
+		var r = float(v["r"])
+		var d = m.distance_to(c)
+		if d > r * 0.93:
+			continue
+		if _pardon_active() and vid == String(flags().get("rogue_from", "")):
+			var st: Array = Missions.active().get("steps", [])
+			if int(Missions.active().get("step", 0)) >= st.size() - 1:
+				continue
+		var out = c + (m - c).normalized() * (r + 25.0)
+		var w = Game.from_map(out)
+		w.y = Game.ground_height(w.x, w.z)
+		pl.respawn(Missions.open_ground(w, 30.0))
+		FX.smoke_puff(pl.global_position + Vector3.UP, 1.0, 12)
+		if _ban_msg_t <= 0.0:
+			_ban_msg_t = 4.0
+			Hud.banner("GİREMEZSİN", "%s muhafızları kaçak bir ninjayı tanıdı ve seni surların dışına attı." % v.get("name", vid), Color(0.9, 0.3, 0.3))
+		return
+
+
+func _hunter_tick(dt: float) -> void:
+	if not is_rogue() or Game.player == null or _pardon_active():
+		return   # Kefaret görevinde av-ninjaları gelmez (köy affı bekliyor)
 	_hunter_t += dt
 	if _hunter_t < 150.0:
 		return
@@ -278,7 +447,7 @@ func _hunter_tick(dt: float) -> void:
 		var a = Enemy.archetype(kind, i)
 		a["name"] = "Av-Ninjası"
 		a["respawn"] = false
-		a["level"] = maxi(15, int(p()["level"]))
+		a["level"] = maxi(15, int(p()["level"])) + rogue_rank() * 2
 		a["hp"] = 300.0 + a["level"] * 20.0
 		a["power"] = 1.8 + a["level"] * 0.02
 		a["look"]["face_style"] = ["anbu_kedi", "anbu_kurt", "anbu_kus"][i]
@@ -297,6 +466,7 @@ func on_enemy_killed(e: Node) -> void:
 	if e.has_meta("hunter_nin"):
 		flags()["hunters_beaten"] = int(flags().get("hunters_beaten", 0)) + 1
 		state()["bounty"] = int(state().get("bounty", 5000)) + 1500
+		add_infamy(25)
 	if e.has_meta("akatsuki"):
 		var n = String(e.get_meta("akatsuki"))
 		var dead: Array = state().get("akatsuki_dead", [])
@@ -455,6 +625,8 @@ func _process(dt: float) -> void:
 		return
 	_invasion_tick(dt)
 	_hunter_tick(dt)
+	_village_ban(dt)
+	_ensure_hideout()
 	_t += dt
 	if _t >= 20.0:
 		_t = 0.0

@@ -2557,7 +2557,13 @@ static func world_map(main: Node) -> void:
 		if not visited:
 			continue
 		var vid: String = v["id"]
+		if Orgs.is_rogue() and vid in Orgs.ROGUE_BANNED:
+			continue   # kaçak gizli köylere ışınlanamaz
 		sv.add_child(UI.button(v["name"], func(): main.fast_travel(vid), side_w - 40, "village"))
+	if Orgs.is_rogue():
+		sv.add_child(UI.button("Kaçak Sığınağı", func():
+			main.resume()
+			Game.player.respawn(Missions.open_ground(Orgs.hideout_pos() + Vector3(0, 0, 6), 20.0)), side_w - 40, "village"))
 	# yakındaki önemli yerler: tıkla -> ok ve ışık sütunu oraya yönlendirir
 	if Game.player:
 		var near = Interact.landmarks(Game.player.global_position, 2500.0)
