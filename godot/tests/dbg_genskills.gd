@@ -16,7 +16,7 @@ func _ready() -> void:
 	main.add_child(cam)
 	cam.current = true
 	var only = OS.get_environment("ONLY")
-	var ids = [only] if only != "" else ["katon_endan", "futon_reppusho", "suiton_teppodama", "raikyu", "futon_kazekiri_no_jutsu", "okasho"]
+	var ids = [only] if only != "" else ["suiton_suidan_no_jutsu", "suiton_suisandan", "suiton_mizu_shuriken", "suiton_mizurappa", "water_release_wild_water_wave", "suiton_homatsu_rappa", "suiton_takitsubo_no_jutsu", "suiton_mizu_shibari", "futon_toppa", "futon_fujin_no_jutsu", "kamaitachi_no_jutsu", "juha_sho", "futon_hanachiri_mai", "zankuha", "zankukyokuha"]
 	for id in ids:
 		var e = Enemy.new()
 		var a = Enemy.archetype("bandit", 0)
@@ -39,7 +39,7 @@ func _ready() -> void:
 			await get_tree().create_timer(0.2).timeout
 			await main.shot("ps_kami_shuriken")
 		await get_tree().create_timer(0.35).timeout
-		if id in ["katon_endan", "futon_reppusho", "suiton_teppodama", "raikyu", "futon_kazekiri_no_jutsu", "okasho"]:
+		if id in ["suiton_mizurappa", "water_release_wild_water_wave", "suiton_takitsubo_no_jutsu", "suiton_mizu_shibari", "futon_toppa", "kamaitachi_no_jutsu", "juha_sho", "zankukyokuha"]:
 			pl.set_process(false)
 			var fw = pl.face_dir()
 			if id == "kami_tsubasa":
