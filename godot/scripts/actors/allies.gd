@@ -52,7 +52,7 @@ func _physics_process(dt: float) -> void:
 				cd = 0.45
 				model.play(["jab", "cross", "hook"].pick_random(), 0.05, 1.5, true)
 				var pt = global_position + Vector3.UP * 1.1 + face_dir() * (radius + 0.8)
-				if not Combat.hit_sphere(self, pt, 0.8, {"dmg": 5.0 * Stats.melee_mult(Game.profile) * (1.0 + Stats.skill(Game.profile, "squad")), "knock": 2.0, "kind": "light", "flinch": randf() < 0.65}).is_empty():
+				if not Combat.hit_sphere(self, pt, 0.8, {"dmg": 2.6 * Stats.melee_mult(Game.profile) * (1.0 + Stats.skill(Game.profile, "squad")), "knock": 1.5, "kind": "light", "flinch": randf() < 0.4}).is_empty():
 					FX.hit_spark(pt, Color(1, 0.85, 0.5), 0.6)
 					Sfx.play("punch", pt)
 	elif Game.player:

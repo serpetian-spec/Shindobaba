@@ -305,7 +305,10 @@ func _attack() -> void:
 		parts["player"].play(parts["anims"]["attack"], 0.1)
 	for sa in parts["root"].find_children("SnakeAnim*", "", true, false):   # yılan: ısırma atılışı
 		sa.bite()
-	var dmg: float = def.get("dmg", 20.0) * (1.0 + float(Game.profile.get("level", 1)) * 0.03) * (1.0 + Stats.skill(Game.profile, "summon_power") + Stats.skill(Game.profile, "squad"))
+	# denge: çağrılar tek başına kuyruklu canavar kesiyordu — seviye çarpanı ve taban düşürüldü, dev hedeflere yarı hasar
+	var dmg: float = def.get("dmg", 20.0) * 0.6 * (1.0 + float(Game.profile.get("level", 1)) * 0.012) * (1.0 + Stats.skill(Game.profile, "summon_power") + Stats.skill(Game.profile, "squad"))
+	if tgt != null and is_instance_valid(tgt) and (tgt.has_method("hit_test") or tgt.get("arch") is Dictionary and (tgt.arch as Dictionary).has("style")):
+		dmg *= 0.5
 	var model: String = def.get("model", "")
 	var pt = _front(height * 0.15)
 	if model.begins_with("toad"):
@@ -361,7 +364,7 @@ func _special() -> void:
 	var nm = String(SIG_NAME.get(model, ""))
 	if nm != "":
 		Combat.popup_text(global_position + Vector3.UP * (height + 1.2), nm + "!", Contracts.DEFS[contract]["color"].lightened(0.35))
-	var dmg: float = def.get("dmg", 20.0)
+	var dmg: float = def.get("dmg", 20.0) * 0.6
 	match model:
 		"toad_mid":
 			if tgt:  # dil ile yakala ve çek

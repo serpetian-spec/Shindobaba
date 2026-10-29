@@ -517,7 +517,7 @@ func play(key: String, blend := 0.15, speed := 1.0, restart := false) -> void:
 
 
 ## [boy, kafa, göğüs genişliği, uzuv kalınlığı, bacak boyu]
-const AGES := {"child": [0.78, 1.2, 0.84, 0.82, 1.0], "teen": [0.87, 1.09, 0.91, 0.9, 1.0], "young": [0.94, 1.03, 0.97, 0.96, 1.0], "adult": [1.0, 1.0, 1.0, 1.0, 1.0]}
+const AGES := {"child": [0.78, 1.1, 0.84, 0.82, 1.0], "teen": [0.87, 1.05, 0.91, 0.9, 1.0], "young": [0.94, 1.03, 0.97, 0.96, 1.0], "adult": [1.0, 1.0, 1.0, 1.0, 1.0]}
 var age_scale = 1.0
 
 

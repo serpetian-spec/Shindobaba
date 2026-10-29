@@ -66,7 +66,8 @@ func _ready() -> void:
 	game_hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	game_hud.visible = false
 	root.add_child(game_hud)
-	map_tex = load("res://data/world/map.png")
+	map_tex = Game.world_map_tex()
+	Game.map_ready.connect(func(): map_tex = Game.world_map_tex())
 	Icons.ensure(self)
 	Thumbs.ensure(self)
 	_build_vitals()

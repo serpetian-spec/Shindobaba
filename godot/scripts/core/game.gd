@@ -400,6 +400,53 @@ func out_of_wall(p: Vector3) -> Vector3:
 	return p
 
 
+## Dünya haritası: bake görseli yalnız kaba yüksekliği biliyordu (ayrıntı gürültüsü kıyıları değiştiriyordu) — haritada kara görünen yer
+## suyun altında, su görünen yer kara çıkıyordu. Gerçek arazi yüksekliğiyle bir kez düzeltilir, user:// içinde saklanır.
+var map_texture: Texture2D
+signal map_ready
+const MAP_FIX := "user://map_fixed_v2.png"   # yalnız kara görünen su: nehir çizgileri korunur
+
+
+func world_map_tex() -> Texture2D:
+	if map_texture == null:
+		if FileAccess.file_exists(MAP_FIX):
+			var im := Image.load_from_file(MAP_FIX)
+			if im:
+				map_texture = ImageTexture.create_from_image(im)
+		if map_texture == null:
+			map_texture = load("res://data/world/map.png")
+			WorkerThreadPool.add_task(_fix_map)
+	return map_texture
+
+
+func _fix_map() -> void:
+	var src: Image = (load("res://data/world/map.png") as Texture2D).get_image()
+	src.convert(Image.FORMAT_RGB8)
+	var w := src.get_width()
+	var h := src.get_height()
+	var sx := float(hw) / w
+	var sy := float(hh) / h
+	var paper := Color(240 / 255.0, 228 / 255.0, 200 / 255.0)
+	for py in h:
+		for px in w:
+			var x := x0 + (px + 0.5) * sx * res
+			var z := -(y1 - (py + 0.5) * sy * res)
+			var th := terrain_height(x, z)
+			var c := src.get_pixel(px, py)
+			var is_water := c.b > c.r + 0.12 and c.b > c.g
+			if th < -0.3 and not is_water:
+				var dp := clampf(-th / 60.0, 0.0, 1.0)
+				var wc := Color(70 / 255.0, 140 / 255.0, 190 / 255.0).lerp(Color(30 / 255.0, 70 / 255.0, 120 / 255.0), dp)
+				src.set_pixel(px, py, wc.lerp(paper, 0.18))
+	src.save_png(MAP_FIX)
+	call_deferred("_map_done", src)
+
+
+func _map_done(im: Image) -> void:
+	map_texture = ImageTexture.create_from_image(im)
+	map_ready.emit()
+
+
 func village(id: String) -> Dictionary:
 	for v in world_info["villages"]:
 		if v["id"] == id:

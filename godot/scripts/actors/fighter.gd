@@ -48,7 +48,7 @@ func _build_body() -> void:
 		model = CharacterModel.new()
 		add_child(model)
 		model.setup(look)
-		model.scale = Vector3.ONE * size
+		model.scale = Vector3.ONE * size * float(model.age_scale)   # çocuk klon çocuk boyunda (ölçek yaşı eziyordu)
 
 
 func is_dead() -> bool:

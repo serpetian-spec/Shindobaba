@@ -2507,7 +2507,7 @@ static func shop_screen(title: String, entries: Array, buy: Callable) -> void:
 # ================================================================== dünya haritası + hızlı seyahat
 static func world_map(main: Node) -> void:
 	var bg = _full(0.7)
-	var tex: Texture2D = load("res://data/world/map.png")
+	var tex: Texture2D = Game.world_map_tex()
 	var vp = bg.get_viewport_rect().size
 	var side_w = 330.0
 	var scale = minf((vp.x - side_w - 180) / tex.get_width(), (vp.y - 140) / tex.get_height())

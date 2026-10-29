@@ -108,7 +108,7 @@ func set_level(l: int) -> void:
 		if before == 6:
 			_end_transform()
 		_ensure_cloak()
-		_set_tails(mini(level, 4) if level <= 4 else BeastModels.INFO.get(beast_id(), {}).get("tails", 4))
+		_set_tails(mini(level, int(BeastModels.INFO.get(beast_id(), {}).get("tails", 4))) if level <= 4 else int(BeastModels.INFO.get(beast_id(), {}).get("tails", 4)))   # iki kuyruklu canavar 4 kuyruklu pelerin çıkarmasın
 		mat.set_shader_parameter("col", chakra_col())
 		mat.set_shader_parameter("dark", 0.85 if level == 5 and chakra_col() == BeastModels.INFO.get(beast_id(), {}).get("chakra", Color.BLACK) else 0.0)
 		mat.set_shader_parameter("grow", 0.05 + level * 0.012)
