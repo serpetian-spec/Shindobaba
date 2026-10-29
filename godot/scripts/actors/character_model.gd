@@ -266,13 +266,17 @@ static func _donor_part(donor: String, mesh_name: String, mat_filter := "") -> D
 			for q in gr["v"]:
 				iris = iris.expand(q)
 			var cx = iris.get_center().x
-			var sides = [[Vector3.ZERO, 0, 1e9, -1e9], [Vector3.ZERO, 0, 1e9, -1e9]]
+			var sides = [[Vector3.ZERO, 0, 1e9, -1e9, 1e9, -1e9], [Vector3.ZERO, 0, 1e9, -1e9, 1e9, -1e9]]
 			for q in gr["v"]:
 				var sd = sides[0 if q.x < cx else 1]
 				sd[0] += q; sd[1] += 1
 				sd[2] = minf(sd[2], q.x); sd[3] = maxf(sd[3], q.x)
+				sd[4] = minf(sd[4], q.y); sd[5] = maxf(sd[5], q.y)
 			if sides[0][1] > 0 and sides[1][1] > 0:
-				iris_c = [sides[0][0] / sides[0][1], sides[1][0] / sides[1][1], (sides[0][3] - sides[0][2]) * 0.5]
+				# merkez = sınır kutusunun ortası (köşe ortalaması kalabalık tarafa kayıyordu); yarıçap en/boy ayrı
+				var c0 = Vector3((sides[0][2] + sides[0][3]) * 0.5, (sides[0][4] + sides[0][5]) * 0.5, (sides[0][0] / sides[0][1]).z)
+				var c1 = Vector3((sides[1][2] + sides[1][3]) * 0.5, (sides[1][4] + sides[1][5]) * 0.5, (sides[1][0] / sides[1][1]).z)
+				iris_c = [c0, c1, (sides[0][3] - sides[0][2]) * 0.5, (sides[0][5] - sides[0][4]) * 0.5]
 	inst.free()
 	out = {"mesh": am, "mats": mats, "aabb": aabb, "iris": iris, "iris_c": iris_c}
 	_donor_cache[key] = out
@@ -325,10 +329,11 @@ func _face_and_hair() -> void:
 				eye_mat.set_shader_parameter("tex", tex)
 				eye_mat.set_shader_parameter("eye_color", look["eye"])
 				var ic2: Array = fd.get("iris_c", [])
-				if ic2.size() == 3:
+				if ic2.size() >= 3:
 					eye_mat.set_shader_parameter("eye_c_r", ic2[0])
 					eye_mat.set_shader_parameter("eye_c_l", ic2[1])
 					eye_mat.set_shader_parameter("iris_r3", ic2[2])
+					eye_mat.set_shader_parameter("iris_r2", Vector2(ic2[2], ic2[3] if ic2.size() > 3 else ic2[2]))
 				face_mi.set_surface_override_material(si, eye_mat)
 				materials.append(eye_mat)
 			elif mname.contains("SKIN"):
@@ -337,7 +342,7 @@ func _face_and_hair() -> void:
 				sm.set_shader_parameter("tex", tex)
 				face_skin_mat = sm
 				var ic4: Array = fd.get("iris_c", [])
-				if ic4.size() == 3:
+				if ic4.size() >= 3:
 					sm.set_shader_parameter("eye_c_r", ic4[0])
 					sm.set_shader_parameter("eye_c_l", ic4[1])
 					sm.set_shader_parameter("iris_r3", ic4[2])
@@ -349,7 +354,7 @@ func _face_and_hair() -> void:
 				sclera_mat.shader = load("res://shaders/vroid_sclera.gdshader")
 				sclera_mat.set_shader_parameter("tex", tex)
 				var ic3: Array = fd.get("iris_c", [])
-				if ic3.size() == 3:
+				if ic3.size() >= 3:
 					sclera_mat.set_shader_parameter("eye_c_r", ic3[0])
 					sclera_mat.set_shader_parameter("eye_c_l", ic3[1])
 					sclera_mat.set_shader_parameter("iris_r3", ic3[2])

@@ -24,6 +24,7 @@ uniform float hit_flash = 0.0;
 uniform vec3 eye_c_r = vec3(-0.032, 1.62, 0.08);
 uniform vec3 eye_c_l = vec3(0.032, 1.62, 0.08);
 uniform float iris_r3 = 0.011;
+uniform vec2 iris_r2 = vec2(0.0);   // iris yarı en/boy (model uzayı); >0 ise desen gerçek iris geometrisine oturur
 varying vec3 lp;
 
 void vertex() {
@@ -70,7 +71,14 @@ void fragment() {
 			// rinnegan: tüm iris yüzeyi lila, eşmerkezli halkalar (dokudaki asıl iris/bebek görünmez), küçük bebek
 			c = vec4(rinne_col(lp, lp.x > 0.0 ? eye_c_l : eye_c_r, iris_r3), tx.a);
 		} else if (dk > 0) {
-			vec2 q = iq / 1.34;   // desen irisin tamamını kaplasın (kenarda asıl göz rengi görünüyordu)
+			// desen gerçek iris geometrisine oturur: model uzayında göz merkezi ve iris yarı en/boyu (doku tahmini kayıyordu)
+			vec2 q = iq / 1.34;
+			if (iris_r2.x > 0.0) {
+				vec3 ec = lp.x > 0.0 ? eye_c_l : eye_c_r;
+				ec.y -= iris_r2.y * 0.28;   // irisin üstü göz kapağı altında: görünen merkez daha aşağıda
+				q = (lp - ec).xy / (iris_r2 * 0.97);
+				q.x *= lp.x > 0.0 ? 1.0 : -1.0;
+			}
 			float r = length(q);
 			if (r < 1.0) {
 				float ang = atan(q.y, q.x);

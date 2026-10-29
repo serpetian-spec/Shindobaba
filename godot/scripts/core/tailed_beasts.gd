@@ -347,6 +347,34 @@ func _spawn(id: String, lair: Vector2) -> void:
 	spawned[id] = b
 
 
+## Mangekyō ile bağlı canavarı müttefik olarak çağır (40 sn); birden çoksa sırayla
+var _ms_idx := 0
+func summon_ms_beast(c: Node3D) -> bool:
+	var lst: Array = Game.profile.get("beast_ms", [])
+	if lst.is_empty():
+		return false
+	var id = String(lst[_ms_idx % lst.size()])
+	_ms_idx += 1
+	for n in get_tree().get_nodes_in_group("fighters"):
+		if n is TailedBeast and n.ally_owner == c:
+			n.ally_life = 0.0   # eskisi geri döner
+	var b = TailedBeast.new()
+	b.setup(id)
+	var p = Missions.open_ground(c.global_position + c.face_dir() * 18.0, 20.0)
+	get_tree().current_scene.add_child(b)
+	b.global_position = p
+	b.home = p
+	b.make_ally(c, 40.0)
+	b.rig.scale = Vector3.ONE * 0.05
+	b.rig.create_tween().tween_property(b.rig, "scale", Vector3.ONE, 0.7).set_trans(Tween.TRANS_BACK)
+	FX.smoke_puff(p + Vector3.UP * b.height * 0.5, b.height * 0.5, 60)
+	if Game.world:
+		Game.world.env.add_shake(1.2)
+	Sfx.play("roar", p, 0.7)
+	Hud.banner("BİJŪ KUCHİYOSE", "%s Sharingan'ın emrinde! (40 sn)" % BeastModels.INFO[id]["name"].split(" — ")[0], BeastModels.INFO[id]["chakra"])
+	return true
+
+
 ## Dünya haritası için: canavarların bilinen yerleri
 func lair_markers() -> Array:
 	var out = []
@@ -419,6 +447,10 @@ func _seal_dialog(b) -> void:
 	opts.append({"label": "Mühür kabına hapset", "tip": "Büyük ödül; canavar kabda saklanır, dilediğinde Tab > Kuyruklu Canavarlar'dan içine aktarabilirsin.", "cb": func():
 		pl.chakra -= cost
 		_finish_seal(b, "jar")})
+	if Progress.has_eye("mangekyo"):
+		opts.append({"label": "Sharingan ile boyun eğdir (Mangekyō)", "tip": "Canavar iradeni taşır: sonra jutsu yuvasından «Bijū Kuchiyose» ile savaşa çağırırsın (gözler açıkken).", "cb": func():
+			pl.chakra -= cost
+			_finish_seal(b, "ms")})
 	opts.append({"label": "Serbest bırak", "tip": "Canavar sana saygı duyar; ileride bağ kurmak kolaylaşır.", "cb": func(): _finish_seal(b, "free")})
 	Hud.dialog("%s — Mühürleme" % nm, "Canavar diz çökmüş, chakrası dağılıyor. Ne yapacaksın?", opts)
 
@@ -443,6 +475,14 @@ func _finish_seal(b, how: String) -> void:
 				Gear.grant(pr, lg)
 				Hud.msg("Efsanevi ödül: %s" % Gear.item(lg).get("name", lg), Color(1, 0.8, 0.3))
 			Hud.banner("MÜHÜRLENDİ", "%s mühür kabına hapsedildi. İstersen sonra kendi içine aktarabilirsin: Tab > Kuyruklu Canavarlar" % BeastModels.INFO[id]["name"], Color(1, 0.8, 0.4))
+		"ms":
+			b.sealed_away(null)
+			beasts()[id]["state"] = "ms_bound"
+			if not pr.has("beast_ms"):
+				pr["beast_ms"] = []
+			if not id in pr["beast_ms"]:
+				pr["beast_ms"].append(id)
+			Hud.banner("BOYUN EĞDİ", "%s Mangekyō'nun iradesine bağlandı. Jutsular (K) > «Bijū Kuchiyose» yuvaya koy; gözler açıkken çağır." % BeastModels.INFO[id]["name"].split(" — ")[0], Color(0.95, 0.15, 0.15))
 		"free":
 			beasts()[id]["state"] = "free"
 			beasts()[id]["trust"] = 30.0

@@ -135,11 +135,55 @@ func _end_fight() -> void:
 	cam_set = false
 
 
+## Mangekyō ile çağrılmış müttefik canavar: sahibinin düşmanlarına saldırır, süre bitince kaybolur
+var ally_owner: Node3D = null
+var ally_life := 0.0
+
+
+## Saldırılacak hedef: vahşi canavar oyuncuya; müttefik canavar en yakın düşmana
+func _foe() -> Node3D:
+	if ally_owner == null:
+		return Game.player
+	var best = null
+	var bd = 160.0
+	for f in get_tree().get_nodes_in_group("fighters"):
+		if f == self or not Combat.hostile(self, f) or f.is_dead():
+			continue
+		var d = global_position.distance_to(f.global_position)
+		if d < bd:
+			bd = d
+			best = f
+	return best
+
+
+func make_ally(owner_n: Node3D, life: float) -> void:
+	ally_owner = owner_n
+	ally_life = life
+	team = owner_n.team
+	set_meta("faction", "")
+	aggro = true
+	display_name = display_name.split(" — ")[0] + " (Sharingan'ın kontrolünde)"
+
+
 func _physics_process(dt: float) -> void:
 	if dead or Game.paused:
 		return
-	var pl = Game.player
+	if ally_owner != null:
+		ally_life -= dt
+		if ally_life <= 0.0 or not is_instance_valid(ally_owner) or hp < max_hp * 0.15:
+			dead = true
+			FX.smoke_puff(global_position + Vector3.UP * height * 0.5, height * 0.4, 40)
+			Sfx.play("poof", global_position, 0.5)
+			queue_free()
+			return
+	var pl = _foe()
 	if pl == null:
+		if ally_owner != null and is_instance_valid(ally_owner):
+			# hedef yok: sahibinin yanında bekle
+			if global_position.distance_to(ally_owner.global_position) > height * 1.2:
+				_walk_to(ally_owner.global_position, dt, 0.8)
+			else:
+				rig.move_speed = move_toward(rig.move_speed, 0.0, dt * 2.0)
 		return
 	for k in statuses.keys():
 		statuses[k] -= dt
@@ -165,7 +209,7 @@ func _physics_process(dt: float) -> void:
 		if dist < maxf(220.0, height * 2.5) and Engine.get_process_frames() % 20 == 0:
 			_start_fight()
 		return
-	if dist > maxf(900.0, height * 10.0):
+	if dist > maxf(900.0, height * 10.0) and ally_owner == null:
 		_end_fight()
 		return
 	# yöne dön
@@ -174,6 +218,8 @@ func _physics_process(dt: float) -> void:
 	rig.rotation.y = facing
 	# fazlar
 	var hpf = hp / max_hp
+	if ally_owner != null:
+		hpf = 1.0   # müttefik: öfke fazları/afiş yok
 	if phase == 1 and hpf < PHASE2:
 		phase = 2
 		Hud.banner(display_name, "ÖFKELENDİ — Kuyruklu Canavar Topu!", Color(1, 0.35, 0.25))
@@ -330,7 +376,9 @@ func _crater(c: Vector3, r: float) -> void:
 
 ## Canavara özel teknik (BijuuArts): Renkūdan, mercan, lav fışkırması, asit baloncukları, mürekkep, chakra kolu...
 func _element_attack() -> void:
-	var pl = Game.player
+	var pl = _foe()
+	if pl == null:
+		return
 	var dist = (pl.global_position - global_position).length()
 	# teknik ölçeği: dev ama oyuncunun ekranını kaplamayacak kadar (alan teknikleri oyuncunun çevresine iner)
 	var ts = clampf(height / 14.0, 2.0, 3.5)
@@ -345,7 +393,9 @@ func _element_attack() -> void:
 
 
 func _element_attack_old() -> void:
-	var pl = Game.player
+	var pl = _foe()
+	if pl == null:
+		return
 	var from = rig.mouth_pos()
 	var aim = (pl.global_position + Vector3.UP - from).normalized()
 	var ch: Color = info["chakra"]
@@ -457,7 +507,9 @@ func _ball_tick(k: float) -> void:
 		atk_hit = true
 		if ball and is_instance_valid(ball):
 			ball.queue_free()
-		var pl = Game.player
+		var pl = _foe()
+		if pl == null:
+			return
 		var from = rig.mouth_pos()
 		var aim = (pl.global_position + Vector3.UP - from).normalized()
 		TailedBeasts.fire_ball(self, from, aim, height * 0.07, info["chakra"], _dmg(110.0), 75.0)

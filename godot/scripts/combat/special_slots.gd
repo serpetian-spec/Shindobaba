@@ -7,6 +7,7 @@ extends RefCounted
 const EYE_IDS := ["goz_sag", "goz_sol"]
 const BIJUU_IDS := ["bijuu_t0", "bijuu_t1", "bijuu_t2"]
 const SUS_IDS := ["susanoo_t0", "susanoo_t1", "susanoo_t2"]
+const MS_BIJUU_ID := "ms_bijuu_kuchiyose"
 
 
 ## Oyuncunun şu an sahip olduğu özel teknikleri Data.jutsu'ya yazar; artık sahip olmadıklarını siler. Kimlik listesi döner.
@@ -38,6 +39,12 @@ static func refresh(pr: Dictionary) -> Array:
 			out.append(id)
 		else:
 			Data.jutsu.erase(id)
+	if not (pr.get("beast_ms", []) as Array).is_empty():
+		Data.jutsu[MS_BIJUU_ID] = {"name": "Bijū Kuchiyose (Mangekyō)", "cost": 120, "cd": 60.0, "element": "", "category": "dojutsu", "canon_rank": "S",
+			"seals": [], "virtual": "msbijuu", "desc": "Sharingan'la boyun eğdirdiğin kuyruklu canavarı 40 sn savaşa çağırır (gözler açık olmalı). Birden çoksa sırayla gelir."}
+		out.append(MS_BIJUU_ID)
+	else:
+		Data.jutsu.erase(MS_BIJUU_ID)
 	var mt = Susanoo.max_tier(pr)
 	for i in 3:
 		var id = SUS_IDS[i]
@@ -77,6 +84,21 @@ static func cast(p: Player, jid: String) -> bool:
 		return false
 	var m = p.combat.modes if p.combat else null
 	if m == null:
+		return true
+	if v == "msbijuu":
+		var ey2: Eyes = m.eyes
+		if ey2 == null or not ey2.active or not Progress.has_eye("mangekyo"):
+			Hud.msg("Bijū Kuchiyose için Mangekyō'nu aç (V).", Color(1, 0.4, 0.4))
+			return true
+		if float(p.combat.cooldowns.get(jid, 0.0)) > 0.0:
+			Hud.msg("Canavar henüz dinlenmedi (%.0f sn)" % float(p.combat.cooldowns[jid]), Color(0.9, 0.8, 0.6))
+			return true
+		if p.chakra < 120.0:
+			Hud.msg("Yeterli chakra yok (120).", Color(0.6, 0.7, 1))
+			return true
+		if TailedBeasts.summon_ms_beast(p):
+			p.chakra -= 120.0
+			p.combat.cooldowns[jid] = 60.0
 		return true
 	if v.begins_with("eye:"):
 		var ey: Eyes = m.eyes
