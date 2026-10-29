@@ -527,12 +527,15 @@ func on_player_hit(info: Dictionary) -> bool:
 		Sfx.play("water", p.global_position, 1.5, 0.6)
 		c.invuln = 0.25
 		return true
-	if eyes and info.get("kind", "light") != "heavy" and randf() < eyes.dodge_chance():
+	var predict = eyes != null and eyes.predict_t > 0.0
+	if eyes and (info.get("kind", "light") != "heavy" or predict) and randf() < (0.6 if predict else eyes.dodge_chance()):
 		var side = p.global_transform.basis.x * (1.0 if randf() < 0.5 else -1.0)
 		p.global_position += side * 1.6
 		Combat.popup_text(p.global_position + Vector3.UP * 2.2, "Okundu!", Color(1, 0.4, 0.4))
 		FX.burst(p.global_position + Vector3.UP, {"amount": 10, "life": 0.3, "tex": FX.tex_spark, "size": 0.8, "vmin": 4, "vmax": 8, "colors": [Color(1, 0.4, 0.4, 0.9), Color(1, 0.2, 0.2, 0)]})
 		c.invuln = 0.3
+		if predict:
+			eyes.counter_strike(info)
 		return true
 	return false
 

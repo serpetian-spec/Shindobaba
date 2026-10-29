@@ -30,6 +30,7 @@ var v_held = -1.0
 var markers := {}
 var marker_t = 0.0
 var steal_target: Node3D = null
+var predict_t := 0.0      # Sharingan Öngörü süresi
 
 
 func setup(combat: PlayerCombat) -> void:
@@ -112,6 +113,70 @@ func refresh_visual() -> void:
 	var vl = l if (active or l in ALWAYS_VISIBLE) else 0
 	p.model.set_dojutsu_eyes(vr, _lvl("sag"), vl, _lvl("sol"), active and (r == 2 or l == 2))
 	p.model.set_ms_designs(design_for(Game.profile, "sag_goz"), design_for(Game.profile, "sol_goz"))
+	_third_eye(active and bool(Game.profile.get("flags", {}).get("rinne_sharingan", false)))
+
+
+## Rinne-Sharingan: alında dikey kızıl göz, eşmerkezli halkalar ve dokuz tomoe
+var _third: Node3D = null
+func _third_eye(on: bool) -> void:
+	if is_instance_valid(_third):
+		_third.queue_free()
+	_third = null
+	if not on or p.model == null or p.model.skel == null or p.model.skel.find_bone("Head") < 0:
+		return
+	var ba = BoneAttachment3D.new()
+	ba.bone_name = "Head"
+	p.model.skel.add_child(ba)
+	_third = ba
+	var ec: Vector3 = p.model.eye_center_model if p.model.face_mi else p.model._head_center() + Vector3(0, -0.03, 0.09)
+	var root = Node3D.new()
+	ba.add_child(root)
+	root.position = Vector3(0, ec.y - p.model._bp("Head").y + 0.052, ec.z - p.model._bp("Head").z + 0.07)
+	root.scale = Vector3.ONE * 1.5
+	var red = StandardMaterial3D.new()
+	red.albedo_color = Color(0.85, 0.08, 0.1)
+	red.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var dark = StandardMaterial3D.new()
+	dark.albedo_color = Color(0.05, 0.0, 0.0)
+	dark.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var white = StandardMaterial3D.new()
+	white.albedo_color = Color(0.97, 0.95, 0.93)
+	white.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var lid = MeshInstance3D.new()
+	lid.mesh = SphereMesh.new()
+	lid.material_override = white
+	lid.scale = Vector3(0.022, 0.034, 0.008)
+	root.add_child(lid)
+	var iris = MeshInstance3D.new()
+	iris.mesh = SphereMesh.new()
+	iris.material_override = red
+	iris.scale = Vector3(0.019, 0.019, 0.006)
+	iris.position = Vector3(0, 0, 0.003)
+	root.add_child(iris)
+	for k in 2:
+		var ring = MeshInstance3D.new()
+		var tm = TorusMesh.new()
+		tm.inner_radius = 0.0055 + k * 0.0025; tm.outer_radius = 0.0063 + k * 0.0025; tm.rings = 24; tm.ring_segments = 4
+		ring.mesh = tm
+		ring.material_override = dark
+		ring.rotation.x = PI * 0.5
+		ring.position = Vector3(0, 0, 0.0055)
+		root.add_child(ring)
+	for k in 9:
+		var a = k * TAU / 3.0 + floor(k / 3.0) * 0.5
+		var r = 0.0045 + floor(k / 3.0) * 0.0025
+		var tom = MeshInstance3D.new()
+		tom.mesh = SphereMesh.new()
+		tom.material_override = dark
+		tom.scale = Vector3.ONE * 0.0022
+		tom.position = Vector3(cos(a) * r, sin(a) * r, 0.006)
+		root.add_child(tom)
+	var pupil = MeshInstance3D.new()
+	pupil.mesh = SphereMesh.new()
+	pupil.material_override = dark
+	pupil.scale = Vector3.ONE * 0.003
+	pupil.position = Vector3(0, 0, 0.006)
+	root.add_child(pupil)
 
 
 # ------------------------------------------------------------------ girdi (PlayerModes'tan)
@@ -571,6 +636,7 @@ func _process(dt: float) -> void:
 	check_awaken(dt)
 	for s in cd:
 		cd[s] = maxf(0.0, cd[s] - dt)
+	predict_t = maxf(0.0, predict_t - dt)
 	strain = maxf(0.0, strain - dt * 0.01)
 	# V basılı tutma: Susanoo
 	if v_held >= 0.0:
@@ -632,6 +698,7 @@ func check_awaken(dt: float) -> void:
 			Sfx.play("genjutsu", p.global_position, 1.3)
 			if not active:
 				toggle.call_deferred()
+	evolve_tick(dt)
 	# tomoe ilerlemesi: gözler açıkken dövüş
 	if active and not _enemies_in(25.0).is_empty():
 		for slot in ["sag_goz", "sol_goz"]:
@@ -702,3 +769,94 @@ func melee_bonus() -> float:
 	if active and (_kind("sag") == 2 or _kind("sol") == 2):
 		return 1.25
 	return 1.0
+
+
+## Öngörü sırasında kaçılan saldırıya anında karşı darbe (en yakın düşmana)
+func counter_strike(_info: Dictionary) -> void:
+	var t = Combat.nearest_enemy(p, 5.0)
+	if t == null:
+		return
+	if p.combat:
+		p.combat.face_to(t)
+	p.model.play("cross", 0.05, 2.4, true)
+	FX.ring(t.global_position + Vector3.UP, Color(1, 0.2, 0.2), 2.0, 0.25, false)
+	t.take_hit({"dmg": 22.0 * Stats.melee_mult(Game.profile) * _eye_pow(), "knock": 10.0, "kind": "heavy", "dir": (t.global_position - p.global_position).normalized(), "element": ""})
+
+
+# ------------------------------------------------------------------ anime evrim zincirleri
+## Byakugan / Ketsuryūgan ustalığı (1-3), Tenseigan (ustalaşmış Byakugan + gece ay ışığı + Sv.40),
+## Rinnegan (Ebedi Mangekyō + Senju gücü Sv.45 ya da Sv.60, ölümün eşiğinde), Rinne-Sharingan (Rinnegan + Altı Yol + Sv.60),
+## Jōgan (Uzumaki soyunda nadir, sağ göz)
+var _night_t := 0.0
+var _evo_cd := 0.0
+
+
+func _both_slots_kind(kind: int) -> bool:
+	return _kind("sag") == kind and _kind("sol") == kind
+
+
+func _replace_eyes(new_id: String, slots: Array, lvl := 1) -> void:
+	var pr = Game.profile
+	for slot in slots:
+		Gear.grant(pr, new_id, slot, null, null, {"lvl": lvl, "origin": "uyanis", "xp": 0.0})
+	Gear.apply_look(pr)
+	p.rebuild_model()
+	Progress.clan_unlocks(true)
+	SpecialSlots.refresh(pr)
+	refresh_visual()
+
+
+func evolve_tick(dt: float) -> void:
+	var pr = Game.profile
+	var lv = int(pr.get("level", 1))
+	var fighting = active and not _enemies_in(25.0).is_empty()
+	# 1) Byakugan / Ketsuryūgan ustalığı: açıkken dövüştükçe gelişir
+	if fighting:
+		for slot in ["sag_goz", "sol_goz"]:
+			var g = Gear.equipped(pr, slot)
+			if g.is_empty() or not g["id"] in ["goz_byakugan", "goz_ketsuryugan"] or int(g.get("lvl", 1)) >= 3:
+				continue
+			g["xp"] = float(g.get("xp", 0.0)) + dt
+			if g["xp"] >= 140.0 * int(g.get("lvl", 1)):
+				g["xp"] = 0.0
+				g["lvl"] = int(g.get("lvl", 1)) + 1
+				var nm = "BYAKUGAN" if g["id"] == "goz_byakugan" else "KETSURYŪGAN"
+				Hud.banner(nm + " GELİŞTİ", "Ustalık %d / 3" % int(g["lvl"]), Color(0.85, 0.9, 1.0) if g["id"] == "goz_byakugan" else Color(0.9, 0.2, 0.25))
+	# 2) Tenseigan: tam ustalaşmış Byakugan, Sv.40, gece ay ışığında gözler açık 60 sn
+	if active and lv >= 40 and _both_slots_kind(2) and _lvl("sag") >= 3 and _lvl("sol") >= 3:
+		var tod = float(Game.world.env.time_of_day) if Game.world and Game.world.get("env") and Game.world.env.get("time_of_day") != null else 0.5
+		if tod < 0.2 or tod > 0.82:
+			_night_t += dt
+			if int(_night_t) % 20 == 0 and _night_t - dt < int(_night_t):
+				Hud.msg("Ay ışığı gözlerine doluyor... (%d/60)" % int(_night_t), Color(0.7, 0.85, 1.0))
+			if _night_t >= 60.0:
+				_night_t = 0.0
+				_replace_eyes("goz_tenseigan", ["sag_goz", "sol_goz"], 3)
+				Hud.banner("TENSEIGAN", "Hamura'nın chakrası Byakugan'ını mavi ay gözüne dönüştürdü", Color(0.55, 0.8, 1.0))
+				Sfx.play("chakra", p.global_position, 0.6)
+				FX.aura(p, Color(0.55, 0.8, 1.0), 2.0)
+	_evo_cd -= dt
+	if _evo_cd > 0.0:
+		return
+	_evo_cd = 2.0
+	# 3) Rinnegan: Ebedi Mangekyō + (Senju gücü ve Sv.45) ya da Sv.60; ölümün eşiğinde dövüşürken uyanır
+	if _both_slots_kind(5) and p.hp < p.max_hp * 0.2 and not _enemies_in(25.0).is_empty():
+		var senju = Progress.has_nature("mokuton") or String(pr.get("clan", "")) == "senju"
+		if (senju and lv >= 45) or lv >= 60:
+			_replace_eyes("goz_rinnegan", ["sag_goz", "sol_goz"], 3)
+			p.hp = p.max_hp * 0.6
+			Hud.banner("RINNEGAN", "Indra ile Ashura'nın chakrası birleşti: Altı Yolun gözü uyandı", Color(0.7, 0.55, 0.95))
+			Sfx.play("roar", p.global_position, 0.6, 0.5)
+			VFX.shockwave(p.global_position + Vector3.UP, Color(0.7, 0.55, 0.95), 16.0, 0.6, false)
+	# 4) Rinne-Sharingan: Rinnegan + Altı Yol Bilge Modu + Sv.60 — alında üçüncü göz
+	if not pr.get("flags", {}).get("rinne_sharingan", false) and (_kind("sag") == 6 or _kind("sol") == 6) and lv >= 60 			and "rikudo_sennin_modo" in pr.get("learned", []):
+		pr["flags"]["rinne_sharingan"] = true
+		Hud.banner("RINNE-SHARINGAN", "Alnında On Kuyruk'un gözü açıldı", Color(0.9, 0.15, 0.2))
+		Progress.clan_unlocks(true)
+		refresh_visual()
+	# 5) Jōgan: Uzumaki soyunda nadir, Sv.20+ her 2 sn'de çok düşük olasılık (yalnız gözsüz sağ yuva)
+	if String(pr.get("clan", "")) == "uzumaki" and lv >= 20 and not pr.get("flags", {}).get("jogan_rolled_%d" % lv, false):
+		pr["flags"]["jogan_rolled_%d" % lv] = true
+		if Gear.equipped(pr, "sag_goz").is_empty() and randf() < 0.12:
+			_replace_eyes("goz_jogan", ["sag_goz"], 1)
+			Hud.banner("JŌGAN", "Sağ gözün mavi parladı: görünmeyeni görüyorsun", Color(0.4, 0.65, 1.0))

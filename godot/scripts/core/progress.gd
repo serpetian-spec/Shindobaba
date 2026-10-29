@@ -186,7 +186,7 @@ func clan_unlocks(announce := true) -> void:
 
 
 # ------------------------------------------------------------------ doğalar (element + kekkei genkai) ve öğrenme şartları
-const EYE_KINDS := {"sharingan": [1, 4, 5], "mangekyo": [4, 5], "ems": [5], "rinnegan": [6], "rinne_sharingan": [6], "byakugan": [2],
+const EYE_KINDS := {"sharingan": [1, 4, 5], "mangekyo": [4, 5], "ems": [5], "rinnegan": [6], "rinne_sharingan": [], "byakugan": [2],
 	"tenseigan": [7], "jogan": [8], "ketsuryugan": [3], "kokugan": []}
 
 
@@ -232,6 +232,8 @@ func _check_kg_awaken(announce: bool) -> void:
 
 
 func has_eye(kind: String) -> bool:
+	if kind == "rinne_sharingan":   # alında üçüncü göz (Rinnegan + Altı Yol evrimi)
+		return bool(p().get("flags", {}).get("rinne_sharingan", false))
 	var want: Array = EYE_KINDS.get(kind, [])
 	for slot in ["sag_goz", "sol_goz"]:
 		var g = Gear.equipped(p(), slot)

@@ -673,6 +673,12 @@ func begin_cast(jid: String) -> void:
 	var j: Dictionary = Data.jutsu.get(jid, {})
 	if j.is_empty():
 		return
+	# dōjutsu teknikleri: göz açık olmadan yapılamaz (V)
+	if String(j.get("learn", "")).begins_with("eye:") and not String(j.get("learn", "")).ends_with("susanoo"):
+		var ey = modes.eyes if modes else null
+		if ey == null or not ey.active:
+			Hud.msg("%s için önce gözlerini aç (V)." % String(j["name"]).split(" (")[0], Color(1, 0.55, 0.5))
+			return
 	if cooldowns.get(jid, 0.0) > 0.0:
 		Hud.msg("%s hazır değil (%.1fsn)" % [j["name"], cooldowns[jid]], Color(0.8, 0.8, 1))
 		return
