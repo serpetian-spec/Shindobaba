@@ -111,6 +111,7 @@ func spawn_teammates(at: Vector3, n := 2, level := 8) -> Array:
 		a["look"]["hair_style"] = nm[2]
 		a["look"]["band"] = hi["band"]
 		a["look"]["village"] = Progress.home()
+		a["look"]["age"] = Player.age_for_rank(int(p().get("rank", 1)))   # sınav takım arkadaşları oyuncuyla yaşıt
 		e.setup(a)
 		e.team = "player"
 		e.set_meta("teammate", true)
@@ -332,7 +333,7 @@ func bell_start() -> void:
 	var a = Enemy.archetype("rogue", 0)
 	a["name"] = hi["s2"]
 	a["hp"] = 99999.0
-	a["level"] = 25
+	a["level"] = 40
 	a["power"] = 0.25
 	a["guard"] = 0.55
 	a["sub"] = 0.45

@@ -24,6 +24,11 @@ func _ready() -> void:
 		if m["node"] and is_instance_valid(m["node"]):
 			names.append("%s@%.1fm" % [m["node"].display_name, m["node"].global_position.distance_to(pl.global_position)])
 	print("SQUAD spawned: %s" % [names])
+	var sc = ["player=%.2f" % pl.model.age_scale]
+	for m in sq.members:
+		if m["node"] and is_instance_valid(m["node"]):
+			sc.append("%s=%.2f" % [m["node"].display_name, m["node"].model.age_scale])
+	print("SQUAD boy: %s" % [sc])
 	# oyuncu yürür: takip
 	pl.global_position = p + Vector3(30, 0, 0)
 	pl.global_position.y = Game.ground_height(pl.global_position.x, pl.global_position.z) + 0.5

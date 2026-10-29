@@ -86,6 +86,7 @@ static func mate_arch(i: int, level: int) -> Dictionary:
 	L["top"] = _c(m["top"])
 	L["band"] = hi["band"]
 	L["village"] = Progress.home()
+	L["age"] = Player.age_for_rank(int(pr().get("rank", 1)))   # takım arkadaşları seninle aynı yaşta (Genin = genç)
 	return a
 
 
@@ -179,7 +180,7 @@ func _spawn(key: String) -> Node:
 	var lv = int(pr().get("level", 1))
 	var a: Dictionary
 	if key == "sensei":
-		a = sensei_arch(clampi(lv + 12, 20, 70))
+		a = sensei_arch(clampi(lv + 25, 40, 85))   # jōnin hoca: en az Sv.40
 	else:
 		a = mate_arch(int(key.substr(1)), maxi(5, lv - 1 + randi_range(0, 2)))
 	var e = Enemy.new()
