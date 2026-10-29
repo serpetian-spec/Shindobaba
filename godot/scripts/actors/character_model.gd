@@ -267,16 +267,25 @@ static func _donor_part(donor: String, mesh_name: String, mat_filter := "") -> D
 				iris = iris.expand(q)
 			var cx = iris.get_center().x
 			var sides = [[Vector3.ZERO, 0, 1e9, -1e9, 1e9, -1e9], [Vector3.ZERO, 0, 1e9, -1e9, 1e9, -1e9]]
-			for q in gr["v"]:
-				var sd = sides[0 if q.x < cx else 1]
+			var uvb = [Rect2(), Rect2()]   # her gözün doku (UV) sınırları: desen irisle birlikte kayar (göz bakınca)
+			var uvf = [true, true]
+			for vi in gr["v"].size():
+				var q: Vector3 = gr["v"][vi]
+				var si = 0 if q.x < cx else 1
+				var sd = sides[si]
 				sd[0] += q; sd[1] += 1
 				sd[2] = minf(sd[2], q.x); sd[3] = maxf(sd[3], q.x)
 				sd[4] = minf(sd[4], q.y); sd[5] = maxf(sd[5], q.y)
+				var uv: Vector2 = gr["uv"][vi]
+				if uvf[si]:
+					uvb[si] = Rect2(uv, Vector2.ZERO); uvf[si] = false
+				else:
+					uvb[si] = uvb[si].expand(uv)
 			if sides[0][1] > 0 and sides[1][1] > 0:
 				# merkez = sınır kutusunun ortası (köşe ortalaması kalabalık tarafa kayıyordu); yarıçap en/boy ayrı
 				var c0 = Vector3((sides[0][2] + sides[0][3]) * 0.5, (sides[0][4] + sides[0][5]) * 0.5, (sides[0][0] / sides[0][1]).z)
 				var c1 = Vector3((sides[1][2] + sides[1][3]) * 0.5, (sides[1][4] + sides[1][5]) * 0.5, (sides[1][0] / sides[1][1]).z)
-				iris_c = [c0, c1, (sides[0][3] - sides[0][2]) * 0.5, (sides[0][5] - sides[0][4]) * 0.5]
+				iris_c = [c0, c1, (sides[0][3] - sides[0][2]) * 0.5, (sides[0][5] - sides[0][4]) * 0.5, uvb[0], uvb[1]]
 	inst.free()
 	out = {"mesh": am, "mats": mats, "aabb": aabb, "iris": iris, "iris_c": iris_c}
 	_donor_cache[key] = out
@@ -334,6 +343,15 @@ func _face_and_hair() -> void:
 					eye_mat.set_shader_parameter("eye_c_l", ic2[1])
 					eye_mat.set_shader_parameter("iris_r3", ic2[2])
 					eye_mat.set_shader_parameter("iris_r2", Vector2(ic2[2], ic2[3] if ic2.size() > 3 else ic2[2]))
+				if ic2.size() >= 6:
+					# x<0 tarafı = karakterin sağ gözü (shader: UV.x > 0.5 ise sol göz)
+					var ra: Rect2 = ic2[4]
+					var rb: Rect2 = ic2[5]
+					var rr = ra if ra.get_center().x < 0.5 else rb
+					var rl = rb if ra.get_center().x < 0.5 else ra
+					eye_mat.set_shader_parameter("iris_c_r", rr.get_center())
+					eye_mat.set_shader_parameter("iris_c_l", rl.get_center())
+					eye_mat.set_shader_parameter("iris_rad", (rr.size + rl.size) * 0.25)
 				face_mi.set_surface_override_material(si, eye_mat)
 				materials.append(eye_mat)
 			elif mname.contains("SKIN"):
@@ -2023,6 +2041,7 @@ const SHEATH_ID := {"tanto": "low_back", "ikiz_hancer": "low_back", "tonfa": "be
 const SAYA := {"katana": [0.075, 0.84, 0.042, 0.06], "wakizashi": [0.05, 0.6, 0.04, 0.055], "nodachi": [0.1, 1.38, 0.05, 0.11],
 	"tanto": [0.06, 0.4, 0.045, 0.045], "chokuto": [0.13, 0.9, 0.05, 0.05], "raijin": [0.08, 0.86, 0.045, 0.06]}
 const SHEATH_DUR := 0.42
+const KATANA_TIP_DOWN := -75.0
 const BACK_TIP_UP := ["savas_cekici", "uc_tirpan", "mizrak"]
 
 var weapons: Array = []     # [{id, side, kind, node, hand, sheath}]
@@ -2099,6 +2118,8 @@ func _weapons() -> void:
 			node = wrap
 		var hand: Node3D = _attach(side + "Hand", _grip_xf(side)).get_child(0)
 		hand.add_child(node)
+		if SAYA.has(id):
+			node.transform.basis = Basis(Vector3.BACK, PI * 0.5) * Basis(Vector3.RIGHT, deg_to_rad(KATANA_TIP_DOWN))
 		var kind = sheath_kind(id)
 		weapons.append({"id": id, "side": side, "kind": kind, "node": node, "hand": hand, "sheath": _sheath_holder(kind, side, id, node)})
 
@@ -2210,6 +2231,9 @@ func _place_weapons() -> void:
 			n.get_parent().remove_child(n)
 			tgt.add_child(n)
 			n.transform = Transform3D.IDENTITY
+		# kılıçlar elde: yassı yatmasın — kendi ekseninde 90° (ağız aşağı), uç biraz aşağı
+		if SAYA.has(w["id"]):
+			n.transform.basis = Basis(Vector3.BACK, PI * 0.5) * Basis(Vector3.RIGHT, deg_to_rad(KATANA_TIP_DOWN)) if n.get_parent() == w["hand"] else Basis.IDENTITY
 		n.visible = in_hand or w["sheath"] != null
 		if w["id"] == "kusarigama" and w["sheath"] != null:
 			var coil = (w["sheath"] as Node3D).get_node_or_null("KusariStow")
@@ -2611,8 +2635,8 @@ const REST_TILT := Vector3(-25.0, -55.0, 0.0)
 func _rest_tilt(on: bool, dt: float) -> void:
 	for w in weapons:
 		var n: Node3D = w["node"]
-		if n.get_parent() != w["hand"]:
-			continue
+		if n.get_parent() != w["hand"] or SAYA.has(w["id"]):
+			continue   # katana/wakizashi: ince namlu yüzü kapatmaz; yana yatırma kılıcı yan gösteriyordu
 		if not w.has("long"):
 			var sp = _z_span(n)
 			w["long"] = sp.y - sp.x > 0.85

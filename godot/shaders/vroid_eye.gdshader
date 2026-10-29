@@ -71,16 +71,14 @@ void fragment() {
 			// rinnegan: tüm iris yüzeyi lila, eşmerkezli halkalar (dokudaki asıl iris/bebek görünmez), küçük bebek
 			c = vec4(rinne_col(lp, lp.x > 0.0 ? eye_c_l : eye_c_r, iris_r3), tx.a);
 		} else if (dk > 0) {
-			// desen gerçek iris geometrisine oturur: model uzayında göz merkezi ve iris yarı en/boyu (doku tahmini kayıyordu)
-			vec2 q = iq / 1.34;
-			if (iris_r2.x > 0.0) {
-				vec3 ec = lp.x > 0.0 ? eye_c_l : eye_c_r;
-				ec.y -= iris_r2.y * 0.28;   // irisin üstü göz kapağı altında: görünen merkez daha aşağıda
-				q = (lp - ec).xy / (iris_r2 * 0.97);
-				q.x *= lp.x > 0.0 ? 1.0 : -1.0;
-			}
+			// desen irisin doku (UV) alanına oturur: göz bakınca irisle birlikte kayar; ölçülen UV sınırlarıyla kenar r=1.
+			// irisin üstü kapak altında kaldığından görünen merkez biraz aşağıda
+			vec2 q = (iq - vec2(0.0, 0.1)) / 0.64;
+			q.x *= eye_side;
 			float r = length(q);
-			if (r < 1.0) {
+			bool fill = dk != 2 && dk != 7 && dk != 8;   // sharingan ailesi: irisin tamamı desen rengi (asıl göz/bebek görünmez)
+			if (r < 1.0 || fill) {
+				r = min(r, 0.999);
 				float ang = atan(q.y, q.x);
 				vec3 col;
 				if (dk == 6) {
@@ -125,7 +123,9 @@ void fragment() {
 						if (ms_ink(q, ma, mb, TIME) > 0.5) col = vec3(0.02);
 					}
 				}
-				c = vec4(mix(col, c.rgb, smoothstep(0.92, 1.0, r) * 0.5), 1.0);
+				c = vec4(fill ? col : mix(col, c.rgb, smoothstep(0.92, 1.0, r) * 0.5), 1.0);
+				// dokudaki parlak ışık noktası korunur (canlı göz)
+				c.rgb = mix(c.rgb, tx.rgb, smoothstep(0.82, 0.97, dot(tx.rgb, vec3(0.3, 0.59, 0.11))) * 0.8);
 			}
 		}
 	}
