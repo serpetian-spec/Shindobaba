@@ -30,7 +30,7 @@ const STYLE := {
 	"magen_niju_kokoni_arazu_no_jutsu": "sense",
 	"fuma_shuriken_j": "throw", "fuma_kaze": "palm", "sofushasan_no_tachi": "throw", "shuriken_kage_bunshin_no_jutsu": "throw", "fuma_kaze_guruma": "throw",
 	"kamizuru_bees": "two_palm", "kamizuru_wax": "breath", "kamizuru_hachi": "summon", "kamizuru_hari": "two_palm", "kamizuru_mitsu_bunshin": "clone",
-	"kusa_boheki": "power", "suna_no_yoroi": "power", "gokusa_maiso": "ground", "suna_bunshin": "clone", "suna_shuriken": "throw",
+	"kusa_boheki": "power", "suna_no_yoroi": "power", "gokusa_maiso": "ground", "suna_bunshin": "clone", "suna_shuriken": "sand_arms",
 	"sabaku_soso": "ground", "sabaku_suna_no_kumo": "ground",
 	"kurohigi_kiki_ippatsu": "summon", "kiko_junbu": "summon", "kugutsu_no_jutsu": "summon", "akahigi_hyakki_no_soen": "summon",
 	"shirohigi_jikki_chikamatsu_no_shu": "summon",
@@ -2350,85 +2350,167 @@ func c_suna_bunshin(c: Node3D, _t: Node3D) -> void:
 	VFX.puffs(c.global_position, {"amount": 20, "life": 0.6, "size": 0.8, "radius": 0.8, "vmin": 2, "vmax": 4, "colors": [Color(0.92, 0.8, 0.58), Color(0.8, 0.65, 0.4, 0)]})
 
 
-## Kum Shurikeni (REFERANS: kumdan dev pençe-kollar açılır, uzun mekik biçimli kum bıçakları her yöne savrulur):
-## 1) yerden kum girdabı yükselir, sırttan iki dev kum kolu (mavi damar çizgili, sivri pençeli) kanat gibi açılır;
-## 2) kollar öne savrulunca uçlarından 14 uzun mekik kum bıçağı geniş yelpazeyle fırlar (dönerek, toz izi bırakarak);
-## 3) bıçaklar değdiği yerde kum patlamasıyla dağılır, yere saplananlar bir an kalıp ufalanır; vurulan kumla ağırlaşır (yavaşlar).
+## Kum Shurikeni (REFERANS: Gaara'nın kolları kumdan dev pençe-kollara dönüşür; kollar iki yana açılır, öne savrulunca
+## kol kenarlarından uzun mekik kum bıçakları her yöne fırlar):
+## 1) kum, karakterin GERÇEK kollarını sarar: üst kol / ön kol kemiklerine bağlı dev kum kolları (mavi damarlar, sırtta geriye
+##    yatık dikenler, kalın bilek, geniş avuç, koyu uçlu beş pençe) — kollar iki yana açık (hazırlık pozu, sand_arms);
+## 2) kollar öne savrulur (sand_swing pozu), kolların dış kenarı boyunca 16 mekik bıçak yelpazeyle fırlar;
+## 3) bıçaklar değdiği yerde kum patlar, vurulan yavaşlar; kum kollar ufalanıp dökülür.
 func c_suna_shuriken(c: Node3D, t: Node3D) -> void:
 	var sand = Color(0.88, 0.74, 0.5)
-	var sand_d = Color(0.72, 0.58, 0.38)
-	var vein = Color(0.28, 0.32, 0.55)
+	var sand_d = Color(0.7, 0.56, 0.36)
+	var vein = Color(0.22, 0.27, 0.52)
 	var base = c.global_position
 	var fd = fwd(c, t)
-	var right = fd.cross(Vector3.UP).normalized()
 	Sfx.play("earth", base, 1.6, 0.7)
-	# 1) kum girdabı
-	VFX.puffs(base + Vector3.UP * 0.3, {"amount": 60, "life": 0.9, "size": 1.0, "radius": 1.6, "vmin": 2, "vmax": 6, "dir": Vector3.UP, "spread": 40.0,
-		"colors": [Color(0.95, 0.82, 0.58, 0.9), Color(0.8, 0.65, 0.42, 0)]})
-	FX.ring(base + Vector3.UP * 0.1, sand, 3.5, 0.5)
-	# iki dev kum kolu: omuzdan dışa-yukarı açılır, sonra öne savrulur
-	var arms = []
-	for sx in [-1.0, 1.0]:
-		var mb = MB.new()
-		var pts = [Vector3.ZERO, Vector3(sx * 0.9, 0.9, 0.15), Vector3(sx * 1.9, 1.9, 0.05), Vector3(sx * 2.7, 2.6, -0.25)]   # kanat gibi yukarı-dışa açık
-		Loft.tube(mb, pts, [0.32, 0.38, 0.4, 0.3], sand, 12, 4, true, false)
-		# el: geniş avuç + beş koyu uçlu pençe
-		var hp: Vector3 = pts[3]
-		mb.add("sphere", hp + Vector3(sx * 0.3, 0, -0.1), Vector3(0.75, 0.35, 0.7), sand, Vector3.ZERO, 10)
-		for f in 5:
-			var a = deg_to_rad(-50.0 + f * 25.0)
-			var d = Vector3(sx * cos(a), 0.15, -sin(a) * 0.9 - 0.3).normalized()
-			var f0 = hp + Vector3(sx * 0.35, 0, -0.1) + d * 0.3
-			Loft.tube(mb, [f0, f0 + d * 0.45], [0.09, 0.06], sand, 6, 1)
-			BeastRig.claw(mb, f0 + d * 0.45, d, 0.35, 0.07, Color(0.25, 0.25, 0.28))
-		# kolda mavi damar çizgileri ve yan dikenler
-		for k in 4:
-			var q = pts[1].lerp(pts[3], k / 3.0)
-			mb.add("box", q + Vector3(0, 0.36, 0), Vector3(0.5, 0.03, 0.05), vein, Vector3(0, rad_to_deg(sx * 0.3), 20 * sx))
-			BeastRig.claw(mb, q + Vector3(0, -0.2, 0.15), Vector3(0, -0.6, 0.8).normalized(), 0.35, 0.08, sand_d)
-		var arm = mesh_of(mb)
-		get_tree().current_scene.add_child(arm)
-		arm.global_position = base + Vector3.UP * 1.4 - fd * 0.3 + right * sx * 0.3
-		arm.look_at(arm.global_position + fd, Vector3.UP)
-		arm.scale = Vector3.ONE * 0.05
-		var tw = arm.create_tween()
-		tw.tween_property(arm, "scale", Vector3.ONE, 0.25).set_trans(Tween.TRANS_BACK)
-		tw.tween_interval(0.12)
-		tw.tween_property(arm, "rotation:y", arm.rotation.y + (-sx) * 0.9, 0.18).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)   # öne savuruş
-		tw.tween_interval(0.25)
-		tw.tween_property(arm, "scale", Vector3(1.0, 0.05, 1.0), 0.35)
-		tw.tween_callback(func():
-			VFX.puffs(arm.global_position, {"amount": 30, "life": 0.8, "size": 0.9, "radius": 1.5, "vmin": 1, "vmax": 4, "gravity": Vector3(0, -6, 0),
-				"colors": [Color(0.92, 0.8, 0.55, 0.9), Color(0.8, 0.65, 0.4, 0)]})
-			arm.queue_free())
-		arms.append(arm)
-	# 2) bıçaklar: savuruş anında kolların uçlarından yelpaze
-	get_tree().create_timer(0.48).timeout.connect(func():
+	# yerden kollara akan ince kum (gövdeyi kapatan bulut değil)
+	VFX.puffs(base + Vector3.UP * 0.1, {"amount": 22, "life": 0.6, "size": 0.45, "radius": 1.0, "vmin": 1, "vmax": 3, "dir": Vector3.UP, "spread": 30.0,
+		"colors": [Color(0.95, 0.82, 0.58, 0.8), Color(0.8, 0.65, 0.4, 0)]})
+	var arms = _sand_arms(c, sand, sand_d, vein)
+	# 2) savuruş: hazırlık pozunda kollar kumla büyür, sonra öne savrulur
+	get_tree().create_timer(0.42).timeout.connect(func():
 		if not is_instance_valid(c):
 			return
-		var aim = fd
+		CastAnim.play(c, "suna_shuriken_swing")
+		Sfx.play("whoosh", c.global_position, 1.1, 0.9))
+	get_tree().create_timer(0.56).timeout.connect(func():
+		if not is_instance_valid(c):
+			return
+		var aim = fwd(c, t)
 		var tgt0 = tg(c, t, 40.0)
-		if tgt0:
-			aim = (tgt0.global_position + Vector3.UP * 1.0 - (base + Vector3.UP * 2.0)).normalized()
 		var info = inf(c, "suna_shuriken", 0.13, {"knock": 3.0, "kind": "light"})
-		for k in 14:
-			var sx = -1.0 if k % 2 == 0 else 1.0
-			var spread = (k / 2 - 3) * 0.075
-			var d = aim.rotated(Vector3.UP, spread + sx * 0.03)
-			d.y += randf_range(-0.04, 0.08)
-			var from = base + Vector3.UP * (2.6 + randf_range(-0.6, 1.2)) + right * sx * (1.6 + randf_range(-0.3, 1.0))
-			var bm = MB.new()
-			# mekik bıçak: ince uzun, iki ucu sivri, kenarı açık renk
-			Loft.tube(bm, [Vector3(0, 0, 0.85), Vector3(0, 0, 0.3), Vector3(0, 0, -0.3), Vector3(0, 0, -0.85)],
-				[Vector2(0.01, 0.01), Vector2(0.13, 0.05), Vector2(0.13, 0.05), Vector2(0.01, 0.01)], [sand_d, sand, sand.lightened(0.1), sand_d], 8, 4, true, true)
-			var blade = mesh_of(bm)
-			var pr = shot(c, from, d, 40.0 + randf_range(-4, 6), blade, info, null, false, 1.3, func(p, tgt):
-				st(tgt, "slow", 2.5)
-				VFX.puffs(p, {"amount": 14, "life": 0.6, "size": 0.6, "radius": 0.4, "vmin": 2, "vmax": 5, "colors": [Color(0.95, 0.82, 0.58, 0.9), Color(0.8, 0.65, 0.4, 0)]}))
-			pr.spin = Vector3(0, 0, 30.0 * sx)   # uzun ekseni etrafında burgu
-			Projectile.trail(pr, [Color(0.95, 0.82, 0.58, 0.85), Color(0.8, 0.65, 0.4, 0)], 0.3, 26, 0.4, FX.tex_smoke, false)
-		FX.speed_lines(base + Vector3.UP * 1.4, aim)
-		Sfx.play("whoosh", base, 1.3, 0.9))
+		var k = 0
+		for arm in arms:
+			if not is_instance_valid(arm):
+				continue
+			var pts: Array = arm.get_meta("edge")
+			for q in pts:
+				var from: Vector3 = arm.global_transform * q
+				var d = aim
+				if tgt0:
+					d = (tgt0.global_position + Vector3.UP * 1.0 - from).normalized()
+				d = d.rotated(Vector3.UP, randf_range(-0.22, 0.22))
+				d.y += randf_range(-0.05, 0.09)
+				var bm = MB.new()
+				# mekik bıçak: ince uzun, iki ucu sivri, ortası açık renk
+				Loft.tube(bm, [Vector3(0, 0, 0.85), Vector3(0, 0, 0.3), Vector3(0, 0, -0.3), Vector3(0, 0, -0.85)],
+					[Vector2(0.01, 0.01), Vector2(0.13, 0.05), Vector2(0.13, 0.05), Vector2(0.01, 0.01)], [sand_d, sand, sand.lightened(0.12), sand_d], 8, 4, true, true)
+				var sx = 1.0 if k % 2 == 0 else -1.0
+				var pr = shot(c, from, d.normalized(), 40.0 + randf_range(-4, 6), mesh_of(bm), info, null, false, 1.3, func(p, tgt):
+					st(tgt, "slow", 2.5)
+					VFX.puffs(p, {"amount": 14, "life": 0.6, "size": 0.6, "radius": 0.4, "vmin": 2, "vmax": 5, "colors": [Color(0.95, 0.82, 0.58, 0.9), Color(0.8, 0.65, 0.4, 0)]}))
+				pr.spin = Vector3(0, 0, 30.0 * sx)
+				Projectile.trail(pr, [Color(0.95, 0.82, 0.58, 0.85), Color(0.8, 0.65, 0.4, 0)], 0.3, 26, 0.4, FX.tex_smoke, false)
+				k += 1
+		FX.speed_lines(c.global_position + Vector3.UP * 1.4, aim))
+	# 3) kollar ufalanır
+	get_tree().create_timer(1.25).timeout.connect(func():
+		for arm in arms:
+			if not is_instance_valid(arm):
+				continue
+			VFX.puffs(arm.global_transform * Vector3(arm.get_meta("mid")), {"amount": 36, "life": 0.9, "size": 0.9, "radius": 0.9, "vmin": 0.5, "vmax": 3,
+				"gravity": Vector3(0, -7, 0), "colors": [Color(0.92, 0.8, 0.55, 0.95), Color(0.8, 0.65, 0.4, 0)]})
+			var bas: Array = arm.get_meta("bas")
+			for pv in arm.get_meta("pivots"):
+				if is_instance_valid(pv):
+					var tw = pv.create_tween()
+					tw.tween_property(pv, "scale", Vector3(0.7, 0.05, 0.7), 0.3)
+			arm.get_tree().create_timer(0.32).timeout.connect(func():
+				for ba in bas:
+					if is_instance_valid(ba):
+						ba.queue_free()))
+
+
+## Karakterin kol kemiklerine bağlı dev kum kolları. Mesh'ler model uzayında (dinlenme pozu) kurulur ve kemiğe bağlanır;
+## böylece kol nereye giderse kum kol da oraya gider. Döner: [ön kol+el düğümü (sol), (sağ)] (meta "edge": bıçak çıkış noktaları)
+func _sand_arms(c: Node3D, sand: Color, sand_d: Color, vein: Color) -> Array:
+	var out = []
+	var m = c.get("model")
+	if m == null or m.skel == null:
+		return out
+	var sk: Skeleton3D = m.skel
+	for side in ["Left", "Right"]:
+		var bu = sk.find_bone(side + "UpperArm")
+		var bl = sk.find_bone(side + "LowerArm")
+		var bh = sk.find_bone(side + "Hand")
+		if bu < 0 or bl < 0 or bh < 0:
+			continue
+		var p_sh: Vector3 = m._grest(bu).origin
+		var p_el: Vector3 = m._grest(bl).origin
+		var p_wr: Vector3 = m._grest(bh).origin
+		var dir = (p_wr - p_el).normalized()
+		var up = Vector3.UP - dir * dir.dot(Vector3.UP)
+		up = up.normalized() if up.length() > 0.01 else Vector3.FORWARD
+		var fw = dir.cross(up).normalized()
+		if fw.z < 0.0:
+			fw = -fw
+		var s = clampf(float(m.age_scale), 0.6, 1.0)
+		# --- üst kol (omuz-dirsek): kalın kum manşon
+		var mu = MB.new()
+		Loft.tube(mu, [p_sh - (p_el - p_sh) * 0.1, p_sh.lerp(p_el, 0.5) + up * 0.03, p_el], [0.13 * s, 0.17 * s, 0.2 * s], sand, 12, 3, true, true)
+		for k in 3:
+			var q = p_sh.lerp(p_el, 0.25 + k * 0.3)
+			BeastRig.claw(mu, q + up * 0.15 * s, (up * 0.7 - dir * 0.7).normalized(), 0.22 * s, 0.05 * s, sand_d)
+		var au = m._attach(side + "UpperArm", Transform3D.IDENTITY)
+		var mu_i = mesh_of(mu)
+		var pu = Node3D.new()   # ölçek omuzdan büyüsün
+		pu.position = p_sh
+		au.get_child(0).add_child(pu)
+		pu.add_child(mu_i)
+		mu_i.position = -p_sh
+		# --- ön kol + dev el: dirsekten bileğin ötesine uzanır, kalınlaşır
+		var L = 1.25 * s
+		var wr2 = p_el + dir * ((p_wr - p_el).length() + 0.15 * s)
+		var palm0 = wr2 + dir * 0.15 * s
+		var palm1 = wr2 + dir * L * 0.55
+		var ml = MB.new()
+		Loft.tube(ml, [p_el - dir * 0.05, p_el.lerp(wr2, 0.5) + up * 0.04 * s, wr2, palm0], [0.2 * s, 0.26 * s, 0.32 * s, 0.36 * s], sand, 14, 3, true, false)
+		# avuç: yassı, geniş (yukarı-aşağı açık el), parmaklar yelpaze
+		Loft.tube(ml, [palm0, palm0.lerp(palm1, 0.5), palm1], [Vector2(0.2, 0.36) * s, Vector2(0.2, 0.5) * s, Vector2(0.17, 0.46) * s], sand, 12, 3, false, true)
+		var edge = PackedVector3Array()
+		for f in 5:
+			var a = deg_to_rad(-48.0 + f * 24.0)
+			var fdir = (dir * cos(a) + up * sin(a) + fw * 0.15).normalized()
+			var f0 = palm1 + up * sin(a) * 0.28 * s
+			var f1 = f0 + fdir * 0.42 * s
+			var f2 = f1 + (fdir + fw * 0.35).normalized() * 0.32 * s   # pençe hafif öne kıvrık
+			Loft.tube(ml, [f0, f1, f2], [0.1 * s, 0.085 * s, 0.065 * s], sand, 8, 2, true, false)
+			BeastRig.claw(ml, f2, (fdir + fw * 0.6).normalized(), 0.3 * s, 0.065 * s, Color(0.22, 0.22, 0.26))
+			edge.append(f2)
+		# sırtta geriye yatık dikenler (kolun üst kenarı) + bıçak çıkış noktaları
+		for k in 6:
+			var q = p_el.lerp(palm1, 0.15 + k * 0.15)
+			var r = lerpf(0.24, 0.44, k / 5.0) * s
+			BeastRig.claw(ml, q + up * r * 0.85, (up * 0.65 - dir * 0.75).normalized(), (0.28 + k * 0.03) * s, 0.07 * s, sand_d)
+			BeastRig.claw(ml, q - up * r * 0.8, (-up * 0.6 - dir * 0.8).normalized(), 0.2 * s, 0.05 * s, sand_d)
+			edge.append(q + up * r * 1.1)
+		# mavi damarlar: kol boyunca dalgalı ince çizgiler (yüzeyde)
+		for vk in 3:
+			var off = (up * cos(vk * 2.1) + fw * sin(vk * 2.1)).normalized()
+			var vp = []
+			for k in 7:
+				var tt = k / 6.0
+				var q = p_el.lerp(palm1, tt)
+				var rr = lerpf(0.22, 0.4, tt) * s * 1.01
+				vp.append(q + off * rr + dir.cross(off) * sin(tt * 9.0 + vk) * 0.04 * s)
+			Loft.tube(ml, vp, [0.018 * s, 0.018 * s, 0.018 * s, 0.018 * s, 0.018 * s, 0.018 * s, 0.018 * s], vein, 5, 1, false, false)
+		var al = m._attach(side + "LowerArm", Transform3D.IDENTITY)
+		var ml_i = mesh_of(ml)
+		var pl = Node3D.new()   # ölçek dirsekten büyüsün
+		pl.position = p_el
+		al.get_child(0).add_child(pl)
+		pl.add_child(ml_i)
+		ml_i.position = -p_el
+		ml_i.set_meta("edge", Array(edge))
+		ml_i.set_meta("mid", p_el.lerp(palm1, 0.5))
+		# büyüme: kum bilekten yayılır (ölçek), üst kol aynı anda
+		for pv in [pu, pl]:
+			pv.scale = Vector3.ONE * 0.2
+			pv.create_tween().tween_property(pv, "scale", Vector3.ONE, 0.32).set_trans(Tween.TRANS_BACK)
+		ml_i.set_meta("pivots", [pu, pl])
+		ml_i.set_meta("bas", [au, al])
+		out.append(ml_i)
+	return out
 
 
 ## Kum Şelalesi Cenazesi: yerden dev kum dalgası yükselir, ileri yuvarlanıp her şeyi gömer

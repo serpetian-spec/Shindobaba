@@ -94,6 +94,14 @@ const STYLES := {
 	"power": {"pre": 0.4, "post": 0.5, "wclip": "idle", "clip": "idle",
 		"wind": {"L": [Vector3(0.35, -0.85, -0.35), Vector3(0.1, -0.9, -0.4), Vector3(0.0, -1.0, -0.2)], "R": [Vector3(-0.35, -0.85, -0.35), Vector3(-0.1, -0.9, -0.4), Vector3(0.0, -1.0, -0.2)], "fL": FIST, "fR": FIST, "spine": 25.0, "neck": -10.0, "crouch": 0.55},
 		"rel": {"L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "fL": FIST, "fR": FIST, "spine": -14.0, "neck": -22.0}},
+	# Kum Shurikeni hazırlık: kollar iki yana açık, hafif yukarı, pençe eller (kum kollar bu pozda büyür) — Gaara referansı
+	"sand_arms": {"pre": 0.3, "post": 0.55, "wclip": "idle", "clip": "idle",
+		"wind": {"L": [Vector3(0.9, 0.05, -0.3), Vector3(0.95, 0.2, -0.1), Vector3(0.9, 0.35, 0.1)], "R": [Vector3(-0.9, 0.05, -0.3), Vector3(-0.95, 0.2, -0.1), Vector3(-0.9, 0.35, 0.1)], "fL": CLAW, "fR": CLAW, "spine": -6.0, "neck": -6.0, "crouch": 0.45},
+		"rel": {"L": [Vector3(0.95, 0.2, -0.2), Vector3(0.95, 0.3, 0.0), Vector3(0.85, 0.45, 0.2)], "R": [Vector3(-0.95, 0.2, -0.2), Vector3(-0.95, 0.3, 0.0), Vector3(-0.85, 0.45, 0.2)], "fL": CLAW, "fR": CLAW, "spine": -10.0, "neck": -8.0, "crouch": 0.5}},
+	# Kum Shurikeni savuruş: açık kollar öne çaprazlanarak savrulur
+	"sand_swing": {"pre": 0.06, "post": 0.45, "wclip": "idle", "clip": "idle",
+		"wind": {"L": [Vector3(0.95, 0.2, -0.2), Vector3(0.95, 0.3, 0.0), Vector3(0.85, 0.45, 0.2)], "R": [Vector3(-0.95, 0.2, -0.2), Vector3(-0.95, 0.3, 0.0), Vector3(-0.85, 0.45, 0.2)], "fL": CLAW, "fR": CLAW, "spine": -10.0, "crouch": 0.5},
+		"rel": {"L": [Vector3(0.35, 0.0, 0.95), Vector3(-0.3, -0.05, 0.95), Vector3(-0.5, -0.1, 0.85)], "R": [Vector3(-0.35, 0.0, 0.95), Vector3(0.3, -0.05, 0.95), Vector3(0.5, -0.1, 0.85)], "fL": OPEN, "fR": OPEN, "spine": 22.0, "neck": -6.0, "crouch": 0.6}},
 	# klan taijutsu atılımı (Gatsūga, Nikudan, Jūken): öne eğik hücum duruşu
 	"rush": {"pre": 0.22, "post": 0.3, "wclip": "idle", "clip": "b/Melee_Hook",
 		"wind": {"L": [Vector3(0.3, -0.5, 0.8), Vector3(-0.1, 0.0, 1.0), Vector3(0.0, 0.6, 0.8)], "R": [Vector3(-0.4, -0.7, -0.5), Vector3(0.0, -0.3, -0.95), Vector3(0.0, -0.6, -0.8)], "fL": OPEN, "fR": OPEN, "spine": 28.0, "neck": -18.0, "crouch": 0.4},
@@ -118,6 +126,7 @@ const JUTSU_STYLE := {
 	"chinoike_ketsuryugan": "sense", "chinoike_kanshu": "sense", "hoshigaki_same": "two_palm", "hoshigaki_ryudan": "two_palm",
 	"kurama_genjutsu": "sense", "kurama_kokuangyo": "sense", "fuma_shuriken_j": "throw", "fuma_kaze": "palm",
 	"kamizuru_bees": "two_palm", "kamizuru_wax": "breath",
+	"suna_shuriken_swing": "sand_swing",
 }
 
 
@@ -258,8 +267,12 @@ func _process(dt: float) -> void:
 		elif "state" in f:
 			interrupted = f.state != "cast"
 		if interrupted and t > 0.05:
-			finish()
-			return
+			if t >= release_t - 0.25:
+				# oyuncu jutsuyu bu karede saldı (sayaç bir kare geride): kesinti değil, salınıma geç
+				t = release_t
+			else:
+				finish()
+				return
 	var pose: Dictionary
 	if t < seal_end and seals.size() > 0:
 		var idx = clampi(int(t / per), 0, seals.size() - 1)
