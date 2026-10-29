@@ -2156,7 +2156,7 @@ func _tracked_bounty() -> Dictionary:
 ## Bingo Kitabı girdileri (menü/diyalog için): look Color'a çevrilmiş kopyalar
 func bingo_entries() -> Array:
 	var own = Orgs.own_bingo_entry() if has_node("/root/Orgs") else {}
-	var aka = Orgs.akatsuki_bingo_entries() if has_node("/root/Orgs") else []
+	var aka = (Orgs.akatsuki_bingo_entries() + Orgs.ro_bingo_entries()) if has_node("/root/Orgs") else []
 	if not own.is_empty():
 		return [own] + _bingo_entries_raw() + aka
 	return _bingo_entries_raw() + aka

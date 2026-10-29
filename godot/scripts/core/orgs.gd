@@ -14,15 +14,15 @@ signal player_pardoned()
 
 ## Akatsuki: iki kişilik takımlar (özgün üyeler; kanon karakter yok)
 const AKATSUKI := [
-	{"name": "Kuroshio Ren", "alias": "Derinlerin Dişi", "v": "kiri", "el": "suiton", "j": ["suiton_suiryuudan", "suiton_suikoudan"], "weapon": "nodachi", "hair": "dağınık", "hp": 3200.0, "pair": 0},
-	{"name": "Hibana Seiji", "alias": "Kül Yağmuru", "v": "iwa", "el": "katon", "j": ["katon_goukakyuu", "katon_housenka"], "weapon": "", "hair": "uzun", "hp": 2900.0, "pair": 0},
-	{"name": "Raikō Tsubasa", "alias": "Mavi Şimşek", "v": "kumo", "el": "raiton", "j": ["raiton_chidori", "raiton_nagashi"], "weapon": "katana", "hair": "diken", "hp": 3000.0, "pair": 1},
-	{"name": "Sunagami Ezo", "alias": "Kum Kuklacısı", "v": "suna", "el": "fuuton", "j": ["fuuton_daitoppa", "fuuton_shinkuu"], "weapon": "", "hair": "kısa", "hp": 2800.0, "pair": 1},
-	{"name": "Mukuro Shinya", "alias": "Mezar Bekçisi", "v": "konoha", "el": "doton", "j": ["doton_doryuheki", "doton_doryuusou"], "weapon": "kusarigama", "hair": "kase", "hp": 3400.0, "pair": 2},
-	{"name": "Amane Kiyoha", "alias": "Kağıt Melek", "v": "ame", "el": "fuuton", "j": ["fuuton_shinkuu"], "weapon": "", "hair": "uzun", "hp": 2700.0, "pair": 2, "f": true},
-	{"name": "Gekkō Saizō", "alias": "Ay Gölgesi", "v": "oto", "el": "katon", "j": ["katon_goukakyuu"], "weapon": "katana", "hair": "uzun", "hp": 3100.0, "pair": 3},
-	{"name": "Tsuchigumo Bō", "alias": "Bin Yaralı", "v": "taki", "el": "doton", "j": ["doton_doryuusou"], "weapon": "savas_cekici", "hair": "kısa", "hp": 3800.0, "pair": 3},
-	{"name": "Yoake no Kami", "alias": "Örgütün Lideri", "v": "ame", "el": "suiton", "j": ["suiton_suiryuudan", "raiton_nagashi", "fuuton_daitoppa"], "weapon": "", "hair": "diken", "hp": 6500.0, "pair": 4, "leader": true},
+	{"name": "Kuroshio Ren", "style": "kenjutsu", "alias": "Derinlerin Dişi", "v": "kiri", "el": "suiton", "j": ["suiton_suiryuudan", "suiton_suikoudan"], "weapon": "nodachi", "hair": "dağınık", "hp": 3200.0, "pair": 0},
+	{"name": "Hibana Seiji", "style": "bakuton", "alias": "Kül Yağmuru", "v": "iwa", "el": "katon", "j": ["katon_goukakyuu", "katon_housenka"], "weapon": "", "hair": "uzun", "hp": 2900.0, "pair": 0},
+	{"name": "Raikō Tsubasa", "style": "kenjutsu", "alias": "Mavi Şimşek", "v": "kumo", "el": "raiton", "j": ["raiton_chidori", "raiton_nagashi"], "weapon": "katana", "hair": "diken", "hp": 3000.0, "pair": 1},
+	{"name": "Sunagami Ezo", "style": "kugutsu", "alias": "Kum Kuklacısı", "v": "suna", "el": "fuuton", "j": ["fuuton_daitoppa", "fuuton_shinkuu"], "weapon": "", "hair": "kısa", "hp": 2800.0, "pair": 1},
+	{"name": "Mukuro Shinya", "style": "fuin", "alias": "Mezar Bekçisi", "v": "konoha", "el": "doton", "j": ["doton_doryuheki", "doton_doryuusou"], "weapon": "kusarigama", "hair": "kase", "hp": 3400.0, "pair": 2},
+	{"name": "Amane Kiyoha", "style": "genjutsu", "alias": "Kağıt Melek", "v": "ame", "el": "fuuton", "j": ["fuuton_shinkuu"], "weapon": "", "hair": "uzun", "hp": 2700.0, "pair": 2, "f": true},
+	{"name": "Gekkō Saizō", "style": "kenjutsu", "alias": "Ay Gölgesi", "v": "oto", "el": "katon", "j": ["katon_goukakyuu"], "weapon": "katana", "hair": "uzun", "hp": 3100.0, "pair": 3},
+	{"name": "Tsuchigumo Bō", "style": "taijutsu", "alias": "Bin Yaralı", "v": "taki", "el": "doton", "j": ["doton_doryuusou"], "weapon": "savas_cekici", "hair": "kısa", "hp": 3800.0, "pair": 3},
+	{"name": "Yoake no Kami", "style": "genjutsu", "alias": "Örgütün Lideri", "v": "ame", "el": "suiton", "j": ["suiton_suiryuudan", "raiton_nagashi", "fuuton_daitoppa"], "weapon": "", "hair": "diken", "hp": 6500.0, "pair": 4, "leader": true},
 ]
 
 ## Kaçak rütbeleri: şöhret (infamy) eşiği, ad, alınabilecek en yüksek iş rütbesi
@@ -140,6 +140,8 @@ func spawn_member(m: Dictionary, at: Vector3) -> Enemy:
 	a["respawn"] = false
 	a["look"] = akatsuki_look(m)
 	a["faction"] = "akatsuki"
+	BossStyles.dress(a, "S", hash(m["name"]), String(m.get("style", "genjutsu")))
+	a["name"] = "%s «%s»" % [m["name"], m["alias"]]   # tarz başlığı ada eklenmesin (lider "Kuklacı" diye anılıyordu)
 	e.setup(a)
 	e.set_meta("akatsuki", m["name"])
 	get_tree().current_scene.add_child(e)
@@ -663,6 +665,12 @@ func _hunter_tick(dt: float) -> void:
 
 
 func on_enemy_killed(e: Node) -> void:
+	if e.has_meta("rorg"):
+		var info: Array = e.get_meta("rorg")
+		for o in random_orgs():
+			if o["name"] == info[0] and not info[1] in o["dead"]:
+				o["dead"].append(info[1])
+				Hud.msg("%s'ten biri düştü (%d/%d)." % [o["name"], o["dead"].size(), o["members"].size()], Color.html(o["accent"]))
 	if e.has_meta("hunter_nin"):
 		flags()["hunters_beaten"] = int(flags().get("hunters_beaten", 0)) + 1
 		state()["bounty"] = int(state().get("bounty", 5000)) + 1500
@@ -801,8 +809,8 @@ func _great_war_prompt() -> void:
 		"brief": "Beş büyük köy tek bir orduda birleşti. Akatsuki'nin beyaz klon ordusu ve liderleri savaş alanında. Cepheyi tut, liderleri düşür.",
 		"steps": [{"kind": "goto", "at": Missions._near_spot(field, 150, 200), "r": 25.0, "name": "Müttefik Karargâhı", "text": "Savaş alanındaki müttefik karargâhına git."},
 			{"kind": "defend", "at": field, "enemy": "rogue", "ename": "Beyaz Klon", "waves": [6, 7, 8, 9], "text": "Beyaz klon ordusunun dalgalarını durdur."},
-			{"kind": "kill", "at": Missions._near_spot(field, 60, 100), "enemy": "rogue", "n": 1, "boss": {"name": "%s «%s»" % [AKATSUKI[0]["name"], AKATSUKI[0]["alias"]], "hp": 3600.0, "level": 45, "power": 3.0, "look": akatsuki_look(AKATSUKI[0])}, "text": "Akatsuki komutanını yen."},
-			{"kind": "kill", "at": field, "enemy": "rogue", "n": 2, "boss": {"name": "%s «%s»" % [lead["name"], lead["alias"]], "hp": 7000.0, "level": 55, "power": 3.8, "look": akatsuki_look(lead)}, "text": "Örgütün liderini yen."}]}
+			{"kind": "kill", "at": Missions._near_spot(field, 60, 100), "enemy": "rogue", "n": 1, "boss": {"name": "%s «%s»" % [AKATSUKI[0]["name"], AKATSUKI[0]["alias"]], "hp": 3600.0, "level": 45, "power": 3.0, "look": akatsuki_look(AKATSUKI[0]), "style": String(AKATSUKI[0]["style"])}, "text": "Akatsuki komutanını yen."},
+			{"kind": "kill", "at": field, "enemy": "rogue", "n": 2, "boss": {"name": "%s «%s»" % [lead["name"], lead["alias"]], "hp": 7000.0, "level": 55, "power": 3.8, "look": akatsuki_look(lead), "style": String(lead["style"])}, "text": "Örgütün liderini yen."}]}
 	Hud.dialog("Müttefik Kuvvetler Başkomutanı", "Kage Zirvesi'nde verdiğimiz söz yerine geliyor: beş köy tek bir ordu. Sen cephenin kalbinde olacaksın.", [{"label": "Savaşa katıl", "cb": func(): Missions.accept(m)}, {"label": "Hazırlanmam lazım", "cb": func(): state()["war"] = "none"}])
 
 
@@ -827,6 +835,7 @@ func _process(dt: float) -> void:
 	_hunter_tick(dt)
 	_village_ban(dt)
 	_ensure_hideout()
+	_ro_tick(dt)
 	_t += dt
 	if _t >= 20.0:
 		_t = 0.0
@@ -854,3 +863,119 @@ func _process(dt: float) -> void:
 		elif e.global_position.distance_to(Game.player.global_position) > 600.0:
 			e.queue_free()
 			_spawned.erase(e)
+
+# ------------------------------------------------------------------ rastgele üretilen örgütler (Akatsuki benzeri, her kayıtta farklı)
+const RO_A := ["Kızıl", "Kara", "Gümüş", "Solgun", "Kanlı", "Sessiz", "Demir", "Gece", "Kül", "Fırtına"]
+const RO_B := ["Hilal", "Lotus", "Turna", "Yılan Dişi", "Ay", "Örümcek", "Yelpaze", "Kurt", "Alev", "Gölge"]
+const RO_GOALS := [
+	["Yasak parşömenleri toplamak", "Köylerin yaktığı yasak teknikler bizde toplanacak. Parşömenin varsa, artık bizim."],
+	["Daimyo'yu devirmek", "Ülkeleri yöneten aç gözlü lordlar düşecek; ninjalar efendisiz yaşayacak."],
+	["Paralı asker imparatorluğu kurmak", "Savaş en iyi iştir. Her köy bizi kiralayacak ya da bize yenilecek."],
+	["Ölümsüzlük", "Bedenden bedene geçmenin yolu var. Senin bedenin de güzel bir kap olur."],
+	["Kayıp bir klanın intikamı", "Klanımızı yok eden köyler aynı acıyı tadacak. Sen de onlardansın."],
+	["Kuyruklu canavarları satmak", "Canavarlar en pahalı mal. Taşıyıcıları yakalar, en yüksek teklifi verene satarız."],
+]
+const RO_STYLES := ["kenjutsu", "kugutsu", "genjutsu", "taijutsu", "fuin", "bakuton", "kuchiyose"]
+var _ro_t := 0.0
+
+
+## Kayda özel 2 örgüt: ad, pelerin rengi/deseni, amaç, lider (tarzlı) + 4 üye (her kayıtta farklı)
+func random_orgs() -> Array:
+	var st = state()
+	if st.has("rorgs"):
+		return st["rorgs"]
+	var rng = RandomNumberGenerator.new()
+	rng.seed = int(p().get("seed", 1)) * 31 + 7
+	var out = []
+	var used_goals = []
+	for oi in 2:
+		var g = rng.randi() % RO_GOALS.size()
+		while g in used_goals:
+			g = (g + 1) % RO_GOALS.size()
+		used_goals.append(g)
+		var name = "%s %s" % [RO_A[rng.randi() % RO_A.size()], RO_B[rng.randi() % RO_B.size()]]
+		var cloak = Color.from_hsv(rng.randf(), rng.randf_range(0.2, 0.6), rng.randf_range(0.08, 0.3))
+		var accent = Color.from_hsv(rng.randf(), rng.randf_range(0.6, 0.9), rng.randf_range(0.6, 0.95))
+		var vids = ["konoha", "suna", "kiri", "kumo", "iwa", "ame", "kusa", "taki"]
+		var els = ["katon", "suiton", "fuuton", "doton", "raiton"]
+		var members = []
+		for mi in 5:
+			var first = ["Aoi", "Raiden", "Kuro", "Shiki", "Tenma", "Yami", "Hokuto", "Saru", "Ginga", "Kaen", "Mizore", "Toki"][rng.randi() % 12]
+			var last = ["Hayabusa", "Kurogane", "Amagiri", "Tsukikage", "Ishida", "Mibu", "Kasumi", "Onibi"][rng.randi() % 8]
+			members.append({"name": "%s %s" % [last, first], "alias": ("%s'in Lideri" % name) if mi == 0 else ["Sessiz Bıçak", "Zehirli Gölge", "Taş Yürek", "Kızıl Pençe", "Rüzgâr Hayaleti", "Kemik Kıran"][rng.randi() % 6],
+				"v": vids[rng.randi() % vids.size()], "el": els[rng.randi() % els.size()], "style": RO_STYLES[rng.randi() % RO_STYLES.size()],
+				"f": rng.randf() < 0.3, "hair": ["uzun", "diken", "kısa", "dağınık", "atkuyruğu"][rng.randi() % 5], "leader": mi == 0, "hp": 5000.0 if mi == 0 else 2600.0})
+		out.append({"name": name, "cloak": cloak.to_html(false), "accent": accent.to_html(false), "pattern": [3, 1, 2][oi % 3],
+			"goal": RO_GOALS[g][0], "speech": RO_GOALS[g][1], "members": members, "dead": []})
+	st["rorgs"] = out
+	return out
+
+
+func _ro_look(o: Dictionary, m: Dictionary) -> Dictionary:
+	var lk = Outfits.roll("org", m["v"])
+	lk.merge({"outer": Color.html(o["cloak"]), "outer_accent": Color.html(o["accent"]), "outer_pattern": int(o["pattern"]), "gender": "f" if m["f"] else "m",
+		"hair_style": m["hair"], "band": Color(0.2, 0.2, 0.25), "band_style": "slashed", "village": m["v"], "age": "adult"}, true)
+	return lk
+
+
+func spawn_ro_member(o: Dictionary, m: Dictionary, at: Vector3) -> Enemy:
+	var e = Enemy.new()
+	var a = Enemy.archetype("rogue", 0)
+	var lv = maxi(25, int(p().get("level", 1)) + (8 if m["leader"] else 3))
+	a["hp"] = float(m["hp"]) * (0.5 + lv / 80.0)
+	a["level"] = lv
+	a["power"] = 2.4 + (0.8 if m["leader"] else 0.0)
+	a["element"] = m["el"]
+	a["respawn"] = false
+	a["look"] = _ro_look(o, m)
+	a["faction"] = "rogue"
+	BossStyles.dress(a, "S" if m["leader"] else "A", hash(m["name"]), String(m["style"]))
+	a["name"] = "%s «%s» — %s" % [m["name"], m["alias"], o["name"]]
+	e.setup(a)
+	e.set_meta("rorg", [o["name"], m["name"]])
+	get_tree().current_scene.add_child(e)
+	at = Missions.open_ground(at, 20.0)
+	e.global_position = at
+	e.home = at
+	_spawned.append(e)
+	return e
+
+
+## Örgüt üyeleri yolda belirir (Sv.18+ ve köy dışında): amaçlarını söyler, saldırır
+func _ro_tick(dt: float) -> void:
+	if int(p().get("level", 1)) < 18 or Game.player == null:
+		return
+	_ro_t += dt
+	if _ro_t < 520.0:
+		return
+	_ro_t = 0.0
+	var m0 = Game.to_map(Game.player.global_position)
+	for v in Game.world_info.get("villages", []):
+		if m0.distance_to(Vector2(v["x"], v["y"])) < float(v["r"]) * 1.2:
+			return
+	if randf() > 0.45:
+		return
+	var o: Dictionary = random_orgs().pick_random()
+	var alive = (o["members"] as Array).filter(func(x): return not String(x["name"]) in o["dead"] and not x["leader"])
+	if alive.is_empty():
+		return
+	var pp = Game.player.global_position + Game.player.face_dir() * 30.0
+	alive.shuffle()
+	for m in alive.slice(0, 2):
+		spawn_ro_member(o, m, pp + Vector3(randf_range(-6, 6), 0, randf_range(-6, 6)))
+	Hud.banner(String(o["name"]).to_upper(), "«%s» — amaçları: %s" % [o["speech"], o["goal"]], Color.html(o["accent"]))
+
+
+## Bingo Kitabı'nda örgüt üyeleri (izlenemez)
+func ro_bingo_entries() -> Array:
+	var out = []
+	var i = 0
+	for o in random_orgs():
+		for m in o["members"]:
+			i += 1
+			out.append({"id": -300 - i, "self": true, "org": true, "name": m["name"], "alias": m["alias"], "village": m["v"],
+				"village_name": "%s (amaç: %s)" % [o["name"], o["goal"]], "rank": "S" if m["leader"] else "A",
+				"bounty": 60000 if m["leader"] else 25000, "crimes": ["%s üyesi" % o["name"], o["goal"]], "element": m["el"],
+				"status": "dead" if String(m["name"]) in o["dead"] else "alive", "tracked": false, "level": 60 if m["leader"] else 40,
+				"look": _ro_look(o, m), "region": "Bilinmiyor — ikili gezerler", "area": [0, 0], "hide": [0, 0], "known": 0.0})
+	return out
