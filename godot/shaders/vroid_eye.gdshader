@@ -21,6 +21,27 @@ uniform vec2 iris_c_r = vec2(0.255, 0.52);   // dokuda sağ göz irisi merkezi
 uniform vec2 iris_c_l = vec2(0.745, 0.52);
 uniform vec2 iris_rad = vec2(0.085, 0.2);     // iris yarıçapı (u, v)
 uniform float hit_flash = 0.0;
+uniform vec3 eye_c_r = vec3(-0.032, 1.62, 0.08);
+uniform vec3 eye_c_l = vec3(0.032, 1.62, 0.08);
+uniform float iris_r3 = 0.011;
+varying vec3 lp;
+
+void vertex() {
+	lp = VERTEX;
+}
+
+// Rinnegan: model uzayında göz merkezinden ince, eşit aralıklı halkalar — iris ve göz akı kesintisiz (referans: Sasuke/Nagato)
+vec3 rinne_col(vec3 p, vec3 c, float ir) {
+	float d = length((p - c).xy);
+	float sp = ir * 0.26;
+	vec3 col = mix(vec3(0.76, 0.68, 0.92), vec3(0.62, 0.52, 0.84), clamp(d / (ir * 3.0), 0.0, 1.0));
+	float f = fract(d / sp);
+	float w = fwidth(d / sp) * 0.7 + 0.03;
+	float line = 1.0 - smoothstep(w * 0.5, w, min(f, 1.0 - f));
+	col = mix(col, vec3(0.2, 0.13, 0.3), line);
+	if (d < ir * 0.14) col = vec3(0.05, 0.03, 0.08);
+	return col;
+}
 
 void fragment() {
 	vec4 tx = texture(tex, UV);
@@ -47,11 +68,7 @@ void fragment() {
 		int tm = eye_side > 0.0 ? tomoe_l : tomoe;
 		if (dk == 6) {
 			// rinnegan: tüm iris yüzeyi lila, eşmerkezli halkalar (dokudaki asıl iris/bebek görünmez), küçük bebek
-			float r6 = length(iq);
-			vec3 col6 = vec3(0.74, 0.66, 0.92);
-			if (abs(fract(r6 * 3.2) - 0.5) < 0.1) col6 = vec3(0.2, 0.12, 0.28);
-			if (r6 < 0.1) col6 = vec3(0.12, 0.06, 0.16);
-			c = vec4(col6, tx.a);
+			c = vec4(rinne_col(lp, lp.x > 0.0 ? eye_c_l : eye_c_r, iris_r3), tx.a);
 		} else if (dk > 0) {
 			vec2 q = iq;
 			float r = length(q);

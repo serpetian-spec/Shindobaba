@@ -22,7 +22,7 @@ func _ready() -> void:
 	m.global_position = p
 	m.rotation.y = 0
 	m.play("idle", 0.0)
-	m.set_dojutsu_eyes(6, 3, 6, 3)
+	m.set_dojutsu_eyes(int(OS.get_environment("RR") if OS.get_environment("RR") != "" else "6"), 3, int(OS.get_environment("RL") if OS.get_environment("RL") != "" else "6"), 3)
 	await get_tree().create_timer(0.6).timeout
 	var cam = Camera3D.new()
 	main.add_child(cam)

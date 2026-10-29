@@ -244,6 +244,7 @@ static func _donor_part(donor: String, mesh_name: String, mat_filter := "") -> D
 	var aabb := AABB()
 	var first = true
 	var iris := AABB()
+	var iris_c := [Vector3.ZERO, Vector3.ZERO, 0.02]   # model uzayında iki iris merkezi (x<0, x>0) + iris yarıçapı
 	for mname in groups:
 		var gr = groups[mname]
 		var a = []
@@ -263,8 +264,16 @@ static func _donor_part(donor: String, mesh_name: String, mat_filter := "") -> D
 			iris = AABB(gr["v"][0], Vector3.ZERO)
 			for q in gr["v"]:
 				iris = iris.expand(q)
+			var cx = iris.get_center().x
+			var sides = [[Vector3.ZERO, 0, 1e9, -1e9], [Vector3.ZERO, 0, 1e9, -1e9]]
+			for q in gr["v"]:
+				var sd = sides[0 if q.x < cx else 1]
+				sd[0] += q; sd[1] += 1
+				sd[2] = minf(sd[2], q.x); sd[3] = maxf(sd[3], q.x)
+			if sides[0][1] > 0 and sides[1][1] > 0:
+				iris_c = [sides[0][0] / sides[0][1], sides[1][0] / sides[1][1], (sides[0][3] - sides[0][2]) * 0.5]
 	inst.free()
-	out = {"mesh": am, "mats": mats, "aabb": aabb, "iris": iris}
+	out = {"mesh": am, "mats": mats, "aabb": aabb, "iris": iris, "iris_c": iris_c}
 	_donor_cache[key] = out
 	return out
 
@@ -314,6 +323,11 @@ func _face_and_hair() -> void:
 				eye_mat.shader = load("res://shaders/vroid_eye.gdshader")
 				eye_mat.set_shader_parameter("tex", tex)
 				eye_mat.set_shader_parameter("eye_color", look["eye"])
+				var ic2: Array = fd.get("iris_c", [])
+				if ic2.size() == 3:
+					eye_mat.set_shader_parameter("eye_c_r", ic2[0])
+					eye_mat.set_shader_parameter("eye_c_l", ic2[1])
+					eye_mat.set_shader_parameter("iris_r3", ic2[2])
 				face_mi.set_surface_override_material(si, eye_mat)
 				materials.append(eye_mat)
 			elif mname.contains("SKIN"):
@@ -327,6 +341,11 @@ func _face_and_hair() -> void:
 				sclera_mat = ShaderMaterial.new()
 				sclera_mat.shader = load("res://shaders/vroid_sclera.gdshader")
 				sclera_mat.set_shader_parameter("tex", tex)
+				var ic3: Array = fd.get("iris_c", [])
+				if ic3.size() == 3:
+					sclera_mat.set_shader_parameter("eye_c_r", ic3[0])
+					sclera_mat.set_shader_parameter("eye_c_l", ic3[1])
+					sclera_mat.set_shader_parameter("iris_r3", ic3[2])
 				face_mi.set_surface_override_material(si, sclera_mat)
 			elif mname.contains("EyeExtra"):
 				face_mi.set_surface_override_material(si, _invisible_mat())
