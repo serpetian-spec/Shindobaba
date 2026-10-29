@@ -24,7 +24,7 @@ const PSTYLE := {
 	"sekizo": "charge", "yagai": "power",
 	# Kâğıt Yolu
 	"kami_bunshin": "clone", "kami_chocho": "palm", "kami_tsubasa": "power", "shikigami_no_mai": "spin", "kami_yari": "ground",
-	"kami_no_shisha_no_jutsu": "summon",
+	"kami_no_shisha_no_jutsu": "summon", "kami_shuriken": "throw",
 	# Kurbağa Bilgesi Yolu
 	"gamayudan": "breath", "kebari_senbon": "power", "ranjishigami_no_jutsu": "sense", "hari_jizo": "power",
 	"kuchiyose_gamaguchi_shibari": "summon", "katon_gamayu_endan": "breath", "senpo_kawazu_naki": "sense",
@@ -2464,3 +2464,34 @@ func _elder_toad(female: bool) -> MB:
 			b.add("sphere", Vector3(cos(a) * 0.085, 0.24 + sin(a) * 0.045, -0.03), Vector3(0.05, 0.05, 0.05), purple)
 		b.add("sphere", Vector3(0, 0.27, -0.02), Vector3(0.12, 0.06, 0.1), purple)
 	return b
+
+
+## Katlanmış kâğıt shuriken: 4 kanat, her kanat iki üçgen yüz (kat çizgisi gölgeli), ortada kare göbek
+func _paper_star() -> MB:
+	var b = MB.new()
+	for k in 4:
+		var a = k * 90.0
+		var d = Vector3(cos(deg_to_rad(a)), 0, sin(deg_to_rad(a)))
+		b.add("cone", d * 0.11, Vector3(0.09, 0.2, 0.006), PAPER, Vector3(90, 0, 0).rotated(Vector3.UP, 0) + Vector3(0, -a + 90, 0), 3)
+		b.add("box", d * 0.1 + Vector3(0, 0.004, 0), Vector3(0.012, 0.004, 0.16), PAPER.darkened(0.2), Vector3(0, -a + 90, 0))   # kat çizgisi
+	b.add("box", Vector3.ZERO, Vector3(0.08, 0.012, 0.08), PAPER.darkened(0.08), Vector3(0, 45, 0))
+	return b
+
+
+## Kâğıt Shuriken: elden yelpaze gibi açılan 5 katlanmış kâğıt yıldız; dönerek uçar, hedefe hafif yönelir, arkasında kâğıt kırpıntıları
+func p_kami_shuriken(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.45)
+	var tt = tg(c, t, 30.0)
+	var d = fwd(c, t)
+	if tt:
+		d = (tt.global_position + Vector3.UP - c.global_position - Vector3.UP * 1.3).normalized()
+	var from = hand_pos(c, true)
+	Sfx.play("whoosh", from, 1.8, 0.5)
+	for k in 5:
+		after(k * 0.05, func():
+			if not live(c):
+				return
+			var dir = d.rotated(Vector3.UP, deg_to_rad((k - 2) * 7.0))
+			var pr = shot(c, from, dir, 38.0, mesh_of(_paper_star()), inf(c, "kami_shuriken", 0.35, {"knock": 1.5, "kind": "light", "bleed": 2.0}), tt, false, 1.4)
+			pr.spin = Vector3(0, 28.0, 0)
+			Projectile.trail(pr, [Color(1, 1, 1, 0.9), Color(0.85, 0.82, 0.95, 0)], 0.08, 10, 0.35, null, false))

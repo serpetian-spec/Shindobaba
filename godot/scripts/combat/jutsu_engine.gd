@@ -845,6 +845,9 @@ static func _dome(c: Node3D, d: Dictionary) -> void:
 static func _target_in_range(c: Node3D, t: Node3D, rng: float) -> Node3D:
 	if t and is_instance_valid(t) and not t.is_dead() and t.global_position.distance_to(c.global_position) < rng:
 		return t
+	if c is Player:   # oyuncu: rastgele en yakın düşman değil, nişangâhın üstündeki düşman
+		var st = J().soft_target(c)
+		return st if st and st.global_position.distance_to(c.global_position) < rng else null
 	var dir: Vector3 = J()._aim_flat(c, t)
 	return Combat.nearest_enemy(c, rng, dir, 0.4)
 

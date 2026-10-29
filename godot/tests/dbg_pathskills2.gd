@@ -31,6 +31,13 @@ func _ready() -> void:
 		Jutsu.execute(pl, id, e)
 		if OS.get_environment("ONLY") != "":
 			print("PS2 dbg handles=%s fwd=%s near=%d" % [PathJutsu.handles_path(id), PathJutsu.get_pinst().fwd(pl, e), PathJutsu.get_pinst().enemies_near(pl, pl.global_position + PathJutsu.get_pinst().fwd(pl, e) * 6.0, 5.0).size()])
+		if id == "kami_shuriken":
+			e.global_position = pl.global_position + pl.face_dir() * 14.0
+			var fw0 = pl.face_dir()
+			cam.global_position = pl.global_position + fw0 * 3.0 + fw0.cross(Vector3.UP) * 2.5 + Vector3.UP * 1.6
+			cam.look_at(pl.global_position + fw0 * 4.0 + Vector3.UP * 1.2)
+			await get_tree().create_timer(0.2).timeout
+			await main.shot("ps_kami_shuriken")
 		await get_tree().create_timer(0.55).timeout
 		if id in ["kami_tsubasa", "shikigami_no_mai", "kami_yari", "hari_jizo", "kuchiyose_gamaguchi_shibari", "katon_gamayu_endan", "senpo_kawazu_naki", "kami_no_shisha_no_jutsu"]:
 			pl.set_process(false)

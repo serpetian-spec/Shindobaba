@@ -76,10 +76,39 @@ func _ready() -> void:
 	_build_minimap()
 	_build_boss()
 	_build_compass()
+	_build_crosshair()
 	dialog_layer = Control.new()
 	dialog_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
 	dialog_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(dialog_layer)
+
+
+## Nişangâh: ekran ortası = jutsuların gittiği nokta; nişangâh düşmanın üstündeyse kırmızı (jutsu ona kilitlenir)
+var xhair: Control
+var xhair_lock := false
+
+
+func _build_crosshair() -> void:
+	xhair = Control.new()
+	xhair.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	xhair.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	xhair.anchor_left = Player.AIM_SCREEN.x; xhair.anchor_right = Player.AIM_SCREEN.x
+	xhair.anchor_top = Player.AIM_SCREEN.y; xhair.anchor_bottom = Player.AIM_SCREEN.y
+	xhair.custom_minimum_size = Vector2(48, 48)
+	xhair.offset_left = -24; xhair.offset_top = -24; xhair.offset_right = 24; xhair.offset_bottom = 24
+	game_hud.add_child(xhair)
+	xhair.draw.connect(func():
+		xhair.draw_set_transform(Vector2(24, 24))
+		var col = Color(1.0, 0.25, 0.2, 0.95) if xhair_lock else Color(1, 1, 1, 0.85)
+		var sh = Color(0, 0, 0, 0.55)
+		var g = 5.0 if xhair_lock else 7.0
+		xhair.draw_circle(Vector2.ZERO, 3.2, sh)
+		xhair.draw_circle(Vector2.ZERO, 2.0, col)
+		for d in [Vector2.RIGHT, Vector2.LEFT, Vector2.UP, Vector2.DOWN]:
+			xhair.draw_line(d * g, d * (g + 7.0), sh, 4.0)
+			xhair.draw_line(d * g, d * (g + 7.0), col, 2.0)
+		if xhair_lock:
+			xhair.draw_arc(Vector2.ZERO, 16.0, 0.0, TAU, 32, col, 1.5))
 
 
 func show_game_hud(on: bool) -> void:
@@ -873,6 +902,11 @@ func _process(dt: float) -> void:
 		return
 	var pr = Game.profile
 	fps_lbl.text = "FPS %d" % Engine.get_frames_per_second() if Game.settings["show_fps"] else ""
+	if xhair:
+		var lk = Jutsu.soft_target(pl) != null
+		if lk != xhair_lock:
+			xhair_lock = lk
+		xhair.queue_redraw()
 	name_lbl.text = String(pr.get("name", ""))
 	rank_lbl.text = "%s  •  Seviye %d" % [Data.RANKS[int(pr.get("rank", 0))].to_upper(), int(pr.get("level", 1))]
 	ryo_lbl.text = "%d Ryō" % int(pr.get("ryo", 0))

@@ -183,9 +183,23 @@ func wish_dir() -> Vector3:
 
 
 ## Nişangâhın (ekran ortası) dünyada değdiği nokta: jutsu ve atışlar buraya gider
+## Nişangâhın ekrandaki yeri (oran): karakterin başının üstünde, kamera merkezinde karakter durduğu için ortada değil
+const AIM_SCREEN := Vector2(0.5, 0.36)
+
+
+## Nişangâhtan çıkan kamera ışını: [başlangıç, yön]
+func aim_ray() -> Array:
+	var vp = get_viewport()
+	if cam == null or vp == null:
+		return [global_position + Vector3.UP * 1.5, face_dir()]
+	var sp = vp.get_visible_rect().size * AIM_SCREEN
+	return [cam.project_ray_origin(sp), cam.project_ray_normal(sp)]
+
+
 func aim_point(max_d := 220.0) -> Vector3:
-	var from = cam.global_position
-	var dir = -cam.global_transform.basis.z
+	var ar = aim_ray()
+	var from: Vector3 = ar[0]
+	var dir: Vector3 = ar[1]
 	var q = PhysicsRayQueryParameters3D.create(from, from + dir * max_d, 0xFFFFFFFF, [get_rid()])
 	var hit = get_world_3d().direct_space_state.intersect_ray(q)
 	var pt: Vector3 = hit["position"] if not hit.is_empty() else from + dir * max_d

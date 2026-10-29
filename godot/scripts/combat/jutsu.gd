@@ -21,10 +21,38 @@ func _aim(caster: Node3D, target: Node3D) -> Vector3:
 		var lt = caster.combat.lock_target if caster.combat else null
 		if lt != null and is_instance_valid(lt) and target == lt:
 			return (lt.global_position + Vector3.UP * lt.height * 0.5 - s).normalized()
+		# nişangâh düşmanın üstündeyse (HUD'da kırmızı) göğsüne kilitlenir; değilse tam nişangâhın gösterdiği noktaya
+		var soft = soft_target(caster)
+		if soft:
+			return (soft.global_position + Vector3.UP * soft.height * 0.55 - s).normalized()
 		return (caster.aim_point() - s).normalized()
 	if target and is_instance_valid(target):
 		return (target.global_position + Vector3.UP * target.height * 0.5 - s).normalized()
 	return caster.face_dir()
+
+
+## Nişangâhın (ekran ortası) üstündeki düşman: kamera ışınına ~6° içinde, 45 m'ye kadar. HUD nişangâhı bununla kırmızı olur
+func soft_target(caster: Node3D) -> Node3D:
+	if not (caster is Player) or caster.cam == null:
+		return null
+	var ar: Array = caster.aim_ray()
+	var from: Vector3 = ar[0]
+	var dir: Vector3 = ar[1]
+	var best: Node3D = null
+	var bd := 0.99
+	for f in caster.get_tree().get_nodes_in_group("fighters"):
+		if f == caster or not Combat.hostile(caster, f) or f.is_dead():
+			continue
+		var c: Vector3 = f.global_position + Vector3.UP * f.height * 0.55
+		var v = c - from
+		var L = v.length()
+		if L > 45.0 + 8.0 or L < 1.0:
+			continue
+		var dt = v.normalized().dot(dir)
+		if dt > bd:
+			bd = dt
+			best = f
+	return best
 
 
 ## Yatay nişan yönü (duvar, yer jutsuları, atılmalar)

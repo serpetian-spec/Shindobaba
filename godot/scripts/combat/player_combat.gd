@@ -99,6 +99,12 @@ func _auto_target(range_ := 7.0) -> Node3D:
 	return Combat.nearest_enemy(p, range_, d, 0.2)
 
 
+func _cast_target() -> Node3D:
+	if lock_target and is_instance_valid(lock_target) and not lock_target.is_dead():
+		return lock_target
+	return Jutsu.soft_target(p)
+
+
 func face_to(target: Node3D) -> void:
 	var v = target.global_position - p.global_position
 	p.facing = atan2(-v.x, -v.z)
@@ -709,8 +715,8 @@ func _do_cast(dt: float) -> bool:
 	p.velocity.x = move_toward(p.velocity.x, 0, dt * 60); p.velocity.z = move_toward(p.velocity.z, 0, dt * 60)
 	if not p.grounded:
 		p.velocity.y -= Player.GRAV * dt * 0.3
-	# hedefe dönük kal (mühür yaparken)
-	var tg = _auto_target(35.0)
+	# hedef: kilitli hedef, yoksa nişangâhın üstündeki (kırmızı) düşman, yoksa yok (jutsu nişangâhın noktasına gider)
+	var tg = _cast_target()
 	if tg and t < cast_time:
 		face_to(tg)
 	if t >= cast_time:
