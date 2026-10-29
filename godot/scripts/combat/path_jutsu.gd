@@ -17767,3 +17767,475 @@ func p_kibaku_nendo(c: Node3D, t: Node3D) -> void:
 	VFX.puffs(hand_pos(c, true), {"amount": 10, "life": 0.5, "size": 0.12, "radius": 0.1, "vmin": 1, "vmax": 2, "dir": Vector3.UP, "spread": 60.0, "add": false,
 		"colors": [Color(0.95, 0.94, 0.9, 1), Color(0.9, 0.9, 0.85, 0)]})
 	Jutsu.j_kibaku_nendo(c, t)
+
+
+# ================================================================== Yardımcı/gizlenme/algılama/dönüşüm: genel mekanik (JutsuEngine.cast) korunur + her birine özgü efekt
+func _gen(c: Node3D, id: String, t: Node3D) -> void:
+	JutsuEngine.cast(c, id, t)
+
+
+## Algı dalgası: zeminde genişleyen renkli halkalar + düşmanlara uzanan ince çizgiler
+func _sense_pulse(c: Node3D, col: Color, r: float, rings := 3) -> void:
+	for k in rings:
+		after(k * 0.2, func():
+			if live(c):
+				VFX.shockwave(gp(c.global_position) + Vector3.UP * 0.12, col, r * (0.5 + k * 0.25), 0.9, true))
+	for e in enemies_near(c, c.global_position, r):
+		after(0.4, func():
+			if live(c) and live(e):
+				tether(func(): return c.global_position + Vector3.UP * 1.5 if is_instance_valid(c) else Vector3.ZERO, func(): return e.global_position + Vector3.UP if is_instance_valid(e) else Vector3.ZERO, 0.02, VFX.mat_bolt(col, 1.4), 1.2))
+
+
+## Yer altına dalış: toprak fışkırması ve çember
+func _burrow(c: Node3D, col := EARTH) -> void:
+	_earth_burst(c.global_position, 0.8)
+	VFX.debris(c.global_position, col, 14, 6.0, 0.4)
+	VFX.shockwave(gp(c.global_position) + Vector3.UP * 0.1, col, 3.0, 0.4, true)
+
+
+func p_shurado(c: Node3D, t: Node3D) -> void:
+	_gen(c, "shurado", t)
+	for sx in [-1.0, 1.0]:
+		var sh = bone_attach(c, "LeftUpperArm" if sx < 0 else "RightUpperArm")
+		if sh:
+			var b = MB.new()
+			b.add("cyl", Vector3(sx * 0.08, 0.1, -0.08), Vector3(0.09, 0.4, 0.09), Color(0.4, 0.4, 0.45), Vector3(-60, 0, 0), 8)
+			b.add("cone", Vector3(sx * 0.08, 0.32, -0.2), Vector3(0.09, 0.12, 0.09), Color(0.8, 0.2, 0.1), Vector3(-60, 0, 0), 8)
+			sh.add_child(mesh_of(b))
+			after(20.0, func():
+				if is_instance_valid(sh):
+					sh.queue_free())
+	VFX.shockwave(c.global_position + Vector3.UP, Color(0.7, 0.7, 0.8), 4.0, 0.3, false)
+
+
+func p_kekkai_tengai_hojin(c: Node3D, t: Node3D) -> void:
+	_gen(c, "kekkai_tengai_hojin", t)
+	var dome = MeshInstance3D.new()
+	dome.mesh = SphereMesh.new()
+	dome.material_override = VFX.mat_spiral(Color(0.85, 0.9, 1.0), Color(0.4, 0.55, 0.9), 2.0, 1.0, 4.0, 0.25, Vector3.UP)
+	get_tree().current_scene.add_child(dome)
+	dome.global_position = c.global_position
+	dome.scale = Vector3.ONE * 0.5
+	var tw = dome.create_tween()
+	tw.tween_property(dome, "scale", Vector3.ONE * 40.0, 0.8).set_trans(Tween.TRANS_QUAD)
+	tw.tween_interval(1.0)
+	tw.tween_property(dome, "scale", Vector3.ONE * 42.0, 0.4)
+	tw.tween_callback(dome.queue_free)
+
+
+## Yer Değiştirme: patlayan beyaz duman, yerinde kalan kütük
+func p_kawarimi_no_jutsu(c: Node3D, t: Node3D) -> void:
+	var at = c.global_position
+	_gen(c, "kawarimi_no_jutsu", t)
+	FX.smoke_puff(at + Vector3.UP, 1.4, 22)
+	var log = MeshInstance3D.new()
+	var cm = CylinderMesh.new()
+	cm.top_radius = 0.25; cm.bottom_radius = 0.28; cm.height = 1.5; cm.radial_segments = 10
+	log.mesh = cm
+	log.material_override = _wood_mat()
+	get_tree().current_scene.add_child(log)
+	log.global_position = gp(at) + Vector3.UP * 0.75
+	log.rotation.z = 0.15
+	var tw = log.create_tween()
+	tw.tween_interval(2.5)
+	tw.tween_property(log, "scale", Vector3.ONE * 0.05, 0.3)
+	tw.tween_callback(log.queue_free)
+
+
+## Uçurum/ağaç tırmanma: ayak ve ellerde mavi çakra parıltısı
+func _cling_glow(c: Node3D, bones: Array, dur: float) -> void:
+	for b in bones:
+		var ba = bone_attach(c, b)
+		if ba:
+			ba.add_child(VFX.element_core("", Color(0.45, 0.75, 1.0), 0.15))
+			after(dur, func():
+				if is_instance_valid(ba):
+					ba.queue_free())
+
+
+func p_gake_nobori_no_gyo(c: Node3D, t: Node3D) -> void:
+	_gen(c, "gake_nobori_no_gyo", t)
+	_cling_glow(c, ["RightHand", "LeftHand"], 8.0)
+
+
+func p_ki_nobori_no_shugyo(c: Node3D, t: Node3D) -> void:
+	_gen(c, "ki_nobori_no_shugyo", t)
+	_cling_glow(c, ["RightFoot", "LeftFoot"], 8.0)
+
+
+## Gizlenme Örtüsü: kullanıcının önünde zemin renkli bez açılır
+func p_kakuremino_no_jutsu(c: Node3D, t: Node3D) -> void:
+	var cloth = MeshInstance3D.new()
+	var qm = QuadMesh.new()
+	qm.size = Vector2(1.6, 2.0)
+	cloth.mesh = qm
+	var m = StandardMaterial3D.new()
+	m.albedo_color = Color(0.75, 0.65, 0.48)
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	cloth.material_override = m
+	c.add_child(cloth)
+	cloth.position = Vector3(0, 1.0, 0.5)
+	cloth.scale = Vector3(0.05, 1, 1)
+	var tw = cloth.create_tween()
+	tw.tween_property(cloth, "scale", Vector3.ONE, 0.2)
+	tw.tween_interval(1.2)
+	tw.tween_callback(cloth.queue_free)
+	_gen(c, "kakuremino_no_jutsu", t)
+
+
+func p_bunshin_no_jutsu(c: Node3D, t: Node3D) -> void:
+	for sx in [-1.0, 1.0]:
+		FX.smoke_puff(c.global_position + c.global_transform.basis.x * sx * 1.8 + Vector3.UP, 1.0, 12)
+	_gen(c, "bunshin_no_jutsu", t)
+
+
+## Kum Kedi Gözcü: kumdan kedi silueti oluşur, havaya dağılıp etrafı kollar
+func p_sensa_kaibyo(c: Node3D, t: Node3D) -> void:
+	var at = gp(c.global_position + c.face_dir() * 2.0)
+	var b = MB.new()
+	b.add("sphere", Vector3(0, 0.4, 0), Vector3(0.6, 0.45, 0.9), SAND)
+	b.add("sphere", Vector3(0, 0.75, 0.45), Vector3(0.4, 0.38, 0.38), SAND)
+	for sx in [-1.0, 1.0]:
+		b.add("cone", Vector3(sx * 0.12, 1.0, 0.45), Vector3(0.1, 0.18, 0.08), SAND, Vector3.ZERO, 4)
+	b.add("cyl", Vector3(0, 0.6, -0.55), Vector3(0.06, 0.6, 0.06), SAND, Vector3(-40, 0, 0), 5)
+	var cat = mesh_of(b)
+	get_tree().current_scene.add_child(cat)
+	cat.global_position = at
+	cat.rotation.y = atan2(c.face_dir().x, c.face_dir().z)
+	var tw = cat.create_tween()
+	tw.tween_interval(1.5)
+	tw.tween_callback(func(): _sand_gust(at + Vector3.UP * 0.5, 0.8, 30))
+	tw.tween_callback(cat.queue_free)
+	_sense_pulse(c, SAND, 40.0, 2)
+	_gen(c, "sensa_kaibyo", t)
+
+
+func p_sabaku_fuyu(c: Node3D, t: Node3D) -> void:
+	_sand_gust(gp(c.global_position) + Vector3.UP * 0.2, 1.2, 40)
+	every(8.0, 0.25, func(_i, _k):
+		if live(c):
+			VFX.puffs(c.global_position, {"amount": 4, "life": 0.8, "size": 0.25, "radius": 0.5, "vmin": 0.5, "vmax": 1.5, "dir": Vector3.DOWN, "spread": 30.0, "add": false,
+				"colors": [Color(0.88, 0.76, 0.52, 1), Color(0.78, 0.66, 0.44, 0)]}), Callable())
+	_gen(c, "sabaku_fuyu", t)
+
+
+func p_mujin_meisai(c: Node3D, t: Node3D) -> void:
+	VFX.shockwave(c.global_position + Vector3.UP, Color(0.85, 0.9, 1.0), 3.0, 0.4, false)
+	VFX.puffs(c.global_position + Vector3.UP, {"amount": 30, "life": 0.8, "size": 0.3, "radius": 0.6, "vmin": 0.5, "vmax": 2, "dir": Vector3.UP, "spread": 90.0, "add": true,
+		"colors": [Color(0.9, 0.95, 1, 0.6), Color(0.8, 0.9, 1, 0)]})
+	_gen(c, "mujin_meisai", t)
+
+
+## Toprak Yarma: önündeki zemin uzun bir yarıkla ikiye ayrılır
+func p_doton_doryukatsu(c: Node3D, t: Node3D) -> void:
+	var d = fwd(c, t)
+	for k in 8:
+		after(k * 0.05, func():
+			var q = gp(c.global_position + d * (2.0 + k * 2.0))
+			VFX.cracks(q, 2.5)
+			VFX.debris(q, EARTH, 6, 6.0, 0.4))
+	shake(0.5)
+	_gen(c, "doton_doryukatsu", t)
+
+
+func p_doton_moguragakure_no_jutsu(c: Node3D, t: Node3D) -> void:
+	_burrow(c)
+	_gen(c, "doton_moguragakure_no_jutsu", t)
+
+
+func p_doton_dochu_senko(c: Node3D, t: Node3D) -> void:
+	_burrow(c)
+	every(4.0, 0.2, func(_i, _k):
+		if live(c):
+			VFX.debris(gp(c.global_position), EARTH, 3, 3.0, 0.3), Callable())
+	_gen(c, "doton_dochu_senko", t)
+
+
+func p_doton_dochu_eigyo_no_jutsu(c: Node3D, t: Node3D) -> void:
+	_burrow(c)
+	every(4.0, 0.15, func(_i, _k):
+		if live(c):
+			VFX.shockwave(gp(c.global_position) + Vector3.UP * 0.08, EARTH, 1.6, 0.4, true), Callable())
+	_gen(c, "doton_dochu_eigyo_no_jutsu", t)
+
+
+## Mühürleme: yerde açılan parşömen, nesne duman içinde kâğıda çekilir
+func p_funyu_no_jutsu(c: Node3D, t: Node3D) -> void:
+	var sc = _sheet(0.6)
+	get_tree().current_scene.add_child(sc)
+	sc.global_position = gp(c.global_position + c.face_dir() * 1.2) + Vector3.UP * 0.05
+	sc.rotation.x = -PI * 0.5
+	FX.smoke_puff(sc.global_position + Vector3.UP * 0.5, 0.8, 12)
+	after(1.0, func():
+		if is_instance_valid(sc):
+			sc.queue_free())
+	_gen(c, "funyu_no_jutsu", t)
+
+
+func p_tanuki_neiri_no_jutsu(c: Node3D, t: Node3D) -> void:
+	VFX.shockwave(c.global_position + Vector3.UP, SAND, 5.0, 0.5, false)
+	_sand_gust(c.global_position + Vector3.UP, 1.5, 30)
+	_gen(c, "tanuki_neiri_no_jutsu", t)
+
+
+func p_genjutsu_tsushin(c: Node3D, t: Node3D) -> void:
+	VFX.shockwave(c.global_position + Vector3.UP * 1.6, MIND, 4.0, 0.5, false)
+	_gen(c, "genjutsu_tsushin", t)
+
+
+## Harem: dört yanda pembe dumanlı kopyalar
+func p_haremu_no_jutsu(c: Node3D, t: Node3D) -> void:
+	for k in 6:
+		var a = k * TAU / 6.0
+		FX.smoke_puff(c.global_position + Vector3(cos(a), 0, sin(a)) * 2.0 + Vector3.UP, 1.0, 10)
+	VFX.puffs(c.global_position + Vector3.UP, {"amount": 30, "life": 1.0, "size": 0.3, "radius": 2.0, "vmin": 1, "vmax": 3, "dir": Vector3.UP, "spread": 90.0, "add": true,
+		"colors": [Color(1, 0.7, 0.85, 0.9), Color(1, 0.5, 0.7, 0)]})
+	_gen(c, "haremu_no_jutsu", t)
+
+
+func p_gamagakure_no_jutsu(c: Node3D, t: Node3D) -> void:
+	summon_circle(gp(c.global_position), 1.6, Color(0.4, 0.75, 0.3), 0.8)
+	FX.smoke_puff(c.global_position + Vector3.UP, 1.6, 20)
+	_gen(c, "gamagakure_no_jutsu", t)
+
+
+## Tam Gizlenme: beden ışığı kırıp saydamlaşır (dalgalı hava)
+func p_meisaigakure_no_jutsu(c: Node3D, t: Node3D) -> void:
+	for k in 3:
+		after(k * 0.12, func():
+			if live(c):
+				VFX.shockwave(c.global_position + Vector3.UP, Color(0.85, 0.95, 1.0), 2.0 + k, 0.4, false))
+	_gen(c, "meisaigakure_no_jutsu", t)
+
+
+func p_fushi_tensei(c: Node3D, t: Node3D) -> void:
+	summon_circle(gp(c.global_position), 2.0, Color(0.6, 0.4, 0.8), 1.2)
+	VFX.puffs(c.global_position + Vector3.UP, {"amount": 30, "life": 1.4, "size": 0.6, "radius": 0.6, "vmin": 1, "vmax": 3, "dir": Vector3.UP, "spread": 40.0, "add": true,
+		"colors": [Color(0.8, 0.7, 1, 0.8), Color(0.5, 0.3, 0.8, 0)]})
+	_gen(c, "fushi_tensei", t)
+
+
+## Susanoo kaburgaları: bedeni saran mavi çakra kaburga kafesi
+func _susanoo_ribs(c: Node3D, col: Color, dur: float) -> void:
+	var root = Node3D.new()
+	c.add_child(root)
+	root.position = Vector3.UP * 1.1
+	var m = VFX.mat_spiral(col.lightened(0.3), col, 2.0, 1.0, 4.0, 0.7, Vector3.UP)
+	for k in 6:
+		for sx in [-1.0, 1.0]:
+			var rib = MeshInstance3D.new()
+			var tm = TorusMesh.new()
+			tm.inner_radius = 0.9 - k * 0.06; tm.outer_radius = 1.0 - k * 0.06; tm.rings = 16; tm.ring_segments = 4
+			rib.mesh = tm
+			rib.material_override = m
+			rib.position = Vector3(0, 0.9 - k * 0.3, 0)
+			rib.scale = Vector3(1, 0.3, 1)
+			root.add_child(rib)
+	var spine = MeshInstance3D.new()
+	var cm = CylinderMesh.new()
+	cm.top_radius = 0.08; cm.bottom_radius = 0.08; cm.height = 2.2
+	spine.mesh = cm
+	spine.material_override = m
+	spine.position = Vector3(0, 0.0, -0.9)
+	root.add_child(spine)
+	root.scale = Vector3.ONE * 0.05
+	var tw = root.create_tween()
+	tw.tween_property(root, "scale", Vector3.ONE, 0.4).set_trans(Tween.TRANS_BACK)
+	tw.tween_interval(dur)
+	tw.tween_property(root, "scale", Vector3.ONE * 0.05, 0.3)
+	tw.tween_callback(root.queue_free)
+
+
+func p_susanoo(c: Node3D, t: Node3D) -> void:
+	_blood_eyes(c, 2.0)
+	_susanoo_ribs(c, Color(0.45, 0.55, 1.0), 15.0)
+	VFX.shockwave(c.global_position + Vector3.UP, Color(0.5, 0.6, 1.0), 8.0, 0.5, false)
+	_gen(c, "susanoo", t)
+
+
+func p_iso_susanoo(c: Node3D, t: Node3D) -> void:
+	_susanoo_ribs(c, Color(0.6, 0.4, 1.0), 15.0)
+	_gen(c, "iso_susanoo", t)
+
+
+func p_kagura_shingan(c: Node3D, t: Node3D) -> void:
+	_sense_pulse(c, Color(0.95, 0.85, 0.4), 60.0, 4)
+	_gen(c, "kagura_shingan", t)
+
+
+func p_saiko_denshin(c: Node3D, t: Node3D) -> void:
+	_yama_seal(c)
+	_sense_pulse(c, MIND, 30.0, 2)
+	_gen(c, "saiko_denshin", t)
+
+
+## Bağlardan Kurtulma: kopan ip parçaları ve duman
+func p_nawanuke_no_jutsu(c: Node3D, t: Node3D) -> void:
+	VFX.debris(c.global_position + Vector3.UP, Color(0.7, 0.6, 0.4), 12, 4.0, 0.15)
+	FX.smoke_puff(c.global_position + Vector3.UP, 0.8, 8)
+	_gen(c, "nawanuke_no_jutsu", t)
+
+
+func p_senninka(c: Node3D, t: Node3D) -> void:
+	for k in 10:
+		after(k * 0.06, func():
+			if live(c):
+				var a = k * TAU / 10.0
+				var q = c.global_position + Vector3(cos(a) * 3.5, 1.0, sin(a) * 3.5)
+				VFX.puffs(q, {"amount": 6, "life": 0.6, "size": 0.4, "radius": 0.2, "vmin": 4, "vmax": 6, "dir": (c.global_position + Vector3.UP - q).normalized(), "spread": 8.0, "add": true,
+					"colors": [Color(0.7, 1, 0.6, 0.8), Color(0.4, 0.9, 0.4, 0)]}))
+	_stone_skin(c, 20.0, Color(0.55, 0.62, 0.5))
+	_gen(c, "senninka", t)
+
+
+func p_kanchi_no_jutsu(c: Node3D, t: Node3D) -> void:
+	_sense_pulse(c, Color(0.6, 0.85, 1.0), 40.0, 3)
+	_gen(c, "kanchi_no_jutsu", t)
+
+
+## Su Küresi İzleme: avuçta yüzen su küresi
+func p_kanchi_suikyu(c: Node3D, t: Node3D) -> void:
+	var ba = bone_attach(c, "RightHand")
+	if ba:
+		var w = VFX.water_ball(0.5)
+		w.position = Vector3(0, 0.25, 0)
+		ba.add_child(w)
+		after(2.0, func():
+			if is_instance_valid(ba):
+				ba.queue_free())
+	_sense_pulse(c, WATER, 40.0, 2)
+	_gen(c, "kanchi_suikyu", t)
+
+
+func p_oiroke_no_jutsu(c: Node3D, t: Node3D) -> void:
+	FX.smoke_puff(c.global_position + Vector3.UP, 1.4, 20)
+	VFX.puffs(c.global_position + Vector3.UP * 1.4, {"amount": 20, "life": 1.0, "size": 0.25, "radius": 0.8, "vmin": 1, "vmax": 2, "dir": Vector3.UP, "spread": 90.0, "add": true,
+		"colors": [Color(1, 0.7, 0.85, 0.9), Color(1, 0.5, 0.7, 0)]})
+	_gen(c, "oiroke_no_jutsu", t)
+
+
+## Ruh Hali: saydam beyaz ruh bedenden yükselir
+func p_reika_no_jutsu(c: Node3D, t: Node3D) -> void:
+	var soul = MeshInstance3D.new()
+	var cap = CapsuleMesh.new()
+	cap.radius = 0.35; cap.height = 1.7
+	soul.mesh = cap
+	soul.material_override = VFX.mat_spiral(Color(0.95, 0.97, 1.0), Color(0.6, 0.7, 0.9), 2.0, 1.0, 4.0, 0.5, Vector3.UP)
+	get_tree().current_scene.add_child(soul)
+	soul.global_position = c.global_position + Vector3.UP * 0.9
+	var tw = soul.create_tween()
+	tw.tween_property(soul, "global_position", soul.global_position + Vector3.UP * 1.5 + c.face_dir() * 2.0, 0.8)
+	tw.parallel().tween_property(soul, "scale", Vector3(1.2, 1.2, 1.2), 0.8)
+	tw.tween_callback(soul.queue_free)
+	_gen(c, "reika_no_jutsu", t)
+
+
+func p_sukunahikona(c: Node3D, t: Node3D) -> void:
+	VFX.shockwave(c.global_position + Vector3.UP, Color(0.85, 0.85, 0.95), 3.0, 0.4, false)
+	VFX.star(c.global_position + Vector3.UP, Color(1, 1, 1), 1.6)
+	_gen(c, "sukunahikona", t)
+
+
+func p_tailed_beast_telepathy(c: Node3D, t: Node3D) -> void:
+	VFX.shockwave(c.global_position + Vector3.UP * 1.6, Color(1.0, 0.55, 0.2), 6.0, 0.6, false)
+	_gen(c, "tailed_beast_telepathy", t)
+
+
+## Teleskop Kristal Küre: önde parlayan kristal küre, içinde dönen ışık
+func p_tomegane_no_jutsu(c: Node3D, t: Node3D) -> void:
+	var orb = VFX.element_core("", Color(0.75, 0.9, 1.0), 0.45)
+	c.add_child(orb)
+	orb.position = Vector3(0, 1.3, 0.7)
+	after(2.0, func():
+		if is_instance_valid(orb):
+			orb.queue_free())
+	_sense_pulse(c, Color(0.75, 0.9, 1.0), 60.0, 2)
+	_gen(c, "tomegane_no_jutsu", t)
+
+
+func p_toton_jutsu(c: Node3D, t: Node3D) -> void:
+	VFX.shockwave(c.global_position + Vector3.UP, Color(0.9, 0.95, 1.0), 2.5, 0.4, false)
+	_gen(c, "toton_jutsu", t)
+
+
+## Parşömen açma: önde açılan parşömenden silahlar dumanla çıkar
+func p_kaifu_no_jutsu(c: Node3D, t: Node3D) -> void:
+	var sc = _sheet(0.7)
+	c.add_child(sc)
+	sc.position = Vector3(0, 1.2, 0.6)
+	FX.smoke_puff(c.global_position + Vector3.UP * 1.3 + c.face_dir() * 0.8, 0.8, 12)
+	after(0.8, func():
+		if is_instance_valid(sc):
+			sc.queue_free())
+	_gen(c, "kaifu_no_jutsu", t)
+
+
+func p_mokuton_henge(c: Node3D, t: Node3D) -> void:
+	for k in 6:
+		var br = _branch(2.5, 0.2)
+		c.add_child(br)
+		br.position = Vector3(0, 0.6 + k * 0.25, 0)
+		br.rotation = Vector3(randf_range(0.6, 1.2), k * TAU / 6.0, 0)
+		br.scale = Vector3(1, 0.05, 1)
+		var tw = br.create_tween()
+		tw.tween_property(br, "scale", Vector3.ONE, 0.3)
+		tw.tween_interval(1.0)
+		tw.tween_property(br, "scale", Vector3(1, 0.05, 1), 0.3)
+		tw.tween_callback(br.queue_free)
+	_gen(c, "mokuton_henge", t)
+
+
+func p_gentoshin_no_jutsu(c: Node3D, t: Node3D) -> void:
+	VFX.shockwave(c.global_position + Vector3.UP, Color(0.6, 0.8, 1.0), 4.0, 0.5, false)
+	_gen(c, "gentoshin_no_jutsu", t)
+
+
+## Isı Pusu: beden çevresinde dalgalı hava
+func p_kagero(c: Node3D, t: Node3D) -> void:
+	for k in 4:
+		after(k * 0.1, func():
+			if live(c):
+				VFX.shockwave(c.global_position + Vector3.UP, Color(1.0, 0.85, 0.6), 1.5 + k * 0.6, 0.35, false))
+	_gen(c, "kagero", t)
+
+
+func p_soshinki(c: Node3D, t: Node3D) -> void:
+	_sense_pulse(c, WOOD.lightened(0.3), 30.0, 2)
+	_gen(c, "soshinki", t)
+
+
+## Mühür Çözme: dönen mühür yazısı halkası kırılır
+func p_fuinjutsu_kai(c: Node3D, t: Node3D) -> void:
+	_script_ring(c, 0.9, 0.8)
+	after(0.8, func():
+		if live(c):
+			VFX.star(c.global_position + Vector3.UP, Color(1, 0.95, 0.8), 2.0)
+			VFX.shockwave(c.global_position + Vector3.UP, Color(1, 0.95, 0.8), 4.0, 0.3, false))
+	_gen(c, "fuinjutsu_kai", t)
+
+
+func p_doton_iwagakure_no_jutsu(c: Node3D, t: Node3D) -> void:
+	var rk = _rock(1.4)
+	get_tree().current_scene.add_child(rk)
+	rk.global_position = gp(c.global_position) + Vector3.UP * 0.8
+	rk.scale = Vector3(1.2, 0.05, 1.2)
+	var tw = rk.create_tween()
+	tw.tween_property(rk, "scale", Vector3(1.2, 1.6, 1.2), 0.3).set_trans(Tween.TRANS_BACK)
+	tw.tween_interval(3.5)
+	tw.tween_property(rk, "scale", Vector3(1.2, 0.05, 1.2), 0.3)
+	tw.tween_callback(rk.queue_free)
+	_earth_burst(c.global_position, 0.6)
+	_gen(c, "doton_iwagakure_no_jutsu", t)
+
+
+func p_shimogakure_no_jutsu(c: Node3D, t: Node3D) -> void:
+	for k in 8:
+		var a = k * TAU / 8.0
+		var sp = _ice_spike(randf_range(1.0, 2.0), 0.25)
+		get_tree().current_scene.add_child(sp)
+		sp.global_position = gp(c.global_position + Vector3(cos(a), 0, sin(a)) * 1.2) + Vector3.UP * 0.6
+		sp.rotation = Vector3(randf_range(-0.3, 0.3), 0, randf_range(-0.3, 0.3))
+		get_tree().create_timer(4.0).timeout.connect(sp.queue_free)
+	VFX.puffs(c.global_position + Vector3.UP, {"amount": 30, "life": 1.4, "size": 1.2, "radius": 1.5, "vmin": 0.3, "vmax": 1, "dir": Vector3.UP, "spread": 90.0, "add": false,
+		"colors": [Color(0.85, 0.95, 1, 0.8), Color(0.75, 0.88, 1, 0)]})
+	_gen(c, "shimogakure_no_jutsu", t)

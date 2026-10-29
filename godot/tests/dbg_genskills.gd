@@ -16,7 +16,7 @@ func _ready() -> void:
 	main.add_child(cam)
 	cam.current = true
 	var only = OS.get_environment("ONLY")
-	var ids = [only] if only != "" else ["suiro_no_jutsu", "suiton_daibakufu_no_jutsu", "kirigakure_no_jutsu", "doton_doryudan", "shinra_tensei", "raikiri", "odama_rasengan", "amaterasu", "enton_kagutsuchi", "enton_yasaka_no_magatama", "amaterasu_entenka", "tensha_fuin_amaterasu", "tsukuyomi", "kamui", "hiraishin_no_jutsu", "sabaku_kyu", "kibaku_nendo", "mokuton_mokuryu_no_jutsu"]
+	var ids = [only] if only != "" else ["_shurado", "_kekkai_tengai_hojin", "_kawarimi_no_jutsu", "_gake_nobori_no_gyo", "_ki_nobori_no_shugyo", "_kakuremino_no_jutsu", "_bunshin_no_jutsu", "_sensa_kaibyo", "_sabaku_fuyu", "_mujin_meisai", "_doton_doryukatsu", "_doton_moguragakure_no_jutsu", "_doton_dochu_senko", "_doton_dochu_eigyo_no_jutsu", "_funyu_no_jutsu", "_tanuki_neiri_no_jutsu", "_genjutsu_tsushin", "_haremu_no_jutsu", "_gamagakure_no_jutsu", "_meisaigakure_no_jutsu", "_fushi_tensei", "_susanoo", "_iso_susanoo", "_kagura_shingan", "_saiko_denshin", "_nawanuke_no_jutsu", "_senninka", "_kanchi_no_jutsu", "_kanchi_suikyu", "_oiroke_no_jutsu", "_reika_no_jutsu", "_sukunahikona", "_tailed_beast_telepathy", "_tomegane_no_jutsu", "_toton_jutsu", "_kaifu_no_jutsu", "_mokuton_henge", "_gentoshin_no_jutsu", "_kagero", "_soshinki", "_fuinjutsu_kai", "_doton_iwagakure_no_jutsu", "_shimogakure_no_jutsu"]
 	for id in ids:
 		var e = Enemy.new()
 		var a = Enemy.archetype("bandit", 0)
@@ -41,7 +41,7 @@ func _ready() -> void:
 		await get_tree().create_timer(0.35).timeout
 		if OS.get_environment("XTRA") != "":
 			await get_tree().create_timer(float(OS.get_environment("XTRA"))).timeout
-		if id in ["shinra_tensei", "raikiri", "amaterasu", "tsukuyomi", "kamui", "hiraishin_no_jutsu", "mokuton_mokuryu_no_jutsu"]:
+		if id in ["kekkai_tengai_hojin", "kawarimi_no_jutsu", "sensa_kaibyo", "susanoo", "senninka", "reika_no_jutsu", "mokuton_henge", "shimogakure_no_jutsu"]:
 			pl.set_process(false)
 			var fw = pl.face_dir()
 			if id == "kami_tsubasa":
