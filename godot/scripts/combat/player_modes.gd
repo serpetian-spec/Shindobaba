@@ -495,8 +495,26 @@ func set_size(s: float, dur: float) -> void:
 
 # ------------------------------------------------------------------ hasar kancası: true = darbe tamamen önlendi
 func on_player_hit(info: Dictionary) -> bool:
-	if Buffs.has("suika") and p.chakra >= 5.0:
-		p.chakra -= 5.0
+	if Buffs.has("suika"):
+		# su beden: Raiton suyu iletir — iki kat hasar, beden dağılır (zayıflık); ağır darbe yarıya iner; her darbe chakra yer
+		var sel = String(info.get("element", ""))
+		if sel in ["raiton", "ranton", "jinton"]:
+			info["dmg"] = float(info.get("dmg", 0.0)) * 2.0
+			Buffs.remove("suika")
+			Combat.popup_text(p.global_position + Vector3.UP * 2.2, "Su beden elektriklendi!", Color(1, 1, 0.4))
+			if p.has_method("apply_status"):
+				p.apply_status("stun", 1.2)
+			return false
+		var cost = 5.0 + float(info.get("dmg", 0.0)) * 0.25
+		if p.chakra < cost:
+			Buffs.remove("suika")
+			Combat.popup_text(p.global_position + Vector3.UP * 2.2, "Chakra bitti — su beden çözüldü", Color(0.6, 0.75, 1))
+			return false
+		if info.get("kind", "light") == "heavy":
+			info["dmg"] = float(info.get("dmg", 0.0)) * 0.5
+			p.chakra -= cost
+			return false
+		p.chakra -= cost
 		FX.burst(p.global_position + Vector3.UP, {"amount": 20, "life": 0.6, "tex": FX.tex_smoke, "add": false, "size": 0.8, "vmin": 2, "vmax": 6, "gravity": Vector3(0, -10, 0),
 			"colors": [Color(0.85, 0.95, 1, 1), Color(0.3, 0.6, 1, 0)]})
 		Combat.popup_text(p.global_position + Vector3.UP * 2.2, "Su beden!", Color(0.5, 0.8, 1))

@@ -173,6 +173,7 @@ func toggle() -> void:
 		if r in [1, 4, 5] or l in [1, 4, 5]:
 			var tl = maxi(_lvl("sag"), _lvl("sol"))
 			Combat.base_time_scale = 0.9 - 0.04 * tl
+		_eye_buff()
 	else:
 		_close()
 	refresh_visual()
@@ -216,7 +217,36 @@ func _eye_closeup(kind: int) -> void:
 		cam.queue_free())
 
 
+## Açık gözün etkisi ekranda buff olarak görünür (kaçınma/zaman yavaşlaması/Jūken ayrı uygulanır, burada yazılır)
+func _eye_buff() -> void:
+	var r = _kind("sag"); var l = _kind("sol")
+	var k = maxi(r, l)
+	var names = []
+	for x in [r, l]:
+		if x > 0 and not KINDS[x] in names:
+			names.append(KINDS[x])
+	var mods = {"_name": " / ".join(names)}
+	var desc = []
+	if r in [1, 4, 5] or l in [1, 4, 5]:
+		mods["jutsu"] = 1.0 + 0.04 * maxi(_lvl("sag"), _lvl("sol")) + (0.12 if (r >= 4 and r <= 5) or (l >= 4 and l <= 5) else 0.0)
+		desc.append("Kaçınma %%%d" % int(dodge_chance() * 100.0))
+		desc.append("dünya yavaşlar (hareketleri okursun)")
+	if r == 2 or l == 2:
+		mods["melee"] = 1.0   # Jūken bonusu melee_bonus() ile uygulanır; açıklamada yazılır
+		desc.append("Jūken yakın dövüş +%25, 360° görüş, düşman chakrası görünür")
+	if r == 6 or l == 6:
+		mods["jutsu"] = float(mods.get("jutsu", 1.0)) * 1.2
+		desc.append("Altı Yol teknikleri açık")
+	if k in [3, 7, 8]:
+		mods["jutsu"] = float(mods.get("jutsu", 1.0)) * 1.1
+	if float(mods.get("melee", 0.0)) == 1.0:
+		mods.erase("melee")
+	mods["_desc"] = ", ".join(desc)
+	Buffs.add("eyes", 99999.0, mods)
+
+
 func _close() -> void:
+	Buffs.remove("eyes")
 	active = false
 	Combat.base_time_scale = 1.0
 	if Game.world:

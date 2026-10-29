@@ -1734,6 +1734,39 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	d.custom_minimum_size = Vector2(400, 0)
 	rv.add_child(d)
+	var fx = _jutsu_effects(picked, j)
+	if fx != "":
+		var fl2 = UI.label(fx, 15, Color(1, 0.82, 0.55))
+		fl2.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		fl2.custom_minimum_size = Vector2(400, 0)
+		rv.add_child(fl2)
+
+
+## Jutsunun sayısal etkisi: tahmini hasar (oyuncunun gücüyle), element etkileri
+static func _jutsu_effects(jid: String, j: Dictionary) -> String:
+	var parts = []
+	var shp = String(j.get("shape", ""))
+	var t = int(j.get("tier", 2))
+	if Game.player and not shp in ["buff", "transform", "heal", "teleport", "clone", "summon", "genjutsu_stun", "bind"] and String(j.get("category", "")) != "dojutsu":
+		var dmg = JutsuEngine.base_dmg(Game.player, j)
+		parts.append("Hasar ≈ %d" % int(dmg))
+	var el = String(j.get("element", ""))
+	if el in ["katon", "yoton", "shakuton"]:
+		parts.append("Yakar (%.1f sn)" % (1.5 + t * 0.4))
+	if el in ["raiton", "ranton"] and t >= 2:
+		parts.append("Sersemletir (%.1f sn)" % (0.3 + t * 0.12))
+	if el in ["suiton", "hyoton"]:
+		parts.append("Ateşi söndürür, Raiton'a karşı zayıf")
+	if t >= 3:
+		parts.append("Ağır vuruş: geri savurur, ağaç devirir")
+	match shp:
+		"buff", "transform":
+			parts.append("Güçlendirme — etkisi kullanınca sol üstte yazar")
+		"heal":
+			parts.append("İyileştirir")
+		"bind", "genjutsu_stun":
+			parts.append("Hareketsiz bırakır")
+	return "  •  ".join(parts)
 
 
 ## Sürüklenirken imlecin yanında görünen küçük jutsu rozeti

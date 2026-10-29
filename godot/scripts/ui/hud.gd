@@ -3,6 +3,7 @@ extends CanvasLayer
 
 var root: Control
 var hp_bar: ProgressBar
+var buff_lbl: RichTextLabel   # aktif güçlendirmeler: ad (süre): ne verdiği
 var hp_trail: ProgressBar
 var ck_bar: ProgressBar
 var xp_bar: ProgressBar
@@ -109,6 +110,17 @@ func _build_vitals() -> void:
 	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	portrait.draw.connect(_draw_portrait)
 	frame.add_child(portrait)
+	buff_lbl = RichTextLabel.new()
+	buff_lbl.bbcode_enabled = true
+	buff_lbl.fit_content = true
+	buff_lbl.scroll_active = false
+	buff_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	buff_lbl.position = Vector2(26, 150)
+	buff_lbl.size = Vector2(520, 10)
+	buff_lbl.add_theme_font_size_override("normal_font_size", 14)
+	buff_lbl.add_theme_constant_override("outline_size", 4)
+	buff_lbl.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.8))
+	game_hud.add_child(buff_lbl)
 	name_lbl = UI.label("", 21, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)
 	name_lbl.position = Vector2(110, 2)
 	frame.add_child(name_lbl)
@@ -858,6 +870,11 @@ func _process(dt: float) -> void:
 	name_lbl.text = String(pr.get("name", ""))
 	rank_lbl.text = "%s  •  Seviye %d" % [Data.RANKS[int(pr.get("rank", 0))].to_upper(), int(pr.get("level", 1))]
 	ryo_lbl.text = "%d Ryō" % int(pr.get("ryo", 0))
+	if buff_lbl:
+		var bl = []
+		for ln in Buffs.lines():
+			bl.append("[color=#ffd27a]%s[/color]%s: %s" % [ln[0], (" (%ds)" % int(ln[2])) if ln[2] >= 0.0 else "", ln[1]])
+		buff_lbl.text = "\n".join(bl)
 	hp_bar.max_value = pl.max_hp; hp_bar.value = pl.hp
 	var hk = clampf(pl.hp / maxf(1.0, pl.max_hp), 0.0, 1.0)
 	var hcol = Color(0.35, 0.9, 0.35) if hk > 0.5 else (Color(1, 0.8, 0.2) if hk > 0.25 else Color(1, 0.3, 0.25))

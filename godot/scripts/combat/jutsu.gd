@@ -1568,7 +1568,7 @@ func j_chakra_chains(c: Node3D, t: Node3D) -> void:
 # ---------------------------------------------------------------- Hozuki
 func j_suika(c: Node3D, _t: Node3D) -> void:
 	if c is Player:
-		Buffs.add("suika", 15.0, {})
+		Buffs.add("suika", 15.0, {"_desc": "Hafif darbeler içinden geçer (chakra yer), ağır darbe yarı hasar; Raiton 2x hasar ve bedeni dağıtır"})
 		var a = FX.aura(c, Color(0.35, 0.65, 1.0), 1.0, Vector3(0, 0.9, 0), 0.0)
 		var shell = MeshInstance3D.new()
 		shell.mesh = VFX._sphere(0.5, 20, 10)
@@ -1583,7 +1583,7 @@ func j_suika(c: Node3D, _t: Node3D) -> void:
 				a.emitting = false
 				get_tree().create_timer(1.0).timeout.connect(a.queue_free))
 	Sfx.play("water", c.global_position, 1.2)
-	Hud.msg("Suika no Jutsu: 15 sn boyunca darbeler içinden geçer (chakra harcar)", Color(0.5, 0.75, 1))
+	Hud.msg("Suika no Jutsu: 15 sn hafif darbeler içinden geçer (chakra harcar). Raiton'a karşı çok zayıf!", Color(0.5, 0.75, 1))
 
 
 func j_water_gun(c: Node3D, t: Node3D) -> void:
