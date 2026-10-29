@@ -2600,7 +2600,7 @@ func p_konoha_senpu(c: Node3D, t: Node3D) -> void:
 	Sfx.play("whoosh", ctr, 1.2, 0.6)
 	after(0.15, func():
 		if live(c):
-			hit(c, c.global_position + Vector3.UP * 1.1, 2.4, inf(c, "konoha_senpu", 1.1, {"knock": 12.0, "launch": 3.0, "kind": "heavy"})))
+			mhit(c, c.global_position + Vector3.UP * 1.1, 2.4, inf(c, "konoha_senpu", 1.1, {"knock": 12.0, "launch": 3.0, "kind": "heavy"})))
 
 
 ## Yaprak Kasırgası (Reppū): kayarak alçak süpürme tekmesi — ayağını alır, yere serer
@@ -2614,7 +2614,7 @@ func p_konoha_reppu(c: Node3D, t: Node3D) -> void:
 	after(0.2, func():
 		if not live(c):
 			return
-		for e in hit(c, c.global_position + d * 1.0 + Vector3.UP * 0.3, 1.6, inf(c, "konoha_reppu", 0.9, {"knock": 3.0, "kind": "heavy"})):
+		for e in mhit(c, c.global_position + d * 1.0 + Vector3.UP * 0.3, 1.6, inf(c, "konoha_reppu", 0.9, {"knock": 3.0, "kind": "heavy"})):
 			st(e, "stun", 1.2)
 			Combat.popup_text(e.global_position + Vector3.UP * 2.0, "Ayağı alındı!", LEAF))
 	Sfx.play("whoosh", c.global_position, 1.0, 0.5)
@@ -2633,11 +2633,11 @@ func p_dainamikku_entori(c: Node3D, t: Node3D) -> void:
 			return
 		VFX.puffs(c.global_position + Vector3.UP * 0.8, {"amount": 2, "life": 0.25, "size": 0.4, "radius": 0.2, "vmin": 0, "vmax": 1, "dir": Vector3.UP, "spread": 20.0,
 			"colors": [Color(1, 1, 1, 0.5), Color(1, 1, 1, 0)]})
-		var hs = hit(c, c.global_position + Vector3.UP * 0.9 + d * 0.8, 1.2, inf(c, "dainamikku_entori", 1.4, {"knock": 22.0, "launch": 4.0, "kind": "heavy", "dir": d}))
+		var hs = mhit(c, c.global_position + Vector3.UP * 0.9 + d * 0.8, 1.2, inf(c, "dainamikku_entori", 1.4, {"knock": 22.0, "launch": 4.0, "kind": "heavy", "dir": d}))
 		if not hs.is_empty():
 			done["v"] = true
 			shake(0.4)
-			FX.impact(hs[0].global_position + Vector3.UP, Color(1, 0.9, 0.7), 1.2)
+			_mfx(c, hs[0].global_position + Vector3.UP, Color(1, 0.9, 0.7), 1.2)
 			if c is CharacterBody3D:
 				c.velocity = -d * 5.0 + Vector3.UP * 5.0)
 
@@ -2880,7 +2880,7 @@ func p_hayanie(c: Node3D, t: Node3D) -> void:
 	tw.tween_callback(func():
 		if live(tt):
 			tt.take_hit(inf(c, "hayanie", 1.6, {"knock": 2.0, "kind": "heavy"}))
-			FX.impact(tt.global_position, Color(0.9, 0.8, 0.6), 1.3)
+			_mfx(c, tt.global_position, Color(0.9, 0.8, 0.6), 1.3)
 			VFX.debris(tt.global_position, EARTH, 12, 5.0)
 			shake(0.5)
 			Sfx.play("hit_heavy", tt.global_position, 1.0))
@@ -2920,7 +2920,7 @@ func p_konoha_daisenpu(c: Node3D, t: Node3D) -> void:
 			if c is CharacterBody3D:
 				c.velocity = d * 5.0 + Vector3.UP * (3.0 + k * 1.5)
 			_leaves(c.global_position + Vector3.UP * 0.6, 18)
-			hit(c, c.global_position + Vector3.UP * (1.0 + k * 0.3) + d * 0.8, 2.2, inf(c, "konoha_daisenpu", 0.6, {"knock": 4.0 + k * 6.0, "launch": 2.0 + k * 2.0, "kind": "heavy"}))
+			mhit(c, c.global_position + Vector3.UP * (1.0 + k * 0.3) + d * 0.8, 2.2, inf(c, "konoha_daisenpu", 0.6, {"knock": 4.0 + k * 6.0, "launch": 2.0 + k * 2.0, "kind": "heavy"}))
 			Sfx.play("punch", c.global_position, 1.2 - k * 0.1))
 
 
@@ -2939,11 +2939,11 @@ func p_konoha_otoshi(c: Node3D, t: Node3D) -> void:
 			c.velocity = d * 3.0 + Vector3.DOWN * 22.0
 		after(0.15, func():
 			var at = gp(c.global_position + d * 0.8)
-			FX.impact(at + Vector3.UP * 0.3, Color(1, 0.9, 0.7), 1.4)
+			_mfx(c, at + Vector3.UP * 0.3, Color(1, 0.9, 0.7), 1.4)
 			FX.ring(at + Vector3.UP * 0.05, EARTH, 4.0, 0.4)
 			VFX.debris(at, EARTH, 16, 6.0)
 			shake(0.6)
-			for e in hit(c, at + Vector3.UP, 2.4, inf(c, "konoha_otoshi", 1.5, {"knock": 4.0, "kind": "heavy"})):
+			for e in mhit(c, at + Vector3.UP, 2.4, inf(c, "konoha_otoshi", 1.5, {"knock": 4.0, "kind": "heavy"})):
 				st(e, "stun", 1.0)
 			Sfx.play("hit_heavy", at, 0.9)))
 
@@ -3033,7 +3033,7 @@ func p_kage_buyo(c: Node3D, t: Node3D) -> void:
 			if live(tt):
 				anim(c, "hook", 1.6)
 				tt.take_hit(inf(c, "kage_buyo", 0.9, {"knock": 8.0, "launch": -8.0, "kind": "heavy"}))
-				FX.impact(tt.global_position + Vector3.UP, Color(1, 0.9, 0.7), 1.0)))
+				_mfx(c, tt.global_position + Vector3.UP, Color(1, 0.9, 0.7), 1.0)))
 
 
 ## Karga Klonu: beden karga sürüsüne dağılır, sürü düşmanın etrafında döner ve yanında yeniden birleşir
@@ -3086,10 +3086,10 @@ func p_kawazu_tataki(c: Node3D, t: Node3D) -> void:
 			return
 		anim(c, "cross", 1.4)
 		var at = c.global_position + c.face_dir() * 1.4 + Vector3.UP * 1.1
-		FX.impact(at, SAGE, 1.6)
+		_mfx(c, at, SAGE, 1.6)
 		FX.ring(at, SAGE, 3.0, 0.4, false, c.face_dir())
 		shake(0.5)
-		hit(c, at, 2.0, inf(c, "kawazu_tataki", 1.8, {"knock": 24.0, "launch": 4.0, "kind": "heavy"}))
+		mhit(c, at, 2.0, inf(c, "kawazu_tataki", 1.8, {"knock": 24.0, "launch": 4.0, "kind": "heavy"}))
 		Sfx.play("hit_heavy", at, 0.8))
 
 
@@ -3104,7 +3104,7 @@ func p_konoha_shofu(c: Node3D, t: Node3D) -> void:
 			return
 		_kick_pose(c, 0.3)
 		_leaves(c.global_position + Vector3.UP * 0.4, 20, 8.0)
-		hit(c, c.global_position + c.face_dir() * 0.8 + Vector3.UP * 0.8, 1.6, inf(c, "konoha_shofu", 1.0, {"knock": 1.0, "launch": 16.0, "kind": "heavy"}))
+		mhit(c, c.global_position + c.face_dir() * 0.8 + Vector3.UP * 0.8, 1.6, inf(c, "konoha_shofu", 1.0, {"knock": 1.0, "launch": 16.0, "kind": "heavy"}))
 		Sfx.play("punch", c.global_position, 1.1))
 
 
@@ -3120,7 +3120,7 @@ func p_kumo_ryu_omotegiri(c: Node3D, t: Node3D) -> void:
 		if c is CharacterBody3D:
 			c.velocity = d * 2.0
 		_arc_cut(c.global_position + Vector3.UP * 1.1 + d * 1.0, d, -40.0, 40.0, Color(0.85, 0.9, 1.0))
-		hit(c, c.global_position + Vector3.UP * 1.0 + d * 1.2, 1.8, inf(c, "kumo_ryu_omotegiri", 1.2, {"knock": 8.0, "kind": "heavy", "bleed": 3.0}))
+		mhit(c, c.global_position + Vector3.UP * 1.0 + d * 1.2, 1.8, inf(c, "kumo_ryu_omotegiri", 1.2, {"knock": 8.0, "kind": "heavy", "bleed": 3.0}))
 		Sfx.play("clink", c.global_position, 1.3))
 
 
@@ -3134,7 +3134,7 @@ func p_kumo_ryu_uragiri(c: Node3D, t: Node3D) -> void:
 		if not live(c):
 			return
 		_arc_cut(c.global_position + Vector3.UP * 0.9 + d * 0.9, d, 160.0, 20.0, Color(0.9, 0.85, 1.0))
-		for e in hit(c, c.global_position + Vector3.UP + d * 1.1, 1.8, inf(c, "kumo_ryu_uragiri", 1.1, {"knock": 6.0, "kind": "heavy", "bleed": 3.0})):
+		for e in mhit(c, c.global_position + Vector3.UP + d * 1.1, 1.8, inf(c, "kumo_ryu_uragiri", 1.1, {"knock": 6.0, "kind": "heavy", "bleed": 3.0})):
 			st(e, "stun", 0.8)
 		Sfx.play("clink", c.global_position, 1.1))
 
@@ -3212,7 +3212,7 @@ func p_kumogakure_taijutsu_okami_ringu(c: Node3D, t: Node3D) -> void:
 	_arc_cut(at, c.face_dir(), 0.0, 360.0, Color(0.85, 0.9, 1.0), 2.4)
 	_arc_cut(at + Vector3.UP * 0.3, c.face_dir(), 20.0, 380.0, Color(0.7, 0.85, 1.0), 2.8)
 	after(0.15, func():
-		hit(c, at, 3.2, inf(c, "kumogakure_taijutsu_okami_ringu", 1.2, {"knock": 12.0, "kind": "heavy", "bleed": 3.0})))
+		mhit(c, at, 3.2, inf(c, "kumogakure_taijutsu_okami_ringu", 1.2, {"knock": 12.0, "kind": "heavy", "bleed": 3.0})))
 	Sfx.play("clink", at, 1.0)
 
 
@@ -3275,7 +3275,7 @@ func p_nekozume(c: Node3D, t: Node3D) -> void:
 				cut.global_position = at + d.cross(Vector3.UP) * (j - 1) * 0.18
 				cut.rotation = Vector3(0, atan2(d.x, d.z), deg_to_rad(35.0 * (1 if k % 2 == 0 else -1)))
 				cut.create_tween().tween_property(cut, "scale", Vector3(1, 0.01, 1), 0.25).finished.connect(cut.queue_free)
-			hit(c, at, 1.6, inf(c, "nekozume", 0.4, {"knock": 3.0, "kind": "light", "bleed": 2.0})))
+			mhit(c, at, 1.6, inf(c, "nekozume", 0.4, {"knock": 3.0, "kind": "light", "bleed": 2.0})))
 	Sfx.play("whoosh", c.global_position, 1.5)
 
 
@@ -3310,8 +3310,8 @@ func p_rakanken(c: Node3D, t: Node3D) -> void:
 			if c is CharacterBody3D:
 				c.velocity = d * 5.0
 			var at = c.global_position + Vector3.UP * 1.1 + d * 1.2
-			FX.impact(at, Color(1, 0.85, 0.6), 0.8 + k * 0.2)
-			hit(c, at, 1.6, inf(c, "rakanken", 0.5 + k * 0.15, {"knock": 3.0 + k * 4.0, "kind": "heavy"}))
+			_mfx(c, at, Color(1, 0.85, 0.6), 0.8 + k * 0.2)
+			mhit(c, at, 1.6, inf(c, "rakanken", 0.5 + k * 0.15, {"knock": 3.0 + k * 4.0, "kind": "heavy"}))
 			Sfx.play("punch", at, 1.0 - k * 0.08))
 
 
@@ -3347,7 +3347,7 @@ func p_shishi_rendan(c: Node3D, t: Node3D) -> void:
 				if live(tt):
 					_kick_pose(c, 0.1)
 					tt.take_hit(inf(c, "shishi_rendan", 0.35, {"knock": 0.0, "launch": 2.0, "kind": "light"}))
-					FX.impact(tt.global_position + Vector3.UP, Color(1, 0.9, 0.7), 0.7))
+					_mfx(c, tt.global_position + Vector3.UP, Color(1, 0.9, 0.7), 0.7))
 		after(0.45, func():
 			if live(tt):
 				anim(c, "hook", 1.4)
@@ -3355,7 +3355,7 @@ func p_shishi_rendan(c: Node3D, t: Node3D) -> void:
 				Combat.popup_text(tt.global_position + Vector3.UP * 2.0, "Shishi Rendan!", Color(1, 0.6, 0.3))
 				after(0.3, func():
 					if live(tt):
-						FX.impact(tt.global_position, Color(1, 0.85, 0.6), 1.6)
+						_mfx(c, tt.global_position, Color(1, 0.85, 0.6), 1.6)
 						VFX.debris(tt.global_position, EARTH, 18, 7.0)
 						shake(0.6)
 						Sfx.play("hit_heavy", tt.global_position, 0.8))))
@@ -3549,8 +3549,8 @@ func p_suiken(c: Node3D, t: Node3D) -> void:
 				c.velocity = wob * 6.0 + Vector3.UP * (2.0 if k == 3 else 0.0)
 			anim(c, ["jab", "hook", "cross", "slide", "hook"][k], 1.7)
 			var at = c.global_position + Vector3.UP * (0.5 if k == 3 else 1.1) + wob * 1.1
-			for e in hit(c, at, 1.6, inf(c, "suiken", 0.45, {"knock": 4.0, "kind": "heavy"})):
-				FX.impact(e.global_position + Vector3.UP, Color(1, 0.85, 0.6), 0.8)
+			for e in mhit(c, at, 1.6, inf(c, "suiken", 0.45, {"knock": 4.0, "kind": "heavy"})):
+				_mfx(c, e.global_position + Vector3.UP, Color(1, 0.85, 0.6), 0.8)
 			Sfx.play("punch", at, 1.0 + randf() * 0.3))
 
 
@@ -3641,7 +3641,7 @@ func p_tsukikage(c: Node3D, t: Node3D) -> void:
 		var at = c.global_position + Vector3.UP * 1.3 + d * 0.8
 		_arc_cut(at, d, -100.0, 100.0, Color(0.85, 0.9, 1.0), 2.0)
 		_arc_cut(at + Vector3.UP * 0.15, d, -90.0, 90.0, Color(0.95, 0.97, 1.0), 1.8)
-		hit(c, at + d * 0.8, 2.2, inf(c, "tsukikage", 1.4, {"knock": 9.0, "kind": "heavy", "bleed": 3.0}))
+		mhit(c, at + d * 0.8, 2.2, inf(c, "tsukikage", 1.4, {"knock": 9.0, "kind": "heavy", "bleed": 3.0}))
 		Sfx.play("clink", at, 0.9))
 
 
@@ -3663,7 +3663,7 @@ func p_tsutenkyaku(c: Node3D, t: Node3D) -> void:
 				FX.ring(at + Vector3.UP * 0.05, EARTH, r, 0.5)
 			VFX.debris(at, EARTH, 30, 10.0)
 			shake(0.9)
-			hit(c, at + Vector3.UP, 5.0, inf(c, "tsutenkyaku", 1.9, {"knock": 14.0, "launch": 8.0, "kind": "heavy"}))
+			mhit(c, at + Vector3.UP, 5.0, inf(c, "tsutenkyaku", 1.9, {"knock": 14.0, "launch": 8.0, "kind": "heavy"}))
 			Sfx.play("boom", at, 0.9)))
 
 
@@ -4573,3 +4573,18 @@ func p_raiton_raiju_tsuiga(c: Node3D, t: Node3D) -> void:
 		pr.radius = 0.8
 		_etrail(pr, "raiton", RAI, 0.8))
 	Sfx.play("chidori", c.global_position, 1.2)
+
+
+## Yakın dövüş vuruşu + isabette detaylı darbe efekti (yıldız, yönlü şok halkası, kıvılcım; ağırsa çatlak/toz)
+func mhit(c: Node3D, pos: Vector3, r: float, info: Dictionary, exclude: Array = []) -> Array:
+	var hs = hit(c, pos, r, info, exclude)
+	if not hs.is_empty():
+		var heavy = String(info.get("kind", "")) == "heavy"
+		var s = clampf(0.8 + float(info.get("knock", 4.0)) * 0.04 + absf(float(info.get("launch", 0.0))) * 0.03, 0.8, 1.8)
+		var col = Color(1.0, 0.85, 0.55) if not info.has("element") else (Color(0.65, 0.85, 1.0) if info["element"] == "raiton" else Color(0.85, 1.0, 0.92))
+		melee_fx(c, hs[0].global_position + Vector3.UP * 1.0, col, s if heavy else s * 0.7, heavy and s > 1.3)
+	return hs
+
+
+func _mfx(c: Node3D, at: Vector3, col: Color, s := 1.0) -> void:
+	melee_fx(c, at, col, s * 1.2, s >= 1.2)
