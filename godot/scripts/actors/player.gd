@@ -156,6 +156,8 @@ func _unhandled_input(e: InputEvent) -> void:
 	if e.is_action_pressed("leap") and wall_n != Vector3.ZERO:
 		_wall_boost()
 	elif e.is_action_pressed("leap"):
+		if input_locked > 0.0:
+			return
 		if (grounded or swimming) and wall_n == Vector3.ZERO:
 			leap_charge = 0.0   # basarken ses yok: ses bırakınca (sıçrayışta) çıkar
 		else:
@@ -265,6 +267,8 @@ func _jump() -> void:
 func _leap(power := 1.0) -> void:
 	_show_leap_ui(false)
 	model.overlay.set_pose("charge", 0.0)
+	if input_locked > 0.0 or has_status("stun") or has_status("bind") or has_status("frozen"):   # sersem/bağlıyken sıçranamaz
+		return
 	if input_locked > 0.0:
 		return
 	if wall_n != Vector3.ZERO:
@@ -879,6 +883,8 @@ func _wall_move(dt: float) -> void:
 
 ## Duvarda Ctrl: chakra patlamasıyla duvar boyunca hızlı atılım (Striker)
 func _wall_boost() -> void:
+	if input_locked > 0.0 or has_status("stun") or has_status("bind"):
+		return
 	var cost = 6.0
 	if chakra < cost or wall_boost_t > 0.0:
 		return
