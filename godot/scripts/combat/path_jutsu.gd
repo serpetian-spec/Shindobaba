@@ -10291,11 +10291,12 @@ func p_mokuton_jukai_heki(c: Node3D, t: Node3D) -> void:
 func p_mokuton_jukai_kotan(c: Node3D, _t: Node3D) -> void:
 	busy(c, 1.2)
 	var at = gp(c.global_position)
-	for k in 26:
-		after(randf() * 0.6, func():
+	var targets = enemies_near(c, at, 14.0)
+	for k in 26 + targets.size():
+		after(randf() * 0.6 if k < 26 else 0.15, func():
 			var a = randf() * TAU
 			var r = randf_range(3.0, 14.0)
-			var q = gp(at + Vector3(cos(a) * r, 0, sin(a) * r))
+			var q = gp(at + Vector3(cos(a) * r, 0, sin(a) * r)) if k < 26 else (gp(targets[k - 26].global_position) if live(targets[k - 26]) else at)
 			var tree = Node3D.new()
 			var trunk = MeshInstance3D.new()
 			var cm = CylinderMesh.new()
