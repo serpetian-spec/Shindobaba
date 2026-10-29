@@ -522,10 +522,13 @@ func _steal(f: Node3D) -> void:
 	f.set_meta("eyes_taken", true)
 	steal_target = null
 	var id = {1: "goz_sharingan", 2: "goz_byakugan", 3: "goz_ketsuryugan", 4: "goz_mangekyo", 5: "goz_ems", 6: "goz_rinnegan", 7: "goz_tenseigan", 8: "goz_jogan"}.get(int(e["kind"]), "goz_sharingan")
-	for i in 2:
+	var n_eyes = 1 if f.has_meta("eye_share") else 2
+	for i in n_eyes:
 		Gear.grant(Game.profile, id, "", null, null, {"lvl": int(e.get("lvl", 3)), "origin": "nakil"})
 	Game.profile["flags"]["goz_hirsizi"] = int(Game.profile["flags"].get("goz_hirsizi", 0)) + 1
-	Hud.banner("GÖZLER ALINDI", "%s x2 kavanoza kondu — Tab > Gözler > Saklanan Gözler; nakil hastanede" % KINDS.get(int(e["kind"]), "Göz"), Color(0.9, 0.3, 0.3))
+	if n_eyes == 1:
+		Hud.dialog(String(f.get_meta("eye_share")), "Dur! Diğer göz bana lazım. Yardım ettiğin için bölüşelim: biri senin, biri benim.", [])
+	Hud.banner("GÖZ ALINDI" if n_eyes == 1 else "GÖZLER ALINDI", "%s x%d kavanoza kondu — Tab > Gözler > Saklanan Gözler; nakil hastanede" % [KINDS.get(int(e["kind"]), "Göz"), n_eyes], Color(0.9, 0.3, 0.3))
 	Sfx.play("seal", p.global_position, 0.7)
 
 

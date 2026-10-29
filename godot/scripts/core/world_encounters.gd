@@ -345,6 +345,7 @@ func _start_hunter(c: Vector3) -> void:
 			{"label": "Yardım et", "cb": func():
 				var at := _ahead(n.global_position, 35.0, 50.0)
 				var e: Enemy = ClanWorld.spawn_enemy(rogue_clan, clampi(_lv() + randi_range(0, 3), 4, 90), at)
+				e.set_meta("eye_share", n.display)   # gözleri paylaşılır: biri oyuncuya, biri izciye
 				cur["nodes"].append(e)
 				cur["foes"] = [e]
 				n.mode = "follow"

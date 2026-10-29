@@ -10,6 +10,30 @@ uniform bool use_alpha = false;  // gerçek saydamlık yerine kesme
 uniform float rim_amount = 0.35;
 uniform float hit_flash = 0.0;
 uniform float shade_floor = 0.62;
+// Byakugan: gözlerin çevresinde, şakaklara uzanan kabarık damarlar (yüz derisi)
+uniform float byakugan_veins = 0.0;
+uniform vec3 eye_c_r = vec3(-0.032, 1.62, 0.08);
+uniform vec3 eye_c_l = vec3(0.032, 1.62, 0.08);
+uniform float iris_r3 = 0.011;
+varying vec3 lp;
+
+void vertex() {
+	lp = VERTEX;
+}
+
+float vein_mask(vec3 p, vec3 c, float ir, float side) {
+	vec2 q = (p - c).xy;
+	q.x *= side;   // dış taraf (şakak) +x
+	float d = length(q) / ir;
+	if (d < 1.5 || d > 4.2) return 0.0;
+	float a = atan(q.y, q.x);
+	// dış köşeden ve göz altından/üstünden dallanan damarlar
+	float lines = abs(sin(a * 6.0 + d * 1.7 + sin(d * 2.3) * 0.6));
+	float w = 0.22 * (1.0 - (d - 1.5) / 3.0);
+	float m = 1.0 - smoothstep(w * 0.5, w, lines);
+	float side_k = smoothstep(-0.6, 0.3, cos(a));   // burun tarafında yok
+	return m * side_k * smoothstep(4.2, 3.2, d);
+}
 
 void fragment() {
 	vec4 tx = texture(tex, UV);
@@ -22,6 +46,10 @@ void fragment() {
 		c = tx.rgb;
 	}
 	if (use_alpha && tx.a < alpha_cut) discard;
+	if (byakugan_veins > 0.0) {
+		float vm = max(vein_mask(lp, eye_c_r, iris_r3, -1.0), vein_mask(lp, eye_c_l, iris_r3, 1.0));
+		c = mix(c, c * vec3(0.55, 0.38, 0.48), vm * byakugan_veins);
+	}
 	ALBEDO = mix(c, vec3(1.0), hit_flash);
 	ROUGHNESS = 1.0;
 	float rim = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), 3.0);

@@ -2156,9 +2156,10 @@ func _tracked_bounty() -> Dictionary:
 ## Bingo Kitabı girdileri (menü/diyalog için): look Color'a çevrilmiş kopyalar
 func bingo_entries() -> Array:
 	var own = Orgs.own_bingo_entry() if has_node("/root/Orgs") else {}
+	var aka = Orgs.akatsuki_bingo_entries() if has_node("/root/Orgs") else []
 	if not own.is_empty():
-		return [own] + _bingo_entries_raw()
-	return _bingo_entries_raw()
+		return [own] + _bingo_entries_raw() + aka
+	return _bingo_entries_raw() + aka
 
 
 func _bingo_entries_raw() -> Array:
@@ -2221,6 +2222,12 @@ func _bingo_detail(id: int) -> void:
 			e["alias"], e["village_name"], e["rank"], int(e["level"]), e["element"], ", ".join(e["crimes"]), e["region"], int(e["known"]), int(e["bounty"]),
 			"\nDİKKAT: Yenilmek üzereyken kaçmaya çalışır." if e["rank"] in ["B", "A", "S"] else ""]
 		var cost = maxi(50, int(int(e["bounty"]) * 0.05))
+		if e.get("org", false) or e.get("self", false):
+			# Akatsuki / kendi kaydın: izlenemez
+			Hud.dialog("%s" % e["name"], txt + "
+
+İzlenemez: kızıl bulutlar ikili gezer, yollarda kendileri karşına çıkar.", [{"label": "Listeye dön", "cb": open_bingo_dialog}])
+			return
 		Hud.dialog("%s" % e["name"], txt, [
 			{"label": "Takip et (haritada işaretle)", "cb": func(): track_bounty(id)},
 			{"label": "Muhbire sor (%d Ryō) — bölgeyi daralt" % cost, "cb": func(): ask_informant(id)},

@@ -97,13 +97,13 @@ func _ready() -> void:
 func _make_rain() -> void:
 	# yağmur: kamerayla birlikte gelen (yerel koordinat) ince damla çizgileri; kameraya çok yakın olanlar solar
 	rain = GPUParticles3D.new()
-	rain.amount = 6000
-	rain.lifetime = 0.9
+	rain.amount = 2400   # 6000 saydam damla tüm ekranı kaplıyordu (FPS düşüşü)
+	rain.lifetime = 0.8
 	rain.local_coords = true
 	rain.visibility_aabb = AABB(Vector3(-30, -40, -30), Vector3(60, 60, 60))
 	var pm = ParticleProcessMaterial.new()
 	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	pm.emission_box_extents = Vector3(24, 2, 24)
+	pm.emission_box_extents = Vector3(18, 2, 18)
 	pm.direction = Vector3(0.12, -1, 0.05)
 	pm.spread = 2.0
 	pm.initial_velocity_min = 30.0
@@ -130,7 +130,7 @@ func _make_rain() -> void:
 	add_child(rain)
 	# yere düşen damla halkaları (oyuncunun etrafında)
 	splash = GPUParticles3D.new()
-	splash.amount = 260
+	splash.amount = 120
 	splash.lifetime = 0.35
 	splash.local_coords = false
 	splash.visibility_aabb = AABB(Vector3(-20, -5, -20), Vector3(40, 10, 40))

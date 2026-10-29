@@ -60,7 +60,8 @@ var face_mi: MeshInstance3D
 var head_fix := Transform3D.IDENTITY
 var eye_center_model := Vector3(0, 1.62, 0.08)
 var eye_half := 0.032
-var sclera_mat: ShaderMaterial = null   # göz akı (Rinnegan tüm gözü kaplar)
+var sclera_mat: ShaderMaterial = null
+var face_skin_mat: ShaderMaterial = null   # yüz derisi (Byakugan damarları)   # göz akı (Rinnegan tüm gözü kaplar)
 var _eye_trails: Array = []
 var _outer_pad := 0.0   # dış giysi kabuğuna eklenen pay (yeleğin üstüne)
 
@@ -334,6 +335,12 @@ func _face_and_hair() -> void:
 				var sm = ShaderMaterial.new()
 				sm.shader = load("res://shaders/vroid_toon.gdshader")
 				sm.set_shader_parameter("tex", tex)
+				face_skin_mat = sm
+				var ic4: Array = fd.get("iris_c", [])
+				if ic4.size() == 3:
+					sm.set_shader_parameter("eye_c_r", ic4[0])
+					sm.set_shader_parameter("eye_c_l", ic4[1])
+					sm.set_shader_parameter("iris_r3", ic4[2])
 				sm.set_shader_parameter("tint", ratio)
 				face_mi.set_surface_override_material(si, sm)
 				materials.append(sm)
@@ -2476,6 +2483,8 @@ func set_dojutsu_eyes(kind_r: int, lvl_r: int, kind_l: int, lvl_l: int, veins :=
 		var m = body_mesh.get_surface_override_material(0)
 		if m is ShaderMaterial:
 			m.set_shader_parameter("byakugan_veins", 1.0 if veins else 0.0)
+	if face_skin_mat:
+		face_skin_mat.set_shader_parameter("byakugan_veins", 1.0 if veins else 0.0)
 
 
 ## Kırmızı dōjutsu (Sharingan, Mangekyō, Ketsuryūgan) açıkken gözlerden ince ışık izi (Shinobi Striker tarzı)

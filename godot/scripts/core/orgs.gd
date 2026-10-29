@@ -54,6 +54,26 @@ func flags() -> Dictionary:
 	return Exams.flags()
 
 
+func is_akatsuki() -> bool:
+	return bool(flags().get("akatsuki_member", false))
+
+
+## Bingo Kitabı: Akatsuki üyeleri (izlenemez; kızıl bulutlar yollarda rastgele belirir)
+func akatsuki_bingo_entries() -> Array:
+	var out = []
+	var dead: Array = state().get("akatsuki_dead", [])
+	var i = 0
+	for m in AKATSUKI:
+		i += 1
+		var lk = akatsuki_look(m)
+		out.append({"id": -100 - i, "self": true, "org": true, "name": m["name"], "alias": m["alias"], "village": m["v"],
+			"village_name": "Akatsuki (eski %s)" % String(Game.village(m["v"]).get("name", m["v"])), "rank": "S",
+			"bounty": 90000 if m.get("leader", false) else 45000 + int(m["hp"]) * 5, "crimes": ["Akatsuki üyesi", "Kuyruklu canavar avı", "Köy baskınları"],
+			"element": m["el"], "status": "dead" if String(m["name"]) in dead else "alive", "tracked": false, "level": 70 if m.get("leader", false) else 55,
+			"look": lk, "region": "Bilinmiyor — ikili gezerler", "area": [0, 0], "hide": [0, 0], "known": 0.0})
+	return out
+
+
 func is_rogue() -> bool:
 	return not Game.profile.is_empty() and bool(flags().get("rogue", false))
 
@@ -355,6 +375,12 @@ func broker_dialog() -> void:
 		opts.append({"label": "Yasak teknikler (kinjutsu)", "tip": "Kara Listede ve üstü: köylerin yasakladığı teknikleri ryō karşılığı öğret.", "cb": _kinjutsu_dialog})
 	else:
 		opts.append({"label": "(Yasak teknikler: «Kara Listede» rütbesinde açılır)", "cb": func(): pass})
+	# Akatsuki: «Aranan Gölge» ve üstü kaçaklara davet
+	if r >= 3 and not is_akatsuki():
+		opts.append({"label": "Kızıl bulutlardan bir mesaj var...", "tip": "Akatsuki seni yanına istiyor.", "cb": _akatsuki_invite})
+	elif is_akatsuki() and Missions.active().is_empty():
+		var aj = _akatsuki_job()
+		opts.append({"label": "[S] Akatsuki: %s" % aj["title"], "tip": aj["brief"], "cb": func(): Missions.accept(aj)})
 	opts.append({"label": "Ateşin başında dinlen (can/chakra, kayıt)", "cb": func():
 		if Game.player:
 			Game.player.hp = Game.player.max_hp
@@ -421,6 +447,39 @@ func _kinjutsu_dialog() -> void:
 		Hud.dialog("Yeraltı Simsarı", "\"Şimdilik sana uygun yasak bir parşömen yok. Seviyen ya da adın büyüsün, gel.\"", [])
 		return
 	Hud.dialog("Yeraltı Simsarı — Yasak Teknikler", "Simsar sandığından mühürlü parşömenler çıkarıyor: \"Bunları köyler yakar... ben satarım.\"", opts)
+
+
+func _akatsuki_invite() -> void:
+	Hud.dialog("Kızıl Bulut Elçisi", "Gölgelerden kızıl bulutlu bir pelerin çıkıyor: \"Adın Bingo Kitabı'nda epey yükseldi. Örgütümüz kuyruklu canavarları topluyor; bize katıl, köylerin sana açamadığı kapıları biz açalım.\"", [
+		{"label": "Akatsuki'ye katıl", "cb": func():
+			flags()["akatsuki_member"] = true
+			Gear.grant(p(), "akatsuki_pelerini", "dis")
+			Gear.apply_look(p())
+			if Game.player:
+				Game.player.rebuild_model()
+			add_infamy(300)
+			Hud.banner("AKATSUKİ", "Kızıl bulutlu pelerini giydin. Akatsuki artık sana saldırmaz; simsardan örgüt görevleri al.", Color(0.85, 0.1, 0.12))
+			Game.save_game()},
+		{"label": "Reddet", "cb": func(): pass}])
+
+
+## Akatsuki görevi: bir jinchūriki'yi bul ve yen (Bingo'daki taşıyıcı ya da yeni bir kaçak taşıyıcı)
+func _akatsuki_job() -> Dictionary:
+	var h: Array = flags().get("hideout", [0, 0])
+	var at = Missions._near_spot(h, 1200.0, 2400.0)
+	var lv = maxi(int(p()["level"]), 30)
+	return {"title": "Jinchūriki Avı", "rank": "S", "village": "kacak", "giver": "Akatsuki", "hook": "Orgs.akatsuki_job_done",
+		"brief": "Örgüt bir taşıyıcının yerini buldu. Onu yen; canavar mühürlenmek üzere örgüte götürülecek.",
+		"steps": [{"kind": "kill", "at": at, "enemy": "jinchuriki", "n": 1, "boss": {"name": "Kaçak Jinchūriki", "hp": 2500.0 + lv * 50.0, "level": lv + 4, "power": 3.2},
+			"text": "Jinchūriki'yi yen."}, {"kind": "goto", "at": h, "r": 14.0, "name": "Kaçak Sığınağı", "text": "Sığınağa dön, örgüte haber ver."}]}
+
+
+func akatsuki_job_done(m: Dictionary, ok: bool) -> void:
+	if not ok:
+		return
+	add_infamy(500)
+	Progress.add_ryo(15000)
+	Hud.msg("Örgüt memnun: 15000 Ryō, şöhret +500", Color(0.9, 0.3, 0.3))
 
 
 func rogue_job_done(m: Dictionary, ok: bool) -> void:
@@ -769,7 +828,7 @@ func _process(dt: float) -> void:
 		_t = 0.0
 		_events_tick()
 	# Akatsuki avı sürerken: vahşi doğada ara sıra bir çift belirir
-	if is_hunting() and int(p()["rank"]) >= 3:
+	if is_hunting() and int(p()["rank"]) >= 3 and not is_akatsuki():
 		_hunt_t += dt
 		if _hunt_t > 600.0:
 			_hunt_t = 0.0

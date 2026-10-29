@@ -122,7 +122,7 @@ func new_profile(opts: Dictionary) -> Dictionary:
 		"look": opts.get("look", {}), "level": 1, "xp": 0, "rank": 0, "ryo": 150, "sp": 0, "skills": [],
 		"learned": [], "slots": ["", "", "", "", "", ""], "inventory": {"kunai": 12, "shuriken": 6, "salve": 2},
 		"throw_sel": "kunai", "summon": "kurbağa", "story": 0, "seed": randi(), "journal": [], "goals": [], "flags": {}, "missions_done": {"D": 0, "C": 0, "B": 0, "A": 0, "S": 0},
-		"active_mission": {}, "visited": [opts.get("village", "konoha")], "stats": {"kills": 0}, "time": 0.32,
+		"active_mission": {}, "visited": ["konoha", "suna", "kiri", "kumo", "iwa"], "stats": {"kills": 0}, "time": 0.32,
 		"village": opts.get("village", "konoha"), "rep": {}, "bingo": {"list": [], "next": 1, "refresh": 900.0},
 	}
 	pr["look"]["village"] = pr["village"]
@@ -524,7 +524,10 @@ func _process(_dt: float) -> void:
 		return
 	Journal.tick(_dt)
 	_check_rinnegan_path(_dt)
-	# ziyaret edilen köyler (hızlı seyahat)
+	# ziyaret edilen köyler (hızlı seyahat); büyük beş köy baştan açık (eski kayıtlar dahil)
+	for big in ["konoha", "suna", "kiri", "kumo", "iwa"]:
+		if not big in p()["visited"]:
+			p()["visited"].append(big)
 	var m = Game.to_map(Game.player.global_position)
 	for v in Game.world_info["villages"]:
 		if not v["id"] in p()["visited"] and m.distance_to(Vector2(v["x"], v["y"])) < float(v["r"]):
