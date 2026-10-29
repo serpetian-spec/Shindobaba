@@ -8,13 +8,14 @@ const LANDSCAPE := "res://scripts/world/city_landscape.gd"
 const VL = preload("res://scripts/world/village_life.gd")
 static var _doors_done := {}
 static var _parks_done := {}
+static var _lots_done := {}
 
 
 ## street_cache[vid] dizisine eksik ek noktaları bir kez ekler (çağrılması ucuz)
 static func top_up(pts: Array, v: Dictionary) -> void:
 	var vid := String(v["id"])
 	var base_n: int = maxi(40, pts.size())
-	if not _doors_done.has(vid):
+	if not _doors_done.has(vid) and (vid == "konoha" or CityInfill.done.has(vid)):
 		var ds: Array = VL.doors.get(vid, [])
 		if not ds.is_empty():
 			_doors_done[vid] = true
@@ -26,6 +27,13 @@ static func top_up(pts: Array, v: Dictionary) -> void:
 				p += Vector3(randf_range(-2.5, 2.5), 0, randf_range(-2.5, 2.5))
 				p.y = Game.ground_height(p.x, p.z)
 				pts.append(p)
+	# boş arsalardaki yaşam köşeleri (sandık yığını, bahçe, tezgâh...) önleri
+	if not _lots_done.has(vid) and CityInfill.done.has(vid):
+		var lots: Array = CityInfill.lots_by[vid]
+		if not lots.is_empty():
+			_lots_done[vid] = true
+			for q in lots:
+				pts.append(q)
 	if not _parks_done.has(vid):
 		var parks := _parks(vid)
 		if not parks.is_empty():

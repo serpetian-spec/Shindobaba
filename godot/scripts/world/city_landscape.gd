@@ -455,6 +455,9 @@ static func dress(b: Builder) -> void:
 	await _parks(c, rad)
 	if c.dead:
 		return
+	await CityInfill.fill(c, rad)
+	if c.dead:
+		return
 	c.flush()
 	print("Peyzaj %s (%s): %d ev, %d öğe, %.0f ms (hazırlık %.0f, patika %.0f, bahçe %.0f, sokak %.0f)" % [b.key, c.climate, houses.size(), c.count,
 		(Time.get_ticks_usec() - t0) / 1000.0, (tp - t0) / 1000.0, (tl - tp) / 1000.0, (t1 - tl) / 1000.0, (t2 - t1) / 1000.0])

@@ -157,10 +157,11 @@ static func _fill(b: Builder, r: float, inner: float, spacing: float, style: Str
 	var count = 0
 	var ring = inner
 	while ring < r and count < max_houses:
+		# dış mahalleler de dolu kalsın: eskiden dışa doğru aralık 2.4 katına çıkıyor, büyük köylerin dış yarısı bomboş kalıyordu
 		var f = (ring - inner) / maxf(r - inner, 1.0)
-		var dens = clampf(1.0 - f * 0.55, 0.45, 1.0)
+		var dens = clampf(1.0 - f * 0.3, 0.75, 1.0)
 		var circ = TAU * ring
-		var n = int(circ / (spacing * (1.0 + f * 1.4)) * dens)
+		var n = int(circ / (spacing * (1.0 + f * 0.45)) * dens)
 		var off = rng.randf() * TAU
 		for i in n:
 			if count >= max_houses:
@@ -174,7 +175,9 @@ static func _fill(b: Builder, r: float, inner: float, spacing: float, style: Str
 				if Vector2(px - k[0], pn - k[1]).length() < k[2]:
 					ok = false
 					break
-			if not ok or rng.randf() < 0.15:
+			if not ok or rng.randf() < 0.08:
+				continue
+			if _on_road(b, px, pn, 9.0):
 				continue
 			var yaw = rad_to_deg(a) + 180.0
 			b.house(px, pn, rng.randf_range(9, 15) * big, rng.randf_range(8, 12) * big, [1, 2, 2, 3, 3, 4].pick_random(), yaw, style, rng)
@@ -183,7 +186,20 @@ static func _fill(b: Builder, r: float, inner: float, spacing: float, style: Str
 				await _yield()
 				if not is_instance_valid(b.root):
 					return
-		ring += spacing * (1.0 + f * 1.6)
+		ring += spacing * (1.0 + f * 0.5)
+
+
+## Ev yerleşimi yolun/caddenin üstüne düşmesin (yerel x, n; pay = evin yarı boyu + kaldırım)
+static func _on_road(b: Builder, px: float, pn: float, pad: float) -> bool:
+	var q = Vector2(b.origin.x + px, -b.origin.z + pn)
+	for e in Game.road_segments_near(q, pad + 12.0):
+		var rd: Dictionary = Game.roads[e.x]
+		var pa: Vector2 = rd["pts"][e.y]
+		var pb: Vector2 = rd["pts"][e.y + 1]
+		var half = 4.5 if rd["kind"] == "street" else 4.0
+		if Geometry2D.get_closest_point_to_segment(q, pa, pb).distance_to(q) < pad + half:
+			return true
+	return false
 
 
 ## Dev kaya halkası (krater/uçurum duvarı): boşluklar kapı açılarında
@@ -334,7 +350,7 @@ static func suna(parent: Node3D, v: Dictionary) -> void:
 		var a = rng.randf() * TAU
 		var rr = rng.randf_range(r * 0.3, r * 0.93)
 		b.dome(Vector3(rr * sin(a), -0.2, rr * cos(a)), rng.randf_range(10, 30), rng.randf_range(0.8, 2.5), Color(0.9, 0.78, 0.56), 12)
-	await _fill(b, r * 0.88, 140, 28, "suna", rng, [_site_clear(v)], 640)
+	await _fill(b, r * 0.88, 140, 28, "suna", rng, [_site_clear(v)], 1900)
 	await _streets(b, v, "suna", rng)
 	b.finish()
 
@@ -461,7 +477,7 @@ static func kiri(parent: Node3D, v: Dictionary) -> void:
 		var bo = Builder.rot(0, r * 0.3, a)
 		b.box(Vector3(bo.x, 0.8, bo.y), Vector3(10, 0.5, 4), VillageStyles.WOOD, a + 90.0)
 	VillageStyles.mist(b, 90, 0, r * 0.95, 3, 28, 40, rng, 0.3)
-	await _fill(b, r * 0.85, 60, 26, "kiri", rng, [[0, r * 0.55, r * 0.4], [0, -62, 34], _site_clear(v)], 560)
+	await _fill(b, r * 0.85, 60, 26, "kiri", rng, [[0, r * 0.55, r * 0.4], [0, -62, 34], _site_clear(v)], 1600)
 	await _streets(b, v, "kiri", rng)
 	b.finish()
 
@@ -565,7 +581,7 @@ static func kumo(parent: Node3D, v: Dictionary) -> void:
 		for k in 2:
 			var p: Array = pillars[k * 7]
 			Waterfalls.add(b.w(Vector3(p[0], 0, p[1] - p[2] * 0.45)), p[3] * 0.7, 14.0, 0.0)
-	await _fill(b, r * 0.85, 80, 34, "kumo", rng, [[0, -80, 34], _site_clear(v)], 380)
+	await _fill(b, r * 0.85, 80, 34, "kumo", rng, [[0, -80, 34], _site_clear(v)], 1100)
 	await _streets(b, v, "kumo", rng)
 	b.finish()
 
@@ -651,7 +667,7 @@ static func iwa(parent: Node3D, v: Dictionary) -> void:
 	KageHall.door(b, 0, -68.0, 0.0, "iwa", "[F] Gir: Tsuchikage Ofisi (Tsuchikage ile görüş, görevler)", 6.0)
 	KageHall.plaza(b, {"vid": "iwa", "front": -71.0, "hw": 36.0, "depth": 32.0, "climate": "rock", "stone": Color(0.62, 0.52, 0.42),
 		"trim": Color(0.44, 0.34, 0.26), "acc": Color(0.58, 0.24, 0.17), "gate": Color(0.5, 0.4, 0.32), "kanji": "土", "terrace_h": 0.0})
-	await _fill(b, r * 0.85, 110, 30, "iwa", rng, [[0, -96, 34], _site_clear(v)], 520)
+	await _fill(b, r * 0.85, 110, 30, "iwa", rng, [[0, -96, 34], _site_clear(v)], 1400)
 	await _streets(b, v, "iwa", rng)
 	b.finish()
 
@@ -723,7 +739,7 @@ static func ame(parent: Node3D, v: Dictionary) -> void:
 			var mid = Vector3((t0[0] + t1[0]) * 0.5, y, (t0[1] + t1[1]) * 0.5)
 			var wpm = b.w(mid)
 			b._mb(wpm).add("cyl", wpm, Vector3(2.5, d.length(), 2.5), metal.lightened(0.08), Vector3(90, rad_to_deg(atan2(d.x, d.z)), 0), 8)
-	await _fill(b, r * 0.85, 90, 28, "ame", rng, [], 420)
+	await _fill(b, r * 0.85, 90, 28, "ame", rng, [], 1100)
 	await _streets(b, v, "ame", rng)
 	b.finish()
 
@@ -894,6 +910,22 @@ static func tani(parent: Node3D, v: Dictionary) -> void:
 					b.box(Vector3(95 * sx, y - 4.3 - j * 5.5, n + 8 + j * 1.5), Vector3(3, 0.4, 3), Color(0.45, 0.33, 0.22), 0, false)
 	b.interact(Vector3(0, 0, -30), 7, "mission_board", "[F] Tani Muhtarı (görevler)")
 	await _fill(b, 90, 0, 20, "wood", rng, [], 60)
+	# vadi boyunca iki sıra ev/dükkân (ortada cadde), arada ara sokaklar
+	var k2 = 0
+	for sx in [-1.0, 1.0]:
+		for row in 2:
+			var nn = -L * 0.42
+			while nn < L * 0.42:
+				var hx = sx * (34.0 + row * 24.0) + rng.randf_range(-2.0, 2.0)
+				var ww = rng.randf_range(10.0, 14.0)
+				if absf(nn) > 100.0 or absf(hx) > 60.0:
+					b.house(hx, nn, ww, rng.randf_range(8.0, 11.0), [1, 2, 2, 3].pick_random(), 90.0 * sx, "wood", rng)
+					k2 += 1
+					if k2 % 10 == 0:
+						await _yield()
+						if not is_instance_valid(b.root):
+							return
+				nn += ww + rng.randf_range(4.0, 9.0) + (8.0 if rng.randf() < 0.18 else 0.0)
 	b.finish()
 
 
