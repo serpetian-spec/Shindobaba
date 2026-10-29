@@ -26,7 +26,8 @@ uniform int top_pattern = 0;  // 1 zincir örgü/ağ, 2 yatay çizgili, 3 yan pa
 uniform int vest_style = 0;   // 0 Konoha, 1 Suna, 2 Kiri (yatay dikiş), 3 Kumo (tek askı), 4 Iwa (tek kol), 5 ANBU plaka, 6 samuray lamel,
                               // 7 Kök (dikey dikiş), 8 zincir yelek, 9 kayış koşum, 10 deri pullu zırh, 11 göğüs plakası
 uniform float wear = 0.0;      // kir/yıpranma (haydut, kaçak ninja)
-uniform int foot_kind = 0;     // 0 sandalet, 1 tabi, 2 çizme (baldıra kadar), 3 dize kadar sargılı sandalet
+uniform int foot_kind = 0;     // 0 sandalet, 1 tabi, 2 çizme (baldıra kadar), 3 dize kadar sargılı sandalet, 4 bilek botu, 5 diz çizmesi, 6 sargılı bot, 7 zırhlı tozluk
+uniform int foot_pattern = 0;  // 1 burun kapağı 2 çapraz bağcık 3 konç bandı 4 yatay şerit 5 metal kaval plakası 6 kürk kenar 7 kontrast taban 8 shuriken perçin
 uniform int outer_pattern = 0; // dış giysi: 1 etek bandı, 2 alev etek, 3 hilal motifi, 4 hasır lifleri, 5 yırtık/kirli, 6 kızıl bulut
 uniform vec4 outer_accent : source_color = vec4(0.75, 0.12, 0.12, 1.0);
 uniform float outer_hem = 0.5;  // dış giysinin etek ucu (dinlenme pozu y)
@@ -147,15 +148,18 @@ int cloth_slot(vec3 p) {
 		if (top_style == 8 && p.y > rig_b.w - 0.04 && (ax > rig_a.x * 0.62 || (ax < 0.07 && p.z > 0.0))) return 0;
 		return 1;
 	}
-	if (p.y < rig_b.z + 0.03) return (foot_cover || foot_kind == 1 || foot_kind == 2) ? 6 : 0;
+	if (p.y < rig_b.z + 0.03) return (foot_cover || foot_kind == 1 || foot_kind == 2 || foot_kind >= 4) ? 6 : 0;
 	if (foot_kind == 2 && p.y < rig_b.z + 0.2) return 6;   // çizme konçu
+	if (foot_kind == 4 && p.y < rig_b.z + 0.09) return 6;   // bilek botu
+	if ((foot_kind == 5 || foot_kind == 7) && p.y < rig_b.y - 0.01) return 6;   // diz çizmesi / zırhlı tozluk
+	if (foot_kind == 6 && p.y < rig_b.z + 0.12) return 6;   // sargılı bot: alt kısım deri
 	float cut = pants_style == 0 ? rig_b.y - 0.17 : (pants_style == 1 ? rig_b.y - 0.05 : (pants_style == 3 ? rig_b.y + 0.1 : rig_b.z + 0.04));
 	if (pants_style == 5) cut = mix(rig_b.y, rig_b.z, 0.45);
 	if (pants_style == 6) cut = rig_b.y + 0.12;
 	if (p.y > cut) return 3;
 	float wrap_top = (pants_style == 0 || pants_style == 3) ? cut + 0.02 : rig_b.y - 0.16;
 	if (pants_style == 5) wrap_top = rig_b.z + 0.06;
-	if (foot_kind == 3) wrap_top = max(wrap_top, rig_b.y + 0.02);
+	if (foot_kind == 3 || foot_kind == 6) wrap_top = max(wrap_top, rig_b.y + 0.02);
 	return p.y < wrap_top ? 4 : 0;
 }
 
@@ -382,6 +386,19 @@ void fragment() {
 				if (top_pattern == 6 && (rest.y < rig_b.x + 0.09 || (ax > rig_a.x * 0.9 && ax > rig_a.z - 0.075))) c.rgb = pal[2].rgb;
 			}
 			// alt kıyafet desenleri (1..12): rig_b.x kalça, rig_b.y diz, rig_b.z ayak bileği
+			// ayakkabı desenleri: slot 6 (pal[6] ana renk, pal[4] ikinci renk)
+			if (slot == 6 && foot_pattern > 0) {
+				float fy = rest.y - rig_b.z;
+				vec3 acc2 = pal[4].rgb;
+				if (foot_pattern == 1 && rest.z > 0.06 && fy < 0.05) c.rgb = acc2;   // burun kapağı
+				if (foot_pattern == 2 && rest.z > 0.0 && fy > 0.02 && abs(fract(fy * 22.0 + abs(rest.x - sign(rest.x) * 0.1) * 30.0) - 0.5) < 0.12) c.rgb = acc2;   // çapraz bağcık
+				if (foot_pattern == 3 && (fy > 0.0) && (foot_kind == 5 || foot_kind == 7 ? rest.y > rig_b.y - 0.06 : (foot_kind == 2 ? fy > 0.15 : fy > 0.05))) c.rgb = acc2;   // konç bandı
+				if (foot_pattern == 4 && fract(fy * 14.0) > 0.75) c.rgb = acc2;   // yatay şerit
+				if (foot_pattern == 5 && rest.z > 0.02 && fy > 0.06) c.rgb = mix(vec3(0.55, 0.57, 0.62), vec3(0.85, 0.87, 0.9), smoothstep(0.0, 0.03, rest.z - 0.02));   // metal kaval plakası
+				if (foot_pattern == 6 && ((foot_kind == 5 || foot_kind == 7) ? rest.y > rig_b.y - 0.05 : fy > 0.06)) c.rgb = vec3(0.9, 0.88, 0.84) * (0.85 + 0.3 * hash(floor(rest.xz * 300.0)));   // kürk kenar
+				if (foot_pattern == 7 && fy < 0.012) c.rgb = acc2;   // kontrast taban
+				if (foot_pattern == 8 && rest.z > 0.02 && fy > 0.04 && length(fract(vec2(rest.x * 40.0, fy * 22.0)) - 0.5) < 0.18) c.rgb = vec3(0.7, 0.72, 0.76);   // perçinler
+			}
 			if (slot == 3 && pants_pattern > 0) {
 				float lx = abs(rest.x);
 				vec3 acc = pants_accent.rgb;

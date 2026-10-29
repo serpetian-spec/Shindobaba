@@ -6,7 +6,7 @@ extends RefCounted
 ## peçe, yeni ANBU hayvanları), omuz/diz zırhı, sırt eşyaları (tespih, sepet, bel parşömenleri, sashimono bayrağı...), çizme.
 
 const OUTER_SLEEVES := ["palto", "haori", "org_pelerin", "cuppe", "haori_uzun", "mino"]
-const FOOT_KIND := {"sandal": 0, "zori": 0, "tabi": 1, "cizme": 2, "yuksek_sandal": 3}
+const FOOT_KIND := {"sandal": 0, "zori": 0, "tabi": 1, "cizme": 2, "yuksek_sandal": 3, "bilek_bot": 4, "diz_cizme": 5, "sargili_bot": 6, "zirhli_tozluk": 7}
 
 
 ## Etek ucu yüksekliği (desen bandı için): dış giysinin bittiği dinlenme pozu y
@@ -22,6 +22,7 @@ static func mat_params(m: CharacterModel, mat: ShaderMaterial) -> void:
 	var L = m.look
 	mat.set_shader_parameter("wear", float(L.get("wear", 0.0)))
 	mat.set_shader_parameter("foot_kind", int(FOOT_KIND.get(str(L.get("foot_style", "sandal")), 0)))
+	mat.set_shader_parameter("foot_pattern", int(L.get("foot_pattern", 0)))
 	mat.set_shader_parameter("outer_pattern", int(L.get("outer_pattern", 0)))
 	var acc = L.get("outer_accent")
 	mat.set_shader_parameter("outer_accent", Color(acc) if acc != null else Color(0.75, 0.12, 0.12))
@@ -294,4 +295,10 @@ static func foot_rings(foot_style: String, fp: Vector3):
 			return [[1, fp.y + 0.215, 0.007, 0.012, 99.0], [1, fp.y + 0.02, 0.005, 0.008, 99.0]]
 		"yuksek_sandal":
 			return [[2, fp.z + 0.13, 0.004, 0.007, 0.075], [2, fp.z + 0.06, 0.004, 0.008, 0.11], [1, fp.y + 0.02, 0.006, 0.008, 99.0]]
+		"bilek_bot":
+			return [[1, fp.y + 0.09, 0.006, 0.01, 99.0], [1, fp.y + 0.02, 0.005, 0.008, 99.0]]
+		"diz_cizme", "zirhli_tozluk":
+			return [[1, fp.y + 0.36, 0.008, 0.013, 99.0], [1, fp.y + 0.18, 0.005, 0.009, 99.0], [1, fp.y + 0.02, 0.005, 0.008, 99.0]]
+		"sargili_bot":
+			return [[1, fp.y + 0.12, 0.006, 0.01, 99.0], [1, fp.y + 0.02, 0.005, 0.008, 99.0]]
 	return null

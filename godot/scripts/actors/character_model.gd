@@ -1036,7 +1036,7 @@ func _sandals() -> void:
 				ring_defs = [[1, fp.y + 0.02, 0.004, 0.006, 99.0]]  # ayak shader'da kapalı, sadece bilek bağı
 			"zori":
 				ring_defs = [[2, fp.z + 0.11, 0.004, 0.006, 0.07]]
-			"cizme", "yuksek_sandal":
+			"cizme", "yuksek_sandal", "bilek_bot", "diz_cizme", "sargili_bot", "zirhli_tozluk":
 				ring_defs = OutfitParts.foot_rings(look["foot_style"], fp)
 		for rd in ring_defs:
 			var rk = "%s|%d|%.3f" % [key, rd[0], rd[1]]
