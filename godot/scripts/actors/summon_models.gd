@@ -1635,10 +1635,15 @@ static func _turtle(out: Dictionary, model: String, h: float, length: float) -> 
 			b.add("sphere", surf.call(t * 0.17, aa), Vector3(0.08, 0.04, 0.08) * h, rim, Vector3.ZERO, 6)
 	_mesh(out["root"], b)
 	# baş: dev olanı yaşlı ve uykulu, küçüğü çatık kaşlı ve alın bantlı
-	var head = _pivot(out["root"], Vector3(0, h * 0.42, -L * 0.52))
+	var head = _pivot(out["root"], Vector3(0, h * 0.42, -L * (0.52 if giant else 0.46)))
 	var hb = MB.new()
-	Loft.tube(hb, [Vector3(0, -h * 0.05, L * 0.08), Vector3(0, h * 0.0, -h * 0.15), Vector3(0, h * 0.06, -h * 0.4)], [h * 0.22, h * 0.2, h * 0.18], skin, 12, 3, false, false)
 	var hc = Vector3(0, h * 0.08, -h * 0.5)
+	if giant:
+		Loft.tube(hb, [Vector3(0, -h * 0.05, L * 0.08), Vector3(0, h * 0.0, -h * 0.15), Vector3(0, h * 0.06, -h * 0.4)], [h * 0.22, h * 0.2, h * 0.18], skin, 12, 3, false, false)
+	else:
+		# Kame: kısa kalın boyun, baş kabuğun hemen önünde (uzun boyun tuhaf duruyordu)
+		Loft.tube(hb, [Vector3(0, -h * 0.04, h * 0.06), Vector3(0, h * 0.0, -h * 0.06), Vector3(0, h * 0.03, -h * 0.14)], [h * 0.25, h * 0.24, h * 0.22], skin, 12, 3, false, false)
+		hc = Vector3(0, h * 0.06, -h * 0.26)
 	hb.add("sphere", hc, Vector3(0.42, 0.34, 0.48) * h, skin, Vector3.ZERO, 14)
 	hb.add("sphere", hc + Vector3(0, -h * 0.07, -h * 0.12), Vector3(0.34, 0.16, 0.3) * h, skin.lightened(0.12), Vector3.ZERO, 10)   # ağız/çene
 	hb.add("box", hc + Vector3(0, -h * 0.05, -h * 0.25), Vector3(h * 0.22, h * 0.012, h * 0.03), Color(0.15, 0.1, 0.1))   # ağız çizgisi
