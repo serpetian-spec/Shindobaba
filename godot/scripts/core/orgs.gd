@@ -682,9 +682,8 @@ func on_enemy_killed(e: Node) -> void:
 	if e.has_meta("rorg"):
 		var info: Array = e.get_meta("rorg")
 		for o in random_orgs():
-			if o["name"] == info[0] and not info[1] in o["dead"]:
-				o["dead"].append(info[1])
-				Hud.msg("%s'ten biri düştü (%d/%d)." % [o["name"], o["dead"].size(), o["members"].size()], Color.html(o["accent"]))
+			if o["name"] == info[0]:
+				_ro_member_down(String(info[0]), String(info[1]))
 	if e.has_meta("hunter_nin"):
 		flags()["hunters_beaten"] = int(flags().get("hunters_beaten", 0)) + 1
 		state()["bounty"] = int(state().get("bounty", 5000)) + 1500
@@ -850,6 +849,7 @@ func _process(dt: float) -> void:
 	_village_ban(dt)
 	_ensure_hideout()
 	_ro_tick(dt)
+	_ro_job_tick(dt)
 	_t += dt
 	if _t >= 20.0:
 		_t = 0.0
@@ -1010,3 +1010,107 @@ func ro_bingo_entries() -> Array:
 				"status": "dead" if String(m["name"]) in o["dead"] else "alive", "tracked": false, "level": 60 if m["leader"] else 40,
 				"look": _ro_look(o, m), "region": "Bilinmiyor — ikili gezerler", "area": [0, 0], "hide": [0, 0], "known": 0.0})
 	return out
+
+
+# ------------------------------------------------------------------ örgüt amaçları: görevler, merkez ve lider
+var _ro_job_t := 300.0
+
+
+## Amaca göre görev: sonunda örgütün bir üyesiyle karşılaşılır (yenince üye düşer)
+func ro_goal_job(o: Dictionary) -> Dictionary:
+	var alive = (o["members"] as Array).filter(func(x): return not String(x["name"]) in o["dead"] and not x["leader"])
+	if alive.is_empty():
+		return {}
+	var m: Dictionary = alive.pick_random()
+	var vid = Progress.home()
+	var lv = maxi(22, int(p().get("level", 1)) + 3)
+	var boss = {"name": "%s «%s» — %s" % [m["name"], m["alias"], o["name"]], "hp": 1800.0 + lv * 45.0, "level": lv, "power": 2.6,
+		"look": _ro_look(o, m), "style": m["style"], "rank": "A"}
+	var near = Missions._spot(vid, 300, 900)
+	var far = Missions._spot(vid, 900, 1700)
+	var base = {"rank": "A", "village": vid, "giver": "Köy Haberci Kuşu", "hook": "Orgs.ro_goal_done", "rorg": [o["name"], m["name"]]}
+	var t = {}
+	match String(o["goal"]):
+		"Yasak parşömenleri toplamak":
+			t = {"title": "%s: Tapınak Baskını" % o["name"], "brief": "%s köyün yakınındaki mühür tapınağına saldırdı; yasak parşömenleri çalıyorlar. Parşömenleri kurtar, baskıncıyı yen." % o["name"],
+				"steps": [{"kind": "kill", "at": near, "enemy": "rogue", "n": 3, "camp": true, "boss": boss, "text": "Tapınağı basanları ve örgüt üyesini yen."},
+					{"kind": "collect", "at": near, "item": "mühür parşömeni", "n": 3, "spread": 20, "text": "Saçılan parşömenleri topla (3)."}]}
+		"Daimyo'yu devirmek":
+			t = {"title": "%s: Elçiye Suikast" % o["name"], "brief": "Daimyo'nun elçisi yolda; %s onu öldürüp ülkeyi karıştırmak istiyor. Pusuyu boz." % o["name"],
+				"steps": [{"kind": "goto", "at": near, "r": 18.0, "name": "Elçi Kervanı", "text": "Elçi kervanına yetiş."},
+					{"kind": "kill", "at": near, "enemy": "rogue", "n": 3, "boss": boss, "text": "Suikastçıları ve örgüt üyesini yen."}]}
+		"Paralı asker imparatorluğu kurmak":
+			t = {"title": "%s: Kiralık Ordu" % o["name"], "brief": "%s köy sınırına kiralık bir ordu yığıyor. Kampı dağıt, komutanlarını yen." % o["name"],
+				"steps": [{"kind": "kill", "at": far, "enemy": "rogue", "n": 5, "camp": true, "boss": boss, "text": "Paralı asker kampını dağıt."}]}
+		"Ölümsüzlük":
+			t = {"title": "%s: Kayıp Köylüler" % o["name"], "brief": "Köylüler kayboluyor; %s onları beden deneyleri için kaçırıyor. İzlerini sür, esirleri kurtar." % o["name"],
+				"steps": [{"kind": "track", "from": near, "to": far, "text": "Kaçıranların izini sür."},
+					{"kind": "kill", "at": far, "enemy": "rogue", "n": 3, "camp": true, "boss": boss, "text": "Deney inini bas, örgüt üyesini yen."}]}
+		"Kayıp bir klanın intikamı":
+			t = {"title": "%s: İntikam Baskını" % o["name"], "brief": "%s köyün dış mahallelerini ateşe vermek için harekete geçti. Baskını durdur." % o["name"],
+				"steps": [{"kind": "defend", "at": Missions._spot(vid, 60, 160), "enemy": "rogue", "waves": [3, 4], "text": "Dış mahalleyi savun."},
+					{"kind": "kill", "at": near, "enemy": "rogue", "n": 1, "boss": boss, "text": "Baskını yöneten örgüt üyesini yen."}]}
+		_:
+			t = {"title": "%s: Taşıyıcı Avı" % o["name"], "brief": "%s bir jinchūriki'nin peşinde; canavarı satacaklar. Önce sen yetiş." % o["name"],
+				"steps": [{"kind": "goto", "at": far, "r": 20.0, "name": "Taşıyıcının Saklandığı Yer", "text": "Taşıyıcının saklandığı yere git."},
+					{"kind": "kill", "at": far, "enemy": "rogue", "n": 2, "boss": boss, "text": "Avcıları ve örgüt üyesini yen."}]}
+	return base.merged(t)
+
+
+func ro_goal_done(m: Dictionary, ok: bool) -> void:
+	if not ok or not m.has("rorg"):
+		return
+	_ro_member_down(String(m["rorg"][0]), String(m["rorg"][1]))
+
+
+func _ro_member_down(org_name: String, member: String) -> void:
+	for o in random_orgs():
+		if o["name"] != org_name:
+			continue
+		if not member in o["dead"]:
+			o["dead"].append(member)
+		var rest = (o["members"] as Array).filter(func(x): return not String(x["name"]) in o["dead"] and not x["leader"])
+		Hud.msg("%s'ten biri düştü. Kalan üye: %d" % [o["name"], rest.size()], Color.html(o["accent"]))
+		if rest.is_empty() and not o.get("base_open", false):
+			o["base_open"] = true
+			Hud.banner(String(o["name"]).to_upper(), "Üyeleri düştü. Liderin gizli merkezinin yeri ortaya çıktı!", Color.html(o["accent"]))
+			get_tree().create_timer(2.0).timeout.connect(func(): _ro_base_offer(o))
+
+
+func _ro_base_offer(o: Dictionary) -> void:
+	var lead: Dictionary = o["members"][0]
+	if String(lead["name"]) in o["dead"]:
+		return
+	var at = Missions._spot(["ame", "kusa", "taki", "oto"].filter(func(x): return not Game.village(x).is_empty()).pick_random(), 900, 1800)
+	var lv = maxi(40, int(p().get("level", 1)) + 8)
+	var job = {"title": "%s: Lider" % o["name"], "rank": "S", "village": Progress.home(), "giver": "Köy Haberci Kuşu", "hook": "Orgs.ro_goal_done", "rorg": [o["name"], lead["name"]],
+		"brief": "«%s»\nÖrgütün lideri %s gizli merkezinde. Amaçları: %s. Bu iş burada bitecek." % [o["speech"], lead["name"], o["goal"]],
+		"steps": [{"kind": "goto", "at": at, "r": 25.0, "name": "%s Merkezi" % o["name"], "text": "Örgütün gizli merkezine git."},
+			{"kind": "kill", "at": at, "enemy": "rogue", "n": 4, "camp": true, "boss": {"name": "%s «%s» — %s" % [lead["name"], lead["alias"], o["name"]], "hp": 6000.0 + lv * 80.0,
+				"level": lv, "power": 3.6, "look": _ro_look(o, lead), "style": lead["style"], "rank": "S"}, "text": "Örgütün liderini yen."}]}
+	var opts = [{"label": "Merkeze git", "cb": func(): Missions.accept(job)}, {"label": "Şimdi değil", "cb": func(): o["base_open"] = false}]
+	if not Missions.active().is_empty():
+		opts = [{"label": "(Önce elindeki görevi bitir — sonra tekrar haber gelir)", "cb": func(): o["base_open"] = false}]
+	Hud.dialog("Köy Haberci Kuşu", job["brief"], opts)
+
+
+## Ara sıra köyden örgüt haberi (Sv.18+, kaçak değilsen, görevin yokken)
+func _ro_job_tick(dt: float) -> void:
+	if int(p().get("level", 1)) < 18 or is_rogue() or not Missions.active().is_empty() or Game.player == null:
+		return
+	_ro_job_t -= dt
+	if _ro_job_t > 0.0:
+		return
+	_ro_job_t = 900.0
+	var orgs = random_orgs().filter(func(o): return not String(o["members"][0]["name"]) in o["dead"])
+	if orgs.is_empty():
+		return
+	var o: Dictionary = orgs.pick_random()
+	if o.get("base_open", false):
+		_ro_base_offer(o)
+		return
+	var job = ro_goal_job(o)
+	if job.is_empty():
+		return
+	Hud.dialog("Köy Haberci Kuşu", "Ayağında mühürlü bir not: %s\n\n%s" % [job["title"], job["brief"]], [
+		{"label": "Görevi al", "cb": func(): Missions.accept(job)}, {"label": "Şimdi olmaz", "cb": func(): pass}])
