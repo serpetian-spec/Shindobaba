@@ -278,6 +278,9 @@ static func accessories(m: CharacterModel) -> void:
 			for k in 3:
 				mb.add("torus", Vector3(0, k * 0.012, 0), Vector3(0.2 - k * 0.012, 0.2, 0.2 - k * 0.012), bc.darkened(k * 0.08), Vector3(90, 0, 0), 14)
 			m._mesh_on("Hips", mb.build(toon), Transform3D(Basis.IDENTITY, hip + Vector3(0.21, -0.02, 0.0)))
+		_:
+			if L.get("back_item") != null:
+				BackItemsExt.build(m, String(L.get("back_item")), bc, ch, hip, toon)
 	# --- örgüt pelerini: yakada küçük metal halka tokalar
 	if L.get("outer_style") == "org_pelerin":
 		var acc2 = L.get("outer_accent")
