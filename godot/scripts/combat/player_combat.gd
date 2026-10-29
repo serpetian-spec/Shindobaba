@@ -280,6 +280,9 @@ func _do_attack(dt: float) -> bool:
 	else:
 		p.velocity.x = move_toward(p.velocity.x, 0, dt * 60); p.velocity.z = move_toward(p.velocity.z, 0, dt * 60)
 	p.velocity.y -= Player.GRAV * dt
+	if not did_hit and t >= c["hit"] and c.has("chain_kind"):
+		did_hit = true
+		_chain_strike(c, tgt)
 	if not did_hit and t >= c["hit"]:
 		did_hit = true
 		var pt = p.global_position + Vector3.UP * 1.1 + p.face_dir() * (p.radius + c["reach"] * 0.6)
@@ -309,7 +312,7 @@ const STYLE_COMBOS := {
 	"sword": {"anims": ["b/Sword_Regular_A", "b/Sword_Regular_B", "b/Sword_Regular_C", "a/Sword_Attack", "b/Sword_Dash_RM"], "speed": 1.5, "dur": 1.05, "knock": 1.25, "fx": Color(0.8, 0.9, 1.0), "snd": "clink"},
 	"heavy": {"anims": ["b/TreeChopping", "b/Sword_Regular_C", "a/Sword_Attack", "b/Shield_OneShot", "b/TreeChopping"], "speed": 1.12, "dur": 1.45, "knock": 2.2, "fx": Color(1.0, 0.6, 0.3), "snd": "hit_heavy"},
 	"staff": {"anims": ["a/Punch_Jab", "b/Sword_Regular_B", "b/Farm_Harvest", "a/Sword_Attack", "b/Sword_Regular_Combo"], "speed": 1.45, "dur": 1.1, "knock": 1.6, "fx": Color(1.0, 0.85, 0.5), "snd": "punch"},
-	"chain": {"anims": ["b/Farm_Harvest", "b/Sword_Regular_B", "b/OverhandThrow", "b/Farm_Harvest", "b/Sword_Regular_Combo"], "speed": 1.8, "dur": 1.05, "knock": 1.3, "fx": Color(0.9, 0.95, 1.0), "snd": "clink"},
+	"chain": {"anims": ["b/OverhandThrow", "b/Sword_Regular_B", "b/OverhandThrow", "b/OverhandThrow", "b/Sword_Regular_Combo"], "speed": 1.7, "dur": 1.15, "knock": 1.1, "fx": Color(0.9, 0.95, 1.0), "snd": "clink"},
 	"sickle": {"anims": ["b/Farm_Harvest", "b/Sword_Regular_A", "b/Farm_Harvest", "", "b/Sword_Regular_C"], "speed": 2.0, "dur": 0.85, "knock": 1.0, "fx": Color(0.9, 0.95, 1.0), "snd": "clink"},
 	"claw": {"anims": ["b/Zombie_Scratch", "b/Zombie_Scratch", "b/Melee_Hook", "", "b/Zombie_Scratch"], "speed": 2.1, "dur": 0.8, "knock": 0.9, "fx": Color(1.0, 0.4, 0.35), "snd": "punch"},
 	"fan": {"anims": ["b/Sword_Regular_B", "b/Sword_Regular_A", "b/Sword_Regular_Combo", "a/Spell_Simple_Shoot", "b/Sword_Regular_C"], "speed": 1.5, "dur": 1.0, "knock": 1.8, "fx": Color(0.7, 1.0, 0.85), "snd": "wind"},
@@ -348,6 +351,11 @@ func _combo_base(i: int) -> Dictionary:
 	c["snd"] = st["snd"]
 	if w["style"] == "heavy" and i == 4:
 		c["launch"] = 8.0
+	if w["style"] == "chain":
+		# kusarigama: orta menzil — orak zincirle fırlar, savrulur, çeker, döner; oyuncu hedefe atılmaz
+		c["chain_kind"] = ["throw", "sweep", "reel", "throw", "spin"][clampi(i, 0, 4)]
+		c["reach"] = 6.5
+		c["lunge"] = 0.0
 	c["special"] = w.get("special", "")
 	match c["special"]:
 		"extend":
@@ -376,6 +384,82 @@ func _special_info(info: Dictionary, c: Dictionary) -> Dictionary:
 
 
 ## Efsanevi silah yetenekleri: isabetten sonra (can çalma, chakra emme, patlama, çekme)
+## Kusarigama vuruşu: orak elden zincirle fırlar (throw/reel), yay çizer (sweep) ya da etrafta döner (spin); zincir elden orağa uzanır
+func _chain_strike(c: Dictionary, tgt: Node3D) -> void:
+	var pj = PathJutsu.get_pinst()
+	var kind: String = c["chain_kind"]
+	var dir = p.face_dir()
+	var reach: float = float(c["reach"]) * Buffs.mod("reach")
+	var dist = reach
+	if tgt and is_instance_valid(tgt):
+		var d = tgt.global_position - p.global_position
+		d.y = 0.0
+		if d.length() < reach + 1.0 and d.length() > 0.3:
+			dir = d.normalized()
+			dist = clampf(d.length(), 2.0, reach)
+	var hand = func(): return pj.hand_pos(p, true) if is_instance_valid(p) else Vector3.ZERO
+	# elde zincirli orak gizlenir, havada uçan orak görünür
+	var wn: Node3D = null
+	if p.model and not p.model.weapons.is_empty():
+		wn = p.model.weapons[0]["node"]
+		wn.visible = false
+	var b = MB.new()
+	b.add("cyl", Vector3(0, 0, -0.15), Vector3(0.03, 0.3, 0.03), Color(0.45, 0.32, 0.2), Vector3(90, 0, 0), 8)
+	b.add("box", Vector3(0, 0.09, 0.0), Vector3(0.01, 0.22, 0.04), Color(0.75, 0.78, 0.82), Vector3(-25, 0, 0))
+	var tip = MeshInstance3D.new()
+	tip.mesh = b.build(Props.toon())
+	get_tree().current_scene.add_child(tip)
+	tip.global_position = hand.call()
+	var chain_mat = StandardMaterial3D.new()
+	chain_mat.albedo_color = Color(0.3, 0.3, 0.34)
+	var life = 0.5 if kind != "spin" else 0.75
+	pj.tether(hand, func(): return tip.global_position if is_instance_valid(tip) else hand.call(), 0.035, chain_mat, life)
+	var center = p.global_position + Vector3.UP * 1.1
+	var pos_at := func(u: float) -> Vector3:   # u: 0→1 vuruş yolu
+		match kind:
+			"sweep":
+				var a = deg_to_rad(lerpf(-75.0, 75.0, u))
+				return center + dir.rotated(Vector3.UP, a) * (reach * 0.8)
+			"spin":
+				return center + dir.rotated(Vector3.UP, u * TAU) * (reach * 0.65) + Vector3.UP * (sin(u * TAU) * 0.3)
+			_:
+				var out = 1.0 - absf(u * 2.0 - 1.0)   # git-gel
+				return center.lerp(center + dir * dist, out)
+	var tw = tip.create_tween()
+	tw.tween_method(func(u):
+		if is_instance_valid(tip):
+			var q: Vector3 = pos_at.call(u)
+			tip.look_at_from_position(q, q + (q - center).normalized() + Vector3.UP * 0.01, Vector3.UP)
+			tip.rotate_object_local(Vector3.RIGHT, u * 30.0), 0.0, 1.0, life)
+	tw.tween_callback(func():
+		tip.queue_free()
+		if is_instance_valid(wn):
+			wn.visible = true)
+	Sfx.play("whoosh", center, 1.5, 0.5)
+	var info = _hit_info(c)
+	var hit_once := {}
+	var strike := func(q: Vector3, r: float):
+		for h in Combat.hit_sphere(p, q, r, info):
+			if hit_once.has(h):
+				continue
+			hit_once[h] = true
+			_on_hit_fx(q, c)
+			Progress.on_hit_landed(h)
+			_special_hit(h, q, c)
+			if kind == "reel" and is_instance_valid(h) and h.get("velocity") != null:
+				var back = p.global_position - h.global_position
+				h.velocity = back.normalized() * minf(22.0, back.length() * 3.0) + Vector3.UP * 3.0
+				if h.has_method("apply_status"):
+					h.apply_status("stun", 0.6)
+	match kind:
+		"sweep", "spin":
+			for k in 6:
+				var u = (k + 0.5) / 6.0
+				get_tree().create_timer(life * u).timeout.connect(func(): strike.call(pos_at.call(u), 1.3))
+		_:
+			get_tree().create_timer(life * 0.5).timeout.connect(func(): strike.call(pos_at.call(0.5), 1.2))
+
+
 func _special_hit(h: Node3D, pt: Vector3, c: Dictionary) -> void:
 	var dmg = float(c["dmg"]) * Stats.melee_mult(Game.profile)
 	match c.get("special", ""):

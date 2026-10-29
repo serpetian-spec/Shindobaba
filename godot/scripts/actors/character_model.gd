@@ -2180,6 +2180,21 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 		var smi = MeshInstance3D.new()
 		smi.mesh = m.build(Props.toon())
 		holder.add_child(smi)
+	if id == "kusarigama":
+		# kınlı hali: zincir kalçada halka halka sarılı, orak sapı aşağı sarkar, ağırlık halkanın altında (sert zincir gövdeden fırlamasın)
+		var m2 = MB.new()
+		var steel = Color(0.7, 0.72, 0.76)
+		var dark = Color(0.22, 0.22, 0.25)
+		for k in 4:
+			m2.add("torus", Vector3(sx * 0.005 * k, 0.0, 0.03 + k * 0.022), Vector3(0.13 - k * 0.006, 0.13 - k * 0.006, 0.022), dark, Vector3(0, 90, 0), 12)
+		m2.add("sphere", Vector3(sx * 0.02, -0.055, 0.12), Vector3(0.055, 0.055, 0.055), dark, Vector3.ZERO, 8)   # ağırlık
+		m2.add("cyl", Vector3(sx * 0.03, 0.02, 0.24), Vector3(0.03, 0.3, 0.03), Color(0.45, 0.32, 0.2), Vector3(90, 0, 0), 8)   # orak sapı
+		m2.add("box", Vector3(sx * 0.03, -0.06, 0.38), Vector3(0.01, 0.17, 0.035), steel, Vector3(-20, 0, 0))   # bıçak geriye kıvrık
+		var coil = MeshInstance3D.new()
+		coil.name = "KusariStow"
+		coil.mesh = m2.build(Props.toon())
+		coil.visible = false
+		holder.add_child(coil)
 	return holder
 
 
@@ -2196,6 +2211,11 @@ func _place_weapons() -> void:
 			tgt.add_child(n)
 			n.transform = Transform3D.IDENTITY
 		n.visible = in_hand or w["sheath"] != null
+		if w["id"] == "kusarigama" and w["sheath"] != null:
+			var coil = (w["sheath"] as Node3D).get_node_or_null("KusariStow")
+			if coil:
+				coil.visible = not in_hand
+				n.visible = in_hand
 		if rig and in_hand:
 			rig.hold[w["side"]] = 1.0
 
@@ -2609,7 +2629,7 @@ func flash(amount: float) -> void:
 	hit_flash = maxf(hit_flash, amount)
 
 
-const STANCE_OF := {"blade": "w_blade", "dual": "w_dual", "sickle": "w_dual", "claw": "w_dual", "sword": "w_sword", "heavy": "w_shoulder", "staff": "w_shoulder", "chain": "w_shoulder", "fan": "w_fan"}
+const STANCE_OF := {"blade": "w_blade", "dual": "w_dual", "sickle": "w_dual", "claw": "w_dual", "sword": "w_sword", "heavy": "w_shoulder", "staff": "w_shoulder", "chain": "w_dual", "fan": "w_fan"}   # kusarigama alçak tek el (omuzda bıçak kafaya değmesin)
 var stance := ""
 
 

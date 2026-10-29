@@ -15,11 +15,11 @@ func _ready() -> void:
 	main.add_child(cam)
 	cam.fov = 40
 	cam.current = true
-	for wid in ["katana", "kusarigama"]:
+	for wid in ["kusarigama", "katana"]:
 		Gear.grant(Game.profile, wid, "sag")
 		Gear.apply_look(Game.profile)
 		pl.rebuild_model()
-		await get_tree().create_timer(0.5).timeout
+		await get_tree().create_timer(2.5).timeout
 		pl.model.set_drawn(true, false)
 		await get_tree().create_timer(3.0).timeout
 		pl.set_process(false)
