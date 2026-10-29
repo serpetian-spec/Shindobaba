@@ -2701,69 +2701,13 @@ func _rock(s: float, col := EARTH) -> MeshInstance3D:
 	return mesh_of(b)
 
 
-## Toprak Tuğla: yerden sökülen sert tuğla blokları sırayla hedefe fırlar
-func p_doton_renga_no_jutsu(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.7)
-	anim(c, "crouch", 1.5)
-	var tt = tg(c, t, 24.0)
-	for k in 4:
-		after(0.15 + k * 0.12, func():
-			if not live(c):
-				return
-			var from = c.global_position + c.face_dir() * 0.8 + c.face_dir().cross(Vector3.UP) * (k - 1.5) * 0.5 + Vector3.UP * 0.6
-			VFX.debris(gp(from), EARTH, 10, 6.0)
-			shake(0.25)
-			var b = MB.new()
-			b.add("box", Vector3.ZERO, Vector3(0.8, 0.45, 0.55), Color(0.7, 0.4, 0.3))
-			b.add("box", Vector3(0, 0.23, 0), Vector3(0.82, 0.03, 0.57), Color(0.85, 0.8, 0.7))
-			var pr = shot(c, from, aim_at(c, tt, from), 26.0, mesh_of(b), inf(c, "doton_renga_no_jutsu", 0.4, {"knock": 6.0, "kind": "heavy", "element": "doton"}), null, false, 1.4)
-			pr.spin = Vector3(6, 0, 3))
-	Sfx.play("earth", c.global_position, 1.4)
 
 
-## Toprak Çakıl: avuçtan yelpaze halinde küçük taş saçması
-func p_doton_sazareishi(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.45)
-	anim(c, "push", 1.6)
-	var tt = tg(c, t, 18.0)
-	var from = hand_pos(c, true)
-	var dir = aim_at(c, tt, from)
-	for k in 14:
-		var d = dir.rotated(Vector3.UP, randf_range(-0.3, 0.3)) + Vector3.UP * randf_range(-0.06, 0.08)
-		shot(c, from, d.normalized(), randf_range(30.0, 40.0), _rock(0.09), inf(c, "doton_sazareishi", 0.08, {"knock": 1.0, "kind": "light", "element": "doton"}), null, false, 0.7)
-	VFX.debris(from, EARTH, 8, 6.0)
-	Sfx.play("earth", from, 1.8, 0.6)
 
 
-## Çift İntihar Başkesme: yere dalar, hedefin altından çıkar ve onu boynuna kadar toprağa çeker
-func p_doton_shinju_zanshu_no_jutsu(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 16.0)
-	if tt == null:
-		return
-	busy(c, 1.0)
-	VFX.debris(c.global_position, EARTH, 14, 5.0)
-	c.visible = false
-	after(0.45, func():
-		if not live(c):
-			return
-		c.visible = true
-		if not live(tt):
-			return
-		var at = tt.global_position
-		c.global_position = gp(at + (c.global_position - at).normalized() * 1.2)
-		VFX.debris(at, EARTH, 18, 7.0)
-		FX.ring(at + Vector3.UP * 0.05, EARTH, 2.0, 0.4)
-		st(tt, "bind", 3.0)
-		tt.take_hit(inf(c, "doton_shinju_zanshu_no_jutsu", 0.5, {"knock": 0.0, "kind": "heavy", "element": "doton"}))
-		# hedef boynuna kadar gömülür
-		var body = tt.get("model") if tt.get("model") else tt
-		var y0 = body.position.y
-		var tw = body.create_tween()
-		tw.tween_property(body, "position:y", y0 - tt.height * 0.75, 0.25)
-		tw.tween_interval(2.6)
-		tw.tween_property(body, "position:y", y0, 0.3)
-		Combat.popup_text(at + Vector3.UP * 1.2, "Toprağa gömüldü!", EARTH.lightened(0.3))
-		Sfx.play("earth", at, 1.0))
+
+
+
 
 
 ## Sis Hizmetkârı: sisin içinden hayalet askerler çıkar — vurdukları gerçek değil ama düşmanı oyalar ve korkutur
@@ -2793,66 +2737,13 @@ func p_oboro_bunshin_no_jutsu(c: Node3D, t: Node3D) -> void:
 	Sfx.play("poof", c.global_position, 1.2)
 
 
-## Uçan Taşlar: yerden kopan taşlar havada döner, sonra hedefe yağar
-func p_doton_tobi_tsubute(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.8)
-	anim(c, "cast", 1.3)
-	var tt = tg(c, t, 22.0)
-	var rocks = []
-	for k in 8:
-		var r = _rock(randf_range(0.5, 0.8))
-		get_tree().current_scene.add_child(r)
-		var a = TAU * k / 8.0
-		var q = c.global_position + Vector3(cos(a), 0, sin(a)) * 2.0
-		r.global_position = gp(q)
-		r.create_tween().tween_property(r, "global_position", q + Vector3.UP * 1.8, 0.35).set_trans(Tween.TRANS_BACK)
-		rocks.append(r)
-	VFX.debris(c.global_position, EARTH, 24, 7.0)
-	shake(0.4)
-	Sfx.play("earth", c.global_position, 1.2)
-	after(0.55, func():
-		for k in rocks.size():
-			var r: Node3D = rocks[k]
-			if not is_instance_valid(r):
-				continue
-			var from = r.global_position
-			r.queue_free()
-			if live(c):
-				var pr = shot(c, from, aim_at(c, tt, from), 28.0, _rock(0.6), inf(c, "doton_tobi_tsubute", 0.3, {"knock": 5.0, "kind": "heavy", "element": "doton"}), tt, false, 1.4)
-				pr.spin = Vector3(5, 3, 0))
 
 
-## Çamur Kayması: önündeki zemin akan çamur seline döner — içindekileri sürükler ve yavaşlatır
-func p_doton_dosekiryu(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.8)
-	anim(c, "crouch", 1.4)
-	var d = fwd(c, t)
-	var mud = Color(0.42, 0.32, 0.22)
-	for k in 10:
-		after(k * 0.06, func():
-			var q = gp(c.global_position + d * (1.5 + k * 1.6))
-			VFX.puffs(q + Vector3.UP * 0.4, {"amount": 14, "life": 0.9, "size": 1.8, "radius": 2.2, "vmin": 3, "vmax": 7, "dir": d + Vector3.UP * 0.6, "spread": 30.0, "add": false,
-				"colors": [mud, mud.darkened(0.3), Color(0.35, 0.28, 0.2, 0)]})
-			for e in hit(c, q + Vector3.UP * 0.5, 2.0, inf(c, "doton_dosekiryu", 0.15, {"knock": 7.0, "kind": "light", "element": "doton", "dir": d})):
-				st(e, "slow", 3.0))
-	Sfx.play("earth", c.global_position, 0.8)
 
 
-## Toprak Yırtan Avuç: avuç yere basılır, çevredeki zemin döner ve yarılır — üstündekiler sendeler
-func p_doton_retsudo_tensho(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.9)
-	anim(c, "crouch", 1.2)
-	var at = gp(c.global_position + c.face_dir() * 1.0)
-	for k in 3:
-		after(0.2 + k * 0.15, func():
-			FX.ring(at + Vector3.UP * 0.05, EARTH, 6.0 + k * 4.0, 0.5)
-			for j in 4:
-				VFX.debris(at + Vector3(randf_range(-6, 6), 0, randf_range(-6, 6)), EARTH, 10, 9.0))
-	shake(0.9)
-	Sfx.play("earth", at, 0.7)
-	after(0.3, func():
-		for e in hit(c, at + Vector3.UP * 0.5, 7.0, inf(c, "doton_retsudo_tensho", 0.6, {"knock": 3.0, "launch": 3.0, "kind": "heavy", "element": "doton"})):
-			st(e, "stun", 1.4))
+
+
+
 
 
 
@@ -2925,31 +2816,7 @@ func p_chakura_kontororu_baku(c: Node3D, t: Node3D) -> void:
 	Sfx.play("seal", tt.global_position, 1.2)
 
 
-## Kaya Sığınağı: yerden yükselen kaya kubbe seni ve yakın müttefikleri korur
-func p_earth_release_rock_shelter(c: Node3D, _t: Node3D) -> void:
-	busy(c, 0.6)
-	anim(c, "crouch", 1.4)
-	var at = gp(c.global_position)
-	var b = MB.new()
-	for k in 14:
-		var a = TAU * k / 14.0
-		b.add("boulder", Vector3(cos(a) * 2.6, 1.0, sin(a) * 2.6), Vector3(1.6, 2.4, 1.4), EARTH.darkened(0.05 * (k % 3)), Vector3(0, -rad_to_deg(a), 12), 3)
-	for k in 6:
-		var a = TAU * k / 6.0
-		b.add("boulder", Vector3(cos(a) * 1.3, 2.6, sin(a) * 1.3), Vector3(1.8, 1.0, 1.8), EARTH.lightened(0.05), Vector3.ZERO, 3)
-	var dome = mesh_of(b)
-	get_tree().current_scene.add_child(dome)
-	dome.global_position = at - Vector3.UP * 3.2
-	var tw = dome.create_tween()
-	tw.tween_property(dome, "global_position", at, 0.35).set_trans(Tween.TRANS_BACK)
-	tw.tween_interval(4.5)
-	tw.tween_property(dome, "global_position", at - Vector3.UP * 3.5, 0.5)
-	tw.tween_callback(dome.queue_free)
-	VFX.debris(at, EARTH, 30, 8.0)
-	shake(0.6)
-	if c is Player:
-		Buffs.add("rock_shelter", 5.0, {"armor": 0.15, "_name": "Kaya Sığınağı", "_desc": "kubbenin içindesin: gelen hasar çok azalır"})
-	Sfx.play("earth", at, 0.8)
+
 
 
 ## Rüzgâr Duvarı: önünde dönen rüzgâr perdesi — mermileri savurur, yaklaşanı iter
@@ -3415,82 +3282,19 @@ func p_nekozume(c: Node3D, t: Node3D) -> void:
 
 
 
-## Şimşek Darbesi: elde toplanan şimşekle tek vuruş — çarpınca çevreye kıvılcım dalları, felç
-func p_raigeki(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 6.0)
-	_jump_at(c, tt, 0.0, 12.0 if tt else 3.0)
-	busy(c, 0.5)
-	for k in 4:
-		_bolt(hand_pos(c, true), hand_pos(c, true) + Vector3(randf_range(-0.5, 0.5), randf_range(-0.3, 0.5), randf_range(-0.5, 0.5)), RAI, 0.06)
-	after(0.18, func():
-		if not live(c):
-			return
-		anim(c, "cross", 1.6)
-		var at = c.global_position + Vector3.UP * 1.1 + c.face_dir() * 1.2
-		for k in 6:
-			_bolt(at, at + Vector3(randf_range(-2, 2), randf_range(-1, 2), randf_range(-2, 2)))
-		for e in hit(c, at, 1.8, inf(c, "raigeki", 1.3, {"knock": 8.0, "kind": "heavy", "element": "raiton"})):
-			st(e, "stun", 0.9)
-		Sfx.play("thunder", at, 1.4))
-
-
-## Şimşek Yatay El Bıçağı: şimşek kaplı el yatay savrulur — önündeki yay boyunca keser
-func p_raigyaku_suihei_choppu(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 6.0)
-	var d = _jump_at(c, tt, 0.0, 10.0 if tt else 3.0)
-	busy(c, 0.5)
-	after(0.15, func():
-		if not live(c):
-			return
-		anim(c, "slash_b", 1.8)
-		_arc_cut(c.global_position + Vector3.UP * 1.2 + d * 0.6, d, -70.0, 70.0, RAI, 1.8)
-		for k in 5:
-			var q = c.global_position + Vector3.UP * 1.2 + d.rotated(Vector3.UP, deg_to_rad(-60.0 + k * 30.0)) * 1.8
-			_bolt(q, q + Vector3(randf_range(-0.6, 0.6), randf_range(-0.4, 0.4), randf_range(-0.6, 0.6)))
-		Combat.hit_zone(c, c.global_position, d, 3.0, 70.0, 2.0, inf(c, "raigyaku_suihei_choppu", 1.3, {"knock": 10.0, "kind": "heavy", "element": "raiton", "stun": 0.5}))
-		Sfx.play("thunder", c.global_position, 1.7, 0.6))
 
 
 
 
 
-## Şimşek Yılan Balığı: elden kamçı gibi uzanan şimşek akımı hedefi sarar, sürekli çarpar
-func p_raiton_ikazuchi_unagi(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 14.0)
-	busy(c, 0.8)
-	anim(c, "push", 1.3)
-	if tt == null:
-		return
-	st(tt, "bind", 2.0)
-	every(2.0, 0.1, func(_i, _k):
-		if live(c) and live(tt):
-			_bolt(hand_pos(c, true), tt.global_position + Vector3.UP * 1.0, RAI, 0.1)
-			_bolt(tt.global_position + Vector3.UP * 0.4, tt.global_position + Vector3.UP * 1.6, RAI, 0.06), Callable())
-	every(2.0, 0.4, func(_i, _k):
-		if live(tt):
-			tt.take_hit(inf(c, "raiton_ikazuchi_unagi", 0.25, {"knock": 0.0, "kind": "light", "element": "raiton"})), Callable())
-	Sfx.play("thunder", tt.global_position, 1.5)
 
 
-## Şimşek Tazısı: yerde koşan şimşek köpek hedefi izler, çarpınca patlar
-func p_raiton_raiju_tsuiga(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 26.0)
-	busy(c, 0.5)
-	var from = gp(c.global_position + c.face_dir() * 1.0) + Vector3.UP * 0.6
-	var b = MB.new()
-	b.add("sphere", Vector3(0, 0, 0), Vector3(0.6, 0.45, 1.0), RAI)
-	b.add("sphere", Vector3(0, 0.15, 0.55), Vector3(0.35, 0.3, 0.45), RAI)
-	b.add("cone", Vector3(-0.1, 0.38, 0.55), Vector3(0.08, 0.2, 0.08), RAI, Vector3.ZERO, 4)
-	b.add("cone", Vector3(0.1, 0.38, 0.55), Vector3(0.08, 0.2, 0.08), RAI, Vector3.ZERO, 4)
-	var dir = aim_at(c, tt, from)
-	dir.y = 0
-	var pr = shot(c, from, dir.normalized(), 22.0, mesh_of(b, glow(RAI, 1.0)), inf(c, "raiton_raiju_tsuiga", 1.1, {"knock": 10.0, "kind": "heavy", "element": "raiton", "stun": 0.8}), tt, false, 2.0, func(p, _h):
-		for k in 8:
-			_bolt(p, p + Vector3(randf_range(-2.5, 2.5), randf_range(0, 3), randf_range(-2.5, 2.5)))
-		FX.ring(p, RAI, 3.0, 0.4))
-	pr.homing_turn = 4.0
-	Projectile.trail(pr, [Color(0.8, 0.95, 1, 0.9), Color(0.5, 0.75, 1, 0)], 0.35, 24, 0.3, null, true)
-	Sfx.play("chidori", from, 1.2)
+
+
+
+
+
+
 
 
 ## Rakan Yumruğu: ağır, dalga gibi art arda dört yumruk — her biri ileri iter
@@ -4467,3 +4271,305 @@ func p_zankukyokuha(c: Node3D, t: Node3D) -> void:
 		Combat.hit_zone(c, c.global_position, d, 22.0, 30.0, 4.0, inf(c, "zankukyokuha", 1.4, {"knock": 22.0, "launch": 5.0, "kind": "heavy", "element": "fuuton", "dir": d}))
 		shake(0.7))
 	Sfx.play("wind", c.global_position, 0.5)
+
+
+## Toprak çıkışı: yerden kaya sökülürken çatlak, toz halkası, moloz
+func _earth_burst(at: Vector3, s := 1.0) -> void:
+	VFX.cracks(at, 2.2 * s)
+	VFX.debris(at, EARTH, int(12 * s), 7.0 * s, 0.45)
+	VFX.smoke_ring(at + Vector3.UP * 0.1, 2.5 * s, Color(0.6, 0.5, 0.4))
+
+
+## Toprak Tuğla: avuç yere vurulur, zemin çatlar; büyük tuğla blokları sökülüp sırayla fırlar, çarpınca parçalanır
+func p_doton_renga_no_jutsu(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.8)
+	anim(c, "crouch", 1.5)
+	var tt = tg(c, t, 24.0)
+	_earth_burst(gp(c.global_position + c.face_dir()), 1.4)
+	for k in 4:
+		after(0.18 + k * 0.12, func():
+			if not live(c):
+				return
+			var from = c.global_position + c.face_dir() * 1.0 + c.face_dir().cross(Vector3.UP) * (k - 1.5) * 0.7 + Vector3.UP * 0.8
+			_earth_burst(gp(from), 0.7)
+			var b = MB.new()
+			b.add("box", Vector3.ZERO, Vector3(0.8, 0.45, 0.55), Color(0.72, 0.38, 0.28))
+			b.add("box", Vector3(0, 0.23, 0), Vector3(0.82, 0.03, 0.57), Color(0.85, 0.8, 0.7))
+			b.add("box", Vector3(0.2, 0.0, 0.28), Vector3(0.02, 0.45, 0.02), Color(0.85, 0.8, 0.7))
+			var pr = shot(c, from, aim_at(c, tt, from), 26.0, mesh_of(b), inf(c, "doton_renga_no_jutsu", 0.4, {"knock": 6.0, "kind": "heavy", "element": "doton"}), null, false, 1.4, func(p, _h):
+				impact_fx("doton", EARTH, p, 0.7))
+			pr.spin = Vector3(6, 0, 3)
+			Projectile.trail(pr, [Color(0.7, 0.6, 0.5, 0.6), Color(0.6, 0.5, 0.4, 0)], 0.4, 16, 0.4, FX.tex_smoke, false)
+			shake(0.2))
+	Sfx.play("earth", c.global_position, 1.4)
+
+
+## Toprak Çakıl: avuçtan toz bulutuyla birlikte yüzlerce çakıl saçması
+func p_doton_sazareishi(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.5)
+	anim(c, "push", 1.6)
+	var tt = tg(c, t, 18.0)
+	var from = hand_pos(c, true)
+	var dir = aim_at(c, tt, from)
+	VFX.gather(from, EARTH, 0.9)
+	after(0.12, func():
+		for k in 18:
+			var d = dir.rotated(Vector3.UP, randf_range(-0.3, 0.3)) + Vector3.UP * randf_range(-0.06, 0.08)
+			var pr = shot(c, from, d.normalized(), randf_range(30.0, 42.0), _rock(randf_range(0.08, 0.16)), inf(c, "doton_sazareishi", 0.07, {"knock": 1.0, "kind": "light", "element": "doton"}), null, false, 0.7)
+			if k % 4 == 0:
+				Projectile.trail(pr, [Color(0.75, 0.65, 0.5, 0.5), Color(0.7, 0.6, 0.5, 0)], 0.25, 10, 0.3, FX.tex_smoke, false)
+		VFX.puffs(from + dir, {"amount": 30, "life": 0.6, "size": 0.9, "radius": 0.4, "vmin": 8, "vmax": 14, "dir": dir, "spread": 20.0, "add": false,
+			"colors": [Color(0.75, 0.65, 0.5, 0.7), Color(0.7, 0.6, 0.5, 0)]})
+		VFX.debris(from, EARTH, 10, 8.0, 0.2))
+	Sfx.play("earth", from, 1.8, 0.6)
+
+
+## Çift İntihar Başkesme: yere dalar (toz halkası), hedefin altından çatlakla çıkar, onu boynuna kadar toprağa çeker
+func p_doton_shinju_zanshu_no_jutsu(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 16.0)
+	if tt == null:
+		return
+	busy(c, 1.0)
+	_earth_burst(c.global_position, 1.2)
+	c.visible = false
+	after(0.45, func():
+		if not live(c):
+			return
+		c.visible = true
+		if not live(tt):
+			return
+		var at = tt.global_position
+		c.global_position = gp(at + (c.global_position - at).normalized() * 1.2)
+		_earth_burst(at, 1.6)
+		VFX.shockwave(at + Vector3.UP * 0.1, EARTH, 4.0, 0.4, true)
+		st(tt, "bind", 3.0)
+		tt.take_hit(inf(c, "doton_shinju_zanshu_no_jutsu", 0.5, {"knock": 0.0, "kind": "heavy", "element": "doton"}))
+		var body = tt.get("model") if tt.get("model") else tt
+		var y0 = body.position.y
+		var tw = body.create_tween()
+		tw.tween_property(body, "position:y", y0 - tt.height * 0.75, 0.25)
+		tw.tween_interval(2.6)
+		tw.tween_property(body, "position:y", y0, 0.3)
+		Combat.popup_text(at + Vector3.UP * 1.2, "Toprağa gömüldü!", EARTH.lightened(0.3))
+		shake(0.4)
+		Sfx.play("earth", at, 1.0))
+
+
+## Uçan Taşlar: yer çatlayıp büyük kayalar havaya kalkar, etrafında döner; sonra toz izleriyle hedefe yağar
+func p_doton_tobi_tsubute(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.9)
+	anim(c, "cast", 1.3)
+	var tt = tg(c, t, 22.0)
+	_earth_burst(c.global_position, 1.8)
+	var rocks = []
+	for k in 8:
+		var r = _rock(randf_range(0.5, 0.8))
+		get_tree().current_scene.add_child(r)
+		var a = TAU * k / 8.0
+		var q = c.global_position + Vector3(cos(a), 0, sin(a)) * 2.0
+		r.global_position = gp(q) - Vector3.UP * 0.5
+		r.create_tween().tween_property(r, "global_position", q + Vector3.UP * 1.8, 0.35).set_trans(Tween.TRANS_BACK)
+		VFX.debris(gp(q), EARTH, 5, 5.0, 0.3)
+		rocks.append(r)
+	shake(0.4)
+	Sfx.play("earth", c.global_position, 1.2)
+	after(0.6, func():
+		for k in rocks.size():
+			var r: Node3D = rocks[k]
+			if not is_instance_valid(r):
+				continue
+			var from = r.global_position
+			r.queue_free()
+			if live(c):
+				var pr = shot(c, from, aim_at(c, tt, from), 28.0, _rock(0.6), inf(c, "doton_tobi_tsubute", 0.3, {"knock": 5.0, "kind": "heavy", "element": "doton"}), tt, false, 1.4, func(p, _h):
+					impact_fx("doton", EARTH, p, 0.6))
+				pr.spin = Vector3(5, 3, 0)
+				Projectile.trail(pr, [Color(0.7, 0.6, 0.5, 0.6), Color(0.6, 0.5, 0.4, 0)], 0.45, 14, 0.4, FX.tex_smoke, false))
+
+
+## Çamur Kayması: önündeki zemin akan çamur seline döner (çamur dokulu akış), içindekileri sürükler ve yavaşlatır
+func p_doton_dosekiryu(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.9)
+	anim(c, "crouch", 1.4)
+	var d = fwd(c, t)
+	var mud = Color(0.42, 0.32, 0.22)
+	var mudmat = VFX.mat_water(Color(0.22, 0.15, 0.1), Color(0.42, 0.32, 0.22), Color(0.6, 0.5, 0.38), Vector3(0, 1, 0), 0.95, 0.5, 0.15)
+	stream_fx(gp(c.global_position + d) + Vector3.UP * 0.5, (d - Vector3.UP * 0.03).normalized(), 16.0, 3.0, mudmat, 0.9)
+	for k in 10:
+		after(k * 0.06, func():
+			var q = gp(c.global_position + d * (1.5 + k * 1.6))
+			VFX.puffs(q + Vector3.UP * 0.4, {"amount": 14, "life": 0.9, "size": 1.4, "radius": 1.8, "vmin": 3, "vmax": 6, "dir": d + Vector3.UP * 0.6, "spread": 30.0, "add": false,
+				"colors": [mud, mud.darkened(0.3), Color(0.35, 0.28, 0.2, 0)]})
+			VFX.cracks(q, 1.6, Color(0.2, 0.15, 0.1, 0.8), 6.0)
+			for e in hit(c, q + Vector3.UP * 0.5, 2.2, inf(c, "doton_dosekiryu", 0.15, {"knock": 7.0, "kind": "light", "element": "doton", "dir": d})):
+				st(e, "slow", 3.0))
+	shake(0.4)
+	Sfx.play("earth", c.global_position, 0.8)
+
+
+## Toprak Yırtan Avuç: avuç yere basılır, çevre zemin dönerek yarılır — dev çatlak ağı, halka halka şok, havaya kalkan moloz
+func p_doton_retsudo_tensho(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.0)
+	anim(c, "crouch", 1.2)
+	var at = gp(c.global_position + c.face_dir() * 1.0)
+	VFX.gather(at + Vector3.UP * 0.3, EARTH, 1.4)
+	after(0.2, func():
+		VFX.cracks(at, 10.0, Color(0.1, 0.07, 0.05, 0.95), 8.0)
+		for k in 3:
+			after(k * 0.15, func():
+				VFX.shockwave(at + Vector3.UP * 0.1, EARTH, 6.0 + k * 4.0, 0.5, true)
+				for j in 5:
+					VFX.debris(at + Vector3(randf_range(-6, 6), 0, randf_range(-6, 6)), EARTH, 10, 10.0, 0.6))
+		VFX.smoke_ring(at + Vector3.UP * 0.1, 9.0, Color(0.6, 0.5, 0.4))
+		shake(1.0)
+		for e in hit(c, at + Vector3.UP * 0.5, 7.0, inf(c, "doton_retsudo_tensho", 0.6, {"knock": 3.0, "launch": 4.0, "kind": "heavy", "element": "doton"})):
+			st(e, "stun", 1.4))
+	Sfx.play("earth", at, 0.7)
+
+
+## Kaya Sığınağı: zemin çatlar, büyük kaya plakaları dönerek yükselir ve kubbe olur; içindekiler korunur
+func p_earth_release_rock_shelter(c: Node3D, _t: Node3D) -> void:
+	busy(c, 0.7)
+	anim(c, "crouch", 1.4)
+	var at = gp(c.global_position)
+	VFX.cracks(at, 6.0)
+	VFX.smoke_ring(at + Vector3.UP * 0.1, 6.0, Color(0.6, 0.5, 0.4))
+	var b = MB.new()
+	for k in 14:
+		var a = TAU * k / 14.0
+		b.add("boulder", Vector3(cos(a) * 2.6, 1.0, sin(a) * 2.6), Vector3(1.6, 2.4, 1.4), EARTH.darkened(0.05 * (k % 3)), Vector3(0, -rad_to_deg(a), 12), 3)
+	for k in 6:
+		var a = TAU * k / 6.0
+		b.add("boulder", Vector3(cos(a) * 1.3, 2.6, sin(a) * 1.3), Vector3(1.8, 1.0, 1.8), EARTH.lightened(0.05), Vector3.ZERO, 3)
+	var dome = mesh_of(b)
+	get_tree().current_scene.add_child(dome)
+	dome.global_position = at - Vector3.UP * 3.2
+	dome.rotation.y = -0.6
+	var tw = dome.create_tween()
+	tw.tween_property(dome, "global_position", at, 0.35).set_trans(Tween.TRANS_BACK)
+	tw.parallel().tween_property(dome, "rotation:y", 0.0, 0.35)
+	tw.tween_callback(func():
+		VFX.shockwave(at + Vector3.UP * 0.1, EARTH, 8.0, 0.4, true)
+		VFX.debris(at, EARTH, 30, 9.0, 0.6))
+	tw.tween_interval(4.5)
+	tw.tween_property(dome, "global_position", at - Vector3.UP * 3.5, 0.5)
+	tw.tween_callback(dome.queue_free)
+	shake(0.7)
+	if c is Player:
+		Buffs.add("rock_shelter", 5.0, {"armor": 0.15, "_name": "Kaya Sığınağı", "_desc": "kubbenin içindesin: gelen hasar çok azalır"})
+	Sfx.play("earth", at, 0.8)
+
+
+## Şimşek elde: avuçta kalın arklı şimşek küresi belirir (dur sn)
+func _rai_hand(c: Node3D, dur: float) -> void:
+	var ba = bone_attach(c, "RightHand")
+	if ba == null:
+		return
+	var orb = VFX.lightning_ball(0.35, RAI)
+	ba.add_child(orb)
+	after(dur, func():
+		if is_instance_valid(ba):
+			ba.queue_free())
+
+
+## Şimşek Darbesi: avuçta şimşek küresi toplanır, atılıp vurur — çarpınca kalın dallar, yıldız, yanık çatlak, felç
+func p_raigeki(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 6.0)
+	_rai_hand(c, 0.5)
+	VFX.gather(hand_pos(c, true), RAI, 1.0)
+	busy(c, 0.6)
+	after(0.15, func():
+		_jump_at(c, tt, 0.0, 14.0 if tt else 3.0))
+	after(0.3, func():
+		if not live(c):
+			return
+		anim(c, "cross", 1.6)
+		var at = c.global_position + Vector3.UP * 1.1 + c.face_dir() * 1.2
+		melee_fx(c, at, RAI, 1.3)
+		impact_fx("raiton", RAI, at, 1.0)
+		for e in hit(c, at, 1.8, inf(c, "raigeki", 1.3, {"knock": 8.0, "kind": "heavy", "element": "raiton"})):
+			st(e, "stun", 0.9)
+		Sfx.play("thunder", at, 1.4))
+
+
+## Şimşek Yatay El Bıçağı: el şimşekle kaplanır, yatay savrulur — parlayan şimşek yayı, yay boyunca arklar
+func p_raigyaku_suihei_choppu(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 6.0)
+	var d = _face(c, tt)
+	_rai_hand(c, 0.5)
+	busy(c, 0.6)
+	after(0.12, func():
+		_jump_at(c, tt, 0.0, 10.0 if tt else 3.0))
+	after(0.25, func():
+		if not live(c):
+			return
+		anim(c, "slash_b", 1.8)
+		var at = c.global_position + Vector3.UP * 1.2
+		var arc = MeshInstance3D.new()
+		var tm = TorusMesh.new()
+		tm.inner_radius = 1.6; tm.outer_radius = 1.8; tm.rings = 32; tm.ring_segments = 6
+		arc.mesh = tm
+		arc.material_override = VFX.mat_bolt(RAI, 2.4)
+		arc.scale = Vector3(1, 0.1, 1)
+		get_tree().current_scene.add_child(arc)
+		arc.global_position = at + d * 0.3
+		var tw = arc.create_tween()
+		tw.tween_property(arc, "scale", Vector3(1.3, 0.02, 1.3), 0.25)
+		tw.tween_callback(arc.queue_free)
+		for k in 7:
+			var q = at + d.rotated(Vector3.UP, deg_to_rad(-70.0 + k * 23.0)) * 1.8
+			VFX.bolt(q, q + Vector3(randf_range(-1, 1), randf_range(-0.6, 0.6), randf_range(-1, 1)), RAI, 0.1, 0.3, 2)
+		Combat.hit_zone(c, c.global_position, d, 3.2, 75.0, 2.0, inf(c, "raigyaku_suihei_choppu", 1.3, {"knock": 10.0, "kind": "heavy", "element": "raiton", "stun": 0.5}))
+		shake(0.4)
+		Sfx.play("thunder", c.global_position, 1.7, 0.6))
+
+
+## Şimşek Yılan Balığı: elden kalın, kıvrılan şimşek akımı uzanır; hedefi sarar ve sürekli çarpar (kıvılcım, felç)
+func p_raiton_ikazuchi_unagi(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 14.0)
+	busy(c, 0.9)
+	anim(c, "push", 1.3)
+	_rai_hand(c, 2.0)
+	if tt == null:
+		return
+	st(tt, "bind", 2.0)
+	every(2.0, 0.07, func(_i, _k):
+		if live(c) and live(tt):
+			VFX.bolt(hand_pos(c, true), tt.global_position + Vector3.UP * 1.0, RAI, 0.22, 0.12, 3)
+			VFX.bolt(tt.global_position + Vector3(randf_range(-0.6, 0.6), 0.2, randf_range(-0.6, 0.6)), tt.global_position + Vector3(randf_range(-0.6, 0.6), 1.8, randf_range(-0.6, 0.6)), RAI, 0.08, 0.12, 1), Callable())
+	every(2.0, 0.4, func(_i, _k):
+		if live(tt):
+			VFX.star(tt.global_position + Vector3.UP, RAI, 1.4, 0.1)
+			tt.take_hit(inf(c, "raiton_ikazuchi_unagi", 0.25, {"knock": 0.0, "kind": "light", "element": "raiton"})), Callable())
+	Sfx.play("thunder", tt.global_position, 1.5)
+
+
+## Şimşek Tazısı: avuçtan şimşek dokulu bir tazı fırlar, yerde koşarak hedefi izler; çarpınca dev şimşek patlaması
+func p_raiton_raiju_tsuiga(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 26.0)
+	busy(c, 0.6)
+	_rai_hand(c, 0.4)
+	VFX.gather(hand_pos(c, true), RAI, 1.2)
+	after(0.2, func():
+		if not live(c):
+			return
+		var from = gp(c.global_position + c.face_dir() * 1.0) + Vector3.UP * 0.7
+		var hound = Node3D.new()
+		var m = VFX.mat_bolt(RAI, 2.0)
+		for part in [[Vector3(0, 0, 0), Vector3(0.55, 0.45, 1.1)], [Vector3(0, 0.2, 0.62), Vector3(0.38, 0.34, 0.5)], [Vector3(0, 0.15, -0.7), Vector3(0.12, 0.12, 0.6)]]:
+			var mi = MeshInstance3D.new()
+			mi.mesh = SphereMesh.new()
+			mi.material_override = m
+			mi.position = part[0]
+			mi.scale = part[1]
+			hound.add_child(mi)
+		var arcs = VFX.lightning_ball(0.6, RAI)
+		hound.add_child(arcs)
+		var dir = aim_at(c, tt, from)
+		dir.y = 0
+		var pr = shot(c, from, dir.normalized(), 24.0, hound, inf(c, "raiton_raiju_tsuiga", 1.1, {"knock": 10.0, "kind": "heavy", "element": "raiton", "stun": 0.8}), tt, false, 2.0, func(p, _h):
+			impact_fx("raiton", RAI, p, 1.4))
+		pr.homing_turn = 4.0
+		pr.radius = 0.8
+		_etrail(pr, "raiton", RAI, 0.8))
+	Sfx.play("chidori", c.global_position, 1.2)
