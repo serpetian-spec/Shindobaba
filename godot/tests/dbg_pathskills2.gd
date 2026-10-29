@@ -39,6 +39,12 @@ func _ready() -> void:
 				fw = -fw
 			cam.global_position = pl.global_position + fw * 5.0 + fw.cross(Vector3.UP) * 3.0 + Vector3.UP * 2.0
 			cam.look_at(pl.global_position + fw * 2.0 + Vector3.UP)
+			if id == "kami_tsubasa":
+				cam.global_position = pl.global_position + fw * 4.5 + Vector3.UP * 1.6
+				cam.look_at(pl.global_position + Vector3.UP * 1.3)
+			if id == "senpo_kawazu_naki":
+				cam.global_position = pl.global_position + fw * 1.6 + fw.cross(Vector3.UP) * 0.6 + Vector3.UP * 1.9
+				cam.look_at(pl.global_position + Vector3.UP * 1.55)
 			await main.shot("ps_%s" % id)
 			pl.set_process(true)
 		await get_tree().create_timer(1.6).timeout

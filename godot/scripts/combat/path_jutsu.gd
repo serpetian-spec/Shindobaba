@@ -2018,6 +2018,7 @@ func p_kami_tsubasa(c: Node3D, _t: Node3D) -> void:
 	anim(c, "cast", 1.2)
 	var m = c.get("model")
 	var parts = []
+	var wings = []
 	if m and m.skel:
 		var sk: Skeleton3D = m.skel
 		var chest_b = "UpperChest" if sk.find_bone("UpperChest") >= 0 else "Chest"
@@ -2025,18 +2026,25 @@ func p_kami_tsubasa(c: Node3D, _t: Node3D) -> void:
 		for sx in [-1.0, 1.0]:
 			var ba = m._attach(chest_b, Transform3D(Basis.IDENTITY, p_ch + Vector3(sx * 0.1, 0.05, -0.13)))
 			var b = MB.new()
-			for row in 3:   # üç katman kâğıt tüy: sırt düzleminde omuzdan dışa, yelpaze gibi aşağı-yukarı açılır
-				for k in 8:
-					var ang = lerpf(-55.0, 65.0, k / 7.0) + row * 6.0
-					var L = (0.75 + 0.45 * sin(PI * (k + 1) / 9.0)) * (1.0 - row * 0.22)
-					var d = Vector3(cos(deg_to_rad(ang)) * sx, sin(deg_to_rad(ang)), 0)
-					b.add("box", d * L * 0.5 + Vector3(0, 0, -0.03 * row), Vector3(L, 0.13 - row * 0.02, 0.006),
-						PAPER.darkened(0.04 * ((k + row) % 2)), Vector3(-8, 0, ang * sx))
+			_paper_wing(b, sx)
 			var wing = mesh_of(b)
 			ba.get_child(0).add_child(wing)
 			wing.scale = Vector3.ONE * 0.05
 			wing.create_tween().tween_property(wing, "scale", Vector3.ONE, 0.4).set_trans(Tween.TRANS_BACK)
+			wing.set_meta("sx", sx)
+			wings.append(wing)
 			parts.append(ba)
+	# kanat sırta bağlı ama gövde eğilse de dik durur (animedeki gibi kemer yukarıda, tüyler aşağı); yavaş çırpma
+	every(20.0, 1.0 / 60.0, func(_i, k):
+		if m == null or not is_instance_valid(m):
+			return
+		for w in wings:
+			if not is_instance_valid(w):
+				continue
+			var sc: Vector3 = w.scale
+			var flap = sin(k * 3.0) * 12.0
+			w.global_basis = m.global_basis.orthonormalized() * Basis.from_euler(Vector3(deg_to_rad(-8.0), deg_to_rad(-flap * float(w.get_meta("sx"))), 0))
+			w.scale = sc)
 	Sfx.play("wind", c.global_position, 1.4)
 	if c is Player and c.has_method("start_flight"):
 		c.start_flight("kami", {"drain": 0.0, "speed": 20.0, "dur": 20.0})
@@ -2045,6 +2053,14 @@ func p_kami_tsubasa(c: Node3D, _t: Node3D) -> void:
 		if not live(c):
 			return
 		var foes = enemies_near(c, c.global_position, 14.0)
+		for k in 3:   # kanatlardan kopup savrulan kâğıtlar
+			var sh = paper_sheet(0.12)
+			get_tree().current_scene.add_child(sh)
+			sh.global_position = c.global_position + Vector3(randf_range(-1.2, 1.2), randf_range(0.6, 2.4), randf_range(-0.6, 0.2))
+			var tw = sh.create_tween()
+			tw.tween_property(sh, "global_position", sh.global_position + Vector3(randf_range(-2, 2), randf_range(-2.5, -1), randf_range(-2, 2)), 1.4)
+			tw.parallel().tween_property(sh, "rotation", Vector3(randf() * 6, randf() * 6, randf() * 6), 1.4)
+			tw.tween_callback(sh.queue_free)
 		if not foes.is_empty():
 			var e = foes.pick_random()
 			var b2 = MB.new()
@@ -2324,19 +2340,21 @@ func p_senpo_kawazu_naki(c: Node3D, _t: Node3D) -> void:
 	busy(c, 1.6)
 	anim(c, "cast", 0.8)
 	var elders = []
-	for sx in [-1.0, 1.0]:
-		var ba = bone_attach(c, "LeftShoulder" if sx > 0 else "RightShoulder")
-		if ba == null:
-			ba = bone_attach(c, "UpperChest")
-		if ba == null:
-			continue
-		var b = MB.new()
-		b.add("sphere", Vector3(0, 0.12, 0), Vector3(0.22, 0.2, 0.24), Color(0.5, 0.55, 0.35))
-		b.add("sphere", Vector3(0, 0.22, -0.08), Vector3(0.16, 0.12, 0.14), Color(0.55, 0.6, 0.4))
-		b.add("sphere", Vector3(0, 0.27, -0.1), Vector3(0.12, 0.04, 0.06), Color(0.95, 0.95, 0.92))   # beyaz kaş/sakal
-		var mi = mesh_of(b)
-		ba.add_child(mi)
-		elders.append(ba)
+	var m = c.get("model")
+	if m and m.skel:
+		var sk: Skeleton3D = m.skel
+		var chest_b = "UpperChest" if sk.find_bone("UpperChest") >= 0 else "Chest"
+		for sx in [-1.0, 1.0]:
+			var sh_b = "LeftUpperArm" if sx > 0 else "RightUpperArm"
+			var sp: Vector3 = m._grest(sk.find_bone(sh_b)).origin if sk.find_bone(sh_b) >= 0 else m._grest(sk.find_bone(chest_b)).origin + Vector3(sx * 0.18, 0.1, 0)
+			# model uzayında dik duran, öne bakan yaşlı kurbağa (sağ omuzda dişi: mor dudak)
+			var ba = m._attach(chest_b, Transform3D(Basis.IDENTITY, sp + Vector3(sx * 0.07, 0.07, -0.02)))
+			var mi = mesh_of(_elder_toad(sx < 0))
+			ba.get_child(0).add_child(mi)
+			mi.scale = Vector3.ONE * 0.05
+			mi.create_tween().tween_property(mi, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_BACK)
+			FX.smoke_puff(c.global_position + Vector3.UP * 1.6 + c.face_dir().cross(Vector3.UP) * -sx * 0.2, 0.3, 6)
+			elders.append(ba)
 	Sfx.play("genjutsu", c.global_position, 0.5)
 	for k in 4:
 		after(0.4 + k * 0.3, func():
@@ -2349,3 +2367,57 @@ func p_senpo_kawazu_naki(c: Node3D, _t: Node3D) -> void:
 		for ba in elders:
 			if is_instance_valid(ba):
 				ba.queue_free())
+
+
+## Omuzda oturan yaşlı bilge kurbağa (küçük, yeşil-gri, beyaz kaş/sakal, oturur bacaklar); +Z öne bakar
+func _elder_toad(female: bool) -> MB:
+	var skin = Color(0.42, 0.5, 0.36) if not female else Color(0.45, 0.52, 0.4)
+	var belly = Color(0.78, 0.76, 0.6)
+	var b = MB.new()
+	b.add("sphere", Vector3(0, 0.07, 0), Vector3(0.2, 0.15, 0.2), skin)                       # gövde
+	b.add("sphere", Vector3(0, 0.06, 0.05), Vector3(0.15, 0.11, 0.12), belly)                  # karın
+	b.add("sphere", Vector3(0, 0.15, 0.03), Vector3(0.17, 0.09, 0.15), skin)                   # yassı baş
+	for ex in [-1.0, 1.0]:
+		b.add("sphere", Vector3(ex * 0.055, 0.195, 0.06), Vector3(0.05, 0.045, 0.05), skin)     # göz tümseği
+		b.add("sphere", Vector3(ex * 0.058, 0.2, 0.08), Vector3(0.03, 0.022, 0.015), Color(0.95, 0.85, 0.3))
+		b.add("box", Vector3(ex * 0.058, 0.2, 0.088), Vector3(0.022, 0.005, 0.004), Color(0.05, 0.05, 0.05))   # yatay göz bebeği
+		b.add("sphere", Vector3(ex * 0.06, 0.218, 0.075), Vector3(0.05, 0.015, 0.025), Color(0.96, 0.96, 0.94), Vector3(0, 0, -ex * 15))   # beyaz kaş
+		b.add("sphere", Vector3(ex * 0.09, 0.02, 0.06), Vector3(0.07, 0.05, 0.1), skin)          # arka bacak (oturur)
+		b.add("sphere", Vector3(ex * 0.06, 0.02, 0.1), Vector3(0.035, 0.03, 0.05), skin)         # ön ayak
+	b.add("box", Vector3(0, 0.125, 0.105), Vector3(0.11, 0.006, 0.01), Color(0.6, 0.35, 0.55) if female else Color(0.15, 0.15, 0.12))   # ağız çizgisi
+	if not female:
+		b.add("sphere", Vector3(0, 0.105, 0.095), Vector3(0.06, 0.03, 0.02), Color(0.96, 0.96, 0.94))   # beyaz sakal
+	else:
+		b.add("sphere", Vector3(0, 0.205, -0.02), Vector3(0.06, 0.04, 0.05), Color(0.85, 0.85, 0.82))   # topuz saç
+	return b
+
+
+## Konan'ın melek kanadı: omuzdan başın üstüne kemer, oradan dizlere kadar sarkan tüy sütunları; her tüy küçük kâğıt tuğlalardan
+func _paper_wing(b: MB, sx: float) -> void:
+	var rng = RandomNumberGenerator.new()
+	rng.seed = 77 if sx > 0 else 78
+	var arm := func(u: float) -> Vector3:   # kemer (ikinci derece bezier): kök → yukarı → dış tepe
+		var p0 = Vector2(0.0, 0.0); var p1 = Vector2(0.25, 0.95); var p2 = Vector2(0.95, 0.7)
+		var q = p0.lerp(p1, u).lerp(p1.lerp(p2, u), u)
+		return Vector3(q.x * sx, q.y, -0.05 - q.x * 0.12)
+	var cols = 15
+	for ci in cols:
+		var u = (ci + 0.5) / cols
+		var top: Vector3 = arm.call(u)
+		var L = 0.35 + 1.75 * pow(u, 1.3)                        # dışa doğru uzayan tüyler (dizlere iner)
+		var dir = Vector3(sx * (0.1 + 0.3 * u), -1.0, -0.05).normalized()
+		var n = int(L / 0.075)
+		for k in n:
+			var f = float(k) / maxf(1.0, n - 1)
+			var w = 0.16 * (1.0 - 0.5 * pow(f, 2.0))           # uca doğru daralan tüy
+			var q = top + dir * (k * 0.075) + Vector3(rng.randf_range(-0.012, 0.012), 0, (ci % 2) * -0.012)
+			var col = PAPER.darkened(rng.randf_range(0.0, 0.1) + 0.06 * f)
+			b.add("box", q, Vector3(w, 0.11, 0.008), col, Vector3(-4, 0, rad_to_deg(atan2(dir.x, -dir.y)) * -1.0 + rng.randf_range(-8, 8)))
+	# kemer üzerindeki kalın üst kenar: çift sıra tuğla
+	for k in 22:
+		var u = k / 21.0
+		var q: Vector3 = arm.call(u)
+		var q2: Vector3 = arm.call(minf(1.0, u + 0.05))
+		var ang = rad_to_deg(atan2(q2.y - q.y, (q2.x - q.x) * sx))
+		for r in 2:
+			b.add("box", q + Vector3(0, -0.06 * r, 0.006), Vector3(0.13, 0.09, 0.009), PAPER.darkened(0.03 * r + rng.randf_range(0, 0.05)), Vector3(-10, 0, ang * sx))
