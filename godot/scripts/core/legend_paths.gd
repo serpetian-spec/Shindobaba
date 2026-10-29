@@ -69,8 +69,8 @@ const PATHS := {
 		"mentor": {"name": "Kōtetsu Gōriki", "title": "Taijutsu Ustası",
 			"look": {"gender": "m", "skin": Color(0.93, 0.78, 0.62), "hair": Color(0.08, 0.08, 0.1), "hair_style": "kase", "eye": Color(0.1, 0.1, 0.1),
 				"top": Color(0.2, 0.5, 0.25), "top2": Color(0.2, 0.5, 0.25), "pants": Color(0.2, 0.5, 0.25), "vest": Color(0.38, 0.48, 0.28), "band": Color(0.75, 0.15, 0.15), "age": "adult"}},
-		"rumor_level": 8, "join_level": 10, "need": "clanless",
-		"rumor": "Ateş Ülkesi dağlarında, şafakta binlerce şınav çeken yeşil tulumlu bir ustanın dojosu varmış. Klansız, jutsusuz gençleri arıyormuş.",
+		"rumor_level": 8, "join_level": 10,
+		"rumor": "Ateş Ülkesi dağlarında, şafakta binlerce şınav çeken yeşil tulumlu bir ustanın dojosu varmış. Azmi olan her genci kabul ediyormuş.",
 		"intro": "Usta tek elle amuda kalkmış: \"Gençliğin ateşi! Ninjutsu yoksa ne olmuş? Bedenin sekiz kapısı var ve onları açacak kadar azimliysen dünyayı yerinden oynatırsın!\"",
 		"passive": {"gates": 0.3, "melee": 0.1},
 		"passive_desc": "Kapı ustalığı +%30 (daha güçlü, daha az bedel), yakın dövüş +%10",
@@ -238,9 +238,6 @@ static func interact(it: Dictionary) -> void:
 			return
 		if lv < int(P["join_level"]):
 			Hud.dialog(title, P["intro"] + "\n\n\"Ama henüz çok zayıfsın. Seviye %d olunca gel.\"" % int(P["join_level"]), [])
-			return
-		if String(P.get("need", "")) == "clanless" and String(pr().get("clan", "none")) not in ["", "none"]:
-			Hud.dialog(title, P["intro"] + "\n\n\"...Ama senin klanının sırları var. Bu yol, hiçbir şeyi olmayanların yolu.\"", [])
 			return
 		var opts = []
 		if Missions.active().is_empty():

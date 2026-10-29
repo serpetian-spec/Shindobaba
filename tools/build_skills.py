@@ -26,8 +26,8 @@ node(B, 'strong_fist', 'Güçlü Yumruk Stili', 'Kemik kıran sert darbeler: yak
 node(B, 'gentle_fist', 'Yumuşak Yumruk Stili', 'Chakra noktalarına vuruş: darbeler chakra çalar, yakın dövüş +%10.', 3, 12, ['tai_guard'], fx={'melee': 0.1}, need={'clan_any': ['hyuga'], 'or_eye': 2}, unlock=['gentle_fist'])
 node(B, 'tai_kombo2', 'Uzun Kombo', 'Kombo hızlanır ve son vuruş daha uzağa fırlatır, +%10 yakın dövüş.', 3, 15, ['tai_kombo1'], fx={'melee': 0.1, 'combo': 0.15})
 node(B, 'tai4', 'Usta Savaşçı', 'Yakın dövüş hasarı +%30.', 4, 16, ['strong_fist'], fx={'melee': 0.3}, cost=2)
-node(B, 'gates1', 'Kapı Ustalığı I', 'Sekiz Kapı açıkken can kaybı -%30. (Yalnız klansız)', 4, 20, ['tai2'], fx={'gates': 0.3}, need={'clanless': True}, unlock=['gates'])
-node(B, 'gates2', 'Kapı Ustalığı II', 'Kapılar daha uzun dayanır, kapı modunda hız +%15.', 5, 45, ['gates1'], fx={'gates': 0.3, 'speed': 0.05}, need={'clanless': True}, cost=2)
+node(B, 'gates1', 'Kapı Ustalığı I', 'Sekiz Kapı açıkken can kaybı -%30.', 4, 20, ['tai2'], fx={'gates': 0.3}, unlock=['gates'])
+node(B, 'gates2', 'Kapı Ustalığı II', 'Kapılar daha uzun dayanır, kapı modunda hız +%15.', 5, 45, ['gates1'], fx={'gates': 0.3, 'speed': 0.05}, cost=2)
 node(B, 'tai_lotus', 'Ön Lotus', 'Havaya fırlatılan düşmana yakın dövüş +%20.', 5, 35, ['tai4'], fx={'melee': 0.1}, cost=2, unlock=['lotus'])
 node(B, 'tai_master', 'Taijutsu Efsanesi', 'Yakın dövüş +%35, koşu hızı +%8.', 6, 70, ['tai_lotus'], fx={'melee': 0.35, 'speed': 0.08}, cost=3)
 

@@ -231,7 +231,7 @@
   "gates1": {
    "id": "gates1",
    "name": "Kapı Ustalığı I",
-   "desc": "Sekiz Kapı açıkken can kaybı -%30. (Yalnız klansız)",
+   "desc": "Sekiz Kapı açıkken can kaybı -%30.",
    "branch": "taijutsu",
    "tier": 4,
    "cost": 1,
@@ -242,9 +242,7 @@
    "fx": {
     "gates": 0.3
    },
-   "need": {
-    "clanless": true
-   },
+   "need": {},
    "unlock": [
     "gates"
    ],
@@ -265,9 +263,7 @@
     "gates": 0.3,
     "speed": 0.05
    },
-   "need": {
-    "clanless": true
-   },
+   "need": {},
    "unlock": [],
    "icon": ""
   },

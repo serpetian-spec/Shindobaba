@@ -211,9 +211,6 @@ func _update_byakugan() -> void:
 
 # ------------------------------------------------------------------ Sekiz Kapı (B)
 func next_gate() -> void:
-	if clan() != "none":
-		Hud.msg("Sekiz Kapı yalnızca klansız, saf taijutsu ustalarına açık.", Color(0.8, 0.8, 0.8))
-		return
 	if not LegendPaths.joined("kapi"):
 		Hud.msg("Sekiz Kapı'yı açmayı bir usta öğretmeli: Sekiz Kapı Yolu'nu bul (Tab > Yollar, Sv.8+ söylenti).", Color(0.8, 0.8, 0.8))
 		return
