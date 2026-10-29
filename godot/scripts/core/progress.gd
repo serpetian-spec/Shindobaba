@@ -320,7 +320,7 @@ static func scroll_sellable(jid: String) -> bool:
 
 
 ## Dükkânda gösterilecek jutsu parşömenleri: oyuncunun doğasına uygun, seviyesine yakın
-func scroll_shop_items(max_n := 10) -> Array:
+func scroll_shop_items(max_n := 10, extra_lv := 0) -> Array:
 	var pr = p()
 	var out = []
 	for iid in Data.items.keys():
@@ -329,7 +329,7 @@ func scroll_shop_items(max_n := 10) -> Array:
 			continue
 		var jid = String(it.get("jutsu", ""))
 		var j: Dictionary = Data.jutsu.get(jid, {})
-		if not scroll_sellable(jid) or jid in pr["learned"] or int(j.get("level", 1)) > int(pr["level"]) + 4:
+		if not scroll_sellable(jid) or jid in pr["learned"] or int(j.get("level", 1)) > int(pr["level"]) + 4 + extra_lv:
 			continue
 		var natured = true
 		for el in j.get("elements", []):

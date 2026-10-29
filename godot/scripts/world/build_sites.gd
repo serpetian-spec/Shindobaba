@@ -130,6 +130,13 @@ static func _gates(parent: Node3D, v: Dictionary) -> void:
 		gap = 0.001   # kanatsız kapı
 	for a in angles:
 		b.village_gate(float(a), r, 12.0, 30.0 if v["id"] != "suna" else 40.0, st[0], st[1], String(v["id"]), gap)
+		# kapı nöbetçileri: kapının iç tarafında iki yanda, dışarı bakar (köy hayatı onları doldurur)
+		var ar = deg_to_rad(float(a))
+		var out = Vector2(sin(ar), cos(ar))
+		var side = Vector2(cos(ar), -sin(ar))
+		for sx in [-1.0, 1.0]:
+			var gp = out * (r - 9.0) + side * 17.0 * sx
+			KageHall._site(String(v["id"]), {"type": "guard", "pos": KageHall._gp(b, gp.x, gp.y), "face": atan2(-out.x, out.y)})
 	b.finish()
 
 

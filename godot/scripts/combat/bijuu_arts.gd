@@ -161,7 +161,8 @@ static func _foes(user: Node3D, pos: Vector3, r: float) -> Array:
 
 
 static func _is_giant(f: Node) -> bool:
-	return f.has_method("hit_test")
+	# dev canavarlar ve dev çağrılar (küçük çağrılar da hit_test taşır: boyla ayır)
+	return f.has_method("hit_test") and (not f is Summon or float(f.height) >= 8.0)
 
 
 ## Kullanıcının görünen boyu (tam dönüşümde canavar modeli, boss'ta dev gövde)

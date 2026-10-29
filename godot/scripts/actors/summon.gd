@@ -32,7 +32,12 @@ func _ready() -> void:
 	var long_body = length > h * 1.5
 	radius = clampf((length * 0.22 if long_body else h * 0.45), 0.25, 18.0)
 	height = h
-	max_hp = def.get("hp", 200.0) * (1.0 + float(Game.profile.get("level", 1)) * 0.02) * (1.0 + Stats.skill(Game.profile, "summon_power"))
+	if owner_f is Player:
+		max_hp = def.get("hp", 200.0) * (1.0 + float(Game.profile.get("level", 1)) * 0.02) * (1.0 + Stats.skill(Game.profile, "summon_power"))
+	else:
+		# düşman çağrısı: oyuncunun çağırma yeteneklerinden güç almaz
+		var olv = float(owner_f.get("level")) if owner_f != null and owner_f.get("level") != null else 20.0
+		max_hp = def.get("hp", 200.0) * (1.0 + olv * 0.015)
 	hp = max_hp
 	life = Contracts.TIER_LIFE[tier] * (1.0 + clampf(Contracts.mastery(contract) / 300.0, 0.0, 0.5))
 	add_to_group("fighters")
@@ -89,6 +94,22 @@ func say(text: String, dur := 3.0) -> void:
 	bubble.text = "%s: %s" % [String(def.get("name", "")).split(" ")[-1], text]
 	bubble.visible = true
 	bubble_t = dur
+
+
+## Uzun gövdeli dev çağrılar (yılan hükümdarı: 70 m, çöreklenir): isabet yalnız merkez kapsülde sayılıyordu,
+## gövdeye/kafaya vuruşlar ıskalıyordu ("yılan ölmüyor"). Gövdenin kapladığı silindir + kafa (ağız) bölgesi
+func hit_test(point: Vector3, extra: float) -> bool:
+	var base = global_position
+	var length: float = float(def.get("len", 0.0)) * scale_m
+	var reach = maxf(radius, length * 0.32)
+	if point.y >= base.y - 2.0 and point.y <= base.y + height * 1.3:
+		if Vector2(point.x - base.x, point.z - base.z).length() <= reach + extra:
+			return true
+	if parts.has("mouth") and parts.has("root"):
+		var mp: Vector3 = (parts["root"] as Node3D).global_transform * (parts["mouth"] as Vector3)
+		if point.distance_to(mp) <= height * 0.5 + extra:
+			return true
+	return false
 
 
 func take_hit(info: Dictionary) -> void:

@@ -27,11 +27,12 @@ const AKATSUKI := [
 
 ## Kaçak rütbeleri: şöhret (infamy) eşiği, ad, alınabilecek en yüksek iş rütbesi
 const ROGUE_RANKS := [[0, "Firari", "C"], [300, "Kiralık Kılıç", "B"], [900, "Kara Listede", "A"], [2000, "Aranan Gölge", "S"], [4000, "Efsanevi Kaçak", "S"]]
-## Kaçak giremez: büyük gizli köyler (muhafızlar tanır); küçük kasabalarda saklanabilir
+## Kaçak bu büyük gizli köylerde düşmandır (muhafızlar saldırır); küçük kasabalarda saklanabilir
 const ROGUE_BANNED := ["konoha", "suna", "kiri", "kumo", "iwa", "ame"]
 
 var _hideout_node: Node3D = null
 var _ban_msg_t := 0.0
+var _raid := {}
 var _t := 0.0
 var _hunt_t := 0.0
 var _hunter_t := 0.0
@@ -346,6 +347,14 @@ func broker_dialog() -> void:
 			opts.append({"label": "[%s] %s" % [rk, job["title"]], "tip": job["brief"], "cb": func(): Missions.accept(job)})
 	else:
 		opts.append({"label": "(Önce elindeki işi bitir)", "cb": func(): pass})
+	# kaçak köy eğitmenlerine/parşömencisine gidemez: jutsuyu yeraltından öğrenir, rütbe arttıkça daha çok ve daha üst seviye
+	var sc = Progress.scroll_shop_items(6 + r * 3, r * 3)
+	if not sc.is_empty():
+		opts.append({"label": "Kara pazar parşömenleri (%d)" % sc.size(), "tip": "Rütben arttıkça daha fazla ve daha üst seviye element parşömeni.", "cb": func(): Hud.shop("Kara Pazar — Parşömenler", sc)})
+	if r >= 2:
+		opts.append({"label": "Yasak teknikler (kinjutsu)", "tip": "Kara Listede ve üstü: köylerin yasakladığı teknikleri ryō karşılığı öğret.", "cb": _kinjutsu_dialog})
+	else:
+		opts.append({"label": "(Yasak teknikler: «Kara Listede» rütbesinde açılır)", "cb": func(): pass})
 	opts.append({"label": "Ateşin başında dinlen (can/chakra, kayıt)", "cb": func():
 		if Game.player:
 			Game.player.hp = Game.player.max_hp
@@ -388,6 +397,32 @@ func _rogue_job(rk: String) -> Dictionary:
 					{"kind": "kill", "at": drop, "enemy": vid if vid in ["kumo", "kiri", "iwa", "suna"] else "rogue", "n": cnt, "text": "Pusuya düşürüldün! Av-ninjalarını savuştur."}, back]})
 
 
+## Yasak teknikler: yalnız "kinjutsu" öğrenme türü (karakter imzaları/yollar hariç), seviye ve rütbeye göre
+func _kinjutsu_dialog() -> void:
+	var pr = p()
+	var r = rogue_rank()
+	var opts = []
+	for jid in Data.jutsu:
+		var j = Data.jutsu[jid]
+		if not j is Dictionary or String(j.get("learn", "")) != "kinjutsu" or jid in pr["learned"]:
+			continue
+		var lv = int(j.get("level", 10))
+		if lv > int(pr["level"]) + r * 2:
+			continue
+		var price = 1500 + lv * 220
+		opts.append({"label": "%s  (Sv.%d) — %d Ryō" % [j.get("name", jid), lv, price], "tip": String(j.get("desc", "")), "cb": func():
+			if int(pr["ryo"]) < price:
+				Hud.msg("Yeterli ryō yok.", Color(1, 0.6, 0.5))
+				return
+			pr["ryo"] = int(pr["ryo"]) - price
+			Progress.learn(jid)
+			add_infamy(30)})
+	if opts.is_empty():
+		Hud.dialog("Yeraltı Simsarı", "\"Şimdilik sana uygun yasak bir parşömen yok. Seviyen ya da adın büyüsün, gel.\"", [])
+		return
+	Hud.dialog("Yeraltı Simsarı — Yasak Teknikler", "Simsar sandığından mühürlü parşömenler çıkarıyor: \"Bunları köyler yakar... ben satarım.\"", opts)
+
+
 func rogue_job_done(m: Dictionary, ok: bool) -> void:
 	if not ok:
 		return
@@ -395,35 +430,137 @@ func rogue_job_done(m: Dictionary, ok: bool) -> void:
 	Hud.msg("Yeraltında adın büyüyor (şöhret %d — %s)" % [infamy(), rogue_rank_name()], Color(0.9, 0.5, 0.45))
 
 
-## Kaçak büyük gizli köylere giremez: muhafızlar sur dışına iter (Kefaret görevinin son adımı hariç)
+## Kaçak büyük gizli köye girerse köy düşman olur: muhafızlar dalga dalga saldırır (Chūnin → Jōnin → ANBU → en son Kage).
+## Köyden çıkıp uzak durunca alarm söner. Kefaret görevinin son adımında (köye kanıtla dönüş) alarm çalmaz.
+const RAID_WAVES := [
+	{"title": "Köy Muhafızları", "kind": "chunin", "n": 3, "lv": 0, "hp": 1.0},
+	{"title": "Jōnin Takımı", "kind": "chunin", "n": 3, "lv": 6, "hp": 1.6},
+	{"title": "ANBU Birliği", "kind": "anbu", "n": 4, "lv": 10, "hp": 2.0},
+]
+
+
 func _village_ban(dt: float) -> void:
 	if not is_rogue() or Game.player == null:
+		_end_raid()
 		return
-	_ban_msg_t -= dt
 	var pl = Game.player
 	var m = Game.to_map(pl.global_position)
+	var inside = ""
 	for vid in ROGUE_BANNED:
 		var v = Game.village(vid)
 		if v.is_empty():
 			continue
-		var c = Vector2(v["x"], v["y"])
-		var r = float(v["r"])
-		var d = m.distance_to(c)
-		if d > r * 0.93:
-			continue
-		if _pardon_active() and vid == String(flags().get("rogue_from", "")):
-			var st: Array = Missions.active().get("steps", [])
-			if int(Missions.active().get("step", 0)) >= st.size() - 1:
-				continue
-		var out = c + (m - c).normalized() * (r + 25.0)
-		var w = Game.from_map(out)
-		w.y = Game.ground_height(w.x, w.z)
-		pl.respawn(Missions.open_ground(w, 30.0))
-		FX.smoke_puff(pl.global_position + Vector3.UP, 1.0, 12)
-		if _ban_msg_t <= 0.0:
-			_ban_msg_t = 4.0
-			Hud.banner("GİREMEZSİN", "%s muhafızları kaçak bir ninjayı tanıdı ve seni surların dışına attı." % v.get("name", vid), Color(0.9, 0.3, 0.3))
+		if m.distance_to(Vector2(v["x"], v["y"])) < float(v["r"]) * 0.95:
+			inside = vid
+			break
+	if inside != "" and _pardon_active() and inside == String(flags().get("rogue_from", "")):
+		var st: Array = Missions.active().get("steps", [])
+		if int(Missions.active().get("step", 0)) >= st.size() - 1:
+			inside = ""   # Kefaret: kanıtla dönüşte köy saldırmaz
+	if _raid.is_empty():
+		if inside == "":
+			return
+		_raid = {"vid": inside, "wave": 0, "t": 2.0, "out_t": 0.0, "nodes": [], "kage": false}
+		Hud.banner("KAÇAK KÖYDE!", "%s alarmda: muhafızlar sana saldıracak. Kaldıkça daha güçlüleri gelir — en sonunda Kage." % Game.village(inside).get("name", inside), Color(0.95, 0.25, 0.2))
+		Sfx.play("roar", null, 0.7, 0.5)
+	var vid: String = _raid["vid"]
+	_raid["nodes"] = (_raid["nodes"] as Array).filter(func(n): return is_instance_valid(n) and not n.dead)
+	if inside != vid:
+		_raid["out_t"] = float(_raid["out_t"]) + dt
+		if float(_raid["out_t"]) > 25.0:
+			Hud.msg("%s alarmı söndü." % Game.village(vid).get("name", vid), Color(0.8, 0.8, 0.8))
+			_end_raid()
 		return
+	_raid["out_t"] = 0.0
+	_raid["t"] = float(_raid["t"]) - dt
+	if float(_raid["t"]) > 0.0 or (_raid["nodes"] as Array).size() > 1:
+		return
+	var w = int(_raid["wave"])
+	if w < RAID_WAVES.size():
+		_raid_wave(vid, RAID_WAVES[w])
+		_raid["wave"] = w + 1
+		_raid["t"] = 12.0
+	elif not _raid["kage"] and (_raid["nodes"] as Array).is_empty():
+		_raid["kage"] = true
+		_raid_kage(vid)
+	elif _raid["kage"] and (_raid["nodes"] as Array).is_empty():
+		# Kage de yenildi: köy kısa süre nefes alır, sonra yeniden muhafız dalgaları
+		_raid["wave"] = 0
+		_raid["kage"] = false
+		_raid["t"] = 90.0
+		add_infamy(400)
+
+
+## Köyün ninja arketipi (Konoha/Ame için Kumo şablonu + köyün kıyafeti ve doğası)
+func _village_arch(vid: String, i: int, outfit := "chunin") -> Dictionary:
+	var a = Enemy.archetype(vid if vid in ["kumo", "kiri", "iwa", "suna"] else "kumo", i)
+	a["look"].merge(Outfits.roll(outfit, vid), true)
+	a["look"]["village"] = vid
+	if vid == "konoha":
+		a["element"] = "katon"
+		a["jutsu"] = ["katon_goukakyuu", "katon_housenka"]
+	elif vid == "ame":
+		a["element"] = "suiton"
+		a["jutsu"] = ["suiton_suiryuudan", "suiton_suikoudan"]
+	a.erase("auto_jutsu")
+	return a
+
+
+func _raid_wave(vid: String, wd: Dictionary) -> void:
+	var pp = Game.player.global_position
+	var vname = String(Game.village(vid).get("name", vid))
+	Hud.banner(String(wd["title"]).to_upper(), "%s seni kuşatıyor!" % vname, Color(0.9, 0.35, 0.3))
+	for i in int(wd["n"]):
+		var a = _village_arch(vid, i, "chunin" if int(wd["lv"]) == 0 else "jonin")
+		a["respawn"] = false
+		a["name"] = "%s %s" % [vname, "ANBU" if wd["kind"] == "anbu" else ("Jōnin" if int(wd["lv"]) > 0 else "Muhafızı")]
+		a["level"] = maxi(12, int(p()["level"])) + int(wd["lv"]) + rogue_rank()
+		a["hp"] = (260.0 + a["level"] * 18.0) * float(wd["hp"])
+		a["power"] = 1.5 + a["level"] * 0.02
+		if wd["kind"] == "anbu":
+			a["look"]["face_style"] = ["anbu_kedi", "anbu_kurt", "anbu_kus", "anbu_kedi"][i % 4]
+		var e = Enemy.new()
+		e.setup(a)
+		e.set_meta("village_guard", vid)
+		get_tree().current_scene.add_child(e)
+		var q = Missions.open_ground(pp + Vector3(cos(i * 1.9), 0, sin(i * 1.9)) * 22.0, 15.0)
+		e.global_position = q
+		e.home = q
+		(_raid["nodes"] as Array).append(e)
+		_spawned.append(e)
+
+
+func _raid_kage(vid: String) -> void:
+	var title = Progress.kage_title(vid) if Progress.has_method("kage_title") else "Kage"
+	var a = _village_arch(vid, 0, "jonin")
+	a["respawn"] = false
+	a["name"] = "%s — köyünü koruyor" % title
+	a["level"] = maxi(50, int(p()["level"]) + 12)
+	a["hp"] = 4000.0 + a["level"] * 60.0
+	a["power"] = 3.0 + a["level"] * 0.02
+	a["guard"] = 0.5
+	a["sub"] = 0.35
+	BossStyles.dress(a, "S", hash(vid) % 100000, "")
+	var e = Enemy.new()
+	e.setup(a)
+	e.set_meta("village_guard", vid)
+	get_tree().current_scene.add_child(e)
+	var q = Missions.open_ground(Game.player.global_position + Vector3(0, 0, -28), 15.0)
+	e.global_position = q
+	e.home = q
+	(_raid["nodes"] as Array).append(e)
+	_spawned.append(e)
+	Hud.banner(title.to_upper(), "Köyün lideri bizzat geldi!", Color(1, 0.6, 0.2))
+	Hud.boss_bar(e)
+
+
+func _end_raid() -> void:
+	if _raid.is_empty():
+		return
+	for n in _raid.get("nodes", []):
+		if is_instance_valid(n) and not n.dead:
+			n.queue_free()
+	_raid = {}
 
 
 func _hunter_tick(dt: float) -> void:
