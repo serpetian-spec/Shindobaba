@@ -619,7 +619,7 @@ func juin_parts(c: Node3D, form: String) -> Array:
 				var w = hand_wing(right)
 				ba.get_child(0).add_child(w)
 				w.rotation_degrees = Vector3(18, 180, 62 * sx)   # dışa-yukarı açılır, avuç geriye
-				grow.call(w, Vector3(-1.2 if not right else 1.2, 1.2, 1.2))
+				grow.call(w, Vector3(-0.62 if not right else 0.62, 0.62, 0.62))   # animedeki gibi: sırttan çıkan, gövdeyi aşmayan el kanatlar
 				out.append(ba)
 		"boynuz":
 			var hb = sk.find_bone("Head")
