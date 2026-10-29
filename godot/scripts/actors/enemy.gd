@@ -29,7 +29,8 @@ var wander_to = Vector3.ZERO
 var skill := 0.2
 var dodge_cd := 0.0
 var dodge_dir := Vector3.ZERO
-var _saw_busy := false   # oyuncunun saldırısı başına tek okuma zarı
+var _saw_busy := false
+var leap_cd := 2.0       # ninja sıçrayışı (oyuncunun Ctrl'i gibi): kaçan hedefi kovalar   # oyuncunun saldırısı başına tek okuma zarı
 
 
 static func archetype(kind: String, i := 0) -> Dictionary:
@@ -265,6 +266,17 @@ func _physics_process(dt: float) -> void:
 			_patrol(dt)
 		"chase":
 			_chase(dt)
+		"leap":
+			# sıçrayış havada: hız korunur, yerçekimi; inince kovalamaya döner
+			velocity.y -= 32.0 * dt
+			move_and_slide()
+			var g = Game.ground_height(global_position.x, global_position.z)
+			if global_position.y < g:
+				global_position.y = g
+			if state_t > 0.25 and global_position.y <= g + 0.05:
+				FX.dust(global_position, 0.6)
+				model.overlay.set_pose("leap", 0.0)
+				state = "chase"
 		"attack":
 			_attack(dt)
 		"cast":
@@ -315,10 +327,14 @@ func _think(dt: float) -> void:
 	if blind_t > 0.0:
 		target = null
 	elif target == null or not is_instance_valid(target) or target.is_dead():
+		var prev = target
 		target = null
+		# kovalama sürerken hedef bırakılmaz (oyuncu sıçrayıp kaçınca görüşten çıktı diye unutulmuyordu)
+		if prev != null and is_instance_valid(prev) and not prev.is_dead() and state in ["chase", "leap", "attack", "recover"] 				and global_position.distance_to(prev.global_position) < (110.0 if _is_ninja() else 60.0) and not (prev == pl and Buffs.has("henge")):
+			target = prev
 		# görüş: ninja düşmanlar uzaktan fark eder (eskiden 26 m, yanına kadar gelmek gerekiyordu)
 		var best = (55.0 if not (arch.get("jutsu", []) as Array).is_empty() else 40.0) if not Buffs.has("henge") else 0.0
-		for f in get_tree().get_nodes_in_group("fighters"):
+		for f in (get_tree().get_nodes_in_group("fighters") if target == null else []):
 			if not Combat.hostile(self, f) or f.is_dead():
 				continue
 			if f.get("team") == "dummy":
@@ -345,7 +361,7 @@ func _think(dt: float) -> void:
 			_dodge(pl, randf() < 0.6)
 	elif not busy:
 		_saw_busy = false
-	if global_position.distance_to(home) > 130.0 and state == "chase":
+	if global_position.distance_to(home) > (280.0 if _is_ninja() else 130.0) and state == "chase":
 		target = null
 		state = "idle"
 		wander_to = home
@@ -376,6 +392,11 @@ func _chase(dt: float) -> void:
 	if arch.has("beast") and d < 30.0 and ranged_cd <= 0.0 and randf() < 0.6:
 		ranged_cd = randf_range(3.5, 6.0) / arch["aggr"]
 		_beast_tech(d)
+		return
+	# hedef uzaklaşıyorsa ninja sıçrayışıyla kovala (oyuncu Ctrl ile kaçınca hiç yetişemiyorlardı)
+	leap_cd -= dt
+	if d > 16.0 and leap_cd <= 0.0 and _is_ninja() and global_position.y - Game.ground_height(global_position.x, global_position.z) < 0.5:
+		_ninja_leap(v.normalized(), d)
 		return
 	# menzilli: jutsu ya da kunai
 	# jutsu kullanan düşman: uzaktan ve sık atar, yakında da arada bir (eskiden 5-24 m, %30)
@@ -425,6 +446,22 @@ func _chase(dt: float) -> void:
 			state = "attack"
 			state_t = 0.0
 			_swing()
+
+
+func _is_ninja() -> bool:
+	return not String(arch.get("kind", "")) in ["bandit", "samurai"] and not arch.has("beast") and float(arch.get("size", 1.0)) < 2.0
+
+
+func _ninja_leap(dir: Vector3, d: float) -> void:
+	leap_cd = randf_range(1.8, 3.2) / maxf(0.4, float(arch.get("aggr", 0.5)) + skill * 0.5)
+	var k = clampf(d / 60.0, 0.3, 1.0)
+	velocity = dir * lerpf(24.0, 44.0, k) + Vector3.UP * lerpf(10.0, 15.0, k)
+	state = "leap"
+	state_t = 0.0
+	model.play("jump", 0.05, 1.5, true)
+	model.overlay.set_pose("leap", 1.0)
+	FX.dust(global_position, 0.8)
+	Sfx.play("whoosh", global_position, 0.9, 0.6)
 
 
 ## Aynı anda yakın dövüşe girebilen düşman sayısı (eskiden 2: kalabalık bile sırayla bekliyordu)
