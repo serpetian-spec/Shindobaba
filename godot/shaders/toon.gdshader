@@ -396,7 +396,7 @@ void fragment() {
 				if (foot_pattern == 4 && fract(fy * 14.0) > 0.75) c.rgb = acc2;   // yatay şerit
 				if (foot_pattern == 5 && rest.z > 0.02 && fy > 0.06) c.rgb = mix(vec3(0.55, 0.57, 0.62), vec3(0.85, 0.87, 0.9), smoothstep(0.0, 0.03, rest.z - 0.02));   // metal kaval plakası
 				if (foot_pattern == 6 && ((foot_kind == 5 || foot_kind == 7) ? rest.y > rig_b.y - 0.05 : fy > 0.06)) c.rgb = vec3(0.9, 0.88, 0.84) * (0.85 + 0.3 * hash(floor(rest.xz * 300.0)));   // kürk kenar
-				if (foot_pattern == 7 && fy < 0.012) c.rgb = acc2;   // kontrast taban
+				if (foot_pattern == 7 && fy < -0.065) c.rgb = acc2;   // kontrast taban
 				if (foot_pattern == 8 && rest.z > 0.02 && fy > 0.04 && length(fract(vec2(rest.x * 40.0, fy * 22.0)) - 0.5) < 0.18) c.rgb = vec3(0.7, 0.72, 0.76);   // perçinler
 			}
 			if (slot == 3 && pants_pattern > 0) {
