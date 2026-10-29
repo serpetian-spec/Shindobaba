@@ -26,6 +26,7 @@ const PSTYLE := {
 	"kami_bunshin": "clone", "kami_chocho": "palm", "kami_tsubasa": "power", "shikigami_no_mai": "spin", "kami_yari": "ground",
 	"kami_no_shisha_no_jutsu": "summon", "kami_shuriken": "throw",
 	# Akademi / genel
+	"gofu_kekkai": "seal", "mizu_bunshin_no_jutsu": "clone", "nan_no_kaizo": "power", "narikawari_no_jutsu": "clone", "sanzengarasu_no_jutsu": "sense", "sly_mind_affect_technique": "sense", "sosai_no_ne": "palm", "soshujin": "throw", "suiken": "rush", "suiton_homatsu_rappa": "breath", "suiton_kokuu_no_jutsu": "breath", "suiton_mizu_shibari": "palm", "suiton_mizu_shuriken": "throw", "suiton_mizuame_nabara": "breath", "suiton_mizurappa": "breath", "suiton_suiben": "palm", "suiton_suidan_no_jutsu": "breath", "suiton_suisandan": "breath", "suiton_takitsubo_no_jutsu": "ground", "suiton_teppodama": "breath", "tsukikage": "rush", "tsutenkyaku": "rush", "uchi_naru_sakura": "power", "water_release_wild_water_wave": "breath", "zankukyokuha": "two_palm", "zessenbaku": "palm", "zessenzan": "palm",
 	"futon_hanachiri_mai": "spin", "genjutsu_suzune_bunshin": "sense", "kage_buyo": "rush", "karasu_bunshin_no_jutsu": "clone", "kawazu_kumite": "power", "kawazu_tataki": "rush", "konoha_shofu": "rush", "kumo_ryu_omotegiri": "rush", "kumo_ryu_uragiri": "rush", "kumo_shibari": "palm", "kumo_soka": "palm", "kumogakure_taijutsu_okami_ringu": "spin", "kyomeisen": "palm", "mizuame_teppo": "breath", "nekozume": "rush", "okasho": "rush", "raigeki": "rush", "raigyaku_suihei_choppu": "rush", "raikyu": "palm", "raiton_ikazuchi_unagi": "palm", "raiton_raiju_tsuiga": "palm", "rakanken": "rush", "shikomishindan": "throw", "shishi_rendan": "rush",
 	"bubble_clone_technique": "clone", "bubitorappu": "ground", "chakura_kontororu_baku": "palm", "earth_release_rock_shelter": "ground", "fujinheki": "two_palm", "futon_fujin_no_jutsu": "breath", "futon_toppa": "breath", "genjutsu_shibari": "sense", "hayanie": "rush", "jouro_senbon": "throw", "juha_sho": "spin", "kamaitachi_no_jutsu": "spin", "konoha_daisenpu": "rush", "konoha_otoshi": "rush", "kaeru_kaeru_no_jutsu": "palm",
 	"doton_renga_no_jutsu": "ground", "doton_sazareishi": "palm", "doton_shinju_zanshu_no_jutsu": "ground", "kasumi_jusha_no_jutsu": "sense", "oboro_bunshin_no_jutsu": "clone", "doton_tobi_tsubute": "ground", "doton_dosekiryu": "ground", "doton_retsudo_tensho": "ground", "futon_reppusho": "palm", "futon_kazekiri_no_jutsu": "palm", "katon_endan": "breath",
@@ -3722,3 +3723,472 @@ func p_shishi_rendan(c: Node3D, t: Node3D) -> void:
 						VFX.debris(tt.global_position, EARTH, 18, 7.0)
 						shake(0.6)
 						Sfx.play("hit_heavy", tt.global_position, 0.8))))
+## PSTYLE: gofu_kekkai=seal mizu_bunshin_no_jutsu=clone nan_no_kaizo=power narikawari_no_jutsu=clone sanzengarasu_no_jutsu=sense sly_mind_affect_technique=sense sosai_no_ne=palm soshujin=throw suiken=rush suiton_homatsu_rappa=breath suiton_kokuu_no_jutsu=breath suiton_mizu_shibari=palm suiton_mizu_shuriken=throw suiton_mizuame_nabara=breath suiton_mizurappa=breath suiton_suiben=palm suiton_suidan_no_jutsu=breath suiton_suisandan=breath suiton_takitsubo_no_jutsu=ground suiton_teppodama=breath tsukikage=rush tsutenkyaku=rush uchi_naru_sakura=power water_release_wild_water_wave=breath zankukyokuha=two_palm zessenbaku=palm zessenzan=palm
+
+# ------------------------------------------------------------------ Grup 5: su / mühür / ses / genjutsu / kurbağa dili / ağır taijutsu
+const WATER := Color(0.35, 0.65, 1.0)
+
+
+func _water_mat(a := 0.75) -> Material:
+	return glow(Color(0.45, 0.75, 1.0), a)
+
+
+func _splash(at: Vector3, s := 1.0) -> void:
+	VFX.puffs(at, {"amount": int(30 * s), "life": 0.6, "size": 0.35 * s, "radius": 0.4 * s, "vmin": 3 * s, "vmax": 8 * s, "dir": Vector3.UP, "spread": 70.0, "add": false,
+		"gravity": Vector3(0, -12, 0), "colors": [Color(0.75, 0.9, 1.0, 0.9), Color(0.5, 0.75, 1.0, 0)]})
+
+
+func _mouth_pos(c: Node3D) -> Vector3:
+	return c.global_position + Vector3.UP * 1.55 + c.face_dir() * 0.4
+
+
+## Su küresi mermisi (ortak): ağızdan, çarpınca sıçrar
+func _water_shot(c: Node3D, id: String, tt: Node3D, from: Vector3, s: float, speed: float, mul: float, extra := {}) -> Projectile:
+	var b = MB.new()
+	b.add("sphere", Vector3.ZERO, Vector3(s, s, s * 1.3), WATER)
+	var info = {"knock": 6.0 * s, "kind": "heavy", "element": "suiton"}
+	info.merge(extra, true)
+	var pr = shot(c, from, aim_at(c, tt, from), speed, mesh_of(b, _water_mat()), inf(c, id, mul, info), null, false, 1.4, func(p, _h):
+		_splash(p, s * 1.4))
+	Projectile.trail(pr, [Color(0.75, 0.9, 1.0, 0.7), Color(0.5, 0.75, 1.0, 0)], s * 0.5, 18, 0.35, FX.tex_smoke, false)
+	return pr
+
+
+## Beş Mühür Bariyeri: beş etiket yere yapışır, aralarında mor ışıklı duvar örülür — geçilmez (içerideki düşman kapanır)
+func p_gofu_kekkai(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 18.0)
+	busy(c, 0.8)
+	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 6.0)
+	var col = Color(0.65, 0.4, 1.0)
+	var pts = []
+	for k in 5:
+		var a = TAU * k / 5.0
+		pts.append(at + Vector3(cos(a), 0, sin(a)) * 3.0)
+	var b = MB.new()
+	for k in 5:
+		var p0: Vector3 = pts[k] - at
+		var p1: Vector3 = pts[(k + 1) % 5] - at
+		var mid = (p0 + p1) * 0.5 + Vector3.UP * 1.5
+		b.add("box", mid, Vector3(p0.distance_to(p1), 3.0, 0.05), col, Vector3(0, -rad_to_deg(atan2(p1.z - p0.z, p1.x - p0.x)), 0))
+		b.add("box", p0 + Vector3.UP * 0.4, Vector3(0.18, 0.3, 0.02), Color(0.95, 0.9, 0.75))
+	var wall = mesh_of(b, glow(col, 0.35))
+	get_tree().current_scene.add_child(wall)
+	wall.global_position = at
+	wall.scale = Vector3(1, 0.01, 1)
+	var tw = wall.create_tween()
+	tw.tween_property(wall, "scale", Vector3.ONE, 0.3)
+	tw.tween_interval(6.0)
+	tw.tween_property(wall, "scale", Vector3(1, 0.01, 1), 0.3)
+	tw.tween_callback(wall.queue_free)
+	for e in enemies_near(c, at, 3.0):
+		st(e, "bind", 6.0)
+		Combat.popup_text(e.global_position + Vector3.UP * 2.3, "Mühür bariyeri!", col)
+	Sfx.play("seal", at, 0.8)
+
+
+## Su Klonu: ayağının dibindeki sudan bir kopya yükselir; vurulunca su olup sıçrar
+func p_mizu_bunshin_no_jutsu(c: Node3D, _t: Node3D) -> void:
+	busy(c, 0.5)
+	var at = c.global_position + c.face_dir().cross(Vector3.UP) * 2.2
+	_splash(at, 1.5)
+	decoy(c, at, 9.0, func(pos):
+		_splash(pos + Vector3.UP, 2.0))
+	Sfx.play("water", at, 1.1)
+
+
+## Lastik Beden: kollar ve bacaklar uzar (15 sn yakın dövüş menzili çok artar)
+func p_nan_no_kaizo(c: Node3D, _t: Node3D) -> void:
+	busy(c, 0.4)
+	if c.get("model") and c.model.overlay:
+		c.model.overlay.limb_scale = 1.25
+		after(15.0, func():
+			if is_instance_valid(c) and c.get("model") and c.model.overlay:
+				c.model.overlay.limb_scale = 1.0)
+	if c is Player:
+		Buffs.add("nan_no_kaizo", 15.0, {"reach": 1.8, "_name": "Lastik Beden", "_desc": "uzuvlar uzadı: yakın dövüş menzili +%80"})
+	Sfx.play("whoosh", c.global_position, 0.7)
+
+
+## Ayrı Beden İkamesi: saklı ikinci bedenin yerine geçer — 4 sn içindeki ilk darbeyi o alır (kütük değil, insan kabuğu)
+func p_narikawari_no_jutsu(c: Node3D, _t: Node3D) -> void:
+	busy(c, 0.3)
+	if c is Player:
+		Buffs.add("narikawari", 4.0, {"armor": 0.0, "_name": "İkame Beden", "_desc": "sonraki darbe ikame bedene gider"})
+	var shell = decoy(c, c.global_position, 4.0)
+	FX.smoke_puff(c.global_position + Vector3.UP, 0.8, 12)
+	c.global_position = gp(c.global_position - c.face_dir() * 4.0)
+	Sfx.play("poof", c.global_position, 1.1)
+
+
+## Bin Karga: hedefin etrafında kapkara bir karga fırtınası döner — göremez, saldıramaz
+func p_sanzengarasu_no_jutsu(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 20.0)
+	busy(c, 0.6)
+	if tt == null:
+		return
+	var black = Color(0.05, 0.05, 0.07)
+	var birds = []
+	for k in 40:
+		var b = MB.new()
+		b.add("box", Vector3.ZERO, Vector3(0.3, 0.02, 0.1), black)
+		var bird = mesh_of(b)
+		get_tree().current_scene.add_child(bird)
+		birds.append(bird)
+	every(3.0, 1.0 / 30.0, func(i, _k):
+		if not live(tt):
+			return
+		for n in birds.size():
+			var a = i * 0.25 + n * 0.7
+			var r = 1.2 + (n % 5) * 0.3
+			birds[n].global_position = tt.global_position + Vector3(cos(a) * r, 0.3 + (n % 7) * 0.3, sin(a) * r)
+			birds[n].rotation.y = -a, func():
+		for bd in birds:
+			if is_instance_valid(bd):
+				bd.queue_free())
+	st(tt, "stun", 3.0)
+	if tt.has_method("lose_target"):
+		tt.lose_target(3.0)
+	Sfx.play("genjutsu", tt.global_position, 1.0)
+
+
+## Yol Kaybettirme: hedef düz yürüdüğünü sanırken daire çizer (6 sn yavaş, hedef kaybeder)
+func p_sly_mind_affect_technique(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 20.0)
+	busy(c, 0.5)
+	anim(c, "cast", 1.2)
+	if tt == null:
+		return
+	for k in 3:
+		FX.ring(tt.global_position + Vector3.UP * 0.05, Color(0.6, 0.5, 0.9), 2.0 + k * 1.5, 1.2)
+	st(tt, "slow", 6.0)
+	if tt.has_method("lose_target"):
+		tt.lose_target(6.0)
+	Combat.popup_text(tt.global_position + Vector3.UP * 2.3, "Kayboldu...", Color(0.7, 0.6, 0.95))
+	Sfx.play("genjutsu", tt.global_position, 1.3)
+
+
+## Ses Bastırma: karşı ses dalgası — yakındaki düşman mermilerini ve ses tekniklerini söndürür, yakındakileri sersemletir
+func p_sosai_no_ne(c: Node3D, _t: Node3D) -> void:
+	busy(c, 0.4)
+	for k in 3:
+		after(k * 0.07, func():
+			FX.ring(c.global_position + Vector3.UP * 1.2, Color(0.85, 0.8, 1.0), 3.0 + k * 2.5, 0.35, false))
+	for p in get_tree().get_nodes_in_group("projectiles"):
+		if p.get("shooter") != c and p.global_position.distance_to(c.global_position) < 9.0:
+			p.queue_free()
+	for e in enemies_near(c, c.global_position, 6.0):
+		st(e, "stun", 0.8)
+	Sfx.play("genjutsu", c.global_position, 2.0)
+
+
+## İpli Bıçaklar: tellere bağlı kunailer atılır, havada yön değiştirip hedefe her yandan saplanır
+func p_soshujin(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 22.0)
+	busy(c, 0.5)
+	var from = hand_pos(c, true)
+	for k in 5:
+		var b = MB.new()
+		b.add("cone", Vector3(0, 0, 0.12), Vector3(0.05, 0.2, 0.015), Color(0.6, 0.62, 0.66), Vector3(90, 0, 0), 4)
+		b.add("cyl", Vector3(0, 0, -0.06), Vector3(0.025, 0.14, 0.025), Color(0.2, 0.2, 0.22), Vector3(90, 0, 0), 6)
+		var side = c.face_dir().cross(Vector3.UP) * ((k - 2) * 0.6)
+		var pr = shot(c, from, (aim_at(c, tt, from) + side + Vector3.UP * 0.2).normalized(), 26.0, mesh_of(b), inf(c, "soshujin", 0.25, {"knock": 1.0, "kind": "light", "bleed": 2.0}), tt, false, 1.6)
+		pr.homing_turn = 5.0
+		var wire = StandardMaterial3D.new()
+		wire.albedo_color = Color(0.85, 0.85, 0.9)
+		tether(func(): return hand_pos(c, true) if live(c) else Vector3.ZERO, func(): return pr.global_position if is_instance_valid(pr) else hand_pos(c, true), 0.01, wire, 0.9)
+	Sfx.play("kunai", from, 1.4)
+
+
+## Sarhoş Yumruk: sendeleyerek öngörülemez açılardan beş vuruş
+func p_suiken(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 6.0)
+	var d = _face(c, tt)
+	busy(c, 1.2)
+	for k in 5:
+		after(k * 0.2, func():
+			if not live(c):
+				return
+			var wob = d.rotated(Vector3.UP, randf_range(-0.8, 0.8))
+			if c is CharacterBody3D:
+				c.velocity = wob * 6.0 + Vector3.UP * (2.0 if k == 3 else 0.0)
+			anim(c, ["jab", "hook", "cross", "slide", "hook"][k], 1.7)
+			var at = c.global_position + Vector3.UP * (0.5 if k == 3 else 1.1) + wob * 1.1
+			for e in hit(c, at, 1.6, inf(c, "suiken", 0.45, {"knock": 4.0, "kind": "heavy"})):
+				FX.impact(e.global_position + Vector3.UP, Color(1, 0.85, 0.6), 0.8)
+			Sfx.play("punch", at, 1.0 + randf() * 0.3))
+
+
+## Köpük Dalgası: ağızdan kabaran köpük seli — zemin kayganlaşır, içindekiler yavaşlar ve kayar
+func p_suiton_homatsu_rappa(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.8)
+	var d = fwd(c, t)
+	for k in 8:
+		after(k * 0.06, func():
+			var q = gp(c.global_position + d * (2.0 + k * 1.6)) + Vector3.UP * 0.6
+			VFX.puffs(q, {"amount": 30, "life": 1.6, "size": 0.6, "radius": 1.2, "vmin": 1, "vmax": 3, "dir": d + Vector3.UP * 0.3, "spread": 50.0, "add": false,
+				"colors": [Color(0.95, 0.98, 1.0, 0.9), Color(0.8, 0.9, 1.0, 0)]})
+			for e in hit(c, q, 2.0, inf(c, "suiton_homatsu_rappa", 0.15, {"knock": 6.0, "kind": "light", "element": "suiton", "dir": d})):
+				st(e, "slow", 3.0))
+	Sfx.play("water", c.global_position, 0.8)
+
+
+## Kara Yağmur: ağızdan göğe kara yağ püskürür, geniş alana yağar — ateş değerse alev alır (yavaşlatır)
+func p_suiton_kokuu_no_jutsu(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.8)
+	var tt = tg(c, t, 22.0)
+	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 10.0)
+	VFX.puffs(_mouth_pos(c), {"amount": 30, "life": 0.6, "size": 0.4, "radius": 0.2, "vmin": 10, "vmax": 16, "dir": Vector3.UP, "spread": 20.0, "add": false,
+		"colors": [Color(0.12, 0.1, 0.08, 0.9), Color(0.1, 0.1, 0.1, 0)]})
+	for k in 40:
+		after(0.4 + randf() * 1.0, func():
+			var q = at + Vector3(randf_range(-6, 6), 8.0, randf_range(-6, 6))
+			var b = MB.new()
+			b.add("sphere", Vector3.ZERO, Vector3(0.12, 0.25, 0.12), Color(0.1, 0.08, 0.06))
+			var dr = mesh_of(b)
+			get_tree().current_scene.add_child(dr)
+			dr.global_position = q
+			var tw = dr.create_tween()
+			tw.tween_property(dr, "global_position", gp(q), 0.5)
+			tw.tween_callback(dr.queue_free))
+	after(1.0, func():
+		_oil_pool(c, at, 6.0, 8.0))
+	Sfx.play("water", at, 0.5)
+
+
+## Su Bağı: yerden yükselen su hortumu hedefi içine hapseder
+func p_suiton_mizu_shibari(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 16.0)
+	busy(c, 0.6)
+	if tt == null:
+		return
+	var at = tt.global_position
+	var b = MB.new()
+	b.add("cyl", Vector3(0, 1.1, 0), Vector3(1.6, 2.4, 1.6), WATER, Vector3.ZERO, 14)
+	var col = mesh_of(b, _water_mat(0.45))
+	get_tree().current_scene.add_child(col)
+	col.global_position = at
+	col.scale = Vector3(1, 0.05, 1)
+	var tw = col.create_tween()
+	tw.tween_property(col, "scale", Vector3.ONE, 0.3)
+	tw.tween_interval(2.7)
+	tw.tween_callback(func(): _splash(at + Vector3.UP, 2.0))
+	tw.tween_callback(col.queue_free)
+	st(tt, "bind", 3.0)
+	every(3.0, 0.5, func(_i, _k):
+		if live(tt):
+			tt.take_hit(inf(c, "suiton_mizu_shibari", 0.12, {"knock": 0.0, "kind": "light", "element": "suiton"})), Callable())
+	_splash(at, 2.0)
+	Sfx.play("water", at, 0.9)
+
+
+## Su Shurikenleri: avuçtaki sudan donan dört şuriken
+func p_suiton_mizu_shuriken(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 24.0)
+	busy(c, 0.4)
+	var from = hand_pos(c, true)
+	for k in 4:
+		after(k * 0.07, func():
+			var b = MB.new()
+			for j in 4:
+				b.add("cone", Vector3(cos(j * PI / 2.0), 0, sin(j * PI / 2.0)) * 0.15, Vector3(0.09, 0.26, 0.02), WATER, Vector3(90, -j * 90.0 + 90.0, 0), 3)
+			var pr = shot(c, from, aim_at(c, tt, from).rotated(Vector3.UP, (k - 1.5) * 0.06), 34.0, mesh_of(b, _water_mat(0.85)), inf(c, "suiton_mizu_shuriken", 0.3, {"knock": 2.0, "kind": "light", "element": "suiton"}), tt, false, 1.3, func(p, _h):
+				_splash(p, 0.6))
+			pr.spin = Vector3(0, 28, 0))
+	Sfx.play("water", from, 1.6)
+
+
+## Şurup Gölü: ağızdan yere yapışkan şurup dökülür — içine basan yapışır
+func p_suiton_mizuame_nabara(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.7)
+	var at = gp(c.global_position + fwd(c, t) * 5.0)
+	VFX.puffs(_mouth_pos(c), {"amount": 30, "life": 0.6, "size": 0.4, "radius": 0.2, "vmin": 6, "vmax": 10, "dir": fwd(c, t) - Vector3.UP * 0.5, "spread": 20.0, "add": false,
+		"colors": [Color(0.95, 0.75, 0.35, 0.9), Color(0.9, 0.7, 0.3, 0)]})
+	_oil_pool(c, at, 4.5, 10.0)
+	every(10.0, 0.5, func(_i, _k):
+		for e in enemies_near(c, at, 4.5):
+			st(e, "bind", 0.6), Callable())
+	Sfx.play("water", at, 0.6)
+
+
+## Su Dalgası Atışı: ağızdan yassı, geniş su dalgası — önündekileri iter
+func p_suiton_mizurappa(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.6)
+	var d = fwd(c, t)
+	for k in 8:
+		after(k * 0.04, func():
+			var q = _mouth_pos(c) + d * (1.5 + k * 1.8) - Vector3.UP * k * 0.08
+			VFX.puffs(q, {"amount": 22, "life": 0.5, "size": 0.9 + k * 0.15, "radius": 0.5 + k * 0.2, "vmin": 8, "vmax": 14, "dir": d, "spread": 12.0, "add": false,
+				"colors": [Color(0.7, 0.88, 1.0, 0.85), Color(0.45, 0.7, 1.0, 0)]}))
+	Combat.hit_zone(c, c.global_position, d, 15.0, 22.0, 3.0, inf(c, "suiton_mizurappa", 0.9, {"knock": 14.0, "kind": "heavy", "element": "suiton", "dir": d}))
+	Sfx.play("water", c.global_position, 0.8)
+
+
+## Su Kırbacı: elde oluşan su kamçısı geniş yay çizer
+func p_suiton_suiben(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 9.0)
+	var d = _face(c, tt)
+	busy(c, 0.6)
+	anim(c, "slash_b", 1.4)
+	for k in 10:
+		after(k * 0.025, func():
+			var a = deg_to_rad(-70.0 + k * 15.0)
+			var q = c.global_position + Vector3.UP * 1.1 + d.rotated(Vector3.UP, a) * (1.0 + k * 0.5)
+			_splash(q, 0.5))
+	Combat.hit_zone(c, c.global_position, d, 7.0, 70.0, 2.5, inf(c, "suiton_suiben", 0.9, {"knock": 9.0, "kind": "heavy", "element": "suiton", "bleed": 1.0}))
+	Sfx.play("whoosh", c.global_position, 1.2)
+
+
+## Su Mermisi: ağızdan tek, yoğun su küresi
+func p_suiton_suidan_no_jutsu(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.5)
+	_water_shot(c, "suiton_suidan_no_jutsu", tg(c, t, 24.0), _mouth_pos(c), 0.8, 30.0, 0.8)
+	Sfx.play("water", c.global_position, 1.2)
+
+
+## Yayılan Su Mermileri: ağızdan art arda beş küçük su mermisi, yelpaze gibi
+func p_suiton_suisandan(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.7)
+	var tt = tg(c, t, 22.0)
+	for k in 5:
+		after(k * 0.09, func():
+			if live(c):
+				var pr = _water_shot(c, "suiton_suisandan", tt, _mouth_pos(c), 0.45, 32.0, 0.25)
+				pr.vel = pr.vel.rotated(Vector3.UP, (k - 2) * 0.12))
+	Sfx.play("water", c.global_position, 1.3)
+
+
+## Şelale Çukuru: hedefin altından su fışkırır, dev bir su sütunu süpürür
+func p_suiton_takitsubo_no_jutsu(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 20.0)
+	busy(c, 0.8)
+	anim(c, "crouch", 1.4)
+	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 8.0)
+	for k in 6:
+		after(0.2 + k * 0.08, func():
+			VFX.puffs(at + Vector3.UP * (k * 1.2), {"amount": 30, "life": 0.8, "size": 1.4, "radius": 1.5, "vmin": 8, "vmax": 14, "dir": Vector3.UP, "spread": 25.0, "add": false,
+				"gravity": Vector3(0, -10, 0), "colors": [Color(0.75, 0.9, 1.0, 0.85), Color(0.45, 0.7, 1.0, 0)]}))
+	after(0.25, func():
+		hit(c, at + Vector3.UP, 3.5, inf(c, "suiton_takitsubo_no_jutsu", 1.2, {"knock": 6.0, "launch": 14.0, "kind": "heavy", "element": "suiton"}))
+		shake(0.4))
+	Sfx.play("water", at, 0.6)
+
+
+## Dev Su Mermisi: ağızdan kocaman su topu — çarptığı yerde dalga
+func p_suiton_teppodama(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.8)
+	_water_shot(c, "suiton_teppodama", tg(c, t, 26.0), _mouth_pos(c) + c.face_dir() * 0.6, 1.8, 24.0, 1.6, {"knock": 18.0})
+	shake(0.3)
+	Sfx.play("water", c.global_position, 0.6)
+
+
+## Ay Gölgesi: kılıç ay hilali çizer, ardından solgun ay ışığı izi kalır
+func p_tsukikage(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 8.0)
+	var d = _jump_at(c, tt, 3.0, 14.0 if tt else 5.0)
+	busy(c, 0.6)
+	anim(c, "slash_c", 1.6)
+	after(0.2, func():
+		if not live(c):
+			return
+		var at = c.global_position + Vector3.UP * 1.3 + d * 0.8
+		_arc_cut(at, d, -100.0, 100.0, Color(0.85, 0.9, 1.0), 2.0)
+		_arc_cut(at + Vector3.UP * 0.15, d, -90.0, 90.0, Color(0.95, 0.97, 1.0), 1.8)
+		hit(c, at + d * 0.8, 2.2, inf(c, "tsukikage", 1.4, {"knock": 9.0, "kind": "heavy", "bleed": 3.0}))
+		Sfx.play("clink", at, 0.9))
+
+
+## Göğü Delen Topuk: havaya sıçrayıp topukla iner, yer patlar
+func p_tsutenkyaku(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 8.0)
+	var d = _jump_at(c, tt, 10.0, 6.0 if tt else 1.0)
+	busy(c, 1.0)
+	_kick_pose(c, 0.9)
+	after(0.5, func():
+		if not live(c):
+			return
+		if c is CharacterBody3D:
+			c.velocity = Vector3.DOWN * 25.0
+		after(0.12, func():
+			var at = gp(c.global_position + d * 0.6)
+			FX.impact(at + Vector3.UP * 0.3, Color(1, 0.9, 0.7), 2.0)
+			for r in [3.0, 5.5, 8.0]:
+				FX.ring(at + Vector3.UP * 0.05, EARTH, r, 0.5)
+			VFX.debris(at, EARTH, 30, 10.0)
+			shake(0.9)
+			hit(c, at + Vector3.UP, 5.0, inf(c, "tsutenkyaku", 1.9, {"knock": 14.0, "launch": 8.0, "kind": "heavy"}))
+			Sfx.play("boom", at, 0.9)))
+
+
+## İç Ses: genjutsuyu içeriden kırar — üstündeki sersemlik/bağ biter, 6 sn genjutsu bağışıklığı
+func p_uchi_naru_sakura(c: Node3D, _t: Node3D) -> void:
+	busy(c, 0.3)
+	if c.has_method("clear_status"):
+		c.clear_status()
+	elif c.get("status") is Dictionary:
+		for k in ["stun", "bind", "slow"]:
+			c.status.erase(k)
+	if c is Player:
+		Buffs.add("uchi_naru", 6.0, {"_name": "İç Ses", "_desc": "genjutsu kırıldı; kısa süre etkilenmezsin"})
+	FX.ring(c.global_position + Vector3.UP * 1.7, Color(1, 0.6, 0.75), 2.0, 0.4, false)
+	Combat.popup_text(c.global_position + Vector3.UP * 2.4, "KAI!", Color(1, 0.6, 0.75))
+	Sfx.play("seal", c.global_position, 1.4)
+
+
+## Vahşi Su Dalgası: ağızdan güçlü su akıntısı — uzun sürer, önündekileri sürükler
+func p_water_release_wild_water_wave(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.3)
+	var d = fwd(c, t)
+	every(1.2, 0.08, func(i, _k):
+		if not live(c):
+			return
+		var q = _mouth_pos(c)
+		VFX.puffs(q + d, {"amount": 14, "life": 0.6, "size": 0.9, "radius": 0.3, "vmin": 14, "vmax": 20, "dir": d, "spread": 10.0, "add": false,
+			"colors": [Color(0.7, 0.88, 1.0, 0.85), Color(0.45, 0.7, 1.0, 0)]})
+		if i % 3 == 0:
+			Combat.hit_zone(c, c.global_position, d, 14.0, 18.0, 3.0, inf(c, "water_release_wild_water_wave", 0.25, {"knock": 9.0, "kind": "light", "element": "suiton", "dir": d})), Callable())
+	Sfx.play("water", c.global_position, 0.5)
+
+
+## Büyük Hava Basıncı Dalgası: iki avuçtan tek, dev basınç yarım küresi — zemini kazıyarak ilerler
+func p_zankukyokuha(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.9)
+	anim(c, "push", 1.2)
+	var d = fwd(c, t)
+	for k in 10:
+		after(0.15 + k * 0.05, func():
+			var q = c.global_position + Vector3.UP * 1.0 + d * (2.0 + k * 2.0)
+			FX.ring(q, Color(0.9, 0.95, 1.0), 2.0 + k * 0.4, 0.3, false, d)
+			VFX.debris(gp(q), Color(0.8, 0.72, 0.58), 4, 6.0))
+	Combat.hit_zone(c, c.global_position, d, 22.0, 30.0, 4.0, inf(c, "zankukyokuha", 1.4, {"knock": 22.0, "launch": 5.0, "kind": "heavy", "element": "fuuton", "dir": d}))
+	shake(0.6)
+	Sfx.play("wind", c.global_position, 0.5)
+
+
+## Kurbağa Dili Bağı: uzun yapışkan dil fırlar, hedefi sarar ve sana çeker
+func p_zessenbaku(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 14.0)
+	busy(c, 0.7)
+	if tt == null:
+		return
+	var tongue = glow(Color(0.95, 0.45, 0.55), 1.0)
+	tether(func(): return _mouth_pos(c) if live(c) else Vector3.ZERO, func(): return tt.global_position + Vector3.UP if live(tt) else _mouth_pos(c), 0.12, tongue, 0.8)
+	st(tt, "bind", 1.0)
+	after(0.25, func():
+		if live(tt) and tt.get("velocity") != null:
+			var v = c.global_position - tt.global_position
+			tt.velocity = v.normalized() * minf(22.0, v.length() * 2.5) + Vector3.UP * 3.0)
+	Sfx.play("whoosh", c.global_position, 0.8)
+
+
+## Kurbağa Dili Kesiği: dil kamçı gibi yatay savrulur, keser
+func p_zessenzan(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 8.0)
+	var d = _face(c, tt)
+	busy(c, 0.5)
+	var tongue = glow(Color(0.95, 0.45, 0.55), 1.0)
+	var tip := {"a": -1.2}
+	tether(func(): return _mouth_pos(c) if live(c) else Vector3.ZERO, func(): return _mouth_pos(c) + d.rotated(Vector3.UP, tip["a"]) * 6.0 if live(c) else Vector3.ZERO, 0.12, tongue, 0.4)
+	every(0.4, 1.0 / 30.0, func(_i, k):
+		tip["a"] = lerpf(-1.2, 1.2, k), Callable())
+	Combat.hit_zone(c, c.global_position, d, 6.5, 70.0, 2.5, inf(c, "zessenzan", 1.0, {"knock": 8.0, "kind": "heavy", "bleed": 2.0}))
+	Sfx.play("whoosh", c.global_position, 1.0)
