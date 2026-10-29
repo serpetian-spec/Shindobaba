@@ -16,7 +16,7 @@ func _ready() -> void:
 	main.add_child(cam)
 	cam.current = true
 	var only = OS.get_environment("ONLY")
-	var ids = [only] if only != "" else ["konoha_senpu", "konoha_reppu", "dainamikku_entori", "sennen_goroshi", "konoha_daisenpu", "konoha_otoshi", "hayanie", "kage_buyo", "kawazu_tataki", "konoha_shofu", "kumo_ryu_omotegiri", "kumo_ryu_uragiri", "kumogakure_taijutsu_okami_ringu", "nekozume", "rakanken", "shishi_rendan", "suiken", "tsukikage", "tsutenkyaku"]
+	var ids = [only] if only != "" else ["kage_shuriken_no_jutsu", "kage_senbon", "kanashibari_no_jutsu", "kasumi_jusha_no_jutsu", "oboro_bunshin_no_jutsu", "bubble_clone_technique", "bubitorappu", "chakura_kontororu_baku", "fujinheki", "genjutsu_shibari", "jouro_senbon", "kaeru_kaeru_no_jutsu", "genjutsu_suzune_bunshin", "karasu_bunshin_no_jutsu", "kawazu_kumite", "kumo_shibari"]
 	for id in ids:
 		var e = Enemy.new()
 		var a = Enemy.archetype("bandit", 0)
@@ -39,7 +39,7 @@ func _ready() -> void:
 			await get_tree().create_timer(0.2).timeout
 			await main.shot("ps_kami_shuriken")
 		await get_tree().create_timer(0.35).timeout
-		if id in ["dainamikku_entori", "konoha_otoshi", "kawazu_tataki", "rakanken", "tsutenkyaku", "kumo_ryu_omotegiri"]:
+		if id in ["kage_shuriken_no_jutsu", "bubble_clone_technique", "chakura_kontororu_baku", "fujinheki", "genjutsu_shibari", "jouro_senbon", "kumo_shibari", "kasumi_jusha_no_jutsu"]:
 			pl.set_process(false)
 			var fw = pl.face_dir()
 			if id == "kami_tsubasa":
