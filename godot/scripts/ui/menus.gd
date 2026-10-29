@@ -1229,7 +1229,7 @@ const MS_STYLES := ["Çark", "Yıldız", "Taç Yaprak", "Shuriken", "Sarmal", "H
 	"Elmas", "Halkalar", "Kanca", "Dört Bıçak", "Altı Köşeli Yıldız", "Kelebek", "Kar Tanesi", "Kalkan",
 	"Madara", "Sasuke", "Shisui", "Kakashi", "Izuna", "Indra", "Ebedi Sasuke", "Ebedi Madara", "Nokta Halkası", "Haç Yaprak",
 	"Gül", "Kum Saati", "Güneş", "Dişli", "Triskel", "Hilaller", "Göz İçinde Göz", "Nilüfer", "Dalga", "Diken Halkası",
-	"Pusula", "Dişler", "Girdap", "Kare", "Altıgen", "Alev", "Tüy", "Taç", "Çift Nokta", "Gül Düğümü"]
+	"Pusula", "Dişler", "Girdap", "Kare", "Altıgen", "Alev", "Tüy", "Taç", "Çift Nokta", "Gül Düğümü", "Rinne Sharingan Halkası", "Sharingan Kılıcı"]
 const MS_COLORS := [[0.9, 0.05, 0.06], [0.6, 0.0, 0.05], [0.55, 0.2, 0.85], [0.15, 0.4, 0.95], [0.95, 0.7, 0.1], [0.1, 0.7, 0.4], [0.95, 0.95, 0.98], [0.05, 0.05, 0.08], [1.0, 0.4, 0.7], [0.2, 0.85, 0.95]]
 static func _ms_editor(main: Node, v: VBoxContainer, d: Dictionary) -> void:
 	v.add_child(UI.spacer(0, 6, false))

@@ -75,7 +75,7 @@ func _transplant_mult() -> float:
 ## Mangekyō deseni: her göz için benzersiz (oyuncu düzenleyebilir)
 ## style 0 çark, 1 yıldız, 2 taç yaprak, 3 shuriken, 4 sarmal, 5 haç, 6 tomoe halkası, 7..17 (bkz. Menus.MS_STYLES)
 static func random_design() -> Dictionary:
-	return {"style": randi() % 48, "blades": randi_range(3, 6), "curve": randf_range(-2.5, 2.5), "thick": randf_range(0.35, 0.75),
+	return {"style": randi() % 50, "blades": randi_range(3, 6), "curve": randf_range(-2.5, 2.5), "thick": randf_range(0.35, 0.75),
 		"inner": randf_range(0.14, 0.3), "ring": randf() < 0.4, "invert": randf() < 0.12, "spin": randf_range(0.2, 1.0),
 		"col": [0.9, 0.05, 0.06]}
 

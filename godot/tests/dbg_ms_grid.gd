@@ -11,7 +11,7 @@ func _ready() -> void:
 	layer.add_child(bg)
 	var sh = load("res://shaders/ms_preview.gdshader")
 	var start = int(OS.get_environment("MS0")) if OS.get_environment("MS0") != "" else 0
-	for i in 48 - start:
+	for i in 50 - start:
 		var st = start + i
 		var cr = ColorRect.new()
 		var m = ShaderMaterial.new()

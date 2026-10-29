@@ -192,6 +192,19 @@ float ms_ink(vec2 q, vec4 a, vec4 b, float t) {
 		float rose = abs(cos(ang * n * 0.5));
 		ink = step(abs(r - rose * 0.9), 0.05 + a.w * 0.05) * step(inner * 0.5, r);
 		ink = max(ink, step(abs(r - 0.94), 0.03));
+	} else if (st == 48) {   // Rinne-Sharingan halkası: eşmerkezli halkalar + halka üstünde tomoe
+		float rings = step(abs(fract(r * 3.0) - 0.5), 0.07) * step(inner, r) * step(r, 0.95);
+		float ka = floor(ang * n / 6.28318 + 0.5) * 6.28318 / n;
+		float tom = 0.0;
+		for (int k = 0; k < 3; k++) {
+			float rr = 0.33 + float(k) * 0.33;
+			tom = max(tom, step(length(q - vec2(cos(ka + float(k) * 0.4), sin(ka + float(k) * 0.4)) * rr), 0.06 + a.w * 0.04));
+		}
+		ink = max(rings, tom);
+	} else if (st == 49) {   // Sharingan kılıcı: merkezden çıkan uzun keskin kılıç bıçakları + kabza halkası
+		float blade = step(r, 0.95) * step(inner + 0.05, r) * step(1.0 - d, (0.12 + a.w * 0.1) * (1.0 - r * 0.85));
+		float guard = step(abs(r - (inner + 0.08)), 0.03);
+		ink = max(max(blade, guard), step(r, inner));
 	} else {
 		float ring = step(abs(r - 0.55), 0.035);
 		float tom = 0.0;
