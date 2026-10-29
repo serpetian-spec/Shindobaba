@@ -2923,31 +2923,7 @@ func _arc_cut(at: Vector3, d: Vector3, a0: float, a1: float, col: Color, r := 1.
 
 
 
-## Çiçek Ağı: havada dev çiçek desenli ağ açılır ve geniş alana iner — içindekiler yapışır
-func p_kumo_soka(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 22.0)
-	busy(c, 0.7)
-	anim(c, "throw", 1.3)
-	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 9.0)
-	var b = MB.new()
-	for k in 12:
-		b.add("box", Vector3.ZERO, Vector3(8.0, 0.02, 0.04), WEB, Vector3(0, k * 15.0, 0))
-	for r in [1.2, 2.2, 3.2, 4.0]:
-		b.add("torus", Vector3.ZERO, Vector3(r * 2.0, r * 2.0, 0.04), WEB, Vector3(90, 0, 0), 24)
-	var net = mesh_of(b)
-	get_tree().current_scene.add_child(net)
-	net.global_position = at + Vector3.UP * 6.0
-	net.scale = Vector3.ONE * 0.1
-	var tw = net.create_tween()
-	tw.tween_property(net, "scale", Vector3.ONE, 0.3)
-	tw.parallel().tween_property(net, "global_position", at + Vector3.UP * 0.6, 0.45)
-	tw.tween_callback(func():
-		for e in enemies_near(c, at, 4.5):
-			st(e, "bind", 3.5)
-			e.take_hit(inf(c, "kumo_soka", 0.3, {"knock": 0.0, "kind": "light"})))
-	tw.tween_interval(3.5)
-	tw.tween_callback(net.queue_free)
-	Sfx.play("whoosh", at, 0.8)
+
 
 
 ## Kurt Halkası: kılıçla kendi etrafında tam tur dönerek daire kesik — her yandaki düşmana
@@ -2962,42 +2938,10 @@ func p_kumogakure_taijutsu_okami_ringu(c: Node3D, t: Node3D) -> void:
 	Sfx.play("clink", at, 1.0)
 
 
-## Ses Yankısı: ses dalgası iç kulağı vurur — hedef sendeler, dengesini kaybeder (yavaş + kısa sersem)
-func p_kyomeisen(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 16.0)
-	busy(c, 0.5)
-	anim(c, "push", 1.4)
-	var d = fwd(c, tt)
-	for k in 4:
-		after(k * 0.08, func():
-			FX.ring(c.global_position + Vector3.UP * 1.3 + d * (1.5 + k * 2.5), Color(0.8, 0.75, 1.0), 1.2 + k * 0.6, 0.35, false, d))
-	if tt:
-		after(0.3, func():
-			if live(tt):
-				st(tt, "stun", 1.2)
-				st(tt, "slow", 4.0)
-				tt.take_hit(inf(c, "kyomeisen", 0.4, {"knock": 1.0, "kind": "light"}))
-				Combat.popup_text(tt.global_position + Vector3.UP * 2.3, "Denge bozuldu!", Color(0.8, 0.75, 1.0)))
-	Sfx.play("genjutsu", c.global_position, 1.6)
 
 
-## Şurup Mermileri: ağızdan yapışkan şurup topları — yere yapıştırır
-func p_mizuame_teppo(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 20.0)
-	busy(c, 0.6)
-	var from = c.global_position + Vector3.UP * 1.55 + c.face_dir() * 0.4
-	var syrup = Color(0.95, 0.75, 0.35)
-	for k in 3:
-		after(k * 0.15, func():
-			if not live(c):
-				return
-			var b = MB.new()
-			b.add("sphere", Vector3.ZERO, Vector3(0.5, 0.45, 0.6), syrup)
-			shot(c, from, aim_at(c, tt, from), 24.0, mesh_of(b, glow(syrup, 0.85)), inf(c, "mizuame_teppo", 0.25, {"knock": 2.0, "kind": "light", "element": "suiton"}), null, false, 1.2, func(p, h):
-				_oil_pool(c, p, 2.0, 4.0)
-				if h and live(h):
-					st(h, "bind", 2.0)))
-	Sfx.play("water", from, 0.9)
+
+
 
 
 ## Kedi Pençesi: çakralı pençelerle çapraz üçlü çizik
@@ -3061,18 +3005,7 @@ func p_rakanken(c: Node3D, t: Node3D) -> void:
 			Sfx.play("punch", at, 1.0 - k * 0.08))
 
 
-## Gizli İğne Fırlatıcı: bilek düzeneğinden sessizce zehirli iğneler (yeşil iz), zehirler
-func p_shikomishindan(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 20.0)
-	busy(c, 0.3)
-	var from = hand_pos(c, true)
-	for k in 4:
-		after(k * 0.06, func():
-			var b = MB.new()
-			b.add("cyl", Vector3.ZERO, Vector3(0.012, 0.25, 0.012), Color(0.6, 0.8, 0.5), Vector3(90, 0, 0), 4)
-			var pr = shot(c, from, aim_at(c, tt, from).rotated(Vector3.UP, randf_range(-0.04, 0.04)), 50.0, mesh_of(b), inf(c, "shikomishindan", 0.12, {"knock": 0.2, "kind": "light", "poison": 4.0}), null, false, 0.8)
-			Projectile.trail(pr, [Color(0.5, 0.9, 0.4, 0.6), Color(0.4, 0.8, 0.3, 0)], 0.06, 8, 0.2, null, true))
-	Sfx.play("kunai", from, 1.6, 0.4)
+
 
 
 ## Aslan Kombosu: tekmeyle havaya atar, gölge gibi arkasından sıçrar, art arda tekmeler ve havadan yere çakar
@@ -3136,36 +3069,7 @@ func _water_shot(c: Node3D, id: String, tt: Node3D, from: Vector3, s: float, spe
 	return pr
 
 
-## Beş Mühür Bariyeri: beş etiket yere yapışır, aralarında mor ışıklı duvar örülür — geçilmez (içerideki düşman kapanır)
-func p_gofu_kekkai(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 18.0)
-	busy(c, 0.8)
-	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 6.0)
-	var col = Color(0.65, 0.4, 1.0)
-	var pts = []
-	for k in 5:
-		var a = TAU * k / 5.0
-		pts.append(at + Vector3(cos(a), 0, sin(a)) * 3.0)
-	var b = MB.new()
-	for k in 5:
-		var p0: Vector3 = pts[k] - at
-		var p1: Vector3 = pts[(k + 1) % 5] - at
-		var mid = (p0 + p1) * 0.5 + Vector3.UP * 1.5
-		b.add("box", mid, Vector3(p0.distance_to(p1), 3.0, 0.05), col, Vector3(0, -rad_to_deg(atan2(p1.z - p0.z, p1.x - p0.x)), 0))
-		b.add("box", p0 + Vector3.UP * 0.4, Vector3(0.18, 0.3, 0.02), Color(0.95, 0.9, 0.75))
-	var wall = mesh_of(b, glow(col, 0.35))
-	get_tree().current_scene.add_child(wall)
-	wall.global_position = at
-	wall.scale = Vector3(1, 0.01, 1)
-	var tw = wall.create_tween()
-	tw.tween_property(wall, "scale", Vector3.ONE, 0.3)
-	tw.tween_interval(6.0)
-	tw.tween_property(wall, "scale", Vector3(1, 0.01, 1), 0.3)
-	tw.tween_callback(wall.queue_free)
-	for e in enemies_near(c, at, 3.0):
-		st(e, "bind", 6.0)
-		Combat.popup_text(e.global_position + Vector3.UP * 2.3, "Mühür bariyeri!", col)
-	Sfx.play("seal", at, 0.8)
+
 
 
 ## Su Klonu: ayağının dibindeki sudan bir kopya yükselir; vurulunca su olup sıçrar
@@ -3178,107 +3082,22 @@ func p_mizu_bunshin_no_jutsu(c: Node3D, _t: Node3D) -> void:
 	Sfx.play("water", at, 1.1)
 
 
-## Lastik Beden: kollar ve bacaklar uzar (15 sn yakın dövüş menzili çok artar)
-func p_nan_no_kaizo(c: Node3D, _t: Node3D) -> void:
-	busy(c, 0.4)
-	if c.get("model") and c.model.overlay:
-		c.model.overlay.limb_scale = 1.25
-		after(15.0, func():
-			if is_instance_valid(c) and c.get("model") and c.model.overlay:
-				c.model.overlay.limb_scale = 1.0)
-	if c is Player:
-		Buffs.add("nan_no_kaizo", 15.0, {"reach": 1.8, "_name": "Lastik Beden", "_desc": "uzuvlar uzadı: yakın dövüş menzili +%80"})
-	Sfx.play("whoosh", c.global_position, 0.7)
 
 
-## Ayrı Beden İkamesi: saklı ikinci bedenin yerine geçer — 4 sn içindeki ilk darbeyi o alır (kütük değil, insan kabuğu)
-func p_narikawari_no_jutsu(c: Node3D, _t: Node3D) -> void:
-	busy(c, 0.3)
-	if c is Player:
-		Buffs.add("narikawari", 4.0, {"armor": 0.0, "_name": "İkame Beden", "_desc": "sonraki darbe ikame bedene gider"})
-	var shell = decoy(c, c.global_position, 4.0)
-	FX.smoke_puff(c.global_position + Vector3.UP, 0.8, 12)
-	c.global_position = gp(c.global_position - c.face_dir() * 4.0)
-	Sfx.play("poof", c.global_position, 1.1)
 
 
-## Bin Karga: hedefin etrafında kapkara bir karga fırtınası döner — göremez, saldıramaz
-func p_sanzengarasu_no_jutsu(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 20.0)
-	busy(c, 0.6)
-	if tt == null:
-		return
-	var black = Color(0.05, 0.05, 0.07)
-	var birds = []
-	for k in 40:
-		var b = MB.new()
-		b.add("box", Vector3.ZERO, Vector3(0.3, 0.02, 0.1), black)
-		var bird = mesh_of(b)
-		get_tree().current_scene.add_child(bird)
-		birds.append(bird)
-	every(3.0, 1.0 / 30.0, func(i, _k):
-		if not live(tt):
-			return
-		for n in birds.size():
-			var a = i * 0.25 + n * 0.7
-			var r = 1.2 + (n % 5) * 0.3
-			birds[n].global_position = tt.global_position + Vector3(cos(a) * r, 0.3 + (n % 7) * 0.3, sin(a) * r)
-			birds[n].rotation.y = -a, func():
-		for bd in birds:
-			if is_instance_valid(bd):
-				bd.queue_free())
-	st(tt, "stun", 3.0)
-	if tt.has_method("lose_target"):
-		tt.lose_target(3.0)
-	Sfx.play("genjutsu", tt.global_position, 1.0)
 
 
-## Yol Kaybettirme: hedef düz yürüdüğünü sanırken daire çizer (6 sn yavaş, hedef kaybeder)
-func p_sly_mind_affect_technique(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 20.0)
-	busy(c, 0.5)
-	anim(c, "cast", 1.2)
-	if tt == null:
-		return
-	for k in 3:
-		FX.ring(tt.global_position + Vector3.UP * 0.05, Color(0.6, 0.5, 0.9), 2.0 + k * 1.5, 1.2)
-	st(tt, "slow", 6.0)
-	if tt.has_method("lose_target"):
-		tt.lose_target(6.0)
-	Combat.popup_text(tt.global_position + Vector3.UP * 2.3, "Kayboldu...", Color(0.7, 0.6, 0.95))
-	Sfx.play("genjutsu", tt.global_position, 1.3)
 
 
-## Ses Bastırma: karşı ses dalgası — yakındaki düşman mermilerini ve ses tekniklerini söndürür, yakındakileri sersemletir
-func p_sosai_no_ne(c: Node3D, _t: Node3D) -> void:
-	busy(c, 0.4)
-	for k in 3:
-		after(k * 0.07, func():
-			FX.ring(c.global_position + Vector3.UP * 1.2, Color(0.85, 0.8, 1.0), 3.0 + k * 2.5, 0.35, false))
-	for p in get_tree().get_nodes_in_group("projectiles"):
-		if p.get("shooter") != c and p.global_position.distance_to(c.global_position) < 9.0:
-			p.queue_free()
-	for e in enemies_near(c, c.global_position, 6.0):
-		st(e, "stun", 0.8)
-	Sfx.play("genjutsu", c.global_position, 2.0)
 
 
-## İpli Bıçaklar: tellere bağlı kunailer atılır, havada yön değiştirip hedefe her yandan saplanır
-func p_soshujin(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 22.0)
-	busy(c, 0.5)
-	var from = hand_pos(c, true)
-	for k in 5:
-		var b = MB.new()
-		b.add("cone", Vector3(0, 0, 0.12), Vector3(0.05, 0.2, 0.015), Color(0.6, 0.62, 0.66), Vector3(90, 0, 0), 4)
-		b.add("cyl", Vector3(0, 0, -0.06), Vector3(0.025, 0.14, 0.025), Color(0.2, 0.2, 0.22), Vector3(90, 0, 0), 6)
-		var side = c.face_dir().cross(Vector3.UP) * ((k - 2) * 0.6)
-		var pr = shot(c, from, (aim_at(c, tt, from) + side + Vector3.UP * 0.2).normalized(), 26.0, mesh_of(b), inf(c, "soshujin", 0.25, {"knock": 1.0, "kind": "light", "bleed": 2.0}), tt, false, 1.6)
-		pr.homing_turn = 5.0
-		var wire = StandardMaterial3D.new()
-		wire.albedo_color = Color(0.85, 0.85, 0.9)
-		tether(func(): return hand_pos(c, true) if live(c) else Vector3.ZERO, func(): return pr.global_position if is_instance_valid(pr) else hand_pos(c, true), 0.01, wire, 0.9)
-	Sfx.play("kunai", from, 1.4)
+
+
+
+
+
+
 
 
 ## Sarhoş Yumruk: sendeleyerek öngörülemez açılardan beş vuruş
@@ -3303,27 +3122,6 @@ func p_suiken(c: Node3D, t: Node3D) -> void:
 
 
 
-## Kara Yağmur: ağızdan göğe kara yağ püskürür, geniş alana yağar — ateş değerse alev alır (yavaşlatır)
-func p_suiton_kokuu_no_jutsu(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.8)
-	var tt = tg(c, t, 22.0)
-	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 10.0)
-	VFX.puffs(_mouth_pos(c), {"amount": 30, "life": 0.6, "size": 0.4, "radius": 0.2, "vmin": 10, "vmax": 16, "dir": Vector3.UP, "spread": 20.0, "add": false,
-		"colors": [Color(0.12, 0.1, 0.08, 0.9), Color(0.1, 0.1, 0.1, 0)]})
-	for k in 40:
-		after(0.4 + randf() * 1.0, func():
-			var q = at + Vector3(randf_range(-6, 6), 8.0, randf_range(-6, 6))
-			var b = MB.new()
-			b.add("sphere", Vector3.ZERO, Vector3(0.12, 0.25, 0.12), Color(0.1, 0.08, 0.06))
-			var dr = mesh_of(b)
-			get_tree().current_scene.add_child(dr)
-			dr.global_position = q
-			var tw = dr.create_tween()
-			tw.tween_property(dr, "global_position", gp(q), 0.5)
-			tw.tween_callback(dr.queue_free))
-	after(1.0, func():
-		_oil_pool(c, at, 6.0, 8.0))
-	Sfx.play("water", at, 0.5)
 
 
 
@@ -3332,17 +3130,8 @@ func p_suiton_kokuu_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 
 
-## Şurup Gölü: ağızdan yere yapışkan şurup dökülür — içine basan yapışır
-func p_suiton_mizuame_nabara(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.7)
-	var at = gp(c.global_position + fwd(c, t) * 5.0)
-	VFX.puffs(_mouth_pos(c), {"amount": 30, "life": 0.6, "size": 0.4, "radius": 0.2, "vmin": 6, "vmax": 10, "dir": fwd(c, t) - Vector3.UP * 0.5, "spread": 20.0, "add": false,
-		"colors": [Color(0.95, 0.75, 0.35, 0.9), Color(0.9, 0.7, 0.3, 0)]})
-	_oil_pool(c, at, 4.5, 10.0)
-	every(10.0, 0.5, func(_i, _k):
-		for e in enemies_near(c, at, 4.5):
-			st(e, "bind", 0.6), Callable())
-	Sfx.play("water", at, 0.6)
+
+
 
 
 
@@ -3413,19 +3202,6 @@ func p_tsutenkyaku(c: Node3D, t: Node3D) -> void:
 			Sfx.play("boom", at, 0.9)))
 
 
-## İç Ses: genjutsuyu içeriden kırar — üstündeki sersemlik/bağ biter, 6 sn genjutsu bağışıklığı
-func p_uchi_naru_sakura(c: Node3D, _t: Node3D) -> void:
-	busy(c, 0.3)
-	if c.has_method("clear_status"):
-		c.clear_status()
-	elif c.get("status") is Dictionary:
-		for k in ["stun", "bind", "slow"]:
-			c.status.erase(k)
-	if c is Player:
-		Buffs.add("uchi_naru", 6.0, {"_name": "İç Ses", "_desc": "genjutsu kırıldı; kısa süre etkilenmezsin"})
-	FX.ring(c.global_position + Vector3.UP * 1.7, Color(1, 0.6, 0.75), 2.0, 0.4, false)
-	Combat.popup_text(c.global_position + Vector3.UP * 2.4, "KAI!", Color(1, 0.6, 0.75))
-	Sfx.play("seal", c.global_position, 1.4)
 
 
 
@@ -3434,34 +3210,11 @@ func p_uchi_naru_sakura(c: Node3D, _t: Node3D) -> void:
 
 
 
-## Kurbağa Dili Bağı: uzun yapışkan dil fırlar, hedefi sarar ve sana çeker
-func p_zessenbaku(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 14.0)
-	busy(c, 0.7)
-	if tt == null:
-		return
-	var tongue = glow(Color(0.95, 0.45, 0.55), 1.0)
-	tether(func(): return _mouth_pos(c) if live(c) else Vector3.ZERO, func(): return tt.global_position + Vector3.UP if live(tt) else _mouth_pos(c), 0.12, tongue, 0.8)
-	st(tt, "bind", 1.0)
-	after(0.25, func():
-		if live(tt) and tt.get("velocity") != null:
-			var v = c.global_position - tt.global_position
-			tt.velocity = v.normalized() * minf(22.0, v.length() * 2.5) + Vector3.UP * 3.0)
-	Sfx.play("whoosh", c.global_position, 0.8)
 
 
-## Kurbağa Dili Kesiği: dil kamçı gibi yatay savrulur, keser
-func p_zessenzan(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 8.0)
-	var d = _face(c, tt)
-	busy(c, 0.5)
-	var tongue = glow(Color(0.95, 0.45, 0.55), 1.0)
-	var tip := {"a": -1.2}
-	tether(func(): return _mouth_pos(c) if live(c) else Vector3.ZERO, func(): return _mouth_pos(c) + d.rotated(Vector3.UP, tip["a"]) * 6.0 if live(c) else Vector3.ZERO, 0.12, tongue, 0.4)
-	every(0.4, 1.0 / 30.0, func(_i, k):
-		tip["a"] = lerpf(-1.2, 1.2, k), Callable())
-	Combat.hit_zone(c, c.global_position, d, 6.5, 70.0, 2.5, inf(c, "zessenzan", 1.0, {"knock": 8.0, "kind": "heavy", "bleed": 2.0}))
-	Sfx.play("whoosh", c.global_position, 1.0)
+
+
+
 
 
 # ================================================================== ORTAK DETAYLI EFEKT KATMANI (VFX kütüphanesi: shader çekirdek + iz + toplanma + çarpma + kalıcı iz)
@@ -4865,3 +4618,427 @@ func _web(r: float) -> Node3D:
 		ring.rotation.x = PI * 0.5
 		root.add_child(ring)
 	return root
+
+
+const SYRUP := Color(0.93, 0.88, 0.75)
+
+
+func _syrup_mat() -> Material:
+	return VFX.mat_water(Color(0.75, 0.68, 0.52), Color(0.9, 0.85, 0.72), Color(1, 0.98, 0.92), Vector3(0, 1, 0), 0.92, 0.6, 0.12)
+
+
+## Çiçek Ağı: avuçlardan üç çiçek biçimli ağ fırlar, uçarken açılır; hedefe ve çevresine yapışır
+func p_kumo_soka(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 22.0)
+	busy(c, 0.7)
+	anim(c, "throw", 1.3)
+	var from = hand_pos(c, true)
+	for k in 3:
+		after(k * 0.12, func():
+			if not live(c):
+				return
+			var w = _web(0.5)
+			var pr = shot(c, from, aim_at(c, tt, from).rotated(Vector3.UP, (k - 1) * 0.15), 26.0, w, inf(c, "kumo_soka", 0.3, {"knock": 0.0, "kind": "light"}), null, false, 1.1, func(p, _h):
+				var big = _web(2.4)
+				get_tree().current_scene.add_child(big)
+				big.global_position = gp(p) + Vector3.UP * 0.05
+				big.rotation.x = -PI * 0.5
+				var tw = big.create_tween()
+				tw.tween_interval(3.5)
+				tw.tween_property(big, "scale", Vector3.ONE * 0.01, 0.3)
+				tw.tween_callback(big.queue_free)
+				for e in enemies_near(c, p, 2.8):
+					st(e, "bind", 3.5)
+					Combat.popup_text(e.global_position + Vector3.UP * 2.3, "Ağa takıldı!", WEB))
+			w.create_tween().tween_property(w, "scale", Vector3.ONE * 3.0, 0.5)
+			VFX.trail(pr, 0.2, Color(1, 1, 1, 0.8), Color(0.9, 0.9, 0.85, 0.4), Color(0.9, 0.9, 0.85, 0), 12, 0.2))
+	Sfx.play("whoosh", from, 1.1)
+
+
+## Yankı Matkabı: yumruktaki düzenek ses dalgasını titreştirir — vuruş anında iç içe ses halkaları, iç kulak sarsılır
+func p_kyomeisen(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 7.0)
+	var d = _jump_at(c, tt, 0.0, 12.0 if tt else 3.0)
+	busy(c, 0.6)
+	var sound = Color(0.85, 0.8, 1.0)
+	after(0.2, func():
+		if not live(c):
+			return
+		anim(c, "cross", 1.6)
+		var at = c.global_position + Vector3.UP * 1.2 + d * 1.0
+		for k in 5:
+			after(k * 0.05, func():
+				VFX.shockwave(at + d * k * 0.6, sound, 1.2 + k * 0.9, 0.3, false, d))
+		for e in mhit(c, at, 2.0, inf(c, "kyomeisen", 0.6, {"knock": 4.0, "kind": "heavy"})):
+			st(e, "stun", 1.2)
+			st(e, "slow", 4.0)
+			Combat.popup_text(e.global_position + Vector3.UP * 2.3, "Denge bozuldu!", sound)
+		Sfx.play("genjutsu", at, 1.6))
+
+
+## Şurup Mermileri: ağızdan kıvamlı açık şurup akıntısı — değdiği hedef ve zemin yapışkan
+func p_mizuame_teppo(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 20.0)
+	busy(c, 0.7)
+	var from = _mouth_pos(c)
+	VFX.gather(from, SYRUP, 0.9)
+	for k in 3:
+		after(0.12 + k * 0.14, func():
+			if not live(c):
+				return
+			var blob = MeshInstance3D.new()
+			blob.mesh = SphereMesh.new()
+			blob.material_override = _syrup_mat()
+			blob.scale = Vector3(0.6, 0.5, 1.4)
+			var pr = shot(c, from, aim_at(c, tt, from), 24.0, blob, inf(c, "mizuame_teppo", 0.25, {"knock": 2.0, "kind": "light", "element": "suiton"}), null, false, 1.2, func(p, h):
+				VFX.splash(p, 1.4)
+				_oil_pool(c, p, 2.0, 4.0)
+				if h and live(h):
+					st(h, "bind", 2.0))
+			VFX.trail(pr, 0.4, Color(1, 0.98, 0.92, 0.9), SYRUP, Color(SYRUP.r, SYRUP.g, SYRUP.b, 0), 16, 0.0))
+	Sfx.play("water", from, 0.9)
+
+
+## Gizli İğne Fırlatıcı: bilekteki boru düzeneğinden sessiz zehirli iğne seli (yeşil zehir izi), isabette zehir buharı
+func p_shikomishindan(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 20.0)
+	busy(c, 0.4)
+	anim(c, "push", 1.8)
+	var from = hand_pos(c, true)
+	var poison = Color(0.45, 0.85, 0.35)
+	for k in 6:
+		after(k * 0.05, func():
+			var b = MB.new()
+			b.add("cyl", Vector3.ZERO, Vector3(0.014, 0.3, 0.014), Color(0.7, 0.85, 0.6), Vector3(90, 0, 0), 4)
+			var pr = shot(c, from, aim_at(c, tt, from).rotated(Vector3.UP, randf_range(-0.05, 0.05)), 55.0, mesh_of(b), inf(c, "shikomishindan", 0.12, {"knock": 0.2, "kind": "light", "poison": 4.0}), null, false, 0.8, func(p, _h):
+				VFX.puffs(p, {"amount": 10, "life": 0.8, "size": 0.5, "radius": 0.3, "vmin": 0.5, "vmax": 1.5, "dir": Vector3.UP, "spread": 60.0, "add": false,
+					"colors": [Color(0.5, 0.9, 0.4, 0.7), Color(0.4, 0.8, 0.3, 0)]}))
+			VFX.trail(pr, 0.05, Color(0.85, 1, 0.8, 0.9), poison, Color(poison.r, poison.g, poison.b, 0), 10, 0.4))
+	Sfx.play("kunai", from, 1.6, 0.4)
+
+
+## Beş Mühür Bariyeri: «禁» yazılı beş etiket yere çakılır, aralarında mor mühür duvarı örülür — içerideki kapanır
+func p_gofu_kekkai(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 18.0)
+	busy(c, 0.9)
+	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 6.0)
+	var col = Color(0.65, 0.4, 1.0)
+	var pts = []
+	for k in 5:
+		var a = TAU * k / 5.0
+		pts.append(at + Vector3(cos(a), 0, sin(a)) * 3.0)
+	var root = Node3D.new()
+	get_tree().current_scene.add_child(root)
+	root.global_position = at
+	for k in 5:
+		var p0: Vector3 = pts[k] - at
+		var p1: Vector3 = pts[(k + 1) % 5] - at
+		var wall = MeshInstance3D.new()
+		var bm = BoxMesh.new()
+		bm.size = Vector3(p0.distance_to(p1), 3.2, 0.04)
+		wall.mesh = bm
+		wall.material_override = VFX.mat_wind(col.lightened(0.3), 2.0, 8.0, Vector3(0, 1, 0), 0.55)
+		wall.position = (p0 + p1) * 0.5 + Vector3.UP * 1.6
+		wall.rotation.y = -atan2(p1.z - p0.z, p1.x - p0.x)
+		root.add_child(wall)
+		var tag = Label3D.new()
+		tag.text = "禁"
+		tag.font_size = 96
+		tag.pixel_size = 0.004
+		tag.modulate = Color(0.75, 0.1, 0.12)
+		tag.outline_modulate = Color(0.97, 0.93, 0.8)
+		tag.outline_size = 40
+		tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		tag.position = p0 + Vector3.UP * 0.5
+		root.add_child(tag)
+		VFX.star(pts[k] + Vector3.UP * 0.5, col, 1.0)
+	root.scale = Vector3(1, 0.01, 1)
+	var tw = root.create_tween()
+	tw.tween_property(root, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_BACK)
+	tw.tween_interval(6.0)
+	tw.tween_property(root, "scale", Vector3(1, 0.01, 1), 0.3)
+	tw.tween_callback(root.queue_free)
+	VFX.shockwave(at + Vector3.UP * 0.1, col, 7.0, 0.5, true)
+	for e in enemies_near(c, at, 3.0):
+		st(e, "bind", 6.0)
+		Combat.popup_text(e.global_position + Vector3.UP * 2.3, "Mühür bariyeri!", col)
+	Sfx.play("seal", at, 0.8)
+
+
+## Lastik Beden: beden yumuşar, kollar-bacaklar uzar; gerilme dalgası
+func p_nan_no_kaizo(c: Node3D, _t: Node3D) -> void:
+	busy(c, 0.5)
+	VFX.gather(c.global_position + Vector3.UP, Color(0.85, 0.7, 0.55), 1.0)
+	if c.get("model") and c.model.overlay:
+		var ov = c.model.overlay
+		var tw = c.create_tween()
+		tw.tween_property(ov, "limb_scale", 1.35, 0.3).set_trans(Tween.TRANS_ELASTIC)
+		after(15.0, func():
+			if is_instance_valid(c) and c.get("model") and c.model.overlay:
+				c.model.overlay.limb_scale = 1.0)
+	VFX.shockwave(c.global_position + Vector3.UP, Color(0.85, 0.7, 0.55), 2.5, 0.3, false)
+	if c is Player:
+		Buffs.add("nan_no_kaizo", 15.0, {"reach": 1.8, "_name": "Lastik Beden", "_desc": "uzuvlar uzadı: yakın dövüş menzili +%80"})
+	Sfx.play("whoosh", c.global_position, 0.7)
+
+
+## İkame Beden: deri kabuk gibi soyulur, içindeki beden geri sıçrar; kabuk darbeyi alır
+func p_narikawari_no_jutsu(c: Node3D, _t: Node3D) -> void:
+	busy(c, 0.3)
+	if c is Player:
+		Buffs.add("narikawari", 4.0, {"armor": 0.0, "_name": "İkame Beden", "_desc": "sonraki darbe ikame bedene gider"})
+	var shell = decoy(c, c.global_position, 4.0, func(pos):
+		VFX.puffs(pos + Vector3.UP, {"amount": 30, "life": 0.8, "size": 0.4, "radius": 0.6, "vmin": 2, "vmax": 5, "dir": Vector3.UP, "spread": 90.0, "add": false,
+			"colors": [Color(0.9, 0.85, 0.8, 0.9), Color(0.8, 0.75, 0.7, 0)]}))
+	VFX.puffs(c.global_position + Vector3.UP, {"amount": 25, "life": 0.6, "size": 0.35, "radius": 0.5, "vmin": 2, "vmax": 4, "dir": Vector3.UP, "spread": 80.0, "add": false,
+		"colors": [Color(0.95, 0.9, 0.85, 0.9), Color(0.9, 0.85, 0.8, 0)]})
+	c.global_position = gp(c.global_position - c.face_dir() * 4.0)
+	VFX.smoke_ring(c.global_position + Vector3.UP * 0.1, 1.4, Color(0.9, 0.9, 0.9))
+	Sfx.play("poof", c.global_position, 1.1)
+
+
+## Bin Karga: gökyüzü kararır, yüzlerce karga hedefin etrafında kapkara bir fırtına olur — göremez, saldıramaz
+func p_sanzengarasu_no_jutsu(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 20.0)
+	busy(c, 0.6)
+	anim(c, "cast", 1.2)
+	if tt == null:
+		return
+	var black = Color(0.05, 0.05, 0.07)
+	var birds = []
+	for k in 50:
+		var b = MB.new()
+		b.add("sphere", Vector3(0, 0, 0.05), Vector3(0.14, 0.12, 0.26), black)
+		for sx in [-1.0, 1.0]:
+			b.add("box", Vector3(sx * 0.2, 0.02, 0), Vector3(0.38, 0.015, 0.16), black, Vector3(0, 0, sx * 15.0))
+		var bird = mesh_of(b)
+		get_tree().current_scene.add_child(bird)
+		bird.global_position = c.global_position + Vector3.UP * 1.5
+		birds.append(bird)
+	every(3.2, 1.0 / 30.0, func(i, _k):
+		if not live(tt):
+			return
+		for n in birds.size():
+			var a = i * 0.22 + n * 0.7
+			var r = 1.2 + (n % 6) * 0.35
+			var tgt = tt.global_position + Vector3(cos(a) * r, 0.3 + (n % 8) * 0.35, sin(a) * r)
+			birds[n].global_position = birds[n].global_position.lerp(tgt, 0.25)
+			birds[n].rotation.y = -a, func():
+		for bd in birds:
+			if is_instance_valid(bd):
+				bd.queue_free())
+	VFX.puffs(tt.global_position + Vector3.UP * 1.2, {"amount": 80, "life": 2.5, "size": 0.18, "radius": 2.0, "vmin": 0.5, "vmax": 2.0, "dir": Vector3.DOWN, "spread": 90.0, "add": false,
+		"colors": [Color(0.06, 0.06, 0.08, 1), Color(0.1, 0.1, 0.12, 0)]})
+	st(tt, "stun", 3.0)
+	if tt.has_method("lose_target"):
+		tt.lose_target(3.0)
+	Sfx.play("genjutsu", tt.global_position, 1.0)
+
+
+## Yol Kaybettirme: hedefin ayaklarının altında yeşil-mor dönen halkalar; düz yürüdüğünü sanıp daire çizer
+func p_sly_mind_affect_technique(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 20.0)
+	busy(c, 0.5)
+	anim(c, "cast", 1.2)
+	if tt == null:
+		return
+	var col = Color(0.55, 0.85, 0.6)
+	var sw = MeshInstance3D.new()
+	var tm = TorusMesh.new()
+	tm.inner_radius = 1.6; tm.outer_radius = 2.2; tm.rings = 32; tm.ring_segments = 4
+	sw.mesh = tm
+	sw.material_override = VFX.mat_spiral(Color(0.9, 1, 0.9), col, 4.0, 2.0, 3.0, 1.2, Vector3.UP)
+	tt.add_child(sw)
+	sw.position = Vector3.UP * 0.05
+	sw.scale = Vector3(1, 0.05, 1)
+	var tw = sw.create_tween()
+	tw.tween_property(sw, "rotation:y", TAU * 4.0, 6.0)
+	tw.tween_callback(sw.queue_free)
+	st(tt, "slow", 6.0)
+	if tt.has_method("lose_target"):
+		tt.lose_target(6.0)
+	Combat.popup_text(tt.global_position + Vector3.UP * 2.3, "Kayboldu...", col)
+	Sfx.play("genjutsu", tt.global_position, 1.3)
+
+
+## Ses Bastırma: flütten karşı ses dalgası — halka halka yayılır, mermileri ve ses tekniklerini söndürür
+func p_sosai_no_ne(c: Node3D, _t: Node3D) -> void:
+	busy(c, 0.5)
+	anim(c, "cast", 1.4)
+	var col = Color(0.85, 0.8, 1.0)
+	for k in 5:
+		after(k * 0.08, func():
+			if live(c):
+				VFX.shockwave(c.global_position + Vector3.UP * 1.3, col, 3.0 + k * 2.5, 0.35, false)
+				VFX.shockwave(c.global_position + Vector3.UP * 0.1, col, 3.0 + k * 2.5, 0.35, true))
+	for p in get_tree().get_nodes_in_group("projectiles"):
+		if p.get("shooter") != c and p.global_position.distance_to(c.global_position) < 10.0:
+			VFX.star(p.global_position, col, 1.2)
+			p.queue_free()
+	for e in enemies_near(c, c.global_position, 6.0):
+		st(e, "stun", 0.8)
+	Sfx.play("genjutsu", c.global_position, 2.0)
+
+
+## İpli Bıçaklar: çakra telleriyle havaya kalkan kunailer kullanıcının etrafında bekler, sonra her yandan hedefe saplanır
+func p_soshujin(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 22.0)
+	busy(c, 0.8)
+	anim(c, "cast", 1.3)
+	var knives = []
+	for k in 8:
+		var b = MB.new()
+		b.add("cone", Vector3(0, 0, 0.14), Vector3(0.06, 0.24, 0.018), Color(0.62, 0.64, 0.68), Vector3(90, 0, 0), 4)
+		b.add("cyl", Vector3(0, 0, -0.07), Vector3(0.028, 0.16, 0.028), Color(0.2, 0.2, 0.22), Vector3(90, 0, 0), 6)
+		b.add("torus", Vector3(0, 0, -0.17), Vector3(0.05, 0.05, 0.01), Color(0.2, 0.2, 0.22), Vector3(90, 0, 0), 8)
+		var kn = mesh_of(b)
+		get_tree().current_scene.add_child(kn)
+		var a = TAU * k / 8.0
+		var q = c.global_position + Vector3(cos(a) * 1.6, 1.0 + sin(a * 2.0) * 0.4, sin(a) * 1.6)
+		kn.global_position = c.global_position + Vector3.UP
+		kn.create_tween().tween_property(kn, "global_position", q, 0.3)
+		knives.append(kn)
+		var wire = StandardMaterial3D.new()
+		wire.albedo_color = Color(0.7, 0.85, 1.0)
+		wire.emission_enabled = true
+		wire.emission = Color(0.4, 0.6, 1.0)
+		tether(func(): return hand_pos(c, k % 2 == 0) if live(c) else Vector3.ZERO, func(): return kn.global_position if is_instance_valid(kn) else Vector3.ZERO, 0.012, wire, 0.55)
+	after(0.55, func():
+		for kn in knives:
+			if not is_instance_valid(kn):
+				continue
+			var from = kn.global_position
+			kn.queue_free()
+			if live(c):
+				var b2 = MB.new()
+				b2.add("cone", Vector3(0, 0, 0.14), Vector3(0.06, 0.24, 0.018), Color(0.62, 0.64, 0.68), Vector3(90, 0, 0), 4)
+				b2.add("cyl", Vector3(0, 0, -0.07), Vector3(0.028, 0.16, 0.028), Color(0.2, 0.2, 0.22), Vector3(90, 0, 0), 6)
+				var pr = shot(c, from, aim_at(c, tt, from), 34.0, mesh_of(b2), inf(c, "soshujin", 0.22, {"knock": 1.0, "kind": "light", "bleed": 2.0}), tt, false, 1.4, func(p, _h):
+					VFX.star(p, Color(1, 1, 1), 0.9, 0.1))
+				pr.homing_turn = 7.0
+				VFX.trail(pr, 0.06, Color(0.9, 0.95, 1, 0.9), Color(0.6, 0.75, 1.0, 0.4), Color(0.5, 0.6, 0.9, 0), 10, 0.3))
+	Sfx.play("kunai", c.global_position, 1.4)
+
+
+## Kara Yağmur: ağızdan göğe kara yağ fışkırır, kara bulut olur; yoğun yağlı damlalar alana yağar (ateşle tutuşur)
+func p_suiton_kokuu_no_jutsu(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.8)
+	var tt = tg(c, t, 22.0)
+	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 10.0)
+	var black = Color(0.1, 0.08, 0.06)
+	stream_fx(_mouth_pos(c), Vector3.UP, 7.0, 0.6, VFX.mat_water(Color(0.03, 0.02, 0.02), Color(0.12, 0.1, 0.08), Color(0.3, 0.27, 0.22), Vector3(0, 1, 0), 0.95, 0.4, 0.1), 0.3)
+	VFX.puffs(at + Vector3.UP * 8.5, {"amount": 50, "life": 2.2, "size": 3.0, "radius": 5.0, "vmin": 0.1, "vmax": 0.5, "dir": Vector3.UP, "spread": 60.0, "add": false,
+		"colors": [Color(0.12, 0.1, 0.1, 0.85), Color(0.15, 0.13, 0.12, 0.6), Color(0.15, 0.13, 0.12, 0)]})
+	for k in 60:
+		after(0.4 + randf() * 1.2, func():
+			var q = at + Vector3(randf_range(-6, 6), 8.0, randf_range(-6, 6))
+			var dr = MeshInstance3D.new()
+			dr.mesh = SphereMesh.new()
+			dr.material_override = VFX.mat_water(Color(0.03, 0.02, 0.02), Color(0.12, 0.1, 0.08), Color(0.4, 0.35, 0.3), Vector3(0, 1, 0), 0.95, 0.5, 0.1)
+			dr.scale = Vector3(0.12, 0.3, 0.12)
+			get_tree().current_scene.add_child(dr)
+			dr.global_position = q
+			var tw = dr.create_tween()
+			tw.tween_property(dr, "global_position", gp(q), 0.45)
+			tw.tween_callback(func():
+				VFX.puffs(gp(q) + Vector3.UP * 0.1, {"amount": 4, "life": 0.4, "size": 0.15, "radius": 0.1, "vmin": 1, "vmax": 2, "dir": Vector3.UP, "spread": 70.0, "add": false,
+					"colors": [Color(0.1, 0.08, 0.06, 0.9), Color(0.1, 0.08, 0.06, 0)]})
+				dr.queue_free()))
+	after(1.0, func():
+		_oil_pool(c, at, 6.0, 8.0))
+	Sfx.play("water", at, 0.5)
+
+
+## Şurup Gölü: ağızdan yere kıvamlı şurup dalgası akar, geniş yapışkan göl olur
+func p_suiton_mizuame_nabara(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.8)
+	var d = fwd(c, t)
+	var at = gp(c.global_position + d * 5.0)
+	stream_fx(_mouth_pos(c), (d - Vector3.UP * 0.35).normalized(), 6.0, 1.6, _syrup_mat(), 0.5, func(end):
+		VFX.splash(gp(end), 2.0))
+	after(0.3, func():
+		var pool = MeshInstance3D.new()
+		var cm = CylinderMesh.new()
+		cm.top_radius = 4.5; cm.bottom_radius = 4.5; cm.height = 0.06; cm.radial_segments = 32
+		pool.mesh = cm
+		pool.material_override = _syrup_mat()
+		get_tree().current_scene.add_child(pool)
+		pool.global_position = at + Vector3.UP * 0.04
+		pool.scale = Vector3(0.1, 1, 0.1)
+		var tw = pool.create_tween()
+		tw.tween_property(pool, "scale", Vector3.ONE, 0.5)
+		tw.tween_interval(9.0)
+		tw.tween_property(pool, "scale", Vector3(0.1, 1, 0.1), 0.5)
+		tw.tween_callback(pool.queue_free))
+	every(10.0, 0.5, func(_i, _k):
+		for e in enemies_near(c, at, 4.5):
+			st(e, "bind", 0.6), Callable())
+	Sfx.play("water", at, 0.6)
+
+
+## İç Ses: içindeki öfkeli ikinci benlik genjutsuyu parçalar — pembe patlama, "KAI!"; sersemlik/bağ biter, kısa bağışıklık
+func p_uchi_naru_sakura(c: Node3D, _t: Node3D) -> void:
+	busy(c, 0.4)
+	var pink = Color(1, 0.55, 0.75)
+	if c.has_method("clear_status"):
+		c.clear_status()
+	elif c.get("status") is Dictionary:
+		for k in ["stun", "bind", "slow"]:
+			c.status.erase(k)
+	if c is Player:
+		Buffs.add("uchi_naru", 6.0, {"_name": "İç Ses", "_desc": "genjutsu kırıldı; kısa süre etkilenmezsin"})
+	VFX.star(c.global_position + Vector3.UP * 1.7, pink, 3.0, 0.2)
+	VFX.shockwave(c.global_position + Vector3.UP * 1.7, pink, 5.0, 0.35, false)
+	FX.burst(c.global_position + Vector3.UP * 1.7, {"amount": 30, "life": 0.5, "tex": FX.tex_spark, "add": true, "size": 0.35, "radius": 0.4, "vmin": 4, "vmax": 9,
+		"colors": [Color(1, 1, 1, 1), pink, Color(pink.r, pink.g, pink.b, 0)]})
+	if c is Player:
+		VFX.screen_lines(0.3, 0.6, pink)
+	Combat.popup_text(c.global_position + Vector3.UP * 2.6, "KAI!!", pink)
+	Sfx.play("seal", c.global_position, 1.4)
+
+
+## Kalın kurbağa dili şeridi (kabarcıklı pembe)
+func _tongue_mat() -> Material:
+	return VFX.mat_water(Color(0.75, 0.35, 0.42), Color(0.95, 0.55, 0.6), Color(1, 0.8, 0.82), Vector3(0, 0, 1), 1.0, 0.3, 0.05)
+
+
+## Kurbağa Dili Bağı: ağızdan kalın, kabarcıklı dil fırlar, hedefe dolanıp sana doğru çeker
+func p_zessenbaku(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 14.0)
+	busy(c, 0.8)
+	if tt == null:
+		return
+	tether(func(): return _mouth_pos(c) if live(c) else Vector3.ZERO, func(): return tt.global_position + Vector3.UP if live(tt) else _mouth_pos(c), 0.28, _tongue_mat(), 0.9)
+	after(0.12, func():
+		if not live(tt):
+			return
+		var coil = MeshInstance3D.new()
+		var tm = TorusMesh.new()
+		tm.inner_radius = 0.42; tm.outer_radius = 0.62; tm.rings = 24; tm.ring_segments = 10
+		coil.mesh = tm
+		coil.material_override = _tongue_mat()
+		coil.position = Vector3.UP * 1.0
+		tt.add_child(coil)
+		var tw = coil.create_tween()
+		tw.tween_interval(0.8)
+		tw.tween_callback(coil.queue_free)
+		st(tt, "bind", 1.0))
+	after(0.3, func():
+		if live(tt) and tt.get("velocity") != null:
+			var v = c.global_position - tt.global_position
+			tt.velocity = v.normalized() * minf(22.0, v.length() * 2.5) + Vector3.UP * 3.0)
+	Sfx.play("whoosh", c.global_position, 0.8)
+
+
+## Kurbağa Dili Kesiği: ağızdan ince, sertleşmiş dil ışık hızında yatay savrulur — keskin iz bırakır
+func p_zessenzan(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 8.0)
+	var d = _face(c, tt)
+	busy(c, 0.5)
+	var tip := {"a": -1.2}
+	tether(func(): return _mouth_pos(c) if live(c) else Vector3.ZERO, func(): return _mouth_pos(c) + d.rotated(Vector3.UP, tip["a"]) * 6.5 if live(c) else Vector3.ZERO, 0.07, VFX.mat_bolt(Color(0.75, 0.85, 1.0), 1.5), 0.35)
+	every(0.35, 1.0 / 30.0, func(_i, k):
+		tip["a"] = lerpf(-1.2, 1.2, k), Callable())
+	_arc_cut(_mouth_pos(c), d, -70.0, 70.0, Color(0.8, 0.9, 1.0), 6.0)
+	Combat.hit_zone(c, c.global_position, d, 6.5, 70.0, 2.5, inf(c, "zessenzan", 1.0, {"knock": 8.0, "kind": "heavy", "bleed": 2.0}))
+	Sfx.play("whoosh", c.global_position, 1.0)
