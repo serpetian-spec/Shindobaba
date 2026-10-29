@@ -25,6 +25,9 @@ const PSTYLE := {
 	# Kâğıt Yolu
 	"kami_bunshin": "clone", "kami_chocho": "palm", "kami_tsubasa": "power", "shikigami_no_mai": "spin", "kami_yari": "ground",
 	"kami_no_shisha_no_jutsu": "summon", "kami_shuriken": "throw",
+	# Akademi / genel
+	"kage_shuriken_no_jutsu": "throw", "kage_senbon": "throw", "konoha_senpu": "rush", "konoha_reppu": "rush", "dainamikku_entori": "rush",
+	"zankuha": "two_palm", "sennen_goroshi": "rush", "kanashibari_no_jutsu": "sense",
 	# Kurbağa Bilgesi Yolu
 	"gamayudan": "breath", "kebari_senbon": "power", "ranjishigami_no_jutsu": "sense", "hari_jizo": "power",
 	"kuchiyose_gamaguchi_shibari": "summon", "katon_gamayu_endan": "breath", "senpo_kawazu_naki": "sense",
@@ -2495,3 +2498,209 @@ func p_kami_shuriken(c: Node3D, t: Node3D) -> void:
 			var pr = shot(c, from, dir, 38.0, mesh_of(_paper_star()), inf(c, "kami_shuriken", 0.35, {"knock": 1.5, "kind": "light", "bleed": 2.0}), tt, false, 1.4)
 			pr.spin = Vector3(0, 28.0, 0)
 			Projectile.trail(pr, [Color(1, 1, 1, 0.9), Color(0.85, 0.82, 0.95, 0)], 0.08, 10, 0.35, null, false))
+
+
+# ================================================================== Akademi / genel teknikler (kendi koreografisi)
+const LEAF := Color(0.45, 0.75, 0.3)
+
+
+func _kick_pose(c: Node3D, dur: float) -> void:
+	if c.get("model") and c.model.overlay:
+		c.model.overlay.set_pose("kick", 1.0)
+		after(dur, func():
+			if is_instance_valid(c) and c.get("model") and c.model.overlay:
+				c.model.overlay.set_pose("kick", 0.0))
+
+
+func _leaves(at: Vector3, n: int, spd := 6.0) -> void:
+	VFX.puffs(at, {"amount": n, "life": 0.9, "size": 0.18, "radius": 0.6, "vmin": spd * 0.5, "vmax": spd, "dir": Vector3.UP, "spread": 80.0, "add": false,
+		"colors": [LEAF, LEAF.darkened(0.3), Color(0.6, 0.8, 0.35, 0)]})
+
+
+## Atış yönü: hedef varsa göğsüne, yoksa nişangâha (Jutsu._aim)
+func aim_at(c: Node3D, tt: Node3D, from: Vector3) -> Vector3:
+	if tt and is_instance_valid(tt):
+		return (tt.global_position + Vector3.UP * tt.height * 0.55 - from).normalized()
+	return Jutsu._aim(c, tt)
+
+
+func _face(c: Node3D, tt: Node3D) -> Vector3:
+	var d = fwd(c, tt)
+	if tt:
+		d = tt.global_position - c.global_position
+		d.y = 0
+		d = d.normalized()
+		if c is Player:
+			c.combat.face_to(tt)
+	return d
+
+
+## Gölge Shuriken: tek büyük shuriken; hedefe yaklaşınca gölgesindeki ikinci shuriken ayrılıp yandan vurur
+func p_kage_shuriken_no_jutsu(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.4)
+	var tt = tg(c, t, 30.0)
+	var from = hand_pos(c, true)
+	var dir = aim_at(c, tt, from)
+	var mk = func() -> MeshInstance3D:
+		var b = MB.new()
+		for k in 4:
+			b.add("cone", Vector3(cos(k * PI / 2.0), 0, sin(k * PI / 2.0)) * 0.13, Vector3(0.07, 0.22, 0.01), Color(0.55, 0.57, 0.62), Vector3(90, -k * 90.0 + 90.0, 0), 3)
+		b.add("cyl", Vector3.ZERO, Vector3(0.09, 0.02, 0.09), Color(0.3, 0.3, 0.33), Vector3.ZERO, 10)
+		return mesh_of(b)
+	Sfx.play("whoosh", from, 1.5, 0.5)
+	var p1 = shot(c, from, dir, 30.0, mk.call(), inf(c, "kage_shuriken_no_jutsu", 0.6, {"knock": 2.0, "kind": "light", "bleed": 2.0}), tt, false, 1.6)
+	p1.spin = Vector3(0, 30, 0)
+	after(0.18, func():
+		if not is_instance_valid(p1):
+			return
+		var side = dir.cross(Vector3.UP).normalized() * (1.0 if randf() < 0.5 else -1.0)
+		var p2 = shot(c, p1.global_position - Vector3.UP * 0.25, (dir + side * 0.35).normalized(), 30.0, mk.call(), inf(c, "kage_shuriken_no_jutsu", 0.6, {"knock": 2.0, "kind": "light", "bleed": 2.0}), tt, false, 1.4)
+		p2.spin = Vector3(0, -30, 0)
+		p2.homing_turn = 6.0
+		Combat.popup_text(p1.global_position + Vector3.UP * 0.6, "Gölgede ikinci!", Color(0.8, 0.8, 0.9)))
+
+
+## Gölge Senbon: senbon yelpazesi; gölgesinden ikinci yelpaze gecikmeyle çıkar
+func p_kage_senbon(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.4)
+	var tt = tg(c, t, 25.0)
+	var from = hand_pos(c, true)
+	var dir = aim_at(c, tt, from)
+	for wave in 2:
+		after(wave * 0.2, func():
+			if not live(c):
+				return
+			for k in 5:
+				var b = MB.new()
+				b.add("cyl", Vector3.ZERO, Vector3(0.012, 0.32, 0.012), Color(0.85, 0.86, 0.9), Vector3(90, 0, 0), 4)
+				var d = dir.rotated(Vector3.UP, deg_to_rad((k - 2) * 4.0)) + Vector3.UP * (0.02 * (wave * 2 - 1))
+				shot(c, from - Vector3.UP * 0.12 * wave, d.normalized(), 48.0, mesh_of(b), inf(c, "kage_senbon", 0.12, {"knock": 0.5, "kind": "light"}), null, false, 0.9))
+	Sfx.play("whoosh", from, 1.9, 0.4)
+
+
+## Yaprak Kasırgası (Senpū): zıplayıp dönen yüksek tekme — çevresindeki herkesi savurur, yapraklar uçuşur
+func p_konoha_senpu(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.55)
+	var tt = tg(c, t, 6.0)
+	var d = _face(c, tt)
+	_kick_pose(c, 0.45)
+	if c is CharacterBody3D:
+		c.velocity = d * (8.0 if tt else 3.0) + Vector3.UP * 4.0
+	var ctr = c.global_position + Vector3.UP * 1.1
+	for k in 8:
+		after(k * 0.04, func():
+			var a = k * TAU / 8.0
+			VFX.puffs(ctr + Vector3(cos(a), 0, sin(a)) * 1.3, {"amount": 4, "life": 0.3, "size": 0.35, "radius": 0.1, "vmin": 1, "vmax": 2, "dir": Vector3.UP, "spread": 30.0,
+				"colors": [Color(1, 1, 1, 0.7), Color(1, 1, 1, 0)]}))
+	_leaves(c.global_position + Vector3.UP * 0.4, 30)
+	Sfx.play("whoosh", ctr, 1.2, 0.6)
+	after(0.15, func():
+		if live(c):
+			hit(c, c.global_position + Vector3.UP * 1.1, 2.4, inf(c, "konoha_senpu", 1.1, {"knock": 12.0, "launch": 3.0, "kind": "heavy"})))
+
+
+## Yaprak Kasırgası (Reppū): kayarak alçak süpürme tekmesi — ayağını alır, yere serer
+func p_konoha_reppu(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.6)
+	var d = _face(c, tg(c, t, 7.0))
+	anim(c, "slide", 1.6)
+	if c is CharacterBody3D:
+		c.velocity = d * 12.0
+	_leaves(c.global_position + Vector3.UP * 0.2, 20, 4.0)
+	after(0.2, func():
+		if not live(c):
+			return
+		for e in hit(c, c.global_position + d * 1.0 + Vector3.UP * 0.3, 1.6, inf(c, "konoha_reppu", 0.9, {"knock": 3.0, "kind": "heavy"})):
+			st(e, "stun", 1.2)
+			Combat.popup_text(e.global_position + Vector3.UP * 2.0, "Ayağı alındı!", LEAF))
+	Sfx.play("whoosh", c.global_position, 1.0, 0.5)
+
+
+## Dinamik Giriş: uçan çift ayak tekmesi — hedefe atılır, çarpınca uzağa savurur
+func p_dainamikku_entori(c: Node3D, t: Node3D) -> void:
+	var d = _face(c, tg(c, t, 14.0))
+	busy(c, 0.6)
+	_kick_pose(c, 0.55)
+	if c is CharacterBody3D:
+		c.velocity = d * 22.0 + Vector3.UP * 4.0
+	var done := {"v": false}
+	every(0.5, 1.0 / 30.0, func(_i, _k):
+		if done["v"] or not live(c):
+			return
+		VFX.puffs(c.global_position + Vector3.UP * 0.8, {"amount": 2, "life": 0.25, "size": 0.4, "radius": 0.2, "vmin": 0, "vmax": 1, "dir": Vector3.UP, "spread": 20.0,
+			"colors": [Color(1, 1, 1, 0.5), Color(1, 1, 1, 0)]})
+		var hs = hit(c, c.global_position + Vector3.UP * 0.9 + d * 0.8, 1.2, inf(c, "dainamikku_entori", 1.4, {"knock": 22.0, "launch": 4.0, "kind": "heavy", "dir": d}))
+		if not hs.is_empty():
+			done["v"] = true
+			shake(0.4)
+			FX.impact(hs[0].global_position + Vector3.UP, Color(1, 0.9, 0.7), 1.2)
+			if c is CharacterBody3D:
+				c.velocity = -d * 5.0 + Vector3.UP * 5.0)
+
+
+## Kesici Hava Dalgası: avuçlardan üç genişleyen basınç halkası — yol boyunca toz kaldırır, savurur
+func p_zankuha(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.7)
+	anim(c, "push", 1.4)
+	var tt = tg(c, t, 22.0)
+	var dir = aim_at(c, tt, hand_pos(c, true))
+	for k in 3:
+		after(0.12 + k * 0.12, func():
+			if not live(c):
+				return
+			var from = hand_pos(c, k % 2 == 0)
+			var rm = MeshInstance3D.new()
+			var tm = TorusMesh.new()
+			tm.inner_radius = 0.45; tm.outer_radius = 0.6
+			rm.mesh = tm
+			rm.material_override = glow(Color(0.85, 0.95, 1.0), 0.45)
+			var pr = shot(c, from, dir, 34.0, rm, inf(c, "zankuha", 0.45, {"knock": 14.0, "kind": "heavy", "element": "fuuton"}), null, true, 0.75)
+			rm.rotation_degrees = Vector3(90, 0, 0)
+			rm.create_tween().tween_property(rm, "scale", Vector3.ONE * 2.6, 0.75)
+			Projectile.trail(pr, [Color(0.95, 0.9, 0.8, 0.5), Color(0.9, 0.85, 0.75, 0)], 0.6, 16, 0.4, FX.tex_smoke, false)
+			Sfx.play("wind", from, 1.3, 0.5))
+
+
+## Bin Yıllık Ölüm: hedefin arkasında belirip iki parmakla dürter — hedef havaya fırlar
+func p_sennen_goroshi(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 10.0)
+	if tt == null:
+		if c is Player:
+			Hud.msg("Arkasına geçecek hedef yok", Color(1, 0.7, 0.5))
+		return
+	busy(c, 0.8)
+	FX.smoke_puff(c.global_position + Vector3.UP, 0.6, 8)
+	var away = (tt.global_position - c.global_position)
+	away.y = 0
+	c.global_position = gp(tt.global_position + away.normalized() * 1.1)
+	if c is Player:
+		c.combat.face_to(tt)
+	anim(c, "crouch", 1.5)
+	Combat.popup_text(c.global_position + Vector3.UP * 2.2, "Bin Yıllık Ölüm!!", Color(1, 0.6, 0.7))
+	after(0.45, func():
+		if not live(tt) or not live(c):
+			return
+		anim(c, "jab", 1.6)
+		tt.take_hit(inf(c, "sennen_goroshi", 0.8, {"knock": 2.0, "launch": 14.0, "kind": "heavy"}))
+		st(tt, "stun", 1.5)
+		VFX.puffs(tt.global_position + Vector3.UP * 0.9, {"amount": 20, "life": 0.5, "size": 0.3, "radius": 0.2, "vmin": 3, "vmax": 7, "dir": Vector3.UP, "spread": 50.0,
+			"colors": [Color(1, 0.7, 0.8, 0.9), Color(1, 0.9, 0.9, 0)]})
+		Sfx.play("punch", tt.global_position, 1.4))
+
+
+## Geçici Felç: bakışla bağlanan genjutsu — hedefin çevresinde mor bağ çizgileri, 2.5 sn kıpırdayamaz
+func p_kanashibari_no_jutsu(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 16.0)
+	busy(c, 0.5)
+	anim(c, "cast", 1.2)
+	if tt == null:
+		return
+	var col = Color(0.65, 0.35, 0.9)
+	for k in 6:
+		var a = k * TAU / 6.0
+		tether(func(): return tt.global_position + Vector3(cos(a) * 0.9, 1.6, sin(a) * 0.9) if live(tt) else Vector3.ZERO,
+			func(): return tt.global_position + Vector3(cos(a + 2.1) * 0.9, 0.2, sin(a + 2.1) * 0.9) if live(tt) else Vector3.ZERO, 0.03, glow(col, 0.8), 2.5)
+	FX.ring(tt.global_position + Vector3.UP * 0.1, col, 2.2, 0.6)
+	st(tt, "stun", 2.5)
+	Combat.popup_text(tt.global_position + Vector3.UP * 2.3, "Felç!", col)
+	Sfx.play("genjutsu", tt.global_position, 1.2)
