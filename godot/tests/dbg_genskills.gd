@@ -41,7 +41,7 @@ func _ready() -> void:
 		await get_tree().create_timer(0.35).timeout
 		if OS.get_environment("XTRA") != "":
 			await get_tree().create_timer(float(OS.get_environment("XTRA"))).timeout
-		if id in ["kekkai_tengai_hojin", "kawarimi_no_jutsu", "sensa_kaibyo", "susanoo", "senninka", "reika_no_jutsu", "mokuton_henge", "shimogakure_no_jutsu"]:
+		if id in ["doton_doryuheki"]:
 			pl.set_process(false)
 			var fw = pl.face_dir()
 			if id == "kami_tsubasa":

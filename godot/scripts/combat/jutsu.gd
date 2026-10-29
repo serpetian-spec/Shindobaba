@@ -585,20 +585,17 @@ func j_doton_doryuheki(c: Node3D, _t: Node3D) -> void:
 			var cy = randf_range(0.8, 5.5)
 			for seg in 3:
 				b.add("box", Vector3(cx + randf_range(-0.25, 0.25), cy + seg * 0.55, side * 1.08), Vector3(0.09, 0.62, 0.06), Color(0.16, 0.11, 0.08), Vector3(0, 0, randf_range(-35, 35)))
-	# köpek başı kabartmaları (düşman tarafı -Z ve arka yüz)
+	# düz toprak duvar yüzeyi: düzensiz kaya levhaları, katman oyukları, taban molozu (iki yüz)
 	for side in [-1.0, 1.0]:
-		for fx in [-3.8, 0.0, 3.8]:
-			var fc = Color(0.5, 0.39, 0.28)
-			var z = side * 1.05
-			b.add("sphere", Vector3(fx, 4.3, z), Vector3(2.6, 2.4, 1.0), fc)                       # kafa
-			b.add("box", Vector3(fx, 3.5, z + side * 0.55), Vector3(1.5, 0.9, 1.1), fc.darkened(0.06))   # burun-ağız
-			b.add("sphere", Vector3(fx, 3.85, z + side * 1.1), Vector3(0.45, 0.32, 0.3), Color(0.12, 0.08, 0.06))   # burun ucu
-			b.add("box", Vector3(fx, 3.05, z + side * 0.75), Vector3(1.3, 0.12, 0.8), Color(0.14, 0.09, 0.07))     # ağız çizgisi
-			for ex in [-0.6, 0.6]:
-				b.add("box", Vector3(fx + ex, 4.75, z + side * 0.42), Vector3(0.45, 0.16, 0.2), Color(0.1, 0.07, 0.05), Vector3(0, 0, ex * 25))   # kaş-göz
-				b.add("cone", Vector3(fx + ex * 1.5, 5.55, z), Vector3(0.5, 1.1, 0.45), fc, Vector3(0, 0, -ex * 45), 5)   # kulak
-			for tx in [-0.45, -0.15, 0.15, 0.45]:
-				b.add("cone", Vector3(fx + tx, 2.85, z + side * 0.9), Vector3(0.16, 0.42, 0.16), Color(0.9, 0.86, 0.76), Vector3(180, 0, 0), 4)
+		for k in 22:
+			var lx = randf_range(-5.6, 5.6)
+			var ly = randf_range(0.5, 6.5)
+			var lc = strata[randi() % strata.size()].lerp(Color(0.4, 0.31, 0.22), randf() * 0.4)
+			b.add("box", Vector3(lx, ly, side * (1.0 + randf_range(0.02, 0.12))), Vector3(randf_range(0.8, 2.2), randf_range(0.5, 1.2), 0.25), lc, Vector3(randf_range(-6, 6), randf_range(-8, 8), randf_range(-12, 12)))
+		for k in 5:
+			b.add("box", Vector3(randf_range(-0.3, 0.3), 1.0 + k * 1.2 + randf_range(-0.1, 0.1), side * 1.06), Vector3(11.4, 0.07, 0.06), Color(0.2, 0.14, 0.1), Vector3(0, 0, randf_range(-2, 2)))
+		for k in 10:
+			b.add("sphere", Vector3(randf_range(-5.8, 5.8), randf_range(0.1, 0.4), side * randf_range(1.0, 1.7)), Vector3(randf_range(0.4, 0.9), randf_range(0.3, 0.6), randf_range(0.4, 0.8)), strata[k % strata.size()].darkened(0.1))
 	var mi = MeshInstance3D.new()
 	mi.mesh = b.build(Props.toon())
 	mi.scale = Vector3.ONE * wk
