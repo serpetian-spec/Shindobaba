@@ -521,10 +521,16 @@ func board_missions(vid: String, refresh := false) -> Array:
 		if not m.is_empty():
 			out.append(m)
 	var gen = []
+	var recent: Array = Game.profile.get("mis_recent", [])
 	for r in ranks:
-		var ts = _templates(r, vid)
+		var ts = _templates(r, vid).filter(func(x): return not x["title"] in recent)
 		ts.shuffle()
-		gen.append_array(ts.slice(0, 2 if r != "S" else 1))
+		gen.append_array(ts.slice(0, 1))
+	# rastgele üretilen görevler: her panoda farklı işveren, hedef, eşya, düşman (MissionGen)
+	for sp in MissionGen.specs(vid, ranks, 5 + ranks.size()):
+		var gm = _from_spec(vid, sp)
+		if not gm.is_empty():
+			gen.append(gm)
 	gen.shuffle()
 	# panoda en yüksek rütbeden en az bir görev hep olsun (terfi şartı görevleri kaybolmasın)
 	var top = ranks[ranks.size() - 1]
@@ -619,6 +625,8 @@ func accept(m) -> void:
 	for vid in _boards:
 		_boards[vid]["list"] = (_boards[vid]["list"] as Array).filter(func(x): return x.get("id", "") != m.get("id", "?"))
 	m = m.duplicate(true)
+	if m.has("title"):
+		MissionGen.remember(String(m["title"]))
 	if not m.has("steps"):
 		m["steps"] = [{"kind": "goto", "at": [0, 0], "text": m.get("desc", "")}]
 	_skip_middleman(m)
