@@ -2081,7 +2081,7 @@ func _bb_spawn(e: Dictionary, at: Vector3) -> void:
 	var nodes = []
 	var root = get_tree().current_scene
 	nodes.append(null)
-	nodes.append(_camp(at))
+	# Bingo kaçağı YALNIZ dolaşır: kamp kurmaz, eskortu yoktur
 	var a = Enemy.archetype("rogue", 0)
 	a["respawn"] = false
 	a["name"] = "«%s» %s" % [e["alias"], e["name"]]
@@ -2115,23 +2115,11 @@ func _bb_spawn(e: Dictionary, at: Vector3) -> void:
 	b.setup(a)
 	b.set_meta("bingo_id", int(e["id"]))
 	root.add_child(b)
-	var p = at
-	p.y = Game.ground_height(p.x, p.z)
+	var p = open_ground(at, 30.0)
 	b.global_position = p
 	b.home = p
 	nodes[0] = b
 	ClanWorld.after_bingo_spawn(e, b)
-	for i in int(e["escorts"]):
-		var x = Enemy.new()
-		var xa = Enemy.archetype(e["escort_kind"], i)
-		xa["respawn"] = false
-		x.setup(xa)
-		root.add_child(x)
-		var q = at + Vector3(randf_range(-12, 12), 0, randf_range(-12, 12))
-		q.y = Game.ground_height(q.x, q.z)
-		x.global_position = q
-		x.home = q
-		nodes.append(x)
 	_bb_spawned[int(e["id"])] = nodes
 	Hud.msg("Bingo Kitabı: «%s» buralarda bir yerde..." % e["alias"], Color(1, 0.75, 0.5))
 
