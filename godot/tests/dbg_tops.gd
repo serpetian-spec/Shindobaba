@@ -32,7 +32,7 @@ func _ready() -> void:
 				L["top"] = c1; L["top2"] = c2
 				L["sleeves"] = String(it["look"].get("top_style", "")) not in ["tisort", "kolsuz"]
 			"bacak":
-				L["pants"] = c1
+				L["pants"] = c1; L["pants2"] = c2
 			"ayak":
 				L["sandal"] = c1; L["wraps"] = c2
 			"sirt":

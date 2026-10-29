@@ -772,6 +772,8 @@ func _cloth_mat(layer: int) -> ShaderMaterial:
 	mat.set_shader_parameter("top_style", TOP_STYLES.keys().find(top_style()))
 	mat.set_shader_parameter("pants_style", PANTS_STYLES.keys().find(pants_style()))
 	mat.set_shader_parameter("top_pattern", int(look.get("top_pattern", 0)))
+	mat.set_shader_parameter("pants_pattern", int(look.get("pants_pattern", 0)))
+	mat.set_shader_parameter("pants_accent", look.get("pants2", Color(look.get("pants", Color(0.2, 0.2, 0.22))).darkened(0.45)))
 	mat.set_shader_parameter("vest_style", int(look.get("vest_style", 0)))
 	mat.set_shader_parameter("gloves", bool(look.get("gloves", false)))
 	mat.set_shader_parameter("arm_wraps", bool(look.get("arm_wraps", false)))

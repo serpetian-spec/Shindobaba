@@ -20,6 +20,8 @@ uniform vec4 rig_b = vec4(0.95, 0.54, 0.09, 1.31);  // kalça y, diz y, ayak bil
 uniform int top_style = 1;    // 0 tişört, 1 uzun kollu, 2 ceket, 3 yüksek yakalı, 4 kolsuz, 5 kimono, 6 gi, 7 uzun kollu yüksek yaka, 8 atlet, 9 tek kollu
 uniform int pants_style = 0;  // 0 ninja pantolonu, 1 şort, 2 sivil uzun pantolon, 3 sargılı, 4 bol paça, 5 kapri, 6 kısa şort
 uniform int layer = 0;        // 0 vücut, 1 kumaş kabuğu, 2 yelek
+uniform int pants_pattern = 0;  // 1 yan şerit 2 dizlik 3 kamuflaj 4 dama 5 ince çizgi 6 diz altı iki renk 7 paça bandı 8 yamalı 9 kargo cep 10 sarmal sargı 11 alev paça 12 puantiye
+uniform vec4 pants_accent : source_color = vec4(0.1, 0.1, 0.12, 1.0);
 uniform int top_pattern = 0;  // 1 zincir örgü/ağ, 2 yatay çizgili, 3 yan panelli, 4 yamalı/eskimiş, 5 sırtta arma, 6 kenar biyeli, 7 Uchiha yelpazesi, 8..27 (bkz. Gear üst desenleri)
 uniform int vest_style = 0;   // 0 Konoha, 1 Suna, 2 Kiri (yatay dikiş), 3 Kumo (tek askı), 4 Iwa (tek kol), 5 ANBU plaka, 6 samuray lamel,
                               // 7 Kök (dikey dikiş), 8 zincir yelek, 9 kayış koşum, 10 deri pullu zırh, 11 göğüs plakası
@@ -378,6 +380,27 @@ void fragment() {
 					if (mod(rr * 5.0, 1.0) < 0.35 && rr < 0.9) c.rgb = pal[2].rgb;
 				}
 				if (top_pattern == 6 && (rest.y < rig_b.x + 0.09 || (ax > rig_a.x * 0.9 && ax > rig_a.z - 0.075))) c.rgb = pal[2].rgb;
+			}
+			// alt kıyafet desenleri (1..12): rig_b.x kalça, rig_b.y diz, rig_b.z ayak bileği
+			if (slot == 3 && pants_pattern > 0) {
+				float lx = abs(rest.x);
+				vec3 acc = pants_accent.rgb;
+				if (pants_pattern == 1 && abs(rest.z) < 0.02 && lx > 0.07) c.rgb = acc;   // yan şerit
+				if (pants_pattern == 2 && rest.z > 0.02 && abs(rest.y - rig_b.y) < 0.055) c.rgb = acc;   // dizlik
+				if (pants_pattern == 3) { float cn = vnoise(vec2(rest.x + rest.z, rest.y) * 9.0); c.rgb = cn > 0.62 ? acc : (cn < 0.38 ? c.rgb * 0.65 : c.rgb); }   // kamuflaj
+				if (pants_pattern == 4) { vec2 g = floor(vec2(rest.x + rest.z, rest.y) * 13.0); if (mod(g.x + g.y, 2.0) > 0.5) c.rgb = acc; }   // dama
+				if (pants_pattern == 5 && fract((rest.x + rest.z) * 28.0) > 0.8) c.rgb = mix(c.rgb, acc, 0.85);   // ince dikey çizgi
+				if (pants_pattern == 6 && rest.y < rig_b.y) c.rgb = acc;   // dizden aşağısı iki renk
+				if (pants_pattern == 7 && rest.y < rig_b.z + 0.14 && rest.y > rig_b.z + 0.04) c.rgb = acc;   // paça bandı
+				if (pants_pattern == 8) {   // yamalı
+					vec2 q = vec2(rest.x * 9.0 + rest.z * 6.0, rest.y * 7.0);
+					float hh = hash(floor(q));
+					if (hh > 0.82) c.rgb = hh > 0.91 ? acc : c.rgb * 1.2;
+				}
+				if (pants_pattern == 9 && lx > 0.1 && abs(rest.z) < 0.05 && rest.y < rig_b.x - 0.1 && rest.y > rig_b.x - 0.25) c.rgb = mix(c.rgb, acc, 0.9);   // kargo cep
+				if (pants_pattern == 10 && fract(rest.y * 18.0 + atan(rest.z, rest.x - sign(rest.x) * 0.1) * 0.6) < 0.35 && rest.y < rig_b.y + 0.05) c.rgb = acc;   // sarmal sargı
+				if (pants_pattern == 11) { float fh = rig_b.z + 0.1 + 0.12 * pow(abs(sin((rest.x + rest.z) * 25.0)), 3.0); if (rest.y < fh) c.rgb = mix(vec3(1.0, 0.35, 0.05), vec3(1.0, 0.8, 0.2), clamp((fh - rest.y) * 10.0, 0.0, 1.0)); }   // alev paça
+				if (pants_pattern == 12) { vec2 g = fract(vec2(rest.x + rest.z, rest.y) * 15.0) - 0.5; if (length(g) < 0.18) c.rgb = acc; }   // puantiye
 			}
 			if (slot == 8 && outer_pattern > 0) {
 				float dh = rest.y - outer_hem;
