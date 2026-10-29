@@ -405,6 +405,7 @@ func promote(rank: int) -> void:
 			Gear.grant(pr, "alin_boyun", "", hi["band"])
 			Hud.msg("Yeni ekipman: Alın Koruyucu  [Tab > Ekipman]", Color(0.6, 0.9, 1.0))
 		2:
+			GeninSquad.disband()
 			var vest_id = "%s_yelek" % home()
 			if home() == "konoha" or Gear.item(vest_id).is_empty():
 				vest_id = "chunin_yelek"

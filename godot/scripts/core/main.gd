@@ -52,6 +52,9 @@ func _ready() -> void:
 	var life = preload("res://scripts/world/village_life.gd").new()
 	life.name = "VillageLife"
 	actors.add_child(life)
+	var squad = preload("res://scripts/core/squad.gd").new()
+	squad.name = "GeninSquad"
+	actors.add_child(squad)
 	loading.queue_free()
 	menu_cam = Camera3D.new()
 	menu_cam.far = 5000.0

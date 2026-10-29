@@ -91,10 +91,15 @@ func spawn_teammates(at: Vector3, n := 2, level := 8) -> Array:
 	var names = TEAMMATE_NAMES.duplicate()
 	names.shuffle()
 	var hi = Progress.home_info()
+	# Genin takımın varsa (Zil Testi'nden beri) sınava o iki arkadaşınla girersin
+	var own = int(p().get("rank", 0)) <= 1 and String(p().get("squad", {}).get("state", "active")) != "disbanded"
 	for i in n:
 		var e = Enemy.new()
 		var a = Enemy.archetype("genin_rival", i)
 		var nm: Array = names[i]
+		if own and i < 2:
+			a = GeninSquad.mate_arch(i, level)
+			nm = [String(a["name"]).replace(" (takım)", ""), a["look"]["gender"], a["look"]["hair_style"]]
 		a["name"] = "%s (takım)" % nm[0]
 		a["respawn"] = false
 		a["hp"] = 220.0 + level * 12.0

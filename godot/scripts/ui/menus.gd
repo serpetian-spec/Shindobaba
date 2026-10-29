@@ -1862,6 +1862,20 @@ static func _tab_missions(main: Node, body: Control) -> void:
 	var left = UI.vbox(16)
 	left.custom_minimum_size = Vector2(760, 0)
 	h.add_child(left)
+	# Genin takımı: köyde bekletildiyse geri çağır
+	var sqd: Dictionary = pr.get("squad", {})
+	if int(pr.get("rank", 0)) == 1 and String(sqd.get("state", "")) == "active":
+		var tc = UI.card(Color(0.55, 1.0, 0.6))
+		left.add_child(tc)
+		var tv = UI.vbox(6)
+		tc.add_child(tv)
+		tv.add_child(UI.label("Takımın: %s, %s  •  Hoca: %s" % [sqd["mates"][0]["name"], sqd["mates"][1]["name"], sqd["sensei"]["name"]], 16, UI.TEXT))
+		if not sqd.get("follow", true):
+			tv.add_child(UI.button("Takımı çağır", func():
+				GeninSquad.recall()
+				main.resume(), 260, "person"))
+		else:
+			tv.add_child(UI.label("Yanında geziyorlar. Hocanın yanında [F] ile köyde bekletebilirsin. Chūnin olana kadar seninle.", 13, UI.MUTED))
 	# hikâye
 	var sc = UI.card(UI.GOLD)
 	left.add_child(sc)

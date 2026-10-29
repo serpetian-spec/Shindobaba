@@ -641,6 +641,8 @@ func die(info: Dictionary) -> void:
 		attack_tokens = maxi(0, attack_tokens - 1)
 	nameplate.visible = false
 	super.die(info)
+	if has_meta("teammate"):
+		return   # takım arkadaşı düştü: öldürme sayılmaz (XP, görev sayacı yok), yeniden doğmaz
 	Progress.on_enemy_killed(self)
 	if get_meta("respawn", true) and arch.get("respawn", true):
 		var a = arch
