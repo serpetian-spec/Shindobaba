@@ -49,6 +49,7 @@ const PSTYLE := {
 
 
 
+
 ## Jutsuya özel koreografi (hazırlık "wind" + salınım "rel" pozları, zamanlama, gövde klibi) — CastAnim temel stilin üstüne uygular
 const PANIM := {
 	"kage_shuriken_no_jutsu": {"base": "throw", "pre": 0.3, "post": 0.35, "clip": "b/OverhandThrow", "wind": {"R": [Vector3(-0.6, 0.6, -0.5), Vector3(-0.2, 0.9, -0.4), Vector3(0.0, 1.0, -0.2)], "L": [Vector3(0.1, 0.45, 0.88), Vector3(-0.0, 0.5, 0.86), Vector3(-0.0, 0.9, 0.4)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0, 0, 0, 0, 0], "spine": -14.0, "hips_yaw": 35.0}, "rel": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.35, -0.85, -0.35), Vector3(-0.0, -0.4, 0.9), Vector3(-0.0, 0.2, 0.95)], "fR": [0, 0, 0, 0, 0], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 22.0, "hips_yaw": -25.0}},
@@ -352,6 +353,26 @@ const PANIM := {
 	"jitetsu_ryufusho": {"base": "palm", "pre": 0.4, "post": 0.6, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "crouch": 0.3}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.4, -0.7, -0.5), Vector3(-0.0, -0.3, -0.95), Vector3(-0.0, -0.6, -0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 16.0, "hips_yaw": -20.0}},
 	"jiton_sakin_taiso": {"base": "two_palm", "pre": 0.55, "post": 1.0, "wind": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 40.0, "crouch": 0.8}, "rel": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.15, 0.98, 0.1), Vector3(0.05, 1.0, 0.05), Vector3(-0.0, 1.0, 0.0)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": -20.0, "neck": -30.0}},
 	"joki_boi": {"base": "clone", "pre": 0.35, "post": 0.4, "seal_pose": "Bunshin"},
+	"juho_soshiken": {"base": "power", "pre": 0.5, "post": 0.6, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 15.0, "crouch": 0.5}, "rel": {"R": [Vector3(-0.85, -0.45, 0.1), Vector3(-0.9, -0.3, 0.2), Vector3(-0.9, -0.2, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "neck": -10.0, "crouch": 0.6}},
+	"katon_goka_messhitsu": {"base": "breath", "pre": 0.6, "post": 1.2, "wind": {"R": [Vector3(-0.25, -0.55, 0.8), Vector3(0.75, 0.6, 0.25), Vector3(0.5, 0.8, 0.3)], "L": [Vector3(0.25, -0.55, 0.8), Vector3(-0.75, 0.6, 0.25), Vector3(-0.5, 0.8, 0.3)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [0.9, 1.4, 1.4, 1.4, 0.9], "spine": -30.0, "neck": -25.0, "crouch": 0.3}, "rel": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 36.0, "neck": 18.0, "crouch": 0.45}},
+	"katon_goka_senpu": {"base": "breath", "pre": 0.45, "post": 1.0, "spin": 180.0, "wind": {"R": [Vector3(-0.3, -0.5, 0.8), Vector3(0.6, 0.7, 0.35), Vector3(0.3, 0.9, 0.3)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [0, 0, 0, 0, 0], "spine": -20.0}, "rel": {"R": [Vector3(-0.3, -0.5, 0.8), Vector3(0.6, 0.7, 0.35), Vector3(0.3, 0.9, 0.3)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [0, 0, 0, 0, 0], "spine": 22.0, "neck": 12.0}},
+	"katon_kibaku_enjin": {"base": "scroll", "pre": 0.5, "post": 1.0, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.1, 0.45, 0.88), Vector3(0.0, 0.5, 0.86), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -8.0}},
+	"katon_ryuen_hoka_no_jutsu": {"base": "breath", "pre": 0.5, "post": 0.9, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "spine": -14.0}, "rel": {"R": [Vector3(-0.3, -0.5, 0.8), Vector3(0.6, 0.7, 0.35), Vector3(0.3, 0.9, 0.3)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 24.0, "neck": 14.0}},
+	"kaze_no_yaiba": {"base": "palm", "pre": 0.3, "post": 0.4, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0, 0, 0, 0, 0]}, "rel": {"R": [Vector3(-0.1, 0.1, 0.99), Vector3(0.7, 0.1, 0.7), Vector3(0.8, 0.1, 0.6)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0, 0, 0, 0, 0], "spine": 8.0, "hips_yaw": -30.0}},
+	"keiyaku_fuin": {"base": "palm", "pre": 0.3, "post": 0.5, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 14.0}},
+	"kessho_no_yoroi": {"base": "power", "pre": 0.45, "post": 0.5, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "crouch": 0.4}, "rel": {"R": [Vector3(-0.85, -0.45, 0.1), Vector3(-0.9, -0.3, 0.2), Vector3(-0.9, -0.2, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "neck": -10.0, "crouch": 0.3}},
+	"kieru_rasengan": {"base": "charge", "pre": 0.5, "post": 0.5, "wind": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.15, -0.1, 0.98), Vector3(-0.1, -0.1, 0.99), Vector3(-0.0, -0.3, 0.95)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 18.0, "crouch": 0.3}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.4, -0.7, -0.5), Vector3(-0.0, -0.3, -0.95), Vector3(-0.0, -0.6, -0.8)], "fR": [0, 0, 0, 0, 0], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 14.0, "hips_yaw": -20.0}},
+	"kimen_no_bakuen": {"base": "breath", "pre": 0.5, "post": 0.8, "wind": {"R": [Vector3(-0.25, -0.55, 0.8), Vector3(0.75, 0.6, 0.25), Vector3(0.5, 0.8, 0.3)], "L": [Vector3(0.25, -0.55, 0.8), Vector3(-0.75, 0.6, 0.25), Vector3(-0.5, 0.8, 0.3)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [0.9, 1.4, 1.4, 1.4, 0.9], "spine": -22.0, "neck": -16.0}, "rel": {"R": [Vector3(-0.25, -0.55, 0.8), Vector3(0.75, 0.6, 0.25), Vector3(0.5, 0.8, 0.3)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [0, 0, 0, 0, 0], "spine": 26.0, "neck": 12.0}},
+	"kumo_senkyu_suzaku": {"base": "charge", "pre": 0.8, "post": 0.7, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "spine": -6.0, "hips_yaw": 55.0, "crouch": 0.3}, "rel": {"R": [Vector3(-0.4, -0.7, -0.5), Vector3(0.0, -0.3, -0.95), Vector3(0.0, -0.6, -0.8)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [0, 0, 0, 0, 0], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "hips_yaw": 60.0, "crouch": 0.3}},
+	"kuroi_kaminari": {"base": "charge", "pre": 0.55, "post": 0.6, "wind": {"R": [Vector3(-0.35, -0.85, -0.35), Vector3(0.0, -0.4, 0.9), Vector3(0.0, 0.2, 0.95)], "L": [Vector3(0.15, -0.1, 0.98), Vector3(-0.1, -0.1, 0.99), Vector3(-0.0, -0.3, 0.95)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 20.0, "crouch": 0.5}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.15, -0.1, 0.98), Vector3(-0.1, -0.1, 0.99), Vector3(-0.0, -0.3, 0.95)], "fR": [0, 0, 0, 0, 0], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 16.0}},
+	"kuroki_jushinki": {"base": "throw", "pre": 0.3, "post": 0.6, "clip": "b/OverhandThrow", "wind": {"R": [Vector3(-0.6, 0.6, -0.5), Vector3(-0.2, 0.9, -0.4), Vector3(0.0, 1.0, -0.2)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0, 0, 0, 0, 0], "spine": -8.0, "hips_yaw": 25.0}, "rel": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.35, -0.85, -0.35), Vector3(-0.0, -0.4, 0.9), Vector3(-0.0, 0.2, 0.95)], "fR": [0, 0, 0, 0, 0], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 18.0, "hips_yaw": -20.0}},
+	"kyomen_shuja_no_jutsu": {"base": "sense", "pre": 0.35, "post": 0.4, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "neck": -8.0}},
+	"mikazuki_no_mai": {"base": "flicker", "pre": 0.2, "post": 0.6, "clip": "b/Sword_Regular_C", "seal_pose": "Bunshin", "rel": {"R": [Vector3(-0.1, 0.1, 0.99), Vector3(0.7, 0.1, 0.7), Vector3(0.8, 0.1, 0.6)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0, 0, 0, 0, 0], "spine": 18.0, "hips_yaw": -60.0}},
+	"mini_rasenshuriken": {"base": "charge", "pre": 0.55, "post": 0.5, "wind": {"R": [Vector3(-0.2, 0.8, 0.55), Vector3(-0.1, 0.85, 0.5), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0, 0, 0, 0, 0], "spine": -6.0}, "rel": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 16.0, "hips_yaw": -15.0}},
+	"moku_bunshin_no_jutsu": {"base": "clone", "pre": 0.35, "post": 0.4, "seal_pose": "Bunshin"},
+	"mokuton_daisoju": {"base": "palm", "pre": 0.35, "post": 0.8, "wind": {"R": [Vector3(-0.85, -0.45, 0.1), Vector3(-0.9, -0.3, 0.2), Vector3(-0.9, -0.2, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "crouch": 0.3}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 14.0}},
+	"mokuton_jukai_heki": {"base": "ground", "pre": 0.4, "post": 0.6, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 45.0, "crouch": 0.9}},
+	"mokuton_jukai_kotan": {"base": "ground", "pre": 0.6, "post": 1.2, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "neck": -6.0}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 55.0, "neck": -15.0, "crouch": 1.0}},
 }
 
 const SNAKE := Color(0.42, 0.3, 0.5)
@@ -9718,3 +9739,596 @@ func p_joki_boi(c: Node3D, _t: Node3D) -> void:
 				if not enemies_near(c, d.global_position, 2.2).is_empty():
 					d.queue_free(), Callable())
 	Sfx.play("water", at, 0.8)
+
+
+# ================================================================== Yeni jutsular I (Sv.18): aslan yumruk, ateş, rüzgâr, kristal, ahşap
+const LIONBLUE := Color(0.35, 0.65, 1.0)
+
+
+## Ağaç gövdesi/dal (uç sivri)
+func _branch(L: float, r: float) -> MeshInstance3D:
+	var mi = MeshInstance3D.new()
+	var cm = CylinderMesh.new()
+	cm.top_radius = 0.0; cm.bottom_radius = r; cm.height = L; cm.radial_segments = 8
+	mi.mesh = cm
+	var m = StandardMaterial3D.new()
+	m.albedo_color = WOOD.lightened(0.15)
+	m.emission_enabled = true
+	m.emission = WOOD * 0.35
+	m.roughness = 0.9
+	mi.material_override = m
+	return mi
+
+
+## Nazik Adım İkiz Aslan Yumrukları: iki elde mavi alevli aslan başı biçiminde çakra (15 sn) — vuruşlar çakra emer
+func p_juho_soshiken(c: Node3D, _t: Node3D) -> void:
+	busy(c, 0.6)
+	var parts = []
+	for side in ["RightHand", "LeftHand"]:
+		var ba = bone_attach(c, side)
+		if ba == null:
+			continue
+		var lion = Node3D.new()
+		var head = VFX.fireball(0.7, VFX.fire_preset_for(LIONBLUE))
+		lion.add_child(head)
+		for sx in [-1.0, 1.0]:
+			var ear = VFX.fireball(0.28, VFX.fire_preset_for(LIONBLUE))
+			ear.position = Vector3(sx * 0.3, 0.38, 0)
+			ear.scale = Vector3(0.6, 1.4, 0.6)
+			lion.add_child(ear)
+		lion.position = Vector3(0, 0.1, 0.1)
+		ba.add_child(lion)
+		lion.scale = Vector3.ONE * 0.1
+		lion.create_tween().tween_property(lion, "scale", Vector3.ONE, 0.35).set_trans(Tween.TRANS_BACK)
+		parts.append(ba)
+	VFX.gather(c.global_position + Vector3.UP, LIONBLUE, 1.4)
+	if c is Player:
+		Buffs.add("juho_soshiken", 15.0, {"melee": 1.8, "reach": 1.4, "_name": "İkiz Aslan Yumrukları", "_desc": "aslan çakrası: yakın dövüş +%80, menzil +%40"})
+	after(15.0, func():
+		for pp in parts:
+			if is_instance_valid(pp):
+				pp.queue_free())
+	Sfx.play("fire", c.global_position, 1.2)
+
+
+## Büyük Ateş Yıkımı: ağızdan geniş, alanı yutan alev dalgası (çok sayıda alev küresi), arkasında yanan zemin
+func p_katon_goka_messhitsu(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.3)
+	var d = fwd(c, t)
+	VFX.gather(_mouth_pos(c), FIRE, 2.0)
+	after(0.3, func():
+		var side = d.cross(Vector3.UP)
+		for j in 3:
+			var dd = (d + side * (j - 1) * 0.35).normalized()
+			fire_stream(_mouth_pos(c), dd, 22.0, 5.0, 12)
+		Combat.hit_zone(c, c.global_position, d, 24.0, 40.0, 5.0, inf(c, "katon_goka_messhitsu", 2.2, {"knock": 14.0, "kind": "heavy", "element": "katon", "burn": 4.0}))
+		for k in 5:
+			VFX.linger(gp(c.global_position + d * (6.0 + k * 3.5) + side * randf_range(-4, 4)), "katon", FIRE, 2.0, 5.0)
+		shake(1.0))
+	Sfx.play("fire", c.global_position, 0.4)
+
+
+## Büyük Ateş Hortumu: rüzgâr ve ateş birleşir — hedefin üstünde yükselen dev alev hortumu
+func p_katon_goka_senpu(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.2)
+	var tt = tg(c, t, 22.0)
+	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 10.0)
+	var tor = MeshInstance3D.new()
+	var cm = CylinderMesh.new()
+	cm.top_radius = 4.0; cm.bottom_radius = 1.2; cm.height = 12.0; cm.radial_segments = 24
+	tor.mesh = cm
+	tor.material_override = VFX.mat_spiral(Color(1, 0.9, 0.4), FIRE, 6.0, 4.0, 14.0, 1.8, Vector3.UP)
+	get_tree().current_scene.add_child(tor)
+	tor.global_position = at + Vector3.UP * 6.0
+	tor.scale = Vector3(0.1, 0.05, 0.1)
+	var tw = tor.create_tween()
+	tw.tween_property(tor, "scale", Vector3.ONE, 0.4)
+	tw.tween_interval(2.0)
+	tw.tween_property(tor, "scale", Vector3(0.1, 1, 0.1), 0.4)
+	tw.tween_callback(tor.queue_free)
+	every(2.4, 0.15, func(_i, k):
+		var a = k * TAU * 4.0
+		var fb = VFX.fireball(1.0)
+		get_tree().current_scene.add_child(fb)
+		fb.global_position = at + Vector3(cos(a) * (1.2 + k * 2.5), 0.5 + k * 10.0, sin(a) * (1.2 + k * 2.5))
+		fb.create_tween().tween_property(fb, "scale", Vector3.ONE * 0.05, 0.5).finished.connect(fb.queue_free)
+		VFX.debris(at, EARTH, 2, 8.0, 0.3)
+		hit(c, at + Vector3.UP * 1.5, 3.5, inf(c, "katon_goka_senpu", 0.18, {"knock": 6.0, "launch": 6.0, "kind": "light", "element": "katon", "burn": 1.0})), Callable())
+	VFX.linger(at, "katon", FIRE, 2.0, 4.0)
+	shake(0.7)
+	Sfx.play("fire", at, 0.5)
+
+
+## Patlayan Alev Alanı: hedefin çevresine etiketler serpilir, bariyer kurulur — içinde alev dalgaları patlar
+func p_katon_kibaku_enjin(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.0)
+	var tt = tg(c, t, 22.0)
+	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 8.0)
+	paper_storm(hand_pos(c, true), at, 40, 0.5, 2.0, 0.3, Color(0.95, 0.9, 0.75))
+	var box = MeshInstance3D.new()
+	var bm = BoxMesh.new()
+	bm.size = Vector3(8.0, 4.5, 8.0)
+	box.mesh = bm
+	box.material_override = VFX.mat_wind(Color(1.0, 0.6, 0.3), 2.0, 9.0, Vector3(0, 1, 0), 0.4)
+	get_tree().current_scene.add_child(box)
+	box.global_position = at + Vector3.UP * 2.25
+	box.scale = Vector3(1, 0.02, 1)
+	var tw = box.create_tween()
+	tw.tween_interval(0.5)
+	tw.tween_property(box, "scale", Vector3.ONE, 0.3)
+	tw.tween_interval(3.0)
+	tw.tween_property(box, "scale", Vector3(1, 0.02, 1), 0.3)
+	tw.tween_callback(box.queue_free)
+	for k in 8:
+		after(0.9 + k * 0.35, func():
+			var q = at + Vector3(randf_range(-3, 3), 0.5, randf_range(-3, 3))
+			impact_fx("katon", FIRE, q, 1.2)
+			for e in enemies_near(c, at, 4.0):
+				e.take_hit(inf(c, "katon_kibaku_enjin", 0.3, {"knock": 2.0, "kind": "heavy", "element": "katon", "burn": 1.0}))
+				st(e, "bind", 0.4))
+	Sfx.play("seal", at, 0.8)
+
+
+## Ejder Alevi Gürültüsü: ağızdan sivri dişli ejder başı biçiminde çok sayıda alev mermisi
+func p_katon_ryuen_hoka_no_jutsu(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.0)
+	var tt = tg(c, t, 28.0)
+	for k in 5:
+		after(k * 0.12, func():
+			if not live(c):
+				return
+			var head = Node3D.new()
+			head.add_child(VFX.fireball(1.1))
+			for j in 4:
+				var tooth = MeshInstance3D.new()
+				var cm = CylinderMesh.new()
+				cm.top_radius = 0.0; cm.bottom_radius = 0.08; cm.height = 0.35
+				tooth.mesh = cm
+				tooth.material_override = VFX.mat_bolt(Color(1, 0.95, 0.7), 1.2)
+				tooth.position = Vector3((j - 1.5) * 0.2, -0.2, 0.55)
+				tooth.rotation.x = PI
+				head.add_child(tooth)
+			for sx in [-1.0, 1.0]:
+				var ey = VFX.fireball(0.25, "blue")
+				ey.position = Vector3(sx * 0.3, 0.3, 0.4)
+				head.add_child(ey)
+			var from = _mouth_pos(c) + c.face_dir().cross(Vector3.UP) * (k - 2) * 0.5
+			var pr = shot(c, from, aim_at(c, tt, from).rotated(Vector3.UP, (k - 2) * 0.06), 26.0, head, inf(c, "katon_ryuen_hoka_no_jutsu", 0.5, {"knock": 8.0, "kind": "heavy", "element": "katon", "burn": 2.0}), tt, false, 1.6, func(p, _h):
+				impact_fx("katon", FIRE, p, 1.1))
+			pr.homing_turn = 2.5
+			pr.radius = 0.9
+			_etrail(pr, "katon", FIRE, 1.2))
+	Sfx.play("fire", c.global_position, 0.6)
+
+
+## Rüzgâr Bıçağı: iki parmaktan çıkan görünmez rüzgâr bıçağı uzaktan hedefi keser (havada ince titreşen çizgi)
+func p_kaze_no_yaiba(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.6)
+	var tt = tg(c, t, 16.0)
+	var d = _face(c, tt)
+	after(0.2, func():
+		if not live(c):
+			return
+		var from = hand_pos(c, true)
+		var end = (tt.global_position + Vector3.UP if tt else from + d * 14.0)
+		var line = MeshInstance3D.new()
+		var bm = BoxMesh.new()
+		bm.size = Vector3(0.06, 0.6, from.distance_to(end))
+		line.mesh = bm
+		line.material_override = _windmat(0.8)
+		get_tree().current_scene.add_child(line)
+		line.global_position = (from + end) * 0.5
+		line.look_at(end, Vector3.UP)
+		var tw = line.create_tween()
+		tw.tween_property(line, "rotation:z", 0.6, 0.25)
+		tw.parallel().tween_property(line, "scale", Vector3(1, 1, 1.05), 0.25)
+		tw.tween_property(line, "scale", Vector3(0.01, 0.01, 1), 0.2)
+		tw.tween_callback(line.queue_free)
+		if tt:
+			_arc_cut(tt.global_position + Vector3.UP, d, -50.0, 50.0, Color(0.9, 1, 0.95), 1.4)
+			mhit(c, tt.global_position + Vector3.UP, 1.6, inf(c, "kaze_no_yaiba", 1.6, {"knock": 4.0, "kind": "heavy", "element": "fuuton", "bleed": 5.0}))
+		Sfx.play("wind", from, 2.0, 0.5))
+
+
+## Sözleşme Mührü: avuç hedefe basılır, mühür çizgileri yayılır — çağrısı/dönüşümü kilitlenir, kısa felç
+func p_keiyaku_fuin(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 5.0)
+	busy(c, 0.7)
+	if tt == null:
+		return
+	_jump_at(c, tt, 0.0, 8.0)
+	after(0.2, func():
+		if not live(tt):
+			return
+		for k in 8:
+			var a = k * TAU / 8.0
+			tether(func(): return tt.global_position + Vector3.UP * 1.0 if live(tt) else Vector3.ZERO, func(): return tt.global_position + Vector3(cos(a) * 1.2, 1.0 + sin(a * 2.0) * 0.6, sin(a) * 1.2) if live(tt) else Vector3.ZERO, 0.03,
+				VFX.mat_bolt(Color(0.15, 0.1, 0.12), 0.6), 2.5)
+		VFX.star(tt.global_position + Vector3.UP, Color(0.9, 0.85, 0.7), 1.4)
+		st(tt, "stun", 2.0)
+		st(tt, "slow", 4.0)
+		Combat.popup_text(tt.global_position + Vector3.UP * 2.4, "Sözleşme mühürlendi!", Color(0.9, 0.85, 0.7)))
+	Sfx.play("seal", c.global_position, 1.1)
+
+
+## Kristal Zırh: bedeni pembe kristal plakalar kaplar (15 sn) — darbeler kristalde kırılır
+func p_kessho_no_yoroi(c: Node3D, _t: Node3D) -> void:
+	busy(c, 0.6)
+	var parts = []
+	for bone in ["UpperChest", "LeftLowerArm", "RightLowerArm", "LeftUpperLeg", "RightUpperLeg", "LeftHand", "RightHand"]:
+		var ba = bone_attach(c, bone)
+		if ba == null:
+			continue
+		var b = MB.new()
+		b.add("box", Vector3(0, 0.1, 0), Vector3(0.26, 0.3, 0.24) * (1.5 if bone == "UpperChest" else 1.0), PINKCRYSTAL, Vector3(randf_range(-15, 15), randf_range(0, 90), 0))
+		var mi = mesh_of(b, _crystal_mat(PINKCRYSTAL))
+		ba.add_child(mi)
+		mi.scale = Vector3.ONE * 0.1
+		mi.create_tween().tween_property(mi, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_BACK)
+		parts.append(ba)
+	FX.burst(c.global_position + Vector3.UP, {"amount": 30, "life": 0.6, "tex": FX.tex_spark, "add": true, "size": 0.25, "vmin": 2, "vmax": 6, "colors": [Color(1, 1, 1, 1), PINKCRYSTAL, Color(PINKCRYSTAL.r, PINKCRYSTAL.g, PINKCRYSTAL.b, 0)]})
+	if c is Player:
+		Buffs.add("kessho_yoroi", 15.0, {"armor": 0.4, "melee": 1.3, "_name": "Kristal Zırh", "_desc": "kristal plakalar: gelen hasar çok azalır, yumruklar sertleşir"})
+	after(15.0, func():
+		for pp in parts:
+			if is_instance_valid(pp):
+				pp.queue_free())
+	Sfx.play("clink", c.global_position, 1.0)
+
+
+## Kaybolan Rasengan: fırlatılan Rasengan görünmez olur, hedefin yanında aniden yeniden belirip çarpar
+func p_kieru_rasengan(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.9)
+	var tt = tg(c, t, 22.0)
+	var from = hand_pos(c, true)
+	var ba = bone_attach(c, "RightHand")
+	if ba:
+		ba.add_child(VFX.rasengan(0.4))
+		after(0.4, func():
+			if is_instance_valid(ba):
+				ba.queue_free())
+	after(0.4, func():
+		if not live(c):
+			return
+		var r = VFX.rasengan(0.7)
+		var pr = shot(c, from, aim_at(c, tt, from), 24.0, r, inf(c, "kieru_rasengan", 1.8, {"knock": 18.0, "launch": 4.0, "kind": "heavy"}), tt, false, 1.6, func(p, _h):
+			impact_fx("fuuton", Color(0.5, 0.75, 1.0), p, 1.6))
+		pr.homing_turn = 6.0
+		after(0.15, func():
+			if is_instance_valid(r):
+				r.visible = false)
+		after(0.4, func():
+			if is_instance_valid(r):
+				r.visible = true
+				VFX.star(r.global_position, Color(0.6, 0.85, 1.0), 1.8)))
+	Sfx.play("wind", c.global_position, 1.4)
+
+
+## Garip Maske Patlayan Alev: ateş ve rüzgâr birleşir — alev topu rüzgârla devleşip patlar
+func p_kimen_no_bakuen(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.0)
+	var tt = tg(c, t, 26.0)
+	var at = (tt.global_position + Vector3.UP if tt else c.global_position + fwd(c, t) * 12.0 + Vector3.UP)
+	var fb = VFX.fireball(1.2)
+	get_tree().current_scene.add_child(fb)
+	fb.global_position = _mouth_pos(c)
+	var wb = VFX.wind_ball(1.0)
+	get_tree().current_scene.add_child(wb)
+	wb.global_position = _mouth_pos(c) + c.face_dir().cross(Vector3.UP) * 1.0
+	var tw = fb.create_tween()
+	tw.tween_property(fb, "global_position", at, 0.6)
+	tw.parallel().tween_property(fb, "scale", Vector3.ONE * 4.0, 0.6)
+	tw.tween_callback(func():
+		impact_fx("katon", FIRE, at, 2.4)
+		hit(c, at, 6.0, inf(c, "kimen_no_bakuen", 2.2, {"knock": 18.0, "launch": 6.0, "kind": "heavy", "element": "katon", "burn": 3.0}))
+		shake(1.0)
+		fb.queue_free())
+	var tw2 = wb.create_tween()
+	tw2.tween_property(wb, "global_position", at, 0.55)
+	tw2.tween_callback(wb.queue_free)
+	Sfx.play("fire", c.global_position, 0.6)
+
+
+## Örümcek Savaş Yayı: Korkunç Yarılma — altın yay gerilir, devasa delici altın ok her şeyi delip geçer
+func p_kumo_senkyu_suzaku(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.2)
+	var tt = tg(c, t, 40.0)
+	var gm = StandardMaterial3D.new()
+	gm.albedo_color = GOLD
+	gm.metallic = 0.9
+	gm.roughness = 0.25
+	var ba = bone_attach(c, "LeftHand")
+	if ba:
+		var bow = MeshInstance3D.new()
+		var tm = TorusMesh.new()
+		tm.inner_radius = 1.3; tm.outer_radius = 1.42; tm.rings = 32; tm.ring_segments = 6
+		bow.mesh = tm
+		bow.material_override = gm
+		bow.scale = Vector3(1, 1, 0.3)
+		ba.add_child(bow)
+		after(1.2, func():
+			if is_instance_valid(ba):
+				ba.queue_free())
+	VFX.gather(hand_pos(c, true), GOLD, 1.6)
+	after(0.6, func():
+		if not live(c):
+			return
+		var from = hand_pos(c, true)
+		var b = MB.new()
+		b.add("cyl", Vector3(0, 0, -0.8), Vector3(0.1, 2.4, 0.1), GOLD, Vector3(90, 0, 0), 8)
+		b.add("cone", Vector3(0, 0, 0.55), Vector3(0.3, 0.6, 0.3), GOLD, Vector3(90, 0, 0), 4)
+		var pr = shot(c, from, aim_at(c, tt, from), 70.0, mesh_of(b, gm), inf(c, "kumo_senkyu_suzaku", 2.6, {"knock": 20.0, "kind": "heavy", "bleed": 5.0, "hitstop": 0.12}), null, true, 1.0, func(p, _h):
+			VFX.star(p, GOLD, 2.4)
+			VFX.shockwave(p, GOLD, 4.0, 0.3, false))
+		pr.radius = 0.6
+		VFX.trail(pr, 0.3, Color(1, 1, 0.9, 1), GOLD, Color(GOLD.r, GOLD.g, GOLD.b, 0), 20, 0.6)
+		VFX.shockwave(from, GOLD, 3.0, 0.3, false, c.face_dir())
+		Sfx.play("whoosh", from, 1.2))
+
+
+## Kara Şimşek: avuçtan kapkara, kalın şimşek akımı hedefi delip geçer
+func p_kuroi_kaminari(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.9)
+	var tt = tg(c, t, 24.0)
+	var black = Color(0.12, 0.1, 0.18)
+	VFX.gather(hand_pos(c, true), Color(0.4, 0.35, 0.55), 1.4)
+	after(0.3, func():
+		if not live(c):
+			return
+		var from = hand_pos(c, true)
+		var end = from + aim_at(c, tt, from) * 22.0
+		for k in 3:
+			VFX.bolt(from, end, black, 0.45 - k * 0.1, 0.5, 5)
+		VFX.bolt(from, end, Color(0.7, 0.65, 0.9), 0.08, 0.5, 0)
+		Combat.hit_zone(c, c.global_position, aim_at(c, tt, from), 22.0, 6.0, 3.0, inf(c, "kuroi_kaminari", 2.2, {"knock": 14.0, "kind": "heavy", "element": "raiton", "stun": 1.0, "hitstop": 0.1}))
+		if tt:
+			impact_fx("raiton", Color(0.55, 0.45, 0.8), tt.global_position + Vector3.UP, 1.6)
+		shake(0.7)
+		Sfx.play("thunder", from, 0.7))
+
+
+## Kara Alıcılar: kara çakra çubukları fırlatılır, hedefe saplanır — çakrası bozulur, yavaşlar
+func p_kuroki_jushinki(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.6)
+	var tt = tg(c, t, 26.0)
+	var from = hand_pos(c, true)
+	for k in 5:
+		after(k * 0.07, func():
+			var b = MB.new()
+			b.add("cyl", Vector3(0, 0, 0), Vector3(0.06, 1.1, 0.06), Color(0.08, 0.08, 0.1), Vector3(90, 0, 0), 6)
+			b.add("cone", Vector3(0, 0, 0.6), Vector3(0.08, 0.2, 0.08), Color(0.08, 0.08, 0.1), Vector3(90, 0, 0), 4)
+			var pr = shot(c, from, aim_at(c, tt, from).rotated(Vector3.UP, randf_range(-0.05, 0.05)), 44.0, mesh_of(b), inf(c, "kuroki_jushinki", 0.3, {"knock": 1.0, "kind": "heavy", "bleed": 2.0}), tt, false, 1.0, func(p, h):
+				if h and live(h):
+					st(h, "slow", 4.0)
+					VFX.puffs(h.global_position + Vector3.UP, {"amount": 10, "life": 0.6, "size": 0.4, "radius": 0.4, "vmin": 0.5, "vmax": 1.5, "dir": Vector3.UP, "spread": 50.0, "add": false,
+						"colors": [Color(0.2, 0.15, 0.3, 0.8), Color(0.15, 0.1, 0.2, 0)]})
+					if c is Player:
+						chakra_gain(c, 2.0))
+			VFX.trail(pr, 0.05, Color(0.4, 0.35, 0.5, 0.8), Color(0.15, 0.12, 0.2, 0.4), Color(0.1, 0.1, 0.12, 0), 10, 0.0))
+	Sfx.play("kunai", from, 1.2)
+
+
+## Aynalı Ani Saldırgan: yeşil yansıtılmış bir kopya belirir, hedefin yönünü şaşırtır
+func p_kyomen_shuja_no_jutsu(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 18.0)
+	busy(c, 0.5)
+	if tt == null:
+		return
+	var at = tt.global_position + (c.global_position - tt.global_position).normalized() * -2.5
+	var d = decoy(c, gp(at), 4.0)
+	if d:
+		VFX.gather(d.global_position + Vector3.UP, Color(0.4, 0.95, 0.5), 1.0)
+	st(tt, "slow", 4.0)
+	if tt.has_method("lose_target"):
+		tt.lose_target(3.0)
+	Combat.popup_text(tt.global_position + Vector3.UP * 2.3, "Yanıldı!", Color(0.4, 0.95, 0.5))
+	Sfx.play("genjutsu", tt.global_position, 1.3)
+
+
+## Hilal Ay Dansı: iki klon belirir — üç yönden aynı anda hilal kılıç kesikleri
+func p_mikazuki_no_mai(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 12.0)
+	busy(c, 0.9)
+	if tt == null:
+		return
+	var at = tt.global_position
+	var dirs = []
+	for k in 3:
+		var a = k * TAU / 3.0
+		var q = gp(at + Vector3(cos(a), 0, sin(a)) * 2.0)
+		FX.smoke_puff(q + Vector3.UP, 0.6, 8)
+		if k > 0:
+			decoy(c, q, 0.9)
+		else:
+			c.global_position = q
+		dirs.append((at - q).normalized())
+	after(0.3, func():
+		if not live(tt):
+			return
+		for d in dirs:
+			_arc_cut(tt.global_position + Vector3.UP * 1.1 - d * 0.8, d, -80.0, 80.0, Color(0.9, 0.95, 1.0), 1.6)
+		melee_fx(c, tt.global_position + Vector3.UP, Color(0.9, 0.95, 1.0), 1.6)
+		tt.take_hit(inf(c, "mikazuki_no_mai", 2.0, {"knock": 8.0, "kind": "heavy", "bleed": 4.0, "hitstop": 0.12}))
+		Sfx.play("clink", tt.global_position, 0.9))
+
+
+## Mini Rasenşuriken: avuçta küçük dönen rüzgâr shurikeni — çarpınca içine çeken kesici rüzgâr küresi
+func p_mini_rasenshuriken(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.9)
+	var tt = tg(c, t, 26.0)
+	var from = hand_pos(c, true)
+	VFX.gather(from, Color(0.6, 0.85, 1.0), 1.2)
+	after(0.35, func():
+		if not live(c):
+			return
+		var core = Node3D.new()
+		core.add_child(VFX.rasengan(0.4))
+		for k in 4:
+			var bl = MeshInstance3D.new()
+			var pm = PrismMesh.new()
+			pm.size = Vector3(0.3, 0.9, 0.03)
+			bl.mesh = pm
+			bl.material_override = _windmat(0.85)
+			bl.rotation = Vector3(PI * 0.5, k * PI * 0.5, 0)
+			bl.position = Vector3(cos(k * PI * 0.5), 0, sin(k * PI * 0.5)) * 0.55
+			core.add_child(bl)
+		var pr = shot(c, from, aim_at(c, tt, from), 28.0, core, inf(c, "mini_rasenshuriken", 0.6, {"knock": 4.0, "kind": "heavy", "element": "fuuton"}), tt, false, 1.6, func(p, _h):
+			var orb = VFX.wind_ball(1.0)
+			get_tree().current_scene.add_child(orb)
+			orb.global_position = p
+			var tw = orb.create_tween()
+			tw.tween_property(orb, "scale", Vector3.ONE * 5.0, 0.3)
+			tw.tween_interval(0.6)
+			tw.tween_property(orb, "scale", Vector3.ONE * 0.05, 0.2)
+			tw.tween_callback(orb.queue_free)
+			every(0.8, 0.1, func(_i, _k):
+				hit(c, p, 3.0, inf(c, "mini_rasenshuriken", 0.2, {"knock": 0.0, "kind": "light", "element": "fuuton", "bleed": 1.0})), Callable())
+			shake(0.5))
+		pr.spin = Vector3(0, 30, 0)
+		pr.homing_turn = 3.0
+		_etrail(pr, "fuuton", Color(0.6, 0.85, 1.0), 1.0))
+	Sfx.play("wind", from, 1.6, 0.5)
+
+
+## Ahşap Klon: bedenden ahşap tomurcuk filizlenip kopyana dönüşür — sağlam, kırılınca ahşaba döner
+func p_moku_bunshin_no_jutsu(c: Node3D, _t: Node3D) -> void:
+	busy(c, 0.6)
+	var at = gp(c.global_position + c.face_dir().cross(Vector3.UP) * 2.5)
+	for k in 5:
+		var br = _branch(randf_range(1.0, 2.0), 0.12)
+		get_tree().current_scene.add_child(br)
+		br.global_position = at + Vector3(randf_range(-0.4, 0.4), 0.6, randf_range(-0.4, 0.4))
+		br.rotation = Vector3(randf_range(-0.4, 0.4), 0, randf_range(-0.4, 0.4))
+		br.scale = Vector3(1, 0.05, 1)
+		var tw = br.create_tween()
+		tw.tween_property(br, "scale", Vector3.ONE, 0.3)
+		tw.tween_interval(0.2)
+		tw.tween_property(br, "scale", Vector3(1, 0.05, 1), 0.2)
+		tw.tween_callback(br.queue_free)
+	after(0.45, func():
+		if live(c):
+			var d = decoy(c, at, 14.0, func(pos):
+				VFX.debris(pos + Vector3.UP, WOOD, 24, 7.0, 0.4))
+			if d:
+				d.set("max_hp", 4.0))
+	Sfx.play("earth", at, 1.2)
+
+
+## Büyük Mızrak Ağacı: kollardan sivri dallar mızrak gibi uzayıp hedefi delip geçer
+func p_mokuton_daisoju(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.8)
+	var tt = tg(c, t, 18.0)
+	var from = hand_pos(c, true)
+	for k in 5:
+		after(0.15 + k * 0.05, func():
+			if not live(c):
+				return
+			var end = (tt.global_position + Vector3.UP if tt else from + c.face_dir() * 14.0) + Vector3(randf_range(-0.8, 0.8), randf_range(-0.5, 0.6), randf_range(-0.8, 0.8))
+			var L = from.distance_to(end)
+			var br = _branch(L, 0.18)
+			get_tree().current_scene.add_child(br)
+			br.global_position = from
+			br.look_at(end, Vector3.UP)
+			br.rotate_object_local(Vector3.RIGHT, -PI * 0.5)
+			br.scale = Vector3(1, 0.02, 1)
+			var root = Node3D.new()
+			get_tree().current_scene.add_child(root)
+			var tw = br.create_tween()
+			tw.tween_method(func(u):
+				if is_instance_valid(br):
+					br.scale = Vector3(1, maxf(0.02, u), 1)
+					br.global_position = from.lerp(end, u * 0.5), 0.0, 1.0, 0.15)
+			tw.tween_interval(1.2)
+			tw.tween_property(br, "scale", Vector3(0.3, 0.02, 0.3), 0.3)
+			tw.tween_callback(br.queue_free)
+			root.queue_free())
+	after(0.35, func():
+		if tt and live(tt):
+			mhit(c, tt.global_position + Vector3.UP, 1.8, inf(c, "mokuton_daisoju", 1.8, {"knock": 8.0, "kind": "heavy", "element": "mokuton", "bleed": 4.0})))
+	Sfx.play("earth", c.global_position, 1.1)
+
+
+## Ağaçlar Dünyası Duvarı: önünde yerden kalın, örülü ağaç gövdelerinden dev duvar yükselir
+func p_mokuton_jukai_heki(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.7)
+	var d = fwd(c, t)
+	var at = gp(c.global_position + d * 3.0)
+	var side = d.cross(Vector3.UP)
+	var root = Node3D.new()
+	get_tree().current_scene.add_child(root)
+	root.global_position = at
+	for k in 12:
+		var tr = MeshInstance3D.new()
+		var cm = CylinderMesh.new()
+		cm.top_radius = 0.3; cm.bottom_radius = 0.5; cm.height = randf_range(5.0, 7.0)
+		tr.mesh = cm
+		var m = StandardMaterial3D.new()
+		m.albedo_color = WOOD.lightened(randf_range(0.05, 0.2))
+		m.emission_enabled = true
+		m.emission = WOOD * 0.35
+		tr.material_override = m
+		tr.position = side * ((k - 5.5) * 0.75) + Vector3.UP * cm.height * 0.5
+		tr.rotation = Vector3(randf_range(-0.15, 0.15), 0, randf_range(-0.2, 0.2))
+		root.add_child(tr)
+	root.scale = Vector3(1, 0.02, 1)
+	var tw = root.create_tween()
+	tw.tween_property(root, "scale", Vector3.ONE, 0.4).set_trans(Tween.TRANS_BACK)
+	tw.tween_interval(7.0)
+	tw.tween_property(root, "scale", Vector3(1, 0.02, 1), 0.5)
+	tw.tween_callback(root.queue_free)
+	for k in 4:
+		_earth_burst(at + side * ((k - 1.5) * 2.5), 1.0)
+	every(7.5, 0.1, func(_i, _k):
+		for p in get_tree().get_nodes_in_group("projectiles"):
+			if p.get("shooter") != c and absf((p.global_position - at).dot(d)) < 1.0 and absf((p.global_position - at).dot(side)) < 4.8:
+				VFX.debris(p.global_position, WOOD, 4, 5.0, 0.3)
+				p.queue_free(), Callable())
+	shake(0.5)
+	Sfx.play("earth", at, 0.7)
+
+
+## Ağaçların Doğuşu: çevrede dev bir orman fışkırır — ağaçlar düşmanları savurur ve dallarıyla sarar
+func p_mokuton_jukai_kotan(c: Node3D, _t: Node3D) -> void:
+	busy(c, 1.2)
+	var at = gp(c.global_position)
+	for k in 26:
+		after(randf() * 0.6, func():
+			var a = randf() * TAU
+			var r = randf_range(3.0, 14.0)
+			var q = gp(at + Vector3(cos(a) * r, 0, sin(a) * r))
+			var tree = Node3D.new()
+			var trunk = MeshInstance3D.new()
+			var cm = CylinderMesh.new()
+			var h = randf_range(5.0, 10.0)
+			cm.top_radius = 0.3; cm.bottom_radius = 0.7; cm.height = h
+			trunk.mesh = cm
+			var m = StandardMaterial3D.new()
+			m.albedo_color = WOOD.lightened(0.15)
+	m.emission_enabled = true
+	m.emission = WOOD * 0.35
+			trunk.material_override = m
+			trunk.position = Vector3.UP * h * 0.5
+			tree.add_child(trunk)
+			var crown = MeshInstance3D.new()
+			crown.mesh = SphereMesh.new()
+			var lm = StandardMaterial3D.new()
+			lm.albedo_color = Color(0.3, 0.6, 0.25)
+			lm.emission_enabled = true
+			lm.emission = Color(0.1, 0.25, 0.08)
+			crown.material_override = lm
+			crown.scale = Vector3.ONE * randf_range(2.5, 4.0)
+			crown.position = Vector3.UP * h
+			tree.add_child(crown)
+			get_tree().current_scene.add_child(tree)
+			tree.global_position = q
+			tree.scale = Vector3(1, 0.02, 1)
+			var tw = tree.create_tween()
+			tw.tween_property(tree, "scale", Vector3.ONE, 0.35).set_trans(Tween.TRANS_BACK)
+			tw.tween_interval(6.0)
+			tw.tween_property(tree, "scale", Vector3(1, 0.02, 1), 0.6)
+			tw.tween_callback(tree.queue_free)
+			_earth_burst(q, 0.8)
+			for e in hit(c, q + Vector3.UP, 2.4, inf(c, "mokuton_jukai_kotan", 0.6, {"knock": 8.0, "launch": 9.0, "kind": "heavy", "element": "mokuton"})):
+				st(e, "bind", 2.0))
+	shake(1.0)
+	Sfx.play("earth", at, 0.5)
