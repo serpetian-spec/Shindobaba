@@ -42,7 +42,7 @@ func _ready() -> void:
 		var m = CharacterModel.new()
 		main.add_child(m)
 		m.setup(L)
-		var p = base + Vector3((i - 4.5) * 1.1, 0, 0)
+		var p = base + Vector3((i - 4.5) * (float(OS.get_environment("SP")) if OS.get_environment("SP") != "" else 1.1), 0, 0)
 		p.y = Game.ground_height(p.x, p.z)
 		m.global_position = p
 		m.rotation.y = PI if OS.get_environment("BACK") != "" else 0.0
@@ -57,9 +57,9 @@ func _ready() -> void:
 	await get_tree().create_timer(0.8).timeout
 	var cam = Camera3D.new()
 	main.add_child(cam)
-	cam.fov = 40
+	cam.fov = float(OS.get_environment("FOV")) if OS.get_environment("FOV") != "" else 40.0
 	var zoom = float(OS.get_environment("CAMY")) if OS.get_environment("CAMY") != "" else 1.1
-	cam.global_position = base + Vector3(0, zoom, 8.5)
+	cam.global_position = base + Vector3(0, zoom, 8.5 if OS.get_environment("NEAR") == "" else -4.0)
 	cam.look_at(base + Vector3(0, zoom, 0))
 	cam.current = true
 	await get_tree().create_timer(0.3).timeout

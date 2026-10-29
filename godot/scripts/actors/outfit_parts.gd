@@ -221,6 +221,9 @@ static func accessories(m: CharacterModel) -> void:
 					mb.add("sphere", Vector3(0, -0.05, 0.05), Vector3(0.08, 0.05, 0.03), Color(0.92, 0.75, 0.65), Vector3.ZERO, 8)
 					mb.add("box", Vector3(0, 0.075, 0.045), Vector3(0.09, 0.012, 0.004), red)
 			m._mesh_on("Head", mb.build(toon), Transform3D(Basis.IDENTITY, hc + Vector3(0, -0.03, 0.085)))
+		_:
+			if fs != "":
+				FaceItemsExt.build(m, fs, fg, hc, hw, hh, hd, toon)
 	# --- omuz zırhı
 	var gd = L.get("guards")
 	var ac: Color = L.get("acc") if L.get("acc") != null else steel
