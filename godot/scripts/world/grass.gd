@@ -17,13 +17,14 @@ func _ready() -> void:
 	var xf: Array = []
 	var rng = RandomNumberGenerator.new()
 	rng.seed = 7
+	# düz ızgara: kayma/dönüş/boy gölgelendiricide DÜNYA konumundan gelir (ızgara oyuncuyla kayınca tutamlar zıplamasın)
+	var h = n / 2
 	for z in n:
 		for x in n:
-			var p = Vector3((x - n * 0.5) * SPACING + rng.randf_range(-0.3, 0.3), 0, (z - n * 0.5) * SPACING + rng.randf_range(-0.3, 0.3))
+			var p = Vector3((x - h) * SPACING, 0, (z - h) * SPACING)
 			if Vector2(p.x, p.z).length() > RADIUS:
 				continue
-			var s = rng.randf_range(0.7, 1.3)
-			xf.append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3(s, s * rng.randf_range(0.8, 1.4), s)), p))
+			xf.append(Transform3D(Basis.IDENTITY, p))
 	mm.instance_count = xf.size()
 	for i in xf.size():
 		mm.set_instance_transform(i, xf[i])

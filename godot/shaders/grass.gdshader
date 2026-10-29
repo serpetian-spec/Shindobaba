@@ -22,6 +22,14 @@ void vertex() {
 	// köke göre ofset: bu tutamın kökü (örnek noktası) = model merkezi
 	vec3 root = (MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
 	vec2 ruv = (root.xz - world_rect.xy) / world_rect.zw;
+	// dünyaya sabit rastgelelik: ızgara hücresi -> kayma, dönüş, boy (oyuncu yürürken çimen yerinden oynamasın)
+	vec2 cell = floor(root.xz / 0.6 + 0.5);
+	vec2 jit = vec2(hash(cell + 1.7), hash(cell + 9.3)) - 0.5;
+	float ang = hash(cell + 4.1) * 6.2832;
+	float hs = 0.7 + hash(cell + 2.9) * 0.6;
+	float hv = 0.8 + hash(cell + 6.6) * 0.6;
+	vec3 root0 = root;
+	root.xz += jit * 0.6;
 	float h = world_height(root.xz);
 	vec4 bio = wh_bilin(biome_map, root.xz);
 	ivec2 bc = clamp(ivec2((root.xz - world_rect.xy) / macro_res), ivec2(0), ivec2(macro_size) - 1);
@@ -45,8 +53,9 @@ void vertex() {
 	fade = 1.0 - smoothstep(radius * 0.7, radius, d);
 	float s = ok * fade * (0.7 + rnd * 0.6);
 	tip = clamp(VERTEX.y - root.y, 0.0, 1.0);
-	vec3 local = VERTEX - root;
-	local *= s;
+	vec3 local = VERTEX - root0;
+	local = vec3(local.x * cos(ang) - local.z * sin(ang), local.y, local.x * sin(ang) + local.z * cos(ang));
+	local *= vec3(hs, hs * hv, hs) * s;
 	// rüzgar
 	float w = sin(TIME * 2.2 + root.x * 0.35 + root.z * 0.27) * 0.18 + sin(TIME * 5.1 + root.x * 1.3) * 0.05;
 	local.x += w * tip * tip;

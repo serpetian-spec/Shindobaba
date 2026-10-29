@@ -167,10 +167,10 @@ func _process(dt: float) -> void:
 	var roofs: Array = Builder.roof_points.get(v["id"], [])
 	var planned = npcs.size() + queue.size()
 	var groups = 0
-	while planned < target and groups < 3:
+	while planned < target and groups < 6:
 		groups += 1
 		var role = _pick_role()
-		var near: Array = streets.filter(func(q): return q.distance_to(p) < 100.0 and q.distance_to(p) > (22.0 if current == v["id"] else 4.0))
+		var near: Array = streets.filter(func(q): return q.distance_to(p) < 170.0 and q.distance_to(p) > (22.0 if current == v["id"] else 4.0))
 		if near.is_empty():
 			# yakında sokak noktası yok (Kiri'nin geniş meydanları, köprüler): uzaktaki sokaklar, o da yoksa çevredeki açık zemin
 			near = streets.filter(func(q): return q.distance_to(p) < 220.0)
@@ -182,7 +182,21 @@ func _process(dt: float) -> void:
 					near.append(q)
 		if near.is_empty():
 			break
+		# kümelenmesin: birkaç aday arasından mevcut kalabalığa en uzak olanı seç (sokaklara yayılsın)
 		var at: Vector3 = near.pick_random()
+		var best_d = -1.0
+		for tries in 8:
+			var cand: Vector3 = near.pick_random()
+			var md = 1e9
+			for nn in npcs:
+				if is_instance_valid(nn):
+					md = minf(md, cand.distance_to(nn.global_position))
+			for qq in queue:
+				if qq.size() > 1 and qq[1] is Vector3:
+					md = minf(md, cand.distance_to(qq[1]))
+			if md > best_d:
+				best_d = md
+				at = cand
 		match role:
 			"chat":
 				queue.append(["chat2", at, streets])

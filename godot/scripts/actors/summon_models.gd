@@ -1487,7 +1487,7 @@ static func _crows(out: Dictionary, h: float) -> void:
 		Loft.tube(b, [hc + Vector3(0, 0.0, -s * 0.1), hc + Vector3(0, -s * 0.01, -s * 0.24), hc + Vector3(0, -s * 0.05, -s * 0.36)],
 			[Vector2(0.095, 0.11) * s, Vector2(0.06, 0.07) * s, Vector2(0.006, 0.006) * s], beak_c, 8, 3, true, true)
 		for sx in [-1.0, 1.0]:
-			b.add("sphere", hc + Vector3(s * 0.1 * sx, s * 0.04, -s * 0.06), Vector3(0.06, 0.06, 0.04) * s, Color(0.85, 0.08, 0.08), Vector3.ZERO, 6)   # kırmızı göz
+			b.add("sphere", hc + Vector3(s * 0.1 * sx, s * 0.04, -s * 0.06), Vector3(0.05, 0.05, 0.035) * s, Color(0.05, 0.05, 0.06), Vector3.ZERO, 6)   # siyah boncuk göz (Sharingan değil)
 		# kama kuyruk
 		b.add_slab(PackedVector2Array([Vector2(-s * 0.06, 0.0), Vector2(s * 0.06, 0.0), Vector2(s * 0.12, s * 0.38), Vector2(0.0, s * 0.44), Vector2(-s * 0.12, s * 0.38)]), s * 0.02, wing_c,
 			Transform3D(Basis(Vector3(0, -1, 0), Vector3(1, 0, 0), Vector3(0, 0, 1)), Vector3(0, s * 0.01, s * 0.45)))
@@ -1524,7 +1524,7 @@ static func _salamander(out: Dictionary, h: float, length: float) -> void:
 	# gövde: arkadan (kuyruk kökü) öne; baş geniş ve yassı
 	# ön kısım yukarı kalkık (baş ön bacakların üstünde yükselir)
 	Loft.tube(b, [Vector3(0, h * 0.45, L * 0.5), Vector3(0, h * 0.55, L * 0.25), Vector3(0, h * 0.65, 0.0), Vector3(0, h * 0.82, -L * 0.22), Vector3(0, h * 0.95, -L * 0.38), Vector3(0, h * 0.95, -L * 0.5)],
-		[Vector2(0.75, 0.48) * h, Vector2(0.95, 0.6) * h, Vector2(1.0, 0.65) * h, Vector2(1.05, 0.62) * h, Vector2(1.1, 0.55) * h, Vector2(0.95, 0.42) * h], back, 24, 6, false, true, fn)
+		[Vector2(0.55, 0.36) * h, Vector2(0.7, 0.44) * h, Vector2(0.74, 0.47) * h, Vector2(0.78, 0.46) * h, Vector2(0.82, 0.42) * h, Vector2(0.72, 0.32) * h], back, 24, 6, false, true, fn)   # animedeki gibi yassı, şişman değil
 	# geniş ağız çizgisi: başın ön ve yanlarını dolanan açık dudak bandı + koyu yarık
 	var mz = -L * 0.38
 	for k in 15:
