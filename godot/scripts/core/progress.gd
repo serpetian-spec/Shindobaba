@@ -385,6 +385,12 @@ func promote(rank: int) -> void:
 				vest_id = "chunin_yelek"
 			Gear.grant(pr, vest_id, "zirh", hi["vest"])
 			Hud.msg("Yeni ekipman: Taktik Yelek  [Tab > Ekipman]", Color(0.6, 0.9, 1.0))
+		3:
+			var jid = "%s_jonin" % home()
+			if Gear.item(jid).is_empty():
+				jid = "konoha_jonin"
+			Gear.grant(pr, jid, "dis")
+			Hud.msg("Yeni ekipman: %s  [Tab > Ekipman]" % Gear.item(jid)["name"], Color(0.6, 0.9, 1.0))
 		4:
 			Gear.grant(pr, "anbu_zirh", "zirh")
 			Hud.msg("Yeni ekipman: ANBU Zırhı  [Tab > Ekipman]", Color(0.6, 0.9, 1.0))

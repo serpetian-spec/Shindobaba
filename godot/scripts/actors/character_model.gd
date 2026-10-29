@@ -1577,9 +1577,6 @@ func _accessories() -> void:
 		var vs = int(look.get("vest_style", 0))
 		var m = MB.new()
 		match vs:
-			1:  # Suna: omuzdan çapraz kayış
-				m.add("box", Vector3(0, -0.12, 0.165), Vector3(0.05, 0.62, 0.015), vc.darkened(0.3), Vector3(0, 0, -38))
-				m.add("box", Vector3(0, -0.12, -0.165), Vector3(0.05, 0.62, 0.015), vc.darkened(0.3), Vector3(0, 0, 38))
 			3:  # Kumo: tek askı
 				m.add("box", Vector3(0.1, 0.12, 0.0), Vector3(0.07, 0.025, 0.3), vc.darkened(0.15))
 			5, 6:  # ANBU / samuray: omuzluklar
@@ -1956,10 +1953,47 @@ func _attachments() -> void:
 		var v = MB.new()
 		var vc: Color = look["vest"]
 		var ch = _grest(skel.find_bone("UpperChest")).origin
-		v.add("torus", Vector3(0, 0.15, -0.005), Vector3(0.3, 0.3, 0.28), vc.darkened(0.1), Vector3.ZERO, 14)
-		for sx in [-1.0, 1.0]:
-			for k in 2:
-				v.add("box", Vector3(0.075 * sx, -0.08 - k * 0.09, 0.17), Vector3(0.075, 0.085, 0.04), vc.darkened(0.15))
+		var vs = int(look.get("vest_style", 0))
+		var dk = vc.darkened(0.22)
+		var lt = vc.lightened(0.18)
+		# yaka (Konoha/Kumo yüksek, diğerleri alçak)
+		var collar_h = 0.34 if vs in [0, 3] else 0.24
+		v.add("torus", Vector3(0, 0.15, -0.005), Vector3(0.3, collar_h, 0.28), vc.darkened(0.1), Vector3.ZERO, 14)
+		v.add("box", Vector3(0, -0.12, 0.185), Vector3(0.012, 0.42, 0.006), Color(0.82, 0.82, 0.8))   # fermuar
+		# parşömen cebi takımı: taban + dikey cepler + kapak çizgileri (referans: Konoha/Suna yelekleri)
+		var pack = func(cx: float, cy: float, n: int):
+			cy += 0.0
+			v.add("box", Vector3(cx, cy, 0.175 + maxf(0.0, -cy - 0.12) * 0.15), Vector3(0.026 * n + 0.012, 0.1, 0.03), dk)
+			for k in n:
+				var x = cx - 0.013 * (n - 1) + k * 0.026
+				v.add("box", Vector3(x, cy - 0.005, 0.192), Vector3(0.022, 0.085, 0.012), vc.darkened(0.08))
+				v.add("box", Vector3(x, cy + 0.03, 0.2), Vector3(0.024, 0.006, 0.006), dk.darkened(0.2))   # kapak dikişi
+		match vs:
+			0:   # Konoha: göğüste iki takım (2x2 cep)
+				for sx in [-1.0, 1.0]:
+					pack.call(0.085 * sx, -0.06, 3)
+					pack.call(0.085 * sx, -0.17, 3)
+			1:   # Suna: kanat gibi açılan dev omuzluklar + açık renk omuz kayışı + karında cepler
+				for sx in [-1.0, 1.0]:
+					v.add("hemi", Vector3(0.21 * sx, 0.1, 0.0), Vector3(0.24, 0.07, 0.19), vc.darkened(0.05), Vector3(0, 0, -30 * sx), 12)   # kanat gibi açılan omuzluk
+					v.add("box", Vector3(0.11 * sx, 0.1, 0.165), Vector3(0.045, 0.025, 0.01), Color(0.82, 0.84, 0.86))
+					pack.call(0.08 * sx, -0.2, 3)
+			2:   # Kiri: yatay zırh plakaları + omuzluk
+				for k in 3:
+					v.add("box", Vector3(0, -0.04 - k * 0.095, 0.168), Vector3(0.26, 0.07, 0.016), vc.darkened(0.04 * k))
+				for sx in [-1.0, 1.0]:
+					v.add("hemi", Vector3(0.19 * sx, 0.1, 0.0), Vector3(0.14, 0.07, 0.15), dk, Vector3(0, 0, -22 * sx), 10)
+			3:   # Kumo: yan cepler (tek askı zaten var)
+				for sx in [-1.0, 1.0]:
+					pack.call(0.095 * sx, -0.12, 2)
+			4:   # Iwa: omuzluk + karında kalın kemer plakası
+				for sx in [-1.0, 1.0]:
+					v.add("hemi", Vector3(0.19 * sx, 0.1, 0.0), Vector3(0.15, 0.08, 0.16), dk, Vector3(0, 0, -24 * sx), 10)
+				v.add("box", Vector3(0, -0.27, 0.15), Vector3(0.34, 0.09, 0.06), lt.darkened(0.15))
+				v.add("box", Vector3(0, -0.27, 0.185), Vector3(0.36, 0.012, 0.01), dk)
+			_:
+				for sx in [-1.0, 1.0]:
+					pack.call(0.08 * sx, -0.1, 2)
 		_mesh_on("UpperChest", v.build(Props.toon()), Transform3D(Basis.IDENTITY, ch))
 	# --- eldeki silahlar (ekipman: sağ el / sol el) ve kınları
 	_weapons()

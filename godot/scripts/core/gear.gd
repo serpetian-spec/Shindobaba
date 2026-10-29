@@ -156,6 +156,12 @@ const ITEMS := {
 	"jonin_koyu": {"name": "Gece Taktik Yeleği", "slot": "zirh", "price": 900, "rank": 2, "desc": "Koyu zeytin rengi, parşömen cepli yelek.", "stats": {"def": 10, "speed": 0.02}, "look": {"vest_style": 0}, "c1": Color(0.2, 0.26, 0.18)},
 	# --- dış giysi
 	"akatsuki_pelerini": {"name": "Kızıl Bulut Pelerini", "slot": "dis", "price": 0, "rank": 3, "desc": "Akatsuki üyelerinin dik yakalı siyah pelerini; beyaz kenarlı kızıl bulutlar.", "stats": {"def": 10, "chakra": 50, "hp": 40}, "look": {"outer_style": "org_pelerin", "outer_pattern": 6}, "c1": Color(0.05, 0.05, 0.07), "c2": Color(0.78, 0.08, 0.1)},
+	# köye özel Jōnin kıyafetleri (terfide verilir)
+	"konoha_jonin": {"name": "Konoha Jōnin Haorisi", "slot": "dis", "price": 0, "rank": 3, "desc": "Konoha jōninlerinin kısa yeşil-gri haorisi, sırtında girdap arması.", "stats": {"def": 6, "chakra": 30, "speed": 0.02}, "look": {"outer_style": "haori", "outer_pattern": 1}, "c1": Color(0.32, 0.4, 0.28), "c2": Color(0.75, 0.2, 0.15)},
+	"suna_jonin": {"name": "Suna Jōnin Pelerini", "slot": "dis", "price": 0, "rank": 3, "desc": "Kum fırtınasına dayanıklı bej pelerin ve omuz kayışı.", "stats": {"def": 6, "hp": 30, "speed": 0.02}, "look": {"outer_style": "kisa", "outer_pattern": 1}, "c1": Color(0.78, 0.68, 0.5), "c2": Color(0.45, 0.35, 0.25)},
+	"kiri_jonin": {"name": "Kiri Jōnin Atkılı Paltosu", "slot": "dis", "price": 0, "rank": 3, "desc": "Sis Köyü jōninlerinin mavi-gri, kalın atkılı paltosu.", "stats": {"def": 6, "chakra": 40}, "look": {"outer_style": "palto", "outer_pattern": 1}, "c1": Color(0.36, 0.44, 0.5), "c2": Color(0.2, 0.25, 0.35)},
+	"kumo_jonin": {"name": "Kumo Jōnin Kemeri ve Pelerini", "slot": "dis", "price": 0, "rank": 3, "desc": "Bulut Köyü'nün beyaz kısa pelerini; şimşek desenli kenar.", "stats": {"def": 5, "melee": 0.08}, "look": {"outer_style": "kisa", "outer_pattern": 2}, "c1": Color(0.9, 0.9, 0.86), "c2": Color(0.85, 0.72, 0.25)},
+	"iwa_jonin": {"name": "Iwa Jōnin Kızıl Haorisi", "slot": "dis", "price": 0, "rank": 3, "desc": "Kaya Köyü jōninlerinin kahverengi-kızıl, tek omzu zırhlı haorisi.", "stats": {"def": 9, "hp": 30, "speed": -0.01}, "look": {"outer_style": "haori", "outer_pattern": 1}, "c1": Color(0.45, 0.28, 0.2), "c2": Color(0.62, 0.18, 0.15)},
 	"org_pelerini": {"name": "Kızıl Hilal Pelerini", "slot": "dis", "price": 0, "rank": 3, "desc": "Bilinmeyen bir örgütün dik yakalı, kızıl hilal desenli uzun pelerini.", "stats": {"def": 8, "chakra": 40, "hp": 30}, "look": {"outer_style": "org_pelerin", "outer_pattern": 3}, "c1": Color(0.08, 0.08, 0.12), "c2": Color(0.75, 0.1, 0.12)},
 	"panco": {"name": "Panço", "slot": "dis", "price": 150, "rank": 0, "desc": "Omuzlardan kalçaya inen geniş yağmurluk.", "stats": {"def": 2, "hp": 15}, "look": {"outer_style": "panco", "outer_pattern": 1}, "c1": Color(0.45, 0.35, 0.25), "c2": Color(0.7, 0.3, 0.15)},
 	"yirtik_pelerin": {"name": "Yırtık Gezgin Pelerini", "slot": "dis", "price": 90, "rank": 0, "desc": "Eteği parça parça olmuş, delikli eski pelerin.", "stats": {"def": 2, "speed": 0.02}, "look": {"outer_style": "yirtik", "outer_pattern": 5}, "c1": Color(0.3, 0.27, 0.24)},
@@ -460,7 +466,8 @@ static func ensure(p: Dictionary) -> void:
 		grant(p, "alin_koruyucu", "kafa", L["band"])
 		grant(p, "alin_boyun", "", L["band"])
 	if L.get("vest") != null:
-		grant(p, "anbu_zirh" if int(p.get("rank", 0)) >= 4 else "chunin_yelek", "zirh", L["vest"])
+		var hv = "%s_yelek" % String(p.get("village", "konoha"))
+		grant(p, "anbu_zirh" if int(p.get("rank", 0)) >= 4 else (hv if ITEMS.has(hv) and hv != "konoha_yelek" else "chunin_yelek"), "zirh", L["vest"])
 	_ensure_eyes(p)
 	apply_look(p)
 
