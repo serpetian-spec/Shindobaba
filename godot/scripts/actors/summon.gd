@@ -350,7 +350,7 @@ func _attack() -> void:
 
 ## İmza teknikleri: her çağrı kendi tekniğini çağrıldıktan hemen sonra (ilk özel bekleme ~1 sn) ve aralıklarla kullanır.
 ## Tekniğin adı ekrana yazılır (oyuncu ne olduğunu görsün)
-const SIG_NAME := {"toad_small": "Kurbağa Gözcülüğü", "toad_mid": "Dil Kamçısı", "toad_boss": "Suiton: Teppōdama", "snake_swarm": "Sen'ei Jashu",
+const SIG_NAME := {"toad_small": "Suiton: Kurbağa Tükürüğü", "toad_mid": "Dil Kamçısı", "toad_boss": "Suiton: Teppōdama", "snake_swarm": "Sen'ei Jashu",
 	"snake_giant": "Yılan Sarması", "snake_boss": "Hükümdarın Sarması", "slug_acid": "Zesshi Nensan (Asit Püskürtme)", "slug_queen": "Bölünme: Şifa Dalgası",
 	"hawk_small": "Keskin Göz", "hawk_mount": "Kanat Fırtınası", "hawk_giant": "Gök Kasırgası", "dog_small": "Ninken Takibi", "dog_pack": "Doton: Ninken Tuzağı",
 	"wolf_giant": "Çift Çene Saldırısı", "monkey_small": "Maymun Atlayışı", "crow_flock": "Karga Yanılsaması", "salamander": "Zehir Sisi",
@@ -373,8 +373,19 @@ func _special() -> void:
 				var v = global_position - tgt.global_position
 				tgt.velocity = v.normalized() * minf(25.0, v.length() * 2.0) + Vector3.UP * 3.0
 				tgt.apply_status("stun", 1.0)
+		"toad_small":
+			if tgt:   # küçük su mermisi: hasarı az, hedefi kısa süre sersemletir
+				_water_gun(tgt, 0.7)
+				tgt.apply_status("slow", 1.5)
 		"toad_boss":
-			_water_gun(tgt, 3.0)
+			_boss_toad_n += 1
+			match _boss_toad_n % 3:
+				1:
+					_water_gun(tgt, 3.0)
+				2:
+					_toad_oil(tgt)
+				0:
+					_toad_blade(tgt)
 		"snake_swarm":
 			if tgt:   # yılanlar kollardan fırlayıp bağlar
 				for k in 4:
@@ -489,6 +500,63 @@ func _shell(giant: bool) -> void:
 				if is_instance_valid(self):
 					Combat.hit_sphere(self, global_position + Vector3.UP * height * 0.4, radius + height * 0.3, {"dmg": def.get("dmg", 40.0) * 0.5, "knock": 16.0, "launch": 4.0, "kind": "heavy"})
 					FX.ring(o + Vector3.UP * 0.4, Color(0.4, 0.6, 0.45), radius + height * 0.6, 0.3))
+
+
+var _boss_toad_n := 0
+
+
+## Dev kurbağa: Gamayudan — ağızdan kalın yağ seli; yere yağ gölü (içindekiler yavaşlar, ateşle tutuşur)
+func _toad_oil(t: Node3D) -> void:
+	if t == null:
+		return
+	Combat.popup_text(global_position + Vector3.UP * (height + 0.6), "Gamayudan!", Color(1, 0.8, 0.35))
+	var from = global_position + (parts["root"].transform.basis * parts.get("mouth", Vector3.UP)) if parts.has("root") else global_position
+	var dir = (t.global_position + Vector3.UP - from).normalized()
+	for k in 10:
+		Combat.hit_sphere(self, from + dir * (1.5 + k * 2.5), 1.6 + height * 0.06, {"dmg": 14.0, "knock": 9.0, "kind": "heavy", "dir": dir})
+	FX.burst(from, {"amount": 60, "life": 0.9, "add": false, "size": 1.0 + height * 0.05, "vmin": 14, "vmax": 24, "dir": dir, "spread": 9.0,
+		"colors": [Color(0.95, 0.78, 0.3, 0.95), Color(0.75, 0.55, 0.18, 0)]})
+	Sfx.play("water", from, 0.6)
+	var at = t.global_position
+	var pool = MeshInstance3D.new()
+	var cm = CylinderMesh.new()
+	cm.top_radius = 5.0; cm.bottom_radius = 5.0; cm.height = 0.05
+	pool.mesh = cm
+	var mat = StandardMaterial3D.new()
+	mat.albedo_color = Color(0.78, 0.58, 0.18, 0.75)
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	pool.material_override = mat
+	get_tree().current_scene.add_child(pool)
+	pool.global_position = Vector3(at.x, Game.ground_height(at.x, at.z) + 0.04, at.z)
+	var tw = pool.create_tween()
+	for k in 12:
+		tw.tween_callback(func():
+			for f in get_tree().get_nodes_in_group("fighters"):
+				if Combat.hostile(self, f) and not f.is_dead() and f.global_position.distance_to(pool.global_position) < 5.0:
+					f.apply_status("slow", 1.0))
+		tw.tween_interval(0.5)
+	tw.tween_callback(pool.queue_free)
+
+
+## Dev kurbağa: belindeki dev kılıçla geniş yatay savuruş
+func _toad_blade(t: Node3D) -> void:
+	Combat.popup_text(global_position + Vector3.UP * (height + 0.6), "Kurbağa Kılıcı!", Color(0.85, 0.9, 1.0))
+	var dir = face_dir() if t == null else (t.global_position - global_position).normalized()
+	attack_anim_t = 0.7
+	get_tree().create_timer(0.3).timeout.connect(func():
+		if dead:
+			return
+		Combat.hit_zone(self, global_position, dir, radius + height * 1.4, 80.0, height * 0.6, {"dmg": def.get("dmg", 20.0) * 0.9, "knock": 18.0, "launch": 5.0, "kind": "heavy", "dir": dir})
+		var c = global_position + Vector3.UP * height * 0.4
+		for k in 9:   # beyaz yay izi
+			var a = deg_to_rad(-80.0 + k * 20.0)
+			var q = c + dir.rotated(Vector3.UP, a) * (radius + height * 1.1)
+			FX.burst(q, {"amount": 6, "life": 0.3, "add": true, "size": 0.8 + height * 0.04, "vmin": 1, "vmax": 3, "dir": Vector3.UP, "spread": 30.0,
+				"colors": [Color(0.95, 0.97, 1.0, 0.9), Color(0.7, 0.8, 1.0, 0)]})
+		Sfx.play("whoosh", c, 0.5)
+		if Game.world:
+			Game.world.env.add_shake(clampf(height * 0.04, 0.2, 1.0)))
 
 
 func _water_gun(t: Node3D, scale := 1.0) -> void:

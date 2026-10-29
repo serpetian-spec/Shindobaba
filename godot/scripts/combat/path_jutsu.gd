@@ -2024,7 +2024,7 @@ func p_kami_tsubasa(c: Node3D, _t: Node3D) -> void:
 		var chest_b = "UpperChest" if sk.find_bone("UpperChest") >= 0 else "Chest"
 		var p_ch: Vector3 = m._grest(sk.find_bone(chest_b)).origin
 		for sx in [-1.0, 1.0]:
-			var ba = m._attach(chest_b, Transform3D(Basis.IDENTITY, p_ch + Vector3(sx * 0.1, 0.05, -0.13)))
+			var ba = m._attach(chest_b, Transform3D(Basis.IDENTITY, p_ch + Vector3(sx * 0.13, 0.0, -0.14)))   # kürek kemiği
 			var b = MB.new()
 			_paper_wing(b, sx)
 			var wing = mesh_of(b)
@@ -2384,40 +2384,17 @@ func p_senpo_kawazu_naki(c: Node3D, _t: Node3D) -> void:
 				ba.queue_free())
 
 
-## Omuzda oturan yaşlı bilge kurbağa (küçük, yeşil-gri, beyaz kaş/sakal, oturur bacaklar); +Z öne bakar
-func _elder_toad(female: bool) -> MB:
-	var skin = Color(0.42, 0.5, 0.36) if not female else Color(0.45, 0.52, 0.4)
-	var belly = Color(0.78, 0.76, 0.6)
-	var b = MB.new()
-	b.add("sphere", Vector3(0, 0.07, 0), Vector3(0.2, 0.15, 0.2), skin)                       # gövde
-	b.add("sphere", Vector3(0, 0.06, 0.05), Vector3(0.15, 0.11, 0.12), belly)                  # karın
-	b.add("sphere", Vector3(0, 0.15, 0.03), Vector3(0.17, 0.09, 0.15), skin)                   # yassı baş
-	for ex in [-1.0, 1.0]:
-		b.add("sphere", Vector3(ex * 0.055, 0.195, 0.06), Vector3(0.05, 0.045, 0.05), skin)     # göz tümseği
-		b.add("sphere", Vector3(ex * 0.058, 0.2, 0.08), Vector3(0.03, 0.022, 0.015), Color(0.95, 0.85, 0.3))
-		b.add("box", Vector3(ex * 0.058, 0.2, 0.088), Vector3(0.022, 0.005, 0.004), Color(0.05, 0.05, 0.05))   # yatay göz bebeği
-		b.add("sphere", Vector3(ex * 0.06, 0.218, 0.075), Vector3(0.05, 0.015, 0.025), Color(0.96, 0.96, 0.94), Vector3(0, 0, -ex * 15))   # beyaz kaş
-		b.add("sphere", Vector3(ex * 0.09, 0.02, 0.06), Vector3(0.07, 0.05, 0.1), skin)          # arka bacak (oturur)
-		b.add("sphere", Vector3(ex * 0.06, 0.02, 0.1), Vector3(0.035, 0.03, 0.05), skin)         # ön ayak
-	b.add("box", Vector3(0, 0.125, 0.105), Vector3(0.11, 0.006, 0.01), Color(0.6, 0.35, 0.55) if female else Color(0.15, 0.15, 0.12))   # ağız çizgisi
-	if not female:
-		b.add("sphere", Vector3(0, 0.105, 0.095), Vector3(0.06, 0.03, 0.02), Color(0.96, 0.96, 0.94))   # beyaz sakal
-	else:
-		b.add("sphere", Vector3(0, 0.205, -0.02), Vector3(0.06, 0.04, 0.05), Color(0.85, 0.85, 0.82))   # topuz saç
-	return b
-
-
 ## Konan'ın melek kanadı: omuzdan başın üstüne kemer, oradan dizlere kadar sarkan tüy sütunları; her tüy küçük kâğıt tuğlalardan
 func _paper_wing(b: MB, sx: float) -> void:
 	var rng = RandomNumberGenerator.new()
 	rng.seed = 77 if sx > 0 else 78
 	var arm := func(u: float) -> Vector3:   # kemer (ikinci derece bezier): kök → yukarı → dış tepe
-		var p0 = Vector2(0.0, 0.0); var p1 = Vector2(0.25, 0.95); var p2 = Vector2(0.95, 0.7)
+		var p0 = Vector2(0.0, 0.0); var p1 = Vector2(0.55, 0.12); var p2 = Vector2(1.0, 0.8)   # omuz hizasında dışa, uçta yukarı kemer
 		var q = p0.lerp(p1, u).lerp(p1.lerp(p2, u), u)
 		return Vector3(q.x * sx, q.y, -0.05 - q.x * 0.12)
 	var cols = 15
 	for ci in cols:
-		var u = (ci + 0.5) / cols
+		var u = 0.12 + 0.88 * (ci + 0.5) / cols   # kökte (sırtta) tüy yok
 		var top: Vector3 = arm.call(u)
 		var L = 0.35 + 1.75 * pow(u, 1.3)                        # dışa doğru uzayan tüyler (dizlere iner)
 		var dir = Vector3(sx * (0.1 + 0.3 * u), -1.0, -0.05).normalized()
@@ -2430,9 +2407,60 @@ func _paper_wing(b: MB, sx: float) -> void:
 			b.add("box", q, Vector3(w, 0.11, 0.008), col, Vector3(-4, 0, rad_to_deg(atan2(dir.x, -dir.y)) * -1.0 + rng.randf_range(-8, 8)))
 	# kemer üzerindeki kalın üst kenar: çift sıra tuğla
 	for k in 22:
-		var u = k / 21.0
+		var u = 0.1 + 0.9 * k / 21.0
 		var q: Vector3 = arm.call(u)
 		var q2: Vector3 = arm.call(minf(1.0, u + 0.05))
 		var ang = rad_to_deg(atan2(q2.y - q.y, (q2.x - q.x) * sx))
 		for r in 2:
 			b.add("box", q + Vector3(0, -0.06 * r, 0.006), Vector3(0.13, 0.09, 0.009), PAPER.darkened(0.03 * r + rng.randf_range(0, 0.05)), Vector3(-10, 0, ang * sx))
+
+
+## Omuzda oturan yaşlı bilge kurbağa: yüksek yakalı cübbe, kulak diski, alın bandı; erkek: beyaz diken saç/kaş/keçi sakal + sırtta parşömen, dişi: kıvırcık mor saç, mor dudak (+Z öne bakar)
+func _elder_toad(female: bool) -> MB:
+	var skin = Color(0.48, 0.58, 0.3) if not female else Color(0.85, 0.86, 0.62)
+	var robe = Color(0.5, 0.48, 0.45) if not female else Color(0.28, 0.2, 0.32)
+	var robe_d = robe.darkened(0.25)
+	var white = Color(0.95, 0.95, 0.93)
+	var purple = Color(0.55, 0.32, 0.65)
+	var b = MB.new()
+	# gövde cübbenin içinde: yalnızca ayaklar dışarıda
+	b.add("sphere", Vector3(0, 0.07, 0), Vector3(0.2, 0.15, 0.19), skin)
+	for ex in [-1.0, 1.0]:
+		b.add("sphere", Vector3(ex * 0.07, 0.012, 0.075), Vector3(0.045, 0.025, 0.06), skin)          # ön ayak parmakları
+	b.add("sphere", Vector3(0, 0.08, -0.005), Vector3(0.235, 0.18, 0.225), robe, Vector3.ZERO, 12)    # cübbe gövdeyi sarar
+	b.add("cyl", Vector3(0, 0.008, -0.005), Vector3(0.25, 0.016, 0.23), robe_d, Vector3.ZERO, 12)     # etek kenarı
+	b.add("cyl", Vector3(0, 0.14, -0.005), Vector3(0.205, 0.05, 0.195), robe_d, Vector3.ZERO, 14)    # kalın yüksek yaka
+	b.add("cyl", Vector3(0, 0.168, -0.005), Vector3(0.21, 0.012, 0.2), robe, Vector3.ZERO, 14)      # yaka kıvrımı
+	b.add("sphere", Vector3(0, 0.17, -0.065), Vector3(0.15, 0.11, 0.07), robe_d)                      # sırtta kapüşon
+	b.add("box", Vector3(0, 0.11, 0.1), Vector3(0.012, 0.09, 0.006), robe_d)                          # önde cübbe yarığı
+	# baş
+	b.add("sphere", Vector3(0, 0.17, 0.02), Vector3(0.18, 0.12, 0.16), skin)
+	b.add("sphere", Vector3(0, 0.145, 0.07), Vector3(0.13, 0.05, 0.08), skin.darkened(0.05))         # ağız/çene
+	for ex in [-1.0, 1.0]:
+		b.add("sphere", Vector3(ex * 0.055, 0.215, 0.065), Vector3(0.055, 0.045, 0.045), skin)        # göz tümseği
+		b.add("sphere", Vector3(ex * 0.058, 0.218, 0.085), Vector3(0.034, 0.03, 0.012), Color(0.92, 0.7, 0.2))
+		b.add("box", Vector3(ex * 0.058, 0.218, 0.092), Vector3(0.024, 0.005, 0.003), Color(0.05, 0.05, 0.05))
+		b.add("cyl", Vector3(ex * 0.088, 0.17, 0.01), Vector3(0.035, 0.008, 0.035), Color(0.7, 0.7, 0.66), Vector3(0, 0, 90), 10)   # kulak diski
+		b.add("box", Vector3(ex * 0.092, 0.17, 0.01), Vector3(0.002, 0.004, 0.026), Color(0.35, 0.35, 0.33))
+	b.add("cyl", Vector3(0, 0.2, 0.02), Vector3(0.185, 0.02, 0.165), Color(0.2, 0.24, 0.42), Vector3(-12, 0, 0), 16)   # alın bandı başı sarar
+	b.add("box", Vector3(0, 0.208, 0.1), Vector3(0.045, 0.022, 0.004), Color(0.78, 0.8, 0.84), Vector3(-12, 0, 0))     # bant plakası
+	b.add("box", Vector3(0, 0.208, 0.103), Vector3(0.024, 0.004, 0.002), Color(0.3, 0.3, 0.32), Vector3(-12, 0, 0))
+	if not female:
+		b.add("box", Vector3(0, 0.135, 0.11), Vector3(0.07, 0.004, 0.004), Color(0.15, 0.17, 0.1))   # düz, ciddi ağız
+		for ex in [-1.0, 1.0]:
+			for k in 3:   # diken kaşlar
+				b.add("cone", Vector3(ex * (0.045 + k * 0.018), 0.238 + k * 0.004, 0.085), Vector3(0.016, 0.05, 0.01), white, Vector3(0, 0, -ex * (55 + k * 12)), 4)
+		for k in 5:   # tepede beyaz diken saç
+			b.add("cone", Vector3((k - 2) * 0.022, 0.27, 0.0 - abs(k - 2) * 0.01), Vector3(0.022, 0.06, 0.022), white, Vector3(-15, 0, (k - 2) * 22), 4)
+		b.add("cone", Vector3(0, 0.11, 0.1), Vector3(0.035, 0.05, 0.015), white, Vector3(180, 0, 0), 4)   # keçi sakal
+		b.add("cyl", Vector3(0.0, 0.13, -0.12), Vector3(0.035, 0.18, 0.035), Color(0.9, 0.82, 0.62), Vector3(0, 0, 70), 8)   # sırtta parşömen
+		b.add("cyl", Vector3(0.0, 0.13, -0.12), Vector3(0.04, 0.03, 0.04), Color(0.6, 0.15, 0.12), Vector3(0, 0, 70), 8)
+	else:
+		b.add("box", Vector3(0, 0.138, 0.112), Vector3(0.1, 0.012, 0.006), purple, Vector3(0, 0, 0))   # geniş mor dudak (gülümser)
+		for ex in [-1.0, 1.0]:
+			b.add("box", Vector3(ex * 0.055, 0.143, 0.108), Vector3(0.025, 0.01, 0.006), purple, Vector3(0, 0, ex * 20))
+		for k in 9:   # kıvırcık mor saç topları
+			var a = PI * (k / 8.0)
+			b.add("sphere", Vector3(cos(a) * 0.085, 0.24 + sin(a) * 0.045, -0.03), Vector3(0.05, 0.05, 0.05), purple)
+		b.add("sphere", Vector3(0, 0.27, -0.02), Vector3(0.12, 0.06, 0.1), purple)
+	return b
