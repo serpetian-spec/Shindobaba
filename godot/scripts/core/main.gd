@@ -191,7 +191,7 @@ func start_creator(slot: int) -> void:
 func _creator_look() -> Dictionary:
 	var s = creator_state
 	var eye: Color = s["eye"]
-	if Data.clans.has(s["clan"]) and s["clan"] in ["uchiha", "hyuga", "aburame"]:
+	if Data.clans.has(s["clan"]) and s["clan"] in ["uchiha", "hyuga", "aburame", "otsutsuki"]:
 		var e: Array = Data.clans[s["clan"]]["eye"]
 		eye = Color(e[0], e[1], e[2])
 	return {"gender": s["gender"], "hair_style": s["hair_style"], "hair": s["hair"], "top": s["top"],

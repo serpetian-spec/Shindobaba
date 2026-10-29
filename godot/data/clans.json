@@ -561,5 +561,129 @@
   "villages": [
    "iwa"
   ]
+ },
+ "iburi": {
+  "name": "Iburi",
+  "desc": "Bedenini dumana çeviren nadir klan. Darbeler içinden geçer, dumanla boğar ve kılıçla keser.",
+  "kg": "Duman Beden",
+  "eye": [
+   0.35,
+   0.35,
+   0.4
+  ],
+  "bonus": {
+   "speed": 0.05,
+   "melee": 0.05
+  },
+  "villages": [
+   "konoha"
+  ]
+ },
+ "shimura": {
+  "name": "Shimura",
+  "desc": "Rüzgâr ustası eski Konoha klanı; vakum dalgaları ve gizli birlik (Kök) mühürleri.",
+  "kg": "Vakum Rüzgârı",
+  "eye": [
+   0.2,
+   0.2,
+   0.22
+  ],
+  "bonus": {
+   "jutsu": 0.06,
+   "chakra": 10
+  },
+  "villages": [
+   "konoha"
+  ]
+ },
+ "tsuchigumo": {
+  "name": "Tsuchigumo",
+  "desc": "Toprak Örümceği klanı: örümcek ipeği, zehir ve köyü yerle bir eden yasak teknik.",
+  "kg": "Toprak Örümceği İpeği",
+  "eye": [
+   0.45,
+   0.3,
+   0.5
+  ],
+  "bonus": {
+   "hp": 20,
+   "chakra": 10
+  },
+  "villages": [
+   "konoha"
+  ]
+ },
+ "jugo": {
+  "name": "Jūgo Soyu",
+  "desc": "Doğa enerjisini bedenine çeken dağ klanı. Beden silaha dönüşür; öfke kontrolden çıkarsa canavarlaşır.",
+  "kg": "Doğa Bedeni",
+  "eye": [
+   0.95,
+   0.6,
+   0.2
+  ],
+  "bonus": {
+   "hp": 40,
+   "melee": 0.08
+  },
+  "villages": [
+   "iwa"
+  ]
+ },
+ "funato": {
+  "name": "Funato",
+  "desc": "Uzak adaların denizci klanı. Dalgalar, girdaplar ve zincirli kancalarla savaşır.",
+  "kg": "Deniz Sanatı",
+  "eye": [
+   0.2,
+   0.45,
+   0.6
+  ],
+  "bonus": {
+   "chakra": 20,
+   "speed": 0.03
+  },
+  "villages": [
+   "kiri"
+  ]
+ },
+ "kaminarimon": {
+  "name": "Kaminarimon",
+  "desc": "Yıldırım Kapısı ailesi: elektromanyetik raylar, şimşek kalkanı ve kara şimşek.",
+  "kg": "Elektromanyetik Şimşek",
+  "eye": [
+   0.75,
+   0.65,
+   0.25
+  ],
+  "bonus": {
+   "jutsu": 0.05,
+   "speed": 0.04
+  },
+  "villages": [
+   "kumo"
+  ]
+ },
+ "otsutsuki": {
+  "name": "Ōtsutsuki",
+  "desc": "Göklerden gelen tanrısal soy. Doğuştan Byakugan, devasa chakra; kül kemikleri, altın chakra ve uzay kapıları. Ustalaşınca Tenseigan'a uzanır.",
+  "kg": "Tanrısal Chakra",
+  "eye": [
+   0.9,
+   0.9,
+   0.96
+  ],
+  "dojutsu": "byakugan",
+  "bonus": {
+   "chakra": 60,
+   "jutsu": 0.08
+  },
+  "villages": [
+   "konoha",
+   "suna",
+   "kiri",
+   "kumo",
+   "iwa"
+  ]
  }
 }

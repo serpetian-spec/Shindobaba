@@ -16,8 +16,8 @@ const REGION := {
 	"rain": ["patrol", "patrol", "wounded", "duel", "clan_rogue", "rumor"],
 }
 ## Bölgenin kaçak klanları
-const REGION_CLANS := {"fire": ["uchiha", "hyuga", "nara", "akimichi", "aburame", "inuzuka"], "lightning": ["chinoike", "yotsuki", "ikazuchi"],
-	"water": ["kaguya", "yuki", "hozuki", "hoshigaki"], "wind": ["sabaku", "shirogane", "kazahana"], "earth": ["kamizuru", "bakuha", "kako", "iwao"],
+const REGION_CLANS := {"fire": ["uchiha", "hyuga", "nara", "akimichi", "aburame", "inuzuka", "iburi", "shimura", "tsuchigumo"], "lightning": ["chinoike", "yotsuki", "ikazuchi", "kaminarimon"],
+	"water": ["kaguya", "yuki", "hozuki", "hoshigaki", "funato"], "wind": ["sabaku", "shirogane", "kazahana"], "earth": ["kamizuru", "bakuha", "kako", "iwao", "jugo"],
 	"stone": ["bakuha", "kako"], "rain": ["uchiha", "chinoike", "hozuki"]}
 ## Savaş karşılaşmaları (eski dost yardıma gelebilir)
 const COMBAT := ["patrol", "mist", "sandstorm", "storm", "clan_rogue", "toll_revenge", "nemesis"]

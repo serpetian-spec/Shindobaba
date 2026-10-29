@@ -5,11 +5,12 @@ extends Node
 ## - Efsanevi S-rank ninjalar (özgün isimler): Bingo Kitabı'nda, imza teknikleriyle, bazıları bölgeler arasında gezer
 ## Klan jutsuları data/jutsu.json'dan çalışma anında seçilir (clan alanı, learn "clan:x", kekkei genkai doğası, göz).
 
-const EYE_KIND := {"uchiha": 1, "hyuga": 2, "chinoike": 3}
+const EYE_KIND := {"uchiha": 1, "hyuga": 2, "chinoike": 3, "otsutsuki": 2}
 ## Doğa jutsusu olmayan klanların savaş elementi (ek C/B jutsu için)
 const MAIN_EL := {"uchiha": "katon", "sarutobi": "katon", "hatake": "raiton", "senju": "doton", "uzumaki": "suiton", "yuki": "suiton",
 	"hozuki": "suiton", "hoshigaki": "suiton", "terumi": "suiton", "karatachi": "suiton", "kaguya": "", "fuma": "fuuton", "kazahana": "fuuton",
-	"sabaku": "fuuton", "yotsuki": "raiton", "ikazuchi": "raiton", "kako": "doton", "bakuha": "doton", "iwao": "doton", "kamizuru": "doton"}
+	"sabaku": "fuuton", "yotsuki": "raiton", "ikazuchi": "raiton", "kako": "doton", "bakuha": "doton", "iwao": "doton", "kamizuru": "doton",
+	"iburi": "katon", "shimura": "fuuton", "tsuchigumo": "doton", "jugo": "doton", "funato": "suiton", "kaminarimon": "raiton", "otsutsuki": ""}
 const GIVEN_M := ["Raito", "Shun", "Haruki", "Daichi", "Kenta", "Riku", "Takumi", "Isamu", "Souta", "Jun", "Asahi", "Kiyoshi", "Tomoya", "Ryūsei",
 	"Gaku", "Hayao", "Kōki", "Masaru", "Seiji", "Tatsuo", "Yūto", "Akihiro", "Benjirō", "Fumio"]
 const GIVEN_F := ["Kaede", "Akane", "Mio", "Yua", "Nao", "Sayuri", "Hikari", "Mei", "Yuzuki", "Rin", "Hotaru", "Midori", "Chiyoko", "Emi",
@@ -18,7 +19,8 @@ const NAMES := {"uchiha": "Uchiha", "hyuga": "Hyūga", "nara": "Nara", "akimichi
 	"inuzuka": "Inuzuka", "senju": "Senju", "uzumaki": "Uzumaki", "kaguya": "Kaguya", "yuki": "Yuki", "hozuki": "Hōzuki", "sarutobi": "Sarutobi",
 	"hatake": "Hatake", "chinoike": "Chinoike", "hoshigaki": "Hoshigaki", "kurama": "Kurama", "fuma": "Fūma", "kamizuru": "Kamizuru",
 	"sabaku": "Sabaku", "shirogane": "Shirogane", "hoki": "Hōki", "kazahana": "Kazahana", "terumi": "Terumi", "karatachi": "Karatachi",
-	"yotsuki": "Yotsuki", "ikazuchi": "Ikazuchi", "kako": "Kako", "bakuha": "Bakuha", "iwao": "Iwao"}
+	"yotsuki": "Yotsuki", "ikazuchi": "Ikazuchi", "kako": "Kako", "bakuha": "Bakuha", "iwao": "Iwao",
+	"iburi": "Iburi", "shimura": "Shimura", "tsuchigumo": "Tsuchigumo", "jugo": "Jūgo", "funato": "Funato", "kaminarimon": "Kaminarimon", "otsutsuki": "Ōtsutsuki"}
 ## Klan görünümü: saç rengi/stili, üst, özel işaretler (anime arketipleri; kanon karakter kopyası değil)
 const LOOK := {
 	"uchiha": {"hair": [Color(0.05, 0.05, 0.08)], "hs": ["diken", "dağınık", "uzun", "kakul", "atkuyruğu"], "top": Color(0.12, 0.14, 0.24), "top_style": "yakali"},
@@ -51,6 +53,13 @@ const LOOK := {
 	"kako": {"hair": [Color(0.55, 0.22, 0.12)], "hs": ["kısa", "topuz"], "top": Color(0.55, 0.28, 0.18)},
 	"bakuha": {"hair": [Color(0.4, 0.36, 0.3)], "hs": ["kase", "kısa"], "top": Color(0.45, 0.4, 0.3)},
 	"iwao": {"hair": [Color(0.3, 0.27, 0.24)], "hs": ["kirpik", "kısa"], "top": Color(0.5, 0.42, 0.34), "size": 1.1},
+	"iburi": {"hair": [Color(0.7, 0.7, 0.72), Color(0.25, 0.25, 0.28)], "hs": ["dağınık", "atkuyruğu", "uzun"], "top": Color(0.35, 0.35, 0.4), "top_style": "kimono"},
+	"shimura": {"hair": [Color(0.08, 0.08, 0.1)], "hs": ["kısa", "geriye"], "top": Color(0.15, 0.15, 0.18), "top_style": "yakali_uzun"},
+	"tsuchigumo": {"hair": [Color(0.4, 0.25, 0.45), Color(0.12, 0.1, 0.12)], "hs": ["uzun", "orgu"], "top": Color(0.3, 0.22, 0.35)},
+	"jugo": {"hair": [Color(0.95, 0.55, 0.2)], "hs": ["diken", "dağınık"], "top": Color(0.85, 0.85, 0.8), "size": 1.15},
+	"funato": {"hair": [Color(0.15, 0.3, 0.45), Color(0.85, 0.85, 0.8)], "hs": ["dağınık", "kısa"], "top": Color(0.2, 0.35, 0.5), "top_style": "tek_kol"},
+	"otsutsuki": {"hair": [Color(0.95, 0.95, 0.97)], "hs": ["uzun", "geriye"], "top": Color(0.95, 0.94, 0.9), "top_style": "kimono"},
+	"kaminarimon": {"hair": [Color(0.95, 0.85, 0.35), Color(0.15, 0.15, 0.18)], "hs": ["kirpik", "diken"], "top": Color(0.2, 0.2, 0.25), "top_style": "ceket"},
 }
 const LORE := {
 	"uchiha": ["Gözlerimiz acıyla uyanır. Sharingan'ı kazanmak istersen önce kaybetmeyi öğren.", "Ateş Uchiha'nın kanında. Gōkakyū'yu yapamayan yetişkin sayılmaz."],
@@ -74,6 +83,13 @@ const LORE := {
 	"kamizuru": ["Arılarımız balmumuyla kalkan yapar. Balı tatmak ister misin? Dikkat et, sokar."],
 	"kako": ["Lav damarlarımda akar. Toprak Ülkesi'nin volkanları bizim yuvamız."],
 	"bakuha": ["Dokunduğumu patlatırım. Sanat bir anlık patlamadır, derler."],
+	"iburi": ["Bedenim duman. Kılıcın içimden geçer, nefesin benimle dolar.", "Klanımızdan korkup kovdular... duman nereye isterse gider."],
+	"shimura": ["Rüzgâr görünmez; en keskin bıçak da öyle.", "Kökler toprağın altında çalışır, ağaç görünür. Biz de öyleyiz."],
+	"tsuchigumo": ["İpeğim çelikten sağlam. Ağıma takılan kurtulamaz.", "Atalarımızın yasak tekniği bir köyü siler. Mühürlü dursun."],
+	"jugo": ["Doğa enerjisi damarlarımda kaynıyor. Öfkelenirsem... uzak dur.", "Lanet mühürlerin kaynağı bizim kanımızdır."],
+	"funato": ["Deniz bizi doğurdu, deniz bizi korur. Dalgayı ben çağırırım.", "Zincirli kancam en hızlı gemiyi bile durdurur."],
+	"otsutsuki": ["Biz bu dünyaya ait değiliz. Chakranın kendisi bizden doğdu.", "Kül kemiklerim dokunduğunu toza çevirir."],
+	"kaminarimon": ["Şimşeği bir raya koyarsan kunai ses hızını aşar.", "Kara şimşek ailemizin sırrı. Görmeden çarpar."],
 }
 ## Konoha'da klan bölgeleri (köy merkezine göre harita ofseti, yarıçap)
 const KONOHA_DISTRICT := {"uchiha": [Vector2(-1020, -640), 95.0], "hyuga": [Vector2(-1050, 250), 45.0]}
@@ -271,9 +287,9 @@ func after_spawn_enemy(e: Enemy, c: String, lv: int, eye_override := 0) -> void:
 func decorate_bingo(e: Dictionary) -> void:
 	if e.has("legend") or e.has("beast") or randf() > 0.4:
 		return
-	var by_v := {"konoha": ["uchiha", "hyuga", "nara", "akimichi", "aburame", "inuzuka", "uzumaki", "sarutobi"],
-		"kiri": ["kaguya", "yuki", "hozuki", "hoshigaki", "terumi", "karatachi"], "suna": ["sabaku", "shirogane", "hoki", "kazahana"],
-		"kumo": ["chinoike", "yotsuki", "ikazuchi"], "iwa": ["kamizuru", "bakuha", "kako", "iwao"]}
+	var by_v := {"konoha": ["uchiha", "hyuga", "nara", "akimichi", "aburame", "inuzuka", "uzumaki", "sarutobi", "iburi", "shimura", "tsuchigumo"],
+		"kiri": ["kaguya", "yuki", "hozuki", "hoshigaki", "terumi", "karatachi", "funato"], "suna": ["sabaku", "shirogane", "hoki", "kazahana"],
+		"kumo": ["chinoike", "yotsuki", "ikazuchi", "kaminarimon"], "iwa": ["kamizuru", "bakuha", "kako", "iwao", "jugo"]}
 	var lst: Array = by_v.get(String(e["village"]), [])
 	if lst.is_empty():
 		return

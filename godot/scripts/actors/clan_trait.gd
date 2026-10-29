@@ -49,7 +49,7 @@ func _physics_process(dt: float) -> void:
 			if d < 16.0 and _sees(t):
 				_sharingan(t)
 				cd = randf_range(9.0, 13.0)
-		"hyuga":
+		"hyuga", "otsutsuki":
 			if d < 3.4:
 				_kaiten()
 				cd = randf_range(7.0, 9.0)

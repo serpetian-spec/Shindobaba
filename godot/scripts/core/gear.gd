@@ -694,7 +694,7 @@ static func ensure(p: Dictionary) -> void:
 
 ## Doğuştan klan gözleri (eski kayıtlar dahil bir kez verilir)
 static func _ensure_eyes(p: Dictionary) -> bool:
-	var eid = {"uchiha": "goz_sharingan", "hyuga": "goz_byakugan", "chinoike": "goz_ketsuryugan"}.get(String(p.get("clan", "")), "")
+	var eid = {"uchiha": "goz_sharingan", "hyuga": "goz_byakugan", "chinoike": "goz_ketsuryugan", "otsutsuki": "goz_byakugan"}.get(String(p.get("clan", "")), "")
 	# eski kayıt: uyuyan Sharingan -> doğrudan ver (1 tomoe)
 	var dormant = String(p.get("flags", {}).get("dormant_eye", ""))
 	if dormant != "":
