@@ -16,6 +16,12 @@ const PSTYLE := {
 	"buki_kuchiyose": "scroll", "tesso_kusari": "throw", "soshoryu": "scroll", "tekkosen": "summon", "ito_buki_arashi": "spin",
 	"kuchiyose_tetsuzan": "summon", "bashosen_kaze_no_maki": "two_palm", "bashosen_hi_no_maki": "two_palm",
 	"bashosen_rai_no_maki": "two_palm", "bashosen_mizu_no_maki": "two_palm",
+	# Şifacı Yolu
+	"senpuku": "ground", "shikon_no_jutsu": "summon", "saikan_chushutsu_no_jutsu": "medical", "dokugiri": "breath",
+	"ranshinsho": "palm", "chakura_no_mesu": "medical", "in_yu_shometsu": "medical", "sozo_saisei": "power",
+	# Sekiz Kapı Yolu
+	"omote_renge": "rush", "ura_renge": "rush", "hachimon_tonko_no_jin": "power", "asakujaku": "rush", "hirudora": "two_palm",
+	"sekizo": "charge", "yagai": "power",
 }
 
 const SNAKE := Color(0.42, 0.3, 0.5)
@@ -1530,3 +1536,400 @@ func p_bashosen_mizu_no_maki(c: Node3D, t: Node3D) -> void:
 			if is_instance_valid(wave):
 				fade_free(wave, 0.0, 0.4)
 				VFX.splash(wave.global_position, 4.0)))
+
+
+# ================================================================== Şifacı Yolu (Tıbbi Ninja)
+const MED := Color(0.45, 0.95, 0.6)
+
+
+## Toprak Gizlenmesi: yere gömülür (görünmez, darbe almaz), 3 sn sonra hedefin dibinden yukarı fırlayıp çene darbesi
+func p_senpuku(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.4)
+	anim(c, "crouch", 1.6)
+	FX.dust(c.global_position, 1.2)
+	Sfx.play("earth", c.global_position, 0.8)
+	var m = c.get("model")
+	if m:
+		m.create_tween().tween_property(m, "position:y", -2.0, 0.35)
+	if c is Player:
+		Buffs.add("stealth_senpuku", 3.0, {"stealth": 1.0, "armor": 0.0, "_desc": "Yerin altındasın: görünmez, hasar almazsın"})
+	after(3.0, func():
+		if not live(c):
+			return
+		var tt = tg(c, t, 14.0)
+		if tt:
+			c.global_position = gp(tt.global_position + fwd(c, tt) * -0.8)
+		if m:
+			m.create_tween().tween_property(m, "position:y", 0.0, 0.15)
+		VFX.puffs(c.global_position, {"amount": 30, "life": 0.7, "size": 0.8, "radius": 1.0, "vmin": 4, "vmax": 9, "dir": Vector3.UP, "spread": 30.0,
+			"colors": [Color(0.6, 0.5, 0.38, 0.9), Color(0.5, 0.42, 0.32, 0)]})
+		anim(c, "hook", 1.6)
+		Sfx.play("hit_heavy", c.global_position, 0.9)
+		hit(c, c.global_position + Vector3.UP * 1.0, 2.0, inf(c, "senpuku", 1.0, {"launch": 9.0, "knock": 4.0, "kind": "heavy"})))
+
+
+## Ceset Diriltme: solgun, dikişli bir ceset ayağa kalkar ve 20 sn senin için savaşır
+func p_shikon_no_jutsu(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.6)
+	var at = gp(c.global_position + fwd(c, t) * 3.0)
+	summon_circle(at, 1.6, Color(0.5, 0.75, 0.55), 1.2)
+	after(0.5, func():
+		if not live(c):
+			return
+		var d = ShadowClone.new()
+		d.team = c.team
+		var lk = CharacterModel.default_look()
+		lk.merge({"skin": Color(0.72, 0.74, 0.7), "top": Color(0.35, 0.33, 0.3), "top2": Color(0.3, 0.28, 0.26), "pants": Color(0.25, 0.24, 0.22),
+			"hair": Color(0.3, 0.3, 0.3), "face_mark": "kırışık", "band_style": "slashed"}, true)
+		d.look = lk
+		d.life = 20.0
+		get_tree().current_scene.add_child(d)
+		d.global_position = at
+		d.max_hp = 1.0
+		FX.burst(at + Vector3.UP, {"amount": 26, "life": 0.8, "tex": FX.tex_smoke, "add": false, "size": 0.7, "vmin": 1, "vmax": 3, "colors": [Color(0.55, 0.7, 0.55, 0.8), Color(0.4, 0.5, 0.4, 0)]})
+		Combat.popup_text(at + Vector3.UP * 2.4, "Ceset kalktı!", Color(0.6, 0.85, 0.6)))
+
+
+## Zehir Çekme: avuçta dönen su küresi bedenden mor zehri çeker; zehir/yavaşlama/bağ biter, can yenilenir
+func p_saikan_chushutsu_no_jutsu(c: Node3D, _t: Node3D) -> void:
+	busy(c, 1.2)
+	anim(c, "cast", 1.0)
+	var orb = MeshInstance3D.new()
+	orb.mesh = VFX._sphere(0.22, 16, 8)
+	orb.material_override = VFX.mat_water(Color(0.15, 0.55, 0.65), Color(0.4, 0.85, 0.8), Color(0.85, 1, 0.95), Vector3.UP, 0.4, 0.6, 0.1)
+	get_tree().current_scene.add_child(orb)
+	every(1.1, 1.0 / 30.0, func(_i, k):
+		if is_instance_valid(orb) and live(c):
+			orb.global_position = hand_pos(c, true) + Vector3.UP * 0.15
+			orb.scale = Vector3.ONE * (0.6 + k * 0.8)
+			if randf() < 0.5:
+				VFX.puffs(c.global_position + Vector3.UP * randf_range(0.6, 1.5), {"amount": 2, "life": 0.4, "size": 0.15, "radius": 0.2, "vmin": 1, "vmax": 2,
+					"colors": [Color(0.55, 0.2, 0.65, 0.9), Color(0.4, 0.1, 0.5, 0)]}), func():
+		if is_instance_valid(orb):
+			FX.burst(orb.global_position, {"amount": 20, "life": 0.5, "tex": FX.tex_smoke, "add": false, "size": 0.3, "vmin": 2, "vmax": 4, "gravity": Vector3(0, -8, 0), "colors": [Color(0.5, 0.2, 0.6, 0.9), Color(0.3, 0.1, 0.4, 0)]})
+			orb.queue_free()
+		if live(c):
+			for s in ["poison", "slow", "bind", "stun", "burn"]:
+				if c.has_method("clear_status"):
+					c.clear_status(s)
+				elif "statuses" in c:
+					c.statuses.erase(s)
+			heal(c, c.max_hp * 0.25)
+			Combat.popup_text(c.global_position + Vector3.UP * 2.6, "Zehir çekildi", MED))
+
+
+## Zehir Sisi: ağızdan mor sis yelpazesi; 7 sn yerde kalır, içindekiler zehirlenir ve yavaşlar
+func p_dokugiri(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.7)
+	var d = fwd(c, t)
+	var center = gp(c.global_position + d * 6.0)
+	Sfx.play("wind", c.global_position, 0.6)
+	for k in 5:
+		after(k * 0.08, func():
+			VFX.puffs(c.global_position + Vector3.UP * 1.5 + d * (1.0 + k * 1.4), {"amount": 26, "life": 1.4, "size": 1.4 + k * 0.3, "radius": 0.6 + k * 0.4, "vmin": 2, "vmax": 5, "dir": d, "spread": 25.0,
+				"colors": [Color(0.55, 0.25, 0.65, 0.75), Color(0.35, 0.15, 0.45, 0)]}))
+	every(7.0, 0.5, func(_i, _k):
+		VFX.puffs(center + Vector3.UP * 0.8, {"amount": 8, "life": 1.2, "size": 1.8, "radius": 4.0, "vmin": 0.2, "vmax": 0.8, "colors": [Color(0.55, 0.25, 0.65, 0.5), Color(0.35, 0.15, 0.45, 0)]})
+		for e in enemies_near(c, center, 5.0):
+			st(e, "slow", 1.0)
+			e.take_hit(inf(c, "dokugiri", 0.12, {"knock": 0.0, "kind": "light", "element": ""})), Callable())
+
+
+## Sinir Karıştırma: elektrikli yeşil avuç darbesi; hedefin sinirleri karışır (3 sn sersem, sonra yavaş)
+func p_ranshinsho(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 6.0)
+	busy(c, 0.6)
+	anim(c, "jab", 1.6)
+	var pt = hand_pos(c, true)
+	FX.burst(pt, {"amount": 30, "life": 0.35, "tex": FX.tex_spark, "add": true, "size": 0.25, "vmin": 2, "vmax": 7, "colors": [Color(0.6, 1, 0.7), Color(0.3, 1, 0.5, 0)]})
+	Sfx.play("chidori", pt, 1.6, 0.4)
+	if tt and tt.global_position.distance_to(c.global_position) < 4.0:
+		tt.take_hit(inf(c, "ranshinsho", 0.6, {"knock": 1.0, "kind": "light"}))
+		st(tt, "stun", 3.0)
+		after(3.0, func(): st(tt, "slow", 4.0))
+		Combat.popup_text(tt.global_position + Vector3.UP * 2.4, "Sinirler karıştı!", Color(0.6, 1, 0.7))
+
+
+## Chakra Neşteri: iki elde mavi parlayan bıçak (12 sn); yakın dövüş güçlenir, vurulan kas kesilir (yavaşlar)
+func p_chakura_no_mesu(c: Node3D, _t: Node3D) -> void:
+	anim(c, "cast", 1.4)
+	var blades = []
+	for right in [true, false]:
+		var ba = bone_attach(c, "RightHand" if right else "LeftHand")
+		if ba == null:
+			continue
+		var b = MB.new()
+		b.add("box", Vector3(0, 0.12, 0.02), Vector3(0.02, 0.22, 0.07), Color(0.6, 0.9, 1.0))
+		var mi = mesh_of(b, glow(Color(0.55, 0.9, 1.0), 0.8))
+		ba.add_child(mi)
+		blades.append(ba)
+	Sfx.play("chidori", c.global_position, 2.0, 0.3)
+	if c is Player:
+		Buffs.add("chakura_no_mesu", 12.0, {"melee": 1.5, "_name": "Chakra Neşteri", "_desc": "vurduğun düşman yavaşlar (kas kesildi)"})
+	every(12.0, 0.25, func(_i, _k):
+		for e in enemies_near(c, c.global_position, 2.2):
+			if randf() < 0.25:
+				st(e, "slow", 2.0), func():
+		for ba in blades:
+			if is_instance_valid(ba):
+				ba.queue_free())
+
+
+## Hücre Yenileme: bedeni saran yeşil ışık, 15 sn her saniye %4 can
+func p_in_yu_shometsu(c: Node3D, _t: Node3D) -> void:
+	anim(c, "cast", 1.2)
+	var a = FX.aura(c, MED, 1.1, Vector3(0, 0.9, 0), 0.0)
+	if c is Player:
+		Buffs.add("in_yu_shometsu", 15.0, {"_name": "Hücre Yenileme", "_desc": "her sn canın %4'ü yenilenir"})
+	every(15.0, 1.0, func(_i, _k):
+		if live(c):
+			heal(c, c.max_hp * 0.04), func():
+		if is_instance_valid(a):
+			a.emitting = false)
+
+
+## Yaradılış Yenilenmesi: alında elmas mühür açılır, yüze/kollara mühür çizgileri yayılır; tam iyileşme + 20 sn güçlü yenilenme
+func p_sozo_saisei(c: Node3D, _t: Node3D) -> void:
+	busy(c, 0.8)
+	anim(c, "cast", 0.9)
+	var m = c.get("model")
+	var parts = []
+	var hb = bone_attach(c, "Head")
+	if hb:
+		var b = MB.new()
+		b.add("box", Vector3(0, 0.1, 0.1), Vector3(0.025, 0.025, 0.008), Color(0.6, 0.2, 0.75), Vector3(0, 0, 45))   # Byakugō elması
+		var mi = mesh_of(b, glow(Color(0.65, 0.25, 0.85), 1.0))
+		hb.add_child(mi)
+		parts.append(hb)
+	for bone in ["LeftUpperArm", "RightUpperArm", "LeftLowerArm", "RightLowerArm", "Neck"]:
+		var ba = bone_attach(c, bone)
+		if ba == null:
+			continue
+		var b2 = MB.new()
+		for k in 3:
+			b2.add("box", Vector3(0.045 * (1 if k % 2 == 0 else -1), 0.05 + k * 0.07, 0.03), Vector3(0.008, 0.06, 0.004), Color(0.25, 0.1, 0.35), Vector3(0, 0, 25 - k * 25))
+		ba.add_child(mesh_of(b2, glow(Color(0.35, 0.12, 0.45), 1.0)))
+		parts.append(ba)
+	FX.ring(c.global_position + Vector3.UP * 1.0, Color(0.7, 0.3, 0.9), 4.0, 0.5)
+	Sfx.play("heal", c.global_position, 0.8)
+	heal(c, c.max_hp)
+	if c is Player:
+		Buffs.add("sozo_saisei", 20.0, {"armor": 0.85, "_name": "Yaradılış Yenilenmesi", "_desc": "tam iyileşme + her sn canın %6'sı yenilenir"})
+	every(20.0, 1.0, func(_i, _k):
+		if live(c):
+			heal(c, c.max_hp * 0.06), func():
+		for pp in parts:
+			if is_instance_valid(pp):
+				pp.queue_free())
+
+
+# ================================================================== Sekiz Kapı Yolu
+const GATE_GREEN := Color(0.45, 1.0, 0.45)
+
+
+func _gate_cost(c: Node3D, frac: float) -> void:
+	if c is Player:
+		c.hp = maxf(1.0, c.hp - c.max_hp * frac)
+	FX.aura(c, GATE_GREEN, 1.0, Vector3(0, 0.9, 0), 0.8)
+
+
+## Ön Lotus: hedefe atıl, çeneden yukarı tekmele, havada sargıyla sar ve başaşağı yere çak
+func p_omote_renge(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 12.0)
+	_gate_cost(c, 0.05)
+	busy(c, 1.4)
+	if tt == null:
+		anim(c, "hook", 1.5)
+		return
+	c.global_position = gp(tt.global_position - fwd(c, tt) * 1.0)
+	anim(c, "hook", 1.8)
+	Sfx.play("hit_heavy", c.global_position, 1.1)
+	tt.take_hit(inf(c, "omote_renge", 0.3, {"launch": 14.0, "knock": 0.0, "kind": "heavy"}))
+	after(0.45, func():
+		if not live(tt):
+			return
+		# sargı: hedefle aradaki beyaz bant
+		tether(func(): return c.global_position + Vector3.UP * 1.2, func(): return tt.global_position + Vector3.UP, 0.08, glow(Color(0.95, 0.94, 0.9), 1.0), 0.5)
+		c.global_position = tt.global_position + Vector3.UP * 0.5
+		anim(c, "air", 1.4))
+	after(0.95, func():
+		if not live(c):
+			return
+		var p = gp(c.global_position)
+		c.global_position = p
+		if live(tt):
+			tt.global_position = p
+		FX.impact(p, GATE_GREEN, 2.0)
+		FX.ring(p + Vector3.UP * 0.1, Color(0.7, 0.65, 0.55), 6.0, 0.4)
+		shake(0.7)
+		Sfx.play("boom", p, 0.8)
+		hit(c, p + Vector3.UP * 0.6, 3.0, inf(c, "omote_renge", 1.4, {"knock": 8.0, "kind": "heavy"})))
+
+
+## Arka Lotus: üçüncü kapı; hedefi havaya savurup arkasından görünerek 6 hızlı vuruş, son yumrukla yere çakar
+func p_ura_renge(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 14.0)
+	_gate_cost(c, 0.1)
+	busy(c, 1.8)
+	if tt == null:
+		return
+	c.global_position = gp(tt.global_position - fwd(c, tt) * 1.0)
+	tt.take_hit(inf(c, "ura_renge", 0.2, {"launch": 16.0, "knock": 0.0, "kind": "heavy"}))
+	for k in 6:
+		after(0.25 + k * 0.13, func():
+			if not live(tt) or not live(c):
+				return
+			var side = Vector3(cos(k * 2.1), 0.4, sin(k * 2.1)) * 1.2
+			c.global_position = tt.global_position + side
+			anim(c, ["jab", "cross", "hook"][k % 3], 2.2)
+			FX.impact(tt.global_position + Vector3.UP * 0.8, GATE_GREEN, 0.8)
+			Sfx.play("punch", tt.global_position, 1.2 + k * 0.05)
+			tt.take_hit(inf(c, "ura_renge", 0.22, {"knock": 0.0, "launch": 2.0, "kind": "light", "hitstop": 0.03})))
+	after(1.15, func():
+		if not live(c):
+			return
+		var p = gp(tt.global_position if live(tt) else c.global_position)
+		c.global_position = p + Vector3.UP * 0.2
+		if live(tt):
+			tt.global_position = p
+		anim(c, "cross", 1.4)
+		FX.impact(p, GATE_GREEN, 3.0)
+		FX.ring(p + Vector3.UP * 0.1, Color(0.7, 0.65, 0.55), 9.0, 0.5)
+		shake(1.1)
+		Sfx.play("boom", p, 0.6)
+		hit(c, p + Vector3.UP * 0.6, 4.0, inf(c, "ura_renge", 1.8, {"knock": 12.0, "kind": "heavy"})))
+
+
+## Sekiz Kapı Açılışı: yeşil buhar fışkırır, ten kızarır; 25 sn büyük güç ve hız, can yavaşça erir
+func p_hachimon_tonko_no_jin(c: Node3D, _t: Node3D) -> void:
+	busy(c, 0.8)
+	anim(c, "cast", 1.0)
+	shake(0.8)
+	Sfx.play("roar", c.global_position, 1.2, 0.6)
+	FX.ring(c.global_position + Vector3.UP * 0.2, GATE_GREEN, 10.0, 0.5)
+	var a = FX.aura(c, GATE_GREEN, 1.6, Vector3(0, 0.9, 0), 0.0)
+	var m = c.get("model")
+	var skin_mats = []
+	if m:
+		var ratio: Color = m._skin_ratio()
+		for sm in m.materials:
+			if sm is ShaderMaterial and sm.get_shader_parameter("tint") == ratio:
+				skin_mats.append(sm)
+				sm.set_shader_parameter("tint", ratio * Color(1.15, 0.78, 0.72))   # kapılar açıkken ten kızarır
+	if c is Player:
+		Buffs.add("hachimon", 25.0, {"melee": 2.1, "speed": 1.5, "_name": "Sekiz Kapı Açık", "_desc": "her sn canın %1.5'i erir"})
+	every(25.0, 0.4, func(_i, _k):
+		if live(c):
+			if c is Player:
+				c.hp = maxf(1.0, c.hp - c.max_hp * 0.006)
+			VFX.puffs(c.global_position + Vector3.UP * 1.2, {"amount": 3, "life": 0.8, "size": 0.6, "radius": 0.4, "vmin": 1, "vmax": 3, "dir": Vector3.UP, "spread": 30.0,
+				"colors": [Color(0.75, 1, 0.75, 0.6), Color(0.6, 0.9, 0.6, 0)]}), func():
+		if is_instance_valid(a):
+			a.emitting = false
+		if m and is_instance_valid(m):
+			for sm in skin_mats:
+				sm.set_shader_parameter("tint", m._skin_ratio()))
+
+
+## Sabah Tavuskuşu: altıncı kapı; sürtünmeden alev alan yumruklar tavuskuşu kuyruğu gibi yelpazelenir
+func p_asakujaku(c: Node3D, t: Node3D) -> void:
+	_gate_cost(c, 0.12)
+	busy(c, 1.3)
+	var d = fwd(c, t)
+	var right = d.cross(Vector3.UP).normalized()
+	for k in 18:
+		after(k * 0.05, func():
+			if not live(c):
+				return
+			anim(c, "jab" if k % 2 == 0 else "cross", 2.6)
+			var off = right * randf_range(-2.2, 2.2) + Vector3.UP * randf_range(0.6, 2.6)
+			var from = c.global_position + Vector3.UP * 1.3 + d * 0.6
+			var b = MB.new()
+			b.add("sphere", Vector3.ZERO, Vector3(0.5, 0.5, 0.8), Color(1, 0.6, 0.2))
+			var mi = mesh_of(b, glow(Color(1, 0.55, 0.15), 0.85))
+			var pr = shot(c, from, (d * 12.0 + off).normalized(), 46.0, mi, inf(c, "asakujaku", 0.18, {"element": "katon", "burn": 1.5, "knock": 2.0, "kind": "light"}), null, false, 0.6)
+			Projectile.trail(pr, [Color(1, 0.7, 0.3, 0.9), Color(1, 0.3, 0.1, 0)], 0.35, 16, 0.3, FX.tex_smoke, true)
+			if k % 4 == 0:
+				Sfx.play("fire", from, 1.4, 0.4))
+	FX.speed_lines(c.global_position + Vector3.UP, d)
+
+
+## Gündüz Kaplanı: yedinci kapı; avuç ileri, kaplan başı biçiminde dev hava basıncı topu (her şeyi savurur)
+func p_hirudora(c: Node3D, t: Node3D) -> void:
+	_gate_cost(c, 0.15)
+	busy(c, 1.0)
+	anim(c, "push", 1.0)
+	var d = fwd(c, t)
+	after(0.35, func():
+		if not live(c):
+			return
+		var from = c.global_position + Vector3.UP * 1.3 + d * 1.2
+		var node = Node3D.new()
+		var core = MeshInstance3D.new()
+		core.mesh = VFX._sphere(1.6, 18, 10)
+		core.material_override = glow(Color(0.85, 1.0, 0.9), 0.35)
+		node.add_child(core)
+		for sx in [-1.0, 1.0]:   # kaplan kulakları ve çene hatları (hava girdabı)
+			var ear = MeshInstance3D.new()
+			ear.mesh = VFX._sphere(0.6, 10, 6)
+			ear.material_override = glow(Color(0.8, 1.0, 0.85), 0.3)
+			ear.position = Vector3(sx * 1.2, 1.3, 0.2)
+			node.add_child(ear)
+		var pr = shot(c, from, d, 26.0, node, inf(c, "hirudora", 2.2, {"knock": 22.0, "launch": 6.0, "kind": "heavy", "hitstop": 0.1}), null, true, 1.4)
+		Projectile.trail(pr, [Color(0.85, 1, 0.9, 0.6), Color(0.7, 0.9, 0.8, 0)], 1.4, 20, 0.5, FX.tex_smoke, false)
+		shake(0.9)
+		Sfx.play("wind", from, 0.5)
+		Sfx.play("roar", from, 1.3, 0.5))
+
+
+## Akşam Fili: sekizinci kapı; beş ardışık süpersonik yumruk, her biri öne uzanan hava şoku
+func p_sekizo(c: Node3D, t: Node3D) -> void:
+	_gate_cost(c, 0.2)
+	busy(c, 2.0)
+	var d = fwd(c, t)
+	for k in 5:
+		after(0.2 + k * 0.32, func():
+			if not live(c):
+				return
+			anim(c, "cross", 2.0)
+			var o = c.global_position + Vector3.UP * 0.4
+			FX.ring(o + d * 2.0 + Vector3.UP, Color(0.8, 1, 0.8), 3.5 + k * 0.6, 0.3, false, d)
+			VFX.puffs(o + d * 4.0 + Vector3.UP, {"amount": 30, "life": 0.5, "size": 1.0, "radius": 1.5, "vmin": 12, "vmax": 22, "dir": d, "spread": 15.0,
+				"colors": [Color(0.9, 1, 0.9, 0.7), Color(0.7, 0.9, 0.7, 0)]})
+			shake(0.5 + k * 0.1)
+			Sfx.play("boom", o, 1.2 - k * 0.08, 0.6)
+			Combat.hit_zone(c, o, d, 18.0 + k * 3.0, 14.0, 4.0, inf(c, "sekizo", 0.75, {"knock": 16.0, "launch": 3.0, "kind": "heavy", "hitstop": 0.05})))
+
+
+## Gece Gayı: sekizinci kapının son tekmesi; kızıl ejderha biçimli buhar, uzayı büken tek hamlede hedefin içinden geç.
+## Bedeli: canın %10'a iner, 12 sn bitkin (yavaş)
+func p_yagai(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 30.0)
+	busy(c, 1.8)
+	anim(c, "crouch", 0.8)
+	var a = FX.aura(c, Color(1, 0.25, 0.2), 2.4, Vector3(0, 0.9, 0), 0.0)
+	Sfx.play("roar", c.global_position, 0.6)
+	shake(1.0)
+	after(0.9, func():
+		if not live(c):
+			return
+		var d = fwd(c, tt)
+		var start = c.global_position
+		var dist = 26.0 if tt == null else c.global_position.distance_to(tt.global_position) + 6.0
+		var end = gp(start + d * dist)
+		# ejderha: başlangıçtan bitişe kıvrılan kızıl buhar şeridi
+		for k in 14:
+			var q = start.lerp(end, k / 13.0) + Vector3.UP * (1.2 + sin(k * 0.8) * 0.8) + d.cross(Vector3.UP) * cos(k * 0.6) * 1.2
+			VFX.puffs(q, {"amount": 14, "life": 1.2, "size": 1.6 - k * 0.05, "radius": 0.8, "vmin": 0.5, "vmax": 2, "colors": [Color(1, 0.3, 0.2, 0.85), Color(0.7, 0.1, 0.1, 0)]})
+		c.global_position = end
+		anim(c, "dash", 1.4)
+		Combat.hit_zone(c, start, d, dist, 10.0, 4.0, inf(c, "yagai", 6.0, {"knock": 30.0, "launch": 10.0, "kind": "heavy", "hitstop": 0.2}))
+		VFX.slowmo(0.35, 0.6)
+		shake(2.0)
+		Sfx.play("boom", end, 0.4)
+		if is_instance_valid(a):
+			a.emitting = false
+		if c is Player:
+			c.hp = minf(c.hp, c.max_hp * 0.1)
+			st(c, "slow", 12.0)
+			Hud.msg("Gece Gayı'nın bedeli: bedenin tükendi.", Color(1, 0.4, 0.4)))
