@@ -16,7 +16,7 @@ func _ready() -> void:
 	main.add_child(cam)
 	cam.current = true
 	var only = OS.get_environment("ONLY")
-	var ids = [only] if only != "" else ["hyoton_tsubame_fubuki", "hyoton_hyoryu_boppa", "hozuki_kubikiri_zan", "hozuki_mizu_muchi", "hozuki_suiryu_tenshin", "hoshigaki_samehada_kyushu", "hoshigaki_bakusui_shoha", "hoshigaki_gyojin", "raiton_sutoreeto", "raiton_daburu_rariatto", "kokuton_kuro_pansa", "sarutobi_enma_kongonyoi", "sarutobi_karyu_endan", "sarutobi_shuriken_tajuu", "hatake_raiju_tsuiga", "hatake_shiden", "hatake_gin_no_kiba"]
+	var ids = [only] if only != "" else ["chinoike_ketsuryu", "chinoike_chi_no_kusari", "chinoike_futto_ketsu", "kurama_ikiru_e", "kurama_gaku_ori", "kurama_irodori_kaen", "fuma_kunai_ame", "fuma_kaiten_jin", "fuma_kage_shuriken", "kamizuru_jo_bachi", "kamizuru_mitsu_nami", "kamizuru_hachi_tatsumaki", "shirogane_doku_kiri", "shirogane_senbon_ame", "shirogane_ito_kago", "hoki_sumi_ryu", "hoki_sumi_tora", "hoki_sumi_tori"]
 	for id in ids:
 		var e = Enemy.new()
 		var a = Enemy.archetype("bandit", 0)
