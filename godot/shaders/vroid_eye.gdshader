@@ -70,7 +70,7 @@ void fragment() {
 			// rinnegan: tüm iris yüzeyi lila, eşmerkezli halkalar (dokudaki asıl iris/bebek görünmez), küçük bebek
 			c = vec4(rinne_col(lp, lp.x > 0.0 ? eye_c_l : eye_c_r, iris_r3), tx.a);
 		} else if (dk > 0) {
-			vec2 q = iq;
+			vec2 q = iq / 1.34;   // desen irisin tamamını kaplasın (kenarda asıl göz rengi görünüyordu)
 			float r = length(q);
 			if (r < 1.0) {
 				float ang = atan(q.y, q.x);

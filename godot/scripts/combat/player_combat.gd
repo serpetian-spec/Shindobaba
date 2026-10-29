@@ -30,7 +30,8 @@ var aura: GPUParticles3D
 var cast_jutsu = ""
 var cast_time = 0.0
 var cooldowns = {}
-var jutsu_gcd = 0.0      # her jutsudan sonra ortak bekleme (rütbeye göre): üst üste jutsu yağdırılmasın
+var jutsu_gcd = 0.0
+var fan_cd = 0.0         # yelpaze rüzgâr dalgası      # her jutsudan sonra ortak bekleme (rütbeye göre): üst üste jutsu yağdırılmasın
 var strain = 0           # chakra yorgunluğu: art arda jutsularda maliyet artar
 var strain_t = 0.0
 var _gcd_msg_t = 0.0
@@ -164,6 +165,20 @@ func _start_step() -> void:
 		p.facing = atan2(-f.x, -f.z)
 	p.model.play(c["anim"], 0.05, c["speed"], true)
 	p.model.overlay.set_pose("kick", 1.0 if c.get("kick", false) else 0.0)
+	# yelpaze: kombonun 4. vuruşu uzak rüzgâr dalgası (3 sn bekleme, spam yok)
+	if String(Gear.weapon(Game.profile).get("style", "")) == "fan" and step == 3 and fan_cd <= 0.0 and p.chakra >= 6.0:
+		fan_cd = 3.0
+		p.chakra -= 6.0
+		var dir = p.face_dir()
+		get_tree().create_timer(0.15).timeout.connect(func():
+			if not is_instance_valid(p):
+				return
+			var o = p.global_position + Vector3.UP * 0.3
+			FX.speed_lines(o + Vector3.UP, dir)
+			VFX.puffs(o + dir * 4.0 + Vector3.UP, {"amount": 40, "life": 0.6, "size": 0.7, "radius": 1.2, "vmin": 10, "vmax": 18, "dir": dir, "spread": 18.0,
+				"colors": [Color(0.85, 1.0, 0.92, 0.7), Color(0.7, 0.95, 0.85, 0)]})
+			Sfx.play("wind", o, 1.1)
+			Combat.hit_zone(p, o, dir, 16.0, 18.0, 3.0, {"dmg": 12.0 * Stats.melee_mult(Game.profile), "knock": 14.0, "launch": 3.0, "kind": "heavy", "element": "fuuton", "hitstop": 0.04}))
 	Sfx.play("whoosh", p.global_position, randf_range(0.9, 1.2), 0.6)
 
 
@@ -192,6 +207,7 @@ func move_override(dt: float) -> bool:
 	for k in cooldowns.keys():
 		cooldowns[k] -= dt
 	jutsu_gcd -= dt
+	fan_cd -= dt
 	_gcd_msg_t -= dt
 	strain_t -= dt
 	if strain_t <= 0.0:
@@ -516,7 +532,7 @@ func throw_tool() -> void:
 		p.facing = atan2(-aim.x, -aim.z)
 	p.model.play("throw", 0.05, 1.8, true)
 	Sfx.play("kunai", start)
-	var n = 3 if tool == "shuriken" else 1
+	var n = 3 if tool in ["shuriken", "senbon"] else 1
 	if Stats.has_unlock(Game.profile, "multi_throw") and tool in ["kunai", "shuriken"]:
 		n += 2  # Silah Yağmuru
 	for i in n:

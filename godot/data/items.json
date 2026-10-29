@@ -23,6 +23,18 @@
   "kind": "throw",
   "desc": "Düşmanlar seni kaybeder."
  },
+ "senbon": {
+  "name": "Senbon",
+  "price": 6,
+  "kind": "throw",
+  "desc": "Üçlü hızlı iğne: az hasar, %35 zehir (yavaşlatır)."
+ },
+ "makibishi": {
+  "name": "Makibishi",
+  "price": 20,
+  "kind": "throw",
+  "desc": "Yere diken saçar: üstünden geçen düşman yaralanır ve yavaşlar (8 sn)."
+ },
  "salve": {
   "name": "Şifalı Merhem",
   "price": 35,

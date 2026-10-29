@@ -653,7 +653,7 @@ func interact(it: Dictionary) -> void:
 				Hud.dialog("Kapı Nöbetçisi", "Dışarısı tehlikeli genç ninja. Haritayı [M] aç, yolları takip et. Diğer köylere varınca hızlı seyahat açılır.", gopts)
 		"shop_weapons":
 			Hud.dialog("Silah Dükkânı", "Hoş geldin! Ne bakıyorsun?", [
-				{"label": "Ninja aletleri", "cb": func(): Hud.shop("Silah Dükkânı", ["kunai", "shuriken", "tag", "smoke"])},
+				{"label": "Ninja aletleri", "cb": func(): Hud.shop("Silah Dükkânı", ["kunai", "shuriken", "senbon", "tag", "makibishi", "smoke"])},
 				{"label": "Silahlar (sağ el / sol el) — stok yarım saatte bir değişir", "cb": func(): Hud.gear_shop("Silahçı", Gear.shop_stock("w", String(it.get("village", home()))))},
 				{"label": "Kıyafetler ve zırhlar", "cb": func(): Hud.gear_shop("Terzi", Gear.shop_stock("c", String(it.get("village", home()))))},
 			])

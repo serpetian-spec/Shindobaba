@@ -218,13 +218,49 @@ func block() -> void:
 
 
 # ------------------------------------------------------------------ ninja aletleri
+## Makibishi alanı: 3.2 m yarıçapında yerde dikenler; içinden geçen düşman (atanın düşmanı) yaralanır ve yavaşlar
+static func caltrops(who: Node3D, at: Vector3, dur: float) -> void:
+	var tree = who.get_tree() if is_instance_valid(who) else Engine.get_main_loop()
+	var root = Node3D.new()
+	tree.current_scene.add_child(root)
+	at.y = Game.ground_height(at.x, at.z)
+	root.global_position = at
+	var b = MB.new()
+	for k in 26:
+		var a = randf() * TAU
+		var r = sqrt(randf()) * 3.0
+		var q = Vector3(cos(a) * r, 0.05, sin(a) * r)
+		for j in 3:
+			b.add("cone", q, Vector3(0.05, 0.12, 0.05), Color(0.28, 0.28, 0.3), Vector3(randf_range(-40, 40), 0, randf_range(-40, 40) + j * 60), 4)
+	var mi = MeshInstance3D.new()
+	mi.mesh = b.build(Props.toon())
+	root.add_child(mi)
+	var tm = Timer.new()
+	tm.wait_time = 0.35
+	tm.autostart = true
+	root.add_child(tm)
+	var left = [dur]
+	tm.timeout.connect(func():
+		left[0] -= 0.35
+		if left[0] <= 0.0 or not is_instance_valid(who):
+			root.queue_free()
+			return
+		for f in root.get_tree().get_nodes_in_group("fighters"):
+			if not Combat.hostile(who, f) or f.is_dead():
+				continue
+			if Vector2(f.global_position.x - at.x, f.global_position.z - at.z).length() < 3.2 and absf(f.global_position.y - at.y) < 1.0:
+				if f.has_method("apply_status"):
+					f.apply_status("slow", 1.0)
+				f.take_hit({"dmg": 3.0, "knock": 0.0, "kind": "light", "attacker": who, "dir": Vector3.ZERO}))
+
+
 static func tool(who: Node3D, start: Vector3, dir: Vector3, kind: String, target: Node3D) -> Projectile:
 	var pr = Projectile.new()
 	pr.shooter = who
-	pr.vel = dir * (55.0 if kind != "smoke" else 30.0)
-	pr.gravity = 3.0
+	pr.vel = dir * {"smoke": 30.0, "senbon": 75.0, "makibishi": 22.0}.get(kind, 55.0)
+	pr.gravity = 14.0 if kind == "makibishi" else (1.0 if kind == "senbon" else 3.0)
 	pr.radius = 0.15
-	pr.stick = kind in ["kunai", "shuriken"]
+	pr.stick = kind in ["kunai", "shuriken", "senbon"]
 	var mult = Stats.melee_mult(Game.profile) * (1.0 + Stats.skill(Game.profile, "throw_dmg") + (Stats.skill(Game.profile, "tag_dmg") if kind == "tag" else 0.0)) if who is Player else 1.0
 	pr.info = {"dmg": (10.0 if kind == "kunai" else 6.0) * mult, "knock": 1.5, "kind": "light", "hitstop": 0.02}
 	var mi = MeshInstance3D.new()
@@ -243,6 +279,18 @@ static func tool(who: Node3D, start: Vector3, dir: Vector3, kind: String, target
 			pr.info["dmg"] = 6.0 * mult
 		"smoke":
 			b.add("sphere", Vector3.ZERO, Vector3(0.18, 0.18, 0.18), Color(0.2, 0.2, 0.22))
+		"senbon":   # ince uzun iğne
+			b.add("cyl", Vector3(0, 0, -0.05), Vector3(0.012, 0.32, 0.012), Color(0.75, 0.77, 0.82), Vector3(90, 0, 0), 4)
+			pr.info["dmg"] = 4.0 * mult
+			pr.on_hit = func(_pos: Vector3, tgt: Node3D) -> void:
+				if tgt != null and is_instance_valid(tgt) and tgt.has_method("apply_status") and randf() < 0.35:
+					tgt.apply_status("slow", 3.0)
+					Combat.popup_text(tgt.global_position + Vector3.UP * 2.2, "Zehir!", Color(0.6, 0.9, 0.4))
+		"makibishi":   # avuç dolusu diken torbası: yere düşünce saçılır
+			b.add("sphere", Vector3.ZERO, Vector3(0.14, 0.12, 0.14), Color(0.3, 0.3, 0.32))
+			pr.info["dmg"] = 2.0
+			pr.on_hit = func(pos: Vector3, _t: Node3D) -> void:
+				Projectile.caltrops(who, pos, 8.0)
 	mi.mesh = b.build(Props.toon())
 	# hayran modeli varsa kunai görseli (namlu uçuş yönüne, -Z)
 	var tn = SFProps.weapon_node(kind, SFProps.THROWN) if kind in ["kunai", "tag"] else null

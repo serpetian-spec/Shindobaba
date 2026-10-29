@@ -335,7 +335,7 @@ func _route(e: InputEvent) -> void:
 				if tk:
 					tk.talk()
 	elif e.is_action_pressed("tool_next"):
-		var tools = ["kunai", "shuriken", "tag", "smoke"]
+		var tools = ["kunai", "shuriken", "senbon", "tag", "makibishi", "smoke"]
 		var i = tools.find(Game.profile.get("throw_sel", "kunai"))
 		for k in tools.size():
 			i = (i + 1) % tools.size()

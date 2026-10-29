@@ -435,6 +435,8 @@ items = {
     'shuriken': dict(name='Shuriken', price=8, kind='throw', desc="Üçlü yelpaze atış."),
     'tag': dict(name='Patlayıcı Etiketli Kunai', price=45, kind='throw', desc="Saplandığı yerde patlar."),
     'smoke': dict(name='Duman Bombası', price=30, kind='throw', desc="Düşmanlar seni kaybeder."),
+    'senbon': dict(name='Senbon', price=6, kind='throw', desc="Üçlü hızlı iğne: az hasar, %35 zehir (yavaşlatır)."),
+    'makibishi': dict(name='Makibishi', price=20, kind='throw', desc="Yere diken saçar: üstünden geçen düşman yaralanır ve yavaşlar (8 sn)."),
     'salve': dict(name='Şifalı Merhem', price=35, kind='use', desc="+50 can [H]."),
     'pill': dict(name='Asker Hapı', price=70, kind='use', desc="+60 chakra, 20sn güç [Y]."),
     'herb': dict(name='Şifalı Ot', price=0, kind='quest', sell=6, desc="Görev eşyası."),

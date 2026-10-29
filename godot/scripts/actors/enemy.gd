@@ -30,7 +30,9 @@ var skill := 0.2
 var dodge_cd := 0.0
 var dodge_dir := Vector3.ZERO
 var _saw_busy := false
-var leap_cd := 2.0       # ninja sıçrayışı (oyuncunun Ctrl'i gibi): kaçan hedefi kovalar   # oyuncunun saldırısı başına tek okuma zarı
+var leap_cd := 2.0
+var ammo := 8           # atılabilir alet sayısı (biter)
+var maki := 1           # makibishi: kaçarken bir kez ayağının dibine saçar       # ninja sıçrayışı (oyuncunun Ctrl'i gibi): kaçan hedefi kovalar   # oyuncunun saldırısı başına tek okuma zarı
 
 
 static func archetype(kind: String, i := 0) -> Dictionary:
@@ -288,6 +290,11 @@ func _physics_process(dt: float) -> void:
 				state = "recover"
 				state_t = 0.0
 		"recover", "throw":
+			# geri çekilirken peşindekine makibishi saçar (bir kez)
+			if maki > 0 and state == "recover" and target and is_instance_valid(target) and global_position.distance_to(target.global_position) < 5.0 and randf() < 0.02 and _is_ninja():
+				maki -= 1
+				Projectile.caltrops(self, global_position + (target.global_position - global_position).normalized() * 1.5, 7.0)
+				Combat.popup_text(global_position + Vector3.UP * 2.2, "Makibishi!", Color(0.85, 0.85, 0.9))
 			# toparlanırken boş durmaz: hedefin çevresinde yana adımlar (kolay hedef olmasın)
 			var side = Vector3.ZERO
 			if target and is_instance_valid(target) and state == "recover":
@@ -414,12 +421,19 @@ func _chase(dt: float) -> void:
 			model.overlay.set_pose("seal", 1.0)
 			Sfx.play("seal", global_position)
 			return
-		elif arch.get("tools", true):
+		elif arch.get("tools", true) and ammo > 0:
+			# aletleri biter (sonsuz kunai yok); bazı ninjalar senbon kullanır
+			ammo -= 1
 			state = "throw"
 			state_t = 0.0
 			model.play("throw", 0.05, 1.6, true)
 			var s = global_position + Vector3.UP * 1.4
-			Projectile.tool(self, s, (target.global_position + Vector3.UP - s).normalized(), "kunai" if randf() < 0.7 else "shuriken", target)
+			var kinds = ["kunai", "kunai", "shuriken"] + (["senbon", "senbon"] if String(arch.get("kind", "")) in ["kiri", "oto", "rogue"] else [])
+			var tk: String = kinds.pick_random()
+			var nn = 3 if tk in ["shuriken", "senbon"] and randf() < 0.5 else 1
+			var aim = (target.global_position + Vector3.UP - s).normalized()
+			for i in nn:
+				Projectile.tool(self, s, aim.rotated(Vector3.UP, deg_to_rad((i - (nn - 1) * 0.5) * 7.0)), tk, target)
 			return
 	if d > 1.6:
 		# yakın dövüş sırası yoksa etrafında dolaş
