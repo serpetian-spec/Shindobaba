@@ -36,6 +36,7 @@ var _raid := {}
 var _t := 0.0
 var _hunt_t := 0.0
 var _hunter_t := 0.0
+var _hunter_next := 900.0   # sonraki av-ninjası baskınına kalan süre (10-20 dk rastgele)
 var _spawned: Array = []
 var _invasion := {}
 
@@ -369,8 +370,62 @@ func _ensure_hideout() -> void:
 		return
 	var at = hideout_pos()
 	_hideout_node = Missions._camp(at)
-	Interact.items = Interact.items.filter(func(it): return it.get("kind", "") != "rogue_broker")
+	Interact.items = Interact.items.filter(func(it): return not String(it.get("kind", "")) in ROGUE_KINDS)
 	Interact.add({"pos": at + Vector3(0, 1.0, 4.0), "radius": 4.0, "kind": "rogue_broker", "label": "[F] Yeraltı Simsarı (kaçak işleri, rütbe, dinlen)"})
+	# kara pazar tezgâhları: kampın çevresinde yarım çember
+	for i in ROGUE_STALLS.size():
+		var s: Array = ROGUE_STALLS[i]
+		var ang = deg_to_rad(-70.0 + i * 47.0)
+		var q = at + Vector3(sin(ang), 0, cos(ang)) * 11.0
+		q.y = Game.ground_height(q.x, q.z)
+		var mi = MeshInstance3D.new()
+		mi.mesh = CityInfill.mesh("stall")
+		_hideout_node.add_child(mi)
+		mi.global_position = q
+		mi.rotation.y = ang + PI
+		var cr = MeshInstance3D.new()
+		cr.mesh = CityInfill.mesh(s[3])
+		_hideout_node.add_child(cr)
+		cr.global_position = q + Vector3(sin(ang + 1.2), 0, cos(ang + 1.2)) * 2.0
+		var lb = Label3D.new()
+		lb.text = s[2]
+		lb.font_size = 96
+		lb.pixel_size = 0.006
+		lb.modulate = Color(0.95, 0.85, 0.6)
+		lb.outline_size = 10
+		lb.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		_hideout_node.add_child(lb)
+		lb.global_position = q + Vector3.UP * 3.1
+		Interact.add({"pos": q + Vector3(0, 1.0, 0) - Vector3(sin(ang), 0, cos(ang)) * 1.2, "radius": 3.5, "kind": s[0], "label": s[1]})
+
+
+const ROGUE_KINDS := ["rogue_broker", "rogue_tailor", "rogue_weapons", "rogue_scrolls", "rogue_summoner"]
+## [tür, etiket, tabela, yan eşya]
+const ROGUE_STALLS := [["rogue_tailor", "[F] Kara Terzi (kıyafet, zırh, maske)", "裏呉服", "crate"],
+	["rogue_weapons", "[F] Kara Silahçı (alet, silah)", "裏武器", "barrel"],
+	["rogue_scrolls", "[F] Kara Parşömenci (element jutsu parşömenleri)", "裏巻物", "sack"],
+	["rogue_summoner", "[F] Kaçak Sözleşme Ustası (kuchiyose)", "口寄せ", "crate"]]
+
+
+## Sığınak tezgâhları (Progress.interact -> rogue_*)
+func rogue_shop(kind: String) -> void:
+	var tag = "kacak|%s" % String(flags().get("rogue_from", "konoha"))
+	match kind:
+		"rogue_tailor":
+			Hud.gear_shop("Kara Terzi", Gear.shop_stock("c", tag))
+		"rogue_weapons":
+			Hud.dialog("Kara Silahçı", "Ucuz değil, ama kimse nereden aldığını sormaz.", [
+				{"label": "Ninja aletleri", "cb": func(): Hud.shop("Kara Silahçı", ["kunai", "shuriken", "senbon", "tag", "makibishi", "smoke", "salve", "pill"])},
+				{"label": "Silahlar (sağ el / sol el)", "cb": func(): Hud.gear_shop("Kara Silahçı", Gear.shop_stock("w", tag))}])
+		"rogue_scrolls":
+			var r = rogue_rank()
+			var sc = Progress.scroll_shop_items(10 + r * 3, 2 + r * 3)
+			if sc.is_empty():
+				Hud.dialog("Kara Parşömenci", "Doğana uygun yeni parşömen yok. Seviyen ya da şöhretin artınca tekrar uğra.", [])
+			else:
+				Hud.shop("Kara Parşömenci", sc)
+		"rogue_summoner":
+			Contracts.keeper_interact({"village": "*rogue"})
 
 
 func broker_dialog() -> void:
@@ -647,7 +702,13 @@ func _hunter_tick(dt: float) -> void:
 	if not is_rogue() or Game.player == null or _pardon_active():
 		return   # Kefaret görevinde av-ninjaları gelmez (köy affı bekliyor)
 	_hunter_t += dt
-	if _hunter_t < 150.0:
+	if _hunter_t < _hunter_next:
+		return
+	# önceki av ekibi hâlâ ortalıktaysa yenisi gelmez; sığınakta güvendesin
+	for s in _spawned:
+		if is_instance_valid(s) and s.has_meta("hunter_nin") and not s.is_dead():
+			return
+	if Game.player.global_position.distance_to(hideout_pos()) < 160.0:
 		return
 	# köy içinde değilken av-ninjaları gelir
 	var m = Game.to_map(Game.player.global_position)
@@ -655,11 +716,12 @@ func _hunter_tick(dt: float) -> void:
 		if m.distance_to(Vector2(v["x"], v["y"])) < float(v["r"]):
 			return
 	_hunter_t = 0.0
+	_hunter_next = randf_range(600.0, 1200.0)
 	var vid = String(flags().get("rogue_from", "konoha"))
 	var kind = vid if vid in ["kumo", "kiri", "iwa", "suna"] else "rogue"
 	var pp = Game.player.global_position
 	Hud.banner("AV-NİNJALARI", "%s seni buldu!" % Game.village(vid).get("name", vid), Color(0.9, 0.3, 0.3))
-	for i in 3:
+	for i in (2 if rogue_rank() < 2 else 3):
 		var e = Enemy.new()
 		var a = Enemy.archetype(kind, i)
 		a["name"] = "Av-Ninjası"

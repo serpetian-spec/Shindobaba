@@ -667,6 +667,8 @@ func interact(it: Dictionary) -> void:
 			Hud.dialog(home_info()["lookout"], "Köy ayaklarının altında. Köyünü koruma iraden güçleniyor... (Oyun kaydedildi)", [])
 		"rogue_broker":
 			Orgs.broker_dialog()
+		"rogue_tailor", "rogue_weapons", "rogue_scrolls", "rogue_summoner":
+			Orgs.rogue_shop(kind)
 		"memorial":
 			Hud.dialog("Anıt Taşı", "Köy için canını veren shinobilerin isimleri burada yazılı. Bir an saygıyla eğiliyorsun.", [])
 		"gate":

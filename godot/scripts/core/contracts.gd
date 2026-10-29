@@ -352,18 +352,19 @@ static func keeper_interact(it: Dictionary) -> void:
 	var pr = p()
 	ensure()
 	var opts = []
+	var rogue = vid == "*rogue"
 	for id in DEFS:
 		var d: Dictionary = DEFS[id]
-		if d["realm"] != "" or d.get("keeper", "") != vid:
+		if d["realm"] != "" or (d.get("keeper", "") != vid and not (rogue and d.get("keeper", "") != "")):
 			continue
 		if signed(id):
 			opts.append({"label": "%s (imzalı) — aktif yap" % d["name"], "cb": func():
 				pr["summon"] = id
 				Hud.msg("Aktif sözleşme: %s" % d["name"], d["color"])})
 		else:
-			var price = 800 + 400 * DEFS[id]["tiers"].size()
-			opts.append({"label": "%s — %d Ryō, Chunin" % [d["name"], price], "tip": d["intro"], "cb": func():
-				if int(pr["rank"]) < 2:
+			var price = (800 + 400 * DEFS[id]["tiers"].size()) * (3 if rogue else 2) / 2
+			opts.append({"label": "%s — %d Ryō, %s" % [d["name"], price, "Chunin ya da kaçak rütbesi" if rogue else "Chunin"], "tip": d["intro"], "cb": func():
+				if int(pr["rank"]) < 2 and not (rogue and Orgs.rogue_rank() >= 1):
 					Hud.msg("Bu sözleşme için Chunin olmalısın.", Color(1, 0.6, 0.4))
 				elif int(pr["ryo"]) < price:
 					Hud.msg("Yeterli Ryō yok.", Color(1, 0.5, 0.4))
@@ -372,7 +373,7 @@ static func keeper_interact(it: Dictionary) -> void:
 					_blood_sign(id)})
 	if opts.is_empty():
 		opts.append({"label": "Burada sözleşme yok", "cb": func(): pass})
-	Hud.dialog("Sözleşme Ustası", "Hayvanlarla kan bağı kurmak isteyen ninja... Hangi sözleşmeyi istersin?", opts)
+	Hud.dialog("Kaçak Sözleşme Ustası" if rogue else "Sözleşme Ustası", ("Köylerin ustaları seninle konuşmaz ama hayvanlar kimin kaçak olduğunu umursamaz. Bedeli yüksek." if rogue else "Hayvanlarla kan bağı kurmak isteyen ninja... Hangi sözleşmeyi istersin?"), opts)
 
 
 static func _teach_sage_arts(id: String) -> void:
