@@ -16,7 +16,7 @@ func _ready() -> void:
 	main.add_child(cam)
 	cam.current = true
 	var only = OS.get_environment("ONLY")
-	var ids = [only] if only != "" else ["narakumi", "kokuangyo", "kuchiyose", "zofuku_kuchiyose_no_jutsu", "reverse_summoning_technique", "kaiten", "kage_kubi", "nikudan", "ninken", "shintenshin", "mokuton_spikes", "mokuton_wall", "hyoton_senbon", "hyoton_spears", "bone_bullets", "chakra_chains", "suika", "water_gun", "kirin", "katon_goryuka_no_jutsu"]
+	var ids = [only] if only != "" else ["suiro_no_jutsu", "suiton_daibakufu_no_jutsu", "kirigakure_no_jutsu", "doton_doryudan", "shinra_tensei", "raikiri", "odama_rasengan", "amaterasu", "enton_kagutsuchi", "enton_yasaka_no_magatama", "amaterasu_entenka", "tensha_fuin_amaterasu", "tsukuyomi", "kamui", "hiraishin_no_jutsu", "sabaku_kyu", "kibaku_nendo", "mokuton_mokuryu_no_jutsu"]
 	for id in ids:
 		var e = Enemy.new()
 		var a = Enemy.archetype("bandit", 0)
@@ -41,7 +41,7 @@ func _ready() -> void:
 		await get_tree().create_timer(0.35).timeout
 		if OS.get_environment("XTRA") != "":
 			await get_tree().create_timer(float(OS.get_environment("XTRA"))).timeout
-		if id in ["narakumi", "kuchiyose", "kaiten", "hyoton_spears", "chakra_chains", "kirin", "katon_goryuka_no_jutsu"]:
+		if id in ["shinra_tensei", "raikiri", "amaterasu", "tsukuyomi", "kamui", "hiraishin_no_jutsu", "mokuton_mokuryu_no_jutsu"]:
 			pl.set_process(false)
 			var fw = pl.face_dir()
 			if id == "kami_tsubasa":
