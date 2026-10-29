@@ -343,15 +343,6 @@ func _face_and_hair() -> void:
 					eye_mat.set_shader_parameter("eye_c_l", ic2[1])
 					eye_mat.set_shader_parameter("iris_r3", ic2[2])
 					eye_mat.set_shader_parameter("iris_r2", Vector2(ic2[2], ic2[3] if ic2.size() > 3 else ic2[2]))
-				if ic2.size() >= 6:
-					# x<0 tarafı = karakterin sağ gözü (shader: UV.x > 0.5 ise sol göz)
-					var ra: Rect2 = ic2[4]
-					var rb: Rect2 = ic2[5]
-					var rr = ra if ra.get_center().x < 0.5 else rb
-					var rl = rb if ra.get_center().x < 0.5 else ra
-					eye_mat.set_shader_parameter("iris_c_r", rr.get_center())
-					eye_mat.set_shader_parameter("iris_c_l", rl.get_center())
-					eye_mat.set_shader_parameter("iris_rad", (rr.size + rl.size) * 0.25)
 				face_mi.set_surface_override_material(si, eye_mat)
 				materials.append(eye_mat)
 			elif mname.contains("SKIN"):
