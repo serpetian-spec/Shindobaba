@@ -133,6 +133,8 @@ const JUTSU_STYLE := {
 static func style_for(jid: String, j: Dictionary = {}) -> String:
 	if ClanJutsu.STYLE.has(jid):
 		return ClanJutsu.STYLE[jid]
+	if PathJutsu.PANIM.has(jid):
+		return String(PathJutsu.PANIM[jid].get("base", "palm"))
 	if PathJutsu.PSTYLE.has(jid):
 		return PathJutsu.PSTYLE[jid]
 	if JUTSU_STYLE.has(jid):
@@ -206,6 +208,13 @@ static func play(fighter: Node3D, id: String, fit := -1.0) -> CastAnim:
 	a.j = Data.jutsu.get(id, {})
 	a.style = style_for(id, a.j)
 	a.st = STYLES.get(a.style, STYLES["palm"])
+	if PathJutsu.PANIM.has(id):   # jutsuya özel koreografi: temel stilin üstüne kendi hazırlık/salınım pozu ve zamanlaması
+		var cust: Dictionary = PathJutsu.PANIM[id]
+		var st2: Dictionary = a.st.duplicate(true)
+		for k in cust:
+			if k != "base":
+				st2[k] = cust[k]
+		a.st = st2
 	a.seals = (a.j.get("seals", []) as Array).duplicate()
 	a.is_player = fighter is Player
 	a._plan(fit)
