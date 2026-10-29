@@ -663,6 +663,7 @@ func _unhandled_input(e: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 		elif pl.global_position.distance_to(global_position) < radius + 3.0 + height * 0.2:
 			mounted = true
+			_seat = Vector3.INF
 			pl.set_meta("riding", self)
 			_ride_cam(pl, true)
 			say(def["lines"].pick_random(), 2.5)
@@ -708,6 +709,58 @@ func _ride_cam(pl: Player, on: bool) -> void:
 
 
 ## Binildiğinde oyuncu yön verir; uçanlar Space ile yükselir, Ctrl ile alçalır
+var _seat := Vector3.INF
+
+
+## Binme noktası (kök uzayında): görsel mesh köşelerinden en üst %12'lik bandın ortası, yüzeyin hemen üstü
+func _seat_local() -> Vector3:
+	var head_only = def.get("seat") is String and def["seat"] == "head"   # kabuğu bitkili kaplumbağa: kafanın üstü
+	if def.has("seat") and not head_only:   # tepede bacak eklemi olanlar: elle verilen nokta (boy oranı)
+		var sv: Vector3 = def["seat"]
+		return Vector3(sv.x * height, sv.y * height, sv.z * height)
+	var root: Node3D = parts["root"]
+	var inv = root.global_transform.affine_inverse()
+	var pts := PackedVector3Array()
+	var top = -1e9
+	for mi in root.find_children("*", "MeshInstance3D", true, false):
+		if mi.mesh == null or not mi.visible:
+			continue
+		var xf = inv * mi.global_transform
+		for si in mi.mesh.get_surface_count():
+			var arr = mi.mesh.surface_get_arrays(si)
+			var vv = arr[Mesh.ARRAY_VERTEX]
+			if vv == null:
+				continue
+			var step = maxi(1, (vv as PackedVector3Array).size() / 4000)
+			for k in range(0, vv.size(), step):
+				var q = xf * vv[k]
+				pts.append(q)
+				top = maxf(top, q.y)
+	if pts.is_empty():
+		return Vector3(0, height * 0.95, 0)
+	if head_only:
+		# modelin ön ucu (-Z) bandındaki noktalar
+		var zmin = 1e9
+		for q in pts:
+			zmin = minf(zmin, q.z)
+		var front := PackedVector3Array()
+		top = -1e9
+		for q in pts:
+			if q.z < zmin + height * 0.22:
+				front.append(q)
+				top = maxf(top, q.y)
+		pts = front
+	var band = maxf(0.15, height * 0.12)
+	var sum = Vector3.ZERO
+	var n = 0
+	for q in pts:
+		if q.y >= top - band:
+			sum += q
+			n += 1
+	var c = sum / maxi(n, 1)
+	return Vector3(c.x, lerpf(c.y, top, 0.35), c.z)   # boynuz/diken uçları değil, kafa/sırt yüzeyi
+
+
 func _ride(dt: float) -> void:
 	var pl: Player = owner_f
 	var wish = pl.wish_dir()
@@ -732,9 +785,11 @@ func _ride(dt: float) -> void:
 			hop_t = 0.0
 	move_and_slide()
 	_ground()
-	# oyuncu sırtta / başta
-	var seat = Vector3(0, height * (0.95 if not def.get("fly", false) else 0.9), height * 0.05)
-	pl.global_position = global_position + Basis(Vector3.UP, facing) * seat
+	# oyuncu sırtta / başta: modelin gerçek tepe yüzeyine oturur (eskiden sabit yükseklik gövdenin içine düşüyor, karakter kayboluyordu)
+	if _seat == Vector3.INF:
+		_seat = _seat_local()
+	var root: Node3D = parts["root"]
+	pl.global_position = root.global_transform * _seat
 	pl.velocity = Vector3.ZERO
 	pl.facing = facing
 

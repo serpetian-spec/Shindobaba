@@ -86,7 +86,7 @@ const DEFS := {
 		"intro": "Sabırlı kabuk her darbeyi taşır.",
 		"tiers": {
 			0: {"name": "Ninja Kaplumbağa Kame", "model": "turtle_small", "h": 0.9, "hp": 300.0, "role": "tank", "dmg": 10.0, "speed": 6.0, "lines": ["Kabuğumun arkasına geç!"]},
-			2: {"name": "Ada Kaplumbağası Shimagame", "model": "turtle_giant", "h": 12.0, "len": 30.0, "hp": 4000.0, "role": "giant", "dmg": 50.0, "speed": 8.0, "mount": true,
+			2: {"name": "Ada Kaplumbağası Shimagame", "model": "turtle_giant", "h": 12.0, "len": 30.0, "hp": 4000.0, "role": "giant", "dmg": 50.0, "speed": 8.0, "mount": true, "seat": Vector3(0, 0.66, -0.72),
 				"lines": ["Sırtımda bir köy taşıyabilirim.", "Sabır, genç ninja."]},
 		}},
 	"gelincik": {"name": "Orak Gelincik Sözleşmesi", "animal": "Orak Gelincikler", "realm": "", "sage": false, "color": Color(0.85, 0.8, 0.7), "keeper": "suna",
@@ -105,7 +105,7 @@ const DEFS := {
 	"örümcek": {"name": "Örümcek Sözleşmesi", "animal": "Örümcekler", "realm": "", "sage": false, "color": Color(0.3, 0.25, 0.2), "keeper": "iwa",
 		"intro": "Ağlarımızdan kaçış yoktur.",
 		"tiers": {
-			1: {"name": "Dev Örümcek Kumome", "model": "spider", "h": 4.0, "hp": 700.0, "role": "binder", "dmg": 26.0, "speed": 11.0,
+			1: {"name": "Dev Örümcek Kumome", "model": "spider", "h": 4.0, "hp": 700.0, "role": "binder", "dmg": 26.0, "speed": 11.0, "mount": true, "seat": Vector3(0, 0.8, 0.3),
 				"lines": ["Ağımı örüyorum...", "Takıldın mı sinekçik?"]},
 		}},
 }
