@@ -157,8 +157,7 @@ func _unhandled_input(e: InputEvent) -> void:
 		_wall_boost()
 	elif e.is_action_pressed("leap"):
 		if (grounded or swimming) and wall_n == Vector3.ZERO:
-			leap_charge = 0.0
-			Sfx.play("whoosh", global_position, 0.6, 0.35)
+			leap_charge = 0.0   # basarken ses yok: ses bırakınca (sıçrayışta) çıkar
 		else:
 			_leap(0.55)
 	elif e.is_action_released("leap") and leap_charge >= 0.0:
@@ -276,7 +275,7 @@ func _leap(power := 1.0) -> void:
 	jumps = 2 if air else 1
 	FX.dust(global_position, 0.9)
 	FX.speed_lines(global_position + Vector3.UP, d)
-	Sfx.play("leap", global_position)   # bırakınca (sıçrayışın kendisi), basılıyken değil
+	Sfx.play("leap", null, 1.0, 1.1)   # bırakınca (sıçrayışın kendisi), basılıyken değil; oyuncuya tam ses (2D)
 	Sfx.play("whoosh", global_position, 0.8, 0.6)
 	model.play("jump", 0.05, 1.5, true)
 	model.overlay.set_pose("leap", 1.0)

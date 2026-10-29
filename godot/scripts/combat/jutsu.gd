@@ -79,7 +79,10 @@ signal jutsu_cast(caster: Node, id: String)
 func execute(caster: Node3D, id: String, target: Node3D) -> void:
 	jutsu_cast.emit(caster, id)
 	if not String(Data.jutsu.get(id, {}).get("virtual", "")).begins_with("eye:"):
-		Sfx.play("jutsu_cast", caster.global_position, 1.0, 0.75 if caster == Game.player else 0.4)
+		if caster == Game.player:
+			Sfx.play("jutsu_cast", null, 1.0, 0.8)
+		else:
+			Sfx.play("jutsu_cast", caster.global_position, 1.0, 0.45)
 	var own_id = id   # klan/kekkei genkai jutsularının kendi uygulaması (ClanJutsu) önceliklidir
 	id = String(Data.jutsu.get(id, {}).get("impl", id))  # klan jutsuları ortak uygulamayı kullanabilir
 	var jd: Dictionary = Data.jutsu.get(id, {})

@@ -49,6 +49,10 @@ static func _site(v: Dictionary) -> Vector2:
 		var h0 = Game.terrain_height(p.x, -p.y)
 		if h0 < 1.0:
 			continue
+		# Kiri: kuzeydeki göl (köy kurulumunda su düzlemi) — yerleşke gölün ortasına düşüyordu
+		var po = p - c
+		if String(v.get("id", "")) == "kiri" and absf(po.x) < r * 0.8 and po.y > r * 0.15:
+			continue
 		var var_h = 0.0
 		for o in [Vector2(45, 0), Vector2(-45, 0), Vector2(0, 35), Vector2(0, -35)]:
 			var_h += absf(Game.terrain_height(p.x + o.x, -(p.y + o.y)) - h0)
@@ -77,7 +81,7 @@ static func _compound(parent: Node3D, v: Dictionary, sty: Dictionary) -> void:
 	for i in 6:
 		b.box(Vector3(-11 + i * 4.4, ay + 7.5, -6.6), Vector3(2.0, 1.6, 0.3), Color(0.55, 0.75, 0.9), 0.0, false)
 	# kapı: içeride köye özel akademi sınıfı (hoca, sınav, yardımcı hoca)
-	b.interact(Vector3(0, ay, -8.0), 4, "enter", "[F] Gir: %s Ninja Akademisi" % vn, {"room": "academy", "vid": v["id"], "out": b.w(Vector3(0, ay, -9.5))})
+	b.interact(Vector3(0, ay, -8.0), 4, "enter", "[F] Gir: %s Ninja Akademisi" % vn, {"room": "academy", "alias": "academy", "vid": v["id"], "out": b.w(Vector3(0, ay, -9.5))})
 	var arng = RandomNumberGenerator.new()
 	arng.seed = hash(v["id"] + "_akademi")
 	AcademyGrounds.dress(b, 0.0, -6.5, 30.0, 44.0, arng, {"vid": v["id"], "climate": {"suna": "desert", "iwa": "dry", "kumo": "dry"}.get(v["id"], "green"),
