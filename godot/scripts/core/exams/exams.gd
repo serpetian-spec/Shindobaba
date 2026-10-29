@@ -92,7 +92,7 @@ func spawn_teammates(at: Vector3, n := 2, level := 8) -> Array:
 	names.shuffle()
 	var hi = Progress.home_info()
 	# Genin takımın varsa (Zil Testi'nden beri) sınava o iki arkadaşınla girersin
-	var own = int(p().get("rank", 0)) <= 1 and String(p().get("squad", {}).get("state", "active")) != "disbanded"
+	var own = int(p().get("rank", 0)) <= 1 and String(p().get("squad", {}).get("state", "active")) == "active"
 	for i in n:
 		var e = Enemy.new()
 		var a = Enemy.archetype("genin_rival", i)

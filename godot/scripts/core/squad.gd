@@ -132,6 +132,28 @@ static func disband() -> void:
 	Hud.dialog(s, "Chūnin yeleğin yakışmış. Artık kendi takımını yönetecek, kendi kararlarını vereceksin. %s ve %s de kendi yollarına gidecek; ama takım bir kez kurulunca hiç bozulmaz. Bir gün yine aynı görevde buluşuruz." % [a, b], [])
 
 
+## Köyden kaçınca takım bozulur: kaçağın peşinden gelmezler
+static func on_defect() -> void:
+	var sq = data()
+	if sq.is_empty() or sq.get("state", "") != "active":
+		return
+	sq["state"] = "broken"
+	Hud.msg("%s ve %s seni durdurmaya çalıştı ama yolunu seçtin. Artık bir takımın yok." % [sq["mates"][0]["name"], sq["mates"][1]["name"]], Color(1, 0.55, 0.5), 6.0)
+
+
+## Affedilince hâlâ Genin'sen takımın geri döner
+static func on_pardon() -> void:
+	var sq = data()
+	if sq.is_empty() or sq.get("state", "") != "broken":
+		return
+	if int(pr().get("rank", 0)) != 1:
+		sq["state"] = "disbanded"
+		return
+	sq["state"] = "active"
+	sq["follow"] = true
+	Hud.dialog(String(sq["sensei"]["name"]), "Köyün kapısında %s ve %s bekliyordu; senden hiç vazgeçmediler. Takımın hâlâ burada. Hadi, bir görev bizi bekliyor." % [sq["mates"][0]["name"], sq["mates"][1]["name"]], [])
+
+
 # ------------------------------------------------------------------ dünyada eşlik
 func _active() -> bool:
 	var p = pr()

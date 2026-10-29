@@ -59,6 +59,22 @@ func _ready() -> void:
 	print("SQUAD exam team: %s vs squad %s,%s" % [team.map(func(x): return x.display_name), pr["squad"]["mates"][0]["name"], pr["squad"]["mates"][1]["name"]])
 	Exams._clear_nodes()
 	await main.shot("squad")
+	# kaçış: takım bozulur, affedilince döner
+	Orgs.defect()
+	await get_tree().create_timer(1.5).timeout
+	var alive_r = 0
+	for m in sq.members:
+		if m["node"] and is_instance_valid(m["node"]):
+			alive_r += 1
+	print("SQUAD after defect: state=%s alive=%d" % [pr["squad"]["state"], alive_r])
+	Orgs.pardon_done({}, true)
+	Hud.close_dialog()
+	await get_tree().create_timer(2.0).timeout
+	var alive_p = 0
+	for m in sq.members:
+		if m["node"] and is_instance_valid(m["node"]):
+			alive_p += 1
+	print("SQUAD after pardon: state=%s alive=%d" % [pr["squad"]["state"], alive_p])
 	# Chūnin: dağılır
 	Progress.promote(2)
 	await get_tree().create_timer(1.5).timeout

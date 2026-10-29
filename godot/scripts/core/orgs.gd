@@ -248,6 +248,7 @@ func defect() -> void:
 	var f = flags()
 	f["rogue"] = true
 	f["rogue_from"] = Progress.home()
+	GeninSquad.on_defect()
 	state()["bounty"] = 5000 + int(p()["level"]) * 400
 	Missions._rep(Progress.home(), -200)
 	Gear.apply_look(p())
@@ -291,6 +292,7 @@ func pardon_done(_m: Dictionary, ok: bool) -> void:
 	if Game.player:
 		Game.player.rebuild_model()
 	player_pardoned.emit()
+	GeninSquad.on_pardon()
 	Hud.banner("AFFEDİLDİN", "Köyüne yeniden hoş geldin. İtibarın sıfırdan başlıyor.", Color(0.6, 1, 0.7))
 
 
