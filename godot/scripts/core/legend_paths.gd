@@ -304,6 +304,18 @@ static func joined(pid: String) -> bool:
 	return state(pid) >= JOINED
 
 
+## Kan yatkınlığı: Namikaze soyu Uçan Yıldırım Yolu'na erken çağrılır, sınavsız kabul edilir, yarı fiyata öğrenir, pasif 1.5 kat
+const BLOOD := {"hiraishin": "namikaze"}
+
+
+static func blood(pid: String) -> bool:
+	return BLOOD.has(pid) and String(pr().get("clan", "")) == BLOOD[pid]
+
+
+static func lv_need(pid: String, key: String) -> int:
+	return int(PATHS[pid][key]) - (6 if blood(pid) else 0)
+
+
 ## Stats.skill eklentisi: katıldığın yolların pasif bonusları
 static func passive(p: Dictionary, key: String) -> float:
 	var v = 0.0
@@ -312,12 +324,16 @@ static func passive(p: Dictionary, key: String) -> float:
 		return 0.0
 	for pid in ps:
 		if int(ps[pid].get("s", 0)) >= JOINED and PATHS.has(pid):
-			v += float(PATHS[pid]["passive"].get(key, 0.0))
+			v += float(PATHS[pid]["passive"].get(key, 0.0)) * (1.5 if BLOOD.has(pid) and String(p.get("clan", "")) == BLOOD[pid] else 1.0)
 	return v
 
 
 static func price(jid: String) -> int:
-	return 100 + int(Data.jutsu.get(jid, {}).get("level", 1)) * 55
+	var base = 100 + int(Data.jutsu.get(jid, {}).get("level", 1)) * 55
+	var lp = String(Data.jutsu.get(jid, {}).get("learn", ""))
+	if lp.begins_with("path:") and blood(lp.substr(5)):
+		return base / 2
+	return base
 
 
 ## Sıradaki adımın kısa metni (sekme ve diyalog)
@@ -325,12 +341,12 @@ static func next_step(pid: String) -> String:
 	var P: Dictionary = PATHS[pid]
 	match state(pid):
 		UNKNOWN:
-			return "Henüz bir söylenti duymadın (Sv.%d civarı)." % int(P["rumor_level"])
+			return "Henüz bir söylenti duymadın (Sv.%d civarı)." % lv_need(pid, "rumor_level")
 		RUMOR:
 			return "Söylentinin peşine düş: %s. (İzi takip et)" % P["site"]["place"]
 		FOUND:
-			if int(pr().get("level", 1)) < int(P["join_level"]):
-				return "Ustan seni Seviye %d olunca kabul edecek." % int(P["join_level"])
+			if int(pr().get("level", 1)) < lv_need(pid, "join_level"):
+				return "Ustan seni Seviye %d olunca kabul edecek." % lv_need(pid, "join_level")
 			return "%s ile konuş ve sınavını kabul et." % P["mentor"]["name"]
 		TRIAL:
 			return "Ustanın sınavını tamamla."
@@ -367,7 +383,7 @@ func _process(dt: float) -> void:
 	for pid in PATHS:
 		var P: Dictionary = PATHS[pid]
 		var s = state(pid)
-		if s == UNKNOWN and lv >= int(P["rumor_level"]):
+		if s == UNKNOWN and lv >= lv_need(pid, "rumor_level"):
 			set_state(pid, RUMOR)
 			Hud.banner("SÖYLENTİ: " + P["name"].to_upper(), P["site"]["place"], P["color"])
 			Hud.msg(P["rumor"] + "  [Tab > Yollar]", P["color"].lightened(0.3), 8.0)
@@ -424,8 +440,14 @@ static func interact(it: Dictionary) -> void:
 		if s == TRIAL or String(st_of(pid).get("q", "")) != "":
 			Hud.dialog(title, "\"Sınavın bitmedi. Sözünü tut.\"", [])
 			return
-		if lv < int(P["join_level"]):
-			Hud.dialog(title, P["intro"] + "\n\n\"Ama henüz çok zayıfsın. Seviye %d olunca gel.\"" % int(P["join_level"]), [])
+		if lv < lv_need(pid, "join_level"):
+			Hud.dialog(title, P["intro"] + "\n\n\"Ama henüz çok zayıfsın. Seviye %d olunca gel.\"" % lv_need(pid, "join_level"), [])
+			return
+		if blood(pid):
+			Hud.dialog(title, P["intro"] + "\n\nUsta bir an duraksıyor: \"Bu saçlar, bu hız... Sen Namikaze kanındansın. Sınava gerek yok; kanın seni zaten buraya getirdi.\"", [{"label": "Yola katıl", "cb": func():
+				st_of(pid)["s"] = JOINED
+				Hud.banner("YOLA KATILDIN: " + P["name"].to_upper(), "Kan yatkınlığı: yarı fiyat, pasif ×1.5", P["color"])
+				Game.save_game()}])
 			return
 		var opts = []
 		if Missions.active().is_empty():

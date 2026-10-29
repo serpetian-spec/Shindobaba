@@ -10,7 +10,7 @@ const EYE_KIND := {"uchiha": 1, "hyuga": 2, "chinoike": 3, "otsutsuki": 2}
 const MAIN_EL := {"uchiha": "katon", "sarutobi": "katon", "hatake": "raiton", "senju": "doton", "uzumaki": "suiton", "yuki": "suiton",
 	"hozuki": "suiton", "hoshigaki": "suiton", "terumi": "suiton", "karatachi": "suiton", "kaguya": "", "fuma": "fuuton", "kazahana": "fuuton",
 	"sabaku": "fuuton", "yotsuki": "raiton", "ikazuchi": "raiton", "kako": "doton", "bakuha": "doton", "iwao": "doton", "kamizuru": "doton",
-	"iburi": "katon", "shimura": "fuuton", "tsuchigumo": "doton", "jugo": "doton", "funato": "suiton", "kaminarimon": "raiton", "otsutsuki": ""}
+	"iburi": "katon", "shimura": "fuuton", "tsuchigumo": "doton", "jugo": "doton", "funato": "suiton", "kaminarimon": "raiton", "otsutsuki": "", "namikaze": "fuuton"}
 const GIVEN_M := ["Raito", "Shun", "Haruki", "Daichi", "Kenta", "Riku", "Takumi", "Isamu", "Souta", "Jun", "Asahi", "Kiyoshi", "Tomoya", "Ryūsei",
 	"Gaku", "Hayao", "Kōki", "Masaru", "Seiji", "Tatsuo", "Yūto", "Akihiro", "Benjirō", "Fumio"]
 const GIVEN_F := ["Kaede", "Akane", "Mio", "Yua", "Nao", "Sayuri", "Hikari", "Mei", "Yuzuki", "Rin", "Hotaru", "Midori", "Chiyoko", "Emi",
@@ -20,7 +20,7 @@ const NAMES := {"uchiha": "Uchiha", "hyuga": "Hyūga", "nara": "Nara", "akimichi
 	"hatake": "Hatake", "chinoike": "Chinoike", "hoshigaki": "Hoshigaki", "kurama": "Kurama", "fuma": "Fūma", "kamizuru": "Kamizuru",
 	"sabaku": "Sabaku", "shirogane": "Shirogane", "hoki": "Hōki", "kazahana": "Kazahana", "terumi": "Terumi", "karatachi": "Karatachi",
 	"yotsuki": "Yotsuki", "ikazuchi": "Ikazuchi", "kako": "Kako", "bakuha": "Bakuha", "iwao": "Iwao",
-	"iburi": "Iburi", "shimura": "Shimura", "tsuchigumo": "Tsuchigumo", "jugo": "Jūgo", "funato": "Funato", "kaminarimon": "Kaminarimon", "otsutsuki": "Ōtsutsuki"}
+	"iburi": "Iburi", "shimura": "Shimura", "tsuchigumo": "Tsuchigumo", "jugo": "Jūgo", "funato": "Funato", "kaminarimon": "Kaminarimon", "otsutsuki": "Ōtsutsuki", "namikaze": "Namikaze"}
 ## Klan görünümü: saç rengi/stili, üst, özel işaretler (anime arketipleri; kanon karakter kopyası değil)
 const LOOK := {
 	"uchiha": {"hair": [Color(0.05, 0.05, 0.08)], "hs": ["diken", "dağınık", "uzun", "kakul", "atkuyruğu"], "top": Color(0.12, 0.14, 0.24), "top_style": "yakali"},
@@ -53,6 +53,7 @@ const LOOK := {
 	"kako": {"hair": [Color(0.55, 0.22, 0.12)], "hs": ["kısa", "topuz"], "top": Color(0.55, 0.28, 0.18)},
 	"bakuha": {"hair": [Color(0.4, 0.36, 0.3)], "hs": ["kase", "kısa"], "top": Color(0.45, 0.4, 0.3)},
 	"iwao": {"hair": [Color(0.3, 0.27, 0.24)], "hs": ["kirpik", "kısa"], "top": Color(0.5, 0.42, 0.34), "size": 1.1},
+	"namikaze": {"hair": [Color(0.98, 0.85, 0.3)], "hs": ["diken", "dağınık"], "top": Color(0.25, 0.35, 0.25), "top_style": "ceket"},
 	"iburi": {"hair": [Color(0.7, 0.7, 0.72), Color(0.25, 0.25, 0.28)], "hs": ["dağınık", "atkuyruğu", "uzun"], "top": Color(0.35, 0.35, 0.4), "top_style": "kimono"},
 	"shimura": {"hair": [Color(0.08, 0.08, 0.1)], "hs": ["kısa", "geriye"], "top": Color(0.15, 0.15, 0.18), "top_style": "yakali_uzun"},
 	"tsuchigumo": {"hair": [Color(0.4, 0.25, 0.45), Color(0.12, 0.1, 0.12)], "hs": ["uzun", "orgu"], "top": Color(0.3, 0.22, 0.35)},
@@ -83,6 +84,7 @@ const LORE := {
 	"kamizuru": ["Arılarımız balmumuyla kalkan yapar. Balı tatmak ister misin? Dikkat et, sokar."],
 	"kako": ["Lav damarlarımda akar. Toprak Ülkesi'nin volkanları bizim yuvamız."],
 	"bakuha": ["Dokunduğumu patlatırım. Sanat bir anlık patlamadır, derler."],
+	"namikaze": ["Hız işaret koymaktır. Nereye kunai saplarsam oradayım.", "Kanımızda sarı şimşek var; Uçan Yıldırım bize kolay gelir."],
 	"iburi": ["Bedenim duman. Kılıcın içimden geçer, nefesin benimle dolar.", "Klanımızdan korkup kovdular... duman nereye isterse gider."],
 	"shimura": ["Rüzgâr görünmez; en keskin bıçak da öyle.", "Kökler toprağın altında çalışır, ağaç görünür. Biz de öyleyiz."],
 	"tsuchigumo": ["İpeğim çelikten sağlam. Ağıma takılan kurtulamaz.", "Atalarımızın yasak tekniği bir köyü siler. Mühürlü dursun."],
@@ -287,7 +289,7 @@ func after_spawn_enemy(e: Enemy, c: String, lv: int, eye_override := 0) -> void:
 func decorate_bingo(e: Dictionary) -> void:
 	if e.has("legend") or e.has("beast") or randf() > 0.4:
 		return
-	var by_v := {"konoha": ["uchiha", "hyuga", "nara", "akimichi", "aburame", "inuzuka", "uzumaki", "sarutobi", "iburi", "shimura", "tsuchigumo"],
+	var by_v := {"konoha": ["uchiha", "hyuga", "nara", "akimichi", "aburame", "inuzuka", "uzumaki", "sarutobi", "iburi", "shimura", "tsuchigumo", "namikaze"],
 		"kiri": ["kaguya", "yuki", "hozuki", "hoshigaki", "terumi", "karatachi", "funato"], "suna": ["sabaku", "shirogane", "hoki", "kazahana"],
 		"kumo": ["chinoike", "yotsuki", "ikazuchi", "kaminarimon"], "iwa": ["kamizuru", "bakuha", "kako", "iwao", "jugo"]}
 	var lst: Array = by_v.get(String(e["village"]), [])

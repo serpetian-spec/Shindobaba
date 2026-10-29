@@ -685,5 +685,22 @@
    "kumo",
    "iwa"
   ]
+ },
+ "namikaze": {
+  "name": "Namikaze",
+  "desc": "Sarı Şimşek'in soyu. Göz açıp kapayana kadar hız, üç kollu kunailer ve ışınlanma mühürleri. Uçan Yıldırım Yolu'na kanları yatkındır.",
+  "kg": "Sarı Şimşek Hızı",
+  "eye": [
+   0.25,
+   0.5,
+   0.85
+  ],
+  "bonus": {
+   "speed": 0.06,
+   "seal_speed": 0.08
+  },
+  "villages": [
+   "konoha"
+  ]
  }
 }
