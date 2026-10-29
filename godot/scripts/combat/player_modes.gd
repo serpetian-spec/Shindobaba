@@ -210,21 +210,30 @@ func _update_byakugan() -> void:
 
 
 # ------------------------------------------------------------------ Sekiz Kapı (B)
+var _steam_t := 0.0
+
+
 func next_gate() -> void:
 	if not LegendPaths.joined("kapi"):
 		Hud.msg("Sekiz Kapı'yı açmayı bir usta öğretmeli: Sekiz Kapı Yolu'nu bul (Tab > Yollar, Sv.8+ söylenti).", Color(0.8, 0.8, 0.8))
 		return
 	gates += 1
-	if gates > 3:
+	if gates > 7:   # 8. kapı (Ölüm Kapısı) yalnızca Gece Gayı tekniğiyle açılır
 		gates = 0
 		Buffs.remove("gates")
 		_set_aura("gates", null)
 		Hud.msg("Kapılar kapandı.", Color(0.8, 0.9, 0.8))
 		return
-	var names = ["", "1. Kapı: Açılış Kapısı!", "2. Kapı: Dinlenme Kapısı!", "3. Kapı: Yaşam Kapısı!"]
+	var names = ["", "1. Kapı: Açılış Kapısı!", "2. Kapı: Dinlenme Kapısı!", "3. Kapı: Yaşam Kapısı!", "4. Kapı: Acı Kapısı!",
+		"5. Kapı: Sınır Kapısı!", "6. Kapı: Görüş Kapısı!", "7. Kapı: Şaşkınlık Kapısı!"]
 	var gm = Stats.skill(Game.profile, "gates")  # ustalık: daha güçlü kapılar, daha az beden yükü
 	Buffs.add("gates", 9999.0, {"speed": 1.0 + gates * 0.15 * (1.0 + gm), "melee": 1.0 + gates * 0.35 * (1.0 + gm)})
-	_set_aura("gates", [Color(0.3, 1.0, 0.5), Color(0.4, 0.9, 1.0), Color(0.2, 0.6, 1.0)][gates - 1], 0.9 + gates * 0.3)
+	_set_aura("gates", [Color(0.3, 1.0, 0.5), Color(0.4, 0.9, 1.0), Color(0.2, 0.6, 1.0), Color(0.35, 1.0, 0.45), Color(0.3, 0.95, 0.4),
+		Color(0.25, 0.9, 0.35), Color(0.4, 0.85, 1.0)][gates - 1], 0.9 + gates * 0.3)
+	if gates >= 4:
+		VFX.shockwave(p.global_position + Vector3.UP * 0.2, Color(0.4, 1.0, 0.5), 8.0 + gates * 2.0, 0.5, true)
+		VFX.debris(p.global_position, Color(0.55, 0.45, 0.35), 10 + gates * 4, 8.0)
+		VFX.cracks(p.global_position, 2.0 + gates * 0.6)
 	Hud.banner("HACHIMON", names[gates], Color(0.4, 1.0, 0.6))
 	FX.ring(p.global_position + Vector3.UP * 0.2, Color(0.4, 1.0, 0.6), 6.0 + gates * 2.0, 0.4)
 	if Game.world:
@@ -556,7 +565,13 @@ func _process(dt: float) -> void:
 				marker_t = 0.5
 				_update_byakugan()
 	if gates > 0:
-		p.hp -= [0.0, 1.5, 3.0, 5.5][gates] * dt * maxf(0.3, 1.0 - Stats.skill(Game.profile, "gates") * 0.8)
+		p.hp -= [0.0, 1.5, 3.0, 5.5, 9.0, 13.0, 18.0, 25.0][gates] * dt * maxf(0.3, 1.0 - Stats.skill(Game.profile, "gates") * 0.8)
+		if gates >= 6:   # 6. kapıdan sonra bedenden yeşil buhar yükselir
+			_steam_t -= dt
+			if _steam_t <= 0.0:
+				_steam_t = 0.12
+				VFX.puffs(p.global_position + Vector3.UP * 1.0, {"amount": 4, "life": 0.9, "size": 0.7, "radius": 0.5, "vmin": 1.5, "vmax": 3.0, "dir": Vector3.UP, "spread": 25.0, "add": false,
+					"colors": [Color(0.55, 1.0, 0.6, 0.55), Color(0.5, 0.9, 0.55, 0)]})
 		if p.hp <= p.max_hp * 0.1:
 			gates = 0
 			Buffs.remove("gates")

@@ -2875,49 +2875,13 @@ func p_doton_retsudo_tensho(c: Node3D, t: Node3D) -> void:
 			st(e, "stun", 1.4))
 
 
-## Kasırga Avuç: avuçtan tek, yoğun rüzgâr küresi — çarpınca patlayıp savurur
-func p_futon_reppusho(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.45)
-	anim(c, "push", 1.6)
-	var tt = tg(c, t, 22.0)
-	var from = hand_pos(c, true)
-	var b = MB.new()
-	b.add("sphere", Vector3.ZERO, Vector3(1.1, 1.1, 1.1), Color(0.85, 0.97, 0.95))
-	var pr = shot(c, from, aim_at(c, tt, from), 30.0, mesh_of(b, glow(Color(0.8, 1.0, 0.95), 0.35)), inf(c, "futon_reppusho", 0.7, {"knock": 16.0, "launch": 3.0, "kind": "heavy", "element": "fuuton"}), null, false, 1.0, func(p, _tg):
-		VFX.puffs(p, {"amount": 50, "life": 0.5, "size": 1.2, "radius": 0.6, "vmin": 8, "vmax": 16, "dir": Vector3.UP, "spread": 180.0,
-			"colors": [Color(0.9, 1, 0.95, 0.6), Color(0.9, 1, 0.95, 0)]}))
-	pr.spin = Vector3(0, 0, 20)
-	Projectile.trail(pr, [Color(0.85, 1.0, 0.95, 0.5), Color(0.85, 1.0, 0.95, 0)], 0.5, 16, 0.3, FX.tex_smoke, false)
-	Sfx.play("wind", from, 1.4)
 
 
-## Rüzgâr Kesici: el yatay savrulur, ince hilal rüzgâr bıçağı ileri uçar ve deler
-func p_futon_kazekiri_no_jutsu(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.4)
-	anim(c, "slash_b", 1.6)
-	var tt = tg(c, t, 24.0)
-	var from = c.global_position + Vector3.UP * 1.2 + c.face_dir() * 0.6
-	var b = MB.new()
-	for k in 9:
-		var a = deg_to_rad(-60.0 + k * 15.0)
-		b.add("box", Vector3(sin(a) * 1.6, 0, cos(a) * 1.6 - 1.6), Vector3(0.4, 0.03, 0.1), Color(0.85, 1.0, 0.95), Vector3(0, rad_to_deg(a) + 90.0, 0))
-	var pr = shot(c, from, aim_at(c, tt, from), 40.0, mesh_of(b, glow(Color(0.8, 1.0, 0.95), 0.6)), inf(c, "futon_kazekiri_no_jutsu", 0.6, {"knock": 4.0, "kind": "heavy", "element": "fuuton", "bleed": 3.0}), null, true, 0.9)
-	Projectile.trail(pr, [Color(0.85, 1.0, 0.95, 0.35), Color(0.85, 1.0, 0.95, 0)], 0.3, 10, 0.2, null, true)
-	Sfx.play("wind", from, 1.8, 0.6)
 
 
-## Alev Mermisi: ağızdan sıkıştırılmış alev topu — çarptığı yerde küçük patlama, yanık
-func p_katon_endan(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.5)
-	var tt = tg(c, t, 24.0)
-	var from = c.global_position + Vector3.UP * 1.55 + c.face_dir() * 0.4
-	var b = MB.new()
-	b.add("sphere", Vector3.ZERO, Vector3(0.95, 0.95, 1.2), Color(1.0, 0.6, 0.15))
-	var pr = shot(c, from, aim_at(c, tt, from), 28.0, mesh_of(b, glow(Color(1.0, 0.55, 0.15), 1.0)), inf(c, "katon_endan", 0.8, {"knock": 6.0, "kind": "heavy", "element": "katon", "burn": 2.5}), null, false, 1.2, func(p, _tg):
-		FX.explosion(p, 1.1)
-		shake(0.3))
-	Projectile.trail(pr, [Color(1, 0.8, 0.3, 0.9), Color(1, 0.35, 0.05, 0.6), Color(0.2, 0.1, 0.05, 0)], 0.5, 22, 0.4, FX.tex_smoke, true)
-	Sfx.play("fire", from, 1.3)
+
+
+
 ## PSTYLE: bubble_clone_technique=clone bubitorappu=ground chakura_kontororu_baku=palm earth_release_rock_shelter=ground fujinheki=two_palm futon_fujin_no_jutsu=breath futon_toppa=breath genjutsu_shibari=sense hayanie=rush jouro_senbon=throw juha_sho=spin kamaitachi_no_jutsu=spin konoha_daisenpu=rush konoha_otoshi=rush kaeru_kaeru_no_jutsu=palm
 
 # ------------------------------------------------------------------ Grup 3: rüzgâr / genjutsu / taijutsu / tuzak
@@ -3538,37 +3502,7 @@ func p_nekozume(c: Node3D, t: Node3D) -> void:
 	Sfx.play("whoosh", c.global_position, 1.5)
 
 
-## Kiraz Çiçeği Darbesi: tam kontrollü çakra yumruğu yere iner — zemin geniş alanda yarılır, kayalar fırlar
-func p_okasho(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 10.0)
-	var d = _jump_at(c, tt, 7.0, 8.0 if tt else 2.0)
-	busy(c, 1.0)
-	anim(c, "air", 1.0)
-	after(0.45, func():
-		if not live(c):
-			return
-		anim(c, "cross", 1.2)
-		if c is CharacterBody3D:
-			c.velocity = Vector3.DOWN * 20.0
-		after(0.12, func():
-			var at = gp(c.global_position + d * 0.6)
-			FX.impact(at + Vector3.UP * 0.3, Color(1, 0.75, 0.85), 2.2)
-			for r in [3.0, 6.0, 9.0]:
-				FX.ring(at + Vector3.UP * 0.05, EARTH, r, 0.5)
-			for k in 10:
-				var q = at + Vector3(randf_range(-5, 5), 0, randf_range(-5, 5))
-				var rk = _rock(randf_range(0.5, 1.1))
-				get_tree().current_scene.add_child(rk)
-				rk.global_position = gp(q)
-				var tw = rk.create_tween()
-				tw.tween_property(rk, "global_position", gp(q) + Vector3.UP * randf_range(0.6, 1.4), 0.12)
-				tw.tween_interval(2.0)
-				tw.tween_property(rk, "scale", Vector3.ONE * 0.01, 0.4)
-				tw.tween_callback(rk.queue_free)
-			VFX.debris(at, EARTH, 40, 11.0)
-			shake(1.0)
-			hit(c, at + Vector3.UP, 6.5, inf(c, "okasho", 2.2, {"knock": 18.0, "launch": 9.0, "kind": "heavy"}))
-			Sfx.play("boom", at, 0.8)))
+
 
 
 ## Şimşek Darbesi: elde toplanan şimşekle tek vuruş — çarpınca çevreye kıvılcım dalları, felç
@@ -3607,19 +3541,7 @@ func p_raigyaku_suihei_choppu(c: Node3D, t: Node3D) -> void:
 		Sfx.play("thunder", c.global_position, 1.7, 0.6))
 
 
-## Şimşek Küresi: avuçta çatırdayan küre atılır, çarpınca dallanır
-func p_raikyu(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 24.0)
-	busy(c, 0.5)
-	var from = hand_pos(c, true)
-	var b = MB.new()
-	b.add("sphere", Vector3.ZERO, Vector3(0.7, 0.7, 0.7), RAI)
-	var pr = shot(c, from, aim_at(c, tt, from), 30.0, mesh_of(b, glow(RAI, 1.0)), inf(c, "raikyu", 0.9, {"knock": 6.0, "kind": "heavy", "element": "raiton", "stun": 0.6}), null, false, 1.2, func(p, _h):
-		for k in 7:
-			_bolt(p, p + Vector3(randf_range(-2.5, 2.5), randf_range(-1, 2.5), randf_range(-2.5, 2.5)))
-		hit(c, p, 2.5, inf(c, "raikyu", 0.3, {"knock": 2.0, "kind": "light", "element": "raiton"})))
-	Projectile.trail(pr, [Color(0.8, 0.95, 1, 0.9), Color(0.5, 0.75, 1, 0)], 0.3, 20, 0.25, null, true)
-	Sfx.play("chidori", from, 1.4, 0.6)
+
 
 
 ## Şimşek Yılan Balığı: elden kamçı gibi uzanan şimşek akımı hedefi sarar, sürekli çarpar
@@ -4073,12 +3995,7 @@ func p_suiton_takitsubo_no_jutsu(c: Node3D, t: Node3D) -> void:
 	Sfx.play("water", at, 0.6)
 
 
-## Dev Su Mermisi: ağızdan kocaman su topu — çarptığı yerde dalga
-func p_suiton_teppodama(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.8)
-	_water_shot(c, "suiton_teppodama", tg(c, t, 26.0), _mouth_pos(c) + c.face_dir() * 0.6, 1.8, 24.0, 1.6, {"knock": 18.0})
-	shake(0.3)
-	Sfx.play("water", c.global_position, 0.6)
+
 
 
 ## Ay Gölgesi: kılıç ay hilali çizer, ardından solgun ay ışığı izi kalır
@@ -4192,3 +4109,199 @@ func p_zessenzan(c: Node3D, t: Node3D) -> void:
 		tip["a"] = lerpf(-1.2, 1.2, k), Callable())
 	Combat.hit_zone(c, c.global_position, d, 6.5, 70.0, 2.5, inf(c, "zessenzan", 1.0, {"knock": 8.0, "kind": "heavy", "bleed": 2.0}))
 	Sfx.play("whoosh", c.global_position, 1.0)
+
+
+# ================================================================== ORTAK DETAYLI EFEKT KATMANI (VFX kütüphanesi: shader çekirdek + iz + toplanma + çarpma + kalıcı iz)
+## Element mermisi: elde/ağızda çakra toplanır, shader'lı element çekirdeği (alev/su/rüzgâr/şimşek) element iziyle uçar,
+## çarpınca elemente özel büyük çarpma (şok dalgası, yıldız, patlama/sıçrama/arklar/toz, çatlak, yerde kalan iz)
+func eshot(c: Node3D, id: String, el: String, col: Color, tt: Node3D, from: Vector3, size: float, speed: float, mul: float, extra := {}, impact_s := 1.0, delay := 0.16) -> void:
+	VFX.gather(from, col, 0.8 + size * 0.4)
+	after(delay, func():
+		if not live(c):
+			return
+		var core = VFX.element_core(el, col, size)
+		var info = {"knock": 8.0 * impact_s, "kind": "heavy", "element": el, "hitstop": 0.05}
+		info.merge(extra, true)
+		var pr = shot(c, from, aim_at(c, tt, from), speed, core, inf(c, id, mul, info), null, false, 1.6, func(p, _h):
+			impact_fx(el, col, p, impact_s))
+		pr.radius = 0.35 + size * 0.4
+		_etrail(pr, el, col, size))
+
+
+func _etrail(pr: Projectile, el: String, col: Color, size: float) -> void:
+	VFX.element_trail(pr, el, col, size * 0.9)
+	match el:
+		"katon":
+			Projectile.trail(pr, [Color(1, 0.85, 0.35, 0.9), Color(1, 0.4, 0.05, 0.6), Color(0.25, 0.12, 0.08, 0)], size * 0.8, 30, 0.5, FX.tex_smoke, false)
+		"suiton":
+			Projectile.trail(pr, [Color(0.97, 0.99, 1, 1), Color(0.55, 0.82, 1, 0.9), Color(0.15, 0.4, 0.95, 0)], size * 0.9, 34, 0.5, FX.tex_smoke, false)
+		"fuuton":
+			Projectile.trail(pr, [Color(1, 1, 1, 0.6), Color(0.8, 1, 0.92, 0.35), Color(0.7, 0.95, 0.85, 0)], size * 1.0, 24, 0.4, FX.tex_smoke, false)
+		"raiton":
+			Projectile.trail(pr, [Color(1, 1, 1, 1), col.lightened(0.4), Color(col.r, col.g, col.b, 0)], size * 0.4, 30, 0.3, null, true)
+
+
+## Elemente özel çarpma (s: ölçek)
+func impact_fx(el: String, col: Color, at: Vector3, s := 1.0) -> void:
+	var g = Vector3(at.x, Game.ground_height(at.x, at.z), at.z)
+	var near_ground = at.y - g.y < 2.5
+	VFX.star(at, col.lightened(0.4), 2.2 * s, 0.18)
+	VFX.shockwave(at, col, 5.0 * s, 0.4, false, Vector3.UP)
+	match el:
+		"katon", "bakuton", "yoton":
+			VFX.explosion(at, 1.1 * s, col)
+			VFX.embers(at, col, int(30 * s), 12.0 * s)
+			if near_ground:
+				VFX.cracks(g, 3.0 * s, Color(0.08, 0.04, 0.02, 0.9), 6.0)
+		"suiton", "hyoton":
+			VFX.splash(at, 2.6 * s)
+			VFX.smoke_ring(g + Vector3.UP * 0.1, 3.5 * s, Color(0.75, 0.88, 1.0))
+		"fuuton":
+			VFX.shockwave(at, Color(0.9, 1, 0.95), 7.0 * s, 0.3, true)
+			VFX.smoke_ring(g + Vector3.UP * 0.1, 4.0 * s, Color(0.85, 0.8, 0.7))
+			VFX.debris(g, Color(0.7, 0.65, 0.55), int(10 * s), 8.0 * s, 0.25)
+		"raiton":
+			for k in int(8 * s):
+				VFX.bolt(at, at + Vector3(randf_range(-3, 3), randf_range(-1, 3), randf_range(-3, 3)) * s, col, 0.12 * s, 0.3, 2)
+			if near_ground:
+				VFX.cracks(g, 2.0 * s, Color(0.1, 0.12, 0.2, 0.8), 4.0)
+		"doton":
+			VFX.debris(g, EARTH, int(24 * s), 10.0 * s, 0.6)
+			VFX.cracks(g, 3.5 * s)
+			VFX.smoke_ring(g + Vector3.UP * 0.1, 4.0 * s, Color(0.55, 0.45, 0.35))
+		_:
+			FX.impact(at, col, 1.2 * s)
+	if near_ground and el in ["katon", "suiton", "doton", "raiton", "yoton", "hyoton"]:
+		VFX.linger(at, el, col, 1.3 * s, 3.0)
+	shake(0.25 + 0.25 * s)
+
+
+## Ağır yakın dövüş darbesi: yıldız patlaması, yönlü şok halkası, toz, kıvılcım, hız çizgileri
+func melee_fx(c: Node3D, at: Vector3, col: Color, s := 1.0, ground := false) -> void:
+	VFX.star(at, col.lightened(0.5), 2.0 * s, 0.15)
+	VFX.shockwave(at, col, 3.5 * s, 0.3, false, c.face_dir())
+	FX.impact(at, col, 1.0 * s)
+	FX.burst(at, {"amount": int(16 * s), "life": 0.35, "tex": FX.tex_spark, "add": true, "size": 0.3 * s, "radius": 0.3, "vmin": 6.0, "vmax": 14.0, "dir": c.face_dir(), "spread": 60.0,
+		"colors": [Color(1, 1, 1, 1), col, Color(col.r, col.g, col.b, 0)]})
+	if ground:
+		var g = gp(at)
+		VFX.cracks(g, 3.0 * s)
+		VFX.debris(g, EARTH, int(16 * s), 9.0 * s, 0.5)
+		VFX.smoke_ring(g + Vector3.UP * 0.1, 3.5 * s, Color(0.6, 0.52, 0.42))
+	if s >= 1.3 and c is Player:
+		VFX.screen_lines(0.3, 0.8)
+	shake(0.2 + 0.3 * s)
+
+
+## Alev Mermisi: ağızda alev toplanır, katmanlı dönen alev küresi uçar; çarpınca patlama, kor, yerde yanan alev dilleri
+func p_katon_endan(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.55)
+	var tt = tg(c, t, 26.0)
+	for k in 3:
+		after(k * 0.14, func():
+			if live(c):
+				eshot(c, "katon_endan", "katon", Color(1.0, 0.5, 0.1), tt, _mouth_pos(c) + c.face_dir() * 0.5, 0.9 - k * 0.15, 30.0, 0.35, {"burn": 2.5}, 1.0 - k * 0.2, 0.1))
+	Sfx.play("fire", c.global_position, 1.2)
+
+
+## Kasırga Avuç: avuçta dönen hava küresi (kırılan kabuk + iç spiral) — çarpınca yatay şok halkası, toz halkası
+func p_futon_reppusho(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.5)
+	anim(c, "push", 1.6)
+	eshot(c, "futon_reppusho", "fuuton", Color(0.8, 1.0, 0.92), tg(c, t, 24.0), hand_pos(c, true), 1.3, 30.0, 0.8, {"knock": 18.0, "launch": 4.0}, 1.3)
+	FX.speed_lines(c.global_position + Vector3.UP * 1.3, c.face_dir())
+	Sfx.play("wind", c.global_position, 1.3)
+
+
+## Dev Su Mermisi: ağızda su toplanır, akan su dokulu dev küre; çarpınca dev sıçrama, dalga halkası, yerde su birikintisi
+func p_suiton_teppodama(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.8)
+	eshot(c, "suiton_teppodama", "suiton", Color(0.3, 0.6, 1.0), tg(c, t, 26.0), _mouth_pos(c) + c.face_dir() * 0.9, 2.4, 24.0, 1.6, {"knock": 20.0, "launch": 3.0}, 1.8, 0.3)
+	VFX.splash(gp(c.global_position + c.face_dir()) , 1.2)
+	shake(0.3)
+	Sfx.play("water", c.global_position, 0.6)
+
+
+## Şimşek Küresi: avuçta çatırdayan parlak çekirdek ve titreyen kalın arklar; çarpınca dallanan şimşekler, yanık iz
+func p_raikyu(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.5)
+	var from = hand_pos(c, true)
+	for k in 5:
+		VFX.bolt(from, from + Vector3(randf_range(-0.6, 0.6), randf_range(-0.4, 0.6), randf_range(-0.6, 0.6)), RAI, 0.06, 0.25, 1)
+	eshot(c, "raikyu", "raiton", RAI, tg(c, t, 26.0), from, 1.0, 34.0, 0.9, {"stun": 0.6}, 1.2, 0.2)
+	Sfx.play("chidori", from, 1.4, 0.6)
+
+
+## Rüzgâr Kesici: kol yatay savrulur, rüzgâr dokulu ince hilal bıçak (iz bırakır) uçar ve deler; değdiği yerde kesik şok halkası
+func p_futon_kazekiri_no_jutsu(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.45)
+	anim(c, "slash_b", 1.6)
+	var tt = tg(c, t, 26.0)
+	var from = c.global_position + Vector3.UP * 1.25 + c.face_dir() * 0.7
+	VFX.gather(from, WIND, 1.0)
+	after(0.12, func():
+		if not live(c):
+			return
+		var blade = Node3D.new()
+		var tm = TorusMesh.new()
+		tm.inner_radius = 1.25; tm.outer_radius = 1.45; tm.rings = 32; tm.ring_segments = 6
+		var arc = MeshInstance3D.new()
+		arc.mesh = tm
+		arc.material_override = VFX.mat_wind(Color(0.85, 1.0, 0.95), 9.0, 7.0, Vector3(1, 0, 0), 0.95)
+		arc.scale = Vector3(1.0, 0.12, 0.55)
+		arc.position = Vector3(0, 0, -0.7)
+		blade.add_child(arc)
+		var inner = MeshInstance3D.new()
+		inner.mesh = tm
+		inner.material_override = VFX.mat_bolt(Color(0.9, 1.0, 0.97), 1.4)
+		inner.scale = Vector3(0.95, 0.05, 0.5)
+		inner.position = Vector3(0, 0, -0.7)
+		blade.add_child(inner)
+		var pr = shot(c, from, aim_at(c, tt, from), 42.0, blade, inf(c, "futon_kazekiri_no_jutsu", 0.7, {"knock": 5.0, "kind": "heavy", "element": "fuuton", "bleed": 3.0}), null, true, 0.9, func(p, _h):
+			VFX.shockwave(p, WIND, 3.5, 0.25, false, Vector3.UP)
+			VFX.star(p, Color(1, 1, 1), 1.6, 0.12))
+		pr.radius = 1.0
+		VFX.element_trail(pr, "fuuton", WIND, 1.6)
+		Projectile.trail(pr, [Color(1, 1, 1, 0.5), Color(0.8, 1, 0.92, 0.25), Color(0.7, 0.95, 0.85, 0)], 1.2, 20, 0.3, FX.tex_smoke, false))
+	Sfx.play("wind", from, 1.8, 0.6)
+
+
+## Kiraz Çiçeği Darbesi: havaya sıçrar, yumruğunda çakra parlar, iner — zemin örümcek ağı gibi çatlar, kayalar fırlar, toz halkası, ekran sarsılır
+func p_okasho(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 10.0)
+	var d = _jump_at(c, tt, 7.0, 8.0 if tt else 2.0)
+	busy(c, 1.0)
+	anim(c, "air", 1.0)
+	var pink = Color(1, 0.6, 0.75)
+	every(0.45, 0.05, func(_i, _k):
+		if live(c):
+			FX.burst(hand_pos(c, true), {"amount": 3, "life": 0.25, "tex": FX.tex_spark, "add": true, "size": 0.25, "radius": 0.1, "vmin": 0.5, "vmax": 1.5,
+				"colors": [Color(1, 1, 1, 1), pink, Color(pink.r, pink.g, pink.b, 0)]}), Callable())
+	after(0.45, func():
+		if not live(c):
+			return
+		anim(c, "cross", 1.2)
+		if c is CharacterBody3D:
+			c.velocity = Vector3.DOWN * 20.0
+		after(0.12, func():
+			var at = gp(c.global_position + d * 0.6)
+			melee_fx(c, at + Vector3.UP * 0.4, pink, 1.8, true)
+			VFX.cracks(at, 9.0, Color(0.1, 0.07, 0.05, 0.95), 8.0)
+			for r in [4.0, 8.0, 12.0]:
+				VFX.shockwave(at + Vector3.UP * 0.1, Color(0.85, 0.75, 0.6), r, 0.5, true)
+			for k in 12:
+				var q = at + Vector3(randf_range(-6, 6), 0, randf_range(-6, 6))
+				var rk = _rock(randf_range(0.6, 1.3))
+				get_tree().current_scene.add_child(rk)
+				rk.global_position = gp(q) - Vector3.UP * 0.6
+				rk.rotation = Vector3(randf_range(-0.6, 0.6), randf() * TAU, randf_range(-0.6, 0.6))
+				var tw = rk.create_tween()
+				tw.tween_property(rk, "global_position", gp(q) + Vector3.UP * randf_range(0.3, 1.2), 0.1)
+				tw.tween_interval(3.0)
+				tw.tween_property(rk, "global_position", gp(q) - Vector3.UP * 1.5, 0.6)
+				tw.tween_callback(rk.queue_free)
+			VFX.debris(at, EARTH, 50, 13.0, 0.7)
+			VFX.smoke_ring(at + Vector3.UP * 0.1, 8.0, Color(0.6, 0.52, 0.42))
+			shake(1.2)
+			hit(c, at + Vector3.UP, 6.5, inf(c, "okasho", 2.2, {"knock": 18.0, "launch": 9.0, "kind": "heavy", "hitstop": 0.1}))
+			Sfx.play("boom", at, 0.8)))
