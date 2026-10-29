@@ -2035,16 +2035,25 @@ func p_kami_tsubasa(c: Node3D, _t: Node3D) -> void:
 			wings.append(wing)
 			parts.append(ba)
 	# kanat sırta bağlı ama gövde eğilse de dik durur (animedeki gibi kemer yukarıda, tüyler aşağı); yavaş çırpma
-	every(20.0, 1.0 / 60.0, func(_i, k):
+	every(20.0, 1.0 / 60.0, func(i, _k):
 		if m == null or not is_instance_valid(m):
 			return
+		var tm = i / 60.0
+		var fast = c is Player and Vector2(c.velocity.x, c.velocity.z).length() > 8.0
+		var spd = 7.0 if fast else 4.0
 		for w in wings:
 			if not is_instance_valid(w):
 				continue
+			var sx = float(w.get_meta("sx"))
+			var ph = sin(tm * spd)
 			var sc: Vector3 = w.scale
-			var flap = sin(k * 3.0) * 12.0
-			w.global_basis = m.global_basis.orthonormalized() * Basis.from_euler(Vector3(deg_to_rad(-8.0), deg_to_rad(-flap * float(w.get_meta("sx"))), 0))
-			w.scale = sc)
+			# çırpma: uçlar aşağı-yukarı (roll), kanat geriye katlanıp açılır (yaw), hızlıyken daha geride süzülür
+			var roll = deg_to_rad(sx * (ph * 22.0 + 4.0))
+			var yaw = deg_to_rad(-sx * ((30.0 if fast else 14.0) + cos(tm * spd) * 12.0))
+			w.global_basis = m.global_basis.orthonormalized() * Basis.from_euler(Vector3(deg_to_rad(-8.0 + ph * 5.0), yaw, roll))
+			w.scale = sc
+		if i % 50 == 0 and live(c):
+			Sfx.play("wind", c.global_position, 1.8, 0.25))
 	Sfx.play("wind", c.global_position, 1.4)
 	if c is Player and c.has_method("start_flight"):
 		c.start_flight("kami", {"drain": 0.0, "speed": 20.0, "dur": 20.0})
@@ -2345,14 +2354,20 @@ func p_senpo_kawazu_naki(c: Node3D, _t: Node3D) -> void:
 		var sk: Skeleton3D = m.skel
 		var chest_b = "UpperChest" if sk.find_bone("UpperChest") >= 0 else "Chest"
 		for sx in [-1.0, 1.0]:
-			var sh_b = "LeftUpperArm" if sx > 0 else "RightUpperArm"
-			var sp: Vector3 = m._grest(sk.find_bone(sh_b)).origin if sk.find_bone(sh_b) >= 0 else m._grest(sk.find_bone(chest_b)).origin + Vector3(sx * 0.18, 0.1, 0)
-			# model uzayında dik duran, öne bakan yaşlı kurbağa (sağ omuzda dişi: mor dudak)
-			var ba = m._attach(chest_b, Transform3D(Basis.IDENTITY, sp + Vector3(sx * 0.07, 0.07, -0.02)))
+			var ua = "LeftUpperArm" if sx > 0 else "RightUpperArm"
+			var sh_b = "LeftShoulder" if sx > 0 else "RightShoulder"
+			if sk.find_bone(sh_b) < 0:
+				sh_b = chest_b
+			var p_ua: Vector3 = m._grest(sk.find_bone(ua)).origin
+			var p_sh: Vector3 = m._grest(sk.find_bone(sh_b)).origin
+			# omzun üst yüzeyi: kol ekleminin hemen üstü, kafanın yanından dışarıda
+			var seat = p_ua + Vector3(sx * 0.035, 0.035, -0.01)
+			# model uzayında dik duran, öne bakan yaşlı kurbağa (sağ omuzda dişi: mor dudak); omuz kemiğiyle birlikte hareket eder
+			var ba = m._attach(sh_b, Transform3D(Basis.IDENTITY, seat))
 			var mi = mesh_of(_elder_toad(sx < 0))
 			ba.get_child(0).add_child(mi)
 			mi.scale = Vector3.ONE * 0.05
-			mi.create_tween().tween_property(mi, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_BACK)
+			mi.create_tween().tween_property(mi, "scale", Vector3.ONE * 0.62, 0.3).set_trans(Tween.TRANS_BACK)
 			FX.smoke_puff(c.global_position + Vector3.UP * 1.6 + c.face_dir().cross(Vector3.UP) * -sx * 0.2, 0.3, 6)
 			elders.append(ba)
 	Sfx.play("genjutsu", c.global_position, 0.5)
