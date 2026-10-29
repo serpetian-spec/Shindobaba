@@ -16,7 +16,7 @@ func _ready() -> void:
 	main.add_child(cam)
 	cam.current = true
 	var only = OS.get_environment("ONLY")
-	var ids = [only] if only != "" else ["zanko", "zekka_konzetsu_no_in", "zesshi_nensan", "akurobatto", "bakuton_jiraiken", "bunretsu_no_jutsu", "bunshin_daibakuha", "bunshin_taiatari", "chidori_eiso", "chidori_nagashi", "chidori_senbon", "cho_biburato_raitonto", "chodan_koro", "daihoko", "doton_ressenga", "fang_s_rush", "fuinjutsu_shishi_heiko", "funsuiken", "futon_rasengan", "futton_joki_bakuhatsu"]
+	var ids = [only] if only != "" else ["futton_kairiki_muso", "futton_komu_no_jutsu", "gamadosuzan", "gogyo_kaiin", "gojo_kibaku_fuda", "hachimon", "hakke_kuhekisho", "hiraishin_ni_no_dan", "hissatsu_hyoso", "hyoton_hyogan_domu", "hyoton_mangehyo", "hyoton_suishoheki", "hyuga_soke_no_juinjutsu", "iaigiri", "issen", "jibaku_bunshin", "jigyaku_no_jutsu", "jitetsu_ryufusho", "jiton_sakin_taiso", "joki_boi"]
 	for id in ids:
 		var e = Enemy.new()
 		var a = Enemy.archetype("bandit", 0)
@@ -41,7 +41,7 @@ func _ready() -> void:
 		await get_tree().create_timer(0.35).timeout
 		if OS.get_environment("XTRA") != "":
 			await get_tree().create_timer(float(OS.get_environment("XTRA"))).timeout
-		if id in ["zanko", "akurobatto", "bakuton_jiraiken", "chidori_eiso", "chidori_nagashi", "chodan_koro", "futon_rasengan", "futton_joki_bakuhatsu"]:
+		if id in ["gamadosuzan", "gojo_kibaku_fuda", "hissatsu_hyoso", "hyoton_hyogan_domu", "hyoton_suishoheki", "iaigiri", "jiton_sakin_taiso", "hyoton_mangehyo"]:
 			pl.set_process(false)
 			var fw = pl.face_dir()
 			if id == "kami_tsubasa":
