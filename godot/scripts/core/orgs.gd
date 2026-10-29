@@ -122,6 +122,20 @@ func akatsuki_look(m: Dictionary) -> Dictionary:
 	return lk
 
 
+## Akatsuki üyesinin dövüş tarzı: her kayıtta rastgele (kayda bağlı tohum), aynı kayıtta sabit; lider dâhil herkes farklı olabilir
+func aka_style(m: Dictionary) -> String:
+	var st = state()
+	if not st.has("aka_styles"):
+		var rng = RandomNumberGenerator.new()
+		rng.seed = int(p().get("seed", 1)) * 13 + 5
+		var pool = ["kenjutsu", "kugutsu", "genjutsu", "taijutsu", "fuin", "bakuton", "kuchiyose"]
+		var d = {}
+		for mm in AKATSUKI:
+			d[mm["name"]] = pool[rng.randi() % pool.size()]
+		st["aka_styles"] = d
+	return String(st["aka_styles"].get(m["name"], m.get("style", "genjutsu")))
+
+
 func spawn_member(m: Dictionary, at: Vector3) -> Enemy:
 	var e = Enemy.new()
 	var a = Enemy.archetype("rogue", 0)
@@ -140,7 +154,7 @@ func spawn_member(m: Dictionary, at: Vector3) -> Enemy:
 	a["respawn"] = false
 	a["look"] = akatsuki_look(m)
 	a["faction"] = "akatsuki"
-	BossStyles.dress(a, "S", hash(m["name"]), String(m.get("style", "genjutsu")))
+	BossStyles.dress(a, "S", hash(m["name"]), aka_style(m))
 	a["name"] = "%s «%s»" % [m["name"], m["alias"]]   # tarz başlığı ada eklenmesin (lider "Kuklacı" diye anılıyordu)
 	e.setup(a)
 	e.set_meta("akatsuki", m["name"])
@@ -809,8 +823,8 @@ func _great_war_prompt() -> void:
 		"brief": "Beş büyük köy tek bir orduda birleşti. Akatsuki'nin beyaz klon ordusu ve liderleri savaş alanında. Cepheyi tut, liderleri düşür.",
 		"steps": [{"kind": "goto", "at": Missions._near_spot(field, 150, 200), "r": 25.0, "name": "Müttefik Karargâhı", "text": "Savaş alanındaki müttefik karargâhına git."},
 			{"kind": "defend", "at": field, "enemy": "rogue", "ename": "Beyaz Klon", "waves": [6, 7, 8, 9], "text": "Beyaz klon ordusunun dalgalarını durdur."},
-			{"kind": "kill", "at": Missions._near_spot(field, 60, 100), "enemy": "rogue", "n": 1, "boss": {"name": "%s «%s»" % [AKATSUKI[0]["name"], AKATSUKI[0]["alias"]], "hp": 3600.0, "level": 45, "power": 3.0, "look": akatsuki_look(AKATSUKI[0]), "style": String(AKATSUKI[0]["style"])}, "text": "Akatsuki komutanını yen."},
-			{"kind": "kill", "at": field, "enemy": "rogue", "n": 2, "boss": {"name": "%s «%s»" % [lead["name"], lead["alias"]], "hp": 7000.0, "level": 55, "power": 3.8, "look": akatsuki_look(lead), "style": String(lead["style"])}, "text": "Örgütün liderini yen."}]}
+			{"kind": "kill", "at": Missions._near_spot(field, 60, 100), "enemy": "rogue", "n": 1, "boss": {"name": "%s «%s»" % [AKATSUKI[0]["name"], AKATSUKI[0]["alias"]], "hp": 3600.0, "level": 45, "power": 3.0, "look": akatsuki_look(AKATSUKI[0]), "style": aka_style(AKATSUKI[0])}, "text": "Akatsuki komutanını yen."},
+			{"kind": "kill", "at": field, "enemy": "rogue", "n": 2, "boss": {"name": "%s «%s»" % [lead["name"], lead["alias"]], "hp": 7000.0, "level": 55, "power": 3.8, "look": akatsuki_look(lead), "style": aka_style(lead)}, "text": "Örgütün liderini yen."}]}
 	Hud.dialog("Müttefik Kuvvetler Başkomutanı", "Kage Zirvesi'nde verdiğimiz söz yerine geliyor: beş köy tek bir ordu. Sen cephenin kalbinde olacaksın.", [{"label": "Savaşa katıl", "cb": func(): Missions.accept(m)}, {"label": "Hazırlanmam lazım", "cb": func(): state()["war"] = "none"}])
 
 
@@ -905,7 +919,13 @@ func random_orgs() -> Array:
 			members.append({"name": "%s %s" % [last, first], "alias": ("%s'in Lideri" % name) if mi == 0 else ["Sessiz Bıçak", "Zehirli Gölge", "Taş Yürek", "Kızıl Pençe", "Rüzgâr Hayaleti", "Kemik Kıran"][rng.randi() % 6],
 				"v": vids[rng.randi() % vids.size()], "el": els[rng.randi() % els.size()], "style": RO_STYLES[rng.randi() % RO_STYLES.size()],
 				"f": rng.randf() < 0.3, "hair": ["uzun", "diken", "kısa", "dağınık", "atkuyruğu"][rng.randi() % 5], "leader": mi == 0, "hp": 5000.0 if mi == 0 else 2600.0})
-		out.append({"name": name, "cloak": cloak.to_html(false), "accent": accent.to_html(false), "pattern": [3, 1, 2][oi % 3],
+		# örgütün kıyafet kimliği: pelerin tipi, desen, başlık, maske — bütün üyeler aynısını giyer
+		var dress = {"outer_style": ["org_pelerin", "haori_uzun", "palto", "panco", "mino"][rng.randi() % 5],
+			"pattern": [1, 2, 3, 4, 5][rng.randi() % 5],
+			"head": ["", "kasa", "kapuson", "basortu"][rng.randi() % 4],
+			"face": ["", "", "cloth", "kitsune", "oni", "tengu", "goz_bandi"][rng.randi() % 7],
+			"top": Color.from_hsv(rng.randf(), rng.randf_range(0.1, 0.4), rng.randf_range(0.1, 0.35)).to_html(false)}
+		out.append({"name": name, "cloak": cloak.to_html(false), "accent": accent.to_html(false), "pattern": int(dress["pattern"]), "dress": dress,
 			"goal": RO_GOALS[g][0], "speech": RO_GOALS[g][1], "members": members, "dead": []})
 	st["rorgs"] = out
 	return out
@@ -915,6 +935,17 @@ func _ro_look(o: Dictionary, m: Dictionary) -> Dictionary:
 	var lk = Outfits.roll("org", m["v"])
 	lk.merge({"outer": Color.html(o["cloak"]), "outer_accent": Color.html(o["accent"]), "outer_pattern": int(o["pattern"]), "gender": "f" if m["f"] else "m",
 		"hair_style": m["hair"], "band": Color(0.2, 0.2, 0.25), "band_style": "slashed", "village": m["v"], "age": "adult"}, true)
+	var dr: Dictionary = o.get("dress", {})
+	if not dr.is_empty():
+		var top = Color.html(dr["top"])
+		lk["outer_style"] = dr["outer_style"]
+		lk["top"] = top; lk["top2"] = top; lk["pants"] = top.darkened(0.15)
+		lk["head_style"] = null if dr["head"] == "" else dr["head"]
+		lk["headgear"] = Color.html(o["cloak"]).lightened(0.15) if dr["head"] != "kasa" else Color(0.78, 0.66, 0.42)
+		lk["face_style"] = null if dr["face"] == "" else dr["face"]
+		lk["facegear"] = Color.html(o["accent"]) if dr["face"] == "cloth" else Color(0.95, 0.94, 0.9)
+		if m["leader"]:
+			lk["outer_accent"] = Color.html(o["accent"]).lightened(0.25)   # lider: daha parlak kenar
 	return lk
 
 
