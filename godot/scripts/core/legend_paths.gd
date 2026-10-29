@@ -78,8 +78,54 @@ const PATHS := {
 		"quest": {"hachimon_tonko_no_jin": "gates", "yagai": "gates"},
 		"dark": {},
 	},
+	"kagit": {
+		"name": "Kâğıt Yolu", "icon": "scroll", "color": Color(0.85, 0.82, 0.95),
+		"style": "Bedeni kâğıda çeviren sanat: kâğıt klonlar, kelebek sürüleri, kanatlar, mızrak ormanı ve patlayıcı kâğıt denizi",
+		"site": {"country": "rain", "off": Vector2(-700, 600), "kind": "paper", "clear": 50.0, "place": "Kâğıt Çiçek Kulesi (Yağmur Ülkesi)"},
+		"mentor": {"name": "Shirobana Ayame", "title": "Kâğıt Ustası",
+			"look": {"gender": "f", "skin": Color(0.96, 0.88, 0.84), "hair": Color(0.45, 0.35, 0.65), "hair_style": "topuz", "eye": Color(0.85, 0.75, 0.4),
+				"top": Color(0.15, 0.15, 0.2), "top2": Color(0.15, 0.15, 0.2), "pants": Color(0.15, 0.15, 0.2), "band": Color(0.3, 0.3, 0.35), "age": "adult"}},
+		"rumor_level": 9, "join_level": 11,
+		"rumor": "Yağmur Ülkesi'nde, tepesinde kâğıt çiçek açan bir kulede yaşayan sessiz bir kadın varmış. Rüzgârla dağılıp yeniden toplanırmış.",
+		"intro": "Kadının bedeni bir an kâğıt yapraklara dağılıp yeniden birleşiyor: \"Kâğıt zayıf görünür. Ama bin kat katlanınca çelik keser. Sabrın varsa öğretirim.\"",
+		"passive": {"jutsu": 0.1, "speed": 0.03},
+		"passive_desc": "Jutsu gücü +%10, hız +%3",
+		"order": ["kami_bunshin", "kami_chocho", "kami_tsubasa", "shikigami_no_mai", "kami_yari", "kami_no_shisha_no_jutsu"],
+		"quest": {"kami_no_shisha_no_jutsu": "sea"},
+		"dark": {},
+	},
+	"gama": {
+		"name": "Kurbağa Bilgesi Yolu", "icon": "seal", "color": Color(1.0, 0.6, 0.25),
+		"style": "Kurbağa yağı ve ateş, savaş saçı (iğneler, aslan yelesi, diken kalkanı), kurbağa midesi mühürü ve bilge çağrısı",
+		"site": {"country": "waterfall", "off": Vector2(500, -800), "kind": "toad", "clear": 50.0, "place": "Yosunlu Kurbağa Tapınağı (Şelale Ülkesi)"},
+		"mentor": {"name": "Hōrō Gamasuke", "title": "Gezgin Kurbağa Bilgesi",
+			"look": {"gender": "m", "skin": Color(0.94, 0.8, 0.68), "hair": Color(0.92, 0.92, 0.9), "hair_style": "uzun", "eye": Color(0.3, 0.25, 0.2),
+				"top": Color(0.3, 0.45, 0.3), "top2": Color(0.75, 0.2, 0.15), "pants": Color(0.3, 0.45, 0.3), "band": Color(0.85, 0.85, 0.82), "age": "adult", "face_mark": "yanak çizgisi"}},
+		"rumor_level": 8, "join_level": 10,
+		"rumor": "Şelale Ülkesi'nde, yosunlu bir kurbağa tapınağında roman yazan beyaz saçlı bir bilge görülmüş. Kurbağalarla konuşurmuş.",
+		"intro": "Beyaz saçlı adam kaleminden başını kaldırıyor: \"Bir öğrenci mi? Hah! Önce bana kurbağaların gözünden dünyayı göstermelisin. Sonra saçımın bile silah olduğunu görürsün.\"",
+		"passive": {"chakra": 0.12, "hp": 0.06},
+		"passive_desc": "Chakra +%12, can +%6",
+		"order": ["gamayudan", "kebari_senbon", "ranjishigami_no_jutsu", "hari_jizo", "kuchiyose_gamaguchi_shibari", "katon_gamayu_endan", "senpo_kawazu_naki"],
+		"quest": {"senpo_kawazu_naki": "sage"},
+		"dark": {},
+	},
 }
 ## Sıradaki yollar (ROADMAP): kurbağa sennin, kil sanatı, kukla ustası, Hiraishin, köpekbalığı...
+
+## Yollara ait, veri dosyasında olmayan teknikler: Data.jutsu'ya yüklenir
+const EXTRA_JUTSU := {
+	"kami_chocho": {"name": "Kâğıt Kelebekler", "cost": 30, "cd": 10, "element": "", "level": 12, "rank": 2, "tier": 3, "shape": "debuff", "learn": "path:kagit", "category": "ninjutsu",
+		"seals": ["Tora", "Hitsuji"], "desc": "Bedenden kopan yüzlerce kâğıt kelebek düşmanları sarar: görüşü kapanır (3 sn sersem), küçük kesikler."},
+	"kami_tsubasa": {"name": "Kâğıt Kanatlar", "cost": 35, "cd": 25, "element": "", "level": 14, "rank": 2, "tier": 3, "shape": "transform", "learn": "path:kagit", "category": "ninjutsu",
+		"seals": ["Tori"], "desc": "Sırtından kâğıt kanatlar açılır: 20 sn uçarsın (Space yüksel, Ctrl alçal), kanat çırpışı kâğıt bıçakları savurur."},
+	"kami_yari": {"name": "Kâğıt Mızrak Ormanı", "cost": 45, "cd": 14, "element": "", "level": 22, "rank": 3, "tier": 4, "shape": "spikes", "learn": "path:kagit", "category": "ninjutsu",
+		"seals": ["I", "Tatsu"], "desc": "Yerden sivri kâğıt mızraklar fışkırır; hedef ve çevresi delinir, havaya atılır."},
+	"hari_jizo": {"name": "Diken Bekçisi", "cost": 30, "cd": 16, "element": "", "level": 16, "rank": 2, "tier": 3, "shape": "buff", "learn": "path:gama", "category": "ninjutsu",
+		"seals": ["Mi"], "desc": "Saçın bedenini saran dikenli bir kozaya döner: 4 sn neredeyse hasar almazsın, yakın dövüşle vuranlar dikenlere batar."},
+	"katon_gamayu_endan": {"name": "Katon: Kurbağa Yağı Alev Bombası", "cost": 50, "cd": 16, "element": "katon", "level": 26, "rank": 3, "tier": 4, "shape": "breath", "learn": "path:gama", "category": "ninjutsu",
+		"seals": ["Mi", "Hitsuji", "Tora"], "desc": "Bir kurbağa yağ fışkırtır, sen ateşi üflersin: yağla büyüyen dev alev seli, yerde yanan yağ gölü bırakır."},
+}
 
 static var lairs := {}   # yol id -> [x, y] harita noktası (ustanın önü)
 static var _node: LegendPaths = null
@@ -323,6 +369,32 @@ static func _quest(pid: String, kind: String, teach: String) -> Dictionary:
 	var base = {"rank": "B", "village": Progress.home(), "hook": "LegendPaths.quest_done", "path": pid, "teach": teach, "trial": kind == "trial"}
 	var q = {}
 	match pid + ":" + kind:
+		"kagit:trial":
+			q = {"title": "Kâğıdın Sabrı", "rank": "C",
+				"brief": "Usta, rüzgârın dağıttığı yüz kâğıt turnayı toplamanı ve onları çalmaya gelen haydutları kovmanı istiyor.",
+				"steps": [
+					{"kind": "collect", "at": _near(at, 260.0), "item": "kâğıt turna", "n": 6, "spread": 34, "text": "Dağılan kâğıt turnaları topla (6)."},
+					{"kind": "defend", "at": at, "enemy": "bandit", "waves": [2, 3], "text": "Kuleye saldıran haydutları püskürt."}]}
+		"kagit:sea":
+			q = {"title": "Kâğıt Denizi", "rank": "A",
+				"brief": "Bin patlayıcı etiketlik bir deniz için yasak bir mühür kâğıdı gerek. Onu saklayan kaçak kâğıt ustasını bul ve yen.",
+				"steps": [
+					{"kind": "track", "from": at, "to": _near(at, 900.0), "text": "Kaçak kâğıt ustasının izini sür."},
+					{"kind": "kill", "at": _near(at, 900.0), "enemy": "rogue", "n": 3, "camp": true, "boss": {"name": "Kara Origami Shiga", "hp": 3000.0, "level": 30, "power": 2.6}, "text": "Kaçak kâğıt ustasını yen."},
+					{"kind": "goto", "at": at, "r": 9.0, "name": "Kâğıt Çiçek Kulesi", "text": "Mühür kâğıdıyla ustaya dön."}]}
+		"gama:trial":
+			q = {"title": "Kurbağanın Gözü", "rank": "C",
+				"brief": "Bilge, kayıp genç kurbağaları bulup tapınağa getirmeni ve onları avlayan yılan avcılarını dağıtmanı istiyor.",
+				"steps": [
+					{"kind": "collect", "at": _near(at, 300.0), "item": "kayıp kurbağa", "n": 5, "spread": 30, "text": "Kayıp kurbağaları bul (5)."},
+					{"kind": "kill", "at": _near(at, 420.0), "enemy": "oto", "n": 3, "camp": true, "text": "Kurbağa avcılarını dağıt."},
+					{"kind": "goto", "at": at, "r": 9.0, "name": "Kurbağa Tapınağı", "text": "Tapınağa dön."}]}
+		"gama:sage":
+			q = {"title": "Doğanın Sesi", "rank": "A",
+				"brief": "Kurbağa yaşlılarının şarkısını taşıyabilmek için doğa enerjisini hissetmelisin. Beş yosun taşında meditasyon yap ve rahatsız edenleri kov.",
+				"steps": [
+					{"kind": "points", "at": _near(at, 40.0), "n": 5, "spread": 16, "label": "[F] Yosun taşında meditasyon", "fx": "seal", "text": "Beş yosun taşında meditasyon yap (5)."},
+					{"kind": "defend", "at": at, "enemy": "rogue", "waves": [3, 4], "text": "Meditasyonu bölenleri püskürt."}]}
 		"tip:trial":
 			q = {"title": "Şifacının Sınavı", "rank": "C",
 				"brief": "Dağ yolunda pusuya düşen bir kervanın yaralıları ölmek üzere. Haydutları dağıt, yaralıların yanına git ve şifa otlarını topla.",

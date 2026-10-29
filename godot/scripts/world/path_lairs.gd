@@ -13,7 +13,7 @@ static func build(kind: String, b: Builder, pid: String, p: Vector2, base: float
 			return _snake(b, pid, p, base)
 		"forge":
 			return _forge(b, pid, p, base)
-		"clinic", "dojo":
+		"clinic", "dojo", "paper", "toad":
 			return _hall(b, pid, p, base, kind)
 	return 0.0
 
@@ -379,7 +379,7 @@ static func _forge(b: Builder, pid: String, p: Vector2, base: float) -> float:
 static func _hall(b: Builder, pid: String, p: Vector2, base: float, kind: String) -> float:
 	var wood = Color(0.42, 0.28, 0.16)
 	var dark = Color(0.22, 0.15, 0.1)
-	var roof = Color(0.3, 0.45, 0.35) if kind == "clinic" else Color(0.55, 0.18, 0.15)
+	var roof = {"clinic": Color(0.3, 0.45, 0.35), "dojo": Color(0.55, 0.18, 0.15), "paper": Color(0.4, 0.4, 0.46), "toad": Color(0.85, 0.45, 0.2)}[kind]
 	var wall = Color(0.92, 0.9, 0.84)
 	var fy = maxf(_g(p, base, -8, 14), _g(p, base, 8, 14))
 	b.box(Vector3(0, fy + 0.5, 14), Vector3(18, 1.0, 12), Color(0.55, 0.52, 0.48))
@@ -389,17 +389,35 @@ static func _hall(b: Builder, pid: String, p: Vector2, base: float, kind: String
 	for sx in [-1.0, 1.0]:
 		b.box(Vector3(8.8 * sx, fy + 3.2, 14), Vector3(0.3, 4.4, 11), wall)
 	b.roof(Vector3(0, fy + 5.4, 14), Vector3(20, 3.2, 14), roof)
-	b.kanji(Vector3(0, fy + 4.8, 19.4), "癒" if kind == "clinic" else "道", 2.2, Color(0.15, 0.12, 0.1), 0)
+	b.kanji(Vector3(0, fy + 4.8, 19.4), {"clinic": "癒", "dojo": "道", "paper": "紙", "toad": "蝦"}[kind], 2.2, Color(0.15, 0.12, 0.1), 0)
 	if kind == "clinic":
 		b.cyl(Vector3(-9, _g(p, base, -9, 2) + 0.1, 2), 7.0, 0.4, Color(0.55, 0.52, 0.48), true, 16)
 		VillageStyles.water(b, Vector3(-9, _g(p, base, -9, 2) + 0.35, 2), Vector2(6, 6))
 		for k in 6:
 			b.box(Vector3(4 + k * 1.3, fy + 1.3, 12), Vector3(1.0, 0.4, 2.0), Color(0.85, 0.85, 0.82))   # yaralı yatakları
+	elif kind == "paper":
+		# kâğıt çiçekler: beyaz yapraklı küreler + uçuşan turnalar
+		for k in 9:
+			var a = TAU * k / 9.0
+			var q = Vector3(cos(a) * 10.0, 0, 10.0 + sin(a) * 6.0)
+			for j in 5:
+				b.sphere(Vector3(q.x + cos(j * 1.25) * 0.4, _g(p, base, q.x, q.z) + 1.0 + sin(j * 1.25) * 0.4, q.z), Vector3(0.5, 0.18, 0.5), Color(0.96, 0.95, 0.98), 6)
+		b.cyl(Vector3(-11, fy + 6.0, 16), 3.0, 12.0, Color(0.9, 0.9, 0.94), true, 10)   # kâğıt kule
+		b.cone(Vector3(-11, fy + 13.5, 16), 4.0, 3.0, Color(0.45, 0.4, 0.6), 10)
+	elif kind == "toad":
+		# taş kurbağa heykelleri ve yosunlu kayalar
+		for k in 4:
+			var x = -8.0 + k * 5.3
+			var gy = _g(p, base, x, 3)
+			b.sphere(Vector3(x, gy + 0.9, 3), Vector3(1.8, 1.4, 1.6), Color(0.5, 0.55, 0.45), 10)
+			for sx in [-1.0, 1.0]:
+				b.sphere(Vector3(x + 0.5 * sx, gy + 1.6, 2.4), Vector3(0.45, 0.45, 0.45), Color(0.55, 0.6, 0.5), 8)
+		b.box(Vector3(10, fy + 2.0, 6), Vector3(1.2, 4.0, 1.2), Color(0.35, 0.3, 0.25))   # kurbağa kâğıt fenerleri direği
 	else:
 		for k in 5:
 			var x = -7.0 + k * 3.5
 			b.cyl(Vector3(x, _g(p, base, x, 3) + 1.0, 3), 0.6, 2.0, wood, true, 8)   # vuruş kütükleri
 		b.cyl(Vector3(8, _g(p, base, 8, 4) + 0.4, 4), 1.4, 0.8, Color(0.3, 0.3, 0.32), true, 10)   # taş ağırlık
 	LegendPaths._mentor(b, pid, Vector3(0, fy + 1.05, 8.6), PI)
-	b.interact(Vector3(0, fy + 1.0, 6.0), 6.5, "path_mentor", "[F] %s ile konuş" % ("Şifacı Usta" if kind == "clinic" else "Taijutsu Ustası"), {"path": pid})
+	b.interact(Vector3(0, fy + 1.0, 6.0), 6.5, "path_mentor", "[F] %s ile konuş" % {"clinic": "Şifacı Usta", "dojo": "Taijutsu Ustası", "paper": "Kâğıt Ustası", "toad": "Kurbağa Bilgesi"}[kind], {"path": pid})
 	return 6.0

@@ -16,6 +16,10 @@ func _ready() -> void:
 			var d = JSON.parse_string(FileAccess.get_file_as_string(pair[1]))
 			if d != null:
 				set(pair[0], d)
+	for k in LegendPaths.EXTRA_JUTSU:   # efsane yollarının veri dosyasında olmayan teknikleri
+		if not jutsu.has(k):
+			jutsu[k] = LegendPaths.EXTRA_JUTSU[k].duplicate(true)
+			jutsu[k]["id"] = k
 	if jutsu.has("_seals"):
 		seals = jutsu["_seals"]
 
