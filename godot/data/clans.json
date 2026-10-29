@@ -702,5 +702,124 @@
   "villages": [
    "konoha"
   ]
+ },
+ "yuhi": {
+  "name": "Yūhi",
+  "desc": "Genjutsu ustası Konoha ailesi: kızıl yapraklar, sarmaşıklar ve gece illüzyonları.",
+  "kg": "Orman İllüzyonu",
+  "eye": [
+   0.75,
+   0.15,
+   0.2
+  ],
+  "bonus": {
+   "jutsu": 0.06,
+   "chakra": 15
+  },
+  "villages": [
+   "konoha"
+  ]
+ },
+ "gekko": {
+  "name": "Gekkō",
+  "desc": "Ay ışığında kılıç çeken Konoha ailesi. Hilal kesikler, gölge adımları.",
+  "kg": "Ay Kılıcı",
+  "eye": [
+   0.3,
+   0.32,
+   0.38
+  ],
+  "bonus": {
+   "melee": 0.08,
+   "speed": 0.03
+  },
+  "villages": [
+   "konoha"
+  ]
+ },
+ "mitarashi": {
+  "name": "Mitarashi",
+  "desc": "Yılan sözleşmeli Konoha ailesi: kollardan yılanlar, zehir ve yılan gözü.",
+  "kg": "Yılan Sözleşmesi",
+  "eye": [
+   0.55,
+   0.4,
+   0.2
+  ],
+  "bonus": {
+   "speed": 0.04,
+   "poison_resist": 0.3
+  },
+  "villages": [
+   "konoha"
+  ]
+ },
+ "shiranui": {
+  "name": "Shiranui",
+  "desc": "Senbon ustası Konoha ailesi: ağızdan iğne, chakra noktası iğneleri, iğne kafesleri.",
+  "kg": "Senbon Sanatı",
+  "eye": [
+   0.35,
+   0.28,
+   0.2
+  ],
+  "bonus": {
+   "jutsu": 0.04,
+   "speed": 0.05
+  },
+  "villages": [
+   "konoha"
+  ]
+ },
+ "momochi": {
+  "name": "Momochi",
+  "desc": "Sisli Köy'ün sessiz katilleri. Sis, su hapishanesi ve dev kafa kesen kılıç.",
+  "kg": "Sessiz Öldürme",
+  "eye": [
+   0.3,
+   0.3,
+   0.32
+  ],
+  "bonus": {
+   "melee": 0.1,
+   "hp": 20
+  },
+  "villages": [
+   "kiri"
+  ]
+ },
+ "kurosuki": {
+  "name": "Kurosuki",
+  "desc": "Kiba şimşek kılıçlarının sahibi Kiri ailesi. Kara bulut, yıldırım yağmuru.",
+  "kg": "Şimşek Kılıçları",
+  "eye": [
+   0.3,
+   0.55,
+   0.65
+  ],
+  "bonus": {
+   "melee": 0.05,
+   "jutsu": 0.05
+  },
+  "villages": [
+   "kiri"
+  ]
+ },
+ "hagoromo": {
+  "name": "Hagoromo",
+  "desc": "Tüy pelerinli Kiri ailesi: kumaş, tüy bıçakları ve hayal kılıçları.",
+  "kg": "Tüy Pelerin",
+  "eye": [
+   0.35,
+   0.6,
+   0.55
+  ],
+  "bonus": {
+   "speed": 0.05,
+   "jutsu": 0.04
+  },
+  "villages": [
+   "kiri"
+  ]
  }
 }
