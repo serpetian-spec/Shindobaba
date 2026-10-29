@@ -16,7 +16,7 @@ func _ready() -> void:
 	main.add_child(cam)
 	cam.current = true
 	var only = OS.get_environment("ONLY")
-	var ids = [only] if only != "" else ["satetsu_shigure", "senno_sosa_no_jutsu", "senpo_choodama_rasen_tarengan", "shi_tsu", "shihohappo_shuriken", "shoton_kessho_gokakuro", "shoton_suisho_kyo", "shoton_suisho_rokkakuchu", "shoton_suishoro_no_jutsu", "soshuga", "spontaneous_tree_summoning", "suiton_mizukagami_no_jutsu", "suiton_suidanha", "taju_kage_bunshin_no_jutsu", "tenso_no_jutsu", "wakusei_rasengan", "yojinbo", "yoton_kaisekifu_no_jutsu", "yoton_sekkaigyo_no_jutsu", "yoton_shakugaikoken"]
+	var ids = [only] if only != "" else ["juuken_64", "hakke_sanjuni_sho", "hakke_hyakunijuhachi_sho", "juken", "jukenho_ichigekishin", "hakke_hasangeki", "kagemane", "kage_nageami_shibari_no_jutsu", "kagezukami_no_jutsu", "kageyose_no_jutsu", "kagemane_shuriken_no_jutsu", "kage_nui_no_jutsu", "kagemane_kage_shibari_no_jutsu", "shinranshin_no_jutsu", "shindenshin_no_jutsu", "shinten_kugutsu_juin_no_jutsu", "shinten_bunshin_no_jutsu", "shindenshin_no_jin", "kanchi_denden", "baika"]
 	for id in ids:
 		var e = Enemy.new()
 		var a = Enemy.archetype("bandit", 0)
@@ -41,12 +41,12 @@ func _ready() -> void:
 		await get_tree().create_timer(0.35).timeout
 		if OS.get_environment("XTRA") != "":
 			await get_tree().create_timer(float(OS.get_environment("XTRA"))).timeout
-		if id in ["senpo_choodama_rasen_tarengan", "shi_tsu", "shoton_kessho_gokakuro", "shoton_suisho_kyo", "spontaneous_tree_summoning", "suiton_suidanha", "wakusei_rasengan", "yoton_sekkaigyo_no_jutsu"]:
+		if id in ["juuken_64", "hakke_hyakunijuhachi_sho", "jukenho_ichigekishin", "hakke_hasangeki", "kagemane", "kage_nui_no_jutsu", "shinten_bunshin_no_jutsu", "baika"]:
 			pl.set_process(false)
 			var fw = pl.face_dir()
 			if id == "kami_tsubasa":
 				fw = -fw
-			cam.global_position = pl.global_position + fw * 5.0 + fw.cross(Vector3.UP) * 3.0 + Vector3.UP * 2.0
+			cam.global_position = pl.global_position + fw * 5.0 + fw.cross(Vector3.UP) * 3.0 + Vector3.UP * (9.0 if OS.get_environment("HIGH") != "" else 2.0)
 			cam.look_at(pl.global_position + fw * 2.0 + Vector3.UP)
 			if id == "kami_tsubasa":
 				cam.global_position = pl.global_position + fw * 4.5 + Vector3.UP * 1.6
