@@ -73,3 +73,9 @@ if not os.path.exists(exe):
     print('\n'.join(errors[-30:]))
     sys.exit('EXPORT BASARISIZ')
 print(f'OK -> {exe}  (v{version}, {os.path.getsize(exe) // 1048576} MB)')
+if mode == 'main':   # beceri deneme exe'si: aynı oyun, adı SKILLTEST içerince menüsüz deneme modu açılır
+    import shutil
+    sk = os.path.join(ROOT, 'SkillTest')
+    os.makedirs(sk, exist_ok=True)
+    shutil.copy2(exe, os.path.join(sk, 'ShinobiYolu_SKILLTEST.exe'))
+    print('OK -> SkillTest\ShinobiYolu_SKILLTEST.exe')
