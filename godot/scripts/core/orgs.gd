@@ -139,6 +139,7 @@ func spawn_member(m: Dictionary, at: Vector3) -> Enemy:
 	a["ryo"] = lv * 60
 	a["respawn"] = false
 	a["look"] = akatsuki_look(m)
+	a["faction"] = "akatsuki"
 	e.setup(a)
 	e.set_meta("akatsuki", m["name"])
 	get_tree().current_scene.add_child(e)
@@ -581,6 +582,7 @@ func _raid_wave(vid: String, wd: Dictionary) -> void:
 		var e = Enemy.new()
 		e.setup(a)
 		e.set_meta("village_guard", vid)
+		e.set_meta("faction", vid)
 		get_tree().current_scene.add_child(e)
 		var q = Missions.open_ground(pp + Vector3(cos(i * 1.9), 0, sin(i * 1.9)) * 22.0, 15.0)
 		e.global_position = q
@@ -603,6 +605,7 @@ func _raid_kage(vid: String) -> void:
 	var e = Enemy.new()
 	e.setup(a)
 	e.set_meta("village_guard", vid)
+	e.set_meta("faction", vid)
 	get_tree().current_scene.add_child(e)
 	var q = Missions.open_ground(Game.player.global_position + Vector3(0, 0, -28), 15.0)
 	e.global_position = q
@@ -650,6 +653,7 @@ func _hunter_tick(dt: float) -> void:
 		a["look"]["village"] = vid
 		e.setup(a)
 		e.set_meta("hunter_nin", true)
+		e.set_meta("faction", "hunter")
 		get_tree().current_scene.add_child(e)
 		var q = pp + Vector3(cos(i * 2.1), 0, sin(i * 2.1)) * 30.0
 		q.y = Game.ground_height(q.x, q.z)

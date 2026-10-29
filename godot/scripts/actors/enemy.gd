@@ -152,6 +152,8 @@ static func auto_jutsu(kind: String, el: String, lv: int) -> Array:
 
 func setup(a: Dictionary) -> void:
 	arch = a
+	var k = String(a.get("kind", ""))
+	set_meta("faction", String(a.get("faction", k if k in ["konoha", "suna", "kiri", "kumo", "iwa", "ame", "samurai", "bandit"] else ("rogue" if k in ["rogue", "jinchuriki", "oto"] else k))))
 	look = a["look"]
 	max_hp = a["hp"]; hp = max_hp
 	power = a["power"]; element = a["element"]

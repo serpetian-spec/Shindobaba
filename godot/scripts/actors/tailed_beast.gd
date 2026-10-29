@@ -35,6 +35,7 @@ func setup(beast_id: String) -> void:
 	num = int(info["num"])
 	display_name = info["name"]
 	team = "enemy"
+	set_meta("faction", "beast")
 	look = null
 	element = info["element"]
 	height = float(info["height"])

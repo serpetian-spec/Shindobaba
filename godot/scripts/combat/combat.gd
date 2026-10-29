@@ -30,7 +30,22 @@ func hostile(a: Node, b: Node) -> bool:
 		return false
 	if tb == "dummy" or ta == "dummy":
 		return ta != tb
+	if ta == "enemy" and tb == "enemy":
+		return faction_hostile(String(a.get_meta("faction", "")), String(b.get_meta("faction", "")))
 	return ta != tb and ta != "neutral" and tb != "neutral"
+
+
+## Oyuncuya düşman olanlar kendi aralarında: köy ninjaları/av ekipleri kaçakları ve canavarları avlar; kuyruklu canavar herkese saldırır;
+## haydut ve kaçak birbirine dokunmaz (yalnız oyuncuya düşman herkes aynı takımdaydı, köy ninjaları canavara hiç vurmuyordu)
+const LAW := ["konoha", "suna", "kiri", "kumo", "iwa", "ame", "hunter", "samurai"]
+func faction_hostile(fa: String, fb: String) -> bool:
+	if fa == "" or fb == "" or fa == fb:
+		return false
+	if fa == "beast" or fb == "beast":
+		return true
+	if (fa in LAW and fb in ["rogue", "akatsuki"]) or (fb in LAW and fa in ["rogue", "akatsuki"]):
+		return true
+	return false
 
 
 ## Küre içinde kalan düşman savaşçılara vurur. Vurulanları döndürür.
