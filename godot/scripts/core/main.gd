@@ -65,6 +65,9 @@ func _ready() -> void:
 
 
 func _parse_args() -> void:
+	# beceri deneme exe'si (ShinobiYolu_SKILLTEST.exe): menüsüz deneme modu
+	if OS.get_executable_path().get_file().to_upper().contains("SKILLTEST") or "--sandbox" in OS.get_cmdline_user_args():
+		test_script = "res://scripts/core/sandbox.gd"
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--test="):
 			test_script = a.substr(7)
