@@ -302,6 +302,23 @@ func village_trainer_options(vid: String) -> Array:
 	return trainer_options(kinds)
 
 
+## Parşömenlerde yalnız temel beş element jutsusu satılır; klan, kekkei genkai, yol ve karakter imza teknikleri
+## (kâğıt klonu, kurbağa yağı, kuzgun klonu, kum kolu, kılıç stilleri...) parşömenle değil kendi yollarıyla öğrenilir
+const SCROLL_BASIC := ["katon", "suiton", "fuuton", "doton", "raiton"]
+const SCROLL_BANNED := ["kusanagi_no_tsurugi_chidorigatana", "kumo_ryu_kaengiri", "nadeshiko_ryu_koha_reppuken", "mujin_meisai", "nezumi_kedama"]
+
+
+static func scroll_sellable(jid: String) -> bool:
+	var j: Dictionary = Data.jutsu.get(jid, {})
+	var els: Array = j.get("elements", [])
+	if j.is_empty() or els.is_empty() or jid in SCROLL_BANNED or String(j.get("clan", "")) != "":
+		return false
+	for el in els:
+		if not el in SCROLL_BASIC:
+			return false
+	return true
+
+
 ## Dükkânda gösterilecek jutsu parşömenleri: oyuncunun doğasına uygun, seviyesine yakın
 func scroll_shop_items(max_n := 10) -> Array:
 	var pr = p()
@@ -312,7 +329,7 @@ func scroll_shop_items(max_n := 10) -> Array:
 			continue
 		var jid = String(it.get("jutsu", ""))
 		var j: Dictionary = Data.jutsu.get(jid, {})
-		if j.is_empty() or jid in pr["learned"] or int(j.get("level", 1)) > int(pr["level"]) + 4:
+		if not scroll_sellable(jid) or jid in pr["learned"] or int(j.get("level", 1)) > int(pr["level"]) + 4:
 			continue
 		var natured = true
 		for el in j.get("elements", []):
@@ -622,14 +639,20 @@ func interact(it: Dictionary) -> void:
 				Hud.dialog("Kapı Nöbetçisi", "Dışarısı tehlikeli genç ninja. Haritayı [M] aç, yolları takip et. Diğer köylere varınca hızlı seyahat açılır.", gopts)
 		"shop_weapons":
 			Hud.dialog("Silah Dükkânı", "Hoş geldin! Ne bakıyorsun?", [
-				{"label": "Ninja aletleri ve parşömenler", "cb": func(): Hud.shop("Silah Dükkânı", ["kunai", "shuriken", "tag", "smoke"] + scroll_shop_items())},
+				{"label": "Ninja aletleri", "cb": func(): Hud.shop("Silah Dükkânı", ["kunai", "shuriken", "tag", "smoke"])},
 				{"label": "Silahlar (sağ el / sol el)", "cb": func(): Hud.gear_shop("Silahçı", Gear.SHOP_WEAPONS)},
 				{"label": "Kıyafetler ve zırhlar", "cb": func(): Hud.gear_shop("Terzi", Gear.SHOP_CLOTHES)},
 			])
 		"shop_weapons_old":
 			Hud.shop("Silah Dükkânı", ["kunai", "shuriken", "tag", "smoke", "scroll_katon_housenka", "scroll_suiton_suijinheki", "scroll_fuuton_daitoppa", "scroll_doton_doryuheki"])
 		"shop_items":
-			Hud.shop("Eczane", ["salve", "pill", "smoke", "scroll_kokuangyo"])
+			Hud.shop("Eczane", ["salve", "pill", "smoke"])
+		"shop_scrolls":
+			var sc = scroll_shop_items(14)
+			if sc.is_empty():
+				Hud.dialog("Parşömenci", "Şu an doğana uygun yeni bir element parşömenim yok. Seviyen yükseldikçe ya da yeni bir doğa uyandırdıkça tekrar gel.", [])
+			else:
+				Hud.shop("Parşömenci — Element Jutsuları", sc)
 		"chunin_exam":
 			ChuninExam.apply()
 		"fod_tower":

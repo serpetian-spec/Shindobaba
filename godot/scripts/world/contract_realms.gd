@@ -293,16 +293,19 @@ static func _keepers(parent: Node3D) -> void:
 ## Büyük köylerin çarşısı (Konoha'nın kendi dükkânları var): eczane, silahçı, terzi tezgâhları.
 ## Kurulumda köy merkezine yakın konur; oyuncu köye ilk girdiğinde açık zemine taşınır (VillageLife).
 const SERVICES := [["shop_items", "[F] Eczane (ilaç, hap, duman bombası)", Color(0.3, 0.6, 0.4), "薬", 70.0],
-	["shop_weapons", "[F] Silahçı (alet, silah, parşömen)", Color(0.55, 0.3, 0.22), "武器", 110.0],
+	["shop_weapons", "[F] Silahçı (alet, silah)", Color(0.55, 0.3, 0.22), "武器", 110.0],
+	["shop_scrolls", "[F] Parşömenci (element jutsu parşömenleri)", Color(0.72, 0.56, 0.22), "巻物", 30.0],
 	["tailor", "[F] Terzi (kıyafet, zırh)", Color(0.45, 0.28, 0.5), "呉服", 150.0]]
 
 
 static func _services(parent: Node3D) -> void:
-	for vid in ["suna", "kiri", "kumo", "iwa"]:
+	for vid in ["konoha", "suna", "kiri", "kumo", "iwa"]:
 		var v = Game.village(vid)
 		if v.is_empty():
 			continue
 		for sv in SERVICES:
+			if vid == "konoha" and sv[0] != "shop_scrolls":
+				continue   # Konoha'nın kendi dükkân binaları var; yalnız parşömenci tezgâhı eklenir
 			var a = deg_to_rad(float(sv[4]))
 			var r = float(v.get("r", 300)) * 0.22
 			var wp = Game.from_map(Vector2(float(v["x"]) + cos(a) * r, float(v["y"]) + sin(a) * r))
@@ -324,6 +327,9 @@ static func _services(parent: Node3D) -> void:
 				"shop_weapons":
 					for k in 4:
 						b.add("box", Vector3(-1.0 + k * 0.65, 1.7, 0.45), Vector3(0.05, 1.2, 0.08), Color(0.75, 0.78, 0.82), Vector3(0, 0, 8 - k * 5))
+				"shop_scrolls":
+					for k in 6:   # raflarda dürülü parşömenler
+						b.add("cyl", Vector3(-1.2 + (k % 3) * 1.2, 1.25 + (k / 3) * 0.32, 0.1), Vector3(0.22, 0.9, 0.22), [Color(0.85, 0.3, 0.2), Color(0.25, 0.5, 0.8), Color(0.35, 0.65, 0.35), Color(0.65, 0.5, 0.3), Color(0.9, 0.85, 0.35), Color(0.9, 0.88, 0.8)][k], Vector3(0, 0, 90), 8)
 				"tailor":
 					for k in 3:
 						b.add("box", Vector3(-1.0 + k * 1.0, 1.75, 0.3), Vector3(0.7, 0.9, 0.12), [Color(0.3, 0.4, 0.6), Color(0.6, 0.25, 0.25), Color(0.3, 0.5, 0.35)][k])
