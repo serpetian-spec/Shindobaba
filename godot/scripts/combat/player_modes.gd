@@ -214,8 +214,8 @@ func next_gate() -> void:
 	if clan() != "none":
 		Hud.msg("Sekiz Kapı yalnızca klansız, saf taijutsu ustalarına açık.", Color(0.8, 0.8, 0.8))
 		return
-	if int(Game.profile["level"]) < 6:
-		Hud.msg("Kapıları açacak kadar güçlü değilsin (Seviye 6).", Color(0.8, 0.8, 0.8))
+	if not LegendPaths.joined("kapi"):
+		Hud.msg("Sekiz Kapı'yı açmayı bir usta öğretmeli: Sekiz Kapı Yolu'nu bul (Tab > Yollar, Sv.8+ söylenti).", Color(0.8, 0.8, 0.8))
 		return
 	gates += 1
 	if gates > 3:

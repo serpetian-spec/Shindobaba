@@ -46,6 +46,38 @@ const PATHS := {
 		"quest": {"soshoryu": "dragons", "bashosen_kaze_no_maki": "fan"},
 		"dark": {},
 	},
+	"tip": {
+		"name": "Şifacı Yolu (Tıbbi Ninja)", "icon": "potion", "color": Color(0.45, 0.9, 0.6),
+		"style": "Mistik Avuç ile iyileştirme, chakra neşteri, zehir ve panzehir, yaşlanmayı durduran mühür",
+		"site": {"country": "hotwater", "off": Vector2(900, -700), "kind": "clinic", "clear": 50.0, "place": "Yuge Şifa Tapınağı (Sıcak Su Ülkesi)"},
+		"mentor": {"name": "Hōseki Rindō", "title": "Şifacı Usta",
+			"look": {"gender": "f", "skin": Color(0.96, 0.84, 0.72), "hair": Color(0.85, 0.75, 0.45), "hair_style": "atkuyruğu", "eye": Color(0.55, 0.4, 0.2),
+				"top": Color(0.92, 0.92, 0.9), "top2": Color(0.45, 0.75, 0.55), "pants": Color(0.3, 0.32, 0.36), "band": Color(0.2, 0.2, 0.25), "age": "adult"}},
+		"rumor_level": 4, "join_level": 6,
+		"rumor": "Sıcak Su Ülkesi'nde, buharı şifa veren bir tapınakta yaralı askerleri ölümden döndüren bir şifacı varmış. Öğrenci arıyormuş.",
+		"intro": "Şifacı ellerini yeşil chakrayla ısıtıyor: \"Yıkmak kolay, onarmak zor. Chakra kontrolün yeterince ince mi? Önce yaralılara yetiş, sonra konuşuruz.\"",
+		"passive": {"heal_power": 0.3, "chakra_regen": 0.15},
+		"passive_desc": "İyileştirme gücü +%30, chakra yenilenmesi +%15",
+		"order": ["shousen", "senpuku", "shikon_no_jutsu", "saikan_chushutsu_no_jutsu", "dokugiri", "ranshinsho", "chakura_no_mesu", "in_yu_shometsu", "sozo_saisei"],
+		"quest": {"sozo_saisei": "seal"},
+		"dark": {},
+	},
+	"kapi": {
+		"name": "Sekiz Kapı Yolu", "icon": "hand", "color": Color(0.35, 0.85, 0.35),
+		"style": "Bedenin sekiz chakra kapısını zorla açmak: Lotus, Sabah Tavuskuşu, Gündüz Kaplanı, Akşam Fili",
+		"site": {"country": "fire", "off": Vector2(1500, 900), "kind": "dojo", "clear": 50.0, "place": "Seishun Dojosu (Ateş Ülkesi dağları)"},
+		"mentor": {"name": "Kōtetsu Gōriki", "title": "Taijutsu Ustası",
+			"look": {"gender": "m", "skin": Color(0.93, 0.78, 0.62), "hair": Color(0.08, 0.08, 0.1), "hair_style": "kase", "eye": Color(0.1, 0.1, 0.1),
+				"top": Color(0.2, 0.5, 0.25), "top2": Color(0.2, 0.5, 0.25), "pants": Color(0.2, 0.5, 0.25), "vest": Color(0.38, 0.48, 0.28), "band": Color(0.75, 0.15, 0.15), "age": "adult"}},
+		"rumor_level": 8, "join_level": 10, "need": "clanless",
+		"rumor": "Ateş Ülkesi dağlarında, şafakta binlerce şınav çeken yeşil tulumlu bir ustanın dojosu varmış. Klansız, jutsusuz gençleri arıyormuş.",
+		"intro": "Usta tek elle amuda kalkmış: \"Gençliğin ateşi! Ninjutsu yoksa ne olmuş? Bedenin sekiz kapısı var ve onları açacak kadar azimliysen dünyayı yerinden oynatırsın!\"",
+		"passive": {"gates": 0.3, "melee": 0.1},
+		"passive_desc": "Kapı ustalığı +%30 (daha güçlü, daha az bedel), yakın dövüş +%10",
+		"order": ["omote_renge", "ura_renge", "hachimon_tonko_no_jin", "asakujaku", "hirudora", "sekizo", "yagai"],
+		"quest": {"hachimon_tonko_no_jin": "gates", "yagai": "gates"},
+		"dark": {},
+	},
 }
 ## Sıradaki yollar (ROADMAP): kurbağa sennin, kil sanatı, kukla ustası, Hiraishin, köpekbalığı...
 
@@ -207,6 +239,9 @@ static func interact(it: Dictionary) -> void:
 		if lv < int(P["join_level"]):
 			Hud.dialog(title, P["intro"] + "\n\n\"Ama henüz çok zayıfsın. Seviye %d olunca gel.\"" % int(P["join_level"]), [])
 			return
+		if String(P.get("need", "")) == "clanless" and String(pr().get("clan", "none")) not in ["", "none"]:
+			Hud.dialog(title, P["intro"] + "\n\n\"...Ama senin klanının sırları var. Bu yol, hiçbir şeyi olmayanların yolu.\"", [])
+			return
 		var opts = []
 		if Missions.active().is_empty():
 			opts.append({"label": "Sınavı kabul et", "cb": func():
@@ -266,6 +301,9 @@ static func _teach(pid: String, jid: String, from_quest: bool) -> void:
 	if jid in pr().get("learned", []):
 		return
 	Progress.learn(jid)
+	if pid == "kapi" and not "gates" in pr().get("skills", []):
+		pr()["skills"].append("gates")   # Sekiz Kapı modu (B) bu yolla açılır
+		Hud.msg("Sekiz Kapı açıldı: B tuşuyla kapıları zorla.", Color(0.5, 1, 0.5))
 	var dark = int(P["dark"].get(jid, 0))
 	if dark > 0:
 		Missions._rep(Progress.home(), -dark)
@@ -288,6 +326,34 @@ static func _quest(pid: String, kind: String, teach: String) -> Dictionary:
 	var base = {"rank": "B", "village": Progress.home(), "hook": "LegendPaths.quest_done", "path": pid, "teach": teach, "trial": kind == "trial"}
 	var q = {}
 	match pid + ":" + kind:
+		"tip:trial":
+			q = {"title": "Şifacının Sınavı", "rank": "C",
+				"brief": "Dağ yolunda pusuya düşen bir kervanın yaralıları ölmek üzere. Haydutları dağıt, yaralıların yanına git ve şifa otlarını topla.",
+				"steps": [
+					{"kind": "kill", "at": _near(at, 380.0), "enemy": "bandit", "n": 4, "camp": true, "text": "Kervanı basan haydutları dağıt."},
+					{"kind": "collect", "at": _near(at, 200.0), "item": "şifa otu", "n": 5, "spread": 24, "text": "Şifa otlarını topla (5)."},
+					{"kind": "goto", "at": at, "r": 9.0, "name": "Yuge Şifa Tapınağı", "text": "Otlarla ustaya dön."}]}
+		"tip:seal":
+			q = {"title": "Yaradılış Mührü", "rank": "A",
+				"brief": "Yaradılış Yenilenmesi için alnına yıllarca chakra biriktiren bir mühür gerekir. Beş şifa taşını uyandır ve mührü korurken gelen kaçakları püskürt.",
+				"steps": [
+					{"kind": "points", "at": _near(at, 40.0), "n": 5, "spread": 16, "label": "[F] Şifa taşına chakra ver", "fx": "seal", "text": "Beş şifa taşını uyandır (5)."},
+					{"kind": "defend", "at": at, "enemy": "rogue", "waves": [3, 4], "text": "Mührü korurken saldıranları püskürt."}]}
+		"kapi:trial":
+			q = {"title": "Gençliğin Sınavı", "rank": "C",
+				"brief": "Usta, dağın tepesine kadar koşmanı ve oradaki haydut çetesini yalnızca yumruklarınla dağıtmanı istiyor. Sonra geri koş!",
+				"steps": [
+					{"kind": "goto", "at": _near(at, 600.0), "r": 14.0, "name": "Dağın Tepesi", "text": "Dağın tepesine koş."},
+					{"kind": "kill", "at": _near(at, 600.0), "enemy": "bandit", "n": 5, "camp": true, "text": "Haydut çetesini dağıt."},
+					{"kind": "goto", "at": at, "r": 9.0, "name": "Seishun Dojosu", "text": "Dojoya geri koş."}]}
+		"kapi:gates":
+			var cliff = _near(at, 900.0)
+			q = {"title": "Kapıların Bedeli", "rank": "A",
+				"brief": "Kapıları açmak bedeni parçalar. Usta, seni bir şelalenin altında dayanıklılığını sınamaya ve ardından güçlü bir rakibi yenmeye gönderiyor.",
+				"steps": [
+					{"kind": "goto", "at": cliff, "r": 14.0, "name": "Şelale", "text": "Şelalenin altına git."},
+					{"kind": "kill", "at": cliff, "enemy": "rogue", "n": 3, "camp": true, "boss": {"name": "Demir Yumruk Gōzan", "hp": 2400.0, "level": 26, "power": 2.6}, "text": "Demir Yumruk'u yen."},
+					{"kind": "goto", "at": at, "r": 9.0, "name": "Seishun Dojosu", "text": "Dojoya dön."}]}
 		"yilan:trial":
 			var den = _near(at, 420.0)
 			q = {"title": "Yılanın Sınavı", "rank": "B",
