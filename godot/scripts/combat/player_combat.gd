@@ -30,6 +30,10 @@ var aura: GPUParticles3D
 var cast_jutsu = ""
 var cast_time = 0.0
 var cooldowns = {}
+var jutsu_gcd = 0.0      # her jutsudan sonra ortak bekleme (rütbeye göre): üst üste jutsu yağdırılmasın
+var strain = 0           # chakra yorgunluğu: art arda jutsularda maliyet artar
+var strain_t = 0.0
+var _gcd_msg_t = 0.0
 var dash_target: Node3D = null
 var air_attack = false
 var modes: PlayerModes
@@ -187,6 +191,11 @@ func move_override(dt: float) -> bool:
 	sub_bars = minf(4.0, sub_bars + dt / 6.0)
 	for k in cooldowns.keys():
 		cooldowns[k] -= dt
+	jutsu_gcd -= dt
+	_gcd_msg_t -= dt
+	strain_t -= dt
+	if strain_t <= 0.0:
+		strain = 0
 	_update_charge(dt)
 	_update_guard()
 	match action:
@@ -558,12 +567,24 @@ func begin_cast(jid: String) -> void:
 	if cooldowns.get(jid, 0.0) > 0.0:
 		Hud.msg("%s hazır değil (%.1fsn)" % [j["name"], cooldowns[jid]], Color(0.8, 0.8, 1))
 		return
+	if jutsu_gcd > 0.0:
+		if _gcd_msg_t <= 0.0:
+			_gcd_msg_t = 1.0
+			Hud.msg("Mühürler yetişmiyor... (%.1fsn)" % jutsu_gcd, Color(0.8, 0.8, 1))
+		return
 	var cost = float(j.get("cost", 0)) * clampf(1.0 + Stats.skill(Game.profile, "jutsu_cost"), 0.4, 1.0)
+	cost *= 1.0 + 0.25 * strain   # chakra yorgunluğu
 	if p.chakra < cost:
 		Hud.msg("Yeterli chakra yok! [C] ile chakra topla", Color(0.5, 0.8, 1))
 		return
 	p.chakra -= cost
 	cooldowns[jid] = float(j.get("cd", 5))
+	var tier = int(j.get("tier", 2))
+	jutsu_gcd = 0.5 + 0.25 * clampi(tier, 0, 5)
+	strain = mini(strain + 1, 4)
+	strain_t = 4.0
+	if strain >= 3:
+		Hud.msg("Chakra yorgunluğu: jutsular %%%d daha pahalı (biraz ara ver)" % (25 * strain), Color(0.6, 0.75, 1))
 	cast_jutsu = jid
 	action = "cast"
 	t = 0.0
