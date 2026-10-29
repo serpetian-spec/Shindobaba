@@ -60,6 +60,7 @@ var face_mi: MeshInstance3D
 var head_fix := Transform3D.IDENTITY
 var eye_center_model := Vector3(0, 1.62, 0.08)
 var eye_half := 0.032
+var sclera_mat: ShaderMaterial = null   # göz akı (Rinnegan tüm gözü kaplar)
 var _eye_trails: Array = []
 var _outer_pad := 0.0   # dış giysi kabuğuna eklenen pay (yeleğin üstüne)
 
@@ -322,6 +323,11 @@ func _face_and_hair() -> void:
 				sm.set_shader_parameter("tint", ratio)
 				face_mi.set_surface_override_material(si, sm)
 				materials.append(sm)
+			elif mname.contains("EyeWhite") and tex != null:
+				sclera_mat = ShaderMaterial.new()
+				sclera_mat.shader = load("res://shaders/vroid_sclera.gdshader")
+				sclera_mat.set_shader_parameter("tex", tex)
+				face_mi.set_surface_override_material(si, sclera_mat)
 			elif mname.contains("EyeExtra"):
 				face_mi.set_surface_override_material(si, _invisible_mat())
 			elif mat is BaseMaterial3D:
@@ -2436,6 +2442,12 @@ func set_sage(kind: int) -> void:
 
 func set_dojutsu_eyes(kind_r: int, lvl_r: int, kind_l: int, lvl_l: int, veins := false) -> void:
 	_set_eye_trails(kind_r, kind_l)
+	if sclera_mat:
+		var rc = Color(0.74, 0.66, 0.92)
+		sclera_mat.set_shader_parameter("tint_r", rc if kind_r == 6 else Color.WHITE)
+		sclera_mat.set_shader_parameter("tint_l", rc if kind_l == 6 else Color.WHITE)
+		sclera_mat.set_shader_parameter("rings_r", 1.0 if kind_r == 6 else 0.0)
+		sclera_mat.set_shader_parameter("rings_l", 1.0 if kind_l == 6 else 0.0)
 	if eye_mat:
 		eye_mat.set_shader_parameter("dojutsu", kind_r)
 		eye_mat.set_shader_parameter("tomoe", lvl_r)

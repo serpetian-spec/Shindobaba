@@ -45,7 +45,14 @@ void fragment() {
 			}
 		}
 		int tm = eye_side > 0.0 ? tomoe_l : tomoe;
-		if (dk > 0) {
+		if (dk == 6) {
+			// rinnegan: tüm iris yüzeyi lila, eşmerkezli halkalar (dokudaki asıl iris/bebek görünmez), küçük bebek
+			float r6 = length(iq);
+			vec3 col6 = vec3(0.74, 0.66, 0.92);
+			if (abs(fract(r6 * 3.2) - 0.5) < 0.1) col6 = vec3(0.2, 0.12, 0.28);
+			if (r6 < 0.1) col6 = vec3(0.12, 0.06, 0.16);
+			c = vec4(col6, tx.a);
+		} else if (dk > 0) {
 			vec2 q = iq;
 			float r = length(q);
 			if (r < 1.0) {
