@@ -851,7 +851,11 @@ func _academy() -> void:
 					if not "genjutsu" in pr["skills"]:
 						pr["skills"].append("genjutsu")
 					_buy_learn("narakumi", 250)})
-			Hud.dialog(sensei, "Seninle gurur duyuyorum %s. Yolun açık olsun — hangi yolu seçersen seç, temeli unutma." % pr["name"], opts)
+			opts.append_array(Friends._teacher_opts())   # Chūnin+: akademide öğretmenlik (başla / ders ver / bırak)
+			var line = "Seninle gurur duyuyorum %s. Yolun açık olsun — hangi yolu seçersen seç, temeli unutma." % pr["name"]
+			if int(pr.get("rank", 0)) < 2:
+				line += " Chūnin olduğunda gel; burada ders verebilirsin."
+			Hud.dialog(sensei, line, opts)
 
 
 ## Yetenek ağacını sıfırlama (tapınak / antrenman alanı): puanlar geri verilir
