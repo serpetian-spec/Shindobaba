@@ -2540,14 +2540,15 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 		var m2 = MB.new()
 		var steel = Color(0.7, 0.72, 0.76)
 		var dark = Color(0.22, 0.22, 0.25)
+		# uyluk dış yüzü ~0.15 m (pantolonla ~0.17): tutucu 0.2 m + dışa eğik -> parçalar biraz içeri alınır, uyluğa değer
 		# tutucu ekseni: +x kalçadan dışarı, +z aşağı, y ileri/geri (bk: geri yönü, tarafa göre işaret değişir)
 		var bk = -sx
 		for k in 4:
-			m2.add("torus", Vector3(0.03 + 0.005 * k, 0.0, 0.03 + k * 0.022), Vector3(0.13 - k * 0.006, 0.13 - k * 0.006, 0.022), dark, Vector3(0, 90, 0), 12)
-		m2.add("sphere", Vector3(0.05, bk * 0.05, 0.12), Vector3(0.055, 0.055, 0.055), dark, Vector3.ZERO, 8)   # ağırlık
-		m2.add("cyl", Vector3(0.06, 0.0, 0.24), Vector3(0.03, 0.3, 0.03), Color(0.45, 0.32, 0.2), Vector3(90, 0, 0), 8)   # orak sapı uyluğun dış yanında
+			m2.add("torus", Vector3(-0.035 + 0.005 * k, 0.0, 0.03 + k * 0.022), Vector3(0.13 - k * 0.006, 0.13 - k * 0.006, 0.022), dark, Vector3(0, 90, 0), 12)
+		m2.add("sphere", Vector3(-0.01, bk * 0.06, 0.12), Vector3(0.055, 0.055, 0.055), dark, Vector3.ZERO, 8)   # ağırlık
+		m2.add("cyl", Vector3(-0.045, 0.0, 0.24), Vector3(0.03, 0.3, 0.03), Color(0.45, 0.32, 0.2), Vector3(90, 0, 0), 8)   # orak sapı uyluğun dış yanında
 		# bıçak sapın ucundan geriye-yukarı katlı: sapa paralel uzanır, bacağa girmez
-		m2.add("box", Vector3(0.06, bk * 0.035, 0.31), Vector3(0.01, 0.035, 0.17), steel, Vector3(bk * -12.0, 0, 0))
+		m2.add("box", Vector3(-0.045, bk * 0.035, 0.31), Vector3(0.01, 0.035, 0.17), steel, Vector3(bk * -12.0, 0, 0))
 		var coil = MeshInstance3D.new()
 		coil.name = "KusariStow"
 		coil.mesh = m2.build(Props.toon())
