@@ -65,7 +65,7 @@ func _physics_process(dt: float) -> void:
 	if global_position.y < g:
 		global_position.y = g; velocity.y = 0
 	if flee.length() > 0.1:
-		vis.rotation.y = atan2(-flee.x, -flee.z) + PI
+		vis.rotation.y = atan2(-flee.x, -flee.z)   # yeni model önü -z: kafa gidilen yöne
 
 
 func catch() -> void:
