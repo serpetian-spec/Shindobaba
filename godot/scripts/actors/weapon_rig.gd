@@ -12,6 +12,7 @@ var _hold_w := {"Left": 0.0, "Right": 0.0}
 var reach_side := "Right"
 var reach_arms: Array = []    # [[kemik, model-uzayı yön], ...] kına uzanma pozu
 var reach_w := 0.0            # 0..1 (CharacterModel kın animasyonunda sürer)
+var reach_open := false       # true: kol uzanırken el açık kalır (Rasengan / Chidori avucu), yumruk yapmaz
 static var AX := Vector3(-1, 0, 0)   # VRoid parmak kıvrım ekseni (kemik yerel -X)
 
 
@@ -25,7 +26,7 @@ func _process_modification() -> void:
 			_rot_model(sk, a[0], a[1], reach_w)
 	for side in hold:
 		var tgt: float = hold[side]
-		if reach_w > 0.0 and side == reach_side:
+		if reach_w > 0.0 and side == reach_side and not reach_open:
 			tgt = maxf(tgt, reach_w)
 		_hold_w[side] = move_toward(_hold_w[side], tgt, dt * 8.0)
 		var w: float = _hold_w[side]

@@ -1409,9 +1409,13 @@ static func _melee(c: Node3D, d: Dictionary, t: Node3D, v: String, shape: String
 	var col = color_of(d)
 	if v in ["sphere", "lightning_hand"] and c.get("model"):
 		var hand: Node3D = Node3D.new()
-		c.model.add_child(hand)
-		hand.position = Vector3(0.35, 1.15, -0.55)
 		var nm = String(d.get("name_en", "")).to_lower()
+		var big = nm.contains("big ball") or nm.contains("odama") or nm.contains("massive")
+		if big:
+			c.model.add_child(hand)
+			hand.position = Vector3(0.35, 1.15, -0.55)
+		else:
+			J()._palm(c, hand)   # avuçta tutulur, kol öne uzanır
 		var sz = 0.34 + tier * 0.04   # el küresi / el şimşeği avuç büyüklüğünde (anime); dev sürümler aşağıda
 		if nm.contains("big ball") or nm.contains("odama") or nm.contains("massive"):
 			sz = 2.2

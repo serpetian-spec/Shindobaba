@@ -682,8 +682,7 @@ func j_doton_yomi(c: Node3D, t: Node3D) -> void:
 # ================================================================== RAITON
 func _lightning_ball(c: Node3D, col_core: Color, col_edge: Color, snd: String) -> Node3D:
 	var hand: Node3D = Node3D.new()
-	c.model.add_child(hand)
-	hand.position = Vector3(0.35, 1.15, -0.55)
+	_palm(c, hand)
 	hand.add_child(VFX.lightning_ball(0.3, col_edge))   # animede avuçta cıvıldayan şimşek (~30 cm), arklar kola ve yere kısa uzanır
 	var arcs = Arcs.new()
 	arcs.color = col_edge
@@ -708,8 +707,7 @@ func j_raiton_chidori(c: Node3D, t: Node3D) -> void:
 func j_rasengan(c: Node3D, t: Node3D) -> void:
 	var m = _mult(c)
 	var hand: Node3D = Node3D.new()
-	c.model.add_child(hand)
-	hand.position = Vector3(0.35, 1.15, -0.55)
+	_palm(c, hand)
 	var ras = VFX.rasengan(0.34)   # animede avuç büyüklüğü (~30 cm)
 	hand.add_child(ras)
 	ras.scale = Vector3.ONE * 0.1
@@ -721,6 +719,37 @@ func j_rasengan(c: Node3D, t: Node3D) -> void:
 
 
 ## El tekniği: hazırlan, hedefe hücum et, çarpınca büyük patlama
+## Avuç efekti: efekt sağ el kemiğine bağlanır, kol öne uzanır (avuç hedefe dönük, el açık) — animedeki Rasengan / Chidori tutuşu.
+## Model yoksa eski sabit konum. Dönüş: true = ele bağlandı
+func _palm(c: Node3D, hand: Node3D) -> bool:
+	var m = c.get("model")
+	if m == null or m.get("rig") == null or m.skel == null or m.skel.find_bone("RightHand") < 0:
+		c.model.add_child(hand)
+		hand.position = Vector3(0.35, 1.15, -0.55)
+		return false
+	var ba = BoneAttachment3D.new()
+	ba.bone_name = "RightHand"
+	m.skel.add_child(ba)
+	ba.add_child(hand)
+	hand.position = Vector3(0, 0.1, 0.06)   # avuç ortası, avucun önünde
+	hand.tree_exited.connect(func(): if is_instance_valid(ba): ba.queue_free())
+	var rig: WeaponRig = m.rig
+	rig.reach_side = "Right"
+	rig.reach_open = true
+	rig.reach_arms = [["RightUpperArm", Vector3(-0.2, -0.15, 1.0)], ["RightLowerArm", Vector3(-0.08, -0.05, 1.0)]]
+	m.create_tween().tween_property(rig, "reach_w", 1.0, 0.2)
+	return true
+
+
+func _palm_release(c: Node3D) -> void:
+	var m = c.get("model") if is_instance_valid(c) else null
+	if m and m.get("rig"):
+		var rig: WeaponRig = m.rig
+		var tw = m.create_tween()
+		tw.tween_property(rig, "reach_w", 0.0, 0.25)
+		tw.tween_callback(func(): rig.reach_open = false)
+
+
 func _hand_dash(c: Node3D, t: Node3D, hand: Node3D, charge: float, speed: float, info: Dictionary, col: Color, grind := false) -> void:
 	var tw = create_tween()
 	tw.tween_interval(charge)
@@ -760,6 +789,7 @@ func _hand_dash(c: Node3D, t: Node3D, hand: Node3D, charge: float, speed: float,
 			var hits = Combat.hit_sphere(c, pt, 1.0, info)
 			if not hits.is_empty() or state["t"] > 0.6:
 				state["done"] = true
+				_palm_release(c)
 				if c is Player:
 					c.combat.action = ""
 				c.velocity = Vector3.ZERO
