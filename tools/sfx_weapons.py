@@ -190,3 +190,42 @@ for i in range(3):
     write('step_grass%d' % i, step_grass(i))
     write('step_stone%d' % i, step_stone(i))
     write('step_wood%d' % i, step_wood(i))
+
+
+# ---------------------------------------------------------------- kalabalık (konuşma uğultusu; eskisi sabit gürültüydü, uçak motoru gibi duyuluyordu)
+def voice(dur):
+    n = int(SR * dur)
+    out = np.zeros(n)
+    t = 0.0
+    f0 = rng.uniform(110, 260)
+    while t < dur - 0.3:
+        if rng.random() < 0.25:
+            t += rng.uniform(0.4, 1.4)   # konuşmada duraklama
+            continue
+        sd = rng.uniform(0.08, 0.22)
+        a = int(SR * t)
+        m = int(SR * sd)
+        if a + m >= n:
+            break
+        tt = np.arange(m) / SR
+        f = f0 * (1 + 0.08 * np.sin(2 * np.pi * rng.uniform(2, 5) * tt))
+        ph = 2 * np.pi * np.cumsum(f) / SR
+        buzz = 2 * ((ph / (2 * np.pi)) % 1) - 1
+        f1 = rng.uniform(350, 800)
+        f2 = rng.uniform(1100, 2400)
+        syl = bp(buzz, f1 * 0.7, f1 * 1.3) + bp(buzz, f2 * 0.8, f2 * 1.2) * 0.5
+        syl *= np.sin(np.pi * np.linspace(0, 1, m)) ** 1.5
+        out[a:a + m] += syl
+        t += sd + rng.uniform(0.02, 0.12)
+    return out
+
+
+cd = 12.0
+crowd = np.zeros(int(SR * cd))
+for k in range(24):
+    crowd += voice(cd) * rng.uniform(0.15, 1.0) * (0.35 if k > 8 else 1.0)
+crowd = lp(crowd, 2600) + lp(noise(cd), 300) * 0.04
+x = int(SR * 0.6)   # döngü geçişi
+crowd[:x] = crowd[:x] * np.linspace(0, 1, x) + crowd[-x:] * np.linspace(1, 0, x)
+crowd = crowd[:-x]
+write('crowd', crowd)

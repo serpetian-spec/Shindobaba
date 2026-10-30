@@ -851,7 +851,9 @@ static func _friends_card(main: Node, left: Control) -> void:
 	var rm = Friends.romance_of(id)
 	if rm != "":
 		st_txt += "  •  %s ♥" % {"eş": "Eşin", "sevgili": "Sevgilin", "flört": "Flört"}.get(rm, rm)
-	fv.add_child(UI.label("%s  •  %s  •  Bağ: %d (%s)%s" % [String(f.get("title", "")), Friends.RANKS[int(f.get("rank", 0))], b, Friends.level_name(b), st_txt], 13, Friends.level_color(b)))
+	fv.add_child(UI.label("%s  •  %s  •  %s: %d (%s)%s" % [String(f.get("title", "")), Friends.RANKS[int(f.get("rank", 0))], "Güven" if f.get("rogue", false) else "Bağ", b, Friends.level_name(b), st_txt], 13, Friends.level_color(b)))
+	if f.get("rogue", false) and int(f.get("motive_known", 0)) > 0:
+		fv.add_child(UI.label("Neden kaçtı: " + String(RogueBonds.motive_of(f)[int(f["motive_known"])]), 12, Color(0.85, 0.8, 0.7), HORIZONTAL_ALIGNMENT_LEFT, true))
 	var bar = UI.bar(Friends.level_color(b), 700, 8)
 	bar.min_value = -100
 	bar.max_value = 100

@@ -739,6 +739,11 @@ func take_hit(info: Dictionary) -> void:
 		has_token = false
 		attack_tokens = maxi(0, attack_tokens - 1)
 	super.take_hit(info)
+	# yenilen kaçak pes eder: öldür / teslim et / bağışla (kaçak dostluğu)
+	if not dead and hp > 0.0 and hp < max_hp * 0.25 and RogueBonds.spareable(self, info):
+		set_physics_process(false)
+		RogueBonds.yield_to(self)
+		return
 	if target == null and info.get("attacker"):
 		target = info["attacker"]
 	# kombodan sıyrılma: 1.4 sn'de 3+ darbe yiyen usta ninja geri sıçrar (tek komboyla dövüş bitmesin)

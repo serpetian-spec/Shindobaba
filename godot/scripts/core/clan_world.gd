@@ -445,8 +445,8 @@ func _village_here(p: Vector3) -> Dictionary:
 func _clans_of(vid: String) -> Array:
 	var out := []
 	for c in Data.clans:
-		if c == "none":
-			continue
+		if c == "none" or c in Progress.UNPLAYABLE_CLANS:
+			continue   # Ōtsutsuki köylerde yaşamaz: yalnız Bingo Kitabı'nda
 		if vid in Data.clans[c].get("villages", []):
 			out.append(c)
 	return out

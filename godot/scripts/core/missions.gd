@@ -1692,6 +1692,8 @@ func complete() -> void:
 	var m = active()
 	var rw: Array = REWARD[m["rank"]]
 	var bonus = 1.0
+	if m.get("flags", {}).get("haggle_ok", false):
+		bonus += 0.2   # pazarlık tuttu
 	if m.get("flags", {}).get("detected", false):
 		bonus -= 0.3
 	if m.get("flags", {}).get("wrong", false):
@@ -1729,6 +1731,11 @@ func _call_hook(hk: String, m: Dictionary, ok: bool) -> void:
 		return
 	var parts = hk.split(".")
 	var n = get_node_or_null("/root/" + parts[0])
+	# autoload olmayan işleyiciler: dostlar (sahnedeki düğüm) ve kaçak dostluk (sınıf)
+	if n == null and parts[0] == "Friends":
+		n = Friends.inst()
+	if n == null and parts[0] == "RogueBonds":
+		n = RogueBonds.new()
 	if n and n.has_method(parts[1]):
 		n.call_deferred(parts[1], m, ok)
 
@@ -1826,6 +1833,38 @@ func talk_target_near(p: Vector3, r: float) -> QuestNPC:
 
 
 ## QuestNPC [F] ile konuşulunca; true dönerse diyalog görev tarafından açıldı
+## Seçeneksiz görev konuşmasında senin cevapların: görev başında ayrıntı sor / pazarlık / güven ver; teslimde farklı karşılıklar
+func _talk_replies(npc: QuestNPC, s: Dictionary) -> Array:
+	var m = active()
+	var first = int(m.get("step", 0)) == 0
+	var opts = []
+	if first:
+		opts.append({"label": "Merak etme, hallederim.", "cb": func(): _after_talk(npc, s)})
+		opts.append({"label": "Biraz daha anlat.", "cb": func():
+			Hud.dialog(npc.display, String(m.get("brief", "Anlatacağım başka bir şey yok, gerisi sende.")), _talk_replies(npc, s))})
+		if not m.get("flags", {}).has("haggle"):
+			opts.append({"label": "Ödülü artırırsan hemen giderim.", "cb": func():
+				m["flags"]["haggle"] = true
+				var rep = int(Game.profile.get("rep", {}).get(String(m.get("village", Progress.home())), 0))
+				if randf() < clampf(0.35 + rep / 300.0, 0.15, 0.85):
+					m["flags"]["haggle_ok"] = true
+					Hud.dialog(npc.display, "Hıh... Peki, biraz daha veririm. Ama işi iyi yap!", _talk_replies(npc, s))
+				else:
+					_rep(String(m.get("village", Progress.home())), -1)
+					Hud.dialog(npc.display, "Pazarlık mı? Ninjalar artık tüccar mı oldu? Ödül neyse o.", _talk_replies(npc, s))})
+		opts.append({"label": "Muhafızlarınız yok mu? Neden ninja çağırdınız?", "cb": func():
+			Hud.dialog(npc.display, ["Muhafız mı? Burada iki yaşlı adam ve bir köpek var.", "Denedik. Hepsi hastanede.", "Bu iş için gölgede yürüyebilen biri lazım."].pick_random(), _talk_replies(npc, s))})
+	else:
+		opts.append({"label": "Rica ederim, görevimdi.", "cb": func(): _after_talk(npc, s)})
+		opts.append({"label": "Bu iş beklediğimden zordu.", "cb": func():
+			Hud.dialog(npc.display, "Biliyorum, biliyorum... Al, bu da benden olsun.", [{"label": "Teşekkürler", "cb": func():
+				Progress.add_ryo(20 + RANK_IDX.get(String(m.get("rank", "D")), 0) * 20)
+				_after_talk(npc, s)}])})
+		opts.append({"label": "Bir dahaki sefere daha dikkatli olun.", "cb": func():
+			Hud.dialog(npc.display, "Haklısın... Bir daha olmayacak, söz.", [{"label": "Devam", "cb": func(): _after_talk(npc, s)}])})
+	return opts
+
+
 func on_quest_talk(npc: QuestNPC) -> bool:
 	var s = _cur()
 	if s.is_empty():
@@ -1842,7 +1881,7 @@ func on_quest_talk(npc: QuestNPC) -> bool:
 	var choices: Array = s.get("choices", [])
 	var opts = []
 	if choices.is_empty():
-		opts.append({"label": "Tamam", "cb": func(): _after_talk(npc, s)})
+		opts = _talk_replies(npc, s)
 	else:
 		for c in choices:
 			opts.append({"label": c["label"], "cb": func():

@@ -196,7 +196,7 @@ func talk() -> void:
 	var line = _lines().pick_random()
 	if fid != "" and Friends.all().has(fid):
 		line = Friends.greeting(fid)
-	Hud.dialog(display, line, Friends.options_for(self) + Crime.attack_option(self))
+	Hud.dialog(display, line, Friends.options_for(self) + (Friends.small_talk(self) if fid == "" else []) + Crime.attack_option(self))
 
 
 ## Kafanın üstünde kısa konuşma balonu

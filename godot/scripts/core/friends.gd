@@ -69,7 +69,7 @@ static func available(f: Dictionary) -> bool:
 	if Time.get_unix_time_from_system() < float(f.get("away", 0.0)):
 		return false
 	if st == "kaçak":
-		return Orgs.is_rogue()   # kaçak dostun yalnız sen de kaçakken yanına gelir
+		return Orgs.is_rogue() or f.get("rogue", false)   # köyden kaçan dost yalnız sen de kaçakken; bağışladığın kaçak kampında
 	return st == ""
 
 
@@ -163,6 +163,45 @@ static func options_for(v: Node) -> Array:
 	return [{"label": "Kendini tanıt", "cb": func(): _meet(v)}]
 
 
+## Herhangi bir köylüyle kısa sohbet: köyde neler oluyor, yol tarifi, hal hatır (tek taraflı diyalog olmasın)
+static func small_talk(v: Node) -> Array:
+	if pr().is_empty() or v.get("interior"):
+		return []
+	var nm = String(v.get("display")) if v.get("display") else "Köylü"
+	var opts = []
+	opts.append({"label": "Köyde neler oluyor?", "cb": func():
+		var news = []
+		for id in all():
+			var f: Dictionary = all()[id]
+			var lg: Array = f.get("log", [])
+			if not lg.is_empty() and String(f.get("village", "")) == Progress.home():
+				news.append("%s mı? Duydum: %s." % [f["name"], String(lg[-1]).to_lower()])
+		news.append_array(RUMORS)
+		Hud.dialog(nm, String(news.pick_random()), [
+			{"label": "İlginç, sağ ol.", "cb": func(): pass},
+			{"label": "Başka ne duydun?", "cb": func(): Hud.dialog(nm, String(RUMORS.pick_random()), [])}])})
+	opts.append({"label": "Buralarda yemek/konaklama nerede?", "cb": func():
+		var best = {}
+		var bd = 1500.0
+		for it in Interact.items:
+			if String(it.get("kind", "")) in ["ramen", "inn", "inn_sleep"] or (String(it.get("kind", "")) == "enter" and String(it.get("room", "")) in ["teahouse", "bbq", "inn"]):
+				if it.get("interior", false):
+					continue
+				var d = Game.player.global_position.distance_to(it["pos"])
+				if d < bd:
+					bd = d
+					best = it
+		if best.is_empty():
+			Hud.dialog(nm, "Bu civarda bilmiyorum, kusura bakma.", [])
+			return
+		var p: Vector3 = best["pos"]
+		Game.profile["waypoint"] = [p.x, p.y, p.z, "Yemek / konaklama"]
+		Game.profile["track"] = "waypoint"
+		Hud.dialog(nm, "Şuradan dümdüz git, %d adım kadar. Haritana işaretledim." % int(bd), [])})
+	opts.append({"label": "Kolay gelsin.", "cb": func(): Hud.dialog(nm, ["Sana da ninja! Dikkatli ol.", "Sağ ol evlat.", "Köyümüzü koruduğunuz için teşekkürler."].pick_random(), [])})
+	return opts
+
+
 ## Sabit yerdeki NPC'ler (kapı nöbetçisi, hoca, klan sakini) bölgeye her girişte yeniden kurulur: konumları kalıcı anahtar
 static func site_key(p: Vector3) -> String:
 	return "%d:%d" % [roundi(p.x), roundi(p.z)]
@@ -215,6 +254,35 @@ const TOPICS := [["antrenman", "Antrenmandan, tekniklerden konuş"], ["aile", "A
 const REPLIES := {"like": ["Haha, tam da bunu konuşmak istiyordum!", "Seninle konuşmak gerçekten iyi geliyor.", "Beni iyi tanıyorsun."],
 	"neutral": ["Hmm, olabilir.", "Anlıyorum.", "İlginç."], "hate": ["...Bunu konuşmasak?", "Pek hoşuma gitmedi bu.", "Ciddi misin?"]}
 ## Hediyeler: [ad, fiyat]; herkes birini sever, birinden hoşlanmaz
+## Konuşmanın ikinci yarısı: dostun sözü ve senin cevap seçeneklerin [üslup, söz]
+const TOPIC_TALK := {
+	"antrenman": ["Son zamanlarda chakrayı sıkıştırmaya kafayı taktım. Sence boşuna mı uğraşıyorum?",
+		[["destek", "Hiç boşuna değil, başarırsın."], ["dürüst", "Önce temelini sağlamlaştır bence."], ["şaka", "Kafana taktığın tek şey o mu, ramen değil mi?"]]],
+	"aile": ["Babam hep görevde, annem evi tek başına çeviriyor. Bazen kendimi suçlu hissediyorum.",
+		[["dinle", "Anlat, dinliyorum."], ["destek", "Elinden geleni yapıyorsun zaten."], ["dürüst", "Belki evde biraz daha zaman geçirmelisin."]]],
+	"şaka": ["Hah! Peki sen bunu dinle: Kage'nin şapkası neden bu kadar büyük?",
+		[["şaka", "Kafasındaki dertlere yer açmak için!"], ["dinle", "Neden?"], ["dürüst", "Bu şakayı akademide duymuştum."]]],
+	"dedikodu": ["Duydun mu? Akademi hocalarından biri her akşam çay evine gidiyormuş... hep aynı masaya.",
+		[["şaka", "Demek dersler bu yüzden geç başlıyor!"], ["dürüst", "Başkalarının hayatı bizi ilgilendirmez."], ["dinle", "Kimmiş? Anlat!"]]],
+	"övgü": ["Gerçekten mi? ...Bunu bana pek kimse söylemez.",
+		[["övgü", "Ciddiyim, köyün en iyilerindensin."], ["destek", "Kendine daha çok güvenmelisin."], ["şaka", "Tamam tamam, şımarma hemen."]]],
+}
+## Kişiliğe göre sevilen / sevilmeyen cevap üslubu
+const STYLE_TASTE := {
+	"ciddi": {"like": ["dürüst", "dinle"], "hate": ["şaka"]}, "neşeli": {"like": ["şaka", "destek"], "hate": ["dürüst"]},
+	"utangaç": {"like": ["dinle", "destek"], "hate": ["şaka"]}, "gururlu": {"like": ["övgü", "destek"], "hate": ["dürüst"]},
+	"sıcakkanlı": {"like": ["destek", "dinle"], "hate": []}, "alaycı": {"like": ["şaka", "dürüst"], "hate": ["övgü"]},
+}
+const STYLE_REACT := {"like": ["Ha! Tam da bunu duymak istiyordum.", "Seninle konuşmak gerçekten iyi geliyor.", "İşte bu yüzden seninle takılıyorum."],
+	"ok": ["Hmm... olabilir.", "Haklı olabilirsin.", "Bunu düşüneceğim."],
+	"hate": ["...Peki. Bunu söylemene gerek yoktu.", "Tch. Hiç komik değil.", "Bunu senden beklemezdim."]}
+## Köylülerle sohbet: köyde neler oluyor
+const RUMORS := ["Kage Kulesi'nde bu hafta çok hareket var, bir şeyler dönüyor.", "Sınırda av ninjaları görülmüş. Kaçaklar ormanda saklanıyormuş.",
+	"Ichiraku tarzı tezgâh yeni bir tarif denemiş, sıra kapıya kadar.", "Akademide bu dönem çok yetenekli bir öğrenci varmış, herkes ondan bahsediyor.",
+	"Yol hanında gece kapüşonlu biri oturuyormuş. Kimse yüzünü görmemiş.", "Geçen gece mezarlıkta tütsü yanıyordu. Biri yine birini kaybetmiş.",
+	"Tüccarlar kervan yolunda haydutlardan şikâyetçi. Görev panosuna iş düşer yakında.", "Kuzeydeki çiftliklerde hasat bu yıl iyi, şenlik yapılacakmış."]
+
+
 const GIFTS := [["Dango kutusu", 60], ["Kunai takımı", 160], ["Eski parşömen", 260], ["Çiçek demeti", 40], ["Ramen kuponu", 90], ["Sake", 120]]
 const GIFT_CD := 1800.0
 const TRAIN_CD := 1200.0
@@ -251,6 +319,8 @@ static func _friend_opts(id: String, v: Node) -> Array:
 	var opts = []
 	var now = Time.get_unix_time_from_system()
 	var can_talk = now - float(f.get("last_talk", 0.0)) >= TALK_CD
+	if f.get("rogue", false) and String(f.get("status", "")) == "kaçak":
+		opts.append_array(RogueBonds.options(id))   # kaçak dostun kendi işleri (kamp ateşi, sake, ortak iş, geçmişi, sonlar)
 	opts.append_array(FriendPlots.option(id))
 	if b < 0:
 		if can_talk:
@@ -263,9 +333,10 @@ static func _friend_opts(id: String, v: Node) -> Array:
 		opts.append({"label": "Sohbet et...", "cb": func(): _topic_dialog(id)})
 	if now - float(f.get("last_gift", 0.0)) >= GIFT_CD:
 		opts.append({"label": "Hediye ver...", "cb": func(): _gift_dialog(id)})
-	if b >= 15 and now - float(f.get("last_train", 0.0)) >= TRAIN_CD:
+	var rogue = f.get("rogue", false) and String(f.get("status", "")) == "kaçak"   # kaçak köye giremez: köy içi etkinlikler yok
+	if b >= 15 and now - float(f.get("last_train", 0.0)) >= TRAIN_CD and not rogue:
 		opts.append({"label": "Antrenman alanına gidip idman yapalım", "cb": func(): begin_activity(id, "train")})
-	if b >= 25 and now - float(f.get("last_meal", 0.0)) >= TRAIN_CD:
+	if b >= 25 and now - float(f.get("last_meal", 0.0)) >= TRAIN_CD and not rogue:
 		opts.append({"label": "Birlikte yemeğe gidelim (150 Ryō)", "cb": func():
 			if int(pr().get("ryo", 0)) < 150:
 				Hud.msg("Yeterli Ryō yok.", Color(1, 0.5, 0.4))
@@ -305,8 +376,22 @@ static func _topic_dialog(id: String) -> void:
 			var txt = REPLIES[kind].pick_random()
 			if int(f["talks"]) == 3:
 				txt += "\n\n(Onu artık daha iyi tanıyorsun: %s)" % tr["desc"]
-			Hud.dialog(String(f["name"]), txt, [])
-			add_bond(id, {"like": 3, "neutral": 1, "hate": -5}[kind])})
+			add_bond(id, {"like": 3, "neutral": 1, "hate": -5}[kind], true)
+			if kind == "hate":
+				Hud.dialog(String(f["name"]), txt, [])
+				return
+			# dost konuyu açar, sen cevap verirsin: kişiliğine göre hoşuna gider ya da gitmez
+			var tk: Array = TOPIC_TALK[key]
+			var ropts = []
+			for r in tk[1]:
+				var style = String(r[0])
+				var said = String(r[1])
+				ropts.append({"label": said, "cb": func():
+					var ts: Dictionary = STYLE_TASTE.get(String(f["trait"]), {})
+					var res = "like" if style in ts.get("like", []) else ("hate" if style in ts.get("hate", []) else "ok")
+					add_bond(id, {"like": 2, "ok": 1, "hate": -2}[res])
+					Hud.dialog(String(f["name"]), String(STYLE_REACT[res].pick_random()), [])})
+			Hud.dialog(String(f["name"]), "%s\n\n%s" % [txt, tk[0]], ropts)})
 	Hud.dialog(String(f["name"]), "Ne hakkında konuşalım?" + (("\n(%s)" % TRAITS[f["trait"]]["desc"]) if trait_known(f) else ""), opts)
 
 
@@ -879,6 +964,8 @@ static func where(id: String) -> Vector3:
 	if f.is_empty() or String(f.get("status", "")) == "öldü":
 		return Vector3.INF
 	if String(f.get("status", "")) == "kaçak":
+		if f.has("lair"):   # bağışladığın kaçak: kendi gizli kampı
+			return Game.from_map(Vector2(float(f["lair"][0]), float(f["lair"][1])))
 		if Orgs.is_rogue():
 			return Orgs.hideout_pos() + Vector3(6, 0, 6)
 		for e in Game.profile.get("bingo", {}).get("list", []):
@@ -967,6 +1054,30 @@ static func _job_pos(f: Dictionary) -> Vector3:
 	return Game.from_map(c)
 
 
+## Kaçağın gizli kampı: çadır, kamp ateşi, eşya (kaçak düğümüyle birlikte gelir/gider)
+func _lair_props(n: Node3D) -> void:
+	var root = Node3D.new()
+	root.top_level = true
+	n.add_child(root)
+	root.global_position = n.global_position
+	var b = MB.new()
+	var gy = func(x: float, z: float) -> float: return Game.ground_height(n.global_position.x + x, n.global_position.z + z) - n.global_position.y
+	b.add("prism", Vector3(-3.5, gy.call(-3.5, -2.0) + 1.0, -2.0), Vector3(2.6, 2.0, 3.0), Color(0.35, 0.32, 0.28), Vector3(0, 30, 0))
+	for k in 6:
+		b.add("cyl", Vector3(1.6, gy.call(1.6, 0.6) + 0.1, 0.6), Vector3(0.12, 1.0, 0.12), Color(0.3, 0.22, 0.14), Vector3(80, k * 30, 0), 5)
+	b.add("cone", Vector3(1.6, gy.call(1.6, 0.6) + 0.4, 0.6), Vector3(0.6, 0.9, 0.6), Color(1.0, 0.55, 0.15), Vector3.ZERO, 7)
+	b.add("box", Vector3(-1.0, gy.call(-1.0, 1.8) + 0.3, 1.8), Vector3(0.7, 0.6, 0.5), Color(0.45, 0.32, 0.2))
+	b.add("box", Vector3(3.2, gy.call(3.2, -0.6) + 0.15, -0.6), Vector3(1.8, 0.12, 0.8), Color(0.5, 0.42, 0.32))
+	var mi = MeshInstance3D.new()
+	mi.mesh = b.build(Props.toon())
+	root.add_child(mi)
+	var l = OmniLight3D.new()
+	l.light_color = Color(1, 0.6, 0.3)
+	l.omni_range = 7.0
+	l.position = Vector3(1.6, 1.0, 0.6)
+	root.add_child(l)
+
+
 func _world_tick(dt: float) -> void:
 	_wt -= dt
 	if _wt > 0.0:
@@ -974,6 +1085,7 @@ func _world_tick(dt: float) -> void:
 		return
 	_wt = 1.0
 	_funeral_tick()
+	RogueBonds.tick()
 	var now = Time.get_unix_time_from_system()
 	var pp = Game.player.global_position
 	# işler değişir
@@ -1016,6 +1128,8 @@ func _world_tick(dt: float) -> void:
 		if here:
 			continue
 		present[id] = _spawn_npc(id, p, false)
+		if all()[id].get("rogue", false):
+			_lair_props(present[id])
 		spawned += 1
 	# işaretlenen dosta varınca
 	var fid = String(Game.profile.get("find_friend", ""))
@@ -1347,6 +1461,15 @@ func _dest_for(kind: String) -> Dictionary:
 					best = {"pos": it["pos"], "type": k, "it": it, "name": nm}
 			if best.is_empty() and kind == "date":
 				return _dest_for("meal")
+		"sake":
+			var bd2 = 3000.0
+			for p in Game.pois:
+				if String(p.get("t", "")) != "inn":
+					continue
+				var w = Game.from_map(Vector2(float(p["x"]), float(p["y"])))
+				if w.distance_to(pp) < bd2:
+					bd2 = w.distance_to(pp)
+					best = {"pos": Missions.open_ground(w + Vector3(0, 0, 6), 15.0), "type": "inn_poi", "name": String(p.get("name", "Yol hanı"))}
 		"train":
 			var tp = Exams.find_point(["training"])
 			best = {"pos": tp, "type": "train", "name": "Antrenman Alanı"}
@@ -1398,8 +1521,8 @@ func _act_arrive() -> void:
 	var d: Dictionary = act["dest"]
 	Game.profile.erase("waypoint")
 	match String(act["kind"]):
-		"meal", "date":
-			if int(pr().get("ryo", 0)) < 150 and act["kind"] == "meal":
+		"meal", "date", "sake":
+			if int(pr().get("ryo", 0)) < 150 and act["kind"] != "date":
 				_act_end("Kesende para kalmamış...")
 				return
 			if String(d["type"]) == "enter":
@@ -1448,6 +1571,9 @@ func _act_arrive() -> void:
 			var topic = String(f.get("news", "")) if String(f.get("news", "")) != "" else ["Geçen gün görevde öyle bir şey oldu ki...", "Akademideyken hep birinci olmak isterdim, biliyor musun?", "Bazen her şeyi bırakıp gezmek istiyorum."].pick_random()
 			var seq = [[0.6, "İtadakimasu!"], [3.4, topic], [7.4, "Sen ne yapıyorsun bu aralar? Anlatsana." if not date else "Seninle böyle oturmak... iyi geliyor."],
 				[10.6, "Bir dahakine ben ısmarlarım, söz!" if not date else "Bugün çok güzeldi."]]
+			if act["kind"] == "sake":   # kaçakla handa: başını eğik tutar, kapıyı kollar
+				seq = [[0.6, "Kampai. ...Kapıya göz kulak ol, olur mu?"], [3.6, "Hanın sahibi beni tanımıyor. Tanısaydı çoktan ihbar ederdi."],
+					[7.4, "Köydeyken böyle bir akşam sıradandı. Şimdi lüks."], [10.6, "Hesabı sen öde, ben burada yokum. Hah."]]
 			for s in seq:
 				var tt = float(s[0])
 				var txt = String(s[1])
@@ -1463,7 +1589,10 @@ func _act_arrive() -> void:
 			if act.is_empty():
 				return
 			f["last_meal" if not date else "last_walk"] = Time.get_unix_time_from_system()
-			if not date:
+			if act["kind"] == "sake":
+				Progress.add_ryo(-150)
+				add_bond(id, 5)
+			elif not date:
 				Progress.add_ryo(-150)
 				add_bond(id, 4)
 			else:

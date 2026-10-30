@@ -471,11 +471,11 @@ func _update_crowd(v: Dictionary, p: Vector3) -> void:
 		s.loop_mode = AudioStreamWAV.LOOP_FORWARD
 		s.loop_end = int(s.get_length() * s.mix_rate)
 		crowd.stream = s
-		crowd.unit_size = 30.0
-		crowd.max_distance = 140.0
+		crowd.unit_size = 14.0   # meydana yakınken duyulur, sokaklara yayılıp uğuldamasın
+		crowd.max_distance = 70.0
 		add_child(crowd)
 	crowd.global_position = cpos
-	var vol = {"sabah": 0.45, "oglen": 1.0, "aksam": 0.6, "gece": 0.0}[phase] * float(Game.settings["sfx"]) * 0.7
+	var vol = {"sabah": 0.45, "oglen": 1.0, "aksam": 0.6, "gece": 0.0}[phase] * float(Game.settings["sfx"]) * 0.4
 	if vol <= 0.01:
 		crowd.stop()
 		return
