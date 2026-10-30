@@ -13,6 +13,7 @@ var view_dist = 1400.0
 var interactables: Array = []
 var key := ""
 var placer = null  # HouseKit.Placer (Japon tarzı detaylı evler)
+var house_ti := -1   # >= 0: bir sonraki şablon ev bu şablon olsun (bitişik dizilimde genişlik önceden bilinir)
 var yoff := 0.0  # geçici dikey ofset (eğimli arazide bina tabanı)
 var packs := {}  # hücre+mesh -> [mesh, Array[Transform3D]] (hazır modeller: MultiMesh)
 var last_house := {}  # son yerleştirilen şablon ev (w, d, h, roof_top)
@@ -337,10 +338,16 @@ func _house_body(x: float, n: float, wdt: float, dep: float, floors: int, yaw: f
 		placer.pack_chance = 0.3 if style == "konoha" else 0.0
 	var wcol: Color = walls[rng.randi() % walls.size()]
 	var rcol: Color = roofs[rng.randi() % roofs.size()]
+	if style == "konoha":
+		var kr = [Color(0.93, 0.56, 0.2), Color(0.95, 0.62, 0.25), Color(0.88, 0.48, 0.18), Color(0.9, 0.66, 0.3), Color(0.82, 0.32, 0.2),
+			Color(0.93, 0.56, 0.2), Color(0.35, 0.62, 0.58), Color(0.4, 0.6, 0.85), Color(0.42, 0.66, 0.42), Color(0.95, 0.62, 0.25)]
+		rcol = kr[rng.randi() % kr.size()]
 	if style == "wood":
 		wcol = Color(0.62, 0.47, 0.32).darkened(rng.randf_range(0, 0.2))
 	elif style == "snow":
 		rcol = Color(0.93, 0.95, 0.98)
+	placer.force_ti = house_ti
+	house_ti = -1
 	last_house = placer.add(w(Vector3(x, 0, n)), yaw, wcol, rcol, rng, 1.0, wdt, dep)   # wdt/dep: arsa sınırı
 	return
 	var wc: Color = walls[rng.randi() % walls.size()]

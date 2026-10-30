@@ -13,7 +13,7 @@ const STONE := Color(0.55, 0.53, 0.5)
 static var templates: Array = []   # her biri: {walls, roof, detail, w, d, h, roof_top}
 
 
-static func ensure(count := 48) -> void:
+static func ensure(count := 70) -> void:
 	if not templates.is_empty():
 		return
 	var rng = RandomNumberGenerator.new()
@@ -25,19 +25,21 @@ static func ensure(count := 48) -> void:
 ## Şablon türleri (Konoha şehir dokusu): 0-1 kasaba evi (2-4 kat), 2 apartman bloğu (4-6 kat, balkon sıraları, dış merdiven,
 ## düz çatı + su tankı), 3 dükkân binası (geniş vitrin, tente, yatay tabela), 4 dar uzun ev (4-6 kat, yuvarlak çatı)
 static func _make(rng: RandomNumberGenerator, i: int) -> Dictionary:
-	var arch = [0, 0, 1, 2, 3, 2, 4, 3, 1, 2][i % 10]
+	var arch = [0, 0, 1, 2, 3, 2, 4, 3, 1, 2, 5, 5, 6, 5][i % 14]
+	if arch >= 5:
+		return _make_round(rng, i, arch == 6)
 	var w: float
 	var d: float
 	var floors: int
 	match arch:
 		0, 1:
-			w = rng.randf_range(11.0, 16.0); d = rng.randf_range(10.0, 13.0); floors = [2, 2, 3, 3, 4][rng.randi() % 5]
+			w = rng.randf_range(13.0, 20.0); d = rng.randf_range(11.0, 14.5); floors = [2, 2, 3, 3, 4][rng.randi() % 5]
 		2:
-			w = rng.randf_range(16.0, 23.0); d = rng.randf_range(12.0, 15.0); floors = [4, 5, 5, 6][rng.randi() % 4]
+			w = rng.randf_range(20.0, 30.0); d = rng.randf_range(13.0, 15.0); floors = [3, 4, 5, 5][rng.randi() % 4]
 		3:
-			w = rng.randf_range(13.0, 18.0); d = rng.randf_range(11.0, 14.0); floors = [2, 3, 3, 4][rng.randi() % 4]
+			w = rng.randf_range(15.0, 22.0); d = rng.randf_range(12.0, 15.0); floors = [2, 2, 3, 3][rng.randi() % 4]
 		_:
-			w = rng.randf_range(9.0, 11.0); d = rng.randf_range(9.0, 11.0); floors = [4, 5, 6][rng.randi() % 3]
+			w = rng.randf_range(11.0, 14.0); d = rng.randf_range(11.0, 14.0); floors = [3, 4, 5][rng.randi() % 3]
 	var fh = 3.6
 	var h = floors * fh + 0.5
 	var walls = MB.new()
@@ -146,10 +148,12 @@ static func _make(rng: RandomNumberGenerator, i: int) -> Dictionary:
 	var top_d = d - (0.0 if (apt or arch == 4) else 0.25 * mini(floors - 1, 2))
 	var rtype = 2 if apt else (1 if arch == 4 else rng.randi() % 3)
 	var roof_top = h
+	var rcm = MB.new()   # yalnız ana çatı: çarpışma şekli (içinden geçilmesin, eğiminde yürünsün)
 	match rtype:
 		0:  # Japon beşik çatı, geniş saçak
 			var rh = 2.4 + top_d * 0.12
 			roof.add("prism", Vector3(0, h + rh * 0.5, 0), Vector3(top_w + 2.0, rh, top_d + 2.0), white)
+			rcm.add("prism", Vector3(0, h + rh * 0.5, 0), Vector3(top_w + 2.0, rh, top_d + 2.0), white)
 			det.add("box", Vector3(0, h + 0.06, 0), Vector3(top_w + 2.2, 0.16, top_d + 2.2), DARK)
 			det.add("box", Vector3(0, h + rh + 0.12, 0), Vector3(0.45, 0.32, top_d + 2.2), DARK)
 			for sz in [-1.0, 1.0]:  # mahya uçları
@@ -158,10 +162,12 @@ static func _make(rng: RandomNumberGenerator, i: int) -> Dictionary:
 		1:  # Konoha yuvarlak çatı (yarım silindir)
 			var rise = clampf(top_d * 0.16, 1.1, 1.9)
 			roof.add_xf("halfcyl", Transform3D(Basis.from_scale(Vector3(top_w + 0.8, rise * 2.0, top_d + 1.2)), Vector3(0, h + 0.1, 0)), white, 16)
+			rcm.add_xf("halfcyl", Transform3D(Basis.from_scale(Vector3(top_w + 0.8, rise * 2.0, top_d + 1.2)), Vector3(0, h + 0.1, 0)), white, 10)
 			det.add("box", Vector3(0, h + 0.05, 0), Vector3(top_w + 1.0, 0.2, top_d + 1.3), DARK)  # saçak bandı
 			roof_top = h + 0.1 + rise
 		2:  # düz çatı: korkuluk + su tankı (apartmanda bazen iki tank + anten)
 			roof.add("box", Vector3(0, h + 0.2, 0), Vector3(top_w + 0.6, 0.4, top_d + 0.6), white)
+			rcm.add("box", Vector3(0, h + 0.2, 0), Vector3(top_w + 0.6, 0.4, top_d + 0.6), white)
 			for sx in [-1.0, 1.0]:
 				det.add("box", Vector3(sx * (top_w * 0.5 + 0.25), h + 0.75, 0), Vector3(0.15, 0.7, top_d + 0.6), WOOD.lightened(0.2))
 			for sz in [-1.0, 1.0]:
@@ -179,14 +185,87 @@ static func _make(rng: RandomNumberGenerator, i: int) -> Dictionary:
 				det.add("box", Vector3(top_w * 0.4, h + 3.9, top_d * 0.3), Vector3(1.6, 0.06, 0.06), DARK)
 			roof_top = h + 0.4
 	# yan ek bina
+	var annex_w = 0.0
 	if not apt and arch != 4 and rng.randf() < 0.3:
 		var aw = w * 0.4; var ad = d * 0.55; var ah = 3.2
+		annex_w = aw
 		walls.add("box", Vector3(-w * 0.5 - aw * 0.5 + 0.1, 0.5 + ah * 0.5, d * 0.1), Vector3(aw, ah, ad), white)
 		roof.add("prism", Vector3(-w * 0.5 - aw * 0.5 + 0.1, 0.5 + ah + 0.6, d * 0.1), Vector3(aw + 1.0, 1.2, ad + 1.0), white)
 		_window(det, Vector3(-w * 0.5 - aw * 0.5, 0.5 + ah * 0.55, d * 0.1 - ad * 0.5), 0.0, rng)
 		cols.append([Vector3(-w * 0.5 - aw * 0.5 + 0.1, (0.5 + ah + 0.6) * 0.5, d * 0.1), Vector3(aw, 0.5 + ah + 0.6, ad), 0.0])
-		w += aw   # yerleşim ayak izi ek binayı da kapsasın
-	return {"walls": walls.build(), "roof": roof.build(), "detail": det.build(), "w": w, "d": d, "h": h, "roof_top": roof_top, "cols": cols}
+	return {"walls": walls.build(), "roof": roof.build(), "detail": det.build(), "w": w + annex_w * 2.0, "d": d, "h": h, "roof_top": roof_top, "cols": cols,
+		"annex_w": annex_w * 2.0,   # yerleşim ayak izi tek yandaki ek binayı da simetrik kapsasın
+		"roof_shape": (rcm.build() as ArrayMesh).create_convex_shape(true, false)}
+
+
+## Konoha simgesi: silindir kule (kat kat yuvarlak, turuncu çizgili kiremit çatı, üstte küçük ikinci kat + tepe) ya da
+## kubbeli yapı (yuvarlak gövde, büyük kubbe). Yuvarlak pencere sıraları, kat bantları, giriş saçağı.
+static func _make_round(rng: RandomNumberGenerator, i: int, dome: bool) -> Dictionary:
+	var D = rng.randf_range(11.0, 15.0)
+	var r = D * 0.5
+	var floors = [2, 3, 3, 4, 5][rng.randi() % 5] if not dome else [1, 2, 2][rng.randi() % 3]
+	var fh = 3.6
+	var h = floors * fh + 0.5
+	var walls = MB.new()
+	var roof = MB.new()
+	var det = MB.new()
+	var white = Color(1, 1, 1)
+	det.add("cyl", Vector3(0, 0.25, 0), Vector3(D + 0.6, 0.5, D + 0.6), STONE, Vector3.ZERO, 20)
+	walls.add("cyl", Vector3(0, 0.5 + (h - 0.5) * 0.5, 0), Vector3(D, h - 0.5, D), white, Vector3.ZERO, 24)
+	for f in floors:
+		var y0 = 0.5 + f * fh
+		det.add("cyl", Vector3(0, y0 + fh - 0.1, 0), Vector3(D + 0.3, 0.28, D + 0.3), WOOD, Vector3.ZERO, 24)   # kat bandı
+		var nw = maxi(5, int(PI * D / 3.0))
+		for k in nw:
+			if f == 0 and k == 0:
+				continue   # giriş
+			var a = TAU * k / nw
+			var p = Vector3(sin(a) * -r, y0 + fh * 0.55, cos(a) * -r)
+			_window(det, p, rad_to_deg(a), rng)
+	# giriş: ön (-z) kapı + saçak
+	var drng = RandomNumberGenerator.new()
+	drng.seed = 9000 + i
+	DoorKit.jp_template(det, -r, 0.5, rng.randf() < 0.3, drng)
+	det.add("box", Vector3(0, 0.5 + 3.05, -r - 0.8), Vector3(4.0, 0.12, 1.8), Color(0.3, 0.26, 0.24), Vector3(-14, 0, 0))
+	var roof_top: float
+	var rcm = MB.new()
+	if dome:
+		roof.add("sphere", Vector3(0, h, 0), Vector3(D + 0.6, D * 0.85, D + 0.6), white, Vector3.ZERO, 20)
+		rcm.add("hemi", Vector3(0, h + D * 0.21, 0), Vector3(D + 0.6, D * 0.85, D + 0.6), white, Vector3.ZERO, 12)
+		det.add("cyl", Vector3(0, h + 0.05, 0), Vector3(D + 0.9, 0.3, D + 0.9), DARK, Vector3.ZERO, 24)
+		det.add("cyl", Vector3(0, h + D * 0.42 + 0.4, 0), Vector3(0.25, 1.2, 0.25), DARK, Vector3.ZERO, 6)
+		det.add("sphere", Vector3(0, h + D * 0.42 + 1.1, 0), Vector3(0.5, 0.5, 0.5), Color(0.9, 0.75, 0.3), Vector3.ZERO, 8)
+		roof_top = h + D * 0.42
+	else:
+		# geniş saçaklı alçak koni çatı + çizgiler, üstte küçük ikinci gövde + ikinci koni + tepe
+		var rh = D * 0.22
+		roof.add("cone", Vector3(0, h + rh * 0.5, 0), Vector3(D + 2.6, rh, D + 2.6), white, Vector3.ZERO, 24)
+		rcm.add("cone", Vector3(0, h + rh * 0.5, 0), Vector3(D + 2.6, rh, D + 2.6), white, Vector3.ZERO, 12)
+		for k in 3:   # kiremit sıraları (koyu halkalar)
+			var t = (k + 1) / 4.0
+			var rr = (D + 2.6) * (1.0 - t) * 0.5 + 0.06
+			det.add("torus", Vector3(0, h + rh * t, 0), Vector3(rr * 2.0, rr * 0.08, rr * 2.0), Color(0.45, 0.25, 0.12), Vector3.ZERO, 24)
+		det.add("cyl", Vector3(0, h + 0.05, 0), Vector3(D + 2.7, 0.22, D + 2.7), DARK, Vector3.ZERO, 24)
+		var D2 = D * 0.5
+		walls.add("cyl", Vector3(0, h + rh * 0.6 + 1.4, 0), Vector3(D2, 2.8, D2), white, Vector3.ZERO, 16)
+		for k in 6:
+			var a = TAU * k / 6.0
+			_window(det, Vector3(sin(a) * -D2 * 0.5, h + rh * 0.6 + 1.5, cos(a) * -D2 * 0.5), rad_to_deg(a), rng)
+		var y2 = h + rh * 0.6 + 2.8
+		roof.add("cone", Vector3(0, y2 + D2 * 0.2, 0), Vector3(D2 + 1.6, D2 * 0.4, D2 + 1.6), white, Vector3.ZERO, 18)
+		det.add("cyl", Vector3(0, y2 + D2 * 0.4 + 0.5, 0), Vector3(0.2, 1.0, 0.2), DARK, Vector3.ZERO, 6)
+		roof_top = y2 + D2 * 0.4
+	var cyl = CylinderShape3D.new()
+	cyl.radius = r
+	cyl.height = h - 0.5
+	var extra: Array = []
+	if not dome:   # üst küçük gövde + ikinci koni ayrı şekil (koninin üstünde)
+		var c2 = MB.new()
+		c2.add("cyl", Vector3(0, h + D * 0.22 * 0.6 + 1.4, 0), Vector3(D * 0.5, 2.8, D * 0.5), white, Vector3.ZERO, 10)
+		c2.add("cone", Vector3(0, h + D * 0.22 * 0.6 + 2.8 + D * 0.1, 0), Vector3(D * 0.5 + 1.6, D * 0.2, D * 0.5 + 1.6), white, Vector3.ZERO, 10)
+		extra.append((c2.build() as ArrayMesh).create_convex_shape(true, false))
+	return {"walls": walls.build(), "roof": roof.build(), "detail": det.build(), "w": D, "d": D, "h": h, "roof_top": roof_top, "cols": [],
+		"roof_shape": (rcm.build() as ArrayMesh).create_convex_shape(true, false), "body_shape": cyl, "extra_shapes": extra}
 
 
 const CLOTHES := [Color(0.85, 0.3, 0.25), Color(0.95, 0.95, 0.92), Color(0.3, 0.45, 0.75), Color(0.95, 0.8, 0.3), Color(0.4, 0.62, 0.4)]
@@ -289,9 +368,10 @@ class Placer:
 	var pack_items := {}   # mesh -> [Transform3D]
 	var recs: Array = []   # WorldDamage kayıtları (yanma / yıkılma)
 	var pack_chance := 0.0  # 0..1: bu oranda ev hazır modelden (renkli Japon kasaba evi)
+	var force_ti := -1      # >= 0: bu şablonu kullan (hazır model yok)
 
 	func add(pos: Vector3, yaw: float, wall_col: Color, roof_col: Color, rng: RandomNumberGenerator, scale := 1.0, max_w := 1e9, max_d := 1e9) -> Dictionary:
-		if pack_chance > 0.0 and rng.randf() < pack_chance:
+		if force_ti < 0 and pack_chance > 0.0 and rng.randf() < pack_chance:
 			var hs: Array = AssetLib.town_houses()
 			if not hs.is_empty():
 				var e: Array = hs[rng.randi() % hs.size()]
@@ -321,6 +401,9 @@ class Placer:
 			if float(tk["w"]) < float(HouseKit.templates[small]["w"]):
 				small = k
 		var ti = fit[rng.randi() % fit.size()] if not fit.is_empty() else small
+		if force_ti >= 0:
+			ti = force_ti
+			force_ti = -1
 		var t: Dictionary = HouseKit.templates[ti]
 		var xf = Transform3D(Basis(Vector3.UP, deg_to_rad(-yaw) + PI).scaled(Vector3.ONE * scale), pos)
 		var rec = {"pos": pos, "basis": xf.basis, "ti": ti, "scale": scale, "wall": wall_col, "roof": roof_col, "body": body, "mm": [], "shapes": []}
@@ -332,18 +415,33 @@ class Placer:
 			dict[ti].append([xf, pair[1], rec])
 		# çarpışma: gövde + çatı
 		var cs = CollisionShape3D.new()
-		var sh = BoxShape3D.new()
-		sh.size = Vector3(t["w"], t["h"], t["d"]) * scale
-		cs.shape = sh
+		if t.has("body_shape"):
+			cs.shape = t["body_shape"]   # yuvarlak gövde: silindir (köşesiz görünmez duvar olmasın)
+		else:
+			var sh = BoxShape3D.new()
+			var aw = float(t["w"]) - float(t.get("annex_w", 0.0))
+			sh.size = Vector3(aw, t["h"], t["d"]) * scale
+			cs.shape = sh
 		cs.transform = Transform3D(xf.basis.orthonormalized(), pos + Vector3(0, t["h"] * 0.5 * scale, 0))
 		body.add_child(cs)
+		# çatı: şablonun ana çatısının kendi şekli (beşik / yuvarlak / koni / kubbe) -> eğiminde yürünür, içinden geçilmez
 		var rc = CollisionShape3D.new()
-		var rs = BoxShape3D.new()
-		rs.size = Vector3(t["w"] + 0.6, maxf(0.4, (t["roof_top"] - t["h"]) * 0.6), t["d"] * 0.7) * scale
-		rc.shape = rs
-		rc.transform = Transform3D(xf.basis.orthonormalized(), pos + Vector3(0, (t["h"] + (t["roof_top"] - t["h"]) * 0.3) * scale, 0))
+		if t.has("roof_shape") and scale == 1.0:
+			rc.shape = t["roof_shape"]
+			rc.transform = Transform3D(xf.basis.orthonormalized(), pos)
+		else:
+			var rs = BoxShape3D.new()
+			rs.size = Vector3(t["w"] + 0.6, maxf(0.4, (t["roof_top"] - t["h"]) * 0.6), t["d"] * 0.7) * scale
+			rc.shape = rs
+			rc.transform = Transform3D(xf.basis.orthonormalized(), pos + Vector3(0, (t["h"] + (t["roof_top"] - t["h"]) * 0.3) * scale, 0))
 		body.add_child(rc)
 		rec["shapes"] = [cs, rc]
+		for es2 in t.get("extra_shapes", []):
+			var xc = CollisionShape3D.new()
+			xc.shape = es2
+			xc.transform = Transform3D(xf.basis.orthonormalized(), pos)
+			body.add_child(xc)
+			rec["shapes"].append(xc)
 		for c in t.get("cols", []):  # yan ek bina, balkon, dış merdiven
 			var ec = CollisionShape3D.new()
 			var es = BoxShape3D.new()

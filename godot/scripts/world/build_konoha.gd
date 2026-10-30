@@ -333,6 +333,25 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 			if not _on_road(b, sx * 3.0, n, 0.0):
 				b.lantern(sx, n, 3.2 + _gy(b, sx, n))
 
+	# ---- Naka Nehri: Hokage Kayası'nın batısındaki şelaleden doğar, Akademi'nin batısından, Hyūga ile park arasından,
+	# Uchiha Bölgesi'nin kıyısından geçip güneybatıda surdan çıkar (evlerden önce: evler kanalın üstüne konmaz)
+	var naka: Array = []
+	var ctrl = [Vector2(-640, cliff_n - 14.0), Vector2(-690, 960), Vector2(-760, 720), Vector2(-805, 470), Vector2(-830, 200),
+		Vector2(-845, -60), Vector2(-865, -330), Vector2(-875, -540), Vector2(-930, -820), Vector2(-1010, -1000), Vector2(-1060, R * -0.74 - 20.0)]
+	for i in ctrl.size() - 1:   # Catmull-Rom: yumuşak kıvrım
+		var p0: Vector2 = ctrl[maxi(0, i - 1)]
+		var p1: Vector2 = ctrl[i]
+		var p2: Vector2 = ctrl[i + 1]
+		var p3: Vector2 = ctrl[mini(ctrl.size() - 1, i + 2)]
+		for k in 8:
+			var t = k / 8.0
+			naka.append(0.5 * ((2.0 * p1) + (-p0 + p2) * t + (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * t * t + (-p0 + 3.0 * p1 - 3.0 * p2 + p3) * t * t * t))
+	naka.append(ctrl[ctrl.size() - 1])
+	var crng = RandomNumberGenerator.new()
+	crng.seed = 777
+	Canal.build(b, naka, 9.0, func(x, n): return _on_road(b, x, n, 0.5), crng)
+	_naka_falls(b, decor, ctrl[0], cliff_n)
+
 	# ---- evler: sokak boylarına dizili (merkezde 3 sıra, dışarıda 1-2 sıra), her biri sokağa bakar
 	b.view_dist = 1500.0
 	var count = _street_houses(b, v, rng, occupied, decor, cliff_n)
@@ -367,8 +386,10 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 
 ## Sokak boyunca ev dizileri. Çakışma: dolu alanlar, başka sokaklar, önceki evler.
 static func _street_houses(b: Builder, v: Dictionary, rng: RandomNumberGenerator, occupied: Array, decor: Node3D, cliff_n: float) -> int:
+	# Bitişik nizam: her caddenin iki yanında evler gerçek genişlikleriyle yan yana (0.3-1 m ara), 4-6 evde bir dar ara sokak;
+	# arka sıralar sırt sırta (15.5 m bant). Animedeki gibi dip dibe şehir dokusu.
+	HouseKit.ensure()
 	var c = Vector2(float(v["x"]), float(v["y"]))
-	var placed := {}  # 20 m ızgara -> [Vector2]
 	var lantern_xf: Array = []
 	var count = 0
 	var segs: Array = []
@@ -386,66 +407,87 @@ static func _street_houses(b: Builder, v: Dictionary, rng: RandomNumberGenerator
 		var a: Vector2 = sg[0]
 		var e: Vector2 = sg[1]
 		var L = a.distance_to(e)
+		if L < 8.0:
+			continue
 		var dir = (e - a) / L
 		var nrm = Vector2(-dir.y, dir.x)
-		var t = 22.0
-		while t < L - 10.0:
-			var p = a + dir * t
-			var step = rng.randf_range(20.0, 25.0)
-			t += step
-			var dc = p.length()
-			var rows = 2 if dc > 1100.0 else (3 if dc > 600.0 else 4)
-			for sd in [-1.0, 1.0]:
-				for row in rows:
-					var off = 13.5 + row * 17.0
-					var q = p + nrm * sd * off + dir * rng.randf_range(-1.5, 1.5)
-					if q.length() > R - 35.0 or q.y > cliff_n - 45.0:
-						continue
-					if not _free(q.x, q.y, occupied, 6.0):
-						continue
-					if _on_road(b, q.x, q.y, 12.5):
-						continue
-					var key = Vector2i(floori(q.x / 20.0), floori(q.y / 20.0))
-					var clash = false
-					for dx in [-1, 0, 1]:
-						for dy in [-1, 0, 1]:
-							for o in placed.get(key + Vector2i(dx, dy), []):
-								if o.distance_to(q) < 17.0:
-									clash = true
-					if clash:
-						continue
-					var wq = b.w(Vector3(q.x, 0, q.y))
-					if not b.area_free(Vector2(wq.x, wq.z), 7.5):
-						continue   # önceki binalar / meydanlar
-					if not placed.has(key):
-						placed[key] = []
-					placed[key].append(q)
-					# yüz: sokağa doğru (-nrm*sd); Builder yaw: 0 = ön güneye bakar
-					var fd = -nrm * sd
-					var yaw = rad_to_deg(atan2(-fd.x, -fd.y))
-					# arsa: sokak boyunca adım kadar geniş, 15 m derin (bitişik, büyük binalar)
-					b.house(q.x, q.y, step - 1.5, 15.0, 3, yaw, "konoha", rng)
-					var hd = float(b.last_house.get("d", 9.0))
-					var fo = Builder.rot(0, -hd * 0.5 - 1.0, yaw)
-					if row == 0:
-						VL.doors["konoha"].append(_gp(b, q.x + fo.x, q.y + fo.y))
-					if count % 11 == 4 and row == 0:
-						_door(b, q.x + fo.x, q.y + fo.y, 2.0, "home", "[F] Kapıyı çal (misafir ol)", "", count)
-					if count % 3 == 0:
-						var lo = Builder.rot(1.1, -hd * 0.5 - 0.2, yaw)
-						var gy = b._ground_off(q.x, q.y, 6.0).y
-						var lp = b.w(Vector3(q.x + lo.x, gy + 2.55, q.y + lo.y))
-						lantern_xf.append(Transform3D(Basis(Vector3.UP, deg_to_rad(-yaw)), lp))
-					count += 1
+		var dc0 = ((a + e) * 0.5).length()
+		var rows = 2 if dc0 > 1100.0 else (3 if dc0 > 650.0 else 4)
+		for sd in [-1.0, 1.0]:
+			for row in rows:
+				var t = 9.0 + rng.randf_range(0.0, 4.0) * row
+				var run = 0
+				var alley_at = rng.randi_range(4, 6)
+				while t < L - 8.0:
+					var ti = _pick_template(rng, row == 0)
+					var tw = float(HouseKit.templates[ti]["w"])
+					var td = float(HouseKit.templates[ti]["d"])
+					if t + tw > L - 4.0:
+						break
+					var off = 7.5 + row * 15.5 + td * 0.5
+					var q = a + dir * (t + tw * 0.5) + nrm * sd * off
+					var placed = false
+					if q.length() < R - 35.0 and q.y < cliff_n - 45.0 and _free(q.x, q.y, occupied, 2.0) and not _on_road(b, q.x, q.y, td * 0.5 + 1.0) \
+							and _lot_free(b, q, dir, tw, td):
+						var fd = -nrm * sd
+						var yaw = rad_to_deg(atan2(-fd.x, -fd.y))
+						b.house_ti = ti
+						b.house(q.x, q.y, tw + 0.1, td + 0.1, 3, yaw, "konoha", rng)
+						placed = true
+						var fo = Builder.rot(0, -td * 0.5 - 1.0, yaw)
+						if row == 0:
+							VL.doors["konoha"].append(_gp(b, q.x + fo.x, q.y + fo.y))
+							if count % 11 == 4:
+								_door(b, q.x + fo.x, q.y + fo.y, 2.0, "home", "[F] Kapıyı çal (misafir ol)", "", count)
+							if count % 3 == 0:
+								var lo = Builder.rot(1.1, -td * 0.5 - 0.2, yaw)
+								var gy = b._ground_off(q.x, q.y, 6.0).y
+								lantern_xf.append(Transform3D(Basis(Vector3.UP, deg_to_rad(-yaw)), b.w(Vector3(q.x + lo.x, gy + 2.55, q.y + lo.y))))
+						count += 1
+					t += tw + rng.randf_range(0.3, 1.0) if placed else 4.0
+					run += 1
+					if run >= alley_at:   # dar ara sokak
+						t += rng.randf_range(2.8, 4.0)
+						run = 0
+						alley_at = rng.randi_range(4, 6)
 	CityDecor.door_lanterns(decor, lantern_xf)
 	return count
 
 
-## Sokak araları (bloklar): merkezde sık, dışa doğru seyrek ev kümeleri; her 4. sıra ara sokak olarak boş kalır.
-## Ev en yakın sokağa bakar (yol uzaklığının azaldığı eksen yönü).
+## Bitişik dizilim için şablon: cadde önünde dükkân / kasaba evi ağırlıklı, arkada apartman ağırlıklı
+static func _pick_template(rng: RandomNumberGenerator, front: bool) -> int:
+	var n = HouseKit.templates.size()
+	for k in 6:
+		var ti = rng.randi() % n
+		var t: Dictionary = HouseKit.templates[ti]
+		if float(t["d"]) > 15.2:
+			continue
+		var h = float(t["h"])
+		if front and h > 19.0 and rng.randf() < 0.5:
+			continue   # cadde önü biraz daha alçak
+		if not front and h < 9.0 and rng.randf() < 0.5:
+			continue
+		return ti
+	return rng.randi() % n
+
+
+## Arsa boş mu: dikdörtgenin merkezi + dört köşesi çevresinde (diğer evler, meydanlar, kanal setleri)
+static func _lot_free(b: Builder, q: Vector2, dir: Vector2, tw: float, td: float) -> bool:
+	var nr = Vector2(-dir.y, dir.x)
+	for o in [Vector2.ZERO, dir * (tw * 0.5 - 0.9) + nr * (td * 0.5 - 0.9), dir * (tw * 0.5 - 0.9) - nr * (td * 0.5 - 0.9),
+			-dir * (tw * 0.5 - 0.9) + nr * (td * 0.5 - 0.9), -dir * (tw * 0.5 - 0.9) - nr * (td * 0.5 - 0.9)]:
+		var p = q + o
+		var wq = b.w(Vector3(p.x, 0, p.y))
+		if not b.area_free(Vector2(wq.x, wq.z), 0.7):
+			return false
+	return true
+
+
+## Sokak araları (bloklar): cadde sıralarının arkasında kalan iç alan, 16 m ızgarada sırt sırta evlerle dolar;
+## her 4. sıra ara sokak olarak boş kalır. Ev en yakın sokağa bakar.
 static func _fill_blocks(b: Builder, rng: RandomNumberGenerator, occupied: Array, cliff_n: float) -> int:
 	var count = 0
-	var step = 22.0
+	var step = 16.0
 	var gx = -R
 	var ix = 0
 	while gx < R:
@@ -454,20 +496,27 @@ static func _fill_blocks(b: Builder, rng: RandomNumberGenerator, occupied: Array
 		var iz = 0
 		while gn < cliff_n - 50.0:
 			iz += 1
-			var x = gx + rng.randf_range(-1.2, 1.2)
-			var n = gn + rng.randf_range(-1.2, 1.2)
+			var x = gx
+			var n = gn
 			gn += step
-			if ix % 4 == 0 or iz % 4 == 0:
+			if ix % 4 == 0 or iz % 5 == 0:
 				continue  # ara sokak
 			var d = Vector2(x, n).length()
-			var prob = 0.9 if d < 600.0 else (0.75 if d < 1000.0 else 0.55)
+			var prob = 0.95 if d < 700.0 else (0.85 if d < 1100.0 else 0.65)
 			if rng.randf() > prob or d > R - 40.0:
 				continue
-			if not _free(x, n, occupied, 6.0) or _on_road(b, x, n, 16.0):
+			if not _free(x, n, occupied, 3.0) or _on_road(b, x, n, 10.0):
 				continue
-			var wq = b.w(Vector3(x, 0, n))
-			if not b.area_free(Vector2(wq.x, wq.z), 9.0):
-				continue   # sokak evleriyle çakışmasın
+			var ti = -1
+			for k in 8:
+				var tk = rng.randi() % HouseKit.templates.size()
+				if float(HouseKit.templates[tk]["w"]) <= step - 0.6 and float(HouseKit.templates[tk]["d"]) <= step - 0.6:
+					ti = tk
+					break
+			if ti < 0:
+				continue
+			var tw = float(HouseKit.templates[ti]["w"])
+			var td = float(HouseKit.templates[ti]["d"])
 			# en yakın sokağa bak
 			var best = Vector2(0, -1)
 			var bd = 1e9
@@ -477,8 +526,12 @@ static func _fill_blocks(b: Builder, rng: RandomNumberGenerator, occupied: Array
 				if rd < bd:
 					bd = rd
 					best = dv
+			var side = Vector2(-best.y, best.x)
+			if not _lot_free(b, Vector2(x, n), side, tw, td):
+				continue
 			var yaw = rad_to_deg(atan2(-best.x, -best.y))
-			b.house(x, n, 20.0, 18.0, 3, yaw, "konoha", rng)
+			b.house_ti = ti
+			b.house(x, n, tw + 0.1, td + 0.1, 3, yaw, "konoha", rng)
 			count += 1
 		gx += step
 	return count
@@ -697,6 +750,25 @@ static func _cliff_surface(b: Builder, x: float, cliff_n: float, y: float) -> fl
 			return nn
 		nn += 1.0
 	return cliff_n
+
+
+## Naka Nehri'nin kaynağı: kayalıktan dökülen şelale (katmanlı su perdesi + dipte köpük ve sis)
+static func _naka_falls(b: Builder, decor: Node3D, at: Vector2, cliff_n: float) -> void:
+	var top = 46.0
+	var g = _gy(b, at.x, at.y)
+	for k in 10:
+		var y = g + top * (1.0 - (k + 0.5) / 10.0)
+		var n = _cliff_surface(b, at.x, cliff_n, y) - 1.2
+		var mi = MeshInstance3D.new()
+		var q = QuadMesh.new()
+		q.size = Vector2(8.0 + k * 0.25, top / 10.0 + 0.6)
+		mi.mesh = q
+		mi.material_override = Canal._water()
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		decor.add_child(mi)
+		mi.global_position = b.w(Vector3(at.x, y, minf(n, cliff_n - 2.0)))
+	b.boulder(Vector3(at.x - 6.0, g, at.y + 1.0), Vector3(4.0, 3.0, 3.5), Color(0.5, 0.48, 0.45))
+	b.boulder(Vector3(at.x + 6.5, g, at.y + 2.0), Vector3(5.0, 3.6, 4.0), Color(0.46, 0.44, 0.42))
 
 
 static func _free(x: float, n: float, occ: Array, pad: float) -> bool:

@@ -80,6 +80,22 @@ func _ready() -> void:
 		cam.look_at(p)
 		await get_tree().create_timer(1.0).timeout
 		await main.shot("look_top")
+	if want.call("vista"):
+		# referans konoha.png açısı: güneyden yüksekten Hokage Kayası'na doğru
+		var vp = Game.from_map(Vector2(v["x"], v["y"] - 1350.0))
+		vp.y = Game.ground_height(vp.x, vp.z) + 150.0
+		var vt = Game.from_map(Vector2(v["x"], v["y"] + 700.0))
+		vt.y = Game.ground_height(vt.x, vt.z) + 40.0
+		pl.respawn(Game.from_map(Vector2(v["x"], v["y"] - 900.0)))
+		await get_tree().create_timer(8.0).timeout
+		cam.global_position = vp
+		cam.look_at(vt)
+		await get_tree().create_timer(1.0).timeout
+		await main.shot("look_vista")
+		cam.global_position = Game.from_map(Vector2(v["x"] + 120.0, v["y"] - 300.0)) + Vector3(0, Game.ground_height(vp.x, vp.z) + 45.0, 0)
+		cam.look_at(Game.from_map(Vector2(v["x"], v["y"] + 300.0)) + Vector3(0, Game.ground_height(vp.x, vp.z) + 10.0, 0))
+		await get_tree().create_timer(1.0).timeout
+		await main.shot("look_vista2")
 	if want.call("cloud"):
 		cam.global_position = p + Vector3(0, 2, 0)
 		cam.look_at(p + Vector3(30, 18, -60))
