@@ -18,6 +18,7 @@ uniform sampler2D tex_rock : filter_linear_mipmap, repeat_enable;     // yarlar 
 uniform sampler2D tex_sand : filter_linear_mipmap, repeat_enable;     // çöl, kumsal
 uniform sampler2D tex_forest : filter_linear_mipmap, repeat_enable;   // orman zemini
 uniform sampler2D tex_dirt : filter_linear_mipmap, repeat_enable;     // köy dışı toprak yollar
+uniform sampler2D tex_grass : filter_linear_mipmap, repeat_enable;    // çimenli zemin
 uniform float texel = 4.0;
 
 varying vec3 wpos;
@@ -72,6 +73,14 @@ void fragment() {
 		base *= mix(0.84, 1.14, patch);
 		base = mix(base, base * vec3(1.12, 1.08, 0.7), smoothstep(0.7, 0.85, fbm(wpos.xz * 0.03 + 7.0)) * 0.6);
 		base *= 0.93 + n3 * 0.12;
+		// gerçek çimen zemini: yakında ince yaprak dokusu, uzakta iri lekeler (iki ölçek: tekrar deseni görünmesin)
+		float gt = texture(tex_grass, wpos.xz * 0.16).r * 0.6 + texture(tex_grass, wpos.xz * 0.023 + 0.37).r * 0.4;
+		base *= 1.0 + (gt - 0.5) * 0.75;
+		// doygunluğu biraz kır + geniş ölçekte sarımsı / mavimsi yeşil bölgeler (tek tip neon yeşil olmasın)
+		float gl = dot(base, vec3(0.299, 0.587, 0.114));
+		base = mix(vec3(gl), base, 0.82);
+		float hue = fbm(wpos.xz * 0.006 + 31.0);
+		base *= mix(vec3(0.92, 1.0, 1.06), vec3(1.1, 1.02, 0.82), smoothstep(0.35, 0.7, hue));
 	}
 	// köy zemini (referans: tasarlanmış meydan): çoğu yer taş döşeme (ofsetli plaka + derz + plaka plaka ton), çimen yalnız
 	// kenarı belirgin tarhlarda, aralarda toprak; çimenin her yeri kapladığı boş görünümü kırar

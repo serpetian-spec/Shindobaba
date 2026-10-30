@@ -75,6 +75,12 @@ void vertex() {
 
 void fragment() {
 	vec3 c = base_col * mix(0.62, 1.25, tip);
+	// yaprak dokusu: ortada koyu damar, kenarlar açık; uç sarımsı-açık (anime çimeni gibi iki tonlu)
+	float vein = 1.0 - 0.18 * (1.0 - smoothstep(0.0, 0.18, abs(UV.x - 0.5)));
+	c *= vein;
+	c = mix(c, c * vec3(1.18, 1.14, 0.78), smoothstep(0.72, 0.98, tip) * 0.6);
+	float cl = dot(c, vec3(0.299, 0.587, 0.114));
+	c = mix(vec3(cl), c, 0.84);   // arazi ile aynı doygunluk
 	c = mix(c, c * vec3(1.05, 1.12, 0.85), tip * 0.5);
 	float lum = dot(c, vec3(0.299, 0.587, 0.114));
 	c = max(mix(vec3(lum), c, 1.08), vec3(0.0));

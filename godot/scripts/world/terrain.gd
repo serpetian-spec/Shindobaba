@@ -32,7 +32,7 @@ func _ready() -> void:
 		mat.set_shader_parameter("level_eps", k * 0.12)
 		mat.set_shader_parameter("tex_cobble", load("res://assets/tex/cobble.png"))
 		mat.set_shader_parameter("tex_stone", load("res://assets/tex/stone.png"))
-		for tn in ["rock", "sand", "forest", "dirt"]:
+		for tn in ["rock", "sand", "forest", "dirt", "grass"]:
 			mat.set_shader_parameter("tex_" + tn, load("res://assets/tex/%s.png" % tn))
 		mat.set_shader_parameter("texel", s)
 		mat.set_shader_parameter("road_rect", Vector4.ZERO)

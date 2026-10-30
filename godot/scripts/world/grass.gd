@@ -56,10 +56,13 @@ func _tuft_mesh() -> ArrayMesh:
 			var h = 0.32 + 0.14 * float(b == 1)
 			var lean = Vector3(-d.z, 0, d.x) * 0.12 * (b - 1)
 			st.set_normal(Vector3.UP)
+			st.set_uv(Vector2(0.0, 1.0))   # UV.x: yaprak enine (orta damar 0.5)
 			st.add_vertex(o - d * 0.035)
 			st.set_normal(Vector3.UP)
+			st.set_uv(Vector2(1.0, 1.0))
 			st.add_vertex(o + d * 0.035)
 			st.set_normal(Vector3.UP)
+			st.set_uv(Vector2(0.5, 0.0))
 			st.add_vertex(o + Vector3(0, h, 0) + lean)
 	return st.commit()
 

@@ -25,6 +25,7 @@ SET = {
     'forest': ('forest_ground_04', 512, 0.7, 0),
     'dirt': ('dirt', 512, 0.6, 0),
     'bark': ('japanese_cedar_bark', 512, 0.9, 0),
+    'grass': ('aerial_grass_rock', 512, 0.7, 0),
 }
 
 
