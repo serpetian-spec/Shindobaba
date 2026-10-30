@@ -316,7 +316,7 @@ static func konoha_tower(b: Builder, decor: Node3D, tn: float) -> float:
 	var cream = Color(0.94, 0.88, 0.74)
 	var red = Color(0.75, 0.17, 0.13)
 	var dark = Color(0.3, 0.2, 0.14)
-	var glass = Color(0.45, 0.66, 0.82)
+	var glass = Color(0.55, 0.72, 0.85)   # pencere işareti: gece bazıları yanar (toon)
 	var stone = Color(0.66, 0.62, 0.56)
 	# kaide
 	b.cyl(Vector3(0, 0.3, tn), 82, 1.2, stone, true, 40)

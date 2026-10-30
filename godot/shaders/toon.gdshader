@@ -555,11 +555,11 @@ void fragment() {
 	if (g_night > 0.0 && use_vertex_color) {
 		// renk işaretleri: cam / shoji pencere, fener ışığı, kırmızı kâğıt fener (HouseKit, DoorKit, Builder.lantern)
 		vec3 vc0 = COLOR.rgb;
-		float win = step(distance(vc0, vec3(0.55, 0.72, 0.85)), 0.012) + step(distance(vc0, vec3(0.95, 0.92, 0.82)), 0.012);
+		// yanık pencere işaretleri (MB._win_lit parça başına seçer: geniş cam yarım yanmaz)
+		float win = step(distance(vc0, vec3(0.603, 0.757, 0.883)), 0.006) + step(distance(vc0, vec3(0.961, 0.903, 0.777)), 0.006);
 		float lamp = step(distance(vc0, vec3(1.0, 0.85, 0.5)), 0.02) + step(distance(vc0, vec3(1.0, 0.85, 0.55)), 0.02);
 		float red = step(distance(vc0, vec3(0.9, 0.2, 0.15)), 0.012);
-		float on = step(0.72, hash(floor(wpos.xz * 0.55) + floor(wpos.y * 0.33) * 7.1));   // pencerelerin ~%28 i yanık (hepsi yanınca yapay duruyordu)
-		EMISSION += g_night * (win * on * vec3(1.0, 0.7, 0.32) * 1.5 + red * vec3(1.0, 0.28, 0.12) * 1.8);
+		EMISSION += g_night * (win * vec3(1.0, 0.7, 0.32) * 1.5 + red * vec3(1.0, 0.28, 0.12) * 1.8);
 	}
 }
 

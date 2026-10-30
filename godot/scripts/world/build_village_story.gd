@@ -79,7 +79,7 @@ static func _compound(parent: Node3D, v: Dictionary, sty: Dictionary) -> void:
 	b.box(Vector3(0, ay + 3.5, -6.6), Vector3(3.2, 5.0, 0.4), Color(0.3, 0.22, 0.15), 0.0, false)
 	b.disc(Vector3(0, ay + 9.0, -6.7), 3.2, 0.3, acc)
 	for i in 6:
-		b.box(Vector3(-11 + i * 4.4, ay + 7.5, -6.6), Vector3(2.0, 1.6, 0.3), Color(0.55, 0.75, 0.9), 0.0, false)
+		b.box(Vector3(-11 + i * 4.4, ay + 7.5, -6.6), Vector3(2.0, 1.6, 0.3), Color(0.55, 0.72, 0.85), 0.0, false)
 	# kapı: içeride köye özel akademi sınıfı (hoca, sınav, yardımcı hoca)
 	b.interact(Vector3(0, ay, -8.0), 4, "enter", "[F] Gir: %s Ninja Akademisi" % vn, {"room": "academy", "alias": "academy", "vid": v["id"], "out": b.w(Vector3(0, ay, -9.5))})
 	var arng = RandomNumberGenerator.new()

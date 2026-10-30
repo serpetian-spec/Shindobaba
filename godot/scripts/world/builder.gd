@@ -435,7 +435,7 @@ func _house_body(x: float, n: float, wdt: float, dep: float, floors: int, yaw: f
 	for f in floors:
 		for sx in [-1.0, 1.0]:
 			var wo = rot(sx * wdt * 0.3, -dep * 0.5 - 0.06, yaw)
-			box(Vector3(x + wo.x, f * 4.2 + 2.6, n + wo.y), Vector3(1.4, 1.2, 0.1), Color(0.42, 0.62, 0.78), yaw, false)
+			box(Vector3(x + wo.x, f * 4.2 + 2.6, n + wo.y), Vector3(1.4, 1.2, 0.1), Color(0.55, 0.72, 0.85), yaw, false)
 			box(Vector3(x + wo.x, f * 4.2 + 1.95, n + wo.y), Vector3(1.6, 0.12, 0.25), wc.darkened(0.2), yaw, false)
 	if floors > 1:  # balkon
 		var bo = rot(0, -dep * 0.5 - 0.6, yaw)

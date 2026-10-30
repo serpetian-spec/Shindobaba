@@ -112,7 +112,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	b.box(Vector3(ax, 28.6, an), Vector3(31, 1.4, 21), Color(0.72, 0.18, 0.15))
 	for i in 14:
 		for fl in [5.5, 14.0]:
-			b.box(Vector3(ax - 45 + i * 6.9, fl, an - 17.1), Vector3(3.2, 3, 0.3), Color(0.42, 0.62, 0.78), 0, false)
+			b.box(Vector3(ax - 45 + i * 6.9, fl, an - 17.1), Vector3(3.2, 3, 0.3), Color(0.55, 0.72, 0.85), 0, false)
 	b.box(Vector3(ax, 3.2, an - 17.4), Vector3(7, 6.4, 0.6), Color(0.35, 0.24, 0.16), 0, false)
 	b.yoff = 0.0
 	# avlu: duvar + kapı, taş yol, fenerler, antrenman alanı, gölet, salıncak ağacı, oyun parkı, sundurma

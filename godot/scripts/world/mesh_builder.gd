@@ -206,7 +206,27 @@ func add_xf(kind: String, xf: Transform3D, col: Color, seg := 8) -> void:
 	add_arrays(_prim_arrays(kind, seg), xf, col)
 
 
+## Gece yanan pencere: cam / shoji işaret rengindeki parçanın ~%28'i "yanık" işaret rengine çevrilir.
+## Karar parça başına (konumun 2 m hücresi) verilir: geniş bir pencere yarım yarım yanmaz (toon.gdshader).
+const WIN_KEY := Color(0.55, 0.72, 0.85)
+const SHOJI_KEY := Color(0.95, 0.92, 0.82)
+const WIN_LIT := Color(0.603, 0.757, 0.883)
+const SHOJI_LIT := Color(0.961, 0.903, 0.777)
+
+
+static func _win_lit(col: Color, p: Vector3) -> Color:
+	var w = absf(col.r - WIN_KEY.r) + absf(col.g - WIN_KEY.g) + absf(col.b - WIN_KEY.b) < 0.006
+	var s = absf(col.r - SHOJI_KEY.r) + absf(col.g - SHOJI_KEY.g) + absf(col.b - SHOJI_KEY.b) < 0.006
+	if not (w or s):
+		return col
+	var h = hash(Vector3i(floori(p.x * 0.5), floori(p.y * 0.5), floori(p.z * 0.5))) % 100
+	if h >= 28:
+		return col
+	return WIN_LIT if w else SHOJI_LIT
+
+
 func add_arrays(a: Array, xf: Transform3D, col: Color) -> void:
+	col = _win_lit(col, xf.origin)
 	var base := verts.size()
 	var v: PackedVector3Array = a[Mesh.ARRAY_VERTEX]
 	var n: PackedVector3Array = a[Mesh.ARRAY_NORMAL]
