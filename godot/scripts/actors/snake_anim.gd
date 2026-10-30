@@ -68,7 +68,7 @@ func _process(dt: float) -> void:
 	var tg: Node3D = null
 	if sm is Summon:
 		moving = Vector2(sm.velocity.x, sm.velocity.z).length() > 0.5
-		tg = sm.tgt
+		tg = sm.tgt if is_instance_valid(sm.tgt) else null
 	walk = move_toward(walk, 1.0 if moving else 0.0, dt * 2.0)
 	# ısırma: hızlı atılış, yavaş dönüş
 	if has_meta("bite_t"):

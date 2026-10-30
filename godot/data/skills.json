@@ -60,14 +60,14 @@
   "tai1": {
    "id": "tai1",
    "name": "Demir Yumruk",
-   "desc": "Yakın dövüş hasarı +%20.",
+   "desc": "Yakın dövüş hasarı +%10.",
    "branch": "taijutsu",
    "tier": 1,
    "cost": 1,
    "level": 1,
    "req": [],
    "fx": {
-    "melee": 0.2
+    "melee": 0.1
    },
    "need": {},
    "unlock": [],
@@ -76,14 +76,14 @@
   "tai_kombo1": {
    "id": "tai_kombo1",
    "name": "Akıcı Kombo",
-   "desc": "Kombo adımları arası bekleme kısalır, yakın dövüş +%5.",
+   "desc": "Kombo adımları arası bekleme kısalır, yakın dövüş +%2.5.",
    "branch": "taijutsu",
    "tier": 1,
    "cost": 1,
    "level": 3,
    "req": [],
    "fx": {
-    "melee": 0.05,
+    "melee": 0.025,
     "combo": 0.1
    },
    "need": {},
@@ -93,7 +93,7 @@
   "tai2": {
    "id": "tai2",
    "name": "Rüzgar Adım",
-   "desc": "Koşu hızı +%12.",
+   "desc": "Koşu hızı +%7.2.",
    "branch": "taijutsu",
    "tier": 2,
    "cost": 1,
@@ -102,7 +102,7 @@
     "tai1"
    ],
    "fx": {
-    "speed": 0.12
+    "speed": 0.072
    },
    "need": {},
    "unlock": [],
@@ -111,7 +111,7 @@
   "tai_govde": {
    "id": "tai_govde",
    "name": "Çelik Beden",
-   "desc": "Alınan hasar -%5, maks can +30.",
+   "desc": "Alınan hasar -%3.5, maks can +15.",
    "branch": "taijutsu",
    "tier": 2,
    "cost": 1,
@@ -120,8 +120,8 @@
     "tai1"
    ],
    "fx": {
-    "def": 0.05,
-    "hp": 30
+    "def": 0.035,
+    "hp": 15
    },
    "need": {},
    "unlock": [],
@@ -148,7 +148,7 @@
   "strong_fist": {
    "id": "strong_fist",
    "name": "Güçlü Yumruk Stili",
-   "desc": "Kemik kıran sert darbeler: yakın dövüş +%15, sersemletme gücü artar.",
+   "desc": "Kemik kıran sert darbeler: yakın dövüş +%7.5, sersemletme gücü artar.",
    "branch": "taijutsu",
    "tier": 3,
    "cost": 1,
@@ -158,7 +158,7 @@
     "tai_govde"
    ],
    "fx": {
-    "melee": 0.15
+    "melee": 0.075
    },
    "need": {},
    "unlock": [
@@ -169,7 +169,7 @@
   "gentle_fist": {
    "id": "gentle_fist",
    "name": "Yumuşak Yumruk Stili",
-   "desc": "Chakra noktalarına vuruş: darbeler chakra çalar, yakın dövüş +%10.",
+   "desc": "Chakra noktalarına vuruş: darbeler chakra çalar, yakın dövüş +%5.",
    "branch": "taijutsu",
    "tier": 3,
    "cost": 1,
@@ -178,7 +178,7 @@
     "tai_guard"
    ],
    "fx": {
-    "melee": 0.1
+    "melee": 0.05
    },
    "need": {
     "clan_any": [
@@ -194,7 +194,7 @@
   "tai_kombo2": {
    "id": "tai_kombo2",
    "name": "Uzun Kombo",
-   "desc": "Kombo hızlanır ve son vuruş daha uzağa fırlatır, +%10 yakın dövüş.",
+   "desc": "Kombo hızlanır ve son vuruş daha uzağa fırlatır, +%5 yakın dövüş.",
    "branch": "taijutsu",
    "tier": 3,
    "cost": 1,
@@ -203,7 +203,7 @@
     "tai_kombo1"
    ],
    "fx": {
-    "melee": 0.1,
+    "melee": 0.05,
     "combo": 0.15
    },
    "need": {},
@@ -213,7 +213,7 @@
   "tai4": {
    "id": "tai4",
    "name": "Usta Savaşçı",
-   "desc": "Yakın dövüş hasarı +%30.",
+   "desc": "Yakın dövüş hasarı +%15.",
    "branch": "taijutsu",
    "tier": 4,
    "cost": 2,
@@ -222,7 +222,7 @@
     "strong_fist"
    ],
    "fx": {
-    "melee": 0.3
+    "melee": 0.15
    },
    "need": {},
    "unlock": [],
@@ -261,7 +261,7 @@
    ],
    "fx": {
     "gates": 0.3,
-    "speed": 0.05
+    "speed": 0.03
    },
    "need": {},
    "unlock": [],
@@ -270,7 +270,7 @@
   "tai_lotus": {
    "id": "tai_lotus",
    "name": "Ön Lotus",
-   "desc": "Havaya fırlatılan düşmana yakın dövüş +%20.",
+   "desc": "Havaya fırlatılan düşmana yakın dövüş +%5.",
    "branch": "taijutsu",
    "tier": 5,
    "cost": 2,
@@ -279,7 +279,7 @@
     "tai4"
    ],
    "fx": {
-    "melee": 0.1
+    "melee": 0.05
    },
    "need": {},
    "unlock": [
@@ -290,7 +290,7 @@
   "tai_master": {
    "id": "tai_master",
    "name": "Taijutsu Efsanesi",
-   "desc": "Yakın dövüş +%35, koşu hızı +%8.",
+   "desc": "Yakın dövüş +%17.5, koşu hızı +%4.8.",
    "branch": "taijutsu",
    "tier": 6,
    "cost": 3,
@@ -299,8 +299,8 @@
     "tai_lotus"
    ],
    "fx": {
-    "melee": 0.35,
-    "speed": 0.08
+    "melee": 0.175,
+    "speed": 0.048
    },
    "need": {},
    "unlock": [],
@@ -325,7 +325,7 @@
   "nin2": {
    "id": "nin2",
    "name": "Geniş Chakra",
-   "desc": "Maks chakra +50.",
+   "desc": "Maks chakra +30.",
    "branch": "ninjutsu",
    "tier": 2,
    "cost": 1,
@@ -334,7 +334,7 @@
     "nin1"
    ],
    "fx": {
-    "chakra": 50
+    "chakra": 30
    },
    "need": {},
    "unlock": [],
@@ -436,7 +436,7 @@
   "nin4": {
    "id": "nin4",
    "name": "Jutsu Ustası",
-   "desc": "Jutsu hasarı +%30.",
+   "desc": "Jutsu hasarı +%18.",
    "branch": "ninjutsu",
    "tier": 4,
    "cost": 2,
@@ -445,7 +445,7 @@
     "nin3"
    ],
    "fx": {
-    "jutsu": 0.3
+    "jutsu": 0.18
    },
    "need": {},
    "unlock": [],
@@ -512,7 +512,7 @@
   "nin_rasen": {
    "id": "nin_rasen",
    "name": "Şekil Dönüşümü",
-   "desc": "Şekil ustalığı: tüm jutsular +%15, mühürsüz küre teknikleri.",
+   "desc": "Şekil ustalığı: tüm jutsular +%9, mühürsüz küre teknikleri.",
    "branch": "ninjutsu",
    "tier": 5,
    "cost": 2,
@@ -521,7 +521,7 @@
     "nin4"
    ],
    "fx": {
-    "jutsu": 0.15
+    "jutsu": 0.09
    },
    "need": {},
    "unlock": [
@@ -532,7 +532,7 @@
   "nin_chakra3": {
    "id": "nin_chakra3",
    "name": "Chakra Okyanusu",
-   "desc": "Maks chakra +150, yenilenme +%30.",
+   "desc": "Maks chakra +90, yenilenme +%30.",
    "branch": "ninjutsu",
    "tier": 6,
    "cost": 3,
@@ -541,7 +541,7 @@
     "nin_kontrol2"
    ],
    "fx": {
-    "chakra": 150,
+    "chakra": 90,
     "regen_chakra": 0.3
    },
    "need": {},
@@ -551,7 +551,7 @@
   "nin_master": {
    "id": "nin_master",
    "name": "Ninjutsu Efsanesi",
-   "desc": "Jutsu hasarı +%40.",
+   "desc": "Jutsu hasarı +%24.",
    "branch": "ninjutsu",
    "tier": 6,
    "cost": 3,
@@ -560,7 +560,7 @@
     "nin_rasen"
    ],
    "fx": {
-    "jutsu": 0.4
+    "jutsu": 0.24
    },
    "need": {},
    "unlock": [],
@@ -603,7 +603,7 @@
   "gen_guc1": {
    "id": "gen_guc1",
    "name": "Yanılsama Gücü",
-   "desc": "Genjutsu süresi ve hasarı +%20.",
+   "desc": "Genjutsu süresi ve hasarı +%12.",
    "branch": "genjutsu",
    "tier": 2,
    "cost": 1,
@@ -612,7 +612,7 @@
     "genjutsu"
    ],
    "fx": {
-    "gen_power": 0.2
+    "gen_power": 0.12
    },
    "need": {},
    "unlock": [],
@@ -639,7 +639,7 @@
   "gen_ses": {
    "id": "gen_ses",
    "name": "Ses Genjutsusu",
-   "desc": "Genjutsu alanı genişler, +%15 güç.",
+   "desc": "Genjutsu alanı genişler, +%9 güç.",
    "branch": "genjutsu",
    "tier": 3,
    "cost": 1,
@@ -648,7 +648,7 @@
     "gen_guc1"
    ],
    "fx": {
-    "gen_power": 0.15
+    "gen_power": 0.09
    },
    "need": {},
    "unlock": [],
@@ -677,7 +677,7 @@
   "gen_usta": {
    "id": "gen_usta",
    "name": "Yanılsamaların Efendisi",
-   "desc": "Genjutsu gücü +%40, maliyeti -%15.",
+   "desc": "Genjutsu gücü +%24, maliyeti -%15.",
    "branch": "genjutsu",
    "tier": 4,
    "cost": 3,
@@ -687,7 +687,7 @@
     "gen_ayna"
    ],
    "fx": {
-    "gen_power": 0.4,
+    "gen_power": 0.24,
     "jutsu_cost": -0.05
    },
    "need": {},
@@ -697,14 +697,14 @@
   "buki_atis1": {
    "id": "buki_atis1",
    "name": "Keskin Nişan",
-   "desc": "Kunai/shuriken hasarı +%25.",
+   "desc": "Kunai/shuriken hasarı +%15.",
    "branch": "bukijutsu",
    "tier": 1,
    "cost": 1,
    "level": 2,
    "req": [],
    "fx": {
-    "throw_dmg": 0.25
+    "throw_dmg": 0.15
    },
    "need": {},
    "unlock": [],
@@ -730,7 +730,7 @@
   "buki_sword": {
    "id": "buki_sword",
    "name": "Kenjutsu",
-   "desc": "Kılıç hasarı +%20.",
+   "desc": "Kılıç hasarı +%12.",
    "branch": "bukijutsu",
    "tier": 2,
    "cost": 1,
@@ -739,7 +739,7 @@
     "buki_blade"
    ],
    "fx": {
-    "w_sword": 0.2
+    "w_sword": 0.12
    },
    "need": {},
    "unlock": [],
@@ -748,7 +748,7 @@
   "buki_heavy": {
    "id": "buki_heavy",
    "name": "Dev Silahlar",
-   "desc": "Ağır silah hasarı +%20.",
+   "desc": "Ağır silah hasarı +%12.",
    "branch": "bukijutsu",
    "tier": 2,
    "cost": 1,
@@ -757,7 +757,7 @@
     "buki_blade"
    ],
    "fx": {
-    "w_heavy": 0.2
+    "w_heavy": 0.12
    },
    "need": {},
    "unlock": [],
@@ -766,7 +766,7 @@
   "buki_staff": {
    "id": "buki_staff",
    "name": "Sopa ve Mızrak",
-   "desc": "Sopa/mızrak hasarı +%20.",
+   "desc": "Sopa/mızrak hasarı +%12.",
    "branch": "bukijutsu",
    "tier": 2,
    "cost": 1,
@@ -775,7 +775,7 @@
     "buki_blade"
    ],
    "fx": {
-    "w_staff": 0.2
+    "w_staff": 0.12
    },
    "need": {},
    "unlock": [],
@@ -784,7 +784,7 @@
   "buki_chain": {
    "id": "buki_chain",
    "name": "Zincir ve Orak",
-   "desc": "Kusarigama/orak hasarı +%20.",
+   "desc": "Kusarigama/orak hasarı +%12.",
    "branch": "bukijutsu",
    "tier": 2,
    "cost": 1,
@@ -793,8 +793,8 @@
     "buki_blade"
    ],
    "fx": {
-    "w_chain": 0.2,
-    "w_sickle": 0.2
+    "w_chain": 0.12,
+    "w_sickle": 0.12
    },
    "need": {},
    "unlock": [],
@@ -803,7 +803,7 @@
   "buki_tel": {
    "id": "buki_tel",
    "name": "Tel Ustalığı",
-   "desc": "Kunai atışları hedefi bağlar, atış +%15.",
+   "desc": "Kunai atışları hedefi bağlar, atış +%9.",
    "branch": "bukijutsu",
    "tier": 3,
    "cost": 1,
@@ -812,7 +812,7 @@
     "buki_atis1"
    ],
    "fx": {
-    "throw_dmg": 0.15
+    "throw_dmg": 0.09
    },
    "need": {},
    "unlock": [
@@ -842,7 +842,7 @@
   "buki_kanal": {
    "id": "buki_kanal",
    "name": "Chakra Akıtma",
-   "desc": "Silahlarına chakra akıt: tüm silahlar +%15.",
+   "desc": "Silahlarına chakra akıt: tüm silahlar +%9.",
    "branch": "bukijutsu",
    "tier": 4,
    "cost": 2,
@@ -851,7 +851,7 @@
     "buki_sword"
    ],
    "fx": {
-    "w_all": 0.15
+    "w_all": 0.09
    },
    "need": {},
    "unlock": [],
@@ -860,7 +860,7 @@
   "buki_yagmur": {
    "id": "buki_yagmur",
    "name": "Silah Yağmuru",
-   "desc": "Atış hasarı +%30, tek seferde çok atış.",
+   "desc": "Atış hasarı +%18, tek seferde çok atış.",
    "branch": "bukijutsu",
    "tier": 4,
    "cost": 2,
@@ -869,7 +869,7 @@
     "buki_tel"
    ],
    "fx": {
-    "throw_dmg": 0.3
+    "throw_dmg": 0.18
    },
    "need": {},
    "unlock": [
@@ -880,7 +880,7 @@
   "buki_master": {
    "id": "buki_master",
    "name": "Silah Efendisi",
-   "desc": "Tüm silahlar +%30.",
+   "desc": "Tüm silahlar +%18.",
    "branch": "bukijutsu",
    "tier": 5,
    "cost": 3,
@@ -889,7 +889,7 @@
     "buki_kanal"
    ],
    "fx": {
-    "w_all": 0.3
+    "w_all": 0.18
    },
    "need": {},
    "unlock": [],
@@ -898,14 +898,14 @@
   "fuin1": {
    "id": "fuin1",
    "name": "Mühür Temelleri",
-   "desc": "Patlayıcı mühür hasarı +%20, mühür parşömenleri ucuzlar.",
+   "desc": "Patlayıcı mühür hasarı +%12, mühür parşömenleri ucuzlar.",
    "branch": "fuinjutsu",
    "tier": 1,
    "cost": 1,
    "level": 8,
    "req": [],
    "fx": {
-    "tag_dmg": 0.2,
+    "tag_dmg": 0.12,
     "shop": -0.03
    },
    "need": {},
@@ -935,7 +935,7 @@
   "fuin_bariyer": {
    "id": "fuin_bariyer",
    "name": "Bariyer Mühürü",
-   "desc": "Kısa süreli koruyucu bariyer, savunma +%5.",
+   "desc": "Kısa süreli koruyucu bariyer, savunma +%3.5.",
    "branch": "fuinjutsu",
    "tier": 2,
    "cost": 1,
@@ -944,7 +944,7 @@
     "fuin1"
    ],
    "fx": {
-    "def": 0.05
+    "def": 0.035
    },
    "need": {},
    "unlock": [
@@ -955,7 +955,7 @@
   "fuin_tuzak": {
    "id": "fuin_tuzak",
    "name": "Mühür Tuzakları",
-   "desc": "Tuzak hasarı +%30.",
+   "desc": "Tuzak hasarı +%18.",
    "branch": "fuinjutsu",
    "tier": 3,
    "cost": 1,
@@ -964,7 +964,7 @@
     "fuin1"
    ],
    "fx": {
-    "tag_dmg": 0.3
+    "tag_dmg": 0.18
    },
    "need": {},
    "unlock": [],
@@ -991,7 +991,7 @@
   "fuin_master": {
    "id": "fuin_master",
    "name": "Mühür Ustası",
-   "desc": "Mühür jutsuları +%40, savunma +%5.",
+   "desc": "Mühür jutsuları +%40, savunma +%3.5.",
    "branch": "fuinjutsu",
    "tier": 5,
    "cost": 3,
@@ -1002,7 +1002,7 @@
    ],
    "fx": {
     "fuin": 0.4,
-    "def": 0.05
+    "def": 0.035
    },
    "need": {},
    "unlock": [],
@@ -1011,14 +1011,14 @@
   "med1": {
    "id": "med1",
    "name": "İlk Yardım",
-   "desc": "Merhem ve iyileştirme +%25.",
+   "desc": "Merhem ve iyileştirme +%17.5.",
    "branch": "iryo",
    "tier": 1,
    "cost": 1,
    "level": 4,
    "req": [],
    "fx": {
-    "heal": 0.25
+    "heal": 0.175
    },
    "need": {},
    "unlock": [],
@@ -1027,14 +1027,14 @@
   "vit1": {
    "id": "vit1",
    "name": "Dayanıklılık",
-   "desc": "Maks can +40.",
+   "desc": "Maks can +20.",
    "branch": "iryo",
    "tier": 1,
    "cost": 1,
    "level": 1,
    "req": [],
    "fx": {
-    "hp": 40
+    "hp": 20
    },
    "need": {},
    "unlock": [],
@@ -1079,7 +1079,7 @@
   "med_can": {
    "id": "med_can",
    "name": "Hücre Yenileme",
-   "desc": "Can yenilenmesi x2, iyileştirme +%15.",
+   "desc": "Can yenilenmesi x2, iyileştirme +%10.5.",
    "branch": "iryo",
    "tier": 3,
    "cost": 1,
@@ -1090,7 +1090,7 @@
    ],
    "fx": {
     "regen_hp": 1.0,
-    "heal": 0.15
+    "heal": 0.105
    },
    "need": {},
    "unlock": [],
@@ -1099,7 +1099,7 @@
   "scalpel": {
    "id": "scalpel",
    "name": "Chakra Neşteri",
-   "desc": "Elinde chakra bıçağı: yakın dövüş +%10, kesikler zırhı deler.",
+   "desc": "Elinde chakra bıçağı: yakın dövüş +%5, kesikler zırhı deler.",
    "branch": "iryo",
    "tier": 3,
    "cost": 2,
@@ -1108,7 +1108,7 @@
     "med_zehir"
    ],
    "fx": {
-    "melee": 0.1
+    "melee": 0.05
    },
    "need": {},
    "unlock": [
@@ -1119,7 +1119,7 @@
   "med_ust": {
    "id": "med_ust",
    "name": "Usta Tıbbi Ninja",
-   "desc": "İyileştirme +%40, maks can +60.",
+   "desc": "İyileştirme +%28, maks can +30.",
    "branch": "iryo",
    "tier": 4,
    "cost": 2,
@@ -1128,8 +1128,8 @@
     "med_can"
    ],
    "fx": {
-    "heal": 0.4,
-    "hp": 60
+    "heal": 0.28,
+    "hp": 30
    },
    "need": {},
    "unlock": [],
@@ -1148,7 +1148,7 @@
    ],
    "fx": {
     "regen_hp": 2.0,
-    "chakra": 50
+    "chakra": 30
    },
    "need": {},
    "unlock": [
@@ -1175,7 +1175,7 @@
   "sum2": {
    "id": "sum2",
    "name": "Güçlü Çağrılar",
-   "desc": "Çağrıların hasarı ve canı +%25.",
+   "desc": "Çağrıların hasarı ve canı +%17.5.",
    "branch": "senjutsu",
    "tier": 2,
    "cost": 1,
@@ -1184,7 +1184,7 @@
     "sum1"
    ],
    "fx": {
-    "summon_power": 0.25
+    "summon_power": 0.175
    },
    "need": {},
    "unlock": [],
@@ -1193,7 +1193,7 @@
   "sum3": {
    "id": "sum3",
    "name": "Kardeşlik Bağı",
-   "desc": "Çağrılar daha uzun kalır, maliyet -%15.",
+   "desc": "Çağrılar daha uzun kalır, maliyet -%10.5.",
    "branch": "senjutsu",
    "tier": 3,
    "cost": 1,
@@ -1203,7 +1203,7 @@
    ],
    "fx": {
     "summon_cost": -0.15,
-    "summon_power": 0.15
+    "summon_power": 0.105
    },
    "need": {},
    "unlock": [],
@@ -1404,7 +1404,7 @@
   "shi_hiz": {
    "id": "shi_hiz",
    "name": "Shunshin Ayakları",
-   "desc": "Koşu hızı +%10.",
+   "desc": "Koşu hızı +%6.",
    "branch": "shinobi",
    "tier": 3,
    "cost": 1,
@@ -1413,7 +1413,7 @@
     "shi_parkur1"
    ],
    "fx": {
-    "speed": 0.1
+    "speed": 0.06
    },
    "need": {},
    "unlock": [],
@@ -1461,7 +1461,7 @@
   "shi_master": {
    "id": "shi_master",
    "name": "Gölge Ninja",
-   "desc": "Hız +%12, Ctrl sıçrayış +%20, havada atılma +1.",
+   "desc": "Hız +%7.2, Ctrl sıçrayış +%20, havada atılma +1.",
    "branch": "shinobi",
    "tier": 5,
    "cost": 3,
@@ -1471,7 +1471,7 @@
     "shi_leap2"
    ],
    "fx": {
-    "speed": 0.12,
+    "speed": 0.072,
     "leap": 0.2,
     "air_dash": 1
    },
@@ -1482,14 +1482,14 @@
   "sur_can1": {
    "id": "sur_can1",
    "name": "Sağlam Bünye",
-   "desc": "Maks can +50.",
+   "desc": "Maks can +25.",
    "branch": "yasam",
    "tier": 1,
    "cost": 1,
    "level": 3,
    "req": [],
    "fx": {
-    "hp": 50
+    "hp": 25
    },
    "need": {},
    "unlock": [],
@@ -1498,14 +1498,14 @@
   "sur_chakra1": {
    "id": "sur_chakra1",
    "name": "Derin Nefes",
-   "desc": "Maks chakra +40.",
+   "desc": "Maks chakra +24.",
    "branch": "yasam",
    "tier": 1,
    "cost": 1,
    "level": 3,
    "req": [],
    "fx": {
-    "chakra": 40
+    "chakra": 24
    },
    "need": {},
    "unlock": [],
@@ -1566,7 +1566,7 @@
   "sur_can2": {
    "id": "sur_can2",
    "name": "Demir İrade",
-   "desc": "Maks can +100, alınan hasar -%5.",
+   "desc": "Maks can +50, alınan hasar -%3.5.",
    "branch": "yasam",
    "tier": 3,
    "cost": 2,
@@ -1575,8 +1575,8 @@
     "sur_can1"
    ],
    "fx": {
-    "hp": 100,
-    "def": 0.05
+    "hp": 50,
+    "def": 0.035
    },
    "need": {},
    "unlock": [],
@@ -1621,7 +1621,7 @@
   "sur_can3": {
    "id": "sur_can3",
    "name": "Ölümsüz Ruh",
-   "desc": "Maks can +200, chakra +100.",
+   "desc": "Maks can +60, chakra +100.",
    "branch": "yasam",
    "tier": 4,
    "cost": 3,
@@ -1630,8 +1630,8 @@
     "sur_can2"
    ],
    "fx": {
-    "hp": 200,
-    "chakra": 100
+    "hp": 100,
+    "chakra": 60
    },
    "need": {},
    "unlock": [],
@@ -1640,7 +1640,7 @@
   "sur_dayan": {
    "id": "sur_dayan",
    "name": "Savaş Gazisi",
-   "desc": "Alınan hasar -%10, can yenilenmesi +%50.",
+   "desc": "Alınan hasar -%7, can yenilenmesi +%50.",
    "branch": "yasam",
    "tier": 5,
    "cost": 3,
@@ -1649,7 +1649,7 @@
     "sur_can3"
    ],
    "fx": {
-    "def": 0.1,
+    "def": 0.07,
     "regen_hp": 0.5
    },
    "need": {},
@@ -1697,7 +1697,7 @@
   "doj_guc": {
    "id": "doj_guc",
    "name": "Göz Gücü",
-   "desc": "Göz teknikleri +%25 güçlü.",
+   "desc": "Göz teknikleri +%15 güçlü.",
    "branch": "dojutsu",
    "tier": 2,
    "cost": 1,
@@ -1706,7 +1706,7 @@
     "doj1"
    ],
    "fx": {
-    "eye_power": 0.25
+    "eye_power": 0.15
    },
    "need": {
     "eye": true
@@ -1737,7 +1737,7 @@
   "doj_genjutsu": {
    "id": "doj_genjutsu",
    "name": "Gözle Genjutsu",
-   "desc": "Bakışla genjutsu: genjutsu gücü +%30.",
+   "desc": "Bakışla genjutsu: genjutsu gücü +%18.",
    "branch": "dojutsu",
    "tier": 3,
    "cost": 2,
@@ -1746,7 +1746,7 @@
     "doj_oku"
    ],
    "fx": {
-    "gen_power": 0.3
+    "gen_power": 0.18
    },
    "need": {
     "eye": true
@@ -1757,7 +1757,7 @@
   "doj_master": {
    "id": "doj_master",
    "name": "Göz Efendisi",
-   "desc": "Göz teknikleri +%40, bekleme süreleri -%25.",
+   "desc": "Göz teknikleri +%24, bekleme süreleri -%25.",
    "branch": "dojutsu",
    "tier": 4,
    "cost": 3,
@@ -1767,7 +1767,7 @@
     "doj_genjutsu"
    ],
    "fx": {
-    "eye_power": 0.4,
+    "eye_power": 0.24,
     "eye_cd": -0.25
    },
    "need": {
@@ -1851,7 +1851,7 @@
   "lid_kage": {
    "id": "lid_kage",
    "name": "Ateşin İradesi",
-   "desc": "Kage adaylığı: tüm hasar +%10, müttefikler +%20.",
+   "desc": "Kage adaylığı: tüm hasar +%6, müttefikler +%20.",
    "branch": "liderlik",
    "tier": 4,
    "cost": 3,
@@ -1861,8 +1861,8 @@
     "lid_diplomat"
    ],
    "fx": {
-    "melee": 0.1,
-    "jutsu": 0.1,
+    "melee": 0.05,
+    "jutsu": 0.06,
     "squad": 0.2
    },
    "need": {},

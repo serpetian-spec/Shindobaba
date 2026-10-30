@@ -1010,7 +1010,7 @@ func _process(dt: float) -> void:
 		sn[2].text = ("%.1f" % cd) if cd > 0.0 else ""
 		sn[2].add_theme_color_override("font_color", Color(1, 1, 1))
 		var el = String(j.get("element", ""))
-		var mx = maxf(float(j.get("cd", 5)), cd)
+		var mx = maxf(Combat.jutsu_cd(j), cd)
 		if st["empty"] or st["el"] != el or absf(st["cd"] - cd) > 0.001 or st["ok"] != ok or st["max"] != mx:
 			st["empty"] = false; st["el"] = el; st["cd"] = cd; st["ok"] = ok; st["max"] = mx
 			sn[0].queue_redraw()

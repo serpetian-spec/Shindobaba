@@ -152,10 +152,10 @@ static func max_chakra(p: Dictionary) -> float:
 
 
 static func melee_mult(p: Dictionary) -> float:
-	var m = 1.0 + (int(p.get("level", 1)) - 1) * 0.04
+	var m = 1.0 + (int(p.get("level", 1)) - 1) * 0.03
 	m += skill(p, "melee")
 	m += clan_bonus(p, "melee")
-	m *= Buffs.mod("melee") * (1.0 + Gear.stat(p, "melee"))
+	m *= Buffs.mod("melee") * (1.0 + Gear.stat(p, "melee") * 0.6)
 	return m
 
 

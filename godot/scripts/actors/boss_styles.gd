@@ -20,7 +20,15 @@ const RANK_SKILL := {"D": 0.15, "C": 0.35, "B": 0.55, "A": 0.75, "S": 0.92}
 
 ## Görev/Bingo boss tanımına tarz ve ustalık ver. seed: aynı görev hep aynı tarzı seçsin
 static func dress(a: Dictionary, rank: String, seed_v: int, style := "") -> void:
+	# kalıp tarzlar (çağırıcı/kuklacı/patlatıcı...) kaldırıldı: herkes kendi jutsularıyla dövüşür,
+	# rütbe yalnız dövüş ustalığını (blok, kaçınma, kombo, kawarimi) belirler
+	a.erase("style")
+	a["skill"] = clampf(float(RANK_SKILL.get(rank, 0.5)), 0.1, 0.98)
+	return
 	var keys = STYLES.keys()
+	# element jutsusu atan biri birden kuklacı/çağırıcı/patlatıcı olmasın: kimliğini değiştirmeyen tarzlar
+	if String(a.get("element", "")) != "" and not (a.get("jutsu", []) as Array).is_empty():
+		keys = ["kenjutsu", "genjutsu", "taijutsu", "fuin"]
 	if style == "" or not STYLES.has(style):
 		style = keys[absi(seed_v) % keys.size()]
 	var st: Dictionary = STYLES[style]

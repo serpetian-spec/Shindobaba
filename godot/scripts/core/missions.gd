@@ -761,21 +761,20 @@ func _begin_step() -> void:
 				c = npcs[s["at_npc"]].global_position
 				npcs[s["at_npc"]].queue_free()
 				npcs.erase(s["at_npc"])
-			target_marker = c
 			if s.get("camp", false):
-				step_nodes.append(_camp(c))
-			var n = int(s["n"])
-			var boss: Dictionary = s.get("boss", {})
-			# 1v1 ağırlıklı: kalabalık yerine tek güçlü ninja (boss varsa yalnız o, adamlarının gücü ona eklenir)
+				# yerleşke: düşman tipine ve göreve göre (haydut kampı, kale, karakol, mağara sığınağı, deney ini);
+				# yoldan uzak, ormanın/kayalığın içinde
+				c = _lair_site(c)
+				s["at"] = [Game.to_map(c).x, Game.to_map(c).y]
+				st["lair"] = _lair_kind(s)
+				step_nodes.append(_camp(c, String(st["lair"])))
+			target_marker = c
+			s["n0"] = int(s.get("n0", s["n"]))
 			var es = []
-			if not boss.is_empty():
-				var b2 = boss.duplicate()
-				b2["hp"] = float(b2.get("hp", 600.0)) * (1.0 + 0.25 * maxi(0, n - 1))
-				b2["power"] = float(b2.get("power", 2.0)) * (1.0 + 0.05 * maxi(0, n - 1))
-				es.append(_spawn_boss(b2, s["enemy"], c))
+			if String(st.get("lair", "")) in ["cave", "lab"]:
+				s["n"] = 1   # düşman içeride: mağaraya girince karşına çıkar
 			else:
-				es = _spawn(s["enemy"], c, n, 14.0, s.get("ename", ""))
-			s["n"] = es.size()
+				es = _spawn_kill(s, c)
 			if s.has("hostage"):
 				var hp = c + Vector3(3, 0, 3)
 				var h = _make_npc(s["hostage"], hp)
@@ -1075,13 +1074,100 @@ func _path(a: Vector3, b: Vector3, step: float) -> Array:
 
 
 ## Basit haydut kampı: çadırlar, kamp ateşi, sandıklar, kazık çit
-func _camp(c: Vector3) -> Node3D:
+## Kill adımının düşmanları: 1v1 ağırlıklı (boss varsa yalnız o, adamlarının gücü ona eklenir)
+func _spawn_kill(s: Dictionary, c: Vector3) -> Array:
+	var n = int(s.get("n0", s["n"]))
+	var boss: Dictionary = s.get("boss", {})
+	var es = []
+	if not boss.is_empty():
+		var b2 = boss.duplicate()
+		b2["hp"] = float(b2.get("hp", 600.0)) * (1.0 + 0.25 * maxi(0, n - 1))
+		b2["power"] = float(b2.get("power", 2.0)) * (1.0 + 0.05 * maxi(0, n - 1))
+		es.append(_spawn_boss(b2, s["enemy"], c))
+	else:
+		es = _spawn(s["enemy"], c, n, 14.0, s.get("ename", ""))
+	s["n"] = es.size()
+	return es
+
+
+## Yerleşke türü: kim, ne iş yapıyor
+func _lair_kind(s: Dictionary) -> String:
+	var m = active()
+	var txt = (String(m.get("title", "")) + " " + String(m.get("brief", "")) + " " + String(s.get("text", ""))).to_lower()
+	var e = String(s.get("enemy", ""))
+	for w in ["deney", "laboratuvar", "kaçır", " in", "inini", "ses ninja", "zehir", "panzehir"]:
+		if w in txt:
+			return "lab"
+	if e == "oto":
+		return "lab"
+	if e == "samurai" or "kale" in txt or "paralı" in txt:
+		return "fort"
+	if e in ["kiri", "kumo", "iwa", "suna", "konoha"]:
+		return "outpost"
+	if e == "bandit" or "haydut" in txt or "kervan" in txt:
+		return "bandit"
+	return "cave"
+
+
+## Orman açıklığı: bitki örtüsünün "açıklık" gürültüsü düşükse ağaç çıkmaz (vegetation.gd ile aynı formül)
+static func glade(x: float, z: float) -> bool:
+	for o in [Vector2.ZERO, Vector2(16, 0), Vector2(-16, 0), Vector2(0, 16), Vector2(0, -16)]:
+		var cl = Game._wh_vn((x + o.x) / 260.0, (z + o.y) / 260.0, 11) * 0.6 + Game._wh_vn((x + o.x) / 130.0, (z + o.y) / 130.0, 12) * 0.4
+		if cl > 0.3:
+			return false
+	return true
+
+
+## Yoldan uzak (en az 70 m), köy dışında, karada, tercihen orman açıklığında bir nokta; bulunamazsa olduğu yer
+func _lair_site(c: Vector3) -> Vector3:
+	var fallback = c
+	var have_fb = Game.road_dist(c.x, c.z) > 70.0
+	if have_fb and glade(c.x, c.z):
+		return c
+	for i in 120:
+		var a = randf() * TAU
+		var q = c + Vector3(cos(a), 0, sin(a)) * randf_range(40.0, 260.0)
+		var m = Game.to_map(q)
+		if Game.road_dist(q.x, q.z) < 70.0 or Game.terrain_height(m.x, -m.y) < 0.8 or Game.in_village_wall(m.x, -m.y):
+			continue
+		q.y = Game.ground_height(q.x, q.z)
+		if glade(q.x, q.z):
+			return q
+		if not have_fb:
+			fallback = q
+			have_fb = true
+	return fallback
+
+
+func _camp(c: Vector3, kind := "bandit") -> Node3D:
+	match kind:
+		"fort":
+			return _lair_fort(c)
+		"outpost":
+			return _lair_outpost(c)
+		"cave", "lab":
+			return _lair_mouth(c, kind == "lab")
 	var root = Node3D.new()
 	get_tree().current_scene.add_child(root)
 	root.global_position = c
 	var b = MB.new()
 	var rng = RandomNumberGenerator.new()
 	rng.seed = int(c.x * 7 + c.z * 13)
+	# haydut kampı: çalıntı mal, at arabası, kurutulan av, devrilmiş fıçılar
+	for i in 3:
+		var a = rng.randf() * TAU
+		var p = Vector3(cos(a), 0, sin(a)) * rng.randf_range(4, 7)
+		p.y = Game.ground_height(c.x + p.x, c.z + p.z) - c.y
+		b.add("cyl", p + Vector3(0, 0.5, 0), Vector3(0.8, 1.0, 0.8), Color(0.5, 0.36, 0.22), Vector3(0 if i else 90, 0, 0), 8)
+	var wg = Vector3(-6, 0, 6)
+	wg.y = Game.ground_height(c.x + wg.x, c.z + wg.z) - c.y
+	b.add("box", wg + Vector3(0, 0.9, 0), Vector3(2.6, 0.5, 1.5), Color(0.45, 0.32, 0.2), Vector3(0, 30, 0))
+	b.add("box", wg + Vector3(0, 1.4, 0), Vector3(2.0, 0.6, 1.2), Color(0.62, 0.55, 0.42), Vector3(0, 30, 0))
+	for k in 4:
+		b.add("cyl", wg + Vector3((k % 2 - 0.5) * 2.0, 0.45, (k / 2 - 0.5) * 1.6).rotated(Vector3.UP, deg_to_rad(30)), Vector3(0.9, 0.12, 0.9), Color(0.3, 0.22, 0.14), Vector3(90, 30, 0), 10)
+	for k in 3:
+		b.add("box", Vector3(5 + k * 0.6, 1.6, -5), Vector3(0.08, 1.2, 0.08), Color(0.4, 0.3, 0.2))
+		b.add("box", Vector3(5 + k * 0.6, 1.0, -5), Vector3(0.4, 0.6, 0.15), Color(0.55, 0.3, 0.25))
 	for i in 4:
 		var a = TAU * i / 4.0 + 0.4
 		var p = Vector3(cos(a), 0, sin(a)) * 9.0
@@ -1112,6 +1198,183 @@ func _camp(c: Vector3) -> Node3D:
 	l.position = Vector3(0, 1.2, 0)
 	root.add_child(l)
 	return root
+
+
+## Kale (samuray / paralı asker): kare ahşap çit, kapı, iki gözetleme kulesi, ortada salon, sancaklar
+func _lair_fort(c: Vector3) -> Node3D:
+	var root = Node3D.new()
+	get_tree().current_scene.add_child(root)
+	root.global_position = c
+	var b = MB.new()
+	var body = StaticBody3D.new()
+	root.add_child(body)
+	var wood = Color(0.42, 0.3, 0.19)
+	var R = 16.0
+	for side in 4:
+		var rot = side * 90.0
+		for k in 17:
+			var t = -R + k * 2.0
+			if side == 0 and absf(t) < 3.0:
+				continue   # kapı
+			var p = Vector3(t, 0, R).rotated(Vector3.UP, deg_to_rad(rot))
+			p.y = Game.ground_height(c.x + p.x, c.z + p.z) - c.y
+			b.add("cyl", p + Vector3(0, 1.8, 0), Vector3(0.45, 3.6, 0.45), wood.darkened(0.1 * (k % 2)), Vector3.ZERO, 6)
+			b.add("cone", p + Vector3(0, 3.8, 0), Vector3(0.45, 0.5, 0.45), wood, Vector3.ZERO, 6)
+		var wc = CollisionShape3D.new()
+		var sh = BoxShape3D.new()
+		sh.size = Vector3(R * 2.0, 4.0, 0.6)
+		wc.shape = sh
+		wc.position = Vector3(0, 2.0, R).rotated(Vector3.UP, deg_to_rad(rot))
+		wc.rotation.y = deg_to_rad(rot)
+		if side != 0:
+			body.add_child(wc)
+	for sx in [-1.0, 1.0]:
+		var tp = Vector3(sx * 4.5, 0, R - 1.0)
+		tp.y = Game.ground_height(c.x + tp.x, c.z + tp.z) - c.y
+		for q in 4:
+			b.add("cyl", tp + Vector3((q % 2 - 0.5) * 2.0, 3.0, (q / 2 - 0.5) * 2.0), Vector3(0.3, 6.0, 0.3), wood, Vector3.ZERO, 6)
+		b.add("box", tp + Vector3(0, 5.2, 0), Vector3(2.8, 0.25, 2.8), wood)
+		b.add("prism", tp + Vector3(0, 6.6, 0), Vector3(3.2, 1.2, 3.2), Color(0.3, 0.2, 0.15))
+		b.add("box", tp + Vector3(0, 4.0, 1.5), Vector3(0.05, 1.6, 0.9), Color(0.75, 0.12, 0.1))
+	var hp = Vector3(0, Game.ground_height(c.x, c.z - 6) - c.y, -6)
+	b.add("box", hp + Vector3(0, 0.3, 0), Vector3(10.5, 0.6, 7.5), Color(0.5, 0.48, 0.45))
+	b.add("box", hp + Vector3(0, 2.1, 0), Vector3(9.5, 3.0, 6.5), Color(0.82, 0.76, 0.62))
+	b.add("prism", hp + Vector3(0, 4.6, 0), Vector3(11.5, 2.2, 8.5), Color(0.22, 0.2, 0.22))
+	var hc = CollisionShape3D.new()
+	var hs = BoxShape3D.new()
+	hs.size = Vector3(9.5, 4.0, 6.5)
+	hc.shape = hs
+	hc.position = hp + Vector3(0, 2.0, 0)
+	body.add_child(hc)
+	for k in 3:
+		b.add("box", Vector3(-6 + k * 6, 1.2, 3), Vector3(1.6, 0.9, 0.6), Color(0.35, 0.33, 0.32))   # zırh askısı / talim kuklası
+		b.add("sphere", Vector3(-6 + k * 6, 1.9, 3), Vector3(0.5, 0.5, 0.5), Color(0.6, 0.5, 0.35))
+	var mi = MeshInstance3D.new()
+	mi.mesh = b.build(Props.toon())
+	root.add_child(mi)
+	return root
+
+
+## Köy karakolu (Kiri/Kumo/Iwa/Suna öncüleri): alçak taş sur, köy renginde sancaklar ve çadırlar, gözetleme platformu
+func _lair_outpost(c: Vector3) -> Node3D:
+	var root = Node3D.new()
+	get_tree().current_scene.add_child(root)
+	root.global_position = c
+	var b = MB.new()
+	var stone = Color(0.55, 0.53, 0.5)
+	var col = Color(0.3, 0.45, 0.75)
+	for i in 22:
+		var a = TAU * i / 22.0
+		if i % 11 == 0:
+			continue
+		var p = Vector3(cos(a), 0, sin(a)) * 14.0
+		p.y = Game.ground_height(c.x + p.x, c.z + p.z) - c.y
+		b.add("box", p + Vector3(0, 0.6, 0), Vector3(4.2, 1.2, 1.1), stone.darkened(0.08 * (i % 3)), Vector3(0, rad_to_deg(-a) + 90, 0))
+	for i in 3:
+		var a = TAU * i / 3.0 + 0.5
+		var p = Vector3(cos(a), 0, sin(a)) * 7.0
+		p.y = Game.ground_height(c.x + p.x, c.z + p.z) - c.y
+		b.add("prism", p + Vector3(0, 1.4, 0), Vector3(4.0, 2.8, 4.6), col.lerp(Color(0.85, 0.82, 0.75), 0.5), Vector3(0, rad_to_deg(-a), 0))
+		b.add("cyl", p + Vector3(2.8, 2.5, 0), Vector3(0.12, 5.0, 0.12), Color(0.35, 0.28, 0.2), Vector3.ZERO, 5)
+		b.add("box", p + Vector3(2.8, 4.1, 0.45), Vector3(0.05, 1.6, 0.9), col)
+	var tp = Vector3(0, Game.ground_height(c.x, c.z) - c.y, 0)
+	for q in 4:
+		b.add("cyl", tp + Vector3((q % 2 - 0.5) * 2.4, 2.0, (q / 2 - 0.5) * 2.4), Vector3(0.25, 4.0, 0.25), Color(0.4, 0.3, 0.2), Vector3.ZERO, 6)
+	b.add("box", tp + Vector3(0, 4.0, 0), Vector3(3.2, 0.2, 3.2), Color(0.42, 0.3, 0.19))
+	b.add("cone", tp + Vector3(0, 0.5, 4.5), Vector3(0.7, 1.0, 0.7), Color(1.0, 0.55, 0.15), Vector3.ZERO, 7)
+	var mi = MeshInstance3D.new()
+	mi.mesh = b.build(Props.toon())
+	root.add_child(mi)
+	return root
+
+
+## Mağara / in girişi: kaya yığını, karanlık ağız, iki meşale; [F] ile içeri (Interiors "lair_cave"/"lair_lab")
+func _lair_mouth(c: Vector3, lab: bool) -> Node3D:
+	var root = Node3D.new()
+	get_tree().current_scene.add_child(root)
+	root.global_position = c
+	var b = MB.new()
+	var rng = RandomNumberGenerator.new()
+	rng.seed = int(c.x * 3 + c.z * 5)
+	var rock = Color(0.42, 0.4, 0.38)
+	var fwd = Vector3(0, 0, 1)
+	b.add("sphere", Vector3(0, 2.0, -7.0), Vector3(16.0, 11.0, 14.0), rock, Vector3.ZERO, 12)
+	for i in 9:
+		var a = rng.randf_range(-2.4, 2.4)
+		var p = Vector3(sin(a) * rng.randf_range(6, 10), rng.randf_range(0.5, 3.5), -7.0 + cos(a) * rng.randf_range(4, 7))
+		b.add("sphere", p, Vector3.ONE * rng.randf_range(3.0, 6.5), rock.darkened(rng.randf() * 0.25), Vector3.ZERO, 8)
+	b.add("sphere", Vector3(0, 1.5, 0.15), Vector3(4.2, 3.6, 1.2), Color(0.04, 0.03, 0.03), Vector3.ZERO, 12)   # karanlık ağız (kaya yüzeyinin önünde)
+	b.add("box", Vector3(0, 3.5, 0.4), Vector3(5.0, 0.6, 1.0), rock.darkened(0.15))   # ağız üstü kaya lento
+	for sx in [-1.0, 1.0]:
+		b.add("cyl", Vector3(sx * 2.8, 1.1, 0.4), Vector3(0.12, 2.2, 0.12), Color(0.35, 0.25, 0.15), Vector3.ZERO, 5)
+		b.add("cone", Vector3(sx * 2.8, 2.4, 0.4), Vector3(0.35, 0.6, 0.35), Color(1.0, 0.55, 0.15) if not lab else Color(0.55, 1.0, 0.6), Vector3.ZERO, 6)
+	if lab:
+		for k in 3:   # yerde sürüklenme izleri, kırık kafes
+			b.add("box", Vector3(-1.5 + k * 1.5, 0.05, 2.5 + k), Vector3(0.25, 0.04, 2.0), Color(0.3, 0.2, 0.18))
+		b.add("box", Vector3(4.5, 0.8, 2.0), Vector3(1.6, 1.6, 1.6), Color(0.3, 0.28, 0.26))
+	var mi = MeshInstance3D.new()
+	mi.mesh = b.build(Props.toon())
+	root.add_child(mi)
+	var hv = Game.village(String(active().get("village", Progress.home())))
+	var face = Vector3(0, 0, 1)
+	if not hv.is_empty():
+		face = Game.from_map(Vector2(float(hv["x"]), float(hv["y"]))) - c
+		face.y = 0.0
+		face = face.normalized() if face.length() > 1.0 else Vector3(0, 0, 1)
+	root.rotation.y = atan2(face.x, face.z)
+	var body = StaticBody3D.new()
+	root.add_child(body)
+	var cs = CollisionShape3D.new()
+	var sh = SphereShape3D.new()
+	sh.radius = 6.5
+	cs.shape = sh
+	cs.position = Vector3(0, 1.5, -8.0)
+	body.add_child(cs)
+	var l = OmniLight3D.new()
+	l.light_color = Color(1, 0.6, 0.3) if not lab else Color(0.5, 1.0, 0.6)
+	l.light_energy = 1.4
+	l.omni_range = 8.0
+	l.position = Vector3(0, 2.0, 1.0)
+	root.add_child(l)
+	var door = {"pos": c + face * 0.6 + Vector3(0, 0.4, 0), "radius": 2.6, "kind": "enter", "label": "[F] %s" % ("İne gir" if lab else "Mağaraya gir"),
+		"room": "lair_lab" if lab else "lair_cave", "out": c + face * 3.0 + Vector3(0, 0.2, 0), "seed": int(c.x)}
+	Interact.add(door)
+	root.tree_exiting.connect(func(): Interact.items.erase(door))
+	return root
+
+
+## İç mekân ini kuruldu: bu adımın düşmanı (ya da daha önce doğmuş olan) odanın dibinde
+func lair_room(origin: Vector3) -> void:
+	var s = _cur()
+	if s.is_empty() or s.get("kind", "") != "kill" or not String(st.get("lair", "")) in ["cave", "lab"]:
+		return
+	var at = origin + Vector3(0, 0.1, -26.0)
+	var alive = step_nodes.filter(func(e): return is_instance_valid(e) and e is Enemy and not e.dead)
+	if st.get("lair_spawned", false):
+		for e in alive:
+			e.global_position = at + Vector3(randf_range(-3, 3), 0, 0)
+			e.home = e.global_position
+			e.wander_to = e.global_position
+		return
+	st["lair_spawned"] = true
+	var es = _spawn_kill(s, at)
+	for e in es:
+		e.global_position = at + Vector3(randf_range(-3, 3), 0, 0)
+		e.home = e.global_position
+		e.wander_to = e.global_position
+	target_marker = at
+
+
+## İnden çıkınca düşman peşinden dışarı gelir (havada asılı kalmasın)
+func lair_left(out: Vector3) -> void:
+	if not String(st.get("lair", "")) in ["cave", "lab"]:
+		return
+	for e in step_nodes:
+		if is_instance_valid(e) and e is Enemy and not e.dead:
+			e.global_position = open_ground(out + Vector3(randf_range(-4, 4), 0, randf_range(3, 6)), 12.0)
+			e.home = e.global_position
+			e.wander_to = e.global_position
+	target_marker = out
 
 
 func _quest_point(pos: Vector3, label: String, idx: int) -> void:
@@ -1544,6 +1807,8 @@ func _tick_kill_guard(dt: float, s: Dictionary) -> void:
 	st["kg"] = float(st.get("kg", 0.0)) - dt
 	if float(st["kg"]) > 0.0 or Game.player == null:
 		return
+	if String(st.get("lair", "")) in ["cave", "lab"]:
+		return   # iç mekân inleri: düşman mağarada (Interiors.lair_room)
 	st["kg"] = 1.5
 	var c = _w(s["at"])
 	var alive = []

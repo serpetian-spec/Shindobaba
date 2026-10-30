@@ -2030,7 +2030,7 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 	rv.add_child(top)
 	var stats = UI.hbox(22)
 	stats.add_child(UI.icon_label("chakra", "%d chakra" % int(PlayerCombat.jutsu_cost(j)), 15, Color(0.55, 0.78, 1.0)))
-	stats.add_child(UI.icon_label("hourglass", "%.1f sn" % float(j.get("cd", 5)), 15, UI.MUTED))
+	stats.add_child(UI.icon_label("hourglass", "%.1f sn" % Combat.jutsu_cd(j), 15, UI.MUTED))
 	rv.add_child(stats)
 	var seals: Array = j.get("seals", [])
 	if not seals.is_empty():
@@ -2144,7 +2144,7 @@ static func _jutsu_card(jid: String, selected: bool, cb: Callable) -> Button:
 
 " + fx.replace("  •  ", "
 ") if fx != "" else "") + "
-Chakra: %d   •   Bekleme: %.1f sn" % [int(PlayerCombat.jutsu_cost(j)), float(j.get("cd", 0.0))]
+Chakra: %d   •   Bekleme: %.1f sn" % [int(PlayerCombat.jutsu_cost(j)), Combat.jutsu_cd(j)]
 	b.pressed.connect(func():
 		Sfx.play("click")
 		cb.call())

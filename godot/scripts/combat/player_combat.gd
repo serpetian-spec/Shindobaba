@@ -5,11 +5,11 @@ extends Node
 ## E/orta tık: hedefe kilitlen | Kilitliyken Shift: chakra dash | 1-6: jutsu slotları
 
 const COMBO := [
-	{"anim": "jab", "speed": 1.5, "hit": 0.10, "dur": 0.32, "dmg": 6.0, "reach": 1.3, "lunge": 4.0, "knock": 2.0},
-	{"anim": "cross", "speed": 1.5, "hit": 0.12, "dur": 0.34, "dmg": 7.0, "reach": 1.3, "lunge": 4.0, "knock": 2.0},
-	{"anim": "hook", "speed": 1.6, "hit": 0.16, "dur": 0.4, "dmg": 8.0, "reach": 1.4, "lunge": 4.5, "knock": 3.0},
-	{"anim": "idle", "kick": true, "speed": 1.0, "hit": 0.14, "dur": 0.38, "dmg": 9.0, "reach": 1.7, "lunge": 5.0, "knock": 4.0},
-	{"anim": "slash_c", "speed": 1.4, "hit": 0.22, "dur": 0.6, "dmg": 15.0, "reach": 1.8, "lunge": 6.0, "knock": 16.0, "launch": 5.0, "heavy": true},
+	{"anim": "jab", "speed": 1.5, "hit": 0.10, "dur": 0.32, "dmg": 3.6, "reach": 1.3, "lunge": 4.0, "knock": 2.0},
+	{"anim": "cross", "speed": 1.5, "hit": 0.12, "dur": 0.34, "dmg": 4.2, "reach": 1.3, "lunge": 4.0, "knock": 2.0},
+	{"anim": "hook", "speed": 1.6, "hit": 0.16, "dur": 0.4, "dmg": 4.8, "reach": 1.4, "lunge": 4.5, "knock": 3.0},
+	{"anim": "idle", "kick": true, "speed": 1.0, "hit": 0.14, "dur": 0.38, "dmg": 5.4, "reach": 1.7, "lunge": 5.0, "knock": 4.0},
+	{"anim": "slash_c", "speed": 1.4, "hit": 0.22, "dur": 0.6, "dmg": 9.0, "reach": 1.8, "lunge": 6.0, "knock": 16.0, "launch": 5.0, "heavy": true},
 ]
 
 var p: Player
@@ -184,7 +184,7 @@ func _start_step() -> void:
 			VFX.puffs(o + dir * 4.0 + Vector3.UP, {"amount": 40, "life": 0.6, "size": 0.7, "radius": 1.2, "vmin": 10, "vmax": 18, "dir": dir, "spread": 18.0,
 				"colors": [Color(0.85, 1.0, 0.92, 0.7), Color(0.7, 0.95, 0.85, 0)]})
 			Sfx.play("wind", o, 1.1)
-			Combat.hit_zone(p, o, dir, 16.0, 18.0, 3.0, {"dmg": 12.0 * Stats.melee_mult(Game.profile), "knock": 14.0, "launch": 3.0, "kind": "heavy", "element": "fuuton", "hitstop": 0.04}))
+			Combat.hit_zone(p, o, dir, 16.0, 18.0, 3.0, {"dmg": 12.0 * Stats.melee_mult(Game.profile), "knock": 14.0, "launch": 3.0, "kind": "heavy", "element": "fuuton", "hitstop": 0.04, "melee": true}))
 	Sfx.play("whoosh", p.global_position, randf_range(0.9, 1.2), 0.6)
 
 
@@ -277,15 +277,17 @@ func _do_attack(dt: float) -> bool:
 			action = ""
 			p.model.overlay.set_pose("kick", 0.0)
 			FX.impact(p.global_position, Color(0.9, 0.8, 0.6), 0.6)
-			Combat.hit_sphere(p, p.global_position + Vector3.UP * 0.5, 2.2, {"dmg": 8.0 * Stats.melee_mult(Game.profile), "knock": 10.0, "launch": 4.0, "kind": "heavy"})
+			Combat.hit_sphere(p, p.global_position + Vector3.UP * 0.5, 2.2, {"dmg": 8.0 * Stats.melee_mult(Game.profile), "knock": 10.0, "launch": 4.0, "kind": "heavy", "melee": true})
 		return true
 	# hedefe atıl (homing)
 	if t < c["hit"]:
 		var lunge: float = c["lunge"]
 		if tgt:
 			var dist = tgt.global_position.distance_to(p.global_position) - tgt.radius - p.radius
-			if dist > c["reach"] * 0.8:
-				lunge = minf(18.0, dist / maxf(0.05, c["hit"] - t) * 0.9)
+			if dist > 5.0:
+				pass   # uzaktaki hedefe kayarak yaklaşmak yok (savaşta Shift'siz koşu gibi görünüyordu): normal adım
+			elif dist > c["reach"] * 0.8:
+				lunge = minf(9.0, dist / maxf(0.05, c["hit"] - t) * 0.9)
 			else:
 				lunge = 0.0
 		var v = p.face_dir() * lunge
@@ -347,7 +349,8 @@ func _combo(i: int) -> Dictionary:
 func _combo_base(i: int) -> Dictionary:
 	var c: Dictionary = COMBO[clampi(i, 0, COMBO.size() - 1)].duplicate()
 	var w = Gear.weapon(Game.profile)
-	c["dmg"] = float(c["dmg"]) * float(w["dmg"]) * (1.0 + Stats.weapon_bonus(Game.profile, String(w.get("style", "fist"))))
+	# silah hasarı sıkıştırılmış: en ağır silah bile yumruğun ~1.5 katı (jutsu anlamını korusun)
+	c["dmg"] = float(c["dmg"]) * (1.0 + (float(w["dmg"]) - 1.0) * 0.45) * (1.0 + Stats.weapon_bonus(Game.profile, String(w.get("style", "fist"))) * 0.6)
 	c["reach"] = float(c["reach"]) + float(w["reach"])
 	var st: Dictionary = STYLE_COMBOS.get(w["style"], {})
 	if st.is_empty():
@@ -503,7 +506,7 @@ func _hit_info(c: Dictionary) -> Dictionary:
 
 func _hit_info_base(c: Dictionary) -> Dictionary:
 	return {
-		"dmg": c["dmg"] * Stats.melee_mult(Game.profile), "knock": c.get("knock", 2.0), "launch": c.get("launch", 0.0),
+		"dmg": c["dmg"] * Stats.melee_mult(Game.profile), "knock": c.get("knock", 2.0), "launch": c.get("launch", 0.0), "melee": true,
 		"kind": "heavy" if c.get("heavy", false) else "light", "hitstop": 0.09 if c.get("heavy", false) else 0.04,
 		"dir": p.face_dir(),
 	}
@@ -695,7 +698,7 @@ func begin_cast(jid: String) -> void:
 		Hud.msg("Yeterli chakra yok! [C] ile chakra topla", Color(0.5, 0.8, 1))
 		return
 	p.chakra -= cost
-	cooldowns[jid] = float(j.get("cd", 5))
+	cooldowns[jid] = Combat.jutsu_cd(j)
 	var tier = int(j.get("tier", 2))
 	cast_jutsu = jid
 	action = "cast"
@@ -737,27 +740,51 @@ func take_hit(info: Dictionary) -> void:
 	if modes and modes.on_player_hit(info):
 		return
 	var atk: Node3D = info.get("attacker")
-	var dmg: float = info.get("dmg", 5.0)
+	var dmg: float = info.get("dmg", 5.0) * Combat.jutsu_factor(info)
 	dmg *= Combat.element_mult(info.get("element", ""), Game.profile.get("elements", [""])[0])
 	dmg *= Elements.on_hit(p, info)  # ıslak/yanık/donma etkileşimleri oyuncuya da işler
-	if action == "guard" and atk:
+	if action == "guard" and atk and is_instance_valid(atk):
 		var to_atk = (atk.global_position - p.global_position)
 		to_atk.y = 0
-		if to_atk.normalized().dot(p.face_dir()) > -0.2 or true:
-			if guard_t < 0.18:
-				# mükemmel blok
+		# yalnız önden (yandan/arkadan gelen darbe bloğu geçer)
+		if to_atk.length() < 0.3 or to_atk.normalized().dot(p.face_dir()) > 0.1:
+			var tier = int(info.get("tier", -1))
+			var gskill = clampf(Stats.skill(Game.profile, "guard"), 0.0, 0.8)
+			if guard_t < 0.18 and tier < 3:
+				# mükemmel blok (yakın dövüş ve küçük jutsu): saldıran sendeler
 				Combat.popup_text(p.global_position + Vector3.UP * 2.2, "MÜKEMMEL!", Color(0.6, 0.9, 1))
 				FX.ring(p.global_position + Vector3.UP, Color(0.6, 0.9, 1), 4.0, 0.3, false)
 				Sfx.play("block", p.global_position, 1.3)
-				if atk.has_method("stagger"):
+				if tier < 0 and atk.has_method("stagger"):
 					atk.stagger(1.0)
 				return
-			dmg *= 0.2 * (1.0 - clampf(Stats.skill(Game.profile, "guard"), 0.0, 0.8))
-			FX.hit_spark(p.global_position + Vector3.UP * 1.2 + p.face_dir() * 0.5, Color(0.6, 0.85, 1.0), 0.6)
-			Sfx.play("block", p.global_position)
-			p.velocity += info.get("dir", Vector3.ZERO) * 3.0
-			p.hp -= dmg
-			return
+			# jutsu bloğu deler: büyük jutsuda hasarın çoğu geçer, bloğu tutmak chakra yer
+			var pass_f = Combat.block_pass(info, 0.2) * (1.0 - gskill * (1.0 if tier < 0 else 0.4))
+			if guard_t < 0.18:
+				pass_f *= 0.6   # büyük jutsuya mükemmel zamanlama: biraz daha az
+			var blocked = dmg * (1.0 - pass_f)
+			dmg *= pass_f
+			var cost = blocked * (0.35 if tier >= 0 else 0.1)
+			if tier >= 4 or p.chakra < cost:
+				# blok kırıldı: kalan hasarla birlikte devrilir
+				p.chakra = maxf(0.0, p.chakra - cost)
+				action = ""
+				Combat.popup_text(p.global_position + Vector3.UP * 2.2, "BLOK KIRILDI!", Color(1.0, 0.6, 0.35))
+				Sfx.play("block", p.global_position, 0.7)
+				info = info.duplicate()
+				info["kind"] = "heavy"
+			else:
+				p.chakra -= cost
+				FX.hit_spark(p.global_position + Vector3.UP * 1.2 + p.face_dir() * 0.5, Color(0.6, 0.85, 1.0), 0.6)
+				Sfx.play("block", p.global_position)
+				p.velocity += info.get("dir", Vector3.ZERO) * (3.0 + maxi(0, tier) * 1.5)
+				p.hp -= dmg
+				if dmg >= 1.0:
+					Combat.damage_number(p.global_position + Vector3.UP * 2.0, dmg, Color(0.75, 0.8, 1.0))
+				if p.hp <= 0.0:
+					p.hp = 0.0
+					Progress.on_player_died()
+				return
 	p.hp -= dmg
 	last_hit_t = 0.0
 	p.model.flash(0.8)

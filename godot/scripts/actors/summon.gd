@@ -33,7 +33,7 @@ func _ready() -> void:
 	radius = clampf((length * 0.22 if long_body else h * 0.45), 0.25, 18.0)
 	height = h
 	if owner_f is Player:
-		max_hp = def.get("hp", 200.0) * (1.0 + float(Game.profile.get("level", 1)) * 0.02) * (1.0 + Stats.skill(Game.profile, "summon_power"))
+		max_hp = def.get("hp", 200.0) * (1.0 + float(Game.profile.get("level", 1)) * 0.03) * (1.0 + Stats.skill(Game.profile, "summon_power"))
 	else:
 		# düşman çağrısı: oyuncunun hasarıyla ölçeklenir (eskiden tanım canının tamamı + sahibin seviyesi: öldürülemiyordu)
 		var plv = float(Game.profile.get("level", 1))
@@ -147,6 +147,10 @@ func dismiss() -> void:
 
 func _physics_process(dt: float) -> void:
 	if Game.paused or dead:
+		return
+	if owner_f != null and not is_instance_valid(owner_f):
+		owner_f = null   # çağıran öldü/silindi: silinmiş nesneye erişme (release'te çökme), çağrılan da gider
+		dismiss()
 		return
 	life -= dt
 	cd -= dt
@@ -307,7 +311,8 @@ func _attack() -> void:
 	for sa in parts["root"].find_children("SnakeAnim*", "", true, false):   # yılan: ısırma atılışı
 		sa.bite()
 	# denge: çağrılar tek başına kuyruklu canavar kesiyordu — seviye çarpanı ve taban düşürüldü, dev hedeflere yarı hasar
-	var dmg: float = def.get("dmg", 20.0) * 0.6 * (1.0 + float(Game.profile.get("level", 1)) * 0.012) * (1.0 + Stats.skill(Game.profile, "summon_power") + Stats.skill(Game.profile, "squad"))
+	# çağrılan, oyuncunun jutsu gücüyle yarı oranda büyür (yüksek seviyede işe yaramaz kalmasın, tek başına da savaşı bitirmesin)
+	var dmg: float = def.get("dmg", 20.0) * 0.5 * (1.0 + float(Game.profile.get("level", 1)) * 0.025) * (1.0 + Stats.skill(Game.profile, "summon_power") + Stats.skill(Game.profile, "squad"))
 	if tgt != null and is_instance_valid(tgt) and (tgt.has_method("hit_test") or tgt.get("arch") is Dictionary and (tgt.arch as Dictionary).has("style")):
 		dmg *= 0.5
 	var model: String = def.get("model", "")

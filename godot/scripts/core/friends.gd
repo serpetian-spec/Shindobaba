@@ -646,8 +646,13 @@ func _life_event() -> void:
 			log_event(f, "%s oldu" % RANKS[rank + 1])
 			f["news"] = "Duydun mu? Artık %s oldum! Yeleği giyince insan bir tuhaf oluyor." % RANKS[rank + 1]
 			Hud.msg("Haber: %s %s oldu!" % [f["name"], RANKS[rank + 1]], Color(0.6, 1.0, 0.75), 5.0)
-		elif r < defect_p + 0.42 and not spouse and rank >= 1 and romance_of(id) == "":
+		elif r < defect_p + 0.42 and not spouse and rank >= 1 and romance_of(id) == "" and not likes_you(f):
 			var fem = String(f["look"].get("gender", "m")) == "f"
+			# kimi zaman tanıdığın başka bir dostla evlenir (ikisi de bekâr, karşı cins, aynı köy, sana gönlü olmayan)
+			var mates = fs.keys().filter(func(k): return k != id and String(fs[k].get("status", "")) == "" and int(fs[k].get("rank", 0)) >= 1 				and String(fs[k]["look"].get("gender", "m")) != String(f["look"].get("gender", "m")) and String(fs[k].get("village", "")) == String(f.get("village", "")) 				and romance_of(k) == "" and not likes_you(fs[k]) and not (fs[k].get("family", []) as Array).any(func(m): return String(m["rel"]) in ["Karısı", "Kocası"]))
+			if not mates.is_empty() and randf() < 0.5:
+				_wed(id, String(mates.pick_random()))
+				return
 			# eş kimi zaman köyün başka bir klanından: çocukları melez olur
 			var vclans: Array = []
 			for c in Data.clans:
@@ -671,6 +676,9 @@ func _life_event() -> void:
 			if sclan != "" and String(f.get("clan", "")) != "" and sclan != String(f["clan"]):
 				kid["mix"] = "%s × %s melezi" % [ClanWorld.clan_name(String(f["clan"])), ClanWorld.clan_name(sclan)]
 			fam.append(kid)
+			for m3 in fam:   # eşi de tanıdığınsa çocuk onun ailesine de yazılır (aynı kayıt)
+				if String(m3["rel"]) in ["Karısı", "Kocası"] and fs.has(String(m3.get("fid", ""))):
+					(fs[String(m3["fid"])]["family"] as Array).append(kid)
 			log_event(f, "%s adında bir %s oldu" % [kn, "kızı" if kf else "oğlu"])
 			f["news"] = "Bir %s oldu! Adı %s. Bir gün akademiye gidecek." % ["kızım" if kf else "oğlum", kn]
 			Hud.msg("Haber: %s'in bir %s oldu." % [f["name"], "kızı" if kf else "oğlu"], Color(1, 0.85, 0.6), 5.0)
@@ -1267,6 +1275,29 @@ static func on_mission_done(rank: String) -> void:
 		f["love"] = mini(100, int(f.get("love", 0)) + 2) if romance_of(id) != "" else int(f.get("love", 0))
 	if not party_ids().is_empty():
 		Hud.msg("Takımdaki dostlarla bağınız güçlendi.", Color(0.6, 1.0, 0.75))
+
+
+## Seninle flört/sevgili aşamasında olan başkasıyla evlenmez (diğerleri normal evlenir)
+static func likes_you(f: Dictionary) -> bool:
+	return String(f.get("romance", "")) != ""
+
+
+## İki tanıdık dost birbiriyle evlenir
+static func _wed(a: String, b: String) -> void:
+	var fa: Dictionary = all()[a]
+	var fb: Dictionary = all()[b]
+	var a_fem = String(fa["look"].get("gender", "m")) == "f"
+	if not fa.has("family"):
+		fa["family"] = []
+	if not fb.has("family"):
+		fb["family"] = []
+	fa["family"].append({"rel": "Kocası" if a_fem else "Karısı", "name": fb["name"], "alive": true, "clan": String(fb.get("clan", "")), "fid": b})
+	fb["family"].append({"rel": "Karısı" if a_fem else "Kocası", "name": fa["name"], "alive": true, "clan": String(fa.get("clan", "")), "fid": a})
+	log_event(fa, "%s ile evlendi" % fb["name"])
+	log_event(fb, "%s ile evlendi" % fa["name"])
+	fa["news"] = "%s ile evlendik! İkimizi de tanıyorsun, düğüne gelmeliydin!" % fb["name"]
+	fb["news"] = "%s ile evlendik. Bize bir ziyarete gel." % fa["name"]
+	Hud.banner("DÜĞÜN", "%s ile %s evlendi!" % [fa["name"], fb["name"]], Color(1, 0.85, 0.6))
 
 
 ## Yaralanma: takımdan düşer, hastanede yatar (bir süre köyde değil)

@@ -11,7 +11,7 @@ const TITLES := {
 	"academy": "Ninja Akademisi", "hokage": "Hokage Kulesi — Görev Ofisi", "weapon_shop": "Silah Dükkânı",
 	"pharmacy": "Eczane", "tailor": "Terzi", "bbq": "Yakiniku Restoranı", "hospital": "Konoha Hastanesi",
 	"home_player": "Senin Evin", "home": "Bir Ev", "teahouse": "Dango ve Çay Evi", "inn": "Han (Ryokan)",
-	"summit": "Demir Kalesi — Beş Kage Zirve Salonu",
+	"summit": "Demir Kalesi — Beş Kage Zirve Salonu", "lair_cave": "Kaçakların Sığınağı", "lair_lab": "Gizli Deney İni",
 }
 
 var inside := ""
@@ -87,6 +87,8 @@ func enter(it: Dictionary) -> void:
 	_build(kind, int(it.get("seed", 0)))
 	inside = kind
 	_teleport(origin + Vector3(0, 0.05, -2.4), 0.0)
+	if kind.begins_with("lair_"):
+		Missions.lair_room(origin)
 	_rain(false)
 	title_lbl.text = TITLES.get(kind, "İç Mekân")
 	if kind in ["hokage", "kage"]:
@@ -109,8 +111,11 @@ func exit() -> void:
 	busy = true
 	await _fade(1.0)
 	_clear()
+	var was = inside
 	inside = ""
 	var p: Vector3 = door.get("out", door["pos"])
+	if was.begins_with("lair_"):
+		Missions.lair_left(p)
 	# çıkış noktasının altındaki gerçek zemin (kaide, basamak, teras); arazi yüksekliği bina kaidesinin içinde kalabilir
 	p = _exit_floor(p)
 	p.y += 0.05
@@ -313,6 +318,83 @@ func shell(W: float, D: float, H: float, wall := Color(0.93, 0.88, 0.76), floor_
 	act(0, 0.9, 1.6, "exit", "[F] Dışarı çık")
 
 
+## Mağara / deney ini: kaya duvarlar, meşaleler; sığınakta yatak, sandık, çalıntı mal; inde ameliyat masaları,
+## yeşil ışıklı tüpler, kafeslerde kaçırılmış köylüler. Düşman odanın dibinde (Missions.lair_room).
+func _lair(lab: bool) -> void:
+	var W = 20.0
+	var D = 34.0
+	var H = 7.0
+	var rock = Color(0.32, 0.3, 0.29)
+	var floor_c = Color(0.27, 0.25, 0.23)
+	bx(0, -0.1, D * 0.5, W + 2.0, 0.2, D + 2.0, floor_c, true)
+	# görünmez çarpışma duvarları + kayalık görünüm
+	bx(-W * 0.5 - 0.5, H * 0.5, D * 0.5, 1.0, H, D + 2.0, rock, true)
+	bx(W * 0.5 + 0.5, H * 0.5, D * 0.5, 1.0, H, D + 2.0, rock, true)
+	bx(0, H * 0.5, D + 0.5, W + 2.0, H, 1.0, rock, true)
+	bx(0, H * 0.5, -0.6, W + 2.0, H, 1.0, rock, true)
+	bx(0, H + 0.5, D * 0.5, W + 2.0, 1.0, D + 2.0, rock.darkened(0.3), true)
+	for i in 46:
+		var side = -1.0 if i % 2 == 0 else 1.0
+		var d = rng.randf_range(0.0, D)
+		sp(side * (W * 0.5 - rng.randf_range(0.0, 1.2)), rng.randf_range(0.5, H - 0.5), d, Vector3.ONE * rng.randf_range(2.0, 4.0), rock.darkened(rng.randf() * 0.3), 7)
+	for i in 18:
+		sp(rng.randf_range(-W * 0.5, W * 0.5), H - rng.randf_range(0.0, 0.8), rng.randf_range(0.0, D), Vector3(rng.randf_range(2.0, 4.0), 1.5, rng.randf_range(2.0, 4.0)), rock.darkened(0.35), 7)
+		sp(rng.randf_range(-W * 0.4, W * 0.4), H - 1.2, rng.randf_range(2.0, D), Vector3(0.3, 1.6, 0.3), rock.darkened(0.2), 5)   # sarkıt
+	for i in 12:
+		sp(rng.randf_range(-W * 0.45, W * 0.45), 0.1, rng.randf_range(3.0, D - 2.0), Vector3(rng.randf_range(0.5, 1.4), 0.4, rng.randf_range(0.5, 1.4)), rock.darkened(0.1), 6)
+	# girişte gün ışığı
+	gl("box", 0, 1.6, -0.05, Vector3(3.6, 3.2, 0.05), Color(0.95, 0.9, 0.75))
+	act(0, 0.9, 1.8, "exit", "[F] Dışarı çık")
+	var fire = Color(1.0, 0.55, 0.15) if not lab else Color(0.45, 1.0, 0.55)
+	for k in 5:
+		var d = 4.0 + k * 6.5
+		for side in [-1.0, 1.0]:
+			bx(side * (W * 0.5 - 0.6), 2.0, d, 0.12, 0.9, 0.12, Color(0.35, 0.25, 0.15), false, Vector3(0, 0, side * 20))
+			gl("cone", side * (W * 0.5 - 0.75), 2.6, d, Vector3(0.25, 0.45, 0.25), fire)
+		lamp(0, 3.5, d, fire, 1.2, 11.0)
+	if not lab:
+		# sığınak: yer yatakları, çalıntı sandıklar, kamp ateşi, harita masası
+		for k in 4:
+			bx(-W * 0.5 + 2.5, 0.12, 6.0 + k * 2.4, 2.0, 0.2, 1.0, Color(0.5, 0.4, 0.3))
+		for k in 6:
+			bx(W * 0.5 - 2.0 - (k % 2) * 1.0, 0.45 + (k / 2) * 0.0, 8.0 + k * 1.3, 0.9, 0.9, 0.9, Color(0.45, 0.32, 0.2), true)
+		for k in 6:
+			cy(0, 0.1, 16.0, 0.15, 1.2, Color(0.3, 0.2, 0.12), 5, Vector3(80, k * 30, 0))
+		gl("cone", 0, 0.5, 16.0, Vector3(0.7, 1.0, 0.7), Color(1.0, 0.55, 0.15))
+		lamp(0, 1.2, 16.0, Color(1, 0.6, 0.3), 1.6, 9.0)
+		bx(5, 0.8, 22.0, 2.4, 0.12, 1.4, Color(0.4, 0.28, 0.18), true)
+		bx(5, 0.87, 22.0, 1.8, 0.02, 1.0, Color(0.85, 0.8, 0.65))
+	else:
+		# deney ini: ameliyat masaları, yeşil tüpler, kafeste kaçırılmış köylüler, parşömen rafları
+		for k in 3:
+			var d = 8.0 + k * 5.5
+			bx(-4.0, 0.85, d, 2.2, 0.15, 1.0, Color(0.55, 0.55, 0.58), true)
+			for q in 4:
+				bx(-4.0 + (q % 2 - 0.5) * 1.8, 0.42, d + (q / 2 - 0.5) * 0.7, 0.1, 0.85, 0.1, Color(0.35, 0.35, 0.38))
+			bx(-4.0, 0.95, d, 1.6, 0.06, 0.5, Color(0.7, 0.68, 0.62))
+			for t in 2:
+				gl("cyl", 4.5 + t * 1.6, 1.3, d, Vector3(0.9, 2.4, 0.9), Color(0.35, 1.0, 0.5, 0.8))
+				cy(4.5 + t * 1.6, 2.6, d, 1.0, 0.2, Color(0.3, 0.3, 0.32))
+				cy(4.5 + t * 1.6, 0.1, d, 1.0, 0.2, Color(0.3, 0.3, 0.32))
+		for k in 2:
+			var cx = -W * 0.5 + 2.5
+			var d = 25.0 + k * 4.0
+			for q in 9:
+				var a = TAU * q / 9.0
+				cy(cx + cos(a) * 1.2, 1.2, d + sin(a) * 1.2, 0.08, 2.4, Color(0.3, 0.3, 0.32), 4)
+			cy(cx, 2.45, d, 2.6, 0.1, Color(0.3, 0.3, 0.32), 10)
+			var cc = CollisionShape3D.new()
+			var csh = CylinderShape3D.new()
+			csh.radius = 1.3
+			csh.height = 2.4
+			cc.shape = csh
+			cc.position = L(cx, 1.2, d)
+			body.add_child(cc)
+			person("patient", cx, d, 90.0, "Kaçırılan köylü", ["Lütfen... bizi buradan çıkar!", "Her gece birimizi götürüyorlar...", "Sesini kes, duyacaklar!"])
+		for k in 4:
+			scroll(W * 0.5 - 0.2, 1.8, 20.0 + k * 1.2, -1.0, Color(0.85, 0.8, 0.65))
+
+
 func scroll(x: float, y: float, d: float, side := 0.0, col := Color(0.95, 0.93, 0.86)) -> void:
 	## Duvar parşömeni (kakemono). side: 0 = arka duvar, ±1 = yan duvar
 	if side == 0.0:
@@ -441,6 +523,8 @@ func _build(kind: String, seed: int) -> void:
 		"inn": _inn()
 		"summit": _summit()
 		"creator": _creator_room(String(door.get("vid", "konoha")))
+		"lair_cave": _lair(false)
+		"lair_lab": _lair(true)
 		_: _home(false)
 	var mi = MeshInstance3D.new()
 	mi.mesh = mb.build(Props.toon())

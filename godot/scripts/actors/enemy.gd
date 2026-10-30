@@ -10,6 +10,8 @@ var home = Vector3.ZERO
 var target: Node3D = null
 var think_t = 0.0
 var attack_cd = 1.0
+var jcd := {}      # jutsu -> hazır olacağı an (sn)
+var jgap := 0.0    # iki jutsu arası en kısa ara
 var ranged_cd = 3.0
 var sub_cd = 0.0
 var combo_left = 0
@@ -176,6 +178,12 @@ func setup(a: Dictionary) -> void:
 	max_hp = a["hp"]; hp = max_hp
 	power = a["power"]; element = a["element"]
 	level = a["level"]; xp = a["xp"]; ryo = a["ryo"]
+	# NPC "yetenek ağacı": oyuncunun seviyeyle aldığı yetenek puanlarının karşılığı (can + güç) düşman ninjalara da
+	if k in CLAN_KINDS or k in ["samurai", "jinchuriki", "bandit"]:
+		var lv = float(a["level"])
+		max_hp *= 1.0 + lv * 0.006
+		hp = max_hp
+		power *= 1.0 + lv * 0.004
 	size = a.get("size", 1.0)
 	display_name = a["name"]
 	skill = clampf(float(a.get("skill", (float(a["power"]) - 1.0) / 2.2)), 0.05, 0.98)
@@ -477,8 +485,14 @@ func _chase(dt: float) -> void:
 	var near_ok = d <= 4.0 and not jl.is_empty() and randf() < 0.15
 	if (far_ok or near_ok) and ranged_cd <= 0.0 and randf() < 0.8:
 		ranged_cd = randf_range(1.6, 3.2) / (float(arch["aggr"]) * (1.0 + skill))   # usta ninja daha sık jutsu atar
-		if not jl.is_empty() and randf() < 0.85 and not has_status("sealed"):   # chakra noktaları kapalıysa jutsu yok
-			set_meta("cast_id", jl.pick_random())
+		# her jutsu oyuncudakiyle aynı bekleme süresine tabi (aynı dalga jutsusu 15 sn'de 6 kez gelmez)
+		var nowj = Time.get_ticks_msec() / 1000.0
+		var ready = jl.filter(func(id): return nowj >= float(jcd.get(id, 0.0)))
+		if not ready.is_empty() and nowj >= jgap and randf() < 0.85 and not has_status("sealed"):   # chakra noktaları kapalıysa jutsu yok
+			var pick = String(ready.pick_random())
+			jcd[pick] = nowj + Combat.jutsu_cd(Data.jutsu.get(pick, {})) * randf_range(1.0, 1.25)
+			jgap = nowj + randf_range(2.5, 4.0)
+			set_meta("cast_id", pick)
 			state = "cast"
 			CastAnim.play(self, get_meta("cast_id"), 0.55)  # mühür + atma koreografisi
 			state_t = 0.0
@@ -577,12 +591,18 @@ func _exit_tree() -> void:
 		attack_tokens = maxi(0, attack_tokens - 1)
 
 
+## Zemin: iç mekânda (mağara/in, dünyanın çok üstünde) arazi değil bulunduğu kat
+func _floor_y(x: float, z: float) -> float:
+	var g = Game.ground_height(x, z)
+	return global_position.y if global_position.y - g > 30.0 else g
+
+
 ## Atılma saldırısı: orta mesafeden hedefe chakra adımıyla yaklaşıp kombo başlatır
 func _lunge() -> void:
 	var v = target.global_position - global_position
 	v.y = 0
 	var to = target.global_position - v.normalized() * (target.radius + radius + 1.0)
-	to.y = Game.ground_height(to.x, to.z)
+	to.y = _floor_y(to.x, to.z)
 	FX.speed_lines(global_position + Vector3.UP, v.normalized())
 	FX.smoke_puff(global_position + Vector3.UP * 0.3, 0.5, 6)
 	global_position = to
@@ -616,8 +636,8 @@ func _attack(dt: float) -> void:
 		set_meta("swung", true)
 		var pt = global_position + Vector3.UP * 1.1 + face_dir() * (radius + 0.9)
 		var heavy = combo_left == 1 and randf() < 0.5
-		var hits = Combat.hit_sphere(self, pt, 0.9, {"dmg": (7.0 if not heavy else 12.0) * power, "knock": 3.0 if not heavy else 10.0,
-			"launch": 0.0 if not heavy else 4.0, "kind": "heavy" if heavy else "light", "hitstop": 0.04})
+		var hits = Combat.hit_sphere(self, pt, 0.9, {"dmg": (4.5 if not heavy else 8.0) * power, "knock": 3.0 if not heavy else 10.0,
+			"launch": 0.0 if not heavy else 4.0, "kind": "heavy" if heavy else "light", "hitstop": 0.04, "melee": true})
 		if not hits.is_empty():
 			FX.hit_spark(pt, Color(1, 0.6, 0.4), 0.8)
 			Sfx.play("punch", pt)
@@ -670,7 +690,7 @@ func take_hit(info: Dictionary) -> void:
 		FX.hit_spark(global_position + Vector3.UP * 1.2, Color(0.7, 0.85, 1.0), 0.5)
 		Sfx.play("block", global_position)
 		info = info.duplicate()
-		info["dmg"] = info.get("dmg", 5.0) * 0.15
+		info["dmg"] = info.get("dmg", 5.0) * Combat.block_pass(info, 0.15) * Combat.jutsu_factor(info)   # jutsu bloğu deler (büyüdükçe daha çok)
 		info["kind"] = "guarded"
 		hp -= info["dmg"]
 		if hp <= 0.0:   # bloklanan darbe de öldürebilir (yoksa can eksiye düşüp düşman ölümsüz kalıyordu)
@@ -691,7 +711,7 @@ func take_hit(info: Dictionary) -> void:
 		var atk: Node3D = info.get("attacker")
 		if atk:
 			var behind = atk.global_position - atk.face_dir() * 2.0 if atk.has_method("face_dir") else global_position
-			behind.y = Game.ground_height(behind.x, behind.z)
+			behind.y = _floor_y(behind.x, behind.z)
 			global_position = behind
 		Combat.popup_text(global_position + Vector3.UP * 2.2, "Kawarimi!", Color(0.9, 0.9, 0.6))
 		state = "chase"

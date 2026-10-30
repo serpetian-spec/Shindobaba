@@ -1116,7 +1116,9 @@ func take_hit(info: Dictionary) -> void:
 	if Buffs.has("henge"):
 		Jutsu.end_henge(self)
 	# ekipman savunması: her puan ~%1.2 azaltır (en fazla %50)
-	var armor = Buffs.mod("armor") * (1.0 - clampf(Gear.stat(Game.profile, "def") * 0.012, 0.0, 0.5)) * (1.0 - clampf(Stats.skill(Game.profile, "def"), 0.0, 0.5))
+	# savunma azalan getirili: 20 puan %25, 40 puan %40, en fazla %45 (tam zırh ölümsüz yapmasın)
+	var dfn = maxf(0.0, Gear.stat(Game.profile, "def"))
+	var armor = Buffs.mod("armor") * (1.0 - minf(dfn / (dfn + 60.0), 0.45)) * (1.0 - clampf(Stats.skill(Game.profile, "def"), 0.0, 0.5))
 	info = info.duplicate()
 	info["dmg"] = info.get("dmg", 5.0) * armor
 	if combat:
@@ -1132,6 +1134,9 @@ func apply_status(n: String, d: float) -> void:
 		if n != "bind" and Stats.has_unlock(Game.profile, "kai") and not statuses.has("_kai_tip"):
 			statuses["_kai_tip"] = 30.0
 			Hud.msg("Genjutsu! [Q] Kai ile çöz", Color(0.8, 0.6, 1.0), 2.0)
+	d = Combat.cc_dur(self, n, d)
+	if d <= 0.0:
+		return
 	statuses[n] = maxf(statuses.get(n, 0.0), d)
 	if n in ["stun", "bind", "frozen"]:
 		input_locked = maxf(input_locked, d)

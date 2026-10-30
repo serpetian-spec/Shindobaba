@@ -7,6 +7,108 @@ const BEATS := {"katon": "fuuton", "fuuton": "raiton", "raiton": "doton", "doton
 
 
 ## Element üstünlüğü (kekkei genkai dahil, bkz. elements.gd) x hava etkisi (yağmur)
+## ---------------------------------------------------------------- kontrol (stun/bağlama) azalan getirisi
+## Aynı hedefe 8 sn içinde art arda: süre %100 -> %60 -> %35, dördüncüde 4 sn direnç.
+## Kesintisiz kontrol en fazla 3 sn sürer; sonra hedef kurtulur ve 3 sn dirençli olur ("stun at kes" yok).
+const CC := ["stun", "bind", "frozen", "fear", "sleep", "paralyze"]
+const CC_MAX := 3.0
+
+
+func cc_dur(n: Node, kind: String, d: float) -> float:
+	if not kind in CC or d <= 0.0:
+		return d
+	var now = Time.get_ticks_msec() / 1000.0
+	if now < float(n.get_meta("cc_imm", 0.0)):
+		_cc_pop(n, "Direnç!")
+		return 0.0
+	var held = false
+	for k in CC:
+		if n.has_status(k):
+			held = true
+	if held:
+		if now - float(n.get_meta("cc_start", now)) > CC_MAX:
+			n.set_meta("cc_imm", now + 3.0)
+			n.set_meta("cc_n", 0)
+			_cc_free(n)
+			_cc_pop(n, "Kurtuldu!")
+			return 0.0
+		return d
+	var cnt = int(n.get_meta("cc_n", 0)) if now - float(n.get_meta("cc_last", -99.0)) < 8.0 else 0
+	if cnt >= 3:
+		n.set_meta("cc_imm", now + 4.0)
+		n.set_meta("cc_n", 0)
+		_cc_pop(n, "Direnç!")
+		return 0.0
+	n.set_meta("cc_n", cnt + 1)
+	n.set_meta("cc_last", now)
+	n.set_meta("cc_start", now)
+	return d * [1.0, 0.6, 0.35][cnt]
+
+
+func _cc_free(n: Node) -> void:
+	var sts = n.get("statuses")
+	if sts is Dictionary:
+		for k in CC:
+			sts.erase(k)
+	if n.get("input_locked") != null:
+		n.input_locked = 0.0
+	if n is Node3D:
+		FX.ring((n as Node3D).global_position + Vector3.UP, Color(0.7, 0.9, 1.0), 3.0, 0.3)
+
+
+func _cc_pop(n: Node, txt: String) -> void:
+	var now = Time.get_ticks_msec()
+	if now - int(n.get_meta("cc_pop", 0)) > 1500 and n is Node3D:
+		n.set_meta("cc_pop", now)
+		popup_text((n as Node3D).global_position + Vector3.UP * 2.3, txt, Color(0.7, 0.9, 1.0))
+
+
+## ---------------------------------------------------------------- jutsu hasar dengesi
+## data/balance.json: her jutsunun ölçülen toplam hasarını rütbesinin hedefine çeken çarpan (tests/dbg_jdmg.gd + tools/balance.py)
+var _bal := {}
+
+
+func jutsu_factor(info: Dictionary) -> float:
+	if info.get("melee", false):
+		return 1.0
+	var a = info.get("attacker")
+	if a == null or not is_instance_valid(a) or not a.has_meta("jid"):
+		return 1.0
+	if Time.get_ticks_msec() / 1000.0 - float(a.get_meta("jid_t", 0.0)) > 12.0:
+		return 1.0
+	if _bal.is_empty():
+		var f = FileAccess.open("res://data/balance.json", FileAccess.READ)
+		_bal = JSON.parse_string(f.get_as_text()) if f else {"_": 1}
+	return float(_bal.get(String(a.get_meta("jid")), 1.0))
+
+
+## ---------------------------------------------------------------- jutsu bekleme süresi (oyuncu ve düşman aynı kural)
+## Rütbeye (kademe) göre taban; verideki süre yalnız kademe ortalamasına göre ±%20-40 karakter katar
+const CD_TIER := [4.0, 6.0, 9.0, 12.0, 18.0, 28.0]
+const CD_AVG := [5.5, 5.2, 8.0, 11.5, 16.3, 35.5]
+const CD_UTIL := ["transform", "stealth", "sensor", "utility", "heal", "revive", "teleport", "clone", "counter", "summon"]
+
+
+func jutsu_cd(j: Dictionary) -> float:
+	if j.has("bijuu") or String(j.get("virtual", "")) != "":
+		return float(j.get("cd", 6.0))   # göz / canavar teknikleri kendi süresini kullanır
+	var t = clampi(int(j.get("tier", 2)), 0, 5)
+	var raw = float(j.get("cd", CD_AVG[t]))
+	if String(j.get("shape", "")) in CD_UTIL:
+		return maxf(raw, CD_TIER[t])
+	return snappedf(CD_TIER[t] * clampf(raw / CD_AVG[t], 0.8, 1.4), 0.5)
+
+
+## Blok jutsuya karşı: küçük jutsu çoğunlukla bloklanır, büyük jutsu bloğu deler (geçen hasar oranı)
+const BLOCK_PASS := [0.25, 0.3, 0.4, 0.55, 0.75, 0.9]
+
+
+func block_pass(info: Dictionary, melee_pass: float) -> float:
+	if info.has("tier"):
+		return BLOCK_PASS[clampi(int(info["tier"]), 0, 5)]
+	return melee_pass
+
+
 func element_mult(atk: String, dfn: String) -> float:
 	return Elements.mult(atk, dfn) * Elements.env_mult(atk)
 

@@ -60,6 +60,9 @@ func face_dir() -> Vector3:
 
 
 func apply_status(name: String, dur: float) -> void:
+	dur = Combat.cc_dur(self, name, dur)
+	if dur <= 0.0:
+		return
 	statuses[name] = maxf(statuses.get(name, 0.0), dur)
 
 
@@ -72,7 +75,7 @@ func take_hit(info: Dictionary) -> void:
 		return
 	var em = Combat.element_mult(info.get("element", ""), element)
 	var react = Elements.on_hit(self, info)
-	var dmg: float = info.get("dmg", 5.0) * em * react
+	var dmg: float = info.get("dmg", 5.0) * em * react * Combat.jutsu_factor(info)
 	if has_status("marked"):
 		dmg *= 1.25   # Dinamik İşaretleme / algılama: işaretli hedef fazla hasar alır
 	var atk = info.get("attacker")
