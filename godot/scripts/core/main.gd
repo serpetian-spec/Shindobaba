@@ -356,7 +356,7 @@ func _route(e: InputEvent) -> void:
 	elif e.is_action_pressed("skills"):
 		_toggle_panel(func(): Menus.ninja_menu(self, "jutsu"))
 	elif e.is_action_pressed("map"):
-		_toggle_panel(func(): Menus.world_map(self))
+		_toggle_panel(func(): Menus.region_map(self))
 	elif Game.paused:
 		return
 	elif e.is_action_pressed("interact"):

@@ -16,7 +16,7 @@ var albedo_tex: Texture2D
 var biome_img: Image
 
 var settings := {
-	"sens": 1.0, "fov": 70.0, "music": 0.5, "sfx": 0.8, "view": 1.0, "fullscreen": false,
+	"sens": 1.0, "ui_scale": 1.0, "fov": 70.0, "music": 0.5, "sfx": 0.8, "view": 1.0, "fullscreen": false,
 	"shadows": true, "outline": true, "invert_y": false, "show_fps": false, "quality": 2,
 }
 var profile: Dictionary = {}
@@ -627,6 +627,7 @@ func apply_settings() -> void:
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if settings["fullscreen"] else DisplayServer.WINDOW_MODE_WINDOWED)
 	var bus := AudioServer.get_bus_index("Master")
 	AudioServer.set_bus_volume_db(bus, 0.0)
+	get_tree().root.content_scale_factor = float(settings.get("ui_scale", 1.0))   # arayüz ölçeği (yalnız 2B arayüz; 3B görüntü etkilenmez)
 
 
 # ------------------------------------------------------------------ kayıt

@@ -967,7 +967,7 @@ static func pause(main: Node) -> void:
 	root.add_child(UI.spacer(0, 26, false))
 	var items = [["Devam", "play", func(): main.resume()], ["Ninja Menüsü", "bag", func(): ninja_menu(main, "inv")],
 		["Ekipman ve Kıyafetler", "armor", func(): ninja_menu(main, "wardrobe")], ["Jutsu ve Yetenekler", "scroll", func(): ninja_menu(main, "jutsu")],
-		["Dünya Haritası", "map", func(): world_map(main)], ["Ayarlar", "settings", func(): settings(func(): pause(main))],
+		["Harita", "map", func(): region_map(main)], ["Ayarlar", "settings", func(): settings(func(): pause(main))],
 		["Kaydet", "save", func():
 			Game.save_game()
 			Hud.msg("Oyun kaydedildi.", Color(0.6, 1, 0.6))], ["Kontroller", "controls", func(): controls(main)],
@@ -1042,6 +1042,27 @@ static func settings(back: Callable) -> void:
 		c.button_pressed = s[key]
 		c.toggled.connect(func(x): s[key] = x)
 		gv.add_child(c)
+	var g0 = group.call("monitor", "Arayüz")
+	var scales = [0.75, 0.85, 1.0, 1.15, 1.3, 1.5]
+	var cur = float(s.get("ui_scale", 1.0))
+	var si = 2
+	for i in scales.size():
+		if absf(scales[i] - cur) < 0.01:
+			si = i
+	var ur = UI.hbox(12)
+	var ul = UI.label("Arayüz ölçeği", 15)
+	ul.custom_minimum_size = Vector2(200, 0)
+	ur.add_child(ul)
+	var set_scale = func(k: int) -> void:
+		s["ui_scale"] = scales[posmod(k, scales.size())]
+		Game.apply_settings()
+		settings(back)
+	ur.add_child(_arrow_btn("◀", func(): set_scale.call(si - 1)))
+	var uv = UI.label("%d%%" % int(round(scales[si] * 100.0)), 16, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, true)
+	uv.custom_minimum_size = Vector2(90, 0)
+	ur.add_child(uv)
+	ur.add_child(_arrow_btn("▶", func(): set_scale.call(si + 1)))
+	g0.add_child(ur)
 	var g1 = group.call("controls", "Kontrol")
 	slider.call(g1, "Fare hassasiyeti", "sens", 0.2, 3.0, 0.05)
 	check.call(g1, "Fareyi ters çevir (Y)", "invert_y")
@@ -1103,7 +1124,7 @@ static func _restore_scroll(vals: Array) -> void:
 
 static func ninja_menu(main: Node, tab := "inv", picked := "") -> void:
 	if tab == "map":
-		world_map(main)
+		region_map(main)
 		return
 	# aynı sekme yeniden kurulurken (eşya seçince) kaydırma yerinde kalsın; eskiden en üste dönüyordu
 	var keep = _scroll_positions() if tab == _last_tab else []
@@ -2862,6 +2883,112 @@ static func shop_screen(title: String, entries: Array, buy: Callable) -> void:
 
 
 # ================================================================== dünya haritası + hızlı seyahat
+## Bölgesel harita: oyuncunun çevresi (1.6 km) yakın plan; yollar, nehirler, binalar ve dükkân / önemli yer ikonları.
+## Sağ panelden yere tıklayınca ok oraya yönlendirir. [Dünya Haritası] düğmesiyle dünya haritasına geçilir.
+static func region_map(main: Node) -> void:
+	var rm = Game.world.get("road_map") if Game.world else null
+	if rm == null or rm.local_map == null or rm.local_rect.z <= 0.0 or Game.player == null:
+		world_map(main)
+		return
+	var bg = _full(0.7)
+	var vp = bg.get_viewport_rect().size
+	var side_w = 330.0
+	var r: Vector4 = rm.local_rect
+	vp = vp / maxf(0.01, float(Game.settings.get("ui_scale", 1.0))) if bg.get_viewport_rect().size.x > 3000.0 else vp
+	var sz = Vector2.ONE * minf(vp.x - side_w - 180, vp.y - 140)
+	var frame = Panel.new()
+	frame.add_theme_stylebox_override("panel", UI.glass(16, 0, 0.6))
+	frame.position = Vector2(60, (vp.y - sz.y) * 0.5 + 10) - Vector2(10, 10)
+	frame.size = sz + Vector2(20, 20)
+	bg.add_child(frame)
+	var tr = TextureRect.new()
+	tr.texture = rm.local_map
+	tr.stretch_mode = TextureRect.STRETCH_SCALE
+	tr.size = sz
+	tr.position = Vector2(60, (vp.y - sz.y) * 0.5 + 10)
+	tr.clip_contents = true
+	bg.add_child(tr)
+	var pm = Game.to_map(Game.player.global_position)
+	var region = ""
+	for v in Game.world_info["villages"]:
+		if pm.distance_to(Vector2(v["x"], v["y"])) < float(v["r"]) * 1.3:
+			region = String(v["name"])
+	var title = UI.label("BÖLGE HARİTASI" + ("  —  " + region.to_upper() if region != "" else ""), 30, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)
+	title.position = Vector2(tr.position.x, tr.position.y - 50)
+	bg.add_child(title)
+	var to_px = func(wp: Vector3) -> Vector2:
+		return Vector2((wp.x - r.x) / r.z, (wp.z - r.y) / r.z) * sz
+	var lms = Interact.landmarks(Game.player.global_position, r.z * 0.7)
+	for lm in lms:
+		var q: Vector2 = to_px.call(lm["pos"])
+		if q.x < 0 or q.y < 0 or q.x > sz.x or q.y > sz.y:
+			continue
+		var dot = Control.new()
+		dot.position = q
+		dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var col: Color = lm["col"]
+		var gl: String = lm["glyph"]
+		dot.draw.connect(func():
+			dot.draw_circle(Vector2.ZERO, 11, Color(0, 0, 0, 0.6))
+			dot.draw_circle(Vector2.ZERO, 9, col.darkened(0.45))
+			dot.draw_string(ThemeDB.fallback_font, Vector2(-5, 5), gl, HORIZONTAL_ALIGNMENT_CENTER, -1, 14, Color.WHITE))
+		tr.add_child(dot)
+	var me = Control.new()
+	me.position = to_px.call(Game.player.global_position)
+	me.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var yaw = deg_to_rad(Game.player.yaw)
+	me.draw.connect(func():
+		var f = Vector2(sin(yaw), -cos(yaw)) * -1.0
+		var s = Vector2(-f.y, f.x)
+		me.draw_colored_polygon(PackedVector2Array([f * 14.0, -f * 7.0 + s * 8.0, -f * 4.0, -f * 7.0 - s * 8.0]), Color(0.25, 0.6, 1.0))
+		me.draw_polyline(PackedVector2Array([f * 14.0, -f * 7.0 + s * 8.0, -f * 4.0, -f * 7.0 - s * 8.0, f * 14.0]), Color.WHITE, 2.0, true))
+	tr.add_child(me)
+	if Missions.has_marker:
+		var mq: Vector2 = to_px.call(Missions.target_marker)
+		if mq.x >= 0 and mq.y >= 0 and mq.x <= sz.x and mq.y <= sz.y:
+			var mk = Icons.view("target", 30, UI.GOLD)
+			mk.position = mq - Vector2(15, 15)
+			tr.add_child(mk)
+	var scl = UI.label("%d m" % int(r.z * 0.25), 13, UI.CREAM)
+	scl.position = Vector2(14, sz.y - 30)
+	tr.add_child(scl)
+	var bar = ColorRect.new()
+	bar.color = UI.CREAM
+	bar.position = Vector2(14, sz.y - 10)
+	bar.size = Vector2(sz.x * 0.25, 3)
+	tr.add_child(bar)
+	# yan panel: yerler listesi (tıkla -> yol göster) + dünya haritası
+	var side = PanelContainer.new()
+	side.add_theme_stylebox_override("panel", UI.glass(16, 20, 0.8))
+	side.anchor_left = 1.0; side.anchor_right = 1.0
+	side.anchor_bottom = 1.0
+	side.offset_left = -side_w - 40; side.offset_right = -40; side.offset_top = 100; side.offset_bottom = -110
+	side.custom_minimum_size = Vector2(side_w, 0)
+	bg.add_child(side)
+	var scroll = ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	side.add_child(scroll)
+	var sv = UI.vbox(8)
+	sv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(sv)
+	sv.add_child(UI.button("Dünya Haritası  ▶", func():
+		bg.queue_free()
+		world_map(main), side_w - 40, "map"))
+	sv.add_child(UI.header("BU BÖLGEDE", 18))
+	lms.sort_custom(func(a, b): return a["pos"].distance_to(Game.player.global_position) < b["pos"].distance_to(Game.player.global_position))
+	for lm in lms.slice(0, 18):
+		var lp: Vector3 = lm["pos"]
+		var nm: String = lm["name"]
+		var b = UI.button("%s  %s  (%d m)" % [lm["glyph"], nm, int(lp.distance_to(Game.player.global_position))], func():
+			Game.profile["waypoint"] = [lp.x, lp.y, lp.z, nm]
+			Game.profile["track"] = "waypoint"
+			Hud.msg("Yol gösteriliyor: %s" % nm, Color(1, 0.85, 0.4))
+			main.resume(), side_w - 40)
+		b.add_theme_color_override("font_color", lm["col"])
+		sv.add_child(b)
+	_close_button(bg, func(): main.resume())
+
+
 static func world_map(main: Node) -> void:
 	var bg = _full(0.7)
 	var tex: Texture2D = Game.world_map_tex()
@@ -2920,6 +3047,11 @@ static func world_map(main: Node) -> void:
 			me.draw_circle(Vector2.ZERO, 6, Color(0.25, 0.6, 1.0))
 			me.draw_arc(Vector2.ZERO, 6, 0, TAU, 20, Color.WHITE, 2.0, true))
 		tr.add_child(me)
+	var rb = UI.button("◀  Bölge Haritası", func():
+		bg.queue_free()
+		region_map(main), 240, "map")
+	rb.position = Vector2(tr.position.x + sz.x - 240, tr.position.y - 56)
+	bg.add_child(rb)
 	if Missions.has_marker:
 		var mm = Game.to_map(Missions.target_marker)
 		var mk = Icons.view("target", 30, UI.GOLD)
