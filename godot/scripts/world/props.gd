@@ -31,6 +31,28 @@ static func roof_toon() -> ShaderMaterial:
 	return _roof
 
 
+static var _rock_m: ShaderMaterial
+static var _bark_m: ShaderMaterial
+## Kaya / toprak (Doton kayaları, kaya parçaları): gerçek kaya yüzeyi dokusu
+static func rock_toon() -> ShaderMaterial:
+	if _rock_m == null:
+		_rock_m = toon().duplicate()
+		_rock_m.set_shader_parameter("detail_tex", load("res://assets/tex/rock.png"))
+		_rock_m.set_shader_parameter("detail_tex_amt", 0.55)
+		_rock_m.set_shader_parameter("detail_tex_scale", 0.6)
+	return _rock_m
+
+
+## Ahşap (Mokuton, kütükler): ağaç kabuğu dokusu
+static func bark_toon() -> ShaderMaterial:
+	if _bark_m == null:
+		_bark_m = toon().duplicate()
+		_bark_m.set_shader_parameter("detail_tex", load("res://assets/tex/bark.png"))
+		_bark_m.set_shader_parameter("detail_tex_amt", 0.5)
+		_bark_m.set_shader_parameter("detail_tex_scale", 0.9)
+	return _bark_m
+
+
 static func foliage() -> ShaderMaterial:
 	if _foliage == null:
 		_foliage = ShaderMaterial.new()

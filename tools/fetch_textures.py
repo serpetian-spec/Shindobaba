@@ -20,6 +20,11 @@ SET = {
     'roof': ('clay_roof_tiles_02', 512, 0.9, 0),
     'cobble': ('cobblestone_floor_04', 512, 0.85, 0),
     'stone': ('cobblestone_large_01', 512, 0.8, 0),
+    'rock': ('cliff_side', 512, 0.9, 0),
+    'sand': ('coast_sand_01', 512, 0.6, 0),
+    'forest': ('forest_ground_04', 512, 0.7, 0),
+    'dirt': ('dirt', 512, 0.6, 0),
+    'bark': ('japanese_cedar_bark', 512, 0.9, 0),
 }
 
 

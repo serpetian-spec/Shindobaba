@@ -344,6 +344,20 @@ func shot(c: Node3D, from: Vector3, dir: Vector3, speed: float, mesh: Node3D, in
 
 func mesh_of(b: MB, mat: Material = null) -> MeshInstance3D:
 	var mi = MeshInstance3D.new()
+	if mat == null:
+		# baskın renge göre doku: doygun turuncu-kahve = ahşap (Mokuton), soluk gri-kahve = kaya (Doton)
+		var acc = Vector3.ZERO
+		var nc = mini(b.colors.size(), 400)
+		for i in nc:
+			var c: Color = b.colors[i * b.colors.size() / maxi(nc, 1)]
+			acc += Vector3(c.r, c.g, c.b)
+		if nc > 0:
+			var a = acc / nc
+			var avg = Color(a.x, a.y, a.z)
+			if avg.s > 0.45 and avg.h > 0.04 and avg.h < 0.12 and avg.v < 0.75:
+				mat = Props.bark_toon()
+			elif avg.s < 0.42 and avg.v < 0.68 and avg.r >= avg.b and avg.r - avg.b < 0.25:
+				mat = Props.rock_toon()
 	mi.mesh = b.build(Props.toon() if mat == null else null)
 	if mat:
 		mi.material_override = mat

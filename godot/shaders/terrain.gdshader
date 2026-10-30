@@ -14,6 +14,10 @@ uniform vec4 hokage_rock = vec4(0.0);   // x0, x1, yüz hattı (dünya z), tepe 
 uniform float level_eps = 0.0;
 uniform sampler2D tex_cobble : filter_linear_mipmap, repeat_enable;   // köy döşemesi (parke taşı)
 uniform sampler2D tex_stone : filter_linear_mipmap, repeat_enable;    // cadde iri taş
+uniform sampler2D tex_rock : filter_linear_mipmap, repeat_enable;     // yarlar / kayalıklar
+uniform sampler2D tex_sand : filter_linear_mipmap, repeat_enable;     // çöl, kumsal
+uniform sampler2D tex_forest : filter_linear_mipmap, repeat_enable;   // orman zemini
+uniform sampler2D tex_dirt : filter_linear_mipmap, repeat_enable;     // köy dışı toprak yollar
 uniform float texel = 4.0;
 
 varying vec3 wpos;
@@ -77,18 +81,25 @@ void fragment() {
 		vec2 f = abs(fract(tt) - 0.5);
 		float joint = smoothstep(0.44, 0.49, max(f.x, f.y));
 		float tone = hash(floor(tt));
-		vec3 pave = (b == 11) ? mix(vec3(0.44, 0.41, 0.38), vec3(0.53, 0.49, 0.44), tone) : mix(vec3(0.82, 0.7, 0.5), vec3(0.9, 0.79, 0.6), tone);
+		vec3 pave = (b == 11) ? mix(vec3(0.6, 0.52, 0.41), vec3(0.69, 0.6, 0.47), tone) : mix(vec3(0.82, 0.7, 0.5), vec3(0.9, 0.79, 0.6), tone);
 		pave *= (1.0 - joint * 0.25) * (0.94 + n3 * 0.08);
-		pave *= 1.0 + (texture(tex_cobble, wpos.xz * 0.45).r - 0.5) * 1.1;   // gerçek parke taşı dokusu
+		pave *= 1.0 + (texture(tex_cobble, wpos.xz * 0.45).r - 0.5) * 0.8;   // gerçek parke taşı dokusu
 		pave = mix(pave, pave * vec3(0.82, 0.8, 0.74), smoothstep(0.55, 0.8, fbm(wpos.xz * 0.05 + 3.0)) * 0.5);   // aşınmış/kirli lekeler
-		float bed = smoothstep(0.53, 0.57, fbm(wpos.xz * 0.045 + 11.0));      // çimen tarhları (keskin kenar)
-		float dirt = smoothstep(0.5, 0.53, fbm(wpos.xz * 0.045 + 11.0)) * (1.0 - bed);   // tarhın toprak kenarı
+		float bed = smoothstep(0.49, 0.53, fbm(wpos.xz * 0.045 + 11.0));      // çimen tarhları (keskin kenar)
+		float dirt = smoothstep(0.46, 0.49, fbm(wpos.xz * 0.045 + 11.0)) * (1.0 - bed);   // tarhın toprak kenarı
 		vec3 soil = (b == 11) ? vec3(0.42, 0.32, 0.22) : vec3(0.7, 0.55, 0.38);
 		vec3 green = (b == 11) ? base : mix(base, vec3(0.55, 0.62, 0.32), 0.6);
+		// döşeme yalnız bazı mahallelerde / meydanlarda; aralar sıkıştırılmış sıcak toprak (her yer beton gibi durmasın)
+		float earthz = (b == 11) ? smoothstep(0.42, 0.56, fbm(wpos.xz * 0.012 + 21.0)) : 0.0;
+		vec3 earth = vec3(0.6, 0.47, 0.33) * (0.9 + n3 * 0.14) * (0.92 + n2 * 0.12);
+		earth = mix(earth, earth * vec3(0.85, 0.95, 0.8), smoothstep(0.55, 0.75, fbm(wpos.xz * 0.06 + 4.0)) * 0.5);   // yer yer yosunlu
+		pave = mix(pave, earth, earthz);
 		vec3 ground = mix(pave, soil, dirt);
 		ground = mix(ground, green, bed * ((b == 11) ? 1.0 : 0.35));
 		base = ground;
 	}
+	if (b == 2) base *= 1.0 + (texture(tex_forest, wpos.xz * 0.12).r - 0.5) * 0.7;   // orman zemini: yaprak, dal, toprak
+	if (b == 3 || b == 1 || b == 13) base *= 1.0 + (texture(tex_sand, wpos.xz * 0.15).r - 0.5) * 0.7;   // kum dokusu
 	if (b == 3 || b == 1) {
 		float rip = sin(wpos.x * 1.6 + wpos.z * 0.7 + n1 * 6.0) * 0.5 + 0.5;
 		base *= 0.92 + rip * 0.1 + n2 * 0.06;
@@ -102,7 +113,8 @@ void fragment() {
 		tt.x += step(0.5, fract(tt.y * 0.5)) * 0.5;
 		vec2 f = abs(fract(tt) - 0.5);
 		float joint = smoothstep(0.45, 0.49, max(f.x, f.y));
-		base *= (0.9 + hash(floor(tt)) * 0.18) * (1.0 - joint * 0.4);
+		base *= (0.9 + hash(floor(tt)) * 0.18) * (1.0 - joint * 0.3);
+		base *= 1.0 + (texture(tex_stone, wpos.xz * 0.35).r - 0.5) * 0.8;   // taş köy döşemesi
 	}
 	if (b == 15 || b == 8) {
 		base = mix(base, vec3(1.0), 0.12) + step(0.985, n3) * 0.22;
@@ -119,6 +131,7 @@ void fragment() {
 	vec3 dirt = vec3(0.74, 0.56, 0.36) * (0.85 + n3 * 0.2);
 	if (b == 14 || b == 15) dirt = vec3(0.62, 0.6, 0.56) * (0.88 + n3 * 0.16);
 	if (b == 8 || b == 9) dirt = vec3(0.52, 0.47, 0.42) * (0.88 + n3 * 0.18);  // karlı/dağ yolu: ıslak çakıl
+	if (b != 11) dirt *= 1.0 + (texture(tex_dirt, wpos.xz * 0.2).r - 0.5) * 0.8;   // köy dışı toprak yol
 	// köy içi cadde: toprak değil büyük taş plaka döşeme (referans meydan), kenarda koyu bordür
 	if (b == 11) {
 		vec2 st = wpos.xz / 3.0;
@@ -140,6 +153,7 @@ void fragment() {
 	if (b == 3 || b == 5) rockc = mix(vec3(0.62, 0.42, 0.3), vec3(0.8, 0.6, 0.42), strata);
 	rockc *= 0.85 + strata2 * 0.2;
 	rockc *= mix(0.75, 1.0, smoothstep(0.0, 0.15, abs(fract(wpos.y * 0.25 + n1) - 0.5)));
+	rockc *= 1.0 + (texture(tex_rock, vec2(wpos.x + wpos.z, wpos.y) * 0.06).r - 0.5) * 1.1;   // gerçek kaya yüzeyi dokusu
 	// tüm yarlar: dikey çatlaklar + kaya blokları (düz bant bant duvar gibi durmasın)
 	float blk = vnoise(vec2(wpos.x * 0.045 + wpos.z * 0.045, wpos.y * 0.09));
 	float crk = smoothstep(0.86, 0.95, vnoise(vec2((wpos.x + wpos.z) * 0.11, wpos.y * 0.018)));
@@ -156,7 +170,7 @@ void fragment() {
 		gold *= 0.85 + blk * 0.3;
 		float moss = smoothstep(0.62, 0.72, fbm(wpos.xz * 0.02 + vec2(7.0, wpos.y * 0.03))) * smoothstep(0.75, 0.45, slope);
 		gold = mix(gold, vec3(0.22, 0.42, 0.36), moss * 0.85);                                // yeşil çalı kümeleri
-		rockc = gold;
+		rockc = gold * 0.86 * (1.0 + (texture(tex_rock, vec2(wpos.x + wpos.z, wpos.y) * 0.05).r - 0.5) * 1.4);   // kaya dokusu altın tonda da
 	}
 	base = mix(base, rockc, rock);
 	// nehir kıyısı ıslaklığı + sahil
