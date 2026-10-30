@@ -8,7 +8,8 @@ uniform sampler2D tex : source_color, filter_linear_mipmap, hint_default_white;
 uniform float rim_amount = 0.35;
 uniform float spec_amount = 0.0;
 uniform vec4 emission_color : source_color = vec4(0.0);
-uniform float night_glow = 0.0;   // gece: pencereler / fenerler / kâğıt lambalar yanar (Environment her kare ayarlar)
+uniform float night_glow = 0.0;
+uniform bool roof_tiles = false;   // çatı: dünya uzayında kiremit sıraları   // gece: pencereler / fenerler / kâğıt lambalar yanar (Environment her kare ayarlar)
 uniform float hit_flash = 0.0;
 uniform float detail_noise = 0.0;
 uniform float sway = 0.0;
@@ -510,6 +511,17 @@ void fragment() {
 		c.rgb *= 1.0 + (n - 0.5) * detail_noise;
 	}
 	if (scalp && scalp_col.a >= 0.5) c.rgb = scalp_col.rgb * 0.75;
+	if (roof_tiles) {
+		// kiremit: eğim yönünde 0.45 m sıralar, her sıranın alt kenarı koyu gölge (tırtıklı kenar), sıralar arası şaşırtmalı derz
+		float row = wpos.y / 0.32;
+		float fr = fract(row);
+		vec2 hz = wpos.xz;
+		float col_ = (hz.x + hz.y) / 0.42 + step(0.5, fract(row * 0.5)) * 0.5;
+		float scallop = 0.5 + 0.5 * cos(fract(col_) * 6.2832);   // yuvarlak kiremit ucu
+		float edge = smoothstep(0.0, 0.18 + scallop * 0.12, fr);
+		float seam = smoothstep(0.04, 0.0, abs(fract(col_) - 0.5) - 0.46);
+		c.rgb *= mix(0.45, 1.0, edge) * (1.0 - seam * 0.35) * (0.88 + 0.18 * hash(floor(vec2(col_, row))));
+	}
 	ALBEDO = mix(c.rgb, vec3(1.0), hit_flash);
 	ROUGHNESS = 0.8;
 	EMISSION = emission_color.rgb * emission_color.a + vec3(hit_flash) * 0.6;

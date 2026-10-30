@@ -34,8 +34,24 @@ static func build_all(parent: Node3D) -> void:
 
 ## Akışla köy kuran düğüm: yaklaşınca kur (eşzamansız, kare kare), uzaklaşınca sil
 class VillageStream extends Node3D:
-	var built := {}   # id -> {node, inter}
+	var built := {}   # id -> {node, inter, done}
 	var _t := 0.0
+
+	func _build(node: Node3D, v: Dictionary, rec: Dictionary) -> void:
+		await BuildSites.build_village(node, v, rec)
+		rec["done"] = true
+
+	## Hızlı seyahat: hedef köyü hemen kurmaya başla (yükleme ekranı bunu bekler)
+	func request(id: String) -> Dictionary:
+		if built.has(id):
+			return built[id]
+		var v = Game.village(id)
+		var node = Node3D.new()
+		node.name = "Koy_" + id
+		add_child(node)
+		built[id] = {"node": node, "inter": [], "before": Interact.items.size(), "done": false}
+		_build(node, v, built[id])
+		return built[id]
 
 	func _process(dt: float) -> void:
 		_t -= dt
@@ -54,9 +70,9 @@ class VillageStream extends Node3D:
 				var node = Node3D.new()
 				node.name = "Koy_" + id
 				add_child(node)
-				built[id] = {"node": node, "inter": [], "before": Interact.items.size()}
-				BuildSites.build_village(node, v, built[id])
-			elif d > VILLAGE_FREE_R and built.has(id):
+				built[id] = {"node": node, "inter": [], "before": Interact.items.size(), "done": false}
+				_build(node, v, built[id])
+			elif d > VILLAGE_FREE_R and built.has(id) and built[id]["done"]:
 				for it in built[id]["inter"]:
 					Interact.items.erase(it)
 				built[id]["node"].queue_free()
@@ -147,8 +163,13 @@ static func _rng(s: int) -> RandomNumberGenerator:
 
 
 ## Kare kare kurulum için bekleme noktası
+static var budget_ms := 8.0     # kare başına kurulum süresi; hızlı seyahat yükleme ekranında 120 ms
+static var _ylast := 0
 static func _yield() -> void:
+	if Time.get_ticks_msec() - _ylast < budget_ms:
+		return   # bütçe dolmadı: aynı karede devam (her 12 evde bir kare beklemek binlerce evde dakikalar sürüyordu)
 	await Engine.get_main_loop().process_frame
+	_ylast = Time.get_ticks_msec()
 
 
 ## Evlerle doldur: merkezde sık, dışa doğru seyrek (anime köyü: yoğun merkez + dağınık dış mahalleler).

@@ -109,8 +109,8 @@ func _ready() -> void:
 			await main.shot("look_rock_%d" % k)
 	if want.call("shops"):
 		var k = 0
-		for sh in [[-170.0, -36.0, 1.0], [170.0, -36.0, 1.0], [-250.0, -36.0, 1.0], [250.0, -36.0, 1.0], [-110.0, 36.0, -1.0], [230.0, 38.0, -1.0]]:
-			var sp2 = Game.from_map(Vector2(v["x"] + sh[0], v["y"] + sh[1] + sh[2] * 17.0))
+		for sh in [[-170.0, -23.0, 1.0], [-250.0, -23.0, 1.0], [-110.0, 23.0, -1.0]]:
+			var sp2 = Game.from_map(Vector2(v["x"] + sh[0] + 12.0, v["y"] + sh[1] + sh[2] * 30.0))
 			sp2.y = Game.ground_height(sp2.x, sp2.z)
 			pl.respawn(sp2 + Vector3(3, 0.5, 0))
 			await get_tree().create_timer(2.5).timeout
@@ -144,6 +144,11 @@ func _ready() -> void:
 			cam.look_at(sq + Vector3(0, 40.0, -30.0))
 			await get_tree().create_timer(0.6).timeout
 			await main.shot("look_st_%d" % k)
+	if want.call("roofs"):
+		cam.global_position = p + Vector3(25, 22, 30)
+		cam.look_at(p + Vector3(0, 10, 0))
+		await get_tree().create_timer(0.8).timeout
+		await main.shot("look_roof")
 	if want.call("cloud"):
 		cam.global_position = p + Vector3(0, 2, 0)
 		cam.look_at(p + Vector3(30, 18, -60))

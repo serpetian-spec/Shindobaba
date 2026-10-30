@@ -439,7 +439,27 @@ func fast_travel(vid: String) -> void:
 	var v = Game.village(vid)
 	resume()
 	FX.smoke_puff(player.global_position + Vector3.UP, 1.0, 14)
-	player.respawn(Game.from_map(Vector2(v["x"], v["y"] - float(v["r"]) * 0.5)))
+	# yükleme ekranı: köy kurulurken büyük kare bütçesi (oyun dururken hızlı kurulur), bitince oyuncu yerleşir
+	var vs = world.get_node_or_null("VillageStream") if world else null
+	if vs == null:
+		for ch in world.find_children("VillageStream", "", true, false):
+			vs = ch
+	var rec: Dictionary = vs.request(vid) if vs and vid != "konoha" else {"done": true}
+	if not rec.get("done", true):
+		_show_loading()
+		(loading.get_node("L") as Label).text = "%s yükleniyor..." % v["name"]
+		get_tree().paused = false
+		player.set_physics_process(false)
+		BuildSites.budget_ms = 120.0
+		var t0 = Time.get_ticks_msec()
+		while not rec.get("done", false) and Time.get_ticks_msec() - t0 < 90000:
+			_loading_progress(clampf((Time.get_ticks_msec() - t0) / 15000.0, 0.05, 0.95), "%s kuruluyor" % v["name"])
+			await get_tree().process_frame
+		BuildSites.budget_ms = 8.0
+		player.set_physics_process(true)
+		loading.queue_free()
+		loading = null
+	player.respawn(Missions.open_ground(Game.from_map(Vector2(v["x"], v["y"] - float(v["r"]) * 0.5)), 60.0) + Vector3.UP * 0.5)   # binaların arasına sıkışmasın
 	Hud.banner(v["name"], "Hızlı seyahat", Color(0.8, 0.95, 1.0))
 
 

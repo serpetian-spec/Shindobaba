@@ -16,6 +16,15 @@ static func toon() -> ShaderMaterial:
 	return _toon
 
 
+static var _roof: ShaderMaterial
+## Çatılar: toon + kiremit deseni (sıra sıra tırtıklı kiremit çizgileri)
+static func roof_toon() -> ShaderMaterial:
+	if _roof == null:
+		_roof = toon().duplicate()
+		_roof.set_shader_parameter("roof_tiles", true)
+	return _roof
+
+
 static func foliage() -> ShaderMaterial:
 	if _foliage == null:
 		_foliage = ShaderMaterial.new()

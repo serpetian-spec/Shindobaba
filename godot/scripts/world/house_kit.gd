@@ -156,6 +156,27 @@ static func _make(rng: RandomNumberGenerator, i: int) -> Dictionary:
 	# boru
 	if apt or rng.randf() < 0.35:
 		det.add("cyl", Vector3(-w * 0.5 - 0.15, h * 0.5, d * 0.25), Vector3(0.22, h, 0.22), Color(0.55, 0.57, 0.6), Vector3.ZERO, 6)
+	# klima üniteleri: yan / arka duvarlarda rastgele (kasaba evi ve apartmanlarda)
+	if rng.randf() < 0.55:
+		for k in rng.randi_range(1, 3 if apt else 2):
+			var fl = rng.randi_range(0, floors - 1)
+			var cy = 0.5 + fl * fh + rng.randf_range(0.6, 1.1)
+			var side = rng.randi() % 3   # 0 sol, 1 sağ, 2 arka
+			var p: Vector3
+			var yw = 0.0
+			if side == 2:
+				p = Vector3(rng.randf_range(-w * 0.35, w * 0.35), cy, d * 0.5 + 0.3)
+			else:
+				var sx = -1.0 if side == 0 else 1.0
+				p = Vector3(sx * (w * 0.5 + 0.3), cy, rng.randf_range(-d * 0.3, d * 0.3))
+				yw = 90.0
+			var r = Basis(Vector3.UP, deg_to_rad(yw))
+			det.add_xf("box", Transform3D(r * Basis.from_scale(Vector3(0.95, 0.65, 0.55)), p), Color(0.86, 0.87, 0.85))
+			var fwd = r * Vector3(0, 0, 1) * (0.28 if side == 2 else 1.0)
+			if side != 2:
+				fwd = Vector3(signf(p.x) * 0.28, 0, 0)
+			det.add_xf("cyl", Transform3D(r * Basis(Vector3.RIGHT, PI * 0.5) * Basis.from_scale(Vector3(0.46, 0.04, 0.46)), p + fwd + (r * Vector3(0.15, 0, 0))), Color(0.32, 0.33, 0.35), 12)   # fan ızgarası
+			det.add_xf("box", Transform3D(r * Basis.from_scale(Vector3(0.06, 0.06, 0.45)), p + Vector3(0, -0.3, 0) + fwd * 0.5), Color(0.5, 0.5, 0.52))   # ayak
 	# kapı önü: her evde aynı üç saksı yerine evine göre farklı küçük ayrıntılar (bazen hiç)
 	_front_decor(det, w, d, arch, rng)
 	# çatı
@@ -550,7 +571,7 @@ class Placer:
 					var mmi = MultiMeshInstance3D.new()
 					mmi.layers = 2
 					mmi.multimesh = mm
-					mmi.material_override = Props.toon()
+					mmi.material_override = Props.roof_toon() if pair[1] == "roof" else Props.toon()
 					mmi.visibility_range_end = view * float(Game.settings["view"])
 					mmi.visibility_range_end_margin = 60.0
 					mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF

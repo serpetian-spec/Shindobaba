@@ -16,6 +16,12 @@ varying vec3 base_col;
 varying float fade;
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+float vnoise(vec2 p) {
+	vec2 i = floor(p), f = fract(p);
+	vec2 u = f * f * (3.0 - 2.0 * f);
+	return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y);
+}
+float fbm(vec2 p) { float s = 0.0, a = 0.5; for (int i = 0; i < 4; i++) { s += vnoise(p) * a; p *= 2.07; a *= 0.5; } return s; }
 
 void vertex() {
 	vec2 uv = (VERTEX.xz - world_rect.xy) / world_rect.zw;
@@ -42,7 +48,7 @@ void vertex() {
 	// 2 orman 4 yağmur 6 pirinç 7 çimen 9 dağ 10 bataklık 11 köy
 	float ok = (b == 2 || b == 4 || b == 6 || b == 7 || b == 10) ? 1.0 : (b == 9 ? 0.5 : 0.0);
 	// köy içinde sadece duvar diplerinde/bahçelerde seyrek öbekler
-	if (b == 11) ok = step(0.82, hash(floor(root.xz * 0.18)));
+	if (b == 11) ok = step(0.58, fbm(root.xz * 0.045 + 11.0));   // köy: yalnız çimen tarhlarında (arazi gölgelendiricisiyle aynı desen), döşemede çimen yok
 	// 13 çöl köyü, 14 taş köy, 15 karlı köy: çimen yok
 	ok *= 1.0 - step(0.2, road);            // yol
 	ok *= 1.0 - step(0.5, bio.b);           // ıslak

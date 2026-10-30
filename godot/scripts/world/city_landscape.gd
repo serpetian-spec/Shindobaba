@@ -214,7 +214,7 @@ class Ctx:
 
 	## Oyun sırasında (akışla kurulan köyler) iş karelere bölünür: karede ~4 ms
 	func busy() -> bool:
-		return async and Time.get_ticks_usec() - slice_t > 6000
+		return async and Time.get_ticks_usec() - slice_t > int(BuildSites.budget_ms * 1000.0)
 
 	func rest() -> void:
 		await Engine.get_main_loop().process_frame
@@ -548,7 +548,7 @@ static func _house_infill(c, houses: Array) -> void:
 	print("Boşluk doldurma %s: +%d ev" % [b.key, added])
 
 
-const LANE_COL := {"green": Color(0.76, 0.66, 0.48), "mist": Color(0.64, 0.66, 0.66), "rock": Color(0.56, 0.5, 0.44),
+const LANE_COL := {"green": Color(0.52, 0.48, 0.43), "mist": Color(0.64, 0.66, 0.66), "rock": Color(0.56, 0.5, 0.44),
 	"desert": Color(0.72, 0.58, 0.4), "rain": Color(0.42, 0.44, 0.47), "snow": Color(0.72, 0.72, 0.75)}
 const NC := 12.0
 
@@ -943,6 +943,22 @@ static func _street_trees(c: Ctx, rad: float) -> void:
 					c.put(veg(tt), lx, ln, c.rng.randf() * 360.0, Vector3.ONE * s, 700.0, true, -0.1)
 					c.put(ring_m, lx, ln, 0.0, Vector3.ONE, 220.0, false, 0.02)
 					c.solid_cyl(lx, ln, 0.35 * s + 0.1, 5.0 * s)
+				elif c.open(lx, ln, 1.0, half + 0.3) and c.rng.randf() < 0.75:
+					# ağaç sığmıyorsa yol kenarı ritmi: taş fener, alçak çit, bank ya da çiçek tarhı (yol boyunca dolu görünsün)
+					var yaw = rad_to_deg(atan2(-nrm.x * sd, -nrm.y * sd))
+					match c.rng.randi() % 4:
+						0:
+							c.put(mesh("stone_lantern"), lx, ln, yaw, Vector3.ONE, 260.0)
+							c.solid_cyl(lx, ln, 0.3, 1.6)
+						1:
+							for f in 2:
+								var fq = Vector2(lx, ln) + dir * (f - 0.5) * 2.0
+								c.put(mesh("fence"), fq.x, fq.y, rad_to_deg(atan2(dir.x, dir.y)) + 90.0, Vector3.ONE, 200.0)
+						2:
+							c.put(mesh("bench"), lx, ln, yaw + 180.0, Vector3.ONE, 200.0)
+							c.solid_box(lx, ln, Vector3(1.8, 0.9, 0.6), yaw)
+						3:
+							c.put(mesh("flowerbed"), lx, ln, rad_to_deg(atan2(dir.x, dir.y)), Vector3.ONE, 220.0)
 				elif c.rng.randf() < 0.18:
 					# ağaç sığmıyorsa küçük bir saksı/tarh
 					var q2 = mp + nrm * sd * (half + 0.9)

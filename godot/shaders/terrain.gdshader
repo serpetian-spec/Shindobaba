@@ -67,6 +67,25 @@ void fragment() {
 		base = mix(base, base * vec3(1.12, 1.08, 0.7), smoothstep(0.7, 0.85, fbm(wpos.xz * 0.03 + 7.0)) * 0.6);
 		base *= 0.93 + n3 * 0.12;
 	}
+	// köy zemini (referans: tasarlanmış meydan): çoğu yer taş döşeme (ofsetli plaka + derz + plaka plaka ton), çimen yalnız
+	// kenarı belirgin tarhlarda, aralarda toprak; çimenin her yeri kapladığı boş görünümü kırar
+	if (b == 11 || b == 13) {
+		vec2 tt = wpos.xz / vec2(2.2, 1.6);
+		tt.x += step(0.5, fract(tt.y * 0.5)) * 0.5;
+		vec2 f = abs(fract(tt) - 0.5);
+		float joint = smoothstep(0.44, 0.49, max(f.x, f.y));
+		float tone = hash(floor(tt));
+		vec3 pave = (b == 11) ? mix(vec3(0.44, 0.41, 0.38), vec3(0.53, 0.49, 0.44), tone) : mix(vec3(0.82, 0.7, 0.5), vec3(0.9, 0.79, 0.6), tone);
+		pave *= (1.0 - joint * 0.45) * (0.94 + n3 * 0.08);
+		pave = mix(pave, pave * vec3(0.82, 0.8, 0.74), smoothstep(0.55, 0.8, fbm(wpos.xz * 0.05 + 3.0)) * 0.5);   // aşınmış/kirli lekeler
+		float bed = smoothstep(0.53, 0.57, fbm(wpos.xz * 0.045 + 11.0));      // çimen tarhları (keskin kenar)
+		float dirt = smoothstep(0.5, 0.53, fbm(wpos.xz * 0.045 + 11.0)) * (1.0 - bed);   // tarhın toprak kenarı
+		vec3 soil = (b == 11) ? vec3(0.42, 0.32, 0.22) : vec3(0.7, 0.55, 0.38);
+		vec3 green = (b == 11) ? base : mix(base, vec3(0.55, 0.62, 0.32), 0.6);
+		vec3 ground = mix(pave, soil, dirt);
+		ground = mix(ground, green, bed * ((b == 11) ? 1.0 : 0.35));
+		base = ground;
+	}
 	if (b == 3 || b == 1) {
 		float rip = sin(wpos.x * 1.6 + wpos.z * 0.7 + n1 * 6.0) * 0.5 + 0.5;
 		base *= 0.92 + rip * 0.1 + n2 * 0.06;
@@ -97,6 +116,15 @@ void fragment() {
 	vec3 dirt = vec3(0.74, 0.56, 0.36) * (0.85 + n3 * 0.2);
 	if (b == 14 || b == 15) dirt = vec3(0.62, 0.6, 0.56) * (0.88 + n3 * 0.16);
 	if (b == 8 || b == 9) dirt = vec3(0.52, 0.47, 0.42) * (0.88 + n3 * 0.18);  // karlı/dağ yolu: ıslak çakıl
+	// köy içi cadde: toprak değil büyük taş plaka döşeme (referans meydan), kenarda koyu bordür
+	if (b == 11) {
+		vec2 st = wpos.xz / 3.0;
+		st.x += step(0.5, fract(st.y * 0.5)) * 0.5;
+		vec2 sf = abs(fract(st) - 0.5);
+		float sj = smoothstep(0.45, 0.49, max(sf.x, sf.y));
+		dirt = mix(vec3(0.6, 0.55, 0.47), vec3(0.68, 0.62, 0.52), hash(floor(st))) * (1.0 - sj * 0.4) * (0.94 + n3 * 0.08);
+		dirt *= 1.0 - 0.28 * (smoothstep(0.3, 0.45, rmask) - smoothstep(0.45, 0.6, rmask));   // bordür
+	}
 	// yol kenarı: tekerlek izi ortası hafif çimenli, kenarlarda çakıl
 	dirt *= 1.0 - 0.06 * smoothstep(0.75, 0.95, rmask);
 	base = mix(base, dirt, road * 0.92);

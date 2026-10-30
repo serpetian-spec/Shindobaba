@@ -480,6 +480,10 @@ func _free_spot(p: Vector3) -> Vector3:
 
 
 func _update_crowd(v: Dictionary, p: Vector3) -> void:
+	# sentez kalabalık uğultusu caddelerde sinek vızıltısı / uçak sesi gibi duyuluyordu: kapalı
+	if crowd:
+		crowd.stop()
+	return
 	var cpos = _site_pos(v.get("id", ""), "crowd") if not v.is_empty() else Vector3.INF
 	if cpos == Vector3.INF:
 		if crowd:
