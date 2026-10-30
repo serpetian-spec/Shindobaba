@@ -189,8 +189,7 @@ class TravelGroup extends Node3D:
 			var w = _onto_deck(q + side, Game.from_map(q + side))
 			mem[0].global_position = w
 			mem[0].rotation.y = atan2(-f.x, f.y)
-			if mem[0].has_meta("legs"):   # öküz: model önü -z, adımlar
-				mem[0].rotation.y += PI
+			if mem[0].has_meta("legs"):   # öküz: adımlar (model yönü kediyle aynı: ek 180° dönüş arabaya bakmasına yol açıyordu)
 				var ph = Time.get_ticks_msec() * 0.006
 				var lg: Array = mem[0].get_meta("legs")
 				for i in lg.size():

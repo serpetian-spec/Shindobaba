@@ -273,8 +273,10 @@ static func tool(who: Node3D, start: Vector3, dir: Vector3, kind: String, target
 			if kind == "tag":
 				b.add("box", Vector3(0, 0, 0.1), Vector3(0.07, 0.005, 0.16), Color(0.95, 0.9, 0.75))
 		"shuriken":
-			for k in 4:
-				b.add("box", Vector3(0, 0, 0), Vector3(0.36, 0.015, 0.06), Color(0.55, 0.57, 0.6), Vector3(0, k * 45, 0))
+			# yatay dönen 4 uçlu yıldız (XY yıldızı X ekseninde 90° yatırılır)
+			var sb = MB.new()
+			CharacterModel._w_star(sb, Vector3.ZERO, 0.19, 0.06, 4, Color(0.6, 0.62, 0.66), Color(0.15, 0.15, 0.17))
+			b.add_mesh(sb, Transform3D(Basis(Vector3.RIGHT, PI * 0.5), Vector3.ZERO))
 			pr.spin = Vector3(0, 30, 0)
 			pr.info["dmg"] = 6.0 * mult
 		"smoke":

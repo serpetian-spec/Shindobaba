@@ -806,18 +806,26 @@ static func _deck(b: Builder, s: Dictionary) -> void:
 	var h0: float = s["h0"]
 	var h1: float = s["h1"]
 	var hm := (h0 + h1) * 0.5
-	var tilt := rad_to_deg(atan2(h1 - h0, L))
 	var wood := Color(0.52, 0.36, 0.23)
 	var stone := Color(0.55, 0.53, 0.5)
-	b.box(Vector3(x, hm - 0.3, n), Vector3(DECK_W, 0.6, L), wood, yaw, true, Vector3(-tilt, 0, 0))   # tahta güverte (yürünür)
-	b.box(Vector3(x, hm - 0.9, n), Vector3(DECK_W + 1.0, 0.7, L), stone.darkened(0.15), yaw, false, Vector3(-tilt, 0, 0))   # taş kiriş
-	for k2 in 3:   # güverte tahta çizgileri
-		var lo2 := Builder.rot((k2 - 1) * DECK_W * 0.3, 0, yaw)
-		b.box(Vector3(x + lo2.x, hm + 0.01, n + lo2.y), Vector3(0.12, 0.02, L), wood.darkened(0.25), yaw, false, Vector3(-tilt, 0, 0))
-	for sx in [-1.0, 1.0]:
-		var ro := Builder.rot((DECK_W * 0.5 - 0.35) * sx, 0, yaw)
-		b.box(Vector3(x + ro.x, hm + 0.55, n + ro.y), Vector3(0.25, 1.1, L), wood.darkened(0.2), yaw, true, Vector3(-tilt, 0, 0))   # korkuluk (düşmesin)
-		b.box(Vector3(x + ro.x, hm + 1.15, n + ro.y), Vector3(0.35, 0.12, L), Color(0.78, 0.22, 0.16), yaw, false, Vector3(-tilt, 0, 0))
+	var d := Vector2(sin(deg_to_rad(yaw)), cos(deg_to_rad(yaw)))   # yerel (x, n) ilerleme yönü
+	# rampa: eğik kutunun çarpışması düz kalıyordu (kademeli, kesik kesik) -> 2 m'lik düz dilimler, her biri kendi
+	# yüksekliğinde (basamak ~0.28 m: yürürken fark edilmez); düz kesimde tek parça
+	var slices := 1 if absf(h1 - h0) < 0.05 else maxi(1, int(ceil(L / 2.0)))
+	var sl := L / slices
+	for k in slices:
+		var t := (k + 0.5) / slices
+		var hh := lerpf(h0, h1, t)
+		var c := Vector2(x, n) + d * (t - 0.5) * L
+		b.box(Vector3(c.x, hh - 0.3, c.y), Vector3(DECK_W, 0.6, sl + 0.05), wood, yaw, true)   # tahta güverte (yürünür)
+		b.box(Vector3(c.x, hh - 0.9, c.y), Vector3(DECK_W + 1.0, 0.7, sl + 0.05), stone.darkened(0.15), yaw, false)   # taş kiriş
+		for k2 in 3:   # güverte tahta çizgileri
+			var lo2 := Builder.rot((k2 - 1) * DECK_W * 0.3, 0, yaw)
+			b.box(Vector3(c.x + lo2.x, hh + 0.01, c.y + lo2.y), Vector3(0.12, 0.02, sl + 0.05), wood.darkened(0.25), yaw, false)
+		for sx in [-1.0, 1.0]:
+			var ro := Builder.rot((DECK_W * 0.5 - 0.35) * sx, 0, yaw)
+			b.box(Vector3(c.x + ro.x, hh + 0.55, c.y + ro.y), Vector3(0.25, 1.1, sl + 0.05), wood.darkened(0.2), yaw, true)   # korkuluk (düşmesin)
+			b.box(Vector3(c.x + ro.x, hh + 1.15, c.y + ro.y), Vector3(0.35, 0.12, sl + 0.05), Color(0.78, 0.22, 0.16), yaw, false)
 	if s.get("pier", false):
 		# su içine inen taş ayaklar
 		for sx in [-1.0, 1.0]:

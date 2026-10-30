@@ -1094,7 +1094,7 @@ func _process(dt: float) -> void:
 	var it = Interact.nearest(pl.global_position)
 	var catch = _near_catchable(pl)
 	var tk = _near_talker(pl) if it.is_empty() and not catch else null
-	var ptxt = it.get("label", "") if not it.is_empty() else ("Yakala!" if catch else ("Konuş: %s" % tk.display if tk else ""))
+	var ptxt = it.get("label", "") if not it.is_empty() else ((String(catch.get("catch_label")) if catch.get("catch_label") != null else "Yakala!") if catch else ("Konuş: %s" % tk.display if tk else ""))
 	ptxt = String(ptxt).replace("[F] ", "").replace("[F]", "").strip_edges()
 	prompt_box.visible = ptxt != ""
 	if prompt_box.visible and prompt_lbl.text != ptxt:

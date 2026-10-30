@@ -24910,5 +24910,929 @@
   "shape": "aoe",
   "tier": 5,
   "meaning": "Hiçlik Perdesi"
+ },
+ "totsuka_no_tsurugi": {
+  "id": "totsuka_no_tsurugi",
+  "name": "Totsuka no Tsurugi",
+  "name_en": "Totsuka Sword",
+  "cost": 60,
+  "cd": 24.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Susanoo'nun ruhani kılıcı; dokunduğu hedefi sake testisine mühürler gibi sersemletip ağır yaralar.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Totsuka Kılıcı"
+ },
+ "yata_no_kagami": {
+  "id": "yata_no_kagami",
+  "name": "Yata no Kagami",
+  "name_en": "Yata Mirror",
+  "cost": 50,
+  "cd": 28.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Susanoo'nun kalkanı: kısa süre her saldırıyı geri yansıtan ayna, hasarı büyük ölçüde emer.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "buff",
+  "range": "Short",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Yata Aynası"
+ },
+ "magen_karasu_bunshin": {
+  "id": "magen_karasu_bunshin",
+  "name": "Magen: Karasu Bunshin",
+  "name_en": "Crow Clone",
+  "cost": 40,
+  "cd": 18.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Bedenin karga sürüsüne dağılır; yerinde bir yanılsama kalır, sen karga olup yeniden belirirsin.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "clone",
+  "range": "Long",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Karga Klonu"
+ },
+ "susanoo_kagutsuchi_no_yumiya": {
+  "id": "susanoo_kagutsuchi_no_yumiya",
+  "name": "Susanoo: Kagutsuchi no Yumiya",
+  "name_en": "Susanoo Blaze Arrow",
+  "cost": 60,
+  "cd": 22.0,
+  "element": "katon",
+  "elements": [
+   "katon"
+  ],
+  "natures": [
+   "katon"
+  ],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Susanoo yayından kara alevli ok: değdiği yerde Enton alevleri patlar.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "beam",
+  "range": "Long",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Kagutsuchi Yayı ve Oku"
+ },
+ "enton_kagutsuchi_no_tsurugi": {
+  "id": "enton_kagutsuchi_no_tsurugi",
+  "name": "Enton: Kagutsuchi no Tsurugi",
+  "name_en": "Blaze Release: Kagutsuchi Sword",
+  "cost": 48,
+  "cd": 16.0,
+  "element": "katon",
+  "elements": [
+   "katon"
+  ],
+  "natures": [
+   "katon"
+  ],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Kara alevi kılıç biçiminde dövüp savurursun; kesik yerinde alev söner değil, yanmaya devam eder.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Kagutsuchi Kılıcı"
+ },
+ "susanoo_chidori": {
+  "id": "susanoo_chidori",
+  "name": "Susanoo: Chidori",
+  "name_en": "Susanoo Chidori",
+  "cost": 54,
+  "cd": 20.0,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Susanoo'nun eli şimşekle kaplanır; dev Chidori darbesi.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "melee",
+  "range": "Short",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Susanoo Bin Kuş"
+ },
+ "enton_kokuen_no_tate": {
+  "id": "enton_kokuen_no_tate",
+  "name": "Enton: Kokuen no Tate",
+  "name_en": "Blaze Release: Black Flame Shield",
+  "cost": 44,
+  "cd": 20.0,
+  "element": "katon",
+  "elements": [
+   "katon"
+  ],
+  "natures": [
+   "katon"
+  ],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Önünde kara alevden duvar yükselir; içinden geçen yanar.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "wall",
+  "range": "Long",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Kara Alev Kalkanı"
+ },
+ "enton_kokuryu": {
+  "id": "enton_kokuryu",
+  "name": "Enton: Kokuryū",
+  "name_en": "Blaze Release: Black Dragon",
+  "cost": 58,
+  "cd": 24.0,
+  "element": "katon",
+  "elements": [
+   "katon"
+  ],
+  "natures": [
+   "katon"
+  ],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Kara alevler ejderha biçiminde kıvrılıp hedefe saldırır (kendi tarzımız).",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "projectile",
+  "range": "Long",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Kara Ejderha"
+ },
+ "kamui_surinuke": {
+  "id": "kamui_surinuke",
+  "name": "Kamui: Surinuke",
+  "name_en": "Kamui Phasing",
+  "cost": 36,
+  "cd": 18.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Bedenini öbür boyuta kaydırırsın: kısa süre saldırılar içinden geçer.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "buff",
+  "range": "Short",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Kamui Geçirgenliği"
+ },
+ "kamui_kyuin": {
+  "id": "kamui_kyuin",
+  "name": "Kamui: Kyūin",
+  "name_en": "Kamui Absorption",
+  "cost": 52,
+  "cd": 24.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Gözünle bakılan alanı sarmal halinde Kamui boyutuna emersin.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "aoe",
+  "range": "Long",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Kamui Emişi"
+ },
+ "kamui_ikukan_toji": {
+  "id": "kamui_ikukan_toji",
+  "name": "Kamui: Ikūkan Tōji",
+  "name_en": "Kamui Dimension Trap",
+  "cost": 46,
+  "cd": 22.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Hedefi bir anlığına Kamui boyutuna hapsedip geri fırlatırsın.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "bind",
+  "range": "Long",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Boyut Hapsi"
+ },
+ "kamui_hanten": {
+  "id": "kamui_hanten",
+  "name": "Kamui: Hanten",
+  "name_en": "Kamui Reversal",
+  "cost": 40,
+  "cd": 20.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Gelen saldırıyı boyuta emip saldırganın arkasından geri çıkarırsın (kendi tarzımız).",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "counter",
+  "range": "Short",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Kamui Ters Dönüş"
+ },
+ "kyubi_shihai": {
+  "id": "kyubi_shihai",
+  "name": "Sharingan: Kyūbi Shihai",
+  "name_en": "Sharingan Beast Control",
+  "cost": 50,
+  "cd": 26.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Bakışınla en güçlü iradeyi bile bükersin: hedef uzun süre donar, çevresindekiler sersemler.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "genjutsu_stun",
+  "range": "Long",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Canavar Hükmü"
+ },
+ "susanoo_kenjutsu": {
+  "id": "susanoo_kenjutsu",
+  "name": "Susanoo: Kenjutsu",
+  "name_en": "Susanoo Swordsmanship",
+  "cost": 56,
+  "cd": 20.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Susanoo'nun iki kılıcıyla çevrene dev yarım daire kesikler.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "aoe",
+  "range": "Long",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Susanoo Kılıç Sanatı"
+ },
+ "kanzen_tai_itto": {
+  "id": "kanzen_tai_itto",
+  "name": "Kanzen Tai: Ittō",
+  "name_en": "Perfect Susanoo Slash",
+  "cost": 70,
+  "cd": 34.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Tam Susanoo kılıcı tek savuruşta önündeki her şeyi yarar; dağları biçen kesik.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "beam",
+  "range": "Long",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Tam Beden Tek Kesik"
+ },
+ "susanoo_tate": {
+  "id": "susanoo_tate",
+  "name": "Susanoo: Tate",
+  "name_en": "Susanoo Shield",
+  "cost": 40,
+  "cd": 22.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Susanoo'nun kaburgaları ve kolları seni sarar; kısa süre ağır hasar azaltma.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "buff",
+  "range": "Short",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Susanoo Kalkanı"
+ },
+ "susanoo_shuha": {
+  "id": "susanoo_shuha",
+  "name": "Susanoo: Shūha",
+  "name_en": "Susanoo Pressure Wave",
+  "cost": 52,
+  "cd": 22.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Susanoo'nun basıncı yere çöker; çevredekileri savuran şok dalgası.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "aoe",
+  "range": "Long",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Basınç Dalgası"
+ },
+ "shunshin_genso": {
+  "id": "shunshin_genso",
+  "name": "Shunshin Gensō",
+  "name_en": "Body Flicker Illusion",
+  "cost": 30,
+  "cd": 10.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Göz açıp kapayana kadar hedefin arkasına geçersin; geride bıraktığın görüntü bir süre kalır.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "teleport",
+  "range": "Long",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Göz Açıp Kapayıncaya Yanılsama"
+ },
+ "susanoo_shisui_no_ya": {
+  "id": "susanoo_shisui_no_ya",
+  "name": "Susanoo: Shisui no Ya",
+  "name_en": "Shisui's Susanoo Arrow",
+  "cost": 54,
+  "cd": 20.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Yeşil Susanoo'nun yayından delici chakra oku (kendi tarzımız).",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "beam",
+  "range": "Long",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Shisui Oku"
+ },
+ "karasu_kuyo": {
+  "id": "karasu_kuyo",
+  "name": "Karasu Kuyō",
+  "name_en": "Crow Requiem",
+  "cost": 46,
+  "cd": 20.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Karga sürüsü düşmanlarının üstüne çullanır, gözlerini kör eder.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "aoe",
+  "range": "Long",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Karga Ağıtı"
+ },
+ "utakata_no_genso": {
+  "id": "utakata_no_genso",
+  "name": "Utakata no Gensō",
+  "name_en": "Fleeting Illusion",
+  "cost": 40,
+  "cd": 18.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Çevrendeki herkes bir anlık hayale kapılır; gerçeğe döndüklerinde sen çoktan oradasın.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "genjutsu_stun",
+  "range": "Long",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Köpük Hayal"
+ },
+ "kotodama_no_shibari": {
+  "id": "kotodama_no_shibari",
+  "name": "Kotodama no Shibari",
+  "name_en": "Word-Spirit Binding",
+  "cost": 44,
+  "cd": 22.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Hedefin iradesine tek bir emir kazınır: yerinden kıpırdayamaz.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "bind",
+  "range": "Long",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Söz Bağı"
+ },
+ "kyokei_shunshin": {
+  "id": "kyokei_shunshin",
+  "name": "Kyōkei Shunshin",
+  "name_en": "Mirror Flicker",
+  "cost": 38,
+  "cd": 16.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Gölge gibi art arda belirip kaybolan üç yanılsama bırakırsın; düşman hangisinin sen olduğunu bilemez.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "clone",
+  "range": "Long",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Ayna Yanıp Sönme"
+ },
+ "kamui_kusari_shibari": {
+  "id": "kamui_kusari_shibari",
+  "name": "Kamui: Kusari Shibari",
+  "name_en": "Kamui Chain Bind",
+  "cost": 42,
+  "cd": 20.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Boyuttan çıkan zincirle hedefi bağlar, kaçamaz.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "bind",
+  "range": "Long",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Kamui Zincir Bağı"
+ },
+ "kamui_ikukan_tobi": {
+  "id": "kamui_ikukan_tobi",
+  "name": "Kamui: Ikūkan Tobi",
+  "name_en": "Kamui Dimension Leap",
+  "cost": 34,
+  "cd": 12.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Kamui girdabına girip hedefin arkasından çıkarsın.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "teleport",
+  "range": "Long",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Boyut Sıçrayışı"
+ },
+ "kamui_ranbu": {
+  "id": "kamui_ranbu",
+  "name": "Kamui: Ranbu",
+  "name_en": "Kamui Wild Dance",
+  "cost": 50,
+  "cd": 22.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Boyuttan art arda çıkan kunai ve shuriken yağmuru (kendi tarzımız).",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "aoe",
+  "range": "Long",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Kamui Çılgın Dansı"
+ },
+ "susanoo_kamui_ya": {
+  "id": "susanoo_kamui_ya",
+  "name": "Susanoo: Kamui no Ya",
+  "name_en": "Kakashi Susanoo Kamui Arrow",
+  "cost": 62,
+  "cd": 24.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Kakashi'nin Susanoo'su: dokunduğu yeri boyuta koparan Kamui oku.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "beam",
+  "range": "Long",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Kamui Oku"
+ },
+ "raikiri_soryu": {
+  "id": "raikiri_soryu",
+  "name": "Raikiri: Sōryū",
+  "name_en": "Lightning Blade: Twin Dragons",
+  "cost": 50,
+  "cd": 18.0,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "İki elden fırlayan şimşek ejderhaları.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "projectile",
+  "range": "Long",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "İkiz Ejderha"
+ },
+ "kamui_kakushi": {
+  "id": "kamui_kakushi",
+  "name": "Kamui: Kakushi",
+  "name_en": "Kamui Concealment",
+  "cost": 32,
+  "cd": 20.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Bedenini boyutun eşiğine çekip görünmez olursun; düşmanlar seni kaybeder.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "buff",
+  "range": "Short",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Kamui Gizlenmesi"
+ },
+ "kopi_ninja_no_me": {
+  "id": "kopi_ninja_no_me",
+  "name": "Sharingan: Kopī Ninja no Me",
+  "name_en": "Copy Ninja Eye",
+  "cost": 36,
+  "cd": 26.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 26,
+  "rank": 0,
+  "learn": "eye:mangekyo",
+  "desc": "Rakibin her hareketini okursun: kısa süre kaçma ve jutsu gücü artar.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "dojutsu",
+  "shape": "buff",
+  "range": "Short",
+  "requires": {
+   "eye": [
+    "Mangekyō Sharingan"
+   ]
+  },
+  "signature": true,
+  "kinjutsu": false,
+  "series": "Shinobi Yolu",
+  "meaning": "Kopya Ninja Gözü"
  }
 }

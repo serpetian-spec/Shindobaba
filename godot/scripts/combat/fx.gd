@@ -235,31 +235,45 @@ func blood(pos: Vector3, dir: Vector3, amount := 0.5) -> void:
 	amount = clampf(amount, 0.15, 1.0)
 	var d = dir.normalized() if dir.length() > 0.05 else Vector3.UP
 	d = (d + Vector3.UP * 0.35).normalized()
-	burst(pos, {"amount": int(14 + 26 * amount), "life": 0.6, "size": 0.17, "vmin": 2.0, "vmax": 5.5 + 3.0 * amount, "dir": d, "spread": 28.0,
-		"gravity": Vector3(0, -14.0, 0), "damp": 0.5, "add": false, "cel": false, "tex": tex_soft, "smin": 0.5, "smax": 1.2,
-		"colors": [Color(0.78, 0.03, 0.04, 1.0), Color(0.55, 0.0, 0.02, 1.0), Color(0.35, 0.0, 0.01, 0.0)], "explosive": 1.0})
-	burst(pos, {"amount": int(5 + 6 * amount), "life": 0.4, "size": 0.45 * (0.6 + amount), "vmin": 0.6, "vmax": 1.8, "dir": d, "spread": 40.0,
+	# sıçrama: koyu kan damlaları, yerçekimiyle yay çizip düşer
+	burst(pos, {"amount": int(14 + 26 * amount), "life": 0.7, "size": 0.15, "vmin": 2.0, "vmax": 5.0 + 3.0 * amount, "dir": d, "spread": 30.0,
+		"gravity": Vector3(0, -16.0, 0), "damp": 0.3, "add": false, "cel": false, "tex": tex_soft, "smin": 0.5, "smax": 1.3,
+		"colors": [Color(0.5, 0.0, 0.02, 1.0), Color(0.36, 0.0, 0.015, 1.0), Color(0.22, 0.0, 0.01, 0.0)], "explosive": 1.0})
+	burst(pos, {"amount": int(4 + 5 * amount), "life": 0.35, "size": 0.38 * (0.6 + amount), "vmin": 0.6, "vmax": 1.6, "dir": d, "spread": 40.0,
 		"damp": 3.0, "add": false, "cel": false, "tex": tex_soft,
-		"colors": [Color(0.7, 0.02, 0.04, 0.8), Color(0.45, 0.0, 0.02, 0.0)]})
-	# yer lekesi: damlaların düştüğü yerde, düz koyu kırmızı leke; 12 sn sonra solar
-	if amount > 0.2:
-		var gp = pos + Vector3(d.x, 0, d.z) * randf_range(0.4, 1.0) * (0.6 + amount)
-		var gy = Game.ground_height(gp.x, gp.z)
-		var hit = get_viewport().get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(gp.x, pos.y + 0.5, gp.z), Vector3(gp.x, gy - 1.0, gp.z), 1))
-		if not hit.is_empty():
-			gy = maxf(gy, float(hit["position"].y))
-		_blood_decal(Vector3(gp.x, gy + 0.03, gp.z), 0.35 + amount * 0.5)
+		"colors": [Color(0.42, 0.0, 0.02, 0.7), Color(0.28, 0.0, 0.01, 0.0)]})
+	var space = get_viewport().get_world_3d().direct_space_state
+	var ground = func(gp: Vector2, top: float) -> float:
+		var gy = Game.ground_height(gp.x, gp.y)
+		var hit = space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(gp.x, top, gp.y), Vector3(gp.x, gy - 1.0, gp.y), 1))
+		return maxf(gy, float(hit["position"].y)) if not hit.is_empty() else gy
+	# damlalar yere iner: sıçrama yönünde birkaç küçük leke (düşüş süresi kadar gecikmeli) + ana gölcük
+	var hd = Vector2(d.x, d.z).normalized() if Vector2(d.x, d.z).length() > 0.05 else Vector2.ZERO
+	var drops = int(2 + 5 * amount)
+	for i in drops:
+		var dist = randf_range(0.3, 1.6) * (0.6 + amount)
+		var gp = Vector2(pos.x, pos.z) + hd * dist + Vector2(randf_range(-0.35, 0.35), randf_range(-0.35, 0.35))
+		var gy = ground.call(gp, pos.y + 0.5)
+		var delay = clampf(sqrt(maxf(0.0, pos.y - gy) / 8.0), 0.12, 0.5) + dist * 0.05
+		get_tree().create_timer(delay).timeout.connect(_blood_decal.bind(Vector3(gp.x, gy + 0.025, gp.y), randf_range(0.08, 0.2) * (0.7 + amount)))
+	var gp0 = Vector2(pos.x, pos.z) + hd * 0.5
+	get_tree().create_timer(0.35).timeout.connect(_blood_decal.bind(Vector3(gp0.x, ground.call(gp0, pos.y + 0.5) + 0.02, gp0.y), 0.3 + amount * 0.45))
+	# yaradan süzülen birkaç damla: düz aşağı, yavaş
+	if amount > 0.35:
+		burst(pos + Vector3(0, -0.1, 0), {"amount": 3, "life": 0.9, "size": 0.07, "vmin": 0.0, "vmax": 0.4, "dir": Vector3.DOWN, "spread": 10.0,
+			"gravity": Vector3(0, -9.0, 0), "damp": 0.0, "add": false, "cel": false, "tex": tex_soft, "explosive": 0.3,
+			"colors": [Color(0.45, 0.0, 0.02, 1.0), Color(0.3, 0.0, 0.01, 1.0)]})
 
 
 var _blood_mat: StandardMaterial3D
 var _blood_n := 0
 func _blood_decal(p: Vector3, r: float) -> void:
-	if _blood_n > 40:
+	if _blood_n > 90:
 		return
 	if _blood_mat == null:
 		_blood_mat = StandardMaterial3D.new()
 		_blood_mat.albedo_texture = tex_soft
-		_blood_mat.albedo_color = Color(0.45, 0.0, 0.02, 1.0)
+		_blood_mat.albedo_color = Color(0.3, 0.0, 0.015, 0.95)
 		_blood_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		_blood_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	var mi = MeshInstance3D.new()

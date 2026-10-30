@@ -1665,10 +1665,10 @@ func _accessories() -> void:
 			m.add("box", Vector3(0, 0.0, 0.05), Vector3(0.04, 0.5, 0.01), dark, Vector3(0, 0, 40))
 			_mesh_on("UpperChest", m.build(Props.toon()), Transform3D(Basis(Vector3.BACK, deg_to_rad(-12)), ch + Vector3(0, -0.12, -0.2)))
 		"shuriken":
+			# dev fūma shuriken sırtta: 4 uçlu yıldız, sırt düzleminde, hafif çapraz
 			var m = MB.new()
-			for k in 4:
-				m.add("box", Vector3(0, 0, 0), Vector3(0.09, 0.62, 0.012), bc, Vector3(0, 0, 45 * k), 4)
-			m.add("cyl", Vector3.ZERO, Vector3(0.1, 0.03, 0.1), dark, Vector3(90, 0, 0), 10)
+			_w_star(m, Vector3.ZERO, 0.36, 0.11, 4, bc, dark)
+			m.add("box", Vector3(0, 0, 0.03), Vector3(0.05, 0.5, 0.012), Color(0.3, 0.22, 0.15), Vector3(0, 0, -35))   # taşıma kayışı
 			_mesh_on("UpperChest", m.build(Props.toon()), Transform3D(Basis.IDENTITY, ch + Vector3(0, -0.08, -0.19)))
 		"kin":
 			var m = MB.new()
@@ -2703,21 +2703,35 @@ static func _w_tsuba(b: MB, z: float, r: float, col: Color) -> void:
 
 
 ## Dev shuriken: göbek + n kavisli, sivri uçlu kol (kesici kenar bir yana kıvrık); göbek z düzleminde (kollar x-y düzleminde)
+## Shuriken yıldızı (XY düzleminde, kalınlık Z): n sivri uç, uçlar arası içbükey kenar (düz kesici ağız), ortada delik;
+## her ucun ortasında açık renkli bileylenmiş ağız şeridi. Eski kavisli bıçaklar yelpaze gibi duruyordu.
 static func _w_star(b: MB, c: Vector3, R: float, w: float, n: int, steel: Color, hub: Color) -> void:
 	var to_xy := Basis(Vector3(0, 0, 1), Vector3(0, 1, 0), Vector3(-1, 0, 0))   # profil (u,v) -> dünya (x=-v, y=u)
+	var r_in := R * clampf(w / R, 0.26, 0.36)   # uçlar arası iç köşe
+	var o := PackedVector2Array()
 	for k in n:
-		var bs := Basis(Vector3.BACK, TAU * k / n) * to_xy
-		var o := PackedVector2Array()
-		var m := 10
-		for j in m + 1:
-			var t := float(j) / m
-			o.append(Vector2(w * 0.5 * (1.0 - t) * (1.0 + 0.6 * t) + R * 0.12 * t * t, t * R))   # dış (kesici) kenar şişkin, kavisli
-		for j in range(m, -1, -1):
-			var t := float(j) / m
-			o.append(Vector2(-w * 0.5 * (1.0 - t) * (1.0 - t * 0.6) + R * 0.1 * t * t, t * R))
-		b.add_slab(o, 0.014, steel, Transform3D(bs, c), Callable(), steel.darkened(0.25))
-	b.add("cyl", c, Vector3(w * 1.3, 0.05, w * 1.3), hub, Vector3(90, 0, 0), 14)
-	b.add("cyl", c, Vector3(w * 0.5, 0.06, w * 0.5), steel.lightened(0.2), Vector3(90, 0, 0), 10)
+		var a := TAU * k / n
+		var a2 := TAU * (k + 0.5) / n
+		o.append(Vector2(sin(a), cos(a)) * R)
+		# uçtan iç köşeye hafif içbükey kenar (3 ara nokta)
+		for j in [1, 2, 3]:
+			var t: float = j / 4.0
+			var p: Vector2 = Vector2(sin(a), cos(a)) * R * (1.0 - t) + Vector2(sin(a2), cos(a2)) * r_in * t
+			o.append(p * (1.0 - 0.07 * sin(t * PI)))
+		o.append(Vector2(sin(a2), cos(a2)) * r_in)
+		for j in [1, 2, 3]:
+			var t: float = j / 4.0
+			var a3 := TAU * (k + 1) / n
+			var p: Vector2 = Vector2(sin(a2), cos(a2)) * r_in * (1.0 - t) + Vector2(sin(a3), cos(a3)) * R * t
+			o.append(p * (1.0 - 0.07 * sin(t * PI)))
+	b.add_slab(o, maxf(0.012, R * 0.03), steel, Transform3D(to_xy, c), func(p: Vector2) -> float: return maxf(0.004, R * 0.03 * (1.0 - 0.75 * p.length() / R)), steel.darkened(0.3))
+	# bileylenmiş ağız: her ucun ekseninde ince açık şerit (iki yüzde)
+	for k in n:
+		var a := TAU * k / n
+		for sz in [-1.0, 1.0]:
+			var mid := Vector3(-cos(a), sin(a), 0.0) * R * 0.62   # profil ekseni dünyada (x=-v, y=u)
+			b.add("box", c + mid + Vector3(0, 0, sz * R * 0.017), Vector3(R * 0.035, R * 0.62, 0.003), steel.lightened(0.35), Vector3(0, 0, 90.0 - rad_to_deg(a)))
+	b.add("torus", c, Vector3(r_in * 0.42, r_in * 0.42, r_in * 0.42), hub, Vector3(90, 0, 0), 12)
 
 
 static func weapon_mesh(id: String) -> ArrayMesh:

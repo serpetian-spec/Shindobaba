@@ -186,6 +186,7 @@ func clan_unlocks(announce := true) -> void:
 	if pr.is_empty():
 		return
 	_check_kg_awaken(announce)
+	_prune_ms(pr)
 	var lv = int(pr["level"])
 	for jid in Data.jutsu.keys():
 		if jid.begins_with("_") or jid in pr["learned"]:
@@ -198,7 +199,7 @@ func clan_unlocks(announce := true) -> void:
 		elif lp.begins_with("kg:"):
 			ok = has_nature(lp.substr(3))
 		elif lp.begins_with("eye:"):
-			ok = has_eye(lp.substr(4))
+			ok = has_eye(lp.substr(4)) and Eyes.ms_allowed(pr, jid)
 		elif lp == "sage:any":
 			ok = "sage" in pr.get("skills", [])
 		# göz teknikleri gözle gelir: rütbe şartı aranmaz (Rinnegan takılıyken teknikleri hiç açılmıyordu)
@@ -289,6 +290,12 @@ func can_learn(jid: String) -> String:
 		return "Bilinmeyen jutsu"
 	if jid in pr["learned"]:
 		return "Zaten biliyorsun"
+	if Eyes.ms_tracked(jid) and not Eyes.ms_allowed(pr, jid):
+		for st in Eyes.MS_STYLES:
+			if jid in Eyes.MS_STYLES[st]["eyes"]:
+				return "Göz tekniği (%s, sağ/sol göz yuvası)" % Eyes.MS_STYLES[st]["name"]
+			if jid in Eyes.MS_STYLES[st]["jutsu"]:
+				return "%s Mangekyō'su gerekir" % Eyes.MS_STYLES[st]["name"]
 	if int(pr["level"]) < int(j.get("level", 1)):
 		return "Seviye %d gerekli" % int(j.get("level", 1))
 	if int(pr.get("rank", 0)) < int(j.get("rank", 0)):
@@ -392,6 +399,21 @@ func add_ryo(amount: int) -> void:
 		Sfx.play("coin")
 
 
+## Mangekyō tarzı dışında kalan (ya da göz yuvasında zaten olan) öğrenilmiş teknikleri kaldır: önceden her Mangekyō
+## tekniği açılıyordu. Göz değişince yeni tarzın teknikleri clan_unlocks ile açılır.
+func _prune_ms(pr: Dictionary) -> void:
+	var rm = []
+	for jid in pr.get("learned", []):
+		if Eyes.ms_tracked(jid) and not Eyes.ms_allowed(pr, jid):
+			rm.append(jid)
+	for jid in rm:
+		pr["learned"].erase(jid)
+		var slots: Array = pr["slots"]
+		for i in slots.size():
+			if slots[i] == jid:
+				slots[i] = ""
+
+
 func learn(jid: String, announce := true) -> bool:
 	var pr = p()
 	if jid in pr["learned"]:
@@ -456,7 +478,8 @@ func promote(rank: int) -> void:
 # ------------------------------------------------------------------ olay kancaları
 func on_enemy_killed(e: Node) -> void:
 	add_xp(kill_xp(e))
-	add_ryo(int(e.ryo))
+	if not e.has_meta("loot"):
+		add_ryo(int(e.ryo))   # cesedi aranabilen düşmanın parası cesette (F: üstünü ara)
 	p()["stats"]["kills"] = int(p()["stats"].get("kills", 0)) + 1
 	Missions.on_kill(e)
 	Orgs.on_enemy_killed(e)

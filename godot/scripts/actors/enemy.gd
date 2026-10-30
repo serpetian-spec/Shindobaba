@@ -758,11 +758,56 @@ func take_hit(info: Dictionary) -> void:
 			Combat.popup_text(global_position + Vector3.UP * 2.2, "Sıyrıldı!", Color(0.8, 0.9, 1.0))
 
 
+## Ceset ganimeti: para (eskiden doğrudan cebe giriyordu) + şansa göre merhem, asker hapı, kunai, shuriken, parşömen.
+## Ceset "catchables" grubunda: yakında F -> üstünü ara.
+func _make_loot() -> void:
+	var lv = int(level)
+	var l = {"ryo": int(ryo)}
+	if randf() < 0.3: l["salve"] = 1
+	if randf() < 0.12: l["pill"] = 1
+	if randf() < 0.35: l["kunai"] = randi_range(1, 3)
+	if randf() < 0.2: l["shuriken"] = randi_range(2, 5)
+	if randf() < 0.06 + lv * 0.002: l["scroll"] = 1
+	set_meta("loot", l)
+	add_to_group("catchables")
+
+
+var catch_label := "Üstünü ara"
+func catch() -> void:
+	if not has_meta("loot"):
+		return
+	var l: Dictionary = get_meta("loot")
+	remove_meta("loot")
+	remove_from_group("catchables")
+	var pr = Game.profile
+	var got = []
+	if int(l.get("ryo", 0)) > 0:
+		Progress.add_ryo(int(l["ryo"]))
+		got.append("%d Ryō" % int(l["ryo"]))
+	var inv: Dictionary = pr["inventory"]
+	for k in ["salve", "pill", "kunai", "shuriken"]:
+		if l.has(k):
+			inv[k] = int(inv.get(k, 0)) + int(l[k])
+			got.append("%s ×%d" % [{"salve": "Merhem", "pill": "Asker Hapı", "kunai": "Kunai", "shuriken": "Shuriken"}[k], int(l[k])])
+	if l.has("scroll"):
+		var opts = Progress.scroll_shop_items(6, 2)
+		if not opts.is_empty():
+			var iid = String(opts.pick_random())
+			var jid = String(Data.items[iid]["jutsu"])
+			if Progress.learn(jid, false):
+				got.append("Parşömen: %s" % String(Data.jutsu[jid]["name"]))
+	Hud.msg("Ganimet: " + (", ".join(got) if not got.is_empty() else "boş çıktı"), Color(1, 0.85, 0.4))
+	Sfx.play("seal", global_position, 1.4, 0.4)
+	FX.burst(global_position + Vector3.UP * 0.4, {"amount": 10, "life": 0.5, "size": 0.12, "vmin": 1.0, "vmax": 2.5, "colors": [Color(1, 0.85, 0.3, 1), Color(1, 0.85, 0.3, 0)]})
+
+
 func die(info: Dictionary) -> void:
 	if has_token:
 		has_token = false
 		attack_tokens = maxi(0, attack_tokens - 1)
 	nameplate.visible = false
+	if not has_meta("teammate") and size < 2.5:
+		_make_loot()
 	super.die(info)
 	if has_meta("teammate"):
 		return   # takım arkadaşı düştü: öldürme sayılmaz (XP, görev sayacı yok), yeniden doğmaz

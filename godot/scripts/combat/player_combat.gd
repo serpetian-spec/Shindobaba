@@ -176,6 +176,8 @@ func _start_step() -> void:
 	else:
 		var f = p.wish_dir() if p.wish_dir().length() > 0.1 else p.cam_forward()
 		p.facing = atan2(-f.x, -f.z)
+	# bloktan vuruşa geçiş: blok pozu kollarda kalıp vuruş animasyonuyla karışıyordu (kollar kilitli, takılma) -> hemen bırak
+	p.model.overlay.snap("guard", 0.0)
 	p.model.play(c["anim"], 0.05, c["speed"], true)
 	p.model.overlay.set_pose("kick", 1.0 if c.get("kick", false) else 0.0)
 	# yelpaze: kombonun 4. vuruşu uzak rüzgâr dalgası (3 sn bekleme, spam yok)
@@ -545,6 +547,7 @@ func _update_guard() -> void:
 	elif not want and action == "guard":
 		action = ""
 		p.model.overlay.set_pose("guard", 0.0)
+		p.model.play("idle", 0.15)   # blok klibinde donup kalmasın
 
 
 # ------------------------------------------------------------------ chakra şarjı

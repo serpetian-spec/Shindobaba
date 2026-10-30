@@ -7,7 +7,7 @@ extends Node3D
 ## Özelleştirme (profile["susanoo"]): renk, zırh stili, yüz, silah, kanat, tercih edilen kademe.
 
 const TIER_NAMES := ["", "Kaburga", "İskelet", "İnsansı", "Zırhlı Savaşçı", "Mükemmel Susanoo"]
-const TIER_HEIGHT := [0.0, 2.05, 7.0, 16.0, 36.0, 78.0]   # 1: oyuncuyu saran kaburga .. 5: kuyruklu canavar boyunda Mükemmel Susanoo
+const TIER_HEIGHT := [0.0, 2.05, 9.5, 16.0, 36.0, 78.0]   # 1: oyuncuyu saran kaburga .. 5: kuyruklu canavar boyunda Mükemmel Susanoo
 ## Kullanıcının Susanoo içindeki yeri (Susanoo boyuna oran): 3-4 göğüs, 5 alındaki mücevher (animedeki gibi)
 const USER_SEAT := [0.0, 0.0, 0.0, 0.2, 0.64, 0.86]   # 3: kalça yere gömülü olduğundan göğüs alçakta
 const ARMORS := ["Samuray", "Keşiş Cübbesi", "İblis Dikenleri"]
@@ -128,6 +128,9 @@ func _skeleton() -> void:
 		if sk.find_bone(a) < 0 or sk.find_bone(b) < 0:
 			return
 		var off = back if a in ["Hips", "Spine", "Chest", "UpperChest", "Neck"] else Vector3.ZERO
+		if tier == 1 and (a.begins_with("Left") or a.begins_with("Right")):
+			# kademe 1: kollar oyuncunun kollarının içinde kalıp görünmüyordu -> omuzdan dışa ve geriye, kafesin yanında
+			off = Vector3(0.16 if a.begins_with("Left") else -0.16, -0.06, -0.16)
 		var pa: Vector3 = bp.call(a) + off; var pb: Vector3 = bp.call(b) + off
 		var m = MB.new()
 		var d = pb - pa
@@ -137,17 +140,17 @@ func _skeleton() -> void:
 		_on(a, m)
 	for pair in BONES:
 		stick.call(pair[0], pair[1], 0.07 if tier >= 2 else 0.05)
-	var sides = ["Right"] if tier == 1 else ["Right", "Left"]
+	var sides = ["Right", "Left"]   # kademe 1'de de iki kol (kaburga + kollar)
 	for sd in sides:
 		for pair in ARM_BONES:
-			stick.call(sd + pair[0], sd + pair[1], 0.06 if tier >= 2 else 0.075)
+			stick.call(sd + pair[0], sd + pair[1], 0.06 if tier >= 2 else 0.085)
 		if tier >= 2:
 			for f in FINGERS:
 				stick.call(sd + "Hand", sd + f + "Proximal", 0.02)
 				stick.call(sd + f + "Proximal", sd + f + "Intermediate", 0.018)
 				stick.call(sd + f + "Intermediate", sd + f + "Distal", 0.016)
 	# kaburgalar: göğüs kemiğine bağlı kavisli yaylar
-	var ch: Vector3 = bp.call("Chest") + back
+	var ch: Vector3 = bp.call("Chest") + back + (Vector3(0, -0.3, 0) if tier == 1 else Vector3.ZERO)   # kademe 1: kafes göğüs-bel hizasında (yukarıda kalıyordu)
 	var ribs = MB.new()
 	var wide = 3.0 if tier == 1 else 1.0
 	for i in 6:
@@ -424,7 +427,7 @@ func swipe(owner_f: Node3D, dir: Vector3) -> void:
 	var reach = maxf(3.0, H * 0.75)
 	# savuruş önündeki yelpaze alanın tamamına iner (yerdeki küçük hedef dahil)
 	var gp = owner_f.global_position
-	var info = {"dmg": 22.0 * tier * Stats.melee_mult(Game.profile), "knock": 12.0 + tier * 4.0, "launch": 4.0, "kind": "heavy", "dir": dir}
+	var info = {"dmg": 16.0 * tier * Stats.melee_mult(Game.profile), "knock": 12.0 + tier * 4.0, "launch": 4.0, "kind": "heavy", "dir": dir}
 	get_tree().create_timer(0.18 if tier < 3 else 0.3).timeout.connect(func():
 		if is_instance_valid(owner_f):
 			Combat.hit_zone(owner_f, gp, dir, reach, 75.0, H * 1.1, info)

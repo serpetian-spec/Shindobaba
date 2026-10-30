@@ -19,6 +19,68 @@ const SKILLS := {
 	8: [["Jōgan Nüfuzu", 20.0, 12.0], ["Boyut Görüşü", 10.0, 8.0]],
 }
 
+## Mangekyō tarzları: her Mangekyō gözü uyanınca (ya da alınınca) rastgele bir tarza bağlanır. Tarz = 2 göz tekniği (sağ / sol göz
+## yuvası) + 6 jutsu; toplam 8. Yalnız sahip olduğun tarzın teknikleri açılır (eskiden her Mangekyō tekniği açılıyordu: aşırı güçlü).
+## Ebedi Mangekyō iki farklı tarzın gözlerini birleştirebilir. Yeni tarz eklemek: buraya bir kayıt (oyunda olmayan kendi tarzlarımız da).
+const MS_STYLES := {
+	"itachi": {"name": "Itachi tarzı", "theme": "Kara alev ve ay rüyası", "eyes": ["amaterasu", "tsukuyomi"],
+		"jutsu": ["izanami", "yasaka_no_magatama", "tensha_fuin_amaterasu", "totsuka_no_tsurugi", "yata_no_kagami", "magen_karasu_bunshin"]},
+	"sasuke": {"name": "Sasuke tarzı", "theme": "Enton: biçimlenen kara alev", "eyes": ["enton_kagutsuchi", "amaterasu_entenka"],
+		"jutsu": ["susanoo_kagutsuchi_no_yumiya", "enton_kagutsuchi_no_tsurugi", "susanoo_chidori", "enton_kokuen_no_tate", "enton_kokuryu", "indora_no_ya"]},
+	"obito": {"name": "Obito tarzı", "theme": "Kamui: bedeni boyuttan geçiren göz", "eyes": ["kamui_surinuke", "kamuibashiri"],
+		"jutsu": ["kamui_kyuin", "kamui_ikukan_toji", "kamui_hanten", "kamui_kusari_shibari", "kamui_ikukan_tobi", "kamui_ranbu"]},
+	"kakashi": {"name": "Kakashi tarzı", "theme": "Uzak Kamui ve şimşek", "eyes": ["kamui", "kamui_shuriken"],
+		"jutsu": ["kamui_raikiri", "raiden", "susanoo_kamui_ya", "raikiri_soryu", "kamui_kakushi", "kopi_ninja_no_me"]},
+	"madara": {"name": "Madara tarzı", "theme": "Susanoo ve hükmeden bakış", "eyes": ["susanoo_kobushi", "kyubi_shihai"],
+		"jutsu": ["susanoo", "susanoo_kenjutsu", "kanzen_tai_itto", "susanoo_tate", "susanoo_shuha", "enton_yasaka_no_magatama"]},
+	"shisui": {"name": "Shisui tarzı", "theme": "Kotoamatsukami ve göz açıp kapayan hız", "eyes": ["kotoamatsukami", "shunshin_genso"],
+		"jutsu": ["susanoo_shisui_no_ya", "karasu_kuyo", "utakata_no_genso", "kotodama_no_shibari", "kyokei_shunshin", "kyoso_enbu"]},
+}
+
+
+## Göz eşyasının Mangekyō tarzı (yoksa uid'den sabit rastgele atanır ve kaydedilir)
+static func ms_style_of(g: Dictionary) -> String:
+	if g.is_empty() or not String(g.get("id", "")) in ["goz_mangekyo", "goz_ems"]:
+		return ""
+	if not MS_STYLES.has(String(g.get("ms_style", ""))):
+		var keys = MS_STYLES.keys()
+		g["ms_style"] = keys[absi(hash(int(g.get("uid", 0)) * 7919 + 13)) % keys.size()]
+	return String(g["ms_style"])
+
+
+## Takılı gözlerin tarzları (EMS iki tarz birleştirebilir)
+## Normal Mangekyō: tek tarz (iki göz aynı tarzı paylaşır, sağ göz belirler). Ebedi Mangekyō (nakil): iki gözün tarzı birleşir.
+static func ms_styles(pr: Dictionary) -> Array:
+	var out = []
+	var ems = false
+	for slot in ["sag_goz", "sol_goz"]:
+		var g = Gear.equipped(pr, slot)
+		if String(g.get("id", "")) == "goz_ems":
+			ems = true
+		var s = ms_style_of(g)
+		if s != "" and not s in out:
+			out.append(s)
+	return out if ems else out.slice(0, 1)
+
+
+## Bu jutsu bir Mangekyō tarzına ait mi; aitse sahip olunan tarzlarda mı? (göz yuvası teknikleri jutsu listesinde ayrıca yer almaz)
+static func ms_allowed(pr: Dictionary, jid: String) -> bool:
+	var owner = ""
+	for st in MS_STYLES:
+		if jid in MS_STYLES[st]["eyes"]:
+			return false   # göz yuvasında (V + sağ/sol göz): jutsu listesinde ikinci kopyası olmasın
+		if jid in MS_STYLES[st]["jutsu"]:
+			owner = st
+	return owner == "" or owner in ms_styles(pr)
+
+
+static func ms_tracked(jid: String) -> bool:
+	for st in MS_STYLES:
+		if jid in MS_STYLES[st]["eyes"] or jid in MS_STYLES[st]["jutsu"]:
+			return true
+	return false
+
+
 var p: Player
 var c: PlayerCombat
 var active = false
@@ -26,6 +88,8 @@ var cd := {"sag": 0.0, "sol": 0.0}
 var strain = 0.0          # Mangekyō yorgunluğu (görüş bulanır)
 var susanoo = false
 var susanoo_node: Susanoo
+var sus_swipe_ready := 0     # Susanoo düz savuruş bekleme sonu (ms)
+var sus_special_ready := 0
 var v_held = -1.0
 var markers := {}
 var marker_t = 0.0
@@ -191,10 +255,31 @@ func handle_input(e: InputEvent) -> bool:
 			toggle()
 		return true
 	if susanoo and is_instance_valid(susanoo_node):
+		# Susanoo vuruşları ağır ve yavaş: her savuruş arası bekleme + chakra (eskiden tıkladıkça seri vuruyordu: her şeyi kesiyordu)
+		var now = Time.get_ticks_msec()
+		var tr = susanoo_node.tier
 		if e.is_action_pressed("attack"):
+			if now < sus_swipe_ready:
+				return true
+			var cost = 6.0 + tr * 3.0
+			if p.chakra < cost:
+				Hud.msg("Susanoo savuruşu için chakra yetmiyor.", Color(0.6, 0.7, 1))
+				return true
+			p.chakra -= cost
+			sus_swipe_ready = now + int((1.6 + tr * 0.45) * 1000.0)
 			susanoo_node.swipe(p, p.cam_forward() if p.wish_dir().length() < 0.1 else p.wish_dir().normalized())
 			return true
 		if e.is_action_pressed("guard"):
+			if now < sus_special_ready:
+				Hud.msg("Susanoo silahı hazır değil (%.0f sn)" % ((sus_special_ready - now) / 1000.0), Color(0.9, 0.8, 0.6))
+				return true
+			var cost2 = 14.0 + tr * 5.0
+			if p.chakra < cost2:
+				Hud.msg("Susanoo silahı için chakra yetmiyor.", Color(0.6, 0.7, 1))
+				return true
+			p.chakra -= cost2
+			sus_special_ready = now + int((6.0 + tr * 1.5) * 1000.0)
+			sus_swipe_ready = maxi(sus_swipe_ready, now + 900)
 			susanoo_node.special(p, p.cam_forward())
 			return true
 	if e.is_action_pressed("interact") and steal_target != null:
@@ -327,7 +412,24 @@ func _close() -> void:
 
 func _skill_name(side: String) -> String:
 	var k = _kind(side)
+	var mj = _ms_eye_jutsu(side)
+	if mj != "":
+		return String(Data.jutsu.get(mj, {}).get("name", mj))
 	return SKILLS[k][0 if side == "sag" else 1][0] if k > 0 else "—"
+
+
+## Mangekyō/EMS gözünün yuva tekniği (tarzına göre: sağ göz 1., sol göz 2. teknik)
+func _ms_eye_jutsu(side: String) -> String:
+	var k = _kind(side)
+	if not k in [4, 5]:
+		return ""
+	var st = ms_style_of(Gear.equipped(Game.profile, side + "_goz"))
+	if k == 4:
+		var all = ms_styles(Game.profile)
+		st = all[0] if not all.is_empty() else st   # normal Mangekyō: iki göz tek tarz
+	if st == "":
+		return ""
+	return String(MS_STYLES[st]["eyes"][0 if side == "sag" else 1])
 
 
 # ------------------------------------------------------------------ teknikler
@@ -375,10 +477,13 @@ func use_skill(side: String) -> void:
 					t.apply_status("bind", 3.0)
 					FX.ring(t.global_position + Vector3.UP, Color(0.8, 0.05, 0.1), 2.0, 0.5, false)
 		4, 5:
-			if right:
-				_amaterasu(t, k == 5)
-			else:
+			var mj = _ms_eye_jutsu(side)
+			if mj == "amaterasu" or mj == "":
+				_amaterasu(t, k == 5) if right or mj == "amaterasu" else _genjutsu_gaze(t, 4.0, 40.0 if k == 4 else 55.0)
+			elif mj == "tsukuyomi":
 				_genjutsu_gaze(t, 4.0, 40.0 if k == 4 else 55.0)
+			else:
+				Jutsu.execute(p, mj, t)   # tarzın göz tekniği (Kamui, Enton, Kotoamatsukami...)
 			if k == 4:
 				strain = minf(1.0, strain + 0.18)
 				if strain > 0.6:
@@ -726,8 +831,14 @@ func on_ally_died(ally: Node3D) -> void:
 		if not g.is_empty() and g["id"] == "goz_sharingan" and int(g.get("lvl", 1)) >= 3:
 			g["id"] = "goz_mangekyo"
 			g.erase("design")
+			g.erase("ms_style")
+			ms_style_of(g)   # rastgele tarz
 			ok = true
 	if ok:
+		var sts = ms_styles(pr)
+		if not sts.is_empty():
+			var st: Dictionary = MS_STYLES[sts[0]]
+			Hud.msg("Mangekyō tarzın: %s — %s" % [st["name"], st["theme"]], Color(1, 0.5, 0.5), 7.0)
 		Gear.apply_look(pr)
 		p.rebuild_model()
 		Hud.banner("MANGEKYŌ SHARINGAN", "Acı, gözlerini sonsuza dek değiştirdi", Color(0.8, 0.05, 0.1))
