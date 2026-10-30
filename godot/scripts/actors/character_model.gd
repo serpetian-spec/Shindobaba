@@ -2387,6 +2387,11 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 			var hp = _grest(skel.find_bone("Hips")).origin
 			var b = _frame(Vector3(-sx, 0.12, 0.0), Vector3(0, 0, -1))
 			xf = Transform3D(b, hp + Vector3(0, 0.12, -0.17) - b.z * mid)
+		_ when id == "tonfa":
+			# tonfa: uzun gövde silah uzayında -x boyunca -> gövde uyluk boyunca aşağı sarkar, yan kabza öne bakar
+			var hp = _grest(skel.find_bone("Hips")).origin
+			var b = _frame(Vector3(sx * 0.15, 0.0, 1.0), Vector3(0, 1, 0))
+			xf = Transform3D(b, hp + Vector3(sx * 0.21, 0.05, 0.02))
 		_:
 			# belt: yan kalçada aşağı sarkar
 			var hp = _grest(skel.find_bone("Hips")).origin

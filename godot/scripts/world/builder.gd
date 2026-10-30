@@ -23,6 +23,7 @@ var landscape := true  # finish()'te yeterince ev varsa CityLandscape ile bahçe
 const SCELL := 16.0
 static var _tree_mesh: Mesh
 static var _tree_meshes: Array = []
+var house_grid := {}   # 32 m yerel ızgara -> ev kayıtları (ağaç yerleşimi hızlı kontrol)
 ## yaprak dökümü: köy ağaçlarının [dünya konumu (taç), renk, taç yarıçapı] listesi
 static var leaf_spots: Array = []
 static var landscape_on := true  # testlerde karşılaştırma için kapatılabilir
@@ -339,6 +340,10 @@ func _record_house(x: float, n: float, wdt: float, dep: float, yaw: float, base:
 	var hw = float(last_house.get("w", wdt))
 	var hd = float(last_house.get("d", dep))
 	houses.append([x, n, hw, hd, yaw, base, style])
+	var hk = Vector2i(floori(x / 32.0), floori(n / 32.0))
+	if not house_grid.has(hk):
+		house_grid[hk] = []
+	house_grid[hk].append(houses[houses.size() - 1])
 	var c = w(Vector3(x, 0, n))
 	add_solid(c, hw * 0.5 + 0.3, hd * 0.5 + 0.3, deg_to_rad(-yaw))
 	var cols: Array = last_house.get("cols", [])
@@ -527,13 +532,11 @@ func tree(x: float, n: float, s: float, rng: RandomNumberGenerator, y := 0.0) ->
 		pick -= Props.VILLAGE_TREE_W[vi]
 		vi += 1
 	var tm = _tree_meshes[vi]
-	for h in houses:   # yalnız evler: tacı binanın içinden fışkırmasın (saksı / çiçeklik içindeki ağaçlar etkilenmez)
-		var dx = x - float(h[0])
-		var dn = n - float(h[1])
-		if absf(dx) > 30.0 or absf(dn) > 30.0:
-			continue
-		if Vector2(dx, dn).length() < maxf(float(h[2]), float(h[3])) * 0.5 + 2.2 * s:
-			return
+	for gx in range(-1, 2):   # yalnız evler (32 m ızgara): tacı binanın içinden fışkırmasın; saksı ağaçları etkilenmez
+		for gz in range(-1, 2):
+			for h in house_grid.get(Vector2i(floori(x / 32.0) + gx, floori(n / 32.0) + gz), []):
+				if Vector2(x - float(h[0]), n - float(h[1])).length() < maxf(float(h[2]), float(h[3])) * 0.5 + 2.2 * s:
+					return
 	if tm != null:
 		var sc = s * rng.randf_range(0.85, 1.15)
 		pack_mesh(tm, Vector3(x, y, n), rng.randf() * 360.0, sc, 1.0)

@@ -60,6 +60,7 @@ static func _on_road(b: Builder, x: float, n: float, clear: float) -> bool:
 
 static func build(parent: Node3D, v: Dictionary) -> void:
 	R = float(v.get("r", 1500.0)) - 40.0
+	var _t0 = Time.get_ticks_msec()
 	var b = Builder.new(parent, v["x"], v["y"], v["base"], "Konoha")
 	var rng = RandomNumberGenerator.new()
 	rng.seed = 1234
@@ -382,7 +383,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 			b.pack_mesh(_veg_cache[vt], Vector3(bx2, _gy(b, bx2, bn2), bn2), rng.randf() * 360.0, rng.randf_range(0.7, 1.3) * (0.5 if vt == 4 else 1.0), 0.5)
 	b.finish()
 	_merge_house_cells(b.root)
-	print("Konoha: ", count, " ev, ", trees, " ağaç")
+	print("Konoha: ", count, " ev, ", trees, " ağaç  toplam ", Time.get_ticks_msec() - _t0, " ms")
 
 
 ## Sokak boyunca ev dizileri. Çakışma: dolu alanlar, başka sokaklar, önceki evler.
@@ -736,28 +737,43 @@ static func _cliff_stairs(b: Builder, xs: float, cliff_n: float, top: float, col
 	var guard = 0
 	while y < top + 1.0 and guard < 600:
 		guard += 1
+		# gidiş kolu uçuruma yaslı (iç şerit), dönüş kolu dış şeritte: kollar üst üste binip aşağı inişi kapatmasın
+		var lane = 0.0 if dir > 0.0 else 5.8
 		for k in 20:
 			if y >= top + 1.0:
 				break
 			y += rise
 			x += run * dir
 			var sn = _cliff_surface(b, x, cliff_n, y + 1.0)
-			b.box(Vector3(x, y - 0.5, sn - 3.2), Vector3(run + 0.1, 1.0, 5.6), col, 0, true)
-			b.box(Vector3(x, y + 0.45, sn - 6.1), Vector3(run + 0.1, 0.9, 0.3), col.darkened(0.2), 0, true)   # korkuluk
-		# sahanlık
+			b.box(Vector3(x, y - 0.5, sn - 3.2 - lane), Vector3(run + 0.1, 1.0, 5.6), col, 0, true)
+			if lane > 0.0:
+				b.box(Vector3(x, y + 0.45, sn - 6.1 - lane), Vector3(run + 0.1, 0.9, 0.3), col.darkened(0.2), 0, true)   # korkuluk (dış kenar)
+			else:
+				b.box(Vector3(x, y - 3.0, sn - 6.0), Vector3(run + 0.1, 5.0, 0.3), col.darkened(0.12), 0, true)   # iç kolu alttaki dış koldan ayıran duvar
+		# sahanlık: iki şeridi de kaplar
 		var ln = _cliff_surface(b, x + dir * 2.5, cliff_n, y + 1.0)
-		b.box(Vector3(x + dir * 2.5, y - 0.5, ln - 3.2), Vector3(5.0, 1.0, 5.6), col.lightened(0.05), 0, true)
+		b.box(Vector3(x + dir * 2.5, y - 0.5, ln - 6.1), Vector3(5.0, 1.0, 11.4), col.lightened(0.05), 0, true)
+		b.box(Vector3(x + dir * 4.9, y + 0.45, ln - 6.1), Vector3(0.3, 0.9, 11.4), col.darkened(0.2), 0, true)   # sahanlık ucu korkuluğu
 		x += dir * 2.5
 		dir = -dir
 		x += dir * 2.5
 
 
 static func _cliff_surface(b: Builder, x: float, cliff_n: float, y: float) -> float:
+	# kaba adım (8 m) + ikili arama: metre metre taramak taş başına ~360 arazi sorgusuydu (yükleme 17 sn uzuyordu)
 	var nn = cliff_n - 140.0
 	while nn < cliff_n + 220.0:
-		if _gy(b, x, nn) > y:
-			return nn
-		nn += 1.0
+		if _gy(b, x, nn + 8.0) > y:
+			var lo = nn
+			var hi = nn + 8.0
+			for k in 4:
+				var mid = (lo + hi) * 0.5
+				if _gy(b, x, mid) > y:
+					hi = mid
+				else:
+					lo = mid
+			return hi
+		nn += 8.0
 	return cliff_n
 
 

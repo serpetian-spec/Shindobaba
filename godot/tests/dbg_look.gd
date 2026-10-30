@@ -132,6 +132,18 @@ func _ready() -> void:
 			cam.look_at(tp + Vector3(0, 3.0, -12), Vector3.UP)
 			await main.shot("look_hk_%d" % k)
 		env.time_of_day = 0.42
+	if want.call("stairs"):
+		var rk2: Dictionary = v.get("hokage_rock", {})
+		var cn2 = float(rk2.get("y", v["y"] + 1170.0))
+		var sq = Game.from_map(Vector2(v["x"] - 285.0, cn2 - 60.0))
+		sq.y = Game.ground_height(sq.x, sq.z)
+		pl.respawn(sq + Vector3(0, 0.5, 30))
+		await get_tree().create_timer(6.0).timeout
+		for k in 2:
+			cam.global_position = sq + Vector3([-40.0, 40.0][k], 45.0, 70.0)
+			cam.look_at(sq + Vector3(0, 40.0, -30.0))
+			await get_tree().create_timer(0.6).timeout
+			await main.shot("look_st_%d" % k)
 	if want.call("cloud"):
 		cam.global_position = p + Vector3(0, 2, 0)
 		cam.look_at(p + Vector3(30, 18, -60))

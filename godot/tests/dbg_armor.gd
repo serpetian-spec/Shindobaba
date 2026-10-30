@@ -17,7 +17,7 @@ func _ready() -> void:
 	for c in cols:
 		var v = Villager.new()
 		v.role = "guard"
-		v.look_extra = ({"vest": c, "vest_style": 6, "armor_style": "sengoku", "weapon_r": "katana", "back_item": null, "top": Color(0.12, 0.12, 0.14), "pants": Color(0.12, 0.12, 0.14)} if OS.get_environment("VESTCOAT") == "" else {"vest": Color(0.38, 0.48, 0.28), "vest_style": 0, "outer_style": "kisa", "outer": Color(0.1, 0.1, 0.12), "weapon_r": null, "back_item": null})
+		v.look_extra = ({"vest": c, "vest_style": 6, "armor_style": "sengoku", "weapon_r": "katana", "back_item": null, "top": Color(0.12, 0.12, 0.14), "pants": Color(0.12, 0.12, 0.14)} if OS.get_environment("VESTCOAT") == "" else {"vest": Color(0.38, 0.48, 0.28), "vest_style": 0, "weapon_r": OS.get_environment("WPN") if OS.get_environment("WPN") != "" else null, "back_item": null, "drawn": false})
 		main.actors.add_child(v)
 		var base = Missions.open_ground(pl.global_position + Vector3(30 + k * 6, 0, 30), 80.0)
 		v.global_position = base
