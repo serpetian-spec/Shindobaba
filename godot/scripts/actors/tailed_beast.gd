@@ -41,10 +41,16 @@ func setup(beast_id: String) -> void:
 	height = float(info["height"])
 	radius = height * 0.24
 	size = 1.0
-	max_hp = 3000.0 + num * 1300.0 + (6000.0 if id == "kurama" else 0.0)
+	# efsanevi canavarlar: Sv. 60 (Shukaku) .. 100 (Kurama); can ve güç seviyeyle (eskiden çok zayıftı)
+	level = 55 + num * 5
+	display_name = "%s  •  Sv.%d" % [info["name"], level]
+	max_hp = 9000.0 + num * 4200.0 + (14000.0 if id == "kurama" else 0.0)
 	hp = max_hp
-	power = 2.5 + num * 0.35
+	power = 4.0 + num * 0.7
 	poise = 99.0
+
+
+var level := 60
 
 
 func _build_body() -> void:

@@ -505,6 +505,25 @@ static func item(id: String) -> Dictionary:
 	return {}
 
 
+## Görünüm/kın için taban eşya: benzersiz eşyalar ("Ay Işığı Katana" = u_...) modeli bulunamayıp kısa bıçağa düşüyordu.
+## Eski kayıtlarda taban kaydı yoksa addan bulunur (ön ek + taban adı) ve saklanır.
+static func visual_id(id: String) -> String:
+	if not id.begins_with("u_"):
+		return id
+	var it: Dictionary = item(id)
+	if it.has("base"):
+		return String(it["base"])
+	var best = ""
+	for k in ITEMS:
+		var nm = String(ITEMS[k].get("name", ""))
+		if nm != "" and String(it.get("name", "")).ends_with(" " + nm) and ITEMS[k].get("slot", "") == it.get("slot", "") and nm.length() > best.length():
+			best = k
+	if best != "":
+		it["base"] = best
+		return best
+	return id
+
+
 # ------------------------------------------------------------------ benzersiz (rastgele üretilmiş) eşyalar ve dönen dükkân stoku
 ## Kayıtta saklanır (profile.custom_items): id -> eşya sözlüğü (Color'lar hex)
 static var _ccache := {}   # çalışma zamanı kopyaları (renkler Color); kayıtta hex kalır
@@ -554,6 +573,7 @@ static func make_unique(base_id: String, kind: String, seed_v: int) -> String:
 		var w: Dictionary = (it["weapon"] as Dictionary).duplicate()
 		w["dmg"] = float(w.get("dmg", 1.0)) * (1.2 + rng.randf() * (0.2 if tier == 3 else 0.45))
 		it["weapon"] = w
+	it["base"] = base_id
 	var pre = U_PREFIX[kind][rng.randi() % U_PREFIX[kind].size()]
 	it["name"] = "%s %s" % [pre, b["name"]]
 	it["desc"] = "%s — benzersiz %s. %s" % [b.get("desc", ""), "nadir eşya" if tier == 3 else "EFSANE eşya", "Bir daha aynısı çıkmaz."]
@@ -778,9 +798,9 @@ static func apply_look(p: Dictionary) -> void:
 			"sag_goz", "sol_goz":
 				L["eye_r" if s[0] == "sag_goz" else "eye_l"] = {"kind": int(it["eye"]["kind"]), "lvl": int(g.get("lvl", 3)), "id": g["id"], "origin": g.get("origin", "dogustan")}
 			"sag":
-				L["weapon_r"] = g["id"]
+				L["weapon_r"] = visual_id(g["id"])
 			"sol":
-				L["weapon_l"] = g["id"]
+				L["weapon_l"] = visual_id(g["id"])
 	# kaçak ninja: alın bandının sembolü çizik
 	if p.get("flags", {}).get("rogue", false) and L.get("band") != null and String(L.get("band_style", "none")) != "none":
 		L["band_style"] = "slashed"

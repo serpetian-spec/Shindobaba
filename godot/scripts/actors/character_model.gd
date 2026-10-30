@@ -814,6 +814,9 @@ func _cloth_mat(layer: int) -> ShaderMaterial:
 	mat.set_shader_parameter("face_ref", Vector4(0, eye_center_model.y, eye_center_model.z, 0))
 	# gövde mesh'inin kafa derisi saçın arasından taşıyordu: göz hizasının biraz üstünden yukarısı gizlenir (ön yüz VFace, tepe/arka saç)
 	mat.set_shader_parameter("scalp_cut", _scalp_cut())
+	# kesim bölgesi atılmaz, saç rengine boyanır: ense delik görünmez (arkası görünüyordu), saç arasından kel deri de görünmez
+	if not look.get("hair_style", "") in ["kel", "mohikan"] and look.get("hair") is Color:
+		mat.set_shader_parameter("scalp_col", look["hair"])
 	materials.append(mat)
 	return mat
 
@@ -2487,6 +2490,79 @@ func _weapon_process(dt: float) -> void:
 
 ## Silah modeli: kabza başlangıçta, namlu +Z yönünde
 static var _weapon_cache := {}
+## Japon kılıcı ağzı: hafif kavisli (sırt yukarı, +y), uca doğru incelen; kesik kissaki ucu, habaki ve keskin kenarda hamon çizgisi
+static func _w_blade(b: MB, z0: float, L: float, w: float, curve: float, steel: Color) -> void:
+	var back := PackedVector2Array()
+	var edge := PackedVector2Array()
+	var n := 14
+	for k in n + 1:
+		var t := float(k) / n
+		var z := z0 + t * L
+		var bow := curve * t * t
+		var ww := w * (1.0 - t * 0.28)
+		if t > 0.9:
+			ww *= lerpf(1.0, 0.0, (t - 0.9) / 0.1)   # kissaki
+		back.append(Vector2(bow + ww * 0.5, z))
+		edge.append(Vector2(bow - ww * 0.5, z))
+	var o := PackedVector2Array()
+	for p in back:
+		o.append(p)
+	for k in range(edge.size() - 1, -1, -1):
+		o.append(edge[k])
+	b.add_slab(o, 0.009, steel, Transform3D.IDENTITY, func(p: Vector2) -> float: return 0.009 if p.y < z0 + L * 0.95 else 0.004, steel.darkened(0.15))
+	# hamon: keskin kenar boyunca dalgalı açık şerit (iki yüzde de görünür)
+	var hm := PackedVector2Array()
+	for k in n:
+		var t := float(k) / n
+		var z := z0 + 0.02 + t * L * 0.9
+		var bow := curve * t * t
+		var ww := w * (1.0 - t * 0.28)
+		hm.append(Vector2(bow - ww * 0.5 + 0.002, z))
+	for k in range(n - 1, -1, -1):
+		var t := float(k) / n
+		var z := z0 + 0.02 + t * L * 0.9
+		var bow := curve * t * t
+		var ww := w * (1.0 - t * 0.28)
+		hm.append(Vector2(bow - ww * 0.5 + ww * (0.32 + 0.08 * sin(t * 40.0)), z))
+	b.add_slab(hm, 0.0105, steel.lightened(0.35))
+	b.add("box", Vector3(0, 0, z0 + 0.012), Vector3(0.014, w * 1.05, 0.03), Color(0.8, 0.65, 0.3))   # habaki
+
+
+## Kılıç sapı (tsuka): koyu öz + çapraz (elmas) sargı + kashira başlığı
+static func _w_tsuka(b: MB, z0: float, z1: float, r: float, core: Color) -> void:
+	b.add("cyl", Vector3(0, 0, (z0 + z1) * 0.5), Vector3(r * 2.0, z1 - z0, r * 2.0), Color(0.92, 0.9, 0.84), Vector3(90, 0, 0), 10)
+	var nb := int((z1 - z0) / 0.035)
+	for k in nb:
+		var z := z0 + 0.02 + k * 0.035
+		for sgn in [1.0, -1.0]:
+			b.add("box", Vector3(0, 0, z), Vector3(r * 2.25, r * 2.25, 0.012), core, Vector3(sgn * 35.0, 0, 0))
+	b.add("cyl", Vector3(0, 0, z0 - 0.01), Vector3(r * 2.3, 0.025, r * 2.3), core.darkened(0.2), Vector3(90, 0, 0), 10)
+
+
+## Tsuba (el koruması): oval disk + kenar halkası
+static func _w_tsuba(b: MB, z: float, r: float, col: Color) -> void:
+	b.add("cyl", Vector3(0, 0, z), Vector3(r * 2.0, 0.008, r * 1.6), col, Vector3(90, 0, 0), 16)
+	b.add("torus", Vector3(0, 0, z), Vector3(r * 2.05, 0.01, r * 1.65), col.darkened(0.3), Vector3(90, 0, 0), 16)
+
+
+## Dev shuriken: göbek + n kavisli, sivri uçlu kol (kesici kenar bir yana kıvrık); göbek z düzleminde (kollar x-y düzleminde)
+static func _w_star(b: MB, c: Vector3, R: float, w: float, n: int, steel: Color, hub: Color) -> void:
+	var to_xy := Basis(Vector3(0, 0, 1), Vector3(0, 1, 0), Vector3(-1, 0, 0))   # profil (u,v) -> dünya (x=-v, y=u)
+	for k in n:
+		var bs := Basis(Vector3.BACK, TAU * k / n) * to_xy
+		var o := PackedVector2Array()
+		var m := 10
+		for j in m + 1:
+			var t := float(j) / m
+			o.append(Vector2(w * 0.5 * (1.0 - t) * (1.0 + 0.6 * t) + R * 0.12 * t * t, t * R))   # dış (kesici) kenar şişkin, kavisli
+		for j in range(m, -1, -1):
+			var t := float(j) / m
+			o.append(Vector2(-w * 0.5 * (1.0 - t) * (1.0 - t * 0.6) + R * 0.1 * t * t, t * R))
+		b.add_slab(o, 0.014, steel, Transform3D(bs, c), Callable(), steel.darkened(0.25))
+	b.add("cyl", c, Vector3(w * 1.3, 0.05, w * 1.3), hub, Vector3(90, 0, 0), 14)
+	b.add("cyl", c, Vector3(w * 0.5, 0.06, w * 0.5), steel.lightened(0.2), Vector3(90, 0, 0), 10)
+
+
 static func weapon_mesh(id: String) -> ArrayMesh:
 	if _weapon_cache.has(id):
 		return _weapon_cache[id]
@@ -2505,10 +2581,9 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			b.add("box", Vector3(0, 0, 0.2), Vector3(0.012, 0.035, 0.3), steel)
 			b.add("cone", Vector3(0, 0, 0.36), Vector3(0.012, 0.03, 0.035), steel, Vector3(90, 0, 0), 4)
 		"katana":
-			b.add("cyl", Vector3(0, 0, -0.06), Vector3(0.032, 0.24, 0.032), dark, Vector3(90, 0, 0), 8)
-			b.add("cyl", Vector3(0, 0, 0.065), Vector3(0.09, 0.012, 0.09), Color(0.55, 0.45, 0.25), Vector3(90, 0, 0), 12)
-			b.add("box", Vector3(0, 0.005, 0.42), Vector3(0.01, 0.034, 0.7), steel, Vector3(-3, 0, 0))
-			b.add("cone", Vector3(0, 0.025, 0.79), Vector3(0.01, 0.06, 0.034), steel, Vector3(87, 0, 0), 4)
+			_w_tsuka(b, -0.2, 0.05, 0.017, dark)
+			_w_tsuba(b, 0.065, 0.045, Color(0.2, 0.18, 0.16))
+			_w_blade(b, 0.075, 0.72, 0.032, 0.035, steel)
 		"musta":
 			b.add("box", Vector3(0.0, 0.0, 0.0), Vector3(0.03, 0.1, 0.12), dark)
 			b.add("box", Vector3(0, 0, 0.16), Vector3(0.01, 0.03, 0.2), steel)
@@ -2519,9 +2594,25 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			for xx in [-0.41, 0.13]:
 				b.add("cyl", Vector3(xx, 0, -0.085), Vector3(0.042, 0.03, 0.042), Color(0.18, 0.13, 0.09), Vector3(0, 0, 90), 10)
 		"yelpaze":
-			b.add("cyl", Vector3(0, 0, 0), Vector3(0.03, 0.18, 0.03), dark, Vector3(90, 0, 0), 6)
-			b.add("box", Vector3(0, 0, 0.42), Vector3(0.02, 0.16, 0.66), Color(0.85, 0.82, 0.75))
-			b.add("box", Vector3(0, 0, 0.42), Vector3(0.026, 0.03, 0.66), Color(0.6, 0.15, 0.15))
+			# açık demir savaş yelpazesi (tessen): sap + menteşe, 110° açılmış kâğıt yaprak, demir kaburgalar, kırmızı kenar bandı
+			b.add("cyl", Vector3(0, 0, -0.06), Vector3(0.03, 0.2, 0.03), dark, Vector3(90, 0, 0), 8)
+			b.add("cyl", Vector3(0, 0, 0.05), Vector3(0.05, 0.03, 0.05), Color(0.6, 0.55, 0.4), Vector3(0, 0, 90), 10)
+			var fan = PackedVector2Array([Vector2(0, 0.05)])
+			var fan_r = PackedVector2Array()
+			for k in 12:
+				var a = deg_to_rad(lerpf(-55.0, 55.0, k / 11.0))
+				fan.append(Vector2(sin(a) * 0.62, 0.05 + cos(a) * 0.62))
+			for k in 12:
+				var a = deg_to_rad(lerpf(-55.0, 55.0, k / 11.0))
+				fan_r.append(Vector2(sin(a) * 0.62, 0.05 + cos(a) * 0.62))
+			for k in range(11, -1, -1):
+				var a = deg_to_rad(lerpf(-55.0, 55.0, k / 11.0))
+				fan_r.append(Vector2(sin(a) * 0.5, 0.05 + cos(a) * 0.5))
+			b.add_slab(fan, 0.008, Color(0.93, 0.9, 0.8))
+			b.add_slab(fan_r, 0.012, Color(0.7, 0.12, 0.12))
+			for k in 9:
+				var a = deg_to_rad(lerpf(-55.0, 55.0, k / 8.0))
+				b.add_xf("box", Transform3D(Basis(Vector3.RIGHT, -a) * Basis.from_scale(Vector3(0.016, 0.012, 0.6)), Vector3(0, sin(a) * 0.32, 0.05 + cos(a) * 0.32)), Color(0.22, 0.22, 0.25))
 		"altin_kunai", "patlayici_kunai", "zincirli_kunai":
 			var bl = Color(0.85, 0.7, 0.3) if id == "altin_kunai" else steel
 			b.add("cyl", Vector3(0, 0, -0.02), Vector3(0.022, 0.1, 0.022), wrap if id != "altin_kunai" else dark, Vector3(90, 0, 0), 6)
@@ -2562,10 +2653,9 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			b.add("box", Vector3(0, 0.004, 0.3), Vector3(0.01, 0.032, 0.5), steel, Vector3(-3, 0, 0))
 			b.add("cone", Vector3(0, 0.018, 0.57), Vector3(0.01, 0.05, 0.032), steel, Vector3(87, 0, 0), 4)
 		"nodachi":
-			b.add("cyl", Vector3(0, 0, -0.12), Vector3(0.036, 0.36, 0.036), dark, Vector3(90, 0, 0), 8)
-			b.add("box", Vector3(0, 0, 0.08), Vector3(0.12, 0.06, 0.02), Color(0.55, 0.45, 0.25))
-			b.add("box", Vector3(0, 0.006, 0.7), Vector3(0.014, 0.06, 1.2), steel, Vector3(-2, 0, 0))
-			b.add("cone", Vector3(0, 0.03, 1.33), Vector3(0.014, 0.1, 0.06), steel, Vector3(88, 0, 0), 4)
+			_w_tsuka(b, -0.32, 0.06, 0.019, dark)
+			_w_tsuba(b, 0.075, 0.055, Color(0.45, 0.36, 0.2))
+			_w_blade(b, 0.085, 1.22, 0.042, 0.055, steel)
 		"savas_cekici":
 			b.add("cyl", Vector3(0, 0, 0.25), Vector3(0.035, 0.95, 0.035), Color(0.35, 0.25, 0.15), Vector3(90, 0, 0), 8)
 			b.add("box", Vector3(0, 0, 0.72), Vector3(0.14, 0.24, 0.16), Color(0.4, 0.4, 0.42))
@@ -2584,16 +2674,23 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			b.add("cone", Vector3(0, 0, 1.2), Vector3(0.05, 0.24, 0.012), steel, Vector3(90, 0, 0), 4)
 			b.add("cyl", Vector3(0, 0, 1.07), Vector3(0.045, 0.04, 0.045), Color(0.6, 0.15, 0.15), Vector3(90, 0, 0), 8)
 		"kusarigama":
-			b.add("cyl", Vector3(0, 0, 0.02), Vector3(0.03, 0.3, 0.03), Color(0.45, 0.32, 0.2), Vector3(90, 0, 0), 8)
-			b.add("box", Vector3(0, 0.09, 0.16), Vector3(0.01, 0.2, 0.035), steel, Vector3(-25, 0, 0))
+			b.add("cyl", Vector3(0, 0, 0.02), Vector3(0.032, 0.32, 0.032), Color(0.45, 0.32, 0.2), Vector3(90, 0, 0), 8)
+			b.add("cyl", Vector3(0, 0, 0.17), Vector3(0.042, 0.04, 0.042), dark, Vector3(90, 0, 0), 8)   # bilezik
+			# orak: sapın ucundan dik çıkar, öne kıvrılan hilal (iç kenar keskin)
+			var sick = PackedVector2Array()
+			for k in 9:
+				var t = k / 8.0
+				sick.append(Vector2(-0.01 + t * 0.26, 0.15 + t * t * 0.12))
+			for k in range(8, -1, -1):
+				var t = k / 8.0
+				sick.append(Vector2(-0.01 + t * 0.24, 0.19 + t * t * 0.1 + (1.0 - t) * 0.0))
+			b.add_slab(sick, 0.01, steel, Transform3D.IDENTITY, Callable(), steel.darkened(0.2))
 			for k in 9:
 				b.add("torus", Vector3(0.0, -0.02 - k * 0.04, -0.12 - k * 0.01), Vector3(0.03, 0.03, 0.03), dark, Vector3(90 * (k % 2), 0, 0), 6)
 			b.add("sphere", Vector3(0, -0.4, -0.22), Vector3(0.06, 0.06, 0.06), dark, Vector3.ZERO, 8)
 		"el_shuriken":
-			b.add("cyl", Vector3(0, 0, 0), Vector3(0.03, 0.12, 0.03), dark, Vector3(90, 0, 0), 6)
-			for k in 4:
-				b.add_xf("box", Transform3D(Basis(Vector3.BACK, deg_to_rad(45.0 + 90.0 * k)) * Basis.from_scale(Vector3(0.09, 0.62, 0.012)), Vector3(0, 0, 0.3)), Color(0.5, 0.52, 0.56))
-			b.add("cyl", Vector3(0, 0, 0.3), Vector3(0.11, 0.03, 0.11), dark, Vector3(90, 0, 0), 10)
+			b.add("cyl", Vector3(0, 0, 0.1), Vector3(0.03, 0.4, 0.03), dark, Vector3(90, 0, 0), 8)   # sap göbeğe kadar
+			_w_star(b, Vector3(0, 0, 0.3), 0.34, 0.17, 4, Color(0.5, 0.52, 0.56), dark)
 		"kubikiribocho", "samehada", "kiba", "hiramekarei", "shibuki", "nuibari", "kabutowari":
 			MistSwords.build(id, b)   # Sis'in Yedi Kılıcı: referansla modellendi
 		"chokuto":
@@ -2602,22 +2699,38 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			b.add("box", Vector3(0, 0, 0.5), Vector3(0.012, 0.03, 0.88), Color(0.85, 0.87, 0.9))
 			b.add("cone", Vector3(0, 0, 0.97), Vector3(0.012, 0.06, 0.03), Color(0.85, 0.87, 0.9), Vector3(90, 0, 0), 4)
 		"raijin":
-			b.add("cyl", Vector3(0, 0, -0.06), Vector3(0.035, 0.2, 0.035), Color(0.8, 0.65, 0.25), Vector3(90, 0, 0), 8)
-			b.add("cyl", Vector3(0, 0, 0.05), Vector3(0.1, 0.02, 0.1), Color(0.85, 0.7, 0.3), Vector3(90, 0, 0), 10)
-			b.add("box", Vector3(0, 0, 0.6), Vector3(0.02, 0.05, 1.05), Color(1.0, 0.95, 0.55))
-			for k in 6:
-				b.add("box", Vector3(0, (0.035 if k % 2 == 0 else -0.035), 0.2 + k * 0.17), Vector3(0.012, 0.05, 0.08), Color(1.0, 0.85, 0.2), Vector3(0, 0, 25 if k % 2 == 0 else -25))
+			# yıldırım kılıcı: altın sap ve tsuba, ağız zikzak şimşek biçiminde (sarı-beyaz, ortası daha parlak)
+			_w_tsuka(b, -0.2, 0.04, 0.018, Color(0.75, 0.6, 0.2))
+			_w_tsuba(b, 0.055, 0.05, Color(0.85, 0.7, 0.3))
+			var zz = PackedVector2Array()
+			var zl = []
+			var zr = []
+			for k in 9:
+				var z = 0.07 + k * 0.095
+				var o = (0.03 if k % 2 == 0 else -0.03) * (1.0 - k / 10.0)
+				var w = 0.045 * (1.0 - k / 10.0) + 0.01
+				zl.append(Vector2(o - w, z))
+				zr.append(Vector2(o + w, z))
+			for p in zl:
+				zz.append(p)
+			zz.append(Vector2(0.0, 0.92))
+			for k in range(zr.size() - 1, -1, -1):
+				zz.append(zr[k])
+			b.add_slab(zz, 0.022, Color(1.0, 0.92, 0.45), Transform3D.IDENTITY, Callable(), Color(1.0, 0.75, 0.2))
+			var core = PackedVector2Array()
+			for p in zl:
+				core.append(Vector2(lerpf(p.x, 0.0, 0.6), p.y))
+			core.append(Vector2(0.0, 0.87))
+			for k in range(zr.size() - 1, -1, -1):
+				core.append(Vector2(lerpf(zr[k].x, 0.0, 0.6), zr[k].y))
+			b.add_slab(core, 0.03, Color(1.0, 1.0, 0.92))
 		"ruzgar_bicak":
 			b.add("box", Vector3(0.0, 0.0, 0.0), Vector3(0.03, 0.1, 0.11), dark)
 			b.add("box", Vector3(0, 0.0, 0.17), Vector3(0.012, 0.04, 0.24), Color(0.6, 0.62, 0.66))
 			b.add("cone", Vector3(0, 0.0, 0.42), Vector3(0.02, 0.32, 0.07), Color(0.6, 1.0, 0.8), Vector3(90, 0, 0), 4)
 		"fuma_shuriken":
-			b.add("cyl", Vector3(0, 0, 0), Vector3(0.03, 0.14, 0.03), dark, Vector3(90, 0, 0), 6)
-			for k in 4:
-				var bs = Basis(Vector3.BACK, deg_to_rad(90.0 * k))
-				b.add_xf("box", Transform3D(bs * Basis.from_scale(Vector3(0.12, 0.48, 0.012)), Vector3(0, 0, 0.5) + bs * Vector3(0, 0.26, 0)), Color(0.55, 0.57, 0.62))
-				b.add_xf("cone", Transform3D(bs * Basis(Vector3.BACK, deg_to_rad(-30)) * Basis.from_scale(Vector3(0.12, 0.2, 0.012)), Vector3(0, 0, 0.5) + bs * Vector3(0.05, 0.55, 0)), Color(0.55, 0.57, 0.62), 4)
-			b.add("cyl", Vector3(0, 0, 0.5), Vector3(0.16, 0.04, 0.16), dark, Vector3(90, 0, 0), 12)
+			b.add("cyl", Vector3(0, 0, 0.2), Vector3(0.032, 0.6, 0.032), dark, Vector3(90, 0, 0), 8)   # sap göbeğe kadar
+			_w_star(b, Vector3(0, 0, 0.5), 0.62, 0.3, 4, Color(0.55, 0.57, 0.62), dark)
 		"sai":
 			b.add("cyl", Vector3(0, 0, 0.0), Vector3(0.03, 0.12, 0.03), Color(0.2, 0.12, 0.1), Vector3(90, 0, 0), 8)
 			b.add("cyl", Vector3(0, 0, 0.31), Vector3(0.018, 0.5, 0.018), steel, Vector3(90, 0, 0), 6)
@@ -2628,12 +2741,20 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 		"uc_tirpan":
 			# üç bıçaklı kızıl tırpan: uzun sap, ucunda yelpaze gibi açılmış üç kavisli bıçak
 			b.add("cyl", Vector3(0, 0, 0.55), Vector3(0.035, 1.3, 0.035), Color(0.15, 0.12, 0.12), Vector3(90, 0, 0), 8)
+			b.add("cyl", Vector3(0, 0, 1.2), Vector3(0.06, 0.08, 0.06), Color(0.3, 0.3, 0.32), Vector3(90, 0, 0), 8)   # bıçak yuvası
+			# üç kavisli kızıl bıçak: sapın ucundan aynı yöne (+y) kıvrılır, öndeki en büyük; aralarında boşluk
 			for k in 3:
-				var a = deg_to_rad(-25.0 + k * 25.0)
-				var bs = Basis(Vector3.BACK, a)
-				for j in 5:
-					var t = j / 4.0
-					b.add_xf("box", Transform3D(bs * Basis(Vector3.RIGHT, deg_to_rad(-t * 40.0)) * Basis.from_scale(Vector3(0.012, 0.09, 0.14 - t * 0.06)), Vector3(0, 0, 1.18) + bs * Vector3(0, 0.1 + t * 0.32, -t * t * 0.18)), Color(0.82, 0.12, 0.1))
+				var sz = 1.0 - k * 0.18
+				var z0 = 1.2 - k * 0.11
+				var cr = PackedVector2Array()
+				# alt (keskin) kenar ve üst kenar aynı x adımında: üst = alt + incelen genişlik (kenarlar kesişmesin)
+				for j in 10:
+					var t = j / 9.0
+					cr.append(Vector2(0.02 + t * 0.55 * sz, z0 + 0.05 - t * t * 0.32 * sz))
+				for j in range(9, -1, -1):
+					var t = j / 9.0
+					cr.append(Vector2(0.02 + t * 0.55 * sz, z0 + 0.05 - t * t * 0.32 * sz + 0.11 * sz * pow(1.0 - t, 0.8) + 0.004))
+				b.add_slab(cr, 0.016, Color(0.82, 0.12, 0.1), Transform3D.IDENTITY, Callable(), Color(0.55, 0.06, 0.05))
 		"gunbai":
 			# Uchiha yelpazesi (uchiwa): uzun sap, üstte hafif basık yuvarlak kâğıt; üst yarı kırmızı, alt yarı beyaz, siyah çerçeve ve kaburgalar
 			b.add("cyl", Vector3(0, 0, 0.2), Vector3(0.032, 0.56, 0.032), Color(0.18, 0.12, 0.08), Vector3(90, 0, 0), 8)

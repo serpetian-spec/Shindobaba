@@ -384,6 +384,7 @@ static func arch(f: Dictionary) -> Dictionary:
 		a["aggr"] = 0.6
 	else:
 		a = Enemy.archetype("genin_rival", 0)
+		a["no_clan"] = true
 		a["element"] = f.get("element", "katon")
 		var auto = Enemy.auto_jutsu("genin_rival", String(a["element"]), lv)
 		if not auto.is_empty():

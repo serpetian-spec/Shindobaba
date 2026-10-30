@@ -102,6 +102,7 @@ func attack(v: Node) -> void:
 			Eyes.give_enemy_eyes(e, int(v.eye_kind), maxi(1, int(v.eye_lvl)))
 	else:
 		var a = Enemy.archetype("bandit" if civ else "genin_rival", 0)
+		a["no_clan"] = true
 		a["name"] = String(v.display)
 		a["respawn"] = false
 		a["level"] = maxi(2, plv - (6 if civ else 0))

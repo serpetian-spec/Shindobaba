@@ -35,9 +35,9 @@ func _ready() -> void:
 	if owner_f is Player:
 		max_hp = def.get("hp", 200.0) * (1.0 + float(Game.profile.get("level", 1)) * 0.02) * (1.0 + Stats.skill(Game.profile, "summon_power"))
 	else:
-		# düşman çağrısı: oyuncunun çağırma yeteneklerinden güç almaz
-		var olv = float(owner_f.get("level")) if owner_f != null and owner_f.get("level") != null else 20.0
-		max_hp = def.get("hp", 200.0) * (1.0 + olv * 0.015)
+		# düşman çağrısı: oyuncunun hasarıyla ölçeklenir (eskiden tanım canının tamamı + sahibin seviyesi: öldürülemiyordu)
+		var plv = float(Game.profile.get("level", 1))
+		max_hp = def.get("hp", 200.0) * 0.25 * (1.0 + plv * 0.03)
 	hp = max_hp
 	life = Contracts.TIER_LIFE[tier] * (1.0 + clampf(Contracts.mastery(contract) / 300.0, 0.0, 0.5))
 	add_to_group("fighters")
@@ -163,7 +163,8 @@ func _physics_process(dt: float) -> void:
 		if owner_f.chakra <= 0.0 and up > 0.0:
 			say("Chakran bitti, gidiyorum!", 2.0)
 			life = minf(life, 0.5)
-	if life <= 0.0 or (owner_f != null and not is_instance_valid(owner_f)):
+	# çağıran ölünce sözleşme hayvanı da duman olup gider
+	if life <= 0.0 or (owner_f != null and (not is_instance_valid(owner_f) or (owner_f.has_method("is_dead") and owner_f.is_dead()))):
 		dismiss()
 		return
 	if mounted:

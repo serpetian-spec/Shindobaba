@@ -121,6 +121,24 @@ static func _compound(parent: Node3D, v: Dictionary, sty: Dictionary) -> void:
 	# fenerler ve ağaçlar
 	var rng = RandomNumberGenerator.new()
 	rng.seed = hash(v["id"])
+	# --- dükkân sırası (Konoha'daki gibi gerçek binalar: içeri girilir, dükkâncıyla konuşulur; eskiden yalnız tezgâh vardı)
+	# hastane/ANBU sırasının arkasında, aralarında 8 m boşlukla: birbirine ve yerleşkeye girmez
+	var shops = [[-45.0, "pharmacy", "[F] Gir: Eczane", Color(0.3, 0.6, 0.4), "shop_items"],
+		[-15.0, "weapon_shop", "[F] Gir: Silah Dükkânı", Color(0.15, 0.15, 0.18), "shop_weapons"],
+		[15.0, "tailor", "[F] Gir: Terzi (kıyafet, zırh)", Color(0.35, 0.25, 0.45), "tailor"],
+		[45.0, "teahouse", "[F] Gir: Dango ve Çay Evi", Color(0.85, 0.45, 0.55), "teahouse"]]
+	var hstyle = {"suna": "suna", "kiri": "kiri", "kumo": "kumo", "iwa": "iwa"}.get(String(v["id"]), "konoha")
+	for sh in shops:
+		var sx: float = sh[0]
+		var sn = 66.0
+		var yaw = 180.0   # kapı güneye (akademi/hastane avlusuna) bakar
+		b.house(sx, sn, 14.0, 11.0, 2, yaw, hstyle, rng)
+		# Suna/Kumo/Iwa evleri (kubbe, kerpiç) çizilen gövdeden küçük: cephe gövdeye yaslansın (önde havada kalıyordu)
+		var hd = float(b.last_house.get("d", 11.0)) - (3.0 if hstyle != "konoha" else 0.0)
+		SpecialBuildings.shop_front(b, b.root, sx, sn - hd * 0.5, -1.0, sh[1], sh[3], 14.0)
+		var dn2 = sn - hd * 0.5 - 1.2
+		var dy = g.call(sx, dn2) + 0.4
+		b.interact(Vector3(sx, dy, dn2), 3.0, "enter", sh[2], {"room": sh[1], "alias": sh[4], "vid": v["id"], "out": b.w(Vector3(sx, dy, dn2))})
 	for i in 6:
 		b.lantern(-20 + i * 12, -12)
 	b.finish()

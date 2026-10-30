@@ -493,6 +493,8 @@ static func _house_infill(c, houses: Array) -> void:
 			style = st
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(b.key) + 4242
+	# akademi/hastane/dükkân yerleşkesi (büyük köylerde sur içinde) boş kalmalı
+	var site = BuildSites._site_clear(v) if BuildVillageStory.STYLE.has(b.key) else []
 	var g0 = c.ground(0.0, 0.0)
 	var step = 26.0
 	var added = 0
@@ -507,6 +509,8 @@ static func _house_infill(c, houses: Array) -> void:
 			var fl = [1, 2, 2, 2, 3, 3][rng.randi() % 6]
 			n += step
 			if Vector2(px, pn).length() > lim:
+				continue
+			if not site.is_empty() and Vector2(px - float(site[0]), pn - float(site[1])).length() < float(site[2]) + 12.0:
 				continue
 			var near = false
 			var kc = Vector2i(floori(px / 24.0), floori(pn / 24.0))
@@ -850,7 +854,7 @@ static func _yard(c: Ctx, h: Array) -> void:
 		var q = at.call(side * (hw + 2.4), rng.randf_range(-hd * 0.3, hd * 0.5))
 		if c.open(q.x, q.y, 1.8, 10.5):
 			var tt: int = kit["tree"][rng.randi() % kit["tree"].size()]
-			var s = rng.randf_range(0.5, 0.78) if tt != 7 else rng.randf_range(0.7, 0.95)
+			var s = rng.randf_range(0.85, 1.25) if tt != 7 else rng.randf_range(0.8, 1.05)   # bahçe ağacı evin çatısını geçsin (çok kısaydı)
 			c.put(veg(tt), q.x, q.y, rng.randf() * 360.0, Vector3.ONE * s, 420.0, false, -0.1)
 			c.solid_cyl(q.x, q.y, 0.3 * s + 0.1, 4.5 * s)
 		elif kit["bamboo"] and rng.randf() < 0.5:
@@ -931,7 +935,7 @@ static func _street_trees(c: Ctx, rad: float) -> void:
 				var ln = q.y - cen.y
 				if c.open(lx, ln, 1.6, half + 0.4):
 					var tt: int = types[c.rng.randi() % types.size()]
-					var s = c.rng.randf_range(0.7, 0.92) if tt != 7 else c.rng.randf_range(0.85, 1.05)
+					var s = c.rng.randf_range(1.05, 1.45) if tt != 7 else c.rng.randf_range(0.9, 1.1)
 					c.put(veg(tt), lx, ln, c.rng.randf() * 360.0, Vector3.ONE * s, 700.0, true, -0.1)
 					c.put(ring_m, lx, ln, 0.0, Vector3.ONE, 220.0, false, 0.02)
 					c.solid_cyl(lx, ln, 0.35 * s + 0.1, 5.0 * s)
@@ -1073,7 +1077,7 @@ static func _park(c: Ctx, px: float, pn: float, r: float) -> void:
 			c.solid_cyl(tx, tn, 0.35 * s, 4.5 * s)
 		else:
 			var tt: int = kit["tree"][rng.randi() % kit["tree"].size()]
-			var s = rng.randf_range(0.8, 1.15)
+			var s = rng.randf_range(1.2, 1.8)
 			c.put(veg(tt), tx, tn, rng.randf() * 360.0, Vector3.ONE * s, 900.0, true, -0.1)
 			c.solid_cyl(tx, tn, 0.35 * s + 0.1, 5.0 * s)
 		if rng.randf() < 0.6:

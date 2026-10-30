@@ -28,6 +28,7 @@ var wander_to = Vector3.ZERO
 ## arch["skill"] verilmezse güçten türetilir: haydut ~0.1, chūnin ~0.4, jōnin ~0.6, S-rank/boss ~0.9
 var skill := 0.2
 var dodge_cd := 0.0
+var hit_times: Array = []     # son darbelerin zamanı (kombodan sıyrılma)
 var dodge_dir := Vector3.ZERO
 var _saw_busy := false
 var leap_cd := 2.0
@@ -95,7 +96,10 @@ static func archetype(kind: String, i := 0) -> Dictionary:
 
 
 ## Tip başına en yüksek jutsu rütbesi (E0 D1 C2 B3 A4 S5); seviye de ayrıca sınırlar
-const JUTSU_CAP := {"rogue": 4, "oto": 3, "kumo": 4, "kiri": 4, "iwa": 4, "suna": 4, "genin_rival": 2}
+const JUTSU_CAP := {"rogue": 5, "oto": 4, "kumo": 5, "kiri": 5, "iwa": 5, "suna": 5, "konoha": 5, "genin_rival": 3}
+## Köy ninjalarının bir kısmı köylerinin klanlarından birindendir: klan teknikleri, gözleri ve klan davranışıyla savaşır
+const CLAN_KINDS := ["konoha", "suna", "kiri", "kumo", "iwa", "rogue", "oto", "genin_rival"]
+const CLAN_P := 0.45
 const RANK_I := {"E": 0, "D": 1, "C": 2, "B": 3, "A": 4, "S": 5}
 ## Ünlü ninjaların imza teknikleri sıradan düşmana verilmez (Efsane Yolları ve boss'lar kullanır)
 const SIGNATURE := ["raiton_armor", "kuroi_kaminari", "joki_boi", "raiton_chidori", "raiton_nagashi", "chidori_nagashi", "chidori_senbon", "chidori_eiso",
@@ -128,7 +132,7 @@ static func auto_jutsu(kind: String, el: String, lv: int) -> Array:
 		if not j is Dictionary or String(j.get("element", "")) != el or String(j.get("category", "")) != "ninjutsu":
 			continue
 		var lp = String(j.get("learn", "")).split(":")[0]
-		if lp in ["clan", "kg", "eye", "kinjutsu", "quest", "sage"] or id in SIGNATURE:
+		if lp in ["clan", "kg", "eye", "kinjutsu", "quest", "sage", "path"] or id in SIGNATURE or String(id).begins_with("bashosen"):
 			continue
 		var r = int(RANK_I.get(String(j.get("canon_rank", "")), -1))
 		if r < 0 or r > cap:
@@ -161,11 +165,49 @@ func setup(a: Dictionary) -> void:
 	size = a.get("size", 1.0)
 	display_name = a["name"]
 	skill = clampf(float(a.get("skill", (float(a["power"]) - 1.0) / 2.2)), 0.05, 0.98)
+	# zorluk = davranış (can/güç değil): ninjalar seviyeleriyle ustalaşır — daha çok blok, kawarimi, kaçış, karşı saldırı
+	if not String(a.get("kind", "")) in ["bandit"] and not a.has("skill"):
+		skill = maxf(skill, clampf(0.18 + int(a["level"]) * 0.009, 0.0, 0.85))
 	# görev seviyeyi değiştirdiyse ve jutsu elle verilmediyse yeni seviyeye göre yeniden seç
 	if a.has("auto_jutsu") and a["jutsu"] == a["auto_jutsu"] and int(a["level"]) != int(a.get("auto_lv", 0)):
 		var auto = auto_jutsu(String(a["kind"]), String(a["element"]), int(a["level"]))
 		if not auto.is_empty():
 			a["jutsu"] = auto
+	_maybe_clan(a)
+
+
+## Rastgele klan: köyün klanlarından biri (kaçaklar herhangi bir köyden); klan teknikleri jutsu listesinin başına
+func _maybe_clan(a: Dictionary) -> void:
+	if a.has("clan") or a.get("no_clan", false) or a.has("beast") or int(a.get("level", 1)) < 5:
+		return
+	var k = String(a.get("kind", ""))
+	if not k in CLAN_KINDS or randf() > CLAN_P:
+		return
+	var vid = String(a.get("look", {}).get("village", k))
+	var cands = []
+	for c in Data.clans:
+		if c == "none" or c in Progress.UNPLAYABLE_CLANS:
+			continue
+		if k in ["rogue", "oto"] or vid in Data.clans[c].get("villages", []):
+			cands.append(c)
+	if cands.is_empty():
+		return
+	var c = String(cands.pick_random())
+	a["clan"] = c
+	a["clan_auto"] = true
+	var cj = ClanWorld.clan_jutsu(c, int(a["level"]), 2)
+	var js: Array = (a.get("jutsu", []) as Array).duplicate()
+	for j in cj:
+		if not j in js:
+			js.push_front(j)
+	a["jutsu"] = js.slice(0, 5)
+	var L: Dictionary = ClanWorld.LOOK.get(c, {})
+	if L.has("hair"):
+		look["hair"] = (L["hair"] as Array).pick_random()
+	if L.has("hs"):
+		look["hair_style"] = (L["hs"] as Array).pick_random()
+	if not ClanWorld.clan_name(c) in display_name:
+		display_name = "%s %s" % [ClanWorld.clan_name(c), display_name]
 
 
 func _ready() -> void:
@@ -192,6 +234,8 @@ func _ready() -> void:
 		FX.aura(self, BeastModels.INFO[arch["beast"]]["chakra"], 1.2, Vector3(0, 0.9, 0), 0.0)   # sönmeyen canavar chakrası
 	if skill > 0.35:
 		Jutsu.jutsu_cast.connect(_on_someone_cast)
+	if arch.get("clan_auto", false) and not has_node("ClanTrait"):
+		ClanWorld.after_spawn_enemy(self, String(arch["clan"]), level)   # klan gözleri (Sharingan/Byakugan...) + klan davranışı
 
 
 ## Usta düşman, hedefi jutsu yaparken mühürleri okur ve yana atılır
@@ -306,6 +350,11 @@ func _physics_process(dt: float) -> void:
 			step_move(side, dt, false)
 			if state_t > 0.35:
 				state = "chase"
+				# taktik: komboyu bitiren usta ninja geri sıçrayıp mesafe açar ve jutsuya hazırlanır (dümdüz yüklenmesin)
+				var jl0: Array = arch.get("jutsu", [])
+				if target and is_instance_valid(target) and _is_ninja() and not jl0.is_empty() and dodge_cd <= 0.0 and randf() < skill * 0.6:
+					_dodge(target, false)
+					ranged_cd = minf(ranged_cd, 0.3)
 		"dodge":
 			step_move(dodge_dir * (16.0 + skill * 8.0), dt, false)
 			if state_t > 0.22:
@@ -413,7 +462,7 @@ func _chase(dt: float) -> void:
 	var far_ok = d > 4.0 and d < 42.0
 	var near_ok = d <= 4.0 and not jl.is_empty() and randf() < 0.15
 	if (far_ok or near_ok) and ranged_cd <= 0.0 and randf() < 0.8:
-		ranged_cd = randf_range(1.6, 3.2) / arch["aggr"]
+		ranged_cd = randf_range(1.6, 3.2) / (float(arch["aggr"]) * (1.0 + skill))   # usta ninja daha sık jutsu atar
 		if not jl.is_empty() and randf() < 0.85 and not has_status("sealed"):   # chakra noktaları kapalıysa jutsu yok
 			set_meta("cast_id", jl.pick_random())
 			state = "cast"
@@ -445,9 +494,16 @@ func _chase(dt: float) -> void:
 		if d > 3.5 and d < 11.0 and attack_cd <= 0.0 and (has_token or attack_tokens < _max_tokens()) and randf() < dt * (1.0 + skill * 3.0) * arch["aggr"]:
 			_lunge()
 			return
+		var side_s = 1.0 if int(get_instance_id()) % 2 == 0 else -1.0
 		if not has_token and attack_tokens >= _max_tokens() and d < 7.0:
-			dir = dir.rotated(Vector3.UP, PI * 0.5 * (1.0 if int(get_instance_id()) % 2 == 0 else -1.0)) * 0.6
+			dir = dir.rotated(Vector3.UP, PI * 0.5 * side_s) * 0.6
 			sp *= 0.6
+		elif _is_ninja() and not (arch.get("jutsu", []) as Array).is_empty() and d > 5.0 and d < 16.0 and ranged_cd > 0.4 and skill > 0.3:
+			# jutsucu: orta mesafede hedefin etrafında döner (yan adım), jutsu hazır olunca atar — dümdüz koşmaz
+			dir = dir.rotated(Vector3.UP, PI * 0.42 * side_s * (1.0 if sin(Time.get_ticks_msec() * 0.001 + get_instance_id()) > -0.3 else -1.0))
+		elif _is_ninja() and d > 6.0:
+			# yaklaşırken zikzak (isabet almamak için)
+			dir = dir.rotated(Vector3.UP, sin(Time.get_ticks_msec() * 0.003 + get_instance_id()) * 0.5 * skill)
 		step_move(dir * sp, dt, false)
 		model.play("run" if sp > 6 else "walk", 0.15, 1.1)
 		model.rotation.y = facing
@@ -633,6 +689,16 @@ func take_hit(info: Dictionary) -> void:
 	super.take_hit(info)
 	if target == null and info.get("attacker"):
 		target = info["attacker"]
+	# kombodan sıyrılma: 1.4 sn'de 3+ darbe yiyen usta ninja geri sıçrar (tek komboyla dövüş bitmesin)
+	var now = Time.get_ticks_msec() / 1000.0
+	hit_times.append(now)
+	hit_times = hit_times.filter(func(t2): return now - t2 < 1.4)
+	if hit_times.size() >= 3 and not dead and dodge_cd <= 0.0 and randf() < skill * 0.55 and info.get("attacker") is Node3D and not has_status("bind"):
+		hit_times.clear()
+		state = "chase"
+		_dodge(info["attacker"], false)
+		if state == "dodge":
+			Combat.popup_text(global_position + Vector3.UP * 2.2, "Sıyrıldı!", Color(0.8, 0.9, 1.0))
 
 
 func die(info: Dictionary) -> void:

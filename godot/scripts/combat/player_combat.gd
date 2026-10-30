@@ -188,6 +188,13 @@ func _start_step() -> void:
 	Sfx.play("whoosh", p.global_position, randf_range(0.9, 1.2), 0.6)
 
 
+## Jutsu chakra maliyeti: gücü gibi seviyeyle büyür (sabit kalınca yüksek seviyede chakra hiç bitmiyordu);
+## yetenek indirimi en fazla %30
+static func jutsu_cost(j: Dictionary) -> float:
+	var lv = int(Game.profile.get("level", 1))
+	return float(j.get("cost", 0)) * (1.0 + (lv - 1) * 0.045) * clampf(1.0 + Stats.skill(Game.profile, "jutsu_cost"), 0.7, 1.0)
+
+
 func _air_attack() -> void:
 	action = "attack"
 	air_attack = true
@@ -682,24 +689,14 @@ func begin_cast(jid: String) -> void:
 	if cooldowns.get(jid, 0.0) > 0.0:
 		Hud.msg("%s hazır değil (%.1fsn)" % [j["name"], cooldowns[jid]], Color(0.8, 0.8, 1))
 		return
-	if jutsu_gcd > 0.0:
-		if _gcd_msg_t <= 0.0:
-			_gcd_msg_t = 1.0
-			Hud.msg("Mühürler yetişmiyor... (%.1fsn)" % jutsu_gcd, Color(0.8, 0.8, 1))
-		return
-	var cost = float(j.get("cost", 0)) * clampf(1.0 + Stats.skill(Game.profile, "jutsu_cost"), 0.4, 1.0)
-	cost *= 1.0 + 0.25 * strain   # chakra yorgunluğu
+	# art arda atış engeli (ortak bekleme + chakra yorgunluğu) kaldırıldı: sınır chakranın kendisi (seviyeyle büyüyen maliyet)
+	var cost = jutsu_cost(j)
 	if p.chakra < cost:
 		Hud.msg("Yeterli chakra yok! [C] ile chakra topla", Color(0.5, 0.8, 1))
 		return
 	p.chakra -= cost
 	cooldowns[jid] = float(j.get("cd", 5))
 	var tier = int(j.get("tier", 2))
-	jutsu_gcd = 0.5 + 0.25 * clampi(tier, 0, 5)
-	strain = mini(strain + 1, 4)
-	strain_t = 4.0
-	if strain >= 3:
-		Hud.msg("Chakra yorgunluğu: jutsular %%%d daha pahalı (biraz ara ver)" % (25 * strain), Color(0.6, 0.75, 1))
 	cast_jutsu = jid
 	action = "cast"
 	t = 0.0

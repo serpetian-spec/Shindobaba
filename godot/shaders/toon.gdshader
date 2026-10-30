@@ -41,6 +41,7 @@ uniform vec4 face_b = vec4(0.0);   // kaş çıkıntısı, işaret türü (0 yok
 uniform vec4 face_ref = vec4(0.0, 1.7, 0.08, 0.0);
 uniform int outer_cover = 0;  // yelek katmanı: 1 önü açık dış giysi altında (yalnız ön şerit görünür), 2 kapalı pelerin altında (gizli)
 uniform vec4 scalp_cut = vec4(99.0, -99.0, 99.0, 0.0);  // x: bu yüksekliğin üstü, y/z: bu derinliğin arkasında z yüksekliğinin üstü  // saçlıyken gövdenin kafa derisi bu yüksekliğin üstünde çizilmez (saç arasından "kel" görünmesin)  // -, göz y, göz z
+uniform vec4 scalp_col = vec4(0.0);   // a>0: kesim bölgesi atılmaz, saç rengine boyanır (ensede delik / saç arasında kel yok)
 uniform float fold_amount = 0.0032;
 varying vec3 rest;
 #include "res://shaders/mangekyo.gdshaderinc"
@@ -242,7 +243,8 @@ void fragment() {
 	if (hide_masked && COLOR.a > 0.5) discard;
 	if (layer == 2 && outer_cover == 2) discard;
 	if (layer == 2 && outer_cover == 1 && !(rest.z > 0.0 && abs(rest.x) < 0.075)) discard;   // dış giysinin altından taşmasın
-	if (layer == 0 && (rest.y > scalp_cut.x || (rest.z < scalp_cut.y && rest.y > scalp_cut.z))) discard;
+	bool scalp = layer == 0 && (rest.y > scalp_cut.x || (rest.z < scalp_cut.y && rest.y > scalp_cut.z));
+	if (scalp && scalp_col.a < 0.5) discard;
 	if (palette_mode) {
 		int slot = slot_ov > 0.5 ? int(slot_ov + 0.5) : cloth_slot(rest);
 		if (layer == 2) {
@@ -500,6 +502,7 @@ void fragment() {
 		float n = vnoise(wpos.xz * 0.9 + wpos.y * 0.7) * 0.6 + vnoise(wpos.xy * 3.1) * 0.4;
 		c.rgb *= 1.0 + (n - 0.5) * detail_noise;
 	}
+	if (scalp && scalp_col.a >= 0.5) c.rgb = scalp_col.rgb * 0.75;
 	ALBEDO = mix(c.rgb, vec3(1.0), hit_flash);
 	ROUGHNESS = 0.8;
 	EMISSION = emission_color.rgb * emission_color.a + vec3(hit_flash) * 0.6;

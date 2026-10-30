@@ -63,6 +63,144 @@ func kage_persona(vid: String) -> Dictionary:
 	return out
 
 
+## ---------------------------------------------------------------- köy baskınları (savaşlar kâğıt üstünde kalmasın)
+## Arası savaş seviyesinde (ilişki ≤ -40) olan bir köy, sen köyündeyken kapıya baskın düzenler (gergin köyler daha nadir).
+## Baskıncılar + komutan kapıdan girer; köyün ninjaları seninle savunur. Püskürtürsen itibar ve ödül; ilişki daha da gerilir.
+var _raid_t := 600.0
+var raid := {}    # {"from", "nodes": [Enemy], "allies": [Enemy], "t"}
+
+
+func _raid_tick(dt: float) -> void:
+	if not raid.is_empty():
+		_raid_watch(dt)
+		return
+	_raid_t -= dt
+	if _raid_t > 0.0:
+		return
+	_raid_t = randf_range(600.0, 1100.0)
+	if Orgs.is_rogue() or Missions.active().get("rank", "") == "S" or Exams.cur != "":
+		return
+	var home = Progress.home()
+	var v = Game.village(home)
+	if v.is_empty() or Game.to_map(Game.player.global_position).distance_to(Vector2(v["x"], v["y"])) > float(v["r"]) * 1.1:
+		return
+	var foes = GREAT.filter(func(x): return x != home and relation(x) <= -40)
+	var tense = GREAT.filter(func(x): return x != home and relation(x) < 0 and relation(x) > -40)
+	var from = ""
+	if not foes.is_empty() and randf() < 0.6:
+		from = String(foes.pick_random())
+	elif not tense.is_empty() and randf() < 0.15:
+		from = String(tense.pick_random())
+	if from != "":
+		start_raid(from)
+
+
+func _ninja_of(vid: String, i: int, lv: int, team: String) -> Enemy:
+	var kind = vid if vid in ["kumo", "kiri", "iwa", "suna"] else "rogue"
+	var a = Enemy.archetype(kind, i)
+	a["respawn"] = false
+	a["level"] = lv
+	a["hp"] = 160.0 + lv * 15.0
+	a["power"] = 1.3 + lv * 0.02
+	a["xp"] = 40 + lv * 8 if team == "enemy" else 0
+	a["ryo"] = 20 + lv * 3 if team == "enemy" else 0
+	var auto = Enemy.auto_jutsu(kind, String(a["element"]) if String(a["element"]) != "" else "katon", lv)
+	if not auto.is_empty():
+		a["jutsu"] = auto
+	var L: Dictionary = a["look"]
+	L["village"] = vid
+	L["band_style"] = "head"
+	if vid == Progress.home():
+		var hi = Progress.home_info()
+		L["band"] = hi["band"]
+		L["vest"] = hi["vest"]
+	a["name"] = "%s %s" % [String(Game.village(vid).get("name", vid)).trim_suffix("gakure"), "Akıncısı" if team == "enemy" else "Muhafızı"]
+	var e = Enemy.new()
+	e.setup(a)
+	e.team = team
+	if team == "player":
+		e.set_meta("teammate", true)
+		e.set_meta("respawn", false)
+	return e
+
+
+func start_raid(from: String) -> void:
+	var home = Progress.home()
+	var v = Game.village(home)
+	var gates: Array = v.get("gates", [180.0])
+	var c = Vector2(v["x"], v["y"])
+	# oyuncuya en yakın kapı
+	var pm = Game.to_map(Game.player.global_position)
+	var best = float(gates[0])
+	var bd = 1e12
+	for g in gates:
+		var gp = c + Vector2(sin(deg_to_rad(float(g))), cos(deg_to_rad(float(g)))) * float(v["r"]) * 0.9
+		if gp.distance_to(pm) < bd:
+			bd = gp.distance_to(pm)
+			best = float(g)
+	var gate = c + Vector2(sin(deg_to_rad(best)), cos(deg_to_rad(best))) * float(v["r"]) * 0.88
+	var at = Missions.open_ground(Game.from_map(gate), 40.0)
+	var lv = int(p().get("level", 1))
+	raid = {"from": from, "nodes": [], "allies": [], "t": 0.0, "at": at}
+	var n = 6 + mini(4, lv / 15)
+	for i in n + 1:
+		var e = _ninja_of(from, i, lv + (6 if i == n else randi_range(-3, 2)), "enemy")
+		if i == n:
+			e.display_name = "%s Akın Komutanı" % String(Game.village(from).get("name", from)).trim_suffix("gakure")
+			e.max_hp *= 2.0
+			e.hp = e.max_hp
+		get_tree().current_scene.add_child(e)
+		var q = Missions.open_ground(at + Vector3(randf_range(-18, 18), 0, randf_range(-18, 18)), 25.0)
+		e.global_position = q
+		e.home = q
+		e.wander_to = Game.player.global_position
+		raid["nodes"].append(e)
+	for i in 4:
+		var d = _ninja_of(home, i, lv + randi_range(-2, 3), "player")
+		get_tree().current_scene.add_child(d)
+		var q = Missions.open_ground(at.lerp(Game.player.global_position, 0.6) + Vector3(randf_range(-10, 10), 0, randf_range(-10, 10)), 25.0)
+		d.global_position = q
+		d.home = q
+		FX.smoke_puff(q + Vector3.UP, 0.8, 10)
+		raid["allies"].append(d)
+	p()["waypoint"] = [at.x, at.y, at.z, "Olay: Baskın"]
+	p()["track"] = "waypoint"
+	var fn = String(Game.village(from).get("name", from))
+	Hud.banner("BASKIN!", "%s ninjaları köyün kapısına dayandı! Köyünü savun." % fn, Color(1, 0.3, 0.25))
+	Sfx.play("roar", null, 0.7, 0.5)
+
+
+func _raid_watch(dt: float) -> void:
+	if raid.is_empty():
+		return
+	raid["t"] = float(raid["t"]) + dt
+	var alive = (raid["nodes"] as Array).filter(func(e): return is_instance_valid(e) and not e.is_dead())
+	for e in alive:
+		if e.target == null and Game.player and e.global_position.distance_to(Game.player.global_position) < 200.0:
+			e.wander_to = Game.player.global_position
+	if alive.is_empty() or float(raid["t"]) > 600.0:
+		var won = alive.is_empty()
+		var from = String(raid["from"])
+		for e in alive + raid["allies"]:
+			if is_instance_valid(e):
+				FX.smoke_puff(e.global_position + Vector3.UP, 0.8, 10)
+				e.queue_free()
+		if p().has("waypoint") and String(p()["waypoint"][3]) == "Olay: Baskın":
+			p().erase("waypoint")
+			p()["track"] = ""
+		if won:
+			var lv = int(p().get("level", 1))
+			Progress.add_ryo(300 + lv * 40)
+			Progress.add_xp(200 + lv * 30)
+			Missions._rep(Progress.home(), 25)
+			change_relation(from, -5)
+			Hud.banner("BASKIN PÜSKÜRTÜLDÜ", "Köyün seni kahraman olarak anıyor (+25 itibar, +%d Ryō)" % (300 + lv * 40), Color(0.6, 1.0, 0.7))
+		else:
+			Missions._rep(Progress.home(), -10)
+			Hud.banner("BASKINCILAR ÇEKİLDİ", "Köy hasar gördü; akıncılar ganimetle kaçtı.", Color(1, 0.6, 0.4))
+		raid = {}
+
+
 func _reign_tick(dt: float) -> void:
 	_reign_t -= dt
 	if _reign_t > 0.0:
@@ -688,6 +826,7 @@ func _process(dt: float) -> void:
 	if Game.player == null or Game.profile.is_empty() or Game.paused:
 		return
 	_reign_tick(dt)
+	_raid_tick(dt)
 	if not is_kage():
 		if Exams.flags().get("kage_elect", false) and int(p().get("level", 1)) >= 100:
 			Exams.flags().erase("kage_elect")

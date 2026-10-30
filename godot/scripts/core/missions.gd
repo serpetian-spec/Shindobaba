@@ -1520,6 +1520,34 @@ func _process_steps(dt: float) -> void:
 				target_marker = st["cat"].global_position
 		"kill":
 			_tick_flee()
+			_tick_kill_guard(dt, s)
+
+
+## Kamp düşmanları oyuncu gelmeden başka düşmanlarla (olay NPC'leri, hayvanlar) dövüşüp ölebiliyor ya da kamptan
+## uzaklaşabiliyordu: bölge işaretli ama orada kimse yok. Oyuncu yaklaşınca eksik düşmanlar kampa yeniden konur,
+## uzaklaşanlar geri çağrılır.
+func _tick_kill_guard(dt: float, s: Dictionary) -> void:
+	st["kg"] = float(st.get("kg", 0.0)) - dt
+	if float(st["kg"]) > 0.0 or Game.player == null:
+		return
+	st["kg"] = 1.5
+	var c = _w(s["at"])
+	var alive = []
+	for e in step_nodes:
+		if is_instance_valid(e) and e is Enemy and not e.dead and e.get_meta("q", "") == _key():
+			alive.append(e)
+	var need = int(s["n"]) - int(st.get("n", 0))
+	var near = Game.player.global_position.distance_to(c) < 90.0
+	for e in alive:
+		if e.global_position.distance_to(c) > 120.0 and e.target != Game.player:
+			e.global_position = open_ground(c + Vector3(randf_range(-10, 10), 0, randf_range(-10, 10)), 30.0)
+			e.home = e.global_position
+			e.wander_to = e.global_position
+			e.target = null
+	if near and alive.size() < need:
+		var es = _spawn(s["enemy"], c, need - alive.size(), 14.0, s.get("ename", ""))
+		if not es.is_empty():
+			Hud.msg("Kamptan %d kişi daha çıktı!" % es.size(), Color(1, 0.6, 0.4))
 
 
 func _tick_escort(s: Dictionary) -> void:

@@ -189,7 +189,13 @@ func _rival_enemy(r: Dictionary, scale: float, i := 0) -> Enemy:
 	a["power"] = float(r["power"]) * (0.8 + scale * 0.2)
 	a["sub"] = float(r["sub"])
 	a["element"] = r["el"]
-	a["jutsu"] = r["j"]
+	# imza jutsuları + seviyesine göre ek element jutsuları (eskiden tüm sınavda 3-4 jutsu atılıyordu)
+	var js: Array = (r["j"] as Array).duplicate()
+	for x in Enemy.auto_jutsu("rogue", String(r["el"]), lv):
+		if not x in js and js.size() < 4:
+			js.append(x)
+	a["jutsu"] = js
+	a["aggr"] = maxf(float(a.get("aggr", 0.5)), 0.75)
 	a["look"]["hair_style"] = r["hair"]
 	a["look"]["top"] = r["top"]
 	a["look"]["village"] = r["v"]

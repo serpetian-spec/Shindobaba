@@ -2012,7 +2012,7 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 	top.add_child(tv)
 	rv.add_child(top)
 	var stats = UI.hbox(22)
-	stats.add_child(UI.icon_label("chakra", "%d chakra" % int(j.get("cost", 0)), 15, Color(0.55, 0.78, 1.0)))
+	stats.add_child(UI.icon_label("chakra", "%d chakra" % int(PlayerCombat.jutsu_cost(j)), 15, Color(0.55, 0.78, 1.0)))
 	stats.add_child(UI.icon_label("hourglass", "%.1f sn" % float(j.get("cd", 5)), 15, UI.MUTED))
 	rv.add_child(stats)
 	var seals: Array = j.get("seals", [])
@@ -2111,7 +2111,7 @@ static func _jutsu_card(jid: String, selected: bool, cb: Callable) -> Button:
 	nm.size = Vector2(222, 22)
 	nm.clip_text = true
 	b.add_child(nm)
-	var sub = UI.label("%s-rank  •  %d chakra  •  %d mühür" % [j.get("canon_rank", "?"), int(j.get("cost", 0)), (j.get("seals", []) as Array).size()], 12, UI.MUTED)
+	var sub = UI.label("%s-rank  •  %d chakra  •  %d mühür" % [j.get("canon_rank", "?"), int(PlayerCombat.jutsu_cost(j)), (j.get("seals", []) as Array).size()], 12, UI.MUTED)
 	sub.position = Vector2(66, 46)
 	sub.size = Vector2(222, 18)
 	b.add_child(sub)
@@ -2127,7 +2127,7 @@ static func _jutsu_card(jid: String, selected: bool, cb: Callable) -> Button:
 
 " + fx.replace("  •  ", "
 ") if fx != "" else "") + "
-Chakra: %d   •   Bekleme: %.1f sn" % [int(j.get("cost", 0)), float(j.get("cd", 0.0))]
+Chakra: %d   •   Bekleme: %.1f sn" % [int(PlayerCombat.jutsu_cost(j)), float(j.get("cd", 0.0))]
 	b.pressed.connect(func():
 		Sfx.play("click")
 		cb.call())

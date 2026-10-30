@@ -9,6 +9,7 @@ const VL = preload("res://scripts/world/village_life.gd")
 const WALL_H := 28.0
 
 static var R := 1460.0
+static var _veg_cache := {}
 
 
 ## Kapı etkileşimi: araziye oturan nokta; alias = hikâye hedefi için iç mekândaki asıl tür
@@ -338,7 +339,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	count += _fill_blocks(b, rng, occupied, cliff_n)
 	# dış mahalleler: sokaklardan uzak boşluklara ağaç kümeleri (orman köyü hissi)
 	var trees = 0
-	for k in 1400:
+	for k in 4800:   # orman köyü: dış mahallelerde bol, uzun ağaç (eskiden seyrek ve kısaydı)
 		var a = rng.randf() * TAU
 		var rr = sqrt(rng.randf()) * (R - 50.0)   # sura yaslanmasın
 		var tx2 = sin(a) * rr; var tn2 = cos(a) * rr
@@ -346,8 +347,19 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 			continue
 		if _on_road(b, tx2, tn2, 26.0) or not _free(tx2, tn2, occupied, 6.0):
 			continue
-		b.tree(tx2, tn2, rng.randf_range(1.1, 2.0), rng, _gy(b, tx2, tn2))
+		b.tree(tx2, tn2, rng.randf_range(1.6, 2.9), rng, _gy(b, tx2, tn2))
+		occupied.append([tx2, tn2, 4.0, 4.0])
 		trees += 1
+		# ağaç dibi: çalı, çiçek öbeği, kaya (çevre detayı)
+		for q in rng.randi_range(1, 3):
+			var bx2 = tx2 + rng.randf_range(-6.0, 6.0)
+			var bn2 = tn2 + rng.randf_range(-6.0, 6.0)
+			if _on_road(b, bx2, bn2, 5.0):
+				continue
+			var vt = [18, 18, 12, 4][rng.randi() % 4]
+			if not _veg_cache.has(vt):
+				_veg_cache[vt] = Props.vegetation_mesh(vt)
+			b.pack_mesh(_veg_cache[vt], Vector3(bx2, _gy(b, bx2, bn2), bn2), rng.randf() * 360.0, rng.randf_range(0.7, 1.3) * (0.5 if vt == 4 else 1.0), 0.5)
 	b.finish()
 	_merge_house_cells(b.root)
 	print("Konoha: ", count, " ev, ", trees, " ağaç")

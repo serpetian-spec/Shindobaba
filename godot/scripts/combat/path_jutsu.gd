@@ -21288,30 +21288,112 @@ func p_tsuchigumo_kumo_bunshin(c: Node3D, t: Node3D) -> void:
 	Sfx.play("earth", c.global_position, 1.2)
 
 
+## Örümcek Kolları: sırttan (kürek kemiklerinden) altı gerçek kol çıkar — omuz, üst kol, dirsek, ön kol, yumruk; ten renginde,
+## gövdeye bağlı (model döndükçe döner). 15 sn boyunca düşman yaklaşınca altı kol sırayla uzanıp vurur.
 func p_tsuchigumo_kumo_yoroi(c: Node3D, _t: Node3D) -> void:
 	busy(c, 0.5)
-	var root = Node3D.new()
-	c.add_child(root)
-	root.position = Vector3(0, 1.2, -0.2)
+	if not c.get("model") or c.model == null:
+		return
+	var m: CharacterModel = c.model
+	var skin: Color = m.look.get("skin", Color(0.95, 0.8, 0.66)) if m.look is Dictionary else Color(0.95, 0.8, 0.66)
+	var cloth: Color = m.look.get("top", Color(0.25, 0.2, 0.18)) if m.look is Dictionary else Color(0.25, 0.2, 0.18)
+	var chest := Vector3(0, 1.3, 0)
+	var bi = m.skel.find_bone("UpperChest") if m.skel else -1
+	if bi >= 0:
+		chest = m._grest(bi).origin
+	var rig = Node3D.new()
+	rig.name = "OrumcekKollari"
+	m.add_child(rig)
+	rig.position = chest + Vector3(0, -0.02, -0.1)   # sırtın üstü (model uzayı: +Z ön)
+	var arms: Array = []
 	for sx in [-1.0, 1.0]:
 		for k in 3:
-			var leg = _branch(1.6, 0.06)
-			leg.material_override = _flat_glow(Color(0.25, 0.18, 0.15))
-			root.add_child(leg)
-			leg.position = Vector3(sx * 0.2, 0.1 - k * 0.15, -0.1)
-			leg.rotation = Vector3(0.3 - k * 0.3, 0, sx * (1.0 + k * 0.15))
-	var tw = root.create_tween().set_loops(20)
-	tw.tween_property(root, "rotation:x", 0.12, 0.35)
-	tw.tween_property(root, "rotation:x", -0.12, 0.35)
+			# omuz yuvası: kürek kemiği hizasında, üstten alta üç sıra
+			var sh = Node3D.new()
+			rig.add_child(sh)
+			sh.position = Vector3(sx * 0.13, 0.06 - k * 0.12, -0.02)
+			sh.rotation = Vector3(deg_to_rad(-30.0 + k * 28.0), deg_to_rad(sx * (78.0 + k * 8.0)), deg_to_rad(sx * (-15.0 + k * 10.0)))
+			var mb = MB.new()
+			mb.add("sphere", Vector3.ZERO, Vector3(0.11, 0.11, 0.11), skin.darkened(0.05), Vector3.ZERO, 8)   # omuz eklemi
+			mb.add("cyl", Vector3(0, 0, 0.17), Vector3(0.075, 0.34, 0.075), skin, Vector3(90, 0, 0), 8)      # üst kol (+Z boyunca)
+			mb.add("cyl", Vector3(0, 0, 0.17), Vector3(0.085, 0.12, 0.085), cloth, Vector3(90, 0, 0), 8)      # kol bandı
+			var upper = MeshInstance3D.new()
+			upper.mesh = mb.build(Props.toon())
+			sh.add_child(upper)
+			# dirsek: ön kol öne doğru kıvrılır
+			var el = Node3D.new()
+			sh.add_child(el)
+			el.position = Vector3(0, 0, 0.34)
+			el.rotation = Vector3(deg_to_rad(-10.0), deg_to_rad(-sx * 42.0), 0)
+			var mb2 = MB.new()
+			mb2.add("sphere", Vector3.ZERO, Vector3(0.085, 0.085, 0.085), skin, Vector3.ZERO, 8)            # dirsek
+			mb2.add("cyl", Vector3(0, 0, 0.15), Vector3(0.065, 0.3, 0.065), skin, Vector3(90, 0, 0), 8)      # ön kol
+			mb2.add("box", Vector3(0, 0, 0.33), Vector3(0.09, 0.08, 0.1), skin.darkened(0.04))                 # yumruk
+			for f in 4:
+				mb2.add("box", Vector3(-0.03 + f * 0.02, 0.0, 0.385), Vector3(0.016, 0.05, 0.02), skin.darkened(0.12))   # parmak boğumları
+			var fore = MeshInstance3D.new()
+			fore.mesh = mb2.build(Props.toon())
+			el.add_child(fore)
+			sh.scale = Vector3.ONE * 0.05
+			arms.append({"sh": sh, "el": el, "rest": sh.rotation, "el_rest": el.rotation, "sx": sx})
+	# çıkış: kollar sırttan büyüyerek açılır
+	for i in arms.size():
+		var a: Dictionary = arms[i]
+		var tw = a["sh"].create_tween()
+		tw.tween_interval(0.05 * i)
+		tw.tween_property(a["sh"], "scale", Vector3.ONE * 1.15, 0.25).set_trans(Tween.TRANS_BACK)
+	FX.smoke_puff(c.global_position + Vector3.UP * 1.3, 0.5, 8)
 	if c is Player:
-		Buffs.add("kumo_yoroi", 15.0, {"melee": 1.4, "speed": 1.15, "_name": "Örümcek Bacakları", "_desc": "çoklu vuruş, yakındakiler dürtülür"})
-	every(15.0, 0.6, func(_i, _k):
-		if live(c):
-			for e in enemies_near(c, c.global_position, 2.8):
-				e.take_hit(inf(c, "tsuchigumo_kumo_yoroi", 0.2, {"knock": 2.0, "kind": "light", "poison": 1.0}))
-				break, func():
-		if is_instance_valid(root):
-			root.queue_free())
+		Buffs.add("kumo_yoroi", 15.0, {"melee": 1.25, "_name": "Örümcek Kolları", "_desc": "düşman yaklaşınca altı kol sırayla vurur"})
+	var busy_arms := {"t": 0.0}
+	var tick = func(i, _k):
+		if not live(c) or not is_instance_valid(rig):
+			return
+		# boşta: kollar hafifçe nefes alır gibi oynar
+		for a in arms:
+			var sh: Node3D = a["sh"]
+			if not sh.has_meta("striking"):
+				sh.rotation = a["rest"] + Vector3(sin(i * 0.35 + float(arms.find(a))) * 0.08, 0, 0)
+		busy_arms["t"] = float(busy_arms["t"]) - 0.1
+		if float(busy_arms["t"]) > 0.0:
+			return
+		var foes = enemies_near(c, c.global_position, 4.5)
+		if foes.is_empty():
+			return
+		var tgt: Node3D = foes[0]
+		busy_arms["t"] = 1.1
+		# altı kol sırayla: her biri hedefe dönüp uzanır, vurur, geri çekilir
+		for n in arms.size():
+			var a: Dictionary = arms[[0, 3, 1, 4, 2, 5][n]]
+			after(0.12 * n, func():
+				if not live(c) or not is_instance_valid(a["sh"]) or not live(tgt):
+					return
+				var sh: Node3D = a["sh"]
+				sh.set_meta("striking", true)
+				var aim = tgt.global_position + Vector3.UP * 1.0
+				var lp = sh.get_parent().to_local(aim)
+				var dir = (lp - sh.position).normalized()
+				var yaw = atan2(dir.x, dir.z)
+				var pitch = -asin(clampf(dir.y, -1.0, 1.0))
+				var tw = sh.create_tween()
+				tw.tween_property(sh, "rotation", Vector3(pitch, yaw, 0), 0.06)
+				tw.parallel().tween_property(a["el"], "rotation", Vector3.ZERO, 0.06)
+				tw.parallel().tween_property(sh, "scale", Vector3(1.15, 1.15, 1.9), 0.06)
+				tw.tween_callback(func():
+					if live(tgt) and live(c):
+						tgt.take_hit(inf(c, "tsuchigumo_kumo_yoroi", 0.22, {"knock": 1.5, "kind": "light", "poison": 0.6}))
+						FX.hit_spark(tgt.global_position + Vector3.UP * 1.0, Color(1.0, 0.85, 0.6), 0.6)
+						Sfx.play("punch", tgt.global_position, randf_range(1.0, 1.3), 0.6))
+				tw.tween_property(sh, "scale", Vector3.ONE * 1.15, 0.12)
+				tw.parallel().tween_property(sh, "rotation", a["rest"], 0.12)
+				tw.parallel().tween_property(a["el"], "rotation", a["el_rest"], 0.12)
+				tw.tween_callback(func(): sh.remove_meta("striking")))
+	var finish = func():
+		if is_instance_valid(rig):
+			var tw2 = rig.create_tween()
+			tw2.tween_property(rig, "scale", Vector3.ONE * 0.05, 0.25)
+			tw2.tween_callback(rig.queue_free)
+	every(15.0, 0.1, tick, finish)
 	Sfx.play("blade", c.global_position, 1.2)
 
 

@@ -65,6 +65,7 @@ static func mate_arch(i: int, level: int) -> Dictionary:
 	var sq = ensure_formed()
 	var m: Dictionary = sq["mates"][i % 2]
 	var a = Enemy.archetype("genin_rival", i)
+	a["no_clan"] = true
 	var hi = Progress.home_info()
 	a["name"] = "%s (takım)" % m["name"]
 	a["respawn"] = false
@@ -95,6 +96,7 @@ static func sensei_arch(level: int) -> Dictionary:
 	var s: Dictionary = sq["sensei"]
 	var hi = Progress.home_info()
 	var a = Enemy.archetype("rogue", 0)
+	a["no_clan"] = true
 	a["name"] = "%s (hoca)" % s["name"]
 	a["respawn"] = false
 	a["hp"] = 900.0 + level * 30.0

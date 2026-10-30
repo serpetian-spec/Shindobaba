@@ -15,6 +15,8 @@ var wait := 0.0
 var quest_tag := ""           # Missions hangi adıma ait olduğunu bilsin
 var line := ""                # sabit replik (Missions.on_quest_talk ele almazsa)
 var label3d: Label3D
+var nav := {}                 # NpcNav durumu (engelden dolaşma, takılma)
+var stuck_n := 0
 
 
 func _ready() -> void:
@@ -61,6 +63,18 @@ func die(info: Dictionary) -> void:
 	Missions.on_quest_npc_died(self)
 
 
+## Takıldı: duman bulutuyla engelin ötesine sıçrar (ninja gibi), sonra yoluna devam eder
+func _hop_to(q: Vector3) -> void:
+	stuck_n = 0
+	q = Missions.open_ground(q, 6.0)
+	q.y = Game.ground_height(q.x, q.z)
+	FX.smoke_puff(global_position + Vector3.UP, 0.6, 8)
+	global_position = q
+	velocity = Vector3.ZERO
+	FX.smoke_puff(q + Vector3.UP, 0.6, 8)
+	NpcNav.reset(self)
+
+
 func _physics_process(dt: float) -> void:
 	if Game.paused or dead or Game.player == null:
 		return
@@ -84,16 +98,27 @@ func _physics_process(dt: float) -> void:
 			v.y = 0
 			if v.length() < 2.0:
 				path_i += 1
+				NpcNav.reset(self)
 				return
-			step_move(v.normalized() * speed, dt)
+			# engelden (bina, sur, çit, ağaç) dolaş; yine de ilerleyemezse duvarın ardına geç (eskiden duvara takılıp kalıyordu)
+			step_move(NpcNav.steer(self, v.normalized(), dt) * speed, dt)
 			model.play("walk", 0.2)
+			if NpcNav.stuck(self, path[path_i], dt):
+				stuck_n += 1
+				if stuck_n >= 2:
+					_hop_to(global_position + v.normalized() * minf(v.length(), 8.0))
 		"follow":
 			var v = pl.global_position - global_position
 			v.y = 0
 			if v.length() > 3.0:
-				step_move(v.normalized() * minf(10.0, 2.5 + v.length() * 0.8), dt)
+				step_move(NpcNav.steer(self, v.normalized(), dt) * minf(10.0, 2.5 + v.length() * 0.8), dt)
 				model.play("run" if v.length() > 6.0 else "walk", 0.2)
+				if NpcNav.stuck(self, pl.global_position, dt):
+					stuck_n += 1
+					if stuck_n >= 2 or v.length() > 30.0:
+						_hop_to(pl.global_position - pl.face_dir() * 2.5 if pl.has_method("face_dir") else pl.global_position)
 			else:
+				stuck_n = 0
 				step_move(Vector3.ZERO, dt)
 				model.play("idle", 0.25)
 		"kid":

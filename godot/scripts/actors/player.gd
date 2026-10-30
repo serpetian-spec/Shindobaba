@@ -420,7 +420,7 @@ func _physics_process(dt: float) -> void:
 	wall_cd -= dt
 	_tick_status(dt)
 	land_t -= dt
-	var regen = 2.0 * (1.0 + Stats.skill(Game.profile, "regen_chakra"))
+	var regen = 1.5 * (1.0 + Stats.skill(Game.profile, "regen_chakra")) * (1.0 + int(Game.profile.get("level", 1)) * 0.02)
 	chakra = minf(max_chakra, chakra + regen * dt)
 	if hp > 0.0:
 		hp = minf(max_hp, hp + 0.5 * (1.0 + Stats.skill(Game.profile, "regen_hp")) * dt)
