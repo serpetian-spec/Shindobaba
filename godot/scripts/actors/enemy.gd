@@ -405,13 +405,13 @@ func _think(dt: float) -> void:
 		return
 	think_t = 0.25
 	var pl = Game.player
-	if blind_t > 0.0:
-		target = null
+	if blind_t > 0.0 or (target != null and is_instance_valid(target) and not Combat.hostile(self, target)):
+		target = null   # hedef artık dost (yardım kabul edildi, takım değişti): bırak
 	elif target == null or not is_instance_valid(target) or target.is_dead():
 		var prev = target
 		target = null
 		# kovalama sürerken hedef bırakılmaz (oyuncu sıçrayıp kaçınca görüşten çıktı diye unutulmuyordu)
-		if prev != null and is_instance_valid(prev) and not prev.is_dead() and state in ["chase", "leap", "attack", "recover"] 				and global_position.distance_to(prev.global_position) < (110.0 if _is_ninja() else 60.0) and not (prev == pl and Buffs.has("henge")):
+		if prev != null and is_instance_valid(prev) and not prev.is_dead() and Combat.hostile(self, prev) and state in ["chase", "leap", "attack", "recover"] 				and global_position.distance_to(prev.global_position) < (110.0 if _is_ninja() else 60.0) and not (prev == pl and Buffs.has("henge")):
 			target = prev
 		# görüş: ninja düşmanlar uzaktan fark eder (eskiden 26 m, yanına kadar gelmek gerekiyordu)
 		var best = (55.0 if not (arch.get("jutsu", []) as Array).is_empty() else 40.0) if not Buffs.has("henge") else 0.0

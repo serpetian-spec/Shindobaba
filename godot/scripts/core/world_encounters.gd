@@ -121,6 +121,7 @@ func _lv() -> int:
 
 func _npc(name: String, at: Vector3, look := {}, mode := "idle") -> EncounterNPC:
 	var n := EncounterNPC.new()
+	n.team = "neutral"   # varsayılan "enemy"di: takımdaki dostlar olay veren NPC'ye saldırıp öldürüyordu
 	at = Missions.open_ground(at, 20.0)   # kayaya/duvara gömülmesin (tüccar kayboluyordu)
 	n.display = name
 	n.mode = mode
