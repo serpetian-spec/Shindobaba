@@ -23,7 +23,7 @@ var tint_target = Color(0, 0, 0, 0)
 
 const PAL := {
 	# zaman: [zenith, horizon, sun color, sun energy, ambient]
-	"night": [Color(0.02, 0.04, 0.12), Color(0.08, 0.12, 0.22), Color(0.55, 0.65, 0.95), 0.25, Color(0.18, 0.22, 0.38)],
+	"night": [Color(0.02, 0.04, 0.12), Color(0.08, 0.12, 0.22), Color(0.55, 0.65, 0.95), 0.34, Color(0.26, 0.3, 0.47)],   # ay ışığı: şehir karanlıkta kalmasın
 	"dawn": [Color(0.25, 0.32, 0.6), Color(0.98, 0.62, 0.42), Color(1.0, 0.62, 0.4), 0.9, Color(0.55, 0.45, 0.5)],
 	"day": [Color(0.16, 0.45, 0.95), Color(0.62, 0.82, 1.0), Color(1.0, 0.97, 0.9), 1.55, Color(0.55, 0.66, 0.88)],
 	"dusk": [Color(0.18, 0.2, 0.48), Color(1.0, 0.5, 0.3), Color(1.0, 0.5, 0.28), 0.8, Color(0.5, 0.38, 0.45)],
@@ -262,6 +262,7 @@ func _process(dt: float) -> void:
 	sky_mat.set_shader_parameter("horizon", hor)
 	sky_mat.set_shader_parameter("sun_tint", p[2])
 	sky_mat.set_shader_parameter("night", night)
+	Props.toon().set_shader_parameter("night_glow", smoothstep(0.35, 0.9, night))
 	sky_mat.set_shader_parameter("overcast", overcast)
 
 	# efekt uniform'ları

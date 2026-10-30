@@ -584,7 +584,7 @@ static func _hokage_faces(b: Builder, rock: Dictionary, cliff_n: float, v: Dicti
 	var top = top_abs - b.origin.y
 	var x0 = float(rock.get("x0", float(v["x"]) - 825.0)) - float(v["x"])
 	var x1 = float(rock.get("x1", float(v["x"]) + 825.0)) - float(v["x"])
-	var rc = Color(0.66, 0.6, 0.52)
+	var rc = Color(0.74, 0.58, 0.36)   # kayanın altın-toprak tonu (yüzler kayadan oyulmuş)
 	var cx = (x0 + x1) * 0.5
 	# yüzler köyün tam karşısında, birbirine yakın dizili (animedeki gibi): x = 0 civarı
 	var gap = 92.0

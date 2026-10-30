@@ -8,6 +8,7 @@ uniform sampler2D tex : source_color, filter_linear_mipmap, hint_default_white;
 uniform float rim_amount = 0.35;
 uniform float spec_amount = 0.0;
 uniform vec4 emission_color : source_color = vec4(0.0);
+uniform float night_glow = 0.0;   // gece: pencereler / fenerler / kâğıt lambalar yanar (Environment her kare ayarlar)
 uniform float hit_flash = 0.0;
 uniform float detail_noise = 0.0;
 uniform float sway = 0.0;
@@ -514,6 +515,15 @@ void fragment() {
 	EMISSION = emission_color.rgb * emission_color.a + vec3(hit_flash) * 0.6;
 	float rim = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), 3.0);
 	EMISSION += rim * rim_amount * 0.35 * ALBEDO;
+	if (night_glow > 0.0 && use_vertex_color) {
+		// renk işaretleri: cam / shoji pencere, fener ışığı, kırmızı kâğıt fener (HouseKit, DoorKit, Builder.lantern)
+		vec3 vc0 = COLOR.rgb;
+		float win = step(distance(vc0, vec3(0.55, 0.72, 0.85)), 0.012) + step(distance(vc0, vec3(0.95, 0.92, 0.82)), 0.012);
+		float lamp = step(distance(vc0, vec3(1.0, 0.85, 0.5)), 0.02) + step(distance(vc0, vec3(1.0, 0.85, 0.55)), 0.02);
+		float red = step(distance(vc0, vec3(0.9, 0.2, 0.15)), 0.012);
+		float on = step(0.32, hash(floor(wpos.xz * 0.55) + floor(wpos.y * 0.33) * 7.1));   // pencerelerin ~2/3'ü yanık
+		EMISSION += night_glow * (win * on * vec3(1.0, 0.7, 0.32) * 1.5 + lamp * vec3(1.0, 0.78, 0.4) * 2.6 + red * vec3(1.0, 0.28, 0.12) * 1.8);
+	}
 }
 
 void light() {

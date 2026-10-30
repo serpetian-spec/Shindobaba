@@ -10,6 +10,7 @@ uniform sampler2D road_tex : filter_linear, repeat_disable;   // oyuncu çevresi
 uniform vec4 road_rect;                                         // x0, z0, boyut, -
 uniform vec4 villages[16];                                      // x, z, yarıçap, zemin biyomu
 uniform int village_count = 0;
+uniform vec4 hokage_rock = vec4(0.0);   // x0, x1, yüz hattı (dünya z), tepe yüksekliği: altın-toprak kaya dağı
 uniform float level_eps = 0.0;
 uniform float texel = 4.0;
 
@@ -107,6 +108,24 @@ void fragment() {
 	if (b == 3 || b == 5) rockc = mix(vec3(0.62, 0.42, 0.3), vec3(0.8, 0.6, 0.42), strata);
 	rockc *= 0.85 + strata2 * 0.2;
 	rockc *= mix(0.75, 1.0, smoothstep(0.0, 0.15, abs(fract(wpos.y * 0.25 + n1) - 0.5)));
+	// tüm yarlar: dikey çatlaklar + kaya blokları (düz bant bant duvar gibi durmasın)
+	float blk = vnoise(vec2(wpos.x * 0.045 + wpos.z * 0.045, wpos.y * 0.09));
+	float crk = smoothstep(0.86, 0.95, vnoise(vec2((wpos.x + wpos.z) * 0.11, wpos.y * 0.018)));
+	rockc *= (0.88 + blk * 0.24) * (1.0 - crk * 0.45);
+	// Hokage Kayası: altın-toprak sarısı kaya dağı (referans), koyu oyuklar, aydınlık çıkıntılar, yer yer yeşil çalı kümeleri
+	if (hokage_rock.w > 0.0 && wpos.x > hokage_rock.x - 400.0 && wpos.x < hokage_rock.y + 400.0 && wpos.z < hokage_rock.z + 120.0 && wpos.z > hokage_rock.z - 900.0) {
+		float k1 = fbm(wpos.xz * 0.012 + vec2(wpos.y * 0.01));
+		float k2 = vnoise(vec2((wpos.x + wpos.z) * 0.06, wpos.y * 0.035));
+		vec3 gold = mix(vec3(0.42, 0.28, 0.14), vec3(0.8, 0.6, 0.3), smoothstep(0.2, 0.8, k1 * 0.6 + k2 * 0.4));
+		gold = mix(gold, vec3(0.92, 0.74, 0.42), smoothstep(0.8, 0.95, k2) * 0.5);          // aydınlık çıkıntı
+		float groove = vnoise(vec2((wpos.x + wpos.z) * 0.05, wpos.y * 0.008)) * 0.6 + vnoise(vec2((wpos.x + wpos.z) * 0.17, wpos.y * 0.02)) * 0.4;
+		gold *= mix(1.08, 0.55, smoothstep(0.55, 0.85, groove));                               // dikey oluk gölgeleri (kontrast)
+		gold *= 1.0 - smoothstep(0.86, 0.94, vnoise(vec2((wpos.x + wpos.z) * 0.12, wpos.y * 0.015))) * 0.5;   // ince çatlaklar
+		gold *= 0.85 + blk * 0.3;
+		float moss = smoothstep(0.62, 0.72, fbm(wpos.xz * 0.02 + vec2(7.0, wpos.y * 0.03))) * smoothstep(0.75, 0.45, slope);
+		gold = mix(gold, vec3(0.22, 0.42, 0.36), moss * 0.85);                                // yeşil çalı kümeleri
+		rockc = gold;
+	}
 	base = mix(base, rockc, rock);
 	// nehir kıyısı ıslaklığı + sahil
 	base = mix(base, base * vec3(0.7, 0.85, 0.75), bio.b * 0.5);

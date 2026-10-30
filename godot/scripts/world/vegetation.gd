@@ -40,6 +40,7 @@ var queued := {}        # ready_q'daki anahtarlar (tekrar istenmesin)
 var last_cell = Vector2i(999999, 999999)
 var _mutex := Mutex.new()
 var _specials: Array = []   # [x, y(harita), iç r, dış r, tip, yoğunluk]
+var _hrock := Vector4.ZERO   # Hokage Kayası (x0, x1, yüz hattı harita y, tepe): yar yüzünde bitki yok
 var _walls: Array = []      # [x, y(harita), sur yarıçapı]: sur boyunca ağaçsız şerit (dev ağaçlar sura/kapıya giriyordu)
 
 
@@ -58,6 +59,9 @@ func _ready() -> void:
 		if v["id"] in ["konoha", "kusa", "taki", "tani"]:
 			_specials.append([float(v["x"]), float(v["y"]), float(v["r"]) + 30.0, float(v["r"]) + 700.0, 9, 0.009])
 	for v in Game.world_info["villages"]:
+		var hr: Dictionary = v.get("hokage_rock", {})
+		if not hr.is_empty():
+			_hrock = Vector4(float(hr["x0"]), float(hr["x1"]), float(hr["y"]), float(hr["top"]))
 		if v["id"] == "konoha":
 			_walls.append([float(v["x"]), float(v["y"]), float(v["r"]) - 40.0])
 		elif BuildSites.RING_WALLS.has(v["id"]) or not (v.get("gates", []) as Array).is_empty():
@@ -233,6 +237,8 @@ func _generate(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 		var sl := Vector2(hx, hz).length() / 2.0
 		if sl > 1.1:
 			continue
+		if _hrock.w > 0.0 and sl > 0.22 and x > _hrock.x - 700.0 and x < _hrock.y + 700.0 and my > _hrock.z - 80.0 and my < _hrock.z + 320.0:
+			continue   # Hokage Kayası yüzü: duvardan ağaç çıkmasın
 		if t in [9, 0] and sl > 0.7:
 			t = 4
 		var s := lerpf(0.8, 1.3, sc_r)

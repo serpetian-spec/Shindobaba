@@ -67,6 +67,18 @@ func _collide(center: Vector3, size: Vector3, yaw_deg: float) -> void:
 	add_solid(center, size.x * 0.5, size.z * 0.5, deg_to_rad(yaw_deg))
 
 
+func _collide_convex(center: Vector3, pts: PackedVector3Array, r: float) -> void:
+	if not is_instance_valid(body):
+		return
+	var cs = CollisionShape3D.new()
+	var sh = ConvexPolygonShape3D.new()
+	sh.points = pts
+	cs.shape = sh
+	cs.position = center
+	body.add_child(cs)
+	add_solid(center, r, r, 0.0)
+
+
 func _collide_cyl(center: Vector3, r: float, h: float) -> void:
 	if not is_instance_valid(body):
 		return
@@ -136,8 +148,13 @@ func cyl(p: Vector3, d: float, h: float, col: Color, collide := true, seg := 16,
 func cone(p: Vector3, d: float, h: float, col: Color, seg := 16, collide := false) -> void:
 	var wp = w(p)
 	_mb(wp).add("cone", wp, Vector3(d, h, d), col, Vector3.ZERO, seg)
-	if collide:
-		_collide_cyl(wp - Vector3(0, h * 0.25, 0), d * 0.3, h * 0.5)
+	if collide or (d >= 3.0 and not key.begins_with("silhouet")):   # büyük koniler (kule/çatı) her zaman katı: içinden geçilmesin, eğiminde yürünsün
+		var pts = PackedVector3Array()
+		for i in 16:
+			var a = TAU * i / 16.0
+			pts.append(Vector3(cos(a) * d * 0.5, -h * 0.5, sin(a) * d * 0.5))
+		pts.append(Vector3(0, h * 0.5, 0))
+		_collide_convex(wp, pts, d * 0.5)
 
 
 func sphere(p: Vector3, size: Vector3, col: Color, seg := 12, collide := false) -> void:
@@ -156,6 +173,15 @@ func disc(p: Vector3, d: float, thick: float, col: Color, yaw := 0.0, seg := 16)
 func dome(p: Vector3, d: float, h: float, col: Color, seg := 16) -> void:
 	var wp = w(p)
 	_mb(wp).add("hemi", wp, Vector3(d, h * 2.0, d), col, Vector3.ZERO, seg)  # yarım küre tabanı y=0, tepe h
+	if d >= 3.0 and not key.begins_with("silhouet"):   # kubbe katı
+		var pts = PackedVector3Array()
+		for ring in 5:
+			var e = ring / 5.0 * PI * 0.5
+			for i in 14:
+				var a = TAU * i / 14.0
+				pts.append(Vector3(cos(a) * cos(e) * d * 0.5, sin(e) * h, sin(a) * cos(e) * d * 0.5))
+		pts.append(Vector3(0, h, 0))
+		_collide_convex(wp, pts, d * 0.5)
 
 
 ## Çatı: üçgen prizma (yaw ile döner). p: çatı tabanının merkezi

@@ -25,6 +25,10 @@ func _ready() -> void:
 		mat.set_shader_parameter("albedo_map", Game.albedo_tex)
 		mat.set_shader_parameter("villages", vill)
 		mat.set_shader_parameter("village_count", vill.size())
+		for v in Game.world_info["villages"]:
+			var hr: Dictionary = v.get("hokage_rock", {})
+			if not hr.is_empty():
+				mat.set_shader_parameter("hokage_rock", Vector4(float(hr["x0"]), float(hr["x1"]), -float(hr["y"]), float(hr["top"])))
 		mat.set_shader_parameter("level_eps", k * 0.12)
 		mat.set_shader_parameter("texel", s)
 		mat.set_shader_parameter("road_rect", Vector4.ZERO)

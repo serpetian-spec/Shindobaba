@@ -231,7 +231,7 @@ static func _make_round(rng: RandomNumberGenerator, i: int, dome: bool) -> Dicti
 	var rcm = MB.new()
 	if dome:
 		roof.add("sphere", Vector3(0, h, 0), Vector3(D + 0.6, D * 0.85, D + 0.6), white, Vector3.ZERO, 20)
-		rcm.add("hemi", Vector3(0, h + D * 0.21, 0), Vector3(D + 0.6, D * 0.85, D + 0.6), white, Vector3.ZERO, 12)
+		rcm.add("hemi", Vector3(0, h, 0), Vector3(D + 0.6, D * 0.85, D + 0.6), white, Vector3.ZERO, 12)
 		det.add("cyl", Vector3(0, h + 0.05, 0), Vector3(D + 0.9, 0.3, D + 0.9), DARK, Vector3.ZERO, 24)
 		det.add("cyl", Vector3(0, h + D * 0.42 + 0.4, 0), Vector3(0.25, 1.2, 0.25), DARK, Vector3.ZERO, 6)
 		det.add("sphere", Vector3(0, h + D * 0.42 + 1.1, 0), Vector3(0.5, 0.5, 0.5), Color(0.9, 0.75, 0.3), Vector3.ZERO, 8)

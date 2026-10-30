@@ -96,6 +96,17 @@ func _ready() -> void:
 		cam.look_at(Game.from_map(Vector2(v["x"], v["y"] + 300.0)) + Vector3(0, Game.ground_height(vp.x, vp.z) + 10.0, 0))
 		await get_tree().create_timer(1.0).timeout
 		await main.shot("look_vista2")
+	if want.call("rock"):
+		var rk: Dictionary = v.get("hokage_rock", {})
+		var rq = Game.from_map(Vector2(float(rk.get("x", v["x"])), float(rk.get("y", v["y"] + 1170.0))))
+		rq.y = Game.ground_height(rq.x, rq.z)
+		pl.respawn(rq + Vector3(0, 0, 250))
+		await get_tree().create_timer(8.0).timeout
+		for k in 3:
+			cam.global_position = rq + Vector3([-260.0, 0.0, 260.0][k], 40.0, 380.0)
+			cam.look_at(rq + Vector3(0, 90, 0))
+			await get_tree().create_timer(0.8).timeout
+			await main.shot("look_rock_%d" % k)
 	if want.call("cloud"):
 		cam.global_position = p + Vector3(0, 2, 0)
 		cam.look_at(p + Vector3(30, 18, -60))
@@ -114,6 +125,21 @@ func _ready() -> void:
 		env.weather = "açık"
 		env.region_weather = "açık"
 		env.overcast = 0.0
+	if want.call("nightcity"):
+		env.time_of_day = 0.95
+		await get_tree().create_timer(1.5).timeout
+		for k in 2:
+			var yaw = k * PI
+			var f = Vector3(sin(yaw), 0, -cos(yaw))
+			cam.global_position = p + Vector3(0, 1.8, 0) - f * 3.0
+			cam.look_at(cam.global_position + f * 10.0 + Vector3(0, 2.0, 0))
+			await get_tree().create_timer(0.6).timeout
+			await main.shot("look_nc_%d" % k)
+		cam.global_position = Game.from_map(Vector2(v["x"] + 120.0, v["y"] - 300.0)) + Vector3(0, c.y + 45.0, 0)
+		cam.look_at(Game.from_map(Vector2(v["x"], v["y"] + 300.0)) + Vector3(0, c.y + 10.0, 0))
+		await get_tree().create_timer(1.0).timeout
+		await main.shot("look_nc_top")
+		env.time_of_day = 0.42
 	if want.call("night"):
 		env.time_of_day = 0.98
 		await get_tree().create_timer(1.5).timeout
