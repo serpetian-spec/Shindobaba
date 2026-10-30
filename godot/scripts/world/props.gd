@@ -12,7 +12,10 @@ static func toon() -> ShaderMaterial:
 		_toon = ShaderMaterial.new()
 		_toon.shader = load("res://shaders/toon.gdshader")
 		_toon.set_shader_parameter("rim_amount", 0.15)
-		_toon.set_shader_parameter("detail_noise", 0.18)
+		_toon.set_shader_parameter("detail_noise", 0.1)
+		_toon.set_shader_parameter("detail_tex", load("res://assets/tex/plaster.png"))   # duvar/taş/ahşap: boyalı sıva dokusu
+		_toon.set_shader_parameter("detail_tex_amt", 0.32)
+		_toon.set_shader_parameter("detail_tex_scale", 0.35)
 	return _toon
 
 
@@ -22,6 +25,9 @@ static func roof_toon() -> ShaderMaterial:
 	if _roof == null:
 		_roof = toon().duplicate()
 		_roof.set_shader_parameter("roof_tiles", true)
+		_roof.set_shader_parameter("detail_tex", load("res://assets/tex/roof.png"))   # gerçek kil kiremit dokusu
+		_roof.set_shader_parameter("detail_tex_amt", 0.55)
+		_roof.set_shader_parameter("detail_tex_scale", 0.5)
 	return _roof
 
 

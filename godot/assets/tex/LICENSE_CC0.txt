@@ -1,0 +1,6 @@
+Poly Haven dokuları, CC0 (kamu malı)
+plaster.png <- polyhaven.com/a/clay_plaster (CC0)
+wood.png <- polyhaven.com/a/brown_planks_03 (CC0)
+roof.png <- polyhaven.com/a/clay_roof_tiles_02 (CC0)
+cobble.png <- polyhaven.com/a/cobblestone_floor_04 (CC0)
+stone.png <- polyhaven.com/a/cobblestone_large_01 (CC0)

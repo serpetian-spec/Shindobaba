@@ -12,6 +12,8 @@ uniform vec4 villages[16];                                      // x, z, yarıç
 uniform int village_count = 0;
 uniform vec4 hokage_rock = vec4(0.0);   // x0, x1, yüz hattı (dünya z), tepe yüksekliği: altın-toprak kaya dağı
 uniform float level_eps = 0.0;
+uniform sampler2D tex_cobble : filter_linear_mipmap, repeat_enable;   // köy döşemesi (parke taşı)
+uniform sampler2D tex_stone : filter_linear_mipmap, repeat_enable;    // cadde iri taş
 uniform float texel = 4.0;
 
 varying vec3 wpos;
@@ -76,7 +78,8 @@ void fragment() {
 		float joint = smoothstep(0.44, 0.49, max(f.x, f.y));
 		float tone = hash(floor(tt));
 		vec3 pave = (b == 11) ? mix(vec3(0.44, 0.41, 0.38), vec3(0.53, 0.49, 0.44), tone) : mix(vec3(0.82, 0.7, 0.5), vec3(0.9, 0.79, 0.6), tone);
-		pave *= (1.0 - joint * 0.45) * (0.94 + n3 * 0.08);
+		pave *= (1.0 - joint * 0.25) * (0.94 + n3 * 0.08);
+		pave *= 1.0 + (texture(tex_cobble, wpos.xz * 0.45).r - 0.5) * 1.1;   // gerçek parke taşı dokusu
 		pave = mix(pave, pave * vec3(0.82, 0.8, 0.74), smoothstep(0.55, 0.8, fbm(wpos.xz * 0.05 + 3.0)) * 0.5);   // aşınmış/kirli lekeler
 		float bed = smoothstep(0.53, 0.57, fbm(wpos.xz * 0.045 + 11.0));      // çimen tarhları (keskin kenar)
 		float dirt = smoothstep(0.5, 0.53, fbm(wpos.xz * 0.045 + 11.0)) * (1.0 - bed);   // tarhın toprak kenarı
@@ -122,7 +125,8 @@ void fragment() {
 		st.x += step(0.5, fract(st.y * 0.5)) * 0.5;
 		vec2 sf = abs(fract(st) - 0.5);
 		float sj = smoothstep(0.45, 0.49, max(sf.x, sf.y));
-		dirt = mix(vec3(0.6, 0.55, 0.47), vec3(0.68, 0.62, 0.52), hash(floor(st))) * (1.0 - sj * 0.4) * (0.94 + n3 * 0.08);
+		dirt = mix(vec3(0.6, 0.55, 0.47), vec3(0.68, 0.62, 0.52), hash(floor(st))) * (1.0 - sj * 0.25) * (0.94 + n3 * 0.08);
+		dirt *= 1.0 + (texture(tex_stone, wpos.xz * 0.3).r - 0.5) * 1.0;   // iri taş cadde dokusu
 		dirt *= 1.0 - 0.28 * (smoothstep(0.3, 0.45, rmask) - smoothstep(0.45, 0.6, rmask));   // bordür
 	}
 	// yol kenarı: tekerlek izi ortası hafif çimenli, kenarlarda çakıl

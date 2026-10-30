@@ -30,6 +30,8 @@ func _ready() -> void:
 			if not hr.is_empty():
 				mat.set_shader_parameter("hokage_rock", Vector4(float(hr["x0"]), float(hr["x1"]), -float(hr["y"]), float(hr["top"])))
 		mat.set_shader_parameter("level_eps", k * 0.12)
+		mat.set_shader_parameter("tex_cobble", load("res://assets/tex/cobble.png"))
+		mat.set_shader_parameter("tex_stone", load("res://assets/tex/stone.png"))
 		mat.set_shader_parameter("texel", s)
 		mat.set_shader_parameter("road_rect", Vector4.ZERO)
 		var mi := MeshInstance3D.new()

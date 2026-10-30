@@ -12,6 +12,9 @@ global uniform float g_night;   // gece parlaması (Environment ayarlar; pişiri
 uniform bool roof_tiles = false;   // çatı: dünya uzayında kiremit sıraları   // gece: pencereler / fenerler / kâğıt lambalar yanar (Environment her kare ayarlar)
 uniform float hit_flash = 0.0;
 uniform float detail_noise = 0.0;
+uniform sampler2D detail_tex : filter_linear_mipmap, repeat_enable;   // gri detay dokusu (ortalama 0.5): sıva / kiremit (dünya uzayı, üç yönlü)
+uniform float detail_tex_amt = 0.0;
+uniform float detail_tex_scale = 0.4;   // m başına tekrar
 uniform float sway = 0.0;
 uniform bool cloth_mode = false;
 uniform bool hide_masked = false;  // vertex alfa=1 olan bölgeler çizilmez (kıyafet altı)   // doku (ten) + vertex rengi (kıyafet, alfa = maske)
@@ -509,6 +512,15 @@ void fragment() {
 	if (detail_noise > 0.0) {
 		float n = vnoise(wpos.xz * 0.9 + wpos.y * 0.7) * 0.6 + vnoise(wpos.xy * 3.1) * 0.4;
 		c.rgb *= 1.0 + (n - 0.5) * detail_noise;
+	}
+	if (detail_tex_amt > 0.0) {
+		// üç yönlü (triplanar) doku: UV gerektirmez, her yüzeye dünya konumundan oturur
+		vec3 wn = abs((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);
+		wn = pow(wn, vec3(4.0));
+		wn /= (wn.x + wn.y + wn.z + 1e-4);
+		vec3 sp = wpos * detail_tex_scale;
+		float tv = texture(detail_tex, sp.zy).r * wn.x + texture(detail_tex, sp.xz).r * wn.y + texture(detail_tex, sp.xy).r * wn.z;
+		c.rgb *= 1.0 + (tv - 0.5) * 2.0 * detail_tex_amt;
 	}
 	if (scalp && scalp_col.a >= 0.5) c.rgb = scalp_col.rgb * 0.75;
 	if (roof_tiles) {
