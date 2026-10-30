@@ -220,7 +220,8 @@ static func _clay_birds(e: Enemy, t: Node3D, n: int) -> void:
 			if is_instance_valid(t):
 				var aim = t.global_position + Vector3.UP
 				mi.global_position = from.lerp(aim, u) + Vector3.UP * sin(u * PI) * 3.0
-				mi.look_at(aim), 0.0, 1.0, dur)
+				if mi.global_position.distance_to(aim) > 0.05:
+					mi.look_at(aim), 0.0, 1.0, dur)
 		tw.tween_callback(func():
 			var at = mi.global_position
 			mi.queue_free()

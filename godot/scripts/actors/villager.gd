@@ -154,6 +154,28 @@ func _ready() -> void:
 	anim_t = randf_range(0.0, 3.0)
 	if role in ["guard", "patrol"] and night:
 		_hold_lantern()
+	Friends.tag(self)
+
+
+## Tanıdık NPC'nin başında adı + rütbesi (bağ rengiyle)
+var name_tag: Label3D
+
+
+func set_name_tag(text: String, col: Color) -> void:
+	if name_tag == null:
+		name_tag = Label3D.new()
+		name_tag.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		name_tag.fixed_size = false
+		name_tag.pixel_size = 0.005
+		name_tag.font_size = 34
+		name_tag.outline_size = 8
+		name_tag.visibility_range_end = 35.0
+		name_tag.visibility_range_end_margin = 6.0
+		name_tag.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+		add_child(name_tag)
+	name_tag.text = text
+	name_tag.modulate = col
+	name_tag.position.y = height * (model.age_scale if model else 1.0) + 0.45
 
 
 func _lines() -> Array:

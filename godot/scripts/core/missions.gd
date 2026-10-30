@@ -1189,6 +1189,7 @@ func complete() -> void:
 	Game.profile["active_mission"] = {}
 	Game.profile["missions_done"][m["rank"]] = int(Game.profile["missions_done"].get(m["rank"], 0)) + 1
 	Hud.banner("GÖREV TAMAMLANDI", "%s  (+%d Ryō)" % [m["title"], ryo], Color(0.5, 1, 0.6))
+	Friends.on_mission_done(String(m["rank"]))
 	Progress.add_ryo(ryo)
 	# görev XP'si: rütbeye göre bir seviyenin belli bir payıyla sınırlı (S görevi tek başına birkaç seviye atlatmasın)
 	var plv = int(Game.profile.get("level", 1))

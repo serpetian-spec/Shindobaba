@@ -1033,7 +1033,9 @@ static func handles_path(id: String) -> bool:
 
 
 static func cast_path(c: Node3D, id: String, t: Node3D) -> void:
+	ClanJutsu._caster = c
 	get_pinst().call("p_" + id, c, t)
+	ClanJutsu._caster = null
 
 
 # ================================================================== yardımcılar

@@ -259,6 +259,8 @@ static func make_enemy(c: String, lv: int, opts := {}) -> Dictionary:
 	a["clan"] = c
 	a["name"] = opts.get("name", "Kaçak %s — %s" % [clan_name(c), person_name(c, female).split(" ")[1]])
 	a["look"] = clan_look(c, opts.get("outfit", "rogue"), vid, female)
+	if opts.has("look"):
+		a["look"] = (opts["look"] as Dictionary).duplicate()   # düello/saldırı: NPC'nin kendi görünüşü (cinsiyet, saç, kıyafet) aynen
 	if opts.get("outfit", "rogue") == "rogue":
 		a["look"]["band_style"] = "slashed"
 	if LOOK.get(c, {}).has("size"):
@@ -513,6 +515,19 @@ func _make_resident(g: Dictionary, i: int) -> void:
 		arch = "kid"
 	r.look_extra = clan_look(c, arch, vid, female, age)
 	r.lines_override = LORE.get(c, ["%s klanındanım. Köyümüzü korumak görevimiz." % clan_name(c)])
+	# bu yuvada tanıştığın klan üyesi varsa o (adı, görünüşü, gözleri)
+	var skey = Friends.site_key(g["spots"][i])
+	r.set_meta("site_key", skey)
+	var fid = Friends.at_site(skey)
+	if fid != "" and String(Friends.all()[fid].get("clan", "")) == c:
+		var f: Dictionary = Friends.all()[fid]
+		r.given = String(f["name"])
+		r.display_override = r.given
+		r.look_extra = Friends.look_of(f)
+		var ek: Array = f.get("eye", [0, 0])
+		r.eye_kind = int(ek[0])
+		r.eye_lvl = int(ek[1])
+		r.set_meta("friend_id", fid)
 	var kind := int(EYE_KIND.get(c, 0))
 	if kind == 2:
 		r.eye_kind = 2

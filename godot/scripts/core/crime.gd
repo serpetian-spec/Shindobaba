@@ -95,7 +95,7 @@ func attack(v: Node) -> void:
 	if v is ClanResident:
 		var rank = int(Friends.all().get(fid, {}).get("rank", 1))
 		e = ClanWorld.spawn_enemy(String(v.clan), maxi(3, plv - 2 + rank * 4), at, {"outfit": "chunin", "village": String(v.vid), "name": String(v.given),
-			"female": v.look.get("gender", "m") == "f", "eye": int(v.eye_kind)})
+			"female": v.look.get("gender", "m") == "f", "eye": int(v.eye_kind), "look": v.look})
 		if e == null:
 			return
 		if int(v.eye_kind) > 0:

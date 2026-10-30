@@ -460,6 +460,7 @@ func on_enemy_killed(e: Node) -> void:
 	p()["stats"]["kills"] = int(p()["stats"].get("kills", 0)) + 1
 	Missions.on_kill(e)
 	Orgs.on_enemy_killed(e)
+	Friends.on_kill()
 	Journal.on_enemy_killed(e)
 
 

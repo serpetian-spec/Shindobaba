@@ -10,7 +10,7 @@ extends Node
 ## Elit Jōnin dostların Kage bile olabilir (Kage.reign_tick). Köydeyken arada bir yanına uğrarlar. Liste: Tab > Görevler.
 
 const PARTY_MAX := 2
-const JOIN_BOND := 40
+const JOIN_BOND := 55
 const TALK_CD := 600.0      # sn (gerçek zaman)
 const GIFT_COST := 100
 const RETURN_T := 60.0
@@ -157,6 +157,30 @@ static func options_for(v: Node) -> Array:
 	return [{"label": "Kendini tanıt", "cb": func(): _meet(v)}]
 
 
+## Sabit yerdeki NPC'ler (kapı nöbetçisi, hoca, klan sakini) bölgeye her girişte yeniden kurulur: konumları kalıcı anahtar
+static func site_key(p: Vector3) -> String:
+	return "%d:%d" % [roundi(p.x), roundi(p.z)]
+
+
+## Bu sabit yerde tanıştığın biri varsa (köyde, sağ, kaçmamış): kimliği
+static func at_site(key: String) -> String:
+	var fs = all()
+	for id in fs:
+		var f: Dictionary = fs[id]
+		if String(f.get("site", "")) == key and String(f.get("status", "")) == "" and not f.get("party", false) and String(f.get("kage", "")) == "":
+			return String(id)
+	return ""
+
+
+## Başındaki isim etiketi: ad + rütbe, bağ rengiyle
+static func tag(v: Node) -> void:
+	var id = String(v.get_meta("friend_id", ""))
+	if id == "" or not all().has(id) or not v.has_method("set_name_tag"):
+		return
+	var f: Dictionary = all()[id]
+	v.set_name_tag("%s\n%s" % [f["name"], RANKS[int(f.get("rank", 0))]], level_color(int(f["bond"])).lerp(Color.WHITE, 0.3))
+
+
 ## Selamlama (bağa ve son habere göre)
 static func greeting(id: String) -> String:
 	var f: Dictionary = all()[id]
@@ -172,31 +196,86 @@ static func greeting(id: String) -> String:
 	return "Ooo, %s! %s" % [String(pr().get("name", "")), CHAT.pick_random()]
 
 
+## Kişilik: sohbet konusu ve hediyeye tepkiyi belirler (3 sohbetten sonra öğrenirsin)
+const TRAITS := {
+	"ciddi": {"like": ["antrenman"], "hate": ["şaka", "dedikodu"], "desc": "Ciddi — antrenmandan konuşmayı sever, şakadan hoşlanmaz"},
+	"neşeli": {"like": ["şaka", "dedikodu"], "hate": [], "desc": "Neşeli — şakaya ve köy dedikodusuna bayılır"},
+	"utangaç": {"like": ["aile"], "hate": ["dedikodu", "övgü"], "desc": "Utangaç — ailesinden söz etmeyi sever, övülünce kızarır"},
+	"gururlu": {"like": ["övgü", "antrenman"], "hate": ["şaka"], "desc": "Gururlu — övülmeyi ve güç konuşmayı sever"},
+	"sıcakkanlı": {"like": ["aile", "şaka"], "hate": [], "desc": "Sıcakkanlı — herkesle iyi geçinir, aile sohbetini sever"},
+	"alaycı": {"like": ["dedikodu"], "hate": ["övgü", "aile"], "desc": "Alaycı — dedikoduya bayılır, duygusal laflardan hoşlanmaz"},
+}
+const TOPICS := [["antrenman", "Antrenmandan, tekniklerden konuş"], ["aile", "Ailesini sor"], ["şaka", "Şaka yap"], ["dedikodu", "Köy dedikodusu anlat"], ["övgü", "Onu öv"]]
+const REPLIES := {"like": ["Haha, tam da bunu konuşmak istiyordum!", "Seninle konuşmak gerçekten iyi geliyor.", "Beni iyi tanıyorsun."],
+	"neutral": ["Hmm, olabilir.", "Anlıyorum.", "İlginç."], "hate": ["...Bunu konuşmasak?", "Pek hoşuma gitmedi bu.", "Ciddi misin?"]}
+## Hediyeler: [ad, fiyat]; herkes birini sever, birinden hoşlanmaz
+const GIFTS := [["Dango kutusu", 60], ["Kunai takımı", 160], ["Eski parşömen", 260], ["Çiçek demeti", 40], ["Ramen kuponu", 90], ["Sake", 120]]
+const GIFT_CD := 1800.0
+const TRAIN_CD := 1200.0
+
+
+static func _ensure_persona(f: Dictionary) -> void:
+	if not f.has("trait"):
+		f["trait"] = TRAITS.keys().pick_random()
+		var gs = range(GIFTS.size())
+		gs.shuffle()
+		f["gift_like"] = gs[0]
+		f["gift_hate"] = gs[1]
+		f["talks"] = 0
+	if not f.has("loyalty"):
+		# herkes iyi değildir: ~%20'si gizlice hain ruhlu
+		f["loyalty"] = randi_range(5, 30) if randf() < 0.2 else randi_range(40, 100)
+		f["ambition"] = FriendPlots.AMBITIONS.pick_random()
+		f["love"] = 0
+
+
+static func trait_known(f: Dictionary) -> bool:
+	return int(f.get("talks", 0)) >= 3
+
+
+## Oyuncunun rütbesi (0 Akademi, 1 Genin, 2 Chūnin, 3 Jōnin...) dostun rütbesinden düşükse takıma girmez
+static func rank_ok(f: Dictionary) -> bool:
+	return int(pr().get("rank", 0)) >= int(f.get("rank", 0))
+
+
 static func _friend_opts(id: String, v: Node) -> Array:
 	var f: Dictionary = all()[id]
+	_ensure_persona(f)
 	var b = int(f["bond"])
 	var opts = []
 	var now = Time.get_unix_time_from_system()
 	var can_talk = now - float(f.get("last_talk", 0.0)) >= TALK_CD
+	opts.append_array(FriendPlots.option(id))
 	if b < 0:
 		if can_talk:
 			opts.append({"label": "Özür dile, arayı düzelt", "cb": func():
 				f["last_talk"] = Time.get_unix_time_from_system()
-				var ok = randf() < (0.75 if b > -60 else 0.35)
+				var ok = randf() < (0.6 if b > -60 else 0.25)
 				Hud.dialog(String(f["name"]), "...Peki. Bir şans daha." if ok else "Özrün de sen de umurumda değil.", [])
-				add_bond(id, 12 if ok else 2)})
+				add_bond(id, 8 if ok else 0)})
 	elif can_talk:
-		opts.append({"label": "Sohbet et", "cb": func():
-			f["last_talk"] = Time.get_unix_time_from_system()
-			Hud.dialog(String(f["name"]), CHAT.pick_random(), [])
-			add_bond(id, 8)})
-	opts.append({"label": "Hediye ver (%d Ryō)" % GIFT_COST, "cb": func():
-		if int(pr().get("ryo", 0)) < GIFT_COST:
-			Hud.msg("Yeterli Ryō yok.", Color(1, 0.5, 0.4))
-			return
-		Progress.add_ryo(-GIFT_COST)
-		Hud.dialog(String(f["name"]), "Bunu bana mı aldın? Çok teşekkürler!" if b >= 0 else "...Bununla beni satın alamazsın. Ama sağ ol.", [])
-		add_bond(id, 15 if b >= 0 else 8)})
+		opts.append({"label": "Sohbet et...", "cb": func(): _topic_dialog(id)})
+	if now - float(f.get("last_gift", 0.0)) >= GIFT_CD:
+		opts.append({"label": "Hediye ver...", "cb": func(): _gift_dialog(id)})
+	if b >= 15 and now - float(f.get("last_train", 0.0)) >= TRAIN_CD:
+		opts.append({"label": "Birlikte antrenman yap", "cb": func():
+			f["last_train"] = Time.get_unix_time_from_system()
+			var lv = int(pr().get("level", 1))
+			Progress.add_xp(25 + lv * 6)
+			var gain = 3 if TRAITS[f["trait"]]["like"].has("antrenman") else 2
+			Hud.dialog(String(f["name"]), ["Bir tur daha! Bu sefer yenecem seni.", "İyi iş çıkardık. Terledim ama değdi.", "Tekniğin gelişmiş, fark ettim."].pick_random(), [])
+			add_bond(id, gain)})
+	if b >= 25 and now - float(f.get("last_meal", 0.0)) >= TRAIN_CD:
+		opts.append({"label": "Yemeğe davet et (ramen, 150 Ryō)", "cb": func():
+			if int(pr().get("ryo", 0)) < 150:
+				Hud.msg("Yeterli Ryō yok.", Color(1, 0.5, 0.4))
+				return
+			Progress.add_ryo(-150)
+			f["last_meal"] = Time.get_unix_time_from_system()
+			if Game.player:
+				Game.player.hp = Game.player.max_hp
+			Hud.dialog(String(f["name"]), "Ramen mi? Hiç hayır demem! ...Bu arada sana bir şey anlatayım mı?", [])
+			add_bond(id, 4)})
 	if b > -60:
 		opts.append({"label": "Laf sok / kışkırt", "cb": func():
 			Hud.dialog(String(f["name"]), ["Ne dedin sen?!", "Bunu unutmayacağım.", "Hadi oradan!"].pick_random(), [])
@@ -204,14 +283,74 @@ static func _friend_opts(id: String, v: Node) -> Array:
 	opts.append_array(_romance_opts(id))
 	if f.get("party", false):
 		opts.append({"label": "Takımdan ayrıl (köyde bekle)", "cb": func(): set_party(id, false)})
-	elif b >= JOIN_BOND:
+	elif b >= JOIN_BOND and rank_ok(f):
 		opts.append({"label": "Takımıma katıl", "cb": func():
 			if set_party(id, true) and v != null and is_instance_valid(v) and v.has_method("vanish"):
 				v.vanish()})
+	elif b >= JOIN_BOND:
+		opts.append({"label": "Takım (o bir %s, sen henüz değilsin)" % RANKS[int(f.get("rank", 0))], "cb": func():
+			Hud.msg("%s: \"Bir %s rütbesi daha düşük birinin peşinden gitmez. Rütbe atla, sonra konuşuruz.\"" % [f["name"], RANKS[int(f.get("rank", 0))]], Color(0.9, 0.85, 0.6))})
 	elif b >= 0:
 		opts.append({"label": "Takım (bağ %d gerekir, şu an %d)" % [JOIN_BOND, b], "cb": func():
-			Hud.msg("%s seni daha iyi tanımak istiyor: sohbet et, hediye ver, düello yap." % f["name"], Color(0.9, 0.85, 0.6))})
+			Hud.msg("%s seni daha iyi tanımak istiyor: doğru konuları konuş, sevdiği hediyeyi bul, birlikte antrenman yap." % f["name"], Color(0.9, 0.85, 0.6))})
 	return opts
+
+
+## Sohbet: konu seç; kişiliğine uyan konu bağı artırır, uymayan düşürür
+static func _topic_dialog(id: String) -> void:
+	var f: Dictionary = all()[id]
+	var opts = []
+	for tp in TOPICS:
+		var key = String(tp[0])
+		opts.append({"label": tp[1], "cb": func():
+			f["last_talk"] = Time.get_unix_time_from_system()
+			f["talks"] = int(f.get("talks", 0)) + 1
+			var tr: Dictionary = TRAITS[f["trait"]]
+			var kind = "like" if key in tr["like"] else ("hate" if key in tr["hate"] else "neutral")
+			var txt = REPLIES[kind].pick_random()
+			if int(f["talks"]) == 3:
+				txt += "\n\n(Onu artık daha iyi tanıyorsun: %s)" % tr["desc"]
+			Hud.dialog(String(f["name"]), txt, [])
+			add_bond(id, {"like": 3, "neutral": 1, "hate": -5}[kind])})
+	Hud.dialog(String(f["name"]), "Ne hakkında konuşalım?" + (("\n(%s)" % TRAITS[f["trait"]]["desc"]) if trait_known(f) else ""), opts)
+
+
+## Hediye: seç ve ver; sevdiği hediye çok, sevmediği eksi
+static func _gift_dialog(id: String) -> void:
+	var f: Dictionary = all()[id]
+	var opts = []
+	for gi in GIFTS.size():
+		var g: Array = GIFTS[gi]
+		var idx = gi
+		var known = int(f.get("gift_known", -1)) == idx
+		opts.append({"label": "%s (%d Ryō)%s" % [g[0], int(g[1]), "  ♥ sever" if known else ""], "cb": func():
+			if int(pr().get("ryo", 0)) < int(g[1]):
+				Hud.msg("Yeterli Ryō yok.", Color(1, 0.5, 0.4))
+				return
+			Progress.add_ryo(-int(g[1]))
+			var tnow = Time.get_unix_time_from_system()
+			f["last_gift"] = tnow
+			var recent: Array = (f.get("gift_times", []) as Array).filter(func(x): return tnow - float(x) < 7200.0)
+			recent.append(tnow)
+			f["gift_times"] = recent
+			var bnd = int(f["bond"])
+			if recent.size() > 3:
+				Hud.dialog(String(f["name"]), "Yine mi hediye? Beni satın almaya mı çalışıyorsun?", [])
+				add_bond(id, -3)
+				return
+			var mult = [1.0, 1.0, 0.5, 0.25][recent.size() - 1]
+			if idx == int(f["gift_like"]):
+				f["gift_known"] = idx
+				Hud.dialog(String(f["name"]), "%s! Bunu nasıl bildin? En sevdiğim!" % g[0], [])
+				add_bond(id, maxi(1, int((6 if bnd >= 0 else 4) * mult)))
+				f["love"] = mini(100, int(f.get("love", 0)) + int(4 * mult))
+			elif idx == int(f["gift_hate"]):
+				Hud.dialog(String(f["name"]), "...%s mi? Ben bundan hiç hoşlanmam aslında." % g[0], [])
+				add_bond(id, -4)
+			else:
+				Hud.dialog(String(f["name"]), "Teşekkür ederim, düşünmen güzel." if bnd >= 0 else "...Sağ ol.", [])
+				add_bond(id, maxi(0, int(2 * mult)))})
+	Hud.dialog(String(f["name"]), "(Hangi hediyeyi vereceksin? Her hediyeden sonra bir süre beklemelisin.)", opts)
 
 
 ## Karşı cinsle aşk: bağ 60+ çıkma teklifi, sevgiliyken 80+ evlilik, evliyken çocuk (eşin klanıyla melez)
@@ -219,25 +358,78 @@ static func _romance_opts(id: String) -> Array:
 	var f: Dictionary = all()[id]
 	var b = int(f["bond"])
 	var opts = []
-	if String(f["look"].get("gender", "m")) == player_gender() or not available(f):
+	if String(f["look"].get("gender", "m")) == player_gender() or not available(f) or b < 35:
 		return opts
 	var rm = romance_of(id)
-	if rm == "" and b >= 60 and (spouse_id() == "" or spouse_id() == id) and not all().keys().any(func(k): return romance_of(k) == "sevgili"):
-		opts.append({"label": "Çıkma teklif et ♥", "cb": func():
-			if randf() < clampf((b - 40) / 45.0, 0.2, 0.95):
-				f["romance"] = "sevgili"
-				log_event(f, "Seninle sevgili oldu")
-				Hud.dialog(String(f["name"]), "...Ben de uzun zamandır bunu düşünüyordum. Evet!", [])
-				Hud.banner("SEVGİLİ", "%s ile artık birliktesiniz ♥" % f["name"], Color(1, 0.55, 0.7))
-				add_bond(id, 10, true)
+	var love = int(f.get("love", 0))
+	var now = Time.get_unix_time_from_system()
+	var taken = all().keys().any(func(k): return k != id and romance_of(k) in ["sevgili", "eş"])
+	if rm in ["", "flört"] and not taken:
+		# flört: gönül ölçeği (ayrı) iltifat ve gece yürüyüşüyle dolar; bağ tek başına yetmez
+		if now - float(f.get("last_flirt", 0.0)) >= 600.0:
+			opts.append({"label": "İltifat et ♡", "cb": func():
+				f["last_flirt"] = Time.get_unix_time_from_system()
+				var g = {"gururlu": 9, "utangaç": 7, "sıcakkanlı": 6, "neşeli": 5, "ciddi": 3, "alaycı": 1}.get(String(f.get("trait", "")), 4)
+				if b < 50:
+					g = int(g / 2)
+				f["love"] = mini(100, love + g)
+				Hud.dialog(String(f["name"]), ["Ah... sağ ol. Yüzüm kızardı mı?", "Bunu bana mı söyledin? Hehe.", "Dalga geçmiyorsun değil mi?"].pick_random(), [])
+				Hud.msg("Gönül %+d (%d/100)" % [g, f["love"]], Color(1, 0.6, 0.75))
+				_flirt_stage(id)})
+		var night = Game.world and (Game.world.env.time_of_day < 0.24 or Game.world.env.time_of_day > 0.78)
+		if b >= 50 and now - float(f.get("last_walk", 0.0)) >= 1200.0:
+			if night:
+				opts.append({"label": "Ay ışığında yürüyüşe davet et ♡", "cb": func():
+					f["last_walk"] = Time.get_unix_time_from_system()
+					f["love"] = mini(100, love + 10)
+					Hud.dialog(String(f["name"]), "Köy gece başka güzel... Seninle yürümek iyi geldi.", [])
+					Hud.msg("Gönül +10 (%d/100)" % f["love"], Color(1, 0.6, 0.75))
+					_flirt_stage(id)})
+		if rm == "flört":
+			var need = []
+			if love < 60:
+				need.append("gönül %d/60" % love)
+			if b < 65:
+				need.append("bağ %d/65" % b)
+			if need.is_empty():
+				opts.append({"label": "Çıkma teklif et ♥", "cb": func():
+					if randf() < clampf((love - 40) / 40.0, 0.3, 0.95):
+						f["romance"] = "sevgili"
+						f["since"] = Time.get_unix_time_from_system()
+						log_event(f, "Seninle sevgili oldu")
+						Hud.dialog(String(f["name"]), "...Ben de uzun zamandır bunu düşünüyordum. Evet!", [])
+						Hud.banner("SEVGİLİ", "%s ile artık birliktesiniz ♥" % f["name"], Color(1, 0.55, 0.7))
+					else:
+						f["love"] = maxi(0, love - 8)
+						Hud.dialog(String(f["name"]), "Senden hoşlanıyorum ama... biraz daha zaman ver.", [])})
 			else:
-				Hud.dialog(String(f["name"]), "Seni çok seviyorum ama... henüz hazır değilim. Biraz zaman ver.", [])
-				add_bond(id, -4, true)})
+				opts.append({"label": "Çıkma teklifi (henüz değil: %s)" % ", ".join(need), "cb": func():
+					Hud.msg("Önce aranızdaki bağı ve gönlü büyüt: iltifat, gece yürüyüşü, sevdiği hediye, birlikte görev.", Color(1, 0.75, 0.8))})
 	elif rm == "sevgili":
-		if b >= 80 and spouse_id() == "":
+		var dating = now - float(f.get("since", now))
+		var need2 = []
+		if love < 85:
+			need2.append("gönül %d/85" % love)
+		if b < 85:
+			need2.append("bağ %d/85" % b)
+		if dating < 1800.0:
+			need2.append("birlikte %d dk daha" % int((1800.0 - dating) / 60.0))
+		if spouse_id() != "":
+			need2.append("zaten evlisin")
+		if need2.is_empty():
 			opts.append({"label": "Evlenme teklif et 💍", "cb": func(): _marry(id)})
+		else:
+			opts.append({"label": "Evlilik (henüz değil: %s)" % ", ".join(need2), "cb": func():
+				Hud.msg("Evlilik için sevgili olarak zaman geçirin; gönül ve bağ 85'e ulaşsın.", Color(1, 0.75, 0.8))})
+		if now - float(f.get("last_walk", 0.0)) >= 1200.0:
+			opts.append({"label": "Randevuya çık ♡", "cb": func():
+				f["last_walk"] = Time.get_unix_time_from_system()
+				f["love"] = mini(100, love + 8)
+				add_bond(id, 3, true)
+				Hud.dialog(String(f["name"]), "Bugün çok güzeldi. Bir dahakine ben ısmarlarım!", [])})
 		opts.append({"label": "Ayrıl", "cb": func():
 			f["romance"] = ""
+			f["love"] = int(love / 3)
 			log_event(f, "Ondan ayrıldın")
 			Hud.dialog(String(f["name"]), "...Anlıyorum. Yolun açık olsun.", [])
 			add_bond(id, -40)})
@@ -256,9 +448,17 @@ static func _romance_opts(id: String) -> Array:
 	return opts
 
 
+static func _flirt_stage(id: String) -> void:
+	var f: Dictionary = all()[id]
+	if romance_of(id) == "" and int(f.get("love", 0)) >= 30:
+		f["romance"] = "flört"
+		log_event(f, "Aranızda bir şeyler başladı")
+		Hud.banner("FLÖRT", "%s ile aranızda bir şeyler başlıyor..." % f["name"], Color(1, 0.65, 0.8))
+
+
 static func _marry(id: String) -> void:
 	var f: Dictionary = all()[id]
-	if randf() > clampf((int(f["bond"]) - 60) / 30.0, 0.35, 0.97):
+	if randf() > clampf((int(f.get("love", 0)) - 70) / 25.0, 0.4, 0.97):
 		Hud.dialog(String(f["name"]), "Bu çok büyük bir adım... Biraz daha düşünmem lazım.", [])
 		return
 	f["romance"] = "eş"
@@ -325,18 +525,23 @@ static func _meet(v: Node) -> void:
 	lk.erase("age")
 	# köydeki itibarın ilk bakışı belirler (kötü şöhretliysen soğuk başlar)
 	var rep = int(pr().get("rep", {}).get(Progress.home(), 0))
-	var start = clampi(10 + rep / 8, -25, 35)
+	var start = clampi(rep / 10, -25, 20)
 	fs[id] = {"name": given, "role": v.role, "ninja": true, "look": _ser(lk), "bond": start, "village": Progress.home(), "party": false,
 		"last_talk": Time.get_unix_time_from_system(), "element": ELS.pick_random(), "clan": clan, "eye": eye, "rank": rank,
 		"family": _family(clan, female, rank), "status": "", "log": [], "news": "",
-		"title": ("%s klanı" % ClanWorld.clan_name(clan)) if clan != "" else String(v.display)}
+		"title": ("%s klanı" % ClanWorld.clan_name(clan)) if clan != "" else "%s ninjası" % String(Game.village(Progress.home()).get("name", "Köy"))}
+	if v.has_meta("site_key"):
+		fs[id]["site"] = String(v.get_meta("site_key"))   # aynı yerde (kapı, avlu) yeniden kurulunca yine o
+	var hp: Vector3 = v.global_position
+	fs[id]["home"] = [snappedf(hp.x, 0.1), snappedf(hp.y, 0.1), snappedf(hp.z, 0.1)]   # haritada bulmak için
 	if clan != "" and String(v.vid) != "":
 		fs[id]["village"] = String(v.vid)
 	v.set_meta("friend_id", id)
 	v.display = given
 	v.display_override = given
+	tag(v)
 	Hud.dialog(given, "Ben %s, %s. Tanıştığımıza memnun oldum! Bir gün birlikte savaşırız belki." % [given, RANKS[rank]], [])
-	Hud.msg("Yeni tanıdık: %s (Tab > Görevler > Arkadaşlar)" % given, Color(0.6, 1.0, 0.7))
+	Hud.msg("Yeni tanıdık: %s (Tab > İlişkiler)" % given, Color(0.6, 1.0, 0.7))
 
 
 static func set_party(id: String, on: bool) -> bool:
@@ -423,7 +628,10 @@ func _life_event() -> void:
 		var spouse = fam.any(func(m): return String(m["rel"]) in ["Karısı", "Kocası"])
 		var defect_p = 0.03 + (0.1 if b < 0 else 0.0) + (0.08 if f.get("grief", false) else 0.0) - (0.025 if b >= 60 else 0.0)
 		var r = randf()
-		if r < defect_p:
+		_ensure_persona(f)
+		if int(f.get("loyalty", 50)) < 30 and b < 70 and randf() < 0.3:
+			_betrayal_event(id)
+		elif r < defect_p:
 			_defect(id)
 		elif r < defect_p + 0.3 and rank < 3 and randf() < [0.9, 0.6, 0.35][rank]:
 			f["rank"] = rank + 1
@@ -619,6 +827,16 @@ func _visit(dt: float) -> void:
 		return
 	var id = String(cands.pick_random())
 	var f: Dictionary = all()[id]
+	var d = Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)).normalized() * 16.0
+	visitor = _spawn_npc(id, Game.player.global_position + d, true)
+	visit_t = 0.0
+	var b = int(f["bond"])
+	Hud.msg(("%s seni gördü, yanına geliyor." if b >= 0 else "%s sana doğru geliyor... pek dostça görünmüyor.") % f["name"], level_color(b))
+
+
+## Dostu dünyada köylü olarak doğur (ziyaret / haritada bulma); walk: oyuncuya yürüsün
+func _spawn_npc(id: String, at: Vector3, walk: bool) -> Villager:
+	var f: Dictionary = all()[id]
 	var vg: Villager
 	if String(f.get("clan", "")) != "":
 		var r = ClanResident.new()
@@ -640,24 +858,403 @@ func _visit(dt: float) -> void:
 	vg.display_override = String(f["name"])
 	vg.set_meta("friend_id", id)
 	get_parent().add_child(vg)
-	var d = Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)).normalized() * 16.0
-	var q = Game.player.global_position + d
+	var q = at
 	q.y = Game.ground_height(q.x, q.z)
 	vg.global_position = q
 	vg.home = q
-	vg.goal = Game.player.global_position
-	visitor = vg
-	visit_t = 0.0
-	var b = int(f["bond"])
-	Hud.msg(("%s seni gördü, yanına geliyor." if b >= 0 else "%s sana doğru geliyor... pek dostça görünmüyor.") % f["name"], level_color(b))
+	vg.goal = Game.player.global_position if walk else q
+	if not walk:
+		vg.wander_r = 3.0
+	return vg
+
+
+## Haritada bul: dostun bulunduğu yer (sabit yeri / tanıştığınız yer; kaçaksa Bingo bölgesi ya da sığınak)
+static func where(id: String) -> Vector3:
+	var f: Dictionary = all().get(id, {})
+	if f.is_empty() or String(f.get("status", "")) == "öldü":
+		return Vector3.INF
+	if String(f.get("status", "")) == "kaçak":
+		if Orgs.is_rogue():
+			return Orgs.hideout_pos() + Vector3(6, 0, 6)
+		for e in Game.profile.get("bingo", {}).get("list", []):
+			if String(e.get("friend_id", "")) == id and String(e.get("status", "")) == "alive":
+				var a: Array = e.get("area", e.get("hide", [0, 0]))
+				return Game.from_map(Vector2(float(a[0]), float(a[1])))
+		return Vector3.INF
+	if String(f.get("kage", "")) != "" or String(f.get("status", "")) != "":
+		return Vector3.INF
+	return _job_pos(f)   # işine göre: kapıda nöbet, antrenman alanı, evi; görevdeyse köy dışında (bilinmez)
+
+
+static func show_on_map(id: String) -> void:
+	var p = where(id)
+	if p == Vector3.INF:
+		var ff: Dictionary = all().get(id, {})
+		Hud.msg("%s görevde, köy dışında. Yolda karşılaşabilirsin." % ff.get("name", "") if job_of(ff) == "görev" and String(ff.get("status", "")) == "" else "Nerede olduğunu bilmiyorsun.", Color(1, 0.7, 0.4))
+		return
+	Game.profile["waypoint"] = [p.x, p.y, p.z, "Dost: %s" % all()[id]["name"]]
+	Game.profile["track"] = "waypoint"
+	Game.profile["find_friend"] = id
+	Hud.msg("%s haritada işaretlendi (ışık sütunu)." % all()[id]["name"], Color(0.6, 1.0, 0.75))
+
+
+## İşaretlenen dostun yerine varınca orada yoksa ortaya çıkar (seni bekler)
+var _find_node: Node = null
+
+
+func _find_tick() -> void:
+	var id = String(Game.profile.get("find_friend", ""))
+	if id == "" or not all().has(id):
+		return
+	var p = where(id)
+	if p == Vector3.INF or Game.player.global_position.distance_to(p) > 45.0:
+		return
+	Game.profile.erase("find_friend")
+	for n in get_tree().get_nodes_in_group("talkers"):
+		if String(n.get_meta("friend_id", "")) == id:
+			return   # zaten orada (sabit yer aktörü)
+	if all()[id].get("party", false) or not available(all()[id]):
+		Hud.msg("%s şu an burada değil (görevde ya da hastanede)." % all()[id]["name"], Color(1, 0.75, 0.5))
+		return
+	_find_node = _spawn_npc(id, p, false)
+
+
+## ---------------------------------------------------------------- dinamik işler, yerler, olaylar
+## İş: nöbet (köy kapısı), antrenman (köyün antrenman yeri), evde (yaşadığı yer), görev (köy dışında: yolda karşılaşılabilir)
+const JOBS := [["nöbet", 25], ["antrenman", 25], ["evde", 30], ["görev", 20]]
+const JOB_NAMES := {"nöbet": "Kapıda nöbette", "antrenman": "Antrenmanda", "evde": "Evde", "görev": "Görevde (köy dışında)"}
+var present := {}   # id -> köylü düğümü (işinin başında duran dost)
+var fights: Array = []   # [{fid, foes, ally, at, t, title}]
+var _wt := 0.0
+var _enc_t := 600.0
+var _plot_t := 900.0
+
+
+static func inst() -> Friends:
+	var tree = Engine.get_main_loop() as SceneTree
+	return tree.current_scene.find_child("Friends", true, false) if tree and tree.current_scene else null
+
+
+static func job_of(f: Dictionary) -> String:
+	return String(f.get("job", "evde"))
+
+
+static func _job_pos(f: Dictionary) -> Vector3:
+	var v = Game.village(String(f.get("village", Progress.home())))
+	if v.is_empty():
+		return Vector3.INF
+	var c = Vector2(float(v["x"]), float(v["y"]))
+	var r = float(v["r"])
+	var seed_a = float(hash(String(f.get("name", ""))) % 1000) / 1000.0
+	match job_of(f):
+		"nöbet":
+			var gates: Array = v.get("gates", [180.0])
+			var g = float(gates[int(seed_a * 97.0) % maxi(1, gates.size())])
+			var gp = c + Vector2(sin(deg_to_rad(g)), cos(deg_to_rad(g))) * (r * 0.9) + Vector2(seed_a * 10.0 - 5.0, 0)
+			return Game.from_map(gp)
+		"antrenman":
+			return Game.from_map(c + Vector2(cos(seed_a * TAU), sin(seed_a * TAU)) * r * 0.35)
+		"görev":
+			return Vector3.INF
+	var h = f.get("home")
+	if h is Array and h.size() >= 3:
+		return Vector3(float(h[0]), float(h[1]), float(h[2]))
+	return Game.from_map(c)
+
+
+func _world_tick(dt: float) -> void:
+	_wt -= dt
+	if _wt > 0.0:
+		_fights_tick(dt)
+		return
+	_wt = 1.0
+	var now = Time.get_unix_time_from_system()
+	var pp = Game.player.global_position
+	# işler değişir
+	for id in all():
+		var f: Dictionary = all()[id]
+		if String(f.get("status", "")) != "" or f.get("party", false):
+			continue
+		if now >= float(f.get("job_until", 0.0)):
+			var tot = 0
+			for jb in JOBS:
+				tot += int(jb[1])
+			var r = randi() % tot
+			for jb in JOBS:
+				r -= int(jb[1])
+				if r < 0:
+					f["job"] = jb[0]
+					break
+			f["job_until"] = now + randf_range(360.0, 840.0)
+	# işinin başında: yakınındaysan orada durur (sen gidersin; o sana gelmez)
+	for id in present.keys():
+		var n = present[id]
+		if not is_instance_valid(n) or n.global_position.distance_to(pp) > 110.0 or not all().has(id) or not available(all()[id]) or all()[id].get("party", false):
+			if is_instance_valid(n):
+				n.queue_free()
+			present.erase(id)
+	var spawned = 0
+	for id in all():
+		if present.has(id) or spawned >= 1:
+			continue
+		var f: Dictionary = all()[id]
+		if not available(f) or f.get("party", false):
+			continue
+		var p = where(id)
+		if p == Vector3.INF or p.distance_to(pp) > 70.0:
+			continue
+		var here = false
+		for n in get_tree().get_nodes_in_group("talkers"):
+			if String(n.get_meta("friend_id", "")) == id:
+				here = true
+		if here:
+			continue
+		present[id] = _spawn_npc(id, p, false)
+		spawned += 1
+	# işaretlenen dosta varınca
+	var fid = String(Game.profile.get("find_friend", ""))
+	if fid != "" and all().has(fid):
+		var fp = where(fid)
+		if fp != Vector3.INF and pp.distance_to(fp) < 45.0:
+			Game.profile.erase("find_friend")
+			if not available(all()[fid]):
+				Hud.msg("%s şu an burada değil (%s)." % [all()[fid]["name"], "görevde" if job_of(all()[fid]) == "görev" else "köyde yok"], Color(1, 0.75, 0.5))
+	# yolda: görevdeki dost saldırıya uğramış (köy dışındaysan)
+	_enc_t -= 1.0
+	if _enc_t <= 0.0 and fights.is_empty():
+		_enc_t = randf_range(600.0, 1000.0)
+		if Crime._village_at(pp) == "":
+			var onm = all().keys().filter(func(k): return String(all()[k].get("status", "")) == "" and job_of(all()[k]) == "görev" and not all()[k].get("party", false))
+			if not onm.is_empty():
+				var id2 = String(onm.pick_random())
+				Hud.banner("YOLDA KARŞILAŞMA", "%s görevdeyken pusuya düşmüş! Yardım et." % all()[id2]["name"], Color(1, 0.6, 0.4))
+				ambush(id2, ["bandit", "rogue"].pick_random(), randi_range(3, 5), "Yol pususu", true)
+	# arka planda ilerleyen planlar
+	_plot_t -= 1.0
+	if _plot_t <= 0.0:
+		_plot_t = randf_range(500.0, 900.0)
+		_plot_tick()
+
+
+## Planlar kendi kendine ilerler: dost planı kurar, sana açar; kötü planlar ANBU'ya yakalanabilir (Kage görevi verir),
+## başarıya yaklaşırsa acil olay olur, kimi zaman da başarır.
+func _plot_tick() -> void:
+	var fs = all()
+	var cands = fs.keys().filter(func(k): return String(fs[k].get("status", "")) == "" and not fs[k].has("plot"))
+	if not cands.is_empty() and randf() < 0.35:
+		var id = String(cands.pick_random())
+		_ensure_persona(fs[id])
+		FriendPlots.start(id)
+		return
+	for id in fs:
+		var f: Dictionary = fs[id]
+		var p: Dictionary = f.get("plot", {})
+		if p.is_empty() or String(p.get("stage", "")) == "done" or String(f.get("status", "")) != "":
+			continue
+		var sc = FriendPlots.scenario(String(p["id"]))
+		if sc.is_empty() or sc["good"]:
+			# iyi planı sen dinlemezsen bir süre sonra kendi başına yapar
+			if Time.get_unix_time_from_system() - float(p.get("t", 0.0)) > 1800.0:
+				p["stage"] = "done"
+				Friends.log_event(f, "%s planını kendi başına yürüttü" % sc.get("title", ""))
+			continue
+		if Time.get_unix_time_from_system() - float(p.get("t", 0.0)) < 600.0:
+			continue
+		var r = randf()
+		if r < 0.35:
+			p["stage"] = "done"
+			_kage_order(id, sc, false)
+		elif r < 0.55:
+			p["stage"] = "done"
+			_kage_order(id, sc, true)
+		elif r < 0.72:
+			p["stage"] = "done"
+			FriendPlots._outcome(id, sc, false)
+		return
+
+
+## ANBU kötü planı fark etti: Kage sana durdurma görevi verir (acil = plan başarıya çok yakın)
+func _kage_order(id: String, sc: Dictionary, urgent: bool) -> void:
+	var f: Dictionary = all()[id]
+	var vid = String(f.get("village", Progress.home()))
+	var kt = Kage.kage_name(vid)
+	var lv = int(pr().get("level", 1))
+	var at = Missions._spot(vid, 250, 600)
+	var m = {"title": ("ACİL: " if urgent else "") + "%s'i Durdur" % f["name"], "rank": "A" if not urgent else "S", "village": vid, "giver": kt,
+		"hook": "Friends.order_done", "fid": id,
+		"brief": "ANBU raporu: %s, '%s' adlı bir plan yürütüyor. %s Onu durdur — gerekirse zorla." % [f["name"], sc["title"], "Plan başarıya çok yakın, vakit yok!" if urgent else ""],
+		"steps": [{"kind": "kill", "at": at, "enemy": "rogue", "n": 3 if not urgent else 4, "camp": true,
+			"boss": {"name": "%s (hain)" % f["name"], "hp": 900.0 + lv * 40.0, "level": lv + 2, "power": 1.6 + lv * 0.02, "flee": false},
+			"text": "%s ve adamlarını yen." % f["name"]}]}
+	Hud.banner("ANBU RAPORU" if not urgent else "ACİL OLAY", "%s'in planı ortaya çıktı: %s" % [f["name"], sc["title"]], Color(1, 0.5, 0.35))
+	if Missions.active().is_empty():
+		Hud.dialog(kt, String(m["brief"]), [{"label": "Görevi kabul et", "cb": func(): Missions.accept(m)},
+			{"label": "Reddet (ANBU halleder)", "cb": func(): _anbu_handles(id, sc, urgent)}])
+	else:
+		_anbu_handles(id, sc, urgent)
+
+
+func _anbu_handles(id: String, sc: Dictionary, urgent: bool) -> void:
+	var f: Dictionary = all()[id]
+	if urgent and randf() < 0.5:
+		FriendPlots._outcome(id, sc, false)   # yetişemediler: plan başarılı oldu (ya da patladı)
+	else:
+		f["status"] = "hapiste"
+		f["party"] = false
+		Friends.log_event(f, "ANBU tarafından tutuklandı")
+		Hud.msg("ANBU %s'i tutukladı." % f["name"], Color(0.8, 0.85, 1.0), 5.0)
+
+
+## Kage görevi bitti: hain dost yakalandı (canlı yakalanması zor: çoğu dövüşte düşer)
+func order_done(m: Dictionary, ok: bool) -> void:
+	var id = String(m.get("fid", ""))
+	if not ok or not all().has(id):
+		return
+	var f: Dictionary = all()[id]
+	f["status"] = "öldü" if randf() < 0.6 else "hapiste"
+	f["party"] = false
+	Friends.log_event(f, "Kage'nin emriyle onu durdurdun (%s)" % ("öldü" if f["status"] == "öldü" else "tutuklandı"))
+	Missions._rep(String(f.get("village", Progress.home())), 25)
+
+
+## Yakında dövüş: düşmanlar + (ally ise) dost yanında savaşır. Kazanırsan bağ, kaybedersen dost ölebilir.
+func ambush(id: String, kind: String, n: int, title: String, ally: bool) -> void:
+	if Game.player == null:
+		return
+	var f: Dictionary = all()[id]
+	var pp = Game.player.global_position
+	var dir = Vector3.FORWARD
+	var cam = get_viewport().get_camera_3d()
+	if cam:
+		dir = -cam.global_transform.basis.z
+		dir.y = 0.0
+		dir = dir.normalized()
+	var at = Missions.open_ground(pp + dir * 25.0, 25.0)   # önünde: görebileceğin yerde
+	var foes = []
+	var lv = int(pr().get("level", 1))
+	for i in n:
+		var a = Enemy.archetype(kind, i)
+		a["respawn"] = false
+		a["level"] = maxi(3, lv + randi_range(-2, 2) + (6 if n == 1 else 0))
+		a["hp"] = (120.0 + a["level"] * 14.0) * (3.0 if n == 1 else 1.0)
+		a["power"] = 1.0 + a["level"] * 0.025
+		a["xp"] = 30 + a["level"] * 8
+		a["ryo"] = 20 + a["level"] * 4
+		var e = Enemy.new()
+		e.setup(a)
+		get_tree().current_scene.add_child(e)
+		var q = Missions.open_ground(at + Vector3(randf_range(-8, 8), 0, randf_range(-8, 8)), 20.0)
+		e.global_position = q
+		e.home = q
+		foes.append(e)
+	var al = null
+	if ally:
+		al = _spawn(id)
+		al.global_position = Missions.open_ground(at, 20.0)
+		al.home = al.global_position
+		al.set_meta("teammate", true)
+	Game.profile["waypoint"] = [at.x, at.y, at.z, "Olay: %s" % title]
+	Game.profile["track"] = "waypoint"
+	fights.append({"fid": id, "foes": foes, "ally": al, "at": at, "t": 0.0, "title": title})
+
+
+func _fights_tick(dt: float) -> void:
+	for fg in fights.duplicate():
+		fg["t"] = float(fg["t"]) + dt
+		var alive = (fg["foes"] as Array).filter(func(e): return is_instance_valid(e) and not e.is_dead())
+		var al = fg["ally"]
+		var ally_dead = al != null and (not is_instance_valid(al) or al.is_dead())
+		var far = Game.player.global_position.distance_to(fg["at"]) > 250.0 and float(fg["t"]) > 60.0
+		var id = String(fg["fid"])
+		if not all().has(id):
+			fights.erase(fg)
+			continue
+		var f: Dictionary = all()[id]
+		if alive.is_empty() or ally_dead or far or float(fg["t"]) > 400.0:
+			fights.erase(fg)
+			if Game.profile.has("waypoint") and String(Game.profile["waypoint"][3]).begins_with("Olay:"):
+				Game.profile.erase("waypoint")
+			if alive.is_empty() and not ally_dead:
+				add_bond(id, 10)
+				Friends.log_event(f, "%s: birlikte kazandınız" % fg["title"])
+				Hud.msg("%s: \"Sen olmasan bitmiştim. Borçluyum.\"" % f["name"], Color(0.6, 1.0, 0.75), 5.0)
+			elif ally_dead or (far and randf() < 0.35):
+				if randf() < 0.45:
+					f["status"] = "öldü"
+					Friends.log_event(f, "%s sırasında öldü" % fg["title"])
+					Hud.banner("%s ÖLDÜ" % String(f["name"]).to_upper(), "%s sırasında hayatını kaybetti." % fg["title"], Color(0.85, 0.85, 0.95))
+				else:
+					f["away"] = Time.get_unix_time_from_system() + 600.0
+					Friends.log_event(f, "%s: ağır yaralandı" % fg["title"])
+			if is_instance_valid(al):
+				FX.smoke_puff(al.global_position + Vector3.UP, 0.6, 8)
+				al.queue_free()
+
+
+## İhanet: dost sana saldırır (yanında 2 kiralık kaçakla)
+func betray_attack(id: String) -> void:
+	var f: Dictionary = all()[id]
+	f["party"] = false
+	f["bond"] = -100
+	f["status"] = "kaçak"
+	Friends.log_event(f, "Sana pusu kurdu")
+	var e = _spawn(id)
+	e.team = "enemy"
+	e.set_meta("teammate", false)
+	e.target = Game.player
+	if e.nameplate:
+		e.nameplate.modulate = Color(1, 0.4, 0.35)
+	e.display_name = "%s (HAİN)" % f["name"]
+	Hud.banner("İHANET", "%s sana arkadan saldırdı!" % f["name"], Color(1, 0.3, 0.25))
+	ambush(id, "rogue", 2, "İhanet", false)
+
+
+## Hain ruhlu dostların küçük ihanetleri (yaşam olayı)
+func _betrayal_event(id: String) -> void:
+	var f: Dictionary = all()[id]
+	var r = randf()
+	if f.get("party", false) and r < 0.35:
+		betray_attack(id)
+	elif r < 0.65:
+		var amt = int(int(pr().get("ryo", 0)) * randf_range(0.1, 0.2))
+		Progress.add_ryo(-amt)
+		f["bond"] = mini(int(f["bond"]), -40)
+		f["party"] = false
+		Friends.log_event(f, "Kesenden %d Ryō çaldı" % amt)
+		Hud.banner("HIRSIZLIK", "%s kesenden %d Ryō çalıp ortadan kayboldu!" % [f["name"], amt], Color(1, 0.5, 0.4))
+	else:
+		Missions._rep(Progress.home(), -15)
+		if Crime.heat() > 0:
+			Game.profile["flags"]["crime_heat"] = mini(100, Crime.heat() + 20)
+		f["bond"] = mini(int(f["bond"]), -30)
+		Friends.log_event(f, "Seni Kage'ye şikâyet etti")
+		Hud.banner("İHBAR", "%s seni Kage'ye şikâyet etmiş (−15 itibar)." % f["name"], Color(1, 0.55, 0.45))
+
+
+## Birlikte görev / öldürme bağı artırır (takımdakiler)
+static func on_mission_done(rank: String) -> void:
+	for id in party_ids():
+		add_bond(id, {"D": 2, "C": 3, "B": 4, "A": 6, "S": 8}.get(rank, 3), true)
+		var f: Dictionary = all()[id]
+		f["love"] = mini(100, int(f.get("love", 0)) + 2) if romance_of(id) != "" else int(f.get("love", 0))
+	if not party_ids().is_empty():
+		Hud.msg("Takımdaki dostlarla bağınız güçlendi.", Color(0.6, 1.0, 0.75))
+
+
+static func on_kill() -> void:
+	var p = Game.profile
+	p["fr_kills"] = int(p.get("fr_kills", 0)) + 1
+	if int(p["fr_kills"]) % 5 == 0:
+		for id in party_ids():
+			add_bond(id, 1, true)
 
 
 func _process(dt: float) -> void:
 	if Game.paused:
 		return
 	if _active() and not all().is_empty():
-		_visit(dt)
 		_baby_tick()
+		_world_tick(dt)
 		life_t -= dt
 		if life_t <= 0.0:
 			life_t = randf_range(240.0, 480.0)

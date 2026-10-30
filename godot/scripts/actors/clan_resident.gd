@@ -72,8 +72,7 @@ func _duel() -> void:
 	collision_layer = 0
 	remove_from_group("talkers")
 	var e: Enemy = ClanWorld.spawn_enemy(clan, lv, at, {"duel": true, "outfit": "chunin", "village": vid, "name": "%s (düello)" % given,
-		"female": look.get("gender", "m") == "f"})
-	e.look["hair"] = look.get("hair", e.look.get("hair"))
+		"female": look.get("gender", "m") == "f", "look": look})
 	var t: ClanTrait = e.get_node("ClanTrait")
 	t.on_yield = func(won: bool):
 		if is_instance_valid(self):

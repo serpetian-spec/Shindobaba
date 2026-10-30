@@ -109,8 +109,8 @@ static func roll(arch: String, village := "") -> Dictionary:
 				if _ch(0.3):
 					L["face_style"] = "cloth"; L["facegear"] = b.darkened(0.3)
 				if _ch(0.25):
-					L["outer_style"] = _p(["haori_uzun", "haori", "kisa"]); L["outer"] = _p([Color(0.88, 0.86, 0.82), Color(0.3, 0.38, 0.3), b.darkened(0.2)])
-					L["outer_pattern"] = _p([0, 1, 2]); L["outer_accent"] = _p([Color(0.75, 0.15, 0.12), V["band"]])
+					L["outer_style"] = _p(["haori_uzun", "haori", "kisa"]); L["outer"] = _p([Color(0.42, 0.36, 0.3), Color(0.3, 0.38, 0.3), b.darkened(0.2)])   # beyaz + alev etek yalnız Kage'nin cübbesi
+					L["outer_pattern"] = _p([0, 1]); L["outer_accent"] = _p([Color(0.75, 0.15, 0.12), V["band"]])
 				if _ch(0.25):
 					L["top_pattern"] = 1  # file ağ
 			if arch == "hunter":

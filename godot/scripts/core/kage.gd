@@ -212,6 +212,30 @@ func _reign_tick(dt: float) -> void:
 	succeed(String(cands.pick_random()))
 
 
+## Belirli bir dost Kage olur (darbe / seçim kampanyası)
+func force_successor(vid: String, fid: String, reason: String) -> void:
+	if is_kage() and vid == Progress.home():
+		Hud.msg("%s seni devirmeye kalktı ama başaramadı!" % Friends.all()[fid]["name"], Color(1, 0.5, 0.4))
+		return
+	if not p().has("reigns"):
+		p()["reigns"] = {}
+	var f: Dictionary = Friends.all()[fid]
+	var title = Progress.kage_title(vid)
+	var gen = int(reign(vid).get("gen", 4)) + 1
+	var persona = {}
+	var lk = Friends.look_of(f)
+	for k in ["gender", "hair", "hair_style", "skin"]:
+		if lk.has(k):
+			persona[k] = [lk[k].r, lk[k].g, lk[k].b] if lk[k] is Color else lk[k]
+	f["kage"] = vid
+	f["party"] = false
+	Friends.log_event(f, "%s oldu!" % title)
+	p()["reigns"][vid] = {"name": String(f["name"]), "gen": gen, "persona": persona, "friend": fid}
+	Hud.banner("YENİ %s: %s" % [title.to_upper(), String(f["name"]).to_upper()], reason, Color(1, 0.8, 0.45))
+	if vid != Progress.home():
+		change_relation(vid, 20 if int(f["bond"]) >= 30 else (-25 if int(f["bond"]) <= -30 else 0))
+
+
 func succeed(vid: String) -> void:
 	if not p().has("reigns"):
 		p()["reigns"] = {}

@@ -328,13 +328,17 @@ func _site_pos(vid: String, type: String) -> Vector3:
 	return Vector3.INF
 
 
-func _villager(role: String, at: Vector3, pts: Array, extra := {}) -> Villager:
+func _villager(role: String, at: Vector3, pts: Array, extra := {}, skey := "", fid := "") -> Villager:
 	var vg = Villager.new()
 	vg.role = role
 	vg.points = pts
 	vg.night = phase == "gece"
 	for k in extra:
 		vg.set(k, extra[k])
+	if skey != "":
+		vg.set_meta("site_key", skey)
+	if fid != "":
+		vg.set_meta("friend_id", fid)
 	add_child(vg)
 	at.y = Game.ground_height(at.x, at.z) if role != "roof" else at.y
 	vg.global_position = at
@@ -429,7 +433,14 @@ func _spawn_site_actor(key: String, role: String, d: Dictionary) -> void:
 	for k in ["fixed_face", "work_anims", "work_points", "display_override", "lines_override", "eat_mode", "wander_r"]:
 		if d.has(k):
 			extra[k] = d[k]
-	var vg = _villager(role, d["pos"], [], extra)
+	# bu yerde tanıştığın biri varsa o gelir (adı, görünüşü); yoksa sıradan biri
+	var skey = Friends.site_key(d["pos"])
+	var fid = Friends.at_site(skey)
+	if fid != "":
+		var f: Dictionary = Friends.all()[fid]
+		extra["look_extra"] = Friends.look_of(f)
+		extra["display_override"] = String(f["name"])
+	var vg = _villager(role, d["pos"], [], extra, skey, fid)
 	npcs.erase(vg)  # mekân aktörleri sokak sayısına dahil değil
 	if d.has("face"):
 		vg.facing = d["face"]

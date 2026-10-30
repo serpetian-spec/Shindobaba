@@ -198,6 +198,59 @@ func _build_vitals() -> void:
 	fps_lbl = UI.label("", 13, Color(0.7, 0.9, 0.7))
 	fps_lbl.position = Vector2(26, 150)
 	game_hud.add_child(fps_lbl)
+	# takım paneli (sol): takım arkadaşlarının adı + canı
+	party_box = UI.vbox(6)
+	party_box.position = Vector2(30, 330)
+	party_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	game_hud.add_child(party_box)
+	party_box.add_child(UI.label("TAKIM", 12, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
+	for i in 6:
+		var prow = UI.vbox(1)
+		prow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var nl = UI.label("", 13, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)
+		prow.add_child(nl)
+		var hb = UI.hbox(6)
+		var pbar = UI.bar(Color(0.4, 0.9, 0.45), 170, 7)
+		hb.add_child(pbar)
+		var tl = UI.label("", 11, UI.MUTED)
+		hb.add_child(tl)
+		prow.add_child(hb)
+		party_box.add_child(prow)
+		party_rows.append([prow, nl, pbar, tl])
+	party_box.visible = false
+
+
+var party_box: VBoxContainer
+var party_rows: Array = []
+var _party_t := 0.0
+
+
+## Takım paneli: yanındaki takım arkadaşları (Genin takımı, dostlar, köy muhafızları) — ad + can
+func _update_party(dt: float) -> void:
+	_party_t -= dt
+	if _party_t > 0.0 or party_box == null:
+		return
+	_party_t = 0.2
+	var mates = []
+	for f in get_tree().get_nodes_in_group("fighters"):
+		if f.has_meta("teammate") and f.get_meta("teammate") == true and is_instance_valid(f) and not f.is_dead():
+			mates.append(f)
+	party_box.visible = not mates.is_empty()
+	for i in party_rows.size():
+		var r: Array = party_rows[i]
+		if i >= mates.size():
+			r[0].visible = false
+			continue
+		var m = mates[i]
+		r[0].visible = true
+		var nm = String(m.get("display_name") if m.get("display_name") != null else "Takım")
+		r[1].text = nm
+		var bar: ProgressBar = r[2]
+		bar.max_value = maxf(1.0, float(m.max_hp))
+		bar.value = float(m.hp)
+		var k = clampf(float(m.hp) / maxf(1.0, float(m.max_hp)), 0.0, 1.0)
+		(bar.get_theme_stylebox("fill") as StyleBoxFlat).bg_color = Color(0.35, 0.9, 0.35) if k > 0.5 else (Color(1, 0.8, 0.2) if k > 0.25 else Color(1, 0.3, 0.25))
+		r[3].text = "%d" % int(m.hp)
 
 
 ## Portre: element renginde ince halka, içinde baş harf, dışında can yayı
@@ -915,6 +968,7 @@ func _process(dt: float) -> void:
 		for ln in Buffs.lines():
 			bl.append("[color=#ffd27a]%s[/color]%s: %s" % [ln[0], (" (%ds)" % int(ln[2])) if ln[2] >= 0.0 else "", ln[1]])
 		buff_lbl.text = "\n".join(bl)
+	_update_party(dt)
 	hp_bar.max_value = pl.max_hp; hp_bar.value = pl.hp
 	var hk = clampf(pl.hp / maxf(1.0, pl.max_hp), 0.0, 1.0)
 	var hcol = Color(0.35, 0.9, 0.35) if hk > 0.5 else (Color(1, 0.8, 0.2) if hk > 0.25 else Color(1, 0.3, 0.25))

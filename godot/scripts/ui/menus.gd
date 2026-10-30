@@ -840,17 +840,29 @@ static func _friends_card(main: Node, left: Control) -> void:
 		st_txt = "  •  KAÇAK (Bingo Kitabı)" if Friends.bingo_status(id) != "dead" else "  •  Kaçak — yakalandı/öldü"
 	elif String(f.get("kage", "")) != "":
 		st_txt = "  •  %s!" % Progress.kage_title(String(f["kage"]))
+	elif stt == "hapiste":
+		st_txt = "  •  HAPİSTE"
 	elif not Friends.available(f):
 		st_txt = "  •  Köyde değil (görev / hastane)"
+	elif not f.get("party", false):
+		st_txt = "  •  " + String(Friends.JOB_NAMES.get(Friends.job_of(f), "Evde"))
 	var rm = Friends.romance_of(id)
 	if rm != "":
-		st_txt += "  •  %s ♥" % ("Eşin" if rm == "eş" else "Sevgilin")
+		st_txt += "  •  %s ♥" % {"eş": "Eşin", "sevgili": "Sevgilin", "flört": "Flört"}.get(rm, rm)
 	fv.add_child(UI.label("%s  •  %s  •  Bağ: %d (%s)%s" % [String(f.get("title", "")), Friends.RANKS[int(f.get("rank", 0))], b, Friends.level_name(b), st_txt], 13, Friends.level_color(b)))
 	var bar = UI.bar(Friends.level_color(b), 700, 8)
 	bar.min_value = -100
 	bar.max_value = 100
 	bar.value = b
 	fv.add_child(bar)
+	if Friends.TRAITS.has(String(f.get("trait", ""))) and Friends.trait_known(f):
+		fv.add_child(UI.label("Kişilik: " + String(Friends.TRAITS[f["trait"]]["desc"]), 12, Color(0.85, 0.85, 1.0)))
+	elif f.has("trait"):
+		fv.add_child(UI.label("Kişilik: ? (onunla birkaç kez sohbet et)", 12, UI.MUTED))
+	if rm != "" and rm != "eş":
+		fv.add_child(UI.label("Gönül: %d/100  (iltifat, gece yürüyüşü, randevu, sevdiği hediye; evlilik için sevgili olarak zaman + gönül/bağ 85)" % int(f.get("love", 0)), 12, Color(1, 0.65, 0.8)))
+	if int(f.get("gift_known", -1)) >= 0:
+		fv.add_child(UI.label("Sevdiği hediye: " + String(Friends.GIFTS[int(f["gift_known"])][0]), 12, Color(1, 0.75, 0.8)))
 	var fam: Array = f.get("family", [])
 	if not fam.is_empty():
 		var fl = UI.label("Ailesi: " + ", ".join(fam.map(func(m): return "%s %s%s%s" % [m["rel"], String(m["name"]), (" [%s]" % m["mix"]) if m.has("mix") else "", "" if m.get("alive", true) else " (öldü)"])), 12, UI.MUTED)
@@ -863,6 +875,10 @@ static func _friends_card(main: Node, left: Control) -> void:
 		ll.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		ll.custom_minimum_size = Vector2(700, 0)
 		fv.add_child(ll)
+	if stt != "öldü":
+		fv.add_child(UI.button("Haritada göster", func():
+			Friends.show_on_map(id)
+			main.resume(), 260, "map"))
 	if stt == "":
 		if f.get("party", false):
 			fv.add_child(UI.button("Köyde beklet", func():

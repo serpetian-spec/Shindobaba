@@ -64,8 +64,23 @@ static func handles(id: String) -> bool:
 	return get_inst().has_method("c_" + id)
 
 
+## Şu an atılan jutsunun sahibi: every/after/decoy geri çağrıları sahibi ölüp silinince çalışmaz
+## (yoksa silinmiş yakalamalar null olur, yarım kalan jutsu hata/çökme üretir)
+static var _caster: Node = null
+
+
 static func cast(c: Node3D, id: String, t: Node3D) -> void:
+	_caster = c
 	get_inst().call("c_" + id, c, t)
+	_caster = null
+
+
+static func _own() -> int:
+	return _caster.get_instance_id() if _caster != null and is_instance_valid(_caster) else 0
+
+
+static func _gone(oid: int) -> bool:
+	return oid != 0 and not is_instance_id_valid(oid)
 
 
 # ================================================================== yardımcılar
@@ -127,21 +142,30 @@ func enemies_near(c: Node3D, pos: Vector3, r: float) -> Array:
 func every(dur: float, dt: float, fn: Callable, done := Callable()) -> void:
 	var n = maxi(1, int(dur / dt))
 	var ep = VFX.epic
+	var own = _own()
 	var tw = create_tween()
 	for i in n:
 		tw.tween_callback(func():
+			if _gone(own):
+				tw.kill()
+				return
 			var o = VFX.epic
 			VFX.epic = ep
 			fn.call(i, float(i) / n)
 			VFX.epic = o)
 		tw.tween_interval(dt)
 	if done.is_valid():
-		tw.tween_callback(done)
+		tw.tween_callback(func():
+			if not _gone(own):
+				done.call())
 
 
 func after(sec: float, fn: Callable) -> void:
 	var ep = VFX.epic
+	var own = _own()
 	get_tree().create_timer(sec).timeout.connect(func():
+		if _gone(own):
+			return
 		var o = VFX.epic
 		VFX.epic = ep
 		fn.call()
@@ -365,7 +389,10 @@ func decoy(c: Node3D, pos: Vector3, dur: float, on_pop := Callable()) -> Node3D:
 	get_tree().current_scene.add_child(d)
 	d.global_position = gp(pos)
 	if on_pop.is_valid():
+		var own = _own()
 		d.tree_exiting.connect(func():
+			if _gone(own):
+				return
 			var at = d.global_position
 			on_pop.call_deferred(at))
 	for e in enemies_near(c, pos, 30.0):
