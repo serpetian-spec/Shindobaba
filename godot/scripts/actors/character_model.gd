@@ -77,6 +77,7 @@ var sclera_mat: ShaderMaterial = null
 var face_skin_mat: ShaderMaterial = null   # yüz derisi (Byakugan damarları)   # göz akı (Rinnegan tüm gözü kaplar)
 var _eye_trails: Array = []
 var _outer_pad := 0.0   # dış giysi kabuğuna eklenen pay (yeleğin üstüne)
+var _gdata: Dictionary = {}
 
 
 static var _inv_mat: StandardMaterial3D
@@ -1435,6 +1436,74 @@ func _garments(g: Dictionary) -> void:
 				func(_t, ang): return 0.03 if absf(wrapf(ang - PI * 0.5, -PI, PI)) < 1.3 else 0.02, 9, null, -99.0, 16))
 	OutfitParts.garments(self, g)
 	_outer_pad = 0.0
+	_gdata = g   # sırt silahı kayışı silahlar kurulurken loft edilir
+
+
+## Sırt silahı kayışı: omuzdan karşı kalçaya çapraz inen deri kayış + beli saran kemer (beden kabuğu, koyu renk slotu).
+## Silahın çaprazıyla aynı yönde iner; kelepçeler silahı bu kayışa bağlar (havada durmaz).
+func _back_strap(sx: float) -> void:
+	if _gdata.is_empty():
+		return
+	var g = _gdata
+	var neck = _bp("Neck").y; var hips = _bp("Hips").y
+	var ua = _bp("LeftUpperArm").x
+	var torso = func(p: Vector3) -> bool: return absf(p.x) < (ua * 0.95 if p.y > neck - 0.33 else 0.45) and p.y < neck + 0.06
+	# kendi deri rengi: kabuk malzemesinin kopyası, tüm kabuk aksesuar slotunda (9), o slot kahverengi deri
+	var mat: ShaderMaterial = cloth_shell_mat.duplicate()
+	var pal: Array = Array(mat.get_shader_parameter("pal")).duplicate()
+	if pal.size() > 9:
+		pal[9] = Color(0.3, 0.19, 0.11)
+		mat.set_shader_parameter("pal", pal)
+	for key in ["sirt_kayis%d" % int(sx), "sirt_kemer"]:
+		var k = "%s|%s|%.3f" % [look["gender"], key, _outer_pad]
+		if not _garment_cache.has(k):
+			if key == "sirt_kemer":
+				_garment_cache[k] = _loft(g, 1, hips + 0.02, hips + 0.075, 4, torso, func(_t, _a): return 0.026, 9, null, -99.0, 32)
+			else:
+				# omurgayı silahın geçtiği yükseklikte (üst göğüs) keser: silah kayışın üstüne yaslanır
+				var t0 = clampf((neck - 0.01 - (_bp("UpperChest").y - 0.06)) / (neck - hips - 0.03), 0.15, 0.6)
+				_garment_cache[k] = _loft(g, 1, neck - 0.01, hips + 0.02, 30, torso, func(_t, _a): return 0.024, 9,
+					func(t, ang): return absf(cos(ang) - sx * 1.84 * (t0 - t)) > 0.11, -99.0, 64)
+		if _garment_cache[k] != null:
+			_add_shell(_garment_cache[k], mat)
+
+
+## Gövdenin sırt yüzeyi (model uzayı z, arkası negatif): omurga hizasında, y yüksekliğinde
+func _back_z(y: float) -> float:
+	if body_mesh == null or body_mesh.mesh == null:
+		return 0.0
+	var vs: PackedVector3Array = body_mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	var bz = 0.0
+	for v in vs:
+		if absf(v.x) < 0.09 and absf(v.y - y) < 0.06 and v.z < bz:
+			bz = v.z
+	return bz
+
+
+## Silahın z=zc kesitindeki genişliği (silah uzayı): ince yer (sap, gövde) kelepçe için seçilir
+static func _xsec(node: Node3D, zc: float, band := 0.03) -> AABB:
+	var out := AABB()
+	var first := true
+	var mis: Array = [node] if node is MeshInstance3D else node.find_children("*", "MeshInstance3D", true, false)
+	for mi in mis:
+		var xf := Transform3D.IDENTITY
+		var c: Node = mi
+		while c != node and c != null:
+			xf = (c as Node3D).transform * xf
+			c = c.get_parent()
+		var mesh: Mesh = (mi as MeshInstance3D).mesh
+		if mesh == null:
+			continue
+		for si in mesh.get_surface_count():
+			var vs: PackedVector3Array = mesh.surface_get_arrays(si)[Mesh.ARRAY_VERTEX]
+			for v in vs:
+				var w = xf * v
+				if absf(w.z - zc) < band:
+					if first:
+						out = AABB(w, Vector3.ZERO); first = false
+					else:
+						out = out.expand(w)
+	return out
 
 
 ## Hayran modeli aksesuar: SFProps.ACCESSORIES[id] kemiğe, ref noktasına göre "off" ofsetle takılır
@@ -2401,6 +2470,12 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 				dir = -dir   # ağır başlı silahlar: baş yukarıda (çekiç, tırpan, mızrak)
 			var b = _frame(dir, Vector3(0, 0, -1))
 			var center = ch + Vector3(0, -0.06, -0.2 - 0.02 * L)
+			# sırta yasla: silahın gövdeye bakan yüzü (silah uzayında en küçük x; holder +x sırttan dışarı) sırt yüzeyi + kayış kalınlığında
+			var bz = _back_z(ch.y - 0.06)
+			if bz < 0.0:
+				var wab: AABB = (node as MeshInstance3D).mesh.get_aabb() if node is MeshInstance3D else SFProps._bounds(node)
+				var pad = 0.028 + (0.025 if look.get("vest") != null else 0.0) + (0.04 if look.get("outer_style") != null else 0.0)
+				center.z = bz - pad + wab.position.x
 			xf = Transform3D(b, center - b.z * (mid if L > 1.2 else mid * 0.8))
 		"low_back":
 			var hp = _grest(skel.find_bone("Hips")).origin
@@ -2417,6 +2492,35 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 			var b = _frame(Vector3(sx * 0.12, -1.0, 0.18), Vector3(sx, 0, 0))
 			xf = Transform3D(b, hp + Vector3(sx * 0.2, 0.1, 0.03))
 	var holder: Node3D = _attach("UpperChest" if kind == "back" else "Hips", xf).get_child(0)
+	if kind == "back":
+		_back_strap(sx)
+		# iki deri kelepçe: silahı sırttaki kayışa bağlar (holder +x sırttan dışarı, y sırt düzleminde silaha dik)
+		var leather = Color(0.3, 0.19, 0.11)
+		var cm = MB.new()
+		var L = span.y - span.x
+		# üst ve alt yarıda kesiti en ince yeri bul (sap, gövde, kın): kelepçe oraya sarılır
+		for half in [-1.0, 1.0]:
+			var zc = mid + half * L * 0.16
+			var ab: AABB = _xsec(node, zc)
+			var best = ab.size.y + ab.size.x * 0.5 if ab.size != Vector3.ZERO else 99.0
+			for k in 7:
+				var z2 = mid + half * L * (0.06 + k * 0.05)
+				var a2: AABB = _xsec(node, z2)
+				var w2 = a2.size.y + a2.size.x * 0.5
+				if a2.size != Vector3.ZERO and w2 < best - 0.01:
+					best = w2; ab = a2; zc = z2
+			if best > 50.0:
+				continue
+			var y0 = ab.position.y - 0.012; var y1 = ab.end.y + 0.012
+			var x0 = ab.position.x - 0.035; var x1 = ab.end.x + 0.008
+			cm.add("box", Vector3(x1, (y0 + y1) * 0.5, zc), Vector3(0.012, y1 - y0 + 0.012, 0.045), leather)
+			for yy in [y0, y1]:
+				cm.add("box", Vector3((x0 + x1) * 0.5, yy, zc), Vector3(x1 - x0, 0.012, 0.045), leather)
+			cm.add("box", Vector3(x1 + 0.006, (y0 + y1) * 0.5, zc), Vector3(0.008, 0.03, 0.03), Color(0.72, 0.66, 0.5))   # toka
+		var cmi = MeshInstance3D.new()
+		cmi.name = "SirtKelepce"
+		cmi.mesh = cm.build(Props.toon())
+		holder.add_child(cmi)
 	if SAYA.has(id):
 		var s: Array = SAYA[id]
 		var m = MB.new()
@@ -2436,11 +2540,14 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 		var m2 = MB.new()
 		var steel = Color(0.7, 0.72, 0.76)
 		var dark = Color(0.22, 0.22, 0.25)
+		# tutucu ekseni: +x kalçadan dışarı, +z aşağı, y ileri/geri (bk: geri yönü, tarafa göre işaret değişir)
+		var bk = -sx
 		for k in 4:
-			m2.add("torus", Vector3(sx * 0.005 * k, 0.0, 0.03 + k * 0.022), Vector3(0.13 - k * 0.006, 0.13 - k * 0.006, 0.022), dark, Vector3(0, 90, 0), 12)
-		m2.add("sphere", Vector3(sx * 0.02, -0.055, 0.12), Vector3(0.055, 0.055, 0.055), dark, Vector3.ZERO, 8)   # ağırlık
-		m2.add("cyl", Vector3(sx * 0.03, 0.02, 0.24), Vector3(0.03, 0.3, 0.03), Color(0.45, 0.32, 0.2), Vector3(90, 0, 0), 8)   # orak sapı
-		m2.add("box", Vector3(sx * 0.03, -0.06, 0.38), Vector3(0.01, 0.17, 0.035), steel, Vector3(-20, 0, 0))   # bıçak geriye kıvrık
+			m2.add("torus", Vector3(0.03 + 0.005 * k, 0.0, 0.03 + k * 0.022), Vector3(0.13 - k * 0.006, 0.13 - k * 0.006, 0.022), dark, Vector3(0, 90, 0), 12)
+		m2.add("sphere", Vector3(0.05, bk * 0.05, 0.12), Vector3(0.055, 0.055, 0.055), dark, Vector3.ZERO, 8)   # ağırlık
+		m2.add("cyl", Vector3(0.06, 0.0, 0.24), Vector3(0.03, 0.3, 0.03), Color(0.45, 0.32, 0.2), Vector3(90, 0, 0), 8)   # orak sapı uyluğun dış yanında
+		# bıçak sapın ucundan geriye-yukarı katlı: sapa paralel uzanır, bacağa girmez
+		m2.add("box", Vector3(0.06, bk * 0.035, 0.31), Vector3(0.01, 0.035, 0.17), steel, Vector3(bk * -12.0, 0, 0))
 		var coil = MeshInstance3D.new()
 		coil.name = "KusariStow"
 		coil.mesh = m2.build(Props.toon())
