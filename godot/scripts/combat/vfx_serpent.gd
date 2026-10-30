@@ -122,19 +122,26 @@ static func dragon_head(mat: Material, size: float, eye := Color(1, 1, 0.75)) ->
 		VFX._cache[hk] = b.build(null)
 	var mi = MeshInstance3D.new()
 	mi.mesh = VFX._cache[hk]
+	var bm = VFX.asset("dragon_head")   # Blender'da modellenmiş kafa: uzun burun, açık çene, kıvrık boynuz, yele, bıyık, dişler
+	if bm:
+		mi.mesh = bm
+		mi.scale = Vector3.ONE * 0.85
 	mi.material_override = mat
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	root.add_child(mi)
 	# dişler + gözler
-	var tk = "dteeth_%s" % eye
+	var tk = "dteeth_%s_%s" % [eye, bm != null]
 	if not VFX._cache.has(tk):
 		var t = MB.new()
-		for k in 5:
+		for k in (0 if bm else 5):   # Blender kafasının kendi dişleri var
 			var x = -0.22 + k * 0.11
 			t.add("cone", Vector3(x, -0.1, -1.15 + absf(x) * 0.6), Vector3(0.06, 0.18, 0.06), Color(1, 1, 1), Vector3(180, 0, 0), 4)
 			t.add("cone", Vector3(x, -0.2, -1.05 + absf(x) * 0.6), Vector3(0.05, 0.14, 0.05), Color(1, 1, 1), Vector3.ZERO, 4)
 		for sx in [-1.0, 1.0]:
-			t.add("sphere", Vector3(0.3 * sx, 0.22, -0.45), Vector3(0.2, 0.1, 0.14), eye, Vector3(0, 0, 12 * sx), 6)
+			if bm:
+				t.add("sphere", Vector3(0.24 * sx, 0.24, -0.3), Vector3(0.16, 0.08, 0.12), eye, Vector3(0, 0, 14 * sx), 6)   # Blender kafası göz yuvası
+			else:
+				t.add("sphere", Vector3(0.3 * sx, 0.22, -0.45), Vector3(0.2, 0.1, 0.14), eye, Vector3(0, 0, 12 * sx), 6)
 		var um = StandardMaterial3D.new()
 		um.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		um.vertex_color_use_as_albedo = true

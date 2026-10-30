@@ -200,6 +200,23 @@ static func _sphere(r := 0.5, seg := 24, rings := 12) -> SphereMesh:
 	return s
 
 
+## Blender'da modellenmiş efekt meshi (godot/assets/vfx/<ad>.glb): ilk meshi önbellekten
+static func asset(name: String) -> Mesh:
+	var key = "asset_" + name
+	if _cache.has(key):
+		return _cache[key]
+	var m: Mesh = null
+	var path = "res://assets/vfx/%s.glb" % name
+	if ResourceLoader.exists(path):
+		var n: Node = (load(path) as PackedScene).instantiate()
+		for mi in n.find_children("*", "MeshInstance3D", true, false):
+			m = (mi as MeshInstance3D).mesh
+			break
+		n.free()
+	_cache[key] = m
+	return m
+
+
 static func _mi(mesh: Mesh, mat: Material) -> MeshInstance3D:
 	var mi = MeshInstance3D.new()
 	mi.mesh = mesh
