@@ -94,6 +94,7 @@ func _load_world() -> void:
 		for q in rl["pts"]:
 			pts.append(Vector2(q[0], q[1]))
 		roads.append({"a": rl["a"], "b": rl["b"], "kind": rl["kind"], "pts": pts})
+	_fix_village_roads()
 	for ri in range(roads.size()):
 		var pts: PackedVector2Array = roads[ri]["pts"]
 		for si in range(pts.size() - 1):
@@ -345,6 +346,94 @@ func region_name(p: Vector3) -> String:
 
 ## Yol bağlantısı olmayan surlu köy (Kiri adası) hiç kapısız kalıyordu: rehineler/takipçiler giremiyordu.
 ## Dışı kara olan, güneye en yakın açıya bir kapı aç.
+## Köy uçlarında yol kapıdan çıkıp yeniden köyün içine dönüyor, sonra surdan kapısız geçiyordu (ör. Konoha -> Son Vadisi):
+## kapının dışındaki köy içi noktalar atılır, gerekirse yol surun dışından yay çizerek dolanır; yakın başka kapı varsa ona oturur.
+## Sonunda yolun sur çizgisini kestiği her açı köyün kapı listesinde olur (kapı + sur boşluğu kurulsun).
+func _fix_village_roads() -> void:
+	var vmap := {}
+	for v in world_info["villages"]:
+		vmap[v["id"]] = v
+	var comp = func(d: Vector2) -> float:
+		return fposmod(rad_to_deg(atan2(d.x, d.y)), 360.0)
+	var polar = func(c: Vector2, ang: float, rad: float) -> Vector2:
+		return c + Vector2(sin(deg_to_rad(ang)), cos(deg_to_rad(ang))) * rad
+	for rd in roads:
+		if rd["kind"] != "road":
+			continue
+		var p: PackedVector2Array = rd["pts"]
+		for end in [0, 1]:
+			var vid = String(rd["a"] if end == 0 else rd["b"])
+			if not vmap.has(vid):
+				continue
+			var v: Dictionary = vmap[vid]
+			var c = Vector2(v["x"], v["y"])
+			var r = float(v["r"])
+			var q: Array = Array(p)
+			if end == 1:
+				q.reverse()
+			if q.size() < 5 or (q[0] as Vector2).distance_to(c) > 1.0:
+				continue
+			# yakındaki mevcut kapıya otur (bake ayrı kapı açmadan yolu 12° yanından sokuyordu)
+			var ga: float = comp.call((q[2] as Vector2) - c)
+			var best = ga
+			var bd = 1e9
+			for g in v.get("gates", []):
+				var dd = absf(fposmod(ga - float(g) + 180.0, 360.0) - 180.0)
+				if dd < bd:
+					bd = dd
+					best = float(g)
+			if bd > 0.5 and bd < 14.0:
+				ga = best
+				q[1] = polar.call(c, ga, r * 0.3)
+				q[2] = polar.call(c, ga, r)
+				q[3] = polar.call(c, ga, r + 260.0)
+			# kapının dışından sonra köye geri dönen noktaları at
+			var k = 4
+			while k < q.size() - 1 and (q[k] as Vector2).distance_to(c) < r + 200.0:
+				k += 1
+			q = q.slice(0, 4) + q.slice(k)
+			# kapı dışından sonraki noktaya düz gidiş köyü kesiyorsa surun dışından yay çiz
+			var o: Vector2 = q[3]
+			var nx: Vector2 = q[4]
+			if Geometry2D.get_closest_point_to_segment(c, o, nx).distance_to(c) < r + 120.0:
+				var a0: float = comp.call(o - c)
+				var da = fposmod(float(comp.call(nx - c)) - a0 + 180.0, 360.0) - 180.0
+				var steps = maxi(1, int(absf(da) / 12.0))
+				var arc = []
+				for st in range(1, steps + 1):
+					arc.append(polar.call(c, a0 + da * st / steps, r + 320.0))
+				q = q.slice(0, 4) + arc + q.slice(4)
+			if end == 1:
+				q.reverse()
+			p = PackedVector2Array(q)
+		rd["pts"] = p
+	# güvenlik: yolun sur çizgisini kestiği her açıda kapı
+	for v in world_info["villages"]:
+		if (v.get("gates", []) as Array).is_empty() and not CRAG_WALLS.has(v["id"]):
+			continue
+		var c = Vector2(v["x"], v["y"])
+		var rg = float(v["r"]) * 0.95
+		var gl: Array = v.get("gates", [])
+		for rd in roads:
+			if rd["kind"] != "road":
+				continue
+			var p: PackedVector2Array = rd["pts"]
+			for i in p.size() - 1:
+				var da = p[i].distance_to(c) - rg
+				var db = p[i + 1].distance_to(c) - rg
+				if da * db >= 0.0:
+					continue
+				var hit = p[i].lerp(p[i + 1], da / (da - db))
+				var ang = snappedf(comp.call(hit - c), 0.1)
+				var near = false
+				for g in gl:
+					if absf(fposmod(ang - float(g) + 180.0, 360.0) - 180.0) < 6.0:
+						near = true
+				if not near:
+					gl.append(ang)
+		v["gates"] = gl
+
+
 func _default_gates() -> void:
 	for v in world_info["villages"]:
 		if not CRAG_WALLS.has(v["id"]) or not (v.get("gates", []) as Array).is_empty():

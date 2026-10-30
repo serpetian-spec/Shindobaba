@@ -340,7 +340,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	var trees = 0
 	for k in 1400:
 		var a = rng.randf() * TAU
-		var rr = sqrt(rng.randf()) * (R - 30.0)
+		var rr = sqrt(rng.randf()) * (R - 50.0)   # sura yaslanmasın
 		var tx2 = sin(a) * rr; var tn2 = cos(a) * rr
 		if tn2 > cliff_n - 30.0 or rr < 250.0:
 			continue

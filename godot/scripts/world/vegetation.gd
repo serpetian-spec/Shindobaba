@@ -40,6 +40,7 @@ var queued := {}        # ready_q'daki anahtarlar (tekrar istenmesin)
 var last_cell = Vector2i(999999, 999999)
 var _mutex := Mutex.new()
 var _specials: Array = []   # [x, y(harita), iç r, dış r, tip, yoğunluk]
+var _walls: Array = []      # [x, y(harita), sur yarıçapı]: sur boyunca ağaçsız şerit (dev ağaçlar sura/kapıya giriyordu)
 
 
 func _ready() -> void:
@@ -56,6 +57,11 @@ func _ready() -> void:
 	for v in Game.world_info["villages"]:
 		if v["id"] in ["konoha", "kusa", "taki", "tani"]:
 			_specials.append([float(v["x"]), float(v["y"]), float(v["r"]) + 30.0, float(v["r"]) + 700.0, 9, 0.009])
+	for v in Game.world_info["villages"]:
+		if v["id"] == "konoha":
+			_walls.append([float(v["x"]), float(v["y"]), float(v["r"]) - 40.0])
+		elif BuildSites.RING_WALLS.has(v["id"]) or not (v.get("gates", []) as Array).is_empty():
+			_walls.append([float(v["x"]), float(v["y"]), float(v["r"]) * 0.95])
 	for l in Game.world_info["landmarks"]:
 		match l["id"]:
 			"forest_death":
@@ -203,6 +209,15 @@ func _generate(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 			if detail and wet < 0.8 and rng.randf() < 0.5:
 				t = 16
 			else:
+				continue
+		if radii[t] > 0.0 or t in [9, 5, 0, 1, 2, 4]:
+			var near_wall := false
+			for wl in _walls:
+				var wd: float = absf(Vector2(x - wl[0], my - wl[1]).length() - wl[2])
+				if wd < (75.0 if t in [9, 5] else 28.0):
+					near_wall = true
+					break
+			if near_wall:
 				continue
 		if not Roadside.is_clear(x, -z, 11.0 if t in [9, 5] else (3.0 if t in [0, 1, 2] else 0.0), 0.35 if t in SMALL else 1.0):
 			continue
