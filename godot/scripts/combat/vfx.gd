@@ -272,12 +272,12 @@ static func wind_ball(size := 1.0) -> Node3D:
 static func rasengan(size := 1.0, body := Color(0.15, 0.45, 1.0), line := Color(0.85, 0.95, 1.0)) -> Node3D:
 	size *= epic
 	var root = Node3D.new()
-	var core = Projectile.energy_mesh(Color(1, 1, 1), line, size * 0.5, 14.0, 0.0, 2.0)
+	var core = Projectile.energy_mesh(Color(0.9, 0.97, 1.0), line, size * 0.24, 14.0, 0.0, 1.2)   # küçük parlak göbek (tüm küreyi beyaza boğmasın)
 	root.add_child(core)
-	var s1 = _mi(_sphere(0.5, 28, 14), mat_spiral(line, body, 6.0, 3.0, 7.0, 1.7, Vector3.UP))
+	var s1 = _mi(_sphere(0.5, 28, 14), mat_spiral(line, body, 6.0, 3.0, 7.0, 1.15, Vector3.UP))
 	s1.scale = Vector3.ONE * size
 	root.add_child(s1)
-	var s2 = _mi(_sphere(0.5, 24, 12), mat_spiral(line, body * 0.6, 4.0, -2.0, -9.0, 1.2, Vector3(1, 0, 0)))
+	var s2 = _mi(_sphere(0.5, 24, 12), mat_spiral(line, body * 0.6, 4.0, -2.0, -9.0, 0.9, Vector3(1, 0, 0)))
 	s2.scale = Vector3.ONE * size * 1.12
 	root.add_child(s2)
 	if not _cache.has("ras_torus"):
@@ -291,6 +291,17 @@ static func rasengan(size := 1.0, body := Color(0.15, 0.45, 1.0), line := Color(
 		root.add_child(ring)
 		var tw = root.create_tween().set_loops()
 		tw.tween_property(ring, "rotation:y", ring.rotation.y + TAU * (1 if k % 2 == 0 else -1), 0.35 + k * 0.1)
+	# Blender girdabı: kürenin çevresinde hızla dönen üç kollu chakra sarmalı (anime Rasengan'ın dış rüzgârı)
+	var vm = asset("vortex")
+	if vm:
+		for k in 2:
+			var vx = _mi(vm, mat_spiral(line, body.lightened(0.2), 3.0, 2.0, 9.0, 1.3, Vector3.UP))
+			vx.scale = Vector3.ONE * size * (0.75 + k * 0.12)
+			vx.position = Vector3(0, -size * 0.38, 0)
+			vx.rotation = Vector3(k * 1.2, 0, k * 0.6)
+			root.add_child(vx)
+			var vt = root.create_tween().set_loops()
+			vt.tween_property(vx, "rotation:y", TAU * (1 if k == 0 else -1), 0.22 + k * 0.08).as_relative()
 	return root
 
 
@@ -379,6 +390,17 @@ static func shockwave(pos: Vector3, col: Color, size := 6.0, dur := 0.4, flat :=
 	var tw = mi.create_tween()
 	tw.tween_method(func(x: float): m.set_shader_parameter("t", x), 0.05, 1.0, dur).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
 	tw.tween_callback(mi.queue_free)
+	# Blender şok halkası: yerden kalkan kıvrık kenarlı 3B dalga (düz kartın üstünde hacim)
+	var rm = asset("shock_ring")
+	if rm and flat and size > 2.0:
+		var ring = _mi(rm, mat_wind(col.lightened(0.3), 4.0, 4.0, Vector3.UP, 0.85))
+		scene().add_child(ring)
+		_track(ring)
+		ring.global_transform = Transform3D(Basis(Quaternion(Vector3.UP, normal.normalized())), pos)
+		ring.scale = Vector3(size * 0.15, size * 0.12, size * 0.15)
+		var rt = ring.create_tween().set_parallel(true)
+		rt.tween_property(ring, "scale", Vector3(size * 0.55, size * 0.02, size * 0.55), dur * 1.1).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+		rt.chain().tween_callback(ring.queue_free)
 
 
 ## Zemin çatlağı / yanık izi

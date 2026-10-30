@@ -3638,6 +3638,28 @@ func p_kumo_ryu_uragiri(c: Node3D, t: Node3D) -> void:
 
 ## Kılıç yayı izi: yatay yay boyunca parlak ince şeritler (a0..a1 derece)
 func _arc_cut(at: Vector3, d: Vector3, a0: float, a1: float, col: Color, r := 1.4) -> void:
+	# Blender kesik yayı: hilal (ortası geniş, uçları sivri) yay boyunca açılır, sonra incelip söner
+	var am = VFX.asset("slash_arc")
+	if am:
+		var span = absf(a1 - a0)
+		var pieces = maxi(1, int(ceil(span / 140.0)))
+		for pi in pieces:
+			var mid = lerpf(a0, a1, (pi + 0.5) / pieces)
+			var dd = d.rotated(Vector3.UP, deg_to_rad(mid))
+			var arc = MeshInstance3D.new()
+			arc.mesh = am
+			arc.material_override = glow(col, 0.95)
+			arc.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			get_tree().current_scene.add_child(arc)
+			arc.global_position = at
+			arc.global_rotation.y = atan2(-dd.x, -dd.z)
+			var sw = minf(1.0, span / pieces / 140.0)
+			arc.scale = Vector3(r * sw, r, r * 0.6)
+			var tw = arc.create_tween()
+			tw.tween_interval(pi * 0.05)
+			tw.tween_property(arc, "scale", Vector3(r * sw * 1.15, r * 0.25, r * 1.1), 0.28).set_trans(Tween.TRANS_QUAD)
+			tw.tween_callback(arc.queue_free)
+		return
 	for k in 9:
 		var a = deg_to_rad(lerpf(a0, a1, k / 8.0))
 		var q = at + d.rotated(Vector3.UP, a) * r
