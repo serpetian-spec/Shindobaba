@@ -39,7 +39,7 @@ func _ready() -> void:
 		p.y = Game.ground_height(p.x, p.z) + 0.5
 		pl.respawn(p)
 		pl.set_physics_process(false)
-		await get_tree().create_timer(9.0).timeout
+		await get_tree().create_timer(float(OS.get_environment("VWAIT")) if OS.get_environment("VWAIT") != "" else 9.0).timeout
 		var c = Game.from_map(Vector2(v["x"], v["y"]))
 		c.y = float(v["base"])
 		var r = float(v["r"])

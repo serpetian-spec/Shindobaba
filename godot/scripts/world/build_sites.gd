@@ -154,46 +154,49 @@ static func _yield() -> void:
 ## Evlerle doldur: merkezde sık, dışa doğru seyrek (anime köyü: yoğun merkez + dağınık dış mahalleler).
 ## keep_clear: [[x, n, yarıçap]]. En fazla max_houses ev; her 12 evde bir karede bekler.
 static func _fill(b: Builder, r: float, inner: float, spacing: float, style: String, rng: RandomNumberGenerator, keep_clear: Array = [], max_houses := 420, big := 1.0) -> void:
+	# Bitişik nizam halkalar: evler halka boyunca gerçek genişlikleriyle yan yana (0.4-1.2 m ara), 5-7 evde bir dar ara sokak;
+	# halkalar arası = ev derinliği + 2.5 m arka sokak (sırt sırta). Eskiden sabit aralıklı tek tek evler ayrık duruyordu.
 	var count = 0
-	var ring = inner
-	while ring < r and count < max_houses:
-		# dış mahalleler de dolu kalsın: eskiden dışa doğru aralık 2.4 katına çıkıyor, büyük köylerin dış yarısı bomboş kalıyordu
-		var f = (ring - inner) / maxf(r - inner, 1.0)
-		var dens = clampf(1.0 - f * 0.3, 0.75, 1.0)
+	var ring = inner + 8.0
+	var rows_since = 0
+	max_houses *= 4   # bitişik nizam aynı alana ~4 kat ev sığdırır (sınır eskiden ayrık dizilime göreydi)
+	while ring < r - 8.0 and count < max_houses:
+		var hd = rng.randf_range(11, 15) * big
 		var circ = TAU * ring
-		var n = int(circ / (spacing * (1.0 + f * 0.45)) * dens)
-		var off = rng.randf() * TAU
-		for i in n:
-			if count >= max_houses:
-				break
-			var a = off + TAU * i / maxf(n, 1)
-			var rr = ring + rng.randf_range(-spacing * 0.3, spacing * 0.3)
-			var px = rr * sin(a)
-			var pn = rr * cos(a)
+		var t = rng.randf() * 8.0
+		var run = 0
+		var alley_at = rng.randi_range(5, 7)
+		while t < circ - 6.0 and count < max_houses:
+			var hw = rng.randf_range(12, 19) * big
+			var a = (t + hw * 0.5) / ring
+			var px = ring * sin(a)
+			var pn = ring * cos(a)
+			var placed = false
 			var ok = true
 			for k in keep_clear:
 				if Vector2(px - k[0], pn - k[1]).length() < k[2]:
 					ok = false
 					break
-			if not ok:
-				continue
-			# büyük, sık şehir dokusu: geniş ayak izi, daha çok kat (köyler küçük kulübe yığını gibi duruyordu)
-			var hw = rng.randf_range(13, 21) * big
-			var hd = rng.randf_range(11, 16) * big
-			# yola taşmasın: evin gerçek yarı boyu + kaldırım kadar yoldan uzak; başka evin / yapının içine de girmesin
-			if _on_road(b, px, pn, maxf(hw, hd) * 0.55 + 1.5):
-				continue
-			var wq = b.w(Vector3(px, 0, pn))
-			if not b.area_free(Vector2(wq.x, wq.z), minf(hw, hd) * 0.45):
-				continue
-			var yaw = rad_to_deg(a) + 180.0
-			b.house(px, pn, hw, hd, [2, 2, 3, 3, 4, 5].pick_random(), yaw, style, rng)
-			count += 1
-			if count % 12 == 0:
-				await _yield()
-				if not is_instance_valid(b.root):
-					return
-		ring += spacing * (1.0 + f * 0.5)
+			if ok and not _on_road(b, px, pn, maxf(hw, hd) * 0.55 + 1.0):
+				var wq = b.w(Vector3(px, 0, pn))
+				if b.area_free(Vector2(wq.x, wq.z), minf(hw, hd) * 0.4):
+					var yaw = rad_to_deg(a) + 180.0
+					b.house(px, pn, hw, hd, [2, 2, 3, 3, 4, 5].pick_random(), yaw, style, rng)
+					count += 1
+					placed = true
+					if count % 12 == 0:
+						await _yield()
+						if not is_instance_valid(b.root):
+							return
+			t += (hw + rng.randf_range(0.4, 1.2)) if placed else 5.0
+			run += 1
+			if run >= alley_at:
+				t += rng.randf_range(3.0, 4.5)   # dar ara sokak
+				run = 0
+				alley_at = rng.randi_range(5, 7)
+		rows_since += 1
+		# iki sıra sırt sırta, sonra bir arka sokak (daha geniş)
+		ring += hd + (2.0 if rows_since % 2 == 1 else 6.0)
 
 
 ## Ev yerleşimi yolun/caddenin üstüne düşmesin (yerel x, n; pay = evin yarı boyu + kaldırım)

@@ -95,7 +95,7 @@ func _raid_tick(dt: float) -> void:
 		start_raid(from)
 
 
-func _ninja_of(vid: String, i: int, lv: int, team: String) -> Enemy:
+func _ninja_of(vid: String, i: int, lv: int, team: String, look_ov := {}) -> Enemy:
 	var kind = vid if vid in ["kumo", "kiri", "iwa", "suna"] else "rogue"
 	var a = Enemy.archetype(kind, i)
 	a["respawn"] = false
@@ -115,6 +115,8 @@ func _ninja_of(vid: String, i: int, lv: int, team: String) -> Enemy:
 		L["band"] = hi["band"]
 		L["vest"] = hi["vest"]
 	a["name"] = "%s %s" % [String(Game.village(vid).get("name", vid)).trim_suffix("gakure"), "Akıncısı" if team == "enemy" else "Muhafızı"]
+	if not look_ov.is_empty():
+		a["look"] = look_ov.duplicate(true)   # savaşa katılan köy ninjası: kendi görünüşüyle
 	var e = Enemy.new()
 	e.setup(a)
 	e.team = team
@@ -170,10 +172,45 @@ func start_raid(from: String) -> void:
 	Sfx.play("roar", null, 0.7, 0.5)
 
 
+## Baskın sırasında yakındaki köy ninjaları (Chūnin/Jōnin, devriye, nöbetçi, ninja klan sakinleri) izlemez: savaşa katılır.
+## Köylü düğümü gizlenir, yerine aynı görünüşte savaşan bir müttefik çıkar; baskın bitince köylü geri gelir.
+func _raid_rally() -> void:
+	raid["rally_t"] = float(raid.get("rally_t", 0.0)) - get_process_delta_time()
+	if float(raid["rally_t"]) > 0.0:
+		return
+	raid["rally_t"] = 1.0
+	if not raid.has("rallied"):
+		raid["rallied"] = []
+	if (raid["rallied"] as Array).size() >= 12:
+		return
+	var at: Vector3 = raid["at"]
+	var lv = int(p().get("level", 1))
+	for vg in get_tree().get_nodes_in_group("talkers"):
+		if (raid["rallied"] as Array).size() >= 12:
+			break
+		if not vg is Villager or not vg.visible or vg.get("interior") or not Friends.is_ninja(vg):
+			continue
+		var gp: Vector3 = vg.global_position
+		if gp.distance_to(at) > 180.0 and (Game.player == null or gp.distance_to(Game.player.global_position) > 90.0):
+			continue
+		var lk = vg.get("look")
+		var d = _ninja_of(Progress.home(), (raid["rallied"] as Array).size(), lv + randi_range(-3, 2), "player", lk if lk is Dictionary else {})
+		d.display_name = String(vg.get("display")) if vg.get("display") else d.display_name
+		get_tree().current_scene.add_child(d)
+		d.global_position = gp
+		d.home = gp
+		d.wander_to = at
+		vg.visible = false
+		vg.process_mode = Node.PROCESS_MODE_DISABLED
+		(raid["rallied"] as Array).append(vg)
+		(raid["allies"] as Array).append(d)
+
+
 func _raid_watch(dt: float) -> void:
 	if raid.is_empty():
 		return
 	raid["t"] = float(raid["t"]) + dt
+	_raid_rally()
 	var alive = (raid["nodes"] as Array).filter(func(e): return is_instance_valid(e) and not e.is_dead())
 	for e in alive:
 		if e.target == null and Game.player and e.global_position.distance_to(Game.player.global_position) < 200.0:
@@ -185,6 +222,10 @@ func _raid_watch(dt: float) -> void:
 			if is_instance_valid(e):
 				FX.smoke_puff(e.global_position + Vector3.UP, 0.8, 10)
 				e.queue_free()
+		for vg in raid.get("rallied", []):   # savaşa katılan köy ninjaları yeniden sokakta
+			if is_instance_valid(vg):
+				vg.visible = true
+				vg.process_mode = Node.PROCESS_MODE_INHERIT
 		if p().has("waypoint") and String(p()["waypoint"][3]) == "Olay: Baskın":
 			p().erase("waypoint")
 			p()["track"] = ""

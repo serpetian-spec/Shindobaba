@@ -298,13 +298,13 @@ static func accessories(m: CharacterModel) -> void:
 static func foot_rings(foot_style: String, fp: Vector3):
 	match foot_style:
 		"cizme":
-			return [[1, fp.y + 0.215, 0.007, 0.012, 99.0], [1, fp.y + 0.02, 0.005, 0.008, 99.0]]
+			return [[1, fp.y + 0.02, 0.005, 0.008, 99.0]]   # konç bandı shader'da (ayak kemiğine bağlı yüksek halka bükülünce baldırdan fırlıyordu)
 		"yuksek_sandal":
 			return [[2, fp.z + 0.13, 0.004, 0.007, 0.075], [2, fp.z + 0.06, 0.004, 0.008, 0.11], [1, fp.y + 0.02, 0.006, 0.008, 99.0]]
 		"bilek_bot":
 			return [[1, fp.y + 0.09, 0.006, 0.01, 99.0], [1, fp.y + 0.02, 0.005, 0.008, 99.0]]
 		"diz_cizme", "zirhli_tozluk":
-			return [[1, fp.y + 0.36, 0.008, 0.013, 99.0], [1, fp.y + 0.18, 0.005, 0.009, 99.0], [1, fp.y + 0.02, 0.005, 0.008, 99.0]]
+			return [[1, fp.y + 0.02, 0.005, 0.008, 99.0]]
 		"sargili_bot":
 			return [[1, fp.y + 0.12, 0.006, 0.01, 99.0], [1, fp.y + 0.02, 0.005, 0.008, 99.0]]
 	return null
