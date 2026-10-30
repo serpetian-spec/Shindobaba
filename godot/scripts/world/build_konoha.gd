@@ -216,6 +216,9 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 
 	# ---- Uchiha Bölgesi (güneybatı) + Naka Tapınağı
 	var ux = -1020.0; var un = -640.0
+	var _tu = Time.get_ticks_msec()
+	HouseKit.ensure()
+	print("SURE sablon ", Time.get_ticks_msec() - _tu, " ms")
 	b.wall_ring_at(ux, un, 125.0, 5.0, Color(0.9, 0.88, 0.84), [[45.0, 10.0]])
 	for ring in [[95.0, 22], [62.0, 14]]:
 		for k in ring[1]:
@@ -226,7 +229,9 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 			var fo = Builder.rot(2.4, -float(b.last_house.get("d", 9.0)) * 0.5 - 0.1, a + 180.0)
 			b.disc(Vector3(hxp + fo.x, _gy(b, hxp, hnp) + 2.6, hnp + fo.y), 1.4, 0.12, Color(0.8, 0.15, 0.15), a + 180.0, 12)
 	b.yoff = _gy(b, ux, un)
+	var _tt = Time.get_ticks_msec()
 	var tm = AssetLib.temple(28.0)
+	print("SURE tapinak ", Time.get_ticks_msec() - _tt, " ms")
 	if tm != null:
 		b.pack_mesh(tm, Vector3(ux, 0, un + 4), 180.0, 1.0, 1.5)
 		b._collide(b.w(Vector3(ux, 4.0, un + 4)), Vector3(14, 8, 14), 0.0)
@@ -239,6 +244,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	for sx in [-4.6, 4.6]:
 		b.box(Vector3(ux + sx, 3.2, un - 16), Vector3(0.8, 6.4, 0.8), Color(0.8, 0.2, 0.15), 0, false)
 	b.yoff = 0.0
+	print("SURE uchiha ", Time.get_ticks_msec() - _tu, " ms")
 	_act(b, ux, un - 13, 5, "naka", "[F] Naka Tapınağı")
 	_act(b, ux + 8, un - 13, 3, "shrine", "[F] Tapınakta dua et (kısa kutsama)")
 	occupied.append([ux, un, 128, 128])

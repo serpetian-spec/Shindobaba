@@ -12,7 +12,10 @@ static var _fx_done := {}          # şelale/buhar gibi kalıcı efektler bir ke
 static func build_all(parent: Node3D) -> void:
 	for v in Game.world_info["villages"]:
 		if v["id"] == "konoha":
-			BuildKonoha.build(parent, v)
+			if VillageBake.try_load(parent, "konoha") == null:
+				var snap = VillageBake.snapshot("konoha")
+				BuildKonoha.build(parent, v)
+				VillageBake.save(parent.get_node_or_null("Konoha"), "konoha", snap)
 	for l in Game.world_info["landmarks"]:
 		match l["id"]:
 			"valley_end": valley_end(parent, l)
@@ -38,7 +41,23 @@ class VillageStream extends Node3D:
 	var _t := 0.0
 
 	func _build(node: Node3D, v: Dictionary, rec: Dictionary) -> void:
+		var id = String(v["id"])
+		var before = Interact.items.size()
+		var cached = VillageBake.try_load(node, id)
+		if cached != null:
+			rec["inter"] = Interact.items.slice(before)
+			rec["done"] = true
+			return
+		var snap = VillageBake.snapshot(id)
 		await BuildSites.build_village(node, v, rec)
+		if is_instance_valid(node):
+			# pişirme kökü: köy düğümünün çocukları tek bir kökte toplanır
+			var bake_root = Node3D.new()
+			bake_root.name = "Pisirilmis"
+			for ch in node.get_children():
+				ch.reparent(bake_root, false)
+			node.add_child(bake_root)
+			VillageBake.save(bake_root, id, snap)
 		rec["done"] = true
 
 	## Hızlı seyahat: hedef köyü hemen kurmaya başla (yükleme ekranı bunu bekler)

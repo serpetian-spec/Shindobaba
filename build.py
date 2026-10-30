@@ -22,7 +22,19 @@ if mode == 'main' and '--no-bump' not in sys.argv:
     open(ver_file, 'w').write(version)
 
 build_json = os.path.join(PROJ, 'data', 'build.json')
-json.dump({'build': mode, 'version': version}, open(build_json, 'w'))
+import hashlib
+def _world_key():
+    # godot/scripts/world/village_bake.gd key() ile aynı: res:// yolu + dosya md5, sıralı; md5 hex'in ilk 12'si
+    files = []
+    for d in ['scripts/world', 'data/world']:
+        for f in os.listdir(os.path.join(PROJ, d)):
+            if f.endswith(('.gd', '.json', '.bin', '.png')):
+                files.append('res://%s/%s' % (d, f))
+    files += ['res://scripts/actors/character_model.gd', 'res://scripts/actors/outfit_parts.gd']
+    files.sort()
+    acc = ''.join(f + hashlib.md5(open(os.path.join(PROJ, f[6:]), 'rb').read()).hexdigest() for f in files)
+    return hashlib.md5(acc.encode('utf-8')).hexdigest()[:12]
+json.dump({'build': mode, 'version': version, 'world': _world_key()}, open(build_json, 'w'))
 
 name = 'ShinobiYolu_TEST' if mode == 'test' else 'ShinobiYolu'
 out_dir = os.path.join(ROOT, 'Test' if mode == 'test' else 'Oyun')

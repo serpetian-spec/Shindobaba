@@ -234,7 +234,7 @@ static func _make(rng: RandomNumberGenerator, i: int) -> Dictionary:
 		cols.append([Vector3(-w * 0.5 - aw * 0.5 + 0.1, (0.5 + ah + 0.6) * 0.5, d * 0.1), Vector3(aw, 0.5 + ah + 0.6, ad), 0.0])
 	return {"walls": walls.build(), "roof": roof.build(), "detail": det.build(), "w": w + annex_w * 2.0, "d": d, "h": h, "roof_top": roof_top, "cols": cols,
 		"annex_w": annex_w * 2.0, "arch": arch,   # yerleşim ayak izi tek yandaki ek binayı da simetrik kapsasın
-		"roof_shape": (rcm.build() as ArrayMesh).create_convex_shape(true, false)}
+		"roof_shape": _hull(rcm)}
 
 
 ## Konoha simgesi: silindir kule (kat kat yuvarlak, turuncu çizgili kiremit çatı, üstte küçük ikinci kat + tepe) ya da
@@ -302,9 +302,23 @@ static func _make_round(rng: RandomNumberGenerator, i: int, dome: bool) -> Dicti
 		var c2 = MB.new()
 		c2.add("cyl", Vector3(0, h + D * 0.22 * 0.6 + 1.4, 0), Vector3(D * 0.5, 2.8, D * 0.5), white, Vector3.ZERO, 10)
 		c2.add("cone", Vector3(0, h + D * 0.22 * 0.6 + 2.8 + D * 0.1, 0), Vector3(D * 0.5 + 1.6, D * 0.2, D * 0.5 + 1.6), white, Vector3.ZERO, 10)
-		extra.append((c2.build() as ArrayMesh).create_convex_shape(true, false))
+		extra.append(_hull(c2))
 	return {"walls": walls.build(), "roof": roof.build(), "detail": det.build(), "w": D, "d": D, "h": h, "roof_top": roof_top, "cols": [],
-		"roof_shape": (rcm.build() as ArrayMesh).create_convex_shape(true, false), "body_shape": cyl, "extra_shapes": extra, "arch": 6 if dome else 5}
+		"roof_shape": _hull(rcm), "body_shape": cyl, "extra_shapes": extra, "arch": 6 if dome else 5}
+
+
+## Hızlı dışbükey çarpışma: köşe noktaları doğrudan (create_convex_shape'in temizleme/sadeleştirmesi 70 şablonda ~3 sn sürüyordu)
+static func _hull(mb: MB) -> ConvexPolygonShape3D:
+	var seen := {}
+	var pts := PackedVector3Array()
+	for v in mb.verts:
+		var k = Vector3i(roundi(v.x * 20.0), roundi(v.y * 20.0), roundi(v.z * 20.0))
+		if not seen.has(k):
+			seen[k] = true
+			pts.append(v)
+	var sh = ConvexPolygonShape3D.new()
+	sh.points = pts
+	return sh
 
 
 const CLOTHES := [Color(0.85, 0.3, 0.25), Color(0.95, 0.95, 0.92), Color(0.3, 0.45, 0.75), Color(0.95, 0.8, 0.3), Color(0.4, 0.62, 0.4)]
