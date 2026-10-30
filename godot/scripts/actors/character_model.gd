@@ -575,6 +575,21 @@ func anim_length(key: String) -> float:
 	return anim.get_animation(full).length if anim.has_animation(full) else 0.5
 
 
+## Yürüme/koşu döngüsünde ayakların yere bastığı ilerleme oranları (tests/dbg_footphase.gd ile ölçüldü)
+const FOOT_PHASES := {"walk": [0.05, 0.55], "jog": [0.0, 0.53], "run": [0.0, 0.5]}
+
+
+## Önceki karedeki ilerlemeden bu kareye bir ayak teması geçildi mi
+func footstep_cross(prev: float) -> bool:
+	if prev < 0.0 or not FOOT_PHASES.has(current):
+		return false
+	var now = anim_progress()
+	for ph in FOOT_PHASES[current]:
+		if (now >= prev and prev < ph and now >= ph) or (now < prev and (prev < ph or now >= ph)):
+			return true
+	return false
+
+
 func anim_progress() -> float:
 	if anim.current_animation == "":
 		return 1.0

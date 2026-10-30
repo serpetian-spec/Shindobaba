@@ -593,21 +593,17 @@ func _exit_tree() -> void:
 		attack_tokens = maxi(0, attack_tokens - 1)
 
 
-var _step_d := 0.0
-var _last_fp := Vector3.ZERO
+var _step_ph := -1.0
 
 
-## Yakındaki (25 m) düşmanın ayak sesleri: koşarken daha seyrek ve tok
+## Yakındaki (25 m) düşmanın ayak sesleri: animasyonda ayak yere bastığında
 func _footsteps(_dt: float) -> void:
-	var gp = global_position
-	var hv = Vector2(gp.x - _last_fp.x, gp.z - _last_fp.z).length()
-	_last_fp = gp
-	if not grounded or hv > 3.0 or Game.player == null or gp.distance_to(Game.player.global_position) > 25.0:
+	if model == null or not grounded or Game.player == null or global_position.distance_to(Game.player.global_position) > 25.0:
+		_step_ph = -1.0
 		return
-	_step_d += hv
-	if _step_d > 2.2:
-		_step_d = 0.0
-		Sfx.play(Game.step_sound(gp), gp, randf_range(0.85, 1.05), 0.35)
+	if model.footstep_cross(_step_ph):
+		Sfx.play(Game.step_sound(global_position), global_position, randf_range(0.88, 1.05), 0.2)
+	_step_ph = model.anim_progress() if model.current in CharacterModel.FOOT_PHASES else -1.0
 
 
 ## Zemin: iç mekânda (mağara/in, dünyanın çok üstünde) arazi değil bulunduğu kat
