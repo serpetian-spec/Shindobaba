@@ -273,6 +273,31 @@ func _generate(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 	holder["trees"] = trees
 
 
+var _trunk_cache := {}   # parça -> ağaç listesi (görev/olay noktası seçimi için; parça kurulu olmasa da deterministik üretilir)
+## (x, z) çevresinde pad mesafede ağaç gövdesi var mı (dev orman ağaçlarının kök yayılımı dahil)
+func trunk_near(x: float, z: float, pad := 2.0) -> bool:
+	for dz in range(-1, 2):
+		for dx in range(-1, 2):
+			var key = Vector2i(floori((x + dx * 30.0) / CH), floori((z + dz * 30.0) / CH))
+			var trees: Array
+			if chunks.has(key) and chunks[key]["detail"]:
+				trees = chunks[key]["trees"]
+			else:
+				if not _trunk_cache.has(key):
+					var h := {}
+					_generate(key, true, h)
+					_trunk_cache[key] = h.get("trees", [])
+				trees = _trunk_cache[key]
+			for tr in trees:
+				var t: int = int(tr[5])
+				var r: float = float(radii.get(t, 0.0)) * (float(tr[3]) if t != 9 else 1.0)
+				if t in [9, 5]:
+					r = r * 3.2 + 1.5   # dev ağaç kökleri gövdeden dışarı yayılır
+				if Vector2(float(tr[0]) - x, float(tr[2]) - z).length() < r + pad:
+					return true
+	return false
+
+
 func _install(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 	if not holder.has("buf"):
 		return

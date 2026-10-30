@@ -1085,6 +1085,8 @@ static func open_ground(p: Vector3, max_r := 60.0) -> Vector3:
 		var q = p + Vector3(cos(a) * r, 0, sin(a) * r)
 		var gh = Game.ground_height(q.x, q.z)
 		var ok = not Game.in_village_wall(q.x, q.z)  # Suna/Kiri kayalık suru: içine/üstüne görev noktası düşmesin
+		if ok and Game.world and Game.world.vegetation and Game.world.vegetation.trunk_near(q.x, q.z, 2.5):
+			ok = false   # ağaç gövdesinin içine görev / düşman / NPC konmasın
 		if ok and space:
 			# yukarıdan aşağı ışın: zeminden yüksek bir şeye çarparsa (bina, çatı, duvar) burası dolu
 			var hit = space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(q.x, gh + 60.0, q.z), Vector3(q.x, gh - 1.0, q.z), 1))
@@ -1199,6 +1201,14 @@ func _path(a: Vector3, b: Vector3, step: float) -> Array:
 	for i in n + 1:
 		var t = float(i) / n
 		var p = a.lerp(b, t) + side * sin(t * 9.0 + ph) * minf(6.0, d * 0.02) * (1.0 - absf(t * 2.0 - 1.0))
+		# iz ağaç gövdesinin içine düşmesin: yana kaydır (dev orman ağaçları)
+		var veg = Game.world.vegetation if Game.world else null
+		if veg:
+			for o in [0.0, 4.0, -4.0, 8.0, -8.0, 12.0, -12.0]:
+				var q = p + side * o
+				if not veg.trunk_near(q.x, q.z, 1.0):
+					p = q
+					break
 		p.y = Game.ground_height(p.x, p.z)
 		out.append(p)
 	return out
@@ -2280,7 +2290,7 @@ func _tick_track(s: Dictionary) -> void:
 		var pp = Vector2(pl.global_position.x, pl.global_position.z)
 		for k in range(mini(idx + 10, prints.size()) - 1, idx - 1, -1):
 			var q: Vector3 = prints[k]
-			if pp.distance_to(Vector2(q.x, q.z)) < 9.0:
+			if pp.distance_to(Vector2(q.x, q.z)) < 12.0:
 				st["idx"] = k + 1
 				break
 		var last: Vector3 = prints[prints.size() - 1]

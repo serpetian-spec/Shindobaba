@@ -711,7 +711,7 @@ func _life_event() -> void:
 			log_event(f, "%s oldu" % RANKS[rank + 1])
 			f["news"] = "Duydun mu? Artık %s oldum! Yeleği giyince insan bir tuhaf oluyor." % RANKS[rank + 1]
 			Hud.msg("Haber: %s %s oldu!" % [f["name"], RANKS[rank + 1]], Color(0.6, 1.0, 0.75), 5.0)
-		elif r < defect_p + 0.42 and not spouse and rank >= 1 and romance_of(id) == "" and not likes_you(f):
+		elif r < defect_p + 0.33 and randf() < 0.4 and not spouse and rank >= 1 and romance_of(id) == "" and not likes_you(f):   # evlilik: arada bir (eskiden olayların %12si)
 			var fem = String(f["look"].get("gender", "m")) == "f"
 			# kimi zaman tanıdığın başka bir dostla evlenir (ikisi de bekâr, karşı cins, aynı köy, sana gönlü olmayan)
 			var mates = fs.keys().filter(func(k): return k != id and String(fs[k].get("status", "")) == "" and int(fs[k].get("rank", 0)) >= 1 				and String(fs[k]["look"].get("gender", "m")) != String(f["look"].get("gender", "m")) and String(fs[k].get("village", "")) == String(f.get("village", "")) 				and romance_of(k) == "" and not likes_you(fs[k]) and not (fs[k].get("family", []) as Array).any(func(m): return String(m["rel"]) in ["Karısı", "Kocası"]))
