@@ -420,6 +420,16 @@ static func _street_houses(b: Builder, v: Dictionary, rng: RandomNumberGenerator
 		var dir = (e - a) / L
 		var nrm = Vector2(-dir.y, dir.x)
 		var dc0 = ((a + e) * 0.5).length()
+		# cadde üstü fener dizileri (her ~32 m'de karşıdan karşıya) + gerçek ışık noktası
+		var lt = 16.0
+		while lt < L - 8.0 and dc0 < 1150.0:
+			var lp = a + dir * lt
+			lt += 32.0
+			if lp.length() > R - 40.0 or lp.y > cliff_n - 45.0:
+				continue
+			CityDecor.lantern_string(decor, _gp(b, lp.x + nrm.x * 8.5, lp.y + nrm.y * 8.5), _gp(b, lp.x - nrm.x * 8.5, lp.y - nrm.y * 8.5), 6,
+				[Color(0.95, 0.3, 0.25), Color(1.0, 0.92, 0.75), Color(0.95, 0.3, 0.25)])
+			Lights.add(_gp(b, lp.x, lp.y) + Vector3.UP * 5.6)
 		var rows = 2 if dc0 > 1100.0 else (3 if dc0 > 650.0 else 4)
 		for sd in [-1.0, 1.0]:
 			for row in rows:
@@ -470,6 +480,8 @@ static func _pick_template(rng: RandomNumberGenerator, front: bool) -> int:
 		var t: Dictionary = HouseKit.templates[ti]
 		if float(t["d"]) > 15.2:
 			continue
+		if int(t.get("arch", 0)) >= 5 and rng.randf() < 0.55:
+			continue   # yuvarlak kuleler simge gibi seyrek kalsın
 		var h = float(t["h"])
 		if front and h > 19.0 and rng.randf() < 0.5:
 			continue   # cadde önü biraz daha alçak
@@ -514,14 +526,26 @@ static func _fill_blocks(b: Builder, rng: RandomNumberGenerator, occupied: Array
 			if ix % 4 == 0 or iz % 5 == 0:
 				continue  # ara sokak
 			var d = Vector2(x, n).length()
-			var prob = 0.95 if d < 700.0 else (0.85 if d < 1100.0 else 0.65)
-			if rng.randf() > prob or d > R - 40.0:
+			var prob = 0.8 if d < 700.0 else (0.72 if d < 1100.0 else 0.55)
+			if d > R - 40.0:
+				continue
+			if rng.randf() > prob:
+				# boş kalan blok hücresi: avlu ağaç kümesi (bloklar arası yeşillik; ızgara gibi çıplak durmasın)
+				if _free(x, n, occupied, 2.0) and not _on_road(b, x, n, 9.0):
+					var wq0 = b.w(Vector3(x, 0, n))
+					if b.area_free(Vector2(wq0.x, wq0.z), 6.0):
+						for k in rng.randi_range(2, 4):
+							var tx = x + rng.randf_range(-5.0, 5.0)
+							var tn = n + rng.randf_range(-5.0, 5.0)
+							b.tree(tx, tn, rng.randf_range(0.9, 1.4), rng, _gy(b, tx, tn))
 				continue
 			if not _free(x, n, occupied, 3.0) or _on_road(b, x, n, 10.0):
 				continue
 			var ti = -1
 			for k in 8:
 				var tk = rng.randi() % HouseKit.templates.size()
+				if int(HouseKit.templates[tk].get("arch", 0)) >= 5 and rng.randf() < 0.7:
+					continue   # yuvarlak kule / kubbe blok içinde seyrek (her yer kule olunca karmaşık duruyordu)
 				if float(HouseKit.templates[tk]["w"]) <= step - 0.6 and float(HouseKit.templates[tk]["d"]) <= step - 0.6:
 					ti = tk
 					break

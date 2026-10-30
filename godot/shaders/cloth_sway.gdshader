@@ -6,6 +6,7 @@ uniform float amp = 0.25;        // en alttaki salınım (m)
 uniform float hang = 2.0;        // asılı uzunluk (m): bu derinlikte tam salınım
 uniform float speed = 1.7;
 uniform float glow = 0.0;        // 0..1 gece parıltısı (vertex rengi ile)
+global uniform float g_night;   // Environment her kare ayarlar (pişirilmiş köylerde de çalışır)
 uniform float glow_only_alpha = 0.0; // 1: sadece alfası 1 olan köşeler parlar (fener gövdesi)
 
 varying float g_mask;
@@ -26,7 +27,7 @@ void fragment() {
 	c = mix(c / 12.92, pow((c + 0.055) / 1.055, vec3(2.4)), step(0.04045, c));
 	ALBEDO = c;
 	ROUGHNESS = 0.9;
-	EMISSION = c * glow * g_mask * 1.6;
+	EMISSION = c * max(glow, g_night * 1.6) * g_mask * 1.6;
 }
 
 void light() {

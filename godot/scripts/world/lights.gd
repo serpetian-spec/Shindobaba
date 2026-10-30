@@ -11,7 +11,7 @@ func add(p: Vector3) -> void:
 
 
 func _ready() -> void:
-	for i in 16:
+	for i in 32:   # cadde fener dizileriyle birlikte daha çok ışık havuzu
 		var l = OmniLight3D.new()
 		l.light_color = Color(1.0, 0.68, 0.38)
 		l.light_energy = 0.0

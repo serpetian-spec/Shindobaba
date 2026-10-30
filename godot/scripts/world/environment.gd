@@ -262,7 +262,7 @@ func _process(dt: float) -> void:
 	sky_mat.set_shader_parameter("horizon", hor)
 	sky_mat.set_shader_parameter("sun_tint", p[2])
 	sky_mat.set_shader_parameter("night", night)
-	Props.toon().set_shader_parameter("night_glow", smoothstep(0.35, 0.9, night))
+	RenderingServer.global_shader_parameter_set("g_night", smoothstep(0.35, 0.9, night))   # toon (pencere/fener) + fener dizileri
 	sky_mat.set_shader_parameter("overcast", overcast)
 
 	# efekt uniform'ları

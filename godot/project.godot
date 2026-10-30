@@ -45,3 +45,10 @@ TailedBeasts="*res://scripts/core/tailed_beasts.gd"
 WorldDamage="*res://scripts/world/world_damage.gd"
 ClanWorld="*res://scripts/core/clan_world.gd"
 Encounters="*res://scripts/core/world_encounters.gd"
+
+[shader_globals]
+
+g_night={
+"type": "float",
+"value": 0.0
+}
