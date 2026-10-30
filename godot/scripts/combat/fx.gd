@@ -252,7 +252,7 @@ func hit_spark(pos: Vector3, col := Color(1.0, 0.85, 0.4), s := 1.0) -> void:
 
 func impact(pos: Vector3, col: Color, s := 1.0) -> void:
 	hit_spark(pos, col, s * 1.3)
-	var g = Vector3(pos.x, Game.ground_height(pos.x, pos.z) + 0.1, pos.z)
+	var g = Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z) + 0.1, pos.z)
 	VFX.shockwave(g, col, 7.0 * s, 0.45)
 	dust(g, 1.4 * s)
 	if s >= 1.2:

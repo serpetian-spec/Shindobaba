@@ -568,6 +568,8 @@ func on_player_died() -> void:
 	Hud.banner("YENİLDİN", "Sığınağında, ateşin başında uyanıyorsun..." if rogue else "Hastanede uyanıyorsun...", Color(0.9, 0.3, 0.3))
 	var pr = p()
 	pr["ryo"] = int(int(pr["ryo"]) * 0.9)
+	if Interiors.inst and Interiors.inst.inside != "":
+		Interiors.inst.abort()   # içeride (mağara/in) öldün: oda kapanır, kapıya atılmazsın; düşman inde seni bekler
 	get_tree().create_timer(2.5).timeout.connect(func():
 		# kaçak köy hastanesinde doğamaz: sığınağında uyanır
 		var pos = Missions.open_ground(Orgs.hideout_pos() + Vector3(0, 0, 6), 20.0) if Orgs.is_rogue() else _hospital_pos()

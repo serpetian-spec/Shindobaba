@@ -148,6 +148,9 @@ func attack() -> void:
 		return
 	if action != "" and action != "guard":
 		return
+	var ca = p.get_node_or_null("CastAnim")
+	if ca:
+		ca.finish()   # jutsunun bitiş pozu sürerken vurulursa iki poz üst üste binip kollar takılıyordu
 	if not p.grounded and p.wall_n == Vector3.ZERO:
 		_air_attack()
 		return

@@ -125,6 +125,17 @@ func exit() -> void:
 	busy = false
 
 
+## Işınlamadan odayı kapat (oyuncu öldü / başka yere taşındı)
+func abort() -> void:
+	var was = inside
+	_clear()
+	inside = ""
+	busy = false
+	_rain(true)
+	if was.begins_with("lair_"):
+		Missions.lair_reset()
+
+
 func _exit_floor(p: Vector3) -> Vector3:
 	var space = Game.player.get_world_3d().direct_space_state
 	var gh = Game.ground_height(p.x, p.z)

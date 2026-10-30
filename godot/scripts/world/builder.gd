@@ -466,7 +466,7 @@ func tree(x: float, n: float, s: float, rng: RandomNumberGenerator, y := 0.0) ->
 	var tm = _tree_mesh
 	if tm != null:
 		pack_mesh(tm, Vector3(x, y, n), rng.randf() * 360.0, s * rng.randf_range(0.85, 1.15), 1.0)
-		add_solid(w(Vector3(x, 0, n)), 1.6 * s, 1.6 * s, 0.0)
+		add_solid(w(Vector3(x, 0, n)), 2.6 * s, 2.6 * s, 0.0)   # yerleşim için taç genişliği (gövde değil): sonradan konan evlerin içinden ağaç geçmesin
 		_collide_cyl(w(Vector3(x, y + 2.6 * s, n)), 0.35 * s, 5.2 * s)
 		return
 	cyl(Vector3(x, y + 2.6 * s, n), 0.7 * s, 5.2 * s, Color(0.42, 0.29, 0.18), true, 7)

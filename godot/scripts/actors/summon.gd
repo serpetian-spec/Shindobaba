@@ -219,7 +219,7 @@ func _ai(dt: float) -> void:
 	velocity.x = wish.x
 	velocity.z = wish.z
 	if fly:
-		var gh = Game.ground_height(global_position.x, global_position.z)
+		var gh = Game.jutsu_floor(global_position.x, global_position.z)
 		var want = gh + (2.0 + height * 0.6 if tgt == null else 1.0 + height * 0.3)
 		velocity.y = clampf((want - global_position.y) * 2.0, -10.0, 10.0)
 	move_and_slide()
@@ -229,7 +229,7 @@ func _ai(dt: float) -> void:
 func _ground() -> void:
 	if def.get("fly", false) and not mounted:
 		return
-	var g = Game.ground_height(global_position.x, global_position.z)
+	var g = Game.jutsu_floor(global_position.x, global_position.z)
 	if global_position.y < g or (is_on_floor() == false and global_position.y - g < 0.3):
 		global_position.y = g
 		velocity.y = 0
@@ -534,7 +534,7 @@ func _toad_oil(t: Node3D) -> void:
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	pool.material_override = mat
 	get_tree().current_scene.add_child(pool)
-	pool.global_position = Vector3(at.x, Game.ground_height(at.x, at.z) + 0.04, at.z)
+	pool.global_position = Vector3(at.x, Game.jutsu_floor(at.x, at.z) + 0.04, at.z)
 	var tw = pool.create_tween()
 	for k in 12:
 		tw.tween_callback(func():
@@ -853,7 +853,7 @@ func _ride(dt: float) -> void:
 		elif Input.is_action_pressed("leap"):
 			vy = -9.0
 		velocity.y = vy
-		var gh = Game.ground_height(global_position.x, global_position.z)
+		var gh = Game.jutsu_floor(global_position.x, global_position.z)
 		if global_position.y < gh + 1.0:
 			global_position.y = gh + 1.0
 	else:

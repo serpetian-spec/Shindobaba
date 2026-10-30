@@ -121,7 +121,7 @@ static func _dash_slash(e: Enemy, t: Node3D) -> void:
 	e.facing = atan2(-dir.x, -dir.z)
 	FX.speed_lines(e.global_position + Vector3.UP, dir)
 	var end = t.global_position - dir * 1.4
-	end.y = Game.ground_height(end.x, end.z)
+	end.y = Game.jutsu_floor(end.x, end.z)
 	e.global_position = end
 	e.model.play("slash_c", 0.05, 1.5, true)
 	FX.ring(end + Vector3.UP * 1.1 + dir, Color(0.9, 0.95, 1.0), 3.5, 0.25, false, dir)
@@ -159,7 +159,7 @@ static func _illusion(e: Enemy, t: Node3D, p2: bool) -> void:
 		e.get_parent().add_child(c)
 		var ang = TAU * k / 3.0 + randf()
 		var pp = t.global_position + Vector3(cos(ang), 0, sin(ang)) * 5.0
-		pp.y = Game.ground_height(pp.x, pp.z)
+		pp.y = Game.jutsu_floor(pp.x, pp.z)
 		c.global_position = pp
 		c.target = t
 		c.state = "chase"
@@ -170,7 +170,7 @@ static func _illusion(e: Enemy, t: Node3D, p2: bool) -> void:
 				c.queue_free())
 	# kendisi yer değiştirir
 	var bp = t.global_position + Vector3(randf_range(-8, 8), 0, randf_range(-8, 8))
-	bp.y = Game.ground_height(bp.x, bp.z)
+	bp.y = Game.jutsu_floor(bp.x, bp.z)
 	FX.smoke_puff(e.global_position + Vector3.UP, 1.0, 14)
 	e.global_position = bp
 
@@ -199,7 +199,7 @@ static func _tag_trap(e: Enemy, t: Node3D, n: int) -> void:
 	for k in n:
 		var ang = TAU * k / n
 		var q = c0 + Vector3(cos(ang), 0, sin(ang)) * 3.0
-		q.y = Game.ground_height(q.x, q.z)
+		q.y = Game.jutsu_floor(q.x, q.z)
 		FX.ring(q + Vector3.UP * 0.1, Color(1, 0.6, 0.2), 1.6, 1.2)
 		e.get_tree().create_timer(1.2).timeout.connect(func():
 			if not is_instance_valid(e):

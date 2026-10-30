@@ -238,6 +238,15 @@ func ground_height(x: float, z: float, on_water := true) -> float:
 	return maxf(h, 0.0) if on_water else h
 
 
+## Jutsu/efekt zemini: iç mekândayken (mağara, dükkân — dünyanın 1500 m üstünde) oda zemini, yoksa arazi.
+## (Yer jutsuları mağarada 1500 m aşağıda patlıyordu.) Yalnız savaş/efekt kodu kullanır; NPC yürüyüşü ground_height ile kalır.
+func jutsu_floor(x: float, z: float) -> float:
+	var it = Interiors.inst
+	if it and it.inside != "" and Vector2(x - it.origin.x, z - it.origin.z).length() < 50.0:
+		return it.origin.y
+	return ground_height(x, z)
+
+
 func biome_at(x: float, z: float) -> int:
 	var m := Vector2(x, -z)
 	for v in world_info["villages"]:

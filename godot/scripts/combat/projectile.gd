@@ -223,7 +223,7 @@ static func caltrops(who: Node3D, at: Vector3, dur: float) -> void:
 	var tree = who.get_tree() if is_instance_valid(who) else Engine.get_main_loop()
 	var root = Node3D.new()
 	tree.current_scene.add_child(root)
-	at.y = Game.ground_height(at.x, at.z)
+	at.y = Game.jutsu_floor(at.x, at.z)
 	root.global_position = at
 	var b = MB.new()
 	for k in 26:

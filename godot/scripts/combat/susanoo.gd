@@ -430,7 +430,7 @@ func swipe(owner_f: Node3D, dir: Vector3) -> void:
 			Combat.hit_zone(owner_f, gp, dir, reach, 75.0, H * 1.1, info)
 			for k in 3:
 				var q = gp + dir.rotated(Vector3.UP, deg_to_rad((k - 1) * 40.0)) * reach * 0.6
-				q.y = Game.ground_height(q.x, q.z)
+				q.y = Game.jutsu_floor(q.x, q.z)
 				FX.impact(q + Vector3.UP * 0.5, color(), 0.8 + tier * 0.3)
 			if tier >= 3:
 				FX.ring(gp + Vector3.UP * 0.4 + dir * reach * 0.4, color(), reach * 0.6, 0.35)
@@ -498,7 +498,7 @@ func tech(owner_f: Node3D, i: int, aim: Vector3) -> void:
 				var gp = owner_f.global_position
 				for k in 14:
 					var q = gp + dir * (H * 0.3 + k * H * 0.12)
-					q.y = Game.ground_height(q.x, q.z)
+					q.y = Game.jutsu_floor(q.x, q.z)
 					get_tree().create_timer(k * 0.04).timeout.connect(func():
 						FX.impact(q + Vector3.UP * 0.5, color(), H * 0.05)
 						FX.ring(q + Vector3.UP * 0.3, color(), H * 0.16, 0.5)
@@ -510,7 +510,7 @@ func tech(owner_f: Node3D, i: int, aim: Vector3) -> void:
 		2:   # Gök okları: göğe çekilen yaydan yükselen oklar hedef bölgeye yağmur gibi iner
 			body.play("throw", 0.05, 0.8, true)
 			var zone = aim
-			zone.y = Game.ground_height(zone.x, zone.z)
+			zone.y = Game.jutsu_floor(zone.x, zone.z)
 			for k in 18:
 				var off = Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)) * (6.0 + H * 0.12)
 				var land = zone + off

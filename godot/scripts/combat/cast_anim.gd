@@ -305,6 +305,10 @@ func _process(dt: float) -> void:
 		if not released:
 			released = true
 			_on_release()
+		# salınım sonrası başka eyleme geçildiyse (saldırı, blok, darbe) poz hemen bırakılır
+		if t > release_t + 0.05 and ((is_player and f.combat != null and f.combat.action not in ["", "cast"]) or (not is_player and "state" in f and f.state in ["hitstun", "knockdown", "attack", "dodge", "guard"])):
+			finish()
+			return
 		var k = clampf((t - release_t) / 0.08, 0.0, 1.0)
 		pose = _blend(_style_pose("wind"), _style_pose("rel"), k)
 		if t >= total_t:

@@ -372,7 +372,7 @@ static func cracks(pos: Vector3, size := 4.0, col := Color(0.12, 0.09, 0.07, 0.9
 	var mi = _card(2, col, col, float(randi_range(6, 9)), false)
 	scene().add_child(mi)
 	_track(mi)
-	var g = Game.ground_height(pos.x, pos.z) + 0.06
+	var g = Game.jutsu_floor(pos.x, pos.z) + 0.06
 	mi.global_transform = Transform3D(Basis(Vector3.RIGHT, -PI * 0.5).rotated(Vector3.UP, randf() * TAU), Vector3(pos.x, g, pos.z))
 	mi.scale = Vector3.ONE * size
 	var m: ShaderMaterial = mi.material_override
@@ -445,7 +445,7 @@ static func embers(pos: Vector3, col := Color(1.0, 0.6, 0.15), n := 24, speed :=
 static func _splash(pos: Vector3, size := 2.0) -> void:
 	if busy():
 		return
-	var g = Game.ground_height(pos.x, pos.z)
+	var g = Game.jutsu_floor(pos.x, pos.z)
 	var base = Vector3(pos.x, maxf(g, pos.y - size), pos.z)
 	var cm = CylinderMesh.new()
 	cm.top_radius = 1.0; cm.bottom_radius = 0.55; cm.height = 1.0; cm.radial_segments = 20; cm.rings = 1
@@ -582,7 +582,7 @@ static func _explosion(pos: Vector3, s := 1.0, col := Color(1.0, 0.55, 0.15)) ->
 			"colors": [Color(0.26, 0.21, 0.18, 0.0), Color(0.24, 0.2, 0.17, 0.95), Color(0.32, 0.28, 0.25, 0.7), Color(0.35, 0.31, 0.28, 0)]}))
 	embers(pos, pr[2], int(28 * s), 22.0 * s, 1.0)
 	star(pos, pr[1], 4.5 * s, 0.2)
-	var g = Vector3(pos.x, Game.ground_height(pos.x, pos.z) + 0.12, pos.z)
+	var g = Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z) + 0.12, pos.z)
 	if pos.y - g.y < 3.0 * s:
 		shockwave(g, pr[2].lightened(0.2), 14.0 * s, 0.5)
 		smoke_ring(g + Vector3.UP * 0.3, 2.5 * s, Color(0.36, 0.32, 0.3))
@@ -624,7 +624,7 @@ static func _black_smolder(pos: Vector3, size := 2.0, dur := 6.0) -> void:
 	m.set_shader_parameter("tongue", 0.6)
 	var mi = _mi(_sphere(0.5, 20, 8), m)
 	scene().add_child(mi)
-	mi.global_position = Vector3(pos.x, Game.ground_height(pos.x, pos.z), pos.z)
+	mi.global_position = Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z), pos.z)
 	mi.scale = Vector3(size * 2.0, size * 0.5, size * 2.0)
 	cracks(pos, size * 2.2, Color(0.04, 0.0, 0.05, 0.95), dur + 2.0)
 	var tw = mi.create_tween()
@@ -740,7 +740,7 @@ static func black_smolder(pos: Vector3, size := 2.0, dur := 6.0) -> void:
 static func release(c: Node3D, origin: Vector3, col: Color, g: float, tier: int, big := true) -> void:
 	var ep = epic
 	epic = 1.0
-	var feet = Vector3(c.global_position.x, Game.ground_height(c.global_position.x, c.global_position.z) + 0.08, c.global_position.z)
+	var feet = Vector3(c.global_position.x, Game.jutsu_floor(c.global_position.x, c.global_position.z) + 0.08, c.global_position.z)
 	star(origin, col.lightened(0.35), 1.2 + 1.1 * g, 0.14)
 	shockwave(feet, col.lightened(0.2), 3.0 + 3.5 * g, 0.35)
 	if tier >= 4:
@@ -805,7 +805,7 @@ static func gather(pos: Vector3, col: Color, g: float) -> void:
 static func linger(pos: Vector3, el: String, col: Color, g: float, dur := 3.0) -> void:
 	if busy() or g < 1.1:
 		return
-	var gp = Vector3(pos.x, Game.ground_height(pos.x, pos.z), pos.z)
+	var gp = Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z), pos.z)
 	if pos.y - gp.y > 4.0:
 		return
 	var root = Node3D.new()

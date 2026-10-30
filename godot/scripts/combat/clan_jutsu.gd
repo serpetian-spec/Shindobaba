@@ -92,7 +92,7 @@ func J() -> Node:
 
 
 func gp(p: Vector3) -> Vector3:
-	return Vector3(p.x, Game.ground_height(p.x, p.z), p.z)
+	return Vector3(p.x, Game.jutsu_floor(p.x, p.z), p.z)
 
 
 func mult(c: Node3D) -> float:
@@ -3110,7 +3110,7 @@ func c_ikazuchi_koga(c: Node3D, t: Node3D) -> void:
 	pr.on_tick = func(p, dt):
 		st0["t"] += dt
 		p.global_position += side * cos(st0["t"] * 10.0) * 0.45
-		p.global_position.y = Game.ground_height(p.global_position.x, p.global_position.z) + 0.9
+		p.global_position.y = Game.jutsu_floor(p.global_position.x, p.global_position.z) + 0.9
 	Sfx.play("thunder", c.global_position, 1.5, 0.6)
 
 
@@ -3626,7 +3626,7 @@ func c_katon_goka_mekkyaku(c: Node3D, t: Node3D) -> void:
 		for n in cols.size():
 			var u = (n - 7) / 7.0
 			var pp = cen + side * u * w * 0.5 - d * absf(u) * 3.0
-			pp.y = Game.ground_height(pp.x, pp.z)
+			pp.y = Game.jutsu_floor(pp.x, pp.z)
 			var hh = h * (1.0 - absf(u) * 0.35) * (0.85 + 0.15 * sin(i * 0.7 + n))
 			cols[n].global_position = pp + Vector3.UP * hh * 0.5
 			cols[n].scale = Vector3(2.2, hh, 2.2)

@@ -3983,7 +3983,7 @@ func _etrail(pr: Projectile, el: String, col: Color, size: float) -> void:
 
 ## Elemente özel çarpma (s: ölçek)
 func impact_fx(el: String, col: Color, at: Vector3, s := 1.0) -> void:
-	var g = Vector3(at.x, Game.ground_height(at.x, at.z), at.z)
+	var g = Vector3(at.x, Game.jutsu_floor(at.x, at.z), at.z)
 	var near_ground = at.y - g.y < 2.5
 	VFX.star(at, col.lightened(0.4), 2.2 * s, 0.18)
 	VFX.shockwave(at, col, 5.0 * s, 0.4, false, Vector3.UP)

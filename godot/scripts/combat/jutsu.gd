@@ -184,7 +184,7 @@ func j_katon_goukakyuu(c: Node3D, t: Node3D) -> void:
 		else:
 			p.vel = p.vel.move_toward(dir * 24.0, dt * 40.0)
 		# top yerin üstünde yuvarlansın (merkez görsel yarıçapın yarısı kadar yukarıda)
-		var gy = Game.ground_height(p.global_position.x, p.global_position.z)
+		var gy = Game.jutsu_floor(p.global_position.x, p.global_position.z)
 		p.global_position.y = lerpf(p.global_position.y, gy + 2.2 * g, minf(1.0, dt * 3.0))
 		st["scar"] -= dt
 		if st["scar"] <= 0.0 and st["age"] > 0.3:
@@ -196,7 +196,7 @@ func j_katon_goukakyuu(c: Node3D, t: Node3D) -> void:
 		var ge = VFX.epic
 		VFX.explosion(pos, 1.3, Color(1.0, 0.5, 0.1))
 		# göğe yükselen ateş sütunu + kalıcı alevler
-		var gp = Vector3(pos.x, Game.ground_height(pos.x, pos.z), pos.z)
+		var gp = Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z), pos.z)
 		var cm = CylinderMesh.new()
 		cm.top_radius = 0.35; cm.bottom_radius = 0.5; cm.height = 1.0; cm.radial_segments = 20; cm.rings = 6
 		cm.cap_top = false; cm.cap_bottom = false
@@ -535,7 +535,7 @@ func j_fuuton_rasenshuriken(c: Node3D, t: Node3D) -> void:
 		dome.global_position = pos
 		dome.scale = Vector3.ONE * 2.0
 		VFX.star(pos, Color(0.7, 0.9, 1.0), 9.0, 0.25)
-		VFX.shockwave(Vector3(pos.x, Game.ground_height(pos.x, pos.z) + 0.1, pos.z), Color(0.8, 0.95, 1.0), 26.0, 0.6)
+		VFX.shockwave(Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z) + 0.1, pos.z), Color(0.8, 0.95, 1.0), 26.0, 0.6)
 		VFX.cracks(pos, 8.0)
 		VFX.debris(pos, Color(0.5, 0.42, 0.32), 20, 16.0, 0.5)
 		VFX.screen_lines(0.6, 1.0)
@@ -561,7 +561,7 @@ func j_fuuton_rasenshuriken(c: Node3D, t: Node3D) -> void:
 func j_doton_doryuheki(c: Node3D, _t: Node3D) -> void:
 	var d = _aim_flat(c, _t)
 	var pos = c.global_position + d * 3.5
-	pos.y = Game.ground_height(pos.x, pos.z)
+	pos.y = Game.jutsu_floor(pos.x, pos.z)
 	var wall = StaticBody3D.new()
 	var cs = CollisionShape3D.new()
 	var sh = BoxShape3D.new()
@@ -638,7 +638,7 @@ func j_doton_doryuusou(c: Node3D, t: Node3D) -> void:
 			if not is_instance_valid(c):
 				return
 			var p = c.global_position + d * (2.0 + k * 1.8)
-			p.y = Game.ground_height(p.x, p.z)
+			p.y = Game.jutsu_floor(p.x, p.z)
 			var sp = MeshInstance3D.new()
 			var b = MB.new()
 			for s in 3:
@@ -659,7 +659,7 @@ func j_doton_doryuusou(c: Node3D, t: Node3D) -> void:
 
 func j_doton_yomi(c: Node3D, t: Node3D) -> void:
 	var pos = _aim_ground(c, t, 8.0)
-	pos.y = Game.ground_height(pos.x, pos.z) + 0.05
+	pos.y = Game.jutsu_floor(pos.x, pos.z) + 0.05
 	var mi = MeshInstance3D.new()
 	var cm = CylinderMesh.new()
 	cm.top_radius = 6.0; cm.bottom_radius = 6.0; cm.height = 0.1; cm.radial_segments = 24
@@ -766,7 +766,7 @@ func _hand_dash(c: Node3D, t: Node3D, hand: Node3D, charge: float, speed: float,
 				if not hits.is_empty():
 					VFX.star(pt, col.lightened(0.2), 7.0, 0.25)
 					VFX.shockwave(pt, col.lightened(0.3), 11.0, 0.4, false)
-					VFX.shockwave(Vector3(pt.x, Game.ground_height(pt.x, pt.z) + 0.1, pt.z), col, 14.0, 0.5)
+					VFX.shockwave(Vector3(pt.x, Game.jutsu_floor(pt.x, pt.z) + 0.1, pt.z), col, 14.0, 0.5)
 					VFX.cracks(pt, 5.0)
 					VFX.debris(pt, Color(0.5, 0.42, 0.32), 12, 12.0, 0.4)
 					VFX.screen_lines(0.5, 1.0)
@@ -913,7 +913,7 @@ func j_shunshin(c: Node3D, t: Node3D) -> void:
 	var hit = space.intersect_ray(PhysicsRayQueryParameters3D.create(from + Vector3.UP, to + Vector3.UP, 1))
 	if not hit.is_empty():
 		to = hit["position"] - d * 0.8
-	to.y = Game.ground_height(to.x, to.z)
+	to.y = Game.jutsu_floor(to.x, to.z)
 	FX.burst(from + Vector3.UP, {"amount": 26, "life": 0.9, "tex": FX.tex_leaf, "add": false, "size": 0.35, "vmin": 2, "vmax": 6,
 		"tangent": 8.0, "spin": 360.0, "colors": [Color(0.4, 0.7, 0.3, 1), Color(0.35, 0.6, 0.25, 0)]})
 	c.global_position = to
@@ -1031,7 +1031,7 @@ func _dash(c: Node3D, t: Node3D, dur: float, speed: float, on_tick: Callable, on
 
 
 func _ground(p: Vector3) -> Vector3:
-	return Vector3(p.x, Game.ground_height(p.x, p.z), p.z)
+	return Vector3(p.x, Game.jutsu_floor(p.x, p.z), p.z)
 
 
 # ---------------------------------------------------------------- Hyuga
@@ -1157,7 +1157,7 @@ func _shadow_line(c: Node3D, t: Node3D, dur: float) -> void:
 			for k in n + 1:
 				var u = float(k) / n
 				var p = a + fwd * full * grow * u
-				p.y = Game.ground_height(p.x, p.z) + 0.06 + pass_i * 0.005
+				p.y = Game.jutsu_floor(p.x, p.z) + 0.06 + pass_i * 0.005
 				var w = (0.55 + 0.25 * sin(u * 18.0 - _i * 0.6) + 0.35 * (1.0 - u)) * (1.3 if pass_i == 1 else 1.0)
 				im.surface_add_vertex(p + side * w)
 				im.surface_add_vertex(p - side * w)

@@ -100,8 +100,8 @@ static func archetype(kind: String, i := 0) -> Dictionary:
 ## n kişilik grubun yerine tek güçlü ninja: can/güç/seviye artar, gerçek bir dövüş tarzı kuşanır
 static func toughen(a: Dictionary, n: int, rank := "C") -> void:
 	var k = float(maxi(0, n - 1))
-	a["hp"] = float(a.get("hp", 120.0)) * (1.0 + 0.75 * k)
-	a["power"] = float(a.get("power", 1.0)) * (1.0 + 0.1 * k)
+	a["hp"] = float(a.get("hp", 120.0)) * (1.0 + 0.4 * k)
+	a["power"] = float(a.get("power", 1.0)) * (1.0 + 0.05 * k)
 	a["level"] = int(a.get("level", 5)) + int(2 * k)
 	a["guard"] = maxf(float(a.get("guard", 0.2)), 0.35)
 	a["sub"] = maxf(float(a.get("sub", 0.1)), 0.2)
@@ -181,9 +181,10 @@ func setup(a: Dictionary) -> void:
 	# NPC "yetenek ağacı": oyuncunun seviyeyle aldığı yetenek puanlarının karşılığı (can + güç) düşman ninjalara da
 	if k in CLAN_KINDS or k in ["samurai", "jinchuriki", "bandit"]:
 		var lv = float(a["level"])
-		max_hp *= 1.0 + lv * 0.006
+		# oyuncu yakın dövüşü %40 kısıldı: can da buna göre (öldürme süresi eskisi gibi kalsın)
+		max_hp *= 0.75 + lv * 0.004
 		hp = max_hp
-		power *= 1.0 + lv * 0.004
+		power *= 1.0 + lv * 0.003
 	size = a.get("size", 1.0)
 	display_name = a["name"]
 	skill = clampf(float(a.get("skill", (float(a["power"]) - 1.0) / 2.2)), 0.05, 0.98)
@@ -670,7 +671,7 @@ func take_hit(info: Dictionary) -> void:
 		to_a.y = 0
 		front = to_a.length() < 0.1 or face_dir().dot(to_a.normalized()) > 0.2
 	var kind_ok = info.get("kind", "light") == "light" or (skill > 0.8 and info.get("kind", "") == "heavy")
-	if not guarding and guard_cd <= 0.0 and front and state in ["chase", "recover", "idle"] and randf() < minf(0.45, arch.get("guard", 0.15) * 0.6 + skill * 0.15) and kind_ok and not has_status("stun") and not has_status("bind"):
+	if not guarding and guard_cd <= 0.0 and front and state in ["chase", "recover", "idle"] and randf() < minf(0.3, arch.get("guard", 0.15) * 0.5 + skill * 0.12) and kind_ok and not has_status("stun") and not has_status("bind"):
 		state = "guard"
 		state_t = 0.0
 		guarding = true

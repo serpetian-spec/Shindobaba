@@ -69,7 +69,7 @@ static func tick(e: Enemy, dt: float) -> void:
 				Combat.popup_text(e.global_position + Vector3.UP * 2.6, "Banshō Ten'in!", Color(0.75, 0.65, 1.0))
 				VFX.bolt(e.global_position + Vector3.UP * 1.4, t.global_position + Vector3.UP, Color(0.8, 0.75, 1.0), 0.15, 0.4, 0)
 				var pull = e.global_position + (t.global_position - e.global_position).normalized() * 2.0
-				pull.y = Game.ground_height(pull.x, pull.z)
+				pull.y = Game.jutsu_floor(pull.x, pull.z)
 				t.create_tween().tween_property(t, "global_position", pull, 0.35).set_trans(Tween.TRANS_QUAD)
 				t.apply_status("stun", 0.6)
 				e.set_meta("ea_cd", randf_range(7.0, 10.0))

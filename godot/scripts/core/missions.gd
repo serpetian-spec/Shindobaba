@@ -1160,10 +1160,11 @@ func _spawn_boss(b: Dictionary, kind: String, at: Vector3) -> Enemy:
 	var a = Enemy.archetype(kind, 0)
 	a["respawn"] = false
 	a["name"] = b.get("name", a["name"])
-	a["hp"] = float(b.get("hp", 600.0))
+	# görev verisindeki can/güç, oyuncu yakın dövüşü güçlüyken yazılmıştı: denge sonrası ~8-12 kombo / ölümcül ama ani değil
+	a["hp"] = float(b.get("hp", 600.0)) * 0.6
 	a["level"] = int(b.get("level", 20))
-	a["power"] = float(b.get("power", 2.0))
-	a["guard"] = 0.45
+	a["power"] = float(b.get("power", 2.0)) * 0.85
+	a["guard"] = 0.35
 	a["sub"] = 0.3
 	a["xp"] = int(b.get("level", 20)) * 25
 	a["ryo"] = int(b.get("level", 20)) * 20
@@ -1211,8 +1212,8 @@ func _spawn_kill(s: Dictionary, c: Vector3) -> Array:
 	var es = []
 	if not boss.is_empty():
 		var b2 = boss.duplicate()
-		b2["hp"] = float(b2.get("hp", 600.0)) * (1.0 + 0.25 * maxi(0, n - 1))
-		b2["power"] = float(b2.get("power", 2.0)) * (1.0 + 0.05 * maxi(0, n - 1))
+		b2["hp"] = float(b2.get("hp", 600.0)) * (1.0 + 0.12 * maxi(0, n - 1))
+		b2["power"] = float(b2.get("power", 2.0)) * (1.0 + 0.03 * maxi(0, n - 1))
 		es.append(_spawn_boss(b2, s["enemy"], c))
 	else:
 		es = _spawn(s["enemy"], c, n, 14.0, s.get("ename", ""))
@@ -1493,6 +1494,17 @@ func lair_room(origin: Vector3) -> void:
 		e.home = e.global_position
 		e.wander_to = e.global_position
 	target_marker = at
+
+
+## İnde yenildin: düşman inde kalır, yeniden girince tam canla karşına çıkar
+func lair_reset() -> void:
+	if not String(st.get("lair", "")) in ["cave", "lab"]:
+		return
+	for e in step_nodes:
+		if is_instance_valid(e) and e is Enemy:
+			e.queue_free()
+	step_nodes = step_nodes.filter(func(e): return is_instance_valid(e) and not e is Enemy)
+	st["lair_spawned"] = false
 
 
 ## İnden çıkınca düşman peşinden dışarı gelir (havada asılı kalmasın)
