@@ -759,10 +759,14 @@ func _process(dt: float) -> void:
 		if Susanoo.max_tier(Game.profile) > before:
 			Hud.banner("SUSANOO USTALIĞI", "Yeni kademe açıldı: %s" % Susanoo.TIER_NAMES[Susanoo.max_tier(Game.profile)], Color(0.8, 0.6, 1.0))
 	if active:
-		var drain = 2.0 * _transplant_mult() + ((4.0 + 2.0 * susanoo_node.tier) if susanoo and is_instance_valid(susanoo_node) else 0.0)
-		if _kind("sag") == 5 or _kind("sol") == 5:
-			drain *= 0.6
-		p.chakra -= drain * maxf(0.3, 1.0 + Stats.skill(Game.profile, "eye_cost")) * dt
+		var ems = _kind("sag") == 5 or _kind("sol") == 5
+		var drain = 2.0 * _transplant_mult() * (0.6 if ems else 1.0) * maxf(0.3, 1.0 + Stats.skill(Game.profile, "eye_cost"))
+		if susanoo and is_instance_valid(susanoo_node):
+			# Susanoo azami chakranın yüzdesini yer (sabit miktar yüksek seviyede yenilenmeye yenik düşüp sonsuz açık kalıyordu):
+			# kademe 1 ~%1.6/sn (~60 sn), kademe 5 ~%3.2/sn (~30 sn); EMS ve yetenek indirimi en fazla %35 hafifletir
+			var pct = 0.012 + 0.004 * susanoo_node.tier
+			drain += p.max_chakra * pct * (0.8 if ems else 1.0) * maxf(0.65, 1.0 + Stats.skill(Game.profile, "eye_cost"))
+		p.chakra -= drain * dt
 		if p.chakra <= 0.0:
 			p.chakra = 0.0
 			Hud.msg("Chakra bitti, gözlerin kapandı.", Color(0.8, 0.8, 1))
