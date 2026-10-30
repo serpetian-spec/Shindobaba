@@ -253,7 +253,61 @@ func _update_party(dt: float) -> void:
 		r[3].text = "%d" % int(m.hp)
 
 
-## Portre: element renginde ince halka, içinde baş harf, dışında can yayı
+var portrait_tex: Texture2D = null
+var _portrait_key := ""
+var _portrait_busy := false
+
+
+## Oyuncunun yüz portresi: kendi modelinden (saç, alın bandı, kıyafet) baş çekimi, daire maskeli doku.
+## Görünüş değişince (kıyafet, saç, göz) yeniden çekilir.
+func _refresh_portrait() -> void:
+	var pl = Game.player
+	if pl == null or _portrait_busy or not pl.has_method("_look_with_age"):
+		return
+	var look: Dictionary = pl._look_with_age()
+	var key = str(look).md5_text()
+	if key == _portrait_key:
+		return
+	_portrait_busy = true
+	var pv: Control = Menus._model_preview(look, Vector3(0, 1.58, -0.95), Vector3(0, 1.52, 0), 26.0, false, Vector2(192, 192))
+	pv.position = Vector2(-3000, -3000)   # ekran dışında çizilir
+	add_child(pv)
+	var mdl = pv.get_meta("model")
+	for k in 2:
+		await RenderingServer.frame_post_draw
+	# yaşa göre boy değişir: kamerayı baş kemiğine göre yerleştir
+	if mdl and mdl.get("skel"):
+		var sk: Skeleton3D = mdl.skel
+		var bi = sk.find_bone("Head")
+		if bi >= 0:
+			var hp = (sk.global_transform * sk.get_bone_global_pose(bi)).origin + Vector3(0, 0.03, 0)
+			for ch in pv.get_child(0).get_children():
+				if ch is Camera3D:
+					var cp = hp + Vector3(0, 0.04, -0.85)
+					ch.global_transform = Transform3D(Basis.looking_at(hp - cp), cp)
+	for k in 3:
+		await RenderingServer.frame_post_draw
+	var sv: SubViewport = pv.get_child(0)
+	var img: Image = sv.get_texture().get_image()
+	pv.queue_free()
+	if img:
+		img.convert(Image.FORMAT_RGBA8)
+		var n = img.get_width()
+		var r = n * 0.5
+		for y in n:
+			for x in n:
+				var d = Vector2(x + 0.5 - r, y + 0.5 - r).length()
+				if d > r - 1.0:
+					var c = img.get_pixel(x, y)
+					c.a *= clampf(r - d, 0.0, 1.0)
+					img.set_pixel(x, y, c)
+		portrait_tex = ImageTexture.create_from_image(img)
+		_portrait_key = key
+		portrait.queue_redraw()
+	_portrait_busy = false
+
+
+## Portre: element renginde ince halka, içinde karakterin yüzü (yoksa baş harf), dışında can yayı
 func _draw_portrait() -> void:
 	var c = Vector2(48, 48)
 	var pr = Game.profile
@@ -264,12 +318,15 @@ func _draw_portrait() -> void:
 	portrait.draw_circle(c, 38, Color(ec.darkened(0.6), 0.9))
 	portrait.draw_arc(c, 44, 0, TAU, 64, Color(1, 1, 1, 0.12), 3.0, true)
 	portrait.draw_arc(c, 44, -PI * 0.5, -PI * 0.5 + TAU * portrait_hp, 64, Color(0.45, 0.95, 0.5) if portrait_hp > 0.3 else Color(1, 0.35, 0.3), 3.5, true)
-	var nm: String = String(pr.get("name", "?")) if not pr.is_empty() else "?"
-	var ch = nm.substr(0, 1).to_upper()
-	var f = UI.font(true)
-	var fs = 40
-	var w = f.get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
-	portrait.draw_string(f, c + Vector2(-w * 0.5, 14), ch, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, UI.TEXT)
+	if portrait_tex:
+		portrait.draw_texture_rect(portrait_tex, Rect2(c - Vector2(38, 38), Vector2(76, 76)), false)
+	else:
+		var nm: String = String(pr.get("name", "?")) if not pr.is_empty() else "?"
+		var ch = nm.substr(0, 1).to_upper()
+		var f = UI.font(true)
+		var fs = 40
+		var w = f.get_string_size(ch, HORIZONTAL_ALIGNMENT_LEFT, -1, fs).x
+		portrait.draw_string(f, c + Vector2(-w * 0.5, 14), ch, HORIZONTAL_ALIGNMENT_LEFT, -1, fs, UI.TEXT)
 	var rk = int(pr.get("rank", 0)) if not pr.is_empty() else 0
 	for i in rk + 1:
 		portrait.draw_circle(c + Vector2(-(rk * 4.5) + i * 9, 36), 3.0, UI.GOLD)
@@ -988,6 +1045,7 @@ func _process(dt: float) -> void:
 		portrait.queue_redraw()
 	elif Engine.get_process_frames() % 60 == 0:
 		portrait.queue_redraw()
+		_refresh_portrait()
 	hp_trail.max_value = pl.max_hp
 	hp_trail.value = move_toward(hp_trail.value, pl.hp, dt * pl.max_hp * 0.35) if hp_trail.value > pl.hp else pl.hp
 	ck_bar.max_value = pl.max_chakra; ck_bar.value = pl.chakra

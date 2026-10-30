@@ -91,8 +91,10 @@ void fragment() {
 void light() {
 	float ndl = abs(dot(NORMAL, LIGHT));
 	if (LIGHT_IS_DIRECTIONAL) {
-		float lit = mix(0.6, 1.0, smoothstep(0.0, 0.2, ndl)) * mix(0.6, 1.0, ATTENUATION);
-		DIFFUSE_LIGHT += LIGHT_COLOR * lit / PI;
+		// gölge zeminle aynı tonda (terrain.gdshader): gölgede mavimsi koyu, güneşte tam ışık
+		float t = mix(0.75, 1.0, smoothstep(0.0, 0.2, ndl));
+		vec3 shade = mix(vec3(0.5, 0.52, 0.7), vec3(1.0), t * ATTENUATION);
+		DIFFUSE_LIGHT += LIGHT_COLOR * shade / PI;
 	} else {
 		DIFFUSE_LIGHT += LIGHT_COLOR * mix(0.4, 1.0, smoothstep(0.0, 0.2, ndl)) * ATTENUATION / PI;
 	}
