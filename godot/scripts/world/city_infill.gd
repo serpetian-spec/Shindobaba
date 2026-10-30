@@ -288,7 +288,7 @@ static func _lot(c, kind: String, x: float, n: float, yaw: float) -> Vector2:
 		"tower":
 			put.call("tower", 0.0, 0.0, 0.0, 1.0, 520.0)
 			var q7: Vector2 = at.call(0.0, 0.0)
-			c.solid_box(q7.x, q7.y, Vector3(2.1, 3.0, 2.1), yaw)
+			c.solid_box(q7.x, q7.y, Vector3(2.3, 6.2, 2.3), yaw)
 			put.call("crate", 1.8, -1.4, 30.0)
 		"cistern":
 			put.call("cistern", 0.0, 0.0, 0.0, 1.0, 420.0)
@@ -364,51 +364,37 @@ static func fill(c, rad: float) -> void:
 			var o = Builder.rot(0.0, -hd - 2.0, float(h[4]))
 			var q = Vector2(float(h[0]) + o.x, float(h[1]) + o.y)
 			VL.doors[vid].append(b.w(Vector3(q.x, c.ground(q.x, q.y), q.y)))
-	# ev ızgarası (24 m): arsa yalnız bir evin yakınına konur (öbekler boş meydanlara zincirleme yayılmasın)
-	var hg := {}
-	for h in b.houses:
-		var k = Vector2i(floori(float(h[0]) / 24.0), floori(float(h[1]) / 24.0))
-		if not hg.has(k):
-			hg[k] = []
-		hg[k].append(Vector2(float(h[0]), float(h[1])))
+	# arsa öbekleri evlere bağlı: evin yan duvarına yaslı (bahçe, depo, odun yığını...), cepheyle aynı yöne bakar.
+	# Açık meydana / yolun ortasına serpiştirilmez (ızgara taraması rastgele dağılım yapıyordu)
 	var tbl: Array = LOTS.get(c.climate, LOTS["green"])
-	var step = 13.0 if rad < 900.0 else 15.0
 	var rng: RandomNumberGenerator = c.rng
 	var placed = 0
-	var x = -rad
-	while x <= rad:
-		var n = -rad
-		while n <= rad:
-			var px = x + rng.randf_range(-3.0, 3.0)
-			var pn = n + rng.randf_range(-3.0, 3.0)
-			n += step
-			if Vector2(px, pn).length() > rad * 0.93 or rng.randf() < 0.3:
-				continue
-			# köyün içinde mi (22 m içinde ev var) ve arsa boş mu
-			var near_h = Vector2.INF
-			var kc = Vector2i(floori(px / 24.0), floori(pn / 24.0))
-			for dx in range(-1, 2):
-				for dz in range(-1, 2):
-					for hp in hg.get(kc + Vector2i(dx, dz), []):
-						if hp.distance_to(Vector2(px, pn)) < near_h.distance_to(Vector2(px, pn)):
-							near_h = hp
-			if near_h == Vector2.INF or near_h.distance_to(Vector2(px, pn)) > 22.0:
-				continue
-			var wp: Vector2 = c.wxz(px, pn)
-			if not c.open(px, pn, 3.2, 6.5):
-				continue
-			# yol yakınsa yola dön; değilse sırtını en yakın eve ver
-			var rn: Array = c.road_near(wp)
-			var dl: Vector2 = (c.loc(rn[1]) - Vector2(px, pn)) if rn[0] < 30.0 else (Vector2(px, pn) - near_h)
-			var yaw = rad_to_deg(atan2(-dl.x, -dl.y))
-			var kind = _pick(rng, tbl)
-			var front: Vector2 = _lot(c, kind, px, pn, yaw)
-			lots.append(b.w(Vector3(front.x, c.ground(front.x, front.y), front.y)))
-			placed += 1
-			if c.busy():
-				await c.rest()
-				if c.dead:
-					return
-		x += step
+	var hi = 0
+	for h in b.houses:
+		hi += 1
+		if rng.randf() > 0.3:
+			continue
+		var hw = float(h[2]) * 0.5
+		var hyaw = float(h[4])
+		var sx = [-1.0, 1.0][rng.randi() % 2]
+		var o = Builder.rot(sx * (hw + 2.4), rng.randf_range(-1.0, 1.0), hyaw)
+		var px = float(h[0]) + o.x
+		var pn = float(h[1]) + o.y
+		if Vector2(px, pn).length() > rad * 0.93:
+			continue
+		var wp: Vector2 = c.wxz(px, pn)
+		if not c.open(px, pn, 2.8, 5.0):
+			continue
+		var rn: Array = c.road_near(wp)
+		if rn[0] < 9.0:
+			continue   # yola taşmasın
+		var kind = _pick(rng, tbl)
+		var front: Vector2 = _lot(c, kind, px, pn, hyaw)
+		lots.append(b.w(Vector3(front.x, c.ground(front.x, front.y), front.y)))
+		placed += 1
+		if c.busy():
+			await c.rest()
+			if c.dead:
+				return
 	done[vid] = true
 	print("Arsa %s: %d öbek, %d kapı" % [vid, placed, VL.doors.get(vid, []).size()])

@@ -161,7 +161,13 @@ func sphere(p: Vector3, size: Vector3, col: Color, seg := 12, collide := false) 
 	var wp = w(p)
 	_mb(wp).add("sphere", wp, size, col, Vector3.ZERO, seg)
 	if collide:
-		_collide(wp, size * 0.75, 0.0)
+		var pts = PackedVector3Array()
+		for ring in 7:
+			var e = (ring / 6.0 - 0.5) * PI
+			for i in 12:
+				var a = TAU * i / 12.0
+				pts.append(Vector3(cos(a) * cos(e) * size.x * 0.5, sin(e) * size.y * 0.5, sin(a) * cos(e) * size.z * 0.5))
+		_collide_convex(wp, pts, maxf(size.x, size.z) * 0.5)
 
 
 ## Dikey disk (arma/plaka): ön yüzü yaw yönüne (yerel -n) bakar
@@ -212,7 +218,17 @@ func frustum(p: Vector3, d: float, h: float, col: Color, collide := true, seg :=
 	var wp = w(p)
 	_mb(wp).add("frustum", wp, Vector3(d, h, d), col, Vector3.ZERO, seg)
 	if collide:
-		_collide_cyl(wp, d * 0.43, h)
+		frustum_shape(wp, d * 0.5, d * 0.36, h)
+
+
+## Kesik koni çarpışması (görünen gövdeyle birebir: düz silindir tepede dışarı taşıp görünmez duvar oluyordu)
+func frustum_shape(center: Vector3, r_bot: float, r_top: float, h: float) -> void:
+	var pts = PackedVector3Array()
+	for i in 16:
+		var a = TAU * i / 16.0
+		pts.append(Vector3(cos(a) * r_bot, -h * 0.5, sin(a) * r_bot))
+		pts.append(Vector3(cos(a) * r_top, h * 0.5, sin(a) * r_top))
+	_collide_convex(center, pts, maxf(r_bot, r_top))
 
 
 static var _kanji_font: SystemFont
@@ -552,7 +568,8 @@ func prop(kind: String, p: Vector3, yaw_deg := 0.0, height := 0.0, collide := 0.
 func lantern(x: float, n: float, h := 3.2) -> void:
 	# taş fener (tōrō) hazır modeli; h: tepe yüksekliği (zemin dahil)
 	var gy = h - 3.2
-	if prop("stone_lamp", Vector3(x, gy, n), 0.0, 2.6):
+	if prop("stone_lamp", Vector3(x, gy, n), 0.0, 2.6, 0.32):   # katı: içinden geçilmesin, NPC'ler arkasına girmesin
+		box(Vector3(x, gy + 1.88, n), Vector3(0.42, 0.36, 0.42), Color(1.0, 0.85, 0.5), 0, false)   # ateş odası: gece yanar (toon night_glow)
 		Lights.add(w(Vector3(x, gy + 1.9, n)))
 		return
 	box(Vector3(x, h * 0.5, n), Vector3(0.2, h, 0.2), Color(0.3, 0.22, 0.15), 0, false)

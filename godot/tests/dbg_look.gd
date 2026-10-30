@@ -107,6 +107,19 @@ func _ready() -> void:
 			cam.look_at(rq + Vector3(0, 90, 0))
 			await get_tree().create_timer(0.8).timeout
 			await main.shot("look_rock_%d" % k)
+	if want.call("shops"):
+		var k = 0
+		for sh in [[-170.0, -36.0, 1.0], [170.0, -36.0, 1.0], [-250.0, -36.0, 1.0], [250.0, -36.0, 1.0], [-110.0, 36.0, -1.0], [230.0, 38.0, -1.0]]:
+			var sp2 = Game.from_map(Vector2(v["x"] + sh[0], v["y"] + sh[1] + sh[2] * 17.0))
+			sp2.y = Game.ground_height(sp2.x, sp2.z)
+			pl.respawn(sp2 + Vector3(3, 0.5, 0))
+			await get_tree().create_timer(2.5).timeout
+			var tg = Game.from_map(Vector2(v["x"] + sh[0], v["y"] + sh[1]))
+			cam.global_position = sp2 + Vector3(0, 1.7, 0)
+			cam.look_at(Vector3(tg.x, sp2.y + 2.0, tg.z))
+			await get_tree().create_timer(0.5).timeout
+			await main.shot("look_shop_%d" % k)
+			k += 1
 	if want.call("cloud"):
 		cam.global_position = p + Vector3(0, 2, 0)
 		cam.look_at(p + Vector3(30, 18, -60))

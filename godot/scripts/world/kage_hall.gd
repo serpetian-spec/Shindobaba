@@ -99,6 +99,77 @@ static func planter(b: Builder, x: float, n: float, wd: float, dp: float, rim: C
 
 
 ## Tören meydanı. o: {vid, cx, front, hw, depth, climate, stone, trim, acc, gate, kanji, terrace_h, terrace_w, terrace_d, decor}
+## Çeşme suyu: akan su malzemeli yassı disk
+static func _water_disc(b: Builder, p: Vector3, d: float) -> void:
+	var mi = MeshInstance3D.new()
+	var cm = CylinderMesh.new()
+	cm.top_radius = d * 0.5
+	cm.bottom_radius = d * 0.5
+	cm.height = 0.06
+	cm.radial_segments = 28
+	mi.mesh = cm
+	mi.material_override = Canal._water()
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	b.root.add_child(mi)
+	mi.position = b.w(p)
+
+
+## Fışkıran su: ortadan yukarı ince su sütunu + yay çizip düşen damlalar, üst çanağın kenarından havuza dökülen su perdesi
+static func _fountain_spray(b: Builder, decor, p: Vector3) -> void:
+	var parent: Node3D = decor if decor is Node3D else b.root
+	var top = b.w(p)
+	var jet = GPUParticles3D.new()
+	jet.amount = 140
+	jet.lifetime = 1.3
+	jet.preprocess = 1.3
+	jet.visibility_aabb = AABB(Vector3(-6, -5, -6), Vector3(12, 12, 12))
+	var pm = ParticleProcessMaterial.new()
+	pm.direction = Vector3.UP
+	pm.spread = 14.0
+	pm.initial_velocity_min = 5.5
+	pm.initial_velocity_max = 6.5
+	pm.gravity = Vector3(0, -9.8, 0)
+	pm.scale_min = 0.6
+	pm.scale_max = 1.2
+	pm.color_ramp = FX._gradient([Color(0.85, 0.95, 1.0, 0.0), Color(0.85, 0.95, 1.0, 0.85), Color(0.75, 0.9, 1.0, 0.7), Color(0.75, 0.9, 1.0, 0.0)])
+	jet.process_material = pm
+	var q = QuadMesh.new()
+	q.size = Vector2(0.22, 0.22)
+	q.material = FX._draw_mat(FX.tex_soft, false)
+	jet.draw_pass_1 = q
+	jet.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(jet)
+	jet.position = top + Vector3(0, 0.3, 0)   # köy kökü dünya merkezinde
+	# üst çanaktan halka halinde dökülen su: kenardan aşağı akan damlalar
+	var fall = GPUParticles3D.new()
+	fall.amount = 220
+	fall.lifetime = 0.8
+	fall.preprocess = 0.8
+	fall.visibility_aabb = AABB(Vector3(-6, -5, -6), Vector3(12, 8, 12))
+	var fm = ParticleProcessMaterial.new()
+	fm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_RING
+	fm.emission_ring_axis = Vector3.UP
+	fm.emission_ring_radius = 1.8
+	fm.emission_ring_inner_radius = 1.75
+	fm.emission_ring_height = 0.05
+	fm.direction = Vector3.DOWN
+	fm.spread = 5.0
+	fm.initial_velocity_min = 0.6
+	fm.initial_velocity_max = 1.0
+	fm.gravity = Vector3(0, -9.8, 0)
+	fm.color_ramp = FX._gradient([Color(0.8, 0.92, 1.0, 0.7), Color(0.8, 0.92, 1.0, 0.6), Color(0.8, 0.92, 1.0, 0.0)])
+	fall.process_material = fm
+	var q2 = QuadMesh.new()
+	q2.size = Vector2(0.12, 0.45)
+	q2.material = FX._draw_mat(FX.tex_soft, false)
+	fall.draw_pass_1 = q2
+	fall.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(fall)
+	fall.position = top
+	for e in [jet, fall]:
+		e.emitting = true
+
+
 static func plaza(b: Builder, o: Dictionary) -> void:
 	var vid: String = o["vid"]
 	var cx: float = o.get("cx", 0.0)
@@ -154,19 +225,16 @@ static func plaza(b: Builder, o: Dictionary) -> void:
 	b.cyl(Vector3(cx, 0.13, nm), 13.0, 0.06, acc.darkened(0.15), false, 32)
 	b.cyl(Vector3(cx, 0.45, nm), 10.6, 0.9, stone.darkened(0.08), true, 28)
 	b.cyl(Vector3(cx, 0.93, nm), 11.0, 0.12, stone.lightened(0.1), false, 28)
-	b.cyl(Vector3(cx, 0.84, nm), 9.6, 0.08, Color(0.32, 0.6, 0.85), false, 28)
+	_water_disc(b, Vector3(cx, 0.86, nm), 9.6)   # havuz suyu (akan, ışıltılı)
 	b.cyl(Vector3(cx, 2.0, nm), 1.4, 2.6, stone.lightened(0.05), true, 12)
 	b.cyl(Vector3(cx, 3.35, nm), 4.0, 0.35, stone.lightened(0.1), false, 20)
-	b.cyl(Vector3(cx, 3.5, nm), 3.5, 0.06, Color(0.4, 0.68, 0.92), false, 20)
+	_water_disc(b, Vector3(cx, 3.52, nm), 3.5)
 	b.cyl(Vector3(cx, 4.4, nm), 0.6, 1.8, stone.lightened(0.05), false, 10)
 	b.disc(Vector3(cx, 6.0, nm), 2.4, 0.3, acc, 0.0, 20)
 	b.disc(Vector3(cx, 6.0, nm), 2.7, 0.2, Color(0.85, 0.68, 0.3), 0.0, 20)
 	b.kanji(Vector3(cx, 6.0, nm - 0.2), kj, 1.7, Color(0.98, 0.96, 0.9), 0.0)
 	b.kanji(Vector3(cx, 6.0, nm + 0.2), kj, 1.7, Color(0.98, 0.96, 0.9), 180.0)
-	for k in 8:  # su kemerleri
-		var a = k * 45.0 + 22.5
-		var q = Builder.rot(0, 2.6, a)
-		b.cone(Vector3(cx + q.x, 2.3, nm + q.y), 0.5, 2.0, Color(0.7, 0.88, 1.0), 6)
+	_fountain_spray(b, o.get("decor"), Vector3(cx, 3.6, nm))   # üst çanaktan taşıp havuza dökülen su + tepeden fışkırma
 	# --- teras + rampalı merdiven (görsel basamaklar)
 	if th > 0.05:
 		b.box(Vector3(cx, th * 0.5 - 0.3, front - td * 0.5), Vector3(tw, th + 0.6, td), stone.darkened(0.04))

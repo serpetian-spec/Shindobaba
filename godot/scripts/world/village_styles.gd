@@ -7,126 +7,129 @@ const DARK := Color(0.12, 0.1, 0.09)
 const WOOD := Color(0.42, 0.29, 0.18)
 
 
-## ---------------------------------------------------------------- Suna: kerpiç, yuvarlak köşeli, yuvarlak pencereli kubbe evler
+## ---------------------------------------------------------------- Suna (referans): kumtaşı rengi, şişkin "su kabağı" gövdeli evler; gövdeyi saran
+## kalın bantlar ve bantlarda sıra sıra yuvarlak köşeli yarık pencereler; bir kısmı kat kat daralan bantlı kuleler; tepede küçük kubbe başlıklar.
 static func suna_house(b: Builder, x: float, n: float, wdt: float, dep: float, floors: int, yaw: float, rng: RandomNumberGenerator) -> void:
-	var c = Color(0.87, 0.74, 0.54).darkened(rng.randf_range(0.0, 0.12))
-	var trim = c.darkened(0.12)
-	var hgt = floors * 4.0 + 0.6
-	var round_type = rng.randf() < 0.55
-	var d = maxf(wdt, dep)
-	if round_type:
-		# silindir gövde + yassı kubbe + çatı korkuluğu
-		b.cyl(Vector3(x, hgt * 0.5, n), d, hgt, c, true, 18)
-		b.cyl(Vector3(x, hgt + 0.35, n), d + 0.5, 0.7, trim, false, 18)
-		b.dome(Vector3(x, hgt + 0.7, n), d * 0.86, d * 0.28, c.lightened(0.06), 18)
-		# yuvarlak pencereler (katlar boyunca)
-		for f in floors:
-			var cnt = maxi(4, int(d * 0.5))
-			for k in cnt:
-				var a = yaw + 360.0 * k / cnt + f * 22.0
-				var o = Builder.rot(0, d * 0.5 + 0.05, a)
-				b.disc(Vector3(x + o.x, f * 4.0 + 2.4, n + o.y), 1.3, 0.25, DARK, a + 180.0, 10)
-				b.disc(Vector3(x + o.x * 1.01, f * 4.0 + 2.4, n + o.y * 1.01), 1.6, 0.12, trim, a + 180.0, 10)
+	var c = Color(0.84, 0.68, 0.44).lerp(Color(0.78, 0.7, 0.5), rng.randf()).darkened(rng.randf_range(0.0, 0.1))
+	var band = c.darkened(0.16)
+	var d = minf(wdt, dep) * 0.95
+	var gourd = rng.randf() < 0.55
+	var top: float
+	if gourd:
+		# kısa taban + şişkin gövde (yassı küre) + gövdeyi saran bantlar ve yarık pencereler
+		var hb = floors * 3.6 + 3.0
+		b.cyl(Vector3(x, 1.2, n), d * 0.8, 2.4, c.darkened(0.06), true, 20)
+		var cy = 2.2 + hb * 0.5
+		b.sphere(Vector3(x, cy, n), Vector3(d, hb, d), c, 20, true)
+		for k in 3:
+			var t = -0.32 + k * 0.32
+			var y = cy + t * hb
+			var rr = d * 0.5 * sqrt(maxf(0.05, 1.0 - 4.0 * t * t)) + 0.15
+			_band(b, x, n, y, rr, band, yaw, rng, k == 1)
+		top = cy + hb * 0.5
+		b.dome(Vector3(x, top - 0.6, n), d * 0.38, 1.4, c.lightened(0.05), 14)
 	else:
-		# yuvarlak köşeli kutu (köşelerde silindirler) + düz çatı + parapet
-		b.box(Vector3(x, hgt * 0.5, n), Vector3(wdt - 1.6, hgt, dep), c, yaw)
-		b.box(Vector3(x, hgt * 0.5, n), Vector3(wdt, hgt, dep - 1.6), c, yaw)
-		for sx in [-1.0, 1.0]:
-			for sz in [-1.0, 1.0]:
-				var o = Builder.rot((wdt * 0.5 - 0.8) * sx, (dep * 0.5 - 0.8) * sz, yaw)
-				b.cyl(Vector3(x + o.x, hgt * 0.5, n + o.y), 1.6, hgt, c, false, 10)
-		b.box(Vector3(x, hgt + 0.45, n), Vector3(wdt + 0.3, 0.9, dep + 0.3), trim, yaw, false)
-		for f in floors:
-			var cnt = maxi(1, int(wdt / 3.5))
-			for k in cnt:
-				var lx = -wdt * 0.5 + (k + 0.5) * wdt / cnt
-				for side in [-1.0, 1.0]:
-					var o = Builder.rot(lx, dep * 0.5 * side + 0.06 * side, yaw)
-					b.disc(Vector3(x + o.x, f * 4.0 + 2.4, n + o.y), 1.25, 0.2, DARK, yaw + (180.0 if side > 0 else 0.0), 10)
-	# kapı (kemerli), kumaş tente, su deposu, merdiven/kenar
-	var fo = Builder.rot(0, -(d * 0.5 if round_type else dep * 0.5) - 0.05, yaw)
+		# kat kat daralan bantlı kule (her kademe silindir + bant + yarıklar)
+		var tiers = clampi(floors, 2, 4)
+		var y = 0.0
+		var dd = d
+		for t in tiers:
+			var th = 4.2
+			b.cyl(Vector3(x, y + th * 0.5, n), dd, th, c.lightened(0.02 * (t % 2)), true, 20)
+			_band(b, x, n, y + th * 0.62, dd * 0.5 + 0.12, band, yaw, rng, true)
+			b.cyl(Vector3(x, y + th, n), dd + 0.5, 0.35, band, false, 20)
+			y += th
+			dd *= 0.84
+		top = y
+		b.dome(Vector3(x, top, n), dd * 1.05, dd * 0.42, c.lightened(0.05), 16)
+	# kapı (kemerli), kumaş tente, çatıda su deposu / anten
+	var fo = Builder.rot(0, -d * 0.5 - 0.05, yaw)
 	DoorKit.door(b, x + fo.x, n + fo.y, 0.0, yaw, "suna", rng)
-	if rng.randf() < 0.6:
+	if rng.randf() < 0.45:
 		var aw = [Color(0.75, 0.25, 0.2), Color(0.25, 0.45, 0.6), Color(0.85, 0.65, 0.25), Color(0.55, 0.35, 0.55)][rng.randi() % 4]
-		var ao = Builder.rot(0, -(d * 0.5 if round_type else dep * 0.5) - 1.3, yaw)
-		b.box(Vector3(x + ao.x, 3.6, n + ao.y), Vector3(4.6, 0.12, 2.6), aw, yaw, false, Vector3(-14, 0, 0))
-		for sx in [-1.0, 1.0]:
-			var po = Builder.rot(2.1 * sx, -(d * 0.5 if round_type else dep * 0.5) - 2.4, yaw)
-			b.box(Vector3(x + po.x, 1.6, n + po.y), Vector3(0.14, 3.2, 0.14), WOOD, yaw, false)
-	if rng.randf() < 0.5:
-		var to = Builder.rot(rng.randf_range(-1.5, 1.5), rng.randf_range(-1.0, 1.0), yaw)
-		var ty = hgt + (d * 0.28 if round_type else 0.9)
-		b.cyl(Vector3(x + to.x, ty + 1.2, n + to.y), 2.2, 2.4, Color(0.62, 0.64, 0.66), false, 10)
-		b.cone(Vector3(x + to.x, ty + 2.7, n + to.y), 2.4, 0.6, Color(0.5, 0.52, 0.55), 10)
+		var ao = Builder.rot(0, -d * 0.5 - 1.3, yaw)
+		b.box(Vector3(x + ao.x, 3.4, n + ao.y), Vector3(4.2, 0.12, 2.4), aw, yaw, false, Vector3(-14, 0, 0))
+	if rng.randf() < 0.4:
+		b.cyl(Vector3(x, top + 1.0, n), 0.25, 2.0, DARK, false, 6)
 
 
-## ---------------------------------------------------------------- Kiri: mavi çatılı silindir kuleler, borular, balkon halkaları
+## Suna bandı: gövdeyi saran kalın kuşak + üstünde yuvarlak köşeli yarık pencere sırası
+static func _band(b: Builder, x: float, n: float, y: float, r: float, col: Color, yaw: float, rng: RandomNumberGenerator, windows: bool) -> void:
+	b.cyl(Vector3(x, y, n), r * 2.0 + 0.3, 1.1, col, false, 22)
+	if not windows:
+		return
+	var cnt = maxi(6, int(TAU * r / 2.2))
+	for k in cnt:
+		var a = yaw + 360.0 * k / cnt
+		var o = Builder.rot(0, r + 0.18, a)
+		b.box(Vector3(x + o.x, y, n + o.y), Vector3(0.95, 0.6, 0.2), DARK, a, false)
+
+
+## ---------------------------------------------------------------- Kiri (referans): yüksek, pembe-gri tuğla tonlu silindir kuleler; dikey sıralı koyu yarık
+## pencereler; üstte renkli (mavi / mor / pembe) geniş başlık bandı, çoğunun tepesinde yeşillik (çatı bahçesi); alçak geniş yuvarlak yapılar da var.
 static func kiri_house(b: Builder, x: float, n: float, wdt: float, dep: float, floors: int, yaw: float, rng: RandomNumberGenerator) -> void:
-	var c = Color(0.66, 0.72, 0.74).darkened(rng.randf_range(0.0, 0.14))
-	var blue = Color(0.26, 0.42, 0.58).lightened(rng.randf_range(-0.05, 0.08))
-	var d = maxf(wdt, dep) * 0.9
-	var fl = floors + 1
-	var hgt = fl * 4.0
-	b.cyl(Vector3(x, hgt * 0.5, n), d, hgt, c, true, 16)
-	for f in fl:
-		var y = f * 4.0 + 4.0
-		b.cyl(Vector3(x, y - 0.15, n), d + 0.6, 0.3, c.darkened(0.15), false, 16)  # kat bandı
-		var cnt = maxi(3, int(d * 0.45))
-		for k in cnt:
-			var a = yaw + 360.0 * k / cnt + f * 30.0
-			var o = Builder.rot(0, d * 0.5 + 0.04, a)
-			b.box(Vector3(x + o.x, y - 2.0, n + o.y), Vector3(1.0, 1.6, 0.2), Color(0.18, 0.25, 0.32), a, false)
-	# konik/kubbe mavi çatı + baca
-	if rng.randf() < 0.5:
-		b.cone(Vector3(x, hgt + 1.6, n), d + 1.4, 3.2, blue, 16)
+	var c = Color(0.74, 0.64, 0.62).lerp(Color(0.68, 0.66, 0.68), rng.randf()).darkened(rng.randf_range(0.0, 0.12))
+	var cap = [Color(0.32, 0.4, 0.66), Color(0.46, 0.36, 0.58), Color(0.74, 0.5, 0.58), Color(0.36, 0.5, 0.6)][rng.randi() % 4]
+	var low = rng.randf() < 0.22
+	var d = maxf(wdt, dep) * (1.05 if low else rng.randf_range(0.6, 0.8))
+	var hgt = 5.0 if low else (floors + rng.randi_range(2, 5)) * 4.0
+	b.cyl(Vector3(x, hgt * 0.5, n), d, hgt, c, true, 18)
+	# tuğla dokusu izi: ince koyu yatay derzler
+	var y = 1.6
+	while y < hgt - 0.5:
+		b.cyl(Vector3(x, y, n), d + 0.06, 0.06, c.darkened(0.14), false, 18)
+		y += 1.6
+	# dikey sıralı yarık pencereler
+	if not low:
+		var cols_n = maxi(3, int(d * 0.5))
+		for k in cols_n:
+			var a = yaw + 360.0 * k / cols_n + rng.randf_range(-6, 6)
+			var o = Builder.rot(0, d * 0.5 + 0.05, a)
+			var fy = 3.0
+			while fy < hgt - 2.0:
+				b.box(Vector3(x + o.x, fy, n + o.y), Vector3(1.3, 0.42, 0.2), Color(0.18, 0.16, 0.18), a, false)
+				fy += 2.0
+	# başlık: geniş renkli bant + üstünde yeşillik ya da kubbe
+	b.cyl(Vector3(x, hgt + 0.7, n), d + 1.0, 1.4, cap, false, 18)
+	b.cyl(Vector3(x, hgt + 1.45, n), d + 1.2, 0.2, cap.darkened(0.2), false, 18)
+	if low:
+		b.cyl(Vector3(x, hgt + 1.3, n), d * 0.9, 0.2, Color(0.82, 0.84, 0.86), false, 18)
+	elif rng.randf() < 0.65:
+		for k in 5:   # çatı bahçesi: çalı kümeleri
+			var a = rng.randf() * TAU
+			var rr = rng.randf_range(0.0, d * 0.3)
+			b.sphere(Vector3(x + cos(a) * rr, hgt + 2.2 + rng.randf_range(0, 0.6), n + sin(a) * rr), Vector3(d * 0.45, d * 0.3, d * 0.45), Color(0.24, 0.44, 0.24).lightened(rng.randf_range(0, 0.1)), 8)
 	else:
-		b.cyl(Vector3(x, hgt + 0.3, n), d + 1.2, 0.6, blue.darkened(0.15), false, 16)
-		b.dome(Vector3(x, hgt + 0.6, n), d + 0.8, d * 0.32, blue, 16)
-	b.cyl(Vector3(x + d * 0.2, hgt + 2.4, n), 0.7, 2.4, Color(0.45, 0.48, 0.5), false, 8)
-	# dış borular (dikey + dirsek)
-	for k in 2:
-		var a = yaw + 90.0 + k * 150.0
-		var o = Builder.rot(0, d * 0.5 + 0.45, a)
-		b.cyl(Vector3(x + o.x, hgt * 0.5, n + o.y), 0.55, hgt, Color(0.5, 0.52, 0.55), false, 8)
-		var o2 = Builder.rot(0, d * 0.5 + 0.9, a)
-		b.box(Vector3(x + o2.x, hgt * rng.randf_range(0.3, 0.8), n + o2.y), Vector3(0.5, 0.5, 1.4), Color(0.5, 0.52, 0.55), a, false)
-	# ahşap balkon halkası
-	if fl >= 2 and rng.randf() < 0.6:
-		var by = 4.0 * rng.randi_range(1, fl - 1)
-		b.cyl(Vector3(x, by, n), d + 2.4, 0.25, WOOD, false, 16)
-		for k in 12:
-			var o = Builder.rot(0, d * 0.5 + 1.1, yaw + k * 30.0)
-			b.box(Vector3(x + o.x, by + 0.6, n + o.y), Vector3(0.15, 1.2, 0.15), WOOD, 0, false)
-		var wpr = b.w(Vector3(x, by + 1.2, n))
-		b._mb(wpr).add("torus", wpr, Vector3(d + 2.3, 0.6, d + 2.3), WOOD, Vector3.ZERO, 16)
+		b.dome(Vector3(x, hgt + 1.5, n), d + 0.4, d * 0.3, cap.lightened(0.08), 16)
 	var fo = Builder.rot(0, -d * 0.5 - 0.05, yaw)
 	DoorKit.door(b, x + fo.x, n + fo.y, 0.0, yaw, "kiri", rng)
 
 
-## ---------------------------------------------------------------- Iwa: kayaya oyulmuş taş evler, kırmızı-kahve basamaklı çatılar
+## ---------------------------------------------------------------- Iwa (referans): gri taştan kovan / basamaklı koni evler; silindir gövde, üstünde
+## kademe kademe daralan halkalardan koni çatı, tepede küçük renkli başlık; bir kısmı yarık pencereli dar taş kule; evler arası teller.
 static func iwa_house(b: Builder, x: float, n: float, wdt: float, dep: float, floors: int, yaw: float, rng: RandomNumberGenerator) -> void:
-	var c = Color(0.56, 0.46, 0.36).darkened(rng.randf_range(0.0, 0.15))
-	var roof = Color(0.55, 0.22, 0.16).lerp(Color(0.42, 0.3, 0.22), rng.randf())
-	var hgt = floors * 4.0
-	# katlar hafif kademeli (taş blok yığını)
-	for f in floors:
-		var s = 1.0 - f * 0.08
-		b.box(Vector3(x, f * 4.0 + 2.0, n), Vector3(wdt * s, 4.0, dep * s), c.lightened(0.03 * (f % 2)), yaw)
-		b.box(Vector3(x, f * 4.0 + 4.0, n), Vector3(wdt * s + 0.6, 0.35, dep * s + 0.6), c.darkened(0.18), yaw, false)
-		# oyma pencereler
-		var cnt = maxi(1, int(wdt * s / 3.2))
+	var c = Color(0.56, 0.55, 0.52).lerp(Color(0.6, 0.55, 0.48), rng.randf()).darkened(rng.randf_range(0.0, 0.14))
+	var capc = [Color(0.45, 0.32, 0.55), Color(0.6, 0.3, 0.22), Color(0.4, 0.42, 0.48)][rng.randi() % 3]
+	var tower = rng.randf() < 0.3
+	var d = maxf(wdt, dep) * (0.6 if tower else 0.95)
+	var hgt = (floors + (3 if tower else 0)) * 3.8
+	b.cyl(Vector3(x, hgt * 0.5, n), d, hgt, c, true, 16)
+	for f in int(hgt / 3.8):
+		b.cyl(Vector3(x, f * 3.8 + 3.8, n), d + 0.5, 0.3, c.darkened(0.18), false, 16)   # kat bandı
+		var cnt = maxi(3, int(d * 0.45))
 		for k in cnt:
-			var lx = -wdt * s * 0.5 + (k + 0.5) * wdt * s / cnt
-			var o = Builder.rot(lx, -dep * s * 0.5 - 0.05, yaw)
-			b.box(Vector3(x + o.x, f * 4.0 + 2.2, n + o.y), Vector3(1.1, 1.5, 0.2), DARK, yaw, false)
-			b.box(Vector3(x + o.x, f * 4.0 + 3.1, n + o.y), Vector3(1.5, 0.25, 0.4), c.darkened(0.2), yaw, false)
-	# kademeli düz çatı levhaları + baca
-	var s2 = 1.0 - (floors - 1) * 0.08
-	b.box(Vector3(x, hgt + 0.4, n), Vector3(wdt * s2 + 1.4, 0.8, dep * s2 + 1.4), roof, yaw)
-	b.box(Vector3(x, hgt + 1.0, n), Vector3(wdt * s2 * 0.6, 0.6, dep * s2 * 0.6), roof.darkened(0.12), yaw, false)
-	var co = Builder.rot(wdt * 0.25, dep * 0.2, yaw)
-	b.box(Vector3(x + co.x, hgt + 1.8, n + co.y), Vector3(1.0, 2.2, 1.0), c.darkened(0.1), yaw, false)
-	var fo = Builder.rot(0, -dep * 0.5 - 0.05, yaw)
+			var a = yaw + 360.0 * k / cnt + f * 25.0
+			var o = Builder.rot(0, d * 0.5 + 0.05, a)
+			b.box(Vector3(x + o.x, f * 3.8 + 2.0, n + o.y), Vector3(0.9, 1.0, 0.2), DARK, a, false)
+	# basamaklı koni çatı: daralan taş halkalar
+	var rings = 5 if not tower else 3
+	var y = hgt
+	for k in rings:
+		var rd = (d + 1.2) * (1.0 - float(k) / rings * 0.85)
+		b.cyl(Vector3(x, y + 0.45, n), rd, 0.9, c.lightened(0.04 * (k % 2)) if k < rings - 1 else c, k == 0, 16)
+		y += 0.9
+	b.cone(Vector3(x, y + 0.7, n), d * 0.3, 1.4, capc, 10)
+	var fo = Builder.rot(0, -d * 0.5 - 0.05, yaw)
 	DoorKit.door(b, x + fo.x, n + fo.y, 0.0, yaw, "iwa", rng)
 
 
@@ -153,23 +156,48 @@ static func ame_house(b: Builder, x: float, n: float, wdt: float, dep: float, fl
 	DoorKit.door(b, x + fo.x, n + fo.y, 0.0, yaw, "ame", rng)
 
 
-## ---------------------------------------------------------------- Kumo: beyaz yuvarlak kuleler, mavi kubbe, kemer bantları
+## ---------------------------------------------------------------- Kumo (referans): kaya sütunları arasında yukarı doğru genişleyen kase biçimli,
+## yeşilimsi beyaz katlı yapılar (ters kesik koni kademeleri, kenarda korkuluk), bir kısmı mavi kubbeli yuvarlak kule.
 static func kumo_house(b: Builder, x: float, n: float, wdt: float, dep: float, floors: int, yaw: float, rng: RandomNumberGenerator) -> void:
-	var white = Color(0.9, 0.9, 0.87).darkened(rng.randf_range(0.0, 0.08))
+	var c = Color(0.66, 0.72, 0.62).lerp(Color(0.86, 0.87, 0.84), rng.randf()).darkened(rng.randf_range(0.0, 0.08))
 	var blue = Color(0.22, 0.45, 0.72).lightened(rng.randf_range(-0.06, 0.08))
-	var d = maxf(wdt, dep) * 0.85
-	var hgt = floors * 4.0 + 1.0
-	b.frustum(Vector3(x, hgt * 0.5, n), d, hgt, white, true, 16)
-	b.cyl(Vector3(x, hgt * 0.62, n), d * 0.95, 0.5, blue, false, 16)
-	b.cyl(Vector3(x, hgt + 0.25, n), d * 0.85, 0.5, blue.darkened(0.15), false, 16)
-	b.dome(Vector3(x, hgt + 0.5, n), d * 0.8, d * 0.35, blue, 16)
-	for f in floors:
-		var cnt = maxi(3, int(d * 0.5))
-		for k in cnt:
-			var a = yaw + 360.0 * k / cnt
-			var o = Builder.rot(0, d * 0.42 * (1.0 - 0.14 * (f * 4.0 + 2.2) / hgt) + 0.1, a)
-			b.disc(Vector3(x + o.x, f * 4.0 + 2.2, n + o.y), 1.2, 0.2, Color(0.16, 0.24, 0.35), a + 180.0, 10)
-	var fo = Builder.rot(0, -d * 0.43 - 0.05, yaw)  # gövde (frustum) tabanda ~0.43d yarıçaplı
+	var d = maxf(wdt, dep) * 0.9
+	if rng.randf() < 0.55:
+		# kase kademeleri: her kademe aşağıda dar, yukarıda geniş (ters kesik koni) + kenar bandı + korkuluk
+		var tiers = clampi(floors, 2, 4)
+		var y = 0.0
+		var dd = d * 0.6
+		b.cyl(Vector3(x, 1.5, n), dd, 3.0, c.darkened(0.1), true, 18)
+		y = 3.0
+		for t in tiers:
+			var th = 3.6
+			var wp = b.w(Vector3(x, y + th * 0.5, n))
+			b._mb(wp).add("frustum", wp, Vector3(dd + t * 2.4 + 2.4, th, dd + t * 2.4 + 2.4), c.lightened(0.03 * (t % 2)), Vector3(180, 0, 0), 20)
+			b.frustum_shape(wp, (dd + t * 2.4 + 2.4) * 0.36, (dd + t * 2.4 + 2.4) * 0.5, th)   # ters kesik koni: altta dar
+			b.cyl(Vector3(x, y + th, n), dd + t * 2.4 + 2.8, 0.35, c.darkened(0.2), false, 20)
+			for k in 10:
+				var a = yaw + k * 36.0
+				var o = Builder.rot(0, (dd + t * 2.4 + 2.6) * 0.5, a)
+				b.box(Vector3(x + o.x, y + th + 0.6, n + o.y), Vector3(0.12, 1.0, 0.12), Color(0.4, 0.42, 0.4), 0, false)
+			var cnt = maxi(4, int(dd * 0.6))
+			for k in cnt:
+				var a = yaw + 360.0 * k / cnt
+				var o = Builder.rot(0, (dd + t * 2.4 + 1.6) * 0.5, a)
+				b.box(Vector3(x + o.x, y + th * 0.45, n + o.y), Vector3(1.2, 0.8, 0.2), Color(0.16, 0.22, 0.28), a, false)
+			y += th
+	else:
+		var hgt = floors * 4.0 + 1.0
+		b.frustum(Vector3(x, hgt * 0.5, n), d, hgt, c, true, 16)
+		b.cyl(Vector3(x, hgt * 0.62, n), d * 0.95, 0.5, blue, false, 16)
+		b.cyl(Vector3(x, hgt + 0.25, n), d * 0.85, 0.5, blue.darkened(0.15), false, 16)
+		b.dome(Vector3(x, hgt + 0.5, n), d * 0.8, d * 0.35, blue, 16)
+		for f in floors:
+			var cnt = maxi(3, int(d * 0.5))
+			for k in cnt:
+				var a = yaw + 360.0 * k / cnt
+				var o = Builder.rot(0, d * 0.42 * (1.0 - 0.14 * (f * 4.0 + 2.2) / hgt) + 0.1, a)
+				b.disc(Vector3(x + o.x, f * 4.0 + 2.2, n + o.y), 1.2, 0.2, Color(0.16, 0.24, 0.35), a + 180.0, 10)
+	var fo = Builder.rot(0, -d * 0.3 - 0.05, yaw)
 	DoorKit.door(b, x + fo.x, n + fo.y, 0.0, yaw, "kumo", rng)
 
 

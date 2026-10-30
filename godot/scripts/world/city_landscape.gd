@@ -684,6 +684,13 @@ static func _strip(c: Ctx, la: Vector2, le: Vector2, wd: float, col: Color) -> v
 	var t = 0.0
 	var ya = c.ground(la.x, la.y)
 	var idx = 0
+	# uçlarda yuvarlak kavşak pulu: birleşen şeritlerin köşe çıkıntıları / basamakları görünmesin
+	for e in [la, le]:
+		var ew = c.b.w(Vector3(e.x, c.ground(e.x, e.y) + 0.025, e.y))
+		var ek = Vector2i(floori(ew.x / PCELL), floori(ew.z / PCELL))
+		if not c.lane_mb.has(ek):
+			c.lane_mb[ek] = MB.new()
+		(c.lane_mb[ek] as MB).add("cyl", ew, Vector3(wd * 1.15, 0.1, wd * 1.15), col, Vector3.ZERO, 14)
 	while t < L - 0.05:
 		var seg = minf(9.0, L - t)
 		var yb = c.ground(la.x + dir.x * (t + seg), la.y + dir.y * (t + seg))
@@ -700,11 +707,8 @@ static func _strip(c: Ctx, la: Vector2, le: Vector2, wd: float, col: Color) -> v
 			c.lane_mb[k] = MB.new()
 		var mb: MB = c.lane_mb[k]
 		var r = Vector3(pitch, rotd.y, 0)
-		mb.add("box", wp, Vector3(wd, 0.14, seg + 0.1), col.lightened(0.04) if idx % 2 == 0 else col, r)
-		for sd in [-1.0, 1.0]:
-			var o = side * sd * (wd * 0.5 + 0.06)
-			var ow = c.b.w(Vector3(m.x + o.x, y + 0.06, m.y + o.y))
-			mb.add("box", ow, Vector3(0.16, 0.16, seg + 0.1), col.darkened(0.32), r)
+		# tek renk, bordürsüz, alçak şerit: kesişen ara sokaklar dikişsiz birleşir (bordürler kavşakta çizgi çiziyordu)
+		mb.add("box", wp - Vector3(0, 0.03, 0), Vector3(wd, 0.1, seg + 0.4), col, r)
 		t += seg
 		ya = yb
 		idx += 1

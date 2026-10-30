@@ -32,7 +32,7 @@ static func spareable(e: Enemy, info: Dictionary) -> bool:
 		return false
 	if String(e.arch.get("kind", "")) not in ["rogue", "jinchuriki"] or e.arch.has("boss"):
 		return false
-	if e.has_meta("rorg") or e.has_meta("spar") or e.has_meta("friend_id") or e.has_meta("teammate"):
+	if e.has_meta("rorg") or e.has_meta("spar") or e.has_meta("friend_id") or e.has_meta("teammate") or (e.get_node_or_null("ClanTrait") != null and e.get_node("ClanTrait").duel):   # dostça düello: kendi teslim akışı var
 		return false
 	return e.has_meta("bingo_id") or not e.has_meta("mission")
 

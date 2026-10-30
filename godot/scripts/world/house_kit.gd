@@ -135,9 +135,24 @@ static func _make(rng: RandomNumberGenerator, i: int) -> Dictionary:
 			var dir = 1.0 if fl % 2 == 0 else -1.0
 			for k in 10:
 				det.add("box", Vector3(w * 0.5 + 0.7, 0.5 + fl * fh + k * fh / 10.0, dir * (-d * 0.3 + k * d * 0.06)), Vector3(1.3, 0.16, 0.7), DARK.lightened(0.15))
-			det.add("box", Vector3(w * 0.5 + 1.35, 0.5 + fl * fh + fh * 0.6, 0.0), Vector3(0.08, 0.9, d * 0.7), DARK, Vector3(-25 * dir, 0, 0))
 			var run = d * 0.54; var rise = fh * 0.9
-			cols.append([Vector3(w * 0.5 + 0.7, 0.5 + fl * fh + rise * 0.5, -d * 0.03 * dir), Vector3(1.3, 0.25, sqrt(run * run + rise * rise)), -rad_to_deg(atan2(rise, run)) * dir])
+			var ang = rad_to_deg(atan2(rise, run))
+			# ince tırabzan: eğimli küpeşte + üç dikme (kalın levha gibi durmasın)
+			det.add("box", Vector3(w * 0.5 + 1.33, 0.5 + fl * fh + rise * 0.5 + 0.95, -d * 0.03 * dir), Vector3(0.07, 0.07, sqrt(run * run + rise * rise)), DARK, Vector3(-ang * dir, 0, 0))
+			for j in 3:
+				var tz = -0.3 + j * 0.27
+				det.add("box", Vector3(w * 0.5 + 1.33, 0.5 + fl * fh + (tz + 0.3) / 0.54 * rise + 0.5, dir * d * tz), Vector3(0.06, 0.95, 0.06), DARK)
+			cols.append([Vector3(w * 0.5 + 0.7, 0.5 + fl * fh + rise * 0.5, -d * 0.03 * dir), Vector3(1.3, 0.25, sqrt(run * run + rise * rise)), -ang * dir])
+			# merdivenin çıktığı yer: sahanlık + yan duvarda o katın kapısı (merdiven bir yere bağlansın)
+			var ly = 0.5 + (fl + 1) * fh
+			var lz = dir * (d * 0.3 + 0.8)
+			det.add("box", Vector3(w * 0.5 + 0.75, ly - 0.09, lz), Vector3(1.5, 0.18, 2.2), DARK.lightened(0.2))
+			det.add("box", Vector3(w * 0.5 + 1.45, ly + 0.5, lz + dir * 0.6), Vector3(0.06, 1.0, 1.0), DARK)
+			det.add("box", Vector3(w * 0.5 + 0.06, ly + 1.05, dir * (d * 0.3 + 1.1)), Vector3(0.1, 2.15, 1.05), WOOD.darkened(0.15))   # kapı
+			det.add("box", Vector3(w * 0.5 + 0.04, ly + 1.05, dir * (d * 0.3 + 1.1)), Vector3(0.1, 2.35, 1.3), WOOD)                  # kasa
+			det.add("box", Vector3(w * 0.5 + 0.13, ly + 1.0, dir * (d * 0.3 + 1.1) + 0.3), Vector3(0.05, 0.25, 0.05), Color(0.8, 0.65, 0.3))
+			det.add("box", Vector3(w * 0.5 + 0.5, ly + 2.45, dir * (d * 0.3 + 1.1)), Vector3(1.0, 0.08, 1.6), Color(0.3, 0.26, 0.24), Vector3(0, 0, -12))   # kapı saçağı
+			cols.append([Vector3(w * 0.5 + 0.75, ly - 0.09, lz), Vector3(1.5, 0.2, 2.2), 0.0])
 	# boru
 	if apt or rng.randf() < 0.35:
 		det.add("cyl", Vector3(-w * 0.5 - 0.15, h * 0.5, d * 0.25), Vector3(0.22, h, 0.22), Color(0.55, 0.57, 0.6), Vector3.ZERO, 6)
@@ -170,8 +185,10 @@ static func _make(rng: RandomNumberGenerator, i: int) -> Dictionary:
 			rcm.add("box", Vector3(0, h + 0.2, 0), Vector3(top_w + 0.6, 0.4, top_d + 0.6), white)
 			for sx in [-1.0, 1.0]:
 				det.add("box", Vector3(sx * (top_w * 0.5 + 0.25), h + 0.75, 0), Vector3(0.15, 0.7, top_d + 0.6), WOOD.lightened(0.2))
+				cols.append([Vector3(sx * (top_w * 0.5 + 0.25), h + 0.75, 0), Vector3(0.2, 0.75, top_d + 0.6), 0.0])   # korkuluk
 			for sz in [-1.0, 1.0]:
 				det.add("box", Vector3(0, h + 0.75, sz * (top_d * 0.5 + 0.25)), Vector3(top_w + 0.6, 0.7, 0.15), WOOD.lightened(0.2))
+				cols.append([Vector3(0, h + 0.75, sz * (top_d * 0.5 + 0.25)), Vector3(top_w + 0.6, 0.75, 0.2), 0.0])
 			var ntank = 2 if (apt and w > 19.0) else 1
 			for tk in ntank:
 				var tx = rng.randf_range(-top_w * 0.25, top_w * 0.25) if ntank == 1 else (tk - 0.5) * top_w * 0.5
@@ -179,6 +196,7 @@ static func _make(rng: RandomNumberGenerator, i: int) -> Dictionary:
 					for sz in [-1.0, 1.0]:
 						det.add("box", Vector3(tx + sx * 0.8, h + 1.0, sz * 0.8), Vector3(0.15, 1.6, 0.15), DARK)
 				det.add_grad("cyl", Vector3(tx, h + 2.6, 0), Vector3(2.6, 2.2, 2.6), Color(0.7, 0.74, 0.78), Color(0.5, 0.53, 0.58), Vector3.ZERO, 14)
+				cols.append([Vector3(tx, h + 2.2, 0), Vector3(2.7, 3.6, 2.7), 0.0])   # su tankı + ayakları katı (içinden geçilmesin)
 				det.add("cyl", Vector3(tx, h + 3.8, 0), Vector3(2.8, 0.25, 2.8), Color(0.45, 0.47, 0.5), Vector3.ZERO, 14)
 			if apt and rng.randf() < 0.6:
 				det.add("cyl", Vector3(top_w * 0.4, h + 2.4, top_d * 0.3), Vector3(0.08, 4.0, 0.08), DARK, Vector3.ZERO, 5)
@@ -194,7 +212,7 @@ static func _make(rng: RandomNumberGenerator, i: int) -> Dictionary:
 		_window(det, Vector3(-w * 0.5 - aw * 0.5, 0.5 + ah * 0.55, d * 0.1 - ad * 0.5), 0.0, rng)
 		cols.append([Vector3(-w * 0.5 - aw * 0.5 + 0.1, (0.5 + ah + 0.6) * 0.5, d * 0.1), Vector3(aw, 0.5 + ah + 0.6, ad), 0.0])
 	return {"walls": walls.build(), "roof": roof.build(), "detail": det.build(), "w": w + annex_w * 2.0, "d": d, "h": h, "roof_top": roof_top, "cols": cols,
-		"annex_w": annex_w * 2.0,   # yerleşim ayak izi tek yandaki ek binayı da simetrik kapsasın
+		"annex_w": annex_w * 2.0, "arch": arch,   # yerleşim ayak izi tek yandaki ek binayı da simetrik kapsasın
 		"roof_shape": (rcm.build() as ArrayMesh).create_convex_shape(true, false)}
 
 
@@ -265,7 +283,7 @@ static func _make_round(rng: RandomNumberGenerator, i: int, dome: bool) -> Dicti
 		c2.add("cone", Vector3(0, h + D * 0.22 * 0.6 + 2.8 + D * 0.1, 0), Vector3(D * 0.5 + 1.6, D * 0.2, D * 0.5 + 1.6), white, Vector3.ZERO, 10)
 		extra.append((c2.build() as ArrayMesh).create_convex_shape(true, false))
 	return {"walls": walls.build(), "roof": roof.build(), "detail": det.build(), "w": D, "d": D, "h": h, "roof_top": roof_top, "cols": [],
-		"roof_shape": (rcm.build() as ArrayMesh).create_convex_shape(true, false), "body_shape": cyl, "extra_shapes": extra}
+		"roof_shape": (rcm.build() as ArrayMesh).create_convex_shape(true, false), "body_shape": cyl, "extra_shapes": extra, "arch": 6 if dome else 5}
 
 
 const CLOTHES := [Color(0.85, 0.3, 0.25), Color(0.95, 0.95, 0.92), Color(0.3, 0.45, 0.75), Color(0.95, 0.8, 0.3), Color(0.4, 0.62, 0.4)]
@@ -326,6 +344,21 @@ static func _front_decor(det: MB, w: float, d: float, arch: int, rng: RandomNumb
 					var fc = [Color(0.95, 0.4, 0.5), Color(1.0, 0.85, 0.3), Color(0.95, 0.95, 0.95), Color(0.7, 0.45, 0.9)][rng.randi() % 4]
 					det.add("sphere", Vector3(x - 0.6 + f * 0.3, y + 0.62, -d * 0.5 - 0.3), Vector3(0.2, 0.18, 0.2), fc, Vector3.ZERO, 6)
 				det.add_grad("box", Vector3(x, y + 0.55, -d * 0.5 - 0.3), Vector3(1.5, 0.12, 0.34), Color(0.4, 0.66, 0.3), Color(0.2, 0.4, 0.15))
+
+
+## Köşeli (yuvarlak olmayan) dükkân / kasaba evi şablonu: genişliği en çok mw, derinliği en çok md (özel dükkânlar için)
+static func rect_template(rng: RandomNumberGenerator, mw: float, md: float) -> int:
+	ensure()
+	var best = -1
+	var fit: Array = []
+	for k in templates.size():
+		var t: Dictionary = templates[k]
+		if int(t.get("arch", 0)) in [0, 1, 3] and float(t.get("annex_w", 0.0)) == 0.0:
+			if float(t["w"]) <= mw and float(t["d"]) <= md:
+				fit.append(k)
+			if best < 0 or float(t["w"]) < float(templates[best]["w"]):
+				best = k
+	return fit[rng.randi() % fit.size()] if not fit.is_empty() else best
 
 
 static func _window(b: MB, p: Vector3, yaw: float, rng: RandomNumberGenerator) -> void:

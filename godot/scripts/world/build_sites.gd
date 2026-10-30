@@ -177,11 +177,17 @@ static func _fill(b: Builder, r: float, inner: float, spacing: float, style: Str
 					break
 			if not ok:
 				continue
-			if _on_road(b, px, pn, 9.0):
+			# büyük, sık şehir dokusu: geniş ayak izi, daha çok kat (köyler küçük kulübe yığını gibi duruyordu)
+			var hw = rng.randf_range(13, 21) * big
+			var hd = rng.randf_range(11, 16) * big
+			# yola taşmasın: evin gerçek yarı boyu + kaldırım kadar yoldan uzak; başka evin / yapının içine de girmesin
+			if _on_road(b, px, pn, maxf(hw, hd) * 0.55 + 1.5):
+				continue
+			var wq = b.w(Vector3(px, 0, pn))
+			if not b.area_free(Vector2(wq.x, wq.z), minf(hw, hd) * 0.45):
 				continue
 			var yaw = rad_to_deg(a) + 180.0
-			# büyük, sık şehir dokusu: geniş ayak izi, daha çok kat (köyler küçük kulübe yığını gibi duruyordu)
-			b.house(px, pn, rng.randf_range(13, 21) * big, rng.randf_range(11, 16) * big, [2, 2, 3, 3, 4, 5].pick_random(), yaw, style, rng)
+			b.house(px, pn, hw, hd, [2, 2, 3, 3, 4, 5].pick_random(), yaw, style, rng)
 			count += 1
 			if count % 12 == 0:
 				await _yield()

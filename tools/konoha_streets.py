@@ -89,12 +89,34 @@ def streets(v):
     return out
 
 
+def other_streets(v):
+    """Diğer köyler: kapı yolları zaten var; iç/dış çevre yolu + kıvrımlı ara caddeler (her köyün kendi tohumu)"""
+    r = float(v['r'])
+    if r < 300:
+        return []
+    seed = sum(map(ord, v['id']))
+    S = [_ring(0.0, 0.0, r * 0.42, r * 0.42, seed % 7, 0.04, 64), _ring(0.0, 0.0, r * 0.72, r * 0.72, seed % 11, 0.03, 96)]
+    n = 6 if r < 1100 else 9
+    for k in range(n):
+        ang = (360.0 / n) * k + (seed % 30)
+        S.append(_line(_polar(ang, r * 0.12), _polar(ang + 5, r * 0.85), seed + k, 0.05, 14))
+    out = []
+    for pts in S:
+        out.append(dict(a=v['id'], b=v['id'], kind='street', pts=[[round(v['x'] + x, 1), round(v['y'] + n_, 1)] for x, n_ in pts]))
+    return out
+
+
 if __name__ == '__main__':
     D = os.path.join(os.path.dirname(__file__), '..', 'godot', 'data', 'world')
     world = json.load(open(os.path.join(D, 'world.json'), encoding='utf-8'))
     v = [x for x in world['villages'] if x['id'] == 'konoha'][0]
     roads = json.load(open(os.path.join(D, 'roads.json'), encoding='utf-8'))
-    keep = [r for r in roads if not (r.get('a') == 'konoha' and r.get('b') == 'konoha' and r.get('kind') == 'street')]
+    keep = [r for r in roads if not (r.get('a') == 'konoha' and r.get('b') == 'konoha' and r.get('kind') == 'street') and not r.get('extra')]
     new = streets(v)
+    for ov in world['villages']:
+        if ov['id'] != 'konoha':
+            for e in other_streets(ov):
+                e['extra'] = True
+                new.append(e)
     json.dump(keep + new, open(os.path.join(D, 'roads.json'), 'w', encoding='utf-8'))
     print('konoha caddeleri:', len(roads) - len(keep), '->', len(new))

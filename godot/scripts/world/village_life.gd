@@ -440,7 +440,10 @@ func _spawn_site_actor(key: String, role: String, d: Dictionary) -> void:
 		var f: Dictionary = Friends.all()[fid]
 		extra["look_extra"] = Friends.look_of(f)
 		extra["display_override"] = String(f["name"])
-	var vg = _villager(role, d["pos"], [], extra, skey, fid)
+	var at: Vector3 = d["pos"]
+	if not role in ["sitter", "vendor", "eat", "bench"]:
+		at = _free_spot(at)   # fener / sandık / duvarın içine ya da arkasına düşen nöbetçi vb. yakındaki boş noktaya
+	var vg = _villager(role, at, [], extra, skey, fid)
 	npcs.erase(vg)  # mekân aktörleri sokak sayısına dahil değil
 	if d.has("face"):
 		vg.facing = d["face"]
@@ -454,6 +457,26 @@ func _spawn_site_actor(key: String, role: String, d: Dictionary) -> void:
 				vg.buddy = n
 	if role == "ball" and d.has("game") and is_instance_valid(d["game"]):
 		d["game"].kids.append(vg)
+
+
+## Ayakta duracak NPC için boş nokta: konumda katı bir şey varsa çevresinde halka halka boşluk ara
+func _free_spot(p: Vector3) -> Vector3:
+	var space = get_world_3d().direct_space_state
+	var q = PhysicsShapeQueryParameters3D.new()
+	var sh = CapsuleShape3D.new()
+	sh.radius = 0.45
+	sh.height = 1.3
+	q.shape = sh
+	q.collision_mask = 1
+	for r in [0.0, 1.0, 1.6, 2.3, 3.0]:
+		for k in (1 if r == 0.0 else 8):
+			var a = TAU * k / 8.0
+			var c = p + Vector3(cos(a) * r, 0, sin(a) * r)
+			c.y = Game.ground_height(c.x, c.z) if r > 0.0 else p.y
+			q.transform = Transform3D(Basis.IDENTITY, c + Vector3(0, 1.75, 0))   # alt ucu 1.1 m: basamak / teras zemini sayılmaz
+			if space.intersect_shape(q, 1).is_empty():
+				return c
+	return p
 
 
 func _update_crowd(v: Dictionary, p: Vector3) -> void:

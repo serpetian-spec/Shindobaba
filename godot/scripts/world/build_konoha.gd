@@ -160,7 +160,8 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	for sh in shops:
 		var face_south = sh[1] > 0.0  # caddenin kuzeyindekiler güneye (caddeye) bakar
 		var yaw = 0.0 if face_south else 180.0
-		b.house(sh[0], sh[1], sh[6], 11, 2, yaw, "konoha", rng)
+		b.house_ti = HouseKit.rect_template(rng, sh[6] + 4.0, 14.0)   # köşeli dükkân binası (yuvarlak kule / kubbe değil)
+		b.house(sh[0], sh[1], sh[6] + 4.0, 14.0, 2, yaw, "konoha", rng)
 		var dn = -1.0 if face_south else 1.0
 		var hd = float(b.last_house.get("d", 11.0))
 		SpecialBuildings.shop_front(b, decor, sh[0], sh[1] + dn * hd * 0.5, dn, sh[2], sh[4], sh[6])
@@ -599,20 +600,24 @@ static func _hokage_faces(b: Builder, rock: Dictionary, cliff_n: float, v: Dicti
 		# başın üstünde uçurumdan çıkan ince kaya saçağı (yüzleri çerçeveler)
 		var tn = _cliff_surface(b, fx, cliff_n, fy + H * 0.66)
 		b.box(Vector3(fx, fy + H * 0.66, tn - 1.5), Vector3(gap * 0.95, 2.5, 4.0), fc.darkened(0.25), 0, true)
-		# kafa havada asılı duruyordu: çeneden yere inen, aşağı doğru genişleyen kaya ayağı (oyulmuş kaya kaidesi)
-		var chin = fy - H * 0.42
+		# kafa havada asılı duruyordu: çeneden yere inen, aşağıya ve iki yana doğal yayılan kaya kütlesi (düzensiz kayalar,
+		# basamak gibi dizili kutular değil); yan yanaki kafaların kayalarıyla birleşir, arkası uçuruma gömülü
+		var chin = fy - H * 0.4   # büstün omuz hattı: kaya omuzların altını sarsın (arada boşluk kalmasın)
 		var gb = _gy(b, fx, fn - H * 1.2) - 2.0
-		var layers = 9
-		for k in layers:
-			var t0 = float(k) / layers
-			var y0 = lerpf(gb, chin, t0)
-			var y1 = lerpf(gb, chin, float(k + 1) / layers)
-			var spread = 1.0 - (t0 + 0.5 / layers)   # 1 altta, 0 çenede
-			var dep = H * (0.5 + 0.55 * spread)
-			var wid = H * (0.75 + 0.35 * spread)
-			var sn = _cliff_surface(b, fx, cliff_n, (y0 + y1) * 0.5)
-			var lc = rc.darkened(0.12 + 0.05 * float(k % 2))
-			b.box(Vector3(fx, (y0 + y1) * 0.5, sn - dep * 0.5 + 3.0), Vector3(wid, y1 - y0 + 0.6, dep + 6.0), lc, 0, true)
+		var hrng = RandomNumberGenerator.new()
+		hrng.seed = 900 + i
+		var rows = 7
+		for k in rows:
+			var t = (float(k) + 0.5) / rows          # 0 çene .. 1 dip
+			var y = lerpf(chin, gb, t)
+			var span = H * (1.0 + 0.8 * t)          # aşağı indikçe genişler (komşu kafanınkiyle birleşir)
+			var cnt = 2 + int(t * 4.0)
+			for j in cnt:
+				var lx = fx + (float(j) + 0.5) / cnt * span - span * 0.5 + hrng.randf_range(-4.0, 4.0)
+				var sz = H * hrng.randf_range(0.36, 0.52) * (0.9 + t * 0.5)
+				var sn = _cliff_surface(b, lx, cliff_n, y)
+				var lc = rc.darkened(hrng.randf_range(0.04, 0.2))
+				b.boulder(Vector3(lx, y - sz * 0.1, sn - sz * 0.25 + 2.0), Vector3(sz * 1.3, sz, sz * 1.1), lc, hrng.randi() % 4, true, hrng.randf_range(0, 360))
 	# halk için uçuruma çıkan zikzak taş merdiven (yüzlerin batısında, seyir yerine çıkar)
 	_cliff_stairs(b, -2.0 * gap - gap * 1.1, cliff_n, top, rc.darkened(0.2))
 	# tepe seyir yeri (uçurumun hemen arkası)
@@ -653,7 +658,7 @@ static func _stone_head(b: Builder, i: int, at: Vector3, height: float, col: Col
 	hm.scale = Vector3.ONE * sc
 	hm.rotation = Vector3(deg_to_rad(-8.0), yaw, 0)  # yüz güneye (köye) bakar, hafif yukarı
 	# kafa uçurumdan dışarı taşar: merkezi yüzeyin biraz önünde (köy tarafı), arkası kayaya gömülü
-	var fwd = Vector3(-sin(yaw), 0, cos(yaw)) * height * 0.08   # yüz yönüne biraz öne (yerel x, y, n)
+	var fwd = Vector3(-sin(yaw), 0, cos(yaw)) * height * 0.02   # yüz yönüne çok az öne: arkası kayaya gömülü (havada durmasın)
 	var wp = b.w(at + fwd)
 	hm.global_position = wp - Vector3(0, (head_y + 0.05) * sc, 0)
 	# çarpışma: kafatası küresi + yüz/çene kutusu + boyun bloğu (üstünde durulabilir, içinden geçilmez)
