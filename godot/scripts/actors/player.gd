@@ -1042,7 +1042,23 @@ func _leave_wall() -> void:
 	model.transform = Transform3D(Basis(Vector3.UP, facing), Vector3.ZERO)
 
 
+var _step_d := 0.0
+
+
+## Ayak sesi: yürürken/koşarken adım başına, zemine göre (çimen, toprak yol, taş sokak, iç mekânda tahta)
+func _footstep(sp: float, sprint: bool) -> void:
+	if not grounded or swimming or sp < 0.6:
+		_step_d = 0.0
+		return
+	_step_d += sp * get_physics_process_delta_time()
+	var stride = 2.6 if sprint else (2.0 if sp > 8.0 else 1.5)
+	if _step_d >= stride:
+		_step_d = 0.0
+		Sfx.play(Game.step_sound(global_position), global_position, randf_range(0.9, 1.08) * (0.92 if sprint else 1.0), 0.55 if sprint else 0.45)
+
+
 func _animate(sp: float, sprint: bool) -> void:
+	_footstep(sp, sprint)
 	var ov = model.overlay
 	if model.current == "sit" and input_locked > 0.0:
 		return   # tezgâhta/salıncakta otururken ayağa kalkmasın

@@ -332,6 +332,7 @@ func _physics_process(dt: float) -> void:
 		EnemyArts.tick(self, dt)
 	if arch.has("mist_sword"):
 		Swordsmen.tick(self, dt)
+	_footsteps(dt)
 	match state:
 		"idle":
 			_patrol(dt)
@@ -592,6 +593,23 @@ func _exit_tree() -> void:
 		attack_tokens = maxi(0, attack_tokens - 1)
 
 
+var _step_d := 0.0
+var _last_fp := Vector3.ZERO
+
+
+## Yakındaki (25 m) düşmanın ayak sesleri: koşarken daha seyrek ve tok
+func _footsteps(_dt: float) -> void:
+	var gp = global_position
+	var hv = Vector2(gp.x - _last_fp.x, gp.z - _last_fp.z).length()
+	_last_fp = gp
+	if not grounded or hv > 3.0 or Game.player == null or gp.distance_to(Game.player.global_position) > 25.0:
+		return
+	_step_d += hv
+	if _step_d > 2.2:
+		_step_d = 0.0
+		Sfx.play(Game.step_sound(gp), gp, randf_range(0.85, 1.05), 0.35)
+
+
 ## Zemin: iç mekânda (mağara/in, dünyanın çok üstünde) arazi değil bulunduğu kat
 func _floor_y(x: float, z: float) -> float:
 	var g = Game.ground_height(x, z)
@@ -639,9 +657,11 @@ func _attack(dt: float) -> void:
 		var heavy = combo_left == 1 and randf() < 0.5
 		var hits = Combat.hit_sphere(self, pt, 0.9, {"dmg": (4.5 if not heavy else 8.0) * power, "knock": 3.0 if not heavy else 10.0,
 			"launch": 0.0 if not heavy else 4.0, "kind": "heavy" if heavy else "light", "hitstop": 0.04, "melee": true})
+		var armed = look is Dictionary and look.get("weapon_r") != null and String(look.get("weapon_r", "")) != ""
+		Sfx.play("swing_sword" if armed else "whoosh", global_position + Vector3.UP, randf_range(0.92, 1.1), 0.6)
 		if not hits.is_empty():
 			FX.hit_spark(pt, Color(1, 0.6, 0.4), 0.8)
-			Sfx.play("punch", pt)
+			Sfx.play("hit_sword" if armed else "punch", pt, randf_range(0.92, 1.08))
 	if state_t > 0.6 / (1.0 + skill * 0.35):
 		combo_left -= 1
 		if combo_left > 0:
@@ -689,7 +709,8 @@ func take_hit(info: Dictionary) -> void:
 	if guarding:
 		guard_hits += 1
 		FX.hit_spark(global_position + Vector3.UP * 1.2, Color(0.7, 0.85, 1.0), 0.5)
-		Sfx.play("block", global_position)
+		var steel = info.get("attacker") is Player and Game.profile.get("weapon_drawn", false) and String(Gear.weapon(Game.profile).get("style", "fist")) in ["sword", "blade", "dual", "heavy", "sickle", "chain"]
+		Sfx.play("clash" if steel else "block", global_position, randf_range(0.95, 1.08))
 		info = info.duplicate()
 		info["dmg"] = info.get("dmg", 5.0) * Combat.block_pass(info, 0.15) * Combat.jutsu_factor(info)   # jutsu bloğu deler (büyüdükçe daha çok)
 		info["kind"] = "guarded"

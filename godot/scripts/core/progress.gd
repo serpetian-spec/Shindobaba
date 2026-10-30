@@ -622,6 +622,8 @@ func interact(it: Dictionary) -> void:
 			_academy()
 		"mission_board":
 			_mission_board(it)
+		"graveyard":
+			Graveyard.talk(it)
 		"ramen":
 			_sit_at(it.get("seats", []))
 			_eat(50, "Sıcak bir kase miso chashu ramen... Can ve chakra doldu!", "Ramen Ustası")

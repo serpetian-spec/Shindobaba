@@ -14,7 +14,7 @@ const JOIN_BOND := 55
 const TALK_CD := 600.0      # sn (gerçek zaman)
 const GIFT_COST := 100
 const RETURN_T := 60.0
-const DEATH_P := 0.22     # takımdaki dost düşünce kalıcı ölme olasılığı
+const DEATH_P := 0.06     # takımdaki dost düşünce kalıcı ölme olasılığı (ölüm nadir)
 const RANKS := ["Genin", "Chūnin", "Jōnin", "Elit Jōnin"]
 const NINJA_ROLES := ["patrol", "roof", "guard", "spar", "teacher"]
 const ELS := ["katon", "suiton", "fuuton", "doton", "raiton"]
@@ -672,7 +672,7 @@ func _life_event() -> void:
 			log_event(f, "Görevde yaralandı, hastanede")
 			f["news"] = "Hastaneden çıktım. Bir dahaki sefere kimseye sırtımı dönmeyeceğim."
 			Hud.msg("Haber: %s görevde yaralandı, hastanede yatıyor." % f["name"], Color(1, 0.75, 0.5))
-		elif r < defect_p + 0.84:
+		elif r < defect_p + 0.81:
 			f["status"] = "öldü"
 			f["party"] = false
 			log_event(f, "Bir görevde öldü")
@@ -973,6 +973,7 @@ func _world_tick(dt: float) -> void:
 		_fights_tick(dt)
 		return
 	_wt = 1.0
+	_funeral_tick()
 	var now = Time.get_unix_time_from_system()
 	var pp = Game.player.global_position
 	# işler değişir
@@ -1185,7 +1186,7 @@ func _fights_tick(dt: float) -> void:
 				Friends.log_event(f, "%s: birlikte kazandınız" % fg["title"])
 				Hud.msg("%s: \"Sen olmasan bitmiştim. Borçluyum.\"" % f["name"], Color(0.6, 1.0, 0.75), 5.0)
 			elif ally_dead or (far and randf() < 0.35):
-				if randf() < 0.45:
+				if randf() < 0.15:
 					f["status"] = "öldü"
 					Friends.log_event(f, "%s sırasında öldü" % fg["title"])
 					Hud.banner("%s ÖLDÜ" % String(f["name"]).to_upper(), "%s sırasında hayatını kaybetti." % fg["title"], Color(0.85, 0.85, 0.95))
@@ -1238,7 +1239,7 @@ func _betrayal_event(id: String) -> void:
 
 ## Birlikte görev / öldürme bağı artırır (takımdakiler)
 static func on_mission_done(rank: String) -> void:
-	var risk: Array = {"D": [0.0, 0.03], "C": [0.02, 0.08], "B": [0.04, 0.12], "A": [0.07, 0.18], "S": [0.12, 0.22]}.get(rank, [0.03, 0.1])
+	var risk: Array = {"D": [0.0, 0.03], "C": [0.005, 0.08], "B": [0.012, 0.12], "A": [0.025, 0.18], "S": [0.04, 0.22]}.get(rank, [0.01, 0.1])
 	for id in party_ids():
 		var f0: Dictionary = all()[id]
 		if f0.get("student", false):
@@ -1559,6 +1560,189 @@ func _act_end(msg: String) -> void:
 	act = {}
 
 
+## ---------------------------------------------------------------- ölüm, cenaze, mezarlık
+## Dost ölünce ~4 dk sonra köyünün mezarlığında cenaze töreni; gelirsen tören oynar (rahip, aile, yas tutanlar, son sözler).
+## Tören bitince ya da 40 dk geçince defnedilir: İlişkiler listesinden düşer, mezar taşında adı kalır.
+const EPITAPHS := ["Ateşin İradesi onda yaşadı", "Son nefesine kadar savaştı", "Arkadaşlarını korurken düştü", "Huzur içinde uyu", "Gölgesi köyü korumaya devam ediyor"]
+var graves := {}       # köy -> Graveyard düğümü
+var funeral := {}      # süren tören
+
+
+static func listed() -> Dictionary:
+	var out = {}
+	for id in all():
+		if not all()[id].get("buried", false):
+			out[id] = all()[id]
+	return out
+
+
+func _funeral_tick() -> void:
+	var now = Time.get_unix_time_from_system()
+	var pp = Game.player.global_position
+	for id in all():
+		var f: Dictionary = all()[id]
+		if String(f.get("status", "")) != "öldü" or f.get("buried", false):
+			continue
+		if not f.has("died_t"):
+			f["died_t"] = now
+			f["funeral_t"] = now + 240.0
+			f["epitaph"] = EPITAPHS.pick_random()
+			var vn = Game.village(String(f.get("village", Progress.home()))).get("name", "Köy")
+			if int(f.get("bond", 0)) >= 0:
+				# ulak seni törene çağırır (isteğe bağlı)
+				var gp = Graveyard.pos_of(String(f.get("village", Progress.home())))
+				var nm = String(f["name"])
+				Hud.dialog("Ulak", "%s hayatını kaybetti... Cenaze töreni birkaç dakika sonra %s mezarlığında. %s da konuşma yapacak. Ailesi seni de orada görmek istiyor." % [nm, vn, Kage.kage_name(String(f.get("village", Progress.home())))], [
+					{"label": "Katılacağım", "cb": func():
+						Game.profile["waypoint"] = [gp.x, gp.y, gp.z, "Cenaze: %s" % nm]
+						Game.profile["track"] = "waypoint"
+						Hud.msg("Mezarlık haritada işaretlendi.", Color(0.85, 0.85, 0.95))},
+					{"label": "Katılamam", "cb": func(): Hud.msg("Tören sensiz yapılacak.", Color(0.8, 0.8, 0.85))}])
+		elif funeral.is_empty() and now >= float(f.get("funeral_t", 0.0)):
+			var gp2 = Graveyard.pos_of(String(f.get("village", Progress.home())))
+			if gp2 != Vector3.INF and pp.distance_to(gp2) < 40.0:
+				_start_funeral(id)
+			elif now > float(f["died_t"]) + 2400.0:
+				_bury(id, false)
+
+
+## Yakındaki köylerin mezarlıkları kurulur / uzaktakiler kaldırılır (dostun olmasa da her köyde)
+func _graves_tick() -> void:
+	var pp = Game.player.global_position
+	for v in Game.world_info.get("villages", []):
+		var vid = String(v["id"])
+		var near = Game.to_map(pp).distance_to(Vector2(float(v["x"]), float(v["y"]))) < float(v["r"]) + 600.0
+		if near and not graves.has(vid):
+			var g = Graveyard.new()
+			get_tree().current_scene.add_child(g)
+			g.build(vid)
+			graves[vid] = g
+		elif not near and graves.has(vid):
+			if is_instance_valid(graves[vid]):
+				graves[vid].queue_free()
+			graves.erase(vid)
+
+
+func _rebuild_grave(vid: String) -> void:
+	if graves.has(vid) and is_instance_valid(graves[vid]):
+		graves[vid].queue_free()
+	graves.erase(vid)   # bir sonraki tikte adlı taşla yeniden kurulur
+
+
+func _bury(id: String, attended: bool) -> void:
+	var f: Dictionary = all()[id]
+	f["buried"] = true
+	f["party"] = false
+	log_event(f, "Köyün mezarlığına defnedildi" + (" (törene katıldın)" if attended else ""))
+	if Game.profile.has("waypoint") and String(Game.profile["waypoint"][3]).begins_with("Cenaze"):
+		Game.profile.erase("waypoint")
+	_rebuild_grave(String(f.get("village", Progress.home())))
+
+
+func _start_funeral(id: String) -> void:
+	var f: Dictionary = all()[id]
+	var vid = String(f.get("village", Progress.home()))
+	var gp = Graveyard.pos_of(vid)
+	var people = []
+	var monk = Villager.new()
+	monk.role = "guard"
+	monk.display_override = "Rahip"
+	monk.look_extra = {"top_style": "kimono", "top": Color(0.85, 0.82, 0.75), "top2": Color(0.3, 0.28, 0.25), "pants": Color(0.3, 0.28, 0.25), "pants_style": "sivil",
+		"hair_style": "kase", "hair": Color(0.1, 0.1, 0.1), "age": "adult", "gender": "m", "vest": null, "band": null}
+	people.append([monk, Vector3(0, 0, -4.0), "Rahip"])
+	# köyün Kage'si de gelir ve konuşur
+	var kg = Villager.new()
+	kg.role = "guard"
+	kg.display_override = Kage.kage_name(vid)
+	kg.look_extra = KageAttire.look(vid)
+	kg.look_extra["village"] = vid
+	people.append([kg, Vector3(2.2, 0, -3.6), "Kage"])
+	var mourners = []
+	for m in f.get("family", []):
+		if m.get("alive", true) and String(m["rel"]) in ["Babası", "Annesi", "Karısı", "Kocası", "Oğlu", "Kızı"]:
+			mourners.append([String(m["name"]), String(m["rel"])])
+	while mourners.size() < 4:
+		mourners.append(["%s %s" % [Missions.BB_FAMILY.pick_random(), ClanWorld.GIVEN_M.pick_random()], "Silah arkadaşı"])
+	for i in mourners.size():
+		var v = Villager.new()
+		v.role = "guard"
+		v.display_override = mourners[i][0]
+		var fem = String(mourners[i][1]) in ["Annesi", "Karısı", "Kızı"]
+		v.look_extra = {"top": Color(0.08, 0.08, 0.1), "top2": Color(0.08, 0.08, 0.1), "pants": Color(0.08, 0.08, 0.1), "top_style": "kimono" if fem else "uzun",
+			"pants_style": "sivil", "gender": "f" if fem else "m", "vest": null, "age": "adult"}
+		people.append([v, Vector3(-3.0 + i * 1.6, 0, 1.2 + (i % 2) * 0.8), mourners[i][0]])
+	# köyün diğer ninjaları arka sıralarda: önce aynı köyden hayattaki dostların, kalanı köy üniformalı ninjalar
+	var guests = []
+	for oid in all():
+		var o: Dictionary = all()[oid]
+		if oid != id and String(o.get("status", "")) == "" and String(o.get("village", "")) == vid and not o.get("party", false) and available(o):
+			guests.append([String(o["name"]), look_of(o)])
+	guests.shuffle()
+	guests = guests.slice(0, 4)
+	while guests.size() < 7:
+		var lk = Outfits.roll(["chunin", "chunin", "jonin"].pick_random(), vid)
+		lk["gender"] = ["m", "m", "f"].pick_random()
+		lk["age"] = "adult"
+		guests.append(["%s ninjası" % String(Game.village(vid).get("name", "Köy")), lk])
+	for i in guests.size():
+		var gv = Villager.new()
+		gv.role = "guard"
+		gv.display_override = String(guests[i][0])
+		gv.look_extra = guests[i][1]
+		people.append([gv, Vector3(-4.5 + (i % 4) * 3.0 + (1.5 if i >= 4 else 0.0), 0, 4.2 + int(i / 4) * 1.6), guests[i][0]])
+	for pz in people:
+		var n = pz[0]
+		get_tree().current_scene.add_child(n)
+		if pz[2] == "Kage":
+			KageAttire.hat(n.model, vid)
+		var q = gp + pz[1]
+		q.y = Game.ground_height(q.x, q.z)
+		n.global_position = q
+		n.home = q
+		n.goal = q
+		n.wander_r = 0.0
+		n.fixed_face = true
+		var to = (gp + Vector3(0, 0, 3.6)) - q
+		n.facing = atan2(-to.x, -to.z) if to.length() > 0.5 else 0.0
+		n.stand_face = n.facing
+	funeral = {"id": id, "people": people.map(func(x): return x[0])}
+	Hud.banner("CENAZE TÖRENİ", "%s son yolculuğuna uğurlanıyor" % f["name"], Color(0.8, 0.8, 0.9))
+	var first_rel = mourners[0]
+	var seq = [[0.5, monk, "Bugün %s'i uğurluyoruz. Köyü için yaşadı, köyü için düştü." % f["name"]],
+		[4.5, kg, "%s bu köyün bir ninjasıydı. Onun fedakârlığı sayesinde çocuklarımız bu gece güvende uyuyacak." % f["name"]],
+		[9.0, kg, "Onun iradesini taşımak bizim borcumuz. Köy onu asla unutmayacak."],
+		[13.0, people[2][0], "%s... Seni hep yanımda sanırdım." % String(f["name"]).split(" ")[-1] if first_rel[1] != "Silah arkadaşı" else "Son görevinde yanında olmak isterdim."],
+		[17.0, people[3][0], "Onun bıraktığı yeri biz dolduracağız."],
+		[21.0, monk, "Ateşin İradesi onu taşıyanla ölmez. Huzur içinde uyu."]]
+	for s in seq:
+		var who = s[1]
+		var txt = String(s[2])
+		get_tree().create_timer(float(s[0])).timeout.connect(func():
+			if is_instance_valid(who):
+				who.say(txt, 4.0))
+	get_tree().create_timer(25.0).timeout.connect(func():
+		Hud.dialog("Cenaze — %s" % f["name"], "Herkes sessizce sırasını bekliyor. Sıra sana geldi.", [
+			{"label": "Tütsü yak", "cb": func(): _end_funeral(id, "Mezarına tütsü yaktın")},
+			{"label": "Son sözlerini söyle: \"Seni unutmayacağım.\"", "cb": func(): _end_funeral(id, "Mezarı başında ona söz verdin")},
+			{"label": "Sessizce dua et", "cb": func(): _end_funeral(id, "Mezarı başında dua ettin")}]))
+
+
+func _end_funeral(id: String, what: String) -> void:
+	var f: Dictionary = all()[id]
+	log_event(f, what)
+	Hud.msg("Tören sona erdi. %s artık köyün mezarlığında yatıyor." % f["name"], Color(0.85, 0.85, 0.95), 6.0)
+	var people: Array = funeral.get("people", [])
+	funeral = {}
+	_bury(id, true)
+	get_tree().create_timer(12.0).timeout.connect(func():
+		for n in people:
+			if is_instance_valid(n):
+				if n.has_method("vanish"):
+					n.vanish()
+				else:
+					n.queue_free())
+
+
 ## Yaralanma: takımdan düşer, hastanede yatar (bir süre köyde değil)
 const INJURIES := ["kolu kırıldı", "kaburgaları çatladı", "ağır yanık", "zehirlendi", "chakra tükenmesi", "derin kılıç yarası", "bacağı kırıldı"]
 
@@ -1605,6 +1789,7 @@ func _grad_tick(dt: float) -> void:
 	if _gt > 0.0:
 		return
 	_gt = 1.0
+	_graves_tick()
 	# mezunlar akademi avlusunda: yaklaşınca belirir, uzaklaşınca gider
 	var now = Time.get_unix_time_from_system()
 	var gl = grads()

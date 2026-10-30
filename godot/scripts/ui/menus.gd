@@ -740,7 +740,7 @@ static func _tab_relations(main: Node, body: Control) -> void:
 	left.get_parent().size_flags_vertical = Control.SIZE_EXPAND_FILL
 	left.get_parent().custom_minimum_size.y = 0.0   # sabit 900 px ekrandan taşıyordu: listenin altına inilemiyordu
 	_friends_card(main, left)
-	var fs: Dictionary = Friends.all()
+	var fs: Dictionary = Friends.listed()   # defnedilenler listeden düşer (mezarlıkta adları yazar)
 	if not fs.is_empty():
 		var lc = UI.card()
 		left.add_child(lc)
@@ -811,7 +811,7 @@ static func _tab_relations(main: Node, body: Control) -> void:
 static var _friend_i := 0
 ## Arkadaşlar: ◀ ▶ ile gez; bağ çubuğu, takıma al / köyde beklet
 static func _friends_card(main: Node, left: Control) -> void:
-	var fs: Dictionary = Friends.all()
+	var fs: Dictionary = Friends.listed()
 	var fc = UI.card(Color(0.6, 1.0, 0.75))
 	left.add_child(fc)
 	var fv = UI.vbox(8)

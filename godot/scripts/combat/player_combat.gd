@@ -160,6 +160,10 @@ func attack() -> void:
 	_start_step()
 
 
+const SWING_SND := {"blade": "swing_blade", "dual": "swing_blade", "sword": "swing_sword", "heavy": "swing_heavy", "staff": "swing_staff",
+	"chain": "swing_chain", "sickle": "swing_chain", "claw": "swing_blade", "fan": "swing_fan"}
+
+
 func _start_step() -> void:
 	var c: Dictionary = _combo(step)
 	action = "attack"
@@ -188,7 +192,9 @@ func _start_step() -> void:
 				"colors": [Color(0.85, 1.0, 0.92, 0.7), Color(0.7, 0.95, 0.85, 0)]})
 			Sfx.play("wind", o, 1.1)
 			Combat.hit_zone(p, o, dir, 16.0, 18.0, 3.0, {"dmg": 12.0 * Stats.melee_mult(Game.profile), "knock": 14.0, "launch": 3.0, "kind": "heavy", "element": "fuuton", "hitstop": 0.04, "melee": true}))
-	Sfx.play("whoosh", p.global_position, randf_range(0.9, 1.2), 0.6)
+	# silaha özgü savuruş (kılıç "vuuşş", ağır silah "vuuum", asa "vuff"...), silahsız: yumruk savuruşu
+	var wst = String(Gear.weapon(Game.profile).get("style", "fist")) if Game.profile.get("weapon_drawn", false) else "fist"
+	Sfx.play(String(SWING_SND.get(wst, "whoosh")), p.global_position, randf_range(0.92, 1.1), 0.75 if SWING_SND.has(wst) else 0.6)
 
 
 ## Jutsu chakra maliyeti: gücü gibi seviyeyle büyür (sabit kalınca yüksek seviyede chakra hiç bitmiyordu);
@@ -325,15 +331,15 @@ func _do_attack(dt: float) -> bool:
 
 ## Silah stillerine özel kombolar: 5 adımın animasyonları ("" = temel adım/tekme), hız, süre ve savurma çarpanı, vuruş rengi/sesi
 const STYLE_COMBOS := {
-	"blade": {"anims": ["a/Punch_Jab", "b/Melee_Hook", "b/Sword_Regular_A", "", "b/Sword_Regular_C"], "speed": 1.75, "dur": 0.9, "knock": 1.0, "fx": Color(0.85, 0.92, 1.0), "snd": "clink"},
-	"dual": {"anims": ["b/Sword_Regular_A", "b/Sword_Regular_B", "b/Sword_Regular_A", "b/Sword_Regular_B", "b/Sword_Regular_Combo"], "speed": 2.0, "dur": 0.78, "knock": 0.8, "fx": Color(0.7, 0.9, 1.0), "snd": "clink"},
-	"sword": {"anims": ["b/Sword_Regular_A", "b/Sword_Regular_B", "b/Sword_Regular_C", "a/Sword_Attack", "b/Sword_Dash_RM"], "speed": 1.5, "dur": 1.05, "knock": 1.25, "fx": Color(0.8, 0.9, 1.0), "snd": "clink"},
-	"heavy": {"anims": ["b/TreeChopping", "b/Sword_Regular_C", "a/Sword_Attack", "b/Shield_OneShot", "b/TreeChopping"], "speed": 1.12, "dur": 1.45, "knock": 2.2, "fx": Color(1.0, 0.6, 0.3), "snd": "hit_heavy"},
-	"staff": {"anims": ["a/Punch_Jab", "b/Sword_Regular_B", "b/Farm_Harvest", "a/Sword_Attack", "b/Sword_Regular_Combo"], "speed": 1.45, "dur": 1.1, "knock": 1.6, "fx": Color(1.0, 0.85, 0.5), "snd": "punch"},
-	"chain": {"anims": ["b/OverhandThrow", "b/Sword_Regular_B", "b/OverhandThrow", "b/OverhandThrow", "b/Sword_Regular_Combo"], "speed": 1.7, "dur": 1.15, "knock": 1.1, "fx": Color(0.9, 0.95, 1.0), "snd": "clink"},
-	"sickle": {"anims": ["b/Farm_Harvest", "b/Sword_Regular_A", "b/Farm_Harvest", "", "b/Sword_Regular_C"], "speed": 2.0, "dur": 0.85, "knock": 1.0, "fx": Color(0.9, 0.95, 1.0), "snd": "clink"},
-	"claw": {"anims": ["b/Zombie_Scratch", "b/Zombie_Scratch", "b/Melee_Hook", "", "b/Zombie_Scratch"], "speed": 2.1, "dur": 0.8, "knock": 0.9, "fx": Color(1.0, 0.4, 0.35), "snd": "punch"},
-	"fan": {"anims": ["b/Sword_Regular_B", "b/Sword_Regular_A", "b/Sword_Regular_Combo", "a/Spell_Simple_Shoot", "b/Sword_Regular_C"], "speed": 1.5, "dur": 1.0, "knock": 1.8, "fx": Color(0.7, 1.0, 0.85), "snd": "wind"},
+	"blade": {"anims": ["a/Punch_Jab", "b/Melee_Hook", "b/Sword_Regular_A", "", "b/Sword_Regular_C"], "speed": 1.75, "dur": 0.9, "knock": 1.0, "fx": Color(0.85, 0.92, 1.0), "snd": "hit_blade"},
+	"dual": {"anims": ["b/Sword_Regular_A", "b/Sword_Regular_B", "b/Sword_Regular_A", "b/Sword_Regular_B", "b/Sword_Regular_Combo"], "speed": 2.0, "dur": 0.78, "knock": 0.8, "fx": Color(0.7, 0.9, 1.0), "snd": "hit_blade"},
+	"sword": {"anims": ["b/Sword_Regular_A", "b/Sword_Regular_B", "b/Sword_Regular_C", "a/Sword_Attack", "b/Sword_Dash_RM"], "speed": 1.5, "dur": 1.05, "knock": 1.25, "fx": Color(0.8, 0.9, 1.0), "snd": "hit_sword"},
+	"heavy": {"anims": ["b/TreeChopping", "b/Sword_Regular_C", "a/Sword_Attack", "b/Shield_OneShot", "b/TreeChopping"], "speed": 1.12, "dur": 1.45, "knock": 2.2, "fx": Color(1.0, 0.6, 0.3), "snd": "hit_heavy_weapon"},
+	"staff": {"anims": ["a/Punch_Jab", "b/Sword_Regular_B", "b/Farm_Harvest", "a/Sword_Attack", "b/Sword_Regular_Combo"], "speed": 1.45, "dur": 1.1, "knock": 1.6, "fx": Color(1.0, 0.85, 0.5), "snd": "hit_staff"},
+	"chain": {"anims": ["b/OverhandThrow", "b/Sword_Regular_B", "b/OverhandThrow", "b/OverhandThrow", "b/Sword_Regular_Combo"], "speed": 1.7, "dur": 1.15, "knock": 1.1, "fx": Color(0.9, 0.95, 1.0), "snd": "hit_chain"},
+	"sickle": {"anims": ["b/Farm_Harvest", "b/Sword_Regular_A", "b/Farm_Harvest", "", "b/Sword_Regular_C"], "speed": 2.0, "dur": 0.85, "knock": 1.0, "fx": Color(0.9, 0.95, 1.0), "snd": "hit_chain"},
+	"claw": {"anims": ["b/Zombie_Scratch", "b/Zombie_Scratch", "b/Melee_Hook", "", "b/Zombie_Scratch"], "speed": 2.1, "dur": 0.8, "knock": 0.9, "fx": Color(1.0, 0.4, 0.35), "snd": "hit_claw"},
+	"fan": {"anims": ["b/Sword_Regular_B", "b/Sword_Regular_A", "b/Sword_Regular_Combo", "a/Spell_Simple_Shoot", "b/Sword_Regular_C"], "speed": 1.5, "dur": 1.0, "knock": 1.8, "fx": Color(0.7, 1.0, 0.85), "snd": "hit_fan"},
 }
 
 
@@ -519,7 +525,7 @@ func _on_hit_fx(pt: Vector3, c: Dictionary) -> void:
 	var heavy: bool = c.get("heavy", false)
 	FX.hit_spark(pt, c.get("fx", Color(1.0, 0.85, 0.45) if not heavy else Color(1.0, 0.55, 0.25)), 1.4 if heavy else 0.9)
 	Sfx.play(c.get("snd", "hit_heavy" if heavy else "punch"), pt, randf_range(0.9, 1.15))
-	if heavy and c.has("snd"):
+	if heavy and c.has("snd") and not String(c["snd"]).begins_with("hit_"):
 		Sfx.play("hit_heavy", pt, 0.9, 0.6)
 	if Game.world:
 		Game.world.env.add_shake(0.5 if heavy else 0.18)

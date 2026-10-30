@@ -247,6 +247,24 @@ func jutsu_floor(x: float, z: float) -> float:
 	return ground_height(x, z)
 
 
+## Adım sesi: iç mekân tahta, köy sokağı taş, yol toprak, gerisi çimen/toprak (3 varyasyon)
+func step_sound(p: Vector3) -> String:
+	var v = randi() % 3
+	var it = Interiors.inst
+	if it and it.inside != "":
+		return "step_stone%d" % v if it.inside.begins_with("lair_") else "step_wood%d" % v
+	if road_at(p.x, p.z, "street") > 0.3:
+		return "step_stone%d" % v
+	if road_at(p.x, p.z) > 0.3:
+		return "step_dirt%d" % v
+	var b = biome_at(p.x, p.z)   # 2 orman, 4 yağmur, 6 pirinç, 7 çimen, 10 bataklık | 5 kaya, 9 dağ, 14 taş köy
+	if b in [2, 4, 6, 7, 10]:
+		return "step_grass%d" % v
+	if b in [5, 9, 14]:
+		return "step_stone%d" % v
+	return "step_dirt%d" % v
+
+
 func biome_at(x: float, z: float) -> int:
 	var m := Vector2(x, -z)
 	for v in world_info["villages"]:
