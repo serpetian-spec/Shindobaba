@@ -227,6 +227,60 @@ func light(pos: Vector3, col: Color, energy := 4.0, rng := 10.0, dur := 0.3) -> 
 
 
 # ------------------------------------------------------------------ hazır efektler
+## Kan: vuruş yönünde sıçrayan koyu kırmızı damlalar (yerçekimli) + kısa sis; yere düşen leke bir süre kalır.
+## amount 0..1 (darbenin şiddeti). Ayarlar > Kan kapalıysa hiçbir şey yapmaz.
+func blood(pos: Vector3, dir: Vector3, amount := 0.5) -> void:
+	if not bool(Game.settings.get("blood", true)):
+		return
+	amount = clampf(amount, 0.15, 1.0)
+	var d = dir.normalized() if dir.length() > 0.05 else Vector3.UP
+	d = (d + Vector3.UP * 0.35).normalized()
+	burst(pos, {"amount": int(14 + 26 * amount), "life": 0.6, "size": 0.17, "vmin": 2.0, "vmax": 5.5 + 3.0 * amount, "dir": d, "spread": 28.0,
+		"gravity": Vector3(0, -14.0, 0), "damp": 0.5, "add": false, "cel": false, "tex": tex_soft, "smin": 0.5, "smax": 1.2,
+		"colors": [Color(0.78, 0.03, 0.04, 1.0), Color(0.55, 0.0, 0.02, 1.0), Color(0.35, 0.0, 0.01, 0.0)], "explosive": 1.0})
+	burst(pos, {"amount": int(5 + 6 * amount), "life": 0.4, "size": 0.45 * (0.6 + amount), "vmin": 0.6, "vmax": 1.8, "dir": d, "spread": 40.0,
+		"damp": 3.0, "add": false, "cel": false, "tex": tex_soft,
+		"colors": [Color(0.7, 0.02, 0.04, 0.8), Color(0.45, 0.0, 0.02, 0.0)]})
+	# yer lekesi: damlaların düştüğü yerde, düz koyu kırmızı leke; 12 sn sonra solar
+	if amount > 0.2:
+		var gp = pos + Vector3(d.x, 0, d.z) * randf_range(0.4, 1.0) * (0.6 + amount)
+		var gy = Game.ground_height(gp.x, gp.z)
+		var hit = get_viewport().get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(gp.x, pos.y + 0.5, gp.z), Vector3(gp.x, gy - 1.0, gp.z), 1))
+		if not hit.is_empty():
+			gy = maxf(gy, float(hit["position"].y))
+		_blood_decal(Vector3(gp.x, gy + 0.03, gp.z), 0.35 + amount * 0.5)
+
+
+var _blood_mat: StandardMaterial3D
+var _blood_n := 0
+func _blood_decal(p: Vector3, r: float) -> void:
+	if _blood_n > 40:
+		return
+	if _blood_mat == null:
+		_blood_mat = StandardMaterial3D.new()
+		_blood_mat.albedo_texture = tex_soft
+		_blood_mat.albedo_color = Color(0.45, 0.0, 0.02, 1.0)
+		_blood_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		_blood_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var mi = MeshInstance3D.new()
+	var q = QuadMesh.new()
+	q.size = Vector2(r * randf_range(1.0, 1.6), r)
+	q.orientation = PlaneMesh.FACE_Y
+	mi.mesh = q
+	mi.material_override = _blood_mat.duplicate()
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	get_tree().current_scene.add_child(mi)
+	mi.global_position = p
+	mi.rotation.y = randf() * TAU
+	_blood_n += 1
+	var tw = mi.create_tween()
+	tw.tween_interval(12.0)
+	tw.tween_property(mi.material_override, "albedo_color:a", 0.0, 3.0)
+	tw.tween_callback(func():
+		_blood_n -= 1
+		mi.queue_free())
+
+
 func dust(pos: Vector3, s := 1.0) -> void:
 	burst(pos + Vector3.UP * 0.15, {"cel": true, "amount": int(8 * s) + 4, "life": 0.75, "size": 1.3 * s, "radius": 0.5 * s,
 		"vmin": 1.5, "vmax": 4.5 * s, "dir": Vector3.UP, "spread": 80.0, "damp": 4.5, "gravity": Vector3(0, -0.5, 0), "spin": 60.0,

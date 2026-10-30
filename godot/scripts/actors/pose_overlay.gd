@@ -21,6 +21,20 @@ var charge_k := 0.0     # süper zıplama şarjı 0..1: çömelme derinliği
 var glide_land := 0.0   # süzülmeden inişe hazırlık 0..1 (dizler öne, kollar dengede)
 var tuck := 0.0         # havada takla / kenara tırmanış: dizler göğse, kollar dizlere sarılı 0..1 (süzülmeyi ezer)
 var _t := 0.0
+# darbe tepkisi: gövde/kafa vuruş yönünde savrulur, yay gibi geri döner (her darbede; animasyon klibinin üstüne)
+var hit_t := 9.0
+var hit_dir := Vector3.ZERO   # model uzayında itiş yönü (+Z karakterin önü)
+var hit_amp := 0.0
+var hit_head := false
+var hit_side := 1.0
+
+
+func hit_react(dir_model: Vector3, amp: float, head := false) -> void:
+	hit_t = 0.0
+	hit_dir = Vector3(dir_model.x, 0.0, dir_model.z).normalized() if Vector2(dir_model.x, dir_model.z).length() > 0.05 else Vector3(0, 0, -1)
+	hit_amp = clampf(amp, 0.0, 1.4)
+	hit_head = head
+	hit_side = 1.0 if randf() < 0.5 else -1.0
 const FINGERS := ["Index", "Middle", "Ring", "Little"]
 const FINGER_SEG := ["Proximal", "Intermediate", "Distal"]
 const THUMB_SEG := ["Metacarpal", "Proximal", "Distal"]
@@ -125,6 +139,9 @@ func _process_modification() -> void:
 	var w_cast: float = weights.get("cast", 0.0)
 	if w_cast > 0.0 and not cast_pose.is_empty():
 		_apply_cast(sk, w_cast)
+	if hit_t < 0.7:
+		hit_t += dt
+		_hit_pose(sk)
 	# yaş oranları (kemik ölçeği çocuk kemiklere de geçer: saç/bant kafayla büyür)
 	if head_scale != 1.0:
 		var hb = sk.find_bone("Head")
@@ -149,6 +166,28 @@ func _process_modification() -> void:
 		var cb = sk.find_bone("UpperChest")
 		if cb >= 0:
 			sk.set_bone_pose_scale(cb, Vector3(chest_scale, 1.0, chest_scale))
+
+
+## Darbe pozu: hızlı savrulma (0.06 sn), ardından sönen yaylanma. Önden vuruşta gövde geriye, kafa daha çok;
+## yandan vuruşta yana bükülür; kollar savrulur. hit_head: kafa ağırlıklı (yüze vuruş)
+func _hit_pose(sk: Skeleton3D) -> void:
+	var t = hit_t
+	var e = (t / 0.06) if t < 0.06 else exp(-(t - 0.06) * 7.0) * cos((t - 0.06) * 13.0)
+	e *= hit_amp
+	if absf(e) < 0.002:
+		return
+	var pitch = hit_dir.z * e     # +: öne itildi (arkadan vuruş) -> öne eğil
+	var roll = -hit_dir.x * e
+	var hk = 1.6 if hit_head else 1.0
+	_add_local(sk, "Spine", Vector3(pitch * 0.32, 0.0, roll * 0.28), 1.0)
+	_add_local(sk, "Chest", Vector3(pitch * 0.26, hit_side * e * 0.12, roll * 0.22), 1.0)
+	_add_local(sk, "Neck", Vector3(pitch * 0.3 * hk, 0.0, roll * 0.25 * hk), 1.0)
+	_add_local(sk, "Head", Vector3(pitch * 0.35 * hk, hit_side * e * 0.18 * hk, roll * 0.3 * hk), 1.0)
+	# kollar savrulur (gövdeden geride kalır)
+	_add_local(sk, "LeftUpperArm", Vector3(-pitch * 0.5, 0.0, e * 0.35), 1.0)
+	_add_local(sk, "RightUpperArm", Vector3(-pitch * 0.5, 0.0, -e * 0.35), 1.0)
+	_add_local(sk, "LeftLowerArm", Vector3(0.0, 0.0, e * 0.3), 1.0)
+	_add_local(sk, "RightLowerArm", Vector3(0.0, 0.0, -e * 0.3), 1.0)
 
 
 ## El ve parmaklar verilen yönde dümdüz (yumruk değil, açık avuç)

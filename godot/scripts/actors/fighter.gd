@@ -90,6 +90,7 @@ func take_hit(info: Dictionary) -> void:
 				Combat.popup_text(global_position + Vector3.UP * (height + 0.8), "ARKADAN!", Color(1, 0.4, 0.8))
 	hp -= dmg
 	model.flash(0.9)
+	_hit_feedback(info, dmg)
 	var col = Color(1, 0.9, 0.3) if info.get("kind", "light") == "light" else Color(1, 0.55, 0.2)
 	# element etkinliği: renk + yazı
 	var eff = em * react
@@ -157,6 +158,18 @@ func _break_stun() -> void:
 				f.vanish()
 			else:
 				f.take_hit({"dmg": 4.0, "knock": 12.0, "kind": "light", "dir": (f.global_position - global_position).normalized(), "attacker": self})
+
+
+## Her darbede: gövde savrulması (zırhlı/zayıf vuruşta da hafif) + kan (kesici silahta daha çok, ateş/şimşek jutsusunda yok)
+func _hit_feedback(info: Dictionary, dmg: float) -> void:
+	var dir: Vector3 = info.get("dir", Vector3.ZERO)
+	var heavy: bool = info.get("kind", "light") == "heavy" or info.get("launch", 0.0) > 0.0
+	var amp = clampf(dmg / maxf(1.0, max_hp) * 6.0, 0.55, 1.0) * (1.3 if heavy else 1.0) / maxf(1.0, size * 0.7)
+	if model and model.has_method("react"):
+		model.react(dir, amp, randf() < 0.35)
+	if dmg >= 1.0 and not info.get("no_blood", false) and String(info.get("element", "")) not in ["katon", "raiton"] and not is_in_group("no_blood"):
+		var cut = String(info.get("weapon_style", "")) in ["blade", "sword", "heavy", "sickle", "claw", "dual", "chain"] or info.get("blade", false)
+		FX.blood(global_position + Vector3.UP * height * 0.62, dir, clampf(dmg / maxf(1.0, max_hp) * 5.0, 0.3, 1.0) * (1.4 if cut else 0.8))
 
 
 func on_damaged(_info: Dictionary) -> void:

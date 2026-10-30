@@ -518,6 +518,7 @@ func _hit_info_base(c: Dictionary) -> Dictionary:
 		"dmg": c["dmg"] * Stats.melee_mult(Game.profile), "knock": c.get("knock", 2.0), "launch": c.get("launch", 0.0), "melee": true,
 		"kind": "heavy" if c.get("heavy", false) else "light", "hitstop": 0.09 if c.get("heavy", false) else 0.04,
 		"dir": p.face_dir(),
+		"blade": String(c.get("snd", "")) in ["hit_blade", "hit_sword", "hit_claw", "hit_chain", "hit_heavy_weapon"],   # kesici silah: daha çok kan
 	}
 
 
@@ -797,6 +798,11 @@ func take_hit(info: Dictionary) -> void:
 	p.hp -= dmg
 	last_hit_t = 0.0
 	p.model.flash(0.8)
+	var hdir: Vector3 = info.get("dir", Vector3.ZERO)
+	var hheavy: bool = info.get("kind", "light") == "heavy" or info.get("launch", 0.0) > 0.0
+	p.model.react(hdir, clampf(dmg / maxf(1.0, p.max_hp) * 7.0, 0.55, 1.0) * (1.3 if hheavy else 1.0), randf() < 0.35)
+	if dmg >= 1.0 and not info.get("no_blood", false) and String(info.get("element", "")) not in ["katon", "raiton"]:
+		FX.blood(p.global_position + Vector3.UP * 1.1, hdir, clampf(dmg / maxf(1.0, p.max_hp) * 5.0, 0.3, 1.0))
 	Combat.damage_number(p.global_position + Vector3.UP * 2.0, dmg, Color(1, 0.4, 0.35))
 	Sfx.play("hurt", p.global_position)
 	if Game.world:

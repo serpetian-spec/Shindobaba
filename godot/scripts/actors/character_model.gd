@@ -3112,6 +3112,14 @@ func flash(amount: float) -> void:
 	hit_flash = maxf(hit_flash, amount)
 
 
+## Darbe tepkisi (dünya yönünde itiş): poz katmanında gövde/kafa savrulur
+func react(world_dir: Vector3, amp: float, head := false) -> void:
+	if overlay == null:
+		return
+	var d = global_transform.basis.inverse() * world_dir
+	overlay.hit_react(d, amp, head)
+
+
 const STANCE_OF := {"blade": "w_blade", "dual": "w_dual", "sickle": "w_dual", "claw": "w_dual", "sword": "w_sword", "heavy": "w_shoulder", "staff": "w_shoulder", "chain": "w_dual", "fan": "w_fan"}   # kusarigama alçak tek el (omuzda bıçak kafaya değmesin)
 var stance := ""
 
