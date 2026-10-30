@@ -66,13 +66,10 @@ static func _sus(c: Node3D, tier: int, col: Color, dur: float) -> Susanoo:
 	var sn = Susanoo.new()
 	c.add_child(sn)
 	# oyuncu: kendi özelleştirdiği Susanoo (renk, zırh, yüz, silah, kanat); başkaları tarzın renginde
+	# NPC: kendine özgü rastgele Susanoo (EnemyArts ile aynı; bir kez zar atılır, saklanır)
 	var mine = c == Game.player
-	var pr = Game.profile if mine else {}
+	var pr = Game.profile if mine else EnemyArts.random_susanoo(c)
 	sn.build(pr, tier, c.get("model"))
-	if not mine and sn.mat:
-		sn.mat.set_shader_parameter("col", col)
-	elif sn.mat:
-		col = sn.color()
 	var fs = sn.scale
 	sn.scale = fs * 0.1
 	var tw = sn.create_tween()
@@ -204,8 +201,7 @@ static func _sus_arrow(c: Node3D, from: Vector3, to: Vector3, col: Color, size: 
 static func m_totsuka_no_tsurugi(c: Node3D, t: Node3D) -> void:
 	var col: Color = COL["itachi"]
 	var sn = _sus(c, 3, col, 2.6)
-	if c == Game.player:
-		col = sn.color()   # efektler de oyuncunun Susanoo renginde
+	col = sn.color()   # efektler Susanoo'nun kendi renginde (oyuncu: özelleştirdiği, NPC: rastgele)
 	var tg = Jutsu._tg(c, t, 18.0)
 	var aim = _chest(tg) if tg else c.global_position + c.face_dir() * 10.0 + Vector3.UP
 	var blade = VFX._mi(VFX._sphere(0.5, 16, 8), VFX.mat_fire("spirit", 3.0, 2.0, 0.35, 1.6, 0.18, Vector3(0, 0, 1)))
@@ -237,8 +233,7 @@ static func m_totsuka_no_tsurugi(c: Node3D, t: Node3D) -> void:
 static func m_yata_no_kagami(c: Node3D, t: Node3D) -> void:
 	var col: Color = COL["itachi"]
 	var sn = _sus(c, 3, col, 6.2)
-	if c == Game.player:
-		col = sn.color()   # efektler de oyuncunun Susanoo renginde
+	col = sn.color()   # efektler Susanoo'nun kendi renginde (oyuncu: özelleştirdiği, NPC: rastgele)
 	var disc = VFX._mi(VFX._sphere(0.5, 32, 4), VFX.mat_water(Color(0.6, 0.1, 0.1), col, Color(1.0, 0.85, 0.8), Vector3(0, 0, 1), 0.7, 0.3, 0.05))
 	c.add_child(disc)
 	disc.position = Vector3(0, 3.2, -2.2)
@@ -289,8 +284,7 @@ static func m_magen_karasu_bunshin(c: Node3D, t: Node3D) -> void:
 static func m_susanoo_kagutsuchi_no_yumiya(c: Node3D, t: Node3D) -> void:
 	var col: Color = COL["sasuke"]
 	var sn = _sus(c, 3, col, 2.2)
-	if c == Game.player:
-		col = sn.color()   # efektler de oyuncunun Susanoo renginde
+	col = sn.color()   # efektler Susanoo'nun kendi renginde (oyuncu: özelleştirdiği, NPC: rastgele)
 	var aim = _point(c, t, 60.0, 30.0)
 	_later(0.45, func():
 		if not is_instance_valid(c):
@@ -356,8 +350,7 @@ static func m_enton_kagutsuchi_no_tsurugi(c: Node3D, t: Node3D) -> void:
 static func m_susanoo_chidori(c: Node3D, t: Node3D) -> void:
 	var col: Color = COL["sasuke"]
 	var sn = _sus(c, 3, col, 2.0)
-	if c == Game.player:
-		col = sn.color()   # efektler de oyuncunun Susanoo renginde
+	col = sn.color()   # efektler Susanoo'nun kendi renginde (oyuncu: özelleştirdiği, NPC: rastgele)
 	var ball = VFX.lightning_ball(3.2, Color(0.55, 0.6, 1.0))
 	c.add_child(ball)
 	ball.position = Vector3(1.8, 3.6, -2.0)
@@ -642,8 +635,7 @@ static func m_kamui_ranbu(c: Node3D, t: Node3D) -> void:
 static func m_susanoo_kamui_ya(c: Node3D, t: Node3D) -> void:
 	var col: Color = COL["kakashi"]
 	var sn = _sus(c, 3, col, 2.2)
-	if c == Game.player:
-		col = sn.color()   # efektler de oyuncunun Susanoo renginde
+	col = sn.color()   # efektler Susanoo'nun kendi renginde (oyuncu: özelleştirdiği, NPC: rastgele)
 	var aim = _point(c, t, 60.0, 30.0)
 	var tg = Jutsu._tg(c, t, 60.0)
 	_later(0.45, func():
@@ -768,8 +760,7 @@ static func m_kyubi_shihai(c: Node3D, t: Node3D) -> void:
 static func m_susanoo_kenjutsu(c: Node3D, t: Node3D) -> void:
 	var col: Color = COL["madara"]
 	var sn = _sus(c, 4, col, 2.6)
-	if c == Game.player:
-		col = sn.color()   # efektler de oyuncunun Susanoo renginde
+	col = sn.color()   # efektler Susanoo'nun kendi renginde (oyuncu: özelleştirdiği, NPC: rastgele)
 	var fd = c.face_dir()
 	for k in 2:
 		_later(0.4 + k * 0.5, func():
@@ -796,8 +787,7 @@ static func m_susanoo_kenjutsu(c: Node3D, t: Node3D) -> void:
 static func m_kanzen_tai_itto(c: Node3D, t: Node3D) -> void:
 	var col: Color = COL["madara"]
 	var sn = _sus(c, 5, col, 3.0)
-	if c == Game.player:
-		col = sn.color()   # efektler de oyuncunun Susanoo renginde
+	col = sn.color()   # efektler Susanoo'nun kendi renginde (oyuncu: özelleştirdiği, NPC: rastgele)
 	var fd = Jutsu._aim_flat(c, t)
 	Sfx.play("roar", c.global_position, 0.6, 0.8)
 	_tint(Color(0.05, 0.1, 0.35, 0.25), 1.2)
@@ -831,8 +821,7 @@ static func m_kanzen_tai_itto(c: Node3D, t: Node3D) -> void:
 static func m_susanoo_tate(c: Node3D, t: Node3D) -> void:
 	var col: Color = COL["madara"]
 	var sn = _sus(c, 2, col, 7.0)
-	if c == Game.player:
-		col = sn.color()   # efektler de oyuncunun Susanoo renginde
+	col = sn.color()   # efektler Susanoo'nun kendi renginde (oyuncu: özelleştirdiği, NPC: rastgele)
 	if is_instance_valid(sn) and sn.body:
 		sn.body.play("block", 0.1, 1.0, false)
 	if c is Player:
@@ -846,8 +835,7 @@ static func m_susanoo_tate(c: Node3D, t: Node3D) -> void:
 static func m_susanoo_shuha(c: Node3D, t: Node3D) -> void:
 	var col: Color = COL["madara"]
 	var sn = _sus(c, 3, col, 2.2)
-	if c == Game.player:
-		col = sn.color()   # efektler de oyuncunun Susanoo renginde
+	col = sn.color()   # efektler Susanoo'nun kendi renginde (oyuncu: özelleştirdiği, NPC: rastgele)
 	_later(0.5, func():
 		if not is_instance_valid(c):
 			return
@@ -894,8 +882,7 @@ static func m_shunshin_genso(c: Node3D, t: Node3D) -> void:
 static func m_susanoo_shisui_no_ya(c: Node3D, t: Node3D) -> void:
 	var col: Color = COL["shisui"]
 	var sn = _sus(c, 3, col, 2.2)
-	if c == Game.player:
-		col = sn.color()   # efektler de oyuncunun Susanoo renginde
+	col = sn.color()   # efektler Susanoo'nun kendi renginde (oyuncu: özelleştirdiği, NPC: rastgele)
 	var fd = Jutsu._aim(c, t)
 	_later(0.45, func():
 		if not is_instance_valid(c):

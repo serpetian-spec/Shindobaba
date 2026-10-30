@@ -104,9 +104,23 @@ static func _amaterasu(e: Enemy, t: Node3D) -> void:
 	t.get_tree().create_timer(6.0).timeout.connect(func(): if is_instance_valid(flame): flame.queue_free())
 
 
-## Düşman Susanoo'su: İnsansı kademe; her düşmanda rengi ve yapısı farklı (renk, zırh, yüz, silah, yoğunluk rastgele,
-## her açılışta yeniden zar). Hasarı azaltır, aralıklarla dev savuruş yapar.
+## Düşman Susanoo'su: İnsansı kademe; her düşmanda rengi ve yapısı farklı (renk, zırh, yüz, silah, yoğunluk rastgele;
+## NPC başına bir kez zar, jutsularındaki Susanoo da aynı). Hasarı azaltır, aralıklarla dev savuruş yapar.
 static func _susanoo(e: Enemy) -> void:
+	var pr = random_susanoo(e)
+	var col: Array = pr["susanoo"]["color"]
+	var sn = Susanoo.new()
+	sn.name = "Susanoo"
+	e.add_child(sn)
+	sn.build(pr, 3, e.model)
+	_susanoo_after(e, sn, col)
+
+
+## NPC'nin rastgele Susanoo'su (renk, kenar, zırh, yüz, silah, yoğunluk): ilk istekte zar atılır, NPC'de saklanır
+## (aynı NPC'nin Susanoo'su ve Susanoo jutsuları hep aynı görünür)
+static func random_susanoo(n: Node) -> Dictionary:
+	if n.has_meta("sus_pr"):
+		return n.get_meta("sus_pr")
 	var rng = RandomNumberGenerator.new()
 	rng.randomize()
 	var col: Array = Susanoo.COLORS[rng.randi() % Susanoo.COLORS.size()].duplicate()
@@ -119,10 +133,11 @@ static func _susanoo(e: Enemy) -> void:
 	var pr = {"susanoo": {"color": col, "rim_color": [rim.r, rim.g, rim.b], "armor": rng.randi() % Susanoo.ARMORS.size(), "face": rng.randi() % Susanoo.FACES.size(),
 		"weapon": ["kilic", "kilic", "mizrak", "kalkan", "yay", "yok"][rng.randi() % 6], "wings": false, "mastery": 999.0, "tier_pref": 3,
 		"density": rng.randf_range(0.7, 1.4), "glow": rng.randf_range(0.7, 1.5), "flow": rng.randf_range(0.5, 1.8)}}
-	var sn = Susanoo.new()
-	sn.name = "Susanoo"
-	e.add_child(sn)
-	sn.build(pr, 3, e.model)
+	n.set_meta("sus_pr", pr)
+	return pr
+
+
+static func _susanoo_after(e: Enemy, sn: Susanoo, col: Array) -> void:
 	e.set_meta("ea_susanoo", sn)
 	e.arch["guard"] = 0.7   # Susanoo içinde darbeleri çoğunlukla tutar
 	var fs = sn.scale
