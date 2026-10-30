@@ -55,6 +55,90 @@ static func _leaf_cluster(b: MB, p: Vector3, s: float, ci := 0) -> void:
 	b.add_grad("sphere", p + Vector3(s * 0.05, s * 0.3, -s * 0.05), Vector3(0.5, 0.35, 0.5) * s, c[0].lightened(0.1), c[1], Vector3.ZERO, 8)
 
 
+static func _leaf_cluster_c(b: MB, p: Vector3, s: float, hi: Color, lo: Color) -> void:
+	b.add_grad("sphere", p, Vector3(1.0, 0.62, 1.0) * s, hi, lo, Vector3.ZERO, 10)
+	b.add_grad("sphere", p + Vector3(s * 0.32, s * 0.16, s * 0.1), Vector3(0.62, 0.45, 0.62) * s, hi.lightened(0.06), lo, Vector3.ZERO, 8)
+	b.add_grad("sphere", p + Vector3(-s * 0.28, s * 0.12, -s * 0.22), Vector3(0.6, 0.42, 0.6) * s, hi, lo, Vector3.ZERO, 8)
+	b.add_grad("sphere", p + Vector3(s * 0.05, s * 0.3, -s * 0.05), Vector3(0.5, 0.35, 0.5) * s, hi.lightened(0.1), lo, Vector3.ZERO, 8)
+
+
+## Köy / şehir ağacı türleri (her biri ayrı silüet + renk). Yaprak dökümü de bu renkleri kullanır (VILLAGE_TREE_LEAF).
+## 0 geniş yapraklı, 1 sakura, 2 momiji (kızıl akçaağaç), 3 yaşlı meşe (geniş, katlı taç), 4 servi (sütun), 5 ginkgo (sarı), 6 söğüt (sarkık)
+const VILLAGE_TREE_W := [30, 12, 8, 16, 12, 6, 8]
+const VILLAGE_TREE_LEAF := [Color(0.42, 0.68, 0.26), Color(1.0, 0.75, 0.84), Color(0.92, 0.33, 0.16), Color(0.36, 0.58, 0.22), Color(0.2, 0.42, 0.24), Color(0.98, 0.82, 0.25), Color(0.55, 0.75, 0.32)]
+const VILLAGE_TREE_TOP := [7.4, 6.2, 6.0, 8.6, 9.0, 7.6, 6.0]   # yaprak dökümü için taç yüksekliği (ölçek 1)
+
+
+static func village_tree_mesh(v: int) -> ArrayMesh:
+	if v == 0:
+		return vegetation_mesh(0)
+	var b = MB.new()
+	var bark = Color(0.4, 0.27, 0.17)
+	match v:
+		1:   # sakura: koyu, kıvrık gövde; yayvan pembe taç
+			var bk = Color(0.3, 0.2, 0.18)
+			b.add("cyl", Vector3(0, 1.8, 0), Vector3(0.6, 3.6, 0.6), bk, Vector3(0, 0, 6), 8)
+			b.add("cyl", Vector3(0.6, 4.0, 0.1), Vector3(0.36, 2.6, 0.36), bk, Vector3(0, 0, -35), 6)
+			b.add("cyl", Vector3(-0.7, 4.2, -0.2), Vector3(0.32, 2.8, 0.32), bk, Vector3(-10, 0, 40), 6)
+			b.add("cyl", Vector3(0.1, 4.4, 0.6), Vector3(0.28, 2.2, 0.28), bk, Vector3(35, 0, 0), 6)
+			for i in 4:
+				var ra = deg_to_rad(i * 90.0 + 40.0)
+				b.add_root(Vector3.ZERO, Vector3(sin(ra), 0, cos(ra)), 0.3, 0.45, 0.12, bk, 0.3, 0.45)
+			var pk = Color(1.0, 0.78, 0.86)
+			var pd = Color(0.86, 0.5, 0.64)
+			_leaf_cluster_c(b, Vector3(0, 6.0, 0), 5.0, pk, pd)
+			_leaf_cluster_c(b, Vector3(2.4, 5.4, 0.4), 3.6, pk.lightened(0.05), pd)
+			_leaf_cluster_c(b, Vector3(-2.3, 5.5, -0.6), 3.6, pk, pd)
+			_leaf_cluster_c(b, Vector3(0.3, 5.3, 2.2), 3.0, pk, pd)
+		2:   # momiji: ince gövde, katlı kızıl-turuncu taç
+			b.add("cyl", Vector3(0, 2.6, 0), Vector3(0.5, 5.2, 0.5), bark.darkened(0.1), Vector3.ZERO, 8)
+			b.add("cyl", Vector3(0.5, 4.4, 0), Vector3(0.22, 2.0, 0.22), bark, Vector3(0, 0, -40), 6)
+			b.add("cyl", Vector3(-0.5, 4.7, 0.2), Vector3(0.2, 1.8, 0.2), bark, Vector3(20, 0, 36), 6)
+			_leaf_cluster_c(b, Vector3(0, 5.4, 0), 4.4, Color(0.95, 0.38, 0.16), Color(0.6, 0.12, 0.08))
+			_leaf_cluster_c(b, Vector3(1.3, 6.3, 0.5), 3.0, Color(0.98, 0.55, 0.2), Color(0.7, 0.2, 0.08))
+			_leaf_cluster_c(b, Vector3(-1.1, 6.6, -0.6), 2.8, Color(0.9, 0.25, 0.14), Color(0.55, 0.1, 0.07))
+		3:   # yaşlı meşe: kalın gövde, kök yayılımı, geniş ve katlı koyu taç
+			b.add_grad("cyl", Vector3(0, 2.8, 0), Vector3(1.2, 5.6, 1.2), bark.lightened(0.05), bark.darkened(0.2), Vector3.ZERO, 10)
+			for i in 6:
+				var ra = deg_to_rad(i * 60.0 + 15.0)
+				b.add_root(Vector3.ZERO, Vector3(sin(ra), 0, cos(ra)), 0.6, 0.8, 0.22, bark.darkened(0.08), 0.35 * (1 if i % 2 == 0 else -1), 0.8)
+			for i in 4:
+				var a = deg_to_rad(i * 90.0 + 20.0)
+				b.add("cyl", Vector3(sin(a) * 1.3, 5.6, cos(a) * 1.3), Vector3(0.36, 3.2, 0.36), bark, Vector3(cos(a) * 45, 0, -sin(a) * 45), 6)
+			var g0 = Color(0.32, 0.56, 0.2)
+			var g1 = Color(0.08, 0.22, 0.08)
+			_leaf_cluster_c(b, Vector3(0, 8.8, 0), 6.8, g0, g1)
+			_leaf_cluster_c(b, Vector3(3.0, 7.4, 1.0), 4.6, g0.lightened(0.05), g1)
+			_leaf_cluster_c(b, Vector3(-2.8, 7.6, -1.2), 4.8, g0, g1)
+			_leaf_cluster_c(b, Vector3(0.6, 7.2, -3.0), 4.2, g0.darkened(0.05), g1)
+			_leaf_cluster_c(b, Vector3(-0.8, 7.0, 3.0), 4.0, g0, g1)
+		4:   # servi: ince uzun sütun taç
+			b.add("cyl", Vector3(0, 1.2, 0), Vector3(0.45, 2.4, 0.45), bark, Vector3.ZERO, 7)
+			var c0 = Color(0.22, 0.45, 0.26)
+			var c1 = Color(0.06, 0.18, 0.1)
+			for i in 5:
+				var r = 2.6 - absf(i - 1.5) * 0.45
+				b.add_grad("sphere", Vector3(0, 3.0 + i * 1.6, 0), Vector3(r, 2.8, r), c0.lightened(i * 0.02), c1, Vector3.ZERO, 9)
+			b.add_grad("cone", Vector3(0, 11.2, 0), Vector3(1.4, 2.6, 1.4), c0, c1, Vector3.ZERO, 8)
+		5:   # ginkgo: dik gövde, yelpaze gibi altın sarısı taç
+			b.add("cyl", Vector3(0, 3.2, 0), Vector3(0.55, 6.4, 0.55), bark.lightened(0.05), Vector3.ZERO, 8)
+			for i in 3:
+				b.add("cyl", Vector3(0, 4.2 + i * 1.2, 0), Vector3(0.2, 2.6, 0.2), bark, Vector3(0, i * 120, 50), 5)
+			_leaf_cluster_c(b, Vector3(0, 7.6, 0), 4.6, Color(1.0, 0.86, 0.3), Color(0.72, 0.52, 0.08))
+			_leaf_cluster_c(b, Vector3(0.4, 5.8, 0.3), 4.0, Color(0.98, 0.8, 0.26), Color(0.68, 0.48, 0.06))
+		6:   # söğüt: yuvarlak taç + yere sarkan yaprak perdeleri
+			b.add("cyl", Vector3(0, 2.4, 0), Vector3(0.7, 4.8, 0.7), bark.darkened(0.05), Vector3(0, 0, 5), 8)
+			var w0 = Color(0.55, 0.76, 0.3)
+			var w1 = Color(0.2, 0.4, 0.12)
+			_leaf_cluster_c(b, Vector3(0, 5.6, 0), 4.6, w0, w1)
+			for i in 14:
+				var a = i * TAU / 14.0
+				var r = 2.1 + (i % 3) * 0.25
+				var L = 2.6 + (i % 4) * 0.5
+				b.add_grad("cyl", Vector3(sin(a) * r, 5.0 - L * 0.5, cos(a) * r), Vector3(0.55, L, 0.3), w0.lightened(0.05), w1, Vector3(cos(a) * 8, rad_to_deg(a), -sin(a) * 8), 5)
+	return b.build(foliage())
+
+
 static func vegetation_mesh(t: int) -> ArrayMesh:
 	var b = MB.new()
 	var bark = Color(0.4, 0.27, 0.17)

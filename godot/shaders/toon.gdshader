@@ -78,9 +78,14 @@ void vertex() {
 	if (sway > 0.0) {
 		vec3 w = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 		float k = max(VERTEX.y - 1.5, 0.0);
-		float s = sin(TIME * 1.6 + w.x * 0.13 + w.z * 0.09) * sway * k * 0.02;
-		VERTEX.x += s;
-		VERTEX.z += s * 0.7;
+		float ph = w.x * 0.13 + w.z * 0.09;
+		// gövde: yavaş ana salınım + ara sıra esinti; yaprak: küçük hızlı titreşim (sakin, abartısız)
+		float gust = 0.6 + 0.4 * sin(TIME * 0.35 + ph * 0.5);
+		float s = (sin(TIME * 1.3 + ph) * 0.7 + sin(TIME * 2.9 + ph * 1.7) * 0.3) * sway * k * 0.026 * gust;
+		float fl = sin(TIME * 7.0 + w.x * 1.9 + w.y * 2.3 + w.z * 1.3) * sway * 0.035 * smoothstep(2.5, 5.0, k);
+		VERTEX.x += s + fl;
+		VERTEX.z += s * 0.7 - fl * 0.6;
+		VERTEX.y += fl * 0.5;
 	}
 	wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	rest = CUSTOM0.xyz;

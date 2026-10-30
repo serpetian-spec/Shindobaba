@@ -2,6 +2,9 @@ extends Node3D
 ## Doğa atmosferi: ormanda süzülen yapraklar, gece ateş böcekleri, gökyüzünde kuş sürüleri, çölde kum savrulması.
 
 var leaves: GPUParticles3D
+var fall_pool: Array[GPUParticles3D] = []   # en yakın ağaçların taçlarından dökülen yapraklar (her biri bir ağaçta, ağacın kendi renginde)
+var _fall_t := 0.0
+var _fall_at := Vector3(1e9, 0, 0)
 var fireflies: GPUParticles3D
 var sand: GPUParticles3D
 var birds: Array[Node3D] = []
@@ -17,6 +20,68 @@ func _ready() -> void:
 		[Color(0.9, 0.78, 0.55, 0), Color(0.88, 0.75, 0.52, 0.35), Color(0.88, 0.75, 0.52, 0)], 3.0, false)
 	for i in 4:
 		birds.append(_flock())
+	for k in 10:
+		var e = _emitter(44, 7.0, Vector3(2, 0.6, 2), Vector3(0.3, -1.0, 0.2), 0.2, 0.6, FX.tex_leaf, false,
+			[Color(1, 1, 1, 0), Color(1, 1, 1, 1), Color(1, 1, 1, 1), Color(1, 1, 1, 0)], 0.5, true)
+		var fm: ParticleProcessMaterial = e.process_material
+		fm.gravity = Vector3(0, -0.8, 0)   # süzülerek ama gerçekten düşsün (havada asılı nokta gibi durmasın)
+		fm.spread = 60.0
+		fm.turbulence_noise_strength = 2.0
+		fm.turbulence_influence_max = 0.3
+		e.preprocess = 4.0   # yeni ağaca geçince yapraklar zaten havada olsun
+		fall_pool.append(e)
+
+
+## Oyuncunun 45 m çevresindeki yapraklı ağaçların taç noktaları -> yaprak yayıcı noktaları (renk = ağacın yaprak rengi)
+func _refresh_fall(p: Vector3) -> void:
+	var spots: Array = []
+	for s in Builder.leaf_spots:
+		var q: Vector3 = s[0]
+		if absf(q.x - p.x) < 45.0 and absf(q.z - p.z) < 45.0:
+			spots.append(s)
+	var veg = Game.world.vegetation if Game.world else null
+	if veg:
+		var ck = Vector2i(floori(p.x / veg.CH), floori(p.z / veg.CH))
+		for dz in range(-1, 2):
+			for dx in range(-1, 2):
+				var ch = veg.chunks.get(ck + Vector2i(dx, dz))
+				if ch == null:
+					continue
+				for tr in ch["trees"]:
+					if not int(tr[5]) in [0, 9] or absf(tr[0] - p.x) > 45.0 or absf(tr[2] - p.z) > 45.0:
+						continue
+					var top = 6.8 if int(tr[5]) == 0 else minf(15.0, 13.0 * float(tr[3]))
+					spots.append([Vector3(tr[0], tr[1] + top * (float(tr[3]) if int(tr[5]) == 0 else 1.0), tr[2]), Props.VILLAGE_TREE_LEAF[0], 3.0 * float(tr[3])])
+	spots.sort_custom(func(a, b): return (a[0] as Vector3).distance_squared_to(p) < (b[0] as Vector3).distance_squared_to(p))
+	# en yakın ağaçlar (aynı ağaç iki kez sayılmasın); yayıcı ağaca bağlı kalır, sadece listeden çıkan ağacınki boşa çıkar
+	var want := {}
+	for sp in spots:
+		if want.size() >= fall_pool.size():
+			break
+		var q: Vector3 = sp[0]
+		want["%d_%d" % [roundi(q.x), roundi(q.z)]] = sp
+	var free: Array = []
+	for e in fall_pool:
+		var k = String(e.get_meta("tree", ""))
+		if k != "" and want.has(k):
+			want.erase(k)   # zaten bu ağaçta dökülüyor: dokunma
+		else:
+			e.emitting = false
+			e.set_meta("tree", "")
+			free.append(e)
+	for k in want:
+		if free.is_empty():
+			break
+		var e: GPUParticles3D = free.pop_back()
+		var sp = want[k]
+		var r: float = sp[2]
+		var fm: ParticleProcessMaterial = e.process_material
+		fm.emission_box_extents = Vector3(r * 0.9, r * 0.2, r * 0.9)
+		fm.color = sp[1]
+		e.global_position = (sp[0] as Vector3) - Vector3(0, r * 0.75, 0)   # tacın alt kenarı: hemen görünür
+		e.set_meta("tree", k)
+		e.emitting = true
+		e.restart()
 
 
 func _emitter(n: int, life: float, box: Vector3, dir: Vector3, vmin: float, vmax: float, tex: Texture2D, add: bool, cols: Array, size: float, spin: bool) -> GPUParticles3D:
@@ -90,6 +155,14 @@ func _process(dt: float) -> void:
 	leaves.emitting = biome == 2 and not night
 	fireflies.emitting = night and biome in [2, 4, 6, 7, 10]
 	sand.emitting = biome == 3 or biome == 13
+	_fall_t -= dt
+	if _fall_t <= 0.0 or p.distance_to(_fall_at) > 18.0:
+		_fall_t = 2.0
+		_fall_at = p
+		_refresh_fall(p)
+	if night:
+		for e in fall_pool:
+			e.emitting = false
 	for e in [leaves, fireflies, sand]:
 		e.global_position = p + Vector3(0, 6 if e == leaves else 1.5, 0)
 	for f in birds:

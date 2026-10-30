@@ -64,13 +64,22 @@ func _ring() -> ImageTexture:
 
 
 func _leaf() -> ImageTexture:
-	var s = 32
+	# yaprak silüeti: iki ucu sivri, yatay; ortada koyu damar, kenara doğru hafif koyulaşma, kısa sap
+	var s = 64
 	var img = Image.create(s, s, false, Image.FORMAT_RGBA8)
 	for y in s:
 		for x in s:
-			var u = (x - s * 0.5) / (s * 0.5); var v = (y - s * 0.5) / (s * 0.5)
-			var on = u * u * 4.0 + v * v < 1.0
-			img.set_pixel(x, y, Color(1, 1, 1, 1.0 if on else 0.0))
+			var u = (x - s * 0.5) / (s * 0.46); var v = (y - s * 0.5) / (s * 0.5)
+			var half = pow(maxf(0.0, 1.0 - u * u), 0.75) * (0.62 + 0.12 * u)
+			var a = 1.0 - smoothstep(half - 0.06, half, absf(v))
+			if u < -1.0 and u > -1.22 and absf(v) < 0.05:
+				a = 1.0   # sap
+			var sh = 1.0 - 0.25 * smoothstep(0.2, 1.0, absf(v) / maxf(half, 0.01))
+			if absf(v) < 0.035 and absf(u) < 0.9:
+				sh *= 0.72   # orta damar
+			elif absf(absf(v) - absf(u + 0.6) * 0.5 + 0.0) < 0.03 and u > -0.6 and u < 0.7 and absf(v) < half * 0.8:
+				sh *= 0.85   # yan damarlar
+			img.set_pixel(x, y, Color(sh, sh, sh, a))
 	return ImageTexture.create_from_image(img)
 
 

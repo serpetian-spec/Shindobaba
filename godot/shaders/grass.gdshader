@@ -57,9 +57,12 @@ void vertex() {
 	local = vec3(local.x * cos(ang) - local.z * sin(ang), local.y, local.x * sin(ang) + local.z * cos(ang));
 	local *= vec3(hs, hs * hv, hs) * s;
 	// rüzgar
-	float w = sin(TIME * 2.2 + root.x * 0.35 + root.z * 0.27) * 0.18 + sin(TIME * 5.1 + root.x * 1.3) * 0.05;
+	// rüzgar: tarlada yavaşça ilerleyen esinti dalgası + çok hafif titreşim (sakin, abartısız)
+	float wave = sin(TIME * 0.9 - dot(root.xz, vec2(0.12, 0.07))) * 0.5 + 0.5;
+	float w = (0.05 + wave * wave * 0.2) + sin(TIME * 2.6 + root.x * 0.9 + root.z * 0.7) * 0.04;
 	local.x += w * tip * tip;
 	local.z += w * 0.6 * tip * tip;
+	local.y -= w * w * tip * 0.6;   // eğilen uç biraz alçalsın (uzamasın)
 	VERTEX = vec3(root.x, h - 0.05, root.z) + local;
 	base_col = texture(albedo_map, ruv).rgb;
 }

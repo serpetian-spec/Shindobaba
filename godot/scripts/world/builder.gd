@@ -21,6 +21,9 @@ var solids := {}  # 16 m ızgara (dünya xz) -> [[cx, cz, yarı_x, yarı_z, aç�
 var landscape := true  # finish()'te yeterince ev varsa CityLandscape ile bahçe/sokak ağacı/park
 const SCELL := 16.0
 static var _tree_mesh: Mesh
+static var _tree_meshes: Array = []
+## yaprak dökümü: köy ağaçlarının [dünya konumu (taç), renk, taç yarıçapı] listesi
+static var leaf_spots: Array = []
 static var landscape_on := true  # testlerde karşılaştırma için kapatılabilir
 
 static var roof_points := {}  # köy id -> [çatı tepe noktaları] (çatıdan çatıya koşan ninjalar için)
@@ -461,11 +464,24 @@ func village_gate(ang: float, r: float, half_open: float, height: float, post_co
 
 func tree(x: float, n: float, s: float, rng: RandomNumberGenerator, y := 0.0) -> void:
 	# prosedürel ağaç (hazır paket ağaçları doğal durmuyordu; kullanıcı eskisini tercih etti)
-	if _tree_mesh == null:
-		_tree_mesh = Props.vegetation_mesh(0)  # tek mesh: hücre başına tek MultiMesh (her ağaca ayrı çizim değil)
-	var tm = _tree_mesh
+	if _tree_meshes.is_empty():
+		for v in Props.VILLAGE_TREE_W.size():
+			_tree_meshes.append(Props.village_tree_mesh(v))   # tür başına tek mesh: hücre başına tür başına tek MultiMesh
+		_tree_mesh = _tree_meshes[0]
+	# tür: ağırlıklı rastgele (hep aynı ağaç olmasın)
+	var tot = 0
+	for wv in Props.VILLAGE_TREE_W:
+		tot += wv
+	var pick = rng.randi() % tot
+	var vi = 0
+	while pick >= Props.VILLAGE_TREE_W[vi]:
+		pick -= Props.VILLAGE_TREE_W[vi]
+		vi += 1
+	var tm = _tree_meshes[vi]
 	if tm != null:
-		pack_mesh(tm, Vector3(x, y, n), rng.randf() * 360.0, s * rng.randf_range(0.85, 1.15), 1.0)
+		var sc = s * rng.randf_range(0.85, 1.15)
+		pack_mesh(tm, Vector3(x, y, n), rng.randf() * 360.0, sc, 1.0)
+		leaf_spots.append([w(Vector3(x, y + Props.VILLAGE_TREE_TOP[vi] * sc, n)), Props.VILLAGE_TREE_LEAF[vi], 3.0 * sc])
 		add_solid(w(Vector3(x, 0, n)), 2.6 * s, 2.6 * s, 0.0)   # yerleşim için taç genişliği (gövde değil): sonradan konan evlerin içinden ağaç geçmesin
 		_collide_cyl(w(Vector3(x, y + 2.6 * s, n)), 0.35 * s, 5.2 * s)
 		return
