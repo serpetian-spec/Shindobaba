@@ -341,7 +341,7 @@ func _house_body(x: float, n: float, wdt: float, dep: float, floors: int, yaw: f
 		wcol = Color(0.62, 0.47, 0.32).darkened(rng.randf_range(0, 0.2))
 	elif style == "snow":
 		rcol = Color(0.93, 0.95, 0.98)
-	last_house = placer.add(w(Vector3(x, 0, n)), yaw, wcol, rcol, rng)
+	last_house = placer.add(w(Vector3(x, 0, n)), yaw, wcol, rcol, rng, 1.0, wdt, dep)   # wdt/dep: arsa sınırı
 	return
 	var wc: Color = walls[rng.randi() % walls.size()]
 	if style == "wood":

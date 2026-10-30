@@ -175,12 +175,13 @@ static func _fill(b: Builder, r: float, inner: float, spacing: float, style: Str
 				if Vector2(px - k[0], pn - k[1]).length() < k[2]:
 					ok = false
 					break
-			if not ok or rng.randf() < 0.08:
+			if not ok:
 				continue
 			if _on_road(b, px, pn, 9.0):
 				continue
 			var yaw = rad_to_deg(a) + 180.0
-			b.house(px, pn, rng.randf_range(9, 15) * big, rng.randf_range(8, 12) * big, [1, 2, 2, 3, 3, 4].pick_random(), yaw, style, rng)
+			# büyük, sık şehir dokusu: geniş ayak izi, daha çok kat (köyler küçük kulübe yığını gibi duruyordu)
+			b.house(px, pn, rng.randf_range(13, 21) * big, rng.randf_range(11, 16) * big, [2, 2, 3, 3, 4, 5].pick_random(), yaw, style, rng)
 			count += 1
 			if count % 12 == 0:
 				await _yield()

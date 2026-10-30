@@ -13,7 +13,7 @@ const STONE := Color(0.55, 0.53, 0.5)
 static var templates: Array = []   # her biri: {walls, roof, detail, w, d, h, roof_top}
 
 
-static func ensure(count := 28) -> void:
+static func ensure(count := 48) -> void:
 	if not templates.is_empty():
 		return
 	var rng = RandomNumberGenerator.new()
@@ -22,10 +22,22 @@ static func ensure(count := 28) -> void:
 		templates.append(_make(rng, i))
 
 
+## Şablon türleri (Konoha şehir dokusu): 0-1 kasaba evi (2-4 kat), 2 apartman bloğu (4-6 kat, balkon sıraları, dış merdiven,
+## düz çatı + su tankı), 3 dükkân binası (geniş vitrin, tente, yatay tabela), 4 dar uzun ev (4-6 kat, yuvarlak çatı)
 static func _make(rng: RandomNumberGenerator, i: int) -> Dictionary:
-	var w = rng.randf_range(8.0, 13.0)
-	var d = rng.randf_range(7.0, 11.0)
-	var floors = [1, 2, 2, 2, 3, 3][rng.randi() % 6]
+	var arch = [0, 0, 1, 2, 3, 2, 4, 3, 1, 2][i % 10]
+	var w: float
+	var d: float
+	var floors: int
+	match arch:
+		0, 1:
+			w = rng.randf_range(11.0, 16.0); d = rng.randf_range(10.0, 13.0); floors = [2, 2, 3, 3, 4][rng.randi() % 5]
+		2:
+			w = rng.randf_range(16.0, 23.0); d = rng.randf_range(12.0, 15.0); floors = [4, 5, 5, 6][rng.randi() % 4]
+		3:
+			w = rng.randf_range(13.0, 18.0); d = rng.randf_range(11.0, 14.0); floors = [2, 3, 3, 4][rng.randi() % 4]
+		_:
+			w = rng.randf_range(9.0, 11.0); d = rng.randf_range(9.0, 11.0); floors = [4, 5, 6][rng.randi() % 3]
 	var fh = 3.6
 	var h = floors * fh + 0.5
 	var walls = MB.new()
@@ -33,74 +45,106 @@ static func _make(rng: RandomNumberGenerator, i: int) -> Dictionary:
 	var det = MB.new()
 	var cols = []  # ek çarpışmalar: [merkez, boyut, x ekseni eğimi (derece)]
 	var white = Color(1, 1, 1)
+	var apt = arch == 2
 	# temel
 	det.add("box", Vector3(0, 0.25, 0), Vector3(w + 0.4, 0.5, d + 0.4), STONE)
-	# kat kat duvarlar (üst katlar hafif içeride) + kat kirişleri
+	# kat kat duvarlar (kasaba evinde üst katlar hafif içeride) + kat kirişleri
 	for f in floors:
-		var inset = 0.0 if f == 0 else 0.25 * f
+		var inset = 0.0 if (f == 0 or apt or arch == 4) else 0.25 * mini(f, 2)
 		var y0 = 0.5 + f * fh
 		walls.add("box", Vector3(0, y0 + fh * 0.5, 0), Vector3(w - inset, fh, d - inset), white)
-		det.add("box", Vector3(0, y0 + fh - 0.12, 0), Vector3(w - inset + 0.22, 0.26, d - inset + 0.22), WOOD)
-		# köşe direkleri
-		for sx in [-1.0, 1.0]:
-			for sz in [-1.0, 1.0]:
-				det.add("box", Vector3(sx * (w - inset) * 0.5, y0 + fh * 0.5, sz * (d - inset) * 0.5), Vector3(0.24, fh, 0.24), WOOD)
-		# pencereler: ön ve yanlar
-		var nwin = maxi(1, int((w - inset) / 3.2))
+		det.add("box", Vector3(0, y0 + fh - 0.12, 0), Vector3(w - inset + 0.22, 0.26, d - inset + 0.22), WOOD if not apt else Color(0.62, 0.6, 0.56))
+		if not apt:
+			for sx in [-1.0, 1.0]:
+				for sz in [-1.0, 1.0]:
+					det.add("box", Vector3(sx * (w - inset) * 0.5, y0 + fh * 0.5, sz * (d - inset) * 0.5), Vector3(0.24, fh, 0.24), WOOD)
+		# pencereler: ön ve yanlar (apartmanda her katta düzenli sıra)
+		var nwin = maxi(1, int((w - inset) / (2.6 if apt else 3.2)))
 		for k in nwin:
 			var x = -(w - inset) * 0.5 + (k + 0.5) * (w - inset) / nwin
-			if f == 0 and absf(x) < 1.6:
-				continue  # kapı alanı
+			if f == 0 and absf(x) < (3.0 if arch == 3 else 1.6):
+				continue  # kapı / vitrin alanı
+			if f == 0 and arch == 3:
+				continue  # dükkânın zemin katı vitrin
 			_window(det, Vector3(x, y0 + fh * 0.55, -(d - inset) * 0.5), 0.0, rng)
-			if rng.randf() < 0.6:
+			if apt or rng.randf() < 0.6:
 				_window(det, Vector3(x, y0 + fh * 0.55, (d - inset) * 0.5), 180.0, rng)
 		for sx in [-1.0, 1.0]:
-			if rng.randf() < 0.7:
-				_window(det, Vector3(sx * (w - inset) * 0.5, y0 + fh * 0.55, rng.randf_range(-d * 0.2, d * 0.2)), 90.0 * sx, rng)
+			var nside = maxi(1, int(d / 4.0)) if (apt or arch == 4) else 1
+			for k in nside:
+				if apt or arch == 4 or rng.randf() < 0.7:
+					var z = -d * 0.5 + (k + 0.5) * d / nside if nside > 1 else rng.randf_range(-d * 0.2, d * 0.2)
+					_window(det, Vector3(sx * (w - inset) * 0.5, y0 + fh * 0.55, z), 90.0 * sx, rng)
 	# kapı: sürgülü shoji + noren ya da ahşap kapı
-	var shop = rng.randf() < 0.45
+	var shop = arch == 3 or (arch != 2 and rng.randf() < 0.3)
 	var drng = RandomNumberGenerator.new()  # ayrı tohum: şablonların geri kalanı değişmesin
 	drng.seed = 9000 + i
 	DoorKit.jp_template(det, -d * 0.5, 0.5, shop, drng)
+	var nc = [Color(0.15, 0.25, 0.55), Color(0.75, 0.15, 0.12), Color(0.2, 0.35, 0.25), Color(0.5, 0.2, 0.45), Color(0.85, 0.55, 0.15)][rng.randi() % 5]
 	if shop:
-		var nc = [Color(0.15, 0.25, 0.55), Color(0.75, 0.15, 0.12), Color(0.2, 0.35, 0.25), Color(0.5, 0.2, 0.45)][rng.randi() % 4]
-		for k in 3:
-			det.add("box", Vector3(-0.72 + k * 0.72, 0.5 + 2.25, -d * 0.5 - 0.22), Vector3(0.66, 0.8, 0.03), nc)
-		# dükkân tabelası (dikey) + kâğıt fenerler
-		det.add("box", Vector3(w * 0.5 - 0.5, 0.5 + 2.6, -d * 0.5 - 0.3), Vector3(0.7, 2.2, 0.12), Color(0.92, 0.88, 0.75))
-		for k in 3:
-			det.add("box", Vector3(w * 0.5 - 0.5, 0.5 + 3.3 - k * 0.6, -d * 0.5 - 0.38), Vector3(0.36, 0.3, 0.03), DARK)
+		var span = w * 0.8 if arch == 3 else 2.2
+		var nk = maxi(3, int(span / 0.72))
+		for k in nk:
+			det.add("box", Vector3(-span * 0.5 + (k + 0.5) * span / nk, 0.5 + 2.25, -d * 0.5 - 0.22), Vector3(span / nk - 0.06, 0.8, 0.03), nc)
+		if arch == 3:
+			# geniş vitrin: tezgâh, raflar, yatay tabela (kanji benzeri koyu işaretler)
+			det.add("box", Vector3(0, 0.5 + 0.55, -d * 0.5 - 0.35), Vector3(w * 0.7, 1.1, 0.6), WOOD.lightened(0.1))
+			for k in 4:
+				det.add("box", Vector3(-w * 0.3 + k * w * 0.2, 0.5 + 1.25, -d * 0.5 - 0.35), Vector3(0.7, 0.3, 0.4), [Color(0.85, 0.3, 0.2), Color(0.9, 0.8, 0.3), Color(0.4, 0.65, 0.3), Color(0.92, 0.9, 0.85)][k])
+			var sy = 0.5 + fh + 0.3
+			det.add("box", Vector3(0, sy, -d * 0.5 - 0.25), Vector3(w * 0.62, 1.1, 0.16), Color(0.94, 0.9, 0.78))
+			det.add("box", Vector3(0, sy, -d * 0.5 - 0.2), Vector3(w * 0.66, 1.3, 0.1), nc.darkened(0.2))
+			for k in 4:
+				det.add("box", Vector3(-w * 0.21 + k * w * 0.14, sy, -d * 0.5 - 0.35), Vector3(0.6, 0.62, 0.03), DARK)
+		else:
+			det.add("box", Vector3(w * 0.5 - 0.5, 0.5 + 2.6, -d * 0.5 - 0.3), Vector3(0.7, 2.2, 0.12), Color(0.92, 0.88, 0.75))
+			for k in 3:
+				det.add("box", Vector3(w * 0.5 - 0.5, 0.5 + 3.3 - k * 0.6, -d * 0.5 - 0.38), Vector3(0.36, 0.3, 0.03), DARK)
 		for sx in [-1.0, 1.0]:
-			det.add("sphere", Vector3(sx * 1.6, 0.5 + 2.5, -d * 0.5 - 0.45), Vector3(0.45, 0.6, 0.45), Color(0.9, 0.2, 0.15), Vector3.ZERO, 8)
-			det.add("box", Vector3(sx * 1.6, 0.5 + 2.83, -d * 0.5 - 0.45), Vector3(0.3, 0.08, 0.3), DARK)
+			det.add("sphere", Vector3(sx * (w * 0.38 if arch == 3 else 1.6), 0.5 + 2.5, -d * 0.5 - 0.45), Vector3(0.45, 0.6, 0.45), Color(0.9, 0.2, 0.15), Vector3.ZERO, 8)
 		# ön tente
-		det.add("box", Vector3(0, 0.5 + 3.05, -d * 0.5 - 0.8), Vector3(w * 0.75, 0.12, 1.5), nc.darkened(0.1), Vector3(-14, 0, 0))
-	# balkon
-	if floors >= 2 and rng.randf() < 0.45:
-		var by = 0.5 + fh
-		det.add("box", Vector3(0, by, -d * 0.5 - 0.7), Vector3(w * 0.6, 0.18, 1.4), WOOD)
-		for k in 7:
-			det.add("box", Vector3(-w * 0.3 + k * w * 0.1, by + 0.5, -d * 0.5 - 1.35), Vector3(0.08, 0.9, 0.08), WOOD.lightened(0.1))
-		det.add("box", Vector3(0, by + 0.95, -d * 0.5 - 1.35), Vector3(w * 0.62, 0.1, 0.1), WOOD)
-		cols.append([Vector3(0, by, -d * 0.5 - 0.7), Vector3(w * 0.6, 0.25, 1.4), 0.0])
-	# dış merdiven (yan cephe)
-	if floors >= 2 and rng.randf() < 0.3:
-		for k in 10:
-			det.add("box", Vector3(w * 0.5 + 0.7, 0.5 + k * fh / 10.0, -d * 0.3 + k * d * 0.06), Vector3(1.3, 0.16, 0.7), DARK.lightened(0.15))
-		det.add("box", Vector3(w * 0.5 + 1.35, 0.5 + fh * 0.6, 0.0), Vector3(0.08, 0.9, d * 0.7), DARK, Vector3(-25, 0, 0))
-		var run = d * 0.54; var rise = fh * 0.9
-		cols.append([Vector3(w * 0.5 + 0.7, 0.5 + rise * 0.5, -d * 0.03), Vector3(1.3, 0.25, sqrt(run * run + rise * rise)), -rad_to_deg(atan2(rise, run))])
-	# boru + çiçek saksıları
-	if rng.randf() < 0.35:
+		det.add("box", Vector3(0, 0.5 + 3.05, -d * 0.5 - 0.8), Vector3(w * (0.9 if arch == 3 else 0.75), 0.12, 1.6), nc.darkened(0.1), Vector3(-14, 0, 0))
+	# dikey tabela (apartman / dar ev cephesinde)
+	if (apt or arch == 4) and rng.randf() < 0.6:
+		var sx2 = [-1.0, 1.0][rng.randi() % 2]
+		det.add("box", Vector3(sx2 * (w * 0.5 + 0.35), 0.5 + fh * 1.6, -d * 0.5 + 1.0), Vector3(0.2, fh * 1.6, 1.1), [Color(0.85, 0.2, 0.15), Color(0.95, 0.92, 0.8), Color(0.2, 0.3, 0.55)][rng.randi() % 3])
+		for k in 4:
+			det.add("box", Vector3(sx2 * (w * 0.5 + 0.47), 0.5 + fh * 2.2 - k * fh * 0.36, -d * 0.5 + 1.0), Vector3(0.03, 0.5, 0.6), DARK)
+	# balkonlar: apartmanda her üst katta sürekli balkon, diğerlerinde bazen tek balkon
+	var bfloors = range(1, floors) if apt else ([1] if floors >= 2 and rng.randf() < 0.45 else [])
+	for bf in bfloors:
+		var by = 0.5 + bf * fh
+		var bw = w * (0.92 if apt else 0.6)
+		det.add("box", Vector3(0, by, -d * 0.5 - 0.7), Vector3(bw, 0.18, 1.4), WOOD if not apt else Color(0.66, 0.64, 0.6))
+		var nr = int(bw / 0.9)
+		for k in nr + 1:
+			det.add("box", Vector3(-bw * 0.5 + k * bw / nr, by + 0.5, -d * 0.5 - 1.35), Vector3(0.08, 0.9, 0.08), WOOD.lightened(0.1) if not apt else Color(0.5, 0.52, 0.55))
+		det.add("box", Vector3(0, by + 0.95, -d * 0.5 - 1.35), Vector3(bw + 0.05, 0.1, 0.1), WOOD if not apt else Color(0.45, 0.47, 0.5))
+		if apt and rng.randf() < 0.5:   # balkonda çamaşır / saksı
+			var lx = rng.randf_range(-bw * 0.35, bw * 0.35)
+			det.add("box", Vector3(lx, by + 1.5, -d * 0.5 - 1.0), Vector3(2.4, 0.03, 0.03), DARK)
+			for k in 3:
+				det.add("box", Vector3(lx - 0.8 + k * 0.8, by + 1.15, -d * 0.5 - 1.0), Vector3(0.6, 0.7, 0.03), CLOTHES[(i + k + bf) % CLOTHES.size()])
+		cols.append([Vector3(0, by, -d * 0.5 - 0.7), Vector3(bw, 0.25, 1.4), 0.0])
+	# dış merdiven (yan cephe): apartmanda her kata zikzak
+	if (apt and rng.randf() < 0.7) or (not apt and floors >= 2 and rng.randf() < 0.3):
+		var nfl = (floors - 1) if apt else 1
+		for fl in nfl:
+			var dir = 1.0 if fl % 2 == 0 else -1.0
+			for k in 10:
+				det.add("box", Vector3(w * 0.5 + 0.7, 0.5 + fl * fh + k * fh / 10.0, dir * (-d * 0.3 + k * d * 0.06)), Vector3(1.3, 0.16, 0.7), DARK.lightened(0.15))
+			det.add("box", Vector3(w * 0.5 + 1.35, 0.5 + fl * fh + fh * 0.6, 0.0), Vector3(0.08, 0.9, d * 0.7), DARK, Vector3(-25 * dir, 0, 0))
+			var run = d * 0.54; var rise = fh * 0.9
+			cols.append([Vector3(w * 0.5 + 0.7, 0.5 + fl * fh + rise * 0.5, -d * 0.03 * dir), Vector3(1.3, 0.25, sqrt(run * run + rise * rise)), -rad_to_deg(atan2(rise, run)) * dir])
+	# boru
+	if apt or rng.randf() < 0.35:
 		det.add("cyl", Vector3(-w * 0.5 - 0.15, h * 0.5, d * 0.25), Vector3(0.22, h, 0.22), Color(0.55, 0.57, 0.6), Vector3.ZERO, 6)
-	if rng.randf() < 0.4:
-		for k in 3:
-			det.add("box", Vector3(-1.6 + k * 1.6 + 2.0, 0.5 + 0.3, -d * 0.5 - 0.45), Vector3(0.8, 0.45, 0.4), Color(0.6, 0.38, 0.25))
-			det.add("sphere", Vector3(-1.6 + k * 1.6 + 2.0, 0.5 + 0.75, -d * 0.5 - 0.45), Vector3(0.8, 0.6, 0.5), Color(0.35, 0.6, 0.25), Vector3.ZERO, 6)
+	# kapı önü: her evde aynı üç saksı yerine evine göre farklı küçük ayrıntılar (bazen hiç)
+	_front_decor(det, w, d, arch, rng)
 	# çatı
-	var top_w = w - 0.25 * (floors - 1)
-	var top_d = d - 0.25 * (floors - 1)
-	var rtype = rng.randi() % 3
+	var top_w = w - (0.0 if (apt or arch == 4) else 0.25 * mini(floors - 1, 2))
+	var top_d = d - (0.0 if (apt or arch == 4) else 0.25 * mini(floors - 1, 2))
+	var rtype = 2 if apt else (1 if arch == 4 else rng.randi() % 3)
 	var roof_top = h
 	match rtype:
 		0:  # Japon beşik çatı, geniş saçak
@@ -112,31 +156,97 @@ static func _make(rng: RandomNumberGenerator, i: int) -> Dictionary:
 				det.add("box", Vector3(0, h + rh + 0.3, sz * (top_d * 0.5 + 1.0)), Vector3(0.6, 0.5, 0.4), DARK)
 			roof_top = h + rh
 		1:  # Konoha yuvarlak çatı (yarım silindir)
-			var rr = top_d * 0.5 + 0.6
-			var rise = clampf(top_d * 0.16, 1.1, 1.7)
+			var rise = clampf(top_d * 0.16, 1.1, 1.9)
 			roof.add_xf("halfcyl", Transform3D(Basis.from_scale(Vector3(top_w + 0.8, rise * 2.0, top_d + 1.2)), Vector3(0, h + 0.1, 0)), white, 16)
 			det.add("box", Vector3(0, h + 0.05, 0), Vector3(top_w + 1.0, 0.2, top_d + 1.3), DARK)  # saçak bandı
 			roof_top = h + 0.1 + rise
-		2:  # düz çatı: korkuluk + su tankı
+		2:  # düz çatı: korkuluk + su tankı (apartmanda bazen iki tank + anten)
 			roof.add("box", Vector3(0, h + 0.2, 0), Vector3(top_w + 0.6, 0.4, top_d + 0.6), white)
 			for sx in [-1.0, 1.0]:
 				det.add("box", Vector3(sx * (top_w * 0.5 + 0.25), h + 0.75, 0), Vector3(0.15, 0.7, top_d + 0.6), WOOD.lightened(0.2))
-			det.add("box", Vector3(0, h + 0.75, top_d * 0.5 + 0.25), Vector3(top_w + 0.6, 0.7, 0.15), WOOD.lightened(0.2))
-			var tx = rng.randf_range(-top_w * 0.25, top_w * 0.25)
-			for sx in [-1.0, 1.0]:
-				for sz in [-1.0, 1.0]:
-					det.add("box", Vector3(tx + sx * 0.8, h + 1.0, sz * 0.8), Vector3(0.15, 1.6, 0.15), DARK)
-			det.add_grad("cyl", Vector3(tx, h + 2.6, 0), Vector3(2.6, 2.2, 2.6), Color(0.7, 0.74, 0.78), Color(0.5, 0.53, 0.58), Vector3.ZERO, 14)
-			det.add("cyl", Vector3(tx, h + 3.8, 0), Vector3(2.8, 0.25, 2.8), Color(0.45, 0.47, 0.5), Vector3.ZERO, 14)
+			for sz in [-1.0, 1.0]:
+				det.add("box", Vector3(0, h + 0.75, sz * (top_d * 0.5 + 0.25)), Vector3(top_w + 0.6, 0.7, 0.15), WOOD.lightened(0.2))
+			var ntank = 2 if (apt and w > 19.0) else 1
+			for tk in ntank:
+				var tx = rng.randf_range(-top_w * 0.25, top_w * 0.25) if ntank == 1 else (tk - 0.5) * top_w * 0.5
+				for sx in [-1.0, 1.0]:
+					for sz in [-1.0, 1.0]:
+						det.add("box", Vector3(tx + sx * 0.8, h + 1.0, sz * 0.8), Vector3(0.15, 1.6, 0.15), DARK)
+				det.add_grad("cyl", Vector3(tx, h + 2.6, 0), Vector3(2.6, 2.2, 2.6), Color(0.7, 0.74, 0.78), Color(0.5, 0.53, 0.58), Vector3.ZERO, 14)
+				det.add("cyl", Vector3(tx, h + 3.8, 0), Vector3(2.8, 0.25, 2.8), Color(0.45, 0.47, 0.5), Vector3.ZERO, 14)
+			if apt and rng.randf() < 0.6:
+				det.add("cyl", Vector3(top_w * 0.4, h + 2.4, top_d * 0.3), Vector3(0.08, 4.0, 0.08), DARK, Vector3.ZERO, 5)
+				det.add("box", Vector3(top_w * 0.4, h + 3.9, top_d * 0.3), Vector3(1.6, 0.06, 0.06), DARK)
 			roof_top = h + 0.4
 	# yan ek bina
-	if rng.randf() < 0.3:
+	if not apt and arch != 4 and rng.randf() < 0.3:
 		var aw = w * 0.4; var ad = d * 0.55; var ah = 3.2
 		walls.add("box", Vector3(-w * 0.5 - aw * 0.5 + 0.1, 0.5 + ah * 0.5, d * 0.1), Vector3(aw, ah, ad), white)
 		roof.add("prism", Vector3(-w * 0.5 - aw * 0.5 + 0.1, 0.5 + ah + 0.6, d * 0.1), Vector3(aw + 1.0, 1.2, ad + 1.0), white)
 		_window(det, Vector3(-w * 0.5 - aw * 0.5, 0.5 + ah * 0.55, d * 0.1 - ad * 0.5), 0.0, rng)
 		cols.append([Vector3(-w * 0.5 - aw * 0.5 + 0.1, (0.5 + ah + 0.6) * 0.5, d * 0.1), Vector3(aw, 0.5 + ah + 0.6, ad), 0.0])
+		w += aw   # yerleşim ayak izi ek binayı da kapsasın
 	return {"walls": walls.build(), "roof": roof.build(), "detail": det.build(), "w": w, "d": d, "h": h, "roof_top": roof_top, "cols": cols}
+
+
+const CLOTHES := [Color(0.85, 0.3, 0.25), Color(0.95, 0.95, 0.92), Color(0.3, 0.45, 0.75), Color(0.95, 0.8, 0.3), Color(0.4, 0.62, 0.4)]
+
+
+## Kapı önü ayrıntısı: kapı alanını (|x| < 1.8) boş bırakarak cephe boyunca 0-2 farklı öge
+static func _front_decor(det: MB, w: float, d: float, arch: int, rng: RandomNumberGenerator) -> void:
+	var n = [0, 1, 1, 2][rng.randi() % 4]
+	var used: Array = []
+	for k in n:
+		var kind = rng.randi() % 8
+		if used.has(kind):
+			continue
+		used.append(kind)
+		var sx = [-1.0, 1.0][rng.randi() % 2]
+		var x = sx * rng.randf_range(2.4, maxf(2.6, w * 0.5 - 1.0))
+		var z = -d * 0.5 - rng.randf_range(0.5, 0.9)
+		var y = 0.5
+		match kind:
+			0:   # tek büyük saksı bitkisi
+				var pc = [Color(0.6, 0.38, 0.25), Color(0.35, 0.4, 0.5), Color(0.75, 0.7, 0.62)][rng.randi() % 3]
+				det.add_grad("cyl", Vector3(x, y + 0.3, z), Vector3(0.6, 0.6, 0.6), pc, pc.darkened(0.3), Vector3.ZERO, 10)
+				det.add_grad("sphere", Vector3(x, y + 0.95, z), Vector3(0.9, 0.9, 0.9), Color(0.4, 0.66, 0.3), Color(0.18, 0.38, 0.14), Vector3.ZERO, 8)
+			1:   # bonsai sehpası
+				det.add("box", Vector3(x, y + 0.45, z), Vector3(1.2, 0.08, 0.5), WOOD)
+				for lx in [-0.5, 0.5]:
+					det.add("box", Vector3(x + lx, y + 0.22, z), Vector3(0.08, 0.44, 0.44), WOOD)
+				det.add("box", Vector3(x, y + 0.56, z), Vector3(0.5, 0.14, 0.3), Color(0.45, 0.42, 0.5))
+				det.add("cyl", Vector3(x, y + 0.78, z), Vector3(0.08, 0.35, 0.08), WOOD.darkened(0.2), Vector3(0, 0, 18), 5)
+				det.add_grad("sphere", Vector3(x + 0.12, y + 0.98, z), Vector3(0.55, 0.28, 0.4), Color(0.35, 0.6, 0.28), Color(0.15, 0.32, 0.12), Vector3.ZERO, 7)
+			2:   # bank
+				det.add("box", Vector3(x, y + 0.45, z - 0.1), Vector3(1.8, 0.1, 0.5), WOOD.lightened(0.1))
+				for lx in [-0.75, 0.75]:
+					det.add("box", Vector3(x + lx, y + 0.22, z - 0.1), Vector3(0.1, 0.44, 0.45), WOOD.darkened(0.2))
+			3:   # fıçı + şemsiye
+				det.add_grad("cyl", Vector3(x, y + 0.45, z), Vector3(0.65, 0.9, 0.65), WOOD.lightened(0.2), WOOD, Vector3.ZERO, 10)
+				det.add("cyl", Vector3(x + 0.1, y + 1.15, z), Vector3(0.05, 0.9, 0.05), DARK, Vector3(0, 0, 12), 5)
+				det.add("cone", Vector3(x + 0.18, y + 1.25, z), Vector3(0.22, 0.9, 0.22), Color(0.85, 0.3, 0.2), Vector3(0, 0, 12), 8)
+			4:   # sandık yığını
+				det.add("box", Vector3(x, y + 0.35, z), Vector3(0.7, 0.7, 0.7), WOOD.lightened(0.15))
+				det.add("box", Vector3(x + 0.75, y + 0.3, z + 0.05), Vector3(0.6, 0.6, 0.6), WOOD)
+				det.add("box", Vector3(x + 0.3, y + 0.95, z), Vector3(0.55, 0.5, 0.55), WOOD.lightened(0.05), Vector3(0, 15, 0))
+			5:   # bisiklet (duvara dayalı)
+				for wx in [-0.55, 0.55]:
+					det.add("torus", Vector3(x + wx, y + 0.35, -d * 0.5 - 0.3), Vector3(0.7, 0.7, 0.7), DARK, Vector3(90, 0, 0), 12)
+				det.add("box", Vector3(x, y + 0.55, -d * 0.5 - 0.3), Vector3(1.1, 0.06, 0.05), Color(0.7, 0.15, 0.12), Vector3(0, 0, -8))
+				det.add("box", Vector3(x + 0.45, y + 0.8, -d * 0.5 - 0.3), Vector3(0.05, 0.5, 0.05), DARK)
+				det.add("box", Vector3(x + 0.45, y + 1.05, -d * 0.5 - 0.3), Vector3(0.05, 0.05, 0.5), DARK)
+			6:   # taş fener (küçük)
+				det.add("box", Vector3(x, y + 0.1, z), Vector3(0.6, 0.2, 0.6), STONE)
+				det.add("cyl", Vector3(x, y + 0.5, z), Vector3(0.18, 0.7, 0.18), STONE, Vector3.ZERO, 6)
+				det.add("box", Vector3(x, y + 1.0, z), Vector3(0.5, 0.4, 0.5), STONE.lightened(0.1))
+				det.add("box", Vector3(x, y + 1.0, z - 0.26), Vector3(0.25, 0.22, 0.02), Color(1.0, 0.85, 0.5))
+				det.add("cone", Vector3(x, y + 1.35, z), Vector3(0.8, 0.35, 0.8), STONE.darkened(0.1), Vector3.ZERO, 6)
+			7:   # pencere altı çiçeklik (yalnız bir tane, karışık renkli çiçekler)
+				det.add("box", Vector3(x, y + 0.3, -d * 0.5 - 0.3), Vector3(1.6, 0.45, 0.4), WOOD)
+				for f in 5:
+					var fc = [Color(0.95, 0.4, 0.5), Color(1.0, 0.85, 0.3), Color(0.95, 0.95, 0.95), Color(0.7, 0.45, 0.9)][rng.randi() % 4]
+					det.add("sphere", Vector3(x - 0.6 + f * 0.3, y + 0.62, -d * 0.5 - 0.3), Vector3(0.2, 0.18, 0.2), fc, Vector3.ZERO, 6)
+				det.add_grad("box", Vector3(x, y + 0.55, -d * 0.5 - 0.3), Vector3(1.5, 0.12, 0.34), Color(0.4, 0.66, 0.3), Color(0.2, 0.4, 0.15))
 
 
 static func _window(b: MB, p: Vector3, yaw: float, rng: RandomNumberGenerator) -> void:
@@ -180,7 +290,7 @@ class Placer:
 	var recs: Array = []   # WorldDamage kayıtları (yanma / yıkılma)
 	var pack_chance := 0.0  # 0..1: bu oranda ev hazır modelden (renkli Japon kasaba evi)
 
-	func add(pos: Vector3, yaw: float, wall_col: Color, roof_col: Color, rng: RandomNumberGenerator, scale := 1.0) -> Dictionary:
+	func add(pos: Vector3, yaw: float, wall_col: Color, roof_col: Color, rng: RandomNumberGenerator, scale := 1.0, max_w := 1e9, max_d := 1e9) -> Dictionary:
 		if pack_chance > 0.0 and rng.randf() < pack_chance:
 			var hs: Array = AssetLib.town_houses()
 			if not hs.is_empty():
@@ -201,7 +311,16 @@ class Placer:
 						Builder.roof_points[key] = []
 					Builder.roof_points[key].append(pos + Vector3(0, sz.y * scale, 0))
 				return {"w": sz.x, "d": sz.z, "h": sz.y * 0.8, "roof_top": sz.y}
-		var ti = rng.randi() % HouseKit.templates.size()
+		# arsaya sığan şablonlardan biri (sığan yoksa en küçüğü)
+		var fit: Array = []
+		var small = 0
+		for k in HouseKit.templates.size():
+			var tk: Dictionary = HouseKit.templates[k]
+			if float(tk["w"]) * scale <= max_w and float(tk["d"]) * scale <= max_d:
+				fit.append(k)
+			if float(tk["w"]) < float(HouseKit.templates[small]["w"]):
+				small = k
+		var ti = fit[rng.randi() % fit.size()] if not fit.is_empty() else small
 		var t: Dictionary = HouseKit.templates[ti]
 		var xf = Transform3D(Basis(Vector3.UP, deg_to_rad(-yaw) + PI).scaled(Vector3.ONE * scale), pos)
 		var rec = {"pos": pos, "basis": xf.basis, "ti": ti, "scale": scale, "wall": wall_col, "roof": roof_col, "body": body, "mm": [], "shapes": []}

@@ -391,12 +391,13 @@ static func _street_houses(b: Builder, v: Dictionary, rng: RandomNumberGenerator
 		var t = 22.0
 		while t < L - 10.0:
 			var p = a + dir * t
-			t += rng.randf_range(15.0, 19.0)
+			var step = rng.randf_range(20.0, 25.0)
+			t += step
 			var dc = p.length()
-			var rows = 1 if dc > 900.0 else (2 if dc > 450.0 else 3)
+			var rows = 2 if dc > 1100.0 else (3 if dc > 600.0 else 4)
 			for sd in [-1.0, 1.0]:
 				for row in rows:
-					var off = 15.5 + row * 16.5
+					var off = 13.5 + row * 17.0
 					var q = p + nrm * sd * off + dir * rng.randf_range(-1.5, 1.5)
 					if q.length() > R - 35.0 or q.y > cliff_n - 45.0:
 						continue
@@ -409,18 +410,21 @@ static func _street_houses(b: Builder, v: Dictionary, rng: RandomNumberGenerator
 					for dx in [-1, 0, 1]:
 						for dy in [-1, 0, 1]:
 							for o in placed.get(key + Vector2i(dx, dy), []):
-								if o.distance_to(q) < 12.5:
+								if o.distance_to(q) < 17.0:
 									clash = true
 					if clash:
 						continue
+					var wq = b.w(Vector3(q.x, 0, q.y))
+					if not b.area_free(Vector2(wq.x, wq.z), 7.5):
+						continue   # önceki binalar / meydanlar
 					if not placed.has(key):
 						placed[key] = []
 					placed[key].append(q)
 					# yüz: sokağa doğru (-nrm*sd); Builder yaw: 0 = ön güneye bakar
 					var fd = -nrm * sd
 					var yaw = rad_to_deg(atan2(-fd.x, -fd.y))
-					var fl = [1, 2, 2, 2, 3].pick_random() if dc < 700.0 else [1, 1, 2].pick_random()
-					b.house(q.x, q.y, 10, 9, fl, yaw, "konoha", rng)
+					# arsa: sokak boyunca adım kadar geniş, 15 m derin (bitişik, büyük binalar)
+					b.house(q.x, q.y, step - 1.5, 15.0, 3, yaw, "konoha", rng)
 					var hd = float(b.last_house.get("d", 9.0))
 					var fo = Builder.rot(0, -hd * 0.5 - 1.0, yaw)
 					if row == 0:
@@ -441,7 +445,7 @@ static func _street_houses(b: Builder, v: Dictionary, rng: RandomNumberGenerator
 ## Ev en yakın sokağa bakar (yol uzaklığının azaldığı eksen yönü).
 static func _fill_blocks(b: Builder, rng: RandomNumberGenerator, occupied: Array, cliff_n: float) -> int:
 	var count = 0
-	var step = 17.0
+	var step = 22.0
 	var gx = -R
 	var ix = 0
 	while gx < R:
@@ -456,11 +460,14 @@ static func _fill_blocks(b: Builder, rng: RandomNumberGenerator, occupied: Array
 			if ix % 4 == 0 or iz % 4 == 0:
 				continue  # ara sokak
 			var d = Vector2(x, n).length()
-			var prob = 0.62 if d < 600.0 else (0.32 if d < 1000.0 else 0.0)
+			var prob = 0.9 if d < 600.0 else (0.75 if d < 1000.0 else 0.55)
 			if rng.randf() > prob or d > R - 40.0:
 				continue
-			if not _free(x, n, occupied, 6.0) or _on_road(b, x, n, 40.0):
+			if not _free(x, n, occupied, 6.0) or _on_road(b, x, n, 16.0):
 				continue
+			var wq = b.w(Vector3(x, 0, n))
+			if not b.area_free(Vector2(wq.x, wq.z), 9.0):
+				continue   # sokak evleriyle çakışmasın
 			# en yakın sokağa bak
 			var best = Vector2(0, -1)
 			var bd = 1e9
@@ -471,8 +478,7 @@ static func _fill_blocks(b: Builder, rng: RandomNumberGenerator, occupied: Array
 					bd = rd
 					best = dv
 			var yaw = rad_to_deg(atan2(-best.x, -best.y))
-			var fl = [1, 2, 2, 3].pick_random() if d < 600.0 else [1, 1, 2].pick_random()
-			b.house(x, n, 10, 9, fl, yaw, "konoha", rng)
+			b.house(x, n, 20.0, 18.0, 3, yaw, "konoha", rng)
 			count += 1
 		gx += step
 	return count
