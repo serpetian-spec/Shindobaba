@@ -243,7 +243,12 @@ func _process(_dt: float) -> void:
 		Engine.time_scale = base_time_scale
 
 
+var quiet := false   # görsel denetim testleri: hasar sayısı/yazı yok
+
+
 func damage_number(pos: Vector3, amount: float, col := Color(1, 0.9, 0.3), crit := false) -> void:
+	if quiet:
+		return
 	var l = Label3D.new()
 	l.text = str(int(round(amount)))
 	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
@@ -263,6 +268,8 @@ func damage_number(pos: Vector3, amount: float, col := Color(1, 0.9, 0.3), crit 
 
 
 func popup_text(pos: Vector3, text: String, col := Color(1, 1, 1)) -> void:
+	if quiet:
+		return
 	var l = Label3D.new()
 	l.text = text
 	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED

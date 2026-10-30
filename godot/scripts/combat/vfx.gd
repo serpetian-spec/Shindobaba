@@ -372,7 +372,7 @@ static func cracks(pos: Vector3, size := 4.0, col := Color(0.12, 0.09, 0.07, 0.9
 	var mi = _card(2, col, col, float(randi_range(6, 9)), false)
 	scene().add_child(mi)
 	_track(mi)
-	var g = Game.jutsu_floor(pos.x, pos.z) + 0.06
+	var g = Game.jutsu_floor(pos.x, pos.z) + 0.06 + size * 0.04   # büyük izi engebeli zemin kesmesin
 	mi.global_transform = Transform3D(Basis(Vector3.RIGHT, -PI * 0.5).rotated(Vector3.UP, randf() * TAU), Vector3(pos.x, g, pos.z))
 	mi.scale = Vector3.ONE * size
 	var m: ShaderMaterial = mi.material_override

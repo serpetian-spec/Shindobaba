@@ -57,9 +57,11 @@ void fragment() {
 		// zemin çatlağı / yanık: merkezden dallanan çizgiler + koyu leke
 		float n = vn(p * 3.0) * 0.5 + vn(p * 7.0) * 0.5;
 		float k = a / 6.2831 * spikes + n * 0.8;
-		float crack = 1.0 - smoothstep(0.02, 0.06, abs(fract(k) - 0.5) * (0.4 + r));
-		float blot = step(r, 0.35 + n * 0.25);
-		al = max(crack * step(r, 0.9 - n * 0.2), blot * 0.6) * (1.0 - smoothstep(0.7, 1.0, t));
+		// çizgiler uca doğru incelip söner; leke merkezden yumuşakça dağılan yanık (kart kenarı / zemin kesişimi görünmesin)
+		float crack = 1.0 - smoothstep(0.02, 0.06, abs(fract(k) - 0.5) * (0.4 + r) * (1.0 + r * 1.5));
+		crack *= 1.0 - smoothstep(0.55 - n * 0.15, 0.92 - n * 0.2, r);
+		float blot = (1.0 - smoothstep(0.08, 0.5 + n * 0.2, r)) * 0.5;
+		al = max(crack, blot) * (1.0 - smoothstep(0.7, 1.0, t));
 		c = col.rgb;
 	}
 	if (al < 0.02) discard;

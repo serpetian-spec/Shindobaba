@@ -3375,6 +3375,7 @@ func p_sennen_goroshi(c: Node3D, t: Node3D) -> void:
 ## PSTYLE: doton_renga_no_jutsu=ground doton_sazareishi=palm doton_shinju_zanshu_no_jutsu=ground kasumi_jusha_no_jutsu=sense oboro_bunshin_no_jutsu=clone doton_tobi_tsubute=ground doton_dosekiryu=ground doton_retsudo_tensho=ground futon_reppusho=palm futon_kazekiri_no_jutsu=palm katon_endan=breath
 # ------------------------------------------------------------------ Grup 2: düşük seviye toprak / rüzgâr / ateş / klon
 const EARTH := Color(0.55, 0.42, 0.3)
+const ROCK_TONES := [Color(0.5, 0.43, 0.35), Color(0.45, 0.4, 0.36), Color(0.56, 0.48, 0.38), Color(0.4, 0.36, 0.33)]
 
 
 func _rock(s: float, col := EARTH) -> MeshInstance3D:
@@ -12529,43 +12530,134 @@ func p_chi_no_juin(c: Node3D, _t: Node3D) -> void:
 
 ## Chibaku Tensei: göğe siyah çekim küresi fırlatılır — çevredeki toprak ve hedefler ona çekilip dev kaya kütlesine gömülür
 func p_chibaku_tensei(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.6)
-	var tt = tg(c, t, 30.0)
-	var at = (tt.global_position if tt else c.global_position + fwd(c, t) * 12.0) + Vector3.UP * 8.0
-	var core = MeshInstance3D.new()
-	core.mesh = SphereMesh.new()
-	var m = StandardMaterial3D.new()
-	m.albedo_color = Color(0.02, 0.02, 0.03)
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	core.material_override = m
+	# Chibaku Tensei: kara çekirdek göğe fırlar, çevredeki toprağı koparıp çeker, hedefi içine gömen dev kaya ay olur, sonra çöker
+	busy(c, 1.8)
+	var tt = tg(c, t, 40.0)
+	var ground = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 16.0)
+	var at = ground + Vector3.UP * 32.0
+	var purple = Color(0.55, 0.3, 0.95)
+	if Game.world:
+		Game.world.env.flash_tint(Color(0.05, 0.02, 0.1, 0.6), 9.5)
+	# 1) çekirdek: siyah küre + mor parlayan kabuk + çevresinde dönen kütleçekim halkaları
+	var core = Node3D.new()
+	var ball = MeshInstance3D.new()
+	ball.mesh = VFX._sphere(0.5, 24, 12)
+	var bm = StandardMaterial3D.new()
+	bm.albedo_color = Color(0.01, 0.01, 0.02)
+	bm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	ball.material_override = bm
+	core.add_child(ball)
+	var rim = MeshInstance3D.new()
+	rim.mesh = VFX._sphere(0.5, 24, 12)
+	rim.material_override = glow(purple, 0.35)
+	rim.scale = Vector3.ONE * 1.35
+	core.add_child(rim)
 	get_tree().current_scene.add_child(core)
-	core.global_position = hand_pos(c, true)
-	core.scale = Vector3.ONE * 0.4
+	core.global_position = hand_pos(c, false)
+	core.scale = Vector3.ONE * 0.6
+	VFX.gather(core.global_position, purple, 1.5)
 	var tw = core.create_tween()
-	tw.tween_property(core, "global_position", at, 0.6)
+	tw.tween_property(core, "global_position", at, 0.7).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(core, "scale", Vector3.ONE * 2.6, 0.7)
 	tw.tween_callback(func():
-		for k in 30:
-			var q = gp(at + Vector3(randf_range(-12, 12), 0, randf_range(-12, 12)))
-			var rk = _rock(randf_range(0.8, 1.8))
-			get_tree().current_scene.add_child(rk)
-			rk.global_position = q
-			var tw2 = rk.create_tween()
-			tw2.tween_interval(randf() * 0.6)
-			tw2.tween_property(rk, "global_position", at + Vector3(randf_range(-2.5, 2.5), randf_range(-2.5, 2.5), randf_range(-2.5, 2.5)), 0.8).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-			tw2.tween_interval(2.5)
-			tw2.tween_property(rk, "scale", Vector3.ONE * 0.05, 0.4)
-			tw2.tween_callback(rk.queue_free)
-		for e in enemies_near(c, at - Vector3.UP * 8.0, 14.0):
-			st(e, "bind", 4.0)
+		VFX.shockwave(at, purple, 30.0, 0.8, false)
+		VFX.star(at, Color(0.85, 0.7, 1.0), 6.0, 0.3)
+		FX.light(at, purple, 14.0, 60.0, 0.8)
+		shake(1.2)
+		Sfx.play("thunder", at, 0.4))
+	# 2) kütleçekim: zemin kopar, kayalar sarmal çizerek çekirdeğe yapışır; küre katman katman büyür
+	var rocks: Array = []
+	var shell := [4.0]
+	after(0.75, func():
+		for k in 6:   # yerde dalgalanan sarsıntı halkaları
+			after(k * 0.4, func():
+				VFX.shockwave(ground + Vector3.UP * 0.2, Color(0.55, 0.45, 0.35), 34.0 - k * 3.0, 0.6)
+				VFX.puffs(ground + Vector3.UP, {"amount": 26, "life": 1.6, "size": 2.6, "radius": 16.0, "vmin": 2, "vmax": 7, "dir": Vector3.UP, "spread": 25.0, "add": false,
+					"colors": [Color(0.62, 0.52, 0.4, 0.0), Color(0.6, 0.5, 0.38, 0.9), Color(0.55, 0.47, 0.36, 0)]})
+				shake(0.6))
+		for k in 90:
+			after(randf() * 2.4, func():
+				var a = randf() * TAU
+				var r = randf_range(5.0, 44.0)
+				var q = gp(ground + Vector3(cos(a), 0, sin(a)) * r)
+				var sz = randf_range(1.5, 5.0) * (1.25 if r > 22.0 else 1.0)
+				var rk = _rock(sz, ROCK_TONES.pick_random().darkened(randf() * 0.15))
+				get_tree().current_scene.add_child(rk)
+				rk.global_position = q - Vector3.UP * sz * 0.4
+				rocks.append(rk)
+				if sz > 3.2:
+					VFX.cracks(q, sz * 1.3, Color(0.1, 0.07, 0.05, 0.85), 12.0)
+				VFX.debris(q + Vector3.UP * 0.5, ROCK_TONES[0], 6, 8.0, sz * 0.25)
+				# sarmal yörünge: yükselirken çekirdek etrafında döner, kabuğa oturur
+				var dir = Vector3(randf_range(-1, 1), randf_range(-1, 1), randf_range(-1, 1)).normalized()
+				var start = rk.global_position
+				var spin = randf_range(1.5, 3.0) * (1.0 if randf() < 0.5 else -1.0)
+				rk.create_tween().tween_method(func(u: float):
+					if not is_instance_valid(rk):
+						return
+					var dest = at + dir * (shell[0] + sz * 0.35)
+					var pth = start.lerp(dest, u * u)
+					var off = (pth - at)
+					off = off.rotated(Vector3.UP, spin * (1.0 - u) * 1.2)
+					rk.global_position = at + off + Vector3.UP * sin(u * PI) * 3.0
+					rk.rotation += Vector3(0.03, 0.05, 0.02), 0.0, 1.0, randf_range(1.0, 1.6)).set_trans(Tween.TRANS_SINE)
+				shell[0] = minf(16.0, shell[0] + 0.17))
+		# hedefler havaya çekilip kürenin içine gömülür
+		for e in enemies_near(c, ground, 24.0):
+			st(e, "bind", 7.0)
 			var etw = e.create_tween()
-			etw.tween_property(e, "global_position", at + Vector3(randf_range(-1, 1), -1.5, randf_range(-1, 1)), 0.8)
-			etw.tween_interval(2.6)
-			etw.tween_callback(func():
-				if live(e):
-					e.take_hit(inf(c, "chibaku_tensei", 2.0, {"knock": 4.0, "kind": "heavy"})))
-		shake(1.0))
-	tw.tween_property(core, "scale", Vector3.ONE * 4.0, 0.8)
-	tw.tween_interval(2.8)
+			etw.tween_property(e, "global_position", at + Vector3(randf_range(-2, 2), randf_range(-2, 2), randf_range(-2, 2)), 1.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		# çekirdeğin çevresinde mor kütleçekim halkaları
+		every(3.0, 0.5, func(_i, _k):
+			VFX.shockwave(at, purple.lightened(0.2), 10.0 + shell[0] * 2.0, 0.5, true, Vector3(randf_range(-1, 1), 1, randf_range(-1, 1))), Callable()))
+	# 3) dev kaya ay: kabuk tamamlanınca yavaşça döner, içindekiler ezilir
+	after(3.6, func():
+		# ay: iç içe geçmiş sivri kaya kütlelerinden kabuk (tek mesh), içinde koyu çekirdek küre
+		var mb = MB.new()
+		mb.add("boulder", Vector3.ZERO, Vector3.ONE * 26.0, ROCK_TONES[2].darkened(0.2), Vector3.ZERO, 5)
+		for q in 150:
+			var dv = Vector3(randf_range(-1, 1), randf_range(-1, 1), randf_range(-1, 1)).normalized()
+			var bs = randf_range(4.0, 9.0)
+			mb.add("boulder", dv * randf_range(12.0, 15.0), Vector3(bs, bs * randf_range(0.6, 1.0), bs), ROCK_TONES.pick_random().darkened(randf() * 0.2), Vector3(randf() * 360, randf() * 360, 0), q)
+		var moon = mesh_of(mb)
+		get_tree().current_scene.add_child(moon)
+		moon.global_position = at
+		moon.scale = Vector3.ONE * 0.6
+		moon.create_tween().tween_property(moon, "scale", Vector3.ONE, 0.6).set_trans(Tween.TRANS_BACK)
+		moon.create_tween().tween_property(moon, "rotation:y", 0.6, 5.0)
+		VFX.puffs(at, {"amount": 40, "life": 2.0, "size": 4.0, "radius": 12.0, "vmin": 2, "vmax": 6, "add": false,
+			"colors": [Color(0.55, 0.5, 0.45, 0.0), Color(0.55, 0.5, 0.45, 0.85), Color(0.5, 0.46, 0.42, 0)]})
+		shake(1.6)
+		every(5.0, 1.0, func(_i, _k):
+			for e in enemies_near(c, at, 22.0):
+				e.take_hit(inf(c, "chibaku_tensei", 0.5, {"knock": 0.0, "kind": "light"}))
+			VFX.debris(at + Vector3(randf_range(-8, 8), -10.0, randf_range(-8, 8)), EARTH, 4, 3.0, 0.8), Callable())
+		# 4) çöküş: ay parçalanır, kayalar yağar
+		after(5.2, func():
+			FX.light(at, Color(0.7, 0.6, 0.5), 8.0, 50.0, 0.6)
+			for rk in rocks:
+				if not is_instance_valid(rk):
+					continue
+				var fall = gp(rk.global_position + Vector3(randf_range(-6, 6), 0, randf_range(-6, 6)))
+				var rtw = rk.create_tween()
+				rtw.tween_interval(randf() * 0.4)
+				rtw.tween_property(rk, "global_position", fall, randf_range(0.7, 1.1)).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+				rtw.tween_callback(func():
+					VFX.debris(fall + Vector3.UP * 0.5, EARTH, 5, 7.0, 0.6)
+					VFX.puffs(fall + Vector3.UP, {"amount": 8, "life": 1.2, "size": 2.2, "radius": 1.5, "vmin": 1, "vmax": 4, "add": false,
+						"colors": [Color(0.6, 0.52, 0.42, 0.0), Color(0.6, 0.52, 0.42, 0.8), Color(0.6, 0.52, 0.42, 0)]}))
+				rtw.tween_interval(4.0)
+				rtw.tween_property(rk, "scale", Vector3.ONE * 0.05, 0.6)
+				rtw.tween_callback(rk.queue_free)
+			if is_instance_valid(moon):
+				var mtw = moon.create_tween()
+				mtw.tween_property(moon, "scale", Vector3.ONE * 0.05, 0.6).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+				mtw.tween_callback(moon.queue_free)
+			for e in enemies_near(c, at, 20.0):
+				e.take_hit(inf(c, "chibaku_tensei", 1.4, {"knock": 6.0, "launch": 2.0, "kind": "heavy"}))
+			shake(1.8)
+			Sfx.play("boom", ground, 0.6)))
+	tw.tween_interval(8.5)
 	tw.tween_property(core, "scale", Vector3.ONE * 0.05, 0.4)
 	tw.tween_callback(core.queue_free)
 	Sfx.play("earth", c.global_position, 0.4)
@@ -19754,47 +19846,95 @@ func p_aburame_mushi_hashira(c: Node3D, t: Node3D) -> void:
 
 
 func p_inuzuka_sototoro(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.5)
-	var tt = tg(c, t, 26.0)
-	FX.smoke_puff(c.global_position + Vector3.UP * 2.5, 3.0, 36)
-	var b = MB.new()
-	var fur = Color(0.85, 0.82, 0.78)
-	b.add("sphere", Vector3(0, 2.5, 0), Vector3(3.0, 2.6, 5.0), fur)
-	for sx in [-1.0, 1.0]:
-		b.add("sphere", Vector3(sx * 1.0, 3.6, 2.6), Vector3(1.6, 1.5, 1.8), fur)
-		b.add("box", Vector3(sx * 1.0, 3.2, 3.5), Vector3(0.9, 0.6, 1.0), fur.darkened(0.1))
-		b.add("sphere", Vector3(sx * 1.0, 3.4, 4.0), Vector3(0.3, 0.2, 0.2), Color(0.1, 0.08, 0.06))
-		b.add("cone", Vector3(sx * 1.0 + 0.4, 4.5, 2.4), Vector3(0.3, 0.7, 0.2), fur, Vector3(0, 0, -20), 4)
-		b.add("cone", Vector3(sx * 1.0 - 0.4, 4.5, 2.4), Vector3(0.3, 0.7, 0.2), fur, Vector3(0, 0, 20), 4)
-		b.add("sphere", Vector3(sx * 1.0 + 0.35, 3.9, 3.3), Vector3(0.16, 0.12, 0.08), Color(0.9, 0.2, 0.15))
-		b.add("sphere", Vector3(sx * 1.0 - 0.35, 3.9, 3.3), Vector3(0.16, 0.12, 0.08), Color(0.9, 0.2, 0.15))
-		for fz in [-1.6, 1.6]:
-			b.add("cyl", Vector3(sx * 1.0, 0.9, fz), Vector3(0.6, 1.8, 0.6), fur, Vector3.ZERO, 6)
-	b.add("cyl", Vector3(0, 3.0, -3.0), Vector3(0.4, 2.2, 0.4), fur, Vector3(-60, 0, 0), 6)
-	var wolf = mesh_of(b)
+	# Sōtōrō: dev iki başlı beyaz kurda dönüşür, kükrer, sıçrar ve iki dev dönen hortuma (Garōga) dönüşüp hedefi oyar
+	busy(c, 2.2)
+	var tt = tg(c, t, 30.0)
+	var d = fwd(c, t)
+	var at = gp(c.global_position)
+	FX.smoke_puff(at + Vector3.UP * 1.0, 1.6, 14)   # kısa dönüşüm dumanı (kurt görünsün)
+	VFX.shockwave(at + Vector3.UP * 0.2, Color(0.9, 0.9, 0.92), 12.0, 0.5)
+	var wolf = Node3D.new()
 	get_tree().current_scene.add_child(wolf)
-	wolf.global_position = gp(c.global_position)
-	wolf.rotation.y = atan2(c.face_dir().x, c.face_dir().z)
+	var mdl: Node3D = SummonModels.build("wolf_giant", 4.4, 7.0)["root"]
+	wolf.add_child(mdl)
+	wolf.global_position = at
+	wolf.rotation.y = atan2(-d.x, -d.z)
 	if c.get("model"):
 		c.model.visible = false
-	var goal = gp(tt.global_position if tt else c.global_position + c.face_dir() * 14.0)
+	Sfx.play("roar", at, 0.7)
+	shake(1.0)
+	# kükreme: önüne doğru savrulan toz ve şok dalgası
+	after(0.35, func():
+		VFX.shockwave(at + d * 5.0 + Vector3.UP * 3.0, Color(0.95, 0.95, 0.95), 10.0, 0.45, false)
+		VFX.puffs(at + d * 4.0 + Vector3.UP, {"amount": 30, "life": 0.9, "size": 1.8, "radius": 2.5, "vmin": 6, "vmax": 12, "dir": d, "spread": 35.0, "add": false,
+			"colors": [Color(0.85, 0.8, 0.72, 0.0), Color(0.85, 0.8, 0.72, 0.9), Color(0.8, 0.75, 0.68, 0)]}))
+	var goal = gp(tt.global_position if tt and live(tt) else at + d * 18.0)
 	var tw = wolf.create_tween()
-	tw.tween_interval(0.4)
-	tw.tween_property(wolf, "global_position", goal, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_interval(1.1)
+	tw.tween_property(wolf, "global_position", at + d * 3.0 + Vector3.UP * 4.0, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tw.tween_callback(func():
-		impact_fx("doton", EARTH, goal + Vector3.UP, 2.4)
-		VFX.cracks(goal, 10.0)
-		hit(c, goal + Vector3.UP, 5.0, inf(c, "inuzuka_sototoro", 3.2, {"knock": 26.0, "launch": 8.0, "kind": "heavy", "bleed": 4.0, "hitstop": 0.15}))
-		shake(1.4))
-	tw.tween_interval(0.5)
+		# Garōga: kurt iki dev matkap hortuma dönüşür
+		FX.smoke_puff(wolf.global_position + Vector3.UP * 2.0, 3.0, 30)
+		wolf.visible = false
+		var side = d.cross(Vector3.UP).normalized()
+		for sx in [-1.0, 1.0]:
+			var drill = Node3D.new()
+			var cone = MeshInstance3D.new()
+			var cm = CylinderMesh.new()
+			cm.top_radius = 0.3
+			cm.bottom_radius = 3.0
+			cm.height = 8.5
+			cone.mesh = cm
+			cone.material_override = VFX.mat_spiral(Color(0.97, 0.97, 1.0), Color(0.58, 0.55, 0.52), 4.0, 6.0, 14.0, 1.1, Vector3.UP)   # matkap gövdesi: dönen sarmal çizgiler
+			cone.rotation.x = -PI * 0.5
+			drill.add_child(cone)
+			var shell = MeshInstance3D.new()
+			var cm2 = CylinderMesh.new()
+			cm2.top_radius = 0.8
+			cm2.bottom_radius = 4.0
+			cm2.height = 7.5
+			shell.mesh = cm2
+			shell.material_override = VFX.mat_wind(Color(0.7, 0.66, 0.6), 9.0, 4.0, Vector3.UP, 0.65)
+			shell.rotation.x = -PI * 0.5
+			drill.add_child(shell)
+			get_tree().current_scene.add_child(drill)
+			var start = wolf.global_position + side * sx * 2.2
+			drill.global_position = start
+			drill.look_at(goal + Vector3.UP * 1.5 + side * sx * 1.2, Vector3.UP)
+			VFX.trail(drill, 2.2, Color(1, 1, 1, 0.8), Color(0.8, 0.78, 0.74, 0.5), Color(0.7, 0.66, 0.6, 0.0), 14)
+			drill.create_tween().set_loops(8).tween_property(cone, "rotation:z", TAU, 0.12).as_relative()
+			var dtw = drill.create_tween()
+			dtw.tween_method(func(u: float):
+				if not is_instance_valid(drill):
+					return
+				var p = start.lerp(goal + Vector3.UP * 1.5 + side * sx * 1.2, u)
+				drill.global_position = p
+				VFX.puffs(p, {"amount": 3, "life": 0.6, "size": 1.6, "radius": 2.2, "vmin": 2, "vmax": 6, "add": false, "spin": 200.0,
+					"colors": [Color(0.8, 0.76, 0.7, 0.0), Color(0.82, 0.78, 0.72, 0.85), Color(0.75, 0.7, 0.64, 0)]})
+				if randf() < 0.5:   # yolunu oyar
+					var g2 = gp(p)
+					VFX.debris(g2 + Vector3.UP * 0.3, EARTH, 2, 9.0, 0.5)
+					if randf() < 0.25:
+						VFX.cracks(g2, 3.0, Color(0.1, 0.07, 0.05, 0.85), 6.0)
+				hit(c, p, 3.0, inf(c, "inuzuka_sototoro", 0.25, {"knock": 8.0, "kind": "light", "bleed": 2.0})), 0.0, 1.0, 0.75)
+			dtw.tween_callback(func():
+				FX.smoke_puff(drill.global_position, 2.0, 20)
+				drill.queue_free())
+		shake(1.2)
+		Sfx.play("wind", wolf.global_position, 0.7))
+	tw.tween_interval(0.85)
 	tw.tween_callback(func():
-		FX.smoke_puff(wolf.global_position + Vector3.UP * 2.5, 3.0, 36)
+		impact_fx("doton", EARTH, goal + Vector3.UP, 2.8)
+		VFX.cracks(goal, 12.0)
+		VFX.shockwave(goal + Vector3.UP * 0.3, Color(0.95, 0.95, 0.95), 22.0, 0.6)
+		hit(c, goal + Vector3.UP, 6.0, inf(c, "inuzuka_sototoro", 2.4, {"knock": 26.0, "launch": 8.0, "kind": "heavy", "bleed": 4.0, "hitstop": 0.15}))
+		shake(1.6)
 		if live(c):
-			c.global_position = gp(wolf.global_position)
+			FX.smoke_puff(goal + Vector3.UP * 1.5, 2.0, 20)
+			c.global_position = gp(goal - d * 3.0)
 			if c.get("model"):
 				c.model.visible = true
 		wolf.queue_free())
-	Sfx.play("roar", c.global_position, 0.7)
 
 
 func p_kaguya_hone_tate(c: Node3D, _t: Node3D) -> void:
