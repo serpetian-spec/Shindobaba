@@ -359,7 +359,7 @@ func _attack() -> void:
 const SIG_NAME := {"toad_small": "Suiton: Kurbağa Tükürüğü", "toad_mid": "Dil Kamçısı", "toad_boss": "Suiton: Teppōdama", "snake_swarm": "Sen'ei Jashu",
 	"snake_giant": "Yılan Sarması", "snake_boss": "Hükümdarın Sarması", "slug_acid": "Zesshi Nensan (Asit Püskürtme)", "slug_queen": "Bölünme: Şifa Dalgası",
 	"hawk_small": "Keskin Göz", "hawk_mount": "Kanat Fırtınası", "hawk_giant": "Gök Kasırgası", "dog_small": "Ninken Takibi", "dog_pack": "Doton: Ninken Tuzağı",
-	"wolf_giant": "Çift Çene Saldırısı", "monkey_small": "Maymun Atlayışı", "crow_flock": "Karga Yanılsaması", "salamander": "Zehir Sisi",
+	"wolf_giant": "Çift Çene Saldırısı", "dog_giant": "Kara Diş: Toprak Yaran Isırık", "monkey_small": "Maymun Atlayışı", "crow_flock": "Karga Yanılsaması", "salamander": "Zehir Sisi",
 	"turtle_small": "Kabuk Kalkanı", "turtle_giant": "Ada Kabuğu: Dönen Kale", "weasel_trio": "Kamaitachi no Jutsu", "cat_small": "Kedi Pençesi",
 	"cat_giant": "Kedi Ruhu Alevi", "spider": "Kumo Shibari (Örümcek Ağı)"}
 
@@ -423,7 +423,7 @@ func _special() -> void:
 				_mark(tgt, Color(1.0, 0.6, 0.3))
 				tgt.apply_status("slow", 2.5)
 				Combat.hit_sphere(self, tgt.global_position + Vector3.UP * 0.4, 1.2, {"dmg": dmg * 0.6, "knock": 2.0, "kind": "light"})
-		"wolf_giant", "dog_pack":
+		"wolf_giant", "dog_giant", "dog_pack":
 			if tgt:   # köpekler yerden fırlayıp ısırır ve tutar
 				var at = tgt.global_position
 				for k in 6:

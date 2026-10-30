@@ -16196,8 +16196,13 @@ func _blue_wings(c: Node3D, dur: float) -> Node3D:
 
 ## Kara böcek bulutu (yoğun parçacık)
 func _bug_cloud(pos: Vector3, r: float, n := 60, dir := Vector3.UP, speed := 2.0) -> void:
-	VFX.puffs(pos, {"amount": n, "life": 1.2, "size": 0.1, "radius": r, "vmin": speed * 0.5, "vmax": speed * 1.5, "dir": dir, "spread": 70.0, "add": false,
-		"colors": [Color(0.05, 0.05, 0.04, 1.0), Color(0.02, 0.02, 0.02, 0)]})
+	# kıkaichū sürüsü: kütleyi veren yarı saydam koyu bulut + iri, kanadı parlayan tek tek böcekler + kenarda dağılan öncüler
+	VFX.puffs(pos, {"amount": maxi(4, int(n / 8)), "life": 1.4, "size": r * 1.3 + 0.6, "radius": r * 0.6, "vmin": speed * 0.2, "vmax": speed * 0.6, "dir": dir, "spread": 50.0, "add": false,
+		"spin": 60.0, "colors": [Color(0.06, 0.06, 0.05, 0.0), Color(0.05, 0.05, 0.05, 0.55), Color(0.04, 0.04, 0.04, 0.4), Color(0.03, 0.03, 0.03, 0)]})
+	VFX.puffs(pos, {"amount": int(n * 1.6), "life": 1.3, "size": 0.18, "radius": r, "vmin": speed * 0.5, "vmax": speed * 1.6, "dir": dir, "spread": 75.0, "add": false,
+		"colors": [Color(0.05, 0.05, 0.04, 1.0), Color(0.12, 0.13, 0.1, 1.0), Color(0.02, 0.02, 0.02, 0)]})
+	VFX.puffs(pos, {"amount": maxi(3, int(n / 6)), "life": 0.8, "size": 0.12, "radius": r * 1.2, "vmin": speed, "vmax": speed * 2.2, "dir": dir, "spread": 120.0,
+		"colors": [Color(0.55, 0.6, 0.45, 0.9), Color(0.3, 0.32, 0.25, 0)]})   # kanat parıltısı
 
 
 ## Mavi vahşi çakra alevi (el ve ayaklarda)
@@ -19824,24 +19829,58 @@ func p_yamanaka_shinkaitai(c: Node3D, t: Node3D) -> void:
 
 
 func p_aburame_mushi_hashira(c: Node3D, t: Node3D) -> void:
+	# Mushi Bashira: hedeflerin altından kara böcek sütunları fışkırır, onları içine alıp yukarı taşır, chakralarını emer
 	busy(c, 1.0)
 	var targets = enemies_near(c, c.global_position, 18.0).slice(0, 4)
 	var tt = tg(c, t, 18.0)
 	if tt and not targets.has(tt):
 		targets.append(tt)
+	_bug_cloud(hand_pos(c, true), 0.4, 40, fwd(c, t), 5.0)
 	for e in targets:
-		after(0.3, func():
+		var at0 = gp(e.global_position)
+		# önce yerde kaynayan kara leke (böcekler toprağın altından geliyor)
+		ground_disc(at0, 2.4, Color(0.05, 0.05, 0.04), 2.8, 2, 0)
+		_bug_cloud(at0 + Vector3.UP * 0.2, 1.4, 50, Vector3.UP, 1.5)
+		after(0.35, func():
 			if not live(e):
 				return
 			var at = gp(e.global_position)
-			for k in 10:
-				after(k * 0.05, func():
-					_bug_cloud(at + Vector3.UP * k * 0.5, 0.6, 30, Vector3.UP, 4.0))
-			st(e, "bind", 2.0)
+			# sütun: dönen kara gövde (rüzgâr malzemesi koyu) + içinde kaynayan sürü
+			var col = MeshInstance3D.new()
+			var cm = CylinderMesh.new()
+			cm.top_radius = 1.6
+			cm.bottom_radius = 2.2
+			cm.height = 9.0
+			col.mesh = cm
+			var cmat = StandardMaterial3D.new()   # kaynayan kara sürü gövdesi (eklemeli değil, koyu)
+			cmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			cmat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			cmat.albedo_color = Color(0.06, 0.06, 0.05, 0.8)
+			col.material_override = cmat
+			get_tree().current_scene.add_child(col)
+			col.global_position = at + Vector3.UP * 4.5
+			col.scale = Vector3(1, 0.05, 1)
+			var ctw = col.create_tween()
+			ctw.tween_property(col, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_BACK)
+			ctw.tween_interval(1.8)
+			ctw.tween_property(col, "scale", Vector3(1.8, 1.0, 1.8), 0.4)
+			ctw.parallel().tween_property(cmat, "albedo_color:a", 0.0, 0.4)
+			ctw.tween_callback(col.queue_free)
+			for k in 12:
+				after(k * 0.06, func():
+					_bug_cloud(at + Vector3.UP * k * 0.75, 1.3, 36, Vector3.UP, 4.0))
+			VFX.debris(at + Vector3.UP * 0.4, EARTH, 8, 7.0, 0.4)
+			VFX.cracks(at, 4.0)
+			st(e, "bind", 2.2)
+			var lift = e.create_tween()
+			lift.tween_property(e, "global_position", at + Vector3.UP * 3.0, 0.5).set_trans(Tween.TRANS_QUAD)
 			every(2.0, 0.4, func(_i, _k):
 				if live(e):
 					e.take_hit(inf(c, "aburame_mushi_hashira", 0.3, {"knock": 0.0, "kind": "light", "chakra_drain": 6.0}))
-					chakra_gain(c, 2.0), Callable()))
+					chakra_gain(c, 2.0)
+					_bug_cloud(e.global_position + Vector3.UP, 1.0, 20, Vector3.UP, 3.0), Callable())
+			after(2.3, func():   # sürü dağılır, hedef düşer
+				_bug_cloud(at + Vector3.UP * 3.0, 3.0, 80, Vector3.UP, 6.0)))
 	Sfx.play("wind", c.global_position, 2.0, 0.6)
 
 

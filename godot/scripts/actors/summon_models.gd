@@ -53,7 +53,7 @@ static func build(model: String, h: float, length: float) -> Dictionary:
 			_slug(out, model, h, length)
 		"hawk_small", "hawk_mount", "hawk_giant":
 			_hawk(out, model, h)
-		"dog_small", "dog_pack", "wolf_giant":
+		"dog_small", "dog_pack", "wolf_giant", "dog_giant":
 			_dog(out, model, h)
 		"monkey_small", "monkey_king":
 			_monkey(out, model, h)
@@ -1089,6 +1089,8 @@ static func _dog_proc(out: Dictionary, model: String, h: float) -> void:
 			_mesh(out["root"], b)
 		"wolf_giant":
 			_wolf2(out, h)
+		"dog_giant":
+			_war_hound(out, h)
 
 
 static func _pug(out: Dictionary, h: float, c: Color, gear: bool) -> void:
@@ -1176,6 +1178,57 @@ static func _wolf2(out: Dictionary, h: float) -> void:
 		lg.scale = Vector3(1.9, 1.0, 1.7)
 	if out["tail"]:
 		out["tail"].scale = Vector3.ONE * 1.6
+
+
+## Savaş ninkeni Kurogane (özgün): tek başlı dev kömür grisi köpek — kısa sert tüy, açık gri namlu ve göğüs, sol gözde dikey yara izi (kör, soluk göz),
+## kırmızı lake zırh koşum (omuz plakaları, göğüs plakası, sırtta binek eyeri), boynunda çivili deri tasma ve metal alın plakası, kalın pençe sargıları.
+static func _war_hound(out: Dictionary, h: float) -> void:
+	var c = Color(0.24, 0.24, 0.27)
+	var light = Color(0.62, 0.6, 0.58)
+	var red = Color(0.62, 0.12, 0.1)
+	var metal = Color(0.7, 0.72, 0.76)
+	var leather = Color(0.3, 0.2, 0.13)
+	var b = _quad(out, h, c, {"len": 1.15, "leg": 0.46, "snout": 0.3, "ear": 0.17, "eye": Color(0.95, 0.72, 0.2), "tail": "bushy", "belly": light, "mark": Color(0.1, 0.1, 0.12)})
+	var by = h * 0.46 + h * 0.12
+	var L = h * 1.15
+	var hp = Vector3(0, by + h * 0.48, -L * 0.62)
+	# kaslı omuz ve göğüs kütlesi
+	b.add("sphere", Vector3(0, by + h * 0.1, -L * 0.3), Vector3(0.52, 0.5, 0.56) * h, c, Vector3.ZERO, 14)
+	b.add("sphere", Vector3(0, by - h * 0.02, -L * 0.36), Vector3(0.36, 0.34, 0.34) * h, light, Vector3.ZERO, 12)   # açık göğüs
+	b.add("sphere", hp + Vector3(0, -h * 0.05, -h * 0.2), Vector3(0.16, 0.12, 0.2) * h, light, Vector3.ZERO, 10)   # açık namlu
+	# sol gözde yara: dikey koyu çizik + soluk kör göz
+	var ep = hp + Vector3(-0.075 * h, h * 0.05, -h * 0.135)
+	b.add("sphere", ep + Vector3(0, 0, -h * 0.012), Vector3(0.072, 0.047, 0.04) * h, Color(0.72, 0.74, 0.76), Vector3(0, 0, 15), 8)
+	b.add("box", ep + Vector3(-h * 0.005, 0, -h * 0.03), Vector3(0.018, 0.2, 0.012) * h, Color(0.42, 0.18, 0.18), Vector3(0, 0, 8))
+	# metal alın plakası + çivili tasma
+	b.add("box", hp + Vector3(0, h * 0.12, -h * 0.06), Vector3(0.17, 0.06, 0.02) * h, metal, Vector3(-30, 0, 0))
+	var nk = Vector3(0, by + h * 0.34, -L * 0.52)
+	b.add("torus", nk, Vector3(0.34, 0.34, 0.34) * h, leather, Vector3(70, 0, 0), 14)
+	for k in 8:
+		var a = k * TAU / 8.0
+		var d = Vector3(cos(a), sin(a) * 0.35, sin(a) * 0.94).normalized()
+		BeastRig.claw(b, nk + Vector3(cos(a) * h * 0.17, sin(a) * h * 0.06, sin(a) * h * 0.16), d, h * 0.05, h * 0.015, metal)
+	# kırmızı lake zırh: omuz plakaları, göğüs plakası, sırt eyeri ve yan etekler
+	for sx in [-1.0, 1.0]:
+		b.add("sphere", Vector3(sx * h * 0.24, by + h * 0.2, -L * 0.32), Vector3(0.09, 0.2, 0.28) * h, red, Vector3(0, 0, 25 * sx), 12)
+		b.add("box", Vector3(sx * h * 0.2, by - h * 0.02, -L * 0.02), Vector3(0.02, 0.2, 0.42) * h, red.darkened(0.15), Vector3(0, 0, -12 * sx))
+		for k in 3:   # etek plakalarının metal perçinleri
+			b.add("sphere", Vector3(sx * h * 0.215, by + h * 0.04, -L * 0.15 + k * h * 0.14), Vector3.ONE * h * 0.025, metal, Vector3.ZERO, 6)
+	b.add("box", Vector3(0, by + h * 0.04, -L * 0.48), Vector3(0.26, 0.24, 0.03) * h, red, Vector3(-25, 0, 0))
+	b.add("box", Vector3(0, by + h * 0.22, -L * 0.02), Vector3(0.34, 0.05, 0.44) * h, red)   # eyer
+	b.add("box", Vector3(0, by + h * 0.26, -L * 0.2), Vector3(0.26, 0.08, 0.04) * h, leather)   # eyer kaşı
+	b.add("box", Vector3(0, by + h * 0.25, L * 0.17), Vector3(0.26, 0.06, 0.04) * h, leather)
+	for z in [-L * 0.12, L * 0.1]:   # koşum kayışları
+		b.add("torus", Vector3(0, by + h * 0.05, z), Vector3(0.44, 0.44, 0.44) * h, leather, Vector3(90, 0, 0), 14)
+	_mesh(out["root"], b)
+	for lg in out["legs"]:   # kalın bacaklar + bilekte beyaz sargı
+		lg.scale = Vector3(1.6, 1.0, 1.5)
+		var wb = MB.new()
+		for k in 3:
+			wb.add("torus", Vector3(0, -h * 0.36 - k * h * 0.035, -h * 0.02), Vector3(0.075, 0.075, 0.075) * h, Color(0.93, 0.92, 0.88), Vector3(0, 0, 8 if k % 2 else -8), 8)
+		_mesh(lg, wb)
+	if out["tail"]:
+		out["tail"].scale = Vector3(1.1, 0.7, 0.75)   # kısa, alçak taşınan kuyruk
 
 
 ## Kediler (REFERANS): ninneko — açık kahve kabarık kedi, oturur; alında 忍 kanjisi, iri sivri kulaklar (pembe iç), kapalı gülümseyen gözler ve ":3" ağız,
