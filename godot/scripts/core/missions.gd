@@ -1161,7 +1161,7 @@ func _spawn_boss(b: Dictionary, kind: String, at: Vector3) -> Enemy:
 	a["respawn"] = false
 	a["name"] = b.get("name", a["name"])
 	# görev verisindeki can/güç, oyuncu yakın dövüşü güçlüyken yazılmıştı: denge sonrası ~8-12 kombo / ölümcül ama ani değil
-	a["hp"] = float(b.get("hp", 600.0)) * 0.6
+	a["hp"] = float(b.get("hp", 600.0)) * 0.42
 	a["level"] = int(b.get("level", 20))
 	a["power"] = float(b.get("power", 2.0)) * 0.85
 	a["guard"] = 0.35
@@ -2635,7 +2635,7 @@ func _bb_spawn(e: Dictionary, at: Vector3) -> void:
 	var a = Enemy.archetype("rogue", 0)
 	a["respawn"] = false
 	a["name"] = "«%s» %s" % [e["alias"], e["name"]]
-	a["hp"] = float(e["hp"])
+	a["hp"] = float(e["hp"]) * 0.6
 	a["level"] = int(e["level"])
 	a["power"] = float(e["power"])
 	a["guard"] = 0.45

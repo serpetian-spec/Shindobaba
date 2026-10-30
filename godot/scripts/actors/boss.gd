@@ -15,10 +15,10 @@ static func make(k: String) -> Dictionary:
 	a["boss"] = k
 	match k:
 		"raiju":
-			a.merge({"name": "Raijū — Fırtına Canavarı", "hp": 2400.0, "level": 32, "power": 3.0, "element": "raiton", "size": 4.5,
+			a.merge({"name": "Raijū — Fırtına Canavarı", "hp": 1500.0, "level": 32, "power": 3.0, "element": "raiton", "size": 4.5,
 				"speed": 12.0, "xp": 3000, "ryo": 0, "aggr": 0.9, "guard": 0.0, "sub": 0.0, "jutsu": [], "tools": false}, true)
 		"puppeteer":
-			a.merge({"name": "Kuklacı Mukuro", "hp": 1400.0, "level": 26, "power": 2.6, "element": "", "xp": 2200, "ryo": 0, "aggr": 0.7,
+			a.merge({"name": "Kuklacı Mukuro", "hp": 900.0, "level": 26, "power": 2.6, "element": "", "xp": 2200, "ryo": 0, "aggr": 0.7,
 				"guard": 0.3, "sub": 0.2, "jutsu": ["fuuton_daitoppa"]}, true)
 			a["look"].merge({"cloak": Color(0.12, 0.12, 0.15), "band_style": "slashed", "village": "suna", "hair": Color(0.6, 0.15, 0.15), "hair_style": "kısa"}, true)
 	return a
