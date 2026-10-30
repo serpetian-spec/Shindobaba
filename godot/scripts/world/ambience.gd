@@ -152,7 +152,10 @@ func _process(dt: float) -> void:
 	var night = tod < 0.23 or tod > 0.79
 	# 2 orman, 4 yağmur, 7 çimen, 10 bataklık, 11 köy
 	# süzülen yapraklar yalnızca ormanda (köyde/çayırda havada asılı nokta gibi duruyordu)
-	leaves.emitting = biome == 2 and not night
+	# rüzgârla uçuşan yapraklar: yeşil her bölgede (köy dahil) genel, ormanda yoğun
+	var leafy = biome in [2, 4, 6, 7, 10, 11]
+	leaves.emitting = leafy and not night
+	leaves.amount_ratio = 1.0 if biome == 2 else 0.4
 	fireflies.emitting = night and biome in [2, 4, 6, 7, 10]
 	sand.emitting = biome == 3 or biome == 13
 	_fall_t -= dt

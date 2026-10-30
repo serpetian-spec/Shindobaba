@@ -1081,7 +1081,7 @@ static func settings(back: Callable) -> void:
 	var gr = HFlowContainer.new()
 	gr.add_theme_constant_override("h_separation", 18)
 	g2.add_child(gr)
-	for opt in [["Tam ekran", "fullscreen"], ["Gölgeler", "shadows"], ["Anime çizgileri", "outline"], ["FPS göster", "show_fps"]]:
+	for opt in [["Tam ekran", "fullscreen"], ["Gölgeler", "shadows"], ["Anime çizgileri", "outline"], ["Yumuşak filtre", "dreamy"], ["FPS göster", "show_fps"]]:
 		check.call(gr, opt[0], opt[1])
 	var g3 = group.call("sound", "Ses")
 	slider.call(g3, "Müzik", "music", 0.0, 1.0, 0.05)

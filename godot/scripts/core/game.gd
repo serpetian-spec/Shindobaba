@@ -17,7 +17,7 @@ var biome_img: Image
 
 var settings := {
 	"sens": 1.0, "ui_scale": 1.0, "fov": 70.0, "music": 0.5, "sfx": 0.8, "view": 1.0, "fullscreen": false,
-	"shadows": true, "outline": true, "invert_y": false, "show_fps": false, "quality": 2,
+	"shadows": true, "outline": true, "dreamy": true, "invert_y": false, "show_fps": false, "quality": 2,
 }
 var profile: Dictionary = {}
 var paused := false
@@ -604,6 +604,7 @@ func apply_graphics() -> void:
 		env.sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS if q < 2 else DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
 		if env.post:
 			env.post.visible = bool(settings["outline"])
+		env.set_dreamy(bool(settings.get("dreamy", true)))
 	var grass = world.get_node_or_null("Grass")
 	if grass:
 		grass.visible = q > 0

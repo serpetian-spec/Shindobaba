@@ -68,7 +68,10 @@ func _ready() -> void:
 	env.adjustment_contrast = 1.15
 	var we = WorldEnvironment.new()
 	we.environment = env
+	cam_attr = CameraAttributesPractical.new()
+	we.camera_attributes = cam_attr
 	add_child(we)
+	set_dreamy(bool(Game.settings.get("dreamy", true)))
 
 	sun = DirectionalLight3D.new()
 	sun.shadow_enabled = Game.settings["shadows"]
@@ -207,6 +210,26 @@ func _make_rain() -> void:
 	snow.emitting = false
 	snow.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	add_child(snow)
+
+
+var cam_attr: CameraAttributesPractical
+## Yumuşak rüya filtresi (anime çizimi hissi): geniş yumuşak parlama (ışık haleleri), uzak mesafede hafif bulanıklık,
+## biraz sıcak / pastel renk; kapalıyken keskin klasik görünüm
+func set_dreamy(on: bool) -> void:
+	if env == null:
+		return
+	env.glow_intensity = 0.55 if on else 0.3
+	env.glow_bloom = 0.06 if on else 0.0
+	env.glow_hdr_threshold = 0.95 if on else 1.25
+	env.set_glow_level(5, 0.45 if on else 0.0)   # geniş hale
+	env.adjustment_saturation = 1.18 if on else 1.3
+	env.adjustment_contrast = 1.06 if on else 1.15
+	env.adjustment_brightness = 1.03 if on else 1.0
+	if cam_attr:
+		cam_attr.dof_blur_far_enabled = on
+		cam_attr.dof_blur_far_distance = 140.0
+		cam_attr.dof_blur_far_transition = 260.0
+		cam_attr.dof_blur_amount = 0.05
 
 
 func attach_post(cam: Camera3D) -> void:
