@@ -528,6 +528,22 @@ static func _hokage_faces(b: Builder, rock: Dictionary, cliff_n: float, v: Dicti
 		# başın üstünde uçurumdan çıkan ince kaya saçağı (yüzleri çerçeveler)
 		var tn = _cliff_surface(b, fx, cliff_n, fy + H * 0.66)
 		b.box(Vector3(fx, fy + H * 0.66, tn - 1.5), Vector3(gap * 0.95, 2.5, 4.0), fc.darkened(0.25), 0, true)
+		# kafa havada asılı duruyordu: çeneden yere inen, aşağı doğru genişleyen kaya ayağı (oyulmuş kaya kaidesi)
+		var chin = fy - H * 0.42
+		var gb = _gy(b, fx, fn - H * 1.2) - 2.0
+		var layers = 9
+		for k in layers:
+			var t0 = float(k) / layers
+			var y0 = lerpf(gb, chin, t0)
+			var y1 = lerpf(gb, chin, float(k + 1) / layers)
+			var spread = 1.0 - (t0 + 0.5 / layers)   # 1 altta, 0 çenede
+			var dep = H * (0.5 + 0.55 * spread)
+			var wid = H * (0.75 + 0.35 * spread)
+			var sn = _cliff_surface(b, fx, cliff_n, (y0 + y1) * 0.5)
+			var lc = rc.darkened(0.12 + 0.05 * float(k % 2))
+			b.box(Vector3(fx, (y0 + y1) * 0.5, sn - dep * 0.5 + 3.0), Vector3(wid, y1 - y0 + 0.6, dep + 6.0), lc, 0, true)
+	# halk için uçuruma çıkan zikzak taş merdiven (yüzlerin batısında, seyir yerine çıkar)
+	_cliff_stairs(b, -2.0 * gap - gap * 1.1, cliff_n, top, rc.darkened(0.2))
 	# tepe seyir yeri (uçurumun hemen arkası)
 	var ln = cliff_n + 35.0
 	b.box(Vector3(cx, _gy(b, cx, ln) + 0.5, ln), Vector3(70, 1, 24), Color(0.55, 0.45, 0.35), 0, false)
@@ -630,6 +646,32 @@ static func _ichiraku_boxes(b: Builder, ix: float, inn: float) -> void:
 
 
 ## Uçurum yüzeyi: verilen yükseklikte kuzeye doğru arazinin bu yüksekliği geçtiği ilk n
+## Uçurum yüzüne yaslı zikzak merdiven: 0.6 m basamak, 20 basamakta bir sahanlık, yön değiştirir
+static func _cliff_stairs(b: Builder, xs: float, cliff_n: float, top: float, col: Color) -> void:
+	var y = _gy(b, xs, cliff_n - 150.0)
+	var x = xs - 14.0
+	var dir = 1.0
+	var rise = 0.6
+	var run = 1.4
+	var guard = 0
+	while y < top + 1.0 and guard < 600:
+		guard += 1
+		for k in 20:
+			if y >= top + 1.0:
+				break
+			y += rise
+			x += run * dir
+			var sn = _cliff_surface(b, x, cliff_n, y + 1.0)
+			b.box(Vector3(x, y - 0.5, sn - 3.2), Vector3(run + 0.1, 1.0, 5.6), col, 0, true)
+			b.box(Vector3(x, y + 0.45, sn - 6.1), Vector3(run + 0.1, 0.9, 0.3), col.darkened(0.2), 0, true)   # korkuluk
+		# sahanlık
+		var ln = _cliff_surface(b, x + dir * 2.5, cliff_n, y + 1.0)
+		b.box(Vector3(x + dir * 2.5, y - 0.5, ln - 3.2), Vector3(5.0, 1.0, 5.6), col.lightened(0.05), 0, true)
+		x += dir * 2.5
+		dir = -dir
+		x += dir * 2.5
+
+
 static func _cliff_surface(b: Builder, x: float, cliff_n: float, y: float) -> float:
 	var nn = cliff_n - 140.0
 	while nn < cliff_n + 220.0:

@@ -436,6 +436,11 @@ static func dress(b: Builder) -> void:
 			continue
 		c.add_road(Vector2(pa.x, -pa.y), Vector2(pb.x, -pb.y), 9.0 if rd["kind"] == "street" else 8.0)
 	var houses: Array = b.houses
+	await _house_infill(c, houses)
+	if c.dead:
+		return
+	for h in houses:
+		rad = maxf(rad, Vector2(h[0], h[1]).length() + 25.0)
 	var tp = Time.get_ticks_usec()
 	if c.climate in ["green", "desert", "snow"]:  # taş döşeli köylerde (Kiri, Kumo, Iwa, Ame) zemin zaten yol
 		await _trunks(c, rad, houses)
@@ -461,6 +466,82 @@ static func dress(b: Builder) -> void:
 	c.flush()
 	print("Peyzaj %s (%s): %d ev, %d öğe, %.0f ms (hazırlık %.0f, patika %.0f, bahçe %.0f, sokak %.0f)" % [b.key, c.climate, houses.size(), c.count,
 		(Time.get_ticks_usec() - t0) / 1000.0, (tp - t0) / 1000.0, (tl - tp) / 1000.0, (t1 - tl) / 1000.0, (t2 - t1) / 1000.0])
+
+
+## Sokaklardan uzak kalan boş alanlar (köyü boş gösteriyordu): sur içinde 26 m ızgarada, 24 m içinde ev olmayan,
+## yol/işlev alanı/patika dışı, düz her noktaya en yakın yola bakan bir ev. Yeni evler bahçe/patika aşamalarına girer.
+static func _house_infill(c, houses: Array) -> void:
+	var b: Builder = c.b
+	var v: Dictionary = Game.village(b.key)
+	if v.is_empty() or houses.is_empty():
+		return
+	var wall_r = (float(v["r"]) - 40.0) if b.key == "konoha" else float(v["r"]) * 0.95
+	var lim = wall_r - 45.0
+	var hg := {}
+	var styles := {}
+	for h in houses:
+		var k = Vector2i(floori(float(h[0]) / 24.0), floori(float(h[1]) / 24.0))
+		if not hg.has(k):
+			hg[k] = []
+		hg[k].append(Vector2(float(h[0]), float(h[1])))
+		styles[h[6]] = int(styles.get(h[6], 0)) + 1
+	var style = ""
+	var best = -1
+	for st in styles:
+		if int(styles[st]) > best:
+			best = styles[st]
+			style = st
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(b.key) + 4242
+	var g0 = c.ground(0.0, 0.0)
+	var step = 26.0
+	var added = 0
+	var x = -lim
+	while x <= lim:
+		var n = -lim
+		while n <= lim:
+			var px = x + rng.randf_range(-5.0, 5.0)
+			var pn = n + rng.randf_range(-5.0, 5.0)
+			var fw = rng.randf_range(9.0, 14.0)
+			var fd = rng.randf_range(8.0, 12.0)
+			var fl = [1, 2, 2, 2, 3, 3][rng.randi() % 6]
+			n += step
+			if Vector2(px, pn).length() > lim:
+				continue
+			var near = false
+			var kc = Vector2i(floori(px / 24.0), floori(pn / 24.0))
+			for dx in range(-1, 2):
+				for dz in range(-1, 2):
+					for hp in hg.get(kc + Vector2i(dx, dz), []):
+						if hp.distance_to(Vector2(px, pn)) < 24.0:
+							near = true
+			if near:
+				continue
+			var gy = c.ground(px, pn)
+			if absf(gy - g0) > 14.0:
+				continue   # uçurum / tepe (Konoha kuzeyi, Kumo/Iwa kayalıkları)
+			var slope = maxf(absf(c.ground(px + 7.0, pn) - c.ground(px - 7.0, pn)), absf(c.ground(px, pn + 7.0) - c.ground(px, pn - 7.0)))
+			if slope > 3.0:
+				continue
+			if not c.open(px, pn, 9.0, 11.0):
+				continue
+			var wp: Vector2 = c.wxz(px, pn)
+			var rn: Array = c.road_near(wp)
+			var tgt: Vector2 = c.loc(rn[1]) if rn[0] < 80.0 else Vector2.ZERO
+			var d = tgt - Vector2(px, pn)
+			var yaw = rad_to_deg(atan2(d.x, d.y))
+			b.house(px, pn, fw, fd, fl, yaw, style, rng)
+			var k2 = Vector2i(floori(px / 24.0), floori(pn / 24.0))
+			if not hg.has(k2):
+				hg[k2] = []
+			hg[k2].append(Vector2(px, pn))
+			added += 1
+			if c.busy():
+				await c.rest()
+				if c.dead:
+					return
+		x += step
+	print("Boşluk doldurma %s: +%d ev" % [b.key, added])
 
 
 const LANE_COL := {"green": Color(0.76, 0.66, 0.48), "mist": Color(0.64, 0.66, 0.66), "rock": Color(0.56, 0.5, 0.44),
