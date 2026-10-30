@@ -7,6 +7,8 @@ var pool2d: Array[AudioStreamPlayer] = []
 var music_a: AudioStreamPlayer
 var music_b: AudioStreamPlayer
 var music_name = ""
+## Rahatsız edici savuruş/rüzgâr sesleri arka planda kısık çalar
+const QUIET := {"whoosh": 0.3, "wind": 0.35}
 
 
 func _ready() -> void:
@@ -43,7 +45,7 @@ func _ready() -> void:
 func play(name: String, pos = null, pitch := 1.0, vol := 1.0) -> void:
 	if not streams.has(name):
 		return
-	var v = float(Game.settings["sfx"]) * vol
+	var v = float(Game.settings["sfx"]) * vol * float(QUIET.get(name, 1.0))
 	if v <= 0.01:
 		return
 	if pos == null:

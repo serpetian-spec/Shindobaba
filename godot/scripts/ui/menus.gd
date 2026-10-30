@@ -1785,6 +1785,11 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 			elif picked != "":
 				Hud.msg("Önce bu jutsuyu öğrenmelisin.", Color(1, 0.6, 0.4)), 112)
 		t.tooltip_text = nm
+		if not j.is_empty():
+			var sfx_t = _jutsu_effects(String(cur), j)
+			t.tooltip_text = String(j.get("name", nm)) + ("
+" + sfx_t.replace("  •  ", "
+") if sfx_t != "" else "")
 		var tref = t
 		var cur_id = String(cur) if cur != null else ""
 		var drag_slot = func(_at):
@@ -1894,9 +1899,9 @@ static func _jutsu_effects(jid: String, j: Dictionary) -> String:
 	var parts = []
 	var shp = String(j.get("shape", ""))
 	var t = int(j.get("tier", 2))
-	if Game.player and not shp in ["buff", "transform", "heal", "teleport", "clone", "summon", "genjutsu_stun", "bind"] and String(j.get("category", "")) != "dojutsu":
-		var dmg = JutsuEngine.base_dmg(Game.player, j)
-		parts.append("Hasar ≈ %d" % int(dmg))
+	var dmg = _jutsu_dmg(j)
+	if dmg > 0:
+		parts.append("Hasar ≈ %d" % dmg)
 	var el = String(j.get("element", ""))
 	if el in ["katon", "yoton", "shakuton"]:
 		parts.append("Yakar (%.1f sn)" % (1.5 + t * 0.4))
@@ -1905,7 +1910,7 @@ static func _jutsu_effects(jid: String, j: Dictionary) -> String:
 	if el in ["suiton", "hyoton"]:
 		parts.append("Ateşi söndürür, Raiton'a karşı zayıf")
 	if t >= 3:
-		parts.append("Ağır vuruş: geri savurur, ağaç devirir")
+		parts.append("Ağır vuruş: geri savurur")
 	match shp:
 		"buff", "transform":
 			parts.append("Güçlendirme — etkisi kullanınca sol üstte yazar")
@@ -1963,12 +1968,33 @@ static func _jutsu_card(jid: String, selected: bool, cb: Callable) -> Button:
 	sub.position = Vector2(66, 46)
 	sub.size = Vector2(222, 18)
 	b.add_child(sub)
-	b.tooltip_text = String(j.get("desc", ""))
+	# hasar kartın sağ üstünde, ayrıntılar üstüne gelince (ipucu)
+	var dmg = _jutsu_dmg(j)
+	if dmg > 0:
+		var dl = UI.label("%d hasar" % dmg, 12, Color(1, 0.6, 0.45), HORIZONTAL_ALIGNMENT_RIGHT, true)
+		dl.position = Vector2(196, 66)
+		dl.size = Vector2(96, 18)
+		b.add_child(dl)
+	var fx = _jutsu_effects(jid, j)
+	b.tooltip_text = String(j.get("desc", "")) + ("
+
+" + fx.replace("  •  ", "
+") if fx != "" else "") + "
+Chakra: %d   •   Bekleme: %.1f sn" % [int(j.get("cost", 0)), float(j.get("cd", 0.0))]
 	b.pressed.connect(func():
 		Sfx.play("click")
 		cb.call())
 	UI.hover_anim(b, 1.02)
 	return b
+
+
+## Jutsunun yaklaşık hasarı (hasarsız teknikler: 0)
+static func _jutsu_dmg(j: Dictionary) -> int:
+	if Game.player == null or String(j.get("category", "")) == "dojutsu":
+		return 0
+	if String(j.get("shape", "")) in ["buff", "transform", "heal", "teleport", "clone", "summon", "genjutsu_stun", "bind", "mode", "utility", "sensor", "stealth"]:
+		return 0
+	return int(JutsuEngine.base_dmg(Game.player, j))
 
 
 # ------------------------------------------------------------------ yetenek ağacı (düğüm grafiği)
