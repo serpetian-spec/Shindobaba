@@ -157,7 +157,8 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 		[-250.0, -23.0, "tailor", "[F] Gir: Terzi (kıyafet, zırh)", Color(0.35, 0.25, 0.45), "tailor", 14.0],
 		[250.0, -23.0, "teahouse", "[F] Gir: Dango ve Çay Evi", Color(0.85, 0.45, 0.55), "teahouse", 14.0],
 		[-110.0, 23.0, "bbq", "[F] Gir: Yakiniku Restoranı", Color(0.85, 0.3, 0.2), "bbq", 16.0],
-		[230.0, 24.0, "inn", "[F] Gir: Han (konaklama)", Color(0.25, 0.4, 0.6), "inn", 18.0]]
+		[230.0, 24.0, "inn", "[F] Gir: Han (konaklama)", Color(0.25, 0.4, 0.6), "inn", 18.0],
+		[-30.0, -23.0, "scrolls", "[F] Gir: Parşömenci", Color(0.72, 0.56, 0.22), "shop_scrolls", 14.0]]
 	for sh in shops:
 		var face_south = sh[1] > 0.0  # caddenin kuzeyindekiler güneye (caddeye) bakar
 		var yaw = 0.0 if face_south else 180.0

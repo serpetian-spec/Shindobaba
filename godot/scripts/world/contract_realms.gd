@@ -287,7 +287,7 @@ static func _keepers(parent: Node3D) -> void:
 		# fizik hazır olunca (oyuncu köye gelince) açık zemine taşınır: Suna'da bir evin içinde kalıyordu
 		Interact.add({"pos": wp + Vector3(0, 1.0, -1.5), "radius": 4.0, "kind": "contract_keeper", "village": vid, "label": "Sözleşme Ustası",
 			"relocate": true, "node": mi, "node_off": Vector3(0, -1.0, 1.5)})
-	_services(parent)
+	pass   # eski açık hava çarşı tezgâhları kaldırıldı: dükkânlar artık iç mekânlı binalar (BuildSites._shop_row)
 
 
 ## Büyük köylerin çarşısı (Konoha'nın kendi dükkânları var): eczane, silahçı, terzi tezgâhları.

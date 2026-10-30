@@ -15,7 +15,7 @@ static func shop_front(b: Builder, decor: Node3D, x: float, nf: float, dn: float
 	var yaw = 0.0 if dn < 0.0 else 180.0
 	var wood = Color(0.38, 0.25, 0.15)
 	var cream = Color(0.97, 0.94, 0.86)
-	var kj = {"pharmacy": "薬", "weapon_shop": "武器", "tailor": "呉服", "teahouse": "茶屋", "bbq": "焼肉", "inn": "宿"}.get(kind, "店")
+	var kj = {"pharmacy": "薬", "weapon_shop": "武器", "tailor": "呉服", "teahouse": "茶屋", "bbq": "焼肉", "inn": "宿", "scrolls": "巻物"}.get(kind, "店")
 	var f = func(d: float) -> float: return nf + dn * d   # cepheden caddeye d metre
 	# sundurma: eğik saçak + iki direk
 	b.box(Vector3(x, 3.6, f.call(1.3)), Vector3(w * 0.8, 0.14, 2.8), col.darkened(0.25), yaw, false, Vector3(12, 0, 0))

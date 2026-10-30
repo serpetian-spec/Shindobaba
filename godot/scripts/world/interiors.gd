@@ -9,7 +9,7 @@ const ALT := 1500.0
 
 const TITLES := {
 	"academy": "Ninja Akademisi", "hokage": "Hokage Kulesi — Görev Ofisi", "weapon_shop": "Silah Dükkânı",
-	"pharmacy": "Eczane", "tailor": "Terzi", "bbq": "Yakiniku Restoranı", "hospital": "Konoha Hastanesi",
+	"pharmacy": "Eczane", "scrolls": "Parşömenci", "tailor": "Terzi", "bbq": "Yakiniku Restoranı", "hospital": "Konoha Hastanesi",
 	"home_player": "Senin Evin", "home": "Bir Ev", "teahouse": "Dango ve Çay Evi", "inn": "Han (Ryokan)",
 	"summit": "Demir Kalesi — Beş Kage Zirve Salonu", "lair_cave": "Kaçakların Sığınağı", "lair_lab": "Gizli Deney İni",
 }
@@ -527,6 +527,7 @@ func _build(kind: String, seed: int) -> void:
 		"weapon_shop": _weapon_shop()
 		"pharmacy": _pharmacy()
 		"tailor": _tailor()
+		"scrolls": _scrolls()
 		"bbq": _bbq()
 		"hospital": _hospital()
 		"home_player": _home(true)
@@ -906,6 +907,40 @@ func _pharmacy() -> void:
 	lamp(0, H - 0.5, 3.5, Color(1.0, 0.95, 0.85), 1.3, 9.0)
 	person("keeper", 0, D - 1.6, 0.0, "Eczacı Yumi", ["Asker hapları çok güçlü, dikkatli kullan.", "Merhem yaralara iyi gelir.", "Taze şifalı otlar geldi!"])
 	act(0, D - 3.2, 2.2, "shop_items", "[F] Eczacıyla konuş (merhem, haplar)")
+
+
+## Parşömenci: duvar boyu bölmeli raflarda dürülü parşömenler (element renkli), tezgâhta açık parşömen + fırça + mürekkep,
+## tavandan asılı mühür kâğıtları, köşede parşömen sepetleri; satıcı tezgâhın arkasında
+func _scrolls() -> void:
+	var W = 9.0; var D = 8.0; var H = 3.4
+	shell(W, D, H, Color(0.92, 0.86, 0.72), Color(0.5, 0.36, 0.24))
+	var cols = [Color(0.85, 0.3, 0.2), Color(0.25, 0.5, 0.85), Color(0.35, 0.65, 0.35), Color(0.65, 0.5, 0.3), Color(0.9, 0.82, 0.35), Color(0.92, 0.9, 0.82)]
+	for side in [-1.0, 1.0]:
+		for row in 4:
+			for k in 6:
+				var d = 1.5 + k * 0.9
+				bx(side * (W * 0.5 - 0.3), 0.6 + row * 0.62, d, 0.5, 0.04, 0.85, Color(0.42, 0.28, 0.18))   # raf tahtası
+				for j in 3:
+					cy(side * (W * 0.5 - 0.35), 0.75 + row * 0.62, d - 0.25 + j * 0.25, 0.14, 0.42, cols[(row * 3 + k + j) % cols.size()], 8, Vector3(0, 0, 90))
+	counter(0, D - 2.4, 4.4, Color(0.48, 0.32, 0.2))
+	bx(-0.6, 1.13, D - 2.4, 1.2, 0.01, 0.55, Color(0.95, 0.92, 0.82))   # açık parşömen
+	for k in 4:
+		bx(-0.9 + k * 0.2, 1.14, D - 2.4, 0.08, 0.005, 0.3, Color(0.1, 0.1, 0.12))   # yazı satırları
+	cy(0.9, 1.15, D - 2.4, 0.12, 0.08, Color(0.08, 0.08, 0.1))   # mürekkep kabı
+	bx(1.15, 1.17, D - 2.4, 0.02, 0.02, 0.32, Color(0.55, 0.4, 0.25), false, Vector3(0, 30, 0))   # fırça
+	for k in 7:   # tavandan sarkan mühür kâğıtları
+		var x = -3.0 + k * 1.0
+		bx(x, H - 0.55, 3.0, 0.22, 0.6, 0.01, Color(0.96, 0.9, 0.7))
+		bx(x, H - 0.5, 3.0, 0.08, 0.3, 0.012, Color(0.75, 0.12, 0.1))
+	for sx in [-1.0, 1.0]:   # köşede parşömen sepetleri
+		cy(sx * 2.8, 0.35, 1.2, 0.8, 0.7, Color(0.62, 0.48, 0.3), 10)
+		for j in 4:
+			cy(sx * 2.8 + (j - 1.5) * 0.15, 0.85, 1.2, 0.12, 0.6, cols[j], 8, Vector3(15 * (j - 1.5), 0, 0))
+	paper_lantern(-2.0, H - 0.6, D - 3.0)
+	paper_lantern(2.0, H - 0.6, D - 3.0)
+	lamp(0, H - 0.5, 3.5, Color(1.0, 0.9, 0.7), 1.2, 9.0)
+	person("keeper", 0, D - 1.6, 0.0, "Parşömenci Hōzan", ["Her parşömen bir elementin sırrını taşır.", "Doğana uymayan parşömeni okumak boşa emektir.", "Mürekkep kurumadan dokunma!"])
+	act(0, D - 3.2, 2.2, "shop_scrolls", "[F] Parşömenciyle konuş (element jutsu parşömenleri)")
 
 
 func _tailor() -> void:

@@ -193,7 +193,59 @@ static func _yield() -> void:
 
 ## Evlerle doldur: merkezde sık, dışa doğru seyrek (anime köyü: yoğun merkez + dağınık dış mahalleler).
 ## keep_clear: [[x, n, yarıçap]]. En fazla max_houses ev; her 12 evde bir karede bekler.
+## Köy dükkânları: [oda, etiket, renk, alias, kanji]
+const SHOPS := [["pharmacy", "[F] Gir: Eczane", Color(0.3, 0.6, 0.4), "shop_items", "薬"],
+	["weapon_shop", "[F] Gir: Silah Dükkânı", Color(0.2, 0.2, 0.24), "shop_weapons", "武器"],
+	["scrolls", "[F] Gir: Parşömenci", Color(0.72, 0.56, 0.22), "shop_scrolls", "巻物"],
+	["tailor", "[F] Gir: Terzi (kıyafet, zırh)", Color(0.35, 0.25, 0.45), "tailor", "呉服"],
+	["teahouse", "[F] Gir: Dango ve Çay Evi", Color(0.85, 0.45, 0.55), "teahouse", "茶屋"],
+	["inn", "[F] Gir: Han (konaklama)", Color(0.25, 0.4, 0.6), "inn", "宿"]]
+
+
+## Ana caddenin (merkezden ilk kapıya) iki yanına köy mimarisinde dükkânlar: kapısı caddeye bakar, içine girilir.
+## Büyük köylerde 6, küçüklerde 4 dükkân. Evlerden önce kurulur (Builder katı alanı: evler üstüne binmez).
+static func _shop_row(b: Builder, style: String, rng: RandomNumberGenerator, inner := 40.0) -> void:
+	var v = Game.village(b.key)
+	if v.is_empty() or b.has_meta("shops"):
+		return
+	b.set_meta("shops", true)
+	var gates: Array = v.get("gates", [])
+	var ga = float(gates[0]) if not gates.is_empty() else 180.0
+	var r = float(v["r"])
+	var dir = Vector2(sin(deg_to_rad(ga)), cos(deg_to_rad(ga)))   # yerel (x doğu, n kuzey)
+	var nrm = Vector2(-dir.y, dir.x)
+	var list: Array = SHOPS if r >= 700.0 else [SHOPS[0], SHOPS[1], SHOPS[4], SHOPS[5]]
+	var d0 = minf(inner + 14.0, r * 0.6)   # merkez meydan / Kage binası dışında, ilk ev halkasında
+	for i in list.size():
+		var sh: Array = list[i]
+		var sd = 1.0 if i % 2 == 0 else -1.0
+		var along = d0 + float(i / 2) * 24.0
+		var q = dir * along + nrm * sd * 16.0
+		var wq = b.w(Vector3(q.x, 0, q.y))
+		if not b.area_free(Vector2(wq.x, wq.z), 7.0):
+			q += dir * 30.0   # yer doluysa (meydan yapısı) caddenin ilerisine
+		var fd = -nrm * sd   # cadde yönü
+		var yaw = rad_to_deg(atan2(-fd.x, -fd.y))
+		b.house(q.x, q.y, 15.0, 12.0, 2, yaw, style, rng)
+		var hd = float(b.last_house.get("d", 12.0))
+		var front = q + fd * (hd * 0.5 + 0.2)
+		var g = b._ground_off(front.x, front.y, 2.0).y
+		var col: Color = sh[2]
+		# tente + noren + kanji tabela (caddeye dönük)
+		var tw = q + fd * (hd * 0.5 + 1.3)
+		b.box(Vector3(tw.x, g + 3.3, tw.y), Vector3(7.0, 0.14, 2.4), col.darkened(0.2), yaw, false, Vector3(12, 0, 0))
+		for k in 4:
+			var o = Builder.rot(-1.5 + k * 1.0, -hd * 0.5 - 0.35, yaw)
+			b.box(Vector3(q.x + o.x, g + 2.4, q.y + o.y), Vector3(0.92, 0.9, 0.04), col, yaw, false)
+		var so = Builder.rot(0, -hd * 0.5 - 0.3, yaw)
+		b.box(Vector3(q.x + so.x, g + 4.3, q.y + so.y), Vector3(2.6, 1.0, 0.12), Color(0.96, 0.93, 0.85), yaw, false)
+		b.kanji(Vector3(q.x + so.x * 1.01, g + 4.3, q.y + so.y * 1.01), String(sh[4]), 0.8, Color(0.12, 0.1, 0.1), yaw)
+		var door = q + fd * (hd * 0.5 + 1.4)
+		b.interact(Vector3(door.x, g, door.y), 3.0, "enter", String(sh[1]), {"room": sh[0], "alias": sh[3], "vid": v["id"], "out": b.w(Vector3(door.x, g, door.y))})
+
+
 static func _fill(b: Builder, r: float, inner: float, spacing: float, style: String, rng: RandomNumberGenerator, keep_clear: Array = [], max_houses := 420, big := 1.0) -> void:
+	_shop_row(b, style, rng, inner)
 	# Bitişik nizam halkalar: evler halka boyunca gerçek genişlikleriyle yan yana (0.4-1.2 m ara), 5-7 evde bir dar ara sokak;
 	# halkalar arası = ev derinliği + 2.5 m arka sokak (sırt sırta). Eskiden sabit aralıklı tek tek evler ayrık duruyordu.
 	var count = 0
