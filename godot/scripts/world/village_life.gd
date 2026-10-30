@@ -591,12 +591,25 @@ class PigeonFlock extends Node3D:
 
 	func _land() -> void:
 		flying = -1.0
+		var space = get_world_3d().direct_space_state
 		for b in birds:
-			var p = global_position + b["o"]
-			p.y = Game.terrain_height(p.x, p.z)
-			b["n"].global_position = p
+			# gerçek yüzeye kon: yukarıdan ışın; binaya / çatıya / duvar içine düşen kuş yakındaki açık zemine
+			var placed = false
+			for k in 8:
+				var o: Vector3 = b["o"] if k == 0 else Vector3(randf_range(-7, 7), 0, randf_range(-7, 7))
+				var p = global_position + o
+				var g = Game.ground_height(p.x, p.z)
+				var hit = space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(p.x, g + 40.0, p.z), Vector3(p.x, g - 2.0, p.z), 1))
+				var y = g if hit.is_empty() else float(hit["position"].y)
+				if y > g + 0.6:
+					continue   # bina / çatı / tezgâh
+				p.y = y
+				b["o"] = o
+				b["n"].global_position = p
+				placed = true
+				break
 			b["n"].rotation.y = randf() * TAU
-			b["n"].visible = true
+			b["n"].visible = placed
 
 	func _process(dt: float) -> void:
 		if Game.player == null or Game.paused:

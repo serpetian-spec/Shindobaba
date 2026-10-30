@@ -224,6 +224,8 @@ static func accessories(m: CharacterModel) -> void:
 		_:
 			if fs != "":
 				FaceItemsExt.build(m, fs, fg, hc, hw, hh, hd, toon)
+	if L.get("armor_style") == "sengoku":
+		_sengoku(m, L, ch, hip, toon)
 	# --- omuz zırhı
 	var gd = L.get("guards")
 	var ac: Color = L.get("acc") if L.get("acc") != null else steel
@@ -292,6 +294,64 @@ static func accessories(m: CharacterModel) -> void:
 		for k in 3:
 			mb.add("box", Vector3(0, -0.05 - k * 0.09, 0.0), Vector3(0.03, 0.03, 0.01), oc.lightened(0.15))
 		m._mesh_on("UpperChest", mb.build(toon), Transform3D(Basis.IDENTITY, ch + Vector3(0, 0.12, 0.19)))
+
+
+## Savaşan Devletler zırhı (klan savaşları dönemi): kat kat lamel göğüslük (dō), boyun yakası, omuzdan sarkan
+## katmanlı büyük omuzluklar (sode), ön kol plakaları ve uyluklara inen plaka etek (kusazuri). Renkler yelekten (c1) ve vurgudan.
+## T-pozu: kollar ±X boyunca; kolun üst yüzü (+Y) kol inince dış yüze döner. Model önü +Z.
+static func _sengoku(m: CharacterModel, L: Dictionary, ch: Vector3, hip: Vector3, toon: Material) -> void:
+	var c: Color = L.get("vest") if L.get("vest") != null else Color(0.55, 0.16, 0.12)
+	var trim: Color = L.get("armor_trim") if L.get("armor_trim") != null else c.darkened(0.45)
+	var cord = Color(0.85, 0.7, 0.3) if c.r > c.b else Color(0.75, 0.75, 0.8)
+	var sh = absf(m._bp("LeftUpperArm").x)
+	var tw = sh * 1.85          # gövde genişliği
+	var td = sh * 1.25          # gövde derinliği
+	# göğüslük: üst gövdede 4, belde 3 lamel bandı (her bant bir öncekinin üstüne biner)
+	var up = MB.new()
+	for k in 4:
+		var y = 0.1 - k * 0.075
+		up.add("cyl", Vector3(0, y, 0.005), Vector3(tw * (1.0 + k * 0.02), 0.07, td * (1.02 + k * 0.02)), c.lightened(0.04 * (k % 2)), Vector3(-4, 0, 0), 18)
+		up.add("cyl", Vector3(0, y - 0.034, 0.005), Vector3(tw * (1.01 + k * 0.02), 0.012, td * (1.03 + k * 0.02)), trim, Vector3(-4, 0, 0), 18)
+		for j in 5:   # bant üstünde dikiş bağcıkları
+			up.add("box", Vector3(-tw * 0.3 + j * tw * 0.15, y, td * (0.52 + k * 0.01)), Vector3(0.008, 0.05, 0.006), cord)
+	# yüksek boyun yakası
+	up.add("cyl", Vector3(0, 0.2, 0), Vector3(sh * 0.95, 0.07, sh * 0.85), c.darkened(0.15), Vector3.ZERO, 16)
+	up.add("cyl", Vector3(0, 0.17, 0), Vector3(sh * 1.1, 0.02, sh * 1.0), trim, Vector3.ZERO, 16)
+	m._mesh_on("UpperChest", up.build(toon), Transform3D(Basis.IDENTITY, ch))
+	var lo = MB.new()
+	for k in 3:
+		lo.add("cyl", Vector3(0, -k * 0.065, 0), Vector3(tw * (0.9 + k * 0.03), 0.06, td * (0.98 + k * 0.03)), c.darkened(0.04 * (k % 2)), Vector3.ZERO, 18)
+		lo.add("cyl", Vector3(0, -k * 0.065 - 0.03, 0), Vector3(tw * (0.91 + k * 0.03), 0.01, td * (0.99 + k * 0.03)), trim, Vector3.ZERO, 18)
+	lo.add("cyl", Vector3(0, -0.2, 0), Vector3(tw * 1.0, 0.05, td * 1.08), Color(0.12, 0.1, 0.1), Vector3.ZERO, 18)   # kuşak
+	m._mesh_on("Hips", lo.build(toon), Transform3D(Basis.IDENTITY, hip + Vector3(0, 0.22, 0)))
+	# omuzluklar (sode): kolun üstünde, omuzdan dirseğe doğru 5 kat binen geniş plaka
+	for side in ["Left", "Right"]:
+		var ua = m._bp(side + "UpperArm")
+		var sx = signf(ua.x)
+		var sb = MB.new()
+		for k in 5:
+			var t = 0.03 + k * 0.045
+			sb.add("box", Vector3(sx * t, 0.06 - k * 0.006, 0), Vector3(0.05, 0.022, 0.2 + k * 0.012), c.lightened(0.05 * (k % 2)), Vector3(0, 0, -sx * (14 + k * 3)))
+			sb.add("box", Vector3(sx * (t + 0.022), 0.05 - k * 0.006, 0), Vector3(0.006, 0.024, 0.2 + k * 0.012), trim, Vector3(0, 0, -sx * (14 + k * 3)))
+		sb.add("box", Vector3(sx * 0.02, 0.07, 0.0), Vector3(0.012, 0.012, 0.18), cord)
+		m._mesh_on(side + "UpperArm", sb.build(toon), Transform3D(Basis.IDENTITY, ua))
+		# ön kol plakası (kote)
+		var la = m._bp(side + "LowerArm")
+		var kb = MB.new()
+		kb.add("cyl", Vector3(sx * 0.11, 0, 0), Vector3(0.075, 0.2, 0.08), c.darkened(0.1), Vector3(0, 0, 90), 10)
+		for k in 3:
+			kb.add("cyl", Vector3(sx * (0.05 + k * 0.06), 0, 0), Vector3(0.082, 0.012, 0.087), trim, Vector3(0, 0, 90), 10)
+		m._mesh_on(side + "LowerArm", kb.build(toon), Transform3D(Basis.IDENTITY, la))
+		# uyluk plakaları (kusazuri): önde ve dışta, kalçadan dize 4 sıra
+		var ul = m._bp(side + "UpperLeg")
+		var kz = MB.new()
+		for k in 4:
+			var y = -0.02 - k * 0.065
+			kz.add("box", Vector3(0.0, y, 0.085), Vector3(0.15, 0.06, 0.02), c.lightened(0.04 * (k % 2)), Vector3(-6, 0, 0))
+			kz.add("box", Vector3(sx * 0.085, y, 0.0), Vector3(0.02, 0.06, 0.15), c.lightened(0.04 * (k % 2)), Vector3(0, 0, sx * 6))
+			kz.add("box", Vector3(0.0, y - 0.03, 0.096), Vector3(0.15, 0.008, 0.006), trim)
+			kz.add("box", Vector3(sx * 0.096, y - 0.03, 0.0), Vector3(0.006, 0.008, 0.15), trim)
+		m._mesh_on(side + "UpperLeg", kz.build(toon), Transform3D(Basis.IDENTITY, ul))
 
 
 ## Sandalet halkaları yerine ayakkabı türüne göre halka tanımı (null = varsayılan)

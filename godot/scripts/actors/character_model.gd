@@ -2511,6 +2511,8 @@ func _weapon_process(dt: float) -> void:
 static var _weapon_cache := {}
 ## Japon kılıcı ağzı: hafif kavisli (sırt yukarı, +y), uca doğru incelen; kesik kissaki ucu, habaki ve keskin kenarda hamon çizgisi
 static func _w_blade(b: MB, z0: float, L: float, w: float, curve: float, steel: Color) -> void:
+	# elde tutuşta silah yerel +y aşağı bakıyor: kesit aynalanır -> keskin ağız alta, sırt üste, uç yukarı kalkar (sori)
+	var m := -1.0
 	var back := PackedVector2Array()
 	var edge := PackedVector2Array()
 	var n := 14
@@ -2521,8 +2523,8 @@ static func _w_blade(b: MB, z0: float, L: float, w: float, curve: float, steel: 
 		var ww := w * (1.0 - t * 0.28)
 		if t > 0.9:
 			ww *= lerpf(1.0, 0.0, (t - 0.9) / 0.1)   # kissaki
-		back.append(Vector2(bow + ww * 0.5, z))
-		edge.append(Vector2(bow - ww * 0.5, z))
+		back.append(Vector2((bow + ww * 0.5) * m, z))
+		edge.append(Vector2((bow - ww * 0.5) * m, z))
 	var o := PackedVector2Array()
 	for p in back:
 		o.append(p)
@@ -2536,13 +2538,13 @@ static func _w_blade(b: MB, z0: float, L: float, w: float, curve: float, steel: 
 		var z := z0 + 0.02 + t * L * 0.9
 		var bow := curve * t * t
 		var ww := w * (1.0 - t * 0.28)
-		hm.append(Vector2(bow - ww * 0.5 + 0.002, z))
+		hm.append(Vector2((bow - ww * 0.5 + 0.002) * m, z))
 	for k in range(n - 1, -1, -1):
 		var t := float(k) / n
 		var z := z0 + 0.02 + t * L * 0.9
 		var bow := curve * t * t
 		var ww := w * (1.0 - t * 0.28)
-		hm.append(Vector2(bow - ww * 0.5 + ww * (0.32 + 0.08 * sin(t * 40.0)), z))
+		hm.append(Vector2((bow - ww * 0.5 + ww * (0.32 + 0.08 * sin(t * 40.0))) * m, z))
 	b.add_slab(hm, 0.0105, steel.lightened(0.35))
 	b.add("box", Vector3(0, 0, z0 + 0.012), Vector3(0.014, w * 1.05, 0.03), Color(0.8, 0.65, 0.3))   # habaki
 

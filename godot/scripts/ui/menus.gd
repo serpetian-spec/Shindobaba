@@ -2049,7 +2049,8 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 			p.add_child(UI.label(String(s), 13, UI.CREAM))
 			fl.add_child(p)
 		rv.add_child(fl)
-	var d = UI.label(String(j.get("desc", "")), 15, UI.MUTED)
+	var mean = String(j.get("meaning", ""))
+	var d = UI.label(("“%s” — " % mean if mean != "" else "") + String(j.get("desc", "")), 15, UI.MUTED)   # ad Japonca; Türkçe anlamı açıklamada
 	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	d.custom_minimum_size = Vector2(400, 0)
 	rv.add_child(d)
@@ -2143,7 +2144,8 @@ static func _jutsu_card(jid: String, selected: bool, cb: Callable) -> Button:
 		dl.size = Vector2(96, 18)
 		b.add_child(dl)
 	var fx = _jutsu_effects(jid, j)
-	b.tooltip_text = String(j.get("desc", "")) + ("
+	b.tooltip_text = ("“%s”
+" % j["meaning"] if String(j.get("meaning", "")) != "" else "") + String(j.get("desc", "")) + ("
 
 " + fx.replace("  •  ", "
 ") if fx != "" else "") + "
