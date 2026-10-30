@@ -684,12 +684,12 @@ func _lightning_ball(c: Node3D, col_core: Color, col_edge: Color, snd: String) -
 	var hand: Node3D = Node3D.new()
 	c.model.add_child(hand)
 	hand.position = Vector3(0.35, 1.15, -0.55)
-	hand.add_child(VFX.lightning_ball(0.75, col_edge))
+	hand.add_child(VFX.lightning_ball(0.3, col_edge))   # animede avuçta cıvıldayan şimşek (~30 cm), arklar kola ve yere kısa uzanır
 	var arcs = Arcs.new()
 	arcs.color = col_edge
-	arcs.radius = 1.8
-	arcs.count = 4
-	arcs.width = 0.035
+	arcs.radius = 0.7
+	arcs.count = 5
+	arcs.width = 0.022
 	hand.add_child(arcs)
 	var l = OmniLight3D.new()
 	l.light_color = col_edge; l.light_energy = 1.2; l.omni_range = 5.0
@@ -710,7 +710,7 @@ func j_rasengan(c: Node3D, t: Node3D) -> void:
 	var hand: Node3D = Node3D.new()
 	c.model.add_child(hand)
 	hand.position = Vector3(0.35, 1.15, -0.55)
-	var ras = VFX.rasengan(0.95)
+	var ras = VFX.rasengan(0.34)   # animede avuç büyüklüğü (~30 cm)
 	hand.add_child(ras)
 	ras.scale = Vector3.ONE * 0.1
 	ras.create_tween().tween_property(ras, "scale", Vector3.ONE, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)

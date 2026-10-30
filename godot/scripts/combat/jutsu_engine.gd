@@ -1412,7 +1412,7 @@ static func _melee(c: Node3D, d: Dictionary, t: Node3D, v: String, shape: String
 		c.model.add_child(hand)
 		hand.position = Vector3(0.35, 1.15, -0.55)
 		var nm = String(d.get("name_en", "")).to_lower()
-		var sz = 0.85 + tier * 0.1
+		var sz = 0.34 + tier * 0.04   # el küresi / el şimşeği avuç büyüklüğünde (anime); dev sürümler aşağıda
 		if nm.contains("big ball") or nm.contains("odama") or nm.contains("massive"):
 			sz = 2.2
 			hand.position.y += 0.8
