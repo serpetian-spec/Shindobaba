@@ -1044,6 +1044,8 @@ func _leave_wall() -> void:
 
 func _animate(sp: float, sprint: bool) -> void:
 	var ov = model.overlay
+	if model.current == "sit" and input_locked > 0.0:
+		return   # tezgâhta/salıncakta otururken ayağa kalkmasın
 	if swimming:
 		model.play("swim" if sp > 0.5 else "swim_idle", 0.2)
 		ov.set_pose("ninja_run", 0.0)

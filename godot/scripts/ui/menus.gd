@@ -738,6 +738,7 @@ static func _tab_relations(main: Node, body: Control) -> void:
 	body.add_child(h)
 	var left = _scroll(h, 780, 900)
 	left.get_parent().size_flags_vertical = Control.SIZE_EXPAND_FILL
+	left.get_parent().custom_minimum_size.y = 0.0   # sabit 900 px ekrandan taşıyordu: listenin altına inilemiyordu
 	_friends_card(main, left)
 	var fs: Dictionary = Friends.all()
 	if not fs.is_empty():

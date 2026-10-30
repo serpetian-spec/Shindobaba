@@ -90,10 +90,24 @@ func _inside(vid: String, frac_min := 0.25, frac_max := 0.7) -> Array:
 
 
 ## Dünyada adı belli türden bir yer (hamlet, camp, inn, ruin ...) — yoksa null
+const POI_ALIAS := {"hamlet": "hamlet farm paddy town settlement", "dock": "dock harbor port", "checkpoint": "checkpoint border outpost", "inn": "inn"}
+
+
 func _poi(words: Array, near: Array, maxd: float):
 	var best = null
 	var bd = maxd
 	var c = Vector2(near[0], near[1])
+	# dünyadaki gerçek yerler (mezra/han/iskele/karakol/harabe...) — eskiden yalnız 14 landmark aranıyordu, çoğu görev rastgele noktaya düşüyordu
+	for p in Game.pois:
+		var tid = String(POI_ALIAS.get(String(p.get("t", "")), String(p.get("t", ""))))
+		if not words.any(func(w): return tid.contains(w)):
+			continue
+		var d = c.distance_to(Vector2(float(p["x"]), float(p["y"])))
+		if d < bd and d > 60.0:
+			bd = d
+			best = [float(p["x"]) + randf_range(-10, 10), float(p["y"]) + randf_range(-10, 10)]
+	if best != null:
+		return best
 	for l in Game.world_info.get("landmarks", []):
 		var id = String(l.get("id", "")) + " " + String(l.get("type", ""))
 		var ok = false
@@ -107,6 +121,102 @@ func _poi(words: Array, near: Array, maxd: float):
 			bd = d
 			best = [float(l["x"]) + randf_range(-10, 10), float(l["y"]) + randf_range(-10, 10)]
 	return best
+
+
+## Görev metnindeki yer: çiftlik görevi çiftlikte (tarlalı mezra), han görevi handa, tapınak/iskele/kaplıca/harabe/karakol
+## gerçek POI'de; nehir işi su kenarında, ormandaki iş ağaçlık yerde, dağ/maden işi kayalık yükseklikte.
+const PLACE_WORDS := [
+	[["çiftçi", "çiftlik", "tarla", "pirinç", "hasat", "kümes", "tavuk", "ambar", "arıcı", "kovan", "mezra", "değirmen"], "hamlet"],
+	[["hana ", "handa", "han ", "han sahibi", "yolcu", "kervan durağı"], "inn"],
+	[["tapınak", "rahip", "kutsal", "emanet", "sunak"], "shrine"],
+	[["liman", "rıhtım", "balıkçı", "gemi", "iskele", "balık ağı"], "dock"],
+	[["kaplıca", "onsen"], "onsen"],
+	[["harabe", "eski kale", "yıkık", "kalıntı", "savaş alanı"], "ruin"],
+	[["sınır kapısı", "karakol", "kontrol noktası", "gümrük"], "checkpoint"],
+	[["gözetleme kulesi", "kule"], "tower"],
+	[["anıt"], "monument"],
+]
+
+
+func _place_kind(txt: String) -> String:
+	txt = txt.to_lower()
+	for pw in PLACE_WORDS:
+		for w in pw[0]:
+			if w in txt:
+				return pw[1]
+	for w in ["nehir", "dere", "su kenarı", "kıyı", "göl"]:
+		if w in txt:
+			return "water"
+	for w in ["dağ", "maden", "yamaç", "kaya", "uçurum"]:
+		if w in txt:
+			return "mountain"
+	for w in ["orman", "şifalı ot", "mantar", "odun", "bambu", "ağaç"]:
+		if w in txt:
+			return "forest"
+	return ""
+
+
+## Türüne uygun en yakın gerçek yer (harita [x, y]). Yakında yoksa görev noktasına o yer kurulur
+## (_gen_site: çiftlik tarlası, iskele, küçük tapınak, yol hanı, kaplıca, harabe, gözetleme kulesi).
+var _gen_site := {}
+
+
+func _place(kind: String, here: String, maxd := -1.0):
+	var v = Game.village(here)
+	var c = Vector2(float(v["x"]), float(v["y"]))
+	if maxd < 0.0:
+		maxd = float(v["r"]) + 1000.0
+	match kind:
+		"", null:
+			return null
+		"water", "mountain", "forest":
+			var best = null
+			var bs = -1e9
+			for i in 60:
+				var a = randf() * TAU
+				var q = c + Vector2(cos(a), sin(a)) * (float(v["r"]) + randf_range(120.0, 700.0))
+				if Game.terrain_height(q.x, -q.y) < 0.8 or Game.in_village_wall(q.x, -q.y):
+					continue
+				var w = Game.from_map(q)
+				var sc = 0.0
+				match kind:
+					"water":
+						var wt = Game.wet_at(w.x, w.z)
+						sc = -absf(wt - 0.35) * 10.0 if wt > 0.15 and wt < 0.7 else -99.0
+					"mountain":
+						sc = Game.terrain_height(q.x, -q.y)
+					"forest":
+						sc = 0.0 if not glade(w.x, w.z) else -5.0
+						if Game.road_dist(w.x, w.z) < 40.0:
+							sc -= 1.0
+				if sc > bs:
+					bs = sc
+					best = [q.x, q.y]
+			return best if bs > -50.0 else null
+	var best2 = null
+	var bd = maxd
+	for p in Game.pois:
+		if String(p.get("t", "")) != kind:
+			continue
+		var d = c.distance_to(Vector2(float(p["x"]), float(p["y"])))
+		if d < bd and d > float(v["r"]):
+			bd = d
+			best2 = [float(p["x"]) + randf_range(-12, 12), float(p["y"]) + randf_range(-12, 12)]
+	if best2 == null:
+		# yakında yok: köyün dışında uygun bir yere kurulur (iskele su kenarına, çiftlik açıklığa)
+		var at = _place("water", here) if kind == "dock" else null
+		if at == null:
+			for i in 30:
+				var q = _spot(here, 150, 500)
+				var w = Game.from_map(Vector2(q[0], q[1]))
+				if Game.road_dist(w.x, w.z) > 25.0 and (kind != "hamlet" or glade(w.x, w.z)):
+					at = q
+					break
+			if at == null:
+				at = _spot(here, 150, 500)
+		best2 = at
+		_gen_site = {"kind": kind, "at": at}
+	return best2
 
 
 func _near_spot(p: Array, dmin: float, dmax: float) -> Array:
@@ -200,15 +310,19 @@ func _q_cat(here: String) -> Dictionary:
 
 
 func _q_weeds(here: String) -> Dictionary:
-	var farm = _poi(["paddy", "farm", "hamlet"], _inside(here), 700.0)
-	if farm == null:
-		farm = _spot(here, 30, 120)
+	_gen_site = {}
+	var farm = _place("hamlet", here)
+	var site = _gen_site
+	_gen_site = {}
 	var n = _npc("ciftci", "Çiftçi Tagosaku", "elder")
-	return {"title": "Tarla Temizliği", "brief": "Yaşlı çiftçinin tarlasını yabani otlar bastı. Belinden şikâyetçi; yardım et.",
+	var q = {"title": "Tarla Temizliği", "brief": "Yaşlı çiftçinin tarlasını yabani otlar bastı. Belinden şikâyetçi; yardım et.",
 		"steps": [
 			{"kind": "talk", "at": farm, "npc": n, "text": "Çiftçi Tagosaku ile konuş.", "say": "Ahh belim... Şu otlar her yeri sardı. 8 tanesini kökünden sök, sana dango ısmarlarım!"},
 			{"kind": "collect", "at": farm, "item": "yabani ot", "n": 8, "spread": 18, "text": "Tarladaki yabani otları sök (8)."},
 			{"kind": "talk", "npc_id": "ciftci", "text": "Çiftçiye dön.", "say": "Vay be, ninja dediğin böyle olur! Al bakalım, emeğinin karşılığı."}]}
+	if not site.is_empty():
+		q["site"] = site
+	return q
 
 
 func _q_fence(here: String) -> Dictionary:
@@ -406,13 +520,18 @@ func _from_spec(here: String, sp: Dictionary) -> Dictionary:
 				{"kind": "kill", "at": camp, "enemy": e, "ename": en, "n": int(sp.get("n", 4)) + (1 if not boss.is_empty() else 0), "camp": true, "boss": boss, "text": "%s kampını dağıt." % (en if en != "" else "Düşman")},
 				{"kind": "talk", "npc_id": "veren", "text": "%s'e dön." % giver["name"], "say": sp.get("s2", "")}]
 		"collect":
-			var area = _spot(here, 120, 600)
+			var pk = _place_kind("%s %s %s %s" % [sp.get("t", ""), sp.get("b", ""), sp.get("item", ""), sp.get("g", "")])
+			var area = _place(pk, here)
+			if area == null:
+				area = _spot(here, 120, 600)
 			var g = {"enemy": sp["ge"], "n": int(sp.get("gn", 2)), "ename": en} if sp.has("ge") else {}
-			steps = [{"kind": "talk", "at": _inside(here, 0.2, 0.6), "npc": giver, "text": "%s ile konuş." % giver["name"], "say": sp.get("s1", "")},
+			var g_at = _near_spot(area, 10, 25) if pk in ["hamlet", "inn", "shrine", "dock", "onsen"] else _inside(here, 0.2, 0.6)
+			steps = [{"kind": "talk", "at": g_at, "npc": giver, "text": "%s ile konuş." % giver["name"], "say": sp.get("s1", "")},
 				{"kind": "collect", "at": area, "item": sp["item"], "n": int(sp["n"]), "spread": 30, "guard": g, "text": "%s topla (%d)." % [String(sp["item"]).capitalize(), int(sp["n"])]},
 				{"kind": "talk", "npc_id": "veren", "text": "%s'e götür." % giver["name"], "say": sp.get("s2", "")}]
 		"defend":
-			var spot = _poi(["hamlet", "farm", "oasis", "harbor", "fortress", "outpost"], _inside(here), 1500.0)
+			var dk = _place_kind("%s %s" % [sp.get("t", ""), sp.get("b", "")])
+			var spot = _place(dk if dk != "" else "hamlet", here)
 			if spot == null:
 				spot = _spot(here, 150, 600)
 			steps = [{"kind": "talk", "at": spot, "npc": giver, "text": "%s ile konuş." % giver["name"], "say": sp.get("s1", "")},
@@ -466,9 +585,14 @@ func _from_spec(here: String, sp: Dictionary) -> Dictionary:
 				{"kind": "stealth", "at": camp, "enemy": e, "ename": en, "n": 4, "goal": String(sp.get("item", "belge")).capitalize(), "text": "Fark edilmeden %s al [F]." % sp.get("item", "belgeyi")},
 				{"kind": "goto", "at": _inside(here, 0.0, 0.25), "r": 18.0, "name": "Köy", "text": "Köye dön."}]
 	if steps.is_empty():
+		_gen_site = {}
 		return {}
-	return {"title": sp["t"], "brief": sp["b"], "giver": giver["name"] if sp.has("g") else "%s Görev Masası" % Game.village(here).get("name", here),
+	var out = {"title": sp["t"], "brief": sp["b"], "giver": giver["name"] if sp.has("g") else "%s Görev Masası" % Game.village(here).get("name", here),
 		"steps": steps, "rank": r, "village": here, "type": "quest", "local": true}
+	if not _gen_site.is_empty():
+		out["site"] = _gen_site
+		_gen_site = {}
+	return out
 
 
 # ------------------------------------------------------------------ görev masası (veri API'si + varsayılan diyalog)
@@ -723,10 +847,16 @@ func _key() -> String:
 
 
 # ------------------------------------------------------------------ adım başlatma
+var site_node: Node3D = null
+
+
 func _begin_step() -> void:
 	var m = active()
 	if String(m.get("hook", "")) == "Kage.summit_done":
 		Kage.fix_summit_steps(m)   # eski kayıt: adımlar kalenin içi dolu merkezini gösteriyordu
+	if m.has("site") and (site_node == null or not is_instance_valid(site_node)):
+		site_node = _build_site(String(m["site"]["kind"]), _w(m["site"]["at"]))
+		pickups.append(site_node)   # görev bitince kalkar
 	var s = _cur()
 	if s.is_empty():
 		return
@@ -1375,6 +1505,100 @@ func lair_left(out: Vector3) -> void:
 			e.home = e.global_position
 			e.wander_to = e.global_position
 	target_marker = out
+
+
+## Görevin geçtiği yer (yakında gerçeği yoksa): çiftlik, iskele, tapınak, yol hanı, kaplıca, harabe, kule
+func _build_site(kind: String, c: Vector3) -> Node3D:
+	var root = Node3D.new()
+	get_tree().current_scene.add_child(root)
+	root.global_position = c
+	var b = MB.new()
+	var body = StaticBody3D.new()
+	root.add_child(body)
+	var wood = Color(0.45, 0.32, 0.2)
+	var gy = func(x: float, z: float) -> float: return Game.ground_height(c.x + x, c.z + z) - c.y
+	var solid = func(p: Vector3, size: Vector3) -> void:
+		var cs = CollisionShape3D.new()
+		var sh = BoxShape3D.new()
+		sh.size = size
+		cs.shape = sh
+		cs.position = p
+		body.add_child(cs)
+	match kind:
+		"hamlet":
+			# pirinç tarlası: çitli, sıra sıra ekin; çiftlik evi, korkuluk, saman yığını, kuyu
+			for k in 7:
+				var x = -12.0 + k * 4.0
+				b.add("box", Vector3(x, gy.call(x, 8.0) + 0.3, 8.0), Vector3(1.2, 0.6, 16.0), Color(0.42, 0.62, 0.25))
+				b.add("box", Vector3(x + 2.0, gy.call(x + 2.0, 8.0) + 0.04, 8.0), Vector3(2.6, 0.08, 16.0), Color(0.36, 0.3, 0.2))
+			for i in 30:
+				var t = float(i) / 30.0
+				var p = Vector3(lerpf(-15.0, 15.0, t), 0, -0.5) if i < 10 else (Vector3(lerpf(-15.0, 15.0, t * 3.0 - 1.0), 0, 16.5) if i < 20 else Vector3(-15.0 if i < 25 else 15.0, 0, lerpf(0.0, 16.0, float(i % 5) / 4.0)))
+				b.add("cyl", p + Vector3(0, gy.call(p.x, p.z) + 0.6, 0), Vector3(0.14, 1.2, 0.14), wood, Vector3.ZERO, 5)
+			b.add("cyl", Vector3(2, gy.call(2, 9) + 1.1, 9), Vector3(0.1, 2.2, 0.1), wood, Vector3.ZERO, 5)
+			b.add("box", Vector3(2, gy.call(2, 9) + 1.6, 9), Vector3(1.4, 0.1, 0.1), wood)
+			b.add("sphere", Vector3(2, gy.call(2, 9) + 2.3, 9), Vector3(0.5, 0.5, 0.5), Color(0.85, 0.75, 0.5), Vector3.ZERO, 8)
+			b.add("cone", Vector3(2, gy.call(2, 9) + 2.6, 9), Vector3(0.9, 0.35, 0.9), Color(0.8, 0.68, 0.35), Vector3.ZERO, 8)
+			var hp = Vector3(-6, gy.call(-6, -8), -8)
+			b.add("box", hp + Vector3(0, 1.4, 0), Vector3(6.0, 2.8, 4.5), Color(0.85, 0.78, 0.62))
+			b.add("prism", hp + Vector3(0, 3.5, 0), Vector3(7.0, 1.6, 5.5), Color(0.55, 0.45, 0.3))
+			b.add("box", hp + Vector3(0, 0.9, 2.26), Vector3(1.0, 1.8, 0.05), wood.darkened(0.3))
+			solid.call(hp + Vector3(0, 1.4, 0), Vector3(6.0, 2.8, 4.5))
+			b.add("cone", Vector3(5, gy.call(5, -6) + 1.0, -6), Vector3(2.6, 2.0, 2.6), Color(0.85, 0.72, 0.38), Vector3.ZERO, 9)
+			b.add("cyl", Vector3(8, gy.call(8, -9) + 0.5, -9), Vector3(1.6, 1.0, 1.6), Color(0.55, 0.53, 0.5), Vector3.ZERO, 10)
+		"dock":
+			# iskele: suya uzanan tahta yol, kazıklar, tekne, kurutulan ağlar
+			var dirv = Vector3(1, 0, 0)
+			for a in 12:
+				var tv = Vector3(cos(a * TAU / 12.0), 0, sin(a * TAU / 12.0))
+				var w = c + tv * 14.0
+				if Game.wet_at(w.x, w.z) > Game.wet_at(c.x + dirv.x * 14.0, c.z + dirv.z * 14.0):
+					dirv = tv
+			root.rotation.y = atan2(dirv.x, dirv.z)
+			for k in 8:
+				b.add("box", Vector3(0, 0.6, k * 2.0), Vector3(2.4, 0.15, 1.9), wood.lightened(0.05 * (k % 2)))
+				for sx in [-1.0, 1.0]:
+					b.add("cyl", Vector3(sx * 1.1, -0.4, k * 2.0), Vector3(0.2, 2.2, 0.2), wood.darkened(0.2), Vector3.ZERO, 5)
+			b.add("box", Vector3(2.6, 0.3, 10.0), Vector3(1.2, 0.5, 4.0), wood.darkened(0.1))
+			for k in 3:
+				b.add("cyl", Vector3(-3.0 + k * 1.5, 1.0, -2.0), Vector3(0.08, 2.0, 0.08), wood, Vector3.ZERO, 4)
+			b.add("box", Vector3(-1.5, 1.4, -2.0), Vector3(3.2, 1.0, 0.03), Color(0.75, 0.72, 0.6, 0.8))
+		"shrine":
+			b.add("cyl", Vector3(-1.6, 1.8, 3), Vector3(0.3, 3.6, 0.3), Color(0.8, 0.15, 0.1), Vector3.ZERO, 8)
+			b.add("cyl", Vector3(1.6, 1.8, 3), Vector3(0.3, 3.6, 0.3), Color(0.8, 0.15, 0.1), Vector3.ZERO, 8)
+			b.add("box", Vector3(0, 3.6, 3), Vector3(4.4, 0.3, 0.4), Color(0.15, 0.12, 0.1))
+			b.add("box", Vector3(0, 3.1, 3), Vector3(3.6, 0.2, 0.25), Color(0.8, 0.15, 0.1))
+			b.add("box", Vector3(0, 0.25, -3), Vector3(3.4, 0.5, 2.8), Color(0.6, 0.58, 0.55))
+			b.add("box", Vector3(0, 1.3, -3), Vector3(2.4, 1.6, 2.0), Color(0.55, 0.38, 0.22))
+			b.add("prism", Vector3(0, 2.5, -3), Vector3(3.2, 1.0, 2.8), Color(0.25, 0.22, 0.24))
+			solid.call(Vector3(0, 1.0, -3), Vector3(3.4, 2.0, 2.8))
+		"inn":
+			b.add("box", Vector3(0, 1.6, -4), Vector3(8.0, 3.2, 5.0), Color(0.82, 0.74, 0.58))
+			b.add("prism", Vector3(0, 3.9, -4), Vector3(9.0, 1.6, 6.0), Color(0.3, 0.25, 0.22))
+			b.add("box", Vector3(0, 2.6, -1.45), Vector3(2.4, 0.6, 0.08), Color(0.65, 0.15, 0.12))
+			solid.call(Vector3(0, 1.6, -4), Vector3(8.0, 3.2, 5.0))
+			for k in 2:
+				b.add("box", Vector3(-2.5 + k * 5.0, 0.45, 1.0), Vector3(2.0, 0.12, 0.6), wood)
+		"onsen":
+			b.add("cyl", Vector3(0, 0.15, 0), Vector3(7.0, 0.3, 7.0), Color(0.55, 0.53, 0.5), Vector3.ZERO, 14)
+			b.add("cyl", Vector3(0, 0.25, 0), Vector3(6.0, 0.1, 6.0), Color(0.55, 0.8, 0.85), Vector3.ZERO, 14)
+			for k in 10:
+				var a = TAU * k / 10.0
+				b.add("sphere", Vector3(cos(a) * 3.6, 0.4, sin(a) * 3.6), Vector3(1.1, 0.8, 1.1), Color(0.5, 0.48, 0.45), Vector3.ZERO, 7)
+		"ruin", "checkpoint", "tower", "monument":
+			for k in 6:
+				var a = TAU * k / 6.0
+				var h = 1.0 + (k % 3) * 1.2
+				b.add("box", Vector3(cos(a) * 6.0, gy.call(cos(a) * 6.0, sin(a) * 6.0) + h * 0.5, sin(a) * 6.0), Vector3(3.0, h, 0.8), Color(0.55, 0.53, 0.5).darkened(0.05 * k), Vector3(0, rad_to_deg(-a) + 90, 0))
+			if kind in ["tower", "checkpoint"]:
+				for q in 4:
+					b.add("cyl", Vector3((q % 2 - 0.5) * 2.4, gy.call(0, 0) + 3.0, (q / 2 - 0.5) * 2.4), Vector3(0.28, 6.0, 0.28), wood, Vector3.ZERO, 6)
+				b.add("box", Vector3(0, gy.call(0, 0) + 6.0, 0), Vector3(3.2, 0.25, 3.2), wood)
+				b.add("prism", Vector3(0, gy.call(0, 0) + 7.2, 0), Vector3(3.6, 1.0, 3.6), Color(0.3, 0.22, 0.16))
+	var mi = MeshInstance3D.new()
+	mi.mesh = b.build(Props.toon())
+	root.add_child(mi)
+	return root
 
 
 func _quest_point(pos: Vector3, label: String, idx: int) -> void:

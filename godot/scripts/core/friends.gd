@@ -264,24 +264,13 @@ static func _friend_opts(id: String, v: Node) -> Array:
 	if now - float(f.get("last_gift", 0.0)) >= GIFT_CD:
 		opts.append({"label": "Hediye ver...", "cb": func(): _gift_dialog(id)})
 	if b >= 15 and now - float(f.get("last_train", 0.0)) >= TRAIN_CD:
-		opts.append({"label": "Birlikte antrenman yap", "cb": func():
-			f["last_train"] = Time.get_unix_time_from_system()
-			var lv = int(pr().get("level", 1))
-			Progress.add_xp(25 + lv * 6)
-			var gain = 3 if TRAITS[f["trait"]]["like"].has("antrenman") else 2
-			Hud.dialog(String(f["name"]), ["Bir tur daha! Bu sefer yenecem seni.", "İyi iş çıkardık. Terledim ama değdi.", "Tekniğin gelişmiş, fark ettim."].pick_random(), [])
-			add_bond(id, gain)})
+		opts.append({"label": "Antrenman alanına gidip idman yapalım", "cb": func(): begin_activity(id, "train")})
 	if b >= 25 and now - float(f.get("last_meal", 0.0)) >= TRAIN_CD:
-		opts.append({"label": "Yemeğe davet et (ramen, 150 Ryō)", "cb": func():
+		opts.append({"label": "Birlikte yemeğe gidelim (150 Ryō)", "cb": func():
 			if int(pr().get("ryo", 0)) < 150:
 				Hud.msg("Yeterli Ryō yok.", Color(1, 0.5, 0.4))
 				return
-			Progress.add_ryo(-150)
-			f["last_meal"] = Time.get_unix_time_from_system()
-			if Game.player:
-				Game.player.hp = Game.player.max_hp
-			Hud.dialog(String(f["name"]), "Ramen mi? Hiç hayır demem! ...Bu arada sana bir şey anlatayım mı?", [])
-			add_bond(id, 4)})
+			begin_activity(id, "meal")})
 	if b > -60:
 		opts.append({"label": "Laf sok / kışkırt", "cb": func():
 			Hud.dialog(String(f["name"]), ["Ne dedin sen?!", "Bunu unutmayacağım.", "Hadi oradan!"].pick_random(), [])
@@ -385,12 +374,7 @@ static func _romance_opts(id: String) -> Array:
 		var night = Game.world and (Game.world.env.time_of_day < 0.24 or Game.world.env.time_of_day > 0.78)
 		if b >= 50 and now - float(f.get("last_walk", 0.0)) >= 1200.0:
 			if night:
-				opts.append({"label": "Ay ışığında yürüyüşe davet et ♡", "cb": func():
-					f["last_walk"] = Time.get_unix_time_from_system()
-					f["love"] = mini(100, love + 10)
-					Hud.dialog(String(f["name"]), "Köy gece başka güzel... Seninle yürümek iyi geldi.", [])
-					Hud.msg("Gönül +10 (%d/100)" % f["love"], Color(1, 0.6, 0.75))
-					_flirt_stage(id)})
+				opts.append({"label": "Ay ışığında yürüyüşe çıkalım ♡", "cb": func(): begin_activity(id, "walk")})
 		if rm == "flört":
 			var need = []
 			if love < 60:
@@ -428,11 +412,7 @@ static func _romance_opts(id: String) -> Array:
 			opts.append({"label": "Evlilik (henüz değil: %s)" % ", ".join(need2), "cb": func():
 				Hud.msg("Evlilik için sevgili olarak zaman geçirin; gönül ve bağ 85'e ulaşsın.", Color(1, 0.75, 0.8))})
 		if now - float(f.get("last_walk", 0.0)) >= 1200.0:
-			opts.append({"label": "Randevuya çık ♡", "cb": func():
-				f["last_walk"] = Time.get_unix_time_from_system()
-				f["love"] = mini(100, love + 8)
-				add_bond(id, 3, true)
-				Hud.dialog(String(f["name"]), "Bugün çok güzeldi. Bir dahakine ben ısmarlarım!", [])})
+			opts.append({"label": "Randevuya çıkalım ♡", "cb": func(): begin_activity(id, "date")})
 		opts.append({"label": "Ayrıl", "cb": func():
 			f["romance"] = ""
 			f["love"] = int(love / 3)
@@ -1300,6 +1280,276 @@ static func _wed(a: String, b: String) -> void:
 	Hud.banner("DÜĞÜN", "%s ile %s evlendi!" % [fa["name"], fb["name"]], Color(1, 0.85, 0.6))
 
 
+## ---------------------------------------------------------------- birlikte etkinlik: gerçekten gidilir, yapılır
+## meal: en yakın ramen tezgâhı / yakiniku / çay evi / han; train: antrenman alanında dostça idman maçı;
+## walk: gece seyir noktasına yürüyüş; date: çay evi ya da ramen. Dost yanında yürür; varınca sahne oynanır.
+var act := {}
+
+
+static func begin_activity(id: String, kind: String) -> void:
+	var me = inst()
+	if me == null or Game.player == null:
+		return
+	if not me.act.is_empty():
+		Hud.msg("Şu an zaten %s ile birliktesin." % all().get(String(me.act["id"]), {}).get("name", "biri"), Color(1, 0.75, 0.5))
+		return
+	var dest = me._dest_for(kind)
+	if dest.is_empty():
+		Hud.msg("Yakınlarda buna uygun bir yer yok.", Color(1, 0.75, 0.5))
+		return
+	var f: Dictionary = all()[id]
+	var orig: Node = null
+	for n in me.get_tree().get_nodes_in_group("talkers"):
+		if String(n.get_meta("friend_id", "")) == id:
+			orig = n
+	var start = orig.global_position if orig else Game.player.global_position + Vector3(2, 0, 2)
+	var comp = me._spawn_npc(id, start, true)
+	comp.set_meta("act", true)
+	comp.remove_meta("friend_id")   # yoldayken konuşma menüsü açılmasın
+	if orig:
+		orig.visible = false
+		orig.remove_from_group("talkers")
+	me.act = {"id": id, "kind": kind, "dest": dest, "node": comp, "orig": orig, "t": 0.0, "stage": "go"}
+	var lbl = String(dest["name"])
+	Game.profile["waypoint"] = [dest["pos"].x, dest["pos"].y, dest["pos"].z, "%s ile: %s" % [f["name"], lbl]]
+	Game.profile["track"] = "waypoint"
+	var lines = {"meal": "Acıktım zaten! %s'e gidelim, yol boyu anlatırım." % lbl, "train": "Antrenman alanına mı? Hadi, ısınarak gidelim!",
+		"walk": "Gece yürüyüşü... Peki. Seyir yerine çıkalım mı?", "date": "Randevu mu? ...Tamam. %s olsun." % lbl}
+	comp.say(String(lines.get(kind, "Hadi gidelim!")), 3.5)
+	Hud.msg("%s seninle geliyor — %s (haritada işaretli)" % [f["name"], lbl], Color(0.6, 1.0, 0.75))
+
+
+func _dest_for(kind: String) -> Dictionary:
+	var pp = Game.player.global_position
+	var best = {}
+	var bd = 900.0
+	match kind:
+		"meal", "date":
+			for it in Interact.items:
+				var k = String(it.get("kind", ""))
+				var ok = k == "ramen" or (k == "enter" and String(it.get("room", "")) in (["teahouse", "bbq"] if kind == "meal" else ["teahouse"])) or (kind == "meal" and k in ["inn", "inn_sleep"])
+				if not ok or it.get("interior", false):
+					continue
+				var d = pp.distance_to(it["pos"])
+				if d < bd:
+					bd = d
+					var nm = {"ramen": "Ramen tezgâhı", "inn": "Han", "inn_sleep": "Han"}.get(k, Interiors.TITLES.get(String(it.get("room", "")), "Lokanta"))
+					best = {"pos": it["pos"], "type": k, "it": it, "name": nm}
+			if best.is_empty() and kind == "date":
+				return _dest_for("meal")
+		"train":
+			var tp = Exams.find_point(["training"])
+			best = {"pos": tp, "type": "train", "name": "Antrenman Alanı"}
+		"walk":
+			var lp = Exams.find_point(["lookout"])
+			if lp.distance_to(pp) > 900.0:
+				lp = Exams.find_point(["training"])
+			best = {"pos": lp, "type": "walk", "name": "Seyir yeri"}
+	return best
+
+
+func _act_tick(dt: float) -> void:
+	if act.is_empty():
+		return
+	var n = act["node"]
+	if not is_instance_valid(n) or not all().has(String(act["id"])):
+		_act_end("")
+		return
+	act["t"] = float(act["t"]) + dt
+	var pp = Game.player.global_position
+	match String(act["stage"]):
+		"go":
+			# yanında yürür; geride kalırsa (yavaş yürür) arkana yetişir
+			var side = Game.player.face_dir().cross(Vector3.UP) * 1.6
+			n.goal = pp + side - Game.player.face_dir() * 1.2
+			if n.global_position.distance_to(pp) > 16.0 and Interiors.inst and Interiors.inst.inside == "":
+				var q = pp - Game.player.face_dir() * 5.0 + side
+				q.y = Game.ground_height(q.x, q.z)
+				n.global_position = q
+				n.home = q
+			if pp.distance_to(act["dest"]["pos"]) < 5.5:
+				act["stage"] = "scene"
+				act["t"] = 0.0
+				_act_arrive()
+			elif float(act["t"]) > 600.0 or pp.distance_to(n.global_position) > 300.0:
+				_act_end("%s: \"Sen gelmedin... Başka zaman o zaman.\"" % all()[String(act["id"])]["name"])
+		"spar":
+			var e = act.get("e")
+			var won = e == null or not is_instance_valid(e) or e.is_dead() or e.hp < e.max_hp * 0.25
+			var lost = Game.player.hp < Game.player.max_hp * 0.3
+			if won or lost or float(act["t"]) > 180.0:
+				_spar_end(won and not lost)
+
+
+func _act_arrive() -> void:
+	var id = String(act["id"])
+	var f: Dictionary = all()[id]
+	var n = act["node"]
+	var d: Dictionary = act["dest"]
+	Game.profile.erase("waypoint")
+	match String(act["kind"]):
+		"meal", "date":
+			if int(pr().get("ryo", 0)) < 150 and act["kind"] == "meal":
+				_act_end("Kesende para kalmamış...")
+				return
+			if String(d["type"]) == "enter":
+				# iç mekâna birlikte girilir; dost karşına oturur
+				await Interiors.inst.enter(d["it"])
+				await get_tree().create_timer(0.6).timeout
+				if act.is_empty():
+					return
+				n = _spawn_npc(id, Game.player.global_position, false)
+				n.remove_meta("friend_id")
+				if is_instance_valid(act["node"]):
+					act["node"].queue_free()
+				act["node"] = n
+				var fw = Vector3(0, 0, -1)
+				n.reparent(Interiors.inst.room)
+				n.global_position = Game.player.global_position + fw * 1.6
+				Interiors.inst.npcs.append(n)
+			elif String(d["type"]) == "ramen":
+				var seats: Array = d["it"].get("seats", [])
+				Progress._sit_at(seats)
+				var my: Vector3 = Game.player.global_position
+				var other = my + Vector3(0.9, 0, 0)
+				for q in seats:
+					if q.distance_to(my) > 0.5 and q.distance_to(my) < other.distance_to(my) + 0.5:
+						other = q
+				n.global_position = other
+			else:
+				n.global_position = Game.player.global_position + Game.player.face_dir() * 1.5
+			n.home = n.global_position
+			n.goal = n.global_position
+			n.wander_r = 0.0
+			n.wait = 30.0
+			# oturur: tezgâhta tezgâha (oyuncuyla aynı yöne), masada karşına bakar; arada konuşur
+			n.role = "customer"
+			n.eat_mode = true
+			n.fixed_face = true
+			var to_p = Game.player.global_position - n.global_position
+			n.facing = Game.player.facing if String(d["type"]) == "ramen" else atan2(-to_p.x, -to_p.z)
+			n.stand_face = n.facing
+			if n.model:
+				n.model.rotation.y = n.facing
+				n.model.play("sit", 0.2)
+			Game.player.model.play("sit", 0.2)
+			Game.player.input_locked = 13.0
+			var date = act["kind"] == "date"
+			var topic = String(f.get("news", "")) if String(f.get("news", "")) != "" else ["Geçen gün görevde öyle bir şey oldu ki...", "Akademideyken hep birinci olmak isterdim, biliyor musun?", "Bazen her şeyi bırakıp gezmek istiyorum."].pick_random()
+			var seq = [[0.6, "İtadakimasu!"], [3.4, topic], [7.4, "Sen ne yapıyorsun bu aralar? Anlatsana." if not date else "Seninle böyle oturmak... iyi geliyor."],
+				[10.6, "Bir dahakine ben ısmarlarım, söz!" if not date else "Bugün çok güzeldi."]]
+			for s in seq:
+				var tt = float(s[0])
+				var txt = String(s[1])
+				get_tree().create_timer(tt).timeout.connect(func():
+					if not act.is_empty() and is_instance_valid(act["node"]):
+						act["node"].say(txt, 3.2))
+			get_tree().create_timer(3.0).timeout.connect(func():
+				if Game.player:
+					Game.player.hp = Game.player.max_hp
+					Game.player.chakra = Game.player.max_chakra
+					Hud.msg("Sıcak yemek... Can ve chakra doldu.", Color(1, 0.85, 0.55)))
+			await get_tree().create_timer(13.0).timeout
+			if act.is_empty():
+				return
+			f["last_meal" if not date else "last_walk"] = Time.get_unix_time_from_system()
+			if not date:
+				Progress.add_ryo(-150)
+				add_bond(id, 4)
+			else:
+				f["love"] = mini(100, int(f.get("love", 0)) + 8)
+				add_bond(id, 3, true)
+				Hud.msg("Gönül +8 (%d/100)" % f["love"], Color(1, 0.6, 0.75))
+			log_event(f, "Birlikte yemek yediniz" if not date else "Randevuya çıktınız")
+			_act_end("")
+		"walk":
+			n.goal = n.global_position
+			n.wait = 20.0
+			Game.player.input_locked = 9.0
+			var seq2 = [[0.5, "Buradan köy bambaşka görünüyor..."], [3.6, "Yıldızlara bak. Çocukken onları sayardım."], [6.8, "Seninle yürümek iyi geldi."]]
+			for s in seq2:
+				var txt2 = String(s[1])
+				get_tree().create_timer(float(s[0])).timeout.connect(func():
+					if not act.is_empty() and is_instance_valid(act["node"]):
+						act["node"].say(txt2, 3.0))
+			await get_tree().create_timer(9.5).timeout
+			if act.is_empty():
+				return
+			f["last_walk"] = Time.get_unix_time_from_system()
+			f["love"] = mini(100, int(f.get("love", 0)) + 10)
+			Hud.msg("Gönül +10 (%d/100)" % f["love"], Color(1, 0.6, 0.75))
+			log_event(f, "Gece birlikte yürüdünüz")
+			_flirt_stage(id)
+			_act_end("")
+		"train":
+			n.say("Hazır mısın? Gardını al — ama abartma, dostça!", 3.0)
+			await get_tree().create_timer(2.5).timeout
+			if act.is_empty() or not is_instance_valid(n):
+				return
+			var a = arch(f)
+			a["xp"] = 0
+			a["ryo"] = 0
+			a["respawn"] = false
+			a["power"] = float(a.get("power", 1.0)) * 0.8
+			a["name"] = "%s (idman)" % f["name"]
+			var e = Enemy.new()
+			e.setup(a)
+			e.set_meta("spar", true)
+			get_tree().current_scene.add_child(e)
+			e.global_position = n.global_position
+			e.home = n.global_position
+			e.target = Game.player
+			n.visible = false
+			act["e"] = e
+			act["stage"] = "spar"
+			act["t"] = 0.0
+			Hud.banner("İDMAN MAÇI", "%s ile dostça dövüş — %%25 cana inen kaybeder" % f["name"], Color(0.9, 0.85, 0.55))
+
+
+func _spar_end(won: bool) -> void:
+	var id = String(act["id"])
+	var f: Dictionary = all()[id]
+	var e = act.get("e")
+	var n = act["node"]
+	if is_instance_valid(e):
+		FX.smoke_puff(e.global_position + Vector3.UP, 0.7, 8)
+		if is_instance_valid(n):
+			n.global_position = e.global_position
+		e.queue_free()
+	if is_instance_valid(n):
+		n.visible = true
+		n.say("Pes ediyorum! Gelişmişsin." if won else "Hah! Bu sefer ben kazandım. Bir dahakine!", 3.5)
+	Game.player.hp = maxf(Game.player.hp, Game.player.max_hp * 0.3)
+	var lv = int(pr().get("level", 1))
+	Progress.add_xp(25 + lv * 6 + (10 if won else 0))
+	f["last_train"] = Time.get_unix_time_from_system()
+	add_bond(id, 3 if TRAITS.get(String(f.get("trait", "")), {}).get("like", []).has("antrenman") else 2)
+	log_event(f, "Antrenman alanında idman yaptınız (%s)" % ("sen kazandın" if won else "o kazandı"))
+	act["stage"] = "done"
+	await get_tree().create_timer(4.0).timeout
+	_act_end("")
+
+
+func _act_end(msg: String) -> void:
+	if act.is_empty():
+		return
+	var n = act.get("node")
+	var orig = act.get("orig")
+	if msg != "":
+		Hud.msg(msg, Color(0.9, 0.85, 0.7))
+	if is_instance_valid(n):
+		if n.has_method("vanish") and n.is_inside_tree() and (Interiors.inst == null or not Interiors.inst.npcs.has(n)):
+			n.vanish()
+		elif not (Interiors.inst and Interiors.inst.npcs.has(n)):
+			n.queue_free()
+	if is_instance_valid(orig):
+		orig.visible = true
+		orig.add_to_group("talkers")
+	if Game.player:
+		Game.player.input_locked = 0.0
+	act = {}
+
+
 ## Yaralanma: takımdan düşer, hastanede yatar (bir süre köyde değil)
 const INJURIES := ["kolu kırıldı", "kaburgaları çatladı", "ağır yanık", "zehirlendi", "chakra tükenmesi", "derin kılıç yarası", "bacağı kırıldı"]
 
@@ -1607,6 +1857,7 @@ func _process(dt: float) -> void:
 		return
 	if _active():
 		_grad_tick(dt)
+		_act_tick(dt)
 	if _active() and not all().is_empty():
 		_baby_tick()
 		_world_tick(dt)

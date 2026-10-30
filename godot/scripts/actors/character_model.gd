@@ -791,7 +791,10 @@ func _cloth_mat(layer: int) -> ShaderMaterial:
 	mat.set_shader_parameter("gloves", bool(look.get("gloves", false)))
 	mat.set_shader_parameter("arm_wraps", bool(look.get("arm_wraps", false)))
 	var os_ = String(look.get("outer_style", "")) if look.get("outer_style") != null else ""
-	mat.set_shader_parameter("outer_cover", 0 if os_ in ["", "atki", "kisa", "kesa"] else 2)   # dış giysi altında yelek çizilmez (önden şerit halinde taşıyordu)
+	# yelek dış giysinin altında: önü açık giysilerde (haori, palto, jinbaori) yalnız açıklık kadarı görünür, kapalı pelerinde gizli
+	const OPEN_GAP := {"haori": 0.031, "haori_uzun": 0.029, "jinbaori": 0.038, "palto": 0.025}
+	mat.set_shader_parameter("outer_cover", 0 if os_ in ["", "atki", "kisa", "kesa"] else (1 if OPEN_GAP.has(os_) else 2))
+	mat.set_shader_parameter("outer_gap", float(OPEN_GAP.get(os_, 0.075)))
 	mat.set_shader_parameter("outer_sleeves", 1 if look.get("outer_style") in ["palto", "haori"] else 0)
 	mat.set_shader_parameter("foot_cover", look.get("foot_style", "sandal") == "tabi")
 	OutfitParts.mat_params(self, mat)
@@ -1625,7 +1628,8 @@ func _accessories() -> void:
 			var sx = 1.0 if side == "Left" else -1.0
 			var hp = _bp(side + "Hand")
 			var m = MB.new()
-			m.add("box", Vector3(0.04 * sx, 0.028, 0.0), Vector3(0.07, 0.008, 0.06), steel)
+			# el sırtı (dinlenme T pozunda üst yüz bileğin 1.2 cm üstünde, el 0..7.8 cm dışarı, z -6.8..1.2 cm): plaka yüzeye oturur
+			m.add("box", Vector3(0.038 * sx, 0.0165, -0.022), Vector3(0.058, 0.009, 0.05), steel)
 			_mesh_on(side + "Hand", m.build(Props.toon()), Transform3D(Basis.IDENTITY, hp))
 	OutfitParts.accessories(self)
 

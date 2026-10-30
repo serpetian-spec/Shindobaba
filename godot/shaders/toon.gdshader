@@ -39,6 +39,7 @@ varying float slot_ov;
 uniform vec4 face_a = vec4(0.0);   // çene genişliği, çene ucu, elmacık, burun (metre)
 uniform vec4 face_b = vec4(0.0);   // kaş çıkıntısı, işaret türü (0 yok, 1 burun yarası, 2 yanak çizgisi, 3 çil, 4 kırışık), -, -
 uniform vec4 face_ref = vec4(0.0, 1.7, 0.08, 0.0);
+uniform float outer_gap = 0.075;  // önü açık dış giysinin açıklığının yarı genişliği (m): yelek yalnız bu kadar görünür
 uniform int outer_cover = 0;  // yelek katmanı: 1 önü açık dış giysi altında (yalnız ön şerit görünür), 2 kapalı pelerin altında (gizli)
 uniform vec4 scalp_cut = vec4(99.0, -99.0, 99.0, 0.0);  // x: bu yüksekliğin üstü, y/z: bu derinliğin arkasında z yüksekliğinin üstü  // saçlıyken gövdenin kafa derisi bu yüksekliğin üstünde çizilmez (saç arasından "kel" görünmesin)  // -, göz y, göz z
 uniform vec4 scalp_col = vec4(0.0);   // a>0: kesim bölgesi atılmaz, saç rengine boyanır (ensede delik / saç arasında kel yok)
@@ -242,7 +243,7 @@ void fragment() {
 	}
 	if (hide_masked && COLOR.a > 0.5) discard;
 	if (layer == 2 && outer_cover == 2) discard;
-	if (layer == 2 && outer_cover == 1 && !(rest.z > 0.0 && abs(rest.x) < 0.075)) discard;   // dış giysinin altından taşmasın
+	if (layer == 2 && outer_cover == 1 && !(rest.z > 0.0 && abs(rest.x) < outer_gap)) discard;   // dış giysinin altından taşmasın
 	bool scalp = layer == 0 && (rest.y > scalp_cut.x || (rest.z < scalp_cut.y && rest.y > scalp_cut.z));
 	if (scalp && scalp_col.a < 0.5) discard;
 	if (palette_mode) {
