@@ -1108,8 +1108,9 @@ static func open_ground(p: Vector3, max_r := 60.0) -> Vector3:
 		if ok and space:
 			# yukarıdan aşağı ışın: zeminden yüksek bir şeye çarparsa (bina, çatı, duvar) burası dolu
 			var hit = space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(q.x, gh + 60.0, q.z), Vector3(q.x, gh - 1.0, q.z), 1))
-			# yüksek tavan/saçak altı (mağara, çardak) olabilir; alçak bir şey (kaya, duvar, çatı) varsa dolu
-			if not hit.is_empty() and float(hit["position"].y) > gh + 1.0 and float(hit["position"].y) < gh + 5.0:
+			# üstte 25 m'ye kadar bir şey varsa dolu (bina, kubbe ev, çatı, kaya); içi boş binalarda gövde testi
+			# çakışma bulamaz, o yüzden yüksek kubbe çatılar (Suna 12-18 m) da dolu sayılır
+			if not hit.is_empty() and float(hit["position"].y) > gh + 1.0 and float(hit["position"].y) < gh + 25.0:
 				ok = false
 			if ok:
 				# gövde boyunda çakışma (yandan değen kaya/duvar, ışının ıskaladığı içbükey kaya)
