@@ -146,13 +146,23 @@ node(B, 'lid_komut', 'Saha Komutanı', 'Müttefikler +%15 daha güçlü, görev 
 node(B, 'lid_diplomat', 'Diplomat', 'Yabancı köylerde itibar daha hızlı artar, fiyatlar -%5.', 3, 40, ['lid_itibar'], fx={'rep': 0.25, 'shop': -0.05})
 node(B, 'lid_kage', 'Ateşin İradesi', 'Kage adaylığı: tüm hasar +%10, müttefikler +%20.', 4, 80, ['lid_komut', 'lid_diplomat'], fx={'melee': 0.1, 'jutsu': 0.1, 'squad': 0.2}, cost=3)
 
+# ---------------------------------------------------------------- Sosyal (dostluk, gönül, pazarlık, ikna)
+B = 'sosyal'
+node(B, 'sos_sohbet', 'Sohbet Ustası', 'Dostlarla sohbet ve hediyelerden kazanılan bağ +%30.', 1, 2, fx={'charm': 0.3})
+node(B, 'sos_pazarlik', 'Dil Bilen', 'Görev verenle pazarlık başarı şansı +%25, tutarsa ödül +%10 daha.', 1, 4, fx={'haggle': 0.25})
+node(B, 'sos_cekici', 'Çekici', 'İltifat ve randevulardan kazanılan gönül +%40.', 2, 8, ['sos_sohbet'], fx={'love': 0.4})
+node(B, 'sos_dedikodu', 'Kulağı Delik', 'Köylü dedikodularında görev ve aranan ipuçları; itibar kazancı +%10.', 2, 10, ['sos_sohbet'], fx={'rep': 0.1}, unlock=['gossip'])
+node(B, 'sos_ikna', 'İkna Kabiliyeti', 'Yenilen kaçak ninjalar daha erken (%35 canda) pes eder; bağışladığın kaçaklar daha çok güvenir.', 3, 18, ['sos_pazarlik'], fx={'persuade': 0.35}, cost=2)
+node(B, 'sos_karizma', 'Karizma', 'Tüm dostluk bağı kazancı +%30 daha, gönül +%20, takım arkadaşları +%5 güçlü.', 3, 25, ['sos_cekici'], fx={'charm': 0.3, 'love': 0.2, 'squad': 0.05}, cost=2)
+node(B, 'sos_master', 'Herkesin Sevdiği', 'Bağ ve gönül +%40 daha; pazarlık neredeyse her zaman tutar.', 4, 45, ['sos_karizma', 'sos_ikna'], fx={'charm': 0.4, 'love': 0.4, 'haggle': 0.4}, cost=3)
+
 BRANCHES = [
     dict(id='taijutsu', name='Taijutsu', icon='hand'), dict(id='ninjutsu', name='Ninjutsu', icon='chakra'),
     dict(id='genjutsu', name='Genjutsu', icon='eye'), dict(id='bukijutsu', name='Bukijutsu', icon='sword'),
     dict(id='fuinjutsu', name='Fūinjutsu', icon='seal'), dict(id='iryo', name='Tıbbi', icon='heart'),
     dict(id='senjutsu', name='Sennin / Çağırma', icon='leaf'), dict(id='shinobi', name='Shinobi', icon='shuriken'),
     dict(id='yasam', name='Hayatta Kalma', icon='bag'), dict(id='dojutsu', name='Dōjutsu', icon='eye'),
-    dict(id='liderlik', name='Liderlik', icon='village'),
+    dict(id='liderlik', name='Liderlik', icon='village'), dict(id='sosyal', name='Sosyal', icon='heart'),
 ]
 ids = {n['id'] for n in N}
 for n in N:

@@ -130,6 +130,8 @@ static func add_bond(id: String, n: int, quiet := false) -> void:
 	if f.is_empty():
 		return
 	var before = level_name(int(f["bond"]))
+	if n > 0:
+		n = int(round(n * (1.0 + Stats.skill(pr(), "charm"))))   # Sosyal: Sohbet Ustası / Karizma
 	f["bond"] = clampi(int(f["bond"]) + n, -100, 100)
 	var after = level_name(int(f["bond"]))
 	if after != before:
@@ -163,6 +165,28 @@ static func options_for(v: Node) -> Array:
 	return [{"label": "Kendini tanıt", "cb": func(): _meet(v)}]
 
 
+## Kulağı Delik (Sosyal): köylü gerçek bir yer söyler ve haritada işaretlenir; yoksa sıradan dedikodu
+static func _gossip_tip(nm: String) -> void:
+	if not Stats.has_unlock(pr(), "gossip") or Game.player == null:
+		Hud.dialog(nm, String(RUMORS.pick_random()), [])
+		return
+	var pm = Game.to_map(Game.player.global_position)
+	var cands = Game.pois.filter(func(q): return String(q.get("t", "")) in ["ruin", "camp", "shrine", "onsen", "monument", "bandit"] 		and Vector2(float(q["x"]), float(q["y"])).distance_to(pm) < 6000.0)
+	if cands.is_empty():
+		Hud.dialog(nm, String(RUMORS.pick_random()), [])
+		return
+	var q: Dictionary = cands.pick_random()
+	var lines = {"ruin": "Eski bir harabede hâlâ açılmamış sandıklar varmış diyorlar.", "camp": "Yol üstünde haydutlar kamp kurmuş, kervanlar korkuyor.",
+		"bandit": "Yol üstünde haydutlar kamp kurmuş, kervanlar korkuyor.", "shrine": "Ormandaki eski tapınakta tuhaf ışıklar görülmüş.",
+		"onsen": "Dağdaki kaplıcanın suyu yaraları kapatırmış.", "monument": "Eski bir anıtın dibinde bir şey gömülüymüş."}
+	var at = Game.from_map(Vector2(float(q["x"]), float(q["y"])))
+	at.y = float(q.get("g", Game.ground_height(at.x, at.z)))
+	pr()["waypoint"] = [at.x, at.y, at.z, String(q.get("name", "Söylenti"))]
+	pr()["track"] = "waypoint"
+	Hud.dialog(nm, "%s Yeri: %s." % [lines.get(String(q["t"]), "Bir şeyler dönüyor oralarda."), String(q.get("name", "?"))], [])
+	Hud.msg("Haritada işaretlendi: %s" % q.get("name", "Söylenti"), Color(0.8, 0.95, 1.0))
+
+
 ## Herhangi bir köylüyle kısa sohbet: köyde neler oluyor, yol tarifi, hal hatır (tek taraflı diyalog olmasın)
 static func small_talk(v: Node) -> Array:
 	if pr().is_empty() or v.get("interior"):
@@ -179,7 +203,7 @@ static func small_talk(v: Node) -> Array:
 		news.append_array(RUMORS)
 		Hud.dialog(nm, String(news.pick_random()), [
 			{"label": "İlginç, sağ ol.", "cb": func(): pass},
-			{"label": "Başka ne duydun?", "cb": func(): Hud.dialog(nm, String(RUMORS.pick_random()), [])}])})
+			{"label": "Başka ne duydun?", "cb": func(): _gossip_tip(nm)}])})
 	opts.append({"label": "Buralarda yemek/konaklama nerede?", "cb": func():
 		var best = {}
 		var bd = 1500.0
@@ -438,7 +462,22 @@ static func _romance_opts(id: String) -> Array:
 	var f: Dictionary = all()[id]
 	var b = int(f["bond"])
 	var opts = []
-	if String(f["look"].get("gender", "m")) == player_gender() or not available(f) or b < 35:
+	if String(f["look"].get("gender", "m")) == player_gender() or not available(f):
+		return opts
+	# niyet en baştan seçilir: flört (başkasıyla evlenmez, hemen flört aşaması) ya da sadece arkadaş
+	var wed = (f.get("family", []) as Array).any(func(m): return String(m["rel"]) in ["Karısı", "Kocası"])
+	if romance_of(id) == "" and not wed and String(f.get("intent", "")) == "":
+		opts.append({"label": "Ona ilgi duyduğunu belli et (flört) ♡", "cb": func():
+			f["intent"] = "flirt"
+			f["romance"] = "flört"
+			f["love"] = maxi(int(f.get("love", 0)), 30)
+			log_event(f, "Ona ilgi duyduğunu söyledin")
+			Hud.dialog(String(f["name"]), ["Ö-öyle mi? ...Bunu duyduğuma sevindim.", "Hmm, cesursun. Bakalım nereye varacak.", "Ben de seni fark etmiştim aslında."].pick_random(), [])
+			Hud.banner("FLÖRT", "%s ile aranızda bir şeyler başlıyor..." % f["name"], Color(1, 0.65, 0.8))})
+		opts.append({"label": "Sadece arkadaş kalalım", "cb": func():
+			f["intent"] = "friend"
+			Hud.dialog(String(f["name"]), "Tabii, iyi bir arkadaş her şeyden değerli.", [])})
+	if b < 35 and romance_of(id) == "":
 		return opts
 	var rm = romance_of(id)
 	var love = int(f.get("love", 0))
@@ -452,6 +491,7 @@ static func _romance_opts(id: String) -> Array:
 				var g = {"gururlu": 9, "utangaç": 7, "sıcakkanlı": 6, "neşeli": 5, "ciddi": 3, "alaycı": 1}.get(String(f.get("trait", "")), 4)
 				if b < 50:
 					g = int(g / 2)
+				g = int(round(g * (1.0 + Stats.skill(pr(), "love"))))   # Sosyal: Çekici / Karizma
 				f["love"] = mini(100, love + g)
 				Hud.dialog(String(f["name"]), ["Ah... sağ ol. Yüzüm kızardı mı?", "Bunu bana mı söyledin? Hehe.", "Dalga geçmiyorsun değil mi?"].pick_random(), [])
 				Hud.msg("Gönül %+d (%d/100)" % [g, f["love"]], Color(1, 0.6, 0.75))

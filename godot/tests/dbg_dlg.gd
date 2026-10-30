@@ -37,6 +37,8 @@ func _ready() -> void:
 	var f: Dictionary = Friends.all()[id]
 	Friends._ensure_persona(f)
 	f["trait"] = "neşeli"
+	f["look"]["gender"] = "f"
+	print("DLG romance=", Friends._romance_opts(id).map(func(o): return o["label"]), " pg=", Friends.player_gender(), " fg=", f["look"].get("gender"), " av=", Friends.available(f), " st=", f.get("status"), " away=", f.get("away"))
 	Friends._topic_dialog(id)
 	await get_tree().process_frame
 	print("DLG topics=", _btns())

@@ -740,7 +740,7 @@ func take_hit(info: Dictionary) -> void:
 		attack_tokens = maxi(0, attack_tokens - 1)
 	super.take_hit(info)
 	# yenilen kaçak pes eder: öldür / teslim et / bağışla (kaçak dostluğu)
-	if not dead and hp > 0.0 and hp < max_hp * 0.25 and RogueBonds.spareable(self, info):
+	if not dead and hp > 0.0 and hp < max_hp * (0.25 + Stats.skill(Game.profile, "persuade") * 0.3) and RogueBonds.spareable(self, info):   # Sosyal: İkna
 		set_physics_process(false)
 		RogueBonds.yield_to(self)
 		return

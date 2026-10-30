@@ -1703,7 +1703,7 @@ func complete() -> void:
 	var rw: Array = REWARD[m["rank"]]
 	var bonus = 1.0
 	if m.get("flags", {}).get("haggle_ok", false):
-		bonus += 0.2   # pazarlık tuttu
+		bonus += 0.2 + (0.1 if Stats.skill(Game.profile, "haggle") > 0.0 else 0.0)   # pazarlık tuttu (Dil Bilen: +%10)
 	if m.get("flags", {}).get("detected", false):
 		bonus -= 0.3
 	if m.get("flags", {}).get("wrong", false):
@@ -1856,7 +1856,7 @@ func _talk_replies(npc: QuestNPC, s: Dictionary) -> Array:
 			opts.append({"label": "Ödülü artırırsan hemen giderim.", "cb": func():
 				m["flags"]["haggle"] = true
 				var rep = int(Game.profile.get("rep", {}).get(String(m.get("village", Progress.home())), 0))
-				if randf() < clampf(0.35 + rep / 300.0, 0.15, 0.85):
+				if randf() < clampf(0.35 + rep / 300.0 + Stats.skill(Game.profile, "haggle"), 0.15, 0.97):   # Sosyal: Dil Bilen
 					m["flags"]["haggle_ok"] = true
 					Hud.dialog(npc.display, "Hıh... Peki, biraz daha veririm. Ama işi iyi yap!", _talk_replies(npc, s))
 				else:

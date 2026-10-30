@@ -22,6 +22,7 @@ static func _fit(br: String) -> void:
 	fitted = br
 
 const FX_TEXT := {
+	"charm": "Dostluk bağı kazancı %+d%%", "love": "Gönül kazancı %+d%%", "haggle": "Pazarlık şansı %+d%%", "persuade": "Kaçak pes ettirme %+d%%",
 	"hp": "Maks can %+d", "chakra": "Maks chakra %+d", "melee": "Yakın dövüş %+d%%", "jutsu": "Jutsu hasarı %+d%%", "speed": "Koşu hızı %+d%%",
 	"regen_chakra": "Chakra yenilenmesi %+d%%", "regen_hp": "Can yenilenmesi %+d%%", "jutsu_cost": "Jutsu maliyeti %+d%%", "seal_speed": "Mühür hızı %+d%%",
 	"wall_run": "Duvar koşusu hızı %+d%%", "leap": "Ctrl sıçrayış mesafesi %+d%%", "air_dash": "Havada atılma %+d", "jumps": "Havada zıplama %+d",
@@ -48,7 +49,7 @@ static func fx_lines(n: Dictionary) -> Array:
 		out.append("Açar: " + {"genjutsu": "genjutsu teknikleri", "kai": "Kai (genjutsu çözme)", "gentle_fist": "Yumuşak Yumruk", "strong_fist": "Güçlü Yumruk",
 			"gates": "Sekiz Kapı ustalığı", "elem2": "ikinci chakra doğası", "elem3": "üçüncü chakra doğası", "barrier": "bariyer mühürü", "scroll_store": "parşömen deposu",
 			"scalpel": "chakra neşteri", "wire": "tel tuzakları", "multi_throw": "çoklu atış", "mark_teleport": "ışınlanma işareti", "sensor": "algılayıcı ninja",
-			"lotus": "Ön Lotus", "shape": "şekil dönüşümü", "gen_reflect": "genjutsu yansıtma", "byakugou": "yüz mühürü"}.get(u, u))
+			"lotus": "Ön Lotus", "shape": "şekil dönüşümü", "gen_reflect": "genjutsu yansıtma", "byakugou": "yüz mühürü", "gossip": "dedikodudan gerçek ipuçları (haritada işaretlenir)"}.get(u, u))
 	return out
 
 
