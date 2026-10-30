@@ -475,8 +475,12 @@ static func _pick_template(rng: RandomNumberGenerator, front: bool) -> int:
 ## Arsa boş mu: dikdörtgenin merkezi + dört köşesi çevresinde (diğer evler, meydanlar, kanal setleri)
 static func _lot_free(b: Builder, q: Vector2, dir: Vector2, tw: float, td: float) -> bool:
 	var nr = Vector2(-dir.y, dir.x)
-	for o in [Vector2.ZERO, dir * (tw * 0.5 - 0.9) + nr * (td * 0.5 - 0.9), dir * (tw * 0.5 - 0.9) - nr * (td * 0.5 - 0.9),
-			-dir * (tw * 0.5 - 0.9) + nr * (td * 0.5 - 0.9), -dir * (tw * 0.5 - 0.9) - nr * (td * 0.5 - 0.9)]:
+	# 4x3 örnek ızgarası (köşe + kenar ortaları + iç): aradaki ağaç / kanal / yapı kaçmasın
+	var pts: Array = []
+	for i in 4:
+		for j in 3:
+			pts.append(dir * lerpf(-tw * 0.5 + 0.9, tw * 0.5 - 0.9, i / 3.0) + nr * lerpf(-td * 0.5 + 0.9, td * 0.5 - 0.9, j / 2.0))
+	for o in pts:
 		var p = q + o
 		var wq = b.w(Vector3(p.x, 0, p.y))
 		if not b.area_free(Vector2(wq.x, wq.z), 0.7):

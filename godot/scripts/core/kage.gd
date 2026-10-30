@@ -157,7 +157,7 @@ func start_raid(from: String) -> void:
 		e.home = q
 		e.wander_to = Game.player.global_position
 		raid["nodes"].append(e)
-	for i in 4:
+	for i in maxi(5, n - 1):   # köyün muhafızları da gelir: akıncı sayısına yakın (10'a 1 savunma olmasın)
 		var d = _ninja_of(home, i, lv + randi_range(-2, 3), "player")
 		get_tree().current_scene.add_child(d)
 		var q = Missions.open_ground(at.lerp(Game.player.global_position, 0.6) + Vector3(randf_range(-10, 10), 0, randf_range(-10, 10)), 25.0)

@@ -802,7 +802,8 @@ func take_hit(info: Dictionary) -> void:
 	if Game.world:
 		Game.world.env.add_shake(0.35)
 	var dir: Vector3 = info.get("dir", Vector3.ZERO)
-	var heavy: bool = info.get("kind", "light") != "light" or info.get("launch", 0.0) > 0.0
+	# yere serilme yalnız gerçekten ağır darbede / havaya fırlatmada (her jutsu isabeti yere sermesin)
+	var heavy: bool = info.get("kind", "light") == "heavy" or info.get("launch", 0.0) > 0.0
 	# kombo kilidi kırıcı: üst üste sersemletilince kısa dokunulmazlık + itme patlaması (düşman kombosunda sonsuz kilit yok)
 	var now = Time.get_ticks_msec()
 	stun_meter = maxf(0.0, stun_meter - (now - stun_last_ms) / 1000.0 * 1.2) + (2.0 if heavy else 1.0)
@@ -820,11 +821,11 @@ func take_hit(info: Dictionary) -> void:
 		_update_charge(0)
 	if heavy:
 		action = "knockdown"
-		p.velocity = dir * info.get("knock", 8.0) + Vector3.UP * (info.get("launch", 0.0) + 4.0)
+		p.velocity = dir * info.get("knock", 8.0) * 0.4 + Vector3.UP * (info.get("launch", 0.0) * 0.6 + 2.5)
 		p.model.play("knock", 0.05, 1.2, true)
 	else:
 		action = "hitstun"
-		p.velocity = dir * info.get("knock", 2.0)
+		p.velocity = dir * info.get("knock", 2.0) * 0.35
 		p.model.play("hit" if randf() < 0.5 else "hit_head", 0.04, 1.4, true)
 	p.model.overlay.set_pose("seal", 0.0)
 	p.model.overlay.set_pose("guard", 0.0)

@@ -2183,16 +2183,18 @@ func _attachments() -> void:
 		var lt = vc.lightened(0.18)
 		# yaka (Konoha/Kumo yüksek, diğerleri alçak)
 		var collar_h = 0.34 if vs in [0, 3] else 0.24
-		v.add("torus", Vector3(0, 0.15, -0.005), Vector3(0.3, collar_h, 0.28), vc.darkened(0.1), Vector3.ZERO, 14)
+		if look.get("outer_style") == null:   # dış giysi (haori, atkı, kesa) altındayken yaka ensesinden dışarı fırlıyordu
+			v.add("torus", Vector3(0, 0.15, -0.005), Vector3(0.3, collar_h, 0.28), vc.darkened(0.1), Vector3.ZERO, 14)
 		v.add("box", Vector3(0, -0.12, 0.185), Vector3(0.012, 0.42, 0.006), Color(0.82, 0.82, 0.8))   # fermuar
 		# parşömen cebi takımı: taban + dikey cepler + kapak çizgileri (referans: Konoha/Suna yelekleri)
+		var vlo = MB.new()   # bel hizası (göğsün altı): bel kemiğine bağlı; göğüs kemiğine bağlıyken koşarken gövdeden kopup havada kalıyordu
 		var pack = func(cx: float, cy: float, n: int):
-			cy += 0.0
-			v.add("box", Vector3(cx, cy, 0.175 + maxf(0.0, -cy - 0.12) * 0.15), Vector3(0.026 * n + 0.012, 0.1, 0.03), dk)
+			var v0: MB = vlo if cy < -0.12 else v
+			v0.add("box", Vector3(cx, cy, 0.175 + maxf(0.0, -cy - 0.12) * 0.15), Vector3(0.026 * n + 0.012, 0.1, 0.03), dk)
 			for k in n:
 				var x = cx - 0.013 * (n - 1) + k * 0.026
-				v.add("box", Vector3(x, cy - 0.005, 0.192), Vector3(0.022, 0.085, 0.012), vc.darkened(0.08))
-				v.add("box", Vector3(x, cy + 0.03, 0.2), Vector3(0.024, 0.006, 0.006), dk.darkened(0.2))   # kapak dikişi
+				v0.add("box", Vector3(x, cy - 0.005, 0.192), Vector3(0.022, 0.085, 0.012), vc.darkened(0.08))
+				v0.add("box", Vector3(x, cy + 0.03, 0.2), Vector3(0.024, 0.006, 0.006), dk.darkened(0.2))   # kapak dikişi
 		match vs:
 			0:   # Konoha: göğüste iki takım (2x2 cep)
 				for sx in [-1.0, 1.0]:
@@ -2214,12 +2216,14 @@ func _attachments() -> void:
 			4:   # Iwa: omuzluk + karında kalın kemer plakası
 				for sx in [-1.0, 1.0]:
 					v.add("hemi", Vector3(0.19 * sx, 0.1, 0.0), Vector3(0.15, 0.08, 0.16), dk, Vector3(0, 0, -24 * sx), 10)
-				v.add("box", Vector3(0, -0.27, 0.15), Vector3(0.34, 0.09, 0.06), lt.darkened(0.15))
-				v.add("box", Vector3(0, -0.27, 0.185), Vector3(0.36, 0.012, 0.01), dk)
+				vlo.add("box", Vector3(0, -0.27, 0.15), Vector3(0.34, 0.09, 0.06), lt.darkened(0.15))
+				vlo.add("box", Vector3(0, -0.27, 0.185), Vector3(0.36, 0.012, 0.01), dk)
 			_:
 				for sx in [-1.0, 1.0]:
 					pack.call(0.08 * sx, -0.1, 2)
 		_mesh_on("UpperChest", v.build(Props.toon()), Transform3D(Basis.IDENTITY, ch))
+		if not vlo.verts.is_empty():
+			_mesh_on("Chest", vlo.build(Props.toon()), Transform3D(Basis.IDENTITY, ch))
 	# --- eldeki silahlar (ekipman: sağ el / sol el) ve kınları
 	_weapons()
 	# --- çanta + kunai kılıfı

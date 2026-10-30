@@ -976,6 +976,24 @@ func _begin_step() -> void:
 		"defend":
 			var c = _w(s["at"])
 			target_marker = c
+			# köy içi savunma: köyün muhafızları da yanında savaşır (tek başına dalgalara karşı kalma)
+			var dv = Game.village_at(c) if Game.has_method("village_at") else ""
+			if dv == "":
+				for vv in Game.world_info["villages"]:
+					if Game.to_map(c).distance_to(Vector2(vv["x"], vv["y"])) < float(vv["r"]) * 1.1:
+						dv = String(vv["id"])
+						break
+			if dv != "" and not Orgs.is_rogue():
+				var lv = int(Game.profile.get("level", 1))
+				for i in 3:
+					var g = Kage._ninja_of(dv, i, lv + randi_range(-2, 2), "player")
+					get_tree().current_scene.add_child(g)
+					var q = open_ground(c + Vector3(cos(i * 2.1), 0, sin(i * 2.1)) * 6.0, 15.0)
+					g.global_position = q
+					g.home = q
+					FX.smoke_puff(q + Vector3.UP, 0.8, 10)
+					step_nodes.append(g)
+				Hud.msg("Köyün muhafızları savunmaya katıldı.", Color(0.7, 0.9, 1.0))
 			st["wave"] = -1
 			st["alive"] = []
 			st["next_t"] = 2.0

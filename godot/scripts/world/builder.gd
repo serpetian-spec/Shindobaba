@@ -527,6 +527,9 @@ func tree(x: float, n: float, s: float, rng: RandomNumberGenerator, y := 0.0) ->
 		pick -= Props.VILLAGE_TREE_W[vi]
 		vi += 1
 	var tm = _tree_meshes[vi]
+	var wt = w(Vector3(x, 0, n))
+	if not area_free(Vector2(wt.x, wt.z), 2.4 * s):
+		return   # yerinde bina / duvar var: tacı binanın içinden fışkırmasın
 	if tm != null:
 		var sc = s * rng.randf_range(0.85, 1.15)
 		pack_mesh(tm, Vector3(x, y, n), rng.randf() * 360.0, sc, 1.0)

@@ -35,6 +35,7 @@ func _ready() -> void:
 		Susanoo.config(pr)["tier_pref"] = t
 		eyes._start_susanoo()
 		await get_tree().create_timer(0.8).timeout
+		print("SUSPOS t=%d pl=%s sn=%s scale=%s body=%s" % [t, pl.global_position, eyes.susanoo_node.global_position, eyes.susanoo_node.scale, eyes.susanoo_node.body.global_position])
 		var h = Susanoo.TIER_HEIGHT[t]
 		var cd = (h * 1.3 + 3.0) if t > 1 else 3.2
 		pl.cam.global_position = pl.global_position + pl.face_dir() * cd + Vector3(h * 0.4 if t > 1 else 1.4, h * 0.55, 0)
