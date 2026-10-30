@@ -555,7 +555,7 @@ static func _house_infill(c, houses: Array) -> void:
 	print("Boşluk doldurma %s: +%d ev" % [b.key, added])
 
 
-const LANE_COL := {"green": Color(0.86, 0.75, 0.57), "mist": Color(0.64, 0.66, 0.66), "rock": Color(0.56, 0.5, 0.44),
+const LANE_COL := {"green": Color(0.56, 0.5, 0.42), "mist": Color(0.64, 0.66, 0.66), "rock": Color(0.56, 0.5, 0.44),
 	"desert": Color(0.72, 0.58, 0.4), "rain": Color(0.42, 0.44, 0.47), "snow": Color(0.72, 0.72, 0.75)}
 const NC := 12.0
 

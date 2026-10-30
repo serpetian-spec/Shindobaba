@@ -18,16 +18,16 @@ static func suna_house(b: Builder, x: float, n: float, wdt: float, dep: float, f
 	if gourd:
 		# kısa taban + şişkin gövde (yassı küre) + gövdeyi saran bantlar ve yarık pencereler
 		var hb = floors * 3.6 + 3.0
-		b.cyl(Vector3(x, 1.2, n), d * 0.8, 2.4, c.darkened(0.06), true, 20)
+		b.cyl(Vector3(x, 1.2, n), d * 0.8, 2.4, c.darkened(0.06), true, 12)
 		var cy = 2.2 + hb * 0.5
-		b.sphere(Vector3(x, cy, n), Vector3(d, hb, d), c, 20, true)
+		b.sphere(Vector3(x, cy, n), Vector3(d, hb, d), c, 12, true)   # binlerce ev: düşük dilim (Suna 14M üçgendi)
 		for k in 3:
 			var t = -0.32 + k * 0.32
 			var y = cy + t * hb
 			var rr = d * 0.5 * sqrt(maxf(0.05, 1.0 - 4.0 * t * t)) + 0.15
 			_band(b, x, n, y, rr, band, yaw, rng, k == 1)
 		top = cy + hb * 0.5
-		b.dome(Vector3(x, top - 0.6, n), d * 0.38, 1.4, c.lightened(0.05), 14)
+		b.dome(Vector3(x, top - 0.6, n), d * 0.38, 1.4, c.lightened(0.05), 10)
 	else:
 		# kat kat daralan bantlı kule (her kademe silindir + bant + yarıklar)
 		var tiers = clampi(floors, 2, 4)
@@ -35,15 +35,16 @@ static func suna_house(b: Builder, x: float, n: float, wdt: float, dep: float, f
 		var dd = d
 		for t in tiers:
 			var th = 4.2
-			b.cyl(Vector3(x, y + th * 0.5, n), dd, th, c.lightened(0.02 * (t % 2)), true, 20)
+			b.cyl(Vector3(x, y + th * 0.5, n), dd, th, c.lightened(0.02 * (t % 2)), true, 14)
 			_band(b, x, n, y + th * 0.62, dd * 0.5 + 0.12, band, yaw, rng, true)
-			b.cyl(Vector3(x, y + th, n), dd + 0.5, 0.35, band, false, 20)
+			b.cyl(Vector3(x, y + th, n), dd + 0.5, 0.35, band, false, 14)
 			y += th
 			dd *= 0.84
 		top = y
-		b.dome(Vector3(x, top, n), dd * 1.05, dd * 0.42, c.lightened(0.05), 16)
+		b.dome(Vector3(x, top, n), dd * 1.05, dd * 0.42, c.lightened(0.05), 12)
 	# kapı (kemerli), kumaş tente, çatıda su deposu / anten
-	var fo = Builder.rot(0, -d * 0.5 - 0.05, yaw)
+	# kapı tabanın yüzeyinde: su kabağı evde taban gövdeden dar (çap d*0.8), kule ilk kademesi tam çap
+	var fo = Builder.rot(0, -(d * 0.4 if gourd else d * 0.5) + 0.02, yaw)
 	DoorKit.door(b, x + fo.x, n + fo.y, 0.0, yaw, "suna", rng)
 	if rng.randf() < 0.45:
 		var aw = [Color(0.75, 0.25, 0.2), Color(0.25, 0.45, 0.6), Color(0.85, 0.65, 0.25), Color(0.55, 0.35, 0.55)][rng.randi() % 4]
@@ -55,7 +56,7 @@ static func suna_house(b: Builder, x: float, n: float, wdt: float, dep: float, f
 
 ## Suna bandı: gövdeyi saran kalın kuşak + üstünde yuvarlak köşeli yarık pencere sırası
 static func _band(b: Builder, x: float, n: float, y: float, r: float, col: Color, yaw: float, rng: RandomNumberGenerator, windows: bool) -> void:
-	b.cyl(Vector3(x, y, n), r * 2.0 + 0.3, 1.1, col, false, 22)
+	b.cyl(Vector3(x, y, n), r * 2.0 + 0.3, 1.1, col, false, 14)
 	if not windows:
 		return
 	var cnt = maxi(6, int(TAU * r / 2.2))

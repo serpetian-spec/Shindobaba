@@ -318,7 +318,7 @@ static func _rock_ring(b: Builder, r: float, hmin: float, hmax: float, thick: fl
 			var L = TAU * r * step / 360.0 + 8.0
 			b.box(Vector3(r * sin(rad), hh * 0.5 - 6, r * cos(rad)), Vector3(L, hh, thick * rng.randf_range(0.85, 1.15)), col.darkened(rng.randf_range(0.0, 0.15)), a)
 			# tabaka çizgileri / üst kenar
-			b.box(Vector3((r - thick * 0.3) * sin(rad), hh - 6 + 1.5, (r - thick * 0.3) * cos(rad)), Vector3(L * 0.9, 3.0, thick * 0.5), col.lightened(0.06), a, false)
+			b.box(Vector3((r - thick * 0.3) * sin(rad), hh - 6 + 1.5, (r - thick * 0.3) * cos(rad)), Vector3(L * 0.9, 3.0, thick * 0.5), col.lightened(0.06), a)   # üst kenar katı: sur tepesinde gömülme
 		a += step
 
 
@@ -379,7 +379,7 @@ static func far_silhouette(parent: Node3D, v: Dictionary) -> void:
 # ------------------------------------------------------------------ Sunagakure: katmanlı kaya krateri içinde kerpiç kubbe şehir
 static func suna(parent: Node3D, v: Dictionary) -> void:
 	var b = Builder.new(parent, v["x"], v["y"], v["base"], "Suna")
-	b.view_dist = 6000.0
+	b.view_dist = 2500.0   # köy içinden/surdan tümü görünür; uzakta siluet devralır (6000 m'de 14M üçgen hep çiziliyordu)
 	var rng = _rng(2)
 	var sand = Color(0.87, 0.74, 0.54)
 	var r = float(v["r"])
@@ -432,7 +432,11 @@ static func suna(parent: Node3D, v: Dictionary) -> void:
 		var y = minf(p0.y, p1.y)
 		var d = Vector3(p1.x - p0.x, 0, p1.z - p0.z)
 		b.box(Vector3((p0.x + p1.x) * 0.5, y, (p0.z + p1.z) * 0.5), Vector3(4.5, 1.2, d.length() - 36), sand.darkened(0.08), rad_to_deg(atan2(d.x, d.z)))
-		b.box(Vector3((p0.x + p1.x) * 0.5, y + 1.4, (p0.z + p1.z) * 0.5), Vector3(5.0, 1.6, d.length() - 36), sand.darkened(0.02), rad_to_deg(atan2(d.x, d.z)), false)
+		# köprü korkulukları: iki yanda alçak duvar (eskiden yürüyüş yolunun üstünü kaplayan 1.6 m'lik çarpışmasız blok vardı -> köprüde gömülüyordun)
+		var sd = Vector3(d.z, 0, -d.x).normalized()
+		for sx in [-1.0, 1.0]:
+			var rp = Vector3((p0.x + p1.x) * 0.5, y + 1.1, (p0.z + p1.z) * 0.5) + sd * sx * 2.1
+			b.box(rp, Vector3(0.4, 1.0, d.length() - 36), sand.darkened(0.02), rad_to_deg(atan2(d.x, d.z)))
 	await _yield()
 	# pazar: tenteli tezgâhlar meydan çevresinde
 	for k in 16:

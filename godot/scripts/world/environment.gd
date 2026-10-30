@@ -279,6 +279,9 @@ func _process(dt: float) -> void:
 	sun.light_energy = p[3] * (1.0 - overcast * 0.4)
 	env.ambient_light_color = p[4].lerp(Color(0.5, 0.52, 0.58), overcast * 0.35)
 	env.fog_light_color = hor.lerp(Color(0.45, 0.65, 0.95), 0.4)  # pus beyaz değil, gök mavisi
+	if weather == "kum fırtınası":
+		env.fog_light_color = env.fog_light_color.lerp(Color(0.78, 0.62, 0.42), clampf(overcast * 1.2, 0.0, 1.0))   # kum pusu
+		env.ambient_light_color = env.ambient_light_color.lerp(Color(0.72, 0.6, 0.44), clampf(overcast, 0.0, 1.0) * 0.7)   # gölgeler mavi değil kum tonlu
 	var fog_base = 0.00012 / maxf(0.4, float(Game.settings["view"]))
 	env.fog_density = lerpf(fog_base, 0.006, overcast * (1.0 if weather in ["sis", "kum fırtınası"] else 0.08))
 	sky_mat.set_shader_parameter("zenith", zen)

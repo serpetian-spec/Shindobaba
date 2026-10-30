@@ -805,7 +805,8 @@ func _terrain_wall_move(dt: float) -> void:
 
 func _wall_tall(n: Vector3) -> bool:
 	var space = get_world_3d().direct_space_state
-	var q = PhysicsRayQueryParameters3D.create(global_position + Vector3.UP * 2.2, global_position + Vector3.UP * 2.2 - n * 1.2, 1)
+	# eğik / yuvarlak yüzeyler (kubbe, su kabağı ev, kule eteği) 2.2 m'de geriye yatar: ışın onları da yakalasın
+	var q = PhysicsRayQueryParameters3D.create(global_position + Vector3.UP * 2.2, global_position + Vector3.UP * 2.2 - n * 2.8, 1)
 	return not space.intersect_ray(q).is_empty()
 
 
@@ -847,8 +848,14 @@ func _wall_move(dt: float) -> void:
 			return
 	var space = get_world_3d().direct_space_state
 	var center = global_position + Vector3.UP * 0.9
-	var q = PhysicsRayQueryParameters3D.create(center, center - n * 1.0, 1)
+	# eğimli yüzeyde yüzey merkezden daha uzakta kalır (45° kubbede ~1.3 m): kısa ışın "duvar bitti" sanıp fırlatıyordu
+	var q = PhysicsRayQueryParameters3D.create(center, center - n * 2.2, 1)
 	var hit = space.intersect_ray(q)
+	if not hit.is_empty() and float(hit["normal"].y) > 0.72 and up_amt > 0.2:
+		# yüzey yürünebilir eğime döndü (kubbenin üst kısmı): duvardan bırak, üstünde yürü
+		velocity = -n * 4.0 + Vector3.UP * 3.0
+		_leave_wall()
+		return
 	if hit.is_empty():
 		# duvar bitti: yukarı gidiyorsak kenara tutunup üstüne çık (çatı saçağı dahil); bulunamazsa tepeye fırla
 		if up_amt > 0.2:

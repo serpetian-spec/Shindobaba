@@ -228,7 +228,9 @@ func lamp(x: float, y: float, d: float, col := Color(1.0, 0.78, 0.5), energy := 
 	l.light_energy = energy
 	l.omni_range = rng_
 	l.omni_attenuation = 1.2
-	l.shadow_enabled = false
+	l.shadow_enabled = true   # iç mekânda eşya / karakter gölgesi (oda başına birkaç lamba: ucuz)
+	l.shadow_blur = 1.5
+	l.shadow_bias = 0.06
 	room.add_child(l)
 	l.global_position = L(x, y, d)
 
@@ -273,6 +275,20 @@ func _spawn_npc(req: Dictionary) -> void:
 ## Ahşap zemin, sıvalı duvarlar + ahşap dikmeler, tavan kirişleri, kapı + çıkış, shoji pencereler
 func shell(W: float, D: float, H: float, wall := Color(0.93, 0.88, 0.76), floor_col := Color(0.62, 0.44, 0.28), windows := true) -> void:
 	var wood = Color(0.42, 0.29, 0.18)
+	# tavandan aşağı bakan sıcak ana ışık (gölgeli): eşyalar ve karakter yere gölge düşürür, oda düz aydınlık durmasın
+	var key = SpotLight3D.new()
+	key.light_color = Color(1.0, 0.88, 0.7)
+	key.light_energy = 7.0
+	key.spot_range = H + 6.0
+	key.spot_angle = clampf(rad_to_deg(atan2(maxf(W, D) * 0.62, H)), 40.0, 80.0)
+	key.spot_attenuation = 0.6
+	key.shadow_enabled = true
+	key.shadow_blur = 1.2
+	room.add_child(key)
+	# kapı tarafı tavandan odanın içine açılı: gölgeler ayak dibinde kalmaz, uzar
+	var kp = L(W * 0.18, H - 0.15, D * 0.22)
+	key.global_position = kp
+	key.look_at(L(-W * 0.05, 0.0, D * 0.62), Vector3.UP)
 	# zemin (çarpışma tek kutu, görsel tahta şeritler)
 	bx(0, -0.1, D * 0.5, W + 0.4, 0.2, D + 0.4, floor_col, true)
 	var n = int(W / 0.6)

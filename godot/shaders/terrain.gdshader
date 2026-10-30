@@ -90,12 +90,12 @@ void fragment() {
 		vec2 f = abs(fract(tt) - 0.5);
 		float joint = smoothstep(0.44, 0.49, max(f.x, f.y));
 		float tone = hash(floor(tt));
-		vec3 pave = (b == 11) ? mix(vec3(0.6, 0.52, 0.41), vec3(0.69, 0.6, 0.47), tone) : mix(vec3(0.82, 0.7, 0.5), vec3(0.9, 0.79, 0.6), tone);
+		vec3 pave = (b == 11) ? mix(vec3(0.6, 0.52, 0.41), vec3(0.69, 0.6, 0.47), tone) : mix(vec3(0.8, 0.68, 0.49), vec3(0.88, 0.77, 0.58), tone);
 		pave *= (1.0 - joint * 0.25) * (0.94 + n3 * 0.08);
 		pave *= 1.0 + (texture(tex_cobble, wpos.xz * 0.45).r - 0.5) * 0.8;   // gerçek parke taşı dokusu
 		if (b == 11) {
 			// Konoha (animedeki gibi): açık bej sıkıştırılmış toprak, ince toprak dokusu, yer yer koyu ıslak lekeler (taş döşeme değil)
-			pave = vec3(0.8, 0.68, 0.5) * (0.93 + n3 * 0.1) * (0.95 + n2 * 0.08);
+			pave = vec3(0.5, 0.45, 0.37) * (0.93 + n3 * 0.1) * (0.95 + n2 * 0.08);   // daha nötr: sarıya kaçmasın
 			pave *= 1.0 + (texture(tex_dirt, wpos.xz * 0.18).r - 0.5) * 0.55;
 			pave = mix(pave, pave * vec3(0.86, 0.8, 0.72), smoothstep(0.6, 0.8, fbm(wpos.xz * 0.03 + 9.0)) * 0.6);
 		}
@@ -154,7 +154,7 @@ void fragment() {
 		vec2 sf = abs(fract(st) - 0.5);
 		float sj = smoothstep(0.45, 0.49, max(sf.x, sf.y));
 		// köy caddesi: açık, düzgün sıkıştırılmış toprak (zeminden bir ton açık), kenarı hafif koyu; tekerlek / ayak izi lekeleri
-		dirt = vec3(0.86, 0.75, 0.57) * (0.95 + n3 * 0.07);
+		dirt = vec3(0.52, 0.47, 0.39) * (0.95 + n3 * 0.07);   // nötr açık toprak (sarıya kaçmasın)
 		dirt *= 1.0 + (texture(tex_dirt, wpos.xz * 0.22).r - 0.5) * 0.4;
 		dirt *= 1.0 - 0.12 * (smoothstep(0.3, 0.45, rmask) - smoothstep(0.45, 0.6, rmask));
 	}

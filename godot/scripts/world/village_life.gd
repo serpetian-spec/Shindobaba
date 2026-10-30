@@ -416,6 +416,7 @@ func _open_site(key: String, s: Dictionary) -> void:
 				"lines_override": ["Antrenmana hazır mısın?", "Önce temel, sonra ileri teknikler.", "Chakra kontrolün gelişiyor!"], "wander_r": 1.2}])
 		"pigeons":
 			var fl = PigeonFlock.new()
+			fl.position = pos
 			add_child(fl)
 			fl.global_position = pos
 			active_sites[key]["nodes"].append(fl)
@@ -591,7 +592,8 @@ class PigeonFlock extends Node3D:
 			m.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			add_child(m)
 			birds.append({"n": m, "o": Vector3(randf_range(-4, 4), 0, randf_range(-4, 4)), "ph": randf() * TAU, "v": Vector3.ZERO})
-		_land()
+		# sürünün konumu add_child'dan SONRA veriliyor: hemen konarsa kuşlar dünya merkezine göre konup sürüyle taşınıp havada kalıyordu
+		_land.call_deferred()
 
 	func _land() -> void:
 		flying = -1.0

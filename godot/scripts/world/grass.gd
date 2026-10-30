@@ -40,7 +40,7 @@ func _ready() -> void:
 	mat.set_shader_parameter("village_count", vill.size())
 	mat.set_shader_parameter("radius", RADIUS)
 	material_override = mat
-	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON   # çimen öbekleri gölge düşürür (zemine otursun)
 	custom_aabb = AABB(Vector3(-RADIUS - 5, -500, -RADIUS - 5), Vector3(RADIUS * 2 + 10, 1500, RADIUS * 2 + 10))
 
 

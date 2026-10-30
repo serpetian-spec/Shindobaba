@@ -1,6 +1,6 @@
 // Oyuncu çevresinde çimen: yükseklik/renk araziden, biyoma göre gizlenir, rüzgarla sallanır.
 shader_type spatial;
-render_mode cull_disabled, world_vertex_coords, diffuse_toon, specular_disabled, depth_draw_never;
+render_mode cull_disabled, world_vertex_coords, diffuse_toon, specular_disabled;
 
 #include "res://shaders/world_height.gdshaderinc"
 uniform sampler2D albedo_map : source_color, filter_linear, repeat_disable;
@@ -74,7 +74,7 @@ void vertex() {
 }
 
 void fragment() {
-	vec3 c = base_col * mix(0.62, 1.25, tip);
+	vec3 c = base_col * mix(0.45, 1.25, smoothstep(0.0, 0.7, tip));   // dip koyu (temas gölgesi): öbek zemine otursun
 	// yaprak dokusu: ortada koyu damar, kenarlar açık; uç sarımsı-açık (anime çimeni gibi iki tonlu)
 	float vein = 1.0 - 0.18 * (1.0 - smoothstep(0.0, 0.18, abs(UV.x - 0.5)));
 	c *= vein;

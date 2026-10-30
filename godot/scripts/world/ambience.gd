@@ -6,7 +6,8 @@ var fall_pool: Array[GPUParticles3D] = []   # en yakın ağaçların taçlarınd
 var _fall_t := 0.0
 var _fall_at := Vector3(1e9, 0, 0)
 var fireflies: GPUParticles3D
-var sand: GPUParticles3D
+var sand: GPUParticles3D        # rüzgârla akan ince kum çizgileri
+var sand_grit: GPUParticles3D   # yere yakın savrulan kum taneleri
 var birds: Array[Node3D] = []
 var t := 0.0
 
@@ -16,8 +17,10 @@ func _ready() -> void:
 		[Color(0.55, 0.75, 0.3, 0), Color(0.5, 0.72, 0.28, 1), Color(0.75, 0.6, 0.25, 1), Color(0.7, 0.55, 0.2, 0)], 0.18, true)
 	fireflies = _emitter(90, 5.0, Vector3(25, 3, 25), Vector3(0, 0.15, 0), 0.3, 0.8, FX.tex_soft, true,
 		[Color(0.7, 1.0, 0.4, 0), Color(0.8, 1.0, 0.45, 1), Color(0.8, 1.0, 0.45, 0)], 0.35, false)
-	sand = _emitter(220, 3.0, Vector3(30, 4, 30), Vector3(8, 0.5, 2), 4.0, 8.0, FX.tex_smoke, false,
-		[Color(0.9, 0.78, 0.55, 0), Color(0.88, 0.75, 0.52, 0.35), Color(0.88, 0.75, 0.52, 0)], 3.0, false)
+	# çöl rüzgârı: eski 3 m duman lekeleri havada asılı "hayalet yapı" gibi duruyordu (ve FPS yiyordu) ->
+	# rüzgâr yönünde hızla akan ince uzun kum çizgileri + yere yakın savrulan taneler
+	sand = _wind_streaks(700, 1.6, Vector3(26, 6, 26), 16.0, 24.0, 3.2, 0.09, Color(0.93, 0.83, 0.64, 0.6))
+	sand_grit = _wind_streaks(600, 1.1, Vector3(20, 0.6, 20), 9.0, 15.0, 0.7, 0.05, Color(0.84, 0.7, 0.48, 0.85))
 	for i in 4:
 		birds.append(_flock())
 	for k in 10:
@@ -82,6 +85,59 @@ func _refresh_fall(p: Vector3) -> void:
 		e.set_meta("tree", k)
 		e.emitting = true
 		e.restart()
+
+
+const WIND := Vector3(0.958, 0.04, 0.287)   # çöl rüzgârının yönü (normalize)
+
+
+## Rüzgâr çizgisi: Y ekseni hıza hizalanan iki çapraz ince dörtgen (her açıdan görünür), uçları yumuşak; hep aynı rüzgâr yönü
+func _wind_streaks(n: int, life: float, box: Vector3, vmin: float, vmax: float, length: float, width: float, col: Color) -> GPUParticles3D:
+	var p = GPUParticles3D.new()
+	p.amount = n
+	p.lifetime = life
+	p.preprocess = life
+	p.visibility_aabb = AABB(Vector3(-60, -30, -60), Vector3(120, 60, 120))
+	var pm = ParticleProcessMaterial.new()
+	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	pm.emission_box_extents = box
+	pm.direction = WIND
+	pm.spread = 6.0
+	pm.initial_velocity_min = vmin
+	pm.initial_velocity_max = vmax
+	pm.gravity = Vector3(0, -0.4, 0)
+	pm.turbulence_enabled = true
+	pm.turbulence_noise_strength = 0.6
+	pm.turbulence_influence_min = 0.02
+	pm.turbulence_influence_max = 0.08
+	pm.scale_min = 0.6
+	pm.scale_max = 1.3
+	pm.color_ramp = FX._gradient([Color(col.r, col.g, col.b, 0.0), col, col, Color(col.r, col.g, col.b, 0.0)])
+	p.process_material = pm
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	# çizgi doğrudan rüzgâr yönünde modellenir (tüm parçacıklar aynı yöne akar; hız hizalaması açıları dağıtıyordu)
+	var side = WIND.cross(Vector3.UP).normalized()
+	for ax in [Vector3.UP, side]:
+		var w = ax * width * 0.5
+		var h = WIND * length * 0.5
+		var q = [[-w - h, Vector2(0, 1)], [w - h, Vector2(1, 1)], [w + h, Vector2(1, 0)], [-w + h, Vector2(0, 0)]]
+		for i in [0, 1, 2, 0, 2, 3]:
+			st.set_uv(q[i][1])
+			st.add_vertex(q[i][0])
+	var mesh = st.commit()
+	var m = StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.vertex_color_use_as_albedo = true
+	m.albedo_texture = FX.tex_soft   # dairesel yumuşak doku uzunlamasına gerilir: uçları sivri, ortası dolu çizgi
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	m.disable_receive_shadows = true
+	mesh.surface_set_material(0, m)
+	p.draw_pass_1 = mesh
+	p.emitting = false
+	p.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	add_child(p)
+	return p
 
 
 func _emitter(n: int, life: float, box: Vector3, dir: Vector3, vmin: float, vmax: float, tex: Texture2D, add: bool, cols: Array, size: float, spin: bool) -> GPUParticles3D:
@@ -158,6 +214,11 @@ func _process(dt: float) -> void:
 	leaves.amount_ratio = 1.0 if biome == 2 else 0.4
 	fireflies.emitting = night and biome in [2, 4, 6, 7, 10]
 	sand.emitting = biome == 3 or biome == 13
+	sand_grit.emitting = sand.emitting
+	# gerçek kum fırtınası havasında yoğun, normalde hafif esinti
+	var storm = Game.world != null and Game.world.env.weather == "kum fırtınası"
+	sand.amount_ratio = 1.0 if storm else 0.15
+	sand_grit.amount_ratio = 1.0 if storm else 0.3
 	_fall_t -= dt
 	if _fall_t <= 0.0 or p.distance_to(_fall_at) > 18.0:
 		_fall_t = 2.0
@@ -166,8 +227,8 @@ func _process(dt: float) -> void:
 	if night:
 		for e in fall_pool:
 			e.emitting = false
-	for e in [leaves, fireflies, sand]:
-		e.global_position = p + Vector3(0, 6 if e == leaves else 1.5, 0)
+	for e in [leaves, fireflies, sand, sand_grit]:
+		e.global_position = p + Vector3(0, 6 if e == leaves else (0.3 if e == sand_grit else 1.5), 0) - (Vector3(14, 0, 4) if e == sand or e == sand_grit else Vector3.ZERO)   # rüzgârın geldiği yandan doğsun
 	for f in birds:
 		var ph: float = f.get_meta("phase") + t * float(f.get_meta("spd"))
 		var r: float = f.get_meta("r")

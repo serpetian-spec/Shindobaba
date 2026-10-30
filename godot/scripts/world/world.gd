@@ -86,6 +86,17 @@ func _process(_dt: float) -> void:
 		return
 	var c = cam.global_position
 	water.global_position = Vector3(snappedf(c.x, 250.0), 0.0, snappedf(c.z, 250.0))
+	# kara içinde (yakında deniz seviyesine inen zemin yoksa) deniz düzlemi kapalı: Suna gibi yüksek çöl
+	# zemininin üstüne turkuaz desen olarak biniyordu. Kıyıda / gölde yakın alçak zemin olduğundan görünür kalır.
+	if Engine.get_process_frames() % 20 == 0:
+		var low = Game.terrain_height(c.x, c.z) < 6.0
+		if not low:
+			for k in 8:
+				var a = TAU * k / 8.0
+				if Game.terrain_height(c.x + cos(a) * 700.0, c.z + sin(a) * 700.0) < 6.0:
+					low = true
+					break
+		water.visible = low
 	# ufuk: dev dünya için uzak kırpma düzlemi
 	if cam.far < 32000.0:
 		cam.far = 32000.0
