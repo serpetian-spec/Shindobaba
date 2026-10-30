@@ -754,7 +754,7 @@ static func _tab_relations(main: Node, body: Control) -> void:
 			var f: Dictionary = fs[id]
 			var b = int(f["bond"])
 			var stt = String(f.get("status", ""))
-			var txt = "%s  —  %s, %s  •  %s (%d)%s" % [f["name"], String(f.get("title", "")), Friends.RANKS[int(f.get("rank", 0))], Friends.level_name(b), b,
+			var txt = "%s  —  %s, %s  •  %s (%d)%s" % [f["name"], String(f.get("title", "")), Friends.rank_label(f), Friends.level_name(b), b,
 				"  •  ÖLDÜ" if stt == "öldü" else ("  •  KAÇAK" if stt == "kaçak" else ("  ★ takımda" if f.get("party", false) else ""))]
 			var row = UI.chip(txt, ids.find(id) == _friend_i, func():
 				_friend_i = ids.find(id)
@@ -851,7 +851,7 @@ static func _friends_card(main: Node, left: Control) -> void:
 	var rm = Friends.romance_of(id)
 	if rm != "":
 		st_txt += "  •  %s ♥" % {"eş": "Eşin", "sevgili": "Sevgilin", "flört": "Flört"}.get(rm, rm)
-	fv.add_child(UI.label("%s  •  %s  •  %s: %d (%s)%s" % [String(f.get("title", "")), Friends.RANKS[int(f.get("rank", 0))], "Güven" if f.get("rogue", false) else "Bağ", b, Friends.level_name(b), st_txt], 13, Friends.level_color(b)))
+	fv.add_child(UI.label("%s  •  %s  •  %s: %d (%s)%s" % [String(f.get("title", "")), Friends.rank_label(f), "Güven" if f.get("rogue", false) else "Bağ", b, Friends.level_name(b), st_txt], 13, Friends.level_color(b)))
 	if f.get("rogue", false) and int(f.get("motive_known", 0)) > 0:
 		fv.add_child(UI.label("Neden kaçtı: " + String(RogueBonds.motive_of(f)[int(f["motive_known"])]), 12, Color(0.85, 0.8, 0.7), HORIZONTAL_ALIGNMENT_LEFT, true))
 	var bar = UI.bar(Friends.level_color(b), 700, 8)
@@ -963,7 +963,7 @@ static func pause(main: Node) -> void:
 	bg.add_child(root)
 	root.add_child(UI.label("DURAKLATILDI", 15, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
 	root.add_child(UI.label(String(Game.profile.get("name", "")), 54, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true))
-	root.add_child(UI.label("%s  •  %s" % [Data.RANKS[int(Game.profile.get("rank", 0))], Game.region_name(Game.player.global_position) if Game.player else ""], 17, UI.MUTED))
+	root.add_child(UI.label("%s  •  %s" % [Orgs.rogue_rank_name() if Orgs.is_rogue() else Data.RANKS[int(Game.profile.get("rank", 0))], Game.region_name(Game.player.global_position) if Game.player else ""], 17, UI.MUTED))
 	root.add_child(UI.spacer(0, 26, false))
 	var items = [["Devam", "play", func(): main.resume()], ["Ninja Menüsü", "bag", func(): ninja_menu(main, "inv")],
 		["Ekipman ve Kıyafetler", "armor", func(): ninja_menu(main, "wardrobe")], ["Jutsu ve Yetenekler", "scroll", func(): ninja_menu(main, "jutsu")],

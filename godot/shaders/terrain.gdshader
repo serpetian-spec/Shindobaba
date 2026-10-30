@@ -63,7 +63,7 @@ void fragment() {
 	float n4 = fbm(wpos.xz * 0.011);
 	// geniş ölçekli renk çeşitliliği (32 m doku düz görünmesin)
 	base *= 0.9 + n4 * 0.22;
-	if (b == 11) base = vec3(0.42, 0.62, 0.29);
+	if (b == 11) base = vec3(0.3, 0.5, 0.2);   // köy çimeni: öğle güneşinde solgun açık yeşile patlamasın (çayır tonunda)
 	if (b == 13) base = vec3(0.85, 0.71, 0.52);
 	if (b == 14) base = vec3(0.59, 0.57, 0.53);
 	if (b == 15) base = vec3(0.89, 0.91, 0.94);
@@ -76,41 +76,22 @@ void fragment() {
 		// gerçek çimen zemini: yakında ince yaprak dokusu, uzakta iri lekeler (iki ölçek: tekrar deseni görünmesin)
 		float gt = texture(tex_grass, wpos.xz * 0.16).r * 0.6 + texture(tex_grass, wpos.xz * 0.023 + 0.37).r * 0.4;
 		base *= 1.0 + (gt - 0.5) * 0.75;
-		// doygunluğu biraz kır + geniş ölçekte sarımsı / mavimsi yeşil bölgeler (tek tip neon yeşil olmasın)
-		float gl = dot(base, vec3(0.299, 0.587, 0.114));
-		base = mix(vec3(gl), base, 0.82);
-		float hue = fbm(wpos.xz * 0.006 + 31.0);
-		base *= mix(vec3(0.92, 1.0, 1.06), vec3(1.1, 1.02, 0.82), smoothstep(0.35, 0.7, hue));
 	}
-	// köy zemini (referans: tasarlanmış meydan): çoğu yer taş döşeme (ofsetli plaka + derz + plaka plaka ton), çimen yalnız
-	// kenarı belirgin tarhlarda, aralarda toprak; çimenin her yeri kapladığı boş görünümü kırar
-	if (b == 11 || b == 13) {
+	// çöl köyü (Suna): kum taşı döşeme + seyrek yeşillik. Konoha (11) eski hâlinde: çimen zemin
+	if (b == 13) {
 		vec2 tt = wpos.xz / vec2(2.2, 1.6);
 		tt.x += step(0.5, fract(tt.y * 0.5)) * 0.5;
 		vec2 f = abs(fract(tt) - 0.5);
 		float joint = smoothstep(0.44, 0.49, max(f.x, f.y));
 		float tone = hash(floor(tt));
-		vec3 pave = (b == 11) ? mix(vec3(0.6, 0.52, 0.41), vec3(0.69, 0.6, 0.47), tone) : mix(vec3(0.8, 0.68, 0.49), vec3(0.88, 0.77, 0.58), tone);
+		vec3 pave = mix(vec3(0.8, 0.68, 0.49), vec3(0.88, 0.77, 0.58), tone);
 		pave *= (1.0 - joint * 0.25) * (0.94 + n3 * 0.08);
-		pave *= 1.0 + (texture(tex_cobble, wpos.xz * 0.45).r - 0.5) * 0.8;   // gerçek parke taşı dokusu
-		if (b == 11) {
-			// Konoha (animedeki gibi): açık bej sıkıştırılmış toprak, ince toprak dokusu, yer yer koyu ıslak lekeler (taş döşeme değil)
-			pave = vec3(0.5, 0.45, 0.37) * (0.93 + n3 * 0.1) * (0.95 + n2 * 0.08);   // daha nötr: sarıya kaçmasın
-			pave *= 1.0 + (texture(tex_dirt, wpos.xz * 0.18).r - 0.5) * 0.55;
-			pave = mix(pave, pave * vec3(0.86, 0.8, 0.72), smoothstep(0.6, 0.8, fbm(wpos.xz * 0.03 + 9.0)) * 0.6);
-		}
-		pave = mix(pave, pave * vec3(0.82, 0.8, 0.74), smoothstep(0.55, 0.8, fbm(wpos.xz * 0.05 + 3.0)) * 0.5);   // aşınmış/kirli lekeler
-		float bed = smoothstep(0.49, 0.53, fbm(wpos.xz * 0.045 + 11.0));      // çimen tarhları (keskin kenar)
-		float dirt = smoothstep(0.46, 0.49, fbm(wpos.xz * 0.045 + 11.0)) * (1.0 - bed);   // tarhın toprak kenarı
-		vec3 soil = (b == 11) ? vec3(0.42, 0.32, 0.22) : vec3(0.7, 0.55, 0.38);
-		vec3 green = (b == 11) ? base : mix(base, vec3(0.55, 0.62, 0.32), 0.6);
-		// döşeme yalnız bazı mahallelerde / meydanlarda; aralar sıkıştırılmış sıcak toprak (her yer beton gibi durmasın)
-		float earthz = 0.0;
-		vec3 earth = vec3(0.6, 0.47, 0.33) * (0.9 + n3 * 0.14) * (0.92 + n2 * 0.12);
-		earth = mix(earth, earth * vec3(0.85, 0.95, 0.8), smoothstep(0.55, 0.75, fbm(wpos.xz * 0.06 + 4.0)) * 0.5);   // yer yer yosunlu
-		pave = mix(pave, earth, earthz);
-		vec3 ground = mix(pave, soil, dirt);
-		ground = mix(ground, green, bed * ((b == 11) ? 1.0 : 0.35));
+		pave *= 1.0 + (texture(tex_cobble, wpos.xz * 0.45).r - 0.5) * 0.8;
+		pave = mix(pave, pave * vec3(0.82, 0.8, 0.74), smoothstep(0.55, 0.8, fbm(wpos.xz * 0.05 + 3.0)) * 0.5);
+		float bed = smoothstep(0.49, 0.53, fbm(wpos.xz * 0.045 + 11.0));
+		float dirt = smoothstep(0.46, 0.49, fbm(wpos.xz * 0.045 + 11.0)) * (1.0 - bed);
+		vec3 ground = mix(pave, vec3(0.7, 0.55, 0.38), dirt);
+		ground = mix(ground, mix(base, vec3(0.55, 0.62, 0.32), 0.6), bed * 0.35);
 		base = ground;
 	}
 	if (b == 2) base *= 1.0 + (texture(tex_forest, wpos.xz * 0.12).r - 0.5) * 0.7;   // orman zemini: yaprak, dal, toprak
@@ -147,17 +128,6 @@ void fragment() {
 	if (b == 14 || b == 15) dirt = vec3(0.62, 0.6, 0.56) * (0.88 + n3 * 0.16);
 	if (b == 8 || b == 9) dirt = vec3(0.52, 0.47, 0.42) * (0.88 + n3 * 0.18);  // karlı/dağ yolu: ıslak çakıl
 	if (b != 11) dirt *= 1.0 + (texture(tex_dirt, wpos.xz * 0.2).r - 0.5) * 0.8;   // köy dışı toprak yol
-	// köy içi cadde: toprak değil büyük taş plaka döşeme (referans meydan), kenarda koyu bordür
-	if (b == 11) {
-		vec2 st = wpos.xz / 3.0;
-		st.x += step(0.5, fract(st.y * 0.5)) * 0.5;
-		vec2 sf = abs(fract(st) - 0.5);
-		float sj = smoothstep(0.45, 0.49, max(sf.x, sf.y));
-		// köy caddesi: açık, düzgün sıkıştırılmış toprak (zeminden bir ton açık), kenarı hafif koyu; tekerlek / ayak izi lekeleri
-		dirt = vec3(0.52, 0.47, 0.39) * (0.95 + n3 * 0.07);   // nötr açık toprak (sarıya kaçmasın)
-		dirt *= 1.0 + (texture(tex_dirt, wpos.xz * 0.22).r - 0.5) * 0.4;
-		dirt *= 1.0 - 0.12 * (smoothstep(0.3, 0.45, rmask) - smoothstep(0.45, 0.6, rmask));
-	}
 	// yol kenarı: tekerlek izi ortası hafif çimenli, kenarlarda çakıl
 	dirt *= 1.0 - 0.06 * smoothstep(0.75, 0.95, rmask);
 	base = mix(base, dirt, road * 0.92);

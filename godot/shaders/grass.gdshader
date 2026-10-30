@@ -48,7 +48,7 @@ void vertex() {
 	// 2 orman 4 yağmur 6 pirinç 7 çimen 9 dağ 10 bataklık 11 köy
 	float ok = (b == 2 || b == 4 || b == 6 || b == 7 || b == 10) ? 1.0 : (b == 9 ? 0.5 : 0.0);
 	// köy içinde sadece duvar diplerinde/bahçelerde seyrek öbekler
-	if (b == 11) ok = step(0.54, fbm(root.xz * 0.045 + 11.0));   // köy: yalnız çimen tarhlarında (arazi gölgelendiricisiyle aynı desen), döşemede çimen yok
+	if (b == 11) ok = step(0.82, hash(floor(root.xz * 0.18)));   // köy: duvar diplerinde / bahçelerde seyrek öbekler (eski hâl)
 	// 13 çöl köyü, 14 taş köy, 15 karlı köy: çimen yok
 	ok *= 1.0 - step(0.2, road);            // yol
 	ok *= 1.0 - step(0.5, bio.b);           // ıslak
@@ -79,8 +79,6 @@ void fragment() {
 	float vein = 1.0 - 0.18 * (1.0 - smoothstep(0.0, 0.18, abs(UV.x - 0.5)));
 	c *= vein;
 	c = mix(c, c * vec3(1.18, 1.14, 0.78), smoothstep(0.72, 0.98, tip) * 0.6);
-	float cl = dot(c, vec3(0.299, 0.587, 0.114));
-	c = mix(vec3(cl), c, 0.84);   // arazi ile aynı doygunluk
 	c = mix(c, c * vec3(1.05, 1.12, 0.85), tip * 0.5);
 	float lum = dot(c, vec3(0.299, 0.587, 0.114));
 	c = max(mix(vec3(lum), c, 1.08), vec3(0.0));

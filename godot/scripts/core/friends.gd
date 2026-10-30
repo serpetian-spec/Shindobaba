@@ -16,6 +16,15 @@ const GIFT_COST := 100
 const RETURN_T := 60.0
 const DEATH_P := 0.06     # takımdaki dost düşünce kalıcı ölme olasılığı (ölüm nadir)
 const RANKS := ["Genin", "Chūnin", "Jōnin", "Elit Jōnin"]
+const ROGUE_CLASS := ["C", "B", "A", "S"]
+
+
+## Gösterilecek rütbe: köylü ninjada köy rütbesi; kaçakta (köyden ayrılmış) köy rütbesi yok -> Nukenin + Bingo Book sınıfı
+static func rank_label(f: Dictionary) -> String:
+	var rk = clampi(int(f.get("rank", 0)), 0, RANKS.size() - 1)
+	if f.get("rogue", false):
+		return "Nukenin (%s-rank)" % ROGUE_CLASS[rk]
+	return RANKS[rk]
 const NINJA_ROLES := ["patrol", "roof", "guard", "spar", "teacher"]
 const ELS := ["katon", "suiton", "fuuton", "doton", "raiton"]
 const CHAT := ["Bugün hava güzel, değil mi? Antrenman için ideal.", "Geçen gün pazarda harika bir dango buldum, sana da getiririm.",
@@ -247,7 +256,7 @@ static func tag(v: Node) -> void:
 	if id == "" or not all().has(id) or not v.has_method("set_name_tag"):
 		return
 	var f: Dictionary = all()[id]
-	v.set_name_tag("%s\n%s" % [f["name"], RANKS[int(f.get("rank", 0))]], level_color(int(f["bond"])).lerp(Color.WHITE, 0.3))
+	v.set_name_tag("%s\n%s" % [f["name"], rank_label(f)], level_color(int(f["bond"])).lerp(Color.WHITE, 0.3))
 
 
 ## Selamlama (bağa ve son habere göre)
@@ -378,8 +387,8 @@ static func _friend_opts(id: String, v: Node) -> Array:
 			if set_party(id, true) and v != null and is_instance_valid(v) and v.has_method("vanish"):
 				v.vanish()})
 	elif b >= JOIN_BOND:
-		opts.append({"label": "Takım (o bir %s, sen henüz değilsin)" % RANKS[int(f.get("rank", 0))], "cb": func():
-			Hud.msg("%s: \"Bir %s rütbesi daha düşük birinin peşinden gitmez. Rütbe atla, sonra konuşuruz.\"" % [f["name"], RANKS[int(f.get("rank", 0))]], Color(0.9, 0.85, 0.6))})
+		opts.append({"label": "Takım (o bir %s, sen henüz değilsin)" % rank_label(f), "cb": func():
+			Hud.msg("%s: \"Bir %s rütbesi daha düşük birinin peşinden gitmez. Rütbe atla, sonra konuşuruz.\"" % [f["name"], rank_label(f)], Color(0.9, 0.85, 0.6))})
 	elif b >= 0:
 		opts.append({"label": "Takım (bağ %d gerekir, şu an %d)" % [JOIN_BOND, b], "cb": func():
 			Hud.msg("%s seni daha iyi tanımak istiyor: doğru konuları konuş, sevdiği hediyeyi bul, birlikte antrenman yap." % f["name"], Color(0.9, 0.85, 0.6))})
@@ -709,7 +718,7 @@ static func arch(f: Dictionary) -> Dictionary:
 			a["jutsu"] = auto
 			a["auto_jutsu"] = auto.duplicate()
 			a["auto_lv"] = lv
-	a["name"] = "%s (%s)" % [f["name"], RANKS[int(f.get("rank", 0))]]
+	a["name"] = "%s (%s)" % [f["name"], rank_label(f)]
 	a["respawn"] = false
 	a["hp"] = 240.0 + lv * 16.0
 	a["level"] = lv
@@ -748,9 +757,15 @@ func _life_event() -> void:
 			_defect(id)
 		elif r < defect_p + 0.3 and rank < 3 and randf() < [0.9, 0.6, 0.35][rank]:
 			f["rank"] = rank + 1
-			log_event(f, "%s oldu" % RANKS[rank + 1])
-			f["news"] = "Duydun mu? Artık %s oldum! Yeleği giyince insan bir tuhaf oluyor." % RANKS[rank + 1]
-			Hud.msg("Haber: %s %s oldu!" % [f["name"], RANKS[rank + 1]], Color(0.6, 1.0, 0.75), 5.0)
+			if f.get("rogue", false):
+				# kaçağın köy terfisi olmaz: Bingo Book'taki sınıfı yükselir (başına konan ödül artar)
+				log_event(f, "Bingo Book'ta %s oldu" % rank_label(f))
+				f["news"] = "Bingo Book'ta adım yükselmiş: artık %s. Başıma konan ödül arttı, gözünü dört aç." % rank_label(f)
+				Hud.msg("Haber: %s artık %s" % [f["name"], rank_label(f)], Color(0.95, 0.6, 0.5), 5.0)
+			else:
+				log_event(f, "%s oldu" % RANKS[rank + 1])
+				f["news"] = "Duydun mu? Artık %s oldum! Yeleği giyince insan bir tuhaf oluyor." % RANKS[rank + 1]
+				Hud.msg("Haber: %s %s oldu!" % [f["name"], RANKS[rank + 1]], Color(0.6, 1.0, 0.75), 5.0)
 		elif r < defect_p + 0.33 and randf() < 0.4 and not spouse and rank >= 1 and romance_of(id) == "" and not likes_you(f):   # evlilik: arada bir (eskiden olayların %12si)
 			var fem = String(f["look"].get("gender", "m")) == "f"
 			# kimi zaman tanıdığın başka bir dostla evlenir (ikisi de bekâr, karşı cins, aynı köy, sana gönlü olmayan)
@@ -1402,8 +1417,8 @@ static func on_mission_done(rank: String) -> void:
 			var rk = int(f0.get("rank", 0))
 			if rk < 3 and int(f0["sm"]) >= int(need[rk]):
 				f0["rank"] = rk + 1
-				log_event(f0, "Senin eğitimin sayesinde %s oldu" % RANKS[rk + 1])
-				Hud.banner("ÖĞRENCİN %s OLDU" % RANKS[rk + 1].to_upper(), "%s seninle çıktığı görevlerde büyüdü." % f0["name"], Color(0.7, 0.9, 1.0))
+				log_event(f0, "Senin eğitimin sayesinde %s oldu" % rank_label(f0))
+				Hud.banner("ÖĞRENCİN %s OLDU" % rank_label(f0).to_upper(), "%s seninle çıktığı görevlerde büyüdü." % f0["name"], Color(0.7, 0.9, 1.0))
 		var r = randf()
 		if r < float(risk[0]):
 			f0["status"] = "öldü"

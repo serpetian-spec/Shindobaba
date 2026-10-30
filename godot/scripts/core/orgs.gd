@@ -26,7 +26,7 @@ const AKATSUKI := [
 ]
 
 ## Kaçak rütbeleri: şöhret (infamy) eşiği, ad, alınabilecek en yüksek iş rütbesi
-const ROGUE_RANKS := [[0, "Firari", "C"], [300, "Kiralık Kılıç", "B"], [900, "Kara Listede", "A"], [2000, "Aranan Gölge", "S"], [4000, "Efsanevi Kaçak", "S"]]
+const ROGUE_RANKS := [[0, "Nukenin", "C"], [300, "Yōhei", "B"], [900, "Tehaisha", "A"], [2000, "Yami no Tehaisha", "S"], [4000, "Densetsu no Nukenin", "S"]]   # 抜け忍, 傭兵 (paralı asker), 手配者 (aranan), 闇の手配者, 伝説の抜け忍
 ## Kaçak bu büyük gizli köylerde düşmandır (muhafızlar saldırır); küçük kasabalarda saklanabilir
 const ROGUE_BANNED := ["konoha", "suna", "kiri", "kumo", "iwa", "ame"]
 

@@ -1027,7 +1027,10 @@ func _process(dt: float) -> void:
 			xhair_lock = lk
 		xhair.queue_redraw()
 	name_lbl.text = String(pr.get("name", ""))
-	rank_lbl.text = "%s  •  Seviye %d" % [Data.RANKS[int(pr.get("rank", 0))].to_upper(), int(pr.get("level", 1))]
+	var rname: String = Data.RANKS[int(pr.get("rank", 0))]
+	if Orgs.is_rogue():
+		rname = "%s (%s-rank)" % [Orgs.rogue_rank_name(), String(Orgs.ROGUE_RANKS[Orgs.rogue_rank()][2])]   # kaçakta köy rütbesi yok
+	rank_lbl.text = "%s  •  Seviye %d" % [rname.to_upper(), int(pr.get("level", 1))]
 	ryo_lbl.text = "%d Ryō" % int(pr.get("ryo", 0))
 	if buff_lbl:
 		var bl = []
