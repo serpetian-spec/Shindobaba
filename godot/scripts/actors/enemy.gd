@@ -679,6 +679,12 @@ func _end_attack() -> void:
 func take_hit(info: Dictionary) -> void:
 	if dead:
 		return
+	# Susanoo içindeki düşman: darbeler Susanoo'ya çarpar (oyuncunun İnsansı kademesiyle aynı azaltma; eskiden hiç azaltmıyordu)
+	if has_meta("ea_susanoo") and is_instance_valid(get_meta("ea_susanoo")):
+		info = info.duplicate()
+		info["dmg"] = float(info.get("dmg", 5.0)) * 0.5
+		info["knock"] = float(info.get("knock", 2.0)) * 0.2
+		info["launch"] = 0.0
 	# blok: yalnız önden gelen darbe, bekleme süresiyle; ağır darbe ya da üst üste 3 darbe savunmayı kırar
 	var atk0: Node3D = info.get("attacker")
 	var front = true

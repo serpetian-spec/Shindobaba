@@ -640,7 +640,7 @@ func _start_susanoo() -> void:
 	p.add_child(sn)
 	sn.build(Game.profile, -1, p.model)
 	susanoo_node = sn
-	var armor = [1.0, 0.4, 0.3, 0.22, 0.15, 0.08][sn.tier]
+	var armor = [1.0, 0.65, 0.58, 0.5, 0.42, 0.35][sn.tier]   # alınan hasar çarpanı (eskiden %8'e kadar iniyordu: ölümsüzlük)
 	Buffs.add("susanoo", 9999.0, {"armor": armor})
 	var final_scale = sn.scale
 	sn.scale = final_scale * 0.1
