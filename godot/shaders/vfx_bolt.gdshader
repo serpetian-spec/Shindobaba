@@ -13,5 +13,5 @@ void fragment() {
 	float band = 1.0 - smoothstep(0.55, 0.62, v);
 	float glow = pow(1.0 - v, 2.0);
 	vec3 c = vec3(1.0) * core * 1.6 + col.rgb * band * 0.9 + col.rgb * glow * 0.6;
-	ALBEDO = c * intensity * fl * COLOR.a;
+	ALBEDO = c * mix(1.0, intensity, 0.6) * fl * COLOR.a;   // parlama kısık
 }

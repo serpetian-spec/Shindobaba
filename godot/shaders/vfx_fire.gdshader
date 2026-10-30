@@ -50,14 +50,17 @@ void fragment() {
 	float n = vn(p) * 0.55 + vn(p * 2.3 + vec3(3.1, 7.7, 1.3)) * 0.3 + vn(p * 5.2) * 0.15;
 	float v = fres * 0.95 + (n - 0.5) * 1.0;
 	if (fres + (n - 0.5) * erode * 2.2 > 0.97 - alpha_cut) discard;
-	vec3 col;
-	if (v < 0.18) col = c_core.rgb;
-	else if (v < 0.4) col = c_hot.rgb;
-	else if (v < 0.63) col = c_mid.rgb;
-	else if (v < 0.86) col = c_edge.rgb;
-	else col = c_line.rgb;
-	col *= glow;
+	// yumuşak geçişli bantlar (anime kademesi korunur ama keskin yapay disk görünmez); parlak çekirdek küçük
+	float e = 0.05;
+	vec3 col = c_core.rgb;
+	col = mix(col, c_hot.rgb, smoothstep(0.1 - e, 0.1 + e, v));
+	col = mix(col, c_mid.rgb, smoothstep(0.33 - e, 0.33 + e, v));
+	col = mix(col, c_edge.rgb, smoothstep(0.6 - e, 0.6 + e, v));
+	col = mix(col, c_line.rgb, smoothstep(0.86 - e * 0.6, 0.86 + e * 0.6, v));
+	// iç dalgalanma: sıcak/soğuk damarlar (düz renk alanı kalmasın)
+	col *= 0.86 + 0.28 * vn(p * 3.7 + vec3(TIME * 0.7));
+	col *= mix(1.0, glow, 0.55);   // parlama yarıya: göz yormasın
 	float mx = max(col.r, max(col.g, col.b));
-	if (mx > 1.0) col = col / mx * (1.0 + (mx - 1.0) * 0.2);   // tonu koru
+	if (mx > 1.0) col = col / mx * (1.0 + (mx - 1.0) * 0.15);   // tonu koru
 	ALBEDO = col;
 }

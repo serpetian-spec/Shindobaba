@@ -515,14 +515,21 @@ void fragment() {
 	EMISSION = emission_color.rgb * emission_color.a + vec3(hit_flash) * 0.6;
 	float rim = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), 3.0);
 	EMISSION += rim * rim_amount * 0.35 * ALBEDO;
+	if (use_vertex_color) {
+		// taş fener / kâğıt fener ateş odası: alacakaranlıkta da yanar, sıcak güçlü sarı (muhafız feneri gibi)
+		vec3 vl = COLOR.rgb;
+		float lamp0 = step(distance(vl, vec3(1.0, 0.85, 0.5)), 0.02) + step(distance(vl, vec3(1.0, 0.85, 0.55)), 0.02);
+		EMISSION += lamp0 * vec3(1.0, 0.55, 0.12) * (2.0 + night_glow * 5.0);
+		ALBEDO = mix(ALBEDO, vec3(1.0, 0.72, 0.25), lamp0 * 0.85);
+	}
 	if (night_glow > 0.0 && use_vertex_color) {
 		// renk işaretleri: cam / shoji pencere, fener ışığı, kırmızı kâğıt fener (HouseKit, DoorKit, Builder.lantern)
 		vec3 vc0 = COLOR.rgb;
 		float win = step(distance(vc0, vec3(0.55, 0.72, 0.85)), 0.012) + step(distance(vc0, vec3(0.95, 0.92, 0.82)), 0.012);
 		float lamp = step(distance(vc0, vec3(1.0, 0.85, 0.5)), 0.02) + step(distance(vc0, vec3(1.0, 0.85, 0.55)), 0.02);
 		float red = step(distance(vc0, vec3(0.9, 0.2, 0.15)), 0.012);
-		float on = step(0.32, hash(floor(wpos.xz * 0.55) + floor(wpos.y * 0.33) * 7.1));   // pencerelerin ~2/3'ü yanık
-		EMISSION += night_glow * (win * on * vec3(1.0, 0.7, 0.32) * 1.5 + lamp * vec3(1.0, 0.78, 0.4) * 2.6 + red * vec3(1.0, 0.28, 0.12) * 1.8);
+		float on = step(0.72, hash(floor(wpos.xz * 0.55) + floor(wpos.y * 0.33) * 7.1));   // pencerelerin ~%28 i yanık (hepsi yanınca yapay duruyordu)
+		EMISSION += night_glow * (win * on * vec3(1.0, 0.7, 0.32) * 1.5 + red * vec3(1.0, 0.28, 0.12) * 1.8);
 	}
 }
 

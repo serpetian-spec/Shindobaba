@@ -169,7 +169,7 @@ static func hospital(b: Builder, decor: Node3D, hx: float, hn: float, rng: Rando
 		b.box(Vector3(hx - 30.0 + k * 5.5, 0.065, fn - 21.0), Vector3(0.1, 0.03, 41.0), pav.darkened(0.12), 0, false)
 	b.box(Vector3(hx, 0.08, fn - 30.0), Vector3(7.0, 0.05, 24.0), pav.lightened(0.1), 0, false)
 	b.cyl(Vector3(hx, 0.4, fn - 32.0), 9.0, 0.8, Color(0.7, 0.68, 0.66), true, 24)
-	b.cyl(Vector3(hx, 0.75, fn - 32.0), 8.2, 0.1, Color(0.36, 0.26, 0.18), false, 24)
+	b.cyl(Vector3(hx, 0.83, fn - 32.0), 8.2, 0.1, Color(0.36, 0.26, 0.18), false, 24)   # taş halkanın üstünde (aynı yükseklikte titriyordu)
 	for k in 10:
 		var a = k * 36.0
 		var q = Builder.rot(0, 3.4, a)

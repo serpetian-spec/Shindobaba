@@ -527,9 +527,13 @@ func tree(x: float, n: float, s: float, rng: RandomNumberGenerator, y := 0.0) ->
 		pick -= Props.VILLAGE_TREE_W[vi]
 		vi += 1
 	var tm = _tree_meshes[vi]
-	var wt = w(Vector3(x, 0, n))
-	if not area_free(Vector2(wt.x, wt.z), 2.4 * s):
-		return   # yerinde bina / duvar var: tacı binanın içinden fışkırmasın
+	for h in houses:   # yalnız evler: tacı binanın içinden fışkırmasın (saksı / çiçeklik içindeki ağaçlar etkilenmez)
+		var dx = x - float(h[0])
+		var dn = n - float(h[1])
+		if absf(dx) > 30.0 or absf(dn) > 30.0:
+			continue
+		if Vector2(dx, dn).length() < maxf(float(h[2]), float(h[3])) * 0.5 + 2.2 * s:
+			return
 	if tm != null:
 		var sc = s * rng.randf_range(0.85, 1.15)
 		pack_mesh(tm, Vector3(x, y, n), rng.randf() * 360.0, sc, 1.0)
@@ -572,7 +576,7 @@ func lantern(x: float, n: float, h := 3.2) -> void:
 	# taş fener (tōrō) hazır modeli; h: tepe yüksekliği (zemin dahil)
 	var gy = h - 3.2
 	if prop("stone_lamp", Vector3(x, gy, n), 0.0, 2.6, 0.32):   # katı: içinden geçilmesin, NPC'ler arkasına girmesin
-		box(Vector3(x, gy + 1.88, n), Vector3(0.42, 0.36, 0.42), Color(1.0, 0.85, 0.5), 0, false)   # ateş odası: gece yanar (toon night_glow)
+		box(Vector3(x, gy + 1.88, n), Vector3(0.62, 0.46, 0.62), Color(1.0, 0.85, 0.5), 0, false)   # ateş odası: gece yanar (toon night_glow)
 		Lights.add(w(Vector3(x, gy + 1.9, n)))
 		return
 	box(Vector3(x, h * 0.5, n), Vector3(0.2, h, 0.2), Color(0.3, 0.22, 0.15), 0, false)

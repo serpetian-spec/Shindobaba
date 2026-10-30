@@ -120,6 +120,18 @@ func _ready() -> void:
 			await get_tree().create_timer(0.5).timeout
 			await main.shot("look_shop_%d" % k)
 			k += 1
+	if want.call("hokage"):
+		var tp = Game.from_map(Vector2(v["x"], v["y"] + 600.0 - 35.0 - 14.0))
+		tp.y = Game.ground_height(tp.x, tp.z)
+		pl.respawn(tp + Vector3(4, 0.5, 0))
+		await get_tree().create_timer(6.0).timeout
+		for k in 2:
+			env.time_of_day = [0.42, 0.95][k]
+			await get_tree().create_timer(1.5).timeout
+			cam.global_position = tp + Vector3(9, 4.0, 4)
+			cam.look_at(tp + Vector3(0, 3.0, -12), Vector3.UP)
+			await main.shot("look_hk_%d" % k)
+		env.time_of_day = 0.42
 	if want.call("cloud"):
 		cam.global_position = p + Vector3(0, 2, 0)
 		cam.look_at(p + Vector3(30, 18, -60))

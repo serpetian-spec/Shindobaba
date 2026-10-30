@@ -295,7 +295,7 @@ static func plaza(b: Builder, o: Dictionary) -> void:
 		CityDecor.banner(decor, _gp(b, cx + sx * (gw + 3.5), n0 + 3.0), 0.0, acc, Color(0.98, 0.96, 0.9))
 	# --- nöbetçiler: merdiven başı + kapı
 	for sx in [-1.0, 1.0]:
-		_site(vid, {"type": "guard", "pos": _gp(b, cx + sx * (minf(tw - 6.0, 16.0) * 0.5 + 2.2), front - td - 2.4), "face": PI})
+		_site(vid, {"type": "guard", "pos": _gp(b, cx + sx * (minf(tw - 6.0, 16.0) * 0.5 + 1.0), front - td - 4.5), "face": PI})   # fenerin önünde, meydan tarafında (arkasında kalıyordu)
 		_site(vid, {"type": "guard", "pos": _gp(b, cx + sx * (gw - 2.0), n0 + 0.5), "face": PI})
 	_site(vid, {"type": "pigeons", "pos": _gp(b, cx + 12, nm - 8)})
 	b.yoff = yo
@@ -376,10 +376,10 @@ static func konoha_tower(b: Builder, decor: Node3D, tn: float) -> float:
 		b.box(Vector3(sx * 5.6, 0.8, en - 6.0), Vector3(1.8, 0.4, 1.8), stone.darkened(0.1), 0, false)
 	b.box(Vector3(0, 7.7, en - 3.2), Vector3(14.0, 0.8, 7.2), dark, 0, false)
 	b.roof(Vector3(0, 8.1, en - 3.2), Vector3(16.0, 2.6, 8.4), red)
-	b.box(Vector3(0, 3.8, en + 0.15), Vector3(7.4, 6.4, 0.6), dark, 0, false)
+	b.box(Vector3(0, 4.1, en + 0.15), Vector3(7.4, 6.4, 0.6), dark, 0, false)   # kapı terasın üstünde (alt yarısı terasa gömülüyordu)
 	for sx in [-1.0, 1.0]:
-		b.box(Vector3(sx * 1.75, 3.4, en - 0.2), Vector3(3.3, 5.6, 0.2), Color(0.45, 0.28, 0.16), 0, false)
-		b.box(Vector3(sx * 0.4, 3.4, en - 0.32), Vector3(0.12, 0.8, 0.08), Color(0.85, 0.68, 0.3), 0, false)
+		b.box(Vector3(sx * 1.75, 3.75, en - 0.2), Vector3(3.3, 5.5, 0.2), Color(0.45, 0.28, 0.16), 0, false)
+		b.box(Vector3(sx * 0.4, 3.75, en - 0.32), Vector3(0.12, 0.8, 0.08), Color(0.85, 0.68, 0.3), 0, false)
 	for k in 4:
 		b.box(Vector3(-2.7 + k * 1.8, 5.6, en - 0.5), Vector3(1.7, 1.6, 0.06), red, 0, false)
 	b.box(Vector3(0, 9.6, en - 6.85), Vector3(4.2, 1.6, 0.2), Color(0.96, 0.94, 0.88), 0, false)

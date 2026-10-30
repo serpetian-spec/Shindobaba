@@ -24,5 +24,5 @@ void fragment() {
 	float line = 1.0 - smoothstep(0.08, 0.16, abs(s - 0.5));
 	vec3 c = c_body.rgb * (0.25 + fres * 0.9) + c_line.rgb * line * (0.6 + fres);
 	c += c_line.rgb * smoothstep(0.75, 0.95, fres) * 0.8;
-	ALBEDO = c * intensity;
+	ALBEDO = c * mix(1.0, intensity, 0.6);   // parlama kısık
 }
