@@ -927,6 +927,8 @@ func _mission_board(it: Dictionary) -> void:
 			opts.append({"label": "%s adaylığı" % home_info()["kage"], "cb": func(): Kage.offer_candidacy()})
 		if s >= Journal.FREE and int(pr["level"]) >= 15 and rk == 1:
 			opts.append({"label": "Chūnin Sınavına başvur", "cb": func(): ChuninExam.apply()})
+		if it.get("kage_office", false):
+			opts.append_array(Friends._kage_teach_opts())   # isteğe bağlı öğretmenlik / genin takımı
 		if not opts.is_empty():
 			opts.push_front({"label": "Görevleri göster" if it.has("giver") else "Görev panosu", "cb": func(): Missions.open_board(it)})
 			if it.has("giver"):

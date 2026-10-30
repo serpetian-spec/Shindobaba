@@ -816,7 +816,7 @@ static func _friends_card(main: Node, left: Control) -> void:
 	var fv = UI.vbox(8)
 	fc.add_child(fv)
 	var party = Friends.party_ids()
-	fv.add_child(UI.icon_label("person", "ARKADAŞLAR (%d)  •  Takımda: %d / %d" % [fs.size(), party.size(), Friends.PARTY_MAX], 15, Color(0.6, 1.0, 0.75)))
+	fv.add_child(UI.icon_label("person", "ARKADAŞLAR (%d)  •  Takımda: %d / %d" % [fs.size(), party.size(), Friends.party_max()], 15, Color(0.6, 1.0, 0.75)))
 	if fs.is_empty():
 		var hl = UI.label("Köydeki ninjalarla (klan üyeleri, devriye ve antrenman ninjaları) konuş ([F]) ve kendini tanıt. Sohbet, hediye ve dostça düello bağı güçlendirir; bağ %d olunca takımına katılırlar." % Friends.JOIN_BOND, 13, UI.MUTED)
 		hl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -843,7 +843,8 @@ static func _friends_card(main: Node, left: Control) -> void:
 	elif stt == "hapiste":
 		st_txt = "  •  HAPİSTE"
 	elif not Friends.available(f):
-		st_txt = "  •  Köyde değil (görev / hastane)"
+		var mins = ceili((float(f.get("away", 0.0)) - Time.get_unix_time_from_system()) / 60.0)
+		st_txt = ("  •  Hastanede: %s (~%d dk)" % [f["injury"], mins]) if f.has("injury") and float(f.get("inj_away", -1.0)) == float(f.get("away", 0.0)) else "  •  Köyde değil (görev)"
 	elif not f.get("party", false):
 		st_txt = "  •  " + String(Friends.JOB_NAMES.get(Friends.job_of(f), "Evde"))
 	var rm = Friends.romance_of(id)

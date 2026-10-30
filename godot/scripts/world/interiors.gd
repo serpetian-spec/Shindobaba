@@ -239,6 +239,8 @@ func _spawn_npc(req: Dictionary) -> void:
 	for k in req["extra"]:
 		if k != "kage_vid":
 			vg.set(k, req["extra"][k])
+		else:
+			vg.set_meta("kage_vid", req["extra"][k])
 	room.add_child(vg)
 	if req["extra"].has("kage_vid"):
 		KageAttire.hat(vg.model, req["extra"]["kage_vid"])

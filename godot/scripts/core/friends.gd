@@ -152,6 +152,12 @@ static func options_for(v: Node) -> Array:
 	var id = String(v.get_meta("friend_id", ""))
 	if id != "" and all().has(id):
 		return _friend_opts(id, v)
+	if v.has_meta("grad_id"):
+		return [{"label": "Kendini tanıt (yeni mezun)", "cb": func(): _meet_grad(v)}]
+	if v.role == "teacher" and v.interior:
+		return _teacher_opts()
+	if v.has_meta("kage_vid") and String(v.get_meta("kage_vid")) == Progress.home():
+		return _kage_teach_opts()
 	if not is_ninja(v):
 		return []   # sıradan köylüler, çocuklar, özel kişiler (Kage, hocalar) dost/takım olmaz
 	return [{"label": "Kendini tanıt", "cb": func(): _meet(v)}]
@@ -507,7 +513,7 @@ static func _family(clan: String, female: bool, rank: int) -> Array:
 	return fam
 
 
-static func _meet(v: Node) -> void:
+static func _meet(v: Node, name_over := "") -> void:
 	var fs = all()
 	var female = String(v.look.get("gender", "m")) == "f"
 	var given = (ClanWorld.GIVEN_F if female else ClanWorld.GIVEN_M).pick_random()
@@ -517,6 +523,8 @@ static func _meet(v: Node) -> void:
 		given = String(v.given)
 		clan = String(v.clan)
 		eye = [int(v.eye_kind), int(v.eye_lvl)]
+	if name_over != "":
+		given = name_over
 	var age = String(v.look.get("age", "adult"))
 	var rank = 0 if age == "teen" else (2 if v.role in ["teacher", "guard"] else (1 if v.look.get("vest") != null else randi_range(0, 1)))
 	var id = "f%d" % (int(pr().get("friend_seq", 0)) + 1)
@@ -552,8 +560,8 @@ static func set_party(id: String, on: bool) -> bool:
 		if not available(f):
 			Hud.msg("%s şu an köyde değil." % f["name"], Color(1, 0.7, 0.4))
 			return false
-		if party_ids().size() >= PARTY_MAX:
-			Hud.msg("Takımın dolu (en fazla %d arkadaş). Önce birini köyde beklet." % PARTY_MAX, Color(1, 0.7, 0.4))
+		if party_ids().size() >= party_max():
+			Hud.msg("Takımın dolu (en fazla %d kişi). Önce birini köyde beklet." % party_max(), Color(1, 0.7, 0.4))
 			return false
 		f["party"] = true
 		Hud.msg("%s takımına katıldı!" % f["name"], Color(0.6, 1.0, 0.7))
@@ -659,7 +667,7 @@ func _life_event() -> void:
 			for m2 in fam:
 				if String(m2["rel"]) in ["Karısı", "Kocası"]:
 					sclan = String(m2.get("clan", ""))
-			var kid = {"rel": "Kızı" if kf else "Oğlu", "name": kn, "alive": true}
+			var kid = {"rel": "Kızı" if kf else "Oğlu", "name": kn, "alive": true, "born": now}
 			if sclan != "" and String(f.get("clan", "")) != "" and sclan != String(f["clan"]):
 				kid["mix"] = "%s × %s melezi" % [ClanWorld.clan_name(String(f["clan"])), ClanWorld.clan_name(sclan)]
 			fam.append(kid)
@@ -1233,12 +1241,326 @@ func _betrayal_event(id: String) -> void:
 
 ## Birlikte görev / öldürme bağı artırır (takımdakiler)
 static func on_mission_done(rank: String) -> void:
+	var risk: Array = {"D": [0.0, 0.03], "C": [0.02, 0.08], "B": [0.04, 0.12], "A": [0.07, 0.18], "S": [0.12, 0.22]}.get(rank, [0.03, 0.1])
 	for id in party_ids():
+		var f0: Dictionary = all()[id]
+		if f0.get("student", false):
+			f0["sm"] = int(f0.get("sm", 0)) + {"D": 1, "C": 1, "B": 2, "A": 3, "S": 4}.get(rank, 1)
+			var need = [6, 20, 45]
+			var rk = int(f0.get("rank", 0))
+			if rk < 3 and int(f0["sm"]) >= int(need[rk]):
+				f0["rank"] = rk + 1
+				log_event(f0, "Senin eğitimin sayesinde %s oldu" % RANKS[rk + 1])
+				Hud.banner("ÖĞRENCİN %s OLDU" % RANKS[rk + 1].to_upper(), "%s seninle çıktığı görevlerde büyüdü." % f0["name"], Color(0.7, 0.9, 1.0))
+		var r = randf()
+		if r < float(risk[0]):
+			f0["status"] = "öldü"
+			f0["party"] = false
+			log_event(f0, "%s-rank görevde hayatını kaybetti" % rank)
+			Hud.banner("%s ÖLDÜ" % String(f0["name"]).to_upper(), "Görevden dönemedi. Köye onun yerine yalnız bandı döndü.", Color(0.85, 0.85, 0.95))
+			continue
+		elif r < float(risk[0]) + float(risk[1]):
+			injure(id, "görevde yaralandı")
+			continue
 		add_bond(id, {"D": 2, "C": 3, "B": 4, "A": 6, "S": 8}.get(rank, 3), true)
 		var f: Dictionary = all()[id]
 		f["love"] = mini(100, int(f.get("love", 0)) + 2) if romance_of(id) != "" else int(f.get("love", 0))
 	if not party_ids().is_empty():
 		Hud.msg("Takımdaki dostlarla bağınız güçlendi.", Color(0.6, 1.0, 0.75))
+
+
+## Yaralanma: takımdan düşer, hastanede yatar (bir süre köyde değil)
+const INJURIES := ["kolu kırıldı", "kaburgaları çatladı", "ağır yanık", "zehirlendi", "chakra tükenmesi", "derin kılıç yarası", "bacağı kırıldı"]
+
+
+static func injure(id: String, why: String) -> void:
+	var f: Dictionary = all()[id]
+	var mins = randf_range(12.0, 30.0)
+	f["away"] = Time.get_unix_time_from_system() + mins * 60.0
+	f["injury"] = INJURIES.pick_random()
+	f["inj_away"] = f["away"]
+	f["party"] = false
+	log_event(f, "%s (%s), hastaneye kaldırıldı" % [why, f["injury"]])
+	Hud.banner("%s YARALANDI" % String(f["name"]).to_upper(), "%s — hastanede ~%d dk yatacak." % [String(f["injury"]).capitalize(), int(mins)], Color(1, 0.7, 0.45))
+
+
+static func party_max() -> int:
+	return 3 if pr().get("sensei", false) else PARTY_MAX
+
+
+## ---------------------------------------------------------------- akademi döngüsü: mezuniyet, büyüyen çocuklar, öğretmenlik
+const GRAD_EVERY := 1800.0    # ~30 dk oyunda bir mezuniyet
+const CHILD_GROW := 5400.0    # çocuklar ~1.5 saatte akademi çağına gelir
+const HAIRS := [Color(0.1, 0.1, 0.12), Color(0.35, 0.22, 0.12), Color(0.85, 0.7, 0.35), Color(0.75, 0.35, 0.2), Color(0.2, 0.25, 0.45), Color(0.6, 0.6, 0.62), Color(0.9, 0.55, 0.65)]
+var _grad_nodes := {}
+var _gt := 0.0
+
+
+static func grads() -> Array:
+	if not pr().has("grads"):
+		pr()["grads"] = []
+	return pr()["grads"]
+
+
+func _grad_tick(dt: float) -> void:
+	var p = pr()
+	p["grad_t"] = float(p.get("grad_t", GRAD_EVERY * 0.4)) - dt
+	if float(p["grad_t"]) <= 0.0:
+		if Missions.active().is_empty() and not Game.ui_open:
+			p["grad_t"] = GRAD_EVERY * randf_range(0.8, 1.3)
+			graduation()
+		else:
+			p["grad_t"] = 60.0
+	_gt -= dt
+	if _gt > 0.0:
+		return
+	_gt = 1.0
+	# mezunlar akademi avlusunda: yaklaşınca belirir, uzaklaşınca gider
+	var now = Time.get_unix_time_from_system()
+	var gl = grads()
+	gl.assign(gl.filter(func(g): return now < float(g.get("until", 0.0))))
+	var ac = Exams.find_point(["academy"])
+	var pp = Game.player.global_position
+	var near = ac != Vector3.ZERO and ac.distance_to(pp) < 90.0
+	for gid in _grad_nodes.keys():
+		var n = _grad_nodes[gid]
+		if not is_instance_valid(n) or not near or n.has_meta("friend_id"):
+			if is_instance_valid(n) and not near:
+				n.queue_free()
+			_grad_nodes.erase(gid)
+	if not near:
+		return
+	# kapının önünde (geldiğin tarafta) yarım çember: binanın içine/arkasına düşmesinler
+	var out = pp - ac
+	out.y = 0.0
+	out = out.normalized() if out.length() > 0.5 else Vector3.BACK
+	var sd = out.cross(Vector3.UP)
+	var i = 0
+	for g in gl:
+		i += 1
+		if _grad_nodes.has(g["gid"]):
+			continue
+		var k = float(i) - (gl.size() + 1) * 0.5
+		_grad_nodes[g["gid"]] = _spawn_grad(g, ac + out * (6.0 + absf(k) * 0.8) + sd * k * 2.2)
+
+
+static func _new_grad(vid: String, female: bool, clan: String, nm: String) -> Dictionary:
+	if clan == "" and nm == "" and randf() < 0.45:
+		var cs = ClanWorld._clans_of(vid)
+		if not cs.is_empty():
+			clan = String(cs.pick_random())
+	if nm == "":
+		nm = ClanWorld.person_name(clan, female) if clan != "" else "%s %s" % [Missions.BB_FAMILY.pick_random(), (ClanWorld.GIVEN_F if female else ClanWorld.GIVEN_M).pick_random()]
+	var lk = ClanWorld.clan_look(clan, "genin", vid, female, "teen")
+	if clan == "":
+		lk["hair"] = HAIRS.pick_random()
+		lk["hair_style"] = CharacterModel.HAIR_STYLES.keys().pick_random()
+	return {"gid": "g%d" % randi(), "name": nm, "female": female, "clan": clan, "look": _ser(lk), "village": vid,
+		"until": Time.get_unix_time_from_system() + 3600.0, "parent": "", "parent_id": ""}
+
+
+## Mezuniyet töreni: rastgele yeni geninler + büyüyen çocuklar (seninkiler ve dostlarınınkiler)
+func graduation() -> void:
+	var vid = Progress.home()
+	var now = Time.get_unix_time_from_system()
+	var gl = grads()
+	var names = []
+	var cohort = []
+	for kid in pr().get("children", []):
+		if not kid.get("grad", false) and now - float(kid.get("born", now)) >= CHILD_GROW:
+			kid["grad"] = true
+			var fem = String(kid.get("gender", "m")) == "f"
+			var cl: Array = kid.get("clans", [])
+			var lk = ClanWorld.clan_look(String(cl[0]) if not cl.is_empty() else "", "genin", vid, fem, "teen")
+			if randf() < 0.5:
+				lk["hair"] = pr().get("look", {}).get("hair", lk["hair"])
+			var id = _make_friend(String(kid["name"]), String(cl[0]) if not cl.is_empty() else "", lk, 80, "Senin %s" % ("kızın" if fem else "oğlun"))
+			all()[id]["loyalty"] = 95
+			all()[id]["family"] = [{"rel": "Ebeveyni", "name": "%s (sen)" % pr().get("name", ""), "alive": true}]
+			log_event(all()[id], "Akademiden mezun oldu! Alın koruyucusunu sana gösterdi")
+			names.append("%s (senin %s)" % [kid["name"], "kızın" if fem else "oğlun"])
+	for id in all():
+		var f: Dictionary = all()[id]
+		for m in f.get("family", []):
+			if String(m["rel"]) in ["Oğlu", "Kızı"] and m.get("alive", true) and not m.get("grad", false) \
+					and now - float(m.get("born", now - CHILD_GROW)) >= CHILD_GROW and randf() < 0.5:
+				m["grad"] = true
+				var g = _new_grad(vid, m["rel"] == "Kızı", String(f.get("clan", "")), String(m["name"]))
+				g["parent"] = "%s'in %s" % [f["name"], "kızı" if m["rel"] == "Kızı" else "oğlu"]
+				g["parent_id"] = id
+				gl.append(g)
+				cohort.append(g)
+				names.append("%s (%s)" % [g["name"], g["parent"]])
+				log_event(f, "%s akademiden mezun oldu" % m["name"])
+	for k in randi_range(2, 4):
+		var g = _new_grad(vid, randf() < 0.5, "", "")
+		gl.append(g)
+		cohort.append(g)
+		names.append(g["name"])
+	var teach = pr().get("teacher", false) and int(pr().get("lessons", 0)) > 0
+	for g in cohort:
+		g["student"] = teach
+	Hud.banner("AKADEMİ MEZUNİYETİ", "%d yeni genin alın koruyucusunu taktı. Bir saat boyunca akademi avlusundalar." % names.size(), Color(0.7, 0.9, 1.0))
+	Hud.msg("Mezunlar: " + ", ".join(names.slice(0, 6)), Color(0.75, 0.9, 1.0), 8.0)
+	if teach:
+		pr()["lessons"] = 0
+		Progress.add_ryo(250 * cohort.size())
+		Missions._rep(vid, 5)
+		Hud.msg("Ders verdiğin öğrenciler mezun oldu (+%d Ryō, +5 itibar). Seni hocaları olarak tanıyorlar." % (250 * cohort.size()), Color(0.7, 0.9, 1.0), 6.0)
+	# Jōnin: isteğe bağlı genin takımı hocalığı
+	if int(pr().get("rank", 0)) >= 3 and not pr().get("sensei", false) and cohort.size() >= 3:
+		var team = cohort.slice(0, 3)
+		Hud.dialog(Progress.home_info()["kage"], "Bu dönemin mezunlarından üçü bir jōnin hocaya ihtiyaç duyuyor: %s. Takımı sen alır mısın? (İsteğe bağlı; görevlerine seninle çıkarlar, büyüdükçe rütbe atlarlar.)" % ", ".join(team.map(func(g): return g["name"])), [
+			{"label": "Takımı al (Jōnin hocası ol)", "cb": func(): _take_team(team)},
+			{"label": "Şimdi değil", "cb": func(): pass}])
+
+
+## Jōnin hocalığı: 3 genin öğrencin olur (dost listesine girer, takım sınırı 3)
+static func _take_team(team: Array) -> void:
+	pr()["sensei"] = true
+	var nm = []
+	for g in team:
+		var sid = _make_friend(String(g["name"]), String(g["clan"]), look_of(g), 45, "Öğrencin")
+		all()[sid]["student"] = true
+		all()[sid]["family"] = _family(String(g["clan"]), bool(g["female"]), 0)
+		log_event(all()[sid], "Senin genin takımına verildi")
+		grads().erase(g)
+		nm.append(g["name"])
+	Hud.banner("JŌNİN HOCASI", "Genin takımın: %s. Takım sınırın 3 kişiye çıktı." % ", ".join(nm), Color(0.7, 0.9, 1.0))
+
+
+## Kage'den istediğin zaman öğretmenlik görevi (isteğe bağlı): Chūnin -> akademi, Jōnin -> genin takımı
+static func _kage_teach_opts() -> Array:
+	var rk = int(pr().get("rank", 0))
+	if rk < 2:
+		return []
+	var kt = Progress.home_info()["kage"]
+	var opts = []
+	if not pr().get("teacher", false):
+		opts.append({"label": "Akademide öğretmenlik görevi istiyorum", "cb": func():
+			pr()["teacher"] = true
+			var ac = Exams.find_point(["academy"])
+			Game.profile["waypoint"] = [ac.x, ac.y, ac.z, "Akademi (ders ver)"]
+			Game.profile["track"] = "waypoint"
+			Hud.dialog(kt, "Akademi senin gibi birine muhtaç. Sınıfa git, hocayla konuşup ders ver. Ders verdiğin dönem mezun olunca öğrencilerin olurlar.", [])})
+	else:
+		opts.append({"label": "Akademi öğretmenliğini bırakmak istiyorum", "cb": func():
+			pr()["teacher"] = false
+			Hud.dialog(kt, "Anlaşıldı. Sahada sana daha çok ihtiyaç var zaten.", [])})
+	if rk >= 3:
+		if not pr().get("sensei", false):
+			opts.append({"label": "Bir genin takımı istiyorum (Jōnin hocası)", "cb": func():
+				var team = grads().filter(func(g): return true).slice(0, 3)
+				while team.size() < 3:
+					team.append(_new_grad(Progress.home(), randf() < 0.5, "", ""))
+				Hud.dialog(kt, "Akademinin son mezunlarından üçü hâlâ hocasız. Onlar artık senin sorumluluğunda.", [])
+				_take_team(team)})
+		else:
+			opts.append({"label": "Genin takımımı bırakmak istiyorum", "cb": func():
+				pr()["sensei"] = false
+				for id in party_ids():
+					if party_ids().size() > PARTY_MAX:
+						all()[id]["party"] = false
+				Hud.dialog(kt, "Öğrencilerin seni unutmayacak. Yine de görüşmeye devam edersiniz.", [])})
+	return opts
+
+
+static func _make_friend(nm: String, clan: String, lk: Dictionary, bond: int, title: String) -> String:
+	var id = "f%d" % (int(pr().get("friend_seq", 0)) + 1)
+	pr()["friend_seq"] = int(pr().get("friend_seq", 0)) + 1
+	var l2 = lk.duplicate()
+	l2.erase("age")
+	all()[id] = {"name": nm, "role": "nurse", "ninja": true, "look": _ser(l2), "bond": bond, "village": Progress.home(), "party": false,
+		"last_talk": 0.0, "element": ELS.pick_random(), "clan": clan, "eye": [0, 0], "rank": 0, "family": [], "status": "", "log": [], "news": "",
+		"title": title}
+	return id
+
+
+func _spawn_grad(g: Dictionary, at: Vector3) -> Villager:
+	var vg: Villager
+	if String(g["clan"]) != "":
+		var r = ClanResident.new()
+		r.clan = String(g["clan"])
+		r.vid = String(g["village"])
+		r.given = String(g["name"])
+		vg = r
+	else:
+		vg = Villager.new()
+	vg.role = "nurse"
+	vg.look_extra = look_of(g)
+	vg.display_override = String(g["name"])
+	vg.set_meta("grad_id", g["gid"])
+	get_parent().add_child(vg)
+	var q = Missions.open_ground(at, 4.0)
+	vg.global_position = q
+	vg.home = q
+	vg.goal = q
+	vg.wander_r = 4.0
+	if vg.has_method("set_name_tag"):
+		vg.set_name_tag("%s\n%s" % [g["name"], "Öğrencin • Yeni Genin" if g.get("student", false) else ("Yeni Genin" if g["parent"] == "" else g["parent"])], Color(0.7, 0.9, 1.0))
+	return vg
+
+
+static func _meet_grad(v: Node) -> void:
+	var gid = String(v.get_meta("grad_id"))
+	var g = {}
+	for x in grads():
+		if x["gid"] == gid:
+			g = x
+	if g.is_empty():
+		return
+	v.remove_meta("grad_id")
+	_meet(v, String(g["name"]))
+	var id = String(v.get_meta("friend_id", ""))
+	if id == "":
+		return
+	var f: Dictionary = all()[id]
+	f["rank"] = 0
+	f["title"] = "Yeni mezun"
+	if String(g["clan"]) != "":
+		f["title"] = "%s klanı" % ClanWorld.clan_name(String(g["clan"]))
+	if String(g.get("parent_id", "")) != "" and all().has(g["parent_id"]):
+		var pf: Dictionary = all()[g["parent_id"]]
+		f["family"] = [{"rel": "Annesi" if String(pf["look"].get("gender", "m")) == "f" else "Babası", "name": pf["name"], "alive": String(pf.get("status", "")) != "öldü"}]
+		f["bond"] = maxi(int(f["bond"]), int(int(pf["bond"]) / 3))   # anne/babasıyla aran ona da yansır
+	if g.get("student", false):
+		f["student"] = true
+		f["title"] = "Öğrencin"
+		f["bond"] = maxi(int(f["bond"]), 30)
+	grads().erase(g)
+	tag(v)
+
+
+## Akademi öğretmenliği (Chūnin+, isteğe bağlı): ders ver -> Ryō, itibar; ders verdiğin dönem mezun olunca öğrencilerin olur
+static func _teacher_opts() -> Array:
+	if int(pr().get("rank", 0)) < 2:
+		return []
+	var opts = []
+	if not pr().get("teacher", false):
+		opts.append({"label": "Akademide öğretmenlik yapmak istiyorum", "cb": func():
+			pr()["teacher"] = true
+			Hud.dialog("Akademi", "Bir chūnin'in ders vermesi çocuklara çok iyi gelir! Ders verdikçe sınıfın seni tanır; mezun olduklarında senin öğrencilerin olurlar.", [])
+			Hud.banner("AKADEMİ ÖĞRETMENİ", "İstediğin zaman ders verebilir ya da bırakabilirsin.", Color(0.7, 0.9, 1.0))})
+		return opts
+	var left = 900.0 - (Time.get_unix_time_from_system() - float(pr().get("last_lesson", 0.0)))
+	if left <= 0.0:
+		for ls in [["Taijutsu dersi ver", "Çocuklarla temel duruşları ve yumruk serilerini çalıştın."], ["Ninjutsu dersi ver", "Mühür dizilerini ve Bunshin'i anlattın; biri ilk kez başardı!"], ["Strateji dersi ver", "Shōgi tahtasında pusu kurmayı ve geri çekilmeyi gösterdin."]]:
+			var txt = String(ls[1])
+			opts.append({"label": ls[0], "cb": func():
+				pr()["last_lesson"] = Time.get_unix_time_from_system()
+				pr()["lessons"] = int(pr().get("lessons", 0)) + 1
+				var pay = 150 + int(pr().get("rank", 2)) * 100
+				Progress.add_ryo(pay)
+				Progress.add_xp(40 + int(pr().get("level", 1)) * 3)
+				Missions._rep(Progress.home(), 2)
+				Hud.dialog("Sınıf", txt + " Bu dönemin öğrencileri mezun olunca seni hocaları olarak anacak.", [])
+				Hud.msg("Ders verildi: +%d Ryō, +2 itibar" % pay, Color(0.7, 0.9, 1.0))})
+	else:
+		opts.append({"label": "Ders ver (sonraki ders %d dk sonra)" % ceili(left / 60.0), "cb": func(): Hud.msg("Çocuklar teneffüste. Biraz sonra gel.", Color(0.8, 0.85, 1.0))})
+	opts.append({"label": "Öğretmenliği bırak", "cb": func():
+		pr()["teacher"] = false
+		Hud.msg("Akademi öğretmenliğini bıraktın.", Color(0.8, 0.85, 1.0))})
+	return opts
 
 
 static func on_kill() -> void:
@@ -1252,6 +1574,8 @@ static func on_kill() -> void:
 func _process(dt: float) -> void:
 	if Game.paused:
 		return
+	if _active():
+		_grad_tick(dt)
 	if _active() and not all().is_empty():
 		_baby_tick()
 		_world_tick(dt)
@@ -1303,7 +1627,7 @@ func _process(dt: float) -> void:
 			if randf() < DEATH_P:
 				_die_in_battle(m["id"], n)
 			else:
-				Hud.msg("%s yaralandı ve geri çekildi. Biraz sonra yanına döner." % f["name"], Color(1, 0.75, 0.5))
+				injure(m["id"], "savaşta ağır yaralandı")
 		elif float(m["down"]) > 0.0:
 			m["down"] = float(m["down"]) - 0.4
 		else:
