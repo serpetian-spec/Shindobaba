@@ -335,7 +335,7 @@ func _install(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 		if n == 0:
 			continue
 		var pv: Array = meshes[t][mini(vi, meshes[t].size() - 1)]
-		var near_end = (NEAR_FULL if not t in SMALL else (240.0 if t in [13, 19, 20, 17] else 130.0)) * view
+		var near_end = (NEAR_FULL if not t in SMALL else (240.0 if t in [13, 19, 20, 17, 12] else 130.0)) * view
 		if t in [5, 11, 4, 9]:
 			near_end = 650.0 * view
 		var has_lod = lods[t] != null
