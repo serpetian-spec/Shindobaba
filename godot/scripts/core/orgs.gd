@@ -250,6 +250,7 @@ func defect() -> void:
 	f["rogue"] = true
 	f["rogue_from"] = Progress.home()
 	GeninSquad.on_defect()
+	Friends.on_player_defect()
 	state()["bounty"] = 5000 + int(p()["level"]) * 400
 	Missions._rep(Progress.home(), -200)
 	Gear.apply_look(p())
@@ -294,6 +295,7 @@ func pardon_done(_m: Dictionary, ok: bool) -> void:
 		Game.player.rebuild_model()
 	player_pardoned.emit()
 	GeninSquad.on_pardon()
+	Friends.on_player_pardon()
 	Hud.banner("AFFEDİLDİN", "Köyüne yeniden hoş geldin. İtibarın sıfırdan başlıyor.", Color(0.6, 1, 0.7))
 
 
@@ -397,14 +399,30 @@ func _ensure_hideout() -> void:
 		_hideout_node.add_child(lb)
 		lb.global_position = q + Vector3.UP * 3.1
 		Interact.add({"pos": q + Vector3(0, 1.0, 0) - Vector3(sin(ang), 0, cos(ang)) * 1.2, "radius": 3.5, "kind": s[0], "label": s[1]})
+	# ateş başında takılan başka kaçaklar: konuşulur, dost/sevgili olunur, takıma katılır (kaçak diye herkes düşman değil)
+	for i in 4:
+		var vg = Villager.new()
+		vg.role = "spar"
+		vg.wander_r = 5.0
+		var vlist = ["konoha", "suna", "kiri", "kumo", "iwa"]
+		vg.look_extra = {"band_style": "slashed", "band": Color(0.25, 0.25, 0.28), "village": vlist[i % vlist.size()], "vest": null,
+			"top": [Color(0.2, 0.2, 0.24), Color(0.35, 0.15, 0.15), Color(0.25, 0.3, 0.25), Color(0.4, 0.35, 0.3)][i], "age": "adult"}
+		vg.lines_override = ["Burada kimse geçmişini sormaz.", "Köyüm beni sattı, ben de onları.", "Bir iş varsa haber ver, ortak olalım.", "Av-ninjalarından sakın; dün iki kişiyi aldılar."]
+		_hideout_node.add_child(vg)
+		var a2 = TAU * i / 4.0 + 0.4
+		var q2 = at + Vector3(cos(a2), 0, sin(a2)) * 7.0
+		q2.y = Game.ground_height(q2.x, q2.z)
+		vg.global_position = q2
+		vg.home = q2
 
 
-const ROGUE_KINDS := ["rogue_broker", "rogue_tailor", "rogue_weapons", "rogue_scrolls", "rogue_summoner"]
+const ROGUE_KINDS := ["rogue_broker", "rogue_tailor", "rogue_weapons", "rogue_scrolls", "rogue_summoner", "rogue_surgeon"]
 ## [tür, etiket, tabela, yan eşya]
 const ROGUE_STALLS := [["rogue_tailor", "[F] Kara Terzi (kıyafet, zırh, maske)", "裏呉服", "crate"],
 	["rogue_weapons", "[F] Kara Silahçı (alet, silah)", "裏武器", "barrel"],
 	["rogue_scrolls", "[F] Kara Parşömenci (element jutsu parşömenleri)", "裏巻物", "sack"],
-	["rogue_summoner", "[F] Kaçak Sözleşme Ustası (kuchiyose)", "口寄せ", "crate"]]
+	["rogue_summoner", "[F] Kaçak Sözleşme Ustası (kuchiyose)", "口寄せ", "crate"],
+	["rogue_surgeon", "[F] Kara Cerrah (göz nakli, tedavi)", "闇医者", "barrel"]]
 
 
 ## Sığınak tezgâhları (Progress.interact -> rogue_*)
@@ -426,6 +444,12 @@ func rogue_shop(kind: String) -> void:
 				Hud.shop("Kara Parşömenci", sc)
 		"rogue_summoner":
 			Contracts.keeper_interact({"village": "*rogue"})
+		"rogue_surgeon":
+			# kaçakların hastanesi: soru sormadan iyileştirir, çalıntı gözleri takar (pahalı)
+			if Game.player:
+				Game.player.hp = Game.player.max_hp
+			var opts = Progress.transplant_options(1200, "Kara Cerrah dikişleri attı: \"Kimden aldığını sormadım, sen de unut.\"")
+			Hud.dialog("Kara Cerrah", "Yaralarını sardım. Kavanozunda göz varsa takarım; nereden geldiği beni ilgilendirmez." if not opts.is_empty() else "Yaralarını sardım. Takacak bir gözün yok; getirirsen takarım, soru sormam.", opts)
 
 
 func broker_dialog() -> void:

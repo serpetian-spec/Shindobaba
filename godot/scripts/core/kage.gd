@@ -28,6 +28,98 @@ const KAGE_LOOKS := {"konoha": Color(0.85, 0.15, 0.12), "suna": Color(0.2, 0.45,
 
 var _decor: Node3D
 var _decor_sig := ""
+var _reign_t := 900.0
+const REIGN_CHECK := 1500.0    # gerçek sn: her ~25 dk'da bir Kage değişimi zarı
+const REIGN_REASONS := ["yaşlandı ve şapkasını bıraktı", "bir savaşta şehit düştü", "konsey tarafından görevden alındı", "bir suikaste kurban gitti", "ağır bir hastalığa yenik düştü"]
+
+
+## ---------------------------------------------------------------- dinamik Kage (her oyunda farklı)
+## Kage'ler zamanla değişir: emeklilik, savaş, suikast... Halef o köyün Elit Jōnin dostlarından biri olabilir
+## (Friends: rank 3) ya da köyün klanlarından rastgele bir ninja. Yeni Kage'nin sana bakışı köyler arası ilişkiyi etkiler.
+func reign(vid: String) -> Dictionary:
+	if Game.profile.is_empty():
+		return {}
+	return p().get("reigns", {}).get(vid, {})
+
+
+func kage_name(vid: String) -> String:
+	if is_kage() and vid == Progress.home():
+		return "%s %s" % [Progress.kage_title(vid), String(p().get("name", ""))]
+	var r = reign(vid)
+	if not r.is_empty():
+		return "%s %s" % [Progress.kage_title(vid), String(r["name"])]
+	return KAGE_NAMES.get(vid, Progress.kage_title(vid))
+
+
+## KageAttire.look için kişilik (saç/cinsiyet/ten); yoksa boş -> sabit kişilik
+func kage_persona(vid: String) -> Dictionary:
+	var r = reign(vid)
+	if r.is_empty():
+		return {}
+	var out = {}
+	for k in r.get("persona", {}):
+		var v = r["persona"][k]
+		out[k] = Color(float(v[0]), float(v[1]), float(v[2])) if v is Array else v
+	return out
+
+
+func _reign_tick(dt: float) -> void:
+	_reign_t -= dt
+	if _reign_t > 0.0:
+		return
+	_reign_t = REIGN_CHECK * randf_range(0.7, 1.3)
+	var cands = GREAT.filter(func(v): return not (is_kage() and v == Progress.home()))
+	if cands.is_empty() or randf() > 0.45:
+		return
+	succeed(String(cands.pick_random()))
+
+
+func succeed(vid: String) -> void:
+	if not p().has("reigns"):
+		p()["reigns"] = {}
+	var old = kage_name(vid)
+	var title = Progress.kage_title(vid)
+	var gen = int(reign(vid).get("gen", 4)) + 1
+	var who = ""
+	var persona = {}
+	var fid = ""
+	# o köyün Elit Jōnin dostları önce düşünülür
+	var fs: Dictionary = Friends.all()
+	var elite = fs.keys().filter(func(k): return String(fs[k].get("village", "")) == vid and int(fs[k].get("rank", 0)) >= 3 and Friends.available(fs[k]))
+	if not elite.is_empty() and randf() < 0.6:
+		fid = String(elite.pick_random())
+		var f: Dictionary = fs[fid]
+		who = String(f["name"])
+		var lk = Friends.look_of(f)
+		for k in ["gender", "hair", "hair_style", "skin"]:
+			if lk.has(k):
+				persona[k] = [lk[k].r, lk[k].g, lk[k].b] if lk[k] is Color else lk[k]
+		f["kage"] = vid
+		f["party"] = false
+		Friends.log_event(f, "%s oldu!" % title)
+		f["news"] = "İnanabiliyor musun? Artık %s benim. Kapım sana her zaman açık." % title
+	else:
+		var clans: Array = []
+		for c in Data.clans:
+			if c != "none" and vid in Data.clans[c].get("villages", []) and not c in Progress.UNPLAYABLE_CLANS:
+				clans.append(c)
+		var fem = randf() < 0.3
+		who = ClanWorld.person_name(clans.pick_random(), fem) if not clans.is_empty() else "%s %s" % [String(Missions.BB_FAMILY.pick_random()), (ClanWorld.GIVEN_F if fem else ClanWorld.GIVEN_M).pick_random()]
+		var hc = [Color(0.1, 0.1, 0.12), Color(0.82, 0.82, 0.84), Color(0.35, 0.22, 0.12), Color(0.6, 0.2, 0.15), Color(0.85, 0.8, 0.5)].pick_random()
+		persona = {"gender": "f" if fem else "m", "hair": [hc.r, hc.g, hc.b], "hair_style": ["geriye", "kısa", "uzun", "diken", "topuz", "savas_yelesi", "bilge_yelesi"].pick_random(),
+			"beard": not fem and randf() < 0.5}
+	p()["reigns"][vid] = {"name": who, "gen": gen, "persona": persona, "friend": fid}
+	var vn = String(Game.village(vid).get("name", vid))
+	Hud.banner("YENİ %s: %s" % [title.to_upper(), who.to_upper()], "%s %s. %s'in %d. %s'i yemin etti." % [old, REIGN_REASONS.pick_random(), vn, gen, title], Color(1, 0.8, 0.45))
+	if is_kage():
+		add_log("%s: %s yeni %s oldu." % [vn, who, title])
+	# yeni liderin sana bakışı köyler arası ilişkiyi kaydırır
+	if vid != Progress.home() and not Game.profile.is_empty():
+		if fid != "":
+			var b = int(Friends.all()[fid]["bond"])
+			change_relation(vid, 20 if b >= 30 else (-25 if b <= -30 else 0))
+		else:
+			change_relation(vid, randi_range(-15, 15))
 
 
 func p() -> Dictionary:
@@ -115,7 +207,7 @@ func _selection_mission() -> Dictionary:
 	var e2 = Missions._npc("danisman2", "Danışman Gonza", "elder")
 	var dm = Missions._npc("elci", "Daimyō'nun Elçisi Matsudaira", "vip")
 	var rival = Missions._npc("rakip", "Rakip Aday Kurogane Daisuke", "ninja")
-	var cur_kage = Missions._npc("kage", KAGE_NAMES.get(vid, kt), "elder")
+	var cur_kage = Missions._npc("kage", kage_name(vid), "elder")
 	cur_kage["look"]["top"] = Missions._hex(Color(0.95, 0.94, 0.9))
 	var gate = Missions._inside(vid, 0.85, 0.95)
 	return {"title": "%s Seçimi" % kt, "rank": "S", "village": vid, "hook": "Kage.selection_done", "giver": "Köy Konseyi",
@@ -459,7 +551,7 @@ func start_summit() -> void:
 	for v in GREAT:
 		if v == home:
 			continue
-		var nm = KAGE_NAMES.get(v, Progress.kage_title(v))
+		var nm = kage_name(v)
 		var k = Missions._npc("kage_" + v, nm, "elder")
 		k["look"]["top"] = Missions._hex(Color(0.95, 0.94, 0.9))
 		k["look"]["village"] = v
@@ -595,6 +687,7 @@ func decorate() -> void:
 func _process(dt: float) -> void:
 	if Game.player == null or Game.profile.is_empty() or Game.paused:
 		return
+	_reign_tick(dt)
 	if not is_kage():
 		if Exams.flags().get("kage_elect", false) and int(p().get("level", 1)) >= 100:
 			Exams.flags().erase("kage_elect")

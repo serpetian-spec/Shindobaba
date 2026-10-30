@@ -170,7 +170,11 @@ func talk() -> void:
 	if role not in ["sitter", "customer", "student", "patient"] and not floor_sit:
 		model.play("talk", 0.2)
 	wait = 4.0
-	Hud.dialog(display, _lines().pick_random(), [])
+	var fid = String(get_meta("friend_id", ""))
+	var line = _lines().pick_random()
+	if fid != "" and Friends.all().has(fid):
+		line = Friends.greeting(fid)
+	Hud.dialog(display, line, Friends.options_for(self) + Crime.attack_option(self))
 
 
 ## Kafanın üstünde kısa konuşma balonu

@@ -40,6 +40,8 @@ func talk() -> void:
 		opts.append({"label": "Klan büyüğünden ders iste", "cb": _lesson})
 	elif friend and grown:
 		opts.append({"label": "Klan dostu olarak antrenman iste", "cb": _lesson})
+	opts.append_array(Friends.options_for(self))   # tanış / sohbet / hediye / takıma al
+	opts.append_array(Crime.attack_option(self))   # gerçek saldırı (suç)
 	var hello := "%s klanından %s. " % [cn, given.split(" ")[-1]]
 	if eye_kind == 2:
 		hello += "Byakugan'ım her yanı görür; yaklaştığını çoktan biliyordum."
@@ -49,6 +51,8 @@ func talk() -> void:
 		hello += "Kızıl gözlerimden korkma... henüz."
 	else:
 		hello += "Ne istiyorsun, ninja?"
+	if has_meta("friend_id") and Friends.all().has(String(get_meta("friend_id"))):
+		hello = Friends.greeting(String(get_meta("friend_id")))
 	if friend:
 		hello += "
 
@@ -80,6 +84,8 @@ func _duel() -> void:
 			home = global_position
 			if won:
 				Progress.add_xp(30 + lv * 12)
+				if has_meta("friend_id"):
+					Friends.add_bond(String(get_meta("friend_id")), 6)
 				say("İyi dövüştün! %s klanı seni tanıyacak." % ClanWorld.clan_name(clan), 3.5)
 	Hud.banner("DOSTÇA DÜELLO", "%s — %s klan teknikleri" % [given, ClanWorld.clan_name(clan)], Color(0.9, 0.85, 0.55))
 

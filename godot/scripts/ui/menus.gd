@@ -731,6 +731,151 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 	root.add_child(hint)
 
 
+## İlişkiler sekmesi: solda seçili kişinin kartı + tanıdığın herkes (bağa göre renkli), sağda köylerle itibar ve diplomasi
+static func _tab_relations(main: Node, body: Control) -> void:
+	var h = UI.hbox(26)
+	h.set_anchors_preset(Control.PRESET_FULL_RECT)
+	body.add_child(h)
+	var left = _scroll(h, 780, 900)
+	left.get_parent().size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_friends_card(main, left)
+	var fs: Dictionary = Friends.all()
+	if not fs.is_empty():
+		var lc = UI.card()
+		left.add_child(lc)
+		var lv = UI.vbox(4)
+		lc.add_child(lv)
+		lv.add_child(UI.icon_label("person", "TANIDIĞIN HERKES", 15, UI.GOLD))
+		var ids = fs.keys()
+		var order = ids.duplicate()
+		order.sort_custom(func(a, b): return int(fs[a]["bond"]) > int(fs[b]["bond"]))
+		for id in order:
+			var f: Dictionary = fs[id]
+			var b = int(f["bond"])
+			var stt = String(f.get("status", ""))
+			var txt = "%s  —  %s, %s  •  %s (%d)%s" % [f["name"], String(f.get("title", "")), Friends.RANKS[int(f.get("rank", 0))], Friends.level_name(b), b,
+				"  •  ÖLDÜ" if stt == "öldü" else ("  •  KAÇAK" if stt == "kaçak" else ("  ★ takımda" if f.get("party", false) else ""))]
+			var row = UI.chip(txt, ids.find(id) == _friend_i, func():
+				_friend_i = ids.find(id)
+				ninja_menu(main, "relations"))
+			if ids.find(id) != _friend_i:
+				row.add_theme_color_override("font_color", Friends.level_color(b) if stt == "" else UI.MUTED)
+			row.alignment = HORIZONTAL_ALIGNMENT_LEFT
+			lv.add_child(row)
+	# köyler
+	var right = UI.vbox(14)
+	right.custom_minimum_size = Vector2(560, 0)
+	h.add_child(right)
+	# senin ailen: eş + çocuklar
+	var pr = Game.profile
+	var kids: Array = pr.get("children", [])
+	if Friends.spouse_id() != "" or not kids.is_empty():
+		var ac = UI.card(Color(1, 0.6, 0.75))
+		right.add_child(ac)
+		var av = UI.vbox(6)
+		ac.add_child(av)
+		av.add_child(UI.icon_label("heart", "AİLEN", 15, Color(1, 0.65, 0.78)))
+		if Friends.spouse_id() != "" and fs.has(Friends.spouse_id()):
+			av.add_child(UI.label("Eşin: %s" % fs[Friends.spouse_id()]["name"], 14, UI.TEXT))
+		for k in kids:
+			var cl: Array = k.get("clans", [])
+			var mix = ("  [%s melezi]" % " × ".join(cl.map(func(c): return ClanWorld.clan_name(c)))) if cl.size() >= 2 and cl[0] != cl[1] else ""
+			av.add_child(UI.label("%s: %s%s" % ["Kızın" if k["gender"] == "f" else "Oğlun", k["name"], mix], 14, UI.TEXT))
+		if float(pr.get("baby_due", 0.0)) > 0.0:
+			av.add_child(UI.label("Bir bebek yolda ♥", 13, Color(1, 0.75, 0.8)))
+	var vc = UI.card(UI.GOLD)
+	right.add_child(vc)
+	var vv = UI.vbox(8)
+	vc.add_child(vv)
+	vv.add_child(UI.icon_label("village", "KÖYLER — İTİBAR VE DİPLOMASİ", 15, UI.GOLD))
+	var rep: Dictionary = Game.profile.get("rep", {})
+	for vid in Kage.GREAT:
+		var r = int(rep.get(vid, 0))
+		var rel = Kage.relation(vid) if vid != Progress.home() else 100
+		var rt = "Kahraman" if r >= 150 else ("Saygın" if r >= 50 else ("Tanınmıyor" if r >= 0 else ("Kötü şöhretli" if r > -50 else "Aranıyor")))
+		var dt = "Kendi köyün" if vid == Progress.home() else ("Müttefik" if rel >= 40 else ("Barışçıl" if rel >= 0 else ("Gergin" if rel > -40 else "SAVAŞ")))
+		vv.add_child(UI.label("%s  •  %s" % [Game.village(vid).get("name", vid), Kage.kage_name(vid)], 15, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true))
+		vv.add_child(UI.label("İtibarın: %d (%s)   •   Köyünle ilişkisi: %s" % [r, rt, dt], 13, Color(1, 0.45, 0.4) if rel <= -40 or r < 0 else UI.MUTED))
+		var bar = UI.bar(Color(1, 0.4, 0.35) if rel < 0 else Color(0.55, 1.0, 0.7), 500, 6)
+		bar.min_value = -100
+		bar.max_value = 100
+		bar.value = rel
+		vv.add_child(bar)
+	var note = UI.label("İtibarın tanıştığın ninjaların sana ilk bakışını belirler; köylerin arası açılırsa sınırlarda ve köyünde baskınlar başlar.", 12, UI.MUTED)
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	note.custom_minimum_size = Vector2(520, 0)
+	vv.add_child(note)
+
+
+static var _friend_i := 0
+## Arkadaşlar: ◀ ▶ ile gez; bağ çubuğu, takıma al / köyde beklet
+static func _friends_card(main: Node, left: Control) -> void:
+	var fs: Dictionary = Friends.all()
+	var fc = UI.card(Color(0.6, 1.0, 0.75))
+	left.add_child(fc)
+	var fv = UI.vbox(8)
+	fc.add_child(fv)
+	var party = Friends.party_ids()
+	fv.add_child(UI.icon_label("person", "ARKADAŞLAR (%d)  •  Takımda: %d / %d" % [fs.size(), party.size(), Friends.PARTY_MAX], 15, Color(0.6, 1.0, 0.75)))
+	if fs.is_empty():
+		var hl = UI.label("Köydeki ninjalarla (klan üyeleri, devriye ve antrenman ninjaları) konuş ([F]) ve kendini tanıt. Sohbet, hediye ve dostça düello bağı güçlendirir; bağ %d olunca takımına katılırlar." % Friends.JOIN_BOND, 13, UI.MUTED)
+		hl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		hl.custom_minimum_size = Vector2(700, 0)
+		fv.add_child(hl)
+		return
+	var ids = fs.keys()
+	_friend_i = posmod(_friend_i, ids.size())
+	var labels = ids.map(func(k): return "%s%s" % [fs[k]["name"], "  ★" if fs[k].get("party", false) else ""])
+	fv.add_child(_arrow_row("Arkadaş", labels, _friend_i, func(i):
+		_friend_i = i
+		ninja_menu(main, "relations")))
+	var id = String(ids[_friend_i])
+	var f: Dictionary = fs[id]
+	var b = int(f.get("bond", 0))
+	var stt = String(f.get("status", ""))
+	var st_txt = ""
+	if stt == "öldü":
+		st_txt = "  •  ÖLDÜ"
+	elif stt == "kaçak":
+		st_txt = "  •  KAÇAK (Bingo Kitabı)" if Friends.bingo_status(id) != "dead" else "  •  Kaçak — yakalandı/öldü"
+	elif String(f.get("kage", "")) != "":
+		st_txt = "  •  %s!" % Progress.kage_title(String(f["kage"]))
+	elif not Friends.available(f):
+		st_txt = "  •  Köyde değil (görev / hastane)"
+	var rm = Friends.romance_of(id)
+	if rm != "":
+		st_txt += "  •  %s ♥" % ("Eşin" if rm == "eş" else "Sevgilin")
+	fv.add_child(UI.label("%s  •  %s  •  Bağ: %d (%s)%s" % [String(f.get("title", "")), Friends.RANKS[int(f.get("rank", 0))], b, Friends.level_name(b), st_txt], 13, Friends.level_color(b)))
+	var bar = UI.bar(Friends.level_color(b), 700, 8)
+	bar.min_value = -100
+	bar.max_value = 100
+	bar.value = b
+	fv.add_child(bar)
+	var fam: Array = f.get("family", [])
+	if not fam.is_empty():
+		var fl = UI.label("Ailesi: " + ", ".join(fam.map(func(m): return "%s %s%s%s" % [m["rel"], String(m["name"]), (" [%s]" % m["mix"]) if m.has("mix") else "", "" if m.get("alive", true) else " (öldü)"])), 12, UI.MUTED)
+		fl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		fl.custom_minimum_size = Vector2(700, 0)
+		fv.add_child(fl)
+	var lg: Array = f.get("log", [])
+	if not lg.is_empty():
+		var ll = UI.label("Son olaylar: " + "  •  ".join(lg.slice(maxi(0, lg.size() - 3))), 12, Color(0.85, 0.85, 0.7))
+		ll.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		ll.custom_minimum_size = Vector2(700, 0)
+		fv.add_child(ll)
+	if stt == "":
+		if f.get("party", false):
+			fv.add_child(UI.button("Köyde beklet", func():
+				Friends.set_party(id, false)
+				ninja_menu(main, "relations"), 260, "person"))
+		elif b >= Friends.JOIN_BOND:
+			fv.add_child(UI.button("Takıma al", func():
+				Friends.set_party(id, true)
+				ninja_menu(main, "relations"), 260, "person"))
+		else:
+			fv.add_child(UI.label("Takıma katılması için bağ %d olmalı: köyde rastlayınca sohbet et, hediye ver, dostça düello yap." % Friends.JOIN_BOND, 13, UI.MUTED))
+
+
 ## Başlık + ◀ Ad (n/N) ▶ satırı; on_pick(yeni_indeks). Seçenekler hep böyle oklarla gezilir, tek tek dizilmez
 static func _arrow_row(title: String, labels: Array, idx: int, on_pick: Callable) -> Control:
 	var n = labels.size()
@@ -912,8 +1057,8 @@ static func settings(back: Callable) -> void:
 
 # ================================================================== ninja menüsü [Tab]
 const TABS := [["inv", "bag", "Envanter"], ["wardrobe", "armor", "Ekipman"], ["eyes", "eye", "Gözler"], ["jutsu", "scroll", "Jutsular"], ["skills", "star", "Yetenekler"],
-	["beasts", "flame", "Canavarlar"], ["summons", "seal", "Kuchiyose"], ["missions", "mission", "Görevler"], ["paths", "book", "Yollar"], ["map", "map", "Harita"]]
-const TAB_TITLES := {"beasts": "KUYRUKLU CANAVARLAR", "summons": "KUCHİYOSE SÖZLEŞMELERİ", "inv": "ENVANTER", "wardrobe": "EKİPMAN", "jutsu": "JUTSULAR", "skills": "YETENEK AĞACI", "missions": "GÖREVLER", "eyes": "GÖZLER (DŌJUTSU)", "paths": "EFSANE YOLLARI"}
+	["beasts", "flame", "Canavarlar"], ["summons", "seal", "Kuchiyose"], ["relations", "heart", "İlişkiler"], ["missions", "mission", "Görevler"], ["paths", "book", "Yollar"], ["map", "map", "Harita"]]
+const TAB_TITLES := {"beasts": "KUYRUKLU CANAVARLAR", "summons": "KUCHİYOSE SÖZLEŞMELERİ", "inv": "ENVANTER", "wardrobe": "EKİPMAN", "jutsu": "JUTSULAR", "skills": "YETENEK AĞACI", "missions": "GÖREVLER", "relations": "İLİŞKİLER", "eyes": "GÖZLER (DŌJUTSU)", "paths": "EFSANE YOLLARI"}
 const SWATCHES := [Color(0.15, 0.2, 0.33), Color(0.12, 0.12, 0.14), Color(0.45, 0.15, 0.15), Color(0.95, 0.5, 0.12), Color(0.2, 0.38, 0.22),
 	Color(0.35, 0.25, 0.45), Color(0.85, 0.82, 0.75), Color(0.15, 0.4, 0.45), Color(0.55, 0.42, 0.3), Color(0.75, 0.2, 0.25)]
 
@@ -991,6 +1136,8 @@ static func ninja_menu(main: Node, tab := "inv", picked := "") -> void:
 			_tab_skills(main, body)
 		"missions":
 			_tab_missions(main, body)
+		"relations":
+			_tab_relations(main, body)
 		"eyes":
 			_tab_eyes(main, body)
 		"paths":

@@ -41,6 +41,25 @@ func kage_title(vid: String) -> String:
 	return HOME_VILLAGES.get(vid, {}).get("kage", "Köy Lideri")
 
 
+## Kavanozdaki gözler için nakil seçenekleri (hastane: 500 Ryō; kaçakların Kara Cerrahı: 1200 Ryō, soru sorulmaz)
+func transplant_options(price: int, done_msg: String) -> Array:
+	var pr = Game.profile
+	var opts = []
+	for g in pr.get("gear", []):
+		if Gear.item(g["id"]).get("slot", "") == "goz" and not int(g["uid"]) in pr["equip"].values():
+			for sl in [["sag_goz", "sağ"], ["sol_goz", "sol"]]:
+				var uid = int(g["uid"])
+				var slot = sl[0]
+				opts.append({"label": "Göz nakli: %s → %s göz (%d Ryō)" % [Gear.item(g["id"])["name"], sl[1], price], "cb": func():
+					if int(pr["ryo"]) < price:
+						Hud.msg("Yeterli Ryō yok.", Color(1, 0.5, 0.4))
+						return
+					add_ryo(-price)
+					Eyes.transplant(pr, uid, slot)
+					Hud.msg(done_msg, Color(0.7, 1, 0.7))})
+	return opts
+
+
 ## Hikâye metinlerini oyuncunun köyüne göre yeniden kurar (yeni oyun / kayıt yükleme)
 func refresh_story() -> void:
 	var info = home_info()
@@ -647,18 +666,7 @@ func interact(it: Dictionary) -> void:
 				opts.append({"label": "Tıbbi ninjutsu öğren (200 Ryō)", "cb": func(): _buy_learn("shousen", 200)})
 			opts.append_array(trainer_options(["hospital"], 5))
 			# göz nakli: kavanozdaki gözler
-			for g in pr.get("gear", []):
-				if Gear.item(g["id"]).get("slot", "") == "goz" and not int(g["uid"]) in pr["equip"].values():
-					for sl in [["sag_goz", "sağ"], ["sol_goz", "sol"]]:
-						var uid = int(g["uid"])
-						var slot = sl[0]
-						opts.append({"label": "Göz nakli: %s → %s göz (500 Ryō)" % [Gear.item(g["id"])["name"], sl[1]], "cb": func():
-							if int(pr["ryo"]) < 500:
-								Hud.msg("Yeterli Ryō yok.", Color(1, 0.5, 0.4))
-								return
-							add_ryo(-500)
-							Eyes.transplant(pr, uid, slot)
-							Hud.msg("Nakil başarılı. Bir süre gözlerin ağrıyacak.", Color(0.7, 1, 0.7))})
+			opts.append_array(transplant_options(500, "Nakil başarılı. Bir süre gözlerin ağrıyacak."))
 			Hud.dialog("Hastane", "Yaraların sarıldı. Tamamen iyileştin.", opts)
 		"training":
 			_training_ground()
@@ -669,7 +677,7 @@ func interact(it: Dictionary) -> void:
 			Hud.dialog(home_info()["lookout"], "Köy ayaklarının altında. Köyünü koruma iraden güçleniyor... (Oyun kaydedildi)", [])
 		"rogue_broker":
 			Orgs.broker_dialog()
-		"rogue_tailor", "rogue_weapons", "rogue_scrolls", "rogue_summoner":
+		"rogue_tailor", "rogue_weapons", "rogue_scrolls", "rogue_summoner", "rogue_surgeon":
 			Orgs.rogue_shop(kind)
 		"memorial":
 			Hud.dialog("Anıt Taşı", "Köy için canını veren shinobilerin isimleri burada yazılı. Bir an saygıyla eğiliyorsun.", [])

@@ -23,6 +23,7 @@ static func look(vid: String) -> Dictionary:
 		"outer_style": "palto", "outer": Color(0.97, 0.96, 0.93), "vest": null, "band": null, "hakama": true,
 		"sandal": Color(0.25, 0.2, 0.16), "age": "adult", "face_mark": "kırışık", "head_style": null}
 	lk.merge(pz, true)
+	lk.merge(Kage.kage_persona(vid), true)   # dinamik Kage: yeni liderin saçı/cinsiyeti
 	if not CharacterModel.HAIR_STYLES.has(lk["hair_style"]):
 		lk["hair_style"] = CharacterModel.HAIR_STYLES.keys()[0]
 	return lk

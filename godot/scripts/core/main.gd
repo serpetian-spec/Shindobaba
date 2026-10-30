@@ -55,6 +55,12 @@ func _ready() -> void:
 	var squad = preload("res://scripts/core/squad.gd").new()
 	squad.name = "GeninSquad"
 	actors.add_child(squad)
+	var friends = preload("res://scripts/core/friends.gd").new()
+	friends.name = "Friends"
+	actors.add_child(friends)
+	var crime = preload("res://scripts/core/crime.gd").new()
+	crime.name = "Crime"
+	actors.add_child(crime)
 	loading.queue_free()
 	menu_cam = Camera3D.new()
 	menu_cam.far = 5000.0

@@ -592,6 +592,7 @@ func _steal(f: Node3D) -> void:
 	var e: Dictionary = f.get_meta("eyes")
 	f.set_meta("eyes_taken", true)
 	steal_target = null
+	Crime.on_eyes_taken(f)   # köy ninjasının gözü: suç
 	var id = {1: "goz_sharingan", 2: "goz_byakugan", 3: "goz_ketsuryugan", 4: "goz_mangekyo", 5: "goz_ems", 6: "goz_rinnegan", 7: "goz_tenseigan", 8: "goz_jogan"}.get(int(e["kind"]), "goz_sharingan")
 	var n_eyes = 1 if f.has_meta("eye_share") else 2
 	for i in n_eyes:

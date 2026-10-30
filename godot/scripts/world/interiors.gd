@@ -566,7 +566,7 @@ const KAGE_LINES := {
 
 
 static func kage_name(vid: String) -> String:
-	return Kage.KAGE_NAMES.get(vid, Progress.kage_title(vid))
+	return Kage.kage_name(vid)
 
 
 ## Kage ofisi: köy temalı geniş oda, büyük manzara penceresi, masa, eski Kage portreleri, ANBU muhafızlar, Kage'nin kendisi
