@@ -39,13 +39,13 @@
   "name": "Şifalı Merhem",
   "price": 35,
   "kind": "use",
-  "desc": "+50 can [H]."
+  "desc": "Canının %35'i (en az 50) [H]."
  },
  "pill": {
   "name": "Asker Hapı",
   "price": 70,
   "kind": "use",
-  "desc": "+60 chakra, 20sn güç [Y]."
+  "desc": "Chakranın %35'i (en az 60), 20sn güç [Y]."
  },
  "herb": {
   "name": "Şifalı Ot",

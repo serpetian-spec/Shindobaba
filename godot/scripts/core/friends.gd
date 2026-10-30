@@ -759,6 +759,15 @@ func _active() -> bool:
 	return true
 
 
+## Takım seninle gelir: dışarıda ve dövüş geçen iç mekânlarda (mağara / deney ini); dükkân ve evlerde kapıda bekler
+func _party_ok() -> bool:
+	if _active():
+		return true
+	if pr().is_empty() or Game.player == null or Exams.cur != "" or int(ChuninExam.stage) != 0:
+		return false
+	return Interiors.inst != null and Interiors.inst.inside.begins_with("lair_")
+
+
 func _despawn(m: Dictionary) -> void:
 	var n = m.get("node")
 	if n != null and is_instance_valid(n):
@@ -790,7 +799,7 @@ func _spawn(id: String) -> Node:
 	var pp = Game.player.global_position
 	var back = -Game.player.face_dir() if Game.player.has_method("face_dir") else Vector3.BACK
 	var q = pp + back * 4.0 + back.cross(Vector3.UP) * randf_range(-3.0, 3.0)
-	q.y = Game.ground_height(q.x, q.z)
+	q.y = Game.jutsu_floor(q.x, q.z)
 	e.global_position = q
 	e.home = q
 	FX.smoke_puff(q + Vector3.UP, 0.8, 10)
@@ -1869,7 +1878,7 @@ func _process(dt: float) -> void:
 	if t > 0.0:
 		return
 	t = 0.4
-	var ids = party_ids() if _active() else []
+	var ids = party_ids() if _party_ok() else []
 	# takımdan çıkanları kaldır, yenileri ekle
 	for m in members.duplicate():
 		if not m["id"] in ids:
@@ -1895,7 +1904,7 @@ func _process(dt: float) -> void:
 			n.home = pp + off
 			if n.global_position.distance_to(pp) > 60.0:
 				var q = pp + off
-				q.y = Game.ground_height(q.x, q.z)
+				q.y = Game.jutsu_floor(q.x, q.z)   # mağarada oda zemini (arazi 1500 m aşağıda)
 				FX.smoke_puff(n.global_position + Vector3.UP, 0.6, 8)
 				n.global_position = q
 				n.target = null

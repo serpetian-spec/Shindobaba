@@ -424,11 +424,12 @@ func use_item(id: String) -> void:
 	inv[id] = int(inv[id]) - 1
 	match id:
 		"salve":
-			player.hp = minf(player.max_hp, player.hp + 50.0 * (1.0 + Stats.skill(Game.profile, "heal")))
+			# sabit +50 yüksek seviyede canın %10'u bile değildi: azami canın %35'i (en az 50)
+			player.hp = minf(player.max_hp, player.hp + maxf(50.0, player.max_hp * 0.35) * (1.0 + Stats.skill(Game.profile, "heal")))
 			FX.aura(player, Color(0.5, 1, 0.6), 0.8)
 			Sfx.play("heal", player.global_position)
 		"pill":
-			player.chakra = minf(player.max_chakra, player.chakra + 60.0)
+			player.chakra = minf(player.max_chakra, player.chakra + maxf(60.0, player.max_chakra * 0.35))
 			Buffs.add("pill", 20.0, {"melee": 1.25})
 			FX.aura(player, Color(1, 0.7, 0.3), 0.8)
 			Sfx.play("heal", player.global_position, 0.8)
