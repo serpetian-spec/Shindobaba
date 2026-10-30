@@ -164,6 +164,10 @@ func to_main_menu() -> void:
 		preview.queue_free()
 		preview = null
 	mode = "menu"
+	if Interiors.inst:
+		Interiors.inst.hide_room()
+	menu_cam.fov = 75.0
+	menu_cam.h_offset = 0.0
 	Game.paused = false
 	get_tree().paused = false
 	Hud.show_game_hud(false)
@@ -207,13 +211,41 @@ func _update_preview() -> void:
 	preview = CharacterModel.new()
 	add_child(preview)
 	preview.setup(_creator_look())
-	var v = Game.village("konoha")
-	var base = Game.from_map(Vector2(v["x"] - 120, v["y"] + 175 - 32))  # salıncaklı ağaç yakını
+	# arka plan: seçilen köyün renklerinde shinobi evi (gökte kurulan oda)
+	var base: Vector3
+	if Interiors.inst:
+		base = Interiors.inst.show_room(String(creator_state.get("village", "konoha")))
+	else:
+		var v = Game.village("konoha")
+		base = Game.from_map(Vector2(v["x"] - 120, v["y"] + 175 - 32))
 	preview.global_position = base
-	preview.rotation.y = preview_yaw
+	preview.rotation.y = PI + preview_yaw   # kameraya (kapı yönüne) bakar
 	preview.play("idle")
-	menu_cam.global_position = base + Vector3(-1.2, 1.3, -3.2)
-	menu_cam.look_at(base + Vector3(-0.4, 1.0, 0), Vector3.UP)
+	_frame_creator_cam(true)
+
+
+## Yaratıcı kamerası: karakter sol paneli değil ekranın sağ boş alanını ortalar; Görünüm sekmesinde yüze yaklaşır
+func _frame_creator_cam(snap := false) -> void:
+	if preview == null:
+		return
+	var base = preview.global_position
+	var close = Menus._ctab == "gorunum"
+	var dist = 2.3 if close else 3.7
+	var h = 1.12 if close else 0.78
+	menu_cam.fov = 38.0
+	var vp = get_viewport().get_visible_rect().size
+	var aspect = vp.x / maxf(vp.y, 1.0)
+	# panelin sağındaki alanın ortası ~ekranın %66'sı: kamerayı yana kaydır (h_offset), karakter sağa geçer
+	var half_w = dist * tan(deg_to_rad(menu_cam.fov * 0.5)) * aspect
+	var to = Transform3D(Basis.IDENTITY, base + Vector3(0, h + 0.08, dist)).looking_at(base + Vector3(0, h, 0), Vector3.UP)
+	var hoff = -half_w * 0.36
+	if snap:
+		menu_cam.global_transform = to
+		menu_cam.h_offset = hoff
+		return
+	var tw = create_tween().set_parallel(true).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	tw.tween_property(menu_cam, "global_transform", to, 0.35)
+	tw.tween_property(menu_cam, "h_offset", hoff, 0.35)
 
 
 func _start_new_game() -> void:
@@ -247,6 +279,8 @@ func _begin_game(pos: Vector3) -> void:
 	if preview:
 		preview.queue_free()
 		preview = null
+	if Interiors.inst:
+		Interiors.inst.hide_room()
 	Menus.clear()
 	# JSON'dan gelen renkleri Color'a çevir
 	var look: Dictionary = Game.profile["look"]
@@ -258,6 +292,9 @@ func _begin_game(pos: Vector3) -> void:
 		Game.profile["village"] = "konoha"
 	if not Game.profile.has("rep"):
 		Game.profile["rep"] = {}
+	# kaldırılan klanlar (Bakuha -> Patlayıcı Kil Yolu): eski kayıt klansız devam eder, teknikleri yolda
+	if not Data.clans.has(String(Game.profile.get("clan", "none"))):
+		Game.profile["clan"] = "none"
 	look["village"] = Game.profile["village"]
 	Progress.refresh_story()
 	Missions._story_cache.clear()

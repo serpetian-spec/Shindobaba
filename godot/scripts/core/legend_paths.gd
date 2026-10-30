@@ -122,7 +122,7 @@ const PATHS := {
 		"intro": "Sarışın adam elindeki kili yoğuruyor, avucundaki ağız sırıtıyor: \"Sanat bir patlamadır! Kalıcı olan sıkıcıdır, hm. Gözlerinle görmek istiyorsan önce benim işimi kanıtla.\"",
 		"passive": {"jutsu": 0.12, "chakra": 0.05},
 		"passive_desc": "Jutsu gücü +%12, chakra +%5",
-		"order": ["nendo_bunshin", "kibaku_nendo", "shi_wan", "kil_ucan_kus", "ningyo_kibaku_nendo", "shi_tsu", "shi_suri", "shi_fo", "shi_o"],
+		"order": ["nendo_bunshin", "kibaku_nendo", "shi_wan", "bakuha_kibaku_te", "kil_ucan_kus", "ningyo_kibaku_nendo", "shi_tsu", "bakuha_jirai", "bakuha_rensa", "shi_suri", "shi_fo", "shi_o"],
 		"quest": {"shi_fo": "art", "shi_o": "art"},
 		"dark": {"shi_o": 10},
 	},

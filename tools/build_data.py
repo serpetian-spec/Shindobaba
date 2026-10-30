@@ -290,11 +290,11 @@ NEW_CLAN = [
      'Işın kıvrılarak engellerin üstünden aşar ve kilitli hedefe iner.', ['Tora']),
     ('sabaku_suna_no_kumo', 'Ryūsa no Kumo (Uçan Kum Bulutu)', 'Flying Sand Cloud', 'sabaku', 3, 'mode', 'hiden', '',
      'Ayağının altında kum bulutu toplanır: üstüne binip uçarsın (Space yüksel, Ctrl alçal). Tekrar yapınca inersin.', ['Tora', 'Hitsuji']),
-    ('bakuha_jirai', 'Bakuton: Jirai Jin (Mayın Tarlası)', 'Explosion Release: Landmine Formation', 'bakuha', 3, 'trap', 'kekkei_genkai', 'bakuton',
+    ('bakuha_jirai', 'Bakuton: Jirai Jin (Mayın Tarlası)', 'Explosion Release: Landmine Formation', 'none', 3, 'trap', 'kekkei_genkai', 'bakuton',
      'Avuçlarındaki ağızlar yere kil mayınlar tükürür: üstüne basan düşmanın altında patlar.', ['Tori', 'Hitsuji']),
-    ('bakuha_kibaku_te', 'Bakuton: Kibaku Shō (Patlayan Avuç)', 'Explosion Release: Exploding Palm', 'bakuha', 3, 'melee', 'kekkei_genkai', 'bakuton',
+    ('bakuha_kibaku_te', 'Bakuton: Kibaku Shō (Patlayan Avuç)', 'Explosion Release: Exploding Palm', 'none', 3, 'melee', 'kekkei_genkai', 'bakuton',
      'Avucundaki ağza chakra yükle ve hedefe yapıştır: iki saniye sonra içeriden patlar.', ['Tori']),
-    ('bakuha_rensa', 'Bakuton: Rensa Bakuha (Zincirleme Patlama)', 'Explosion Release: Chain Explosion', 'bakuha', 4, 'aoe', 'kekkei_genkai', 'bakuton',
+    ('bakuha_rensa', 'Bakuton: Rensa Bakuha (Zincirleme Patlama)', 'Explosion Release: Chain Explosion', 'none', 4, 'aoe', 'kekkei_genkai', 'bakuton',
      'Yerden ileriye doğru sıra sıra patlamalar: her biri bir öncekinden büyük.', ['Tori', 'Hitsuji', 'Tora']),
     ('jinton_kaku', 'Jinton: Kaku (Toz Küpü)', 'Dust Release: Cube', 'none', 4, 'aoe', 'kekkei_genkai', 'jinton',
      'Şeffaf küp genişler ve içindekileri atomlarına ayırır: ağaç, ev, düşman; geriye toz kalır.', ['Tora', 'Ne', 'Tori']),
@@ -408,6 +408,10 @@ PATH_TAG = [
     ('kuchiyose_edo_tensei', 'yilan', 45, '', 'Yasak: topraktan iki tabut yükselir, çatlak tenli diriltilmiş ninjalar senin için savaşır.'),
     ('sojasosai_no_jutsu', 'yilan', 50, '', 'Yasak: ikiz yılanların ortak ölümü — canının yarısı karşılığında hedefe ölümcül darbe.'),
     ('bashosen_kaze_no_maki', 'silah', 30, '', 'Efsanevi yelpazeyi savur: ileri yürüyen dev hortum her şeyi havaya kaldırıp savurur. Chakranı hızla emer.'),
+    # eski Bakuha klanı teknikleri: Bakuton bir yol (Patlayıcı Kil), klan değil
+    ('bakuha_kibaku_te', 'kil', 14, '', ''),
+    ('bakuha_jirai', 'kil', 20, '', ''),
+    ('bakuha_rensa', 'kil', 24, '', ''),
     ('bashosen_hi_no_maki', 'silah', 34, '', 'Efsanevi yelpazeyi savur: dev alev dalgası ilerleyip yolunu yakar. Chakranı hızla emer.'),
 ]
 for (jid, path, lv, nm, desc) in PATH_TAG:
@@ -495,7 +499,6 @@ for cid, nm, kg, desc, eye in [
     ('yotsuki', 'Yotsuki', 'Raiton Zırhı', "Kumo'nun yıldırım klanı. Bedenini raiton zırhıyla sarar, inanılmaz hız.", [0.75, 0.6, 0.25]),
     ('ikazuchi', 'Ikazuchi', 'Ranton (Fırtına)', "Kumo'nun fırtına klanı. Işın gibi bükülen fırtına chakrası.", [0.55, 0.65, 0.85]),
     ('kako', 'Kakō', 'Yōton (Lav)', "Iwa'nın volkan klanı. Lav topları ve eriyik kayalar.", [0.6, 0.3, 0.15]),
-    ('bakuha', 'Bakuha', 'Bakuton (Patlama)', "Iwa'nın Patlama Birliği soyu. Avuçlarındaki ağızlarla patlayıcı kil.", [0.5, 0.45, 0.3]),
     ('iwao', 'Iwao', 'Toprak Golemleri', "Iwa'nın taş dev ve golem ustası klanı. Doton savunma ve hafifletme.", [0.45, 0.4, 0.35]),
 ]:
     clans[cid] = dict(name=nm, desc=desc, kg=kg, eye=eye)
@@ -506,7 +509,7 @@ CLAN_VILLAGE = {
     'sabaku': ['suna'], 'shirogane': ['suna'], 'hoki': ['suna'], 'kazahana': ['suna'],
     'hozuki': ['kiri'], 'yuki': ['kiri'], 'kaguya': ['kiri'], 'hoshigaki': ['kiri'], 'terumi': ['kiri'], 'karatachi': ['kiri'],
     'yotsuki': ['kumo'], 'ikazuchi': ['kumo'], 'chinoike': ['kumo'],
-    'kamizuru': ['iwa'], 'kako': ['iwa'], 'bakuha': ['iwa'], 'iwao': ['iwa'],
+    'kamizuru': ['iwa'], 'kako': ['iwa'], 'iwao': ['iwa'],
     'fuma': ['konoha', 'kumo'],
 }
 DOJUTSU = {'uchiha': 'sharingan', 'hyuga': 'byakugan', 'chinoike': 'ketsuryugan'}
@@ -518,10 +521,10 @@ BONUS = {  # hp, chakra (düz); melee, jutsu, speed (oran)
     'hoshigaki': dict(chakra=80, hp=20), 'kurama': dict(chakra=30), 'fuma': dict(melee=0.08, speed=0.05), 'kamizuru': dict(hp=20, chakra=20),
     'sabaku': dict(hp=25, jutsu=0.08), 'shirogane': dict(chakra=30), 'hoki': dict(chakra=25, jutsu=0.05), 'kazahana': dict(jutsu=0.08, speed=0.03),
     'terumi': dict(chakra=30, jutsu=0.1), 'karatachi': dict(melee=0.15), 'yotsuki': dict(speed=0.08, melee=0.1), 'ikazuchi': dict(jutsu=0.1, chakra=15),
-    'kako': dict(hp=25, jutsu=0.08), 'bakuha': dict(jutsu=0.12), 'iwao': dict(hp=50),
+    'kako': dict(hp=25, jutsu=0.08), 'iwao': dict(hp=50),
 }
 KG_NATURES = {'senju': (['mokuton'], 15), 'yuki': (['hyoton'], 1), 'kaguya': (['shikotsumyaku'], 1), 'hozuki': (['hydrification'], 1),
-              'sabaku': (['jiton'], 1), 'terumi': (['yoton', 'futton'], 8), 'ikazuchi': (['ranton'], 6), 'kako': (['yoton'], 4), 'bakuha': (['bakuton'], 4)}
+              'sabaku': (['jiton'], 1), 'terumi': (['yoton', 'futton'], 8), 'ikazuchi': (['ranton'], 6), 'kako': (['yoton'], 4)}
 for cid, c in clans.items():
     if cid in KG_NATURES:
         c['kg_natures'] = KG_NATURES[cid][0]

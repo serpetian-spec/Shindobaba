@@ -522,81 +522,142 @@ static var _ctab := "kimlik"
 
 
 static func creator(main: Node, state: Dictionary, on_change: Callable, on_start: Callable) -> void:
+	var keep_scroll = _scroll_positions() if Hud.dialog_layer.get_child_count() > 0 and Hud.dialog_layer.get_child(0).has_meta("creator") else []
 	clear()
 	var root = Control.new()
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.set_meta("creator", true)
 	Hud.dialog_layer.add_child(root)
 	var redraw = func(): creator(main, state, on_change, on_start)
-	# sol panel: kategori rayı + seçenekler
+	# sol panel: başlık, sekmeler, seçenek kartları
 	var pnl = PanelContainer.new()
 	pnl.add_theme_stylebox_override("panel", UI.glass(18, 22, 0.86))
 	pnl.set_anchors_preset(Control.PRESET_LEFT_WIDE)
-	pnl.offset_left = 28; pnl.offset_top = 28; pnl.offset_bottom = -28; pnl.offset_right = 668
+	pnl.offset_left = 28; pnl.offset_top = 28; pnl.offset_bottom = -28; pnl.offset_right = 608
 	root.add_child(pnl)
-	var hv = UI.hbox(16)
-	pnl.add_child(hv)
-	var rail = UI.vbox(8)
-	hv.add_child(rail)
+	var outer = UI.vbox(14)
+	pnl.add_child(outer)
+	var head = UI.vbox(2)
+	head.add_child(UI.header("KARAKTERİNİ YARAT", 28))
+	head.add_child(UI.label("Shinobi yolun burada başlıyor. Oklarla seçenekler arasında gezin.", 13, UI.MUTED))
+	outer.add_child(head)
+	var tabs = UI.hbox(8)
 	for t in [["kimlik", "person", "Kimlik"], ["gorunum", "hair", "Görünüm"], ["kiyafet", "shirt", "Kıyafet"]]:
-		rail.add_child(UI.icon_button(t[1], t[2], func():
+		var tb = UI.chip(t[2], _ctab == t[0], func():
 			_ctab = t[0]
-			redraw.call(), 84, _ctab == t[0]))
-	var v = _scroll(hv, 520, 0)
-	v.get_parent().size_flags_vertical = Control.SIZE_EXPAND_FILL
-	v.add_child(UI.header("KARAKTERİNİ YARAT", 26))
-	var chips = func(title: String, key: String, options: Array, labels: Array, rebuild := false) -> void:
-		v.add_child(UI.label(title, 14, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
+			if main.has_method("_frame_creator_cam"):
+				main._frame_creator_cam()
+			redraw.call(), 170)
+		tb.icon = Icons.tex(t[1], 40, UI.INK if _ctab == t[0] else UI.TEXT)
+		tb.expand_icon = false
+		tb.add_theme_constant_override("icon_max_width", 20)
+		tb.custom_minimum_size = Vector2(170, 44)
+		tabs.add_child(tb)
+	outer.add_child(tabs)
+	var sep = ColorRect.new()
+	sep.color = Color(UI.GOLD, 0.25)
+	sep.custom_minimum_size = Vector2(0, 1)
+	outer.add_child(sep)
+	var sc = ScrollContainer.new()
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	outer.add_child(sc)
+	var v = UI.vbox(12)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sc.add_child(v)
+	var card = func() -> VBoxContainer:
+		var pc = PanelContainer.new()
+		pc.add_theme_stylebox_override("panel", UI._box(Color(1, 1, 1, 0.04), Color(1, 1, 1, 0.08), 1, 12, 12))
+		v.add_child(pc)
+		var cv = UI.vbox(8)
+		pc.add_child(cv)
+		return cv
+	# seçim yan etkileri (köy -> önerilen doğa, klan -> klan doğası)
+	var pick = func(key: String, val) -> void:
+		state[key] = val
+		if key == "village" and Progress.HOME_VILLAGES.has(val):
+			state["element"] = Progress.HOME_VILLAGES[val]["element"]
+		if key == "clan" and String(ClanWorld.MAIN_EL.get(val, "")) in ["katon", "suiton", "fuuton", "doton", "raiton"]:
+			state["element"] = ClanWorld.MAIN_EL[val]   # klan teknikleri bu doğayı ister
+		on_change.call()
+		redraw.call()
+	# ◀ Ad ▶ oklu seçici (Mangekyō desen seçicisi gibi)
+	var carousel = func(title: String, key: String, options: Array, labels: Array, col := UI.CREAM) -> VBoxContainer:
+		var cv: VBoxContainer = card.call()
+		var n = options.size()
+		var idx = maxi(0, options.find(state.get(key)))
+		var row = UI.hbox(10)
+		var tl = UI.label(title.to_upper(), 13, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true)
+		tl.custom_minimum_size = Vector2(120, 0)
+		tl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(tl)
+		row.add_child(_arrow_btn("◀", func(): pick.call(key, options[posmod(idx - 1, n)])))
+		var mid = UI.vbox(2)
+		mid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		mid.add_child(UI.label(String(labels[idx]), 19, col, HORIZONTAL_ALIGNMENT_CENTER, true))
+		# konum noktaları (az seçenekte) ya da sayaç
+		if n <= 12:
+			var dots = UI.hbox(4)
+			dots.alignment = BoxContainer.ALIGNMENT_CENTER
+			for i in n:
+				var d = ColorRect.new()
+				d.custom_minimum_size = Vector2(14 if i == idx else 6, 4)
+				d.color = UI.GOLD if i == idx else Color(1, 1, 1, 0.2)
+				d.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				dots.add_child(d)
+			mid.add_child(dots)
+		else:
+			mid.add_child(UI.label("%d / %d" % [idx + 1, n], 12, UI.MUTED, HORIZONTAL_ALIGNMENT_CENTER))
+		row.add_child(mid)
+		row.add_child(_arrow_btn("▶", func(): pick.call(key, options[posmod(idx + 1, n)])))
+		cv.add_child(row)
+		return cv
+	var swatches = func(title: String, key: String, cols: Array) -> void:
+		var cv: VBoxContainer = card.call()
+		cv.add_child(UI.label(title.to_upper(), 13, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
 		var fl = HFlowContainer.new()
 		fl.add_theme_constant_override("h_separation", 8)
 		fl.add_theme_constant_override("v_separation", 8)
-		for i in options.size():
-			fl.add_child(UI.chip(labels[i], options[i] == state.get(key), func():
-				state[key] = options[i]
-				if key == "village" and Progress.HOME_VILLAGES.has(options[i]):
-					state["element"] = Progress.HOME_VILLAGES[options[i]]["element"]
-				if key == "clan" and String(ClanWorld.MAIN_EL.get(options[i], "")) in ["katon", "suiton", "fuuton", "doton", "raiton"]:
-					state["element"] = ClanWorld.MAIN_EL[options[i]]   # klan teknikleri bu doğayı ister
-				on_change.call()
-				redraw.call()))
-		v.add_child(fl)
-	var swatches = func(title: String, key: String, cols: Array) -> void:
-		v.add_child(UI.label(title, 14, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
-		var fl = HFlowContainer.new()
-		fl.add_theme_constant_override("h_separation", 8)
 		for c in cols:
 			fl.add_child(_swatch(c, Color(state.get(key, Color.BLACK)).is_equal_approx(c), func():
 				state[key] = c
 				on_change.call()
 				redraw.call()))
-		v.add_child(fl)
+		cv.add_child(fl)
+	var note = func(cv: VBoxContainer, text: String, col := UI.MUTED) -> void:
+		var l = UI.label(text, 13, col)
+		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		l.custom_minimum_size = Vector2(480, 0)
+		cv.add_child(l)
+	var el_names = {"katon": "Ateş", "suiton": "Su", "fuuton": "Rüzgâr", "doton": "Toprak", "raiton": "Yıldırım"}
 	match _ctab:
 		"kimlik":
-			v.add_child(UI.label("İsim", 14, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
+			var nc: VBoxContainer = card.call()
+			nc.add_child(UI.label("İSİM", 13, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
 			var name_edit = LineEdit.new()
 			name_edit.text = state["name"]
-			name_edit.placeholder_text = "Ninja adın"
+			name_edit.placeholder_text = "Ninja adın (boş kalırsa rastgele)"
 			name_edit.max_length = 18
 			name_edit.custom_minimum_size = Vector2(0, 46)
 			name_edit.add_theme_font_size_override("font_size", 20)
 			name_edit.text_changed.connect(func(t): state["name"] = t)
-			v.add_child(name_edit)
-			chips.call("Cinsiyet", "gender", ["m", "f"], ["Erkek", "Kadın"])
-			if true:
-				var vids = Progress.HOME_VILLAGES.keys()
-				chips.call("Köy", "village", vids, vids.map(func(x): return Game.village(x).get("name", x)))
-				var vinfo = Progress.HOME_VILLAGES.get(state.get("village", "konoha"), {})
-				v.add_child(UI.label("%s  •  Önerilen doğa: %s" % [vinfo.get("kage", ""), String(vinfo.get("element", "katon")).capitalize()], 13, UI.MUTED))
-			# yalnızca seçilen köyün klanları (Suna'da Konoha klanı olmaz)
+			nc.add_child(name_edit)
+			carousel.call("Cinsiyet", "gender", ["m", "f"], ["Erkek", "Kadın"])
+			var vids = Progress.HOME_VILLAGES.keys()
+			var vc: VBoxContainer = carousel.call("Köy", "village", vids, vids.map(func(x): return Game.village(x).get("name", x)))
+			var vinfo = Progress.HOME_VILLAGES.get(state.get("village", "konoha"), {})
+			note.call(vc, "%s  •  Önerilen doğa: %s" % [vinfo.get("kage", ""), el_names.get(String(vinfo.get("element", "katon")), "")])
+			# yalnızca seçilen köyün klanları (Suna'da Konoha klanı olmaz); oynanamaz klanlar (Ōtsutsuki) listelenmez
 			var hvil = String(state.get("village", "konoha"))
-			var clan_ids: Array = Data.clans.keys().filter(func(c): return hvil in Data.clans[c].get("villages", ["konoha"]))
+			var clan_ids: Array = Data.clans.keys().filter(func(c): return hvil in Data.clans[c].get("villages", ["konoha"]) and not Progress.UNPLAYABLE_CLANS.has(c))
 			if not state["clan"] in clan_ids:
 				state["clan"] = "none"
-			chips.call("Klan", "clan", clan_ids, clan_ids.map(func(c): return Data.clans[c]["name"]))
-			var cd = UI.label(Data.clans.get(state["clan"], {}).get("desc", ""), 14, UI.MUTED)
-			cd.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			cd.custom_minimum_size = Vector2(480, 0)
-			v.add_child(cd)
+			var cc: VBoxContainer = carousel.call("Klan", "clan", clan_ids, clan_ids.map(func(c): return Data.clans[c]["name"]))
+			var cl_d: Dictionary = Data.clans.get(state["clan"], {})
+			if cl_d.has("kg"):
+				note.call(cc, "Kekkei Genkai: " + String(cl_d["kg"]), UI.ACCENT)
+			note.call(cc, String(cl_d.get("desc", "")))
 			# klanın hiden teknikleri: seviye geldikçe kendiliğinden öğrenilir
 			var cj = []
 			for k in Data.jutsu.keys():
@@ -605,51 +666,108 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 			cj.sort_custom(func(a, b): return int(a.get("level", 1)) < int(b.get("level", 1)))
 			if not cj.is_empty():
 				var names = cj.map(func(x): return "%s (Sv.%d)" % [String(x["name"]).split(" (")[0], int(x.get("level", 1))])
-				var cl = UI.label("Klan teknikleri: " + ", ".join(names), 13, UI.GOLD)
-				cl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-				cl.custom_minimum_size = Vector2(480, 0)
-				v.add_child(cl)
-			chips.call("Chakra Doğası", "element", ["katon", "suiton", "fuuton", "doton", "raiton"], ["Ateş", "Su", "Rüzgar", "Toprak", "Yıldırım"])
+				note.call(cc, "Klan teknikleri: " + ", ".join(names), UI.GOLD)
+			var els = ["katon", "suiton", "fuuton", "doton", "raiton"]
+			var ec: VBoxContainer = carousel.call("Chakra Doğası", "element", els, els.map(func(e): return el_names[e]), UI.ELEMENT_COLORS.get(state["element"], UI.CREAM))
 			# klan teknikleri hangi doğaları istiyor: seçilen doğada olmayanlar ikinci doğa alınana kadar kilitli
 			var need := {}
 			for k in Data.jutsu.keys():
 				var jj = Data.jutsu[k]
-				if jj is Dictionary and String(jj.get("clan", "")) == state["clan"] and String(jj.get("element", "")) in ["katon", "suiton", "fuuton", "doton", "raiton"]:
+				if jj is Dictionary and String(jj.get("clan", "")) == state["clan"] and String(jj.get("element", "")) in els:
 					need[jj["element"]] = int(need.get(jj["element"], 0)) + 1
 			need.erase(state["element"])
 			if not need.is_empty():
-				var nm = {"katon": "Ateş", "suiton": "Su", "fuuton": "Rüzgar", "doton": "Toprak", "raiton": "Yıldırım"}
 				var parts = []
 				for e in need:
-					parts.append("%s (%d teknik)" % [nm[e], need[e]])
-				var wl = UI.label("⚠ Bu doğayla bazı klan teknikleri kilitli kalır: " + ", ".join(parts) + ". O doğayı ikinci doğa olarak alınca açılır.", 13, Color(1, 0.7, 0.4))
-				wl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-				wl.custom_minimum_size = Vector2(480, 0)
-				v.add_child(wl)
+					parts.append("%s (%d teknik)" % [el_names[e], need[e]])
+				note.call(ec, "⚠ Bu doğayla bazı klan teknikleri kilitli kalır: " + ", ".join(parts) + ". O doğayı ikinci doğa olarak alınca açılır.", Color(1, 0.7, 0.4))
 		"gorunum":
+			carousel.call("Saç Stili", "hair_style", CharacterModel.HAIR_STYLES.keys(), CharacterModel.HAIR_STYLES.values())
+			swatches.call("Saç Rengi", "hair", [Color(0.3, 0.2, 0.12), Color(0.08, 0.08, 0.1), Color(0.18, 0.12, 0.1), Color(0.95, 0.8, 0.25), Color(0.98, 0.92, 0.6), Color(0.75, 0.25, 0.15),
+				Color(0.95, 0.4, 0.15), Color(0.9, 0.9, 0.92), Color(0.6, 0.6, 0.65), Color(0.2, 0.3, 0.6), Color(0.15, 0.18, 0.35), Color(0.9, 0.55, 0.7), Color(0.55, 0.3, 0.6), Color(0.25, 0.45, 0.25)])
 			swatches.call("Ten", "skin", [Color(0.98, 0.88, 0.8), Color(0.96, 0.8, 0.66), Color(0.86, 0.68, 0.52), Color(0.68, 0.5, 0.36), Color(0.5, 0.36, 0.26)])
-			chips.call("Saç Stili", "hair_style", CharacterModel.HAIR_STYLES.keys(), CharacterModel.HAIR_STYLES.values())
-			swatches.call("Saç Rengi", "hair", [Color(0.3, 0.2, 0.12), Color(0.08, 0.08, 0.1), Color(0.95, 0.8, 0.25), Color(0.75, 0.25, 0.15), Color(0.9, 0.9, 0.92), Color(0.2, 0.3, 0.6), Color(0.9, 0.55, 0.7), Color(0.25, 0.45, 0.25)])
 			if not state["clan"] in ["uchiha", "hyuga", "aburame"]:
-				swatches.call("Göz Rengi", "eye", [Color(0.25, 0.45, 0.8), Color(0.3, 0.2, 0.12), Color(0.25, 0.55, 0.3), Color(0.1, 0.1, 0.1), Color(0.6, 0.4, 0.15)])
+				swatches.call("Göz Rengi", "eye", [Color(0.25, 0.45, 0.8), Color(0.3, 0.2, 0.12), Color(0.25, 0.55, 0.3), Color(0.1, 0.1, 0.1), Color(0.6, 0.4, 0.15), Color(0.55, 0.55, 0.6), Color(0.6, 0.25, 0.55)])
 		"kiyafet":
-			chips.call("Üst", "top_style", CharacterModel.TOP_STYLES.keys(), CharacterModel.TOP_STYLES.values())
-			chips.call("Alt", "pants_style", CharacterModel.PANTS_STYLES.keys(), CharacterModel.PANTS_STYLES.values())
+			carousel.call("Üst", "top_style", CharacterModel.TOP_STYLES.keys(), CharacterModel.TOP_STYLES.values())
+			carousel.call("Alt", "pants_style", CharacterModel.PANTS_STYLES.keys(), CharacterModel.PANTS_STYLES.values())
 			var outfit_cols = [Color(0.15, 0.2, 0.33), Color(0.15, 0.15, 0.17), Color(0.45, 0.15, 0.15), Color(0.95, 0.5, 0.12), Color(0.2, 0.38, 0.22), Color(0.35, 0.25, 0.45), Color(0.85, 0.82, 0.75), Color(0.15, 0.4, 0.45)]
 			swatches.call("Üst Rengi", "top", outfit_cols)
 			swatches.call("Vurgu Rengi", "top2", outfit_cols)
 			swatches.call("Alt Rengi", "pants", outfit_cols)
+	if not keep_scroll.is_empty():
+		_restore_scroll.call_deferred(keep_scroll)
+	# sağ üst: özet kartı
+	var sum = PanelContainer.new()
+	sum.add_theme_stylebox_override("panel", UI.glass(14, 16, 0.7))
+	sum.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+	sum.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	sum.offset_left = -440; sum.offset_right = -28; sum.offset_top = 28
+	root.add_child(sum)
+	var sv = UI.vbox(4)
+	sum.add_child(sv)
+	var nm = String(state.get("name", "")).strip_edges()
+	sv.add_child(UI.label(nm if nm != "" else "İsimsiz Ninja", 24, UI.CREAM, HORIZONTAL_ALIGNMENT_RIGHT, true))
+	var cname = String(Data.clans.get(state["clan"], {}).get("name", "Klansız"))
+	sv.add_child(UI.label("%s  •  %s  •  %s" % [Game.village(String(state.get("village", "konoha"))).get("name", ""), cname, el_names.get(String(state["element"]), "")], 14, UI.MUTED, HORIZONTAL_ALIGNMENT_RIGHT))
 	# sağ alt: eylemler
 	var bar = UI.hbox(12)
 	bar.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	bar.position = Vector2(-560, -96)
+	bar.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	bar.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	bar.offset_left = -28; bar.offset_top = -28; bar.offset_right = -28; bar.offset_bottom = -28
 	root.add_child(bar)
-	bar.add_child(UI.button("Geri", func(): main.back_to_menu(), 160, "arrow"))
-	bar.add_child(UI.primary("Maceraya Başla!", on_start, 340, "play"))
-	var hint = UI.icon_label("person", "Fareyle sürükleyerek karakteri döndür", 14, UI.MUTED)
+	bar.add_child(UI.button("Rastgele", func():
+		_creator_random(state)
+		on_change.call()
+		redraw.call(), 170, "star"))
+	bar.add_child(UI.button("Geri", func(): main.back_to_menu(), 140, "arrow"))
+	bar.add_child(UI.primary("Maceraya Başla!", on_start, 300, "play"))
+	var hint = UI.icon_label("person", "Sürükleyerek karakteri döndür", 14, UI.MUTED)
 	hint.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
-	hint.position = Vector2(-460, -136)
+	hint.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	hint.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	hint.offset_left = -36; hint.offset_top = -92; hint.offset_right = -36; hint.offset_bottom = -92
 	root.add_child(hint)
+
+
+## Yuvarlak ok düğmesi (◀ ▶)
+static func _arrow_btn(text: String, cb: Callable) -> Button:
+	var b = Button.new()
+	b.text = text
+	b.custom_minimum_size = Vector2(46, 46)
+	b.add_theme_font_override("font", UI.font(true))
+	b.add_theme_font_size_override("font_size", 18)
+	var n = UI._box(Color(0.07, 0.08, 0.1, 0.85), Color(UI.GOLD, 0.45), 1, 23, 6)
+	var h = UI._box(Color(UI.GOLD, 0.9), Color(1, 1, 1, 0.4), 1, 23, 6)
+	b.add_theme_stylebox_override("normal", n)
+	b.add_theme_stylebox_override("hover", h)
+	b.add_theme_stylebox_override("pressed", h)
+	b.add_theme_stylebox_override("focus", n)
+	b.add_theme_color_override("font_color", UI.GOLD)
+	for k in ["font_hover_color", "font_pressed_color"]:
+		b.add_theme_color_override(k, UI.INK)
+	b.focus_mode = Control.FOCUS_NONE
+	b.pressed.connect(func():
+		Sfx.play("click")
+		cb.call())
+	b.mouse_entered.connect(func(): Sfx.play("click", null, 1.8, 0.15))
+	return b
+
+
+## Rastgele görünüm (köy/klan/doğa korunur)
+static func _creator_random(state: Dictionary) -> void:
+	state["gender"] = ["m", "f"].pick_random()
+	state["hair_style"] = CharacterModel.HAIR_STYLES.keys().filter(func(h): return h != "kel").pick_random()
+	state["hair"] = [Color(0.3, 0.2, 0.12), Color(0.08, 0.08, 0.1), Color(0.95, 0.8, 0.25), Color(0.75, 0.25, 0.15), Color(0.9, 0.9, 0.92), Color(0.2, 0.3, 0.6), Color(0.9, 0.55, 0.7), Color(0.95, 0.4, 0.15)].pick_random()
+	state["skin"] = [Color(0.98, 0.88, 0.8), Color(0.96, 0.8, 0.66), Color(0.86, 0.68, 0.52), Color(0.68, 0.5, 0.36)].pick_random()
+	state["eye"] = [Color(0.25, 0.45, 0.8), Color(0.3, 0.2, 0.12), Color(0.25, 0.55, 0.3), Color(0.1, 0.1, 0.1)].pick_random()
+	state["top_style"] = CharacterModel.TOP_STYLES.keys().pick_random()
+	state["pants_style"] = CharacterModel.PANTS_STYLES.keys().pick_random()
+	var oc = [Color(0.15, 0.2, 0.33), Color(0.15, 0.15, 0.17), Color(0.45, 0.15, 0.15), Color(0.95, 0.5, 0.12), Color(0.2, 0.38, 0.22), Color(0.35, 0.25, 0.45), Color(0.85, 0.82, 0.75), Color(0.15, 0.4, 0.45)]
+	state["top"] = oc.pick_random()
+	state["top2"] = oc.pick_random()
+	state["pants"] = oc.pick_random()
 
 
 # ================================================================== duraklatma

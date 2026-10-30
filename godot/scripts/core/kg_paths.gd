@@ -22,6 +22,8 @@ const SITES := {
 	"hermit": {"country": "frost", "off": Vector2(1400, 900), "nature": "hyoton", "level": 35, "title": "Buz Keşişi"},
 	"volcano": {"country": "earth", "off": Vector2(2200, -4200), "nature": "yoton", "level": 35, "title": "Kızıl Krater"},
 	"dust": {"country": "wind", "off": Vector2(-3800, -2600), "nature": "jinton", "level": 70, "title": "Gömülü Toz Tapınağı"},
+	# Tenseigan: Byakugan'a ayın eski chakrasını kat (Ōtsutsuki soyu oynanamaz; yol herkese açık ama ustalaşmış Byakugan ister)
+	"moon": {"country": "north", "off": Vector2(1500, 1200), "nature": "", "level": 40, "title": "Ay Mabedi"},
 }
 
 
@@ -117,6 +119,14 @@ static func site_quest(kind: String, at: Array) -> Dictionary:
 					{"kind": "goto", "at": _near(at, 60.0), "r": 12.0, "name": "Krater Kenarı", "text": "Kraterin kenarına in."},
 					{"kind": "points", "at": at, "n": 6, "spread": 26, "label": "[F] Lav ağzını mühürle", "fx": "seal", "text": "Taşan lav ağızlarını chakranla mühürle (6)."},
 					{"kind": "defend", "at": at, "enemy": "iwa", "waves": [3, 3, 4], "text": "Krater muhafızlarının sınavına dayan."}]}
+		"moon":
+			return {"title": "Ay Mabedi (Gizli S-Rank)", "rank": "S", "village": Progress.home(), "hook": "Progress.kg_quest_done", "kg": "tenseigan",
+				"brief": "Mabedin taşlarında, gökten inen eski bir soyun ay chakrası mühürlü. Byakugan'ın onu görebiliyor: mühür taşlarını aç, mabedin bekçisini yen ve chakrayı gözlerine al.",
+				"steps": [
+					{"kind": "points", "at": at, "n": 5, "spread": 22, "label": "[F] Ay mühürünü çöz", "fx": "seal", "text": "Byakugan ile gördüğün ay mühürlerini çöz (5)."},
+					{"kind": "kill", "at": _near(at, 260.0), "enemy": "rogue", "n": 3, "camp": true,
+						"boss": {"name": "Ay Mabedi Bekçisi", "hp": 3800.0, "level": 50, "power": 3.8}, "text": "Mühürleri koruyan bekçiyi yen."},
+					{"kind": "goto", "at": at, "r": 10.0, "name": "Ay Sunağı", "text": "Sunağa dön ve ay chakrasını gözlerine al."}]}
 		"dust":
 			return {"title": "Toz Tapınağı (Gizli S-Rank)", "rank": "S", "village": Progress.home(), "hook": "Progress.kg_quest_done", "kg": "jinton",
 				"brief": "Kumların altındaki tapınak, üç doğayı tek bir küpte birleştiren yasak tekniği saklıyor. Muhafızı geçen, tozun sırrını öğrenir.",
@@ -134,6 +144,9 @@ static func interact_site(it: Dictionary) -> void:
 	var s: Dictionary = SITES.get(kind, {})
 	var p = pr()
 	var nat: String = s.get("nature", "")
+	if kind == "moon":
+		_moon_site(it, s)
+		return
 	if Progress.has_nature(nat):
 		Hud.dialog(s["title"], "Bu doğa zaten kanında akıyor. Ustalaşmaya devam et.", [])
 		return
@@ -165,12 +178,58 @@ static func interact_site(it: Dictionary) -> void:
 	Hud.dialog(s["title"], intro, [{"label": "Sınavı kabul et", "cb": func(): Missions.accept(site_quest(kind, at))}])
 
 
+## Ay Mabedi: ustalaşmış (3/3) iki Byakugan + Sv.40, yalnız gece açılır
+static func _moon_site(it: Dictionary, s: Dictionary) -> void:
+	var p = pr()
+	var intro = "Taş sunakta soluk mavi bir ay oyulmuş. Gözlerin olmadan bakınca sadece taş görüyorsun."
+	var both = true
+	for slot in ["sag_goz", "sol_goz"]:
+		var g = Gear.equipped(p, slot)
+		if g.is_empty() or g["id"] != "goz_byakugan" or int(g.get("lvl", 1)) < 3:
+			both = false
+	var have = Gear.equipped(p, "sag_goz").get("id", "") == "goz_tenseigan"
+	if have:
+		Hud.dialog(s["title"], "Sunaktaki ay artık senin gözlerinde parlıyor.", [])
+		return
+	var need = ""
+	if not both:
+		need = "Mühürleri yalnızca iki gözünde de tam ustalaşmış (3/3) Byakugan olan görebilir."
+	elif int(p.get("level", 1)) < int(s["level"]):
+		need = "Henüz hazır değilsin (Seviye %d gerekli)." % int(s["level"])
+	else:
+		var tod = float(Game.world.env.time_of_day) if Game.world and Game.world.get("env") else 0.5
+		if not (tod < 0.2 or tod > 0.8):
+			need = "Mühürler yalnız ay ışığında görünür. Gece geri gel."
+	if need == "":
+		intro = "Byakugan'ınla bakınca taşın içinde dönen eski bir chakra görüyorsun: ayın chakrası. Mühürler gözlerini çağırıyor."
+	if need != "":
+		Hud.dialog(s["title"], intro + "
+
+" + need, [])
+		return
+	if not Missions.active().is_empty():
+		Hud.dialog(s["title"], intro + "
+
+Önce elindeki görevi bitir.", [])
+		return
+	var at = [Game.to_map(it["pos"]).x, Game.to_map(it["pos"]).y]
+	Hud.dialog(s["title"], intro, [{"label": "Mühürleri çöz", "cb": func(): Missions.accept(site_quest("moon", at))}])
+
+
 ## Görev bitince: uyanış
 static func quest_done(m: Dictionary, ok: bool) -> void:
 	if not ok:
 		return
 	var kg: String = m.get("kg", "")
 	if kg == "":
+		return
+	if kg == "tenseigan":
+		var ey = Game.player.combat.modes.eyes if Game.player and Game.player.combat and Game.player.combat.modes else null
+		if ey:
+			ey._replace_eyes("goz_tenseigan", ["sag_goz", "sol_goz"], 3)
+		Hud.banner("TENSEIGAN", "Ayın eski chakrası Byakugan'ını mavi ay gözüne dönüştürdü", Color(0.55, 0.8, 1.0))
+		Sfx.play("chakra", Game.player.global_position, 0.6)
+		FX.aura(Game.player, Color(0.55, 0.8, 1.0), 2.0)
 		return
 	Progress.awaken_nature(kg)
 	if kg == "jinton":
@@ -230,4 +289,16 @@ static func build_all(parent: Node3D) -> void:
 				b.box(Vector3(0, y + 0.6, 0), Vector3(9, 1.2, 9), Color(0.7, 0.6, 0.45))
 				b.box(Vector3(0, y + 2.2, 0), Vector3(2.2, 2.2, 2.2), Color(0.95, 0.92, 0.85))  # toz küpü sunağı
 				b.interact(Vector3(0, y, -6), 7, "kg_site", "[F] Sunaktaki yazıları oku", {"site": "dust"})
+			"moon":
+				var y = g.call(0, 0)
+				b.cyl(Vector3(0, y + 0.4, 0), 18.0, 0.8, Color(0.82, 0.84, 0.9), true, 24)   # ay biçimli taş kaide
+				for i in 6:   # hilal sütunları
+					var a = TAU * i / 6.0
+					b.box(Vector3(cos(a) * 7.5, y + 3.0, sin(a) * 7.5), Vector3(1.1, 5.2, 1.1), Color(0.75, 0.78, 0.88))
+					b.box(Vector3(cos(a) * 7.5, y + 5.75, sin(a) * 7.5), Vector3(1.6, 0.3, 1.6), Color(0.6, 0.65, 0.8))
+				b.box(Vector3(0, y + 1.5, 0), Vector3(2.4, 1.4, 1.2), Color(0.88, 0.9, 0.95))   # sunak
+				b.cyl(Vector3(0, y + 3.2, 0), 1.8, 0.25, Color(0.6, 0.8, 1.0), false, 20)   # oyulmuş ay diski
+				b.lantern(3.0, -6.0)
+				b.lantern(-3.0, -6.0)
+				b.interact(Vector3(0, y, -4.5), 7, "kg_site", "[F] Ay sunağına bak", {"site": "moon"})
 		b.finish()

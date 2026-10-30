@@ -9,7 +9,7 @@ const EYE_KIND := {"uchiha": 1, "hyuga": 2, "chinoike": 3, "otsutsuki": 2}
 ## Doğa jutsusu olmayan klanların savaş elementi (ek C/B jutsu için)
 const MAIN_EL := {"uchiha": "katon", "sarutobi": "katon", "hatake": "raiton", "senju": "doton", "uzumaki": "suiton", "yuki": "suiton",
 	"hozuki": "suiton", "hoshigaki": "suiton", "terumi": "suiton", "karatachi": "suiton", "kaguya": "", "fuma": "fuuton", "kazahana": "fuuton",
-	"sabaku": "fuuton", "yotsuki": "raiton", "ikazuchi": "raiton", "kako": "doton", "bakuha": "doton", "iwao": "doton", "kamizuru": "doton",
+	"sabaku": "fuuton", "yotsuki": "raiton", "ikazuchi": "raiton", "kako": "doton", "iwao": "doton", "kamizuru": "doton",
 	"iburi": "katon", "shimura": "fuuton", "tsuchigumo": "doton", "jugo": "doton", "funato": "suiton", "kaminarimon": "raiton", "otsutsuki": "", "namikaze": "fuuton", "yuhi": "", "gekko": "fuuton", "mitarashi": "katon", "shiranui": "katon", "momochi": "suiton", "kurosuki": "raiton", "hagoromo": "fuuton"}
 const GIVEN_M := ["Raito", "Shun", "Haruki", "Daichi", "Kenta", "Riku", "Takumi", "Isamu", "Souta", "Jun", "Asahi", "Kiyoshi", "Tomoya", "Ryūsei",
 	"Gaku", "Hayao", "Kōki", "Masaru", "Seiji", "Tatsuo", "Yūto", "Akihiro", "Benjirō", "Fumio"]
@@ -305,7 +305,7 @@ func decorate_bingo(e: Dictionary) -> void:
 		return
 	var by_v := {"konoha": ["uchiha", "hyuga", "nara", "akimichi", "aburame", "inuzuka", "uzumaki", "sarutobi", "iburi", "shimura", "tsuchigumo", "namikaze", "yuhi", "gekko", "mitarashi", "shiranui"],
 		"kiri": ["kaguya", "yuki", "hozuki", "hoshigaki", "terumi", "karatachi", "funato", "momochi", "kurosuki", "hagoromo"], "suna": ["sabaku", "shirogane", "hoki", "kazahana"],
-		"kumo": ["chinoike", "yotsuki", "ikazuchi", "kaminarimon"], "iwa": ["kamizuru", "bakuha", "kako", "iwao", "jugo"]}
+		"kumo": ["chinoike", "yotsuki", "ikazuchi", "kaminarimon"], "iwa": ["kamizuru", "kako", "iwao", "jugo"]}
 	var lst: Array = by_v.get(String(e["village"]), [])
 	if lst.is_empty():
 		return

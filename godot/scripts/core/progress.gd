@@ -2,6 +2,8 @@ extends Node
 ## RPG ilerleme (autoload "Progress"): XP/seviye, rütbe, hikâye zinciri, hocalar, etkileşimler, öğrenme.
 
 ## Oyuncunun köyüne göre: Kage unvanı, hocalar, alın koruyucu/yelek rengi, önerilen element
+## Karakter yaratmada seçilemeyen soylar (Ōtsutsuki: tanrısal soy, oyuncu olamaz)
+const UNPLAYABLE_CLANS := ["otsutsuki"]
 const HOME_VILLAGES := {
 	"konoha": {"kage": "Hokage", "s1": "Hoshino-sensei", "s2": "Kurogane-sensei", "band": Color(0.15, 0.22, 0.55), "vest": Color(0.38, 0.48, 0.28), "element": "katon", "lookout": "Hokage Kayası", "dir": "köyün kuzeybatısı"},
 	"suna": {"kage": "Kazekage", "s1": "Takeru-sensei", "s2": "Saji-sensei", "band": Color(0.42, 0.33, 0.22), "vest": Color(0.72, 0.62, 0.45), "element": "fuuton", "lookout": "Gözetleme Kulesi", "dir": "köyün içindeki Akademi yerleşkesi"},

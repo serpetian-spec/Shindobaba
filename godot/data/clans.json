@@ -526,26 +526,6 @@
    "iwa"
   ]
  },
- "bakuha": {
-  "name": "Bakuha",
-  "desc": "Iwa'nın Patlama Birliği soyu. Avuçlarındaki ağızlarla patlayıcı kil.",
-  "kg": "Bakuton (Patlama)",
-  "eye": [
-   0.5,
-   0.45,
-   0.3
-  ],
-  "kg_natures": [
-   "bakuton"
-  ],
-  "kg_level": 4,
-  "bonus": {
-   "jutsu": 0.12
-  },
-  "villages": [
-   "iwa"
-  ]
- },
  "iwao": {
   "name": "Iwao",
   "desc": "Iwa'nın taş dev ve golem ustası klanı. Doton savunma ve hafifletme.",

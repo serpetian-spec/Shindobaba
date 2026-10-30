@@ -19872,16 +19872,15 @@
   "cost": 22,
   "cd": 10.8,
   "element": "bakuton",
-  "elements": [
-   "bakuton"
-  ],
+  "elements": [],
   "natures": [
    "bakuton"
   ],
-  "clan": "bakuha",
-  "level": 10,
-  "rank": 2,
-  "learn": "clan:bakuha",
+  "clan": "",
+  "level": 20,
+  "rank": 0,
+  "learn": "path:kil",
+  "path": "kil",
   "desc": "Avuçlarındaki ağızlar yere kil mayınlar tükürür: üstüne basan düşmanın altında patlar.",
   "seals": [
    "Tori",
@@ -19899,16 +19898,15 @@
   "cost": 22,
   "cd": 7.2,
   "element": "bakuton",
-  "elements": [
-   "bakuton"
-  ],
+  "elements": [],
   "natures": [
    "bakuton"
   ],
-  "clan": "bakuha",
-  "level": 10,
-  "rank": 2,
-  "learn": "clan:bakuha",
+  "clan": "",
+  "level": 14,
+  "rank": 0,
+  "learn": "path:kil",
+  "path": "kil",
   "desc": "Avucundaki ağza chakra yükle ve hedefe yapıştır: iki saniye sonra içeriden patlar.",
   "seals": [
    "Tori"
@@ -19925,16 +19923,15 @@
   "cost": 50,
   "cd": 18.2,
   "element": "bakuton",
-  "elements": [
-   "bakuton"
-  ],
+  "elements": [],
   "natures": [
    "bakuton"
   ],
-  "clan": "bakuha",
-  "level": 18,
-  "rank": 3,
-  "learn": "clan:bakuha",
+  "clan": "",
+  "level": 24,
+  "rank": 0,
+  "learn": "path:kil",
+  "path": "kil",
   "desc": "Yerden ileriye doğru sıra sıra patlamalar: her biri bir öncekinden büyük.",
   "seals": [
    "Tori",

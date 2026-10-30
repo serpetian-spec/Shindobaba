@@ -438,6 +438,7 @@ func _build(kind: String, seed: int) -> void:
 		"teahouse": _teahouse()
 		"inn": _inn()
 		"summit": _summit()
+		"creator": _creator_room(String(door.get("vid", "konoha")))
 		_: _home(false)
 	var mi = MeshInstance3D.new()
 	mi.mesh = mb.build(Props.toon())
@@ -1034,3 +1035,112 @@ func _inn() -> void:
 	person("keeper", -3.0, 3.8, 0.0, "Han Sahibi", ["Yorgun yolcuya sıcak oda!", "Kaplıcamız yok ama futonlarımız yumuşak.", "Bir gece 30 Ryō."])
 	person("sitter", -3.9, 7.5, 90.0, "Yolcu", ["Suna'dan geldim, yol çok uzundu.", "Bu köyde yemekler harika."], {"floor_sit": true})
 	act(-3.0, 2.1, 2.2, "inn_sleep", "[F] Han sahibiyle konuş (yemek, oda)")
+
+
+# ------------------------------------------------------------------ karakter yaratma odası
+## Karakter yaratma ekranının arka planı: köyün renklerinde bir shinobi evi (oyuncu odanın ortasında durur).
+## Köy değişince oda yeniden kurulur. Dönüş: karakterin duracağı nokta.
+func show_room(vid: String) -> Vector3:
+	if inside != "":
+		return origin
+	if room == null or String(room.get_meta("creator_vid", "")) != vid:
+		var v = Game.village("konoha")
+		var p = Game.from_map(Vector2(v["x"], v["y"]))
+		origin = Vector3(p.x, Game.terrain_height(p.x, p.z) + ALT + 300.0, p.z)
+		door = {"vid": vid}
+		_build("creator", 0)
+		room.set_meta("creator_vid", vid)
+	return L(0, 0, 4.6)
+
+
+func hide_room() -> void:
+	if inside == "" and room and room.has_meta("creator_vid"):
+		_clear()
+		door = {}
+
+
+func _creator_room(vid: String) -> void:
+	var th: Dictionary = ACADEMY.get(vid, ACADEMY["konoha"])
+	var W = 10.0; var D = 9.0; var H = 3.4
+	var wood = Color(0.36, 0.24, 0.15)
+	var acc: Color = th["acc"]
+	shell(W, D, H, th["wall"], th["floor"])
+	tatami(-W * 0.5 + 0.55, 2.6, 10, 3)
+	# tokonoma: yükseltilmiş niş, köy kanjili büyük parşömen, kılıç sehpası
+	bx(0, 0.1, D - 0.45, 2.8, 0.2, 0.8, wood)
+	bx(0, 1.75, D - 0.04, 3.0, 3.1, 0.02, th["wall"].darkened(0.08))
+	for sx in [-1.0, 1.0]:
+		bx(sx * 1.5, H * 0.5, D - 0.1, 0.14, H, 0.14, wood)
+	bx(0, 3.15, D - 0.1, 3.14, 0.14, 0.14, wood)
+	bx(0, 1.95, D - 0.07, 1.0, 1.9, 0.02, Color(0.95, 0.92, 0.84))
+	bx(0, 2.93, D - 0.09, 1.12, 0.06, 0.06, Color(0.25, 0.16, 0.1))
+	bx(0, 0.98, D - 0.09, 1.12, 0.06, 0.06, Color(0.25, 0.16, 0.1))
+	_kj(String(th["kanji"]), Vector3(0, 2.05, D - 0.1), 0.85, Color(0.08, 0.07, 0.08))
+	# kılıç sehpası + katana
+	for sx in [-1.0, 1.0]:
+		bx(sx * 0.45, 0.42, D - 0.45, 0.06, 0.45, 0.22, Color(0.12, 0.1, 0.1))
+		bx(sx * 0.45, 0.66, D - 0.45, 0.08, 0.04, 0.24, Color(0.12, 0.1, 0.1))
+	var km = MeshInstance3D.new()
+	km.mesh = CharacterModel.weapon_mesh("katana")
+	room.add_child(km)
+	km.global_position = L(-0.3, 0.68, D - 0.45)
+	km.rotation = Vector3(0, PI * 0.5, 0)   # silahlar +Z boyunca: yatay, yassı yüzü kameraya
+	sp(-0.95, 0.35, D - 0.4, Vector3(0.18, 0.3, 0.18), Color(0.3, 0.38, 0.6))   # vazo
+	sp(-0.95, 0.62, D - 0.4, Vector3(0.32, 0.28, 0.32), Color(0.85, 0.45, 0.55))
+	# köy sancakları (tokonomanın iki yanında)
+	var sym = StandardMaterial3D.new()
+	sym.albedo_texture = CharacterModel.symbol_texture(vid, false)
+	sym.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+	sym.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	for sx in [-1.0, 1.0]:
+		var x = sx * 2.25
+		bx(x, 3.0, D - 0.08, 0.95, 0.05, 0.05, Color(0.2, 0.14, 0.1))
+		bx(x, 2.0, D - 0.06, 0.8, 1.9, 0.02, acc)
+		bx(x, 1.02, D - 0.06, 0.8, 0.08, 0.025, acc.darkened(0.35))
+		var q = QuadMesh.new()
+		q.size = Vector2(0.55, 0.55 * 0.4)
+		q.material = sym
+		var qi = MeshInstance3D.new()
+		qi.mesh = q
+		room.add_child(qi)
+		qi.global_position = L(x, 2.35, D - 0.08)
+	# sol arka: silah duvarı (gerçek silah modelleri)
+	bx(-3.75, 1.65, D - 0.06, 1.9, 1.7, 0.04, wood.darkened(0.25))
+	var wl = ["katana", "kunai", "tanto", "kunai"]
+	for k in wl.size():
+		var wm = MeshInstance3D.new()
+		wm.mesh = CharacterModel.weapon_mesh(wl[k])
+		room.add_child(wm)
+		wm.global_position = L(-3.75 - (0.3 if wl[k] == "katana" else 0.0), 2.25 - k * 0.36, D - 0.12)
+		wm.rotation = Vector3(0, PI * 0.5, 0)
+		bx(-4.5, 2.25 - k * 0.36, D - 0.1, 0.06, 0.06, 0.06, Color(0.15, 0.12, 0.1))
+		bx(-3.0, 2.25 - k * 0.36, D - 0.1, 0.06, 0.06, 0.06, Color(0.15, 0.12, 0.1))
+	for k in 3:   # shuriken
+		cy(-4.3 + k * 0.5, 1.02, D - 0.1, 0.22, 0.02, Color(0.6, 0.62, 0.66), 4, Vector3(90, 0, 45))
+	# sağ arka: parşömen rafı
+	shelf(3.75, D - 0.35, 1.9, 2.1, 0.0, [Color(0.9, 0.85, 0.7), Color(0.75, 0.25, 0.2), Color(0.3, 0.4, 0.6), Color(0.85, 0.8, 0.6)])
+	for k in 4:
+		cy(3.3 + k * 0.3, 2.45, D - 0.35, 0.12, 0.5, [Color(0.92, 0.88, 0.75), Color(0.7, 0.2, 0.18)][k % 2], 8, Vector3(90, 0, 0))
+	# sağ: yelek mankeni
+	var mx = 3.6; var md = 6.2
+	cy(mx, 0.03, md, 0.5, 0.06, wood, 10)
+	cy(mx, 0.75, md, 0.06, 1.4, wood, 6)
+	bx(mx, 1.25, md, 0.5, 0.6, 0.3, Color(0.38, 0.48, 0.28))
+	bx(mx, 1.62, md, 0.56, 0.12, 0.32, Color(0.32, 0.4, 0.24))
+	sp(mx, 1.8, md, Vector3(0.2, 0.24, 0.2), Color(0.85, 0.78, 0.65))
+	bx(mx, 1.84, md + 0.0, 0.22, 0.05, 0.22, acc.darkened(0.2))
+	# sol: alçak masa, parşömen, mürekkep, mum + minderler
+	low_table(-3.0, 5.6, 1.3, 0.8)
+	bx(-3.05, 0.39, 5.6, 0.6, 0.012, 0.3, Color(0.95, 0.92, 0.82))
+	cy(-3.4, 0.4, 5.55, 0.07, 0.05, Color(0.1, 0.1, 0.12))
+	cy(-2.6, 0.44, 5.7, 0.06, 0.12, Color(0.95, 0.93, 0.85))
+	gl("sphere", -2.6, 0.53, 5.7, Vector3(0.04, 0.07, 0.04), Color(1.0, 0.75, 0.35))
+	lamp(-2.6, 0.7, 5.7, Color(1.0, 0.7, 0.4), 0.8, 3.5)
+	cushion(-3.0, 4.9, acc.darkened(0.2))
+	plant(-4.4, D - 1.4)
+	# ışıklar: tavan fenerleri + tokonoma
+	paper_lantern(-2.2, H - 0.65, 4.6)
+	paper_lantern(2.2, H - 0.65, 4.6)
+	lamp(0, H - 0.6, 4.6, Color(1.0, 0.82, 0.58), 0.9, 10.0)
+	lamp(0, 2.6, D - 1.6, Color(1.0, 0.86, 0.66), 0.7, 6.0)
+	lamp(0, 1.8, 2.0, Color(0.95, 0.9, 0.85), 0.5, 6.0)

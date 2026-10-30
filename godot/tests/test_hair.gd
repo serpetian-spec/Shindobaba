@@ -14,7 +14,7 @@ func _ready() -> void:
 	main.add_child(cam)
 	cam.current = true
 	main.world.env.attach_post(cam)
-	for page in [0, 1, 2]:
+	for page in range(int(OS.get_environment("HAIR_P0")) if OS.get_environment("HAIR_P0") != "" else 0, int(ceil(styles.size() / 6.0))):
 		var models = []
 		for i in 6:
 			var k = page * 6 + i

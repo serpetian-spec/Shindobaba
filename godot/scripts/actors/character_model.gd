@@ -52,6 +52,19 @@ const HAIR_DONORS := {
 	"ananas": ["HairSample_Male", "Hair001", "ananas"], "topuz": ["AvatarSample_A", "Hair001", "topuz"], "ikiz_topuz": ["AvatarSample_A", "Hair001", "ikiz_topuz"],
 	"yele": ["AvatarSample_C", "Hair001", "yele"], "orgu": ["AvatarSample_A", "Hair001", "orgu"], "mohikan": ["masc_vroid", "Body", "mohikan"],
 	"kirpik": ["Sakurada_Fumiriya", "Hair001", "kirpik"], "kel": ["", "", ""],
+	# yeni stiller (karakter yaratma): taban saç + tutam eklentisi
+	"dalgali": ["Darkness_Shibu", "Hair001", "dalgali"], "savas_yelesi": ["AvatarSample_C", "Hair001", "savas_yelesi"], "bilge_yelesi": ["HairSample_Male", "Hair001", "bilge_yelesi"], "yuksek_kuyruk": ["Sakurada_Fumiriya", "Hair001", "yuksek_kuyruk"],
+	"yan_kuyruk": ["Sakurada_Fumiriya", "Hair001", "yan_kuyruk"], "ikiz_kuyruk": ["AvatarSample_A", "Hair001", "ikiz_kuyruk"],
+	"ikiz_orgu": ["AvatarSample_A", "Hair001", "ikiz_orgu"], "samuray": ["masc_vroid", "Body", "samuray"],
+	"savasci_kuyruk": ["masc_vroid", "Body", "savasci_kuyruk"], "alev": ["HairSample_Male", "Hair001", "alev"],
+	"geriye_diken": ["HairSample_Male", "Hair001", "geriye_diken"], "yan_tarama": ["Sakurada_Fumiriya", "Hair001", "yan_tarama"],
+	"perde": ["Sendagaya_Shibu", "Hair001", "perde"], "kabarik": ["HairSample_Male", "Hair001", "kabarik"],
+	"ruzgar": ["AvatarSample_C", "Hair001", "ruzgar"], "yabani": ["HairSample_Male", "Hair001", "yabani"],
+	"ense_kuyruk": ["Sakurada_Fumiriya", "Hair001", "ense_kuyruk"], "alcak_topuz": ["AvatarSample_A", "Hair001", "alcak_topuz"],
+	"kazinmis": ["masc_vroid", "Body", ""], "yan_kazinmis": ["masc_vroid", "Body", "yan_kazinmis"],
+	"golge": ["Darkness_Shibu", "Hair001", ""], "cerceve": ["AvatarSample_B", "Hair001", "cerceve"],
+	"yan_orgu": ["Sendagaya_Shibu", "Hair001", "yan_orgu"], "bagli_uzun": ["AvatarSample_B", "Hair001", "bagli_uzun"],
+	"tepe_diken": ["Sakurada_Fumiriya", "Hair001", "tepe_diken"], "yan_topuz": ["Sendagaya_Shibu", "Hair001", "yan_topuz"],
 }
 const VROID_SKIN := Color(0.99, 0.89, 0.82)  # VRoid doku ten rengi (oyuncu teni bununla oranlanır)
 static var _scenes := {}
@@ -807,7 +820,7 @@ func _cloth_mat(layer: int) -> ShaderMaterial:
 
 ## Gövde mesh'inin kafa derisi saçın altından taşmasın ("arkadan kel"): tepe göz hizasının üstü, arka kafa ense hizasının üstü gizlenir
 func _scalp_cut() -> Vector4:
-	if look.get("hair_style", "") in ["kel", "mohikan"]:
+	if look.get("hair_style", "") in ["kel", "mohikan", "samuray", "savasci_kuyruk", "kazinmis", "yan_kazinmis"]:
 		return Vector4(99, -99, 99, 0)
 	return Vector4(eye_center_model.y + 0.02, eye_center_model.z - 0.065, eye_center_model.y - 0.055, 0)
 
@@ -1679,7 +1692,14 @@ const HAIR_FILES := {
 ## Saç stilleri (arayüzde gösterilen adlar)
 const HAIR_STYLES := {"diken": "Dikenli", "dağınık": "Dağınık", "kase": "Kâse", "kısa": "Kısa", "uzun": "Uzun", "atkuyruğu": "At Kuyruğu",
 	"ananas": "Ananas Topuz", "topuz": "Topuz", "ikiz_topuz": "İkiz Topuz", "yele": "Uzun Yele", "kakul": "Tek Göz Kâkül", "geriye": "Geriye Taranmış",
-	"orgu": "Örgü", "mohikan": "Mohikan", "kirpik": "Kısa Kirpi", "kisa_kakul": "Kâküllü Kısa", "kel": "Kel"}
+	"orgu": "Örgü", "mohikan": "Mohikan", "kirpik": "Kısa Kirpi", "kisa_kakul": "Kâküllü Kısa",
+	"dalgali": "Dalgalı Uzun", "savas_yelesi": "Savaş Yelesi", "bilge_yelesi": "Bilge Yelesi", "yuksek_kuyruk": "Yüksek At Kuyruğu", "yan_kuyruk": "Yan At Kuyruğu", "ikiz_kuyruk": "İkiz Kuyruk",
+	"ikiz_orgu": "İkiz Örgü", "samuray": "Samuray Tepesi", "savasci_kuyruk": "Savaşçı Kuyruğu", "alev": "Alev Dikeni",
+	"geriye_diken": "Geriye Dikenli", "yan_tarama": "Yana Taranmış", "perde": "Ortadan Ayrık", "kabarik": "Kabarık",
+	"ruzgar": "Rüzgâr Savruğu", "yabani": "Yabani Yele", "ense_kuyruk": "Ense Kuyruğu", "alcak_topuz": "Alçak Topuz",
+	"kazinmis": "Kazınmış", "yan_kazinmis": "Yanları Kazınmış", "golge": "Gölge Kâkül", "cerceve": "Yüz Çerçeveli",
+	"yan_orgu": "Yan Örgü", "bagli_uzun": "Bağlı Uzun", "tepe_diken": "Tepe Dikeni", "yan_topuz": "Yan Topuz",
+	"kel": "Kel"}
 static var _scalp_cache := {}
 static var _hair_cache := {}
 
@@ -1781,7 +1801,32 @@ static func _hair_clumps(style: String, c: Vector3, r: Vector3) -> ArrayMesh:
 			var d = (a[1] * 0.45 + Vector3(0, -0.7, 0.35)).normalized()
 			_clump(st, a[0], d, Vector3(0, -0.15, 0.1), length * rng.randf_range(0.85, 1.15), width)
 	# saç örtüsü: kafa derisini yatık tutamlarla kapla (kel görünmesin)
-	if style in ["diken", "dağınık", "kase", "atkuyruğu", "ananas", "ikiz_topuz", "yele", "kakul", "geriye", "orgu", "kirpik", "kisa_kakul"]:
+	# kafadan bir bağlama noktasına toplanan tutamlar (at kuyruğu / topuz kökü)
+	var gather = func(tie: Vector3, n: int, y0: float, y1: float, p0: float, p1: float) -> void:
+		for i in n:
+			var a = at.call(rng.randf_range(y0, y1), rng.randf_range(p0, p1))
+			var to = tie - a[0]
+			_clump(st, a[0], to.normalized(), Vector3.ZERO, to.length() * 1.05, 0.06, 0.3)
+	# bağlama noktasından sarkan kuyruk
+	var tail = func(tie: Vector3, dir: Vector3, n: int, length: float, width: float, spread: float, grav: Vector3) -> void:
+		for i in n:
+			var d = (dir.normalized() + Vector3(rng.randf_range(-spread, spread), rng.randf_range(-spread, spread) * 0.5, rng.randf_range(-spread, spread))).normalized()
+			_clump(st, tie, d, grav, length * rng.randf_range(0.85, 1.1), width)
+	# yuvarlak topuz
+	var bun_at = func(bun: Vector3, n: int, size: float) -> void:
+		for i in n:
+			var ang = TAU * i / float(n)
+			var d = Vector3(cos(ang), sin(ang) * 0.7 + 0.25, sin(ang) * 0.7).normalized()
+			_clump(st, bun - d * 0.035 * size, d.cross(Vector3.UP).normalized(), Vector3.ZERO, 0.1 * size, 0.075 * size, 0.6)
+	# örgü: yön boyunca sağa-sola dönüşümlü kısa tutamlar
+	var braid = func(top: Vector3, dir: Vector3, segs: int, step: float, width: float) -> void:
+		var dn = dir.normalized()
+		var sd = dn.cross(Vector3.FORWARD if absf(dn.z) < 0.9 else Vector3.RIGHT).normalized()
+		for k in segs:
+			var s = 1.0 if k % 2 == 0 else -1.0
+			var w = width * (1.0 - 0.35 * float(k) / segs)
+			_clump(st, top + dn * step * k + sd * 0.008 * s, (dn + sd * 0.22 * s).normalized(), Vector3.ZERO, step * 2.0, w * 1.15, 0.9)
+	if style in ["diken", "dağınık", "kase", "atkuyruğu", "ananas", "ikiz_topuz", "yele", "kakul", "geriye", "orgu", "kirpik", "kisa_kakul", "alev", "geriye_diken", "kabarik", "yabani", "savas_yelesi", "bilge_yelesi"]:
 		for row in [[8.0, 5], [30.0, 9], [55.0, 12], [80.0, 14], [98.0, 10]]:
 			for i in row[1]:
 				var yw = 360.0 * (float(i) + 0.5) / row[1] + row[0]
@@ -1909,6 +1954,148 @@ static func _hair_clumps(style: String, c: Vector3, r: Vector3) -> ArrayMesh:
 				_clump(st, a[0], a[1], Vector3.ZERO, rng.randf_range(0.04, 0.06), 0.035)
 		"kisa_kakul":  # kısa saç, düz kesik kâkül
 			bangs.call(9, 65.0, 0.085, 0.045)
+		"dalgali":  # sırta inen dalgalı uzun tutamlar (iki parçalı: dışa sonra içe kıvrılır)
+			for i in 16:
+				var a = at.call(rng.randf_range(95, 265), rng.randf_range(55, 105))
+				var d1 = (a[1] * 0.45 + Vector3(0, -1, -0.15)).normalized()
+				var ln = rng.randf_range(0.24, 0.3)
+				var mid = a[0] + d1 * ln * CLUMP_LEN * 0.9
+				_clump(st, a[0], d1, a[1] * 0.12, ln, 0.075)
+				_clump(st, mid, (Vector3(0, -1, 0) - a[1] * 0.35).normalized(), a[1] * 0.18, ln * 0.95, 0.06)
+			bangs.call(4, 45.0, 0.1, 0.045)
+		"savas_yelesi":  # bele kadar inen çok hacimli, sivri uçlu kabarık yele + tek gözü örten uzun perçem
+			for i in 34:
+				var a = at.call(rng.randf_range(75, 285), rng.randf_range(25, 115))
+				var d = (a[1] * 0.75 + Vector3(0, -1, -0.25)).normalized()
+				_clump(st, a[0], d, Vector3(rng.randf_range(-0.12, 0.12), -0.45, -0.12), rng.randf_range(0.42, 0.62), rng.randf_range(0.09, 0.12), 0.4)
+			for i in 12:  # tepe hacmi: geriye kalkık kalın dikenler
+				var a = at.call(rng.randf_range(-170, 170), rng.randf_range(5, 55))
+				_clump(st, a[0], (a[1] + Vector3(0, 0.2, -0.6)).normalized(), Vector3(0, -0.2, -0.1), rng.randf_range(0.16, 0.22), 0.09)
+			for sx in [-1.0, 1.0]:  # şakaklardan göğse inen kalın perçemler
+				var a = at.call(70.0 * sx, 68.0)
+				_clump(st, a[0], Vector3(0.3 * sx, -1, 0.2).normalized(), Vector3(0.04 * sx, -0.15, 0.04), 0.3, 0.07)
+			var bang = at.call(-22.0, 52.0)
+			_clump(st, bang[0], Vector3(-0.3, -0.95, 0.3).normalized(), Vector3(-0.04, -0.12, 0.06), 0.2, 0.08, 0.3)
+			bangs.call(3, 35.0, 0.09, 0.045)
+		"bilge_yelesi":  # sırtın ortasına inen, dışa sivri taşan dev diken yele + yüzü çevreleyen iki uzun perçem
+			for i in 28:
+				var a = at.call(rng.randf_range(95, 265), rng.randf_range(20, 105))
+				var d = (a[1] * 0.9 + Vector3(0, -0.55, -0.6)).normalized()
+				_clump(st, a[0], d, Vector3(0, -0.5, -0.05), rng.randf_range(0.34, 0.5), rng.randf_range(0.1, 0.13), 0.45)
+			for i in 10:  # tepe: yukarı-geriye kalkık iri dikenler
+				var a = at.call(rng.randf_range(-160, 160), rng.randf_range(5, 50))
+				_clump(st, a[0], (a[1] + Vector3(0, 0.35, -0.5)).normalized(), Vector3(0, -0.1, -0.1), rng.randf_range(0.17, 0.23), 0.09)
+			for sx in [-1.0, 1.0]:
+				var a = at.call(48.0 * sx, 60.0)
+				_clump(st, a[0], Vector3(0.35 * sx, -1, 0.3).normalized(), Vector3(0.05 * sx, -0.1, 0.03), 0.28, 0.07)
+		"yuksek_kuyruk":  # tepede bağlanıp sırta inen uzun kuyruk
+			var tie = c + Vector3(0, r.y * 0.8, -r.z * 0.8)
+			gather.call(tie, 14, -150.0, 150.0, 15.0, 95.0)
+			tail.call(tie, Vector3(0, -0.25, -1), 9, 0.42, 0.065, 0.2, Vector3(0, -1.7, 0.55))
+			bangs.call(4, 45.0, 0.09, 0.045)
+		"yan_kuyruk":
+			var tie = c + Vector3(r.x * 0.85, r.y * 0.15, -r.z * 0.35)
+			gather.call(tie, 12, -150.0, 150.0, 15.0, 95.0)
+			tail.call(tie, Vector3(0.45, -1, -0.15), 7, 0.32, 0.06, 0.2, Vector3(0.05, -0.6, 0))
+			bangs.call(5, 50.0, 0.1, 0.045)
+		"ikiz_kuyruk":
+			for sx in [-1.0, 1.0]:
+				var tie = c + Vector3(r.x * 0.8 * sx, r.y * 0.45, -r.z * 0.35)
+				bun_at.call(tie, 6, 0.45)
+				tail.call(tie, Vector3(0.35 * sx, -0.6, -0.4), 6, 0.36, 0.06, 0.2, Vector3(0.1 * sx, -1.0, 0))
+			bangs.call(5, 50.0, 0.09, 0.045)
+		"ikiz_orgu":
+			for sx in [-1.0, 1.0]:
+				braid.call(c + Vector3(r.x * 0.72 * sx, -r.y * 0.35, -r.z * 0.4), Vector3(0.12 * sx, -1, 0.1), 8, 0.055, 0.05)
+			bangs.call(5, 50.0, 0.09, 0.045)
+		"samuray":  # kazınmış başta tepe topuzu, öne katlanmış kısa kuyruk
+			var base = c + Vector3(0, r.y * 1.0, -r.z * 0.1)
+			gather.call(base, 8, -180.0, 180.0, 15.0, 55.0)
+			bun_at.call(base, 8, 0.7)
+			tail.call(base + Vector3(0, 0.02, 0), Vector3(0, 0.3, 1), 5, 0.16, 0.06, 0.08, Vector3(0, -0.5, 0))
+		"savasci_kuyruk":  # kazınmış başta tepe arkasından bele inen tek uzun kuyruk
+			var tie = c + Vector3(0, r.y * 0.75, -r.z * 0.8)
+			gather.call(tie, 10, -120.0, 120.0, 10.0, 70.0)
+			bun_at.call(tie, 6, 0.4)
+			tail.call(tie, Vector3(0, -0.2, -1), 9, 0.52, 0.07, 0.15, Vector3(0, -1.8, 0.6))
+		"alev":  # yukarı ve geriye savrulan alev biçimli dikenler
+			for ring in [[10.0, 5], [35.0, 9], [65.0, 12]]:
+				for i in ring[1]:
+					var yw = 360.0 * (float(i) + 0.5) / ring[1] + rng.randf_range(-10, 10)
+					var a = at.call(yw, ring[0])
+					var d = (a[1] * 0.5 + Vector3(0, 1, -0.25)).normalized()
+					_clump(st, a[0], d, Vector3(0, 0.05, -0.12), rng.randf_range(0.17, 0.24), 0.075)
+			bangs.call(4, 45.0, 0.08, 0.045)
+		"geriye_diken":  # geriye yatık sivri dikenler, alın açık
+			for ring in [[20.0, 6], [50.0, 10], [85.0, 10]]:
+				for i in ring[1]:
+					var yw = 360.0 * (float(i) + 0.5) / ring[1] + rng.randf_range(-8, 8)
+					if ring[0] > 70.0 and absf(wrapf(yw, -180.0, 180.0)) < 60.0:
+						continue
+					var a = at.call(yw, ring[0])
+					_clump(st, a[0], (a[1] * 0.3 + Vector3(0, 0.15, -1)).normalized(), Vector3(0, -0.05, -0.05), rng.randf_range(0.16, 0.22), 0.07)
+		"yan_tarama":  # alnı bir yandan öbür yana kaplayan yatık perçem
+			for i in 7:
+				var a = at.call(rng.randf_range(-50, 40), rng.randf_range(38, 58))
+				_clump(st, a[0], Vector3(1, -0.5, 0.35).normalized(), Vector3(0, -0.25, 0), rng.randf_range(0.11, 0.15), 0.06, 0.3)
+		"perde":  # ortadan ayrılıp yüzü iki yandan çerçeveleyen perçemler
+			for sx in [-1.0, 1.0]:
+				for i in 4:
+					var a = at.call(sx * (12.0 + i * 13.0), 45.0 + i * 4.0)
+					_clump(st, a[0], Vector3(0.45 * sx, -1, 0.3).normalized(), Vector3(0.05 * sx, -0.2, 0.05), 0.19 + i * 0.015, 0.06)
+		"kabarik":  # kabarık, hacimli kısa bukleler
+			for i in 42:
+				var yw = rng.randf_range(-180, 180); var pt = rng.randf_range(0, 100)
+				if absf(yw) < 60.0 and pt > 60.0:
+					continue
+				var a = at.call(yw, pt)
+				_clump(st, a[0], a[1], -a[1] * 0.3, rng.randf_range(0.07, 0.1), 0.09, 0.8)
+			bangs.call(3, 35.0, 0.06, 0.04)
+		"ruzgar":  # bir yana ve geriye savrulmuş uzun saç
+			for i in 18:
+				var a = at.call(rng.randf_range(60, 300), rng.randf_range(30, 100))
+				_clump(st, a[0], (a[1] * 0.3 + Vector3(0.6, 0.1, -1)).normalized(), Vector3(0.2, -0.2, -0.1), rng.randf_range(0.25, 0.35), 0.07)
+			bangs.call(4, 40.0, 0.1, 0.045)
+		"yabani":  # sırta inen, uçları sivri dağınık uzun yele + tepe dikenleri
+			for i in 20:
+				var a = at.call(rng.randf_range(100, 260), rng.randf_range(40, 110))
+				_clump(st, a[0], (a[1] * 0.5 + Vector3(0, -1, -0.4)).normalized(), Vector3(rng.randf_range(-0.1, 0.1), -0.25, -0.1), rng.randf_range(0.3, 0.45), 0.085)
+			for i in 8:
+				var a = at.call(rng.randf_range(-170, 170), rng.randf_range(10, 45))
+				_clump(st, a[0], (a[1] + Vector3(0, 0.1, -0.35)).normalized(), Vector3(0, -0.12, -0.08), rng.randf_range(0.12, 0.16), 0.075)
+			bangs.call(5, 50.0, 0.11, 0.045)
+		"ense_kuyruk":  # kısa saç, enseden sarkan ince kuyruk
+			tail.call(c + Vector3(0, -r.y * 0.35, -r.z * 0.95), Vector3(0, -1, -0.2), 3, 0.22, 0.04, 0.08, Vector3(0, -0.2, 0))
+			bangs.call(3, 30.0, 0.07, 0.04)
+		"alcak_topuz":  # ensede alçak topuz
+			var bun = c + Vector3(0, -r.y * 0.15, -r.z * 1.3)
+			gather.call(bun, 10, 100.0, 260.0, 30.0, 100.0)
+			bun_at.call(bun, 14, 1.25)
+			bangs.call(4, 45.0, 0.09, 0.045)
+		"yan_kazinmis":  # yanlar kazınmış, tepede geriye yatık hacim
+			for i in 14:
+				var a = at.call(rng.randf_range(-70, 70) + (180.0 if i % 3 == 0 else 0.0), rng.randf_range(0, 40))
+				_clump(st, a[0], (a[1] * 0.3 + Vector3(0, 0.3, -1)).normalized(), Vector3(0, -0.15, 0), rng.randf_range(0.13, 0.17), 0.08, 0.35)
+		"cerceve":  # uzun saç, yüzü iki yandan saran uzun perçemler
+			for sx in [-1.0, 1.0]:
+				for i in 2:
+					var a = at.call(sx * (55.0 + i * 12.0), 62.0)
+					_clump(st, a[0], Vector3(0.2 * sx, -1, 0.15).normalized(), Vector3(0.02 * sx, -0.1, 0), 0.24, 0.05)
+			bangs.call(5, 45.0, 0.1, 0.045)
+		"yan_orgu":  # omuzdan öne düşen tek yan örgü
+			braid.call(c + Vector3(r.x * 0.7, -r.y * 0.4, r.z * 0.05), Vector3(0.12, -1, 0.35), 8, 0.055, 0.055)
+		"bagli_uzun":  # ensede bağlanmış uzun saç
+			var tie = c + Vector3(0, -r.y * 0.5, -r.z * 0.95)
+			bun_at.call(tie, 6, 0.35)
+			tail.call(tie, Vector3(0, -1, -0.15), 5, 0.3, 0.06, 0.12, Vector3(0, -0.3, 0))
+		"tepe_diken":  # kısa saç, yalnız tepede kısa dikenler
+			for i in 10:
+				var a = at.call(rng.randf_range(-180, 180), rng.randf_range(0, 35))
+				_clump(st, a[0], (a[1] + Vector3(0, 0.3, -0.1)).normalized(), Vector3.ZERO, rng.randf_range(0.09, 0.12), 0.06)
+		"yan_topuz":  # tek yanda topuz
+			var bun = c + Vector3(r.x * 0.7, r.y * 0.6, -r.z * 0.35)
+			gather.call(bun, 8, -60.0, 160.0, 15.0, 80.0)
+			bun_at.call(bun, 12, 0.9)
 		"uzun":
 			bangs.call(5, 50.0, 0.12, 0.045)
 		"kısa":

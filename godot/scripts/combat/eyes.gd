@@ -231,8 +231,8 @@ func toggle() -> void:
 			if sn != "" and not sn in sk:
 				sk.append(sn)
 		Hud.msg("%s AÇILDI%s%s" % [" / ".join(names).to_upper(), ("  —  teknikler (jutsu yuvası): " + ", ".join(sk)) if not sk.is_empty() else "", "   (V basılı: Susanoo)" if _can_susanoo() else ""], Color(1, 0.45, 0.45) if main_kind != 2 else Color(0.85, 0.9, 1))
-		if shar or r in [6] or l in [6]:
-			_eye_closeup(r if r in [1, 4, 5, 6] else l)
+		if shar or r in [3, 6] or l in [3, 6]:   # Ketsuryūgan da göze dalan açılışla (yoksa fark edilmiyordu)
+			_eye_closeup(r if r in [1, 3, 4, 5, 6] else l)
 		FX.ring(p.global_position + Vector3.UP * 1.5, Color(1, 0.2, 0.2) if main_kind != 2 else Color(0.8, 0.85, 1), 2.5, 0.35, false, -p.face_dir())
 		if Game.world:
 			Game.world.env.set_tint(Color(0.9, 0.1, 0.1, 0.07) if main_kind != 2 else Color(0.6, 0.7, 1.0, 0.08))
@@ -784,7 +784,7 @@ func counter_strike(_info: Dictionary) -> void:
 
 
 # ------------------------------------------------------------------ anime evrim zincirleri
-## Byakugan / Ketsuryūgan ustalığı (1-3), Tenseigan (ustalaşmış Byakugan + gece ay ışığı + Sv.40),
+## Byakugan / Ketsuryūgan ustalığı (1-3), Tenseigan (ustalaşmış Byakugan + Sv.40 -> Kuzey'deki Ay Mabedi sınavı, KgPaths "moon"),
 ## Rinnegan (Ebedi Mangekyō + Senju gücü Sv.45 ya da Sv.60, ölümün eşiğinde), Rinne-Sharingan (Rinnegan + Altı Yol + Sv.60),
 ## Jōgan (Uzumaki soyunda nadir, sağ göz)
 var _night_t := 0.0
@@ -822,19 +822,10 @@ func evolve_tick(dt: float) -> void:
 				g["lvl"] = int(g.get("lvl", 1)) + 1
 				var nm = "BYAKUGAN" if g["id"] == "goz_byakugan" else "KETSURYŪGAN"
 				Hud.banner(nm + " GELİŞTİ", "Ustalık %d / 3" % int(g["lvl"]), Color(0.85, 0.9, 1.0) if g["id"] == "goz_byakugan" else Color(0.9, 0.2, 0.25))
-	# 2) Tenseigan: tam ustalaşmış Byakugan, Sv.40, gece ay ışığında gözler açık 60 sn
-	if active and lv >= 40 and _both_slots_kind(2) and _lvl("sag") >= 3 and _lvl("sol") >= 3:
-		var tod = float(Game.world.env.time_of_day) if Game.world and Game.world.get("env") and Game.world.env.get("time_of_day") != null else 0.5
-		if tod < 0.2 or tod > 0.82:
-			_night_t += dt
-			if int(_night_t) % 20 == 0 and _night_t - dt < int(_night_t):
-				Hud.msg("Ay ışığı gözlerine doluyor... (%d/60)" % int(_night_t), Color(0.7, 0.85, 1.0))
-			if _night_t >= 60.0:
-				_night_t = 0.0
-				_replace_eyes("goz_tenseigan", ["sag_goz", "sol_goz"], 3)
-				Hud.banner("TENSEIGAN", "Hamura'nın chakrası Byakugan'ını mavi ay gözüne dönüştürdü", Color(0.55, 0.8, 1.0))
-				Sfx.play("chakra", p.global_position, 0.6)
-				FX.aura(p, Color(0.55, 0.8, 1.0), 2.0)
+	# 2) Tenseigan artık kendiliğinden uyanmaz: ustalaşmış Byakugan + Sv.40 olunca Kuzey'deki Ay Mabedi'ne çağrılır
+	if active and lv >= 40 and _both_slots_kind(2) and _lvl("sag") >= 3 and _lvl("sol") >= 3 and not pr.get("flags", {}).get("moon_call", false):
+		pr["flags"]["moon_call"] = true
+		Hud.banner("AYIN ÇAĞRISI", "Byakugan'ın kuzeyde, Ay Mabedi'nde uyuyan eski bir chakrayı görüyor", Color(0.55, 0.8, 1.0))
 	_evo_cd -= dt
 	if _evo_cd > 0.0:
 		return
