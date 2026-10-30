@@ -20,33 +20,29 @@ func _ready() -> void:
 	cs.shape = sh
 	cs.position.y = 0.25
 	add_child(cs)
-	vis = MeshInstance3D.new()
-	var b = MB.new()
-	var c = Color(0.95, 0.6, 0.25)
-	if ambient:
-		c = [Color(0.95, 0.6, 0.25), Color(0.2, 0.2, 0.22), Color(0.9, 0.9, 0.9), Color(0.6, 0.55, 0.5)].pick_random()
-	if is_dog:
-		c = [Color(0.85, 0.75, 0.55), Color(0.3, 0.25, 0.2), Color(0.95, 0.95, 0.92)].pick_random()
-		b.add("sphere", Vector3(0, 0.45, 0), Vector3(0.38, 0.36, 0.75), c, Vector3.ZERO, 10)
-		b.add("sphere", Vector3(0, 0.65, -0.42), Vector3(0.3, 0.28, 0.32), c, Vector3.ZERO, 10)
-		b.add("box", Vector3(0, 0.6, -0.6), Vector3(0.14, 0.12, 0.16), c.darkened(0.2))
-		for sx in [-1.0, 1.0]:
-			b.add("box", Vector3(0.12 * sx, 0.78, -0.4), Vector3(0.08, 0.14, 0.04), c.darkened(0.25))
-			for sz in [-0.22, 0.22]:
-				b.add("cyl", Vector3(0.12 * sx, 0.18, sz), Vector3(0.09, 0.36, 0.09), c, Vector3.ZERO, 6)
-		b.add("cyl", Vector3(0, 0.58, 0.45), Vector3(0.06, 0.35, 0.06), c, Vector3(-50, 0, 0), 5)
-		vis.mesh = b.build(Props.toon())
-		add_child(vis)
-		return
-	b.add("sphere", Vector3(0, 0.3, 0), Vector3(0.3, 0.28, 0.55), c, Vector3.ZERO, 10)
-	b.add("sphere", Vector3(0, 0.45, -0.3), Vector3(0.25, 0.23, 0.23), c, Vector3.ZERO, 10)
-	for sx in [-1.0, 1.0]:
-		b.add("cone", Vector3(0.07 * sx, 0.6, -0.3), Vector3(0.08, 0.1, 0.06), c, Vector3.ZERO, 4)
-	b.add("cyl", Vector3(0, 0.45, 0.35), Vector3(0.05, 0.4, 0.05), c, Vector3(-40, 0, 0), 5)
-	if not ambient:
-		b.add("box", Vector3(0, 0.42, -0.13), Vector3(0.22, 0.04, 0.04), Color(0.8, 0.15, 0.2))  # kurdele
-	vis.mesh = b.build(Props.toon())
+	# detaylı model (TownAnimals): kedi tekir / calico / smokin / siyah..., köpek shiba / akita / kurt köpeği; bacaklar ve kuyruk salınır
+	var rng = RandomNumberGenerator.new()
+	rng.seed = get_instance_id() * 7919 + Time.get_ticks_usec()   # her hayvan farklı tüy rengi
+	var d: Dictionary = TownAnimals.dog(rng) if is_dog else TownAnimals.cat(rng, not ambient)
+	vis = d["root"]
 	add_child(vis)
+	legs = d["legs"]
+	tail = d["tail"]
+
+
+var legs: Array = []
+var tail: Node3D = null
+
+
+func _process(_dt: float) -> void:
+	# yürüyüş: çapraz bacak salınımı hızla orantılı, kuyruk sallanır
+	var spd = Vector2(velocity.x, velocity.z).length()
+	var ph = t * (6.0 + spd * 1.6)
+	for i in legs.size():
+		var lg: Node3D = legs[i]
+		lg.rotation.x = sin(ph + (PI if i in [1, 2] else 0.0)) * clampf(spd * 0.12, 0.0, 0.55)
+	if tail:
+		tail.rotation.z = sin(t * (3.0 if not is_dog else 9.0)) * (0.25 if not is_dog else 0.35)
 
 
 func _physics_process(dt: float) -> void:

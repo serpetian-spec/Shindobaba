@@ -118,17 +118,9 @@ class TravelGroup extends Node3D:
 		return lk
 
 	func _add_ox_cart() -> void:
-		var ox = MeshInstance3D.new()
-		var b = MB.new()
-		var c = Color(0.45, 0.32, 0.22)
-		b.add("sphere", Vector3(0, 1.3, 0), Vector3(1.1, 1.0, 2.2), c, Vector3.ZERO, 10)
-		b.add("sphere", Vector3(0, 1.45, -1.25), Vector3(0.6, 0.6, 0.75), c.darkened(0.1), Vector3.ZERO, 8)
-		for sx in [-1.0, 1.0]:
-			b.add("cone", Vector3(0.35 * sx, 1.8, -1.35), Vector3(0.12, 0.45, 0.12), Color(0.9, 0.88, 0.8), Vector3(0, 0, -50 * sx), 5)
-		for sx in [-1.0, 1.0]:
-			for sz in [-0.7, 0.7]:
-				b.add("cyl", Vector3(0.35 * sx, 0.45, sz), Vector3(0.22, 0.9, 0.22), c.darkened(0.15), Vector3.ZERO, 6)
-		ox.mesh = b.build(Props.toon())
+		var od: Dictionary = TownAnimals.ox()   # detaylı yük öküzü (boynuz, hörgüç, boyunduruk, sırt örtüsü)
+		var ox: Node3D = od["root"]
+		ox.set_meta("legs", od["legs"])
 		add_child(ox)
 		members.append([ox, 0.0, 0.0, false])
 		var cart = MeshInstance3D.new()
@@ -190,6 +182,12 @@ class TravelGroup extends Node3D:
 			var w = Game.from_map(q + side)
 			mem[0].global_position = w
 			mem[0].rotation.y = atan2(-f.x, f.y)
+			if mem[0].has_meta("legs"):   # öküz: model önü -z, adımlar
+				mem[0].rotation.y += PI
+				var ph = Time.get_ticks_msec() * 0.006
+				var lg: Array = mem[0].get_meta("legs")
+				for i in lg.size():
+					(lg[i] as Node3D).rotation.x = sin(ph + (PI if i in [1, 2] else 0.0)) * 0.35
 
 	func _process(dt: float) -> void:
 		if Game.paused:
