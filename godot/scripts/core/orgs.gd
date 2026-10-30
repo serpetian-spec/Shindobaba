@@ -1080,7 +1080,7 @@ func _ro_tick(dt: float) -> void:
 		return
 	var pp = Game.player.global_position + Game.player.face_dir() * 30.0
 	alive.shuffle()
-	for m in alive.slice(0, 2):
+	for m in alive.slice(0, 1):   # 1v1: örgüt üyesi tek başına gelir
 		spawn_ro_member(o, m, pp + Vector3(randf_range(-6, 6), 0, randf_range(-6, 6)))
 	Hud.banner(String(o["name"]).to_upper(), "«%s» — amaçları: %s" % [o["speech"], o["goal"]], Color.html(o["accent"]))
 

@@ -766,10 +766,16 @@ func _begin_step() -> void:
 				step_nodes.append(_camp(c))
 			var n = int(s["n"])
 			var boss: Dictionary = s.get("boss", {})
-			var es = _spawn(s["enemy"], c, n - (1 if not boss.is_empty() else 0), 14.0, s.get("ename", ""))
+			# 1v1 ağırlıklı: kalabalık yerine tek güçlü ninja (boss varsa yalnız o, adamlarının gücü ona eklenir)
+			var es = []
 			if not boss.is_empty():
-				var b = _spawn_boss(boss, s["enemy"], c)
-				es.append(b)
+				var b2 = boss.duplicate()
+				b2["hp"] = float(b2.get("hp", 600.0)) * (1.0 + 0.25 * maxi(0, n - 1))
+				b2["power"] = float(b2.get("power", 2.0)) * (1.0 + 0.05 * maxi(0, n - 1))
+				es.append(_spawn_boss(b2, s["enemy"], c))
+			else:
+				es = _spawn(s["enemy"], c, n, 14.0, s.get("ename", ""))
+			s["n"] = es.size()
 			if s.has("hostage"):
 				var hp = c + Vector3(3, 0, 3)
 				var h = _make_npc(s["hostage"], hp)
@@ -786,7 +792,7 @@ func _begin_step() -> void:
 				step_nodes.append(pk)
 			var g: Dictionary = s.get("guard", {})
 			if not g.is_empty():
-				_spawn(g["enemy"], c, int(g["n"]), 25.0, g.get("ename", ""))
+				_spawn(g["enemy"], c, int(g["n"]), 25.0, g.get("ename", ""))   # tek güçlü bekçi
 		"escort":
 			var npc: QuestNPC = npcs.get(s["npc_id"])
 			if npc == null or not is_instance_valid(npc):
@@ -806,7 +812,7 @@ func _begin_step() -> void:
 			var c = _w(s["at"])
 			target_marker = c
 			step_nodes.append(_camp(c))
-			var gs = _spawn(s["enemy"], c, int(s["n"]), 16.0, s.get("ename", ""))
+			var gs = _spawn(s["enemy"], c, int(s["n"]), 16.0, s.get("ename", ""), false)
 			st["guards"] = gs
 			st["cones"] = []
 			for e in gs:
@@ -857,7 +863,7 @@ func _begin_step() -> void:
 				step_nodes.append(_camp(c))
 			var gd: Dictionary = s.get("guards", {})
 			if not gd.is_empty():
-				var gs = _spawn(gd["enemy"], c, int(gd["n"]), 16.0)
+				var gs = _spawn(gd["enemy"], c, int(gd["n"]), 16.0, "", false)
 				st["guards"] = gs
 				st["cones"] = []
 				for e in gs:
@@ -991,14 +997,21 @@ func _make_npc(spec: Dictionary, pos: Vector3) -> QuestNPC:
 	return npc
 
 
-func _spawn(kind: String, at: Vector3, n: int, spread: float, nm := "") -> Array:
+## Görev düşmanları 1v1 ağırlıklı: n kişilik grup yerine n'nin gücünü toplayan TEK ninja doğar
+## (çok kişilik grup yalnız gizlilik nöbetçilerinde: solo=false)
+func _spawn(kind: String, at: Vector3, n: int, spread: float, nm := "", solo := true) -> Array:
 	var out = []
-	for i in n:
+	var cnt = n
+	if solo and n > 1:
+		cnt = 1
+	for i in cnt:
 		var e = Enemy.new()
 		var a = Enemy.archetype(kind, i)
 		a["respawn"] = false
 		if nm != "":
 			a["name"] = nm
+		if cnt == 1 and n > 1:
+			Enemy.toughen(a, n, String(active().get("rank", "C")) if not active().is_empty() else "C")
 		e.setup(a)
 		e.set_meta("mission", true)
 		e.set_meta("q", _key())
@@ -1341,7 +1354,7 @@ func on_quest_talk(npc: QuestNPC) -> bool:
 					m["flags"]["votes"] = int(m["flags"].get("votes", 0)) + int(c["vote"])
 				Hud.dialog(npc.display, c.get("reply", ""), [{"label": "Devam", "cb": func():
 					if not c.get("ok", true) and c.get("wrong", "") == "ambush":
-						_spawn("rogue", npc.global_position + Vector3(6, 0, 6), 3, 6.0)
+						_spawn("rogue", npc.global_position + Vector3(6, 0, 6), 3, 6.0)   # tek güçlü suikastçı
 						Hud.banner("PUSU!", "Casus olduğunu sandılar!", Color(1, 0.4, 0.3))
 					_after_talk(npc, s)}])})
 	Hud.dialog(npc.display, s.get("say", "..."), opts)
@@ -1664,15 +1677,14 @@ func _tick_defend(dt: float, s: Dictionary) -> void:
 			var w = int(st["wave"])
 			var a = randf() * TAU
 			var from = c + Vector3(cos(a), 0, sin(a)) * 45.0
-			var es = _spawn(s["enemy"], from, int(waves[w]), 8.0, s.get("ename", ""))
+			var es = []
+			if w == waves.size() - 1 and RANK_IDX.get(active()["rank"], 0) >= 3:
+				es.append(_spawn_boss({"name": "Öncü Komutan", "hp": 700.0 * (1.0 + 0.2 * int(waves[w])), "level": 26, "power": 2.4}, s["enemy"], from))
+			else:
+				es = _spawn(s["enemy"], from, int(waves[w]), 8.0, s.get("ename", ""))   # her dalga: tek güçlü ninja
 			for e in es:
 				e.home = c
 				e.wander_to = c
-			if w == waves.size() - 1 and RANK_IDX.get(active()["rank"], 0) >= 3:
-				var b = _spawn_boss({"name": "Öncü Komutan", "hp": 700.0, "level": 26, "power": 2.4}, s["enemy"], from)
-				b.home = c
-				b.wander_to = c
-				es.append(b)
 			st["alive"] = es
 			st["next_t"] = 3.0
 			Hud.banner("DALGA %d/%d" % [w + 1, waves.size()], "Düşmanlar geliyor!", Color(1, 0.5, 0.3))

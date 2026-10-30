@@ -95,6 +95,20 @@ static func archetype(kind: String, i := 0) -> Dictionary:
 	return base
 
 
+## n kişilik grubun yerine tek güçlü ninja: can/güç/seviye artar, gerçek bir dövüş tarzı kuşanır
+static func toughen(a: Dictionary, n: int, rank := "C") -> void:
+	var k = float(maxi(0, n - 1))
+	a["hp"] = float(a.get("hp", 120.0)) * (1.0 + 0.75 * k)
+	a["power"] = float(a.get("power", 1.0)) * (1.0 + 0.1 * k)
+	a["level"] = int(a.get("level", 5)) + int(2 * k)
+	a["guard"] = maxf(float(a.get("guard", 0.2)), 0.35)
+	a["sub"] = maxf(float(a.get("sub", 0.1)), 0.2)
+	a["xp"] = int(float(a.get("xp", 20)) * (1.0 + 0.8 * k))
+	a["ryo"] = int(float(a.get("ryo", 10)) * (1.0 + 0.8 * k))
+	if n >= 3 and String(a.get("kind", "")) != "bandit":
+		BossStyles.dress(a, rank, randi(), "")
+
+
 ## Tip başına en yüksek jutsu rütbesi (E0 D1 C2 B3 A4 S5); seviye de ayrıca sınırlar
 const JUTSU_CAP := {"rogue": 5, "oto": 4, "kumo": 5, "kiri": 5, "iwa": 5, "suna": 5, "konoha": 5, "genin_rival": 3}
 ## Köy ninjalarının bir kısmı köylerinin klanlarından birindendir: klan teknikleri, gözleri ve klan davranışıyla savaşır

@@ -1140,14 +1140,15 @@ func ambush(id: String, kind: String, n: int, title: String, ally: bool) -> void
 	var at = Missions.open_ground(pp + dir * 25.0, 25.0)   # önünde: görebileceğin yerde
 	var foes = []
 	var lv = int(pr().get("level", 1))
-	for i in n:
+	for i in 1:   # 1v1: kalabalık yerine tek güçlü düşman
 		var a = Enemy.archetype(kind, i)
 		a["respawn"] = false
-		a["level"] = maxi(3, lv + randi_range(-2, 2) + (6 if n == 1 else 0))
-		a["hp"] = (120.0 + a["level"] * 14.0) * (3.0 if n == 1 else 1.0)
+		a["level"] = maxi(3, lv + randi_range(-2, 2) + 4)
+		a["hp"] = (120.0 + a["level"] * 14.0) * 2.0
 		a["power"] = 1.0 + a["level"] * 0.025
 		a["xp"] = 30 + a["level"] * 8
 		a["ryo"] = 20 + a["level"] * 4
+		Enemy.toughen(a, n, "B")
 		var e = Enemy.new()
 		e.setup(a)
 		get_tree().current_scene.add_child(e)
@@ -1214,7 +1215,6 @@ func betray_attack(id: String) -> void:
 		e.nameplate.modulate = Color(1, 0.4, 0.35)
 	e.display_name = "%s (HAİN)" % f["name"]
 	Hud.banner("İHANET", "%s sana arkadan saldırdı!" % f["name"], Color(1, 0.3, 0.25))
-	ambush(id, "rogue", 2, "İhanet", false)
 
 
 ## Hain ruhlu dostların küçük ihanetleri (yaşam olayı)
