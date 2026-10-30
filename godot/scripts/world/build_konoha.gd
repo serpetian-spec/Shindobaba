@@ -266,7 +266,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	# ---- ANBU karargâhı (uçurumun dibinde, karanlık)
 	var anx = -480.0; var ann = cliff_n - 110.0
 	SpecialBuildings.anbu(b, decor, anx, ann)
-	_act(b, anx, ann - 18, 6, "anbu", "[F] ANBU Karargâhı")
+	b.interact(Vector3(anx, _gy(b, anx, ann - 22), ann - 22), 4.0, "enter", "[F] Gir: Anbu Karargâhı", {"room": "secret_hq", "vid": "konoha", "alias": "anbu", "out": _gp(b, anx, ann - 22)})
 	occupied.append([anx, ann + 2, 40, 30])
 
 	# ---- Antrenman Alanı 3 + Anıt Taşı (doğu) + eğitmen

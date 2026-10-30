@@ -113,11 +113,7 @@ static func _compound(parent: Node3D, v: Dictionary, sty: Dictionary) -> void:
 	b.box(Vector3(0, hy + 2.4, 28.4), Vector3(3.0, 4.4, 0.4), Color(0.3, 0.22, 0.15), 0.0, false)   # kapı
 	b.interact(Vector3(0, hy, 27.0), 4, "enter", "[F] Gir: %s Hastanesi" % vn, {"room": "hospital", "vid": v["id"], "out": b.w(Vector3(0, hy, 25.0))})
 	# --- ANBU / Kage muhafızları karargâhı
-	var uy = g.call(44, 34)
-	b.box(Vector3(44, uy + 0.5, 34), Vector3(12, 3.0, 12), Color(0.2, 0.2, 0.22))
-	b.box(Vector3(44, uy + 4.0, 34), Vector3(11, 6, 11), Color(0.25, 0.25, 0.28))
-	b.roof(Vector3(44, uy + 7.0, 34), Vector3(12, 2.4, 12), Color(0.12, 0.12, 0.14))
-	b.interact(Vector3(44, uy, 27), 5, "anbu", "[F] ANBU Karargâhı (%s)" % vn)
+	SecretUnits.build_hq(b, String(v["id"]), 52.0, 40.0, 0.0)   # köyün gizli birliği: kendi mimarisinde karargâh + iç mekân
 	# fenerler ve ağaçlar
 	var rng = RandomNumberGenerator.new()
 	rng.seed = hash(v["id"])

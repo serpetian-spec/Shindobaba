@@ -9,7 +9,7 @@ const ALT := 1500.0
 
 const TITLES := {
 	"academy": "Ninja Akademisi", "hokage": "Hokage Kulesi — Görev Ofisi", "weapon_shop": "Silah Dükkânı",
-	"pharmacy": "Eczane", "scrolls": "Parşömenci", "tailor": "Terzi", "bbq": "Yakiniku Restoranı", "hospital": "Konoha Hastanesi",
+	"pharmacy": "Eczane", "scrolls": "Parşömenci", "secret_hq": "Gizli Birlik Karargâhı", "tailor": "Terzi", "bbq": "Yakiniku Restoranı", "hospital": "Konoha Hastanesi",
 	"home_player": "Senin Evin", "home": "Bir Ev", "teahouse": "Dango ve Çay Evi", "inn": "Han (Ryokan)",
 	"summit": "Demir Kalesi — Beş Kage Zirve Salonu", "lair_cave": "Kaçakların Sığınağı", "lair_lab": "Gizli Deney İni",
 }
@@ -528,6 +528,7 @@ func _build(kind: String, seed: int) -> void:
 		"pharmacy": _pharmacy()
 		"tailor": _tailor()
 		"scrolls": _scrolls()
+		"secret_hq": _secret_hq(String(door.get("vid", "konoha")))
 		"bbq": _bbq()
 		"hospital": _hospital()
 		"home_player": _home(true)
@@ -907,6 +908,46 @@ func _pharmacy() -> void:
 	lamp(0, H - 0.5, 3.5, Color(1.0, 0.95, 0.85), 1.3, 9.0)
 	person("keeper", 0, D - 1.6, 0.0, "Eczacı Yumi", ["Asker hapları çok güçlü, dikkatli kullan.", "Merhem yaralara iyi gelir.", "Taze şifalı otlar geldi!"])
 	act(0, D - 3.2, 2.2, "shop_items", "[F] Eczacıyla konuş (merhem, haplar)")
+
+
+## Gizli birlik karargâhı: loş taş salon, ortada harita masası (görev dosyaları, işaretli harita), duvarda maske rafı ve köyün kanjisi,
+## silah dolabı, dosya rafları; maskeli muhafızlar ve birlik komutanı (konuşunca birliğin görev panosu / seçmeler)
+func _secret_hq(vid: String) -> void:
+	var u = SecretUnits.of(vid)
+	var W = 12.0; var D = 11.0; var H = 3.8
+	shell(W, D, H, Color(u["wall"]).lightened(0.15), Color(0.22, 0.2, 0.2), false)
+	var acc: Color = u["acc"]
+	# harita masası + harita + dosyalar + mumlar
+	bx(0, 0.9, D * 0.5, 4.0, 0.12, 2.4, Color(0.3, 0.2, 0.14), true)
+	for sx in [-1.0, 1.0]:
+		for sz in [-1.0, 1.0]:
+			bx(sx * 1.8, 0.45, D * 0.5 + sz * 1.0, 0.15, 0.9, 0.15, Color(0.22, 0.15, 0.1))
+	bx(0, 0.97, D * 0.5, 3.4, 0.01, 1.9, Color(0.86, 0.8, 0.62))
+	for k in 6:
+		bx(-1.2 + (k % 3) * 1.1, 0.98, D * 0.5 - 0.5 + (k / 3) * 0.9, 0.12, 0.01, 0.12, acc)   # işaret iğneleri
+	for k in 3:
+		bx(-1.6 + k * 0.4, 1.0 + k * 0.02, D * 0.5 + 0.75, 0.32, 0.03, 0.42, Color(0.75, 0.68, 0.5))   # dosyalar
+	for sx in [-1.0, 1.0]:
+		cy(sx * 1.6, 1.08, D * 0.5 - 0.8, 0.08, 0.18, Color(0.95, 0.92, 0.82))
+		lamp(sx * 1.6, 1.3, D * 0.5 - 0.8, Color(1.0, 0.7, 0.35), 0.9, 5.0)
+	# arka duvar: köyün kanjisi + maske rafı
+	_kj(String(u["kanji"]), L(0, 2.7, D - 0.12), 0.9, acc)
+	for k in 8:
+		var x = -3.5 + k * 1.0
+		bx(x, 1.7, D - 0.2, 0.7, 0.04, 0.3, Color(0.3, 0.22, 0.15))
+		sp(x, 1.95, D - 0.25, Vector3(0.32, 0.4, 0.12), Color(0.95, 0.95, 0.93))
+		bx(x - 0.06, 1.98, D - 0.32, 0.06, 0.12, 0.01, acc)
+	# silah dolabı (sol) + dosya rafları (sağ)
+	shelf(-W * 0.5 + 0.3, D * 0.5, 4.0, 2.0, 1.0, [Color(0.6, 0.62, 0.66), Color(0.5, 0.5, 0.55), Color(0.3, 0.3, 0.32)])
+	shelf(W * 0.5 - 0.3, D * 0.5, 4.0, 2.0, -1.0, [Color(0.75, 0.68, 0.5), Color(0.7, 0.62, 0.45), Color(0.8, 0.74, 0.58)])
+	lamp(0, H - 0.4, D * 0.5, Color(0.85, 0.85, 1.0), 0.9, 10.0)
+	var masks: Array = u["mask"]
+	for sx in [-1.0, 1.0]:
+		person("guard", sx * 3.2, 2.0, 0.0, "%s Muhafızı" % u["name"], ["...", "Kimliğimizi sorma.", "Burada konuşulan burada kalır."],
+			{"look_extra": SecretUnits.look(vid, 0 if sx < 0 else 1)})
+	person("keeper", 0, D * 0.5 + 2.0, 180.0, "%s Komutanı" % u["name"], ["%s'nın görevleri kayıtlara geçmez." % u["name"], "Maskeni takmadan konuşma.", "Gölgede kal, köyü koru."],
+		{"look_extra": SecretUnits.look(vid, 2)})
+	act(0, D * 0.5 + 0.8, 2.2, "anbu", "[F] %s Komutanıyla konuş (görevler / seçmeler)" % u["name"])
 
 
 ## Parşömenci: duvar boyu bölmeli raflarda dürülü parşömenler (element renkli), tezgâhta açık parşömen + fırça + mürekkep,
