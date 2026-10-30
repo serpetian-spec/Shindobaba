@@ -41,6 +41,8 @@ var last_cell = Vector2i(999999, 999999)
 var _mutex := Mutex.new()
 var _specials: Array = []   # [x, y(harita), iç r, dış r, tip, yoğunluk]
 var _hrock := Vector4.ZERO   # Hokage Kayası (x0, x1, yüz hattı harita y, tepe): yar yüzünde bitki yok
+var _valley := Vector4.ZERO   # Sonun Vadisi: harita x, y, şelale n, nehir yarı genişliği (nehir şeridinde bitki yok)
+var _iron := Vector3.ZERO   # Demir Ülkesi: harita x, y, yarıçap (çamlar 4 kat)
 var _walls: Array = []      # [x, y(harita), sur yarıçapı]: sur boyunca ağaçsız şerit (dev ağaçlar sura/kapıya giriyordu)
 
 
@@ -71,7 +73,13 @@ func _ready() -> void:
 			_walls.append([float(v["x"]), float(v["y"]), float(v["r"]) - 40.0])
 		elif BuildSites.RING_WALLS.has(v["id"]) or not (v.get("gates", []) as Array).is_empty():
 			_walls.append([float(v["x"]), float(v["y"]), float(v["r"]) * 0.95])
+	for c in Game.world_info["countries"]:
+		if c["id"] == "iron":
+			_iron = Vector3(float(c["x"]), float(c["y"]), float(c["r"]))
 	for l in Game.world_info["landmarks"]:
+		if l["id"] == "valley_end":
+			var sp: Dictionary = l.get("spec", {})
+			_valley = Vector4(float(l["x"]), float(l["y"]), float(sp.get("fall_dy", 520.0)), float(sp.get("half", 95.0)))
 		match l["id"]:
 			"forest_death":
 				_specials.append([float(l["x"]), float(l["y"]), 0.0, float(l["r"]), 5, 0.0009])
@@ -194,6 +202,8 @@ func _generate(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 			dens = row[0]
 			types = row[1]
 		var my := -z
+		if _valley.w > 0.0 and absf(x - _valley.x) < _valley.w * 0.95 and my - _valley.y > _valley.z - 640.0 and my - _valley.y < _valley.z + 940.0:
+			continue   # Sonun Vadisi nehri / şelale üstü nehir: suyun içinde ağaç olmasın
 		for sp in _specials:
 			var d := Vector2(x - sp[0], my - sp[1]).length()
 			if d > sp[2] and d < sp[3] and b != 11 and b < 13:
@@ -253,6 +263,8 @@ func _generate(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 			s = lerpf(0.9, 1.4, sc_r)
 		elif t == 12:
 			s = lerpf(1.6, 2.4, sc_r)   # çiçek öbekleri uzaktan da renk lekesi olarak görünsün
+		elif t == 1 and _iron.z > 0.0 and Vector2(x - _iron.x, my - _iron.y).length() < _iron.z:
+			s *= 4.0   # Demir Ülkesi: dev karlı çam ormanı (dünya ölçeğinde minik kalıyordu)
 		var col := 1.0 + (rng.randf() - 0.5) * 0.2
 		var nv: int = var_count.get(t, 1)
 		var vi := int(rng.randf() * nv) % nv

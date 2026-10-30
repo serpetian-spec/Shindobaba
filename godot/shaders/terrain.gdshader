@@ -19,6 +19,7 @@ uniform sampler2D tex_sand : filter_linear_mipmap, repeat_enable;     // çöl, 
 uniform sampler2D tex_forest : filter_linear_mipmap, repeat_enable;   // orman zemini
 uniform sampler2D tex_dirt : filter_linear_mipmap, repeat_enable;     // köy dışı toprak yollar
 uniform sampler2D tex_grass : filter_linear_mipmap, repeat_enable;    // çimenli zemin
+uniform sampler2D tex_snow : filter_linear_mipmap, repeat_enable;     // kar: rüzgârla dalgalanmış kar yüzeyi
 uniform float texel = 4.0;
 
 varying vec3 wpos;
@@ -114,6 +115,11 @@ void fragment() {
 	}
 	if (b == 15 || b == 8) {
 		base = mix(base, vec3(1.0), 0.12) + step(0.985, n3) * 0.22;
+		// kar dokusu iki ölçekte (tekrar görünmesin) + rüzgâr sırtları + mavimsi çukurlar
+		float sn = texture(tex_snow, wpos.xz * 0.12).r * 0.6 + texture(tex_snow, wpos.xz * 0.021 + 0.41).r * 0.4;
+		base *= 0.86 * (1.0 + (sn - 0.5) * 1.2);   // beyaza patlamasın: doku görünsün
+		float drift = sin(wpos.x * 0.35 + wpos.z * 0.18 + n1 * 5.0) * 0.5 + 0.5;
+		base = mix(base, base * vec3(0.84, 0.9, 1.0), smoothstep(0.55, 0.95, drift) * 0.35);
 	}
 	// yol: yerel yol dokusu (2 m), dışında kaba makro yol
 	vec2 ruv = (wpos.xz - road_rect.xy) / max(road_rect.z, 1.0);

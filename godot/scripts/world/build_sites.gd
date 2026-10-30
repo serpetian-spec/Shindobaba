@@ -1204,7 +1204,7 @@ static func valley_end(parent: Node3D, l: Dictionary) -> void:
 			"trickles": [[-72.0, 5.0, 0.75], [-86.0, 3.0, 0.45], [70.0, 4.0, 0.6], [84.0, 3.5, 0.85]]})
 	# iki dev heykel şelalenin iki yanında kanyon kenarında, birbirine bakıyor (hayran modeli; yoksa prosedürel)
 	_valley_cliffs(b, spec)
-	if not _valley_statues(b, float(spec["half"]), fall_n - 40.0, rim):
+	if not _valley_statues(b, float(spec["half"]), fall_n - 75.0, float(spec["river"])):
 		for sx in [-1.0, 1.0]:
 			_statue(b, (float(spec["half"]) + 55.0) * sx, fall_n - 40.0, rim, -90.0 * sx, rock, sx > 0.0)
 	b.interact(Vector3(0, spec["river"] + 0.5, fall_n - 160.0), 20, "valley", "[F] Sonun Vadisi'nde meditasyon yap")
@@ -1217,13 +1217,13 @@ const VALLEY_MODEL := "res://assets/sketchfab/valley_of_end/source/Valledelfin.f
 const VALLEY_HIDE := ["40_Cliff_0_1_0_0", "Plane", "Plane_001", "Material_003", "Material_004"]
 const VALLEY_HAIR := "Material_014"   # saç ile hakama aynı parça: saç kısmı bel üstünden kesilir
 const VALLEY_HAIR_CUT := 4.3
-const VALLEY_SC := 11.5                # model ~7.3 birim -> ~85 m heykel
+const VALLEY_SC := 14.5                # model ~7.3 birim -> ~105 m heykel (animedeki gibi şelale boyunda, dipten yükselir)
 ## [modelde heykel merkezi x, z, kesim x aralığı, boyun y, büst görünümü (özgün iki kurucu ninja)]
 const VALLEY_STATUE := [
 	{"x": -2.8, "z": -20.4, "lo": -1e9, "hi": -0.36, "neck": 6.22,
-		"look": {"hair_style": "topuz", "face_id": 2, "band": Color.WHITE, "band_style": "head"}},   # sakin kurucu
+		"look": {"gender": "m", "hair_style": "geriye", "face_id": 0, "band": Color.WHITE, "band_style": "head"}},   # sakin kurucu (erkek yüz)
 	{"x": 2.08, "z": -20.7, "lo": -0.36, "hi": 1e9, "neck": 6.36,
-		"look": {"hair_style": "diken", "face_id": 3, "band": null}},   # öfkeli rakip
+		"look": {"gender": "m", "hair_style": "diken", "face_id": 1, "band": null}},   # öfkeli rakip (erkek yüz)
 ]
 
 
@@ -1291,7 +1291,12 @@ static func _valley_statues(b: Builder, half: float, n: float, g: float) -> bool
 	for i in 2:
 		var d: Dictionary = VALLEY_STATUE[i]
 		var sx = -1.0 if i == 0 else 1.0
-		var feet_l = Vector3((half + 18.0) * sx, g, n)
+		# kaide: nehirden yükselen kaya blok (heykel suyun içinden yükselir), üstü düz
+		var px = half * 0.7 * sx
+		var ped_top = g + 7.0
+		b.cyl(Vector3(px, (g - 6.0 + ped_top) * 0.5, n), 44.0, ped_top - g + 6.0, rock.darkened(0.12), true, 14)
+		b.cyl(Vector3(px, ped_top - 0.4, n), 40.0, 0.8, rock.darkened(0.05), false, 14)
+		var feet_l = Vector3(px, ped_top, n)
 		var feet = b.w(feet_l)
 		var root: Node3D = ps.instantiate()
 		b.root.add_child(root)
@@ -1326,6 +1331,7 @@ static func _valley_statues(b: Builder, half: float, n: float, g: float) -> bool
 		# taş büst: modelin kafası ~1 birim; gövde gibi öbür heykele ve biraz aşağı akışa bakar
 		# (büst yüzü yaw'da (-sin, 0, -cos) yönündedir: hedef (-sx, 0, +0.6) -> yaw = atan2(sx, -0.6))
 		var head_at = feet_l + Vector3(0, (float(d["neck"]) + 0.42) * VALLEY_SC, 0)
+		# yüz öbür heykele ve aşağı akışa (izleyene) dönük: eskiden yukarı akışa (şelaleye) bakıyordu -> "kafalar ters"
 		BuildKonoha._stone_head(b, i, head_at, 0.95 * VALLEY_SC, rock.lightened(0.04), d["look"], atan2(sx, -0.6))
 	return true
 

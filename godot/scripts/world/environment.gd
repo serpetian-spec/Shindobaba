@@ -279,6 +279,9 @@ func _process(dt: float) -> void:
 	sun.light_energy = p[3] * (1.0 - overcast * 0.4)
 	env.ambient_light_color = p[4].lerp(Color(0.5, 0.52, 0.58), overcast * 0.35)
 	env.fog_light_color = hor.lerp(Color(0.45, 0.65, 0.95), 0.4)  # pus beyaz değil, gök mavisi
+	if weather == "kar":
+		env.fog_light_color = env.fog_light_color.lerp(Color(0.85, 0.89, 0.95), clampf(overcast * 1.2, 0.0, 1.0))   # tipi: beyaz pus
+		env.fog_density = maxf(env.fog_density, 0.0035 * overcast)
 	if weather == "kum fırtınası":
 		env.fog_light_color = env.fog_light_color.lerp(Color(0.78, 0.62, 0.42), clampf(overcast * 1.2, 0.0, 1.0))   # kum pusu
 		env.ambient_light_color = env.ambient_light_color.lerp(Color(0.72, 0.6, 0.44), clampf(overcast, 0.0, 1.0) * 0.7)   # gölgeler mavi değil kum tonlu

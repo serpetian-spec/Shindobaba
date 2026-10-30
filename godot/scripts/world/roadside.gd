@@ -57,7 +57,7 @@ static func _key(x: float, y: float) -> Vector2i:
 
 const CLEAR_R := {"farm": 62.0, "teahouse": 16.0, "stall": 12.0, "campfire": 10.0, "giant_tree": 16.0, "battlefield": 18.0,
 	"ruin_tower": 12.0, "cave": 14.0, "rocks": 10.0, "statue": 9.0, "rest": 11.0, "haystack": 11.0, "shrine": 10.0, "torii": 9.0,
-	"jizo_row": 7.0, "well": 8.0, "bridge": 0.0, "milestone": 0.0}
+	"jizo_row": 7.0, "well": 8.0, "bridge": 0.0, "milestone": 0.0, "deck": 0.0}
 static func _add_slot(s: Dictionary) -> void:
 	var cr: float = CLEAR_R.get(s["t"], 10.0)
 	if cr > 0.0:
@@ -150,6 +150,7 @@ static func init() -> void:
 		if rl["kind"] != "road":
 			continue
 		var pts: PackedVector2Array = rl["pts"]
+		_sea_bridges(pts)
 		var cum := 0.0
 		var next_slot := SLOT_STEP * 0.5 + float(hash(ri) % 200)
 		var next_farm := FARM_STEP * 0.6 + float(hash(ri * 7) % 500)
@@ -357,12 +358,14 @@ static func _slot(b: Builder, node: Node3D, s: Dictionary, rng: RandomNumberGene
 	var n: float = s["y"]
 	var yaw: float = s.get("yaw", 0.0)
 	var g := _g(x, n)
-	if s["t"] != "bridge" and g < 0.6:
+	if s["t"] != "bridge" and s["t"] != "deck" and g < 0.6:
 		return
 	var f := {"x": x, "y": n, "g": g, "yaw": yaw}
 	match s["t"]:
 		"bridge":
 			_bridge(b, s)
+		"deck":
+			_deck(b, s)
 		"milestone":
 			b.box(Vector3(x, g + 0.6, n), Vector3(0.5, 1.2, 0.35), Color(0.62, 0.6, 0.56), yaw)
 			b.box(Vector3(x, g + 1.25, n), Vector3(0.55, 0.12, 0.4), Color(0.55, 0.53, 0.5), yaw, false)
@@ -713,6 +716,123 @@ static func _ruined_shrine(b: Builder, x: float, n: float, rng: RandomNumberGene
 				b.cyl(Vector3(x + 3.2 * sx, g + 1.6, n + 2.2 * sz), 0.6, rng.randf_range(1.0, 3.2), Color(0.5, 0.3, 0.2), true, 6)
 	BuildFeatures._torii(b, x, n - 6.0, _g(x, n - 6.0), 0.0, 0.6)
 	b.box(Vector3(x + 2.0, g + 0.2, n + 3.5), Vector3(2.0, 0.4, 0.6), Color(0.55, 0.3, 0.22), 25.0, false)  # devrik kiriş
+
+
+# ------------------------------------------------------------------ deniz / göl köprüsü
+## Yol suya giriyorsa (deniz kanalı, göl, geniş haliç): su altında kalan her kesimin üstüne uzun ahşap-taş köprü.
+## Yol 6 m aralıkla örneklenir; arazi su seviyesinin altındaki ardışık örnekler bir koşu. Köprü 24 m'lik parçalara (slot)
+## bölünür (uzak parçalar kurulmaz, akış sistemi yakındakileri kurar); uçlarda karaya rampa, ortada 5 m yükseklik.
+const DECK_TOP := 8.0
+const DECK_W := 14.0
+static var _decks := {}   # 64 m hücre -> [merkez, yön, uzunluk, h0, h1] (trafik / NPC köprü üstünden geçsin)
+const DECK_PIECE := 24.0
+static func _sea_bridges(pts: PackedVector2Array) -> void:
+	var samples: Array = []   # [nokta, yön]
+	for si in range(pts.size() - 1):
+		var a := pts[si]
+		var b := pts[si + 1]
+		var L := a.distance_to(b)
+		if L < 0.01:
+			continue
+		var dir := (b - a) / L
+		var t := 0.0
+		while t < L:
+			samples.append([a + dir * t, dir])
+			t += 6.0
+	var i := 0
+	while i < samples.size():
+		if _g(samples[i][0].x, samples[i][0].y) >= 0.4:
+			i += 1
+			continue
+		var j := i
+		while j + 1 < samples.size() and _g(samples[j + 1][0].x, samples[j + 1][0].y) < 0.4:
+			j += 1
+		# koşu: i..j su altında; bir örnek kara tarafına taşarak kıyıya bağlan
+		var i0 := maxi(0, i - 1)
+		var j0 := mini(samples.size() - 1, j + 1)
+		var p0: Vector2 = samples[i0][0]
+		var p1: Vector2 = samples[j0][0]
+		var run := 6.0 * float(j0 - i0)
+		var mid := (p0 + p1) * 0.5
+		if run >= 18.0 and not (run < 150.0 and _bridge_near(mid, 90.0)):
+			_bridges.append(mid)
+			var h0 := maxf(_g(p0.x, p0.y), 0.6) + 0.15
+			var h1 := maxf(_g(p1.x, p1.y), 0.6) + 0.15
+			# köprü ekseni: örnekleri izle (yol kıvrılsa da parçalar yolu takip eder)
+			var acc := 0.0
+			var k := i0
+			while k < j0:
+				var k2 := mini(j0, k + int(DECK_PIECE / 6.0))
+				var qa: Vector2 = samples[k][0]
+				var qb: Vector2 = samples[k2][0]
+				var sa := acc
+				var sb := acc + 6.0 * float(k2 - k)
+				var ha := minf(minf(DECK_TOP, h0 + sa * 0.14), h1 + (run - sa) * 0.14)
+				var hb := minf(minf(DECK_TOP, h0 + sb * 0.14), h1 + (run - sb) * 0.14)
+				var dd := qb - qa
+				var ln := dd.length()
+				if ln > 0.5:
+					dd /= ln
+					var dc := (qa + qb) * 0.5
+					var dkey := Vector2i(floori(dc.x / 64.0), floori(dc.y / 64.0))
+					if not _decks.has(dkey):
+						_decks[dkey] = []
+					_decks[dkey].append([dc, dd, ln, ha, hb])
+					_add_slot({"t": "deck", "x": (qa.x + qb.x) * 0.5, "y": (qa.y + qb.y) * 0.5, "yaw": rad_to_deg(atan2(dd.x, dd.y)),
+						"len": ln, "h0": ha, "h1": hb, "pier": sa > 4.0 and ha > 2.0, "lamp": int(sa / DECK_PIECE) % 3 == 1, "seed": hash(Vector2i(qa))})
+				acc = sb
+				k = k2
+		i = j + 1
+
+
+## Köprü güvertesinin yüksekliği (harita noktası); köprü yoksa -INF
+static func deck_y(m: Vector2) -> float:
+	var k := Vector2i(floori(m.x / 64.0), floori(m.y / 64.0))
+	for dx in [-1, 0, 1]:
+		for dy in [-1, 0, 1]:
+			for d in _decks.get(k + Vector2i(dx, dy), []):
+				var rel: Vector2 = m - d[0]
+				var along: float = rel.dot(d[1])
+				if absf(along) <= float(d[2]) * 0.5 + 0.5 and absf(rel.dot(Vector2(-d[1].y, d[1].x))) < DECK_W * 0.5:
+					return lerpf(float(d[3]), float(d[4]), clampf(along / float(d[2]) + 0.5, 0.0, 1.0))
+	return -INF
+
+
+static func _deck(b: Builder, s: Dictionary) -> void:
+	var x: float = s["x"]
+	var n: float = s["y"]
+	var yaw: float = s["yaw"]
+	var L: float = s["len"] + 0.4
+	var h0: float = s["h0"]
+	var h1: float = s["h1"]
+	var hm := (h0 + h1) * 0.5
+	var tilt := rad_to_deg(atan2(h1 - h0, L))
+	var wood := Color(0.52, 0.36, 0.23)
+	var stone := Color(0.55, 0.53, 0.5)
+	b.box(Vector3(x, hm - 0.3, n), Vector3(DECK_W, 0.6, L), wood, yaw, true, Vector3(-tilt, 0, 0))   # tahta güverte (yürünür)
+	b.box(Vector3(x, hm - 0.9, n), Vector3(DECK_W + 1.0, 0.7, L), stone.darkened(0.15), yaw, false, Vector3(-tilt, 0, 0))   # taş kiriş
+	for k2 in 3:   # güverte tahta çizgileri
+		var lo2 := Builder.rot((k2 - 1) * DECK_W * 0.3, 0, yaw)
+		b.box(Vector3(x + lo2.x, hm + 0.01, n + lo2.y), Vector3(0.12, 0.02, L), wood.darkened(0.25), yaw, false, Vector3(-tilt, 0, 0))
+	for sx in [-1.0, 1.0]:
+		var ro := Builder.rot((DECK_W * 0.5 - 0.35) * sx, 0, yaw)
+		b.box(Vector3(x + ro.x, hm + 0.55, n + ro.y), Vector3(0.25, 1.1, L), wood.darkened(0.2), yaw, true, Vector3(-tilt, 0, 0))   # korkuluk (düşmesin)
+		b.box(Vector3(x + ro.x, hm + 1.15, n + ro.y), Vector3(0.35, 0.12, L), Color(0.78, 0.22, 0.16), yaw, false, Vector3(-tilt, 0, 0))
+	if s.get("pier", false):
+		# su içine inen taş ayaklar
+		for sx in [-1.0, 1.0]:
+			var po := Builder.rot(DECK_W * 0.36 * sx, 0, yaw)
+			var gb := _g(x + po.x, n + po.y)
+			var top := hm - 1.2
+			var bot := minf(gb, -0.5) - 1.0
+			b.box(Vector3(x + po.x, (top + bot) * 0.5, n + po.y), Vector3(2.6, top - bot, 3.2), stone, yaw, false)
+			b.box(Vector3(x + po.x, -0.2, n + po.y), Vector3(3.6, 1.2, 4.2), stone.darkened(0.2), yaw, false)   # su hizasında taş başlık
+	if s.get("lamp", false):
+		for sx in [-1.0, 1.0]:
+			var lo := Builder.rot((DECK_W * 0.5 - 0.35) * sx, 0, yaw)
+			b.box(Vector3(x + lo.x, hm + 1.9, n + lo.y), Vector3(0.18, 1.5, 0.18), wood.darkened(0.3), yaw, false)
+			b.box(Vector3(x + lo.x, hm + 2.8, n + lo.y), Vector3(0.45, 0.5, 0.45), Color(1.0, 0.85, 0.5), 0, false)
+			Lights.add(b.w(Vector3(x + lo.x, hm + 2.8, n + lo.y)))
 
 
 # ------------------------------------------------------------------ köprü (nehir geçişi)

@@ -64,6 +64,8 @@ static func foliage() -> ShaderMaterial:
 		_foliage.set_shader_parameter("detail_tex_amt", 0.55)
 		_foliage.set_shader_parameter("detail_tex_scale", 0.7)
 		_foliage.set_shader_parameter("detail_brown_only", true)
+		_foliage.set_shader_parameter("leaf_tex", load("res://assets/tex/grass.png"))   # yaprak / çam iğnesi dokusu
+		_foliage.set_shader_parameter("leaf_tex_amt", 0.55)
 	return _foliage
 
 

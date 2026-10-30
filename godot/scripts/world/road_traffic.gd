@@ -171,15 +171,22 @@ class TravelGroup extends Node3D:
 		var fwd = (b2 - a2).normalized() * dir
 		return [q, fwd]
 
+	## Deniz/göl köprüsündeyse güverteye çık (su altından yürümesin)
+	func _onto_deck(m: Vector2, w: Vector3) -> Vector3:
+		var dy = Roadside.deck_y(m)
+		if dy > w.y:
+			w.y = dy
+		return w
+
 	func _place() -> void:
 		var head = _at(0.0)
-		global_position = Game.from_map(head[0])
+		global_position = _onto_deck(head[0], Game.from_map(head[0]))
 		for mem in members:
 			var r = _at(mem[1])
 			var q: Vector2 = r[0]
 			var f: Vector2 = r[1]
 			var side = Vector2(f.y, -f.x) * mem[2]
-			var w = Game.from_map(q + side)
+			var w = _onto_deck(q + side, Game.from_map(q + side))
 			mem[0].global_position = w
 			mem[0].rotation.y = atan2(-f.x, f.y)
 			if mem[0].has_meta("legs"):   # öküz: model önü -z, adımlar

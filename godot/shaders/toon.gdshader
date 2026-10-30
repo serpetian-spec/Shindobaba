@@ -15,6 +15,8 @@ uniform float detail_noise = 0.0;
 uniform sampler2D detail_tex : filter_linear_mipmap, repeat_enable;   // gri detay dokusu (ortalama 0.5): sıva / kiremit (dünya uzayı, üç yönlü)
 uniform float detail_tex_amt = 0.0;
 uniform float detail_tex_scale = 0.4;   // m başına tekrar
+uniform sampler2D leaf_tex : filter_linear_mipmap, repeat_enable;   // yaprak/iğne dokusu (yeşil köşeler)
+uniform float leaf_tex_amt = 0.0;
 uniform bool detail_brown_only = false;   // ağaçlar: doku yalnız kahverengi (gövde) köşelere, yapraklara değil
 uniform float sway = 0.0;
 uniform bool cloth_mode = false;
@@ -527,6 +529,13 @@ void fragment() {
 			amt *= smoothstep(0.02, 0.1, vc.r - vc.g) * smoothstep(0.0, 0.06, vc.g - vc.b) * smoothstep(0.62, 0.48, vc.r);   // koyu kahve: r > g > b (kızıl/sarı yapraklar parlak, hariç)
 		}
 		c.rgb *= 1.0 + (tv - 0.5) * 2.0 * amt;
+		if (leaf_tex_amt > 0.0) {
+			vec3 lc = COLOR.rgb;
+			float green = smoothstep(0.02, 0.08, lc.g - max(lc.r, lc.b * 0.9));
+			vec3 lp = wpos * 1.3;
+			float lv = texture(leaf_tex, lp.zy).r * wn.x + texture(leaf_tex, lp.xz).r * wn.y + texture(leaf_tex, lp.xy).r * wn.z;
+			c.rgb *= 1.0 + (lv - 0.5) * 2.0 * leaf_tex_amt * green;
+		}
 	}
 	if (scalp && scalp_col.a >= 0.5) c.rgb = scalp_col.rgb * 0.75;
 	if (roof_tiles) {

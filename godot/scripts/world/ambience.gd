@@ -8,6 +8,8 @@ var _fall_at := Vector3(1e9, 0, 0)
 var fireflies: GPUParticles3D
 var sand: GPUParticles3D        # rüzgârla akan ince kum çizgileri
 var sand_grit: GPUParticles3D   # yere yakın savrulan kum taneleri
+var blizzard: GPUParticles3D    # karlı bölge: yatay savrulan kar çizgileri
+var blizzard_flakes: GPUParticles3D
 var birds: Array[Node3D] = []
 var t := 0.0
 
@@ -21,6 +23,8 @@ func _ready() -> void:
 	# rüzgâr yönünde hızla akan ince uzun kum çizgileri + yere yakın savrulan taneler
 	sand = _wind_streaks(700, 1.6, Vector3(26, 6, 26), 16.0, 24.0, 3.2, 0.09, Color(0.93, 0.83, 0.64, 0.6))
 	sand_grit = _wind_streaks(600, 1.1, Vector3(20, 0.6, 20), 9.0, 15.0, 0.7, 0.05, Color(0.84, 0.7, 0.48, 0.85))
+	blizzard = _wind_streaks(1100, 1.4, Vector3(26, 8, 26), 18.0, 28.0, 3.2, 0.11, Color(0.95, 0.97, 1.0, 0.75))
+	blizzard_flakes = _wind_streaks(1200, 1.8, Vector3(24, 7, 24), 12.0, 20.0, 0.18, 0.12, Color(1.0, 1.0, 1.0, 0.9))
 	for i in 4:
 		birds.append(_flock())
 	for k in 10:
@@ -215,6 +219,12 @@ func _process(dt: float) -> void:
 	fireflies.emitting = night and biome in [2, 4, 6, 7, 10]
 	sand.emitting = biome == 3 or biome == 13
 	sand_grit.emitting = sand.emitting
+	var snowy = biome in [8, 15]
+	blizzard.emitting = snowy
+	blizzard_flakes.emitting = snowy
+	var bstorm = Game.world != null and Game.world.env.weather == "kar"
+	blizzard.amount_ratio = 1.0 if bstorm else 0.25
+	blizzard_flakes.amount_ratio = 1.0 if bstorm else 0.35
 	# gerçek kum fırtınası havasında yoğun, normalde hafif esinti
 	var storm = Game.world != null and Game.world.env.weather == "kum fırtınası"
 	sand.amount_ratio = 1.0 if storm else 0.15
@@ -227,8 +237,9 @@ func _process(dt: float) -> void:
 	if night:
 		for e in fall_pool:
 			e.emitting = false
-	for e in [leaves, fireflies, sand, sand_grit]:
-		e.global_position = p + Vector3(0, 6 if e == leaves else (0.3 if e == sand_grit else 1.5), 0) - (Vector3(14, 0, 4) if e == sand or e == sand_grit else Vector3.ZERO)   # rüzgârın geldiği yandan doğsun
+	for e in [leaves, fireflies, sand, sand_grit, blizzard, blizzard_flakes]:
+		var windy = e in [sand, sand_grit, blizzard, blizzard_flakes]
+		e.global_position = p + Vector3(0, 6 if e == leaves else (0.3 if e == sand_grit else (3.0 if e in [blizzard, blizzard_flakes] else 1.5)), 0) - (Vector3(14, 0, 4) if windy else Vector3.ZERO)   # rüzgârın geldiği yandan doğsun
 	for f in birds:
 		var ph: float = f.get_meta("phase") + t * float(f.get_meta("spd"))
 		var r: float = f.get_meta("r")
