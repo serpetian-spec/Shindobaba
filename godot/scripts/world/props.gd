@@ -60,6 +60,10 @@ static func foliage() -> ShaderMaterial:
 		_foliage.set_shader_parameter("rim_amount", 0.3)
 		_foliage.set_shader_parameter("sway", 1.0)
 		_foliage.set_shader_parameter("detail_noise", 0.25)
+		_foliage.set_shader_parameter("detail_tex", load("res://assets/tex/bark.png"))   # gövde: ağaç kabuğu (yalnız kahverengi köşeler)
+		_foliage.set_shader_parameter("detail_tex_amt", 0.55)
+		_foliage.set_shader_parameter("detail_tex_scale", 0.7)
+		_foliage.set_shader_parameter("detail_brown_only", true)
 	return _foliage
 
 
@@ -173,6 +177,62 @@ static func village_tree_mesh(v: int) -> ArrayMesh:
 				var r = 2.1 + (i % 3) * 0.25
 				var L = 2.6 + (i % 4) * 0.5
 				b.add_grad("cyl", Vector3(sin(a) * r, 5.0 - L * 0.5, cos(a) * r), Vector3(0.55, L, 0.3), w0.lightened(0.05), w1, Vector3(cos(a) * 8, rad_to_deg(a), -sin(a) * 8), 5)
+	return b.build(foliage())
+
+
+## Çiçek öbekleri (6 tür, ~2 m): 0 lale, 1 papatya, 2 ortanca, 3 lavanta, 4 higanbana (kızıl örümcek zambağı), 5 karışık kır çiçeği
+const FLOWER_KINDS := 6
+static func flower_mesh(v: int) -> ArrayMesh:
+	var b = MB.new()
+	var rng = RandomNumberGenerator.new()
+	rng.seed = 700 + v
+	var stem = Color(0.3, 0.55, 0.22)
+	var leaf = Color(0.36, 0.62, 0.26)
+	match v:
+		0:   # lale: dik sap, iki uzun yaprak, kupa çiçek
+			var cols = [Color(0.92, 0.18, 0.2), Color(1.0, 0.82, 0.2), Color(0.98, 0.5, 0.65), Color(0.95, 0.95, 0.9)]
+			for i in 14:
+				var p = Vector3(rng.randf_range(-0.9, 0.9), 0, rng.randf_range(-0.9, 0.9))
+				var h = rng.randf_range(0.35, 0.5)
+				b.add("cyl", p + Vector3(0, h * 0.5, 0), Vector3(0.025, h, 0.025), stem, Vector3.ZERO, 4)
+				b.add("box", p + Vector3(0.04, h * 0.3, 0), Vector3(0.05, h * 0.55, 0.012), leaf, Vector3(0, rng.randf() * 180, 12))
+				var c: Color = cols[i % cols.size()] if rng.randf() < 0.7 else cols[0]
+				b.add_grad("cone", p + Vector3(0, h + 0.06, 0), Vector3(0.12, 0.16, 0.12), c.lightened(0.1), c.darkened(0.15), Vector3(180, 0, 0), 6)
+		1:   # papatya: alçak yeşil yastık üstünde beyaz taç yapraklı sarı göbekli çiçekler
+			b.add_grad("sphere", Vector3(0, 0.08, 0), Vector3(1.8, 0.18, 1.6), leaf, stem.darkened(0.2), Vector3.ZERO, 8)
+			for i in 22:
+				var p = Vector3(rng.randf_range(-0.8, 0.8), 0.2, rng.randf_range(-0.7, 0.7))
+				b.add("cyl", p, Vector3(0.16, 0.02, 0.16), Color(0.97, 0.97, 0.95), Vector3.ZERO, 8)
+				b.add("cyl", p + Vector3(0, 0.015, 0), Vector3(0.06, 0.025, 0.06), Color(1.0, 0.82, 0.2), Vector3.ZERO, 6)
+		2:   # ortanca: yuvarlak çalı + mavi / mor / pembe top çiçek kümeleri
+			var hc = [Color(0.45, 0.55, 0.95), Color(0.65, 0.45, 0.85), Color(0.95, 0.6, 0.78)][rng.randi() % 3]
+			b.add_grad("sphere", Vector3(0, 0.45, 0), Vector3(1.6, 0.9, 1.5), leaf, stem.darkened(0.25), Vector3.ZERO, 9)
+			for i in 9:
+				var a = rng.randf() * TAU
+				var r = rng.randf_range(0.3, 0.7)
+				b.add_grad("sphere", Vector3(cos(a) * r, 0.75 + rng.randf_range(-0.1, 0.15), sin(a) * r), Vector3(0.38, 0.32, 0.38), hc.lightened(0.15), hc.darkened(0.12), Vector3.ZERO, 7)
+		3:   # lavanta: ince uzun mor başaklar, sıra halinde
+			for i in 26:
+				var p = Vector3(rng.randf_range(-0.9, 0.9), 0, rng.randf_range(-0.6, 0.6))
+				var h = rng.randf_range(0.45, 0.65)
+				b.add("cyl", p + Vector3(0, h * 0.5, 0), Vector3(0.02, h, 0.02), Color(0.45, 0.58, 0.4), Vector3(rng.randf_range(-8, 8), 0, rng.randf_range(-8, 8)), 4)
+				b.add_grad("cyl", p + Vector3(0, h + 0.07, 0), Vector3(0.06, 0.16, 0.06), Color(0.72, 0.58, 0.92), Color(0.5, 0.36, 0.78), Vector3.ZERO, 5)
+		4:   # higanbana: yapraksız ince sap, tepede ışınsal kıvrık kızıl taç yaprakları
+			for i in 10:
+				var p = Vector3(rng.randf_range(-0.85, 0.85), 0, rng.randf_range(-0.85, 0.85))
+				var h = rng.randf_range(0.4, 0.55)
+				b.add("cyl", p + Vector3(0, h * 0.5, 0), Vector3(0.02, h, 0.02), Color(0.32, 0.5, 0.25), Vector3.ZERO, 4)
+				for k in 6:
+					var a = k * 60.0 + rng.randf_range(-10, 10)
+					var d = Vector3(cos(deg_to_rad(a)), 0.35, sin(deg_to_rad(a))).normalized()
+					b.add("box", p + Vector3(0, h, 0) + d * 0.07, Vector3(0.02, 0.012, 0.14), Color(0.88, 0.1, 0.12), Vector3(-20, -a + 90.0, 0))
+				b.add("sphere", p + Vector3(0, h + 0.02, 0), Vector3(0.05, 0.04, 0.05), Color(0.75, 0.06, 0.08), Vector3.ZERO, 5)
+		_:   # karışık kır çiçekleri: alçak yeşillik üstünde renk renk küçük çiçekler
+			b.add_grad("sphere", Vector3(0, 0.06, 0), Vector3(2.0, 0.14, 1.8), leaf, stem.darkened(0.2), Vector3.ZERO, 8)
+			var wc = [Color(1.0, 0.85, 0.25), Color(0.95, 0.95, 0.95), Color(0.95, 0.45, 0.6), Color(0.55, 0.6, 0.98), Color(1.0, 0.55, 0.2)]
+			for i in 30:
+				var p = Vector3(rng.randf_range(-0.9, 0.9), 0.16 + rng.randf_range(0.0, 0.1), rng.randf_range(-0.8, 0.8))
+				b.add("sphere", p, Vector3(0.1, 0.06, 0.1), wc[rng.randi() % wc.size()], Vector3.ZERO, 5)
 	return b.build(foliage())
 
 

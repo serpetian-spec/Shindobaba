@@ -538,6 +538,10 @@ static func _fill_blocks(b: Builder, rng: RandomNumberGenerator, occupied: Array
 							var tx = x + rng.randf_range(-5.0, 5.0)
 							var tn = n + rng.randf_range(-5.0, 5.0)
 							b.tree(tx, tn, rng.randf_range(0.9, 1.4), rng, _gy(b, tx, tn))
+						for k in rng.randi_range(1, 3):   # ağaç diplerinde çiçek öbekleri
+							var fx = x + rng.randf_range(-6.0, 6.0)
+							var fn = n + rng.randf_range(-6.0, 6.0)
+							b.pack_mesh(CityLandscape._flower(rng.randi() % Props.FLOWER_KINDS), Vector3(fx, _gy(b, fx, fn), fn), rng.randf() * 360.0, rng.randf_range(0.8, 1.2), 0.4)
 				continue
 			if not _free(x, n, occupied, 3.0) or _on_road(b, x, n, 10.0):
 				continue

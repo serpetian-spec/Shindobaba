@@ -15,6 +15,7 @@ uniform float detail_noise = 0.0;
 uniform sampler2D detail_tex : filter_linear_mipmap, repeat_enable;   // gri detay dokusu (ortalama 0.5): sıva / kiremit (dünya uzayı, üç yönlü)
 uniform float detail_tex_amt = 0.0;
 uniform float detail_tex_scale = 0.4;   // m başına tekrar
+uniform bool detail_brown_only = false;   // ağaçlar: doku yalnız kahverengi (gövde) köşelere, yapraklara değil
 uniform float sway = 0.0;
 uniform bool cloth_mode = false;
 uniform bool hide_masked = false;  // vertex alfa=1 olan bölgeler çizilmez (kıyafet altı)   // doku (ten) + vertex rengi (kıyafet, alfa = maske)
@@ -520,7 +521,12 @@ void fragment() {
 		wn /= (wn.x + wn.y + wn.z + 1e-4);
 		vec3 sp = wpos * detail_tex_scale;
 		float tv = texture(detail_tex, sp.zy).r * wn.x + texture(detail_tex, sp.xz).r * wn.y + texture(detail_tex, sp.xy).r * wn.z;
-		c.rgb *= 1.0 + (tv - 0.5) * 2.0 * detail_tex_amt;
+		float amt = detail_tex_amt;
+		if (detail_brown_only) {
+			vec3 vc = COLOR.rgb;
+			amt *= smoothstep(0.02, 0.1, vc.r - vc.g) * smoothstep(0.0, 0.06, vc.g - vc.b) * smoothstep(0.62, 0.48, vc.r);   // koyu kahve: r > g > b (kızıl/sarı yapraklar parlak, hariç)
+		}
+		c.rgb *= 1.0 + (tv - 0.5) * 2.0 * amt;
 	}
 	if (scalp && scalp_col.a >= 0.5) c.rgb = scalp_col.rgb * 0.75;
 	if (roof_tiles) {

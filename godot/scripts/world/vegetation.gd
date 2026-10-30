@@ -20,7 +20,7 @@ const DMAX := 0.02            # aday yoğunluğu (m² başına)
 ## 7 palmiye, 8 çalı, 9 Konoha orman ağacı (dev, dallı), 10 eğrelti, 11 büyük kaya kümesi, 12 çiçek öbeği)
 ## 13 devrik kütük, 14 mantar, 15 uzun çimen, 16 saz, 17 kuru çalı, 18 meyveli çalı, 19 yosunlu kaya, 20 karlı kaya
 const DENS := {2: [0.0125, [9, 9, 9, 9, 9, 0, 0, 8, 10, 10, 12, 6, 13, 14, 15, 18, 19, 15]], 4: [0.0035, [2, 2, 0, 8, 10, 16, 19, 14, 15]],
-	5: [0.0032, [4, 11, 1, 8, 19, 17, 19, 15, 19]], 6: [0.0022, [0, 8, 6, 12, 15, 15, 16, 18]], 7: [0.005, [0, 9, 8, 12, 12, 10, 15, 15, 18, 13, 19, 15, 12, 15]],
+	5: [0.0032, [4, 11, 1, 8, 19, 17, 19, 15, 19]], 6: [0.0035, [0, 8, 6, 12, 12, 15, 15, 16, 18]], 7: [0.007, [0, 9, 8, 12, 12, 10, 15, 15, 18, 13, 19, 15, 12, 12, 12, 15]],
 	8: [0.0055, [1, 1, 1, 1, 4, 20, 20, 20, 17]], 9: [0.0045, [1, 1, 4, 11, 8, 19, 20, 1]], 10: [0.0045, [2, 2, 0, 8, 10, 16, 16, 14, 13]],
 	3: [0.0024, [3, 3, 4, 11, 17, 17, 17, 17, 4, 3]], 1: [0.0012, [7, 8, 15, 7]]}
 
@@ -49,6 +49,11 @@ func _ready() -> void:
 		# prosedürel bitki örtüsü (hazır model ağaçlar doğal durmuyordu, kaldırıldı): yakın tam model + uzak LOD
 		meshes[t] = [[Props.vegetation_mesh(t), null]]
 		var_count[t] = 1
+		if t == 12:   # çiçek öbekleri: 6 farklı tür (öbek öbek, her öbekte tek tür)
+			meshes[t] = []
+			for v in Props.FLOWER_KINDS:
+				meshes[t].append([Props.flower_mesh(v), null])
+			var_count[t] = Props.FLOWER_KINDS
 		lods[t] = Props.vegetation_lod(t)
 	for t in CONVEX:
 		convex[t] = []
@@ -246,13 +251,15 @@ func _generate(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 			s = lerpf(1.5, 2.6, sc_r)   # anime ölçeği: 40-70 m dev orman ağaçları
 		elif t == 5:
 			s = lerpf(0.9, 1.4, sc_r)
+		elif t == 12:
+			s = lerpf(1.6, 2.4, sc_r)   # çiçek öbekleri uzaktan da renk lekesi olarak görünsün
 		var col := 1.0 + (rng.randf() - 0.5) * 0.2
 		var nv: int = var_count.get(t, 1)
 		var vi := int(rng.randf() * nv) % nv
 		# yer örtüsü: düzgün serpme yerine doğal öbekler; her öbekte tek tür
 		if t in [8, 10, 12, 15, 18]:
 			var patch := Game._wh_vn(x / 38.0, z / 38.0, 20 + t)
-			var need := 0.62 if t in [12, 18] else 0.5
+			var need := (0.46 if t == 12 else 0.62) if t in [12, 18] else 0.5   # çiçek öbekleri daha sık (çayırlar boş durmasın)
 			if b == 2 and t in [12, 18]:
 				need = 0.74   # orman zemininde çiçek az
 			if patch < need:
@@ -267,6 +274,16 @@ func _generate(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 		var oz := z - cz
 		# MultiMesh tamponu: 3x4 satır düzeni + renk
 		bufs[bk].append_array([c, 0.0, sn, ox, 0.0, s, 0.0, h - 0.3, -sn, 0.0, c, oz, col, 1.0 + (col - 1.0) * 0.6, 1.0 - (col - 1.0) * 0.4, 1.0])
+		if t == 12:
+			# çiçek tarlası: aynı türden 5 öbek daha çevresine (tek tek kayboluyordu; çayırda renk lekesi olsun)
+			for k in 5:
+				var fx := x + rng.randf_range(-7.0, 7.0)
+				var fz := z + rng.randf_range(-7.0, 7.0)
+				var fh := Game.terrain_height(fx, fz)
+				var fy := rng.randf() * TAU
+				var fc := cos(fy) * s
+				var fs := sin(fy) * s
+				bufs[bk].append_array([fc, 0.0, fs, fx - cx, 0.0, s, 0.0, fh - 0.3, -fs, 0.0, fc, fz - cz, col, 1.0, 1.0, 1.0])
 		if detail and radii[t] > 0.0:
 			trees.append([x, h, z, s, yaw, t, vi])
 	holder["buf"] = bufs

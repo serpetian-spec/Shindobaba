@@ -48,6 +48,13 @@ static var parks_by := {}  # köy -> [yerel park merkezi] (testler/harita için)
 static var _veg := {}
 
 
+static var _flowers := {}
+static func _flower(v: int) -> Mesh:
+	if not _flowers.has(v):
+		_flowers[v] = Props.flower_mesh(v)
+	return _flowers[v]
+
+
 static func veg(t: int) -> Mesh:
 	if not _veg.has(t):
 		_veg[t] = Props.vegetation_mesh(t)
@@ -959,6 +966,7 @@ static func _street_trees(c: Ctx, rad: float) -> void:
 							c.solid_box(lx, ln, Vector3(1.8, 0.9, 0.6), yaw)
 						3:
 							c.put(mesh("flowerbed"), lx, ln, rad_to_deg(atan2(dir.x, dir.y)), Vector3.ONE, 220.0)
+							c.put(_flower(c.rng.randi() % Props.FLOWER_KINDS), lx, ln, c.rng.randf() * 360.0, Vector3.ONE * 0.6, 180.0, false, 0.38)
 				elif c.rng.randf() < 0.18:
 					# ağaç sığmıyorsa küçük bir saksı/tarh
 					var q2 = mp + nrm * sd * (half + 0.9)
@@ -1054,6 +1062,12 @@ static func _park(c: Ctx, px: float, pn: float, r: float) -> void:
 	for i in nsteps:
 		var a = TAU * i / nsteps
 		c.put(mesh("step"), px + cos(a) * path_r, pn + sin(a) * path_r, rng.randf() * 360.0, Vector3.ONE * rng.randf_range(0.9, 1.15), 160.0)
+	# yürüyüş halkasının dışında çiçek öbekleri (her köyün parkında; iklime uygun: çölde seyrek)
+	var nfl = 4 if c.climate == "desert" else 10
+	for i in nfl:
+		var a = TAU * (i + rng.randf()) / nfl
+		var fr = path_r + rng.randf_range(2.6, 5.0)
+		c.put(_flower(rng.randi() % Props.FLOWER_KINDS), px + cos(a) * fr, pn + sin(a) * fr, rng.randf() * 360.0, Vector3.ONE * rng.randf_range(0.8, 1.2), 200.0)
 	# taş fenerler + banklar (göle bakar)
 	var nl = 4
 	for i in nl:
