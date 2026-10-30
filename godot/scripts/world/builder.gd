@@ -16,6 +16,7 @@ var placer = null  # HouseKit.Placer (Japon tarzı detaylı evler)
 var house_ti := -1   # >= 0: bir sonraki şablon ev bu şablon olsun (bitişik dizilimde genişlik önceden bilinir)
 var yoff := 0.0  # geçici dikey ofset (eğimli arazide bina tabanı)
 var packs := {}  # hücre+mesh -> [mesh, Array[Transform3D]] (hazır modeller: MultiMesh)
+var road_guard := true   # house(): yolun üstüne düşen evi kurma (dükkân/özel yapılar kapatabilir)
 var last_house := {}  # son yerleştirilen şablon ev (w, d, h, roof_top)
 var houses: Array = []  # [x, n, gen, der, yaw, taban, stil] (peyzaj bahçeleri için)
 var solids := {}  # 16 m ızgara (dünya xz) -> [[cx, cz, yarı_x, yarı_z, açı]] (peyzaj çakışma kontrolü)
@@ -322,7 +323,21 @@ func finish() -> void:
 # ------------------------------------------------------------------ hazır yapılar
 ## Japon tarzı ev. style: konoha | suna | kiri | iwa | kumo | ame | wood | snow
 ## Bina arazinin üstüne oturur: taban = ayak izindeki en yüksek nokta, alçak taraf taş temelle doldurulur
+## Evin taban alanı (merkez, köşeler, kenar ortaları) bir yolun / caddenin üstüne taşıyor mu? (cadde yarı genişliği ~4.5 m)
+func footprint_on_road(x: float, n: float, wdt: float, dep: float, yaw: float, half_road := 5.0) -> bool:
+	for u in [-0.5, 0.0, 0.5]:
+		for v in [-0.5, 0.0, 0.5]:
+			var o = rot(u * (wdt + 1.0), v * (dep + 1.0), yaw)
+			var wp = w(Vector3(x + o.x, 0, n + o.y))
+			if Game.road_dist(wp.x, wp.z) < half_road:
+				return true
+	return false
+
+
 func house(x: float, n: float, wdt: float, dep: float, floors: int, yaw: float, style: String, rng: RandomNumberGenerator) -> void:
+	last_house = {}
+	if road_guard and footprint_on_road(x, n, wdt, dep, yaw):
+		return   # bina caddeyi / yolu kapatmasın (sokağın ortasına dikilen binalar)
 	var g = _ground_off(x, n, maxf(wdt, dep) * 0.6)
 	if g.y - g.x > 0.25:
 		var stone = Color(0.56, 0.53, 0.5) if style != "suna" else Color(0.74, 0.62, 0.45)

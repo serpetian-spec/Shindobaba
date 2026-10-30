@@ -990,7 +990,7 @@ static func controls(main: Node) -> void:
 	var rows = [["WASD", "Hareket"], ["Fare", "Kamera"], ["Space", "Zıpla / çift zıplama"], ["Ctrl (basılı)", "Süper zıplama (Shinobi Striker)"],
 		["Shift", "Ninja koşusu (5 sn: tam hız), havada dash"], ["Duvara koş", "Duvarda koşu"], ["Duvarda Ctrl", "Duvar atılımı (chakra)"], ["Havada Q", "İpli kunai: nişangâha tutun"], ["Sol tık", "Kombo / dalış tekmesi"], ["Sağ tık", "Blok (tam zamanında: mükemmel blok)"],
 		["Q", "Kawarimi (genjutsu'dayken: Kai)"], ["C (basılı)", "Chakra şarjı"], ["R / T", "Alet fırlat / değiştir"], ["N", "Silahı çek / kınına sok"], ["E / orta tık", "Hedefe kilitlen"],
-		["1-6", "Jutsu slotları"], ["F", "Etkileşim"], ["H / Y", "Merhem / Asker hapı"], ["G + 1-9,0,-,=", "Mühür ör"],
+		["1-6", "Jutsu slotları"], ["F", "Etkileşim"], ["Caps Lock", "Yürüyüş (aç/kapa)"], ["H / Y", "Merhem / Asker hapı"], ["G + 1-9,0,-,=", "Mühür ör"],
 		["V", "Dōjutsu: gözleri aç / kapat (basılı: Susanoo)"], ["Z / X", "Sağ / sol göz tekniği (gözler açıkken)"], ["B", "Sekiz Kapı"], ["Tab", "Ninja menüsü"],
 		["K", "Jutsular"], ["M", "Harita"], ["Esc", "Menü"]]
 	var grid = GridContainer.new()

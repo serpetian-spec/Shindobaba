@@ -7,6 +7,8 @@ extends CharacterBody3D
 signal died
 
 const RUN := 11.0
+const WALK := 2.4   # Caps Lock: sakin köylü yürüyüşü
+var walking := false
 const DASH := 19.0
 const GRAV := 36.0
 const JUMP := 14.2
@@ -124,6 +126,9 @@ func apply_profile_stats() -> void:
 
 # ------------------------------------------------------------------ girdi
 func _unhandled_input(e: InputEvent) -> void:
+	if e.is_action_pressed("walk") and not e.is_echo():
+		walking = not walking
+		Hud.msg("Yürüyüş" if walking else "Koşu", Color(0.85, 0.9, 1.0), 1.0)
 	if Game.paused or Game.ui_open:
 		return
 	if e is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
@@ -467,7 +472,7 @@ func _ground_air_move(dt: float) -> void:
 		dash_t -= dt
 	else:
 		var spd_mul = Buffs.mod("speed") * (1.0 + Stats.skill(Game.profile, "speed")) * (1.0 + Gear.stat(Game.profile, "speed") + Stats.clan_bonus(Game.profile, "speed")) * status_speed()
-		var target = wish * ((DASH * 3.2 if turbo else DASH) if sprint else RUN) * spd_mul   # tam hız (5 sn Shift) 2x
+		var target = wish * ((DASH * 3.2 if turbo else DASH) if sprint else (WALK if walking else RUN)) * spd_mul   # tam hız (5 sn Shift) 2x; Caps Lock: yürüyüş
 		if swimming:
 			target *= 0.35
 		var hv = Vector3(velocity.x, 0, velocity.z)
@@ -1094,8 +1099,8 @@ func _animate(sp: float, sprint: bool) -> void:
 	if land_t > 0.0:
 		return
 	if sp > 0.6:
-		var run_anim = "run" if sp > 8.0 else "jog"
-		model.play(run_anim, 0.15, clampf(sp / (16.0 if sprint else 10.0), 0.7, 1.6))
+		var run_anim = "run" if sp > 8.0 else ("walk" if sp < 3.5 else "jog")
+		model.play(run_anim, 0.15, clampf(sp / 2.4, 0.7, 1.3) if run_anim == "walk" else clampf(sp / (16.0 if sprint else 10.0), 0.7, 1.6))
 		ov.set_pose("ninja_run", 1.0 if sprint else 0.0)
 	else:
 		model.play("idle", 0.2)
