@@ -731,6 +731,26 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 	root.add_child(hint)
 
 
+## Başlık + ◀ Ad (n/N) ▶ satırı; on_pick(yeni_indeks). Seçenekler hep böyle oklarla gezilir, tek tek dizilmez
+static func _arrow_row(title: String, labels: Array, idx: int, on_pick: Callable) -> Control:
+	var n = labels.size()
+	idx = clampi(idx, 0, maxi(n - 1, 0))
+	var row = UI.hbox(10)
+	var tl = UI.label(title.to_upper(), 13, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true)
+	tl.custom_minimum_size = Vector2(110, 0)
+	tl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(tl)
+	row.add_child(_arrow_btn("◀", func(): on_pick.call(posmod(idx - 1, n))))
+	var mid = UI.vbox(2)
+	mid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	mid.custom_minimum_size = Vector2(200, 0)
+	mid.add_child(UI.label(String(labels[idx]) if n > 0 else "-", 17, UI.CREAM, HORIZONTAL_ALIGNMENT_CENTER, true))
+	mid.add_child(UI.label("%d / %d" % [idx + 1, n], 12, UI.MUTED, HORIZONTAL_ALIGNMENT_CENTER))
+	row.add_child(mid)
+	row.add_child(_arrow_btn("▶", func(): on_pick.call(posmod(idx + 1, n))))
+	return row
+
+
 ## Yuvarlak ok düğmesi (◀ ▶)
 static func _arrow_btn(text: String, cb: Callable) -> Button:
 	var b = Button.new()
@@ -1509,17 +1529,10 @@ static func _susanoo_panel(main: Node, v: VBoxContainer, _h) -> void:
 		pb.value = m
 		v.add_child(pb)
 	var opt_row = func(title: String, labels: Array, cur, key: String, values: Array, limit := 99) -> void:
-		v.add_child(UI.label(title, 14, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
-		var fl = HFlowContainer.new()
-		fl.add_theme_constant_override("h_separation", 8)
-		fl.add_theme_constant_override("v_separation", 8)
-		for i in labels.size():
-			var b = UI.chip(labels[i], cur == values[i], func():
-				cfg[key] = values[i]
-				redraw.call())
-			b.disabled = i + 1 > limit
-			fl.add_child(b)
-		v.add_child(fl)
+		var n = mini(labels.size(), limit)   # kilitli kademeler oklarla seçilemez
+		v.add_child(_arrow_row(title, labels.slice(0, n), maxi(0, values.find(cur)), func(i):
+			cfg[key] = values[i]
+			redraw.call()))
 	var tp = int(cfg.get("tier_pref", 5))
 	opt_row.call("Kademe", ["1 Kaburga", "2 İskelet", "3 İnsansı", "4 Zırhlı", "5 Mükemmel"], tp, "tier_pref", [1, 2, 3, 4, 5], mt)
 	opt_row.call("Zırh", Susanoo.ARMORS, int(cfg.get("armor", 0)), "armor", [0, 1, 2])
@@ -1579,15 +1592,10 @@ static func _susanoo_panel(main: Node, v: VBoxContainer, _h) -> void:
 
 static func _hair_panel(v: VBoxContainer, look: Dictionary, refresh: Callable) -> void:
 	v.add_child(UI.label("Berber ücretsiz", 14, UI.MUTED))
-	var styles = CharacterModel.HAIR_STYLES
-	var fl = HFlowContainer.new()
-	fl.add_theme_constant_override("h_separation", 8)
-	fl.add_theme_constant_override("v_separation", 8)
-	for k in styles:
-		fl.add_child(UI.chip(styles[k], look.get("hair_style", "") == k, func():
-			look["hair_style"] = k
-			refresh.call()))
-	v.add_child(fl)
+	var keys = CharacterModel.HAIR_STYLES.keys()
+	v.add_child(_arrow_row("Saç Stili", CharacterModel.HAIR_STYLES.values(), maxi(0, keys.find(look.get("hair_style", ""))), func(i):
+		look["hair_style"] = keys[i]
+		refresh.call()))
 	v.add_child(UI.label("Renk", 14, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
 	var cg = HFlowContainer.new()
 	cg.add_theme_constant_override("h_separation", 8)

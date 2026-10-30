@@ -2733,8 +2733,9 @@ func set_dojutsu_eyes(kind_r: int, lvl_r: int, kind_l: int, lvl_l: int, veins :=
 	_set_eye_trails(kind_r, kind_l)
 	if sclera_mat:
 		var rc = Color(0.74, 0.66, 0.92)
-		sclera_mat.set_shader_parameter("tint_r", rc if kind_r == 6 else Color.WHITE)
-		sclera_mat.set_shader_parameter("tint_l", rc if kind_l == 6 else Color.WHITE)
+		var kc = Color(0.78, 0.1, 0.1)   # Ketsuryūgan: göz akı da kan kırmızısı
+		sclera_mat.set_shader_parameter("tint_r", rc if kind_r == 6 else (kc if kind_r == 3 else Color.WHITE))
+		sclera_mat.set_shader_parameter("tint_l", rc if kind_l == 6 else (kc if kind_l == 3 else Color.WHITE))
 		sclera_mat.set_shader_parameter("rings_r", 1.0 if kind_r == 6 else 0.0)
 		sclera_mat.set_shader_parameter("rings_l", 1.0 if kind_l == 6 else 0.0)
 	if eye_mat:

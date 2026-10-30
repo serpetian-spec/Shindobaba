@@ -92,6 +92,15 @@ void fragment() {
 				} else if (dk == 8) {
 					// jōgan: mavi-beyaz, ince damarlı
 					col = vec3(0.75, 0.88, 1.0) * (0.9 + 0.1 * sin(atan(q.y, q.x) * 24.0));
+				} else if (dk == 3) {
+					// ketsuryūgan (Kan Ejderi Gözü): göz akı dahil tüm göz kan kırmızısı, ortada dikey ince yarık bebek;
+					// Sharingan gibi siyah dış halka / tomoe / desen YOK — yalnız ince kan damarı çizgileri
+					float ang3 = atan(q.y, q.x);
+					col = mix(vec3(0.85, 0.05, 0.06), vec3(0.42, 0.0, 0.02), smoothstep(0.15, 1.0, r));
+					float vein = abs(sin(ang3 * 9.0 + sin(r * 7.0) * 0.6));
+					col *= 0.88 + 0.12 * smoothstep(0.85, 1.0, vein) * r;
+					col += vec3(0.25, 0.02, 0.0) * (1.0 - smoothstep(0.0, 0.45, r)) * (0.75 + 0.25 * sin(TIME * 3.0));
+					if (abs(q.x) < 0.07 * (1.0 - q.y * q.y * 0.6) && abs(q.y) < 0.78) col = vec3(0.04, 0.0, 0.0);
 				} else if (dk == 2) {
 					// byakugan: göz bebeği yok, soluk lila halkalar
 					col = mix(vec3(0.93, 0.92, 1.0), vec3(0.78, 0.76, 0.9), smoothstep(0.6, 1.0, r));
@@ -110,10 +119,6 @@ void fragment() {
 							vec2 tail = vec2(cos(a - 0.45), sin(a - 0.45)) * 0.6;
 							if (length(q - cpos) < 0.15 || (length(q - tail) < 0.08 && length(q - cpos) < 0.32)) col = vec3(0.02);
 						}
-					} else if (dk == 3) {
-						// ketsuryugan: kırmızı iris, siyah haç-yıldız deseni
-						float star = abs(sin(ang * 2.0 + spin * 0.3));
-						if (star < 0.18 && r > 0.25 && r < 0.85) col = vec3(0.03);
 					} else if (dk == 5 || dk == 4) {
 						// özelleştirilebilir Mangekyō / Ebedi Mangekyō
 						vec4 ma = eye_side > 0.0 ? ms_l_a : ms_r_a;
