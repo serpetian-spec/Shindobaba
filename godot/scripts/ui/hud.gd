@@ -741,7 +741,16 @@ func dialog(title: String, text: String, options: Array) -> void:
 	body.visible_ratio = 0.0
 	var tw = body.create_tween()
 	tw.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-	tw.tween_property(body, "visible_ratio", 1.0, clampf(text.length() / 70.0, 0.25, 2.2))
+	var talk_dur = clampf(text.length() / 70.0, 0.25, 2.2)
+	tw.tween_property(body, "visible_ratio", 1.0, talk_dur)
+	# RPG konuşma kamerası: konuşanın yüzüne; yazı bitince (cevap seçerken) oyuncunun yüzüne döner
+	if Game.player and not Game.paused:
+		var sp = _near_talker(Game.player)
+		if sp:
+			var tc = TalkCam.ensure()
+			tc.begin(sp, talk_dur)
+			if not options.is_empty():
+				tw.tween_callback(func(): if is_instance_valid(tc): tc.to_player()).set_delay(0.9)
 	box.gui_input.connect(func(e):
 		if e is InputEventMouseButton and e.pressed:
 			tw.kill()

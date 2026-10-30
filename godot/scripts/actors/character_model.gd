@@ -1699,6 +1699,25 @@ func _mesh_on(bone: String, mesh: Mesh, model_xf: Transform3D) -> MeshInstance3D
 	return mi
 
 
+var _mouth: MeshInstance3D = null
+## Konuşma ağzı: yüzün önünde küçük koyu ağız şekli; open 0 kapalı (görünmez çizgi) .. 1 açık
+func set_mouth(open: float) -> void:
+	if _mouth == null:
+		if skel == null or skel.find_bone("Head") < 0:
+			return
+		var b = MB.new()
+		b.add("sphere", Vector3.ZERO, Vector3(0.034, 0.02, 0.008), Color(0.32, 0.1, 0.1), Vector3.ZERO, 10)
+		b.add("box", Vector3(0, 0.006, 0.001), Vector3(0.026, 0.004, 0.004), Color(0.95, 0.94, 0.9))   # üst diş çizgisi
+		var hc = eye_center_model if face_mi else _head_center()
+		# yüz yüzeyinin hemen önünde, gözlerin ~7 cm altında (çene üstü)
+		_mouth = _mesh_on("Head", b.build(Props.toon()), Transform3D(Basis.IDENTITY, Vector3(0, hc.y - 0.072, hc.z + 0.012)))
+		_mouth.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		_mouth.set_meta("base", _mouth.transform)
+	_mouth.visible = open > 0.08
+	var bt: Transform3D = _mouth.get_meta("base")
+	_mouth.transform = Transform3D(bt.basis * Basis.from_scale(Vector3(1.0, maxf(0.2, open), 1.0)), bt.origin)
+
+
 func _head_center() -> Vector3:
 	if face_mi:
 		return eye_center_model + Vector3(0, 0.03, -0.07)
