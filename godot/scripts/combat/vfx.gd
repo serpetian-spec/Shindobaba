@@ -304,8 +304,31 @@ static func rasengan(size := 1.0, body := Color(0.15, 0.45, 1.0), line := Color(
 ## Şimşek topu (Chidori): parlak çekirdek + kalın titreyen arklar
 static func lightning_ball(size := 1.0, col := Color(0.45, 0.7, 1.0)) -> Node3D:
 	size *= epic
+	# anime şimşeği: içi dolu küre yok — titreyen beyaz parıltı çekirdeği + mavi hale + çatırdayan dallı arklar + cıvıldayan kıvılcımlar
 	var root = Node3D.new()
-	root.add_child(Projectile.energy_mesh(Color(1, 1, 1), col, size * 0.6, 16.0, 0.0, 2.2))
+	for k in 2:
+		var g = MeshInstance3D.new()
+		var q = QuadMesh.new()
+		q.size = Vector2.ONE * size * (0.9 if k == 0 else 2.6)
+		var m = StandardMaterial3D.new()
+		m.albedo_texture = FX.tex_soft
+		m.albedo_color = Color(1, 1, 1, 0.95) if k == 0 else Color(col.r, col.g, col.b, 0.55)
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+		q.material = m
+		g.mesh = q
+		g.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		root.add_child(g)
+		var fl = g.create_tween().set_loops()
+		fl.tween_property(g, "scale", Vector3.ONE * (1.25 if k == 0 else 1.12), 0.05)
+		fl.tween_property(g, "scale", Vector3.ONE * (0.8 if k == 0 else 0.92), 0.04)
+	var sp = FX.burst(Vector3.ZERO, {"parent": root, "local": true, "amount": int(10 + size * 8), "life": 0.22, "tex": FX.tex_spark, "size": 0.5 + size * 0.25,
+		"vmin": 3.0 * size, "vmax": 7.0 * size, "spread": 180.0, "radius": size * 0.3, "explosive": 0.0, "damp": 3.0,
+		"colors": [Color(1, 1, 1, 1), col.lightened(0.4), Color(col.r, col.g, col.b, 0)]})
+	if sp:
+		sp.one_shot = false
 	var arcs = Arcs.new()
 	arcs.color = col
 	arcs.radius = size * 1.3
@@ -778,12 +801,12 @@ static func release(c: Node3D, origin: Vector3, col: Color, g: float, tier: int,
 	var ep = epic
 	epic = 1.0
 	var feet = Vector3(c.global_position.x, Game.jutsu_floor(c.global_position.x, c.global_position.z) + 0.08, c.global_position.z)
-	star(origin, col.lightened(0.35), 1.2 + 1.1 * g, 0.14)
-	shockwave(feet, col.lightened(0.2), 3.0 + 3.5 * g, 0.35)
-	if tier >= 4:
-		smoke_ring(feet, 0.5 + 0.2 * g, Color(0.74, 0.68, 0.6))
+	# halka/yıldız şekli yok (yapay duruyordu): çıkış noktasında kısa ışık çakması + ince kıvılcım, ayakta az yumuşak toz
+	FX.light(origin, col.lightened(0.35), 2.0 + 1.5 * g, 6.0 + 3.0 * g, 0.15)
+	FX.burst(origin, {"amount": int(8 + 6 * g), "life": 0.25, "tex": FX.tex_spark, "size": 0.8 + 0.4 * g, "vmin": 4.0, "vmax": 9.0 + 4.0 * g, "spread": 180.0, "damp": 3.0,
+		"colors": [Color(1, 1, 1, 0.9), col.lightened(0.4), Color(col.r, col.g, col.b, 0)]})
 	if tier >= 3:
-		shockwave(origin, Color(1, 1, 1), 2.0 + 2.0 * g, 0.2, false)
+		FX.dust(feet, 0.5 + 0.25 * g)
 	var is_pl = c is Player
 	if Game.world:
 		Game.world.env.add_shake((0.08 + 0.1 * tier) * (1.0 if is_pl else 0.5))

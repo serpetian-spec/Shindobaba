@@ -680,15 +680,15 @@ func j_doton_yomi(c: Node3D, t: Node3D) -> void:
 func _lightning_ball(c: Node3D, col_core: Color, col_edge: Color, snd: String) -> Node3D:
 	var hand: Node3D = Node3D.new()
 	_palm(c, hand)
-	hand.add_child(VFX.lightning_ball(0.3, col_edge))   # animede avuçta cıvıldayan şimşek (~30 cm), arklar kola ve yere kısa uzanır
+	hand.add_child(VFX.lightning_ball(0.55, col_edge))   # animede eli saran göz alıcı şimşek kütlesi, arklar kola ve yere uzanır
 	var arcs = Arcs.new()
 	arcs.color = col_edge
-	arcs.radius = 0.7
-	arcs.count = 5
-	arcs.width = 0.022
+	arcs.radius = 1.3
+	arcs.count = 9
+	arcs.width = 0.04
 	hand.add_child(arcs)
 	var l = OmniLight3D.new()
-	l.light_color = col_edge; l.light_energy = 1.2; l.omni_range = 5.0
+	l.light_color = col_edge; l.light_energy = 2.6; l.omni_range = 7.0
 	hand.add_child(l)
 	Sfx.play(snd, c.global_position)
 	return hand
@@ -778,10 +778,16 @@ func _hand_dash(c: Node3D, t: Node3D, hand: Node3D, charge: float, speed: float,
 				c.combat.action = "cast"
 				c.combat.t = -10.0
 			if not state.has("trail") and is_instance_valid(hand):
-				state["trail"] = VFX.trail(hand, 0.7, Color(1, 1, 1), col.lightened(0.3), col, 16, 0.6)
+				state["trail"] = VFX.trail(hand, 0.22, Color(1, 1, 1), col.lightened(0.3), col, 12, 0.6)
+				state["last"] = hand.global_position
 				if c is Player:
 					VFX.screen_lines(0.5, 0.6, col.lightened(0.5))
 			FX.burst(c.global_position + Vector3.UP, {"amount": 4, "life": 0.3, "tex": FX.tex_spark, "size": 1.2, "vmin": 1, "vmax": 3, "colors": [Color(1, 1, 1, 0.8), Color(col.r, col.g, col.b, 0)]})
+			# arkada çatırdayan şimşek izi (sert bant yerine)
+			if is_instance_valid(hand) and state.has("last") and int(state["t"] * 60.0) % 3 == 0:
+				var hp = hand.global_position
+				VFX.bolt(hp, state["last"] + Vector3(randf_range(-0.4, 0.4), randf_range(-0.6, 0.3), randf_range(-0.4, 0.4)), col.lightened(0.3), 0.07, 0.15, 1)
+				state["last"] = hp
 			var pt = c.global_position + Vector3.UP * 1.1 + d * 1.0
 			var hits = Combat.hit_sphere(c, pt, 1.0, info)
 			if not hits.is_empty() or state["t"] > 0.6:
@@ -791,11 +797,8 @@ func _hand_dash(c: Node3D, t: Node3D, hand: Node3D, charge: float, speed: float,
 					c.combat.action = ""
 				c.velocity = Vector3.ZERO
 				if not hits.is_empty():
-					VFX.star(pt, col.lightened(0.2), 7.0, 0.25)
-					VFX.shockwave(pt, col.lightened(0.3), 11.0, 0.4, false)
-					VFX.shockwave(Vector3(pt.x, Game.jutsu_floor(pt.x, pt.z) + 0.1, pt.z), col, 14.0, 0.5)
 					VFX.cracks(pt, 5.0)
-					VFX.debris(pt, Color(0.5, 0.42, 0.32), 12, 12.0, 0.4)
+					VFX.debris(pt, Color(0.5, 0.42, 0.32), 8, 11.0, 0.35)
 					VFX.screen_lines(0.5, 1.0)
 					if grind:
 						var sp = VFX.rasengan(1.0)
@@ -1751,8 +1754,10 @@ func j_kirin(c: Node3D, t: Node3D) -> void:
 		tw.tween_callback(func():
 			VFX.bolt(sky, pos, Color(0.85, 0.95, 1.0), 1.4, 0.4, 6)
 			VFX.star(pos + Vector3.UP * 2.0, Color(0.75, 0.9, 1.0), 16.0, 0.35)
-			VFX.shockwave(pos + Vector3.UP * 0.2, col, 34.0, 0.7)
-			VFX.shockwave(pos + Vector3.UP * 3.0, Color(1, 1, 1), 20.0, 0.4, false)
+			# halka yok: göz alan çakma, her yöne saçılan kıvılcım, yerden kalkan toz
+			FX.burst(pos + Vector3.UP * 2.0, {"amount": 160, "life": 0.7, "tex": FX.tex_spark, "size": 3.0, "vmin": 20.0, "vmax": 45.0, "spread": 180.0, "damp": 2.5,
+				"colors": [Color(1, 1, 1, 1), col.lightened(0.4), Color(col.r, col.g, col.b, 0)]})
+			WindFX.blast(pos + Vector3.UP * 0.5, 16.0, 20, Color(0.85, 0.95, 1.0, 0.9))
 			VFX.cracks(pos, 14.0)
 			VFX.debris(pos, Color(0.45, 0.38, 0.3), 30, 22.0, 0.6)
 			VFX.smoke_ring(pos, 6.0, Color(0.32, 0.3, 0.32))

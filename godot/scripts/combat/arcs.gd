@@ -12,18 +12,31 @@ var to_point := Vector3.ZERO
 var im = ImmediateMesh.new()
 var t = 0.0
 var _col_set := Color(-1, -1, -1)
+var glow := 4.5   # hale genişliği (çekirdeğin katı); 0 = hale yok
+var _gim := ImmediateMesh.new()
+var _gmi: MeshInstance3D
+static var _glow_tex: GradientTexture2D
+static var _glow_mats := {}
 
 
 func _ready() -> void:
 	mesh = im
 	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	extra_cull_margin = 200.0
+	if glow > 0.0:
+		_gmi = MeshInstance3D.new()
+		_gmi.mesh = _gim
+		_gmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		_gmi.extra_cull_margin = 200.0
+		add_child(_gmi)
 
 
 func _process(dt: float) -> void:
 	if color != _col_set:
 		_col_set = color
 		material_override = VFX.mat_bolt(color, 2.0)
+		if _gmi:
+			_gmi.material_override = _glow_mat(color)
 	t -= dt
 	if t > 0.0:
 		return
@@ -33,7 +46,10 @@ func _process(dt: float) -> void:
 		return
 	var cl: Vector3 = global_transform.affine_inverse() * cam.global_position
 	im.clear_surfaces()
+	_gim.clear_surfaces()
 	im.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
+	if _gmi:
+		_gim.surface_begin(Mesh.PRIMITIVE_TRIANGLES)
 	if to_point != Vector3.ZERO:
 		var main = _path(Vector3.ZERO, to_point, segs, to_point.length() * 0.06)
 		_strip(main, width, cl)
@@ -49,6 +65,37 @@ func _process(dt: float) -> void:
 			var L = radius * randf_range(0.5, 1.0)
 			_strip(_path(Vector3.ZERO, dir * L, segs, radius * 0.16), width * randf_range(0.7, 1.2), cl)
 	im.surface_end()
+	if _gmi:
+		_gim.surface_end()
+
+
+## Hale malzemesi: enine yumuşak gradyan (kenarlar saydam), toplamalı, gölgesiz
+static func _glow_mat(c: Color) -> StandardMaterial3D:
+	var key = c.to_html()
+	if _glow_mats.has(key):
+		return _glow_mats[key]
+	if _glow_tex == null:
+		var g = Gradient.new()
+		g.offsets = PackedFloat32Array([0.0, 0.5, 1.0])
+		g.colors = PackedColorArray([Color(1, 1, 1, 0), Color(1, 1, 1, 1), Color(1, 1, 1, 0)])
+		_glow_tex = GradientTexture2D.new()
+		_glow_tex.gradient = g
+		_glow_tex.fill_from = Vector2(0, 0)
+		_glow_tex.fill_to = Vector2(0, 1)
+		_glow_tex.width = 4
+		_glow_tex.height = 64
+	var m = StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	# karışım modu: toplamalıda üst üste binen haleler HDR'de taşıp bloom'da siyah bloklar yapıyordu
+	m.blend_mode = BaseMaterial3D.BLEND_MODE_MIX
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	m.no_depth_test = false
+	m.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+	m.albedo_texture = _glow_tex
+	m.albedo_color = Color(lerpf(c.r, 1.0, 0.25), lerpf(c.g, 1.0, 0.25), lerpf(c.b, 1.0, 0.25), 0.45)
+	_glow_mats[key] = m
+	return m
 
 
 func _path(a: Vector3, b: Vector3, n: int, jitter: float) -> Array:
@@ -76,3 +123,9 @@ func _strip(pts: Array, w: float, cl: Vector3) -> void:
 			im.surface_set_color(Color(1, 1, 1, 1))
 			im.surface_set_uv(Vector2(float(i) / n, v[1]))
 			im.surface_add_vertex(v[0])
+		if _gmi:
+			var g0 = s0 * glow
+			var g1 = s1 * glow
+			for v in [[p0 + g0, 0.0], [p1 + g1, 0.0], [p1 - g1, 1.0], [p0 + g0, 0.0], [p1 - g1, 1.0], [p0 - g0, 1.0]]:
+				_gim.surface_set_uv(Vector2(float(i) / n, v[1]))
+				_gim.surface_add_vertex(v[0])

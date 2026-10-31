@@ -4000,7 +4000,7 @@ func _etrail(pr: Projectile, el: String, col: Color, size: float) -> void:
 func impact_fx(el: String, col: Color, at: Vector3, s := 1.0) -> void:
 	var g = Vector3(at.x, Game.jutsu_floor(at.x, at.z), at.z)
 	var near_ground = at.y - g.y < 2.5
-	if el != "fuuton":
+	if el not in ["fuuton", "raiton"]:
 		VFX.star(at, col.lightened(0.4), 2.2 * s, 0.18)
 		VFX.shockwave(at, col, 5.0 * s, 0.4, false, Vector3.UP)
 	match el:
@@ -4015,6 +4015,10 @@ func impact_fx(el: String, col: Color, at: Vector3, s := 1.0) -> void:
 		"fuuton":
 			WindFX.blast(at, 4.0 * s, int(14 + 8 * s))
 		"raiton":
+			# halka yok: göz alan çakma + her yöne saçılan kıvılcım + dallı arklar
+			FX.light(at, col.lightened(0.3), 6.0 * s, 12.0 * s, 0.18)
+			FX.burst(at, {"amount": int(30 * s), "life": 0.35, "tex": FX.tex_spark, "size": 1.2 * s, "vmin": 8.0 * s, "vmax": 18.0 * s, "spread": 180.0, "damp": 3.0,
+				"colors": [Color(1, 1, 1, 1), col.lightened(0.4), Color(col.r, col.g, col.b, 0)]})
 			for k in int(8 * s):
 				VFX.bolt(at, at + Vector3(randf_range(-3, 3), randf_range(-1, 3), randf_range(-3, 3)) * s, col, 0.12 * s, 0.3, 2)
 			if near_ground:
@@ -4159,6 +4163,20 @@ func stream_fx(from: Vector3, d: Vector3, length: float, radius: float, mat: Mat
 			"speed": maxf(30.0, length / maxf(0.3, dur * 0.8))})
 		if dur > 0.5:
 			after(dur * 0.45, func(): WindFX.gust(from, d.normalized(), length, radius * 2.0, {"n": int(clampf(6 + radius * 2.0, 8, 18)), "leaves": false, "dust": false}))
+		if end_fx.is_valid():
+			after(0.22, func(): end_fx.call(from + d * length))
+		return
+	if mat is ShaderMaterial and mat.shader != null and mat.shader.resource_path.ends_with("vfx_bolt.gdshader"):
+		var bc: Color = mat.get_shader_parameter("col")
+		var dn = d.normalized()
+		var waves = maxi(1, int((dur + 0.2) / 0.08))
+		for w in waves:
+			after(w * 0.08, func():
+				for k in 3:
+					var off = Vector3(randf_range(-1, 1), randf_range(-1, 1), randf_range(-1, 1)) * radius * 0.35
+					VFX.bolt(from + off * 0.3, from + dn * length + off, bc, radius * 0.12 * (1.6 if k == 0 else 0.8), 0.1, 3))
+		FX.burst(from, {"amount": int(20 + length), "life": 0.35, "tex": FX.tex_spark, "size": 1.2, "vmin": length * 1.5, "vmax": length * 2.5, "dir": dn, "spread": 12.0,
+			"colors": [Color(1, 1, 1, 1), bc.lightened(0.4), Color(bc.r, bc.g, bc.b, 0)]})
 		if end_fx.is_valid():
 			after(0.22, func(): end_fx.call(from + d * length))
 		return
@@ -4782,17 +4800,21 @@ func p_raiton_raiju_tsuiga(c: Node3D, t: Node3D) -> void:
 		if not live(c):
 			return
 		var from = gp(c.global_position + c.face_dir() * 1.0) + Vector3.UP * 0.7
+		# şimşekten köpek: gövde ve baş parıltı çekirdekleri, omurga/bacak arkları (küre gövde yok)
 		var hound = Node3D.new()
-		var m = VFX.mat_bolt(RAI, 2.0)
-		for part in [[Vector3(0, 0, 0), Vector3(0.55, 0.45, 1.1)], [Vector3(0, 0.2, 0.62), Vector3(0.38, 0.34, 0.5)], [Vector3(0, 0.15, -0.7), Vector3(0.12, 0.12, 0.6)]]:
-			var mi = MeshInstance3D.new()
-			mi.mesh = SphereMesh.new()
-			mi.material_override = m
-			mi.position = part[0]
-			mi.scale = part[1]
-			hound.add_child(mi)
-		var arcs = VFX.lightning_ball(0.6, RAI)
-		hound.add_child(arcs)
+		var body = VFX.lightning_ball(0.9, RAI)
+		hound.add_child(body)
+		var head = VFX.lightning_ball(0.55, Color(0.75, 0.9, 1.0))
+		head.position = Vector3(0, 0.3, -0.9)
+		hound.add_child(head)
+		for seg in [[Vector3(0, 0.1, 0.9), Vector3(0, 0.2, -1.8)], [Vector3(0.3, 0, -0.5), Vector3(0.1, -0.7, 0.2)], [Vector3(-0.3, 0, -0.5), Vector3(-0.1, -0.7, 0.2)], [Vector3(0.3, 0, 0.6), Vector3(0.1, -0.7, -0.2)], [Vector3(-0.3, 0, 0.6), Vector3(-0.1, -0.7, -0.2)]]:
+			var a = Arcs.new()
+			a.color = RAI
+			a.to_point = seg[1]
+			a.count = 2
+			a.width = 0.07
+			a.position = seg[0]
+			hound.add_child(a)
 		var dir = aim_at(c, tt, from)
 		dir.y = 0
 		var pr = shot(c, from, dir.normalized(), 24.0, hound, inf(c, "raiton_raiju_tsuiga", 1.1, {"knock": 10.0, "kind": "heavy", "element": "raiton", "stun": 0.8}), tt, false, 2.0, func(p, _h):
@@ -8614,11 +8636,15 @@ func p_raiton_kangekiha(c: Node3D, t: Node3D) -> void:
 	var d = fwd(c, t)
 	var side = d.cross(Vector3.UP)
 	after(0.2, func():
+		# Kangekiha: ileri savrulan mavi şimşek dalgası (mavi akış perdeleri + yayılan dallı şimşekler)
+		var o = c.global_position + Vector3.UP * 1.0 + d * 1.2
+		WindFX.gust(o, d, 18.0, 10.0, {"n": 10, "speed": 30.0, "tint": Color(0.4, 0.65, 1.0), "col": Color(0.75, 0.9, 1.0, 0.9), "dust": false, "leaves": false, "opacity": 0.75, "sheets": 6})
 		for k in 8:
 			after(k * 0.04, func():
 				var q = c.global_position + Vector3.UP * 1.0 + d * (2.0 + k * 2.0)
 				var w = 1.5 + k * 0.6
-				VFX.bolt(q - side * w, q + side * w, RAI, 0.18, 0.25, 3))
+				VFX.bolt(q - side * w, q + side * w, RAI, 0.22, 0.25, 4)
+				VFX.bolt(q, q + d * 2.5 + side * randf_range(-w, w) + Vector3.UP * randf_range(-0.5, 1.5), Color(0.8, 0.92, 1.0), 0.14, 0.2, 2))
 		Combat.hit_zone(c, c.global_position, d, 18.0, 30.0, 3.0, inf(c, "raiton_kangekiha", 1.2, {"knock": 10.0, "kind": "heavy", "element": "raiton", "stun": 0.6}))
 		shake(0.4))
 	Sfx.play("thunder", c.global_position, 1.1)
@@ -8634,17 +8660,22 @@ func p_raiton_kuropansa(c: Node3D, t: Node3D) -> void:
 	after(0.25, func():
 		if not live(c):
 			return
+		# kara şimşek panteri: koyu duman gibi kaynayan gövde + mor-beyaz kara şimşek arkları (küre gövde yok)
 		var p = Node3D.new()
-		var m = VFX.mat_bolt(black, 0.8)
-		for part in [[Vector3(0, 0, 0), Vector3(1.1, 0.9, 2.2)], [Vector3(0, 0.3, 1.3), Vector3(0.8, 0.7, 0.9)], [Vector3(0, -0.1, 1.7), Vector3(0.5, 0.3, 0.5)]]:
-			var mi = MeshInstance3D.new()
-			mi.mesh = SphereMesh.new()
-			mi.material_override = m
-			mi.position = part[0]
-			mi.scale = part[1]
-			p.add_child(mi)
-		var arcs = VFX.lightning_ball(1.3, Color(0.75, 0.6, 1.0))
+		var arcs = VFX.lightning_ball(1.2, Color(0.42, 0.28, 0.75))
 		p.add_child(arcs)
+		var dark = FX.burst(Vector3.ZERO, {"parent": p, "local": true, "amount": 44, "life": 0.5, "tex": FX.tex_smoke, "add": false, "cel": false, "size": 1.8,
+			"radius": 1.0, "vmin": 0.5, "vmax": 2.0, "spread": 180.0, "explosive": 0.0, "colors": [Color(0.03, 0.02, 0.06, 0.95), Color(0.06, 0.03, 0.1, 0.75), Color(0.05, 0.03, 0.08, 0.0)]})
+		if dark:
+			dark.one_shot = false
+		for seg in [[Vector3(0, 0.2, 1.2), Vector3(0, 0.3, -2.6)], [Vector3(0.5, 0, -0.8), Vector3(0.2, -1.0, 0.3)], [Vector3(-0.5, 0, -0.8), Vector3(-0.2, -1.0, 0.3)], [Vector3(0.5, 0, 0.8), Vector3(0.2, -1.0, -0.3)], [Vector3(-0.5, 0, 0.8), Vector3(-0.2, -1.0, -0.3)]]:
+			var a = Arcs.new()
+			a.color = Color(0.35, 0.2, 0.7)
+			a.to_point = seg[1]
+			a.count = 2
+			a.width = 0.12
+			a.position = seg[0]
+			p.add_child(a)
 		var dir = aim_at(c, tt, from)
 		dir.y = 0
 		var pr = shot(c, from, dir.normalized(), 24.0, p, inf(c, "raiton_kuropansa", 1.6, {"knock": 12.0, "kind": "heavy", "element": "raiton", "stun": 1.5}), tt, false, 2.0, func(pp, _h):
@@ -9619,15 +9650,17 @@ func p_chidori_senbon(c: Node3D, t: Node3D) -> void:
 	after(0.2, func():
 		if not live(c):
 			return
-		for k in 12:
-			var nd = MeshInstance3D.new()
-			var bm = BoxMesh.new()
-			bm.size = Vector3(0.03, 0.03, 0.7)
-			nd.mesh = bm
-			nd.material_override = VFX.mat_bolt(RAI, 2.4)
+		for k in 16:
 			var holder = Node3D.new()
+			var nd = Arcs.new()   # iğne: ileri uzanan ince, titreyen şimşek
+			nd.color = Color(0.7, 0.9, 1.0)
+			nd.to_point = Vector3(0, 0, -1.1)
+			nd.count = 0
+			nd.segs = 4
+			nd.width = 0.035
+			nd.position = Vector3(0, 0, 0.55)
 			holder.add_child(nd)
-			var pr = shot(c, from, aim_at(c, tt, from).rotated(Vector3.UP, deg_to_rad((k - 5.5) * 3.0)), 50.0, holder, inf(c, "chidori_senbon", 0.12, {"knock": 0.5, "kind": "light", "element": "raiton", "stun": 0.3}), null, false, 0.8, func(p, _h):
+			var pr = shot(c, from, aim_at(c, tt, from).rotated(Vector3.UP, deg_to_rad((k - 7.5) * 3.2)).rotated(Vector3.RIGHT, deg_to_rad(randf_range(-3.0, 3.0))), 50.0, holder, inf(c, "chidori_senbon", 0.12, {"knock": 0.5, "kind": "light", "element": "raiton", "stun": 0.3}), null, false, 0.8, func(p, _h):
 				VFX.bolt(p, p + Vector3(randf_range(-0.6, 0.6), randf_range(0, 0.8), randf_range(-0.6, 0.6)), RAI, 0.06, 0.15, 1))
 			VFX.trail(pr, 0.05, Color(1, 1, 1, 1), RAI, Color(RAI.r, RAI.g, RAI.b, 0), 10, 0.6)
 		Sfx.play("chidori", from, 1.5, 0.6))
@@ -13132,15 +13165,22 @@ func p_indora_no_ya(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 50.0)
 	var purple = Color(0.6, 0.4, 1.0)
 	var d = fwd(c, t)
-	var bow = MeshInstance3D.new()
-	var tm = TorusMesh.new()
-	tm.inner_radius = 3.6; tm.outer_radius = 3.9; tm.rings = 32; tm.ring_segments = 6
-	bow.mesh = tm
-	bow.material_override = VFX.mat_bolt(purple, 1.8)
+	# yay: mor şimşek arklarından kavis (simit yok)
+	var bow = Node3D.new()
 	c.add_child(bow)
-	bow.position = Vector3(0, 2.6, 1.2)
-	bow.rotation = Vector3(0, 0, PI * 0.5)
-	bow.scale = Vector3(0.5, 1.0, 1.0)
+	bow.position = Vector3(0, 2.6, -1.2)
+	var bpts = []
+	for k in 7:
+		var a = lerpf(-1.2, 1.2, k / 6.0)
+		bpts.append(Vector3(0, sin(a) * 3.8, -cos(a) * 1.6 + 1.6))
+	for k in 6:
+		var arc = Arcs.new()
+		arc.color = purple
+		arc.position = bpts[k]
+		arc.to_point = bpts[k + 1] - bpts[k]
+		arc.count = 1
+		arc.width = 0.12
+		bow.add_child(arc)
 	var tip = c.global_position + Vector3.UP * 2.6 + d * 4.0
 	for k in 16:
 		after(k * 0.06, func():
