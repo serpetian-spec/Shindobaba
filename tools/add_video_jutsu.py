@@ -24,7 +24,7 @@ for (jid, nm, en, el, ti, shape, learn, need, desc, sl) in ns['VIDEO_JUTSU']:
     ck, dk = SHAPE_K.get(shape, (1.0, 1.0))
     els = [x for x in el.split('+') if x]   # "raiton+suiton": iki elementi de bilmek gerekir
     e = dict(id=jid, name=name, name_en=en, cost=int(round(COST[ti] * ck)), cd=round(CD[ti] * dk, 1), element=els[0] if els else '',
-             elements=els, natures=els, clan='', level=LEVEL[ti], rank=NRANK[ti], learn=learn,
+             elements=els, natures=els, clan=learn[5:] if learn.startswith('clan:') else '', level=LEVEL[ti], rank=NRANK[ti], learn=learn,
              desc=desc, seals=sl, canon_rank='EDCBAS'[ti], tier=ti,
              category='senjutsu' if learn.startswith('sage') else ('taijutsu' if 'taijutsu' in learn else 'ninjutsu'), shape=shape)
     if need:
