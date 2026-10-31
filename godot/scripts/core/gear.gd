@@ -453,13 +453,14 @@ const ITEMS := {
 	"raijin": {"name": "Raijin Kılıcı", "slot": "sag", "price": 0, "rank": 4, "legend": true, "desc": "Saf yıldırım chakrasından oluşan ağız. Gök gürültüsüyle keser.", "stats": {"chakra": 30}, "weapon": {"dmg": 2.0, "reach": 1.2, "style": "sword", "special": "raiton"}, "c1": Color(1.0, 0.9, 0.3)},
 	"ruzgar_bicak": {"name": "Rüzgar Chakra Bıçakları", "slot": "el", "price": 0, "rank": 3, "legend": true, "desc": "Fuuton chakrası akıtılan muşta bıçakları: görünmez ağız menzili uzatır.", "stats": {"melee": 0.12}, "weapon": {"dmg": 1.75, "reach": 0.8, "style": "dual", "special": "wind"}, "c1": Color(0.55, 1.0, 0.75)},
 	"fuma_shuriken": {"name": "Fūma Shuriken", "slot": "sag", "price": 0, "rank": 3, "legend": true, "desc": "Yel değirmeni gibi açılan dev dört kollu shuriken.", "stats": {"speed": 0.02}, "weapon": {"dmg": 1.9, "reach": 1.1, "style": "heavy", "special": "wind"}, "c1": Color(0.55, 0.57, 0.62)},
+	"bashosen": {"name": "Bashōsen", "slot": "sag", "price": 0, "rank": 4, "legend": true, "desc": "Altı Yolun Bilgesi'nin hazine yelpazesi: kırmızı uçlu beyaz tüyler. Bashōsen tekniklerini (Kaze/Hi/Rai/Mizu no Maki) yalnız bu yelpaze kuşanılmışken atabilirsin.", "stats": {"chakra": 40}, "weapon": {"dmg": 1.5, "reach": 0.9, "style": "fan"}, "c1": Color(0.72, 0.1, 0.2)},
 	"gunbai": {"name": "Gunbai Savaş Yelpazesi", "slot": "sag", "price": 0, "rank": 4, "legend": true, "desc": "Dev yuvarlak demir yelpaze. Savuruşu fırtına gibi iter, kendisi kalkan olur.", "stats": {"def": 10, "chakra": 20}, "weapon": {"dmg": 1.8, "reach": 1.1, "style": "fan", "special": "gust"}, "c1": Color(0.75, 0.15, 0.15)},
 	"uc_tirpan": {"name": "Üç Bıçaklı Tırpan", "slot": "sag", "price": 0, "rank": 4, "legend": true, "desc": "Kırmızı üç bıçaklı dev tırpan, ucunda ip. Geniş savuruşlu, ağır.", "stats": {"melee": 0.1}, "weapon": {"dmg": 2.15, "reach": 1.4, "style": "heavy"}, "c1": Color(0.75, 0.12, 0.12)},
 	"sai": {"name": "Sai", "slot": "el", "price": 380, "rank": 1, "desc": "Üç dişli savunma hançeri. Bloklarken saldırıyı kilitler.", "stats": {"def": 3}, "weapon": {"dmg": 1.25, "reach": 0.2, "style": "dual"}, "c1": Color(0.7, 0.72, 0.76)},
 }
 
 ## Efsanevi silahlar (dükkânda yok; A/S görevleri, boss düşürmesi)
-const LEGENDARY := ["kubikiribocho", "samehada", "kiba", "hiramekarei", "shibuki", "nuibari", "kabutowari", "chokuto", "raijin", "ruzgar_bicak", "fuma_shuriken", "gunbai", "uc_tirpan"]
+const LEGENDARY := ["kubikiribocho", "samehada", "kiba", "hiramekarei", "shibuki", "nuibari", "kabutowari", "chokuto", "raijin", "ruzgar_bicak", "fuma_shuriken", "gunbai", "bashosen", "uc_tirpan"]
 
 
 static func random_legendary() -> String:
@@ -648,6 +649,14 @@ static func teach_weapon_arts(p: Dictionary, id: String) -> void:
 
 
 ## Kuşanılı silah kimlikleri (sağ/sol el, sırt)
+## Sahip olunan tüm eşya kimlikleri (kuşanılmamışlar dahil)
+static func owned_ids(p: Dictionary) -> Array:
+	var out = []
+	for g in p.get("gear", []):
+		out.append(String(g.get("id", "")))
+	return out
+
+
 static func held_ids(p: Dictionary) -> Array:
 	var out = []
 	for slot in p.get("equip", {}):

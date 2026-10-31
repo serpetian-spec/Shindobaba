@@ -2029,7 +2029,8 @@
   "kinjutsu": false,
   "series": "Naruto Shippūden",
   "path": "silah",
-  "meaning": "Ateş Sargısı"
+  "meaning": "Ateş Sargısı",
+  "need": "weapon:bashosen"
  },
  "bashosen_kaze_no_maki": {
   "id": "bashosen_kaze_no_maki",
@@ -2058,7 +2059,8 @@
   "kinjutsu": false,
   "series": "Naruto Shippūden",
   "path": "silah",
-  "meaning": "Rüzgâr Sargısı"
+  "meaning": "Rüzgâr Sargısı",
+  "need": "weapon:bashosen"
  },
  "jujin_bunshin": {
   "id": "jujin_bunshin",
@@ -20676,7 +20678,8 @@
   "tier": 5,
   "category": "ninjutsu",
   "shape": "aoe",
-  "meaning": "Şimşek Sargısı"
+  "meaning": "Şimşek Sargısı",
+  "need": "weapon:bashosen"
  },
  "bashosen_mizu_no_maki": {
   "id": "bashosen_mizu_no_maki",
@@ -20700,7 +20703,8 @@
   "tier": 5,
   "category": "ninjutsu",
   "shape": "aoe",
-  "meaning": "Su Sargısı"
+  "meaning": "Su Sargısı",
+  "need": "weapon:bashosen"
  },
  "_seals": [
   "Ne",

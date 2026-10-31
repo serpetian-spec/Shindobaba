@@ -674,6 +674,10 @@ func _migrate_jutsu_ids() -> void:
 		if Data.jutsu.has(nj) and not nj in learned:
 			learned.append(nj)
 	profile["learned"] = learned
+	for j in learned:
+		if String(j).begins_with("bashosen_") and not "bashosen" in Gear.owned_ids(profile):
+			Gear.grant(profile, "bashosen")
+			break
 	var slots: Array = profile.get("slots", [])
 	for i in slots.size():
 		var sj = String(al.get(slots[i], slots[i]))

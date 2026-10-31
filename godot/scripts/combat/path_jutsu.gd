@@ -2637,24 +2637,17 @@ func p_kuchiyose_tetsuzan(c: Node3D, t: Node3D) -> void:
 
 ## Bashōsen: palmiye yaprağı biçimli efsanevi yelpaze elde belirir; her sargı ayrı bir doğa — ek chakra emer
 func bashosen_fan(c: Node3D, el_col: Color) -> Node3D:
-	var mesh = cached("bashosen", func():
-		var b = MB.new()
-		b.add_grad("sphere", Vector3(0, 1.3, 0), Vector3(1.5, 1.9, 0.08), Color(0.78, 0.82, 0.45), Color(0.45, 0.55, 0.22), Vector3.ZERO, 14)
-		for k in 7:
-			b.add("box", Vector3((k - 3) * 0.18, 1.25, -0.05), Vector3(0.03, 1.7, 0.02), Color(0.4, 0.45, 0.2), Vector3(0, 0, (k - 3) * 9))
-		b.add("cyl", Vector3(0, 0.0, 0), Vector3(0.09, 0.8, 0.09), Color(0.35, 0.2, 0.12), Vector3.ZERO, 8)
-		b.add("sphere", Vector3(0, -0.45, 0), Vector3(0.22, 0.26, 0.22), Color(0.75, 0.55, 0.2), Vector3.ZERO, 8)   # su kabağı topuzu
-		b.add("box", Vector3(0, -0.6, 0), Vector3(0.05, 0.25, 0.05), Color(0.8, 0.15, 0.15))
-		return b)
+	# anime Bashōsen (kuşanılan silahla aynı model): kırmızı uçlu beyaz tüy yelpaze; savuruşta tüylerden element parıltısı saçılır
 	var root = Node3D.new()
-	var mi = mi_of(mesh)
+	var mi = MeshInstance3D.new()
+	mi.mesh = CharacterModel.weapon_mesh("bashosen")
+	mi.rotation_degrees = Vector3(-90, 0, 0)   # silah +Z boyunca kurulu; eski yelpaze +Y idi
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	root.add_child(mi)
-	var rim = MeshInstance3D.new()
-	rim.mesh = VFX._sphere(0.5, 16, 8)
-	rim.material_override = glow(el_col, 0.45)
-	rim.scale = Vector3(1.75, 2.1, 0.2)
-	rim.position = Vector3(0, 1.3, 0)
-	root.add_child(rim)
+	after(0.2, func():
+		if is_instance_valid(root):
+			FX.burst(root.global_position + Vector3.UP * 0.8, {"amount": 24, "life": 0.5, "tex": FX.tex_spark, "add": true, "size": 0.25, "radius": 0.8, "vmin": 2, "vmax": 5,
+				"colors": [Color(1, 1, 1, 1), el_col, Color(el_col.r, el_col.g, el_col.b, 0)]}))
 	var ba = bone_attach(c, "RightHand")
 	if ba:
 		ba.add_child(root)

@@ -544,6 +544,9 @@ static func _teach(pid: String, jid: String, from_quest: bool) -> void:
 	if jid in pr().get("learned", []):
 		return
 	Progress.learn(jid)
+	if jid.begins_with("bashosen_") and not "bashosen" in Gear.owned_ids(pr()):
+		Gear.grant(pr(), "bashosen")
+		Hud.msg("Bashōsen artık senin: Bashōsen teknikleri için yelpazeyi kuşan.", Color(1, 0.6, 0.6), 5.0)
 	if pid == "kapi" and not "gates" in pr().get("skills", []):
 		pr()["skills"].append("gates")   # Sekiz Kapı modu (B) bu yolla açılır
 		Hud.msg("Sekiz Kapı açıldı: B tuşuyla kapıları zorla.", Color(0.5, 1, 0.5))
@@ -771,7 +774,7 @@ static func _quest(pid: String, kind: String, teach: String) -> Dictionary:
 		"silah:fan":
 			var far = _near(at, 1300.0)
 			q = {"title": "Efsanevi Yelpaze", "rank": "A",
-				"brief": "Palmiye yaprağından dokunmuş efsanevi yelpaze, dağ geçidindeki samuray kalesinde mühürlü. Bekçisini yen ve yelpazeyi kazan.",
+				"brief": "Altı Yolun Bilgesi'nin hazine yelpazesi Bashōsen (kırmızı uçlu beyaz tüyler), dağ geçidindeki samuray kalesinde mühürlü. Bekçisini yen ve yelpazeyi kazan.",
 				"steps": [
 					{"kind": "track", "from": at, "to": far, "text": "Eski haritadaki dağ geçidine giden yolu izle."},
 					{"kind": "kill", "at": far, "enemy": "samurai", "n": 4, "camp": true, "boss": {"name": "Yelpaze Bekçisi Hōkaze", "hp": 3500.0, "level": 32, "power": 2.6}, "text": "Yelpaze bekçisini yen."},

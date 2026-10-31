@@ -2945,6 +2945,54 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 					var t = j / 9.0
 					cr.append(Vector2(0.02 + t * 0.55 * sz, z0 + 0.05 - t * t * 0.32 * sz + 0.11 * sz * pow(1.0 - t, 0.8) + 0.004))
 				b.add_slab(cr, 0.016, Color(0.82, 0.12, 0.1), Transform3D.IDENTITY, Callable(), Color(0.55, 0.06, 0.05))
+		"bashosen":
+			# Bashōsen (anime): yelpaze düzlemi YZ; sap +Z boyunca, göbek sapın ucunda, tüyler göbekten yelpaze gibi açılır
+			var white = Color(0.95, 0.95, 0.93)
+			var crimson = Color(0.72, 0.1, 0.2)
+			b.add("cyl", Vector3(0, 0, 0.25), Vector3(0.05, 0.5, 0.05), white, Vector3(90, 0, 0), 10)
+			for q in 6:
+				b.add("cyl", Vector3(0, 0, 0.04 + q * 0.075), Vector3(0.062, 0.022, 0.062), Color(0.82, 0.82, 0.84), Vector3(90, 0, 0), 10)
+			var H = Vector3(0, 0, 0.55)
+			var L = 0.9
+			var n = 17
+			for k in n:
+				var a = deg_to_rad(lerpf(-80.0, 80.0, float(k) / (n - 1)))
+				var w = 0.075
+				var xo = 0.004 * (k % 2)
+				var xf = Transform3D(Basis(Vector3.RIGHT, a), H + Vector3(xo, 0, 0))
+				# beyaz kök kısmı: üst kenarı tırtıklı (anime: beyazla kırmızının sınırı yırtık gibi)
+				var wo = PackedVector2Array([Vector2(-w * 0.55, 0.0), Vector2(-w, L * 0.3)])
+				var zz = []
+				for j in 7:
+					var y = lerpf(-w, w, j / 6.0)
+					zz.append(Vector2(y, L * (0.74 if j % 2 == 0 else 0.66)))
+				for p in zz:
+					wo.append(p)
+				wo.append(Vector2(w, L * 0.3))
+				wo.append(Vector2(w * 0.55, 0.0))
+				b.add_slab(wo, 0.012, white, xf)
+				# kırmızı uç: aynı tırtıklı sınırdan sivri uca
+				var co = PackedVector2Array()
+				for j in range(6, -1, -1):
+					co.append(zz[j])
+				co.append(Vector2(-w * 0.8, L * 0.88))
+				co.append(Vector2(0, L))
+				co.append(Vector2(w * 0.8, L * 0.88))
+				var co2 = PackedVector2Array()
+				for j in range(co.size() - 1, -1, -1):
+					co2.append(co[j])
+				b.add_slab(co2, 0.012, crimson, xf)
+			# dipte kırmızı kısa tüy tacı (iki yüzde)
+			for sxo in [-0.016, 0.016]:
+				for k in 11:
+					var a = deg_to_rad(lerpf(-82.0, 82.0, k / 10.0))
+					var w2 = 0.045
+					var L2 = 0.3 + 0.05 * (1.0 - absf(k - 5) / 5.0)
+					var o = PackedVector2Array([Vector2(-w2 * 0.5, 0.0), Vector2(-w2, L2 * 0.5), Vector2(0, L2), Vector2(w2, L2 * 0.5), Vector2(w2 * 0.5, 0.0)])
+					b.add_slab(o, 0.01, crimson, Transform3D(Basis(Vector3.RIGHT, a), H + Vector3(sxo, 0, 0)))
+			# göbek: beyaz halka + mavi göz (iki yüz)
+			b.add("cyl", H, Vector3(0.15, 0.06, 0.15), white, Vector3(0, 0, 90), 16)
+			b.add("cyl", H, Vector3(0.09, 0.07, 0.09), Color(0.35, 0.55, 0.85), Vector3(0, 0, 90), 14)
 		"gunbai":
 			# Uchiha yelpazesi (uchiwa): uzun sap, üstte hafif basık yuvarlak kâğıt; üst yarı kırmızı, alt yarı beyaz, siyah çerçeve ve kaburgalar
 			b.add("cyl", Vector3(0, 0, 0.2), Vector3(0.032, 0.56, 0.032), Color(0.18, 0.12, 0.08), Vector3(90, 0, 0), 8)
