@@ -187,6 +187,11 @@ func _build_tube(pts: Array) -> void:
 		# baş tarafı boyna doğru incelir, kafaya oturur
 		if i < 2:
 			r *= 0.75 + i * 0.12
+		# kuyruk ucu açık kalmasın (içinden öbür taraf görünüyordu): son halkalar sivri bir uca kapanır
+		if i == n - 1:
+			r = 0.0
+		elif i == n - 2:
+			r *= 0.45
 		var f: Vector3 = pts[i][1]
 		var s = f.cross(Vector3.UP)
 		if s.length() < 0.1:
@@ -208,6 +213,15 @@ func _build_tube(pts: Array) -> void:
 				_tim.surface_set_color(Color(1, 1, 1, _alpha))
 				_tim.surface_set_uv(Vector2(q[0][2], q[1] * 4.0))
 				_tim.surface_add_vertex(q[0][0])
+	# baş ucu kapağı (boyun halkası açık kalmasın)
+	var r0: Array = rings[0][0]
+	var c0: Vector3 = pts[0][0] + pts[0][1] * radius * 0.3
+	for j in RING:
+		for q in [[c0, pts[0][1]], [r0[j + 1][0], r0[j + 1][1]], [r0[j][0], r0[j][1]]]:
+			_tim.surface_set_normal(q[1])
+			_tim.surface_set_color(Color(1, 1, 1, _alpha))
+			_tim.surface_set_uv(Vector2(0.5, 0.0))
+			_tim.surface_add_vertex(q[0])
 	_tim.surface_end()
 
 
