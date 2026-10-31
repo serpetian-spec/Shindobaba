@@ -27,7 +27,7 @@ const NAMES := {"summon_tank": "Çağrının Koruması", "beast": "Kuyruklu Cana
 	"gates": "Sekiz Kapı", "sage": "Sennin Modu", "susanoo_shield": "Susanoo Kalkanı", "uzmanlik": "Uzmanlık", "pill": "Asker Hapı", "shrine": "Tapınak Lütfu",
 	"bbq": "Yakiniku Gücü", "kabutowari": "Zırh Kırıldı", "tapinak": "Tapınak Lütfu", "asker_hapi": "Asker Hapı"}
 const DESCS := {"henge": "Düşmanlar seni fark etmez", "kirigakure": "Görünmezsin", "susanoo_shield": "Neredeyse tüm hasar engellenir"}
-const LABELS := {"melee": "Yakın dövüş", "jutsu": "Jutsu hasarı", "speed": "Hız", "reach": "Menzil", "armor": "Alınan hasar"}
+const LABELS := {"melee": "Yakın dövüş", "jutsu": "Jutsu hasarı", "speed": "Hız", "reach": "Menzil", "armor": "Alınan hasar", "katon": "Katon", "suiton": "Suiton", "fuuton": "Fūton", "raiton": "Raiton", "doton": "Doton"}
 
 
 ## "Yakın dövüş +30%, Hız +15%" — mods sözlüğünden; "_desc" ek açıklama

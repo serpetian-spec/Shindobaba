@@ -10,7 +10,8 @@ func _mult(caster: Node3D) -> float:
 func _elem_bonus(caster: Node3D, el: String) -> float:
 	if caster is Player:
 		var els: Array = Game.profile.get("elements", [])
-		return (1.2 if not els.is_empty() and els[0] == el else 1.0) + Stats.element_bonus(Game.profile, el) + (Stats.skill(Game.profile, "kg") if el in Stats.KG_NATURES else 0.0)
+		# element buff'ları (ör. Sanmai no Shinka "katon": 1.3) hasara gerçekten yansır
+		return ((1.2 if not els.is_empty() and els[0] == el else 1.0) + Stats.element_bonus(Game.profile, el) + (Stats.skill(Game.profile, "kg") if el in Stats.KG_NATURES else 0.0)) * Buffs.mod(el)
 	return 1.0
 
 
