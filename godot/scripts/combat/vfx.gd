@@ -76,8 +76,65 @@ static func mat_water(deep := Color(0.05, 0.28, 0.78), mid := Color(0.2, 0.55, 0
 	return m
 
 
-static func mat_ice() -> ShaderMaterial:
-	return mat_water(Color(0.35, 0.65, 0.9), Color(0.6, 0.85, 1.0), Color(0.9, 0.98, 1.0), Vector3(0, 1, 0), 0.82, 0.15, 0.0)
+## Hyōton buzu (anime Haku): akışkan değil — keskin yüzeyli, soluk mavi-beyaz, yarı saydam kristal, beyaz kenar parıltısı
+static func mat_ice() -> Material:
+	if _cache.has("mat_ice"):
+		return _cache["mat_ice"]
+	var m = StandardMaterial3D.new()
+	m.albedo_color = Color(0.82, 0.93, 1.0, 0.72)
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.metallic = 0.3
+	m.roughness = 0.04
+	m.emission_enabled = true
+	m.emission = Color(0.55, 0.75, 0.95) * 0.35
+	m.rim_enabled = true
+	m.rim = 1.0
+	m.rim_tint = 0.2
+	_cache["mat_ice"] = m
+	return m
+
+
+## Futton (Mei'nin asidi / Han'ın buharı): yoğun beyaz-gri buhar, hafif mor asit tonu; su değil
+static func mat_steam(acid := false) -> Material:
+	var key = "mat_steam_%s" % acid
+	if _cache.has(key):
+		return _cache[key]
+	var m = StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.albedo_color = Color(0.82, 0.76, 0.88, 0.5) if acid else Color(0.95, 0.95, 0.96, 0.5)
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	_cache[key] = m
+	return m
+
+
+## Jinton: yarı saydam beyaz ışık geometrisi (küp/koni/silindir), içi parlak
+static func mat_dust() -> Material:
+	if _cache.has("mat_dust"):
+		return _cache["mat_dust"]
+	var m = StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	m.albedo_color = Color(0.9, 0.95, 1.0, 0.4)
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	_cache["mat_dust"] = m
+	return m
+
+
+## Ranton: beyaz-sıcak çekirdekli, mavi kenarlı lazer ışığı (şimşek dalı yok)
+static func mat_storm() -> Material:
+	if _cache.has("mat_storm"):
+		return _cache["mat_storm"]
+	var m = StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.albedo_color = Color(0.92, 0.97, 1.0)
+	m.emission_enabled = true
+	m.emission = Color(0.55, 0.8, 1.0)
+	m.rim_enabled = true
+	m.rim = 1.0
+	_cache["mat_storm"] = m
+	return m
 
 
 static func mat_wind(tint := Color(0.78, 1.0, 0.9), speed := 6.0, lines := 6.0, axis := Vector3.UP, alpha := 0.85) -> ShaderMaterial:
@@ -159,18 +216,32 @@ static func mat_puff(glow := 1.0, hot := 0.0, outline_col := Color(0.18, 0.12, 0
 ## Elemente göre gövde malzemesi (mermi/ejderha/dalga/duvar gövdeleri)
 static func element_mat(el: String, col: Color) -> Material:
 	match el:
-		"katon", "shakuton":
+		"katon":
 			return mat_fire("fire", 2.6, 2.4, 0.38, 1.35, 0.1, Vector3(0, 0, 1))
-		"yoton", "bakuton":
+		"shakuton":   # her doğa kendi görünümünde: yumuşak pembe-beyaz kavurucu ışık
+			var sm = StandardMaterial3D.new()
+			sm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			sm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			sm.albedo_color = Color(1.0, 0.7, 0.72, 0.8)
+			return sm
+		"yoton":
 			return mat_fire("lava", 1.6, 2.0, 0.3, 1.25, 0.08, Vector3(0, 0, 1))
-		"suiton", "futton":
+		"bakuton":
+			return Props.toon_color(Color(0.95, 0.94, 0.9))   # beyaz patlayıcı kil
+		"suiton":
 			return mat_water()
+		"futton":
+			return mat_steam(true)
 		"hyoton":
 			return mat_ice()
-		"fuuton", "jinton":
+		"fuuton":
 			return mat_wind(Color(0.8, 1.0, 0.92), 7.0, 6.0, Vector3(0, 0, 1))
-		"raiton", "ranton":
+		"jinton":
+			return mat_dust()
+		"raiton":
 			return mat_spiral(Color(1, 1, 1), col, 7.0, 6.0, 9.0, 2.0, Vector3(0, 0, 1))
+		"ranton":
+			return mat_storm()
 		"doton", "mokuton", "jiton", "shoton":
 			return Props.toon_color(col.darkened(0.05))
 	var m = mat_spiral(col.lightened(0.5), col, 4.0, 2.0, 4.0, 1.4)
@@ -345,14 +416,24 @@ static func element_core(el: String, col: Color, size: float) -> Node3D:
 			return scorch_orb(size)
 		"katon":
 			return fireball(size, fire_preset_for(col))
-		"yoton", "bakuton":
+		"yoton":
 			return fireball(size, "lava")
-		"suiton", "futton", "hyoton":
+		"bakuton":
+			return clay_orb(size)
+		"suiton":
 			return water_ball(size)
-		"fuuton", "jinton":
+		"futton":
+			return steam_orb(size)
+		"hyoton":
+			return ice_orb(size)
+		"fuuton":
 			return wind_ball(size)
-		"raiton", "ranton":
+		"jinton":
+			return dust_cube(size)
+		"raiton":
 			return lightning_ball(size * 0.8, col)
+		"ranton":
+			return storm_orb(size)
 	var root = Node3D.new()
 	root.add_child(Projectile.energy_mesh(col.lightened(0.5), col, size * epic, 4.0, 2.0, 2.2))
 	return root
@@ -939,35 +1020,98 @@ static func linger(pos: Vector3, el: String, col: Color, g: float, dur := 3.0) -
 	tw2.tween_callback(root.queue_free)
 
 
-## Shakuton küresi (anime Pakura): pürüzsüz kızıl küre, beyaz-sıcak merkez, dışta yumuşak kırmızı hale,
-## yüzeyde çapraz kalın beyaz parıltı çizgileri. Alev / dil / kor YOK.
+## Shakuton küresi (anime Pakura): katı top değil, IŞIK — kameraya dönük yumuşak parıltı:
+## geniş beyaz çekirdek, etrafında yumuşakça sönen pembe-kızıl hâle, hareket edince arkasında kıvrılan pembe kuyruk.
+## Sert kenar, çizgi, desen yok (kenar çizgisi geçişine de girmesin diye derinlik yazmayan saydam düzlemler).
 static func scorch_orb(size := 1.0) -> Node3D:
 	size *= epic
 	var root = Node3D.new()
-	var r = 0.5 * size
-	# dış hale: yarı saydam kırmızı, kenarı yumuşak (fresnel benzeri: arka yüz)
-	var halo = MeshInstance3D.new()
-	halo.mesh = _sphere(r * 1.25, 20, 12)
-	var hm = StandardMaterial3D.new()
-	hm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	hm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	hm.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
-	hm.albedo_color = Color(1.0, 0.15, 0.2, 0.45)
-	hm.cull_mode = BaseMaterial3D.CULL_FRONT
-	halo.material_override = hm
-	root.add_child(halo)
-	# kızıl küre: merkez beyaz-sıcak, kenar kızıl, çapraz beyaz şeritler (vfx_scorch shader)
-	var shell = MeshInstance3D.new()
-	shell.mesh = _sphere(r, 28, 18)
-	var sm = ShaderMaterial.new()
-	sm.shader = preload("res://shaders/vfx_scorch.gdshader")
-	shell.material_override = sm
-	root.add_child(shell)
-	# hafif nabız (sıcaklık titremesi)
+	var r = 0.5 * size * 1.5   # animede küreler kol boyunda: büyük
+	# dış hâle: geniş, soluk pembe-kızıl
+	var glow = MeshInstance3D.new()
+	var gq = QuadMesh.new()
+	gq.size = Vector2(r * 4.2, r * 4.2)
+	glow.mesh = gq
+	glow.material_override = _glow_sprite_mat(_radial_tex(Color(1.0, 0.45, 0.48, 0.8), Color(1.0, 0.35, 0.4, 0.0)))
+	root.add_child(glow)
+	# çekirdek: geniş katı beyaz, kenarda pembe-kızıla yumuşak geçiş
+	var core = MeshInstance3D.new()
+	var cq = QuadMesh.new()
+	cq.size = Vector2(r * 2.6, r * 2.6)
+	core.mesh = cq
+	core.material_override = _glow_sprite_mat(_orb_tex())
+	core.sorting_offset = 3.0   # beyaz çekirdek her zaman kuyruk ve hâlenin önünde
+	root.add_child(core)
+	# kuyruk: hareket edince geride kalan pembe-kızıl yumuşak parıltılar (kuyruklu yıldız)
+	var e = GPUParticles3D.new()
+	e.amount = 34
+	e.lifetime = 0.55
+	e.local_coords = false
+	var pm = ParticleProcessMaterial.new()
+	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+	pm.emission_sphere_radius = r * 0.5
+	pm.direction = Vector3(0, 0.35, -1)
+	pm.spread = 25.0
+	pm.initial_velocity_min = r * 3.0
+	pm.initial_velocity_max = r * 4.5
+	pm.gravity = Vector3(0, 0.8, 0)
+	pm.scale_min = r * 1.6
+	pm.scale_max = r * 2.4
+	pm.scale_curve = _curve_tex([[0.0, 1.0], [1.0, 0.25]])
+	pm.color_ramp = FX._gradient([Color(1.0, 0.6, 0.55, 1.0), Color(1.0, 0.5, 0.48, 0.9), Color(1.0, 0.45, 0.45, 0.0)])
+	e.process_material = pm
+	var tq = QuadMesh.new()
+	tq.material = _glow_sprite_mat(_radial_tex(Color(1, 1, 1, 1), Color(1, 1, 1, 0)), true)   # yumuşak, sivrilerek incelen ışık kuyruğu
+	e.draw_pass_1 = tq
+	e.sorting_offset = -2.0
+	e.position = Vector3(0, 0, -r * 0.5)   # kuyruk kürenin arkasından çıkar (-Z: kürenin baktığı dış-geri yön)
+	root.add_child(e)
 	var tw = root.create_tween().set_loops()
-	tw.tween_property(halo, "scale", Vector3.ONE * 1.08, 0.18)
-	tw.tween_property(halo, "scale", Vector3.ONE * 0.96, 0.18)
+	tw.tween_property(glow, "scale", Vector3.ONE * 1.08, 0.2)
+	tw.tween_property(glow, "scale", Vector3.ONE * 0.95, 0.2)
 	return root
+
+
+## Kameraya dönük, derinlik yazmayan yumuşak parıltı malzemesi (particles=true: parçacık rengini kullanır)
+static func _glow_sprite_mat(tex: Texture2D, particles := false) -> StandardMaterial3D:
+	var m = StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES if particles else BaseMaterial3D.BILLBOARD_ENABLED
+	m.vertex_color_use_as_albedo = particles
+	m.albedo_texture = tex
+	return m
+
+
+## Shakuton çekirdeği: merkezden %60'a kadar katı beyaz, sonra pembe-kızıla ve saydama yumuşak geçiş
+static func _orb_tex() -> Texture2D:
+	if _radial_cache.has("orb"):
+		return _radial_cache["orb"]
+	var g = Gradient.new()
+	g.set_color(0, Color(1, 1, 1, 1))
+	g.add_point(0.68, Color(1, 1, 1, 1))
+	g.add_point(0.76, Color(1.0, 0.7, 0.7, 1.0))
+	g.add_point(0.88, Color(1.0, 0.42, 0.45, 0.7))
+	g.set_color(g.get_point_count() - 1, Color(1.0, 0.35, 0.4, 0.0))
+	var t = GradientTexture2D.new()
+	t.gradient = g
+	t.fill = GradientTexture2D.FILL_RADIAL
+	t.fill_from = Vector2(0.5, 0.5)
+	t.fill_to = Vector2(1.0, 0.5)
+	t.width = 128
+	t.height = 128
+	_radial_cache["orb"] = t
+	return t
+
+
+static func _curve_tex(pts: Array) -> CurveTexture:
+	var c = Curve.new()
+	for p in pts:
+		c.add_point(Vector2(p[0], p[1]))
+	var ct = CurveTexture.new()
+	ct.curve = c
+	return ct
 
 
 ## Merkezi opak, kenara saydamlaşan dairesel doku (tek sefer üretilir)
@@ -989,3 +1133,133 @@ static func _radial_tex(inner: Color, outer: Color) -> Texture2D:
 	t.height = 64
 	_radial_cache[key] = t
 	return t
+
+
+# ================================================================== doğaya özgü mermi gövdeleri (her biri kendi anime görünümünde)
+## Futton: kaynayan buhar küresi — sürekli dönüp kabaran beyaz-gri buhar, hafif mor asit tonu
+static func steam_orb(size := 1.0) -> Node3D:
+	size *= epic
+	var root = Node3D.new()
+	var core = _mi(_sphere(0.42 * size, 16, 10), mat_steam(true))
+	root.add_child(core)
+	var e = GPUParticles3D.new()
+	e.amount = 24
+	e.lifetime = 0.7
+	e.local_coords = true
+	var pm = ParticleProcessMaterial.new()
+	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+	pm.emission_sphere_radius = 0.35 * size
+	pm.direction = Vector3.UP
+	pm.spread = 180.0
+	pm.initial_velocity_min = 0.3
+	pm.initial_velocity_max = 0.9
+	pm.gravity = Vector3.ZERO
+	pm.scale_min = 0.6 * size
+	pm.scale_max = 1.1 * size
+	pm.color_ramp = FX._gradient([Color(1, 1, 1, 0.0), Color(0.96, 0.95, 0.97, 0.85), Color(0.85, 0.8, 0.9, 0.5), Color(0.8, 0.75, 0.85, 0.0)])
+	e.process_material = pm
+	var q = QuadMesh.new()
+	q.material = FX._draw_mat(FX.tex_smoke, false)
+	e.draw_pass_1 = q
+	root.add_child(e)
+	return root
+
+
+## Hyōton: keskin buz kristali kümesi (sekiz yüzlü sivri parçalar), soğuk beyaz parıltı
+static func ice_orb(size := 1.0) -> Node3D:
+	size *= epic
+	var root = Node3D.new()
+	for k in 7:
+		var sh = MeshInstance3D.new()
+		var cm = CylinderMesh.new()
+		cm.top_radius = 0.0
+		cm.bottom_radius = 0.16 * size
+		cm.height = (0.7 if k == 0 else randf_range(0.35, 0.55)) * size
+		cm.radial_segments = 4
+		cm.rings = 1
+		sh.mesh = cm
+		sh.material_override = mat_ice()
+		var a = k * TAU / 6.0
+		sh.rotation = Vector3(PI * 0.5, 0, 0) if k == 0 else Vector3(PI * 0.5 + randf_range(-0.9, 0.9), a, randf_range(-0.5, 0.5))
+		root.add_child(sh)
+	return root
+
+
+## Jinton: yarı saydam beyaz ışık küpü — içinde parlak çekirdek, döner
+static func dust_cube(size := 1.0) -> Node3D:
+	size *= epic
+	var root = Node3D.new()
+	var outer = MeshInstance3D.new()
+	var bm = BoxMesh.new()
+	bm.size = Vector3.ONE * 0.8 * size
+	outer.mesh = bm
+	outer.material_override = mat_dust()
+	root.add_child(outer)
+	var inner = MeshInstance3D.new()
+	var bi = BoxMesh.new()
+	bi.size = Vector3.ONE * 0.3 * size
+	inner.mesh = bi
+	var im = StandardMaterial3D.new()
+	im.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	im.albedo_color = Color(1, 1, 1)
+	inner.material_override = im
+	root.add_child(inner)
+	var tw = root.create_tween().set_loops()
+	tw.tween_property(root, "rotation", Vector3(TAU, TAU, 0), 2.0).from(Vector3.ZERO)
+	return root
+
+
+## Bakuton: beyaz patlayıcı kil topu — kilin içinden sızan küçük kıvılcımlar
+static func clay_orb(size := 1.0) -> Node3D:
+	size *= epic
+	var root = Node3D.new()
+	var body = _mi(_sphere(0.45 * size, 14, 10), Props.toon_color(Color(0.95, 0.94, 0.9)))
+	root.add_child(body)
+	var e = GPUParticles3D.new()
+	e.amount = 10
+	e.lifetime = 0.35
+	e.local_coords = false
+	var pm = ParticleProcessMaterial.new()
+	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+	pm.emission_sphere_radius = 0.4 * size
+	pm.spread = 180.0
+	pm.initial_velocity_min = 0.5
+	pm.initial_velocity_max = 1.5
+	pm.gravity = Vector3.ZERO
+	pm.scale_min = 0.08
+	pm.scale_max = 0.16
+	pm.color_ramp = FX._gradient([Color(1, 1, 0.9, 1), Color(1, 0.85, 0.5, 0.0)])
+	e.process_material = pm
+	var q = QuadMesh.new()
+	q.material = FX._draw_mat(FX.tex_spark, true)
+	e.draw_pass_1 = q
+	root.add_child(e)
+	return root
+
+
+## Ranton: lazer başı — beyaz-sıcak uzun çekirdek, mavi hale; şimşek dalı yok
+static func storm_orb(size := 1.0) -> Node3D:
+	size *= epic
+	var root = Node3D.new()
+	var core = MeshInstance3D.new()
+	var cap = CapsuleMesh.new()
+	cap.radius = 0.16 * size
+	cap.height = 0.9 * size
+	core.mesh = cap
+	core.material_override = mat_storm()
+	core.rotation.x = PI * 0.5
+	root.add_child(core)
+	var halo = MeshInstance3D.new()
+	var hc = CapsuleMesh.new()
+	hc.radius = 0.32 * size
+	hc.height = 1.3 * size
+	halo.mesh = hc
+	var hm = StandardMaterial3D.new()
+	hm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	hm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	hm.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	hm.albedo_color = Color(0.4, 0.7, 1.0, 0.35)
+	halo.material_override = hm
+	halo.rotation.x = PI * 0.5
+	root.add_child(halo)
+	return root

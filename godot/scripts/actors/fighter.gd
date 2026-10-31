@@ -112,6 +112,8 @@ func take_hit(info: Dictionary) -> void:
 		apply_status("burn", info["burn"])
 	if info.get("stun", 0.0) > 0.0:
 		apply_status("stun", info["stun"])
+	if info.get("slow", 0.0) > 0.0:
+		apply_status("slow", info["slow"])
 	on_damaged(info)
 	if hp <= 0.0:
 		hp = 0.0

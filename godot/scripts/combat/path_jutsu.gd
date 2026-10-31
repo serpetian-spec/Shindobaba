@@ -15590,11 +15590,16 @@ func p_shakuton_kajosatsu(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.0)
 	var tt = tg(c, t, 26.0)
 	var orbs = []
+	# anime: küreler iki yanda, avuçların hizasında (önüne gelip bedeni örtmez); kuyrukları dışa-geriye kıvrılır
+	var fd = c.face_dir()
+	var sd = fd.cross(Vector3.UP).normalized()
+	var spots = [sd * 1.6 + Vector3.UP * 1.9, -sd * 1.6 + Vector3.UP * 1.9, sd * 1.3 + Vector3.UP * 0.9 - fd * 0.3, -sd * 1.3 + Vector3.UP * 0.9 - fd * 0.3]
 	for k in 4:
 		var o = VFX.scorch_orb(0.7)
 		c.add_child(o)
-		var a = k * TAU / 4.0
-		o.position = Vector3(cos(a) * 1.4, 1.6 + sin(a) * 0.3, sin(a) * 1.4)
+		o.global_position = c.global_position + spots[k]
+		var out = (spots[k] * Vector3(1, 0, 1)).normalized() - fd * 0.5
+		o.look_at(o.global_position + out, Vector3.UP)
 		orbs.append(o)
 	for k in 4:
 		after(0.4 + k * 0.12, func():

@@ -63,9 +63,7 @@ func _ready() -> void:
 	env.ssao_enabled = true
 	env.ssao_radius = 1.2
 	env.ssao_intensity = 1.6
-	env.adjustment_enabled = true
-	env.adjustment_saturation = 1.3
-	env.adjustment_contrast = 1.15
+	env.adjustment_enabled = false   # renk şişirme (doygunluk/kontrast) kaldırıldı
 	var we = WorldEnvironment.new()
 	we.environment = env
 	cam_attr = CameraAttributesPractical.new()
@@ -222,9 +220,6 @@ func set_dreamy(on: bool) -> void:
 	env.glow_bloom = 0.06 if on else 0.0
 	env.glow_hdr_threshold = 0.95 if on else 1.25
 	env.set_glow_level(5, 0.45 if on else 0.0)   # geniş hale
-	env.adjustment_saturation = 1.18 if on else 1.3
-	env.adjustment_contrast = 1.06 if on else 1.15
-	env.adjustment_brightness = 1.03 if on else 1.0
 	if cam_attr:
 		cam_attr.dof_blur_far_enabled = on
 		cam_attr.dof_blur_far_distance = 140.0

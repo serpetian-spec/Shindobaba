@@ -90,8 +90,10 @@ static func info(c: Node3D, d: Dictionary, mul := 1.0, extra := {}) -> Dictionar
 	var t = int(d.get("tier", 2))
 	var inf = {"dmg": base_dmg(c, d) * mul, "element": el, "knock": 4.0 + t * 2.0, "launch": 1.0 + t * 0.6,
 		"kind": "heavy" if t >= 3 else "light", "hitstop": 0.03 + t * 0.012, "tier": t}
-	if el in ["katon", "yoton", "shakuton"]:
+	if el in ["katon", "yoton"]:
 		inf["burn"] = 1.5 + t * 0.4
+	if el == "shakuton":
+		inf["slow"] = 1.0 + t * 0.3   # beden suyu çekilir
 	if el in ["raiton", "ranton"] and t >= 2:
 		inf["stun"] = 0.3 + t * 0.12
 	inf.merge(extra, true)
@@ -136,19 +138,35 @@ static func grand(c: Node3D, d: Dictionary) -> float:
 static func impact_for(el: String, pos: Vector3, col: Color, s := 1.0) -> void:
 	VFX.linger(pos, el, col, VFX.epic * s)
 	match el:
-		"katon", "yoton", "bakuton", "shakuton":
-			VFX.explosion(pos, 0.5 * s + 0.3, col)
-		"suiton", "futton":
+		"katon", "yoton", "bakuton":
+			VFX.explosion(pos, 0.5 * s + 0.3, col if el != "bakuton" else Color(1.0, 0.95, 0.85))
+		"shakuton":   # kızıl parlama + beden suyunun buharı (alev yok)
+			FX.light(pos, Color(1.0, 0.35, 0.35), 3.0 * s, 7.0 * s, 0.2)
+			VFX.puffs(pos, {"amount": int(20 * s) + 6, "life": 1.1, "size": 0.8 * s, "radius": 0.4 * s, "vmin": 2, "vmax": 5, "dir": Vector3.UP, "spread": 55.0, "add": false,
+				"colors": [Color(1, 1, 1, 0.95), Color(1.0, 0.85, 0.85, 0.6), Color(0.95, 0.92, 0.92, 0)]})
+		"suiton":
 			VFX.splash(pos, 1.2 * s + 0.6)
+		"futton":   # kaynar buhar / asit sisi patlaması (su sıçraması değil)
+			VFX.puffs(pos, {"amount": int(26 * s) + 8, "life": 1.4, "size": 1.0 * s, "radius": 0.6 * s, "vmin": 2, "vmax": 6, "dir": Vector3.UP, "spread": 120.0, "add": false,
+				"colors": [Color(1, 1, 1, 0.9), Color(0.85, 0.8, 0.9, 0.6), Color(0.8, 0.75, 0.85, 0)]})
 		"hyoton":
 			VFX.debris(pos, Color(0.75, 0.92, 1.0), int(10 * s) + 4, 11.0, 0.35)
 			VFX.star(pos, Color(0.8, 0.95, 1.0), 2.6 * s, 0.18)
 			VFX.shockwave(pos, Color(0.85, 0.97, 1.0), 6.0 * s, 0.35, false)
-		"fuuton", "jinton":
+		"jinton":   # beyaz ışık parlaması, içindeki her şey ince beyaz toza ayrışır
+			VFX.star(pos, Color(1, 1, 1), 3.0 * s, 0.2)
+			FX.light(pos, Color(0.95, 0.97, 1.0), 4.0 * s, 9.0 * s, 0.25)
+			VFX.puffs(pos, {"amount": int(30 * s) + 10, "life": 0.9, "size": 0.18, "radius": 0.8 * s, "vmin": 1, "vmax": 4, "dir": Vector3.UP, "spread": 180.0, "add": true,
+				"colors": [Color(1, 1, 1, 1), Color(0.9, 0.95, 1.0, 0.0)]})
+		"fuuton":
 			VFX.shockwave(pos, Color(0.9, 1.0, 0.95), 6.0 * s, 0.3, false)
 			VFX.star(pos, Color(0.85, 1.0, 0.92), 2.2 * s, 0.14)
 			FX.burst(pos, {"amount": int(18 * s), "life": 0.35, "tex": FX.tex_spark, "size": 1.8, "vmin": 10, "vmax": 20, "colors": [Color(1, 1, 1, 0.9), Color(0.8, 1, 0.9, 0)]})
-		"raiton", "ranton":
+		"ranton":   # lazer isabeti: beyaz-mavi parlama, düz saçılan ışık çizgileri (şimşek dalı yok)
+			VFX.star(pos, Color(0.9, 0.97, 1.0), 3.0 * s, 0.18)
+			FX.light(pos, Color(0.6, 0.85, 1.0), 4.0 * s, 9.0 * s, 0.2)
+			FX.burst(pos, {"amount": int(20 * s) + 6, "life": 0.3, "tex": FX.tex_spark, "size": 1.4, "vmin": 12, "vmax": 24, "colors": [Color(1, 1, 1, 1), Color(0.55, 0.8, 1.0, 0)]})
+		"raiton":
 			VFX.star(pos, col.lightened(0.3), 3.0 * s, 0.18)
 			for k in 3 + int(s * 2):
 				var dd = Vector3(randf_range(-1, 1), randf_range(-0.3, 1), randf_range(-1, 1)).normalized()
@@ -251,18 +269,30 @@ static func spawn_projectile(c: Node3D, d: Dictionary, start: Vector3, dir: Vect
 	pr.add_child(shape_mesh(v, col, size, el))
 	# element kuyruğu: sert kenarlı cel topaklar
 	var tc = [col.lightened(0.5), col, Color(col.r, col.g, col.b, 0)]
-	if el in ["katon", "yoton", "shakuton", "bakuton"]:
+	if el in ["katon", "yoton"]:
 		var p: Array = VFX.FIRE_PRESETS[VFX.fire_preset_for(col) if el != "yoton" else "lava"]
 		tc = [p[0], p[2], p[3], Color(p[4].r, p[4].g, p[4].b, 0)]
+	elif el == "shakuton":
+		tc = [Color(1, 0.97, 0.95, 0.9), Color(1.0, 0.3, 0.32, 0.6), Color(1.0, 0.2, 0.25, 0)]
+	elif el == "bakuton":
+		tc = [Color(1, 1, 0.95, 0.8), Color(0.9, 0.88, 0.82, 0.5), Color(0.85, 0.83, 0.8, 0)]
+	elif el == "futton":
+		tc = [Color(1, 1, 1, 0.85), Color(0.88, 0.84, 0.92, 0.5), Color(0.85, 0.8, 0.9, 0)]
+	elif el == "jinton":
+		tc = [Color(1, 1, 1, 0.9), Color(0.92, 0.96, 1.0, 0.4), Color(0.9, 0.95, 1.0, 0)]
+	elif el == "ranton":
+		tc = [Color(1, 1, 1, 1), Color(0.55, 0.8, 1.0, 0.7), Color(0.4, 0.65, 1.0, 0)]
 	# ejderde kuyruk ince ve kısa: dev alev/duman topakları ejderin kendisini örtüyordu (gövde ve süsleri zaten elementi veriyor)
 	var tw_ = size * 0.9 * minf(VFX.epic, 1.8) * (0.3 if v == "dragon" else 1.0)
 	Projectile.trail(pr, tc, tw_, 14 if v == "dragon" else 34, 0.4, FX.tex_smoke, el in ["fuuton", "raiton", "ranton", "jinton"])
 	if v == "dragon":
 		var body = VfxSerpent.new()
 		# elemente göre gövde, jutsu kimliğine göre oran: her ejder jutsusu farklı
-		body.style = {"katon": "fire", "shakuton": "fire", "suiton": "water", "hyoton": "water", "futton": "water", "raiton": "lightning", "ranton": "lightning",
+		body.style = {"katon": "fire", "suiton": "water", "raiton": "lightning",
 			"doton": "earth", "yoton": "fire", "mokuton": "wood", "enton": "dark"}.get(el, "")
 		body.col = col
+		if el in ["shakuton", "hyoton", "futton", "ranton", "jinton", "bakuton"]:
+			body.mat = VFX.element_mat(el, col)   # kendi malzemesiyle (kızıl küre / buz / buhar / lazer / ışık / kil)
 		body.seed_id = String(d.get("id", ""))
 		body.head = pr
 		body.count = 9 + int(size * 2)
@@ -414,7 +444,7 @@ static func _beam(c: Node3D, d: Dictionary, t: Node3D) -> void:
 	var width = (0.22 + tier * 0.09) * vary(d)["size"]
 	var beam: Node3D
 	var bolt: Arcs = null
-	if el in ["raiton", "ranton"]:
+	if el == "raiton":
 		beam = Node3D.new()
 		scene().add_child(beam)
 		bolt = VFX.bolt(c.global_position, c.global_position + Vector3.UP, col, width * 0.9, 0.0, 3 + tier)
@@ -424,12 +454,14 @@ static func _beam(c: Node3D, d: Dictionary, t: Node3D) -> void:
 		cm.cap_top = false; cm.cap_bottom = false
 		var m: Material
 		match el:
-			"katon", "yoton", "shakuton", "bakuton":
+			"katon", "yoton":
 				m = VFX.mat_fire(VFX.fire_preset_for(col) if el != "yoton" else "lava", 5.0, 1.6, 0.3, 1.4, 0.15, Vector3(0, 1, 0))
-			"suiton", "futton", "hyoton":
+			"suiton":
 				m = VFX.mat_water(Color(0.05, 0.28, 0.78), Color(0.2, 0.55, 0.98), Color(0.7, 0.92, 1.0), Vector3(0, 1, 0), 0.9, 0.7, 0.1)
-			"fuuton", "jinton":
+			"fuuton":
 				m = VFX.mat_wind(Color(0.85, 1.0, 0.95), 14.0, 8.0, Vector3.UP, 0.95)
+			"shakuton", "bakuton", "futton", "hyoton", "jinton", "ranton":
+				m = VFX.element_mat(el, col)
 			_:
 				m = VFX.mat_spiral(col.lightened(0.6), col, 6.0, 8.0, 10.0, 2.0)
 		beam = VFX._mi(cm, m)
@@ -504,7 +536,10 @@ static func _aoe(c: Node3D, d: Dictionary, t: Node3D, v: String) -> void:
 		for k in int((3 + tier) * vr["count"]):
 			var p = pos + Vector3(randf_range(-r, r), 0, randf_range(-r, r)) * 0.7
 			tree().create_timer(0.35 + k * 0.09).timeout.connect(func():
-				VFX.bolt(p + Vector3(randf_range(-2, 2), 16.0, randf_range(-2, 2)), p, col, 0.3, 0.22, 2)
+				if el == "ranton":
+					VFX.bolt(p + Vector3(randf_range(-2, 2), 16.0, randf_range(-2, 2)), p, Color(0.85, 0.95, 1.0), 0.4, 0.25, 0)   # bükülmeyen düz lazer
+				else:
+					VFX.bolt(p + Vector3(randf_range(-2, 2), 16.0, randf_range(-2, 2)), p, col, 0.3, 0.22, 2)
 				VFX.star(p + Vector3.UP * 0.5, col.lightened(0.3), 2.8, 0.15)
 				VFX.shockwave(p + Vector3.UP * 0.1, col, 5.0, 0.3)
 				VFX.cracks(p, 2.0)
@@ -514,14 +549,36 @@ static func _aoe(c: Node3D, d: Dictionary, t: Node3D, v: String) -> void:
 			Game.world.env.screen_flash(0.12)
 	else:
 		match el:
-			"katon", "bakuton", "yoton", "shakuton":
-				VFX.explosion(pos + Vector3.UP, (0.8 + tier * 0.35) * vr["size"], col)
-			"suiton", "futton":
+			"katon", "bakuton", "yoton":
+				VFX.explosion(pos + Vector3.UP, (0.8 + tier * 0.35) * vr["size"], col if el != "bakuton" else Color(1.0, 0.95, 0.85))
+			"shakuton":   # dev kavurucu küre şişip kızıl-beyaz buhara patlar
+				var so = VFX.scorch_orb(1.0)
+				scene().add_child(so)
+				so.global_position = pos + Vector3.UP * 1.5
+				var stw = so.create_tween()
+				stw.tween_property(so, "scale", Vector3.ONE * r * 1.2, 0.3)
+				stw.tween_callback(so.queue_free)
+				VFX.puffs(pos + Vector3.UP, {"amount": 50, "life": 1.6, "size": 1.8, "radius": r * 0.6, "vmin": 3, "vmax": 8, "dir": Vector3.UP, "spread": 180.0, "add": false,
+					"colors": [Color(1.0, 0.96, 0.95, 0.95), Color(0.98, 0.45, 0.48, 0.7), Color(0.95, 0.75, 0.75, 0)]})
+			"futton":   # yayılan kaynar buhar / asit sisi
+				VFX.puffs(pos + Vector3.UP, {"amount": 60, "life": 2.2, "size": 2.0, "radius": r * 0.7, "vmin": 1, "vmax": 4, "dir": Vector3.UP, "spread": 180.0, "add": false,
+					"colors": [Color(1, 1, 1, 0.9), Color(0.85, 0.8, 0.9, 0.65), Color(0.8, 0.75, 0.85, 0)]})
+			"jinton":   # yarı saydam beyaz ışık küresi genişler, içi toza ayrışır
+				var dm = VFX._mi(VFX._sphere(1.0, 24, 12), VFX.mat_dust())
+				scene().add_child(dm)
+				dm.global_position = pos + Vector3.UP * 1.0
+				var dtw = dm.create_tween()
+				dtw.tween_property(dm, "scale", Vector3.ONE * r, 0.3).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+				dtw.tween_interval(0.3)
+				dtw.tween_property(dm, "scale", Vector3.ONE * 0.05, 0.2)
+				dtw.tween_callback(dm.queue_free)
+				VFX.puffs(pos + Vector3.UP, {"amount": 50, "life": 1.0, "size": 0.2, "radius": r * 0.6, "vmin": 1, "vmax": 4, "spread": 180.0, "add": true, "colors": [Color(1, 1, 1, 1), Color(0.9, 0.95, 1.0, 0)]})
+			"suiton":
 				VFX.splash(pos + Vector3.UP, r * 0.6)
 				_wave_ring(pos, r * 2.2, VFX.mat_water(Color(0.05, 0.28, 0.78), Color(0.2, 0.55, 0.98), Color(0.7, 0.92, 1.0), Vector3.UP, 0.85, 0.8, 0.1), 0.6)
 			"hyoton":
 				_ice_burst(pos, r, tier)
-			"fuuton", "jinton":
+			"fuuton":
 				var wb = VFX.wind_ball(1.0)
 				scene().add_child(wb)
 				wb.global_position = pos + Vector3.UP * 1.5
@@ -664,10 +721,11 @@ static func _wave(c: Node3D, d: Dictionary, t: Node3D) -> void:
 	b.add("cyl", Vector3(0, h * 0.35, -h * 0.25), Vector3(h * 0.5, w * 0.95, h * 0.45), Color.WHITE, Vector3(0, 0, 90), 12)
 	var m: Material
 	match el:
-		"suiton", "futton": m = VFX.mat_water(Color(0.05, 0.28, 0.78), Color(0.2, 0.55, 0.98), Color(0.7, 0.92, 1.0), Vector3(0, 0, -1), 0.9, 0.9, 0.12)
-		"katon", "yoton", "shakuton", "bakuton": m = VFX.mat_fire(VFX.fire_preset_for(col) if el != "yoton" else "lava", 3.0, 1.6, 0.4, 1.35, 0.15, Vector3(0, 1, 0))
-		"fuuton", "jinton": m = VFX.mat_wind(Color(0.85, 1, 0.95), 12.0, 9.0, Vector3(1, 0, 0), 0.9)
-		"raiton", "ranton": m = VFX.mat_spiral(Color(1, 1, 1), col, 9.0, 3.0, 12.0, 2.0, Vector3(1, 0, 0))
+		"suiton": m = VFX.mat_water(Color(0.05, 0.28, 0.78), Color(0.2, 0.55, 0.98), Color(0.7, 0.92, 1.0), Vector3(0, 0, -1), 0.9, 0.9, 0.12)
+		"katon", "yoton": m = VFX.mat_fire(VFX.fire_preset_for(col) if el != "yoton" else "lava", 3.0, 1.6, 0.4, 1.35, 0.15, Vector3(0, 1, 0))
+		"fuuton": m = VFX.mat_wind(Color(0.85, 1, 0.95), 12.0, 9.0, Vector3(1, 0, 0), 0.9)
+		"raiton": m = VFX.mat_spiral(Color(1, 1, 1), col, 9.0, 3.0, 12.0, 2.0, Vector3(1, 0, 0))
+		"shakuton", "bakuton", "futton", "jinton", "ranton": m = VFX.element_mat(el, col)
 		"hyoton": m = VFX.mat_ice()
 		_: m = Props.toon_color(col.darkened(0.2)) if el in ["doton", "mokuton", "jiton"] else VFX.mat_spiral(col.lightened(0.5), col)
 	var mi = VFX._mi(b.build(null), m)
@@ -707,9 +765,10 @@ static func _tornado(c: Node3D, d: Dictionary, t: Node3D) -> void:
 	cm.cap_top = false; cm.cap_bottom = false
 	var m: Material
 	match el:
-		"katon", "yoton", "shakuton": m = VFX.mat_fire(VFX.fire_preset_for(col), 4.0, 1.8, 0.45, 1.35, 0.2, Vector3.UP)
-		"suiton", "futton": m = VFX.mat_water(Color(0.05, 0.28, 0.78), Color(0.2, 0.55, 0.98), Color(0.7, 0.92, 1.0), Vector3.UP, 0.8, 0.9, 0.15)
-		"raiton", "ranton": m = VFX.mat_spiral(Color(1, 1, 1), col, 6.0, 4.0, 10.0, 2.0)
+		"katon", "yoton": m = VFX.mat_fire(VFX.fire_preset_for(col), 4.0, 1.8, 0.45, 1.35, 0.2, Vector3.UP)
+		"suiton": m = VFX.mat_water(Color(0.05, 0.28, 0.78), Color(0.2, 0.55, 0.98), Color(0.7, 0.92, 1.0), Vector3.UP, 0.8, 0.9, 0.15)
+		"raiton": m = VFX.mat_spiral(Color(1, 1, 1), col, 6.0, 4.0, 10.0, 2.0)
+		"shakuton", "bakuton", "futton", "jinton", "ranton", "hyoton": m = VFX.element_mat(el, col)
 		_: m = VFX.mat_wind(col.lerp(Color(0.85, 1, 0.95), 0.6), 10.0, 7.0, Vector3.UP, 0.9)
 	var root = Node3D.new()
 	scene().add_child(root)
@@ -776,20 +835,23 @@ static func _wall(c: Node3D, d: Dictionary, t: Node3D) -> void:
 	var b = MB.new()
 	var mi: MeshInstance3D
 	match el:
-		"suiton", "futton":
+		"suiton":
 			b.add("box", Vector3(0, size.y * 0.5, 0), size, Color.WHITE)
 			mi = VFX._mi(b.build(null), VFX.mat_water(Color(0.05, 0.28, 0.78), Color(0.2, 0.55, 0.98), Color(0.7, 0.92, 1.0), Vector3(0, -1, 0), 0.75, 0.8, 0.08))
 		"hyoton":
 			for k in 7:
 				b.add("box", Vector3(-size.x * 0.45 + k * size.x * 0.15, size.y * 0.5, randf_range(-0.2, 0.2)), Vector3(size.x * 0.16, size.y * randf_range(0.8, 1.1), size.z), Color.WHITE, Vector3(0, randf_range(-10, 10), randf_range(-4, 4)))
 			mi = VFX._mi(b.build(null), VFX.mat_ice())
-		"fuuton", "jinton":
+		"fuuton":
 			b.add("box", Vector3(0, size.y * 0.5, 0), size, Color.WHITE)
 			mi = VFX._mi(b.build(null), VFX.mat_wind(Color(0.85, 1, 0.95), 12.0, 10.0, Vector3.UP, 0.85))
-		"katon", "yoton", "shakuton":
+		"shakuton", "bakuton", "futton", "jinton", "ranton":
+			b.add("box", Vector3(0, size.y * 0.5, 0), size, Color.WHITE)
+			mi = VFX._mi(b.build(null), VFX.element_mat(el, col))
+		"katon", "yoton":
 			b.add("box", Vector3(0, size.y * 0.5, 0), size, Color.WHITE)
 			mi = VFX._mi(b.build(null), VFX.mat_fire(VFX.fire_preset_for(col) if el != "yoton" else "lava", 3.0, 1.6, 0.35, 1.35, 0.2, Vector3.UP))
-		"raiton", "ranton":
+		"raiton":
 			b.add("box", Vector3(0, size.y * 0.5, 0), size, Color.WHITE)
 			mi = VFX._mi(b.build(null), VFX.mat_spiral(Color(1, 1, 1), col, 10.0, 3.0, 14.0, 2.0, Vector3(1, 0, 0)))
 		"mokuton":
