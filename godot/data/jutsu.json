@@ -27831,5 +27831,752 @@
   "category": "ninjutsu",
   "shape": "stealth",
   "meaning": "Yağmurda Gizlenme"
+ },
+ "doton_iwa_no_michi": {
+  "id": "doton_iwa_no_michi",
+  "name": "Doton: Iwa no Michi",
+  "name_en": "Earth Release: Rock Trail",
+  "cost": 22,
+  "cd": 7.8,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 5,
+  "rank": 1,
+  "learn": "scroll",
+  "desc": "Yerden sıra sıra kaya sivrileri hedefe doğru ilerleyerek fışkırır.",
+  "seals": [
+   "Tora",
+   "I"
+  ],
+  "canon_rank": "C",
+  "tier": 2,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Kaya Yolu"
+ },
+ "doton_chiwari": {
+  "id": "doton_chiwari",
+  "name": "Doton: Chiwari",
+  "name_en": "Earth Release: Fissure",
+  "cost": 34,
+  "cd": 11.7,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:iwa",
+  "desc": "Yere vurursun, önünde derin bir yarık açılır; içine düşenler sıkışıp kalır.",
+  "seals": [
+   "I",
+   "Tora"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Yer Yarığı"
+ },
+ "doton_ganbankyu": {
+  "id": "doton_ganbankyu",
+  "name": "Doton: Ganbankyū",
+  "name_en": "Earth Release: Stone Plate Coffin",
+  "cost": 42,
+  "cd": 19.6,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "trainer:iwa",
+  "desc": "Hedefin iki yanından dev kaya levhalar kalkıp kapanır ve onu ezer.",
+  "seals": [
+   "Tora",
+   "I",
+   "Tatsu"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "bind",
+  "meaning": "Kaya Levha Tabutu"
+ },
+ "doton_dochu_kussaku": {
+  "id": "doton_dochu_kussaku",
+  "name": "Doton: Dochū Kussaku",
+  "name_en": "Earth Release: Tunnelling Technique",
+  "cost": 9,
+  "cd": 2.4,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 5,
+  "rank": 1,
+  "learn": "scroll",
+  "desc": "Yerin altına dalıp hedefin dibinden fırlarsın.",
+  "seals": [
+   "Ne"
+  ],
+  "canon_rank": "C",
+  "tier": 2,
+  "category": "ninjutsu",
+  "shape": "teleport",
+  "meaning": "Tünel Kazma"
+ },
+ "doton_daichi_dokaku": {
+  "id": "doton_daichi_dokaku",
+  "name": "Doton: Daichi Dōkaku",
+  "name_en": "Earth Release: Vast Mobile Core",
+  "cost": 50,
+  "cd": 18.2,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "trainer:iwa",
+  "desc": "Geniş bir alanın zemini çöker ya da yükselir: içindekiler savrulur ve dengesini kaybeder.",
+  "seals": [
+   "Tora",
+   "Tatsu",
+   "I"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Dev Hareketli Çekirdek"
+ },
+ "doton_uitenpen": {
+  "id": "doton_uitenpen",
+  "name": "Doton: Uitenpen",
+  "name_en": "Earth Release: Impermanence",
+  "cost": 50,
+  "cd": 18.2,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "trainer:iwa",
+  "desc": "Zemin dalga gibi kabarıp dönerek yer değiştirir; üstündekiler devrilir.",
+  "seals": [
+   "Tora",
+   "Ushi"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Değişkenlik"
+ },
+ "doton_kakure_kumo": {
+  "id": "doton_kakure_kumo",
+  "name": "Doton: Nogarenu Kurushimi",
+  "name_en": "Earth Release: Inescapable Suffering",
+  "cost": 42,
+  "cd": 19.6,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "trainer:iwa",
+  "desc": "Etrafında kaya duvarlar yükselip kapanır; kaçış yolu kalmaz, içindekiler 3 sn kilitlenir.",
+  "seals": [
+   "Tora",
+   "I"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "bind",
+  "meaning": "Kaçınılmaz Azap"
+ },
+ "doton_ganseki_atsu": {
+  "id": "doton_ganseki_atsu",
+  "name": "Doton: Ganseki Atsu",
+  "name_en": "Earth Release: Lithic Press",
+  "cost": 34,
+  "cd": 11.7,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:iwa",
+  "desc": "Hedefin üstünde dev bir kaya belirir ve ağırlığıyla bastırır.",
+  "seals": [
+   "Tora",
+   "Saru"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Kaya Presi"
+ },
+ "doton_doha": {
+  "id": "doton_doha",
+  "name": "Doton: Doha no Jutsu",
+  "name_en": "Earth Release: Mud Wave",
+  "cost": 34,
+  "cd": 11.7,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:iwa",
+  "desc": "Çamur dalgası ileri yuvarlanır, önüne kattığını sürükleyip çamura gömer.",
+  "seals": [
+   "Tora",
+   "I"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Çamur Dalgası"
+ },
+ "doton_iwa_no_yoroi": {
+  "id": "doton_iwa_no_yoroi",
+  "name": "Iwa no Yoroi",
+  "name_en": "Rock Armour",
+  "cost": 50,
+  "cd": 27.0,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:iwa",
+  "desc": "Bedeni kalın kaya plakalar sarar: 12 sn çok az hasar alırsın ama yavaşlarsın.",
+  "seals": [
+   "Tora",
+   "I"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "mode",
+  "meaning": "Kaya Zırhı"
+ },
+ "doton_domu": {
+  "id": "doton_domu",
+  "name": "Doton: Domu",
+  "name_en": "Earth Release: Iron Skin",
+  "cost": 34,
+  "cd": 19.8,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:iwa",
+  "desc": "Derin toprak elementiyle sertleşir; vuruşların ağırlaşır ve kesik almazsın.",
+  "seals": [
+   "Tora"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "buff",
+  "meaning": "Toprak Mızrağı Derisi"
+ },
+ "doton_gansetsukon": {
+  "id": "doton_gansetsukon",
+  "name": "Doton: Gansetsukon",
+  "name_en": "Earth Release: Spears of Stone",
+  "cost": 22,
+  "cd": 7.2,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:iwa",
+  "desc": "Kolundan kaya mızrak uzar: uzun menzilli iki vuruş.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "melee",
+  "meaning": "Kaya Boğum Sopası"
+ },
+ "doton_sunaodori": {
+  "id": "doton_sunaodori",
+  "name": "Doton: Sunaodori",
+  "name_en": "Earth Release: Sand Dance",
+  "cost": 34,
+  "cd": 11.7,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:iwa",
+  "desc": "Etrafındaki kum yükselip girdap halinde döner, içindekileri keser ve kör eder.",
+  "seals": [
+   "Tora",
+   "Tatsu"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Kum Dansı"
+ },
+ "doton_dochubaku": {
+  "id": "doton_dochubaku",
+  "name": "Doton: Dochūbaku",
+  "name_en": "Earth Release: Landslide",
+  "cost": 34,
+  "cd": 11.7,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:iwa",
+  "desc": "Zemin altında patlama: hedefin bulunduğu yer havaya uçar.",
+  "seals": [
+   "Tora",
+   "I"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Toprak Altı Patlaması"
+ },
+ "doton_doriku_gaeshi": {
+  "id": "doton_doriku_gaeshi",
+  "name": "Doton: Doriku Gaeshi",
+  "name_en": "Earth Release: Terra Shield",
+  "cost": 16,
+  "cd": 9.0,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 5,
+  "rank": 1,
+  "learn": "scroll",
+  "desc": "Avucunu yere vurup önündeki zemin levhasını kaldırırsın: mermileri durdurur.",
+  "seals": [
+   "Tora",
+   "I"
+  ],
+  "canon_rank": "C",
+  "tier": 2,
+  "category": "ninjutsu",
+  "shape": "wall",
+  "meaning": "Yer Kalkanı"
+ },
+ "doton_otoshibuta": {
+  "id": "doton_otoshibuta",
+  "name": "Doton: Otoshibuta",
+  "name_en": "Earth Release: Buta Futa",
+  "cost": 34,
+  "cd": 11.7,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:iwa",
+  "desc": "Hedefin üstüne dev bir toprak kapak çöker ve onu altında ezer.",
+  "seals": [
+   "Tora",
+   "U"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Düşen Kapak"
+ },
+ "doton_taju_doryuheki": {
+  "id": "doton_taju_doryuheki",
+  "name": "Doton: Tajū Doryūheki",
+  "name_en": "Earth Release: Multi Mud Wall",
+  "cost": 38,
+  "cd": 21.0,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "trainer:iwa",
+  "desc": "Art arda üç dev toprak duvar yükselir; ağır saldırıları katman katman durdurur.",
+  "seals": [
+   "Tora",
+   "Ushi",
+   "Tatsu"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "wall",
+  "meaning": "Çok Katlı Toprak Duvar"
+ },
+ "doton_ganteppo": {
+  "id": "doton_ganteppo",
+  "name": "Doton: Ganteppō no Jutsu",
+  "name_en": "Earth Release: Stone Pistol",
+  "cost": 18,
+  "cd": 6.0,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 5,
+  "rank": 1,
+  "learn": "scroll",
+  "desc": "Ağızdan kaya mermileri art arda fırlar.",
+  "seals": [
+   "Tora",
+   "U"
+  ],
+  "canon_rank": "C",
+  "tier": 2,
+  "category": "ninjutsu",
+  "shape": "projectile",
+  "meaning": "Kaya Tabancası"
+ },
+ "doton_doro_hoshi": {
+  "id": "doton_doro_hoshi",
+  "name": "Doton: Doro Hōshi",
+  "name_en": "Earth Release: Mud Silhouette",
+  "cost": 22,
+  "cd": 9.6,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 5,
+  "rank": 1,
+  "learn": "scroll",
+  "desc": "Çamurdan kopyan yerden yükselir; vurulunca çamura dağılıp vuranı yavaşlatır.",
+  "seals": [
+   "Tora"
+  ],
+  "canon_rank": "C",
+  "tier": 2,
+  "category": "ninjutsu",
+  "shape": "clone",
+  "meaning": "Çamur Sureti"
+ },
+ "doton_nentsuchi_otoshi": {
+  "id": "doton_nentsuchi_otoshi",
+  "name": "Doton: Nentsuchi Otoshi",
+  "name_en": "Earth Release: Mud Fall",
+  "cost": 34,
+  "cd": 11.7,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:iwa",
+  "desc": "Gökten yapışkan kil yağar; değdiği yere yapışır, üstündekiler çamura saplanır.",
+  "seals": [
+   "Tora",
+   "Tori"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Kil Düşürme"
+ },
+ "retsudo_tenshin": {
+  "id": "retsudo_tenshin",
+  "name": "Retsudo Tenshin",
+  "name_en": "Mud Needle",
+  "cost": 34,
+  "cd": 11.7,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:iwa",
+  "desc": "Yerden göğe çamur iğneleri fışkırır; değdiği hedefi delip kaldırır.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Toprak İğne Fırtınası"
+ },
+ "doton_tekkenro": {
+  "id": "doton_tekkenro",
+  "name": "Doton: Tekkenrō",
+  "name_en": "Earth Release: Iron Prison",
+  "cost": 42,
+  "cd": 19.6,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "trainer:iwa",
+  "desc": "Yerden dev bir taş yumruk hedefi kavrar ve sıkar.",
+  "seals": [
+   "Tora",
+   "Saru",
+   "I"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "bind",
+  "meaning": "Demir Yumruk Hapsi"
+ },
+ "mogura_tataki": {
+  "id": "mogura_tataki",
+  "name": "Mogura Tataki no Jutsu",
+  "name_en": "Ninja Art: Whac-A-Mole",
+  "cost": 22,
+  "cd": 7.8,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 5,
+  "rank": 1,
+  "learn": "scroll",
+  "desc": "Yerin altında koşup hedefin dibinden çıkarak üst üste vurursun.",
+  "seals": [],
+  "canon_rank": "C",
+  "tier": 2,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Köstebek Vurma"
+ },
+ "doton_chidokaku": {
+  "id": "doton_chidokaku",
+  "name": "Doton: Chidōkaku",
+  "name_en": "Earth Release: Mobile Core",
+  "cost": 34,
+  "cd": 11.7,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:iwa",
+  "desc": "Ayağının altındaki zemin bir anda göğe yükselir ya da çöker; yakındakiler düşer.",
+  "seals": [
+   "Tora",
+   "I"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Hareketli Çekirdek"
+ },
+ "doton_doro_hane": {
+  "id": "doton_doro_hane",
+  "name": "Doton: Doro Hane",
+  "name_en": "Mud Jump",
+  "cost": 10,
+  "cd": 4.0,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 2,
+  "rank": 0,
+  "learn": "academy",
+  "desc": "Ayağının altındaki çamuru patlatıp yükseğe sıçrarsın.",
+  "seals": [],
+  "canon_rank": "D",
+  "tier": 1,
+  "category": "ninjutsu",
+  "shape": "dash",
+  "meaning": "Çamur Sıçrayışı"
+ },
+ "doton_banri_doryuheki": {
+  "id": "doton_banri_doryuheki",
+  "name": "Doton: Banri Doryūheki",
+  "name_en": "Earth Release: Great Mud Wall",
+  "cost": 54,
+  "cd": 33.0,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 28,
+  "rank": 3,
+  "learn": "trainer:iwa",
+  "desc": "Ufka uzanan devasa toprak sur yükselir; her şeyi durdurur.",
+  "seals": [
+   "Tora",
+   "I",
+   "Tatsu",
+   "Ushi"
+  ],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "ninjutsu",
+  "shape": "wall",
+  "meaning": "Bin Fersah Toprak Duvarı"
+ },
+ "doton_chokeijugan": {
+  "id": "doton_chokeijugan",
+  "name": "Doton: Chōkeijūgan no Jutsu",
+  "name_en": "Earth Release: Super-Lightened Boulder",
+  "cost": 72,
+  "cd": 48.4,
+  "element": "doton",
+  "elements": [
+   "doton"
+  ],
+  "natures": [
+   "doton"
+  ],
+  "clan": "",
+  "level": 28,
+  "rank": 3,
+  "learn": "trainer:iwa",
+  "desc": "Kendini ve dokunduğun dev kayayı tüy gibi hafifletirsin: uçar, kayayı kaldırıp fırlatırsın.",
+  "seals": [
+   "Tora",
+   "I"
+  ],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "ninjutsu",
+  "shape": "buff",
+  "meaning": "Süper Hafifletme"
  }
 }

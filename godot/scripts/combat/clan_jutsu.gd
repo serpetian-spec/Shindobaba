@@ -3229,11 +3229,7 @@ func c_doton_kakogan(c: Node3D, _t: Node3D) -> void:
 
 ## Sertleşme: tenin taşa döner: 12 sn hasar çok azalır, savrulmazsın ama yavaşlarsın
 func c_doton_koka_jutsu(c: Node3D, _t: Node3D) -> void:
-	var shell = MeshInstance3D.new()
-	shell.mesh = VFX._sphere(0.5, 14, 8)
-	shell.material_override = Props.toon_color(Color(0.5, 0.47, 0.42, 0.55))
-	shell.scale = Vector3(1.0, 2.0, 1.0)
-	attach(c, shell, 12.0, Vector3.UP * 0.95)
+	# saydam küre kabuk kaldırıldı (beyaz bulut gibi duruyordu): taş plakalar gövdedeki kemiklere bağlı (_stone_skin)
 	if c is Player:
 		Buffs.add("koka", 12.0, {"armor": 0.35, "speed": 0.8})
 		c.combat.set("poise_t", 12.0)

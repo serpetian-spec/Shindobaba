@@ -81,6 +81,8 @@ const PSTYLE := {
 
 
 
+
+
 ## Jutsuya özel koreografi (hazırlık "wind" + salınım "rel" pozları, zamanlama, gövde klibi) — CastAnim temel stilin üstüne uygular
 const PANIM := {
 	"kage_shuriken_no_jutsu": {"base": "throw", "pre": 0.3, "post": 0.35, "clip": "b/OverhandThrow", "wind": {"R": [Vector3(-0.6, 0.6, -0.5), Vector3(-0.2, 0.9, -0.4), Vector3(0.0, 1.0, -0.2)], "L": [Vector3(0.1, 0.45, 0.88), Vector3(-0.0, 0.5, 0.86), Vector3(-0.0, 0.9, 0.4)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0, 0, 0, 0, 0], "spine": -14.0, "hips_yaw": 35.0}, "rel": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.35, -0.85, -0.35), Vector3(-0.0, -0.4, 0.9), Vector3(-0.0, 0.2, 0.95)], "fR": [0, 0, 0, 0, 0], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 22.0, "hips_yaw": -25.0}},
@@ -1090,6 +1092,32 @@ const PANIM := {
 	"kugutsu_suiton_yoame": {"base": "palm", "pre": 0.3, "post": 0.5, "wind": {"R": [Vector3(-0.1, 0.45, 0.88), Vector3(0.0, 0.5, 0.86), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.1, 0.45, 0.88), Vector3(-0.0, 0.5, 0.86), Vector3(-0.0, 0.9, 0.4)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": -6.0}, "rel": {"R": [Vector3(-0.2, 0.8, 0.55), Vector3(-0.1, 0.85, 0.5), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.2, 0.8, 0.55), Vector3(0.1, 0.85, 0.5), Vector3(-0.0, 0.9, 0.4)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": -12.0}},
 	"suiton_suigun_suima": {"base": "ground", "pre": 0.35, "post": 0.55, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 42.0, "crouch": 0.8}},
 	"ame_kakure": {"base": "sense", "pre": 0.25, "post": 0.35, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "crouch": 0.2}, "rel": {"R": [Vector3(-0.85, -0.45, 0.1), Vector3(-0.9, -0.3, 0.2), Vector3(-0.9, -0.2, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -4.0}},
+	"doton_iwa_no_michi": {"base": "ground", "pre": 0.25, "post": 0.45, "wind": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": -10.0}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [0, 0, 0, 0, 0], "spine": 40.0, "crouch": 0.8}},
+	"doton_chiwari": {"base": "ground", "pre": 0.3, "post": 0.5, "wind": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.15, 0.98, 0.1), Vector3(0.05, 1.0, 0.05), Vector3(-0.0, 1.0, 0.0)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": -16.0, "neck": -10.0}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 55.0, "crouch": 1.0}},
+	"doton_ganbankyu": {"base": "power", "pre": 0.35, "post": 0.6, "wind": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "crouch": 0.3}, "rel": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 10.0}},
+	"doton_dochu_kussaku": {"base": "ground", "pre": 0.2, "post": 0.3, "wind": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.15, 0.98, 0.1), Vector3(0.05, 1.0, 0.05), Vector3(-0.0, 1.0, 0.0)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": -6.0}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 60.0, "crouch": 1.0}},
+	"doton_daichi_dokaku": {"base": "ground", "pre": 0.45, "post": 0.6, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "crouch": 0.2}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 48.0, "crouch": 0.9}},
+	"doton_uitenpen": {"base": "ground", "pre": 0.4, "post": 0.6, "spin": 180.0, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "crouch": 0.4}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0, 0, 0, 0, 0], "spine": 40.0, "crouch": 0.8}},
+	"doton_kakure_kumo": {"base": "ground", "pre": 0.35, "post": 0.55, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.2, 0.8, 0.55), Vector3(-0.1, 0.85, 0.5), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.2, 0.8, 0.55), Vector3(0.1, 0.85, 0.5), Vector3(-0.0, 0.9, 0.4)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": -8.0}},
+	"doton_ganseki_atsu": {"base": "palm", "pre": 0.3, "post": 0.5, "wind": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -12.0, "neck": -16.0}, "rel": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0, 0, 0, 0, 0], "spine": 20.0}},
+	"doton_doha": {"base": "ground", "pre": 0.3, "post": 0.5, "wind": {"R": [Vector3(-0.4, -0.7, -0.5), Vector3(0.0, -0.3, -0.95), Vector3(0.0, -0.6, -0.8)], "L": [Vector3(0.4, -0.7, -0.5), Vector3(-0.0, -0.3, -0.95), Vector3(-0.0, -0.6, -0.8)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "crouch": 0.4}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.1, -0.35, 0.93), Vector3(-0.0, -0.3, 0.95), Vector3(-0.0, 0.5, 0.85)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 38.0, "crouch": 0.7}},
+	"doton_iwa_no_yoroi": {"base": "power", "pre": 0.4, "post": 0.5, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 15.0, "crouch": 0.5}, "rel": {"R": [Vector3(-0.85, -0.45, 0.1), Vector3(-0.9, -0.3, 0.2), Vector3(-0.9, -0.2, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": -10.0, "crouch": 0.3}},
+	"doton_gansetsukon": {"base": "palm", "pre": 0.2, "post": 0.45, "wind": {"R": [Vector3(-0.6, 0.6, -0.5), Vector3(-0.2, 0.9, -0.4), Vector3(0.0, 1.0, -0.2)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0, 0, 0, 0, 0], "spine": -10.0, "hips_yaw": 40.0}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.35, -0.85, -0.35), Vector3(-0.0, -0.4, 0.9), Vector3(-0.0, 0.2, 0.95)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0, 0, 0, 0, 0], "spine": 20.0, "hips_yaw": -30.0}},
+	"doton_sunaodori": {"base": "power", "pre": 0.3, "post": 0.6, "spin": 540.0, "wind": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "crouch": 0.2}, "rel": {"R": [Vector3(-0.2, 0.8, 0.55), Vector3(-0.1, 0.85, 0.5), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -10.0}},
+	"doton_dochubaku": {"base": "ground", "pre": 0.25, "post": 0.4, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0, 0, 0, 0, 0], "spine": -4.0}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0, 0, 0, 0, 0], "spine": 40.0, "crouch": 0.8}},
+	"doton_doriku_gaeshi": {"base": "ground", "pre": 0.2, "post": 0.4, "wind": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": -10.0}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 50.0, "crouch": 0.9}},
+	"doton_otoshibuta": {"base": "palm", "pre": 0.35, "post": 0.55, "wind": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.15, 0.98, 0.1), Vector3(0.05, 1.0, 0.05), Vector3(-0.0, 1.0, 0.0)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -16.0, "neck": -20.0}, "rel": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.1, -0.35, 0.93), Vector3(-0.0, -0.3, 0.95), Vector3(-0.0, 0.5, 0.85)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 30.0, "crouch": 0.4}},
+	"doton_taju_doryuheki": {"base": "ground", "pre": 0.35, "post": 0.6, "wind": {"R": [Vector3(-0.25, -0.55, 0.8), Vector3(0.75, 0.6, 0.25), Vector3(0.5, 0.8, 0.3)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": -14.0}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 50.0, "crouch": 0.9}},
+	"doton_ganteppo": {"base": "breath", "pre": 0.3, "post": 0.5, "wind": {"R": [Vector3(-0.25, -0.55, 0.8), Vector3(0.75, 0.6, 0.25), Vector3(0.5, 0.8, 0.3)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": -18.0, "neck": -14.0}, "rel": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 20.0, "neck": 10.0}},
+	"doton_doro_hoshi": {"base": "clone", "pre": 0.25, "post": 0.3, "seal_pose": "Bunshin"},
+	"doton_nentsuchi_otoshi": {"base": "palm", "pre": 0.3, "post": 0.5, "wind": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.15, 0.98, 0.1), Vector3(0.05, 1.0, 0.05), Vector3(-0.0, 1.0, 0.0)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": -14.0, "neck": -18.0}, "rel": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.1, -0.35, 0.93), Vector3(-0.0, -0.3, 0.95), Vector3(-0.0, 0.5, 0.85)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 22.0}},
+	"retsudo_tenshin": {"base": "ground", "pre": 0.3, "post": 0.45, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "crouch": 0.3}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 48.0, "crouch": 0.9}},
+	"doton_tekkenro": {"base": "palm", "pre": 0.35, "post": 0.55, "wind": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 10.0, "crouch": 0.2}, "rel": {"R": [Vector3(-0.1, 0.45, 0.88), Vector3(0.0, 0.5, 0.86), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [0, 0, 0, 0, 0], "spine": -6.0}},
+	"mogura_tataki": {"base": "ground", "pre": 0.15, "post": 0.3, "wind": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.15, 0.98, 0.1), Vector3(0.05, 1.0, 0.05), Vector3(-0.0, 1.0, 0.0)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3]}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 60.0, "crouch": 1.0}},
+	"doton_chidokaku": {"base": "ground", "pre": 0.35, "post": 0.5, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "crouch": 0.3}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 45.0, "crouch": 0.8}},
+	"doton_doro_hane": {"base": "rush", "pre": 0.12, "post": 0.3, "wind": {"R": [Vector3(-0.4, -0.7, -0.5), Vector3(0.0, -0.3, -0.95), Vector3(0.0, -0.6, -0.8)], "L": [Vector3(0.4, -0.7, -0.5), Vector3(-0.0, -0.3, -0.95), Vector3(-0.0, -0.6, -0.8)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 30.0, "crouch": 0.9}, "rel": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.15, 0.98, 0.1), Vector3(0.05, 1.0, 0.05), Vector3(-0.0, 1.0, 0.0)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -20.0}},
+	"doton_banri_doryuheki": {"base": "ground", "pre": 0.5, "post": 0.7, "wind": {"R": [Vector3(-0.25, -0.55, 0.8), Vector3(0.75, 0.6, 0.25), Vector3(0.5, 0.8, 0.3)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "spine": -18.0, "neck": -12.0}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 55.0, "crouch": 1.0}},
+	"doton_chokeijugan": {"base": "power", "pre": 0.4, "post": 0.6, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "spine": -6.0}, "rel": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.15, 0.98, 0.1), Vector3(0.05, 1.0, 0.05), Vector3(-0.0, 1.0, 0.0)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -18.0, "neck": -20.0}},
 }
 
 const SNAKE := Color(0.42, 0.3, 0.5)
@@ -9865,7 +9893,9 @@ func p_doton_ressenga(c: Node3D, t: Node3D) -> void:
 	var ba = bone_attach(c, "RightHand")
 	if ba:
 		var b = MB.new()
-		b.add("cone", Vector3(0, 0, 0.35), Vector3(0.35, 0.8, 0.35), EARTH, Vector3(90, 0, 0), 8)
+		b.add("cone", Vector3(0, 0, 0.6), Vector3(0.55, 1.5, 0.55), EARTH, Vector3(90, 0, 0), 8)
+		for k in 4:   # matkap sarmal oluğu
+			b.add("box", Vector3(0, 0, 0.35 + k * 0.25), Vector3(0.5 - k * 0.1, 0.06, 0.06), EARTH.darkened(0.3), Vector3(0, 0, k * 45.0))
 		var drill = mesh_of(b)
 		ba.add_child(drill)
 		drill.create_tween().set_loops().tween_property(drill, "rotation:z", TAU, 0.12).from(0.0)
@@ -9881,6 +9911,21 @@ func p_doton_ressenga(c: Node3D, t: Node3D) -> void:
 		anim(c, "cross", 1.6)
 		var at = gp(c.global_position + d * 1.4)
 		VFX.cracks(at, 4.0)
+		for k in 7:   # yerden fışkıran kaya dişleri
+			var q = at + d * (0.8 + k * 0.7) + d.cross(Vector3.UP) * randf_range(-0.8, 0.8)
+			var sp = MeshInstance3D.new()
+			sp.mesh = VFX._sphere(0.5, 6, 4)
+			sp.material_override = Props.toon_color(EARTH.darkened(0.15))
+			scene_add(sp, gp(q))
+			sp.scale = Vector3(0.5, 0.05, 0.5)
+			sp.rotation = Vector3(randf_range(-0.4, 0.4), randf() * TAU, randf_range(-0.4, 0.4))
+			var tw = sp.create_tween()
+			tw.tween_interval(k * 0.04)
+			tw.tween_property(sp, "scale", Vector3(0.45, 1.6 + k * 0.15, 0.45), 0.12).set_trans(Tween.TRANS_BACK)
+			tw.tween_interval(1.4)
+			tw.tween_property(sp, "scale", Vector3(0.45, 0.05, 0.45), 0.3)
+			tw.tween_callback(sp.queue_free)
+		VFX.debris(at, EARTH, 14, 10.0, 0.4)
 		mhit(c, at + Vector3.UP, 2.2, inf(c, "doton_ressenga", 1.8, {"knock": 14.0, "kind": "heavy", "element": "doton", "bleed": 2.0}))
 		Sfx.play("earth", at, 1.0))
 
@@ -17659,12 +17704,12 @@ const BAKUHA := Color(1.0, 0.7, 0.55)
 
 ## Taş deri: bedende gri taş plakalar (süre boyunca)
 func _stone_skin(c: Node3D, dur: float, col := Color(0.55, 0.57, 0.6)) -> void:
-	for bone in ["UpperChest", "LeftUpperArm", "RightUpperArm", "LeftLowerArm", "RightLowerArm", "Head"]:
+	for bone in ["UpperChest", "Chest", "Spine", "Hips", "LeftUpperArm", "RightUpperArm", "LeftLowerArm", "RightLowerArm", "LeftUpperLeg", "RightUpperLeg", "LeftLowerLeg", "RightLowerLeg", "Head"]:
 		var ba = bone_attach(c, bone)
 		if ba == null:
 			continue
 		var b = MB.new()
-		for k in 3:
+		for k in 5:
 			b.add("box", Vector3(randf_range(-0.05, 0.05), 0.04 + k * 0.08, 0.06), Vector3(0.09, 0.06, 0.02), col.lerp(col.darkened(0.3), randf()), Vector3(randf_range(-20, 20), 0, randf_range(-30, 30)))
 		ba.add_child(mesh_of(b))
 		after(dur, func():
@@ -18220,7 +18265,7 @@ func _sense_pulse(c: Node3D, col: Color, r: float, rings := 3) -> void:
 func _burrow(c: Node3D, col := EARTH) -> void:
 	_earth_burst(c.global_position, 0.8)
 	VFX.debris(c.global_position, col, 14, 6.0, 0.4)
-	VFX.shockwave(gp(c.global_position) + Vector3.UP * 0.1, col, 3.0, 0.4, true)
+	WindFX.soft_dust(gp(c.global_position), {"amount": 8, "life": 1.0, "size": 1.0, "radius": 0.8, "vmin": 2.0, "vmax": 5.0, "dir": Vector3.UP, "spread": 70.0}, WindFX.dust_col(c.global_position))
 
 
 func p_shurado(c: Node3D, t: Node3D) -> void:
@@ -18375,9 +18420,10 @@ func p_doton_moguragakure_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 func p_doton_dochu_senko(c: Node3D, t: Node3D) -> void:
 	_burrow(c)
-	every(4.0, 0.2, func(_i, _k):
+	every(4.0, 0.2, func(_i, _k):   # toprağın altında ilerlerken üstte kabaran toz ve kaya izi
 		if live(c):
-			VFX.debris(gp(c.global_position), EARTH, 3, 3.0, 0.3), Callable())
+			VFX.debris(gp(c.global_position), EARTH, 3, 3.0, 0.3)
+			WindFX.soft_dust(gp(c.global_position), {"amount": 3, "life": 0.8, "size": 0.8, "radius": 0.6, "vmin": 0.5, "vmax": 2.0, "dir": Vector3.UP, "spread": 50.0}, WindFX.dust_col(c.global_position)), Callable())
 	_gen(c, "doton_dochu_senko", t)
 
 
@@ -26033,3 +26079,538 @@ func p_ame_kakure(c: Node3D, t: Node3D) -> void:
 				m.visible = true
 				VFX.splash(c.global_position, 1.0))
 	Sfx.play("water", c.global_position, 1.2)
+
+
+# ================================================================== VİDEO DOTON: eksik toprak teknikleri (anime derlemesine göre)
+# Storm tarzı kaya: sert cel tonlu düşük çokgenli kaya + çatlak (yavaşlatan yarık zemin) + kısık toz.
+
+func _rock3(size: Vector3, col := EARTH) -> MeshInstance3D:
+	var mi = MeshInstance3D.new()
+	mi.mesh = VFX._sphere(0.5, 7, 5)
+	mi.material_override = Props.toon_color(col)
+	mi.scale = size
+	mi.rotation = Vector3(randf_range(-0.3, 0.3), randf() * TAU, randf_range(-0.3, 0.3))
+	return mi
+
+
+## Yerden çıkıp bir süre kalan, sonra batan kaya/duvar (dur: kalma süresi)
+func _rise_rock(at: Vector3, size: Vector3, dur: float, col := EARTH, delay := 0.0, tilt := Vector3.ZERO) -> MeshInstance3D:
+	var r = _rock3(Vector3(size.x, 0.05, size.z), col)
+	scene_add(r, gp(at) + Vector3.UP * size.y * 0.35)
+	if tilt != Vector3.ZERO:
+		r.rotation = tilt
+	var tw = r.create_tween()
+	tw.tween_interval(delay)
+	tw.tween_property(r, "scale", size, 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(dur)
+	tw.tween_property(r, "scale", Vector3(size.x, 0.05, size.z), 0.35)
+	tw.tween_callback(r.queue_free)
+	after(delay, func():
+		VFX.debris(gp(at), EARTH, 4, 6.0, 0.3)
+		WindFX.soft_dust(gp(at), {"amount": 3, "life": 0.8, "size": 0.9, "radius": size.x * 0.4, "vmin": 1.0, "vmax": 3.0, "dir": Vector3.UP, "spread": 60.0}, WindFX.dust_col(at)))
+	return r
+
+
+func _wall_block(c: Node3D, at: Vector3, d: Vector3, w: float, h: float, dur: float, delay := 0.0) -> Node3D:
+	var root = Node3D.new()
+	scene_add(root, gp(at))
+	root.look_at(root.global_position + d, Vector3.UP)
+	var mi = MeshInstance3D.new()
+	var bm = BoxMesh.new()
+	bm.size = Vector3(w, h, 1.2)
+	mi.mesh = bm
+	mi.material_override = Props.toon_color(EARTH.darkened(0.05))
+	mi.position = Vector3.UP * h * 0.5
+	root.add_child(mi)
+	var sb = StaticBody3D.new()
+	var cs = CollisionShape3D.new()
+	var sh = BoxShape3D.new()
+	sh.size = bm.size
+	cs.shape = sh
+	cs.position = mi.position
+	sb.add_child(cs)
+	root.add_child(sb)
+	root.scale = Vector3(1, 0.02, 1)
+	var tw = root.create_tween()
+	tw.tween_interval(delay)
+	tw.tween_property(root, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_QUAD)
+	tw.tween_interval(dur)
+	tw.tween_property(root, "scale", Vector3(1, 0.02, 1), 0.4)
+	tw.tween_callback(root.queue_free)
+	after(delay, func():
+		VFX.cracks(gp(at), w * 0.5, Color(0.12, 0.09, 0.07, 0.9), dur)
+		VFX.debris(gp(at), EARTH, 8, 7.0, 0.35))
+	return root
+
+
+func p_doton_iwa_no_michi(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.7)
+	var d = fwd(c, t)
+	for k in 9:
+		var q = c.global_position + d * (2.0 + k * 1.6)
+		_rise_rock(q, Vector3(0.9, 2.0 + k * 0.1, 0.9), 1.0, EARTH, k * 0.06, Vector3(randf_range(-0.3, 0.3), 0, randf_range(-0.3, 0.3)))
+		after(k * 0.06, func():
+			hit(c, gp(q) + Vector3.UP, 1.4, inf(c, "doton_iwa_no_michi", 0.35, {"knock": 4.0, "launch": 6.0, "kind": "heavy", "element": "doton"})))
+	Sfx.play("earth", c.global_position, 1.0)
+
+
+func p_doton_chiwari(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.8)
+	var d = fwd(c, t)
+	after(0.3, func():
+		if not live(c):
+			return
+		for k in 6:
+			var q = gp(c.global_position + d * (2.0 + k * 2.0))
+			after(k * 0.05, func():
+				VFX.cracks(q, 3.0, Color(0.06, 0.04, 0.03, 0.95), 5.0)
+				VFX.debris(q, EARTH, 6, 6.0, 0.35)
+				for e in enemies_near(c, q, 2.0):
+					if live(e) and e.has_method("apply_status"):
+						e.apply_status("bind", 1.5)
+						hit(c, e.global_position + Vector3.UP, e.radius + 0.3, inf(c, "doton_chiwari", 0.5, {"knock": 0.0, "kind": "heavy", "element": "doton"})))
+		shake(0.7))
+	Sfx.play("earth", c.global_position, 0.7)
+
+
+func p_doton_ganbankyu(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.0)
+	var tt = tg(c, t, 22.0)
+	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 9.0)
+	var side = fwd(c, t).cross(Vector3.UP).normalized()
+	for s in [-1.0, 1.0]:
+		var slab = _rock3(Vector3(0.8, 0.1, 3.4), EARTH.darkened(0.1))
+		scene_add(slab, at + side * s * 2.4)
+		var tw = slab.create_tween()
+		tw.tween_property(slab, "scale", Vector3(0.8, 3.6, 3.4), 0.25)
+		tw.tween_property(slab, "global_position", at + side * s * 0.6 + Vector3.UP * 1.6, 0.18).set_ease(Tween.EASE_IN)
+		tw.tween_interval(1.4)
+		tw.tween_property(slab, "scale", Vector3(0.8, 0.05, 3.4), 0.3)
+		tw.tween_callback(slab.queue_free)
+	after(0.45, func():
+		VFX.debris(at, EARTH, 14, 8.0, 0.4)
+		shake(0.6)
+		for e in enemies_near(c, at, 2.2):
+			if live(e):
+				if e.has_method("apply_status"):
+					e.apply_status("bind", 1.6)
+				hit(c, e.global_position + Vector3.UP, e.radius + 0.4, inf(c, "doton_ganbankyu", 1.8, {"knock": 0.0, "kind": "heavy", "element": "doton"})))
+	Sfx.play("earth", at, 0.8)
+
+
+func p_doton_dochu_kussaku(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.9)
+	var tt = tg(c, t, 20.0)
+	_burrow(c)
+	var m = c.get("model")
+	if m:
+		m.visible = false
+	var dest = gp(tt.global_position - (tt.global_position - c.global_position).normalized() * 0.8) if tt else gp(c.global_position + c.face_dir() * 10.0)
+	after(0.6, func():
+		if not live(c):
+			return
+		c.global_position = dest
+		if m:
+			m.visible = true
+		_earth_burst(dest, 1.0)
+		hit(c, dest + Vector3.UP, 2.0, inf(c, "doton_dochu_kussaku", 1.0, {"knock": 4.0, "launch": 8.0, "kind": "heavy", "element": "doton"})))
+	Sfx.play("earth", c.global_position, 1.1)
+
+
+func p_doton_daichi_dokaku(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.2)
+	var tt = tg(c, t, 26.0)
+	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 12.0)
+	VFX.cracks(at, 9.0, Color(0.08, 0.06, 0.05, 0.95), 5.0)
+	for k in 10:
+		var a = TAU * k / 10.0
+		_rise_rock(at + Vector3(cos(a), 0, sin(a)) * 6.5, Vector3(2.0, 3.5, 2.0), 1.6, EARTH, 0.1 + k * 0.03)
+	after(0.3, func():
+		for e in enemies_near(c, at, 7.0):
+			if live(e):
+				hit(c, e.global_position + Vector3.UP, e.radius + 0.4, inf(c, "doton_daichi_dokaku", 1.4, {"knock": 4.0, "launch": 9.0, "kind": "heavy", "element": "doton"}))
+		shake(1.2))
+	Sfx.play("earth", at, 0.5)
+
+
+func p_doton_uitenpen(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.0)
+	var at = gp(c.global_position)
+	for ring in 4:
+		after(ring * 0.18, func():
+			var r = 3.0 + ring * 2.5
+			for k in int(8 + ring * 4):
+				var a = TAU * k / (8 + ring * 4)
+				_rise_rock(at + Vector3(cos(a), 0, sin(a)) * r, Vector3(1.6, 1.4, 1.6), 0.5, EARTH, 0.0, Vector3(randf_range(-0.5, 0.5), 0, randf_range(-0.5, 0.5)))
+			for e in enemies_near(c, at, r + 1.0):
+				if live(e) and e.global_position.distance_to(at) > r - 1.5:
+					hit(c, e.global_position + Vector3.UP, e.radius + 0.4, inf(c, "doton_uitenpen", 0.45, {"knock": 6.0, "launch": 5.0, "kind": "heavy", "element": "doton"})))
+	shake(1.0)
+	Sfx.play("earth", at, 0.6)
+
+
+func p_doton_kakure_kumo(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.0)
+	var tt = tg(c, t, 22.0)
+	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 9.0)
+	for k in 8:
+		var a = TAU * k / 8.0
+		_wall_block(c, at + Vector3(cos(a), 0, sin(a)) * 3.2, Vector3(cos(a), 0, sin(a)), 2.8, 4.5, 3.0, k * 0.04)
+	after(0.35, func():
+		for e in enemies_near(c, at, 3.0):
+			if live(e) and e.has_method("apply_status"):
+				e.apply_status("bind", 3.0)
+				hit(c, e.global_position + Vector3.UP, e.radius + 0.3, inf(c, "doton_kakure_kumo", 0.6, {"knock": 0.0, "kind": "heavy", "element": "doton"})))
+	Sfx.play("earth", at, 0.7)
+
+
+func p_doton_ganseki_atsu(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.9)
+	var tt = tg(c, t, 22.0)
+	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 9.0)
+	var b = _rock3(Vector3(4.0, 3.0, 4.0), EARTH.darkened(0.15))
+	scene_add(b, at + Vector3.UP * 12.0)
+	var tw = b.create_tween()
+	tw.tween_property(b, "global_position", at + Vector3.UP * 1.4, 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_callback(func():
+		VFX.cracks(at, 5.0, Color(0.08, 0.06, 0.05, 0.95), 5.0)
+		VFX.debris(at, EARTH, 18, 10.0, 0.45)
+		WindFX.soft_dust(at, {"amount": 10, "life": 1.2, "size": 1.4, "radius": 2.0, "vmin": 3.0, "vmax": 7.0, "dir": Vector3.UP, "spread": 85.0}, WindFX.dust_col(at))
+		hit(c, at + Vector3.UP, 3.0, inf(c, "doton_ganseki_atsu", 1.8, {"knock": 2.0, "kind": "heavy", "element": "doton", "stun": 1.0}))
+		shake(0.9))
+	tw.tween_interval(1.2)
+	tw.tween_property(b, "scale", Vector3(4.0, 0.1, 4.0), 0.4)
+	tw.tween_callback(b.queue_free)
+	Sfx.play("earth", at, 0.6)
+
+
+func p_doton_doha(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.9)
+	var d = fwd(c, t)
+	var mud = Color(0.38, 0.28, 0.18)
+	every(1.0, 0.07, func(i, k):
+		var q = gp(c.global_position + d * (2.0 + k * 18.0))
+		var side = d.cross(Vector3.UP).normalized()
+		for s in 3:
+			var p = q + side * (s - 1) * 1.8
+			VFX.puffs(p + Vector3.UP * 0.6, {"amount": 5, "life": 0.7, "size": 1.3, "radius": 0.8, "vmin": 2.0, "vmax": 5.0, "dir": (d + Vector3.UP).normalized(), "spread": 40.0,
+				"gravity": Vector3(0, -12, 0), "outline": 0.03, "rough": 0.15, "outline_col": mud.darkened(0.4), "colors": [mud.lightened(0.15), mud, Color(mud.r, mud.g, mud.b, 0)]})
+		if i % 3 == 0:
+			GroundFX.add(q, "mud", 2.4, 4.0, c)
+		for e in enemies_near(c, q, 2.8):
+			if live(e):
+				hit(c, e.global_position + Vector3.UP, e.radius + 0.3, inf(c, "doton_doha", 0.2, {"knock": 8.0, "kind": "light", "element": "doton", "dir": d})), Callable())
+	Sfx.play("earth", c.global_position, 0.8)
+
+
+func p_doton_iwa_no_yoroi(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.6)
+	_stone_skin(c, 12.0, Color(0.5, 0.45, 0.38))
+	VFX.cracks(gp(c.global_position), 2.5)
+	VFX.debris(gp(c.global_position), EARTH, 10, 5.0, 0.35)
+	if c is Player:
+		Buffs.add("iwa_no_yoroi", 12.0, {"armor": 0.25, "speed": 0.75})
+	Sfx.play("earth", c.global_position, 0.9)
+
+
+func p_doton_gansetsukon(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 6.0)
+	busy(c, 0.8)
+	var ba = bone_attach(c, "RightHand")
+	if ba:
+		var b = MB.new()
+		for k in 5:
+			b.add("box", Vector3(0, 0.25 + k * 0.45, 0), Vector3(0.22 - k * 0.02, 0.42, 0.22 - k * 0.02), EARTH.darkened(k * 0.04), Vector3(randf_range(-6, 6), k * 30, randf_range(-6, 6)))
+		b.add("cone", Vector3(0, 2.6, 0), Vector3(0.22, 0.5, 0.22), EARTH, Vector3.ZERO, 5)
+		var spear = mesh_of(b)
+		ba.add_child(spear)
+		spear.rotation_degrees = Vector3(-90, 0, 0)
+		after(0.8, func():
+			if is_instance_valid(ba):
+				ba.queue_free())
+	for k in 2:
+		after(0.2 + k * 0.25, func():
+			if not live(c):
+				return
+			anim(c, "slash_a" if k == 0 else "slash_b", 1.6)
+			var at = c.global_position + Vector3.UP * 1.1 + c.face_dir() * 2.2
+			VFX.debris(at, EARTH, 6, 6.0, 0.3)
+			mhit(c, at, 2.4, inf(c, "doton_gansetsukon", 0.9, {"knock": 8.0, "kind": "heavy", "element": "doton"})))
+	Sfx.play("earth", c.global_position, 1.2)
+
+
+func p_doton_sunaodori(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.8)
+	var at = gp(c.global_position)
+	var sand = WindFX.dust_col(at)
+	WindFX.swirl(at, 4.0, 6.0, 2.0, 10, Color(sand.r, sand.g, sand.b, 0.9), true)
+	every(2.0, 0.25, func(_i, _k):
+		WindFX.soft_dust(at + Vector3.UP, {"amount": 8, "life": 1.0, "size": 1.2, "radius": 4.0, "vmin": 1.0, "vmax": 3.0, "tangent": 16.0, "dir": Vector3.UP, "spread": 40.0}, sand)
+		for e in enemies_near(c, at, 4.5):
+			if live(e):
+				hit(c, e.global_position + Vector3.UP, e.radius + 0.3, inf(c, "doton_sunaodori", 0.25, {"knock": 3.0, "kind": "light", "element": "doton"}))
+				if e.has_method("lose_target"):
+					e.lose_target(1.0), Callable())
+	Sfx.play("wind", at, 0.7)
+
+
+func p_doton_dochubaku(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.7)
+	var tt = tg(c, t, 22.0)
+	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 9.0)
+	every(0.5, 0.08, func(_i, _k): VFX.debris(at, EARTH, 2, 2.0, 0.2), func():
+		VFX.explosion(at + Vector3.UP * 0.4, 0.9, Color(0.75, 0.55, 0.3))
+		for k in 8:
+			_rise_rock(at + Vector3(randf_range(-2, 2), 0, randf_range(-2, 2)), Vector3(1.2, 1.4, 1.2), 0.6, EARTH, 0.0, Vector3(randf_range(-0.6, 0.6), 0, randf_range(-0.6, 0.6)))
+		VFX.cracks(at, 5.0)
+		hit(c, at + Vector3.UP, 3.5, inf(c, "doton_dochubaku", 1.5, {"knock": 4.0, "launch": 12.0, "kind": "heavy", "element": "doton"}))
+		shake(0.8))
+	Sfx.play("earth", at, 0.8)
+
+
+func p_doton_doriku_gaeshi(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.5)
+	var d = fwd(c, t)
+	var root = _wall_block(c, c.global_position + d * 1.8, d, 3.6, 3.0, 4.0)
+	root.rotation.x = deg_to_rad(-12.0)
+	every(4.3, 0.1, func(_i, _k):
+		for pr in c.get_tree().get_nodes_in_group("projectiles"):
+			if is_instance_valid(pr) and pr.get("shooter") != c and pr.global_position.distance_to(root.global_position + Vector3.UP * 1.5) < 2.4:
+				VFX.debris(pr.global_position, EARTH, 4, 4.0, 0.25)
+				pr.queue_free(), Callable())
+	Sfx.play("earth", c.global_position, 1.0)
+
+
+func p_doton_otoshibuta(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.9)
+	var tt = tg(c, t, 22.0)
+	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 9.0)
+	var lid = MeshInstance3D.new()
+	var cm = CylinderMesh.new()
+	cm.top_radius = 4.5; cm.bottom_radius = 4.8; cm.height = 1.2; cm.radial_segments = 10
+	lid.mesh = cm
+	lid.material_override = Props.toon_color(EARTH.darkened(0.1))
+	scene_add(lid, at + Vector3.UP * 14.0)
+	var tw = lid.create_tween()
+	tw.tween_property(lid, "global_position", at + Vector3.UP * 0.6, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_callback(func():
+		VFX.cracks(at, 6.0, Color(0.08, 0.06, 0.05, 0.95), 5.0)
+		VFX.debris(at, EARTH, 20, 10.0, 0.4)
+		WindFX.soft_dust(at, {"amount": 14, "life": 1.3, "size": 1.6, "radius": 4.0, "vmin": 4.0, "vmax": 9.0, "dir": Vector3.UP, "spread": 88.0}, WindFX.dust_col(at))
+		for e in enemies_near(c, at, 4.6):
+			if live(e):
+				if e.has_method("apply_status"):
+					e.apply_status("stun", 1.5)
+				hit(c, e.global_position + Vector3.UP, e.radius + 0.4, inf(c, "doton_otoshibuta", 1.8, {"knock": 0.0, "kind": "heavy", "element": "doton"}))
+		shake(1.0))
+	tw.tween_interval(1.5)
+	tw.tween_property(lid, "scale", Vector3(1, 0.05, 1), 0.4)
+	tw.tween_callback(lid.queue_free)
+	Sfx.play("earth", at, 0.5)
+
+
+func p_doton_taju_doryuheki(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.9)
+	var d = fwd(c, t)
+	for k in 3:
+		_wall_block(c, c.global_position + d * (2.5 + k * 2.2), d, 9.0 - k, 4.5 + k * 1.2, 6.0, k * 0.25)
+	shake(0.6)
+	Sfx.play("earth", c.global_position, 0.7)
+
+
+func p_doton_ganteppo(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.8)
+	var tt = tg(c, t, 26.0)
+	for k in 6:
+		after(0.2 + k * 0.08, func():
+			if not live(c):
+				return
+			var from = _mouth_pos(c)
+			var b = Node3D.new()
+			b.add_child(_rock3(Vector3(0.45, 0.4, 0.5), EARTH.darkened(0.1)))
+			var pr = shot(c, from, aim_at(c, tt, from).rotated(Vector3.UP, randf_range(-0.06, 0.06)), 38.0, b, inf(c, "doton_ganteppo", 0.35, {"knock": 4.0, "kind": "heavy", "element": "doton"}), tt, false, 1.2, func(p, _h):
+				VFX.debris(p, EARTH, 6, 6.0, 0.3))
+			pr.spin = Vector3(8, 12, 0)
+			pr.homing_turn = 2.0)
+	Sfx.play("earth", c.global_position, 1.3)
+
+
+func p_doton_doro_hoshi(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.6)
+	var p = gp(c.global_position + c.face_dir().rotated(Vector3.UP, 1.2) * 2.0)
+	var mud = Color(0.4, 0.3, 0.2)
+	VFX.puffs(p + Vector3.UP * 0.4, {"amount": 10, "life": 0.8, "size": 0.9, "radius": 0.6, "vmin": 2.0, "vmax": 5.0, "dir": Vector3.UP, "spread": 50.0,
+		"gravity": Vector3(0, -10, 0), "outline": 0.03, "outline_col": mud.darkened(0.4), "colors": [mud.lightened(0.15), mud, Color(mud.r, mud.g, mud.b, 0)]})
+	GroundFX.add(p, "mud", 2.0, 5.0, c)
+	_gen(c, "doton_doro_hoshi", t)
+	Sfx.play("earth", c.global_position, 1.1)
+
+
+func p_doton_nentsuchi_otoshi(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.8)
+	var tt = tg(c, t, 24.0)
+	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 10.0)
+	var clay = Color(0.55, 0.42, 0.3)
+	for k in 10:
+		after(0.2 + k * 0.08, func():
+			var q = at + Vector3(randf_range(-3, 3), 0, randf_range(-3, 3))
+			var b = _rock3(Vector3(0.8, 0.6, 0.8), clay)
+			scene_add(b, q + Vector3.UP * 12.0)
+			var tw = b.create_tween()
+			tw.tween_property(b, "global_position", q + Vector3.UP * 0.2, 0.35).set_ease(Tween.EASE_IN)
+			tw.tween_property(b, "scale", Vector3(1.6, 0.2, 1.6), 0.08)
+			tw.tween_interval(3.0)
+			tw.tween_callback(b.queue_free)
+			after(0.35, func():
+				hit(c, q + Vector3.UP, 1.4, inf(c, "doton_nentsuchi_otoshi", 0.25, {"knock": 1.0, "kind": "light", "element": "doton"}))))
+	after(0.6, func(): GroundFX.add(at, "mud", 4.0, 5.0, c))
+	Sfx.play("earth", at, 1.0)
+
+
+func p_retsudo_tenshin(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.8)
+	var tt = tg(c, t, 22.0)
+	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 9.0)
+	for k in 14:
+		var q = at + Vector3(randf_range(-3, 3), 0, randf_range(-3, 3))
+		var sp = MeshInstance3D.new()
+		var cm = CylinderMesh.new()
+		cm.top_radius = 0.0; cm.bottom_radius = 0.18; cm.height = 1.0; cm.radial_segments = 5
+		sp.mesh = cm
+		sp.material_override = Props.toon_color(Color(0.42, 0.32, 0.22))
+		scene_add(sp, q)
+		sp.rotation = Vector3(randf_range(-0.3, 0.3), 0, randf_range(-0.3, 0.3))
+		sp.scale = Vector3(1, 0.05, 1)
+		var tw = sp.create_tween()
+		tw.tween_interval(0.25 + k * 0.03)
+		tw.tween_property(sp, "scale", Vector3(1, 3.2, 1), 0.1).set_trans(Tween.TRANS_BACK)
+		tw.tween_interval(1.2)
+		tw.tween_property(sp, "scale", Vector3(1, 0.05, 1), 0.3)
+		tw.tween_callback(sp.queue_free)
+	after(0.3, func():
+		for e in enemies_near(c, at, 3.4):
+			if live(e):
+				hit(c, e.global_position + Vector3.UP, e.radius + 0.3, inf(c, "retsudo_tenshin", 1.4, {"knock": 2.0, "launch": 8.0, "kind": "heavy", "element": "doton", "bleed": 3.0})))
+	Sfx.play("earth", at, 1.2)
+
+
+func p_doton_tekkenro(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.0)
+	var tt = tg(c, t, 22.0)
+	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 9.0)
+	var fist = Node3D.new()
+	scene_add(fist, at)
+	for k in 5:   # dört parmak + başparmak, yukarıdan kapanır
+		var a = TAU * k / 5.0
+		var f = _rock3(Vector3(0.9, 3.2, 0.9), Color(0.42, 0.4, 0.38))
+		fist.add_child(f)
+		f.position = Vector3(cos(a), 1.4, sin(a)) * 1.6
+		f.rotation = Vector3(sin(a) * 0.5, 0, -cos(a) * 0.5)
+	fist.scale = Vector3(1, 0.05, 1)
+	var tw = fist.create_tween()
+	tw.tween_property(fist, "scale", Vector3(1, 1, 1), 0.25).set_trans(Tween.TRANS_BACK)
+	tw.tween_property(fist, "scale", Vector3(0.55, 1.0, 0.55), 0.15)
+	tw.tween_interval(2.2)
+	tw.tween_property(fist, "scale", Vector3(1, 0.05, 1), 0.3)
+	tw.tween_callback(fist.queue_free)
+	after(0.4, func():
+		VFX.cracks(at, 3.5)
+		for e in enemies_near(c, at, 2.4):
+			if live(e) and e.has_method("apply_status"):
+				e.apply_status("bind", 2.4)
+		every(2.4, 0.6, func(_i, _k):
+			for e in enemies_near(c, at, 2.4):
+				if live(e):
+					hit(c, e.global_position + Vector3.UP, e.radius + 0.3, inf(c, "doton_tekkenro", 0.45, {"knock": 0.0, "kind": "heavy", "element": "doton"})), Callable()))
+	Sfx.play("earth", at, 0.7)
+
+
+func p_mogura_tataki(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.2)
+	var tt = tg(c, t, 18.0)
+	_burrow(c)
+	var m = c.get("model")
+	if m:
+		m.visible = false
+	for k in 3:
+		after(0.3 + k * 0.3, func():
+			if not live(c):
+				return
+			var p = gp((tt.global_position if tt else c.global_position + c.face_dir() * 6.0) + Vector3(randf_range(-1.2, 1.2), 0, randf_range(-1.2, 1.2)))
+			_earth_burst(p, 0.8)
+			hit(c, p + Vector3.UP, 1.8, inf(c, "mogura_tataki", 0.6, {"knock": 3.0, "launch": 7.0, "kind": "heavy", "element": "doton"})))
+	after(1.2, func():
+		if live(c) and m:
+			if tt and live(tt):
+				c.global_position = gp(tt.global_position - c.face_dir() * 1.5)
+			m.visible = true
+			_earth_burst(c.global_position, 0.9))
+	Sfx.play("earth", c.global_position, 1.2)
+
+
+func p_doton_chidokaku(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.9)
+	var at = gp(c.global_position)
+	VFX.cracks(at, 6.0, Color(0.08, 0.06, 0.05, 0.95), 5.0)
+	var pillar = _rock3(Vector3(3.0, 0.1, 3.0), EARTH.darkened(0.1))
+	scene_add(pillar, at)
+	var tw = pillar.create_tween()
+	tw.tween_property(pillar, "scale", Vector3(3.0, 9.0, 3.0), 0.35).set_trans(Tween.TRANS_QUAD)
+	tw.tween_interval(2.5)
+	tw.tween_property(pillar, "scale", Vector3(3.0, 0.1, 3.0), 0.5)
+	tw.tween_callback(pillar.queue_free)
+	c.velocity = Vector3.UP * 18.0
+	after(0.2, func():
+		for e in enemies_near(c, at, 6.0):
+			if live(e) and e.global_position.distance_to(at) > 1.6:
+				hit(c, e.global_position + Vector3.UP, e.radius + 0.4, inf(c, "doton_chidokaku", 1.0, {"knock": 9.0, "launch": 4.0, "kind": "heavy", "element": "doton"})))
+	shake(0.8)
+	Sfx.play("earth", at, 0.6)
+
+
+func p_doton_doro_hane(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.3)
+	var at = gp(c.global_position)
+	var mud = Color(0.4, 0.3, 0.2)
+	VFX.puffs(at + Vector3.UP * 0.3, {"amount": 10, "life": 0.7, "size": 0.9, "radius": 0.6, "vmin": 3.0, "vmax": 7.0, "dir": Vector3.UP, "spread": 50.0,
+		"gravity": Vector3(0, -14, 0), "outline": 0.03, "outline_col": mud.darkened(0.4), "colors": [mud.lightened(0.15), mud, Color(mud.r, mud.g, mud.b, 0)]})
+	GroundFX.add(at, "mud", 1.8, 3.5, c)
+	c.velocity = c.face_dir() * 8.0 + Vector3.UP * 16.0
+	Sfx.play("earth", at, 1.3)
+
+
+func p_doton_banri_doryuheki(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.2)
+	var d = fwd(c, t)
+	var side = d.cross(Vector3.UP).normalized()
+	for k in 9:
+		var off = (k - 4) * 7.0
+		_wall_block(c, c.global_position + d * 4.0 + side * off, d, 7.4, 12.0, 8.0, absf(k - 4) * 0.08)
+	shake(1.4)
+	Sfx.play("earth", c.global_position, 0.4)
+
+
+func p_doton_chokeijugan(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.8)
+	var at = gp(c.global_position + c.face_dir() * 3.0)
+	var boulder = _rock3(Vector3(5.0, 4.5, 5.0), EARTH.darkened(0.1))
+	scene_add(boulder, at + Vector3.UP * 2.0)
+	FX.aura(c, Color(0.8, 0.75, 0.6), 1.0, Vector3(0, 0.9, 0), 3.0)
+	if c is Player:
+		Buffs.add("doton_chokeijugan", 8.0, {"speed": 1.4})
+	var tt = tg(c, t, 34.0)
+	var tw = boulder.create_tween()
+	tw.tween_property(boulder, "global_position", at + Vector3.UP * 8.0, 0.8).set_trans(Tween.TRANS_SINE)
+	tw.tween_callback(func():
+		var dest = gp(tt.global_position if tt else c.global_position + c.face_dir() * 18.0)
+		var tw2 = boulder.create_tween()
+		tw2.tween_property(boulder, "global_position", dest + Vector3.UP * 1.8, 0.45).set_ease(Tween.EASE_IN)
+		tw2.tween_callback(func():
+			VFX.cracks(dest, 6.0, Color(0.08, 0.06, 0.05, 0.95), 5.0)
+			VFX.debris(dest, EARTH, 24, 12.0, 0.5)
+			hit(c, dest + Vector3.UP, 4.5, inf(c, "doton_chokeijugan", 2.2, {"knock": 14.0, "launch": 6.0, "kind": "heavy", "element": "doton"}))
+			shake(1.4))
+		tw2.tween_interval(1.0)
+		tw2.tween_property(boulder, "scale", Vector3(5.0, 0.1, 5.0), 0.4)
+		tw2.tween_callback(boulder.queue_free))
+	Sfx.play("earth", c.global_position, 0.7)
