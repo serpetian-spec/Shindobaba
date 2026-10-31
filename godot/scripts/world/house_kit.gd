@@ -11,6 +11,52 @@ const GLASS := Color(0.55, 0.72, 0.85)
 const STONE := Color(0.55, 0.53, 0.5)
 
 static var templates: Array = []   # her biri: {walls, roof, detail, w, d, h, roof_top}
+const DET_VIEW := 260.0     # ev detaylarının görünürlük mesafesi
+const DET_CELL := 64.0
+const SHELL_NEAR := 340.0   # bu mesafeden sonra duvar+çatı hücre başına tek mesh
+
+
+## Uzak kabuk: [xf, renk, şablon] listesindeki evlerin duvar ya da çatısını tek meshte birleştirir (örnek rengi köşe rengine çarpılır)
+static func _merge(items: Array, part: String) -> ArrayMesh:
+	var V = PackedVector3Array()
+	var N = PackedVector3Array()
+	var C = PackedColorArray()
+	var U = PackedVector2Array()
+	var I = PackedInt32Array()
+	for it in items:
+		var m: ArrayMesh = templates[it[2]][part]
+		var xf: Transform3D = it[0]
+		var col: Color = it[1]
+		var nb = xf.basis.inverse().transposed()
+		for si in m.get_surface_count():
+			var a = m.surface_get_arrays(si)
+			var base = V.size()
+			var v: PackedVector3Array = a[Mesh.ARRAY_VERTEX]
+			var n: PackedVector3Array = a[Mesh.ARRAY_NORMAL]
+			var c = a[Mesh.ARRAY_COLOR]
+			var u = a[Mesh.ARRAY_TEX_UV]
+			for i in v.size():
+				V.append(xf * v[i])
+				N.append((nb * n[i]).normalized())
+				C.append((c[i] if c != null and c.size() > i else Color.WHITE) * col)
+				U.append(u[i] if u != null and u.size() > i else Vector2.ZERO)
+			var ii = a[Mesh.ARRAY_INDEX]
+			if ii == null or ii.is_empty():
+				for i in v.size():
+					I.append(base + i)
+			else:
+				for i in ii:
+					I.append(base + i)
+	var arrs = []
+	arrs.resize(Mesh.ARRAY_MAX)
+	arrs[Mesh.ARRAY_VERTEX] = V
+	arrs[Mesh.ARRAY_NORMAL] = N
+	arrs[Mesh.ARRAY_COLOR] = C
+	arrs[Mesh.ARRAY_TEX_UV] = U
+	arrs[Mesh.ARRAY_INDEX] = I
+	var out = ArrayMesh.new()
+	out.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrs)
+	return out
 
 
 static func ensure(count := 70) -> void:
@@ -560,14 +606,22 @@ class Placer:
 						mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 					parent.add_child(mmi)
 		pack_items.clear()
+		var vm = float(Game.settings["view"])
+		var far := {}   # 160 m hücre -> {"walls": [[xf, col, ti]], "roof": [...]} (uzak birleşik kabuk)
 		for pair in [[walls, "walls"], [roofs, "roof"], [dets, "detail"]]:
 			var dict: Dictionary = pair[0]
+			var det = pair[1] == "detail"
+			var cs: float = DET_CELL if det else 160.0
 			for ti in dict:
 				var items: Array = dict[ti]
-				# 160 m'lik hücrelere böl (görünürlük kırpma için)
+				# hücrelere böl (görünürlük kırpma için); detaylar küçük hücre: mesafe hücre merkezinden ölçülür
 				var cells = {}
 				for it in items:
-					var c = Vector2i(int(floor(it[0].origin.x / 160.0)), int(floor(it[0].origin.z / 160.0)))
+					var c = Vector2i(int(floor(it[0].origin.x / cs)), int(floor(it[0].origin.z / cs)))
+					if not det:
+						if not far.has(c):
+							far[c] = {"walls": [], "roof": []}
+						far[c][pair[1]].append([it[0], it[1], ti])
 					if not cells.has(c):
 						cells[c] = []
 					cells[c].append(it)
@@ -586,10 +640,29 @@ class Placer:
 					mmi.layers = 2
 					mmi.multimesh = mm
 					mmi.material_override = Props.roof_toon() if pair[1] == "roof" else Props.toon()
-					mmi.visibility_range_end = view * float(Game.settings["view"])
-					mmi.visibility_range_end_margin = 60.0
-					mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+					if det:   # pencere/balkon/tabela: ev başına ~5 bin üçgen (duvar+çatı ~200); uzakta seçilmez
+						mmi.visibility_range_end = DET_VIEW * vm
+						mmi.visibility_range_end_margin = 40.0
+						mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+					else:     # yakında şablon başına MultiMesh, uzakta hücrenin birleşik kabuğu (çizim çağrısı ~70 kat az)
+						mmi.visibility_range_end = SHELL_NEAR * vm
+						mmi.visibility_range_end_margin = 20.0
 					parent.add_child(mmi)
+		for c in far:
+			for part in ["walls", "roof"]:
+				var arr: Array = far[c][part]
+				if arr.is_empty():
+					continue
+				var mi = MeshInstance3D.new()
+				mi.layers = 2
+				mi.mesh = HouseKit._merge(arr, part)
+				mi.material_override = Props.roof_toon() if part == "roof" else Props.toon()
+				mi.visibility_range_begin = SHELL_NEAR * vm
+				mi.visibility_range_begin_margin = 20.0
+				mi.visibility_range_end = view * vm
+				mi.visibility_range_end_margin = 60.0
+				mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				parent.add_child(mi)
 		if not recs.is_empty():
 			WorldDamage.register_houses(recs)
 			recs = []

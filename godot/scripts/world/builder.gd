@@ -50,11 +50,53 @@ func w(p: Vector3) -> Vector3:
 	return origin + Vector3(p.x, p.y + yoff, -p.z)
 
 
-func _mb(wp: Vector3) -> MB:
-	var key = Vector2i(int(floor(wp.x / CELL)), int(floor(wp.z / CELL)))
+## Boyut kademeleri: küçük detaylar kısa mesafede söner (uzak köy tam detay çiziliyordu: Suna ~11 M üçgen)
+## [en büyük boyut sınırı, hücre boyu, görünürlük bitişi (0 = view_dist), görünürlük başlangıcı]
+## 3/4/5: büyük yuvarlak gövdeler (kubbe, kule, silindir) yakında tam segment, uzaklaştıkça yarı / çeyrek segmentli kopya
+const ROUND_NEAR := 220.0
+const ROUND_MID := 650.0
+const TIERS := [[1.5, 48.0, 220.0, 0.0], [5.0, 128.0, 750.0, 0.0], [INF, CELL, 0.0, 0.0], [INF, CELL, ROUND_NEAR, 0.0], [INF, CELL, ROUND_MID, ROUND_NEAR], [INF, CELL, 0.0, ROUND_MID]]
+
+
+func _mb(wp: Vector3, sz := INF) -> MB:
+	var ti = 0
+	while ti < 2 and sz >= TIERS[ti][0]:
+		ti += 1
+	return _cell(wp, ti)
+
+
+func _cell(wp: Vector3, ti: int) -> MB:
+	var cs: float = TIERS[ti][1]
+	var key = Vector3i(int(floor(wp.x / cs)), int(floor(wp.z / cs)), ti)
 	if not cells.has(key):
 		cells[key] = MB.new()
 	return cells[key]
+
+
+## Segmentli şekil: büyükse yakın (tam) + uzak (az segment) hücrelerine
+func _round(kind: String, wp: Vector3, size: Vector3, col: Color, rot: Vector3, seg: int, sz: float) -> void:
+	if sz < TIERS[1][0] or seg <= 8:
+		_mb(wp, sz).add(kind, wp, size, col, rot, seg)
+		return
+	_cell(wp, 3).add(kind, wp, size, col, rot, seg)
+	_cell(wp, 4).add(kind, wp, size, col, rot, clampi(seg / 2, 6, 14))
+	_cell(wp, 5).add(kind, wp, size, col, rot, clampi(seg / 4, 5, 8))
+
+
+const PACK_NEAR := 300.0
+static var _tri_cache := {}
+static func _tris(m: ArrayMesh) -> int:
+	var k = m.get_instance_id()
+	if not _tri_cache.has(k):
+		var t = 0
+		for i in m.get_surface_count():
+			t += m.surface_get_array_index_len(i) / 3
+		_tri_cache[k] = t
+	return _tri_cache[k]
+
+
+static func _msz(v: Vector3) -> float:
+	return maxf(absf(v.x), maxf(absf(v.y), absf(v.z)))
 
 
 func _collide(center: Vector3, size: Vector3, yaw_deg: float) -> void:
@@ -132,7 +174,7 @@ func area_free(p: Vector2, r: float) -> bool:
 ## p: yerel taban-merkez değil, MERKEZ. yaw: derece (kuzeyden doğuya). Godot'da y ekseni etrafında -yaw.
 func box(p: Vector3, size: Vector3, col: Color, yaw := 0.0, collide := true, rot := Vector3.ZERO) -> void:
 	var wp = w(p)
-	_mb(wp).add("box", wp, size, col, Vector3(rot.x, -yaw + rot.y, rot.z))
+	_mb(wp, _msz(size)).add("box", wp, size, col, Vector3(rot.x, -yaw + rot.y, rot.z))
 	if collide:
 		_collide(wp, size, -yaw)
 
@@ -140,16 +182,16 @@ func box(p: Vector3, size: Vector3, col: Color, yaw := 0.0, collide := true, rot
 func cyl(p: Vector3, d: float, h: float, col: Color, collide := true, seg := 16, top := -1.0) -> void:
 	var wp = w(p)
 	if top >= 0.0:
-		_mb(wp).add_xf("cone", Transform3D(Basis.IDENTITY.scaled(Vector3(d, h, d)), wp), col, seg)
+		_mb(wp, maxf(d, h)).add_xf("cone", Transform3D(Basis.IDENTITY.scaled(Vector3(d, h, d)), wp), col, seg)
 	else:
-		_mb(wp).add("cyl", wp, Vector3(d, h, d), col, Vector3.ZERO, seg)
+		_round("cyl", wp, Vector3(d, h, d), col, Vector3.ZERO, seg, maxf(d, h))
 	if collide:
 		_collide_cyl(wp, d * 0.5, h)
 
 
 func cone(p: Vector3, d: float, h: float, col: Color, seg := 16, collide := false) -> void:
 	var wp = w(p)
-	_mb(wp).add("cone", wp, Vector3(d, h, d), col, Vector3.ZERO, seg)
+	_round("cone", wp, Vector3(d, h, d), col, Vector3.ZERO, seg, maxf(d, h))
 	if collide or (d >= 3.0 and not key.begins_with("silhouet")):   # büyük koniler (kule/çatı) her zaman katı: içinden geçilmesin, eğiminde yürünsün
 		var pts = PackedVector3Array()
 		for i in 16:
@@ -161,7 +203,7 @@ func cone(p: Vector3, d: float, h: float, col: Color, seg := 16, collide := fals
 
 func sphere(p: Vector3, size: Vector3, col: Color, seg := 12, collide := false) -> void:
 	var wp = w(p)
-	_mb(wp).add("sphere", wp, size, col, Vector3.ZERO, seg)
+	_round("sphere", wp, size, col, Vector3.ZERO, seg, _msz(size))
 	if collide:
 		var pts = PackedVector3Array()
 		for ring in 7:
@@ -175,12 +217,12 @@ func sphere(p: Vector3, size: Vector3, col: Color, seg := 12, collide := false) 
 ## Dikey disk (arma/plaka): ön yüzü yaw yönüne (yerel -n) bakar
 func disc(p: Vector3, d: float, thick: float, col: Color, yaw := 0.0, seg := 16) -> void:
 	var wp = w(p)
-	_mb(wp).add("cyl", wp, Vector3(d, thick, d), col, Vector3(90, -yaw, 0), seg)
+	_round("cyl", wp, Vector3(d, thick, d), col, Vector3(90, -yaw, 0), seg, d)
 
 
 func dome(p: Vector3, d: float, h: float, col: Color, seg := 16) -> void:
 	var wp = w(p)
-	_mb(wp).add("hemi", wp, Vector3(d, h * 2.0, d), col, Vector3.ZERO, seg)  # yarım küre tabanı y=0, tepe h
+	_round("hemi", wp, Vector3(d, h * 2.0, d), col, Vector3.ZERO, seg, maxf(d, h))  # yarım küre tabanı y=0, tepe h
 	if d >= 3.0 and not key.begins_with("silhouet"):   # kubbe katı
 		var pts = PackedVector3Array()
 		for ring in 5:
@@ -195,14 +237,14 @@ func dome(p: Vector3, d: float, h: float, col: Color, seg := 16) -> void:
 ## Çatı: üçgen prizma (yaw ile döner). p: çatı tabanının merkezi
 func roof(p: Vector3, size: Vector3, col: Color, yaw := 0.0) -> void:
 	var wp = w(p) + Vector3(0, size.y * 0.5, 0)
-	_mb(wp).add("prism", wp, size, col, Vector3(0, -yaw, 0))
+	_mb(wp, _msz(size)).add("prism", wp, size, col, Vector3(0, -yaw, 0))
 	_collide(wp - Vector3(0, size.y * 0.25, 0), Vector3(size.x * 0.7, size.y * 0.5, size.z), -yaw)
 
 
 ## Pürüzlü katmanlı kaya sütunu (Kumo/Iwa kuleleri, krater duvarı). p: taban merkezi
 func crag(p: Vector3, d: float, h: float, col: Color, variant := 0, collide := true, yaw := 0.0) -> void:
 	var wp = w(p)
-	_mb(wp).add("crag", wp + Vector3(0, h * 0.5, 0), Vector3(d, h, d), col, Vector3(0, yaw, 0), (100 + variant % 16) if variant >= 100 else variant % 16)
+	_mb(wp, maxf(d, h)).add("crag", wp + Vector3(0, h * 0.5, 0), Vector3(d, h, d), col, Vector3(0, yaw, 0), (100 + variant % 16) if variant >= 100 else variant % 16)
 	if collide:
 		_collide_cyl(wp + Vector3(0, h * 0.5, 0), d * 0.38, h)
 
@@ -210,7 +252,7 @@ func crag(p: Vector3, d: float, h: float, col: Color, variant := 0, collide := t
 ## Düzensiz kaya. p: merkez
 func boulder(p: Vector3, size: Vector3, col: Color, variant := 0, collide := false, yaw := 0.0) -> void:
 	var wp = w(p)
-	_mb(wp).add("boulder", wp, size, col, Vector3(0, yaw, 0), variant % 16)
+	_mb(wp, _msz(size)).add("boulder", wp, size, col, Vector3(0, yaw, 0), variant % 16)
 	if collide:
 		_collide(wp, size * 0.8, yaw)
 
@@ -218,7 +260,7 @@ func boulder(p: Vector3, size: Vector3, col: Color, variant := 0, collide := fal
 ## Yukarı daralan silindir (kule gövdesi). p: merkez
 func frustum(p: Vector3, d: float, h: float, col: Color, collide := true, seg := 16) -> void:
 	var wp = w(p)
-	_mb(wp).add("frustum", wp, Vector3(d, h, d), col, Vector3.ZERO, seg)
+	_round("frustum", wp, Vector3(d, h, d), col, Vector3.ZERO, seg, maxf(d, h))
 	if collide:
 		frustum_shape(wp, d * 0.5, d * 0.36, h)
 
@@ -288,21 +330,33 @@ func finish() -> void:
 	for pk in packs:
 		var pe: Array = packs[pk]
 		var xfs: Array = pe[1]
-		var mm = MultiMesh.new()
-		mm.transform_format = MultiMesh.TRANSFORM_3D
-		mm.use_colors = true
-		mm.mesh = pe[0]
-		mm.instance_count = xfs.size()
-		for i in xfs.size():
-			mm.set_instance_transform(i, xfs[i])
-			mm.set_instance_color(i, Color.WHITE)
-		var mmi = MultiMeshInstance3D.new()
-		mmi.layers = 2
-		mmi.multimesh = mm
-		mmi.visibility_range_end = view_dist * float(Game.settings["view"]) * float(pe[2])
-		mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
-		mmi.visibility_range_end_margin = 60.0
-		root.add_child(mmi)
+		var end = view_dist * float(Game.settings["view"]) * float(pe[2])
+		# ağır modeller (köy ağacı ~860 üçgen; Konoha'da binlercesi 1.5 km'ye dek ~17 M üçgen): uzakta sadeleştirilmiş kopya
+		var near = PACK_NEAR * float(Game.settings["view"])
+		var lv = [[pe[0], 0.0, end]]
+		if pe[0] is ArrayMesh and end > near + 50.0 and _tris(pe[0]) > 300:
+			lv = [[pe[0], 0.0, near], [AssetLib.lod(pe[0], 0.15), near, end]]
+		for l in lv:
+			var mm = MultiMesh.new()
+			mm.transform_format = MultiMesh.TRANSFORM_3D
+			mm.use_colors = true
+			mm.mesh = l[0]
+			mm.instance_count = xfs.size()
+			for i in xfs.size():
+				mm.set_instance_transform(i, xfs[i])
+				mm.set_instance_color(i, Color.WHITE)
+			var mmi = MultiMeshInstance3D.new()
+			mmi.layers = 2
+			mmi.multimesh = mm
+			mmi.visibility_range_begin = l[1]
+			mmi.visibility_range_begin_margin = 20.0 if l[1] > 0.0 else 0.0
+			mmi.visibility_range_end = l[2]
+			mmi.visibility_range_end_margin = 60.0 if l[2] == end else 20.0
+			if l[2] == end:
+				mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+			if l[1] > 0.0:
+				mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			root.add_child(mmi)
 	packs.clear()
 	for key in cells:
 		var mb: MB = cells[key]
@@ -311,13 +365,39 @@ func finish() -> void:
 		var mi = MeshInstance3D.new()
 		mi.layers = 2  # yapılar: sokak fenerleri (yalnız katman 1) bunları aydınlatmaz
 		mi.mesh = mb.build(Props.toon())
+		if key is Vector3i:
+			mi.name = "K%d_%d_%d" % [key.z, key.x, key.y]
 		# görünürlük mesafesi parçanın merkezinden ölçülür: dev parçalar (Suna sur kayalıkları, uzun duvarlar) yanındayken bile
 		# uzak merkezleri yüzünden yarı saydam soluyordu (çarpışma durduğu için "şeffaf ama yürünen duvar") — parça boyu kadar uzat
-		mi.visibility_range_end = view_dist * float(Game.settings["view"]) + mi.mesh.get_aabb().size.length() * 0.6
+		var tv: float = TIERS[key.z][2] if key is Vector3i else 0.0
+		var tb: float = TIERS[key.z][3] if key is Vector3i else 0.0
+		mi.visibility_range_end = (tv if tv > 0.0 else view_dist) * float(Game.settings["view"]) + mi.mesh.get_aabb().size.length() * 0.6
+		if tb > 0.0:
+			mi.visibility_range_begin = tb * float(Game.settings["view"]) + mi.mesh.get_aabb().size.length() * 0.6
+			mi.visibility_range_begin_margin = 30.0
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		mi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
-		mi.visibility_range_end_margin = 60.0
+		mi.visibility_range_end_margin = 30.0 if tv > 0.0 and tv < 300.0 else 60.0
 		root.add_child(mi)
 	cells.clear()
+	cap_ranges(root, view_dist)
+	cap_ranges.call_deferred(root, view_dist)   # finish()'ten hemen sonra eklenenler (yol ustaları, heykeller)
+
+
+## Görünürlük mesafesi verilmemiş geometri (taş Hokage kafaları / Sonun Vadisi heykelleri = CharacterModel, şehir süsleri,
+## yol ustaları) 20+ km öteden bile çiziliyordu: hepsine view_dist + kendi boyu kadar sınır koy
+static func cap_ranges(n: Node, dist: float) -> void:
+	if not is_instance_valid(n) or not n.is_inside_tree():
+		return
+	var v = dist * float(Game.settings["view"])
+	for g in n.find_children("*", "GeometryInstance3D", true, false):
+		if g.visibility_range_end > 0.0:
+			continue
+		var a: AABB = g.global_transform * g.get_aabb()
+		var sz = a.size.length()
+		g.visibility_range_end = (minf(v, 260.0) if sz < 6.0 else v) + sz * 0.6   # insan boyu (usta, süs) 260 m
+		g.visibility_range_end_margin = 40.0
+		g.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 
 
 # ------------------------------------------------------------------ hazır yapılar

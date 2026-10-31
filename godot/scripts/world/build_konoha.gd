@@ -588,6 +588,8 @@ static func _merge_house_cells(root: Node3D) -> void:
 		var mm: MultiMesh = ch.multimesh
 		if mm == null or not mm.use_colors or ch.material_override == null:
 			continue  # hazır modeller (kendi malzemesi + LOD aralıkları) birleştirilmez
+		if ch.visibility_range_end < 1000.0:
+			continue  # HouseKit yakın kademeleri (detay / yakın kabuk): hücre ve mesafeleri eşleşik, birleştirme bozar
 		olds.append(ch)
 		for i in mm.instance_count:
 			var xf = mm.get_instance_transform(i)
