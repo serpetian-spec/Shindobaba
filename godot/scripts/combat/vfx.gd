@@ -511,9 +511,11 @@ static func _splash(pos: Vector3, size := 2.0) -> void:
 		"vmin": 6.0, "vmax": 10.0 + size * 2.5, "dir": Vector3.UP, "spread": 40.0, "gravity": Vector3(0, -20, 0), "damp": 0.5,
 		"colors": [Color(1, 1, 1, 1), Color(0.6, 0.85, 1.0, 0.9), Color(0.35, 0.65, 1.0, 0.0)]})
 	# damlalar
-	FX.burst(base + Vector3.UP * size * 0.4, {"amount": int(22 * size), "life": 0.9, "tex": FX.tex_soft, "add": false, "size": 0.22 + size * 0.06, "radius": size * 0.5,
-		"vmin": 4.0, "vmax": 9.0 + size * 2.0, "dir": Vector3.UP, "spread": 60.0, "gravity": Vector3(0, -22, 0), "damp": 0.5,
-		"colors": [Color(0.92, 0.98, 1.0, 1), Color(0.5, 0.8, 1.0, 0.95), Color(0.3, 0.6, 1.0, 0.0)]})
+	# Storm tarzı damlalar: camgöbeği-beyaz cel damla, ince koyu mavi kontur
+	puffs(base + Vector3.UP * size * 0.4, {"amount": int(16 * size), "life": 0.85, "size": 0.32 + size * 0.08, "radius": size * 0.5,
+		"vmin": 4.0, "vmax": 9.0 + size * 2.0, "dir": Vector3.UP, "spread": 60.0, "gravity": Vector3(0, -22, 0), "damp": 0.5, "glow": 1.05,
+		"outline_col": Color(0.08, 0.3, 0.75), "outline": 0.045, "rough": 0.12, "shade": 0.25,
+		"colors": [Color(0.95, 1.0, 1.0, 1), Color(0.45, 0.82, 1.0, 1), Color(0.3, 0.65, 1.0, 0.0)]})
 	# ince köpük: az, küçük, açık mavi konturlu
 	puffs(base + Vector3.UP * size * 0.3, {"amount": int(6 * size), "life": 0.7, "size": 0.55 * size, "radius": size * 0.5, "vmin": 3, "vmax": 7 + size,
 		"dir": Vector3.UP, "spread": 55.0, "damp": 1.5, "gravity": Vector3(0, -12, 0), "glow": 1.05, "outline_col": Color(0.45, 0.7, 0.95), "outline": 0.03, "rough": 0.15,

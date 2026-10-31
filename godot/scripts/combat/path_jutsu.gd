@@ -3968,32 +3968,37 @@ func p_suiken(c: Node3D, t: Node3D) -> void:
 
 ## Su Kırbacı: elde oluşan su kamçısı geniş yay çizer
 func p_suiton_suiben(c: Node3D, t: Node3D) -> void:
+	# Su Kırbacı: elden uzanan ince su ipi yay çizip şaklar
 	var tt = tg(c, t, 9.0)
 	var d = _face(c, tt)
-	busy(c, 0.6)
+	busy(c, 0.7)
 	anim(c, "slash_b", 1.4)
-	for k in 10:
-		after(k * 0.025, func():
-			var a = deg_to_rad(-70.0 + k * 15.0)
-			var q = c.global_position + Vector3.UP * 1.1 + d.rotated(Vector3.UP, a) * (1.0 + k * 0.5)
-			_splash(q, 0.5))
-	Combat.hit_zone(c, c.global_position, d, 7.0, 70.0, 2.5, inf(c, "suiton_suiben", 0.9, {"knock": 9.0, "kind": "heavy", "element": "suiton", "bleed": 1.0}))
+	var head = Node3D.new()
+	scene_add(head, hand_pos(c, true))
+	var body = VfxSerpent.new()
+	body.style = "water"
+	body.thin = 1.0
+	body.seed_id = "suiben"
+	body.head = head
+	body.count = 14
+	body.spacing = 0.45
+	body.radius = 0.28
+	body.mat = _wmat()
+	get_tree().current_scene.add_child(body)
+	var o = c.global_position + Vector3.UP * 1.2
+	var tw = head.create_tween()
+	tw.tween_method(func(k: float):
+		if is_instance_valid(head):
+			var a = deg_to_rad(lerpf(-80.0, 80.0, k))
+			head.global_position = o + d.rotated(Vector3.UP, a) * lerpf(1.0, 7.0, sin(k * PI) * 0.5 + 0.5 * k) + Vector3.UP * sin(k * PI) * 0.8, 0.0, 1.0, 0.35)
+	tw.tween_callback(func():
+		_pop(head.global_position, 1.2, WATER)
+		head.queue_free())
+	after(0.2, func():
+		Combat.hit_zone(c, c.global_position, d, 7.0, 90.0, 2.5, inf(c, "suiton_suiben", 0.9, {"knock": 9.0, "kind": "heavy", "element": "suiton", "bleed": 1.0})))
 	Sfx.play("whoosh", c.global_position, 1.2)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-## Ay Gölgesi: kılıç ay hilali çizer, ardından solgun ay ışığı izi kalır
 func p_tsukikage(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 8.0)
 	var d = _jump_at(c, tt, 3.0, 14.0 if tt else 5.0)
@@ -4246,6 +4251,33 @@ func stream_fx(from: Vector3, d: Vector3, length: float, radius: float, mat: Mat
 		if end_fx.is_valid():
 			after(0.22, func(): end_fx.call(from + d * length))
 		return
+	if mat is ShaderMaterial and mat.shader != null and mat.shader.resource_path.ends_with("vfx_water.gdshader"):
+		# su: saydam koni yerine akan su ipleri (ince su tüpleri) + uçta sıçrama
+		var dn2 = d.normalized()
+		var sd = dn2.cross(Vector3.UP).normalized()
+		var n2 = clampi(int(radius * 1.5), 2, 5)
+		for i in n2:
+			var off = (i - (n2 - 1) * 0.5) * radius * 0.45
+			var head = Node3D.new()
+			scene_add(head, from + sd * off * 0.3)
+			var body = VfxSerpent.new()
+			body.style = "water"
+			body.thin = 1.0
+			body.head = head
+			body.count = 12
+			body.spacing = maxf(0.5, length / 14.0)
+			body.radius = maxf(0.3, radius * 0.35)
+			body.mat = mat
+			get_tree().current_scene.add_child(body)
+			var tw = head.create_tween()
+			var end = from + dn2 * length + sd * off
+			tw.tween_property(head, "global_position", end, maxf(0.2, dur * 0.6)).set_trans(Tween.TRANS_SINE)
+			tw.tween_callback(func():
+				VFX.splash(end, 1.0 + radius * 0.4)
+				head.queue_free())
+		if end_fx.is_valid():
+			after(0.22, func(): end_fx.call(from + d * length))
+		return
 	if mat is ShaderMaterial and mat.shader != null and mat.shader.resource_path.ends_with("vfx_bolt.gdshader"):
 		var bc: Color = mat.get_shader_parameter("col")
 		var dn = d.normalized()
@@ -4378,22 +4410,29 @@ func p_water_release_wild_water_wave(c: Node3D, t: Node3D) -> void:
 
 ## Köpük Dalgası: ağızdan kabaran köpük seli (su dokulu yarı saydam koni + köpük kabarcıkları) — kayganlaştırır
 func p_suiton_homatsu_rappa(c: Node3D, t: Node3D) -> void:
+	# Köpük Dalgası: ağızdan akan köpüklü su, önünde kabarcıklar kabarır ve yeri kaygan yapar
 	busy(c, 0.9)
 	var d = fwd(c, t)
 	var from = _mouth_pos(c)
-	var foam = VFX.mat_water(Color(0.6, 0.8, 0.95), Color(0.85, 0.94, 1.0), Color(1, 1, 1), Vector3(0, 1, 0), 0.75, 0.9, 0.2)
-	stream_fx(from, (d - Vector3.UP * 0.2).normalized(), 12.0, 2.4, foam, 0.7)
+	var side = d.cross(Vector3.UP).normalized()
+	for i in 3:
+		after(i * 0.05, func():
+			if live(c):
+				_water_jet(c, from, (d - Vector3.UP * 0.25 + side * (i - 1) * 0.15).normalized(), 20.0, 0.7, inf(c, "suiton_homatsu_rappa", 0.15, {"element": "suiton"}), null, 0.6, Callable(), 10))
 	for k in 10:
-		after(k * 0.06, func():
-			var q = gp(c.global_position + d * (2.0 + k * 1.2)) + Vector3.UP * 0.5
-			VFX.puffs(q, {"amount": 26, "life": 1.8, "size": 0.45, "radius": 1.3, "vmin": 0.5, "vmax": 2.0, "dir": Vector3.UP, "spread": 60.0, "add": false,
-				"colors": [Color(1, 1, 1, 0.95), Color(0.85, 0.93, 1.0, 0.7), Color(0.8, 0.9, 1.0, 0)]})
+		after(0.1 + k * 0.06, func():
+			var q = gp(c.global_position + d * (2.0 + k * 1.2)) + Vector3.UP * 0.4
+			for b in 3:
+				var bb = _bubble(randf_range(0.25, 0.55))
+				scene_add(bb, q + Vector3(randf_range(-1, 1), randf_range(0, 1.2), randf_range(-1, 1)))
+				fade_free(bb, randf_range(0.8, 1.6), 0.2)
+			VFX.puffs(q, {"amount": 8, "life": 1.4, "size": 0.4, "radius": 1.2, "vmin": 0.3, "vmax": 1.2, "dir": Vector3.UP, "spread": 60.0, "outline": 0.025, "rough": 0.12,
+				"outline_col": Color(0.7, 0.85, 1.0), "colors": [Color(1, 1, 1, 0.95), Color(0.88, 0.95, 1.0, 0.7), Color(0.85, 0.93, 1.0, 0)]})
 			for e in hit(c, q, 2.0, inf(c, "suiton_homatsu_rappa", 0.15, {"knock": 6.0, "kind": "light", "element": "suiton", "dir": d})):
 				st(e, "slow", 3.0))
 	Sfx.play("water", c.global_position, 0.8)
 
 
-## Şelale Çukuru: hedefin altında su halkası belirir, dev su sütunu fışkırır (akan su dokulu silindir), havaya savurur
 func p_suiton_takitsubo_no_jutsu(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 20.0)
 	busy(c, 0.8)
@@ -9332,24 +9371,26 @@ func p_tenchu(c: Node3D, t: Node3D) -> void:
 
 ## Gök Ağlaması: ağızdan tükürülen tek, iğne gibi sessiz su damlası — ışık çizgisi gibi deler
 func p_tenkyu(c: Node3D, t: Node3D) -> void:
+	# Tenkyū: ağızdan tükürülen tek, iğne gibi su damlası — parlak çizgi izi
 	busy(c, 0.4)
 	var tt = tg(c, t, 30.0)
 	var from = _mouth_pos(c)
-	var nd = MeshInstance3D.new()
-	var cm = CylinderMesh.new()
-	cm.top_radius = 0.0; cm.bottom_radius = 0.04; cm.height = 0.5
-	nd.mesh = cm
-	nd.material_override = VFX.mat_bolt(Color(0.8, 0.95, 1.0), 2.0)
-	nd.rotation.x = PI * 0.5
 	var holder = Node3D.new()
-	holder.add_child(nd)
+	var arc = Arcs.new()
+	arc.color = Color(0.7, 0.9, 1.0)
+	arc.glow = 4.0
+	arc.to_point = Vector3(0, 0, -0.9)
+	arc.count = 0
+	arc.segs = 2
+	arc.width = 0.04
+	arc.position = Vector3(0, 0, 0.45)
+	holder.add_child(arc)
 	var pr = shot(c, from, aim_at(c, tt, from), 80.0, holder, inf(c, "tenkyu", 1.2, {"knock": 2.0, "kind": "heavy", "element": "suiton", "bleed": 3.0, "hitstop": 0.06}), null, true, 0.6, func(p, _h):
-		VFX.star(p, Color(0.85, 0.95, 1.0), 1.2))
-	VFX.trail(pr, 0.05, Color(1, 1, 1, 1), Color(0.6, 0.85, 1.0, 0.5), Color(0.5, 0.75, 1.0, 0), 16, 0.6)
+		_pop(p, 1.0, WATER))
+	VFX.trail(pr, 0.07, Color(1, 1, 1, 1), Color(0.6, 0.85, 1.0, 0.6), Color(0.5, 0.75, 1.0, 0), 16, 0.6)
 	Sfx.play("whoosh", from, 2.2, 0.4)
 
 
-## Yıldırım: iki elde şimşek küresi; gökten hedefin üstüne kalın yıldırımlar iner
 func p_thunderbolt(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.9)
 	var tt = tg(c, t, 30.0)
@@ -15729,32 +15770,26 @@ func p_tomogoroshi_no_haikotsu(c: Node3D, t: Node3D) -> void:
 
 ## Yağmur Kaplanı İstek Üzerine: bulutlardan çakralı yağmur yağar — damlalar hedefi bulup mermiye dönüşür
 func p_ukojizai_no_jutsu(c: Node3D, t: Node3D) -> void:
+	# Ukojizai: alana yağmur çöker; yağmurdaki chakra hedefleri bulur, damlalar mermi gibi saplanır
 	busy(c, 1.0)
 	var at = gp(c.global_position + fwd(c, t) * 8.0)
-	var cloud = MeshInstance3D.new()
-	cloud.mesh = SphereMesh.new()
-	var m = StandardMaterial3D.new()
-	m.albedo_color = Color(0.35, 0.38, 0.45, 0.8)
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	cloud.material_override = m
-	get_tree().current_scene.add_child(cloud)
-	cloud.global_position = at + Vector3.UP * 14.0
-	cloud.scale = Vector3(20, 3, 20)
-	every(4.0, 0.08, func(_i, k):
-		var q = at + Vector3(randf_range(-10, 10), 13.0, randf_range(-10, 10))
-		VFX.bolt(q, q - Vector3.UP * 12.0, Color(0.6, 0.75, 1.0), 0.03, 0.15, 0)
-		if int(k) % 5 == 0:
-			for e in enemies_near(c, at, 12.0):
-				var from = e.global_position + Vector3.UP * 12.0
-				VFX.bolt(from, e.global_position + Vector3.UP, Color(0.5, 0.75, 1.0), 0.12, 0.2, 0)
-				VFX.splash(e.global_position + Vector3.UP * 1.5, 0.4)
-				e.take_hit(inf(c, "ukojizai_no_jutsu", 0.3, {"knock": 1.0, "kind": "light", "element": "suiton"})), func():
-		if is_instance_valid(cloud):
-			cloud.queue_free())
+	_water_rain(c, at, 12.0, 4.0, "ukojizai_no_jutsu", 0.0, Color(0.7, 0.85, 1.0), true)
+	every(4.0, 0.4, func(_i, _k):
+		for e in enemies_near(c, at, 12.0):
+			if live(e):
+				var top = e.global_position + Vector3.UP * 10.0
+				var head = Node3D.new()
+				scene_add(head, top)
+				VFX.trail(head, 0.08, Color(1, 1, 1, 1), Color(0.6, 0.85, 1.0, 0.7), Color(0.5, 0.75, 1.0, 0.0), 10, 0.0)
+				var tw = head.create_tween()
+				tw.tween_property(head, "global_position", e.global_position + Vector3.UP * 1.2, 0.18).set_ease(Tween.EASE_IN)
+				tw.tween_callback(func():
+					_pop(head.global_position, 0.8, WATER)
+					head.queue_free())
+				hit(c, e.global_position + Vector3.UP, e.radius + 0.3, inf(c, "ukojizai_no_jutsu", 0.3, {"knock": 1.0, "kind": "light", "element": "suiton"})), Callable())
 	Sfx.play("water", at, 0.6)
 
 
-## Ters Dört Sembol Mührü: göğüste siyah mühür kareleri belirir, kullanıcı hedefe sarılır — ikisini de içine çeken mühür girdabı (kullanıcının canı bedel)
 func p_ura_shisho_fuin(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 14.0)
 	busy(c, 1.6)
@@ -18622,15 +18657,15 @@ func p_doton_iwagakure_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 
 func p_shimogakure_no_jutsu(c: Node3D, t: Node3D) -> void:
-	for k in 8:
-		var a = k * TAU / 8.0
-		var sp = _ice_spike(randf_range(1.0, 2.0), 0.25)
-		get_tree().current_scene.add_child(sp)
-		sp.global_position = gp(c.global_position + Vector3(cos(a), 0, sin(a)) * 1.2) + Vector3.UP * 0.6
-		sp.rotation = Vector3(randf_range(-0.3, 0.3), 0, randf_range(-0.3, 0.3))
-		get_tree().create_timer(4.0).timeout.connect(sp.queue_free)
-	VFX.puffs(c.global_position + Vector3.UP, {"amount": 30, "life": 1.4, "size": 1.2, "radius": 1.5, "vmin": 0.3, "vmax": 1, "dir": Vector3.UP, "spread": 90.0, "add": false,
-		"colors": [Color(0.85, 0.95, 1, 0.8), Color(0.75, 0.88, 1, 0)]})
+	# Kırağı Gizlenmesi: etrafa soğuk, parıltılı kırağı sisi çöker; içinde görünmez olursun
+	busy(c, 0.5)
+	var at = gp(c.global_position)
+	every(5.0, 0.2, func(_i, _k):
+		FX.burst(at + Vector3.UP * 0.6, {"amount": 10, "life": 1.8, "tex": FX.tex_smoke, "add": false, "cel": false, "size": 2.6, "radius": 5.0, "vmin": 0.3, "vmax": 1.2,
+			"dir": Vector3.UP, "spread": 70.0, "tangent": 2.0, "colors": [Color(0.85, 0.93, 1.0, 0.0), Color(0.88, 0.95, 1.0, 0.6), Color(0.9, 0.96, 1.0, 0.0)]})
+		FX.burst(at + Vector3.UP * 1.2, {"amount": 8, "life": 1.2, "tex": FX.tex_spark, "size": 0.35, "radius": 4.0, "vmin": 0.2, "vmax": 0.8, "spread": 180.0,
+			"colors": [Color(1, 1, 1, 0.0), Color(0.9, 0.97, 1.0, 0.9), Color(1, 1, 1, 0.0)]}), Callable())
+	VFX.cracks(at, 3.0, Color(0.8, 0.9, 1.0, 0.7), 6.0)
 	_gen(c, "shimogakure_no_jutsu", t)
 
 
