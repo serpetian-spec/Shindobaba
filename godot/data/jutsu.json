@@ -127,7 +127,7 @@
  },
  "katon_karyuu": {
   "id": "katon_karyuu",
-  "name": "Katon: Karyuu Endan",
+  "name": "Katon: Karyū Endan",
   "cost": 40,
   "cd": 10,
   "element": "katon",
@@ -135,7 +135,7 @@
   "level": 16,
   "rank": 2,
   "learn": "trainer:konoha",
-  "desc": "Ejderha alevi püskürt.",
+  "desc": "Ağızdan fışkıran alev ejder biçimini alır, kıvrılarak hedefe dalar ve patlar.",
   "seals": [
    "Mi",
    "Tatsu",
@@ -1029,35 +1029,6 @@
   "tier": 3,
   "name_en": "Fire Release: Ash Pile Burning",
   "research_id": "katon_haisekisho"
- },
- "sarutobi_karyu": {
-  "id": "sarutobi_karyu",
-  "name": "Katon: Karyū Endan",
-  "cost": 35,
-  "cd": 10,
-  "element": "katon",
-  "clan": "sarutobi",
-  "level": 8,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Klan ateşi: ejderha alevi erken öğrenilir.",
-  "seals": [
-   "Mi",
-   "Tatsu",
-   "U",
-   "Tora"
-  ],
-  "canon_rank": "C",
-  "impl": "katon_karyuu",
-  "category": "ninjutsu",
-  "shape": "beam",
-  "elements": [
-   "katon"
-  ],
-  "tier": 2,
-  "name_en": "Fire Release: Dragon Fire Technique",
-  "research_id": "katon_ryuka_no_jutsu",
-  "meaning": "Sarutobi"
  },
  "hatake_hakko": {
   "id": "hatake_hakko",
@@ -6086,44 +6057,6 @@
   "kinjutsu": false,
   "series": "Naruto Shippūden",
   "meaning": "Patlayan Alev Düzeni"
- },
- "katon_karyu_endan": {
-  "id": "katon_karyu_endan",
-  "name": "Katon: Karyū Endan",
-  "name_en": "Fire Release: Fire Dragon Flame Bullet",
-  "cost": 39,
-  "cd": 12.6,
-  "element": "katon",
-  "elements": [
-   "katon"
-  ],
-  "natures": [
-   "katon"
-  ],
-  "clan": "",
-  "level": 10,
-  "rank": 2,
-  "learn": "trainer:konoha",
-  "desc": "Ejder biçimli alev akıntısı.",
-  "seals": [
-   "Hitsuji",
-   "Uma",
-   "Mi",
-   "Tatsu",
-   "Ne",
-   "Ushi",
-   "Tora"
-  ],
-  "canon_rank": "B",
-  "tier": 3,
-  "category": "ninjutsu",
-  "shape": "beam",
-  "range": "Short, Mid",
-  "requires": {},
-  "signature": false,
-  "kinjutsu": false,
-  "series": "Naruto Part I",
-  "meaning": "Ateş Ejderi Mermisi"
  },
  "katon_goryuka_no_jutsu": {
   "id": "katon_goryuka_no_jutsu",
@@ -20513,7 +20446,10 @@
   "sensatsu_suisho": "hyoton_senbon",
   "mizudeppo_no_jutsu": "water_gun",
   "suiton_goshokuzame": "hoshigaki_same",
-  "teshi_sendan": "bone_bullets"
+  "teshi_sendan": "bone_bullets",
+  "katon_karyu_endan": "katon_karyuu",
+  "sarutobi_karyu": "katon_karyuu",
+  "sarutobi_karyu_endan": "katon_karyuu"
  },
  "kusanagi_kuchi": {
   "id": "kusanagi_kuchi",
@@ -21095,44 +21031,6 @@
   "kinjutsu": false,
   "series": "Naruto Shippūden",
   "meaning": "Hoshigaki"
- },
- "sarutobi_karyu_endan": {
-  "id": "sarutobi_karyu_endan",
-  "name": "Katon: Karyū Endan",
-  "name_en": "Fire Release: Fire Dragon Flame Bullet",
-  "cost": 39,
-  "cd": 12.6,
-  "element": "katon",
-  "elements": [
-   "katon"
-  ],
-  "natures": [
-   "katon"
-  ],
-  "clan": "sarutobi",
-  "level": 18,
-  "rank": 2,
-  "learn": "clan",
-  "desc": "Ağızdan kıvrılan alev ejderi seli; yolundaki her şeyi yakar.",
-  "seals": [
-   "Hitsuji",
-   "Uma",
-   "Mi",
-   "Tatsu",
-   "Ne",
-   "Ushi",
-   "Tora"
-  ],
-  "canon_rank": "B",
-  "tier": 3,
-  "category": "ninjutsu",
-  "shape": "beam",
-  "range": "Short, Mid",
-  "requires": {},
-  "signature": false,
-  "kinjutsu": false,
-  "series": "Naruto Part I",
-  "meaning": "Sarutobi"
  },
  "hatake_raiju_tsuiga": {
   "id": "hatake_raiju_tsuiga",

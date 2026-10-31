@@ -29295,29 +29295,80 @@ func p_makyo_hyosho(c: Node3D, t: Node3D) -> void:
 			c.global_position = gp(home.global_position)
 		if mdl:
 			mdl.visible = false)
-	every(dur, 0.2, func(i, _k):
-		if mirrors.is_empty() or not live(c) or i < 2:
+	# aynadaki yansıma: 3B klon değil — aynanın düzlemine yassılaşmış, yarı saydam soluk mavi görüntü; aynadan aynaya geçer
+	var refl: CharacterModel = null
+	if mdl and "look" in mdl:
+		refl = CharacterModel.new()
+		get_tree().current_scene.add_child(refl)
+		refl.setup(mdl.look)
+		for mi in refl.find_children("*", "GeometryInstance3D", true, false):
+			mi.transparency = 0.3
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		refl.visible = false
+	var hop = mirrors.slice(0, 18)   # alt iki halka (dik aynalar)
+	var st0 = {"m": null}
+	every(dur, 0.32, func(i, _k):
+		if not live(c) or i < 1:
 			return
-		var m = mirrors[randi() % (mirrors.size() - 1)]
+		var m = hop[randi() % hop.size()]
+		if m == st0["m"] or not is_instance_valid(m):
+			m = hop[(hop.find(m) + 3) % hop.size()]
 		if not is_instance_valid(m):
 			return
-		var from = m.global_position
+		st0["m"] = m
 		var tgt = at + Vector3.UP
 		var list = enemies_near(c, at, 4.5)
 		if not list.is_empty():
 			tgt = list[randi() % list.size()].global_position + Vector3.UP
-		# kullanıcının yansıması aynada belirir ve senbon fırlatır
-		if randf() < 0.5:
-			var img = decoy(c, from - Vector3.UP * 1.0, 0.3)
-			if is_instance_valid(img):
-				img.look_at(Vector3(tgt.x, img.global_position.y, tgt.z), Vector3.UP)
-		VFX.star(from, Color(0.85, 0.95, 1.0), 0.7)
-		for q in 3:
-			var off = Vector3(randf_range(-0.3, 0.3), randf_range(-0.3, 0.3), randf_range(-0.3, 0.3))
-			WindFX.streak(func(u: float) -> Vector3: return (from + off).lerp(tgt + off * 0.3, u), 0.1, 0.025, Color(0.95, 0.97, 1.0), 0.0, 5)
-		for e in list:
-			st(e, "slow", 0.4)
-			e.take_hit(inf(c, "makyo_hyosho", 0.18, {"knock": 0.0, "kind": "light", "element": "hyoton", "bleed": 1.0})), func():
+		var mb: Basis = m.global_transform.basis.orthonormalized()
+		var hand = m.global_position - mb.z * 0.1 + Vector3.UP * 0.2
+		if refl and is_instance_valid(refl):
+			# yansıma bu aynada belirir (parıltıyla), aynanın içinde fırlatma hareketi yapar
+			refl.visible = true
+			refl.global_transform = Transform3D(mb.rotated(mb.y, PI) * Basis.from_scale(Vector3(1, 1, 0.08)) * float(refl.age_scale), m.global_position - mb.y * 1.12 + mb.z * 0.02)
+			refl.play("throw", 0.03, 1.8, true)
+			for mi in refl.find_children("*", "GeometryInstance3D", true, false):
+				mi.transparency = 0.9
+				mi.create_tween().tween_property(mi, "transparency", 0.3, 0.08)
+			hand = refl.global_position + Vector3.UP * 1.3 - mb.z * 0.1
+			# aynanın içinde yansımanın ardında soluk mavi parıltı (görüntü aynada okunur)
+			var gl = MeshInstance3D.new()
+			var q = QuadMesh.new()
+			q.size = Vector2(1.5, 2.2)
+			gl.mesh = q
+			gl.material_override = VFX._glow_sprite_mat(VFX._radial_tex(Color(0.85, 0.95, 1.0, 0.9), Color(0.6, 0.85, 1.0, 0.0)))
+			gl.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			scene_add(gl, m.global_position + mb.z * 0.04)
+			fade_free(gl, 0.3, 0.12)
+		FX.burst(m.global_position, {"amount": 10, "life": 0.25, "tex": FX.tex_spark, "add": true, "size": 0.25, "radius": 0.8, "vmin": 0.5, "vmax": 1.5,
+			"colors": [Color(1, 1, 1, 1), Color(0.8, 0.93, 1.0, 0.6), Color(0.7, 0.9, 1.0, 0)]})
+		# fırlatma: aynadan fırlayan gümüş senbon iğneleri (ince parlak çizgi + iz), ortadakine saplanır
+		after(0.12, func():
+			if not live(c):
+				return
+			for q in 4:
+				var off = Vector3(randf_range(-0.25, 0.25), randf_range(-0.2, 0.2), randf_range(-0.25, 0.25))
+				var p0 = hand + off * 0.4
+				var p1 = tgt + off
+				var nd = MeshInstance3D.new()
+				var cm = CylinderMesh.new()
+				cm.top_radius = 0.0; cm.bottom_radius = 0.018; cm.height = 0.55; cm.radial_segments = 4
+				nd.mesh = cm
+				nd.material_override = _flat_glow(Color(0.92, 0.96, 1.0))
+				nd.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				scene_add(nd, p0)
+				nd.look_at(p1, Vector3.UP if absf((p1 - p0).normalized().y) < 0.95 else Vector3.RIGHT)
+				nd.rotate_object_local(Vector3.RIGHT, -PI * 0.5)
+				var tw = nd.create_tween()
+				tw.tween_property(nd, "global_position", p1, 0.13 + q * 0.02)
+				tw.tween_callback(nd.queue_free)
+				WindFX.streak(func(u: float) -> Vector3: return p0.lerp(p1, u), 0.1, 0.02, Color(0.95, 0.97, 1.0), 0.0, 5)
+			for e in list:
+				st(e, "slow", 0.4)
+				e.take_hit(inf(c, "makyo_hyosho", 0.16, {"knock": 0.0, "kind": "light", "element": "hyoton", "bleed": 1.0}))
+			Sfx.play("clink", tgt, 1.4, 0.4)), func():
+		if refl and is_instance_valid(refl):
+			refl.queue_free()
 		for m in mirrors:
 			if is_instance_valid(m):
 				IceArt.shatter(get_tree(), m.global_position - Vector3.UP * 0.6, 0.7, 4)

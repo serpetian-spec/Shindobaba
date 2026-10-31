@@ -58,6 +58,10 @@ func _ready() -> void:
 	if style in TUBE:
 		_tube = MeshInstance3D.new()
 		_tube.mesh = _tim
+		# tüp gövdeye boyuna (kuyruk tarafından / çıkış noktasından) bakınca kenar aşınması tüm gövdeyi siliyordu
+		if mat is ShaderMaterial and mat.shader and mat.shader.resource_path.ends_with("vfx_fire.gdshader"):
+			mat = mat.duplicate()
+			mat.set_shader_parameter("fres_k", 0.5)
 		_tube.material_override = mat
 		_tube.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		_tube.extra_cull_margin = 400.0
@@ -179,7 +183,7 @@ func _build_tube(pts: Array) -> void:
 	var rings: Array = []
 	for i in n:
 		var k = float(i) / maxf(1.0, count - 1)
-		var r = radius * (1.0 - k * 0.85) * _alpha
+		var r = radius * (1.0 - k * 0.72) * _alpha
 		# baş tarafı boyna doğru incelir, kafaya oturur
 		if i < 2:
 			r *= 0.75 + i * 0.12
@@ -223,7 +227,7 @@ func _style_fx(pts: Array, dt: float) -> void:
 	_fx_t -= dt
 	if _fx_t > 0.0 or pts.size() < 3 or VFX.busy():
 		return
-	_fx_t = 0.07
+	_fx_t = 0.045 if style == "fire" else 0.07
 	var p: Vector3 = pts[randi_range(1, pts.size() - 1)][0]
 	match style:
 		"water":

@@ -16,6 +16,7 @@ uniform float swirl = 1.2;
 uniform float wobble = 0.12;
 uniform vec3 flow = vec3(0.0, 1.0, 0.0);   // nesne uzayında akış yönü
 uniform float alpha_cut = 0.0;      // >0: tüm kütleyi eritir (sönme animasyonu)
+uniform float fres_k = 1.0;         // <1: kenar aşınması zayıf (boyuna bakılan tüp gövdeler kaybolmasın)
 
 varying vec3 lp;
 
@@ -42,7 +43,7 @@ void vertex() {
 }
 
 void fragment() {
-	float fres = 1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0);
+	float fres = (1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0)) * fres_k;
 	vec3 p = lp * scale;
 	float a = TIME * swirl;
 	p.xz = mat2(vec2(cos(a), sin(a)), vec2(-sin(a), cos(a))) * p.xz;
