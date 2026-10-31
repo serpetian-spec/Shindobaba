@@ -776,6 +776,18 @@ static func _shell_offset(code: int) -> float:
 	return {10: 0.014, 11: 0.02, 12: 0.022, 13: 0.014, 14: 0.01, 20: 0.012, 21: 0.022, 22: 0.018, 23: 0.01}.get(code, 0.0)
 
 
+## Ten rengini geçici boyar (Sekiz Kapı kızarması, lanet mührü...): k=0 normal, 1 = tamamen col
+func set_skin_tint(col: Color, k: float) -> void:
+	if body_mesh == null:
+		return
+	var pal = _palette()
+	if k > 0.0:
+		pal[0] = Color(pal[0]).lerp(col, clampf(k, 0.0, 1.0))
+	var m = body_mesh.get_surface_override_material(0)
+	if m is ShaderMaterial:
+		m.set_shader_parameter("pal", pal)
+
+
 func _palette() -> PackedColorArray:
 	var L = look
 	var vest = L["vest"] if L["vest"] != null else L["top"]
