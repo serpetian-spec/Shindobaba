@@ -3075,24 +3075,34 @@ func c_jigokuzuki(c: Node3D, t: Node3D) -> void:
 
 
 # ================================================================== İKAZUCHİ — Ranton (fırtına)
+## Ranton lazeri (anime Darui): kameraya dönük ışın şeridi — beyaz-sıcak merkez, mavi hâle; şimşek gibi dallanmaz
 func _laser(a: Vector3, b: Vector3, w := 0.3, dur := 0.3) -> void:
-	tether(func(): return a, func(): return b, w, glow(Color(0.75, 0.9, 1.0)), dur)
-	VFX.bolt(a, b, Color(0.5, 0.75, 1.0), w * 0.5, dur, 1)
+	LightRibbon.spawn([a, a.lerp(b, 0.5), b], maxf(0.5, w * 3.0), maxf(0.25, dur), Color(0.45, 0.72, 1.0))
+	FX.light(b, Color(0.6, 0.85, 1.0), 3.0, 7.0, dur)
 
 
 ## Lazer Sirki: ellerden çıkan sekiz ışın kıvrılarak ayrı hedeflere bükülür
 func c_ranton_reiza_sakasu(c: Node3D, t: Node3D) -> void:
 	var list = enemies_near(c, c.global_position, 35.0)
-	busy(c, 0.6)
-	for k in 12:   # Darui: avuçlardan çıkıp bükülerek hedeflere yönelen bir sirk dolusu parlak ışın
+	busy(c, 0.9)
+	var hand = Jutsu._hand(c)
+	var fwd_d = Jutsu._aim(c, t)
+	var side = fwd_d.cross(Vector3.UP).normalized()
+	for k in 12:
 		var target = list[k % list.size()] if not list.is_empty() else null
-		var d = (Jutsu._aim(c, t) + Vector3(randf_range(-0.9, 0.9), randf_range(0.2, 0.9), randf_range(-0.9, 0.9))).normalized()
-		var core = MeshInstance3D.new()
-		core.mesh = VFX._sphere(0.32, 8, 6)
-		core.material_override = glow(Color(0.85, 0.95, 1.0))
-		var pr = shot(c, Jutsu._hand(c), d, 40.0, core, inf(c, "ranton_reiza_sakasu", 0.3, {"knock": 4.0, "kind": "heavy", "element": "ranton", "stun": 0.4}), target, true, 1.6)
-		pr.homing_turn = 6.0
-		Projectile.trail(pr, [Color(1, 1, 1), Color(0.6, 0.85, 1.0), Color(0.3, 0.5, 1.0, 0)], 0.9, 40, 0.5, null, true)
+		var end = (target.global_position + Vector3.UP * 1.0) if target else hand + (fwd_d + side * randf_range(-0.5, 0.5) + Vector3.UP * randf_range(-0.1, 0.3)).normalized() * 26.0
+		# anime: ışınlar avuçtan yelpaze gibi açılıp kavis çizerek hedefe kıvrılır
+		var mid = hand.lerp(end, 0.45) + side * ((k - 5.5) * 1.6 + randf_range(-0.6, 0.6)) + Vector3.UP * (1.0 + (k % 4) * 1.8)   # yelpaze: her ışın ayrı kavis
+		var tt = target
+		var e2 = end
+		Jutsu.get_tree().create_timer(0.08 + k * 0.03).timeout.connect(func():
+			if not is_instance_valid(c):
+				return
+			LightRibbon.spawn(LightRibbon.curve(Jutsu._hand(c), e2, mid, 20), 0.42, 0.6, Color(0.4, 0.68, 1.0))
+			FX.light(e2, Color(0.6, 0.85, 1.0), 4.0, 8.0, 0.3)
+			if tt and is_instance_valid(tt) and not tt.is_dead():
+				tt.take_hit(inf(c, "ranton_reiza_sakasu", 0.3, {"knock": 4.0, "kind": "heavy", "element": "ranton", "stun": 0.4})))
+	FX.light(hand, Color(0.8, 0.92, 1.0), 6.0, 10.0, 0.6)
 	Sfx.play("chidori", c.global_position, 1.7)
 
 
@@ -3106,7 +3116,7 @@ func c_ikazuchi_reiza_ame(c: Node3D, t: Node3D) -> void:
 		var p = (list[randi() % list.size()].global_position if not list.is_empty() and randf() < 0.6 else center + Vector3(randf_range(-9, 9), 0, randf_range(-9, 9)))
 		_laser(p + Vector3(randf_range(-3, 3), 14.0, randf_range(-3, 3)), p + Vector3.UP * 0.2, 0.25, 0.2)
 		hit(c, p + Vector3.UP * 0.8, 1.4, inf(c, "ikazuchi_reiza_ame", 0.12, {"knock": 2.0, "element": "ranton"}))
-		FX.ring(p + Vector3.UP * 0.1, Color(0.7, 0.9, 1.0), 2.0, 0.2))
+		FX.burst(p + Vector3.UP * 0.2, {"amount": 8, "life": 0.25, "tex": FX.tex_spark, "size": 1.0, "vmin": 6, "vmax": 12, "colors": [Color(1, 1, 1, 1), Color(0.55, 0.8, 1.0, 0)]}))
 	Sfx.play("thunder", center, 1.1)
 
 
@@ -3114,10 +3124,7 @@ func c_ikazuchi_reiza_ame(c: Node3D, t: Node3D) -> void:
 func c_ikazuchi_koga(c: Node3D, t: Node3D) -> void:
 	var d = fwd(c, t)
 	var hound = JutsuEngine.shape_mesh("beast", Color(0.55, 0.8, 1.0), 1.5, "ranton")
-	var arcs = Arcs.new()
-	arcs.color = Color(0.7, 0.9, 1.0)
-	arcs.radius = 1.0
-	hound.add_child(arcs)
+	hound.add_child(VFX.storm_orb(1.2))
 	var pr = shot(c, gp(c.global_position + d) + Vector3.UP * 0.9, d, 26.0, hound, inf(c, "ikazuchi_koga", 1.1, {"knock": 8.0, "kind": "heavy", "element": "ranton", "stun": 1.2}), tg(c, t, 30.0), false, 2.2)
 	var st0 = {"t": 0.0}
 	var side = d.cross(Vector3.UP)
@@ -3155,8 +3162,7 @@ func c_ikazuchi_kosen(c: Node3D, t: Node3D) -> void:
 	for k in 9:
 		var f = k / 8.0
 		pts.append(a.lerp(mid, f).lerp(mid.lerp(b, f), f))
-	for k in pts.size() - 1:
-		_laser(pts[k], pts[k + 1], 0.35, 0.35)
+	LightRibbon.spawn(pts, 1.0, 0.5, Color(0.45, 0.72, 1.0))
 	hit(c, b, 1.6, inf(c, "ikazuchi_kosen", 1.8, {"knock": 8.0, "kind": "heavy", "element": "ranton", "stun": 0.8, "hitstop": 0.08}))
 	FX.impact(b, Color(0.7, 0.9, 1.0), 1.4)
 	Sfx.play("chidori", a, 1.9)

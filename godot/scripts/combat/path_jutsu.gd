@@ -17888,7 +17888,7 @@ func p_ranton_reiza_sakasu(c: Node3D, t: Node3D) -> void:
 	for side in ["RightHand", "LeftHand"]:
 		var ba = bone_attach(c, side)
 		if ba:
-			ba.add_child(VFX.element_core("raiton", Color(0.8, 0.92, 1.0), 0.4))
+			ba.add_child(VFX.storm_orb(0.4))
 			after(1.0, func():
 				if is_instance_valid(ba):
 					ba.queue_free())
@@ -17942,8 +17942,7 @@ func p_ikazuchi_koga(c: Node3D, t: Node3D) -> void:
 		after(0.2 + k * 0.12, func():
 			if live(c):
 				var p = c.global_position + c.face_dir() * (3.0 + k * 2.5) + Vector3.UP * 0.6
-				VFX.splash(p, 0.8)
-				VFX.bolt(p, p + Vector3(randf_range(-1.5, 1.5), randf_range(0.2, 1.5), randf_range(-1.5, 1.5)), STORM, 0.12, 0.15, 1))
+				_laser(p, p + Vector3(randf_range(-1.5, 1.5), randf_range(0.2, 1.5), randf_range(-1.5, 1.5)), 0.12 * 2.0, 0.15 + 0.15))
 
 
 ## Gök Gürültüsü Bulutu: içinde mavi şimşekler çakan kara bulut kütlesi (referans)
@@ -17953,7 +17952,7 @@ func p_ikazuchi_raiun(c: Node3D, t: Node3D) -> void:
 		var q = at + Vector3(randf_range(-4, 4), randf_range(2.5, 5.0), randf_range(-4, 4))
 		VFX.puffs(q, {"amount": 4, "life": 1.2, "size": 2.0, "radius": 1.0, "vmin": 0.2, "vmax": 0.6, "dir": Vector3.UP, "spread": 90.0, "add": false,
 			"colors": [Color(0.08, 0.08, 0.1, 0.9), Color(0.05, 0.05, 0.07, 0)]})
-		VFX.bolt(q, q + Vector3(randf_range(-2, 2), randf_range(-1, 1), randf_range(-2, 2)), STORM, 0.1, 0.15, 2), Callable())
+		_laser(q, q + Vector3(randf_range(-2, 2), randf_range(-1, 1), randf_range(-2, 2)), 0.1 * 2.0, 0.15 + 0.15), Callable())
 	c_ikazuchi_raiun(c, t)
 
 
@@ -17961,7 +17960,7 @@ func p_ikazuchi_kosen(c: Node3D, t: Node3D) -> void:
 	for side in ["RightHand", "LeftHand"]:
 		var ba = bone_attach(c, side)
 		if ba:
-			ba.add_child(VFX.element_core("raiton", STORM, 0.3))
+			ba.add_child(VFX.storm_orb(0.3))
 			after(0.8, func():
 				if is_instance_valid(ba):
 					ba.queue_free())
@@ -19925,15 +19924,14 @@ func p_ikazuchi_ranton_kyu(c: Node3D, t: Node3D) -> void:
 			return
 		var from = hand_pos(c, true)
 		var orb = Node3D.new()
-		orb.add_child(VFX.water_ball(0.8))
-		orb.add_child(VFX.lightning_ball(0.9, STORM))
-		var pr = shot(c, from, aim_at(c, tt, from), 26.0, orb, inf(c, "ikazuchi_ranton_kyu", 1.4, {"knock": 8.0, "kind": "heavy", "element": "raiton", "stun": 0.5}), tt, false, 1.6, func(p, _h):
+		orb.add_child(VFX.storm_orb(1.4))
+		var pr = shot(c, from, aim_at(c, tt, from), 26.0, orb, inf(c, "ikazuchi_ranton_kyu", 1.4, {"knock": 8.0, "kind": "heavy", "element": "ranton", "stun": 0.5}), tt, false, 1.6, func(p, _h):
 			for k in 8:
 				var a = k * TAU / 8.0
-				VFX.bolt(p, p + Vector3(cos(a), randf_range(-0.3, 0.6), sin(a)) * 4.0, STORM, 0.15, 0.3, 2)
-			VFX.splash(p, 2.0)
-			hit(c, p, 4.0, inf(c, "ikazuchi_ranton_kyu", 0.6, {"knock": 6.0, "kind": "heavy", "element": "raiton"})))
-		_etrail(pr, "raiton", STORM, 0.8))
+				_laser(p, p + Vector3(cos(a), randf_range(-0.3, 0.6), sin(a)) * 4.0, 0.15 * 2.0, 0.3 + 0.15)
+			FX.light(p, Color(0.6, 0.85, 1.0), 5.0, 12.0, 0.3)
+			hit(c, p, 4.0, inf(c, "ikazuchi_ranton_kyu", 0.6, {"knock": 6.0, "kind": "heavy", "element": "ranton"})))
+		Projectile.trail(pr, [Color(1, 1, 1, 1), Color(0.55, 0.8, 1.0, 0.7), Color(0.4, 0.65, 1.0, 0)], 1.2, 40, 0.4, null, true))
 	Sfx.play("thunder", c.global_position, 1.3)
 
 
@@ -19952,13 +19950,13 @@ func p_ikazuchi_kaminari_ryu(c: Node3D, t: Node3D) -> void:
 			b.add("sphere", Vector3(0, sin(k) * 0.3, -0.3 - k * 0.6), Vector3(0.7 - k * 0.07, 0.6 - k * 0.06, 0.8), Color.WHITE)
 		for sx in [-1.0, 1.0]:
 			b.add("cone", Vector3(sx * 0.3, 0.45, 0.6), Vector3(0.1, 0.5, 0.1), Color.WHITE, Vector3(-50, 0, sx * 20), 4)
-		var dr = mesh_of(b, VFX.mat_bolt(STORM, 2.0))
-		var pr = shot(c, at, aim_at(c, tt, at), 24.0, dr, inf(c, "ikazuchi_kaminari_ryu", 2.4, {"knock": 14.0, "launch": 4.0, "kind": "heavy", "element": "raiton", "stun": 1.0}), tt, false, 2.0, func(p, _h):
-			impact_fx("raiton", STORM, p, 2.2)
+		var dr = mesh_of(b, VFX.mat_storm())
+		var pr = shot(c, at, aim_at(c, tt, at), 24.0, dr, inf(c, "ikazuchi_kaminari_ryu", 2.4, {"knock": 14.0, "launch": 4.0, "kind": "heavy", "element": "ranton", "stun": 1.0}), tt, false, 2.0, func(p, _h):
+			JutsuEngine.impact_for("ranton", p, STORM, 2.2)
 			VFX.cracks(gp(p), 6.0))
 		every(2.0, 0.05, func(_i, _k):
 			if is_instance_valid(pr):
-				VFX.bolt(pr.global_position, pr.global_position + Vector3(randf_range(-2, 2), randf_range(-1, 2), randf_range(-2, 2)), STORM, 0.12, 0.1, 1), Callable()))
+				_laser(pr.global_position, pr.global_position + Vector3(randf_range(-2, 2), randf_range(-1, 2), randf_range(-2, 2)), 0.12 * 2.0, 0.1 + 0.15), Callable()))
 	Sfx.play("thunder", c.global_position, 0.8)
 
 
@@ -19974,12 +19972,12 @@ func p_ikazuchi_arashi_kabe(c: Node3D, _t: Node3D) -> void:
 			var p1 = posts[k] + Vector3.UP * (0.5 + (i % 3) * 1.0)
 			var p2 = posts[(k + 1) % 8] + Vector3.UP * (0.5 + ((i + 1) % 3) * 1.0)
 			if (i + k) % 2 == 0:
-				VFX.bolt(p1, p2, STORM, 0.1, 0.14, 1)
+				_laser(p1, p2, 0.1 * 2.0, 0.14 + 0.15)
 		if i % 4 == 0:
 			for e in enemies_near(c, at, 8.0):
 				if e.global_position.distance_to(at) > 5.5:
 					st(e, "stun", 0.5)
-					e.take_hit(inf(c, "ikazuchi_arashi_kabe", 0.35, {"knock": 6.0, "kind": "light", "element": "raiton"})), Callable())
+					e.take_hit(inf(c, "ikazuchi_arashi_kabe", 0.35, {"knock": 6.0, "kind": "light", "element": "ranton"})), Callable())
 	Sfx.play("thunder", at, 1.0)
 
 
