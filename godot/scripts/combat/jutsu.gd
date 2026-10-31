@@ -448,21 +448,21 @@ func j_fuuton_daitoppa(c: Node3D, t: Node3D) -> void:
 	d.y = clampf(d.y, -0.2, 0.3)
 	Sfx.play("wind", c.global_position)
 	var mo = _mouth(c)
-	FX.burst(mo + d, {"amount": 70, "life": 0.5, "tex": FX.tex_spark, "size": 3.0, "vmin": 25, "vmax": 40,
-		"dir": d, "spread": 18.0, "radius": 0.8, "damp": 2.0, "colors": [Color(1, 1, 1, 0.9), Color(0.75, 1.0, 0.85, 0.5), Color(0.7, 1, 0.9, 0)]})
-	_wind_cone(mo + d * 0.5, d, 14.0, 4.5, 0.45)
-	VFX.puffs(mo + d * 9.0, {"amount": 14, "life": 0.6, "size": 2.2, "radius": 2.0, "vmin": 10, "vmax": 18, "dir": d, "spread": 25.0, "damp": 3.0,
-		"outline_col": Color(0.4, 0.55, 0.5), "colors": [Color(0.95, 1, 0.97, 1), Color(0.85, 0.98, 0.92, 0.6), Color(0.8, 0.95, 0.9, 0)]})
+	# Daitoppa: ağızdan patlayan geniş fırtına — iki dalga akım çizgisi, yerde kalkan toz seli, savrulan yaprak/çakıl
+	WindFX.gust(mo + d * 0.4, d, 16.0, 9.0, {"n": 26, "speed": 38.0, "lift": 0.4})
+	get_tree().create_timer(0.14).timeout.connect(func(): WindFX.gust(mo + d * 0.4, d, 18.0, 11.0, {"n": 18, "speed": 34.0, "leaves": false}))
 	if c is Player:
 		VFX.screen_lines(0.35, 0.7, Color(0.92, 1.0, 0.96))
 	for k in 5:
 		var pos = c.global_position + Vector3.UP * 1.2 + d * (2.0 + k * 2.4)
-		FX.ring(pos, Color(0.8, 1.0, 0.9), 3.0 + k * 1.2, 0.3, true, d)
 		Combat.hit_sphere(c, pos, 1.5 + k * 0.5, {"dmg": 12.0 * m, "element": "fuuton", "knock": 22.0, "launch": 3.0, "kind": "heavy", "dir": d, "hitstop": 0.05})
 
 
 ## Ağızdan/elden ileri fırlayan saydam, kırılan hava konisi
 func _wind_cone(from: Vector3, d: Vector3, length: float, width: float, dur: float) -> void:
+	# görünür koni yapay duruyordu: organik rüzgâr hamlesi (akım çizgileri + toz + yaprak)
+	WindFX.gust(from, d, length, width, {"n": int(clampf(10 + width * 1.5, 12, 28)), "speed": maxf(30.0, length / maxf(0.3, dur))})
+	return
 	length *= VFX.epic
 	width *= VFX.epic
 	var cm = CylinderMesh.new()
@@ -497,8 +497,7 @@ func j_fuuton_shinkuu(c: Node3D, t: Node3D) -> void:
 			pr.info = {"dmg": 7.0 * m, "element": "fuuton", "knock": 4.0, "kind": "light", "hitstop": 0.02}
 			pr.add_child(VFX.wind_ball(1.1))
 			pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
-				VFX.shockwave(pos, Color(0.9, 1, 0.95), 3.5, 0.22, false)
-				VFX.star(pos, Color(0.85, 1.0, 0.92), 1.6, 0.12)
+				WindFX.blast(pos, 2.2, 10, WindFX.LINE, false)
 			get_tree().current_scene.add_child(pr)
 			pr.global_position = _mouth(c)
 			VFX.element_trail(pr, "fuuton", Color(0.8, 1, 0.9), 0.9))
@@ -515,10 +514,8 @@ func j_fuuton_rasenshuriken(c: Node3D, t: Node3D) -> void:
 	pr.homing_turn = 2.0
 	pr.info = {"dmg": 20.0 * m, "element": "fuuton", "knock": 4.0, "kind": "heavy", "hitstop": 0.05}
 	pr.add_child(VFX.rasengan(1.5))
-	# dört kollu rüzgar bıçağı diski (kırılan hava + beyaz çizgiler)
-	var disc = VFX._mi(VFX._sphere(0.5, 32, 8), VFX.mat_wind(Color(0.85, 0.97, 1.0), 14.0, 4.0, Vector3.UP, 0.95))
-	disc.scale = Vector3(6.0, 0.22, 6.0)
-	pr.add_child(disc)
+	# bıçakların etrafında çığlık atan rüzgâr: dönen akım çizgileri (saydam disk yerine)
+	WindFX.bullet(pr, 4.2)
 	for k in 4:
 		var bl = VFX._mi(VFX._sphere(0.5, 12, 6), VFX.mat_spiral(Color(1, 1, 1), Color(0.55, 0.85, 1.0), 2.0, 1.0, 10.0, 1.4))
 		bl.scale = Vector3(0.7, 0.12, 3.0)
@@ -528,16 +525,14 @@ func j_fuuton_rasenshuriken(c: Node3D, t: Node3D) -> void:
 	pr.spin = Vector3(0, 25, 0)
 	Sfx.play("rasengan", c.global_position, 1.4)
 	pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
+		# patlama: kubbe yerine milyonlarca rüzgâr bıçağı — yoğun girdap + her yöne kaçan akım + kalkan toz
 		var dome = Node3D.new()
-		dome.add_child(VFX.wind_ball(1.0))
-		var core2 = VFX._mi(VFX._sphere(0.5, 28, 14), VFX.mat_spiral(Color(1, 1, 1), Color(0.3, 0.6, 1.0), 8.0, 4.0, 12.0, 1.3))
-		core2.scale = Vector3.ONE * 0.75
-		dome.add_child(core2)
 		get_tree().current_scene.add_child(dome)
 		dome.global_position = pos
-		dome.scale = Vector3.ONE * 2.0
-		VFX.star(pos, Color(0.7, 0.9, 1.0), 9.0, 0.25)
-		VFX.shockwave(Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z) + 0.1, pos.z), Color(0.8, 0.95, 1.0), 26.0, 0.6)
+		WindFX.blast(pos, 12.0, 36, Color(0.92, 0.97, 1.0, 0.9))
+		WindFX.swirl(pos + Vector3.DOWN * 3.0, 6.0, 8.0, 1.2, 14, Color(0.9, 0.96, 1.0, 0.85))
+		FX.burst(pos, {"amount": 90, "life": 1.0, "tex": FX.tex_spark, "size": 2.4, "vmin": 6.0, "vmax": 14.0, "spread": 180.0, "radius": 4.0, "tangent": 30.0, "explosive": 0.3,
+			"colors": [Color(1, 1, 1, 0.0), Color(0.85, 0.95, 1.0, 0.85), Color(1, 1, 1, 0.0)]})
 		VFX.cracks(pos, 8.0)
 		VFX.debris(pos, Color(0.5, 0.42, 0.32), 20, 16.0, 0.5)
 		VFX.screen_lines(0.6, 1.0)

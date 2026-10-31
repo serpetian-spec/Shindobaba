@@ -2391,15 +2391,7 @@ func p_bashosen_kaze_no_maki(c: Node3D, t: Node3D) -> void:
 	var d = fwd(c, t)
 	bashosen_fan(c, Color(0.7, 1.0, 0.85))
 	after(0.35, func():
-		var tor = MeshInstance3D.new()
-		var cm = CylinderMesh.new()
-		cm.top_radius = 7.5
-		cm.bottom_radius = 1.4
-		cm.height = 26.0
-		cm.radial_segments = 20
-		cm.rings = 6
-		tor.mesh = cm
-		tor.material_override = VFX.mat_wind(Color(0.8, 1.0, 0.92), 9.0, 7.0, Vector3.UP, 0.8)
+		var tor = Node3D.new()   # hortumun görünmez merkezi; görüntü akım çizgisi girdabı + toz
 		var start = gp(c.global_position + d * 4.0)
 		scene_add(tor, start + Vector3.UP * 13.0)
 		Sfx.play("wind", start, 0.6)
@@ -2412,8 +2404,8 @@ func p_bashosen_kaze_no_maki(c: Node3D, t: Node3D) -> void:
 			tor.global_position = p
 			tor.rotate_y(0.6)
 			var base = p - Vector3.UP * 12.0
-			if i % 4 == 0:
-				FX.dust(base, 2.0)
+			if i % 9 == 0:
+				WindFX.swirl(base, 3.5, 20.0, 0.35, 9, Color(0.88, 1.0, 0.94, 0.85), i % 18 == 0)
 			for e in enemies_near(c, base, 6.5):
 				if live(e):
 					e.global_position = e.global_position.lerp(base + Vector3.UP * minf(10.0, 2.0 + hits.get(e, 0) * 0.4), 0.15)
@@ -4008,8 +4000,9 @@ func _etrail(pr: Projectile, el: String, col: Color, size: float) -> void:
 func impact_fx(el: String, col: Color, at: Vector3, s := 1.0) -> void:
 	var g = Vector3(at.x, Game.jutsu_floor(at.x, at.z), at.z)
 	var near_ground = at.y - g.y < 2.5
-	VFX.star(at, col.lightened(0.4), 2.2 * s, 0.18)
-	VFX.shockwave(at, col, 5.0 * s, 0.4, false, Vector3.UP)
+	if el != "fuuton":
+		VFX.star(at, col.lightened(0.4), 2.2 * s, 0.18)
+		VFX.shockwave(at, col, 5.0 * s, 0.4, false, Vector3.UP)
 	match el:
 		"katon", "bakuton", "yoton":
 			VFX.explosion(at, 1.1 * s, col)
@@ -4020,9 +4013,7 @@ func impact_fx(el: String, col: Color, at: Vector3, s := 1.0) -> void:
 			VFX.splash(at, 2.6 * s)
 			VFX.smoke_ring(g + Vector3.UP * 0.1, 3.5 * s, Color(0.75, 0.88, 1.0))
 		"fuuton":
-			VFX.shockwave(at, Color(0.9, 1, 0.95), 7.0 * s, 0.3, true)
-			VFX.smoke_ring(g + Vector3.UP * 0.1, 4.0 * s, Color(0.85, 0.8, 0.7))
-			VFX.debris(g, Color(0.7, 0.65, 0.55), int(10 * s), 8.0 * s, 0.25)
+			WindFX.blast(at, 4.0 * s, int(14 + 8 * s))
 		"raiton":
 			for k in int(8 * s):
 				VFX.bolt(at, at + Vector3(randf_range(-3, 3), randf_range(-1, 3), randf_range(-3, 3)) * s, col, 0.12 * s, 0.3, 2)
@@ -4106,23 +4097,11 @@ func p_futon_kazekiri_no_jutsu(c: Node3D, t: Node3D) -> void:
 		if not live(c):
 			return
 		var blade = Node3D.new()
-		var tm = TorusMesh.new()
-		tm.inner_radius = 1.25; tm.outer_radius = 1.45; tm.rings = 32; tm.ring_segments = 6
-		var arc = MeshInstance3D.new()
-		arc.mesh = tm
-		arc.material_override = VFX.mat_wind(Color(0.85, 1.0, 0.95), 9.0, 7.0, Vector3(1, 0, 0), 0.95)
-		arc.scale = Vector3(1.0, 0.12, 0.55)
-		arc.position = Vector3(0, 0, -0.7)
-		blade.add_child(arc)
-		var inner = MeshInstance3D.new()
-		inner.mesh = tm
-		inner.material_override = VFX.mat_bolt(Color(0.9, 1.0, 0.97), 1.4)
-		inner.scale = Vector3(0.95, 0.05, 0.5)
-		inner.position = Vector3(0, 0, -0.7)
-		blade.add_child(inner)
-		var pr = shot(c, from, aim_at(c, tt, from), 42.0, blade, inf(c, "futon_kazekiri_no_jutsu", 0.7, {"knock": 5.0, "kind": "heavy", "element": "fuuton", "bleed": 3.0}), null, true, 0.9, func(p, _h):
-			VFX.shockwave(p, WIND, 3.5, 0.25, false, Vector3.UP)
-			VFX.star(p, Color(1, 1, 1), 1.6, 0.12))
+		WindFX.bullet(blade, 1.6)
+		var ad = aim_at(c, tt, from)
+		WindFX.gust(from, ad, 24.0, 7.0, {"n": 18, "speed": 44.0})
+		var pr = shot(c, from, ad, 42.0, blade, inf(c, "futon_kazekiri_no_jutsu", 0.7, {"knock": 5.0, "kind": "heavy", "element": "fuuton", "bleed": 3.0}), null, true, 0.9, func(p, _h):
+			WindFX.blast(p, 3.0, 12, WindFX.LINE, false))
 		pr.radius = 1.0
 		VFX.element_trail(pr, "fuuton", WIND, 1.6)
 		Projectile.trail(pr, [Color(1, 1, 1, 0.5), Color(0.8, 1, 0.92, 0.25), Color(0.7, 0.95, 0.85, 0)], 1.2, 20, 0.3, FX.tex_smoke, false))
@@ -4172,6 +4151,17 @@ func p_okasho(c: Node3D, t: Node3D) -> void:
 
 ## Akış (su seli / rüzgâr seli): ağızdan büyüyerek uzanan, akan dokulu koni; uçta sıçrama/toz; dur sonra söner
 func stream_fx(from: Vector3, d: Vector3, length: float, radius: float, mat: Material, dur: float, end_fx := Callable()) -> void:
+	# rüzgâr: saydam koni yerine organik hamle (akım çizgileri, toz, yaprak) — görünür şekil yok
+	if mat is ShaderMaterial and mat.shader != null and mat.shader.resource_path.ends_with("vfx_wind.gdshader"):
+		var tint: Color = mat.get_shader_parameter("tint")
+		var dusty = tint.b < tint.r - 0.1   # kumlu/toprak tonlu rüzgâr (Ressenpū, Mugen Sajin): bol toz
+		WindFX.gust(from, d.normalized(), length, radius * 2.0, {"n": int(clampf(8 + radius * 3.0, 10, 26)), "dust": Color(tint.r, tint.g, tint.b) if dusty else null,
+			"speed": maxf(30.0, length / maxf(0.3, dur * 0.8))})
+		if dur > 0.5:
+			after(dur * 0.45, func(): WindFX.gust(from, d.normalized(), length, radius * 2.0, {"n": int(clampf(6 + radius * 2.0, 8, 18)), "leaves": false, "dust": false}))
+		if end_fx.is_valid():
+			after(0.22, func(): end_fx.call(from + d * length))
+		return
 	var root = Node3D.new()
 	get_tree().current_scene.add_child(root)
 	root.global_position = from
@@ -4418,18 +4408,10 @@ func p_kamaitachi_no_jutsu(c: Node3D, t: Node3D) -> void:
 		for k in 12:
 			after(k * 0.04, func():
 				var q = c.global_position + d * (3.0 + k * 1.8) + d.cross(Vector3.UP) * randf_range(-4.0, 4.0)
-				var cut = MeshInstance3D.new()
-				var bm = BoxMesh.new()
-				bm.size = Vector3(3.0, 0.04, 0.08)
-				cut.mesh = bm
-				cut.material_override = VFX.mat_bolt(Color(0.92, 1, 0.97), 1.6)
-				get_tree().current_scene.add_child(cut)
-				cut.global_position = q + Vector3.UP * randf_range(0.4, 2.6)
-				cut.rotation = Vector3(0, atan2(d.x, d.z) + PI * 0.5, randf_range(-0.8, 0.8))
-				var tw = cut.create_tween()
-				tw.tween_property(cut, "scale", Vector3(1.4, 1, 1), 0.12)
-				tw.tween_property(cut, "scale", Vector3(0.01, 1, 1), 0.2)
-				tw.tween_callback(cut.queue_free)
+				var cp = q + Vector3.UP * randf_range(0.4, 2.6)
+				var sd2 = d.cross(Vector3.UP).normalized().rotated(d, randf_range(-0.8, 0.8))
+				var bw = randf_range(0.4, 0.9)
+				WindFX.streak(func(u: float) -> Vector3: return cp + sd2 * lerpf(-1.8, 1.8, u) + d * sin(u * PI) * bw, 0.12, 0.05, Color(1, 1, 1, 0.95), 0.0, 10)
 				VFX.cracks(gp(q), 1.5, Color(0.15, 0.12, 0.1, 0.8), 5.0))
 		Combat.hit_zone(c, c.global_position, d, 24.0, 30.0, 4.0, inf(c, "kamaitachi_no_jutsu", 1.3, {"knock": 18.0, "launch": 4.0, "kind": "heavy", "element": "fuuton", "bleed": 4.0, "dir": d}))
 		shake(0.6))
@@ -4440,25 +4422,16 @@ func p_kamaitachi_no_jutsu(c: Node3D, t: Node3D) -> void:
 func p_juha_sho(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.2)
 	var at = c.global_position
-	var root = Node3D.new()
-	get_tree().current_scene.add_child(root)
-	root.global_position = at
-	for k in 2:
-		var mi = MeshInstance3D.new()
-		var cm = CylinderMesh.new()
-		cm.top_radius = 3.2 - k * 0.6; cm.bottom_radius = 1.0 - k * 0.2; cm.height = 6.0; cm.radial_segments = 24
-		mi.mesh = cm
-		mi.material_override = _windmat(0.6 - k * 0.15)
-		mi.position = Vector3.UP * 3.0
-		root.add_child(mi)
-		var spin = mi.create_tween().set_loops()
-		spin.tween_property(mi, "rotation:y", TAU * (1 if k == 0 else -1), 0.45).from(0.0)
-	root.scale = Vector3(0.2, 0.05, 0.2)
-	var tw = root.create_tween()
-	tw.tween_property(root, "scale", Vector3.ONE, 0.25)
-	tw.tween_interval(0.9)
-	tw.tween_property(root, "scale", Vector3(1.4, 0.05, 1.4), 0.3)
-	tw.tween_callback(root.queue_free)
+	# kabuk yok: çevresinde yükselen mavimsi girdap + yatay savrulan hilal akımlar
+	WindFX.swirl(at, 3.2, 5.5, 1.2, 10, Color(0.8, 0.92, 1.0, 0.9))
+	for k in 3:
+		after(k * 0.3, func():
+			var a0 = randf() * TAU
+			for i in 4:
+				var a = a0 + i * TAU / 4.0
+				WindFX.streak(func(q: float) -> Vector3:
+					var aa = a + q * 2.2
+					return at + Vector3(cos(aa), 0, sin(aa)) * lerpf(1.2, 4.5, q) + Vector3.UP * (1.0 + sin(q * PI) * 0.6), 0.32, 0.14, Color(0.7, 0.88, 1.0, 0.9), i * 0.03, 16))
 	VFX.smoke_ring(at + Vector3.UP * 0.1, 6.0, Color(0.85, 0.8, 0.7))
 	every(1.2, 0.15, func(_i, _k):
 		VFX.debris(at, Color(0.75, 0.68, 0.55), 4, 8.0, 0.25)
@@ -4470,8 +4443,7 @@ func p_juha_sho(c: Node3D, t: Node3D) -> void:
 func p_futon_hanachiri_mai(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.0)
 	var d = fwd(c, t)
-	var petal = VFX.mat_wind(Color(1.0, 0.75, 0.85), 7.0, 5.0, Vector3(0, 1, 0), 0.5)
-	stream_fx(c.global_position + Vector3.UP * 1.2, d, 14.0, 3.0, petal, 0.6)
+	WindFX.gust(c.global_position + Vector3.UP * 1.2, d, 14.0, 6.0, {"n": 16, "speed": 26.0, "col": Color(1.0, 0.9, 0.95, 0.75), "dust": false, "leaves": false})
 	var petals = [Color(1.0, 0.7, 0.8), Color(1.0, 0.88, 0.92), Color(0.95, 0.55, 0.7)]
 	for k in 8:
 		after(k * 0.07, func():
@@ -6932,16 +6904,15 @@ func p_futon_atsugai(c: Node3D, t: Node3D) -> void:
 	VFX.gather(_mouth_pos(c), WIND, 1.5)
 	after(0.3, func():
 		stream_fx(_mouth_pos(c), (at - _mouth_pos(c)).normalized(), _mouth_pos(c).distance_to(at), 1.4, _windmat(0.7), 0.3)
-		var orb = VFX.wind_ball(1.0)
+		var orb = Node3D.new()
 		get_tree().current_scene.add_child(orb)
 		orb.global_position = at
+		WindFX.swirl(gp(at), 4.5, 6.0, 1.0, 14)   # basınç toplanır
 		var tw = orb.create_tween()
-		tw.tween_property(orb, "scale", Vector3.ONE * 9.0, 0.5).set_trans(Tween.TRANS_QUAD)
-		tw.tween_interval(0.5)
-		tw.tween_property(orb, "scale", Vector3.ONE * 11.0, 0.2)
+		tw.tween_interval(1.2)
 		tw.tween_callback(func():
-			VFX.shockwave(at, WIND, 14.0, 0.5, false)
-			VFX.smoke_ring(gp(at) + Vector3.UP * 0.1, 12.0, Color(0.85, 0.8, 0.7))
+			WindFX.blast(at, 14.0, 40)
+			VFX.smoke_ring(gp(at) + Vector3.UP * 0.1, 12.0, WindFX.dust_col(at))
 			VFX.debris(gp(at), EARTH, 40, 12.0, 0.5)
 			VFX.cracks(gp(at), 8.0)
 			orb.queue_free())
@@ -7078,21 +7049,9 @@ func p_futon_shinku_taigyoku(c: Node3D, t: Node3D) -> void:
 func p_futon_shinkuha(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.7)
 	var at = c.global_position + Vector3.UP * 1.0
-	for k in 3:
-		after(k * 0.1, func():
-			var rm = MeshInstance3D.new()
-			var tm = TorusMesh.new()
-			tm.inner_radius = 0.9; tm.outer_radius = 1.0; tm.rings = 48; tm.ring_segments = 4
-			rm.mesh = tm
-			rm.material_override = _windmat(0.85)
-			rm.scale = Vector3(1, 0.3, 1)
-			get_tree().current_scene.add_child(rm)
-			rm.global_position = at + Vector3.UP * (k * 0.2)
-			var tw = rm.create_tween()
-			tw.tween_property(rm, "scale", Vector3(9.0, 0.3, 9.0), 0.45).set_trans(Tween.TRANS_QUAD)
-			tw.tween_callback(rm.queue_free))
-	_arc_cut(at, c.face_dir(), 0.0, 360.0, Color(0.9, 1, 0.95), 3.0)
-	VFX.smoke_ring(gp(at) + Vector3.UP * 0.1, 9.0, Color(0.85, 0.8, 0.7))
+	WindFX.blast(at, 9.0, 30)
+	after(0.12, func(): WindFX.blast(at, 7.0, 16, WindFX.LINE, false))
+	VFX.smoke_ring(gp(at) + Vector3.UP * 0.1, 9.0, WindFX.dust_col(at))
 	after(0.12, func():
 		mhit(c, at, 8.0, inf(c, "futon_shinkuha", 1.1, {"knock": 14.0, "kind": "heavy", "element": "fuuton", "bleed": 3.0})))
 	Sfx.play("wind", at, 0.8)
@@ -7105,17 +7064,7 @@ func p_futon_shinkujin(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.6)
 	var ba = bone_attach(c, "RightHand")
 	if ba:
-		for k in 3:
-			var rm = MeshInstance3D.new()
-			var tm = TorusMesh.new()
-			tm.inner_radius = 0.18 + k * 0.08; tm.outer_radius = 0.22 + k * 0.08; tm.rings = 24; tm.ring_segments = 4
-			rm.mesh = tm
-			rm.material_override = VFX.mat_bolt(Color(0.6, 1.0, 0.75), 1.6)
-			rm.position = Vector3(0, 0, 0.25 + k * 0.25)
-			rm.rotation.x = PI * 0.5
-			ba.add_child(rm)
-			var sp = rm.create_tween().set_loops()
-			sp.tween_property(rm, "rotation:z", TAU, 0.2).from(0.0)
+		WindFX.bullet(ba, 0.9)
 		after(0.6, func():
 			if is_instance_valid(ba):
 				ba.queue_free())
@@ -8388,6 +8337,8 @@ func p_nadeshiko_ryu_koha_reppuken(c: Node3D, t: Node3D) -> void:
 		anim(c, "cross", 1.6)
 		var at = c.global_position + Vector3.UP * 1.2 + c.face_dir() * 1.2
 		stream_fx(at, c.face_dir(), 5.0, 1.6, _windmat(0.7), 0.2)
+		WindFX.blast(at + c.face_dir() * 1.2, 4.5, 18)
+		VFX.debris(gp(at + c.face_dir() * 2.0), WindFX.dust_col(at).darkened(0.3), 16, 10.0, 0.45)
 		mhit(c, at, 2.0, inf(c, "nadeshiko_ryu_koha_reppuken", 1.5, {"knock": 18.0, "kind": "heavy", "element": "fuuton"}))
 		Sfx.play("punch", at, 0.9))
 
@@ -9865,14 +9816,7 @@ func p_futon_rasengan(c: Node3D, t: Node3D) -> void:
 	if ba:
 		var r = VFX.rasengan(0.45, Color(0.3, 0.65, 1.0), Color(0.9, 0.97, 1.0))
 		ba.add_child(r)
-		var ring = MeshInstance3D.new()
-		var tm = TorusMesh.new()
-		tm.inner_radius = 0.5; tm.outer_radius = 0.75; tm.rings = 32; tm.ring_segments = 4
-		ring.mesh = tm
-		ring.material_override = _windmat(0.8)
-		ring.scale = Vector3(1, 0.15, 1)
-		ba.add_child(ring)
-		ring.create_tween().set_loops().tween_property(ring, "rotation:y", TAU, 0.15).from(0.0)
+		WindFX.bullet(ba, 1.2)
 		after(1.0, func():
 			if is_instance_valid(ba):
 				ba.queue_free())
@@ -9884,7 +9828,8 @@ func p_futon_rasengan(c: Node3D, t: Node3D) -> void:
 			if not live(c):
 				return
 			var at = c.global_position + Vector3.UP * 1.2 + d * 1.2
-			stream_fx(at, d, 6.0, 2.2, VFX.mat_spiral(Color(1, 1, 1), Color(0.3, 0.65, 1.0), 6.0, 4.0, 12.0, 1.6, Vector3(0, 1, 0)), 0.3)
+			WindFX.gust(at, d, 9.0, 4.0, {"n": 16, "speed": 40.0, "col": Color(0.85, 0.94, 1.0, 0.9)})
+			WindFX.blast(at + d * 1.5, 3.5, 16, Color(0.85, 0.94, 1.0, 0.9))
 			impact_fx("fuuton", Color(0.6, 0.85, 1.0), at, 1.6)
 			mhit(c, at, 2.4, inf(c, "futon_rasengan", 2.0, {"knock": 22.0, "launch": 4.0, "kind": "heavy", "element": "fuuton", "bleed": 3.0}))
 			Sfx.play("wind", at, 0.9)))
@@ -10574,19 +10519,16 @@ func p_kaze_no_yaiba(c: Node3D, t: Node3D) -> void:
 			return
 		var from = hand_pos(c, true)
 		var end = (tt.global_position + Vector3.UP if tt else from + d * 14.0)
-		var line = MeshInstance3D.new()
-		var bm = BoxMesh.new()
-		bm.size = Vector3(0.06, 0.6, from.distance_to(end))
-		line.mesh = bm
-		line.material_override = _windmat(0.8)
-		get_tree().current_scene.add_child(line)
-		line.global_position = (from + end) * 0.5
-		line.look_at(end, Vector3.UP)
-		var tw = line.create_tween()
-		tw.tween_property(line, "rotation:z", 0.6, 0.25)
-		tw.parallel().tween_property(line, "scale", Vector3(1, 1, 1.05), 0.25)
-		tw.tween_property(line, "scale", Vector3(0.01, 0.01, 1), 0.2)
-		tw.tween_callback(line.queue_free)
+		# görünmez kılıç: parmaklardan hedefe uzanan ince, keskin hava çizgileri (kutu yerine)
+		var dl = end - from
+		var sd = dl.cross(Vector3.UP).normalized()
+		for k in 5:
+			var off = randf_range(-0.12, 0.12)
+			var bow = randf_range(-0.35, 0.35)
+			WindFX.streak(func(q: float) -> Vector3: return from + dl * q + sd * (off + sin(q * PI) * bow) + Vector3.UP * off,
+				0.14, randf_range(0.03, 0.06), Color(1, 1, 1, 0.9), k * 0.02, 12)
+		FX.burst(from, {"amount": 18, "life": 0.25, "tex": FX.tex_spark, "size": 1.4, "vmin": 40.0, "vmax": 60.0, "dir": dl.normalized(), "spread": 3.0, "radius": 0.1,
+			"colors": [Color(1, 1, 1, 0.0), Color(1, 1, 1, 0.8), Color(1, 1, 1, 0.0)]})
 		if tt:
 			_arc_cut(tt.global_position + Vector3.UP, d, -50.0, 50.0, Color(0.9, 1, 0.95), 1.4)
 			mhit(c, tt.global_position + Vector3.UP, 1.6, inf(c, "kaze_no_yaiba", 1.6, {"knock": 4.0, "kind": "heavy", "element": "fuuton", "bleed": 5.0}))
@@ -10831,19 +10773,14 @@ func p_mini_rasenshuriken(c: Node3D, t: Node3D) -> void:
 			var pm = PrismMesh.new()
 			pm.size = Vector3(0.3, 0.9, 0.03)
 			bl.mesh = pm
-			bl.material_override = _windmat(0.85)
+			bl.material_override = glow(Color(0.94, 0.98, 1.0), 0.9)
 			bl.rotation = Vector3(PI * 0.5, k * PI * 0.5, 0)
 			bl.position = Vector3(cos(k * PI * 0.5), 0, sin(k * PI * 0.5)) * 0.55
 			core.add_child(bl)
+		WindFX.bullet(core, 1.3)
 		var pr = shot(c, from, aim_at(c, tt, from), 28.0, core, inf(c, "mini_rasenshuriken", 0.6, {"knock": 4.0, "kind": "heavy", "element": "fuuton"}), tt, false, 1.6, func(p, _h):
-			var orb = VFX.wind_ball(1.0)
-			get_tree().current_scene.add_child(orb)
-			orb.global_position = p
-			var tw = orb.create_tween()
-			tw.tween_property(orb, "scale", Vector3.ONE * 5.0, 0.3)
-			tw.tween_interval(0.6)
-			tw.tween_property(orb, "scale", Vector3.ONE * 0.05, 0.2)
-			tw.tween_callback(orb.queue_free)
+			WindFX.blast(p, 5.0, 20, Color(0.9, 0.96, 1.0, 0.9))
+			WindFX.swirl(p + Vector3.DOWN * 1.5, 3.0, 4.0, 0.8, 12, Color(0.9, 0.96, 1.0, 0.85))
 			every(0.8, 0.1, func(_i, _k):
 				hit(c, p, 3.0, inf(c, "mini_rasenshuriken", 0.2, {"knock": 0.0, "kind": "light", "element": "fuuton", "bleed": 1.0})), Callable())
 			shake(0.5))
@@ -14255,18 +14192,13 @@ const RIKUDO := Color(1.0, 0.85, 0.35)
 func _rsh_big(s: float) -> Node3D:
 	var core = Node3D.new()
 	core.add_child(VFX.rasengan(s * 0.45))
-	var disc = MeshInstance3D.new()
-	var cm = CylinderMesh.new()
-	cm.top_radius = s * 1.6; cm.bottom_radius = s * 1.6; cm.height = s * 0.06; cm.radial_segments = 32
-	disc.mesh = cm
-	disc.material_override = VFX.mat_wind(Color(0.85, 0.95, 1.0), 9.0, 10.0, Vector3.UP, 0.5)
-	core.add_child(disc)
+	WindFX.bullet(core, s * 2.6)
 	for k in 4:
 		var bl = MeshInstance3D.new()
 		var pm = PrismMesh.new()
 		pm.size = Vector3(s * 0.6, s * 1.8, s * 0.05)
 		bl.mesh = pm
-		bl.material_override = _windmat(0.9)
+		bl.material_override = glow(Color(0.94, 0.98, 1.0), 0.9)
 		bl.rotation = Vector3(PI * 0.5, k * PI * 0.5, 0)
 		bl.position = Vector3(cos(k * PI * 0.5), 0, sin(k * PI * 0.5)) * s * 1.1
 		core.add_child(bl)
@@ -14553,14 +14485,10 @@ func p_odama_rasenshuriken(c: Node3D, t: Node3D) -> void:
 		if not live(c):
 			return
 		var pr = shot(c, over, aim_at(c, tt, over), 26.0, _rsh_big(1.6), inf(c, "odama_rasenshuriken", 2.0, {"knock": 10.0, "kind": "heavy", "element": "fuuton"}), tt, false, 2.0, func(p, _h):
-			var dome = VFX.wind_ball(1.0)
-			get_tree().current_scene.add_child(dome)
-			dome.global_position = p
-			var tw2 = dome.create_tween()
-			tw2.tween_property(dome, "scale", Vector3.ONE * 18.0, 0.4).set_trans(Tween.TRANS_QUAD)
-			tw2.tween_interval(1.0)
-			tw2.tween_property(dome, "scale", Vector3.ONE * 0.1, 0.3)
-			tw2.tween_callback(dome.queue_free)
+			WindFX.blast(p, 16.0, 40, Color(0.92, 0.97, 1.0, 0.9))
+			WindFX.swirl(gp(p), 8.0, 12.0, 1.4, 16, Color(0.9, 0.96, 1.0, 0.85))
+			FX.burst(p, {"amount": 120, "life": 1.2, "tex": FX.tex_spark, "size": 3.0, "vmin": 8.0, "vmax": 18.0, "spread": 180.0, "radius": 6.0, "tangent": 34.0, "explosive": 0.25,
+				"colors": [Color(1, 1, 1, 0.0), Color(0.85, 0.95, 1.0, 0.85), Color(1, 1, 1, 0.0)]})
 			impact_fx("fuuton", Color(0.7, 0.9, 1.0), p, 3.0)
 			VFX.cracks(gp(p), 12.0)
 			every(1.4, 0.2, func(_i, _k):
@@ -17889,7 +17817,8 @@ func p_fuuton_shinkuu(c: Node3D, t: Node3D) -> void:
 	for k in 4:
 		after(k * 0.12, func():
 			if live(c):
-				VFX.shockwave(_mouth_pos(c) + c.face_dir() * 0.5, Color(0.9, 1.0, 0.95), 1.6, 0.18, false, c.face_dir()))
+				FX.burst(_mouth_pos(c) + c.face_dir() * 0.4, {"amount": 10, "life": 0.18, "tex": FX.tex_spark, "size": 0.9, "vmin": 10.0, "vmax": 18.0, "dir": c.face_dir(), "spread": 25.0,
+					"colors": [Color(1, 1, 1, 0.0), Color(1, 1, 1, 0.8), Color(1, 1, 1, 0.0)]}))
 
 
 ## Şimşek Akıntısı: bedenden yere yayılan şimşek kolları ve zemin çatlakları

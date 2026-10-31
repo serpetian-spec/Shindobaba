@@ -258,13 +258,9 @@ static func water_ball(size := 1.0) -> Node3D:
 ## Rüzgar küresi: kırılan hava kabuğu + iç beyaz spiral
 static func wind_ball(size := 1.0) -> Node3D:
 	size *= epic
+	# saydam küre kabuk yapay duruyordu: dönen akım çizgileri + soluk çekirdek (WindFX)
 	var root = Node3D.new()
-	var shell = _mi(_sphere(0.5, 24, 12), mat_wind(Color(0.8, 1.0, 0.92), 8.0, 5.0, Vector3(0, 0, 1)))
-	shell.scale = Vector3.ONE * size
-	root.add_child(shell)
-	var sp = _mi(_sphere(0.5, 20, 10), mat_spiral(Color(1, 1, 1), Color(0.5, 0.9, 0.75), 4.0, 2.5, 8.0, 1.3, Vector3(0, 0, 1)))
-	sp.scale = Vector3.ONE * size * 0.7
-	root.add_child(sp)
+	WindFX.bullet(root, size)
 	return root
 
 
