@@ -863,8 +863,28 @@ static func linger(pos: Vector3, el: String, col: Color, g: float, dur := 3.0) -
 	root.global_position = gp
 	var n = 2 + int(g * 1.5)
 	match el:
-		"katon", "yoton", "shakuton", "bakuton":
-			var pr = "lava" if el == "yoton" else fire_preset_for(col)
+		"yoton":
+			# lav: alev dili değil, yerde parlayan akışkan lav birikintisi + kararan kabuk + yavaş kabarcıklar
+			var lava = mat_water(Color(0.35, 0.06, 0.02), Color(1.0, 0.42, 0.08), Color(1.0, 0.85, 0.4), Vector3.UP, 0.6, 0.7, 0.05)
+			var pool = _mi(_sphere(0.5, 20, 6), lava)
+			pool.scale = Vector3(2.6 * g, 0.12, 2.6 * g)
+			root.add_child(pool)
+			for k in n:
+				var bub = _mi(_sphere(0.5, 8, 6), lava)
+				var a = randf() * TAU
+				bub.position = Vector3(cos(a), 0.05, sin(a)) * randf_range(0.2, 1.0) * g
+				bub.scale = Vector3.ONE * 0.05
+				root.add_child(bub)
+				var tb = bub.create_tween().set_loops(int(dur / 0.9) + 1)
+				tb.tween_interval(randf() * 0.6)
+				tb.tween_property(bub, "scale", Vector3.ONE * randf_range(0.25, 0.45) * g, 0.4)
+				tb.tween_property(bub, "scale", Vector3.ONE * 0.05, 0.15)
+			var tw = pool.create_tween()
+			tw.tween_interval(dur * 0.7)
+			tw.tween_property(pool, "scale", Vector3(2.6 * g, 0.04, 2.6 * g), dur * 0.3)
+			cracks(gp, 2.2 * g, Color(0.08, 0.04, 0.02, 0.9), dur + 3.0)
+		"katon", "shakuton", "bakuton":
+			var pr = fire_preset_for(col)
 			for k in n:
 				var m = mat_fire(pr, 2.6, 2.4, 0.5, 1.15, 0.15, Vector3.UP, true)
 				m.set_shader_parameter("tongue", 0.7)

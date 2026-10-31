@@ -461,3 +461,56 @@ for _j in ['mokuton_mokujin_no_jutsu', 'mokuton_mokuryu_no_jutsu', 'mokuton_kaju
 # Ōtsutsuki içeriği Ōtsutsuki bölümüne kadar öğrenilemez (kod duruyor)
 for _j in ['tomogoroshi_no_haikotsu']:
     EXTRA.setdefault(_j, {})['learn'] = 'locked:otsutsuki'
+# --- kekkei genkai videoları (m-W6X1V4a-g, Guren, Yōton, Pakura, Deidara, Zabuza & Haku)
+VIDEO_JUTSU += [
+    ('shoton_suisho_toge', 'Shōton: Suishō Toge (Kristal Dikenler)', 'Crystal Release: Growing Crystal Thorns', 'shoton', 3, 'projectile', 'kg:shoton', '',
+     'Atılan kunainin izi boyunca yerden sırayla kristal dikenler fışkırır, değdiğini havaya savurur.', ['Ne', 'Mi']),
+    ('shoton_suisho_meikyu', 'Shōton: Suishō Meikyū (Yeşim Kristal Labirenti)', 'Crystal Release: Jade Crystal Labyrinth', 'shoton', 5, 'field', 'kg:shoton', '',
+     'Tek bir kristal çiçek açar ve dev kızıl kristal kubbeye dönüşür: içindekiler kaybolur, yavaşlar ve yansımalardan yara alır.', ['Tora', 'I', 'Mi']),
+    ('shoton_kurenai_no_kajitsu', 'Shōton: Kurenai no Kajitsu (Kızıl Meyve)', 'Crystal Release: Crimson Fruit', 'shoton', 4, 'projectile', 'kg:shoton', '',
+     'Avuçta açan çiçek kristal meyveye döner; fırlatılınca patlar ve çevresine kristal kıymıklar saçar.', ['Mi', 'Tori']),
+    ('shoton_shuriken_ranbu', 'Shōton: Shuriken Ranbu (Kristal Şuriken Çılgın Dansı)', 'Crystal Release: Wild Dance of Shuriken', 'shoton', 3, 'projectile', 'kg:shoton', '',
+     'Kristal şurikenler kurdele gibi bedeninin etrafında döner, sonra her yöne fırlar.', ['Tori']),
+    ('shoton_suisho_yari', 'Shōton: Suishō Yari (Kristal Mızrak)', 'Crystal Release: Crystal Lance', 'shoton', 4, 'projectile', 'kg:shoton', '',
+     'Elde uzun bir kristal mızrak büyür ve fırlatılır: hattı deler, çarptığı yerde kristal patlar.', ['Mi']),
+    ('shoton_suisho_hado', 'Shōton: Suishō Hadō (Kristal Hapis Dalgası)', 'Crystal Release: Crystal Imprisonment Wave', 'shoton', 4, 'bind', 'kg:shoton', '',
+     'Savrulan kristal tozu ileri yayılır; değdiği düşmanlar altıgen kristallerin içine hapsolur.', ['Tora', 'Mi']),
+    ('shoton_suishoheki_hachi_no_jin', 'Shōton: Suishōheki Hachi no Jin (Kristal Duvar Sekizli Düzen)', 'Crystal Release: Crystal Wall Eight Formation', 'shoton', 4, 'wall', 'kg:shoton', '',
+     'Çevrende sekiz dev kristal sütun yükselir: 6 sn korur, yaklaşanı keser.', ['Ushi', 'Mi']),
+    ('shoton_suisho_hari', 'Shōton: Suishō Hari (Kristal İğneler)', 'Crystal Release: Crystal Needles', 'shoton', 3, 'projectile', 'kg:shoton', '',
+     'İnce kristal iğne yağmuru; isabet ettiği yerde kristal kümeleri büyür.', ['Mi']),
+    ('shoton_hasho_koryu', 'Shōton: Hashō Kōryū (Kırık Kristal İnen Ejder)', 'Crystal Release: Burst Crystal Falling Dragon', 'shoton', 5, 'projectile', 'kg:shoton', '',
+     'Pembe kristalden bir ejder kıvrılarak hedefe dalar, çarptığı yeri kristalle kaplar.', ['Tatsu', 'Mi', 'Tora']),
+    ('shoton_suisho_sharin', 'Shōton: Suishō Sharin (Kristal Çark)', 'Crystal Release: Crystal Wheel', 'shoton', 3, 'projectile', 'kg:shoton', '',
+     'Önünde dikey kristal çark belirir ve dönerek ileri yuvarlanır; yolundakileri biçer.', ['Mi']),
+    ('shoton_suisho_jinheki', 'Shōton: Suishō Jinheki (Kristal Kale Duvarı)', 'Crystal Release: Crystal Encampment Wall', 'shoton', 4, 'bind', 'kg:shoton', '',
+     'Hedefin çevresinden dev kızıl kristal sırtları yükselir ve onu sıkıştırır.', ['Ushi', 'Mi']),
+    ('shoton_omiwatari', 'Shōton: Omiwatari no Jutsu (Tanrının Geçidi)', 'Crystal Release: Divine Pathway Technique', 'shoton', 4, 'projectile', 'kg:shoton', '',
+     'Yere vurulan elden hedefe doğru kristal sırtı koşar; yolundakileri kristale gömer.', ['Mi', 'Tori']),
+    ('shoton_isshi_komyo', 'Shōton: Isshi Kōmyō (Işığın Tek İpliği)', 'Crystal Release: Arrow of Light', 'shoton', 5, 'beam', 'kg:shoton', '',
+     'Kendini parlak kristal sekizyüzlüye kapatırsın; tepesinden odaklanmış ışık hüzmesi fırlar.', ['Mi', 'Tora', 'Tori']),
+    ('yoton_gomu_heki', 'Yōton: Gomu Heki (Lastik Duvar)', 'Lava Release: Rubber Wall', 'yoton', 3, 'wall', 'kg:yoton', '',
+     'Ağızdan akan lav lastik gibi kabarıp önünde esnek bir duvar örer; çarpanı geri sektirir.', ['Tora', 'Ushi']),
+    ('yoton_gomudama', 'Yōton: Gomudama (Lastik Küre)', 'Lava Release: Rubber Sphere', 'yoton', 3, 'bind', 'kg:yoton', '',
+     'Hedefi lastik bir topun içine hapsedersin: 3 sn çıkamaz.', ['Tora', 'I']),
+    ('yoton_gomu_kosoku', 'Yōton: Gomu Kōsoku (Lastik Yapışma)', 'Lava Release: Rubber Attachment', 'yoton', 3, 'projectile', 'kg:yoton', '',
+     'Yapışkan lastik damlaları hedefe yapışır, yavaşlatır; sonra şişip patlar.', ['Tora']),
+    ('shakuton_daijohappa', 'Shakuton: Daijōhappa (Büyük Buharlaştırıcı Patlama)', 'Scorch Release: Great Steaming Explosive Blast', 'shakuton', 5, 'aoe', 'kg:shakuton', '',
+     'Kavurucu küreler tek dev küreye birleşir ve patlar: alandaki her şeyin suyunu buharlaştırır.', ['Tora', 'Uma', 'Mi']),
+    ('kibaku_jirai', 'Shī Tsū: Kibaku Jirai (C2 Patlayıcı Mayın Yağmuru)', 'C2: Detonating Mine', 'bakuton', 3, 'trap', 'path:kil', '',
+     'Havada beliren C2 ejderinin ağzından onlarca küçük kil mayın yağar; 15 sn içinde yaklaşan düşmanın altında patlar.', []),
+    ('shi_tsu_bakuretsu_hiryu', 'Shī Tsū: Bakuretsu Hiryū (C2 Patlayan Uçan Ejder)', 'C2: Exploding Flying Dragon', 'bakuton', 4, 'projectile', 'path:kil', '',
+     'Kil ejder havalanıp hedefe dalar ve büyük bir patlamayla yok olur.', ['Tora']),
+    ('nendo_kawarimi', 'Nendo Kawarimi (Kil Yer Değiştirme)', 'Clay Substitution', 'bakuton', 2, 'counter', 'path:kil', '',
+     'Yerinde kil kopya bırakıp geriye kaçarsın; kopya yaklaşanın yüzüne patlar.', ['Ne', 'Mi']),
+    ('makyo_hyosho', 'Hijutsu: Makyō Hyōshō (Şeytani Buz Aynaları)', 'Secret Technique: Demonic Mirroring Ice Crystals', 'hyoton', 5, 'field', 'clan', '',
+     'Hedefin çevresinde buz aynalardan kubbe kurulur; aynadan aynaya geçen yansımaların senbon yağmuru.', ['Hitsuji', 'Ne']),
+]
+EXTRA.setdefault('makyo_hyosho', {}).update({'clan': 'yuki', 'level': 18})
+EXTRA['hyoton_spears'] = {'name_en': 'Ice Release: Icicles'}
+EXTRA['shakuton_kajosatsu'] = {'learn': 'kg:shakuton'}
+EXTRA['kakazan'] = {'learn': 'beast:son_goku', 'need': 'beast:son_goku'}
+for _j in ['shoton_suisho_toge', 'shoton_suisho_meikyu', 'shoton_kurenai_no_kajitsu', 'shoton_shuriken_ranbu', 'shoton_suisho_yari', 'shoton_suisho_hado',
+           'shoton_suishoheki_hachi_no_jin', 'shoton_suisho_hari', 'shoton_hasho_koryu', 'shoton_suisho_sharin', 'shoton_suisho_jinheki', 'shoton_omiwatari',
+           'shoton_isshi_komyo', 'yoton_gomu_heki', 'yoton_gomudama', 'yoton_gomu_kosoku', 'shakuton_daijohappa', 'makyo_hyosho']:
+    EXTRA.setdefault(_j, {})['category'] = 'kekkei_genkai'

@@ -3084,15 +3084,15 @@ func _laser(a: Vector3, b: Vector3, w := 0.3, dur := 0.3) -> void:
 func c_ranton_reiza_sakasu(c: Node3D, t: Node3D) -> void:
 	var list = enemies_near(c, c.global_position, 35.0)
 	busy(c, 0.6)
-	for k in 8:
+	for k in 12:   # Darui: avuçlardan çıkıp bükülerek hedeflere yönelen bir sirk dolusu parlak ışın
 		var target = list[k % list.size()] if not list.is_empty() else null
-		var d = (Jutsu._aim(c, t) + Vector3(randf_range(-0.8, 0.8), randf_range(0.2, 0.8), randf_range(-0.8, 0.8))).normalized()
+		var d = (Jutsu._aim(c, t) + Vector3(randf_range(-0.9, 0.9), randf_range(0.2, 0.9), randf_range(-0.9, 0.9))).normalized()
 		var core = MeshInstance3D.new()
-		core.mesh = VFX._sphere(0.25, 8, 6)
+		core.mesh = VFX._sphere(0.32, 8, 6)
 		core.material_override = glow(Color(0.85, 0.95, 1.0))
 		var pr = shot(c, Jutsu._hand(c), d, 40.0, core, inf(c, "ranton_reiza_sakasu", 0.3, {"knock": 4.0, "kind": "heavy", "element": "ranton", "stun": 0.4}), target, true, 1.6)
 		pr.homing_turn = 6.0
-		Projectile.trail(pr, [Color(1, 1, 1), Color(0.6, 0.85, 1.0), Color(0.3, 0.5, 1.0, 0)], 0.5, 40, 0.35, null, true)
+		Projectile.trail(pr, [Color(1, 1, 1), Color(0.6, 0.85, 1.0), Color(0.3, 0.5, 1.0, 0)], 0.9, 40, 0.5, null, true)
 	Sfx.play("chidori", c.global_position, 1.7)
 
 
