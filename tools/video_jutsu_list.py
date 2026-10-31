@@ -383,3 +383,40 @@ for _j in ['akuro_basa_batto', 'chakura_shogeki_zan', 'hadan', 'oborozukiyo', 'u
            'mifune_ichi_no_tachi_homura', 'hiken_fusetsugiri', 'nuibari_jigumo_nui', 'hiramekarei_kaiho', 'kabutowari_hakai', 'shibuki_happa_rokujushi',
            'kusanagi_sora_no_tachi', 'shunrai_konbineshon', 'chidori_koken']:
     EXTRA.setdefault(_j, {})['category'] = 'kenjutsu'
+# --- senjutsu videosu (6yrmHRNagI0)
+VIDEO_JUTSU += [
+    ('senpo_myojinmon_futo', 'Senpō: Myōjinmon — Fūtō (Bilge Sanatı: Lütufkâr Tanrı Kapısı — Baş Mührü)', 'Sage Art: Gracious Deity Gates — Head Seal', '', 4, 'bind', 'sage:any', 'sage',
+     'Tek bir torii kapısı hedefin başına iner ve onu yere çiviler: uzun bağlama. Sadece sennin modunda.', ['Tora', 'Hitsuji']),
+    ('senpo_goemon', 'Senpō: Goemon (Bilge Sanatı: Kaynar Yağ Banyosu)', 'Sage Art: Bath of Boiling Oil', 'katon+fuuton', 5, 'aoe', 'sage:any', 'sage',
+     'Senin ateşin, yaşlı kurbağanın rüzgârı ve kurbağa yağı birleşir: önünü kaynar yağ seli kaplar, yer yanar. Kurbağa sennin modunda.', ['Tora', 'Uma']),
+    ('gama_no_hiho', 'Gama no Hihō (Kurbağaların Gizli Hazinesi)', 'Secret Treasure of the Toads', '', 3, 'heal', 'sage:any', 'sage',
+     'Yaşlı kurbağanın şifa mührü açılır: yeşil ışık yaraları kapatır (canın %35\'i). Kurbağa sennin modunda.', []),
+    ('senpo_ranton_koga', 'Senpō: Ranton Kōga (Bilge Sanatı: Fırtına — Işığın Dişi)', 'Sage Art: Storm Release: Light Fang', 'raiton+suiton', 5, 'beam', 'sage:any', 'sage',
+     'Ellerden çıkan mor ışık hüzmeleri bükülerek hedefe saplanır. Raiton ve suiton bilmek gerekir; Altı Yol sennin gücüyle.', ['Ne', 'Mi']),
+    ('senpo_inton_raiha', 'Senpō: Inton Raiha (Bilge Sanatı: Gölge — Şimşek Dalgası)', 'Sage Art: Yin Release: Lightning Dispatch', 'raiton', 5, 'aoe', 'sage:any', 'sage',
+     'İki parmaktan karanlık mor şimşek fırtınası yayılır, önündeki her şeyi çarpar ve sersemletir. Altı Yol sennin gücüyle.', ['Ne']),
+    ('senrai_no_senshu', 'Senrai no Senshu (Bilge Şimşeğinin Delen Eli)', 'Drilling Hand of Sage Lightning', 'raiton', 4, 'melee', 'sage:any', 'sage',
+     'Elde sennin şimşeği toplanır; ileri atılıp tek delici el darbesiyle hedefi delersin. Sennin modunda.', ['Tatsu', 'U']),
+    ('oyako_rasengan', 'Oyako Rasengan (Ebeveyn ve Çocuk Rasengan\'ı)', 'Parent and Child Rasengan', 'fuuton', 5, 'melee', 'sage:any', 'sage',
+     'Yanında beliren klonla birlikte tek dev Rasengan\'ı tutup hedefe itersiniz. Kurbağa sennin modunda.', []),
+    ('kassokuken_isshiki', 'Kassokuken: Isshiki (Piston Yumruk: Birinci Tarz)', 'Piston Hammer: Style One', '', 4, 'melee', 'kg:senjutsu_beden', '',
+     'Kol pistonlu jet motoruna döner: ard arda iki itişli dev yumruk. Jūgo klanının doğal senjutsu bedeni.', []),
+    ('saiho_kyuin', 'Saihō Kyūin (Hücre Yenileme Emişi)', 'Cellular Regeneration Absorption', '', 4, 'melee', 'kg:senjutsu_beden', '',
+     'Tuttuğun hedefin hücrelerini emersin: canı yavaşça sana geçer. Jūgo klanı.', []),
+    ('saiho_haishutsu', 'Saihō Haishutsu (Hücre Yenileme Aktarımı)', 'Cellular Regeneration Ejection', '', 4, 'heal', 'kg:senjutsu_beden', '',
+     'Kendi hücrelerini yakındaki yaralı müttefike verirsin (yoksa kendini onarırsın): canın %40\'ı. Jūgo klanı.', []),
+    ('tarenpu_jirenpo', 'Tarenpū Jirenpō (Çoklu Nilüfer Bağımsız Bağlı Toplar)', 'Multiple Lotus Nonself Connected Cannons', '', 5, 'projectile', 'kg:senjutsu_beden', '',
+     'Kol çok namlulu topa döner, delikler parlayıp ard arda dokuz chakra mermisi savurur. Jūgo klanı.', []),
+    ('magen_gamarinsho', 'Magen: Gamarinshō (Şeytani İllüzyon: Kurbağa Korosu)', 'Demonic Illusion: Gamarinshō', '', 5, 'genjutsu_stun', 'sage:any', 'sage',
+     'Omuzlardaki iki yaşlı kurbağa düet söyler; şarkıyı duyan düşmanlar uzun süre illüzyonda donar. Kurbağa sennin modunda.', []),
+    ('senpo_daijarai', 'Senpō: Daijarai (Bilge Sanatı: Büyük Yılan Şimşeği)', 'Sage Art: Great Snake Lightning', 'raiton', 4, 'projectile', 'sage:any', 'sage',
+     'Yeşil sennin chakrasından yılan biçimli şimşekler kıvrılarak hedefe saldırır. Yılan sennin modunda.', ['Mi']),
+]
+for _j in ['senpo_myojinmon_futo', 'magen_gamarinsho']:
+    EXTRA.setdefault(_j, {})['category'] = 'genjutsu' if _j == 'magen_gamarinsho' else 'ninjutsu'
+EXTRA.setdefault('kassokuken_isshiki', {})['category'] = 'taijutsu'
+# videodaki sennin teknikleri: animedeki gibi yalnız sennin modunda atılır
+for _j in ['kawazu_kumite', 'kawazu_tataki', 'zessenbaku', 'zessenzan', 'mizuame_teppo', 'katon_dai_endan', 'senpo_ryosei_no_jutsu',
+           'senpo_gokashin_ensen', 'senpo_kawazu_naki', 'daijatsuki', 'senpo_muki_tensei', 'senpo_hakugeki_no_jutsu', 'senpo_myojinmon',
+           'gudodama', 'gudokasa', 'senpo_choodama_rasen_tarengan', 'senpo_yoton_rasenshuriken', 'kebari_senbon', 'senpo_mokuton_shin_susenju', 'kanzeon_renge_o']:
+    EXTRA.setdefault(_j, {})['need'] = 'sage'

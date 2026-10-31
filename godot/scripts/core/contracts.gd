@@ -409,11 +409,11 @@ static func teach_contract_arts(id: String) -> int:
 
 ## Sennin sanatlarının hangi sözleşmeye ait olduğu (boş = hepsi)
 static func _sage_art_for(jid: String) -> String:
-	if jid in ["kawazu_kumite", "kawazu_tataki", "zessenbaku", "zessenzan", "mizuame_teppo", "katon_dai_endan", "senpo_ryosei_no_jutsu", "senpo_gokashin_ensen", "sennin_modo"]:
+	if jid in ["kawazu_kumite", "kawazu_tataki", "zessenbaku", "zessenzan", "mizuame_teppo", "katon_dai_endan", "senpo_ryosei_no_jutsu", "senpo_gokashin_ensen", "sennin_modo", "senpo_goemon", "gama_no_hiho", "magen_gamarinsho", "oyako_rasengan", "senpo_kawazu_naki"]:
 		return "kurbağa"
-	if jid in ["daijatsuki", "senpo_muki_tensei", "senpo_hakugeki_no_jutsu"]:
+	if jid in ["daijatsuki", "senpo_muki_tensei", "senpo_hakugeki_no_jutsu", "senpo_daijarai"]:
 		return "yılan"
-	if jid in ["rikudo_sennin_modo", "rikudo_senjutsu", "gudodama", "gudokasa", "senpo_myojinmon"]:
+	if jid in ["rikudo_sennin_modo", "rikudo_senjutsu", "gudodama", "gudokasa", "senpo_myojinmon", "senpo_myojinmon_futo", "senpo_ranton_koga", "senpo_inton_raiha"]:
 		return "_rikudo"
 	return ""
 

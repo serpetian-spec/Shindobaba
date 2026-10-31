@@ -5958,7 +5958,8 @@
   "signature": false,
   "kinjutsu": false,
   "series": "Naruto Shippūden",
-  "meaning": "Dil Bağı"
+  "meaning": "Dil Bağı",
+  "need": "sage"
  },
  "shikoku_fuin": {
   "id": "shikoku_fuin",
@@ -6016,7 +6017,8 @@
   "signature": false,
   "kinjutsu": false,
   "series": "Naruto Shippūden",
-  "meaning": "Büyük Alev Mermisi"
+  "meaning": "Büyük Alev Mermisi",
+  "need": "sage"
  },
  "katon_bakufu_ranbu": {
   "id": "katon_bakufu_ranbu",
@@ -6866,7 +6868,8 @@
   "signature": false,
   "kinjutsu": false,
   "series": "Naruto Shippūden",
-  "meaning": "Kurbağa Kata"
+  "meaning": "Kurbağa Kata",
+  "need": "sage"
  },
  "kawazu_tataki": {
   "id": "kawazu_tataki",
@@ -6894,7 +6897,8 @@
   "signature": false,
   "kinjutsu": false,
   "series": "Naruto Shippūden",
-  "meaning": "Kurbağa Vuruşu"
+  "meaning": "Kurbağa Vuruşu",
+  "need": "sage"
  },
  "omote_renge": {
   "id": "omote_renge",
@@ -7183,7 +7187,8 @@
   "signature": false,
   "kinjutsu": false,
   "series": "Naruto Part I",
-  "meaning": "Büyük Yılan Saplaması"
+  "meaning": "Büyük Yılan Saplaması",
+  "need": "sage"
  },
  "girochin_doroppu": {
   "id": "girochin_doroppu",
@@ -7239,7 +7244,8 @@
   "signature": false,
   "kinjutsu": false,
   "series": "Naruto Shippūden",
-  "meaning": "Saç İğneleri"
+  "meaning": "Saç İğneleri",
+  "need": "sage"
  },
  "haremu_no_jutsu": {
   "id": "haremu_no_jutsu",
@@ -8179,7 +8185,8 @@
   "signature": true,
   "kinjutsu": false,
   "series": "Naruto Shippūden",
-  "meaning": "Lotus Kralı"
+  "meaning": "Lotus Kralı",
+  "need": "sage"
  },
  "kirin": {
   "id": "kirin",
@@ -10556,7 +10563,8 @@
   "signature": false,
   "kinjutsu": false,
   "series": "Naruto Shippūden",
-  "meaning": "İnorganik Reenkarnasyon"
+  "meaning": "İnorganik Reenkarnasyon",
+  "need": "sage"
  },
  "senpo_yoton_rasenshuriken": {
   "id": "senpo_yoton_rasenshuriken",
@@ -10593,7 +10601,8 @@
   "signature": true,
   "kinjutsu": true,
   "series": "Naruto Shippūden",
-  "meaning": "Lav Rasenşuriken"
+  "meaning": "Lav Rasenşuriken",
+  "need": "sage"
  },
  "senpo_jiton_rasengan": {
   "id": "senpo_jiton_rasengan",
@@ -10658,7 +10667,8 @@
   "signature": false,
   "kinjutsu": false,
   "series": "Naruto Shippūden",
-  "meaning": "Büyük Tanrı Kapısı"
+  "meaning": "Büyük Tanrı Kapısı",
+  "need": "sage"
  },
  "senpo_hakugeki_no_jutsu": {
   "id": "senpo_hakugeki_no_jutsu",
@@ -10690,7 +10700,8 @@
   "signature": false,
   "kinjutsu": false,
   "series": "Naruto Shippūden",
-  "meaning": "Beyaz Öfke"
+  "meaning": "Beyaz Öfke",
+  "need": "sage"
  },
  "sennin_modo": {
   "id": "sennin_modo",
@@ -12267,7 +12278,8 @@
   "signature": false,
   "kinjutsu": false,
   "series": "Naruto Shippūden",
-  "meaning": "Nişasta Şurubu Tabancası"
+  "meaning": "Nişasta Şurubu Tabancası",
+  "need": "sage"
  },
  "joki_boi": {
   "id": "joki_boi",
@@ -13238,7 +13250,8 @@
   "signature": false,
   "kinjutsu": false,
   "series": "Naruto Shippūden",
-  "meaning": "Arayış Topu"
+  "meaning": "Arayış Topu",
+  "need": "sage"
  },
  "tsukuyomi": {
   "id": "tsukuyomi",
@@ -15041,7 +15054,8 @@
   "signature": false,
   "kinjutsu": false,
   "series": "Naruto Shippūden",
-  "meaning": "Arayış Şemsiyesi"
+  "meaning": "Arayış Şemsiyesi",
+  "need": "sage"
  },
  "suiton_homatsu_rappa": {
   "id": "suiton_homatsu_rappa",
@@ -15449,7 +15463,8 @@
   "signature": true,
   "kinjutsu": false,
   "series": "Naruto Shippūden",
-  "meaning": "Kurbağa Çağrısı"
+  "meaning": "Kurbağa Çağrısı",
+  "need": "sage"
  },
  "senpo_ryosei_no_jutsu": {
   "id": "senpo_ryosei_no_jutsu",
@@ -15477,7 +15492,8 @@
   "signature": false,
   "kinjutsu": false,
   "series": "Naruto Shippūden",
-  "meaning": "Amfibi"
+  "meaning": "Amfibi",
+  "need": "sage"
  },
  "senpo_gokashin_ensen": {
   "id": "senpo_gokashin_ensen",
@@ -15513,7 +15529,8 @@
   "signature": false,
   "kinjutsu": false,
   "series": "Boruto",
-  "meaning": "Beş Ateş Tanrısı Yelpazesi"
+  "meaning": "Beş Ateş Tanrısı Yelpazesi",
+  "need": "sage"
  },
  "kuchiyose_sanju_rashomon": {
   "id": "kuchiyose_sanju_rashomon",
@@ -15933,7 +15950,8 @@
   "signature": true,
   "kinjutsu": false,
   "series": "Naruto Shippūden",
-  "meaning": "Gerçek Binlerce El"
+  "meaning": "Gerçek Binlerce El",
+  "need": "sage"
  },
  "yasaka_no_magatama": {
   "id": "yasaka_no_magatama",
@@ -16796,7 +16814,8 @@
   "signature": false,
   "kinjutsu": false,
   "series": "Naruto Shippūden",
-  "meaning": "Dil Kesiği"
+  "meaning": "Dil Kesiği",
+  "need": "sage"
  },
  "fuinjutsu_okutopasu_horudo": {
   "id": "fuinjutsu_okutopasu_horudo",
@@ -17258,7 +17277,8 @@
   "signature": true,
   "kinjutsu": true,
   "series": "Naruto Shippūden",
-  "meaning": "Çoklu Dev Rasengan"
+  "meaning": "Çoklu Dev Rasengan",
+  "need": "sage"
  },
  "fuinjutsu_kai": {
   "id": "fuinjutsu_kai",
@@ -29812,5 +29832,331 @@
   "shape": "melee",
   "need": "weapon:chokuto",
   "meaning": "Şimşek Işık Kılıcı"
+ },
+ "senpo_myojinmon_futo": {
+  "id": "senpo_myojinmon_futo",
+  "name": "Senpō: Myōjinmon — Fūtō",
+  "name_en": "Sage Art: Gracious Deity Gates — Head Seal",
+  "cost": 42,
+  "cd": 19.6,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "sage:any",
+  "desc": "Tek bir torii kapısı hedefin başına iner ve onu yere çiviler: uzun bağlama. Sadece sennin modunda.",
+  "seals": [
+   "Tora",
+   "Hitsuji"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "bind",
+  "need": "sage",
+  "meaning": "Bilge Sanatı: Lütufkâr Tanrı Kapısı — Baş Mührü"
+ },
+ "senpo_goemon": {
+  "id": "senpo_goemon",
+  "name": "Senpō: Goemon",
+  "name_en": "Sage Art: Bath of Boiling Oil",
+  "cost": 72,
+  "cd": 28.6,
+  "element": "katon",
+  "elements": [
+   "katon",
+   "fuuton"
+  ],
+  "natures": [
+   "katon",
+   "fuuton"
+  ],
+  "clan": "",
+  "level": 28,
+  "rank": 3,
+  "learn": "sage:any",
+  "desc": "Senin ateşin, yaşlı kurbağanın rüzgârı ve kurbağa yağı birleşir: önünü kaynar yağ seli kaplar, yer yanar. Kurbağa sennin modunda.",
+  "seals": [
+   "Tora",
+   "Uma"
+  ],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "senjutsu",
+  "shape": "aoe",
+  "need": "sage",
+  "meaning": "Bilge Sanatı: Kaynar Yağ Banyosu"
+ },
+ "gama_no_hiho": {
+  "id": "gama_no_hiho",
+  "name": "Gama no Hihō",
+  "name_en": "Secret Treasure of the Toads",
+  "cost": 28,
+  "cd": 9.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "sage:any",
+  "desc": "Yaşlı kurbağanın şifa mührü açılır: yeşil ışık yaraları kapatır (canın %35'i). Kurbağa sennin modunda.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "senjutsu",
+  "shape": "heal",
+  "need": "sage",
+  "meaning": "Kurbağaların Gizli Hazinesi"
+ },
+ "senpo_ranton_koga": {
+  "id": "senpo_ranton_koga",
+  "name": "Senpō: Ranton Kōga",
+  "name_en": "Sage Art: Storm Release: Light Fang",
+  "cost": 84,
+  "cd": 30.8,
+  "element": "raiton",
+  "elements": [
+   "raiton",
+   "suiton"
+  ],
+  "natures": [
+   "raiton",
+   "suiton"
+  ],
+  "clan": "",
+  "level": 28,
+  "rank": 3,
+  "learn": "sage:any",
+  "desc": "Ellerden çıkan mor ışık hüzmeleri bükülerek hedefe saplanır. Raiton ve suiton bilmek gerekir; Altı Yol sennin gücüyle.",
+  "seals": [
+   "Ne",
+   "Mi"
+  ],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "senjutsu",
+  "shape": "beam",
+  "need": "sage",
+  "meaning": "Bilge Sanatı: Fırtına — Işığın Dişi"
+ },
+ "senpo_inton_raiha": {
+  "id": "senpo_inton_raiha",
+  "name": "Senpō: Inton Raiha",
+  "name_en": "Sage Art: Yin Release: Lightning Dispatch",
+  "cost": 72,
+  "cd": 28.6,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "",
+  "level": 28,
+  "rank": 3,
+  "learn": "sage:any",
+  "desc": "İki parmaktan karanlık mor şimşek fırtınası yayılır, önündeki her şeyi çarpar ve sersemletir. Altı Yol sennin gücüyle.",
+  "seals": [
+   "Ne"
+  ],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "senjutsu",
+  "shape": "aoe",
+  "need": "sage",
+  "meaning": "Bilge Sanatı: Gölge — Şimşek Dalgası"
+ },
+ "senrai_no_senshu": {
+  "id": "senrai_no_senshu",
+  "name": "Senrai no Senshu",
+  "name_en": "Drilling Hand of Sage Lightning",
+  "cost": 34,
+  "cd": 11.2,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "sage:any",
+  "desc": "Elde sennin şimşeği toplanır; ileri atılıp tek delici el darbesiyle hedefi delersin. Sennin modunda.",
+  "seals": [
+   "Tatsu",
+   "U"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "senjutsu",
+  "shape": "melee",
+  "need": "sage",
+  "meaning": "Bilge Şimşeğinin Delen Eli"
+ },
+ "oyako_rasengan": {
+  "id": "oyako_rasengan",
+  "name": "Oyako Rasengan",
+  "name_en": "Parent and Child Rasengan",
+  "cost": 48,
+  "cd": 17.6,
+  "element": "fuuton",
+  "elements": [
+   "fuuton"
+  ],
+  "natures": [
+   "fuuton"
+  ],
+  "clan": "",
+  "level": 28,
+  "rank": 3,
+  "learn": "sage:any",
+  "desc": "Yanında beliren klonla birlikte tek dev Rasengan'ı tutup hedefe itersiniz. Kurbağa sennin modunda.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "senjutsu",
+  "shape": "melee",
+  "need": "sage",
+  "meaning": "Ebeveyn ve Çocuk Rasengan'ı"
+ },
+ "kassokuken_isshiki": {
+  "id": "kassokuken_isshiki",
+  "name": "Kassokuken: Isshiki",
+  "name_en": "Piston Hammer: Style One",
+  "cost": 34,
+  "cd": 11.2,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:senjutsu_beden",
+  "desc": "Kol pistonlu jet motoruna döner: ard arda iki itişli dev yumruk. Jūgo klanının doğal senjutsu bedeni.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "taijutsu",
+  "shape": "melee",
+  "meaning": "Piston Yumruk: Birinci Tarz"
+ },
+ "saiho_kyuin": {
+  "id": "saiho_kyuin",
+  "name": "Saihō Kyūin",
+  "name_en": "Cellular Regeneration Absorption",
+  "cost": 34,
+  "cd": 11.2,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:senjutsu_beden",
+  "desc": "Tuttuğun hedefin hücrelerini emersin: canı yavaşça sana geçer. Jūgo klanı.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "melee",
+  "meaning": "Hücre Yenileme Emişi"
+ },
+ "saiho_haishutsu": {
+  "id": "saiho_haishutsu",
+  "name": "Saihō Haishutsu",
+  "name_en": "Cellular Regeneration Ejection",
+  "cost": 42,
+  "cd": 14.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "kg:senjutsu_beden",
+  "desc": "Kendi hücrelerini yakındaki yaralı müttefike verirsin (yoksa kendini onarırsın): canın %40'ı. Jūgo klanı.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "heal",
+  "meaning": "Hücre Yenileme Aktarımı"
+ },
+ "tarenpu_jirenpo": {
+  "id": "tarenpu_jirenpo",
+  "name": "Tarenpū Jirenpō",
+  "name_en": "Multiple Lotus Nonself Connected Cannons",
+  "cost": 60,
+  "cd": 22.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 28,
+  "rank": 3,
+  "learn": "kg:senjutsu_beden",
+  "desc": "Kol çok namlulu topa döner, delikler parlayıp ard arda dokuz chakra mermisi savurur. Jūgo klanı.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "ninjutsu",
+  "shape": "projectile",
+  "meaning": "Çoklu Nilüfer Bağımsız Bağlı Toplar"
+ },
+ "magen_gamarinsho": {
+  "id": "magen_gamarinsho",
+  "name": "Magen: Gamarinshō",
+  "name_en": "Demonic Illusion: Gamarinshō",
+  "cost": 60,
+  "cd": 22.0,
+  "element": "",
+  "elements": [],
+  "natures": [],
+  "clan": "",
+  "level": 28,
+  "rank": 3,
+  "learn": "sage:any",
+  "desc": "Omuzlardaki iki yaşlı kurbağa düet söyler; şarkıyı duyan düşmanlar uzun süre illüzyonda donar. Kurbağa sennin modunda.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "genjutsu",
+  "shape": "genjutsu_stun",
+  "need": "sage",
+  "meaning": "Şeytani İllüzyon: Kurbağa Korosu"
+ },
+ "senpo_daijarai": {
+  "id": "senpo_daijarai",
+  "name": "Senpō: Daijarai",
+  "name_en": "Sage Art: Great Snake Lightning",
+  "cost": 42,
+  "cd": 14.0,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "sage:any",
+  "desc": "Yeşil sennin chakrasından yılan biçimli şimşekler kıvrılarak hedefe saldırır. Yılan sennin modunda.",
+  "seals": [
+   "Mi"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "senjutsu",
+  "shape": "projectile",
+  "need": "sage",
+  "meaning": "Bilge Sanatı: Büyük Yılan Şimşeği"
  }
 }
