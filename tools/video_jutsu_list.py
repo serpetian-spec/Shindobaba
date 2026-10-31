@@ -547,3 +547,26 @@ EXTRA['akahigi_hyakki_no_soen'] = {'learn': 'path:akasuna', 'clan': ''}
 for _j in ['kugutsu_hiruko', 'shikomi_shinshin_happa', 'gishu_senbon', 'sasori_doku_kemuri', 'kaen_hosha', 'suiryu_hosha', 'kugutsu_sandaime', 'senju_sobu', 'hitokugutsu',
            'kurohigi_sanshouo', 'kurohigi_kiki_sanpatsu', 'akahigi_kiki_sankaku', 'dokugiri_jigoku_baribari']:
     EXTRA.setdefault(_j, {})['category'] = 'ninjutsu'
+# --- Orochimaru (iAM-o3joZoQ) / Konan (dI99LDW2oEs) videoları
+VIDEO_JUTSU += [
+    ('hebi_saisetsugo', 'Hebi Saisetsugō (Yılan Yeniden Bağlanma)', 'Snake Reconnection Technique', '', 4, 'heal', 'path:yilan', '',
+     'Yaralı beden yılanlarla birbirine dikilir: canının %40\'ı geri gelir.', []),
+    ('sennyu_no_jutsu', 'Sennyū no Jutsu (Yüzeye Gizlenme)', 'Hiding in Surface Technique', '', 3, 'teleport', 'path:yilan', '',
+     'Bedenin yere erir; görünmeden kayıp hedefin yanından çıkar ve vurursun.', ['Mi']),
+    ('hakuja_shintai', 'Hakuja Shintai (Gerçek Form: Beyaz Yılan)', 'True Form: White Snake', '', 5, 'transform', 'path:yilan', '',
+     'Beden binlerce küçük yılandan oluşan dev beyaz yılana döner: 12 sn ezici güç ve zırh.', ['Mi', 'Tora']),
+    ('chakura_kyuin_jutsu', 'Chakura Kyūin no Jutsu (Chakra Emme)', 'Chakra Absorption Technique', '', 4, 'melee', 'path:yilan', '',
+     'Dokunduğun hedefin chakrasını kendine çekersin; hedef yavaşlar.', []),
+    ('shikokujaijin', 'Shikokujaijin (Dört Kara Yılan Düzeni)', 'Four Black Snakes Formation', '', 4, 'bind', 'path:yilan', '',
+     'Hedefin çevresinde mor chakra duvarlı kutu bariyer yükselir; 5 sn içinden çıkamaz.', ['Ne', 'Mi', 'Tori']),
+    ('hebi_nyoro', 'Hebi Nyoro (Kayan Yılan Bedeni)', 'Slithering Snake Mode', '', 3, 'rush', 'path:yilan', '',
+     'Beden yılan gibi uzayıp uzaktaki hedefe kıvrılarak çarpar ve geri toplanır.', []),
+    ('jaguchi_shibari', 'Ninpō: Jaguchi Shibari (Yılan Ağzı Tuzağı)', 'Ninja Art: Snake Mouth Trap', '', 4, 'bind', 'path:yilan', '',
+     'Hedefin çevresine dev yılanın midesini çağırırsın: et duvarları kapanır, içindeki yavaşça erir.', ['Mi', 'Hitsuji']),
+    ('satsui_no_shisen', 'Satsui no Shisen (Öldürme Niyeti)', 'Killing Intent', '', 3, 'genjutsu_stun', 'path:yilan', '',
+     'Tek bakışta önündeki düşmanlar kendi ölümlerini görür ve korkudan donar (2 sn).', []),
+    ('kami_shigure', 'Kami Shigure (Kâğıt Yağmuru)', 'Paper Drizzle', '', 3, 'aoe', 'path:kagit', '',
+     'Binlerce kâğıt yaprağı bulut olup hedefin üstüne jilet gibi yağar.', []),
+    ('kami_chakuramu', 'Kami Chakuramu (Kâğıt Çakram)', 'Paper Chakram', '', 3, 'projectile', 'path:kagit', '',
+     'Başının üstünde halka gibi katlanan kâğıt fırlatılır, dönerek keser ve geri döner.', []),
+]
