@@ -3329,10 +3329,8 @@ func c_doton_chokajugan_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 
 # ================================================================== BAKUHA — patlama
-func _clay(size: float) -> MeshInstance3D:
-	var mi = MeshInstance3D.new()
-	mi.mesh = VFX._sphere(0.5, 10, 6)
-	mi.material_override = Props.toon_color(Color(0.95, 0.94, 0.9))
+func _clay(size: float) -> Node3D:
+	var mi = ClayArt.lump(0.5)
 	mi.scale = Vector3.ONE * size
 	return mi
 

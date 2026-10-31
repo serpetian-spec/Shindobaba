@@ -1297,13 +1297,43 @@ static func storm_orb(size := 1.0) -> Node3D:
 	return root
 
 
-## Bakuton patlaması (anime Deidara): beyaz-sarı parlama + kısa sıcak çekirdek, ardından büyük gri-beyaz duman bulutu
+## Bakuton patlaması (anime Deidara C1/C3/mayın): kısa beyaz parlama → ortada turuncu-sarı ateş kubbesi (cel, koyu turuncu benekli)
+## → dışa ve yukarı açılan gri karnabahar duman halkası → uçuşan toprak/kaya → yere yakınsa yarık, kararmış iz ve yerde toz halkası.
+## Ortamı tutuşturmaz (kil patlaması: yanan zemin bırakmaz).
 static func clay_blast(pos: Vector3, s := 1.0) -> void:
-	star(pos, Color(1, 1, 0.95), 3.0 * s, 0.18)
-	FX.light(pos, Color(1.0, 0.95, 0.8), 6.0 * s, 12.0 * s, 0.25)
-	# parlama: kısa ömürlü yumuşak ışık (cel topak değil — turuncu pamuk görünmesin)
-	FX.burst(pos, {"amount": int(6 * s) + 3, "life": 0.18, "size": 2.2 * s, "radius": 0.2 * s, "vmin": 0.5, "vmax": 2.0, "dir": Vector3.UP, "spread": 180.0, "add": true, "cel": false,
+	var ep = epic
+	epic = 1.0
+	s *= ep
+	# büyük patlamada topak sayısı ve yayılım büyür, topak boyu yavaş büyür (ekranı kaplayan dev kaya gibi topaklar olmasın)
+	var z = sqrt(s)
+	var n = minf(s, 4.0)
+	star(pos, Color(1, 1, 0.95), 3.5 * s, 0.16)
+	FX.light(pos, Color(1.0, 0.8, 0.45), 9.0 * s, 18.0 * s, 0.45)
+	FX.burst(pos, {"amount": int(6 * s) + 3, "life": 0.16, "size": 3.0 * s, "radius": 0.2 * s, "vmin": 0.5, "vmax": 2.0, "dir": Vector3.UP, "spread": 180.0, "add": true, "cel": false,
 		"tex": FX.tex_soft, "colors": [Color(1, 1, 0.96, 1), Color(1.0, 0.95, 0.8, 0.5), Color(1.0, 0.9, 0.7, 0)]})
-	puffs(pos, {"amount": int(18 * s) + 6, "life": 1.7, "size": 2.1 * s, "radius": 0.8 * s, "rough": 0.22, "outline": 0.035, "vmin": 2.0 * s, "vmax": 6.0 * s, "dir": Vector3.UP, "spread": 120.0, "add": false, "damp": 2.5,
-		"outline_col": Color(0.28, 0.27, 0.29), "shade": 0.3, "colors": [Color(0.58, 0.57, 0.58, 1), Color(0.48, 0.47, 0.49, 0.95), Color(0.38, 0.37, 0.39, 0.0)]})
-	debris(pos, Color(0.45, 0.43, 0.42), int(8 * s), 8.0 * s, 0.25)
+	# ateş kubbesi: sarı merkezli turuncu cel topaklar, yavaş açılır (sprey değil kubbe)
+	puffs(pos, {"amount": int(20 * n) + 10, "life": 0.7 + 0.1 * z, "size": 1.6 * z, "radius": 0.9 * s, "vmin": 1.5, "vmax": 4.5 * s, "spread": 180.0,
+		"damp": 5.0, "gravity": Vector3(0, 2.0, 0), "spin": 40.0, "glow": 1.15, "hot": 0.6, "outline_col": Color(0.75, 0.3, 0.05), "outline": 0.03, "rough": 0.18,
+		"colors": [Color(1.0, 0.92, 0.45, 1), Color(1.0, 0.62, 0.12, 1), Color(0.95, 0.42, 0.08, 0.9), Color(0.6, 0.3, 0.1, 0)], "scale_curve": [[0.0, 0.35], [0.25, 1.0], [1.0, 0.7]]})
+	# gri duman: ateşin çevresinden dışa ve yukarı taşan karnabahar bulut (ateş söndükçe görünür)
+	var at = pos
+	scene().get_tree().create_timer(0.12).timeout.connect(func():
+		puffs(at, {"amount": int(30 * n) + 10, "life": 2.0 + 0.3 * z, "size": 1.65 * z, "radius": 1.3 * s, "vmin": 3.0 * s, "vmax": 7.5 * s, "dir": Vector3.UP, "spread": 110.0, "damp": 3.0,
+			"gravity": Vector3(0, 0.8, 0), "spin": 15.0, "rough": 0.22, "outline": 0.035, "outline_col": Color(0.28, 0.27, 0.29), "shade": 0.3,
+			"colors": [Color(0.58, 0.57, 0.58, 0.0), Color(0.58, 0.57, 0.58, 1), Color(0.48, 0.47, 0.49, 0.95), Color(0.38, 0.37, 0.39, 0.0)]}))
+	embers(pos, Color(1.0, 0.6, 0.15), int(18 * n), 16.0 * z, 0.7)
+	var g = Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z) + 0.1, pos.z)
+	var near = pos.y - g.y < 3.5 * s
+	# uçuşan toprak (yerdeyse kahverengi) ve gri kaya/kil parçaları
+	debris(pos, Color(0.42, 0.33, 0.24) if near else Color(0.55, 0.53, 0.5), int(14 * n) + 4, 13.0 * z, 0.3 * z + 0.1)
+	if near:
+		cracks(g, 4.5 * s, Color(0.08, 0.06, 0.05, 0.92), 8.0)
+		FX.dust(g, 1.6 * z)
+		puffs(g + Vector3.UP * 0.3, {"amount": int(14 * n) + 6, "life": 1.4, "size": 1.3 * z, "radius": 0.6 * s, "vmin": 6.0 * z, "vmax": 10.0 * z, "dir": Vector3.UP, "spread": 88.0, "damp": 4.0,
+			"gravity": Vector3(0, -1.0, 0), "rough": 0.22, "outline": 0.035, "outline_col": Color(0.32, 0.27, 0.22),
+			"colors": [Color(0.55, 0.47, 0.38, 0.0), Color(0.55, 0.47, 0.38, 0.9), Color(0.5, 0.43, 0.35, 0.0)]})
+	if Game.world:
+		Game.world.env.add_shake(0.6 * s)
+		Game.world.env.screen_flash(0.035 * s)
+	Sfx.play("boom", pos)
+	epic = ep

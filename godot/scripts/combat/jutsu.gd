@@ -2394,9 +2394,7 @@ func j_kibaku_nendo(c: Node3D, t: Node3D) -> void:
 			pr.homing = t
 			pr.homing_turn = 2.5
 			pr.info = _inf(c, "kibaku_nendo", 0.4, {"element": "bakuton"})
-			var bird = JutsuEngine.shape_mesh("bird", Color(0.95, 0.95, 0.92), 1.4, "")
-			for mi in bird.find_children("*", "MeshInstance3D", true, false):
-				mi.material_override = Props.toon_color(Color(0.96, 0.95, 0.9))
+			var bird = ClayArt.bird(1.4)
 			pr.add_child(bird)
 			pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
 				VFX.clay_blast(pos, 1.0)

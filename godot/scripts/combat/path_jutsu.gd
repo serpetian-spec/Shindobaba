@@ -8767,25 +8767,14 @@ const SAND := Color(0.82, 0.7, 0.48)
 
 
 ## Basit kil figür (kuş/örümcek/bebek)
-func _clay_fig(kind: String, s := 1.0) -> MeshInstance3D:
-	var b = MB.new()
+func _clay_fig(kind: String, s := 1.0) -> Node3D:
+	# pürüzsüz anime kil figürleri (ClayArt): kuş / örümcek / bebek
 	match kind:
 		"bird":
-			b.add("sphere", Vector3.ZERO, Vector3(0.3, 0.25, 0.5) * s, CLAY)
-			b.add("sphere", Vector3(0, 0.08, 0.28) * s, Vector3(0.18, 0.16, 0.18) * s, CLAY)
-			for sx in [-1.0, 1.0]:
-				b.add("box", Vector3(sx * 0.32, 0.02, 0) * s, Vector3(0.5, 0.03, 0.22) * s, CLAY, Vector3(0, 0, sx * 12.0))
+			return ClayArt.bird(s)
 		"spider":
-			b.add("sphere", Vector3.ZERO, Vector3(0.35, 0.22, 0.4) * s, CLAY)
-			for k in 8:
-				var sx = -1.0 if k < 4 else 1.0
-				b.add("box", Vector3(sx * 0.3, -0.05, (k % 4 - 1.5) * 0.12) * s, Vector3(0.4, 0.03, 0.03) * s, CLAY, Vector3(0, 0, sx * -25.0))
-		_:
-			b.add("sphere", Vector3(0, 0.25, 0) * s, Vector3(0.3, 0.45, 0.25) * s, CLAY)
-			b.add("sphere", Vector3(0, 0.6, 0) * s, Vector3(0.22, 0.22, 0.22) * s, CLAY)
-			for sx in [-1.0, 1.0]:
-				b.add("sphere", Vector3(sx * 0.2, 0.35, 0) * s, Vector3(0.08, 0.25, 0.08) * s, CLAY, Vector3(0, 0, sx * 30))
-	return mesh_of(b)
+			return ClayArt.spider(s)
+	return ClayArt.doll(s)
 
 
 ## Fare Tüy Topu: ağızdan art arda mavi alevli, fare biçimli ateş topları
@@ -11979,17 +11968,10 @@ func p_shi_tsu(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 30.0)
 	var at = c.global_position + Vector3.UP * 4.0 - c.face_dir() * 2.0
 	FX.smoke_puff(at, 2.0, 24)
-	var b = MB.new()
-	b.add("sphere", Vector3.ZERO, Vector3(2.4, 1.6, 4.0), CLAY)
-	b.add("sphere", Vector3(0, 0.6, 2.2), Vector3(1.2, 1.0, 1.6), CLAY)
-	b.add("cone", Vector3(0, -0.2, -3.2), Vector3(0.6, 3.0, 0.6), CLAY, Vector3(-90, 0, 0), 6)
-	for sx in [-1.0, 1.0]:
-		b.add("box", Vector3(sx * 2.4, 0.4, 0), Vector3(3.6, 0.15, 1.6), CLAY, Vector3(0, 0, sx * 15.0))
-		b.add("cone", Vector3(sx * 0.4, 1.3, 2.0), Vector3(0.2, 0.7, 0.2), CLAY, Vector3(-40, 0, 0), 5)
-	var dragon = mesh_of(b)
+	var dragon = ClayArt.c2_dragon(0.75)
 	get_tree().current_scene.add_child(dragon)
 	dragon.global_position = at
-	dragon.rotation.y = atan2(c.face_dir().x, c.face_dir().z)
+	dragon.look_at(at + c.face_dir(), Vector3.UP)
 	dragon.scale = Vector3.ONE * 0.1
 	var tw = dragon.create_tween()
 	tw.tween_property(dragon, "scale", Vector3.ONE, 0.4).set_trans(Tween.TRANS_BACK)
@@ -15642,14 +15624,10 @@ func p_shi_fo(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.4)
 	var tt = tg(c, t, 26.0)
 	var at = gp(c.global_position + c.face_dir() * 5.0)
-	var b = MB.new()
-	b.add("sphere", Vector3(0, 5.0, 0), Vector3(4.0, 6.0, 3.0), CLAY)
-	b.add("sphere", Vector3(0, 9.0, 0), Vector3(2.0, 2.2, 2.0), CLAY)
-	for sx in [-1.0, 1.0]:
-		b.add("cyl", Vector3(sx * 2.4, 5.5, 0), Vector3(0.8, 3.5, 0.8), CLAY, Vector3(0, 0, sx * 30), 8)
-	var giant = mesh_of(b)
+	var giant = ClayArt.doll(9.0)
 	get_tree().current_scene.add_child(giant)
 	giant.global_position = at
+	giant.look_at(at + c.face_dir(), Vector3.UP)
 	giant.scale = Vector3.ONE * 0.05
 	var goal = gp(tt.global_position if tt else at + c.face_dir() * 10.0)
 	var tw = giant.create_tween()
@@ -15674,43 +15652,71 @@ func p_shi_fo(c: Node3D, t: Node3D) -> void:
 func p_shi_o(c: Node3D, _t: Node3D) -> void:
 	busy(c, 2.0)
 	var at = c.global_position
-	var shell = MeshInstance3D.new()
-	var cap = CapsuleMesh.new()
-	cap.radius = 0.5; cap.height = 1.9
-	shell.mesh = cap
-	var m = StandardMaterial3D.new()
-	m.albedo_color = Color(0.55, 0.45, 0.35)
-	m.roughness = 1.0
-	shell.material_override = m
-	c.add_child(shell)
-	shell.position = Vector3.UP * 0.95
-	var tw0 = shell.create_tween()
-	tw0.tween_property(shell, "scale", Vector3(1.5, 1.1, 1.5), 1.2)
-	for k in 8:
-		after(k * 0.15, func():
-			if is_instance_valid(shell):
-				VFX.bolt(shell.global_position + Vector3(randf_range(-0.5, 0.5), randf_range(-0.6, 0.6), 0.5), shell.global_position + Vector3(randf_range(-0.6, 0.6), randf_range(-0.8, 0.8), 0.6), Color(1, 0.6, 0.3), 0.06, 0.2, 0))
+	# anime C0: beden kararır, üstünde kara çatlak desenleri yayılır ve şişer (kahverengi kapsül değil)
+	# modelin kendi toon malzemelerinin kopyası karartılır (overlay bu shader'da görünmüyor); patlamada eskileri geri konur
+	var saved = []
+	var mdl: Node3D = c.model if "model" in c and c.model else c
+	for mi in mdl.find_children("*", "MeshInstance3D", true, false):
+		var orig = mi.material_override
+		var src = orig if orig else (mi.mesh.surface_get_material(0) if mi.mesh and mi.mesh.get_surface_count() > 0 else null)
+		if src is ShaderMaterial and src.get_shader_parameter("tint") != null:
+			var dm: ShaderMaterial = src.duplicate()
+			saved.append([mi, orig, dm])
+			mi.material_override = dm
+	var tw0 = mdl.create_tween()
+	tw0.tween_method(func(k: float):
+		for e in saved:
+			e[2].set_shader_parameter("tint", Color.WHITE.lerp(Color(0.1, 0.09, 0.11), k)), 0.0, 1.0, 1.1)
+	tw0.parallel().tween_property(mdl, "scale", Vector3.ONE * 1.12, 1.2)
+	for k in 10:
+		after(k * 0.12, func():
+			if live(c):
+				# kararan bedenden kopup yükselen kara kül
+				FX.burst(c.global_position + Vector3.UP * 1.0, {"amount": 10, "life": 1.2, "tex": FX.tex_soft, "add": false, "cel": false, "size": 0.14, "radius": 0.5, "vmin": 0.4, "vmax": 1.4,
+					"dir": Vector3.UP, "spread": 50.0, "gravity": Vector3(0, 0.4, 0), "colors": [Color(0.08, 0.07, 0.08, 0.0), Color(0.08, 0.07, 0.08, 0.9), Color(0.15, 0.14, 0.14, 0.0)]}))
 	after(1.4, func():
-		if is_instance_valid(shell):
-			shell.queue_free()
-		var dome = VFX.fireball(1.0, "fire")
-		get_tree().current_scene.add_child(dome)
-		dome.global_position = at + Vector3.UP
-		var tw = dome.create_tween()
-		tw.tween_property(dome, "scale", Vector3.ONE * 30.0, 0.6).set_trans(Tween.TRANS_QUAD)
-		tw.tween_interval(0.4)
-		tw.tween_property(dome, "scale", Vector3.ONE * 0.1, 0.5)
-		tw.tween_callback(dome.queue_free)
-		VFX.explosion(at + Vector3.UP, 6.0)
-		VFX.cracks(gp(at), 20.0)
+		for e in saved:
+			if is_instance_valid(e[0]):
+				e[0].material_override = e[1]
+		if is_instance_valid(mdl):
+			mdl.scale = Vector3.ONE
+		var o = at + Vector3.UP
+		# kör edici beyaz küre: kameraya dönük yumuşak ışık, hızla büyür ve söner (alev topu değil)
+		var orb = MeshInstance3D.new()
+		var q = QuadMesh.new()
+		q.size = Vector2.ONE * 2.0
+		orb.mesh = q
+		orb.material_override = VFX._glow_sprite_mat(VFX._radial_tex(Color(1, 1, 1, 1), Color(0.9, 0.95, 1.0, 0.0)))
+		get_tree().current_scene.add_child(orb)
+		orb.global_position = o
+		# billboard malzeme düğüm ölçeğini yok sayar: quad boyu büyütülür
+		var tw = orb.create_tween()
+		tw.tween_method(func(v: float): q.size = Vector2.ONE * v, 2.0, 60.0, 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_interval(0.35)
+		tw.tween_method(func(v: float): q.size = Vector2.ONE * v, 60.0, 70.0, 0.6)
+		tw.parallel().tween_property(orb, "transparency", 1.0, 0.6)
+		tw.tween_callback(orb.queue_free)
+		FX.light(o, Color(1, 1, 1), 20.0, 60.0, 0.9)
+		if Game.world:
+			Game.world.env.screen_flash(0.5)
+		# beyaz ışık sönerken: dev gri duman halkası, uçuşan moloz, yağan kül, geniş yarık
+		after(0.5, func():
+			VFX.puffs(o, {"amount": 80, "life": 3.0, "size": 3.0, "radius": 9.0, "vmin": 4.0, "vmax": 10.0, "dir": Vector3.UP, "spread": 95.0, "damp": 2.0, "gravity": Vector3(0, 0.6, 0),
+				"rough": 0.22, "outline": 0.035, "outline_col": Color(0.28, 0.27, 0.29), "shade": 0.3,
+				"colors": [Color(0.62, 0.61, 0.62, 0.0), Color(0.62, 0.61, 0.62, 1), Color(0.5, 0.49, 0.51, 0.9), Color(0.4, 0.39, 0.41, 0.0)]})
+			VFX.debris(gp(o), Color(0.42, 0.33, 0.24), 40, 22.0, 0.8)
+			FX.burst(o + Vector3.UP * 6.0, {"amount": 120, "life": 4.0, "tex": FX.tex_soft, "add": false, "cel": false, "size": 0.18, "radius": 14.0, "vmin": 0.2, "vmax": 1.0,
+				"dir": Vector3.DOWN, "spread": 60.0, "gravity": Vector3(0, -1.2, 0), "colors": [Color(0.15, 0.14, 0.14, 0.0), Color(0.18, 0.17, 0.17, 0.9), Color(0.25, 0.24, 0.24, 0.0)]}))
+		VFX.cracks(gp(at), 22.0)
 		if c is Player:
-			VFX.screen_lines(0.8, 2.0, Color(1, 0.9, 0.7))
+			VFX.screen_lines(0.8, 2.0, Color(1, 1, 1))
 		if live(c):
-			hit(c, at + Vector3.UP, 15.0, inf(c, "shi_o", 6.0, {"knock": 36.0, "launch": 12.0, "kind": "heavy", "element": "bakuton", "hitstop": 0.2}))
+			hit(c, o, 15.0, inf(c, "shi_o", 6.0, {"knock": 36.0, "launch": 12.0, "kind": "heavy", "element": "bakuton", "hitstop": 0.2}))
 			if c is Player:
 				c.hp = maxf(1.0, c.hp * 0.1)
+		Sfx.play("boom", o, 0.4)
 		shake(2.6))
-	Sfx.play("boom", at, 0.4)
+	Sfx.play("charge", at, 0.6)
 
 
 ## C3: ağızdan dev kil heykel tükürülür, havadan hedefe süzülür — kasaba yıkan dev patlama
@@ -15718,13 +15724,7 @@ func p_shi_suri(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.2)
 	var tt = tg(c, t, 34.0)
 	var goal = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 16.0)
-	var b = MB.new()
-	b.add("sphere", Vector3(0, 0.9, 0), Vector3(1.0, 1.6, 0.9), CLAY)
-	b.add("sphere", Vector3(0, 2.0, 0), Vector3(0.7, 0.7, 0.7), CLAY)
-	for sx in [-1.0, 1.0]:
-		b.add("cyl", Vector3(sx * 0.7, 1.2, 0), Vector3(0.25, 1.1, 0.25), CLAY, Vector3(0, 0, sx * 35), 6)
-		b.add("box", Vector3(sx * 0.2, 2.1, 0.32), Vector3(0.12, 0.04, 0.04), Color(0.2, 0.2, 0.2))
-	var fig = mesh_of(b)
+	var fig = ClayArt.doll(1.6)
 	get_tree().current_scene.add_child(fig)
 	var start = _mouth_pos(c) + c.face_dir() * 0.6
 	fig.global_position = start
@@ -15739,14 +15739,9 @@ func p_shi_suri(c: Node3D, t: Node3D) -> void:
 		fig.queue_free()
 		if not live(c):
 			return
-		var dome = VFX.fireball(1.0, "fire")
-		get_tree().current_scene.add_child(dome)
-		dome.global_position = goal + Vector3.UP
-		var tw2 = dome.create_tween()
-		tw2.tween_property(dome, "scale", Vector3.ONE * 22.0, 0.5).set_trans(Tween.TRANS_QUAD)
-		tw2.tween_property(dome, "scale", Vector3.ONE * 0.1, 0.5)
-		tw2.tween_callback(dome.queue_free)
-		VFX.explosion(goal + Vector3.UP, 4.5)
+		# anime C3: gri duman halkasının ortasında dev turuncu kubbe, uçuşan kaya, geniş yarık
+		VFX.clay_blast(goal + Vector3.UP * 1.5, 5.0)
+		after(0.15, func(): VFX.clay_blast(goal + Vector3.UP * 3.0 + Vector3(randf_range(-3, 3), 0, randf_range(-3, 3)), 3.0))
 		VFX.cracks(goal, 16.0)
 		hit(c, goal + Vector3.UP, 11.0, inf(c, "shi_suri", 3.6, {"knock": 30.0, "launch": 10.0, "kind": "heavy", "element": "bakuton", "hitstop": 0.15}))
 		shake(2.0))
@@ -20484,9 +20479,11 @@ const PDARK := Color(0.08, 0.08, 0.1)
 ## Kil Kuşu Uçuşu: dev kil kuş yoğrulur, sırtına binilir — uçarken altına kil bombalar düşer
 func p_kil_ucan_kus(c: Node3D, _t: Node3D) -> void:
 	busy(c, 0.6)
-	var bird = _clay_fig("bird", 7.0)
-	c.add_child(bird)
-	bird.position = Vector3(0, -0.4, 0)
+	var bird = _clay_fig("bird", 4.0)
+	var holder: Node3D = c.model if "model" in c and c.model else c
+	holder.add_child(bird)
+	bird.position = Vector3(0, -0.5, 0)
+	bird.rotation.y = PI
 	FX.smoke_puff(c.global_position + Vector3.UP, 1.6, 20)
 	if c is Player and c.has_method("start_flight"):
 		c.start_flight("kil_kus", {"drain": 0.0, "speed": 22.0, "dur": 20.0})
@@ -29070,12 +29067,7 @@ func p_kibaku_jirai(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.9)
 	var d = fwd(c, t)
 	# C2 ejderi belirir: ağzından kil mayınları yağmur gibi saçar
-	var db = MB.new()
-	db.add("sphere", Vector3.ZERO, Vector3(1.0, 0.8, 1.9), CLAY)
-	db.add("sphere", Vector3(0, 0.3, 1.1), Vector3(0.6, 0.55, 0.8), CLAY)
-	for sx in [-1.0, 1.0]:
-		db.add("box", Vector3(sx * 1.2, 0.2, 0), Vector3(1.8, 0.08, 0.8), CLAY, Vector3(0, 0, sx * 15.0))
-	var dragon = mesh_of(db)
+	var dragon = ClayArt.c2_dragon(0.45)
 	var mouth = c.global_position + Vector3.UP * 4.0 + d * 1.0
 	FX.smoke_puff(mouth, 1.0, 12)
 	scene_add(dragon, mouth - d * 1.1)
@@ -29108,13 +29100,7 @@ func p_kibaku_jirai(c: Node3D, t: Node3D) -> void:
 func p_shi_tsu_bakuretsu_hiryu(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 34.0)
 	busy(c, 1.0)
-	var b = MB.new()
-	b.add("sphere", Vector3.ZERO, Vector3(1.4, 1.0, 2.6), CLAY)
-	b.add("sphere", Vector3(0, 0.4, 1.5), Vector3(0.8, 0.7, 1.0), CLAY)
-	b.add("cone", Vector3(0, -0.1, -2.0), Vector3(0.4, 2.0, 0.4), CLAY, Vector3(-90, 0, 0), 6)
-	for sx in [-1.0, 1.0]:
-		b.add("box", Vector3(sx * 1.6, 0.3, 0), Vector3(2.4, 0.1, 1.1), CLAY, Vector3(0, 0, sx * 15.0))
-	var dragon = mesh_of(b)
+	var dragon = ClayArt.c2_dragon(0.55)
 	var from = c.global_position + Vector3.UP * 2.5 - c.face_dir() * 1.5
 	FX.smoke_puff(from, 1.2, 14)
 	scene_add(dragon, from)
