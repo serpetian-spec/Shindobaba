@@ -256,9 +256,9 @@ func blood(pos: Vector3, dir: Vector3, amount := 0.5) -> void:
 		var gp = Vector2(pos.x, pos.z) + hd * dist + Vector2(randf_range(-0.35, 0.35), randf_range(-0.35, 0.35))
 		var gy = ground.call(gp, pos.y + 0.5)
 		var delay = clampf(sqrt(maxf(0.0, pos.y - gy) / 8.0), 0.12, 0.5) + dist * 0.05
-		get_tree().create_timer(delay).timeout.connect(_blood_decal.bind(Vector3(gp.x, gy + 0.025, gp.y), randf_range(0.08, 0.2) * (0.7 + amount)))
+		get_tree().create_timer(delay).timeout.connect(_blood_decal.bind(Vector3(gp.x, gy + 0.025, gp.y), randf_range(0.12, 0.28) * (0.7 + amount)))
 	var gp0 = Vector2(pos.x, pos.z) + hd * 0.5
-	get_tree().create_timer(0.35).timeout.connect(_blood_decal.bind(Vector3(gp0.x, ground.call(gp0, pos.y + 0.5) + 0.02, gp0.y), 0.3 + amount * 0.45))
+	get_tree().create_timer(0.35).timeout.connect(_blood_decal.bind(Vector3(gp0.x, ground.call(gp0, pos.y + 0.5) + 0.02, gp0.y), 0.45 + amount * 0.6))
 	# yaradan süzülen birkaç damla: düz aşağı, yavaş
 	if amount > 0.35:
 		burst(pos + Vector3(0, -0.1, 0), {"amount": 3, "life": 0.9, "size": 0.07, "vmin": 0.0, "vmax": 0.4, "dir": Vector3.DOWN, "spread": 10.0,
@@ -266,34 +266,92 @@ func blood(pos: Vector3, dir: Vector3, amount := 0.5) -> void:
 			"colors": [Color(0.45, 0.0, 0.02, 1.0), Color(0.3, 0.0, 0.01, 1.0)]})
 
 
-var _blood_mat: StandardMaterial3D
-var _blood_n := 0
-func _blood_decal(p: Vector3, r: float) -> void:
-	if _blood_n > 90:
-		return
-	if _blood_mat == null:
-		_blood_mat = StandardMaterial3D.new()
-		_blood_mat.albedo_texture = tex_soft
-		_blood_mat.albedo_color = Color(0.3, 0.0, 0.015, 0.95)
-		_blood_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		_blood_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	var mi = MeshInstance3D.new()
-	var q = QuadMesh.new()
-	q.size = Vector2(r * randf_range(1.0, 1.6), r)
-	q.orientation = PlaneMesh.FACE_Y
-	mi.mesh = q
-	mi.material_override = _blood_mat.duplicate()
-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+## Kan gölcüğü dokusu: birkaç metaball'dan düzensiz, keskin kenarlı sıvı birikintisi; kenarı biraz koyu,
+## üstte ıslak parlama lekesi (yumuşak bulanık leke kar tanesi gibi duruyordu). 4 çeşit önbellekte.
+var _puddle_tex: Array = []
+func _puddle(i: int) -> Texture2D:
+	if _puddle_tex.is_empty():
+		var rng = RandomNumberGenerator.new()
+		rng.seed = 7731
+		for v in 4:
+			var N = 128
+			var img = Image.create(N, N, false, Image.FORMAT_RGBA8)
+			var balls = [[Vector2(0.5, 0.5), 0.13]]
+			for k in 6 + v:
+				var a = rng.randf() * TAU
+				var d = rng.randf_range(0.06, 0.2)
+				balls.append([Vector2(0.5, 0.5) + Vector2(cos(a), sin(a)) * d, rng.randf_range(0.04, 0.09)])
+			for k in 4:   # ana gölden kopmuş küçük damlalar
+				var a = rng.randf() * TAU
+				balls.append([Vector2(0.5, 0.5) + Vector2(cos(a), sin(a)) * rng.randf_range(0.3, 0.38), rng.randf_range(0.015, 0.025)])
+			var hl = Vector2(0.42, 0.4)
+			for y in N:
+				for x in N:
+					var p = Vector2(x + 0.5, y + 0.5) / N
+					var f = 0.0
+					for bb in balls:
+						f += bb[1] * bb[1] / maxf(0.0001, p.distance_squared_to(bb[0]))
+					var al = clampf((f - 1.0) / 0.25, 0.0, 1.0) * clampf((0.5 - maxf(absf(p.x - 0.5), absf(p.y - 0.5))) / 0.04, 0.0, 1.0)
+					if al <= 0.0:
+						img.set_pixel(x, y, Color(0, 0, 0, 0))
+						continue
+					var rim = clampf((f - 1.0) / 1.2, 0.0, 1.0)
+					var c = lerpf(0.55, 1.0, rim)
+					var shine = clampf(1.0 - p.distance_to(hl) / 0.09, 0.0, 1.0) * clampf((f - 2.0) / 2.0, 0.0, 1.0)
+					img.set_pixel(x, y, Color(c + shine * 1.4, c + shine * 0.9, c + shine * 0.9, al))
+			_puddle_tex.append(ImageTexture.create_from_image(img))
+	return _puddle_tex[i % _puddle_tex.size()]
+
+
+## Kan lekeleri: ceset kalkmadan silinmez (ceset en fazla 90 sn kalır → leke 100 sn), en eski leke üst sınırda söner
+var _blood_list: Array = []
+func _blood_decal(p: Vector3, r: float, life := 100.0) -> Node3D:
+	if _blood_list.size() > 160:
+		var old = _blood_list.pop_front()
+		if is_instance_valid(old):
+			old.queue_free()
+	# Decal: eğimli kumu/taşı sarar (düz quad zemine gömülüp yarım kalıyordu)
+	var mi = Decal.new()
+	mi.texture_albedo = _puddle(randi())
+	mi.modulate = Color(0.4, 0.01, 0.025, 0.97)
+	mi.size = Vector3(r * randf_range(1.1, 1.5) * 2.0, 1.2, r * 2.0)
+	mi.cull_mask = 1
+	mi.upper_fade = 0.3
+	mi.lower_fade = 0.3
 	get_tree().current_scene.add_child(mi)
 	mi.global_position = p
 	mi.rotation.y = randf() * TAU
-	_blood_n += 1
+	_blood_list.append(mi)
+	# sıvı yayılır: küçük başlayıp yavaşça genişler
+	mi.scale = Vector3.ONE * 0.35
 	var tw = mi.create_tween()
-	tw.tween_interval(12.0)
-	tw.tween_property(mi.material_override, "albedo_color:a", 0.0, 3.0)
-	tw.tween_callback(func():
-		_blood_n -= 1
-		mi.queue_free())
+	tw.tween_property(mi, "scale", Vector3.ONE, 0.9).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	if life > 0.0:
+		tw.tween_interval(life)
+		tw.tween_property(mi, "modulate:a", 0.0, 3.0)
+		tw.tween_callback(func():
+			_blood_list.erase(mi)
+			mi.queue_free())
+	return mi
+
+
+## Cesedin altında yavaşça yayılan büyük kan gölü; ceset kalkınca söner (sahibi: corpse)
+func blood_pool(corpse: Node3D, r := 1.3) -> void:
+	if not bool(Game.settings.get("blood", true)) or not is_instance_valid(corpse):
+		return
+	var p = corpse.global_position
+	var mi = _blood_decal(Vector3(p.x, Game.ground_height(p.x, p.z) + 0.1, p.z), r, 0.0)
+	mi.scale = Vector3.ONE * 0.15
+	var tw = mi.create_tween()
+	tw.tween_property(mi, "scale", Vector3.ONE, 6.0).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	corpse.tree_exiting.connect(func():
+		if is_instance_valid(mi):
+			var t2 = mi.create_tween()
+			t2.tween_interval(8.0)
+			t2.tween_property(mi, "modulate:a", 0.0, 3.0)
+			t2.tween_callback(func():
+				_blood_list.erase(mi)
+				mi.queue_free()))
 
 
 func dust(pos: Vector3, s := 1.0) -> void:

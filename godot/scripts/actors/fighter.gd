@@ -189,6 +189,11 @@ func die(_info: Dictionary) -> void:
 	state = "dead"
 	model.play("death", 0.1)
 	collision_layer = 0
+	# cesedin altında kan gölü yayılır (ceset kalkınca söner); dev yaratıklar/klonlar hariç
+	if size < 2.5 and not self is ShadowClone:
+		get_tree().create_timer(0.8).timeout.connect(func():
+			if is_instance_valid(self):
+				FX.blood_pool(self, 1.1 + randf() * 0.4))
 	remove_from_group("fighters")
 	var tw = create_tween()
 	# dōjutsu sahibi (göz alınabilsin) ve üstü aranabilir ceset (ganimet) bir süre yerde kalır

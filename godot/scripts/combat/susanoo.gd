@@ -624,9 +624,14 @@ func _fly_bolt(owner_f: Node3D, from: Vector3, dir: Vector3, dist: float, length
 	tw.tween_callback(mi.queue_free)
 
 
+var face_owner: Node3D   # verilirse Susanoo her kare sahibinin baktığı yöne döner (geçici Susanoo teknikleri)
+
+
 func _process(dt: float) -> void:
 	if body == null:
 		return
+	if face_owner and is_instance_valid(face_owner) and "facing" in face_owner:
+		rotation.y = face_owner.facing
 	# yere gömülü kademeler (iskelet/İnsansı): zeminin altı çizilmez (ayaklar yerden görünmesin)
 	if mat and tier in [2, 3] and get_parent() is Node3D:
 		mat.set_shader_parameter("ground_y", (get_parent() as Node3D).global_position.y - 0.15)

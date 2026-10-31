@@ -70,6 +70,10 @@ static func _sus(c: Node3D, tier: int, col: Color, dur: float) -> Susanoo:
 	var mine = c == Game.player
 	var pr = Game.profile if mine else EnemyArts.random_susanoo(c)
 	sn.build(pr, tier, c.get("model"))
+	# Susanoo kullanıcının baktığı yöne döner ve teknikler o yöne atılır (sırtı dönük kalıyordu)
+	sn.face_owner = c
+	if "facing" in c:
+		sn.rotation.y = c.facing
 	var fs = sn.scale
 	sn.scale = fs * 0.1
 	var tw = sn.create_tween()
