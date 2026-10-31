@@ -255,9 +255,16 @@ static func spawn_projectile(c: Node3D, d: Dictionary, start: Vector3, dir: Vect
 	if el in ["katon", "yoton", "shakuton", "bakuton"]:
 		var p: Array = VFX.FIRE_PRESETS[VFX.fire_preset_for(col) if el != "yoton" else "lava"]
 		tc = [p[0], p[2], p[3], Color(p[4].r, p[4].g, p[4].b, 0)]
-	Projectile.trail(pr, tc, size * 0.9 * minf(VFX.epic, 1.8), 34, 0.4, FX.tex_smoke, el in ["fuuton", "raiton", "ranton", "jinton"])
+	# ejderde kuyruk ince ve kısa: dev alev/duman topakları ejderin kendisini örtüyordu (gövde ve süsleri zaten elementi veriyor)
+	var tw_ = size * 0.9 * minf(VFX.epic, 1.8) * (0.3 if v == "dragon" else 1.0)
+	Projectile.trail(pr, tc, tw_, 14 if v == "dragon" else 34, 0.4, FX.tex_smoke, el in ["fuuton", "raiton", "ranton", "jinton"])
 	if v == "dragon":
 		var body = VfxSerpent.new()
+		# elemente göre gövde, jutsu kimliğine göre oran: her ejder jutsusu farklı
+		body.style = {"katon": "fire", "shakuton": "fire", "suiton": "water", "hyoton": "water", "futton": "water", "raiton": "lightning", "ranton": "lightning",
+			"doton": "earth", "yoton": "fire", "mokuton": "wood", "enton": "dark"}.get(el, "")
+		body.col = col
+		body.seed_id = String(d.get("id", ""))
 		body.head = pr
 		body.count = 9 + int(size * 2)
 		body.spacing = size * 0.75

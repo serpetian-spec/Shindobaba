@@ -247,9 +247,44 @@ func j_katon_housenka(c: Node3D, t: Node3D) -> void:
 		VFX.element_trail(pr, "katon", Color(1, 0.5, 0.1), 0.8)
 
 
+## Karyū Endan: ağızdan fışkıran alev, ejder biçimini alıp kıvrılarak hedefe dalar; yol boyu alev dilleri, çarpınca patlar
 func j_katon_karyuu(c: Node3D, t: Node3D) -> void:
 	var m = _mult(c) * _elem_bonus(c, "katon")
-	_stream(c, t, 1.6, Color(1, 0.55, 0.1), "katon", 5.0 * m, "fire")
+	Sfx.play("fire", c.global_position, 0.8)
+	var mo = _mouth(c)
+	var d = _aim(c, t)
+	VFX.embers(mo, Color(1.0, 0.6, 0.15), 20, 8.0, 0.5)
+	var pr = Projectile.new()
+	pr.shooter = c
+	pr.vel = (d + Vector3.UP * 0.35).normalized() * 14.0   # önce yükselip süzülür, gövdesi görünsün
+	pr.radius = 1.4
+	pr.life = 3.5
+	pr.homing = t
+	pr.homing_turn = 1.6
+	pr.info = {"dmg": 28.0 * m, "element": "katon", "knock": 14.0, "launch": 5.0, "kind": "heavy", "hitstop": 0.08}
+	var fm = VFX.mat_fire("fire", 2.6, 2.2, 0.36, 1.4, 0.1, Vector3(0, 0, 1))
+	pr.add_child(VfxSerpent.dragon_head(fm, 2.6, Color(1, 1, 0.6)))
+	var body = VfxSerpent.new()
+	body.style = "fire"
+	body.seed_id = "katon_karyuu"
+	body.head = pr
+	body.count = 18
+	body.spacing = 1.4
+	body.radius = 1.9
+	body.mat = fm
+	get_tree().current_scene.add_child(body)
+	var t0 = randf() * TAU
+	pr.on_tick = func(p: Projectile, dt: float) -> void:
+		var side = p.vel.cross(Vector3.UP).normalized()
+		p.global_position += side * sin(Time.get_ticks_msec() * 0.007 + t0) * dt * 6.0 + Vector3.UP * cos(Time.get_ticks_msec() * 0.005 + t0) * dt * 2.0
+	pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
+		VFX.explosion(pos, 1.0, Color(1.0, 0.55, 0.15))
+		VFX.embers(pos, Color(1.0, 0.6, 0.15), 30, 12.0)
+		VFX.cracks(_ground(pos), 4.0, Color(0.08, 0.04, 0.02, 0.9), 6.0)
+		Combat.hit_sphere(c, pos, 4.0, {"dmg": 10.0 * m, "element": "katon", "knock": 12.0, "launch": 4.0, "kind": "heavy"}, pr.hit_list)
+		if Game.world: Game.world.env.add_shake(0.6)
+	get_tree().current_scene.add_child(pr)
+	pr.global_position = mo + d * 1.5
 
 
 ## Duvarı element çarpışmasına kaydet (mermi duvara girince elementlere göre çözülür)
@@ -356,6 +391,8 @@ func j_suiton_suiryuudan(c: Node3D, t: Node3D) -> void:
 	pr.add_child(head)
 	# ejderha gövdesi: başın izini takip eden kıvrılan su halkaları + sırt yüzgeçleri
 	var body = VfxSerpent.new()
+	body.style = "water"
+	body.seed_id = "suiton_suiryuudan"
 	body.head = pr
 	body.count = 22
 	body.spacing = 1.9
@@ -1705,19 +1742,19 @@ func _tg(c: Node3D, t: Node3D, rng: float) -> Node3D:
 func j_kirin(c: Node3D, t: Node3D) -> void:
 	var tg = _tg(c, t, 45.0)
 	var pos: Vector3 = tg.global_position if tg else _ground(_aim_ground(c, t, 20.0, 40.0))
-	var sky = pos + Vector3.UP * 11.0 - _aim_flat(c, t) * 4.0
+	var sky = pos + Vector3.UP * 70.0 - _aim_flat(c, t) * 10.0   # animede fırtına bulutları gökyüzünde; ejder oradan iner
 	var col = Color(0.55, 0.75, 1.0)
 	Sfx.play("thunder", sky, 0.6)
 	if Game.world:
 		Game.world.env.set_tint(Color(0.05, 0.05, 0.15, 0.35))
 	# 1) bulut toplanması: dönen koyu topaklar + içinde çakan şimşekler
-	VFX.puffs(sky, {"amount": 46, "life": 2.4, "size": 5.0, "radius": 8.0, "vmin": 0.5, "vmax": 2.0, "gravity": Vector3.ZERO, "spin": 30.0, "tangent": 4.0,
-		"outline_col": Color(0.03, 0.03, 0.08), "shade": 0.4, "explosive": 0.4,
+	VFX.puffs(sky, {"amount": 70, "life": 3.2, "size": 16.0, "radius": 30.0, "vmin": 0.5, "vmax": 3.0, "gravity": Vector3.ZERO, "spin": 10.0, "tangent": 6.0,
+		"outline_col": Color(0.1, 0.1, 0.16), "shade": 0.4, "explosive": 0.4, "outline": 0.03, "rough": 0.18,
 		"colors": [Color(0.15, 0.15, 0.22, 0), Color(0.16, 0.16, 0.24, 1), Color(0.22, 0.22, 0.32, 1), Color(0.25, 0.25, 0.35, 0)]})
 	for k in 6:
 		get_tree().create_timer(0.2 + k * 0.18).timeout.connect(func():
-			var a = sky + Vector3(randf_range(-8, 8), randf_range(-1, 1), randf_range(-8, 8))
-			VFX.bolt(a, a + Vector3(randf_range(-6, 6), randf_range(-3, 0), randf_range(-6, 6)), col, 0.25, 0.15, 2)
+			var a = sky + Vector3(randf_range(-25, 25), randf_range(-3, 3), randf_range(-25, 25))
+			VFX.bolt(a, a + Vector3(randf_range(-18, 18), randf_range(-8, 0), randf_range(-18, 18)), col, 0.5, 0.18, 3)
 			if Game.world: Game.world.env.screen_flash(0.04))
 	# 2) şimşek ejderhası iner
 	get_tree().create_timer(1.4).timeout.connect(func():
@@ -1730,6 +1767,9 @@ func j_kirin(c: Node3D, t: Node3D) -> void:
 		var dh = VfxSerpent.dragon_head(hm, 5.5, Color(1, 1, 1))
 		head.add_child(dh)
 		var body = VfxSerpent.new()
+		body.style = "lightning"
+		body.col = col
+		body.seed_id = "kirin"
 		body.head = head
 		body.count = 26
 		body.spacing = 2.6
@@ -1750,7 +1790,7 @@ func j_kirin(c: Node3D, t: Node3D) -> void:
 			var nxt = sky.lerp(mid, minf(1.0, k + 0.02)).lerp(mid.lerp(pos, minf(1.0, k + 0.02)), minf(1.0, k + 0.02))
 			head.global_position = p
 			if nxt.distance_to(p) > 0.01:
-				head.look_at(nxt, Vector3.UP if absf((nxt - p).normalized().y) < 0.98 else Vector3.RIGHT), 0.0, 1.0, 0.45)
+				head.look_at(nxt, Vector3.UP if absf((nxt - p).normalized().y) < 0.98 else Vector3.RIGHT), 0.0, 1.0, 0.8)
 		tw.tween_callback(func():
 			VFX.bolt(sky, pos, Color(0.85, 0.95, 1.0), 1.4, 0.4, 6)
 			VFX.star(pos + Vector3.UP * 2.0, Color(0.75, 0.9, 1.0), 16.0, 0.35)
@@ -1887,6 +1927,8 @@ func j_doton_doryudan(c: Node3D, t: Node3D) -> void:
 	head.global_position = base - Vector3.UP * 3.0
 	head.add_child(VfxSerpent.dragon_head(mud, 2.4, Color(1, 0.85, 0.3)))
 	var body = VfxSerpent.new()
+	body.style = "earth"
+	body.seed_id = "doton_doryudan"
 	body.head = head
 	body.count = 10
 	body.spacing = 1.3
@@ -2364,6 +2406,8 @@ func j_mokuton_mokuryu_no_jutsu(c: Node3D, t: Node3D) -> void:
 	am.scale = Vector3.ONE * 2.8
 	head.add_child(am)
 	var body = VfxSerpent.new()
+	body.style = "wood"
+	body.seed_id = "mokuton_mokuryu_no_jutsu"
 	body.head = head
 	body.count = 18
 	body.spacing = 1.15

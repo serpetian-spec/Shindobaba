@@ -399,7 +399,9 @@ static func trail(parent: Node3D, cols: Array, size: float, amount := 40, life :
 		# karışımlı iz = sert kenarlı cel topaklar (alev/su/duman kuyruğu)
 		var c: Color = cols[mini(1, cols.size() - 1)]
 		var hot = c.s > 0.5 and c.v > 0.7
-		q.material = VFX.mat_puff(1.1 if hot else 1.0, 0.25 if hot and c.r > c.b else 0.0, Color.from_hsv(c.h, minf(1.0, c.s + 0.2), c.v * 0.3))
+		# anime kuyruğu: ince, kendi renginde kontur, pürüzsüz kenar, daha küçük (kalın koyu konturlu dev topaklar "aşırı efekt" duruyordu)
+		q.size = Vector2.ONE * size * 0.75
+		q.material = VFX.mat_puff(1.1 if hot else 1.0, 0.25 if hot and c.r > c.b else 0.0, Color.from_hsv(c.h, minf(1.0, c.s + 0.15), c.v * 0.6), 0.18, 0.25, 1.0, 0.035)
 	else:
 		q.material = FX._draw_mat(tex if tex else FX.tex_soft, add)
 	p.draw_pass_1 = q

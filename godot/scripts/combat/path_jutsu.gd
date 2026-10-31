@@ -1114,6 +1114,7 @@ func make_snake(from: Vector3, col: Color, size: float, segs := 10) -> Node3D:
 	scene_add(head, from)
 	head.add_child(snake_head(col, size))
 	var body = VfxSerpent.new()
+	body.thin = 0.95   # yılan: ejder değil, kendi kalınlığında
 	body.head = head
 	body.count = segs
 	body.spacing = 0.42 * size
@@ -4000,7 +4001,7 @@ func _etrail(pr: Projectile, el: String, col: Color, size: float) -> void:
 func impact_fx(el: String, col: Color, at: Vector3, s := 1.0) -> void:
 	var g = Vector3(at.x, Game.jutsu_floor(at.x, at.z), at.z)
 	var near_ground = at.y - g.y < 2.5
-	if el not in ["fuuton", "raiton"]:
+	if el not in ["fuuton", "raiton", "katon", "bakuton", "yoton"]:
 		VFX.star(at, col.lightened(0.4), 2.2 * s, 0.18)
 		VFX.shockwave(at, col, 5.0 * s, 0.4, false, Vector3.UP)
 	match el:

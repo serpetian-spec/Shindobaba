@@ -186,7 +186,8 @@ func burst(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 	if not cel:
 		q.material = _draw_mat(tex, cfg.get("add", true), bb)
 	p.draw_pass_1 = q
-	p.visibility_aabb = AABB(Vector3(-20, -20, -20), Vector3(40, 40, 40))
+	var vr = 20.0 + float(cfg.get("radius", 0.2)) * 1.5   # geniş yayılımlı bulutlar (Kirin fırtınası) kenarda kırpılmasın
+	p.visibility_aabb = AABB(Vector3(-vr, -vr, -vr), Vector3(vr, vr, vr) * 2.0)
 	p.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	var parent: Node = cfg.get("parent", get_tree().current_scene)
 	parent.add_child(p)

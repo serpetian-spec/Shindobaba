@@ -428,6 +428,8 @@ static func m_enton_kokuryu(c: Node3D, t: Node3D) -> void:
 	var head = VfxSerpent.dragon_head(bm, 3.2, Color(0.85, 0.3, 1.0))
 	pr.add_child(head)
 	var body = VfxSerpent.new()
+	body.style = "dark"
+	body.seed_id = "enton_kokuryu"
 	body.head = pr
 	body.count = 18
 	body.spacing = 1.6

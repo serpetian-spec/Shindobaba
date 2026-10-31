@@ -608,52 +608,32 @@ static func screen_lines(dur := 0.35, strength := 1.0, col := Color(1, 1, 1)) ->
 
 ## Büyük anime patlaması: genişleyip aşınan alev kütlesi + cel alev topakları + koyu duman + kıvılcım + şok dalgaları
 static func _explosion(pos: Vector3, s := 1.0, col := Color(1.0, 0.55, 0.15)) -> void:
+	# anime patlaması: büyüyen küre kabuğu / yıldız / halka YOK — fışkıran alev dilleri, kor, ardından yumuşak duman
 	var preset = fire_preset_for(col)
-	if not busy():
-		var core = Node3D.new()
-		var m = mat_fire(preset, 3.0, 2.0, 0.5, 1.45, 0.18, Vector3.UP, true)
-		var sph = _mi(_sphere(0.5, 28, 14), m)
-		core.add_child(sph)
-		var inner = _mi(_sphere(0.5, 20, 10), mat_fire(preset, 4.0, 1.3, 0.05, 1.8, 0.05))
-		inner.scale = Vector3.ONE * 0.6
-		core.add_child(inner)
-		scene().add_child(core)
-		_track(core)
-		core.global_position = pos
-		core.scale = Vector3.ONE * 0.5 * s
-		var tw = core.create_tween()
-		tw.tween_property(core, "scale", Vector3.ONE * 5.5 * s, 0.18).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-		tw.parallel().tween_property(inner, "scale", Vector3.ONE * 0.3, 0.45)
-		tw.tween_property(core, "scale", Vector3.ONE * 6.3 * s, 0.25)   # ateş topu bir an asılı kalır
-		tw.tween_method(func(x: float): m.set_shader_parameter("alpha_cut", x), 0.0, 1.1, 0.4)
-		tw.parallel().tween_property(core, "scale", Vector3.ONE * 6.8 * s, 0.4)
-		tw.parallel().tween_property(core, "global_position:y", pos.y + 1.5 * s, 0.4)
-		tw.tween_callback(core.queue_free)
 	var pr: Array = FIRE_PRESETS.get(preset, FIRE_PRESETS["fire"])
-	# alev dilleri: sarı→turuncu→kırmızı bantlar (beyaz yok)
-	puffs(pos, {"amount": int(18 * s) + 6, "life": 0.7, "size": 1.9 * s, "radius": 1.0 * s, "vmin": 6, "vmax": 13 * s,
-		"damp": 6.0, "gravity": Vector3(0, 5, 0), "spin": 90.0, "glow": 1.1, "hot": 0.3, "outline_col": pr[4],
-		"colors": [pr[1], pr[2], pr[3], Color(pr[4].r, pr[4].g, pr[4].b, 0)], "scale_curve": [[0.0, 0.5], [0.25, 1.1], [1.0, 0.7]]})
-	# duman: daha küçük, koyu gri-kahve ve ateş sönerken gelir
-	var smoke_at = pos + Vector3.UP * s * 1.6
+	# alev dilleri: sarı çekirdek → turuncu → kırmızı; ince, kendi renginde kontur (siyah değil)
+	puffs(pos, {"amount": int(14 * s) + 6, "life": 0.6, "size": 1.5 * s, "radius": 0.8 * s, "vmin": 5, "vmax": 11 * s,
+		"damp": 6.0, "gravity": Vector3(0, 6, 0), "spin": 70.0, "glow": 1.15, "hot": 0.45, "outline_col": pr[3], "outline": 0.03, "rough": 0.2,
+		"colors": [pr[0], pr[1], pr[2], Color(pr[3].r, pr[3].g, pr[3].b, 0)], "scale_curve": [[0.0, 0.4], [0.2, 1.0], [1.0, 0.55]]})
+	# yukarı yalayan alev dilleri (sivri, hızlı)
+	FX.burst(pos, {"amount": int(10 * s) + 4, "life": 0.45, "tex": FX.tex_spark, "size": 2.2 * s, "vmin": 6.0 * s, "vmax": 12.0 * s, "dir": Vector3.UP, "spread": 70.0,
+		"damp": 3.0, "colors": [Color(1, 0.95, 0.6, 1), pr[1], Color(pr[2].r, pr[2].g, pr[2].b, 0)]})
+	# duman: alev sönerken, yumuşak ve açık konturlu
+	var smoke_at = pos + Vector3.UP * s * 1.4
 	scene().get_tree().create_timer(0.3).timeout.connect(func():
-		puffs(smoke_at, {"amount": int(8 * s) + 3, "life": 1.5, "size": 2.0 * s, "radius": 1.3 * s, "vmin": 1.5, "vmax": 4 * s,
-			"damp": 2.0, "gravity": Vector3(0, 3.0, 0), "spin": 30.0, "outline_col": Color(0.06, 0.05, 0.04), "shade": 0.35, "glow": 1.0,
-			"colors": [Color(0.26, 0.21, 0.18, 0.0), Color(0.24, 0.2, 0.17, 0.95), Color(0.32, 0.28, 0.25, 0.7), Color(0.35, 0.31, 0.28, 0)]}))
-	embers(pos, pr[2], int(28 * s), 22.0 * s, 1.0)
-	star(pos, pr[1], 4.5 * s, 0.2)
+		puffs(smoke_at, {"amount": int(5 * s) + 3, "life": 1.4, "size": 1.5 * s, "radius": 1.0 * s, "vmin": 1.0, "vmax": 3 * s,
+			"damp": 2.0, "gravity": Vector3(0, 3.0, 0), "spin": 20.0, "outline_col": Color(0.3, 0.26, 0.23), "shade": 0.25, "glow": 1.0, "outline": 0.03, "rough": 0.16,
+			"colors": [Color(0.34, 0.29, 0.26, 0.0), Color(0.36, 0.31, 0.28, 0.75), Color(0.42, 0.38, 0.35, 0.5), Color(0.45, 0.41, 0.38, 0)]}))
+	embers(pos, pr[2], int(22 * s), 18.0 * s, 1.0)
 	var g = Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z) + 0.12, pos.z)
 	if pos.y - g.y < 3.0 * s:
-		shockwave(g, pr[2].lightened(0.2), 14.0 * s, 0.5)
-		smoke_ring(g + Vector3.UP * 0.3, 2.5 * s, Color(0.36, 0.32, 0.3))
 		cracks(g, 3.5 * s, Color(0.1, 0.06, 0.04, 0.85))
-	shockwave(pos, Color(1, 0.95, 0.8), 8.0 * s, 0.25, false)
-	FX.light(pos, pr[1], 12.0 * s, 25.0 * s, 0.45)
+	FX.light(pos, pr[1], 10.0 * s, 22.0 * s, 0.45)
 	if Game.world:
-		Game.world.env.add_shake(0.8 * s)
-		Game.world.env.screen_flash(0.05 * s)
-	if s >= 1.2:
-		screen_lines(0.35, minf(1.0, 0.5 * s))
+		Game.world.env.add_shake(0.7 * s)
+		Game.world.env.screen_flash(0.04 * s)
+	if s >= 1.4:
+		screen_lines(0.3, minf(1.0, 0.4 * s))
 	Sfx.play("boom", pos)
 
 
