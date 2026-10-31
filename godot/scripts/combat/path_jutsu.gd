@@ -7886,14 +7886,14 @@ func p_katon_bakufu_ranbu(c: Node3D, t: Node3D) -> void:
 
 
 ## Alev seli (kabuk küre yok): ağızdan ileri fışkıran, uzaklaştıkça genişleyen cel alev topakları + kor + üstten koyu duman
-func _flame_jet(c: Node3D, from: Vector3, d: Vector3, L: float, W: float, dur: float) -> void:
+func _flame_jet(c: Node3D, from: Vector3, d: Vector3, L: float, W: float, dur: float, k := 1.0) -> void:
 	var dd = d.normalized()
 	every(dur, 0.04, func(_i, _k):
 		var mo = _mouth_pos(c) if live(c) else from
 		for q in 3:
 			var u = randf()
 			var p = mo + dd * (0.6 + u * L * 0.25)
-			VFX.puffs(p, {"amount": 2, "life": 0.55, "size": 0.9 + u * 1.2, "radius": 0.2 + u * 0.5, "vmin": L * 0.9, "vmax": L * 1.3, "dir": dd, "spread": 8.0 + W * 2.0,
+			VFX.puffs(p, {"amount": 2, "life": 0.55, "size": (0.9 + u * 1.2) * k, "radius": (0.2 + u * 0.5) * k, "vmin": L * 0.9, "vmax": L * 1.3, "dir": dd, "spread": 8.0 + W * 2.0,
 				"damp": 2.2, "gravity": Vector3(0, 2.5, 0), "spin": 60.0, "glow": 1.15, "hot": 0.6, "outline_col": Color(0.7, 0.2, 0.03), "outline": 0.03, "rough": 0.2,
 				"colors": [Color(1.0, 0.97, 0.65, 1), Color(1.0, 0.68, 0.16, 1), Color(0.95, 0.36, 0.06, 0.85), Color(0.45, 0.12, 0.04, 0)], "scale_curve": [[0.0, 0.35], [0.4, 1.0], [1.0, 1.4]]})
 		if _i % 3 == 0:
@@ -8077,22 +8077,33 @@ func p_katon_karyu_endan(c: Node3D, t: Node3D) -> void:
 
 ## Alev Ejderi Mermileri: ejder başından art arda alev mermileri
 func p_katon_karyudan(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.0)
+	busy(c, 1.1)
 	var tt = tg(c, t, 26.0)
-	var head = c.global_position + Vector3.UP * 2.6 + c.face_dir() * 1.2
-	var dh = VFX.fireball(2.0)
+	var head = c.global_position + Vector3.UP * 2.8 + c.face_dir() * 1.4
+	# ağızdan çıkan alev, havada açık çeneli bir alev ejder başına dönüşür; ejder ağzından art arda alev mermileri tükürür
+	var fm = VFX.mat_fire("fire", 2.6, 2.2, 0.36, 1.4, 0.1, Vector3(0, 0, 1))
+	var dh = VfxSerpent.dragon_head(fm, 2.8, Color(1, 1, 0.6))
 	get_tree().current_scene.add_child(dh)
 	dh.global_position = head
-	dh.scale = Vector3.ONE * 0.1
+	var aim0 = tt.global_position + Vector3.UP if tt else head + c.face_dir() * 10.0
+	dh.look_at(aim0, Vector3.UP)
+	var fs = dh.scale
+	dh.scale = fs * 0.1
 	var tw = dh.create_tween()
-	tw.tween_property(dh, "scale", Vector3.ONE, 0.25)
+	tw.tween_property(dh, "scale", fs, 0.25).set_trans(Tween.TRANS_BACK)
 	tw.tween_interval(1.0)
-	tw.tween_property(dh, "scale", Vector3.ONE * 0.05, 0.25)
+	tw.tween_property(dh, "scale", fs * 0.05, 0.25)
 	tw.tween_callback(dh.queue_free)
-	for k in 4:
-		after(0.3 + k * 0.18, func():
-			if live(c):
-				eshot(c, "katon_karyudan", "katon", FIRE, tt, head + c.face_dir() * 1.0, 1.2, 30.0, 0.5, {"burn": 2.0}, 1.1, 0.04))
+	_flame_jet(c, _mouth_pos(c), (head - _mouth_pos(c)).normalized(), 2.5, 1.0, 0.25, 0.8)
+	every(1.2, 0.06, func(_i, _k):
+		if is_instance_valid(dh) and not VFX.busy():
+			VFX.puffs(dh.global_position + Vector3.UP * 0.4, {"amount": 2, "life": 0.4, "size": 0.9, "radius": 0.8, "vmin": 1.0, "vmax": 3.0, "dir": Vector3.UP, "spread": 40.0, "hot": 0.6, "glow": 1.15,
+				"outline_col": Color(0.7, 0.2, 0.03), "outline": 0.03, "colors": [Color(1.0, 0.95, 0.55, 1), Color(1.0, 0.6, 0.12, 1), Color(0.5, 0.12, 0.03, 0)]}), Callable())
+	for k in 5:
+		after(0.35 + k * 0.16, func():
+			if live(c) and is_instance_valid(dh):
+				var mouth = dh.global_position - dh.global_transform.basis.z * 1.6
+				eshot(c, "katon_karyudan", "katon", FIRE, tt, mouth, 1.2, 30.0, 0.5, {"burn": 2.0}, 1.1, 0.04))
 	Sfx.play("roar", head, 1.1)
 
 
@@ -10897,18 +10908,21 @@ func p_juho_soshiken(c: Node3D, _t: Node3D) -> void:
 
 ## Büyük Ateş Yıkımı: ağızdan geniş, alanı yutan alev dalgası (çok sayıda alev küresi), arkasında yanan zemin
 func p_katon_goka_messhitsu(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.3)
+	busy(c, 1.4)
 	var d = fwd(c, t)
-	VFX.gather(_mouth_pos(c), FIRE, 2.0)
-	after(0.3, func():
-		var side = d.cross(Vector3.UP)
-		for j in 3:
-			var dd = (d + side * (j - 1) * 0.35).normalized()
-			fire_stream(_mouth_pos(c), dd, 22.0, 5.0, 12)
-		Combat.hit_zone(c, c.global_position, d, 24.0, 40.0, 5.0, inf(c, "katon_goka_messhitsu", 2.2, {"knock": 14.0, "kind": "heavy", "element": "katon", "burn": 4.0}))
-		for k in 5:
-			VFX.linger(gp(c.global_position + d * (6.0 + k * 3.5) + side * randf_range(-4, 4)), "katon", FIRE, 2.0, 5.0)
-		shake(1.0))
+	# anime Madara: ağızdan anında fışkıran, ufku kaplayan dev alev duvarı (gecikmesiz) — beş geniş alev seli yan yana
+	VFX.gather(_mouth_pos(c), FIRE, 0.5)
+	anim(c, "push", 1.3)
+	var side = d.cross(Vector3.UP)
+	for j in 5:
+		var dd = (d + side * (j - 2) * 0.28).normalized()
+		_flame_jet(c, _mouth_pos(c), dd, 26.0, 6.0, 1.1, 2.0)
+	Combat.hit_zone(c, c.global_position, d, 26.0, 60.0, 5.0, inf(c, "katon_goka_messhitsu", 2.2, {"knock": 14.0, "kind": "heavy", "element": "katon", "burn": 4.0}))
+	after(0.5, func():
+		for k in 7:
+			VFX.linger(gp(c.global_position + d * (7.0 + k * 3.0) + side * randf_range(-7, 7)), "katon", FIRE, 2.0, 5.0)
+		shake(1.2))
+	FX.light(c.global_position + d * 10.0 + Vector3.UP * 2.0, Color(1.0, 0.6, 0.2), 10.0, 40.0, 1.4)
 	Sfx.play("fire", c.global_position, 0.4)
 
 
@@ -17247,13 +17261,20 @@ func p_sarutobi_haisekisho(c: Node3D, t: Node3D) -> void:
 
 ## Büyük Alev: ağızdan geniş alev seli, yerde yanan iz
 func p_katon_goen_no_jutsu(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.6)
 	var d = fwd(c, t)
-	VFX.gather(_mouth_pos(c), FIRE, 1.0)
-	fire_stream(_mouth_pos(c) + d * 0.6, d, 16.0, 4.0, 12)
-	for k in 5:
-		after(0.2 + k * 0.08, func():
-			VFX.linger(gp(c.global_position + d * (4.0 + k * 3.0)), "katon", FIRE, 1.2, 4.0))
-	c_katon_goen_no_jutsu(c, t)
+	# Büyük Alev: ağızdan 1.5 sn kesintisiz, kullanıcının baktığı yönü izleyen kalın alev seli (köşeye kaçan parçacık yok)
+	VFX.gather(_mouth_pos(c), FIRE, 0.5)
+	anim(c, "push", 1.5)
+	_flame_jet(c, _mouth_pos(c), d, 18.0, 4.0, 1.5, 1.4)
+	every(1.5, 0.25, func(_i, _k):
+		if live(c):
+			Combat.hit_zone(c, c.global_position, c.face_dir(), 18.0, 22.0, 3.5, inf(c, "katon_goen_no_jutsu", 0.4, {"knock": 3.0, "kind": "light", "element": "katon", "burn": 1.5})), Callable())
+	for k in 4:
+		after(0.4 + k * 0.15, func():
+			if live(c):
+				VFX.linger(gp(c.global_position + c.face_dir() * (5.0 + k * 3.5)), "katon", FIRE, 1.4, 4.0))
+	Sfx.play("fire", c.global_position, 0.7)
 
 
 ## Küle Saklanma: yoğun kül bulutu içinde turuncu kor ağları (referans)
@@ -20754,13 +20775,18 @@ func p_kakuzu_maske_katon(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.0)
 	var tt = tg(c, t, 26.0)
 	var mb_ = _mask_beast(c, 1.0, FIRE)
-	after(0.45, func():
+	# Zukokku: maske ağzından gecikmesiz dev, hızlı alev küresi; çarpınca geniş alev patlaması ve yanan alan
+	after(0.2, func():
 		if not (live(c) and is_instance_valid(mb_)):
 			return
 		var from = mb_.global_position + c.face_dir() * 0.6
-		var pr = shot(c, from, aim_at(c, tt, from), 22.0, VFX.fireball(1.4), inf(c, "kakuzu_maske_katon", 2.2, {"knock": 16.0, "launch": 4.0, "kind": "heavy", "element": "katon", "burn": 4.0}), tt, false, 1.6, func(p, _h):
+		_flame_jet(c, from, c.face_dir(), 3.0, 1.5, 0.2, 1.2)
+		var pr = shot(c, from, aim_at(c, tt, from), 34.0, VFX.fireball(2.4), inf(c, "kakuzu_maske_katon", 2.2, {"knock": 16.0, "launch": 4.0, "kind": "heavy", "element": "katon", "burn": 4.0}), tt, false, 1.6, func(p, _h):
 			impact_fx("katon", FIRE, p, 2.2)
-			VFX.linger(gp(p), "katon", FIRE, 1.8, 3.0))
+			VFX.explosion(p, 3.0)
+			mhit(c, p, 6.0, inf(c, "kakuzu_maske_katon", 0.8, {"knock": 10.0, "launch": 4.0, "kind": "heavy", "element": "katon", "burn": 3.0}))
+			shake(0.8)
+			VFX.linger(gp(p), "katon", FIRE, 2.6, 4.0))
 		pr.radius = 1.2
 		_etrail(pr, "katon", FIRE, 1.2))
 	after(1.4, func():
