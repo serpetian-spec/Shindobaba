@@ -95,7 +95,7 @@ func _finish(pos: Vector3, target: Node3D, normal := Vector3.ZERO) -> void:
 		return
 	dead = true
 	var el: String = info.get("element", "")
-	if target == null and el in ["katon", "yoton", "shakuton"] and pos.y - Game.terrain_height(pos.x, pos.z) < 2.0:
+	if target == null and el in ["katon", "yoton"] and pos.y - Game.terrain_height(pos.x, pos.z) < 2.0:
 		Elements.scorch(pos, clampf(radius * 1.8, 1.2, 5.0))
 	if target == null:
 		WorldDamage.impact(pos, maxf(radius * 1.6, 1.0), info, normal)

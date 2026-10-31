@@ -355,10 +355,10 @@ func _route(e: InputEvent) -> void:
 		return
 	if Game.ui_open and not Game.paused:
 		return
-	if e.is_action_pressed("menu"):
-		_toggle_panel(func(): Menus.ninja_menu(self, "inv"))
+	if e.is_action_pressed("menu"):   # son açık bırakılan sekmeden devam
+		_toggle_panel(func(): Menus.ninja_menu(self, Menus.last_tab()))
 	elif e.is_action_pressed("inventory"):
-		_toggle_panel(func(): Menus.ninja_menu(self, "inv"))
+		_toggle_panel(func(): Menus.ninja_menu(self, Menus.last_tab()))
 	elif e.is_action_pressed("skills"):
 		_toggle_panel(func(): Menus.ninja_menu(self, "jutsu"))
 	elif e.is_action_pressed("map"):

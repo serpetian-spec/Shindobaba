@@ -538,6 +538,19 @@ static func puffs(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 	return FX.burst(pos, cfg)
 
 
+## Sis / buhar / asit bulutu: kenarsız, yumuşak, yarı saydam (cel topak değil — siyah çizgili pamuk olmasın)
+static func fog(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
+	cfg = cfg.duplicate()
+	if epic != 1.0:
+		cfg["size"] = float(cfg.get("size", 1.0)) * sqrt(epic)
+		cfg["radius"] = float(cfg.get("radius", 0.0)) * epic
+	cfg["cel"] = false
+	cfg["add"] = false
+	if not cfg.has("tex"):
+		cfg["tex"] = FX.tex_soft
+	return FX.burst(pos, cfg)
+
+
 ## Uçuşan kaya molozu (toprak duvarı, kırılma, ağır iniş)
 static func debris(pos: Vector3, col := Color(0.5, 0.42, 0.32), n := 14, speed := 10.0, size := 0.5) -> void:
 	size *= sqrt(epic)
@@ -666,14 +679,26 @@ static func trail(target: Node3D, width: float, head: Color, mid: Color, tail: C
 ## Element imzalı iz
 static func element_trail(target: Node3D, el: String, col: Color, width: float) -> VfxTrail:
 	match el:
-		"katon", "shakuton", "yoton", "bakuton":
+		"katon", "yoton":
 			return trail(target, width, Color(1, 0.85, 0.3), Color(1, 0.45, 0.06), Color(0.75, 0.12, 0.03), 16, 0.3)
-		"suiton", "futton", "hyoton":
+		"shakuton":
+			return trail(target, width, Color(1, 0.98, 0.96), Color(1.0, 0.55, 0.58), Color(1.0, 0.32, 0.38), 16, 0.0)
+		"bakuton":
+			return trail(target, width * 0.8, Color(1, 1, 0.97), Color(0.95, 0.93, 0.88), Color(0.85, 0.83, 0.8), 14, 0.0)
+		"suiton":
 			return trail(target, width, Color(0.95, 0.99, 1), Color(0.45, 0.75, 1.0), Color(0.12, 0.38, 0.9), 18, 0.1)
-		"fuuton", "jinton":
+		"futton":
+			return trail(target, width, Color(1, 1, 1), Color(0.9, 0.87, 0.93), Color(0.78, 0.74, 0.82), 16, 0.0)
+		"hyoton":
+			return trail(target, width * 0.7, Color(1, 1, 1), Color(0.82, 0.94, 1.0), Color(0.6, 0.82, 1.0), 12, 0.0)
+		"fuuton":
 			return trail(target, width * 0.7, Color(1, 1, 1), Color(0.85, 1.0, 0.92), Color(0.6, 0.95, 0.8), 14, 0.0)
-		"raiton", "ranton":
+		"jinton":
+			return trail(target, width * 0.6, Color(1, 1, 1), Color(0.95, 0.97, 1.0), Color(0.88, 0.92, 1.0), 12, 0.0)
+		"raiton":
 			return trail(target, width * 0.6, Color(1, 1, 1), col.lightened(0.4), col, 12, 0.8)
+		"ranton":
+			return trail(target, width * 0.8, Color(1, 1, 1), Color(0.75, 0.9, 1.0), Color(0.45, 0.7, 1.0), 14, 0.0)
 	return trail(target, width, col.lightened(0.6), col, col.darkened(0.3), 14, 0.2)
 
 
@@ -966,7 +991,17 @@ static func linger(pos: Vector3, el: String, col: Color, g: float, dur := 3.0) -
 			tw.tween_interval(dur * 0.7)
 			tw.tween_property(pool, "scale", Vector3(2.6 * g, 0.04, 2.6 * g), dur * 0.3)
 			cracks(gp, 2.2 * g, Color(0.08, 0.04, 0.02, 0.9), dur + 3.0)
-		"katon", "shakuton", "bakuton":
+		"shakuton":   # kavrulan zemin: alev değil, yerden tüten beyaz buhar ve kuru çatlaklar
+			for k in n:
+				var a = randf() * TAU
+				puffs(gp + Vector3(cos(a), 0.2, sin(a)) * randf_range(0.2, 1.4) * g, {"amount": 6, "life": 1.6, "size": 0.7 * g, "radius": 0.3, "vmin": 0.4, "vmax": 1.2, "dir": Vector3.UP, "spread": 25.0, "add": false,
+					"colors": [Color(1, 1, 1, 0.8), Color(1, 0.95, 0.95, 0)]})
+			cracks(gp, 1.8 * g, Color(0.35, 0.25, 0.2, 0.7), dur + 2.0)
+		"bakuton":    # patlama izi: kararan zemin ve ince duman
+			cracks(gp, 2.6 * g, Color(0.12, 0.1, 0.08, 0.9), dur + 3.0)
+			puffs(gp + Vector3.UP * 0.3, {"amount": 10, "life": 1.8, "size": 0.9 * g, "radius": 0.8 * g, "vmin": 0.3, "vmax": 1.0, "dir": Vector3.UP, "spread": 30.0, "add": false,
+				"colors": [Color(0.45, 0.43, 0.42, 0.6), Color(0.4, 0.38, 0.37, 0)]})
+		"katon":
 			var pr = fire_preset_for(col)
 			for k in n:
 				var m = mat_fire(pr, 2.6, 2.4, 0.5, 1.15, 0.15, Vector3.UP, true)
@@ -980,7 +1015,10 @@ static func linger(pos: Vector3, el: String, col: Color, g: float, dur := 3.0) -
 				tw.tween_interval(dur * randf_range(0.6, 1.0))
 				tw.tween_method(func(x: float): m.set_shader_parameter("alpha_cut", x), 0.0, 1.1, 0.6)
 			cracks(gp, 2.2 * g, Color(0.08, 0.04, 0.02, 0.9), dur + 3.0)
-		"suiton", "futton":
+		"futton":     # yere çöken asit sisi / buhar
+			puffs(gp + Vector3.UP * 0.4, {"amount": 18, "life": 2.4, "size": 1.6 * g, "radius": 1.2 * g, "vmin": 0.1, "vmax": 0.5, "dir": Vector3.UP, "spread": 60.0, "add": false,
+				"colors": [Color(0.95, 0.93, 0.97, 0.7), Color(0.85, 0.8, 0.9, 0.4), Color(0.8, 0.75, 0.85, 0)]})
+		"suiton":
 			var pd = _mi(_sphere(0.5, 20, 6), mat_water(Color(0.05, 0.28, 0.78), Color(0.2, 0.55, 0.98), Color(0.7, 0.92, 1.0), Vector3.UP, 0.75, 0.6, 0.02))
 			pd.scale = Vector3(3.0 * g, 0.08, 3.0 * g)
 			root.add_child(pd)

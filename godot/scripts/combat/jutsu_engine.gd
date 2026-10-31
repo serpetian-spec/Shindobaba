@@ -390,10 +390,15 @@ static func cast(c: Node3D, id: String, t: Node3D) -> void:
 
 static func _snd(d: Dictionary) -> String:
 	match d.get("element", ""):
-		"katon", "yoton", "shakuton", "bakuton": return "fire"
-		"suiton", "hyoton", "futton": return "water"
-		"fuuton", "jinton": return "wind"
-		"raiton", "ranton": return "chidori"
+		"katon", "yoton": return "fire"
+		"bakuton": return "boom"
+		"shakuton", "futton": return "wind"
+		"suiton": return "water"
+		"hyoton": return "clink"
+		"fuuton": return "wind"
+		"jinton": return "rasengan"
+		"raiton": return "chidori"
+		"ranton": return "chidori"
 		"doton", "mokuton", "jiton", "shoton": return "earth"
 	return "whoosh"
 
@@ -878,8 +883,10 @@ static func _wall(c: Node3D, d: Dictionary, t: Node3D) -> void:
 	if el in ["", "doton", "mokuton", "jiton", "shoton", "hyoton"]:
 		VFX.debris(pos + Vector3.UP * 0.5, col.darkened(0.2) if el != "hyoton" else Color(0.8, 0.95, 1), 16, 12.0, 0.45)
 		VFX.cracks(pos, size.x * 0.9)
-	elif el in ["suiton", "futton"]:
+	elif el == "suiton":
 		VFX.splash(pos, 2.5)
+	elif el != "":
+		impact_for(el, pos, col, 1.2)
 	VFX.shockwave(pos + Vector3.UP * 0.1, col.lightened(0.2), size.x * 1.6, 0.4)
 	Sfx.play(_snd(d), pos)
 
@@ -965,7 +972,7 @@ static func _bind(c: Node3D, d: Dictionary, t: Node3D, v: String, debuff: bool) 
 		bm = Props.toon_color(Color(0.08, 0.08, 0.1))
 	if v == "prison":
 		bm = VFX.element_mat(el, col) if el != "" else VFX.mat_spiral(col.lightened(0.5), col, 5.0, 2.0, 3.0, 1.3)
-		if el in ["suiton", "futton"]:
+		if el == "suiton":
 			bm = VFX.mat_water(Color(0.05, 0.28, 0.78), Color(0.2, 0.55, 0.98), Color(0.7, 0.92, 1.0), Vector3.UP, 0.6, 0.6, 0.1)
 	elif v == "roots":
 		bm = Props.toon()
@@ -980,8 +987,10 @@ static func _bind(c: Node3D, d: Dictionary, t: Node3D, v: String, debuff: bool) 
 	mi.scale = Vector3(1, 0.1, 1)
 	mi.create_tween().tween_property(mi, "scale", Vector3.ONE * maxf(1.0, tg.height / 1.8), 0.3).set_trans(Tween.TRANS_BACK)
 	VFX.star(tg.global_position + Vector3.UP * tg.height * 0.5, col.lightened(0.3), 2.5, 0.15)
-	if el in ["suiton", "futton"]:
+	if el == "suiton":
 		VFX.splash(tg.global_position, 1.4)
+	elif el in ["futton", "shakuton", "hyoton", "jinton", "ranton", "bakuton"]:
+		impact_for(el, tg.global_position + Vector3.UP, col, 0.8)
 	elif el in ["doton", "mokuton"] or v == "roots":
 		VFX.debris(tg.global_position, col.darkened(0.2), 8, 8.0, 0.35)
 	if v == "shadow":
@@ -1126,7 +1135,7 @@ static func _buff(c: Node3D, d: Dictionary, kind: String) -> void:
 	var el: String = d.get("element", "")
 	if kind == "mode" or cat == "senjutsu":
 		mods = {"melee": 1.2 + 0.06 * tier, "armor": 0.85, "jutsu": 1.15 + 0.05 * tier}
-	elif el in ["raiton", "ranton"]:
+	elif el == "raiton":
 		mods = {"speed": 1.15 + 0.04 * tier, "melee": 1.1 + 0.05 * tier}
 	elif el in ["doton", "shoton", "jiton"] or kind == "transform":
 		mods = {"armor": maxf(0.5, 0.9 - 0.06 * tier), "melee": 1.05 + 0.04 * tier}
@@ -1171,7 +1180,7 @@ static func _buff_look(c: Node3D, d: Dictionary, col: Color, dur: float) -> void
 		var sc = Color(0.82, 0.68, 0.45) if (s.contains("sand") or s.contains("suna")) else col
 		VFX.puffs(c.global_position + Vector3.UP, {"amount": 30, "life": 0.7, "size": 0.9, "radius": 1.6, "vmin": 2, "vmax": 5, "spin": 40.0, "tangent": 10.0,
 			"colors": [sc.lightened(0.2), sc, Color(sc.r, sc.g, sc.b, 0)]})
-		if not el in ["raiton", "ranton"]:
+		if el != "raiton":
 			# zırh kabuğu bedeni sarar, sonra içine oturur
 			var shell = VFX._mi(VFX._sphere(0.5, 18, 9), Props.toon_color(sc))
 			shell.scale = Vector3(0.1, 0.19, 0.1)
@@ -1182,7 +1191,7 @@ static func _buff_look(c: Node3D, d: Dictionary, col: Color, dur: float) -> void
 			st.tween_interval(0.3)
 			st.tween_property(shell, "scale", Vector3.ONE * 0.01, 0.35)
 			st.tween_callback(shell.queue_free)
-	if el in ["raiton", "ranton"] or s.contains("lightning armor"):
+	if el == "raiton" or s.contains("lightning armor"):
 		var arcs = Arcs.new()
 		arcs.color = col
 		arcs.radius = 1.3
@@ -1277,10 +1286,10 @@ static func _field(c: Node3D, d: Dictionary, t: Node3D, v: String) -> void:
 	var m: Material
 	if v == "swamp" or el in ["doton", "shoton"]:
 		m = Props.toon_color(Color(0.3, 0.22, 0.14))   # çamur bataklığı
-	elif el in ["suiton", "futton"]:
-		m = Props.toon_color(Color(0.16, 0.42, 0.85) if el == "suiton" else Color(0.75, 0.82, 0.9))   # su birikintisi
-	elif el in ["katon", "yoton", "hyoton", "bakuton", "shakuton"]:
-		m = VFX.element_mat(el, col)
+	elif el == "suiton":
+		m = Props.toon_color(Color(0.16, 0.42, 0.85))   # su birikintisi
+	elif el in ["katon", "yoton", "hyoton", "bakuton", "shakuton", "futton", "jinton", "ranton"]:
+		m = VFX.element_mat(el, col)   # her doğa kendi zemini
 	elif el == "mokuton":
 		m = Props.toon_color(Color(0.28, 0.42, 0.18))
 	else:
@@ -1313,9 +1322,12 @@ static func _field(c: Node3D, d: Dictionary, t: Node3D, v: String) -> void:
 		if v == "mist":
 			FX.burst(pos + Vector3.UP * 1.5, {"amount": 14, "life": 2.2, "tex": FX.tex_smoke, "add": false, "size": 4.5, "radius": r,
 				"vmin": 0.2, "vmax": 0.8, "gravity": Vector3.ZERO, "colors": [Color(0.92, 0.95, 1.0, 0.0), Color(0.9, 0.93, 0.98, 0.55), Color(0.9, 0.93, 0.98, 0.0)]})
-		if el in ["raiton", "ranton"] and _i % 2 == 0:
+		if el == "raiton" and _i % 2 == 0:
 			var a = pos + Vector3(randf_range(-r, r) * 0.7, 0.2, randf_range(-r, r) * 0.7)
 			VFX.bolt(a, a + Vector3(randf_range(-3, 3), randf_range(0.5, 2.5), randf_range(-3, 3)), col, 0.12, 0.2, 1)
+		elif el == "ranton" and _i % 2 == 0:
+			var a2 = pos + Vector3(randf_range(-r, r) * 0.7, 6.0, randf_range(-r, r) * 0.7)
+			LightRibbon.spawn([a2, a2.lerp(a2 - Vector3.UP * 6.0, 0.5), a2 - Vector3.UP * 5.8], 0.4, 0.3, Color(0.45, 0.72, 1.0))
 		if v == "swamp" or el in ["doton", "suiton"]:
 			VFX.puffs(pos + Vector3.UP * 0.2, {"amount": 4, "life": 0.7, "size": 0.6, "radius": r * 0.8, "vmin": 0.5, "vmax": 1.5, "dir": Vector3.UP, "spread": 10.0,
 				"colors": [col.lightened(0.3), col, Color(col.r, col.g, col.b, 0)]})

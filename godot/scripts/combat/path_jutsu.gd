@@ -4296,6 +4296,10 @@ func _etrail(pr: Projectile, el: String, col: Color, size: float) -> void:
 func impact_fx(el: String, col: Color, at: Vector3, s := 1.0) -> void:
 	var g = Vector3(at.x, Game.jutsu_floor(at.x, at.z), at.z)
 	var near_ground = at.y - g.y < 2.5
+	if el in ["shakuton", "futton", "jinton", "ranton"]:   # her doğa kendi isabeti (başka elementin kılığı değil)
+		JutsuEngine.impact_for(el, at, col, s)
+		shake(0.2 + 0.2 * s)
+		return
 	if el not in ["fuuton", "raiton", "katon", "bakuton", "yoton", "suiton", "hyoton"]:
 		VFX.star(at, col.lightened(0.4), 2.2 * s, 0.18)
 		VFX.shockwave(at, col, 5.0 * s, 0.4, false, Vector3.UP)
@@ -4313,9 +4317,14 @@ func impact_fx(el: String, col: Color, at: Vector3, s := 1.0) -> void:
 			VFX.embers(at, col, int(30 * s), 12.0 * s)
 			if near_ground:
 				VFX.cracks(g, 3.0 * s, Color(0.08, 0.04, 0.02, 0.9), 6.0)
-		"suiton", "hyoton":
+		"suiton":
 			VFX.splash(at, 2.6 * s)
 			VFX.smoke_ring(g + Vector3.UP * 0.1, 3.5 * s, Color(0.75, 0.88, 1.0))
+		"hyoton":   # buz kırığı: keskin kristal parçaları ve soğuk buğu (su sıçraması değil)
+			VFX.debris(at, Color(0.82, 0.94, 1.0), int(14 * s) + 4, 9.0 * s, 0.3)
+			VFX.star(at, Color(0.9, 0.97, 1.0), 2.2 * s, 0.16)
+			VFX.puffs(at, {"amount": int(14 * s) + 4, "life": 0.9, "size": 0.6 * s, "radius": 0.5 * s, "vmin": 0.5, "vmax": 2.0, "dir": Vector3.UP, "spread": 120.0, "add": false,
+				"colors": [Color(0.95, 0.98, 1.0, 0.7), Color(0.85, 0.93, 1.0, 0)]})
 		"fuuton":
 			WindFX.blast(at, 4.0 * s, int(14 + 8 * s))
 		"raiton":
@@ -7775,9 +7784,9 @@ func p_joki_bakushin(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 16.0)
 	var d = _face(c, tt)
 	busy(c, 0.6)
-	VFX.puffs(c.global_position + Vector3.UP * 1.2 - d * 0.6, {"amount": 60, "life": 1.2, "size": 1.6, "radius": 0.6, "vmin": 6, "vmax": 12, "dir": -d, "spread": 30.0, "add": false,
-		"colors": [Color(0.95, 0.95, 0.95, 0.85), Color(0.9, 0.9, 0.9, 0)]})
-	VFX.shockwave(c.global_position + Vector3.UP - d * 0.8, Color(1, 1, 1), 3.0, 0.3, false, d)
+	# arkaya fışkıran buhar jeti seni ileri fırlatır
+	VFX.fog(c.global_position + Vector3.UP * 1.2 - d * 0.6, {"amount": 57, "life": 1.1, "size": 1.8, "radius": 0.4, "vmin": 7, "vmax": 13, "dir": -d, "spread": 22.0, "damp": 2.5,
+		"colors": [Color(1, 1, 1, 0.0), Color(0.97, 0.97, 0.98, 0.95), Color(0.92, 0.92, 0.94, 0.0)]})
 	if c is CharacterBody3D:
 		c.velocity = d * 32.0 + Vector3.UP * 2.0
 	FX.speed_lines(c.global_position + Vector3.UP, d)
@@ -7785,15 +7794,14 @@ func p_joki_bakushin(c: Node3D, t: Node3D) -> void:
 	every(0.5, 1.0 / 30.0, func(_i, _k):
 		if not live(c):
 			return
-		VFX.puffs(c.global_position + Vector3.UP, {"amount": 3, "life": 0.5, "size": 0.8, "radius": 0.3, "vmin": 0.5, "vmax": 1.5, "dir": Vector3.UP, "spread": 40.0, "add": false,
-			"colors": [Color(0.95, 0.95, 0.95, 0.6), Color(0.9, 0.9, 0.9, 0)]})
+		VFX.fog(c.global_position + Vector3.UP - d * 0.4, {"amount": 4, "life": 0.7, "size": 1.0, "radius": 0.2, "vmin": 0.5, "vmax": 1.5, "dir": -d, "spread": 30.0,
+			"colors": [Color(1, 1, 1, 0.0), Color(0.97, 0.97, 0.98, 0.8), Color(0.92, 0.92, 0.94, 0.0)]})
 		for e in enemies_near(c, c.global_position, 1.6):
 			if not done.has(e):
 				done[e] = true
-				melee_fx(c, e.global_position + Vector3.UP, Color(1, 0.95, 0.9), 1.3)
+				_tai_impact(c, e.global_position + Vector3.UP, 1.1, false)
 				e.take_hit(inf(c, "joki_bakushin", 1.3, {"knock": 18.0, "launch": 4.0, "kind": "heavy", "element": "futton", "dir": d})), Callable())
 	Sfx.play("wind", c.global_position, 0.7)
-
 
 ## Kötülüğü Serbest Bırakma: kullanıcının ağzından mor gölge yılanlar fışkırıp hedefi sarar, lanetini sızdırır
 func p_kaija_hoin(c: Node3D, t: Node3D) -> void:
@@ -10184,18 +10192,21 @@ func p_funsuiken(c: Node3D, t: Node3D) -> void:
 	after(0.2, func():
 		if not live(c):
 			return
-		VFX.puffs(c.global_position + Vector3.UP * 1.2 - d * 0.5, {"amount": 40, "life": 0.8, "size": 1.2, "radius": 0.4, "vmin": 6, "vmax": 12, "dir": -d, "spread": 30.0, "add": false,
-			"colors": [Color(STEAM.r, STEAM.g, STEAM.b, 0.9), Color(0.9, 0.9, 0.9, 0)]})
+		# sırttan arkaya fışkıran buhar itişi
+		VFX.fog(c.global_position + Vector3.UP * 1.2 - d * 0.5, {"amount": 44, "life": 0.9, "size": 1.4, "radius": 0.3, "vmin": 6, "vmax": 11, "dir": -d, "spread": 25.0, "damp": 3.0,
+			"colors": [Color(1, 1, 1, 0.0), Color(0.97, 0.97, 0.98, 0.92), Color(0.92, 0.92, 0.94, 0.0)]})
 		if c is CharacterBody3D:
 			c.velocity = d * 20.0
 		anim(c, "cross", 2.0)
 		after(0.12, func():
 			if live(c):
 				var at = c.global_position + Vector3.UP * 1.2 + d * 1.3
-				impact_fx("bakuton", Color(1, 0.9, 0.8), at, 1.2)
+				# buhar patlaması: ateş değil, beyaz kaynar buhar
+				VFX.fog(at, {"amount": 48, "life": 1.0, "size": 1.6, "radius": 0.4, "vmin": 4, "vmax": 9, "dir": d, "spread": 70.0, "damp": 3.0,
+					"colors": [Color(1, 1, 1, 0.0), Color(0.98, 0.98, 0.99, 0.95), Color(0.92, 0.92, 0.94, 0.0)]})
+				_tai_impact(c, at, 1.1, false)
 				mhit(c, at, 2.0, inf(c, "funsuiken", 1.8, {"knock": 22.0, "launch": 4.0, "kind": "heavy", "element": "futton"}))))
 	Sfx.play("wind", c.global_position, 0.8)
-
 
 ## Rüzgâr Rasengan: avuçta dönen mavi Rasengan, etrafında keskin rüzgâr halkası — saplanınca kesici girdap
 func p_futon_rasengan(c: Node3D, t: Node3D) -> void:
@@ -10229,15 +10240,15 @@ func p_futon_rasengan(c: Node3D, t: Node3D) -> void:
 func p_futton_joki_bakuhatsu(c: Node3D, _t: Node3D) -> void:
 	busy(c, 0.8)
 	var at = c.global_position + Vector3.UP * 1.0
-	VFX.gather(at, STEAM, 1.6)
+	VFX.fog(at, {"amount": 22, "life": 0.5, "size": 1.0, "radius": 0.6, "vmin": 0.5, "vmax": 1.0, "dir": Vector3.UP, "spread": 180.0,
+		"colors": [Color(1, 1, 1, 0.0), Color(0.97, 0.97, 0.98, 0.5), Color(0.92, 0.92, 0.94, 0.0)]})
 	after(0.35, func():
-		# buhar patlaması: bedenden dışa fışkıran yumuşak buhar (ekranı kaplamasın; halka şekli yok)
-		VFX.puffs(at, {"amount": 60, "life": 1.1, "size": 1.1, "radius": 1.2, "vmin": 7, "vmax": 13, "dir": Vector3.UP, "spread": 180.0, "add": false,
-			"colors": [Color(1, 1, 1, 0.85), Color(0.95, 0.95, 0.95, 0.45), Color(0.9, 0.9, 0.9, 0)]})
-		hit(c, at, 5.5, inf(c, "futton_joki_bakuhatsu", 1.6, {"knock": 18.0, "launch": 5.0, "kind": "heavy", "element": "futton", "burn": 2.0}))
+		# bedenden dışa fışkıran yoğun beyaz buhar (kenarsız, yumuşak)
+		VFX.fog(at, {"amount": 88, "life": 1.3, "size": 2.4, "radius": 1.0, "vmin": 6, "vmax": 12, "dir": Vector3.UP, "spread": 180.0, "damp": 3.0,
+			"colors": [Color(1, 1, 1, 0.0), Color(0.98, 0.98, 0.99, 0.95), Color(0.93, 0.93, 0.95, 0.4), Color(0.9, 0.9, 0.92, 0.0)]})
+		hit(c, at, 5.5, inf(c, "futton_joki_bakuhatsu", 1.6, {"knock": 18.0, "launch": 5.0, "kind": "heavy", "element": "futton"}))
 		shake(0.8))
 	Sfx.play("boom", at, 1.0)
-
 
 # ================================================================== Yeni jutsular H (Sv.18): buhar, buz, mühür, kılıç, mıknatıs
 const ICE := Color(0.7, 0.9, 1.0)
@@ -10261,33 +10272,35 @@ func _ice_spike(h: float, r: float) -> MeshInstance3D:
 ## Eşsiz Güç: buhar bedeni sarar (dirseklerden, sırttan fışkırır) — 15 sn yumruk ve tekmeler buhar itişli
 func p_futton_kairiki_muso(c: Node3D, _t: Node3D) -> void:
 	busy(c, 0.5)
-	VFX.gather(c.global_position + Vector3.UP, STEAM, 1.3)
-	VFX.puffs(c.global_position + Vector3.UP, {"amount": 60, "life": 1.2, "size": 1.2, "radius": 0.6, "vmin": 2, "vmax": 5, "dir": Vector3.UP, "spread": 70.0, "add": false,
-		"colors": [Color(1, 1, 1, 0.9), Color(0.95, 0.95, 0.95, 0)]})
+	# anime Han: bedenden ve sırttan beyaz buhar yükselir; vuruşlar buhar itişli
+	VFX.fog(c.global_position + Vector3.UP * 1.2, {"amount": 57, "life": 1.4, "size": 1.8, "radius": 0.6, "vmin": 1.5, "vmax": 3.5, "dir": Vector3.UP, "spread": 50.0,
+		"colors": [Color(1, 1, 1, 0.0), Color(0.97, 0.97, 0.98, 0.9), Color(0.92, 0.92, 0.94, 0.0)]})
 	if c is Player:
 		Buffs.add("kairiki_muso", 15.0, {"melee": 1.8, "speed": 1.15, "_name": "Eşsiz Güç", "_desc": "buhar itişli vuruşlar: yakın dövüş +%80"})
-	every(15.0, 0.25, func(_i, _k):
+	every(15.0, 0.3, func(_i, _k):
 		if live(c):
-			for right in [true, false]:
-				VFX.puffs(hand_pos(c, right), {"amount": 2, "life": 0.5, "size": 0.5, "radius": 0.1, "vmin": 1, "vmax": 2, "dir": Vector3.UP, "spread": 40.0, "add": false,
-					"colors": [Color(1, 1, 1, 0.7), Color(0.95, 0.95, 0.95, 0)]}), Callable())
+			VFX.fog(c.global_position + Vector3.UP * 1.6 - c.face_dir() * 0.3, {"amount": 4, "life": 1.0, "size": 0.9, "radius": 0.2, "vmin": 0.8, "vmax": 1.6, "dir": Vector3.UP, "spread": 30.0,
+				"colors": [Color(1, 1, 1, 0.0), Color(0.97, 0.97, 0.98, 0.8), Color(0.92, 0.92, 0.94, 0.0)]}), Callable())
 	Sfx.play("wind", c.global_position, 0.8)
-
 
 ## Usta Sis: ağızdan asitli buhar sisi yayılır — alanı kaplar, içindekiler yavaşça erir
 func p_futton_komu_no_jutsu(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.8)
+	busy(c, 0.9)
 	var d = fwd(c, t)
-	var at = c.global_position + d * 6.0
-	stream_fx(_mouth_pos(c), d, 8.0, 2.4, VFX.mat_wind(Color(0.85, 0.82, 0.7), 4.0, 4.0, Vector3(0, 1, 0), 0.6), 0.6)
-	every(7.0, 0.3, func(_i, _k):
-		VFX.puffs(at + Vector3(randf_range(-5, 5), 0.8, randf_range(-5, 5)), {"amount": 5, "life": 2.5, "size": 3.0, "radius": 1.5, "vmin": 0.1, "vmax": 0.4, "dir": Vector3.UP, "spread": 60.0, "add": false,
-			"colors": [Color(0.88, 0.85, 0.72, 0.55), Color(0.85, 0.82, 0.7, 0)]})
+	var at = gp(c.global_position + d * 6.0)
+	# anime Mei: ağızdan yoğun mor tonlu asit sisi fışkırır, alanı kalın bir sis gibi örter (kenarsız, yumuşak)
+	for k in 8:
+		after(k * 0.06, func():
+			if live(c):
+				VFX.fog(_mouth_pos(c) + d * (0.6 + k * 0.7), {"amount": 13, "life": 1.6, "size": 1.6 + k * 0.35, "radius": 0.3 + k * 0.2, "vmin": 2.0, "vmax": 4.0, "dir": d, "spread": 25.0, "damp": 2.0,
+					"colors": [Color(0.92, 0.88, 0.96, 0.0), Color(0.66, 0.52, 0.8, 0.85), Color(0.72, 0.64, 0.8, 0.0)]}))
+	every(7.0, 0.12, func(_i, _k):
+		VFX.fog(at + Vector3(randf_range(-4, 4), 1.0, randf_range(-4, 4)), {"amount": 8, "life": 3.0, "size": 5.5, "radius": 2.0, "vmin": 0.1, "vmax": 0.4, "dir": Vector3.UP, "spread": 90.0, "gravity": Vector3.ZERO,
+			"colors": [Color(0.85, 0.8, 0.9, 0.0), Color(0.62, 0.5, 0.76, 0.8), Color(0.7, 0.62, 0.8, 0.0)]})
 		for e in enemies_near(c, at, 6.0):
 			st(e, "slow", 0.6)
-			e.take_hit(inf(c, "futton_komu_no_jutsu", 0.06, {"knock": 0.0, "kind": "light", "poison": 1.0})), Callable())
+			e.take_hit(inf(c, "futton_komu_no_jutsu", 0.06, {"knock": 0.0, "kind": "light", "poison": 1.0, "armor_break": 0.1})), Callable())
 	Sfx.play("wind", c.global_position, 0.7)
-
 
 ## Kurbağa Kılıcı Biçme: dev kurbağa kılıcı çağrılır, yatay dev bir yay ile biçer
 func p_gamadosuzan(c: Node3D, t: Node3D) -> void:
@@ -20359,16 +20372,21 @@ func p_kaguya_hone_tate(c: Node3D, _t: Node3D) -> void:
 
 func p_terumi_futton_komu(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.0)
-	var at = gp(c.global_position + fwd(c, t) * 6.0)
-	every(5.0, 0.15, func(_i, _k):
-		VFX.puffs(at + Vector3(randf_range(-5, 5), 1.0, randf_range(-5, 5)), {"amount": 4, "life": 1.6, "size": 2.2, "radius": 1.0, "vmin": 0.2, "vmax": 0.8, "dir": Vector3.UP, "spread": 90.0, "add": false,
-			"colors": [Color(0.82, 0.88, 0.6, 0.75), Color(0.7, 0.75, 0.5, 0)]}), Callable())
+	var d = fwd(c, t)
+	var at = gp(c.global_position + d * 6.0)
+	for k in 8:
+		after(k * 0.06, func():
+			if live(c):
+				VFX.fog(_mouth_pos(c) + d * (0.6 + k * 0.7), {"amount": 13, "life": 1.6, "size": 1.6 + k * 0.35, "radius": 0.3 + k * 0.2, "vmin": 2.0, "vmax": 4.0, "dir": d, "spread": 25.0, "damp": 2.0,
+					"colors": [Color(0.92, 0.88, 0.96, 0.0), Color(0.66, 0.52, 0.8, 0.85), Color(0.72, 0.64, 0.8, 0.0)]}))
+	every(5.0, 0.1, func(_i, _k):
+		VFX.fog(at + Vector3(randf_range(-5, 5), 1.0, randf_range(-5, 5)), {"amount": 8, "life": 2.6, "size": 5.5, "radius": 2.0, "vmin": 0.1, "vmax": 0.4, "dir": Vector3.UP, "spread": 90.0, "gravity": Vector3.ZERO,
+			"colors": [Color(0.85, 0.8, 0.9, 0.0), Color(0.62, 0.5, 0.76, 0.8), Color(0.7, 0.62, 0.8, 0.0)]}), Callable())
 	every(5.0, 0.5, func(_i, _k):
 		for e in enemies_near(c, at, 6.5):
 			st(e, "slow", 0.6)
-			e.take_hit(inf(c, "terumi_futton_komu", 0.3, {"knock": 0.0, "kind": "light", "burn": 2.0, "armor_break": 0.2})), Callable())
-	Sfx.play("smoke", at, 0.8)
-
+			e.take_hit(inf(c, "terumi_futton_komu", 0.3, {"knock": 0.0, "kind": "light", "poison": 2.0, "armor_break": 0.2})), Callable())
+	Sfx.play("wind", at, 0.8)
 
 func p_terumi_yoton_yokai(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.0)

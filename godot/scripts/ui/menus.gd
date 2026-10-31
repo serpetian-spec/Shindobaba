@@ -10,6 +10,10 @@ static var _fresh := false
 
 
 static func clear() -> void:
+	# Ninja menüsü kapanırken/yenilenirken açık sekmenin kaydırma konumunu hatırla (yeniden açınca kaldığın yerden)
+	if _menu_open and _last_tab != "":
+		_scroll_mem[_last_tab] = _scroll_positions()
+	_menu_open = false
 	for c in Hud.dialog_layer.get_children():
 		c.queue_free()
 
@@ -979,7 +983,7 @@ static func pause(main: Node) -> void:
 	root.add_child(UI.label(String(Game.profile.get("name", "")), 54, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true))
 	root.add_child(UI.label("%s  •  %s" % [Orgs.rogue_rank_name() if Orgs.is_rogue() else Data.RANKS[int(Game.profile.get("rank", 0))], Game.region_name(Game.player.global_position) if Game.player else ""], 17, UI.MUTED))
 	root.add_child(UI.spacer(0, 26, false))
-	var items = [["Devam", "play", func(): main.resume()], ["Ninja Menüsü", "bag", func(): ninja_menu(main, "inv")],
+	var items = [["Devam", "play", func(): main.resume()], ["Ninja Menüsü", "bag", func(): ninja_menu(main, last_tab())],
 		["Ekipman ve Kıyafetler", "armor", func(): ninja_menu(main, "wardrobe")], ["Jutsu ve Yetenekler", "scroll", func(): ninja_menu(main, "jutsu")],
 		["Harita", "map", func(): region_map(main)], ["Ayarlar", "settings", func(): settings(func(): pause(main))],
 		["Kaydet", "save", func():
@@ -1134,6 +1138,13 @@ const SWATCHES := [Color(0.15, 0.2, 0.33), Color(0.12, 0.12, 0.14), Color(0.45, 
 
 static var _last_tab := ""
 static var _last_shop := ""
+static var _scroll_mem := {}     # sekme -> kaydırma konumları
+static var _menu_open := false
+
+
+## Menü kısayolu: en son açık bırakılan sekme (ilk açılışta envanter)
+static func last_tab(fallback := "inv") -> String:
+	return _last_tab if _last_tab != "" else fallback
 
 
 static func _scroll_positions() -> Array:
@@ -1155,9 +1166,10 @@ static func ninja_menu(main: Node, tab := "inv", picked := "") -> void:
 		region_map(main)
 		return
 	# aynı sekme yeniden kurulurken (eşya seçince) kaydırma yerinde kalsın; eskiden en üste dönüyordu
-	var keep = _scroll_positions() if tab == _last_tab else []
+	var bg = _full(0.5)   # (önceki sekmenin kaydırması clear() içinde kaydedilir)
+	var keep = _scroll_mem.get(tab, [])
 	_last_tab = tab
-	var bg = _full(0.5)
+	_menu_open = true
 	var pr = Game.profile
 	# sol ray
 	var rail_bg = Panel.new()
@@ -2128,8 +2140,10 @@ static func _jutsu_effects(jid: String, j: Dictionary) -> String:
 	if dmg > 0:
 		parts.append("Hasar ≈ %d" % dmg)
 	var el = String(j.get("element", ""))
-	if el in ["katon", "yoton", "shakuton"]:
+	if el in ["katon", "yoton"]:
 		parts.append("Yakar (%.1f sn)" % (1.5 + t * 0.4))
+	if el == "shakuton":
+		parts.append("Beden suyunu buharlaştırır: yavaşlatır (%.1f sn)" % (1.0 + t * 0.3))
 	if el in ["raiton", "ranton"] and t >= 2:
 		parts.append("Sersemletir (%.1f sn)" % (0.3 + t * 0.12))
 	if el in ["suiton", "hyoton"]:

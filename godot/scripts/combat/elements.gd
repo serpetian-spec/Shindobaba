@@ -90,7 +90,7 @@ static func env_mult(el: String) -> float:
 		return 1.0
 	if String(Game.world.env.weather) == "yağmur":
 		match el:
-			"katon", "yoton", "shakuton":
+			"katon", "yoton":
 				return 0.75
 			"suiton", "raiton", "ranton":
 				return 1.15
@@ -234,11 +234,17 @@ static func clash_fx(pos: Vector3, effect: String, ea: String, eb: String, size 
 
 static func color_of(el: String) -> Color:
 	match el:
-		"katon", "yoton", "shakuton": return Color(1.0, 0.5, 0.15)
-		"suiton", "futton": return Color(0.4, 0.7, 1.0)
+		"katon", "yoton": return Color(1.0, 0.5, 0.15)
+		"shakuton": return Color(1.0, 0.45, 0.48)    # kızıl-pembe kavurucu ışık
+		"suiton": return Color(0.4, 0.7, 1.0)
+		"futton": return Color(0.9, 0.88, 0.93)      # beyaz-gri buhar
 		"fuuton": return Color(0.75, 1.0, 0.85)
-		"raiton", "ranton": return Color(0.6, 0.8, 1.0)
-		"doton", "bakuton", "jiton": return Color(0.65, 0.5, 0.35)
+		"raiton": return Color(0.6, 0.8, 1.0)
+		"ranton": return Color(0.8, 0.92, 1.0)       # beyaz-mavi lazer
+		"bakuton": return Color(0.98, 0.95, 0.88)    # beyaz kil
+		"jinton": return Color(0.95, 0.97, 1.0)      # beyaz ışık
+		"shoton": return Color(0.95, 0.6, 0.85)      # pembe kristal
+		"doton", "jiton": return Color(0.65, 0.5, 0.35)
 		"hyoton": return Color(0.85, 0.95, 1.0)
 		"mokuton": return Color(0.5, 0.75, 0.35)
 	return Color(1, 1, 1)

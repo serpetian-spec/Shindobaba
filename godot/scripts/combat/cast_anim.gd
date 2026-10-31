@@ -165,11 +165,17 @@ static func style_for(jid: String, j: Dictionary = {}) -> String:
 	if jid.contains("kuchiyose") or jid.contains("summon"):
 		return "summon"
 	match el:
-		"katon", "yoton", "shakuton": return "breath"
-		"suiton", "hyoton", "futton": return "two_palm"
+		"katon", "yoton": return "breath"
+		"shakuton": return "palm"        # Pakura: küreler avuçlardan
+		"futton": return "breath"        # Mei: asit sisini ağızdan üfler
+		"suiton": return "two_palm"
+		"hyoton": return "sense"         # Haku: mühür pozu, buz kendiliğinden belirir
 		"fuuton": return "palm"
+		"jinton": return "two_palm"      # Ōnoki: küp iki avuç arasında
+		"bakuton": return "palm"         # Deidara: avuçtaki ağızlardan kil
 		"doton", "mokuton", "jiton": return "ground"
-		"raiton", "ranton": return "sky" if (jid.contains("kirin") or jid.contains("thunder") or jid.contains("rai_")) else "charge"
+		"ranton": return "two_palm"      # Darui: birleşik avuçlardan lazer
+		"raiton": return "sky" if (jid.contains("kirin") or jid.contains("thunder") or jid.contains("rai_")) else "charge"
 	return "palm"
 
 

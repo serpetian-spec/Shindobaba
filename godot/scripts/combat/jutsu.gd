@@ -315,14 +315,29 @@ func _stream(c: Node3D, t: Node3D, dur: float, col: Color, el: String, tick_dmg:
 	pm.spread = 14.0 + sg * 5.0
 	pm.initial_velocity_min *= sqrt(sg); pm.initial_velocity_max *= sqrt(sg)
 	match el:
-		"katon", "yoton", "shakuton", "bakuton":
+		"katon", "yoton":
 			var pr: Array = VFX.FIRE_PRESETS[VFX.fire_preset_for(col)]
 			pm.color_ramp = FX._gradient([pr[1], pr[2], pr[3], Color(pr[4].r, pr[4].g, pr[4].b, 0)])
 			q.material = VFX.mat_puff(1.08, 0.3, pr[4], 0.36, 0.25, 1.2)
-		"suiton", "futton", "hyoton":
+		"shakuton":   # kızıl-pembe sıcak ışık
+			pm.color_ramp = FX._gradient([Color(1, 1, 1, 1), Color(1.0, 0.6, 0.62, 0.9), Color(1.0, 0.4, 0.45, 0.0)])
+			q.material = FX._draw_mat(FX.tex_soft, true)
+		"bakuton":    # beyaz kil tozu
+			pm.color_ramp = FX._gradient([Color(1, 1, 0.97, 1), Color(0.93, 0.91, 0.86, 0.8), Color(0.9, 0.88, 0.84, 0)])
+			q.material = VFX.mat_puff(1.0, 0.0, Color(0.6, 0.58, 0.55), 0.3, 0.25, 1.1)
+		"suiton":
 			pm.color_ramp = FX._gradient([Color(0.95, 0.99, 1, 1), Color(0.5, 0.8, 1.0, 1), Color(0.18, 0.48, 0.98, 0.8), Color(0.1, 0.3, 0.85, 0)])
 			q.material = VFX.mat_puff(1.05, 0.0, Color(0.05, 0.18, 0.5), 0.3, 0.25, 1.3)
-		"fuuton", "jinton":
+		"futton":     # kaynar buhar / asit sisi
+			pm.color_ramp = FX._gradient([Color(1, 1, 1, 0.95), Color(0.9, 0.86, 0.93, 0.8), Color(0.82, 0.78, 0.86, 0)])
+			q.material = VFX.mat_puff(1.0, 0.0, Color(0.55, 0.5, 0.6), 0.3, 0.25, 1.2)
+		"hyoton":     # buz kristali kıvılcımları
+			pm.color_ramp = FX._gradient([Color(1, 1, 1, 1), Color(0.8, 0.93, 1.0, 0.9), Color(0.7, 0.88, 1.0, 0)])
+			q.material = FX._draw_mat(FX.tex_spark, true)
+		"jinton":     # beyaz ışık zerreleri
+			pm.color_ramp = FX._gradient([Color(1, 1, 1, 1), Color(0.95, 0.97, 1.0, 0.7), Color(0.9, 0.95, 1.0, 0)])
+			q.material = FX._draw_mat(FX.tex_soft, true)
+		"fuuton":
 			pm.color_ramp = FX._gradient([Color(1, 1, 1, 0.9), Color(0.85, 1.0, 0.92, 0.5), Color(0.7, 1, 0.9, 0)])
 			pm.particle_flag_align_y = true
 			q.size = Vector2(0.25, 2.6)
