@@ -874,6 +874,7 @@ const PANIM := {
 	"kako_yogan_ken": {"base": "rush", "pre": 0.2, "post": 1.0, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "crouch": 0.5}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.4, -0.7, -0.5), Vector3(-0.0, -0.3, -0.95), Vector3(-0.0, -0.6, -0.8)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 25.0, "hips_yaw": -25.0}},
 	"kako_yoton_kansen": {"base": "ground_slam", "pre": 0.4, "post": 0.8, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3]}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 50.0, "crouch": 1.0}},
 	"kil_ucan_kus": {"base": "power", "pre": 0.5, "post": 0.4, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4]}, "rel": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -8.0}},
+	"shi_tsu_hiko": {"base": "power", "pre": 0.5, "post": 0.4, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4]}, "rel": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -8.0}},
 	"jiongu_ito_kirbac": {"base": "palm", "pre": 0.2, "post": 0.6, "wind": {"R": [Vector3(-0.4, -0.7, -0.5), Vector3(0.0, -0.3, -0.95), Vector3(0.0, -0.6, -0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "hips_yaw": 35.0}, "rel": {"R": [Vector3(-0.1, 0.1, 0.99), Vector3(0.7, 0.1, 0.7), Vector3(0.8, 0.1, 0.6)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 10.0, "hips_yaw": -40.0}},
 	"doton_domu": {"base": "power", "pre": 0.3, "post": 0.5, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "crouch": 0.4}, "rel": {"R": [Vector3(-0.85, -0.45, 0.1), Vector3(-0.9, -0.3, 0.2), Vector3(-0.9, -0.2, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": -8.0}},
 	"kakuzu_maske_katon": {"base": "power", "pre": 0.4, "post": 0.8, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 30.0, "crouch": 0.5}, "rel": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 10.0}},
@@ -11987,9 +11988,9 @@ func p_senpo_choodama_rasen_tarengan(c: Node3D, t: Node3D) -> void:
 func p_shi_tsu(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.2)
 	var tt = tg(c, t, 30.0)
-	var at = c.global_position + Vector3.UP * 4.0 - c.face_dir() * 2.0
-	FX.smoke_puff(at, 2.0, 24)
-	var dragon = ClayArt.c2_dragon(0.75)
+	var at = c.global_position + Vector3.UP * 5.5 - c.face_dir() * 5.0
+	FX.smoke_puff(at, 3.5, 30)
+	var dragon = ClayArt.c2_dragon(1.3)
 	get_tree().current_scene.add_child(dragon)
 	dragon.global_position = at
 	dragon.look_at(at + c.face_dir(), Vector3.UP)
@@ -11997,15 +11998,16 @@ func p_shi_tsu(c: Node3D, t: Node3D) -> void:
 	var tw = dragon.create_tween()
 	tw.tween_property(dragon, "scale", Vector3.ONE, 0.4).set_trans(Tween.TRANS_BACK)
 	tw.tween_interval(3.0)
-	tw.tween_callback(func(): VFX.clay_blast(dragon.global_position, 2.0))
+	tw.tween_callback(func(): VFX.clay_blast(dragon.global_position, 4.5))
 	tw.tween_callback(dragon.queue_free)
 	for k in 5:
 		after(0.6 + k * 0.4, func():
 			if not is_instance_valid(dragon) or not live(c):
 				return
-			var from = dragon.global_position + c.face_dir() * 2.4 + Vector3.UP * 0.5
-			var pr = shot(c, from, aim_at(c, tt, from), 20.0, _clay_fig("bird", 1.6), inf(c, "shi_tsu", 0.7, {"knock": 12.0, "launch": 4.0, "kind": "heavy", "element": "bakuton"}), tt, false, 3.0, func(p, _h):
-				VFX.clay_blast(p, 1.4))
+			var from = dragon.global_position + c.face_dir() * 4.3
+			var pr = shot(c, from, aim_at(c, tt, from), 20.0, _clay_fig("bird", 2.8), inf(c, "shi_tsu", 0.7, {"knock": 12.0, "launch": 4.0, "kind": "heavy", "element": "bakuton"}), tt, false, 3.0, func(p, _h):
+				VFX.clay_blast(p, 2.8)
+				hit(c, p, 3.5, inf(c, "shi_tsu", 0.4, {"knock": 8.0, "kind": "heavy", "element": "bakuton"})))
 			pr.homing_turn = 3.5
 			VFX.trail(pr, 0.15, Color(1, 1, 0.95, 0.6), Color(0.9, 0.9, 0.85, 0.3), Color(0.9, 0.9, 0.85, 0), 12, 0.0))
 	Sfx.play("roar", at, 1.3)
@@ -15745,14 +15747,15 @@ func p_shi_suri(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.2)
 	var tt = tg(c, t, 34.0)
 	var goal = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 16.0)
-	var fig = ClayArt.doll(1.6)
+	var fig = ClayArt.c3(1.0)
 	get_tree().current_scene.add_child(fig)
 	var start = _mouth_pos(c) + c.face_dir() * 0.6
 	fig.global_position = start
 	fig.scale = Vector3.ONE * 0.1
 	var mid = start.lerp(goal, 0.5) + Vector3.UP * 8.0
 	var tw = fig.create_tween()
-	tw.tween_property(fig, "scale", Vector3.ONE * 2.5, 0.4)
+	fig.look_at(goal, Vector3.UP)
+	tw.tween_property(fig, "scale", Vector3.ONE * 2.2, 0.4)
 	tw.tween_method(func(u: float):
 		if is_instance_valid(fig):
 			fig.global_position = start.lerp(mid, u).lerp(mid.lerp(goal + Vector3.UP, u), u), 0.0, 1.0, 1.0)
@@ -15761,10 +15764,11 @@ func p_shi_suri(c: Node3D, t: Node3D) -> void:
 		if not live(c):
 			return
 		# anime C3: gri duman halkasının ortasında dev turuncu kubbe, uçuşan kaya, geniş yarık
-		VFX.clay_blast(goal + Vector3.UP * 1.5, 5.0)
-		after(0.15, func(): VFX.clay_blast(goal + Vector3.UP * 3.0 + Vector3(randf_range(-3, 3), 0, randf_range(-3, 3)), 3.0))
-		VFX.cracks(goal, 16.0)
-		hit(c, goal + Vector3.UP, 11.0, inf(c, "shi_suri", 3.6, {"knock": 30.0, "launch": 10.0, "kind": "heavy", "element": "bakuton", "hitstop": 0.15}))
+		ClayArt.c3_blast(goal + Vector3.UP * 2.0, 13.0)
+		VFX.cracks(goal, 24.0)
+		if Game.world:
+			Game.world.env.screen_flash(0.25)
+		hit(c, goal + Vector3.UP, 15.0, inf(c, "shi_suri", 3.6, {"knock": 30.0, "launch": 10.0, "kind": "heavy", "element": "bakuton", "hitstop": 0.15}))
 		shake(2.0))
 	Sfx.play("boom", c.global_position, 1.2)
 
@@ -20504,6 +20508,58 @@ func p_kako_yoton_kansen(c: Node3D, t: Node3D) -> void:
 const JASHIN_RED := Color(0.7, 0.05, 0.08)
 const OCTO := Color(0.62, 0.35, 0.58)
 const PDARK := Color(0.08, 0.08, 0.1)
+
+
+## C2 Ejderhası Uçuşu: dev C2 ejderhası yoğrulur, sırtına binilir — ağzından güdümlü kil kuşlar, altına gözlü mayınlar
+func p_shi_tsu_hiko(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.8)
+	var dragon = ClayArt.c2_dragon(1.0)
+	var holder: Node3D = c.model if "model" in c and c.model else c
+	holder.add_child(dragon)
+	# ayaklar ejderin omuzlarının üstünde (başın hemen ardı); model +Z'ye bakar
+	dragon.position = Vector3(0, -0.72, -0.4)
+	dragon.rotation.y = PI
+	dragon.scale = Vector3.ONE * 0.1
+	var tw = dragon.create_tween()
+	tw.tween_property(dragon, "scale", Vector3.ONE, 0.45).set_trans(Tween.TRANS_BACK)
+	FX.smoke_puff(c.global_position + Vector3.UP, 3.5, 30)
+	if c is Player and c.has_method("start_flight"):
+		c.start_flight("c2_ejder", {"drain": 0.0, "speed": 24.0, "dur": 25.0, "name": "C2 Ejderhası"})
+	var st0 = {"k": 0}
+	every(25.0, 0.2, func(_i, _k):
+		if not is_instance_valid(dragon):
+			return
+		if not live(c) or (c is Player and c.get("fly_src") != "c2_ejder"):
+			FX.smoke_puff(dragon.global_position, 3.0, 24)
+			dragon.queue_free()
+			return
+		st0["k"] += 1
+		var fd = c.face_dir()
+		# her 1.6 sn: ağızdan hedefe güdümlü kil kuş
+		if st0["k"] % 8 == 0:
+			var tt = tg(c, t, 40.0)
+			var from = c.global_position + fd * 3.2 - Vector3.UP * 0.4
+			var pr = shot(c, from, aim_at(c, tt, from) if tt else (fd - Vector3.UP * 0.4).normalized(), 22.0, _clay_fig("bird", 2.0), inf(c, "shi_tsu_hiko", 0.6, {"knock": 10.0, "launch": 3.0, "kind": "heavy", "element": "bakuton"}), tt, false, 3.0, func(p, _h):
+				VFX.clay_blast(p, 2.4)
+				hit(c, p, 3.2, inf(c, "shi_tsu_hiko", 0.35, {"knock": 8.0, "kind": "heavy", "element": "bakuton"})))
+			pr.homing_turn = 3.0
+		# her 2 sn: altına gözlü kil mayın düşer, yerde patlar
+		if st0["k"] % 10 == 5 and c.global_position.y - gp(c.global_position).y > 4.0:
+			var mine = ClayArt.mine(0.8)
+			get_tree().current_scene.add_child(mine)
+			var p0 = c.global_position - Vector3.UP * 1.2
+			mine.global_position = p0
+			var g = gp(p0)
+			var tm = mine.create_tween()
+			tm.tween_property(mine, "global_position", g + Vector3.UP * 0.4, clampf((p0.y - g.y) * 0.07, 0.2, 1.6)).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+			tm.tween_callback(func():
+				VFX.clay_blast(g + Vector3.UP * 0.6, 2.4)
+				hit(c, g + Vector3.UP, 4.0, inf(c, "shi_tsu_hiko", 0.7, {"knock": 10.0, "launch": 4.0, "kind": "heavy", "element": "bakuton"})))
+			tm.tween_callback(mine.queue_free), func():
+		if is_instance_valid(dragon):
+			FX.smoke_puff(dragon.global_position, 3.0, 24)
+			dragon.queue_free())
+	Sfx.play("roar", c.global_position, 1.1)
 
 
 ## Kil Kuşu Uçuşu: dev kil kuş yoğrulur, sırtına binilir — uçarken altına kil bombalar düşer
@@ -29097,17 +29153,19 @@ func p_kibaku_jirai(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.9)
 	var d = fwd(c, t)
 	# C2 ejderi belirir: ağzından kil mayınları yağmur gibi saçar
-	var dragon = ClayArt.c2_dragon(0.45)
-	var mouth = c.global_position + Vector3.UP * 4.0 + d * 1.0
-	FX.smoke_puff(mouth, 1.0, 12)
-	scene_add(dragon, mouth - d * 1.1)
-	dragon.look_at(mouth + d, Vector3.UP)
-	fade_free(dragon, 1.4, 0.3)
+	var dragon = ClayArt.c2_dragon(1.0)
+	var body = c.global_position + Vector3.UP * 5.0 - d * 1.5
+	var mouth = body + d * 3.3
+	FX.smoke_puff(body, 3.0, 24)
+	scene_add(dragon, body)
+	dragon.look_at(body + d, Vector3.UP)
+	fade_free(dragon, 1.9, 0.3)
 	var mines = []
-	for k in 10:
-		var p = gp(c.global_position + d.rotated(Vector3.UP, randf_range(-0.7, 0.7)) * randf_range(4.0, 12.0))
-		var m = _clay(0.3)
+	for k in 12:
+		var p = gp(c.global_position + d.rotated(Vector3.UP, randf_range(-0.7, 0.7)) * randf_range(4.0, 15.0))
+		var m = ClayArt.mine(0.8)
 		scene_add(m, mouth)
+		m.look_at(mouth + d, Vector3.UP)
 		var tw = m.create_tween()
 		tw.tween_property(m, "global_position", p + Vector3.UP * 0.1, 0.35 + k * 0.03).set_trans(Tween.TRANS_QUAD)
 		mines.append(m)
@@ -29115,11 +29173,12 @@ func p_kibaku_jirai(c: Node3D, t: Node3D) -> void:
 		for m in mines:
 			if not is_instance_valid(m):
 				continue
-			if not enemies_near(c, m.global_position, 1.8).is_empty():
+			if not enemies_near(c, m.global_position, 2.6).is_empty():
 				var at = m.global_position
 				m.queue_free()
-				_bakuha_burst(at, 0.8)
-				mhit(c, at, 2.4, inf(c, "kibaku_jirai", 1.0, {"knock": 12.0, "launch": 4.0, "kind": "heavy"})), func():
+				_bakuha_burst(at, 2.2)
+				VFX.cracks(gp(at), 4.0)
+				mhit(c, at, 3.8, inf(c, "kibaku_jirai", 1.0, {"knock": 12.0, "launch": 4.0, "kind": "heavy"})), func():
 		for m in mines:
 			if is_instance_valid(m):
 				m.queue_free())
@@ -29130,9 +29189,9 @@ func p_kibaku_jirai(c: Node3D, t: Node3D) -> void:
 func p_shi_tsu_bakuretsu_hiryu(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 34.0)
 	busy(c, 1.0)
-	var dragon = ClayArt.c2_dragon(0.55)
-	var from = c.global_position + Vector3.UP * 2.5 - c.face_dir() * 1.5
-	FX.smoke_puff(from, 1.2, 14)
+	var dragon = ClayArt.c2_dragon(1.0)
+	var from = c.global_position + Vector3.UP * 4.0 - c.face_dir() * 3.0
+	FX.smoke_puff(from, 3.0, 24)
 	scene_add(dragon, from)
 	var dest = (tt.global_position if is_instance_valid(tt) else c.global_position + fwd(c, t) * 26.0) + Vector3.UP * 0.6
 	var mid = from.lerp(dest, 0.5) + Vector3.UP * 8.0
@@ -29142,9 +29201,10 @@ func p_shi_tsu_bakuretsu_hiryu(c: Node3D, t: Node3D) -> void:
 	tw.tween_callback(func(): dragon.look_at(dest, Vector3.UP))
 	tw.tween_property(dragon, "global_position", dest, 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tw.tween_callback(func():
-		_bakuha_burst(dest, 2.0)
-		shake(0.8)
-		mhit(c, dest, 5.0, inf(c, "shi_tsu_bakuretsu_hiryu", 2.4, {"knock": 20.0, "launch": 5.0, "kind": "heavy"}))
+		_bakuha_burst(dest, 5.0)
+		VFX.cracks(gp(dest), 12.0)
+		shake(1.4)
+		mhit(c, dest, 8.5, inf(c, "shi_tsu_bakuretsu_hiryu", 2.4, {"knock": 20.0, "launch": 5.0, "kind": "heavy"}))
 		dragon.queue_free())
 	Sfx.play("whoosh", c.global_position, 0.7)
 

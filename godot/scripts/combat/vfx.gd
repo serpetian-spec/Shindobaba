@@ -1312,13 +1312,13 @@ static func clay_blast(pos: Vector3, s := 1.0) -> void:
 	FX.burst(pos, {"amount": int(6 * s) + 3, "life": 0.16, "size": 3.0 * s, "radius": 0.2 * s, "vmin": 0.5, "vmax": 2.0, "dir": Vector3.UP, "spread": 180.0, "add": true, "cel": false,
 		"tex": FX.tex_soft, "colors": [Color(1, 1, 0.96, 1), Color(1.0, 0.95, 0.8, 0.5), Color(1.0, 0.9, 0.7, 0)]})
 	# ateş kubbesi: sarı merkezli turuncu cel topaklar, yavaş açılır (sprey değil kubbe)
-	puffs(pos, {"amount": int(20 * n) + 10, "life": 0.7 + 0.1 * z, "size": 1.6 * z, "radius": 0.9 * s, "vmin": 1.5, "vmax": 4.5 * s, "spread": 180.0,
+	puffs(pos, {"amount": int(20 * n) + 10, "life": 0.7 + 0.1 * z, "size": 1.6 * pow(s, 0.7), "radius": 0.9 * s, "vmin": 1.5, "vmax": 4.5 * z, "spread": 180.0,
 		"damp": 5.0, "gravity": Vector3(0, 2.0, 0), "spin": 40.0, "glow": 1.15, "hot": 0.6, "outline_col": Color(0.75, 0.3, 0.05), "outline": 0.03, "rough": 0.18,
 		"colors": [Color(1.0, 0.92, 0.45, 1), Color(1.0, 0.62, 0.12, 1), Color(0.95, 0.42, 0.08, 0.9), Color(0.6, 0.3, 0.1, 0)], "scale_curve": [[0.0, 0.35], [0.25, 1.0], [1.0, 0.7]]})
 	# gri duman: ateşin çevresinden dışa ve yukarı taşan karnabahar bulut (ateş söndükçe görünür)
 	var at = pos
 	scene().get_tree().create_timer(0.12).timeout.connect(func():
-		puffs(at, {"amount": int(30 * n) + 10, "life": 2.0 + 0.3 * z, "size": 1.65 * z, "radius": 1.3 * s, "vmin": 3.0 * s, "vmax": 7.5 * s, "dir": Vector3.UP, "spread": 110.0, "damp": 3.0,
+		puffs(at, {"amount": int(30 * n) + 10, "life": 2.0 + 0.3 * z, "size": 1.65 * pow(s, 0.75), "radius": 1.1 * s, "vmin": 2.5 * z, "vmax": 6.0 * z, "dir": Vector3.UP, "spread": 110.0, "damp": 3.0,
 			"gravity": Vector3(0, 0.8, 0), "spin": 15.0, "rough": 0.22, "outline": 0.035, "outline_col": Color(0.28, 0.27, 0.29), "shade": 0.3,
 			"colors": [Color(0.58, 0.57, 0.58, 0.0), Color(0.58, 0.57, 0.58, 1), Color(0.48, 0.47, 0.49, 0.95), Color(0.38, 0.37, 0.39, 0.0)]}))
 	embers(pos, Color(1.0, 0.6, 0.15), int(18 * n), 16.0 * z, 0.7)
