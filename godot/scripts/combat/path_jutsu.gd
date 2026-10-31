@@ -7934,27 +7934,63 @@ func p_katon_homuranagase(c: Node3D, t: Node3D) -> void:
 	Sfx.play("fire", c.global_position, 0.8)
 
 
+
+## Alev hortumu (koni/silindir mesh yok): üç sarmal kol boyunca dönerek yükselen cel alev topakları, yukarı genişleyen huni,
+## tabanda dönen toz/kor, gövdeden kopan alev dilleri; içindekiler merkeze çekilip kaldırılır. follow verilirse onu izler
+func _fire_storm(c: Node3D, at: Vector3, R: float, H: float, dur: float, id: String, dmg: float, follow: Node3D = null) -> void:
+	var st0 = {"t": 0.0, "p": at}
+	FX.light(at + Vector3.UP * H * 0.4, Color(1.0, 0.6, 0.2), 8.0, R * 6.0, dur)
+	var tick = func(_i, _k):
+		st0["t"] += 0.05
+		if follow and is_instance_valid(follow):
+			st0["p"] = gp(follow.global_position)
+		var base: Vector3 = st0["p"]
+		var t: float = st0["t"]
+		var grow = clampf(t / 0.35, 0.15, 1.0) * clampf((dur - t) / 0.4, 0.0, 1.0)
+		for arm in 6:
+			# huni yüzeyine dağılmış (tek sarmal yılan gibi değil), teğet hızla dönerek yükselir
+			var h = randf()
+			var a = randf() * TAU
+			var r = R * (0.3 + 0.7 * h) * grow
+			var q = base + Vector3(cos(a) * r, h * H * grow + 0.3, sin(a) * r)
+			var tan = Vector3(-sin(a), 0.35, cos(a))
+			VFX.puffs(q, {"amount": 4, "life": 0.6, "size": (1.5 + h * 2.2) * sqrt(R / 3.0), "radius": 0.3 + h * 0.4, "vmin": 2.0, "vmax": 4.0, "dir": tan, "spread": 25.0,
+				"damp": 2.0, "gravity": Vector3(0, 4.0, 0), "spin": 60.0, "glow": 1.15, "hot": 0.55, "outline_col": Color(0.7, 0.2, 0.03), "outline": 0.03, "rough": 0.2,
+				"colors": [Color(1.0, 0.95, 0.55, 1), Color(1.0, 0.65, 0.15, 1), Color(0.95, 0.35, 0.06, 0.85), Color(0.5, 0.12, 0.03, 0)], "scale_curve": [[0.0, 0.4], [0.3, 1.0], [1.0, 0.5]]})
+		# merkezde yükselen alev çekirdeği (hortum içi dolu okunsun)
+		VFX.puffs(base + Vector3.UP * randf_range(0.3, H * 0.6) * grow, {"amount": 2, "life": 0.5, "size": 1.6 * sqrt(R / 3.0), "radius": R * 0.2, "vmin": 4.0, "vmax": 8.0, "dir": Vector3.UP, "spread": 15.0,
+			"damp": 1.0, "glow": 1.2, "hot": 0.7, "outline_col": Color(0.7, 0.2, 0.03), "outline": 0.03, "rough": 0.2,
+			"colors": [Color(1.0, 0.97, 0.7, 1), Color(1.0, 0.75, 0.2, 1), Color(0.95, 0.4, 0.08, 0.7), Color(0.5, 0.12, 0.03, 0)]})
+		if _i % 3 == 0:
+			# tabanda dönen toz + yükselen kor
+			var a2 = t * 9.0
+			FX.burst(base + Vector3(cos(a2), 0.2, sin(a2)) * R * 0.9, {"amount": 4, "life": 0.6, "tex": FX.tex_soft, "add": false, "cel": false, "size": 1.2, "radius": 0.6, "vmin": 2.0, "vmax": 5.0,
+				"dir": Vector3(-sin(a2), 0.4, cos(a2)), "spread": 30.0, "colors": [Color(0.75, 0.62, 0.45, 0.0), Color(0.7, 0.58, 0.42, 0.5), Color(0.65, 0.55, 0.4, 0)]})
+			VFX.embers(base + Vector3.UP * H * 0.3, Color(1.0, 0.6, 0.15), 6, R * 1.5, 0.6)
+		if _i % 4 == 0:
+			for e in enemies_near(c, base, R * 1.1):
+				var to = base - e.global_position
+				to.y = 0
+				if "velocity" in e:
+					e.velocity += to.normalized() * 3.0 + Vector3.UP * 2.0
+				e.take_hit(inf(c, id, dmg, {"knock": 1.0, "kind": "light", "element": "katon", "burn": 1.0}))
+	var done = func():
+		VFX.puffs(st0["p"] + Vector3.UP * H * 0.5, {"amount": 30, "life": 1.4, "size": 2.0, "radius": R, "vmin": 1.0, "vmax": 3.0, "dir": Vector3.UP, "spread": 90.0, "gravity": Vector3(0, 1.0, 0),
+			"rough": 0.22, "outline": 0.03, "outline_col": Color(0.25, 0.24, 0.25), "colors": [Color(0.5, 0.48, 0.48, 0.0), Color(0.45, 0.43, 0.43, 0.9), Color(0.35, 0.34, 0.34, 0.0)]})
+	every(dur, 0.05, tick, done)
+
+
 ## Alev Kasırgası: kendi etrafında dönen ateş girdabı — yakındakileri yakar ve savurur
 func p_katon_kaen_senpu(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.2)
+	busy(c, 1.4)
 	var at = c.global_position
-	# silindir hortum yerine alev girdabı: dönerek yükselen turuncu alev perdeleri + dönen alev dilleri
-	WindFX.swirl(gp(at), 3.0, 6.5, 1.2, 10, Color(1.0, 0.55, 0.12, 0.95), false)
-	var tongues = FX.burst(gp(at) + Vector3.UP * 0.3, {"amount": 60, "life": 0.7, "tex": FX.tex_spark, "add": false, "size": 2.6, "radius": 2.6, "vmin": 3.0, "vmax": 7.0,
-		"dir": Vector3.UP, "spread": 15.0, "tangent": 22.0, "orbit": 0.8, "explosive": 0.0, "scale_curve": [[0.0, 0.5], [0.35, 1.0], [1.0, 0.3]],
-		"colors": [Color(1, 0.9, 0.4, 0.0), Color(1, 0.75, 0.2, 1), Color(1, 0.35, 0.05, 0.9), Color(0.6, 0.1, 0.02, 0.0)]})
-	if tongues:
-		tongues.one_shot = false
-		after(1.2, func():
-			if is_instance_valid(tongues):
-				tongues.emitting = false)
-	every(1.2, 0.12, func(_i, k):
-		var a = k * TAU * 3.0
-		var fb = VFX.fireball(0.8)
-		get_tree().current_scene.add_child(fb)
-		fb.global_position = at + Vector3(cos(a) * 2.6, 0.6 + k * 3.0, sin(a) * 2.6)
-		fb.create_tween().tween_property(fb, "scale", Vector3.ONE * 0.05, 0.5).finished.connect(fb.queue_free)
-		hit(c, at + Vector3.UP * 1.2, 3.6, inf(c, "katon_kaen_senpu", 0.15, {"knock": 8.0, "launch": 4.0, "kind": "light", "element": "katon", "burn": 1.0})), Callable())
+	# alev girdabı: kullanıcı dönerken bedeninden fışkıran alev onu saran dönen bir hortuma dönüşür, yaklaşanı savurur
+	_fire_storm(c, gp(at), 2.8, 7.5, 1.6, "katon_kaen_senpu", 0.3, c)
+	after(1.5, func():
+		if live(c):
+			VFX.puffs(c.global_position + Vector3.UP, {"amount": 26, "life": 0.6, "size": 1.6, "radius": 1.0, "vmin": 6.0, "vmax": 11.0, "spread": 180.0, "damp": 4.0, "hot": 0.6, "glow": 1.15,
+				"outline_col": Color(0.7, 0.2, 0.03), "outline": 0.03, "colors": [Color(1.0, 0.95, 0.55, 1), Color(1.0, 0.6, 0.12, 1), Color(0.9, 0.3, 0.05, 0.8), Color(0.5, 0.1, 0.02, 0)]})
+			hit(c, c.global_position + Vector3.UP, 4.0, inf(c, "katon_kaen_senpu", 0.9, {"knock": 14.0, "launch": 5.0, "kind": "heavy", "element": "katon", "burn": 2.0})))
 	VFX.linger(gp(at), "katon", FIRE, 1.5, 3.0)
 	Sfx.play("fire", at, 0.6)
 
@@ -10836,63 +10872,66 @@ func p_katon_goka_messhitsu(c: Node3D, t: Node3D) -> void:
 
 ## Büyük Ateş Hortumu: rüzgâr ve ateş birleşir — hedefin üstünde yükselen dev alev hortumu
 func p_katon_goka_senpu(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.2)
+	busy(c, 1.0)
 	var tt = tg(c, t, 22.0)
 	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 10.0)
-	var tor = MeshInstance3D.new()
-	var cm = CylinderMesh.new()
-	cm.top_radius = 4.0; cm.bottom_radius = 1.2; cm.height = 12.0; cm.radial_segments = 24
-	tor.mesh = cm
-	tor.material_override = VFX.mat_spiral(Color(1, 0.9, 0.4), FIRE, 6.0, 4.0, 14.0, 1.8, Vector3.UP)
-	get_tree().current_scene.add_child(tor)
-	tor.global_position = at + Vector3.UP * 6.0
-	tor.scale = Vector3(0.1, 0.05, 0.1)
-	var tw = tor.create_tween()
-	tw.tween_property(tor, "scale", Vector3.ONE, 0.4)
-	tw.tween_interval(2.0)
-	tw.tween_property(tor, "scale", Vector3(0.1, 1, 0.1), 0.4)
-	tw.tween_callback(tor.queue_free)
-	every(2.4, 0.15, func(_i, k):
-		var a = k * TAU * 4.0
-		var fb = VFX.fireball(1.0)
-		get_tree().current_scene.add_child(fb)
-		fb.global_position = at + Vector3(cos(a) * (1.2 + k * 2.5), 0.5 + k * 10.0, sin(a) * (1.2 + k * 2.5))
-		fb.create_tween().tween_property(fb, "scale", Vector3.ONE * 0.05, 0.5).finished.connect(fb.queue_free)
-		VFX.debris(at, EARTH, 2, 8.0, 0.3)
-		hit(c, at + Vector3.UP * 1.5, 3.5, inf(c, "katon_goka_senpu", 0.18, {"knock": 6.0, "launch": 6.0, "kind": "light", "element": "katon", "burn": 1.0})), Callable())
-	VFX.linger(at, "katon", FIRE, 2.0, 4.0)
-	shake(0.7)
+	# ateş fırtınası: hedefin üstünde dev, dönerek yükselen alev hortumu; içindekileri çeker, kaldırır, yakar
+	VFX.gather(_mouth_pos(c), FIRE, 1.0)
+	_fire_storm(c, at, 4.2, 15.0, 3.2, "katon_goka_senpu", 0.22)
+	VFX.cracks(at, 5.0)
+	VFX.linger(at, "katon", FIRE, 2.5, 4.5)
+	shake(0.9)
 	Sfx.play("fire", at, 0.5)
+	Sfx.play("wind", at, 0.6)
 
 
 ## Patlayan Alev Alanı: hedefin çevresine etiketler serpilir, bariyer kurulur — içinde alev dalgaları patlar
 func p_katon_kibaku_enjin(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.0)
+	busy(c, 0.9)
 	var tt = tg(c, t, 22.0)
 	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 8.0)
-	paper_storm(hand_pos(c, true), at, 40, 0.5, 2.0, 0.3, Color(0.95, 0.9, 0.75))
-	var box = MeshInstance3D.new()
-	var bm = BoxMesh.new()
-	bm.size = Vector3(8.0, 4.5, 8.0)
-	box.mesh = bm
-	box.material_override = VFX.mat_wind(Color(1.0, 0.6, 0.3), 2.0, 9.0, Vector3(0, 1, 0), 0.4)
-	get_tree().current_scene.add_child(box)
-	box.global_position = at + Vector3.UP * 2.25
-	box.scale = Vector3(1, 0.02, 1)
-	var tw = box.create_tween()
-	tw.tween_interval(0.5)
-	tw.tween_property(box, "scale", Vector3.ONE, 0.3)
-	tw.tween_interval(3.0)
-	tw.tween_property(box, "scale", Vector3(1, 0.02, 1), 0.3)
-	tw.tween_callback(box.queue_free)
-	for k in 8:
-		after(0.9 + k * 0.35, func():
-			var q = at + Vector3(randf_range(-3, 3), 0.5, randf_range(-3, 3))
-			impact_fx("katon", FIRE, q, 1.2)
-			for e in enemies_near(c, at, 4.0):
-				e.take_hit(inf(c, "katon_kibaku_enjin", 0.3, {"knock": 2.0, "kind": "heavy", "element": "katon", "burn": 1.0}))
-				st(e, "bind", 0.4))
-	Sfx.play("seal", at, 0.8)
+	# anime: beyaz patlayıcı kâğıtlar (kırmızı mühür yazılı) savrulup hedefin çevresine yapışır, cızırdar, sonra TEK dev patlama
+	var tags = []
+	var n = 12
+	for k in n:
+		var a = k * TAU / n + randf_range(-0.15, 0.15)
+		var land = gp(at + Vector3(cos(a), 0, sin(a)) * randf_range(1.6, 3.4)) + Vector3.UP * 0.03
+		var b = MB.new()
+		b.add("box", Vector3.ZERO, Vector3(0.16, 0.012, 0.42), Color(0.97, 0.96, 0.92))
+		b.add("box", Vector3(0, 0.008, 0.0), Vector3(0.035, 0.004, 0.3), Color(0.75, 0.08, 0.06))
+		b.add("box", Vector3(0, 0.008, -0.17), Vector3(0.12, 0.004, 0.03), Color(0.75, 0.08, 0.06))
+		var tag = mesh_of(b)
+		var from = hand_pos(c, true)
+		scene_add(tag, from)
+		tags.append(tag)
+		var mid = from.lerp(land, 0.5) + Vector3.UP * randf_range(1.5, 3.0)
+		var spin = Vector3(randf_range(-12, 12), randf_range(-12, 12), randf_range(-12, 12))
+		var tw = tag.create_tween()
+		tw.tween_method(func(u: float):
+			if is_instance_valid(tag):
+				tag.global_position = from.lerp(mid, u).lerp(mid.lerp(land, u), u)
+				tag.rotation = spin * (1.0 - u) + Vector3(0, a, 0) * u, 0.0, 1.0, 0.35 + k * 0.02)
+	# yapışan kâğıtlar cızırdar (kıvılcım), sonra hepsi birden tek büyük patlamaya dönüşür
+	after(0.45, func():
+		every(0.7, 0.08, func(_i, _k):
+			for tg_ in tags:
+				if is_instance_valid(tg_) and randf() < 0.4:
+					FX.burst(tg_.global_position + Vector3.UP * 0.05, {"amount": 3, "life": 0.25, "tex": FX.tex_spark, "size": 0.15, "vmin": 1.0, "vmax": 3.0, "dir": Vector3.UP, "spread": 60.0,
+						"colors": [Color(1, 1, 0.8, 1), Color(1.0, 0.6, 0.2, 0.8), Color(1.0, 0.4, 0.1, 0)]}), Callable()))
+	after(1.15, func():
+		for tg_ in tags:
+			if is_instance_valid(tg_):
+				tg_.queue_free()
+		VFX.explosion(at + Vector3.UP * 1.2, 4.2)
+		VFX.clay_blast(at + Vector3.UP * 1.5, 4.0)
+		VFX.cracks(at, 9.0)
+		if Game.world:
+			Game.world.env.screen_flash(0.2)
+		shake(1.6)
+		for h in hit(c, at + Vector3.UP, 6.5, inf(c, "katon_kibaku_enjin", 2.6, {"knock": 22.0, "launch": 8.0, "kind": "heavy", "element": "katon", "burn": 3.0, "hitstop": 0.12})):
+			st(h, "stun", 0.6)
+		Sfx.play("boom", at, 0.6))
+	Sfx.play("whoosh", c.global_position, 1.2)
 
 
 ## Ejder Alevi Gürültüsü: ağızdan sivri dişli ejder başı biçiminde çok sayıda alev mermisi
