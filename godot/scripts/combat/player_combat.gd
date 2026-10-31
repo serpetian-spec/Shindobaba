@@ -722,6 +722,8 @@ func begin_cast(jid: String) -> void:
 		return
 	# art arda atış engeli (ortak bekleme + chakra yorgunluğu) kaldırıldı: sınır chakranın kendisi (seviyeyle büyüyen maliyet)
 	var cost = jutsu_cost(j)
+	if Game.has_meta("sandbox"):
+		cost = 0.0
 	if p.chakra < cost:
 		Hud.msg("Yeterli chakra yok! [C] ile chakra topla", Color(0.5, 0.8, 1))
 		return
