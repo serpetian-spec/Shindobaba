@@ -89,6 +89,7 @@ const PSTYLE := {
 
 
 
+
 ## Jutsuya özel koreografi (hazırlık "wind" + salınım "rel" pozları, zamanlama, gövde klibi) — CastAnim temel stilin üstüne uygular
 const PANIM := {
 	"kage_shuriken_no_jutsu": {"base": "throw", "pre": 0.3, "post": 0.35, "clip": "b/OverhandThrow", "wind": {"R": [Vector3(-0.6, 0.6, -0.5), Vector3(-0.2, 0.9, -0.4), Vector3(0.0, 1.0, -0.2)], "L": [Vector3(0.1, 0.45, 0.88), Vector3(-0.0, 0.5, 0.86), Vector3(-0.0, 0.9, 0.4)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0, 0, 0, 0, 0], "spine": -14.0, "hips_yaw": 35.0}, "rel": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.35, -0.85, -0.35), Vector3(-0.0, -0.4, 0.9), Vector3(-0.0, 0.2, 0.95)], "fR": [0, 0, 0, 0, 0], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 22.0, "hips_yaw": -25.0}},
@@ -1224,6 +1225,7 @@ const PANIM := {
 	"shi_tsu_bakuretsu_hiryu": {"base": "palm", "pre": 0.35, "post": 0.6, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.35, -0.85, -0.35), Vector3(-0.0, -0.4, 0.9), Vector3(-0.0, 0.2, 0.95)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0, 0, 0, 0, 0], "spine": -6.0}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.35, -0.85, -0.35), Vector3(-0.0, -0.4, 0.9), Vector3(-0.0, 0.2, 0.95)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0, 0, 0, 0, 0], "spine": 8.0}},
 	"nendo_kawarimi": {"base": "flicker", "pre": 0.05, "post": 0.3, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.85, -0.45, 0.1), Vector3(-0.9, -0.3, 0.2), Vector3(-0.9, -0.2, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "crouch": 0.5}},
 	"makyo_hyosho": {"base": "sense", "pre": 0.5, "post": 0.8, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.15, 0.15, 0.15, 0.15, 0.3]}, "rel": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "spine": -4.0}},
+	"kakuzu_maske_suiton": {"base": "power", "pre": 0.4, "post": 0.8, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 20.0, "crouch": 0.3}, "rel": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -10.0}},
 }
 
 const SNAKE := Color(0.42, 0.3, 0.5)
@@ -2115,6 +2117,26 @@ func p_yamata_no_jutsu(c: Node3D, _t: Node3D) -> void:
 func p_kuchiyose_edo_tensei(c: Node3D, t: Node3D) -> void:
 	var d = fwd(c, t)
 	var side = d.cross(Vector3.UP).normalized()
+	# anime: ölünün DNA'sı + canlı kurban gerekir — yıpratılmış (%35 altı) bir düşman kurban bedeni olur, ölen rakip onun içinde dirilir
+	var names: Array = []
+	if c is Player:
+		var dna: Array = Game.profile.get("edo_dna", [])
+		var vic = null
+		for e in enemies_near(c, c.global_position, 12.0):
+			if e is Enemy and not e is Boss and e.hp <= e.max_hp * 0.35:
+				vic = e
+				break
+		if dna.is_empty():
+			Hud.msg("Edo Tensei: diriltecek bir ölünün DNA'sı yok — güçlü, isimli bir rakibi yen.", Color(0.85, 0.6, 0.45))
+			return
+		if vic == null:
+			Hud.msg("Edo Tensei: canlı bir kurban gerek — 12 m içindeki bir düşmanı %35 canın altına indir.", Color(0.85, 0.6, 0.45))
+			return
+		names = dna.slice(maxi(0, dna.size() - 2))
+		FX.smoke_puff(vic.global_position + Vector3.UP, 1.0, 14)
+		VFX.debris(vic.global_position + Vector3.UP, Color(0.85, 0.82, 0.7), 16, 4.0, 0.3)
+		Combat.popup_text(vic.global_position + Vector3.UP * 2.5, "Kurban: mühür kâğıtları bedeni sardı", Color(0.85, 0.7, 0.5))
+		vic.take_hit({"dmg": 99999.0, "kind": "heavy", "knock": 0.0, "attacker": c})
 	busy(c, 1.2)
 	summon_circle(c.global_position + d * 4.0, 5.0, Color(0.5, 0.35, 0.25), 1.2)
 	VFX.screen_lines(0.6, 0.6, Color(0.4, 0.3, 0.25))
@@ -2124,7 +2146,7 @@ func p_kuchiyose_edo_tensei(c: Node3D, t: Node3D) -> void:
 		b.add_grad("box", Vector3(0, 1.3, 0), Vector3(1.3, 2.6, 0.8), Color(0.5, 0.4, 0.32), Color(0.32, 0.25, 0.2))
 		b.add("box", Vector3(0, 2.4, -0.42), Vector3(1.0, 0.5, 0.05), Color(0.9, 0.86, 0.7))
 		return b)
-	for k in 2:
+	for k in (names.size() if c is Player else 2):
 		var pos = gp(c.global_position + d * 4.0 + side * (k * 2.6 - 1.3))
 		var coffin = mi_of(cof)
 		coffin.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
@@ -2142,7 +2164,9 @@ func p_kuchiyose_edo_tensei(c: Node3D, t: Node3D) -> void:
 			w.look = EdoWarrior.edo_look(k)
 			w.power = (Stats.jutsu_mult(Game.profile) if c is Player else float(c.get("power") if c.get("power") != null else 1.0)) * 1.6
 			get_tree().current_scene.add_child(w)
-			w.global_position = pos + d * 1.2)
+			w.global_position = pos + d * 1.2
+			if k < names.size():
+				Combat.popup_text(pos + Vector3.UP * 3.0, "%s dirildi" % names[k], Color(0.85, 0.75, 0.6)))
 		tw.tween_interval(28.0)
 		tw.tween_property(coffin, "global_position", pos - Vector3.UP * 3.0, 0.6)
 		tw.tween_callback(coffin.queue_free)
@@ -13668,9 +13692,16 @@ func p_jiongu(c: Node3D, t: Node3D) -> void:
 ## Ölüm Mahkumiyeti Laneti: hedefin kanı yalanır, kanla yere üçgenli lanet çemberi çizilir, beden siyah-beyaza döner — kendine saplanan her mızrak hedefi deler
 func p_jujutsu_shiji_hyoketsu(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 24.0)
+	# anime: lanet ancak hedefin kanı alınmışsa (tırpan/kazık) kurulur; çemberdeyken sana gelen her acı ona da gelir
+	if c is Player and (tt == null or not tt.has_meta("jashin_kan") or Time.get_ticks_msec() - int(tt.get_meta("jashin_kan")) > 30000):
+		Hud.msg("Lanet için önce hedefin kanını almalısın: Sanjin no Ōgama ya da Kaeri Yari ile yarala (30 sn).", Color(1, 0.5, 0.45))
+		return
 	busy(c, 2.0)
 	if tt == null:
 		return
+	if c is Player:
+		c.set_meta("jashin_link", [tt, Time.get_ticks_msec() + 12000])
+		Hud.msg("Lanet bağı kuruldu: 12 sn boyunca sana gelen her acı hedefe de gelir.", Color(0.9, 0.3, 0.3), 4.0)
 	var at = gp(c.global_position)
 	var blood = Color(0.7, 0.05, 0.05)
 	var b = MB.new()
@@ -20547,8 +20578,13 @@ func p_kakuzu_kalp_calma(c: Node3D, t: Node3D) -> void:
 		VFX.debris(tt.global_position + Vector3.UP * 1.3, Color(0.6, 0.05, 0.05), 16, 6.0, 0.25)
 		tt.take_hit(inf(c, "kakuzu_kalp_calma", 4.0, {"knock": 6.0, "kind": "heavy", "bleed": 6.0, "hitstop": 0.2}))
 		if c is Player:
-			Buffs.add("kalp_calma", 60.0, {"max_hp": 0.25, "_name": "Çalınmış Kalp", "_desc": "azami can +%25"})
-			heal(c, c.max_hp * 0.25))
+			# anime: kalp ancak sökülebilecek kadar yıpranmış (ya da ölmüş) güçlü birinden alınır; sahibinin doğası kalple gelir
+			var weak = tt.get("dead") == true or (tt.get("hp") != null and tt.get("max_hp") != null and float(tt.hp) <= float(tt.max_hp) * 0.3)
+			if weak:
+				ClanMech.steal_heart(tt)
+			else:
+				Combat.popup_text(tt.global_position + Vector3.UP * 2.4, "Kalp sökülemedi — önce yıprat (%30)", Color(0.9, 0.6, 0.6))
+			heal(c, c.max_hp * 0.1))
 	Sfx.play("blade", c.global_position, 0.5)
 
 
@@ -20705,6 +20741,8 @@ func p_jashin_sanjin_kama(c: Node3D, t: Node3D) -> void:
 	var sc = _tri_scythe()
 	var pr = shot(c, from, aim_at(c, tt, from), 30.0, sc, inf(c, "jashin_sanjin_kama", 1.4, {"knock": 6.0, "kind": "heavy", "bleed": 4.0}), tt, false, 0.8, func(p, h):
 		VFX.debris(p, Color(0.6, 0.05, 0.05), 10, 5.0, 0.2)
+		if h and is_instance_valid(h):
+			h.set_meta("jashin_kan", Time.get_ticks_msec())   # tırpandaki kan: lanet ayini için
 		if h and live(h) and live(c):
 			var tw = h.create_tween()
 			tw.tween_property(h, "global_position", gp(c.global_position + c.face_dir() * 2.5), 0.4))
@@ -20728,6 +20766,7 @@ func p_jashin_kazik(c: Node3D, t: Node3D) -> void:
 	var pr = shot(c, from, aim_at(c, tt, from), 40.0, holder, inf(c, "jashin_kazik", 1.0, {"knock": 2.0, "kind": "heavy", "bleed": 3.0}), tt, false, 0.6, func(p, h):
 		VFX.debris(p, Color(0.6, 0.05, 0.05), 8, 4.0, 0.2)
 		if h and live(h):
+			h.set_meta("jashin_kan", Time.get_ticks_msec())
 			st(h, "marked", 10.0))
 	_etrail(pr, "", Color(0.4, 0.05, 0.05), 0.2)
 	Sfx.play("kunai", c.global_position, 0.9)
@@ -29092,3 +29131,20 @@ func p_makyo_hyosho(c: Node3D, t: Node3D) -> void:
 				_crystal_shatter(m.global_position, 0.6, ICE)
 				m.queue_free())
 	Sfx.play("clink", at, 0.6)
+
+
+## Su Maskeli Kalp: sırttan su maskeli canavar çıkar, basınçlı su dişlerini art arda fırlatır
+func p_kakuzu_maske_suiton(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.0)
+	var tt = tg(c, t, 26.0)
+	var mb_ = _mask_beast(c, 1.0, Color(0.35, 0.6, 1.0))
+	for k in 3:
+		after(0.45 + k * 0.15, func():
+			if not (live(c) and is_instance_valid(mb_)):
+				return
+			var from = mb_.global_position
+			_water_jet(c, from, aim_at(c, tt, from).rotated(Vector3.UP, (k - 1) * 0.12), 34.0, 0.45, inf(c, "kakuzu_maske_suiton", 0.9, {"knock": 9.0, "kind": "heavy", "element": "suiton"}), tt, 1.2))
+	after(1.4, func():
+		if is_instance_valid(mb_):
+			mb_.queue_free())
+	Sfx.play("water", c.global_position, 0.9)

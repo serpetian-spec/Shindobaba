@@ -835,10 +835,19 @@ func take_hit(info: Dictionary) -> void:
 					Combat.damage_number(p.global_position + Vector3.UP * 2.0, dmg, Color(0.75, 0.8, 1.0))
 				if p.hp <= 0.0:
 					p.hp = 0.0
-					Progress.on_player_died()
+					if not ClanMech.try_extra_life():
+						Progress.on_player_died()
 				return
 	p.hp -= dmg
 	last_hit_t = 0.0
+	# Jashin laneti: çemberdeyken sana gelen acı bağlı hedefe de gelir
+	if p.has_meta("jashin_link"):
+		var lk: Array = p.get_meta("jashin_link")
+		if Time.get_ticks_msec() > int(lk[1]) or not is_instance_valid(lk[0]) or lk[0].get("dead") == true:
+			p.remove_meta("jashin_link")
+		else:
+			lk[0].take_hit({"dmg": dmg, "kind": "light", "knock": 0.0, "attacker": p, "no_link": true})
+			VFX.debris(lk[0].global_position + Vector3.UP * 1.2, Color(0.7, 0.05, 0.05), 6, 4.0, 0.2)
 	p.model.flash(0.8)
 	var hdir: Vector3 = info.get("dir", Vector3.ZERO)
 	var hheavy: bool = info.get("kind", "light") == "heavy" or info.get("launch", 0.0) > 0.0
@@ -879,4 +888,5 @@ func take_hit(info: Dictionary) -> void:
 	p.model.overlay.set_pose("guard", 0.0)
 	if p.hp <= 0.0:
 		p.hp = 0.0
-		Progress.on_player_died()
+		if not ClanMech.try_extra_life():
+			Progress.on_player_died()

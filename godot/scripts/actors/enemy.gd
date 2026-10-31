@@ -818,6 +818,13 @@ func die(info: Dictionary) -> void:
 	if has_meta("teammate"):
 		return   # takım arkadaşı düştü: öldürme sayılmaz (XP, görev sayacı yok), yeniden doğmaz
 	Progress.on_enemy_killed(self)
+	if info.get("attacker") is Player and display_name != "" and (level >= 15 or self is Boss):
+		var dna: Array = Game.profile.get("edo_dna", [])
+		if not display_name in dna:
+			dna.append(display_name)
+			if dna.size() > 12:
+				dna.pop_front()
+			Game.profile["edo_dna"] = dna
 	if get_meta("respawn", true) and arch.get("respawn", true):
 		var a = arch
 		var h = home

@@ -11,6 +11,9 @@ const KALORI_MAX := 100.0
 const KOLONI_MAX := 100.0
 const AKI_PILLS := ["hap_horenzai", "hap_kare", "hap_togarashi"]
 const NINKEN_RESPAWN := 45.0
+## Kakuzu (Toprak Kini Yolu): maskeli kalbin istediği doğa
+const MASKS := {"kakuzu_maske_katon": "katon", "kakuzu_maske_futon": "fuuton", "kakuzu_maske_raiton": "raiton", "kakuzu_maske_suiton": "suiton"}
+const HEART_MAX := 4
 ## ortak (köpekle yapılan) Inuzuka teknikleri
 const DOG_COMBO := ["gatsuga", "garoga", "jujin_bunshin", "inuzuka_sototoro"]
 
@@ -32,6 +35,10 @@ static func jutsu_clan(j: Dictionary) -> String:
 # ------------------------------------------------------------------ HUD göstergesi
 static func meter() -> Dictionary:
 	var pr = Game.profile
+	var hs: Array = pr.get("kakuzu_hearts", [])
+	if not hs.is_empty() and not clan() in ["akimichi", "aburame", "inuzuka"]:
+		var nm = {"katon": "Ateş", "fuuton": "Rüzgâr", "raiton": "Şimşek", "suiton": "Su", "doton": "Toprak"}
+		return {"label": "Kalpler: " + ", ".join(hs.map(func(h): return nm.get(h, h))), "v": float(hs.size()), "max": float(HEART_MAX), "col": Color(0.75, 0.15, 0.2)}
 	match clan():
 		"akimichi":
 			return {"label": "Kalori", "v": float(pr.get("kalori", KALORI_MAX)), "max": KALORI_MAX, "col": Color(1.0, 0.62, 0.2)}
@@ -49,6 +56,8 @@ static func meter() -> Dictionary:
 static func cast_block(jid: String, j: Dictionary) -> String:
 	var pr = Game.profile
 	var jc = jutsu_clan(j)
+	if MASKS.has(jid) and not MASKS[jid] in pr.get("kakuzu_hearts", []):
+		return "Bu maske için çalınmış bir %s kalbi gerek (Jiongu: Shinzō Ubai)." % Elements.NAMES.get(MASKS[jid], MASKS[jid])
 	match clan():
 		"akimichi":
 			if jc == "akimichi":
@@ -101,6 +110,43 @@ static func on_player_hit(info: Dictionary) -> void:
 		var pr = Game.profile
 		pr["kikaichu"] = maxf(0.0, float(pr.get("kikaichu", KOLONI_MAX)) - 12.0)
 		Combat.popup_text(Game.player.global_position + Vector3.UP * 2.4, "Böceklerin yanıyor!", Color(1.0, 0.55, 0.3))
+
+
+# ------------------------------------------------------------------ Kakuzu kalpleri
+## Güçlü bir hedefin kalbi: sahibinin doğasıyla birlikte (doğası yoksa rastgele); 4'ten fazlası en eskisinin yerine geçer
+static func steal_heart(tt: Node3D) -> void:
+	var pr = Game.profile
+	var el = String(tt.get("element")) if tt.get("element") != null else ""
+	if not el in ["katon", "fuuton", "raiton", "suiton"]:
+		el = ["katon", "fuuton", "raiton", "suiton"].pick_random()
+	if not pr.has("kakuzu_hearts"):
+		pr["kakuzu_hearts"] = []
+	var hs: Array = pr["kakuzu_hearts"]
+	if hs.size() >= HEART_MAX:
+		hs.pop_front()
+	hs.append(el)
+	Hud.banner("KALP ÇALINDI", "%s kalbi göğsünde atıyor (%d/%d) — maskesi uyandı" % [Elements.NAMES.get(el, el), hs.size(), HEART_MAX], Color(0.8, 0.2, 0.25))
+	Sfx.play("heartbeat", Game.player.global_position, 1.0)
+
+
+## Ölüm anı: çalınmış kalp varsa biri kırılır, beden iplerle dikilip kalkar
+static func try_extra_life() -> bool:
+	var pr = Game.profile
+	var hs: Array = pr.get("kakuzu_hearts", [])
+	if hs.is_empty() or Game.player == null:
+		return false
+	var el = hs.pop_back()
+	var pl = Game.player
+	pl.hp = pl.max_hp * 0.5
+	if pl.combat:
+		pl.combat.invuln = 2.0
+	FX.aura(pl, Color(0.1, 0.1, 0.12), 1.4, Vector3(0, 0.9, 0), 2.0)
+	for k in 10:
+		var a = k * TAU / 10.0
+		var from = pl.global_position + Vector3(cos(a) * 1.4, randf_range(0.3, 1.8), sin(a) * 1.4)
+		WindFX.streak(func(q: float) -> Vector3: return from.lerp(pl.global_position + Vector3.UP * 1.0, q), 0.5, 0.03, Color(0.08, 0.08, 0.1, 1.0), k * 0.02, 8)
+	Hud.banner("KALP KIRILDI", "%s kalbi durdu — iplikler bedenini yeniden dikti (%d kalp kaldı)" % [Elements.NAMES.get(el, el), hs.size()], Color(0.6, 0.1, 0.12))
+	return true
 
 
 # ------------------------------------------------------------------ Akimichi hapları
