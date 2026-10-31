@@ -3075,6 +3075,47 @@ func c_jigokuzuki(c: Node3D, t: Node3D) -> void:
 
 
 # ================================================================== İKAZUCHİ — Ranton (fırtına)
+## Ranton fırtına bulutu: kenarsız, yumuşak koyu bulut kütlesi (cel topak / küre mesh değil);
+## içinde ara ara mavi-beyaz parlamalar ve kısa kavisli ışınlar çakar. Döndürülen sözlük: "base" (bulut tabanı)
+func _storm_cloud(center: Vector3, r: float, dur: float) -> Dictionary:
+	var info = {"base": center}
+	every(dur, 0.12, func(_i, _k):
+		var q = center + Vector3(randf_range(-r, r), randf_range(-0.6, 0.8), randf_range(-r, r)) * 0.8
+		VFX.fog(q, {"amount": 5, "life": 2.4, "size": r * 1.3 + 3.0, "radius": r * 0.4, "vmin": 0.05, "vmax": 0.3, "dir": Vector3.UP, "spread": 90.0, "gravity": Vector3.ZERO,
+			"colors": [Color(0.16, 0.17, 0.24, 0.0), Color(0.14, 0.15, 0.22, 0.9), Color(0.12, 0.13, 0.19, 0.8), Color(0.1, 0.11, 0.16, 0.0)]})
+		if randf() < 0.35:
+			var f = center + Vector3(randf_range(-r, r) * 0.7, randf_range(-0.3, 0.5), randf_range(-r, r) * 0.7)
+			FX.light(f, Color(0.55, 0.8, 1.0), 6.0, r * 1.5 + 4.0, 0.12)
+			var e2 = f + Vector3(randf_range(-3, 3), randf_range(-0.6, 0.6), randf_range(-3, 3))
+			LightRibbon.spawn(LightRibbon.curve(f, e2, f.lerp(e2, 0.5) + Vector3.UP * randf_range(-0.8, 0.8), 8), 0.35, 0.18, Color(0.45, 0.72, 1.0)), Callable())
+	return info
+
+
+## Ranton ışık gövdesi: mermiyi takip eden kameraya dönük kıvrık ışın kuyruğu (tazı / ejderha gövdesi)
+func _ribbon_tail(pr: Node3D, w: float, n := 10) -> void:
+	# tek kalıcı şerit: noktaları her kare merminin geçtiği yerlerle güncellenir; mermi bitince şerit kısa sürede söner
+	var hist = [pr.global_position, pr.global_position]
+	var rb = LightRibbon.spawn(hist, w, pr.life + 0.5, Color(0.45, 0.72, 1.0))
+	rb.grow = 0.0
+	rb.fade_start = 1.0
+	every(pr.life + 0.4, 1.0 / 30.0, func(_i, _k):
+		if not is_instance_valid(rb):
+			return
+		if not is_instance_valid(pr) or pr.dead:
+			hist.pop_back()
+			if hist.size() < 2:
+				rb.queue_free()
+			else:
+				rb.pts = hist.duplicate()
+			return
+		hist.push_front(pr.global_position)
+		if hist.size() > n:
+			hist.pop_back()
+		rb.pts = hist.duplicate(), func():
+		if is_instance_valid(rb):
+			rb.queue_free())
+
+
 ## Ranton lazeri (anime Darui): kameraya dönük ışın şeridi — beyaz-sıcak merkez, mavi hâle; şimşek gibi dallanmaz
 func _laser(a: Vector3, b: Vector3, w := 0.3, dur := 0.3) -> void:
 	LightRibbon.spawn([a, a.lerp(b, 0.5), b], maxf(0.5, w * 3.0), maxf(0.25, dur), Color(0.45, 0.72, 1.0))
@@ -3109,8 +3150,7 @@ func c_ranton_reiza_sakasu(c: Node3D, t: Node3D) -> void:
 ## Lazer Yağmuru: fırtına bulutundan aşağı bükülen ışınlar 2 sn boyunca bölgeye iner
 func c_ikazuchi_reiza_ame(c: Node3D, t: Node3D) -> void:
 	var center = gp(Jutsu._aim_ground(c, t, 12.0, 26.0))
-	FX.burst(center + Vector3.UP * 14.0, {"amount": 50, "life": 2.5, "tex": FX.tex_smoke, "add": false, "size": 6.0, "vmin": 0.1, "vmax": 0.5, "gravity": Vector3.ZERO,
-		"colors": [Color(0.2, 0.22, 0.3, 0.0), Color(0.18, 0.2, 0.28, 0.95), Color(0.15, 0.15, 0.2, 0)]})
+	_storm_cloud(center + Vector3.UP * 14.0, 7.0, 2.4)
 	every(2.0, 0.1, func(_i, _k):
 		var list = enemies_near(c, center, 10.0)
 		var p = (list[randi() % list.size()].global_position if not list.is_empty() and randf() < 0.6 else center + Vector3(randf_range(-9, 9), 0, randf_range(-9, 9)))
@@ -3120,12 +3160,15 @@ func c_ikazuchi_reiza_ame(c: Node3D, t: Node3D) -> void:
 	Sfx.play("thunder", center, 1.1)
 
 
-## Fırtına Tazısı: su-yıldırım tazısı zikzak çizerek koşar; çarptığını sersemletir
+## Kōga (Işık Dişi): zikzak çizerek koşan ışın; çarptığını sersemletir
 func c_ikazuchi_koga(c: Node3D, t: Node3D) -> void:
 	var d = fwd(c, t)
-	var hound = JutsuEngine.shape_mesh("beast", Color(0.55, 0.8, 1.0), 1.5, "ranton")
-	hound.add_child(VFX.storm_orb(1.2))
-	var pr = shot(c, gp(c.global_position + d) + Vector3.UP * 0.9, d, 26.0, hound, inf(c, "ikazuchi_koga", 1.1, {"knock": 8.0, "kind": "heavy", "element": "ranton", "stun": 1.2}), tg(c, t, 30.0), false, 2.2)
+	# Işık Dişi: hayvan heykeli değil — yerin hemen üstünde zikzak çizerek koşan parlak ışın başı ve kıvrık ışın kuyruğu
+	var head = Node3D.new()
+	head.add_child(VFX.storm_orb(0.9))
+	var pr = shot(c, gp(c.global_position + d) + Vector3.UP * 0.9, d, 26.0, head, inf(c, "ikazuchi_koga", 1.1, {"knock": 8.0, "kind": "heavy", "element": "ranton", "stun": 1.2}), tg(c, t, 30.0), false, 2.2,
+		func(p, _h): JutsuEngine.impact_for("ranton", p, Color(0.55, 0.8, 1.0), 1.4))
+	_ribbon_tail(pr, 0.8, 12)
 	var st0 = {"t": 0.0}
 	var side = d.cross(Vector3.UP)
 	pr.on_tick = func(p, dt):
@@ -3138,18 +3181,17 @@ func c_ikazuchi_koga(c: Node3D, t: Node3D) -> void:
 ## Gök Gürültüsü Bulutu: 8 sn kara bulut; içindeki her düşmana saniyede bir şimşek iner
 func c_ikazuchi_raiun(c: Node3D, t: Node3D) -> void:
 	var center = gp(Jutsu._aim_ground(c, t, 10.0, 24.0))
-	var cloud = MeshInstance3D.new()
-	cloud.mesh = VFX._sphere(0.5, 20, 10)
-	cloud.material_override = VFX.mat_puff(0.4, 0.0, Color(0.05, 0.05, 0.08))
-	get_tree().current_scene.add_child(cloud)
-	cloud.global_position = center + Vector3.UP * 12.0
-	cloud.scale = Vector3(22.0, 4.0, 22.0)
+	var top = center + Vector3.UP * 12.0
+	_storm_cloud(top, 8.0, 8.0)
 	every(8.0, 1.0, func(_i, _k):
 		for e in enemies_near(c, center, 12.0):
-			_laser(cloud.global_position + Vector3(randf_range(-4, 4), -1.5, randf_range(-4, 4)), e.global_position + Vector3.UP, 0.35, 0.25)
-			hit(c, e.global_position + Vector3.UP, 1.0, inf(c, "ikazuchi_raiun", 0.35, {"knock": 2.0, "element": "ranton", "stun": 0.5}))
-		Sfx.play("thunder", center, 1.0, 0.7), func():
-		fade_free(cloud, 0.0, 0.5))
+			var a = top + Vector3(randf_range(-4, 4), -1.5, randf_range(-4, 4))
+			var b = e.global_position + Vector3.UP
+			# buluttan inen ışın: düz değil hafif kavisli tek şerit (şimşek dalı yok)
+			LightRibbon.spawn(LightRibbon.curve(a, b, a.lerp(b, 0.5) + Vector3(randf_range(-1.5, 1.5), 0, randf_range(-1.5, 1.5)), 12), 0.9, 0.3, Color(0.45, 0.72, 1.0))
+			JutsuEngine.impact_for("ranton", b, Color(0.55, 0.8, 1.0), 0.8)
+			hit(c, b, 1.0, inf(c, "ikazuchi_raiun", 0.35, {"knock": 2.0, "element": "ranton", "stun": 0.5}))
+		Sfx.play("thunder", center, 1.0, 0.7), Callable())
 
 
 ## Bükülen Işın: ışın yukarı kıvrılıp engellerin üstünden aşar ve kilitli hedefe tepeden iner

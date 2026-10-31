@@ -9,6 +9,7 @@ var width := 0.6
 var dur := 0.4
 var col := Color(0.5, 0.8, 1.0)
 var grow := 0.08          # ışının uca doğru uzama süresi
+var fade_start := 0.55    # ömrün bu oranından sonra söner (1: hiç sönmez — her kare yenilenen kuyruklar)
 var _t := 0.0
 var _im := ImmediateMesh.new()
 var _mat: StandardMaterial3D
@@ -81,7 +82,7 @@ func _build() -> void:
 		return
 	var eye = cam.global_position
 	var k_len = clampf(_t / maxf(grow, 0.001), 0.0, 1.0)          # ucuna doğru uzar
-	var fade = 1.0 - clampf((_t - dur * 0.55) / (dur * 0.45), 0.0, 1.0)   # sona doğru söner
+	var fade = 1.0 if fade_start >= 1.0 else 1.0 - clampf((_t - dur * fade_start) / (dur * (1.0 - fade_start)), 0.0, 1.0)   # sona doğru söner
 	var n = pts.size()
 	var last = maxi(1, int(ceil((n - 1) * k_len)))
 	_im.surface_begin(Mesh.PRIMITIVE_TRIANGLE_STRIP)

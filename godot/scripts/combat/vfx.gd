@@ -1277,29 +1277,23 @@ static func clay_orb(size := 1.0) -> Node3D:
 
 ## Ranton: lazer başı — beyaz-sıcak uzun çekirdek, mavi hale; şimşek dalı yok
 static func storm_orb(size := 1.0) -> Node3D:
+	# Ranton ışık başı: kameraya dönük yumuşak parıltı — beyaz-sıcak merkez, mavi hâle (kapsül/hap mesh değil)
 	size *= epic
 	var root = Node3D.new()
+	var r = 0.45 * size
+	var glow = MeshInstance3D.new()
+	var gq = QuadMesh.new()
+	gq.size = Vector2(r * 5.0, r * 5.0)
+	glow.mesh = gq
+	glow.material_override = _glow_sprite_mat(_radial_tex(Color(0.45, 0.72, 1.0, 0.75), Color(0.35, 0.6, 1.0, 0.0)))
+	root.add_child(glow)
 	var core = MeshInstance3D.new()
-	var cap = CapsuleMesh.new()
-	cap.radius = 0.16 * size
-	cap.height = 0.9 * size
-	core.mesh = cap
-	core.material_override = mat_storm()
-	core.rotation.x = PI * 0.5
+	var cq = QuadMesh.new()
+	cq.size = Vector2(r * 2.2, r * 2.2)
+	core.mesh = cq
+	core.material_override = _glow_sprite_mat(_radial_tex(Color(1, 1, 1, 1), Color(0.6, 0.85, 1.0, 0.0)))
+	core.sorting_offset = 3.0
 	root.add_child(core)
-	var halo = MeshInstance3D.new()
-	var hc = CapsuleMesh.new()
-	hc.radius = 0.32 * size
-	hc.height = 1.3 * size
-	halo.mesh = hc
-	var hm = StandardMaterial3D.new()
-	hm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	hm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	hm.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
-	hm.albedo_color = Color(0.4, 0.7, 1.0, 0.35)
-	halo.material_override = hm
-	halo.rotation.x = PI * 0.5
-	root.add_child(halo)
 	return root
 
 

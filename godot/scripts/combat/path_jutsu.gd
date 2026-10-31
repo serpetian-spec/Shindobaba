@@ -17936,42 +17936,19 @@ func _stone_skin(c: Node3D, dur: float, col := Color(0.55, 0.57, 0.6)) -> void:
 
 
 func p_ikazuchi_reiza_ame(c: Node3D, t: Node3D) -> void:
-	var at = gp(Jutsu._aim_ground(c, t, 10.0, 22.0))
-	var cloud = MeshInstance3D.new()
-	cloud.mesh = SphereMesh.new()
-	var m = StandardMaterial3D.new()
-	m.albedo_color = Color(0.12, 0.13, 0.18, 0.85)
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	cloud.material_override = m
-	get_tree().current_scene.add_child(cloud)
-	cloud.global_position = at + Vector3.UP * 12.0
-	cloud.scale = Vector3(10, 2.2, 10)
-	var tw = cloud.create_tween()
-	tw.tween_interval(2.4)
-	tw.tween_property(cloud, "scale", Vector3(10, 0.05, 10), 0.4)
-	tw.tween_callback(cloud.queue_free)
+	busy(c, 0.6)
+	FX.light(Jutsu._hand(c), Color(0.6, 0.85, 1.0), 4.0, 8.0, 0.4)
 	c_ikazuchi_reiza_ame(c, t)
 
 
-## Fırtına Tazısı: su gövdeli şimşek yeleli tazı izi
 func p_ikazuchi_koga(c: Node3D, t: Node3D) -> void:
 	VFX.gather(hand_pos(c, true), STORM, 1.2)
 	c_ikazuchi_koga(c, t)
-	for k in 6:
-		after(0.2 + k * 0.12, func():
-			if live(c):
-				var p = c.global_position + c.face_dir() * (3.0 + k * 2.5) + Vector3.UP * 0.6
-				_laser(p, p + Vector3(randf_range(-1.5, 1.5), randf_range(0.2, 1.5), randf_range(-1.5, 1.5)), 0.12 * 2.0, 0.15 + 0.15))
 
 
-## Gök Gürültüsü Bulutu: içinde mavi şimşekler çakan kara bulut kütlesi (referans)
 func p_ikazuchi_raiun(c: Node3D, t: Node3D) -> void:
-	var at = gp(Jutsu._aim_ground(c, t, 8.0, 20.0))
-	every(8.0, 0.2, func(_i, _k):
-		var q = at + Vector3(randf_range(-4, 4), randf_range(2.5, 5.0), randf_range(-4, 4))
-		VFX.puffs(q, {"amount": 4, "life": 1.2, "size": 2.0, "radius": 1.0, "vmin": 0.2, "vmax": 0.6, "dir": Vector3.UP, "spread": 90.0, "add": false,
-			"colors": [Color(0.08, 0.08, 0.1, 0.9), Color(0.05, 0.05, 0.07, 0)]})
-		_laser(q, q + Vector3(randf_range(-2, 2), randf_range(-1, 1), randf_range(-2, 2)), 0.1 * 2.0, 0.15 + 0.15), Callable())
+	busy(c, 0.6)
+	FX.light(Jutsu._hand(c), Color(0.6, 0.85, 1.0), 4.0, 8.0, 0.4)
 	c_ikazuchi_raiun(c, t)
 
 
@@ -19961,24 +19938,23 @@ func p_ikazuchi_kaminari_ryu(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.1)
 	var tt = tg(c, t, 32.0)
 	var at = c.global_position + Vector3.UP * 7.0
-	VFX.puffs(at, {"amount": 30, "life": 1.5, "size": 2.0, "radius": 2.0, "vmin": 0.3, "vmax": 1, "dir": Vector3.UP, "spread": 90.0, "add": false,
-		"colors": [Color(0.1, 0.1, 0.14, 0.9), Color(0.05, 0.05, 0.08, 0)]})
+	_storm_cloud(at + Vector3.UP * 1.5, 4.0, 1.4)
 	after(0.5, func():
 		if not live(c):
 			return
-		var b = MB.new()
-		b.add("sphere", Vector3(0, 0, 0.8), Vector3(0.9, 0.7, 1.4), Color.WHITE)
-		for k in 6:
-			b.add("sphere", Vector3(0, sin(k) * 0.3, -0.3 - k * 0.6), Vector3(0.7 - k * 0.07, 0.6 - k * 0.06, 0.8), Color.WHITE)
-		for sx in [-1.0, 1.0]:
-			b.add("cone", Vector3(sx * 0.3, 0.45, 0.6), Vector3(0.1, 0.5, 0.1), Color.WHITE, Vector3(-50, 0, sx * 20), 4)
-		var dr = mesh_of(b, VFX.mat_storm())
-		var pr = shot(c, at, aim_at(c, tt, at), 24.0, dr, inf(c, "ikazuchi_kaminari_ryu", 2.4, {"knock": 14.0, "launch": 4.0, "kind": "heavy", "element": "ranton", "stun": 1.0}), tt, false, 2.0, func(p, _h):
+		# ejderha gövdesi boncuk küre zinciri değil: parlak ışın başı + kıvrılarak takip eden kalın ışın gövdesi
+		var head = Node3D.new()
+		head.add_child(VFX.storm_orb(1.8))
+		var pr = shot(c, at, aim_at(c, tt, at), 24.0, head, inf(c, "ikazuchi_kaminari_ryu", 2.4, {"knock": 14.0, "launch": 4.0, "kind": "heavy", "element": "ranton", "stun": 1.0}), tt, false, 2.0, func(p, _h):
 			JutsuEngine.impact_for("ranton", p, STORM, 2.2)
 			VFX.cracks(gp(p), 6.0))
-		every(2.0, 0.05, func(_i, _k):
-			if is_instance_valid(pr):
-				_laser(pr.global_position, pr.global_position + Vector3(randf_range(-2, 2), randf_range(-1, 2), randf_range(-2, 2)), 0.12 * 2.0, 0.1 + 0.15), Callable()))
+		_ribbon_tail(pr, 1.8, 16)
+		var st0 = {"t": 0.0}
+		pr.on_tick = func(p, dt):
+			st0["t"] += dt
+			var v: Vector3 = p.vel.normalized() if p.vel.length() > 0.1 else Vector3.FORWARD
+			var sd = v.cross(Vector3.UP).normalized()
+			p.global_position += (sd * cos(st0["t"] * 7.0) * 0.35 + Vector3.UP * sin(st0["t"] * 5.0) * 0.2))
 	Sfx.play("thunder", c.global_position, 0.8)
 
 
