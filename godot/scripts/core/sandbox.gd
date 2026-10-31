@@ -44,6 +44,16 @@ func _ready() -> void:
 	for gid in ["goz_sharingan", "goz_byakugan", "goz_ketsuryugan", "goz_mangekyo", "goz_rinnegan", "goz_tenseigan", "goz_jogan"]:
 		for i in 2:
 			Gear.grant(pr, gid, "", null, null, {"lvl": 3, "origin": "dogustan"})
+	# bütün ekipmanlar (kıyafet, silah, aksesuar, göz...) çantada — Tab > Ekipman'dan tek tek denenebilir
+	var have = {}
+	for g in pr["gear"]:
+		have[String(g["id"])] = true
+	for gid in Gear.ITEMS:
+		if not have.has(gid):
+			Gear.grant(pr, gid, "", null, null, {"lvl": 3, "origin": "dogustan"})
+	# bütün kullanılabilir eşyalar (hap, merhem, parşömen, klan eşyaları...)
+	for iid in Data.items:
+		pr["inventory"][iid] = maxi(int(pr["inventory"].get(iid, 0)), 20)
 	Susanoo.config(pr)["mastery"] = 9999.0
 	# sözleşmeler ve sennin
 	Contracts.ensure()
@@ -67,7 +77,7 @@ func _ready() -> void:
 		Game.player.rebuild_model()
 	await get_tree().create_timer(0.5).timeout
 	_dummies()
-	Hud.banner("BECERİ DENEME MODU", "Bütün jutsular öğrenildi (K: jutsuları yuvalara sürükle). F5 düşman • F6 bekleme aç/kapa • F7 ölümsüzlük", Color(1, 0.8, 0.3))
+	Hud.banner("BECERİ DENEME MODU", "Bütün jutsular ve eşyalar hazır (K: jutsular, Tab: ekipman/çanta). F5 düşman • F6 bekleme aç/kapa • F7 ölümsüzlük", Color(1, 0.8, 0.3))
 	Game.save_game()
 
 
