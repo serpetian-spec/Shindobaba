@@ -177,7 +177,7 @@ func burst(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 	var cel: bool = cfg.get("cel", (tex == tex_smoke or tex == tex_soft) and not cfg.get("add", true))
 	if cel:
 		q.material = VFX.mat_puff(cfg.get("glow", _auto_glow(cfg)), cfg.get("hot", 0.0), cfg.get("outline_col", _auto_outline(cfg)),
-			cfg.get("rough", 0.32), cfg.get("shade", 0.3), cfg.get("stretch", 1.0))
+			cfg.get("rough", 0.32), cfg.get("shade", 0.3), cfg.get("stretch", 1.0), cfg.get("outline", 0.07))
 		p.draw_pass_1 = q
 	elif tex == tex_spark:
 		q.size = Vector2(0.12, 0.6) * cfg.get("size", 1.0)
@@ -296,10 +296,11 @@ func _blood_decal(p: Vector3, r: float) -> void:
 
 
 func dust(pos: Vector3, s := 1.0) -> void:
-	burst(pos + Vector3.UP * 0.15, {"cel": true, "amount": int(8 * s) + 4, "life": 0.75, "size": 1.3 * s, "radius": 0.5 * s,
-		"vmin": 1.5, "vmax": 4.5 * s, "dir": Vector3.UP, "spread": 80.0, "damp": 4.5, "gravity": Vector3(0, -0.5, 0), "spin": 60.0,
-		"glow": 1.0, "outline_col": Color(0.32, 0.25, 0.18), "rough": 0.38,
-		"colors": [Color(0.86, 0.78, 0.64, 1), Color(0.78, 0.7, 0.58, 0.85), Color(0.72, 0.66, 0.56, 0.0)],
+	# anime tozu: yumuşak kenarlı, açık ve ince konturlu, az (kalın kahverengi konturlu kaba topaklar fazla duruyordu)
+	burst(pos + Vector3.UP * 0.15, {"cel": true, "amount": int(5 * s) + 3, "life": 0.7, "size": 0.95 * s, "radius": 0.45 * s,
+		"vmin": 1.5, "vmax": 4.0 * s, "dir": Vector3.UP, "spread": 80.0, "damp": 4.5, "gravity": Vector3(0, -0.5, 0), "spin": 40.0,
+		"glow": 1.0, "outline_col": Color(0.66, 0.58, 0.47), "rough": 0.15, "shade": 0.18, "outline": 0.03,
+		"colors": [Color(0.9, 0.84, 0.72, 0.85), Color(0.84, 0.78, 0.66, 0.6), Color(0.78, 0.72, 0.62, 0.0)],
 		"scale_curve": [[0.0, 0.45], [0.3, 1.0], [1.0, 1.15]]})
 
 

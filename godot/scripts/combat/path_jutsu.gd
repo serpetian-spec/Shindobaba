@@ -6912,8 +6912,7 @@ func p_futon_atsugai(c: Node3D, t: Node3D) -> void:
 		tw.tween_interval(1.2)
 		tw.tween_callback(func():
 			WindFX.blast(at, 14.0, 40)
-			VFX.smoke_ring(gp(at) + Vector3.UP * 0.1, 12.0, WindFX.dust_col(at))
-			VFX.debris(gp(at), EARTH, 40, 12.0, 0.5)
+			VFX.debris(gp(at), EARTH, 14, 11.0, 0.35)
 			VFX.cracks(gp(at), 8.0)
 			orb.queue_free())
 		every(1.0, 0.2, func(_i, _k):
@@ -7051,7 +7050,6 @@ func p_futon_shinkuha(c: Node3D, t: Node3D) -> void:
 	var at = c.global_position + Vector3.UP * 1.0
 	WindFX.blast(at, 9.0, 30)
 	after(0.12, func(): WindFX.blast(at, 7.0, 16, WindFX.LINE, false))
-	VFX.smoke_ring(gp(at) + Vector3.UP * 0.1, 9.0, WindFX.dust_col(at))
 	after(0.12, func():
 		mhit(c, at, 8.0, inf(c, "futon_shinkuha", 1.1, {"knock": 14.0, "kind": "heavy", "element": "fuuton", "bleed": 3.0})))
 	Sfx.play("wind", at, 0.8)
@@ -8338,7 +8336,7 @@ func p_nadeshiko_ryu_koha_reppuken(c: Node3D, t: Node3D) -> void:
 		var at = c.global_position + Vector3.UP * 1.2 + c.face_dir() * 1.2
 		stream_fx(at, c.face_dir(), 5.0, 1.6, _windmat(0.7), 0.2)
 		WindFX.blast(at + c.face_dir() * 1.2, 4.5, 18)
-		VFX.debris(gp(at + c.face_dir() * 2.0), WindFX.dust_col(at).darkened(0.3), 16, 10.0, 0.45)
+		VFX.debris(gp(at + c.face_dir() * 2.0), WindFX.dust_col(at).darkened(0.3), 8, 9.0, 0.35)
 		mhit(c, at, 2.0, inf(c, "nadeshiko_ryu_koha_reppuken", 1.5, {"knock": 18.0, "kind": "heavy", "element": "fuuton"}))
 		Sfx.play("punch", at, 0.9))
 

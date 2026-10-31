@@ -534,7 +534,7 @@ func j_fuuton_rasenshuriken(c: Node3D, t: Node3D) -> void:
 		FX.burst(pos, {"amount": 90, "life": 1.0, "tex": FX.tex_spark, "size": 2.4, "vmin": 6.0, "vmax": 14.0, "spread": 180.0, "radius": 4.0, "tangent": 30.0, "explosive": 0.3,
 			"colors": [Color(1, 1, 1, 0.0), Color(0.85, 0.95, 1.0, 0.85), Color(1, 1, 1, 0.0)]})
 		VFX.cracks(pos, 8.0)
-		VFX.debris(pos, Color(0.5, 0.42, 0.32), 20, 16.0, 0.5)
+		VFX.debris(pos, Color(0.5, 0.42, 0.32), 10, 14.0, 0.4)
 		VFX.screen_lines(0.6, 1.0)
 		var tw = dome.create_tween()
 		tw.tween_property(dome, "scale", Vector3.ONE * 12.0, 0.4).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)

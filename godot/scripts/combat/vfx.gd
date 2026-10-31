@@ -502,9 +502,11 @@ static func _splash(pos: Vector3, size := 2.0) -> void:
 
 ## Cel duman halkası (patlamanın etrafında yayılan)
 static func _smoke_ring(pos: Vector3, size := 3.0, col := Color(0.3, 0.27, 0.25)) -> void:
-	var p = puffs(pos, {"amount": int(14 + size * 4), "life": 1.4, "size": 1.6 + size * 0.4, "radius": size * 0.3, "vmin": size * 2.0, "vmax": size * 3.2,
-		"dir": Vector3.UP, "spread": 90.0, "damp": 3.0, "gravity": Vector3(0, 1.0, 0), "spin": 40.0, "outline_col": col.darkened(0.6),
-		"colors": [col.lightened(0.2), col, Color(col.r, col.g, col.b, 0)], "scale_curve": [[0.0, 0.4], [0.3, 1.0], [1.0, 1.25]]})
+	# anime toz halkası: yumuşak, açık konturlu, daha az ve küçük topak
+	var p = puffs(pos, {"amount": int(9 + size * 2.5), "life": 1.2, "size": 1.0 + size * 0.25, "radius": size * 0.3, "vmin": size * 2.0, "vmax": size * 3.2,
+		"dir": Vector3.UP, "spread": 90.0, "damp": 3.0, "gravity": Vector3(0, 1.0, 0), "spin": 30.0, "outline_col": col.darkened(0.25),
+		"rough": 0.15, "shade": 0.18, "outline": 0.03,
+		"colors": [Color(col.lightened(0.2).r, col.lightened(0.2).g, col.lightened(0.2).b, 0.85), Color(col.r, col.g, col.b, 0.6), Color(col.r, col.g, col.b, 0)], "scale_curve": [[0.0, 0.4], [0.3, 1.0], [1.0, 1.2]]})
 	if p:
 		var pm: ParticleProcessMaterial = p.process_material
 		pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_RING
