@@ -312,6 +312,8 @@ static func on_hit(target: Node, info: Dictionary) -> float:
 			Combat.popup_text(pos, "Elektrik çarptı!", Color(0.7, 0.85, 1))
 			tip("wet_shock", "Elektrik!")
 			_chain_shock(target, info)
+			if GroundFX.kind_at(target.global_position) == "wet":   # ıslak zemin: tüm birikinti elektriklenir
+				GroundFX.shock(target.global_position, info.get("attacker"), float(info.get("dmg", 10.0)))
 		else:
 			target.apply_status("shock", 0.4)
 	if el == "fuuton" and target.has_status("burn"):

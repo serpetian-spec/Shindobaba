@@ -423,8 +423,10 @@ static func shockwave(pos: Vector3, col: Color, size := 6.0, dur := 0.4, flat :=
 
 
 ## Zemin çatlağı / yanık izi
-static func cracks(pos: Vector3, size := 4.0, col := Color(0.12, 0.09, 0.07, 0.9), dur := 6.0) -> void:
+static func cracks(pos: Vector3, size := 4.0, col := Color(0.12, 0.09, 0.07, 0.9), dur := 6.0, zone := true) -> void:
 	size *= epic
+	if zone and size >= 1.5:   # yarık zemin: üstünden geçen yavaşlar (3-5 sn)
+		GroundFX.add(pos, "cracked", size * 0.6, clampf(dur, 3.0, 5.0))
 	if busy():
 		return
 	var mi = _card(2, col, col, float(randi_range(6, 9)), false)
@@ -520,6 +522,8 @@ static func _splash(pos: Vector3, size := 2.0) -> void:
 	puffs(base + Vector3.UP * size * 0.3, {"amount": int(6 * size), "life": 0.7, "size": 0.55 * size, "radius": size * 0.5, "vmin": 3, "vmax": 7 + size,
 		"dir": Vector3.UP, "spread": 55.0, "damp": 1.5, "gravity": Vector3(0, -12, 0), "glow": 1.05, "outline_col": Color(0.45, 0.7, 0.95), "outline": 0.03, "rough": 0.15,
 		"colors": [Color(1, 1, 1, 0.95), Color(0.8, 0.93, 1, 0.8), Color(0.6, 0.85, 1, 0)]})
+	# zemin ıslanır (3-5 sn): içindekiler ıslak, şimşek değerse alan çarpılır, ateş değerse buhar
+	GroundFX.add(base, "wet", size * 1.3, 4.5)
 	# alçak su sisi
 	FX.burst(base + Vector3.UP * 0.4, {"amount": int(5 * size), "life": 1.1, "tex": FX.tex_smoke, "add": false, "cel": false, "size": 1.4 * size, "radius": size * 0.6,
 		"vmin": 1.0, "vmax": 3.0, "dir": Vector3.UP, "spread": 80.0, "damp": 2.0,
@@ -630,7 +634,9 @@ static func _explosion(pos: Vector3, s := 1.0, col := Color(1.0, 0.55, 0.15)) ->
 	embers(pos, pr[2], int(22 * s), 18.0 * s, 1.0)
 	var g = Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z) + 0.12, pos.z)
 	if pos.y - g.y < 3.0 * s:
-		cracks(g, 3.5 * s, Color(0.1, 0.06, 0.04, 0.85))
+		cracks(g, 3.5 * s, Color(0.1, 0.06, 0.04, 0.85), 6.0, false)
+		if preset != "black":
+			GroundFX.add(g, "burning", 1.2 * s + 0.8, 4.0)   # yanan zemin: içindekiler tutuşur
 	FX.light(pos, pr[1], 10.0 * s, 22.0 * s, 0.45)
 	if Game.world:
 		Game.world.env.add_shake(0.7 * s)

@@ -231,6 +231,7 @@ static func blast(pos: Vector3, radius: float, n := 24, col := LINE, debris := t
 			sheet(pth, randf_range(0.4, 0.6), radius * randf_range(0.3, 0.45), tint, randf() * 0.05, 0.5)
 		else:
 			streak(pth, randf_range(0.35, 0.55), randf_range(0.06, 0.12) * maxf(1.0, radius * 0.08), col, randf() * 0.06, 16)
+	GroundFX.wind(pos, radius)   # rüzgâr yanan zemini büyütür
 	var dc = dust_col(pos)
 	var gp = Vector3(pos.x, gy + 0.2, pos.z)
 	if pos.y - gy < radius:

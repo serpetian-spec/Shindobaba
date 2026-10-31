@@ -4102,6 +4102,8 @@ func impact_fx(el: String, col: Color, at: Vector3, s := 1.0) -> void:
 		"raiton":
 			# halka yok: göz alan çakma + her yöne saçılan kıvılcım + dallı arklar
 			FX.light(at, col.lightened(0.3), 6.0 * s, 12.0 * s, 0.18)
+			if near_ground:
+				GroundFX.shock(g, null, 12.0 * s)   # ıslak zemine düşen şimşek alanı çarpar
 			FX.burst(at, {"amount": int(30 * s), "life": 0.35, "tex": FX.tex_spark, "size": 1.2 * s, "vmin": 8.0 * s, "vmax": 18.0 * s, "spread": 180.0, "damp": 3.0,
 				"colors": [Color(1, 1, 1, 1), col.lightened(0.4), Color(col.r, col.g, col.b, 0)]})
 			for k in int(8 * s):
