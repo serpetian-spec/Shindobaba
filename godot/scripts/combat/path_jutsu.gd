@@ -7857,41 +7857,83 @@ func p_kassokuken(c: Node3D, t: Node3D) -> void:
 
 ## Patlama Dalgası Çılgın Dansı: ağızdan dönen dev ateş girdabı — sarmal alev seli
 func p_katon_bakufu_ranbu(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.2)
+	busy(c, 1.3)
 	var d = fwd(c, t)
-	VFX.gather(_mouth_pos(c), FIRE, 1.6)
+	VFX.gather(_mouth_pos(c), FIRE, 1.4)
 	after(0.25, func():
-		fire_stream(_mouth_pos(c), d, 20.0, 5.0, 14)
-		var sw = MeshInstance3D.new()
-		var cm = CylinderMesh.new()
-		cm.top_radius = 0.6; cm.bottom_radius = 4.5; cm.height = 18.0; cm.radial_segments = 24
-		sw.mesh = cm
-		sw.material_override = VFX.mat_spiral(Color(1, 0.9, 0.4), FIRE, 6.0, 4.0, 10.0, 1.8, Vector3(0, 1, 0))
-		get_tree().current_scene.add_child(sw)
-		sw.global_position = _mouth_pos(c) + d * 9.0
-		sw.look_at(sw.global_position + d, Vector3.UP)
-		sw.rotate_object_local(Vector3.RIGHT, -PI * 0.5)
-		sw.scale = Vector3(0.1, 0.1, 0.1)
-		var tw = sw.create_tween()
-		tw.tween_property(sw, "scale", Vector3.ONE, 0.3)
-		tw.tween_interval(0.6)
-		tw.tween_property(sw, "scale", Vector3(0.05, 1, 0.05), 0.3)
-		tw.tween_callback(sw.queue_free)
-		Combat.hit_zone(c, c.global_position, d, 20.0, 24.0, 4.0, inf(c, "katon_bakufu_ranbu", 1.6, {"knock": 12.0, "kind": "heavy", "element": "katon", "burn": 3.0}))
+		if not live(c):
+			return
+		# alev çılgın dansı: ağızdan burgu gibi dönerek ilerleyen alev seli (koni mesh yok) — üç sarmal kol + kalın orta akış
+		_flame_jet(c, _mouth_pos(c), d, 22.0, 4.0, 0.8)
+		var side = d.cross(Vector3.UP).normalized()
+		var up = side.cross(d).normalized()
+		var st0 = {"t": 0.0}
+		every(0.8, 0.035, func(_i, _k):
+			st0["t"] += 0.035
+			var mo = _mouth_pos(c) if live(c) else c.global_position
+			for arm in 3:
+				var a = st0["t"] * 14.0 + arm * TAU / 3.0
+				var r = 0.6
+				var off = (side * cos(a) + up * sin(a))
+				var tan = (side * -sin(a) + up * cos(a))
+				VFX.puffs(mo + d * 0.8 + off * r, {"amount": 2, "life": 0.6, "size": 1.0, "radius": 0.15, "vmin": 22.0, "vmax": 26.0, "dir": (d + off * 0.22 + tan * 0.25).normalized(), "spread": 4.0,
+					"damp": 2.0, "gravity": Vector3(0, 1.5, 0), "spin": 90.0, "glow": 1.15, "hot": 0.55, "outline_col": Color(0.7, 0.2, 0.03), "outline": 0.03, "rough": 0.2,
+					"colors": [Color(1.0, 0.95, 0.55, 1), Color(1.0, 0.6, 0.12, 1), Color(0.9, 0.3, 0.05, 0.85), Color(0.45, 0.1, 0.03, 0)], "scale_curve": [[0.0, 0.3], [0.4, 1.0], [1.0, 1.8]]}), Callable())
+		Combat.hit_zone(c, c.global_position, d, 22.0, 26.0, 4.0, inf(c, "katon_bakufu_ranbu", 1.6, {"knock": 12.0, "kind": "heavy", "element": "katon", "burn": 3.0}))
+		after(0.5, func(): VFX.linger(gp(c.global_position + d * 16.0), "katon", FIRE, 2.0, 3.5))
 		shake(0.7))
 	Sfx.play("fire", c.global_position, 0.5)
 
 
+## Alev seli (kabuk küre yok): ağızdan ileri fışkıran, uzaklaştıkça genişleyen cel alev topakları + kor + üstten koyu duman
+func _flame_jet(c: Node3D, from: Vector3, d: Vector3, L: float, W: float, dur: float) -> void:
+	var dd = d.normalized()
+	every(dur, 0.04, func(_i, _k):
+		var mo = _mouth_pos(c) if live(c) else from
+		for q in 3:
+			var u = randf()
+			var p = mo + dd * (0.6 + u * L * 0.25)
+			VFX.puffs(p, {"amount": 2, "life": 0.55, "size": 0.9 + u * 1.2, "radius": 0.2 + u * 0.5, "vmin": L * 0.9, "vmax": L * 1.3, "dir": dd, "spread": 8.0 + W * 2.0,
+				"damp": 2.2, "gravity": Vector3(0, 2.5, 0), "spin": 60.0, "glow": 1.15, "hot": 0.6, "outline_col": Color(0.7, 0.2, 0.03), "outline": 0.03, "rough": 0.2,
+				"colors": [Color(1.0, 0.97, 0.65, 1), Color(1.0, 0.68, 0.16, 1), Color(0.95, 0.36, 0.06, 0.85), Color(0.45, 0.12, 0.04, 0)], "scale_curve": [[0.0, 0.35], [0.4, 1.0], [1.0, 1.4]]})
+		if _i % 3 == 0:
+			VFX.embers(mo + dd * L * 0.5, Color(1.0, 0.6, 0.15), 8, W * 2.0, 0.5)
+			VFX.puffs(mo + dd * L * 0.7 + Vector3.UP * 1.5, {"amount": 2, "life": 1.1, "size": 1.6, "radius": W * 0.4, "vmin": 0.5, "vmax": 1.5, "dir": Vector3.UP, "spread": 40.0,
+				"rough": 0.22, "outline": 0.03, "outline_col": Color(0.2, 0.18, 0.18), "colors": [Color(0.35, 0.3, 0.28, 0.0), Color(0.3, 0.26, 0.24, 0.8), Color(0.25, 0.22, 0.2, 0.0)]}), Callable())
+	FX.light(from + dd * L * 0.4, Color(1.0, 0.6, 0.2), 6.0, L, dur + 0.3)
+
+
 ## Büyük Alev Mermisi: ağızdan kalın, uzun alev akımı
 func p_katon_dai_endan(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.0)
+	busy(c, 1.3)
 	var d = fwd(c, t)
-	VFX.gather(_mouth_pos(c), FIRE, 1.4)
-	after(0.2, func():
-		fire_stream(_mouth_pos(c), d, 18.0, 3.5, 12)
-		Combat.hit_zone(c, c.global_position, d, 18.0, 16.0, 3.0, inf(c, "katon_dai_endan", 1.4, {"knock": 10.0, "kind": "heavy", "element": "katon", "burn": 3.0}))
-		VFX.linger(gp(c.global_position + d * 12.0), "katon", FIRE, 1.6, 3.0))
-	Sfx.play("fire", c.global_position, 0.6)
+	var side = d.cross(Vector3.UP).normalized()
+	# anime: omuzlardaki bilge kurbağalar önce kalın sarı-kahve kurbağa yağı püskürtür, kullanıcı alevi üfler —
+	# yağ tutuşup kalın, yağlı bir alev seline dönüşür; yere düşen yağ yanmaya devam eder
+	var oil = VFX.mat_water(Color(0.45, 0.32, 0.08), Color(0.78, 0.6, 0.22), Color(0.95, 0.82, 0.4), Vector3(0, 1, 0), 0.95, 0.8, 0.12)
+	for sx in [-1.0, 1.0]:
+		var sh = c.global_position + Vector3.UP * 1.55 + side * sx * 0.3 + d * 0.2
+		FX.smoke_puff(sh + Vector3.UP * 0.2, 0.4, 6)
+		after(0.15, func():
+			if live(c):
+				stream_fx(sh, (d - Vector3.UP * 0.06 + side * -sx * 0.03).normalized(), 16.0, 0.7, oil, 0.55))
+	Sfx.play("water", c.global_position, 0.7)
+	after(0.55, func():
+		if not live(c):
+			return
+		anim(c, "push", 1.2)
+		var mo = _mouth_pos(c)
+		VFX.gather(mo, FIRE, 0.6)
+		_flame_jet(c, mo, d, 20.0, 4.5, 0.7)
+		Combat.hit_zone(c, c.global_position, d, 20.0, 22.0, 3.5, inf(c, "katon_dai_endan", 1.6, {"knock": 10.0, "kind": "heavy", "element": "katon", "burn": 4.0}))
+		# yere düşen yanan yağ gölü
+		var pool_at = gp(c.global_position + d * 12.0)
+		VFX.linger(pool_at, "katon", FIRE, 3.0, 5.0)
+		every(5.0, 0.5, func(_i, _k):
+			for e in enemies_near(c, pool_at, 4.5):
+				e.take_hit(inf(c, "katon_dai_endan", 0.12, {"element": "katon", "burn": 1.0, "knock": 0.0, "kind": "light"})), Callable())
+		shake(0.8)
+		Sfx.play("fire", c.global_position, 0.6))
 
 
 ## Büyük Alev Çiçeği: ağızdan art arda çok sayıda iri ateş topu, geniş yelpaze
