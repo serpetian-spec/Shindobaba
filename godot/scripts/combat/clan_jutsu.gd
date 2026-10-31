@@ -3156,6 +3156,13 @@ func c_ikazuchi_reiza_ame(c: Node3D, t: Node3D) -> void:
 	get_tree().current_scene.add_child(src)
 	src.global_position = center + Vector3.UP * 14.0
 	FX.light(src.global_position, Color(0.6, 0.85, 1.0), 6.0, 30.0, 2.4)
+	# yumuşak fırtına bulutu: yuvarlak hatlı açık gri cel topaklar (alt yüzü mavi-gri, köşesiz); içi ışıkla parlar
+	for k in 9:
+		var q = center + Vector3.UP * 15.0 + (Vector3(randf_range(-7, 7), randf_range(-0.6, 0.8), randf_range(-5, 5)) if k > 0 else Vector3.ZERO)
+		after(k * 0.04, func():
+			VFX.puffs(q, {"amount": 8, "life": 2.5, "size": 4.5, "radius": 2.2, "vmin": 0.05, "vmax": 0.25, "dir": Vector3.UP, "spread": 90.0, "gravity": Vector3.ZERO, "damp": 1.0,
+				"rough": 0.14, "outline": 0.03, "outline_col": Color(0.3, 0.36, 0.48), "shade": 0.45, "spin": 6.0,
+				"colors": [Color(0.72, 0.78, 0.88, 0.0), Color(0.72, 0.78, 0.88, 1), Color(0.6, 0.66, 0.78, 0.95), Color(0.55, 0.6, 0.72, 0.0)], "scale_curve": [[0.0, 0.5], [0.3, 1.0], [1.0, 0.95]]}))
 	fade_free(src, 2.3, 0.3)
 	every(2.0, 0.1, func(_i, _k):
 		var list = enemies_near(c, center, 10.0)
@@ -3170,21 +3177,31 @@ func c_ikazuchi_reiza_ame(c: Node3D, t: Node3D) -> void:
 ## Kōga (Işık Dişi): zikzak çizerek koşan ışın; çarptığını sersemletir
 func c_ikazuchi_koga(c: Node3D, t: Node3D) -> void:
 	var d = fwd(c, t)
-	# Işık Dişi: hayvan heykeli değil — yerin hemen üstünde zikzak çizerek koşan parlak ışın başı ve kıvrık ışın kuyruğu
-	# ışık tazısı: mavi parlayan kabuk + beyaz çekirdek, koşan bacaklar; ayakları yere değsin diye gövde 0.9 m aşağıda
+	# Işık Dişi: dörtnala koşan ışık tazısı; yerde iki metre genişlikte zikzak çizer, gövdesi koştuğu yöne döner
 	var head = Node3D.new()
-	var hound = RantonArt.hound(2.2)
+	var hound = RantonArt.hound(2.6)
 	hound.position.y = -0.9
 	head.add_child(hound)
-	var pr = shot(c, gp(c.global_position + d) + Vector3.UP * 0.9, d, 18.0, head, inf(c, "ikazuchi_koga", 1.1, {"knock": 8.0, "kind": "heavy", "element": "ranton", "stun": 1.2}), tg(c, t, 30.0), false, 2.2,
+	var spd = 17.0
+	var pr = shot(c, gp(c.global_position + d) + Vector3.UP * 0.9, d, spd, head, inf(c, "ikazuchi_koga", 1.1, {"knock": 8.0, "kind": "heavy", "element": "ranton", "stun": 1.2}), tg(c, t, 30.0), false, 2.2,
 		func(p, _h): JutsuEngine.impact_for("ranton", p, Color(0.55, 0.8, 1.0), 1.4))
 	_ribbon_tail(pr, 0.45, 8)
-	var st0 = {"t": 0.0}
-	var side = d.cross(Vector3.UP)
+	var st0 = {"t": 0.0, "off": 0.0}
 	pr.on_tick = func(p, dt):
 		st0["t"] += dt
-		p.global_position += side * cos(st0["t"] * 10.0) * 0.45
+		var v: Vector3 = p.vel
+		v.y = 0.0
+		var side = v.normalized().cross(Vector3.UP) if v.length() > 0.1 else d.cross(Vector3.UP)
+		var w = 6.5
+		var off = sin(st0["t"] * w) * 1.8
+		p.global_position += side * (off - st0["off"])
+		st0["off"] = off
 		p.global_position.y = Game.jutsu_floor(p.global_position.x, p.global_position.z) + 0.9
+		# gövde zikzak yönüne döner (yanal hız / ileri hız)
+		if is_instance_valid(hound):
+			hound.rotation.y = -atan2(cos(st0["t"] * w) * 1.8 * w, spd)
+		if randf() < 0.5:
+			FX.burst(p.global_position - Vector3.UP * 0.8, {"amount": 2, "life": 0.25, "tex": FX.tex_spark, "size": 0.35, "vmin": 1.0, "vmax": 3.0, "colors": [Color(1, 1, 1, 1), Color(0.55, 0.8, 1.0, 0)]})
 	Sfx.play("thunder", c.global_position, 1.5, 0.6)
 
 

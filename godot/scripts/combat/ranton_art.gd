@@ -45,25 +45,48 @@ static func _tube(b: MB, pts: Array, rad: Array, s: float, k: float) -> void:
 	Loft.tube(b, ClayArt._sc(pts, s), R, Color.WHITE, 12, 3)
 
 
-## Kōga: koşan ışık tazısı (gövde, kulaklar, kuyruk; bacaklar ayrı düğüm — koşu salınımı)
+## Kōga: dörtnala koşan ışık tazısı — açık çene, geriye yatık kulaklar, sırtta şimşek yelesi, uzun kuyruk;
+## her bacak kalça + diz eklemli, dörtnal döngüsüyle (ön çift / arka çift faz farkı) koşar, gövde iner kalkar
 static func hound(s := 1.0) -> Node3D:
 	var root = Node3D.new()
-	root.add_child(_two_layer(func(b: MB, k: float):
-		_tube(b, [Vector3(0, 0.56, 1.0), Vector3(0, 0.62, 0.78), Vector3(0, 0.64, 0.62), Vector3(0, 0.52, 0.42), Vector3(0, 0.46, 0.15), Vector3(0, 0.46, -0.2), Vector3(0, 0.5, -0.45)],
-			[0.05, 0.12, 0.17, 0.14, 0.23, 0.2, 0.17], s, k)
+	var body = Node3D.new()
+	root.add_child(body)
+	body.add_child(_two_layer(func(b: MB, k: float):
+		_tube(b, [Vector3(0, 0.6, 1.05), Vector3(0, 0.63, 0.9), Vector3(0, 0.67, 0.72), Vector3(0, 0.69, 0.6), Vector3(0, 0.6, 0.45), Vector3(0, 0.5, 0.25), Vector3(0, 0.49, 0.0), Vector3(0, 0.52, -0.2), Vector3(0, 0.53, -0.38), Vector3(0, 0.55, -0.52)],
+			[0.04, 0.08, Vector2(0.13, 0.15), Vector2(0.14, 0.15), 0.13, Vector2(0.18, 0.24), Vector2(0.16, 0.19), Vector2(0.12, 0.14), Vector2(0.16, 0.17), 0.09], s, k)
+		# açık alt çene
+		_tube(b, [Vector3(0, 0.58, 0.62), Vector3(0, 0.53, 0.8), Vector3(0, 0.48, 0.95)], [0.08, 0.06, 0.03], s, k)
 		for sx in [-1.0, 1.0]:
-			_tube(b, [Vector3(sx * 0.08, 0.74, 0.6), Vector3(sx * 0.12, 0.92, 0.5), Vector3(sx * 0.13, 1.02, 0.4)], [0.06, 0.045, 0.01], s, k)
-		_tube(b, [Vector3(0, 0.52, -0.5), Vector3(0, 0.62, -0.8), Vector3(0, 0.78, -1.1), Vector3(0, 0.84, -1.3)], [0.09, 0.07, 0.05, 0.01], s, k)))
-	for leg in [[-1.0, 0.18, 0.0], [1.0, 0.18, PI], [-1.0, -0.38, PI], [1.0, -0.38, 0.0]]:
-		var piv = Node3D.new()
-		piv.position = Vector3(leg[0] * 0.13, 0.45, leg[1]) * s
-		piv.add_child(_two_layer(func(b: MB, k: float):
-			_tube(b, [Vector3.ZERO, Vector3(0, -0.22, -0.05), Vector3(0, -0.42, 0.04)], [0.08, 0.06, 0.05], s, k)))
-		root.add_child(piv)
-		var tw = piv.create_tween().set_loops()
-		piv.rotation.x = 0.6 * (1.0 if leg[2] == 0.0 else -1.0)
-		tw.tween_property(piv, "rotation:x", -piv.rotation.x, 0.12).set_trans(Tween.TRANS_SINE)
-		tw.tween_property(piv, "rotation:x", piv.rotation.x, 0.12).set_trans(Tween.TRANS_SINE)
+			_tube(b, [Vector3(sx * 0.07, 0.78, 0.62), Vector3(sx * 0.1, 0.88, 0.5), Vector3(sx * 0.11, 0.92, 0.38)], [0.05, 0.035, 0.008], s, k)
+		# şimşek yelesi: boyun ve sırt boyunca geriye yatık sivri dikenler
+		for q in 6:
+			var z = 0.5 - q * 0.17
+			var y = 0.74 - q * 0.02 if q < 2 else 0.68
+			_tube(b, [Vector3(0, y - 0.06, z), Vector3(0, y + 0.1 - q * 0.01, z - 0.14)], [0.05, 0.006], s, k)
+		_tube(b, [Vector3(0, 0.56, -0.52), Vector3(0, 0.66, -0.82), Vector3(0, 0.62, -1.15), Vector3(0, 0.72, -1.45)], [0.07, 0.06, 0.04, 0.008], s, k)))
+	var legs = []
+	for leg in [[-1.0, 0.24, 0.0, 1.0], [1.0, 0.24, 0.12, 1.0], [-1.0, -0.38, 0.5, -1.0], [1.0, -0.38, 0.62, -1.0]]:
+		var hip = Node3D.new()
+		hip.position = Vector3(leg[0] * 0.12, 0.47, leg[1]) * s
+		hip.add_child(_two_layer(func(b: MB, k: float):
+			_tube(b, [Vector3.ZERO, Vector3(0, -0.12, 0.0), Vector3(0, -0.23, 0.0)], [0.08, 0.065, 0.05], s, k)))
+		var knee = Node3D.new()
+		knee.position = Vector3(0, -0.23, 0) * s
+		knee.add_child(_two_layer(func(b: MB, k: float):
+			_tube(b, [Vector3.ZERO, Vector3(0, -0.12, 0.0), Vector3(0, -0.22, 0.02), Vector3(0, -0.24, 0.08)], [0.05, 0.04, 0.045, 0.03], s, k)))
+		hip.add_child(knee)
+		body.add_child(hip)
+		legs.append([hip, knee, leg[2], leg[3]])
+	var tw = root.create_tween().set_loops()
+	tw.tween_method(func(ph: float):
+		for L in legs:
+			if not is_instance_valid(L[0]):
+				return
+			var a = TAU * (ph + L[2])
+			L[0].rotation.x = -sin(a) * 0.85
+			L[1].rotation.x = L[3] * (0.25 + 0.75 * maxf(0.0, sin(a + 1.3))) * 0.95
+		body.position.y = absf(sin(TAU * ph)) * 0.06 * s
+		body.rotation.x = sin(TAU * ph) * 0.06, 0.0, 1.0, 0.3)
 	return ClayArt._fwd(root)
 
 
