@@ -315,3 +315,24 @@ VIDEO_JUTSU += [
 # taijutsu videosu: hepsi taijutsu kategorisinde
 for _j in ['jusshi_sendan', 'yanagi_no_mai', 'konoha_tsumuji_senpu', 'geki_konoha_kongoriki_senpu', 'konoha_kaigansho', 'koyubi_kogeki', 'biju_rairai_netsuto', 'atama_hatto', 'kakuran_taijutsu', 'daburu_dainamikku_entori', 'konoha_daisenko', 'sosho_kaiten', 'konoha_ryujin', 'doroppu_kikku', 'raigyaku_suihei', 'bakuton_bogyo', 'biju_hachimaki', 'takigakure_no_senpu', 'hayabusa_otoshi', 'uzumaki_nisen_rendan', 'tetsuzanko', 'daburu_nikudan_sensha']:
     EXTRA.setdefault(_j, {})['category'] = 'taijutsu'
+# --- mokuton videosu (i46D94L5VFs)
+VIDEO_JUTSU += [
+    ('mokuton_kajukai_korin', 'Mokuton: Kajukai Kōrin (Çiçekli Orman Doğuşu)', 'Wood Release: Deep Forest Bloom', 'mokuton', 5, 'field', 'kg:mokuton', '',
+     'Etrafında çiçekli dev bir orman fışkırır; çiçeklerin poleni içindekileri uyuşturup uyutur.', ['Ushi', 'Tora']),
+    ('chojo_kebutsu', 'Senpō: Chōjō Kebutsu (Tepe Buda)', 'Sage Art: Summit Transformation Buddha', 'mokuton', 5, 'aoe', 'kg:mokuton', 'sage',
+     'Bin kollu Buda\'nın tepesinden yüzlerce tahta Buda eli gökten yağar. Sennin modu gerekir.', ['Tora', 'Ushi', 'Tatsu']),
+    ('mokuton_kui', 'Mokuton: Kui (Tahta Kazık)', 'Wood Release: Wooden Stake', 'mokuton', 2, 'projectile', 'kg:mokuton', '',
+     'Kolundan sivri tahta kazıklar fırlar ve hedefe saplanıp onu yere çakar.', []),
+    ('mokuton_kawarimi', 'Mokuton: Kawarimi (Tahta Yer Değiştirme)', 'Wood Release: Substitution', 'mokuton', 2, 'counter', 'kg:mokuton', '',
+     'Vurulduğun an tahta bir kopyayla yer değiştirir, arkasından çıkarsın; kopya köklere dönüşüp saldıranı tutar.', []),
+    ('mokuton_shichuka', 'Mokuton: Shichūka no Jutsu (Dört Sütunlu Ev)', 'Wood Release: Four Pillar House', 'mokuton', 2, 'wall', 'kg:mokuton', '',
+     'Yerden tahta bir ev yükselir: içindeyken can ve chakra yavaş yavaş yenilenir, mermilere karşı korur.', ['Tora', 'U']),
+    ('mokuton_jubaku_eiso', 'Mokuton: Jubaku Eisō (Ağaç Bağı Gömüsü)', 'Wood Release: Tree Bound Burial', 'mokuton', 4, 'bind', 'kg:mokuton', '',
+     'Hedefin altından ağaçlar fışkırıp onu sarar ve gövdenin içine gömer: 3 sn hapseder.', ['Tora', 'Ushi', 'I']),
+    ('mokuton_renchuka', 'Mokuton: Renchūka no Jutsu (Sıra Evler)', 'Wood Release: Row Houses', 'mokuton', 3, 'wall', 'kg:mokuton', '',
+     'Art arda dizilen tahta evler yükselir: geniş bir siper ve dinlenme alanı.', ['Tora', 'U', 'Ushi']),
+    ('mokuton_toge_wa', 'Mokuton: Toge no Wa (Tahta Diken Çemberi)', 'Wood Release: Wood Spikes Ring', 'mokuton', 3, 'aoe', 'kg:mokuton', '',
+     'Etrafında halka halka sivri tahta dikenler fışkırır.', ['Tora']),
+    ('mokuton_shishi_gashira', 'Mokuton: Shishi Gashira (Aslan Başları)', 'Wood Release: Foo Dog Heads', 'mokuton', 4, 'projectile', 'kg:mokuton', '',
+     'Tahtadan dev aslan başları yerden fışkırıp hedefe saldırır ve ısırır.', ['Tora', 'Inu']),
+]

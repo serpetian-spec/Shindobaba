@@ -85,6 +85,7 @@ const PSTYLE := {
 
 
 
+
 ## Jutsuya özel koreografi (hazırlık "wind" + salınım "rel" pozları, zamanlama, gövde klibi) — CastAnim temel stilin üstüne uygular
 const PANIM := {
 	"kage_shuriken_no_jutsu": {"base": "throw", "pre": 0.3, "post": 0.35, "clip": "b/OverhandThrow", "wind": {"R": [Vector3(-0.6, 0.6, -0.5), Vector3(-0.2, 0.9, -0.4), Vector3(0.0, 1.0, -0.2)], "L": [Vector3(0.1, 0.45, 0.88), Vector3(-0.0, 0.5, 0.86), Vector3(-0.0, 0.9, 0.4)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0, 0, 0, 0, 0], "spine": -14.0, "hips_yaw": 35.0}, "rel": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.35, -0.85, -0.35), Vector3(-0.0, -0.4, 0.9), Vector3(-0.0, 0.2, 0.95)], "fR": [0, 0, 0, 0, 0], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 22.0, "hips_yaw": -25.0}},
@@ -1159,6 +1160,15 @@ const PANIM := {
 	"uzumaki_nisen_rendan": {"base": "clone", "pre": 0.3, "post": 0.4, "seal_pose": "Bunshin"},
 	"tetsuzanko": {"base": "rush", "pre": 0.15, "post": 0.4, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 10.0, "hips_yaw": 70.0, "crouch": 0.7}, "rel": {"R": [Vector3(-0.35, -0.85, -0.35), Vector3(0.0, -0.4, 0.9), Vector3(0.0, 0.2, 0.95)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [0, 0, 0, 0, 0], "hips_yaw": -90.0, "crouch": 0.5}},
 	"daburu_nikudan_sensha": {"base": "rush", "pre": 0.35, "post": 0.8, "spin": -1440.0, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 50.0, "crouch": 0.9}, "rel": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 60.0, "crouch": 0.9}},
+	"mokuton_kajukai_korin": {"base": "ground", "pre": 0.5, "post": 0.7, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "spine": -6.0}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 50.0, "crouch": 0.9}},
+	"chojo_kebutsu": {"base": "power", "pre": 0.6, "post": 0.8, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": -8.0}, "rel": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.15, 0.98, 0.1), Vector3(0.05, 1.0, 0.05), Vector3(-0.0, 1.0, 0.0)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -18.0, "neck": -22.0}},
+	"mokuton_kui": {"base": "palm", "pre": 0.2, "post": 0.4, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [0, 0, 0, 0, 0], "spine": 6.0}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 14.0, "hips_yaw": -20.0}},
+	"mokuton_kawarimi": {"base": "sense", "pre": 0.1, "post": 0.25, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.85, -0.45, 0.1), Vector3(-0.9, -0.3, 0.2), Vector3(-0.9, -0.2, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "crouch": 0.4}},
+	"mokuton_shichuka": {"base": "ground", "pre": 0.35, "post": 0.6, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 42.0, "crouch": 0.8}},
+	"mokuton_jubaku_eiso": {"base": "ground", "pre": 0.35, "post": 0.55, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 30.0, "crouch": 0.6}},
+	"mokuton_renchuka": {"base": "ground", "pre": 0.45, "post": 0.7, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "spine": -4.0}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 48.0, "crouch": 0.9}},
+	"mokuton_toge_wa": {"base": "ground", "pre": 0.3, "post": 0.45, "wind": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.15, 0.98, 0.1), Vector3(0.05, 1.0, 0.05), Vector3(-0.0, 1.0, 0.0)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -10.0}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 55.0, "crouch": 1.0}},
+	"mokuton_shishi_gashira": {"base": "ground", "pre": 0.35, "post": 0.55, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "crouch": 0.2}, "rel": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.1, -0.35, 0.93), Vector3(-0.0, -0.3, 0.95), Vector3(-0.0, 0.5, 0.85)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 20.0, "crouch": 0.4}},
 }
 
 const SNAKE := Color(0.42, 0.3, 0.5)
@@ -27465,3 +27475,249 @@ func p_daburu_nikudan_sensha(c: Node3D, t: Node3D) -> void:
 				FX.smoke_puff(ball.global_position, 1.0, 10)
 				ball.queue_free())
 	Sfx.play("whoosh", c.global_position, 0.6)
+
+
+# ================================================================== VİDEO MOKUTON: eksik ahşap teknikleri (anime derlemesine göre)
+const WOOD_C := Color(0.5, 0.36, 0.22)
+
+## Yerden fışkıran, kıvrılarak büyüyen tahta gövde (kök/dal): dur sonra geri çekilir
+func _wood_trunk(from: Vector3, to: Vector3, r: float, dur: float, delay := 0.0) -> void:
+	var head = Node3D.new()
+	scene_add(head, gp(from))
+	var body = VfxSerpent.new()
+	body.style = "wood"
+	body.thin = 1.0
+	body.head = head
+	body.count = int(clampf(from.distance_to(to) / 0.7, 5, 16))
+	body.spacing = 0.6
+	body.radius = r
+	body.mat = Props.toon_color(WOOD_C)
+	body.ring_mat = Props.toon_color(WOOD_C.darkened(0.3))
+	get_tree().current_scene.add_child(body)
+	var tw = head.create_tween()
+	tw.tween_interval(delay)
+	tw.tween_property(head, "global_position", to, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(dur)
+	tw.tween_callback(head.queue_free)
+	after(delay, func():
+		VFX.debris(gp(from), EARTH, 5, 6.0, 0.3)
+		VFX.cracks(gp(from), 1.6))
+
+
+func _wood_house(at: Vector3, yaw: float, dur: float) -> Node3D:
+	var root = Node3D.new()
+	scene_add(root, gp(at))
+	root.rotation.y = yaw
+	var b = MB.new()
+	b.add("box", Vector3(0, 1.4, 0), Vector3(4.0, 2.8, 3.2), WOOD_C)
+	b.add("prism", Vector3(0, 3.3, 0), Vector3(4.6, 1.2, 3.8), WOOD_C.darkened(0.2))
+	for sx in [-1.0, 1.0]:
+		for sz in [-1.0, 1.0]:
+			b.add("cyl", Vector3(sx * 1.9, 1.4, sz * 1.5), Vector3(0.35, 2.9, 0.35), WOOD_C.darkened(0.25), Vector3.ZERO, 8)
+	b.add("box", Vector3(0, 0.9, -1.62), Vector3(1.0, 1.8, 0.05), WOOD_C.darkened(0.45))
+	root.add_child(mesh_of(b))
+	var sb = StaticBody3D.new()
+	var cs = CollisionShape3D.new()
+	var sh = BoxShape3D.new()
+	sh.size = Vector3(4.0, 2.8, 3.2)
+	cs.shape = sh
+	cs.position = Vector3(0, 1.4, 0)
+	sb.add_child(cs)
+	root.add_child(sb)
+	root.scale = Vector3(1, 0.02, 1)
+	var tw = root.create_tween()
+	tw.tween_property(root, "scale", Vector3.ONE, 0.5).set_trans(Tween.TRANS_BACK)
+	tw.tween_interval(dur)
+	tw.tween_property(root, "scale", Vector3(1, 0.02, 1), 0.5)
+	tw.tween_callback(root.queue_free)
+	VFX.debris(gp(at), EARTH, 10, 7.0, 0.35)
+	return root
+
+
+func p_mokuton_kajukai_korin(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.4)
+	var at = gp(c.global_position)
+	for k in 14:
+		var a = TAU * k / 14.0 + randf() * 0.3
+		var p = at + Vector3(cos(a), 0, sin(a)) * randf_range(3.0, 9.0)
+		_wood_trunk(p, p + Vector3(randf_range(-1, 1), randf_range(5.0, 8.0), randf_range(-1, 1)), 0.7, 6.0, k * 0.05)
+		after(0.5 + k * 0.05, func():   # tepede açan çiçekler ve dökülen polen
+			FX.burst(p + Vector3.UP * 6.5, {"amount": 14, "life": 1.4, "tex": FX.tex_leaf, "size": 0.6, "radius": 1.2, "vmin": 0.5, "vmax": 2.0, "spread": 180.0,
+				"gravity": Vector3(0, -1.0, 0), "add": false, "colors": [Color(1, 0.75, 0.85, 1), Color(1, 0.9, 0.95, 1), Color(1, 0.8, 0.9, 0)]}))
+	every(6.0, 0.4, func(_i, _k):
+		FX.burst(at + Vector3.UP * 3.0, {"amount": 20, "life": 2.0, "tex": FX.tex_soft, "add": false, "size": 0.25, "radius": 8.0, "vmin": 0.2, "vmax": 0.6, "gravity": Vector3(0, -0.3, 0),
+			"colors": [Color(1, 0.95, 0.6, 0), Color(1, 0.95, 0.6, 0.8), Color(1, 0.95, 0.6, 0)]})
+		for e in enemies_near(c, at, 9.0):
+			if live(e) and e.has_method("apply_status"):
+				e.apply_status("slow", 0.6)
+				if randf() < 0.12:
+					e.apply_status("sleep", 2.0), Callable())
+	shake(0.8)
+	Sfx.play("earth", at, 0.6)
+
+
+func p_chojo_kebutsu(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.6)
+	var tt = tg(c, t, 34.0)
+	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 14.0)
+	for k in 16:
+		after(0.4 + k * 0.08, func():
+			var q = at + Vector3(randf_range(-7, 7), 0, randf_range(-7, 7))
+			var hand = MeshInstance3D.new()
+			var b = MB.new()
+			b.add("box", Vector3(0, 0, 0), Vector3(1.6, 0.5, 2.2), WOOD_C)
+			for f in 4:
+				b.add("box", Vector3(-0.6 + f * 0.4, 0, 1.4), Vector3(0.3, 0.4, 0.8), WOOD_C.darkened(0.1))
+			hand.mesh = b.build(Props.toon())
+			scene_add(hand, q + Vector3.UP * 22.0)
+			hand.rotation = Vector3(-PI * 0.5, randf() * TAU, 0)
+			var tw = hand.create_tween()
+			tw.tween_property(hand, "global_position", q + Vector3.UP * 0.4, 0.35).set_ease(Tween.EASE_IN)
+			tw.tween_callback(func():
+				VFX.cracks(q, 3.0)
+				VFX.debris(q, EARTH, 8, 8.0, 0.35)
+				hit(c, q + Vector3.UP, 2.6, inf(c, "chojo_kebutsu", 0.5, {"knock": 8.0, "launch": 4.0, "kind": "heavy", "element": "mokuton"})))
+			tw.tween_interval(1.2)
+			tw.tween_property(hand, "scale", Vector3(1, 1, 0.02), 0.3)
+			tw.tween_callback(hand.queue_free))
+	shake(1.4)
+	Sfx.play("earth", at, 0.5)
+
+
+func p_mokuton_kui(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.6)
+	var tt = tg(c, t, 24.0)
+	for k in 4:
+		after(0.15 + k * 0.08, func():
+			if not live(c):
+				return
+			var from = hand_pos(c, true)
+			var b = Node3D.new()
+			var mi = MeshInstance3D.new()
+			var cm = CylinderMesh.new()
+			cm.top_radius = 0.0; cm.bottom_radius = 0.12; cm.height = 1.2; cm.radial_segments = 6
+			mi.mesh = cm
+			mi.material_override = Props.toon_color(WOOD_C)
+			mi.rotation.x = -PI * 0.5
+			b.add_child(mi)
+			shot(c, from, aim_at(c, tt, from).rotated(Vector3.UP, (k - 1.5) * 0.05), 40.0, b, inf(c, "mokuton_kui", 0.45, {"knock": 3.0, "kind": "heavy", "element": "mokuton", "bleed": 2.0, "stun": 0.3}), null, false, 1.0, func(p, h):
+				VFX.debris(p, WOOD_C, 4, 4.0, 0.25)
+				if h and live(h) and h.has_method("apply_status"):
+					h.apply_status("slow", 2.0)))
+	Sfx.play("whoosh", c.global_position, 1.4)
+
+
+func p_mokuton_kawarimi(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.3)
+	var at = c.global_position
+	var dummy = MeshInstance3D.new()
+	dummy.mesh = VFX._sphere(0.5, 8, 6)
+	dummy.material_override = Props.toon_color(WOOD_C)
+	dummy.scale = Vector3(0.6, 1.8, 0.6)
+	scene_add(dummy, at + Vector3.UP * 0.9)
+	fade_free(dummy, 2.5, 0.3)
+	var tt = tg(c, t, 10.0)
+	c.global_position = gp(at - c.face_dir() * 3.5)
+	for e in enemies_near(c, at, 3.0):
+		if live(e) and e.has_method("apply_status"):
+			e.apply_status("bind", 1.5)
+			_wood_trunk(at, e.global_position + Vector3.UP, 0.25, 1.4)
+	VFX.debris(at, WOOD_C, 8, 5.0, 0.3)
+	Sfx.play("poof", at, 1.0)
+
+
+func p_mokuton_shichuka(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.8)
+	var at = c.global_position + c.face_dir() * 4.0
+	_wood_house(at, atan2(-c.face_dir().x, -c.face_dir().z), 20.0)
+	every(20.0, 1.0, func(_i, _k):
+		if live(c) and c.global_position.distance_to(gp(at)) < 3.5:
+			heal(c, 3.0)
+			chakra_gain(c, 3.0), Callable())
+	Sfx.play("earth", at, 0.8)
+
+
+func p_mokuton_jubaku_eiso(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.0)
+	var tt = tg(c, t, 22.0)
+	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 9.0)
+	for k in 6:
+		var a = TAU * k / 6.0
+		_wood_trunk(at + Vector3(cos(a), 0, sin(a)) * 1.6, at + Vector3(cos(a + 2.0) * 0.4, 3.5 + k * 0.2, sin(a + 2.0) * 0.4), 0.5, 3.0, k * 0.05)
+	after(0.4, func():
+		for e in enemies_near(c, at, 2.0):
+			if live(e) and e.has_method("apply_status"):
+				e.apply_status("bind", 3.0)
+		every(3.0, 0.6, func(_i, _k):
+			for e in enemies_near(c, at, 2.0):
+				if live(e):
+					hit(c, e.global_position + Vector3.UP, e.radius + 0.3, inf(c, "mokuton_jubaku_eiso", 0.4, {"knock": 0.0, "kind": "heavy", "element": "mokuton"})), Callable()))
+	Sfx.play("earth", at, 0.7)
+
+
+func p_mokuton_renchuka(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.0)
+	var d = fwd(c, t)
+	var side = d.cross(Vector3.UP).normalized()
+	for k in 4:
+		after(k * 0.15, func():
+			_wood_house(c.global_position + d * 6.0 + side * (k - 1.5) * 4.6, atan2(-d.x, -d.z), 25.0))
+	Sfx.play("earth", c.global_position, 0.6)
+
+
+func p_mokuton_toge_wa(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.7)
+	var at = gp(c.global_position)
+	for ring in 3:
+		var r = 2.0 + ring * 1.8
+		for k in int(10 + ring * 5):
+			var a = TAU * k / (10 + ring * 5)
+			var q = at + Vector3(cos(a), 0, sin(a)) * r
+			var sp = MeshInstance3D.new()
+			var cm = CylinderMesh.new()
+			cm.top_radius = 0.0; cm.bottom_radius = 0.25; cm.height = 1.0; cm.radial_segments = 6
+			sp.mesh = cm
+			sp.material_override = Props.toon_color(WOOD_C.darkened(ring * 0.05))
+			scene_add(sp, q)
+			sp.rotation = Vector3(cos(a) * 0.4, 0, -sin(a) * 0.4)
+			sp.scale = Vector3(1, 0.05, 1)
+			var tw = sp.create_tween()
+			tw.tween_interval(ring * 0.1)
+			tw.tween_property(sp, "scale", Vector3(1, 2.4, 1), 0.12).set_trans(Tween.TRANS_BACK)
+			tw.tween_interval(1.5)
+			tw.tween_property(sp, "scale", Vector3(1, 0.05, 1), 0.3)
+			tw.tween_callback(sp.queue_free)
+		after(ring * 0.1, func():
+			for e in enemies_near(c, at, r + 0.8):
+				if live(e) and e.global_position.distance_to(at) > r - 1.2:
+					hit(c, e.global_position + Vector3.UP, e.radius + 0.3, inf(c, "mokuton_toge_wa", 0.6, {"knock": 4.0, "launch": 6.0, "kind": "heavy", "element": "mokuton", "bleed": 2.0})))
+	Sfx.play("earth", at, 1.0)
+
+
+func p_mokuton_shishi_gashira(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.0)
+	var tt = tg(c, t, 26.0)
+	for k in 3:
+		after(0.25 + k * 0.2, func():
+			if not live(c):
+				return
+			var side = c.face_dir().cross(Vector3.UP).normalized() * (k - 1) * 2.2
+			var from = gp(c.global_position + c.face_dir() * 2.0 + side) + Vector3.UP * 0.5
+			var head = Node3D.new()
+			var dh = VfxSerpent.dragon_head(Props.toon_color(WOOD_C), 1.8, Color(1, 0.85, 0.3))
+			head.add_child(dh)
+			var pr = shot(c, from, (aim_at(c, tt, from) + Vector3.UP * 0.2).normalized(), 16.0, head, inf(c, "mokuton_shishi_gashira", 1.0, {"knock": 10.0, "kind": "heavy", "element": "mokuton", "bleed": 2.0}), tt, false, 2.4, func(p, _h):
+				VFX.debris(p, WOOD_C, 10, 8.0, 0.35))
+			pr.homing_turn = 2.5
+			pr.radius = 1.2
+			var body = VfxSerpent.new()
+			body.style = "wood"
+			body.seed_id = "shishi%d" % k
+			body.head = pr
+			body.count = 10
+			body.spacing = 0.8
+			body.radius = 0.9
+			body.mat = Props.toon_color(WOOD_C)
+			body.ring_mat = Props.toon_color(WOOD_C.darkened(0.3))
+			get_tree().current_scene.add_child(body))
+	Sfx.play("earth", c.global_position, 0.8)
