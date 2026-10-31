@@ -1240,25 +1240,42 @@ func _shadow_line(c: Node3D, t: Node3D, dur: float) -> void:
 			pm.queue_free())
 
 
+## Nara gölgesi ışığa bağlı (anime: gün batımında gölge uzar, öğlen kısalır, karanlıkta gölge zayıf)
+func shadow_k() -> float:
+	var tod = float(Game.world.env.time_of_day) if Game.world and Game.world.get("env") else 0.5
+	if (tod > 0.22 and tod < 0.32) or (tod > 0.68 and tod < 0.8):
+		return 1.5   # şafak / gün batımı: uzun gölgeler
+	if tod >= 0.4 and tod <= 0.6:
+		return 0.85  # öğle: kısa gölge
+	if tod < 0.2 or tod > 0.84:
+		return 0.7   # gece: yalnız ay ve fener ışığı
+	return 1.0
+
+
+func shadow_reach() -> float:
+	return 22.0 * shadow_k()
+
+
 func j_kagemane(c: Node3D, t: Node3D) -> void:
-	if t == null or c.global_position.distance_to(t.global_position) > 22.0:
-		Hud.msg("Kagemane: gölgen en fazla 22 metreye uzanır", Color(0.8, 0.8, 0.9))
+	var reach = shadow_reach()
+	if t == null or c.global_position.distance_to(t.global_position) > reach:
+		Hud.msg("Kagemane: gölgen şu ışıkta en fazla %d metreye uzanır" % int(reach), Color(0.8, 0.8, 0.9))
 		return
 	Sfx.play("genjutsu", c.global_position, 0.6)
-	_shadow_line(c, t, 4.0)
+	_shadow_line(c, t, 4.0 * shadow_k())
 	if t.has_method("apply_status"):
-		t.apply_status("bind", 4.0)
+		t.apply_status("bind", 4.0 * shadow_k())
 	Combat.popup_text(t.global_position + Vector3.UP * 2.4, "Kagemane: başarılı!", Color(0.7, 0.7, 0.9))
 
 
 func j_kage_kubi(c: Node3D, t: Node3D) -> void:
 	var m = _mult(c)
-	if t == null or c.global_position.distance_to(t.global_position) > 22.0:
-		Hud.msg("Kage Kubi Shibari: hedef çok uzak", Color(0.8, 0.8, 0.9))
+	if t == null or c.global_position.distance_to(t.global_position) > shadow_reach():
+		Hud.msg("Kage Kubi Shibari: gölgen şu ışıkta oraya uzanmıyor", Color(0.8, 0.8, 0.9))
 		return
-	_shadow_line(c, t, 4.0)
+	_shadow_line(c, t, 4.0 * shadow_k())
 	if t.has_method("apply_status"):
-		t.apply_status("bind", 4.0)
+		t.apply_status("bind", 4.0 * shadow_k())
 	Sfx.play("genjutsu", c.global_position, 0.5)
 	# gölge elleri hedefin bedenine tırmanıp boynunu sarar
 	for k in 4:
@@ -1430,21 +1447,42 @@ func j_shintenshin(c: Node3D, t: Node3D) -> void:
 	cj._mind_orb(c, t, func(): if is_instance_valid(t): cj._mind_halo(t, 12.0))
 	if c.get("model"):
 		c.model.play("sit", 0.2)
+	# ruh bedenden çıktı: Yamanaka'nın bedeni yerde savunmasız (hareket edemez); bedene darbe gelirse ruh geri çekilir
+	var dur = 12.0
+	if c is Player:
+		c.input_locked = dur
+		c.set_meta("shintenshin_t", t)
+		t.set_meta("possessed_by", c)
 	t.team = "player"
 	t.target = null
 	t.state = "chase"
 	var a = FX.aura(t, Color(0.7, 0.45, 1.0), 0.9, Vector3(0, 0.9, 0), 0.0)
+	t.set_meta("possess_aura", a)
 	t.nameplate.modulate = Color(0.75, 0.6, 1.0)
 	Combat.popup_text(t.global_position + Vector3.UP * 2.6, "Zihin ele geçirildi!", Color(0.8, 0.65, 1))
-	get_tree().create_timer(12.0).timeout.connect(func():
-		if is_instance_valid(t) and not t.dead:
+	get_tree().create_timer(dur).timeout.connect(func(): shintenshin_release(c, t, a))
+
+
+## Ruh bedene döner (süre bitti ya da Yamanaka'nın bedenine darbe geldi)
+func shintenshin_release(c: Node3D, t: Node3D, a = null) -> void:
+	if a == null and is_instance_valid(t) and t.has_meta("possess_aura"):
+		a = t.get_meta("possess_aura")
+	if is_instance_valid(c) and c.has_meta("shintenshin_t"):
+		c.remove_meta("shintenshin_t")
+		if c is Player:
+			c.input_locked = 0.0
+			if c.get("model"):
+				c.model.play("idle", 0.2)
+	if is_instance_valid(t) and t.has_meta("possessed_by"):
+		t.remove_meta("possessed_by")
+		if not t.dead:
 			t.team = "enemy"
 			t.target = null
 			t.nameplate.modulate = Color(1, 0.6, 0.55)
 			Combat.popup_text(t.global_position + Vector3.UP * 2.6, "Kendine geldi", Color(1, 0.7, 0.6))
 		if is_instance_valid(a):
 			a.emitting = false
-			get_tree().create_timer(1.0).timeout.connect(a.queue_free))
+			get_tree().create_timer(1.0).timeout.connect(a.queue_free)
 
 
 # ---------------------------------------------------------------- Senju (Mokuton)

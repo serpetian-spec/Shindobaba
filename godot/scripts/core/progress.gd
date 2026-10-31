@@ -622,6 +622,7 @@ func _process(_dt: float) -> void:
 	if Game.player == null or Game.profile.is_empty():
 		return
 	Journal.tick(_dt)
+	ClanMech.tick(_dt)
 	_check_rinnegan_path(_dt)
 	# ziyaret edilen köyler (hızlı seyahat); büyük beş köy baştan açık (eski kayıtlar dahil)
 	for big in ["konoha", "suna", "kiri", "kumo", "iwa"]:
@@ -847,6 +848,7 @@ func _eat(price: int, text: String, who: String) -> void:
 	Game.player.hp = Game.player.max_hp
 	Game.player.chakra = Game.player.max_chakra
 	Game.player.model.play("eat", 0.1, 1.0, true)
+	ClanMech.on_eat()
 	Hud.dialog(who, text, [])
 
 

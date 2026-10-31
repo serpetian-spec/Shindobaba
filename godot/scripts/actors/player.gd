@@ -426,9 +426,18 @@ func _physics_process(dt: float) -> void:
 	_tick_status(dt)
 	land_t -= dt
 	var regen = 1.5 * (1.0 + Stats.skill(Game.profile, "regen_chakra")) * (1.0 + int(Game.profile.get("level", 1)) * 0.02)
+	# anime yaşam gücü: Uzumaki dev chakra ve hızlı toparlanma, Senju güçlü beden (yaralar hızla kapanır)
+	var clan = String(Game.profile.get("clan", ""))
+	if clan == "uzumaki":
+		regen *= 1.6
 	chakra = minf(max_chakra, chakra + regen * dt)
 	if hp > 0.0:
-		hp = minf(max_hp, hp + 0.5 * (1.0 + Stats.skill(Game.profile, "regen_hp")) * dt)
+		var hreg = 0.5 * (1.0 + Stats.skill(Game.profile, "regen_hp"))
+		if clan == "senju":
+			hreg *= 3.0
+		elif clan == "uzumaki":
+			hreg *= 2.0
+		hp = minf(max_hp, hp + hreg * dt)
 	if hp <= 0.0:
 		model.play("death", 0.1)
 		return

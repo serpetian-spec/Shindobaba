@@ -955,5 +955,23 @@
   "kind": "scroll",
   "jutsu": "sly_mind_affect_technique",
   "desc": "C — Hedefleri düz yürüdüklerini sanırken daireler çizdirir; yol kaybettirme illüzyonu."
+ },
+ "hap_horenzai": {
+  "name": "Akimichi Hapı: Hōrenzai (Yeşil)",
+  "price": 0,
+  "kind": "clan",
+  "desc": "Akimichi klanına özgü. [Y] ile ilk hap: kaloriler dolar, 30 sn güç ×1.5."
+ },
+ "hap_kare": {
+  "name": "Akimichi Hapı: Karē (Sarı)",
+  "price": 0,
+  "kind": "clan",
+  "desc": "Yeşil hap etkisindeyken [Y]: yağ chakraya dönüşür, 30 sn güç ×2 ve zırh."
+ },
+ "hap_togarashi": {
+  "name": "Akimichi Hapı: Tōgarashi (Kırmızı)",
+  "price": 0,
+  "kind": "clan",
+  "desc": "Sarı hap etkisindeyken [Y]: Kelebek Modu. Sonunda beden tükenir (can %10, 90 sn zayıflık)."
  }
 }

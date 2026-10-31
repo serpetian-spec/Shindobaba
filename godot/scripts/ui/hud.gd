@@ -7,6 +7,8 @@ var buff_lbl: RichTextLabel   # aktif güçlendirmeler: ad (süre): ne verdiği
 var hp_trail: ProgressBar
 var ck_bar: ProgressBar
 var xp_bar: ProgressBar
+var clan_bar: ProgressBar   # klan kaynağı: Akimichi kalorisi / Aburame kolonisi / Inuzuka ninken canı
+var clan_lbl: Label
 var name_lbl: Label
 var sub_pips: Array[Panel] = []
 var slots_box: HBoxContainer
@@ -181,6 +183,14 @@ func _build_vitals() -> void:
 	xp_bar = UI.bar(Color(0.98, 0.8, 0.35), 260, 3)
 	xp_bar.position = Vector2(110, 90)
 	frame.add_child(xp_bar)
+	clan_bar = UI.bar(Color(1, 0.6, 0.2), 160, 6)
+	clan_bar.position = Vector2(110, 112)
+	clan_bar.visible = false
+	frame.add_child(clan_bar)
+	clan_lbl = UI.label("", 11, UI.MUTED)
+	clan_lbl.position = Vector2(276, 106)
+	clan_lbl.visible = false
+	frame.add_child(clan_lbl)
 	# kawarimi hapları
 	var row = UI.hbox(4)
 	row.position = Vector2(110, 100)
@@ -1054,6 +1064,14 @@ func _process(dt: float) -> void:
 	ck_bar.max_value = pl.max_chakra; ck_bar.value = pl.chakra
 	ck_txt.text = "%d" % int(pl.chakra)
 	xp_bar.max_value = Data.xp_for_level(int(pr.get("level", 1))); xp_bar.value = int(pr.get("xp", 0))
+	var cm = ClanMech.meter()
+	clan_bar.visible = not cm.is_empty()
+	clan_lbl.visible = clan_bar.visible
+	if clan_bar.visible:
+		clan_bar.max_value = cm["max"]
+		clan_bar.value = cm["v"]
+		(clan_bar.get_theme_stylebox("fill") as StyleBoxFlat).bg_color = cm["col"]
+		clan_lbl.text = "%s %d" % [cm["label"], int(cm["v"])] if cm["max"] > 1.0 else String(cm["label"])
 	var comb = pl.combat
 	if comb:
 		for i in 4:

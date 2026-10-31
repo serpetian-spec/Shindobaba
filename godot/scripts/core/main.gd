@@ -314,6 +314,7 @@ func _begin_game(pos: Vector3) -> void:
 		sl.append("")
 	Game.profile["slots"] = sl
 	Gear.ensure(Game.profile)
+	ClanMech.ensure(Game.profile)
 	Gear.apply_look(Game.profile)
 	player = Player.new()
 	add_child(player)
@@ -421,6 +422,8 @@ func resume() -> void:
 
 
 func use_item(id: String) -> void:
+	if id == "pill" and ClanMech.use_aki_pill():   # Akimichi: sıradaki renkli hap
+		return
 	var inv: Dictionary = Game.profile["inventory"]
 	if int(inv.get(id, 0)) <= 0:
 		Hud.msg("Hiç %s yok." % Data.items.get(id, {"name": id})["name"], Color(1, 0.6, 0.5))

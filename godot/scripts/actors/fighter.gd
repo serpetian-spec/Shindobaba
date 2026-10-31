@@ -89,6 +89,12 @@ func take_hit(info: Dictionary) -> void:
 				dmg *= 1.0 + bs * 2.0
 				Combat.popup_text(global_position + Vector3.UP * (height + 0.8), "ARKADAN!", Color(1, 0.4, 0.8))
 	hp -= dmg
+	# Shintenshin: ele geçirilmiş bedene gelen acı, bedenin dışındaki Yamanaka ruhuna da yansır (anime)
+	if has_meta("possessed_by"):
+		var owner_p = get_meta("possessed_by")
+		if is_instance_valid(owner_p) and owner_p is Player and owner_p.hp > 0.0:
+			owner_p.hp = maxf(1.0, owner_p.hp - dmg * 0.35)
+			Combat.damage_number(owner_p.global_position + Vector3.UP * 2.0, dmg * 0.35, Color(0.8, 0.6, 1.0))
 	model.flash(0.9)
 	_hit_feedback(info, dmg)
 	var col = Color(1, 0.9, 0.3) if info.get("kind", "light") == "light" else Color(1, 0.55, 0.2)

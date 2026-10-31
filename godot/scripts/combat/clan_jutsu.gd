@@ -591,14 +591,14 @@ func c_hakke_hasangeki(c: Node3D, t: Node3D) -> void:
 # ================================================================== NARA — gölge: bağla, taklit ettir, dik, boğ
 ## Kagemane: bağlanan düşman 4 sn senin hareketini aynen taklit eder (gölge taklidi)
 func c_kagemane(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 22.0)
+	var tt = tg(c, t, Jutsu.shadow_reach())
 	if tt == null:
-		Hud.msg("Kagemane: gölgen en fazla 22 metreye uzanır", Color(0.8, 0.8, 0.9))
+		Hud.msg("Kagemane: gölgen şu ışıkta en fazla %d metreye uzanır" % int(Jutsu.shadow_reach()), Color(0.8, 0.8, 0.9))
 		return
 	Jutsu.j_kagemane(c, tt)
 	var last = {"p": c.global_position}
 	Combat.popup_text(tt.global_position + Vector3.UP * 3.0, "Gölge taklidi: hareketlerini kopyalıyor!", Color(0.65, 0.6, 0.85))
-	every(4.0, 1.0 / 30.0, func(_i, _k):
+	every(4.0 * Jutsu.shadow_k(), 1.0 / 30.0, func(_i, _k):
 		if not live(tt) or not is_instance_valid(c):
 			return
 		var dp: Vector3 = c.global_position - last["p"]

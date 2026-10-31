@@ -734,10 +734,16 @@ func begin_cast(jid: String) -> void:
 	var cost = jutsu_cost(j)
 	if Game.has_meta("sandbox"):
 		cost = 0.0
+	# klan kuralı: Akimichi kalorisi, Aburame kikaichū kolonisi, Inuzuka ortak teknikleri köpekle
+	var cm_block = ClanMech.cast_block(jid, j)
+	if cm_block != "" and not Game.has_meta("sandbox"):
+		Hud.msg(cm_block, Color(1, 0.75, 0.45))
+		return
 	if p.chakra < cost:
 		Hud.msg("Yeterli chakra yok! [C] ile chakra topla", Color(0.5, 0.8, 1))
 		return
 	p.chakra -= cost
+	ClanMech.pay(jid, j)
 	cooldowns[jid] = Combat.jutsu_cd(j)
 	var tier = int(j.get("tier", 2))
 	cast_jutsu = jid
@@ -779,6 +785,10 @@ func take_hit(info: Dictionary) -> void:
 		return
 	if modes and modes.on_player_hit(info):
 		return
+	ClanMech.on_player_hit(info)
+	if p.has_meta("shintenshin_t"):   # boş bedene darbe: Yamanaka'nın ruhu bedene geri çekilir
+		Combat.popup_text(p.global_position + Vector3.UP * 2.4, "Ruh bedene döndü!", Color(0.8, 0.65, 1))
+		Jutsu.shintenshin_release(p, p.get_meta("shintenshin_t"))
 	var atk: Node3D = info.get("attacker")
 	var dmg: float = info.get("dmg", 5.0) * Combat.jutsu_factor(info)
 	dmg *= Combat.element_mult(info.get("element", ""), Game.profile.get("elements", [""])[0])
@@ -786,8 +796,10 @@ func take_hit(info: Dictionary) -> void:
 	if action == "guard" and atk and is_instance_valid(atk):
 		var to_atk = (atk.global_position - p.global_position)
 		to_atk.y = 0
-		# yalnız önden (yandan/arkadan gelen darbe bloğu geçer)
-		if to_atk.length() < 0.3 or to_atk.normalized().dot(p.face_dir()) > 0.1:
+		# yalnız önden (yandan/arkadan gelen darbe bloğu geçer); açık Byakugan neredeyse 360° görür — tek kör nokta ensenin arkası
+		var byaku = modes and modes.eyes and modes.eyes.active and Progress.has_eye("byakugan")
+		var fdot = to_atk.normalized().dot(p.face_dir()) if to_atk.length() >= 0.3 else 1.0
+		if fdot > 0.1 or (byaku and fdot > -0.9):
 			var tier = int(info.get("tier", -1))
 			var gskill = clampf(Stats.skill(Game.profile, "guard"), 0.0, 0.8)
 			if guard_t < 0.18 and tier < 3:
