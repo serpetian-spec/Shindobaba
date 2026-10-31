@@ -26586,5 +26586,463 @@
   "shape": "projectile",
   "need": "beast",
   "meaning": "Dev Top Rasenshuriken"
+ },
+ "raiton_chakura_modo": {
+  "id": "raiton_chakura_modo",
+  "name": "Raiton Chakura Mōdo",
+  "name_en": "Lightning Chakra Mode",
+  "cost": 76,
+  "cd": 42.0,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "trainer:kumo",
+  "desc": "Bedenin şimşek chakrasıyla kaplanır: 15 sn boyunca çok hızlı koşarsın, vuruşların sersemletir ve çarptığın herkes çarpılır.",
+  "seals": [
+   "Tora"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "mode",
+  "meaning": "Şimşek Chakra Modu"
+ },
+ "raigeki_no_yoroi": {
+  "id": "raigeki_no_yoroi",
+  "name": "Raigeki no Yoroi",
+  "name_en": "Thunder Armour",
+  "cost": 50,
+  "cd": 27.0,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:kumo",
+  "desc": "Şimşekten zırh: 12 sn boyunca aldığın hasar azalır, sana yakın dövüşle vuran çarpılıp geri savrulur.",
+  "seals": [
+   "Tora",
+   "Inu"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "mode",
+  "meaning": "Şimşek Zırhı"
+ },
+ "raiso_ikazuchi_no_utage": {
+  "id": "raiso_ikazuchi_no_utage",
+  "name": "Raisō: Ikazuchi no Utage",
+  "name_en": "Thunder Funeral: Feast of Lightning",
+  "cost": 50,
+  "cd": 18.2,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "trainer:kumo",
+  "desc": "Gökten hedef alana art arda yıldırımlar düşer; çarpılanlar sersemler.",
+  "seals": [
+   "Tatsu",
+   "Tora",
+   "Inu"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Şimşek Cenazesi — Yıldırım Şöleni"
+ },
+ "vishnu_senpo_raiton": {
+  "id": "vishnu_senpo_raiton",
+  "name": "Senpō: Bishunu",
+  "name_en": "Vishnu, Sage Lightning",
+  "cost": 72,
+  "cd": 28.6,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "",
+  "level": 28,
+  "rank": 3,
+  "learn": "sage:any",
+  "desc": "Doğa enerjisiyle yüklü dev şimşek sütunu iner ve etrafa altın şimşek ağları yayar. Sadece sennin modunda.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "senjutsu",
+  "shape": "aoe",
+  "need": "sage",
+  "meaning": "Vishnu — Bilge Şimşeği"
+ },
+ "raiton_gian": {
+  "id": "raiton_gian",
+  "name": "Raiton: Gian",
+  "name_en": "Lightning Release: False Darkness",
+  "cost": 59,
+  "cd": 19.6,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "trainer:kumo",
+  "desc": "Ağızdan fışkıran kalın, mızrak gibi şimşek ışını; yolundaki her şeyi deler ve dallara ayrılır.",
+  "seals": [
+   "Tora",
+   "Saru"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "beam",
+  "meaning": "Sahte Karanlık"
+ },
+ "denko_sekka": {
+  "id": "denko_sekka",
+  "name": "Denkō Sekka",
+  "name_en": "Lightning Flash Speed",
+  "cost": 14,
+  "cd": 3.6,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:kumo",
+  "desc": "Şimşek gibi ileri atılırsın: geçtiğin yolda bıraktığın çatırdayan iz yakındakileri çarpar.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "teleport",
+  "meaning": "Şimşek Hızı"
+ },
+ "raitojutsu_rakurai": {
+  "id": "raitojutsu_rakurai",
+  "name": "Raitōjutsu: Rakurai",
+  "name_en": "Lightning Blade Technique: Thunderbolt",
+  "cost": 34,
+  "cd": 11.2,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "trainer:kumo",
+  "desc": "Havaya sıçrayıp şimşekli kılıçla yıldırım gibi aşağı inersin: iniş noktasında şimşek patlaması.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "melee",
+  "meaning": "Şimşek Kılıcı — Yıldırım Düşüşü"
+ },
+ "raisensho": {
+  "id": "raisensho",
+  "name": "Raisenshō",
+  "name_en": "Lightning Advance",
+  "cost": 22,
+  "cd": 7.2,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:kumo",
+  "desc": "Şimşek yüklü avuçla ileri bir hamle: vurulan sersemler, şimşek arkasındakilere atlar.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "melee",
+  "meaning": "Şimşek Avucu"
+ },
+ "raiso_gekishin": {
+  "id": "raiso_gekishin",
+  "name": "Raiso Gekishin",
+  "name_en": "Lightning Rat Tremor",
+  "cost": 34,
+  "cd": 11.7,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:kumo",
+  "desc": "Yere vurursun: şimşekten fareler yer altında dört bir yana koşup düşmanların altında patlar.",
+  "seals": [
+   "Ne"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Şimşek Faresi Sarsıntısı"
+ },
+ "raiton_bakurai": {
+  "id": "raiton_bakurai",
+  "name": "Raiton: Bakurai",
+  "name_en": "Lightning Release: Depth Charge",
+  "cost": 34,
+  "cd": 11.7,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:kumo",
+  "desc": "Yere gömülen şimşek yükü bir an sonra patlar; zemin yarılır, üstündekiler havaya fırlar.",
+  "seals": [
+   "Tora",
+   "I"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Derinlik Bombası"
+ },
+ "raiton_jurokuchu_shibari": {
+  "id": "raiton_jurokuchu_shibari",
+  "name": "Raiton: Jūrokuchū Shibari",
+  "name_en": "Lightning Release: Sixteen Pillar Trap",
+  "cost": 42,
+  "cd": 19.6,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "trainer:kumo",
+  "desc": "Hedefin etrafında on altı şimşek sütunu yükselir ve aralarında şimşek ağı örülür: 3 sn hapseder.",
+  "seals": [
+   "Tora",
+   "Inu",
+   "Tori"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "bind",
+  "meaning": "On Altı Sütun Hapsi"
+ },
+ "rairyu_no_tatsumaki": {
+  "id": "rairyu_no_tatsumaki",
+  "name": "Rairyū no Tatsumaki",
+  "name_en": "Thunder Dragon Tornado",
+  "cost": 50,
+  "cd": 18.2,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "trainer:kumo",
+  "desc": "Şimşekten bir ejder dönerek yükselip bir hortuma dönüşür; hortum ilerleyip içine gireni çarpar.",
+  "seals": [
+   "Tatsu",
+   "Tora"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Şimşek Ejderi Kasırgası"
+ },
+ "vajra_raikyu": {
+  "id": "vajra_raikyu",
+  "name": "Bashura Raikyū",
+  "name_en": "Vajra Lightning Ball",
+  "cost": 42,
+  "cd": 14.0,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "trainer:kumo",
+  "desc": "Avuçta yoğunlaşan altın-beyaz şimşek topu fırlatılır; çarpınca şimşek kafesi gibi patlar.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "projectile",
+  "meaning": "Vajra Şimşek Topu"
+ },
+ "kuroi_chidori": {
+  "id": "kuroi_chidori",
+  "name": "Kuroi Chidori",
+  "name_en": "Dark Chidori",
+  "cost": 34,
+  "cd": 11.2,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "eye:sharingan",
+  "desc": "Kara alevle karışmış Chidori: vurduğunda hedefte kara alevler tutuşur ve şimşek uzun süre çatırdar.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "melee",
+  "meaning": "Kara Chidori"
+ },
+ "raisuiryudan": {
+  "id": "raisuiryudan",
+  "name": "Raisuiryūdan",
+  "name_en": "Lightning Water Dragon",
+  "cost": 42,
+  "cd": 14.0,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "trainer:kumo",
+  "desc": "Su ejderinin içinden şimşek akar: ejder hedefe çarpınca etraftaki suya da şimşek yayılır.",
+  "seals": [
+   "Tatsu",
+   "Tora",
+   "U"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "projectile",
+  "meaning": "Şimşek Su Ejderi"
+ },
+ "raiton_rengo_raibakudan": {
+  "id": "raiton_rengo_raibakudan",
+  "name": "Raiton: Rengō Raibakudan",
+  "name_en": "Lightning Release: Coordinated Thunder Bomb",
+  "cost": 50,
+  "cd": 18.2,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "trainer:kumo",
+  "desc": "Etrafındaki beş şimşek kürecik hedefte birleşip dev bir yıldırım bombasına dönüşür.",
+  "seals": [
+   "Tora",
+   "Ne",
+   "Tori"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Ortak Yıldırım Bombası"
+ },
+ "daburu_kuropansa": {
+  "id": "daburu_kuropansa",
+  "name": "Raiton: Daburu Kuropansā",
+  "name_en": "Lightning Release: Double Black Panthers",
+  "cost": 60,
+  "cd": 22.0,
+  "element": "raiton",
+  "elements": [
+   "raiton"
+  ],
+  "natures": [
+   "raiton"
+  ],
+  "clan": "",
+  "level": 28,
+  "rank": 3,
+  "learn": "trainer:kumo",
+  "desc": "İki kara şimşek panteri iki yandan koşup hedefi sıkıştırır; ikisi birden çarptığında kara şimşek patlar.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "ninjutsu",
+  "shape": "projectile",
+  "meaning": "Çift Kara Panter"
  }
 }
