@@ -244,6 +244,7 @@ func transfer_from_jar(id: String) -> void:
 		Game.profile["skills"].append("jinchuriki")
 	Sfx.play("seal", null, 0.6)
 	Hud.banner("AKTARILDI", "%s mühür kabından senin içine geçti. (Tab > Kuyruklu Canavarlar: aktif olanı seç)" % _bname(id), BeastModels.INFO[id]["chakra"])
+	teach_beast_arts()
 	jinchuriki_changed.emit(player_jinchuriki())
 	Game.save_game()
 
@@ -266,6 +267,22 @@ func add_trust(amount: float, id := "") -> void:
 		Hud.msg("%s ile bağın güçlendi (güven %d)" % [BeastModels.INFO.get(id, {}).get("name", id).split(" — ")[0], int(b["trust"])], Color(1, 0.75, 0.4))
 
 
+## Canavara özgü teknikler (learn "beast:<id>"): o canavarın jinchūriki'si olunca ve seviye yetince öğrenilir
+func teach_beast_arts() -> void:
+	var pr = Game.profile
+	if pr.is_empty():
+		return
+	for jid in Data.jutsu:
+		var j = Data.jutsu[jid]
+		if not j is Dictionary or jid in pr.get("learned", []):
+			continue
+		var lp = String(j.get("learn", ""))
+		if not lp.begins_with("beast:") or not lp.substr(6) in held() or int(pr["level"]) < int(j.get("level", 1)):
+			continue
+		Progress.learn(jid, false)
+		Hud.msg("%s sana öğretti: %s" % [_bname(lp.substr(6)), String(j.get("name", jid))], BeastModels.INFO.get(lp.substr(6), {}).get("chakra", Color(1, 0.6, 0.3)))
+
+
 func make_jinchuriki(id: String) -> void:
 	var pr = Game.profile
 	# birden çok canavar taşınabilir: eskisi serbest kalmaz, yeni gelen aktif olur
@@ -275,6 +292,7 @@ func make_jinchuriki(id: String) -> void:
 	beasts()[id] = {"state": "sealed_player", "trust": float(beasts().get(id, {}).get("trust", 0.0))}
 	if not "jinchuriki" in pr["skills"]:
 		pr["skills"].append("jinchuriki")
+	teach_beast_arts()
 	Hud.banner("JİNCHŪRİKİ", "%s artık içinde mühürlü. [X] chakra pelerini • [X] basılı: zihin dünyası%s" % [BeastModels.INFO[id]["name"].split(" — ")[0], "  •  Tab > Kuyruklu Canavarlar: aktif olanı seç" if held().size() > 1 else ""], BeastModels.INFO[id]["chakra"])
 	jinchuriki_changed.emit(id)
 	Game.save_game()

@@ -161,6 +161,7 @@ static func sign(id: String) -> void:
 	if Data.jutsu.has("zofuku_kuchiyose_no_jutsu") and int(pr["level"]) >= 18 and not "zofuku_kuchiyose_no_jutsu" in pr["learned"]:
 		Progress.learn("zofuku_kuchiyose_no_jutsu", false)
 	Hud.banner("SÖZLEŞME İMZALANDI", "%s — Kuchiyose no Jutsu öğrenildi" % DEFS[id]["name"], DEFS[id]["color"])
+	teach_contract_arts(id)
 	Sfx.play("seal", null, 0.7)
 	Game.save_game()
 
@@ -385,7 +386,25 @@ static func _teach_sage_arts(id: String) -> void:
 			if _sage_art_for(jid) in ["", id]:
 				Progress.learn(jid, false)
 				n += 1
+	n += teach_contract_arts(id)
 	Hud.dialog(DEFS[id]["elder"], ("%d sennin sanatı öğrendin." % n) if n > 0 else "Şimdilik sana öğretebileceğim yeni bir şey yok. Güçlendikçe gel.", [])
+
+
+## Sözleşmeye bağlı ortak teknikler (need "contract:<id>", ör. kurbağa yağı alevleri): sözleşme imzalanınca ve
+## bilgeye her gidişte, seviye ve element şartı tutanlar öğretilir. Dönen: öğrenilen sayısı
+static func teach_contract_arts(id: String) -> int:
+	var pr = p()
+	var n = 0
+	for jid in Data.jutsu:
+		var j = Data.jutsu[jid]
+		if not j is Dictionary or String(j.get("need", "")) != "contract:" + id or jid in pr["learned"]:
+			continue
+		if int(pr["level"]) < int(j.get("level", 1)) or Progress.element_block(jid) != "":
+			continue
+		Progress.learn(jid, false)
+		Hud.msg("%s öğretti: %s" % [DEFS[id]["elder"], String(j.get("name", jid))], DEFS[id]["color"])
+		n += 1
+	return n
 
 
 ## Sennin sanatlarının hangi sözleşmeye ait olduğu (boş = hepsi)

@@ -40,9 +40,9 @@ VIDEO_JUTSU = [
      'Tavus kuşu kuyruğu gibi açılan renkli rüzgâr yelpazesi; her tüy bir kesik.', []),
     ('rasengan_shunki', 'Rasengan: Shunki (Işık Hızı Rasengan)', 'Rasengan: Flash', 'fuuton', 4, 'melee', 'trainer:jonin', '',
      'Rasengan elde patlar gibi parlar ve sen göz açıp kapayıncaya kadar hedefe varırsın.', []),
-    ('senpo_cho_biju_rasenshuriken', 'Senpō: Chō Bijū Rasenshuriken (Bilge Dev Canavar Rasenshurikeni)', 'Sage Art: Super Tailed Beast Rasenshuriken', 'fuuton', 5, 'projectile', 'sage:any', 'beast:kurama',
+    ('senpo_cho_biju_rasenshuriken', 'Senpō: Chō Bijū Rasenshuriken (Bilge Dev Canavar Rasenshurikeni)', 'Sage Art: Super Tailed Beast Rasenshuriken', 'fuuton', 5, 'projectile', 'beast:kurama', 'beast:kurama',
      'Kuyruklu canavar chakrasıyla dev Rasenshuriken; arkasında renkli rüzgâr kuyrukları döner. Sadece kuyruklu canavar modunda.', []),
-    ('bijudama_rasenshuriken', 'Bijūdama Rasenshuriken (Canavar Bombası Rasenshurikeni)', 'Tailed Beast Bomb Rasenshuriken', 'fuuton', 5, 'projectile', 'trainer:jonin', 'beast:kurama',
+    ('bijudama_rasenshuriken', 'Bijūdama Rasenshuriken (Canavar Bombası Rasenshurikeni)', 'Tailed Beast Bomb Rasenshuriken', 'fuuton', 5, 'projectile', 'beast:kurama', 'beast:kurama',
      'Bijūdama etrafına rüzgâr bıçakları sarılır: patlayınca kara bir küre ve kesen girdap. Sadece kuyruklu canavar modunda.', []),
     ('futon_sasandan', 'Fūton: Sasandan (Kum Saçma Yaylımı)', 'Wind Release: Sand Bomb Salvo', 'fuuton', 3, 'projectile', 'trainer:suna', '',
      'Rüzgârla sertleştirilmiş kum bilyeleri yelpaze halinde yağar.', ['Tora', 'Hitsuji']),
@@ -54,7 +54,7 @@ VIDEO_JUTSU = [
      'Altı Yol chakrasıyla atılan devasa Rasenshuriken; birkaç küçüğü etrafında döner. Sadece sennin modunda.', []),
     ('kazanami', 'Kazanami (Rüzgâr Dalgaları)', 'Wind Waves', 'fuuton', 2, 'aoe', 'scroll', '',
      'Yere vurduğun avuçtan halka halka rüzgâr dalgaları yayılır, çevredekileri iter.', []),
-    ('chooodama_rasenshuriken', 'Chōōdama Rasenshuriken (Dev Top Rasenshuriken)', 'Ultra-Big Ball Rasenshuriken', 'fuuton', 5, 'projectile', 'trainer:jonin', 'beast:kurama',
+    ('chooodama_rasenshuriken', 'Chōōdama Rasenshuriken (Dev Top Rasenshuriken)', 'Ultra-Big Ball Rasenshuriken', 'fuuton', 5, 'projectile', 'beast:kurama', 'beast:kurama',
      'Kurama ile birlikte oluşturulan devasa Rasenshuriken; geniş alanı keser. Sadece kuyruklu canavar modunda.', []),
 ]
 # --- raiton videosu (QFacC8hM5HA)
@@ -97,7 +97,7 @@ VIDEO_JUTSU += [
 
 # var olan jutsulara kanon koşulu: animede kim/ne ile atılıyorsa
 EXTRA = {
-    'futon_mugen_sajin_daitoppa': {'need': 'beast:shukaku'},   # Shukaku (Bir Kuyruk) karnını şişirip üfler
+    'futon_mugen_sajin_daitoppa': {'need': 'beast:shukaku', 'learn': 'beast:shukaku', 'clan': ''},   # Shukaku (Bir Kuyruk) karnını şişirip üfler
     'odama_rasenshuriken': {'need': 'sage'},                    # Naruto sennin modunda klonlarla
     'futon_rasengan': {},
 }
@@ -234,7 +234,7 @@ VIDEO_JUTSU += [
      'Susanoo ağzından dev bir ateş topu üfler; çarptığı yer alevler içinde kalır.', []),
     ('katon_hikakure', 'Katon: Hikakure no Jutsu (Ateşte Gizlenme)', 'Fire Release: Hiding in Fire', 'katon', 2, 'stealth', 'scroll', '',
      'Alevlerin içine karışıp görünmez olursun; yanan zemindeysen çok daha uzun kalırsın.', ['Tora']),
-    ('gamayu_endan', 'Katon: Gamayu Endan (Kurbağa Yağı Alev Mermisi)', 'Fire Release: Toad Flame Bomb', 'katon', 4, 'beam', 'trainer:konoha', 'contract:kurbağa',
+    ('gamayu_endan', 'Katon: Gamayu Endan (Kurbağa Yağı Alev Mermisi)', 'Fire Release: Toad Flame Bomb', 'katon', 4, 'beam', 'contract:kurbağa', 'contract:kurbağa',
      'Kurbağanın tükürdüğü yağı ateşlersin: dev, yapışkan bir alev seli. Kurbağa sözleşmesi gerekir.', ['Tora']),
     ('katon_kaenbu', 'Katon: Kaenbu no Jutsu (Sisli Alev Dansı)', 'Fire Release: Misty Flames Dance', 'katon', 3, 'aoe', 'trainer:konoha', '',
      'Etrafında dönerek alevli sis yayarsın; sisin içindekiler yanar ve seni kaybeder.', ['Tora', 'Hitsuji']),
@@ -256,10 +256,10 @@ VIDEO_JUTSU += [
      'Hedefin çevresinde alevli bir kule hayali yükselir: içinde kalan sersemler ve yanar.', ['Tora', 'Mi']),
     ('katon_enshin_bakuha', 'Katon: Enshin Bakuha (Derin Alev Patlaması)', 'Fire Release: Deep Infernal Explosion', 'katon', 4, 'aoe', 'trainer:konoha', '',
      'Yerin altına sızan ateş bir an sonra büyük bir patlamayla yüzeye çıkar.', ['Tora', 'I', 'Tatsu']),
-    ('futon_gamayu_endan', 'Fūton: Gamayu Endan (Rüzgârlı Kurbağa Yağı Alevi)', 'Wind & Fire: Toad Flame Bombs', 'katon+fuuton', 5, 'beam', 'trainer:konoha', 'contract:kurbağa',
+    ('futon_gamayu_endan', 'Fūton: Gamayu Endan (Rüzgârlı Kurbağa Yağı Alevi)', 'Wind & Fire: Toad Flame Bombs', 'katon+fuuton', 5, 'beam', 'contract:kurbağa', 'contract:kurbağa',
      'Ortak teknik: rüzgâr, ateşlenen kurbağa yağını dev bir alev fırtınasına çevirir. Rüzgâr ve ateş doğası + kurbağa sözleşmesi gerekir.', ['Tora', 'Tori']),
 ]
-EXTRA['byoen_hoka'] = {'need': 'beast:matatabi'}
+EXTRA['byoen_hoka'] = {'need': 'beast:matatabi', 'learn': 'beast:matatabi', 'clan': ''}
 
 # Ōtsutsuki içeriği oyundan kaldırıldı (kullanıcı: "otsutsukiyi kaldır"): bu jutsular veriden silinir
 REMOVE = ['amenominaka', 'daikokuten', 'shin_jukai_kotan', 'mugen_tsukuyomi', 'kama', 'sukunahikona', 'yomotsu_hirasaka', 'otsutsuki_haikotsu',

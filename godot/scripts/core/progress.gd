@@ -169,6 +169,7 @@ func add_xp(amount: int) -> void:
 		pr["sp"] = int(pr["sp"]) + gain
 		Hud.banner("SEVİYE %d" % pr["level"], "+%d yetenek puanı  [Tab > Yetenekler]" % gain, Color(1, 0.85, 0.35))
 		Sfx.play("levelup")
+		TailedBeasts.teach_beast_arts()   # canavara özgü teknikler seviye yetince
 		if Game.player:
 			Game.player.apply_profile_stats()
 			Game.player.hp = Game.player.max_hp
@@ -229,7 +230,7 @@ func element_block(jid: String) -> String:
 	var j: Dictionary = Data.jutsu.get(jid, {})
 	var lp = String(j.get("learn", ""))
 	# göz teknikleri göz gücüyle çalışır (Amaterasu, Enton); ama Şimşek'i göze bağlayanlar Raiton ister
-	if lp.begins_with("path:") or lp.begins_with("sage") or (lp.begins_with("eye:") and not jid in ["raiden", "kamui_raikiri", "indora_no_ya"]):
+	if lp.begins_with("path:") or lp.begins_with("sage") or lp.begins_with("beast:") or (lp.begins_with("eye:") and not jid in ["raiden", "kamui_raikiri", "indora_no_ya"]):
 		return ""
 	var els: Array = j.get("elements", [])
 	if els.is_empty() and String(j.get("element", "")) != "":
@@ -312,6 +313,10 @@ func can_learn(jid: String) -> String:
 		return "Klan tekniği"
 	if lp == "sage:any" and not "sage" in pr.get("skills", []):
 		return "Sennin modu gerekli"
+	if lp.begins_with("beast:"):
+		return "%s jinchūriki'si olmalısın" % String(BeastModels.INFO.get(lp.substr(6), {}).get("name", lp.substr(6))).split(" —")[0]
+	if lp.begins_with("contract:"):
+		return "%s gerekli" % String(Contracts.DEFS.get(lp.substr(9), {}).get("name", "Çağırma sözleşmesi"))
 	if lp in ["kinjutsu", "quest:signature", "quest:hiden", "quest:contract"]:
 		return "Özel görevle öğrenilir"
 	if lp.begins_with("path:"):

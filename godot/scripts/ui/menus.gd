@@ -2047,6 +2047,10 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 			txt = "Göz tekniği gerekir"
 		elif lp.begins_with("sage"):
 			txt = "Sennin eğitimi gerekir (%s)" % lp.trim_prefix("sage:")
+		elif lp.begins_with("beast:"):
+			txt = "%s jinchūriki'si olunca canavar öğretir (Sv.%d)" % [String(BeastModels.INFO.get(lp.substr(6), {}).get("name", lp.substr(6))).split(" —")[0], int(j.get("level", 1))]
+		elif lp.begins_with("contract:"):
+			txt = "%s imzalanınca bilge öğretir (Sv.%d)" % [String(Contracts.DEFS.get(lp.substr(9), {}).get("name", "Çağırma sözleşmesi")), int(j.get("level", 1))]
 		elif lp.begins_with("special") or lp == "signature":
 			txt = "Özel görev ile açılır"
 		rv.add_child(UI.label("🔒 Öğrenilmedi — " + (txt if txt != "" else lp) + ((".  " + why) if why != "" else ""), 14, Color(1, 0.75, 0.45), HORIZONTAL_ALIGNMENT_LEFT, true))
