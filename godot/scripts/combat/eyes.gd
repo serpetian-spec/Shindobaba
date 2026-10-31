@@ -955,12 +955,7 @@ func evolve_tick(dt: float) -> void:
 			Hud.banner("RINNEGAN", "Indra ile Ashura'nın chakrası birleşti: Altı Yolun gözü uyandı", Color(0.7, 0.55, 0.95))
 			Sfx.play("roar", p.global_position, 0.6, 0.5)
 			VFX.shockwave(p.global_position + Vector3.UP, Color(0.7, 0.55, 0.95), 16.0, 0.6, false)
-	# 4) Rinne-Sharingan: Rinnegan + Altı Yol Bilge Modu + Sv.60 — alında üçüncü göz
-	if not pr.get("flags", {}).get("rinne_sharingan", false) and (_kind("sag") == 6 or _kind("sol") == 6) and lv >= 60 			and "rikudo_sennin_modo" in pr.get("learned", []):
-		pass   # Rinne Sharingan (alında üçüncü göz) kaldırıldı
-		Hud.banner("RINNE-SHARINGAN", "Alnında On Kuyruk'un gözü açıldı", Color(0.9, 0.15, 0.2))
-		Progress.clan_unlocks(true)
-		refresh_visual()
+	# 4) Rinne-Sharingan (alında üçüncü göz) kaldırıldı
 	# 5) Jōgan: Uzumaki soyunda nadir, Sv.20+ her 2 sn'de çok düşük olasılık (yalnız gözsüz sağ yuva)
 	if String(pr.get("clan", "")) == "uzumaki" and lv >= 20 and not pr.get("flags", {}).get("jogan_rolled_%d" % lv, false):
 		pr["flags"]["jogan_rolled_%d" % lv] = true
