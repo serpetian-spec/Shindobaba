@@ -13,7 +13,7 @@ static func build(kind: String, b: Builder, pid: String, p: Vector2, base: float
 			return _snake(b, pid, p, base)
 		"forge":
 			return _forge(b, pid, p, base)
-		"clinic", "dojo", "paper", "toad", "clay", "thread", "thunder", "chidori", "jashin", "octo", "ink":
+		"clinic", "dojo", "paper", "toad", "clay", "thread", "thunder", "chidori", "jashin", "octo", "ink", "puppet":
 			return _hall(b, pid, p, base, kind)
 	return 0.0
 
@@ -380,7 +380,7 @@ static func _hall(b: Builder, pid: String, p: Vector2, base: float, kind: String
 	var wood = Color(0.42, 0.28, 0.16)
 	var dark = Color(0.22, 0.15, 0.1)
 	var roof = {"clinic": Color(0.3, 0.45, 0.35), "dojo": Color(0.55, 0.18, 0.15), "paper": Color(0.4, 0.4, 0.46), "toad": Color(0.85, 0.45, 0.2),
-		"clay": Color(0.75, 0.62, 0.42), "thread": Color(0.22, 0.22, 0.24), "thunder": Color(0.85, 0.7, 0.2), "chidori": Color(0.3, 0.35, 0.55), "jashin": Color(0.45, 0.08, 0.1), "octo": Color(0.6, 0.3, 0.55), "ink": Color(0.18, 0.18, 0.2)}[kind]
+		"clay": Color(0.75, 0.62, 0.42), "thread": Color(0.22, 0.22, 0.24), "thunder": Color(0.85, 0.7, 0.2), "chidori": Color(0.3, 0.35, 0.55), "jashin": Color(0.45, 0.08, 0.1), "octo": Color(0.6, 0.3, 0.55), "ink": Color(0.18, 0.18, 0.2), "puppet": Color(0.55, 0.2, 0.18)}[kind]
 	var wall = Color(0.92, 0.9, 0.84)
 	var fy = maxf(_g(p, base, -8, 14), _g(p, base, 8, 14))
 	b.box(Vector3(0, fy + 0.5, 14), Vector3(18, 1.0, 12), Color(0.55, 0.52, 0.48))
@@ -390,7 +390,7 @@ static func _hall(b: Builder, pid: String, p: Vector2, base: float, kind: String
 	for sx in [-1.0, 1.0]:
 		b.box(Vector3(8.8 * sx, fy + 3.2, 14), Vector3(0.3, 4.4, 11), wall)
 	b.roof(Vector3(0, fy + 5.4, 14), Vector3(20, 3.2, 14), roof)
-	b.kanji(Vector3(0, fy + 4.8, 19.4), {"clinic": "癒", "dojo": "道", "paper": "紙", "toad": "蝦", "clay": "爆", "thread": "糸", "thunder": "雷", "chidori": "千", "jashin": "邪", "octo": "八", "ink": "墨"}[kind], 2.2, Color(0.15, 0.12, 0.1), 0)
+	b.kanji(Vector3(0, fy + 4.8, 19.4), {"clinic": "癒", "dojo": "道", "paper": "紙", "toad": "蝦", "clay": "爆", "thread": "糸", "thunder": "雷", "chidori": "千", "jashin": "邪", "octo": "八", "ink": "墨", "puppet": "傀"}[kind], 2.2, Color(0.15, 0.12, 0.1), 0)
 	if kind == "clinic":
 		b.cyl(Vector3(-9, _g(p, base, -9, 2) + 0.1, 2), 7.0, 0.4, Color(0.55, 0.52, 0.48), true, 16)
 		VillageStyles.water(b, Vector3(-9, _g(p, base, -9, 2) + 0.35, 2), Vector2(6, 6))
@@ -468,6 +468,14 @@ static func _hall(b: Builder, pid: String, p: Vector2, base: float, kind: String
 		b.cyl(Vector3(10, _g(p, base, 10, 6) + 3.0, 6), 0.2, 6.0, Color(0.2, 0.2, 0.22), true, 6)
 		for j in 3:
 			b.box(Vector3(10.6, _g(p, base, 10, 6) + 5.6 - j * 0.6, 6), Vector3(1.4, 0.15, 0.08), Color(0.7, 0.1, 0.12), 0.3, false)
+	elif kind == "puppet":
+		# atölye: tezgâhta yarım kuklalar, tavandan sarkan kollar
+		for k in 5:
+			var x = -6.0 + k * 3.0
+			b.box(Vector3(x, fy + 1.2, 16.5), Vector3(0.5, 1.4, 0.35), Color(0.52, 0.38, 0.26))
+			b.sphere(Vector3(x, fy + 2.15, 16.5), Vector3(0.38, 0.42, 0.38), Color(0.6, 0.45, 0.32), 8)
+			b.cyl(Vector3(x, fy + 4.2, 13.0), 0.12, 1.4, Color(0.5, 0.36, 0.24), false, 6)
+		b.box(Vector3(0, fy + 0.9, 12.0), Vector3(6.0, 0.8, 1.6), Color(0.35, 0.25, 0.18))
 	elif kind == "ink":
 		# asılı mürekkep resimleri, devrik Kök tabelası, mürekkep kazanları
 		for k in 6:
@@ -494,5 +502,5 @@ static func _hall(b: Builder, pid: String, p: Vector2, base: float, kind: String
 			b.cyl(Vector3(x, _g(p, base, x, 3) + 1.0, 3), 0.6, 2.0, wood, true, 8)   # vuruş kütükleri
 		b.cyl(Vector3(8, _g(p, base, 8, 4) + 0.4, 4), 1.4, 0.8, Color(0.3, 0.3, 0.32), true, 10)   # taş ağırlık
 	LegendPaths._mentor(b, pid, Vector3(0, fy + 1.05, 8.6), PI)
-	b.interact(Vector3(0, fy + 1.0, 6.0), 6.5, "path_mentor", "[F] %s ile konuş" % {"clinic": "Şifacı Usta", "dojo": "Taijutsu Ustası", "paper": "Kâğıt Ustası", "toad": "Kurbağa Bilgesi", "clay": "Kil Sanatçısı", "thread": "İplik Ustası", "thunder": "Sarı Şimşek", "chidori": "Şimşek Kılıcı", "jashin": "Ayin Rahibi", "octo": "Ritim Ustası", "ink": "Mürekkep Ustası"}[kind], {"path": pid})
+	b.interact(Vector3(0, fy + 1.0, 6.0), 6.5, "path_mentor", "[F] %s ile konuş" % {"clinic": "Şifacı Usta", "dojo": "Taijutsu Ustası", "paper": "Kâğıt Ustası", "toad": "Kurbağa Bilgesi", "clay": "Kil Sanatçısı", "thread": "İplik Ustası", "thunder": "Sarı Şimşek", "chidori": "Şimşek Kılıcı", "jashin": "Ayin Rahibi", "octo": "Ritim Ustası", "ink": "Mürekkep Ustası", "puppet": "Kukla Ustası"}[kind], {"path": pid})
 	return 6.0

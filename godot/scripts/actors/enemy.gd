@@ -825,6 +825,15 @@ func die(info: Dictionary) -> void:
 			if dna.size() > 12:
 				dna.pop_front()
 			Game.profile["edo_dna"] = dna
+		# Akasuna yolu: güçlü rakibin bedeni insan kuklası için saklanır
+		if LegendPaths.joined("akasuna"):
+			var bodies: Array = Game.profile.get("kugutsu_bodies", [])
+			if not display_name in bodies:
+				bodies.append(display_name)
+				if bodies.size() > 6:
+					bodies.pop_front()
+				Game.profile["kugutsu_bodies"] = bodies
+				Hud.msg("%s: bedeni insan kuklası için mühürlendi (%d kukla)." % [display_name, bodies.size()], Color(0.85, 0.6, 0.5), 4.0)
 	if get_meta("respawn", true) and arch.get("respawn", true):
 		var a = arch
 		var h = home

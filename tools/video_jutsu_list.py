@@ -514,3 +514,36 @@ for _j in ['shoton_suisho_toge', 'shoton_suisho_meikyu', 'shoton_kurenai_no_kaji
            'shoton_suishoheki_hachi_no_jin', 'shoton_suisho_hari', 'shoton_hasho_koryu', 'shoton_suisho_sharin', 'shoton_suisho_jinheki', 'shoton_omiwatari',
            'shoton_isshi_komyo', 'yoton_gomu_heki', 'yoton_gomudama', 'yoton_gomu_kosoku', 'shakuton_daijohappa', 'makyo_hyosho']:
     EXTRA.setdefault(_j, {})['category'] = 'kekkei_genkai'
+# --- kukla videoları (Sasori nsUFfLtmgp8, Kankurō XV6nrss-e9U)
+VIDEO_JUTSU += [
+    ('kugutsu_hiruko', 'Kugutsu: Hiruko (Kambur Zırh Kuklası)', 'Puppet: Hiruko', '', 3, 'buff', 'path:akasuna', '',
+     'Kambur zırh kuklasının içine girersin (15 sn ağır zırh, yavaş); zehirli kuyruk hedefe uzanır.', []),
+    ('shikomi_shinshin_happa', 'Shikomi Kugutsu: Shinshin Happa (Sekiz Dalga İğne)', 'Prepared Puppet: Eight Waves of Needles', '', 3, 'projectile', 'path:akasuna', '',
+     'Havadaki kuklanın içinden sekiz dalga zehirli iğne yağar.', []),
+    ('gishu_senbon', 'Kugutsu no Jutsu: Gishu Senbon (Protez Kol Senbonu)', 'Puppet Technique: Prosthetic Arm Senbon', '', 2, 'projectile', 'path:akasuna', '',
+     'Bilekten kopan kol ipte döner ve yelpaze gibi zehirli senbon saçar.', []),
+    ('sasori_doku_kemuri', 'Kugutsu: Doku Kemuri (Zehirli Duman)', 'Puppet: Poison Smoke', '', 3, 'field', 'path:akasuna', '',
+     'Kuklanın ağzından mor zehir bulutu yayılır; içinde kalanlar 5 sn zehirlenir.', []),
+    ('kaen_hosha', 'Kaen Hōsha (Alev Püskürtücü)', 'Flamethrower', '', 3, 'aoe', 'path:akasuna', '',
+     'Kukla bedenin avuçlarındaki borulardan iki alev hortumu.', []),
+    ('suiryu_hosha', 'Suiryū Hōsha (Su Akıntısı Fışkırtıcıları)', 'Water Stream Shooters', '', 3, 'beam', 'path:akasuna', '',
+     'Avuçlardaki deliklerden taşı kesen basınçlı su hüzmeleri.', []),
+    ('kugutsu_sandaime', 'Kugutsu: Sandaime Kazekage (Üçüncü Kazekage Kuklası)', 'Puppet: Third Kazekage', '', 5, 'summon', 'path:akasuna', '',
+     'Üçüncü Kazekage\'nin kuklası parşömenden çıkar ve 25 sn iplerle yanında savaşır; etrafında demir kum döner.', []),
+    ('senju_sobu', 'Senju Sōbu (Bin Kol Yönetimi)', 'Thousand Arms Manipulation', '', 5, 'bind', 'path:akasuna', '',
+     'Kuklanın gövdesinden yüzlerce kol fışkırır; yakaladığını bağlar.', []),
+    ('hitokugutsu', 'Hitokugutsu (İnsan Kuklası)', 'Human Puppet', '', 5, 'summon', 'path:akasuna', '',
+     'Yendiğin güçlü rakiplerin bedenlerinden yaptığın insan kuklaları: son ikisi 30 sn yanında savaşır. Beden olmadan yapılamaz.', []),
+    ('kurohigi_sanshouo', 'Kurohigi: Sanshōuo (Kara Gizli Teknik: Semender)', 'Secret Black Technique: Salamander', '', 3, 'wall', 'trainer:suna', '',
+     'Dev kalkan kukla önünde açılır; 8 sn önden gelen darbeleri karşılar.', []),
+    ('kurohigi_kiki_sanpatsu', 'Kurohigi: Kiki Sanpatsu (Kara Gizli Teknik: Üçlü Demir Bakire)', 'Secret Black Technique: Triple Iron Maiden', '', 4, 'bind', 'trainer:suna', '',
+     'Üç kafes kukla hedefi üç yandan yutar, içeriden bıçaklar saplanır.', []),
+    ('akahigi_kiki_sankaku', 'Akahigi: Kiki Sankaku (Kızıl Gizli Teknik: Kukla Üçgeni)', 'Secret Red Technique: Puppet Triad', '', 4, 'melee', 'trainer:suna', '',
+     'Üç kukla hedefi üç yandan sarar ve bıçaklı kollarla aynı anda saldırır.', []),
+    ('dokugiri_jigoku_baribari', 'Dokugiri Jigoku: Baribari Hyaku Renpatsu (Zehirli Sis Cehennemi)', 'Poison Mist Inferno: Consecutive Needle Combo', '', 3, 'projectile', 'trainer:suna', '',
+     'Kuklanın ağzından zehirli sis, ardından ardı ardına iğne yağmuru.', []),
+]
+EXTRA['akahigi_hyakki_no_soen'] = {'learn': 'path:akasuna', 'clan': ''}
+for _j in ['kugutsu_hiruko', 'shikomi_shinshin_happa', 'gishu_senbon', 'sasori_doku_kemuri', 'kaen_hosha', 'suiryu_hosha', 'kugutsu_sandaime', 'senju_sobu', 'hitokugutsu',
+           'kurohigi_sanshouo', 'kurohigi_kiki_sanpatsu', 'akahigi_kiki_sankaku', 'dokugiri_jigoku_baribari']:
+    EXTRA.setdefault(_j, {})['category'] = 'ninjutsu'

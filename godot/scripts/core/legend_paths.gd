@@ -222,6 +222,22 @@ const PATHS := {
 		"quest": {"choshin_giga": "god"},
 		"dark": {},
 	},
+	"akasuna": {
+		"name": "Akasuna Kukla Yolu", "icon": "seal", "color": Color(0.75, 0.3, 0.25),
+		"style": "Zehirli silahlarla dolu kuklalar, chakra iplikleri, zırh kuklası, Üçüncü Kazekage kuklası, bin kol ve yenilen rakiplerden yapılan insan kuklaları",
+		"site": {"country": "wind", "off": Vector2(2600, 1800), "kind": "puppet", "clear": 48.0, "place": "Kızıl Kum Atölyesi (Rüzgâr Ülkesi)"},
+		"mentor": {"name": "Akabane Sōen", "title": "Kukla Ustası",
+			"look": {"gender": "m", "skin": Color(0.95, 0.85, 0.78), "hair": Color(0.65, 0.18, 0.14), "hair_style": "dağınık", "eye": Color(0.45, 0.35, 0.3),
+				"top": Color(0.2, 0.18, 0.2), "top2": Color(0.55, 0.15, 0.15), "pants": Color(0.2, 0.18, 0.2), "band": Color(0.4, 0.4, 0.42), "age": "adult"}},
+		"rumor_level": 12, "join_level": 14,
+		"rumor": "Rüzgâr Ülkesi'nin kızıl kumlarında, hiç yaşlanmayan genç yüzlü bir kuklacının atölyesi varmış. Kuklalarının bazıları bir zamanlar insanmış...",
+		"intro": "Genç görünen adamın gözleri cansız: \"Gerçek sanat sonsuza kadar kalır. Kuklalar çürümez, ihanet etmez. Parmaklarına ip bağlamayı öğrenmek istiyorsan önce elinin hızını göster.\"",
+		"passive": {"jutsu": 0.08, "poison_resist": 0.3},
+		"passive_desc": "Jutsu gücü +%8, zehir direnci +%30",
+		"order": ["gishu_senbon", "shikomi_shinshin_happa", "kugutsu_hiruko", "sasori_doku_kemuri", "kaen_hosha", "suiryu_hosha", "kugutsu_sandaime", "senju_sobu", "hitokugutsu", "akahigi_hyakki_no_soen"],
+		"quest": {"kugutsu_sandaime": "kazekage", "hitokugutsu": "body"},
+		"dark": {"hitokugutsu": 25},
+	},
 }
 ## Sıradaki yollar (ROADMAP): kurbağa sennin, kil sanatı, kukla ustası, Hiraishin, köpekbalığı...
 
@@ -640,6 +656,26 @@ static func _quest(pid: String, kind: String, teach: String) -> Dictionary:
 					{"kind": "track", "from": at, "to": _near(at, 850.0), "text": "Kaçak komutanın izini sür."},
 					{"kind": "kill", "at": _near(at, 850.0), "enemy": "rogue", "n": 3, "camp": true, "boss": {"name": "Kök Komutanı Kurosen", "hp": 2800.0, "level": 26, "power": 2.5}, "text": "Kaçak Kök komutanını yen."},
 					{"kind": "goto", "at": at, "r": 9.0, "name": "Yıkık Kök Karakolu", "text": "Fırçayla ustaya dön."}]}
+		"akasuna:trial":
+			q = {"title": "Elin Hızı", "rank": "C",
+				"brief": "Usta, kumulların arasına gömülmüş eski kukla parçalarını toplamanı ve atölyeyi soymaya gelen haydutları kovmanı istiyor.",
+				"steps": [
+					{"kind": "collect", "at": _near(at, 260.0), "item": "kukla parçası", "n": 6, "spread": 32, "text": "Kuma gömülü kukla parçalarını topla (6)."},
+					{"kind": "defend", "at": at, "enemy": "bandit", "waves": [2, 3], "text": "Atölyeye saldıran haydutları püskürt."}]}
+		"akasuna:kazekage":
+			q = {"title": "Kayıp Kazekage", "rank": "A",
+				"brief": "Yıllar önce kaybolan Üçüncü Kazekage'nin bedenini taşıyan bir kervanın izi bulundu. Kervanı basan kaçak kuklacıyı yen, kukla parşömenini getir.",
+				"steps": [
+					{"kind": "track", "from": at, "to": _near(at, 900.0), "text": "Kervanın izini sür."},
+					{"kind": "kill", "at": _near(at, 900.0), "enemy": "rogue", "n": 3, "camp": true, "boss": {"name": "Kaçak Kuklacı Kugiri", "hp": 3000.0, "level": 30, "power": 2.6}, "text": "Kaçak kuklacıyı yen."},
+					{"kind": "goto", "at": at, "r": 9.0, "name": "Kızıl Kum Atölyesi", "text": "Parşömenle ustaya dön."}]}
+		"akasuna:body":
+			q = {"title": "Sonsuz Sanat", "rank": "S",
+				"brief": "İnsan kuklası için güçlü bir shinobinin bedeni gerek. Çölde avlanan ödüllü kaçak ninjayı yen: bedeni ilk insan kuklan olacak.",
+				"steps": [
+					{"kind": "track", "from": at, "to": _near(at, 1000.0), "text": "Ödüllü kaçağın izini sür."},
+					{"kind": "kill", "at": _near(at, 1000.0), "enemy": "rogue", "n": 3, "camp": true, "boss": {"name": "Kızıl Akrep Rōshi", "hp": 4200.0, "level": 34, "power": 3.0}, "text": "Kaçağı yen."},
+					{"kind": "goto", "at": at, "r": 9.0, "name": "Kızıl Kum Atölyesi", "text": "Bedeni atölyeye getir."}]}
 		"kagit:trial":
 			q = {"title": "Kâğıdın Sabrı", "rank": "C",
 				"brief": "Usta, rüzgârın dağıttığı yüz kâğıt turnayı toplamanı ve onları çalmaya gelen haydutları kovmanı istiyor.",
