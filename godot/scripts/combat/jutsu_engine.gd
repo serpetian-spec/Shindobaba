@@ -140,7 +140,6 @@ static func impact_for(el: String, pos: Vector3, col: Color, s := 1.0) -> void:
 			VFX.explosion(pos, 0.5 * s + 0.3, col)
 		"suiton", "futton":
 			VFX.splash(pos, 1.2 * s + 0.6)
-			VFX.star(pos, Color(0.6, 0.85, 1.0), 2.2 * s, 0.15)
 		"hyoton":
 			VFX.debris(pos, Color(0.75, 0.92, 1.0), int(10 * s) + 4, 11.0, 0.35)
 			VFX.star(pos, Color(0.8, 0.95, 1.0), 2.6 * s, 0.18)

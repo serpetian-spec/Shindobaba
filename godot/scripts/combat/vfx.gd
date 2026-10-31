@@ -501,26 +501,27 @@ static func embers(pos: Vector3, col := Color(1.0, 0.6, 0.15), n := 24, speed :=
 
 ## Sıçrama tacı (su çarpması): yükselip dağılan su tacı + damlalar + köpük halkası
 static func _splash(pos: Vector3, size := 2.0) -> void:
+	# anime su sıçraması: silindir taç / halka yok — yukarı fışkıran su jetleri, damlalar, ince köpük, alçak sis
 	if busy():
 		return
 	var g = Game.jutsu_floor(pos.x, pos.z)
 	var base = Vector3(pos.x, maxf(g, pos.y - size), pos.z)
-	var cm = CylinderMesh.new()
-	cm.top_radius = 1.0; cm.bottom_radius = 0.55; cm.height = 1.0; cm.radial_segments = 20; cm.rings = 1
-	cm.cap_top = false; cm.cap_bottom = false
-	var crown = _mi(cm, mat_water(Color(0.12, 0.4, 0.9), Color(0.35, 0.68, 1.0), Color(0.8, 0.95, 1.0), Vector3.UP, 0.85, 0.9, 0.12))
-	scene().add_child(crown)
-	_track(crown)
-	crown.global_position = base + Vector3.UP * 0.4
-	crown.scale = Vector3(size * 0.4, 0.2, size * 0.4)
-	var tw = crown.create_tween()
-	tw.tween_property(crown, "scale", Vector3(size * 1.3, size * 1.1, size * 1.3), 0.22).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-	tw.tween_property(crown, "scale", Vector3(size * 1.6, 0.05, size * 1.6), 0.35).set_ease(Tween.EASE_IN)
-	tw.tween_callback(crown.queue_free)
-	puffs(base + Vector3.UP * size * 0.5, {"amount": int(18 * size), "life": 0.9, "size": 0.9 * size, "radius": size * 0.6, "vmin": 5, "vmax": 12 + size * 2,
-		"dir": Vector3.UP, "spread": 55.0, "damp": 1.0, "gravity": Vector3(0, -22, 0), "glow": 1.05, "outline_col": Color(0.08, 0.2, 0.5),
-		"colors": [Color(0.95, 0.99, 1, 1), Color(0.55, 0.82, 1, 1), Color(0.25, 0.55, 1, 0)]})
-	shockwave(base + Vector3.UP * 0.1, Color(0.85, 0.95, 1.0), size * 4.0, 0.45)
+	# su jetleri: yukarı fışkırıp düşen ince beyaz-mavi çizgiler
+	FX.burst(base + Vector3.UP * 0.3, {"amount": int(14 * size), "life": 0.8, "tex": FX.tex_spark, "size": 1.0 + size * 0.3, "radius": size * 0.4,
+		"vmin": 6.0, "vmax": 10.0 + size * 2.5, "dir": Vector3.UP, "spread": 40.0, "gravity": Vector3(0, -20, 0), "damp": 0.5,
+		"colors": [Color(1, 1, 1, 1), Color(0.6, 0.85, 1.0, 0.9), Color(0.35, 0.65, 1.0, 0.0)]})
+	# damlalar
+	FX.burst(base + Vector3.UP * size * 0.4, {"amount": int(22 * size), "life": 0.9, "tex": FX.tex_soft, "add": false, "size": 0.22 + size * 0.06, "radius": size * 0.5,
+		"vmin": 4.0, "vmax": 9.0 + size * 2.0, "dir": Vector3.UP, "spread": 60.0, "gravity": Vector3(0, -22, 0), "damp": 0.5,
+		"colors": [Color(0.92, 0.98, 1.0, 1), Color(0.5, 0.8, 1.0, 0.95), Color(0.3, 0.6, 1.0, 0.0)]})
+	# ince köpük: az, küçük, açık mavi konturlu
+	puffs(base + Vector3.UP * size * 0.3, {"amount": int(6 * size), "life": 0.7, "size": 0.55 * size, "radius": size * 0.5, "vmin": 3, "vmax": 7 + size,
+		"dir": Vector3.UP, "spread": 55.0, "damp": 1.5, "gravity": Vector3(0, -12, 0), "glow": 1.05, "outline_col": Color(0.45, 0.7, 0.95), "outline": 0.03, "rough": 0.15,
+		"colors": [Color(1, 1, 1, 0.95), Color(0.8, 0.93, 1, 0.8), Color(0.6, 0.85, 1, 0)]})
+	# alçak su sisi
+	FX.burst(base + Vector3.UP * 0.4, {"amount": int(5 * size), "life": 1.1, "tex": FX.tex_smoke, "add": false, "cel": false, "size": 1.4 * size, "radius": size * 0.6,
+		"vmin": 1.0, "vmax": 3.0, "dir": Vector3.UP, "spread": 80.0, "damp": 2.0,
+		"colors": [Color(0.85, 0.94, 1.0, 0.0), Color(0.85, 0.94, 1.0, 0.45), Color(0.85, 0.94, 1.0, 0.0)]})
 
 
 ## Cel duman halkası (patlamanın etrafında yayılan)

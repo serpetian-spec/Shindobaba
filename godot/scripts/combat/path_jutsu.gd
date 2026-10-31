@@ -80,6 +80,7 @@ const PSTYLE := {
 
 
 
+
 ## Jutsuya özel koreografi (hazırlık "wind" + salınım "rel" pozları, zamanlama, gövde klibi) — CastAnim temel stilin üstüne uygular
 const PANIM := {
 	"kage_shuriken_no_jutsu": {"base": "throw", "pre": 0.3, "post": 0.35, "clip": "b/OverhandThrow", "wind": {"R": [Vector3(-0.6, 0.6, -0.5), Vector3(-0.2, 0.9, -0.4), Vector3(0.0, 1.0, -0.2)], "L": [Vector3(0.1, 0.45, 0.88), Vector3(-0.0, 0.5, 0.86), Vector3(-0.0, 0.9, 0.4)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0, 0, 0, 0, 0], "spine": -14.0, "hips_yaw": 35.0}, "rel": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.35, -0.85, -0.35), Vector3(-0.0, -0.4, 0.9), Vector3(-0.0, 0.2, 0.95)], "fR": [0, 0, 0, 0, 0], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 22.0, "hips_yaw": -25.0}},
@@ -1059,6 +1060,36 @@ const PANIM := {
 	"raiton_rengo_raibakudan": {"base": "power", "pre": 0.45, "post": 0.55, "wind": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "crouch": 0.3}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 20.0}},
 	"daburu_kuropansa": {"base": "palm", "pre": 0.3, "post": 0.5, "wind": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": -6.0, "crouch": 0.4}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 22.0, "crouch": 0.3}},
 	"susanoo_chidori": {"base": "power", "pre": 0.6, "post": 0.6, "wind": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": -12.0, "neck": -14.0}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.35, -0.85, -0.35), Vector3(-0.0, -0.4, 0.9), Vector3(-0.0, 0.2, 0.95)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 24.0}},
+	"suiton_suihachi": {"base": "ground", "pre": 0.35, "post": 0.5, "wind": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 40.0, "crouch": 0.8}, "rel": {"R": [Vector3(-0.2, 0.8, 0.55), Vector3(-0.1, 0.85, 0.5), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.2, 0.8, 0.55), Vector3(0.1, 0.85, 0.5), Vector3(-0.0, 0.9, 0.4)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": -10.0, "neck": -10.0}},
+	"suiton_suishoha": {"base": "breath", "pre": 0.45, "post": 0.7, "wind": {"R": [Vector3(-0.25, -0.55, 0.8), Vector3(0.75, 0.6, 0.25), Vector3(0.5, 0.8, 0.3)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": -24.0, "neck": -20.0}, "rel": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 30.0, "neck": 20.0, "crouch": 0.4}},
+	"suiton_daibakuryu": {"base": "palm", "pre": 0.35, "post": 0.55, "wind": {"R": [Vector3(-0.4, -0.7, -0.5), Vector3(0.0, -0.3, -0.95), Vector3(0.0, -0.6, -0.8)], "L": [Vector3(0.4, -0.7, -0.5), Vector3(-0.0, -0.3, -0.95), Vector3(-0.0, -0.6, -0.8)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": -6.0, "crouch": 0.4}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 22.0, "crouch": 0.3}},
+	"mizuame_bakujo": {"base": "breath", "pre": 0.25, "post": 0.45, "wind": {"R": [Vector3(-0.3, -0.5, 0.8), Vector3(0.6, 0.7, 0.35), Vector3(0.3, 0.9, 0.3)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [0, 0, 0, 0, 0], "spine": -14.0, "neck": -10.0}, "rel": {"R": [Vector3(-0.3, -0.5, 0.8), Vector3(0.6, 0.7, 0.35), Vector3(0.3, 0.9, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [0, 0, 0, 0, 0], "spine": 16.0, "neck": 8.0}},
+	"suika_no_jutsu": {"base": "sense", "pre": 0.15, "post": 0.3, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0, 0, 0, 0, 0], "crouch": 0.3}, "rel": {"R": [Vector3(-0.85, -0.45, 0.1), Vector3(-0.9, -0.3, 0.2), Vector3(-0.9, -0.2, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 10.0, "crouch": 0.6}},
+	"suiton_suikyu": {"base": "palm", "pre": 0.25, "post": 0.4, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0, 0, 0, 0, 0], "neck": -6.0}, "rel": {"R": [Vector3(-0.1, 0.45, 0.88), Vector3(0.0, 0.5, 0.86), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0, 0, 0, 0, 0], "spine": 6.0}},
+	"suiton_amearare": {"base": "power", "pre": 0.3, "post": 0.5, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "crouch": 0.3}, "rel": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.15, 0.98, 0.1), Vector3(0.05, 1.0, 0.05), Vector3(-0.0, 1.0, 0.0)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -16.0, "neck": -20.0}},
+	"santoka": {"base": "palm", "pre": 0.2, "post": 0.4, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0, 0, 0, 0, 0], "spine": 8.0}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 14.0, "hips_yaw": -20.0}},
+	"iryo_suiton_suika": {"base": "palm", "pre": 0.25, "post": 0.45, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 4.0}, "rel": {"R": [Vector3(-0.1, 0.45, 0.88), Vector3(0.0, 0.5, 0.86), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 8.0}},
+	"iryo_suiton_mizukamakiri": {"base": "rush", "pre": 0.2, "post": 0.45, "wind": {"R": [Vector3(-0.6, 0.6, -0.5), Vector3(-0.2, 0.9, -0.4), Vector3(0.0, 1.0, -0.2)], "L": [Vector3(0.6, 0.6, -0.5), Vector3(0.2, 0.9, -0.4), Vector3(-0.0, 1.0, -0.2)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 15.0, "crouch": 0.5}, "rel": {"R": [Vector3(-0.1, -0.6, 0.8), Vector3(0.8, -0.2, 0.55), Vector3(0.9, -0.1, 0.4)], "L": [Vector3(0.1, 0.1, 0.99), Vector3(-0.7, 0.1, 0.7), Vector3(-0.8, 0.1, 0.6)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 20.0, "hips_yaw": -30.0}},
+	"iryo_suiton_mizukurage": {"base": "sense", "pre": 0.3, "post": 0.5, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0]}, "rel": {"R": [Vector3(-0.2, 0.8, 0.55), Vector3(-0.1, 0.85, 0.5), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.2, 0.8, 0.55), Vector3(0.1, 0.85, 0.5), Vector3(-0.0, 0.9, 0.4)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -8.0, "neck": -10.0}},
+	"homatsu_hiromori": {"base": "breath", "pre": 0.3, "post": 0.5, "wind": {"R": [Vector3(-0.3, -0.5, 0.8), Vector3(0.6, 0.7, 0.35), Vector3(0.3, 0.9, 0.3)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [0, 0, 0, 0, 0], "spine": -10.0}, "rel": {"R": [Vector3(-0.1, 0.45, 0.88), Vector3(0.0, 0.5, 0.86), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 6.0}},
+	"homatsu_tadayoi": {"base": "breath", "pre": 0.3, "post": 0.5, "spin": 180.0, "wind": {"R": [Vector3(-0.3, -0.5, 0.8), Vector3(0.6, 0.7, 0.35), Vector3(0.3, 0.9, 0.3)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [0, 0, 0, 0, 0], "spine": -8.0}, "rel": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -4.0}},
+	"obore_awa": {"base": "breath", "pre": 0.3, "post": 0.45, "wind": {"R": [Vector3(-0.3, -0.5, 0.8), Vector3(0.6, 0.7, 0.35), Vector3(0.3, 0.9, 0.3)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": -12.0}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0, 0, 0, 0, 0], "spine": 10.0}},
+	"sumi_awa_bakuhatsu": {"base": "breath", "pre": 0.25, "post": 0.45, "wind": {"R": [Vector3(-0.3, -0.5, 0.8), Vector3(0.6, 0.7, 0.35), Vector3(0.3, 0.9, 0.3)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [0, 0, 0, 0, 0], "spine": -10.0, "neck": -8.0}, "rel": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 12.0}},
+	"kibaku_awa": {"base": "breath", "pre": 0.3, "post": 0.5, "wind": {"R": [Vector3(-0.3, -0.5, 0.8), Vector3(0.6, 0.7, 0.35), Vector3(0.3, 0.9, 0.3)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": -12.0}, "rel": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 10.0, "hips_yaw": -20.0}},
+	"sekken_awa": {"base": "ground", "pre": 0.25, "post": 0.4, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3]}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0, 0, 0, 0, 0], "spine": 35.0, "crouch": 0.7}},
+	"mekura_awa": {"base": "palm", "pre": 0.2, "post": 0.4, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0, 0, 0, 0, 0]}, "rel": {"R": [Vector3(-0.1, 0.45, 0.88), Vector3(0.0, 0.5, 0.86), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "neck": -6.0}},
+	"suiton_kakuremino": {"base": "sense", "pre": 0.2, "post": 0.3, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "crouch": 0.4}, "rel": {"R": [Vector3(-0.25, -0.96, -0.05), Vector3(-0.1, -0.97, 0.2), Vector3(0.0, -1.0, 0.1)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 30.0, "crouch": 0.9}},
+	"suiton_suichu": {"base": "ground", "pre": 0.3, "post": 0.45, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0, 0, 0, 0, 0], "spine": -4.0}, "rel": {"R": [Vector3(-0.2, 0.8, 0.55), Vector3(-0.1, 0.85, 0.5), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -10.0, "neck": -12.0}},
+	"nensuikai": {"base": "palm", "pre": 0.25, "post": 0.45, "wind": {"R": [Vector3(-0.4, -0.7, -0.5), Vector3(0.0, -0.3, -0.95), Vector3(0.0, -0.6, -0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0, 0, 0, 0, 0], "hips_yaw": 30.0, "crouch": 0.3}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 18.0, "hips_yaw": -30.0}},
+	"mizudeppo_no_jutsu": {"base": "palm", "pre": 0.12, "post": 0.3, "wind": {"R": [Vector3(-0.2, -0.3, 0.93), Vector3(0.0, 0.1, 1.0), Vector3(0.0, 0.3, 0.95)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.0, 1.5, 1.5, 1.5, 0.9], "fL": [0, 0, 0, 0, 0]}, "rel": {"R": [Vector3(-0.2, -0.3, 0.93), Vector3(0.0, 0.1, 1.0), Vector3(0.0, 0.3, 0.95)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.0, 1.5, 1.5, 1.5, 0.9], "fL": [0, 0, 0, 0, 0], "spine": 4.0}},
+	"suiton_daikaisuidan": {"base": "breath", "pre": 0.45, "post": 0.6, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": -24.0, "neck": -22.0}, "rel": {"R": [Vector3(-0.85, -0.45, 0.1), Vector3(-0.9, -0.3, 0.2), Vector3(-0.9, -0.2, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 32.0, "neck": 20.0, "crouch": 0.4}},
+	"suiton_haran_bansho": {"base": "power", "pre": 0.35, "post": 0.6, "spin": 360.0, "wind": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "crouch": 0.4}, "rel": {"R": [Vector3(-0.85, -0.45, 0.1), Vector3(-0.9, -0.3, 0.2), Vector3(-0.9, -0.2, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": -8.0}},
+	"uramiame": {"base": "sense", "pre": 0.4, "post": 0.5, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "neck": -8.0}, "rel": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "neck": -18.0}},
+	"sensatsu_suisho": {"base": "sense", "pre": 0.3, "post": 0.5, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0, 0, 0, 0, 0], "neck": -6.0}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0, 0, 0, 0, 0], "spine": 8.0}},
+	"mizufusen_no_jutsu": {"base": "throw", "pre": 0.25, "post": 0.4, "clip": "b/OverhandThrow", "wind": {"R": [Vector3(-0.6, 0.6, -0.5), Vector3(-0.2, 0.9, -0.4), Vector3(0.0, 1.0, -0.2)], "L": [Vector3(0.1, 0.45, 0.88), Vector3(-0.0, 0.5, 0.86), Vector3(-0.0, 0.9, 0.4)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0, 0, 0, 0, 0], "spine": -10.0, "hips_yaw": 30.0}, "rel": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.35, -0.85, -0.35), Vector3(-0.0, -0.4, 0.9), Vector3(-0.0, 0.2, 0.95)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 18.0, "hips_yaw": -25.0}},
+	"kugutsu_suiton_yoame": {"base": "palm", "pre": 0.3, "post": 0.5, "wind": {"R": [Vector3(-0.1, 0.45, 0.88), Vector3(0.0, 0.5, 0.86), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.1, 0.45, 0.88), Vector3(-0.0, 0.5, 0.86), Vector3(-0.0, 0.9, 0.4)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": -6.0}, "rel": {"R": [Vector3(-0.2, 0.8, 0.55), Vector3(-0.1, 0.85, 0.5), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.2, 0.8, 0.55), Vector3(0.1, 0.85, 0.5), Vector3(-0.0, 0.9, 0.4)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": -12.0}},
+	"suiton_suigun_suima": {"base": "ground", "pre": 0.35, "post": 0.55, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 42.0, "crouch": 0.8}},
+	"ame_kakure": {"base": "sense", "pre": 0.25, "post": 0.35, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "crouch": 0.2}, "rel": {"R": [Vector3(-0.85, -0.45, 0.1), Vector3(-0.9, -0.3, 0.2), Vector3(-0.9, -0.2, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -4.0}},
 }
 
 const SNAKE := Color(0.42, 0.3, 0.5)
@@ -4049,7 +4080,7 @@ func _etrail(pr: Projectile, el: String, col: Color, size: float) -> void:
 func impact_fx(el: String, col: Color, at: Vector3, s := 1.0) -> void:
 	var g = Vector3(at.x, Game.jutsu_floor(at.x, at.z), at.z)
 	var near_ground = at.y - g.y < 2.5
-	if el not in ["fuuton", "raiton", "katon", "bakuton", "yoton"]:
+	if el not in ["fuuton", "raiton", "katon", "bakuton", "yoton", "suiton", "hyoton"]:
 		VFX.star(at, col.lightened(0.4), 2.2 * s, 0.18)
 		VFX.shockwave(at, col, 5.0 * s, 0.4, false, Vector3.UP)
 	match el:
@@ -25297,3 +25328,671 @@ func jutsu_weapon(c: Node3D, kind: String, dur: float) -> Node3D:
 			root.queue_free())
 	FX.smoke_puff(hand_pos(c, true), 0.5, 6)
 	return root
+
+
+# ================================================================== VİDEO SUİTON: eksik su teknikleri (anime derlemesine göre)
+# Su: akan ince su ipleri (VfxSerpent "water" tüpü), sıçrama/damla/köpük/sis; pürüzsüz kubbe-kabuk yok (su kütlesi gerektiren hapisler hariç).
+
+## Akan su ipi: görünmez baş mermiyle ilerler, arkasında ince su tüpü + damla; çarpınca sıçrar
+func _water_jet(c: Node3D, from: Vector3, dir: Vector3, speed: float, radius: float, info: Dictionary, homing: Node3D = null, life := 1.6, on_hit := Callable(), segs := 12) -> Projectile:
+	var head = Node3D.new()
+	var pr = shot(c, from, dir, speed, head, info, homing, false, life, func(p, h):
+		VFX.splash(p, 1.0 + radius)
+		if on_hit.is_valid():
+			on_hit.call(p, h))
+	pr.radius = maxf(0.5, radius)
+	var body = VfxSerpent.new()
+	body.style = "water"
+	body.thin = 1.0
+	body.seed_id = "jet%d" % segs
+	body.head = pr
+	body.count = segs
+	body.spacing = 0.55 + radius * 0.3
+	body.radius = radius
+	body.mat = _wmat()
+	get_tree().current_scene.add_child(body)
+	return pr
+
+
+## Su damlası yağmuru (dolu, kin yağmuru, kukla yağmuru): alana düşen damla çizgileri
+func _water_rain(c: Node3D, at: Vector3, r: float, dur: float, id: String, mul: float, col := Color(0.7, 0.88, 1.0), dark := false) -> void:
+	every(dur, 0.12, func(i, _k):
+		FX.burst(at + Vector3.UP * 16.0, {"amount": int(10 + r * 2), "life": 0.9, "tex": FX.tex_spark, "size": 1.2, "radius": r, "vmin": 18.0, "vmax": 24.0,
+			"dir": Vector3.DOWN, "spread": 4.0, "gravity": Vector3(0, -10, 0), "colors": [Color(1, 1, 1, 0.0), col, Color(col.r, col.g, col.b, 0.0)]})
+		if i % 3 == 0:
+			var q = at + Vector3(randf_range(-r, r), 0, randf_range(-r, r))
+			FX.burst(gp(q) + Vector3.UP * 0.1, {"amount": 6, "life": 0.35, "tex": FX.tex_soft, "add": false, "size": 0.18, "vmin": 1.5, "vmax": 3.5, "dir": Vector3.UP, "spread": 70.0,
+				"gravity": Vector3(0, -14, 0), "colors": [Color(0.9, 0.97, 1.0, 1), Color(0.6, 0.85, 1.0, 0.8), Color(0.5, 0.8, 1.0, 0)]})
+		if i % 4 == 0:
+			for e in enemies_near(c, at, r):
+				if live(e):
+					hit(c, e.global_position + Vector3.UP, e.radius + 0.3, inf(c, id, mul, {"knock": 0.5, "kind": "light", "element": "suiton"})), Callable())
+	if dark:
+		VFX.puffs(at + Vector3.UP * 16.0, {"amount": 26, "life": dur, "size": 6.0, "radius": r, "vmin": 0.2, "vmax": 0.8, "gravity": Vector3.ZERO, "outline": 0.03, "rough": 0.16,
+			"outline_col": Color(0.2, 0.22, 0.28), "colors": [Color(0.25, 0.27, 0.33, 0), Color(0.28, 0.3, 0.36, 0.95), Color(0.3, 0.32, 0.38, 0)]})
+
+
+## Kabarcık görseli: ince parlak kenarlı saydam küre (sabun/su kabarcığı animede gerçekten küre)
+func _bubble(size: float, tint := Color(0.75, 0.9, 1.0)) -> MeshInstance3D:
+	var mi = MeshInstance3D.new()
+	mi.mesh = VFX._sphere(0.5, 16, 10)
+	var m = StandardMaterial3D.new()
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.albedo_color = Color(tint.r, tint.g, tint.b, 0.18)
+	m.rim_enabled = true
+	m.rim = 1.0
+	m.rim_tint = 0.2
+	m.metallic_specular = 1.0
+	m.roughness = 0.05
+	mi.material_override = m
+	mi.scale = Vector3.ONE * size
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return mi
+
+
+func _pop(p: Vector3, s := 1.0, col := Color(0.85, 0.95, 1.0)) -> void:
+	FX.burst(p, {"amount": int(10 * s), "life": 0.35, "tex": FX.tex_soft, "add": false, "size": 0.18 * s, "vmin": 2.0, "vmax": 5.0 * s, "spread": 180.0, "gravity": Vector3(0, -8, 0),
+		"colors": [Color(1, 1, 1, 1), col, Color(col.r, col.g, col.b, 0)]})
+
+
+func p_suiton_suihachi(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.9)
+	var tt = tg(c, t, 20.0)
+	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 9.0)
+	VFX.splash(at, 2.5)
+	# yerden yükselen su parmakları hedefi kavrar
+	for i in 5:
+		var a = TAU * i / 5.0
+		var from = at + Vector3(cos(a), 0, sin(a)) * 2.4
+		var head = Node3D.new()
+		scene_add(head, from)
+		var body = VfxSerpent.new()
+		body.style = "water"
+		body.thin = 1.0
+		body.head = head
+		body.count = 8
+		body.spacing = 0.5
+		body.radius = 0.55
+		body.mat = _wmat()
+		get_tree().current_scene.add_child(body)
+		var tw = head.create_tween()
+		tw.tween_property(head, "global_position", at + Vector3(cos(a) * 0.6, 3.2, sin(a) * 0.6), 0.45).set_trans(Tween.TRANS_QUAD)
+		tw.tween_property(head, "global_position", at + Vector3(cos(a + 0.6) * 0.3, 2.0, sin(a + 0.6) * 0.3), 0.25)
+		tw.tween_interval(1.8)
+		tw.tween_callback(head.queue_free)
+	after(0.6, func():
+		for e in enemies_near(c, at, 2.6):
+			if live(e) and e.has_method("apply_status"):
+				e.apply_status("bind", 2.0)
+		every(2.0, 0.5, func(_i, _k):
+			for e in enemies_near(c, at, 2.6):
+				if live(e):
+					hit(c, e.global_position + Vector3.UP, e.radius + 0.3, inf(c, "suiton_suihachi", 0.3, {"knock": 0.0, "kind": "light", "element": "suiton"})), func(): VFX.splash(at, 2.0)))
+	Sfx.play("water", at, 0.8)
+
+
+func p_suiton_suishoha(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.2)
+	var at = gp(c.global_position)
+	Sfx.play("water", at, 0.6)
+	# ağızdan boşalan su etrafta kabarır, sonra dışa yıkılır
+	for k in 3:
+		after(0.25 + k * 0.18, func():
+			var r = 4.0 + k * 4.0
+			for i in 16:
+				var a = TAU * i / 16.0
+				VFX.splash(at + Vector3(cos(a), 0, sin(a)) * r, 1.4 + k * 0.4)
+			for e in enemies_near(c, at, r + 1.0):
+				if live(e):
+					var v = e.global_position - at
+					v.y = 0
+					hit(c, e.global_position + Vector3.UP, e.radius + 0.4, inf(c, "suiton_suishoha", 0.5, {"knock": 12.0, "launch": 4.0, "kind": "heavy", "element": "suiton", "dir": v.normalized()})))
+	_water_jet(c, _mouth_pos(c), Vector3.DOWN + c.face_dir() * 0.3, 18.0, 0.8, inf(c, "suiton_suishoha", 0.2, {"element": "suiton"}), null, 0.3)
+	shake(0.8)
+
+
+func p_suiton_daibakuryu(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.0)
+	var d = fwd(c, t)
+	var side = d.cross(Vector3.UP).normalized()
+	for k in 5:
+		var off = (k - 2) * 1.6
+		after(k * 0.05, func():
+			if live(c):
+				_water_jet(c, c.global_position + Vector3.UP * 0.8 + side * off, d, 24.0, 1.2, inf(c, "suiton_daibakuryu", 0.35, {"knock": 14.0, "launch": 2.0, "kind": "heavy", "element": "suiton", "dir": d}), null, 1.1, Callable(), 14))
+	every(1.0, 0.1, func(_i, k):
+		var q = gp(c.global_position + d * (2.0 + k * 22.0))
+		VFX.splash(q + side * randf_range(-4, 4), 1.6), Callable())
+	Sfx.play("water", c.global_position, 0.6)
+
+
+func p_mizuame_bakujo(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.7)
+	var tt = tg(c, t, 18.0)
+	var syrup = Color(0.95, 0.85, 0.5)
+	after(0.25, func():
+		if not live(c):
+			return
+		var mo = _mouth_pos(c)
+		for i in 3:
+			var pr = _water_jet(c, mo, aim_at(c, tt, mo).rotated(Vector3.UP, (i - 1) * 0.1), 26.0, 0.25, inf(c, "mizuame_bakujo", 0.3, {"knock": 0.0, "kind": "light", "element": "suiton"}), tt, 1.2, func(p, h):
+				if h and live(h) and h.has_method("apply_status"):
+					h.apply_status("bind", 3.0)
+				FX.burst(p, {"amount": 10, "life": 1.2, "tex": FX.tex_soft, "add": false, "size": 0.3, "vmin": 0.5, "vmax": 2.0, "gravity": Vector3(0, -3, 0),
+					"colors": [Color(1, 0.95, 0.7, 1), syrup, Color(syrup.r, syrup.g, syrup.b, 0)]}), 8)
+			pr.homing_turn = 3.0)
+	Sfx.play("water", c.global_position, 1.3)
+
+
+func p_suika_no_jutsu(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.3)
+	if c.has_method("set_invuln"):
+		c.set_invuln(2.5)
+	elif c is Player:
+		Buffs.add("suika_no_jutsu", 2.5, {"armor": 0.0})
+	var m = c.get("model")
+	VFX.splash(c.global_position + Vector3.UP, 1.4)
+	if m:
+		var tw = m.create_tween()
+		tw.tween_property(m, "scale", Vector3(1.2, 0.3, 1.2), 0.15)
+		tw.tween_interval(2.2)
+		tw.tween_property(m, "scale", Vector3.ONE, 0.2)
+	every(2.5, 0.15, func(_i, _k):
+		if live(c):
+			_pop(c.global_position + Vector3.UP * 0.3, 1.2, WATER), func(): VFX.splash(c.global_position + Vector3.UP, 1.2))
+	Sfx.play("water", c.global_position, 1.1)
+
+
+func p_suiton_suikyu(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.6)
+	var tt = tg(c, t, 20.0)
+	after(0.25, func():
+		if not live(c) or not tt:
+			return
+		var blob = _bubble(1.1, Color(0.3, 0.6, 1.0))
+		blob.material_override.albedo_color = Color(0.3, 0.6, 1.0, 0.55)
+		tt.add_child(blob)
+		blob.position = Vector3.UP * (tt.height * 0.9 if "height" in tt else 1.6)
+		if tt.has_method("apply_status"):
+			tt.apply_status("slow", 3.0)
+		every(3.0, 1.0, func(_i, _k):
+			if live(tt):
+				hit(c, tt.global_position + Vector3.UP, tt.radius + 0.3, inf(c, "suiton_suikyu", 0.4, {"knock": 0.0, "kind": "light", "element": "suiton"}))
+				_pop(blob.global_position, 0.8), func():
+			if is_instance_valid(blob):
+				VFX.splash(blob.global_position, 1.0)
+				blob.queue_free()))
+	Sfx.play("water", c.global_position, 1.2)
+
+
+func p_suiton_amearare(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.8)
+	var tt = tg(c, t, 26.0)
+	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 12.0)
+	_water_jet(c, c.global_position + Vector3.UP * 1.5, Vector3.UP, 30.0, 0.6, inf(c, "suiton_amearare", 0.1, {"element": "suiton"}), null, 0.4)
+	after(0.5, func(): _water_rain(c, at, 6.0, 2.0, "suiton_amearare", 0.35, Color(0.8, 0.92, 1.0)))
+	Sfx.play("water", c.global_position, 1.0)
+
+
+func p_santoka(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.6)
+	var tt = tg(c, t, 22.0)
+	var acid = Color(0.6, 0.9, 0.35)
+	after(0.2, func():
+		if not live(c):
+			return
+		var from = hand_pos(c, true)
+		var pr = _water_jet(c, from, aim_at(c, tt, from), 28.0, 0.35, inf(c, "santoka", 1.0, {"knock": 2.0, "kind": "heavy", "element": "suiton"}), tt, 1.2, func(p, h):
+			FX.burst(p, {"amount": 14, "life": 1.4, "tex": FX.tex_smoke, "add": false, "cel": false, "size": 1.0, "vmin": 0.5, "vmax": 1.5, "dir": Vector3.UP, "spread": 50.0,
+				"colors": [Color(acid.r, acid.g, acid.b, 0.0), Color(0.75, 0.95, 0.5, 0.6), Color(0.8, 1.0, 0.6, 0)]})
+			VFX.cracks(gp(p), 2.0, Color(0.2, 0.3, 0.1, 0.8), 5.0)
+			if h and live(h) and h.has_method("apply_status"):
+				h.apply_status("burn", 4.0), 10)
+		pr.homing_turn = 2.5)
+	Sfx.play("water", c.global_position, 1.4)
+
+
+func p_iryo_suiton_suika(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.7)
+	var tt = tg(c, t, 22.0)
+	for k in 6:
+		after(0.2 + k * 0.06, func():
+			if not live(c):
+				return
+			var from = hand_pos(c, true)
+			var m = Node3D.new()
+			m.add_child(_bubble(0.25, Color(0.5, 0.8, 1.0)))
+			var pr = shot(c, from, aim_at(c, tt, from).rotated(Vector3.UP, randf_range(-0.4, 0.4)), 18.0, m, inf(c, "iryo_suiton_suika", 0.2, {"knock": 0.0, "kind": "light", "element": "suiton"}), tt, false, 2.0, func(p, _h):
+				_pop(p, 0.6, Color(1.0, 0.4, 0.4))
+				heal(c, 4.0))
+			pr.homing_turn = 5.0
+			VFX.trail(pr, 0.06, Color(1, 1, 1, 0.8), WATER, Color(WATER.r, WATER.g, WATER.b, 0), 8, 0.0))
+	Sfx.play("water", c.global_position, 1.6)
+
+
+func p_iryo_suiton_mizukamakiri(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 6.0)
+	_jump_at(c, tt, 0.0, 10.0 if tt else 3.0)
+	busy(c, 0.7)
+	for side in [true, false]:
+		var ba = bone_attach(c, "RightHand" if side else "LeftHand")
+		if ba:
+			var head = Node3D.new()
+			ba.add_child(head)
+			head.position = Vector3(0, 0.9, 0)
+			var arc = Arcs.new()
+			arc.color = Color(0.6, 0.85, 1.0)
+			arc.glow = 6.0
+			arc.to_point = Vector3(0, -0.9, 0)
+			arc.count = 0
+			arc.width = 0.09
+			head.add_child(arc)
+			after(0.7, func():
+				if is_instance_valid(ba):
+					ba.queue_free())
+	for k in 2:
+		after(0.2 + k * 0.18, func():
+			if not live(c):
+				return
+			anim(c, "slash_a" if k == 0 else "slash_b", 1.8)
+			var at = c.global_position + Vector3.UP * 1.1 + c.face_dir() * 1.2
+			_arc_cut(at, c.face_dir(), -60.0 if k == 0 else 60.0, 60.0 if k == 0 else -60.0, Color(0.7, 0.9, 1.0), 1.6)
+			_pop(at, 1.2, WATER)
+			mhit(c, at, 1.8, inf(c, "iryo_suiton_mizukamakiri", 0.8, {"knock": 4.0, "kind": "heavy", "element": "suiton", "bleed": 3.0})))
+	Sfx.play("water", c.global_position, 1.5)
+
+
+func p_iryo_suiton_mizukurage(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.6)
+	var jelly = Node3D.new()
+	jelly.add_child(_bubble(2.6, Color(0.6, 0.85, 1.0)))
+	c.add_child(jelly)
+	jelly.position = Vector3.UP * 1.0
+	for i in 8:   # dokungaç gibi sarkan ince su ipleri
+		var a = TAU * i / 8.0
+		var arc = Arcs.new()
+		arc.color = Color(0.6, 0.85, 1.0)
+		arc.glow = 3.0
+		arc.position = Vector3(cos(a) * 0.9, -0.6, sin(a) * 0.9)
+		arc.to_point = Vector3(0, -0.9, 0)
+		arc.count = 0
+		arc.width = 0.04
+		jelly.add_child(arc)
+	every(5.0, 0.5, func(_i, _k):
+		if live(c):
+			heal(c, 3.0)
+			_pop(c.global_position + Vector3.UP * 1.6, 0.8, Color(0.5, 1.0, 0.7)), func():
+		if is_instance_valid(jelly):
+			VFX.splash(jelly.global_position, 1.4)
+			jelly.queue_free())
+	Sfx.play("water", c.global_position, 0.9)
+
+
+func p_homatsu_hiromori(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.5)
+	var d = fwd(c, t)
+	var side = d.cross(Vector3.UP).normalized()
+	var root = Node3D.new()
+	scene_add(root, c.global_position + d * 2.2)
+	for i in 14:
+		var b = _bubble(randf_range(0.6, 1.1))
+		root.add_child(b)
+		b.position = side * randf_range(-2.4, 2.4) + Vector3.UP * randf_range(0.3, 2.8)
+	every(5.0, 0.1, func(_i, _k):
+		for pr in c.get_tree().get_nodes_in_group("projectiles"):
+			if is_instance_valid(pr) and pr.get("shooter") != c and pr.global_position.distance_to(root.global_position + Vector3.UP * 1.4) < 2.8:
+				_pop(pr.global_position, 1.2)
+				pr.queue_free(), func():
+		if is_instance_valid(root):
+			for b in root.get_children():
+				_pop(b.global_position, 0.8)
+			root.queue_free())
+	Sfx.play("water", c.global_position, 1.5)
+
+
+func p_homatsu_tadayoi(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.5)
+	for i in 8:
+		var b = _bubble(0.7)
+		var p0 = c.global_position + Vector3(randf_range(-5, 5), randf_range(1.0, 2.5), randf_range(-5, 5))
+		scene_add(b, p0)
+		var ph = randf() * TAU
+		every(8.0, 0.1, func(_ii, k):
+			if not is_instance_valid(b):
+				return
+			b.global_position = p0 + Vector3(sin(k * 6.0 + ph) * 0.8, sin(k * 9.0 + ph) * 0.3, cos(k * 5.0 + ph) * 0.8)
+			for e in enemies_near(c, b.global_position, 1.4):
+				if live(e):
+					VFX.splash(b.global_position, 1.0)
+					hit(c, b.global_position, 2.2, inf(c, "homatsu_tadayoi", 0.6, {"knock": 6.0, "kind": "heavy", "element": "suiton"}))
+					b.queue_free()
+					return, func():
+			if is_instance_valid(b):
+				_pop(b.global_position)
+				b.queue_free())
+	Sfx.play("water", c.global_position, 1.6)
+
+
+func p_obore_awa(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.6)
+	var tt = tg(c, t, 20.0)
+	after(0.25, func():
+		if not live(c) or not tt:
+			return
+		var b = _bubble(2.6, Color(0.4, 0.7, 1.0))
+		b.material_override.albedo_color = Color(0.4, 0.7, 1.0, 0.35)
+		tt.add_child(b)
+		b.position = Vector3.UP * 1.0
+		if tt.has_method("apply_status"):
+			tt.apply_status("bind", 2.5)
+		every(2.5, 0.5, func(_i, _k):
+			if live(tt):
+				tt.global_position += Vector3.UP * 0.25
+				hit(c, tt.global_position + Vector3.UP, tt.radius + 0.3, inf(c, "obore_awa", 0.35, {"knock": 0.0, "kind": "light", "element": "suiton"})), func():
+			if is_instance_valid(b):
+				VFX.splash(b.global_position, 1.6)
+				b.queue_free()))
+	Sfx.play("water", c.global_position, 1.3)
+
+
+func p_sumi_awa_bakuhatsu(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.6)
+	var tt = tg(c, t, 20.0)
+	var ink = Color(0.08, 0.06, 0.12)
+	for k in 4:
+		after(0.2 + k * 0.08, func():
+			if not live(c):
+				return
+			var from = _mouth_pos(c)
+			var m = Node3D.new()
+			m.add_child(_bubble(0.6, Color(0.3, 0.25, 0.4)))
+			shot(c, from, aim_at(c, tt, from).rotated(Vector3.UP, (k - 1.5) * 0.12), 16.0, m, inf(c, "sumi_awa_bakuhatsu", 0.25, {"knock": 2.0, "kind": "light", "element": "suiton"}), tt, false, 1.8, func(p, h):
+				FX.burst(p, {"amount": 20, "life": 1.6, "tex": FX.tex_smoke, "add": false, "cel": false, "size": 1.8, "radius": 0.6, "vmin": 1.0, "vmax": 3.0, "spread": 180.0,
+					"colors": [Color(ink.r, ink.g, ink.b, 0.0), Color(ink.r, ink.g, ink.b, 0.85), Color(ink.r, ink.g, ink.b, 0.0)]})
+				for e in enemies_near(c, p, 3.0):
+					if e.has_method("lose_target"):
+						e.lose_target(3.0)))
+	Sfx.play("water", c.global_position, 1.5)
+
+
+func p_kibaku_awa(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.6)
+	var tt = tg(c, t, 22.0)
+	for k in 5:
+		after(0.2 + k * 0.1, func():
+			if not live(c):
+				return
+			var from = _mouth_pos(c)
+			var m = Node3D.new()
+			m.add_child(_bubble(0.8, Color(1.0, 0.8, 0.6)))
+			var pr = shot(c, from, aim_at(c, tt, from).rotated(Vector3.UP, randf_range(-0.25, 0.25)), 12.0, m, inf(c, "kibaku_awa", 0.5, {"knock": 8.0, "kind": "heavy", "element": "suiton"}), tt, false, 2.6, func(p, _h):
+				VFX.explosion(p, 0.7, Color(1.0, 0.6, 0.25))
+				hit(c, p, 2.6, inf(c, "kibaku_awa", 0.4, {"knock": 8.0, "launch": 3.0, "kind": "heavy", "element": "suiton"})))
+			pr.homing_turn = 1.5)
+	Sfx.play("water", c.global_position, 1.4)
+
+
+func p_sekken_awa(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.5)
+	var tt = tg(c, t, 20.0)
+	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 8.0)
+	every(5.0, 0.3, func(i, _k):
+		VFX.puffs(at + Vector3(randf_range(-3, 3), 0.2, randf_range(-3, 3)), {"amount": 5, "life": 1.2, "size": 0.6, "radius": 1.0, "vmin": 0.2, "vmax": 0.8, "dir": Vector3.UP,
+			"spread": 30.0, "outline": 0.025, "rough": 0.12, "outline_col": Color(0.7, 0.8, 0.95), "colors": [Color(1, 1, 1, 0), Color(0.95, 0.97, 1.0, 0.9), Color(0.9, 0.95, 1.0, 0)]})
+		for e in enemies_near(c, at, 4.0):
+			if live(e) and e.has_method("apply_status"):
+				e.apply_status("slow", 0.6)
+				if i % 5 == 0:
+					e.global_position += Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)), Callable())
+	Sfx.play("water", at, 1.6)
+
+
+func p_mekura_awa(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.5)
+	var tt = tg(c, t, 20.0)
+	after(0.2, func():
+		if not live(c) or not tt:
+			return
+		for k in 6:
+			var b = _bubble(0.35, Color(1.0, 1.0, 0.8))
+			scene_add(b, hand_pos(c, true))
+			var tw = b.create_tween()
+			tw.tween_property(b, "global_position", tt.global_position + Vector3.UP * 1.6 + Vector3(randf_range(-0.4, 0.4), randf_range(-0.3, 0.3), randf_range(-0.4, 0.4)), 0.4 + k * 0.05)
+			tw.tween_callback(func():
+				FX.light(b.global_position, Color(1, 1, 0.9), 4.0, 6.0, 0.15)
+				_pop(b.global_position, 1.0, Color(1, 1, 0.85))
+				b.queue_free())
+		after(0.55, func():
+			if live(tt) and tt.has_method("lose_target"):
+				tt.lose_target(4.0)))
+	Sfx.play("water", c.global_position, 1.7)
+
+
+func p_suiton_kakuremino(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.4)
+	VFX.splash(gp(c.global_position), 1.6)
+	if c is Player:
+		Buffs.add("suiton_kakuremino", 6.0, {"stealth": 1.0})
+	var m = c.get("model")
+	if m:
+		m.visible = false
+	after(6.0, func():
+		if is_instance_valid(c):
+			var mm = c.get("model")
+			if mm:
+				mm.visible = true
+			VFX.splash(gp(c.global_position), 2.0)
+			hit(c, c.global_position + Vector3.UP, 2.6, inf(c, "suiton_kakuremino", 0.6, {"knock": 8.0, "launch": 4.0, "kind": "heavy", "element": "suiton"})))
+	Sfx.play("water", c.global_position, 1.0)
+
+
+func p_suiton_suichu(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.6)
+	var tt = tg(c, t, 22.0)
+	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 9.0)
+	every(0.3, 0.06, func(_i, _k): _pop(at + Vector3.UP * 0.1, 1.0), func():
+		var head = Node3D.new()
+		scene_add(head, at)
+		var body = VfxSerpent.new()
+		body.style = "water"
+		body.thin = 1.0
+		body.head = head
+		body.count = 14
+		body.spacing = 0.8
+		body.radius = 1.4
+		body.mat = _wmat()
+		get_tree().current_scene.add_child(body)
+		var tw = head.create_tween()
+		tw.tween_property(head, "global_position", at + Vector3.UP * 11.0, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_interval(0.5)
+		tw.tween_callback(func():
+			VFX.splash(head.global_position, 2.5)
+			head.queue_free())
+		VFX.splash(at, 2.4)
+		for e in enemies_near(c, at, 2.4):
+			if live(e):
+				hit(c, e.global_position + Vector3.UP, e.radius + 0.4, inf(c, "suiton_suichu", 1.3, {"knock": 2.0, "launch": 14.0, "kind": "heavy", "element": "suiton"})))
+	Sfx.play("water", at, 0.9)
+
+
+func p_nensuikai(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.6)
+	var tt = tg(c, t, 22.0)
+	after(0.25, func():
+		if not live(c):
+			return
+		var from = hand_pos(c, true)
+		var pr = _water_jet(c, from, aim_at(c, tt, from), 22.0, 0.9, inf(c, "nensuikai", 0.6, {"knock": 1.0, "kind": "heavy", "element": "suiton"}), tt, 1.4, func(p, h):
+			VFX.puffs(gp(p) + Vector3.UP * 0.2, {"amount": 10, "life": 4.0, "size": 1.2, "radius": 1.0, "vmin": 0.0, "vmax": 0.3, "gravity": Vector3.ZERO, "outline": 0.03, "rough": 0.12,
+				"outline_col": Color(0.3, 0.5, 0.8), "colors": [Color(0.6, 0.8, 1.0, 0), Color(0.55, 0.78, 1.0, 0.85), Color(0.5, 0.75, 1.0, 0)]})
+			if h and live(h) and h.has_method("apply_status"):
+				h.apply_status("bind", 2.0)
+				h.apply_status("slow", 5.0), 10)
+		pr.homing_turn = 2.0)
+	Sfx.play("water", c.global_position, 1.2)
+
+
+func p_mizudeppo_no_jutsu(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.4)
+	var tt = tg(c, t, 24.0)
+	var from = hand_pos(c, true)
+	var pr = _water_jet(c, from, aim_at(c, tt, from), 40.0, 0.2, inf(c, "mizudeppo_no_jutsu", 1.0, {"knock": 4.0, "kind": "heavy", "element": "suiton"}), tt, 1.0, Callable(), 6)
+	pr.homing_turn = 2.0
+	Sfx.play("water", c.global_position, 1.8)
+
+
+func p_suiton_daikaisuidan(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.0)
+	var tt = tg(c, t, 28.0)
+	after(0.4, func():
+		if not live(c):
+			return
+		var mo = _mouth_pos(c)
+		var pr = _water_jet(c, mo, aim_at(c, tt, mo), 18.0, 2.6, inf(c, "suiton_daikaisuidan", 1.6, {"knock": 18.0, "launch": 4.0, "kind": "heavy", "element": "suiton"}), tt, 2.0, func(p, _h):
+			for i in 10:
+				var a = TAU * i / 10.0
+				VFX.splash(gp(p) + Vector3(cos(a), 0, sin(a)) * 5.0, 1.8)
+			hit(c, p, 6.0, inf(c, "suiton_daikaisuidan", 0.6, {"knock": 14.0, "kind": "heavy", "element": "suiton"}))
+			shake(0.8), 10)
+		pr.homing_turn = 1.5)
+	Sfx.play("water", c.global_position, 0.6)
+
+
+func p_suiton_haran_bansho(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.2)
+	var at = gp(c.global_position)
+	for k in 4:
+		after(0.2 + k * 0.3, func():
+			var a0 = randf() * TAU
+			for i in 4:
+				var a = a0 + i * TAU / 4.0
+				var dir = Vector3(cos(a), 0, sin(a))
+				if live(c):
+					_water_jet(c, at + dir * 1.5 + Vector3.UP * 0.6, (dir + Vector3.UP * 0.15).normalized(), 18.0, 1.3, inf(c, "suiton_haran_bansho", 0.35, {"knock": 12.0, "launch": 4.0, "kind": "heavy", "element": "suiton", "dir": dir}), null, 0.7, Callable(), 10))
+	shake(0.9)
+	Sfx.play("water", at, 0.6)
+
+
+func p_uramiame(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.8)
+	var tt = tg(c, t, 30.0)
+	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 12.0)
+	_water_rain(c, at, 8.0, 5.0, "uramiame", 0.3, Color(0.75, 0.85, 1.0), true)
+	Sfx.play("water", at, 0.7)
+
+
+func p_sensatsu_suisho(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.9)
+	var tt = tg(c, t, 22.0)
+	var at = (tt.global_position + Vector3.UP) if tt else c.global_position + fwd(c, t) * 8.0 + Vector3.UP
+	var needles = []
+	for i in 60:
+		var dir = Vector3(randf_range(-1, 1), randf_range(-0.2, 1), randf_range(-1, 1)).normalized()
+		var p = at + dir * randf_range(3.5, 5.0)
+		var h = Node3D.new()
+		scene_add(h, p)
+		var arc = Arcs.new()
+		arc.color = Color(0.7, 0.88, 1.0)
+		arc.glow = 2.5
+		arc.to_point = (at - p).normalized() * 0.8
+		arc.count = 0
+		arc.segs = 2
+		arc.width = 0.03
+		h.add_child(arc)
+		needles.append(h)
+	after(0.6, func():
+		for h in needles:
+			if is_instance_valid(h):
+				var tw = h.create_tween()
+				tw.tween_property(h, "global_position", at, 0.15).set_ease(Tween.EASE_IN)
+				tw.tween_callback(h.queue_free)
+		after(0.15, func():
+			_pop(at, 2.0)
+			hit(c, at, 2.4, inf(c, "sensatsu_suisho", 2.2, {"knock": 2.0, "kind": "heavy", "element": "suiton", "bleed": 6.0}))))
+	Sfx.play("water", c.global_position, 1.5)
+
+
+func p_mizufusen_no_jutsu(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.5)
+	var tt = tg(c, t, 22.0)
+	var from = hand_pos(c, true)
+	var m = Node3D.new()
+	var b = _bubble(0.9, Color(0.35, 0.65, 1.0))
+	b.material_override.albedo_color = Color(0.35, 0.65, 1.0, 0.6)
+	m.add_child(b)
+	var pr = shot(c, from, (aim_at(c, tt, from) + Vector3.UP * 0.25).normalized(), 18.0, m, inf(c, "mizufusen_no_jutsu", 0.8, {"knock": 9.0, "kind": "heavy", "element": "suiton"}), tt, false, 1.8, func(p, _h):
+		VFX.splash(p, 2.2)
+		hit(c, p, 3.0, inf(c, "mizufusen_no_jutsu", 0.4, {"knock": 9.0, "kind": "heavy", "element": "suiton"})))
+	pr.homing_turn = 2.0
+	Sfx.play("water", c.global_position, 1.3)
+
+
+func p_kugutsu_suiton_yoame(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.8)
+	var tt = tg(c, t, 26.0)
+	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 10.0)
+	_water_jet(c, c.global_position + Vector3.UP * 2.0, (Vector3.UP + c.face_dir() * 0.4).normalized(), 26.0, 0.5, inf(c, "kugutsu_suiton_yoame", 0.1, {"element": "suiton"}), null, 0.5)
+	after(0.5, func(): _water_rain(c, at, 5.0, 2.5, "kugutsu_suiton_yoame", 0.4, Color(0.65, 0.85, 1.0)))
+	Sfx.play("water", c.global_position, 1.1)
+
+
+func p_suiton_suigun_suima(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.9)
+	for k in 4:
+		after(0.2 + k * 0.12, func():
+			if not live(c):
+				return
+			var a = TAU * k / 4.0
+			var p = gp(c.global_position + Vector3(cos(a), 0, sin(a)) * 3.0)
+			VFX.splash(p, 1.6)
+			var head = Node3D.new()
+			scene_add(head, p)
+			var body = VfxSerpent.new()   # sudan savaşçı: yükselen su gövdesi
+			body.style = "water"
+			body.thin = 1.0
+			body.head = head
+			body.count = 8
+			body.spacing = 0.3
+			body.radius = 0.55
+			body.mat = _wmat()
+			get_tree().current_scene.add_child(body)
+			var hp = {"t": 0.0}
+			every(5.0, 1.0 / 20.0, func(i, _kk):
+				if not is_instance_valid(head):
+					return
+				var e = null
+				for f in enemies_near(c, head.global_position, 18.0):
+					if live(f):
+						e = f
+						break
+				var base = gp(head.global_position)
+				if e:
+					var v = e.global_position - base
+					v.y = 0
+					base += v.normalized() * minf(v.length(), 0.35)
+					if v.length() < 1.6 and i % 10 == 0:
+						hit(c, e.global_position + Vector3.UP, e.radius + 0.4, inf(c, "suiton_suigun_suima", 0.4, {"knock": 6.0, "kind": "heavy", "element": "suiton"}))
+						_pop(e.global_position + Vector3.UP, 1.2, WATER)
+				head.global_position = base + Vector3.UP * (1.6 + sin(i * 0.3) * 0.15), func():
+				if is_instance_valid(head):
+					VFX.splash(head.global_position, 1.4)
+					head.queue_free()))
+	Sfx.play("water", c.global_position, 0.8)
+
+
+func p_ame_kakure(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.4)
+	var raining = Game.world != null and String(Game.world.env.get("weather")).contains("yağmur")
+	var dur = 10.0 if raining else 5.0
+	FX.burst(c.global_position + Vector3.UP, {"amount": 30, "life": 0.6, "tex": FX.tex_spark, "size": 1.0, "radius": 0.8, "vmin": 4.0, "vmax": 8.0, "dir": Vector3.DOWN, "spread": 20.0,
+		"colors": [Color(1, 1, 1, 0), Color(0.75, 0.88, 1.0, 0.8), Color(0.6, 0.8, 1.0, 0)]})
+	if c is Player:
+		Buffs.add("ame_kakure", dur, {"stealth": 1.0})
+	var m = c.get("model")
+	if m:
+		m.visible = false
+		after(dur, func():
+			if is_instance_valid(m):
+				m.visible = true
+				VFX.splash(c.global_position, 1.0))
+	Sfx.play("water", c.global_position, 1.2)

@@ -27048,5 +27048,788 @@
   "category": "ninjutsu",
   "shape": "projectile",
   "meaning": "Çift Kara Panter"
+ },
+ "suiton_suihachi": {
+  "id": "suiton_suihachi",
+  "name": "Suiton: Suihachi",
+  "name_en": "Water Release: Hand of Waves",
+  "cost": 28,
+  "cd": 12.6,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:kiri",
+  "desc": "Yerden yükselen dev su eli hedefi avucuna alıp sıkar; içinde kalan 2 sn boğulur.",
+  "seals": [
+   "Tora",
+   "U"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "bind",
+  "meaning": "Su Kasesi"
+ },
+ "suiton_suishoha": {
+  "id": "suiton_suishoha",
+  "name": "Suiton: Suishōha",
+  "name_en": "Water Release: Water Shockwave",
+  "cost": 50,
+  "cd": 18.2,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "trainer:kiri",
+  "desc": "Ağızdan boşalan su, etrafında dev bir dalga olarak kabarır ve her yöne yıkılır.",
+  "seals": [
+   "Tora",
+   "Ushi",
+   "Saru"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Su Şok Dalgası"
+ },
+ "suiton_daibakuryu": {
+  "id": "suiton_daibakuryu",
+  "name": "Suiton: Daibakuryū no Jutsu",
+  "name_en": "Water Release: Furious Current",
+  "cost": 50,
+  "cd": 18.2,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "trainer:kiri",
+  "desc": "İleri doğru coşkun bir su seli akar; önüne kattığını sürükleyip duvarlara çarpar.",
+  "seals": [
+   "Tora",
+   "Tatsu"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Büyük Şelale Akıntısı"
+ },
+ "mizuame_bakujo": {
+  "id": "mizuame_bakujo",
+  "name": "Mizuame Bakujō",
+  "name_en": "Binding Syrup",
+  "cost": 28,
+  "cd": 12.6,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:kiri",
+  "desc": "Ağızdan fırlayan yapışkan şurup ipleri hedefe dolanır: 3 sn yapışıp kalır.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "bind",
+  "meaning": "Şurup İpi"
+ },
+ "suika_no_jutsu": {
+  "id": "suika_no_jutsu",
+  "name": "Suika no Jutsu",
+  "name_en": "Liquefy Technique",
+  "cost": 22,
+  "cd": 10.8,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "hozuki",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:kiri",
+  "desc": "Bedenin suya dönüşür: 2.5 sn boyunca vuruşlar içinden geçer, ardından yeniden şekillenirsin.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "counter",
+  "meaning": "Sıvılaşma"
+ },
+ "suiton_suikyu": {
+  "id": "suiton_suikyu",
+  "name": "Suiton: Suikyū",
+  "name_en": "Drowning Water Blob",
+  "cost": 28,
+  "cd": 12.6,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:kiri",
+  "desc": "Hedefin başına bir su topu yapışır: 3 sn nefessiz kalır, her saniye hasar alır.",
+  "seals": [
+   "Tora"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "bind",
+  "meaning": "Boğan Su Topu"
+ },
+ "suiton_amearare": {
+  "id": "suiton_amearare",
+  "name": "Suiton: Amearare",
+  "name_en": "Water Release: Rain Hail",
+  "cost": 34,
+  "cd": 11.7,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:kiri",
+  "desc": "Havaya fırlatılan su, sertleşmiş damlalar halinde alana yağar.",
+  "seals": [
+   "Tora",
+   "Tori"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Dolu Yağmuru"
+ },
+ "santoka": {
+  "id": "santoka",
+  "name": "Santōka",
+  "name_en": "Acid Flower",
+  "cost": 28,
+  "cd": 9.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:kiri",
+  "desc": "Asitli su fışkırır: değdiği yeri eritir, hedefin zırhını 6 sn zayıflatır.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "projectile",
+  "meaning": "Asit Sızıntısı"
+ },
+ "iryo_suiton_suika": {
+  "id": "iryo_suiton_suika",
+  "name": "Iryō Suiton: Suika",
+  "name_en": "Medical Water Release: Water Mosquito",
+  "cost": 28,
+  "cd": 9.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:hospital",
+  "desc": "Sudan sivrisinekler hedefe yapışıp kan çeker; çekilen kan sana can olarak döner.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "projectile",
+  "meaning": "Tıbbi Su Sivrisineği"
+ },
+ "iryo_suiton_mizukamakiri": {
+  "id": "iryo_suiton_mizukamakiri",
+  "name": "Iryō Suiton: Mizukamakiri",
+  "name_en": "Medical Water Release: Water Praying Mantis",
+  "cost": 22,
+  "cd": 7.2,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:hospital",
+  "desc": "Kollarından sudan peygamberdevesi pençeleri uzar: hızlı iki kesik.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "melee",
+  "meaning": "Tıbbi Su Peygamberdevesi"
+ },
+ "iryo_suiton_mizukurage": {
+  "id": "iryo_suiton_mizukurage",
+  "name": "Iryō Suiton: Mizukurage",
+  "name_en": "Medical Water Release: Water Jellyfish",
+  "cost": 28,
+  "cd": 9.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:hospital",
+  "desc": "Sudan bir denizanası seni ve yakındaki dostlarını sarar: 5 sn boyunca can yeniler.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "heal",
+  "meaning": "Tıbbi Su Denizanası"
+ },
+ "homatsu_hiromori": {
+  "id": "homatsu_hiromori",
+  "name": "Suiton: Hōmatsu no Jutsu — Hiromori",
+  "name_en": "Bubble Barrier",
+  "cost": 16,
+  "cd": 9.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 5,
+  "rank": 1,
+  "learn": "scroll",
+  "desc": "Önünde iri kabarcıklardan bir perde kurulur; gelen mermileri patlayarak yutar.",
+  "seals": [],
+  "canon_rank": "C",
+  "tier": 2,
+  "category": "ninjutsu",
+  "shape": "wall",
+  "meaning": "Köpük Bariyeri"
+ },
+ "homatsu_tadayoi": {
+  "id": "homatsu_tadayoi",
+  "name": "Suiton: Hōmatsu no Jutsu — Tadayoi",
+  "name_en": "Bubble Jutsu: Drift",
+  "cost": 14,
+  "cd": 7.2,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 5,
+  "rank": 1,
+  "learn": "scroll",
+  "desc": "Havada süzülen kabarcıklar bırakırsın; değen düşmanın yanında patlar.",
+  "seals": [],
+  "canon_rank": "C",
+  "tier": 2,
+  "category": "ninjutsu",
+  "shape": "trap",
+  "meaning": "Sürüklenen Köpükler"
+ },
+ "obore_awa": {
+  "id": "obore_awa",
+  "name": "Obore Awa",
+  "name_en": "Drowning Bubble",
+  "cost": 28,
+  "cd": 12.6,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:kiri",
+  "desc": "Hedefi içine alan dev kabarcık: 2.5 sn içinde süzülüp boğulur.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "bind",
+  "meaning": "Boğan Kabarcık"
+ },
+ "sumi_awa_bakuhatsu": {
+  "id": "sumi_awa_bakuhatsu",
+  "name": "Sumi Awa Bakuhatsu",
+  "name_en": "Ink Bubble Explosion",
+  "cost": 22,
+  "cd": 7.8,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 5,
+  "rank": 1,
+  "learn": "scroll",
+  "desc": "Kabarcıklar hedefin önünde patlayıp mürekkep saçar: 3 sn kör eder.",
+  "seals": [],
+  "canon_rank": "C",
+  "tier": 2,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Mürekkep Kabarcık Patlaması"
+ },
+ "kibaku_awa": {
+  "id": "kibaku_awa",
+  "name": "Kibaku Awa",
+  "name_en": "Bubble Bomb",
+  "cost": 28,
+  "cd": 9.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:kiri",
+  "desc": "Patlayıcı chakralı kabarcıklar süzülür; değdikleri anda patlar.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "projectile",
+  "meaning": "Patlayan Kabarcık"
+ },
+ "sekken_awa": {
+  "id": "sekken_awa",
+  "name": "Sekken Awa",
+  "name_en": "Soap Bubble Slime",
+  "cost": 23,
+  "cd": 10.8,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 5,
+  "rank": 1,
+  "learn": "scroll",
+  "desc": "Yere kaygan sabun köpüğü yayılır: üstündeki düşmanlar kayar ve yavaşlar.",
+  "seals": [],
+  "canon_rank": "C",
+  "tier": 2,
+  "category": "ninjutsu",
+  "shape": "field",
+  "meaning": "Sabun Köpüğü"
+ },
+ "mekura_awa": {
+  "id": "mekura_awa",
+  "name": "Mekura Awa",
+  "name_en": "Blinding Bubbles",
+  "cost": 18,
+  "cd": 6.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 5,
+  "rank": 1,
+  "learn": "scroll",
+  "desc": "Parlak kabarcıklar hedefin yüzünde patlar: seni 4 sn kaybeder.",
+  "seals": [],
+  "canon_rank": "C",
+  "tier": 2,
+  "category": "ninjutsu",
+  "shape": "debuff",
+  "meaning": "Kör Eden Kabarcıklar"
+ },
+ "suiton_kakuremino": {
+  "id": "suiton_kakuremino",
+  "name": "Suiton: Kakuremino",
+  "name_en": "Water Release: Hiding in Water",
+  "cost": 18,
+  "cd": 6.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 5,
+  "rank": 1,
+  "learn": "scroll",
+  "desc": "Suya ya da su birikintisine karışıp görünmez olursun; çıkışta sıçrayarak saldırırsın.",
+  "seals": [
+   "Tora"
+  ],
+  "canon_rank": "C",
+  "tier": 2,
+  "category": "ninjutsu",
+  "shape": "stealth",
+  "meaning": "Suda Gizlenme"
+ },
+ "suiton_suichu": {
+  "id": "suiton_suichu",
+  "name": "Suiton: Suichū",
+  "name_en": "Water Release: Water Pillar",
+  "cost": 34,
+  "cd": 11.7,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:kiri",
+  "desc": "Hedefin altından fışkıran su sütunu onu göğe fırlatır.",
+  "seals": [
+   "Tora",
+   "U"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Su Sütunu"
+ },
+ "nensuikai": {
+  "id": "nensuikai",
+  "name": "Nensuikai",
+  "name_en": "Sticky Water",
+  "cost": 28,
+  "cd": 12.6,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:kiri",
+  "desc": "Yapışkan su kütlesi fırlatılır: hedefi yere yapıştırır, kurtulana dek yavaşlatır.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "bind",
+  "meaning": "Yapışkan Su Kütlesi"
+ },
+ "mizudeppo_no_jutsu": {
+  "id": "mizudeppo_no_jutsu",
+  "name": "Mizudeppō no Jutsu",
+  "name_en": "Water Gun Technique",
+  "cost": 10,
+  "cd": 4.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 2,
+  "rank": 0,
+  "learn": "scroll",
+  "desc": "Parmaktan ya da ağızdan fırlayan sıkıştırılmış su mermisi.",
+  "seals": [],
+  "canon_rank": "D",
+  "tier": 1,
+  "category": "ninjutsu",
+  "shape": "projectile",
+  "meaning": "Su Tabancası"
+ },
+ "suiton_daikaisuidan": {
+  "id": "suiton_daikaisuidan",
+  "name": "Suiton: Daikaisuidan",
+  "name_en": "Water Release: Great Water Mass",
+  "cost": 42,
+  "cd": 14.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "trainer:kiri",
+  "desc": "Ağızdan dev bir su kütlesi fırlar; çarptığı yerde sel gibi yayılır.",
+  "seals": [
+   "Tora",
+   "Ushi"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "projectile",
+  "meaning": "Dev Su Kütlesi Mermisi"
+ },
+ "suiton_haran_bansho": {
+  "id": "suiton_haran_bansho",
+  "name": "Suiton: Haran Banshō",
+  "name_en": "Water Release: Storm Upheaval",
+  "cost": 50,
+  "cd": 18.2,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "trainer:kiri",
+  "desc": "Etrafında dalgalar kabarıp üst üste çarpar; içindekiler savrulur.",
+  "seals": [
+   "Tora",
+   "Tatsu",
+   "Ushi"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Fırtına Kabarması"
+ },
+ "uramiame": {
+  "id": "uramiame",
+  "name": "Uramiame",
+  "name_en": "Grudge Rain",
+  "cost": 55,
+  "cd": 25.2,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "trainer:kiri",
+  "desc": "Kara bulut çöker ve alana iğne gibi keskin yağmur yağar: içindekiler sürekli hasar alır.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "field",
+  "meaning": "Kin Yağmuru"
+ },
+ "sensatsu_suisho": {
+  "id": "sensatsu_suisho",
+  "name": "Hijutsu: Sensatsu Suishō",
+  "name_en": "Secret Technique: A Thousand Needles of Death",
+  "cost": 50,
+  "cd": 18.2,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "quest:hiden",
+  "desc": "Hedefin çevresindeki su binlerce iğneye dönüşür ve her yönden aynı anda saplanır.",
+  "seals": [
+   "Tora",
+   "Saru"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Bin Ölümcül Su İğnesi"
+ },
+ "mizufusen_no_jutsu": {
+  "id": "mizufusen_no_jutsu",
+  "name": "Mizufūsen no Jutsu",
+  "name_en": "Water Balloon Technique",
+  "cost": 18,
+  "cd": 6.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 5,
+  "rank": 1,
+  "learn": "scroll",
+  "desc": "Su balonu fırlatılır: çarpınca patlayıp etrafı ıslatır ve iter.",
+  "seals": [],
+  "canon_rank": "C",
+  "tier": 2,
+  "category": "ninjutsu",
+  "shape": "projectile",
+  "meaning": "Su Balonu"
+ },
+ "kugutsu_suiton_yoame": {
+  "id": "kugutsu_suiton_yoame",
+  "name": "Kugutsu Suiton: Yōame no Mai",
+  "name_en": "Puppet Water Release: Mystical Rain Dance",
+  "cost": 34,
+  "cd": 11.7,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:kiri",
+  "desc": "Kuklanın ağzından göğe su püskürür ve kesici damlalar halinde düşer.",
+  "seals": [],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Kukla — Gizemli Yağmur Dansı"
+ },
+ "suiton_suigun_suima": {
+  "id": "suiton_suigun_suima",
+  "name": "Suiton: Suigun Suima no Jutsu",
+  "name_en": "Water Release: Marine Battle Formation",
+  "cost": 76,
+  "cd": 42.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "trainer:kiri",
+  "desc": "Sudan savaşçılar yükselir ve düşmanlara saldırır; vurulunca suya dağılırlar.",
+  "seals": [
+   "Tora",
+   "Hitsuji"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "summon",
+  "meaning": "Su Ordusu"
+ },
+ "ame_kakure": {
+  "id": "ame_kakure",
+  "name": "Ame Kakure no Jutsu",
+  "name_en": "Hiding in Rain Technique",
+  "cost": 18,
+  "cd": 6.0,
+  "element": "suiton",
+  "elements": [
+   "suiton"
+  ],
+  "natures": [
+   "suiton"
+  ],
+  "clan": "",
+  "level": 5,
+  "rank": 1,
+  "learn": "scroll",
+  "desc": "Yağmura karışıp görünmez olursun; yağmur varsa süre iki katına çıkar.",
+  "seals": [],
+  "canon_rank": "C",
+  "tier": 2,
+  "category": "ninjutsu",
+  "shape": "stealth",
+  "meaning": "Yağmurda Gizlenme"
  }
 }
