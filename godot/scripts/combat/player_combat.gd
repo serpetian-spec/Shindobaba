@@ -702,6 +702,14 @@ func begin_cast(jid: String) -> void:
 		if ey == null or not ey.active:
 			Hud.msg("%s için önce gözlerini aç (V)." % String(j["name"]).split(" (")[0], Color(1, 0.55, 0.5))
 			return
+	# moda bağlı teknikler: animedeki gibi yalnız sennin modunda / kuyruklu canavar modunda atılır
+	var need = String(j.get("need", ""))
+	if need == "sage" and not (modes and modes.sage):
+		Hud.msg("%s sadece sennin modunda atılabilir." % String(j["name"]), Color(1, 0.7, 0.4))
+		return
+	if need == "beast" and not (modes and (modes.beast or (modes.cloak != null and modes.cloak.level > 0))):
+		Hud.msg("%s sadece kuyruklu canavar modunda atılabilir." % String(j["name"]), Color(1, 0.55, 0.3))
+		return
 	if cooldowns.get(jid, 0.0) > 0.0:
 		Hud.msg("%s hazır değil (%.1fsn)" % [j["name"], cooldowns[jid]], Color(0.8, 0.8, 1))
 		return
