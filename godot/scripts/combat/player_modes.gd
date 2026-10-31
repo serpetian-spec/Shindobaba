@@ -231,6 +231,14 @@ func next_gate() -> void:
 	Buffs.add("gates", 9999.0, {"speed": 1.0 + gates * 0.15 * (1.0 + gm), "melee": 1.0 + gates * 0.35 * (1.0 + gm)})
 	_gate_look(gates)
 	_gate_burst(gates)
+	# kapı aurası + açılış şok dalgası/halka/moloz (kullanıcının sevdiği asıl kapı efektleri)
+	_set_aura("gates", [Color(0.3, 1.0, 0.5), Color(0.4, 0.9, 1.0), Color(0.2, 0.6, 1.0), Color(0.35, 1.0, 0.45), Color(0.3, 0.95, 0.4),
+		Color(0.25, 0.9, 0.35), Color(0.4, 0.85, 1.0)][gates - 1], 0.9 + gates * 0.3)
+	if gates >= 4:
+		VFX.shockwave(p.global_position + Vector3.UP * 0.2, Color(0.4, 1.0, 0.5), 8.0 + gates * 2.0, 0.5, true)
+		VFX.debris(p.global_position, Color(0.55, 0.45, 0.35), 10 + gates * 4, 8.0)
+		VFX.cracks(p.global_position, 2.0 + gates * 0.6)
+	FX.ring(p.global_position + Vector3.UP * 0.2, Color(0.4, 1.0, 0.6), 6.0 + gates * 2.0, 0.4)
 	Hud.banner("HACHIMON", names[gates], Color(0.4, 1.0, 0.6))
 	if Game.world:
 		Game.world.env.add_shake(0.3 * gates)
@@ -554,8 +562,6 @@ func _gate_look(g: int) -> void:
 		m.set_skin_tint(Color(0.85, 0.25, 0.2), 0.0 if g < 3 else [0, 0, 0, 0.25, 0.4, 0.45, 0.5, 0.55, 0.75][g])
 	if g <= 0:
 		return
-	if g < 6:
-		_set_aura("gates", Color(0.75, 0.9, 1.0) if g < 3 else Color(1.0, 0.55, 0.45), 0.8 + g * 0.2)
 	if g >= 4 and m:   # kabaran mavi damarlar: kol ve gövdede titreyen ince mavi çizgiler
 		for bone in ["LeftUpperArm", "RightUpperArm", "LeftLowerArm", "RightLowerArm", "UpperChest", "Neck"]:
 			var arc = Arcs.new()
@@ -569,18 +575,6 @@ func _gate_look(g: int) -> void:
 			if holder:
 				holder.add_child(arc)
 				_gate_fx.append(holder)
-	if g >= 6:   # yeşil alev aurası: bedeni saran, yukarı yalayan yeşil alev dilleri
-		var green = Color(0.35, 1.0, 0.45) if g == 6 else Color(0.55, 1.0, 0.6)
-		var t1 = FX.burst(Vector3(0, 0.2, 0), {"parent": p, "local": true, "amount": 28 + (g - 6) * 16, "life": 0.6, "tex": FX.tex_spark, "add": false, "size": 2.2 + (g - 6) * 0.6,
-			"radius": 0.55, "vmin": 1.5, "vmax": 3.5, "dir": Vector3.UP, "spread": 12.0, "gravity": Vector3(0, 3.0, 0), "explosive": 0.0,
-			"scale_curve": [[0.0, 0.5], [0.35, 1.0], [1.0, 0.3]], "colors": [Color(1, 1, 1, 0.0), Color(green.r, green.g, green.b, 1), Color(green.r * 0.6, green.g * 0.8, green.b * 0.6, 0.7), Color(0.2, 0.6, 0.3, 0.0)]})
-		var t2 = FX.burst(Vector3(0, 0.6, 0), {"parent": p, "local": true, "amount": 14, "life": 0.55, "tex": FX.tex_smoke, "add": false, "cel": true, "size": 1.2, "radius": 0.5,
-			"vmin": 1.0, "vmax": 2.6, "dir": Vector3.UP, "spread": 20.0, "gravity": Vector3(0, 3.0, 0), "explosive": 0.0, "glow": 1.2, "outline": 0.03, "rough": 0.2,
-			"outline_col": Color(0.1, 0.5, 0.2), "colors": [Color(0.85, 1.0, 0.85, 1), Color(green.r, green.g, green.b, 0.9), Color(0.2, 0.6, 0.3, 0.0)]})
-		for t in [t1, t2]:
-			if t:
-				t.one_shot = false
-				_gate_fx.append(t)
 
 
 ## Kapı açılış patlaması (anime): 5 hava sütunu, 6 yerde dönen kaya krateri, 7 hava kubbesi
@@ -628,13 +622,6 @@ func _process(dt: float) -> void:
 				_update_byakugan()
 	if gates > 0:
 		p.hp -= [0.0, 1.5, 3.0, 5.5, 9.0, 13.0, 18.0, 25.0][gates] * dt * maxf(0.3, 1.0 - Stats.skill(Game.profile, "gates") * 0.8)
-		if gates >= 6:   # 6. kapıdan sonra bedenden yeşil buhar yükselir
-			_steam_t -= dt
-			if _steam_t <= 0.0:
-				_steam_t = 0.12
-				# bedenden yükselen buhar (anime: ter buharlaşır) — yumuşak, açık yeşil-beyaz
-				FX.burst(p.global_position + Vector3.UP * 1.1, {"amount": 4, "life": 1.0, "tex": FX.tex_smoke, "add": false, "cel": false, "size": 0.9, "radius": 0.45,
-					"vmin": 1.5, "vmax": 3.0, "dir": Vector3.UP, "spread": 25.0, "colors": [Color(0.85, 1.0, 0.88, 0.0), Color(0.8, 1.0, 0.85, 0.45), Color(0.9, 1.0, 0.92, 0)]})
 		if p.hp <= p.max_hp * 0.1:
 			gates = 0
 			Buffs.remove("gates")
