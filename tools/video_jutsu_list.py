@@ -596,3 +596,31 @@ VIDEO_JUTSU += [
     ('konbi_henge', 'Konbi Henge (Birleşik Dönüşüm)', 'Combination Transformation', '', 5, 'melee', 'contract:kurbağa', 'contract:kurbağa',
      'Kurbağa ortağınla birleşip dev pençeli bir canavara dönüşür, tek ezici pençe darbesi indirirsin. Kurbağa sözleşmesi gerekir.', ['Tora', 'Ushi', 'Inu']),
 ]
+# --- klon / shurikenjutsu videoları (3JwKZA6TSsE, trU7RdvxTHY)
+VIDEO_JUTSU += [
+    ('kemuri_bunshin', 'Kemuri Bunshin (Duman Klonu)', 'Smoke Clone', '', 2, 'clone', 'clan', '',
+     'Bedenden kopan duman klona dönüşür; vurulunca dumana dağılıp çevreyi boğar ve yavaşlatır.', ['Hitsuji']),
+    ('taju_kemuri_bunshin', 'Tajū Kemuri Bunshin (Çoklu Duman Klonu)', 'Multi-Smoke Clone', '', 3, 'clone', 'clan', '',
+     'Dört duman klonu birden.', ['Hitsuji', 'Mi']),
+    ('nara_kage_bunshin', 'Kage Bunshin: Kage no Naka (Gölge İçinde Klon)', 'Shadow Clone Inside Shadow', '', 3, 'clone', 'clan', '',
+     'Gölgeden yükselen klon hedefin arkasından çıkar ve onu gölgeyle tutar (ışığa bağlı).', ['Ne']),
+    ('ryoken_bunshin', 'Ninken Ninpō: Ryōken Bunshin (Av Köpeği Klonları)', 'Ninja Hound Art: Hound Hair Clones', '', 3, 'clone', 'clan', '',
+     'Ninkeninin tüyleri dört köpek klonuna dönüşüp hedefe saldırır (10 sn).', ['Inu']),
+    ('kaifujutsu_shuriken', 'Kaifūjutsu: Shuriken (Mühür Çözme: Shuriken)', 'Unsealing Jutsu: Shuriken', '', 3, 'projectile', 'path:silah', '',
+     'Parşömen açılır, içinden art arda shuriken ve kunai fırlar.', []),
+    ('senbon_rensha', 'Senbon: Rensha (Hızlı Atış)', 'Rapid Fire Senbon', '', 2, 'projectile', 'clan', '',
+     'İki elden art arda düz hatta senbon yağmuru.', []),
+    ('genei_taju_shuriken', 'Gen\'ei Tajū Shuriken (Hayalet Çoklu Shuriken)', 'Multi Phantom Shuriken Technique', '', 3, 'projectile', 'scroll', '',
+     'Tek shuriken havada hayalet kopyalara bölünüp hedefin çevresine yağar.', ['Tora']),
+    ('enbu_ni_no_dan', 'Enbu: Ni no Dan (Dönen Vals: İkinci Kademe)', 'Spinning Waltz: Second Level', '', 4, 'projectile', 'path:silah', '',
+     'Havaya sıçrayıp dönerek silahları sarmal halinde her yöne savurursun.', []),
+    ('sogu_tensasai', 'Sōgu: Tensasai (Silah Kontrolü: Gökten Zincir Felaketi)', 'Weapon Control: Tensasai', '', 4, 'aoe', 'path:silah', '',
+     'Zincirli dev silahlar ve gürzler gökten hedefin üstüne çöker.', []),
+    ('soshuriken_no_jutsu', 'Sō Shuriken no Jutsu (Telli Shuriken)', 'Manipulated Shuriken Technique', '', 3, 'bind', 'scroll', '',
+     'Telli shurikenler hedefin çevresinde döner; teller çekilince hedef sarılıp bağlanır.', []),
+]
+EXTRA.setdefault('kemuri_bunshin', {})['clan'] = 'iburi'
+EXTRA.setdefault('taju_kemuri_bunshin', {})['clan'] = 'iburi'
+EXTRA.setdefault('nara_kage_bunshin', {})['clan'] = 'nara'
+EXTRA.setdefault('ryoken_bunshin', {})['clan'] = 'inuzuka'
+EXTRA.setdefault('senbon_rensha', {})['clan'] = 'shiranui'

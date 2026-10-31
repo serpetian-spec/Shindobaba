@@ -42,7 +42,7 @@ const PATHS := {
 		"passive": {"throw_dmg": 0.3, "w_all": 0.12},
 		"passive_desc": "Atış hasarı +%30, tüm silahlar +%12",
 		"order": ["buki_kuchiyose", "tesso_kusari", "soshoryu", "tekkosen", "ito_buki_arashi", "kuchiyose_tetsuzan",
-			"bashosen_kaze_no_maki", "bashosen_hi_no_maki", "bashosen_rai_no_maki", "bashosen_mizu_no_maki"],
+			"bashosen_kaze_no_maki", "bashosen_hi_no_maki", "bashosen_rai_no_maki", "bashosen_mizu_no_maki", "kaifujutsu_shuriken", "enbu_ni_no_dan", "sogu_tensasai"],
 		"quest": {"soshoryu": "dragons", "bashosen_kaze_no_maki": "fan"},
 		"dark": {},
 	},
