@@ -4312,7 +4312,11 @@ func impact_fx(el: String, col: Color, at: Vector3, s := 1.0) -> void:
 			FX.light(at, Color(1.0, 0.5, 0.15), 3.0 * s, 8.0 * s, 0.25)
 			if near_ground:
 				VFX.cracks(g, 2.5 * s, Color(0.08, 0.04, 0.02, 0.9), 6.0)
-		"katon", "bakuton":
+		"bakuton":   # Deidara patlaması: parlama + gri duman (ateş topu değil)
+			VFX.clay_blast(at, 1.1 * s)
+			if near_ground:
+				VFX.cracks(g, 2.5 * s, Color(0.1, 0.09, 0.08, 0.9), 6.0)
+		"katon":
 			VFX.explosion(at, 1.1 * s, col)
 			VFX.embers(at, col, int(30 * s), 12.0 * s)
 			if near_ground:
@@ -8717,7 +8721,7 @@ func p_nendo_bunshin(c: Node3D, _t: Node3D) -> void:
 	VFX.puffs(at + Vector3.UP, {"amount": 30, "life": 0.6, "size": 0.5, "radius": 0.6, "vmin": 1, "vmax": 3, "dir": Vector3.UP, "spread": 60.0, "add": false,
 		"colors": [Color(0.95, 0.95, 0.92, 0.9), Color(0.9, 0.9, 0.88, 0)]})
 	var d = decoy(c, at, 10.0, func(pos):
-		impact_fx("bakuton", Color(1, 0.8, 0.5), pos + Vector3.UP, 1.6)
+		VFX.clay_blast(pos + Vector3.UP, 1.6)
 		hit(c, pos + Vector3.UP, 4.0, inf(c, "nendo_bunshin", 1.4, {"knock": 14.0, "launch": 6.0, "kind": "heavy", "element": "bakuton"})))
 	if d:
 		every(10.0, 0.2, func(_i, _k):
@@ -8807,7 +8811,7 @@ func p_ningyo_kibaku_nendo(c: Node3D, t: Node3D) -> void:
 			var dir = aim_at(c, tt, from)
 			dir.y = 0
 			var pr = shot(c, from, dir.normalized(), 14.0, _clay_fig("doll", 1.4), inf(c, "ningyo_kibaku_nendo", 0.9, {"knock": 12.0, "launch": 5.0, "kind": "heavy", "element": "bakuton"}), tt, false, 2.5, func(p, _h):
-				impact_fx("bakuton", Color(1, 0.8, 0.5), p, 1.3))
+				VFX.clay_blast(p, 1.3))
 			pr.homing_turn = 4.0
 			var age = {"t": 0.0}
 			pr.on_tick = func(p: Projectile, dt: float) -> void:
@@ -9173,7 +9177,7 @@ func p_shi_wan(c: Node3D, t: Node3D) -> void:
 				return
 			var fig = _clay_fig("bird" if k % 2 == 0 else "spider", 1.3)
 			var pr = shot(c, from + Vector3.UP * 0.3, (aim_at(c, tt, from) + Vector3.UP * 0.25).normalized(), 18.0, fig, inf(c, "shi_wan", 0.7, {"knock": 10.0, "launch": 4.0, "kind": "heavy", "element": "bakuton"}), tt, false, 2.5, func(p, _h):
-				impact_fx("bakuton", Color(1, 0.8, 0.5), p, 1.1))
+				VFX.clay_blast(p, 1.1))
 			pr.homing_turn = 5.0)
 	Sfx.play("poof", from, 1.4)
 
@@ -10263,9 +10267,11 @@ func _ice_mat() -> Material:
 func _ice_spike(h: float, r: float) -> MeshInstance3D:
 	var mi = MeshInstance3D.new()
 	var cm = CylinderMesh.new()
-	cm.top_radius = 0.0; cm.bottom_radius = r; cm.height = h; cm.radial_segments = 6
+	cm.top_radius = 0.0; cm.bottom_radius = r; cm.height = h; cm.radial_segments = 4   # keskin yüzeyli buz (yuvarlak koni değil)
+	cm.rings = 1
 	mi.mesh = cm
 	mi.material_override = _ice_mat()
+	mi.rotation.y = randf() * TAU
 	return mi
 
 
@@ -10635,7 +10641,7 @@ func p_jibaku_bunshin(c: Node3D, t: Node3D) -> void:
 	c.global_position = gp(at - c.face_dir() * 5.0)
 	decoy(c, at, 8.0, func(pos):
 		VFX.star(pos + Vector3.UP, Color(1, 1, 1), 4.0, 0.2)
-		impact_fx("bakuton", Color(1, 0.75, 0.4), pos + Vector3.UP, 2.0)
+		VFX.clay_blast(pos + Vector3.UP, 2.0)
 		hit(c, pos + Vector3.UP, 5.0, inf(c, "jibaku_bunshin", 1.8, {"knock": 18.0, "launch": 7.0, "kind": "heavy", "element": "bakuton"}))
 		shake(0.9))
 	Sfx.play("poof", at, 1.0)
@@ -11988,7 +11994,7 @@ func p_shi_tsu(c: Node3D, t: Node3D) -> void:
 	var tw = dragon.create_tween()
 	tw.tween_property(dragon, "scale", Vector3.ONE, 0.4).set_trans(Tween.TRANS_BACK)
 	tw.tween_interval(3.0)
-	tw.tween_callback(func(): impact_fx("bakuton", Color(1, 0.8, 0.5), dragon.global_position, 2.0))
+	tw.tween_callback(func(): VFX.clay_blast(dragon.global_position, 2.0))
 	tw.tween_callback(dragon.queue_free)
 	for k in 5:
 		after(0.6 + k * 0.4, func():
@@ -11996,7 +12002,7 @@ func p_shi_tsu(c: Node3D, t: Node3D) -> void:
 				return
 			var from = dragon.global_position + c.face_dir() * 2.4 + Vector3.UP * 0.5
 			var pr = shot(c, from, aim_at(c, tt, from), 20.0, _clay_fig("bird", 1.6), inf(c, "shi_tsu", 0.7, {"knock": 12.0, "launch": 4.0, "kind": "heavy", "element": "bakuton"}), tt, false, 3.0, func(p, _h):
-				impact_fx("bakuton", Color(1, 0.8, 0.5), p, 1.4))
+				VFX.clay_blast(p, 1.4))
 			pr.homing_turn = 3.5
 			VFX.trail(pr, 0.15, Color(1, 1, 0.95, 0.6), Color(0.9, 0.9, 0.85, 0.3), Color(0.9, 0.9, 0.85, 0), 12, 0.0))
 	Sfx.play("roar", at, 1.3)
@@ -18054,8 +18060,7 @@ func p_doton_chokajugan_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 ## Patlama imzası: beyaz-pembe patlama ve keskin ışık çizgileri
 func _bakuha_burst(at: Vector3, s: float) -> void:
-	VFX.star(at, Color(1, 0.95, 0.9), 2.5 * s)
-	VFX.explosion(at, s, BAKUHA)
+	VFX.clay_blast(at, s)
 	for k in 6:
 		var a = randf() * TAU
 		VFX.bolt(at, at + Vector3(cos(a), randf_range(-0.2, 0.8), sin(a)) * 3.0 * s, Color(1, 0.9, 0.85), 0.1, 0.15, 0)
@@ -18996,37 +19001,41 @@ func p_hyoton_hyoryu_boppa(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.4)
 	var d = fwd(c, t)
 	var from = c.global_position + Vector3.UP * 1.6 + d
+	# buz ejderi: başı keskin buz kristallerinden, gövdesi yarı saydam buz (kara yılan değil)
+	var head = Node3D.new()
 	var b = MB.new()
-	var dark = Color(0.18, 0.22, 0.3)
-	b.add("sphere", Vector3(0, 0, 1.2), Vector3(1.6, 1.2, 2.6), dark)
-	b.add("box", Vector3(0, -0.45, 2.2), Vector3(1.1, 0.25, 1.4), dark.lightened(0.1))
+	var ice = Color(0.82, 0.93, 1.0)
+	b.add("cone", Vector3(0, 0, 1.4), Vector3(1.1, 2.8, 0.9), ice, Vector3(90, 0, 0), 4)          # sivri burun
+	b.add("cone", Vector3(0, -0.4, 1.2), Vector3(0.8, 2.2, 0.5), ice.darkened(0.08), Vector3(100, 0, 0), 4)   # alt çene
 	for sx in [-1.0, 1.0]:
-		b.add("sphere", Vector3(sx * 0.45, 0.25, 2.1), Vector3(0.25, 0.12, 0.12), Color(1.0, 0.15, 0.15))
-		b.add("cone", Vector3(sx * 0.5, 0.7, 0.6), Vector3(0.2, 1.0, 0.2), Color(0.75, 0.88, 1.0), Vector3(-50, 0, sx * 20), 5)
-	for k in 8:
-		b.add("cone", Vector3((k - 3.5) * 0.14, -0.3, 2.7), Vector3(0.07, 0.25, 0.07), Color(1, 0.3, 0.3), Vector3(180, 0, 0), 4)
-	for k in 7:
-		b.add("sphere", Vector3(0, 0, -0.6 - k * 1.1), Vector3(1.2 - k * 0.12, 1.0 - k * 0.1, 1.4), dark.lerp(Color(0.6, 0.8, 1.0), k * 0.08))
-		b.add("cone", Vector3(0, 0.55, -0.6 - k * 1.1), Vector3(0.25, 0.6, 0.25), Color(0.75, 0.88, 1.0), Vector3.ZERO, 4)
-	var dragon = mesh_of(b)
-	dragon.scale = Vector3.ONE * 1.4
+		b.add("cone", Vector3(sx * 0.45, 0.55, 0.2), Vector3(0.25, 1.4, 0.25), ice.lightened(0.1), Vector3(-55, 0, sx * 25), 4)   # buz boynuzlar
+		b.add("cone", Vector3(sx * 0.6, 0.0, 0.3), Vector3(0.3, 1.0, 0.3), ice, Vector3(0, 0, sx * 80), 4)
+	head.add_child(mesh_of(b, _ice_mat()))
+	head.scale = Vector3.ONE * 1.4
+	var body = VfxSerpent.new()
+	body.thin = 0.8
+	body.head = head
+	body.count = 12
+	body.spacing = 1.0
+	body.radius = 0.8
+	body.mat = _ice_mat()
 	VFX.gather(from, ICE, 1.6)
 	after(0.5, func():
 		if not live(c):
 			return
-		var pr = shot(c, from, aim_at(c, tg(c, t, 32.0), from), 22.0, dragon, inf(c, "hyoton_hyoryu_boppa", 3.0, {"knock": 24.0, "launch": 6.0, "kind": "heavy", "slow": 4.0, "hitstop": 0.12}), null, true, 1.8, func(p, _h):
+		var pr = shot(c, from, aim_at(c, tg(c, t, 32.0), from), 22.0, head, inf(c, "hyoton_hyoryu_boppa", 3.0, {"knock": 24.0, "launch": 6.0, "kind": "heavy", "slow": 4.0, "hitstop": 0.12}), null, true, 1.8, func(p, _h):
 			for k in 10:
 				var sp = _ice_spike(randf_range(1.5, 3.5), 0.4)
 				get_tree().current_scene.add_child(sp)
 				sp.global_position = gp(p + Vector3(randf_range(-3, 3), 0, randf_range(-3, 3))) + Vector3.UP * 0.8
-				sp.rotation = Vector3(randf_range(-0.5, 0.5), 0, randf_range(-0.5, 0.5))
+				sp.rotation = Vector3(randf_range(-0.5, 0.5), randf() * TAU, randf_range(-0.5, 0.5))
 				get_tree().create_timer(3.0).timeout.connect(sp.queue_free)
-			impact_fx("", ICE, p, 2.4)
+			impact_fx("hyoton", ICE, p, 2.4)
 			shake(1.0))
 		pr.radius = 1.6
-		_etrail(pr, "", Color(0.6, 0.8, 1.0), 2.2))
+		get_tree().current_scene.add_child(body)
+		Projectile.trail(pr, [Color(1, 1, 1, 0.8), Color(0.82, 0.94, 1.0, 0.5), Color(0.7, 0.88, 1.0, 0)], 1.6, 30, 0.4, null, true))
 	Sfx.play("roar", c.global_position, 0.8)
-
 
 ## Kubikiribōchō Kesiği: dev kesici iki yönlü savrulur; kana değince kendini onarır
 func p_hozuki_kubikiri_zan(c: Node3D, t: Node3D) -> void:
@@ -20515,7 +20524,7 @@ func p_kil_ucan_kus(c: Node3D, _t: Node3D) -> void:
 		var tw = bomb.create_tween()
 		tw.tween_property(bomb, "global_position", g + Vector3.UP * 0.3, maxf(0.2, (c.global_position.y - g.y) * 0.06))
 		tw.tween_callback(func():
-			VFX.explosion(g + Vector3.UP * 0.5, 1.2, Color(1.0, 0.85, 0.6))
+			VFX.clay_blast(g + Vector3.UP * 0.5, 1.2)
 			hit(c, g + Vector3.UP, 3.0, inf(c, "kil_ucan_kus", 0.6, {"knock": 8.0, "launch": 3.0, "kind": "heavy", "element": "bakuton"})))
 		tw.tween_callback(bomb.queue_free), func():
 		if is_instance_valid(bird):
@@ -26032,7 +26041,7 @@ func p_kibaku_awa(c: Node3D, t: Node3D) -> void:
 			var m = Node3D.new()
 			m.add_child(_bubble(0.8, Color(1.0, 0.8, 0.6)))
 			var pr = shot(c, from, aim_at(c, tt, from).rotated(Vector3.UP, randf_range(-0.25, 0.25)), 12.0, m, inf(c, "kibaku_awa", 0.5, {"knock": 8.0, "kind": "heavy", "element": "suiton"}), tt, false, 2.6, func(p, _h):
-				VFX.explosion(p, 0.7, Color(1.0, 0.6, 0.25))
+				VFX.clay_blast(p, 0.7)
 				hit(c, p, 2.6, inf(c, "kibaku_awa", 0.4, {"knock": 8.0, "launch": 3.0, "kind": "heavy", "element": "suiton"})))
 			pr.homing_turn = 1.5)
 	Sfx.play("water", c.global_position, 1.4)

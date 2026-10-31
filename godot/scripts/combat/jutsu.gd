@@ -2399,7 +2399,7 @@ func j_kibaku_nendo(c: Node3D, t: Node3D) -> void:
 				mi.material_override = Props.toon_color(Color(0.96, 0.95, 0.9))
 			pr.add_child(bird)
 			pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
-				VFX.explosion(pos, 1.0, Color(1.0, 0.6, 0.2))
+				VFX.clay_blast(pos, 1.0)
 				Combat.hit_sphere(c, pos, 4.0, _inf(c, "kibaku_nendo", 0.6, {"element": "bakuton"}), pr.hit_list)
 			get_tree().current_scene.add_child(pr)
 			pr.global_position = _hand(c) + Vector3.UP * 0.5

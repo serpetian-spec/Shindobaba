@@ -3313,7 +3313,7 @@ func c_bakuha_jirai(c: Node3D, t: Node3D) -> void:
 				if not enemies_near(c, p, 1.6).is_empty():
 					armed["on"] = false
 					mine.queue_free()
-					VFX.explosion(p + Vector3.UP * 0.5, 1.3, Color(1.0, 0.75, 0.3))
+					VFX.clay_blast(p + Vector3.UP * 0.5, 1.3)
 					hit(c, p + Vector3.UP, 3.0, inf(c, "bakuha_jirai", 0.8, {"knock": 12.0, "launch": 7.0, "kind": "heavy", "element": "bakuton"}))
 					shake(0.5), func():
 				if is_instance_valid(mine):
@@ -3335,7 +3335,7 @@ func c_bakuha_kibaku_te(c: Node3D, t: Node3D) -> void:
 	Combat.popup_text(tt.global_position + Vector3.UP * 2.4, "...", Color(1, 0.85, 0.4))
 	after(2.0, func():
 		var p = tt.global_position + Vector3.UP if is_instance_valid(tt) else c.global_position
-		VFX.explosion(p, 1.8, Color(1.0, 0.7, 0.3))
+		VFX.clay_blast(p, 1.8)
 		hit(c, p, 3.0, inf(c, "bakuha_kibaku_te", 2.2, {"knock": 16.0, "launch": 8.0, "kind": "heavy", "element": "bakuton", "hitstop": 0.12}))
 		Combat.popup_text(p + Vector3.UP * 1.4, "Katsu!", Color(1, 0.9, 0.5))
 		shake(0.8))
@@ -3347,7 +3347,7 @@ func c_bakuha_rensa(c: Node3D, t: Node3D) -> void:
 	for k in 7:
 		var p = gp(c.global_position + d * (3.0 + k * 3.0))
 		after(0.15 + k * 0.12, func():
-			VFX.explosion(p + Vector3.UP * 0.5, 0.8 + k * 0.18, Color(1.0, 0.7, 0.3))
+			VFX.clay_blast(p + Vector3.UP * 0.5, 0.8 + k * 0.18)
 			VFX.cracks(p, 2.0 + k * 0.3)
 			hit(c, p + Vector3.UP, 2.0 + k * 0.25, inf(c, "bakuha_rensa", 0.35, {"knock": 9.0, "launch": 5.0, "kind": "heavy", "element": "bakuton"}))
 			shake(0.25 + k * 0.05))

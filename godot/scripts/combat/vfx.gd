@@ -1301,3 +1301,15 @@ static func storm_orb(size := 1.0) -> Node3D:
 	halo.rotation.x = PI * 0.5
 	root.add_child(halo)
 	return root
+
+
+## Bakuton patlaması (anime Deidara): beyaz-sarı parlama + kısa sıcak çekirdek, ardından büyük gri-beyaz duman bulutu
+static func clay_blast(pos: Vector3, s := 1.0) -> void:
+	star(pos, Color(1, 1, 0.95), 3.0 * s, 0.18)
+	FX.light(pos, Color(1.0, 0.95, 0.8), 6.0 * s, 12.0 * s, 0.25)
+	# parlama: kısa ömürlü yumuşak ışık (cel topak değil — turuncu pamuk görünmesin)
+	FX.burst(pos, {"amount": int(6 * s) + 3, "life": 0.18, "size": 2.2 * s, "radius": 0.2 * s, "vmin": 0.5, "vmax": 2.0, "dir": Vector3.UP, "spread": 180.0, "add": true, "cel": false,
+		"tex": FX.tex_soft, "colors": [Color(1, 1, 0.96, 1), Color(1.0, 0.95, 0.8, 0.5), Color(1.0, 0.9, 0.7, 0)]})
+	puffs(pos, {"amount": int(18 * s) + 6, "life": 1.7, "size": 2.1 * s, "radius": 0.8 * s, "rough": 0.22, "outline": 0.035, "vmin": 2.0 * s, "vmax": 6.0 * s, "dir": Vector3.UP, "spread": 120.0, "add": false, "damp": 2.5,
+		"outline_col": Color(0.28, 0.27, 0.29), "shade": 0.3, "colors": [Color(0.58, 0.57, 0.58, 1), Color(0.48, 0.47, 0.49, 0.95), Color(0.38, 0.37, 0.39, 0.0)]})
+	debris(pos, Color(0.45, 0.43, 0.42), int(8 * s), 8.0 * s, 0.25)

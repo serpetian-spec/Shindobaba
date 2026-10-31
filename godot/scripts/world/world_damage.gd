@@ -5,7 +5,7 @@ extends Node
 ## Evler HouseKit.Placer MultiMesh örnekleridir: kayıtla bulunur, yanar (renk kararır), yıkılınca moloz yığını + çarpışma kalır.
 ## Her şey REGEN saniye sonra (oyuncu uzaktayken) eski hâline döner; dünya kalıcı olarak harabeye dönmez.
 
-const FIRE := ["katon", "yoton", "bakuton"]   # Shakuton kavurur (suyu çeker), tutuşturmaz
+const FIRE := ["katon", "yoton"]   # Shakuton kavurur, Bakuton patlar (duman): ortamı tutuşturmazlar
 const WATER := ["suiton"]                      # Futton buhar/asit, Hyōton buz: su değil
 const WIND := ["fuuton"]                       # Jinton toza ayrıştırır, savurmaz
 const REGEN := 300.0           # saniye: yıkılan/yanan şeyler geri gelir

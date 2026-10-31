@@ -138,8 +138,10 @@ static func grand(c: Node3D, d: Dictionary) -> float:
 static func impact_for(el: String, pos: Vector3, col: Color, s := 1.0) -> void:
 	VFX.linger(pos, el, col, VFX.epic * s)
 	match el:
-		"katon", "yoton", "bakuton":
-			VFX.explosion(pos, 0.5 * s + 0.3, col if el != "bakuton" else Color(1.0, 0.95, 0.85))
+		"bakuton":
+			VFX.clay_blast(pos, 0.6 * s + 0.4)
+		"katon", "yoton":
+			VFX.explosion(pos, 0.5 * s + 0.3, col)
 		"shakuton":   # kızıl parlama + beden suyunun buharı (alev yok)
 			FX.light(pos, Color(1.0, 0.35, 0.35), 3.0 * s, 7.0 * s, 0.2)
 			VFX.puffs(pos, {"amount": int(20 * s) + 6, "life": 1.1, "size": 0.8 * s, "radius": 0.4 * s, "vmin": 2, "vmax": 5, "dir": Vector3.UP, "spread": 55.0, "add": false,
@@ -554,8 +556,10 @@ static func _aoe(c: Node3D, d: Dictionary, t: Node3D, v: String) -> void:
 			Game.world.env.screen_flash(0.12)
 	else:
 		match el:
-			"katon", "bakuton", "yoton":
-				VFX.explosion(pos + Vector3.UP, (0.8 + tier * 0.35) * vr["size"], col if el != "bakuton" else Color(1.0, 0.95, 0.85))
+			"bakuton":
+				VFX.clay_blast(pos + Vector3.UP, (0.9 + tier * 0.35) * vr["size"])
+			"katon", "yoton":
+				VFX.explosion(pos + Vector3.UP, (0.8 + tier * 0.35) * vr["size"], col)
 			"shakuton":   # dev kavurucu küre şişip kızıl-beyaz buhara patlar
 				var so = VFX.scorch_orb(1.0)
 				scene().add_child(so)
