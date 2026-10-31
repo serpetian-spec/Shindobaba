@@ -230,7 +230,7 @@ func element_block(jid: String) -> String:
 	var j: Dictionary = Data.jutsu.get(jid, {})
 	var lp = String(j.get("learn", ""))
 	# göz teknikleri göz gücüyle çalışır (Amaterasu, Enton); ama Şimşek'i göze bağlayanlar Raiton ister
-	if lp.begins_with("path:") or lp.begins_with("sage") or lp.begins_with("beast:") or (lp.begins_with("eye:") and not jid in ["raiden", "kamui_raikiri", "indora_no_ya"]):
+	if lp.begins_with("path:") or lp.begins_with("sage") or lp.begins_with("beast:") or lp.begins_with("weapon:") or (lp.begins_with("eye:") and not jid in ["raiden", "kamui_raikiri", "indora_no_ya"]):
 		return ""
 	var els: Array = j.get("elements", [])
 	if els.is_empty() and String(j.get("element", "")) != "":
@@ -313,6 +313,8 @@ func can_learn(jid: String) -> String:
 		return "Klan tekniği"
 	if lp == "sage:any" and not "sage" in pr.get("skills", []):
 		return "Sennin modu gerekli"
+	if lp.begins_with("weapon:"):
+		return "%s ele geçirilince öğrenilir" % String(Gear.item(lp.substr(7)).get("name", lp.substr(7)))
 	if lp.begins_with("beast:"):
 		return "%s jinchūriki'si olmalısın" % String(BeastModels.INFO.get(lp.substr(6), {}).get("name", lp.substr(6))).split(" —")[0]
 	if lp.begins_with("contract:"):

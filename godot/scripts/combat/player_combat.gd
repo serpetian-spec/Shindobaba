@@ -711,6 +711,9 @@ func begin_cast(jid: String) -> void:
 	if need == "beast" and not in_beast:
 		Hud.msg("%s sadece kuyruklu canavar modunda atılabilir." % String(j["name"]), Color(1, 0.55, 0.3))
 		return
+	if need.begins_with("weapon:") and not need.substr(7) in Gear.held_ids(Game.profile):   # kılıca özgü teknik
+		Hud.msg("%s için %s kuşanmalısın." % [String(j["name"]), String(Gear.item(need.substr(7)).get("name", need.substr(7)))], Color(1, 0.75, 0.45))
+		return
 	if need.begins_with("contract:") and not Contracts.signed(need.substr(9)):   # kurbağa yağı vb.: sözleşme gerekir
 		Hud.msg("%s için %s gerekli." % [String(j["name"]), String(Contracts.DEFS.get(need.substr(9), {}).get("name", "çağırma sözleşmesi"))], Color(1, 0.7, 0.4))
 		return

@@ -336,3 +336,50 @@ VIDEO_JUTSU += [
     ('mokuton_shishi_gashira', 'Mokuton: Shishi Gashira (Aslan Başları)', 'Wood Release: Foo Dog Heads', 'mokuton', 4, 'projectile', 'kg:mokuton', '',
      'Tahtadan dev aslan başları yerden fışkırıp hedefe saldırır ve ısırır.', ['Tora', 'Inu']),
 ]
+# --- kenjutsu videosu (ObHeikoLgAk)
+VIDEO_JUTSU += [
+    ('akuro_basa_batto', 'Akuro Basa Battō (Yedi Kılıç Dansı)', 'Seven Swords Dance', '', 4, 'melee', 'trainer:kumo', '',
+     'Kollarında, ağzında ve dirseklerinde yedi kılıçla akrobatik dönüşler: her yöne art arda kesikler.', []),
+    ('nuibari_jigumo_nui', 'Chōtō Ninpō: Jigumo Nui (Toprak Örümceği Dikişi)', 'Stitching Spider', '', 4, 'bind', 'weapon:nuibari', 'weapon:nuibari',
+     'Nuibari\'nin teli hattaki herkesi delip birbirine diker: hepsi 3 sn bağlı kalır. Nuibari kuşanılmalı.', []),
+    ('hiramekarei_kaiho', 'Hiramekarei Kaihō (Hiramekarei Salınımı)', 'Hiramekarei Release', '', 4, 'melee', 'weapon:hiramekarei', 'weapon:hiramekarei',
+     'Depolanan chakra kılıcın ağzını dev bir çekice/bıçağa çevirir: geniş, ezici tek savuruş. Hiramekarei kuşanılmalı.', []),
+    ('chakura_shogeki_zan', 'Chakura Shōgeki Zan (Chakra Şok Kesiği)', 'Chakra Shockwave Slash', '', 3, 'projectile', 'trainer:taijutsu', '',
+     'Kılıca akıtılan chakra savuruşla ileri uçan bir kesik dalgasına dönüşür.', []),
+    ('hadan', 'Hadan (Kırıcı Darbe)', 'Fracture Strike', '', 3, 'melee', 'trainer:taijutsu', '',
+     'Tek, ağır aşağı kesik: zırhı ve savunmayı kırar.', []),
+    ('oborozukiyo', 'Oborozukiyo (Puslu Ay Gecesi)', 'Moonlit Night', '', 4, 'melee', 'trainer:taijutsu', '',
+     'Ay ışığı gibi süzülüp hedefin etrafında aynı anda birden çok kesik belirir.', []),
+    ('kabutowari_hakai', 'Kabutowari: Kabutowari (Miğfer Kıran)', 'Helmet Splitter', '', 4, 'melee', 'weapon:kabutowari', 'weapon:kabutowari',
+     'Baltayla saplayıp çekiçle vurursun: savunmayı ve zırhı parçalar, yer çatlar. Kabutowari kuşanılmalı.', []),
+    ('shibuki_happa_rokujushi', 'Bakutōjutsu: Happa Rokujūshi (Patlayan Kılıç — Ölümün Çoklu Patlaması)', 'Explosive Blade: Multiple Explosions of Death', '', 4, 'aoe', 'weapon:shibuki', 'weapon:shibuki',
+     'Shibuki\'nin patlayıcı etiketleri art arda patlar: önünde zincirleme patlama hattı. Shibuki kuşanılmalı.', []),
+    ('ura_kasumigiri', 'Ura Kasumigiri (Gizli Sis Kesiği)', 'Hidden Mist Slice', '', 3, 'melee', 'trainer:taijutsu', '',
+     'Sisin içinden belirip arkadan tek kesik.', []),
+    ('kumo_ryu_damashigiri', 'Kumo-Ryū Damashigiri (Bulut Tarzı Aldatma Kesiği)', 'Cloud Style: Deception Slice', '', 3, 'melee', 'trainer:kumo', '',
+     'Sahte bir savuruşla açık yakalayıp ters yönden gerçek kesiği indirirsin.', []),
+    ('konoha_ryu_yanagi', 'Konoha-Ryū: Yanagi (Yaprak Tarzı Söğüt)', 'Leaf Ninja Art: Yanagi', '', 3, 'counter', 'trainer:taijutsu', '',
+     'Söğüt dalı gibi esneyip gelen saldırıyı kılıçla savuşturur ve karşı kesik atarsın.', []),
+    ('susanoo_hozan', 'Susanoo: Hozan (Susanoo Yakalayan Kesik)', 'Susanoo: Captive Slash', '', 5, 'melee', 'eye:mangekyo', '',
+     'Susanoo\'nun dev eli hedefi yakalar, diğer eldeki kılıçla keser.', []),
+    ('kusanagi_sora_no_tachi', 'Kusanagi no Tsurugi: Sora no Tachi (Göğün Uzun Kılıcı)', 'Sword of Kusanagi: Longsword of the Sky', '', 4, 'projectile', 'weapon:chokuto', 'weapon:chokuto',
+     'Kusanagi elinden fırlayıp kendi başına uçarak hedefin etrafında kesikler atar. Kusanagi tarzı kılıç kuşanılmalı.', []),
+    ('shunrai_konbineshon', 'Shunrai: Konbinēshon Taggu (Anlık Şimşek Ortak Saldırı)', 'Instant Lightning: Combination Tag', 'raiton', 4, 'rush', 'trainer:kumo', '',
+     'Gölge klonla iki yandan şimşek gibi geçip çapraz kesik atarsın.', []),
+    ('suiton_suiren', 'Suiton: Suiren no Jutsu (Su Dövme)', 'Water Release: Water Forge', 'suiton', 3, 'buff', 'trainer:kiri', '',
+     'Sudan keskin bir kılıç dövüp eline alırsın: 10 sn vuruşların uzar ve su keser.', []),
+    ('mifune_ichi_no_tachi_homura', 'Mifune-Ryū: Ichi no Tachi — Homura (Birinci Kılıç: Alev)', 'Mifune Style: First Strike: Blaze', '', 4, 'melee', 'trainer:taijutsu', '',
+     'Göz açıp kapayıncaya kadar çekip kesersin: kesik izi alev gibi parlar.', []),
+    ('hiken_fusetsugiri', 'Hiken: Fūsetsugiri (Gizli Kılıç: Kar Fırtınası Kesiği)', 'Secret Sword: Snowstorm Slash', '', 4, 'aoe', 'trainer:taijutsu', '',
+     'Kar fırtınası gibi dönen kesikler: etrafındakiler kesilir ve donarak yavaşlar.', []),
+    ('chidori_koken', 'Chidori Kōken (Şimşek Işık Kılıcı)', 'Chidori Light Sword', 'raiton', 4, 'melee', 'weapon:chokuto', 'weapon:chokuto',
+     'Kılıca akıtılan Chidori ışıktan bir kılıç gibi uzar: uzun menzilli şimşek kesik. Kusanagi tarzı kılıç kuşanılmalı.', []),
+]
+# videodaki kılıçlara bağlı var olan teknikler: kanon kılıcı gerekir, kılıç ele geçince öğrenilir
+for _j, _w in {'cho_biburato_raitonto': 'kiba', 'fang_s_rush': 'kiba', 'raiton_raiga': 'kiba',
+               'kusanagi_no_tsurugi_chidorigatana': 'chokuto'}.items():
+    EXTRA[_j] = {'need': 'weapon:' + _w, 'learn': 'weapon:' + _w}
+for _j in ['akuro_basa_batto', 'chakura_shogeki_zan', 'hadan', 'oborozukiyo', 'ura_kasumigiri', 'kumo_ryu_damashigiri', 'konoha_ryu_yanagi',
+           'mifune_ichi_no_tachi_homura', 'hiken_fusetsugiri', 'nuibari_jigumo_nui', 'hiramekarei_kaiho', 'kabutowari_hakai', 'shibuki_happa_rokujushi',
+           'kusanagi_sora_no_tachi', 'shunrai_konbineshon', 'chidori_koken']:
+    EXTRA.setdefault(_j, {})['category'] = 'kenjutsu'

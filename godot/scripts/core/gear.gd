@@ -632,7 +632,29 @@ static func grant(p: Dictionary, id: String, equip_slot := "", c1 = null, c2 = n
 	p["gear"].append(g)
 	if equip_slot != "":
 		p["equip"][equip_slot] = uid
+	if p == Game.profile:
+		teach_weapon_arts(p, id)
 	return uid
+
+
+## Kılıca özgü teknikler (learn "weapon:<id>"): o kılıç ele geçince öğrenilir (Samehada, Kiba, Hiramekarei...)
+static func teach_weapon_arts(p: Dictionary, id: String) -> void:
+	for jid in Data.jutsu:
+		var j = Data.jutsu[jid]
+		if not j is Dictionary or String(j.get("learn", "")) != "weapon:" + id or jid in p.get("learned", []):
+			continue
+		Progress.learn(jid, false)
+		Hud.msg("%s ile yeni teknik: %s" % [String(item(id).get("name", id)), String(j.get("name", jid))], Color(0.85, 0.9, 1.0))
+
+
+## Kuşanılı silah kimlikleri (sağ/sol el, sırt)
+static func held_ids(p: Dictionary) -> Array:
+	var out = []
+	for slot in p.get("equip", {}):
+		var g = find(p, p["equip"][slot])
+		if not g.is_empty():
+			out.append(String(g["id"]))
+	return out
 
 
 static func find(p: Dictionary, uid) -> Dictionary:

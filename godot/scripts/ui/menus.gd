@@ -2047,6 +2047,8 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 			txt = "Göz tekniği gerekir"
 		elif lp.begins_with("sage"):
 			txt = "Sennin eğitimi gerekir (%s)" % lp.trim_prefix("sage:")
+		elif lp.begins_with("weapon:"):
+			txt = "%s ele geçirilince öğrenilir" % String(Gear.item(lp.substr(7)).get("name", lp.substr(7)))
 		elif lp.begins_with("beast:"):
 			txt = "%s jinchūriki'si olunca canavar öğretir (Sv.%d)" % [String(BeastModels.INFO.get(lp.substr(6), {}).get("name", lp.substr(6))).split(" —")[0], int(j.get("level", 1))]
 		elif lp.begins_with("contract:"):
