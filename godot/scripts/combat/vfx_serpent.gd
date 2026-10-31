@@ -62,6 +62,9 @@ func _ready() -> void:
 		if mat is ShaderMaterial and mat.shader and mat.shader.resource_path.ends_with("vfx_fire.gdshader"):
 			mat = mat.duplicate()
 			mat.set_shader_parameter("fres_k", 0.5)
+			# "alev dili" köşe kaydırması dünya yüksekliğine göre çalışır: tüp gövdeyi ezip görünmez yapıyordu (Kokuryū)
+			mat.set_shader_parameter("tongue", 0.0)
+			mat.set_shader_parameter("erode", minf(0.42, float(mat.get_shader_parameter("erode"))))
 		_tube.material_override = mat
 		_tube.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		_tube.extra_cull_margin = 400.0
@@ -241,7 +244,7 @@ func _style_fx(pts: Array, dt: float) -> void:
 	_fx_t -= dt
 	if _fx_t > 0.0 or pts.size() < 3 or VFX.busy():
 		return
-	_fx_t = 0.045 if style == "fire" else 0.07
+	_fx_t = 0.045 if style in ["fire", "dark"] else 0.07
 	var p: Vector3 = pts[randi_range(1, pts.size() - 1)][0]
 	match style:
 		"water":
@@ -254,9 +257,14 @@ func _style_fx(pts: Array, dt: float) -> void:
 				"colors": [Color(1, 0.9, 0.4, 1), Color(1, 0.45, 0.05, 0.9), Color(0.5, 0.1, 0.02, 0.0)]})
 			VFX.embers(p, Color(1.0, 0.6, 0.15), 4, 4.0, 0.6)
 		"dark":
-			FX.burst(p, {"amount": 5, "life": 0.6, "tex": FX.tex_smoke, "add": false, "cel": false, "size": 1.0 * maxf(1.0, radius), "radius": radius * 0.6,
-				"vmin": 0.5, "vmax": 2.0, "dir": Vector3.UP, "spread": 80.0, "gravity": Vector3(0, 1.5, 0),
-				"colors": [Color(0.05, 0.02, 0.08, 0.9), Color(0.2, 0.05, 0.3, 0.6), Color(0.1, 0.02, 0.15, 0.0)]})
+			# kara alev dilleri (cel, mor kenarlı) + koyu duman
+			FX.burst(p, {"amount": 5, "life": 0.5, "tex": FX.tex_smoke, "add": false, "cel": true, "size": 1.0 * maxf(1.0, radius), "radius": radius * 0.6,
+				"vmin": 1.0, "vmax": 3.0, "dir": Vector3.UP, "spread": 60.0, "gravity": Vector3(0, 3.0, 0), "outline": 0.035, "outline_col": Color(0.45, 0.1, 0.6),
+				"colors": [Color(0.12, 0.04, 0.16, 1.0), Color(0.06, 0.02, 0.09, 0.95), Color(0.2, 0.05, 0.3, 0.0)]})
+			FX.burst(p, {"amount": 3, "life": 0.8, "tex": FX.tex_smoke, "add": false, "cel": false, "size": 1.2 * maxf(1.0, radius), "radius": radius * 0.6,
+				"vmin": 0.5, "vmax": 1.5, "dir": Vector3.UP, "spread": 80.0, "gravity": Vector3(0, 1.5, 0),
+				"colors": [Color(0.05, 0.02, 0.08, 0.7), Color(0.15, 0.05, 0.22, 0.4), Color(0.1, 0.02, 0.15, 0.0)]})
+			VFX.embers(p, Color(0.6, 0.15, 0.8), 3, 3.0, 0.6)
 		"lightning":
 			FX.burst(p, {"amount": 6, "life": 0.2, "tex": FX.tex_spark, "size": 0.8, "vmin": 4.0, "vmax": 9.0, "spread": 180.0,
 				"colors": [Color(1, 1, 1, 1), col.lightened(0.4), Color(col.r, col.g, col.b, 0)]})

@@ -27308,18 +27308,24 @@ func p_katon_homura_ryusei(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.0)
 	var tt = tg(c, t, 30.0)
 	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 14.0)
-	for k in 9:
-		after(0.4 + k * 0.12, func():
-			var q = at + Vector3(randf_range(-6, 6), 0, randf_range(-6, 6))
+	# alev göktaşları: geniş alana rastgele (12 m yarıçap) iri ateş topları yağar, her biri büyük patlama + yanan çukur bırakır
+	for k in 12:
+		after(0.35 + k * 0.11 + randf() * 0.06, func():
+			var ang = randf() * TAU
+			var q = gp(at + Vector3(cos(ang), 0, sin(ang)) * sqrt(randf()) * 12.0)
 			var m = Node3D.new()
-			m.add_child(VFX.fireball(1.3))
-			scene_add(m, q + Vector3(randf_range(-6, 6), 26.0, randf_range(-6, 6)))
-			VFX.element_trail(m, "katon", FIRE, 1.4)
+			m.add_child(VFX.fireball(randf_range(2.0, 2.8)))
+			scene_add(m, q + Vector3(randf_range(-8, 8), 30.0, randf_range(-8, 8)))
+			VFX.element_trail(m, "katon", FIRE, 2.2)
 			var tw = m.create_tween()
-			tw.tween_property(m, "global_position", q, 0.45).set_ease(Tween.EASE_IN)
+			tw.tween_property(m, "global_position", q + Vector3.UP * 0.5, 0.5).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
 			tw.tween_callback(func():
-				VFX.explosion(q + Vector3.UP * 0.4, 0.9, Color(1.0, 0.55, 0.15))
-				hit(c, q + Vector3.UP, 2.6, inf(c, "katon_homura_ryusei", 0.5, {"knock": 8.0, "launch": 3.0, "kind": "heavy", "element": "katon", "burn": 2.0}))
+				VFX.explosion(q + Vector3.UP * 0.6, 2.2, Color(1.0, 0.55, 0.15))
+				VFX.cracks(q, 4.0)
+				if k % 3 == 0:
+					VFX.linger(q, "katon", FIRE, 1.8, 4.0)
+				hit(c, q + Vector3.UP, 4.2, inf(c, "katon_homura_ryusei", 0.55, {"knock": 10.0, "launch": 4.0, "kind": "heavy", "element": "katon", "burn": 2.0}))
+				shake(0.35)
 				m.queue_free()))
 	Sfx.play("fire", c.global_position, 0.6)
 
@@ -27348,7 +27354,7 @@ func p_katon_enryuheki(c: Node3D, t: Node3D) -> void:
 	var side = d.cross(Vector3.UP).normalized()
 	var center = gp(c.global_position + d * 3.0)
 	var head = Node3D.new()
-	scene_add(head, center - side * 5.0)
+	scene_add(head, center + Vector3.UP * 1.8)   # gövde baştan kopmasın: baş hareketin başladığı yerde doğar
 	var fm = VFX.mat_fire("fire", 2.6, 2.2, 0.36, 1.4, 0.1, Vector3(0, 0, 1))
 	head.add_child(VfxSerpent.dragon_head(fm, 1.6, Color(1, 1, 0.6)))
 	var body = VfxSerpent.new()
@@ -27363,7 +27369,12 @@ func p_katon_enryuheki(c: Node3D, t: Node3D) -> void:
 	every(4.0, 1.0 / 30.0, func(_i, k):   # ejder önünde ileri geri kıvrılarak duvar olur
 		if is_instance_valid(head):
 			var x = sin(k * TAU * 1.5) * 5.0
-			head.global_position = center + side * x + Vector3.UP * (1.8 + sin(k * TAU * 3.0) * 0.8)
+			var np = center + side * x + Vector3.UP * (1.8 + sin(k * TAU * 3.0) * 0.8)
+			var mv = np - head.global_position
+			head.global_position = np
+			# baş gittiği yöne bakar; gövde onun izinden gelir (baş yanda sabit bakıp gövdeden ayrı duruyordu)
+			if mv.length() > 0.01:
+				head.look_at(np + mv, Vector3.UP)
 		for e in enemies_near(c, center, 5.5):
 			if live(e) and e.has_method("apply_status"):
 				e.apply_status("burn", 0.6)

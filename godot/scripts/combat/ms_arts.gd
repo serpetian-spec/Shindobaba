@@ -422,7 +422,7 @@ static func m_enton_kokuryu(c: Node3D, t: Node3D) -> void:
 	VFX.black_smolder(Jutsu._ground(start), 2.0, 3.0)
 	var pr = Projectile.new()
 	pr.shooter = c
-	pr.vel = Vector3.UP * 12.0 + fd * 6.0
+	pr.vel = Vector3.UP * 7.0 + fd * 12.0
 	pr.radius = 1.6
 	pr.life = 3.5
 	pr.homing = tg
@@ -444,8 +444,9 @@ static func m_enton_kokuryu(c: Node3D, t: Node3D) -> void:
 	var age = {"t": 0.0}
 	pr.on_tick = func(p: Projectile, dt: float) -> void:
 		age["t"] += dt
-		if age["t"] < 0.7:
-			p.vel = Vector3.UP * 20.0 + fd.cross(Vector3.UP) * cos(age["t"] * 8.0) * 10.0 + fd * 4.0
+		# alçak, kıvrılarak yükselir (çok yükseğe fırlayıp düşmesin), sonra hedefe dalar
+		if age["t"] < 0.45:
+			p.vel = Vector3.UP * 8.0 + fd.cross(Vector3.UP) * cos(age["t"] * 8.0) * 9.0 + fd * 12.0
 			return
 		p.homing_turn = 6.0
 		if tg == null and p.life < 2.9:
