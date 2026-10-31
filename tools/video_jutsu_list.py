@@ -624,3 +624,16 @@ EXTRA.setdefault('taju_kemuri_bunshin', {})['clan'] = 'iburi'
 EXTRA.setdefault('nara_kage_bunshin', {})['clan'] = 'nara'
 EXTRA.setdefault('ryoken_bunshin', {})['clan'] = 'inuzuka'
 EXTRA.setdefault('senbon_rensha', {})['clan'] = 'shiranui'
+# --- Shakuton ara teknikleri (Pakura tarzı; Sv.8 uyanış ile Sv.20 Kajōsatsu arası boşluk)
+VIDEO_JUTSU += [
+    ('shakuton_shakkyu', 'Shakuton: Shakkyū (Kavurucu Küre)', 'Scorch Release: Scorching Orb', 'shakuton', 2, 'projectile', 'kg:shakuton', '',
+     'Avuçta tek kavurucu küre toplanıp fırlar; isabet ettiği yerden buhar fışkırır.', ['Tora', 'Uma']),
+    ('shakuton_shakken', 'Shakuton: Shakken (Kavurucu Kılıç)', 'Scorch Release: Scorching Blade', 'shakuton', 3, 'melee', 'kg:shakuton', '',
+     'Kılıcın ağzı kavurucu chakrayla sarılır: üç kesik, her isabet hedefi içten kurutup yavaşlatır.', ['Uma']),
+    ('shakuton_kaiten_shakkyu', 'Shakuton: Kaiten Shakkyū (Dönen Kavurucu Küreler)', 'Scorch Release: Orbiting Scorch Orbs', 'shakuton', 3, 'buff', 'kg:shakuton', '',
+     'Üç küre 8 sn bedeninin çevresinde döner; yaklaşanı kavurur, gelen küçük mermileri yakar.', ['Tora', 'Mi']),
+]
+EXTRA.setdefault('shakuton_shakkyu', {}).update({'level': 8, 'rank': 1, 'category': 'kekkei_genkai'})
+EXTRA.setdefault('shakuton_shakken', {}).update({'level': 12, 'rank': 1, 'category': 'kekkei_genkai'})
+EXTRA.setdefault('shakuton_kaiten_shakkyu', {}).update({'level': 16, 'rank': 2, 'category': 'kekkei_genkai'})
+EXTRA.setdefault('shakuton_kajosatsu', {}).update({'level': 20, 'rank': 2})

@@ -341,7 +341,9 @@ static func lightning_ball(size := 1.0, col := Color(0.45, 0.7, 1.0)) -> Node3D:
 ## Elemente göre mermi çekirdeği
 static func element_core(el: String, col: Color, size: float) -> Node3D:
 	match el:
-		"katon", "shakuton":
+		"shakuton":
+			return scorch_orb(size)
+		"katon":
 			return fireball(size, fire_preset_for(col))
 		"yoton", "bakuton":
 			return fireball(size, "lava")
@@ -935,3 +937,55 @@ static func linger(pos: Vector3, el: String, col: Color, g: float, dur := 3.0) -
 	tw2.tween_interval(dur + 0.6)
 	tw2.tween_property(root, "scale", Vector3(1, 0.05, 1), 0.4)
 	tw2.tween_callback(root.queue_free)
+
+
+## Shakuton küresi (anime Pakura): pürüzsüz kızıl küre, beyaz-sıcak merkez, dışta yumuşak kırmızı hale,
+## yüzeyde çapraz kalın beyaz parıltı çizgileri. Alev / dil / kor YOK.
+static func scorch_orb(size := 1.0) -> Node3D:
+	size *= epic
+	var root = Node3D.new()
+	var r = 0.5 * size
+	# dış hale: yarı saydam kırmızı, kenarı yumuşak (fresnel benzeri: arka yüz)
+	var halo = MeshInstance3D.new()
+	halo.mesh = _sphere(r * 1.25, 20, 12)
+	var hm = StandardMaterial3D.new()
+	hm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	hm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	hm.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	hm.albedo_color = Color(1.0, 0.15, 0.2, 0.45)
+	hm.cull_mode = BaseMaterial3D.CULL_FRONT
+	halo.material_override = hm
+	root.add_child(halo)
+	# kızıl küre: merkez beyaz-sıcak, kenar kızıl, çapraz beyaz şeritler (vfx_scorch shader)
+	var shell = MeshInstance3D.new()
+	shell.mesh = _sphere(r, 28, 18)
+	var sm = ShaderMaterial.new()
+	sm.shader = preload("res://shaders/vfx_scorch.gdshader")
+	shell.material_override = sm
+	root.add_child(shell)
+	# hafif nabız (sıcaklık titremesi)
+	var tw = root.create_tween().set_loops()
+	tw.tween_property(halo, "scale", Vector3.ONE * 1.08, 0.18)
+	tw.tween_property(halo, "scale", Vector3.ONE * 0.96, 0.18)
+	return root
+
+
+## Merkezi opak, kenara saydamlaşan dairesel doku (tek sefer üretilir)
+static var _radial_cache := {}
+static func _radial_tex(inner: Color, outer: Color) -> Texture2D:
+	var key = str(inner) + str(outer)
+	if _radial_cache.has(key):
+		return _radial_cache[key]
+	var g = Gradient.new()
+	g.set_color(0, inner)
+	g.add_point(0.45, inner.lerp(outer, 0.25))
+	g.set_color(g.get_point_count() - 1, outer)
+	var t = GradientTexture2D.new()
+	t.gradient = g
+	t.fill = GradientTexture2D.FILL_RADIAL
+	t.fill_from = Vector2(0.5, 0.5)
+	t.fill_to = Vector2(1.0, 0.5)
+	t.width = 64
+	t.height = 64
+	_radial_cache[key] = t
+	return t
