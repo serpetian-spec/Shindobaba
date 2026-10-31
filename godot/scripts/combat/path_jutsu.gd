@@ -6521,11 +6521,11 @@ func p_katon_gamayu_endan(c: Node3D, t: Node3D) -> void:
 	var toad = mesh_of(_elder_toad(false))
 	get_tree().current_scene.add_child(toad)
 	toad.global_position = toad_at
-	toad.scale = Vector3.ONE * 4.5
+	toad.scale = Vector3.ONE * 2.0
 	toad.rotation.y = atan2(d.x, d.z)
 	var oil = VFX.mat_water(Color(0.45, 0.32, 0.08), Color(0.78, 0.6, 0.22), Color(0.95, 0.82, 0.4), Vector3(0, 1, 0), 0.95, 0.8, 0.12)
 	after(0.4, func():
-		stream_fx(toad_at + Vector3.UP * 0.9 + d * 0.6, (d - Vector3.UP * 0.04).normalized(), 14.0, 1.6, oil, 0.5)
+		stream_fx(toad_at + Vector3.UP * 0.5 + d * 0.5, (d - Vector3.UP * 0.04).normalized(), 14.0, 1.6, oil, 0.5)
 		Sfx.play("water", toad_at, 0.6))
 	after(0.7, func():
 		if not live(c):
@@ -27219,16 +27219,40 @@ func p_katon_hikakure(c: Node3D, t: Node3D) -> void:
 
 
 func p_gamayu_endan(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.2)
+	busy(c, 1.8)
 	var d = fwd(c, t)
-	var oil = Color(0.75, 0.62, 0.25)
-	# kurbağa yağı: önce sarı yağ akıntısı, sonra ateşlenip dev alev seline döner
-	_water_jet(c, _mouth_pos(c), d, 24.0, 0.8, inf(c, "gamayu_endan", 0.1, {"element": "katon"}), null, 0.7, Callable(), 10)
-	after(0.45, func():
-		if live(c):
-			_fire_stream(c, _mouth_pos(c), d, 24.0, 2.6, "gamayu_endan", 2.2, "lava")
-			GroundFX.add(c.global_position + d * 14.0, "burning", 5.0, 5.0, c))
-	Sfx.play("fire", c.global_position, 0.5)
+	var side = d.cross(Vector3.UP).normalized()
+	# anime (Jiraiya + Gamabunta): arkada dev kurbağa dumandan belirir, ağzından kalın sarı yağ seli tükürür;
+	# kullanıcı alevi üfler — yağ tutuşup ufku kaplayan yağlı alev tufanına döner, yer yanan yağ gölüyle kaplanır
+	var toad_at = gp(c.global_position - d * 3.5 + side * 1.2)
+	summon_circle(toad_at, 3.0, Color(1, 0.55, 0.15), 0.6)
+	FX.smoke_puff(toad_at + Vector3.UP * 2.0, 3.5, 30)
+	var toad = mesh_of(_elder_toad(false))
+	get_tree().current_scene.add_child(toad)
+	toad.global_position = toad_at
+	toad.scale = Vector3.ONE * 6.5
+	toad.rotation.y = atan2(d.x, d.z)
+	var mouth = toad_at + Vector3.UP * 2.0 + d * 2.0
+	var oil = VFX.mat_water(Color(0.45, 0.32, 0.08), Color(0.78, 0.6, 0.22), Color(0.95, 0.82, 0.4), Vector3(0, 1, 0), 0.95, 0.8, 0.12)
+	after(0.35, func():
+		stream_fx(mouth, (d - Vector3.UP * 0.08).normalized(), 26.0, 2.4, oil, 0.6)
+		Sfx.play("water", toad_at, 0.5))
+	after(0.75, func():
+		if not live(c):
+			return
+		anim(c, "push", 1.3)
+		_flame_jet(c, mouth, (d - Vector3.UP * 0.05).normalized(), 30.0, 7.0, 1.1, 2.4)
+		_flame_jet(c, _mouth_pos(c), d, 8.0, 2.0, 0.4, 1.0)
+		Combat.hit_zone(c, c.global_position, d, 30.0, 34.0, 5.0, inf(c, "gamayu_endan", 2.4, {"knock": 14.0, "kind": "heavy", "element": "katon", "burn": 5.0}))
+		for k in 3:
+			GroundFX.add(c.global_position + d * (8.0 + k * 7.0), "burning", 5.5, 6.0, c)
+			VFX.linger(gp(c.global_position + d * (8.0 + k * 7.0)), "katon", FIRE, 2.6, 6.0)
+		shake(1.2)
+		Sfx.play("fire", c.global_position, 0.5))
+	after(2.2, func():
+		if is_instance_valid(toad):
+			FX.smoke_puff(toad.global_position + Vector3.UP * 2.0, 3.0, 26)
+			toad.queue_free())
 
 
 func p_katon_kaenbu(c: Node3D, t: Node3D) -> void:
@@ -27247,15 +27271,36 @@ func p_katon_kaenbu(c: Node3D, t: Node3D) -> void:
 
 
 func p_katon_ryuka(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.9)
+	busy(c, 1.0)
 	var tt = tg(c, t, 26.0)
-	var mo = _mouth_pos(c)
-	var end = (tt.global_position + Vector3.UP) if tt else mo + c.face_dir() * 20.0
-	# ip boyunca koşan alev: önce ince tel parlar, sonra alev telin üstünden hedefe kadar koşar
-	VFX.bolt(mo, end, Color(0.85, 0.85, 0.9), 0.02, 0.6, 0)
-	after(0.2, func():
-		if live(c):
-			_fire_stream(c, mo, (end - mo).normalized(), mo.distance_to(end), 0.9, "katon_ryuka", 1.8))
+	# ağızdan hedefe uzanan ince çelik tel; alev telin ÜSTÜNDEN koşar ve tel hedefi takip eder (dümdüz giden alev değil)
+	var st0 = {"u": 0.0, "done": false}
+	var end_of = func() -> Vector3:
+		if tt and live(tt):
+			return tt.global_position + Vector3.UP
+		return _mouth_pos(c) + c.face_dir() * 20.0 if live(c) else c.global_position
+	every(1.0, 0.03, func(_i, _k):
+		if not live(c):
+			return
+		var mo = _mouth_pos(c)
+		var end: Vector3 = end_of.call()
+		# tel: hafif sarkan ince parlak çizgi
+		var mid = mo.lerp(end, 0.5) - Vector3.UP * 0.3
+		WindFX.streak(func(q: float) -> Vector3: return mo.lerp(mid, q).lerp(mid.lerp(end, q), q), 0.05, 0.015, Color(0.85, 0.85, 0.9), 0.0, 10)
+		if st0["done"]:
+			return
+		st0["u"] = minf(1.0, st0["u"] + 0.075)
+		var u: float = st0["u"]
+		for q in 3:
+			var w = clampf(u - randf() * 0.12, 0.0, 1.0)
+			var p = mo.lerp(mid, w).lerp(mid.lerp(end, w), w)
+			VFX.puffs(p, {"amount": 2, "life": 0.4, "size": 0.7, "radius": 0.15, "vmin": 0.5, "vmax": 1.5, "dir": Vector3.UP, "spread": 50.0, "damp": 1.0, "gravity": Vector3(0, 3.0, 0),
+				"glow": 1.15, "hot": 0.6, "outline_col": Color(0.7, 0.2, 0.03), "outline": 0.03, "rough": 0.2,
+				"colors": [Color(1.0, 0.95, 0.55, 1), Color(1.0, 0.6, 0.12, 1), Color(0.9, 0.3, 0.05, 0.8), Color(0.45, 0.1, 0.03, 0)]})
+		if u >= 1.0:
+			st0["done"] = true
+			impact_fx("katon", FIRE, end, 1.6)
+			hit(c, end, 2.8, inf(c, "katon_ryuka", 1.8, {"knock": 10.0, "kind": "heavy", "element": "katon", "burn": 3.0})), Callable())
 	Sfx.play("fire", c.global_position, 0.8)
 
 

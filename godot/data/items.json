@@ -347,13 +347,6 @@
   "jutsu": "katon_goryuka_no_jutsu",
   "desc": "B — Gökten düşen çoklu ejder başlı alev mermileri."
  },
- "scroll_katon_zukokku": {
-  "name": "Parşömen: Katon: Zukokku",
-  "price": 800,
-  "kind": "scroll",
-  "jutsu": "katon_zukokku",
-  "desc": "B — Maske canavarının ağzından dev alev patlaması."
- },
  "scroll_gofu_kekkai": {
   "name": "Parşömen: Gofū Kekkai",
   "price": 400,

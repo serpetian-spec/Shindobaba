@@ -6228,40 +6228,6 @@
   "series": "Naruto Shippūden",
   "meaning": "Küle Saklanma"
  },
- "katon_zukokku": {
-  "id": "katon_zukokku",
-  "name": "Katon: Zukokku",
-  "name_en": "Fire Release: Intelligent Hard Work",
-  "cost": 34,
-  "cd": 11.7,
-  "element": "katon",
-  "elements": [
-   "katon"
-  ],
-  "natures": [
-   "katon"
-  ],
-  "clan": "",
-  "level": 10,
-  "rank": 2,
-  "learn": "scroll",
-  "desc": "Maske canavarının ağzından dev alev patlaması.",
-  "seals": [
-   "Ne",
-   "Inu",
-   "Tora"
-  ],
-  "canon_rank": "B",
-  "tier": 3,
-  "category": "ninjutsu",
-  "shape": "aoe",
-  "range": "Short, Mid, Long",
-  "requires": {},
-  "signature": false,
-  "kinjutsu": false,
-  "series": "Naruto Shippūden",
-  "meaning": "Zeki Emek"
- },
  "katon_hosenka_tsumabeni": {
   "id": "katon_hosenka_tsumabeni",
   "name": "Katon: Hōsenka Tsumabeni",
@@ -20451,7 +20417,8 @@
   "teshi_sendan": "bone_bullets",
   "katon_karyu_endan": "katon_karyuu",
   "sarutobi_karyu": "katon_karyuu",
-  "sarutobi_karyu_endan": "katon_karyuu"
+  "sarutobi_karyu_endan": "katon_karyuu",
+  "katon_zukokku": "kakuzu_maske_katon"
  },
  "kusanagi_kuchi": {
   "id": "kusanagi_kuchi",

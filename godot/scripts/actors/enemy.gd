@@ -121,7 +121,7 @@ const RANK_I := {"E": 0, "D": 1, "C": 2, "B": 3, "A": 4, "S": 5}
 const SIGNATURE := ["raiton_armor", "kuroi_kaminari", "joki_boi", "raiton_chidori", "raiton_nagashi", "chidori_nagashi", "chidori_senbon", "chidori_eiso",
 	"kusanagi_no_tsurugi_chidorigatana", "raiton_hebi_ikazuchi", "katon_ryuen_hoka_no_jutsu", "raiton_raiju_tsuiga", "bashosen_hi_no_maki", "bashosen_kaze_no_maki",
 	"kaze_no_yaiba", "byoen_hoka", "kumo_ryu_kaengiri", "mujin_meisai", "doton_kajugan_no_jutsu", "doton_chokajugan_no_jutsu", "fang_s_rush", "katon_goka_messhitsu",
-	"futon_rasengan", "cho_biburato_raitonto", "nezumi_kedama", "ukojizai_no_jutsu", "raiton_kage_bunshin_no_jutsu", "raiton_shiden", "katon_zukokku",
+	"futon_rasengan", "cho_biburato_raitonto", "nezumi_kedama", "ukojizai_no_jutsu", "raiton_kage_bunshin_no_jutsu", "raiton_shiden", "kakuzu_maske_katon",
 	"raiton_jibashi", "nadeshiko_ryu_koha_reppuken", "raiton_sandageto", "katon_goka_senpu"]
 
 

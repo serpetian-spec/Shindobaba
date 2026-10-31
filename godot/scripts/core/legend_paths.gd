@@ -251,7 +251,7 @@ const EXTRA_JUTSU := {
 		"seals": ["I", "Tatsu"], "desc": "Yerden sivri kâğıt mızraklar fışkırır; hedef ve çevresi delinir, havaya atılır."},
 	"hari_jizo": {"name": "Ninpō: Hari Jizō (Diken Bekçisi)", "cost": 30, "cd": 16, "element": "", "level": 16, "rank": 2, "tier": 3, "shape": "buff", "learn": "path:gama", "category": "ninjutsu",
 		"seals": ["Mi"], "desc": "Saçın bedenini saran dikenli bir kozaya döner: 4 sn neredeyse hasar almazsın, yakın dövüşle vuranlar dikenlere batar."},
-	"katon_gamayu_endan": {"name": "Katon: Gamayu Endan (Kurbağa Yağı Alev Bombası)", "cost": 50, "cd": 16, "element": "katon", "level": 26, "rank": 3, "tier": 4, "shape": "breath", "learn": "path:gama", "category": "ninjutsu",
+	"katon_gamayu_endan": {"name": "Katon: Gamayu Kaen (Kurbağa Yağı Alev Bombası)", "cost": 50, "cd": 16, "element": "katon", "level": 26, "rank": 3, "tier": 4, "shape": "breath", "learn": "path:gama", "category": "ninjutsu",
 		"seals": ["Mi", "Hitsuji", "Tora"], "desc": "Bir kurbağa yağ fışkırtır, sen ateşi üflersin: yağla büyüyen dev alev seli, yerde yanan yağ gölü bırakır."},
 	"shi_tsu_hiko": {"name": "Shī Tsū Doragon: Hikō (C2 Ejderhası Uçuşu)", "cost": 60, "cd": 45, "element": "", "level": 24, "rank": 3, "tier": 4, "shape": "transform", "learn": "path:kil", "category": "ninjutsu",
 		"seals": ["Tora", "Tatsu"], "desc": "Dev C2 kil ejderhası yoğrulur, başının ardına binersin: 25 sn uçarsın; ejderha ağzından hedefe güdümlü kil kuşlar, altına gözlü kil mayınlar bırakır."},
