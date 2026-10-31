@@ -1002,18 +1002,29 @@ static func linger(pos: Vector3, el: String, col: Color, g: float, dur := 3.0) -
 			puffs(gp + Vector3.UP * 0.3, {"amount": 10, "life": 1.8, "size": 0.9 * g, "radius": 0.8 * g, "vmin": 0.3, "vmax": 1.0, "dir": Vector3.UP, "spread": 30.0, "add": false,
 				"colors": [Color(0.45, 0.43, 0.42, 0.6), Color(0.4, 0.38, 0.37, 0)]})
 		"katon":
-			var pr = fire_preset_for(col)
+			# yanan zemin: koni biçimli alev meshleri yerine yerden sürekli yükselen küçük cel alev dilleri + kor (organik)
+			var pr: Array = FIRE_PRESETS[fire_preset_for(col)]
+			var spots = []
 			for k in n:
-				var m = mat_fire(pr, 2.6, 2.4, 0.5, 1.15, 0.15, Vector3.UP, true)
-				m.set_shader_parameter("tongue", 0.7)
-				var t = _mi(_sphere(0.5, 14, 8), m)
 				var a = randf() * TAU
-				t.position = Vector3(cos(a), 0.1, sin(a)) * randf_range(0.3, 1.6) * g
-				t.scale = Vector3(1.0, 1.7, 1.0) * randf_range(0.7, 1.2) * g * 0.7
-				root.add_child(t)
-				var tw = t.create_tween()
-				tw.tween_interval(dur * randf_range(0.6, 1.0))
-				tw.tween_method(func(x: float): m.set_shader_parameter("alpha_cut", x), 0.0, 1.1, 0.6)
+				spots.append(Vector3(cos(a), 0.0, sin(a)) * randf_range(0.2, 1.6) * g)
+			var tm = Timer.new()
+			tm.wait_time = 0.12
+			root.add_child(tm)
+			var st0 = {"t": 0.0}
+			tm.timeout.connect(func():
+				st0["t"] += 0.12
+				if st0["t"] > dur or busy():
+					return
+				var fade = clampf((dur - st0["t"]) / 0.8, 0.2, 1.0)
+				for sp in spots:
+					if randf() < 0.6:
+						puffs(gp + sp + Vector3.UP * 0.15, {"amount": 2, "life": 0.55, "size": 1.0 * g * fade, "radius": 0.25 * g, "vmin": 1.2, "vmax": 2.6, "dir": Vector3.UP, "spread": 12.0,
+							"damp": 1.0, "gravity": Vector3(0, 2.0, 0), "spin": 40.0, "glow": 1.15, "hot": 0.6, "outline_col": pr[4], "outline": 0.03, "rough": 0.2,
+							"colors": [pr[1], pr[2], Color(pr[3].r, pr[3].g, pr[3].b, 0.8), Color(pr[4].r, pr[4].g, pr[4].b, 0.0)], "scale_curve": [[0.0, 0.5], [0.3, 1.0], [1.0, 0.2]]})
+				if randf() < 0.3:
+					embers(gp + Vector3.UP * 0.5, col, 3, 1.5 * g, 0.6))
+			tm.autostart = true
 			cracks(gp, 2.2 * g, Color(0.08, 0.04, 0.02, 0.9), dur + 3.0)
 		"futton":     # yere çöken asit sisi / buhar
 			puffs(gp + Vector3.UP * 0.4, {"amount": 18, "life": 2.4, "size": 1.6 * g, "radius": 1.2 * g, "vmin": 0.1, "vmax": 0.5, "dir": Vector3.UP, "spread": 60.0, "add": false,

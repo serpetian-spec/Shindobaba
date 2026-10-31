@@ -6704,11 +6704,11 @@ func p_byoen_hoka(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 26.0)
 	var head = c.global_position + Vector3.UP * 3.0 + c.face_dir() * 1.5
 	var cat = Node3D.new()
-	var fb = VFX.fireball(3.2, VFX.fire_preset_for(BLUEFIRE))
+	var fb = VFX.fireball(1.5, VFX.fire_preset_for(BLUEFIRE))
 	cat.add_child(fb)
 	for sx in [-1.0, 1.0]:
-		var ear = VFX.fireball(1.2, VFX.fire_preset_for(BLUEFIRE))
-		ear.position = Vector3(sx * 1.3, 1.6, 0)
+		var ear = VFX.fireball(0.55, VFX.fire_preset_for(BLUEFIRE))
+		ear.position = Vector3(sx * 0.6, 0.75, 0)
 		ear.scale = Vector3(0.6, 1.4, 0.6)
 		cat.add_child(ear)
 	get_tree().current_scene.add_child(cat)
@@ -6722,7 +6722,19 @@ func p_byoen_hoka(c: Node3D, t: Node3D) -> void:
 	for k in 5:
 		after(0.35 + k * 0.14, func():
 			if live(c):
-				eshot(c, "byoen_hoka", "katon", Color(1, 0.5, 0.1), tt, head + c.face_dir() * 1.2 + Vector3(randf_range(-0.6, 0.6), randf_range(-0.6, 0.2), 0), 0.9, 30.0, 0.35, {"burn": 2.0}, 0.9, 0.05))
+				# Nibi'nin mavi kedi alevi: her mermi küçük kulaklı mavi alev topu
+				var from = head + c.face_dir() * 0.8 + Vector3(randf_range(-0.4, 0.4), randf_range(-0.4, 0.2), 0)
+				var ball = Node3D.new()
+				ball.add_child(VFX.fireball(0.8, VFX.fire_preset_for(BLUEFIRE)))
+				for sx in [-1.0, 1.0]:
+					var e2 = VFX.fireball(0.3, VFX.fire_preset_for(BLUEFIRE))
+					e2.position = Vector3(sx * 0.3, 0.38, 0.1)
+					e2.scale = Vector3(0.6, 1.5, 0.6)
+					ball.add_child(e2)
+				var pr = shot(c, from, aim_at(c, tt, from), 30.0, ball, inf(c, "byoen_hoka", 0.9, {"knock": 6.0, "kind": "heavy", "element": "katon", "burn": 2.0}), tt, false, 1.4, func(p, _h):
+					impact_fx("katon", BLUEFIRE, p, 1.2))
+				pr.homing_turn = 3.0
+				_etrail(pr, "katon", BLUEFIRE, 0.7))
 	Sfx.play("roar", head, 1.2)
 	Sfx.play("fire", head, 0.8)
 
@@ -11142,6 +11154,22 @@ func p_kimen_no_bakuen(c: Node3D, t: Node3D) -> void:
 	var tw2 = wb.create_tween()
 	tw2.tween_property(wb, "global_position", at, 0.55)
 	tw2.tween_callback(wb.queue_free)
+	# rüzgâr ateşi besler: ağızdan hedefe sarmal rüzgâr çizgileri ateş topunu sarar, çarpınca rüzgârla büyüyen patlama
+	var from0 = _mouth_pos(c)
+	var dd = (at - from0).normalized()
+	var sd = dd.cross(Vector3.UP).normalized()
+	var upv = sd.cross(dd).normalized()
+	for k in 6:
+		var ph = k * TAU / 6.0
+		after(k * 0.04, func():
+			WindFX.streak(func(q: float) -> Vector3:
+				var a = ph + q * 9.0
+				return from0.lerp(at, q) + (sd * cos(a) + upv * sin(a)) * (0.6 + q * 1.8), 0.6, 0.07, Color(0.85, 0.95, 1.0), 0.0, 14))
+	FX.speed_lines(from0 + dd * 2.0, dd)
+	after(0.6, func():
+		WindFX.blast(at, 3.0, 16, WindFX.LINE, false)
+		VFX.explosion(at, 2.2))
+	Sfx.play("wind", c.global_position, 0.9)
 	Sfx.play("fire", c.global_position, 0.6)
 
 
@@ -13715,29 +13743,35 @@ func p_infuin_kai(c: Node3D, _t: Node3D) -> void:
 
 ## Her Şey Acıdır: ahşap fırtınası ile alev dalgası iç içe — dev dallar ve yanan ağaçlar ileriye yığılır
 func p_issai_kaiku(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.2)
+	busy(c, 1.6)
 	var d = fwd(c, t)
+	var side = d.cross(Vector3.UP)
 	var at = c.global_position
-	after(0.3, func():
+	# S rütbe: ağızdan ufku yutan dev alev seli; arkasından zemin yarılıp önündeki geniş alan boyunca yerden
+	# alev sütunları fışkırır (geometrik kütük/dal yok), alan uzun süre yanar
+	VFX.gather(_mouth_pos(c), FIRE, 1.0)
+	after(0.2, func():
 		if not live(c):
 			return
-		fire_stream(at + Vector3.UP * 1.3 + d, d, 24.0, 5.0, 16)
-		for k in 14:
-			after(k * 0.05, func():
-				var q = gp(at + d * (3.0 + k * 1.6) + d.cross(Vector3.UP) * randf_range(-3, 3))
-				var br = _branch(randf_range(3.0, 6.0), randf_range(0.3, 0.6))
-				get_tree().current_scene.add_child(br)
-				br.global_position = q
-				br.rotation = Vector3(randf_range(-0.7, 0.7), randf() * TAU, randf_range(-0.7, 0.7))
-				br.scale = Vector3(1, 0.05, 1)
-				VFX.embers(q + Vector3.UP, Color(1.0, 0.6, 0.15), 10, 6.0)
-				var tw = br.create_tween()
-				tw.tween_property(br, "scale", Vector3.ONE, 0.2)
-				tw.tween_interval(1.8)
-				tw.tween_property(br, "scale", Vector3(1, 0.02, 1), 0.4)
-				tw.tween_callback(br.queue_free))
-		Combat.hit_zone(c, at, d, 24.0, 30.0, 4.0, inf(c, "issai_kaiku", 2.4, {"knock": 18.0, "launch": 5.0, "kind": "heavy", "element": "katon", "burn": 4.0}))
-		shake(1.0))
+		anim(c, "push", 1.4)
+		for j in 3:
+			_flame_jet(c, _mouth_pos(c), (d + side * (j - 1) * 0.22).normalized(), 32.0, 7.0, 1.2, 2.4)
+		FX.light(at + d * 14.0 + Vector3.UP * 3.0, Color(1.0, 0.55, 0.15), 12.0, 50.0, 2.5)
+		for k in 22:
+			after(0.25 + k * 0.05, func():
+				var q = gp(at + d * (4.0 + k * 1.5) + side * randf_range(-6.0, 6.0) * (0.4 + k / 22.0))
+				VFX.cracks(q, 2.5, Color(0.1, 0.03, 0.01, 0.9), 6.0)
+				VFX.puffs(q + Vector3.UP * 0.3, {"amount": 10, "life": 0.8, "size": 1.8, "radius": 0.6, "vmin": 8.0, "vmax": 15.0, "dir": Vector3.UP, "spread": 12.0,
+					"damp": 2.0, "gravity": Vector3(0, 2.0, 0), "spin": 60.0, "glow": 1.15, "hot": 0.6, "outline_col": Color(0.7, 0.2, 0.03), "outline": 0.03, "rough": 0.2,
+					"colors": [Color(1.0, 0.97, 0.65, 1), Color(1.0, 0.65, 0.15, 1), Color(0.95, 0.35, 0.06, 0.85), Color(0.45, 0.12, 0.04, 0)], "scale_curve": [[0.0, 0.4], [0.3, 1.0], [1.0, 1.3]]})
+				VFX.embers(q + Vector3.UP * 2.0, Color(1.0, 0.6, 0.15), 12, 8.0, 0.8)
+				if k % 4 == 0:
+					VFX.linger(q, "katon", FIRE, 2.2, 6.0)
+				for e in enemies_near(c, q, 2.6):
+					e.take_hit(inf(c, "issai_kaiku", 0.35, {"knock": 6.0, "launch": 8.0, "kind": "heavy", "element": "katon", "burn": 2.0})))
+		Combat.hit_zone(c, at, d, 34.0, 50.0, 5.0, inf(c, "issai_kaiku", 2.6, {"knock": 18.0, "launch": 5.0, "kind": "heavy", "element": "katon", "burn": 4.0}))
+		shake(1.6)
+		Sfx.play("boom", at + d * 10.0, 0.5))
 	Sfx.play("fire", c.global_position, 0.5)
 
 
