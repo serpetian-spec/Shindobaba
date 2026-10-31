@@ -35,6 +35,8 @@ static func jutsu_clan(j: Dictionary) -> String:
 # ------------------------------------------------------------------ HUD göstergesi
 static func meter() -> Dictionary:
 	var pr = Game.profile
+	if "byakugo_no_in" in pr.get("learned", []) and not clan() in ["akimichi", "aburame", "inuzuka"] and pr.get("kakuzu_hearts", []).is_empty():
+		return {"label": "Byakugō", "v": float(pr.get("byakugo", 0.0)), "max": 100.0, "col": Color(0.65, 0.35, 0.9)}
 	var hs: Array = pr.get("kakuzu_hearts", [])
 	if not hs.is_empty() and not clan() in ["akimichi", "aburame", "inuzuka"]:
 		var nm = {"katon": "Ateş", "fuuton": "Rüzgâr", "raiton": "Şimşek", "suiton": "Su", "doton": "Toprak"}
@@ -56,6 +58,10 @@ static func meter() -> Dictionary:
 static func cast_block(jid: String, j: Dictionary) -> String:
 	var pr = Game.profile
 	var jc = jutsu_clan(j)
+	if jid == "byakugo_no_in" and float(pr.get("byakugo", 0.0)) < 50.0:
+		return "Byakugō mührüne henüz yeterli chakra birikmedi (%d/50) — mühür zamanla dolar." % int(pr.get("byakugo", 0.0))
+	if jid == "sozo_saisei" and not Buffs.has("byakugo") and float(pr.get("byakugo", 0.0)) < 30.0:
+		return "Sōzō Saisei mühürde biriken chakrayla yapılır: Byakugō açık olmalı ya da mühürde en az 30 birikim."
 	if MASKS.has(jid) and not MASKS[jid] in pr.get("kakuzu_hearts", []):
 		return "Bu maske için çalınmış bir %s kalbi gerek (Jiongu: Shinzō Ubai)." % Elements.NAMES.get(MASKS[jid], MASKS[jid])
 	match clan():
@@ -87,6 +93,11 @@ static func koloni_cost(j: Dictionary) -> float:
 
 static func pay(jid: String, j: Dictionary) -> void:
 	var pr = Game.profile
+	if jid == "byakugo_no_in":
+		pr["byakugo_used"] = float(pr.get("byakugo", 0.0))
+		pr["byakugo"] = 0.0
+	elif jid == "sozo_saisei" and not Buffs.has("byakugo"):
+		pr["byakugo"] = maxf(0.0, float(pr.get("byakugo", 0.0)) - 30.0)
 	var jc = jutsu_clan(j)
 	if clan() == "akimichi" and jc == "akimichi":
 		if jid == "cho_modo" and not Buffs.has("hap_togarashi"):
@@ -220,6 +231,9 @@ static func tick(dt: float) -> void:
 	if Game.player == null or Game.profile.is_empty():
 		return
 	var pr = Game.profile
+	# Byakugō mührü: Tsunade/Sakura gibi her an az az chakra biriktirir (Byakugō açıkken birikmez)
+	if "byakugo_no_in" in pr.get("learned", []) and not Buffs.has("byakugo"):
+		pr["byakugo"] = minf(100.0, float(pr.get("byakugo", 0.0)) + dt / 3.0)
 	match clan():
 		"aburame":
 			# böcekler chakra yiyerek çoğalır

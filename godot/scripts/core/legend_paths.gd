@@ -24,7 +24,7 @@ const PATHS := {
 		"passive_desc": "Zehir direnci +%30, hız +%4",
 		"order": ["sen_ei_jashu", "jagei_jubaku", "hebi_bunshin_no_jutsu", "sen_ei_tajashu", "kuchiyose_rashomon", "kusanagi_kuchi", "gogyo_fuin",
 			"sen_ei_ranjashu", "ten_no_juin", "mandara_no_jin", "orochimaru_ryu_no_kawarimi_no_jutsu", "hakuja_sennin_modo", "juin_ni_no_dankai",
-			"kuchiyose_sanju_rashomon", "yamata_no_jutsu", "kuchiyose_edo_tensei", "sojasosai_no_jutsu", "sennyu_no_jutsu", "satsui_no_shisen", "hebi_nyoro", "chakura_kyuin_jutsu", "jaguchi_shibari", "shikokujaijin", "hebi_saisetsugo", "hakuja_shintai"],
+			"kuchiyose_sanju_rashomon", "yamata_no_jutsu", "kuchiyose_edo_tensei", "sojasosai_no_jutsu", "sennyu_no_jutsu", "satsui_no_shisen", "hebi_nyoro", "chakura_kyuin_jutsu", "jaguchi_shibari", "shikokujaijin", "hebi_saisetsugo", "hakuja_shintai", "soma_no_ko"],
 		"quest": {"kusanagi_kuchi": "sword", "ten_no_juin": "curse"},
 		"dark": {"ten_no_juin": 15, "juin_ni_no_dankai": 20, "kuchiyose_edo_tensei": 40, "sojasosai_no_jutsu": 30},
 	},

@@ -570,3 +570,12 @@ VIDEO_JUTSU += [
     ('kami_chakuramu', 'Kami Chakuramu (Kâğıt Çakram)', 'Paper Chakram', '', 3, 'projectile', 'path:kagit', '',
      'Başının üstünde halka gibi katlanan kâğıt fırlatılır, dönerek keser ve geri döner.', []),
 ]
+# --- genjutsu / tıbbi videoları (HbbRErlnKGc, Tsunade, Sakura, Kabuto)
+VIDEO_JUTSU += [
+    ('susanoo_genjutsu', 'Susanoo Genjutsu (Susanoo İllüzyonu)', 'Susanoo Genjutsu', '', 5, 'genjutsu_stun', 'eye:mangekyo', '',
+     'Susanoo\'nun dev silueti düşmanların zihnine çöker: 16 m içindekiler 4 sn illüzyonda donar.', []),
+    ('sharinnegan_genjutsu', 'Sharinnegan Genjutsu (Tomoeli Rinnegan Bakışı)', 'Tomoe Rinnegan Genjutsu', '', 5, 'genjutsu_stun', 'eye:rinnegan', '',
+     'Tomoeli Rinnegan bakışı: önündeki herkes aynı anda 5 sn genjutsuya düşer.', []),
+    ('soma_no_ko', 'Sōma no Kō (İkiz Şeytan Saldırısı)', 'Demon Twin Attack', '', 4, 'melee', 'path:yilan', '',
+     'Bedeninden Sakon/Ukon hücreleriyle ikinci bir gövde fırlar; iki beden aynı anda üç kez vurur.', []),
+]
