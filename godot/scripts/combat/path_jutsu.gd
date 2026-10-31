@@ -10249,17 +10249,12 @@ const GOLDDUST := Color(0.9, 0.75, 0.3)
 
 
 func _ice_mat() -> Material:
-	return _crystal_mat(ICE)
+	return IceArt.mat()
 
 
 ## Buz sivrisi (koni)
 func _ice_spike(h: float, r: float) -> MeshInstance3D:
-	var mi = MeshInstance3D.new()
-	var cm = CylinderMesh.new()
-	cm.top_radius = 0.0; cm.bottom_radius = r; cm.height = h; cm.radial_segments = 4   # keskin yüzeyli buz (yuvarlak koni değil)
-	cm.rings = 1
-	mi.mesh = cm
-	mi.material_override = _ice_mat()
+	var mi = IceArt.spike(h, r)
 	mi.rotation.y = randf() * TAU
 	return mi
 
@@ -10474,26 +10469,26 @@ func p_hyoton_hyogan_domu(c: Node3D, t: Node3D) -> void:
 	if tt == null:
 		return
 	var at = gp(tt.global_position)
-	var dome = MeshInstance3D.new()
-	var sm = SphereMesh.new()
-	sm.radius = 2.4; sm.height = 4.8; sm.is_hemisphere = true
-	dome.mesh = sm
-	dome.material_override = _ice_mat()
+	# anime Haku: zemin donar, hedefin çevresinden içe eğik kristal levhalar üst üste kapanıp pürüzlü bir buz kubbesi örer
+	var fr = IceArt.frost(4.5)
+	get_tree().current_scene.add_child(fr)
+	fr.global_position = at + Vector3.UP * 0.04
+	var dome = IceArt.dome(2.4)
 	get_tree().current_scene.add_child(dome)
 	dome.global_position = at
-	dome.scale = Vector3(0.05, 0.05, 0.05)
+	dome.rotation.y = randf() * TAU
+	dome.scale = Vector3(1.15, 0.02, 1.15)
 	var tw = dome.create_tween()
-	tw.tween_property(dome, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_BACK)
+	tw.tween_property(dome, "scale", Vector3(1.15, 0.6, 1.15), 0.12)
+	tw.tween_property(dome, "scale", Vector3.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tw.tween_interval(4.0)
-	tw.tween_callback(func(): FX.burst(at + Vector3.UP, {"amount": 50, "life": 0.7, "tex": FX.tex_spark, "add": true, "size": 0.3, "vmin": 4, "vmax": 10, "colors": [Color(1, 1, 1, 1), ICE, Color(ICE.r, ICE.g, ICE.b, 0)]}))
+	tw.tween_callback(func():
+		IceArt.shatter(get_tree(), at, 2.2, 24)
+		if is_instance_valid(fr):
+			fr.queue_free())
 	tw.tween_callback(dome.queue_free)
-	for k in 10:
-		var a = k * TAU / 10.0
-		var sp = _ice_spike(1.4, 0.3)
-		dome.add_child(sp)
-		sp.position = Vector3(cos(a) * 2.2, 0.6, sin(a) * 2.2)
-		sp.rotation = Vector3(sin(a) * 0.6, 0, -cos(a) * 0.6)
-	VFX.shockwave(at + Vector3.UP * 0.1, ICE, 6.0, 0.4, true)
+	VFX.fog(at + Vector3.UP * 0.4, {"amount": 18, "life": 1.8, "size": 2.2, "radius": 3.0, "vmin": 0.3, "vmax": 1.2, "dir": Vector3.UP, "spread": 80.0,
+		"colors": [Color(0.95, 0.98, 1.0, 0.0), Color(0.9, 0.96, 1.0, 0.5), Color(0.88, 0.95, 1.0, 0.0)]})
 	st(tt, "bind", 4.3)
 	Combat.popup_text(at + Vector3.UP * 2.8, "Dondu!", ICE)
 	Sfx.play("clink", at, 0.7)
@@ -10529,25 +10524,51 @@ func p_hyoton_mangehyo(c: Node3D, t: Node3D) -> void:
 func p_hyoton_suishoheki(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.6)
 	var d = fwd(c, t)
-	var at = gp(c.global_position + d * 2.8)
+	var at = gp(c.global_position + d * 3.0)
 	var side = d.cross(Vector3.UP)
-	var root = Node3D.new()
-	get_tree().current_scene.add_child(root)
-	root.global_position = at
-	for k in 9:
-		var sp = _ice_spike(randf_range(2.6, 4.2), randf_range(0.5, 0.8))
-		sp.position = side * ((k - 4) * 0.8) + Vector3.UP * 1.4
-		sp.rotation = Vector3(randf_range(-0.25, 0.25), 0, randf_range(-0.25, 0.25))
-		root.add_child(sp)
-	root.scale = Vector3(1, 0.02, 1)
-	var tw = root.create_tween()
-	tw.tween_property(root, "scale", Vector3.ONE, 0.25).set_trans(Tween.TRANS_BACK)
-	tw.tween_interval(6.0)
-	tw.tween_callback(func(): FX.burst(at + Vector3.UP * 1.5, {"amount": 50, "life": 0.7, "tex": FX.tex_spark, "add": true, "size": 0.3, "vmin": 3, "vmax": 8, "colors": [Color(1, 1, 1, 1), ICE, Color(ICE.r, ICE.g, ICE.b, 0)]}))
-	tw.tween_callback(root.queue_free)
-	every(6.3, 0.1, func(_i, _k):
+	# katı buz duvarı: içinden geçilemez (çarpışma), fışkırırken önündekileri savurur, mermileri durdurur
+	var wall = StaticBody3D.new()
+	get_tree().current_scene.add_child(wall)
+	wall.global_position = at
+	wall.look_at(at + d, Vector3.UP)
+	var mi = IceArt.wall(7.0, 4.2)
+	wall.add_child(mi)
+	mi.scale = Vector3(1, 0.02, 1)
+	var tw = mi.create_tween()
+	tw.tween_property(mi, "scale", Vector3.ONE, 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	after(0.15, func():
+		if is_instance_valid(wall):
+			var cs = CollisionShape3D.new()
+			var sh = BoxShape3D.new()
+			sh.size = Vector3(7.2, 4.0, 1.4)
+			cs.shape = sh
+			cs.position = Vector3.UP * 2.0
+			wall.add_child(cs))
+	Jutsu._element_wall(wall, "hyoton", c, Vector3(0, 2.0, 0), Vector3(3.6, 2.0, 0.7), 45.0 * Jutsu._mult(c))
+	var fr = IceArt.frost(4.5)
+	wall.add_child(fr)
+	fr.position = Vector3.UP * 0.04
+	fr.scale = Vector3(1.0, 1, 0.45)
+	# fışkırma darbesi: duvar hattındakiler hasar alır ve geriye savrulur
+	var hits = []
+	for k in 5:
+		var p = at + side * ((k - 2) * 1.5) + Vector3.UP
+		hits.append_array(hit(c, p, 1.4, inf(c, "hyoton_suishoheki", 1.4, {"knock": 14.0, "launch": 6.0, "kind": "heavy", "element": "hyoton", "slow": 2.0, "hitstop": 0.08}), hits))
+	FX.burst(at + Vector3.UP * 1.5, {"amount": 40, "life": 0.6, "tex": FX.tex_spark, "add": true, "size": 0.3, "radius": 3.0, "vmin": 3, "vmax": 8,
+		"colors": [Color(1, 1, 1, 1), ICE, Color(ICE.r, ICE.g, ICE.b, 0)]})
+	VFX.fog(at + Vector3.UP * 0.3, {"amount": 16, "life": 1.6, "size": 2.0, "radius": 3.0, "vmin": 0.3, "vmax": 1.2, "dir": Vector3.UP, "spread": 80.0,
+		"colors": [Color(0.95, 0.98, 1.0, 0.0), Color(0.9, 0.96, 1.0, 0.5), Color(0.88, 0.95, 1.0, 0.0)]})
+	shake(0.4)
+	after(6.5, func():
+		if is_instance_valid(wall):
+			for k in 3:
+				IceArt.shatter(get_tree(), at + side * ((k - 1) * 2.4), 1.6, 10)
+			wall.queue_free())
+	every(6.5, 0.1, func(_i, _k):
+		if not is_instance_valid(wall):
+			return
 		for p in get_tree().get_nodes_in_group("projectiles"):
-			if p.get("shooter") != c and absf((p.global_position - at).dot(d)) < 1.0 and absf((p.global_position - at).dot(side)) < 4.0:
+			if p.get("shooter") != c and absf((p.global_position - at).dot(d)) < 1.0 and absf((p.global_position - at).dot(side)) < 3.8 and p.global_position.y < at.y + 4.5:
 				FX.burst(p.global_position, {"amount": 8, "life": 0.3, "tex": FX.tex_spark, "add": true, "size": 0.2, "vmin": 2, "vmax": 4, "colors": [Color(1, 1, 1, 1), ICE, Color(ICE.r, ICE.g, ICE.b, 0)]})
 				p.queue_free(), Callable())
 	Sfx.play("clink", at, 0.8)

@@ -1597,30 +1597,38 @@ func j_hyoton_spears(c: Node3D, t: Node3D) -> void:
 	var m = _mult(c)
 	var center = _ground(_aim_ground(c, t, 8.0))
 	Sfx.play("clink", center, 0.6)
-	var b = MB.new()
-	for k in 10:
-		var a = k * TAU / 10.0
-		b.add("cone", Vector3(cos(a), 0, sin(a)) * 1.6 + Vector3(0, 1.4, 0), Vector3(0.7, 3.0 + randf(), 0.7), Color(0.75, 0.92, 1.0), Vector3(cos(a) * 25, 0, -sin(a) * 25), 5)
-	b.add("sphere", Vector3(0, 1.0, 0), Vector3(2.0, 2.6, 2.0), Color(0.82, 0.95, 1.0), Vector3.ZERO, 8)
-	var ice = MeshInstance3D.new()
-	ice.mesh = b.build(Props.toon())
+	# önce zemin donar (düzensiz buz lekesi yayılır), sonra hedefin çevresinden içe eğik dev kristaller fışkırıp onu içine hapseder
+	var fr = IceArt.frost(4.2)
+	get_tree().current_scene.add_child(fr)
+	fr.global_position = center + Vector3.UP * 0.04
+	fr.scale = Vector3.ONE * 0.1
+	var tf = fr.create_tween()
+	tf.tween_property(fr, "scale", Vector3.ONE, 0.2).set_ease(Tween.EASE_OUT)
+	tf.tween_interval(2.7)
+	tf.tween_property(fr, "transparency", 1.0, 0.6)
+	tf.tween_callback(fr.queue_free)
+	var ice = IceArt.encase(1.6, 3.4)
 	get_tree().current_scene.add_child(ice)
-	ice.global_position = center - Vector3(0, 3, 0)
+	ice.global_position = center
+	ice.rotation.y = randf() * TAU
+	ice.scale = Vector3(0.7, 0.02, 0.7)
 	var tw = ice.create_tween()
-	tw.tween_property(ice, "global_position:y", center.y, 0.15)
+	tw.tween_interval(0.12)
+	tw.tween_property(ice, "scale", Vector3.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tw.tween_interval(2.4)
-	tw.tween_property(ice, "scale", Vector3.ONE * 0.05, 0.4)
+	tw.tween_callback(func(): IceArt.shatter(get_tree(), center, 1.6, 18))
 	tw.tween_callback(ice.queue_free)
+	VFX.fog(center + Vector3.UP * 0.4, {"amount": 14, "life": 1.6, "size": 1.8, "radius": 2.2, "vmin": 0.3, "vmax": 1.2, "dir": Vector3.UP, "spread": 80.0,
+		"colors": [Color(0.95, 0.98, 1.0, 0.0), Color(0.9, 0.96, 1.0, 0.5), Color(0.88, 0.95, 1.0, 0.0)]})
 	# önce dondur (donmuş hedef blok yapamaz), sonra hasar
 	for f in get_tree().get_nodes_in_group("fighters"):
 		if Combat.hostile(c, f) and not f.is_dead() and Combat.capsule_hit(center + Vector3.UP, f, 2.6) and f.has_method("apply_status"):
 			f.apply_status("stun", 2.5)
 	for h in Combat.hit_sphere(c, center + Vector3.UP, 2.6, {"dmg": 22.0 * m, "knock": 0.0, "kind": "light", "element": "hyoton", "hitstop": 0.06}):
 		Combat.popup_text(h.global_position + Vector3.UP * 2.4, "DONDU!", Color(0.7, 0.9, 1))
-	FX.burst(center + Vector3.UP, {"amount": 30, "life": 0.6, "tex": FX.tex_spark, "size": 1.0, "vmin": 5, "vmax": 12, "colors": [Color(1, 1, 1, 1), Color(0.7, 0.9, 1, 0)]})
+	FX.burst(center + Vector3.UP, {"amount": 30, "life": 0.6, "tex": FX.tex_spark, "size": 0.5, "vmin": 5, "vmax": 12, "colors": [Color(1, 1, 1, 1), Color(0.7, 0.9, 1, 0)]})
 
 
-# ---------------------------------------------------------------- Kaguya
 func j_bone_bullets(c: Node3D, t: Node3D) -> void:
 	var m = _mult(c)
 	_ticks(8, 0.07, func(_i):
