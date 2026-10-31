@@ -4469,6 +4469,7 @@ func p_kamaitachi_no_jutsu(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.9)
 	anim(c, "slash_c", 1.2)
 	var d = fwd(c, t)
+	jutsu_weapon(c, "tessen", 1.0)
 	VFX.gather(c.global_position + Vector3.UP * 1.3 + d, WIND, 1.3)
 	after(0.12, func():
 		stream_fx(c.global_position + Vector3.UP * 1.2, d, 22.0, 6.0, _windmat(0.55), 0.35)
@@ -8058,6 +8059,7 @@ func p_kuchiyose_kirikiri_mai(c: Node3D, t: Node3D) -> void:
 	var side = d.cross(Vector3.UP)
 	var at = gp(c.global_position + side * 2.0) + Vector3.UP * 2.0
 	summon_circle(c.global_position, 1.4, WIND, 0.5)
+	jutsu_weapon(c, "tessen", 1.0)
 	FX.smoke_puff(at, 1.6, 20)
 	var b = MB.new()
 	b.add("sphere", Vector3(0, 0, 0), Vector3(0.9, 0.8, 1.6), Color(0.95, 0.95, 0.92))
@@ -24273,7 +24275,7 @@ func p_senpo_futon_sajin(c: Node3D, t: Node3D) -> void:
 func p_kyodai_sensu(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.6)
 	var d = fwd(c, t)
-	bashosen_fan(c, Color(0.95, 0.92, 0.85))
+	jutsu_weapon(c, "tessen", 1.8)
 	for k in 3:
 		after(0.25 + k * 0.42, func():
 			if not live(c):
@@ -24376,6 +24378,8 @@ func p_shinkuken(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.6)
 	var tt = tg(c, t, 12.0)
 	var d = fwd(c, t)
+	var kat = jutsu_weapon(c, "katana", 0.8)
+	WindFX.bullet(kat, 0.5)
 	anim(c, "slash_a", 1.6)
 	after(0.18, func():
 		if not live(c):
@@ -24525,6 +24529,7 @@ func p_futon_kiryu_ranbu(c: Node3D, t: Node3D) -> void:
 func p_shakujo_senpu(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.0)
 	var d = fwd(c, t)
+	jutsu_weapon(c, "shakujo", 1.4)
 	var at = gp(c.global_position + d * 4.0)
 	every(1.2, 0.3, func(_i, _k):
 		WindFX.swirl(at, 2.2, 7.0, 0.35, 8)
@@ -24898,7 +24903,13 @@ func p_raitojutsu_rakurai(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 10.0)
 	_jump_at(c, tt, 9.0, 8.0 if tt else 2.0)
 	busy(c, 1.0)
-	_rai_hand(c, 0.8)
+	var kat = jutsu_weapon(c, "katana", 1.1)
+	var ka = Arcs.new()
+	ka.color = RAI
+	ka.to_point = Vector3(0, 1.2, 0)
+	ka.count = 3
+	ka.width = 0.05
+	kat.add_child(ka)
 	after(0.55, func():
 		if not live(c):
 			return
@@ -25233,3 +25244,56 @@ func p_susanoo_chidori(c: Node3D, t: Node3D) -> void:
 			shake(1.4)
 			ball.queue_free()))
 	Sfx.play("chidori", c.global_position, 0.6)
+
+
+# ================================================================== JUTSU SİLAHLARI: animede özel silahla atılan teknikler (elde belirir, sonra kaybolur)
+## kind: "tessen" (Temari'nin dev demir yelpazesi, üç mor yıldız), "shakujo" (halkalı keşiş asası), "katana"
+func jutsu_weapon(c: Node3D, kind: String, dur: float) -> Node3D:
+	var mesh = cached("jw_" + kind, func():
+		var b = MB.new()
+		match kind:
+			"tessen":
+				# açık yelpaze: tabandan yelpaze gibi açılan kaburgalar + kâğıt dilimleri + üç mor daire (yıldız)
+				for k in 9:
+					var a = deg_to_rad(lerpf(-62.0, 62.0, k / 8.0))
+					var dir = Vector3(sin(a), cos(a), 0)
+					b.add("box", dir * 0.85, Vector3(0.05, 1.7, 0.04), Color(0.25, 0.2, 0.18), Vector3(0, 0, -rad_to_deg(a)))
+					if k < 8:
+						var a2 = deg_to_rad(lerpf(-62.0, 62.0, (k + 0.5) / 8.0))
+						b.add("box", Vector3(sin(a2), cos(a2), 0) * 1.15, Vector3(0.36, 1.05, 0.02), Color(0.93, 0.9, 0.82), Vector3(0, 0, -rad_to_deg(a2)))
+				for s in 3:
+					var a3 = deg_to_rad([-38.0, 0.0, 38.0][s])
+					b.add("cyl", Vector3(sin(a3), cos(a3), -0.02) * 1.25, Vector3(0.3, 0.03, 0.3), Color(0.5, 0.25, 0.6), Vector3(90, 0, 0), 14)
+				b.add("cyl", Vector3(0, -0.1, 0), Vector3(0.14, 0.3, 0.14), Color(0.2, 0.16, 0.14), Vector3.ZERO, 8)
+			"shakujo":
+				b.add("cyl", Vector3(0, 0.6, 0), Vector3(0.06, 2.0, 0.06), Color(0.35, 0.22, 0.12), Vector3.ZERO, 8)
+				b.add("torus", Vector3(0, 1.75, 0), Vector3(0.45, 0.45, 0.45), Color(0.75, 0.65, 0.3), Vector3(90, 0, 0), 14)
+				for k in 4:
+					b.add("torus", Vector3((k - 1.5) * 0.12, 1.5, 0), Vector3(0.14, 0.14, 0.14), Color(0.8, 0.7, 0.35), Vector3(90, 0, 0), 8)
+				b.add("cone", Vector3(0, 2.05, 0), Vector3(0.1, 0.25, 0.1), Color(0.75, 0.65, 0.3), Vector3.ZERO, 6)
+			"katana":
+				b.add("box", Vector3(0, 0.65, 0), Vector3(0.05, 1.0, 0.012), Color(0.85, 0.88, 0.92))
+				b.add("box", Vector3(0, 0.12, 0), Vector3(0.16, 0.03, 0.1), Color(0.25, 0.2, 0.12))
+				b.add("cyl", Vector3(0, -0.08, 0), Vector3(0.045, 0.32, 0.045), Color(0.15, 0.1, 0.1), Vector3.ZERO, 6)
+		return b)
+	var root = Node3D.new()
+	root.add_child(mi_of(mesh))
+	var ba = bone_attach(c, "RightHand")
+	if ba:
+		ba.add_child(root)
+		root.rotation_degrees = Vector3(-90, 0, 0)
+	else:
+		scene_add(root, hand_pos(c, true))
+	var s1 = {"tessen": 1.0, "shakujo": 1.0, "katana": 1.0}.get(kind, 1.0)
+	root.scale = Vector3.ONE * 0.05
+	var tw = root.create_tween()
+	tw.tween_property(root, "scale", Vector3.ONE * s1, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(maxf(0.1, dur - 0.4))
+	tw.tween_property(root, "scale", Vector3.ONE * 0.05, 0.2)
+	tw.tween_callback(func():
+		if is_instance_valid(ba):
+			ba.queue_free()
+		elif is_instance_valid(root):
+			root.queue_free())
+	FX.smoke_puff(hand_pos(c, true), 0.5, 6)
+	return root

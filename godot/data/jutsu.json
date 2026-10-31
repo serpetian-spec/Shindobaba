@@ -2204,7 +2204,8 @@
   "signature": true,
   "kinjutsu": true,
   "series": "Naruto Shippūden",
-  "meaning": "Büyük Top Rasenşuriken"
+  "meaning": "Büyük Top Rasenşuriken",
+  "need": "sage"
  },
  "odama_rasen_tairengan": {
   "id": "odama_rasen_tairengan",
@@ -15150,7 +15151,8 @@
   "signature": false,
   "kinjutsu": false,
   "series": "Naruto Part I",
-  "meaning": "Sonsuz Kum Bulutu Atılımı"
+  "meaning": "Sonsuz Kum Bulutu Atılımı",
+  "need": "beast:shukaku"
  },
  "futon_fuhakujin": {
   "id": "futon_fuhakujin",
@@ -26398,7 +26400,7 @@
   "tier": 5,
   "category": "senjutsu",
   "shape": "projectile",
-  "need": "beast",
+  "need": "beast:kurama",
   "meaning": "Bilge Dev Canavar Rasenshurikeni"
  },
  "bijudama_rasenshuriken": {
@@ -26424,7 +26426,7 @@
   "tier": 5,
   "category": "ninjutsu",
   "shape": "projectile",
-  "need": "beast",
+  "need": "beast:kurama",
   "meaning": "Canavar Bombası Rasenshurikeni"
  },
  "futon_sasandan": {
@@ -26584,7 +26586,7 @@
   "tier": 5,
   "category": "ninjutsu",
   "shape": "projectile",
-  "need": "beast",
+  "need": "beast:kurama",
   "meaning": "Dev Top Rasenshuriken"
  },
  "raiton_chakura_modo": {
@@ -26970,10 +26972,12 @@
   "cd": 14.0,
   "element": "raiton",
   "elements": [
-   "raiton"
+   "raiton",
+   "suiton"
   ],
   "natures": [
-   "raiton"
+   "raiton",
+   "suiton"
   ],
   "clan": "",
   "level": 18,

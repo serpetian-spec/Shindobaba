@@ -639,38 +639,46 @@ static func _explosion(pos: Vector3, s := 1.0, col := Color(1.0, 0.55, 0.15)) ->
 
 ## Amaterasu kara alevi: hedefi saran, yukarı yalayan sivri alev dilleri (iç siyah, kenar koyu mor)
 static func black_flames(size := 1.0) -> Node3D:
-	size *= epic
+	# Amaterasu: küre kabuk yok (sıvı gibi duruyordu) — yukarı yalayan sivri kara alev dilleri, mor-koyu kenarlı iç diller, kara duman
 	var root = Node3D.new()
-	var n = 7
-	for i in n:
-		var m = mat_fire("black", 2.6 + randf() * 1.2, 2.6, 0.55, 1.0, 0.2, Vector3.UP, true)
-		m.set_shader_parameter("tongue", 0.45 + randf() * 0.35)
-		var t = _mi(_sphere(0.5, 16, 10), m)
-		var a = TAU * i / n + randf() * 0.4
-		var r = 0.0 if i == 0 else 0.45
-		t.position = Vector3(cos(a) * r, 0.2 + randf() * 0.4, sin(a) * r) * size
-		t.scale = Vector3(1.0, 1.4 + randf() * 0.7, 1.0) * size * (1.1 if i == 0 else 0.75)
-		root.add_child(t)
-		var tw = t.create_tween().set_loops()
-		var s0 = t.scale
-		tw.tween_property(t, "scale", s0 * Vector3(0.9, 1.15, 0.9), 0.22 + randf() * 0.15)
-		tw.tween_property(t, "scale", s0, 0.22 + randf() * 0.15)
+	_black_fire_particles(root, size, 0.45 * size, 1.0)
 	return root
+
+
+## Kara alev parçacıkları (kalıcı): parent'a bağlı, yerinde yanar. r: yayılım yarıçapı, k: yoğunluk
+static func _black_fire_particles(parent: Node3D, size: float, r: float, k: float) -> void:
+	var layers = [
+		# [miktar, ömür, boy, renkler] — dış kara diller, iç mor-koyu diller
+		[int(26 * k), 0.55, 3.2 * size, [Color(0.02, 0.0, 0.03, 0.0), Color(0.03, 0.0, 0.05, 1.0), Color(0.06, 0.01, 0.09, 0.95), Color(0.02, 0.0, 0.03, 0.0)]],
+		[int(16 * k), 0.4, 2.2 * size, [Color(0.25, 0.05, 0.32, 0.0), Color(0.3, 0.06, 0.38, 0.95), Color(0.1, 0.02, 0.14, 0.9), Color(0.05, 0.0, 0.08, 0.0)]],
+	]
+	for L in layers:
+		var p = FX.burst(Vector3.ZERO, {"parent": parent, "local": true, "amount": L[0], "life": L[1], "tex": FX.tex_spark, "add": false, "size": L[2],
+			"radius": r, "vmin": 1.2, "vmax": 3.2, "dir": Vector3.UP, "spread": 14.0, "gravity": Vector3(0, 2.5, 0), "damp": 1.0, "explosive": 0.0,
+			"scale_curve": [[0.0, 0.5], [0.35, 1.0], [1.0, 0.3]], "colors": L[3]})
+		if p:
+			p.one_shot = false
+	# kara duman: yavaşça yükselen yumuşak koyu tüller
+	var sm = FX.burst(Vector3.UP * 0.8 * size, {"parent": parent, "local": true, "amount": int(8 * k), "life": 1.3, "tex": FX.tex_smoke, "add": false, "cel": false,
+		"size": 1.4 * size, "radius": r, "vmin": 0.6, "vmax": 1.6, "dir": Vector3.UP, "spread": 25.0, "gravity": Vector3(0, 1.0, 0), "explosive": 0.0,
+		"colors": [Color(0.05, 0.03, 0.06, 0.0), Color(0.06, 0.04, 0.08, 0.55), Color(0.1, 0.08, 0.12, 0.0)]})
+	if sm:
+		sm.one_shot = false
 
 
 ## Yerde için için yanan kara alev lekesi
 static func _black_smolder(pos: Vector3, size := 2.0, dur := 6.0) -> void:
-	var m = mat_fire("black", 1.6, 3.0, 0.6, 1.0, 0.1, Vector3.UP, true)
-	m.set_shader_parameter("tongue", 0.6)
-	var mi = _mi(_sphere(0.5, 20, 8), m)
-	scene().add_child(mi)
-	mi.global_position = Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z), pos.z)
-	mi.scale = Vector3(size * 2.0, size * 0.5, size * 2.0)
+	var root = Node3D.new()
+	scene().add_child(root)
+	root.global_position = Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z) + 0.05, pos.z)
+	_black_fire_particles(root, size * 0.45, size * 0.9, 1.4)
 	cracks(pos, size * 2.2, Color(0.04, 0.0, 0.05, 0.95), dur + 2.0)
-	var tw = mi.create_tween()
-	tw.tween_interval(dur)
-	tw.tween_method(func(x: float): m.set_shader_parameter("alpha_cut", x), 0.0, 1.1, 0.8)
-	tw.tween_callback(mi.queue_free)
+	scene().get_tree().create_timer(dur).timeout.connect(func():
+		if is_instance_valid(root):
+			for ch in root.get_children():
+				if ch is GPUParticles3D:
+					ch.emitting = false
+			root.get_tree().create_timer(1.4).timeout.connect(root.queue_free))
 
 
 ## Yükleme ekranında tüm VFX shader/parçacık türlerini bir kez ekran dışı çizdirir (ilk yayında takılma olmasın).

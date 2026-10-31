@@ -707,9 +707,16 @@ func begin_cast(jid: String) -> void:
 	if need == "sage" and not (modes and modes.sage):
 		Hud.msg("%s sadece sennin modunda atılabilir." % String(j["name"]), Color(1, 0.7, 0.4))
 		return
-	if need == "beast" and not (modes and (modes.beast or (modes.cloak != null and modes.cloak.level > 0))):
+	var in_beast = modes and (modes.beast or (modes.cloak != null and modes.cloak.level > 0))
+	if need == "beast" and not in_beast:
 		Hud.msg("%s sadece kuyruklu canavar modunda atılabilir." % String(j["name"]), Color(1, 0.55, 0.3))
 		return
+	if need.begins_with("beast:"):   # belirli canavarın tekniği (Shukaku'nun fūtonu, Kurama'nın Rasenshurikeni...)
+		var bid = need.substr(6)
+		if not in_beast or modes.cloak == null or modes.cloak.beast_id() != bid:
+			var bn = String(BeastModels.INFO.get(bid, {}).get("name", bid)).split(" —")[0]
+			Hud.msg("%s sadece %s jinchūriki'si olarak, canavar modundayken atılabilir." % [String(j["name"]), bn], Color(1, 0.55, 0.3))
+			return
 	if cooldowns.get(jid, 0.0) > 0.0:
 		Hud.msg("%s hazır değil (%.1fsn)" % [j["name"], cooldowns[jid]], Color(0.8, 0.8, 1))
 		return

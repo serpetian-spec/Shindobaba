@@ -128,7 +128,8 @@ func execute(caster: Node3D, id: String, target: Node3D) -> void:
 	var calm = shp in ["transform", "stealth", "sensor", "utility", "heal", "revive", "teleport", "clone", "counter"]
 	VFX.release(caster, _cast_origin(caster, id), JutsuEngine.color_of(jd), g, tier if not calm else mini(tier, 2), not calm)
 	var prev = VFX.epic
-	VFX.epic = g
+	# rütbeye/seviyeye göre büyütme kaldırıldı (kullanıcı: bazı jutsular anlamsız büyüyordu) — her jutsu kendi anime boyutunda
+	VFX.epic = 1.0
 	if MsArts.handles(own_id):   # Mangekyō tarzlarının kendi teknikleri
 		MsArts.cast(caster, own_id, target)
 	elif PathJutsu.handles_path(own_id):   # Efsane Yolları teknikleri
@@ -2039,10 +2040,8 @@ func j_amaterasu(c: Node3D, t: Node3D) -> void:
 	var inf = _inf(c, "amaterasu", 0.25, {"knock": 0.0, "launch": 0.0, "kind": "light", "hitstop": 0.0, "element": "katon"})
 	_ticks(int(dur / 0.4), 0.4, func(_i):
 		var p = (tg.global_position if tg and is_instance_valid(tg) else pos)
-		# yukarı yalayan kara alev dilleri (uzayan cel topaklar) + mor kor
-		VFX.puffs(p + Vector3.UP * 0.6, {"amount": 6, "life": 0.7, "size": 1.0, "radius": 0.8, "vmin": 2, "vmax": 4, "dir": Vector3.UP, "spread": 15.0, "glow": 1.0,
-			"stretch": 2.2, "outline_col": Color(0.5, 0.1, 0.58), "colors": [Color(0.04, 0.0, 0.06, 1), Color(0.03, 0.0, 0.05, 1), Color(0.02, 0.0, 0.03, 0)]})
-		VFX.embers(p + Vector3.UP, Color(0.6, 0.15, 0.7), 4, 3.0, 0.8)
+		# alev dilleri black_flames'te sürekli yanıyor; burada yalnız birkaç mor kor
+		VFX.embers(p + Vector3.UP, Color(0.5, 0.12, 0.6), 2, 2.5, 0.7)
 		Combat.hit_sphere(c, p + Vector3.UP, 1.8, inf), func():
 		if is_instance_valid(flame):
 			flame.queue_free())

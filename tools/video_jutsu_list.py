@@ -40,9 +40,9 @@ VIDEO_JUTSU = [
      'Tavus kuşu kuyruğu gibi açılan renkli rüzgâr yelpazesi; her tüy bir kesik.', []),
     ('rasengan_shunki', 'Rasengan: Shunki (Işık Hızı Rasengan)', 'Rasengan: Flash', 'fuuton', 4, 'melee', 'trainer:jonin', '',
      'Rasengan elde patlar gibi parlar ve sen göz açıp kapayıncaya kadar hedefe varırsın.', []),
-    ('senpo_cho_biju_rasenshuriken', 'Senpō: Chō Bijū Rasenshuriken (Bilge Dev Canavar Rasenshurikeni)', 'Sage Art: Super Tailed Beast Rasenshuriken', 'fuuton', 5, 'projectile', 'sage:any', 'beast',
+    ('senpo_cho_biju_rasenshuriken', 'Senpō: Chō Bijū Rasenshuriken (Bilge Dev Canavar Rasenshurikeni)', 'Sage Art: Super Tailed Beast Rasenshuriken', 'fuuton', 5, 'projectile', 'sage:any', 'beast:kurama',
      'Kuyruklu canavar chakrasıyla dev Rasenshuriken; arkasında renkli rüzgâr kuyrukları döner. Sadece kuyruklu canavar modunda.', []),
-    ('bijudama_rasenshuriken', 'Bijūdama Rasenshuriken (Canavar Bombası Rasenshurikeni)', 'Tailed Beast Bomb Rasenshuriken', 'fuuton', 5, 'projectile', 'trainer:jonin', 'beast',
+    ('bijudama_rasenshuriken', 'Bijūdama Rasenshuriken (Canavar Bombası Rasenshurikeni)', 'Tailed Beast Bomb Rasenshuriken', 'fuuton', 5, 'projectile', 'trainer:jonin', 'beast:kurama',
      'Bijūdama etrafına rüzgâr bıçakları sarılır: patlayınca kara bir küre ve kesen girdap. Sadece kuyruklu canavar modunda.', []),
     ('futon_sasandan', 'Fūton: Sasandan (Kum Saçma Yaylımı)', 'Wind Release: Sand Bomb Salvo', 'fuuton', 3, 'projectile', 'trainer:suna', '',
      'Rüzgârla sertleştirilmiş kum bilyeleri yelpaze halinde yağar.', ['Tora', 'Hitsuji']),
@@ -54,7 +54,7 @@ VIDEO_JUTSU = [
      'Altı Yol chakrasıyla atılan devasa Rasenshuriken; birkaç küçüğü etrafında döner. Sadece sennin modunda.', []),
     ('kazanami', 'Kazanami (Rüzgâr Dalgaları)', 'Wind Waves', 'fuuton', 2, 'aoe', 'scroll', '',
      'Yere vurduğun avuçtan halka halka rüzgâr dalgaları yayılır, çevredekileri iter.', []),
-    ('chooodama_rasenshuriken', 'Chōōdama Rasenshuriken (Dev Top Rasenshuriken)', 'Ultra-Big Ball Rasenshuriken', 'fuuton', 5, 'projectile', 'trainer:jonin', 'beast',
+    ('chooodama_rasenshuriken', 'Chōōdama Rasenshuriken (Dev Top Rasenshuriken)', 'Ultra-Big Ball Rasenshuriken', 'fuuton', 5, 'projectile', 'trainer:jonin', 'beast:kurama',
      'Kurama ile birlikte oluşturulan devasa Rasenshuriken; geniş alanı keser. Sadece kuyruklu canavar modunda.', []),
 ]
 # --- raiton videosu (QFacC8hM5HA)
@@ -87,10 +87,17 @@ VIDEO_JUTSU += [
      'Avuçta yoğunlaşan altın-beyaz şimşek topu fırlatılır; çarpınca şimşek kafesi gibi patlar.', []),
     ('kuroi_chidori', 'Kuroi Chidori (Kara Chidori)', 'Dark Chidori', 'raiton', 4, 'melee', 'eye:sharingan', '',
      'Kara alevle karışmış Chidori: vurduğunda hedefte kara alevler tutuşur ve şimşek uzun süre çatırdar.', []),
-    ('raisuiryudan', 'Raisuiryūdan (Şimşek Su Ejderi)', 'Lightning Water Dragon', 'raiton', 4, 'projectile', 'trainer:kumo', '',
+    ('raisuiryudan', 'Raisuiryūdan (Şimşek Su Ejderi)', 'Lightning Water Dragon', 'raiton+suiton', 4, 'projectile', 'trainer:kumo', '',
      'Su ejderinin içinden şimşek akar: ejder hedefe çarpınca etraftaki suya da şimşek yayılır.', ['Tatsu', 'Tora', 'U']),
     ('raiton_rengo_raibakudan', 'Raiton: Rengō Raibakudan (Ortak Yıldırım Bombası)', 'Lightning Release: Coordinated Thunder Bomb', 'raiton', 4, 'aoe', 'trainer:kumo', '',
      'Etrafındaki beş şimşek kürecik hedefte birleşip dev bir yıldırım bombasına dönüşür.', ['Tora', 'Ne', 'Tori']),
     ('daburu_kuropansa', 'Raiton: Daburu Kuropansā (Çift Kara Panter)', 'Lightning Release: Double Black Panthers', 'raiton', 5, 'projectile', 'trainer:kumo', '',
      'İki kara şimşek panteri iki yandan koşup hedefi sıkıştırır; ikisi birden çarptığında kara şimşek patlar.', []),
 ]
+
+# var olan jutsulara kanon koşulu: animede kim/ne ile atılıyorsa
+EXTRA = {
+    'futon_mugen_sajin_daitoppa': {'need': 'beast:shukaku'},   # Shukaku (Bir Kuyruk) karnını şişirip üfler
+    'odama_rasenshuriken': {'need': 'sage'},                    # Naruto sennin modunda klonlarla
+    'futon_rasengan': {},
+}

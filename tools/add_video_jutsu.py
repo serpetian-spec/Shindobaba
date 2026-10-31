@@ -22,8 +22,9 @@ for (jid, nm, en, el, ti, shape, learn, need, desc, sl) in ns['VIDEO_JUTSU']:
     m = re.match(r'^(.*?)\s*\((.*)\)\s*$', nm)
     name, meaning = (m.group(1), m.group(2)) if m else (nm, '')
     ck, dk = SHAPE_K.get(shape, (1.0, 1.0))
-    e = dict(id=jid, name=name, name_en=en, cost=int(round(COST[ti] * ck)), cd=round(CD[ti] * dk, 1), element=el,
-             elements=[el] if el else [], natures=[el] if el else [], clan='', level=LEVEL[ti], rank=NRANK[ti], learn=learn,
+    els = [x for x in el.split('+') if x]   # "raiton+suiton": iki elementi de bilmek gerekir
+    e = dict(id=jid, name=name, name_en=en, cost=int(round(COST[ti] * ck)), cd=round(CD[ti] * dk, 1), element=els[0] if els else '',
+             elements=els, natures=els, clan='', level=LEVEL[ti], rank=NRANK[ti], learn=learn,
              desc=desc, seals=sl, canon_rank='EDCBAS'[ti], tier=ti,
              category='senjutsu' if learn.startswith('sage') else ('taijutsu' if 'taijutsu' in learn else 'ninjutsu'), shape=shape)
     if need:
@@ -33,6 +34,10 @@ for (jid, nm, en, el, ti, shape, learn, need, desc, sl) in ns['VIDEO_JUTSU']:
     if jid not in data:
         n_new += 1
     data[jid] = e
+# var olan jutsulara kanon koşulu (gereken mod / canavar / elementler): EXTRA = {id: {alan: değer}}
+for jid, fields in ns.get('EXTRA', {}).items():
+    if jid in data:
+        data[jid].update(fields)
 txt = json.dumps(data, ensure_ascii=False, indent=1)
 if crlf:
     txt = txt.replace('\n', '\r\n')
