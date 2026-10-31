@@ -16,9 +16,9 @@ const REGION := {
 	"rain": ["patrol", "patrol", "wounded", "duel", "clan_rogue", "rumor"],
 }
 ## Bölgenin kaçak klanları
-const REGION_CLANS := {"fire": ["uchiha", "hyuga", "nara", "akimichi", "aburame", "inuzuka", "iburi", "shimura", "tsuchigumo", "namikaze", "yuhi", "gekko", "mitarashi", "shiranui"], "lightning": ["chinoike", "yotsuki", "ikazuchi", "kaminarimon"],
-	"water": ["kaguya", "yuki", "hozuki", "hoshigaki", "funato", "momochi", "kurosuki", "hagoromo"], "wind": ["sabaku", "shirogane", "kazahana"], "earth": ["kamizuru", "kako", "iwao", "jugo"],
-	"stone": ["kako"], "rain": ["uchiha", "chinoike", "hozuki"]}
+const REGION_CLANS := {"fire": ["uchiha", "hyuga", "nara", "akimichi", "aburame", "inuzuka", "iburi", "shimura", "tsuchigumo", "namikaze", "yuhi", "gekko", "mitarashi", "shiranui"], "lightning": ["chinoike", "yotsuki"],
+	"water": ["kaguya", "yuki", "hozuki", "hoshigaki", "funato", "momochi", "kurosuki", "hagoromo"], "wind": ["sabaku", "shirogane"], "earth": ["kamizuru", "jugo"],
+	"rain": ["uchiha", "chinoike", "hozuki"]}
 ## Savaş karşılaşmaları (eski dost yardıma gelebilir)
 const COMBAT := ["patrol", "mist", "sandstorm", "storm", "clan_rogue", "toll_revenge", "nemesis"]
 const DIRS := ["kuzeyde", "kuzeydoğuda", "doğuda", "güneydoğuda", "güneyde", "güneybatıda", "batıda", "kuzeybatıda"]

@@ -1543,7 +1543,7 @@
   "clan": "",
   "level": 28,
   "rank": 3,
-  "learn": "quest:hiden",
+  "learn": "locked:otsutsuki",
   "desc": "Avuçtan çıkan kemik iğneleri hedefe saplanınca onu küle çevirir. Ōtsutsuki gücü.",
   "seals": [],
   "canon_rank": "S",
@@ -5043,10 +5043,10 @@
   "natures": [
    "doton"
   ],
-  "clan": "iwao",
+  "clan": "",
   "level": 18,
   "rank": 3,
-  "learn": "clan:iwao",
+  "learn": "trainer:iwa",
   "desc": "Dev bir taş golem yaratır.",
   "seals": [
    "Mi"
@@ -5135,10 +5135,10 @@
   "natures": [
    "doton"
   ],
-  "clan": "iwao",
+  "clan": "",
   "level": 10,
   "rank": 2,
-  "learn": "clan:iwao",
+  "learn": "trainer:iwa",
   "desc": "Bedenini hafiflet: havalan ve serbestçe uç (Space yüksel, Ctrl alçal). Chakra tüketir; tekrar yapınca inersin.",
   "seals": [],
   "canon_rank": "B",
@@ -5271,10 +5271,10 @@
   "natures": [
    "doton"
   ],
-  "clan": "iwao",
+  "clan": "",
   "level": 10,
   "rank": 2,
-  "learn": "clan:iwao",
+  "learn": "trainer:iwa",
   "desc": "Hedefi kayalar arasında sıkıştırır.",
   "seals": [
    "Tora",
@@ -7753,10 +7753,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "hoki",
+  "clan": "",
   "level": 5,
   "rank": 1,
-  "learn": "clan:hoki",
+  "learn": "path:sumi",
   "desc": "Mürekkepten klon yaratır.",
   "seals": [],
   "canon_rank": "C",
@@ -7779,10 +7779,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "hoki",
+  "clan": "",
   "level": 5,
   "rank": 1,
-  "learn": "clan:hoki",
+  "learn": "path:sumi",
   "desc": "Mürekkep püskürterek görüşü kapatır.",
   "seals": [],
   "canon_rank": "C",
@@ -8186,7 +8186,8 @@
   "kinjutsu": false,
   "series": "Naruto Shippūden",
   "meaning": "Lotus Kralı",
-  "need": "sage"
+  "need": "sage",
+  "blood": "senju"
  },
  "kirin": {
   "id": "kirin",
@@ -12324,10 +12325,10 @@
   "natures": [
    "ranton"
   ],
-  "clan": "ikazuchi",
+  "clan": "",
   "level": 18,
   "rank": 3,
-  "learn": "clan:ikazuchi",
+  "learn": "kg:ranton",
   "desc": "Güdümlü çoklu enerji ışınları.",
   "seals": [
    "Ne",
@@ -12748,10 +12749,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "hoki",
+  "clan": "",
   "level": 10,
   "rank": 2,
-  "learn": "clan:hoki",
+  "learn": "path:sumi",
   "desc": "Çizilen hayvanları canlandırır.",
   "seals": [],
   "canon_rank": "B",
@@ -14396,7 +14397,8 @@
   "signature": false,
   "kinjutsu": false,
   "series": "Naruto Shippūden",
-  "meaning": "Ahşap Ejder"
+  "meaning": "Ahşap Ejder",
+  "blood": "senju"
  },
  "mokuton_mokujin_no_jutsu": {
   "id": "mokuton_mokujin_no_jutsu",
@@ -14435,7 +14437,8 @@
   "signature": false,
   "kinjutsu": false,
   "series": "Naruto Shippūden",
-  "meaning": "Ahşap Dev"
+  "meaning": "Ahşap Dev",
+  "blood": "senju"
  },
  "mokuton_mokujoheki": {
   "id": "mokuton_mokujoheki",
@@ -14585,7 +14588,8 @@
   "signature": false,
   "kinjutsu": false,
   "series": "Naruto Part I",
-  "meaning": "Ağaçlar Dünyası Doğuşu"
+  "meaning": "Ağaçlar Dünyası Doğuşu",
+  "blood": "senju"
  },
  "mokuton_henge": {
   "id": "mokuton_henge",
@@ -15915,7 +15919,8 @@
   "signature": false,
   "kinjutsu": false,
   "series": "Naruto Shippūden",
-  "meaning": "Çoklu Ahşap Klon"
+  "meaning": "Çoklu Ahşap Klon",
+  "blood": "senju"
  },
  "senpo_mokuton_shin_susenju": {
   "id": "senpo_mokuton_shin_susenju",
@@ -15951,7 +15956,8 @@
   "kinjutsu": false,
   "series": "Naruto Shippūden",
   "meaning": "Gerçek Binlerce El",
-  "need": "sage"
+  "need": "sage",
+  "blood": "senju"
  },
  "yasaka_no_magatama": {
   "id": "yasaka_no_magatama",
@@ -16826,10 +16832,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "hoki",
+  "clan": "",
   "level": 10,
   "rank": 2,
-  "learn": "clan:hoki",
+  "learn": "path:sumi",
   "desc": "Ahtapot kollarıyla hedefi sarar ve mürekkeple mühürler.",
   "seals": [],
   "canon_rank": "B",
@@ -16909,10 +16915,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "hoki",
+  "clan": "",
   "level": 10,
   "rank": 2,
-  "learn": "clan:hoki",
+  "learn": "path:sumi",
   "desc": "Dev mürekkep tanrı figürü.",
   "seals": [],
   "canon_rank": "B",
@@ -17407,10 +17413,10 @@
   "natures": [
    "doton"
   ],
-  "clan": "iwao",
+  "clan": "",
   "level": 10,
   "rank": 2,
-  "learn": "clan:iwao",
+  "learn": "trainer:iwa",
   "desc": "Taş yüzeyini cilalayıp sertleştirir.",
   "seals": [],
   "canon_rank": "B",
@@ -18064,10 +18070,10 @@
   "natures": [
    "doton"
   ],
-  "clan": "iwao",
+  "clan": "",
   "level": 10,
   "rank": 2,
-  "learn": "clan:iwao",
+  "learn": "trainer:iwa",
   "desc": "Bedeni kaya gibi sertleştirir.",
   "seals": [],
   "canon_rank": "B",
@@ -20003,10 +20009,10 @@
   "natures": [
    "fuuton"
   ],
-  "clan": "kazahana",
+  "clan": "",
   "level": 10,
   "rank": 2,
-  "learn": "clan:kazahana",
+  "learn": "trainer:suna",
   "desc": "Kumlu hortum ileri yürür, yakaladıklarını havaya kaldırıp savurur.",
   "seals": [
    "Tora",
@@ -20015,13 +20021,13 @@
   ],
   "canon_rank": "B",
   "tier": 3,
-  "category": "hiden",
+  "category": "ninjutsu",
   "shape": "aoe",
   "meaning": "Kum Kasırgası"
  },
  "kazahana_kazekiri_mai": {
   "id": "kazahana_kazekiri_mai",
-  "name": "Kazekiri no Mai",
+  "name": "Fūton: Kazekiri no Mai",
   "name_en": "Wind Cutting Dance",
   "cost": 22,
   "cd": 7.2,
@@ -20032,21 +20038,21 @@
   "natures": [
    "fuuton"
   ],
-  "clan": "kazahana",
+  "clan": "",
   "level": 10,
   "rank": 2,
-  "learn": "clan:kazahana",
+  "learn": "trainer:suna",
   "desc": "Etrafında dönerek rüzgar bıçakları savur: dört dalga kesik her yöne.",
   "seals": [],
   "canon_rank": "B",
   "tier": 3,
-  "category": "hiden",
+  "category": "ninjutsu",
   "shape": "melee",
   "meaning": "Rüzgar Kesen Dans"
  },
  "kazahana_sabaku_arashi": {
   "id": "kazahana_sabaku_arashi",
-  "name": "Sabaku Arashi",
+  "name": "Fūton: Sabaku Arashi",
   "name_en": "Desert Storm",
   "cost": 55,
   "cd": 25.2,
@@ -20057,10 +20063,10 @@
   "natures": [
    "fuuton"
   ],
-  "clan": "kazahana",
+  "clan": "",
   "level": 18,
   "rank": 3,
-  "learn": "clan:kazahana",
+  "learn": "trainer:suna",
   "desc": "Kum fırtınası çöker: içindeki düşmanlar kör ve yavaş, sen rüzgarla hızlanırsın.",
   "seals": [
    "Tatsu",
@@ -20068,13 +20074,13 @@
   ],
   "canon_rank": "A",
   "tier": 4,
-  "category": "hiden",
+  "category": "ninjutsu",
   "shape": "field",
   "meaning": "Çöl Fırtınası"
  },
  "kazahana_fujin_ya": {
   "id": "kazahana_fujin_ya",
-  "name": "Fūjin no Ya",
+  "name": "Fūton: Fūjin no Ya",
   "name_en": "Wind God Arrows",
   "cost": 18,
   "cd": 6.0,
@@ -20085,17 +20091,17 @@
   "natures": [
    "fuuton"
   ],
-  "clan": "kazahana",
+  "clan": "",
   "level": 5,
   "rank": 1,
-  "learn": "clan:kazahana",
+  "learn": "trainer:suna",
   "desc": "Üç sıkıştırılmış rüzgar oku: yolundaki herkesi deler geçer.",
   "seals": [
    "Tori"
   ],
   "canon_rank": "C",
   "tier": 2,
-  "category": "hiden",
+  "category": "ninjutsu",
   "shape": "projectile",
   "meaning": "Rüzgar Tanrısı Okları"
  },
@@ -20207,10 +20213,10 @@
   "natures": [
    "ranton"
   ],
-  "clan": "ikazuchi",
+  "clan": "",
   "level": 18,
   "rank": 3,
-  "learn": "clan:ikazuchi",
+  "learn": "kg:ranton",
   "desc": "Fırtına bulutu toplanır, aşağı bükülerek inen ışın yağmuru.",
   "seals": [
    "Tatsu",
@@ -20236,10 +20242,10 @@
   "natures": [
    "ranton"
   ],
-  "clan": "ikazuchi",
+  "clan": "",
   "level": 10,
   "rank": 2,
-  "learn": "clan:ikazuchi",
+  "learn": "kg:ranton",
   "desc": "Su ve yıldırımdan tazı zikzak çizerek koşar, çarptığını sersemletir.",
   "seals": [
    "Inu",
@@ -20264,10 +20270,10 @@
   "natures": [
    "ranton"
   ],
-  "clan": "ikazuchi",
+  "clan": "",
   "level": 18,
   "rank": 3,
-  "learn": "clan:ikazuchi",
+  "learn": "kg:ranton",
   "desc": "Kara bulut alanı: içindeki düşmanlara her saniye şimşek iner.",
   "seals": [
    "Mi",
@@ -20292,10 +20298,10 @@
   "natures": [
    "ranton"
   ],
-  "clan": "ikazuchi",
+  "clan": "",
   "level": 10,
   "rank": 2,
-  "learn": "clan:ikazuchi",
+  "learn": "kg:ranton",
   "desc": "Işın kıvrılarak engellerin üstünden aşar ve kilitli hedefe iner.",
   "seals": [
    "Tora"
@@ -21446,64 +21452,64 @@
  },
  "hoki_sumi_ryu": {
   "id": "hoki_sumi_ryu",
-  "name": "Hōki: Sumi Ryū",
+  "name": "Chōjū Giga: Ryū",
   "name_en": "Ink Dragon",
   "cost": 34,
   "cd": 8.5,
   "element": "",
   "elements": [],
-  "clan": "hoki",
+  "clan": "",
   "level": 10,
   "rank": 0,
-  "learn": "clan",
+  "learn": "path:sumi",
   "desc": "Parşömene çizilen mürekkep ejder kıvrılarak hedefe saldırır.",
   "seals": [],
   "canon_rank": "B",
-  "category": "hiden",
+  "category": "ninjutsu",
   "shape": "projectile",
   "tier": 3
  },
  "hoki_sumi_tora": {
   "id": "hoki_sumi_tora",
-  "name": "Hōki: Sumi Tora",
+  "name": "Chōjū Giga: Tora",
   "name_en": "Ink Tigers",
   "cost": 38,
   "cd": 9.9,
   "element": "",
   "elements": [],
-  "clan": "hoki",
+  "clan": "",
   "level": 14,
   "rank": 0,
-  "learn": "clan",
+  "learn": "path:sumi",
   "desc": "İki mürekkep kaplan çizilir, dört ayak üstünde hedefe atılır.",
   "seals": [],
   "canon_rank": "B",
-  "category": "hiden",
+  "category": "ninjutsu",
   "shape": "summon",
   "tier": 3
  },
  "hoki_sumi_tori": {
   "id": "hoki_sumi_tori",
-  "name": "Hōki: Sumi Tori",
+  "name": "Chōjū Giga: Tori",
   "name_en": "Ink Bird Flight",
   "cost": 46,
   "cd": 12.7,
   "element": "",
   "elements": [],
-  "clan": "hoki",
+  "clan": "",
   "level": 22,
   "rank": 0,
-  "learn": "clan",
+  "learn": "path:sumi",
   "desc": "Dev mürekkep kuş çizilir; sırtında uçarak alanı aşarsın.",
   "seals": [],
   "canon_rank": "A",
-  "category": "hiden",
+  "category": "ninjutsu",
   "shape": "utility",
   "tier": 4
  },
  "kazahana_kamaitachi_rendan": {
   "id": "kazahana_kamaitachi_rendan",
-  "name": "Kazahana: Kamaitachi Rendan",
+  "name": "Fūton: Kamaitachi Rendan",
   "name_en": "Sickle Weasel Barrage",
   "cost": 32,
   "cd": 7.8,
@@ -21511,20 +21517,20 @@
   "elements": [
    "fuuton"
   ],
-  "clan": "kazahana",
+  "clan": "",
   "level": 8,
   "rank": 0,
-  "learn": "clan",
+  "learn": "trainer:suna",
   "desc": "Art arda beş rüzgâr orağı; her biri kesip kanatır.",
   "seals": [],
   "canon_rank": "B",
-  "category": "hiden",
+  "category": "ninjutsu",
   "shape": "projectile",
   "tier": 3
  },
  "kazahana_kaze_no_yaiba": {
   "id": "kazahana_kaze_no_yaiba",
-  "name": "Kazahana: Kaze no Yaiba",
+  "name": "Fūton: Kaze no Yaiba",
   "name_en": "Wind Blade",
   "cost": 38,
   "cd": 9.9,
@@ -21532,20 +21538,20 @@
   "elements": [
    "fuuton"
   ],
-  "clan": "kazahana",
+  "clan": "",
   "level": 14,
   "rank": 0,
-  "learn": "clan",
+  "learn": "trainer:suna",
   "desc": "Elde görünmez rüzgâr kılıcı; dev menzilli tek biçme.",
   "seals": [],
   "canon_rank": "B",
-  "category": "hiden",
+  "category": "ninjutsu",
   "shape": "melee",
   "tier": 3
  },
  "kazahana_tatsumaki_kabe": {
   "id": "kazahana_tatsumaki_kabe",
-  "name": "Kazahana: Tatsumaki Kabe",
+  "name": "Fūton: Tatsumaki Kabe",
   "name_en": "Tornado Wall",
   "cost": 46,
   "cd": 12.7,
@@ -21553,20 +21559,20 @@
   "elements": [
    "fuuton"
   ],
-  "clan": "kazahana",
+  "clan": "",
   "level": 22,
   "rank": 0,
-  "learn": "clan",
+  "learn": "trainer:suna",
   "desc": "Çevrende kumlu hortum duvarı döner; mermileri savurur, yaklaşanı keser.",
   "seals": [],
   "canon_rank": "A",
-  "category": "hiden",
+  "category": "ninjutsu",
   "shape": "wall",
   "tier": 4
  },
  "ikazuchi_ranton_kyu": {
   "id": "ikazuchi_ranton_kyu",
-  "name": "Ikazuchi: Ranton Kyū",
+  "name": "Ranton: Arashi Kyū",
   "name_en": "Storm Sphere",
   "cost": 32,
   "cd": 7.8,
@@ -21574,20 +21580,20 @@
   "elements": [
    "ranton"
   ],
-  "clan": "ikazuchi",
+  "clan": "",
   "level": 8,
   "rank": 0,
-  "learn": "clan",
+  "learn": "kg:ranton",
   "desc": "Su ve şimşek karışık küre; çarpınca etrafa ışın saçar.",
   "seals": [],
   "canon_rank": "B",
-  "category": "hiden",
+  "category": "kekkei_genkai",
   "shape": "projectile",
   "tier": 3
  },
  "ikazuchi_kaminari_ryu": {
   "id": "ikazuchi_kaminari_ryu",
-  "name": "Ikazuchi: Kaminari Ryū",
+  "name": "Ranton: Kaminari Ryū",
   "name_en": "Storm Dragon",
   "cost": 38,
   "cd": 9.9,
@@ -21595,20 +21601,20 @@
   "elements": [
    "ranton"
   ],
-  "clan": "ikazuchi",
+  "clan": "",
   "level": 14,
   "rank": 0,
-  "learn": "clan",
+  "learn": "kg:ranton",
   "desc": "Kara bulutlu şimşek ejderi kıvrılarak hedefe iner.",
   "seals": [],
   "canon_rank": "A",
-  "category": "hiden",
+  "category": "kekkei_genkai",
   "shape": "projectile",
   "tier": 3
  },
  "ikazuchi_arashi_kabe": {
   "id": "ikazuchi_arashi_kabe",
-  "name": "Ikazuchi: Arashi Kabe",
+  "name": "Ranton: Arashi Kabe",
   "name_en": "Storm Barrier",
   "cost": 46,
   "cd": 12.7,
@@ -21616,14 +21622,14 @@
   "elements": [
    "ranton"
   ],
-  "clan": "ikazuchi",
+  "clan": "",
   "level": 22,
   "rank": 0,
-  "learn": "clan",
+  "learn": "kg:ranton",
   "desc": "Çevrende ışın kafesi kurulur; içinden geçen yanar ve sersemler.",
   "seals": [],
   "canon_rank": "A",
-  "category": "hiden",
+  "category": "kekkei_genkai",
   "shape": "field",
   "tier": 4
  },
@@ -21637,20 +21643,20 @@
   "elements": [
    "doton"
   ],
-  "clan": "iwao",
+  "clan": "",
   "level": 8,
   "rank": 0,
-  "learn": "clan",
+  "learn": "trainer:iwa",
   "desc": "Yerden kaya sütunlar fışkırıp hedefi kafese alır.",
   "seals": [],
   "canon_rank": "B",
-  "category": "hiden",
+  "category": "ninjutsu",
   "shape": "bind",
   "tier": 3
  },
  "iwao_golem_ken": {
   "id": "iwao_golem_ken",
-  "name": "Iwao: Gōremu Ken",
+  "name": "Doton: Gōremu Ken",
   "name_en": "Golem Fist",
   "cost": 38,
   "cd": 9.9,
@@ -21658,20 +21664,20 @@
   "elements": [
    "doton"
   ],
-  "clan": "iwao",
+  "clan": "",
   "level": 14,
   "rank": 0,
-  "learn": "clan",
+  "learn": "trainer:iwa",
   "desc": "Kol taş golem yumruğuna dönüşür; tek dev darbe, yer çöker.",
   "seals": [],
   "canon_rank": "B",
-  "category": "hiden",
+  "category": "ninjutsu",
   "shape": "melee",
   "tier": 3
  },
  "iwao_ganseki_ame": {
   "id": "iwao_ganseki_ame",
-  "name": "Iwao: Ganseki Ame",
+  "name": "Doton: Ganseki Ame",
   "name_en": "Boulder Rain",
   "cost": 46,
   "cd": 12.7,
@@ -21679,14 +21685,14 @@
   "elements": [
    "doton"
   ],
-  "clan": "iwao",
+  "clan": "",
   "level": 22,
   "rank": 0,
-  "learn": "clan",
+  "learn": "trainer:iwa",
   "desc": "Göğe fırlatılan kayalar hedef alana yağar.",
   "seals": [],
   "canon_rank": "A",
-  "category": "hiden",
+  "category": "ninjutsu",
   "shape": "aoe",
   "tier": 4
  },
@@ -21909,7 +21915,7 @@
  },
  "kako_yoton_kazan": {
   "id": "kako_yoton_kazan",
-  "name": "Kakō: Yōton Kazan",
+  "name": "Yōton: Kazan",
   "name_en": "Lava Volcano",
   "cost": 34,
   "cd": 8.5,
@@ -21917,20 +21923,20 @@
   "elements": [
    "yoton"
   ],
-  "clan": "kako",
+  "clan": "",
   "level": 10,
   "rank": 0,
-  "learn": "clan",
+  "learn": "kg:yoton",
   "desc": "Hedefin altından küçük yanardağ fışkırır, lav ve kaya saçar.",
   "seals": [],
   "canon_rank": "B",
-  "category": "hiden",
+  "category": "kekkei_genkai",
   "shape": "aoe",
   "tier": 3
  },
  "kako_yogan_ken": {
   "id": "kako_yogan_ken",
-  "name": "Kakō: Yōgan Ken",
+  "name": "Yōton: Yōgan Ken",
   "name_en": "Magma Fist",
   "cost": 38,
   "cd": 9.9,
@@ -21938,20 +21944,20 @@
   "elements": [
    "yoton"
   ],
-  "clan": "kako",
+  "clan": "",
   "level": 14,
   "rank": 0,
-  "learn": "clan",
+  "learn": "kg:yoton",
   "desc": "Yumruklar lavla kaplanır; çok darbeli erimiş kaya kombosu.",
   "seals": [],
   "canon_rank": "B",
-  "category": "hiden",
+  "category": "kekkei_genkai",
   "shape": "melee",
   "tier": 3
  },
  "kako_yoton_kansen": {
   "id": "kako_yoton_kansen",
-  "name": "Kakō: Yōton Kansen",
+  "name": "Yōton: Kansen",
   "name_en": "Lava Geyser Field",
   "cost": 46,
   "cd": 12.7,
@@ -21959,14 +21965,14 @@
   "elements": [
    "yoton"
   ],
-  "clan": "kako",
+  "clan": "",
   "level": 22,
   "rank": 0,
-  "learn": "clan",
+  "learn": "kg:yoton",
   "desc": "Alana yayılan çatlaklardan lav fıskiyeleri fışkırır.",
   "seals": [],
   "canon_rank": "A",
-  "category": "hiden",
+  "category": "kekkei_genkai",
   "shape": "field",
   "tier": 4
  },
@@ -23085,14 +23091,14 @@
   "elements": [
    "raiton"
   ],
-  "clan": "kaminarimon",
+  "clan": "",
   "level": 3,
   "rank": 0,
-  "learn": "clan",
+  "learn": "trainer:kumo",
   "desc": "Yumruğa yüklenen şimşekle sersemleten darbe.",
   "seals": [],
   "canon_rank": "B",
-  "category": "hiden",
+  "category": "ninjutsu",
   "shape": "melee",
   "tier": 2,
   "meaning": "Şimşek Yumruğu"
@@ -23107,14 +23113,14 @@
   "elements": [
    "raiton"
   ],
-  "clan": "kaminarimon",
+  "clan": "",
   "level": 6,
   "rank": 0,
-  "learn": "clan",
+  "learn": "trainer:kumo",
   "desc": "Önde dönen şimşek kalkanı mermileri yakar.",
   "seals": [],
   "canon_rank": "B",
-  "category": "hiden",
+  "category": "ninjutsu",
   "shape": "wall",
   "tier": 2,
   "meaning": "Şimşek Kalkanı"
@@ -23129,14 +23135,14 @@
   "elements": [
    "raiton"
   ],
-  "clan": "kaminarimon",
+  "clan": "",
   "level": 8,
   "rank": 0,
-  "learn": "clan",
+  "learn": "trainer:kumo",
   "desc": "Kunailer arasına gerilen elektrik teli; değeni çarpar.",
   "seals": [],
   "canon_rank": "B",
-  "category": "hiden",
+  "category": "ninjutsu",
   "shape": "trap",
   "tier": 3,
   "meaning": "Elektrik Teli Tuzağı"
@@ -23151,14 +23157,14 @@
   "elements": [
    "raiton"
   ],
-  "clan": "kaminarimon",
+  "clan": "",
   "level": 10,
   "rank": 0,
-  "learn": "clan",
+  "learn": "trainer:kumo",
   "desc": "Şimşek gibi hat boyunca koşarsın, yoldakiler çarpılır.",
   "seals": [],
   "canon_rank": "B",
-  "category": "hiden",
+  "category": "ninjutsu",
   "shape": "teleport",
   "tier": 3,
   "meaning": "Şimşek Koşusu"
@@ -23173,21 +23179,21 @@
   "elements": [
    "raiton"
   ],
-  "clan": "kaminarimon",
+  "clan": "",
   "level": 14,
   "rank": 0,
-  "learn": "clan",
+  "learn": "trainer:kumo",
   "desc": "Gökten şimşek küreleri yağar.",
   "seals": [],
   "canon_rank": "B",
-  "category": "hiden",
+  "category": "ninjutsu",
   "shape": "aoe",
   "tier": 3,
   "meaning": "Şimşek Küresi Yağmuru"
  },
  "kaminarimon_denji_hoko": {
   "id": "kaminarimon_denji_hoko",
-  "name": "Elektromanyetik Ray Kunai",
+  "name": "Raiton: Denji Kunai",
   "name_en": "Elektromanyetik Ray Kunai",
   "cost": 56,
   "cd": 11.3,
@@ -23195,14 +23201,14 @@
   "elements": [
    "raiton"
   ],
-  "clan": "kaminarimon",
+  "clan": "",
   "level": 18,
   "rank": 0,
-  "learn": "clan",
+  "learn": "trainer:kumo",
   "desc": "İki elektromanyetik ray arasında hızlanan kunai; hattı deler.",
   "seals": [],
   "canon_rank": "A",
-  "category": "hiden",
+  "category": "ninjutsu",
   "shape": "beam",
   "tier": 4
  },
@@ -23216,14 +23222,14 @@
   "elements": [
    "raiton"
   ],
-  "clan": "kaminarimon",
+  "clan": "",
   "level": 22,
   "rank": 0,
-  "learn": "clan",
+  "learn": "trainer:kumo",
   "desc": "Kara şimşek çarpması: uzun felç.",
   "seals": [],
   "canon_rank": "A",
-  "category": "hiden",
+  "category": "ninjutsu",
   "shape": "projectile",
   "tier": 4,
   "meaning": "Kara Şimşek Darbesi"
@@ -23238,14 +23244,14 @@
   "elements": [
    "raiton"
   ],
-  "clan": "kaminarimon",
+  "clan": "",
   "level": 26,
   "rank": 0,
-  "learn": "clan",
+  "learn": "trainer:kumo",
   "desc": "Hedefin üstüne dev şimşek sütunu iner.",
   "seals": [],
   "canon_rank": "A",
-  "category": "hiden",
+  "category": "ninjutsu",
   "shape": "aoe",
   "tier": 5,
   "meaning": "Gök Gürültüsü Sütunu"
@@ -29214,7 +29220,8 @@
   "tier": 5,
   "category": "ninjutsu",
   "shape": "field",
-  "meaning": "Çiçekli Orman Doğuşu"
+  "meaning": "Çiçekli Orman Doğuşu",
+  "blood": "senju"
  },
  "chojo_kebutsu": {
   "id": "chojo_kebutsu",
@@ -29244,7 +29251,8 @@
   "category": "ninjutsu",
   "shape": "aoe",
   "need": "sage",
-  "meaning": "Tepe Buda"
+  "meaning": "Tepe Buda",
+  "blood": "senju"
  },
  "mokuton_kui": {
   "id": "mokuton_kui",

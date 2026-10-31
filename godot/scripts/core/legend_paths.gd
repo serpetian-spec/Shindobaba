@@ -206,6 +206,22 @@ const PATHS := {
 		"quest": {"hachibi_ahtapot_topu": "falls"},
 		"dark": {},
 	},
+	"sumi": {
+		"name": "Kök: Mürekkep Yolu", "icon": "scroll", "color": Color(0.55, 0.55, 0.62),
+		"style": "Fırçayla çizilen mürekkep canavarları (Chōjū Giga), mürekkep klonları ve sisi, mürekkep mühürleri; duygusuz Kök eğitimi",
+		"site": {"country": "fire", "off": Vector2(1800, 2600), "kind": "ink", "clear": 48.0, "place": "Yıkık Kök Karakolu (Ateş Ülkesi ormanı)"},
+		"mentor": {"name": "Sumizome Kōji", "title": "Mürekkep Ustası",
+			"look": {"gender": "m", "skin": Color(0.95, 0.9, 0.86), "hair": Color(0.06, 0.06, 0.08), "hair_style": "kisa", "eye": Color(0.08, 0.08, 0.1),
+				"top": Color(0.12, 0.12, 0.14), "top2": Color(0.4, 0.4, 0.45), "pants": Color(0.12, 0.12, 0.14), "band": Color(0.2, 0.2, 0.22), "age": "adult"}},
+		"rumor_level": 8, "join_level": 10,
+		"rumor": "Ateş Ülkesi ormanında, dağıtılmış eski bir Kök karakolunda sessizce resim yapan solgun bir adam varmış. Çizdiği kuşlar sayfadan kalkıp uçarmış.",
+		"intro": "Solgun adam fırçasını kaldırmadan konuşuyor: \"Kök duyguları siler, yalnız görev kalır. Ben resmimle bir şeyler geri kazandım. Önce elinin titremediğini göster.\"",
+		"passive": {"chakra": 0.1, "jutsu": 0.05},
+		"passive_desc": "Chakra +%10, jutsu gücü +%5",
+		"order": ["sumi_bunshin_no_jutsu", "sumigasumi_no_jutsu", "choju_giga", "hoki_sumi_ryu", "fuinjutsu_okutopasu_horudo", "choshin_giga", "hoki_sumi_tora", "hoki_sumi_tori"],
+		"quest": {"choshin_giga": "god"},
+		"dark": {},
+	},
 }
 ## Sıradaki yollar (ROADMAP): kurbağa sennin, kil sanatı, kukla ustası, Hiraishin, köpekbalığı...
 
@@ -609,6 +625,19 @@ static func _quest(pid: String, kind: String, teach: String) -> Dictionary:
 					{"kind": "goto", "at": _near(at, 120.0), "r": 10.0, "name": "Şelalenin Altı", "text": "Şelalenin altına git."},
 					{"kind": "kill", "at": _near(at, 120.0), "enemy": "rogue", "n": 2, "camp": true, "boss": {"name": "Karanlık Benlik", "hp": 3600.0, "level": 32, "power": 2.8}, "text": "Karanlık benliğini yen."},
 					{"kind": "goto", "at": at, "r": 9.0, "name": "Şelale", "text": "Ustaya dön."}]}
+		"sumi:trial":
+			q = {"title": "Titremeyen El", "rank": "C",
+				"brief": "Usta, karakolun çevresine dağılmış eski Kök mühür parşömenlerini toplamanı ve onları arayan kaçak Kök ajanlarını durdurmanı istiyor.",
+				"steps": [
+					{"kind": "collect", "at": _near(at, 240.0), "item": "Kök parşömeni", "n": 6, "spread": 30, "text": "Dağılmış Kök parşömenlerini topla (6)."},
+					{"kind": "defend", "at": at, "enemy": "rogue", "waves": [2, 3], "text": "Parşömenlerin peşindeki kaçak ajanları püskürt."}]}
+		"sumi:god":
+			q = {"title": "Tanrı Çizimi", "rank": "A",
+				"brief": "Dev mürekkep figürü için ustanın eski Kök arkadaşının mühürlü fırçası gerek. Fırçayı çalan kaçak Kök komutanını bul ve yen.",
+				"steps": [
+					{"kind": "track", "from": at, "to": _near(at, 850.0), "text": "Kaçak komutanın izini sür."},
+					{"kind": "kill", "at": _near(at, 850.0), "enemy": "rogue", "n": 3, "camp": true, "boss": {"name": "Kök Komutanı Kurosen", "hp": 2800.0, "level": 26, "power": 2.5}, "text": "Kaçak Kök komutanını yen."},
+					{"kind": "goto", "at": at, "r": 9.0, "name": "Yıkık Kök Karakolu", "text": "Fırçayla ustaya dön."}]}
 		"kagit:trial":
 			q = {"title": "Kâğıdın Sabrı", "rank": "C",
 				"brief": "Usta, rüzgârın dağıttığı yüz kâğıt turnayı toplamanı ve onları çalmaya gelen haydutları kovmanı istiyor.",

@@ -359,8 +359,8 @@
   ]
  },
  "sabaku": {
-  "name": "Sabaku",
-  "desc": "Suna'nın kum ve demir tozunu mıknatıs chakrasıyla yöneten klanı. Kum kalkanı, demir kum fırtınası.",
+  "name": "Kazekage Ailesi",
+  "desc": "Suna'yı yöneten Kazekage soyu. Kum ve demir/altın tozunu mıknatıs chakrasıyla yönetir (Üçüncü'nün demir kumu, Dördüncü'nün altın tozu). Kum kalkanı, kum zırhı, demir kum fırtınası.",
   "kg": "Jiton (Mıknatıs)",
   "eye": [
    0.35,
@@ -390,40 +390,6 @@
   ],
   "bonus": {
    "chakra": 30
-  },
-  "villages": [
-   "suna"
-  ]
- },
- "hoki": {
-  "name": "Hōki",
-  "desc": "Suna'ya göçmüş, mürekkebi canlandıran klan. Çizimden yaratık ve mühür.",
-  "kg": "Mürekkep Sanatı",
-  "eye": [
-   0.3,
-   0.3,
-   0.35
-  ],
-  "bonus": {
-   "chakra": 25,
-   "jutsu": 0.05
-  },
-  "villages": [
-   "suna"
-  ]
- },
- "kazahana": {
-  "name": "Kazahana",
-  "desc": "Suna'nın rüzgar ustası çöl klanı. Fūton kesikleri ve kum fırtınası.",
-  "kg": "Çöl Rüzgarı",
-  "eye": [
-   0.55,
-   0.45,
-   0.3
-  ],
-  "bonus": {
-   "jutsu": 0.08,
-   "speed": 0.03
   },
   "villages": [
    "suna"
@@ -482,64 +448,6 @@
   },
   "villages": [
    "kumo"
-  ]
- },
- "ikazuchi": {
-  "name": "Ikazuchi",
-  "desc": "Kumo'nun fırtına klanı. Işın gibi bükülen fırtına chakrası.",
-  "kg": "Ranton (Fırtına)",
-  "eye": [
-   0.55,
-   0.65,
-   0.85
-  ],
-  "kg_natures": [
-   "ranton"
-  ],
-  "kg_level": 6,
-  "bonus": {
-   "jutsu": 0.1,
-   "chakra": 15
-  },
-  "villages": [
-   "kumo"
-  ]
- },
- "kako": {
-  "name": "Kakō",
-  "desc": "Iwa'nın volkan klanı. Lav topları ve eriyik kayalar.",
-  "kg": "Yōton (Lav)",
-  "eye": [
-   0.6,
-   0.3,
-   0.15
-  ],
-  "kg_natures": [
-   "yoton"
-  ],
-  "kg_level": 4,
-  "bonus": {
-   "hp": 25,
-   "jutsu": 0.08
-  },
-  "villages": [
-   "iwa"
-  ]
- },
- "iwao": {
-  "name": "Iwao",
-  "desc": "Iwa'nın taş dev ve golem ustası klanı. Doton savunma ve hafifletme.",
-  "kg": "Toprak Golemleri",
-  "eye": [
-   0.45,
-   0.4,
-   0.35
-  ],
-  "bonus": {
-   "hp": 50
-  },
-  "villages": [
-   "iwa"
   ]
  },
  "iburi": {
@@ -625,45 +533,6 @@
   },
   "villages": [
    "kiri"
-  ]
- },
- "kaminarimon": {
-  "name": "Kaminarimon",
-  "desc": "Yıldırım Kapısı ailesi: elektromanyetik raylar, şimşek kalkanı ve kara şimşek.",
-  "kg": "Elektromanyetik Şimşek",
-  "eye": [
-   0.75,
-   0.65,
-   0.25
-  ],
-  "bonus": {
-   "jutsu": 0.05,
-   "speed": 0.04
-  },
-  "villages": [
-   "kumo"
-  ]
- },
- "otsutsuki": {
-  "name": "Ōtsutsuki",
-  "desc": "Göklerden gelen tanrısal soy. Doğuştan Byakugan, devasa chakra; kül kemikleri, altın chakra ve uzay kapıları. Ustalaşınca Tenseigan'a uzanır.",
-  "kg": "Tanrısal Chakra",
-  "eye": [
-   0.9,
-   0.9,
-   0.96
-  ],
-  "dojutsu": "byakugan",
-  "bonus": {
-   "chakra": 60,
-   "jutsu": 0.08
-  },
-  "villages": [
-   "konoha",
-   "suna",
-   "kiri",
-   "kumo",
-   "iwa"
   ]
  },
  "namikaze": {

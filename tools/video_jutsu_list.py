@@ -420,3 +420,44 @@ for _j in ['kawazu_kumite', 'kawazu_tataki', 'zessenbaku', 'zessenzan', 'mizuame
            'senpo_gokashin_ensen', 'senpo_kawazu_naki', 'daijatsuki', 'senpo_muki_tensei', 'senpo_hakugeki_no_jutsu', 'senpo_myojinmon',
            'gudodama', 'gudokasa', 'senpo_choodama_rasen_tarengan', 'senpo_yoton_rasenshuriken', 'kebari_senbon', 'senpo_mokuton_shin_susenju', 'kanzeon_renge_o']:
     EXTRA.setdefault(_j, {})['need'] = 'sage'
+# --- kanon klan düzeni (2026-10-31): uydurma klanlar kaldırıldı, teknikleri kanon karşılığına taşındı
+_CLAN_FIX = {
+    # Ikazuchi -> Ranton kan soyu (Darui gibi klansız kekkei genkai)
+    'ranton_reiza_sakasu': ('kg:ranton', None), 'ikazuchi_reiza_ame': ('kg:ranton', None), 'ikazuchi_koga': ('kg:ranton', None),
+    'ikazuchi_raiun': ('kg:ranton', None), 'ikazuchi_kosen': ('kg:ranton', None),
+    'ikazuchi_ranton_kyu': ('kg:ranton', 'Ranton: Arashi Kyū'), 'ikazuchi_kaminari_ryu': ('kg:ranton', 'Ranton: Kaminari Ryū'),
+    'ikazuchi_arashi_kabe': ('kg:ranton', 'Ranton: Arashi Kabe'),
+    # Kakō -> Yōton kan soyu (Rōshi / Kurotsuchi gibi)
+    'kako_yoton_kazan': ('kg:yoton', 'Yōton: Kazan'), 'kako_yogan_ken': ('kg:yoton', 'Yōton: Yōgan Ken'), 'kako_yoton_kansen': ('kg:yoton', 'Yōton: Kansen'),
+    # Iwao -> Iwa eğitmeni (golem ve hafifletme Ōnoki / Kitsuchi'nin Iwa teknikleri)
+    'doton_goremu_no_jutsu': ('trainer:iwa', None), 'doton_keijugan_no_jutsu': ('trainer:iwa', None), 'doton_iwayado_kuzushi': ('trainer:iwa', None),
+    'doton_kakogan': ('trainer:iwa', None), 'doton_koka_jutsu': ('trainer:iwa', None), 'iwao_ganchuro': ('trainer:iwa', None),
+    'iwao_golem_ken': ('trainer:iwa', 'Doton: Gōremu Ken'), 'iwao_ganseki_ame': ('trainer:iwa', 'Doton: Ganseki Ame'),
+    # Kazahana -> Suna eğitmeni
+    'kazahana_sajin_senpu': ('trainer:suna', None), 'kazahana_kazekiri_mai': ('trainer:suna', 'Fūton: Kazekiri no Mai'),
+    'kazahana_sabaku_arashi': ('trainer:suna', 'Fūton: Sabaku Arashi'), 'kazahana_fujin_ya': ('trainer:suna', 'Fūton: Fūjin no Ya'),
+    'kazahana_kamaitachi_rendan': ('trainer:suna', 'Fūton: Kamaitachi Rendan'), 'kazahana_kaze_no_yaiba': ('trainer:suna', 'Fūton: Kaze no Yaiba'),
+    'kazahana_tatsumaki_kabe': ('trainer:suna', 'Fūton: Tatsumaki Kabe'),
+    # Kaminarimon -> Kumo eğitmeni
+    'kaminarimon_denko_ken': ('trainer:kumo', None), 'kaminarimon_raijin_tate': ('trainer:kumo', None), 'kaminarimon_denki_ito': ('trainer:kumo', None),
+    'kaminarimon_raikou': ('trainer:kumo', None), 'kaminarimon_raikyu_ame': ('trainer:kumo', None), 'kaminarimon_denji_hoko': ('trainer:kumo', 'Raiton: Denji Kunai'),
+    'kaminarimon_kuro_ikazuchi': ('trainer:kumo', None), 'kaminarimon_tenrai': ('trainer:kumo', None),
+    # Hōki -> Kök: Mürekkep Yolu (Sai'nin Kök'ten gelen mürekkep sanatı)
+    'sumi_bunshin_no_jutsu': ('path:sumi', None), 'sumigasumi_no_jutsu': ('path:sumi', None), 'choju_giga': ('path:sumi', None),
+    'fuinjutsu_okutopasu_horudo': ('path:sumi', None), 'choshin_giga': ('path:sumi', None),
+    'hoki_sumi_ryu': ('path:sumi', 'Chōjū Giga: Ryū'), 'hoki_sumi_tora': ('path:sumi', 'Chōjū Giga: Tora'), 'hoki_sumi_tori': ('path:sumi', 'Chōjū Giga: Tori'),
+}
+for _j, (_l, _n) in _CLAN_FIX.items():
+    _f = EXTRA.setdefault(_j, {})
+    _f['learn'] = _l
+    _f['clan'] = ''
+    if _n:
+        _f['name'] = _n
+    _f['category'] = 'kekkei_genkai' if _l.startswith('kg:') else ('ninjutsu' if _j != 'fuinjutsu_okutopasu_horudo' else 'fuinjutsu')
+# Hashirama seviyesi Mokuton: yalnız Senju kanı (nakil hücreyle Yamato / Danzō bunları yapamadı)
+for _j in ['mokuton_mokujin_no_jutsu', 'mokuton_mokuryu_no_jutsu', 'mokuton_kajukai_korin', 'senpo_mokuton_shin_susenju', 'chojo_kebutsu',
+           'kanzeon_renge_o', 'mokuton_hijutsu_jukai_kotan', 'taju_mokuton_bunshin_no_jutsu']:
+    EXTRA.setdefault(_j, {})['blood'] = 'senju'
+# Ōtsutsuki içeriği Ōtsutsuki bölümüne kadar öğrenilemez (kod duruyor)
+for _j in ['tomogoroshi_no_haikotsu']:
+    EXTRA.setdefault(_j, {})['learn'] = 'locked:otsutsuki'

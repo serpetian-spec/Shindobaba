@@ -139,7 +139,7 @@ const LEGENDS := [
 		"top": Color(0.45, 0.25, 0.2), "crime": "Bir dağı Jinton ile buharlaştırdı; arkasında hiçbir şey kalmadı"},
 	{"key": "kessui", "name": "Chinoike Kessui", "alias": "Kan Gölgesi", "v": "kumo", "clan": "chinoike", "el": "", "minlv": 33, "lv": 54, "wander": true,
 		"eye": 3, "j": [], "hair": "uzun", "hc": Color(0.45, 0.05, 0.08), "top": Color(0.18, 0.08, 0.1), "f": true, "crime": "Bir kasabayı kan genjutsusuyla birbirine düşürdü"},
-	{"key": "raigo", "name": "Ikazuchi Raigō", "alias": "Fırtına Ejderi", "v": "kumo", "clan": "ikazuchi", "el": "raiton", "minlv": 42, "lv": 62, "wander": true,
+	{"key": "raigo", "name": "Raigō", "alias": "Fırtına Ejderi", "v": "kumo", "clan": "", "el": "raiton", "minlv": 42, "lv": 62, "wander": true,
 		"j": ["raiton_sandageto", "raiton_kage_bunshin_no_jutsu"], "hair": "diken", "hc": Color(0.85, 0.82, 0.4), "top": Color(0.3, 0.32, 0.45),
 		"crime": "Ranton ile Kumo'nun gözetleme kulelerini yıktı"},
 ]
@@ -306,8 +306,8 @@ func decorate_bingo(e: Dictionary) -> void:
 	if e.has("legend") or e.has("beast") or randf() > 0.4:
 		return
 	var by_v := {"konoha": ["uchiha", "hyuga", "nara", "akimichi", "aburame", "inuzuka", "uzumaki", "sarutobi", "iburi", "shimura", "tsuchigumo", "namikaze", "yuhi", "gekko", "mitarashi", "shiranui"],
-		"kiri": ["kaguya", "yuki", "hozuki", "hoshigaki", "terumi", "karatachi", "funato", "momochi", "kurosuki", "hagoromo"], "suna": ["sabaku", "shirogane", "hoki", "kazahana"],
-		"kumo": ["chinoike", "yotsuki", "ikazuchi", "kaminarimon"], "iwa": ["kamizuru", "kako", "iwao", "jugo"]}
+		"kiri": ["kaguya", "yuki", "hozuki", "hoshigaki", "terumi", "karatachi", "funato", "momochi", "kurosuki", "hagoromo"], "suna": ["sabaku", "shirogane"],
+		"kumo": ["chinoike", "yotsuki"], "iwa": ["kamizuru", "jugo"]}
 	var lst: Array = by_v.get(String(e["village"]), [])
 	if lst.is_empty():
 		return

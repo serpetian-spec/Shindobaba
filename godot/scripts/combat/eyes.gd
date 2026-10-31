@@ -938,10 +938,7 @@ func evolve_tick(dt: float) -> void:
 				g["lvl"] = int(g.get("lvl", 1)) + 1
 				var nm = "BYAKUGAN" if g["id"] == "goz_byakugan" else "KETSURYŪGAN"
 				Hud.banner(nm + " GELİŞTİ", "Ustalık %d / 3" % int(g["lvl"]), Color(0.85, 0.9, 1.0) if g["id"] == "goz_byakugan" else Color(0.9, 0.2, 0.25))
-	# 2) Tenseigan artık kendiliğinden uyanmaz: ustalaşmış Byakugan + Sv.40 olunca Kuzey'deki Ay Mabedi'ne çağrılır
-	if active and lv >= 40 and _both_slots_kind(2) and _lvl("sag") >= 3 and _lvl("sol") >= 3 and not pr.get("flags", {}).get("moon_call", false):
-		pr["flags"]["moon_call"] = true
-		Hud.banner("AYIN ÇAĞRISI", "Byakugan'ın kuzeyde, Ay Mabedi'nde uyuyan eski bir chakrayı görüyor", Color(0.55, 0.8, 1.0))
+	# 2) Tenseigan (Ay Mabedi) Ōtsutsuki bölümüne kadar kapalı
 	_evo_cd -= dt
 	if _evo_cd > 0.0:
 		return
@@ -957,7 +954,7 @@ func evolve_tick(dt: float) -> void:
 			VFX.shockwave(p.global_position + Vector3.UP, Color(0.7, 0.55, 0.95), 16.0, 0.6, false)
 	# 4) Rinne-Sharingan (alında üçüncü göz) kaldırıldı
 	# 5) Jōgan: Uzumaki soyunda nadir, Sv.20+ her 2 sn'de çok düşük olasılık (yalnız gözsüz sağ yuva)
-	if String(pr.get("clan", "")) == "uzumaki" and lv >= 20 and not pr.get("flags", {}).get("jogan_rolled_%d" % lv, false):
+	if false and String(pr.get("clan", "")) == "uzumaki" and lv >= 20 and not pr.get("flags", {}).get("jogan_rolled_%d" % lv, false):   # Jōgan Ōtsutsuki bölümüne kadar kapalı
 		pr["flags"]["jogan_rolled_%d" % lv] = true
 		if Gear.equipped(pr, "sag_goz").is_empty() and randf() < 0.12:
 			_replace_eyes("goz_jogan", ["sag_goz"], 1)

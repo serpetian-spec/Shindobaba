@@ -667,6 +667,20 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 			if not cj.is_empty():
 				var names = cj.map(func(x): return "%s (Sv.%d)" % [String(x["name"]).split(" (")[0], int(x.get("level", 1))])
 				note.call(cc, "Klan teknikleri: " + ", ".join(names), UI.GOLD)
+			# klansız: klan adı olmayan nadir kan soyu (Darui'nin Ranton'u, Pakura'nın Shakuton'u gibi) — yalnız o köyde doğar
+			var soy_ids: Array = [""]
+			if state["clan"] == "none":
+				soy_ids.append_array(KgPaths.SOY.keys().filter(func(k): return hvil in KgPaths.SOY[k]["villages"]))
+			if not String(state.get("soy", "")) in soy_ids:
+				state["soy"] = ""
+			if soy_ids.size() > 1:
+				var soy_c: VBoxContainer = carousel.call("Kan Soyu", "soy", soy_ids, soy_ids.map(func(k): return "Yok" if k == "" else String(KgPaths.SOY[k]["name"])))
+				var sd: Dictionary = KgPaths.SOY.get(String(state.get("soy", "")), {})
+				if sd.is_empty():
+					note.call(soy_c, "Sıradan kan: kekkei genkai yok.")
+				else:
+					note.call(soy_c, "Kekkei Genkai: %s (Sv.%d'de uyanır)" % [Elements.NAMES.get(String(sd["nature"]), String(sd["nature"])), int(sd["level"])], UI.ACCENT)
+					note.call(soy_c, String(sd["desc"]))
 			var els = ["katon", "suiton", "fuuton", "doton", "raiton"]
 			var ec: VBoxContainer = carousel.call("Chakra Doğası", "element", els, els.map(func(e): return el_names[e]), UI.ELEMENT_COLORS.get(state["element"], UI.CREAM))
 			# klan teknikleri hangi doğaları istiyor: seçilen doğada olmayanlar ikinci doğa alınana kadar kilitli
@@ -1345,6 +1359,8 @@ static func _tab_inventory(main: Node, body: Control) -> void:
 		stat_row.call("chakra", "Chakra", "%d / %d" % [int(pl.chakra), int(pl.max_chakra)], Color(0.5, 0.75, 1.0))
 	stat_row.call("star", "Seviye", "%d  (XP %d)" % [int(pr["level"]), int(pr["xp"])])
 	stat_row.call("leaf", "Klan", Data.clans.get(pr["clan"], {}).get("name", "Klansız"))
+	if KgPaths.SOY.has(String(pr.get("soy", ""))):
+		stat_row.call("leaf", "Kan Soyu", KgPaths.SOY[String(pr["soy"])]["name"])
 	stat_row.call(UI.ELEMENT_ICONS.get(String(pr["elements"][0]) if not pr["elements"].is_empty() else "", "chakra"), "Chakra doğası", ", ".join(pr["elements"]).capitalize())
 	stat_row.call("plus", "Yetenek puanı", str(int(pr["sp"])))
 	var md: Dictionary = pr["missions_done"]

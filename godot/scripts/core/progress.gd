@@ -139,7 +139,7 @@ func objective_text() -> String:
 func new_profile(opts: Dictionary) -> Dictionary:
 	var pr = {
 		"slot": opts.get("slot", 1), "name": opts.get("name", "İsimsiz"), "gender": opts.get("gender", "m"),
-		"clan": opts.get("clan", "none"), "elements": [opts.get("element", "katon")], "element_known": false,
+		"clan": opts.get("clan", "none"), "soy": opts.get("soy", ""), "elements": [opts.get("element", "katon")], "element_known": false,
 		"look": opts.get("look", {}), "level": 1, "xp": 0, "rank": 0, "ryo": 150, "sp": 0, "skills": [],
 		"learned": [], "slots": ["", "", "", "", "", ""], "inventory": {"kunai": 12, "shuriken": 6, "salve": 2},
 		"throw_sel": "kunai", "summon": "kurbağa", "story": 0, "seed": randi(), "journal": [], "goals": [], "flags": {}, "missions_done": {"D": 0, "C": 0, "B": 0, "A": 0, "S": 0},
@@ -232,6 +232,10 @@ func element_block(jid: String) -> String:
 	# göz teknikleri göz gücüyle çalışır (Amaterasu, Enton); ama Şimşek'i göze bağlayanlar Raiton ister
 	if lp.begins_with("path:") or lp.begins_with("sage") or lp.begins_with("beast:") or lp.begins_with("weapon:") or (lp.begins_with("eye:") and not jid in ["raiden", "kamui_raikiri", "indora_no_ya"]):
 		return ""
+	# kana bağlı teknik: nakil hücreyle değil, yalnız o soyun kanıyla (Hashirama seviyesi Mokuton)
+	var bl = String(j.get("blood", ""))
+	if bl != "" and String(p().get("clan", "")) != bl:
+		return "%s yalnız %s kanı taşıyanlara açılır." % [String(j.get("name", jid)).split(" (")[0], String(Data.clans.get(bl, {}).get("name", bl))]
 	var els: Array = j.get("elements", [])
 	if els.is_empty() and String(j.get("element", "")) != "":
 		els = [String(j["element"])]
@@ -263,8 +267,16 @@ func awaken_nature(n: String, announce := true) -> void:
 func _check_kg_awaken(announce: bool) -> void:
 	var pr = p()
 	var cl: Dictionary = Data.clans.get(pr.get("clan", "none"), {})
+	var src: Array = []
 	for n in cl.get("kg_natures", []):
-		if int(pr["level"]) >= int(cl.get("kg_level", 1)) and not has_nature(n):
+		src.append([n, int(cl.get("kg_level", 1))])
+	# klansız kan soyu (Darui'nin Ranton'u, Pakura'nın Shakuton'u gibi klan adı olmayan kekkei genkai)
+	var soy: Dictionary = KgPaths.SOY.get(String(pr.get("soy", "")), {})
+	if not soy.is_empty():
+		src.append([String(soy["nature"]), int(soy["level"])])
+	for sn in src:
+		var n: String = sn[0]
+		if int(pr["level"]) >= int(sn[1]) and not has_nature(n):
 			if not pr.has("natures"):
 				pr["natures"] = []
 			pr["natures"].append(n)
@@ -678,7 +690,6 @@ func interact(it: Dictionary) -> void:
 		"trainer":
 			var vid: String = it.get("village", home())
 			var topts = trainer_options(it["kinds"]) if it.has("kinds") else village_trainer_options(vid)
-			topts.append_array(KgPaths.trainer_options())  # Doğa Dönüşümü (birleşik doğa)
 			var ttxt = "Hangi tekniği öğrenmek istersin? Ryō karşılığında öğretirim." if not topts.is_empty() else "Şu an sana öğretebileceğim yeni bir teknik yok. Biraz daha güçlen, sonra gel."
 			Hud.dialog(it.get("title", "Eğitmen"), ttxt, topts)
 		"tailor":

@@ -192,7 +192,7 @@ func back_to_menu() -> void:
 
 func start_creator(slot: int) -> void:
 	mode = "creator"
-	creator_state = {"slot": slot, "name": "", "gender": "m", "clan": "none", "element": "katon", "village": "konoha", "hair_style": "diken",
+	creator_state = {"slot": slot, "name": "", "gender": "m", "clan": "none", "soy": "", "element": "katon", "village": "konoha", "hair_style": "diken",
 		"hair": Color(0.3, 0.2, 0.12), "top": Color(0.15, 0.2, 0.33), "top2": Color(0.15, 0.15, 0.17), "pants": Color(0.15, 0.15, 0.17),
 		"top_style": "ceket", "pants_style": "ninja",
 		"skin": Color(0.96, 0.8, 0.66), "eye": Color(0.25, 0.45, 0.8)}
@@ -257,7 +257,7 @@ func _start_new_game() -> void:
 	var s = creator_state
 	if String(s["name"]).strip_edges() == "":
 		s["name"] = ["Kaito", "Hiro", "Ren", "Sora", "Aki", "Yuki"].pick_random()
-	Game.profile = Progress.new_profile({"slot": s["slot"], "name": s["name"], "gender": s["gender"], "clan": s["clan"],
+	Game.profile = Progress.new_profile({"slot": s["slot"], "name": s["name"], "gender": s["gender"], "clan": s["clan"], "soy": s.get("soy", "") if s["clan"] == "none" else "",
 		"element": s["element"], "look": _creator_look(), "village": s.get("village", "konoha")})
 	Game.profile["pos"] = null
 	Progress.refresh_story()
@@ -297,9 +297,14 @@ func _begin_game(pos: Vector3) -> void:
 		Game.profile["village"] = "konoha"
 	if not Game.profile.has("rep"):
 		Game.profile["rep"] = {}
-	# kaldırılan klanlar (Bakuha -> Patlayıcı Kil Yolu): eski kayıt klansız devam eder, teknikleri yolda
-	if not Data.clans.has(String(Game.profile.get("clan", "none"))):
+	# kaldırılan klanlar (Bakuha -> Patlayıcı Kil Yolu; uydurma Ikazuchi/Kakō -> klansız kan soyu, Hōki -> Kök: Mürekkep Yolu,
+	# Iwao/Kazahana/Kaminarimon -> köy eğitmeni): eski kayıt klansız devam eder, öğrenilmiş teknikler kalır
+	var old_clan = String(Game.profile.get("clan", "none"))
+	if not Data.clans.has(old_clan):
 		Game.profile["clan"] = "none"
+		var to_soy = {"ikazuchi": "ranton", "kako": "yoton"}
+		if to_soy.has(old_clan) and String(Game.profile.get("soy", "")) == "":
+			Game.profile["soy"] = to_soy[old_clan]
 	look["village"] = Game.profile["village"]
 	Progress.refresh_story()
 	Missions._story_cache.clear()

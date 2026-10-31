@@ -267,11 +267,19 @@ func add_trust(amount: float, id := "") -> void:
 		Hud.msg("%s ile bağın güçlendi (güven %d)" % [BeastModels.INFO.get(id, {}).get("name", id).split(" — ")[0], int(b["trust"])], Color(1, 0.75, 0.4))
 
 
+## Canavarın chakrasından gelen kekkei genkai doğası (Rōshi'nin lavı Son Gokū'dan, Han'ın buharı Kokuō'dan)
+const BEAST_NATURE := {"son_goku": "yoton", "kokuo": "futton"}
+
+
 ## Canavara özgü teknikler (learn "beast:<id>"): o canavarın jinchūriki'si olunca ve seviye yetince öğrenilir
 func teach_beast_arts() -> void:
 	var pr = Game.profile
 	if pr.is_empty():
 		return
+	for bid in held():
+		if BEAST_NATURE.has(bid) and not Progress.has_nature(BEAST_NATURE[bid]):
+			Progress.awaken_nature(BEAST_NATURE[bid])
+			Hud.msg("%s chakrası bedenine karıştı: %s" % [_bname(bid), Elements.NAMES.get(BEAST_NATURE[bid], BEAST_NATURE[bid])], BeastModels.INFO.get(bid, {}).get("chakra", Color(1, 0.6, 0.3)), 4.0)
 	for jid in Data.jutsu:
 		var j = Data.jutsu[jid]
 		if not j is Dictionary or jid in pr.get("learned", []):
