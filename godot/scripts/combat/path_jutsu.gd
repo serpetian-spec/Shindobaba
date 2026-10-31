@@ -18972,24 +18972,48 @@ func _hand_weapon(c: Node3D, w: Node3D, dur: float, rot := Vector3(PI * 0.5, 0, 
 
 ## Buz Kırlangıç Fırtınası: onlarca buz kırlangıç ayna gibi parlayıp hedefe dalar
 func p_hyoton_tsubame_fubuki(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.9)
+	busy(c, 1.0)
 	var tt = tg(c, t, 28.0)
-	VFX.puffs(c.global_position + Vector3.UP * 1.5, {"amount": 30, "life": 1.0, "size": 0.3, "radius": 1.2, "vmin": 1, "vmax": 3, "dir": Vector3.UP, "spread": 90.0, "add": true,
-		"colors": [Color(0.9, 0.97, 1, 0.9), Color(0.7, 0.88, 1, 0)]})
-	for k in 14:
-		after(0.25 + k * 0.04, func():
+	var d = fwd(c, tt)
+	# buz kırlangıçlar ellerden kar tipisiyle doğup caster'ın çevresinde dönen bir sürü kurar, sonra tek tek hedefe dalar
+	VFX.fog(c.global_position + Vector3.UP * 1.4, {"amount": 14, "life": 1.2, "size": 1.4, "radius": 1.0, "vmin": 0.5, "vmax": 1.5, "dir": Vector3.UP, "spread": 90.0,
+		"colors": [Color(0.95, 0.98, 1.0, 0.0), Color(0.9, 0.96, 1.0, 0.5), Color(0.88, 0.95, 1.0, 0.0)]})
+	FX.burst(c.global_position + Vector3.UP * 1.5, {"amount": 40, "life": 1.0, "tex": FX.tex_spark, "add": true, "size": 0.15, "radius": 1.5, "vmin": 1, "vmax": 3,
+		"colors": [Color(1, 1, 1, 1), Color(0.75, 0.92, 1.0, 0.8), Color(0.7, 0.9, 1.0, 0)]})
+	var n = 16
+	for k in n:
+		var bird = Node3D.new()
+		var sw = IceArt.swallow(1.3)
+		bird.add_child(sw)
+		get_tree().current_scene.add_child(bird)
+		var a0 = k * TAU / n
+		var r = 2.2 + (k % 3) * 0.5
+		var h = 1.4 + (k % 4) * 0.45
+		var st0 = {"a": a0}
+		# sürü: caster'ın çevresinde dönen halka (kırlangıçlar dönüş yönüne bakar, kanatlar hafif yatar)
+		var tw = bird.create_tween()
+		tw.tween_method(func(u: float):
+			if not is_instance_valid(bird) or not live(c):
+				return
+			st0["a"] = a0 + u * 5.0
+			var o = Vector3(cos(st0["a"]), 0, sin(st0["a"]))
+			bird.global_position = c.global_position + o * r * minf(1.0, u * 4.0 + 0.2) + Vector3.UP * h
+			bird.look_at(bird.global_position + Vector3(-sin(st0["a"]), 0, cos(st0["a"])), Vector3.UP)
+			sw.rotation.z = sin(u * 40.0 + k) * 0.35, 0.0, 1.0, 0.35 + k * 0.035)
+		tw.tween_callback(func():
+			if not is_instance_valid(bird):
+				return
+			var from = bird.global_position
+			bird.queue_free()
 			if not live(c):
 				return
-			var b = MB.new()
-			b.add("sphere", Vector3.ZERO, Vector3(0.18, 0.12, 0.4), ICE)
-			for sx in [-1.0, 1.0]:
-				b.add("box", Vector3(sx * 0.3, 0, -0.05), Vector3(0.5, 0.02, 0.18), ICE.lightened(0.2), Vector3(0, sx * 25, sx * 10))
-			b.add("box", Vector3(0, 0, -0.32), Vector3(0.2, 0.02, 0.25), ICE, Vector3(0, 0, 0))
-			var bird = mesh_of(b, _ice_mat())
-			var from = c.global_position + Vector3.UP * randf_range(1.2, 2.6) + c.face_dir().cross(Vector3.UP) * randf_range(-2, 2)
-			var pr = shot(c, from, aim_at(c, tt, from), 32.0, bird, inf(c, "hyoton_tsubame_fubuki", 0.22, {"knock": 2.0, "kind": "light", "slow": 1.5}), tt, false, 1.4, func(p, _h):
-				VFX.debris(p, ICE, 5, 4.0, 0.2))
-			_etrail(pr, "", ICE, 0.3))
+			var holder = Node3D.new()
+			holder.add_child(IceArt.swallow(1.3))
+			var pr = shot(c, from, aim_at(c, tt, from) if tt else (d + Vector3(randf_range(-0.2, 0.2), 0, randf_range(-0.2, 0.2))).normalized(), 34.0, holder,
+				inf(c, "hyoton_tsubame_fubuki", 0.22, {"knock": 2.0, "kind": "light", "element": "hyoton", "slow": 1.5, "bleed": 0.5}), tt, false, 1.4, func(p, _h):
+					IceArt.shatter(get_tree(), p - Vector3.UP * 0.5, 0.5, 5))
+			pr.homing_turn = 4.0
+			VFX.trail(pr, 0.12, Color(1, 1, 1, 0.9), Color(0.75, 0.92, 1.0, 0.5), Color(0.7, 0.9, 1.0, 0), 10, 0.0))
 	Sfx.play("wind", c.global_position, 1.6)
 
 
@@ -19000,14 +19024,7 @@ func p_hyoton_hyoryu_boppa(c: Node3D, t: Node3D) -> void:
 	var from = c.global_position + Vector3.UP * 1.6 + d
 	# buz ejderi: başı keskin buz kristallerinden, gövdesi yarı saydam buz (kara yılan değil)
 	var head = Node3D.new()
-	var b = MB.new()
-	var ice = Color(0.82, 0.93, 1.0)
-	b.add("cone", Vector3(0, 0, 1.4), Vector3(1.1, 2.8, 0.9), ice, Vector3(90, 0, 0), 4)          # sivri burun
-	b.add("cone", Vector3(0, -0.4, 1.2), Vector3(0.8, 2.2, 0.5), ice.darkened(0.08), Vector3(100, 0, 0), 4)   # alt çene
-	for sx in [-1.0, 1.0]:
-		b.add("cone", Vector3(sx * 0.45, 0.55, 0.2), Vector3(0.25, 1.4, 0.25), ice.lightened(0.1), Vector3(-55, 0, sx * 25), 4)   # buz boynuzlar
-		b.add("cone", Vector3(sx * 0.6, 0.0, 0.3), Vector3(0.3, 1.0, 0.3), ice, Vector3(0, 0, sx * 80), 4)
-	head.add_child(mesh_of(b, _ice_mat()))
+	head.add_child(IceArt.dragon_head(1.0))
 	head.scale = Vector3.ONE * 1.4
 	var body = VfxSerpent.new()
 	body.thin = 0.8
@@ -19021,12 +19038,21 @@ func p_hyoton_hyoryu_boppa(c: Node3D, t: Node3D) -> void:
 		if not live(c):
 			return
 		var pr = shot(c, from, aim_at(c, tg(c, t, 32.0), from), 22.0, head, inf(c, "hyoton_hyoryu_boppa", 3.0, {"knock": 24.0, "launch": 6.0, "kind": "heavy", "slow": 4.0, "hitstop": 0.12}), null, true, 1.8, func(p, _h):
-			for k in 10:
-				var sp = _ice_spike(randf_range(1.5, 3.5), 0.4)
-				get_tree().current_scene.add_child(sp)
-				sp.global_position = gp(p + Vector3(randf_range(-3, 3), 0, randf_range(-3, 3))) + Vector3.UP * 0.8
-				sp.rotation = Vector3(randf_range(-0.5, 0.5), randf() * TAU, randf_range(-0.5, 0.5))
-				get_tree().create_timer(3.0).timeout.connect(sp.queue_free)
+			# çarpışma: zemin donar, içe eğik dev kristal öbeği fışkırır, sonra kırılıp saçılır
+			var g = gp(p)
+			var fr = IceArt.frost(5.5)
+			scene_add(fr, g + Vector3.UP * 0.04)
+			fade_free(fr, 3.0, 0.6)
+			var ice = IceArt.encase(2.4, 4.6)
+			scene_add(ice, g)
+			ice.scale = Vector3(0.8, 0.02, 0.8)
+			var tw = ice.create_tween()
+			tw.tween_property(ice, "scale", Vector3.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tw.tween_interval(2.4)
+			tw.tween_callback(func(): IceArt.shatter(get_tree(), g, 2.4, 22))
+			tw.tween_callback(ice.queue_free)
+			VFX.fog(g + Vector3.UP * 0.6, {"amount": 20, "life": 1.8, "size": 2.4, "radius": 3.0, "vmin": 0.5, "vmax": 2.0, "dir": Vector3.UP, "spread": 80.0,
+				"colors": [Color(0.95, 0.98, 1.0, 0.0), Color(0.9, 0.96, 1.0, 0.55), Color(0.88, 0.95, 1.0, 0.0)]})
 			impact_fx("hyoton", ICE, p, 2.4)
 			shake(1.0))
 		pr.radius = 1.6
@@ -29232,43 +29258,74 @@ func p_nendo_kawarimi(c: Node3D, t: Node3D) -> void:
 ## Makyō Hyōshō: hedefin çevresinde buz aynalardan kubbe kurulur; aynalardan aynaya geçen yansımaların senbon yağmuru
 func p_makyo_hyosho(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 16.0)
-	busy(c, 1.0)
+	var dur = 4.5
+	busy(c, dur + 0.3)
 	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 7.0)
+	# anime Haku: hedefin çevresinde buz aynaları iglo gibi içe kapanan bir kubbe kurar; kullanıcı aynalardan birine girer
 	var mirrors = []
-	for k in 16:
-		var ring = k / 8
-		var a = (k % 8) * TAU / 8.0 + ring * 0.39
-		var p = at + Vector3(cos(a) * 3.6, 1.3 + ring * 2.2, sin(a) * 3.6)
-		var m = MeshInstance3D.new()
-		var bm = BoxMesh.new()
-		bm.size = Vector3(1.5, 2.0, 0.08)
-		m.mesh = bm
-		m.material_override = _crystal_mat(Color(0.82, 0.93, 1.0, 0.6))
-		scene_add(m, p)
-		m.look_at(at + Vector3.UP * (1.3 + ring * 2.2), Vector3.UP)
-		m.rotation.x += ring * 0.35
-		m.scale = Vector3(0.05, 1, 1)
-		m.create_tween().tween_property(m, "scale", Vector3.ONE, 0.2 + k * 0.01)
-		mirrors.append(m)
-	every(4.5, 0.15, func(_i, _k):
-		if mirrors.is_empty() or not live(c):
+	var rings = [[10, 4.2, 1.25, 0.0], [8, 3.6, 3.45, 0.55], [5, 2.1, 5.0, 1.05]]
+	var idx = 0
+	for ri in rings.size():
+		var cnt: int = rings[ri][0]
+		for k in cnt:
+			var a = (k + 0.5 * ri) * TAU / cnt
+			var p = at + Vector3(cos(a) * rings[ri][1], rings[ri][2], sin(a) * rings[ri][1])
+			var m = IceArt.mirror(1.7 if ri < 2 else 1.5, 2.3)
+			scene_add(m, p)
+			m.look_at(Vector3(at.x, p.y, at.z), Vector3.UP)
+			m.rotate_object_local(Vector3.RIGHT, -rings[ri][3])
+			m.scale = Vector3(0.05, 0.05, 1)
+			m.create_tween().tween_property(m, "scale", Vector3.ONE, 0.18).set_delay(idx * 0.02).set_trans(Tween.TRANS_BACK)
+			mirrors.append(m)
+			idx += 1
+	var cap = IceArt.mirror(1.8, 1.8)
+	scene_add(cap, at + Vector3.UP * 5.9)
+	cap.rotation.x = -PI * 0.5
+	mirrors.append(cap)
+	FX.burst(at + Vector3.UP * 2.0, {"amount": 50, "life": 0.8, "tex": FX.tex_spark, "add": true, "size": 0.2, "radius": 4.0, "vmin": 1, "vmax": 3,
+		"colors": [Color(1, 1, 1, 1), Color(0.75, 0.92, 1.0, 0.8), Color(0.7, 0.9, 1.0, 0)]})
+	# kullanıcı halkadaki bir aynanın içine girer (görünmez olur); saldırılar aynalardan gelir
+	var mdl: Node3D = c.model if "model" in c and c.model else null
+	var home = mirrors[0]
+	after(0.3, func():
+		if not live(c):
 			return
-		var m = mirrors[randi() % mirrors.size()]
+		FX.burst(c.global_position + Vector3.UP, {"amount": 20, "life": 0.4, "tex": FX.tex_spark, "add": true, "size": 0.2, "vmin": 2, "vmax": 5, "colors": [Color(1, 1, 1, 1), Color(0.7, 0.9, 1.0, 0)]})
+		if is_instance_valid(home):
+			c.global_position = gp(home.global_position)
+		if mdl:
+			mdl.visible = false)
+	every(dur, 0.2, func(i, _k):
+		if mirrors.is_empty() or not live(c) or i < 2:
+			return
+		var m = mirrors[randi() % (mirrors.size() - 1)]
 		if not is_instance_valid(m):
 			return
-		VFX.star(m.global_position, Color(0.85, 0.95, 1.0), 0.7)
-		var tgt = at + Vector3.UP
-		for e in enemies_near(c, at, 3.5):
-			tgt = e.global_position + Vector3.UP
-			st(e, "slow", 0.4)
 		var from = m.global_position
-		WindFX.streak(func(q: float) -> Vector3: return from.lerp(tgt, q), 0.12, 0.03, Color(0.9, 0.95, 1.0), 0.0, 6)
-		for e in enemies_near(c, at, 3.5):
-			e.take_hit(inf(c, "makyo_hyosho", 0.18, {"knock": 0.0, "kind": "light", "bleed": 1.0})), func():
+		var tgt = at + Vector3.UP
+		var list = enemies_near(c, at, 4.5)
+		if not list.is_empty():
+			tgt = list[randi() % list.size()].global_position + Vector3.UP
+		# kullanıcının yansıması aynada belirir ve senbon fırlatır
+		if randf() < 0.5:
+			var img = decoy(c, from - Vector3.UP * 1.0, 0.3)
+			if is_instance_valid(img):
+				img.look_at(Vector3(tgt.x, img.global_position.y, tgt.z), Vector3.UP)
+		VFX.star(from, Color(0.85, 0.95, 1.0), 0.7)
+		for q in 3:
+			var off = Vector3(randf_range(-0.3, 0.3), randf_range(-0.3, 0.3), randf_range(-0.3, 0.3))
+			WindFX.streak(func(u: float) -> Vector3: return (from + off).lerp(tgt + off * 0.3, u), 0.1, 0.025, Color(0.95, 0.97, 1.0), 0.0, 5)
+		for e in list:
+			st(e, "slow", 0.4)
+			e.take_hit(inf(c, "makyo_hyosho", 0.18, {"knock": 0.0, "kind": "light", "element": "hyoton", "bleed": 1.0})), func():
 		for m in mirrors:
 			if is_instance_valid(m):
-				_crystal_shatter(m.global_position, 0.6, ICE)
-				m.queue_free())
+				IceArt.shatter(get_tree(), m.global_position - Vector3.UP * 0.6, 0.7, 4)
+				m.queue_free()
+		if is_instance_valid(c):
+			if mdl and is_instance_valid(mdl):
+				mdl.visible = true
+			FX.burst(c.global_position + Vector3.UP, {"amount": 20, "life": 0.4, "tex": FX.tex_spark, "add": true, "size": 0.2, "vmin": 2, "vmax": 5, "colors": [Color(1, 1, 1, 1), Color(0.7, 0.9, 1.0, 0)]}))
 	Sfx.play("clink", at, 0.6)
 
 

@@ -169,6 +169,63 @@ static func wall(w := 7.0, h := 4.0) -> MeshInstance3D:
 	return _mi(b)
 
 
+## Buz kırlangıç (Tsubame Fubuki): iki ucu sivri kristal gövde, geriye süpürülmüş uzun sivri kanatlar, çatal kuyruk.
+## -Z'ye bakar (mermi yönü). s=1: ~1.1 m kanat açıklığı
+static func swallow(s := 1.0) -> MeshInstance3D:
+	var rng = _rng()
+	var b = MB.new()
+	shard(b, Vector3(0, 0, 0.05) * s, Vector3.FORWARD, 0.42 * s, 0.07 * s, rng, Color.WHITE, 5, true)
+	shard(b, Vector3(0, 0, 0.05) * s, Vector3.BACK, 0.25 * s, 0.07 * s, rng, Color(0.9, 0.96, 1.0), 5, true)
+	for sx in [-1.0, 1.0]:
+		shard(b, Vector3(sx * 0.03, 0.01, 0.0) * s, Vector3(sx * 1.0, 0.05, 0.42), 0.6 * s, 0.05 * s, rng, Color.WHITE, 4, true)
+		shard(b, Vector3(sx * 0.02, 0.0, 0.2) * s, Vector3(sx * 0.35, 0.0, 1.0), 0.3 * s, 0.025 * s, rng, Color(0.9, 0.96, 1.0), 4, true)
+	return _mi(b)
+
+
+## Hyōryū Boppa ejder başı: keskin buz kristallerinden uzun burun, açık çene, geriye kıvrık kristal boynuzlar, yanak dikenleri. -Z'ye bakar
+static func dragon_head(s := 1.0) -> MeshInstance3D:
+	var rng = _rng()
+	var b = MB.new()
+	# kafatası: birkaç kalın kristal öbek
+	for k in 4:
+		shard(b, Vector3(rng.randf_range(-0.2, 0.2), rng.randf_range(-0.1, 0.15), 0.4) * s, Vector3(rng.randf_range(-0.15, 0.15), 0.1, -1.0), 1.0 * s, 0.38 * s, rng, Color.WHITE, 6, true)
+	# üst burun ve alt çene (açık ağız)
+	shard(b, Vector3(0, 0.12, -0.2) * s, Vector3(0, 0.05, -1.0), 1.7 * s, 0.32 * s, rng, Color.WHITE, 5, true)
+	shard(b, Vector3(0, -0.3, -0.1) * s, Vector3(0, -0.35, -1.0), 1.35 * s, 0.24 * s, rng, Color(0.88, 0.95, 1.0), 5, true)
+	for k in 5:   # dişler
+		for sx in [-1.0, 1.0]:
+			shard(b, Vector3(sx * 0.17, 0.02, -0.5 - k * 0.22) * s, Vector3(sx * 0.1, -1.0, 0), 0.22 * s, 0.05 * s, rng, Color.WHITE, 4)
+	for sx in [-1.0, 1.0]:
+		shard(b, Vector3(sx * 0.3, 0.4, 0.3) * s, Vector3(sx * 0.35, 0.6, 1.0), 1.5 * s, 0.13 * s, rng, Color.WHITE, 5, true)
+		shard(b, Vector3(sx * 0.25, 0.35, 0.6) * s, Vector3(sx * 0.2, 0.9, 1.0), 1.0 * s, 0.09 * s, rng, Color(0.9, 0.96, 1.0), 5, true)
+		for k in 3:
+			shard(b, Vector3(sx * 0.4, -0.05 + k * 0.12, 0.35 + k * 0.15) * s, Vector3(sx * 1.0, rng.randf_range(-0.2, 0.3), 0.6), (0.6 - k * 0.12) * s, 0.08 * s, rng, Color.WHITE, 4, true)
+		b.add("sphere", Vector3(sx * 0.33, 0.28, -0.25) * s, Vector3(0.12, 0.1, 0.16) * s, Color(0.15, 0.35, 0.75), Vector3.ZERO, 8)
+	for k in 4:   # ense dikenleri
+		shard(b, Vector3(0, 0.35, 0.5 + k * 0.3) * s, Vector3(0, 1.0, 0.8), (0.7 - k * 0.1) * s, 0.1 * s, rng, Color.WHITE, 4, true)
+	return _mi(b)
+
+
+## Makyō Hyōshō aynası: ince düz buz levha (çapraz beyaz parlama çizgili), kenarları hafif kalın
+static var _mirror_mat: ShaderMaterial
+static func mirror(w := 1.6, h := 2.3) -> MeshInstance3D:
+	if _mirror_mat == null:
+		_mirror_mat = mat().duplicate()
+		_mirror_mat.set_shader_parameter("alpha", 0.5)
+		_mirror_mat.set_shader_parameter("streak", 1.6)
+		_mirror_mat.set_shader_parameter("light_col", Color(0.88, 0.97, 1.0))
+	var b = MB.new()
+	b.add("box", Vector3.ZERO, Vector3(w, h, 0.07), Color.WHITE)
+	for sy in [-1.0, 1.0]:
+		b.add("box", Vector3(0, sy * h * 0.5, 0), Vector3(w + 0.06, 0.08, 0.12), Color(0.85, 0.94, 1.0))
+		b.add("box", Vector3(sy * w * 0.5, 0, 0), Vector3(0.08, h, 0.12), Color(0.85, 0.94, 1.0))
+	var mi = MeshInstance3D.new()
+	mi.mesh = b.build(_mirror_mat)
+	mi.material_override = _mirror_mat
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return mi
+
+
 ## Yerde donmuş zemin: düzensiz kenarlı beyaz-mavi buz lekesi (kenarlara doğru saydamlaşır)
 static func frost(r := 3.0) -> MeshInstance3D:
 	var rng = _rng()
