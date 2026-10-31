@@ -38,6 +38,8 @@ for (jid, nm, en, el, ti, shape, learn, need, desc, sl) in ns['VIDEO_JUTSU']:
 for jid, fields in ns.get('EXTRA', {}).items():
     if jid in data:
         data[jid].update(fields)
+for jid in ns.get('REMOVE', []):
+    data.pop(jid, None)
 txt = json.dumps(data, ensure_ascii=False, indent=1)
 if crlf:
     txt = txt.replace('\n', '\r\n')

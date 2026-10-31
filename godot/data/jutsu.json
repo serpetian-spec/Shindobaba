@@ -1651,37 +1651,6 @@
   "series": "Naruto Shippūden",
   "meaning": "Alev Saran Ateş"
  },
- "amenominaka": {
-  "id": "amenominaka",
-  "name": "Amenominaka",
-  "name_en": "Amenominaka",
-  "cost": 30,
-  "cd": 8.8,
-  "element": "",
-  "elements": [],
-  "natures": [],
-  "clan": "",
-  "level": 32,
-  "rank": 0,
-  "learn": "eye:rinne_sharingan",
-  "desc": "Kendini ve hedefleri farklı boyutlara anında taşır; ortam tümden değişir.",
-  "seals": [],
-  "canon_rank": "S",
-  "tier": 5,
-  "category": "dojutsu",
-  "shape": "teleport",
-  "range": "Short, Mid, Long",
-  "requires": {
-   "eye": [
-    "Rinne Sharingan"
-   ],
-   "otsutsuki_power": true
-  },
-  "signature": true,
-  "kinjutsu": false,
-  "series": "Naruto Shippūden",
-  "meaning": "Göğün Ortası"
- },
  "amenotejikara": {
   "id": "amenotejikara",
   "name": "Amenotejikara",
@@ -3044,7 +3013,8 @@
   "signature": false,
   "kinjutsu": false,
   "series": "Naruto Shippūden",
-  "meaning": "Kedi Alevi Kükreme"
+  "meaning": "Kedi Alevi Kükreme",
+  "need": "beast:matatabi"
  },
  "kusari": {
   "id": "kusari",
@@ -3963,40 +3933,6 @@
   "kinjutsu": false,
   "series": "Naruto Shippūden",
   "meaning": "Lanetli Dil Mührü"
- },
- "daikokuten": {
-  "id": "daikokuten",
-  "name": "Daikokuten",
-  "name_en": "Daikokuten",
-  "cost": 108,
-  "cd": 66.0,
-  "element": "",
-  "elements": [],
-  "natures": [],
-  "clan": "",
-  "level": 30,
-  "rank": 0,
-  "learn": "eye:rinne_sharingan",
-  "desc": "Cep boyutunda saklanan dev küp ve direkleri anında düşmanın üstüne düşürür.",
-  "seals": [],
-  "canon_rank": "S",
-  "tier": 5,
-  "category": "dojutsu",
-  "shape": "summon",
-  "range": "",
-  "requires": {
-   "eye": [
-    "Kokugan"
-   ],
-   "otsutsuki_power": true,
-   "clan_or_lineage": [
-    "Ōtsutsuki Clan"
-   ]
-  },
-  "signature": true,
-  "kinjutsu": false,
-  "series": "Boruto",
-  "meaning": "Büyük Kara Göksel"
  },
  "tsubaki_no_mai": {
   "id": "tsubaki_no_mai",
@@ -7138,36 +7074,6 @@
   "series": "Naruto Shippūden",
   "meaning": "İkiz Aslan Yumruklar"
  },
- "shin_jukai_kotan": {
-  "id": "shin_jukai_kotan",
-  "name": "Shin: Jukai Kōtan",
-  "name_en": "God: Nativity of a World of Trees",
-  "cost": 78,
-  "cd": 39.6,
-  "element": "",
-  "elements": [],
-  "natures": [],
-  "clan": "",
-  "level": 28,
-  "rank": 3,
-  "learn": "eye:rinne_sharingan",
-  "desc": "Çevreyi çakra emen dev ağaçlarla kaplar.",
-  "seals": [],
-  "canon_rank": "S",
-  "tier": 5,
-  "category": "dojutsu",
-  "shape": "field",
-  "range": "Short, Mid, Long",
-  "requires": {
-   "eye": [
-    "Rinne Sharingan"
-   ]
-  },
-  "signature": false,
-  "kinjutsu": false,
-  "series": "Naruto Shippūden",
-  "meaning": "Ağaçlar Dünyası"
- },
  "daibyo_sogeki": {
   "id": "daibyo_sogeki",
   "name": "Daibyō Sōgeki",
@@ -7831,40 +7737,6 @@
   "series": "Naruto Shippūden",
   "meaning": "İndra Oku"
  },
- "mugen_tsukuyomi": {
-  "id": "mugen_tsukuyomi",
-  "name": "Mugen Tsukuyomi",
-  "name_en": "Infinite Tsukuyomi",
-  "cost": 60,
-  "cd": 33.0,
-  "element": "",
-  "elements": [],
-  "natures": [
-   "inton"
-  ],
-  "clan": "",
-  "level": 34,
-  "rank": 0,
-  "learn": "eye:rinne_sharingan",
-  "desc": "Aydan yansıyan Rinne gözüyle tüm dünyayı rüyaya hapseder; dünya olayı.",
-  "seals": [
-   "Hitsuji"
-  ],
-  "canon_rank": "S",
-  "tier": 5,
-  "category": "dojutsu",
-  "shape": "genjutsu_stun",
-  "range": "Short, Mid, Long",
-  "requires": {
-   "eye": [
-    "Rinne Sharingan"
-   ]
-  },
-  "signature": true,
-  "kinjutsu": false,
-  "series": "Naruto Shippūden",
-  "meaning": "Sonsuz Ay Okuyucu"
- },
  "sumi_bunshin_no_jutsu": {
   "id": "sumi_bunshin_no_jutsu",
   "name": "Sumi Bunshin no Jutsu",
@@ -8369,34 +8241,6 @@
   "kinjutsu": false,
   "series": "Naruto Shippūden",
   "meaning": "Kutsal Tanrılar"
- },
- "kama": {
-  "id": "kama",
-  "name": "Kāma",
-  "name_en": "Kāma",
-  "cost": 72,
-  "cd": 48.4,
-  "element": "",
-  "elements": [],
-  "natures": [],
-  "clan": "",
-  "level": 28,
-  "rank": 3,
-  "learn": "kinjutsu",
-  "desc": "Bedende Ōtsutsuki gücü ve verisi taşıyan mühür; çakra emme, güç artışı.",
-  "seals": [],
-  "canon_rank": "S",
-  "tier": 5,
-  "category": "fuinjutsu",
-  "shape": "buff",
-  "range": "",
-  "requires": {
-   "otsutsuki_power": true
-  },
-  "signature": false,
-  "kinjutsu": false,
-  "series": "Boruto",
-  "meaning": "Karma Mührü"
  },
  "yoton_chakura_modo": {
   "id": "yoton_chakura_modo",
@@ -12666,40 +12510,6 @@
   "series": "Naruto Shippūden",
   "meaning": "İntihar Bombası Klonu"
  },
- "sukunahikona": {
-  "id": "sukunahikona",
-  "name": "Sukunahikona",
-  "name_en": "Sukunahikona",
-  "cost": 36,
-  "cd": 22.0,
-  "element": "",
-  "elements": [],
-  "natures": [],
-  "clan": "",
-  "level": 28,
-  "rank": 3,
-  "learn": "quest:signature",
-  "desc": "Nesneleri küçültüp büyütme.",
-  "seals": [],
-  "canon_rank": "S",
-  "tier": 5,
-  "category": "dojutsu",
-  "shape": "utility",
-  "range": "",
-  "requires": {
-   "eye": [
-    "Kokugan"
-   ],
-   "otsutsuki_power": true,
-   "clan_or_lineage": [
-    "Ōtsutsuki Clan"
-   ]
-  },
-  "signature": true,
-  "kinjutsu": false,
-  "series": "Boruto",
-  "meaning": "Küçük Tanrı"
- },
  "kuchiyose_gedo_mazo": {
   "id": "kuchiyose_gedo_mazo",
   "name": "Kuchiyose: Gedō Mazō",
@@ -14851,32 +14661,6 @@
   "kinjutsu": false,
   "series": "Naruto Part I",
   "meaning": "Yin Mühür Çözülüşü"
- },
- "yomotsu_hirasaka": {
-  "id": "yomotsu_hirasaka",
-  "name": "Yomotsu Hirasaka",
-  "name_en": "Yomotsu Hirasaka",
-  "cost": 30,
-  "cd": 8.8,
-  "element": "",
-  "elements": [],
-  "natures": [],
-  "clan": "",
-  "level": 30,
-  "rank": 0,
-  "learn": "eye:rinne_sharingan",
-  "desc": "Portal açıp saldırıyı başka yerden ulaştırır.",
-  "seals": [],
-  "canon_rank": "S",
-  "tier": 5,
-  "category": "space_time",
-  "shape": "teleport",
-  "range": "Short, Mid, Long",
-  "requires": {},
-  "signature": false,
-  "kinjutsu": false,
-  "series": "Naruto Shippūden",
-  "meaning": "Ölüler Diyarı Yolu"
  },
  "abusobu_sufia": {
   "id": "abusobu_sufia",
@@ -23442,166 +23226,6 @@
   "tier": 5,
   "meaning": "Gök Gürültüsü Sütunu"
  },
- "otsutsuki_haikotsu": {
-  "id": "otsutsuki_haikotsu",
-  "name": "Haikotsu Hari",
-  "name_en": "Kül Kemik İğneleri",
-  "cost": 28,
-  "cd": 6.4,
-  "element": "",
-  "elements": [],
-  "clan": "otsutsuki",
-  "level": 4,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Avuçtan kül kemik iğneleri; saplandığı yer küle döner.",
-  "seals": [],
-  "canon_rank": "B",
-  "category": "hiden",
-  "shape": "projectile",
-  "tier": 2,
-  "meaning": "Kül Kemik İğneleri"
- },
- "otsutsuki_kinko": {
-  "id": "otsutsuki_kinko",
-  "name": "Kinkō Chakra no Wa",
-  "name_en": "Altın Chakra Halkası",
-  "cost": 32,
-  "cd": 7.1,
-  "element": "",
-  "elements": [],
-  "clan": "otsutsuki",
-  "level": 6,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Çevrene altın chakra halkası yayılır, düşmanları iter.",
-  "seals": [],
-  "canon_rank": "B",
-  "category": "hiden",
-  "shape": "aoe",
-  "tier": 2,
-  "meaning": "Altın Chakra Halkası"
- },
- "otsutsuki_tsubasa": {
-  "id": "otsutsuki_tsubasa",
-  "name": "Shinyoku",
-  "name_en": "Tanrısal Kanatlar",
-  "cost": 38,
-  "cd": 8.2,
-  "element": "",
-  "elements": [],
-  "clan": "otsutsuki",
-  "level": 9,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Sırtta ışık kanatlar: 15 sn uçarak savaşırsın.",
-  "seals": [],
-  "canon_rank": "B",
-  "category": "hiden",
-  "shape": "buff",
-  "tier": 3,
-  "meaning": "Tanrısal Kanatlar"
- },
- "otsutsuki_gudodama": {
-  "id": "otsutsuki_gudodama",
-  "name": "Gudōdama",
-  "name_en": "Tanrısal Arayış Topu",
-  "cost": 44,
-  "cd": 9.2,
-  "element": "",
-  "elements": [],
-  "clan": "otsutsuki",
-  "level": 12,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Siyah arayış topu kıvrılarak hedefe kilitlenir.",
-  "seals": [],
-  "canon_rank": "B",
-  "category": "hiden",
-  "shape": "projectile",
-  "tier": 3,
-  "meaning": "Tanrısal Arayış Topu"
- },
- "otsutsuki_kubi": {
-  "id": "otsutsuki_kubi",
-  "name": "Kami no Tsurugi",
-  "name_en": "Saç Kılıcı",
-  "cost": 50,
-  "cd": 10.2,
-  "element": "",
-  "elements": [],
-  "clan": "otsutsuki",
-  "level": 15,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Uzun beyaz saç dev bıçaklara dönüşüp savrulur.",
-  "seals": [],
-  "canon_rank": "A",
-  "category": "hiden",
-  "shape": "melee",
-  "tier": 3,
-  "meaning": "Saç Kılıcı"
- },
- "otsutsuki_kugeki": {
-  "id": "otsutsuki_kugeki",
-  "name": "Shinkū Shō",
-  "name_en": "Tanrısal Vakum Avucu",
-  "cost": 56,
-  "cd": 11.3,
-  "element": "",
-  "elements": [],
-  "clan": "otsutsuki",
-  "level": 18,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Avuçtan devasa vakum avucu: hattı yarar.",
-  "seals": [],
-  "canon_rank": "A",
-  "category": "hiden",
-  "shape": "beam",
-  "tier": 4,
-  "meaning": "Tanrısal Vakum Avucu"
- },
- "otsutsuki_jikukan": {
-  "id": "otsutsuki_jikukan",
-  "name": "Jikūkan Mon",
-  "name_en": "Zaman-Uzay Kapısı",
-  "cost": 64,
-  "cd": 12.7,
-  "element": "",
-  "elements": [],
-  "clan": "otsutsuki",
-  "level": 22,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Havada açılan kapıdan geçip hedefin yanında belirirsin.",
-  "seals": [],
-  "canon_rank": "A",
-  "category": "hiden",
-  "shape": "teleport",
-  "tier": 4,
-  "meaning": "Zaman-Uzay Kapısı"
- },
- "otsutsuki_ten_no_kama": {
-  "id": "otsutsuki_ten_no_kama",
-  "name": "Tengetsu Rakka",
-  "name_en": "Göksel Ay Düşüşü",
-  "cost": 76,
-  "cd": 14.8,
-  "element": "",
-  "elements": [],
-  "clan": "otsutsuki",
-  "level": 28,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Gökten küçük bir ay parçası koparılıp düşürülür.",
-  "seals": [],
-  "canon_rank": "A",
-  "category": "hiden",
-  "shape": "aoe",
-  "tier": 5,
-  "meaning": "Göksel Ay Düşüşü"
- },
  "namikaze_shunpo": {
   "id": "namikaze_shunpo",
   "name": "Kōshin Ho",
@@ -28578,5 +28202,482 @@
   "category": "ninjutsu",
   "shape": "buff",
   "meaning": "Süper Hafifletme"
+ },
+ "katon_beni_jigumo": {
+  "id": "katon_beni_jigumo",
+  "name": "Katon: Beni Jigumo",
+  "name_en": "Fire Release: Red Spider",
+  "cost": 22,
+  "cd": 10.8,
+  "element": "katon",
+  "elements": [
+   "katon"
+  ],
+  "natures": [
+   "katon"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:konoha",
+  "desc": "Yere ağ gibi yayılan kızıl alev çizgileri döşersin; ağa basan alevlerle sarılır.",
+  "seals": [
+   "Tora",
+   "Mi"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "trap",
+  "meaning": "Kızıl Toprak Örümceği"
+ },
+ "katon_suyaki": {
+  "id": "katon_suyaki",
+  "name": "Katon: Suyaki no Jutsu",
+  "name_en": "Fire Release: Biscuit Firing",
+  "cost": 34,
+  "cd": 11.7,
+  "element": "katon",
+  "elements": [
+   "katon",
+   "doton"
+  ],
+  "natures": [
+   "katon",
+   "doton"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:konoha",
+  "desc": "Toprağı ve hedefi kızgın fırın gibi pişirir: kil sertleşir, içindekiler yanar ve yavaşlar.",
+  "seals": [
+   "Tora",
+   "I"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Pişirme Ateşi"
+ },
+ "katon_karura": {
+  "id": "katon_karura",
+  "name": "Katon Renkei: Karura",
+  "name_en": "Fire Release Synergy: Karura",
+  "cost": 42,
+  "cd": 14.0,
+  "element": "katon",
+  "elements": [
+   "katon"
+  ],
+  "natures": [
+   "katon"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "trainer:konoha",
+  "desc": "Birlikte üflenen alev dev bir ateş kuşu olur, kanat çırparak hedefe dalar.",
+  "seals": [
+   "Tora",
+   "Tori"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "projectile",
+  "meaning": "Ortak Ateş — Garuda"
+ },
+ "susanoo_gokakyu": {
+  "id": "susanoo_gokakyu",
+  "name": "Susanoo: Gōkakyū",
+  "name_en": "Susanoo: Great Fireball",
+  "cost": 60,
+  "cd": 22.0,
+  "element": "katon",
+  "elements": [
+   "katon"
+  ],
+  "natures": [
+   "katon"
+  ],
+  "clan": "",
+  "level": 28,
+  "rank": 3,
+  "learn": "eye:mangekyo",
+  "desc": "Susanoo ağzından dev bir ateş topu üfler; çarptığı yer alevler içinde kalır.",
+  "seals": [],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "ninjutsu",
+  "shape": "projectile",
+  "meaning": "Susanoo Ateş Topu"
+ },
+ "katon_hikakure": {
+  "id": "katon_hikakure",
+  "name": "Katon: Hikakure no Jutsu",
+  "name_en": "Fire Release: Hiding in Fire",
+  "cost": 18,
+  "cd": 6.0,
+  "element": "katon",
+  "elements": [
+   "katon"
+  ],
+  "natures": [
+   "katon"
+  ],
+  "clan": "",
+  "level": 5,
+  "rank": 1,
+  "learn": "scroll",
+  "desc": "Alevlerin içine karışıp görünmez olursun; yanan zemindeysen çok daha uzun kalırsın.",
+  "seals": [
+   "Tora"
+  ],
+  "canon_rank": "C",
+  "tier": 2,
+  "category": "ninjutsu",
+  "shape": "stealth",
+  "meaning": "Ateşte Gizlenme"
+ },
+ "gamayu_endan": {
+  "id": "gamayu_endan",
+  "name": "Katon: Gamayu Endan",
+  "name_en": "Fire Release: Toad Flame Bomb",
+  "cost": 59,
+  "cd": 19.6,
+  "element": "katon",
+  "elements": [
+   "katon"
+  ],
+  "natures": [
+   "katon"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "trainer:konoha",
+  "desc": "Kurbağanın tükürdüğü yağı ateşlersin: dev, yapışkan bir alev seli. Kurbağa sözleşmesi gerekir.",
+  "seals": [
+   "Tora"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "beam",
+  "need": "contract:kurbağa",
+  "meaning": "Kurbağa Yağı Alev Mermisi"
+ },
+ "katon_kaenbu": {
+  "id": "katon_kaenbu",
+  "name": "Katon: Kaenbu no Jutsu",
+  "name_en": "Fire Release: Misty Flames Dance",
+  "cost": 34,
+  "cd": 11.7,
+  "element": "katon",
+  "elements": [
+   "katon"
+  ],
+  "natures": [
+   "katon"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:konoha",
+  "desc": "Etrafında dönerek alevli sis yayarsın; sisin içindekiler yanar ve seni kaybeder.",
+  "seals": [
+   "Tora",
+   "Hitsuji"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Sisli Alev Dansı"
+ },
+ "katon_ryuka": {
+  "id": "katon_ryuka",
+  "name": "Katon: Ryūka no Jutsu",
+  "name_en": "Fire Release: Dragon Flame",
+  "cost": 39,
+  "cd": 12.6,
+  "element": "katon",
+  "elements": [
+   "katon"
+  ],
+  "natures": [
+   "katon"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:konoha",
+  "desc": "Tele ya da ipe doğru üflenen alev ipin boyunca hedefe kadar koşar.",
+  "seals": [
+   "Mi",
+   "Tatsu",
+   "U",
+   "Tora"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "beam",
+  "meaning": "Ejder Ateşi"
+ },
+ "katon_homura_ryusei": {
+  "id": "katon_homura_ryusei",
+  "name": "Katon: Homura Ryūsei",
+  "name_en": "Fire Release: Flaming Meteors",
+  "cost": 50,
+  "cd": 18.2,
+  "element": "katon",
+  "elements": [
+   "katon"
+  ],
+  "natures": [
+   "katon"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "trainer:konoha",
+  "desc": "Göğe fırlatılan alev, göktaşı yağmuru gibi geniş bir alana düşer.",
+  "seals": [
+   "Tora",
+   "Tori",
+   "Inu"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Alev Göktaşları"
+ },
+ "katon_enshodan": {
+  "id": "katon_enshodan",
+  "name": "Katon: Enshōdan no Jutsu",
+  "name_en": "Fire Release: Soaring Flame Bullet",
+  "cost": 18,
+  "cd": 6.0,
+  "element": "katon",
+  "elements": [
+   "katon"
+  ],
+  "natures": [
+   "katon"
+  ],
+  "clan": "",
+  "level": 5,
+  "rank": 1,
+  "learn": "scroll",
+  "desc": "Yükselip kavis çizen alev mermileri hedefin üstüne dalar.",
+  "seals": [
+   "Tora"
+  ],
+  "canon_rank": "C",
+  "tier": 2,
+  "category": "ninjutsu",
+  "shape": "projectile",
+  "meaning": "Süzülen Alev Mermisi"
+ },
+ "katon_enryuheki": {
+  "id": "katon_enryuheki",
+  "name": "Katon: Enryūheki",
+  "name_en": "Fire Release: Fire Dragon Wall",
+  "cost": 25,
+  "cd": 13.5,
+  "element": "katon",
+  "elements": [
+   "katon"
+  ],
+  "natures": [
+   "katon"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:konoha",
+  "desc": "Önünde kıvrılan bir alev ejderi duvar olur; geçen yanar, mermiler erir.",
+  "seals": [
+   "Tatsu",
+   "Tora"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "wall",
+  "meaning": "Alev Ejderi Duvarı"
+ },
+ "katon_hobaku_en": {
+  "id": "katon_hobaku_en",
+  "name": "Katon: Hobaku-en",
+  "name_en": "Fire Release: Flame Capture",
+  "cost": 28,
+  "cd": 12.6,
+  "element": "katon",
+  "elements": [
+   "katon"
+  ],
+  "natures": [
+   "katon"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:konoha",
+  "desc": "Hedefin etrafında alev halkası kapanır: 2 sn kıpırdayamaz, içinde yanar.",
+  "seals": [
+   "Tora",
+   "I"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "bind",
+  "meaning": "Yakalayan Alev"
+ },
+ "katon_enarare": {
+  "id": "katon_enarare",
+  "name": "Katon: En'arare",
+  "name_en": "Fire Release: Flaming Hail",
+  "cost": 34,
+  "cd": 11.7,
+  "element": "katon",
+  "elements": [
+   "katon"
+  ],
+  "natures": [
+   "katon"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:konoha",
+  "desc": "Küçük alev taneleri dolu gibi hedef alana yağar.",
+  "seals": [
+   "Tora",
+   "Tori"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Alev Dolusu"
+ },
+ "sanmai_no_shinka": {
+  "id": "sanmai_no_shinka",
+  "name": "Sanmai no Shinka",
+  "name_en": "Trance of True Flames",
+  "cost": 76,
+  "cd": 42.0,
+  "element": "katon",
+  "elements": [
+   "katon"
+  ],
+  "natures": [
+   "katon"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "trainer:konoha",
+  "desc": "İç ateşini uyandırırsın: 12 sn boyunca vuruşların ve katon jutsuların güçlenir, bedenin alevle çevrelenir.",
+  "seals": [],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "mode",
+  "meaning": "Gerçek Alevin Transı"
+ },
+ "katon_hiuchi_yagura": {
+  "id": "katon_hiuchi_yagura",
+  "name": "Katon: Hiuchi Yagura no Jutsu",
+  "name_en": "Fire Release: Flint Yagura",
+  "cost": 28,
+  "cd": 9.0,
+  "element": "katon",
+  "elements": [
+   "katon"
+  ],
+  "natures": [
+   "katon"
+  ],
+  "clan": "",
+  "level": 10,
+  "rank": 2,
+  "learn": "trainer:konoha",
+  "desc": "Hedefin çevresinde alevli bir kule hayali yükselir: içinde kalan sersemler ve yanar.",
+  "seals": [
+   "Tora",
+   "Mi"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "genjutsu_stun",
+  "meaning": "Çakmaktaşı Kulesi"
+ },
+ "katon_enshin_bakuha": {
+  "id": "katon_enshin_bakuha",
+  "name": "Katon: Enshin Bakuha",
+  "name_en": "Fire Release: Deep Infernal Explosion",
+  "cost": 50,
+  "cd": 18.2,
+  "element": "katon",
+  "elements": [
+   "katon"
+  ],
+  "natures": [
+   "katon"
+  ],
+  "clan": "",
+  "level": 18,
+  "rank": 3,
+  "learn": "trainer:konoha",
+  "desc": "Yerin altına sızan ateş bir an sonra büyük bir patlamayla yüzeye çıkar.",
+  "seals": [
+   "Tora",
+   "I",
+   "Tatsu"
+  ],
+  "canon_rank": "A",
+  "tier": 4,
+  "category": "ninjutsu",
+  "shape": "aoe",
+  "meaning": "Derin Alev Patlaması"
+ },
+ "futon_gamayu_endan": {
+  "id": "futon_gamayu_endan",
+  "name": "Fūton: Gamayu Endan",
+  "name_en": "Wind & Fire: Toad Flame Bombs",
+  "cost": 84,
+  "cd": 30.8,
+  "element": "katon",
+  "elements": [
+   "katon",
+   "fuuton"
+  ],
+  "natures": [
+   "katon",
+   "fuuton"
+  ],
+  "clan": "",
+  "level": 28,
+  "rank": 3,
+  "learn": "trainer:konoha",
+  "desc": "Ortak teknik: rüzgâr, ateşlenen kurbağa yağını dev bir alev fırtınasına çevirir. Rüzgâr ve ateş doğası + kurbağa sözleşmesi gerekir.",
+  "seals": [
+   "Tora",
+   "Tori"
+  ],
+  "canon_rank": "S",
+  "tier": 5,
+  "category": "ninjutsu",
+  "shape": "beam",
+  "need": "contract:kurbağa",
+  "meaning": "Rüzgârlı Kurbağa Yağı Alevi"
  }
 }

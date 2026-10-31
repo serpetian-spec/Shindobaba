@@ -711,6 +711,9 @@ func begin_cast(jid: String) -> void:
 	if need == "beast" and not in_beast:
 		Hud.msg("%s sadece kuyruklu canavar modunda atılabilir." % String(j["name"]), Color(1, 0.55, 0.3))
 		return
+	if need.begins_with("contract:") and not Contracts.signed(need.substr(9)):   # kurbağa yağı vb.: sözleşme gerekir
+		Hud.msg("%s için %s gerekli." % [String(j["name"]), String(Contracts.DEFS.get(need.substr(9), {}).get("name", "çağırma sözleşmesi"))], Color(1, 0.7, 0.4))
+		return
 	if need.begins_with("beast:"):   # belirli canavarın tekniği (Shukaku'nun fūtonu, Kurama'nın Rasenshurikeni...)
 		var bid = need.substr(6)
 		if not in_beast or modes.cloak == null or modes.cloak.beast_id() != bid:

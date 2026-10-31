@@ -128,8 +128,9 @@ func execute(caster: Node3D, id: String, target: Node3D) -> void:
 	var calm = shp in ["transform", "stealth", "sensor", "utility", "heal", "revive", "teleport", "clone", "counter"]
 	VFX.release(caster, _cast_origin(caster, id), JutsuEngine.color_of(jd), g, tier if not calm else mini(tier, 2), not calm)
 	var prev = VFX.epic
-	# rütbeye/seviyeye göre büyütme kaldırıldı (kullanıcı: bazı jutsular anlamsız büyüyordu) — her jutsu kendi anime boyutunda
-	VFX.epic = 1.0
+	# rütbeye/seviyeye göre büyütme kaldırıldı (kullanıcı: bazı jutsular anlamsız büyüyordu) — her jutsu kendi anime boyutunda;
+	# animede zaten dev olan imza teknikleri (Gōkakyū, Daitoppa, Suikōdan...) kendi ölçeğini korur
+	VFX.epic = float(JutsuEngine.SIGNATURE_SCALE.get(id, 1.0))
 	if MsArts.handles(own_id):   # Mangekyō tarzlarının kendi teknikleri
 		MsArts.cast(caster, own_id, target)
 	elif PathJutsu.handles_path(own_id):   # Efsane Yolları teknikleri
@@ -151,7 +152,6 @@ func j_katon_goukakyuu(c: Node3D, t: Node3D) -> void:
 	var g = VFX.epic
 	var fcols = [Color(1, 0.82, 0.22, 1), Color(1, 0.55, 0.08, 1), Color(0.95, 0.3, 0.04, 0.9), Color(0.7, 0.1, 0.03, 0)]
 	# ısı dalgası halkası + ağızdan püsküren alev
-	VFX.shockwave(start, Color(1, 0.7, 0.3), 5.0, 0.35, false)
 	VFX.embers(start, Color(1, 0.55, 0.1), 18, 12.0)
 	Sfx.play("fire", start, 0.8, 1.4)
 	var pr = Projectile.new()
@@ -214,7 +214,6 @@ func j_katon_goukakyuu(c: Node3D, t: Node3D) -> void:
 		ct.tween_method(func(x: float): fm.set_shader_parameter("alpha_cut", x), 0.0, 1.1, 1.1)
 		ct.tween_callback(colm.queue_free)
 		VFX.linger(pos, "katon", Color(1, 0.5, 0.1), ge * 1.2, 4.0)
-		VFX.shockwave(gp + Vector3.UP * 0.15, Color(1, 0.6, 0.2), 22.0, 0.6)
 		VFX.screen_lines(0.5, 0.8, Color(1, 0.85, 0.6))
 		if Game.world:
 			Game.world.env.add_shake(1.2)

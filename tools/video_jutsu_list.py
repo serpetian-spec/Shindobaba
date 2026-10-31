@@ -222,3 +222,45 @@ VIDEO_JUTSU += [
     ('doton_chokeijugan', 'Doton: Chōkeijūgan no Jutsu (Süper Hafifletme)', 'Earth Release: Super-Lightened Boulder', 'doton', 5, 'buff', 'trainer:iwa', '',
      'Kendini ve dokunduğun dev kayayı tüy gibi hafifletirsin: uçar, kayayı kaldırıp fırlatırsın.', ['Tora', 'I']),
 ]
+# --- katon videosu (pAnZzrPdQkA)
+VIDEO_JUTSU += [
+    ('katon_beni_jigumo', 'Katon: Beni Jigumo (Kızıl Toprak Örümceği)', 'Fire Release: Red Spider', 'katon', 3, 'trap', 'trainer:konoha', '',
+     'Yere ağ gibi yayılan kızıl alev çizgileri döşersin; ağa basan alevlerle sarılır.', ['Tora', 'Mi']),
+    ('katon_suyaki', 'Katon: Suyaki no Jutsu (Pişirme Ateşi)', 'Fire Release: Biscuit Firing', 'katon+doton', 3, 'aoe', 'trainer:konoha', '',
+     'Toprağı ve hedefi kızgın fırın gibi pişirir: kil sertleşir, içindekiler yanar ve yavaşlar.', ['Tora', 'I']),
+    ('katon_karura', 'Katon Renkei: Karura (Ortak Ateş — Garuda)', 'Fire Release Synergy: Karura', 'katon', 4, 'projectile', 'trainer:konoha', '',
+     'Birlikte üflenen alev dev bir ateş kuşu olur, kanat çırparak hedefe dalar.', ['Tora', 'Tori']),
+    ('susanoo_gokakyu', 'Susanoo: Gōkakyū (Susanoo Ateş Topu)', 'Susanoo: Great Fireball', 'katon', 5, 'projectile', 'eye:mangekyo', '',
+     'Susanoo ağzından dev bir ateş topu üfler; çarptığı yer alevler içinde kalır.', []),
+    ('katon_hikakure', 'Katon: Hikakure no Jutsu (Ateşte Gizlenme)', 'Fire Release: Hiding in Fire', 'katon', 2, 'stealth', 'scroll', '',
+     'Alevlerin içine karışıp görünmez olursun; yanan zemindeysen çok daha uzun kalırsın.', ['Tora']),
+    ('gamayu_endan', 'Katon: Gamayu Endan (Kurbağa Yağı Alev Mermisi)', 'Fire Release: Toad Flame Bomb', 'katon', 4, 'beam', 'trainer:konoha', 'contract:kurbağa',
+     'Kurbağanın tükürdüğü yağı ateşlersin: dev, yapışkan bir alev seli. Kurbağa sözleşmesi gerekir.', ['Tora']),
+    ('katon_kaenbu', 'Katon: Kaenbu no Jutsu (Sisli Alev Dansı)', 'Fire Release: Misty Flames Dance', 'katon', 3, 'aoe', 'trainer:konoha', '',
+     'Etrafında dönerek alevli sis yayarsın; sisin içindekiler yanar ve seni kaybeder.', ['Tora', 'Hitsuji']),
+    ('katon_ryuka', 'Katon: Ryūka no Jutsu (Ejder Ateşi)', 'Fire Release: Dragon Flame', 'katon', 3, 'beam', 'trainer:konoha', '',
+     'Tele ya da ipe doğru üflenen alev ipin boyunca hedefe kadar koşar.', ['Mi', 'Tatsu', 'U', 'Tora']),
+    ('katon_homura_ryusei', 'Katon: Homura Ryūsei (Alev Göktaşları)', 'Fire Release: Flaming Meteors', 'katon', 4, 'aoe', 'trainer:konoha', '',
+     'Göğe fırlatılan alev, göktaşı yağmuru gibi geniş bir alana düşer.', ['Tora', 'Tori', 'Inu']),
+    ('katon_enshodan', 'Katon: Enshōdan no Jutsu (Süzülen Alev Mermisi)', 'Fire Release: Soaring Flame Bullet', 'katon', 2, 'projectile', 'scroll', '',
+     'Yükselip kavis çizen alev mermileri hedefin üstüne dalar.', ['Tora']),
+    ('katon_enryuheki', 'Katon: Enryūheki (Alev Ejderi Duvarı)', 'Fire Release: Fire Dragon Wall', 'katon', 3, 'wall', 'trainer:konoha', '',
+     'Önünde kıvrılan bir alev ejderi duvar olur; geçen yanar, mermiler erir.', ['Tatsu', 'Tora']),
+    ('katon_hobaku_en', 'Katon: Hobaku-en (Yakalayan Alev)', 'Fire Release: Flame Capture', 'katon', 3, 'bind', 'trainer:konoha', '',
+     'Hedefin etrafında alev halkası kapanır: 2 sn kıpırdayamaz, içinde yanar.', ['Tora', 'I']),
+    ('katon_enarare', 'Katon: En\'arare (Alev Dolusu)', 'Fire Release: Flaming Hail', 'katon', 3, 'aoe', 'trainer:konoha', '',
+     'Küçük alev taneleri dolu gibi hedef alana yağar.', ['Tora', 'Tori']),
+    ('sanmai_no_shinka', 'Sanmai no Shinka (Gerçek Alevin Transı)', 'Trance of True Flames', 'katon', 4, 'mode', 'trainer:konoha', '',
+     'İç ateşini uyandırırsın: 12 sn boyunca vuruşların ve katon jutsuların güçlenir, bedenin alevle çevrelenir.', []),
+    ('katon_hiuchi_yagura', 'Katon: Hiuchi Yagura no Jutsu (Çakmaktaşı Kulesi)', 'Fire Release: Flint Yagura', 'katon', 3, 'genjutsu_stun', 'trainer:konoha', '',
+     'Hedefin çevresinde alevli bir kule hayali yükselir: içinde kalan sersemler ve yanar.', ['Tora', 'Mi']),
+    ('katon_enshin_bakuha', 'Katon: Enshin Bakuha (Derin Alev Patlaması)', 'Fire Release: Deep Infernal Explosion', 'katon', 4, 'aoe', 'trainer:konoha', '',
+     'Yerin altına sızan ateş bir an sonra büyük bir patlamayla yüzeye çıkar.', ['Tora', 'I', 'Tatsu']),
+    ('futon_gamayu_endan', 'Fūton: Gamayu Endan (Rüzgârlı Kurbağa Yağı Alevi)', 'Wind & Fire: Toad Flame Bombs', 'katon+fuuton', 5, 'beam', 'trainer:konoha', 'contract:kurbağa',
+     'Ortak teknik: rüzgâr, ateşlenen kurbağa yağını dev bir alev fırtınasına çevirir. Rüzgâr ve ateş doğası + kurbağa sözleşmesi gerekir.', ['Tora', 'Tori']),
+]
+EXTRA['byoen_hoka'] = {'need': 'beast:matatabi'}
+
+# Ōtsutsuki içeriği oyundan kaldırıldı (kullanıcı: "otsutsukiyi kaldır"): bu jutsular veriden silinir
+REMOVE = ['amenominaka', 'daikokuten', 'shin_jukai_kotan', 'mugen_tsukuyomi', 'kama', 'sukunahikona', 'yomotsu_hirasaka', 'otsutsuki_haikotsu',
+          'otsutsuki_kinko', 'otsutsuki_tsubasa', 'otsutsuki_gudodama', 'otsutsuki_kubi', 'otsutsuki_kugeki', 'otsutsuki_jikukan', 'otsutsuki_ten_no_kama']

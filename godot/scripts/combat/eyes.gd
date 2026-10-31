@@ -177,7 +177,7 @@ func refresh_visual() -> void:
 	var vl = l if (active or l in ALWAYS_VISIBLE) else 0
 	p.model.set_dojutsu_eyes(vr, _lvl("sag"), vl, _lvl("sol"), active and (r == 2 or l == 2))
 	p.model.set_ms_designs(design_for(Game.profile, "sag_goz"), design_for(Game.profile, "sol_goz"))
-	_third_eye(active and bool(Game.profile.get("flags", {}).get("rinne_sharingan", false)))
+	_third_eye(false)   # alında üçüncü göz (Rinne Sharingan / Ōtsutsuki) oyundan kaldırıldı
 
 
 ## Rinne-Sharingan: alında dikey kızıl göz, eşmerkezli halkalar ve dokuz tomoe
@@ -957,7 +957,7 @@ func evolve_tick(dt: float) -> void:
 			VFX.shockwave(p.global_position + Vector3.UP, Color(0.7, 0.55, 0.95), 16.0, 0.6, false)
 	# 4) Rinne-Sharingan: Rinnegan + Altı Yol Bilge Modu + Sv.60 — alında üçüncü göz
 	if not pr.get("flags", {}).get("rinne_sharingan", false) and (_kind("sag") == 6 or _kind("sol") == 6) and lv >= 60 			and "rikudo_sennin_modo" in pr.get("learned", []):
-		pr["flags"]["rinne_sharingan"] = true
+		pass   # Rinne Sharingan (alında üçüncü göz) kaldırıldı
 		Hud.banner("RINNE-SHARINGAN", "Alnında On Kuyruk'un gözü açıldı", Color(0.9, 0.15, 0.2))
 		Progress.clan_unlocks(true)
 		refresh_visual()

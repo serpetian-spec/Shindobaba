@@ -844,16 +844,8 @@ static func cinematic(c: Node3D, extra: float, hold: float) -> void:
 static func gather(pos: Vector3, col: Color, g: float) -> void:
 	if busy():
 		return
-	var mi = _card(1, col, col.lightened(0.6), 8.0, true)
-	scene().add_child(mi)
-	_track(mi)
-	mi.global_position = pos
-	mi.scale = Vector3.ONE * 3.2 * g
-	var m: ShaderMaterial = mi.material_override
-	var tw = mi.create_tween()
-	tw.tween_property(mi, "scale", Vector3.ONE * 0.3, 0.25).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-	tw.parallel().tween_method(func(x: float): m.set_shader_parameter("t", x), 0.6, 0.15, 0.25)
-	tw.tween_callback(mi.queue_free)
+	# yıldız kartı kaldırıldı (kameranın önünde dev sarı kama gibi duruyordu): toplanan kıvılcımlar + küçük ışık
+	FX.light(pos, col.lightened(0.3), 2.0 + g, 4.0 + 2.0 * g, 0.25)
 	FX.burst(pos, {"amount": int(10 + 6 * g), "life": 0.3, "tex": FX.tex_spark, "add": true, "size": 0.35 * g, "radius": 1.4 * g, "vmin": 0.5, "vmax": 2.0,
 		"gravity": Vector3.ZERO, "colors": [Color(1, 1, 1, 1), col, Color(col.r, col.g, col.b, 0)]})
 

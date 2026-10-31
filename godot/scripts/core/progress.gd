@@ -272,8 +272,8 @@ func _check_kg_awaken(announce: bool) -> void:
 
 
 func has_eye(kind: String) -> bool:
-	if kind == "rinne_sharingan":   # alında üçüncü göz (Rinnegan + Altı Yol evrimi)
-		return bool(p().get("flags", {}).get("rinne_sharingan", false))
+	if kind == "rinne_sharingan":   # kaldırıldı (Ōtsutsuki içeriği oyunda yok)
+		return false
 	var want: Array = EYE_KINDS.get(kind, [])
 	for slot in ["sag_goz", "sol_goz"]:
 		var g = Gear.equipped(p(), slot)

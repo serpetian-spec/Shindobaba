@@ -51,7 +51,7 @@ void fragment() {
 	float v = fres * 0.95 + (n - 0.5) * 1.0;
 	if (fres + (n - 0.5) * erode * 2.2 > 0.97 - alpha_cut) discard;
 	// yumuşak geçişli bantlar (anime kademesi korunur ama keskin yapay disk görünmez); parlak çekirdek küçük
-	float e = 0.05;
+	float e = 0.018;   // Storm: sert bantlar
 	vec3 col = c_core.rgb;
 	col = mix(col, c_hot.rgb, smoothstep(0.1 - e, 0.1 + e, v));
 	col = mix(col, c_mid.rgb, smoothstep(0.33 - e, 0.33 + e, v));
@@ -59,6 +59,10 @@ void fragment() {
 	col = mix(col, c_line.rgb, smoothstep(0.86 - e * 0.6, 0.86 + e * 0.6, v));
 	// iç dalgalanma: sıcak/soğuk damarlar (düz renk alanı kalmasın)
 	col *= 0.86 + 0.28 * vn(p * 3.7 + vec3(TIME * 0.7));
+	// Storm alev dilleri: akış yönünde hızla yukarı kayan parlak sarı-beyaz yalaz çizgileri
+	float along = dot(lp, normalize(flow + vec3(1e-4)));
+	float lick = step(0.82, sin(along * 9.0 * scale - TIME * speed * 7.0 + n * 9.0) * 0.5 + 0.5) * step(0.5, n) * (1.0 - smoothstep(0.55, 0.8, v));
+	col = mix(col, c_core.rgb, lick * 0.8);
 	col *= mix(1.0, glow, 0.55);   // parlama yarıya: göz yormasın
 	float mx = max(col.r, max(col.g, col.b));
 	if (mx > 1.0) col = col / mx * (1.0 + (mx - 1.0) * 0.15);   // tonu koru
