@@ -19933,17 +19933,26 @@ func p_ikazuchi_kaminari_ryu(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.1)
 	var tt = tg(c, t, 32.0)
 	var at = c.global_position + Vector3.UP * 7.0
-	_storm_cloud(at + Vector3.UP * 1.5, 4.0, 1.4)
+	# ejderin doğduğu parlak ışık düğümü (koyu bulut gölge gibi okunuyordu)
+	var src = Node3D.new()
+	src.add_child(VFX.storm_orb(2.6))
+	get_tree().current_scene.add_child(src)
+	src.global_position = at
+	FX.light(at, Color(0.6, 0.85, 1.0), 6.0, 20.0, 0.9)
+	fade_free(src, 0.6, 0.3)
 	after(0.5, func():
 		if not live(c):
 			return
 		# ejderha gövdesi boncuk küre zinciri değil: parlak ışın başı + kıvrılarak takip eden kalın ışın gövdesi
 		var head = Node3D.new()
-		head.add_child(VFX.storm_orb(1.8))
+		head.add_child(RantonArt.dragon_head(2.2))
+		var glow = VFX.storm_orb(1.6)
+		glow.position.z = 0.6
+		head.add_child(glow)
 		var pr = shot(c, at, aim_at(c, tt, at), 24.0, head, inf(c, "ikazuchi_kaminari_ryu", 2.4, {"knock": 14.0, "launch": 4.0, "kind": "heavy", "element": "ranton", "stun": 1.0}), tt, false, 2.0, func(p, _h):
 			JutsuEngine.impact_for("ranton", p, STORM, 2.2)
 			VFX.cracks(gp(p), 6.0))
-		_ribbon_tail(pr, 1.8, 16)
+		_ribbon_tail(pr, 1.5, 18)
 		var st0 = {"t": 0.0}
 		pr.on_tick = func(p, dt):
 			st0["t"] += dt

@@ -3150,11 +3150,18 @@ func c_ranton_reiza_sakasu(c: Node3D, t: Node3D) -> void:
 ## Lazer Yağmuru: fırtına bulutundan aşağı bükülen ışınlar 2 sn boyunca bölgeye iner
 func c_ikazuchi_reiza_ame(c: Node3D, t: Node3D) -> void:
 	var center = gp(Jutsu._aim_ground(c, t, 12.0, 26.0))
-	_storm_cloud(center + Vector3.UP * 14.0, 7.0, 2.4)
+	# gökte toplanan parlak ışık noktası (koyu bulut yok — gölge gibi okunuyordu); ışınlar buradan yağar
+	var src = Node3D.new()
+	src.add_child(VFX.storm_orb(3.5))
+	get_tree().current_scene.add_child(src)
+	src.global_position = center + Vector3.UP * 14.0
+	FX.light(src.global_position, Color(0.6, 0.85, 1.0), 6.0, 30.0, 2.4)
+	fade_free(src, 2.3, 0.3)
 	every(2.0, 0.1, func(_i, _k):
 		var list = enemies_near(c, center, 10.0)
 		var p = (list[randi() % list.size()].global_position if not list.is_empty() and randf() < 0.6 else center + Vector3(randf_range(-9, 9), 0, randf_range(-9, 9)))
-		_laser(p + Vector3(randf_range(-3, 3), 14.0, randf_range(-3, 3)), p + Vector3.UP * 0.2, 0.25, 0.2)
+		var a = center + Vector3.UP * 14.0
+		LightRibbon.spawn(LightRibbon.curve(a, p + Vector3.UP * 0.2, a.lerp(p, 0.4) + Vector3(randf_range(-2, 2), 0, randf_range(-2, 2)), 12), 0.7, 0.25, Color(0.45, 0.72, 1.0))
 		hit(c, p + Vector3.UP * 0.8, 1.4, inf(c, "ikazuchi_reiza_ame", 0.12, {"knock": 2.0, "element": "ranton"}))
 		FX.burst(p + Vector3.UP * 0.2, {"amount": 8, "life": 0.25, "tex": FX.tex_spark, "size": 1.0, "vmin": 6, "vmax": 12, "colors": [Color(1, 1, 1, 1), Color(0.55, 0.8, 1.0, 0)]}))
 	Sfx.play("thunder", center, 1.1)
@@ -3164,11 +3171,14 @@ func c_ikazuchi_reiza_ame(c: Node3D, t: Node3D) -> void:
 func c_ikazuchi_koga(c: Node3D, t: Node3D) -> void:
 	var d = fwd(c, t)
 	# Işık Dişi: hayvan heykeli değil — yerin hemen üstünde zikzak çizerek koşan parlak ışın başı ve kıvrık ışın kuyruğu
+	# ışık tazısı: mavi parlayan kabuk + beyaz çekirdek, koşan bacaklar; ayakları yere değsin diye gövde 0.9 m aşağıda
 	var head = Node3D.new()
-	head.add_child(VFX.storm_orb(0.9))
-	var pr = shot(c, gp(c.global_position + d) + Vector3.UP * 0.9, d, 26.0, head, inf(c, "ikazuchi_koga", 1.1, {"knock": 8.0, "kind": "heavy", "element": "ranton", "stun": 1.2}), tg(c, t, 30.0), false, 2.2,
+	var hound = RantonArt.hound(2.2)
+	hound.position.y = -0.9
+	head.add_child(hound)
+	var pr = shot(c, gp(c.global_position + d) + Vector3.UP * 0.9, d, 18.0, head, inf(c, "ikazuchi_koga", 1.1, {"knock": 8.0, "kind": "heavy", "element": "ranton", "stun": 1.2}), tg(c, t, 30.0), false, 2.2,
 		func(p, _h): JutsuEngine.impact_for("ranton", p, Color(0.55, 0.8, 1.0), 1.4))
-	_ribbon_tail(pr, 0.8, 12)
+	_ribbon_tail(pr, 0.45, 8)
 	var st0 = {"t": 0.0}
 	var side = d.cross(Vector3.UP)
 	pr.on_tick = func(p, dt):
