@@ -579,3 +579,20 @@ VIDEO_JUTSU += [
     ('soma_no_ko', 'Sōma no Kō (İkiz Şeytan Saldırısı)', 'Demon Twin Attack', '', 4, 'melee', 'path:yilan', '',
      'Bedeninden Sakon/Ukon hücreleriyle ikinci bir gövde fırlar; iki beden aynı anda üç kez vurur.', []),
 ]
+# --- kuchiyose / Susanoo / Pain videoları (Gamabunta, Hanzō, Susanoo, Nagato)
+VIDEO_JUTSU += [
+    ('kuchiyose_ibuse_dokukami', 'Kuchiyose: Ibuse Dokukami (Semender Zehri)', 'Summoning: Ibuse Poisoning', '', 5, 'field', 'contract:semender', 'contract:semender',
+     'Dev semender Ibuse çağrılır; ağzından geniş alanı örten zehirli sis yayar (8 sn zehir + yavaşlatma). Semender sözleşmesi gerekir.', ['I', 'Inu', 'Tori', 'Saru', 'Hitsuji']),
+    ('kama_no_mai_rakko', 'Kama no Mai: Rakkō no Yaiba (Orak Dansı: Düşen İniş Bıçağı)', 'Dance of the Sickle Blade: Falling Descent Blade', '', 4, 'melee', 'weapon:kusarigama', 'weapon:kusarigama',
+     'Zincirli orak havada dönüp hedefin üstüne yukarıdan iner. Kusarigama kuşanılmalı.', []),
+    ('susanoo_tsukumo', 'Susanoo: Tsukumo (Susanoo Ok Yağmuru)', 'Susanoo: Tsukumo', '', 5, 'projectile', 'eye:mangekyo', '',
+     'Susanoo\'nun elinde oluşan onlarca mor ok aynı anda hedefe yağar.', []),
+    ('susanoo_tsubushi', 'Susanoo: Tsubushi (Susanoo Ezişi)', 'Susanoo: Crush', '', 5, 'bind', 'eye:mangekyo', '',
+     'Susanoo\'nun dev eli hedefi kavrar ve üç kez sıkarak ezer.', []),
+    ('shura_no_ko', 'Shura no Kō (Asura Saldırısı)', 'Asura Attack', '', 5, 'projectile', 'eye:rinnegan', '',
+     'Asura yolunun açılan gövdesinden on füzelik batarya ateşlenir.', []),
+    ('danto_no_hiya', 'Dantō no Hiya (Savaş Başlıklı Ateş Oku)', 'Flaming Arrow Warhead', '', 5, 'projectile', 'eye:rinnegan', '',
+     'Asura yolunun başı açılır, tek büyük güdümlü füze fırlar ve patlar.', []),
+    ('konbi_henge', 'Konbi Henge (Birleşik Dönüşüm)', 'Combination Transformation', '', 5, 'melee', 'contract:kurbağa', 'contract:kurbağa',
+     'Kurbağa ortağınla birleşip dev pençeli bir canavara dönüşür, tek ezici pençe darbesi indirirsin. Kurbağa sözleşmesi gerekir.', ['Tora', 'Ushi', 'Inu']),
+]
