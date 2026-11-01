@@ -4379,11 +4379,38 @@ func p_futon_reppusho(c: Node3D, t: Node3D) -> void:
 	Sfx.play("wind", c.global_position, 1.3)
 
 
+
+## Su seli (mesh yok): ağızdan/elden ileri fışkıran, uzaklaştıkça genişleyen mavi cel su kütlesi (koyu mavi kontur),
+## beyaz köpük ve yerçekimiyle düşen damlalar. k: boyut çarpanı. from_fn verilirse kaynağı her karede izler
+func _water_jet_fx(c: Node3D, from: Vector3, d: Vector3, L: float, W: float, dur: float, k := 1.0) -> void:
+	var dd = d.normalized()
+	every(dur, 0.04, func(_i, _k):
+		var mo = _mouth_pos(c) if live(c) else from
+		if from.distance_to(mo) > 1.5:
+			mo = from
+		for q in 3:
+			var u = randf()
+			VFX.puffs(mo + dd * (0.5 + u * L * 0.2), {"amount": 2, "life": 0.5, "size": (0.7 + u * 0.9) * k, "radius": (0.15 + u * 0.4) * k, "vmin": L * 1.0, "vmax": L * 1.4,
+				"dir": dd, "spread": 6.0 + W * 2.0, "damp": 1.8, "gravity": Vector3(0, -6.0, 0), "spin": 40.0, "glow": 1.06, "hot": 0.3,
+				"outline_col": Color(0.04, 0.2, 0.62), "outline": 0.045, "rough": 0.14, "shade": 0.3,
+				"colors": [Color(0.6, 0.85, 1.0, 1), Color(0.25, 0.58, 0.98, 1), Color(0.15, 0.44, 0.92, 0.9), Color(0.1, 0.36, 0.85, 0.0)], "scale_curve": [[0.0, 0.4], [0.35, 1.0], [1.0, 1.3]]})
+		if _i % 2 == 0:
+			VFX.puffs(mo + dd * L * randf_range(0.2, 0.6), {"amount": 3, "life": 0.6, "size": 0.18 * k, "radius": W * 0.3, "vmin": 2.0, "vmax": 5.0, "dir": Vector3.UP, "spread": 70.0,
+				"gravity": Vector3(0, -20, 0), "glow": 1.05, "outline_col": Color(0.05, 0.25, 0.7), "outline": 0.045,
+				"colors": [Color(0.8, 0.95, 1.0, 1), Color(0.35, 0.68, 1.0, 1), Color(0.25, 0.55, 1.0, 0.0)]})
+			VFX.puffs(mo + dd * L * randf_range(0.3, 0.9) + Vector3.UP * 0.6 * k, {"amount": 1, "life": 0.4, "size": 0.5 * k, "radius": W * 0.25, "vmin": 1.0, "vmax": 3.0, "dir": dd, "spread": 30.0,
+				"gravity": Vector3(0, -8, 0), "glow": 1.05, "outline_col": Color(0.3, 0.55, 0.9), "outline": 0.03,
+				"colors": [Color(0.95, 0.99, 1, 1), Color(0.8, 0.93, 1, 0.8), Color(0.65, 0.85, 1, 0)]}), Callable())
+
+
 ## Dev Su Mermisi: ağızda su toplanır, akan su dokulu dev küre; çarpınca dev sıçrama, dalga halkası, yerde su birikintisi
 func p_suiton_teppodama(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.8)
-	eshot(c, "suiton_teppodama", "suiton", Color(0.3, 0.6, 1.0), tg(c, t, 26.0), _mouth_pos(c) + c.face_dir() * 0.9, 2.4, 24.0, 1.6, {"knock": 20.0, "launch": 3.0}, 1.8, 0.3)
-	VFX.splash(gp(c.global_position + c.face_dir()) , 1.2)
+	# Teppōdama: ağızda toplanan iri, ağır su küresi top gibi fırlar, çarpınca dev su patlaması
+	var from = _mouth_pos(c) + c.face_dir() * 1.1
+	VFX.gather(from, WATER, 0.6)
+	_water_jet_fx(c, _mouth_pos(c), c.face_dir(), 3.0, 1.5, 0.2, 1.0)
+	eshot(c, "suiton_teppodama", "suiton", Color(0.3, 0.6, 1.0), tg(c, t, 26.0), from, 3.0, 22.0, 1.8, {"knock": 20.0, "launch": 3.0}, 2.0, 0.3)
 	shake(0.3)
 	Sfx.play("water", c.global_position, 0.6)
 
@@ -4663,14 +4690,16 @@ func p_suiton_mizu_shuriken(c: Node3D, t: Node3D) -> void:
 
 ## Su Dalgası Atışı: ağızdan genişleyen akan su seli (dalga), uçta dev sıçrama
 func p_suiton_mizurappa(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.8)
+	busy(c, 1.0)
 	var d = fwd(c, t)
 	var from = _mouth_pos(c)
-	VFX.gather(from, WATER, 1.2)
-	stream_fx(from, (d - Vector3.UP * 0.12).normalized(), 14.0, 2.6, _wmat(), 0.5, func(end):
-		VFX.splash(gp(end), 3.0)
-		VFX.smoke_ring(gp(end) + Vector3.UP * 0.1, 5.0, Color(0.75, 0.88, 1.0)))
-	Combat.hit_zone(c, c.global_position, d, 15.0, 22.0, 3.0, inf(c, "suiton_mizurappa", 0.9, {"knock": 14.0, "kind": "heavy", "element": "suiton", "dir": d}))
+	VFX.gather(from, WATER, 1.0)
+	# Mizurappa: ağızdan patlayan kalın su seli — genişleyerek öne akar, önündekileri sürükler, sonunda dev sıçrama
+	_water_jet_fx(c, from, (d - Vector3.UP * 0.08).normalized(), 16.0, 4.0, 0.7, 1.7)
+	after(0.45, func():
+		var end = gp(c.global_position + d * 15.0)
+		VFX.splash(end, 3.0))
+	Combat.hit_zone(c, c.global_position, d, 16.0, 24.0, 3.0, inf(c, "suiton_mizurappa", 0.9, {"knock": 14.0, "kind": "heavy", "element": "suiton", "dir": d}))
 	shake(0.4)
 	Sfx.play("water", c.global_position, 0.8)
 
@@ -12459,27 +12488,26 @@ func p_suiton_suidanha(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 22.0)
 	var d = fwd(c, tt)
 	var ang := {"a": -0.5}
-	var jet = MeshInstance3D.new()
-	var bm = BoxMesh.new()
-	bm.size = Vector3(0.08, 0.08, 20.0)
-	jet.mesh = bm
-	jet.material_override = VFX.mat_bolt(Color(0.75, 0.92, 1.0), 2.0)
-	get_tree().current_scene.add_child(jet)
-	every(0.8, 1.0 / 30.0, func(_i, k):
-		if not live(c) or not is_instance_valid(jet):
+	# Suidanha: ağızdan yüksek basınçlı ince su kesici — beyaz-mavi çekirdek, etrafında püsküren su sisi; yay çizerek
+	# önündeki her şeyi keser, değdiği yerde su sıçrar ve yer yarılır
+	every(0.8, 1.0 / 30.0, func(i, k):
+		if not live(c):
 			return
 		ang["a"] = lerpf(-0.5, 0.5, k)
 		var dd = d.rotated(Vector3.UP, ang["a"])
 		var from = _mouth_pos(c)
-		jet.global_position = from + dd * 10.0
-		jet.look_at(from + dd * 20.0, Vector3.UP)
-		if int(k * 30) % 4 == 0:
-			VFX.splash(gp(from + dd * 18.0), 0.8)
+		var end = from + dd * 20.0
+		WindFX.streak(func(q: float) -> Vector3: return from.lerp(end, q), 0.08, 0.14, Color(0.92, 0.98, 1.0), 0.0, 6)
+		WindFX.streak(func(q: float) -> Vector3: return from.lerp(end, q) + Vector3.UP * 0.05, 0.08, 0.3, Color(0.35, 0.65, 1.0), 0.0, 6)
+		if i % 2 == 0:
+			VFX.puffs(from + dd * randf_range(1.0, 18.0), {"amount": 3, "life": 0.4, "size": 0.35, "radius": 0.3, "vmin": 1.0, "vmax": 3.0, "dir": Vector3.UP, "spread": 70.0,
+				"gravity": Vector3(0, -14, 0), "glow": 1.05, "outline_col": Color(0.05, 0.25, 0.7), "outline": 0.045,
+				"colors": [Color(0.8, 0.95, 1.0, 1), Color(0.35, 0.68, 1.0, 1), Color(0.25, 0.55, 1.0, 0.0)]})
+		if i % 4 == 0:
+			VFX.splash(gp(end), 0.9)
 			VFX.cracks(gp(from + dd * randf_range(5.0, 18.0)), 1.2, Color(0.2, 0.25, 0.35, 0.7), 5.0)
-			Combat.hit_zone(c, c.global_position, dd, 20.0, 5.0, 3.0, inf(c, "suiton_suidanha", 0.4, {"knock": 3.0, "kind": "heavy", "element": "suiton", "bleed": 3.0})), func():
-		if is_instance_valid(jet):
-			jet.queue_free())
-	Sfx.play("water", c.global_position, 1.6)
+			Combat.hit_zone(c, c.global_position, dd, 20.0, 5.0, 3.0, inf(c, "suiton_suidanha", 0.4, {"knock": 3.0, "kind": "heavy", "element": "suiton", "bleed": 3.0})), Callable())
+	Sfx.play("water", c.global_position, 1.2)
 
 
 ## Çoklu Gölge Klonu: yüzlerce klon duman bulutlarıyla belirip alanı kaplar — düşmanlar şaşırır, klonlar saldırır
@@ -16465,36 +16493,42 @@ func p_yomotsu_hirasaka(c: Node3D, t: Node3D) -> void:
 func p_yoton_chakura_modo(c: Node3D, _t: Node3D) -> void:
 	busy(c, 0.9)
 	VFX.shockwave(c.global_position + Vector3.UP, LAVA, 10.0, 0.5, false)
-	VFX.goo_drops(c.global_position + Vector3.UP, "molten", 12, 1.0, 6.0)
 	var a = FX.aura(c, LAVA, 1.9, Vector3(0, 0.9, 0), 0.0)
+	# lav örtüsü: bedeni saran erimiş lav kabuğu (kemiklere bağlı; yere damlayan tabaka yok) — kollar, gövde, bacaklar
+	var coat = []
+	for bn in ["UpperChest", "Spine", "LeftUpperArm", "RightUpperArm", "LeftLowerArm", "RightLowerArm", "LeftUpperLeg", "RightUpperLeg", "LeftLowerLeg", "RightLowerLeg"]:
+		var ba = bone_attach(c, bn)
+		if ba == null:
+			continue
+		var lb = MB.new()
+		var chest = bn in ["UpperChest", "Spine"]
+		lb.add("boulder", Vector3(0, 0.1, 0.02), Vector3(0.36, 0.3, 0.3) if chest else Vector3(0.15, 0.3, 0.15), Color.WHITE, Vector3.ZERO, coat.size() % 6)
+		var lm = mesh_of(lb, VFX.lava_mat("molten"))
+		lm.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		ba.add_child(lm)
+		lm.scale = Vector3.ONE * 0.05
+		lm.create_tween().tween_property(lm, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_BACK)
+		coat.append(ba)
 	var tails = Node3D.new()
 	c.add_child(tails)
-	tails.position = Vector3(0, 0.9, -0.3)
-	# lav kuyrukları: alev topu değil — boğumlu erimiş lav kütleleri (içinde kırık kaya), yavaşça salınır
-	for k in 4:
-		var tl = Node3D.new()
-		var lb = MB.new()
-		for q in 5:
-			lb.add("boulder", Vector3(0, q * 0.12, -q * 0.32), Vector3.ONE * (0.34 - q * 0.05), Color.WHITE, Vector3.ZERO, (k + q) % 6)
-		var tm = mesh_of(lb, VFX.lava_mat("molten"))
-		tl.add_child(tm)
-		tails.add_child(tl)
-		tl.position = Vector3((k - 1.5) * 0.3, 0.2, -0.2)
-		tl.rotation = Vector3(-0.3, (k - 1.5) * 0.35, 0)
-		var tw2 = tl.create_tween().set_loops()
-		tw2.tween_property(tl, "rotation:y", (k - 1.5) * 0.35 + 0.25, 0.8).set_trans(Tween.TRANS_SINE)
-		tw2.tween_property(tl, "rotation:y", (k - 1.5) * 0.35 - 0.25, 0.8).set_trans(Tween.TRANS_SINE)
+	tails.position = Vector3(0, 0.95, -0.15)
+	# (anime Rōshi: lav kuyruğu yok — beden lav örtüsüyle kaplı)
 	if c is Player:
 		Buffs.add("yoton_chakura", 20.0, {"melee": 1.7, "armor": 0.5, "_name": "Lav Çakra Modu", "_desc": "lav örtüsü: dokunan yanar, güç artar"})
 	every(20.0, 0.5, func(_i, _k):
 		if not live(c):
 			return
-		VFX.goo_drops(c.global_position + Vector3.UP * 1.2, "molten", 1, 0.8, 1.5)
+		# bedenden yükselen lav buharı
+		FX.burst(c.global_position + Vector3.UP * 1.6, {"amount": 2, "life": 1.0, "tex": FX.tex_smoke, "add": false, "cel": false, "size": 0.8, "radius": 0.4, "vmin": 0.6, "vmax": 1.4,
+			"dir": Vector3.UP, "spread": 30.0, "colors": [Color(0.92, 0.9, 0.9, 0.0), Color(0.88, 0.86, 0.86, 0.45), Color(0.82, 0.8, 0.8, 0.0)]})
 		for e in enemies_near(c, c.global_position, 2.8):
 			VFX.lava_splash(e.global_position + Vector3.UP, 0.4)
 			e.take_hit(inf(c, "yoton_chakura_modo", 0.25, {"knock": 0.0, "kind": "light", "element": "yoton", "burn": 2.0})), func():
 		if is_instance_valid(tails):
 			tails.queue_free()
+		for ba in coat:
+			if is_instance_valid(ba):
+				ba.queue_free()
 		if is_instance_valid(a):
 			a.emitting = false)
 	shake(0.6)

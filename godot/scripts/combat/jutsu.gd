@@ -1776,15 +1776,22 @@ func j_water_gun(c: Node3D, t: Node3D) -> void:
 	var m = _mult(c)
 	var pr = Projectile.new()
 	pr.shooter = c
-	pr.vel = _aim(c, t) * 70.0
+	pr.vel = _aim(c, t) * 42.0   # 70 m/s'de mermi görünmüyordu
 	pr.radius = 0.5
 	pr.info = {"dmg": 14.0 * m, "knock": 5.0, "kind": "light", "element": "suiton", "hitstop": 0.03}
-	pr.add_child(VFX.water_ball(1.0))
+	pr.add_child(VFX.water_ball(1.3))
+	# parmaktan fışkıran mavi su + mermiden kopan mavi damlalar
+	VFX.puffs(_hand(c), {"amount": 10, "life": 0.35, "size": 0.35, "radius": 0.2, "vmin": 4.0, "vmax": 9.0, "dir": _aim(c, t), "spread": 20.0, "gravity": Vector3(0, -14, 0),
+		"glow": 1.05, "outline_col": Color(0.05, 0.25, 0.7), "outline": 0.045, "colors": [Color(0.75, 0.92, 1.0, 1), Color(0.3, 0.62, 1.0, 1), Color(0.2, 0.5, 0.95, 0.0)]})
+	pr.on_tick = func(p: Projectile, _dt: float) -> void:
+		if randf() < 0.6:
+			VFX.puffs(p.global_position, {"amount": 2, "life": 0.4, "size": 0.22, "radius": 0.15, "vmin": 0.5, "vmax": 2.0, "dir": Vector3.UP, "spread": 70.0, "gravity": Vector3(0, -16, 0),
+				"glow": 1.05, "outline_col": Color(0.05, 0.25, 0.7), "outline": 0.045, "colors": [Color(0.75, 0.92, 1.0, 1), Color(0.3, 0.62, 1.0, 1), Color(0.2, 0.5, 0.95, 0.0)]})
 	VFX.trail(pr, 0.6, Color(0.9, 0.97, 1.0), Color(0.3, 0.6, 1.0), Color(0.1, 0.35, 0.9, 0.0), 14)
 	VFX.shockwave(_hand(c), Color(0.6, 0.85, 1.0), 2.5, 0.25, false, _aim(c, t))
 	Projectile.trail(pr, [Color(0.85, 0.95, 1, 0.9), Color(0.3, 0.6, 1, 0)], 0.35, 30, 0.25, FX.tex_smoke, false)
 	pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
-		FX.burst(pos, {"amount": 14, "life": 0.5, "tex": FX.tex_smoke, "add": false, "size": 0.6, "vmin": 2, "vmax": 6, "gravity": Vector3(0, -12, 0), "colors": [Color(0.9, 0.97, 1, 1), Color(0.3, 0.6, 1, 0)]})
+		VFX.splash(pos, 1.2)
 	get_tree().current_scene.add_child(pr)
 	pr.global_position = _hand(c)
 	Sfx.play("water", c.global_position, 1.8, 0.6)
