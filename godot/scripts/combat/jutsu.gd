@@ -110,7 +110,8 @@ func execute(caster: Node3D, id: String, target: Node3D) -> void:
 	jutsu_cast.emit(caster, id)
 	caster.set_meta("jid", id)   # hasar dengesi: bu jutsunun isabetleri ölçülmüş çarpanla
 	caster.set_meta("jid_t", Time.get_ticks_msec() / 1000.0)
-	if not String(Data.jutsu.get(id, {}).get("virtual", "")).begins_with("eye:"):
+	# taijutsu: mühür yok, ninjutsu atma sesi de yok
+	if not String(Data.jutsu.get(id, {}).get("virtual", "")).begins_with("eye:") and String(Data.jutsu.get(id, {}).get("category", "")) != "taijutsu":
 		if caster == Game.player:
 			Sfx.play("jutsu_cast", null, 1.0, 0.8)
 		else:

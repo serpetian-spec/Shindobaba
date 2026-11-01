@@ -18,7 +18,27 @@ var t = 0.0          # mevcut hareketin geçen süresi
 var action = ""      # "", attack, cast, throw, sub, hitstun, knockdown, guard, charge, chakra_dash
 var did_hit = false
 var buffered = false
-var extra_done := 0   # adım içindeki ek darbelerden (dönüş vb.) kaç tanesi vuruldu
+var extra_done := 0
+var cd_max := {}     # jutsu -> bu kullanımdaki toplam bekleme (hasara göre uzayabilir; HUD dolum çubuğu)
+var _jdmg := {}      # jutsu -> bu kullanımda verdiği toplam hasar
+var _jcast_t := {}
+
+
+## Hasara göre bekleme: jutsunun bu kullanımda verdiği gerçek hasar arttıkça beklemesi uzar
+## (seviye güç çarpanına bölünür: ilerledikçe tüm beklemeler şişmesin). ~800 hasar (temel güçte) -> ~60 sn.
+func note_jutsu_dmg(jid: String, dmg: float) -> void:
+	if not _jcast_t.has(jid):
+		return
+	var since = Time.get_ticks_msec() / 1000.0 - float(_jcast_t[jid])
+	if since > 8.0:
+		return
+	_jdmg[jid] = float(_jdmg.get(jid, 0.0)) + dmg
+	var nd = float(_jdmg[jid]) / maxf(1.0, Jutsu._mult(p))
+	var want = 4.0 + nd * 0.07
+	var total = maxf(float(cd_max.get(jid, 0.0)), want)
+	if total > float(cd_max.get(jid, 0.0)):
+		cd_max[jid] = total
+		cooldowns[jid] = maxf(float(cooldowns.get(jid, 0.0)), total - since)   # adım içindeki ek darbelerden (dönüş vb.) kaç tanesi vuruldu
 var combo_reset = 0.0
 var lock_target: Node3D = null
 var guard_t = 0.0
@@ -330,11 +350,13 @@ func _do_attack(dt: float) -> bool:
 		xi["launch"] = 0.0
 		xi["knock"] = 1.0
 		xi["hitstop"] = 0.03
+		xi["kind"] = "light"   # dönüş darbeleri yere sermez (sermek son fırlatmayı boşa çıkarıyordu)
 		var xc = p.global_position + Vector3.UP * 0.9
 		var xhits = Combat.hit_sphere(p, xc, float(c.get("extra_radius", 2.5)), xi)
 		for h in xhits:
 			_on_hit_fx(h.global_position + Vector3.UP, c)
 			Progress.on_hit_landed(h)
+			_special_hit(h, h.global_position + Vector3.UP, c)
 	if not did_hit and t >= c["hit"]:
 		did_hit = true
 		var pt = p.global_position + Vector3.UP * 1.1 + p.face_dir() * (p.radius + c["reach"] * 0.6)
@@ -459,7 +481,8 @@ func _combo_base(i: int) -> Dictionary:
 			c["extra_hits"] = (ks["extra_hits"] as Array).map(func(x): return float(x) / ksp)
 			c["extra_radius"] = ks.get("extra_radius", 2.5)
 		if i == 4:
-			c["launch"] = 10.0
+			c["launch"] = 13.0   # videodaki gibi rakip dimdik havaya uçar
+			c["knock"] = 1.5     # yatayda az (eskiden 38 m öteye savruluyordu)
 	return c
 
 
@@ -563,7 +586,12 @@ func _special_hit(h: Node3D, pt: Vector3, c: Dictionary) -> void:
 			p.hp = minf(p.max_hp, p.hp + dmg * 0.25)
 			FX.hit_spark(pt, Color(0.9, 0.1, 0.15), 1.2)
 		"drain":
-			p.chakra = minf(p.max_chakra, p.chakra + 6.0)
+			# Samehada: düşmanın chakrasını emer — düşmandan eksilir, sana geçer
+			var took = 6.0
+			if "chakra" in h:
+				took = minf(6.0, maxf(0.0, float(h.chakra)))
+				h.chakra = maxf(0.0, float(h.chakra) - 6.0)
+			p.chakra = minf(p.max_chakra, p.chakra + maxf(took, 3.0))
 			if h.has_method("apply_status"):
 				h.apply_status("slow", 1.5)
 			FX.hit_spark(pt, Color(0.35, 0.5, 1.0), 1.2)
@@ -609,8 +637,7 @@ func _on_hit_fx(pt: Vector3, c: Dictionary) -> void:
 		VFX.star(pt, Color(1, 1, 1), 3.2, 0.2)
 		if Game.world:
 			Game.world.env.add_shake(0.6)
-	if c.get("drain", false):   # Samehada chakra emer: hedeften kullanıcıya mavi chakra
-		p.chakra = minf(p.max_chakra, p.chakra + 4.0)
+	if c.get("drain", false):   # Samehada chakra emer: hedeften kullanıcıya mavi chakra (miktar _special_hit'te)
 		FX.burst(pt, {"amount": 10, "life": 0.4, "tex": FX.tex_spark, "size": 0.5, "vmin": 2, "vmax": 5, "colors": [Color(0.8, 0.95, 1.0, 1), Color(0.35, 0.65, 1.0, 0.8), Color(0.3, 0.6, 1.0, 0)]})
 	Sfx.play(c.get("snd", "hit_heavy" if heavy else "punch"), pt, randf_range(0.9, 1.15))
 	if heavy and c.has("snd") and not String(c["snd"]).begins_with("hit_"):
@@ -844,6 +871,9 @@ func begin_cast(jid: String) -> void:
 	p.chakra -= cost
 	ClanMech.pay(jid, j)
 	cooldowns[jid] = Combat.jutsu_cd(j)
+	cd_max[jid] = cooldowns[jid]
+	_jdmg[jid] = 0.0
+	_jcast_t[jid] = Time.get_ticks_msec() / 1000.0
 	var tier = int(j.get("tier", 2))
 	cast_jutsu = jid
 	action = "cast"
@@ -960,6 +990,8 @@ func take_hit(info: Dictionary) -> void:
 	var dir: Vector3 = info.get("dir", Vector3.ZERO)
 	# yere serilme yalnız gerçekten ağır darbede / havaya fırlatmada (her jutsu isabeti yere sermesin)
 	var heavy: bool = info.get("kind", "light") == "heavy" or info.get("launch", 0.0) > 0.0
+	if not heavy and float(info.get("knock", 2.0)) <= 0.5 and float(info.get("stun", 0.0)) <= 0.0:
+		return
 	if info.get("melee", false) and not heavy:
 		# düz vuruşla stun yok (kullanıcı kuralı): hasar + küçük itme, saldırı/hareket kesilmez
 		p.velocity += dir * float(info.get("knock", 2.0)) * 0.25

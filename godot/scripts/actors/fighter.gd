@@ -89,6 +89,8 @@ func take_hit(info: Dictionary) -> void:
 				dmg *= 1.0 + bs * 2.0
 				Combat.popup_text(global_position + Vector3.UP * (height + 0.8), "ARKADAN!", Color(1, 0.4, 0.8))
 	hp -= dmg
+	if atk is Player and not info.get("melee", false) and atk.has_meta("jid") and atk.combat:
+		atk.combat.note_jutsu_dmg(String(atk.get_meta("jid")), minf(dmg, maxf(0.0, hp + dmg)))   # hasara göre bekleme
 	# Shintenshin: ele geçirilmiş bedene gelen acı, bedenin dışındaki Yamanaka ruhuna da yansır (anime)
 	if has_meta("possessed_by"):
 		var owner_p = get_meta("possessed_by")
@@ -123,6 +125,8 @@ func take_hit(info: Dictionary) -> void:
 	var heavy: bool = info.get("kind", "light") == "heavy" or info.get("launch", 0.0) > 0.0
 	if poise > 0.0 and not heavy:
 		return
+	if not heavy and float(info.get("knock", 2.0)) <= 0.5 and float(info.get("stun", 0.0)) <= 0.0:
+		return   # sürekli hasar tiki: sersemletmez
 	if info.get("melee", false) and not heavy:
 		# düz vuruşla stun yok (kullanıcı kuralı): irkilir, itilir ama yaptığını kesmez
 		model.flash(0.5)
