@@ -474,7 +474,7 @@ func _combo_base(i: int) -> Dictionary:
 		c["keys"] = ks
 		c["anim"] = "idle"
 		c["speed"] = 1.0
-		var ksp = 1.3 if wid == "samehada" else 1.15   # dövüşte seri vursun; gunbai daha ağır
+		var ksp = 1.3 if wid == "samehada" else 1.05   # gunbai: ağır silah ritmi (kurulma süresi korunur)
 		c["key_spd"] = ksp
 		c["dur"] = float(ks["len"]) / ksp
 		c["hit"] = float(ks["hit"]) / ksp
