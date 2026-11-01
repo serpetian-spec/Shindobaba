@@ -959,8 +959,12 @@ static func gather(pos: Vector3, col: Color, g: float) -> void:
 
 
 ## Çarpma sonrası kalıcı iz (rütbe ölçekli): yerde alev dilleri, su birikintisi, buz kristali, moloz, artık şimşek
+const LINGER_ON := false
+
+
 static func linger(pos: Vector3, el: String, col: Color, g: float, dur := 3.0) -> void:
-	if busy() or g < 1.1:
+	# kullanıcı isteği (2026-11-01): jutsu sonrası yerde kalan birikinti/alev/buz/kaya izleri tamamen kapalı
+	if not LINGER_ON or busy() or g < 1.1:
 		return
 	var gp = Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z), pos.z)
 	if pos.y - gp.y > 4.0:

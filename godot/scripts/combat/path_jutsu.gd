@@ -20899,22 +20899,47 @@ func p_doton_domu(c: Node3D, _t: Node3D) -> void:
 
 
 ## Maskeli canavar: sırttan çıkan kara iplik gövdeli, beyaz maskeli yaratık
+## Maske canavarı geri çekilir: kara iplik tozuna dağılıp küçülür
+func _beast_out(bst: Node3D) -> void:
+	FX.burst(bst.global_position - Vector3.UP, {"amount": 16, "life": 0.5, "tex": FX.tex_smoke, "add": false, "cel": false, "size": 1.1, "radius": 1.0, "vmin": 1.0, "vmax": 3.0,
+		"colors": [Color(0.1, 0.1, 0.12, 0.8), Color(0.15, 0.15, 0.17, 0.0)]})
+	var tw = bst.create_tween()
+	tw.tween_property(bst, "scale", Vector3.ONE * 0.05, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	tw.tween_callback(bst.queue_free)
+
+
 func _mask_beast(c: Node3D, side: float, mask_col: Color) -> Node3D:
-	var b = MB.new()
-	var ink = Color(0.06, 0.06, 0.08)
-	b.add("sphere", Vector3(0, 0, 0), Vector3(1.0, 1.1, 0.9), ink)
-	b.add("sphere", Vector3(0, 0.15, 0.42), Vector3(0.7, 0.8, 0.2), Color(0.92, 0.9, 0.85))
-	for sx in [-1.0, 1.0]:
-		b.add("sphere", Vector3(0.15 * sx, 0.28, 0.52), Vector3(0.12, 0.08, 0.04), PDARK)
-	b.add("box", Vector3(0, -0.05, 0.53), Vector3(0.3, 0.06, 0.03), PDARK)
-	b.add("box", Vector3(0, 0.55, 0.45), Vector3(0.5, 0.08, 0.05), mask_col)
-	var m = mesh_of(b)
-	c.add_child(m)
-	m.position = Vector3(side * 1.0, 1.9, -0.6)
-	m.scale = Vector3.ONE * 0.05
-	var tw = m.create_tween()
-	tw.tween_property(m, "scale", Vector3.ONE, 0.25).set_trans(Tween.TRANS_BACK)
-	return m
+	# anime: maskeli canavar Kakuzu'nun sırtından kara ipliklerle kopup yanına çıkar — kara iplik yumağı kambur gövde,
+	# yere değen uzun iplik kollar, elemente özgü maske (KakuzuArt). Döndürülen düğümün orijini maskedir.
+	var kind = "futon"
+	if mask_col == FIRE or (mask_col.r > 0.8 and mask_col.g < 0.7):
+		kind = "katon"
+	elif mask_col == RAI:
+		kind = "raiton"
+	elif mask_col.b > 0.9 and mask_col.r < 0.5:
+		kind = "suiton"
+	var bst = KakuzuArt.beast(kind, 1.0)
+	var fd = c.face_dir()
+	var sd = fd.cross(Vector3.UP).normalized()
+	var spot = gp(c.global_position + sd * side * 2.4 - fd * 0.6)
+	var mask_h = 2.35 if kind != "raiton" else 1.8
+	scene_add(bst, c.global_position + Vector3.UP * 1.3 - fd * 0.3)
+	bst.look_at(bst.global_position - fd, Vector3.UP)   # model +Z önde: maske kullanıcının baktığı yöne
+	bst.scale = Vector3.ONE * 0.08
+	var tw = bst.create_tween()
+	tw.tween_property(bst, "global_position", spot + Vector3.UP * mask_h, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(bst, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_BACK)
+	# sırttan canavara uzanan kara iplikler (kopuş anı)
+	var thread = StandardMaterial3D.new()
+	thread.albedo_color = Color(0.06, 0.06, 0.08)
+	for k in 4:
+		var o = Vector3(randf_range(-0.2, 0.2), randf_range(-0.3, 0.3), 0)
+		tether(func(): return (c.global_position + Vector3.UP * 1.3 - c.face_dir() * 0.25 + o) if is_instance_valid(c) else spot,
+			func(): return (bst.global_position - Vector3.UP * 0.8 + o) if is_instance_valid(bst) else spot, 0.04, thread, 0.45)
+	FX.burst(spot + Vector3.UP, {"amount": 14, "life": 0.5, "tex": FX.tex_smoke, "add": false, "cel": false, "size": 1.0, "radius": 0.8, "vmin": 1.0, "vmax": 3.0,
+		"colors": [Color(0.1, 0.1, 0.12, 0.8), Color(0.15, 0.15, 0.17, 0.0)]})
+	return bst
+
 
 
 func p_kakuzu_maske_katon(c: Node3D, t: Node3D) -> void:
@@ -20935,9 +20960,9 @@ func p_kakuzu_maske_katon(c: Node3D, t: Node3D) -> void:
 			VFX.linger(gp(p), "katon", FIRE, 2.6, 4.0))
 		pr.radius = 1.2
 		_etrail(pr, "katon", FIRE, 1.2))
-	after(1.4, func():
+	after(2.0, func():
 		if is_instance_valid(mb_):
-			mb_.queue_free())
+			_beast_out(mb_))
 	Sfx.play("fire", c.global_position, 0.7)
 
 
@@ -20951,9 +20976,9 @@ func p_kakuzu_maske_futon(c: Node3D, t: Node3D) -> void:
 		stream_fx(mb_.global_position + d * 0.5, d, 20.0, 3.5, VFX.mat_wind(Color(0.85, 0.95, 0.9), 10.0, 7.0, Vector3(0, 0, 1), 0.65), 0.6)
 		Combat.hit_zone(c, c.global_position, d, 20.0, 30.0, 4.0, inf(c, "kakuzu_maske_futon", 2.2, {"knock": 22.0, "launch": 5.0, "kind": "heavy", "element": "fuuton", "bleed": 2.0}))
 		shake(0.8))
-	after(1.4, func():
+	after(2.0, func():
 		if is_instance_valid(mb_):
-			mb_.queue_free())
+			_beast_out(mb_))
 	Sfx.play("wind", c.global_position, 0.7)
 
 
@@ -20970,9 +20995,9 @@ func p_kakuzu_maske_raiton(c: Node3D, t: Node3D) -> void:
 		for k in 6:
 			VFX.bolt(from + d * k * 4.0, from + d * (k + 1) * 4.0 + Vector3(randf_range(-1, 1), randf_range(-1, 1), randf_range(-1, 1)), Color(0.2, 0.25, 0.6), 0.25, 0.35, 2)
 		Combat.hit_zone(c, from - Vector3.UP * 1.9, d, 26.0, 8.0, 2.0, inf(c, "kakuzu_maske_raiton", 2.4, {"knock": 12.0, "kind": "heavy", "element": "raiton", "stun": 1.0})))
-	after(1.4, func():
+	after(2.0, func():
 		if is_instance_valid(mb_):
-			mb_.queue_free())
+			_beast_out(mb_))
 	Sfx.play("thunder", c.global_position, 1.0)
 
 
@@ -29850,9 +29875,9 @@ func p_kakuzu_maske_suiton(c: Node3D, t: Node3D) -> void:
 				return
 			var from = mb_.global_position
 			_water_jet(c, from, aim_at(c, tt, from).rotated(Vector3.UP, (k - 1) * 0.12), 34.0, 0.45, inf(c, "kakuzu_maske_suiton", 0.9, {"knock": 9.0, "kind": "heavy", "element": "suiton"}), tt, 1.2))
-	after(1.4, func():
+	after(2.0, func():
 		if is_instance_valid(mb_):
-			mb_.queue_free())
+			_beast_out(mb_))
 	Sfx.play("water", c.global_position, 0.9)
 
 

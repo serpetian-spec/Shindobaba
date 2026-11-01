@@ -23,9 +23,13 @@ static func _ensure() -> GroundFX:
 	return inst
 
 
+const ENABLED := false
+
+
 ## Bölge ekle. Mevcut bölgelerle etkileşir (ateş+su = buhar, rüzgâr ateşi büyütür).
 static func add(pos: Vector3, kind: String, r: float, dur := 4.0, caster: Node3D = null) -> void:
-	if VFX.scene() == null:
+	# kullanıcı isteği (2026-11-01): jutsu bitince yerde kalan bölge/birikinti sistemi tamamen kapalı
+	if ENABLED == false or VFX.scene() == null:
 		return
 	var g = Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z), pos.z)
 	if pos.y - g.y > 3.0 + r * 0.3:
