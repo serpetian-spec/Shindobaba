@@ -35,7 +35,7 @@ var _fx_t := 0.0
 var _alpha := 1.0
 const THIN := 0.42
 const HEAD_K := 0.65
-const TUBE := ["water", "fire", "lightning", "dark", "smoke"]
+const TUBE := ["water", "fire", "lightning", "dark", "smoke", "lava", "goo"]
 const RING := 10
 
 
@@ -44,7 +44,7 @@ func _ready() -> void:
 	spacing *= ep
 	radius *= ep
 	if thin < 0.0:
-		thin = {"water": 0.36, "fire": 0.34, "lightning": 0.28, "dark": 0.36, "smoke": 0.42, "earth": 0.5, "wood": 0.72}.get(style, THIN)
+		thin = {"water": 0.36, "fire": 0.34, "lightning": 0.28, "dark": 0.36, "smoke": 0.42, "lava": 0.45, "goo": 0.45, "earth": 0.5, "wood": 0.72}.get(style, THIN)
 	# jutsuya özgü oranlar: aynı elementteki ejderler bile birbirinin kopyası olmasın
 	if seed_id != "":
 		var h = absi(hash(seed_id))
@@ -244,7 +244,7 @@ func _style_fx(pts: Array, dt: float) -> void:
 	_fx_t -= dt
 	if _fx_t > 0.0 or pts.size() < 3 or VFX.busy():
 		return
-	_fx_t = 0.045 if style in ["fire", "dark", "smoke"] else 0.07
+	_fx_t = 0.045 if style in ["fire", "dark", "smoke"] else (0.09 if style in ["lava", "goo"] else 0.07)
 	var p: Vector3 = pts[randi_range(1, pts.size() - 1)][0]
 	match style:
 		"water":
@@ -272,6 +272,16 @@ func _style_fx(pts: Array, dt: float) -> void:
 				"vmin": 0.5, "vmax": 1.5, "dir": Vector3.UP, "spread": 80.0, "gravity": Vector3(0, 1.5, 0),
 				"colors": [Color(0.05, 0.02, 0.08, 0.7), Color(0.15, 0.05, 0.22, 0.4), Color(0.1, 0.02, 0.15, 0.0)]})
 			VFX.embers(p, Color(0.6, 0.15, 0.8), 3, 3.0, 0.6)
+		"lava", "goo":   # lav seli / yapışkan çamur: gövdeden kopup düşen ağır sıvı parçaları (ateş partikülü yok) + buhar
+			var gk = "molten"
+			if mat is ShaderMaterial and mat.get_shader_parameter("base_col") != null:
+				var bc: Color = mat.get_shader_parameter("base_col")
+				gk = "mei" if bc.g > 0.65 else ("oil" if bc.g > 0.4 and bc.r < 0.8 else "molten")
+			if gk == "molten" and randf() < 0.4:
+				VFX.debris(p, Color(0.22, 0.12, 0.08), 2, 3.0, 0.2)   # akıştan kopan kırık kaya
+			VFX.goo_drops(p, gk, 1, maxf(0.8, radius * 0.6), 1.5)
+			FX.burst(p + Vector3.UP * 0.5, {"amount": 2, "life": 1.0, "tex": FX.tex_smoke, "add": false, "cel": false, "size": 1.0 * maxf(1.0, radius), "radius": radius * 0.5,
+				"vmin": 0.5, "vmax": 1.5, "dir": Vector3.UP, "spread": 40.0, "colors": [Color(0.9, 0.88, 0.88, 0.0), Color(0.85, 0.83, 0.83, 0.45), Color(0.8, 0.78, 0.78, 0.0)]})
 		"smoke":   # duman ejderi: gövdeden kabaran gri cel duman topakları + kızıl kor
 			VFX.puffs(p, {"amount": 3, "life": 0.9, "size": 1.2 * maxf(1.0, radius), "radius": radius * 0.7, "vmin": 0.4, "vmax": 1.4, "dir": Vector3.UP, "spread": 70.0,
 				"gravity": Vector3(0, 0.8, 0), "rough": 0.24, "outline": 0.035, "outline_col": Color(0.18, 0.17, 0.19), "shade": 0.35,

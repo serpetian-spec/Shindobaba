@@ -4487,8 +4487,40 @@ func stream_fx(from: Vector3, d: Vector3, length: float, radius: float, mat: Mat
 		var mc: Color = mat.get_shader_parameter("c_mid")
 		var oily = mc.r > mc.b + 0.2   # kurbağa yağı / çamur: mavi su sıçraması ve mavi gölcük bırakmasın
 		if oily:
-			# lav / kurbağa yağı / çamur: su tüpü değil — kendi renginde ağır, yapışkan topaklardan akıntı
-			var lava = mc.g < 0.6
+			# lav seli (kızıl) / Mei'nin bej aşındırıcı çamuru / kurbağa yağı: kalın, kesintisiz, ağır yapışkan sıvı tüpleri,
+			# yay çizip düşer, gövdeden ağır parçalar kopar (ateş/duman partikülü yok), uçta sıvının kendisi sıçrar
+			var gkind = "molten" if mc.g < 0.6 else ("mei" if mc.b > 0.4 else "oil")
+			# lav seli (anime Mei'nin lav duvarı / lav seli): kalın, kesintisiz, kızıl tabanlı sarı erimiş hücreli tüpler;
+			# ağırlıkla yay çizip düşer, damlalar, kor, beyaz buhar
+			var ln = clampi(int(radius * 1.2), 2, 4)
+			for i in ln:
+				var off = (i - (ln - 1) * 0.5) * radius * 0.4
+				var lh = Node3D.new()
+				scene_add(lh, from + sd * off * 0.3)
+				var lb = VfxSerpent.new()
+				lb.style = "lava" if gkind == "molten" else "goo"
+				lb.thin = 1.0
+				lb.head = lh
+				lb.count = 14
+				lb.spacing = maxf(0.5, length / 15.0)
+				lb.radius = maxf(0.45, radius * 0.45)
+				lb.mat = VFX.lava_mat(gkind, true)
+				get_tree().current_scene.add_child(lb)
+				var lend = from + dn2 * length + sd * off
+				var lmid = from.lerp(lend, 0.5) + Vector3.UP * length * 0.12
+				var ltw = lh.create_tween()
+				ltw.tween_method(func(u: float):
+					if is_instance_valid(lh):
+						lh.global_position = from.lerp(lmid, u).lerp(lmid.lerp(lend, u), u), 0.0, 1.0, maxf(0.25, dur * 0.65))
+				ltw.tween_callback(func():
+					VFX.lava_splash(lend, 1.0 + radius * 0.35, gkind)
+					lh.queue_free())
+			if end_fx.is_valid():
+				after(maxf(0.25, dur * 0.65), func(): end_fx.call(from + dn2 * length))
+			return
+		if oily:
+			# kurbağa yağı / çamur / Mei'nin aşındırıcı lav çamuru: su tüpü değil — kendi renginde ağır, yapışkan topaklardan akıntı
+			var lava = false
 			var dd = d.normalized()
 			every(maxf(0.3, dur * 0.8), 0.04, func(_i, _k):
 				for q in 3:
@@ -12603,7 +12635,7 @@ func p_yoton_shakugaikoken(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.7)
 	var ba = bone_attach(c, "RightHand")
 	if ba:
-		ba.add_child(VFX.fireball(0.45, "lava"))
+		ba.add_child(VFX.lava_ball(0.45))
 		after(0.7, func():
 			if is_instance_valid(ba):
 				ba.queue_free())
@@ -12657,7 +12689,8 @@ func p_yoton_shakugaryugan_no_jutsu(c: Node3D, t: Node3D) -> void:
 func p_yoton_yokai_no_jutsu(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.0)
 	var d = fwd(c, t)
-	var lava = VFX.mat_water(Color(0.45, 0.08, 0.02), Color(1.0, 0.45, 0.1), Color(1.0, 0.85, 0.4), Vector3(0, 1, 0), 1.0, 0.7, 0.15)
+	# anime Mei: Yōkai no Jutsu ağızdan bej renkli, yapışkan, aşındırıcı lav çamuru (kızıl lav seli değil)
+	var lava = VFX.mat_water(Color(0.5, 0.4, 0.22), Color(0.9, 0.8, 0.55), Color(1.0, 0.95, 0.8), Vector3(0, 1, 0), 1.0, 0.7, 0.15)
 	VFX.gather(_mouth_pos(c), LAVA, 1.4)
 	stream_fx(_mouth_pos(c), (d - Vector3.UP * 0.15).normalized(), 14.0, 2.6, lava, 0.7, func(end):
 		VFX.linger(gp(end), "yoton", LAVA, 2.4, 6.0)
@@ -12743,7 +12776,7 @@ func p_amenominaka(c: Node3D, t: Node3D) -> void:
 	var pm = PlaneMesh.new()
 	pm.size = Vector2(40, 40)
 	sea.mesh = pm
-	sea.material_override = VFX.mat_water(Color(0.45, 0.08, 0.02), Color(1.0, 0.45, 0.1), Color(1.0, 0.85, 0.4), Vector3(1, 0, 0), 1.0, 0.7, 0.15)
+	sea.material_override = VFX.lava_mat("molten", true)
 	get_tree().current_scene.add_child(sea)
 	sea.global_position = gp(at) + Vector3.UP * 0.15
 	sea.scale = Vector3(0.02, 1, 0.02)
@@ -20702,7 +20735,8 @@ func p_terumi_futton_komu(c: Node3D, t: Node3D) -> void:
 func p_terumi_yoton_yokai(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.0)
 	var d = fwd(c, t)
-	var lava = VFX.mat_water(Color(0.45, 0.08, 0.02), Color(1.0, 0.45, 0.1), Color(1.0, 0.85, 0.4), Vector3(0, 0, 1), 1.0, 0.7, 0.15)
+	# anime Mei: Yōkai no Jutsu ağızdan bej renkli, yapışkan, aşındırıcı lav çamuru (kızıl lav seli değil)
+	var lava = VFX.mat_water(Color(0.5, 0.4, 0.22), Color(0.9, 0.8, 0.55), Color(1.0, 0.95, 0.8), Vector3(0, 0, 1), 1.0, 0.7, 0.15)
 	VFX.gather(_mouth_pos(c), LAVA, 1.2)
 	after(0.35, func():
 		if not live(c):
@@ -20749,9 +20783,9 @@ func p_kako_yoton_kazan(c: Node3D, t: Node3D) -> void:
 	tw.tween_property(cone, "global_position", at + Vector3.UP * 0.8, 0.3).set_trans(Tween.TRANS_BACK)
 	tw.tween_callback(func():
 		stream_fx(at + Vector3.UP * 1.6, Vector3.UP, 6.0, 0.8, VFX.mat_water(Color(0.45, 0.08, 0.02), Color(1.0, 0.45, 0.1), Color(1.0, 0.85, 0.4), Vector3.UP, 1.0, 0.7, 0.15), 0.6)
-		VFX.embers(at + Vector3.UP * 2.0, LAVA, 30, 10.0)
+		VFX.goo_drops(at + Vector3.UP * 2.0, "molten", 14, 1.4, 9.0)
 		for k in 6:
-			var rk = _rock(0.4, Color(0.3, 0.12, 0.05))
+			var rk = VFX.lava_ball(0.6)
 			get_tree().current_scene.add_child(rk)
 			rk.global_position = at + Vector3.UP * 2.0
 			var q = at + Vector3(randf_range(-4, 4), 0, randf_range(-4, 4))
@@ -20796,7 +20830,7 @@ func p_kako_yoton_kansen(c: Node3D, t: Node3D) -> void:
 	every(4.0, 0.25, func(i, _k):
 		var q = at + Vector3(randf_range(-7, 7), 0, randf_range(-7, 7))
 		stream_fx(q, Vector3.UP, randf_range(3.0, 6.0), 0.5, VFX.mat_water(Color(0.45, 0.08, 0.02), Color(1.0, 0.45, 0.1), Color(1.0, 0.85, 0.4), Vector3.UP, 1.0, 0.7, 0.15), 0.5)
-		VFX.embers(q + Vector3.UP, LAVA, 10, 6.0)
+		VFX.goo_drops(q + Vector3.UP * 2.0, "molten", 5, 1.0, 6.0)
 		hit(c, q + Vector3.UP, 1.8, inf(c, "kako_yoton_kansen", 0.4, {"knock": 2.0, "launch": 6.0, "kind": "heavy", "element": "yoton", "burn": 3.0})), Callable())
 	Sfx.play("fire", at, 0.5)
 

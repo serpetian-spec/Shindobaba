@@ -59,6 +59,64 @@ static func mat_fire(preset := "fire", speed := 2.2, scale_ := 2.4, erode := 0.4
 	return m
 
 
+## Anime lav malzemesi: "molten" = kızıl taban + akan sarı-turuncu erimiş hücreler (lav seli/duvarı),
+## "rock" = turuncu erimiş kaya + koyu kabuk benekleri, kızıl kenar (lav kayaları/mermileri). world: tüp gövdeler için dünya uzayı
+## Lav kayası: pürüzlü erimiş kaya topu (turuncu üstüne koyu kabuk benekleri, kızıl kenar) — ateş topu değil
+static func lava_ball(size := 1.0) -> Node3D:
+	var root = Node3D.new()
+	var b = MB.new()
+	b.add("boulder", Vector3.ZERO, Vector3.ONE * size, Color.WHITE, Vector3.ZERO, randi() % 6)
+	var mi = _mi(b.build(null), lava_mat("rock"))
+	root.add_child(mi)
+	var tw = root.create_tween().set_loops()
+	tw.tween_property(mi, "rotation", Vector3(TAU, TAU * 0.5, 0), 1.6).from(Vector3.ZERO)
+	return root
+
+
+static func lava_mat(kind := "molten", world := false) -> ShaderMaterial:
+	var key = "lava_%s_%s" % [kind, world]
+	if _cache.has(key):
+		return _cache[key]
+	var m = ShaderMaterial.new()
+	m.shader = load("res://shaders/lava.gdshader")
+	if kind == "mei":   # Mei'nin aşındırıcı lav çamuru: bej, parlak, yapışkan sıvı
+		m.set_shader_parameter("base_col", Color(0.84, 0.72, 0.46))
+		m.set_shader_parameter("spot_col", Color(0.94, 0.86, 0.62))
+		m.set_shader_parameter("hot_col", Color(1.0, 0.97, 0.86))
+		m.set_shader_parameter("rim_col", Color(0.98, 0.92, 0.74))
+		m.set_shader_parameter("line_col", Color(0.42, 0.3, 0.15))
+		m.set_shader_parameter("spot_thresh", 0.6)
+		m.set_shader_parameter("flow", 0.6)
+	elif kind == "oil":   # kurbağa yağı: koyu amber yapışkan
+		m.set_shader_parameter("base_col", Color(0.74, 0.5, 0.12))
+		m.set_shader_parameter("spot_col", Color(0.9, 0.7, 0.28))
+		m.set_shader_parameter("hot_col", Color(1.0, 0.9, 0.6))
+		m.set_shader_parameter("rim_col", Color(1.0, 0.84, 0.48))
+		m.set_shader_parameter("line_col", Color(0.32, 0.18, 0.04))
+		m.set_shader_parameter("spot_thresh", 0.6)
+		m.set_shader_parameter("flow", 0.6)
+	elif kind == "rock":
+		m.set_shader_parameter("base_col", Color(1.0, 0.58, 0.14))
+		m.set_shader_parameter("spot_col", Color(0.42, 0.12, 0.04))
+		m.set_shader_parameter("hot_col", Color(0.25, 0.06, 0.03))
+		m.set_shader_parameter("rim_col", Color(0.95, 0.15, 0.08))
+		m.set_shader_parameter("spot_thresh", 0.58)
+		m.set_shader_parameter("cell_scale", 3.2)
+		m.set_shader_parameter("flow", 0.1)
+	if kind == "molten":
+		# kullanıcı tarifi + anime lav: sarımsı-turuncu parlayan yapışkan akış, içinde koyu kırık toprak/kaya parçaları
+		m.set_shader_parameter("base_col", Color(1.0, 0.45, 0.06))
+		m.set_shader_parameter("spot_col", Color(1.0, 0.72, 0.18))
+		m.set_shader_parameter("hot_col", Color(1.0, 0.93, 0.55))
+		m.set_shader_parameter("rim_col", Color(1.0, 0.82, 0.35))
+		m.set_shader_parameter("line_col", Color(0.4, 0.08, 0.02))
+		m.set_shader_parameter("crust_thresh", 0.3)
+		m.set_shader_parameter("cell_scale", 2.0)
+	m.set_shader_parameter("world_space", world)
+	_cache[key] = m
+	return m
+
+
 static func mat_water(deep := Color(0.05, 0.28, 0.78), mid := Color(0.2, 0.55, 0.98), light := Color(0.62, 0.88, 1.0), flow := Vector3(0, 0, 1), alpha := 0.88, foam := 0.5, wobble := 0.06) -> ShaderMaterial:
 	var key = "water_%s_%s_%s_%s_%.2f_%.2f_%.2f" % [deep, mid, light, flow, alpha, foam, wobble]
 	if _cache.has(key):
@@ -417,7 +475,7 @@ static func element_core(el: String, col: Color, size: float) -> Node3D:
 		"katon":
 			return fireball(size, fire_preset_for(col))
 		"yoton":
-			return fireball(size, "lava")
+			return lava_ball(size)
 		"bakuton":
 			return clay_orb(size)
 		"suiton":
@@ -629,19 +687,57 @@ static func _splash(pos: Vector3, size := 2.0) -> void:
 		"colors": [Color(0.7, 0.86, 1.0, 0.0), Color(0.7, 0.86, 1.0, 0.4), Color(0.7, 0.86, 1.0, 0.0)]})
 
 
-## Lav sıçraması (Yōton): ateş patlaması değil — kızıl kabuklu, parlak turuncu çekirdekli ağır erimiş kaya topakları
-## yerçekimiyle düşer; kor, kara duman, yerde kızaran çatlak
-static func lava_splash(pos: Vector3, s := 1.0) -> void:
+## Yapışkan damla / parça (lav, Mei çamuru, kurbağa yağı): malzemeli ağır topaklar yay çizip düşer, yere değince yassılaşıp
+## yapışır, sonra küçülüp kaybolur. Ateş/duman partikülü değil — sıvının kendisi. kind: lava_mat türü
+static func goo_drops(pos: Vector3, kind := "molten", n := 8, s := 1.0, vmax := 6.0) -> void:
 	if busy():
 		return
-	puffs(pos, {"amount": int(14 * s) + 6, "life": 0.8, "size": 0.5 + 0.3 * s, "radius": 0.4 * s, "vmin": 3.0, "vmax": 6.0 + 2.0 * s, "dir": Vector3.UP, "spread": 60.0,
-		"gravity": Vector3(0, -18, 0), "damp": 0.8, "glow": 1.2, "hot": 0.7, "outline_col": Color(0.18, 0.03, 0.01), "outline": 0.05, "rough": 0.25, "shade": 0.35,
-		"colors": [Color(1.0, 0.9, 0.45, 1), Color(1.0, 0.45, 0.08, 1), Color(0.6, 0.12, 0.03, 0.95), Color(0.2, 0.05, 0.02, 0.0)], "scale_curve": [[0.0, 0.5], [0.3, 1.0], [1.0, 0.7]]})
-	embers(pos, Color(1.0, 0.45, 0.1), int(14 * s), 6.0 * s, 0.7)
-	FX.burst(pos + Vector3.UP * 0.5, {"amount": int(6 * s) + 2, "life": 1.4, "tex": FX.tex_smoke, "add": false, "cel": false, "size": 1.4 * s, "radius": 0.6 * s, "vmin": 0.6, "vmax": 1.8,
-		"dir": Vector3.UP, "spread": 50.0, "colors": [Color(0.15, 0.12, 0.12, 0.0), Color(0.15, 0.12, 0.12, 0.6), Color(0.2, 0.18, 0.18, 0.0)]})
-	FX.light(pos, Color(1.0, 0.45, 0.15), 4.0 * s, 8.0 * s, 0.6)
-	cracks(Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z) + 0.05, pos.z), 2.0 * s, Color(0.35, 0.06, 0.02, 0.9), 4.0)
+	var m = lava_mat(kind)
+	var sc = scene()
+	for k in n:
+		var mi = MeshInstance3D.new()
+		mi.mesh = _sphere(0.5, 10, 6)
+		mi.material_override = m
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		sc.add_child(mi)
+		var r = randf_range(0.18, 0.42) * s
+		mi.global_position = pos
+		mi.scale = Vector3(r, r * 1.3, r)
+		var a = randf() * TAU
+		var v = Vector3(cos(a), 0, sin(a)) * randf_range(1.0, vmax * 0.6) + Vector3.UP * randf_range(vmax * 0.5, vmax)
+		var gy = Game.jutsu_floor(pos.x + v.x * 0.5, pos.z + v.z * 0.5)
+		var st0 = {"t": 0.0, "landed": false}
+		var tw = mi.create_tween()
+		tw.tween_method(func(t: float):
+			if not is_instance_valid(mi) or st0["landed"]:
+				return
+			var p = pos + v * t + Vector3.DOWN * 9.8 * t * t
+			if p.y <= gy + 0.05 and t > 0.05:
+				st0["landed"] = true
+				mi.global_position = Vector3(p.x, gy + 0.04, p.z)
+				mi.scale = Vector3(r * 2.2, r * 0.35, r * 2.2)   # yere yapışır, yassılaşır
+			else:
+				mi.global_position = p
+				var sp = v + Vector3.DOWN * 19.6 * t
+				mi.scale = Vector3(r, r * (1.0 + clampf(sp.length() * 0.08, 0.0, 1.0)), r), 0.0, 1.4, 1.4)
+		tw.tween_interval(randf_range(0.8, 1.6))
+		tw.tween_property(mi, "scale", Vector3(r * 2.2, 0.01, r * 2.2), 0.6)
+		tw.tween_callback(mi.queue_free)
+
+
+## Lav sıçraması (Yōton, anime lav duvarı/lav kayaları): ATEŞ DEĞİL — kızıl, sarı erimiş hücreli ağır lav parçaları yay çizip
+## düşer ve yere yapışır, tabanda beyaz buhar tüter, zemin kızıl çatlaklarla kızarır
+static func lava_splash(pos: Vector3, s := 1.0, kind := "molten") -> void:
+	if busy():
+		return
+	goo_drops(pos, kind, int(8 * s) + 4, 1.0 + s * 0.3, 5.0 + s * 2.0)
+	if kind == "molten":
+		debris(pos, Color(0.22, 0.12, 0.08), int(6 * s) + 3, 7.0, 0.25 * s + 0.1)   # lavın içindeki kırık kaya parçaları
+	FX.burst(pos + Vector3.UP * 0.3, {"amount": int(6 * s) + 3, "life": 1.4, "tex": FX.tex_smoke, "add": false, "cel": false, "size": 1.3 * s, "radius": 0.8 * s, "vmin": 0.8, "vmax": 2.0,
+		"dir": Vector3.UP, "spread": 40.0, "colors": [Color(0.92, 0.9, 0.9, 0.0), Color(0.88, 0.86, 0.86, 0.5), Color(0.82, 0.8, 0.8, 0.0)]})
+	if kind == "molten":
+		FX.light(pos, Color(1.0, 0.35, 0.15), 3.0 * s, 7.0 * s, 0.8)
+		cracks(Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z) + 0.05, pos.z), 2.0 * s, Color(0.55, 0.06, 0.03, 0.9), 4.0)
 
 
 ## Cel duman halkası (patlamanın etrafında yayılan)
@@ -697,8 +793,10 @@ static func trail(target: Node3D, width: float, head: Color, mid: Color, tail: C
 ## Element imzalı iz
 static func element_trail(target: Node3D, el: String, col: Color, width: float) -> VfxTrail:
 	match el:
-		"katon", "yoton":
+		"katon":
 			return trail(target, width, Color(1, 0.85, 0.3), Color(1, 0.45, 0.06), Color(0.75, 0.12, 0.03), 16, 0.3)
+		"yoton":   # lav kayası izi: kızıl erimiş çizgi koyu dumana döner (ateş sarısı değil)
+			return trail(target, width * 0.8, Color(1.0, 0.35, 0.12), Color(0.7, 0.07, 0.04), Color(0.25, 0.2, 0.2), 16, 0.0)
 		"shakuton":
 			return trail(target, width, Color(1, 0.98, 0.96), Color(1.0, 0.55, 0.58), Color(1.0, 0.32, 0.38), 16, 0.0)
 		"bakuton":

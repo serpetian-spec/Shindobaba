@@ -453,7 +453,7 @@ static func _beam(c: Node3D, d: Dictionary, t: Node3D) -> void:
 		var m: Material
 		match el:
 			"katon", "yoton":
-				m = VFX.mat_fire(VFX.fire_preset_for(col) if el != "yoton" else "lava", 5.0, 1.6, 0.3, 1.4, 0.15, Vector3(0, 1, 0))
+				m = (VFX.lava_mat("rock") if el == "yoton" else VFX.mat_fire(VFX.fire_preset_for(col), 5.0, 1.6, 0.3, 1.4, 0.15, Vector3(0, 1, 0)))
 			"suiton":
 				m = VFX.mat_water(Color(0.05, 0.28, 0.78), Color(0.2, 0.55, 0.98), Color(0.7, 0.92, 1.0), Vector3(0, 1, 0), 0.9, 0.7, 0.1)
 			"fuuton":
@@ -768,7 +768,7 @@ static func _wave(c: Node3D, d: Dictionary, t: Node3D) -> void:
 	var m: Material
 	match el:
 		"suiton": m = VFX.mat_water(Color(0.05, 0.28, 0.78), Color(0.2, 0.55, 0.98), Color(0.7, 0.92, 1.0), Vector3(0, 0, -1), 0.9, 0.9, 0.12)
-		"katon", "yoton": m = VFX.mat_fire(VFX.fire_preset_for(col) if el != "yoton" else "lava", 3.0, 1.6, 0.4, 1.35, 0.15, Vector3(0, 1, 0))
+		"katon", "yoton": m = (VFX.lava_mat("rock") if el == "yoton" else VFX.mat_fire(VFX.fire_preset_for(col), 3.0, 1.6, 0.4, 1.35, 0.15, Vector3(0, 1, 0)))
 		"fuuton": m = VFX.mat_wind(Color(0.85, 1, 0.95), 12.0, 9.0, Vector3(1, 0, 0), 0.9)
 		"raiton": m = VFX.mat_spiral(Color(1, 1, 1), col, 9.0, 3.0, 12.0, 2.0, Vector3(1, 0, 0))
 		"shakuton", "bakuton", "futton", "jinton", "ranton": m = VFX.element_mat(el, col)
@@ -896,7 +896,7 @@ static func _wall(c: Node3D, d: Dictionary, t: Node3D) -> void:
 			mi = VFX._mi(b.build(null), VFX.element_mat(el, col))
 		"katon", "yoton":
 			b.add("box", Vector3(0, size.y * 0.5, 0), size, Color.WHITE)
-			mi = VFX._mi(b.build(null), VFX.mat_fire(VFX.fire_preset_for(col) if el != "yoton" else "lava", 3.0, 1.6, 0.35, 1.35, 0.2, Vector3.UP))
+			mi = VFX._mi(b.build(null), (VFX.lava_mat("rock") if el == "yoton" else VFX.mat_fire(VFX.fire_preset_for(col), 3.0, 1.6, 0.35, 1.35, 0.2, Vector3.UP)))
 		"raiton":
 			b.add("box", Vector3(0, size.y * 0.5, 0), size, Color.WHITE)
 			mi = VFX._mi(b.build(null), VFX.mat_spiral(Color(1, 1, 1), col, 10.0, 3.0, 14.0, 2.0, Vector3(1, 0, 0)))
