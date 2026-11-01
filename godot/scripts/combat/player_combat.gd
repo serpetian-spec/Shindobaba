@@ -306,7 +306,7 @@ func _do_attack(dt: float) -> bool:
 			var dist = tgt.global_position.distance_to(p.global_position) - tgt.radius - p.radius
 			if dist > 5.0:
 				pass   # uzaktaki hedefe kayarak yaklaşmak yok (savaşta Shift'siz koşu gibi görünüyordu): normal adım
-			elif dist > c["reach"] * 0.8:
+			elif dist > c["reach"] * 0.8 and float(c["lunge"]) > 0.0:   # lunge 0: yerinde (Samehada dönüşü kaymasın)
 				lunge = minf(9.0, dist / maxf(0.05, c["hit"] - t) * 0.9)
 			else:
 				lunge = 0.0
@@ -361,7 +361,7 @@ const STYLE_COMBOS := {
 ## 5 dönerek alçaktan savurup yukarı fırlatma
 const ID_COMBOS := {
 	"samehada": {"anims": ["a/Sword_Attack", "b/Sword_Regular_B", "b/Sword_Regular_A", "b/Sword_Regular_C", "b/Sword_Regular_Combo"], "speed": 1.25, "dur": 1.3, "knock": 2.0, "fx": Color(0.55, 0.75, 1.0), "snd": "hit_heavy_weapon",
-		"water": [false, false, false, false, false], "lunge": [1.8, 0.5, 0.5, 0.7, 0.6], "grind": [true, false, false, false, false], "flash": [false, false, false, true, false]},
+		"water": [false, false, false, false, false], "lunge": [1.8, 0.5, 0.5, 0.7, 0.0], "grind": [true, false, false, false, false], "flash": [false, false, false, true, false]},
 }
 
 

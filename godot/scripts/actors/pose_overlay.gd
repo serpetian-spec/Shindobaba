@@ -329,9 +329,19 @@ var _key_out := 0.0
 
 
 var _key_chain := false
+var key_weapon_cb: Callable   # CharacterModel._key_blade_sk: silah yönü iskelet güncellemesi içinde
 var _key_hold := 0.0
 var _key_bv := Vector3.ZERO      # kılıç ucunun yumuşatılmış açısal hızı (gövde tepkisi için)
 var _key_prev := Vector3.ZERO
+
+
+## Küre üzerinde yön geçişi (sabit açısal hız)
+static func _sl(a: Vector3, b: Vector3, u: float) -> Vector3:
+	var an = a.normalized()
+	var bn = b.normalized()
+	if an.dot(bn) < -0.995:
+		bn = (bn + Vector3(0.0, 0.08, 0.0)).normalized()   # tam ters yönde belirsiz yay: üstten geç
+	return an.slerp(bn, u)
 
 
 static func _cr(a, b, c, d, u: float):
@@ -372,8 +382,7 @@ func _apply_keys(sk: Skeleton3D, dt: float) -> void:
 	cp["hips_yaw"] = wrapf(raw_yaw, -180.0, 180.0)   # tam tur dönüş: sayısal yol dönüşü verir, uygulanan açı sarılır
 	# dönüş (|yaw| > 60): kollar, bacaklar ve kılıç gövdeyle birlikte döner (yönler gövdeye göre tarif edildi)
 	var spin = Basis(Vector3.UP, deg_to_rad(raw_yaw)) if absf(raw_yaw) > 60.0 else Basis.IDENTITY
-	var blade: Vector3 = _cr(k0["blade"].normalized(), k1["blade"].normalized(), k2["blade"].normalized(), k3["blade"].normalized(), u)
-	blade = spin * blade.normalized()
+	var blade: Vector3 = spin * _sl(k1["blade"], k2["blade"], u)
 	# gövde tepkisi: kılıç ucunun hızına göre öne yüklenme / geriye esneme ve savuruş yönüne burulma
 	if dt > 0.0 and _key_prev != Vector3.ZERO:
 		_key_bv = _key_bv.lerp((blade - _key_prev) / dt, clampf(dt * 12.0, 0.0, 1.0))
@@ -391,8 +400,7 @@ func _apply_keys(sk: Skeleton3D, dt: float) -> void:
 	var b2: Dictionary = k2["b"]
 	var b3: Dictionary = k3["b"]
 	for bone in b1:
-		var d: Vector3 = _cr(b0.get(bone, b1[bone]).normalized(), b1[bone].normalized(), b2.get(bone, b1[bone]).normalized(), b3.get(bone, b1[bone]).normalized(), u)
-		d = spin * d.normalized()
+		var d: Vector3 = spin * _sl(b1[bone], b2.get(bone, b1[bone]), u)
 		if bone == "Spine" or bone == "Chest":
 			d = lean_b * d
 		arms.append([bone, d])
@@ -401,6 +409,8 @@ func _apply_keys(sk: Skeleton3D, dt: float) -> void:
 	var w_in = 1.0 if _key_chain else clampf(key_t / 0.08, 0.0, 1.0)
 	var w = w_in * w_out
 	_apply_cast(sk, w, cp)
+	if key_weapon_cb.is_valid():
+		key_weapon_cb.call(sk, blade)
 
 
 func _apply_cast(sk: Skeleton3D, w: float, cp_in := {}) -> void:

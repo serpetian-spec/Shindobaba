@@ -500,6 +500,7 @@ func setup(l: Dictionary) -> void:
 	anim.root_node = NodePath("..")
 	_add_libs()
 	overlay = PoseOverlay.new()
+	overlay.key_weapon_cb = _key_blade_sk
 	skel.add_child(overlay)
 	rig = WeaponRig.new()   # overlay'den sonra: silahlı el yumruk, kın hareketi
 	skel.add_child(rig)
@@ -3198,34 +3199,61 @@ func _rest_tilt(on: bool, dt: float) -> void:
 		var cur_q = n.transform.basis.get_rotation_quaternion()
 		var q = cur_q.slerp(tgt.get_rotation_quaternion(), minf(1.0, dt * (6.0 if on else 14.0)))
 		n.transform.basis = Basis(q).scaled(n.transform.basis.get_scale())
-		# videoda Kisame sapı EN UCUNDAN (kurukafanın dibinden) tutar: silah sap boyunca ileri kaydırılır
-		if not w.has("key_pos0"):
-			w["key_pos0"] = n.position
-		n.position = w["key_pos0"] + n.transform.basis.z.normalized() * 0.58 * n.transform.basis.get_scale().z
 
 
-## Anahtar kare animasyonunda (Samehada kombosu) sağ eldeki silahın ucu, pozdaki "blade" yönüne çevrilir
+## Anahtar animasyon bitince silahın kaydırılmış konumunu geri al
 func _key_blade() -> void:
-	if overlay == null or overlay.key_t < 0.0 or overlay.key_blade == Vector3.ZERO or skel == null:
-		for w in weapons:
-			if w.has("key_pos0") and is_instance_valid(w["node"]):
-				(w["node"] as Node3D).position = w["key_pos0"]
-				w.erase("key_pos0")
+	if overlay != null and overlay.key_t >= 0.0:
 		return
-	var z: Vector3 = overlay.key_blade.normalized()
-	var x = Vector3.UP.cross(z)
-	if x.length() < 0.1:
-		x = Vector3.RIGHT
-	x = x.normalized()
-	var want = skel.global_transform.basis.orthonormalized() * Basis(x, z.cross(x).normalized(), z)
+	for w in weapons:
+		if w.has("key_pos0") and is_instance_valid(w["node"]):
+			(w["node"] as Node3D).position = w["key_pos0"]
+			w.erase("key_pos0")
+
+
+## Anahtar kare animasyonunda (Samehada kombosu) sağ eldeki silah pozdaki "blade" yönüne çevrilir.
+## İSKELET GÜNCELLEMESİNİN İÇİNDE çağrılır (kol pozu uygulandıktan hemen sonra): bir kare gecikmeyle elden kopmaz.
+## Yumruk sapın en ucunda (silah sap boyunca kaydırılır); kılıç ucu yere girecekse yerin hemen üstüne kaldırılır.
+func _key_blade_sk(sk: Skeleton3D, blade: Vector3) -> void:
+	var hb = sk.find_bone("RightHand")
+	if hb < 0:
+		return
+	var hp: Transform3D = sk.get_bone_global_pose(hb)
+	var skb = sk.global_transform.basis
 	for w in weapons:
 		var n: Node3D = w["node"]
-		if w["side"] != "Right" or n.get_parent() != w["hand"]:
+		if w["side"] != "Right" or n.get_parent() != w["hand"] or not is_instance_valid(n):
 			continue
-		# sadece yön: yerel ölçek korunur (dünya ölçeğiyle yazınca kılıç büyüyordu)
-		var pb = (n.get_parent() as Node3D).global_transform.basis.orthonormalized()
+		var holder: Node3D = w["hand"]
+		var pb: Basis = (hp.basis * holder.transform.basis).orthonormalized()   # silahın ebeveyni, iskelet uzayında
+		var sc: Vector3 = n.transform.basis.get_scale()
+		if not w.has("key_pos0"):
+			w["key_pos0"] = n.position
+		var grip = 0.58 * sc.z   # yumruktan sargıya kadar sap boyu (silah yerelinde)
+		# yer kontrolü (dünya): el + uç * boy yerin altına inmesin
+		var z: Vector3 = blade.normalized()
+		var gscale = (skb * pb).get_scale().z
+		var hand_w: Vector3 = sk.global_transform * (hp * holder.transform * w["key_pos0"])
+		var dir_w: Vector3 = (skb.orthonormalized() * z).normalized()
+		var length = (1.95 + 0.58) * sc.z * gscale
+		var floor_y = global_position.y + 0.12
+		var tip_y = hand_w.y + dir_w.y * length
+		if tip_y < floor_y and length > 0.1:
+			var need = clampf((floor_y - hand_w.y) / length, -1.0, 0.95)
+			var hz = Vector3(dir_w.x, 0, dir_w.z)
+			if hz.length() < 0.05:
+				hz = skb.orthonormalized().z
+			hz = hz.normalized() * sqrt(maxf(0.0, 1.0 - need * need))
+			dir_w = Vector3(hz.x, need, hz.z)
+			z = (skb.orthonormalized().inverse() * dir_w).normalized()
+		var x = Vector3.UP.cross(z)
+		if x.length() < 0.1:
+			x = Vector3.RIGHT
+		x = x.normalized()
+		var want = Basis(x, z.cross(x).normalized(), z)
 		var q = (pb.inverse() * want).get_rotation_quaternion()
-		n.transform.basis = Basis(q).scaled(n.transform.basis.get_scale())
+		n.transform.basis = Basis(q).scaled(sc)
+		n.position = w["key_pos0"] + n.transform.basis.z.normalized() * grip
 
 
 func flash(amount: float) -> void:
@@ -3263,7 +3291,8 @@ func _process(dt: float) -> void:
 	if stance != "" and overlay:
 		var on = drawn and not _stowed and overlay.key_t < 0.0 and current in ["idle", "walk", "jog", "run", "air", "fall", "sword_idle"] and overlay.weights.get("ninja_run", 0.0) < 0.5 and overlay.weights.get("leap", 0.0) < 0.3
 		overlay.set_pose(stance, 1.0 if on else 0.0)
-		_rest_tilt(on, dt)
+		if overlay.key_t < 0.0:
+			_rest_tilt(on, dt)
 	_key_blade()
 	if hit_flash > 0.0:
 		hit_flash = maxf(0.0, hit_flash - dt * 5.0)
