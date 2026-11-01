@@ -295,7 +295,7 @@ func _enter_sage() -> void:
 	var fx: Dictionary = SAGE_FX.get(sage_kind, SAGE_FX["kurbağa"])
 	var m = Contracts.mastery(sage_kind)
 	sage = true
-	sage_t = (50.0 + clampf(m / 20.0, 0.0, 40.0)) * (1.0 + Stats.skill(Game.profile, "sage_time"))
+	sage_t = 999999.0   # süresiz: tuşa tekrar basılana kadar açık (kullanıcı isteği)
 	var mods: Dictionary = fx["mods"].duplicate()
 	var sp = Stats.skill(Game.profile, "sage_power")
 	for k in ["melee", "jutsu"]:
@@ -307,7 +307,7 @@ func _enter_sage() -> void:
 		p.model.set_sage(fx["visual"])
 	else:
 		p.model.set_eye_color(fx["col"])
-	Hud.banner(Contracts.DEFS.get(sage_kind, {}).get("sage_name", "SENNIN MODU").to_upper(), "%s (%d sn)" % [fx["desc"], int(sage_t)], fx["col"])
+	Hud.banner(Contracts.DEFS.get(sage_kind, {}).get("sage_name", "SENNIN MODU").to_upper(), "%s (süresiz — kapatmak için tekrar bas)" % fx["desc"], fx["col"])
 	Sfx.play("levelup", p.global_position, 0.7)
 	FX.ring(p.global_position + Vector3.UP * 0.2, fx["col"], 6.0, 0.6)
 
@@ -417,7 +417,6 @@ func _sage_tick(dt: float) -> void:
 		return
 	if not sage:
 		return
-	sage_t -= dt
 	p.chakra = minf(p.max_chakra, p.chakra + (14.0 if sage_kind == "sümüklü" else 6.0) * dt)
 	if sage_kind == "yılan":
 		p.hp = minf(p.max_hp, p.hp + 6.0 * dt)
@@ -441,8 +440,6 @@ func _sage_tick(dt: float) -> void:
 					f.add_child(l)
 					l.position = Vector3(0, f.height * 0.6, 0)
 					sage_marks[f.get_instance_id()] = l
-	if sage_t <= 0.0:
-		_end_sage()
 
 
 # ------------------------------------------------------------------ Kuyruklu Canavar (X)
