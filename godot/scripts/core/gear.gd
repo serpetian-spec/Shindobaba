@@ -3,7 +3,42 @@ extends RefCounted
 ## Ekipman: kafa, yüz, üst/alt kıyafet, ayak, yelek, dış giysi, kol, sırt, sağ el / sol el silahı.
 ## profile["gear"] = sahip olunan parçalar [{uid, id, c1, c2}], profile["equip"] = {yuva: uid}
 
-const SLOTS := [["kafa", "Kafa"], ["sag_goz", "Sağ Göz"], ["sol_goz", "Sol Göz"], ["yuz", "Yüz"], ["govde", "Üst Kıyafet"], ["bacak", "Alt Kıyafet"], ["ayak", "Ayak"], ["zirh", "Yelek / Zırh"], ["dis", "Dış Giysi"], ["kol", "Kol / Koruma"], ["sirt", "Sırt / Bel"], ["sag", "Sağ El"], ["sol", "Sol El"]]
+const SLOTS := [["kafa", "Kafa"], ["sag_goz", "Sağ Göz"], ["sol_goz", "Sol Göz"], ["yuz", "Yüz"], ["set", "Kıyafet Seti"], ["sirt", "Sırt"], ["sag", "Silah"]]
+## Eski tek tek kıyafet yuvaları (artık kıyafetler set olarak giyilir; bu yuvalardaki parçalar iç içe geçiyordu)
+const OLD_CLOTH_SLOTS := ["govde", "bacak", "ayak", "zirh", "dis", "kol", "sol"]
+
+## Kıyafet setleri: parçaları (eski kıyafet eşyaları) birlikte, uyumlu renklerle giyilir — iç içe geçmez.
+## "parts": [eşya, c1, c2]. Kullanıcı yeni kıyafet örnekleri gönderecek; şimdilik birkaç temel set.
+const SETS := {
+	"set_genin": {"name": "Genin Kunrengi", "slot": "set", "price": 150, "rank": 0, "desc": "Turuncu-siyah eğitim ceketi, lacivert ninja pantolonu, sandalet.",
+		"stats": {"def": 5, "hp": 10, "speed": 0.03}, "c1": Color(0.95, 0.5, 0.12), "c2": Color(0.12, 0.12, 0.14),
+		"parts": [["ceket", Color(0.95, 0.5, 0.12), Color(0.12, 0.12, 0.14)], ["ninja_pant", Color(0.15, 0.2, 0.33), null], ["sandalet", Color(0.15, 0.2, 0.33), Color(0.92, 0.92, 0.9)]]},
+	"set_shinobi": {"name": "Shinobi Shōzoku", "slot": "set", "price": 200, "rank": 0, "desc": "Lacivert uzun kollu gömlek, ninja pantolonu, kol sargısı, sandalet.",
+		"stats": {"def": 6, "melee": 0.03, "speed": 0.03}, "c1": Color(0.15, 0.2, 0.33), "c2": Color(0.12, 0.12, 0.14),
+		"parts": [["uzun_gomlek", Color(0.15, 0.2, 0.33), Color(0.12, 0.12, 0.14)], ["ninja_pant", Color(0.13, 0.16, 0.26), null], ["kol_sargisi", Color(0.92, 0.92, 0.9), null], ["sandalet", Color(0.12, 0.12, 0.14), Color(0.92, 0.92, 0.9)]]},
+	"set_chunin": {"name": "Chūnin Shōzoku", "slot": "set", "price": 600, "rank": 2, "desc": "Lacivert gömlek ve pantolon üstüne yeşil taktik yelek.",
+		"stats": {"def": 14, "hp": 25, "speed": 0.03}, "c1": Color(0.15, 0.2, 0.33), "c2": Color(0.42, 0.5, 0.32),
+		"parts": [["uzun_gomlek", Color(0.15, 0.2, 0.33), Color(0.12, 0.12, 0.14)], ["ninja_pant", Color(0.15, 0.2, 0.33), null], ["chunin_yelek", Color(0.42, 0.5, 0.32), null], ["sandalet", Color(0.12, 0.12, 0.14), Color(0.92, 0.92, 0.9)]]},
+	"set_uchiha": {"name": "Uchiha Shōzoku", "slot": "set", "price": 300, "rank": 0, "clan": "uchiha", "desc": "Sırtı yelpaze armalı dik yakalı lacivert üst, kolluk, koyu pantolon.",
+		"stats": {"def": 6, "chakra": 15, "melee": 0.04}, "c1": Color(0.13, 0.15, 0.26), "c2": Color(0.13, 0.15, 0.26),
+		"parts": [["uchiha_yakali", Color(0.13, 0.15, 0.26), Color(0.13, 0.15, 0.26)], ["uchiha_kolluk", Color(0.12, 0.12, 0.14), null], ["ninja_pant", Color(0.88, 0.86, 0.8), null], ["sandalet", Color(0.12, 0.12, 0.14), Color(0.92, 0.92, 0.9)]]},
+	"set_suna": {"name": "Suna Tabi Shōzoku", "slot": "set", "price": 350, "rank": 1, "desc": "Kum rengi yüksek yakalı gömlek, bol çöl şalvarı, kısa pelerin.",
+		"stats": {"def": 6, "hp": 20, "speed": 0.02}, "c1": Color(0.8, 0.7, 0.5), "c2": Color(0.55, 0.3, 0.2),
+		"parts": [["yakali", Color(0.62, 0.5, 0.36), Color(0.4, 0.3, 0.22)], ["col_salvari", Color(0.8, 0.7, 0.5), null], ["kisa_pelerin", Color(0.55, 0.3, 0.2), null], ["sandalet", Color(0.3, 0.22, 0.16), Color(0.85, 0.8, 0.7)]]},
+	"set_anbu": {"name": "ANBU Shōzoku", "slot": "set", "price": 0, "rank": 4, "desc": "Koyu gömlek ve pantolon, metal göğüs plakası, kol koruması.",
+		"stats": {"def": 18, "speed": 0.05, "melee": 0.05}, "c1": Color(0.12, 0.12, 0.14), "c2": Color(0.85, 0.85, 0.82),
+		"parts": [["uzun_gomlek", Color(0.12, 0.12, 0.14), Color(0.12, 0.12, 0.14)], ["ninja_pant", Color(0.12, 0.12, 0.14), null], ["anbu_zirh", Color(0.85, 0.85, 0.82), null], ["kol_sargisi", Color(0.9, 0.9, 0.88), null], ["sandalet", Color(0.12, 0.12, 0.14), Color(0.92, 0.92, 0.9)]]},
+	"set_jonin": {"name": "Jōnin Komutan Shōzoku", "slot": "set", "price": 0, "rank": 3, "desc": "Taktik yelek ve yeşil-gri komutan haorisi.",
+		"stats": {"def": 16, "hp": 25, "chakra": 25}, "c1": Color(0.15, 0.2, 0.33), "c2": Color(0.45, 0.5, 0.42),
+		"parts": [["uzun_gomlek", Color(0.15, 0.2, 0.33), Color(0.12, 0.12, 0.14)], ["ninja_pant", Color(0.15, 0.2, 0.33), null], ["chunin_yelek", Color(0.42, 0.5, 0.32), null], ["jonin_komutan_paltosu", Color(0.45, 0.5, 0.42), null], ["sandalet", Color(0.12, 0.12, 0.14), Color(0.92, 0.92, 0.9)]]},
+	"set_akatsuki": {"name": "Akatsuki Shōzoku", "slot": "set", "price": 0, "rank": 3, "desc": "Kızıl bulutlu dik yakalı siyah pelerin, koyu pantolon.",
+		"stats": {"def": 12, "chakra": 30}, "c1": Color(0.08, 0.08, 0.1), "c2": Color(0.8, 0.1, 0.12),
+		"parts": [["uzun_gomlek", Color(0.12, 0.12, 0.14), Color(0.12, 0.12, 0.14)], ["ninja_pant", Color(0.12, 0.12, 0.14), null], ["akatsuki_pelerini", Color(0.08, 0.08, 0.1), Color(0.8, 0.1, 0.12)], ["sandalet", Color(0.4, 0.3, 0.45), Color(0.92, 0.92, 0.9)]]},
+	"set_kage": {"name": "Kage Shōzoku", "slot": "set", "price": 0, "rank": 6, "desc": "Köyün liderinin beyaz cübbesi.",
+		"stats": {"def": 16, "chakra": 50, "hp": 30}, "c1": Color(0.95, 0.95, 0.92), "c2": Color(0.8, 0.2, 0.15),
+		"parts": [["uzun_gomlek", Color(0.15, 0.2, 0.33), Color(0.12, 0.12, 0.14)], ["ninja_pant", Color(0.15, 0.2, 0.33), null], ["kage_cubbesi", Color(0.95, 0.95, 0.92), Color(0.8, 0.2, 0.15)], ["sandalet", Color(0.12, 0.12, 0.14), Color(0.92, 0.92, 0.9)]]},
+}
+const SHOP_SETS := ["set_genin", "set_shinobi", "set_chunin", "set_uchiha", "set_suna"]
 ## Boş bırakılamayan yuvalar (çıplak kalınmaz)
 const REQUIRED := ["govde", "bacak", "ayak"]
 
@@ -505,6 +540,8 @@ static func random_reward(rank: int) -> String:
 static func item(id: String) -> Dictionary:
 	if ITEMS.has(id):
 		return ITEMS[id]
+	if SETS.has(id):
+		return SETS[id]
 	if id.begins_with("u_"):
 		return _custom().get(id, {})
 	return {}
@@ -595,7 +632,7 @@ static func make_unique(base_id: String, kind: String, seed_v: int) -> String:
 
 ## Dükkân stoku: her 30 dakikada (gerçek zaman) köye göre değişen rastgele seçim + 2 benzersiz eşya
 static func shop_stock(kind: String, vid: String) -> Array:
-	var pool: Array = SHOP_WEAPONS if kind == "w" else SHOP_CLOTHES
+	var pool: Array = SHOP_WEAPONS if kind == "w" else SHOP_CLOTHES.filter(func(i): return not String(item(i).get("slot", "")) in OLD_CLOTH_SLOTS) + SHOP_SETS
 	var period = int(Time.get_unix_time_from_system() / 1800.0)
 	var rng = RandomNumberGenerator.new()
 	rng.seed = hash("%s|%s|%d|%s" % [kind, vid, period, String(Game.profile.get("name", ""))])
@@ -614,7 +651,7 @@ static func shop_stock(kind: String, vid: String) -> Array:
 
 static func fits(id: String, slot: String) -> bool:
 	var s: String = item(id).get("slot", "")
-	return s == slot or (s == "el" and slot in ["sag", "sol"]) or (s == "goz" and slot in ["sag_goz", "sol_goz"])
+	return s == slot or (s == "el" and slot == "sag") or (s == "goz" and slot in ["sag_goz", "sol_goz"])
 
 
 static func _hex(c) -> String:
@@ -721,30 +758,47 @@ static func is_eye(id: String) -> bool:
 ## Eski kayıtlar / yeni karakter: görünümden başlangıç ekipmanı üretir
 static func ensure(p: Dictionary) -> void:
 	if p.has("gear") and p.has("equip"):
-		if _ensure_eyes(p):
+		var ch = _migrate_sets(p)
+		if _ensure_eyes(p) or ch:
 			apply_look(p)
 		return
 	p["gear"] = []
 	p["equip"] = {}
 	var L: Dictionary = p.get("look", {})
-	var top_id = {"tisort": "tisort", "uzun": "uzun_gomlek", "ceket": "ceket", "yakali": "yakali"}.get(L.get("top_style", "ceket"), "ceket")
-	if String(p.get("clan", "")) == "uchiha":
-		# Uchiha: başlangıçta yelpaze armalı dik yakalı üst + kolluk; seçilen üst renkleri korunur
-		grant(p, "uchiha_yakali", "govde", L.get("top", null), L.get("top", null))
-		grant(p, "uchiha_kolluk", "kol")
-	else:
-		grant(p, top_id, "govde", L.get("top", null), L.get("top2", null))
-	grant(p, {"sort": "sort", "sivil": "sivil_pant"}.get(L.get("pants_style", "ninja"), "ninja_pant"), "bacak", L.get("pants", null))
-	grant(p, "sandalet", "ayak", L.get("sandal", null), L.get("wraps", null))
+	grant(p, _starter_set(p), "set", L.get("top", null), L.get("top2", null))
 	grant(p, "kunai", "sag")
 	if L.get("band") != null:
 		grant(p, "alin_koruyucu", "kafa", L["band"])
 		grant(p, "alin_boyun", "", L["band"])
-	if L.get("vest") != null:
-		var hv = "%s_yelek" % String(p.get("village", "konoha"))
-		grant(p, "anbu_zirh" if int(p.get("rank", 0)) >= 4 else (hv if ITEMS.has(hv) and hv != "konoha_yelek" else "chunin_yelek"), "zirh", L["vest"])
 	_ensure_eyes(p)
 	apply_look(p)
+
+
+static func _starter_set(p: Dictionary) -> String:
+	if String(p.get("clan", "")) == "uchiha":
+		return "set_uchiha"
+	if int(p.get("rank", 0)) >= 4:
+		return "set_anbu"
+	if int(p.get("rank", 0)) >= 2:
+		return "set_chunin"
+	if String(p.get("village", "")) == "suna":
+		return "set_suna"
+	return "set_genin"
+
+
+## Eski kayıt: tek tek kıyafet yuvaları (iç içe geçiyordu) -> başlangıç seti; sol el boşaltılır
+static func _migrate_sets(p: Dictionary) -> bool:
+	var eq: Dictionary = p.get("equip", {})
+	var had = false
+	for sl in OLD_CLOTH_SLOTS:
+		if eq.has(sl):
+			eq.erase(sl)
+			had = true
+	if not eq.has("set"):
+		var L: Dictionary = p.get("look", {})
+		grant(p, _starter_set(p), "set", L.get("top", null), L.get("top2", null))
+		had = true
+	return had
 
 
 ## Doğuştan klan gözleri (eski kayıtlar dahil bir kez verilir)
@@ -786,14 +840,32 @@ static func apply_look(p: Dictionary) -> void:
 	L["outer_accent"] = null
 	L["wear"] = 0.0
 	L["rope_belt"] = false
+	var wear: Array = []   # [yuva, eşya, c1, c2, kayıt]
 	for s in SLOTS:
-		var g = equipped(p, s[0])
-		if g.is_empty():
+		var g0 = equipped(p, s[0])
+		if g0.is_empty():
 			continue
-		var it = item(g["id"])
-		if it.is_empty():
+		var it0 = item(g0["id"])
+		if it0.is_empty():
 			continue
-		var c1 = Color.html(g["c1"]); var c2 = Color.html(g["c2"])
+		if String(it0.get("slot", "")) == "set":
+			# set: c1/c2 ilk parçanın (ana giysinin) renklerini değiştirir, diğer parçalar setin kendi renkleriyle
+			var first = true
+			for pt in it0.get("parts", []):
+				var pit = item(String(pt[0]))
+				if pit.is_empty():
+					continue
+				var pc1: Color = Color.html(g0["c1"]) if first else (pt[1] if pt[1] != null else pit.get("c1", Color.WHITE))
+				var pc2: Color = Color.html(g0["c2"]) if first else (pt[2] if pt[2] != null else pit.get("c2", pc1))
+				wear.append([String(pit["slot"]), pit, pc1, pc2, g0])
+				first = false
+		else:
+			wear.append([s[0], it0, Color.html(g0["c1"]), Color.html(g0["c2"]), g0])
+	for wr in wear:
+		var s = [wr[0]]
+		var it: Dictionary = wr[1]
+		var g: Dictionary = wr[4]
+		var c1: Color = wr[2]; var c2: Color = wr[3]
 		for k in it.get("look", {}):
 			# iki parça aynı bayrağı açabilir (ör. kol sargısı + sargılı üst): açık olan kalsın
 			if it["look"][k] is bool and L.get(k) == true:

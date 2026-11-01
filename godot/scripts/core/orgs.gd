@@ -551,7 +551,7 @@ func _akatsuki_invite() -> void:
 	Hud.dialog("Kızıl Bulut Elçisi", "Gölgelerden kızıl bulutlu bir pelerin çıkıyor: \"Adın Bingo Kitabı'nda epey yükseldi. Örgütümüz kuyruklu canavarları topluyor; bize katıl, köylerin sana açamadığı kapıları biz açalım.\"", [
 		{"label": "Akatsuki'ye katıl", "cb": func():
 			flags()["akatsuki_member"] = true
-			Gear.grant(p(), "akatsuki_pelerini", "dis")
+			Gear.grant(p(), "set_akatsuki", "set")
 			Gear.apply_look(p())
 			if Game.player:
 				Game.player.rebuild_model()

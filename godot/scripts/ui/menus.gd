@@ -248,7 +248,7 @@ static func _tab_eyes(main: Node, body: Control) -> void:
 		v.add_child(UI.label("SAĞ GÖZ" if sl == "sag_goz" else "SOL GÖZ", 20, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
 		_eq_slot = sl
 		_eye_panel(main, v, pr)
-	_eq_slot = "govde"
+	_eq_slot = "set"
 	var side = UI.card()
 	side.custom_minimum_size = Vector2(320, 0)
 	h.add_child(side)
@@ -1380,10 +1380,10 @@ static func _tab_inventory(main: Node, body: Control) -> void:
 
 
 # ------------------------------------------------------------------ ekipman (karakter etrafında yuvalar)
-static var _eq_slot := "govde"
+static var _eq_slot := "set"
 # gözler ekipman değil (Gözler sekmesinde)
-const DOLL_LEFT := ["kafa", "yuz", "govde", "bacak", "ayak", "kol"]
-const DOLL_RIGHT := ["zirh", "dis", "sirt", "sag", "sol"]
+const DOLL_LEFT := ["kafa", "yuz", "set"]
+const DOLL_RIGHT := ["sirt", "sag"]
 
 
 static func _slot_name(sl: String) -> String:
@@ -1396,8 +1396,8 @@ static func _slot_name(sl: String) -> String:
 static func _tab_wardrobe(main: Node, body: Control) -> void:
 	var pr = Game.profile
 	Gear.ensure(pr)
-	if _eq_slot in ["sag_goz", "sol_goz"]:
-		_eq_slot = "govde"
+	if _eq_slot in ["sag_goz", "sol_goz"] or _eq_slot in Gear.OLD_CLOTH_SLOTS:
+		_eq_slot = "set"
 	var refresh = func() -> void:
 		Gear.apply_look(pr)
 		if Game.player:
@@ -1596,7 +1596,7 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 		_ms_editor(main, dv, Eyes.design_for(pr, _eq_slot))
 	# boya
 	if not cur.is_empty() and not Gear.item(cur["id"]).has("weapon") and not Gear.item(cur["id"]).has("eye"):
-		var names = {"govde": ["Ana renk", "Vurgu (omuz/yaka)"], "ayak": ["Sandalet", "Sargılar"]}.get(_eq_slot, ["Renk"])
+		var names = {"set": ["Ana renk", "Vurgu (omuz/yaka)"]}.get(_eq_slot, ["Renk"])
 		for ci in names.size():
 			var key = "c%d" % (ci + 1)
 			dv.add_child(UI.label(names[ci], 14, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))

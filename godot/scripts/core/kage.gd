@@ -462,7 +462,7 @@ func inaugurate() -> void:
 	Progress.promote(6)
 	var pr = p()
 	Gear.ensure(pr)
-	Gear.grant(pr, "kage_cubbesi", "dis")
+	Gear.grant(pr, "set_kage", "set")
 	Gear.grant(pr, "kage_sapkasi", "kafa", Progress.home_info()["band"].lerp(Color.WHITE, 0.6))
 	Gear.apply_look(pr)
 	if Game.player:

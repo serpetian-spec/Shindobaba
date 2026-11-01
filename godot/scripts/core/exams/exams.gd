@@ -478,7 +478,7 @@ func jonin_done(m: Dictionary, ok: bool) -> void:
 	if votes >= 1:
 		Progress.promote(3)
 		Journal.add("Jōnin oldun. Artık başkalarının hayatı senin kararlarına bağlı.", "milestone")
-		Gear.grant(p(), "jonin_komutan_paltosu")
+		Gear.grant(p(), "set_jonin")
 		Hud.dialog(Progress.home_info()["kage"], "İki jōninin tavsiyesi ve kriz yönetimin oybirliğiyle kabul edildi. Bugünden itibaren bir JŌNİN'sin. Artık bir Tokubetsu Jōnin uzmanlığı da seçebilirsin (Kage Kulesi).", [])
 		exam_finished.emit("jonin", true)
 	else:

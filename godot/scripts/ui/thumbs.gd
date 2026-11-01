@@ -3,7 +3,7 @@ extends RefCounted
 ## Eşya küçük resimleri: silahlar gerçek 3B modelden bir kez çizilir (küçük SubViewport, UPDATE_ONCE),
 ## kıyafet/göz gibi eşyalar yuva simgesi + eşya rengiyle gösterilir.
 
-const SLOT_ICONS := {"kafa": "headband", "sag_goz": "eye", "sol_goz": "eye", "yuz": "mask", "govde": "shirt", "bacak": "pants", "ayak": "sandal",
+const SLOT_ICONS := {"kafa": "headband", "sag_goz": "eye", "sol_goz": "eye", "yuz": "mask", "set": "shirt", "govde": "shirt", "bacak": "pants", "ayak": "sandal",
 	"zirh": "vest", "dis": "cloak", "kol": "glove", "sirt": "back", "sag": "sword", "sol": "kunai", "sac": "hair", "susanoo": "susanoo",
 	"goz": "eye", "el": "kunai"}
 const ITEM_ICONS := {"kunai": "kunai", "shuriken": "shuriken", "tag": "seal", "smoke": "bomb", "salve": "potion", "pill": "pill"}
