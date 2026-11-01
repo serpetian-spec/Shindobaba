@@ -57,50 +57,52 @@ static func _kubikiri(b: MB) -> void:
 ## Samehada (sargılı, anime/Storm): uca doğru kalınlaşan kalın sopa, spiral beyaz bez sargısı (bantlar arası ince gri çizgi,
 ## yer yer bez katmanı kabarık), ucu açıkta koyu mavi pullu yuvarlak baş; örgülü sap ve kafatası topuz aynı
 static func _samehada_wrapped(b: MB) -> void:
-	var cloth = Color(0.93, 0.93, 0.9)
-	var seam = Color(0.62, 0.63, 0.66)
-	var pts = []
-	var rad = []
-	for k in 9:
-		var t = k / 8.0
-		pts.append(Vector3(0, 0, 0.04 + t * 1.32))
-		var r = lerpf(0.1, 0.26, pow(t, 0.8))
-		rad.append(Vector2(r, r * 0.88))
-	# spiral sargı: (t, açı) uzayında çapraz bantlar; bant kenarı gri dikiş çizgisi
-	Loft.tube(b, pts, rad, cloth, 18, 4, true, false, func(t: float, ang: float, _sd) -> Color:
-		var f = fposmod(t * 11.0 + ang / TAU, 1.0)
-		if f < 0.07:
-			return seam
-		return cloth.darkened(0.06) if f > 0.55 and f < 0.62 else cloth)
-	# kabarık bez katmanları (sargının üst üste bindiği yerler)
+	# Storm / anime: BAŞTAN SONA AYNI KALINLIKTA düz kalın silindir (uca doğru büyümez), üst üste binen kalın bez bantları,
+	# ucu kubbe biçimli koyu mavi pullu; uzun ince ten rengi sap, ucunda beyaz kapak
+	var cloth = Color(0.94, 0.94, 0.92)
+	var shade = Color(0.78, 0.79, 0.82)
+	var R = 0.17
+	var z0 = 0.06
+	var z1 = 1.38
+	b.add("cyl", Vector3(0, 0, (z0 + z1) * 0.5), Vector3(R * 2.0, z1 - z0, R * 2.0), shade, Vector3(90, 0, 0), 16)
+	# kalın bez bantları: her bant hafif eğik, bir öncekini örter (halka halka sargı)
+	var n = 12
+	for k in n:
+		var z = lerpf(z0 + 0.05, z1 - 0.04, (k + 0.5) / n)
+		var tilt = 9.0 if k % 2 == 0 else -6.0
+		b.add("cyl", Vector3(0, 0, z), Vector3(R * 2.12, (z1 - z0) / n * 0.92, R * 2.12), cloth, Vector3(90 + tilt, 0, 0), 16)
+	# alt uçta sargı biter: bezin altından koyu mavi pullu kubbe uç çıkar
+	var sc = Color(0.22, 0.25, 0.42)
+	b.add("cyl", Vector3(0, 0, z1 + 0.05), Vector3(R * 2.05, 0.1, R * 2.05), sc, Vector3(90, 0, 0), 16)
+	b.add("sphere", Vector3(0, 0, z1 + 0.1), Vector3(R * 2.05, R * 2.05, R * 1.3), sc, Vector3.ZERO, 16)
+	for k in 2:
+		var zz = z1 + 0.02 + k * 0.08
+		var rr = R * (1.02 - k * 0.3)
+		var cnt = 12 - k * 4
+		for i in cnt:
+			var a2 = TAU * (i + k * 0.5) / cnt
+			var radial = Vector3(cos(a2), sin(a2), 0)
+			var d = (radial * 0.85 - Vector3(0, 0, 0.5)).normalized()
+			var tng = Vector3(-sin(a2), cos(a2), 0)
+			b.add_xf("cone", Transform3D(Basis(tng * 0.08, d * 0.09, tng.cross(d).normalized() * 0.02), radial * rr + Vector3(0, 0, zz) + d * 0.03), sc.lightened(0.12 * (i % 2)), 4)
+	# sap: uzun ince ten rengi çubuk + halkalar (önceki sap), ucunda küçük beyaz kurukafa (kaynak: samehadauc.png)
+	var pole = Color(0.82, 0.68, 0.45)
+	b.add("cyl", Vector3(0, 0, 0.04), Vector3(R * 1.6, 0.06, R * 1.6), cloth, Vector3(90, 0, 0), 14)
+	b.add("cyl", Vector3(0, 0, -0.32), Vector3(0.055, 0.7, 0.055), pole, Vector3(90, 0, 0), 10)
 	for k in 6:
-		var z = 0.18 + k * 0.21
-		var r = lerpf(0.1, 0.26, pow(clampf((z - 0.04) / 1.32, 0.0, 1.0), 0.8)) + 0.012
-		b.add("torus", Vector3(0, 0, z), Vector3(r * 2.08, 0.05, r * 1.85), cloth.darkened(0.03), Vector3(90, 0, 14 if k % 2 == 0 else -14), 14)
-	# açıkta kalan pullu uç: koyu mavi yuvarlak baş + geriye yatık dikenler
-	var sc = Color(0.24, 0.26, 0.44)
-	var tip = 1.42
-	b.add("sphere", Vector3(0, 0, tip), Vector3(0.5, 0.45, 0.3), sc, Vector3.ZERO, 14)
-	for k in 3:
-		var z = tip - 0.1 + k * 0.07
-		var rr = 0.24 - k * 0.05
-		var n = 12 - k * 3
-		for i in n:
-			var a = TAU * (i + (k % 2) * 0.5) / n
-			var radial = Vector3(cos(a), sin(a) * 0.9, 0)
-			var d = (radial * 0.8 - Vector3(0, 0, 0.6)).normalized()
-			var tng = Vector3(-sin(a), cos(a), 0).normalized()
-			var ln = 0.12
-			b.add_xf("cone", Transform3D(Basis(tng * 0.12, d * ln, tng.cross(d).normalized() * 0.025), radial * rr + Vector3(0, 0, z) + d * ln * 0.4), sc.darkened(0.15 * (i % 2)), 4)
-	# örgülü sap
-	var braid = Color(0.82, 0.68, 0.38)
-	for k in 12:
-		var z = -0.04 - k * 0.04
-		b.add("box", Vector3(0, 0, z), Vector3(0.07, 0.05, 0.05), braid, Vector3(0, 0, 40 if k % 2 == 0 else -40))
-	b.add("cyl", Vector3(0, 0, -0.27), Vector3(0.05, 0.48, 0.05), braid.darkened(0.25), Vector3(90, 0, 0), 8)
-	var bone = Color(0.94, 0.92, 0.86)
-	b.add("sphere", Vector3(0, 0, -0.55), Vector3(0.08, 0.08, 0.09), bone, Vector3.ZERO, 10)
-	b.add("torus", Vector3(0, 0, -0.62), Vector3(0.1, 0.1, 0.1), Color(0.75, 0.7, 0.55), Vector3(90, 0, 0), 10)
+		b.add("torus", Vector3(0, 0, -0.08 - k * 0.1), Vector3(0.065, 0.06, 0.065), pole.darkened(0.2), Vector3(90, 0, 0), 10)
+	# kurukafa: sapın ucunda; tepesi sapın tersine (-Z), yüzü dışa (+X). Göz çukurları yüzeye gömülü (dışarı taşmaz)
+	var bone = Color(0.96, 0.95, 0.9)
+	var hole = Color(0.1, 0.09, 0.1)
+	var c0 = Vector3(0, 0, -0.75)
+	b.add("sphere", c0, Vector3(0.12, 0.11, 0.12), bone, Vector3.ZERO, 16)                 # kafatası (r 0.06)
+	b.add("box", c0 + Vector3(0.012, 0, 0.055), Vector3(0.062, 0.066, 0.04), bone)          # çene
+	for sy in [-1.0, 1.0]:
+		b.add("sphere", c0 + Vector3(0.046, sy * 0.023, -0.004), Vector3(0.024, 0.028, 0.028), hole, Vector3.ZERO, 10)   # göz çukuru
+	b.add("box", c0 + Vector3(0.052, 0, 0.024), Vector3(0.008, 0.012, 0.014), hole)                  # burun
+	for i in 3:
+		b.add("box", c0 + Vector3(0.0435, -0.015 + i * 0.015, 0.062), Vector3(0.003, 0.004, 0.026), hole)   # diş araları
+
 
 
 ## Samehada: canlı kılıç — üst üste binmiş mor-mavi pul dikenleriyle kaplı kalın gövde, uçta dişli ağız;

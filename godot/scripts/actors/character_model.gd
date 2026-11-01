@@ -2484,6 +2484,8 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 			var ch = _grest(skel.find_bone("UpperChest")).origin
 			var L = span.y - span.x
 			var steep = 1.35 if L > 1.9 else (0.7 if L > 1.2 else 0.55)  # uzun sopalar sırtı daha yatık çaprazlar
+			if id == "samehada":
+				steep = 0.72   # kaynak (Storm): sırtta ~55° dik çapraz, sap sağ omuzun üstünde
 			var dir = Vector3(-sx * steep, -1.0, 0.0)
 			if id in BACK_TIP_UP:
 				dir = -dir   # ağır başlı silahlar: baş yukarıda (çekiç, tırpan, mızrak)
@@ -2494,7 +2496,10 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 			if bz < 0.0:
 				var wab: AABB = (node as MeshInstance3D).mesh.get_aabb() if node is MeshInstance3D else SFProps._bounds(node)
 				var pad = 0.028 + (0.025 if look.get("vest") != null else 0.0) + (0.04 if look.get("outer_style") != null else 0.0)
-				center.z = bz - pad + wab.position.x
+				var near_x = wab.position.x
+				if id == "samehada":
+					near_x = -0.18   # gövde yarıçapı (uçtaki pul dikenleri AABB'yi büyütüp silahı sırttan uzaklaştırıyordu)
+				center.z = bz - pad + near_x + 0.02
 			xf = Transform3D(b, center - b.z * (mid if L > 1.2 else mid * 0.8))
 		"low_back":
 			var hp = _grest(skel.find_bone("Hips")).origin
@@ -2511,8 +2516,10 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 			var b = _frame(Vector3(sx * 0.12, -1.0, 0.18), Vector3(sx, 0, 0))
 			xf = Transform3D(b, hp + Vector3(sx * 0.2, 0.1, 0.03))
 	var holder: Node3D = _attach("UpperChest" if kind == "back" else "Hips", xf).get_child(0)
-	if kind == "back" and id == "bashosen":
-		pass   # Bashōsen sırtta kayışsız/kelepçesiz durur (kılıf karakterin dışında saçma duruyordu)
+	if kind == "back" and id in ["bashosen", "samehada"]:
+		# Bashōsen / Samehada: havada duran deri kelepçe yok; Samehada'da göğüs kayışı var (animedeki gibi)
+		if id == "samehada":
+			_back_strap(sx)
 	elif kind == "back":
 		_back_strap(sx)
 		# iki deri kelepçe: silahı sırttaki kayışa bağlar (holder +x sırttan dışarı, y sırt düzleminde silaha dik)
