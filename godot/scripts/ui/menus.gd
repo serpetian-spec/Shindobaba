@@ -1382,7 +1382,7 @@ static func _tab_inventory(main: Node, body: Control) -> void:
 # ------------------------------------------------------------------ ekipman (karakter etrafında yuvalar)
 static var _eq_slot := "set"
 # gözler ekipman değil (Gözler sekmesinde)
-const DOLL_LEFT := ["kafa", "yuz", "set"]
+const DOLL_LEFT := ["kafa", "set"]
 const DOLL_RIGHT := ["sirt", "sag"]
 
 

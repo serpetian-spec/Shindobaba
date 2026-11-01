@@ -886,6 +886,8 @@ func _paint_body() -> void:
 	if look["vest"] != null:
 		vest_mat = _cloth_mat(2)
 		_add_shell(_shell_cache[key + "|vest"], vest_mat)
+		if int(look.get("vest_style", 0)) == 0:
+			_vest_kit(_shell_cache[key + "|vest"], g)
 	_cloth_rings(g, shell_mat, vest_mat)
 	_garments(g)
 
@@ -1543,6 +1545,313 @@ func _strap_mesh(sx: float, belt := false) -> Mesh:
 	var fp: Vector3 = pts[0]
 	b.add("torus", fp + Vector3(0, 0, 0.012), Vector3(0.075, 0.03, 0.075), Color(0.62, 0.6, 0.56), Vector3(90, 0, 0), 14)   # göğüste metal halka
 	return b.build(Props.toon())
+
+
+## ---- Yüzeye oturan derili 3B parçalar (SurfaceKit) -------------------------------------------------
+## Kaynak kabuğun (yelek) gerçek köşelerinden konum + normal + kemik ağırlıkları alınır; her parça köşesi en yakın kabuk
+## köşesinin ağırlıklarını taşır -> kabukla birlikte eğilir/bükülür, hiçbir açıdan havada kalmaz, kumaşın içine girmez.
+var _sk := {}
+
+func _sk_begin(src: ArrayMesh) -> bool:
+	if src == null:
+		return false
+	var a = src.surface_get_arrays(0)
+	var idx: PackedInt32Array = a[Mesh.ARRAY_INDEX]
+	var used := {}
+	for i in idx:
+		used[i] = true
+	var V: PackedVector3Array = a[Mesh.ARRAY_VERTEX]
+	var N: PackedVector3Array = a[Mesh.ARRAY_NORMAL]
+	var B: PackedInt32Array = a[Mesh.ARRAY_BONES]
+	var W: PackedFloat32Array = a[Mesh.ARRAY_WEIGHTS]
+	var per = B.size() / maxi(1, V.size())
+	var vv = PackedVector3Array(); var nn = PackedVector3Array(); var bb = []; var ww = []
+	for i in used.keys():
+		vv.append(V[i]); nn.append(N[i].normalized())
+		bb.append(B.slice(i * per, i * per + per)); ww.append(W.slice(i * per, i * per + per))
+	_sk = {"v": vv, "n": nn, "b": bb, "w": ww, "per": per, "ov": PackedVector3Array(), "on": PackedVector3Array(), "oc": PackedColorArray(),
+		"ob": PackedInt32Array(), "ow": PackedFloat32Array(), "oi": PackedInt32Array(), "custom": a[Mesh.ARRAY_CUSTOM0] != null}
+	return true
+
+
+## Yüzey noktası: o ön/arka yönde, verilen (x, y) civarındaki en dış kabuk köşesi -> [konum, normal, köşe indeksi]
+func _sk_hit(x: float, y: float, front := true, rad := 0.02) -> Array:
+	var V: PackedVector3Array = _sk["v"]
+	var best = -1
+	var bz = -99.0
+	for i in V.size():
+		var q = V[i]
+		if absf(q.x - x) < rad and absf(q.y - y) < rad:
+			var z = q.z if front else -q.z
+			if z > bz:
+				bz = z
+				best = i
+	if best < 0:
+		return []
+	return [V[best], (_sk["n"] as PackedVector3Array)[best], best]
+
+
+func _sk_nearest(p: Vector3) -> int:
+	var V: PackedVector3Array = _sk["v"]
+	var best = 0
+	var bd = 1e9
+	for i in V.size():
+		var d = V[i].distance_squared_to(p)
+		if d < bd:
+			bd = d
+			best = i
+	return best
+
+
+## Kutu: merkez c, eksenler (u, v, n) yarı boyutlarıyla ölçekli; her köşe en yakın kabuk köşesinin ağırlıklarını alır
+func _sk_box(c: Vector3, u: Vector3, v: Vector3, n: Vector3, col: Color) -> void:
+	var corners = []
+	for sz in [-1.0, 1.0]:
+		for sy in [-1.0, 1.0]:
+			for sx in [-1.0, 1.0]:
+				corners.append(c + u * sx + v * sy + n * sz)
+	var faces = [[0, 2, 3, 1], [4, 5, 7, 6], [0, 1, 5, 4], [2, 6, 7, 3], [0, 4, 6, 2], [1, 3, 7, 5]]
+	var fn = [-n, n, -v, v, -u, u]
+	for f in 6:
+		var base = (_sk["ov"] as PackedVector3Array).size()
+		for k in 4:
+			var q: Vector3 = corners[faces[f][k]]
+			_sk["ov"].append(q)
+			_sk["on"].append(fn[f].normalized())
+			_sk["oc"].append(col)
+			var j = _sk_nearest(q)
+			_sk["ob"].append_array(_sk["b"][j])
+			_sk["ow"].append_array(_sk["w"][j])
+		_sk["oi"].append_array(PackedInt32Array([base, base + 1, base + 2, base, base + 2, base + 3]))
+
+
+## Yüzeye yaslı kutu: (x, y) noktasındaki kabuk yüzeyinde, yüzey normaline dik; w genişlik, h boy, d kalınlık (yüzeyden dışarı)
+func _sk_plate(x: float, y: float, w: float, h: float, d: float, col: Color, lift := 0.0, front := true) -> bool:
+	var hit = _sk_hit(x, y, front)
+	if hit.is_empty():
+		return false
+	var n: Vector3 = hit[1]
+	var u = Vector3.UP.cross(n).normalized() * (1.0 if front else -1.0)
+	var v = n.cross(u).normalized() * (1.0 if front else -1.0)
+	var c: Vector3 = hit[0] + n * (lift + d * 0.5)
+	_sk_box(c, u * w * 0.5, v * h * 0.5, n * d * 0.5, col)
+	return true
+
+
+func _sk_end(g: Dictionary) -> MeshInstance3D:
+	if (_sk["oi"] as PackedInt32Array).is_empty():
+		return null
+	var arr = []
+	arr.resize(Mesh.ARRAY_MAX)
+	arr[Mesh.ARRAY_VERTEX] = _sk["ov"]
+	arr[Mesh.ARRAY_NORMAL] = _sk["on"]
+	arr[Mesh.ARRAY_COLOR] = _sk["oc"]
+	arr[Mesh.ARRAY_BONES] = _sk["ob"]
+	arr[Mesh.ARRAY_WEIGHTS] = _sk["ow"]
+	arr[Mesh.ARRAY_INDEX] = _sk["oi"]
+	var m = ArrayMesh.new()
+	m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr, [], {}, Mesh.ARRAY_FLAG_USE_8_BONE_WEIGHTS if int(_sk["per"]) == 8 else 0)
+	var mi = MeshInstance3D.new()
+	mi.mesh = m
+	skel.add_child(mi)
+	mi.skin = body_mesh.skin
+	mi.skeleton = mi.get_path_to(skel)
+	mi.material_override = Props.toon()
+	_sk = {}
+	return mi
+
+
+
+
+## Sürekli bant (iç dikiş yok): noktalar boyunca, her noktada dış yön (out) ve genişlik yönü (wd); kalınlık d, genişlik h.
+## shift: bandın genişlik yönünde kayması (yaka yukarı taşar)
+func _sk_band(pts: Array, outs: Array, wd: Vector3, h: float, d: float, col: Color, closed := false, shift := 0.0) -> void:
+	var n = pts.size()
+	if n < 2:
+		return
+	var base = (_sk["ov"] as PackedVector3Array).size()
+	var add_v = func(q: Vector3, nrm: Vector3, anchor: Vector3):
+		_sk["ov"].append(q); _sk["on"].append(nrm); _sk["oc"].append(col)
+		var j = _sk_nearest(anchor)
+		_sk["ob"].append_array(_sk["b"][j]); _sk["ow"].append_array(_sk["w"][j])
+	# her nokta için 3 yüz x 2 köşe: dış(üst, alt), üst(iç, dış), alt(iç, dış)
+	for i in n:
+		var p0: Vector3 = pts[i]
+		var o: Vector3 = outs[i]
+		var hi = p0 + wd * (h * 0.5 + shift)
+		var lo = p0 - wd * (h * 0.5 - shift)
+		add_v.call(hi + o * d, o, p0); add_v.call(lo + o * d, o, p0)
+		add_v.call(hi, wd, p0); add_v.call(hi + o * d, wd, p0)
+		add_v.call(lo + o * d, -wd, p0); add_v.call(lo, -wd, p0)
+	var segs = n if closed else n - 1
+	for i in segs:
+		var a = base + i * 6
+		var b = base + ((i + 1) % n) * 6
+		for f in 3:
+			var a0 = a + f * 2; var a1 = a0 + 1; var b0 = b + f * 2; var b1 = b0 + 1
+			_sk["oi"].append_array(PackedInt32Array([a0, b0, b1, a0, b1, a1]))
+			_sk["oi"].append_array(PackedInt32Array([a0, b1, b0, a0, a1, b1]))   # çift yüz (sarım yönünden bağımsız görünür)
+
+## Kabuk üzerinde halka/yay: eksen (axis: 0=x, 1=y) etrafında, o kesitteki en dış kabuk noktalarından geçen bant.
+## at: kesitin eksen değeri, h: bant genişliği (eksen boyunca), d: kalınlık, a0..a1: açı aralığı (axis=1: 0 önde; axis=0: 0 yukarı)
+func _sk_ring(axis: int, at: float, h: float, d: float, col: Color, a0 := -PI, a1 := PI, bins := 36, lift := 0.0, side_sel := 0.0, shift := 0.0, max_r := 9.0) -> void:
+	var V: PackedVector3Array = _sk["v"]
+	var pts = []
+	var c = Vector3.ZERO
+	var cn = 0
+	for q in V:
+		if absf(q[axis] - at) < 0.012 and (side_sel == 0.0 or signf(q.x) == side_sel) and (max_r > 8.0 or Vector2(q.x, q.z).length() < max_r + 0.05):
+			c += q; cn += 1
+	if cn < 6:
+		return
+	c /= cn
+	c[axis] = at
+	var ua = Vector3.BACK if axis == 1 else Vector3.UP
+	var ub = Vector3.RIGHT if axis == 1 else Vector3.BACK
+	var ax = Vector3.UP if axis == 1 else Vector3.RIGHT
+	for i in bins + 1:
+		var a = lerpf(a0, a1, float(i) / bins)
+		var dir = ua * cos(a) + ub * sin(a)
+		var best = -1.0
+		for q in V:
+			if absf(q[axis] - at) < 0.014 and (side_sel == 0.0 or signf(q.x) == side_sel):
+				var dq = q - c
+				dq[axis] = 0.0
+				var r = dq.length()
+				if r > 0.01 and r < max_r and dq.normalized().dot(dir) > 0.97 and r > best:
+					best = r
+		pts.append(null if best < 0.0 else c + dir * (best + lift))
+	if max_r < 8.0:
+		# yaka: boynun çevresinde eksik açılar (yeleğin önü açık) ortalama yarıçapla doldurulur -> kesintisiz halka
+		var rs = 0.0; var rn = 0
+		for q in pts:
+			if q != null:
+				var dq: Vector3 = q - c
+				dq[axis] = 0.0
+				rs += dq.length(); rn += 1
+		if rn > 0:
+			for i in pts.size():
+				if pts[i] == null:
+					var a = lerpf(a0, a1, float(i) / bins)
+					pts[i] = c + (ua * cos(a) + ub * sin(a)) * (rs / rn)
+	var run = []
+	var routs = []
+	var full = absf(a1 - a0) > TAU - 0.01
+	for i in pts.size():
+		if pts[i] == null:
+			if run.size() > 1:
+				_sk_band(run, routs, ax, h, d, col, false, shift)
+			run = []; routs = []
+			continue
+		var out: Vector3 = pts[i] - c
+		out[axis] = 0.0
+		run.append(pts[i]); routs.append(out.normalized())
+	if run.size() > 1:
+		_sk_band(run, routs, ax, h, d, col, full and run.size() == pts.size(), shift)
+
+
+## Kabuk üzerinde düz çizgi zinciri (fermuar): x sabit, y0'dan y1'e; yüzey derinliği komşu köşelerden yumuşatılır
+func _sk_strip(x: float, y0: float, y1: float, w: float, d: float, col: Color, n := 28) -> void:
+	var V: PackedVector3Array = _sk["v"]
+	var zs = []
+	for k in n + 1:
+		var y = lerpf(y0, y1, float(k) / n)
+		var zz = -9.0
+		for q in V:
+			if absf(q.x - x) < 0.04 and absf(q.y - y) < 0.025 and q.z > zz:
+				zz = q.z
+		zs.append(zz)
+	for k in n + 1:   # boşlukları komşulardan doldur (fermuar kesilmesin)
+		if zs[k] < -8.0:
+			var a = k - 1
+			while a >= 0 and zs[a] < -8.0:
+				a -= 1
+			var b = k + 1
+			while b <= n and zs[b] < -8.0:
+				b += 1
+			if a >= 0 and b <= n:
+				zs[k] = lerpf(zs[a], zs[b], float(k - a) / (b - a))
+			elif a >= 0:
+				zs[k] = zs[a]
+			elif b <= n:
+				zs[k] = zs[b]
+	for k in n + 1:   # yumuşat: komşuların en önü (göğüs çukurunda gömülmesin)
+		var m = zs[k]
+		for j in [k - 1, k + 1]:
+			if j >= 0 and j <= n:
+				m = maxf(m, zs[j] - 0.006)
+		zs[k] = m
+	var run = []
+	var outs = []
+	for k in n + 1:
+		if zs[k] < -8.0:
+			continue
+		var p0 = Vector3(x, lerpf(y0, y1, float(k) / n), zs[k])
+		var kn = mini(k + 1, n) if k < n else k
+		var kp = maxi(k - 1, 0)
+		var t = Vector3(0, lerpf(y0, y1, float(kn) / n) - lerpf(y0, y1, float(kp) / n), zs[kn] - zs[kp])
+		var nrm = Vector3(0, -t.z, t.y).normalized()
+		if nrm.z < 0.0:
+			nrm = -nrm
+		run.append(p0); outs.append(nrm)
+	_sk_band(run, outs, Vector3.RIGHT, w, d, col)
+
+
+## Parşömen cep takımı: bölgedeki kabuk köşelerinin ortalama konumu/normali tek bir çerçeve; taban + 3 hücre + kapak bu çerçevede
+func _sk_pocket(cx: float, cy: float, w: float, h: float, vc: Color, dk: Color) -> void:
+	var V: PackedVector3Array = _sk["v"]
+	var N: PackedVector3Array = _sk["n"]
+	var c = Vector3.ZERO; var nn = Vector3.ZERO; var cnt = 0
+	var zmax = -9.0
+	for i in V.size():
+		var q = V[i]
+		if q.z > 0.0 and absf(q.x - cx) < w * 0.5 and absf(q.y - cy) < h * 0.5:
+			c += q; nn += N[i]; cnt += 1
+			zmax = maxf(zmax, q.z)
+	if cnt < 3:
+		return
+	c /= cnt
+	var n = nn.normalized()
+	if n.z < 0.3:
+		n = (n + Vector3.BACK).normalized()
+	c = Vector3(cx, cy, zmax - 0.004)   # en dış noktaya yaslı (gömülmez, boşluk kalmaz)
+	var u = Vector3.UP.cross(n).normalized()
+	var v = n.cross(u).normalized()
+	_sk_box(c + n * 0.007, u * w * 0.5, v * h * 0.5, n * 0.007, dk)
+	for k in 3:
+		var x = (k - 1) * w / 3.0
+		_sk_box(c + u * x - v * 0.006 + n * 0.02, u * (w / 3.0 - 0.008) * 0.5, v * (h - 0.02) * 0.5, n * 0.011, vc.darkened(0.04))
+	_sk_box(c + v * (h * 0.5 - 0.009) + n * 0.024, u * (w + 0.004) * 0.5, v * 0.009, n * 0.012, dk.darkened(0.12))
+
+## Konoha yeleği (set1.png): göğüste 2x2 parşömen cebi (üst sıra küçük, alt büyük), boydan boya fermuar,
+## yeleğin üst kenarında dik yaka, omuzlarda yassı omuzluk — hepsi yelek kabuğunun yüzeyinden
+func _vest_kit(src: ArrayMesh, g: Dictionary) -> void:
+	if not _sk_begin(src):
+		return
+	var vc: Color = look["vest"]
+	var dk = vc.darkened(0.18)
+	var zipc = Color(0.85, 0.85, 0.83)
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var ch = _bp("UpperChest").y
+	var top_y = neck - 0.045
+	var bot_y = hips + 0.05
+	# fermuar: boydan boya sürekli şerit
+	_sk_strip(0.0, top_y + 0.02, bot_y + 0.01, 0.012, 0.006, zipc, 34)
+	# cepler: her cep takımı tek çerçevede (bölgenin ortalama yüzey normali) -> hücreler hizalı, kırık parça yok
+	for sx in [-1.0, 1.0]:
+		for row in [[ch - 0.075, 0.1, 0.075], [ch - 0.18, 0.115, 0.095]]:
+			_sk_pocket(0.09 * sx, row[0], row[1], row[2], vc, dk)
+	# dik yaka: yeleğin üst kenarında boyun çevresinde bant (arkası dahil)
+	# dik yaka: boynu saran yüksek bant (yeleğin boyun çevresindeki köşelerinden; omuz genişliğine yayılmaz)
+	_sk_ring(1, top_y + 0.003, 0.085, 0.02, vc.darkened(0.05), -PI, PI, 48, 0.004, 0.0, 0.04, 0.115)
+	# etek bandı
+	_sk_ring(1, bot_y + 0.02, 0.035, 0.008, dk, -PI, PI, 40, 0.0)
+	# omuzluklar: omuz üstünde ön-üst-arka yay (x ekseni etrafında)
+	var sh_x = _bp("LeftUpperArm").x * 0.82
+	for sx in [-1.0, 1.0]:
+		_sk_ring(0, sh_x * sx, 0.075, 0.012, vc.darkened(0.03), -0.55, 1.0, 16, 0.0, sx)   # omuz üstü, öne sarkmaz
+	_sk_end(g)
 
 
 ## Kunai kılıfı (set1.png): sağ uyluğun dış-önünde siyah kılıf + uyluğu saran iki beyaz bant; uyluk yüzeyi köşe taramasıyla bulunur
@@ -2498,39 +2807,7 @@ func _attachments() -> void:
 		var lt = vc.lightened(0.18)
 		# yaka (Konoha/Kumo yüksek, diğerleri alçak)
 		var collar_h = 0.34 if vs in [0, 3] else 0.24
-		# fermuar: göğsün ön yüzeyine oturan parçalar (sabit derinlikteyken havada kalıyordu); boyun halkası yaka yok (gövdeye oturmuyordu)
-		if body_mesh and body_mesh.mesh:
-			var bvs: PackedVector3Array = body_mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
-			var zp = []
-			for k in 9:
-				var yy = ch.y + 0.1 - k * 0.055
-				var fz = -1.0
-				for q in bvs:
-					if absf(q.x) < 0.03 and absf(q.y - yy) < 0.02 and q.z > fz:
-						fz = q.z
-				zp.append(Vector3(0, yy - ch.y, fz - ch.z) if fz > -1.0 else null)
-			# göğüs çıkıntısında yelek kabuğu daha dışarıda: komşu satırların en önü + yelek kalınlığı
-			var zs = []
-			for k in 9:
-				var mz = -9.0
-				for j in [k - 1, k, k + 1]:
-					if j >= 0 and j < 9 and zp[j] != null:
-						mz = maxf(mz, zp[j].z)
-				zs.append(mz)
-			var zmax = -9.0
-			for k in 9:
-				if zp[k] != null:
-					zmax = maxf(zmax, zp[k].z)
-			for k in 9:
-				if zp[k] != null:
-					# yelek önü düz panel: üstte göğüs çıkıntısının hizasında kalır (içine gömülüp kayboluyordu)
-					zp[k] = Vector3(0, zp[k].y, maxf(zs[k] + 0.07, zmax + 0.035 - 0.02 * maxf(0.0, k - 5.0)))
-			for k in 8:
-				if zp[k] != null and zp[k + 1] != null:
-					var a0: Vector3 = zp[k]
-					var a1: Vector3 = zp[k + 1]
-					var dd = a1 - a0
-					v.add_xf("box", Transform3D(Basis(Vector3.RIGHT * 0.011, Vector3(0, -dd.z, dd.y).normalized() * 0.005, dd * 1.05), (a0 + a1) * 0.5), Color(0.82, 0.82, 0.8))
+		# (Konoha: fermuar, cepler, yaka -> _vest_kit: yelek kabuğunun yüzeyinden derili 3B parçalar)
 		# parşömen cebi takımı: taban + dikey cepler + kapak çizgileri (referans: Konoha/Suna yelekleri)
 		var vlo = MB.new()   # bel hizası (göğsün altı): bel kemiğine bağlı; göğüs kemiğine bağlıyken koşarken gövdeden kopup havada kalıyordu
 		var pack = func(cx: float, cy: float, n: int):
@@ -2541,22 +2818,18 @@ func _attachments() -> void:
 				v0.add("box", Vector3(x, cy - 0.005, 0.192), Vector3(0.022, 0.085, 0.012), vc.darkened(0.08))
 				v0.add("box", Vector3(x, cy + 0.03, 0.2), Vector3(0.024, 0.006, 0.006), dk.darkened(0.2))   # kapak dikişi
 		match vs:
-			0:   # Konoha: göğüste iki takım (2x2 cep) + omuzda düğmeli yassı omuzluk (set1.png)
-				for sx in [-1.0, 1.0]:
-					pack.call(0.085 * sx, -0.06, 3)
-					pack.call(0.085 * sx, -0.17, 3)
+			0:   # Konoha: _vest_kit (yüzeye oturan derili cep/fermuar/yaka/omuzluk)
+				pass
 
 			1:   # Suna: kanat gibi açılan dev omuzluklar + açık renk omuz kayışı + karında cepler
 				for sx in [-1.0, 1.0]:
 					v.add("hemi", Vector3(0.21 * sx, 0.1, 0.0), Vector3(0.24, 0.07, 0.19), vc.darkened(0.05), Vector3(0, 0, -30 * sx), 12)   # kanat gibi açılan omuzluk
-					v.add("box", Vector3(0.11 * sx, 0.1, 0.165), Vector3(0.045, 0.025, 0.01), Color(0.82, 0.84, 0.86))
 					pack.call(0.08 * sx, -0.2, 3)
 			2:   # Kiri: yatay zırh plakaları + kutu omuzluk + plakaların altından sarkan önlük (mistset.png)
 				for k in 3:
 					v.add("box", Vector3(0, -0.04 - k * 0.095, 0.168), Vector3(0.26, 0.07, 0.016), vc.darkened(0.04 * k))
 				for sx in [-1.0, 1.0]:
 					v.add("box", Vector3(0.19 * sx, 0.12, 0.0), Vector3(0.16, 0.035, 0.18), dk, Vector3(0, 0, -16 * sx))
-					v.add("box", Vector3(0.155 * sx, -0.2, 0.17), Vector3(0.05, 0.03, 0.02), dk)   # yan tokalar
 				var hp2 = _grest(skel.find_bone("Hips")).origin
 				var apr = MB.new()
 				var flap = PackedVector2Array([Vector2(-0.13, 0.0), Vector2(0.13, 0.0), Vector2(0.11, -0.2), Vector2(0.0, -0.24), Vector2(-0.11, -0.2)])
@@ -2568,8 +2841,6 @@ func _attachments() -> void:
 			4:   # Iwa: omuzluk + karında kalın kemer plakası
 				for sx in [-1.0, 1.0]:
 					v.add("hemi", Vector3(0.19 * sx, 0.1, 0.0), Vector3(0.15, 0.08, 0.16), dk, Vector3(0, 0, -24 * sx), 10)
-				vlo.add("box", Vector3(0, -0.27, 0.15), Vector3(0.34, 0.09, 0.06), lt.darkened(0.15))
-				vlo.add("box", Vector3(0, -0.27, 0.185), Vector3(0.36, 0.012, 0.01), dk)
 			_:
 				for sx in [-1.0, 1.0]:
 					pack.call(0.08 * sx, -0.1, 2)

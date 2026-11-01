@@ -3,7 +3,7 @@ extends RefCounted
 ## Ekipman: kafa, yüz, üst/alt kıyafet, ayak, yelek, dış giysi, kol, sırt, sağ el / sol el silahı.
 ## profile["gear"] = sahip olunan parçalar [{uid, id, c1, c2}], profile["equip"] = {yuva: uid}
 
-const SLOTS := [["kafa", "Kafa"], ["sag_goz", "Sağ Göz"], ["sol_goz", "Sol Göz"], ["yuz", "Yüz"], ["set", "Kıyafet Seti"], ["sirt", "Sırt"], ["sag", "Silah"]]
+const SLOTS := [["kafa", "Kafa"], ["sag_goz", "Sağ Göz"], ["sol_goz", "Sol Göz"], ["set", "Kıyafet Seti"], ["sirt", "Sırt"], ["sag", "Silah"]]   # yüz eşyaları (maske, gözlük) Kafa yuvasında
 ## Eski tek tek kıyafet yuvaları (artık kıyafetler set olarak giyilir; bu yuvalardaki parçalar iç içe geçiyordu)
 const OLD_CLOTH_SLOTS := ["govde", "bacak", "ayak", "zirh", "dis", "kol", "sol"]
 
@@ -679,7 +679,7 @@ static func shop_stock(kind: String, vid: String) -> Array:
 
 static func fits(id: String, slot: String) -> bool:
 	var s: String = item(id).get("slot", "")
-	return s == slot or (s == "el" and slot == "sag") or (s == "goz" and slot in ["sag_goz", "sol_goz"])
+	return s == slot or (s == "el" and slot == "sag") or (s == "goz" and slot in ["sag_goz", "sol_goz"]) or (s == "yuz" and slot == "kafa")
 
 
 static func _hex(c) -> String:
@@ -851,6 +851,11 @@ static func _starter_set(p: Dictionary) -> String:
 static func _migrate_sets(p: Dictionary) -> bool:
 	var eq: Dictionary = p.get("equip", {})
 	var had = false
+	if eq.has("yuz"):   # yüz yuvası kaldırıldı: kafa boşsa oraya taşınır
+		if not eq.has("kafa"):
+			eq["kafa"] = eq["yuz"]
+		eq.erase("yuz")
+		had = true
 	for sl in OLD_CLOTH_SLOTS:
 		if eq.has(sl):
 			eq.erase(sl)
