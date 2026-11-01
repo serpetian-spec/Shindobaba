@@ -13966,36 +13966,88 @@ func p_jukai_shinshoku(c: Node3D, t: Node3D) -> void:
 
 ## Beş Doğa Büyük Kombosu: klonlar yan yana dizilir — ateş, rüzgâr, su, şimşek ve toprak aynı anda tek dev akıntıda birleşir
 func p_goton_dairendan_no_jutsu(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.3)
-	var d = fwd(c, t)
+	busy(c, 1.8)
+	var tt = tg(c, t, 34.0)
+	var d = fwd(c, tt)
 	var side = d.cross(Vector3.UP).normalized()
 	var at = c.global_position
-	var cols = [FIRE, Color(0.75, 1.0, 0.9), WATER, RAI, EARTH]
-	for k in 5:
-		var q = at + side * (k - 2) * 1.4 - d * 0.6
-		var cl = decoy(c, gp(q), 1.4)
-		VFX.gather(q + Vector3.UP * 1.3, cols[k], 1.0)
-	after(0.45, func():
+	var goal = gp(tt.global_position if tt else at + d * 22.0) + Vector3.UP
+	# dört gölge klon kullanıcının iki yanında belirir (içinde doğan klon yok), hepsi aynı anda aynı el pozunu verir;
+	# kullanıcı ateşi, klonlar rüzgâr / su / şimşek / toprağı atar — beş element hedefte birleşip dev patlamaya döner
+	var els = ["fuuton", "suiton", "raiton", "doton"]
+	var offs = [-2.6, -1.3, 1.3, 2.6]
+	var clones = []
+	var mdl = c.get("model")
+	for k in 4:
+		var q = gp(at + side * offs[k] - d * 0.4)
+		FX.smoke_puff(q + Vector3.UP, 0.8, 10)
+		if mdl and "look" in mdl:
+			var cm = CharacterModel.new()
+			get_tree().current_scene.add_child(cm)
+			cm.setup(mdl.look)
+			cm.global_position = q
+			cm.rotation.y = mdl.global_rotation.y
+			cm.scale = Vector3.ONE * float(cm.age_scale)
+			cm.play("cast_in", 0.05, 1.2, true)
+			clones.append(cm)
+		else:
+			clones.append(null)
+	anim(c, "cast_in", 1.2)
+	VFX.gather(_mouth_pos(c), FIRE, 0.8)
+	after(0.5, func():
 		if not live(c):
 			return
-		var from = at + Vector3.UP * 1.3 + d
-		fire_stream(from, d, 22.0, 4.5, 14)
-		stream_fx(from, d, 22.0, 3.0, VFX.mat_wind(Color(0.75, 1.0, 0.9), 8.0, 6.0, Vector3(0, 0, 1), 0.6), 0.7)
-		stream_fx(from - Vector3.UP * 0.4, d, 20.0, 2.0, VFX.mat_water(Color(0.1, 0.35, 0.7), Color(0.3, 0.65, 1.0), Color(0.85, 0.95, 1.0), Vector3(0, 0, 1), 1.0, 0.7, 0.15), 0.7)
-		for k in 6:
-			VFX.bolt(from + d * k * 3.5 + side * randf_range(-1.5, 1.5), from + d * (k + 1) * 3.5 + Vector3.UP * randf_range(-1, 1.5), RAI, 0.25, 0.4, 2)
-		for k in 8:
-			after(k * 0.05, func():
-				var rk = _rock(randf_range(0.6, 1.2))
-				get_tree().current_scene.add_child(rk)
-				rk.global_position = from + side * randf_range(-1.5, 1.5)
-				var tw = rk.create_tween()
-				tw.tween_property(rk, "global_position", from + d * randf_range(14.0, 22.0) + side * randf_range(-3, 3), 0.45)
-				tw.tween_callback(func(): VFX.debris(rk.global_position, EARTH, 6, 6.0, 0.4))
-				tw.tween_callback(rk.queue_free))
-		impact_fx("katon", FIRE, gp(from + d * 20.0) + Vector3.UP, 2.4)
-		Combat.hit_zone(c, at, d, 22.0, 34.0, 4.0, inf(c, "goton_dairendan_no_jutsu", 3.0, {"knock": 24.0, "launch": 6.0, "kind": "heavy", "burn": 3.0, "stun": 0.6, "hitstop": 0.12}))
-		shake(1.2))
+		anim(c, "push", 1.3)
+		var from = _mouth_pos(c)
+		_flame_jet(c, from, (goal - from).normalized(), from.distance_to(goal), 3.5, 0.8, 1.4)
+		for k in 4:
+			var cm = clones[k]
+			var src = (cm.global_position + Vector3.UP * 1.4 + d * 0.6) if cm and is_instance_valid(cm) else from + side * offs[k]
+			if cm and is_instance_valid(cm):
+				cm.play("cast_out", 0.05, 1.3, true)
+			var dir = (goal - src).normalized()
+			var L = src.distance_to(goal)
+			match els[k]:
+				"fuuton":
+					stream_fx(src, dir, L, 1.8, VFX.mat_wind(Color(0.75, 1.0, 0.9), 8.0, 6.0, Vector3(0, 0, 1), 0.6), 0.7)
+					for q in 5:
+						WindFX.streak(func(u: float) -> Vector3:
+							var a = q * TAU / 5.0 + u * 10.0
+							return src.lerp(goal, u) + (side * cos(a) + Vector3.UP * sin(a)) * 0.6, 0.5, 0.06, Color(0.8, 1.0, 0.9), q * 0.04, 12)
+				"suiton":
+					stream_fx(src, dir, L, 1.8, VFX.mat_water(Color(0.1, 0.35, 0.7), Color(0.3, 0.65, 1.0), Color(0.85, 0.95, 1.0), Vector3(0, 0, 1), 1.0, 0.7, 0.15), 0.7)
+				"raiton":
+					for q in 6:
+						after(q * 0.08, func():
+							LightRibbon.spawn(LightRibbon.curve(src, goal, src.lerp(goal, 0.5) + Vector3(randf_range(-1.5, 1.5), randf_range(-1, 1.5), randf_range(-1.5, 1.5)), 12), 0.35, 0.22, RAI))
+				"doton":
+					for q in 6:
+						after(q * 0.06, func():
+							var rk = _rock(randf_range(0.6, 1.1))
+							get_tree().current_scene.add_child(rk)
+							rk.global_position = src
+							var tw = rk.create_tween()
+							tw.tween_property(rk, "global_position", goal + Vector3(randf_range(-1.5, 1.5), randf_range(-0.5, 1.0), randf_range(-1.5, 1.5)), 0.4)
+							tw.tween_callback(func(): VFX.debris(rk.global_position, EARTH, 6, 6.0, 0.4))
+							tw.tween_callback(rk.queue_free))
+		# birleşme: hedefte beş renkli dev patlama
+		after(0.45, func():
+			VFX.explosion(goal, 4.0)
+			impact_fx("katon", FIRE, goal, 3.0)
+			impact_fx("raiton", RAI, goal, 2.0)
+			WindFX.blast(goal, 4.0, 18, WindFX.LINE, false)
+			VFX.cracks(gp(goal), 10.0)
+			for h in hit(c, goal, 7.5, inf(c, "goton_dairendan_no_jutsu", 3.4, {"knock": 26.0, "launch": 7.0, "kind": "heavy", "burn": 3.0, "stun": 0.8, "hitstop": 0.14})):
+				st(h, "slow", 2.0)
+			if Game.world:
+				Game.world.env.screen_flash(0.2)
+			shake(1.5))
+		Combat.hit_zone(c, at, d, at.distance_to(goal) + 4.0, 40.0, 4.0, inf(c, "goton_dairendan_no_jutsu", 1.0, {"knock": 8.0, "kind": "heavy"})))
+	after(1.6, func():
+		for cm in clones:
+			if cm and is_instance_valid(cm):
+				FX.smoke_puff(cm.global_position + Vector3.UP, 0.8, 10)
+				cm.queue_free())
 	Sfx.play("boom", c.global_position, 0.7)
 
 
