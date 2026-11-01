@@ -139,10 +139,10 @@ int cloth_slot(vec3 p) {
 	if (arm) {
 		if (ax > rig_a.z - 0.035) return (gloves && ax < rig_a.z + 0.075) ? 9 : 0;
 		if (outer_sleeves == 1) return 8;
-		if (vest_style == 4 && layer != 0 && p.x > 0.0 && ax < rig_a.y + 0.02) return 5;
+		// Iwa yeleği artık kola uzanmıyor (rockset.png: sol kol tamamen kırmızı kol)
 		float sleeve = rig_a.z - 0.035;
 		if (top_style == 0 || top_style == 3) sleeve = mix(rig_a.x, rig_a.y, 0.5);
-		else if (top_style == 4 || top_style == 8 || (top_style == 9 && p.x > 0.0)) sleeve = rig_a.x * 0.9;
+		else if (top_style == 4 || top_style == 8 || (top_style == 9 && p.x < 0.0)) sleeve = rig_a.x * 0.9;
 		else if (top_style == 6) sleeve = rig_a.y + 0.05;
 		if (ax < sleeve) return (top_style == 2 && ax < rig_a.x + 0.07) ? 2 : 1;
 		if ((top_style == 3 || arm_wraps) && ax > rig_a.y - 0.02) return 4;

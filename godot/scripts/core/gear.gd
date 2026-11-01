@@ -52,10 +52,10 @@ const SETS := {
 		"parts": [["uzun_gomlek", Color(0.1, 0.12, 0.25), Color(0.1, 0.12, 0.25)], ["ninja_pant", Color(0.1, 0.12, 0.25), null], ["kumo_yelek", Color(0.8, 0.8, 0.78), null], ["eldiven", Color(0.08, 0.08, 0.1), null], ["sandalet", Color(0.08, 0.08, 0.1), Color(0.92, 0.92, 0.9)]]},
 	"set_iwa_chunin": {"name": "Iwa Chūnin Shōzoku", "slot": "set", "price": 600, "rank": 2, "village": "iwa", "desc": "Tek kollu kırmızı üst ve pantolon, karın plakalı kahverengi yelek, file baldır.",
 		"stats": {"def": 15, "hp": 30, "speed": -0.01}, "c1": Color(0.72, 0.16, 0.2), "c2": Color(0.72, 0.16, 0.2),
-		"parts": [["tek_kol_ust", Color(0.72, 0.16, 0.2), Color(0.72, 0.16, 0.2)], ["ninja_pant", Color(0.62, 0.12, 0.16), null], ["iwa_yelek", Color(0.36, 0.27, 0.19), null], ["sandalet", Color(0.08, 0.08, 0.1), Color(0.3, 0.3, 0.33)]]},
+		"parts": [["tek_kol_ust", Color(0.72, 0.16, 0.2), Color(0.72, 0.16, 0.2)], ["iwa_pant", Color(0.72, 0.16, 0.2), null], ["iwa_yelek", Color(0.36, 0.27, 0.19), null], ["sandalet", Color(0.08, 0.08, 0.1), Color(0.3, 0.3, 0.33)]]},
 	"set_iwa_jonin": {"name": "Iwa Jōnin Shōzoku", "slot": "set", "price": 0, "rank": 3, "village": "iwa", "desc": "Iwa takımı; daha koyu yelek, parmaksız eldiven.",
 		"stats": {"def": 18, "hp": 35, "chakra": 20}, "c1": Color(0.66, 0.14, 0.18), "c2": Color(0.66, 0.14, 0.18),
-		"parts": [["tek_kol_ust", Color(0.66, 0.14, 0.18), Color(0.66, 0.14, 0.18)], ["ninja_pant", Color(0.55, 0.1, 0.14), null], ["iwa_yelek", Color(0.3, 0.22, 0.15), null], ["eldiven", Color(0.08, 0.08, 0.1), null], ["sandalet", Color(0.08, 0.08, 0.1), Color(0.3, 0.3, 0.33)]]},
+		"parts": [["tek_kol_ust", Color(0.66, 0.14, 0.18), Color(0.66, 0.14, 0.18)], ["iwa_pant", Color(0.66, 0.14, 0.18), null], ["iwa_yelek", Color(0.3, 0.22, 0.15), null], ["eldiven", Color(0.08, 0.08, 0.1), null], ["sandalet", Color(0.08, 0.08, 0.1), Color(0.3, 0.3, 0.33)]]},
 	"set_akatsuki": {"name": "Akatsuki Shōzoku", "slot": "set", "price": 0, "rank": 3, "desc": "Kızıl bulutlu dik yakalı siyah pelerin, koyu pantolon.",
 		"stats": {"def": 12, "chakra": 30}, "c1": Color(0.08, 0.08, 0.1), "c2": Color(0.8, 0.1, 0.12),
 		"parts": [["uzun_gomlek", Color(0.12, 0.12, 0.14), Color(0.12, 0.12, 0.14)], ["ninja_pant", Color(0.12, 0.12, 0.14), null], ["akatsuki_pelerini", Color(0.08, 0.08, 0.1), Color(0.8, 0.1, 0.12)], ["sandalet", Color(0.4, 0.3, 0.45), Color(0.92, 0.92, 0.9)]]},
@@ -137,8 +137,9 @@ const ITEMS := {
 	"eldiven": {"name": "Parmaksız Eldiven", "slot": "kol", "price": 90, "rank": 0, "desc": "Elin üstünde metal plaka, parmaklar açık.", "stats": {"melee": 0.05}, "look": {"gloves": true}, "c1": Color(0.12, 0.12, 0.14)},
 	"kol_sargisi": {"name": "Kol Sargısı", "slot": "kol", "price": 30, "rank": 0, "desc": "Ön kolları saran bandaj.", "stats": {"melee": 0.03}, "look": {"arm_wraps": true}, "c1": Color(0.92, 0.92, 0.9)},
 	"bacak_koruma": {"name": "Kaval Koruyucu", "slot": "kol", "price": 180, "rank": 0, "desc": "Kaval kemiğini saran metal plaka.", "stats": {"def": 3, "melee": 0.03}, "look": {"guards": "bacak"}, "c1": Color(0.55, 0.58, 0.62)},
-	"kiri_koruma": {"name": "Kiri Koruyucuları", "slot": "kol", "price": 0, "rank": 1, "desc": "Çizgili kol ve kaval koruyucuları.", "stats": {"def": 3}, "look": {"guards": "ikisi"}, "c1": Color(0.6, 0.72, 0.9)},
-	"kumo_kaval": {"name": "Kumo Kaval Koruyucusu", "slot": "kol", "price": 0, "rank": 1, "desc": "Beyaz kaval koruyucusu.", "stats": {"def": 2}, "look": {"guards": "bacak"}, "c1": Color(0.86, 0.84, 0.82)},
+	"iwa_pant": {"name": "Iwa Kanatlı Pantolonu", "slot": "bacak", "price": 0, "rank": 1, "desc": "Bir yanından dize kadar koyu kanat sarkan pantolon.", "stats": {"def": 2}, "look": {"pants_style": "ninja", "pants_flap": Color(0.48, 0.07, 0.1)}, "c1": Color(0.72, 0.16, 0.2)},
+	"kiri_koruma": {"name": "Kiri Koruyucuları", "slot": "kol", "price": 0, "rank": 1, "desc": "Çizgili kol ve kaval koruyucuları.", "stats": {"def": 3}, "look": {"guards": "ikisi", "guard_stripes": Color(0.86, 0.92, 1.0)}, "c1": Color(0.6, 0.72, 0.9)},
+	"kumo_kaval": {"name": "Kumo Kaval Koruyucusu", "slot": "kol", "price": 0, "rank": 1, "desc": "Beyaz kaval koruyucusu.", "stats": {"def": 2}, "look": {"guards": "bacak", "guard_stripes": Color(0.72, 0.1, 0.12), "knee_wraps": true}, "c1": Color(0.86, 0.84, 0.82)},
 	"tam_koruma": {"name": "Tam Takım Koruyucu", "slot": "kol", "price": 520, "rank": 1, "desc": "Kolluk, eldiven ve kaval koruyucu bir arada.", "stats": {"def": 8, "melee": 0.05, "speed": -0.02}, "look": {"guards": "ikisi", "gloves": true}, "c1": Color(0.45, 0.47, 0.52)},
 	# --- sırt / bel
 	"kum_kabagi": {"name": "Kum Su Kabağı", "slot": "sirt", "price": 900, "rank": 2, "desc": "Sırtta taşınan dev kabak. Sabaku klanı kumunu içinde saklar.", "stats": {"def": 4, "chakra": 25}, "look": {"back_item": "kabak"}, "c1": Color(0.7, 0.5, 0.35)},
@@ -900,6 +901,9 @@ static func apply_look(p: Dictionary) -> void:
 	L["outer_accent"] = null
 	L["wear"] = 0.0
 	L["rope_belt"] = false
+	L["guard_stripes"] = null
+	L["knee_wraps"] = false
+	L["pants_flap"] = null
 	var wear: Array = []   # [yuva, eşya, c1, c2, kayıt]
 	for s in SLOTS:
 		var g0 = equipped(p, s[0])

@@ -322,6 +322,15 @@ static func roll(arch: String, village := "") -> Dictionary:
 				L["outer_style"] = _p(["haori", "atki", "kisa"]); L["outer"] = _p(SOFT)
 			if _ch(0.12):
 				L["back_item"] = _p(["sepet", "canta", "sake"]); L["backc"] = Color(0.6, 0.5, 0.35)
+	# köy ninjaları (chūnin/jōnin/muhafız) oyuncuyla aynı köy setlerini giyer; köylüler ve diğerleri aynı kalır
+	if arch in ["chunin", "guard", "jonin", "hunter"] and village in ["konoha", "suna", "kiri", "kumo", "iwa"]:
+		var vk = {"konoha": "", "suna": "suna_", "kiri": "kiri_", "kumo": "kumo_", "iwa": "iwa_"}[village]
+		var sid = "set_%s%s" % [vk, "jonin" if arch in ["jonin", "hunter"] else "chunin"]
+		for k in ["guards", "guard_stripes", "knee_wraps", "pants_flap", "gloves", "outer_style", "rope_belt"]:
+			L[k] = null if not k in ["knee_wraps", "gloves", "rope_belt"] else false
+		L["outer_style"] = null
+		Gear.preview_set_look(L, sid)
+		L["thigh_holster"] = true
 	L["sleeves"] = not L.get("top_style", "uzun") in ["tisort", "kolsuz", "atlet"]
 	if L.get("top_style", "") in ["kimono"] and L["top_pattern"] == 0 and _ch(0.3):
 		L["top_pattern"] = 6
