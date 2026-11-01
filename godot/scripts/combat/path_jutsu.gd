@@ -11006,20 +11006,37 @@ func p_katon_ryuen_hoka_no_jutsu(c: Node3D, t: Node3D) -> void:
 			# alev ejder başı (gerçek ejder kafası) + kısa alev gövdesi
 			var head = Node3D.new()
 			var fm = VFX.mat_fire("fire", 2.6, 2.2, 0.36, 1.4, 0.1, Vector3(0, 0, 1))
-			var dh = VfxSerpent.dragon_head(fm, 1.3, Color(1, 1, 0.6))
+			var dh = VfxSerpent.dragon_head(fm, 1.8, Color(1, 1, 0.6))
 			head.add_child(dh)
-			var from = _mouth_pos(c) + c.face_dir().cross(Vector3.UP) * (k - 2) * 0.5
-			var pr = shot(c, from, aim_at(c, tt, from).rotated(Vector3.UP, (k - 2) * 0.06), 26.0, head, inf(c, "katon_ryuen_hoka_no_jutsu", 0.5, {"knock": 8.0, "kind": "heavy", "element": "katon", "burn": 2.0}), tt, false, 1.6, func(p, _h):
-				impact_fx("katon", FIRE, p, 1.1))
-			pr.homing_turn = 2.5
-			pr.radius = 0.9
+			# anime: ejder başlı alevler önce yelpaze gibi göğe fırlar, sonra kıvrılıp hedefin üstüne yukarıdan dalar
+			var fd = c.face_dir()
+			var sd = fd.cross(Vector3.UP)
+			var from = _mouth_pos(c) + sd * (k - 2) * 0.4
+			var up_dir = (fd * 0.6 + Vector3.UP * 0.9 + sd * (k - 2) * 0.35).normalized()
+			var pr = shot(c, from, up_dir, 24.0, head, inf(c, "katon_ryuen_hoka_no_jutsu", 0.6, {"knock": 9.0, "launch": 3.0, "kind": "heavy", "element": "katon", "burn": 2.0}), tt, false, 2.4, func(p, _h):
+				impact_fx("katon", FIRE, p, 1.6)
+				VFX.explosion(p, 1.4)
+				VFX.linger(gp(p), "katon", FIRE, 1.4, 3.0))
+			pr.homing_turn = 0.0
+			pr.radius = 1.1
+			var age = {"t": 0.0}
+			pr.on_tick = func(p2, dt):
+				age["t"] += dt
+				if age["t"] > 0.4:
+					# dalış: hedefe (yoksa önündeki yere) güçlü dönüş, hızlanarak iner
+					var goal = (tt.global_position + Vector3.UP) if tt and live(tt) else gp(c.global_position + fd * 18.0)
+					p2.vel = p2.vel.lerp((goal - p2.global_position).normalized() * 34.0, minf(1.0, dt * 6.0))
+				if randf() < 0.5:
+					VFX.puffs(p2.global_position, {"amount": 2, "life": 0.35, "size": 0.9, "radius": 0.4, "vmin": 0.5, "vmax": 1.5, "dir": Vector3.UP, "spread": 60.0,
+						"glow": 1.15, "hot": 0.6, "outline_col": Color(0.7, 0.2, 0.03), "outline": 0.03,
+						"colors": [Color(1.0, 0.95, 0.55, 1), Color(1.0, 0.6, 0.12, 1), Color(0.5, 0.12, 0.03, 0)]})
 			var body = VfxSerpent.new()
 			body.style = "fire"
 			body.seed_id = "ryuen%d" % k
 			body.head = pr
-			body.count = 7
-			body.spacing = 0.7
-			body.radius = 0.9
+			body.count = 9
+			body.spacing = 0.8
+			body.radius = 1.1
 			body.mat = VFX.mat_fire("fire", 2.6, 2.2, 0.36, 1.4, 0.1, Vector3(0, 0, 1))
 			get_tree().current_scene.add_child(body))
 	Sfx.play("fire", c.global_position, 0.6)
