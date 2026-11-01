@@ -22125,7 +22125,7 @@
  },
  "iburi_kemuri_tai": {
   "id": "iburi_kemuri_tai",
-  "name": "Duman Beden",
+  "name": "Iburi: Kemuri Tai",
   "name_en": "Duman Beden",
   "cost": 26,
   "cd": 6.0,
@@ -22164,7 +22164,7 @@
  },
  "iburi_kemuri_maku": {
   "id": "iburi_kemuri_maku",
-  "name": "Duman Perdesi",
+  "name": "Iburi: Kemuri Maku",
   "name_en": "Duman Perdesi",
   "cost": 32,
   "cd": 7.1,
@@ -22225,7 +22225,7 @@
  },
  "iburi_kemuri_bunshin": {
   "id": "iburi_kemuri_bunshin",
-  "name": "Duman Klonu",
+  "name": "Iburi: Kemuri Bunshin",
   "name_en": "Duman Klonu",
   "cost": 44,
   "cd": 9.2,
@@ -22244,7 +22244,7 @@
  },
  "iburi_kemuri_tatsumaki": {
   "id": "iburi_kemuri_tatsumaki",
-  "name": "Duman Hortumu",
+  "name": "Iburi: Kemuri Tatsumaki",
   "name_en": "Duman Hortumu",
   "cost": 56,
   "cd": 11.3,
@@ -22265,7 +22265,7 @@
  },
  "iburi_kemuri_ryu": {
   "id": "iburi_kemuri_ryu",
-  "name": "Duman Ejderi",
+  "name": "Iburi: Kemuri Ryū",
   "name_en": "Duman Ejderi",
   "cost": 68,
   "cd": 13.4,

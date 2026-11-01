@@ -35,7 +35,7 @@ var _fx_t := 0.0
 var _alpha := 1.0
 const THIN := 0.42
 const HEAD_K := 0.65
-const TUBE := ["water", "fire", "lightning", "dark"]
+const TUBE := ["water", "fire", "lightning", "dark", "smoke"]
 const RING := 10
 
 
@@ -44,7 +44,7 @@ func _ready() -> void:
 	spacing *= ep
 	radius *= ep
 	if thin < 0.0:
-		thin = {"water": 0.36, "fire": 0.34, "lightning": 0.28, "dark": 0.36, "earth": 0.5, "wood": 0.72}.get(style, THIN)
+		thin = {"water": 0.36, "fire": 0.34, "lightning": 0.28, "dark": 0.36, "smoke": 0.42, "earth": 0.5, "wood": 0.72}.get(style, THIN)
 	# jutsuya özgü oranlar: aynı elementteki ejderler bile birbirinin kopyası olmasın
 	if seed_id != "":
 		var h = absi(hash(seed_id))
@@ -244,7 +244,7 @@ func _style_fx(pts: Array, dt: float) -> void:
 	_fx_t -= dt
 	if _fx_t > 0.0 or pts.size() < 3 or VFX.busy():
 		return
-	_fx_t = 0.045 if style in ["fire", "dark"] else 0.07
+	_fx_t = 0.045 if style in ["fire", "dark", "smoke"] else 0.07
 	var p: Vector3 = pts[randi_range(1, pts.size() - 1)][0]
 	match style:
 		"water":
@@ -265,6 +265,11 @@ func _style_fx(pts: Array, dt: float) -> void:
 				"vmin": 0.5, "vmax": 1.5, "dir": Vector3.UP, "spread": 80.0, "gravity": Vector3(0, 1.5, 0),
 				"colors": [Color(0.05, 0.02, 0.08, 0.7), Color(0.15, 0.05, 0.22, 0.4), Color(0.1, 0.02, 0.15, 0.0)]})
 			VFX.embers(p, Color(0.6, 0.15, 0.8), 3, 3.0, 0.6)
+		"smoke":   # duman ejderi: gövdeden kabaran gri cel duman topakları + kızıl kor
+			VFX.puffs(p, {"amount": 3, "life": 0.9, "size": 1.2 * maxf(1.0, radius), "radius": radius * 0.7, "vmin": 0.4, "vmax": 1.4, "dir": Vector3.UP, "spread": 70.0,
+				"gravity": Vector3(0, 0.8, 0), "rough": 0.24, "outline": 0.035, "outline_col": Color(0.18, 0.17, 0.19), "shade": 0.35,
+				"colors": [Color(0.55, 0.53, 0.56, 0.0), Color(0.5, 0.48, 0.51, 1), Color(0.38, 0.36, 0.39, 0.9), Color(0.3, 0.28, 0.3, 0.0)]})
+			VFX.embers(p, Color(1.0, 0.4, 0.1), 3, 3.0, 0.6)
 		"lightning":
 			FX.burst(p, {"amount": 6, "life": 0.2, "tex": FX.tex_spark, "size": 0.8, "vmin": 4.0, "vmax": 9.0, "spread": 180.0,
 				"colors": [Color(1, 1, 1, 1), col.lightened(0.4), Color(col.r, col.g, col.b, 0)]})

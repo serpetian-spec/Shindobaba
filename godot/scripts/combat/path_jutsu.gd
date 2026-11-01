@@ -21821,48 +21821,83 @@ func p_iburi_kemuri_bunshin(c: Node3D, _t: Node3D) -> void:
 func p_iburi_kemuri_tatsumaki(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.0)
 	var d = fwd(c, t)
-	var funnel = MeshInstance3D.new()
-	var cm = CylinderMesh.new()
-	cm.top_radius = 2.8; cm.bottom_radius = 0.7; cm.height = 7.0; cm.radial_segments = 20
-	cm.cap_top = false; cm.cap_bottom = false
-	funnel.mesh = cm
-	funnel.material_override = VFX.mat_wind(Color(0.45, 0.42, 0.42), 9.0, 5.0, Vector3.UP, 0.85)
-	get_tree().current_scene.add_child(funnel)
-	var start = gp(c.global_position + d * 3.0) + Vector3.UP * 3.5
-	funnel.global_position = start
-	var tw = funnel.create_tween()
-	tw.tween_property(funnel, "global_position", start + d * 16.0, 2.4)
-	tw.parallel().tween_property(funnel, "rotation:y", TAU * 8.0, 2.4)
-	tw.tween_callback(funnel.queue_free)
-	every(2.4, 0.25, func(_i, _k):
-		if is_instance_valid(funnel):
-			var g = funnel.global_position
-			VFX.embers(g - Vector3.UP * 2.0, Color(1, 0.45, 0.15), 8, 4.0)
-			hit(c, g - Vector3.UP * 2.5, 3.0, inf(c, "iburi_kemuri_tatsumaki", 0.35, {"knock": 4.0, "launch": 3.0, "kind": "light", "element": "katon", "burn": 2.0})), Callable())
+	# Iburi: ağızdan üflenen kalın duman dönen bir hortuma dönüşüp ileri yürür; içinde kızıl korlar parlar, içindekileri
+	# döndürüp kaldırır ve yakar (silindir mesh yok: huni yüzeyine dağılmış dönen cel duman topakları)
+	var start = gp(c.global_position + d * 3.0)
+	var dur = 3.0
+	var R = 3.0
+	var H = 9.0
+	var st0 = {"t": 0.0}
+	_smoke(_mouth_pos(c) + d, 0.6, 20, d, 4.0)
+	every(dur, 0.05, func(i, _k):
+		st0["t"] += 0.05
+		var tt0: float = st0["t"]
+		var base = gp(start + d * 18.0 * (tt0 / dur))
+		var grow = clampf(tt0 / 0.4, 0.2, 1.0) * clampf((dur - tt0) / 0.4, 0.0, 1.0)
+		for q in 5:
+			var h = randf()
+			var a = randf() * TAU
+			var r = R * (0.25 + 0.75 * h) * grow
+			var p = base + Vector3(cos(a) * r, h * H * grow + 0.2, sin(a) * r)
+			VFX.puffs(p, {"amount": 2, "life": 0.6, "size": (1.3 + h * 1.8), "radius": 0.3, "vmin": 2.0, "vmax": 4.5, "dir": Vector3(-sin(a), 0.4, cos(a)), "spread": 20.0,
+				"damp": 1.5, "gravity": Vector3(0, 2.0, 0), "spin": 50.0, "rough": 0.24, "outline": 0.035, "outline_col": Color(0.18, 0.17, 0.19), "shade": 0.35,
+				"colors": [Color(0.55, 0.53, 0.56, 0.0), Color(0.5, 0.48, 0.51, 1), Color(0.38, 0.36, 0.39, 0.9), Color(0.3, 0.28, 0.3, 0.0)]})
+		if i % 2 == 0:
+			# hortumun içinde kızıl korlar ve kor parıltısı
+			VFX.embers(base + Vector3.UP * randf_range(0.5, H * 0.7), Color(1.0, 0.4, 0.1), 6, R, 0.6)
+			FX.burst(base + Vector3.UP * randf_range(1.0, H * 0.5), {"amount": 2, "life": 0.3, "tex": FX.tex_soft, "add": true, "cel": false, "size": 1.6, "radius": R * 0.4,
+				"vmin": 0.2, "vmax": 0.6, "colors": [Color(1.0, 0.4, 0.1, 0.0), Color(1.0, 0.35, 0.08, 0.6), Color(1.0, 0.3, 0.05, 0.0)]})
+		if i % 5 == 0:
+			for e in enemies_near(c, base, R * 1.1):
+				if "velocity" in e:
+					var to = base - e.global_position
+					to.y = 0
+					e.velocity += to.normalized() * 2.5 + Vector3.UP * 2.5
+				e.take_hit(inf(c, "iburi_kemuri_tatsumaki", 0.3, {"knock": 2.0, "kind": "light", "element": "katon", "burn": 2.0})), Callable())
 	Sfx.play("wind", c.global_position, 0.7)
 
 
 func p_iburi_kemuri_ryu(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.1)
 	var tt = tg(c, t, 30.0)
-	_smoke(c.global_position + Vector3.UP * 1.5, 1.5, 50)
-	after(0.45, func():
+	_smoke(c.global_position + Vector3.UP * 1.5, 1.5, 40)
+	after(0.4, func():
 		if not live(c):
 			return
-		var b = MB.new()
-		b.add("sphere", Vector3(0, 0, 0.8), Vector3(1.2, 1.0, 1.6), SMOKE)
-		for k in 6:
-			b.add("sphere", Vector3(0, sin(k) * 0.3, -0.3 - k * 0.6), Vector3(1.0 - k * 0.1, 0.9 - k * 0.1, 0.9), SMOKE.darkened(k * 0.05))
-		for sx in [-1.0, 1.0]:
-			b.add("sphere", Vector3(sx * 0.3, 0.3, 1.4), Vector3(0.15, 0.1, 0.08), Color(1, 0.45, 0.15))
-		var from = _mouth_pos(c) + c.face_dir()
-		var pr = shot(c, from, aim_at(c, tt, from), 20.0, mesh_of(b, _flat_glow(Color.WHITE, true)), inf(c, "iburi_kemuri_ryu", 2.4, {"knock": 14.0, "kind": "heavy", "element": "katon", "burn": 4.0}), tt, false, 2.0, func(p, _h):
+		# dev duman ejderi: kaynayan gri duman gövdeli (gürültülü cel duman malzemesi), kızıl kor gözlü ejder başı;
+		# gövde baştan kopmadan kıvrılır, arkasında yoğun duman bırakır; çarpınca içindeki korlar patlar
+		var sm = VFX.mat_fire("fire", 1.4, 2.0, 0.3, 1.0, 0.16, Vector3(0, 0, 1), true)
+		var cols = [Color(0.62, 0.6, 0.62), Color(0.52, 0.5, 0.53), Color(0.42, 0.4, 0.43), Color(0.32, 0.3, 0.33), Color(0.16, 0.15, 0.17)]
+		for i in 5:
+			sm.set_shader_parameter(["c_core", "c_hot", "c_mid", "c_edge", "c_line"][i], cols[i])
+		var head = Node3D.new()
+		head.add_child(VfxSerpent.dragon_head(sm, 2.4, Color(1.0, 0.35, 0.1)))
+		var from = _mouth_pos(c) + c.face_dir() * 1.2
+		var pr = shot(c, from, (aim_at(c, tt, from) + Vector3.UP * 0.25).normalized(), 18.0, head, inf(c, "iburi_kemuri_ryu", 2.4, {"knock": 14.0, "kind": "heavy", "element": "katon", "burn": 4.0}), tt, false, 2.4, func(p, _h):
 			impact_fx("katon", FIRE, p, 1.6)
-			_smoke(p, 3.0, 60, Vector3.UP, 2.0, true))
-		pr.radius = 1.2
-		every(2.0, 0.08, func(_i, _k):
-			if is_instance_valid(pr):
-				_smoke(pr.global_position, 0.5, 4, Vector3.UP, 0.5), Callable()))
+			VFX.explosion(p, 1.6, Color(1.0, 0.4, 0.1))
+			_smoke(p, 3.5, 70, Vector3.UP, 2.0, true)
+			VFX.embers(p, Color(1.0, 0.4, 0.1), 40, 8.0))
+		pr.radius = 1.3
+		pr.homing_turn = 2.2
+		var body = VfxSerpent.new()
+		body.style = "smoke"
+		body.seed_id = "kemuri_ryu"
+		body.head = pr
+		body.count = 18
+		body.spacing = 1.1
+		body.radius = 1.6
+		body.mat = sm
+		get_tree().current_scene.add_child(body)
+		var age = {"t": 0.0}
+		pr.on_tick = func(p2, dt):
+			age["t"] += dt
+			var sd = p2.vel.cross(Vector3.UP).normalized()
+			p2.global_position += sd * sin(age["t"] * 6.0) * dt * 5.0
+			if randf() < 0.6:
+				VFX.puffs(p2.global_position - p2.vel.normalized() * 1.5, {"amount": 2, "life": 1.0, "size": 1.8, "radius": 0.8, "vmin": 0.3, "vmax": 1.0, "dir": Vector3.UP, "spread": 70.0,
+					"gravity": Vector3(0, 0.8, 0), "rough": 0.24, "outline": 0.035, "outline_col": Color(0.18, 0.17, 0.19), "shade": 0.35,
+				"colors": [Color(0.55, 0.53, 0.56, 0.0), Color(0.5, 0.48, 0.51, 1), Color(0.38, 0.36, 0.39, 0.9), Color(0.3, 0.28, 0.3, 0.0)]}))
 	Sfx.play("roar", c.global_position, 0.9)
 
 
