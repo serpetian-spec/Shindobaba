@@ -803,6 +803,7 @@ func set_skin_tint(col: Color, k: float) -> void:
 	var m = body_mesh.get_surface_override_material(0)
 	if m is ShaderMaterial:
 		m.set_shader_parameter("pal", pal)
+		m.set_shader_parameter("skin_tint", Color(col.r, col.g, col.b, clampf(k, 0.0, 1.0)))   # gövde, kollar, eller, ayaklar (ten dokulu: pal[0] etkilemiyordu)
 	# yüz derisi ayrı malzeme (vroid): kendi tint'i aynı oranda boyanır, yoksa yüz normal kalıp göze batıyordu
 	if face_skin_mat:
 		if not face_skin_mat.has_meta("base_tint"):

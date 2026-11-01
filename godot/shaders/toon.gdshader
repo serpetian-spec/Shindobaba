@@ -22,6 +22,7 @@ uniform float sway = 0.0;
 uniform bool cloth_mode = false;
 uniform bool hide_masked = false;  // vertex alfa=1 olan bölgeler çizilmez (kıyafet altı)   // doku (ten) + vertex rengi (kıyafet, alfa = maske)
 uniform bool palette_mode = false;  // vertex COLOR.r = renk yuvası*0.1 (0 = ten dokusu)
+uniform vec4 skin_tint = vec4(1.0, 1.0, 1.0, 0.0);   // Sekiz Kapı vb.: tenin (gövde, kol, el, ayak) geçici rengi, a = oran
 uniform vec4 pal[12] : source_color;  // 0 ten 1 üst 2 vurgu 3 alt 4 sargı 5 yelek 6 sandalet 7 koyu 8 dış giysi 9 aksesuar 10 başlık 11 yüz
 uniform vec4 rig_a = vec4(0.21, 0.46, 0.7, 1.52);   // üst kol x, dirsek x, el x, boyun y (dinlenme pozu)
 uniform vec4 rig_b = vec4(0.95, 0.54, 0.09, 1.31);  // kalça y, diz y, ayak bileği y, üst göğüs y
@@ -298,6 +299,7 @@ void fragment() {
 			if (mk == 3 && ax > 0.02 && ax < 0.06 && abs(p.y - (ey - 0.035)) < 0.015 && p.z > ez - 0.01 && hash(floor(p.xy * 400.0)) > 0.8) c.rgb *= 0.78;
 			if (mk == 4 && p.y > ey + 0.035 && p.y < ey + 0.075 && fract(p.y * 110.0) < 0.12 && ax < 0.05 && p.z > ez - 0.02) c.rgb *= 0.82;
 		}
+		if (slot == 0 && skin_tint.a > 0.0) c.rgb = mix(c.rgb, c.rgb * skin_tint.rgb * 1.6, skin_tint.a);
 		if (slot > 0) {
 			float n = vnoise(UV * 90.0) * 0.5 + vnoise(UV * 23.0) * 0.5;
 			vec3 skin_c = c.rgb;
