@@ -4299,13 +4299,8 @@ func impact_fx(el: String, col: Color, at: Vector3, s := 1.0) -> void:
 		VFX.shockwave(at, col, 5.0 * s, 0.4, false, Vector3.UP)
 	match el:
 		"yoton":
-			# lav darbesi: patlama bulutu değil, erimiş kaya sıçraması + kor + kararan çatlak
-			VFX.puffs(at, {"amount": int(18 * s), "life": 0.6, "size": 0.35 * s, "radius": 0.4 * s, "vmin": 4.0 * s, "vmax": 9.0 * s, "dir": Vector3.UP, "spread": 120.0, "add": false, "gravity": Vector3(0, -14, 0),
-				"colors": [Color(1.0, 0.85, 0.4), Color(1.0, 0.42, 0.08), Color(0.3, 0.08, 0.03, 0)]})
-			VFX.embers(at, col, int(24 * s), 8.0 * s)
-			FX.light(at, Color(1.0, 0.5, 0.15), 3.0 * s, 8.0 * s, 0.25)
-			if near_ground:
-				VFX.cracks(g, 2.5 * s, Color(0.08, 0.04, 0.02, 0.9), 6.0)
+			# lav darbesi: ateş topakları değil — yapışkan lav parçaları + kırık kaya + buhar (VFX.lava_splash)
+			VFX.lava_splash(at, 0.8 * s)
 		"bakuton":   # Deidara patlaması: parlama + gri duman (ateş topu değil)
 			VFX.clay_blast(at, 1.1 * s)
 			if near_ground:
@@ -15846,19 +15841,19 @@ func p_senpo_yoton_rasenshuriken(c: Node3D, t: Node3D) -> void:
 		var lava = VFX.element_core("yoton", LAVA, 0.9)
 		core.add_child(lava)
 		var pr = shot(c, from, aim_at(c, tt, from), 28.0, core, inf(c, "senpo_yoton_rasenshuriken", 2.0, {"knock": 10.0, "kind": "heavy", "element": "yoton", "burn": 4.0}), tt, false, 1.8, func(p, _h):
-			var dome = VFX.fireball(1.0, "fire")
-			get_tree().current_scene.add_child(dome)
-			dome.global_position = p
-			var tw = dome.create_tween()
-			tw.tween_property(dome, "scale", Vector3.ONE * 12.0, 0.4)
-			tw.tween_property(dome, "scale", Vector3.ONE * 0.1, 0.4)
-			tw.tween_callback(dome.queue_free)
+			# lav patlaması (ateş kubbesi değil): her yöne fışkıran yapışkan lav selleri, düşen lav parçaları, kırık kaya, buhar
+			var lw = VFX.mat_water(Color(0.45, 0.08, 0.02), Color(1.0, 0.45, 0.1), Color(1.0, 0.85, 0.4), Vector3.UP, 1.0, 0.7, 0.15)
+			for k in 6:
+				var a = k * TAU / 6.0
+				stream_fx(p, (Vector3(cos(a), 0.9, sin(a))).normalized(), 7.0, 1.2, lw, 0.5)
+			VFX.lava_splash(p, 2.6)
+			VFX.goo_drops(p + Vector3.UP, "molten", 18, 1.6, 11.0)
 			impact_fx("yoton", LAVA, p, 2.6)
 			VFX.linger(gp(p), "yoton", LAVA, 3.0, 4.0)
 			hit(c, p, 7.0, inf(c, "senpo_yoton_rasenshuriken", 1.6, {"knock": 20.0, "launch": 6.0, "kind": "heavy", "element": "yoton", "burn": 5.0}))
 			shake(1.2))
 		pr.radius = 1.2
-		_etrail(pr, "katon", LAVA, 1.0))
+		_etrail(pr, "yoton", LAVA, 1.0))
 	Sfx.play("wind", c.global_position, 0.8)
 
 
@@ -16470,24 +16465,33 @@ func p_yomotsu_hirasaka(c: Node3D, t: Node3D) -> void:
 func p_yoton_chakura_modo(c: Node3D, _t: Node3D) -> void:
 	busy(c, 0.9)
 	VFX.shockwave(c.global_position + Vector3.UP, LAVA, 10.0, 0.5, false)
-	VFX.embers(c.global_position + Vector3.UP, LAVA, 40, 10.0)
+	VFX.goo_drops(c.global_position + Vector3.UP, "molten", 12, 1.0, 6.0)
 	var a = FX.aura(c, LAVA, 1.9, Vector3(0, 0.9, 0), 0.0)
 	var tails = Node3D.new()
 	c.add_child(tails)
 	tails.position = Vector3(0, 0.9, -0.3)
+	# lav kuyrukları: alev topu değil — boğumlu erimiş lav kütleleri (içinde kırık kaya), yavaşça salınır
 	for k in 4:
-		var tl = VFX.fireball(0.5, "fire")
+		var tl = Node3D.new()
+		var lb = MB.new()
+		for q in 5:
+			lb.add("boulder", Vector3(0, q * 0.12, -q * 0.32), Vector3.ONE * (0.34 - q * 0.05), Color.WHITE, Vector3.ZERO, (k + q) % 6)
+		var tm = mesh_of(lb, VFX.lava_mat("molten"))
+		tl.add_child(tm)
 		tails.add_child(tl)
-		tl.position = Vector3((k - 1.5) * 0.35, 0.3, -0.9)
-		tl.scale = Vector3(0.5, 0.5, 2.0)
-		tl.rotation.x = -0.6
+		tl.position = Vector3((k - 1.5) * 0.3, 0.2, -0.2)
+		tl.rotation = Vector3(-0.3, (k - 1.5) * 0.35, 0)
+		var tw2 = tl.create_tween().set_loops()
+		tw2.tween_property(tl, "rotation:y", (k - 1.5) * 0.35 + 0.25, 0.8).set_trans(Tween.TRANS_SINE)
+		tw2.tween_property(tl, "rotation:y", (k - 1.5) * 0.35 - 0.25, 0.8).set_trans(Tween.TRANS_SINE)
 	if c is Player:
 		Buffs.add("yoton_chakura", 20.0, {"melee": 1.7, "armor": 0.5, "_name": "Lav Çakra Modu", "_desc": "lav örtüsü: dokunan yanar, güç artar"})
 	every(20.0, 0.5, func(_i, _k):
 		if not live(c):
 			return
+		VFX.goo_drops(c.global_position + Vector3.UP * 1.2, "molten", 1, 0.8, 1.5)
 		for e in enemies_near(c, c.global_position, 2.8):
-			VFX.embers(e.global_position + Vector3.UP, LAVA, 8, 5.0)
+			VFX.lava_splash(e.global_position + Vector3.UP, 0.4)
 			e.take_hit(inf(c, "yoton_chakura_modo", 0.25, {"knock": 0.0, "kind": "light", "element": "yoton", "burn": 2.0})), func():
 		if is_instance_valid(tails):
 			tails.queue_free()

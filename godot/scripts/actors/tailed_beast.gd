@@ -463,9 +463,16 @@ func _proj(from: Vector3, dir: Vector3, spd: float, r: float, el: String, col: C
 	pr.radius = maxf(1.0, r)
 	pr.life = 4.0
 	pr.info = {"dmg": dmg, "element": el, "knock": 18.0, "launch": 5.0, "kind": "heavy", "hitstop": 0.06}
-	pr.add_child(Projectile.energy_mesh(col.lightened(0.4), col, maxf(1.5, r * 2.0), 6.0, 0.0, 2.0))
+	if el == "yoton":   # Son Gokū lav kayası: enerji küresi/ateş patlaması değil
+		pr.add_child(VFX.lava_ball(maxf(1.5, r * 2.0)))
+		VFX.element_trail(pr, "yoton", col, maxf(0.8, r))
+	else:
+		pr.add_child(Projectile.energy_mesh(col.lightened(0.4), col, maxf(1.5, r * 2.0), 6.0, 0.0, 2.0))
 	pr.on_hit = func(pos: Vector3, _t: Node3D) -> void:
-		FX.explosion(pos, maxf(1.0, r * 0.6), col)
+		if el == "yoton":
+			VFX.lava_splash(pos, maxf(1.5, r * 0.8))
+		else:
+			FX.explosion(pos, maxf(1.0, r * 0.6), col)
 		Combat.hit_sphere(self, pos, maxf(4.0, r * 2.5), {"dmg": dmg * 0.5, "element": el, "knock": 14.0, "kind": "heavy"}, pr.hit_list)
 	get_tree().current_scene.add_child(pr)
 	pr.global_position = from

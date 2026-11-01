@@ -937,7 +937,7 @@ static func _lava_pool(user: Node3D, pos: Vector3, s: float, dps: float, dur := 
 	if _fields >= MAX_FIELDS:
 		return
 	var gp = _gp(pos)
-	var disc = _mi(VFX._sphere(0.5, 20, 6), VFX.mat_fire("lava", 0.8, 1.6, 0.05, 1.2, 0.05, Vector3(1, 0, 0)))
+	var disc = _mi(VFX._sphere(0.5, 20, 6), VFX.lava_mat("molten", true))   # sarı-turuncu erimiş lav, içinde kırık kaya
 	VFX.scene().add_child(disc)
 	disc.global_position = gp + Vector3.UP * 0.05
 	disc.scale = Vector3(0.2, 0.05, 0.2)
@@ -964,12 +964,9 @@ static func _kakogan(user: Node3D, c: Dictionary) -> void:
 			var tt = clampf(from.distance_to(tg) / 40.0, 0.5, 1.6)
 			var g = 26.0
 			var vel = (tg - from) / tt + Vector3.UP * g * tt * 0.5
-			var vis = VFX.fireball(0.75 * s, "lava")
-			var rock = _mi(VFX._sphere(0.5, 8, 5), _toon(Color(0.22, 0.1, 0.08)))
-			rock.scale = Vector3(0.9, 0.7, 0.8) * s
-			vis.add_child(rock)
+			var vis = VFX.lava_ball(1.1 * s)   # ateş topu değil: pürüzlü lav kayası
 			var oh = func(pos: Vector3, _t: Node3D) -> void:
-				VFX.explosion(pos, 0.7 * s, LAVA)
+				VFX.lava_splash(pos, 0.9 * s)
 				VFX.debris(pos, Color(0.25, 0.12, 0.08), 8, 9.0, 0.35 * s)
 				_lava_pool(user, pos, s * 0.8, dmg * 0.14)
 			_shot(user, from, vel, 0.6 * s, {"dmg": dmg * 0.5, "element": "yoton", "burn": 3.0, "knock": 12.0, "launch": 4.0, "kind": "heavy"}, vis, oh, g, 3.5))
@@ -991,18 +988,10 @@ static func _funkatsu(user: Node3D, c: Dictionary) -> void:
 		VFX.tree().create_timer(0.14 * i + 0.45).timeout.connect(func():
 			if not is_instance_valid(user):
 				return
-			var col = _mi(_cone(1.0, 0.6, 1.0, 12), VFX.mat_fire("lava", 3.0, 2.0, 0.35, 1.4, 0.1, Vector3.UP, true))
-			VFX.scene().add_child(col)
-			col.global_position = p
-			col.scale = Vector3(1.4 * s, 0.1, 1.4 * s)
-			var tw = col.create_tween()
-			tw.tween_property(col, "scale", Vector3(1.6 * s, 11.0 * s, 1.6 * s), 0.2).set_ease(Tween.EASE_OUT)
-			tw.parallel().tween_property(col, "position:y", p.y + 5.5 * s, 0.2)
-			tw.tween_interval(0.5)
-			tw.tween_property(col, "scale", Vector3(0.2, 11.0 * s, 0.2), 0.35)
-			tw.tween_callback(col.queue_free)
-			VFX.debris(p + Vector3.UP, Color(0.28, 0.12, 0.08), 10, 14.0, 0.4 * s)
-			VFX.embers(p + Vector3.UP * 3.0 * s, LAVA, 20, 14.0)
+			# yerden fışkıran lav sütunu: koni mesh/alev yok — yapışkan lav seli yukarı fışkırır, lav parçaları ve kırık kaya saçılır
+			PathJutsu.get_pinst().stream_fx(p, Vector3.UP, 11.0 * s, 1.4 * s, VFX.mat_water(Color(0.45, 0.08, 0.02), Color(1.0, 0.45, 0.1), Color(1.0, 0.85, 0.4), Vector3.UP, 1.0, 0.7, 0.15), 0.5)
+			VFX.debris(p + Vector3.UP, Color(0.22, 0.12, 0.08), 10, 14.0, 0.4 * s)
+			VFX.goo_drops(p + Vector3.UP * 4.0 * s, "molten", 10, 1.4 * s, 10.0)
 			_hit(user, p + Vector3.UP * 1.5 * s, 2.6 * s, {"dmg": dmg * 0.4, "element": "yoton", "burn": 4.0, "knock": 4.0, "launch": 18.0, "kind": "heavy"})
 			Sfx.play("boom", p, 1.1)
 			_shake(0.3))
@@ -1017,9 +1006,10 @@ static func _yoton_yoroi(user: Node3D, c: Dictionary) -> void:
 	var h = _body_h(user, c)
 	var big = c.has("base_h") or _is_giant(user)
 	for k in 7:
-		var m = VFX.mat_fire("lava", 2.4, 2.0, 0.45, 1.3, 0.14, Vector3.UP, true)
-		m.set_shader_parameter("tongue", 0.75)
-		var t = _mi(VFX._sphere(0.5, 12, 7), m)
+		# lav zırhı: alev dilleri değil — bedene yapışmış pürüzlü erimiş lav kütleleri (içinde kırık kaya)
+		var lb = MB.new()
+		lb.add("boulder", Vector3.ZERO, Vector3.ONE, Color.WHITE, Vector3.ZERO, k % 6)
+		var t = _mi(lb.build(null), VFX.lava_mat("molten"))
 		var a = k * TAU / 7.0
 		t.position = Vector3(cos(a) * 0.45 * s, h * (0.2 + 0.1 * (k % 3)), sin(a) * 0.45 * s)
 		t.position = Vector3(cos(a) * (0.45 * s if not big else h * 0.3), h * (0.2 + 0.1 * (k % 3)), sin(a) * (0.45 * s if not big else h * 0.3))
@@ -1032,6 +1022,7 @@ static func _yoton_yoroi(user: Node3D, c: Dictionary) -> void:
 	_ticker(user.global_position, dur, 0.4, func(_n: Node3D, el: float) -> void:
 		if not is_instance_valid(user):
 			return
+		VFX.goo_drops(user.global_position + Vector3.UP * h * 0.6, "molten", 1, s * 0.8, 1.5)   # zırhtan damlayan lav
 		_hit(user, user.global_position + Vector3.UP * h * 0.5, maxf(2.3 * s, h * 0.45 if big else 0.0), {"dmg": dmg * 0.05, "element": "yoton", "burn": 3.0, "knock": 3.0, "kind": "light"})
 		if el >= dur - 0.4 and is_instance_valid(root):
 			root.queue_free())

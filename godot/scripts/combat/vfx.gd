@@ -283,7 +283,7 @@ static func element_mat(el: String, col: Color) -> Material:
 			sm.albedo_color = Color(1.0, 0.7, 0.72, 0.8)
 			return sm
 		"yoton":
-			return mat_fire("lava", 1.6, 2.0, 0.3, 1.25, 0.08, Vector3(0, 0, 1))
+			return lava_mat("molten")
 		"bakuton":
 			return Props.toon_color(Color(0.95, 0.94, 0.9))   # beyaz patlayıcı kil
 		"suiton":
@@ -732,7 +732,7 @@ static func lava_splash(pos: Vector3, s := 1.0, kind := "molten") -> void:
 		return
 	goo_drops(pos, kind, int(8 * s) + 4, 1.0 + s * 0.3, 5.0 + s * 2.0)
 	if kind == "molten":
-		debris(pos, Color(0.22, 0.12, 0.08), int(6 * s) + 3, 7.0, 0.25 * s + 0.1)   # lavın içindeki kırık kaya parçaları
+		debris(pos, Color(0.22, 0.12, 0.08), int(5 * s) + 3, 7.0, minf(0.3, 0.12 * s + 0.08))   # lavın içindeki kırık kaya parçaları (küçük)
 	FX.burst(pos + Vector3.UP * 0.3, {"amount": int(6 * s) + 3, "life": 1.4, "tex": FX.tex_smoke, "add": false, "cel": false, "size": 1.3 * s, "radius": 0.8 * s, "vmin": 0.8, "vmax": 2.0,
 		"dir": Vector3.UP, "spread": 40.0, "colors": [Color(0.92, 0.9, 0.9, 0.0), Color(0.88, 0.86, 0.86, 0.5), Color(0.82, 0.8, 0.8, 0.0)]})
 	if kind == "molten":
