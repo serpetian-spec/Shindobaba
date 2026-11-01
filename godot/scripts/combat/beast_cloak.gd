@@ -95,7 +95,7 @@ func set_level(l: int) -> void:
 	level = clampi(l, 0, max_level())
 	var tr = TailedBeasts.trust()
 	var col = chakra_col()
-	Buffs.add("beast", 9999.0, {"melee": 1.2 + level * 0.15, "speed": 1.08 + level * 0.06, "armor": maxf(0.35, 1.0 - level * 0.1), "jutsu": 1.1 + level * 0.1})
+	Buffs.add("beast", 9999.0, {"melee": 1.1 + level * 0.08, "speed": 1.05 + level * 0.04, "armor": maxf(0.6, 1.0 - level * 0.06), "jutsu": 1.05 + level * 0.06})
 	Hud.banner("JİNCHŪRİKİ: %s" % NAMES[level].to_upper(), "Güven %d/100%s" % [int(tr), "  —  DİKKAT: canavar kontrolü ele geçirebilir!" if tr < SAFE_TRUST[level] else ""], col)
 	var hint = tech_hint()
 	if hint != "":
@@ -231,7 +231,7 @@ func _full_transform() -> void:
 	p.cam_lift = h * 0.8
 	p.cam_giant = true
 	p.cam.far = maxf(p.cam.far, 6000.0)
-	Buffs.add("beast", 9999.0, {"melee": 3.5, "speed": 2.0, "armor": 0.25, "jutsu": 1.8})
+	Buffs.add("beast", 9999.0, {"melee": 2.25, "speed": 1.5, "armor": 0.6, "jutsu": 1.4})
 	FX.smoke_puff(p.global_position + Vector3.UP * h * 0.4, h * 0.25, 30)
 	Hud.banner("KUYRUKLU CANAVAR", "%s ile tam dönüşüm!  Sol tık: pençe  •  Sağ tık / X: Kuyruklu Canavar Topu" % BeastModels.INFO[id]["name"].split(" — ")[0], chakra_col())
 

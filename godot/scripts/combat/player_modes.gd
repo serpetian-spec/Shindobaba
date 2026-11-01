@@ -296,6 +296,8 @@ func toggle_sage() -> void:
 ## Güç modları üst üste binmez (kullanıcı kuralı): sennin, göz (Sharingan/Byakugan...), Sekiz Kapı, kuyruklu canavar —
 ## biri açılınca diğerleri kapanır
 func exclusive(keep: String) -> void:
+	if keep != "jutsu":
+		Buffs.clear_modes()
 	if keep != "sage" and sage:
 		_end_sage()
 	if keep != "eyes":

@@ -970,7 +970,7 @@ func j_raiton_armor(c: Node3D, _t: Node3D) -> void:
 	c.add_child(arcs)
 	arcs.position = Vector3(0, 1, 0)
 	if c is Player:
-		Buffs.add("raiton_armor", 20.0, {"speed": 1.35, "melee": 1.4, "armor": 0.6})
+		Buffs.add("raiton_armor", 20.0, {"speed": 1.18, "melee": 1.2, "armor": 0.8})
 	get_tree().create_timer(20.0).timeout.connect(func():
 		a.emitting = false
 		arcs.queue_free())
@@ -1393,7 +1393,7 @@ func j_baika(c: Node3D, _t: Node3D) -> void:
 		return
 	c.combat.modes.set_size(3.0, 20.0)
 	FX.smoke_puff(c.global_position + Vector3.UP * 2.0, 2.2, 24)
-	Buffs.add("baika", 20.0, {"melee": 1.9, "speed": 0.85, "armor": 0.7, "reach": 2.2})
+	Buffs.add("baika", 20.0, {"melee": 1.45, "speed": 0.85, "armor": 0.85, "reach": 2.2})
 	Hud.msg("Baika no Jutsu! (20 sn dev)", Color(1, 0.8, 0.5))
 
 
@@ -1738,7 +1738,7 @@ func j_bone_armor(c: Node3D, _t: Node3D) -> void:
 	c.add_child(spikes)
 	Sfx.play("clink", c.global_position, 0.5)
 	if c is Player:
-		Buffs.add("bone_armor", 20.0, {"armor": 0.5, "melee": 1.15})
+		Buffs.add("bone_armor", 20.0, {"armor": 0.75, "melee": 1.07})
 	get_tree().create_timer(20.0).timeout.connect(func():
 		if is_instance_valid(spikes):
 			spikes.queue_free())

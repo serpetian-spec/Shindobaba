@@ -4,8 +4,25 @@ extends Node
 var active = {}  # ad -> {t, mods}
 
 
+## Güç modu jutsuları: biri açılınca diğerleri ve Sennin / göz / kapı / canavar modları kapanır (üst üste binmez)
+const MODE_GROUP := ["hachimon", "hachimon_3", "kairiki_muso", "barion", "chi_no_juin", "kama", "kyubi_chakura", "rikudo_no_jutsu",
+	"rikudo_senjutsu", "rikudo_sennin", "sennin_modo", "yoton_chakura", "cho_modo", "gyojin", "kuyruk_ortusu", "tenseigan_modo",
+	"jugo_ofke", "raiton_chakura_modo", "hakuja_shintai", "cho_baika", "baika", "raiton_armor", "juin1", "juin2", "hakuja", "yamata"]
+
+
 func add(name: String, dur: float, mods: Dictionary) -> void:
+	if name in MODE_GROUP and not active.has(name):
+		clear_modes(name)
+		var pl = Game.player
+		if pl and is_instance_valid(pl) and pl.get("combat") and pl.combat.get("modes"):
+			pl.combat.modes.exclusive("jutsu")
 	active[name] = {"t": dur, "mods": mods}
+
+
+func clear_modes(keep: String = "") -> void:
+	for k in active.keys():
+		if k != keep and k in MODE_GROUP:
+			active.erase(k)
 
 
 func remove(name: String) -> void:

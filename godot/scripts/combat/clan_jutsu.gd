@@ -927,7 +927,7 @@ func c_baika(c: Node3D, t: Node3D) -> void:
 func c_bubun_baika_no_jutsu(c: Node3D, t: Node3D) -> void:
 	var at = gp(Jutsu._aim_ground(c, t, 6.0, 10.0))
 	if c is Player:
-		Buffs.add("bubun_baika", 20.0, {"reach": 2.6, "melee": 1.5})
+		Buffs.add("bubun_baika", 20.0, {"reach": 2.6, "melee": 1.25})
 	var b = MB.new()
 	b.add("sphere", Vector3.ZERO, Vector3(2.4, 2.0, 2.8), Color(0.95, 0.75, 0.6), Vector3.ZERO, 12)
 	for k in 4:
@@ -950,7 +950,7 @@ func c_cho_baika_no_jutsu(c: Node3D, _t: Node3D) -> void:
 	if not c is Player:
 		return
 	c.combat.modes.set_size(7.0, 15.0)
-	Buffs.add("cho_baika", 15.0, {"melee": 2.6, "speed": 0.8, "armor": 0.5, "reach": 3.6})
+	Buffs.add("cho_baika", 15.0, {"melee": 1.8, "speed": 0.8, "armor": 0.75, "reach": 3.6})
 	FX.smoke_puff(c.global_position + Vector3.UP * 3.0, 3.5, 30)
 	every(15.0, 0.9, func(_i, _k):
 		if not is_instance_valid(c):
@@ -970,7 +970,7 @@ func c_karori_kontororu(c: Node3D, _t: Node3D) -> void:
 	c.hp = maxf(1.0, c.hp - cost)
 	chakra_gain(c, cost * 2.5)
 	if c is Player:
-		Buffs.add("karori", 15.0, {"jutsu": 1.3, "melee": 1.2})
+		Buffs.add("karori", 15.0, {"jutsu": 1.15, "melee": 1.1})
 	var a = FX.aura(c, Color(1.0, 0.8, 0.25), 1.2, Vector3(0, 0.9, 0), 15.0)
 	FX.burst(c.global_position + Vector3.UP, {"amount": 30, "life": 0.6, "size": 0.5, "vmin": 2, "vmax": 6, "colors": [Color(1, 0.9, 0.4), Color(1, 0.6, 0.1, 0)]})
 	Sfx.play("levelup", c.global_position, 0.8, 0.5)
@@ -1050,7 +1050,7 @@ func c_cho_modo(c: Node3D, _t: Node3D) -> void:
 	_butterfly_wings(c, 25.0)
 	var a = FX.aura(c, Color(1.0, 0.5, 0.7), 1.6, Vector3(0, 0.9, 0), 25.0)
 	if c is Player:
-		Buffs.add("cho_modo", 25.0, {"melee": 2.2, "speed": 1.3, "armor": 0.6, "reach": 1.6})
+		Buffs.add("cho_modo", 25.0, {"melee": 1.6, "speed": 1.15, "armor": 0.8, "reach": 1.6})
 	every(25.0, 1.0, func(_i, _k):
 		if is_instance_valid(c):
 			c.hp = maxf(1.0, c.hp - c.max_hp * 0.01))
@@ -1268,7 +1268,7 @@ func c_jujin_bunshin(c: Node3D, _t: Node3D) -> void:
 ## Dört Ayak: vahşi kip: tırnaklar uzar, hız ve yakın dövüş artar
 func c_shikyaku_no_jutsu(c: Node3D, _t: Node3D) -> void:
 	if c is Player:
-		Buffs.add("shikyaku", 20.0, {"speed": 1.35, "melee": 1.35})
+		Buffs.add("shikyaku", 20.0, {"speed": 1.18, "melee": 1.18})
 	FX.aura(c, Color(0.95, 0.35, 0.2), 1.0, Vector3(0, 0.9, 0), 20.0)
 	for side in [-1.0, 1.0]:
 		var b = MB.new()
@@ -1610,7 +1610,7 @@ func c_suiton_gosuiwan_no_jutsu(c: Node3D, t: Node3D) -> void:
 	var arm = VFX.water_ball(1.4)
 	attach(c, arm, 10.0, Vector3(0.45, 1.1, -0.5))
 	if c is Player:
-		Buffs.add("gosuiwan", 10.0, {"melee": 1.6, "reach": 1.8})
+		Buffs.add("gosuiwan", 10.0, {"melee": 1.3, "reach": 1.8})
 	busy(c, 0.45)
 	after(0.25, func():
 		var d = fwd(c, t)
@@ -1717,7 +1717,7 @@ func c_sarutobi_hien(c: Node3D, t: Node3D) -> void:
 		blade.add_child(wind)
 		attach(c, blade, 10.0, Vector3(0.38 * side, 1.1, -0.45))
 	if c is Player:
-		Buffs.add("hien", 10.0, {"reach": 1.8, "melee": 1.3})
+		Buffs.add("hien", 10.0, {"reach": 1.8, "melee": 1.15})
 	busy(c, 0.9)
 	every(0.8, 0.2, func(i, _k):
 		anim(c, ["slash_a", "slash_b"][i % 2], 2.0)
@@ -2382,7 +2382,7 @@ func c_suna_no_yoroi(c: Node3D, _t: Node3D) -> void:
 	shell.scale = Vector3(1.0, 2.0, 1.0)
 	attach(c, shell, 20.0, Vector3.UP * 0.95)
 	if c is Player:
-		Buffs.add("suna_no_yoroi", 20.0, {"armor": 0.5})
+		Buffs.add("suna_no_yoroi", 20.0, {"armor": 0.75})
 	VFX.puffs(c.global_position, {"amount": 30, "life": 0.7, "size": 0.8, "radius": 1.2, "vmin": 2, "vmax": 5, "dir": Vector3.UP, "spread": 30.0,
 		"colors": [Color(0.92, 0.8, 0.58), Color(0.82, 0.68, 0.45, 0)]})
 	Sfx.play("earth", c.global_position, 1.4)
@@ -3395,7 +3395,7 @@ func c_doton_kakogan(c: Node3D, _t: Node3D) -> void:
 		b.add("crag", Vector3.ZERO, Vector3(0.42, 0.42, 0.5), Color(0.55, 0.5, 0.42), Vector3.ZERO, int(side + 2))
 		attach(c, mesh_of(b), 15.0, Vector3(0.38 * side, 1.0, -0.4))
 	if c is Player:
-		Buffs.add("kakogan", 15.0, {"melee": 1.6})
+		Buffs.add("kakogan", 15.0, {"melee": 1.3})
 	VFX.debris(c.global_position + Vector3.UP, Color(0.55, 0.5, 0.42), 8, 4.0, 0.3)
 	Sfx.play("earth", c.global_position, 1.3)
 
@@ -3404,7 +3404,7 @@ func c_doton_kakogan(c: Node3D, _t: Node3D) -> void:
 func c_doton_koka_jutsu(c: Node3D, _t: Node3D) -> void:
 	# saydam küre kabuk kaldırıldı (beyaz bulut gibi duruyordu): taş plakalar gövdedeki kemiklere bağlı (_stone_skin)
 	if c is Player:
-		Buffs.add("koka", 12.0, {"armor": 0.35, "speed": 0.8})
+		Buffs.add("koka", 12.0, {"armor": 0.68, "speed": 0.8})
 		c.combat.set("poise_t", 12.0)
 	VFX.cracks(c.global_position, 2.5)
 	Sfx.play("earth", c.global_position, 1.0)

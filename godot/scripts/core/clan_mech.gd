@@ -178,11 +178,11 @@ static func use_aki_pill() -> bool:
 	match stage:
 		0:
 			Game.profile["kalori"] = KALORI_MAX
-			Buffs.add("hap_horenzai", 30.0, {"melee": 1.5, "_name": "Yeşil Hap (Hōrenzai)", "_desc": "kalori doldu, güç artar"})
+			Buffs.add("hap_horenzai", 30.0, {"melee": 1.25, "_name": "Yeşil Hap (Hōrenzai)", "_desc": "kalori doldu, güç artar"})
 			Hud.banner("HŌRENZAI", "Yeşil hap: kaloriler doldu, güç artıyor", Color(0.4, 0.85, 0.35))
 			FX.aura(pl, Color(0.4, 0.9, 0.35), 1.2)
 		1:
-			Buffs.add("hap_kare", 30.0, {"melee": 2.0, "armor": 0.6, "_name": "Sarı Hap (Karē)", "_desc": "yağ chakraya dönüşür; beden yıpranır"})
+			Buffs.add("hap_kare", 30.0, {"melee": 1.5, "armor": 0.8, "_name": "Sarı Hap (Karē)", "_desc": "yağ chakraya dönüşür; beden yıpranır"})
 			Hud.banner("KARĒ", "Sarı hap: yağ chakraya dönüşüyor — beden yıpranıyor", Color(1.0, 0.85, 0.25))
 			FX.aura(pl, Color(1.0, 0.85, 0.3), 1.4)
 		2:

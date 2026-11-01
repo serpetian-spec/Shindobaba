@@ -1701,7 +1701,7 @@ func p_kusanagi_kuchi(c: Node3D, t: Node3D) -> void:
 	fade_free(head, 1.0, 0.2)
 	# kılıç 15 sn sağ elde: vuruşlar uzar ve güçlenir
 	if c is Player:
-		Buffs.add("kusanagi", 15.0, {"melee": 1.35, "reach": 1.6})
+		Buffs.add("kusanagi", 15.0, {"melee": 1.18, "reach": 1.6})
 		var ba = bone_attach(c, "RightHand")
 		if ba:
 			var hb = kusanagi_blade(1.15)
@@ -1820,7 +1820,7 @@ func p_ten_no_juin(c: Node3D, _t: Node3D) -> void:
 	Sfx.play("genjutsu", c.global_position, 0.5)
 	VFX.shockwave(c.global_position + Vector3.UP, Color(0.4, 0.1, 0.5), 6.0, 0.35, true)
 	if c is Player:
-		Buffs.add("juin1", dur, {"melee": 1.3, "jutsu": 1.25, "speed": 1.15, "_desc": "her sn canın %1'i erir"})
+		Buffs.add("juin1", dur, {"melee": 1.15, "jutsu": 1.12, "speed": 1.07, "_desc": "her sn canın %1'i erir"})
 		Hud.msg("Lanetli mühür uyandı: güç akıyor... ama bedel ağır.", Color(0.8, 0.55, 0.95))
 	every(dur, 1.0, func(_i, _k):
 		if is_instance_valid(c) and c.hp > c.max_hp * 0.15 and (not c is Player or Buffs.has("juin1")):
@@ -1854,13 +1854,13 @@ func hand_wing(right: bool) -> MeshInstance3D:
 
 const JUIN_FORMS := {
 	"kanat": {"name": "Kanatlı Form", "skin": Color(0.56, 0.52, 0.6), "desc": "Sırttan el kanatlar: uçabilirsin (Space/Ctrl)",
-		"mods": {"melee": 1.5, "jutsu": 1.4, "speed": 1.3}},
+		"mods": {"melee": 1.25, "jutsu": 1.2, "speed": 1.15}},
 	"boynuz": {"name": "Boynuzlu Form", "skin": Color(0.8, 0.46, 0.38), "desc": "Alnından boynuzlar: jutsu ve genjutsu çok güçlü",
-		"mods": {"jutsu": 1.8, "melee": 1.25, "speed": 1.15}},
+		"mods": {"jutsu": 1.4, "melee": 1.12, "speed": 1.07}},
 	"kaya": {"name": "Kaya Deri", "skin": Color(0.86, 0.56, 0.3), "desc": "Sırtta kaya yumruları: darbelere dayanıklı, yumrukların ağır",
-		"mods": {"melee": 1.9, "armor": 0.55, "speed": 1.05}},
+		"mods": {"melee": 1.45, "armor": 0.78, "speed": 1.02}},
 	"orumcek": {"name": "Örümcek Formu", "skin": Color(0.46, 0.33, 0.26), "desc": "Sırttan iki çift ek kol: çok hızlı ve uzun erimli",
-		"mods": {"melee": 1.6, "speed": 1.45, "reach": 1.4}},
+		"mods": {"melee": 1.3, "speed": 1.23, "reach": 1.4}},
 }
 
 
@@ -2075,7 +2075,7 @@ func p_hakuja_sennin_modo(c: Node3D, _t: Node3D) -> void:
 	VFX.shockwave(c.global_position + Vector3.UP * 0.2, Color(0.95, 0.95, 1.0), 14.0, 0.5, true)
 	Sfx.play("heal", c.global_position, 0.7)
 	if c is Player:
-		Buffs.add("hakuja", dur, {"melee": 1.25, "armor": 0.85, "jutsu": 1.15})
+		Buffs.add("hakuja", dur, {"melee": 1.12, "armor": 0.92, "jutsu": 1.08})
 	for e in enemies_near(c, c.global_position, 34.0):
 		st(e, "marked", dur)
 		Combat.popup_text(e.global_position + Vector3.UP * (e.height + 0.8), "Sezildi", Color(0.9, 0.9, 1.0))
@@ -2109,7 +2109,7 @@ func p_yamata_no_jutsu(c: Node3D, _t: Node3D) -> void:
 	if m:
 		m.visible = false
 	if c is Player:
-		Buffs.add("yamata", dur, {"armor": 0.45, "speed": 0.85})
+		Buffs.add("yamata", dur, {"armor": 0.7, "speed": 0.85})
 		# dev beden: kamera geri çekilip yükselir (kamera gövdenin içinde kalıyordu)
 		var cd0 = c.cam_dist
 		c.cam_dist = 26.0
@@ -2960,7 +2960,7 @@ func p_chakura_no_mesu(c: Node3D, _t: Node3D) -> void:
 		VFX.gather(hand_pos(c, right), Color(0.55, 0.9, 1.0), 0.6)
 	Sfx.play("chidori", c.global_position, 2.0, 0.3)
 	if c is Player:
-		Buffs.add("chakura_no_mesu", 12.0, {"melee": 1.5, "_name": "Chakra Neşteri", "_desc": "vurduğun düşman yavaşlar (kas kesildi)"})
+		Buffs.add("chakura_no_mesu", 12.0, {"melee": 1.25, "_name": "Chakra Neşteri", "_desc": "vurduğun düşman yavaşlar (kas kesildi)"})
 	every(12.0, 0.25, func(_i, _k):
 		for e in enemies_near(c, c.global_position, 2.2):
 			if randf() < 0.25:
@@ -3133,7 +3133,7 @@ func p_hachimon_tonko_no_jin(c: Node3D, _t: Node3D) -> void:
 				skin_mats.append(sm)
 				sm.set_shader_parameter("tint", ratio * Color(1.15, 0.78, 0.72))   # kapılar açıkken ten kızarır
 	if c is Player:
-		Buffs.add("hachimon", 25.0, {"melee": 2.1, "speed": 1.5, "_name": "Sekiz Kapı Açık", "_desc": "her sn canın %1.5'i erir"})
+		Buffs.add("hachimon", 25.0, {"melee": 1.55, "speed": 1.25, "_name": "Sekiz Kapı Açık", "_desc": "her sn canın %1.5'i erir"})
 	every(25.0, 0.4, func(_i, _k):
 		if live(c):
 			if c is Player:
@@ -5756,7 +5756,7 @@ func p_kawazu_kumite(c: Node3D, _t: Node3D) -> void:
 	tw.parallel().tween_property(sw, "scale", Vector3.ONE * 0.2, 0.9)
 	tw.tween_callback(sw.queue_free)
 	if c is Player:
-		Buffs.add("kawazu_kumite", 12.0, {"melee": 1.6, "reach": 1.5, "_name": "Kurbağa Kata", "_desc": "doğa enerjisi aurası: yakın dövüş +%60, menzil +%50"})
+		Buffs.add("kawazu_kumite", 12.0, {"melee": 1.3, "reach": 1.5, "_name": "Kurbağa Kata", "_desc": "doğa enerjisi aurası: yakın dövüş +%30, menzil +%25"})
 	every(12.0, 0.25, func(_i, _k):
 		if live(c):
 			FX.burst(c.global_position + Vector3.UP * 1.0, {"amount": 4, "life": 0.6, "tex": FX.tex_spark, "add": true, "size": 0.3, "radius": 0.6, "vmin": 0.5, "vmax": 1.5, "dir": Vector3.UP, "spread": 30.0,
@@ -7155,7 +7155,7 @@ func p_doton_kengan_no_jutsu(c: Node3D, _t: Node3D) -> void:
 		parts.append(ba)
 		VFX.debris(hand_pos(c, right), EARTH, 8, 4.0, 0.2)
 	if c is Player:
-		Buffs.add("kengan", 12.0, {"melee": 1.7, "_name": "Kaya Yumruk", "_desc": "yumruklar kaya kaplı: yakın dövüş +%70"})
+		Buffs.add("kengan", 12.0, {"melee": 1.35, "_name": "Kaya Yumruk", "_desc": "yumruklar kaya kaplı: yakın dövüş +%35"})
 	after(12.0, func():
 		for pp in parts:
 			if is_instance_valid(pp):
@@ -7676,7 +7676,7 @@ func p_hien(c: Node3D, _t: Node3D) -> void:
 				ba.queue_free())
 	VFX.gather(hand_pos(c, true), Color(0.55, 0.8, 1.0), 0.8)
 	if c is Player:
-		Buffs.add("hien", 15.0, {"melee": 1.4, "reach": 1.6, "_name": "Uçan Kırlangıç", "_desc": "bıçağa rüzgâr çakrası: menzil +%60, hasar +%40"})
+		Buffs.add("hien", 15.0, {"melee": 1.2, "reach": 1.6, "_name": "Uçan Kırlangıç", "_desc": "bıçağa rüzgâr çakrası: menzil +%30, hasar +%20"})
 	Sfx.play("wind", c.global_position, 1.6)
 
 
@@ -8941,7 +8941,7 @@ func p_nenkin_no_yoroi(c: Node3D, _t: Node3D) -> void:
 		mi.create_tween().tween_property(mi, "scale", Vector3.ONE, 0.4)
 		parts.append(ba)
 	if c is Player:
-		Buffs.add("nenkin_yoroi", 15.0, {"armor": 0.35, "_name": "Altın Zırh", "_desc": "yapışkan altın zırh: gelen hasar çok azalır"})
+		Buffs.add("nenkin_yoroi", 15.0, {"armor": 0.68, "_name": "Altın Zırh", "_desc": "yapışkan altın zırh: gelen hasar çok azalır"})
 	after(15.0, func():
 		for pp in parts:
 			if is_instance_valid(pp):
@@ -10471,7 +10471,7 @@ func p_futton_kairiki_muso(c: Node3D, _t: Node3D) -> void:
 	VFX.fog(c.global_position + Vector3.UP * 1.2, {"amount": 57, "life": 1.4, "size": 1.8, "radius": 0.6, "vmin": 1.5, "vmax": 3.5, "dir": Vector3.UP, "spread": 50.0,
 		"colors": [Color(1, 1, 1, 0.0), Color(0.97, 0.97, 0.98, 0.9), Color(0.92, 0.92, 0.94, 0.0)]})
 	if c is Player:
-		Buffs.add("kairiki_muso", 15.0, {"melee": 1.8, "speed": 1.15, "_name": "Eşsiz Güç", "_desc": "buhar itişli vuruşlar: yakın dövüş +%80"})
+		Buffs.add("kairiki_muso", 15.0, {"melee": 1.4, "speed": 1.07, "_name": "Eşsiz Güç", "_desc": "buhar itişli vuruşlar: yakın dövüş +%40"})
 	every(15.0, 0.3, func(_i, _k):
 		if live(c):
 			VFX.fog(c.global_position + Vector3.UP * 1.6 - c.face_dir() * 0.3, {"amount": 4, "life": 1.0, "size": 0.9, "radius": 0.2, "vmin": 0.8, "vmax": 1.6, "dir": Vector3.UP, "spread": 30.0,
@@ -10578,7 +10578,7 @@ func p_hachimon(c: Node3D, _t: Node3D) -> void:
 	VFX.smoke_ring(gp(c.global_position) + Vector3.UP * 0.1, 6.0, Color(0.7, 1.0, 0.7))
 	var a = FX.aura(c, GATE_GREEN, 1.3, Vector3(0, 0.9, 0), 0.0)
 	if c is Player:
-		Buffs.add("hachimon_3", 15.0, {"melee": 1.7, "speed": 1.4, "_name": "Üç Kapı Açık", "_desc": "yakın dövüş +%70, hız +%40; can yavaşça erir"})
+		Buffs.add("hachimon_3", 15.0, {"melee": 1.35, "speed": 1.2, "_name": "Üç Kapı Açık", "_desc": "yakın dövüş +%35, hız +%20; can yavaşça erir"})
 	every(15.0, 1.0, func(_i, _k):
 		if live(c) and c is Player:
 			c.hp = maxf(1.0, c.hp - c.max_hp * 0.01), func():
@@ -11013,7 +11013,7 @@ func p_juho_soshiken(c: Node3D, _t: Node3D) -> void:
 		parts.append(ba)
 	VFX.gather(c.global_position + Vector3.UP, LIONBLUE, 1.4)
 	if c is Player:
-		Buffs.add("juho_soshiken", 15.0, {"melee": 1.8, "reach": 1.4, "_name": "İkiz Aslan Yumrukları", "_desc": "aslan çakrası: yakın dövüş +%80, menzil +%40"})
+		Buffs.add("juho_soshiken", 15.0, {"melee": 1.4, "reach": 1.4, "_name": "İkiz Aslan Yumrukları", "_desc": "aslan çakrası: yakın dövüş +%40, menzil +%20"})
 	after(15.0, func():
 		for pp in parts:
 			if is_instance_valid(pp):
@@ -11216,7 +11216,7 @@ func p_kessho_no_yoroi(c: Node3D, _t: Node3D) -> void:
 		parts.append(ba)
 	FX.burst(c.global_position + Vector3.UP, {"amount": 30, "life": 0.6, "tex": FX.tex_spark, "add": true, "size": 0.25, "vmin": 2, "vmax": 6, "colors": [Color(1, 1, 1, 1), PINKCRYSTAL, Color(PINKCRYSTAL.r, PINKCRYSTAL.g, PINKCRYSTAL.b, 0)]})
 	if c is Player:
-		Buffs.add("kessho_yoroi", 15.0, {"armor": 0.4, "melee": 1.3, "_name": "Kristal Zırh", "_desc": "kristal plakalar: gelen hasar çok azalır, yumruklar sertleşir"})
+		Buffs.add("kessho_yoroi", 15.0, {"armor": 0.7, "melee": 1.15, "_name": "Kristal Zırh", "_desc": "kristal plakalar: gelen hasar çok azalır, yumruklar sertleşir"})
 	after(15.0, func():
 		for pp in parts:
 			if is_instance_valid(pp):
@@ -12148,7 +12148,7 @@ func p_satetsu_kurogane_no_tsubasa(c: Node3D, _t: Node3D) -> void:
 	VFX.puffs(c.global_position + Vector3.UP * 1.3, {"amount": 80, "life": 1.0, "size": 0.35, "radius": 1.2, "vmin": 2, "vmax": 6, "dir": Vector3.UP, "spread": 120.0, "add": false,
 		"colors": [Color(0.1, 0.1, 0.12, 0.9), Color(0.1, 0.1, 0.12, 0)]})
 	if c is Player:
-		Buffs.add("kurogane_tsubasa", 15.0, {"armor": 0.5, "_name": "Kara Demir Kanatlar", "_desc": "demir kum kanatlar: hasar azalır, uçabilirsin"})
+		Buffs.add("kurogane_tsubasa", 15.0, {"armor": 0.75, "_name": "Kara Demir Kanatlar", "_desc": "demir kum kanatlar: hasar azalır, uçabilirsin"})
 		if c.has_method("start_flight"):
 			c.start_flight("satetsu", {"drain": 0.0, "speed": 18.0, "dur": 15.0, "name": "Kara Demir Kanatlar"})
 	after(15.0, func():
@@ -12956,7 +12956,7 @@ func p_barion_modo(c: Node3D, _t: Node3D) -> void:
 		parts.append(hb)
 	var a = FX.aura(c, BARYON, 1.8, Vector3(0, 0.9, 0), 0.0)
 	if c is Player:
-		Buffs.add("barion", 12.0, {"melee": 2.2, "speed": 1.4, "armor": 0.6, "_name": "Baryon Modu", "_desc": "yaşam gücü yanıyor: vuruşlar hedefin ömrünü yakar; can erir"})
+		Buffs.add("barion", 12.0, {"melee": 1.6, "speed": 1.2, "armor": 0.8, "_name": "Baryon Modu", "_desc": "yaşam gücü yanıyor: vuruşlar hedefin ömrünü yakar; can erir"})
 	every(12.0, 0.5, func(_i, _k):
 		if not live(c):
 			return
@@ -13137,7 +13137,7 @@ func p_chi_no_juin(c: Node3D, _t: Node3D) -> void:
 		"colors": [Color(0.55, 0.4, 0.3, 0.8), Color(0.4, 0.3, 0.2, 0)]})
 	VFX.cracks(gp(c.global_position), 3.0)
 	if c is Player:
-		Buffs.add("chi_no_juin", 15.0, {"melee": 1.6, "armor": 0.6, "_name": "Toprak Lanet Mührü", "_desc": "doğa enerjisi: güç +%60, gelen hasar azalır"})
+		Buffs.add("chi_no_juin", 15.0, {"melee": 1.3, "armor": 0.8, "_name": "Toprak Lanet Mührü", "_desc": "doğa enerjisi: güç +%30, gelen hasar azalır"})
 	after(15.0, func():
 		for pp in parts:
 			if is_instance_valid(pp):
@@ -14334,7 +14334,7 @@ func p_kama(c: Node3D, _t: Node3D) -> void:
 	VFX.shockwave(c.global_position + Vector3.UP, Color(0.15, 0.15, 0.18), 6.0, 0.4, false)
 	VFX.gather(hand_pos(c, false), Color(0.3, 0.3, 0.35), 1.2)
 	if c is Player:
-		Buffs.add("kama", 15.0, {"melee": 1.6, "speed": 1.2, "armor": 0.3, "_name": "Karma", "_desc": "Ōtsutsuki gücü: güç ve hız artar"})
+		Buffs.add("kama", 15.0, {"melee": 1.3, "speed": 1.1, "armor": 0.65, "_name": "Karma", "_desc": "Ōtsutsuki gücü: güç ve hız artar"})
 	after(15.0, func():
 		for pp in parts:
 			if is_instance_valid(pp):
@@ -14576,7 +14576,7 @@ func p_kisho_tensei(c: Node3D, _t: Node3D) -> void:
 		chakra_gain(c, 100.0)
 		if c is Player:
 			c.hp = maxf(1.0, c.hp - c.max_hp * 0.2)
-			Buffs.add("kisho_tensei", 12.0, {"armor": 0.6, "_name": "Yeniden Doğuş", "_desc": "can bedeliyle tam yenilenme; hasar azalır"}))
+			Buffs.add("kisho_tensei", 12.0, {"armor": 0.8, "_name": "Yeniden Doğuş", "_desc": "can bedeliyle tam yenilenme; hasar azalır"}))
 	Sfx.play("heal", c.global_position, 0.5)
 
 
@@ -14714,7 +14714,7 @@ func p_kyubi_chakura_modo(c: Node3D, _t: Node3D) -> void:
 		ch.add_child(lbl)
 		parts.append(ch)
 	if c is Player:
-		Buffs.add("kyubi_chakura", 20.0, {"melee": 1.8, "speed": 1.5, "armor": 0.5, "_name": "Dokuz Kuyruk Çakra Modu", "_desc": "altın çakra örtüsü: hız, güç, dayanıklılık"})
+		Buffs.add("kyubi_chakura", 20.0, {"melee": 1.4, "speed": 1.25, "armor": 0.75, "_name": "Dokuz Kuyruk Çakra Modu", "_desc": "altın çakra örtüsü: hız, güç, dayanıklılık"})
 	every(20.0, 0.25, func(_i, _k):
 		if live(c):
 			VFX.puffs(c.global_position + Vector3.UP * 1.0, {"amount": 4, "life": 0.5, "size": 0.5, "radius": 0.5, "vmin": 2, "vmax": 4, "dir": Vector3.UP, "spread": 25.0, "add": true,
@@ -15403,7 +15403,7 @@ func p_rikudo_no_jutsu(c: Node3D, _t: Node3D) -> void:
 	tw.tween_property(ring, "rotation:z", TAU, 1.0).as_relative()
 	VFX.shockwave(c.global_position + Vector3.UP, Color(0.75, 0.6, 1.0), 8.0, 0.5, false)
 	if c is Player:
-		Buffs.add("rikudo_no_jutsu", 15.0, {"melee": 1.5, "armor": 0.5, "speed": 1.25, "_name": "Altı Yol", "_desc": "tüm yolların gücü"})
+		Buffs.add("rikudo_no_jutsu", 15.0, {"melee": 1.25, "armor": 0.75, "speed": 1.12, "_name": "Altı Yol", "_desc": "tüm yolların gücü"})
 	every(15.0, 1.0, func(_i, _k):
 		if live(c):
 			heal(c, c.max_hp * 0.02), func():
@@ -15452,7 +15452,7 @@ func p_rikudo_senjutsu(c: Node3D, _t: Node3D) -> void:
 		var an = PI + (k - 2.5) * 0.45
 		bb.position = Vector3(sin(an) * 1.1, 1.9 + cos(k * 1.3) * 0.15, cos(an) * 0.6)
 	if c is Player:
-		Buffs.add("rikudo_senjutsu", 20.0, {"melee": 2.0, "speed": 1.5, "armor": 0.6, "_name": "Altı Yol Senjutsu", "_desc": "altın örtü + arayış topları"})
+		Buffs.add("rikudo_senjutsu", 20.0, {"melee": 1.5, "speed": 1.25, "armor": 0.8, "_name": "Altı Yol Senjutsu", "_desc": "altın örtü + arayış topları"})
 	every(20.0, 0.3, func(_i, _k):
 		if live(c):
 			VFX.puffs(c.global_position + Vector3.UP, {"amount": 4, "life": 0.5, "size": 0.5, "radius": 0.5, "vmin": 2, "vmax": 4, "dir": Vector3.UP, "spread": 25.0, "add": true,
@@ -15483,7 +15483,7 @@ func p_rikudo_sennin_modo(c: Node3D, t: Node3D) -> void:
 	var spin = orbit.create_tween().set_loops(40)
 	spin.tween_property(orbit, "rotation:z", TAU, 2.0).as_relative()
 	if c is Player:
-		Buffs.add("rikudo_sennin", 20.0, {"melee": 1.7, "speed": 1.4, "armor": 0.5, "_name": "Altı Yol Bilge Modu", "_desc": "arayış topları mermileri siler, düşmana ateş eder"})
+		Buffs.add("rikudo_sennin", 20.0, {"melee": 1.35, "speed": 1.2, "armor": 0.75, "_name": "Altı Yol Bilge Modu", "_desc": "arayış topları mermileri siler, düşmana ateş eder"})
 	every(20.0, 0.15, func(_i, k):
 		if not (live(c) and is_instance_valid(orbit)):
 			return
@@ -15628,7 +15628,7 @@ func p_sennin_modo(c: Node3D, _t: Node3D) -> void:
 		VFX.shockwave(c.global_position + Vector3.UP * 0.2, SAGE, 8.0, 0.5, true)
 		VFX.cracks(gp(c.global_position), 4.0)
 		if c is Player:
-			Buffs.add("sennin_modo", 20.0, {"melee": 1.8, "speed": 1.3, "armor": 0.4, "_name": "Bilge Modu", "_desc": "doğa enerjisi: güç, hız, algı"}))
+			Buffs.add("sennin_modo", 20.0, {"melee": 1.4, "speed": 1.15, "armor": 0.7, "_name": "Bilge Modu", "_desc": "doğa enerjisi: güç, hız, algı"}))
 	after(21.0, func():
 		for pp in parts:
 			if is_instance_valid(pp):
@@ -16542,7 +16542,7 @@ func p_yoton_chakura_modo(c: Node3D, _t: Node3D) -> void:
 	tails.position = Vector3(0, 0.95, -0.15)
 	# (anime Rōshi: lav kuyruğu yok — beden lav örtüsüyle kaplı)
 	if c is Player:
-		Buffs.add("yoton_chakura", 20.0, {"melee": 1.7, "armor": 0.5, "_name": "Lav Çakra Modu", "_desc": "lav örtüsü: dokunan yanar, güç artar"})
+		Buffs.add("yoton_chakura", 20.0, {"melee": 1.35, "armor": 0.75, "_name": "Lav Çakra Modu", "_desc": "lav örtüsü: dokunan yanar, güç artar"})
 	every(20.0, 0.5, func(_i, _k):
 		if not live(c):
 			return
@@ -17042,7 +17042,7 @@ func p_cho_modo(c: Node3D, _t: Node3D) -> void:
 	_blue_wings(c, 25.0)
 	FX.aura(c, AKI_BLUE, 1.6, Vector3(0, 0.9, 0), 25.0)
 	if c is Player:
-		Buffs.add("cho_modo", 25.0, {"melee": 2.2, "speed": 1.3, "armor": 0.6, "reach": 1.6})
+		Buffs.add("cho_modo", 25.0, {"melee": 1.6, "speed": 1.15, "armor": 0.8, "reach": 1.6})
 	every(25.0, 1.0, func(_i, _k):
 		if is_instance_valid(c):
 			c.hp = maxf(1.0, c.hp - c.max_hp * 0.01))
@@ -19575,7 +19575,7 @@ func p_hoshigaki_gyojin(c: Node3D, _t: Node3D) -> void:
 			parts.append(ba)
 	FX.aura(c, Color(0.35, 0.5, 0.85), 1.4, Vector3(0, 0.9, 0), 20.0)
 	if c is Player:
-		Buffs.add("gyojin", 20.0, {"melee": 1.8, "speed": 1.35, "armor": 0.4, "lifesteal": 0.15, "_name": "Samehada Birleşmesi", "_desc": "köpekbalığı-insan: ısırık can çalar"})
+		Buffs.add("gyojin", 20.0, {"melee": 1.4, "speed": 1.18, "armor": 0.7, "lifesteal": 0.15, "_name": "Samehada Birleşmesi", "_desc": "köpekbalığı-insan: ısırık can çalar"})
 	after(20.0, func():
 		for pp in parts:
 			if is_instance_valid(pp):
@@ -21361,7 +21361,7 @@ func p_jashin_ketsueki(c: Node3D, _t: Node3D) -> void:
 		parts.append(ba)
 	FX.aura(c, Color(0.1, 0.1, 0.12), 1.3, Vector3(0, 0.9, 0), 10.0)
 	if c is Player:
-		Buffs.add("kan_yemini", 10.0, {"melee": 1.4, "lifesteal": 0.2, "_name": "Kan Yemini", "_desc": "vuruşlar kanatır ve can çalar"})
+		Buffs.add("kan_yemini", 10.0, {"melee": 1.2, "lifesteal": 0.2, "_name": "Kan Yemini", "_desc": "vuruşlar kanatır ve can çalar"})
 	after(10.0, func():
 		for pp in parts:
 			if is_instance_valid(pp):
@@ -21531,7 +21531,7 @@ func p_hachibi_kuyruk_zirhi(c: Node3D, _t: Node3D) -> void:
 	tw.tween_property(root, "rotation:z", 0.15, 0.4)
 	tw.tween_property(root, "rotation:z", -0.15, 0.4)
 	if c is Player:
-		Buffs.add("kuyruk_ortusu", 20.0, {"melee": 1.8, "armor": 0.5, "speed": 1.2, "_name": "Kuyruk Örtüsü", "_desc": "kollar yakındakileri otomatik vurur"})
+		Buffs.add("kuyruk_ortusu", 20.0, {"melee": 1.4, "armor": 0.75, "speed": 1.1, "_name": "Kuyruk Örtüsü", "_desc": "kollar yakındakileri otomatik vurur"})
 	every(20.0, 0.8, func(_i, _k):
 		if not live(c):
 			return
@@ -21734,7 +21734,7 @@ func p_tenseigan_chakura_modo(c: Node3D, t: Node3D) -> void:
 	var spin = orbit.create_tween().set_loops(40)
 	spin.tween_property(orbit, "rotation:y", TAU, 1.0).as_relative()
 	if c is Player:
-		Buffs.add("tenseigan_modo", 20.0, {"melee": 1.6, "speed": 1.3, "armor": 0.5, "jutsu": 1.2, "_name": "Tenseigan Chakra Modu", "_desc": "altın örtü, toplar mermileri siler"})
+		Buffs.add("tenseigan_modo", 20.0, {"melee": 1.3, "speed": 1.15, "armor": 0.75, "jutsu": 1.1, "_name": "Tenseigan Chakra Modu", "_desc": "altın örtü, toplar mermileri siler"})
 	every(20.0, 0.1, func(_i, _k):
 		if not live(c):
 			return
@@ -21874,7 +21874,7 @@ func p_jogan_kanpa(c: Node3D, _t: Node3D) -> void:
 	if c is Player:
 		for s in ["stun", "fear", "confuse"]:
 			c.statuses.erase(s)
-		Buffs.add("jogan_icgoru", 10.0, {"melee": 1.3, "jutsu": 1.15, "_name": "Jōgan İçgörü", "_desc": "zayıf noktalar görünür, genjutsu işlemez"})
+		Buffs.add("jogan_icgoru", 10.0, {"melee": 1.15, "jutsu": 1.07, "_name": "Jōgan İçgörü", "_desc": "zayıf noktalar görünür, genjutsu işlemez"})
 	Sfx.play("genjutsu", c.global_position, 1.4)
 
 
@@ -22621,7 +22621,7 @@ func p_jugo_kalkan(c: Node3D, _t: Node3D) -> void:
 	_stone_skin(c, 10.0, Color(0.85, 0.78, 0.68))
 	FX.aura(c, NATURE, 1.2, Vector3(0, 0.9, 0), 10.0)
 	if c is Player:
-		Buffs.add("jugo_kalkan", 10.0, {"armor": 0.65, "speed": 0.9, "_name": "Taş Deri Kabuğu", "_desc": "hasar büyük ölçüde azalır"})
+		Buffs.add("jugo_kalkan", 10.0, {"armor": 0.82, "speed": 0.9, "_name": "Taş Deri Kabuğu", "_desc": "hasar büyük ölçüde azalır"})
 	Sfx.play("earth", c.global_position, 1.2)
 
 
@@ -22692,7 +22692,7 @@ func p_jugo_ofke(c: Node3D, _t: Node3D) -> void:
 			if is_instance_valid(hb):
 				hb.queue_free())
 	if c is Player:
-		Buffs.add("jugo_ofke", 15.0, {"melee": 2.2, "speed": 1.4, "armor": 0.4, "_name": "Öfke Dönüşümü", "_desc": "dev güç ve hız; can erir"})
+		Buffs.add("jugo_ofke", 15.0, {"melee": 1.6, "speed": 1.2, "armor": 0.7, "_name": "Öfke Dönüşümü", "_desc": "dev güç ve hız; can erir"})
 	every(15.0, 1.0, func(_i, _k):
 		if live(c) and c is Player:
 			c.hp = maxf(1.0, c.hp - c.max_hp * 0.015), Callable())
@@ -22757,7 +22757,7 @@ func p_funato_kani_yoroi(c: Node3D, _t: Node3D) -> void:
 	VFX.splash(c.global_position + Vector3.UP, 2.0)
 	_stone_skin(c, 12.0, Color(0.85, 0.35, 0.25))
 	if c is Player:
-		Buffs.add("kani_yoroi", 12.0, {"armor": 0.6, "_name": "Yengeç Kabuğu", "_desc": "sertleşmiş su kabuk zırhı"})
+		Buffs.add("kani_yoroi", 12.0, {"armor": 0.8, "_name": "Yengeç Kabuğu", "_desc": "sertleşmiş su kabuk zırhı"})
 	Sfx.play("water", c.global_position, 0.8)
 
 
@@ -24542,7 +24542,7 @@ func p_momochi_kishin(c: Node3D, _t: Node3D) -> void:
 	tw.tween_property(ghost, "scale", Vector3.ONE * 0.01, 0.3)
 	tw.tween_callback(ghost.queue_free)
 	if c is Player:
-		Buffs.add("momochi_kishin", 15.0, {"melee": 0.35, "speed": 0.15, "armor": 0.15, "_name": "Şeytan Ruhu", "_desc": "yakın dövüş +%35, hız +%15, hasar -%15"})
+		Buffs.add("momochi_kishin", 15.0, {"melee": 0.35, "speed": 0.15, "armor": 0.57, "_name": "Şeytan Ruhu", "_desc": "yakın dövüş +%18, hız +%8, hasar -%15"})
 	FX.aura(c, Color(0.35, 0.08, 0.2), 1.5)
 	_mm_mist(c.global_position, 3.0, 2.0, 50)
 	Sfx.play("roar", c.global_position, 0.6)
@@ -25638,7 +25638,7 @@ func p_raiton_chakura_modo(c: Node3D, t: Node3D) -> void:
 	c.add_child(arcs)
 	arcs.position = Vector3(0, 1.0, 0)
 	if c is Player:
-		Buffs.add("raiton_chakura_modo", 15.0, {"speed": 1.6, "melee": 1.5, "armor": 0.8})
+		Buffs.add("raiton_chakura_modo", 15.0, {"speed": 1.3, "melee": 1.25, "armor": 0.9})
 	every(15.0, 0.25, func(_i, _k):
 		if not live(c):
 			return
@@ -25665,7 +25665,7 @@ func p_raigeki_no_yoroi(c: Node3D, t: Node3D) -> void:
 	arcs.position = Vector3(0, 1.0, 0)
 	var a = FX.aura(c, col, 1.2, Vector3(0, 0.9, 0), 12.0)
 	if c is Player:
-		Buffs.add("raigeki_no_yoroi", 12.0, {"armor": 0.5})
+		Buffs.add("raigeki_no_yoroi", 12.0, {"armor": 0.75})
 	every(12.0, 0.3, func(_i, _k):
 		if not live(c):
 			return
@@ -27055,7 +27055,7 @@ func p_doton_iwa_no_yoroi(c: Node3D, t: Node3D) -> void:
 	VFX.cracks(gp(c.global_position), 2.5)
 	VFX.debris(gp(c.global_position), EARTH, 10, 5.0, 0.35)
 	if c is Player:
-		Buffs.add("iwa_no_yoroi", 12.0, {"armor": 0.25, "speed": 0.75})
+		Buffs.add("iwa_no_yoroi", 12.0, {"armor": 0.62, "speed": 0.75})
 	Sfx.play("earth", c.global_position, 0.9)
 
 
@@ -27790,7 +27790,7 @@ func p_sanmai_no_shinka(c: Node3D, t: Node3D) -> void:
 	_fire_tongues(h, 0.6, 1.8, 12.0, 26)
 	fade_free(h, 12.4, 0.3)
 	if c is Player:
-		Buffs.add("sanmai_no_shinka", 12.0, {"melee": 1.4, "katon": 1.3})
+		Buffs.add("sanmai_no_shinka", 12.0, {"melee": 1.2, "katon": 1.3})
 	FX.light(c.global_position + Vector3.UP, Color(1.0, 0.55, 0.15), 6.0, 8.0, 0.5)
 	Sfx.play("fire", c.global_position, 0.8)
 
@@ -28909,7 +28909,7 @@ func p_suiton_suiren(c: Node3D, t: Node3D) -> void:
 				ba.queue_free())
 	VFX.splash(hand_pos(c, true), 0.8)
 	if c is Player:
-		Buffs.add("suiton_suiren", 10.0, {"melee": 1.35})
+		Buffs.add("suiton_suiren", 10.0, {"melee": 1.18})
 	Sfx.play("water", c.global_position, 1.3)
 
 
@@ -30060,7 +30060,7 @@ func p_kugutsu_hiruko(c: Node3D, t: Node3D) -> void:
 	c.add_child(hm)
 	FX.smoke_puff(c.global_position + Vector3.UP, 1.0, 12)
 	if c is Player:
-		Buffs.add("hiruko", 15.0, {"armor": 0.3, "speed": 0.7, "_name": "Hiruko", "_desc": "zırh kuklasının içindesin"})
+		Buffs.add("hiruko", 15.0, {"armor": 0.65, "speed": 0.7, "_name": "Hiruko", "_desc": "zırh kuklasının içindesin"})
 	after(15.0, func():
 		if is_instance_valid(hm):
 			FX.smoke_puff(hm.global_position + Vector3.UP, 0.8, 8)
@@ -30385,7 +30385,7 @@ func p_hakuja_shintai(c: Node3D, t: Node3D) -> void:
 	body.mat = Props.toon_color(white)
 	get_tree().current_scene.add_child(body)
 	if c is Player:
-		Buffs.add("hakuja_shintai", 12.0, {"melee": 1.8, "armor": 0.5, "_name": "Gerçek Form", "_desc": "binlerce yılandan dev beyaz yılan"})
+		Buffs.add("hakuja_shintai", 12.0, {"melee": 1.4, "armor": 0.75, "_name": "Gerçek Form", "_desc": "binlerce yılandan dev beyaz yılan"})
 	every(12.0, 0.03, func(_i, _k):
 		if live(c) and is_instance_valid(head):
 			var want = c.global_position + Vector3.UP * (3.2 + sin(_k * 20.0) * 0.4) - c.face_dir() * 1.0

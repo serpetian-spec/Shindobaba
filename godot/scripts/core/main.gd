@@ -441,7 +441,7 @@ func use_item(id: String) -> void:
 			Sfx.play("heal", player.global_position)
 		"pill":
 			player.chakra = minf(player.max_chakra, player.chakra + maxf(60.0, player.max_chakra * 0.35))
-			Buffs.add("pill", 20.0, {"melee": 1.25})
+			Buffs.add("pill", 20.0, {"melee": 1.15})
 			FX.aura(player, Color(1, 0.7, 0.3), 0.8)
 			Sfx.play("heal", player.global_position, 0.8)
 
