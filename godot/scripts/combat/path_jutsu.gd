@@ -3370,36 +3370,36 @@ const TOAD_OIL := Color(0.92, 0.75, 0.3)
 ## Yağ gölü: içindekiler yavaşlar; ateş vurursa alev gölüne döner
 func _oil_pool(c: Node3D, at: Vector3, r: float, dur: float) -> void:
 	at = gp(at)
-	var mi = MeshInstance3D.new()
-	var cm = CylinderMesh.new()
-	cm.top_radius = r; cm.bottom_radius = r; cm.height = 0.05
-	mi.mesh = cm
-	mi.material_override = flat_mat(Color(0.75, 0.55, 0.15, 0.75))
-	get_tree().current_scene.add_child(mi)
-	mi.global_position = at + Vector3.UP * 0.04
-	every(dur, 0.5, func(_i, _k):
-		for e in enemies_near(c, at, r):
-			st(e, "slow", 1.0), func():
-		if is_instance_valid(mi):
-			mi.queue_free())
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+	# kurbağa yağı birikintisi: düz disk değil — zemini saran düzensiz, ıslak parlamalı amber yağ lekeleri (Decal),
+	# üstünde kaynayıp patlayan kabarcıklar; yağ yavaşça yayılır
+	var decals = []
+	for k in 5:
+		var a = randf() * TAU
+		var p = at + Vector3(cos(a), 0, sin(a)) * (0.0 if k == 0 else randf_range(0.4, 0.75) * r)
+		var dc = Decal.new()
+		dc.texture_albedo = FX._puddle(randi())
+		dc.modulate = Color(0.85, 0.6, 0.16, 0.92)
+		var sz = r * (1.6 if k == 0 else randf_range(0.7, 1.0))
+		dc.size = Vector3(sz * randf_range(1.0, 1.3), 1.4, sz)
+		dc.cull_mask = 1
+		get_tree().current_scene.add_child(dc)
+		dc.global_position = gp(p) + Vector3.UP * 0.2
+		dc.rotation.y = randf() * TAU
+		dc.scale = Vector3.ONE * 0.3
+		dc.create_tween().tween_property(dc, "scale", Vector3.ONE, 0.8).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		decals.append(dc)
+	every(dur, 0.15, func(i, _k):
+		var b = at + Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)) * r * 0.7
+		VFX.puffs(gp(b) + Vector3.UP * 0.1, {"amount": 2, "life": 0.35, "size": 0.35, "radius": 0.2, "vmin": 0.3, "vmax": 0.9, "dir": Vector3.UP, "spread": 30.0,
+			"rough": 0.1, "outline": 0.03, "outline_col": Color(0.5, 0.32, 0.08), "colors": [Color(1.0, 0.85, 0.45, 1), Color(0.95, 0.7, 0.25, 0.9), Color(0.9, 0.65, 0.2, 0.0)]})
+		if i % 3 == 0:
+			for e in enemies_near(c, at, r):
+				st(e, "slow", 1.0), func():
+		for dc in decals:
+			if is_instance_valid(dc):
+				var tw = dc.create_tween()
+				tw.tween_property(dc, "modulate:a", 0.0, 1.0)
+				tw.tween_callback(dc.queue_free))
 
 
 ## Konan'ın melek kanadı: omuzdan başın üstüne kemer, oradan dizlere kadar sarkan tüy sütunları; her tüy küçük kâğıt tuğlalardan
@@ -4484,6 +4484,8 @@ func stream_fx(from: Vector3, d: Vector3, length: float, radius: float, mat: Mat
 		var dn2 = d.normalized()
 		var sd = dn2.cross(Vector3.UP).normalized()
 		var n2 = clampi(int(radius * 1.5), 2, 5)
+		var mc: Color = mat.get_shader_parameter("c_mid")
+		var oily = mc.r > mc.b + 0.2   # kurbağa yağı / çamur: mavi su sıçraması ve mavi gölcük bırakmasın
 		for i in n2:
 			var off = (i - (n2 - 1) * 0.5) * radius * 0.45
 			var head = Node3D.new()
@@ -4501,7 +4503,11 @@ func stream_fx(from: Vector3, d: Vector3, length: float, radius: float, mat: Mat
 			var end = from + dn2 * length + sd * off
 			tw.tween_property(head, "global_position", end, maxf(0.2, dur * 0.6)).set_trans(Tween.TRANS_SINE)
 			tw.tween_callback(func():
-				VFX.splash(end, 1.0 + radius * 0.4)
+				if oily:
+					VFX.puffs(end, {"amount": 8, "life": 0.5, "size": 0.6 + radius * 0.2, "radius": 0.5, "vmin": 1.5, "vmax": 4.0, "dir": Vector3.UP, "spread": 60.0, "gravity": Vector3(0, -9.0, 0),
+						"rough": 0.12, "outline": 0.03, "outline_col": mc.darkened(0.5), "colors": [mc.lightened(0.2), mc, Color(mc.r, mc.g, mc.b, 0.0)]})
+				else:
+					VFX.splash(end, 1.0 + radius * 0.4)
 				head.queue_free())
 		if end_fx.is_valid():
 			after(0.22, func(): end_fx.call(from + d * length))
@@ -28877,7 +28883,9 @@ func p_senpo_goemon(c: Node3D, t: Node3D) -> void:
 			return
 		var o = _mouth_pos(c)
 		var oil = Color(0.95, 0.62, 0.18)
-		fire_stream(o, d, 20.0, 4.0, 14)   # ateş + rüzgâr
+		# kaynar yağ + rüzgâr + ateş: kalın amber yağ seli, üstünde rüzgârla kabaran alev seli
+		stream_fx(o - Vector3.UP * 0.2, (d - Vector3.UP * 0.06).normalized(), 20.0, 2.0, VFX.mat_water(Color(0.45, 0.32, 0.08), Color(0.78, 0.6, 0.22), Color(0.95, 0.82, 0.4), Vector3(0, 1, 0), 0.95, 0.8, 0.12), 0.6)
+		_flame_jet(c, o, d, 20.0, 4.5, 0.9, 1.6)
 		WindFX.gust(o, d, 20.0, 4.0, {"col": Color(1.0, 0.85, 0.6, 0.7)})
 		for k in 10:   # kaynar yağ: yere yayılan sarı-turuncu dalga, köpüren kabarcıklar
 			after(k * 0.06, func():
