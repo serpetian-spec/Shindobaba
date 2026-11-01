@@ -27654,18 +27654,68 @@ func p_katon_hiuchi_yagura(c: Node3D, t: Node3D) -> void:
 	if not tt:
 		return
 	var at = gp(tt.global_position)
-	for i in 4:   # dört köşede yükselen alev sütunları (kule hayali)
-		var a = TAU * i / 4.0 + PI * 0.25
-		var h = Node3D.new()
-		scene_add(h, at + Vector3(cos(a), 0, sin(a)) * 2.2)
-		_fire_tongues(h, 0.4, 3.0, 2.5, 18)
-		fade_free(h, 3.0, 0.2)
+	# hedefin çevresinde alevden bir gözetleme kulesi (yagura) hayali yerden yükselir: köşe direkleri, çapraz kirişler,
+	# sivri çatı — hepsi yanan alev; kirişlerden alev dilleri yalar, içindeki sersemler ve yanar; sonunda kule çöküp patlar
+	var fm: ShaderMaterial = VFX.mat_fire("fire", 2.8, 2.0, 0.3, 1.4, 0.1, Vector3.UP, true)
+	fm.set_shader_parameter("fres_k", 0.55)
+	var b = MB.new()
+	var w = 2.0
+	var H = 6.5
+	var corners = [Vector3(-w, 0, -w), Vector3(w, 0, -w), Vector3(w, 0, w), Vector3(-w, 0, w)]
+	for k in 4:
+		var p0: Vector3 = corners[k]
+		var p1: Vector3 = corners[(k + 1) % 4]
+		Loft.tube(b, [p0, p0 * 0.92 + Vector3.UP * H], [Vector2(0.22, 0.22), Vector2(0.18, 0.18)], Color.WHITE, 8, 2)
+		for lv in [1.6, 3.6, 5.4]:
+			var sh = 1.0 - lv / H * 0.08
+			Loft.tube(b, [p0 * sh + Vector3.UP * lv, p1 * sh + Vector3.UP * lv], [Vector2(0.14, 0.14), Vector2(0.14, 0.14)], Color.WHITE, 6, 2)
+		# çapraz destek
+		Loft.tube(b, [p0 + Vector3.UP * 1.6, p1 * 0.95 + Vector3.UP * 3.6], [Vector2(0.09, 0.09), Vector2(0.09, 0.09)], Color.WHITE, 6, 2)
+		# çatı kirişi
+		Loft.tube(b, [p0 * 1.25 + Vector3.UP * (H - 0.2), Vector3.UP * (H + 2.2)], [Vector2(0.14, 0.14), Vector2(0.06, 0.06)], Color.WHITE, 6, 2)
+	var tower = MeshInstance3D.new()
+	tower.mesh = b.build(fm)
+	tower.material_override = fm
+	tower.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	scene_add(tower, at)
+	tower.rotation.y = randf() * TAU
+	tower.scale = Vector3(1, 0.02, 1)
+	var tw = tower.create_tween()
+	tw.tween_property(tower, "scale", Vector3.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(2.4)
+	tw.tween_callback(func():
+		# çöküş: kule alev patlamasıyla dağılır
+		VFX.explosion(at + Vector3.UP * 2.0, 2.4)
+		VFX.puffs(at + Vector3.UP * 3.0, {"amount": 40, "life": 0.8, "size": 1.6, "radius": 2.5, "vmin": 4.0, "vmax": 9.0, "spread": 180.0, "damp": 3.0, "glow": 1.15, "hot": 0.6,
+			"outline_col": Color(0.7, 0.2, 0.03), "outline": 0.03, "colors": [Color(1.0, 0.95, 0.55, 1), Color(1.0, 0.6, 0.12, 1), Color(0.9, 0.3, 0.05, 0.8), Color(0.5, 0.12, 0.03, 0)]})
+		hit(c, at + Vector3.UP, 3.5, inf(c, "katon_hiuchi_yagura", 1.2, {"knock": 10.0, "launch": 6.0, "kind": "heavy", "element": "katon", "burn": 3.0}))
+		shake(0.7))
+	tw.tween_property(tower, "scale", Vector3(1.3, 0.02, 1.3), 0.25)
+	tw.tween_callback(tower.queue_free)
 	if tt.has_method("apply_status"):
-		tt.apply_status("stun", 2.0)
-	every(2.5, 0.5, func(_i, _k):
-		if live(tt):
+		tt.apply_status("stun", 2.6)
+	var fd = Vector3.FORWARD
+	every(2.7, 0.08, func(i, _k):
+		if not is_instance_valid(tower):
+			return
+		# direklerden ve kirişlerden yükselen alev dilleri
+		for n in 5:
+			var k0 = randi() % 4
+			var cn: Vector3 = corners[k0]
+			var c2: Vector3 = corners[(k0 + 1) % 4]
+			# direk ya da kiriş üstünde rastgele nokta
+			var lp = cn.lerp(c2, randf()) * 0.95 + Vector3.UP * [1.6, 3.6, 5.4][randi() % 3] if randf() < 0.6 else cn * 0.95 + Vector3.UP * randf_range(0.3, H)
+			var q = at + tower.global_transform.basis * lp
+			VFX.puffs(q, {"amount": 2, "life": 0.5, "size": 1.25, "radius": 0.25, "vmin": 1.2, "vmax": 3.0, "dir": Vector3.UP, "spread": 18.0, "gravity": Vector3(0, 3.5, 0),
+				"glow": 1.15, "hot": 0.6, "outline_col": Color(0.7, 0.2, 0.03), "outline": 0.03, "scale_curve": [[0.0, 0.5], [0.3, 1.0], [1.0, 0.2]],
+				"colors": [Color(1.0, 0.95, 0.55, 1), Color(1.0, 0.6, 0.12, 1), Color(0.9, 0.3, 0.05, 0.8), Color(0.5, 0.12, 0.03, 0)]})
+		if i % 3 == 0:
+			VFX.embers(at + Vector3.UP * 3.0, Color(1.0, 0.55, 0.15), 4, 3.0, 0.6)
+		if i % 6 == 0 and live(tt):
 			hit(c, tt.global_position + Vector3.UP, tt.radius + 0.3, inf(c, "katon_hiuchi_yagura", 0.3, {"knock": 0.0, "kind": "light", "element": "katon", "burn": 1.5})), Callable())
-	Sfx.play("genjutsu", at, 0.9)
+	VFX.linger(at, "katon", FIRE, 1.6, 3.0)
+	FX.light(at + Vector3.UP * 3.0, Color(1.0, 0.6, 0.2), 6.0, 14.0, 2.8)
+	Sfx.play("fire", at, 0.8)
 
 
 func p_katon_enshin_bakuha(c: Node3D, t: Node3D) -> void:
