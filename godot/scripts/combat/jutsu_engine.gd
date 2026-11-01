@@ -195,19 +195,8 @@ static func shape_mesh(v: String, col: Color, size: float, el := "") -> Node3D:
 		"dragon":
 			root.add_child(VfxSerpent.dragon_head(mat, 1.0, eye))
 		"shark":
-			b.add("sphere", Vector3.ZERO, Vector3(0.8, 0.7, 1.8), Color.WHITE, Vector3.ZERO, 12)
-			b.add("cone", Vector3(0, 0.55, 0.1), Vector3(0.14, 0.7, 0.5), Color.WHITE, Vector3(-20, 0, 0), 4)
-			b.add("cone", Vector3(0, 0, 1.05), Vector3(0.6, 0.7, 0.14), Color.WHITE, Vector3(90, 0, 0), 4)
-			for sx in [-1.0, 1.0]:
-				b.add("cone", Vector3(0.45 * sx, -0.15, 0.0), Vector3(0.12, 0.6, 0.35), Color.WHITE, Vector3(0, 0, -70 * sx), 4)
-			var body = VFX._mi(b.build(null), mat)
-			root.add_child(body)
-			var t = MB.new()   # dişli ağız + gözler
-			for k in 6:
-				t.add("cone", Vector3(-0.25 + k * 0.1, -0.12, -0.82), Vector3(0.05, 0.14, 0.05), Color(1, 1, 1), Vector3(180, 0, 0), 4)
-			for sx in [-1.0, 1.0]:
-				t.add("sphere", Vector3(0.3 * sx, 0.12, -0.6), Vector3(0.1, 0.1, 0.08), eye, Vector3.ZERO, 6)
-			root.add_child(VFX._mi(t.build(glow_mat(Color.WHITE)), null))
+			# anime köpekbalığı modeli (SharkArt): mavi üst / beyaz karın, yüzgeçler, sallanan kuyruk, dişli açık ağız
+			root.add_child(SharkArt.shark(1.0))
 		"bird":
 			b.add("cone", Vector3.ZERO, Vector3(0.35, 1.2, 0.35), Color.WHITE, Vector3(-90, 0, 0), 6)
 			b.add("cone", Vector3(0, 0, 0.7), Vector3(0.5, 0.6, 0.1), Color.WHITE, Vector3(90, 0, 0), 4)

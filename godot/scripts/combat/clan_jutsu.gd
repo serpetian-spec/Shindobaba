@@ -1992,6 +1992,17 @@ func c_suiro_sameodori_no_jutsu(c: Node3D, t: Node3D) -> void:
 	dome.scale = Vector3.ONE * 0.5
 	var tw = dome.create_tween()
 	tw.tween_property(dome, "scale", Vector3(R * 2.0, R * 1.5, R * 2.0), 0.9).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	var inner = MeshInstance3D.new()
+	inner.mesh = VFX._sphere(0.5, 32, 16)
+	var im = StandardMaterial3D.new()
+	im.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	im.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	im.cull_mode = BaseMaterial3D.CULL_FRONT
+	im.albedo_color = Color(0.08, 0.38, 0.75, 0.5)
+	inner.material_override = im
+	inner.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	dome.add_child(inner)
+	inner.scale = Vector3.ONE * 0.98
 	VFX.slowmo(0.4, 0.6)
 	VFX.cinematic(c, 14.0, 7.0)
 	busy(c, 0.9)
@@ -2001,6 +2012,7 @@ func c_suiro_sameodori_no_jutsu(c: Node3D, t: Node3D) -> void:
 	for k in 16:
 		var s = JutsuEngine.shape_mesh("shark", Color(0.3, 0.6, 1.0), 1.2, "suiton")
 		get_tree().current_scene.add_child(s)
+		s.global_position = center + Vector3(randf_range(-3, 3), randf_range(1.0, 4.0), randf_range(-3, 3))
 		sharks.append({"n": s, "r": randf_range(6.0, R - 3.0), "h": randf_range(2.0, R * 0.9), "ph": randf() * TAU, "sp": randf_range(0.6, 1.1) * (1.0 if k % 2 == 0 else -1.0), "atk": -1.0, "tg": null})
 	if c is Player:
 		Buffs.add("sameodori", 8.0, {"speed": 1.4})
@@ -2008,6 +2020,21 @@ func c_suiro_sameodori_no_jutsu(c: Node3D, t: Node3D) -> void:
 	every(8.0, 1.0 / 30.0, func(i, _k):
 		bite_cd["t"] -= 1.0 / 30.0
 		var inside = enemies_near(c, center, R)
+		# su altı: oyuncu kubbenin içindeyken ekran mavi-yeşil tonlanır, etrafında kabarcıklar yükselir, yukarıdan ışık hüzmeleri iner
+		var pl = Game.player
+		if pl and is_instance_valid(pl) and Game.world:
+			if pl.global_position.distance_to(center) < R * 0.95:
+				Game.world.env.set_tint(Color(0.0, 0.28, 0.55, 0.62))
+				if i % 2 == 0:
+					FX.burst(pl.global_position + Vector3(randf_range(-3, 3), randf_range(0.0, 2.5), randf_range(-3, 3)), {"amount": 3, "life": 1.6, "tex": FX.tex_soft, "add": true, "cel": false,
+						"size": 0.12, "radius": 0.5, "vmin": 0.6, "vmax": 1.6, "dir": Vector3.UP, "spread": 15.0, "gravity": Vector3(0, 1.0, 0),
+						"colors": [Color(0.9, 0.97, 1.0, 0.0), Color(0.9, 0.97, 1.0, 0.85), Color(0.9, 0.97, 1.0, 0.0)]})
+				if i % 6 == 0:
+					var sp = pl.global_position + Vector3(randf_range(-8, 8), 0, randf_range(-8, 8))
+					FX.burst(sp + Vector3.UP * 10.0, {"amount": 1, "life": 1.2, "tex": FX.tex_spark, "add": true, "cel": false, "size": 9.0, "vmin": 0.0, "vmax": 0.1,
+						"dir": Vector3.DOWN, "spread": 1.0, "colors": [Color(0.6, 0.9, 1.0, 0.0), Color(0.6, 0.9, 1.0, 0.25), Color(0.6, 0.9, 1.0, 0.0)]})
+			else:
+				Game.world.env.set_tint(Color(0, 0, 0, 0))
 		for s in sharks:
 			var n: Node3D = s["n"]
 			if s["atk"] >= 0.0 and live(s["tg"]):
@@ -2015,7 +2042,8 @@ func c_suiro_sameodori_no_jutsu(c: Node3D, t: Node3D) -> void:
 				s["atk"] += 1.0 / 30.0
 				var goal = s["tg"].global_position + Vector3.UP
 				var p = n.global_position.lerp(goal, 0.22)
-				n.look_at(goal, Vector3.UP)
+				if n.global_position.distance_to(goal) > 0.05:
+					n.look_at(goal, Vector3.UP)
 				n.global_position = p
 				if p.distance_to(goal) < 1.2 or s["atk"] > 0.8:
 					hit(c, goal, 1.2, inf(c, "suiro_sameodori_no_jutsu", 0.3, {"knock": 4.0, "kind": "heavy", "element": "suiton"}))
@@ -2023,12 +2051,29 @@ func c_suiro_sameodori_no_jutsu(c: Node3D, t: Node3D) -> void:
 					s["atk"] = -1.0
 					s["tg"] = null
 				continue
-			s["ph"] += 0.025 * s["sp"]
-			var p2 = center + Vector3(cos(s["ph"]) * s["r"], s["h"] + sin(s["ph"] * 2.0) * 1.5, sin(s["ph"]) * s["r"])
-			n.look_at(p2 + Vector3(-sin(s["ph"]), 0, cos(s["ph"])) * s["sp"], Vector3.UP)
+			s["ph"] += 0.035 * s["sp"]
+			# av sürüsü: en yakın düşmanın çevresinde 3-7 m yarıçapta dönerek yüzer (düşman yoksa kullanıcının çevresinde)
+			var hub: Vector3 = center
+			var near_e = null
+			var bd = 1e9
+			for e in inside:
+				var dd = e.global_position.distance_to(n.global_position)
+				if dd < bd:
+					bd = dd
+					near_e = e
+			if near_e:
+				hub = near_e.global_position
+			elif live(c):
+				hub = c.global_position
+			var rr = 3.0 + fmod(s["r"], 4.0)
+			var want = hub + Vector3(cos(s["ph"]) * rr, 1.2 + fmod(s["h"], 3.0) + sin(s["ph"] * 2.0) * 0.8, sin(s["ph"]) * rr)
+			var p2 = n.global_position.lerp(want, 0.08)
+			var mv = p2 - n.global_position
+			if mv.length() > 0.01:
+				n.look_at(p2 + mv, Vector3.UP)
 			n.global_position = p2
 		if bite_cd["t"] <= 0.0 and not inside.is_empty():
-			bite_cd["t"] = 0.35
+			bite_cd["t"] = 0.22
 			var free = sharks.filter(func(x): return x["atk"] < 0.0)
 			if not free.is_empty():
 				var s = free[randi() % free.size()]
@@ -2042,6 +2087,8 @@ func c_suiro_sameodori_no_jutsu(c: Node3D, t: Node3D) -> void:
 					e.lose_target(0.5), func():
 		for s in sharks:
 			s["n"].queue_free()
+		if Game.world:
+			Game.world.env.set_tint(Color(0, 0, 0, 0))
 		var tw2 = dome.create_tween()
 		tw2.tween_property(dome, "scale", Vector3(R * 2.4, 0.5, R * 2.4), 0.5)
 		tw2.tween_callback(dome.queue_free)
