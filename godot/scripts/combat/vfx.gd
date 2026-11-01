@@ -629,6 +629,21 @@ static func _splash(pos: Vector3, size := 2.0) -> void:
 		"colors": [Color(0.7, 0.86, 1.0, 0.0), Color(0.7, 0.86, 1.0, 0.4), Color(0.7, 0.86, 1.0, 0.0)]})
 
 
+## Lav sıçraması (Yōton): ateş patlaması değil — kızıl kabuklu, parlak turuncu çekirdekli ağır erimiş kaya topakları
+## yerçekimiyle düşer; kor, kara duman, yerde kızaran çatlak
+static func lava_splash(pos: Vector3, s := 1.0) -> void:
+	if busy():
+		return
+	puffs(pos, {"amount": int(14 * s) + 6, "life": 0.8, "size": 0.5 + 0.3 * s, "radius": 0.4 * s, "vmin": 3.0, "vmax": 6.0 + 2.0 * s, "dir": Vector3.UP, "spread": 60.0,
+		"gravity": Vector3(0, -18, 0), "damp": 0.8, "glow": 1.2, "hot": 0.7, "outline_col": Color(0.18, 0.03, 0.01), "outline": 0.05, "rough": 0.25, "shade": 0.35,
+		"colors": [Color(1.0, 0.9, 0.45, 1), Color(1.0, 0.45, 0.08, 1), Color(0.6, 0.12, 0.03, 0.95), Color(0.2, 0.05, 0.02, 0.0)], "scale_curve": [[0.0, 0.5], [0.3, 1.0], [1.0, 0.7]]})
+	embers(pos, Color(1.0, 0.45, 0.1), int(14 * s), 6.0 * s, 0.7)
+	FX.burst(pos + Vector3.UP * 0.5, {"amount": int(6 * s) + 2, "life": 1.4, "tex": FX.tex_smoke, "add": false, "cel": false, "size": 1.4 * s, "radius": 0.6 * s, "vmin": 0.6, "vmax": 1.8,
+		"dir": Vector3.UP, "spread": 50.0, "colors": [Color(0.15, 0.12, 0.12, 0.0), Color(0.15, 0.12, 0.12, 0.6), Color(0.2, 0.18, 0.18, 0.0)]})
+	FX.light(pos, Color(1.0, 0.45, 0.15), 4.0 * s, 8.0 * s, 0.6)
+	cracks(Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z) + 0.05, pos.z), 2.0 * s, Color(0.35, 0.06, 0.02, 0.9), 4.0)
+
+
 ## Cel duman halkası (patlamanın etrafında yayılan)
 static func _smoke_ring(pos: Vector3, size := 3.0, col := Color(0.3, 0.27, 0.25)) -> void:
 	# anime toz halkası: yumuşak, açık konturlu, daha az ve küçük topak

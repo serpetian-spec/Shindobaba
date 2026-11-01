@@ -4486,6 +4486,29 @@ func stream_fx(from: Vector3, d: Vector3, length: float, radius: float, mat: Mat
 		var n2 = clampi(int(radius * 1.5), 2, 5)
 		var mc: Color = mat.get_shader_parameter("c_mid")
 		var oily = mc.r > mc.b + 0.2   # kurbağa yağı / çamur: mavi su sıçraması ve mavi gölcük bırakmasın
+		if oily:
+			# lav / kurbağa yağı / çamur: su tüpü değil — kendi renginde ağır, yapışkan topaklardan akıntı
+			var lava = mc.g < 0.6
+			var dd = d.normalized()
+			every(maxf(0.3, dur * 0.8), 0.04, func(_i, _k):
+				for q in 3:
+					var u = randf() * 0.25
+					VFX.puffs(from + dd * (0.4 + u * length), {"amount": 2, "life": 0.6, "size": 0.5 + radius * 0.35, "radius": radius * 0.3, "vmin": length * 0.9, "vmax": length * 1.25,
+						"dir": (dd + Vector3.UP * 0.12).normalized(), "spread": 6.0 + radius * 2.0, "gravity": Vector3(0, -9.0, 0), "damp": 1.2, "glow": 1.2 if lava else 1.05, "hot": 0.6 if lava else 0.3,
+						"outline_col": Color(0.18, 0.03, 0.01) if lava else mc.darkened(0.55), "outline": 0.05, "rough": 0.2, "shade": 0.35,
+						"colors": ([Color(1.0, 0.82, 0.3, 1), Color(1.0, 0.38, 0.05, 1), Color(0.5, 0.08, 0.02, 0.95), Color(0.15, 0.03, 0.01, 0.0)] if lava else [mc.lightened(0.25), mc, mc.darkened(0.35), Color(mc.r * 0.4, mc.g * 0.3, mc.b * 0.3, 0.0)]), "scale_curve": [[0.0, 0.4], [0.3, 1.0], [1.0, 1.3]]})
+				if lava and _i % 3 == 0:
+					VFX.embers(from + dd * length * 0.5, Color(1.0, 0.45, 0.1), 5, radius * 2.0, 0.6), Callable())
+			after(0.45, func():
+				var end = from + dd * length
+				if lava:
+					VFX.lava_splash(end, 1.0 + radius * 0.4)
+				else:
+					VFX.puffs(end, {"amount": 10, "life": 0.5, "size": 0.6 + radius * 0.2, "radius": 0.6, "vmin": 1.5, "vmax": 4.0, "dir": Vector3.UP, "spread": 60.0, "gravity": Vector3(0, -9.0, 0),
+						"rough": 0.12, "outline": 0.04, "outline_col": mc.darkened(0.5), "colors": [mc.lightened(0.2), mc, Color(mc.r, mc.g, mc.b, 0.0)]})
+				if end_fx.is_valid():
+					end_fx.call(end))
+			return
 		for i in n2:
 			var off = (i - (n2 - 1) * 0.5) * radius * 0.45
 			var head = Node3D.new()

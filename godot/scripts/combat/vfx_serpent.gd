@@ -248,9 +248,16 @@ func _style_fx(pts: Array, dt: float) -> void:
 	var p: Vector3 = pts[randi_range(1, pts.size() - 1)][0]
 	match style:
 		"water":
+			# akıntının kendi renginde damla: su mavi, kurbağa yağı amber, lav kızıl (+ kor) — lavdan/yağdan mavi su fışkırmasın
+			var wc = Color(0.55, 0.8, 1.0)
+			if mat is ShaderMaterial and mat.get_shader_parameter("c_mid") != null:
+				wc = mat.get_shader_parameter("c_mid")
+			var nonwater = wc.r > wc.b + 0.2
 			FX.burst(p, {"amount": 6, "life": 0.6, "tex": FX.tex_soft, "size": 0.35 * maxf(1.0, radius), "radius": radius, "vmin": 1.5, "vmax": 4.0,
 				"dir": Vector3.UP, "spread": 120.0, "gravity": Vector3(0, -9.0, 0), "add": false,
-				"colors": [Color(0.9, 0.97, 1.0, 0.9), Color(0.55, 0.8, 1.0, 0.7), Color(0.4, 0.7, 1.0, 0.0)]})
+				"colors": [wc.lightened(0.35) if nonwater else Color(0.9, 0.97, 1.0, 0.9), wc if nonwater else Color(0.55, 0.8, 1.0, 0.7), Color(wc.r, wc.g, wc.b, 0.0)]})
+			if nonwater and wc.g < 0.45:
+				VFX.embers(p, Color(1.0, 0.5, 0.1), 3, 3.0, 0.6)
 		"fire":
 			FX.burst(p, {"amount": 5, "life": 0.45, "tex": FX.tex_smoke, "add": false, "cel": true, "size": 0.9 * maxf(1.0, radius), "radius": radius * 0.6,
 				"vmin": 1.0, "vmax": 3.0, "dir": Vector3.UP, "spread": 60.0, "gravity": Vector3(0, 3.0, 0), "hot": 0.6, "outline": 0.03,

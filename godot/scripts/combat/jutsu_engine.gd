@@ -140,8 +140,10 @@ static func impact_for(el: String, pos: Vector3, col: Color, s := 1.0) -> void:
 	match el:
 		"bakuton":
 			VFX.clay_blast(pos, 0.6 * s + 0.4)
-		"katon", "yoton":
+		"katon":
 			VFX.explosion(pos, 0.5 * s + 0.3, col)
+		"yoton":
+			VFX.lava_splash(pos, 0.7 * s + 0.4)
 		"shakuton":   # kızıl parlama + beden suyunun buharı (alev yok)
 			FX.light(pos, Color(1.0, 0.35, 0.35), 3.0 * s, 7.0 * s, 0.2)
 			VFX.puffs(pos, {"amount": int(20 * s) + 6, "life": 1.1, "size": 0.8 * s, "radius": 0.4 * s, "vmin": 2, "vmax": 5, "dir": Vector3.UP, "spread": 55.0, "add": false,
