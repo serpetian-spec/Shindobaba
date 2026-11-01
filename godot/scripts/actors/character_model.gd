@@ -3178,6 +3178,7 @@ func set_dojutsu(kind: int, tomoe := 3) -> void:
 
 ## Uzun ağızlı silahlar (Samehada, Kubikiribōchō, Kiba...) beklerken elin ekseninde kalınca başın önünden geçip yüzü kapatıyordu:
 ## duruştayken ağız omzun üstünden başın arkasına yatırılır; saldırıda kolla aynı hizaya döner
+static var REST_TILT_OF := {"samehada": Vector3(-140, 40, 0)}   # silaha özel bekleme eğimi (kafanın içinden geçmesin)
 const REST_TILT := Vector3(-25.0, -55.0, 0.0)
 
 
@@ -3192,7 +3193,8 @@ func _rest_tilt(on: bool, dt: float) -> void:
 		if not w["long"]:
 			continue
 		var sx = 1.0 if w["side"] == "Right" else -1.0
-		var tgt = Basis.from_euler(Vector3(deg_to_rad(REST_TILT.x), deg_to_rad(REST_TILT.y * sx), 0.0)) if on else Basis.IDENTITY
+		var rt: Vector3 = REST_TILT_OF.get(w["id"], REST_TILT)
+		var tgt = Basis.from_euler(Vector3(deg_to_rad(rt.x), deg_to_rad(rt.y * sx), deg_to_rad(rt.z * sx))) if on else Basis.IDENTITY
 		var cur_q = n.transform.basis.get_rotation_quaternion()
 		var q = cur_q.slerp(tgt.get_rotation_quaternion(), minf(1.0, dt * (6.0 if on else 14.0)))
 		n.transform.basis = Basis(q).scaled(n.transform.basis.get_scale())
@@ -3210,6 +3212,7 @@ func react(world_dir: Vector3, amp: float, head := false) -> void:
 	overlay.hit_react(d, amp, head)
 
 
+const STANCE_ID := {"samehada": "w_samehada"}   # silaha özel duruş
 const STANCE_OF := {"blade": "w_blade", "dual": "w_dual", "sickle": "w_dual", "claw": "w_dual", "sword": "w_sword", "heavy": "w_shoulder", "staff": "w_shoulder", "chain": "w_dual", "fan": "w_fan"}   # kusarigama alçak tek el (omuzda bıçak kafaya değmesin)
 var stance := ""
 
@@ -3218,6 +3221,8 @@ func _stance_for_look() -> String:
 	for k in ["weapon_r", "weapon_l"]:
 		var wid = look.get(k)
 		if wid != null and wid != "":
+			if STANCE_ID.has(String(wid)):
+				return STANCE_ID[String(wid)]
 			var w: Dictionary = Gear.ITEMS.get(String(wid), {}).get("weapon", {})
 			if not w.is_empty():
 				return STANCE_OF.get(w.get("style", ""), "")

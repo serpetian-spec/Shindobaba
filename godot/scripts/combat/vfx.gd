@@ -664,7 +664,7 @@ static func water_chunks(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 	var d: Vector3 = cfg.get("dir", Vector3.UP)
 	var spr = deg_to_rad(float(cfg.get("spread", 45.0))) * 0.6
 	var vm = float(cfg.get("vmax", 6.0))
-	WaterArt.drops(pos, n, clampf(sz * 1.6, 0.4, 6.0), clampf(vm, 3.0, 30.0), d if d.y < 0.95 else Vector3.ZERO, clampf(spr, 0.1, 0.9))
+	WaterArt.drops(pos, n * 2, clampf(sz * 1.6, 0.4, 6.0), clampf(vm, 3.0, 30.0), d if d.y < 0.95 else Vector3.ZERO, clampf(spr, 0.1, 0.9))
 	return null
 
 

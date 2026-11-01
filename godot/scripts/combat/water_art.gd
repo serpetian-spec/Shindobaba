@@ -59,11 +59,11 @@ static func drops(pos: Vector3, n := 8, s := 1.0, vmax := 7.0, dir := Vector3.ZE
 	var m = mat()
 	for k in n:
 		var mi = MeshInstance3D.new()
-		mi.mesh = VFX._sphere(0.5, 10, 6)
+		mi.mesh = VFX._sphere(0.5, 14, 8)
 		mi.material_override = m
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		sc.add_child(mi)
-		var r = randf_range(0.1, 0.24) * sqrt(s)
+		var r = randf_range(0.035, 0.075) * minf(sqrt(s), 1.6)   # küçük yuvarlak damla (iri köşeli parçalar buz/duman gibi duruyordu)
 		mi.global_position = pos
 		var a = randf() * TAU
 		var v = Vector3(cos(a), 0, sin(a)) * randf_range(1.0, vmax * 0.6) * sqrt(s) + Vector3.UP * randf_range(vmax * 0.5, vmax) * sqrt(s)
@@ -79,15 +79,13 @@ static func drops(pos: Vector3, n := 8, s := 1.0, vmax := 7.0, dir := Vector3.ZE
 			if p.y <= gy + 0.03 and t > 0.05:
 				st0["landed"] = true
 				mi.global_position = Vector3(p.x, gy + 0.03, p.z)
-				var tl = mi.create_tween()
-				tl.tween_property(mi, "scale", Vector3(r * 2.4, 0.01, r * 2.4), 0.25)
-				tl.tween_callback(mi.queue_free)
+				mi.queue_free()   # yere değince yok olur (yerde kalan parçalar buz kırığı gibi duruyordu)
 				return
 			mi.global_position = p
 			var sp = v + Vector3.DOWN * 22.0 * t
 			if sp.length() > 0.1:
 				mi.look_at(p + sp, Vector3.UP if absf(sp.normalized().y) < 0.95 else Vector3.RIGHT)
-			mi.scale = Vector3(r, r, r * (1.0 + clampf(sp.length() * 0.12, 0.0, 1.6))), 0.0, 1.6, 1.6)
+			mi.scale = Vector3(r, r, r * (1.0 + clampf(sp.length() * 0.08, 0.0, 1.0))), 0.0, 1.6, 1.6)
 		tw.tween_callback(func():
 			if is_instance_valid(mi):
 				mi.queue_free())

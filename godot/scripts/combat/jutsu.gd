@@ -430,8 +430,7 @@ func j_suiton_suiryuudan(c: Node3D, t: Node3D) -> void:
 	Projectile.trail(pr, [Color(0.97, 0.99, 1, 1), Color(0.55, 0.82, 1, 0.9), Color(0.15, 0.4, 0.95, 0)], 1.4, 50, 0.6, FX.tex_smoke, false)
 	pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
 		VFX.splash(pos, 3.2)
-		VFX.puffs(pos, {"amount": 40, "life": 1.0, "size": 1.6, "radius": 1.5, "vmin": 6, "vmax": 18, "gravity": Vector3(0, -18, 0), "glow": 1.05,
-			"outline_col": Color(0.05, 0.18, 0.5), "colors": [Color(0.97, 0.99, 1, 1), Color(0.45, 0.75, 1, 1), Color(0.12, 0.38, 0.9, 0)]})
+		WaterArt.drops(pos, 18, 2.5, 12.0)
 		VFX.star(pos, Color(0.6, 0.85, 1.0), 4.0, 0.18)
 		Combat.hit_sphere(c, pos, 4.5, {"dmg": 12.0 * m, "element": "suiton", "knock": 14.0, "launch": 6.0, "kind": "heavy"}, pr.hit_list)
 		Sfx.play("water", pos, 0.8)

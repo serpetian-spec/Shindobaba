@@ -349,6 +349,13 @@ const STYLE_COMBOS := {
 }
 
 
+## Silaha özel kombolar (kaynak: Kisame Storm moveset videosu) — stil kombosunun yerine geçer
+## Samehada: 1 alçak geniş yatay savuruş, 2 ters yükselen savuruş, 3 tepeden yere çakma (su sıçrar), 4 dönerek savuruş, 5 yukarı fırlatan vuruş
+const ID_COMBOS := {
+	"samehada": {"anims": ["b/Sword_Regular_A", "b/Sword_Regular_B", "b/TreeChopping", "b/Sword_Regular_Combo", "a/Sword_Attack"], "speed": 1.25, "dur": 1.3, "knock": 2.0, "fx": Color(0.55, 0.75, 1.0), "snd": "hit_heavy_weapon", "water": [false, false, true, false, true]},
+}
+
+
 ## Kombo adımı, eldeki silaha göre (hasar, menzil, stile özel animasyon/süre/vuruş efekti)
 func _combo(i: int) -> Dictionary:
 	var c = _combo_base(i)
@@ -368,6 +375,13 @@ func _combo_base(i: int) -> Dictionary:
 	c["dmg"] = float(c["dmg"]) * (1.0 + (float(w["dmg"]) - 1.0) * 0.45) * (1.0 + Stats.weapon_bonus(Game.profile, String(w.get("style", "fist"))) * 0.6)
 	c["reach"] = float(c["reach"]) + float(w["reach"])
 	var st: Dictionary = STYLE_COMBOS.get(w["style"], {})
+	var wid = ""
+	var gq = Gear.equipped(Game.profile, "sag")
+	if not gq.is_empty():
+		wid = String(gq.get("id", ""))
+	if ID_COMBOS.has(wid):
+		st = ID_COMBOS[wid]
+		c["water"] = st["water"][clampi(i, 0, 4)]
 	if st.is_empty():
 		return c
 	var an: String = st["anims"][clampi(i, 0, 4)]
@@ -395,6 +409,10 @@ func _combo_base(i: int) -> Dictionary:
 			c["knock"] = float(c["knock"]) * 1.8
 		"armor_break":
 			c["heavy"] = true
+		"drain":
+			c["drain"] = true
+	if wid == "samehada" and i == 4:
+		c["launch"] = 10.0
 	return c
 
 
@@ -531,6 +549,11 @@ func _hit_info_base(c: Dictionary) -> Dictionary:
 func _on_hit_fx(pt: Vector3, c: Dictionary) -> void:
 	var heavy: bool = c.get("heavy", false)
 	FX.hit_spark(pt, c.get("fx", Color(1.0, 0.85, 0.45) if not heavy else Color(1.0, 0.55, 0.25)), 1.4 if heavy else 0.9)
+	if c.get("water", false):   # Samehada çakma/fırlatma: Storm su sıçraması
+		WaterArt.splash(Vector3(pt.x, Game.jutsu_floor(pt.x, pt.z), pt.z), 1.6)
+	if c.get("drain", false):   # Samehada chakra emer: hedeften kullanıcıya mavi chakra
+		p.chakra = minf(p.max_chakra, p.chakra + 4.0)
+		FX.burst(pt, {"amount": 10, "life": 0.4, "tex": FX.tex_spark, "size": 0.5, "vmin": 2, "vmax": 5, "colors": [Color(0.8, 0.95, 1.0, 1), Color(0.35, 0.65, 1.0, 0.8), Color(0.3, 0.6, 1.0, 0)]})
 	Sfx.play(c.get("snd", "hit_heavy" if heavy else "punch"), pt, randf_range(0.9, 1.15))
 	if heavy and c.has("snd") and not String(c["snd"]).begins_with("hit_"):
 		Sfx.play("hit_heavy", pt, 0.9, 0.6)

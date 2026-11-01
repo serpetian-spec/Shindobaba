@@ -3035,27 +3035,45 @@ func _lightning_limb(c: Node3D, dur: float) -> void:
 
 ## Liger Bombası: hedefi yakala, birlikte havalan, yıldırımla yere çak
 func c_raiga_bomu(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 6.0)
+	# hedef 16 m içindeyse önce ona koşup yakalar (eskiden 6 m'den uzaktaysa hiç algılamıyordu)
+	var tt = tg(c, t, 16.0)
 	if tt == null:
-		Hud.msg("Liger Bombası: hedefi yakalamak için yaklaş", Color(0.8, 0.9, 1))
+		Hud.msg("Raigā Bomu: yakında hedef yok", Color(0.8, 0.9, 1))
 		return
-	_lightning_limb(c, 1.3)
-	busy(c, 1.3)
-	st(tt, "bind", 1.3)
-	var base = gp(tt.global_position)
-	every(0.9, 1.0 / 30.0, func(_i, k):
-		var h = sin(minf(k * 1.4, 1.0) * PI * 0.5) * 7.0 if k < 0.7 else lerpf(7.0, 0.0, (k - 0.7) / 0.3)
-		if live(tt):
-			tt.global_position = base + Vector3.UP * h
-		c.global_position = base + Vector3.UP * (h + 1.4) - c.face_dir() * 0.4, func():
-		if live(tt):
-			tt.global_position = base
-		VFX.cracks(base, 7.0)
-		VFX.bolt(base + Vector3.UP * 12.0, base, Color(0.6, 0.85, 1.0), 0.5, 0.3, 4)
-		VFX.shockwave(base + Vector3.UP * 0.2, Color(0.6, 0.85, 1.0), 12.0, 0.4)
-		hit(c, base + Vector3.UP, 3.0, inf(c, "raiga_bomu", 2.4, {"knock": 10.0, "launch": 2.0, "kind": "heavy", "element": "raiton", "hitstop": 0.15}))
-		shake(1.1)
-		Sfx.play("thunder", base, 0.8))
+	_lightning_limb(c, 1.6)
+	busy(c, 1.7)
+	var grab = func():
+		if not (live(c) and live(tt)):
+			return
+		# anime A: rakibi boynundan yakalar, birlikte havaya sıçrar, en tepede ters çevirip şimşekli dirsekle yere çakar
+		st(tt, "bind", 1.3)
+		anim(c, "jump", 1.4)
+		var base = gp(tt.global_position)
+		var fd = c.face_dir()
+		every(0.9, 1.0 / 30.0, func(_i, k):
+			var h = sin(minf(k * 1.4, 1.0) * PI * 0.5) * 7.0 if k < 0.7 else lerpf(7.0, 0.0, (k - 0.7) / 0.3)
+			if live(tt):
+				tt.global_position = base + Vector3.UP * h
+				tt.rotation.x = lerpf(0.0, PI, clampf((k - 0.55) / 0.2, 0.0, 1.0))   # tepede ters döner
+			if is_instance_valid(c):
+				c.global_position = base + Vector3.UP * (h + 1.3) - fd * 0.5
+				c.velocity = Vector3.ZERO, func():
+			if live(tt):
+				tt.global_position = base
+				tt.rotation.x = 0.0
+			anim(c, "slash_c", 2.0)
+			VFX.cracks(base, 7.0)
+			VFX.bolt(base + Vector3.UP * 12.0, base, Color(0.6, 0.85, 1.0), 0.5, 0.3, 4)
+			VFX.debris(base, Color(0.5, 0.42, 0.32), 14, 11.0, 0.35)
+			hit(c, base + Vector3.UP, 3.0, inf(c, "raiga_bomu", 2.4, {"knock": 10.0, "launch": 2.0, "kind": "heavy", "element": "raiton", "hitstop": 0.15}))
+			shake(1.1)
+			Sfx.play("thunder", base, 0.8))
+	if c.global_position.distance_to(tt.global_position) > 2.2:
+		Jutsu._dash(c, tt, minf(0.5, c.global_position.distance_to(tt.global_position) / 30.0), 30.0, func(_pt):
+			if is_instance_valid(c) and c.get("model"):
+				c.model.play("run", 0.06, 2.0), grab)
+	else:
+		grab.call()
 
 
 ## Giyotin Düşüşü: hedefin üstüne sıçrayıp yıldırım yüklü topukla iner: krater ve devirme
@@ -3114,7 +3132,10 @@ func c_raiton_rariatto(c: Node3D, t: Node3D) -> void:
 	c.add_child(arcs)
 	arcs.position = Vector3(0, 1.1, 0)
 	var hits = []
-	Jutsu._dash(c, t, 0.6, 34.0, func(pt):
+	# kaymadan koşar: koşu animasyonu, sağ kol yana açık (lariat); gövde koşu yönüne bakar
+	Jutsu._dash(c, t, 0.6, 30.0, func(pt):
+		if is_instance_valid(c) and c.get("model"):
+			c.model.play("run", 0.06, 2.1)
 		for h in hit(c, pt + c.global_transform.basis.x * 0.6, 1.8, inf(c, "raiton_rariatto", 1.8, {"knock": 18.0, "launch": 9.0, "kind": "heavy", "element": "raiton", "hitstop": 0.08}), hits):
 			hits.append(h)
 			VFX.bolt(h.global_position + Vector3.UP * 3.0, h.global_position + Vector3.UP, Color(0.6, 0.85, 1.0), 0.3, 0.2, 2), func():
