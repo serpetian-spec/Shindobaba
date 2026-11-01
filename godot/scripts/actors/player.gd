@@ -481,7 +481,7 @@ func _ground_air_move(dt: float) -> void:
 	elif dash_t > 0.0:
 		dash_t -= dt
 	else:
-		var spd_mul = Buffs.mod("speed") * (1.0 + Stats.skill(Game.profile, "speed") + Mastery.get_v(Game.profile, "hiz") * 0.004) * (1.0 + Gear.stat(Game.profile, "speed") + Stats.clan_bonus(Game.profile, "speed")) * status_speed()
+		var spd_mul = Buffs.mod("speed") * (1.0 + Stats.skill(Game.profile, "speed") + Mastery.get_v(Game.profile, "hiz") * 0.003) * (1.0 + Gear.stat(Game.profile, "speed") + Stats.clan_bonus(Game.profile, "speed")) * status_speed()
 		if sprint and wish.length() > 0.1:
 			Mastery.gain(Game.profile, "hiz", dt * 0.03)   # koştukça hız
 		var target = wish * ((DASH * 3.2 if turbo else DASH) if sprint else (WALK if walking else RUN)) * spd_mul   # tam hız (5 sn Shift) 2x; Caps Lock: yürüyüş

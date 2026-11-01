@@ -153,19 +153,19 @@ static func price(base: int) -> int:
 
 
 static func max_hp(p: Dictionary) -> float:
-	var v = 100.0 + Mastery.get_v(p, "dayaniklilik") * 14.0   # dayanıklılık ustalığı
+	var v = 100.0 + Mastery.get_v(p, "dayaniklilik") * 8.0   # dayanıklılık ustalığı
 	return v + Gear.stat(p, "hp") + clan_bonus(p, "hp") + skill(p, "hp")
 
 
 static func max_chakra(p: Dictionary) -> float:
-	var v = 80.0 + Mastery.get_v(p, "chakra") * 10.0   # chakra kontrolü ustalığı
+	var v = 80.0 + Mastery.get_v(p, "chakra") * 7.0   # chakra kontrolü ustalığı
 	return v + Gear.stat(p, "chakra") + clan_bonus(p, "chakra") + skill(p, "chakra")
 
 
 static func melee_mult(p: Dictionary) -> float:
 	# yumruk taijutsu, silah kenjutsu ustalığı
 	var armed = String(Gear.weapon(p).get("style", "fist")) != "fist" and bool(p.get("weapon_drawn", false))
-	var m = 1.0 + Mastery.get_v(p, "kenjutsu" if armed else "taijutsu") * 0.03
+	var m = 1.0 + Mastery.get_v(p, "kenjutsu" if armed else "taijutsu") * 0.025
 	m += skill(p, "melee")
 	m += clan_bonus(p, "melee")
 	m *= Buffs.mod("melee") * (1.0 + Gear.stat(p, "melee") * 0.6)
@@ -173,7 +173,7 @@ static func melee_mult(p: Dictionary) -> float:
 
 
 static func jutsu_mult(p: Dictionary) -> float:
-	var m = 1.0 + Mastery.get_v(p, "ninjutsu") * 0.05   # ninjutsu ustalığı
+	var m = 1.0 + Mastery.get_v(p, "ninjutsu") * 0.03   # ninjutsu ustalığı
 	m += skill(p, "jutsu")
 	m += clan_bonus(p, "jutsu")
 	m *= Buffs.mod("jutsu")
