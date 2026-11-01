@@ -6,7 +6,7 @@ extends RefCounted
 ## peçe, yeni ANBU hayvanları), omuz/diz zırhı, sırt eşyaları (tespih, sepet, bel parşömenleri, sashimono bayrağı...), çizme.
 
 const OUTER_SLEEVES := ["palto", "haori", "org_pelerin", "cuppe", "haori_uzun", "mino"]
-const FOOT_KIND := {"sandal": 0, "zori": 0, "tabi": 1, "cizme": 2, "yuksek_sandal": 3, "bilek_bot": 4, "diz_cizme": 5, "sargili_bot": 6, "zirhli_tozluk": 7}
+const FOOT_KIND := {"sandal": 0, "zori": 0, "tabi": 1, "cizme": 2, "yuksek_sandal": 3, "bilek_bot": 4, "diz_cizme": 5, "sargili_bot": 6, "zirhli_tozluk": 7, "shinobi": 8}
 
 
 ## Etek ucu yüksekliği (desen bandı için): dış giysinin bittiği dinlenme pozu y

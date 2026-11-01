@@ -833,6 +833,16 @@ func _cloth_mat(layer: int) -> ShaderMaterial:
 	mat.set_shader_parameter("outer_gap", float(OPEN_GAP.get(os_, 0.075)))
 	mat.set_shader_parameter("outer_sleeves", 1 if look.get("outer_style") in ["palto", "haori"] else 0)
 	mat.set_shader_parameter("foot_cover", look.get("foot_style", "sandal") == "tabi")
+	var fz = 0.12
+	var fy = _grest(skel.find_bone("LeftFoot")).origin.y
+	var bv: PackedVector3Array = g["wpos"]
+	var mz = -1.0
+	for q in bv:
+		if q.y < fy - 0.03 and q.z > mz:
+			mz = q.z
+	if mz > 0.0:
+		fz = mz - 0.05
+	mat.set_shader_parameter("foot_toe_z", fz)
 	OutfitParts.mat_params(self, mat)
 	var bp = func(n: String) -> Vector3: return _grest(skel.find_bone(n)).origin
 	mat.set_shader_parameter("rig_a", Vector4(bp.call("LeftUpperArm").x, bp.call("LeftLowerArm").x, bp.call("LeftHand").x, bp.call("Neck").y))
@@ -912,7 +922,8 @@ func _cloth_rings(g: Dictionary, mat: ShaderMaterial, vest_mat) -> void:
 	for sx in [-1.0, 1.0]:
 		var side = "Left" if sx > 0 else "Right"
 		rings.append([0, sleeve * sx, sx, side + ("UpperArm" if short_sleeve else "LowerArm"), 0.016, 0.011, Vector3(-0.012 * sx, 0, 0), mat, neck])
-		rings.append([1, cut, sx, side + "LowerLeg", 0.02 if ps == "ninja" else 0.014, 0.013, Vector3(0, 0.012, 0), mat, neck])
+		if not look.get("guards") in ["bacak", "ikisi"]:
+			rings.append([1, cut, sx, side + "LowerLeg", 0.02 if ps == "ninja" else 0.014, 0.013, Vector3(0, 0.012, 0), mat, neck])
 	rings.append([1, hips + 0.03, 0.0, "Hips", 0.03, 0.012, Vector3(0, 0.015, 0), mat, neck])
 	if vest_mat != null:
 		rings.append([1, hips + 0.04, 0.0, "Hips", 0.058, 0.01, Vector3(0, 0.03, 0), vest_mat, neck])
@@ -1099,7 +1110,7 @@ func _sandals() -> void:
 		var parts = [_sole_cache[key]]
 		var ring_defs = [[2, fp.z + 0.13, 0.004, 0.007, 0.075], [2, fp.z + 0.06, 0.004, 0.008, 0.11], [1, fp.y + 0.02, 0.006, 0.008, 99.0]]
 		match look.get("foot_style", "sandal"):
-			"tabi":
+			"tabi", "shinobi":
 				ring_defs = [[1, fp.y + 0.02, 0.004, 0.006, 99.0]]  # ayak shader'da kapalı, sadece bilek bağı
 			"zori":
 				ring_defs = [[2, fp.z + 0.11, 0.004, 0.006, 0.07]]
@@ -1988,70 +1999,55 @@ func _outfit_extras() -> void:
 	var vs: PackedVector3Array = body_mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
 	var gd = look.get("guards")
 	var stripe = look.get("guard_stripes")
-	for side in [["Left", 1.0], ["Right", -1.0]]:
-		var pre: String = side[0]
-		var sx: float = side[1]
-		var knee = _bp(pre + "LowerLeg")
-		var ank = _bp(pre + "Foot")
-		# kaval önü: bacağın ön yüzeyi (köşe taraması)
-		var front = func(y: float) -> float:
-			var best = knee.z + 0.04
-			for v in vs:
-				if absf(v.x - knee.x) < 0.07 and absf(v.y - y) < 0.025 and v.z > best:
-					best = v.z
-			return best
-		if stripe != null and gd in ["bacak", "ikisi"]:
-			var m = MB.new()
-			var y0 = knee.y - 0.06
-			var y1 = ank.y + 0.1
-			var ym = (y0 + y1) * 0.5
-			var fz = float(front.call(ym)) + 0.056
-			var cx = knee.x
-			var bz = -1.0
-			for v in vs:
-				if absf(v.y - ym) < 0.03 and absf(v.x - knee.x) < 0.08 and v.z > bz:
-					bz = v.z
-					cx = v.x   # kavalın en ön noktası
-			for k in 3:
-				var x = cx + (k - 1) * 0.022
-				m.add("box", Vector3(x, ym, fz), Vector3(0.008, y0 - y1, 0.006), stripe)
-			_mesh_on(pre + "LowerLeg", m.build(Props.toon()), Transform3D.IDENTITY)
-		if look.get("knee_wraps", false):
-			var m2 = MB.new()
-			var white = Color(0.92, 0.92, 0.9)
-			var kz = float(front.call(knee.y + 0.02)) + 0.016
-			for a in [-28.0, 28.0]:
-				m2.add("box", Vector3(knee.x, knee.y + 0.04, kz), Vector3(0.022, 0.16, 0.008), white, Vector3(0, 0, a))
-			m2.add("box", Vector3(knee.x, knee.y + 0.11, kz - 0.004), Vector3(0.13, 0.022, 0.008), white)
-			m2.add("box", Vector3(knee.x, knee.y - 0.03, kz - 0.004), Vector3(0.12, 0.022, 0.008), white)
-			_mesh_on(pre + "UpperLeg", m2.build(Props.toon()), Transform3D.IDENTITY)
-		# ön kol çizgileri (Kiri kol koruyucusu)
-		if stripe != null and gd in ["kol", "ikisi"]:
-			var la = _bp(pre + "LowerArm")
-			var hd = _bp(pre + "Hand")
-			var ax = (hd - la).normalized()
-			var r = 0.0
-			var mid = la.lerp(hd, 0.6)
-			for v in vs:
-				var d = v - la
-				var tt = d.dot(ax)
-				if tt < 0.0 or tt > la.distance_to(hd):
+	var g = _geo_for(look["gender"])
+	var gk = func(key: String): return _garment_cache.get("%s|%s|%.3f" % [look["gender"], key, _outer_pad])
+	# koruyucu çizgileri: koruyucu kabuğunun kendisinden (derili, kabukla eğilir; havada kalmaz)
+	if stripe != null:
+		for sx in [1.0, -1.0]:
+			for part in [["kaval", gd in ["bacak", "ikisi"]], ["kolluk", gd in ["kol", "ikisi"]]]:
+				if not part[1]:
 					continue
-				var perp = (d - ax * tt).length()
-				if perp < 0.09 and absf(tt - la.distance_to(hd) * 0.6) < 0.03:
-					r = maxf(r, perp)
-			r += 0.026
-			var up = Vector3.UP - ax * ax.dot(Vector3.UP)
-			up = up.normalized()
-			var side_v = ax.cross(up).normalized()
-			var m3 = MB.new()
-			var seg_len = la.distance_to(hd) * 0.42
-			for k in 4:
-				var ang = PI * 0.25 + k * PI * 0.5
-				var off = (up * cos(ang) + side_v * sin(ang)) * r
-				var c = mid + off
-				m3.add_xf("box", Transform3D(Basis(side_v * 0.008, up * 0.006, ax * seg_len).rotated(ax, ang), c), stripe)
-			_mesh_on(pre + "LowerArm", m3.build(Props.toon()), Transform3D.IDENTITY)
+				var src = gk.call("%s%d" % [part[0], int(sx)])
+				if src == null or not _sk_begin(src):
+					continue
+				var V: PackedVector3Array = _sk["v"]
+				var y0 = 99.0; var y1 = -99.0
+				for q in V:
+					y0 = minf(y0, q.y); y1 = maxf(y1, q.y)
+				var ym = (y0 + y1) * 0.5
+				var cx = 0.0; var bz = -9.0
+				for q in V:   # koruyucunun orta yükseklikteki en ön noktası: çizgiler tam önde
+					if absf(q.y - ym) < 0.03 and q.z > bz:
+						bz = q.z; cx = q.x
+				var spread = 0.02 if part[0] == "kaval" else 0.014
+				var cnt = 3 if part[0] == "kaval" else 2
+				for k in cnt:
+					var x = cx + (k - (cnt - 1) * 0.5) * spread
+					_sk_strip(x, y1 - 0.025, y0 + 0.025, 0.007, 0.005, stripe, 18)
+				_sk_end(g)
+	# Kumo diz sargısı: dizin önünde çapraz iki bant + üst/alt yatay bant, pantolon kabuğunun yüzeyinden
+	if look.get("knee_wraps", false) and _sk_begin(_shell_cache.get(look["gender"])):
+		var white = Color(0.92, 0.92, 0.9)
+		for side in ["Left", "Right"]:
+			var kn = _bp(side + "LowerLeg")
+			var lines = [[Vector2(-0.055, 0.075), Vector2(0.055, -0.03)], [Vector2(0.055, 0.075), Vector2(-0.055, -0.03)],
+				[Vector2(-0.065, 0.085), Vector2(0.065, 0.085)], [Vector2(-0.06, -0.04), Vector2(0.06, -0.04)]]
+			for ln in lines:
+				var pts = []; var outs = []
+				for k in 9:
+					var q: Vector2 = ln[0].lerp(ln[1], k / 8.0)
+					var hit = _sk_hit(kn.x + q.x, kn.y + q.y, true, 0.02)
+					if not hit.is_empty():
+						pts.append(Vector3(kn.x + q.x, kn.y + q.y, hit[0].z)); outs.append(hit[1])
+				for it in 2:
+					var sm = pts.duplicate()
+					for i in range(1, pts.size() - 1):
+						sm[i] = Vector3(pts[i].x, pts[i].y, maxf(pts[i].z, (pts[i - 1].z + pts[i + 1].z) * 0.5))
+					pts = sm
+				if pts.size() > 1:
+					var dir = (Vector3(ln[1].x, ln[1].y, 0) - Vector3(ln[0].x, ln[0].y, 0)).normalized()
+					_sk_band(pts, outs, Vector3.BACK.cross(dir).normalized(), 0.018, 0.006, white)
+		_sk_end(g)
 	# Iwa: sağ uyluğun dışından dize kadar sarkan koyu kanat
 	var flap = look.get("pants_flap")
 	if flap != null:

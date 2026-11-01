@@ -43,6 +43,7 @@ uniform bool gloves = false;
 uniform bool arm_wraps = false;
 uniform int outer_sleeves = 0; // 1: dış giysi kolları (palto/haori)
 uniform bool foot_cover = false; // tabi: ayak tamamen kapalı
+uniform float foot_toe_z = 0.1;  // shinobi sandaleti: bu z'den öndeki parmaklar açık
 varying float slot_ov;
 uniform vec4 face_a = vec4(0.0);   // çene genişliği, çene ucu, elmacık, burun (metre)
 uniform vec4 face_b = vec4(0.0);   // kaş çıkıntısı, işaret türü (0 yok, 1 burun yarası, 2 yanak çizgisi, 3 çil, 4 kırışık), -, -
@@ -117,6 +118,7 @@ float fold_h(vec3 p, int slot) {
 	float ax = abs(p.x);
 	float n = vnoise(p.xz * 40.0 + p.y * 13.0);
 	if (slot == 4) return 0.5 + 0.5 * sin(p.y * 260.0 + p.x * 40.0 + p.z * 25.0);
+	if (slot == 9) return 0.0;   // koruyucular (kaval/kolluk) sert malzeme: pantolon kıvrımı almaz
 	bool arm = ax > rig_a.x * 0.9 && p.y > rig_a.w - 0.32;
 	if (arm) {
 		float e = exp(-pow((ax - rig_a.y) / 0.06, 2.0));
@@ -163,7 +165,8 @@ int cloth_slot(vec3 p) {
 		if (top_style == 8 && p.y > rig_b.w - 0.04 && (ax > rig_a.x * 0.62 || (ax < 0.07 && p.z > 0.0))) return 0;
 		return 1;
 	}
-	if (p.y < rig_b.z + 0.03) return (foot_cover || foot_kind == 1 || foot_kind == 2 || foot_kind >= 4) ? 6 : 0;
+	if (foot_kind == 8 && p.y < rig_b.z + 0.07) return (p.z > foot_toe_z && p.y < rig_b.z - 0.035) ? 0 : 6;   // shinobi sandaleti
+	if (p.y < rig_b.z + 0.03) return (foot_cover || foot_kind == 1 || foot_kind == 2 || (foot_kind >= 4 && foot_kind != 8)) ? 6 : 0;
 	if (foot_kind == 2 && p.y < rig_b.z + 0.2) return 6;   // çizme konçu
 	if (foot_kind == 4 && p.y < rig_b.z + 0.09) return 6;   // bilek botu
 	if ((foot_kind == 5 || foot_kind == 7) && p.y < rig_b.y - 0.01) return 6;   // diz çizmesi / zırhlı tozluk
