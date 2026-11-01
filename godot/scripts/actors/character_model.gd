@@ -3897,6 +3897,16 @@ func _key_blade_sk(sk: Skeleton3D, blade: Vector3) -> void:
 			hz = hz.normalized() * sqrt(maxf(0.0, 1.0 - need * need))
 			dir_w = Vector3(hz.x, need, hz.z)
 			z = (skb.orthonormalized().inverse() * dir_w).normalized()
+		# EL SİLAHA UYAR: bileği, tutuş ekseni (avucun içinden geçen kabza ekseni) silahın yönüne gelecek kadar döndür.
+		# Silah avuçta hep aynı yerde kalır (parmak ucuyla tutar gibi görünmez); kalan küçük fark silahta düzeltilir.
+		var cur_z: Vector3 = pb.z
+		var qh = Quaternion(cur_z.normalized(), z)
+		var hpar = sk.get_bone_parent(hb)
+		var parb: Basis = sk.get_bone_global_pose(hpar).basis if hpar >= 0 else Basis.IDENTITY
+		var new_g: Basis = Basis(qh) * hp.basis
+		sk.set_bone_pose_rotation(hb, (parb.inverse() * new_g).get_rotation_quaternion())
+		hp = sk.get_bone_global_pose(hb)
+		pb = (hp.basis * holder.transform.basis).orthonormalized()
 		var x = Vector3.UP.cross(z)
 		if x.length() < 0.1:
 			x = Vector3.RIGHT
