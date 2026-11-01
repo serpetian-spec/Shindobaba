@@ -323,6 +323,7 @@ func _end_keys() -> void:
 	key_blade = Vector3.ZERO
 	_key_bv = Vector3.ZERO
 	_key_prev = Vector3.ZERO
+	_lsm.clear()
 
 
 var _key_out := 0.0
@@ -331,6 +332,7 @@ var _key_out := 0.0
 var _key_chain := false
 var key_weapon_cb: Callable   # CharacterModel._key_blade_sk: silah yönü iskelet güncellemesi içinde
 var _key_hold := 0.0
+var _lsm := {}   # boştaki kolun yumuşatılmış yönleri
 var _key_bv := Vector3.ZERO      # kılıç ucunun yumuşatılmış açısal hızı (gövde tepkisi için)
 var _key_prev := Vector3.ZERO
 
@@ -401,6 +403,11 @@ func _apply_keys(sk: Skeleton3D, dt: float) -> void:
 	var b3: Dictionary = k3["b"]
 	for bone in b1:
 		var d: Vector3 = spin * _sl(b1[bone], b2.get(bone, b1[bone]), u)
+		if bone == "LeftUpperArm" or bone == "LeftLowerArm":
+			# boştaki kol: yeni pozuna gecikmeli, yumuşak gider (her anahtarda sıçrayıp random görünmesin)
+			if _lsm.has(bone) and _key_chain or (_lsm.has(bone) and key_t > 0.02):
+				d = (_lsm[bone] as Vector3).slerp(d.normalized(), clampf(dt * 7.0, 0.0, 1.0))
+			_lsm[bone] = d
 		if bone == "Spine" or bone == "Chest":
 			d = lean_b * d
 		arms.append([bone, d])
