@@ -210,6 +210,12 @@ func _start_step() -> void:
 	_set_two_hand(c.get("two_hand", false), float(c.get("dur", 0.6)))
 	if c.has("keys"):
 		p.model.overlay.play_keys(c["keys"], float(c.get("key_spd", 1.0)))
+		if int(c.get("rai", -1)) == COMBO.size() - 1:
+			get_tree().create_timer(0.16).timeout.connect(func():
+				if is_instance_valid(p) and action == "attack":
+					var hand = p.global_position + Vector3.UP * 2.6
+					VFX.bolt(hand + Vector3.UP * 12.0, hand, Color(0.75, 0.88, 1.0), 0.4, 0.3, 4)
+					Sfx.play("thunder", hand, 1.3, 0.6))
 	else:
 		p.model.overlay.stop_keys()
 	# yelpaze: kombonun 4. vuruşu uzak rüzgâr dalgası (3 sn bekleme, spam yok)
@@ -366,6 +372,8 @@ func _do_attack(dt: float) -> bool:
 		var pt = p.global_position + Vector3.UP * 1.1 + p.face_dir() * (p.radius + c["reach"] * 0.6)
 		if c.get("gust", false):
 			_gunbai_gust(_ci(step))
+		if c.has("rai"):
+			_raijin_fx(int(c["rai"]), pt)
 		var hits = Combat.hit_sphere(p, pt, c["reach"] * 0.65 * Buffs.mod("reach"), _hit_info(c))
 		if not hits.is_empty():
 			_on_hit_fx(pt, c)
@@ -473,14 +481,14 @@ func _combo_base(i: int) -> Dictionary:
 			c["heavy"] = true
 		"drain":
 			c["drain"] = true
-	if wid in ["samehada", "gunbai", "kunai"]:
+	if wid in ["samehada", "gunbai", "kunai", "raijin"]:
 		# el yapımı anahtar animasyon (Samehada: videodan; Gunbai/Kunai: kendine anlatılmış tarif): süre/vuruş anı anahtarlardan
-		var kst: Array = {"samehada": SamehadaAnim, "gunbai": GunbaiAnim, "kunai": KunaiAnim}[wid].steps()
+		var kst: Array = {"samehada": SamehadaAnim, "gunbai": GunbaiAnim, "kunai": KunaiAnim, "raijin": RaijinAnim}[wid].steps()
 		var ks: Dictionary = kst[clampi(i, 0, 5)] if kst.size() >= 6 else kst[_ci(i)]
 		c["keys"] = ks
 		c["anim"] = "idle"
 		c["speed"] = 1.0
-		var ksp = {"samehada": 1.3, "gunbai": 1.05, "kunai": 1.0}[wid]   # gunbai: ağır silah ritmi; kunai zaten hızlı
+		var ksp = {"samehada": 1.3, "gunbai": 1.05, "kunai": 1.0, "raijin": 1.0}[wid]   # gunbai: ağır silah ritmi; kunai zaten hızlı
 		c["key_spd"] = ksp
 		c["dur"] = float(ks["len"]) / ksp
 		c["hit"] = float(ks["hit"]) / ksp
@@ -494,6 +502,11 @@ func _combo_base(i: int) -> Dictionary:
 				c["knock"] = 4.0
 			elif i == COMBO.size() - 1:
 				c["knock"] = 22.0   # Uchiha Gaeshi: düz geri savrulur (havaya değil)
+		if wid == "raijin":
+			c["rai"] = i
+			if i == COMBO.size() - 1:
+				c["knock"] = 12.0
+				c["heavy"] = true
 		if wid == "kunai" and i == COMBO.size() - 1:
 			c["knock"] = 9.0   # bitiriş biçmesi rakibi geri savurur
 		if i == COMBO.size() - 1 and wid == "samehada":
@@ -705,6 +718,28 @@ func _update_charge(dt: float) -> void:
 		var a = aura
 		aura = null
 		get_tree().create_timer(1.0).timeout.connect(a.queue_free)
+
+
+## Raijin Kılıcı: her vuruşta ağızdan şimşek çatırtısı; saplamada ağız şimşek olarak ileri uzar; bitirişte gökten yıldırım çakar
+func _raijin_fx(i: int, pt: Vector3) -> void:
+	var col = Color(0.75, 0.88, 1.0)
+	var dir = p.face_dir()
+	var tip = p.global_position + Vector3.UP * 1.1 + dir * 1.2
+	match i:
+		3:
+			VFX.bolt(tip, tip + dir * 3.2 + Vector3.UP * 0.1, col, 0.22, 0.25, 4)   # chakra ağzı uzar
+			Combat.hit_zone(p, p.global_position, dir, 4.5, 12.0, 2.0, {"dmg": 3.0 * Stats.melee_mult(Game.profile), "knock": 3.0, "kind": "light", "element": "raiton", "melee": true})
+		5:
+			VFX.bolt(pt + Vector3.UP * 14.0, pt + Vector3.DOWN * 1.0, col, 0.55, 0.35, 5)
+			VFX.cracks(Vector3(pt.x, p.global_position.y, pt.z), 3.0)
+			if Game.world:
+				Game.world.env.add_shake(0.5)
+				Game.world.env.screen_flash(0.06)
+			Sfx.play("thunder", pt, 1.1)
+		_:
+			for k in 2:
+				VFX.bolt(pt, pt + Vector3(randf_range(-0.8, 0.8), randf_range(-0.4, 0.8), randf_range(-0.8, 0.8)), col, 0.08, 0.15, 1)
+	Sfx.play("chidori", pt, 1.6, 0.35)
 
 
 ## Gunbai vuruş efektleri (rüzgâr savurma yok — ağır başlı sopa/kalkan): kenar yarması, yüz tokadı, saplama, emme, Uchiha Gaeshi

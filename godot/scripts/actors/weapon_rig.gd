@@ -51,7 +51,9 @@ func _process_modification() -> void:
 		_curl(sk, side + "ThumbDistal", Quaternion.from_euler(Vector3(0.5 * sgn, 0, 0)), w)
 
 
-var relax_thumb := Vector3(-0.4, 0.0, 0.0)   # başparmak işaret parmağının yanına yatık (zikzak yok)
+var relax_meta := Vector3(0.6, -0.3, 0.0)   # boş el başparmağı içe kıvrık (dışa kanca gibi çıkmaz)
+var relax_dist := 0.4
+var relax_thumb := Vector3.ZERO
 var relax_free := true   # boştaki el: animasyonun zikzak başparmağı yerine rahat, hafif kıvrık el
 
 
@@ -59,7 +61,10 @@ var relax_free := true   # boştaki el: animasyonun zikzak başparmağı yerine 
 func _relax_hand(sk: Skeleton3D, side: String) -> void:
 	# boştaki el animasyonun orijinal hâlinde kalır; YALNIZ zikzak başparmak düzeltilir (işaret parmağının yanına yatık)
 	var sgn = 1.0 if side == "Left" else -1.0
-	_curl(sk, side + "ThumbProximal", Quaternion.from_euler(Vector3(-0.4 * sgn, 0, 0)), 0.85)
+	if relax_meta != Vector3.ZERO:
+		_curl(sk, side + "ThumbMetacarpal", Quaternion.from_euler(Vector3(relax_meta.x * sgn, relax_meta.y * sgn, relax_meta.z * sgn)), 1.0)
+	_curl(sk, side + "ThumbProximal", Quaternion.from_euler(Vector3(relax_thumb.x * sgn, relax_thumb.y * sgn, relax_thumb.z * sgn)), 1.0)
+	_curl(sk, side + "ThumbDistal", Quaternion.from_euler(Vector3(relax_dist * sgn, 0, 0)), 1.0)
 
 
 ## İki kemikli IK: sol omuz-dirsek-el zinciri, silah sapındaki hedefe uzanır (dirsek aşağı-dışa)
