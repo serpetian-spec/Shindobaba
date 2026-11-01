@@ -75,7 +75,7 @@ func take_hit(info: Dictionary) -> void:
 		return
 	var em = Combat.element_mult(info.get("element", ""), element)
 	var react = Elements.on_hit(self, info)
-	var dmg: float = info.get("dmg", 5.0) * em * react * Combat.jutsu_factor(info)
+	var dmg: float = info.get("dmg", 5.0) * em * react * Combat.jutsu_factor(info) * (1.0 - Gear.elem_resist(self, String(info.get("element", ""))))   # set direnci (AI)
 	if has_status("marked"):
 		dmg *= 1.25   # Dinamik İşaretleme / algılama: işaretli hedef fazla hasar alır
 	var atk = info.get("attacker")

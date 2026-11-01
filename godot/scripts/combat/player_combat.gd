@@ -958,6 +958,7 @@ func take_hit(info: Dictionary) -> void:
 	var atk: Node3D = info.get("attacker")
 	var dmg: float = info.get("dmg", 5.0) * Combat.jutsu_factor(info)
 	dmg *= Combat.element_mult(info.get("element", ""), Game.profile.get("elements", [""])[0])
+	dmg *= 1.0 - Gear.elem_resist(p, String(info.get("element", "")))   # kıyafet seti element direnci
 	dmg *= Elements.on_hit(p, info)  # ıslak/yanık/donma etkileşimleri oyuncuya da işler
 	if action == "guard" and atk and is_instance_valid(atk):
 		var to_atk = (atk.global_position - p.global_position)
