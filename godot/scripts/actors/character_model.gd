@@ -2349,7 +2349,7 @@ func _attachments() -> void:
 ## Silah kını yeri: pouch = kunai çantası/kılıfı (görünmez), hip = sol kalçada kınlı kılıç (çapraz çekiş),
 ## back = sırtta çapraz (dev kılıçlar, sopalar), low_back = belin arkasında yatay, belt = yan kalçada asılı
 const SHEATH_OF := {"blade": "pouch", "dual": "pouch", "claw": "pouch", "sickle": "belt", "sword": "hip", "heavy": "back", "staff": "back", "chain": "belt", "fan": "back"}
-const SHEATH_ID := {"tanto": "low_back", "ikiz_hancer": "low_back", "tonfa": "belt", "sai": "belt", "kiba": "back", "nodachi": "back", "bashosen": "pouch"}   # Bashōsen: kılıf/sırt kayışı yok, kınında gizli, yalnız elde görünür
+const SHEATH_ID := {"tanto": "low_back", "ikiz_hancer": "low_back", "tonfa": "belt", "sai": "belt", "kiba": "back", "nodachi": "back"}
 ## Kınlı kılıçlar: [kın başı z, kın ucu z, kalınlık, genişlik] (silah uzayında, kabza 0, namlu +Z)
 const SAYA := {"katana": [0.075, 0.84, 0.042, 0.06], "wakizashi": [0.05, 0.6, 0.04, 0.055], "nodachi": [0.1, 1.38, 0.05, 0.11],
 	"tanto": [0.06, 0.4, 0.045, 0.045], "chokuto": [0.13, 0.9, 0.05, 0.05], "raijin": [0.08, 0.86, 0.045, 0.06]}
@@ -2511,7 +2511,9 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 			var b = _frame(Vector3(sx * 0.12, -1.0, 0.18), Vector3(sx, 0, 0))
 			xf = Transform3D(b, hp + Vector3(sx * 0.2, 0.1, 0.03))
 	var holder: Node3D = _attach("UpperChest" if kind == "back" else "Hips", xf).get_child(0)
-	if kind == "back":
+	if kind == "back" and id == "bashosen":
+		pass   # Bashōsen sırtta kayışsız/kelepçesiz durur (kılıf karakterin dışında saçma duruyordu)
+	elif kind == "back":
 		_back_strap(sx)
 		# iki deri kelepçe: silahı sırttaki kayışa bağlar (holder +x sırttan dışarı, y sırt düzleminde silaha dik)
 		var leather = Color(0.3, 0.19, 0.11)

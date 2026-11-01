@@ -2648,6 +2648,18 @@ func bashosen_fan(c: Node3D, el_col: Color) -> Node3D:
 		if is_instance_valid(root):
 			FX.burst(root.global_position + Vector3.UP * 0.8, {"amount": 24, "life": 0.5, "tex": FX.tex_spark, "add": true, "size": 0.25, "radius": 0.8, "vmin": 2, "vmax": 5,
 				"colors": [Color(1, 1, 1, 1), el_col, Color(el_col.r, el_col.g, el_col.b, 0)]}))
+	# tekniği atarken sırttaki (kınındaki) Bashōsen gizlenir: aynı anda hem elde hem sırtta görünmesin
+	var md = c.get("model")
+	var hidden = []
+	if md and "weapons" in md:
+		for w in md.weapons:
+			if String(w.get("id", "")) == "bashosen" and is_instance_valid(w["node"]) and w["node"].visible:
+				w["node"].visible = false
+				hidden.append(w["node"])
+	after(1.9, func():
+		for n in hidden:
+			if is_instance_valid(n):
+				n.visible = true)
 	var ba = bone_attach(c, "RightHand")
 	if ba:
 		ba.add_child(root)
@@ -4311,8 +4323,7 @@ func impact_fx(el: String, col: Color, at: Vector3, s := 1.0) -> void:
 			if near_ground:
 				VFX.cracks(g, 3.0 * s, Color(0.08, 0.04, 0.02, 0.9), 6.0)
 		"suiton":
-			VFX.splash(at, 2.6 * s)
-			VFX.smoke_ring(g + Vector3.UP * 0.1, 3.5 * s, Color(0.75, 0.88, 1.0))
+			VFX.splash(at, 2.6 * s)   # 3B su tacı (beyaz cel duman halkası suyu kum bulutu gibi gösteriyordu)
 		"hyoton":   # buz kırığı: keskin kristal parçaları ve soğuk buğu (su sıçraması değil)
 			VFX.debris(at, Color(0.82, 0.94, 1.0), int(14 * s) + 4, 9.0 * s, 0.3)
 			VFX.star(at, Color(0.9, 0.97, 1.0), 2.2 * s, 0.16)
@@ -4392,14 +4403,14 @@ func _water_jet_fx(c: Node3D, from: Vector3, d: Vector3, L: float, W: float, dur
 			var u = randf()
 			VFX.puffs(mo + dd * (0.5 + u * L * 0.2), {"amount": 2, "life": 0.5, "size": (0.7 + u * 0.9) * k, "radius": (0.15 + u * 0.4) * k, "vmin": L * 1.0, "vmax": L * 1.4,
 				"dir": dd, "spread": 6.0 + W * 2.0, "damp": 1.8, "gravity": Vector3(0, -6.0, 0), "spin": 40.0, "glow": 1.06, "hot": 0.3,
-				"outline_col": Color(0.04, 0.2, 0.62), "outline": 0.045, "rough": 0.14, "shade": 0.3,
+				"water": true, "outline_col": Color(0.04, 0.2, 0.62), "outline": 0.045, "rough": 0.14, "shade": 0.3,
 				"colors": [Color(0.6, 0.85, 1.0, 1), Color(0.25, 0.58, 0.98, 1), Color(0.15, 0.44, 0.92, 0.9), Color(0.1, 0.36, 0.85, 0.0)], "scale_curve": [[0.0, 0.4], [0.35, 1.0], [1.0, 1.3]]})
 		if _i % 2 == 0:
 			VFX.puffs(mo + dd * L * randf_range(0.2, 0.6), {"amount": 3, "life": 0.6, "size": 0.18 * k, "radius": W * 0.3, "vmin": 2.0, "vmax": 5.0, "dir": Vector3.UP, "spread": 70.0,
-				"gravity": Vector3(0, -20, 0), "glow": 1.05, "outline_col": Color(0.05, 0.25, 0.7), "outline": 0.045,
+				"gravity": Vector3(0, -20, 0), "glow": 1.05, "water": true, "outline_col": Color(0.05, 0.25, 0.7), "outline": 0.045,
 				"colors": [Color(0.8, 0.95, 1.0, 1), Color(0.35, 0.68, 1.0, 1), Color(0.25, 0.55, 1.0, 0.0)]})
 			VFX.puffs(mo + dd * L * randf_range(0.3, 0.9) + Vector3.UP * 0.6 * k, {"amount": 1, "life": 0.4, "size": 0.5 * k, "radius": W * 0.25, "vmin": 1.0, "vmax": 3.0, "dir": dd, "spread": 30.0,
-				"gravity": Vector3(0, -8, 0), "glow": 1.05, "outline_col": Color(0.3, 0.55, 0.9), "outline": 0.03,
+				"gravity": Vector3(0, -8, 0), "glow": 1.05, "water": true, "outline_col": Color(0.3, 0.55, 0.9), "outline": 0.03,
 				"colors": [Color(0.95, 0.99, 1, 1), Color(0.8, 0.93, 1, 0.8), Color(0.65, 0.85, 1, 0)]}), Callable())
 
 
@@ -12501,7 +12512,7 @@ func p_suiton_suidanha(c: Node3D, t: Node3D) -> void:
 		WindFX.streak(func(q: float) -> Vector3: return from.lerp(end, q) + Vector3.UP * 0.05, 0.08, 0.3, Color(0.35, 0.65, 1.0), 0.0, 6)
 		if i % 2 == 0:
 			VFX.puffs(from + dd * randf_range(1.0, 18.0), {"amount": 3, "life": 0.4, "size": 0.35, "radius": 0.3, "vmin": 1.0, "vmax": 3.0, "dir": Vector3.UP, "spread": 70.0,
-				"gravity": Vector3(0, -14, 0), "glow": 1.05, "outline_col": Color(0.05, 0.25, 0.7), "outline": 0.045,
+				"gravity": Vector3(0, -14, 0), "glow": 1.05, "water": true, "outline_col": Color(0.05, 0.25, 0.7), "outline": 0.045,
 				"colors": [Color(0.8, 0.95, 1.0, 1), Color(0.35, 0.68, 1.0, 1), Color(0.25, 0.55, 1.0, 0.0)]})
 		if i % 4 == 0:
 			VFX.splash(gp(end), 0.9)

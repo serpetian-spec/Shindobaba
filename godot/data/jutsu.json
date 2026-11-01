@@ -13691,40 +13691,6 @@
   "series": "Naruto Shippūden",
   "meaning": "Su Trompeti"
  },
- "water_release_wild_water_wave": {
-  "id": "water_release_wild_water_wave",
-  "name": "Suiton: Mizurappa",
-  "name_en": "Water Release: Wild Water Wave",
-  "cost": 22,
-  "cd": 7.8,
-  "element": "suiton",
-  "elements": [
-   "suiton"
-  ],
-  "natures": [
-   "suiton"
-  ],
-  "clan": "",
-  "level": 5,
-  "rank": 1,
-  "learn": "scroll",
-  "desc": "Ağızdan güçlü su akıntısı.",
-  "seals": [
-   "Tatsu",
-   "Tora",
-   "U"
-  ],
-  "canon_rank": "C",
-  "tier": 2,
-  "category": "ninjutsu",
-  "shape": "aoe",
-  "range": "Short, Mid",
-  "requires": {},
-  "signature": false,
-  "kinjutsu": false,
-  "series": "Naruto Shippūden",
-  "meaning": "Vahşi Su Dalgası"
- },
  "suiton_teppodama": {
   "id": "suiton_teppodama",
   "name": "Suiton: Teppōdama",
@@ -20418,7 +20384,8 @@
   "katon_karyu_endan": "katon_karyuu",
   "sarutobi_karyu": "katon_karyuu",
   "sarutobi_karyu_endan": "katon_karyuu",
-  "katon_zukokku": "kakuzu_maske_katon"
+  "katon_zukokku": "kakuzu_maske_katon",
+  "water_release_wild_water_wave": "suiton_mizurappa"
  },
  "kusanagi_kuchi": {
   "id": "kusanagi_kuchi",

@@ -395,7 +395,14 @@ static func trail(parent: Node3D, cols: Array, size: float, amount := 40, life :
 	p.process_material = pm
 	var q = QuadMesh.new()
 	q.size = Vector2.ONE * size
-	if not add:
+	var cw: Color = cols[mini(1, cols.size() - 1)]
+	if not add and cw.b > cw.r + 0.25:
+		# su izi: Storm su parçaları (tırtıklı soluk camgöbeği, kontur yok)
+		pm.gravity = Vector3(0, -12.0, 0)
+		pm.color_ramp = FX._gradient([Color(1, 1, 1, 1), Color(0.95, 0.98, 1, 0.9), Color(0.95, 0.98, 1, 0)])
+		q.size = Vector2.ONE * size * 1.2
+		q.material = FX._draw_mat(FX.tex_water, false)
+	elif not add:
 		# karışımlı iz = sert kenarlı cel topaklar (alev/su/duman kuyruğu)
 		var c: Color = cols[mini(1, cols.size() - 1)]
 		var hot = c.s > 0.5 and c.v > 0.7

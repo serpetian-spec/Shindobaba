@@ -623,11 +623,11 @@ static func _water_wave(c: Node3D, d: Dictionary, start: Vector3, dir: Vector3, 
 				# dalga gövdesi (mavi)
 				VFX.puffs(p + o + Vector3.UP * randf_range(0.2, hh * 0.7), {"amount": 2, "life": 0.5, "size": 0.9 + hh * 0.35, "radius": 0.4, "vmin": 2.0, "vmax": 5.0,
 					"dir": (dir + Vector3.UP * 0.6).normalized(), "spread": 25.0, "gravity": Vector3(0, -14, 0), "damp": 1.0, "glow": 1.06, "hot": 0.3,
-					"outline_col": Color(0.04, 0.2, 0.62), "outline": 0.045, "rough": 0.14, "shade": 0.3,
+					"water": true, "outline_col": Color(0.04, 0.2, 0.62), "outline": 0.045, "rough": 0.14, "shade": 0.3,
 					"colors": [Color(0.5, 0.8, 1.0, 1), Color(0.22, 0.55, 0.98, 1), Color(0.14, 0.42, 0.9, 0.9), Color(0.1, 0.35, 0.85, 0.0)]})
 			# kıvrık tepe köpüğü + damlalar
 			VFX.puffs(p + side * randf_range(-w * 0.5, w * 0.5) + Vector3.UP * hh + dir * 0.6, {"amount": 3, "life": 0.45, "size": 0.6 + hh * 0.15, "radius": 0.5, "vmin": 2.0, "vmax": 5.0,
-				"dir": (dir + Vector3.UP * 0.3).normalized(), "spread": 30.0, "gravity": Vector3(0, -16, 0), "glow": 1.05, "outline_col": Color(0.3, 0.55, 0.9), "outline": 0.03, "rough": 0.15,
+				"dir": (dir + Vector3.UP * 0.3).normalized(), "spread": 30.0, "gravity": Vector3(0, -16, 0), "glow": 1.05, "water": true, "outline_col": Color(0.3, 0.55, 0.9), "outline": 0.03, "rough": 0.15,
 				"colors": [Color(0.95, 0.99, 1, 1), Color(0.75, 0.9, 1, 0.9), Color(0.6, 0.82, 1, 0)]})
 		if is_instance_valid(c):
 			hit.append_array(Combat.hit_sphere(c, p + Vector3.UP, w * 0.5, inf, hit)), 0.0, 1.0, 1.0)
@@ -640,15 +640,11 @@ static func _wave_ring(pos: Vector3, r: float, m: Material, dur: float) -> void:
 			var t0 = scene().get_tree().create_timer(k * dur * 0.2)
 			var rr = r * 0.12 * (k + 1)
 			t0.timeout.connect(func():
-				var p = VFX.puffs(pos + Vector3.UP * 0.4, {"amount": int(24 + rr * 1.5), "life": 0.6, "size": 1.2, "radius": rr, "vmin": 3.0, "vmax": 6.0, "dir": Vector3.UP, "spread": 50.0,
-					"gravity": Vector3(0, -14, 0), "glow": 1.06, "outline_col": Color(0.04, 0.2, 0.62), "outline": 0.045, "rough": 0.14,
-					"colors": [Color(0.55, 0.82, 1.0, 1), Color(0.24, 0.57, 0.98, 1), Color(0.14, 0.42, 0.9, 0.0)]})
-				if p:
-					var pm: ParticleProcessMaterial = p.process_material
-					pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_RING
-					pm.emission_ring_axis = Vector3.UP
-					pm.emission_ring_radius = rr
-					pm.emission_ring_inner_radius = rr * 0.85)
+				# dışa yayılan halka boyunca 3B su tacı sıçramaları
+				var cnt = clampi(int(rr * 1.2), 5, 14)
+				for q in cnt:
+					var aa = q * TAU / cnt + randf() * 0.3
+					WaterArt.splash(pos + Vector3(cos(aa), 0, sin(aa)) * rr, 1.2 + rr * 0.05))
 		return
 	var tor = TorusMesh.new()
 	tor.inner_radius = 0.75; tor.outer_radius = 1.0; tor.rings = 32; tor.ring_segments = 10

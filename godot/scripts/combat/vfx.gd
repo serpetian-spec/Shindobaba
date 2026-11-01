@@ -123,6 +123,11 @@ static func mat_water(deep := Color(0.05, 0.28, 0.78), mid := Color(0.2, 0.55, 0
 		return _cache[key]
 	var m = ShaderMaterial.new()
 	m.shader = load("res://shaders/vfx_water.gdshader")
+	# Naruto Storm su paleti: mavi su ise doygun koyu mavi yerine soluk camgöbeği (lav/yağ/çamur renklerine dokunma)
+	if mid.b > mid.r + 0.2:
+		deep = deep.lerp(Color(0.36, 0.62, 0.84), 0.75)
+		mid = mid.lerp(Color(0.55, 0.8, 0.95), 0.75)
+		light = light.lerp(Color(0.84, 0.95, 1.0), 0.75)
 	m.set_shader_parameter("c_deep", deep)
 	m.set_shader_parameter("c_mid", mid)
 	m.set_shader_parameter("c_light", light)
@@ -592,7 +597,45 @@ static func puffs(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 		cfg["size"] = float(cfg.get("size", 1.0)) * e
 		cfg["radius"] = float(cfg.get("radius", 0.0)) * epic
 		cfg["vmax"] = float(cfg.get("vmax", 3.0)) * sqrt(epic)
+	if cfg.get("water", false):
+		return water_chunks(pos, cfg)
 	cfg["cel"] = true
+	return FX.burst(pos, cfg)
+
+
+## Storm su parçaları: tırtıklı soluk camgöbeği su dokusu (FX.tex_water), kontur yok; renk rampası yalnız alfa/parlaklık taşır
+static func water_chunks(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
+	# 3B su kütleleri (düz sprite karton gibi duruyordu): gövdeli su damlaları/öbekleri yay çizip düşer
+	var n = clampi(int(ceil(float(cfg.get("amount", 4)) * 0.35)), 1, 6)
+	var sz = float(cfg.get("size", 1.0))
+	var d: Vector3 = cfg.get("dir", Vector3.UP)
+	var spr = deg_to_rad(float(cfg.get("spread", 45.0))) * 0.6
+	var vm = float(cfg.get("vmax", 6.0))
+	WaterArt.drops(pos, n, clampf(sz * 1.6, 0.4, 6.0), clampf(vm, 3.0, 30.0), d if d.y < 0.95 else Vector3.ZERO, clampf(spr, 0.1, 0.9))
+	return null
+
+
+static func _water_chunks_sprite(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
+	cfg = cfg.duplicate()
+	cfg["tex"] = FX.tex_water
+	cfg["cel"] = false
+	cfg["add"] = false
+	cfg["size"] = float(cfg.get("size", 1.0)) * 1.8
+	cfg["amount"] = maxi(1, int(ceil(float(cfg.get("amount", 8)) * 0.5)))   # az ama iri, birbirine kaynayan su kütleleri
+	# su ağırdır: fışkırır ve yay çizip düşer (yükselip süzülen parçalar alev gibi okunuyordu)
+	var g: Vector3 = cfg.get("gravity", Vector3.ZERO)
+	if g.y > -14.0:
+		cfg["gravity"] = Vector3(g.x, -18.0, g.z)
+	cfg["damp"] = minf(float(cfg.get("damp", 1.0)), 1.0)
+	var cols: Array = cfg.get("colors", [Color(1, 1, 1, 1), Color(1, 1, 1, 0)])
+	var out = []
+	for k in cols.size():
+		var c: Color = cols[k]
+		var foam = c.r > 0.85   # köpük tonları beyazımsı kalsın
+		out.append(Color(1.0, 1.0, 1.0, c.a) if foam else Color(0.95, 0.98, 1.0, c.a))
+	cfg["colors"] = out
+	cfg["spin"] = 25.0
+	cfg["scale_curve"] = [[0.0, 0.5], [0.2, 1.0], [1.0, 0.75]]
 	return FX.burst(pos, cfg)
 
 
@@ -657,34 +700,14 @@ static func embers(pos: Vector3, col := Color(1.0, 0.6, 0.15), n := 24, speed :=
 
 ## Sıçrama tacı (su çarpması): yükselip dağılan su tacı + damlalar + köpük halkası
 static func _splash(pos: Vector3, size := 2.0) -> void:
-	# anime su sıçraması: beyaz bulut değil — MAVİ su kütlesi (koyu mavi konturlu cel su topakları, uçları açık), ince su jetleri,
-	# düşen damlalar, az köpük, alçak su sisi
+	# Naruto Storm su sıçraması: 3B kıvrık yapraklı su tacı + yay çizip düşen gövdeli damlalar + ince su sisi
 	if busy():
 		return
+	WaterArt.splash(pos, size * 0.8)
 	var g = Game.jutsu_floor(pos.x, pos.z)
-	var base = Vector3(pos.x, maxf(g, pos.y - size), pos.z)
-	# su taç kütlesi: yukarı ve dışa fışkırıp düşen mavi su topakları
-	puffs(base + Vector3.UP * size * 0.3, {"amount": int(14 * size) + 6, "life": 0.75, "size": 0.55 + size * 0.22, "radius": size * 0.45,
-		"vmin": 4.0, "vmax": 8.0 + size * 2.0, "dir": Vector3.UP, "spread": 50.0, "gravity": Vector3(0, -20, 0), "damp": 0.6, "glow": 1.08, "hot": 0.35,
-		"outline_col": Color(0.04, 0.2, 0.62), "outline": 0.045, "rough": 0.14, "shade": 0.3,
-		"colors": [Color(0.62, 0.86, 1.0, 1), Color(0.28, 0.6, 0.98, 1), Color(0.16, 0.45, 0.92, 0.9), Color(0.12, 0.38, 0.85, 0.0)], "scale_curve": [[0.0, 0.4], [0.25, 1.0], [1.0, 0.6]]})
-	# su jetleri: ince mavi-beyaz çizgiler
-	FX.burst(base + Vector3.UP * 0.3, {"amount": int(12 * size), "life": 0.7, "tex": FX.tex_spark, "size": 0.9 + size * 0.3, "radius": size * 0.4,
-		"vmin": 6.0, "vmax": 10.0 + size * 2.5, "dir": Vector3.UP, "spread": 40.0, "gravity": Vector3(0, -20, 0), "damp": 0.5,
-		"colors": [Color(0.85, 0.95, 1, 1), Color(0.4, 0.72, 1.0, 0.9), Color(0.25, 0.55, 1.0, 0.0)]})
-	# damlalar
-	puffs(base + Vector3.UP * size * 0.4, {"amount": int(14 * size), "life": 0.85, "size": 0.22 + size * 0.06, "radius": size * 0.5,
-		"vmin": 4.0, "vmax": 9.0 + size * 2.0, "dir": Vector3.UP, "spread": 65.0, "gravity": Vector3(0, -22, 0), "damp": 0.5, "glow": 1.05,
-		"outline_col": Color(0.05, 0.25, 0.7), "outline": 0.045, "rough": 0.1, "shade": 0.25,
-		"colors": [Color(0.75, 0.92, 1.0, 1), Color(0.35, 0.68, 1.0, 1), Color(0.25, 0.55, 1.0, 0.0)]})
-	# az köpük
-	puffs(base + Vector3.UP * size * 0.2, {"amount": int(3 * size) + 1, "life": 0.6, "size": 0.45 * size, "radius": size * 0.4, "vmin": 2, "vmax": 5 + size,
-		"dir": Vector3.UP, "spread": 55.0, "damp": 1.5, "gravity": Vector3(0, -10, 0), "glow": 1.05, "outline_col": Color(0.3, 0.55, 0.9), "outline": 0.03, "rough": 0.15,
-		"colors": [Color(0.9, 0.97, 1, 0.95), Color(0.7, 0.88, 1, 0.8), Color(0.55, 0.8, 1, 0)]})
-	# alçak su sisi (mavimsi)
-	FX.burst(base + Vector3.UP * 0.4, {"amount": int(4 * size), "life": 1.0, "tex": FX.tex_smoke, "add": false, "cel": false, "size": 1.3 * size, "radius": size * 0.6,
-		"vmin": 1.0, "vmax": 3.0, "dir": Vector3.UP, "spread": 80.0, "damp": 2.0,
-		"colors": [Color(0.7, 0.86, 1.0, 0.0), Color(0.7, 0.86, 1.0, 0.4), Color(0.7, 0.86, 1.0, 0.0)]})
+	FX.burst(Vector3(pos.x, maxf(g, pos.y - size), pos.z) + Vector3.UP * 0.4, {"amount": int(3 * size) + 2, "life": 0.9, "tex": FX.tex_smoke, "add": false, "cel": false, "size": 1.2 * size, "radius": size * 0.5,
+		"vmin": 0.8, "vmax": 2.2, "dir": Vector3.UP, "spread": 80.0, "damp": 2.0,
+		"colors": [Color(0.85, 0.94, 1.0, 0.0), Color(0.85, 0.94, 1.0, 0.35), Color(0.85, 0.94, 1.0, 0.0)]})
 
 
 ## Yapışkan damla / parça (lav, Mei çamuru, kurbağa yağı): malzemeli ağır topaklar yay çizip düşer, yere değince yassılaşıp

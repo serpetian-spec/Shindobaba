@@ -473,7 +473,7 @@ func j_suiton_suijinheki(c: Node3D, _t: Node3D) -> void:
 		get_tree().create_timer(q * 0.28).timeout.connect(func():
 			if is_instance_valid(c):
 				VFX.puffs(c.global_position + Vector3.UP * randf_range(0.5, 5.0), {"amount": 10, "life": 0.6, "size": 0.6, "radius": 2.4, "vmin": 2.0, "vmax": 5.0, "dir": Vector3.UP, "spread": 70.0,
-					"gravity": Vector3(0, -14, 0), "glow": 1.05, "outline_col": Color(0.05, 0.25, 0.7), "outline": 0.045, "rough": 0.12,
+					"gravity": Vector3(0, -14, 0), "glow": 1.05, "water": true, "outline_col": Color(0.05, 0.25, 0.7), "outline": 0.045, "rough": 0.12,
 					"colors": [Color(0.7, 0.9, 1.0, 1), Color(0.3, 0.62, 1.0, 1), Color(0.2, 0.5, 0.95, 0.0)]}))
 	var dome = Node3D.new()
 	c.add_child(dome)
@@ -780,8 +780,34 @@ func _lightning_ball(c: Node3D, col_core: Color, col_edge: Color, snd: String) -
 func j_raiton_chidori(c: Node3D, t: Node3D) -> void:
 	var m = _mult(c) * _elem_bonus(c, "raiton")
 	var hand = _lightning_ball(c, Color(0.9, 0.95, 1.0), Color(0.45, 0.7, 1.0), "chidori")
+	# anime hazırlık: çömelir, sağ el yere yakın önde (şimşek yeri dağlar), sol el çaprazdan sağ bileği tutar
+	_pose_chidori_charge(c)
 	_hand_dash(c, t, hand, 0.55, 30.0, {"dmg": 34.0 * m, "element": "raiton", "knock": 14.0, "launch": 3.0, "kind": "heavy", "hitstop": 0.12, "stun": 1.0},
-		Color(0.5, 0.75, 1.0))
+		Color(0.5, 0.75, 1.0), false, true)
+
+
+## Chidori/Raikiri hazırlık pozu (overlay cast pozu): çömelme, sağ el yere yakın, sol el sağ bileği kavrar
+func _pose_chidori_charge(c: Node3D) -> void:
+	var md = c.get("model")
+	if md == null or md.get("overlay") == null:
+		return
+	var rig = md.get("rig")
+	if rig:
+		rig.reach_arms = []   # avuç uzatma IK'si (kolu öne çeker) bu pozla çakışmasın; el açık kalır
+	md.overlay.cast_pose = {"arms": [["RightUpperArm", Vector3(-0.3, -0.72, 0.62)], ["RightLowerArm", Vector3(-0.12, -0.88, 0.45)], ["RightHand", Vector3(-0.05, -0.6, 0.8)],
+		["LeftUpperArm", Vector3(-0.2, -0.62, 0.75)], ["LeftLowerArm", Vector3(-0.92, -0.32, 0.2)], ["LeftHand", Vector3(-0.85, -0.45, 0.25)]],
+		"fL": [0.9, 0.9, 1.3, 1.3, 0.8], "fR": [0.0, 0.0, 0.2, 0.2, 0.0], "spine": 28.0, "neck": -10.0, "crouch": 0.55}
+	md.overlay.set_pose("cast", 1.0)
+
+
+## Chidori/Raikiri hücum pozu: sağ kol şimşekle geride ve aşağıda sürünür, bacaklar koşu animasyonunda
+func _pose_chidori_run(c: Node3D) -> void:
+	var md = c.get("model")
+	if md == null or md.get("overlay") == null:
+		return
+	md.overlay.cast_pose = {"arms": [["RightUpperArm", Vector3(-0.35, -0.6, -0.72)], ["RightLowerArm", Vector3(-0.2, -0.78, -0.6)], ["RightHand", Vector3(-0.1, -0.7, -0.7)]],
+		"fR": [0.0, 0.0, 0.2, 0.2, 0.0], "spine": 30.0, "neck": -18.0, "crouch": 0.15}
+	md.overlay.set_pose("cast", 1.0)
 
 
 func j_rasengan(c: Node3D, t: Node3D) -> void:
@@ -830,7 +856,7 @@ func _palm_release(c: Node3D) -> void:
 		tw.tween_callback(func(): rig.reach_open = false)
 
 
-func _hand_dash(c: Node3D, t: Node3D, hand: Node3D, charge: float, speed: float, info: Dictionary, col: Color, grind := false) -> void:
+func _hand_dash(c: Node3D, t: Node3D, hand: Node3D, charge: float, speed: float, info: Dictionary, col: Color, grind := false, run := false) -> void:
 	var tw = create_tween()
 	tw.tween_interval(charge)
 	var state = {"t": 0.0, "done": false}
@@ -860,6 +886,12 @@ func _hand_dash(c: Node3D, t: Node3D, hand: Node3D, charge: float, speed: float,
 			if c is Player:
 				c.combat.action = "cast"
 				c.combat.t = -10.0
+			if run and c.get("model"):
+				# kaymadan koşar: bacaklar koşu animasyonunda, sağ kol geride aşağıda
+				if not state.has("ran"):
+					state["ran"] = true
+					_pose_chidori_run(c)
+				c.model.play("run", 0.08, 1.9)
 			if not state.has("trail") and is_instance_valid(hand):
 				state["trail"] = VFX.trail(hand, 0.22, Color(1, 1, 1), col.lightened(0.3), col, 12, 0.6)
 				state["last"] = hand.global_position
@@ -876,6 +908,8 @@ func _hand_dash(c: Node3D, t: Node3D, hand: Node3D, charge: float, speed: float,
 			if not hits.is_empty() or state["t"] > 0.6:
 				state["done"] = true
 				_palm_release(c)
+				if run and is_instance_valid(c) and c.get("model") and c.model.get("overlay"):
+					c.model.overlay.set_pose("cast", 0.0)
 				if c is Player:
 					c.combat.action = ""
 				c.velocity = Vector3.ZERO
@@ -1782,11 +1816,11 @@ func j_water_gun(c: Node3D, t: Node3D) -> void:
 	pr.add_child(VFX.water_ball(1.3))
 	# parmaktan fışkıran mavi su + mermiden kopan mavi damlalar
 	VFX.puffs(_hand(c), {"amount": 10, "life": 0.35, "size": 0.35, "radius": 0.2, "vmin": 4.0, "vmax": 9.0, "dir": _aim(c, t), "spread": 20.0, "gravity": Vector3(0, -14, 0),
-		"glow": 1.05, "outline_col": Color(0.05, 0.25, 0.7), "outline": 0.045, "colors": [Color(0.75, 0.92, 1.0, 1), Color(0.3, 0.62, 1.0, 1), Color(0.2, 0.5, 0.95, 0.0)]})
+		"glow": 1.05, "water": true, "outline_col": Color(0.05, 0.25, 0.7), "outline": 0.045, "colors": [Color(0.75, 0.92, 1.0, 1), Color(0.3, 0.62, 1.0, 1), Color(0.2, 0.5, 0.95, 0.0)]})
 	pr.on_tick = func(p: Projectile, _dt: float) -> void:
 		if randf() < 0.6:
 			VFX.puffs(p.global_position, {"amount": 2, "life": 0.4, "size": 0.22, "radius": 0.15, "vmin": 0.5, "vmax": 2.0, "dir": Vector3.UP, "spread": 70.0, "gravity": Vector3(0, -16, 0),
-				"glow": 1.05, "outline_col": Color(0.05, 0.25, 0.7), "outline": 0.045, "colors": [Color(0.75, 0.92, 1.0, 1), Color(0.3, 0.62, 1.0, 1), Color(0.2, 0.5, 0.95, 0.0)]})
+				"glow": 1.05, "water": true, "outline_col": Color(0.05, 0.25, 0.7), "outline": 0.045, "colors": [Color(0.75, 0.92, 1.0, 1), Color(0.3, 0.62, 1.0, 1), Color(0.2, 0.5, 0.95, 0.0)]})
 	VFX.trail(pr, 0.6, Color(0.9, 0.97, 1.0), Color(0.3, 0.6, 1.0), Color(0.1, 0.35, 0.9, 0.0), 14)
 	VFX.shockwave(_hand(c), Color(0.6, 0.85, 1.0), 2.5, 0.25, false, _aim(c, t))
 	Projectile.trail(pr, [Color(0.85, 0.95, 1, 0.9), Color(0.3, 0.6, 1, 0)], 0.35, 30, 0.25, FX.tex_smoke, false)
@@ -1966,11 +2000,11 @@ func j_suiton_daibakufu_no_jutsu(c: Node3D, t: Node3D) -> void:
 	# yükselen dev su sütunu (silindir mesh yok): yerden fışkıran mavi su topakları + tepede beyaz köpük, sonra çöker
 	_ticks(12, 0.06, func(i):
 		VFX.puffs(start + Vector3.UP * (1.0 + i * 1.6), {"amount": 14, "life": 0.7, "size": 3.0, "radius": 4.5, "vmin": 10.0, "vmax": 18.0, "dir": Vector3.UP, "spread": 18.0,
-			"gravity": Vector3(0, -16, 0), "damp": 0.8, "glow": 1.06, "hot": 0.3, "outline_col": Color(0.04, 0.2, 0.62), "outline": 0.045, "rough": 0.14, "shade": 0.3,
+			"gravity": Vector3(0, -16, 0), "damp": 0.8, "glow": 1.06, "hot": 0.3, "water": true, "outline_col": Color(0.04, 0.2, 0.62), "outline": 0.045, "rough": 0.14, "shade": 0.3,
 			"colors": [Color(0.55, 0.82, 1.0, 1), Color(0.22, 0.55, 0.98, 1), Color(0.14, 0.42, 0.9, 0.9), Color(0.1, 0.35, 0.85, 0.0)]})
 		if i > 8:
 			VFX.puffs(start + Vector3.UP * 20.0, {"amount": 10, "life": 0.6, "size": 2.0, "radius": 5.0, "vmin": 3.0, "vmax": 7.0, "spread": 120.0, "gravity": Vector3(0, -16, 0),
-				"glow": 1.05, "outline_col": Color(0.3, 0.55, 0.9), "outline": 0.03, "colors": [Color(0.95, 0.99, 1, 1), Color(0.75, 0.9, 1, 0.9), Color(0.6, 0.82, 1, 0)]}), Callable())
+				"glow": 1.05, "water": true, "outline_col": Color(0.3, 0.55, 0.9), "outline": 0.03, "colors": [Color(0.95, 0.99, 1, 1), Color(0.75, 0.9, 1, 0.9), Color(0.6, 0.82, 1, 0)]}), Callable())
 	# ardından yıkıcı dev dalga
 	get_tree().create_timer(0.8).timeout.connect(func():
 		if not is_instance_valid(c):
@@ -2091,8 +2125,9 @@ func j_raikiri(c: Node3D, t: Node3D) -> void:
 	var m = _mult(c) * _elem_bonus(c, "raiton")
 	var hand = _lightning_ball(c, Color(1, 1, 1), Color(0.75, 0.88, 1.0), "chidori")
 	hand.scale = Vector3.ONE * 1.25
+	_pose_chidori_charge(c)
 	_hand_dash(c, t, hand, 0.5, 36.0, {"dmg": 40.0 * m, "element": "raiton", "knock": 16.0, "launch": 3.0, "kind": "heavy", "hitstop": 0.14, "stun": 1.2},
-		Color(0.8, 0.9, 1.0))
+		Color(0.8, 0.9, 1.0), false, true)
 
 
 ## Ōdama Rasengan: devasa spiral küre, ezici öğütme

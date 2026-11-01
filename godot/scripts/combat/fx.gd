@@ -6,6 +6,7 @@ var tex_spark: ImageTexture
 var tex_smoke: ImageTexture
 var tex_ring: ImageTexture
 var tex_leaf: ImageTexture
+var tex_water: ImageTexture   # Storm su parçası: sivri tırtıklı kenar, 3 düz ton, beyaz akış çizgileri
 var _mats = {}
 
 
@@ -15,9 +16,47 @@ func _ready() -> void:
 	tex_smoke = _smoke()
 	tex_ring = _ring()
 	tex_leaf = _leaf()
+	tex_water = _water_chunk()
 
 
 # ------------------------------------------------------------------ dokular
+## Naruto Storm su parçası: soluk camgöbeği kütle, kenarı keskin sivri dillerle tırtıklı (yuvarlak topak/duman değil),
+## içte açık-koyu düz ton lekeleri, üst kenara yakın beyaz kavisli akış çizgileri, ince açık kontur yok
+func _water_chunk() -> ImageTexture:
+	# Storm su kütlesi: tombul, kenarı dalgalı/kıvrık (metaball) su öbeği — sivri dil yok (alev gibi okunuyordu);
+	# içte açık-orta-koyu düz yüzey lekeleri, kıvrık beyaz akış çizgileri, kenardan kopmuş birkaç damla
+	var S = 128
+	var img = Image.create(S, S, false, Image.FORMAT_RGBA8)
+	var balls = [[Vector2(0.0, 0.0), 0.36], [Vector2(-0.34, 0.1), 0.24], [Vector2(0.33, -0.05), 0.26], [Vector2(-0.1, -0.32), 0.22],
+		[Vector2(0.18, 0.3), 0.2], [Vector2(-0.4, -0.22), 0.14], [Vector2(0.45, 0.28), 0.12]]
+	var drops = [[Vector2(-0.72, 0.42), 0.06], [Vector2(0.7, -0.5), 0.05], [Vector2(0.62, 0.62), 0.045], [Vector2(-0.6, -0.62), 0.04]]
+	var light = Color(0.84, 0.95, 1.0)
+	var mid = Color(0.55, 0.8, 0.95)
+	var dark = Color(0.36, 0.62, 0.84)
+	for y in S:
+		for x in S:
+			var p = Vector2((x + 0.5) / S * 2.0 - 1.0, (y + 0.5) / S * 2.0 - 1.0)
+			var f = 0.0
+			for bb in balls:
+				f += bb[1] * bb[1] / maxf(0.0001, p.distance_squared_to(bb[0]))
+			var dr = false
+			for dd in drops:
+				if p.distance_to(dd[0]) < dd[1]:
+					dr = true
+			if f < 1.0 and not dr:
+				img.set_pixel(x, y, Color(0, 0, 0, 0))
+				continue
+			# düz yüzeyler: açıya göre kesik bölgeler (fasetli su), üst-sol aydınlık
+			var t = clampf(0.5 - p.y * 0.45 - p.x * 0.25 + 0.2 * sign(sin(p.x * 5.0 + p.y * 7.0)), 0.0, 1.0)
+			var col = dark if t < 0.32 else (mid if t < 0.68 else light)
+			if not dr and sin(f * 3.2 + p.x * 4.0) > 0.94 and t > 0.25:
+				col = Color(1, 1, 1)   # kıvrık beyaz akış çizgisi
+			if dr:
+				col = light
+			img.set_pixel(x, y, Color(col.r, col.g, col.b, 1.0))
+	return ImageTexture.create_from_image(img)
+
+
 func _radial(s: int, p: float) -> ImageTexture:
 	var img = Image.create(s, s, false, Image.FORMAT_RGBA8)
 	for y in s:
@@ -159,7 +198,7 @@ func burst(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 	pm.damping_max = cfg.get("damp", 2.0) * 1.5
 	pm.scale_min = cfg.get("smin", 0.5)
 	pm.scale_max = cfg.get("smax", 1.0)
-	pm.angle_min = 0; pm.angle_max = 360
+	pm.angle_min = cfg.get("angle_min", 0.0); pm.angle_max = cfg.get("angle_max", 360.0)
 	pm.angular_velocity_min = cfg.get("spin", 0.0) * -1.0
 	pm.angular_velocity_max = cfg.get("spin", 0.0)
 	pm.color_ramp = _gradient(cfg.get("colors", [Color(1, 1, 1, 1), Color(1, 1, 1, 0)]))

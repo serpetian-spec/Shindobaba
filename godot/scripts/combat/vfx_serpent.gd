@@ -253,9 +253,13 @@ func _style_fx(pts: Array, dt: float) -> void:
 			if mat is ShaderMaterial and mat.get_shader_parameter("c_mid") != null:
 				wc = mat.get_shader_parameter("c_mid")
 			var nonwater = wc.r > wc.b + 0.2
-			FX.burst(p, {"amount": 6, "life": 0.6, "tex": FX.tex_soft, "size": 0.35 * maxf(1.0, radius), "radius": radius, "vmin": 1.5, "vmax": 4.0,
-				"dir": Vector3.UP, "spread": 120.0, "gravity": Vector3(0, -9.0, 0), "add": false,
-				"colors": [wc.lightened(0.35) if nonwater else Color(0.9, 0.97, 1.0, 0.9), wc if nonwater else Color(0.55, 0.8, 1.0, 0.7), Color(wc.r, wc.g, wc.b, 0.0)]})
+			if nonwater:
+				FX.burst(p, {"amount": 6, "life": 0.6, "tex": FX.tex_soft, "size": 0.35 * maxf(1.0, radius), "radius": radius, "vmin": 1.5, "vmax": 4.0,
+					"dir": Vector3.UP, "spread": 120.0, "gravity": Vector3(0, -9.0, 0), "add": false,
+					"colors": [wc.lightened(0.35), wc, Color(wc.r, wc.g, wc.b, 0.0)]})
+			else:   # Storm su parçaları: gövdeden kopan tırtıklı su dilleri
+				VFX.water_chunks(p, {"amount": 4, "life": 0.5, "size": 0.45 * maxf(1.0, radius), "radius": radius * 0.8, "vmin": 1.5, "vmax": 4.0,
+					"dir": Vector3.UP, "spread": 120.0, "gravity": Vector3(0, -12.0, 0), "colors": [Color(0.6, 0.85, 1, 1), Color(0.6, 0.85, 1, 1), Color(0.6, 0.85, 1, 0)]})
 			if nonwater and wc.g < 0.45:
 				VFX.embers(p, Color(1.0, 0.5, 0.1), 3, 3.0, 0.6)
 		"fire":
