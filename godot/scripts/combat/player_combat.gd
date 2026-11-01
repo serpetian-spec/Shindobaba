@@ -180,6 +180,11 @@ func _start_step() -> void:
 	p.model.overlay.snap("guard", 0.0)
 	p.model.play(c["anim"], 0.05, c["speed"], true)
 	p.model.overlay.set_pose("kick", 1.0 if c.get("kick", false) else 0.0)
+	_set_two_hand(c.get("two_hand", false), float(c.get("dur", 0.6)))
+	if c.has("keys"):
+		p.model.overlay.play_keys(c["keys"])
+	else:
+		p.model.overlay.stop_keys()
 	# yelpaze: kombonun 4. vuruşu uzak rüzgâr dalgası (3 sn bekleme, spam yok)
 	if String(Gear.weapon(Game.profile).get("style", "")) == "fan" and step == 3 and fan_cd <= 0.0 and p.chakra >= 6.0:
 		fan_cd = 3.0
@@ -350,9 +355,12 @@ const STYLE_COMBOS := {
 
 
 ## Silaha özel kombolar (kaynak: Kisame Storm moveset videosu) — stil kombosunun yerine geçer
-## Samehada: 1 alçak geniş yatay savuruş, 2 ters yükselen savuruş, 3 tepeden yere çakma (su sıçrar), 4 dönerek savuruş, 5 yukarı fırlatan vuruş
+## Samehada (Kisame Storm videosu 0:00-0:04, saniyede 10 kare): 1 öne atılıp yatay tutup iterek delme (chakra emme girdabı),
+## 2 başın arkasına kaldırıp aşağı-öne savurma, 3 sola alıp sağa alçak yatay savurma, 4 tepeye kaldırıp baş hizasında sert vuruş,
+## 5 dönerek alçaktan savurup yukarı fırlatma
 const ID_COMBOS := {
-	"samehada": {"anims": ["b/Sword_Regular_A", "b/Sword_Regular_B", "b/TreeChopping", "b/Sword_Regular_Combo", "a/Sword_Attack"], "speed": 1.25, "dur": 1.3, "knock": 2.0, "fx": Color(0.55, 0.75, 1.0), "snd": "hit_heavy_weapon", "water": [false, false, true, false, true]},
+	"samehada": {"anims": ["a/Sword_Attack", "b/Sword_Regular_B", "b/Sword_Regular_A", "b/Sword_Regular_C", "b/Sword_Regular_Combo"], "speed": 1.25, "dur": 1.3, "knock": 2.0, "fx": Color(0.55, 0.75, 1.0), "snd": "hit_heavy_weapon",
+		"water": [false, false, false, false, false], "lunge": [1.8, 0.5, 0.5, 0.7, 0.6], "grind": [true, false, false, false, false], "flash": [false, false, false, true, false]},
 }
 
 
@@ -382,6 +390,12 @@ func _combo_base(i: int) -> Dictionary:
 	if ID_COMBOS.has(wid):
 		st = ID_COMBOS[wid]
 		c["water"] = st["water"][clampi(i, 0, 4)]
+		c["water_big"] = false
+		c["two_hand"] = st.get("two_hand", [false, false, false, false, false])[clampi(i, 0, 4)]
+		c["grind"] = st.get("grind", [false, false, false, false, false])[clampi(i, 0, 4)]
+		c["flash"] = st.get("flash", [false, false, false, false, false])[clampi(i, 0, 4)]
+		if st.has("lunge"):
+			c["lunge"] = float(c.get("lunge", 1.0)) * float(st["lunge"][clampi(i, 0, 4)])
 	if st.is_empty():
 		return c
 	var an: String = st["anims"][clampi(i, 0, 4)]
@@ -411,8 +425,16 @@ func _combo_base(i: int) -> Dictionary:
 			c["heavy"] = true
 		"drain":
 			c["drain"] = true
-	if wid == "samehada" and i == 4:
-		c["launch"] = 10.0
+	if wid == "samehada":
+		# videodan kare kare çıkarılmış el yapımı animasyon: süre/vuruş anı anahtarlardan
+		var ks: Dictionary = SamehadaAnim.steps()[clampi(i, 0, 4)]
+		c["keys"] = ks
+		c["anim"] = "idle"
+		c["speed"] = 1.0
+		c["dur"] = float(ks["len"])
+		c["hit"] = float(ks["hit"])
+		if i == 4:
+			c["launch"] = 10.0
 	return c
 
 
@@ -549,8 +571,19 @@ func _hit_info_base(c: Dictionary) -> Dictionary:
 func _on_hit_fx(pt: Vector3, c: Dictionary) -> void:
 	var heavy: bool = c.get("heavy", false)
 	FX.hit_spark(pt, c.get("fx", Color(1.0, 0.85, 0.45) if not heavy else Color(1.0, 0.55, 0.25)), 1.4 if heavy else 0.9)
-	if c.get("water", false):   # Samehada çakma/fırlatma: Storm su sıçraması
-		WaterArt.splash(Vector3(pt.x, Game.jutsu_floor(pt.x, pt.z), pt.z), 1.6)
+	if c.get("water", false):   # Samehada bitiriş: yere çakma — etrafa su kubbesi + sprey (videodaki gibi)
+		var gp = Vector3(pt.x, Game.jutsu_floor(pt.x, pt.z), pt.z)
+		WaterArt.splash(gp, 2.6 if c.get("water_big", false) else 1.6)
+		if c.get("water_big", false):
+			WaterArt.dome(gp, 4.5)
+	if c.get("grind", false):   # Samehada itip delme: dönen mavi chakra girdabı (videodaki gibi)
+		for k in 3:
+			var ang = k * TAU / 3.0
+			WindFX.streak(func(q: float) -> Vector3: return pt + Vector3(cos(ang + q * 6.0), sin(ang + q * 6.0), 0).rotated(Vector3.UP, p.facing) * (0.4 + q * 0.7), 0.3, 0.06, Color(0.55, 0.9, 1.0), k * 0.03, 10)
+	if c.get("flash", false):   # baş hizasında sert vuruş: büyük beyaz çarpma flaşı
+		VFX.star(pt, Color(1, 1, 1), 3.2, 0.2)
+		if Game.world:
+			Game.world.env.add_shake(0.6)
 	if c.get("drain", false):   # Samehada chakra emer: hedeften kullanıcıya mavi chakra
 		p.chakra = minf(p.max_chakra, p.chakra + 4.0)
 		FX.burst(pt, {"amount": 10, "life": 0.4, "tex": FX.tex_spark, "size": 0.5, "vmin": 2, "vmax": 5, "colors": [Color(0.8, 0.95, 1.0, 1), Color(0.35, 0.65, 1.0, 0.8), Color(0.3, 0.6, 1.0, 0)]})
@@ -604,6 +637,24 @@ func _update_charge(dt: float) -> void:
 		var a = aura
 		aura = null
 		get_tree().create_timer(1.0).timeout.connect(a.queue_free)
+
+
+## İki elle tutuş (videoda Kisame'nin iki elle savurduğu adımlar): sol el sağdaki silahın sapına IK ile uzanır
+func _set_two_hand(on: bool, dur: float) -> void:
+	var m = p.model
+	if m == null or m.get("rig") == null:
+		return
+	var rig: WeaponRig = m.rig
+	var wn: Node3D = null
+	for w in m.weapons:
+		if w["side"] == "Right" and is_instance_valid(w["node"]) and w["node"].get_parent() == w["hand"]:
+			wn = w["node"]
+	rig.two_hand_node = wn
+	var tw = m.create_tween()
+	tw.tween_property(rig, "two_hand_w", 1.0 if (on and wn) else 0.0, 0.08)
+	if on and wn:
+		tw.tween_interval(maxf(0.1, dur - 0.15))
+		tw.tween_property(rig, "two_hand_w", 0.0, 0.12)
 
 
 # ------------------------------------------------------------------ Kawarimi (yer değiştirme)

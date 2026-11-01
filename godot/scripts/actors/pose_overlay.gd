@@ -17,6 +17,10 @@ var toe_pitch = 0.0     # VRoid: içe aktarıcı ayak parmağı kemiğini yükse
 ## {"arms": [[kemik, model-uzayı yön], ...] (ebeveynden çocuğa sırayla), "fL"/"fR": [işaret, orta, yüzük, serçe, başparmak] kıvrım (rad),
 ##  "spine": derece, "neck": derece, "hips_yaw": derece}
 var cast_pose := {}
+var key_anim := {}       # anahtar karelerle el yapımı animasyon (SamehadaAnim adımı): {len, keys:[{t, crouch, hips_yaw, spine, neck, blade, b:{kemik:yön}}]}
+var key_t := -1.0
+var key_spd := 1.0
+var key_blade := Vector3.ZERO   # o anki silah ucu yönü (iskelet uzayı); CharacterModel silahı buna çevirir
 var charge_k := 0.0     # süper zıplama şarjı 0..1: çömelme derinliği
 var glide_land := 0.0   # süzülmeden inişe hazırlık 0..1 (dizler öne, kollar dengede)
 var tuck := 0.0         # havada takla / kenara tırmanış: dizler göğse, kollar dizlere sarılı 0..1 (süzülmeyi ezer)
@@ -148,6 +152,8 @@ func _process_modification() -> void:
 		var hb = sk.find_bone("Head")
 		if hb >= 0:
 			sk.set_bone_pose_scale(hb, Vector3.ONE * head_scale / chest_scale)
+	if key_t >= 0.0 and not key_anim.is_empty():
+		_apply_keys(sk, dt)
 	if foot_pitch != 0.0:
 		for b in ["LeftFoot", "RightFoot"]:
 			var fi = sk.find_bone(b)
@@ -297,8 +303,51 @@ func _plant_pose(sk: Skeleton3D, w: float) -> void:
 
 
 ## Jutsu pozu: gövde, kollar (sırayla), parmaklar
-func _apply_cast(sk: Skeleton3D, w: float) -> void:
-	var cp = cast_pose
+func play_keys(step: Dictionary, spd := 1.0) -> void:
+	key_anim = step
+	key_t = 0.0
+	key_spd = spd
+
+
+func stop_keys() -> void:
+	key_t = -1.0
+	key_blade = Vector3.ZERO
+
+
+## Anahtar kareler arası yumuşak geçiş (smoothstep); başta/sonda alttaki animasyona karışır
+func _apply_keys(sk: Skeleton3D, dt: float) -> void:
+	key_t += dt * key_spd
+	var ln: float = key_anim["len"]
+	if key_t > ln + 0.12:
+		stop_keys()
+		return
+	var keys: Array = key_anim["keys"]
+	var a: Dictionary = keys[0]
+	var b: Dictionary = keys[0]
+	for k in keys:
+		if k["t"] <= key_t:
+			a = k
+			b = k
+		else:
+			b = k
+			break
+	var f = 0.0 if b["t"] <= a["t"] else smoothstep(0.0, 1.0, (key_t - a["t"]) / (b["t"] - a["t"]))
+	var cp = {}
+	for n in ["crouch", "hips_yaw", "spine", "neck"]:
+		cp[n] = lerpf(a.get(n, 0.0), b.get(n, 0.0), f)
+	var arms = []
+	var ab: Dictionary = a["b"]
+	var bb: Dictionary = b["b"]
+	for bone in ab:
+		arms.append([bone, (ab[bone] as Vector3).normalized().lerp((bb.get(bone, ab[bone]) as Vector3).normalized(), f)])
+	cp["arms"] = arms
+	key_blade = (a["blade"] as Vector3).normalized().slerp((b["blade"] as Vector3).normalized(), f)
+	var w = clampf(key_t / 0.05, 0.0, 1.0) * clampf((ln + 0.12 - key_t) / 0.12, 0.0, 1.0)
+	_apply_cast(sk, w, cp)
+
+
+func _apply_cast(sk: Skeleton3D, w: float, cp_in := {}) -> void:
+	var cp = cp_in if not cp_in.is_empty() else cast_pose
 	var cr: float = cp.get("crouch", 0.0) * w
 	if cr > 0.0:
 		# çömelme: kalça alçalır, uyluklar öne, baldırlar geriye (ayaklar yerde kalır)

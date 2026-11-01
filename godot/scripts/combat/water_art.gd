@@ -117,3 +117,28 @@ static func wave_mesh(w := 8.0, h := 2.5) -> ArrayMesh:
 		Loft.tube(b, pts, [Vector2(th, 0.45), Vector2(th * 0.9, 0.38), Vector2(th * 0.7, 0.28), Vector2(th * 0.45, 0.16), Vector2(0.04, 0.04)], Color.WHITE, 8, 3, true, true, Callable(), Vector3.FORWARD)
 	Loft.tube(b, [Vector3(-w * 0.55, 0.1, 0.6), Vector3(w * 0.55, 0.1, 0.6)], [Vector2(0.5, 0.25), Vector2(0.5, 0.25)], Color.WHITE, 8, 2)
 	return b.build(null)
+
+
+## Su kubbesi patlaması (kaynak: Samehada bitirişi, video 0:10): yerden hızla büyüyen yarı saydam soluk su yarım küresi,
+## içinde köpüren beyaz sprey; sonra söner
+static func dome(g: Vector3, r := 4.0) -> void:
+	var mi = MeshInstance3D.new()
+	var sm = SphereMesh.new()
+	sm.radius = 1.0; sm.height = 2.0; sm.is_hemisphere = true; sm.radial_segments = 32; sm.rings = 12
+	mi.mesh = sm
+	var m: ShaderMaterial = sheet_mat().duplicate()
+	m.set_shader_parameter("alpha", 0.35)
+	mi.material_override = m
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	VFX.scene().add_child(mi)
+	mi.global_position = g
+	mi.scale = Vector3.ONE * 0.3
+	var tw = mi.create_tween()
+	tw.tween_property(mi, "scale", Vector3.ONE * r, 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(0.25)
+	tw.tween_method(func(a: float): m.set_shader_parameter("alpha", a), 0.35, 0.0, 0.35)
+	tw.tween_callback(mi.queue_free)
+	for k in 3:
+		VFX.scene().get_tree().create_timer(k * 0.08).timeout.connect(func():
+			spray(g + Vector3(randf_range(-1, 1), 0.3, randf_range(-1, 1)) * r * 0.4, 1.8, Vector3.UP, 45.0, 1.3, k == 0))
+	ripple(g, r * 1.2)

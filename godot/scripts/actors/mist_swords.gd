@@ -85,9 +85,9 @@ static func _samehada_wrapped(b: MB) -> void:
 		for i in cnt:
 			var a2 = TAU * (i + (k % 2) * 0.5) / cnt + k * 0.13
 			var radial = Vector3(cos(a2) * FL, sin(a2), 0)
-			var d = (Vector3(cos(a2), sin(a2), 0) * 0.75 + Vector3(0, 0, 0.66)).normalized()
+			var d = (Vector3(cos(a2) * FL, sin(a2), 0) * 0.75 + Vector3(0, 0, 0.66)).normalized()
 			var tng = Vector3(-sin(a2), cos(a2), 0)
-			var ln = 0.1 + 0.03 * ((i + k) % 3)
+			var ln = (0.1 + 0.03 * ((i + k) % 3)) * lerpf(FL, 1.0, absf(sin(a2)))
 			b.add_xf("cone", Transform3D(Basis(tng * 0.05, d * ln, tng.cross(d).normalized() * 0.02), radial * rr + Vector3(0, 0, z) + d * ln * 0.35), sc.lightened(0.1 * ((i + k) % 2)), 3)
 	# sap: uzun ince ten rengi çubuk + halkalar (önceki sap), ucunda küçük beyaz kurukafa (kaynak: samehadauc.png)
 	var pole = Color(0.82, 0.68, 0.45)

@@ -3200,6 +3200,26 @@ func _rest_tilt(on: bool, dt: float) -> void:
 		n.transform.basis = Basis(q).scaled(n.transform.basis.get_scale())
 
 
+## Anahtar kare animasyonunda (Samehada kombosu) sağ eldeki silahın ucu, pozdaki "blade" yönüne çevrilir
+func _key_blade() -> void:
+	if overlay == null or overlay.key_t < 0.0 or overlay.key_blade == Vector3.ZERO or skel == null:
+		return
+	var z: Vector3 = overlay.key_blade.normalized()
+	var x = Vector3.UP.cross(z)
+	if x.length() < 0.1:
+		x = Vector3.RIGHT
+	x = x.normalized()
+	var want = skel.global_transform.basis.orthonormalized() * Basis(x, z.cross(x).normalized(), z)
+	for w in weapons:
+		var n: Node3D = w["node"]
+		if w["side"] != "Right" or n.get_parent() != w["hand"]:
+			continue
+		# sadece yön: yerel ölçek korunur (dünya ölçeğiyle yazınca kılıç büyüyordu)
+		var pb = (n.get_parent() as Node3D).global_transform.basis.orthonormalized()
+		var q = (pb.inverse() * want).get_rotation_quaternion()
+		n.transform.basis = Basis(q).scaled(n.transform.basis.get_scale())
+
+
 func flash(amount: float) -> void:
 	hit_flash = maxf(hit_flash, amount)
 
@@ -3236,6 +3256,7 @@ func _process(dt: float) -> void:
 		var on = drawn and not _stowed and current in ["idle", "walk", "jog", "run", "air", "fall", "sword_idle"] and overlay.weights.get("ninja_run", 0.0) < 0.5 and overlay.weights.get("leap", 0.0) < 0.3
 		overlay.set_pose(stance, 1.0 if on else 0.0)
 		_rest_tilt(on, dt)
+	_key_blade()
 	if hit_flash > 0.0:
 		hit_flash = maxf(0.0, hit_flash - dt * 5.0)
 		for m in materials:
