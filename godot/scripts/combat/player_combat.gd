@@ -359,6 +359,8 @@ func _do_attack(dt: float) -> bool:
 	if not did_hit and t >= c["hit"]:
 		did_hit = true
 		var pt = p.global_position + Vector3.UP * 1.1 + p.face_dir() * (p.radius + c["reach"] * 0.6)
+		if c.get("gust", false):
+			_gunbai_gust(step)
 		var hits = Combat.hit_sphere(p, pt, c["reach"] * 0.65 * Buffs.mod("reach"), _hit_info(c))
 		if not hits.is_empty():
 			_on_hit_fx(pt, c)
@@ -466,21 +468,28 @@ func _combo_base(i: int) -> Dictionary:
 			c["heavy"] = true
 		"drain":
 			c["drain"] = true
-	if wid == "samehada":
-		# videodan kare kare çıkarılmış el yapımı animasyon: süre/vuruş anı anahtarlardan
-		var ks: Dictionary = SamehadaAnim.steps()[clampi(i, 0, 4)]
+	if wid in ["samehada", "gunbai"]:
+		# el yapımı anahtar animasyon (Samehada: videodan; Gunbai: hayal edilmiş tarif): süre/vuruş anı anahtarlardan
+		var ks: Dictionary = (SamehadaAnim.steps() if wid == "samehada" else GunbaiAnim.steps())[clampi(i, 0, 4)]
 		c["keys"] = ks
 		c["anim"] = "idle"
 		c["speed"] = 1.0
-		var ksp = 1.3   # videodan hızlı: dövüşte seri vursun (yavaşken vuruş bitmeden dayak yiyordun)
+		var ksp = 1.3 if wid == "samehada" else 1.15   # dövüşte seri vursun; gunbai daha ağır
 		c["key_spd"] = ksp
 		c["dur"] = float(ks["len"]) / ksp
 		c["hit"] = float(ks["hit"]) / ksp
 		if ks.has("extra_hits"):
 			c["extra_hits"] = (ks["extra_hits"] as Array).map(func(x): return float(x) / ksp)
 			c["extra_radius"] = ks.get("extra_radius", 2.5)
+		if wid == "gunbai":
+			c["gust"] = true
+			if i == 3:
+				c["knock"] = 18.0   # kalkan itişi: büyük geri savurma
+				c["heavy"] = true
+			elif i == 2:
+				c["heavy"] = true   # yere çakma
 		if i == 4:
-			c["launch"] = 13.0   # videodaki gibi rakip dimdik havaya uçar
+			c["launch"] = 13.0   # rakip dimdik havaya uçar
 			c["knock"] = 1.5     # yatayda az (eskiden 38 m öteye savruluyordu)
 	return c
 
@@ -688,6 +697,28 @@ func _update_charge(dt: float) -> void:
 		var a = aura
 		aura = null
 		get_tree().create_timer(1.0).timeout.connect(a.queue_free)
+
+
+## Gunbai savuruşu: yelpazenin ittiği rüzgâr (organik akış çizgileri + toz), yere çakmada çatlak, son vuruşta yukarı rüzgâr
+func _gunbai_gust(i: int) -> void:
+	var dir = p.face_dir()
+	var o = p.global_position + Vector3.UP * 1.0
+	match i:
+		2:
+			var g = p.global_position + dir * 2.4
+			VFX.cracks(g, 3.0)
+			VFX.debris(g, Color(0.55, 0.47, 0.36), 10, 7.0, 0.3)
+			FX.ring(g + Vector3.UP * 0.1, Color(0.9, 0.95, 1.0), 4.0, 0.3)
+			if Game.world:
+				Game.world.env.add_shake(0.5)
+		4:
+			VFX.puffs(o + dir * 2.0, {"amount": 24, "life": 0.6, "size": 0.6, "radius": 1.0, "vmin": 8, "vmax": 14, "dir": Vector3.UP, "spread": 20.0,
+				"colors": [Color(0.92, 0.96, 1.0, 0.6), Color(0.85, 0.92, 1.0, 0)]})
+		_:
+			FX.speed_lines(o, dir)
+			VFX.puffs(o + dir * 2.6, {"amount": 22, "life": 0.5, "size": 0.55, "radius": 1.0, "vmin": 9, "vmax": 15, "dir": dir, "spread": 24.0,
+				"colors": [Color(0.92, 0.96, 1.0, 0.55), Color(0.85, 0.92, 1.0, 0)]})
+	Sfx.play("wind", o, 1.1)
 
 
 ## İki elle tutuş (videoda Kisame'nin iki elle savurduğu adımlar): sol el sağdaki silahın sapına IK ile uzanır

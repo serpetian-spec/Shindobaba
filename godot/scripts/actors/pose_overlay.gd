@@ -20,7 +20,8 @@ var cast_pose := {}
 var key_anim := {}       # anahtar karelerle el yapımı animasyon (SamehadaAnim adımı): {len, keys:[{t, crouch, hips_yaw, spine, neck, blade, b:{kemik:yön}}]}
 var key_t := -1.0
 var key_spd := 1.0
-var key_blade := Vector3.ZERO   # o anki silah ucu yönü (iskelet uzayı); CharacterModel silahı buna çevirir
+var key_blade := Vector3.ZERO
+var key_roll := 0.0   # silahın sap ekseni etrafında dönüşü (derece; gunbai kalkan itişi)   # o anki silah ucu yönü (iskelet uzayı); CharacterModel silahı buna çevirir
 var charge_k := 0.0     # süper zıplama şarjı 0..1: çömelme derinliği
 var glide_land := 0.0   # süzülmeden inişe hazırlık 0..1 (dizler öne, kollar dengede)
 var tuck := 0.0         # havada takla / kenara tırmanış: dizler göğse, kollar dizlere sarılı 0..1 (süzülmeyi ezer)
@@ -413,6 +414,7 @@ func _apply_keys(sk: Skeleton3D, dt: float) -> void:
 		arms.append([bone, d])
 	cp["arms"] = arms
 	key_blade = blade
+	key_roll = _cr(float(k0.get("roll", 0.0)), float(k1.get("roll", 0.0)), float(k2.get("roll", 0.0)), float(k3.get("roll", 0.0)), u)
 	var w_in = 1.0 if _key_chain else clampf(key_t / 0.08, 0.0, 1.0)
 	var w = w_in * w_out
 	_apply_cast(sk, w, cp)

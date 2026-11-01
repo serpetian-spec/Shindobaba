@@ -981,9 +981,9 @@ static func _ring_mesh(g: Dictionary, axis: int, value: float, side: float, extr
 	return st.commit(null, Mesh.ARRAY_CUSTOM_RGBA_FLOAT << Mesh.ARRAY_FORMAT_CUSTOM0_SHIFT)
 
 
-func _add_shell(m: ArrayMesh, mat: ShaderMaterial) -> void:
+func _add_shell(m: ArrayMesh, mat: ShaderMaterial) -> MeshInstance3D:
 	if m == null:
-		return
+		return null
 	var shell = MeshInstance3D.new()
 	shell.name = "Cloth"
 	shell.mesh = m
@@ -991,6 +991,10 @@ func _add_shell(m: ArrayMesh, mat: ShaderMaterial) -> void:
 	shell.skin = body_mesh.skin
 	shell.skeleton = shell.get_path_to(skel)
 	shell.material_override = mat
+	return shell
+
+
+var _strap_nodes: Array = []   # sırt kayışları (silah eldeyken gizlenir)
 
 
 ## Seçili bölgeleri kaslardan arındırıp (Taubin yumuşatma) normal yönünde şişirerek kumaş kabuğu üretir
@@ -1485,7 +1489,9 @@ func _back_strap(sx: float) -> void:
 				_garment_cache[k] = _loft(g, 1, neck - 0.01, hips + 0.02, 30, torso, func(_t, _a): return 0.024, 9,
 					func(t, ang): return absf(cos(ang) - sx * 1.84 * (t0 - t)) > 0.11, -99.0, 64)
 		if _garment_cache[k] != null:
-			_add_shell(_garment_cache[k], mat)
+			var sh = _add_shell(_garment_cache[k], mat)
+			if sh:
+				_strap_nodes.append(sh)
 
 
 ## Gövdenin sırt yüzeyi (model uzayı z, arkası negatif): omurga hizasında, y yüksekliğinde
@@ -2487,6 +2493,8 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 			var steep = 1.35 if L > 1.9 else (0.7 if L > 1.2 else 0.55)  # uzun sopalar sırtı daha yatık çaprazlar
 			if id == "samehada":
 				steep = 0.72   # kaynak (Storm): sırtta ~55° dik çapraz, sap sağ omuzun üstünde
+			elif id == "gunbai":
+				steep = 0.3    # kaynak gunbaisirt.png: neredeyse dik, büyük lob aşağıda, sap sağ omzun üstünden yukarı
 			var dir = Vector3(-sx * steep, -1.0, 0.0)
 			if id in BACK_TIP_UP:
 				dir = -dir   # ağır başlı silahlar: baş yukarıda (çekiç, tırpan, mızrak)
@@ -2501,7 +2509,10 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 				if id == "samehada":
 					near_x = -0.12   # yassı gövde yarı kalınlığı (uçtaki pul dikenleri AABB'yi büyütüp silahı sırttan uzaklaştırıyordu)
 				center.z = bz - pad + near_x + 0.02
-			xf = Transform3D(b, center - b.z * (mid if L > 1.2 else mid * 0.8))
+			var mid2 = mid if L > 1.2 else mid * 0.8
+			if id == "gunbai":
+				mid2 = 1.45   # kaynak: iki lob sırtın ortasında (büyük lob bel hizasında), sap omzun üstünden çıkar
+			xf = Transform3D(b, center - b.z * mid2)
 		"low_back":
 			var hp = _grest(skel.find_bone("Hips")).origin
 			var b = _frame(Vector3(-sx, 0.12, 0.0), Vector3(0, 0, -1))
@@ -2517,9 +2528,9 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 			var b = _frame(Vector3(sx * 0.12, -1.0, 0.18), Vector3(sx, 0, 0))
 			xf = Transform3D(b, hp + Vector3(sx * 0.2, 0.1, 0.03))
 	var holder: Node3D = _attach("UpperChest" if kind == "back" else "Hips", xf).get_child(0)
-	if kind == "back" and id in ["bashosen", "samehada"]:
-		# Bashōsen / Samehada: havada duran deri kelepçe yok; Samehada'da göğüs kayışı var (animedeki gibi)
-		if id == "samehada":
+	if kind == "back" and id in ["bashosen", "samehada", "gunbai"]:
+		# Bashōsen / Samehada / Gunbai: havada duran deri kelepçe yok; Samehada ve Gunbai'de göğüs kayışı var (animedeki gibi)
+		if id in ["samehada", "gunbai"]:
 			_back_strap(sx)
 	elif kind == "back":
 		_back_strap(sx)
@@ -2609,6 +2620,13 @@ func _place_weapons() -> void:
 				n.visible = in_hand
 		if rig and in_hand:
 			rig.hold[w["side"]] = 1.0
+		if w["sheath"] != null and w["kind"] == "back":
+			for ch in (w["sheath"] as Node3D).get_children():
+				if ch != n and ch is MeshInstance3D:
+					ch.visible = not in_hand
+	for sn in _strap_nodes:
+		if is_instance_valid(sn):
+			sn.visible = not in_hand
 
 
 ## Silahı çek / kınına sok (animate: kol kına uzanır, silah yer değiştirir, kol geri döner)
@@ -3004,15 +3022,51 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			b.add("cyl", H, Vector3(0.15, 0.06, 0.15), white, Vector3(0, 0, 90), 16)
 			b.add("cyl", H, Vector3(0.09, 0.07, 0.09), Color(0.35, 0.55, 0.85), Vector3(0, 0, 90), 14)
 		"gunbai":
-			# Uchiha yelpazesi (uchiwa): uzun sap, üstte hafif basık yuvarlak kâğıt; üst yarı kırmızı, alt yarı beyaz, siyah çerçeve ve kaburgalar
-			b.add("cyl", Vector3(0, 0, 0.2), Vector3(0.032, 0.56, 0.032), Color(0.18, 0.12, 0.08), Vector3(90, 0, 0), 8)
-			b.add("cyl", Vector3(0, 0, -0.07), Vector3(0.042, 0.03, 0.042), dark, Vector3(90, 0, 0), 8)
-			var fc = Vector3(0, 0, 0.82)
-			b.add("cyl", fc, Vector3(0.72, 0.018, 0.64), dark, Vector3(0, 0, 90), 28)
-			b.add("hemi", fc + Vector3(0.012, 0, 0), Vector3(0.66, 0.6, 0.012), Color(0.82, 0.08, 0.08), Vector3(0, 90, 90), 24)
-			b.add("hemi", fc + Vector3(0.012, 0, 0), Vector3(0.66, 0.6, 0.012), Color(0.97, 0.96, 0.94), Vector3(0, 90, -90), 24)
-			b.add("hemi", fc + Vector3(-0.012, 0, 0), Vector3(0.66, 0.6, 0.012), Color(0.82, 0.08, 0.08), Vector3(0, -90, 90), 24)
-			b.add("hemi", fc + Vector3(-0.012, 0, 0), Vector3(0.66, 0.6, 0.012), Color(0.97, 0.96, 0.94), Vector3(0, -90, -90), 24)
+			# Madara gunbai'si (kaynak gunbaielde.png / gunbaisirt.png): su kabağı (8) biçimli yelpaze — sapa yakın küçük, uçta büyük
+			# yuvarlak lob, belde boğum; kalın koyu gri çerçeve, krem-beyaz yüz, iki lobda 3'er kırmızı tomoe; yüzün ortasından
+			# boydan boya geçen ince krem sap (uçta topuz), dipte zincir halkaları. Yüz normali +X (sırta yassı yaslanır).
+			var rimc = Color(0.3, 0.3, 0.33)
+			var facec = Color(0.93, 0.92, 0.87)
+			var polec = Color(0.9, 0.87, 0.78)
+			var tomo = Color(0.78, 0.08, 0.08)
+			var c1 = 1.16; var r1 = 0.36   # sapa yakın küçük lob
+			var c2 = 1.84; var r2 = 0.48   # uçtaki büyük lob (belde boğum)
+			var wfn = func(z: float, inset: float) -> float:
+				var w1 = sqrt(maxf(0.0, (r1 - inset) * (r1 - inset) - (z - c1) * (z - c1)))
+				var w2 = sqrt(maxf(0.0, (r2 - inset) * (r2 - inset) - (z - c2) * (z - c2)))
+				return maxf(w1, w2)
+			var outline = func(inset: float) -> PackedVector2Array:
+				var z0 = c1 - r1 + inset
+				var z1 = c2 + r2 - inset
+				var right = []
+				for k in 49:
+					var u = 0.5 - 0.5 * cos(PI * k / 48.0)   # uçlarda sık örnek: yuvarlak biter
+					var z = lerpf(z0, z1, u)
+					right.append(Vector2(wfn.call(z, inset), z))
+				var o = PackedVector2Array()
+				for p in right:
+					o.append(p)
+				for i in range(right.size() - 2, 0, -1):
+					o.append(Vector2(-right[i].x, right[i].y))
+				return o
+			b.add_slab(outline.call(0.0), 0.06, rimc)
+			b.add_slab(outline.call(0.075), 0.072, facec)
+			# kırmızı tomoe (virgül): iki yüzde, her lobda 3 tane
+			var tomoes = [Vector2(-0.13, c1 - 0.06), Vector2(0.12, c1 - 0.1), Vector2(0.03, c1 + 0.13), Vector2(-0.2, c2 - 0.12), Vector2(0.2, c2 - 0.15), Vector2(0.0, c2 + 0.16)]
+			var ti = 0
+			for tp in tomoes:
+				for sxx in [1.0, -1.0]:
+					var px = sxx * 0.038
+					b.add("sphere", Vector3(px, tp.x, tp.y), Vector3(0.012, 0.05, 0.05), tomo, Vector3.ZERO, 10)
+					b.add("cone", Vector3(px, tp.x + 0.026, tp.y + 0.03), Vector3(0.01, 0.065, 0.022), tomo, Vector3(-45.0 - ti * 37.0, 0, 0), 5)
+				ti += 1
+			# sap: yüzün ortasından boydan boya, uçta topuz; dipte halka ve zincir
+			var p0 = -0.16
+			var p1 = c2 + r2 + 0.06
+			b.add("cyl", Vector3(0, 0, (p0 + p1) * 0.5), Vector3(0.042, p1 - p0, 0.042), polec, Vector3(90, 0, 0), 10)
+			b.add("sphere", Vector3(0, 0, p1), Vector3(0.07, 0.07, 0.07), polec, Vector3.ZERO, 10)
+			b.add("cyl", Vector3(0, 0, p0 + 0.02), Vector3(0.06, 0.04, 0.06), polec.darkened(0.25), Vector3(90, 0, 0), 10)
+			b.add("sphere", Vector3(0, 0, p0), Vector3(0.055, 0.055, 0.055), polec.darkened(0.25), Vector3.ZERO, 10)
 		_:
 			b.add("box", Vector3(0, 0, 0.1), Vector3(0.02, 0.03, 0.2), steel)
 	var m = b.build(Props.toon())
@@ -3201,6 +3255,10 @@ func _rest_tilt(on: bool, dt: float) -> void:
 		n.transform.basis = Basis(q).scaled(n.transform.basis.get_scale())
 
 
+## anahtar animasyonlu silahlar: [tutuş kaydırma (yumruk sap boyunca ileri), iz başı z, iz ucu z, elden uca boy]
+const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4]}
+
+
 ## Anahtar animasyon bitince silahın kaydırılmış konumunu geri al
 func _key_blade() -> void:
 	if overlay != null and overlay.key_t >= 0.0:
@@ -3236,15 +3294,19 @@ func _key_blade_sk(sk: Skeleton3D, blade: Vector3) -> void:
 		if not w.has("trail") and is_inside_tree():
 			var tr = SwordTrail.new()
 			tr.node = n
+			var kp0: Array = KEY_WEAPON.get(w["id"], [0.0, 0.5, 1.8, 2.0])
+			tr.z0 = kp0[1]
+			tr.z1 = kp0[2]
 			get_tree().current_scene.add_child(tr)
 			w["trail"] = tr
-		var grip = 0.58 * sc.z   # yumruktan sargıya kadar sap boyu (silah yerelinde)
+		var kp: Array = KEY_WEAPON.get(w["id"], [0.0, 0.5, 1.8, 2.0])   # [tutuş kaydırma, iz başı, iz ucu, boy]
+		var grip = float(kp[0]) * sc.z
 		# yer kontrolü (dünya): el + uç * boy yerin altına inmesin
 		var z: Vector3 = blade.normalized()
 		var gscale = (skb * pb).get_scale().z
 		var hand_w: Vector3 = sk.global_transform * (hp * holder.transform * w["key_pos0"])
 		var dir_w: Vector3 = (skb.orthonormalized() * z).normalized()
-		var length = (1.95 + 0.58) * sc.z * gscale
+		var length = (float(kp[3]) + float(kp[0])) * sc.z * gscale
 		var floor_y = global_position.y + 0.12
 		var tip_y = hand_w.y + dir_w.y * length
 		if tip_y < floor_y and length > 0.1:
@@ -3260,6 +3322,8 @@ func _key_blade_sk(sk: Skeleton3D, blade: Vector3) -> void:
 			x = Vector3.RIGHT
 		x = x.normalized()
 		var want = Basis(x, z.cross(x).normalized(), z)
+		if overlay.key_roll != 0.0:
+			want = want * Basis(Vector3.BACK, deg_to_rad(overlay.key_roll))   # sap ekseni etrafında (gunbai yüzü rakibe)
 		var q = (pb.inverse() * want).get_rotation_quaternion()
 		n.transform.basis = Basis(q).scaled(sc)
 		n.position = w["key_pos0"] + n.transform.basis.z.normalized() * grip

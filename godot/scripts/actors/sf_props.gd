@@ -21,7 +21,6 @@ const WEAPONS := {
 	"el_shuriken": {"file": "big_shuriken", "len": 0.95, "grip": 0.5, "center": true, "pca": false},
 	"fuma_shuriken": {"file": "fuma_shuriken", "len": 1.15, "grip": 0.5, "center": true, "pca": false},
 	"yelpaze": {"file": "tessen_lowpoly", "len": 0.75, "grip": 0.1, "pca": false},
-	"gunbai": {"file": "gunbai_bluue", "len": 1.5, "grip": 0.2},
 	"chokuto": {"file": "kusanagi_multipain", "len": 1.0, "grip": 0.12},
 	"kubikiribocho": {"file": "kubikiribocho_ezequiel", "len": 1.75, "grip": 0.1, "flip": true},
 	"samehada": {"file": "samehada", "len": 1.6, "grip": 0.12},
