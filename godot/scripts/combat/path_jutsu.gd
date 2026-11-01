@@ -18572,7 +18572,6 @@ func p_raiton_chidori(c: Node3D, t: Node3D) -> void:
 func p_suiton_suikoudan(c: Node3D, t: Node3D) -> void:
 	var d = fwd(c, t)
 	VFX.gather(c.global_position + Vector3.UP * 1.3 + d, WATER, 1.2)
-	_shark_jaw(c.global_position + Vector3.UP * 1.4 + d * 1.6, d, 1.0)
 	Jutsu.j_suiton_suikoudan(c, t)
 
 

@@ -515,14 +515,15 @@ func j_suiton_suikoudan(c: Node3D, t: Node3D) -> void:
 	pr.homing_turn = 5.0
 	pr.info = {"dmg": 34.0 * m, "element": "suiton", "knock": 14.0, "launch": 5.0, "kind": "heavy", "hitstop": 0.07}
 	pr.add_child(JutsuEngine.shape_mesh("shark", Color(0.2, 0.55, 1.0), 1.6, "suiton"))
-	Projectile.trail(pr, [Color(0.97, 0.99, 1, 1), Color(0.5, 0.8, 1, 0.9), Color(0.15, 0.4, 0.95, 0)], 1.1, 40, 0.5, FX.tex_smoke, false)
+	# su izi (Storm tarzı): yumuşak soluk su sisi + arkada saçılan minik damlalar (düz kurdele şerit üçgen görünüyordu)
+	Projectile.trail(pr, [Color(0.95, 0.98, 1, 0.55), Color(0.7, 0.88, 1, 0.35), Color(0.6, 0.82, 1, 0)], 0.9, 30, 0.45, FX.tex_smoke, false)
+	Projectile.trail(pr, [Color(1, 1, 1, 1), Color(0.85, 0.95, 1, 0.9), Color(0.7, 0.88, 1, 0)], 0.12, 40, 0.5, FX.tex_soft, false)
 	pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
 		VFX.splash(pos, 2.4)
 		VFX.star(pos, Color(0.6, 0.85, 1.0), 3.0, 0.16)
 		Sfx.play("water", pos)
 	get_tree().current_scene.add_child(pr)
 	pr.global_position = _hand(c)
-	VFX.element_trail(pr, "suiton", Color(0.3, 0.6, 1), 1.6)
 
 
 # ================================================================== FUUTON
