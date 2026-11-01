@@ -182,7 +182,7 @@ func _start_step() -> void:
 	p.model.overlay.set_pose("kick", 1.0 if c.get("kick", false) else 0.0)
 	_set_two_hand(c.get("two_hand", false), float(c.get("dur", 0.6)))
 	if c.has("keys"):
-		p.model.overlay.play_keys(c["keys"])
+		p.model.overlay.play_keys(c["keys"], float(c.get("key_spd", 1.0)))
 	else:
 		p.model.overlay.stop_keys()
 	# yelpaze: kombonun 4. vuruşu uzak rüzgâr dalgası (3 sn bekleme, spam yok)
@@ -431,8 +431,9 @@ func _combo_base(i: int) -> Dictionary:
 		c["keys"] = ks
 		c["anim"] = "idle"
 		c["speed"] = 1.0
-		c["dur"] = float(ks["len"])
-		c["hit"] = float(ks["hit"])
+		c["key_spd"] = 0.75   # video hızı oyunda fazla hızlı: %25 yavaş
+		c["dur"] = float(ks["len"]) / 0.75
+		c["hit"] = float(ks["hit"]) / 0.75
 		if i == 4:
 			c["launch"] = 10.0
 	return c

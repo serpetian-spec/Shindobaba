@@ -304,6 +304,7 @@ func _plant_pose(sk: Skeleton3D, w: float) -> void:
 
 ## Jutsu pozu: gövde, kollar (sırayla), parmaklar
 func play_keys(step: Dictionary, spd := 1.0) -> void:
+	_key_chain = key_t >= 0.0   # önceki vuruş sürerken geldiyse boş duruşa dönmeden akarak devam
 	key_anim = step
 	key_t = 0.0
 	key_spd = spd
@@ -312,41 +313,69 @@ func play_keys(step: Dictionary, spd := 1.0) -> void:
 func stop_keys() -> void:
 	key_t = -1.0
 	key_blade = Vector3.ZERO
+	_key_bv = Vector3.ZERO
 
 
-## Anahtar kareler arası yumuşak geçiş (smoothstep); başta/sonda alttaki animasyona karışır
+var _key_chain := false
+var _key_bv := Vector3.ZERO      # kılıç ucunun yumuşatılmış açısal hızı (gövde tepkisi için)
+var _key_prev := Vector3.ZERO
+
+
+static func _cr(a, b, c, d, u: float):
+	# Catmull-Rom: anahtarların içinden kesintisiz hızla geçer (her anahtarda durup kalkmaz)
+	return 0.5 * ((b * 2.0) + (c - a) * u + (a * 2.0 - b * 5.0 + c * 4.0 - d) * u * u + (b * 3.0 - a - c * 3.0 + d) * u * u * u)
+
+
+## Anahtar karelerden akıcı animasyon + gövdenin kılıca tepkisi (burulma, öne yüklenme)
 func _apply_keys(sk: Skeleton3D, dt: float) -> void:
 	key_t += dt * key_spd
 	var ln: float = key_anim["len"]
-	if key_t > ln + 0.12:
+	if key_t > ln + 0.15:
 		stop_keys()
 		return
 	var keys: Array = key_anim["keys"]
-	var a: Dictionary = keys[0]
-	var b: Dictionary = keys[0]
-	for k in keys:
-		if k["t"] <= key_t:
-			a = k
-			b = k
-		else:
-			b = k
-			break
-	var f = 0.0 if b["t"] <= a["t"] else smoothstep(0.0, 1.0, (key_t - a["t"]) / (b["t"] - a["t"]))
+	var n = keys.size()
+	var i = 0
+	while i < n - 1 and keys[i + 1]["t"] <= key_t:
+		i += 1
+	var k0: Dictionary = keys[maxi(i - 1, 0)]
+	var k1: Dictionary = keys[i]
+	var k2: Dictionary = keys[mini(i + 1, n - 1)]
+	var k3: Dictionary = keys[mini(i + 2, n - 1)]
+	var u = 0.0 if k2["t"] <= k1["t"] else clampf((key_t - k1["t"]) / (k2["t"] - k1["t"]), 0.0, 1.0)
 	var cp = {}
-	for n in ["crouch", "hips_yaw", "spine", "neck"]:
-		cp[n] = lerpf(a.get(n, 0.0), b.get(n, 0.0), f)
+	for nm in ["crouch", "hips_yaw", "spine", "neck"]:
+		cp[nm] = _cr(float(k0.get(nm, 0.0)), float(k1.get(nm, 0.0)), float(k2.get(nm, 0.0)), float(k3.get(nm, 0.0)), u)
+	cp["crouch"] = clampf(cp["crouch"], 0.0, 1.0)
 	var raw_yaw: float = cp["hips_yaw"]
 	cp["hips_yaw"] = wrapf(raw_yaw, -180.0, 180.0)   # tam tur dönüş: sayısal yol dönüşü verir, uygulanan açı sarılır
 	# dönüş (|yaw| > 60): kollar, bacaklar ve kılıç gövdeyle birlikte döner (yönler gövdeye göre tarif edildi)
 	var spin = Basis(Vector3.UP, deg_to_rad(raw_yaw)) if absf(raw_yaw) > 60.0 else Basis.IDENTITY
+	var blade: Vector3 = _cr(k0["blade"].normalized(), k1["blade"].normalized(), k2["blade"].normalized(), k3["blade"].normalized(), u)
+	blade = spin * blade.normalized()
+	# gövde tepkisi: kılıç ucunun hızına göre öne yüklenme / geriye esneme ve savuruş yönüne burulma
+	if dt > 0.0 and _key_prev != Vector3.ZERO:
+		_key_bv = _key_bv.lerp((blade - _key_prev) / dt, clampf(dt * 12.0, 0.0, 1.0))
+	_key_prev = blade
+	var lean_add = clampf(-_key_bv.y * 4.0, -10.0, 16.0)
+	var twist = clampf(blade.x * 22.0 + _key_bv.x * 5.0, -35.0, 35.0)
+	cp["twist"] = twist
+	var lean_b = Basis(Vector3.RIGHT, deg_to_rad(lean_add))
 	var arms = []
-	var ab: Dictionary = a["b"]
-	var bb: Dictionary = b["b"]
-	for bone in ab:
-		arms.append([bone, spin * (ab[bone] as Vector3).normalized().lerp((bb.get(bone, ab[bone]) as Vector3).normalized(), f)])
+	var b0: Dictionary = k0["b"]
+	var b1: Dictionary = k1["b"]
+	var b2: Dictionary = k2["b"]
+	var b3: Dictionary = k3["b"]
+	for bone in b1:
+		var d: Vector3 = _cr(b0.get(bone, b1[bone]).normalized(), b1[bone].normalized(), b2.get(bone, b1[bone]).normalized(), b3.get(bone, b1[bone]).normalized(), u)
+		d = spin * d.normalized()
+		if bone == "Spine" or bone == "Chest":
+			d = lean_b * d
+		arms.append([bone, d])
 	cp["arms"] = arms
-	key_blade = spin * (a["blade"] as Vector3).normalized().slerp((b["blade"] as Vector3).normalized(), f)
-	var w = clampf(key_t / 0.05, 0.0, 1.0) * clampf((ln + 0.12 - key_t) / 0.12, 0.0, 1.0)
+	key_blade = blade
+	var w_in = 1.0 if _key_chain else clampf(key_t / 0.08, 0.0, 1.0)
+	var w = w_in * clampf((ln + 0.15 - key_t) / 0.15, 0.0, 1.0)
 	_apply_cast(sk, w, cp)
 
 
@@ -369,6 +398,10 @@ func _apply_cast(sk: Skeleton3D, w: float, cp_in := {}) -> void:
 		_add_local(sk, "Chest", Vector3(deg_to_rad(cp["spine"]) * 0.5, 0, 0), w)
 	if cp.get("neck", 0.0) != 0.0:
 		_add_local(sk, "Neck", Vector3(deg_to_rad(cp["neck"]), 0, 0), w)
+	if cp.get("twist", 0.0) != 0.0:
+		# omuzlar savuruş yönüne burulur (yön kemikleri bunu korur)
+		_add_local(sk, "Spine", Vector3(0, deg_to_rad(cp["twist"]) * 0.4, 0), w)
+		_add_local(sk, "Chest", Vector3(0, deg_to_rad(cp["twist"]) * 0.6, 0), w)
 	for a in cp.get("arms", []):
 		_rot_model(sk, a[0], a[1], w)
 	for side in ["L", "R"]:
