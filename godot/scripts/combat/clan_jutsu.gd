@@ -3060,19 +3060,46 @@ func c_raiga_bomu(c: Node3D, t: Node3D) -> void:
 
 ## Giyotin Düşüşü: hedefin üstüne sıçrayıp yıldırım yüklü topukla iner: krater ve devirme
 func c_girochin_doroppu(c: Node3D, t: Node3D) -> void:
-	var at = gp(Jutsu._aim_ground(c, t, 6.0, 14.0))
-	_lightning_limb(c, 1.0)
-	busy(c, 1.0)
-	c.velocity = Vector3(0, 22, 0)
-	after(0.45, func():
+	var tt = tg(c, t, 14.0)
+	var at = gp(tt.global_position if tt else Jutsu._aim_ground(c, t, 6.0, 14.0))
+	_lightning_limb(c, 1.4)
+	busy(c, 1.3)
+	# Girochin Doroppu (anime A): hedefin üstüne yay çizerek yüksek sıçrar, havada dizleri toplayıp takla atar,
+	# şimşekli topuğu giyotin gibi tepesine indirir — ışınlanma yok
+	var start = c.global_position
+	var apex = at + Vector3.UP * 7.0 - (at - start).normalized() * 0.5
+	var md = c.get("model")
+	anim(c, "jump", 1.6)
+	var st0 = {"t": 0.0}
+	var dur_up = 0.5
+	every(dur_up, 1.0 / 60.0, func(_i, k):
 		if not is_instance_valid(c):
 			return
-		c.global_position = at + Vector3.UP * 9.0
-		c.velocity = Vector3(0, -55, 0)
-		after(0.18, func():
+		c.velocity = Vector3.ZERO
+		var u = clampf(k, 0.0, 1.0)
+		var flat = start.lerp(apex, u)
+		flat.y = lerpf(start.y, apex.y, sin(u * PI * 0.5))
+		c.global_position = flat
+		if md and md.get("overlay"):
+			md.overlay.tuck = sin(u * PI)   # havada takla: dizler göğse
+		if c is Player:
+			var d = at - c.global_position
+			d.y = 0
+			if d.length() > 0.1:
+				c.facing = atan2(-d.x, -d.z), func():
+		if not is_instance_valid(c):
+			return
+		if md and md.get("overlay"):
+			md.overlay.tuck = 0.0
+		anim(c, "slash_c", 2.2)
+		# şimşekli topuk iniyor: yukarıdan aşağı ışık izi
+		VFX.bolt(c.global_position + Vector3.UP * 1.0, at, Color(0.6, 0.85, 1.0), 0.45, 0.25, 3)
+		var tw = c.create_tween()
+		tw.tween_property(c, "global_position", at + Vector3.UP * 0.05, 0.14).set_ease(Tween.EASE_IN)
+		tw.tween_callback(func():
 			VFX.cracks(at, 6.0)
-			VFX.bolt(at + Vector3.UP * 9.0, at, Color(0.6, 0.85, 1.0), 0.45, 0.25, 3)
 			FX.impact(at, Color(0.6, 0.85, 1.0), 1.8)
+			VFX.debris(at, Color(0.5, 0.42, 0.32), 12, 10.0, 0.3)
 			for h in hit(c, at + Vector3.UP, 3.4, inf(c, "girochin_doroppu", 2.0, {"knock": 12.0, "launch": 6.0, "kind": "heavy", "element": "raiton", "hitstop": 0.12})):
 				st(h, "stun", 1.2)
 			shake(1.0)
@@ -3097,11 +3124,14 @@ func c_raiton_rariatto(c: Node3D, t: Node3D) -> void:
 
 ## Dirsek: kısa atılış, yıldırımlı dirsek yukarı vurur, hedef sersemler
 func c_erubo(c: Node3D, t: Node3D) -> void:
-	_lightning_limb(c, 0.5)
-	Jutsu._dash(c, t, 0.2, 22.0, func(_pt): pass, func():
+	_lightning_limb(c, 0.6)
+	# Erubō (anime A): kaymadan koşar — şimşekli dirsek önde, varınca dirsek darbesi yukarı savurur
+	Jutsu._dash(c, t, 0.22, 22.0, func(_pt):
+		if is_instance_valid(c) and c.get("model"):
+			c.model.play("run", 0.06, 2.0), func():
 		var p = c.global_position + Vector3.UP * 1.2 + c.face_dir() * 1.0
 		anim(c, "hook", 2.0)
-		for h in hit(c, p, 1.4, inf(c, "erubo", 1.4, {"knock": 6.0, "launch": 10.0, "kind": "heavy", "element": "raiton", "hitstop": 0.1})):
+		for h in hit(c, p, 1.6, inf(c, "erubo", 1.4, {"knock": 6.0, "launch": 10.0, "kind": "heavy", "element": "raiton", "hitstop": 0.1})):
 			st(h, "stun", 1.4)
 		VFX.bolt(p, p + Vector3.UP * 4.0, Color(0.6, 0.85, 1.0), 0.3, 0.2, 2)
 		Sfx.play("thunder", p, 1.4, 0.6))
