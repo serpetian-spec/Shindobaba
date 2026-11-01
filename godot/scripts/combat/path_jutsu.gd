@@ -11321,18 +11321,21 @@ func p_kuroi_kaminari(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.9)
 	var tt = tg(c, t, 24.0)
 	var black = Color(0.12, 0.1, 0.18)
-	VFX.gather(hand_pos(c, true), Color(0.4, 0.35, 0.55), 1.4)
+	VFX.gather(hand_pos(c, true), Color(0.9, 0.9, 0.95), 1.4)
 	after(0.3, func():
 		if not live(c):
 			return
 		var from = hand_pos(c, true)
 		var end = from + aim_at(c, tt, from) * 22.0
-		for k in 3:
-			VFX.bolt(from, end, black, 0.45 - k * 0.1, 0.5, 5)
-		VFX.bolt(from, end, Color(0.7, 0.65, 0.9), 0.08, 0.5, 0)
+		# siyah-beyaz kara şimşek (anime Darui): kalın siyah zikzak, beyaz çekirdek, beyaz çatırtılar
+		VFX.black_bolt(from, end, 0.55, 0.5, 5)
+		VFX.black_bolt(from + Vector3.UP * 0.3, end + Vector3(randf_range(-1, 1), randf_range(-0.5, 0.8), randf_range(-1, 1)), 0.3, 0.45, 2)
 		Combat.hit_zone(c, c.global_position, aim_at(c, tt, from), 22.0, 6.0, 3.0, inf(c, "kuroi_kaminari", 2.2, {"knock": 14.0, "kind": "heavy", "element": "raiton", "stun": 1.0, "hitstop": 0.1}))
 		if tt:
-			impact_fx("raiton", Color(0.55, 0.45, 0.8), tt.global_position + Vector3.UP, 1.6)
+			var hp = tt.global_position + Vector3.UP
+			for k in 5:
+				VFX.black_bolt(hp, hp + Vector3(randf_range(-2.5, 2.5), randf_range(-0.5, 2.5), randf_range(-2.5, 2.5)), 0.2, 0.35, 1)
+			VFX.star(hp, Color(1, 1, 1), 2.0, 0.15)
 		shake(0.7)
 		Sfx.play("thunder", from, 0.7))
 
@@ -19595,32 +19598,29 @@ func p_raiton_daburu_rariatto(c: Node3D, t: Node3D) -> void:
 func p_kokuton_kuro_pansa(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.0)
 	var tt = tg(c, t, 30.0)
-	var black = Color(0.08, 0.08, 0.1)
-	var b = MB.new()
-	b.add("sphere", Vector3(0, 0, 0), Vector3(1.2, 1.0, 2.2), black)
-	b.add("sphere", Vector3(0, 0.2, 1.3), Vector3(0.9, 0.8, 0.9), black)
-	b.add("box", Vector3(0, -0.15, 1.75), Vector3(0.7, 0.2, 0.5), black)
-	for sx in [-1.0, 1.0]:
-		b.add("sphere", Vector3(sx * 0.25, 0.4, 1.7), Vector3(0.16, 0.1, 0.06), Color(1, 1, 0.9))
-		b.add("cone", Vector3(sx * 0.3, 0.65, 1.2), Vector3(0.15, 0.3, 0.1), black, Vector3.ZERO, 4)
-		for fz in [-0.7, 0.7]:
-			b.add("cyl", Vector3(sx * 0.4, -0.6, fz), Vector3(0.18, 0.7, 0.18), black, Vector3(-20, 0, 0), 6)
-	for k in 6:
-		b.add("cone", Vector3((k - 2.5) * 0.1, -0.05, 2.0), Vector3(0.05, 0.18, 0.05), Color(1, 1, 1), Vector3(180, 0, 0), 4)
-	var pan = mesh_of(b)
+	# anime Darui: dörtnala koşan opak kara şimşek panteri (beyaz gözler, çevresinde beyaz çatırtılar)
+	var pan = Node3D.new()
+	var pa = RantonArt.panther(2.4)
+	pa.position.y = -0.9
+	pan.add_child(pa)
 	VFX.gather(hand_pos(c, true), Color(0.2, 0.2, 0.25), 1.4)
 	after(0.4, func():
 		if not live(c):
 			return
-		var from = c.global_position + Vector3.UP * 1.2 + c.face_dir()
-		var pr = shot(c, from, aim_at(c, tt, from), 30.0, pan, inf(c, "kokuton_kuro_pansa", 2.6, {"knock": 16.0, "kind": "heavy", "element": "raiton", "stun": 1.6, "hitstop": 0.12}), tt, false, 1.4, func(p, _h):
-			for k in 8:
-				VFX.bolt(p, p + Vector3(randf_range(-3, 3), randf_range(0, 3), randf_range(-3, 3)), Color(0.15, 0.15, 0.2), 0.25, 0.3, 2)
-			impact_fx("raiton", Color(0.3, 0.3, 0.4), p, 1.8))
+		var from = gp(c.global_position + c.face_dir() * 1.5) + Vector3.UP * 0.9
+		var dir0 = aim_at(c, tt, from)
+		dir0.y = 0.0
+		var pr = shot(c, from, dir0.normalized(), 24.0, pan, inf(c, "kokuton_kuro_pansa", 2.6, {"knock": 16.0, "kind": "heavy", "element": "raiton", "stun": 1.6, "hitstop": 0.12}), tt, false, 1.4, func(p, _h):
+			for k in 7:
+				VFX.black_bolt(p, p + Vector3(randf_range(-3, 3), randf_range(0, 3), randf_range(-3, 3)), 0.28, 0.4, 2)
+			VFX.star(p, Color(1, 1, 1), 2.6, 0.18)
+			shake(0.6))
 		pr.radius = 1.2
+		pr.on_tick = func(p, _dt):
+			p.global_position.y = Game.jutsu_floor(p.global_position.x, p.global_position.z) + 0.9   # yerde koşar
 		every(1.4, 0.06, func(_i, _k):
 			if is_instance_valid(pr):
-				VFX.bolt(pr.global_position, pr.global_position + Vector3(randf_range(-1.5, 1.5), randf_range(-1, 1.5), randf_range(-1.5, 1.5)), Color(0.85, 0.85, 1.0), 0.08, 0.1, 1), Callable()))
+				VFX.bolt(pr.global_position, pr.global_position + Vector3(randf_range(-1.5, 1.5), randf_range(-1, 1.5), randf_range(-1.5, 1.5)), Color(1, 1, 1), 0.06, 0.1, 1), Callable()))
 	Sfx.play("thunder", c.global_position, 0.7)
 
 

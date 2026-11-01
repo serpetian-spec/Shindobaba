@@ -62,6 +62,59 @@ static func mat_fire(preset := "fire", speed := 2.2, scale_ := 2.4, erode := 0.4
 ## Anime lav malzemesi: "molten" = kızıl taban + akan sarı-turuncu erimiş hücreler (lav seli/duvarı),
 ## "rock" = turuncu erimiş kaya + koyu kabuk benekleri, kızıl kenar (lav kayaları/mermileri). world: tüp gövdeler için dünya uzayı
 ## Lav kayası: pürüzlü erimiş kaya topu (turuncu üstüne koyu kabuk benekleri, kızıl kenar) — ateş topu değil
+## Kara şimşek (Kuroi Kaminari): eklemeli değil — opak siyah zikzak bant + içinde ince beyaz çekirdek,
+## yanlarda beyaz çatırtı dalları (siyah, eklemeli bolt'ta görünmüyor, koyu mavi kalıyordu)
+static func black_bolt(from: Vector3, to: Vector3, width := 0.3, dur := 0.4, branches := 3) -> void:
+	var sc = scene()
+	if sc == null:
+		return
+	var pts = [from]
+	var n = 8
+	var d = to - from
+	var side = d.cross(Vector3.UP).normalized()
+	if side.length() < 0.1:
+		side = Vector3.RIGHT
+	var up2 = side.cross(d.normalized())
+	for k in range(1, n):
+		var t = float(k) / n
+		pts.append(from + d * t + (side * randf_range(-1, 1) + up2 * randf_range(-1, 1)) * d.length() * 0.05)
+	pts.append(to)
+	var bm = StandardMaterial3D.new()
+	bm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	bm.albedo_color = Color(0.02, 0.02, 0.03)
+	var wm = StandardMaterial3D.new()
+	wm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	wm.albedo_color = Color(1, 1, 1)
+	wm.cull_mode = BaseMaterial3D.CULL_FRONT   # ters kabuk: siyah bandın çevresinde beyaz kontur (anime kara şimşek)
+	var root = Node3D.new()
+	sc.add_child(root)
+	for i in pts.size() - 1:
+		var a: Vector3 = pts[i]
+		var b: Vector3 = pts[i + 1]
+		for layer in [[width * 0.6, bm], [width * 0.6 + 0.07, wm]]:
+			var mi = MeshInstance3D.new()
+			var cm = CylinderMesh.new()
+			cm.top_radius = layer[0] * 0.5
+			cm.bottom_radius = layer[0] * 0.5
+			cm.height = a.distance_to(b) + layer[0] * 0.4
+			cm.radial_segments = 5
+			cm.rings = 1
+			mi.mesh = cm
+			mi.material_override = layer[1]
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			root.add_child(mi)
+			var dd = (b - a).normalized()
+			var bas = Basis(Quaternion(Vector3.UP, dd)) if absf(dd.dot(Vector3.UP)) < 0.999 else Basis()
+			mi.global_transform = Transform3D(bas, (a + b) * 0.5)
+	for k in branches:
+		var p: Vector3 = pts[randi_range(1, pts.size() - 2)]
+		bolt(p, p + (side * randf_range(-1, 1) + up2 * randf_range(-0.5, 1)).normalized() * randf_range(0.8, 2.0) * maxf(1.0, width * 3.0), Color(1, 1, 1), width * 0.18, dur * 0.6, 1)
+	var tw = root.create_tween()
+	tw.tween_interval(dur * 0.7)
+	tw.tween_property(root, "scale", Vector3(0.2, 1, 0.2), dur * 0.3)
+	tw.tween_callback(root.queue_free)
+
+
 static func lava_ball(size := 1.0) -> Node3D:
 	var root = Node3D.new()
 	var b = MB.new()

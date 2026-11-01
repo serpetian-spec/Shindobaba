@@ -8,6 +8,8 @@ const CORE := Color(0.92, 0.97, 1.0, 0.9)
 
 static var _shell_mat: StandardMaterial3D
 static var _core_mat: StandardMaterial3D
+static var dark_mode := false   # true: kara şimşek (Kuroi Kaminari) — opak siyah gövde
+static var _dark_shell: StandardMaterial3D
 
 
 static func _glow(c: Color, add := true) -> StandardMaterial3D:
@@ -26,8 +28,12 @@ static func _two_layer(build: Callable) -> Node3D:
 	if _shell_mat == null:
 		_shell_mat = _glow(SHELL, false)   # dış kabuk karışımlı: açık zeminde de mavi okunur (eklemeli beyaza yıkanıyordu)
 		_core_mat = _glow(CORE)
+	if _dark_shell == null:
+		_dark_shell = _glow(Color(0.03, 0.03, 0.04, 1.0), false)
+		_dark_shell.transparency = BaseMaterial3D.TRANSPARENCY_DISABLED
 	var root = Node3D.new()
-	for layer in [[1.0, _shell_mat], [0.45, _core_mat]]:
+	var layers = [[1.0, _dark_shell]] if dark_mode else [[1.0, _shell_mat], [0.45, _core_mat]]
+	for layer in layers:
 		var b = MB.new()
 		build.call(b, layer[0])
 		var mi = MeshInstance3D.new()
@@ -88,6 +94,24 @@ static func hound(s := 1.0) -> Node3D:
 		body.position.y = absf(sin(TAU * ph)) * 0.06 * s
 		body.rotation.x = sin(TAU * ph) * 0.06, 0.0, 1.0, 0.3)
 	return ClayArt._fwd(root)
+
+
+## Kuro Pansā (anime Darui): opak kara şimşek panteri — dörtnala koşan kedigil gövde, beyaz gözler
+static func panther(s := 1.0) -> Node3D:
+	dark_mode = true
+	var root = hound(s)
+	dark_mode = false
+	var eb = MB.new()
+	for sx in [-1.0, 1.0]:
+		eb.add("sphere", Vector3(sx * 0.075, 0.71, 0.82) * s, Vector3(0.06, 0.035, 0.04) * s, Color(1, 1, 1), Vector3(0, 0, sx * -15.0), 8)
+	var em = MeshInstance3D.new()
+	em.mesh = eb.build(null)
+	var wm = StandardMaterial3D.new()
+	wm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	wm.vertex_color_use_as_albedo = true
+	em.material_override = wm
+	root.get_child(0).get_child(0).add_child(em)
+	return root
 
 
 ## Kaminari Ryū: ışık ejderhası başı (uzun burun, açık çene, arkaya kıvrık boynuzlar, yele dikenleri); gövde ışın kuyruğudur
