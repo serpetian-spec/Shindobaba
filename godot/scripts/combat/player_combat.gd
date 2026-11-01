@@ -9,8 +9,13 @@ const COMBO := [
 	{"anim": "cross", "speed": 1.5, "hit": 0.12, "dur": 0.34, "dmg": 4.2, "reach": 1.3, "lunge": 4.0, "knock": 2.0},
 	{"anim": "hook", "speed": 1.6, "hit": 0.16, "dur": 0.4, "dmg": 4.8, "reach": 1.4, "lunge": 4.5, "knock": 3.0},
 	{"anim": "idle", "kick": true, "speed": 1.0, "hit": 0.14, "dur": 0.38, "dmg": 5.4, "reach": 1.7, "lunge": 5.0, "knock": 4.0},
+	{"anim": "hook", "speed": 1.75, "hit": 0.15, "dur": 0.38, "dmg": 5.0, "reach": 1.4, "lunge": 4.5, "knock": 3.0},
 	{"anim": "slash_c", "speed": 1.4, "hit": 0.22, "dur": 0.6, "dmg": 9.0, "reach": 1.8, "lunge": 6.0, "knock": 16.0, "launch": 5.0, "heavy": true},
 ]
+## 6 vuruşluk kombo, 5 elemanlı eski listeler (silah stili animasyonları, Samehada/Gunbai anahtarları) için indeks:
+## 5. vuruş 2. vuruşun tekrarı, 6. vuruş (bitiriş) listenin sonu
+static func _ci(i: int) -> int:
+	return [0, 1, 2, 3, 1, 4][clampi(i, 0, 5)]
 
 var p: Player
 var step = -1
@@ -360,7 +365,7 @@ func _do_attack(dt: float) -> bool:
 		did_hit = true
 		var pt = p.global_position + Vector3.UP * 1.1 + p.face_dir() * (p.radius + c["reach"] * 0.6)
 		if c.get("gust", false):
-			_gunbai_gust(step)
+			_gunbai_gust(_ci(step))
 		var hits = Combat.hit_sphere(p, pt, c["reach"] * 0.65 * Buffs.mod("reach"), _hit_info(c))
 		if not hits.is_empty():
 			_on_hit_fx(pt, c)
@@ -432,30 +437,30 @@ func _combo_base(i: int) -> Dictionary:
 		wid = String(gq.get("id", ""))
 	if ID_COMBOS.has(wid):
 		st = ID_COMBOS[wid]
-		c["water"] = st["water"][clampi(i, 0, 4)]
+		c["water"] = st["water"][_ci(i)]
 		c["water_big"] = false
-		c["two_hand"] = st.get("two_hand", [false, false, false, false, false])[clampi(i, 0, 4)]
-		c["grind"] = st.get("grind", [false, false, false, false, false])[clampi(i, 0, 4)]
-		c["flash"] = st.get("flash", [false, false, false, false, false])[clampi(i, 0, 4)]
+		c["two_hand"] = st.get("two_hand", [false, false, false, false, false])[_ci(i)]
+		c["grind"] = st.get("grind", [false, false, false, false, false])[_ci(i)]
+		c["flash"] = st.get("flash", [false, false, false, false, false])[_ci(i)]
 		if st.has("lunge"):
-			c["lunge"] = float(c.get("lunge", 1.0)) * float(st["lunge"][clampi(i, 0, 4)])
+			c["lunge"] = float(c.get("lunge", 1.0)) * float(st["lunge"][_ci(i)])
 	if st.is_empty():
 		return c
-	var an: String = st["anims"][clampi(i, 0, 4)]
+	var an: String = st["anims"][_ci(i)]
 	if an != "":
 		c["anim"] = an
 		c["kick"] = false
-		c["speed"] = float(st["speed"]) * (0.85 if i == 4 else 1.0)
+		c["speed"] = float(st["speed"]) * (0.85 if i == COMBO.size() - 1 else 1.0)
 	c["dur"] = float(c["dur"]) * float(st["dur"])
 	c["hit"] = float(c["hit"]) * float(st["dur"])
 	c["knock"] = float(c["knock"]) * float(st["knock"])
 	c["fx"] = st["fx"]
 	c["snd"] = st["snd"]
-	if w["style"] == "heavy" and i == 4:
+	if w["style"] == "heavy" and i == COMBO.size() - 1:
 		c["launch"] = 8.0
 	if w["style"] == "chain":
 		# kusarigama: orta menzil — orak zincirle fırlar, savrulur, çeker, döner; oyuncu hedefe atılmaz
-		c["chain_kind"] = ["throw", "sweep", "reel", "throw", "spin"][clampi(i, 0, 4)]
+		c["chain_kind"] = ["throw", "sweep", "reel", "throw", "spin"][_ci(i)]
 		c["reach"] = 6.5
 		c["lunge"] = 0.0
 	c["special"] = w.get("special", "")
@@ -468,13 +473,14 @@ func _combo_base(i: int) -> Dictionary:
 			c["heavy"] = true
 		"drain":
 			c["drain"] = true
-	if wid in ["samehada", "gunbai"]:
-		# el yapımı anahtar animasyon (Samehada: videodan; Gunbai: hayal edilmiş tarif): süre/vuruş anı anahtarlardan
-		var ks: Dictionary = (SamehadaAnim.steps() if wid == "samehada" else GunbaiAnim.steps())[clampi(i, 0, 4)]
+	if wid in ["samehada", "gunbai", "kunai"]:
+		# el yapımı anahtar animasyon (Samehada: videodan; Gunbai/Kunai: kendine anlatılmış tarif): süre/vuruş anı anahtarlardan
+		var kst: Array = {"samehada": SamehadaAnim, "gunbai": GunbaiAnim, "kunai": KunaiAnim}[wid].steps()
+		var ks: Dictionary = kst[clampi(i, 0, 5)] if kst.size() >= 6 else kst[_ci(i)]
 		c["keys"] = ks
 		c["anim"] = "idle"
 		c["speed"] = 1.0
-		var ksp = 1.3 if wid == "samehada" else 1.05   # gunbai: ağır silah ritmi (kurulma süresi korunur)
+		var ksp = {"samehada": 1.3, "gunbai": 1.05, "kunai": 1.0}[wid]   # gunbai: ağır silah ritmi; kunai zaten hızlı
 		c["key_spd"] = ksp
 		c["dur"] = float(ks["len"]) / ksp
 		c["hit"] = float(ks["hit"]) / ksp
@@ -483,12 +489,14 @@ func _combo_base(i: int) -> Dictionary:
 			c["extra_radius"] = ks.get("extra_radius", 2.5)
 		if wid == "gunbai":
 			c["gust"] = true
-			if i == 3:
+			if _ci(i) == 3:
 				c["dmg"] = float(c["dmg"]) * 0.5   # kalkan: hafif itiş
 				c["knock"] = 4.0
-			elif i == 4:
+			elif i == COMBO.size() - 1:
 				c["knock"] = 22.0   # Uchiha Gaeshi: düz geri savrulur (havaya değil)
-		if i == 4 and wid == "samehada":
+		if wid == "kunai" and i == COMBO.size() - 1:
+			c["knock"] = 9.0   # bitiriş biçmesi rakibi geri savurur
+		if i == COMBO.size() - 1 and wid == "samehada":
 			c["launch"] = 13.0   # rakip dimdik havaya uçar
 			c["knock"] = 1.5     # yatayda az (eskiden 38 m öteye savruluyordu)
 	return c
