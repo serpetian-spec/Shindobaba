@@ -693,6 +693,14 @@ static func grant(p: Dictionary, id: String, equip_slot := "", c1 = null, c2 = n
 		return -1
 	var uid = int(p.get("gear_uid", 0)) + 1
 	p["gear_uid"] = uid
+	if String(it.get("slot", "")) == "set":
+		# set varsayılanları: üst giysinin ve pantolonun kendi renkleri
+		for pt in it.get("parts", []):
+			var psl = String(item(String(pt[0])).get("slot", ""))
+			if psl == "govde" and c1 == null:
+				c1 = pt[1] if pt[1] != null else item(String(pt[0])).get("c1", Color.WHITE)
+			elif psl == "bacak" and c2 == null:
+				c2 = pt[1] if pt[1] != null else item(String(pt[0])).get("c1", Color.WHITE)
 	var g = {"uid": uid, "id": id, "c1": _hex(c1 if c1 != null else it.get("c1", Color.WHITE)), "c2": _hex(c2 if c2 != null else it.get("c2", it.get("c1", Color.WHITE)))}
 	g.merge(extra, true)
 	p["gear"].append(g)
@@ -793,7 +801,7 @@ static func ensure(p: Dictionary) -> void:
 	p["gear"] = []
 	p["equip"] = {}
 	var L: Dictionary = p.get("look", {})
-	grant(p, _starter_set(p), "set", L.get("top", null), L.get("top2", null))
+	grant(p, _starter_set(p), "set", L.get("top", null), L.get("pants", null))
 	grant(p, "kunai", "sag")
 	if L.get("band") != null:
 		grant(p, "alin_koruyucu", "kafa", L["band"])
@@ -918,16 +926,19 @@ static func apply_look(p: Dictionary) -> void:
 		if it0.is_empty():
 			continue
 		if String(it0.get("slot", "")) == "set":
-			# set: c1/c2 ilk parçanın (ana giysinin) renklerini değiştirir, diğer parçalar setin kendi renkleriyle
-			var first = true
+			# set renkleri: c1 = ÜST (üst giysi), c2 = ALT (pantolon); diğer parçalar setin kendi renkleriyle
 			for pt in it0.get("parts", []):
 				var pit = item(String(pt[0]))
 				if pit.is_empty():
 					continue
-				var pc1: Color = Color.html(g0["c1"]) if first else (pt[1] if pt[1] != null else pit.get("c1", Color.WHITE))
-				var pc2: Color = Color.html(g0["c2"]) if first else (pt[2] if pt[2] != null else pit.get("c2", pc1))
-				wear.append([String(pit["slot"]), pit, pc1, pc2, g0])
-				first = false
+				var psl = String(pit["slot"])
+				var pc1: Color = pt[1] if pt[1] != null else pit.get("c1", Color.WHITE)
+				var pc2: Color = pt[2] if pt[2] != null else pit.get("c2", pc1)
+				if psl == "govde":
+					pc1 = Color.html(g0["c1"])
+				elif psl == "bacak":
+					pc1 = Color.html(g0["c2"])
+				wear.append([psl, pit, pc1, pc2, g0])
 		else:
 			wear.append([s[0], it0, Color.html(g0["c1"]), Color.html(g0["c2"]), g0])
 	for wr in wear:

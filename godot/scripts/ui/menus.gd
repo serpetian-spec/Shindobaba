@@ -711,8 +711,8 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 			var sl = Gear.START_SETS.map(func(x): return String(Gear.item(x).get("name", x)))
 			carousel.call("Kıyafet Seti", "start_set", Gear.START_SETS, sl)
 			var outfit_cols = [Color(0.15, 0.2, 0.33), Color(0.15, 0.15, 0.17), Color(0.45, 0.15, 0.15), Color(0.95, 0.5, 0.12), Color(0.2, 0.38, 0.22), Color(0.35, 0.25, 0.45), Color(0.85, 0.82, 0.75), Color(0.15, 0.4, 0.45)]
-			swatches.call("Ana Renk", "top", outfit_cols)
-			swatches.call("Vurgu Rengi", "top2", outfit_cols)
+			swatches.call("Üst Rengi", "top", outfit_cols)
+			swatches.call("Alt Rengi", "pants", outfit_cols)
 	if not keep_scroll.is_empty():
 		_restore_scroll.call_deferred(keep_scroll)
 	# sağ üst: özet kartı
@@ -1596,7 +1596,7 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 		_ms_editor(main, dv, Eyes.design_for(pr, _eq_slot))
 	# boya
 	if not cur.is_empty() and not Gear.item(cur["id"]).has("weapon") and not Gear.item(cur["id"]).has("eye"):
-		var names = {"set": ["Ana renk", "Vurgu (omuz/yaka)"]}.get(_eq_slot, ["Renk"])
+		var names = {"set": ["Üst Rengi", "Alt Rengi (pantolon)"]}.get(_eq_slot, ["Renk"])
 		for ci in names.size():
 			var key = "c%d" % (ci + 1)
 			dv.add_child(UI.label(names[ci], 14, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))

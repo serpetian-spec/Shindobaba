@@ -209,8 +209,8 @@ func _creator_look() -> Dictionary:
 	var L = {"gender": s["gender"], "hair_style": s["hair_style"], "hair": s["hair"], "skin": s["skin"], "eye": eye, "band": null, "age": "child", "village": s.get("village", "konoha"),
 		"start_set": s.get("start_set", "set_genin")}
 	Gear.preview_set_look(L, String(L["start_set"]))   # seçilen set önizlemede giyili
-	L["top"] = s["top"]   # ana / vurgu rengi setin ana giysisine uygulanır
-	L["top2"] = s.get("top2", Color(s["top"]).darkened(0.3))
+	L["top"] = s["top"]   # üst rengi: setin üst giysisi
+	L["pants"] = s.get("pants", L.get("pants", Color(0.15, 0.15, 0.17)))   # alt rengi: pantolon
 	return L
 
 
