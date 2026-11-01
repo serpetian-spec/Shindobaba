@@ -886,8 +886,14 @@ func _paint_body() -> void:
 	if look["vest"] != null:
 		vest_mat = _cloth_mat(2)
 		_add_shell(_shell_cache[key + "|vest"], vest_mat)
-		if int(look.get("vest_style", 0)) == 0:
+		if int(look.get("vest_style", 0)) in [0, 1, 2, 3, 4]:
 			_vest_kit(_shell_cache[key + "|vest"], g)
+		if int(look.get("vest_style", 0)) == 2 and _sk_begin(_shell_cache[key]):
+			# Kiri önlüğü: kalça önünde, kumaş kabuğuna yaslı, aşağı doğru daralan plaka şerit
+			var hy = _bp("Hips").y
+			var vc2: Color = Color(look["vest"]).darkened(0.06)
+			_sk_panel(0.0, hy + 0.06, 0.24, 0.27, 0.17, 0.014, vc2)
+			_sk_end(g)
 	_cloth_rings(g, shell_mat, vest_mat)
 	_garments(g)
 
@@ -1823,11 +1829,29 @@ func _sk_pocket(cx: float, cy: float, w: float, h: float, vc: Color, dk: Color) 
 		_sk_box(c + u * x - v * 0.006 + n * 0.02, u * (w / 3.0 - 0.008) * 0.5, v * (h - 0.02) * 0.5, n * 0.011, vc.darkened(0.04))
 	_sk_box(c + v * (h * 0.5 - 0.009) + n * 0.024, u * (w + 0.004) * 0.5, v * 0.009, n * 0.012, dk.darkened(0.12))
 
+## Düz panel (önlük vb.): bölgenin en ön noktasına yaslı tek çerçevede yamuk; satır satır kutular aynı düzlemde (kırık görünmez)
+func _sk_panel(cx: float, y_top: float, h: float, w_top: float, w_bot: float, d: float, col: Color) -> void:
+	var V: PackedVector3Array = _sk["v"]
+	var zmax = -9.0
+	for q in V:
+		if q.z > 0.0 and absf(q.x - cx) < w_top * 0.5 and q.y < y_top + 0.02 and q.y > y_top - h:
+			zmax = maxf(zmax, q.z)
+	if zmax < -8.0:
+		return
+	var rows = 6
+	for k in rows:
+		var t = (k + 0.5) / rows
+		var w = lerpf(w_top, w_bot, t)
+		var y = y_top - h * t
+		_sk_box(Vector3(cx, y, zmax + d * 0.5 + 0.004), Vector3.RIGHT * w * 0.5, Vector3.UP * h / rows * 0.52, Vector3.BACK * d * 0.5, col)
+
+
 ## Konoha yeleği (set1.png): göğüste 2x2 parşömen cebi (üst sıra küçük, alt büyük), boydan boya fermuar,
 ## yeleğin üst kenarında dik yaka, omuzlarda yassı omuzluk — hepsi yelek kabuğunun yüzeyinden
 func _vest_kit(src: ArrayMesh, g: Dictionary) -> void:
 	if not _sk_begin(src):
 		return
+	var vs = int(look.get("vest_style", 0))
 	var vc: Color = look["vest"]
 	var dk = vc.darkened(0.18)
 	var zipc = Color(0.85, 0.85, 0.83)
@@ -1836,21 +1860,64 @@ func _vest_kit(src: ArrayMesh, g: Dictionary) -> void:
 	var ch = _bp("UpperChest").y
 	var top_y = neck - 0.045
 	var bot_y = hips + 0.05
-	# fermuar: boydan boya sürekli şerit
-	_sk_strip(0.0, top_y + 0.02, bot_y + 0.01, 0.012, 0.006, zipc, 34)
-	# cepler: her cep takımı tek çerçevede (bölgenin ortalama yüzey normali) -> hücreler hizalı, kırık parça yok
-	for sx in [-1.0, 1.0]:
-		for row in [[ch - 0.075, 0.1, 0.075], [ch - 0.18, 0.115, 0.095]]:
-			_sk_pocket(0.09 * sx, row[0], row[1], row[2], vc, dk)
-	# dik yaka: yeleğin üst kenarında boyun çevresinde bant (arkası dahil)
-	# dik yaka: boynu saran yüksek bant (yeleğin boyun çevresindeki köşelerinden; omuz genişliğine yayılmaz)
-	_sk_ring(1, top_y + 0.003, 0.085, 0.02, vc.darkened(0.05), -PI, PI, 48, 0.004, 0.0, 0.04, 0.115)
-	# etek bandı
-	_sk_ring(1, bot_y + 0.02, 0.035, 0.008, dk, -PI, PI, 40, 0.0)
-	# omuzluklar: omuz üstünde ön-üst-arka yay (x ekseni etrafında)
 	var sh_x = _bp("LeftUpperArm").x * 0.82
-	for sx in [-1.0, 1.0]:
-		_sk_ring(0, sh_x * sx, 0.075, 0.012, vc.darkened(0.03), -0.55, 1.0, 16, 0.0, sx)   # omuz üstü, öne sarkmaz
+	match vs:
+		0:   # Konoha (set1.png): fermuar, 2x2 parşömen cebi, dik yaka, etek bandı, yassı omuzluk
+			_sk_strip(0.0, top_y + 0.02, bot_y + 0.01, 0.012, 0.006, zipc, 34)
+			for sx in [-1.0, 1.0]:
+				for row in [[ch - 0.075, 0.1, 0.075], [ch - 0.18, 0.115, 0.095]]:
+					_sk_pocket(0.09 * sx, row[0], row[1], row[2], vc, dk)
+			_sk_ring(1, top_y + 0.003, 0.085, 0.02, vc.darkened(0.05), -PI, PI, 48, 0.004, 0.0, 0.04, 0.115)
+			_sk_ring(1, bot_y + 0.02, 0.035, 0.008, dk, -PI, PI, 40, 0.0)
+			for sx in [-1.0, 1.0]:
+				_sk_ring(0, sh_x * sx, 0.075, 0.012, vc.darkened(0.03), -0.55, 1.0, 16, 0.0, sx)
+		1:   # Suna (sunaset.png): geniş kanat omuzluk (üstünde açık şerit), fermuar, karında iki cep takımı, dik yaka
+			_sk_strip(0.0, top_y + 0.02, bot_y + 0.01, 0.012, 0.006, zipc, 34)
+			for sx in [-1.0, 1.0]:
+				_sk_pocket(0.085 * sx, ch - 0.2, 0.11, 0.085, vc, dk)
+				_sk_ring(0, sh_x * sx * 1.05, 0.16, 0.03, vc.darkened(0.06), -0.95, 1.2, 20, 0.01, sx)   # geniş kanat omuzluk
+				_sk_plate(sh_x * sx * 0.95, top_y - 0.035, 0.05, 0.022, 0.05, Color(0.84, 0.86, 0.88))   # omuzluğun önünde açık şerit
+			_sk_ring(1, top_y + 0.003, 0.075, 0.02, vc.darkened(0.04), -PI, PI, 48, 0.004, 0.0, 0.035, 0.115)
+			_sk_ring(1, bot_y + 0.02, 0.035, 0.008, dk, -PI, PI, 40, 0.0)
+		2:   # Kiri (mistset.png): kutu omuzluk, belde kalın bant + yan tokalar, yatay plaka çizgileri (kabartma bant), önde önlük
+			for sx in [-1.0, 1.0]:
+				_sk_ring(0, sh_x * sx * 1.02, 0.11, 0.02, dk, -0.8, 1.1, 10, 0.004, sx)
+				_sk_plate(0.15 * sx, ch - 0.22, 0.05, 0.03, 0.016, dk.darkened(0.15))
+			_sk_ring(1, ch - 0.22, 0.03, 0.01, dk, -PI, PI, 40, 0.0)
+			_sk_ring(1, ch - 0.1, 0.012, 0.005, vc.darkened(0.1), -1.2, 1.2, 24, 0.0)
+			_sk_ring(1, bot_y + 0.02, 0.03, 0.008, dk, -PI, PI, 40, 0.0)
+		3:   # Kumo (cloudset.png): tek omuz askısı + toka, sağ omuzdan sol böğre çapraz kabartma dikişler, göğüste şerit cep
+			_sk_ring(0, sh_x * 0.85, 0.065, 0.012, vc.darkened(0.08), -0.9, 1.0, 14, 0.004, 1.0)   # sol omuz askısı
+			_sk_plate(sh_x * 0.8, ch + 0.02, 0.045, 0.06, 0.014, Color(0.7, 0.72, 0.75))   # askı tokası
+			for off in [-0.02, 0.09]:
+				var pts = []
+				var outs = []
+				for k in 20:
+					var t = k / 19.0
+					var y = lerpf(ch + 0.04, bot_y + 0.04, t)
+					var x = (y - ch) * 0.75 + off
+					var hit = _sk_hit(x, y, true, 0.03)
+					if not hit.is_empty():
+						pts.append(Vector3(x, y, hit[0].z)); outs.append(hit[1])
+				for it in 3:   # yumuşat: basamaklı görünmesin
+					var sm = pts.duplicate()
+					for i in range(1, pts.size() - 1):
+						sm[i] = Vector3(pts[i].x, pts[i].y, maxf(pts[i].z, (pts[i - 1].z + pts[i + 1].z) * 0.5))
+					pts = sm
+				if pts.size() > 1:
+					_sk_band(pts, outs, Vector3(0.6, 0.8, 0).normalized(), 0.008, 0.005, vc.darkened(0.25))
+			for k in 4:
+				_sk_plate(0.035 + k * 0.014, ch - 0.04, 0.008, 0.04, 0.008, vc.darkened(0.3))
+			_sk_ring(1, bot_y + 0.02, 0.03, 0.008, vc.darkened(0.12), -PI, PI, 40, 0.0)
+		4:   # Iwa (rockset.png): düğmeli yassı omuzluk, fermuar, karında büyük dikdörtgen cep, dik yaka
+			_sk_strip(0.0, top_y + 0.02, bot_y + 0.01, 0.012, 0.006, zipc, 34)
+			for sx in [-1.0, 1.0]:
+				_sk_ring(0, sh_x * sx, 0.08, 0.014, dk, -0.6, 1.0, 14, 0.004, sx)
+				_sk_plate(sh_x * sx * 0.92, top_y - 0.005, 0.02, 0.02, 0.022, Color(0.75, 0.72, 0.66))   # omuz düğmesi
+			_sk_plate(0.0, ch - 0.2, 0.2, 0.09, 0.026, dk)   # karın cebi
+			_sk_plate(0.0, ch - 0.16, 0.21, 0.018, 0.03, dk.darkened(0.15))   # cep kapağı
+			_sk_ring(1, top_y + 0.003, 0.07, 0.018, vc.darkened(0.05), -PI, PI, 48, 0.004, 0.0, 0.035, 0.115)
+			_sk_ring(1, bot_y + 0.02, 0.035, 0.008, dk, -PI, PI, 40, 0.0)
 	_sk_end(g)
 
 
@@ -2232,8 +2299,6 @@ func _accessories() -> void:
 		var vs = int(look.get("vest_style", 0))
 		var m = MB.new()
 		match vs:
-			3:  # Kumo: tek askı
-				m.add("box", Vector3(0.1, 0.12, 0.0), Vector3(0.07, 0.025, 0.3), vc.darkened(0.15))
 			5, 6:  # ANBU / samuray: omuzluklar
 				for sx in [-1.0, 1.0]:
 					m.add("hemi", Vector3(0.2 * sx, 0.1, 0.0), Vector3(0.15, 0.08, 0.16), vc.darkened(0.1), Vector3(0, 0, -25 * sx), 10)
@@ -2821,26 +2886,8 @@ func _attachments() -> void:
 			0:   # Konoha: _vest_kit (yüzeye oturan derili cep/fermuar/yaka/omuzluk)
 				pass
 
-			1:   # Suna: kanat gibi açılan dev omuzluklar + açık renk omuz kayışı + karında cepler
-				for sx in [-1.0, 1.0]:
-					v.add("hemi", Vector3(0.21 * sx, 0.1, 0.0), Vector3(0.24, 0.07, 0.19), vc.darkened(0.05), Vector3(0, 0, -30 * sx), 12)   # kanat gibi açılan omuzluk
-					pack.call(0.08 * sx, -0.2, 3)
-			2:   # Kiri: yatay zırh plakaları + kutu omuzluk + plakaların altından sarkan önlük (mistset.png)
-				for k in 3:
-					v.add("box", Vector3(0, -0.04 - k * 0.095, 0.168), Vector3(0.26, 0.07, 0.016), vc.darkened(0.04 * k))
-				for sx in [-1.0, 1.0]:
-					v.add("box", Vector3(0.19 * sx, 0.12, 0.0), Vector3(0.16, 0.035, 0.18), dk, Vector3(0, 0, -16 * sx))
-				var hp2 = _grest(skel.find_bone("Hips")).origin
-				var apr = MB.new()
-				var flap = PackedVector2Array([Vector2(-0.13, 0.0), Vector2(0.13, 0.0), Vector2(0.11, -0.2), Vector2(0.0, -0.24), Vector2(-0.11, -0.2)])
-				apr.add_slab(PackedVector2Array(Array(flap).map(func(q): return Vector2(q.x, q.y))), 0.012, vc.darkened(0.06), Transform3D(Basis(Vector3(0, 0, 1), Vector3(1, 0, 0), Vector3(0, 1, 0)), Vector3(0, 0.06, 0.17)))   # profil (genişlik, boy) -> (x, y), yüz öne
-				_mesh_on("Hips", apr.build(Props.toon()), Transform3D(Basis.IDENTITY, hp2))
-			3:   # Kumo: yan cepler (tek askı zaten var)
-				for sx in [-1.0, 1.0]:
-					pack.call(0.095 * sx, -0.12, 2)
-			4:   # Iwa: omuzluk + karında kalın kemer plakası
-				for sx in [-1.0, 1.0]:
-					v.add("hemi", Vector3(0.19 * sx, 0.1, 0.0), Vector3(0.15, 0.08, 0.16), dk, Vector3(0, 0, -24 * sx), 10)
+			1, 2, 3, 4:   # Suna / Kiri / Kumo / Iwa: _vest_kit (yüzeye oturan derili parçalar)
+				pass
 			_:
 				for sx in [-1.0, 1.0]:
 					pack.call(0.08 * sx, -0.1, 2)
