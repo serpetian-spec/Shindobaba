@@ -3810,8 +3810,11 @@ func set_dojutsu(kind: int, tomoe := 3) -> void:
 
 ## Uzun ağızlı silahlar (Samehada, Kubikiribōchō, Kiba...) beklerken elin ekseninde kalınca başın önünden geçip yüzü kapatıyordu:
 ## duruştayken ağız omzun üstünden başın arkasına yatırılır; saldırıda kolla aynı hizaya döner
-static var REST_TILT_OF := {"samehada": Vector3(-140, 40, 0), "gunbai": Vector3(-40, -100, 30)}   # gunbai: sağ yanda yukarı-dışa (kafaya ve yere girmez)   # silaha özel bekleme eğimi (kafanın içinden geçmesin)
+static var REST_TILT_OF := {"samehada": Vector3(0, 0, 0), "gunbai": Vector3(0, 0, 0)}   # gunbai: silah yumruğun içinden düz geçer; yönü kol pozu verir (w_gunbai)   # silaha özel bekleme eğimi (kafanın içinden geçmesin)
 const REST_TILT := Vector3(-25.0, -55.0, 0.0)
+const IDLE_GRIP := {"samehada": 0.3}
+## kalın saplar: kabza avucun derinine (parmaklar sarabilsin; eskiden sap parmakların önünden geçiyordu) — tutucu uzayında
+const GRIP_OFF := {"samehada": Vector3(0.025, 0, 0)}
 
 
 func _rest_tilt(on: bool, dt: float) -> void:
@@ -3830,6 +3833,8 @@ func _rest_tilt(on: bool, dt: float) -> void:
 		var cur_q = n.transform.basis.get_rotation_quaternion()
 		var q = cur_q.slerp(tgt.get_rotation_quaternion(), minf(1.0, dt * (6.0 if on else 14.0)))
 		n.transform.basis = Basis(q).scaled(n.transform.basis.get_scale())
+		# bekleme tutuşu sapın ortasından (Samehada: kabza-gövde birleşimindeki disk eli kapatıyordu)
+		n.position = GRIP_OFF.get(w["id"], Vector3.ZERO) + n.transform.basis.z.normalized() * float(IDLE_GRIP.get(w["id"], 0.0)) * n.transform.basis.get_scale().z
 
 
 ## anahtar animasyonlu silahlar: [tutuş kaydırma (yumruk sap boyunca ileri), iz başı z, iz ucu z, elden uca boy]
@@ -3870,7 +3875,7 @@ func _key_blade_sk(sk: Skeleton3D, blade: Vector3) -> void:
 		var pb: Basis = (hp.basis * holder.transform.basis).orthonormalized()   # silahın ebeveyni, iskelet uzayında
 		var sc: Vector3 = n.transform.basis.get_scale()
 		if not w.has("key_pos0"):
-			w["key_pos0"] = n.position
+			w["key_pos0"] = GRIP_OFF.get(w["id"], Vector3.ZERO)   # bekleme tutuş kaydırması anahtar animasyona taşınmasın
 		if not w.has("trail") and is_inside_tree():
 			var tr = SwordTrail.new()
 			tr.node = n
@@ -3941,7 +3946,7 @@ func react(world_dir: Vector3, amp: float, head := false) -> void:
 	overlay.hit_react(d, amp, head)
 
 
-const STANCE_ID := {"samehada": "w_samehada"}   # silaha özel duruş
+const STANCE_ID := {"samehada": "w_samehada", "gunbai": "w_gunbai"}   # silaha özel duruş
 const STANCE_OF := {"blade": "w_blade", "dual": "w_dual", "sickle": "w_dual", "claw": "w_dual", "sword": "w_sword", "heavy": "w_shoulder", "staff": "w_shoulder", "chain": "w_dual", "fan": "w_fan"}   # kusarigama alçak tek el (omuzda bıçak kafaya değmesin)
 var stance := ""
 

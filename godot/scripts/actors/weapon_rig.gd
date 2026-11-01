@@ -58,13 +58,12 @@ var relax_free := true   # boştaki el: animasyonun zikzak başparmağı yerine 
 ## Boştaki el rahat duruş: parmaklar hafif kıvrık, başparmak işaret parmağının yanında düz-hafif kıvrık (zikzak yok)
 func _relax_hand(sk: Skeleton3D, side: String) -> void:
 	var sgn = 1.0 if side == "Left" else -1.0
-	var rc = [0.35, 0.45, 0.3]
+	# silah tutan elle aynı biçim (gevşek yumruk): düz el protez gibi dikkat çekiyordu
 	for f in FINGERS:
 		for i in 3:
-			_curl(sk, side + f + FINGER_SEG[i], Quaternion(AX, rc[i] * sgn), 0.85)
-	_curl(sk, side + "ThumbMetacarpal", Quaternion.IDENTITY, 0.85)
-	_curl(sk, side + "ThumbProximal", Quaternion.from_euler(Vector3(relax_thumb.x * sgn, relax_thumb.y * sgn, relax_thumb.z * sgn)), 0.85)
-	_curl(sk, side + "ThumbDistal", Quaternion.from_euler(Vector3(0.18 * sgn, 0, 0)), 0.85)
+			_curl(sk, side + f + FINGER_SEG[i], Quaternion(AX, CURL[i] * 0.85 * sgn), 1.0)
+	_curl(sk, side + "ThumbProximal", Quaternion.from_euler(Vector3(0.3 * sgn, 0.6 * sgn, 0.6 * sgn)), 1.0)
+	_curl(sk, side + "ThumbDistal", Quaternion.from_euler(Vector3(0.5 * sgn, 0, 0)), 1.0)
 
 
 ## İki kemikli IK: sol omuz-dirsek-el zinciri, silah sapındaki hedefe uzanır (dirsek aşağı-dışa)
