@@ -278,6 +278,12 @@ func tick_status(dt: float) -> void:
 		if has_status("mud"):
 			FX.burst(global_position + Vector3.UP * 0.3, {"amount": 2, "life": 0.6, "add": false, "size": 0.3, "vmin": 0.2, "vmax": 0.5,
 				"gravity": Vector3(0, -6, 0), "colors": [Color(0.4, 0.3, 0.2, 1), Color(0.35, 0.25, 0.18, 0)]})
+	# güvenlik: canı başka yoldan (zincir şimşek, canavar DoT, jutsu bedeli...) sıfıra inip die() çağrılmadan kalanlar
+	# yerde çömelip nefes alarak "ölümsüz" kalıyordu
+	if hp <= 0.0 and not dead:
+		hp = 0.0
+		die({})
+		return
 	for k in statuses.keys():
 		statuses[k] -= dt
 		if statuses[k] <= 0.0:
