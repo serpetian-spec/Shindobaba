@@ -484,11 +484,11 @@ func _combo_base(i: int) -> Dictionary:
 		if wid == "gunbai":
 			c["gust"] = true
 			if i == 3:
-				c["knock"] = 18.0   # kalkan itişi: büyük geri savurma
-				c["heavy"] = true
-			elif i == 2:
-				c["heavy"] = true   # yere çakma
-		if i == 4:
+				c["dmg"] = float(c["dmg"]) * 0.5   # kalkan: hafif itiş
+				c["knock"] = 4.0
+			elif i == 4:
+				c["knock"] = 22.0   # Uchiha Gaeshi: düz geri savrulur (havaya değil)
+		if i == 4 and wid == "samehada":
 			c["launch"] = 13.0   # rakip dimdik havaya uçar
 			c["knock"] = 1.5     # yatayda az (eskiden 38 m öteye savruluyordu)
 	return c
@@ -699,27 +699,33 @@ func _update_charge(dt: float) -> void:
 		get_tree().create_timer(1.0).timeout.connect(a.queue_free)
 
 
-## Gunbai savuruşu: yelpazenin ittiği rüzgâr (organik akış çizgileri + toz), yere çakmada çatlak, son vuruşta yukarı rüzgâr
+## Gunbai vuruş efektleri (rüzgâr savurma yok — ağır başlı sopa/kalkan): kenar yarması, yüz tokadı, saplama, emme, Uchiha Gaeshi
 func _gunbai_gust(i: int) -> void:
 	var dir = p.face_dir()
-	var o = p.global_position + Vector3.UP * 1.0
+	var o = p.global_position + Vector3.UP * 1.1
 	match i:
+		0:
+			VFX.debris(p.global_position + dir * 1.8, Color(0.55, 0.47, 0.36), 6, 5.0, 0.2)   # kenar yere sürtüp toprak sıçratır
+			if Game.world:
+				Game.world.env.add_shake(0.25)
+		1:
+			FX.ring(o + dir * 1.6, Color(0.95, 0.95, 1.0), 2.2, 0.18)   # yassı yüz çarpması: kısa basınç halkası
 		2:
-			var g = p.global_position + dir * 2.4
-			VFX.cracks(g, 3.0)
-			VFX.debris(g, Color(0.55, 0.47, 0.36), 10, 7.0, 0.3)
-			FX.ring(g + Vector3.UP * 0.1, Color(0.9, 0.95, 1.0), 4.0, 0.3)
+			FX.speed_lines(o, dir)
+		3:
+			# emme: yüzde kırmızı-turuncu chakra toplanır
+			VFX.gather(o + dir * 1.4 + Vector3.UP * 0.6, Color(1.0, 0.45, 0.2), 1.1)
+			Sfx.play("charge", o, 0.8, 0.6)
+		4:
+			# Uchiha Gaeshi: emilen enerji yüzden ateşli dalga olarak düz ileri patlar
+			var f = o + dir * 1.6 + Vector3.UP * 0.4
+			FX.burst(f, {"amount": 40, "life": 0.45, "tex": FX.tex_soft, "size": 1.1, "radius": 0.6, "vmin": 10, "vmax": 18, "dir": dir, "spread": 28.0, "damp": 3.0,
+				"colors": [Color(1.0, 0.95, 0.7, 1), Color(1.0, 0.55, 0.15, 0.9), Color(0.7, 0.15, 0.05, 0)]})
+			FX.ring(f, Color(1.0, 0.6, 0.25), 4.5, 0.3)
+			Sfx.play("fire", f, 1.0)
 			if Game.world:
 				Game.world.env.add_shake(0.5)
-		4:
-			VFX.debris(p.global_position + dir * 1.8, Color(0.6, 0.52, 0.4), 12, 9.0, 0.25)   # kepçeyle kalkan kum
-			VFX.puffs(o + dir * 2.0, {"amount": 24, "life": 0.6, "size": 0.6, "radius": 1.0, "vmin": 8, "vmax": 14, "dir": Vector3.UP, "spread": 20.0,
-				"colors": [Color(0.92, 0.96, 1.0, 0.6), Color(0.85, 0.92, 1.0, 0)]})
-		_:
-			FX.speed_lines(o, dir)
-			VFX.puffs(o + dir * 2.6, {"amount": 22, "life": 0.5, "size": 0.55, "radius": 1.0, "vmin": 9, "vmax": 15, "dir": dir, "spread": 24.0,
-				"colors": [Color(0.92, 0.96, 1.0, 0.55), Color(0.85, 0.92, 1.0, 0)]})
-	Sfx.play("wind", o, 1.1)
+				Game.world.env.screen_flash(0.05)
 
 
 ## İki elle tutuş (videoda Kisame'nin iki elle savurduğu adımlar): sol el sağdaki silahın sapına IK ile uzanır
