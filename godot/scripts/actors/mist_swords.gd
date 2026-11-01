@@ -62,6 +62,7 @@ static func _samehada_wrapped(b: MB) -> void:
 	var cloth = Color(0.94, 0.94, 0.92)
 	var shade = Color(0.78, 0.79, 0.82)
 	var R = 0.21
+	var FL = 0.55   # yassı kesit (videoda uçtan bakınca geniş, ince oval): ince yüz sırta yaslanır (x)
 	var z0 = 0.06
 	var z1 = 1.15
 	var n = 12
@@ -69,13 +70,13 @@ static func _samehada_wrapped(b: MB) -> void:
 		var t = (k + 0.5) / n
 		var z = lerpf(z0, z1, t)
 		var r = lerpf(R * 0.74, R, t)
-		b.add("cyl", Vector3(0, 0, z), Vector3(r * 2.0, (z1 - z0) / n * 1.02, r * 2.0), shade, Vector3(90, 0, 0), 16)
-		b.add("cyl", Vector3(0, 0, z), Vector3(r * 2.1, (z1 - z0) / n * 0.86, r * 2.1), cloth, Vector3(90 + (7.0 if k % 2 == 0 else -5.0), 0, 0), 16)
-	b.add("cyl", Vector3(0, 0, z1 + 0.02), Vector3(R * 2.35, 0.06, R * 2.35), cloth, Vector3(90, 0, 0), 16)
+		b.add("cyl", Vector3(0, 0, z), Vector3(r * 2.0 * FL, (z1 - z0) / n * 1.02, r * 2.0), shade, Vector3(90, 0, 0), 16)
+		b.add("cyl", Vector3(0, 0, z), Vector3(r * 2.1 * FL, (z1 - z0) / n * 0.86, r * 2.1), cloth, Vector3(90 + (7.0 if k % 2 == 0 else -5.0), 0, 0), 16)
+	b.add("cyl", Vector3(0, 0, z1 + 0.02), Vector3(R * 2.35 * FL, 0.06, R * 2.35), cloth, Vector3(90, 0, 0), 16)
 	var sc = Color(0.18, 0.2, 0.36)
 	var z2 = 1.85
-	b.add("cyl", Vector3(0, 0, (z1 + z2) * 0.5), Vector3(R * 1.7, z2 - z1, R * 1.7), sc, Vector3(90, 0, 0), 14)
-	b.add("sphere", Vector3(0, 0, z2), Vector3(R * 1.7, R * 1.7, R * 0.9), sc, Vector3.ZERO, 12)
+	b.add("cyl", Vector3(0, 0, (z1 + z2) * 0.5), Vector3(R * 1.7 * FL, z2 - z1, R * 1.7), sc, Vector3(90, 0, 0), 14)
+	b.add("sphere", Vector3(0, 0, z2), Vector3(R * 1.7 * FL, R * 1.7, R * 0.9), sc, Vector3.ZERO, 12)
 	var rows = 12
 	for k in rows:
 		var z = lerpf(z1 + 0.04, z2 + 0.02, float(k) / (rows - 1))
@@ -83,8 +84,8 @@ static func _samehada_wrapped(b: MB) -> void:
 		var cnt = 14
 		for i in cnt:
 			var a2 = TAU * (i + (k % 2) * 0.5) / cnt + k * 0.13
-			var radial = Vector3(cos(a2), sin(a2), 0)
-			var d = (radial * 0.75 + Vector3(0, 0, 0.66)).normalized()
+			var radial = Vector3(cos(a2) * FL, sin(a2), 0)
+			var d = (Vector3(cos(a2), sin(a2), 0) * 0.75 + Vector3(0, 0, 0.66)).normalized()
 			var tng = Vector3(-sin(a2), cos(a2), 0)
 			var ln = 0.1 + 0.03 * ((i + k) % 3)
 			b.add_xf("cone", Transform3D(Basis(tng * 0.05, d * ln, tng.cross(d).normalized() * 0.02), radial * rr + Vector3(0, 0, z) + d * ln * 0.35), sc.lightened(0.1 * ((i + k) % 2)), 3)

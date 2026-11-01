@@ -2498,7 +2498,7 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 				var pad = 0.028 + (0.025 if look.get("vest") != null else 0.0) + (0.04 if look.get("outer_style") != null else 0.0)
 				var near_x = wab.position.x
 				if id == "samehada":
-					near_x = -0.18   # gövde yarıçapı (uçtaki pul dikenleri AABB'yi büyütüp silahı sırttan uzaklaştırıyordu)
+					near_x = -0.12   # yassı gövde yarı kalınlığı (uçtaki pul dikenleri AABB'yi büyütüp silahı sırttan uzaklaştırıyordu)
 				center.z = bz - pad + near_x + 0.02
 			xf = Transform3D(b, center - b.z * (mid if L > 1.2 else mid * 0.8))
 		"low_back":
