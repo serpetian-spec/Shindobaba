@@ -3,7 +3,7 @@ class_name GunbaiAnim
 ## Yön/kol kısayolları SamehadaAnim ile ortak. "roll": yelpazenin sap ekseni etrafında dönüşü (90 = yüz rakibe).
 
 static func _g(t: float, crouch: float, yaw: float, lean: float, blade: Vector3, r: Dictionary, l: Dictionary, legs: Dictionary, roll := 0.0) -> Dictionary:
-	var k = SamehadaAnim._k(t, crouch, yaw, lean, blade, SamehadaAnim._a(r, l), legs)
+	var k = SamehadaAnim._k(t, minf(1.0, crouch * 1.15), yaw * 1.6, lean * 1.35, blade, SamehadaAnim._a(r, l), legs)
 	k["roll"] = roll
 	return k
 

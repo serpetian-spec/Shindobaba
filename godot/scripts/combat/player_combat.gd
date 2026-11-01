@@ -1022,6 +1022,13 @@ func take_hit(info: Dictionary) -> void:
 	var dir: Vector3 = info.get("dir", Vector3.ZERO)
 	# yere serilme yalnız gerçekten ağır darbede / havaya fırlatmada (her jutsu isabeti yere sermesin)
 	var heavy: bool = info.get("kind", "light") == "heavy" or info.get("launch", 0.0) > 0.0
+	# düz vuruş = jutsu olmayan her darbe (yakın dövüş, canavar/klon/bekçi vuruşu, boss taijutsusu): ağır olsa bile yere düşürmez,
+	# sersemletmez; yalnız silahın havaya fırlatan bitişi (launch >= 8) düşürür
+	var basic: bool = info.get("melee", false) or (not info.has("tier") and String(info.get("element", "")) == "" and float(info.get("stun", 0.0)) <= 0.0)
+	if basic and float(info.get("launch", 0.0)) < 8.0:
+		heavy = false
+		info = info.duplicate()
+		info["melee"] = true
 	if not heavy and float(info.get("knock", 2.0)) <= 0.5 and float(info.get("stun", 0.0)) <= 0.0:
 		return
 	if info.get("melee", false) and not heavy:

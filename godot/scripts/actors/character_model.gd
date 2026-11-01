@@ -3233,7 +3233,7 @@ func set_dojutsu(kind: int, tomoe := 3) -> void:
 
 ## Uzun ağızlı silahlar (Samehada, Kubikiribōchō, Kiba...) beklerken elin ekseninde kalınca başın önünden geçip yüzü kapatıyordu:
 ## duruştayken ağız omzun üstünden başın arkasına yatırılır; saldırıda kolla aynı hizaya döner
-static var REST_TILT_OF := {"samehada": Vector3(-140, 40, 0)}   # silaha özel bekleme eğimi (kafanın içinden geçmesin)
+static var REST_TILT_OF := {"samehada": Vector3(-140, 40, 0), "gunbai": Vector3(150, 0, 0)}   # gunbai: koşarken arkada aşağıda sürüklenir (kafaya girmez)   # silaha özel bekleme eğimi (kafanın içinden geçmesin)
 const REST_TILT := Vector3(-25.0, -55.0, 0.0)
 
 
