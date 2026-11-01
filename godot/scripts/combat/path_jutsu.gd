@@ -18539,9 +18539,53 @@ func p_shintenshin(c: Node3D, t: Node3D) -> void:
 
 ## Büyük Ejder Ateşi: ağızda toplanma, ejderler çıkarken alev halkası
 func p_katon_goryuka_no_jutsu(c: Node3D, t: Node3D) -> void:
-	VFX.gather(_mouth_pos(c), FIRE, 1.4)
-	VFX.shockwave(_mouth_pos(c) + c.face_dir(), FIRE, 4.0, 0.3, false, c.face_dir())
-	Jutsu.j_katon_goryuka_no_jutsu(c, t)
+	busy(c, 1.4)
+	var tt = tg(c, t, 34.0)
+	VFX.gather(_mouth_pos(c), FIRE, 1.0)
+	# Büyük Ejder Alevi: ağızdan üç dev alev ejderi (gövdeli) göğe fırlar, kıvrılıp hedef bölgeye ayrı ayrı dalar
+	for k in 3:
+		after(0.25 + k * 0.18, func():
+			if not live(c):
+				return
+			anim(c, "push", 1.4)
+			var fd = c.face_dir()
+			var sd = fd.cross(Vector3.UP)
+			var from = _mouth_pos(c) + fd * 0.8
+			_flame_jet(c, from, fd, 4.0, 1.5, 0.2, 1.2)
+			var fm = VFX.mat_fire("fire", 2.6, 2.2, 0.36, 1.4, 0.1, Vector3(0, 0, 1))
+			var head = Node3D.new()
+			head.add_child(VfxSerpent.dragon_head(fm, 2.8, Color(1, 1, 0.6)))
+			var up_dir = (fd * 0.7 + Vector3.UP * 0.8 + sd * (k - 1) * 0.45).normalized()
+			var off = sd * (k - 1) * 3.0
+			var pr = shot(c, from, up_dir, 22.0, head, inf(c, "katon_goryuka_no_jutsu", 0.9, {"knock": 14.0, "launch": 5.0, "kind": "heavy", "element": "katon", "burn": 3.0}), null, false, 3.0, func(p, _h):
+				VFX.explosion(p, 2.6)
+				impact_fx("katon", FIRE, p, 2.2)
+				VFX.cracks(gp(p), 6.0)
+				VFX.linger(gp(p), "katon", FIRE, 2.0, 4.0)
+				mhit(c, p, 5.0, inf(c, "katon_goryuka_no_jutsu", 0.6, {"knock": 12.0, "launch": 4.0, "kind": "heavy", "element": "katon", "burn": 3.0}))
+				shake(0.8))
+			pr.radius = 1.6
+			var body = VfxSerpent.new()
+			body.style = "fire"
+			body.seed_id = "goryuka%d" % k
+			body.head = pr
+			body.count = 14
+			body.spacing = 1.2
+			body.radius = 1.8
+			body.mat = fm
+			get_tree().current_scene.add_child(body)
+			var age = {"t": 0.0}
+			pr.on_tick = func(p2, dt):
+				age["t"] += dt
+				if age["t"] > 0.5:
+					var goal = ((tt.global_position + Vector3.UP) if tt and live(tt) else gp(c.global_position + fd * 22.0)) + off * maxf(0.0, 1.0 - (age["t"] - 0.5) * 1.5)
+					p2.vel = p2.vel.lerp((goal - p2.global_position).normalized() * 30.0, minf(1.0, dt * 4.5))
+				if randf() < 0.5:
+					VFX.puffs(p2.global_position, {"amount": 2, "life": 0.4, "size": 1.2, "radius": 0.6, "vmin": 0.5, "vmax": 1.5, "dir": Vector3.UP, "spread": 60.0,
+						"glow": 1.15, "hot": 0.6, "outline_col": Color(0.7, 0.2, 0.03), "outline": 0.03,
+						"colors": [Color(1.0, 0.95, 0.55, 1), Color(1.0, 0.6, 0.12, 1), Color(0.5, 0.12, 0.03, 0)]}))
+	Sfx.play("roar", c.global_position, 0.9)
+	Sfx.play("fire", c.global_position, 0.6)
 
 
 # ================================================================== Çekirdek AA: son çekirdek jutsular — Mangekyō imzaları, Raikiri, Hiraishin, kil
