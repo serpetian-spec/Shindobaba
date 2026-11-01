@@ -86,6 +86,8 @@ func _tap() -> void:
 
 
 func set_level(l: int) -> void:
+	if l > 0 and level == 0 and c and c.modes and c.modes.has_method("exclusive"):
+		c.modes.exclusive("beast")   # güç modları üst üste binmez
 	var before = level
 	if l <= 0:
 		deactivate()

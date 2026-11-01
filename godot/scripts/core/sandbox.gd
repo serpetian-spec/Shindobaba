@@ -15,7 +15,8 @@ func _ready() -> void:
 	main._start_new_game()
 	await get_tree().create_timer(1.5).timeout
 	var pr = Game.profile
-	pr["level"] = 80
+	pr["mastery"] = {"ninjutsu": 100.0, "taijutsu": 100.0, "kenjutsu": 100.0, "chakra": 100.0, "dayaniklilik": 100.0, "hiz": 100.0}
+	Mastery.refresh_level(pr)
 	pr["rank"] = 5
 	pr["ryo"] = 9999999
 	pr["elements"] = ["katon", "suiton", "fuuton", "doton", "raiton"]

@@ -158,6 +158,8 @@ func toggle_dojutsu() -> void:
 	dojutsu = not dojutsu
 	var base_eye: Array = Data.clans.get(cl, {}).get("eye", [0.2, 0.2, 0.2])
 	if dojutsu:
+		exclusive("eyes")
+		dojutsu = true
 		Sfx.play("genjutsu", p.global_position, 1.6, 0.6)
 		if cl == "uchiha":
 			p.model.set_eye_color(Color(0.9, 0.05, 0.08))
@@ -230,7 +232,9 @@ func next_gate() -> void:
 	var names = ["", "1. Kapı: Açılış Kapısı!", "2. Kapı: Dinlenme Kapısı!", "3. Kapı: Yaşam Kapısı!", "4. Kapı: Acı Kapısı!",
 		"5. Kapı: Sınır Kapısı!", "6. Kapı: Görüş Kapısı!", "7. Kapı: Şaşkınlık Kapısı!"]
 	var gm = Stats.skill(Game.profile, "gates")  # ustalık: daha güçlü kapılar, daha az beden yükü
-	Buffs.add("gates", 9999.0, {"speed": 1.0 + gates * 0.15 * (1.0 + gm), "melee": 1.0 + gates * 0.35 * (1.0 + gm)})
+	if gates == 1:
+		exclusive("gates")
+	Buffs.add("gates", 9999.0, {"speed": 1.0 + gates * 0.08 * (1.0 + gm), "melee": 1.0 + gates * 0.18 * (1.0 + gm)})
 	_gate_look(gates)
 	_gate_burst(gates)
 	# kapı aurası + açılış şok dalgası/halka/moloz (kullanıcının sevdiği asıl kapı efektleri)
@@ -249,11 +253,11 @@ func next_gate() -> void:
 
 # ------------------------------------------------------------------ Sennin Modu (Z): sözleşmeye özel
 const SAGE_FX := {
-	"kurbağa": {"mods": {"melee": 1.6, "jutsu": 1.5, "speed": 1.15, "armor": 0.8, "reach": 1.6}, "col": Color(1.0, 0.6, 0.15), "visual": 1,
+	"kurbağa": {"mods": {"melee": 1.3, "jutsu": 1.25, "speed": 1.1, "armor": 0.88, "reach": 1.4}, "col": Color(1.0, 0.6, 0.15), "visual": 1,
 		"desc": "Kurbağa Kata: görünmez menzil, güçlü vuruşlar, chakra algısı"},
-	"yılan": {"mods": {"melee": 1.4, "jutsu": 1.35, "speed": 1.35, "armor": 0.7}, "col": Color(0.7, 0.4, 0.95), "visual": 2,
+	"yılan": {"mods": {"melee": 1.2, "jutsu": 1.18, "speed": 1.2, "armor": 0.85}, "col": Color(0.7, 0.4, 0.95), "visual": 2,
 		"desc": "Yılan hızı ve yenilenme, zehirli vuruşlar"},
-	"sümüklü": {"mods": {"melee": 1.3, "jutsu": 1.4, "armor": 0.6}, "col": Color(0.5, 0.95, 0.6), "visual": 3,
+	"sümüklü": {"mods": {"melee": 1.15, "jutsu": 1.2, "armor": 0.8}, "col": Color(0.5, 0.95, 0.6), "visual": 3,
 		"desc": "Hızlı iyileşme, chakra yenilenmesi, dayanıklılık"},
 }
 
@@ -289,7 +293,29 @@ func toggle_sage() -> void:
 	Hud.msg("Doğa enerjisini topluyorsun... kıpırdama!", SAGE_FX[sage_kind]["col"], 1.5)
 
 
+## Güç modları üst üste binmez (kullanıcı kuralı): sennin, göz (Sharingan/Byakugan...), Sekiz Kapı, kuyruklu canavar —
+## biri açılınca diğerleri kapanır
+func exclusive(keep: String) -> void:
+	if keep != "sage" and sage:
+		_end_sage()
+	if keep != "eyes":
+		if eyes and eyes.active:
+			eyes.toggle()
+		if dojutsu:
+			_end_dojutsu()
+	if keep != "gates" and gates > 0:
+		gates = 0
+		Buffs.remove("gates")
+		_set_aura("gates", null)
+		_gate_look(0)
+	if keep != "beast" and beast:
+		_end_beast()
+	if keep != "beast" and cloak != null and cloak.level > 0 and cloak.has_method("deactivate"):
+		cloak.deactivate()
+
+
 func _enter_sage() -> void:
+	exclusive("sage")
 	gather_t = -1.0
 	c.action = ""
 	var fx: Dictionary = SAGE_FX.get(sage_kind, SAGE_FX["kurbağa"])
@@ -450,7 +476,8 @@ func beast_key() -> void:
 	if not beast:
 		beast = true
 		beast_t = 25.0
-		Buffs.add("beast", 25.0, {"melee": 2.0, "speed": 1.4, "armor": 0.5, "jutsu": 1.3})
+		exclusive("beast")
+		Buffs.add("beast", 25.0, {"melee": 1.45, "speed": 1.2, "armor": 0.75, "jutsu": 1.15})
 		_set_aura("beast", Color(0.45, 0.75, 1.0), 1.8)
 		p.model.set_eye_color(Color(0.6, 0.9, 1.0))
 		Hud.banner("KUYRUKLU CANAVAR MODU", "Raijū'nun chakra pelerini! [X] = Canavar Bombası", Color(0.5, 0.8, 1))

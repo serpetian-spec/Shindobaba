@@ -426,7 +426,7 @@ func _physics_process(dt: float) -> void:
 	wall_cd -= dt
 	_tick_status(dt)
 	land_t -= dt
-	var regen = 1.5 * (1.0 + Stats.skill(Game.profile, "regen_chakra")) * (1.0 + int(Game.profile.get("level", 1)) * 0.02)
+	var regen = 1.5 * (1.0 + Stats.skill(Game.profile, "regen_chakra")) * (1.0 + Mastery.get_v(Game.profile, "chakra") * 0.02)
 	# anime yaşam gücü: Uzumaki dev chakra ve hızlı toparlanma, Senju güçlü beden (yaralar hızla kapanır)
 	var clan = String(Game.profile.get("clan", ""))
 	if clan == "uzumaki":
@@ -481,7 +481,9 @@ func _ground_air_move(dt: float) -> void:
 	elif dash_t > 0.0:
 		dash_t -= dt
 	else:
-		var spd_mul = Buffs.mod("speed") * (1.0 + Stats.skill(Game.profile, "speed")) * (1.0 + Gear.stat(Game.profile, "speed") + Stats.clan_bonus(Game.profile, "speed")) * status_speed()
+		var spd_mul = Buffs.mod("speed") * (1.0 + Stats.skill(Game.profile, "speed") + Mastery.get_v(Game.profile, "hiz") * 0.004) * (1.0 + Gear.stat(Game.profile, "speed") + Stats.clan_bonus(Game.profile, "speed")) * status_speed()
+		if sprint and wish.length() > 0.1:
+			Mastery.gain(Game.profile, "hiz", dt * 0.03)   # koştukça hız
 		var target = wish * ((DASH * 3.2 if turbo else DASH) if sprint else (WALK if walking else RUN)) * spd_mul   # tam hız (5 sn Shift) 2x; Caps Lock: yürüyüş
 		if swimming:
 			target *= 0.35
@@ -756,6 +758,7 @@ func _terrain_wall_move(dt: float) -> void:
 	var up_amt = wish.dot(-n)
 	var side_amt = wish.dot(side)
 	var spd = WALL_SPEED * (1.4 if Input.is_action_pressed("dash") else 1.0) * (1.0 + Stats.skill(Game.profile, "wall_run"))
+	Mastery.gain(Game.profile, "chakra", dt * 0.025)   # ağaç/duvar tırmanma: chakra kontrolü antrenmanı
 	if wall_boost_t > 0.0:
 		wall_boost_t -= dt
 		spd *= 2.3

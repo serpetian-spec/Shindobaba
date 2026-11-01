@@ -69,7 +69,7 @@ static func _card(main: Node, pid: String) -> Control:
 		var nm = String(j.get("name", jid)).split(" (")[0]
 		var have = jid in learned
 		var dark = int(P["dark"].get(jid, 0)) > 0
-		var tx = "%s  Sv.%d%s%s" % [nm, int(j.get("level", 1)), "  ⚠" if dark else "", "  ✦" if P["quest"].has(jid) else ""]
+		var tx = "%s  Güç %d%s%s" % [nm, int(j.get("level", 1)), "  ⚠" if dark else "", "  ✦" if P["quest"].has(jid) else ""]
 		var l = UI.label(("✓ " if have else "· ") + tx, 13, UI.GOOD if have else (Color(0.85, 0.6, 0.95) if dark else UI.MUTED))
 		l.tooltip_text = String(j.get("desc", ""))
 		l.mouse_filter = Control.MOUSE_FILTER_PASS

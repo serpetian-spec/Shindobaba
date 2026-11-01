@@ -221,7 +221,7 @@ static func _tab_summons(main: Node, body: Control) -> void:
 				continue
 			var td: Dictionary = tiers[tk]
 			var ok = int(pr["level"]) >= Contracts.TIER_LEVEL[tk] and Contracts.mastery(id) >= Contracts.TIER_MASTERY[tk]
-			var lbl = ("● " if pref == tk else "") + String(td["name"]) + ("" if ok else "  (Sv.%d, ustalık %d)" % [Contracts.TIER_LEVEL[tk], int(Contracts.TIER_MASTERY[tk])])
+			var lbl = ("● " if pref == tk else "") + String(td["name"]) + ("" if ok else "  (Güç %d, ustalık %d)" % [Contracts.TIER_LEVEL[tk], int(Contracts.TIER_MASTERY[tk])])
 			var b = UI.button(lbl, func():
 				cs[id]["tier_pref"] = tk
 				ninja_menu(main, "summons"), 260)
@@ -669,7 +669,7 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 					cj.append(Data.jutsu[k])
 			cj.sort_custom(func(a, b): return int(a.get("level", 1)) < int(b.get("level", 1)))
 			if not cj.is_empty():
-				var names = cj.map(func(x): return "%s (Sv.%d)" % [String(x["name"]).split(" (")[0], int(x.get("level", 1))])
+				var names = cj.map(func(x): return "%s (Güç %d)" % [String(x["name"]).split(" (")[0], int(x.get("level", 1))])
 				note.call(cc, "Klan teknikleri: " + ", ".join(names), UI.GOLD)
 			# klansız: klan adı olmayan nadir kan soyu (Darui'nin Ranton'u, Pakura'nın Shakuton'u gibi) — yalnız o köyde doğar
 			var soy_ids: Array = [""]
@@ -683,7 +683,7 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 				if sd.is_empty():
 					note.call(soy_c, "Sıradan kan: kekkei genkai yok.")
 				else:
-					note.call(soy_c, "Kekkei Genkai: %s (Sv.%d'de uyanır)" % [Elements.NAMES.get(String(sd["nature"]), String(sd["nature"])), int(sd["level"])], UI.ACCENT)
+					note.call(soy_c, "Kekkei Genkai: %s (Güç %d'de uyanır)" % [Elements.NAMES.get(String(sd["nature"]), String(sd["nature"])), int(sd["level"])], UI.ACCENT)
 					note.call(soy_c, String(sd["desc"]))
 			var els = ["katon", "suiton", "fuuton", "doton", "raiton"]
 			var ec: VBoxContainer = carousel.call("Chakra Doğası", "element", els, els.map(func(e): return el_names[e]), UI.ELEMENT_COLORS.get(state["element"], UI.CREAM))
@@ -1197,7 +1197,7 @@ static func ninja_menu(main: Node, tab := "inv", picked := "") -> void:
 	info.offset_left = -720; info.offset_right = -110; info.offset_top = 36
 	info.alignment = BoxContainer.ALIGNMENT_END
 	bg.add_child(info)
-	info.add_child(UI.icon_label("person", "%s  •  %s  •  Sv.%d" % [pr["name"], Data.RANKS[int(pr["rank"])], int(pr["level"])], 16, UI.TEXT))
+	info.add_child(UI.icon_label("person", "%s  •  %s  •  Güç %d" % [pr["name"], Data.RANKS[int(pr["rank"])], int(pr["level"])], 16, UI.TEXT))
 	info.add_child(UI.icon_label("coin", "%d Ryō" % int(pr["ryo"]), 16, UI.GOLD))
 	_close_button(bg, func(): main.resume())
 	# içerik
@@ -2068,7 +2068,7 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 		if lp.begins_with("trainer"):
 			txt = "Hocadan öğrenilir (%s)" % lp.trim_prefix("trainer").trim_prefix(":")
 		elif lp.begins_with("clan:"):
-			txt = "%s klan tekniği — klan üyeleri Sv.%d'de kendiliğinden öğrenir" % [Data.clans.get(lp.substr(5), {}).get("name", lp.substr(5)), int(j.get("level", 1))]
+			txt = "%s klan tekniği — klan üyeleri Güç %d'de kendiliğinden öğrenir" % [Data.clans.get(lp.substr(5), {}).get("name", lp.substr(5)), int(j.get("level", 1))]
 		elif lp.begins_with("kg"):
 			txt = "Kekkei genkai gerekir (%s)" % lp.trim_prefix("kg:")
 		elif lp.begins_with("eye"):
@@ -2078,9 +2078,9 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 		elif lp.begins_with("weapon:"):
 			txt = "%s ele geçirilince öğrenilir" % String(Gear.item(lp.substr(7)).get("name", lp.substr(7)))
 		elif lp.begins_with("beast:"):
-			txt = "%s jinchūriki'si olunca canavar öğretir (Sv.%d)" % [String(BeastModels.INFO.get(lp.substr(6), {}).get("name", lp.substr(6))).split(" —")[0], int(j.get("level", 1))]
+			txt = "%s jinchūriki'si olunca canavar öğretir (Güç %d)" % [String(BeastModels.INFO.get(lp.substr(6), {}).get("name", lp.substr(6))).split(" —")[0], int(j.get("level", 1))]
 		elif lp.begins_with("contract:"):
-			txt = "%s imzalanınca bilge öğretir (Sv.%d)" % [String(Contracts.DEFS.get(lp.substr(9), {}).get("name", "Çağırma sözleşmesi")), int(j.get("level", 1))]
+			txt = "%s imzalanınca bilge öğretir (Güç %d)" % [String(Contracts.DEFS.get(lp.substr(9), {}).get("name", "Çağırma sözleşmesi")), int(j.get("level", 1))]
 		elif lp.begins_with("special") or lp == "signature":
 			txt = "Özel görev ile açılır"
 		rv.add_child(UI.label("🔒 Öğrenilmedi — " + (txt if txt != "" else lp) + ((".  " + why) if why != "" else ""), 14, Color(1, 0.75, 0.45), HORIZONTAL_ALIGNMENT_LEFT, true))

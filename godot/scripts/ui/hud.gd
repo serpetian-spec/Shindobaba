@@ -940,7 +940,7 @@ func shop(title: String, items: Array) -> void:
 				lock_text = "Bu parşömen %s doğası olanlar için." % String(j["element"]).capitalize()
 			elif int(Game.profile["level"]) < int(j.get("level", 1)):
 				locked = true
-				lock_text = "Seviye %d gerekli." % int(j.get("level", 1))
+				lock_text = "Ustalık gücü %d gerekli." % int(j.get("level", 1))
 			elif it.get("jutsu", "") in Game.profile["learned"]:
 				locked = true
 				lock_text = "Bunu zaten biliyorsun."
@@ -1040,7 +1040,7 @@ func _process(dt: float) -> void:
 	var rname: String = Data.RANKS[int(pr.get("rank", 0))]
 	if Orgs.is_rogue():
 		rname = "%s (%s-rank)" % [Orgs.rogue_rank_name(), String(Orgs.ROGUE_RANKS[Orgs.rogue_rank()][2])]   # kaçakta köy rütbesi yok
-	rank_lbl.text = "%s  •  Seviye %d" % [rname.to_upper(), int(pr.get("level", 1))]
+	rank_lbl.text = "%s  •  Güç %d" % [rname.to_upper(), int(pr.get("level", 1))]
 	ryo_lbl.text = "%d Ryō" % int(pr.get("ryo", 0))
 	if buff_lbl:
 		var bl = []
@@ -1063,7 +1063,7 @@ func _process(dt: float) -> void:
 	hp_trail.value = move_toward(hp_trail.value, pl.hp, dt * pl.max_hp * 0.35) if hp_trail.value > pl.hp else pl.hp
 	ck_bar.max_value = pl.max_chakra; ck_bar.value = pl.chakra
 	ck_txt.text = "%d" % int(pl.chakra)
-	xp_bar.max_value = Data.xp_for_level(int(pr.get("level", 1))); xp_bar.value = int(pr.get("xp", 0))
+	xp_bar.max_value = 600.0; xp_bar.value = Mastery.total(pr)   # toplam ustalık (yaptıkça gelişme)
 	var cm = ClanMech.meter()
 	clan_bar.visible = not cm.is_empty()
 	clan_lbl.visible = clan_bar.visible

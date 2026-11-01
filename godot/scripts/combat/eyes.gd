@@ -296,6 +296,9 @@ func toggle() -> void:
 		_end_susanoo()
 	active = not active
 	if active:
+		var pm = p.combat.modes if p.combat else null
+		if pm and pm.has_method("exclusive"):
+			pm.exclusive("eyes")
 		Progress.clan_unlocks(true)   # nakil/uyanış sonrası göz teknikleri hemen açılsın
 		var r = _kind("sag"); var l = _kind("sol")
 		var main_kind = maxi(r, l)
@@ -323,7 +326,7 @@ func toggle() -> void:
 			Game.world.env.set_tint(Color(0.9, 0.1, 0.1, 0.07) if main_kind != 2 else Color(0.6, 0.7, 1.0, 0.08))
 		if r in [1, 4, 5] or l in [1, 4, 5]:
 			var tl = maxi(_lvl("sag"), _lvl("sol"))
-			Combat.base_time_scale = 0.9 - 0.04 * tl
+			Combat.base_time_scale = 0.94 - 0.02 * tl   # daha hafif yavaşlatma
 			Combat.self_slow = true   # dünya yavaşlar, sen normal hızdasın
 		_eye_buff()
 	else:
@@ -380,17 +383,17 @@ func _eye_buff() -> void:
 	var mods = {"_name": " / ".join(names)}
 	var desc = []
 	if r in [1, 4, 5] or l in [1, 4, 5]:
-		mods["jutsu"] = 1.0 + 0.04 * maxi(_lvl("sag"), _lvl("sol")) + (0.12 if (r >= 4 and r <= 5) or (l >= 4 and l <= 5) else 0.0)
+		mods["jutsu"] = 1.0 + 0.015 * maxi(_lvl("sag"), _lvl("sol")) + (0.05 if (r >= 4 and r <= 5) or (l >= 4 and l <= 5) else 0.0)
 		desc.append("Kaçınma %%%d" % int(dodge_chance() * 100.0))
 		desc.append("dünya yavaşlar (hareketleri okursun)")
 	if r == 2 or l == 2:
 		mods["melee"] = 1.0   # Jūken bonusu melee_bonus() ile uygulanır; açıklamada yazılır
 		desc.append("Jūken yakın dövüş +%25, 360° görüş, düşman chakrası görünür")
 	if r == 6 or l == 6:
-		mods["jutsu"] = float(mods.get("jutsu", 1.0)) * 1.2
+		mods["jutsu"] = float(mods.get("jutsu", 1.0)) * 1.08
 		desc.append("Altı Yol teknikleri açık")
 	if k in [3, 7, 8]:
-		mods["jutsu"] = float(mods.get("jutsu", 1.0)) * 1.1
+		mods["jutsu"] = float(mods.get("jutsu", 1.0)) * 1.04
 	if float(mods.get("melee", 0.0)) == 1.0:
 		mods.erase("melee")
 	mods["_desc"] = ", ".join(desc)
@@ -878,7 +881,7 @@ func dodge_chance() -> float:
 	for s in ["sag", "sol"]:
 		var k = _kind(s)
 		if k in [1, 4, 5]:
-			best = maxf(best, 0.1 * _lvl(s) + (0.15 if k >= 4 else 0.0) + Stats.skill(Game.profile, "eye_dodge"))
+			best = maxf(best, 0.035 * _lvl(s) + (0.05 if k >= 4 else 0.0) + Stats.skill(Game.profile, "eye_dodge") * 0.5)
 	return best
 
 

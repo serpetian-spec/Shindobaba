@@ -153,7 +153,21 @@ func new_profile(opts: Dictionary) -> Dictionary:
 
 
 # ------------------------------------------------------------------ XP / seviye
-func add_xp(amount: int) -> void:
+## Seviye sistemi kaldırıldı (yaptıkça gelişme: Mastery). Eski XP ödülleri artık bir şey vermez.
+func add_xp(_amount: int) -> void:
+	return
+
+
+## Ustalıklardan türeyen güç değiştiğinde: eskiden seviye atlayınca olanlar (klan teknikleri, canavar teknikleri, hikâye)
+func on_power_changed() -> void:
+	TailedBeasts.teach_beast_arts()
+	if Game.player:
+		Game.player.apply_profile_stats()
+	_check_story_levels()
+	clan_unlocks()
+
+
+func _old_add_xp(amount: int) -> void:
 	var pr = p()
 	amount = int(amount * Exams.xp_mult() * (1.0 + Stats.skill(pr, "xp")))
 	pr["xp"] = int(pr["xp"]) + amount
@@ -310,7 +324,7 @@ func can_learn(jid: String) -> String:
 			if jid in Eyes.MS_STYLES[st]["jutsu"]:
 				return "%s Mangekyō'su gerekir" % Eyes.MS_STYLES[st]["name"]
 	if int(pr["level"]) < int(j.get("level", 1)):
-		return "Seviye %d gerekli" % int(j.get("level", 1))
+		return "Ustalık gücü %d gerekli (ninjutsu, dövüş, chakra, dayanıklılık)" % int(j.get("level", 1))
 	if int(pr.get("rank", 0)) < int(j.get("rank", 0)):
 		return "%s rütbesi gerekli" % Data.RANKS[int(j.get("rank", 0))]
 	for el in j.get("elements", []):
@@ -577,6 +591,9 @@ func on_hit_landed(t: Node) -> void:
 
 func on_dummy_hit(_d: Node, _dmg: float) -> void:
 	var pr = p()
+	# antrenman kuklası: vuruş ustalığı 2 kat (yumrukla taijutsu, silahla kenjutsu)
+	var armed = String(Gear.weapon(pr).get("style", "fist")) != "fist" and bool(pr.get("weapon_drawn", false))
+	Mastery.gain(pr, "kenjutsu" if armed else "taijutsu", 0.5)
 	if story() == 1:
 		pr["flags"]["dummy_hits"] = int(pr["flags"].get("dummy_hits", 0)) + 1
 		Hud.objective_progress("Kukla darbeleri: %d/25" % pr["flags"]["dummy_hits"])

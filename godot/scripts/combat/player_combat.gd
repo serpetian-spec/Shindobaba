@@ -24,6 +24,7 @@ var action = ""      # "", attack, cast, throw, sub, hitstun, knockdown, guard, 
 var did_hit = false
 var buffered = false
 var extra_done := 0
+var _seal_fail := false
 var cd_max := {}     # jutsu -> bu kullanımdaki toplam bekleme (hasara göre uzayabilir; HUD dolum çubuğu)
 var _jdmg := {}      # jutsu -> bu kullanımda verdiği toplam hasar
 var _jcast_t := {}
@@ -377,6 +378,8 @@ func _do_attack(dt: float) -> bool:
 		var hits = Combat.hit_sphere(p, pt, c["reach"] * 0.65 * Buffs.mod("reach"), _hit_info(c))
 		if not hits.is_empty():
 			_on_hit_fx(pt, c)
+			var armed_m = String(Gear.weapon(Game.profile).get("style", "fist")) != "fist" and bool(Game.profile.get("weapon_drawn", false))
+			Mastery.gain(Game.profile, "kenjutsu" if armed_m else "taijutsu", 0.12 * hits.size())
 			for h in hits:
 				Progress.on_hit_landed(h)
 				_special_hit(h, pt, c)
@@ -695,6 +698,8 @@ func _update_guard() -> void:
 # ------------------------------------------------------------------ chakra şarjı
 func _update_charge(dt: float) -> void:
 	var want = Input.is_action_pressed("charge") and p.grounded and (action == "" or action == "charge") and not Game.ui_open
+	if want and action == "charge":
+		Mastery.gain(Game.profile, "chakra", dt * 0.06)   # meditasyon / chakra toplama antrenmanı
 	if want:
 		if action != "charge":
 			action = "charge"
@@ -962,6 +967,12 @@ func begin_cast(jid: String) -> void:
 	if p.chakra < cost:
 		Hud.msg("Yeterli chakra yok! [C] ile chakra topla", Color(0.5, 0.8, 1))
 		return
+	# ninjutsu ustalığı: yetersizse teknik yapılamaz; sınırdaysa mühür bozulabilir (yaptıkça gelişme)
+	var mc = "" if Game.has_meta("sandbox") else Mastery.cast_check(Game.profile, j)
+	if mc != "" and not mc.begins_with("fail:"):
+		Hud.msg(mc, Color(1, 0.55, 0.45))
+		return
+	_seal_fail = mc.begins_with("fail:") and randf() < float(mc.substr(5))
 	p.chakra -= cost
 	ClanMech.pay(jid, j)
 	cooldowns[jid] = Combat.jutsu_cd(j)
@@ -997,6 +1008,17 @@ func _do_cast(dt: float) -> bool:
 	if t >= cast_time:
 		# salınım anı: koreografi ile eş zamanlı; takip pozu CastAnim'de sürer
 		action = ""
+		var jd: Dictionary = Data.jutsu.get(cast_jutsu, {})
+		if _seal_fail:
+			# mühür bozuldu: chakra boşa gider, teknik çıkmaz (yine de biraz öğrenilir)
+			_seal_fail = false
+			FX.smoke_puff(p.global_position + Vector3.UP * 1.3 + p.face_dir() * 0.4, 0.35, 5)
+			Combat.popup_text(p.global_position + Vector3.UP * 2.3, "Mühür bozuldu!", Color(1, 0.6, 0.4))
+			cooldowns[cast_jutsu] = minf(float(cooldowns.get(cast_jutsu, 0.0)), 2.0)
+			Mastery.gain(Game.profile, "ninjutsu", 0.15 * (1.0 + int(jd.get("tier", 2)) * 0.3))
+			return true
+		Mastery.gain(Game.profile, "ninjutsu", 0.45 * (1.0 + int(jd.get("tier", 2)) * 0.35))
+		Mastery.gain(Game.profile, "chakra", jutsu_cost(jd) / 60.0)
 		Jutsu.execute(p, cast_jutsu, tg)
 		Progress.on_technique_used(cast_jutsu)
 	return true
@@ -1064,6 +1086,7 @@ func take_hit(info: Dictionary) -> void:
 				return
 	p.hp -= dmg
 	Combat.note_jutsu_dmg(atk, info, dmg)
+	Mastery.gain(Game.profile, "dayaniklilik", clampf(dmg / maxf(1.0, p.max_hp), 0.0, 0.5) * 2.5)   # dayak yedikçe dayanıklılık
 	last_hit_t = 0.0
 	# Jashin laneti: çemberdeyken sana gelen acı bağlı hedefe de gelir
 	if p.has_meta("jashin_link"):
