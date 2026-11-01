@@ -16,7 +16,9 @@ var two_hand_node: Node3D = null   # iki elle tutuş: sol el bu silahın sapına
 var two_hand_off := 0.32
 var two_hand_w := 0.0
 var left_holder := Basis.IDENTITY   # sol el tutuş çerçevesi (el kemiği uzayında)
-var left_roll := 0.0   # sol elin kabza ekseni etrafında dönüşü (derece)   # sol el sağ elle aynı yönde kabzayı sarar (test: öndeki yumruk kabzanın etrafında)
+var left_roll := 0.0
+var mirror_axis := 0
+var left_curl_sign := 1.0   # sol elin kabza ekseni etrafında dönüşü (derece)   # sol el sağ elle aynı yönde kabzayı sarar (test: öndeki yumruk kabzanın etrafında)
 var left_grip_pos := Vector3.ZERO   # sol el tutuş noktası (el kemiği uzayında)
 var reach_open := false       # true: kol uzanırken el açık kalır (Rasengan / Chidori avucu), yumruk yapmaz
 static var AX := Vector3(-1, 0, 0)   # VRoid parmak kıvrım ekseni (kemik yerel -X)
@@ -45,6 +47,8 @@ func _process_modification() -> void:
 				_relax_hand(sk, side)
 			continue
 		var sgn = 1.0 if side == "Left" else -1.0
+		if side == "Left" and two_hand_w > 0.0:
+			sgn *= left_curl_sign   # iki elle tutuşta sol el aynalandığı için kıvrım yönü
 		for f in FINGERS:
 			for i in 3:
 				_curl(sk, side + f + FINGER_SEG[i], Quaternion(AX, CURL[i] * sgn), w)
@@ -74,30 +78,51 @@ func _relax_hand(sk: Skeleton3D, side: String) -> void:
 
 ## İki kemikli IK: sol omuz-dirsek-el zinciri, silah sapındaki hedefe uzanır (dirsek aşağı-dışa)
 func _two_hand_ik(sk: Skeleton3D, w: float) -> void:
+	# sol el = sağ elin kabza düzlemine göre AYNA kopyası (aynı şekil, kabzanın karşı tarafından sarar), kabza boyunca biraz aşağıda.
+	# Parmaklar sağ eldekiyle aynı kıvrımda (hold Left); kol IK ile bileği oraya taşır.
 	var ua = sk.find_bone("LeftUpperArm")
 	var la = sk.find_bone("LeftLowerArm")
 	var hb = sk.find_bone("LeftHand")
-	if ua < 0 or la < 0 or hb < 0:
+	var rb = sk.find_bone("RightHand")
+	if ua < 0 or la < 0 or hb < 0 or rb < 0:
 		return
 	var inv = sk.global_transform.affine_inverse()
 	var wx: Transform3D = two_hand_node.global_transform
-	var tgt: Vector3 = inv * (wx.origin + wx.basis.z.normalized() * two_hand_off)
-	# bilek hedefi: avuçtaki tutuş noktası kabzaya otursun (bilek kemiği tutuş noktasının gerisinde)
-	var want_hand0 := Basis.IDENTITY
-	if left_holder != Basis.IDENTITY:
-		var wb0: Basis = (sk.global_transform.basis.orthonormalized().inverse() * wx.basis.orthonormalized())
-		var wh0 = wb0 * Basis(Vector3.BACK, deg_to_rad(left_roll))
-		want_hand0 = (wh0 * left_holder.inverse()).orthonormalized()
-		tgt -= want_hand0 * left_grip_pos
+	var axis: Vector3 = (sk.global_transform.basis.orthonormalized().inverse() * wx.basis.z).normalized()
+	var p0: Vector3 = inv * wx.origin
+	var rp: Transform3D = sk.get_bone_global_pose(rb)
+	var nx = Vector3.RIGHT - axis * axis.dot(Vector3.RIGHT)
+	if nx.length() < 0.05:
+		nx = Vector3.FORWARD
+	nx = nx.normalized()
+	var R = Basis(Vector3.RIGHT - 2.0 * nx * nx.x, Vector3.UP - 2.0 * nx * nx.y, Vector3.BACK - 2.0 * nx * nx.z)
+	var D = [Basis(Vector3(-1, 0, 0), Vector3(0, 1, 0), Vector3(0, 0, 1)), Basis(Vector3(1, 0, 0), Vector3(0, -1, 0), Vector3(0, 0, 1)), Basis(Vector3(1, 0, 0), Vector3(0, 1, 0), Vector3(0, 0, -1))][mirror_axis]
+	var want_hand: Basis = (R * rp.basis.orthonormalized() * D).orthonormalized()
+	var tgt: Vector3 = p0 + R * (rp.origin - p0) + axis * two_hand_off
+	# yinelemeli IK: kemik eksen sapmaları yüzünden el hedefin ~6 cm yanına düşüyordu -> hatayı hedefe ekleyip 4 kez düzelt
+	var aim = tgt
+	for it in 4:
+		_arm_ik(sk, ua, la, aim, w)
+		var err = tgt - sk.get_bone_global_pose(hb).origin
+		if err.length() < 0.004:
+			break
+		aim += err
+	var par = sk.get_bone_parent(hb)
+	var pbas: Basis = sk.get_bone_global_pose(par).basis.orthonormalized() if par >= 0 else Basis.IDENTITY
+	sk.set_bone_pose_rotation(hb, sk.get_bone_pose_rotation(hb).slerp((pbas.inverse() * want_hand).get_rotation_quaternion(), clampf(w, 0.0, 1.0)))
+
+
+func _arm_ik(sk: Skeleton3D, ua: int, la: int, tgt: Vector3, w: float) -> void:
 	var S = sk.get_bone_global_pose(ua).origin
 	var E = sk.get_bone_global_pose(la).origin
+	var hb = sk.find_bone("LeftHand")
 	var H = sk.get_bone_global_pose(hb).origin
 	var a = S.distance_to(E)
 	var b = E.distance_to(H)
 	var d = tgt - S
 	var dist = clampf(d.length(), 0.05, a + b - 0.002)
 	var dn = d.normalized()
-	var pole = Vector3(0.4, -1.0, -0.3).normalized()   # dirsek aşağı ve dışa (model sol tarafı +X)
+	var pole = Vector3(0.4, -1.0, -0.3).normalized()
 	var perp = (pole - dn * pole.dot(dn))
 	if perp.length() < 0.01:
 		perp = Vector3.DOWN
@@ -107,15 +132,6 @@ func _two_hand_ik(sk: Skeleton3D, w: float) -> void:
 	_rot_model(sk, "LeftUpperArm", elbow - S, w)
 	var E2 = sk.get_bone_global_pose(la).origin
 	_rot_model(sk, "LeftLowerArm", (S + dn * dist) - E2, w)
-	# sol el de sağ el gibi kabzayı sarar: elin tutuş çerçevesi silahın çerçevesine (kabza ekseni aynı) hizalanır
-	if left_holder != Basis.IDENTITY:
-		var wb: Basis = (sk.global_transform.basis.orthonormalized().inverse() * wx.basis.orthonormalized())
-		var want_holder = wb * Basis(Vector3.BACK, deg_to_rad(left_roll))
-		var want_hand: Basis = (want_holder * left_holder.inverse()).orthonormalized()
-		var par = sk.get_bone_parent(hb)
-		var pbas: Basis = sk.get_bone_global_pose(par).basis.orthonormalized() if par >= 0 else Basis.IDENTITY
-		var loc = (pbas.inverse() * want_hand).get_rotation_quaternion()
-		sk.set_bone_pose_rotation(hb, sk.get_bone_pose_rotation(hb).slerp(loc, clampf(w, 0.0, 1.0)))
 
 
 ## Parmağı dinlenme pozuna göre verilen kıvrıma (mutlak) yaklaştır: animasyondaki açık el ne olursa olsun kapanır
