@@ -421,6 +421,7 @@ func _air_dash() -> void:
 func _physics_process(dt: float) -> void:
 	if Game.paused:
 		return
+	dt *= Combat.player_comp()   # Sharingan algısı: dünya yavaş, oyuncu normal hızda
 	input_locked -= dt
 	wall_cd -= dt
 	_tick_status(dt)

@@ -538,17 +538,28 @@ func _add_libs() -> void:
 		anim.add_animation_library(k, _libs[k])
 
 
+var _anim_speed := 1.0
+
+
+## Oyuncunun modeli mi: Sharingan algı yavaşlamasında animasyonlar telafi edilir (dünya yavaş, sen normal)
+func _time_comp() -> float:
+	var par = get_parent()
+	return Combat.player_comp() if par is Player else 1.0
+
+
 ## Animasyon oynat (aynı animasyon tekrar istenirse yeniden başlatmaz, restart=true hariç)
 func play(key: String, blend := 0.15, speed := 1.0, restart := false) -> void:
 	var full: String = ANIM.get(key, key)
 	if not anim.has_animation(full):
 		return
 	if current == key and not restart and anim.is_playing():
-		anim.speed_scale = speed
+		_anim_speed = speed
+		anim.speed_scale = speed * _time_comp()
 		return
 	current = key
 	anim.play(full, blend, 1.0)
-	anim.speed_scale = speed
+	_anim_speed = speed
+	anim.speed_scale = speed * _time_comp()
 	if restart:
 		anim.seek(0.0, true)
 
@@ -3938,6 +3949,12 @@ func _stance_for_look() -> String:
 
 
 func _process(dt: float) -> void:
+	if anim:
+		var tc = _time_comp()
+		if absf(anim.speed_scale - _anim_speed * tc) > 0.001:
+			anim.speed_scale = _anim_speed * tc
+		if overlay:
+			overlay.time_comp = tc
 	# silah duruşu: beklerken/yürürken silaha göre kollar; saldırı, mühür ve ninja koşusunda kapanır
 	_weapon_process(dt)
 	if stance != "" and overlay:

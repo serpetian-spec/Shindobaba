@@ -20,6 +20,7 @@ var cast_pose := {}
 var key_anim := {}       # anahtar karelerle el yapımı animasyon (SamehadaAnim adımı): {len, keys:[{t, crouch, hips_yaw, spine, neck, blade, b:{kemik:yön}}]}
 var key_t := -1.0
 var key_spd := 1.0
+var time_comp := 1.0   # oyuncu: Sharingan algısında anahtar animasyon normal hızda
 var key_blade := Vector3.ZERO
 var key_roll := 0.0   # silahın sap ekseni etrafında dönüşü (derece; gunbai kalkan itişi)   # o anki silah ucu yönü (iskelet uzayı); CharacterModel silahı buna çevirir
 var charge_k := 0.0     # süper zıplama şarjı 0..1: çömelme derinliği
@@ -356,7 +357,7 @@ static func _cr(a, b, c, d, u: float):
 func _apply_keys(sk: Skeleton3D, dt: float) -> void:
 	var ln: float = key_anim["len"]
 	# son pozda bekler (sıradaki vuruş gelene ya da kombo bitene kadar); boş duruşa dönüp zıplamaz
-	key_t = minf(key_t + dt * key_spd, ln)
+	key_t = minf(key_t + dt * key_spd * time_comp, ln)
 	_key_hold = _key_hold + dt if key_t >= ln else 0.0
 	if _key_hold > 0.7 and _key_out <= 0.0:
 		_key_out = 0.18   # güvenlik: kombo sistemi bırakmadıysa (vurulma vb.) kendiliğinden bırak

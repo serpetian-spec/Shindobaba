@@ -245,6 +245,15 @@ func nearest_enemy(from: Node3D, max_d: float, dir := Vector3.ZERO, cone := -1.0
 ## Vuruş anında oyunu kısa süre yavaşlat (Storm hissi). Gerçek zamanla ölçülür.
 var hitstop_until = 0
 var base_time_scale = 1.0  # Sharingan vb. yavaş çekim için
+## Algı yavaşlaması (Sharingan / dojutsu modu): dünya yavaşlar, oyuncu NORMAL hızda kalır (telafi çarpanı).
+## Vuruş duraksaması (hitstop) telafi edilmez: o an herkes donar.
+var self_slow := false
+
+
+func player_comp() -> float:
+	if not self_slow or hitstop_until > 0 or base_time_scale >= 0.999:
+		return 1.0
+	return 1.0 / maxf(0.1, base_time_scale)
 
 
 func hitstop(t: float) -> void:

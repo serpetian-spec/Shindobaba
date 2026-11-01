@@ -162,6 +162,7 @@ func toggle_dojutsu() -> void:
 		if cl == "uchiha":
 			p.model.set_eye_color(Color(0.9, 0.05, 0.08))
 			Combat.base_time_scale = 0.8
+			Combat.self_slow = true
 			Hud.msg("SHARINGAN: hareketleri yavaş görüyorsun, darbelerden kaçabilirsin", Color(1, 0.4, 0.4))
 			if Game.world:
 				Game.world.env.set_tint(Color(0.9, 0.1, 0.1, 0.08))
@@ -179,6 +180,7 @@ func _end_dojutsu() -> void:
 	var base_eye: Array = Data.clans.get(clan(), {}).get("eye", [0.2, 0.2, 0.2])
 	p.model.set_eye_color(Color(base_eye[0], base_eye[1], base_eye[2]))
 	Combat.base_time_scale = 1.0
+	Combat.self_slow = false
 	if Game.world:
 		Game.world.env.set_tint(Color(0, 0, 0, 0))
 	for k in markers.keys():

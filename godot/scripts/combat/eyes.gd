@@ -324,6 +324,7 @@ func toggle() -> void:
 		if r in [1, 4, 5] or l in [1, 4, 5]:
 			var tl = maxi(_lvl("sag"), _lvl("sol"))
 			Combat.base_time_scale = 0.9 - 0.04 * tl
+			Combat.self_slow = true   # dünya yavaşlar, sen normal hızdasın
 		_eye_buff()
 	else:
 		_close()
@@ -400,6 +401,7 @@ func _close() -> void:
 	Buffs.remove("eyes")
 	active = false
 	Combat.base_time_scale = 1.0
+	Combat.self_slow = false
 	if Game.world:
 		Game.world.env.set_tint(Color(0, 0, 0, 0))
 	for k in markers.keys():
