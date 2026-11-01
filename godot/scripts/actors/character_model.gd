@@ -2919,7 +2919,7 @@ const SHEATH_OF := {"blade": "pouch", "dual": "pouch", "claw": "pouch", "sickle"
 const SHEATH_ID := {"tanto": "low_back", "ikiz_hancer": "low_back", "tonfa": "belt", "sai": "belt", "kiba": "back", "nodachi": "back"}
 ## Kınlı kılıçlar: [kın başı z, kın ucu z, kalınlık, genişlik] (silah uzayında, kabza 0, namlu +Z)
 const SAYA := {"katana": [0.075, 0.84, 0.042, 0.06], "wakizashi": [0.05, 0.6, 0.04, 0.055], "nodachi": [0.1, 1.38, 0.05, 0.11],
-	"tanto": [0.06, 0.4, 0.045, 0.045], "chokuto": [0.13, 0.9, 0.05, 0.05], "raijin": [0.08, 0.86, 0.045, 0.06]}
+	"tanto": [0.06, 0.4, 0.045, 0.045], "chokuto": [0.13, 0.9, 0.05, 0.05]}
 const SHEATH_DUR := 0.42
 const KATANA_TIP_DOWN := -75.0
 const BACK_TIP_UP := ["savas_cekici", "uc_tirpan", "mizrak"]
@@ -3000,6 +3000,8 @@ func _weapons() -> void:
 		hand.add_child(node)
 		if SAYA.has(id):
 			node.transform.basis = Basis(Vector3.BACK, PI * 0.5) * Basis(Vector3.RIGHT, deg_to_rad(KATANA_TIP_DOWN))
+		if id == "raijin":
+			node.add_child(_raijin_beam())
 		var kind = sheath_kind(id)
 		weapons.append({"id": id, "side": side, "kind": kind, "node": node, "hand": hand, "sheath": _sheath_holder(kind, side, id, node)})
 
@@ -3169,6 +3171,9 @@ func _place_weapons() -> void:
 		if SAYA.has(w["id"]):
 			n.transform.basis = Basis(Vector3.BACK, PI * 0.5) * Basis(Vector3.RIGHT, deg_to_rad(KATANA_TIP_DOWN)) if n.get_parent() == w["hand"] else Basis.IDENTITY
 		n.visible = in_hand or w["sheath"] != null
+		var beam = n.get_node_or_null("RaijinBeam")
+		if beam:
+			beam.visible = in_hand   # Raijin: ışın yalnız elde; belde yalnız kabza
 		if w["id"] == "kusarigama" and w["sheath"] != null:
 			var coil = (w["sheath"] as Node3D).get_node_or_null("KusariStow")
 			if coil:
@@ -3471,31 +3476,23 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			b.add("box", Vector3(0, 0, 0.5), Vector3(0.012, 0.03, 0.88), Color(0.85, 0.87, 0.9))
 			b.add("cone", Vector3(0, 0, 0.97), Vector3(0.012, 0.06, 0.03), Color(0.85, 0.87, 0.9), Vector3(90, 0, 0), 4)
 		"raijin":
-			# yıldırım kılıcı: altın sap ve tsuba, ağız zikzak şimşek biçiminde (sarı-beyaz, ortası daha parlak)
-			_w_tsuka(b, -0.2, 0.04, 0.018, Color(0.75, 0.6, 0.2))
-			_w_tsuba(b, 0.055, 0.05, Color(0.85, 0.7, 0.3))
-			var zz = PackedVector2Array()
-			var zl = []
-			var zr = []
+			# Raijin no Ken (kaynak raijinornek.png): yalnız kabza — koyu gri-mor sap, ucunda yarıklı halka topuz, kısa bilezik,
+			# kabzanın önünde yana kıvrılan hilal kanca muhafız. Ağız: kabzadan çıkan uzun sarı-yeşil ışın (ayrı parlayan düğüm).
+			var hilt = Color(0.34, 0.33, 0.4)
+			var dk2 = Color(0.2, 0.2, 0.24)
+			b.add("cyl", Vector3(0, 0, -0.07), Vector3(0.036, 0.15, 0.036), hilt, Vector3(90, 0, 0), 10)
+			for k in 4:
+				b.add("torus", Vector3(0, 0, -0.13 + k * 0.035), Vector3(0.042, 0.03, 0.042), hilt.darkened(0.12), Vector3(90, 0, 0), 10)
+			b.add("cyl", Vector3(0, 0, -0.155), Vector3(0.05, 0.02, 0.05), dk2, Vector3(90, 0, 0), 10)
+			b.add("torus", Vector3(0, 0, -0.19), Vector3(0.06, 0.05, 0.06), dk2, Vector3(0, 90, 0), 12)   # yarıklı halka topuz
+			b.add("cyl", Vector3(0, 0, 0.015), Vector3(0.048, 0.03, 0.048), dk2, Vector3(90, 0, 0), 10)   # bilezik
+			# hilal kanca muhafız: kabzanın önünden yana açılıp geriye kıvrılan yay (küçük küreler zinciri)
 			for k in 9:
-				var z = 0.07 + k * 0.095
-				var o = (0.03 if k % 2 == 0 else -0.03) * (1.0 - k / 10.0)
-				var w = 0.045 * (1.0 - k / 10.0) + 0.01
-				zl.append(Vector2(o - w, z))
-				zr.append(Vector2(o + w, z))
-			for p in zl:
-				zz.append(p)
-			zz.append(Vector2(0.0, 0.92))
-			for k in range(zr.size() - 1, -1, -1):
-				zz.append(zr[k])
-			b.add_slab(zz, 0.022, Color(1.0, 0.92, 0.45), Transform3D.IDENTITY, Callable(), Color(1.0, 0.75, 0.2))
-			var core = PackedVector2Array()
-			for p in zl:
-				core.append(Vector2(lerpf(p.x, 0.0, 0.6), p.y))
-			core.append(Vector2(0.0, 0.87))
-			for k in range(zr.size() - 1, -1, -1):
-				core.append(Vector2(lerpf(zr[k].x, 0.0, 0.6), zr[k].y))
-			b.add_slab(core, 0.03, Color(1.0, 1.0, 0.92))
+				var t = k / 8.0
+				var ang = lerpf(-0.2, PI * 1.05, t)
+				var r = 0.065
+				var q = Vector3(cos(ang) * r, sin(ang) * r * 0.25, 0.04 - sin(ang) * 0.05)
+				b.add("sphere", q + Vector3(r * 0.2, 0, 0), Vector3(0.024, 0.024, 0.024) * (1.0 - t * 0.35), dk2, Vector3.ZERO, 8)
 		"ruzgar_bicak":
 			b.add("box", Vector3(0.0, 0.0, 0.0), Vector3(0.03, 0.1, 0.11), dark)
 			b.add("box", Vector3(0, 0.0, 0.17), Vector3(0.012, 0.04, 0.24), Color(0.6, 0.62, 0.66))
@@ -3621,6 +3618,44 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 
 ## Kunai (kaynak ornekkunai.png): baklava kesitli yaprak bıçak (dört yüz: üst yüzler açık çelik, alt yüzler koyu — anime ışığı),
 ## orta sırt çizgisi, kısa boyun; sıkı sarılı koyu gri sap (boğumlu sargı), sonda kalın halka. Kabza 0, uç +Z, yassı yüz ±X.
+## Raijin ışın ağzı: kabzadan +Z boyunca uzun, ince, uca doğru incelen sarı-yeşil ışın; beyaz parlak öz + yarı saydam hale
+static func _raijin_beam() -> Node3D:
+	var root = Node3D.new()
+	root.name = "RaijinBeam"
+	var L = 1.45
+	for layer in [[0.016, 0.006, Color(1.0, 1.0, 0.88), 1.0], [0.045, 0.012, Color(0.85, 1.0, 0.25), 0.45], [0.085, 0.02, Color(0.75, 1.0, 0.2), 0.16]]:
+		var cm = CylinderMesh.new()
+		cm.bottom_radius = layer[0]
+		cm.top_radius = layer[1]
+		cm.height = L
+		cm.radial_segments = 10
+		cm.rings = 1
+		var m = StandardMaterial3D.new()
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.albedo_color = Color(layer[2], layer[3])
+		m.emission_enabled = true
+		m.emission = layer[2]
+		m.emission_energy_multiplier = 2.0
+		if layer[3] < 1.0:
+			m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+			m.cull_mode = BaseMaterial3D.CULL_DISABLED
+		cm.material = m
+		var mi = MeshInstance3D.new()
+		mi.mesh = cm
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.rotation_degrees = Vector3(90, 0, 0)
+		mi.position = Vector3(0, 0, 0.05 + L * 0.5)
+		root.add_child(mi)
+	var light = OmniLight3D.new()
+	light.light_color = Color(0.85, 1.0, 0.4)
+	light.light_energy = 0.8
+	light.omni_range = 2.5
+	light.position = Vector3(0, 0, 0.6)
+	root.add_child(light)
+	return root
+
+
 static func _kunai_mesh(b: MB) -> void:
 	var lite = Color(0.86, 0.88, 0.92)
 	var mid = Color(0.58, 0.6, 0.65)
@@ -3838,7 +3873,7 @@ func _rest_tilt(on: bool, dt: float) -> void:
 
 
 ## anahtar animasyonlu silahlar: [tutuş kaydırma (yumruk sap boyunca ileri), iz başı z, iz ucu z, elden uca boy]
-const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 0.92, 0.92]}
+const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5]}
 
 
 var _edge_x := Vector3.ZERO   # gunbai: kenar önde savuruş için yüz normali (yumuşatılmış)

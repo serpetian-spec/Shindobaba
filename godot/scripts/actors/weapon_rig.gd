@@ -53,6 +53,7 @@ func _process_modification() -> void:
 
 var relax_meta := Vector3(0.6, -0.3, 0.0)   # boş el başparmağı içe kıvrık (dışa kanca gibi çıkmaz)
 var relax_dist := 0.4
+var relax_meta_r := Vector3(-0.6, -0.3, 0.0)   # sağ (silah) eli boşken başparmak içe kıvrık
 var relax_thumb := Vector3.ZERO
 var relax_free := true   # boştaki el: animasyonun zikzak başparmağı yerine rahat, hafif kıvrık el
 
@@ -61,8 +62,9 @@ var relax_free := true   # boştaki el: animasyonun zikzak başparmağı yerine 
 func _relax_hand(sk: Skeleton3D, side: String) -> void:
 	# boştaki el animasyonun orijinal hâlinde kalır; YALNIZ zikzak başparmak düzeltilir (işaret parmağının yanına yatık)
 	var sgn = 1.0 if side == "Left" else -1.0
-	if relax_meta != Vector3.ZERO:
-		_curl(sk, side + "ThumbMetacarpal", Quaternion.from_euler(Vector3(relax_meta.x * sgn, relax_meta.y * sgn, relax_meta.z * sgn)), 1.0)
+	var rm = relax_meta if side == "Left" else relax_meta_r
+	if rm != Vector3.ZERO:
+		_curl(sk, side + "ThumbMetacarpal", Quaternion.from_euler(Vector3(rm.x * sgn, rm.y * sgn, rm.z * sgn)), 1.0)
 	_curl(sk, side + "ThumbProximal", Quaternion.from_euler(Vector3(relax_thumb.x * sgn, relax_thumb.y * sgn, relax_thumb.z * sgn)), 1.0)
 	_curl(sk, side + "ThumbDistal", Quaternion.from_euler(Vector3(relax_dist * sgn, 0, 0)), 1.0)
 
