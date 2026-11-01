@@ -1474,7 +1474,7 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 		var v = Gear.stat(pr, k[0])
 		if v != 0.0:
 			tot.append(("%s %+d%%" % [k[1], int(round(v * 100))]) if k[2] else ("%s %+d" % [k[1], int(v)]))
-	tot.append("Silah x%.2f" % Gear.weapon(pr)["dmg"])
+	tot.append("Silah %.1f hasar" % float(Gear.weapon(pr).get("hit", 4.2)))
 	var tl = UI.label("  •  ".join(tot), 13, UI.MUTED, HORIZONTAL_ALIGNMENT_CENTER)
 	tl.position = Vector2(220, -26)
 	tl.size = Vector2(420, 20)
@@ -1545,7 +1545,7 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 				sr.add_child(UI.label(dtxt, 14, UI.GOOD if diff > 0 else UI.BAD, HORIZONTAL_ALIGNMENT_LEFT, true))
 			detail_v.add_child(sr)
 		if it.has("weapon"):
-			detail_v.add_child(UI.label("Hasar x%.2f   •   Menzil +%.1f m   •   %s" % [it["weapon"]["dmg"], it["weapon"]["reach"], String(it["weapon"].get("style", "")).capitalize()], 14, UI.GOLD))
+			detail_v.add_child(UI.label("Vuruş hasarı %.1f   •   Menzil +%.1f m   •   %s" % [float(it["weapon"].get("hit", 4.2)), it["weapon"]["reach"], String(it["weapon"].get("style", "")).capitalize()], 14, UI.GOLD))
 		var d = UI.label(it.get("desc", ""), 14, UI.MUTED)
 		d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		d.custom_minimum_size = Vector2(460, 0)

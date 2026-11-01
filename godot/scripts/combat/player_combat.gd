@@ -18,6 +18,7 @@ var t = 0.0          # mevcut hareketin geçen süresi
 var action = ""      # "", attack, cast, throw, sub, hitstun, knockdown, guard, charge, chakra_dash
 var did_hit = false
 var buffered = false
+var extra_done := 0   # adım içindeki ek darbelerden (dönüş vb.) kaç tanesi vuruldu
 var combo_reset = 0.0
 var lock_target: Node3D = null
 var guard_t = 0.0
@@ -170,6 +171,7 @@ func _start_step() -> void:
 	action = "attack"
 	t = 0.0
 	did_hit = false
+	extra_done = 0
 	buffered = false
 	var tgt = _auto_target()
 	if tgt:
@@ -319,6 +321,20 @@ func _do_attack(dt: float) -> bool:
 	if not did_hit and t >= c["hit"] and c.has("chain_kind"):
 		did_hit = true
 		_chain_strike(c, tgt)
+	# ek darbeler (Samehada dönüşü): karakterin çevresinde, savrulmasız hafif vuruş
+	var xh: Array = c.get("extra_hits", [])
+	while extra_done < xh.size() and t >= float(xh[extra_done]):
+		extra_done += 1
+		var xi = _hit_info(c)
+		xi["dmg"] = float(xi["dmg"]) * 0.35
+		xi["launch"] = 0.0
+		xi["knock"] = 1.0
+		xi["hitstop"] = 0.03
+		var xc = p.global_position + Vector3.UP * 0.9
+		var xhits = Combat.hit_sphere(p, xc, float(c.get("extra_radius", 2.5)), xi)
+		for h in xhits:
+			_on_hit_fx(h.global_position + Vector3.UP, c)
+			Progress.on_hit_landed(h)
 	if not did_hit and t >= c["hit"]:
 		did_hit = true
 		var pt = p.global_position + Vector3.UP * 1.1 + p.face_dir() * (p.radius + c["reach"] * 0.6)
@@ -382,7 +398,9 @@ func _combo_base(i: int) -> Dictionary:
 	var c: Dictionary = COMBO[clampi(i, 0, COMBO.size() - 1)].duplicate()
 	var w = Gear.weapon(Game.profile)
 	# silah hasarı sıkıştırılmış: en ağır silah bile yumruğun ~1.5 katı (jutsu anlamını korusun)
-	c["dmg"] = float(c["dmg"]) * (1.0 + (float(w["dmg"]) - 1.0) * 0.45) * (1.0 + Stats.weapon_bonus(Game.profile, String(w.get("style", "fist"))) * 0.6)
+	# her silahın kendi vuruş hasarı (hit); kombo adımları yumruk kombosunun oranlarıyla (4.2 = yumruğun ortalama vuruşu)
+	var per_hit = float(w.get("hit", 4.2))
+	c["dmg"] = per_hit * float(c["dmg"]) / 4.2 * (1.0 + Stats.weapon_bonus(Game.profile, String(w.get("style", "fist"))) * 0.6)
 	c["reach"] = float(c["reach"]) + float(w["reach"])
 	var st: Dictionary = STYLE_COMBOS.get(w["style"], {})
 	var wid = ""
@@ -433,9 +451,13 @@ func _combo_base(i: int) -> Dictionary:
 		c["keys"] = ks
 		c["anim"] = "idle"
 		c["speed"] = 1.0
-		c["key_spd"] = 0.95   # video hızına yakın (yavaşta dövüşte ilk vuruştan öteye geçilemiyordu)
-		c["dur"] = float(ks["len"]) / 0.95
-		c["hit"] = float(ks["hit"]) / 0.95
+		var ksp = 1.3   # videodan hızlı: dövüşte seri vursun (yavaşken vuruş bitmeden dayak yiyordun)
+		c["key_spd"] = ksp
+		c["dur"] = float(ks["len"]) / ksp
+		c["hit"] = float(ks["hit"]) / ksp
+		if ks.has("extra_hits"):
+			c["extra_hits"] = (ks["extra_hits"] as Array).map(func(x): return float(x) / ksp)
+			c["extra_radius"] = ks.get("extra_radius", 2.5)
 		if i == 4:
 			c["launch"] = 10.0
 	return c
@@ -938,6 +960,10 @@ func take_hit(info: Dictionary) -> void:
 	var dir: Vector3 = info.get("dir", Vector3.ZERO)
 	# yere serilme yalnız gerçekten ağır darbede / havaya fırlatmada (her jutsu isabeti yere sermesin)
 	var heavy: bool = info.get("kind", "light") == "heavy" or info.get("launch", 0.0) > 0.0
+	if info.get("melee", false) and not heavy:
+		# düz vuruşla stun yok (kullanıcı kuralı): hasar + küçük itme, saldırı/hareket kesilmez
+		p.velocity += dir * float(info.get("knock", 2.0)) * 0.25
+		return
 	# kombo kilidi kırıcı: üst üste sersemletilince kısa dokunulmazlık + itme patlaması (düşman kombosunda sonsuz kilit yok)
 	var now = Time.get_ticks_msec()
 	stun_meter = maxf(0.0, stun_meter - (now - stun_last_ms) / 1000.0 * 1.2) + (2.0 if heavy else 1.0)

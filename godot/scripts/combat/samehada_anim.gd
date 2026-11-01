@@ -75,16 +75,16 @@ static func steps() -> Array:
 	var s5 = 2.90
 	return [
 		# Vuruş 1: atılış, kılıç omuz hizasında yatay ileri saplanır, gövde yere paralel yüklenir (matkap), doğrulur
-		{"len": 0.9, "hit": 0.15, "keys": [
+		{"len": 0.7, "hit": 0.15, "keys": [
 			_v(s1, 0.55, 0.45, -10, 35, Vector3(-0.2, -0.35, -0.9), H_HANG, L_DOWN, L),
 			_v(s1, 0.65, 0.6, 0, 35, Vector3(0.0, -0.35, 0.94), H_HIP_FRONT, L_DOWN, L),
 			_v(s1, 0.70, 0.65, 10, 35, Vector3(0.0, 0.0, 1), H_SHOULDER, L_DOWN, L),
 			_v(s1, 0.85, 0.7, 10, 40, Vector3(0.0, 0.0, 1), H_SHOULDER, L_DOWN, L),
 			_v(s1, 0.90, 0.75, 10, 50, Vector3(0.0, 0.02, 1), H_SHOULDER, L_DOWN, L),
 			_v(s1, 1.00, 0.8, 15, 60, Vector3(0.0, 0.0, 1), H_FWD, L_DOWN, L),
-			_v(s1, 1.30, 0.8, 15, 60, Vector3(0.0, 0.02, 1), H_FWD, L_DOWN, L),
-			_v(s1, 1.35, 0.7, 10, 40, Vector3(0.0, 0.0, 1), H_SHOULDER, L_DOWN, L),
-			_v(s1, 1.45, 0.6, 0, 25, Vector3(0.0, 0.03, 1), H_SH_BACK, L_DOWN, L),
+			_v(s1, 1.10, 0.8, 15, 60, Vector3(0.0, 0.02, 1), H_FWD, L_DOWN, L),
+			_v(s1, 1.17, 0.7, 10, 40, Vector3(0.0, 0.0, 1), H_SHOULDER, L_DOWN, L),
+			_v(s1, 1.25, 0.6, 0, 25, Vector3(0.0, 0.03, 1), H_SH_BACK, L_DOWN, L),
 		]},
 		# Vuruş 2: dik kaldır (sol kol ileri), arkaya yatır, arkadan kalça hizasında büyük yatay savuruş önden alçak geçer, sol omza çıkar, orada bekler
 		{"len": 0.65, "hit": 0.30, "keys": [
@@ -123,7 +123,8 @@ static func steps() -> Array:
 			_v(s4, 2.90, 0.5, 5, 20, Vector3(0.0, 0.4, 0.9), H_SH_UP, L_BACK, L),
 		]},
 		# Vuruş 5: sağ-ön-yukarı, sağa açılıp tam tur dönüş (kılıç sağda, sonra alçakta geride), yerden önden süpür, aşağıdan yukarı fırlat
-		{"len": 0.8, "hit": 0.70, "keys": [
+		# dönüş boyunca çevreye hafif darbeler (kılıç etrafında savrulurken), yerden süpürmede bir darbe; 0.70'te fırlatma
+		{"len": 0.8, "hit": 0.70, "extra_hits": [0.16, 0.30, 0.44, 0.60], "extra_radius": 2.6, "keys": [
 			_v(s5, 2.90, 0.5, 5, 20, Vector3(0.0, 0.4, 0.9), H_SH_UP, L_BACK, L),
 			_v(s5, 2.95, 0.3, 0, 0, Vector3(-0.4, 0.75, 0.5), H_SH_UP, L_BACK, W),
 			_v(s5, 3.00, 0.3, -30, 0, Vector3(-0.85, 0.1, 0.5), H_SIDE, L_SIDE, W),

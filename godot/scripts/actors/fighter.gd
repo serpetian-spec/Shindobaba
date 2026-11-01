@@ -123,6 +123,11 @@ func take_hit(info: Dictionary) -> void:
 	var heavy: bool = info.get("kind", "light") == "heavy" or info.get("launch", 0.0) > 0.0
 	if poise > 0.0 and not heavy:
 		return
+	if info.get("melee", false) and not heavy:
+		# düz vuruşla stun yok (kullanıcı kuralı): irkilir, itilir ama yaptığını kesmez
+		model.flash(0.5)
+		velocity += dir * float(info.get("knock", 2.0)) * 0.5 / size
+		return
 	if info.get("flinch", false):   # klon gibi zayıf vuruş: sadece irkilme, sersemletmez
 		model.flash(0.5)
 		velocity += dir * 1.5
