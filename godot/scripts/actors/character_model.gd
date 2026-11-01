@@ -1478,20 +1478,76 @@ func _back_strap(sx: float) -> void:
 	if pal.size() > 9:
 		pal[9] = Color(0.3, 0.19, 0.11)
 		mat.set_shader_parameter("pal", pal)
-	for key in ["sirt_kayis%d" % int(sx), "sirt_kemer"]:
-		var k = "%s|%s|%.3f" % [look["gender"], key, _outer_pad]
-		if not _garment_cache.has(k):
-			if key == "sirt_kemer":
-				_garment_cache[k] = _loft(g, 1, hips + 0.02, hips + 0.075, 4, torso, func(_t, _a): return 0.026, 9, null, -99.0, 32)
-			else:
-				# omurgayı silahın geçtiği yükseklikte (üst göğüs) keser: silah kayışın üstüne yaslanır
-				var t0 = clampf((neck - 0.01 - (_bp("UpperChest").y - 0.06)) / (neck - hips - 0.03), 0.15, 0.6)
-				_garment_cache[k] = _loft(g, 1, neck - 0.01, hips + 0.02, 30, torso, func(_t, _a): return 0.024, 9,
-					func(t, ang): return absf(cos(ang) - sx * 1.84 * (t0 - t)) > 0.11, -99.0, 64)
-		if _garment_cache[k] != null:
-			var sh = _add_shell(_garment_cache[k], mat)
-			if sh:
-				_strap_nodes.append(sh)
+	# çapraz göğüs kayışı: gerçek 3B deri şerit (kumaş kabuğuyla aynı yüzeyde z-savaşı yapıp lekeli görünüyordu)
+	var sm = _strap_mesh(sx)
+	if sm:
+		var smi = _mesh_on("UpperChest", sm, Transform3D.IDENTITY)
+		_strap_nodes.append(smi)
+	# bel kemeri: 3B deri halka (kumaş kabuğu olarak üretilince bazı bedenlerde dev bozuk bir şekil çıkıyordu)
+	var bm = _strap_mesh(sx, true)
+	if bm:
+		_strap_nodes.append(_mesh_on("Hips", bm, Transform3D.IDENTITY))
+
+
+## Çapraz kayış: bir omzun üstünden karşı kalçaya inen eğik düzlemin gövdeyi kestiği halka; her açıda gövde yüzeyi
+## (köşe taraması) bulunur, yüzeyin 1.4 cm dışından kalın deri şerit (kenar dikişli) + göğüste metal toka
+func _strap_mesh(sx: float, belt := false) -> Mesh:
+	if body_mesh == null or body_mesh.mesh == null:
+		return null
+	var vs: PackedVector3Array = body_mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var ua = absf(_bp("LeftUpperArm").x)
+	var yc = (neck - 0.02 + hips + 0.04) * 0.5
+	var k = (neck - 0.02 - (hips + 0.04)) / maxf(0.1, ua * 1.6)   # sx tarafındaki omuz yukarıda
+	if belt:
+		yc = hips + 0.05
+		k = 0.0
+	var N = 44
+	var pts: Array = []
+	var outs: Array = []
+	for i in N:
+		var a = TAU * i / N
+		var d = Vector3(sin(a), 0, cos(a))
+		var y = yc - sx * k * sin(a) * ua * 0.8
+		var best = 0.0
+		var lim = ua * (0.92 if y > neck - 0.3 else 1.5)
+		for v in vs:
+			if absf(v.y - y) > 0.035 or absf(v.x) > lim:
+				continue
+			var hz = Vector2(v.x, v.z)
+			var r = hz.length()
+			if r < 0.02:
+				continue
+			if Vector2(d.x, d.z).dot(hz / r) > 0.985 and r > best:
+				best = r
+		if best <= 0.0:
+			best = 0.14
+		pts.append(Vector3(d.x * (best + 0.014), y, d.z * (best + 0.014)))
+		outs.append(d)
+	var leather = Color(0.32, 0.2, 0.11)
+	var stitch = Color(0.55, 0.42, 0.28)
+	var b = MB.new()
+	for i in N:
+		var p0: Vector3 = pts[i]
+		var p1: Vector3 = pts[(i + 1) % N]
+		var t = p1 - p0
+		var ln = t.length()
+		if ln < 0.001:
+			continue
+		t /= ln
+		var nrm: Vector3 = ((outs[i] as Vector3) + (outs[(i + 1) % N] as Vector3)).normalized()
+		var w = nrm.cross(t).normalized()
+		nrm = t.cross(w).normalized()
+		var c = (p0 + p1) * 0.5
+		b.add_xf("box", Transform3D(Basis(w * 0.052, nrm * 0.011, t * ln * 1.08), c), leather)
+		for e in [-1.0, 1.0]:   # kenar dikişleri
+			b.add_xf("box", Transform3D(Basis(w * 0.004, nrm * 0.013, t * ln * 0.7), c + w * 0.021 * e), stitch)
+	# toka: kayışın/kemerin ön noktası (açı ~0)
+	var fp: Vector3 = pts[0]
+	b.add_xf("box", Transform3D(Basis(Vector3.RIGHT * 0.07, Vector3.FORWARD * -0.016, Vector3.UP * 0.07).rotated(Vector3.BACK, sx * 0.6), fp + Vector3(0, 0, 0.006)), Color(0.72, 0.68, 0.6))
+	b.add_xf("box", Transform3D(Basis(Vector3.RIGHT * 0.045, Vector3.FORWARD * -0.02, Vector3.UP * 0.045).rotated(Vector3.BACK, sx * 0.6), fp + Vector3(0, 0, 0.008)), leather.darkened(0.2))
+	return b.build(Props.toon())
 
 
 ## Gövdenin sırt yüzeyi (model uzayı z, arkası negatif): omurga hizasında, y yüksekliğinde
@@ -2310,20 +2366,28 @@ func _attachments() -> void:
 				v0.add("box", Vector3(x, cy - 0.005, 0.192), Vector3(0.022, 0.085, 0.012), vc.darkened(0.08))
 				v0.add("box", Vector3(x, cy + 0.03, 0.2), Vector3(0.024, 0.006, 0.006), dk.darkened(0.2))   # kapak dikişi
 		match vs:
-			0:   # Konoha: göğüste iki takım (2x2 cep)
+			0:   # Konoha: göğüste iki takım (2x2 cep) + omuzda düğmeli yassı omuzluk (set1.png)
 				for sx in [-1.0, 1.0]:
 					pack.call(0.085 * sx, -0.06, 3)
 					pack.call(0.085 * sx, -0.17, 3)
+					v.add("hemi", Vector3(0.17 * sx, 0.11, 0.0), Vector3(0.13, 0.04, 0.15), vc, Vector3(0, 0, -18 * sx), 12)
+					v.add("cyl", Vector3(0.17 * sx, 0.155, 0.07), Vector3(0.022, 0.01, 0.022), Color(0.9, 0.9, 0.88), Vector3(0, 0, -18 * sx), 10)
 			1:   # Suna: kanat gibi açılan dev omuzluklar + açık renk omuz kayışı + karında cepler
 				for sx in [-1.0, 1.0]:
 					v.add("hemi", Vector3(0.21 * sx, 0.1, 0.0), Vector3(0.24, 0.07, 0.19), vc.darkened(0.05), Vector3(0, 0, -30 * sx), 12)   # kanat gibi açılan omuzluk
 					v.add("box", Vector3(0.11 * sx, 0.1, 0.165), Vector3(0.045, 0.025, 0.01), Color(0.82, 0.84, 0.86))
 					pack.call(0.08 * sx, -0.2, 3)
-			2:   # Kiri: yatay zırh plakaları + omuzluk
+			2:   # Kiri: yatay zırh plakaları + kutu omuzluk + plakaların altından sarkan önlük (mistset.png)
 				for k in 3:
 					v.add("box", Vector3(0, -0.04 - k * 0.095, 0.168), Vector3(0.26, 0.07, 0.016), vc.darkened(0.04 * k))
 				for sx in [-1.0, 1.0]:
-					v.add("hemi", Vector3(0.19 * sx, 0.1, 0.0), Vector3(0.14, 0.07, 0.15), dk, Vector3(0, 0, -22 * sx), 10)
+					v.add("box", Vector3(0.19 * sx, 0.12, 0.0), Vector3(0.16, 0.035, 0.18), dk, Vector3(0, 0, -16 * sx))
+					v.add("box", Vector3(0.155 * sx, -0.2, 0.17), Vector3(0.05, 0.03, 0.02), dk)   # yan tokalar
+				var hp2 = _grest(skel.find_bone("Hips")).origin
+				var apr = MB.new()
+				var flap = PackedVector2Array([Vector2(-0.13, 0.0), Vector2(0.13, 0.0), Vector2(0.11, -0.2), Vector2(0.0, -0.24), Vector2(-0.11, -0.2)])
+				apr.add_slab(PackedVector2Array(Array(flap).map(func(q): return Vector2(q.x, q.y))), 0.012, vc.darkened(0.06), Transform3D(Basis(Vector3(0, 0, 1), Vector3(1, 0, 0), Vector3(0, 1, 0)), Vector3(0, 0.06, 0.17)))   # profil (genişlik, boy) -> (x, y), yüz öne
+				_mesh_on("Hips", apr.build(Props.toon()), Transform3D(Basis.IDENTITY, hp2))
 			3:   # Kumo: yan cepler (tek askı zaten var)
 				for sx in [-1.0, 1.0]:
 					pack.call(0.095 * sx, -0.12, 2)
@@ -2493,8 +2557,6 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 			var steep = 1.35 if L > 1.9 else (0.7 if L > 1.2 else 0.55)  # uzun sopalar sırtı daha yatık çaprazlar
 			if id == "samehada":
 				steep = 0.72   # kaynak (Storm): sırtta ~55° dik çapraz, sap sağ omuzun üstünde
-			elif id == "gunbai":
-				steep = 0.3    # kaynak gunbaisirt.png: neredeyse dik, büyük lob aşağıda, sap sağ omzun üstünden yukarı
 			var dir = Vector3(-sx * steep, -1.0, 0.0)
 			if id in BACK_TIP_UP:
 				dir = -dir   # ağır başlı silahlar: baş yukarıda (çekiç, tırpan, mızrak)
@@ -2510,8 +2572,6 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 					near_x = -0.12   # yassı gövde yarı kalınlığı (uçtaki pul dikenleri AABB'yi büyütüp silahı sırttan uzaklaştırıyordu)
 				center.z = bz - pad + near_x + 0.02
 			var mid2 = mid if L > 1.2 else mid * 0.8
-			if id == "gunbai":
-				mid2 = 1.45   # kaynak: iki lob sırtın ortasında (büyük lob bel hizasında), sap omzun üstünden çıkar
 			xf = Transform3D(b, center - b.z * mid2)
 		"low_back":
 			var hp = _grest(skel.find_bone("Hips")).origin
@@ -3052,10 +3112,10 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			b.add_slab(outline.call(0.0), 0.06, rimc)
 			b.add_slab(outline.call(0.075), 0.072, facec)
 			# kırmızı tomoe (virgül): iki yüzde, her lobda 3 tane
-			var tomoes = [Vector2(-0.13, c1 - 0.06), Vector2(0.12, c1 - 0.1), Vector2(0.03, c1 + 0.13), Vector2(-0.2, c2 - 0.12), Vector2(0.2, c2 - 0.15), Vector2(0.0, c2 + 0.16)]
+			var tomoes = [Vector2(-0.2, c2 - 0.12), Vector2(0.2, c2 - 0.15), Vector2(0.0, c2 + 0.16), Vector2(-0.12, c2 + 0.05), Vector2(0.13, c2 + 0.08), Vector2(0.02, c2 - 0.28)]   # yalnız büyük lob
 			var ti = 0
 			for tp in tomoes:
-				for sxx in [1.0]:   # tomoe yalnız ön (dış) yüzde
+				for sxx in [1.0, -1.0]:
 					var px = sxx * 0.038
 					b.add("sphere", Vector3(px, tp.x, tp.y), Vector3(0.012, 0.05, 0.05), tomo, Vector3.ZERO, 10)
 					b.add("cone", Vector3(px, tp.x + 0.026, tp.y + 0.03), Vector3(0.01, 0.065, 0.022), tomo, Vector3(-45.0 - ti * 37.0, 0, 0), 5)
@@ -3233,7 +3293,7 @@ func set_dojutsu(kind: int, tomoe := 3) -> void:
 
 ## Uzun ağızlı silahlar (Samehada, Kubikiribōchō, Kiba...) beklerken elin ekseninde kalınca başın önünden geçip yüzü kapatıyordu:
 ## duruştayken ağız omzun üstünden başın arkasına yatırılır; saldırıda kolla aynı hizaya döner
-static var REST_TILT_OF := {"samehada": Vector3(-140, 40, 0), "gunbai": Vector3(150, 0, 0)}   # gunbai: koşarken arkada aşağıda sürüklenir (kafaya girmez)   # silaha özel bekleme eğimi (kafanın içinden geçmesin)
+static var REST_TILT_OF := {"samehada": Vector3(-140, 40, 0), "gunbai": Vector3(-40, -100, 30)}   # gunbai: sağ yanda yukarı-dışa (kafaya ve yere girmez)   # silaha özel bekleme eğimi (kafanın içinden geçmesin)
 const REST_TILT := Vector3(-25.0, -55.0, 0.0)
 
 

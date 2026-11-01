@@ -16,9 +16,6 @@ const SETS := {
 	"set_shinobi": {"name": "Shinobi Shōzoku", "slot": "set", "price": 200, "rank": 0, "desc": "Lacivert uzun kollu gömlek, ninja pantolonu, kol sargısı, sandalet.",
 		"stats": {"def": 6, "melee": 0.03, "speed": 0.03}, "c1": Color(0.15, 0.2, 0.33), "c2": Color(0.12, 0.12, 0.14),
 		"parts": [["uzun_gomlek", Color(0.15, 0.2, 0.33), Color(0.12, 0.12, 0.14)], ["ninja_pant", Color(0.13, 0.16, 0.26), null], ["kol_sargisi", Color(0.92, 0.92, 0.9), null], ["sandalet", Color(0.12, 0.12, 0.14), Color(0.92, 0.92, 0.9)]]},
-	"set_chunin": {"name": "Chūnin Shōzoku", "slot": "set", "price": 600, "rank": 2, "desc": "Lacivert gömlek ve pantolon üstüne yeşil taktik yelek.",
-		"stats": {"def": 14, "hp": 25, "speed": 0.03}, "c1": Color(0.15, 0.2, 0.33), "c2": Color(0.42, 0.5, 0.32),
-		"parts": [["uzun_gomlek", Color(0.15, 0.2, 0.33), Color(0.12, 0.12, 0.14)], ["ninja_pant", Color(0.15, 0.2, 0.33), null], ["chunin_yelek", Color(0.42, 0.5, 0.32), null], ["sandalet", Color(0.12, 0.12, 0.14), Color(0.92, 0.92, 0.9)]]},
 	"set_uchiha": {"name": "Uchiha Shōzoku", "slot": "set", "price": 300, "rank": 0, "clan": "uchiha", "desc": "Sırtı yelpaze armalı dik yakalı lacivert üst, kolluk, koyu pantolon.",
 		"stats": {"def": 6, "chakra": 15, "melee": 0.04}, "c1": Color(0.13, 0.15, 0.26), "c2": Color(0.13, 0.15, 0.26),
 		"parts": [["uchiha_yakali", Color(0.13, 0.15, 0.26), Color(0.13, 0.15, 0.26)], ["uchiha_kolluk", Color(0.12, 0.12, 0.14), null], ["ninja_pant", Color(0.88, 0.86, 0.8), null], ["sandalet", Color(0.12, 0.12, 0.14), Color(0.92, 0.92, 0.9)]]},
@@ -28,9 +25,37 @@ const SETS := {
 	"set_anbu": {"name": "ANBU Shōzoku", "slot": "set", "price": 0, "rank": 4, "desc": "Koyu gömlek ve pantolon, metal göğüs plakası, kol koruması.",
 		"stats": {"def": 18, "speed": 0.05, "melee": 0.05}, "c1": Color(0.12, 0.12, 0.14), "c2": Color(0.85, 0.85, 0.82),
 		"parts": [["uzun_gomlek", Color(0.12, 0.12, 0.14), Color(0.12, 0.12, 0.14)], ["ninja_pant", Color(0.12, 0.12, 0.14), null], ["anbu_zirh", Color(0.85, 0.85, 0.82), null], ["kol_sargisi", Color(0.9, 0.9, 0.88), null], ["sandalet", Color(0.12, 0.12, 0.14), Color(0.92, 0.92, 0.9)]]},
-	"set_jonin": {"name": "Jōnin Komutan Shōzoku", "slot": "set", "price": 0, "rank": 3, "desc": "Taktik yelek ve yeşil-gri komutan haorisi.",
-		"stats": {"def": 16, "hp": 25, "chakra": 25}, "c1": Color(0.15, 0.2, 0.33), "c2": Color(0.45, 0.5, 0.42),
-		"parts": [["uzun_gomlek", Color(0.15, 0.2, 0.33), Color(0.12, 0.12, 0.14)], ["ninja_pant", Color(0.15, 0.2, 0.33), null], ["chunin_yelek", Color(0.42, 0.5, 0.32), null], ["jonin_komutan_paltosu", Color(0.45, 0.5, 0.42), null], ["sandalet", Color(0.12, 0.12, 0.14), Color(0.92, 0.92, 0.9)]]},
+	# --- köy chūnin / jōnin setleri (kaynak: set1.png Konoha, sunaset.png Suna, mistset.png Kiri)
+	"set_chunin": {"name": "Konoha Chūnin Shōzoku", "slot": "set", "price": 600, "rank": 2, "desc": "Lacivert yüksek yakalı gömlek ve pantolon, omuzluklu yeşil taktik yelek, baldır sargıları.",
+		"stats": {"def": 14, "hp": 25, "speed": 0.03}, "c1": Color(0.12, 0.15, 0.3), "c2": Color(0.12, 0.15, 0.3),
+		"parts": [["uzun_gomlek", Color(0.12, 0.15, 0.3), Color(0.12, 0.15, 0.3)], ["ninja_pant", Color(0.12, 0.15, 0.3), null], ["chunin_yelek", Color(0.46, 0.56, 0.44), null], ["sandalet", Color(0.12, 0.15, 0.3), Color(0.92, 0.92, 0.9)]]},
+	"set_jonin": {"name": "Konoha Jōnin Shōzoku", "slot": "set", "price": 0, "rank": 3, "desc": "Chūnin takımının üstüne parmaksız eldiven; yelek daha koyu yeşil.",
+		"stats": {"def": 17, "hp": 30, "chakra": 25, "melee": 0.04}, "c1": Color(0.12, 0.15, 0.3), "c2": Color(0.12, 0.15, 0.3),
+		"parts": [["uzun_gomlek", Color(0.12, 0.15, 0.3), Color(0.12, 0.15, 0.3)], ["ninja_pant", Color(0.12, 0.15, 0.3), null], ["chunin_yelek", Color(0.38, 0.48, 0.36), null], ["eldiven", Color(0.1, 0.12, 0.22), null], ["sandalet", Color(0.12, 0.15, 0.3), Color(0.92, 0.92, 0.9)]]},
+	"set_suna_chunin": {"name": "Suna Chūnin Shōzoku", "slot": "set", "price": 600, "rank": 2, "village": "suna", "desc": "Koyu gömlek ve pantolon, geniş omuzluklu kahverengi taktik yelek.",
+		"stats": {"def": 13, "hp": 30, "speed": 0.03}, "c1": Color(0.1, 0.1, 0.16), "c2": Color(0.1, 0.1, 0.16),
+		"parts": [["uzun_gomlek", Color(0.1, 0.1, 0.16), Color(0.1, 0.1, 0.16)], ["ninja_pant", Color(0.1, 0.1, 0.15), null], ["suna_yelek", Color(0.46, 0.37, 0.28), null], ["sandalet", Color(0.08, 0.08, 0.1), Color(0.92, 0.92, 0.9)]]},
+	"set_suna_jonin": {"name": "Suna Jōnin Shōzoku", "slot": "set", "price": 0, "rank": 3, "village": "suna", "desc": "Suna takımı; daha koyu yelek ve parmaksız eldiven.",
+		"stats": {"def": 16, "hp": 35, "chakra": 25, "melee": 0.04}, "c1": Color(0.1, 0.1, 0.16), "c2": Color(0.1, 0.1, 0.16),
+		"parts": [["uzun_gomlek", Color(0.1, 0.1, 0.16), Color(0.1, 0.1, 0.16)], ["ninja_pant", Color(0.1, 0.1, 0.15), null], ["suna_yelek", Color(0.38, 0.3, 0.22), null], ["eldiven", Color(0.08, 0.08, 0.1), null], ["sandalet", Color(0.08, 0.08, 0.1), Color(0.92, 0.92, 0.9)]]},
+	"set_kiri_chunin": {"name": "Kiri Chūnin Shōzoku", "slot": "set", "price": 600, "rank": 2, "village": "kiri", "desc": "Siyah gömlek ve pantolon, önlüklü plakalı lila yelek, açık mavi çizgili kol ve kaval koruyucuları.",
+		"stats": {"def": 14, "chakra": 25}, "c1": Color(0.08, 0.08, 0.1), "c2": Color(0.08, 0.08, 0.1),
+		"parts": [["uzun_gomlek", Color(0.08, 0.08, 0.1), Color(0.08, 0.08, 0.1)], ["ninja_pant", Color(0.08, 0.08, 0.1), null], ["kiri_yelek", Color(0.56, 0.53, 0.66), null], ["kiri_koruma", Color(0.6, 0.72, 0.9), null], ["sandalet", Color(0.08, 0.08, 0.1), Color(0.92, 0.92, 0.9)]]},
+	"set_kiri_jonin": {"name": "Kiri Jōnin Shōzoku", "slot": "set", "price": 0, "rank": 3, "village": "kiri", "desc": "Kiri takımı; daha koyu yelek.",
+		"stats": {"def": 17, "chakra": 35, "hp": 20}, "c1": Color(0.08, 0.08, 0.1), "c2": Color(0.08, 0.08, 0.1),
+		"parts": [["uzun_gomlek", Color(0.08, 0.08, 0.1), Color(0.08, 0.08, 0.1)], ["ninja_pant", Color(0.08, 0.08, 0.1), null], ["kiri_yelek", Color(0.46, 0.43, 0.56), null], ["kiri_koruma", Color(0.52, 0.64, 0.84), null], ["sandalet", Color(0.08, 0.08, 0.1), Color(0.92, 0.92, 0.9)]]},
+	"set_kumo_chunin": {"name": "Kumo Chūnin Shōzoku", "slot": "set", "price": 600, "rank": 2, "village": "kumo", "desc": "Lacivert gömlek ve pantolon, tek omuz askılı beyaz yelek, beyaz kaval koruyucuları.",
+		"stats": {"def": 13, "melee": 0.06, "speed": 0.03}, "c1": Color(0.1, 0.12, 0.25), "c2": Color(0.1, 0.12, 0.25),
+		"parts": [["uzun_gomlek", Color(0.1, 0.12, 0.25), Color(0.1, 0.12, 0.25)], ["ninja_pant", Color(0.1, 0.12, 0.25), null], ["kumo_yelek", Color(0.88, 0.88, 0.86), null], ["kumo_kaval", Color(0.86, 0.84, 0.82), null], ["sandalet", Color(0.08, 0.08, 0.1), Color(0.92, 0.92, 0.9)]]},
+	"set_kumo_jonin": {"name": "Kumo Jōnin Shōzoku", "slot": "set", "price": 0, "rank": 3, "village": "kumo", "desc": "Kumo takımı ve parmaksız eldiven.",
+		"stats": {"def": 16, "melee": 0.08, "hp": 25}, "c1": Color(0.1, 0.12, 0.25), "c2": Color(0.1, 0.12, 0.25),
+		"parts": [["uzun_gomlek", Color(0.1, 0.12, 0.25), Color(0.1, 0.12, 0.25)], ["ninja_pant", Color(0.1, 0.12, 0.25), null], ["kumo_yelek", Color(0.8, 0.8, 0.78), null], ["eldiven", Color(0.08, 0.08, 0.1), null], ["sandalet", Color(0.08, 0.08, 0.1), Color(0.92, 0.92, 0.9)]]},
+	"set_iwa_chunin": {"name": "Iwa Chūnin Shōzoku", "slot": "set", "price": 600, "rank": 2, "village": "iwa", "desc": "Tek kollu kırmızı üst ve pantolon, karın plakalı kahverengi yelek, file baldır.",
+		"stats": {"def": 15, "hp": 30, "speed": -0.01}, "c1": Color(0.72, 0.16, 0.2), "c2": Color(0.72, 0.16, 0.2),
+		"parts": [["tek_kol_ust", Color(0.72, 0.16, 0.2), Color(0.72, 0.16, 0.2)], ["ninja_pant", Color(0.62, 0.12, 0.16), null], ["iwa_yelek", Color(0.36, 0.27, 0.19), null], ["sandalet", Color(0.08, 0.08, 0.1), Color(0.3, 0.3, 0.33)]]},
+	"set_iwa_jonin": {"name": "Iwa Jōnin Shōzoku", "slot": "set", "price": 0, "rank": 3, "village": "iwa", "desc": "Iwa takımı; daha koyu yelek, parmaksız eldiven.",
+		"stats": {"def": 18, "hp": 35, "chakra": 20}, "c1": Color(0.66, 0.14, 0.18), "c2": Color(0.66, 0.14, 0.18),
+		"parts": [["tek_kol_ust", Color(0.66, 0.14, 0.18), Color(0.66, 0.14, 0.18)], ["ninja_pant", Color(0.55, 0.1, 0.14), null], ["iwa_yelek", Color(0.3, 0.22, 0.15), null], ["eldiven", Color(0.08, 0.08, 0.1), null], ["sandalet", Color(0.08, 0.08, 0.1), Color(0.3, 0.3, 0.33)]]},
 	"set_akatsuki": {"name": "Akatsuki Shōzoku", "slot": "set", "price": 0, "rank": 3, "desc": "Kızıl bulutlu dik yakalı siyah pelerin, koyu pantolon.",
 		"stats": {"def": 12, "chakra": 30}, "c1": Color(0.08, 0.08, 0.1), "c2": Color(0.8, 0.1, 0.12),
 		"parts": [["uzun_gomlek", Color(0.12, 0.12, 0.14), Color(0.12, 0.12, 0.14)], ["ninja_pant", Color(0.12, 0.12, 0.14), null], ["akatsuki_pelerini", Color(0.08, 0.08, 0.1), Color(0.8, 0.1, 0.12)], ["sandalet", Color(0.4, 0.3, 0.45), Color(0.92, 0.92, 0.9)]]},
@@ -38,7 +63,7 @@ const SETS := {
 		"stats": {"def": 16, "chakra": 50, "hp": 30}, "c1": Color(0.95, 0.95, 0.92), "c2": Color(0.8, 0.2, 0.15),
 		"parts": [["uzun_gomlek", Color(0.15, 0.2, 0.33), Color(0.12, 0.12, 0.14)], ["ninja_pant", Color(0.15, 0.2, 0.33), null], ["kage_cubbesi", Color(0.95, 0.95, 0.92), Color(0.8, 0.2, 0.15)], ["sandalet", Color(0.12, 0.12, 0.14), Color(0.92, 0.92, 0.9)]]},
 }
-const SHOP_SETS := ["set_genin", "set_shinobi", "set_chunin", "set_uchiha", "set_suna"]
+const SHOP_SETS := ["set_genin", "set_shinobi", "set_chunin", "set_suna_chunin", "set_kiri_chunin", "set_kumo_chunin", "set_iwa_chunin", "set_uchiha", "set_suna"]
 ## Boş bırakılamayan yuvalar (çıplak kalınmaz)
 const REQUIRED := ["govde", "bacak", "ayak"]
 
@@ -112,6 +137,8 @@ const ITEMS := {
 	"eldiven": {"name": "Parmaksız Eldiven", "slot": "kol", "price": 90, "rank": 0, "desc": "Elin üstünde metal plaka, parmaklar açık.", "stats": {"melee": 0.05}, "look": {"gloves": true}, "c1": Color(0.12, 0.12, 0.14)},
 	"kol_sargisi": {"name": "Kol Sargısı", "slot": "kol", "price": 30, "rank": 0, "desc": "Ön kolları saran bandaj.", "stats": {"melee": 0.03}, "look": {"arm_wraps": true}, "c1": Color(0.92, 0.92, 0.9)},
 	"bacak_koruma": {"name": "Kaval Koruyucu", "slot": "kol", "price": 180, "rank": 0, "desc": "Kaval kemiğini saran metal plaka.", "stats": {"def": 3, "melee": 0.03}, "look": {"guards": "bacak"}, "c1": Color(0.55, 0.58, 0.62)},
+	"kiri_koruma": {"name": "Kiri Koruyucuları", "slot": "kol", "price": 0, "rank": 1, "desc": "Çizgili kol ve kaval koruyucuları.", "stats": {"def": 3}, "look": {"guards": "ikisi"}, "c1": Color(0.6, 0.72, 0.9)},
+	"kumo_kaval": {"name": "Kumo Kaval Koruyucusu", "slot": "kol", "price": 0, "rank": 1, "desc": "Beyaz kaval koruyucusu.", "stats": {"def": 2}, "look": {"guards": "bacak"}, "c1": Color(0.86, 0.84, 0.82)},
 	"tam_koruma": {"name": "Tam Takım Koruyucu", "slot": "kol", "price": 520, "rank": 1, "desc": "Kolluk, eldiven ve kaval koruyucu bir arada.", "stats": {"def": 8, "melee": 0.05, "speed": -0.02}, "look": {"guards": "ikisi", "gloves": true}, "c1": Color(0.45, 0.47, 0.52)},
 	# --- sırt / bel
 	"kum_kabagi": {"name": "Kum Su Kabağı", "slot": "sirt", "price": 900, "rank": 2, "desc": "Sırtta taşınan dev kabak. Sabaku klanı kumunu içinde saklar.", "stats": {"def": 4, "chakra": 25}, "look": {"back_item": "kabak"}, "c1": Color(0.7, 0.5, 0.35)},
@@ -774,13 +801,46 @@ static func ensure(p: Dictionary) -> void:
 	apply_look(p)
 
 
+## Karakter yaratıcıdaki önizleme: setin parçalarını görünüme yazar (kıyafet artık sadece set)
+const START_SETS := ["set_genin", "set_shinobi", "set_suna", "set_uchiha"]
+static func preview_set_look(L: Dictionary, sid: String) -> void:
+	for pt in item(sid).get("parts", []):
+		var pit = item(String(pt[0]))
+		if pit.is_empty():
+			continue
+		for k in pit.get("look", {}):
+			L[k] = pit["look"][k]
+		var c1: Color = pt[1] if pt[1] != null else pit.get("c1", Color.WHITE)
+		var c2: Color = pt[2] if pt[2] != null else pit.get("c2", c1)
+		match String(pit["slot"]):
+			"govde":
+				L["top"] = c1; L["top2"] = c2
+			"bacak":
+				L["pants"] = c1
+			"ayak":
+				L["sandal"] = c1; L["wraps"] = c2
+			"zirh":
+				L["vest"] = c1
+			"dis":
+				L["outer"] = c1
+			"kol":
+				L["acc"] = c1
+
+
 static func _starter_set(p: Dictionary) -> String:
+	var chosen = String(p.get("look", {}).get("start_set", ""))
+	if chosen != "" and SETS.has(chosen) and int(p.get("rank", 0)) < 2:
+		return chosen
 	if String(p.get("clan", "")) == "uchiha":
 		return "set_uchiha"
 	if int(p.get("rank", 0)) >= 4:
 		return "set_anbu"
+	var vil = String(p.get("village", "konoha"))
+	var vk = {"suna": "suna_", "kiri": "kiri_", "kumo": "kumo_", "iwa": "iwa_"}.get(vil, "")
+	if int(p.get("rank", 0)) >= 3:
+		return "set_%sjonin" % vk
 	if int(p.get("rank", 0)) >= 2:
-		return "set_chunin"
+		return "set_%schunin" % vk
 	if String(p.get("village", "")) == "suna":
 		return "set_suna"
 	return "set_genin"

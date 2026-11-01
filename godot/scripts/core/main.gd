@@ -206,8 +206,12 @@ func _creator_look() -> Dictionary:
 	if Data.clans.has(s["clan"]) and s["clan"] in ["uchiha", "hyuga", "aburame", "otsutsuki"]:
 		var e: Array = Data.clans[s["clan"]]["eye"]
 		eye = Color(e[0], e[1], e[2])
-	return {"gender": s["gender"], "hair_style": s["hair_style"], "hair": s["hair"], "top": s["top"],
-		"top2": s.get("top2", Color(s["top"]).darkened(0.3)), "pants": s["pants"], "top_style": s.get("top_style", "ceket"), "pants_style": s.get("pants_style", "ninja"), "skin": s["skin"], "eye": eye, "band": null, "age": "child", "village": s.get("village", "konoha")}
+	var L = {"gender": s["gender"], "hair_style": s["hair_style"], "hair": s["hair"], "skin": s["skin"], "eye": eye, "band": null, "age": "child", "village": s.get("village", "konoha"),
+		"start_set": s.get("start_set", "set_genin")}
+	Gear.preview_set_look(L, String(L["start_set"]))   # seçilen set önizlemede giyili
+	L["top"] = s["top"]   # ana / vurgu rengi setin ana giysisine uygulanır
+	L["top2"] = s.get("top2", Color(s["top"]).darkened(0.3))
+	return L
 
 
 func _update_preview() -> void:

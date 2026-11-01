@@ -707,12 +707,12 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 			if not state["clan"] in ["uchiha", "hyuga", "aburame"]:
 				swatches.call("Göz Rengi", "eye", [Color(0.25, 0.45, 0.8), Color(0.3, 0.2, 0.12), Color(0.25, 0.55, 0.3), Color(0.1, 0.1, 0.1), Color(0.6, 0.4, 0.15), Color(0.55, 0.55, 0.6), Color(0.6, 0.25, 0.55)])
 		"kiyafet":
-			carousel.call("Üst", "top_style", CharacterModel.TOP_STYLES.keys(), CharacterModel.TOP_STYLES.values())
-			carousel.call("Alt", "pants_style", CharacterModel.PANTS_STYLES.keys(), CharacterModel.PANTS_STYLES.values())
+			# kıyafet artık set olarak giyilir (parçalar iç içe geçmesin)
+			var sl = Gear.START_SETS.map(func(x): return String(Gear.item(x).get("name", x)))
+			carousel.call("Kıyafet Seti", "start_set", Gear.START_SETS, sl)
 			var outfit_cols = [Color(0.15, 0.2, 0.33), Color(0.15, 0.15, 0.17), Color(0.45, 0.15, 0.15), Color(0.95, 0.5, 0.12), Color(0.2, 0.38, 0.22), Color(0.35, 0.25, 0.45), Color(0.85, 0.82, 0.75), Color(0.15, 0.4, 0.45)]
-			swatches.call("Üst Rengi", "top", outfit_cols)
+			swatches.call("Ana Renk", "top", outfit_cols)
 			swatches.call("Vurgu Rengi", "top2", outfit_cols)
-			swatches.call("Alt Rengi", "pants", outfit_cols)
 	if not keep_scroll.is_empty():
 		_restore_scroll.call_deferred(keep_scroll)
 	# sağ üst: özet kartı
