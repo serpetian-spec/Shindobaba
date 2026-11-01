@@ -33,8 +33,7 @@ func note_jutsu_dmg(jid: String, dmg: float) -> void:
 	if since > 8.0:
 		return
 	_jdmg[jid] = float(_jdmg.get(jid, 0.0)) + dmg
-	var nd = float(_jdmg[jid]) / maxf(1.0, Jutsu._mult(p))
-	var want = 4.0 + nd * 0.07
+	var want = Combat.dmg_cd(float(_jdmg[jid]), Jutsu._mult(p))
 	var total = maxf(float(cd_max.get(jid, 0.0)), want)
 	if total > float(cd_max.get(jid, 0.0)):
 		cd_max[jid] = total
@@ -968,6 +967,7 @@ func take_hit(info: Dictionary) -> void:
 						Progress.on_player_died()
 				return
 	p.hp -= dmg
+	Combat.note_jutsu_dmg(atk, info, dmg)
 	last_hit_t = 0.0
 	# Jashin laneti: çemberdeyken sana gelen acı bağlı hedefe de gelir
 	if p.has_meta("jashin_link"):

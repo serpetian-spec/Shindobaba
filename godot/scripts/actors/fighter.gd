@@ -89,8 +89,7 @@ func take_hit(info: Dictionary) -> void:
 				dmg *= 1.0 + bs * 2.0
 				Combat.popup_text(global_position + Vector3.UP * (height + 0.8), "ARKADAN!", Color(1, 0.4, 0.8))
 	hp -= dmg
-	if atk is Player and not info.get("melee", false) and atk.has_meta("jid") and atk.combat:
-		atk.combat.note_jutsu_dmg(String(atk.get_meta("jid")), minf(dmg, maxf(0.0, hp + dmg)))   # hasara göre bekleme
+	Combat.note_jutsu_dmg(atk, info, minf(dmg, maxf(0.0, hp + dmg)))   # hasara göre bekleme (oyuncu ve AI)
 	# Shintenshin: ele geçirilmiş bedene gelen acı, bedenin dışındaki Yamanaka ruhuna da yansır (anime)
 	if has_meta("possessed_by"):
 		var owner_p = get_meta("possessed_by")

@@ -852,6 +852,18 @@ static func stat(p: Dictionary, key: String) -> float:
 
 
 ## Sağ el (yoksa sol el) silahı: {dmg, reach, style}
+## Oyuncu ve AI aynı kural: savaşçının elindeki silahın verisi (yoksa yumruk)
+static func weapon_of(actor) -> Dictionary:
+	if actor is Player:
+		return weapon(Game.profile)
+	var lk = actor.get("look") if actor != null and is_instance_valid(actor) else null
+	if lk is Dictionary:
+		var wid = lk.get("weapon_r")
+		if wid != null and String(wid) != "" and item(String(wid)).has("weapon"):
+			return item(String(wid))["weapon"]
+	return {"dmg": 1.0, "reach": 0.0, "style": "fist"}
+
+
 static func weapon(p: Dictionary) -> Dictionary:
 	for s in ["sag", "sol"]:
 		var g = equipped(p, s)

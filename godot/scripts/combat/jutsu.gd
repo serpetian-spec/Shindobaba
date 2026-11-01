@@ -13,7 +13,7 @@ func _elem_bonus(caster: Node3D, el: String) -> float:
 		# element buff'ları (ör. Sanmai no Shinka "katon": 1.3) hasara gerçekten yansır
 		var wboost = float(Gear.weapon(Game.profile).get("boost", {}).get(el, 0.0))   # silah element güçlendirmesi (Samehada: suiton +%10)
 		return ((1.2 if not els.is_empty() and els[0] == el else 1.0) + Stats.element_bonus(Game.profile, el) + (Stats.skill(Game.profile, "kg") if el in Stats.KG_NATURES else 0.0)) * Buffs.mod(el) * (1.0 + wboost)
-	return 1.0
+	return 1.0 + float(Gear.weapon_of(caster).get("boost", {}).get(el, 0.0))   # AI: elindeki silahın element güçlendirmesi
 
 
 func _aim(caster: Node3D, target: Node3D) -> Vector3:

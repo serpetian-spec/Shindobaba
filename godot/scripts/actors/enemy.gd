@@ -11,6 +11,19 @@ var target: Node3D = null
 var think_t = 0.0
 var attack_cd = 1.0
 var jcd := {}      # jutsu -> hazır olacağı an (sn)
+var _jdmg := {}     # jutsu -> son kullanımda verdiği hasar (hasara göre bekleme)
+var _jcast_t := {}
+
+
+## Hasara göre bekleme (oyuncudakiyle aynı kural): jutsusu ne kadar vurduysa o kadar geç tekrar atar
+func note_jutsu_dmg(jid: String, dmg: float) -> void:
+	if not _jcast_t.has(jid):
+		return
+	var t0 = float(_jcast_t[jid])
+	if Time.get_ticks_msec() / 1000.0 - t0 > 8.0:
+		return
+	_jdmg[jid] = float(_jdmg.get(jid, 0.0)) + dmg
+	jcd[jid] = maxf(float(jcd.get(jid, 0.0)), t0 + Combat.dmg_cd(float(_jdmg[jid]), power))
 var jgap := 0.0    # iki jutsu arası en kısa ara
 var ranged_cd = 3.0
 var sub_cd = 0.0
@@ -493,6 +506,8 @@ func _chase(dt: float) -> void:
 		if not ready.is_empty() and nowj >= jgap and randf() < 0.85 and not has_status("sealed"):   # chakra noktaları kapalıysa jutsu yok
 			var pick = String(ready.pick_random())
 			jcd[pick] = nowj + Combat.jutsu_cd(Data.jutsu.get(pick, {})) * randf_range(1.0, 1.25)
+			_jdmg[pick] = 0.0
+			_jcast_t[pick] = nowj
 			jgap = nowj + randf_range(2.5, 4.0)
 			set_meta("cast_id", pick)
 			state = "cast"
@@ -651,8 +666,19 @@ func _attack(dt: float) -> void:
 		set_meta("swung", true)
 		var pt = global_position + Vector3.UP * 1.1 + face_dir() * (radius + 0.9)
 		var heavy = combo_left == 1 and randf() < 0.5
-		var hits = Combat.hit_sphere(self, pt, 0.9, {"dmg": (4.5 if not heavy else 8.0) * power, "knock": 3.0 if not heavy else 10.0,
+		var wpn = Gear.weapon_of(self)   # oyuncuyla aynı kural: silahın kendi vuruş hasarı
+		var base_hit = float(wpn.get("hit", 4.5)) if wpn.get("style", "fist") != "fist" else 4.5
+		var hits = Combat.hit_sphere(self, pt, 0.9, {"dmg": base_hit * (1.0 if not heavy else 1.8) * power, "knock": 3.0 if not heavy else 10.0,
 			"launch": 0.0 if not heavy else 4.0, "kind": "heavy" if heavy else "light", "hitstop": 0.04, "melee": true})
+		if String(wpn.get("special", "")) == "drain":
+			for h in hits:   # Samehada: vurduğunun chakrasını emer
+				if h is Player:
+					h.chakra = maxf(0.0, h.chakra - 6.0)
+					Combat.popup_text(h.global_position + Vector3.UP * 2.0, "Chakra emildi -6", Color(0.5, 0.75, 1.0))
+				elif "chakra" in h:
+					h.chakra = maxf(0.0, float(h.chakra) - 6.0)
+				if h.has_method("apply_status"):
+					h.apply_status("slow", 1.5)
 		var armed = look is Dictionary and look.get("weapon_r") != null and String(look.get("weapon_r", "")) != ""
 		Sfx.play("swing_sword" if armed else "whoosh", global_position + Vector3.UP, randf_range(0.92, 1.1), 0.6)
 		if not hits.is_empty():

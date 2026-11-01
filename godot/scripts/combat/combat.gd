@@ -82,6 +82,23 @@ func jutsu_factor(info: Dictionary) -> float:
 	return float(_bal.get(String(a.get_meta("jid")), 1.0))
 
 
+## Hasara göre bekleme (oyuncu ve AI aynı kural): jutsu isabetinin hasarı, atanın o jutsu beklemesini uzatır
+func note_jutsu_dmg(atk, info: Dictionary, dmg: float) -> void:
+	if info.get("melee", false) or atk == null or not is_instance_valid(atk) or not atk.has_meta("jid") or dmg <= 0.0:
+		return
+	var jid = String(atk.get_meta("jid"))
+	if atk is Player:
+		if atk.combat:
+			atk.combat.note_jutsu_dmg(jid, dmg)
+	elif atk.has_method("note_jutsu_dmg"):
+		atk.note_jutsu_dmg(jid, dmg)
+
+
+## Hasar -> toplam bekleme (sn): güç çarpanına bölünmüş ~800 hasar -> ~60 sn
+static func dmg_cd(dmg: float, power_mult: float) -> float:
+	return 4.0 + dmg / maxf(1.0, power_mult) * 0.07
+
+
 ## ---------------------------------------------------------------- jutsu bekleme süresi (oyuncu ve düşman aynı kural)
 ## Rütbeye (kademe) göre taban; verideki süre yalnız kademe ortalamasına göre ±%20-40 karakter katar
 const CD_TIER := [4.0, 6.0, 9.0, 12.0, 18.0, 28.0]
