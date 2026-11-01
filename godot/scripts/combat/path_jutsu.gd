@@ -27302,29 +27302,92 @@ func p_katon_suyaki(c: Node3D, t: Node3D) -> void:
 	Sfx.play("fire", at, 0.7)
 
 
+
+
+## Alev kuşu (Karura): alev malzemeli kuş — sivri gagalı baş, kabarık göğüs, uzun alev tüylü kuyruk, tüylü büyük kanatlar
+## (kanatlar çırpar). +Z ile kurulur, -Z'ye bakar (ClayArt._fwd). s=1: ~5 m kanat açıklığı
+func _fire_bird(s: float) -> Node3D:
+	var fm: ShaderMaterial = VFX.mat_fire("fire", 3.0, 2.0, 0.34, 1.4, 0.12, Vector3(0, 0, -1), true)
+	fm.set_shader_parameter("fres_k", 0.6)
+	var root = Node3D.new()
+	var b = MB.new()
+	Loft.tube(b, ClayArt._sc([Vector3(0, 0.05, 1.25), Vector3(0, 0.1, 1.05), Vector3(0, 0.18, 0.85), Vector3(0, 0.12, 0.6), Vector3(0, 0.0, 0.25), Vector3(0, -0.02, -0.2), Vector3(0, 0.02, -0.6)], s),
+		ClayArt._sc([Vector2(0.02, 0.02), Vector2(0.09, 0.07), Vector2(0.2, 0.2), Vector2(0.2, 0.2), Vector2(0.36, 0.34), Vector2(0.3, 0.26), Vector2(0.12, 0.1)], s), Color.WHITE, 16, 3)
+	# taç tüyleri (başın üstünden geriye alev dilleri)
+	for q in 3:
+		var r0 = Vector3((q - 1) * 0.06, 0.32, 0.8)
+		Loft.tube(b, ClayArt._sc([r0, r0 + Vector3((q - 1) * 0.08, 0.25, -0.25), r0 + Vector3((q - 1) * 0.12, 0.35, -0.6)], s), ClayArt._sc([Vector2(0.06, 0.03), Vector2(0.05, 0.025), Vector2(0.01, 0.01)], s), Color.WHITE, 8, 3)
+	# kuyruk: uzun, uçları kıvrık alev tüyleri (yelpaze)
+	for q in 5:
+		var a = (q - 2) * 0.28
+		var r0 = Vector3(0, 0.02, -0.55)
+		var tip = r0 + Vector3(sin(a) * 0.9, 0.15 + absf(q - 2) * 0.05, -cos(a) * 1.9)
+		Loft.tube(b, ClayArt._sc([r0, r0.lerp(tip, 0.4) + Vector3(0, 0.12, 0), r0.lerp(tip, 0.75) - Vector3(0, 0.05, 0), tip], s),
+			ClayArt._sc([Vector2(0.12, 0.04), Vector2(0.16, 0.04), Vector2(0.1, 0.03), Vector2(0.01, 0.01)], s), Color.WHITE, 10, 3)
+	var body = MeshInstance3D.new()
+	body.mesh = b.build(fm)
+	body.material_override = fm
+	body.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(body)
+	for sx in [-1.0, 1.0]:
+		var wb = MB.new()
+		var m = Vector3(sx, 1, 1)
+		var spar = [Vector3(0, 0, 0), Vector3(0.7, 0.18, 0.05), Vector3(1.5, 0.3, -0.15), Vector3(2.3, 0.25, -0.5)]
+		var S = []
+		for v in spar:
+			S.append(v * m * s)
+		Loft.tube(wb, S, ClayArt._sc([Vector2(0.22, 0.08), Vector2(0.2, 0.07), Vector2(0.14, 0.05), Vector2(0.03, 0.02)], s), Color.WHITE, 10, 3)
+		# kanat tüyleri: arka kenardan geriye uzanan sivri alev tüyleri
+		for q in 8:
+			var t0 = 0.08 + q * 0.12
+			var r0 = ClayArt._along(spar, t0) * m
+			var L = 0.9 + q * 0.12
+			var tip = r0 + Vector3(sx * (0.1 + q * 0.06), -0.05, -L)
+			Loft.tube(wb, [r0 * s, r0.lerp(tip, 0.5) * s, tip * s], [Vector2(0.15, 0.04) * s, Vector2(0.14, 0.035) * s, Vector2(0.01, 0.01) * s], Color.WHITE, 8, 3)
+		var piv = Node3D.new()
+		piv.position = Vector3(sx * 0.25, 0.12, 0.3) * s
+		var wmi = MeshInstance3D.new()
+		wmi.mesh = wb.build(fm)
+		wmi.material_override = fm
+		wmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		piv.add_child(wmi)
+		root.add_child(piv)
+		ClayArt._glide(piv, sx)
+	return ClayArt._fwd(root)
+
 func p_katon_karura(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.0)
+	busy(c, 1.1)
 	var tt = tg(c, t, 34.0)
+	VFX.gather(_mouth_pos(c), FIRE, 1.0)
 	after(0.4, func():
 		if not live(c):
 			return
-		var bird = Node3D.new()
-		bird.add_child(VFX.fireball(2.0))
-		for s in [-1.0, 1.0]:   # kanatlar: kanat çırpan alev kütleleri
-			var w = MeshInstance3D.new()
-			w.mesh = VFX._sphere(0.5, 12, 6)
-			w.material_override = VFX.mat_fire("fire", 3.0, 2.0, 0.45, 1.4, 0.15, Vector3(s, 0, 0))
-			w.scale = Vector3(3.5, 0.5, 1.6)
-			w.position = Vector3(s * 2.2, 0.3, 0.4)
-			bird.add_child(w)
-			w.create_tween().set_loops().tween_property(w, "rotation:z", s * 0.6, 0.18).from(-s * 0.3)
+		anim(c, "push", 1.3)
 		var mo = _mouth_pos(c)
-		var pr = shot(c, mo, aim_at(c, tt, mo), 20.0, bird, inf(c, "katon_karura", 2.0, {"knock": 14.0, "launch": 5.0, "kind": "heavy", "element": "katon", "burn": 4.0}), tt, false, 2.4, func(p, _h):
-			VFX.explosion(p, 2.0, Color(1.0, 0.55, 0.15))
-			shake(1.0))
+		_flame_jet(c, mo, c.face_dir(), 5.0, 2.0, 0.3, 1.4)
+		# birlikte üflenen alev dev bir ateş kuşuna dönüşür: kanat çırparak süzülür, arkasında alev seli bırakır
+		var bird = Node3D.new()
+		var fb = _fire_bird(1.6)
+		bird.add_child(fb)
+		fb.scale = Vector3.ONE * 0.2
+		fb.create_tween().tween_property(fb, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_BACK)
+		var pr = shot(c, mo + c.face_dir() * 1.5, aim_at(c, tt, mo), 19.0, bird, inf(c, "katon_karura", 2.2, {"knock": 16.0, "launch": 6.0, "kind": "heavy", "element": "katon", "burn": 5.0}), tt, false, 2.6, func(p, _h):
+			# büyük alev patlaması: alev kubbesi + yanan geniş alan
+			VFX.explosion(p, 3.6, Color(1.0, 0.55, 0.15))
+			VFX.clay_blast(p + Vector3.UP * 0.5, 3.0)
+			VFX.cracks(gp(p), 9.0)
+			for k in 4:
+				VFX.linger(gp(p + Vector3(randf_range(-4, 4), 0, randf_range(-4, 4))), "katon", FIRE, 2.2, 5.0)
+			mhit(c, p, 7.0, inf(c, "katon_karura", 0.9, {"knock": 14.0, "launch": 6.0, "kind": "heavy", "element": "katon", "burn": 3.0}))
+			shake(1.4))
 		pr.homing_turn = 2.0
-		pr.radius = 2.0
-		_etrail(pr, "katon", FIRE, 1.6))
+		pr.radius = 2.2
+		pr.on_tick = func(p2, _dt):
+			if randf() < 0.7:
+				VFX.puffs(p2.global_position - p2.vel.normalized() * 2.0, {"amount": 3, "life": 0.5, "size": 1.4, "radius": 1.2, "vmin": 0.5, "vmax": 2.0, "dir": Vector3.UP, "spread": 60.0,
+					"glow": 1.15, "hot": 0.6, "outline_col": Color(0.7, 0.2, 0.03), "outline": 0.03,
+					"colors": [Color(1.0, 0.95, 0.55, 1), Color(1.0, 0.6, 0.12, 1), Color(0.9, 0.3, 0.05, 0.8), Color(0.5, 0.12, 0.03, 0)]})
+		FX.light(mo, Color(1.0, 0.6, 0.2), 8.0, 20.0, 1.2))
 	Sfx.play("fire", c.global_position, 0.5)
 
 
