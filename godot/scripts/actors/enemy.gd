@@ -368,7 +368,15 @@ func _physics_process(dt: float) -> void:
 			step_move(Vector3.ZERO, dt, false)
 			if state_t > 0.55:
 				model.overlay.set_pose("seal", 0.0)
-				Jutsu.execute(self, get_meta("cast_id"), target)
+				# oyuncuyla aynı kural: tekniğin rütbe şartının altındaki ninja mühürü bozabilir
+				var jd: Dictionary = Data.jutsu.get(get_meta("cast_id"), {})
+				var need = float(jd.get("level", 1))
+				var fail = clampf((need - float(level)) / maxf(1.0, need * 0.45), 0.0, 0.85) if need > 3.0 and String(jd.get("category", "")) != "taijutsu" else 0.0
+				if fail > 0.0 and randf() < fail:
+					FX.smoke_puff(global_position + Vector3.UP * 1.3 + face_dir() * 0.4, 0.35, 5)
+					Combat.popup_text(global_position + Vector3.UP * (height + 0.5), "Mühür bozuldu!", Color(1, 0.6, 0.4))
+				else:
+					Jutsu.execute(self, get_meta("cast_id"), target)
 				model.play("cast_out", 0.05, 1.3, true)
 				state = "recover"
 				state_t = 0.0

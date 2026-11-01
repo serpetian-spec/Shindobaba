@@ -132,7 +132,7 @@ func objective_text() -> String:
 	if s == 3 and pr.get("flags", {}).get("academy_passed", false):
 		t = "Mezun oldun! Zil Testi: Antrenman Alanı'na git ve %s ile konuş (oku takip et)." % home_info()["s2"]
 	elif s == 3:
-		t = "Mezuniyet Sınavı: Akademi'de hocan %s ile konuş (Seviye %d/5)." % [home_info()["s1"], int(pr.get("level", 1))]
+		t = "Mezuniyet Sınavı: Akademi'de hocan %s ile konuş (Güç %d/5)." % [home_info()["s1"], int(pr.get("level", 1))]
 	return t
 
 
@@ -718,7 +718,7 @@ func interact(it: Dictionary) -> void:
 			LegendPaths.interact(it)
 		"home_note":
 			var lv = int(pr["level"])
-			Hud.dialog("Notlar", "Kendi el yazınla: \"%s\"\nSeviye %d • %s • %d Ryō\nGörevler: D%d C%d B%d A%d S%d" % [_note_line(), lv, Data.RANKS[int(pr["rank"])], int(pr["ryo"]),
+			Hud.dialog("Notlar", "Kendi el yazınla: \"%s\"\nGüç %d • %s • %d Ryō\nGörevler: D%d C%d B%d A%d S%d" % [_note_line(), lv, Data.RANKS[int(pr["rank"])], int(pr["ryo"]),
 				pr["missions_done"]["D"], pr["missions_done"]["C"], pr["missions_done"]["B"], pr["missions_done"]["A"], pr["missions_done"]["S"]], [])
 		"bbq":
 			_eat(80, "Yakiniku! Can ve chakra doldu, 60sn boyunca +%20 güç.", "Garson")
@@ -766,7 +766,7 @@ func interact(it: Dictionary) -> void:
 		"shop_scrolls":
 			var sc = scroll_shop_items(14)
 			if sc.is_empty():
-				Hud.dialog("Parşömenci", "Şu an doğana uygun yeni bir element parşömenim yok. Seviyen yükseldikçe ya da yeni bir doğa uyandırdıkça tekrar gel.", [])
+				Hud.dialog("Parşömenci", "Şu an doğana uygun yeni bir element parşömenim yok. Gücün arttıkça ya da yeni bir doğa uyandırdıkça tekrar gel.", [])
 			else:
 				Hud.shop("Parşömenci — Element Jutsuları", sc)
 		"chunin_exam":

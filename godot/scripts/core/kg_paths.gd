@@ -127,7 +127,7 @@ static func interact_site(it: Dictionary) -> void:
 		elif int(p.get("rank", 0)) < 2:
 			need = "Kayıtlara bakılırsa denekler en az Chūnin seviyesindeymiş. Bedenin henüz dayanamaz."
 	if need == "" and int(p.get("level", 1)) < int(s["level"]):
-		need = "Henüz hazır değilsin (Seviye %d gerekli)." % int(s["level"])
+		need = "Henüz hazır değilsin (Güç %d gerekli)." % int(s["level"])
 	var intro = {"lab": "Paslı demir kapının ardında kırık cam tüpler ve kurumuş kökler var. Duvardaki kayıt: \"Denek 60/60... yalnız biri hayatta. Hücreler yabancı bedeni reddediyor.\"
 
 Nakil Mokuton'u açar ama bedenin hücrelerle savaşır: Mokuton teknikleri %30 fazla chakra yer, Hashirama seviyesi teknikler (Mokujin, Mokuryū, Shin Sūsenju...) hiç açılmaz.",
@@ -158,7 +158,7 @@ static func _moon_site(it: Dictionary, s: Dictionary) -> void:
 	if not both:
 		need = "Mühürleri yalnızca iki gözünde de tam ustalaşmış (3/3) Byakugan olan görebilir."
 	elif int(p.get("level", 1)) < int(s["level"]):
-		need = "Henüz hazır değilsin (Seviye %d gerekli)." % int(s["level"])
+		need = "Henüz hazır değilsin (Güç %d gerekli)." % int(s["level"])
 	else:
 		var tod = float(Game.world.env.time_of_day) if Game.world and Game.world.get("env") else 0.5
 		if not (tod < 0.2 or tod > 0.8):

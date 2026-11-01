@@ -10,26 +10,37 @@ static func clan_bonus(p: Dictionary, key: String) -> float:
 
 # ------------------------------------------------------------------ yetenek ağacı (data/skills.json)
 ## Öğrenilen düğümlerin bir etkisinin toplamı (ör. "melee", "seal_speed", "leap")
+## Yetenek ağacı kaldırıldı (2026-11-02): eski düğüm etkileri artık USTALIKTAN türer (yaptıkça gelişme) + Efsane Yolu bonusları
 static func skill(p: Dictionary, key: String) -> float:
-	var nodes: Dictionary = Data.skills.get("nodes", {})
+	var M = func(k: String) -> float: return Mastery.get_v(p, k)
 	var v = 0.0
-	for sid in p.get("skills", []):
-		var n = nodes.get(sid)
-		if n != null:
-			v += float(n["fx"].get(key, 0.0))
-	return v + LegendPaths.passive(p, key)   # Efsane Yolu bonusları
+	match key:
+		"guard": v = M.call("taijutsu") * 0.004
+		"def": v = M.call("dayaniklilik") * 0.004
+		"regen_chakra": v = M.call("chakra") * 0.01
+		"regen_hp": v = M.call("dayaniklilik") * 0.01
+		"poison_resist": v = M.call("dayaniklilik") * 0.004
+		"wall_run", "leap": v = M.call("hiz") * 0.004
+		"throw_dmg": v = M.call("kenjutsu") * 0.005
+		"gen_resist", "sense", "stealth": v = M.call("chakra") * 0.004
+		"gen_power": v = M.call("ninjutsu") * 0.004
+		"combo": v = maxf(M.call("taijutsu"), M.call("kenjutsu")) * 0.002
+	return v + LegendPaths.passive(p, key)
 
 
 ## Öğrenilen düğümler bu bayrağı açıyor mu (ör. "genjutsu", "gentle_fist", "elem2")
+## Açılımlar: hikâye bayrakları (profile.skills: sage, gates, jinchuriki...) ya da ustalık eşiği (yaptıkça gelişme)
+const UNLOCK_AT := {"kai": ["chakra", 20.0], "sensor": ["chakra", 35.0], "multi_throw": ["kenjutsu", 25.0], "genjutsu": ["ninjutsu", 30.0],
+	"elem2": ["ninjutsu", 40.0], "elem3": ["ninjutsu", 75.0], "strong_fist": ["taijutsu", 40.0], "wire": ["kenjutsu", 30.0],
+	"barrier": ["ninjutsu", 50.0], "shape": ["ninjutsu", 50.0], "scroll_store": ["ninjutsu", 20.0], "gen_reflect": ["ninjutsu", 60.0],
+	"scalpel": ["chakra", 45.0], "mark_teleport": ["ninjutsu", 80.0], "byakugou": ["chakra", 90.0]}
 static func has_unlock(p: Dictionary, flag: String) -> bool:
 	if flag in p.get("skills", []):
 		return true
-	var nodes: Dictionary = Data.skills.get("nodes", {})
-	for sid in p.get("skills", []):
-		var n = nodes.get(sid)
-		if n != null and flag in n.get("unlock", []):
-			return true
-	return false
+	if flag == "gentle_fist":
+		return String(p.get("clan", "")) == "hyuga" and Mastery.get_v(p, "taijutsu") >= 15.0
+	var u = UNLOCK_AT.get(flag)
+	return u != null and Mastery.get_v(p, u[0]) >= float(u[1])
 
 
 ## Element bonusu: el_main (ana doğa), el_all, el_<doğa>

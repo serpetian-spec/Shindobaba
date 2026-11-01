@@ -529,6 +529,7 @@ func _ground_air_move(dt: float) -> void:
 	if on_water and not swimming:
 		ground = 0.0
 		chakra -= 1.5 * maxf(0.1, 1.0 + Stats.skill(Game.profile, "water_cost")) * dt  # su üstünde durmak chakra ister
+		Mastery.gain(Game.profile, "chakra", dt * 0.03)   # su üstünde yürüme: chakra kontrolü antrenmanı
 		if chakra <= 0.0:
 			swimming = true
 			leaping = false

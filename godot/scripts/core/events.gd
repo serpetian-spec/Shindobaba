@@ -84,7 +84,7 @@ func apply() -> void:
 		Hud.dialog("Sınav Gözetmeni", "Sınav devam ediyor. Hedefine odaklan!", [])
 		return
 	if int(pr["level"]) < 15 or Progress.story() < Journal.FREE:
-		Hud.dialog("Sınav Gözetmeni", "Chūnin Sınavı için en az Seviye 15 Genin olmalısın.", [])
+		Hud.dialog("Sınav Gözetmeni", "Chūnin Sınavı için en az Güç 15 Genin olmalısın.", [])
 		return
 	host = current_host()
 	var hn = String(Game.village(host).get("name", host))

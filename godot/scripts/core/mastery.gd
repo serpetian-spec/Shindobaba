@@ -31,14 +31,11 @@ static func gain(p: Dictionary, key: String, amount: float) -> void:
 		Sfx.play("pickup", null, 1.3, 0.35)
 		if int(nv) % 10 == 0:
 			Hud.banner(NAMES.get(key, key).to_upper(), "Ustalık %d" % int(nv), Color(0.6, 0.95, 1.0))
-	# yetenek puanı: toplam ustalıktan
-	var tot = total(p)
-	var earned = int(tot / SP_PER)
-	var had = int(p.get("sp_earned", 0))
-	if earned > had:
-		p["sp"] = int(p.get("sp", 0)) + (earned - had)
-		p["sp_earned"] = earned
-		Hud.msg("+%d yetenek puanı  [Tab > Yetenekler]" % (earned - had), Color(1, 0.85, 0.35))
+	# ikinci / üçüncü chakra doğası: ninjutsu 40 / 75'te seçim (eski yetenek ağacı düğümü yerine)
+	if key == "ninjutsu":
+		var els: Array = p.get("elements", [])
+		if (v < 40.0 and nv >= 40.0 and els.size() < 2) or (v < 75.0 and nv >= 75.0 and els.size() < 3):
+			Menus._pick_element.call_deferred(null)
 	var old_lv = int(p.get("level", 1))
 	refresh_level(p)
 	if int(p["level"]) != old_lv:
@@ -55,7 +52,9 @@ static func total(p: Dictionary) -> float:
 ## GÜÇ (eski seviyenin yerine geçen iç değer, 1..100): ninjutsu, en iyi dövüş dalı, chakra, dayanıklılık ortalaması
 static func power(p: Dictionary) -> int:
 	var fight = maxf(get_v(p, "taijutsu"), get_v(p, "kenjutsu"))
-	return clampi(1 + int(round((get_v(p, "ninjutsu") + fight + get_v(p, "chakra") + get_v(p, "dayaniklilik")) / 4.0)), 1, 100)
+	var avg = (get_v(p, "ninjutsu") + fight + get_v(p, "chakra") + get_v(p, "dayaniklilik")) / 4.0
+	# eğri: başta hızlı yükselir (ustalık ort. 10 -> güç ~20, 32 -> 45 Jōnin, 54 -> 65 ANBU, 86 -> 90 Kage)
+	return clampi(int(round(100.0 * pow(avg / 100.0, 0.7))), 1, 100)
 
 
 static func refresh_level(p: Dictionary) -> void:

@@ -439,7 +439,7 @@ func rogue_shop(kind: String) -> void:
 			var r = rogue_rank()
 			var sc = Progress.scroll_shop_items(10 + r * 3, 2 + r * 3)
 			if sc.is_empty():
-				Hud.dialog("Kara Parşömenci", "Doğana uygun yeni parşömen yok. Seviyen ya da şöhretin artınca tekrar uğra.", [])
+				Hud.dialog("Kara Parşömenci", "Doğana uygun yeni parşömen yok. Gücün ya da şöhretin artınca tekrar uğra.", [])
 			else:
 				Hud.shop("Kara Parşömenci", sc)
 		"rogue_summoner":
@@ -542,7 +542,7 @@ func _kinjutsu_dialog() -> void:
 			Progress.learn(jid)
 			add_infamy(30)})
 	if opts.is_empty():
-		Hud.dialog("Yeraltı Simsarı", "\"Şimdilik sana uygun yasak bir parşömen yok. Seviyen ya da adın büyüsün, gel.\"", [])
+		Hud.dialog("Yeraltı Simsarı", "\"Şimdilik sana uygun yasak bir parşömen yok. Gücün ya da adın büyüsün, gel.\"", [])
 		return
 	Hud.dialog("Yeraltı Simsarı — Yasak Teknikler", "Simsar sandığından mühürlü parşömenler çıkarıyor: \"Bunları köyler yakar... ben satarım.\"", opts)
 

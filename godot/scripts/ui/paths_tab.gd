@@ -32,7 +32,7 @@ static func _card(main: Node, pid: String) -> Control:
 	card.add_child(v)
 	if s == LegendPaths.UNKNOWN:
 		v.add_child(UI.icon_label("seal", "Gizli Yol", 20, UI.MUTED))
-		v.add_child(UI.label("Henüz bir söylenti duymadın. (Seviye %d civarında kulağına bir şeyler çalınabilir)" % LegendPaths.lv_need(pid, "rumor_level"), 14, UI.MUTED))
+		v.add_child(UI.label("Henüz bir söylenti duymadın. (Güç %d civarında kulağına bir şeyler çalınabilir)" % LegendPaths.lv_need(pid, "rumor_level"), 14, UI.MUTED))
 		return card
 	var head = UI.hbox(14)
 	v.add_child(head)

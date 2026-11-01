@@ -153,7 +153,7 @@ func toggle_dojutsu() -> void:
 		Hud.msg("Klanının bir göz tekniği (dōjutsu) yok.", Color(0.8, 0.8, 0.8))
 		return
 	if int(Game.profile["level"]) < 2:
-		Hud.msg("Gözlerin henüz uyanmadı (Seviye 2).", Color(0.8, 0.8, 0.8))
+		Hud.msg("Gözlerin henüz uyanmadı (Güç 2).", Color(0.8, 0.8, 0.8))
 		return
 	dojutsu = not dojutsu
 	var base_eye: Array = Data.clans.get(cl, {}).get("eye", [0.2, 0.2, 0.2])
@@ -219,7 +219,7 @@ var _steam_t := 0.0
 
 func next_gate() -> void:
 	if not LegendPaths.joined("kapi"):
-		Hud.msg("Sekiz Kapı'yı açmayı bir usta öğretmeli: Sekiz Kapı Yolu'nu bul (Tab > Yollar, Sv.8+ söylenti).", Color(0.8, 0.8, 0.8))
+		Hud.msg("Sekiz Kapı'yı açmayı bir usta öğretmeli: Sekiz Kapı Yolu'nu bul (Tab > Yollar, Güç 8+ söylenti).", Color(0.8, 0.8, 0.8))
 		return
 	gates += 1
 	if gates > 7:   # 8. kapı (Ölüm Kapısı) yalnızca Gece Gayı tekniğiyle açılır

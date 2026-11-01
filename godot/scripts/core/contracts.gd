@@ -314,7 +314,7 @@ static func realm_interact(it: Dictionary) -> void:
 	if not signed(id):
 		opts.append({"label": "Sözleşme parşömenini kanınla imzala", "cb": func():
 			if int(pr["level"]) < 6:
-				Hud.dialog(d["elder"], "Henüz çok gençsin. Seviye 6 olduğunda gel.", [])
+				Hud.dialog(d["elder"], "Henüz çok gençsin. Güç 6 olduğunda gel.", [])
 				return
 			_blood_sign(id)})
 	else:
@@ -322,7 +322,7 @@ static func realm_interact(it: Dictionary) -> void:
 		if d["sage"] and not c.get("sage", false):
 			opts.append({"label": "Sennin eğitimi: doğa enerjisini topla (%d/3 deneme başarılı)" % int(c.get("sage_trials", 0)), "cb": func():
 				if int(pr["level"]) < 16:
-					Hud.dialog(d["elder"], "Bedenin doğa enerjisini taşıyamaz. Seviye 16 ol, sonra gel.", [])
+					Hud.dialog(d["elder"], "Bedenin doğa enerjisini taşıyamaz. Güç 16 ol, sonra gel.", [])
 					return
 				if Game.player and Game.player.combat and Game.player.combat.modes:
 					Game.player.combat.modes.start_sage_training(id)})

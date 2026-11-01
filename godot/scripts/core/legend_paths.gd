@@ -382,7 +382,7 @@ static func next_step(pid: String) -> String:
 			return "Söylentinin peşine düş: %s. (İzi takip et)" % P["site"]["place"]
 		FOUND:
 			if int(pr().get("level", 1)) < lv_need(pid, "join_level"):
-				return "Ustan seni Seviye %d olunca kabul edecek." % lv_need(pid, "join_level")
+				return "Ustan seni Güç %d olunca kabul edecek." % lv_need(pid, "join_level")
 			return "%s ile konuş ve sınavını kabul et." % P["mentor"]["name"]
 		TRIAL:
 			return "Ustanın sınavını tamamla."
@@ -391,7 +391,7 @@ static func next_step(pid: String) -> String:
 			var lv = int(Data.jutsu.get(jid, {}).get("level", 1))
 			var nm = String(Data.jutsu.get(jid, {}).get("name", jid)).split(" (")[0]
 			if int(pr().get("level", 1)) < lv:
-				return "Sıradaki teknik: %s (Seviye %d)." % [nm, lv]
+				return "Sıradaki teknik: %s (Güç %d)." % [nm, lv]
 			return "Ustana dön: %s öğrenmeye hazırsın." % nm
 	return "Bu yolun bütün tekniklerini öğrendin. Usta artık seninle gurur duyuyor."
 
@@ -477,7 +477,7 @@ static func interact(it: Dictionary) -> void:
 			Hud.dialog(title, "\"Sınavın bitmedi. Sözünü tut.\"", [])
 			return
 		if lv < lv_need(pid, "join_level"):
-			Hud.dialog(title, P["intro"] + "\n\n\"Ama henüz çok zayıfsın. Seviye %d olunca gel.\"" % lv_need(pid, "join_level"), [])
+			Hud.dialog(title, P["intro"] + "\n\n\"Ama henüz çok zayıfsın. Güç %d olunca gel.\"" % lv_need(pid, "join_level"), [])
 			return
 		if blood(pid):
 			Hud.dialog(title, P["intro"] + "\n\nUsta bir an duraksıyor: \"Bu saçlar, bu hız... Sen Namikaze kanındansın. Sınava gerek yok; kanın seni zaten buraya getirdi.\"", [{"label": "Yola katıl", "cb": func():
@@ -508,8 +508,8 @@ static func interact(it: Dictionary) -> void:
 		var pc = price(jid)
 		var tag = ("  ⚠ karanlık: köy itibarı -%d" % dark) if dark > 0 else ""
 		if lv < need:
-			opts.append({"label": "%s — Seviye %d gerekli" % [nm, need], "tip": j.get("desc", ""), "cb": func():
-				Hud.msg("Bu teknik için Seviye %d olmalısın." % need, Color(1, 0.7, 0.4))})
+			opts.append({"label": "%s — Güç %d gerekli" % [nm, need], "tip": j.get("desc", ""), "cb": func():
+				Hud.msg("Bu teknik için Güç %d olmalısın." % need, Color(1, 0.7, 0.4))})
 		elif qk != "":
 			var k = jid
 			opts.append({"label": "%s — özel sınav (%d Ryō)%s" % [nm, pc, tag], "tip": j.get("desc", ""), "cb": func():

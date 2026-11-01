@@ -984,7 +984,7 @@ static func pause(main: Node) -> void:
 	root.add_child(UI.label("%s  •  %s" % [Orgs.rogue_rank_name() if Orgs.is_rogue() else Data.RANKS[int(Game.profile.get("rank", 0))], Game.region_name(Game.player.global_position) if Game.player else ""], 17, UI.MUTED))
 	root.add_child(UI.spacer(0, 26, false))
 	var items = [["Devam", "play", func(): main.resume()], ["Ninja Menüsü", "bag", func(): ninja_menu(main, last_tab())],
-		["Ekipman ve Kıyafetler", "armor", func(): ninja_menu(main, "wardrobe")], ["Jutsu ve Yetenekler", "scroll", func(): ninja_menu(main, "jutsu")],
+		["Ekipman ve Kıyafetler", "armor", func(): ninja_menu(main, "wardrobe")], ["Jutsular", "scroll", func(): ninja_menu(main, "jutsu")],
 		["Harita", "map", func(): region_map(main)], ["Ayarlar", "settings", func(): settings(func(): pause(main))],
 		["Kaydet", "save", func():
 			Game.save_game()
@@ -1129,9 +1129,9 @@ static func settings(back: Callable) -> void:
 
 
 # ================================================================== ninja menüsü [Tab]
-const TABS := [["inv", "bag", "Envanter"], ["wardrobe", "armor", "Ekipman"], ["eyes", "eye", "Gözler"], ["jutsu", "scroll", "Jutsular"], ["skills", "star", "Yetenekler"],
+const TABS := [["inv", "bag", "Envanter"], ["wardrobe", "armor", "Ekipman"], ["eyes", "eye", "Gözler"], ["jutsu", "scroll", "Jutsular"], ["skills", "star", "Ustalık"],
 	["beasts", "flame", "Canavarlar"], ["summons", "seal", "Kuchiyose"], ["relations", "heart", "İlişkiler"], ["missions", "mission", "Görevler"], ["paths", "book", "Yollar"], ["map", "map", "Harita"]]
-const TAB_TITLES := {"beasts": "KUYRUKLU CANAVARLAR", "summons": "KUCHİYOSE SÖZLEŞMELERİ", "inv": "ENVANTER", "wardrobe": "EKİPMAN", "jutsu": "JUTSULAR", "skills": "YETENEK AĞACI", "missions": "GÖREVLER", "relations": "İLİŞKİLER", "eyes": "GÖZLER (DŌJUTSU)", "paths": "EFSANE YOLLARI"}
+const TAB_TITLES := {"beasts": "KUYRUKLU CANAVARLAR", "summons": "KUCHİYOSE SÖZLEŞMELERİ", "inv": "ENVANTER", "wardrobe": "EKİPMAN", "jutsu": "JUTSULAR", "skills": "USTALIK (YAPTIKÇA GELİŞME)", "missions": "GÖREVLER", "relations": "İLİŞKİLER", "eyes": "GÖZLER (DŌJUTSU)", "paths": "EFSANE YOLLARI"}
 const SWATCHES := [Color(0.15, 0.2, 0.33), Color(0.12, 0.12, 0.14), Color(0.45, 0.15, 0.15), Color(0.95, 0.5, 0.12), Color(0.2, 0.38, 0.22),
 	Color(0.35, 0.25, 0.45), Color(0.85, 0.82, 0.75), Color(0.15, 0.4, 0.45), Color(0.55, 0.42, 0.3), Color(0.75, 0.2, 0.25)]
 
@@ -2241,8 +2241,36 @@ static func _jutsu_dmg(j: Dictionary) -> int:
 static var _skill_sel := ""
 
 
-static func _tab_skills(main: Node, body: Control) -> void:
-	SkillTree.build(main, body)
+## Yetenek ağacı kaldırıldı: bu sekme ustalıkları gösterir (nasıl geliştiği + açtığı şeyler)
+static func _tab_skills(_main: Node, body: Control) -> void:
+	var pr = Game.profile
+	var v = UI.vbox(12)
+	v.set_anchors_preset(Control.PRESET_FULL_RECT)
+	body.add_child(v)
+	v.add_child(UI.label("Güç %d  —  seviye yok: yaptıkça gelişirsin" % int(pr.get("level", 1)), 24, UI.CREAM, HORIZONTAL_ALIGNMENT_LEFT, true))
+	var how = {"ninjutsu": "Jutsu attıkça (mühür bozulsa da biraz). Yüksek rütbe teknikler için gerekli; mühür hızı.",
+		"taijutsu": "Yumrukla vurdukça; antrenman kuklası 4 kat.", "kenjutsu": "Silahla vurdukça; antrenman kuklası 4 kat.",
+		"chakra": "Jutsu attıkça, [C] meditasyon, duvar/ağaç tırmanma, su üstünde yürüme.", "dayaniklilik": "Hasar aldıkça.", "hiz": "Koştukça."}
+	for k in Mastery.KEYS:
+		var val = Mastery.get_v(pr, k)
+		var row = UI.hbox(14)
+		v.add_child(row)
+		var nl = UI.label(Mastery.NAMES[k], 20, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true)
+		nl.custom_minimum_size = Vector2(240, 0)
+		row.add_child(nl)
+		var bar = ProgressBar.new()
+		bar.max_value = 100.0
+		bar.value = val
+		bar.show_percentage = false
+		bar.custom_minimum_size = Vector2(380, 22)
+		row.add_child(bar)
+		row.add_child(UI.label("%d" % int(val), 20, UI.CREAM))
+		v.add_child(UI.label(how[k], 14, UI.MUTED))
+	var opened = []
+	for f in Stats.UNLOCK_AT:
+		var u = Stats.UNLOCK_AT[f]
+		opened.append("%s %s (%s %d)" % ["✓" if Stats.has_unlock(pr, f) else "·", f, Mastery.NAMES[u[0]], int(u[1])])
+	v.add_child(UI.label("Ustalıkla açılanlar:  " + "   ".join(opened), 13, UI.MUTED))
 
 
 # ------------------------------------------------------------------ görevler sekmesi
@@ -2385,7 +2413,7 @@ static func jutsu_skills(main: Node, picked := "") -> void:
 	ninja_menu(main, "jutsu", picked)
 
 
-static func _pick_element(main: Node) -> void:
+static func _pick_element(_main) -> void:
 	var pr = Game.profile
 	var opts = []
 	for e in ["katon", "suiton", "fuuton", "doton", "raiton"]:
@@ -2393,12 +2421,11 @@ static func _pick_element(main: Node) -> void:
 			continue
 		opts.append({"label": e.capitalize(), "cb": func():
 			pr["elements"].append(e)
-			pr["skills"].append("elem2")
-			pr["sp"] = int(pr["sp"]) - 1
+
 			var starter = {"katon": "katon_goukakyuu", "suiton": "suiton_suikoudan", "fuuton": "fuuton_shinkuu", "doton": "doton_doryuusou", "raiton": "raiton_nagashi"}[e]
 			Progress.learn(starter)
 			Progress.clan_unlocks(true)})
-	Hud.dialog("İkinci Chakra Doğası", "Hangi doğayı geliştireceksin?", opts)
+	Hud.dialog("Yeni Chakra Doğası", "Ninjutsu ustalığın bir doğa daha açtı. Hangisini geliştireceksin?", opts)
 
 
 # ================================================================== görev masası (ahşap pano + parşömenler)

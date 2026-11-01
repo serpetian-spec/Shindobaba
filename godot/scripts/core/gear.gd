@@ -770,7 +770,7 @@ static func req_text(id: String, p: Dictionary) -> String:
 		return "Yalnızca %s klanı giyebilir" % Data.clans.get(cl, {}).get("name", cl.capitalize())
 	var lv = int(it.get("level", 0))
 	if lv > int(p.get("level", 1)):
-		return "Seviye %d gerekli" % lv
+		return "Güç %d gerekli" % lv
 	return ""
 
 
@@ -783,7 +783,7 @@ static func req_summary(id: String) -> String:
 	if String(it.get("clan", "")) != "":
 		parts.append("%s klanı" % Data.clans.get(String(it["clan"]), {}).get("name", String(it["clan"]).capitalize()))
 	if int(it.get("level", 0)) > 0:
-		parts.append("Seviye %d" % int(it["level"]))
+		parts.append("Güç %d" % int(it["level"]))
 	return ("Gerekli: " + ", ".join(parts)) if not parts.is_empty() else ""
 
 

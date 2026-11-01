@@ -345,7 +345,7 @@ func _process(dt: float) -> void:
 			if d < SPAWN_R + 900.0 and not warned.has(id):
 				warned[id] = true
 				var lvl = int(Game.profile.get("level", 1))
-				Hud.banner("DEVASA BİR CHAKRA", "Yakında bir Kuyruklu Canavar var: %s%s" % [BeastModels.INFO[id]["name"], "  (Seviye %d+ önerilir)" % MIN_LEVEL if lvl < MIN_LEVEL else ""], Color(1, 0.4, 0.3))
+				Hud.banner("DEVASA BİR CHAKRA", "Yakında bir Kuyruklu Canavar var: %s%s" % [BeastModels.INFO[id]["name"], "  (Güç %d+ önerilir)" % MIN_LEVEL if lvl < MIN_LEVEL else ""], Color(1, 0.4, 0.3))
 			if d < SPAWN_R and not (spawned.has(id) and is_instance_valid(spawned[id])):
 				_spawn(id, lair)
 		# (uzaklık canavarın bulunduğu yerden: taşıyıcıdan fışkıran canavar inden uzakta olabilir)

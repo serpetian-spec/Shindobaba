@@ -10,8 +10,8 @@ extends Node
 ## Model uzayı: +Z karakterin önü, +X karakterin solu, +Y yukarı.
 ## Her mühür: el yönleri (L/R) + parmak kıvrımları [işaret, orta, yüzük, serçe, başparmak] (rad, 0 = düz)
 ## eller göğüs önünde birleşir: dirsek gövdeye yakın, ön kol merkeze doğru
-const SEAL_ARMS_L := [Vector3(0.04, -0.86, 0.5), Vector3(-0.9, 0.3, 0.32)]
-const SEAL_ARMS_R := [Vector3(-0.04, -0.86, 0.5), Vector3(0.9, 0.3, 0.32)]
+static var SEAL_ARMS_L := [Vector3(0.22, -0.85, 0.47), Vector3(-0.74, 0.42, 0.52)]   # eller göğüs ortasında buluşur (çapraz geçmez)
+static var SEAL_ARMS_R := [Vector3(-0.22, -0.85, 0.47), Vector3(0.74, 0.42, 0.52)]
 const SEALS := {
 	"Ne": {"tr": "Fare", "L": Vector3(-0.2, 0.6, 0.75), "R": Vector3(0.1, 0.95, 0.2), "fL": [1.4, 1.4, 1.4, 1.4, 0.6], "fR": [0.0, 0.0, 1.5, 1.5, 0.9]},
 	"Ushi": {"tr": "Öküz", "L": Vector3(-0.2, 0.95, 0.2), "R": Vector3(0.95, 0.1, 0.3), "fL": [0.0, 0.0, 0.0, 0.0, 0.3], "fR": [0.9, 0.9, 0.9, 0.9, 0.3]},

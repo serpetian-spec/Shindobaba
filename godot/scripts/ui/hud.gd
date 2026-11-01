@@ -999,7 +999,7 @@ func _buy(id: String, title: String, items: Array) -> void:
 				shop(title, items)
 				return
 			if int(Game.profile["level"]) < int(j["level"]):
-				msg("Bu parşömen için Seviye %d gerekli." % j["level"], Color(1, 0.6, 0.4))
+				msg("Bu parşömen için Güç %d gerekli." % j["level"], Color(1, 0.6, 0.4))
 				shop(title, items)
 				return
 			if jid in Game.profile["learned"]:

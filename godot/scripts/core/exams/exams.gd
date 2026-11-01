@@ -211,7 +211,7 @@ func academy_talk() -> void:
 		Hud.dialog(sensei, "Sınav devam ediyor, odaklan!", [])
 		return
 	if int(pr["level"]) < 5:
-		Hud.dialog(sensei, "Mezuniyet sınavı için en az Seviye 5 olmalısın (şu an %d). Kuklalarla çalış, D-rank işlere yardım et, sonra gel." % int(pr["level"]), [])
+		Hud.dialog(sensei, "Mezuniyet sınavı için en az Güç 5 olmalısın (şu an %d). Kuklalarla çalış, D-rank işlere yardım et, sonra gel." % int(pr["level"]), [])
 		return
 	Hud.dialog(sensei, "Mezuniyet sınavı üç bölüm: önce yazılı sınav, sonra benim önümde Bunshin, Henge ve Kawarimi, en son da hedef parkuru. Toplamda %60 başarı yeterli. Hazır mısın %s?" % pr["name"], [
 		{"label": "Hazırım! (yazılı sınav)", "cb": academy_written},
@@ -435,7 +435,7 @@ func jonin_offer() -> bool:
 	var el = (pr["elements"] as Array).size()
 	var kage = Progress.home_info()["kage"]
 	if lv < 45 or a < 3 or el < 2:
-		Hud.dialog(kage, "Jōnin olmak için: Seviye 45 (%d), 3 A-rank görev (%d) ve ikinci bir chakra doğasında ustalık (%d/2) gerekli. İkinci doğa için yetenek ağacına bak." % [lv, a, el], [])
+		Hud.dialog(kage, "Jōnin olmak için: Güç 45 (%d), 3 A-rank görev (%d) ve ikinci bir chakra doğasında ustalık (%d/2) gerekli. İkinci doğa ninjutsu ustalığı 40 olunca açılır." % [lv, a, el], [])
 		return true
 	if Missions.active().get("hook", "") == "Exams.jonin_done":
 		return false
@@ -489,7 +489,7 @@ func jonin_done(m: Dictionary, ok: bool) -> void:
 # ================================================================== TOKUBETSU JŌNİN UZMANLIĞI
 func specialty_offer() -> void:
 	if int(p()["rank"]) < 2 or int(p()["level"]) < 35:
-		Hud.dialog("Uzmanlık", "Tokubetsu Jōnin uzmanlığı için en az Chūnin ve Seviye 35 olmalısın.", [])
+		Hud.dialog("Uzmanlık", "Tokubetsu Jōnin uzmanlığı için en az Chūnin ve Güç 35 olmalısın.", [])
 		return
 	if p().get("specialty", "") != "":
 		var s = _spec(p()["specialty"])
@@ -571,7 +571,7 @@ func anbu_offer() -> void:
 		Orgs.anbu_hq()
 		return
 	if int(pr["rank"]) < 3 or int(pr["level"]) < 65 or int(pr["missions_done"].get("S", 0)) < 1:
-		Hud.dialog("ANBU", "Burası yetkisiz girişe kapalı. ANBU seçmelerine yalnızca Jōnin + Seviye 65 + en az 1 S-rank görevi olanlar çağrılır.", [])
+		Hud.dialog("ANBU", "Burası yetkisiz girişe kapalı. ANBU seçmelerine yalnızca Jōnin + Güç 65 + en az 1 S-rank görevi olanlar çağrılır.", [])
 		return
 	if Missions.active().get("hook", "") == "Exams.anbu_done":
 		Hud.dialog("Maskeli Muhafız", "Seçmeler sürüyor. Görevine dön.", [])

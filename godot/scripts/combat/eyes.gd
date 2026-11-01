@@ -730,7 +730,7 @@ func _on_jutsu_cast(caster: Node, id: String) -> void:
 	# Sharingan yalnızca senin de yapabileceğin teknikleri kopyalar: seviye/rütbe sınırını aşar ama
 	# sahip olmadığın element, başka klanın hiden tekniği, kekkei genkai, göz/sennin gerektiren ve yasak/özel teknikler kopyalanamaz
 	var why = Progress.can_learn(id)
-	if why != "" and not why.begins_with("Seviye") and not why.ends_with("rütbesi gerekli"):
+	if why != "" and not why.begins_with("Güç") and not why.begins_with("Ustalık") and not why.ends_with("rütbesi gerekli"):
 		if not _copy_warned.has(id):
 			_copy_warned[id] = true
 			Hud.msg("Sharingan gördü ama kopyalayamaz: %s (%s)" % [Data.jutsu[id].get("name", id), why], Color(0.75, 0.55, 0.55))

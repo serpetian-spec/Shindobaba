@@ -2836,7 +2836,7 @@ func _bingo_detail(id: int) -> void:
 	for e in bingo_entries():
 		if int(e["id"]) != id:
 			continue
-		var txt = "Takma ad: «%s»\nKöy: %s (kaçak)\nTehlike: %s-rank  •  Seviye ~%d\nElement: %s\nSuçları: %s\nSon görüldüğü yer: %s (~%d m alan)\nÖdül: %d Ryō%s" % [
+		var txt = "Takma ad: «%s»\nKöy: %s (kaçak)\nTehlike: %s-rank  •  Güç ~%d\nElement: %s\nSuçları: %s\nSon görüldüğü yer: %s (~%d m alan)\nÖdül: %d Ryō%s" % [
 			e["alias"], e["village_name"], e["rank"], int(e["level"]), e["element"], ", ".join(e["crimes"]), e["region"], int(e["known"]), int(e["bounty"]),
 			"\nDİKKAT: Yenilmek üzereyken kaçmaya çalışır." if e["rank"] in ["B", "A", "S"] else ""]
 		var cost = maxi(50, int(int(e["bounty"]) * 0.05))
