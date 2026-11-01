@@ -143,7 +143,8 @@ func attack() -> void:
 	_break_henge()
 	_quick_draw()
 	if action == "attack":
-		if t > _combo(step)["dur"] * 0.4:
+		var cc = _combo(step)
+		if t > float(cc["dur"]) * (0.0 if cc.has("keys") else 0.4):   # anahtar animasyonlu kombo: her an tamponlar
 			buffered = true
 		return
 	if action != "" and action != "guard":
@@ -432,9 +433,9 @@ func _combo_base(i: int) -> Dictionary:
 		c["keys"] = ks
 		c["anim"] = "idle"
 		c["speed"] = 1.0
-		c["key_spd"] = 0.75   # video hızı oyunda fazla hızlı: %25 yavaş
-		c["dur"] = float(ks["len"]) / 0.75
-		c["hit"] = float(ks["hit"]) / 0.75
+		c["key_spd"] = 0.95   # video hızına yakın (yavaşta dövüşte ilk vuruştan öteye geçilemiyordu)
+		c["dur"] = float(ks["len"]) / 0.95
+		c["hit"] = float(ks["hit"]) / 0.95
 		if i == 4:
 			c["launch"] = 10.0
 	return c

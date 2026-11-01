@@ -3209,6 +3209,10 @@ func _key_blade() -> void:
 		if w.has("key_pos0") and is_instance_valid(w["node"]):
 			(w["node"] as Node3D).position = w["key_pos0"]
 			w.erase("key_pos0")
+		if w.has("trail"):
+			if is_instance_valid(w["trail"]):
+				w["trail"].active = false
+			w.erase("trail")
 
 
 ## Anahtar kare animasyonunda (Samehada kombosu) sağ eldeki silah pozdaki "blade" yönüne çevrilir.
@@ -3229,6 +3233,11 @@ func _key_blade_sk(sk: Skeleton3D, blade: Vector3) -> void:
 		var sc: Vector3 = n.transform.basis.get_scale()
 		if not w.has("key_pos0"):
 			w["key_pos0"] = n.position
+		if not w.has("trail") and is_inside_tree():
+			var tr = SwordTrail.new()
+			tr.node = n
+			get_tree().current_scene.add_child(tr)
+			w["trail"] = tr
 		var grip = 0.58 * sc.z   # yumruktan sargıya kadar sap boyu (silah yerelinde)
 		# yer kontrolü (dünya): el + uç * boy yerin altına inmesin
 		var z: Vector3 = blade.normalized()
