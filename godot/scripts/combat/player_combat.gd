@@ -214,7 +214,7 @@ func _start_step() -> void:
 			get_tree().create_timer(0.16).timeout.connect(func():
 				if is_instance_valid(p) and action == "attack":
 					var hand = p.global_position + Vector3.UP * 2.6
-					VFX.bolt(hand + Vector3.UP * 12.0, hand, Color(0.75, 0.88, 1.0), 0.4, 0.3, 4)
+					VFX.bolt(hand + Vector3.UP * 12.0, hand, Color(1.0, 0.88, 0.25), 0.4, 0.3, 4)
 					Sfx.play("thunder", hand, 1.3, 0.6))
 	else:
 		p.model.overlay.stop_keys()
@@ -504,6 +504,7 @@ func _combo_base(i: int) -> Dictionary:
 				c["knock"] = 22.0   # Uchiha Gaeshi: düz geri savrulur (havaya değil)
 		if wid == "raijin":
 			c["rai"] = i
+			c["fx"] = Color(1.0, 0.85, 0.2)   # sarı şimşek
 			if i == COMBO.size() - 1:
 				c["knock"] = 12.0
 				c["heavy"] = true
@@ -631,7 +632,7 @@ func _special_hit(h: Node3D, pt: Vector3, c: Dictionary) -> void:
 			if h is CharacterBody3D:
 				h.velocity = (p.global_position - h.global_position).normalized() * 9.0 + Vector3.UP * 2.0
 		"raiton":
-			FX.hit_spark(pt, Color(1.0, 0.95, 0.4), 1.4)
+			FX.hit_spark(pt, Color(1.0, 0.85, 0.2), 1.4)
 			Sfx.play("chidori", pt, 1.4, 0.5)
 		"wind", "gust":
 			FX.hit_spark(pt, Color(0.6, 1.0, 0.8), 1.3)
@@ -722,7 +723,7 @@ func _update_charge(dt: float) -> void:
 
 ## Raijin Kılıcı: her vuruşta ağızdan şimşek çatırtısı; saplamada ağız şimşek olarak ileri uzar; bitirişte gökten yıldırım çakar
 func _raijin_fx(i: int, pt: Vector3) -> void:
-	var col = Color(0.75, 0.88, 1.0)
+	var col = Color(1.0, 0.88, 0.25)
 	var dir = p.face_dir()
 	var tip = p.global_position + Vector3.UP * 1.1 + dir * 1.2
 	match i:

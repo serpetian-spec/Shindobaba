@@ -2916,7 +2916,7 @@ func _attachments() -> void:
 ## Silah kını yeri: pouch = kunai çantası/kılıfı (görünmez), hip = sol kalçada kınlı kılıç (çapraz çekiş),
 ## back = sırtta çapraz (dev kılıçlar, sopalar), low_back = belin arkasında yatay, belt = yan kalçada asılı
 const SHEATH_OF := {"blade": "pouch", "dual": "pouch", "claw": "pouch", "sickle": "belt", "sword": "hip", "heavy": "back", "staff": "back", "chain": "belt", "fan": "back"}
-const SHEATH_ID := {"tanto": "low_back", "ikiz_hancer": "low_back", "tonfa": "belt", "sai": "belt", "kiba": "back", "nodachi": "back"}
+const SHEATH_ID := {"raijin": "belt", "tanto": "low_back", "ikiz_hancer": "low_back", "tonfa": "belt", "sai": "belt", "kiba": "back", "nodachi": "back"}
 ## Kınlı kılıçlar: [kın başı z, kın ucu z, kalınlık, genişlik] (silah uzayında, kabza 0, namlu +Z)
 const SAYA := {"katana": [0.075, 0.84, 0.042, 0.06], "wakizashi": [0.05, 0.6, 0.04, 0.055], "nodachi": [0.1, 1.38, 0.05, 0.11],
 	"tanto": [0.06, 0.4, 0.045, 0.045], "chokuto": [0.13, 0.9, 0.05, 0.05]}
@@ -3478,21 +3478,26 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 		"raijin":
 			# Raijin no Ken (kaynak raijinornek.png): yalnız kabza — koyu gri-mor sap, ucunda yarıklı halka topuz, kısa bilezik,
 			# kabzanın önünde yana kıvrılan hilal kanca muhafız. Ağız: kabzadan çıkan uzun sarı-yeşil ışın (ayrı parlayan düğüm).
-			var hilt = Color(0.34, 0.33, 0.4)
-			var dk2 = Color(0.2, 0.2, 0.24)
-			b.add("cyl", Vector3(0, 0, -0.07), Vector3(0.036, 0.15, 0.036), hilt, Vector3(90, 0, 0), 10)
-			for k in 4:
-				b.add("torus", Vector3(0, 0, -0.13 + k * 0.035), Vector3(0.042, 0.03, 0.042), hilt.darkened(0.12), Vector3(90, 0, 0), 10)
-			b.add("cyl", Vector3(0, 0, -0.155), Vector3(0.05, 0.02, 0.05), dk2, Vector3(90, 0, 0), 10)
-			b.add("torus", Vector3(0, 0, -0.19), Vector3(0.06, 0.05, 0.06), dk2, Vector3(0, 90, 0), 12)   # yarıklı halka topuz
-			b.add("cyl", Vector3(0, 0, 0.015), Vector3(0.048, 0.03, 0.048), dk2, Vector3(90, 0, 0), 10)   # bilezik
-			# hilal kanca muhafız: kabzanın önünden yana açılıp geriye kıvrılan yay (küçük küreler zinciri)
-			for k in 9:
-				var t = k / 8.0
-				var ang = lerpf(-0.2, PI * 1.05, t)
-				var r = 0.065
-				var q = Vector3(cos(ang) * r, sin(ang) * r * 0.25, 0.04 - sin(ang) * 0.05)
-				b.add("sphere", q + Vector3(r * 0.2, 0, 0), Vector3(0.024, 0.024, 0.024) * (1.0 - t * 0.35), dk2, Vector3.ZERO, 8)
+			# kaynak duzeltknk.png: düz, hafif şişkin koyu gri sap (halka yok); dipte yassı üçgen delikli halka topuz;
+			# önde bilezik ve bilezikten yukarı kalkıp ele doğru geri kıvrılan C kanca muhafız
+			var hilt = Color(0.36, 0.36, 0.42)
+			var dk2 = Color(0.22, 0.22, 0.27)
+			b.add("cyl", Vector3(0, 0, -0.075), Vector3(0.036, 0.15, 0.036), hilt, Vector3(90, 0, 0), 12)
+			b.add("sphere", Vector3(0, 0, -0.08), Vector3(0.042, 0.042, 0.09), hilt, Vector3.ZERO, 12)   # hafif şişkin tutma yeri
+			b.add("cyl", Vector3(0, 0, -0.16), Vector3(0.03, 0.03, 0.03), dk2, Vector3(90, 0, 0), 10)
+			# yassı üçgen halka topuz (yan yüzü dışa)
+			var tri = PackedVector2Array([Vector2(-0.032, -0.165), Vector2(0.032, -0.165), Vector2(0.0, -0.225)])
+			var hole = PackedVector2Array([Vector2(-0.016, -0.175), Vector2(0.016, -0.175), Vector2(0.0, -0.208)])
+			b.add_slab(tri, 0.018, dk2)
+			b.add_slab(hole, 0.022, Color(0.06, 0.06, 0.07))
+			b.add("cyl", Vector3(0, 0, 0.012), Vector3(0.05, 0.035, 0.05), dk2, Vector3(90, 0, 0), 12)   # bilezik
+			# C kanca muhafız: bilezikten +Y'ye kalkıp ele (-Z) doğru kıvrılan yay
+			for k in 11:
+				var t = k / 10.0
+				var ang = lerpf(0.0, PI * 1.15, t)
+				var r = 0.055
+				var q = Vector3(0, sin(ang) * r + 0.012, 0.03 - (1.0 - cos(ang)) * r * 0.5 - t * 0.02)
+				b.add("sphere", q, Vector3(0.022, 0.022, 0.022) * (1.0 - t * 0.3), dk2, Vector3.ZERO, 8)
 		"ruzgar_bicak":
 			b.add("box", Vector3(0.0, 0.0, 0.0), Vector3(0.03, 0.1, 0.11), dark)
 			b.add("box", Vector3(0, 0.0, 0.17), Vector3(0.012, 0.04, 0.24), Color(0.6, 0.62, 0.66))
@@ -3623,7 +3628,7 @@ static func _raijin_beam() -> Node3D:
 	var root = Node3D.new()
 	root.name = "RaijinBeam"
 	var L = 1.45
-	for layer in [[0.016, 0.006, Color(1.0, 1.0, 0.88), 1.0], [0.045, 0.012, Color(0.85, 1.0, 0.25), 0.45], [0.085, 0.02, Color(0.75, 1.0, 0.2), 0.16]]:
+	for layer in [[0.016, 0.006, Color(1.0, 0.98, 0.8), 1.0], [0.045, 0.012, Color(1.0, 0.85, 0.1), 0.45], [0.085, 0.02, Color(1.0, 0.78, 0.05), 0.16]]:   # sapsarı
 		var cm = CylinderMesh.new()
 		cm.bottom_radius = layer[0]
 		cm.top_radius = layer[1]
@@ -3648,7 +3653,7 @@ static func _raijin_beam() -> Node3D:
 		mi.position = Vector3(0, 0, 0.05 + L * 0.5)
 		root.add_child(mi)
 	var light = OmniLight3D.new()
-	light.light_color = Color(0.85, 1.0, 0.4)
+	light.light_color = Color(1.0, 0.85, 0.3)
 	light.light_energy = 0.8
 	light.omni_range = 2.5
 	light.position = Vector3(0, 0, 0.6)
@@ -3969,6 +3974,10 @@ func _key_blade_sk(sk: Skeleton3D, blade: Vector3) -> void:
 		n.position = w["key_pos0"] + n.transform.basis.z.normalized() * grip
 
 
+func n_in_hand(w: Dictionary) -> bool:
+	return is_instance_valid(w["node"]) and (w["node"] as Node3D).get_parent() == w["hand"]
+
+
 func flash(amount: float) -> void:
 	hit_flash = maxf(hit_flash, amount)
 
@@ -3981,7 +3990,9 @@ func react(world_dir: Vector3, amp: float, head := false) -> void:
 	overlay.hit_react(d, amp, head)
 
 
-const STANCE_ID := {"samehada": "w_samehada", "gunbai": "w_gunbai"}   # silaha özel duruş
+const STANCE_ID := {"samehada": "w_samehada", "gunbai": "w_gunbai", "raijin": "w_raijin"}
+## bekleme duruşunda iki elle tutulan silahlar: sol el IK ile kabzaya, sağ elin altına (kabza ekseninde -Z)
+const TWO_HAND_IDLE := {"raijin": -0.1}   # silaha özel duruş
 const STANCE_OF := {"blade": "w_blade", "dual": "w_dual", "sickle": "w_dual", "claw": "w_dual", "sword": "w_sword", "heavy": "w_shoulder", "staff": "w_shoulder", "chain": "w_dual", "fan": "w_fan"}   # kusarigama alçak tek el (omuzda bıçak kafaya değmesin)
 var stance := ""
 
@@ -4010,6 +4021,15 @@ func _process(dt: float) -> void:
 	if stance != "" and overlay:
 		var on = drawn and not _stowed and overlay.key_t < 0.0 and current in ["idle", "walk", "jog", "run", "air", "fall", "sword_idle"] and overlay.weights.get("ninja_run", 0.0) < 0.5 and overlay.weights.get("leap", 0.0) < 0.3
 		overlay.set_pose(stance, 1.0 if on else 0.0)
+		if rig:
+			var th = null
+			for w in weapons:
+				if w["side"] == "Right" and TWO_HAND_IDLE.has(w["id"]) and n_in_hand(w):
+					th = w
+			if th != null:
+				rig.two_hand_node = th["node"]
+				rig.two_hand_off = float(TWO_HAND_IDLE[th["id"]])
+				rig.two_hand_w = move_toward(rig.two_hand_w, overlay.weights.get(stance, 0.0), dt * 8.0)
 		if overlay.key_t < 0.0:
 			_rest_tilt(on, dt)
 	_key_blade()
