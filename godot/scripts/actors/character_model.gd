@@ -3795,6 +3795,9 @@ func _rest_tilt(on: bool, dt: float) -> void:
 const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4]}
 
 
+var _edge_x := Vector3.ZERO   # gunbai: kenar önde savuruş için yüz normali (yumuşatılmış)
+
+
 ## Anahtar animasyon bitince silahın kaydırılmış konumunu geri al
 func _key_blade() -> void:
 	if overlay != null and overlay.key_t >= 0.0:
@@ -3857,6 +3860,16 @@ func _key_blade_sk(sk: Skeleton3D, blade: Vector3) -> void:
 		if x.length() < 0.1:
 			x = Vector3.RIGHT
 		x = x.normalized()
+		if w["id"] == "gunbai" and overlay.key_roll < 45.0:
+			# kenar önde: yüz normali savuruş düzlemine dik (yassı yüzle değil kenarla/köşeyle çarpar)
+			var vel: Vector3 = overlay._key_bv
+			var ex = z.cross(vel)
+			if vel.length() > 1.5 and ex.length() > 0.05:
+				if _edge_x != Vector3.ZERO and ex.dot(_edge_x) < 0.0:
+					ex = -ex   # kenar düzlemi aynı; işaret dönünce 180° dönmesin
+				_edge_x = _edge_x.slerp(ex.normalized(), 0.35) if _edge_x != Vector3.ZERO else ex.normalized()
+			if _edge_x != Vector3.ZERO:
+				x = (_edge_x - z * _edge_x.dot(z)).normalized()
 		var want = Basis(x, z.cross(x).normalized(), z)
 		if overlay.key_roll != 0.0:
 			want = want * Basis(Vector3.BACK, deg_to_rad(overlay.key_roll))   # sap ekseni etrafında (gunbai yüzü rakibe)

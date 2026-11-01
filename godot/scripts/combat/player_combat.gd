@@ -718,11 +718,24 @@ func _gunbai_gust(i: int) -> void:
 			Sfx.play("charge", o, 0.8, 0.6)
 		4:
 			# Uchiha Gaeshi: emilen enerji yüzden ateşli dalga olarak düz ileri patlar
-			var f = o + dir * 1.6 + Vector3.UP * 0.4
-			FX.burst(f, {"amount": 40, "life": 0.45, "tex": FX.tex_soft, "size": 1.1, "radius": 0.6, "vmin": 10, "vmax": 18, "dir": dir, "spread": 28.0, "damp": 3.0,
-				"colors": [Color(1.0, 0.95, 0.7, 1), Color(1.0, 0.55, 0.15, 0.9), Color(0.7, 0.15, 0.05, 0)]})
-			FX.ring(f, Color(1.0, 0.6, 0.25), 4.5, 0.3)
-			Sfx.play("fire", f, 1.0)
+			var f = o + dir * 1.8 + Vector3.UP * 0.3
+			var side = dir.cross(Vector3.UP).normalized()
+			for k in 5:
+				var a = (k - 2) * 0.32
+				var d2 = (dir * cos(a) + side * sin(a)).normalized()
+				var fb = VFX.fireball(1.1 + 0.25 * (2 - absi(k - 2)))
+				VFX.scene().add_child(fb)
+				fb.global_position = f + d2 * 0.4
+				fb.scale = Vector3.ONE * 0.25
+				var tw = fb.create_tween().set_parallel(true)
+				tw.tween_property(fb, "global_position", f + d2 * (7.0 + 2.0 * (2 - absi(k - 2))) + Vector3.UP * 0.6, 0.55).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT).set_delay(k % 2 * 0.04)
+				tw.tween_property(fb, "scale", Vector3.ONE * 1.25, 0.35).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+				tw.chain().tween_property(fb, "scale", Vector3.ONE * 0.05, 0.25).set_ease(Tween.EASE_IN)
+				tw.chain().tween_callback(fb.queue_free)
+			VFX.embers(f, Color(1.0, 0.55, 0.12), 22, 12.0)
+			Sfx.play("fire", f, 1.0, 1.2)
+			# alev hattındakilere yanık (düz geri savrulma vuruşun kendisinde)
+			Combat.hit_zone(p, p.global_position, dir, 9.0, 40.0, 3.0, {"dmg": 4.0 * Stats.melee_mult(Game.profile), "knock": 2.0, "kind": "light", "element": "katon", "burn": 2.0})
 			if Game.world:
 				Game.world.env.add_shake(0.5)
 				Game.world.env.screen_flash(0.05)
