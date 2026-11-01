@@ -396,7 +396,7 @@ func j_suiton_suiryuudan(c: Node3D, t: Node3D) -> void:
 	VFX.splash(start - Vector3.UP * 2.4, 2.4)
 	var pr = Projectile.new()
 	pr.shooter = c
-	pr.vel = Vector3.UP * 14.0 + fd * 6.0
+	pr.vel = Vector3.UP * 12.0 + fd * 8.0
 	pr.radius = 1.8
 	pr.life = 3.5
 	pr.homing = t
@@ -419,8 +419,8 @@ func j_suiton_suiryuudan(c: Node3D, t: Node3D) -> void:
 	var age = {"t": 0.0}
 	pr.on_tick = func(p: Projectile, dt: float) -> void:
 		age["t"] += dt
-		if age["t"] < 0.85:   # yüksel ve kıvrıl (15–20 m)
-			p.vel = (Vector3.UP * 28.0 + fd.cross(Vector3.UP) * cos(age["t"] * 7.0) * 14.0 + fd * 3.0)
+		if age["t"] < 0.55:   # kullanıcının önünde kıvrılarak yükselir (~8 m; ekrandan kaçıp kaybolmasın), sonra hedefe dalar
+			p.vel = (Vector3.UP * 14.0 + fd.cross(Vector3.UP) * cos(age["t"] * 8.0) * 12.0 + fd * 6.0)
 			return
 		p.homing_turn = 6.0   # sonra hedefe dal
 		if not t and p.life < 2.8:
@@ -442,11 +442,41 @@ func j_suiton_suiryuudan(c: Node3D, t: Node3D) -> void:
 
 func j_suiton_suijinheki(c: Node3D, _t: Node3D) -> void:
 	Sfx.play("water", c.global_position, 0.9)
-	var dome = VFX._mi(VFX._sphere(0.5, 28, 14), VFX.mat_water(Color(0.05, 0.3, 0.8), Color(0.25, 0.6, 1.0), Color(0.7, 0.92, 1.0), Vector3.UP, 0.62, 0.8, 0.1))
+	# su duvarı (anime Kisame/Tobirama): yerden fışkıran su, kullanıcının çevresinde dönerek yükselen kalın su kollarına dönüşür
+	# (saydam küre yok) — dört su kolu sarmal çizip tepede birleşir, köpük ve damla saçar
+	var wm = VFX.mat_water(Color(0.04, 0.27, 0.78), Color(0.2, 0.55, 1.0), Color(0.65, 0.9, 1.0), Vector3(0, 0, 1), 0.92, 0.8, 0.08)
+	var dur = 2.4
+	for k in 4:
+		var head = Node3D.new()
+		get_tree().current_scene.add_child(head)
+		var a0 = k * TAU / 4.0
+		head.global_position = c.global_position + Vector3(cos(a0), 0.1, sin(a0)) * 2.6
+		var body = VfxSerpent.new()
+		body.style = "water"
+		body.thin = 1.0
+		body.seed_id = "suijinheki%d" % k
+		body.head = head
+		body.count = 16
+		body.spacing = 0.6
+		body.radius = 0.9
+		body.mat = wm
+		get_tree().current_scene.add_child(body)
+		var tw0 = head.create_tween()
+		tw0.tween_method(func(u: float):
+			if is_instance_valid(head) and is_instance_valid(c):
+				var a = a0 + u * TAU * 3.0
+				var h = 0.2 + 5.0 * minf(1.0, u * 2.2)
+				var r = 2.6 - 0.6 * minf(1.0, u * 2.2)
+				head.global_position = c.global_position + Vector3(cos(a) * r, h, sin(a) * r), 0.0, 1.0, dur)
+		tw0.tween_callback(head.queue_free)
+	for q in 8:
+		get_tree().create_timer(q * 0.28).timeout.connect(func():
+			if is_instance_valid(c):
+				VFX.puffs(c.global_position + Vector3.UP * randf_range(0.5, 5.0), {"amount": 10, "life": 0.6, "size": 0.6, "radius": 2.4, "vmin": 2.0, "vmax": 5.0, "dir": Vector3.UP, "spread": 70.0,
+					"gravity": Vector3(0, -14, 0), "glow": 1.05, "outline_col": Color(0.05, 0.25, 0.7), "outline": 0.045, "rough": 0.12,
+					"colors": [Color(0.7, 0.9, 1.0, 1), Color(0.3, 0.62, 1.0, 1), Color(0.2, 0.5, 0.95, 0.0)]}))
+	var dome = Node3D.new()
 	c.add_child(dome)
-	dome.position = Vector3(0, 1.0, 0)
-	dome.scale = Vector3(1, 0.2, 1)
-	dome.create_tween().tween_property(dome, "scale", Vector3(7.5, 6.0, 7.5), 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	VFX.splash(c.global_position, 2.5)
 	var e = FX.aura(c, Color(0.6, 0.85, 1.0), 2.5, Vector3(0, 0.5, 0), 0.0)
 	var tw = create_tween()
@@ -1925,21 +1955,15 @@ func j_suiton_daibakufu_no_jutsu(c: Node3D, t: Node3D) -> void:
 	var start = _ground(c.global_position + dir * 14.0)   # sütun oyuncu kamerasını yutmasın
 	Sfx.play("water", start, 0.6)
 	VFX.splash(start, 4.0)
-	# yükselen su sütunu
-	var cm = CylinderMesh.new()
-	cm.top_radius = 5.0; cm.bottom_radius = 8.5; cm.height = 1.0; cm.radial_segments = 32; cm.rings = 4
 	var wm = VFX.mat_water(Color(0.04, 0.25, 0.75), Color(0.18, 0.52, 0.98), Color(0.65, 0.9, 1.0), Vector3.UP, 0.92, 0.9, 0.15)
-	var col_ = VFX._mi(cm, wm)
-	get_tree().current_scene.add_child(col_)
-	col_.global_position = start
-	col_.scale = Vector3(1, 0.1, 1)
-	var tw = col_.create_tween()
-	tw.tween_property(col_, "scale", Vector3(1.4, 40.0, 1.4), 0.6).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-	tw.parallel().tween_property(col_, "global_position:y", start.y + 20.0, 0.6)
-	tw.tween_interval(0.3)
-	tw.tween_property(col_, "scale", Vector3(3.0, 0.1, 3.0), 0.5).set_ease(Tween.EASE_IN)
-	tw.parallel().tween_property(col_, "global_position:y", start.y, 0.5)
-	tw.tween_callback(col_.queue_free)
+	# yükselen dev su sütunu (silindir mesh yok): yerden fışkıran mavi su topakları + tepede beyaz köpük, sonra çöker
+	_ticks(12, 0.06, func(i):
+		VFX.puffs(start + Vector3.UP * (1.0 + i * 1.6), {"amount": 14, "life": 0.7, "size": 3.0, "radius": 4.5, "vmin": 10.0, "vmax": 18.0, "dir": Vector3.UP, "spread": 18.0,
+			"gravity": Vector3(0, -16, 0), "damp": 0.8, "glow": 1.06, "hot": 0.3, "outline_col": Color(0.04, 0.2, 0.62), "outline": 0.045, "rough": 0.14, "shade": 0.3,
+			"colors": [Color(0.55, 0.82, 1.0, 1), Color(0.22, 0.55, 0.98, 1), Color(0.14, 0.42, 0.9, 0.9), Color(0.1, 0.35, 0.85, 0.0)]})
+		if i > 8:
+			VFX.puffs(start + Vector3.UP * 20.0, {"amount": 10, "life": 0.6, "size": 2.0, "radius": 5.0, "vmin": 3.0, "vmax": 7.0, "spread": 120.0, "gravity": Vector3(0, -16, 0),
+				"glow": 1.05, "outline_col": Color(0.3, 0.55, 0.9), "outline": 0.03, "colors": [Color(0.95, 0.99, 1, 1), Color(0.75, 0.9, 1, 0.9), Color(0.6, 0.82, 1, 0)]}), Callable())
 	# ardından yıkıcı dev dalga
 	get_tree().create_timer(0.8).timeout.connect(func():
 		if not is_instance_valid(c):

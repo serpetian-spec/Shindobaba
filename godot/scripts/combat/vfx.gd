@@ -599,31 +599,34 @@ static func embers(pos: Vector3, col := Color(1.0, 0.6, 0.15), n := 24, speed :=
 
 ## Sıçrama tacı (su çarpması): yükselip dağılan su tacı + damlalar + köpük halkası
 static func _splash(pos: Vector3, size := 2.0) -> void:
-	# anime su sıçraması: silindir taç / halka yok — yukarı fışkıran su jetleri, damlalar, ince köpük, alçak sis
+	# anime su sıçraması: beyaz bulut değil — MAVİ su kütlesi (koyu mavi konturlu cel su topakları, uçları açık), ince su jetleri,
+	# düşen damlalar, az köpük, alçak su sisi
 	if busy():
 		return
 	var g = Game.jutsu_floor(pos.x, pos.z)
 	var base = Vector3(pos.x, maxf(g, pos.y - size), pos.z)
-	# su jetleri: yukarı fışkırıp düşen ince beyaz-mavi çizgiler
-	FX.burst(base + Vector3.UP * 0.3, {"amount": int(14 * size), "life": 0.8, "tex": FX.tex_spark, "size": 1.0 + size * 0.3, "radius": size * 0.4,
+	# su taç kütlesi: yukarı ve dışa fışkırıp düşen mavi su topakları
+	puffs(base + Vector3.UP * size * 0.3, {"amount": int(14 * size) + 6, "life": 0.75, "size": 0.55 + size * 0.22, "radius": size * 0.45,
+		"vmin": 4.0, "vmax": 8.0 + size * 2.0, "dir": Vector3.UP, "spread": 50.0, "gravity": Vector3(0, -20, 0), "damp": 0.6, "glow": 1.08, "hot": 0.35,
+		"outline_col": Color(0.04, 0.2, 0.62), "outline": 0.045, "rough": 0.14, "shade": 0.3,
+		"colors": [Color(0.62, 0.86, 1.0, 1), Color(0.28, 0.6, 0.98, 1), Color(0.16, 0.45, 0.92, 0.9), Color(0.12, 0.38, 0.85, 0.0)], "scale_curve": [[0.0, 0.4], [0.25, 1.0], [1.0, 0.6]]})
+	# su jetleri: ince mavi-beyaz çizgiler
+	FX.burst(base + Vector3.UP * 0.3, {"amount": int(12 * size), "life": 0.7, "tex": FX.tex_spark, "size": 0.9 + size * 0.3, "radius": size * 0.4,
 		"vmin": 6.0, "vmax": 10.0 + size * 2.5, "dir": Vector3.UP, "spread": 40.0, "gravity": Vector3(0, -20, 0), "damp": 0.5,
-		"colors": [Color(1, 1, 1, 1), Color(0.6, 0.85, 1.0, 0.9), Color(0.35, 0.65, 1.0, 0.0)]})
+		"colors": [Color(0.85, 0.95, 1, 1), Color(0.4, 0.72, 1.0, 0.9), Color(0.25, 0.55, 1.0, 0.0)]})
 	# damlalar
-	# Storm tarzı damlalar: camgöbeği-beyaz cel damla, ince koyu mavi kontur
-	puffs(base + Vector3.UP * size * 0.4, {"amount": int(16 * size), "life": 0.85, "size": 0.32 + size * 0.08, "radius": size * 0.5,
-		"vmin": 4.0, "vmax": 9.0 + size * 2.0, "dir": Vector3.UP, "spread": 60.0, "gravity": Vector3(0, -22, 0), "damp": 0.5, "glow": 1.05,
-		"outline_col": Color(0.08, 0.3, 0.75), "outline": 0.045, "rough": 0.12, "shade": 0.25,
-		"colors": [Color(0.95, 1.0, 1.0, 1), Color(0.45, 0.82, 1.0, 1), Color(0.3, 0.65, 1.0, 0.0)]})
-	# ince köpük: az, küçük, açık mavi konturlu
-	puffs(base + Vector3.UP * size * 0.3, {"amount": int(6 * size), "life": 0.7, "size": 0.55 * size, "radius": size * 0.5, "vmin": 3, "vmax": 7 + size,
-		"dir": Vector3.UP, "spread": 55.0, "damp": 1.5, "gravity": Vector3(0, -12, 0), "glow": 1.05, "outline_col": Color(0.45, 0.7, 0.95), "outline": 0.03, "rough": 0.15,
-		"colors": [Color(1, 1, 1, 0.95), Color(0.8, 0.93, 1, 0.8), Color(0.6, 0.85, 1, 0)]})
-	# zemin ıslanır (3-5 sn): içindekiler ıslak, şimşek değerse alan çarpılır, ateş değerse buhar
-	GroundFX.add(base, "wet", size * 1.3, 4.5)
-	# alçak su sisi
-	FX.burst(base + Vector3.UP * 0.4, {"amount": int(5 * size), "life": 1.1, "tex": FX.tex_smoke, "add": false, "cel": false, "size": 1.4 * size, "radius": size * 0.6,
+	puffs(base + Vector3.UP * size * 0.4, {"amount": int(14 * size), "life": 0.85, "size": 0.22 + size * 0.06, "radius": size * 0.5,
+		"vmin": 4.0, "vmax": 9.0 + size * 2.0, "dir": Vector3.UP, "spread": 65.0, "gravity": Vector3(0, -22, 0), "damp": 0.5, "glow": 1.05,
+		"outline_col": Color(0.05, 0.25, 0.7), "outline": 0.045, "rough": 0.1, "shade": 0.25,
+		"colors": [Color(0.75, 0.92, 1.0, 1), Color(0.35, 0.68, 1.0, 1), Color(0.25, 0.55, 1.0, 0.0)]})
+	# az köpük
+	puffs(base + Vector3.UP * size * 0.2, {"amount": int(3 * size) + 1, "life": 0.6, "size": 0.45 * size, "radius": size * 0.4, "vmin": 2, "vmax": 5 + size,
+		"dir": Vector3.UP, "spread": 55.0, "damp": 1.5, "gravity": Vector3(0, -10, 0), "glow": 1.05, "outline_col": Color(0.3, 0.55, 0.9), "outline": 0.03, "rough": 0.15,
+		"colors": [Color(0.9, 0.97, 1, 0.95), Color(0.7, 0.88, 1, 0.8), Color(0.55, 0.8, 1, 0)]})
+	# alçak su sisi (mavimsi)
+	FX.burst(base + Vector3.UP * 0.4, {"amount": int(4 * size), "life": 1.0, "tex": FX.tex_smoke, "add": false, "cel": false, "size": 1.3 * size, "radius": size * 0.6,
 		"vmin": 1.0, "vmax": 3.0, "dir": Vector3.UP, "spread": 80.0, "damp": 2.0,
-		"colors": [Color(0.85, 0.94, 1.0, 0.0), Color(0.85, 0.94, 1.0, 0.45), Color(0.85, 0.94, 1.0, 0.0)]})
+		"colors": [Color(0.7, 0.86, 1.0, 0.0), Color(0.7, 0.86, 1.0, 0.4), Color(0.7, 0.86, 1.0, 0.0)]})
 
 
 ## Cel duman halkası (patlamanın etrafında yayılan)
