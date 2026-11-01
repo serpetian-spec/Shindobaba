@@ -43,15 +43,15 @@ static func steps() -> Array:
 			_g(0.32, 0.6, 10, 25, Vector3(0.0, 0.92, 0.4), S.H_FWD, S.L_BACK, L, 90.0),
 			_g(0.55, 0.55, 10, 22, Vector3(0.0, 0.92, 0.38), S.H_FWD, S.L_BACK, L, 90.0),
 		]},
-		# 5: tam tur dönüş + aşağıdan yukarı fırlatan rüzgâr
-		{"len": 0.8, "hit": 0.62, "extra_hits": [0.24, 0.38], "extra_radius": 3.0, "keys": [
-			_g(0.0, 0.55, 10, 22, Vector3(0.0, 0.92, 0.38), S.H_FWD, S.L_BACK, L, 90.0),
-			_g(0.10, 0.35, -30, 5, Vector3(-0.95, 0.1, 0.3), S.H_SIDE, S.L_SIDE, W),
-			_g(0.20, 0.45, -130, 20, Vector3(-1.0, -0.1, 0.0), S.H_SIDE, S.L_SIDE, W),
-			_g(0.30, 0.55, -240, 28, Vector3(-0.9, -0.25, -0.3), S.H_HIP_LOW, S.L_SIDE, L),
-			_g(0.40, 0.6, -330, 32, Vector3(-0.6, -0.3, -0.7), S.H_HIP_LOW, S.L_SIDE, L),
-			_g(0.50, 0.8, -360, 42, Vector3(0.0, -0.55, 0.83), S.H_LOW_FRONT, S.L_BACK, L),
-			_g(0.62, 0.4, -360, 5, Vector3(0.0, 0.75, 0.66), S.H_CHEST, S.L_BACK, L),
-			_g(0.80, 0.25, -360, -8, Vector3(0.0, 1.0, 0.1), S.H_UP, S.L_BACK, W),
+		# 5: kepçe savuruşu — yerden arkadan öne-yukarı dikey çember (dönüş yok)
+		{"len": 0.8, "hit": 0.62, "keys": [
+			_g(0.0, 0.5, 8, 18, Vector3(0.0, 0.92, 0.38), S.H_CHEST, S.L_BACK, L, 90.0),
+			_g(0.12, 0.6, -15, 30, Vector3(-0.3, -0.5, -0.81), S.H_HANG, S.L_FWD, L, 90.0),
+			_g(0.26, 0.8, -20, 38, Vector3(-0.2, -0.2, -0.96), S.H_HANG, S.L_FWD, L, 90.0),
+			_g(0.40, 0.75, -10, 40, Vector3(-0.35, -0.6, 0.72), S.H_HIP_FRONT, S.L_FWD, L, 90.0),
+			_g(0.52, 0.7, 0, 35, Vector3(0.0, -0.3, 0.95), S.H_LOW_FRONT, S.L_SIDE, L, 90.0),
+			_g(0.62, 0.15, 5, 0, Vector3(0.0, 0.7, 0.71), S.H_CHEST, S.L_BACK, W, 90.0),
+			_g(0.72, 0.05, 5, -10, Vector3(0.0, 1.0, 0.1), S.H_UP, S.L_BACK, W, 90.0),
+			_g(0.80, 0.1, 5, -15, Vector3(0.0, 0.85, -0.53), S.H_UP, S.L_BACK, W, 90.0),
 		]},
 	]

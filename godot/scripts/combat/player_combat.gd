@@ -712,6 +712,7 @@ func _gunbai_gust(i: int) -> void:
 			if Game.world:
 				Game.world.env.add_shake(0.5)
 		4:
+			VFX.debris(p.global_position + dir * 1.8, Color(0.6, 0.52, 0.4), 12, 9.0, 0.25)   # kepçeyle kalkan kum
 			VFX.puffs(o + dir * 2.0, {"amount": 24, "life": 0.6, "size": 0.6, "radius": 1.0, "vmin": 8, "vmax": 14, "dir": Vector3.UP, "spread": 20.0,
 				"colors": [Color(0.92, 0.96, 1.0, 0.6), Color(0.85, 0.92, 1.0, 0)]})
 		_:
