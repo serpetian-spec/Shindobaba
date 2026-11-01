@@ -467,6 +467,7 @@ static func default_look() -> Dictionary:
 func setup(l: Dictionary) -> void:
 	look = default_look()
 	look.merge(l, true)
+	look["hair_style"] = HAIR_ALIAS.get(look.get("hair_style", "diken"), look.get("hair_style", "diken"))
 	if look.get("face_style") == null and look.get("mask") != null:
 		look["face_style"] = {"anbu": "anbu_kedi", "cloth": "cloth"}.get(look["mask"], null)
 	if look.get("outer_style") == null and look.get("cloak") != null:
@@ -2399,14 +2400,13 @@ const HAIR_FILES := {
 ## Saç stilleri (arayüzde gösterilen adlar)
 const HAIR_STYLES := {"diken": "Dikenli", "dağınık": "Dağınık", "kase": "Kâse", "kısa": "Kısa", "uzun": "Uzun", "atkuyruğu": "At Kuyruğu",
 	"ananas": "Ananas Topuz", "topuz": "Topuz", "ikiz_topuz": "İkiz Topuz", "yele": "Uzun Yele", "kakul": "Tek Göz Kâkül", "geriye": "Geriye Taranmış",
-	"orgu": "Örgü", "mohikan": "Mohikan", "kirpik": "Kısa Kirpi", "kisa_kakul": "Kâküllü Kısa",
-	"dalgali": "Dalgalı Uzun", "savas_yelesi": "Savaş Yelesi", "bilge_yelesi": "Bilge Yelesi", "yuksek_kuyruk": "Yüksek At Kuyruğu", "yan_kuyruk": "Yan At Kuyruğu", "ikiz_kuyruk": "İkiz Kuyruk",
-	"ikiz_orgu": "İkiz Örgü", "samuray": "Samuray Tepesi", "savasci_kuyruk": "Savaşçı Kuyruğu", "alev": "Alev Dikeni",
-	"geriye_diken": "Geriye Dikenli", "yan_tarama": "Yana Taranmış", "perde": "Ortadan Ayrık", "kabarik": "Kabarık",
-	"ruzgar": "Rüzgâr Savruğu", "yabani": "Yabani Yele", "ense_kuyruk": "Ense Kuyruğu", "alcak_topuz": "Alçak Topuz",
-	"kazinmis": "Kazınmış", "yan_kazinmis": "Yanları Kazınmış", "golge": "Gölge Kâkül", "cerceve": "Yüz Çerçeveli",
-	"yan_orgu": "Yan Örgü", "bagli_uzun": "Bağlı Uzun", "tepe_diken": "Tepe Dikeni", "yan_topuz": "Yan Topuz",
-	"kel": "Kel"}
+	"orgu": "Örgü", "kirpik": "Kısa Kirpi"}
+## Kaldırılan saç modelleri (kullanıcı: 14 ve 16–43) -> en yakın kalan model (eski kayıtlar, NPC'ler)
+const HAIR_ALIAS := {"mohikan": "kirpik", "kisa_kakul": "kısa", "dalgali": "uzun", "savas_yelesi": "yele", "bilge_yelesi": "yele",
+	"yuksek_kuyruk": "atkuyruğu", "yan_kuyruk": "atkuyruğu", "ikiz_kuyruk": "atkuyruğu", "ikiz_orgu": "orgu", "samuray": "topuz",
+	"savasci_kuyruk": "atkuyruğu", "alev": "diken", "geriye_diken": "geriye", "yan_tarama": "kısa", "perde": "uzun", "kabarik": "dağınık",
+	"ruzgar": "dağınık", "yabani": "yele", "ense_kuyruk": "atkuyruğu", "alcak_topuz": "topuz", "kazinmis": "kirpik", "yan_kazinmis": "kirpik",
+	"golge": "kakul", "cerceve": "uzun", "yan_orgu": "orgu", "bagli_uzun": "atkuyruğu", "tepe_diken": "diken", "yan_topuz": "topuz", "kel": "kirpik"}
 static var _scalp_cache := {}
 static var _hair_cache := {}
 
@@ -3335,9 +3335,7 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 	var wrap = Color(0.85, 0.82, 0.75)
 	match id:
 		"kunai":
-			b.add("cyl", Vector3(0, 0, -0.02), Vector3(0.022, 0.1, 0.022), wrap, Vector3(90, 0, 0), 6)
-			b.add("torus", Vector3(0, 0, -0.085), Vector3(0.05, 0.05, 0.05), dark, Vector3(90, 0, 0), 8)
-			b.add("sphere", Vector3(0, 0, 0.1), Vector3(0.05, 0.012, 0.17), steel, Vector3.ZERO, 6)
+			_kunai_mesh(b)
 		"tanto":
 			b.add("cyl", Vector3(0, 0, -0.03), Vector3(0.03, 0.13, 0.03), dark, Vector3(90, 0, 0), 8)
 			b.add("box", Vector3(0, 0, 0.04), Vector3(0.07, 0.05, 0.012), Color(0.6, 0.5, 0.3))
@@ -3608,6 +3606,38 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 	var m = b.build(Props.toon())
 	_weapon_cache[id] = m
 	return m
+
+
+## Kunai (kaynak ornekkunai.png): baklava kesitli yaprak bıçak (dört yüz: üst yüzler açık çelik, alt yüzler koyu — anime ışığı),
+## orta sırt çizgisi, kısa boyun; sıkı sarılı koyu gri sap (boğumlu sargı), sonda kalın halka. Kabza 0, uç +Z, yassı yüz ±X.
+static func _kunai_mesh(b: MB) -> void:
+	var lite = Color(0.86, 0.88, 0.92)
+	var mid = Color(0.58, 0.6, 0.65)
+	var shade = Color(0.2, 0.21, 0.24)
+	var z0 = 0.075; var zw = 0.125; var z1 = 0.285
+	var w = 0.046; var t = 0.011
+	var P = {"b": Vector3(0, 0, z0), "tip": Vector3(0, 0, z1), "u": Vector3(0, w, zw), "d": Vector3(0, -w, zw), "l": Vector3(t, 0, zw), "r": Vector3(-t, 0, zw)}
+	var tri = func(a: Vector3, bb: Vector3, c: Vector3, col: Color):
+		var n = (bb - a).cross(c - a).normalized()
+		var base = b.verts.size()
+		for q in [a, bb, c]:
+			b.verts.append(q); b.normals.append(n); b.colors.append(col); b.uvs.append(Vector2.ZERO)
+		b.idx.append_array(PackedInt32Array([base, base + 1, base + 2, base, base + 2, base + 1]))
+	# ön (+x) ve arka (-x) yüzler: üst yarı açık, alt yarı koyu; taban (kısa) ve uç (uzun) bölümleri
+	for side in ["l", "r"]:
+		var c_hi = lite if side == "l" else mid
+		var c_lo = shade
+		tri.call(P["tip"], P["u"], P[side], c_hi)
+		tri.call(P["tip"], P[side], P["d"], c_lo)
+		tri.call(P["b"], P["u"], P[side], c_hi.darkened(0.12))
+		tri.call(P["b"], P[side], P["d"], c_lo.lightened(0.08))
+	# boyun + sap (boğumlu sargı) + halka
+	var grip = Color(0.25, 0.25, 0.28)
+	b.add("cyl", Vector3(0, 0, 0.068), Vector3(0.022, 0.018, 0.022), mid, Vector3(90, 0, 0), 8)
+	b.add("cyl", Vector3(0, 0, 0.0), Vector3(0.024, 0.12, 0.024), grip, Vector3(90, 0, 0), 8)
+	for k in 7:
+		b.add("torus", Vector3(0, 0, -0.05 + k * 0.016), Vector3(0.03, 0.022, 0.03), grip.lightened(0.12 if k % 2 == 0 else 0.0), Vector3(90, 0, 0), 8)
+	b.add("torus", Vector3(0, 0, -0.088), Vector3(0.062, 0.05, 0.062), grip.darkened(0.15), Vector3(0, 90, 0), 12)
 
 
 func _eye_texture(iris: Color, right: bool) -> ImageTexture:

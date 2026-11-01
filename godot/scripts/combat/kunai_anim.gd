@@ -3,10 +3,10 @@ class_name KunaiAnim
 ## Hafif silah: kısa geri çekme (0.06–0.1 sn) -> çok hızlı vuruş -> kısa devam; vuruşlar birbirine akar.
 ## Tutuş değişimi: 1-2 düz tutuş, 3-5 ters tutuş (bıçak ön kol boyunca geriye), 6 tekrar düz.
 
-const L_GUARD := {"LeftUpperArm": Vector3(0.35, -0.75, 0.55), "LeftLowerArm": Vector3(-0.35, 0.8, 0.5)}    # el yüz önünde
+const L_GUARD := {"LeftUpperArm": Vector3(0.3, -0.92, 0.25), "LeftLowerArm": Vector3(0.0, -0.15, 1.0)}    # alçak doğal gard: ön kol bel hizasında öne (havada yüz önünde değil)
 const L_REACH := {"LeftUpperArm": Vector3(0.2, -0.3, 0.93), "LeftLowerArm": Vector3(0.05, -0.1, 1)}       # mesafe için öne
 const L_BACK := {"LeftUpperArm": Vector3(0.55, -0.6, -0.55), "LeftLowerArm": Vector3(0.3, -0.6, -0.75)}
-const L_SUPPORT := {"LeftUpperArm": Vector3(0.0, 0.6, 0.8), "LeftLowerArm": Vector3(-0.6, 0.7, 0.2)}      # sağ bileği destekler (yukarıda)
+const L_SUPPORT := {"LeftUpperArm": Vector3(0.3, -0.85, 0.42), "LeftLowerArm": Vector3(-0.2, -0.3, 0.93)}      # çekiçte sol el aşağıda dengede
 
 const R_READY := {"RightUpperArm": Vector3(-0.25, -0.9, 0.35), "RightLowerArm": Vector3(-0.1, -0.15, 1)}
 const R_COCK := {"RightUpperArm": Vector3(-0.3, -0.95, -0.1), "RightLowerArm": Vector3(-0.15, -0.3, 0.94)}    # bilek geri, kalça yanında

@@ -44,7 +44,7 @@ const FINGERS := ["Index", "Middle", "Ring", "Little"]
 const FINGER_SEG := ["Proximal", "Intermediate", "Distal"]
 const THUMB_SEG := ["Metacarpal", "Proximal", "Distal"]
 const STANCE := {
-	"w_blade": [["RightUpperArm", Vector3(-0.3, -0.75, 0.55)], ["RightLowerArm", Vector3(0.25, 0.35, 0.9)], ["LeftUpperArm", Vector3(0.35, -0.8, 0.45)], ["LeftLowerArm", Vector3(-0.1, 0.2, 0.97)]],
+	"w_blade": [["RightUpperArm", Vector3(-0.22, -0.93, 0.28)], ["RightLowerArm", Vector3(-0.05, -0.35, 0.94)], ["LeftUpperArm", Vector3(0.22, -0.97, 0.06)], ["LeftLowerArm", Vector3(0.1, -0.9, 0.42)]],   # kunai: sağ el kalça önünde öne dönük, sol kol rahat aşağıda
 	"w_sword": [["RightUpperArm", Vector3(-0.15, -0.8, 0.55)], ["RightLowerArm", Vector3(0.3, -0.2, 0.93)], ["LeftUpperArm", Vector3(0.2, -0.8, 0.55)], ["LeftLowerArm", Vector3(-0.45, -0.15, 0.88)]],
 	"w_shoulder": [["RightUpperArm", Vector3(-0.75, -0.25, 0.6)], ["RightLowerArm", Vector3(0.15, 0.95, 0.2)]],
 	"w_dual": [["LeftUpperArm", Vector3(0.4, -0.8, 0.45)], ["LeftLowerArm", Vector3(0.1, -0.35, 0.93)], ["RightUpperArm", Vector3(-0.4, -0.8, 0.45)], ["RightLowerArm", Vector3(-0.1, -0.35, 0.93)]],

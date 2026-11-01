@@ -6,7 +6,6 @@ extends RefCounted
 ## roll: namlunun düzlemini çevirmek için uzun eksen etrafında derece; tint: dokuyu koruyarak renk çarpanı
 
 const WEAPONS := {
-	"kunai": {"file": "kunai_yanez", "len": 0.3, "grip": 0.18},
 	"altin_kunai": {"file": "kunai_yanez", "len": 0.32, "grip": 0.18, "tint": Color(1.0, 0.82, 0.45)},
 	"zincirli_kunai": {"file": "kunai_yanez", "len": 0.3, "grip": 0.18},
 	"patlayici_kunai": {"file": "kunai_explosive", "len": 0.34, "grip": 0.33, "flip": true},
