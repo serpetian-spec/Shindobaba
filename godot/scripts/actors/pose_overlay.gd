@@ -305,18 +305,31 @@ func _plant_pose(sk: Skeleton3D, w: float) -> void:
 ## Jutsu pozu: gövde, kollar (sırayla), parmaklar
 func play_keys(step: Dictionary, spd := 1.0) -> void:
 	_key_chain = key_t >= 0.0   # önceki vuruş sürerken geldiyse boş duruşa dönmeden akarak devam
+	_key_out = 0.0
 	key_anim = step
 	key_t = 0.0
 	key_spd = spd
 
 
+## Kombo bitince çağrılır: son poz 0.18 sn'de yumuşakça alttaki animasyona bırakılır
 func stop_keys() -> void:
+	if key_t >= 0.0 and _key_out <= 0.0:
+		_key_out = 0.18
+
+
+func _end_keys() -> void:
 	key_t = -1.0
+	_key_out = 0.0
 	key_blade = Vector3.ZERO
 	_key_bv = Vector3.ZERO
+	_key_prev = Vector3.ZERO
+
+
+var _key_out := 0.0
 
 
 var _key_chain := false
+var _key_hold := 0.0
 var _key_bv := Vector3.ZERO      # kılıç ucunun yumuşatılmış açısal hızı (gövde tepkisi için)
 var _key_prev := Vector3.ZERO
 
@@ -328,11 +341,19 @@ static func _cr(a, b, c, d, u: float):
 
 ## Anahtar karelerden akıcı animasyon + gövdenin kılıca tepkisi (burulma, öne yüklenme)
 func _apply_keys(sk: Skeleton3D, dt: float) -> void:
-	key_t += dt * key_spd
 	var ln: float = key_anim["len"]
-	if key_t > ln + 0.15:
-		stop_keys()
-		return
+	# son pozda bekler (sıradaki vuruş gelene ya da kombo bitene kadar); boş duruşa dönüp zıplamaz
+	key_t = minf(key_t + dt * key_spd, ln)
+	_key_hold = _key_hold + dt if key_t >= ln else 0.0
+	if _key_hold > 0.7 and _key_out <= 0.0:
+		_key_out = 0.18   # güvenlik: kombo sistemi bırakmadıysa (vurulma vb.) kendiliğinden bırak
+	var w_out = 1.0
+	if _key_out > 0.0:
+		_key_out -= dt
+		if _key_out <= 0.0:
+			_end_keys()
+			return
+		w_out = _key_out / 0.18
 	var keys: Array = key_anim["keys"]
 	var n = keys.size()
 	var i = 0
@@ -360,7 +381,10 @@ func _apply_keys(sk: Skeleton3D, dt: float) -> void:
 	var lean_add = clampf(-_key_bv.y * 4.0, -10.0, 16.0)
 	var twist = clampf(blade.x * 22.0 + _key_bv.x * 5.0, -35.0, 35.0)
 	cp["twist"] = twist
-	var lean_b = Basis(Vector3.RIGHT, deg_to_rad(lean_add))
+	cp["spine"] = cp["spine"] + lean_add
+	cp["neck"] = cp["neck"] - lean_add * 0.6
+	cp["roll"] = clampf(-blade.x * 10.0 - _key_bv.x * 2.0, -14.0, 14.0)   # yana savuruşta gövde o yana yatar
+	var lean_b = Basis.IDENTITY
 	var arms = []
 	var b0: Dictionary = k0["b"]
 	var b1: Dictionary = k1["b"]
@@ -375,7 +399,7 @@ func _apply_keys(sk: Skeleton3D, dt: float) -> void:
 	cp["arms"] = arms
 	key_blade = blade
 	var w_in = 1.0 if _key_chain else clampf(key_t / 0.08, 0.0, 1.0)
-	var w = w_in * clampf((ln + 0.15 - key_t) / 0.15, 0.0, 1.0)
+	var w = w_in * w_out
 	_apply_cast(sk, w, cp)
 
 
@@ -394,8 +418,16 @@ func _apply_cast(sk: Skeleton3D, w: float, cp_in := {}) -> void:
 	if cp.get("hips_yaw", 0.0) != 0.0:
 		_add_local(sk, "Hips", Vector3(0, deg_to_rad(cp["hips_yaw"]), 0), w)
 	if cp.get("spine", 0.0) != 0.0:
-		_add_local(sk, "Spine", Vector3(deg_to_rad(cp["spine"]) * 0.5, 0, 0), w)
-		_add_local(sk, "Chest", Vector3(deg_to_rad(cp["spine"]) * 0.5, 0, 0), w)
+		var sp = deg_to_rad(cp["spine"])
+		if cp.has("roll"):
+			# anahtar animasyon: eğimin bir kısmı kalçadan (pelvis öne devrilir), kalanı bel/göğüs; yana yatma bel/göğüste
+			var rl = deg_to_rad(cp["roll"])
+			_add_local(sk, "Hips", Vector3(sp * 0.25, 0, 0), w)
+			_add_local(sk, "Spine", Vector3(sp * 0.4, 0, rl * 0.5), w)
+			_add_local(sk, "Chest", Vector3(sp * 0.35, 0, rl * 0.5), w)
+		else:
+			_add_local(sk, "Spine", Vector3(sp * 0.5, 0, 0), w)
+			_add_local(sk, "Chest", Vector3(sp * 0.5, 0, 0), w)
 	if cp.get("neck", 0.0) != 0.0:
 		_add_local(sk, "Neck", Vector3(deg_to_rad(cp["neck"]), 0, 0), w)
 	if cp.get("twist", 0.0) != 0.0:

@@ -3261,7 +3261,7 @@ func _process(dt: float) -> void:
 	# silah duruşu: beklerken/yürürken silaha göre kollar; saldırı, mühür ve ninja koşusunda kapanır
 	_weapon_process(dt)
 	if stance != "" and overlay:
-		var on = drawn and not _stowed and current in ["idle", "walk", "jog", "run", "air", "fall", "sword_idle"] and overlay.weights.get("ninja_run", 0.0) < 0.5 and overlay.weights.get("leap", 0.0) < 0.3
+		var on = drawn and not _stowed and overlay.key_t < 0.0 and current in ["idle", "walk", "jog", "run", "air", "fall", "sword_idle"] and overlay.weights.get("ninja_run", 0.0) < 0.5 and overlay.weights.get("leap", 0.0) < 0.3
 		overlay.set_pose(stance, 1.0 if on else 0.0)
 		_rest_tilt(on, dt)
 	_key_blade()

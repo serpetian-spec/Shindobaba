@@ -11,16 +11,10 @@ const LEG_LUNGE := {"RightUpperLeg": Vector3(-0.2, -0.35, 0.92), "RightLowerLeg"
 
 
 static func _k(t: float, crouch: float, yaw: float, spine: float, blade: Vector3, arms: Dictionary, legs: Dictionary) -> Dictionary:
-	# gövde eğimi kemik yönüyle (öne eğilme açısı): bel < göğüs, kafa ileri bakar
-	var lean = deg_to_rad(spine)
-	var b = {}   # sıra önemli: önce gövde, sonra kollar/bacaklar (gövde dönünce kol yönleri bozulmasın)
-	b["Spine"] = Vector3(0, cos(lean * 0.6), sin(lean * 0.6))
-	b["Chest"] = Vector3(0, cos(lean), sin(lean))
-	b["Neck"] = Vector3(0, cos(lean * 0.5), sin(lean * 0.5))
-	b["Head"] = Vector3(0, 1, 0.05)
-	b.merge(arms)
+	# gövde eğimi: kalça + bel + göğüs yerel bükülür (kemik yönü yöntemi bu iskelette gövdeyi dik bırakıyordu); kafa ileri bakar
+	var b = arms.duplicate()
 	b.merge(legs)
-	return {"t": t, "crouch": crouch, "hips_yaw": yaw, "spine": 0.0, "neck": 0.0, "blade": blade, "b": b}
+	return {"t": t, "crouch": crouch, "hips_yaw": yaw, "spine": spine, "neck": -spine * 0.75, "blade": blade, "b": b}
 
 
 # Pozlar _tmp/ed/kisame_desc.md tarifinden birebir (her tarif karesi bir anahtar; zamanlar video saniyesi).

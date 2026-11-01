@@ -335,6 +335,7 @@ func _do_attack(dt: float) -> bool:
 			_start_step()
 		else:
 			action = ""
+			p.model.overlay.stop_keys()
 			if step >= COMBO.size() - 1:
 				step = -1
 	return true
