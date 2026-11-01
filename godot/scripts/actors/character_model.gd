@@ -3055,7 +3055,7 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			var tomoes = [Vector2(-0.13, c1 - 0.06), Vector2(0.12, c1 - 0.1), Vector2(0.03, c1 + 0.13), Vector2(-0.2, c2 - 0.12), Vector2(0.2, c2 - 0.15), Vector2(0.0, c2 + 0.16)]
 			var ti = 0
 			for tp in tomoes:
-				for sxx in [1.0, -1.0]:
+				for sxx in [1.0]   # tomoe yalnız ön (dış) yüzde:
 					var px = sxx * 0.038
 					b.add("sphere", Vector3(px, tp.x, tp.y), Vector3(0.012, 0.05, 0.05), tomo, Vector3.ZERO, 10)
 					b.add("cone", Vector3(px, tp.x + 0.026, tp.y + 0.03), Vector3(0.01, 0.065, 0.022), tomo, Vector3(-45.0 - ti * 37.0, 0, 0), 5)
