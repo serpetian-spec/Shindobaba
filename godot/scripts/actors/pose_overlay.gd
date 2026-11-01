@@ -335,13 +335,17 @@ func _apply_keys(sk: Skeleton3D, dt: float) -> void:
 	var cp = {}
 	for n in ["crouch", "hips_yaw", "spine", "neck"]:
 		cp[n] = lerpf(a.get(n, 0.0), b.get(n, 0.0), f)
+	var raw_yaw: float = cp["hips_yaw"]
+	cp["hips_yaw"] = wrapf(raw_yaw, -180.0, 180.0)   # tam tur dönüş: sayısal yol dönüşü verir, uygulanan açı sarılır
+	# dönüş (|yaw| > 60): kollar, bacaklar ve kılıç gövdeyle birlikte döner (yönler gövdeye göre tarif edildi)
+	var spin = Basis(Vector3.UP, deg_to_rad(raw_yaw)) if absf(raw_yaw) > 60.0 else Basis.IDENTITY
 	var arms = []
 	var ab: Dictionary = a["b"]
 	var bb: Dictionary = b["b"]
 	for bone in ab:
-		arms.append([bone, (ab[bone] as Vector3).normalized().lerp((bb.get(bone, ab[bone]) as Vector3).normalized(), f)])
+		arms.append([bone, spin * (ab[bone] as Vector3).normalized().lerp((bb.get(bone, ab[bone]) as Vector3).normalized(), f)])
 	cp["arms"] = arms
-	key_blade = (a["blade"] as Vector3).normalized().slerp((b["blade"] as Vector3).normalized(), f)
+	key_blade = spin * (a["blade"] as Vector3).normalized().slerp((b["blade"] as Vector3).normalized(), f)
 	var w = clampf(key_t / 0.05, 0.0, 1.0) * clampf((ln + 0.12 - key_t) / 0.12, 0.0, 1.0)
 	_apply_cast(sk, w, cp)
 

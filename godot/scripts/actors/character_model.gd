@@ -3198,11 +3198,19 @@ func _rest_tilt(on: bool, dt: float) -> void:
 		var cur_q = n.transform.basis.get_rotation_quaternion()
 		var q = cur_q.slerp(tgt.get_rotation_quaternion(), minf(1.0, dt * (6.0 if on else 14.0)))
 		n.transform.basis = Basis(q).scaled(n.transform.basis.get_scale())
+		# videoda Kisame sapı EN UCUNDAN (kurukafanın dibinden) tutar: silah sap boyunca ileri kaydırılır
+		if not w.has("key_pos0"):
+			w["key_pos0"] = n.position
+		n.position = w["key_pos0"] + n.transform.basis.z.normalized() * 0.58 * n.transform.basis.get_scale().z
 
 
 ## Anahtar kare animasyonunda (Samehada kombosu) sağ eldeki silahın ucu, pozdaki "blade" yönüne çevrilir
 func _key_blade() -> void:
 	if overlay == null or overlay.key_t < 0.0 or overlay.key_blade == Vector3.ZERO or skel == null:
+		for w in weapons:
+			if w.has("key_pos0") and is_instance_valid(w["node"]):
+				(w["node"] as Node3D).position = w["key_pos0"]
+				w.erase("key_pos0")
 		return
 	var z: Vector3 = overlay.key_blade.normalized()
 	var x = Vector3.UP.cross(z)
