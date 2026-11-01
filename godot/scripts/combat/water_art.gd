@@ -27,65 +27,93 @@ static func crown_mesh(n := 9, seed_ := 0) -> ArrayMesh:
 static var _crowns: Array = []
 
 
-## Sıçrama: su tacı hızla kabarır, yapraklar dışa devrilip çöker; damlalar yay çizip düşer. s: boyut (m)
+## Sıçrama (kaynak: Kisame Storm videosu): yoğun beyaz-soluk camgöbeği SPREY — yukarı fışkırıp düşen ince su çizgileri
+## ve minik damlalar; altta yarı saydam soluk su tacı; yerde kısa süren yarı saydam su halkası. Kalın topak/parça yok.
 static func splash(pos: Vector3, s := 1.0) -> void:
 	if VFX.busy():
 		return
+	var g = Game.jutsu_floor(pos.x, pos.z)
+	var base = Vector3(pos.x, maxf(g, pos.y - s * 0.6), pos.z)
+	spray(base + Vector3.UP * 0.2, s, Vector3.UP, 35.0, 1.0, true)
 	if _crowns.is_empty():
 		for i in 3:
 			_crowns.append(crown_mesh(9 + i, 77 + i))
-	var sc = VFX.scene()
 	var mi = MeshInstance3D.new()
 	mi.mesh = _crowns[randi() % _crowns.size()]
-	mi.material_override = mat()
+	mi.material_override = sheet_mat()
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	sc.add_child(mi)
-	var g = Game.jutsu_floor(pos.x, pos.z)
-	mi.global_position = Vector3(pos.x, maxf(g, pos.y - s * 0.6), pos.z)
+	VFX.scene().add_child(mi)
+	mi.global_position = base
 	mi.rotation.y = randf() * TAU
-	mi.scale = Vector3(s * 0.6, 0.05, s * 0.6)
+	mi.scale = Vector3(s * 0.5, 0.05, s * 0.5)
 	var tw = mi.create_tween()
-	tw.tween_property(mi, "scale", Vector3(s * 1.1, s * 1.3, s * 1.1), 0.16).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.tween_property(mi, "scale", Vector3(s * 1.6, s * 0.15, s * 1.6), 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_property(mi, "scale", Vector3(s * 0.85, s * 0.9, s * 0.85), 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(mi, "scale", Vector3(s * 1.3, s * 0.1, s * 1.3), 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tw.tween_callback(mi.queue_free)
-	drops(pos + Vector3.UP * s * 0.4, int(6 + s * 4), s)
+	if pos.y - g < 1.5 + s:
+		ripple(Vector3(pos.x, g, pos.z), s * 1.4)
 
 
-## Su damlaları: iri, gövdeli damlalar yay çizip düşer, uçarken hıza göre uzar, yere değince yassılaşıp kaybolur
-static func drops(pos: Vector3, n := 8, s := 1.0, vmax := 7.0, dir := Vector3.ZERO, spread := 0.5) -> void:
+## Soluk, yarı saydam su yüzeyi malzemesi (taç, halka): videodaki gibi mat çelik-camgöbeği, beyaz akış çizgili
+static var _sheet: ShaderMaterial
+static func sheet_mat() -> ShaderMaterial:
+	if _sheet == null:
+		_sheet = VFX.mat_water(Color(0.05, 0.28, 0.78), Color(0.2, 0.55, 0.98), Color(0.62, 0.88, 1.0), Vector3.UP, 0.62, 0.9, 0.08).duplicate()
+	return _sheet
+
+
+## İnce su spreyi: hızla fışkırıp yerçekimiyle düşen beyaz/camgöbeği su çizgileri + minik damla noktaları + hafif su sisi
+static func spray(pos: Vector3, s := 1.0, dir := Vector3.UP, spread := 35.0, speed := 1.0, mist := false) -> void:
 	if VFX.busy():
 		return
-	var sc = VFX.scene()
-	var m = mat()
+	var v = (7.0 + s * 3.0) * speed
+	FX.burst(pos, {"amount": int(26 + s * 22), "life": 0.75, "tex": FX.tex_spark, "add": false, "cel": false, "size": 0.55 + s * 0.12, "radius": 0.25 * s,
+		"vmin": v * 0.5, "vmax": v, "dir": dir, "spread": spread, "gravity": Vector3(0, -20, 0), "damp": 0.4,
+		"colors": [Color(1, 1, 1, 1), Color(0.86, 0.95, 1.0, 0.95), Color(0.7, 0.87, 0.97, 0.0)]})
+	FX.burst(pos, {"amount": int(30 + s * 30), "life": 0.85, "tex": FX.tex_soft, "add": false, "cel": false, "size": 0.09 + s * 0.02, "radius": 0.35 * s,
+		"vmin": v * 0.35, "vmax": v * 1.1, "dir": dir, "spread": spread + 15.0, "gravity": Vector3(0, -20, 0), "damp": 0.3, "smin": 0.4, "smax": 1.0,
+		"colors": [Color(1, 1, 1, 1), Color(0.9, 0.97, 1.0, 1), Color(0.75, 0.9, 1.0, 0.0)]})
+	if not mist:
+		return
+	FX.burst(pos + Vector3.UP * 0.3 * s, {"amount": int(3 + s * 2), "life": 0.8, "tex": FX.tex_smoke, "add": false, "cel": false, "size": 1.0 * s + 0.5, "radius": 0.4 * s,
+		"vmin": 0.8, "vmax": 2.0, "dir": dir, "spread": 60.0, "damp": 2.0, "colors": [Color(0.92, 0.97, 1.0, 0.0), Color(0.9, 0.96, 1.0, 0.35), Color(0.9, 0.96, 1.0, 0.0)]})
+
+
+## Yerde kısa süren yarı saydam su halkası (sıçrayan suyun yayılması); ~1 sn'de söner
+static func ripple(g: Vector3, r := 1.5) -> void:
+	var dc = Decal.new()
+	dc.texture_albedo = FX._puddle(randi())
+	dc.modulate = Color(0.62, 0.8, 0.9, 0.55)
+	dc.size = Vector3(r * 2.0, 1.0, r * 2.0)
+	dc.cull_mask = 1
+	VFX.scene().add_child(dc)
+	dc.global_position = g + Vector3.UP * 0.2
+	dc.rotation.y = randf() * TAU
+	dc.scale = Vector3.ONE * 0.4
+	var tw = dc.create_tween()
+	tw.tween_property(dc, "scale", Vector3.ONE, 0.35).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_property(dc, "modulate:a", 0.0, 1.0).set_delay(0.2)
+	tw.tween_callback(dc.queue_free)
+
+
+## Su damlaları/öbekleri (eski 3B damla çağrıları): ince sprey olarak çizilir (iri parçalar buz/duman gibi duruyordu)
+static func drops(pos: Vector3, n := 8, s := 1.0, vmax := 7.0, dir := Vector3.ZERO, spread := 0.5) -> void:
+	var d = dir if dir != Vector3.ZERO else Vector3.UP
+	spray(pos, clampf(s * 0.6 + n * 0.04, 0.4, 3.0), d, rad_to_deg(spread) if dir != Vector3.ZERO else 45.0, clampf(vmax / 8.0, 0.6, 2.0))
+
+
+## Dalga duvarı (kaynak: Kisame Storm dalgası): genişlik boyunca öne kıvrık, farklı boylarda tırtıklı tepeli kalın su dilleri
+## + alçak taban. -Z ileri. w genişlik, h yükseklik
+static func wave_mesh(w := 8.0, h := 2.5) -> ArrayMesh:
+	var rng = RandomNumberGenerator.new()
+	rng.randomize()
+	var b = MB.new()
+	var n = int(w / 0.55) + 2
 	for k in n:
-		var mi = MeshInstance3D.new()
-		mi.mesh = VFX._sphere(0.5, 14, 8)
-		mi.material_override = m
-		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		sc.add_child(mi)
-		var r = randf_range(0.035, 0.075) * minf(sqrt(s), 1.6)   # küçük yuvarlak damla (iri köşeli parçalar buz/duman gibi duruyordu)
-		mi.global_position = pos
-		var a = randf() * TAU
-		var v = Vector3(cos(a), 0, sin(a)) * randf_range(1.0, vmax * 0.6) * sqrt(s) + Vector3.UP * randf_range(vmax * 0.5, vmax) * sqrt(s)
-		if dir != Vector3.ZERO:   # yönlü akış (su seli/jet): ileri fırlayan su kütleleri
-			v = (dir.normalized() + Vector3(randf_range(-spread, spread), randf_range(0.0, spread), randf_range(-spread, spread))).normalized() * randf_range(vmax * 0.7, vmax)
-		var gy = Game.jutsu_floor(pos.x, pos.z)
-		var st0 = {"landed": false}
-		var tw = mi.create_tween()
-		tw.tween_method(func(t: float):
-			if not is_instance_valid(mi) or st0["landed"]:
-				return
-			var p = pos + v * t + Vector3.DOWN * 11.0 * t * t
-			if p.y <= gy + 0.03 and t > 0.05:
-				st0["landed"] = true
-				mi.global_position = Vector3(p.x, gy + 0.03, p.z)
-				mi.queue_free()   # yere değince yok olur (yerde kalan parçalar buz kırığı gibi duruyordu)
-				return
-			mi.global_position = p
-			var sp = v + Vector3.DOWN * 22.0 * t
-			if sp.length() > 0.1:
-				mi.look_at(p + sp, Vector3.UP if absf(sp.normalized().y) < 0.95 else Vector3.RIGHT)
-			mi.scale = Vector3(r, r, r * (1.0 + clampf(sp.length() * 0.08, 0.0, 1.0))), 0.0, 1.6, 1.6)
-		tw.tween_callback(func():
-			if is_instance_valid(mi):
-				mi.queue_free())
+		var x = -w * 0.5 + w * k / float(n - 1)
+		var hh = h * rng.randf_range(0.55, 1.1) * (1.0 - 0.45 * pow(absf(x) / (w * 0.5), 2.0))
+		var th = rng.randf_range(0.5, 0.75)
+		var pts = [Vector3(x, 0, 0.3), Vector3(x, hh * 0.45, 0.05), Vector3(x + rng.randf_range(-0.1, 0.1), hh * 0.85, -0.25), Vector3(x, hh, -0.65), Vector3(x, hh * 0.85, -0.95)]
+		Loft.tube(b, pts, [Vector2(th, 0.45), Vector2(th * 0.9, 0.38), Vector2(th * 0.7, 0.28), Vector2(th * 0.45, 0.16), Vector2(0.04, 0.04)], Color.WHITE, 8, 3, true, true, Callable(), Vector3.FORWARD)
+	Loft.tube(b, [Vector3(-w * 0.55, 0.1, 0.6), Vector3(w * 0.55, 0.1, 0.6)], [Vector2(0.5, 0.25), Vector2(0.5, 0.25)], Color.WHITE, 8, 2)
+	return b.build(null)

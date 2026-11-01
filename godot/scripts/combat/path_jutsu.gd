@@ -4705,12 +4705,9 @@ func p_suiton_mizurappa(c: Node3D, t: Node3D) -> void:
 	var d = fwd(c, t)
 	var from = _mouth_pos(c)
 	VFX.gather(from, WATER, 1.0)
-	# Mizurappa: ağızdan patlayan kalın su seli — genişleyerek öne akar, önündekileri sürükler, sonunda dev sıçrama
-	_water_jet_fx(c, from, (d - Vector3.UP * 0.08).normalized(), 16.0, 4.0, 0.7, 1.7)
-	after(0.45, func():
-		var end = gp(c.global_position + d * 15.0)
-		VFX.splash(end, 3.0))
-	Combat.hit_zone(c, c.global_position, d, 16.0, 24.0, 3.0, inf(c, "suiton_mizurappa", 0.9, {"knock": 14.0, "kind": "heavy", "element": "suiton", "dir": d}))
+	# Mizurappa (kaynak: Kisame Storm): ağızdan fışkıran su önde soluk, tırtıklı tepeli dev bir dalgaya dönüşüp ilerler
+	WaterArt.spray(from + d * 0.5, 1.2, d, 20.0, 1.6)
+	JutsuEngine._water_wave(c, Jutsu._jd("suiton_mizurappa"), gp(c.global_position + d * 2.0), d, 7.0, 2.2, 16.0, inf(c, "suiton_mizurappa", 0.9, {"knock": 14.0, "kind": "heavy", "element": "suiton", "dir": d}))
 	shake(0.4)
 	Sfx.play("water", c.global_position, 0.8)
 

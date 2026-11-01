@@ -608,29 +608,33 @@ static func _aoe(c: Node3D, d: Dictionary, t: Node3D, v: String) -> void:
 ## Yerde dışa yayılan halka dalga (su/lav seli)
 ## Su dalgası (mesh yok): genişlik boyunca öne yuvarlanan mavi cel su topakları, beyaz köpüklü kıvrık tepe, düşen damlalar
 static func _water_wave(c: Node3D, d: Dictionary, start: Vector3, dir: Vector3, w: float, h: float, dist: float, inf: Dictionary) -> void:
-	var side = dir.cross(Vector3.UP).normalized()
+	# kaynak (Kisame Storm): soluk yarı saydam dev su dalgası — öne kıvrık tırtıklı tepeler, tepeden beyaz sprey, ardında yerde su
+	var mi = MeshInstance3D.new()
+	mi.mesh = WaterArt.wave_mesh(w, h * 1.3)
+	mi.material_override = WaterArt.sheet_mat()
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	scene().add_child(mi)
+	mi.global_transform = Transform3D(Basis.looking_at(dir, Vector3.UP), start)
+	mi.scale = Vector3(1, 0.05, 1)
 	var hit = []
 	Sfx.play(_snd(d), start)
-	var tw = c.create_tween() if is_instance_valid(c) else scene().create_tween()
 	var st0 = {"i": 0}
-	tw.tween_method(func(k: float):
+	var tw = mi.create_tween()
+	tw.tween_property(mi, "scale", Vector3.ONE, 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.parallel().tween_method(func(k: float):
 		st0["i"] += 1
 		var p = start + dir * k * dist
-		var hh = h * (0.5 + 0.5 * minf(1.0, k * 4.0)) * (1.0 - maxf(0.0, k - 0.8) * 2.5)
-		if st0["i"] % 2 == 0 and not VFX.busy():
-			for q in 5:
-				var o = side * randf_range(-w * 0.5, w * 0.5)
-				# dalga gövdesi (mavi)
-				VFX.puffs(p + o + Vector3.UP * randf_range(0.2, hh * 0.7), {"amount": 2, "life": 0.5, "size": 0.9 + hh * 0.35, "radius": 0.4, "vmin": 2.0, "vmax": 5.0,
-					"dir": (dir + Vector3.UP * 0.6).normalized(), "spread": 25.0, "gravity": Vector3(0, -14, 0), "damp": 1.0, "glow": 1.06, "hot": 0.3,
-					"water": true, "outline_col": Color(0.04, 0.2, 0.62), "outline": 0.045, "rough": 0.14, "shade": 0.3,
-					"colors": [Color(0.5, 0.8, 1.0, 1), Color(0.22, 0.55, 0.98, 1), Color(0.14, 0.42, 0.9, 0.9), Color(0.1, 0.35, 0.85, 0.0)]})
-			# kıvrık tepe köpüğü + damlalar
-			VFX.puffs(p + side * randf_range(-w * 0.5, w * 0.5) + Vector3.UP * hh + dir * 0.6, {"amount": 3, "life": 0.45, "size": 0.6 + hh * 0.15, "radius": 0.5, "vmin": 2.0, "vmax": 5.0,
-				"dir": (dir + Vector3.UP * 0.3).normalized(), "spread": 30.0, "gravity": Vector3(0, -16, 0), "glow": 1.05, "water": true, "outline_col": Color(0.3, 0.55, 0.9), "outline": 0.03, "rough": 0.15,
-				"colors": [Color(0.95, 0.99, 1, 1), Color(0.75, 0.9, 1, 0.9), Color(0.6, 0.82, 1, 0)]})
+		if is_instance_valid(mi):
+			mi.global_position = p
+		if st0["i"] % 3 == 0:
+			var side = dir.cross(Vector3.UP).normalized()
+			WaterArt.spray(p + side * randf_range(-w * 0.45, w * 0.45) + Vector3.UP * h * 1.1 - dir * 0.5, 0.9, (dir + Vector3.UP * 0.6).normalized(), 30.0)
+		if st0["i"] % 6 == 0:
+			WaterArt.ripple(Vector3(p.x, Game.jutsu_floor(p.x, p.z), p.z) - dir * 1.0, w * 0.35)
 		if is_instance_valid(c):
 			hit.append_array(Combat.hit_sphere(c, p + Vector3.UP, w * 0.5, inf, hit)), 0.0, 1.0, 1.0)
+	tw.tween_property(mi, "scale", Vector3(1.1, 0.05, 1.1), 0.3)
+	tw.tween_callback(mi.queue_free)
 
 
 static func _wave_ring(pos: Vector3, r: float, m: Material, dur: float) -> void:
