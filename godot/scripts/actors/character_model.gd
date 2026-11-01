@@ -505,6 +505,10 @@ func setup(l: Dictionary) -> void:
 	skel.add_child(overlay)
 	rig = WeaponRig.new()   # overlay'den sonra: silahlı el yumruk, kın hareketi
 	skel.add_child(rig)
+	if skel.find_bone("LeftHand") >= 0:
+		var lr = _grest(skel.find_bone("LeftHand"))
+		rig.left_holder = (lr.basis.orthonormalized().inverse() * _grip_xf("Left").basis.orthonormalized())
+		rig.left_grip_pos = lr.basis.orthonormalized().inverse() * (_grip_xf("Left").origin - lr.origin)
 	drawn = look.get("drawn", true)
 	_place_weapons()
 	apply_age(look.get("age", "adult"))
@@ -3084,7 +3088,7 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 			# belt: yan kalçada aşağı sarkar
 			var hp = _grest(skel.find_bone("Hips")).origin
 			var b = _frame(Vector3(sx * 0.12, -1.0, 0.18), Vector3(sx, 0, 0))
-			xf = Transform3D(b, hp + Vector3(sx * 0.2, 0.1, 0.03))
+			xf = Transform3D(b, hp + Vector3(sx * 0.2, 0.1 - (0.12 if id == "raijin" else 0.0), 0.03))   # raijin kabzası kemerden aşağı sarkar
 	var holder: Node3D = _attach("UpperChest" if kind == "back" else "Hips", xf).get_child(0)
 	if kind == "back" and id in ["bashosen", "samehada", "gunbai"]:
 		# Bashōsen / Samehada / Gunbai: havada duran deri kelepçe yok; Samehada ve Gunbai'de göğüs kayışı var (animedeki gibi)
@@ -3492,12 +3496,13 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			b.add_slab(hole, 0.022, Color(0.06, 0.06, 0.07))
 			b.add("cyl", Vector3(0, 0, 0.012), Vector3(0.05, 0.035, 0.05), dk2, Vector3(90, 0, 0), 12)   # bilezik
 			# C kanca muhafız: bilezikten +Y'ye kalkıp ele (-Z) doğru kıvrılan yay
-			for k in 11:
-				var t = k / 10.0
+			for k in 28:   # sık, üst üste binen parçalar: tek parça düzgün kanca (tespih gibi boncuklu değil)
+				var t = k / 27.0
 				var ang = lerpf(0.0, PI * 1.15, t)
 				var r = 0.055
 				var q = Vector3(0, sin(ang) * r + 0.012, 0.03 - (1.0 - cos(ang)) * r * 0.5 - t * 0.02)
-				b.add("sphere", q, Vector3(0.022, 0.022, 0.022) * (1.0 - t * 0.3), dk2, Vector3.ZERO, 8)
+				b.add("sphere", q, Vector3(0.02, 0.02, 0.02) * (1.0 - t * 0.35), dk2, Vector3.ZERO, 8)
+			b.add("cyl", Vector3(0, 0, 0.04), Vector3(0.03, 0.025, 0.03), Color(0.95, 0.85, 0.4), Vector3(90, 0, 0), 10)   # ışın çıkış ağzı
 		"ruzgar_bicak":
 			b.add("box", Vector3(0.0, 0.0, 0.0), Vector3(0.03, 0.1, 0.11), dark)
 			b.add("box", Vector3(0, 0.0, 0.17), Vector3(0.012, 0.04, 0.24), Color(0.6, 0.62, 0.66))
@@ -3650,7 +3655,7 @@ static func _raijin_beam() -> Node3D:
 		mi.mesh = cm
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		mi.rotation_degrees = Vector3(90, 0, 0)
-		mi.position = Vector3(0, 0, 0.05 + L * 0.5)
+		mi.position = Vector3(0, 0, 0.04 + L * 0.5)   # ışın çıkış ağzına yapışık
 		root.add_child(mi)
 	var light = OmniLight3D.new()
 	light.light_color = Color(1.0, 0.85, 0.3)

@@ -15,6 +15,9 @@ var reach_w := 0.0            # 0..1 (CharacterModel kın animasyonunda sürer)
 var two_hand_node: Node3D = null   # iki elle tutuş: sol el bu silahın sapına (kabzadan two_hand_off m ileride) uzanır
 var two_hand_off := 0.32
 var two_hand_w := 0.0
+var left_holder := Basis.IDENTITY   # sol el tutuş çerçevesi (el kemiği uzayında)
+var left_flip := false   # sol el sağ elle aynı yönde kabzayı sarar (test: öndeki yumruk kabzanın etrafında)
+var left_grip_pos := Vector3.ZERO   # sol el tutuş noktası (el kemiği uzayında)
 var reach_open := false       # true: kol uzanırken el açık kalır (Rasengan / Chidori avucu), yumruk yapmaz
 static var AX := Vector3(-1, 0, 0)   # VRoid parmak kıvrım ekseni (kemik yerel -X)
 
@@ -79,6 +82,13 @@ func _two_hand_ik(sk: Skeleton3D, w: float) -> void:
 	var inv = sk.global_transform.affine_inverse()
 	var wx: Transform3D = two_hand_node.global_transform
 	var tgt: Vector3 = inv * (wx.origin + wx.basis.z.normalized() * two_hand_off)
+	# bilek hedefi: avuçtaki tutuş noktası kabzaya otursun (bilek kemiği tutuş noktasının gerisinde)
+	var want_hand0 := Basis.IDENTITY
+	if left_holder != Basis.IDENTITY:
+		var wb0: Basis = (sk.global_transform.basis.orthonormalized().inverse() * wx.basis.orthonormalized())
+		var wh0 = Basis(-wb0.x, -wb0.y, wb0.z) if left_flip else wb0
+		want_hand0 = (wh0 * left_holder.inverse()).orthonormalized()
+		tgt -= want_hand0 * left_grip_pos
 	var S = sk.get_bone_global_pose(ua).origin
 	var E = sk.get_bone_global_pose(la).origin
 	var H = sk.get_bone_global_pose(hb).origin
@@ -97,6 +107,15 @@ func _two_hand_ik(sk: Skeleton3D, w: float) -> void:
 	_rot_model(sk, "LeftUpperArm", elbow - S, w)
 	var E2 = sk.get_bone_global_pose(la).origin
 	_rot_model(sk, "LeftLowerArm", (S + dn * dist) - E2, w)
+	# sol el de sağ el gibi kabzayı sarar: elin tutuş çerçevesi silahın çerçevesine (kabza ekseni aynı) hizalanır
+	if left_holder != Basis.IDENTITY:
+		var wb: Basis = (sk.global_transform.basis.orthonormalized().inverse() * wx.basis.orthonormalized())
+		var want_holder = Basis(-wb.x, -wb.y, wb.z) if left_flip else wb
+		var want_hand: Basis = (want_holder * left_holder.inverse()).orthonormalized()
+		var par = sk.get_bone_parent(hb)
+		var pbas: Basis = sk.get_bone_global_pose(par).basis.orthonormalized() if par >= 0 else Basis.IDENTITY
+		var loc = (pbas.inverse() * want_hand).get_rotation_quaternion()
+		sk.set_bone_pose_rotation(hb, sk.get_bone_pose_rotation(hb).slerp(loc, clampf(w, 0.0, 1.0)))
 
 
 ## Parmağı dinlenme pozuna göre verilen kıvrıma (mutlak) yaklaştır: animasyondaki açık el ne olursa olsun kapanır
