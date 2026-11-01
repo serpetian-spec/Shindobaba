@@ -885,7 +885,7 @@ func _paint_body() -> void:
 		m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, g["arrays"], [], {}, _surface_flags(g))
 		_body_cache[key] = m
 		_shell_cache[key] = _build_shell(g, func(c): return _shell_offset(c), 22)
-		_shell_cache[key + "|vest"] = _build_shell(g, func(c): return {10: 0.035, 11: 0.055, 12: 0.058, 20: 0.05}.get(c, 0.0), 14)
+		_shell_cache[key + "|vest"] = _build_shell(g, func(c): return {10: 0.04, 11: 0.064, 12: 0.066, 20: 0.056}.get(c, 0.0), 14)   # sırtta gömlek yarıklardan görünmesin
 	body_mesh.mesh = _body_cache[key]
 	body_mesh.skin = g["skin"]
 	body_mesh.set_surface_override_material(0, _cloth_mat(0))
