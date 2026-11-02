@@ -166,7 +166,12 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 		var face_south = sh[1] > 0.0  # caddenin kuzeyindekiler güneye (caddeye) bakar
 		var yaw = 0.0 if face_south else 180.0
 		b.house_ti = HouseKit.rect_template(rng, sh[6] + 4.0, 14.0)   # köşeli dükkân binası (yuvarlak kule / kubbe değil)
+		b.shift_off_road = true
 		b.house(sh[0], sh[1], sh[6] + 4.0, 14.0, 2, yaw, "konoha", rng)
+		b.shift_off_road = false
+		sh = sh.duplicate()
+		sh[0] = b.placed_xn.x   # bina caddeden kaydırıldıysa vitrin/kapı/afiş onunla gelir
+		sh[1] = b.placed_xn.y
 		var dn = -1.0 if face_south else 1.0
 		var hd = float(b.last_house.get("d", 11.0))
 		SpecialBuildings.shop_front(b, decor, sh[0], sh[1] + dn * hd * 0.5, dn, sh[2], sh[4], sh[6])
@@ -230,6 +235,8 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 			var rr: float = ring[0]
 			var hxp = ux + rr * sin(deg_to_rad(a)); var hnp = un + rr * cos(deg_to_rad(a))
 			b.house(hxp, hnp, 11, 9, 1 + (k % 2), a + 180.0, "konoha", rng)
+			if not b.house_ok:
+				continue   # ev kurulmadıysa Uchiha arması havada kalmasın
 			var fo = Builder.rot(2.4, -float(b.last_house.get("d", 9.0)) * 0.5 - 0.1, a + 180.0)
 			b.disc(Vector3(hxp + fo.x, _gy(b, hxp, hnp) + 2.6, hnp + fo.y), 1.4, 0.12, Color(0.8, 0.15, 0.15), a + 180.0, 12)
 	b.yoff = _gy(b, ux, un)
@@ -439,9 +446,9 @@ static func _street_houses(b: Builder, v: Dictionary, rng: RandomNumberGenerator
 						var yaw = rad_to_deg(atan2(-fd.x, -fd.y))
 						b.house_ti = ti
 						b.house(q.x, q.y, tw + 0.1, td + 0.1, 3, yaw, "konoha", rng)
-						placed = true
+						placed = b.house_ok   # yol yüzünden atlandıysa kapı/fener eklenmez (sokak ortasında binasız kapı kalıyordu)
 						var fo = Builder.rot(0, -td * 0.5 - 1.0, yaw)
-						if row == 0:
+						if row == 0 and placed:
 							VL.doors["konoha"].append(_gp(b, q.x + fo.x, q.y + fo.y))
 							if count % 11 == 4:
 								_door(b, q.x + fo.x, q.y + fo.y, 2.0, "home", "[F] Kapıyı çal (misafir ol)", "", count)

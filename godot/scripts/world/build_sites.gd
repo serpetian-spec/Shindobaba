@@ -226,7 +226,10 @@ static func _shop_row(b: Builder, style: String, rng: RandomNumberGenerator, inn
 			q += dir * 30.0   # yer doluysa (meydan yapısı) caddenin ilerisine
 		var fd = -nrm * sd   # cadde yönü
 		var yaw = rad_to_deg(atan2(-fd.x, -fd.y))
+		b.shift_off_road = true
 		b.house(q.x, q.y, 15.0, 12.0, 2, yaw, style, rng)
+		b.shift_off_road = false
+		q = b.placed_xn   # bina yoldan kaydırıldıysa tente/kapı onunla gelir
 		var hd = float(b.last_house.get("d", 12.0))
 		var front = q + fd * (hd * 0.5 + 0.2)
 		var g = b._ground_off(front.x, front.y, 2.0).y

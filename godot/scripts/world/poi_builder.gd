@@ -18,6 +18,7 @@ static func build(parent: Node3D, p: Dictionary) -> void:
 	node.name = p["id"]
 	parent.add_child(node)
 	var b := Builder.new(node, x, y, g, p["id"])
+	b.shift_off_road = true   # POI yapıları yola değerse atlanmasın, yoldan kaydırılsın (han tabelası/karakol binasız kalıyordu)
 	b.view_dist = 1800.0
 	var style: String = STYLE.get(p.get("country", "fire"), "wood")
 	# arazi biyomu ülkeden baskın: çölde kerpiç, karda ahşap-karlı, kayalıkta taş
