@@ -519,6 +519,7 @@ const ITEMS := {
 	"bashosen": {"name": "Bashōsen", "slot": "sag", "price": 0, "rank": 4, "legend": true, "desc": "Altı Yolun Bilgesi'nin hazine yelpazesi: kırmızı uçlu beyaz tüyler. Bashōsen tekniklerini (Kaze/Hi/Rai/Mizu no Maki) yalnız bu yelpaze kuşanılmışken atabilirsin.", "stats": {"chakra": 40}, "weapon": {"hit": 5.5, "dmg": 1.5, "reach": 0.9, "style": "fan"}, "c1": Color(0.72, 0.1, 0.2)},
 	"gunbai": {"name": "Gunbai Savaş Yelpazesi", "slot": "sag", "price": 0, "rank": 4, "legend": true, "desc": "Dev yuvarlak demir yelpaze. Savuruşu fırtına gibi iter, kendisi kalkan olur. Kuşanılıyken Katon jutsuları %10 güçlü.", "stats": {"def": 10, "chakra": 20}, "weapon": {"hit": 6.5, "dmg": 1.8, "reach": 1.1, "style": "fan", "special": "gust", "boost": {"katon": 0.10}}, "c1": Color(0.75, 0.15, 0.15)},
 	"uc_tirpan": {"name": "Üç Bıçaklı Tırpan", "slot": "sag", "price": 0, "rank": 4, "legend": true, "desc": "Kızıl üç bıçaklı dev tırpan. Ağır: iki elle arkadan savrulur; biçer, bacak keser, kancayla çeker, yere saplanır, havaya fırlatır.", "stats": {"melee": 0.1}, "weapon": {"hit": 7.5, "dmg": 2.15, "reach": 1.4, "style": "heavy"}, "c1": Color(0.75, 0.12, 0.12)},
+	"hiraishin_kunai": {"name": "Hiraishin Kunai", "slot": "el", "price": 3200, "rank": 3, "desc": "Üç dişli, kanjili sargılı kunai (Minato tarzı). Her isabet hedefe Hiraishin işareti koyar; kombo sırasında işaretin yanında sarı flaşla belirip vurursun.", "stats": {"speed": 0.06, "melee": 0.06}, "weapon": {"hit": 5.5, "dmg": 1.4, "reach": 0.3, "style": "blade", "special": "hiraishin"}, "c1": Color(0.95, 0.85, 0.3)},
 	"sai": {"name": "Sai", "slot": "el", "price": 380, "rank": 1, "desc": "Çift el üç dişli savunma hançeri. Yan dişleriyle silahı kilitler, ters tutuşla topuzla vurur, saplar.", "stats": {"def": 3}, "weapon": {"hit": 5, "dmg": 1.25, "reach": 0.2, "style": "dual"}, "c1": Color(0.7, 0.72, 0.76)},
 }
 
@@ -547,7 +548,7 @@ const SHOP_CLOTHES := ["uchiha_yakali", "uchiha_uzun", "uchiha_beyaz", "uchiha_p
 	"zincir_yelek", "kayis_kosum", "deri_pul_zirh", "gogus_plakasi", "ame_yelek", "jonin_koyu",
 	"panco", "yirtik_pelerin", "jinbaori", "kesis_cubbesi", "kesa", "bantli_palto", "mino", "gece_pelerini",
 	"omuz_zirhi", "dizlik", "agir_zirh", "uzun_sargi_eldiven", "tespih", "sirt_sepeti", "bel_parsomenleri", "bel_cantasi", "sashimono", "ip_kangali"]
-const SHOP_WEAPONS := ["sai", "kunai", "senbon", "ikiz_hancer", "tonfa", "bo", "tanto", "kama", "patlayici_kunai", "zincirli_kunai", "pence", "musta",
+const SHOP_WEAPONS := ["hiraishin_kunai", "sai", "kunai", "senbon", "ikiz_hancer", "tonfa", "bo", "tanto", "kama", "patlayici_kunai", "zincirli_kunai", "pence", "musta",
 	"wakizashi", "altin_kunai", "katana", "mizrak", "yelpaze", "el_shuriken", "kusarigama", "savas_cekici", "chakra_bicak", "nodachi"]
 ## Sadece görev ödülü olarak düşen (dükkânda satılmayan) parçalar dahil ödül havuzu
 const REWARD_POOL := ["kafa_bandaji", "gozluk", "kasa", "kapuson", "atki", "kol_sargisi", "eldiven", "kolluk", "bacak_koruma", "tabi", "hakama",

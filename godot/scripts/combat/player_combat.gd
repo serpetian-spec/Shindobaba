@@ -350,10 +350,13 @@ func _do_attack(dt: float) -> bool:
 				lunge = minf(9.0, dist / maxf(0.05, c["hit"] - t) * 0.9)
 			else:
 				lunge = 0.0
-		var v = p.face_dir() * lunge + p.model.overlay.root_vel   # adımla ilerleme: basan ayak yerinde kalır
+		var rv0: Vector3 = p.model.overlay.root_vel if (tgt == null or tgt.global_position.distance_to(p.global_position) - tgt.radius - p.radius > 0.9) else Vector3.ZERO   # hedefe değince adım durur (içinden geçmesin)
+		var v = p.face_dir() * lunge + rv0   # adımla ilerleme: basan ayak yerinde kalır
 		p.velocity.x = v.x; p.velocity.z = v.z
 	else:
 		var rv: Vector3 = p.model.overlay.root_vel
+		if tgt and tgt.global_position.distance_to(p.global_position) - tgt.radius - p.radius < 0.9:
+			rv = Vector3.ZERO
 		if rv.length() > 0.05:
 			p.velocity.x = rv.x; p.velocity.z = rv.z
 		else:

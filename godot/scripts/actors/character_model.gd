@@ -3018,6 +3018,8 @@ func _weapons() -> void:
 			node = wrap
 		var hand: Node3D = _attach(side + "Hand", _grip_xf(side)).get_child(0)
 		hand.add_child(node)
+		if id == "hiraishin_kunai":
+			node.scale = Vector3.ONE * 0.6   # gerçek kunai boyu (~40 cm)
 		if SAYA.has(id):
 			node.transform.basis = Basis(Vector3.BACK, PI * 0.5) * Basis(Vector3.RIGHT, deg_to_rad(KATANA_TIP_DOWN))
 		if id == "raijin":
@@ -3374,6 +3376,41 @@ func _update_rope() -> void:
 		var y = dv / L
 		var x = y.cross(Vector3.FORWARD if absf(y.dot(Vector3.FORWARD)) < 0.9 else Vector3.RIGHT).normalized()
 		_rope[k].global_transform = Transform3D(Basis(x, y * L, x.cross(y)), (p0 + p1) * 0.5)   # yalnız kendi ekseninde uzar
+
+
+## Hiraishin Kunai (raijinbaba.png, Minato): siyah halka topuz, kanjili bej sargılı sap, siyah boğaz; üç dişli ağız —
+## ortada uzun sivri diş, iki yanda dışa açılıp ileri kıvrılan hilal dişler; koyu çelik gövde, açık renk keskin iç kenarlar.
+## Kabza 0, ağız +Z, dişler y-z düzleminde (yassı yüz X).
+static func _hiraishin_kunai(b: MB) -> void:
+	var blk = Color(0.1, 0.1, 0.11)
+	var tan = Color(0.84, 0.68, 0.46)
+	var steel = Color(0.2, 0.2, 0.23)
+	var edge = Color(0.82, 0.84, 0.88)
+	b.add("torus", Vector3(0, 0, -0.185), Vector3(0.13, 0.13, 0.13), blk, Vector3(0, 0, 90), 16)      # halka (y-z düzleminde)
+	b.add("cyl", Vector3(0, 0, -0.11), Vector3(0.026, 0.03, 0.026), blk, Vector3(90, 0, 0), 10)    # halka boynu
+	b.add("cyl", Vector3(0, 0, 0.0), Vector3(0.044, 0.2, 0.044), tan, Vector3(90, 0, 0), 10)       # sargılı sap
+	for k in 4:   # kanji fırça izleri (sapın üstünde siyah)
+		b.add("box", Vector3(0.0, 0.022, -0.06 + k * 0.04), Vector3(0.018, 0.004, 0.02), blk, Vector3(0, 0, 0))
+		b.add("box", Vector3(0.0, -0.022, -0.05 + k * 0.04), Vector3(0.014, 0.004, 0.016), blk)
+	for z in [-0.1, 0.1]:
+		b.add("cyl", Vector3(0, 0, z), Vector3(0.048, 0.012, 0.048), blk, Vector3(90, 0, 0), 10)
+	b.add("cyl", Vector3(0, 0, 0.12), Vector3(0.03, 0.03, 0.03), blk, Vector3(90, 0, 0), 10)        # boğaz
+	# orta diş (y, z profil), kalınlık x
+	var mid = PackedVector2Array([Vector2(-0.026, 0.125), Vector2(0.026, 0.125), Vector2(0.03, 0.17), Vector2(0.014, 0.33), Vector2(0.0, 0.48),
+		Vector2(-0.014, 0.33), Vector2(-0.03, 0.17)])
+	b.add_slab(mid, 0.012, steel, Transform3D.IDENTITY, func(q: Vector2) -> float: return 0.004 if absf(q.x) > 0.018 or q.y > 0.4 else 0.014, steel.lightened(0.2))
+	# yan hilal dişler: boğazdan dışa açılır, ileri kıvrılarak sivrilir
+	for sy in [-1.0, 1.0]:
+		var o = [[0.02, 0.125], [0.07, 0.125], [0.125, 0.14], [0.165, 0.175], [0.18, 0.22], [0.172, 0.27], [0.15, 0.32],   # dış kenar (geniş hilal)
+			[0.142, 0.268], [0.13, 0.225], [0.1, 0.19], [0.06, 0.172], [0.028, 0.168]]                         # iç (keskin) kenar
+		var pts = PackedVector2Array()
+		for q in o:
+			pts.append(Vector2(q[0] * sy, q[1]))
+		b.add_slab(pts, 0.01, steel, Transform3D.IDENTITY, Callable(), steel.lightened(0.2))
+		var ie = PackedVector2Array()   # iç keskin kenar açık şerit
+		for q in [[0.15, 0.32], [0.142, 0.268], [0.13, 0.225], [0.1, 0.19], [0.06, 0.172], [0.03, 0.168], [0.034, 0.158], [0.066, 0.162], [0.108, 0.18], [0.142, 0.218], [0.155, 0.268]]:
+			ie.append(Vector2(q[0] * sy, q[1]))
+		b.add_slab(ie, 0.012, edge)
 
 
 ## Sai (sai.png): siyah sap + altın spiral kordon, metal topuz; korumadan iki yana çıkıp ileri kıvrılan yan dişler (yoku),
@@ -3805,6 +3842,8 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			_w_star(b, Vector3(0, 0, 0.5), 0.62, 0.3, 4, Color(0.55, 0.57, 0.62), dark)
 		"sai", "sai_sol":
 			_sai(b)   # sai.png
+		"hiraishin_kunai":
+			_hiraishin_kunai(b)   # raijinbaba.png
 		"uc_tirpan":
 			# üç bıçaklı kızıl tırpan (kaynak tirpan.png, ölçüler resimden metreye): tutuş z=0 (sağ yumruk sargının alt kısmında),
 			# pommel z=-0.16; beyaz bez sargı -> kırmızı sap -> siyah boğaz -> üç beyaz bilezik (arkalarında koyu kırmızı takoz),
@@ -4219,7 +4258,7 @@ func _rest_tilt(on: bool, dt: float) -> void:
 
 
 ## anahtar animasyonlu silahlar: [tutuş kaydırma (yumruk sap boyunca ileri), iz başı z, iz ucu z, elden uca boy]
-const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45], "kabutowari": [0.0, 0.3, 0.82, 0.85], "ruzgar_bicak": [0.0, 0.1, 0.6, 0.62]}
+const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45], "kabutowari": [0.0, 0.3, 0.82, 0.85], "ruzgar_bicak": [0.0, 0.1, 0.6, 0.62], "hiraishin_kunai": [0.0, 0.14, 0.47, 0.48]}   # uzunluklar silahın kendi ölçeğiyle çarpılır
 
 
 var _edge_x := Vector3.ZERO   # gunbai: kenar önde savuruş için yüz normali (yumuşatılmış)

@@ -616,12 +616,12 @@ func _add_local(sk: Skeleton3D, bone: String, euler: Vector3, w: float) -> void:
 # ------------------------------------------------------------------ adımla ilerleme (root motion)
 ## Anahtar animasyonda yere basan ayak (alçaktaki, kalkık olmayan) yerinde kalsın: o ayağın model uzayındaki kayması kadar
 ## gövde ters yönde ilerler -> root_vel (dünya, yatay). Saldırı kodu bunu hıza ekler (ayak kayması biter, adımlar "basar").
-var _rm_side := ""
-var _rm_prev := Vector3.ZERO
+var _rm_prev_l := Vector3.INF
+var _rm_prev_r := Vector3.INF
 func _root_motion(sk: Skeleton3D, dt: float) -> void:
 	if key_t < 0.0 or key_anim.is_empty() or dt <= 0.0:
 		root_vel = root_vel.lerp(Vector3.ZERO, clampf(dt * 10.0, 0.0, 1.0))
-		_rm_side = ""
+		_rm_prev_l = Vector3.INF
 		return
 	var lf = sk.find_bone("LeftFoot")
 	var rf = sk.find_bone("RightFoot")
@@ -629,21 +629,23 @@ func _root_motion(sk: Skeleton3D, dt: float) -> void:
 		return
 	var pl = sk.get_bone_global_pose(lf).origin
 	var pr = sk.get_bone_global_pose(rf).origin
-	var side = "L" if pl.y <= pr.y else "R"
-	var cur = pl if side == "L" else pr
-	if absf(pl.y - pr.y) < 0.02 and _rm_side != "":
-		side = _rm_side   # iki ayak da yerdeyse aynı ayakta kal (titremesin)
-		cur = pl if side == "L" else pr
-	if side == _rm_side:
-		var dm = cur - _rm_prev
-		dm.y = 0
-		var v = sk.global_transform.basis * (-dm / dt)
+	if _rm_prev_l != Vector3.INF:
+		# yere basan ayak = gövdeye göre GERİYE kayan ayak (adım atan ayak öne gider); beden onun kaydığı kadar ileri gider.
+		# Yalnız ileri: saldırırken rakipten asla uzaklaşmaz (havadaki ayağı basan sanıp geri itiyordu)
+		var dl = pl - _rm_prev_l
+		var dr = pr - _rm_prev_r
+		var dm = dl if dl.z < dr.z else dr
+		var vm = -dm / dt
+		vm.y = 0
+		vm.z = maxf(0.0, vm.z)
+		vm.x *= 0.5
+		var v = sk.global_transform.basis * vm
 		v.y = 0
-		if v.length() > 6.0:
-			v = v.normalized() * 6.0
+		if v.length() > 5.0:
+			v = v.normalized() * 5.0
 		root_vel = root_vel.lerp(v, clampf(dt * 18.0, 0.0, 1.0))
-	_rm_side = side
-	_rm_prev = cur
+	_rm_prev_l = pl
+	_rm_prev_r = pr
 
 
 # ------------------------------------------------------------------ ayak yerleştirme (iki kemik IK)

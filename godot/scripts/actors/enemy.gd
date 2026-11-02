@@ -724,7 +724,8 @@ func _attack(dt: float) -> void:
 	v.y = 0
 	facing = lerp_angle(facing, atan2(-v.x, -v.z), minf(1.0, dt * 10.0))
 	if not key_step.is_empty():
-		step_move(model.overlay.root_vel + face_dir() * (1.5 if state_t < 0.15 else 0.0), dt, false)   # adımla ilerleme (oyuncuyla aynı)
+		var close = target != null and is_instance_valid(target) and target.global_position.distance_to(global_position) < radius + 1.3
+		step_move((Vector3.ZERO if close else model.overlay.root_vel) + face_dir() * (1.5 if state_t < 0.15 and not close else 0.0), dt, false)   # adımla ilerleme (oyuncuyla aynı; hedefe değince durur)
 	else:
 		step_move(face_dir() * (3.0 if state_t < 0.2 else 0.0), dt, false)
 	if not key_step.is_empty():

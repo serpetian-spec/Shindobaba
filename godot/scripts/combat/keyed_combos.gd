@@ -13,10 +13,11 @@ const TABLE := {
 	"chakra_bicak": [preload("res://scripts/combat/asuma_anim.gd"), 1.0],
 	"ruzgar_bicak": [preload("res://scripts/combat/ruzgar_anim.gd"), 1.0],
 	"sai": [preload("res://scripts/combat/sai_anim.gd"), 1.0],
+	"hiraishin_kunai": [preload("res://scripts/combat/hiraishin_anim.gd"), 1.0],
 }
 ## silah ağırlığı (0 hafif .. 1 ağır): kol/silah yaylanması (PoseOverlay.key_mass) — ağır silah gecikip taşar
 const MASS := {"uc_tirpan": 1.0, "samehada": 0.9, "kabutowari": 0.9, "shibuki": 0.85, "gunbai": 0.8, "raijin": 0.35, "kunai": 0.1,
-	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1}
+	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15}
 
 
 static func mass(id: String) -> float:
@@ -66,6 +67,15 @@ static func mods(id: String, i: int) -> Dictionary:
 				3: m.merge({"launch": 11.0, "knock": 2.0})
 				4: m.merge({"heavy": true, "launch": 9.0, "knock": 7.0, "reach_add": 0.4, "lunge_mul": 0.0})   # havadan yere çakar
 				5: m.merge({"heavy": true, "knock": 16.0, "launch": 8.5})   # öne yere çarpılıp savrulur (yakın dövüşte launch >= 8 olmazsa yere sermez, sadece iter)
+			return m
+		"hiraishin_kunai":
+			# her isabet işaret koyar (on_target); 3 ve 5. adım ışınlanır (on_start); bitiriş flaşlı çoklu kesik (on_strike)
+			var m = {"lunge_mul": 1.0, "mark": true}
+			match i:
+				2: m.merge({"knock": 5.0, "lunge_mul": 0.0})
+				3: m.merge({"launch": 9.0, "knock": 2.0})
+				4: m.merge({"lunge_mul": 0.0})
+				5: m.merge({"heavy": true, "knock": 14.0, "lunge_mul": 0.0})
 			return m
 		"sai":
 			# saplama silahı: kilitleme, yükselen saplama, çift delik
@@ -121,6 +131,9 @@ static func on_target(id: String, i: int, who: Node3D, h: Node3D) -> void:
 	var m = mods(id, i)
 	if bool(m.get("pull", false)) and h is CharacterBody3D:
 		h.velocity = (who.global_position - h.global_position).normalized() * 9.0 + Vector3.UP * 2.0
+	if bool(m.get("mark", false)) and h.has_method("apply_status"):
+		h.apply_status("marked", 12.0)   # Hiraishin işareti (shiki): işaretli hedef fazla hasar alır, ışınlanma ona gider
+		h.set_meta("hiraishin_by", who.get_instance_id())
 	if bool(m.get("eat", false)):
 		_samehada_eat(who, h, i == 5)
 	if bool(m.get("shatter", false)):
@@ -145,6 +158,16 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 		q.y = Game.ground_height(q.x, q.z) + 0.05
 		return q
 	match id:
+		"hiraishin_kunai":
+			if i == 5:   # Hiraishin Giri: hedefin çevresinde art arda üç flaşla belirip keser
+				var tg = _hira_target(who)
+				if tg != null:
+					for k in 3:
+						who.get_tree().create_timer(0.04 + k * 0.09).timeout.connect(func():
+							if is_instance_valid(who) and is_instance_valid(tg):
+								var a = TAU * k / 3.0 + 0.6
+								_blink(who, tg, Vector3(cos(a), 0, sin(a)) * 1.4)
+								Combat.hit_sphere(who, tg.global_position + Vector3.UP, 1.2, {"dmg": dmg * 0.4, "knock": 2.0, "kind": "light", "hitstop": 0.03, "melee": true}))
 		"chakra_bicak":
 			if i == 5:   # Hien: bıçaklara chakra akar — mavi-beyaz uzayan ağız izi
 				var q = gp.call(1.6) + Vector3.UP * 1.2
@@ -299,6 +322,15 @@ static func on_start(id: String, i: int, who: Node3D) -> void:
 	if who == null or not is_instance_valid(who):
 		return
 	match id:
+		"hiraishin_kunai":
+			if i == 2 or i == 4:   # Hiraishin: hedefin (işaretli olanı önce) arkasında / yanında sarı flaşla belir
+				var tg = _hira_target(who)
+				if tg != null:
+					var back = tg.global_position - who.global_position
+					back.y = 0
+					back = back.normalized() if back.length() > 0.01 else Vector3.FORWARD
+					var side = Vector3.UP.cross(back)
+					_blink(who, tg, back * 1.3 if i == 2 else side * 1.3)
 		"samehada":
 			if i == 4 and who is CharacterBody3D:   # Havada Ezme: fırlayan rakibin peşinden sıçra
 				who.velocity.y = 8.5
@@ -471,3 +503,44 @@ static func _wind_slash(who: Node3D, i: int, f: Vector3, side: Vector3, dmg: flo
 	fire.call(0.0)
 	if i == 4:   # çift hilal: ikinci kesik
 		fire.call(0.16)
+
+
+## Hiraishin hedefi: bu ninjanın işaretlediği (öncelikli) ya da 14 m içindeki en yakın düşman
+static func _hira_target(who: Node3D) -> Node3D:
+	var best: Node3D = null
+	var bd = 14.0
+	var my = who.get_instance_id()
+	for f in who.get_tree().get_nodes_in_group("fighters"):
+		if f == who or not Combat.hostile(who, f) or f.is_dead():
+			continue
+		var d = f.global_position.distance_to(who.global_position)
+		if f.has_meta("hiraishin_by") and int(f.get_meta("hiraishin_by")) == my and f.has_method("has_status") and f.has_status("marked"):
+			d *= 0.3   # işaretli hedef öncelikli
+		if d < bd:
+			bd = d
+			best = f
+	return best
+
+
+## Sarı flaş ışınlanma: eski yerde ve yeni yerde sarı parlama + kıvılcım, hedefin yanına (off) ışınlan, ona dön
+static func _blink(who: Node3D, tg: Node3D, off: Vector3) -> void:
+	var yel = Color(1.0, 0.88, 0.3)
+	var from = who.global_position + Vector3.UP
+	VFX.star(from, yel, 2.4, 0.12)
+	FX.burst(from, {"amount": 14, "life": 0.3, "tex": FX.tex_spark, "size": 0.5, "vmin": 3, "vmax": 8, "colors": [Color(1, 1, 0.8, 1), Color(1, 0.8, 0.2, 0)]})
+	var to = tg.global_position + off
+	to.y = Game.ground_height(to.x, to.z)
+	who.global_position = to
+	if who is CharacterBody3D:
+		who.velocity = Vector3.ZERO
+	var d = tg.global_position - to
+	d.y = 0
+	if d.length() > 0.01:
+		var yaw = atan2(-d.x, -d.z)
+		if who is Player:
+			who.facing = yaw
+		elif "facing" in who:
+			who.facing = yaw
+	VFX.star(to + Vector3.UP, yel, 2.8, 0.14)
+	FX.burst(to + Vector3.UP, {"amount": 18, "life": 0.35, "tex": FX.tex_spark, "size": 0.55, "vmin": 2, "vmax": 7, "colors": [Color(1, 1, 0.85, 1), Color(1, 0.75, 0.15, 0)]})
+	Sfx.play("whoosh", to, 1.6, 0.6)
