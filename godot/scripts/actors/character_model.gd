@@ -3917,7 +3917,7 @@ func set_dojutsu(kind: int, tomoe := 3) -> void:
 
 ## Uzun ağızlı silahlar (Samehada, Kubikiribōchō, Kiba...) beklerken elin ekseninde kalınca başın önünden geçip yüzü kapatıyordu:
 ## duruştayken ağız omzun üstünden başın arkasına yatırılır; saldırıda kolla aynı hizaya döner
-static var REST_TILT_OF := {"samehada": Vector3(0, 0, 0), "gunbai": Vector3(0, 0, 0), "uc_tirpan": Vector3(0, 0, -164), "shibuki": Vector3(0, 0, 0)}   # tırpan: yalnız sap ekseni etrafında (bıçaklar sırtın arkasında aşağı sarkar), sap yönü kol pozundan   # gunbai: silah yumruğun içinden düz geçer; yönü kol pozu verir (w_gunbai)   # silaha özel bekleme eğimi (kafanın içinden geçmesin)
+static var REST_TILT_OF := {"samehada": Vector3(0, 0, 0), "gunbai": Vector3(0, 0, 0), "uc_tirpan": Vector3(0, 0, -164), "shibuki": Vector3(0, 0, 171.6)}   # tırpan: yalnız sap ekseni etrafında (bıçaklar sırtın arkasında aşağı sarkar), sap yönü kol pozundan   # gunbai: silah yumruğun içinden düz geçer; yönü kol pozu verir (w_gunbai)   # silaha özel bekleme eğimi (kafanın içinden geçmesin)
 const REST_TILT := Vector3(-25.0, -55.0, 0.0)
 const IDLE_GRIP := {"samehada": 0.3}
 ## kalın saplar: kabza avucun derinine (parmaklar sarabilsin; eskiden sap parmakların önünden geçiyordu) — tutucu uzayında

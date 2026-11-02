@@ -230,12 +230,12 @@ static func _shibuki(b: MB) -> void:
 			var a = TAU * (k + 0.5) / 8.0   # düz yüz üstte/altta
 			o.append(Vector2(cos(a) * rad, sin(a) * rad))   # (y, -x)
 		return o
-	var zb = Basis(Vector3(0, 0, 1), Vector3(0, 1, 0), Vector3(-1, 0, 0))   # profil (y, -x), kalınlık z boyunca
-	b.add_slab(oct.call(0.108), z1 - z0, roll, Transform3D(zb, Vector3(0, 0, zm)), Callable(), roll.darkened(0.15))
+	# (add_slab bu dönüşümde yan yüzleri içe çeviriyordu -> rulo saydam görünüyordu): elle düz yüzlü, iki yönlü sekizgen prizma
+	_oct_prism(b, 0.108, z0, z1, roll)
 	for z in [z0 + 0.03, z1 - 0.03]:
-		b.add_slab(oct.call(0.115), 0.06, lt, Transform3D(zb, Vector3(0, 0, z)), Callable(), lt.darkened(0.12))
+		_oct_prism(b, 0.115, z - 0.03, z + 0.03, lt)
 	for z in [z0 - 0.025, z1 + 0.025]:
-		b.add_slab(oct.call(0.13), 0.05, met, Transform3D(zb, Vector3(0, 0, z)), Callable(), met.darkened(0.12))
+		_oct_prism(b, 0.13, z - 0.025, z + 0.025, met)
 	b.add("cyl", Vector3(0, 0, z1 + 0.08), Vector3(0.085, 0.07, 0.085), Color(0.12, 0.1, 0.14), Vector3(90, 0, 0), 12)   # mil topuzu
 	# çerçeveler (x = 0 düzleminde): yan plakalar kökte geniş (diske kaynaklı), dışa doğru daralır; dış çubuk
 	for fr in [[-1.0, 0.48], [1.0, 0.17]]:   # -Y: geniş kâğıtlı AĞIZ (vuran taraf); +Y: dar sırt (o da kâğıtlı)
@@ -249,6 +249,34 @@ static func _shibuki(b: MB) -> void:
 			b.add("sphere", Vector3(-0.011, sg * (L - 0.03), zc + zi * 0.01), Vector3(0.012, 0.012, 0.012), dk, Vector3.ZERO, 6)
 		b.add_slab(_v([[sg * (L - 0.02), z0 - 0.05], [sg * (L + 0.02), z0 - 0.05], [sg * (L + 0.02), z1 + 0.05], [sg * (L - 0.02), z1 + 0.05]]), 0.018, met, Transform3D.IDENTITY, Callable(), dk)
 		b.add("box", Vector3(0, sg * (L + 0.02), zm), Vector3(0.008, 0.006, z1 - z0 + 0.1), dk)   # dış kenar çizgisi
+		# çerçevenin içi DOLU: ince metal plaka (kılıcın gövdesi); kâğıtlar ön yüzünde (-x), arka yüz metal
+		b.add_slab(_v([[sg * 0.06, z0 + 0.0], [sg * (L - 0.01), z0 + 0.0], [sg * (L - 0.01), z1], [sg * 0.06, z1]]), 0.01, met.darkened(0.08), Transform3D(Basis.IDENTITY, Vector3(0.007, 0, 0)), Callable(), dk)
+
+
+## Düz yüzlü sekizgen prizma (z ekseni boyunca, düz yüz üstte/altta): yüz normalleri düz, üçgenler iki yönlü (asla saydam görünmez)
+static func _oct_prism(b: MB, rad: float, za: float, zb: float, col: Color) -> void:
+	var P = []
+	for k in 8:
+		var a = TAU * (k + 0.5) / 8.0
+		P.append(Vector2(cos(a) * rad, sin(a) * rad))   # (x, y)
+	var quad = func(q: Array, n: Vector3):
+		for wind in [[0, 1, 2, 0, 2, 3], [0, 2, 1, 0, 3, 2]]:
+			var base = b.verts.size()
+			for v in q:
+				b.verts.append(v)
+				b.normals.append(n if wind[1] == 1 else -n)
+				b.colors.append(col)
+				b.uvs.append(Vector2.ZERO)
+			for i in wind:
+				b.idx.append(base + i)
+	for k in 8:
+		var p0: Vector2 = P[k]; var p1: Vector2 = P[(k + 1) % 8]
+		var mid = (p0 + p1) * 0.5
+		quad.call([Vector3(p0.x, p0.y, za), Vector3(p1.x, p1.y, za), Vector3(p1.x, p1.y, zb), Vector3(p0.x, p0.y, zb)], Vector3(mid.x, mid.y, 0).normalized())
+	for cap in [[za, -1.0], [zb, 1.0]]:
+		for k in 8:
+			var p0: Vector2 = P[k]; var p1: Vector2 = P[(k + 1) % 8]
+			quad.call([Vector3(0, 0, cap[0]), Vector3(p0.x, p0.y, cap[0]), Vector3(p1.x, p1.y, cap[0]), Vector3(0, 0, cap[0])], Vector3(0, 0, cap[1]))
 
 
 ## Shibuki'nin dokulu parçası: -Y çerçevesinde gevşek duran 爆 kâğıt tabakası (çerçeveye tam yapışık değil, hafif kalkık/sarkık)
