@@ -3,7 +3,7 @@ extends RefCounted
 ## yeni bir silah animasyonu (X_anim.gd, steps() -> 5-6 adım) yalnız buraya eklenir, düşmanlar da otomatik kullanır.
 ## [adım betiği, hız çarpanı]
 const TABLE := {
-	"samehada": [preload("res://scripts/combat/samehada_anim.gd"), 1.3],
+	"samehada": [preload("res://scripts/combat/samehada_kombo.gd"), 1.05],   # yeni ağır kombo (eski video kombosu samehada_anim.gd)
 	"gunbai": [preload("res://scripts/combat/gunbai_anim.gd"), 1.05],   # ağır silah ritmi
 	"kunai": [preload("res://scripts/combat/kunai_anim.gd"), 1.0],
 	"raijin": [preload("res://scripts/combat/raijin_anim.gd"), 1.0],
@@ -11,7 +11,7 @@ const TABLE := {
 	"shibuki": [preload("res://scripts/combat/shibuki_anim.gd"), 1.0],
 }
 ## iki elli adımlarda sol elin sağ yumruktan sap boyunca uzaklığı
-const TWO_OFF := {"uc_tirpan": 0.42, "shibuki": 0.2}   # shibuki: sağ el sapın arka ucunda, sol el önde (ruloya yakın)
+const TWO_OFF := {"uc_tirpan": 0.42, "shibuki": 0.2, "samehada": 0.3}   # shibuki: sağ el sapın arka ucunda, sol el önde (ruloya yakın)
 
 
 static func has(id: String) -> bool:
@@ -43,6 +43,17 @@ static func mods(id: String, i: int) -> Dictionary:
 				4: m.merge({"launch": 12.0, "knock": 2.0})
 				5: m.merge({"reach_add": 0.6, "knock": 18.0, "heavy": true})
 			return m
+		"samehada":
+			# rendeler + chakra emer (silahın "drain" özelliği kalır); ağır: kurulurken kaymaz
+			var m = {"lunge_mul": 0.55}
+			match i:
+				0: m.merge({"knock": 2.0})
+				1: m.merge({"heavy": true, "knock": 14.0})
+				2: m.merge({"launch": 11.0, "knock": 2.0})
+				3: m.merge({"heavy": true, "knock": 2.5})
+				4: m.merge({"stun": 0.7, "knock": 1.0, "reach_add": 0.5})
+				5: m.merge({"heavy": true, "knock": 0.5, "throw_back": true})
+			return m
 		"shibuki":
 			# patlamalar on_strike'ta (her vuruşta kendi biçimi): silahın genel "explode" özelliği iki kez patlamasın
 			var m = {"lunge_mul": 0.6, "special": ""}
@@ -59,8 +70,14 @@ static func mods(id: String, i: int) -> Dictionary:
 
 ## İsabet eden hedefe adım etkisi (kanca çekişi)
 static func on_target(id: String, i: int, who: Node3D, h: Node3D) -> void:
-	if bool(mods(id, i).get("pull", false)) and h is CharacterBody3D:
+	var m = mods(id, i)
+	if bool(m.get("pull", false)) and h is CharacterBody3D:
 		h.velocity = (who.global_position - h.global_position).normalized() * 9.0 + Vector3.UP * 2.0
+	if bool(m.get("throw_back", false)) and h is CharacterBody3D:
+		# Samehada bitiriş: saplı rakip başın üstünden arkaya savrulup yere çarpar
+		var f: Vector3 = who.face_dir() if who.has_method("face_dir") else -who.global_transform.basis.z
+		f.y = 0
+		h.velocity = -f.normalized() * 9.0 + Vector3.UP * 11.0
 
 
 ## Vuruş anı etkileri (isabet olsun olmasın): zemin, patlama, uçan kâğıt; alan hasarı who adına (oyuncu ve düşman aynı)
@@ -76,6 +93,34 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 		q.y = Game.ground_height(q.x, q.z) + 0.05
 		return q
 	match id:
+		"samehada":
+			var blue = Color(0.45, 0.75, 1.0)
+			match i:
+				0:   # rende: temas boyunca mavi chakra kıvılcımları
+					for k in 3:
+						who.get_tree().create_timer(0.12 * (k + 1)).timeout.connect(func():
+							if is_instance_valid(who):
+								FX.hit_spark(gp.call(1.8, 0.3 - k * 0.3) + Vector3.UP * 0.7, blue, 1.0))
+				1:
+					VFX.star(gp.call(1.8) + Vector3.UP * 1.2, Color(1, 1, 1), 2.6, 0.18)
+					_shake(who, 0.5)
+				2:   # ısırık: tepede pullar kabarır (dikenli mavi patlama)
+					var q = gp.call(1.6) + Vector3.UP * 2.0
+					VFX.star(q, blue, 3.4, 0.22)
+					FX.burst(q, {"amount": 18, "life": 0.45, "tex": FX.tex_spark, "size": 0.6, "vmin": 4, "vmax": 9, "colors": [Color(0.85, 0.95, 1, 1), Color(0.35, 0.6, 1, 0)]})
+					_shake(who, 0.35)
+				3:
+					VFX.debris(gp.call(1.5), Color(0.5, 0.45, 0.4), 8, 5.0, 0.3)
+				4:
+					FX.hit_spark(gp.call(2.3) + Vector3.UP, blue, 1.4)
+				5:   # rakip arkaya çarpılır: arkada şok + çatlak
+					who.get_tree().create_timer(0.42).timeout.connect(func():
+						if is_instance_valid(who):
+							var q = gp.call(-2.2)
+							VFX.cracks(q, 2.8)
+							VFX.shockwave(q + Vector3.UP * 0.1, blue, 5.0, 0.4)
+							VFX.debris(q, Color(0.5, 0.45, 0.4), 12, 7.0, 0.35)
+							_shake(who, 0.6))
 		"uc_tirpan":
 			if i == 3:
 				var q = gp.call(2.3)

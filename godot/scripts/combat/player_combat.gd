@@ -421,8 +421,6 @@ const STYLE_COMBOS := {
 ## 2 başın arkasına kaldırıp aşağı-öne savurma, 3 sola alıp sağa alçak yatay savurma, 4 tepeye kaldırıp baş hizasında sert vuruş,
 ## 5 dönerek alçaktan savurup yukarı fırlatma
 const ID_COMBOS := {
-	"samehada": {"anims": ["a/Sword_Attack", "b/Sword_Regular_B", "b/Sword_Regular_A", "b/Sword_Regular_C", "b/Sword_Regular_Combo"], "speed": 1.25, "dur": 1.3, "knock": 2.0, "fx": Color(0.55, 0.75, 1.0), "snd": "hit_heavy_weapon",
-		"water": [false, false, false, false, false], "lunge": [1.8, 0.5, 0.5, 0.7, 0.0], "grind": [true, false, false, false, false], "flash": [false, false, false, true, false]},
 }
 
 
@@ -530,9 +528,6 @@ func _combo_base(i: int) -> Dictionary:
 			c["reach"] = float(c["reach"]) + float(km.get("reach_add", 0.0))
 		if wid == "kunai" and i == COMBO.size() - 1:
 			c["knock"] = 9.0   # bitiriş biçmesi rakibi geri savurur
-		if i == COMBO.size() - 1 and wid == "samehada":
-			c["launch"] = 13.0   # rakip dimdik havaya uçar
-			c["knock"] = 1.5     # yatayda az (eskiden 38 m öteye savruluyordu)
 	return c
 
 
