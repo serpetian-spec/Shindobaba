@@ -3029,7 +3029,7 @@ func _weapons() -> void:
 		if id == "chakra_bicak" and side == "Right" and skel.find_bone("LeftHand") >= 0:
 			# Asuma'nın bıçaklı muştaları çift: sol ele de aynısı (sağ elde 180° çevrilmiş çerçeve, solda düz)
 			var lm = MeshInstance3D.new()
-			lm.mesh = weapon_mesh(id)
+			lm.mesh = weapon_mesh(id + "_sol")   # aynalı model (bıçak sol elde de serçe parmak ucundan)
 			var lh: Node3D = _attach("LeftHand", _grip_xf("Left")).get_child(0)
 			lh.add_child(lm)
 			weapons.append({"id": id + "_sol", "side": "Left", "kind": "pouch", "node": lm, "hand": lh, "sheath": null})
@@ -3380,16 +3380,18 @@ func _update_rope() -> void:
 ## yüzü, serçe parmak ucundan kıvrılarak inen uzun hilal bıçak; koyu lacivert çelik, açık renk keskin kenar.
 ## Tutuş çerçevesi (HAND_FRAME): +x parmak yönü (eklemlerden ileri), +y el sırtı, z yumruk boyunca (parmak dizisi).
 ## Plaka (y, z) düzleminde, kalınlık x: delikler parmakların etrafında, bıçak yumruğun altından (avuç tarafı, -y) iner.
-static func _trench_knife(b: MB, wind: bool) -> void:
+static func _trench_knife(b: MB, mirror: bool) -> void:
+	var wind = false
+	var mz = 1.0   # (sol elde z aynalamak bıçağı yukarı çeviriyordu; iki elin çerçevesi yalnız y ekseninde ters)
 	var col = Color(0.27, 0.31, 0.5) if not wind else Color(0.3, 0.45, 0.55)
 	var edge = Color(0.86, 0.88, 0.92)
 	# asumababa.png: plaka yumruğun ön yüzünde, kol ile parmak dizisinin düzleminde (x, z); parmaklar delikleri avuç yönünde (-y) geçer,
 	# basamaklı vuruş kenarı ileri (+x), bıçak serçe parmak ucundan (-z) yumruğun altına iner. Profil (u, v) -> (x = u, z = v), kalınlık y
-	var xf = Transform3D(Basis(Vector3(0, -1, 0), Vector3(1, 0, 0), Vector3(0, 0, 1)), Vector3(0.0, -0.015, 0.0))
+	var xf = Transform3D(Basis(Vector3(0, -1, 0), Vector3(1, 0, 0), Vector3(0, 0, 1)), Vector3(0.0, 0.015 if mirror else -0.015, 0.0))   # sol elde çerçevenin y ekseni ters: plaka yine parmakların içinde
 	var V = func(arr: Array) -> PackedVector2Array:
 		var o = PackedVector2Array()
 		for q in arr:
-			o.append(Vector2(q[0], q[1]))
+			o.append(Vector2(q[0], q[1] * mz))
 		return o
 	# parmak çubuğu: her biri TEK delikli dört dilim (çok delikli çokgen üçgenlenemiyordu)
 	var cuts = [-0.066, -0.0265, 0.0005, 0.0275, 0.072]
@@ -3397,7 +3399,7 @@ static func _trench_knife(b: MB, wind: bool) -> void:
 	for k in 4:
 		var za = float(cuts[k]); var zb = float(cuts[k + 1])
 		var sl = V.call([[-0.028, za], [0.036, za], [0.036, zb], [-0.028, zb]])
-		b.add_slab(MB.hole(sl, Vector2(0.004, float(holes[k])), 0.0115, 10), 0.012, col, xf, Callable(), col.lightened(0.25))
+		b.add_slab(MB.hole(sl, Vector2(0.004, float(holes[k]) * mz), 0.0115, 10), 0.012, col, xf, Callable(), col.lightened(0.25))
 	# basamaklı üst kenar (vuruş yüzü) çıkıntıları + işaret parmağı ucundaki sivri burun
 	for bz in [[-0.052, -0.03], [0.012, 0.04]]:
 		b.add_slab(V.call([[0.036, bz[0]], [0.047, bz[0] + 0.006], [0.047, bz[1] - 0.006], [0.036, bz[1]]]), 0.012, col, xf, Callable(), col.lightened(0.25))
@@ -3685,6 +3687,8 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 				b.add("cone", Vector3(0.15, 0.04, (k - 1) * 0.028), Vector3(0.012, 0.22, 0.006), steel, Vector3(0, 0, -90), 4)
 		"chakra_bicak":
 			_trench_knife(b, false)
+		"chakra_bicak_sol":
+			_trench_knife(b, true)   # sol el: sağın aynası (bıçak yine serçe parmak ucundan)
 		"ruzgar_bicak":
 			pass   # tamamen chakradan: yarı saydam yüzeyler build sonrası (_wind_blade)
 		"wakizashi":

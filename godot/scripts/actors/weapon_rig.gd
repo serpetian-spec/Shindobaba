@@ -18,6 +18,7 @@ var two_hand_w := 0.0
 var left_holder := Basis.IDENTITY   # sol el tutuş çerçevesi (el kemiği uzayında)
 var left_roll := 0.0
 var mirror_axis := 0
+static var left_single_sign := -1.0   # tek elli sol tutuş: +1 parmakları geriye büküyordu (yakın çekimle doğrulandı)
 var left_curl_sign := -1.0   # ön izlemede onaylanan (alt sıra)   # sol elin kabza ekseni etrafında dönüşü (derece)   # sol el sağ elle aynı yönde kabzayı sarar (test: öndeki yumruk kabzanın etrafında)
 var left_grip_pos := Vector3.ZERO   # sol el tutuş noktası (el kemiği uzayında)
 var reach_open := false       # true: kol uzanırken el açık kalır (Rasengan / Chidori avucu), yumruk yapmaz
@@ -49,6 +50,8 @@ func _process_modification() -> void:
 		var sgn = 1.0 if side == "Left" else -1.0
 		if side == "Left" and two_hand_w > 0.0:
 			sgn *= left_curl_sign   # iki elle tutuşta sol el aynalandığı için kıvrım yönü
+		elif side == "Left":
+			sgn *= left_single_sign   # tek elle sol tutuş (çift silahın sol eli)
 		for f in FINGERS:
 			for i in 3:
 				_curl(sk, side + f + FINGER_SEG[i], Quaternion(AX, CURL[i] * sgn), w)
