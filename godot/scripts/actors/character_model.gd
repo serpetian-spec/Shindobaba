@@ -3026,7 +3026,7 @@ func _weapons() -> void:
 			node.add_child(_wind_ribbons())   # dönen rüzgar şeritleri (her kare döner, _wind_air)
 		var kind = sheath_kind(id)
 		weapons.append({"id": id, "side": side, "kind": kind, "node": node, "hand": hand, "sheath": _sheath_holder(kind, side, id, node)})
-		if id == "chakra_bicak" and side == "Right" and skel.find_bone("LeftHand") >= 0:
+		if id in ["chakra_bicak", "sai"] and side == "Right" and skel.find_bone("LeftHand") >= 0:
 			# Asuma'nın bıçaklı muştaları çift: sol ele de aynısı (sağ elde 180° çevrilmiş çerçeve, solda düz)
 			var lm = MeshInstance3D.new()
 			lm.mesh = weapon_mesh(id + "_sol")   # aynalı model (bıçak sol elde de serçe parmak ucundan)
@@ -3374,6 +3374,40 @@ func _update_rope() -> void:
 		var y = dv / L
 		var x = y.cross(Vector3.FORWARD if absf(y.dot(Vector3.FORWARD)) < 0.9 else Vector3.RIGHT).normalized()
 		_rope[k].global_transform = Transform3D(Basis(x, y * L, x.cross(y)), (p0 + p1) * 0.5)   # yalnız kendi ekseninde uzar
+
+
+## Sai (sai.png): siyah sap + altın spiral kordon, metal topuz; korumadan iki yana çıkıp ileri kıvrılan yan dişler (yoku),
+## uçları hafif dışa kalkık; uzun sekizgen krom ana kol (monouchi), küt uç. Kabza 0, ana kol +Z, yan dişler ±Y düzleminde.
+static func _sai(b: MB) -> void:
+	var chrome = Color(0.7, 0.72, 0.77)
+	var chrome_d = Color(0.5, 0.52, 0.57)
+	var blk = Color(0.08, 0.08, 0.09)
+	var gold = Color(0.85, 0.68, 0.25)
+	# sap + altın kordon
+	b.add("cyl", Vector3(0, 0, -0.005), Vector3(0.036, 0.14, 0.036), blk, Vector3(90, 0, 0), 10)
+	for k in 7:
+		b.add("cyl", Vector3(0, 0, -0.065 + k * 0.019), Vector3(0.039, 0.004, 0.039), gold, Vector3(90 + 22, 0, 0), 10)
+	# topuz: metal kapak, uçta yassı genişleyen
+	b.add("cyl", Vector3(0, 0, -0.082), Vector3(0.04, 0.02, 0.04), chrome_d, Vector3(90, 0, 0), 10)
+	b.add("cyl", Vector3(0, 0, -0.097), Vector3(0.05, 0.014, 0.034), chrome, Vector3(90, 0, 0), 10)
+	# koruma göbeği
+	b.add("sphere", Vector3(0, 0, 0.078), Vector3(0.042, 0.05, 0.05), chrome, Vector3.ZERO, 10)
+	# ana kol: sekizgen, uca hafif incelen, küt sivri uç
+	b.add("cyl", Vector3(0, 0, 0.32), Vector3(0.018, 0.48, 0.018), chrome, Vector3(90, 0, 0), 8)
+	b.add("cone", Vector3(0, 0, 0.575), Vector3(0.018, 0.03, 0.018), chrome, Vector3(90, 0, 0), 8)
+	# yan dişler: göbekten yana (±y) çıkıp kıvrılarak ileri (+z), uçta dışa kalkık
+	var seg = func(a: Vector3, e: Vector3, r: float):
+		var d = e - a
+		var L = d.length()
+		if L < 0.0001:
+			return
+		b.add_xf("cyl", Transform3D(Basis(Quaternion(Vector3.UP, d / L)) * Basis.from_scale(Vector3(r, L, r)), (a + e) * 0.5), chrome, 8)
+		b.add("sphere", e, Vector3(r, r, r), chrome, Vector3.ZERO, 6)
+	for sy in [-1.0, 1.0]:
+		var pts = [Vector3(0, 0, 0.075), Vector3(0, sy * 0.035, 0.07), Vector3(0, sy * 0.065, 0.075), Vector3(0, sy * 0.078, 0.1),
+			Vector3(0, sy * 0.078, 0.15), Vector3(0, sy * 0.082, 0.18), Vector3(0, sy * 0.095, 0.2)]
+		for k in pts.size() - 1:
+			seg.call(pts[k], pts[k + 1], 0.012 if k < 4 else 0.009)
 
 
 ## Asuma'nın bıçaklı muştası (knucles.png): parmak deliklerinden geçirilen yassı plaka (4 delik), üst kenarı basamaklı vuruş
@@ -3769,13 +3803,8 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 		"fuma_shuriken":
 			b.add("cyl", Vector3(0, 0, 0.2), Vector3(0.032, 0.6, 0.032), dark, Vector3(90, 0, 0), 8)   # sap göbeğe kadar
 			_w_star(b, Vector3(0, 0, 0.5), 0.62, 0.3, 4, Color(0.55, 0.57, 0.62), dark)
-		"sai":
-			b.add("cyl", Vector3(0, 0, 0.0), Vector3(0.03, 0.12, 0.03), Color(0.2, 0.12, 0.1), Vector3(90, 0, 0), 8)
-			b.add("cyl", Vector3(0, 0, 0.31), Vector3(0.018, 0.5, 0.018), steel, Vector3(90, 0, 0), 6)
-			b.add("cone", Vector3(0, 0, 0.58), Vector3(0.02, 0.05, 0.02), steel, Vector3(90, 0, 0), 6)
-			for sx in [-1.0, 1.0]:
-				b.add("cyl", Vector3(0.04 * sx, 0, 0.1), Vector3(0.013, 0.1, 0.013), steel, Vector3(0, 0, -60 * sx), 6)
-				b.add("cyl", Vector3(0.065 * sx, 0, 0.15), Vector3(0.012, 0.09, 0.012), steel, Vector3(90, 0, 0), 6)
+		"sai", "sai_sol":
+			_sai(b)   # sai.png
 		"uc_tirpan":
 			# üç bıçaklı kızıl tırpan (kaynak tirpan.png, ölçüler resimden metreye): tutuş z=0 (sağ yumruk sargının alt kısmında),
 			# pommel z=-0.16; beyaz bez sargı -> kırmızı sap -> siyah boğaz -> üç beyaz bilezik (arkalarında koyu kırmızı takoz),

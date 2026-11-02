@@ -12,6 +12,7 @@ const TABLE := {
 	"kabutowari": [preload("res://scripts/combat/kabuto_anim.gd"), 1.0],
 	"chakra_bicak": [preload("res://scripts/combat/asuma_anim.gd"), 1.0],
 	"ruzgar_bicak": [preload("res://scripts/combat/ruzgar_anim.gd"), 1.0],
+	"sai": [preload("res://scripts/combat/sai_anim.gd"), 1.0],
 }
 ## iki elli adımlarda sol elin sağ yumruktan sap boyunca uzaklığı
 const TWO_OFF := {"uc_tirpan": 0.42, "shibuki": 0.2, "samehada": 0.3}   # shibuki: sağ el sapın arka ucunda, sol el önde (ruloya yakın)
@@ -56,6 +57,15 @@ static func mods(id: String, i: int) -> Dictionary:
 				3: m.merge({"launch": 11.0, "knock": 2.0})
 				4: m.merge({"heavy": true, "launch": 9.0, "knock": 7.0, "reach_add": 0.4, "lunge_mul": 0.0})   # havadan yere çakar
 				5: m.merge({"heavy": true, "knock": 16.0, "launch": 8.5})   # öne yere çarpılıp savrulur (yakın dövüşte launch >= 8 olmazsa yere sermez, sadece iter)
+			return m
+		"sai":
+			# çevik çift sai: kilitleme (sersemletir), topuz darbesi, çift saplama
+			var m = {"lunge_mul": 1.0}
+			match i:
+				2: m.merge({"stun": 0.8, "knock": 0.5, "pull": true})   # yan dişlerle kilitleyip çeker
+				3: m.merge({"heavy": true, "knock": 9.0})                 # topuz darbesi
+				4: m.merge({"launch": 8.5, "knock": 2.0})
+				5: m.merge({"heavy": true, "knock": 13.0, "reach_add": 0.4})
 			return m
 		"chakra_bicak":
 			# Asuma muştaları: hızlı; bitiriş Hien (chakra akışı: menzil uzar, sert)
