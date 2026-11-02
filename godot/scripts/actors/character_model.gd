@@ -2952,7 +2952,7 @@ var _swapped := false
 var rig: WeaponRig
 
 
-const HAND_FRAME := ["tonfa", "pence", "kama", "kusarigama"]
+const HAND_FRAME := ["tonfa", "pence", "kama", "kusarigama", "chakra_bicak", "ruzgar_bicak"]
 
 
 static func sheath_kind(id: String) -> String:
@@ -3024,6 +3024,13 @@ func _weapons() -> void:
 			node.add_child(_raijin_beam())
 		var kind = sheath_kind(id)
 		weapons.append({"id": id, "side": side, "kind": kind, "node": node, "hand": hand, "sheath": _sheath_holder(kind, side, id, node)})
+		if id in ["chakra_bicak", "ruzgar_bicak"] and side == "Right" and skel.find_bone("LeftHand") >= 0:
+			# Asuma'nın bıçaklı muştaları çift: sol ele de aynısı (sağ elde 180° çevrilmiş çerçeve, solda düz)
+			var lm = MeshInstance3D.new()
+			lm.mesh = weapon_mesh(id)
+			var lh: Node3D = _attach("LeftHand", _grip_xf("Left")).get_child(0)
+			lh.add_child(lm)
+			weapons.append({"id": id + "_sol", "side": "Left", "kind": "pouch", "node": lm, "hand": lh, "sheath": null})
 		if id == "kabutowari" and side == "Right" and skel.find_bone("LeftHand") >= 0:
 			# Kabutowari ikilisi: sol elde çekiç (kılıflıyken sol kalçada; balta sırtta), halkalar arası halat
 			var hm = MeshInstance3D.new()
@@ -3337,6 +3344,51 @@ func _update_rope() -> void:
 		_rope[k].global_transform = Transform3D(Basis(x, y * L, x.cross(y)), (p0 + p1) * 0.5)   # yalnız kendi ekseninde uzar
 
 
+## Asuma'nın bıçaklı muştası (knucles.png): parmak deliklerinden geçirilen yassı plaka (4 delik), üst kenarı basamaklı vuruş
+## yüzü, serçe parmak ucundan kıvrılarak inen uzun hilal bıçak; koyu lacivert çelik, açık renk keskin kenar.
+## Tutuş çerçevesi (HAND_FRAME): +x parmak yönü (eklemlerden ileri), +y el sırtı, z yumruk boyunca (parmak dizisi).
+## Plaka (y, z) düzleminde, kalınlık x: delikler parmakların etrafında, bıçak yumruğun altından (avuç tarafı, -y) iner.
+static func _trench_knife(b: MB, wind: bool) -> void:
+	var col = Color(0.27, 0.31, 0.5) if not wind else Color(0.3, 0.45, 0.55)
+	var edge = Color(0.86, 0.88, 0.92)
+	var xf = Transform3D(Basis.IDENTITY, Vector3(-0.012, 0.0, 0.0))   # plaka parmak köklerini sarar
+	var V = func(arr: Array) -> PackedVector2Array:
+		var o = PackedVector2Array()
+		for q in arr:
+			o.append(Vector2(q[0], q[1]))
+		return o
+	# parmak çubuğu: her biri TEK delikli dört dilim (çok delikli çokgen üçgenlenemiyordu)
+	var cuts = [-0.066, -0.0265, 0.0005, 0.0275, 0.072]
+	var holes = [-0.046, -0.013, 0.014, 0.046]
+	for k in 4:
+		var za = float(cuts[k]); var zb = float(cuts[k + 1])
+		var sl = V.call([[-0.028, za], [0.036, za], [0.036, zb], [-0.028, zb]])
+		b.add_slab(MB.hole(sl, Vector2(0.004, float(holes[k])), 0.0115, 10), 0.012, col, xf, Callable(), col.lightened(0.25))
+	# basamaklı üst kenar (vuruş yüzü) çıkıntıları + işaret parmağı ucundaki sivri burun
+	for bz in [[-0.052, -0.03], [0.012, 0.04]]:
+		b.add_slab(V.call([[0.036, bz[0]], [0.047, bz[0] + 0.006], [0.047, bz[1] - 0.006], [0.036, bz[1]]]), 0.012, col, xf, Callable(), col.lightened(0.25))
+	b.add_slab(V.call([[-0.028, 0.072], [0.036, 0.072], [0.004, 0.09]]), 0.012, col, xf, Callable(), col.lightened(0.25))
+	# hilal bıçak: serçe parmak ucundan avuç tarafına (-y) kıvrılarak iner; kökte küçük çentik
+	var blade = [[0.036, -0.066], [0.015, -0.105], [-0.02, -0.15], [-0.075, -0.2], [-0.16, -0.245], [-0.11, -0.19], [-0.07, -0.145],
+		[-0.045, -0.105], [-0.04, -0.086], [-0.034, -0.08], [-0.028, -0.075], [-0.028, -0.066]]   # çubuğun devamı, uca doğru avuç tarafına kıvrılır
+	b.add_slab(V.call(blade), 0.012, col, xf, Callable(), col.lightened(0.25))
+	# keskin dış kenar şeridi (açık renk)
+	var arc = [[0.036, -0.066], [0.015, -0.105], [-0.02, -0.15], [-0.075, -0.2], [-0.16, -0.245]]
+	var band = []
+	for q in arc:
+		band.append([q[0] + 0.004, q[1] - 0.004])
+	for k in range(arc.size() - 1, -1, -1):
+		band.append([arc[k][0] - 0.004, arc[k][1] + (0.009 if k < arc.size() - 1 else 0.0)])
+	b.add_slab(V.call(band), 0.014, edge, xf, Callable(), edge.darkened(0.15))
+	if wind:   # rüzgar chakrası: bıçağın dışında ince yeşil-mavi ışıltı
+		var glow = []
+		for q in arc:
+			glow.append([q[0] + 0.016, q[1] - 0.014])
+		for k in range(arc.size() - 1, -1, -1):
+			glow.append([arc[k][0] + 0.004, arc[k][1] - 0.004])
+		b.add_slab(V.call(glow), 0.004, Color(0.6, 1.0, 0.85), xf)
+
+
 ## Silah modeli: kabza başlangıçta, namlu +Z yönünde
 static var _weapon_cache := {}
 ## Japon kılıcı ağzı: hafif kavisli (sırt yukarı, +y), uca doğru incelen; kesik kissaki ucu, habaki ve keskin kenarda hamon çizgisi
@@ -3505,11 +3557,8 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			b.add("box", Vector3(0.035, 0.035, 0.0), Vector3(0.03, 0.035, 0.085), dark)
 			for k in 3:
 				b.add("cone", Vector3(0.15, 0.04, (k - 1) * 0.028), Vector3(0.012, 0.22, 0.006), steel, Vector3(0, 0, -90), 4)
-		"chakra_bicak":
-			var glow = Color(0.55, 0.8, 1.0)
-			b.add("box", Vector3(0.0, 0.0, 0.0), Vector3(0.03, 0.1, 0.11), dark)
-			b.add("box", Vector3(0, 0.0, 0.17), Vector3(0.012, 0.04, 0.24), glow)
-			b.add("box", Vector3(0, 0.0, 0.17), Vector3(0.02, 0.06, 0.2), glow.lightened(0.45))
+		"chakra_bicak", "ruzgar_bicak":
+			_trench_knife(b, id == "ruzgar_bicak")
 		"wakizashi":
 			b.add("cyl", Vector3(0, 0, -0.05), Vector3(0.03, 0.16, 0.03), dark, Vector3(90, 0, 0), 8)
 			b.add("cyl", Vector3(0, 0, 0.04), Vector3(0.075, 0.012, 0.075), Color(0.55, 0.45, 0.25), Vector3(90, 0, 0), 12)
@@ -3585,10 +3634,6 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 				var q = Vector3(0, sin(ang) * r + 0.012, 0.03 - (1.0 - cos(ang)) * r * 0.5 - t * 0.02)
 				b.add("sphere", q, Vector3(0.02, 0.02, 0.02) * (1.0 - t * 0.35), dk2, Vector3.ZERO, 8)
 			b.add("cyl", Vector3(0, 0, 0.04), Vector3(0.03, 0.025, 0.03), Color(0.95, 0.85, 0.4), Vector3(90, 0, 0), 10)   # ışın çıkış ağzı
-		"ruzgar_bicak":
-			b.add("box", Vector3(0.0, 0.0, 0.0), Vector3(0.03, 0.1, 0.11), dark)
-			b.add("box", Vector3(0, 0.0, 0.17), Vector3(0.012, 0.04, 0.24), Color(0.6, 0.62, 0.66))
-			b.add("cone", Vector3(0, 0.0, 0.42), Vector3(0.02, 0.32, 0.07), Color(0.6, 1.0, 0.8), Vector3(90, 0, 0), 4)
 		"fuma_shuriken":
 			b.add("cyl", Vector3(0, 0, 0.2), Vector3(0.032, 0.6, 0.032), dark, Vector3(90, 0, 0), 8)   # sap göbeğe kadar
 			_w_star(b, Vector3(0, 0, 0.5), 0.62, 0.3, 4, Color(0.55, 0.57, 0.62), dark)
