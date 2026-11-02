@@ -35,7 +35,17 @@ var hit_head := false
 var hit_side := 1.0
 
 
-func hit_react(dir_model: Vector3, amp: float, head := false) -> void:
+var hit_up := 0.0      # havaya fırlatma: gövde geriye kavislenir, kollar savrulur
+var hit_heavy := 0.0   # ağır darbe: dizler çöker, kalça düşer
+var key_mass := 0.5    # silah ağırlığı (0 hafif .. 1 ağır): kol ve silah yaylanması (KeyedCombos.mass)
+var root_vel := Vector3.ZERO   # adımla ilerleme: basan ayak yerinde kalsın diye gövdenin dünya hızı (anahtar animasyonda)
+var foot_ik := true    # ayaklar zemine basar (eğim / basamak)
+var grounded := true   # havadayken IK yok (sahip ayarlar)
+
+
+func hit_react(dir_model: Vector3, amp: float, head := false, up := 0.0, heavy := 0.0) -> void:
+	hit_up = clampf(up, 0.0, 1.0)
+	hit_heavy = clampf(heavy, 0.0, 1.0)
 	hit_t = 0.0
 	hit_dir = Vector3(dir_model.x, 0.0, dir_model.z).normalized() if Vector2(dir_model.x, dir_model.z).length() > 0.05 else Vector3(0, 0, -1)
 	hit_amp = clampf(amp, 0.0, 1.4)
@@ -130,8 +140,14 @@ func _process_modification() -> void:
 	for st in STANCE:
 		var ws: float = weights.get(st, 0.0)
 		if ws > 0.0:
+			# nefes: silahın ağırlığıyla kollar hafifçe iner-kalkar, göğüs şişer (bekleme canlı dursun)
+			var br = sin(_t * 2.1) * (0.035 + 0.035 * key_mass)
 			for e in STANCE[st]:
-				_rot_model(sk, e[0], e[1], ws)
+				var d: Vector3 = e[1]
+				if String(e[0]).ends_with("Arm"):
+					d = Basis(Vector3.RIGHT, br) * d
+				_rot_model(sk, e[0], d, ws)
+			_add_local(sk, "Chest", Vector3(-br * 0.6, 0, 0), ws)
 	if w_seal > 0.0:
 		# eller göğüs önünde birleşir
 		_rot_model(sk, "LeftUpperArm", Vector3(0.45, -0.75, 0.48), w_seal)
@@ -181,6 +197,8 @@ func _process_modification() -> void:
 		var cb = sk.find_bone("UpperChest")
 		if cb >= 0:
 			sk.set_bone_pose_scale(cb, Vector3(chest_scale, 1.0, chest_scale))
+	_root_motion(sk, dt)
+	_foot_ik(sk)
 
 
 ## Darbe pozu: hızlı savrulma (0.06 sn), ardından sönen yaylanma. Önden vuruşta gövde geriye, kafa daha çok;
@@ -203,6 +221,22 @@ func _hit_pose(sk: Skeleton3D) -> void:
 	_add_local(sk, "RightUpperArm", Vector3(-pitch * 0.5, 0.0, -e * 0.35), 1.0)
 	_add_local(sk, "LeftLowerArm", Vector3(0.0, 0.0, e * 0.3), 1.0)
 	_add_local(sk, "RightLowerArm", Vector3(0.0, 0.0, -e * 0.3), 1.0)
+	if hit_up > 0.0:   # havaya fırlatıldı: gövde geriye kavis, baş geri, kollar yukarı savrulur
+		var u = e * hit_up
+		_add_local(sk, "Spine", Vector3(-u * 0.35, 0, 0), 1.0)
+		_add_local(sk, "Chest", Vector3(-u * 0.3, 0, 0), 1.0)
+		_add_local(sk, "Head", Vector3(-u * 0.4, 0, 0), 1.0)
+		_add_local(sk, "LeftUpperArm", Vector3(0, 0, u * 0.6), 1.0)
+		_add_local(sk, "RightUpperArm", Vector3(0, 0, -u * 0.6), 1.0)
+	if hit_heavy > 0.0:   # ağır darbe: dizler çöker, kalça düşer, gövde katlanır
+		var hv = maxf(0.0, e) * hit_heavy
+		var hb = sk.find_bone("Hips")
+		if hb >= 0:
+			sk.set_bone_pose_position(hb, sk.get_bone_pose_position(hb) + Vector3(0, -0.12 * hv, 0))
+		for side in [["Left", 1.0], ["Right", -1.0]]:
+			_rot_model(sk, side[0] + "UpperLeg", Vector3(0.12 * side[1], -0.6, 0.79), hv * 0.6)
+			_rot_model(sk, side[0] + "LowerLeg", Vector3(0.0, -0.85, -0.52), hv * 0.6)
+		_add_local(sk, "Spine", Vector3(hv * 0.3, 0, 0), 1.0)
 
 
 ## El ve parmaklar verilen yönde dümdüz (yumruk değil, açık avuç)
@@ -434,6 +468,16 @@ func _apply_keys(sk: Skeleton3D, dt: float) -> void:
 					else:
 						d = (d.normalized() + Vector3(0, 0.1, -0.75) * lift).normalized()
 		arms.append([bone, d])
+	# silah ağırlığı: kollar ve silah ucu yaylı izler — ağır silahta gecikip hedefi aşar, sonra oturur; hafifte keskin
+	var om = lerpf(36.0, 13.0, key_mass)
+	var ze = lerpf(0.95, 0.5, key_mass)
+	if not _key_chain and key_t < 0.03:
+		_spr.clear()
+	for a in arms:
+		if String(a[0]).ends_with("Arm") and dt > 0.0:
+			a[1] = _spring(a[0], a[1], om, ze, dt)
+	if dt > 0.0:
+		blade = _spring("_blade", blade, om, ze, dt).normalized()
 	cp["arms"] = arms
 	key_blade = blade
 	key_roll = _cr(float(k0.get("roll", 0.0)), float(k1.get("roll", 0.0)), float(k2.get("roll", 0.0)), float(k3.get("roll", 0.0)), u)
@@ -443,6 +487,25 @@ func _apply_keys(sk: Skeleton3D, dt: float) -> void:
 	_key_feet(sk, w, cp, raw_yaw, dt)
 	if key_weapon_cb.is_valid():
 		key_weapon_cb.call(sk, blade)
+
+
+var _spr := {}   # kemik -> [konum, hız] (yön yayı)
+func _spring(key: String, target: Vector3, om: float, ze: float, dt: float) -> Vector3:
+	if not _spr.has(key):
+		_spr[key] = [target, Vector3.ZERO]
+		return target
+	var st: Array = _spr[key]
+	var x: Vector3 = st[0]
+	var v: Vector3 = st[1]
+	var steps = maxi(1, int(ceil(dt / 0.008)))
+	var h = dt / steps
+	for i in steps:
+		var acc = (target - x) * om * om - v * 2.0 * ze * om
+		v += acc * h
+		x += v * h
+	st[0] = x
+	st[1] = v
+	return x if x.length() > 0.001 else target
 
 
 ## Ayaklar gövdeyi izler (tüm anahtar animasyonlar): gövde döndükçe ayaklar kısmen döner (topuk üstünde pivot), öne yüklenince
@@ -548,3 +611,127 @@ func _add_local(sk: Skeleton3D, bone: String, euler: Vector3, w: float) -> void:
 		return
 	var cur = sk.get_bone_pose_rotation(bi)
 	sk.set_bone_pose_rotation(bi, cur * Quaternion.from_euler(euler * w))
+
+
+# ------------------------------------------------------------------ adımla ilerleme (root motion)
+## Anahtar animasyonda yere basan ayak (alçaktaki, kalkık olmayan) yerinde kalsın: o ayağın model uzayındaki kayması kadar
+## gövde ters yönde ilerler -> root_vel (dünya, yatay). Saldırı kodu bunu hıza ekler (ayak kayması biter, adımlar "basar").
+var _rm_side := ""
+var _rm_prev := Vector3.ZERO
+func _root_motion(sk: Skeleton3D, dt: float) -> void:
+	if key_t < 0.0 or key_anim.is_empty() or dt <= 0.0:
+		root_vel = root_vel.lerp(Vector3.ZERO, clampf(dt * 10.0, 0.0, 1.0))
+		_rm_side = ""
+		return
+	var lf = sk.find_bone("LeftFoot")
+	var rf = sk.find_bone("RightFoot")
+	if lf < 0 or rf < 0:
+		return
+	var pl = sk.get_bone_global_pose(lf).origin
+	var pr = sk.get_bone_global_pose(rf).origin
+	var side = "L" if pl.y <= pr.y else "R"
+	var cur = pl if side == "L" else pr
+	if absf(pl.y - pr.y) < 0.02 and _rm_side != "":
+		side = _rm_side   # iki ayak da yerdeyse aynı ayakta kal (titremesin)
+		cur = pl if side == "L" else pr
+	if side == _rm_side:
+		var dm = cur - _rm_prev
+		dm.y = 0
+		var v = sk.global_transform.basis * (-dm / dt)
+		v.y = 0
+		if v.length() > 6.0:
+			v = v.normalized() * 6.0
+		root_vel = root_vel.lerp(v, clampf(dt * 18.0, 0.0, 1.0))
+	_rm_side = side
+	_rm_prev = cur
+
+
+# ------------------------------------------------------------------ ayak yerleştirme (iki kemik IK)
+## Her ayak altındaki zemine (arazi + çarpışma yüzeyi) basar: eğimde, basamakta ayaklar havada kalmaz / gömülmez; aşağıda kalan
+## ayak için kalça alçalır. Animasyonun kaldırdığı ayak (adım) yüksekliğini korur. Ayak yönü korunur.
+var _ankle_h := -1.0
+func _foot_ik(sk: Skeleton3D) -> void:
+	if not foot_ik:
+		return
+	var owner3d = sk.get_parent()
+	while owner3d and not (owner3d is CharacterBody3D):
+		owner3d = owner3d.get_parent()
+	if owner3d == null:
+		return
+	var gr = owner3d.get("grounded")
+	if not (bool(gr) if gr != null else (owner3d as CharacterBody3D).is_on_floor()):
+		return   # havada / zıplarken yok (oyuncu/düşman kendi zemin bilgisini tutar)
+	var cam = get_viewport().get_camera_3d() if get_viewport() else null
+	if cam and cam.global_position.distance_to(owner3d.global_position) > 35.0:
+		return   # uzaktakiler için atla (maliyet)
+	var gt: Transform3D = sk.global_transform
+	if _ankle_h < 0.0:
+		var a = sk.find_bone("LeftFoot")
+		if a < 0:
+			return
+		_ankle_h = (gt * sk.get_bone_global_rest(a).origin).y - owner3d.global_position.y
+		if _ankle_h <= 0.0 or _ankle_h > 0.4:
+			_ankle_h = 0.08
+	var root_y: float = owner3d.global_position.y
+	var space = owner3d.get_world_3d().direct_space_state
+	var targets_ik = {}
+	var drop = 0.0
+	for side in ["Left", "Right"]:
+		var fb = sk.find_bone(side + "Foot")
+		if fb < 0:
+			return
+		var P: Vector3 = gt * sk.get_bone_global_pose(fb).origin
+		var lift = maxf(0.0, (P.y - root_y) - _ankle_h)   # animasyonun kaldırdığı yükseklik
+		var gy = Game.ground_height(P.x, P.z)
+		var hit = space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(P.x, root_y + 0.6, P.z), Vector3(P.x, root_y - 0.7, P.z), 1, [owner3d.get_rid()]))
+		if not hit.is_empty():
+			gy = maxf(gy, float(hit["position"].y)) if absf(float(hit["position"].y) - root_y) < 0.6 else gy
+		var dy = clampf(gy - root_y, -0.45, 0.45)
+		if absf(dy) < 0.015:
+			continue
+		targets_ik[side] = [fb, P + Vector3(0, dy + (0.0 if lift > 0.06 else 0.0), 0)]
+		drop = minf(drop, dy)
+	if targets_ik.is_empty():
+		return
+	if drop < -0.01:   # alçaktaki ayağa uzanabilmek için kalça iner
+		var hb = sk.find_bone("Hips")
+		if hb >= 0:
+			sk.set_bone_pose_position(hb, sk.get_bone_pose_position(hb) + Vector3(0, drop / maxf(0.01, gt.basis.get_scale().y), 0))
+	var inv = gt.affine_inverse()
+	for side in targets_ik:
+		var fb: int = targets_ik[side][0]
+		var keep: Basis = sk.get_bone_global_pose(fb).basis
+		_leg_ik(sk, side, inv * (targets_ik[side][1] as Vector3))
+		var par = sk.get_bone_parent(fb)
+		var pb: Basis = sk.get_bone_global_pose(par).basis if par >= 0 else Basis.IDENTITY
+		sk.set_bone_pose_rotation(fb, (pb.inverse() * keep).get_rotation_quaternion())
+
+
+func _leg_ik(sk: Skeleton3D, side: String, tgt: Vector3) -> void:
+	var ub = sk.find_bone(side + "UpperLeg")
+	var lb = sk.find_bone(side + "LowerLeg")
+	var fb = sk.find_bone(side + "Foot")
+	if ub < 0 or lb < 0 or fb < 0:
+		return
+	var S = sk.get_bone_global_pose(ub).origin
+	var E = sk.get_bone_global_pose(lb).origin
+	var H = sk.get_bone_global_pose(fb).origin
+	var a = S.distance_to(E)
+	var b = E.distance_to(H)
+	var d = tgt - S
+	var dist = clampf(d.length(), 0.05, a + b - 0.002)
+	var dn = d.normalized()
+	# diz hep öne (hafif dışa) bakar: düz bacakta mevcut diz yönü belirsiz kalıp diz yana açılıyordu
+	var pole = Vector3(0.12 if side == "Left" else -0.12, 0.0, 1.0)
+	var bent = (E - (S + (H - S) * 0.5))
+	if bent.length() > 0.03 and bent.normalized().z > 0.3:
+		pole = bent   # animasyon dizi zaten belirgin öne kırmışsa onu koru
+	var perp = pole - dn * pole.dot(dn)
+	if perp.length() < 0.001:
+		perp = Vector3(0, 0, 1)
+	perp = perp.normalized()
+	var cos_a = clampf((a * a + dist * dist - b * b) / (2.0 * a * dist), -1.0, 1.0)
+	var knee = S + (dn * cos_a + perp * sqrt(1.0 - cos_a * cos_a)) * a
+	_rot_model(sk, side + "UpperLeg", knee - S, 1.0)
+	var E2 = sk.get_bone_global_pose(lb).origin
+	_rot_model(sk, side + "LowerLeg", (S + dn * dist) - E2, 1.0)

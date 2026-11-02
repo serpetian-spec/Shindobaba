@@ -206,7 +206,7 @@ func _hit_feedback(info: Dictionary, dmg: float) -> void:
 	var heavy: bool = info.get("kind", "light") == "heavy" or info.get("launch", 0.0) > 0.0
 	var amp = clampf(dmg / maxf(1.0, max_hp) * 6.0, 0.55, 1.0) * (1.3 if heavy else 1.0) / maxf(1.0, size * 0.7)
 	if model and model.has_method("react"):
-		model.react(dir, amp, randf() < 0.35)
+		model.react(dir, amp, randf() < 0.35, clampf(float(info.get("launch", 0.0)) / 10.0, 0.0, 1.0), 1.0 if info.get("kind", "light") == "heavy" else 0.0)
 	if dmg >= 1.0 and not info.get("no_blood", false) and String(info.get("element", "")) not in ["katon", "raiton"] and not is_in_group("no_blood"):
 		var cut = String(info.get("weapon_style", "")) in ["blade", "sword", "heavy", "sickle", "claw", "dual", "chain"] or info.get("blade", false)
 		FX.blood(global_position + Vector3.UP * height * 0.62, dir, clampf(dmg / maxf(1.0, max_hp) * 5.0, 0.3, 1.0) * (1.4 if cut else 0.8))

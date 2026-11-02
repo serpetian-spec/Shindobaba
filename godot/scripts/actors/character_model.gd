@@ -4347,11 +4347,11 @@ func flash(amount: float) -> void:
 
 
 ## Darbe tepkisi (dünya yönünde itiş): poz katmanında gövde/kafa savrulur
-func react(world_dir: Vector3, amp: float, head := false) -> void:
+func react(world_dir: Vector3, amp: float, head := false, up := 0.0, heavy := 0.0) -> void:
 	if overlay == null:
 		return
 	var d = global_transform.basis.inverse() * world_dir
-	overlay.hit_react(d, amp, head)
+	overlay.hit_react(d, amp, head, up, heavy)
 
 
 const STANCE_ID := {"samehada": "w_samehada", "gunbai": "w_gunbai", "raijin": "w_raijin", "uc_tirpan": "w_tirpan", "shibuki": "w_shibuki", "kabutowari": "w_kabuto", "ruzgar_bicak": "w_ruzgar"}

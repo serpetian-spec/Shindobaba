@@ -211,6 +211,7 @@ func _start_step() -> void:
 	p.model.overlay.set_pose("kick", 1.0 if c.get("kick", false) else 0.0)
 	_set_two_hand(c.get("two_hand", false), float(c.get("dur", 0.6)), float(c.get("two_off", 0.32)))
 	if c.has("keys"):
+		p.model.overlay.key_mass = KEYED.mass(String(c.get("keyed_id", Gear.equipped(Game.profile, "sag").get("id", ""))))
 		p.model.overlay.play_keys(c["keys"], float(c.get("key_spd", 1.0)))
 		if c.has("keyed_id"):
 			KEYED.on_start(c["keyed_id"], int(c["keyed_i"]), p)   # sıçrama, Samehada açılıp büyüme vb.
@@ -349,10 +350,14 @@ func _do_attack(dt: float) -> bool:
 				lunge = minf(9.0, dist / maxf(0.05, c["hit"] - t) * 0.9)
 			else:
 				lunge = 0.0
-		var v = p.face_dir() * lunge
+		var v = p.face_dir() * lunge + p.model.overlay.root_vel   # adımla ilerleme: basan ayak yerinde kalır
 		p.velocity.x = v.x; p.velocity.z = v.z
 	else:
-		p.velocity.x = move_toward(p.velocity.x, 0, dt * 60); p.velocity.z = move_toward(p.velocity.z, 0, dt * 60)
+		var rv: Vector3 = p.model.overlay.root_vel
+		if rv.length() > 0.05:
+			p.velocity.x = rv.x; p.velocity.z = rv.z
+		else:
+			p.velocity.x = move_toward(p.velocity.x, 0, dt * 60); p.velocity.z = move_toward(p.velocity.z, 0, dt * 60)
 	p.velocity.y -= Player.GRAV * dt
 	if not did_hit and t >= c["hit"] and c.has("chain_kind"):
 		did_hit = true
@@ -383,6 +388,10 @@ func _do_attack(dt: float) -> bool:
 		if c.has("keyed_id"):
 			KEYED.on_strike(c["keyed_id"], int(c["keyed_i"]), p, float(c["dmg"]) * Stats.melee_mult(Game.profile))   # zemin/patlama/uçan kâğıt
 		var hits = Combat.hit_sphere(p, pt, c["reach"] * 0.65 * Buffs.mod("reach"), _hit_info(c))
+		if not hits.is_empty() and c.has("keyed_id") and step == COMBO.size() - 1:
+			VFX.slowmo(0.3, 0.22)   # bitiriş isabeti: kısa ağır çekim + sert sarsıntı
+			if Game.world:
+				Game.world.env.add_shake(0.7)
 		if not hits.is_empty():
 			_on_hit_fx(pt, c)
 			var armed_m = String(Gear.weapon(Game.profile).get("style", "fist")) != "fist" and bool(Game.profile.get("weapon_drawn", false))
@@ -1130,7 +1139,7 @@ func take_hit(info: Dictionary) -> void:
 	p.model.flash(0.8)
 	var hdir: Vector3 = info.get("dir", Vector3.ZERO)
 	var hheavy: bool = info.get("kind", "light") == "heavy" or info.get("launch", 0.0) > 0.0
-	p.model.react(hdir, clampf(dmg / maxf(1.0, p.max_hp) * 7.0, 0.55, 1.0) * (1.3 if hheavy else 1.0), randf() < 0.35)
+	p.model.react(hdir, clampf(dmg / maxf(1.0, p.max_hp) * 7.0, 0.55, 1.0) * (1.3 if hheavy else 1.0), randf() < 0.35, clampf(float(info.get("launch", 0.0)) / 10.0, 0.0, 1.0), 1.0 if hheavy else 0.0)
 	if dmg >= 1.0 and not info.get("no_blood", false) and String(info.get("element", "")) not in ["katon", "raiton"]:
 		FX.blood(p.global_position + Vector3.UP * 1.1, hdir, clampf(dmg / maxf(1.0, p.max_hp) * 5.0, 0.3, 1.0))
 	Combat.damage_number(p.global_position + Vector3.UP * 2.0, dmg, Color(1, 0.4, 0.35))

@@ -14,6 +14,15 @@ const TABLE := {
 	"ruzgar_bicak": [preload("res://scripts/combat/ruzgar_anim.gd"), 1.0],
 	"sai": [preload("res://scripts/combat/sai_anim.gd"), 1.0],
 }
+## silah ağırlığı (0 hafif .. 1 ağır): kol/silah yaylanması (PoseOverlay.key_mass) — ağır silah gecikip taşar
+const MASS := {"uc_tirpan": 1.0, "samehada": 0.9, "kabutowari": 0.9, "shibuki": 0.85, "gunbai": 0.8, "raijin": 0.35, "kunai": 0.1,
+	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1}
+
+
+static func mass(id: String) -> float:
+	return float(MASS.get(id, 0.5))
+
+
 ## iki elli adımlarda sol elin sağ yumruktan sap boyunca uzaklığı
 const TWO_OFF := {"uc_tirpan": 0.42, "shibuki": 0.2, "samehada": 0.3}   # shibuki: sağ el sapın arka ucunda, sol el önde (ruloya yakın)
 

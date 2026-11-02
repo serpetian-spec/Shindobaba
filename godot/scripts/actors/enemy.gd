@@ -677,6 +677,7 @@ func _swing_keyed(wid: String) -> void:
 	key_i += 1
 	var ks: Dictionary = st[i]
 	var spd = KEYED.speed(wid) * (1.0 + skill * 0.15)
+	model.overlay.key_mass = KEYED.mass(wid)
 	model.overlay.play_keys(ks, spd)
 	KEYED.on_start(wid, i, self)   # oyuncuyla aynı adım başı etkileri (sıçrama, Samehada açılması)
 	key_step = {"hit": float(ks["hit"]) / spd, "len": float(ks["len"]) / spd, "two": bool(ks.get("two", false)), "i": i, "id": wid,
@@ -722,7 +723,10 @@ func _attack(dt: float) -> void:
 	var v = target.global_position - global_position
 	v.y = 0
 	facing = lerp_angle(facing, atan2(-v.x, -v.z), minf(1.0, dt * 10.0))
-	step_move(face_dir() * (3.0 if state_t < 0.2 else 0.0), dt, false)
+	if not key_step.is_empty():
+		step_move(model.overlay.root_vel + face_dir() * (1.5 if state_t < 0.15 else 0.0), dt, false)   # adımla ilerleme (oyuncuyla aynı)
+	else:
+		step_move(face_dir() * (3.0 if state_t < 0.2 else 0.0), dt, false)
 	if not key_step.is_empty():
 		_attack_keyed()
 		return
