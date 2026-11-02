@@ -70,15 +70,17 @@ static func steps() -> Array:
 			_t(0.7, 0.7, 12, 32, Vector3(0.0, -0.04, 1.0), S.H_FWD, S.L_DOWN, L),
 			_t(0.95, 0.6, 8, 24, Vector3(0.0, -0.05, 1.0), S.H_FWD, S.L_DOWN, L),
 		]},
-		# 6 Doyumsuz Ağız (bitiriş, iki el): saplı rakip uçta -> kılıç başın üstünden arkaya taşınır, rakip arkaya yere çarpılır
-		{"len": 1.25, "hit": 0.22, "two": true, "keys": [
+		# 6 Doyumsuz Ağız (bitiriş, iki el): saplar -> kılıç başın üstünden sırta kadar geri kaldırılır (büyük geri çekiş, duraksama)
+		# -> tüm ağırlıkla ÖNE indirilir, rakip önündeki yere çarpılıp savrulur
+		{"len": 1.3, "hit": 0.62, "two": true, "keys": [
 			_t(0.0, 0.6, 8, 24, Vector3(0.0, -0.05, 1.0), S.H_FWD, S.L_DOWN, L),
-			_t(0.16, 0.62, 4, 28, Vector3(0.0, -0.3, 0.95), S.H_LOW_FRONT, S.L_DOWN, L),   # ağırlığı yüklenip altına girer
-			_t(0.3, 0.5, 0, 8, Vector3(0.0, 0.55, 0.83), S.H_FOREHEAD, S.L_DOWN, W),
-			_t(0.44, 0.4, 0, -18, Vector3(0.0, 0.99, -0.1), S.H_UP, S.L_DOWN, W),
-			_t(0.58, 0.55, 0, -30, Vector3(0.0, 0.2, -0.98), S.H_EAR_BACK, S.L_DOWN, W),   # arkaya çarpış
-			_t(0.66, 0.62, 0, -32, Vector3(0.0, -0.1, -0.99), S.H_BEHIND, S.L_DOWN, W),
-			_t(0.95, 0.55, 0, -14, Vector3(-0.2, 0.3, -0.93), S.H_SH_BACK, S.L_DOWN, W),
-			_t(1.25, 0.4, 0, -4, Vector3(-0.3, 0.6, -0.75), S.H_SH_BACK, S.L_DOWN, W),
+			_t(0.18, 0.45, 2, 4, Vector3(0.0, 0.75, 0.66), S.H_FOREHEAD, S.L_DOWN, W),
+			_t(0.34, 0.38, -4, -20, Vector3(0.0, 0.85, -0.53), S.H_UP, S.L_DOWN, W),
+			_t(0.48, 0.4, -6, -26, Vector3(0.0, 0.2, -0.98), S.H_EAR_BACK, S.L_DOWN, W),
+			_t(0.54, 0.41, -6, -27, Vector3(0.0, 0.18, -0.98), S.H_EAR_BACK, S.L_DOWN, W),
+			_t(0.58, 0.5, 0, 8, Vector3(0.0, 0.99, 0.1), S.H_UP, S.L_DOWN, W),
+			_t(0.62, 0.85, 4, 44, Vector3(0.0, -0.5, 0.87), S.H_LOW_FRONT, S.L_DOWN, L),
+			_t(0.9, 0.85, 4, 42, Vector3(0.0, -0.52, 0.85), S.H_LOW_FRONT, S.L_DOWN, L),
+			_t(1.3, 0.5, 0, 12, Vector3(-0.2, -0.3, 0.93), S.H_HIP_FRONT, S.L_DOWN, W),
 		]},
 	]

@@ -52,7 +52,7 @@ static func mods(id: String, i: int) -> Dictionary:
 				2: m.merge({"launch": 11.0, "knock": 2.0})
 				3: m.merge({"heavy": true, "knock": 2.5})
 				4: m.merge({"stun": 0.7, "knock": 1.0, "reach_add": 0.5})
-				5: m.merge({"heavy": true, "knock": 0.5, "throw_back": true})
+				5: m.merge({"heavy": true, "knock": 16.0, "launch": 8.5})   # öne yere çarpılıp savrulur (yakın dövüşte launch >= 8 olmazsa yere sermez, sadece iter)
 			return m
 		"shibuki":
 			# patlamalar on_strike'ta (her vuruşta kendi biçimi): silahın genel "explode" özelliği iki kez patlamasın
@@ -113,14 +113,12 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 					VFX.debris(gp.call(1.5), Color(0.5, 0.45, 0.4), 8, 5.0, 0.3)
 				4:
 					FX.hit_spark(gp.call(2.3) + Vector3.UP, blue, 1.4)
-				5:   # rakip arkaya çarpılır: arkada şok + çatlak
-					who.get_tree().create_timer(0.42).timeout.connect(func():
-						if is_instance_valid(who):
-							var q = gp.call(-2.2)
-							VFX.cracks(q, 2.8)
-							VFX.shockwave(q + Vector3.UP * 0.1, blue, 5.0, 0.4)
-							VFX.debris(q, Color(0.5, 0.45, 0.4), 12, 7.0, 0.35)
-							_shake(who, 0.6))
+				5:   # rakip ÖNDEKİ yere çarpılır: önde şok + çatlak
+					var q = gp.call(2.2)
+					VFX.cracks(q, 2.8)
+					VFX.shockwave(q + Vector3.UP * 0.1, blue, 5.0, 0.4)
+					VFX.debris(q, Color(0.5, 0.45, 0.4), 12, 7.0, 0.35)
+					_shake(who, 0.6)
 		"uc_tirpan":
 			if i == 3:
 				var q = gp.call(2.3)
