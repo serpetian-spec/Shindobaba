@@ -354,7 +354,7 @@ func _blood_decal(p: Vector3, r: float, life := 100.0) -> Node3D:
 	mi.texture_albedo = _puddle(randi())
 	mi.modulate = Color(0.4, 0.01, 0.025, 0.97)
 	mi.size = Vector3(r * randf_range(1.1, 1.5) * 2.0, 1.2, r * 2.0)
-	mi.cull_mask = 1
+	mi.cull_mask = 1 | 2   # 2: köy zemini/çimen örtüleri ve yapılar (Builder meshleri katman 2: kan orada görünmüyordu)
 	mi.upper_fade = 0.3
 	mi.lower_fade = 0.3
 	get_tree().current_scene.add_child(mi)

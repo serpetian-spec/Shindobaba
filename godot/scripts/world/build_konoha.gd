@@ -13,6 +13,9 @@ static var _veg_cache := {}
 
 
 ## Kapı etkileşimi: araziye oturan nokta; alias = hikâye hedefi için iç mekândaki asıl tür
+const TG = preload("res://scripts/world/training_ground.gd")   # 3. Antrenman Alanı
+
+
 static func _door(b: Builder, x: float, n: float, radius: float, room: String, label: String, alias := "", seed := 0) -> void:
 	var wp = b.w(Vector3(x, 0, n))
 	wp.y = Game.terrain_height(wp.x, wp.z) + 0.4
@@ -269,27 +272,11 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	b.interact(Vector3(anx, _gy(b, anx, ann - 22), ann - 22), 4.0, "enter", "[F] Gir: Anbu Karargâhı", {"room": "secret_hq", "vid": "konoha", "alias": "anbu", "out": _gp(b, anx, ann - 22)})
 	occupied.append([anx, ann + 2, 40, 30])
 
-	# ---- Antrenman Alanı 3 + Anıt Taşı (doğu) + eğitmen
+	# ---- Antrenman Alanı 3 (TrainingGround: çan kütükleri, Anıt Taşı, şelaleli gölet, dere + köprü, hedefler, parkur, sakura...)
 	var tgx = 1050.0; var tgn = 560.0
-	b.box(Vector3(tgx, _gy(b, tgx, tgn) + 0.04, tgn), Vector3(140, 0.1, 110), Color(0.45, 0.62, 0.3), 0, false)
-	for i in 3:
-		b.cyl(Vector3(tgx - 6 + i * 6, _gy(b, tgx, tgn + 18) + 1.0, tgn + 18), 1.0, 2.0, Color(0.48, 0.34, 0.2), true, 10)
-	b.box(Vector3(tgx - 35, _gy(b, tgx - 35, tgn + 30) + 2.2, tgn + 30), Vector3(4, 4.4, 1.2), Color(0.45, 0.45, 0.48))
-	_act(b, tgx - 35, tgn + 27, 4, "memorial", "[F] Anıt Taşı")
-	_act(b, tgx, tgn + 12, 6, "training", "[F] Antrenman yap (chakra kontrolü)")
-	_act(b, tgx + 14, tgn + 12, 3.5, "trainer", "[F] Jonin eğitmen: jutsu öğren", {"village": "konoha"})
-	_site(b, "trainer", tgx + 14, tgn + 14, {"face": _face(0, -1)})
-	for i in 4:
-		Spawner.dummy(_gp(b, tgx - 20 + i * 13, tgn - 15))
-	_site(b, "spar", tgx - 30, tgn + 4)
-	_site(b, "spar", tgx + 35, tgn - 2)
+	TG.road_check = func(x: float, n: float) -> bool: return _on_road(b, x, n, 12.0)
+	TG.build(b, decor, tgx, tgn, rng, func(x: float, n: float) -> float: return _gy(b, x, n), _act, _site)
 	occupied.append([tgx, tgn, 72, 58])
-	for k in 30:  # alan çevresi ağaçlık
-		var a = randf() * TAU
-		var tr = rng.randf_range(80.0, 120.0)
-		var tpx = tgx + cos(a) * tr; var tpn = tgn + sin(a) * tr * 0.8
-		if not _on_road(b, tpx, tpn, 12.0):
-			b.tree(tpx, tpn, rng.randf_range(1.2, 1.8), rng, _gy(b, tpx, tpn))
 
 	# ---- oyuncunun evi (başlangıç noktasının yakınında) + inşaat alanı + park
 	b.house(-150, 110, 10, 9, 2, 0, "konoha", rng)
