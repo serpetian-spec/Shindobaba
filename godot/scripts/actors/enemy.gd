@@ -679,6 +679,7 @@ func _swing_keyed(wid: String) -> void:
 	var ks: Dictionary = st[i]
 	var spd = KEYED.speed(wid) * (1.0 + skill * 0.15)
 	model.overlay.play_keys(ks, spd)
+	KEYED.on_start(wid, i, self)   # oyuncuyla aynı adım başı etkileri (sıçrama, Samehada açılması)
 	key_step = {"hit": float(ks["hit"]) / spd, "len": float(ks["len"]) / spd, "two": bool(ks.get("two", false)), "i": i, "id": wid,
 		"extra": (ks.get("extra_hits", []) as Array).map(func(x): return float(x) / spd), "extra_r": float(ks.get("extra_radius", 2.5)), "extra_done": 0}
 	var rig: WeaponRig = model.rig

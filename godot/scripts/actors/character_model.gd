@@ -3488,7 +3488,7 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 		"el_shuriken":
 			b.add("cyl", Vector3(0, 0, 0.1), Vector3(0.03, 0.4, 0.03), dark, Vector3(90, 0, 0), 8)   # sap göbeğe kadar
 			_w_star(b, Vector3(0, 0, 0.3), 0.34, 0.17, 4, Color(0.5, 0.52, 0.56), dark)
-		"kubikiribocho", "samehada", "kiba", "hiramekarei", "shibuki", "nuibari", "kabutowari":
+		"kubikiribocho", "samehada", "samehada_acik", "kiba", "hiramekarei", "shibuki", "nuibari", "kabutowari":
 			MistSwords.build(id, b)   # Sis'in Yedi Kılıcı: referansla modellendi
 		"chokuto":
 			b.add("cyl", Vector3(0, 0, -0.08), Vector3(0.032, 0.22, 0.032), Color(0.85, 0.85, 0.85), Vector3(90, 0, 0), 8)

@@ -212,6 +212,8 @@ func _start_step() -> void:
 	_set_two_hand(c.get("two_hand", false), float(c.get("dur", 0.6)), float(c.get("two_off", 0.32)))
 	if c.has("keys"):
 		p.model.overlay.play_keys(c["keys"], float(c.get("key_spd", 1.0)))
+		if c.has("keyed_id"):
+			KEYED.on_start(c["keyed_id"], int(c["keyed_i"]), p)   # sıçrama, Samehada açılıp büyüme vb.
 		if int(c.get("rai", -1)) == COMBO.size() - 1:
 			get_tree().create_timer(0.16).timeout.connect(func():
 				if is_instance_valid(p) and action == "attack":

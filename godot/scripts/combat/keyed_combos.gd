@@ -45,13 +45,13 @@ static func mods(id: String, i: int) -> Dictionary:
 			return m
 		"samehada":
 			# rendeler + chakra emer (silahın "drain" özelliği kalır); ağır: kurulurken kaymaz
-			var m = {"lunge_mul": 0.55}
+			var m = {"lunge_mul": 0.55, "eat": true, "special": ""}   # emme _samehada_eat'te (genel "drain" iki kez emmesin)   # her isabet: chakra yer, jutsuyu yutar, buff/pelerin söker, doyup büyür
 			match i:
 				0: m.merge({"knock": 2.0})
 				1: m.merge({"heavy": true, "knock": 14.0})
-				2: m.merge({"launch": 11.0, "knock": 2.0})
-				3: m.merge({"heavy": true, "knock": 2.5})
-				4: m.merge({"stun": 0.7, "knock": 1.0, "reach_add": 0.5})
+				2: m.merge({"knock": 6.0, "reach_add": 1.4})                    # canlı atılış: menzil uzar
+				3: m.merge({"launch": 11.0, "knock": 2.0})
+				4: m.merge({"heavy": true, "launch": 9.0, "knock": 7.0, "reach_add": 0.4, "lunge_mul": 0.0})   # havadan yere çakar
 				5: m.merge({"heavy": true, "knock": 16.0, "launch": 8.5})   # öne yere çarpılıp savrulur (yakın dövüşte launch >= 8 olmazsa yere sermez, sadece iter)
 			return m
 		"shibuki":
@@ -73,6 +73,8 @@ static func on_target(id: String, i: int, who: Node3D, h: Node3D) -> void:
 	var m = mods(id, i)
 	if bool(m.get("pull", false)) and h is CharacterBody3D:
 		h.velocity = (who.global_position - h.global_position).normalized() * 9.0 + Vector3.UP * 2.0
+	if bool(m.get("eat", false)):
+		_samehada_eat(who, h, i == 5)
 	if bool(m.get("throw_back", false)) and h is CharacterBody3D:
 		# Samehada bitiriş: saplı rakip başın üstünden arkaya savrulup yere çarpar
 		var f: Vector3 = who.face_dir() if who.has_method("face_dir") else -who.global_transform.basis.z
@@ -104,16 +106,21 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 				1:
 					VFX.star(gp.call(1.8) + Vector3.UP * 1.2, Color(1, 1, 1), 2.6, 0.18)
 					_shake(who, 0.5)
-				2:   # ısırık: tepede pullar kabarır (dikenli mavi patlama)
+				2:   # canlı atılış: Samehada kendi kabarıp ileri atılır (kısa süre büyür), uçta mavi ısırık
+					_swell(who, 1.25, 0.1, 0.15)
+					VFX.star(gp.call(3.2) + Vector3.UP * 1.0, blue, 2.8, 0.18)
+				3:   # ısırık: pullar dikene döner (dikenli mavi patlama)
 					var q = gp.call(1.6) + Vector3.UP * 2.0
 					VFX.star(q, blue, 3.4, 0.22)
 					FX.burst(q, {"amount": 18, "life": 0.45, "tex": FX.tex_spark, "size": 0.6, "vmin": 4, "vmax": 9, "colors": [Color(0.85, 0.95, 1, 1), Color(0.35, 0.6, 1, 0)]})
 					_shake(who, 0.35)
-				3:
-					VFX.debris(gp.call(1.5), Color(0.5, 0.45, 0.4), 8, 5.0, 0.3)
-				4:
-					FX.hit_spark(gp.call(2.3) + Vector3.UP, blue, 1.4)
-				5:   # rakip ÖNDEKİ yere çarpılır: önde şok + çatlak
+				4:   # havadan iniş: önde çatlak + şok
+					var q = gp.call(2.0)
+					VFX.cracks(q, 2.6)
+					VFX.shockwave(q + Vector3.UP * 0.1, blue, 4.5, 0.35)
+					VFX.debris(q, Color(0.5, 0.45, 0.4), 10, 6.0, 0.3)
+					_shake(who, 0.55)
+				5:   # Ziyafet: öndeki yere çarpış
 					var q = gp.call(2.2)
 					VFX.cracks(q, 2.8)
 					VFX.shockwave(q + Vector3.UP * 0.1, blue, 5.0, 0.4)
@@ -202,3 +209,122 @@ static func _fly_tag(who: Node3D, from: Vector3, to: Vector3, dur: float, dmg: f
 		if is_instance_valid(q):
 			q.queue_free()
 		_boom(who, to + Vector3.UP * 0.3, 0.6, dmg, 1.6, 0.0))
+
+
+## Adım başlarken (oyuncu _start_step / düşman _swing_keyed): sıçrama, Samehada'nın sargısını açıp büyümesi vb.
+static func on_start(id: String, i: int, who: Node3D) -> void:
+	if who == null or not is_instance_valid(who):
+		return
+	match id:
+		"samehada":
+			if i == 4 and who is CharacterBody3D:   # Havada Ezme: fırlayan rakibin peşinden sıçra
+				who.velocity.y = 8.5
+				var f: Vector3 = who.face_dir() if who.has_method("face_dir") else Vector3.ZERO
+				who.velocity.x += f.x * 2.5
+				who.velocity.z += f.z * 2.5
+			if i == 5:   # Ziyafet: sargı açılır (pullu canlı hali), kılıç büyür; bitince sarılıp küçülür
+				_unwrap(who, 1.6)
+				_swell(who, 1.3, 0.25, 1.2)
+
+
+static func _weapon_node(who: Node3D) -> Node3D:
+	var m = who.get("model")
+	if m == null or m.get("weapons") == null or (m.weapons as Array).is_empty():
+		return null
+	var n = m.weapons[0]["node"]
+	return n if is_instance_valid(n) else null
+
+
+## Samehada'nın boyu: doyma (6 sn) × anlık kabarma
+static func _apply_size(who: Node3D) -> void:
+	var n = _weapon_node(who)
+	if n == null:
+		return
+	var sat = int(who.get_meta("same_sat", 0))
+	var sw = float(who.get_meta("same_swell", 1.0))
+	n.scale = Vector3.ONE * (1.0 + 0.06 * sat) * sw
+
+
+## Anlık kabarma: rise sn'de s katına, hold sn tutar, geri iner
+static func _swell(who: Node3D, s: float, rise: float, hold: float) -> void:
+	var tw = who.create_tween()
+	tw.tween_method(func(v: float):
+		if is_instance_valid(who):
+			who.set_meta("same_swell", v)
+			_apply_size(who), 1.0, s, rise)
+	tw.tween_interval(hold)
+	tw.tween_method(func(v: float):
+		if is_instance_valid(who):
+			who.set_meta("same_swell", v)
+			_apply_size(who), s, 1.0, 0.35)
+
+
+## Sargıyı aç: pullu canlı Samehada modeline geç, dur sn sonra sargılıya dön
+static func _unwrap(who: Node3D, dur: float) -> void:
+	var n = _weapon_node(who)
+	if not (n is MeshInstance3D):
+		return
+	(n as MeshInstance3D).mesh = CharacterModel.weapon_mesh("samehada_acik")
+	FX.burst(n.global_position, {"amount": 14, "life": 0.5, "size": 0.5, "vmin": 2, "vmax": 5, "colors": [Color(0.95, 0.95, 0.9, 1), Color(0.8, 0.8, 0.75, 0)]})   # sargı parçaları
+	who.get_tree().create_timer(dur).timeout.connect(func():
+		if is_instance_valid(n):
+			(n as MeshInstance3D).mesh = CharacterModel.weapon_mesh("samehada"))
+
+
+## Samehada yer (kanon): rakibin chakrasını emer (sahibine geçer), mühür yapıyorsa jutsusunu yutar (iptal), buff / chakra
+## pelerinlerini söker; her isabette doyar ve büyür (6 sn yemezse eski boyu). Ziyafet'te çok daha fazla emer.
+static func _samehada_eat(who: Node3D, h: Node3D, feast: bool) -> void:
+	if not is_instance_valid(who) or not is_instance_valid(h):
+		return
+	var blue = Color(0.45, 0.75, 1.0)
+	var take = 18.0 if feast else 6.0
+	var got = 0.0
+	if h is Player:
+		got = minf(take, h.chakra)
+		h.chakra = maxf(0.0, h.chakra - take)
+		if h.combat and String(h.combat.get("action")) == "cast":   # mühür yaparken: jutsu yutuldu
+			h.combat.action = ""
+			h.model.overlay.set_pose("seal", 0.0)
+			Combat.popup_text(h.global_position + Vector3.UP * 2.2, "Jutsu yutuldu!", blue)
+		if Buffs.active.keys().any(func(k): return k in Buffs.MODE_GROUP or k == "beast"):
+			Buffs.clear_modes()
+			Buffs.remove("beast")
+			Combat.popup_text(h.global_position + Vector3.UP * 2.5, "Chakra pelerini yenildi!", blue)
+	else:
+		if "chakra" in h:
+			got = minf(take, float(h.chakra))
+			h.chakra = maxf(0.0, float(h.chakra) - take)
+		else:
+			got = take * 0.5
+		if String(h.get("state")) == "cast":
+			h.state = "hitstun"
+			h.state_t = 0.0
+			if h.get("model"):
+				h.model.overlay.set_pose("seal", 0.0)
+			Combat.popup_text(h.global_position + Vector3.UP * 2.2, "Jutsu yutuldu!", blue)
+		if h.get("buffs") is Dictionary and not (h.buffs as Dictionary).is_empty():
+			h.buffs.clear()
+			Combat.popup_text(h.global_position + Vector3.UP * 2.5, "Güçlendirme yenildi!", blue)
+	# sahibine geçer
+	if who is Player:
+		who.chakra = minf(who.max_chakra, who.chakra + maxf(got, 2.0))
+	elif "chakra" in who:
+		who.chakra = float(who.chakra) + maxf(got, 2.0)
+	# doyma: büyür (en fazla 5 kademe), 6 sn yemezse küçülür
+	var sat = mini(5, int(who.get_meta("same_sat", 0)) + (2 if feast else 1))
+	who.set_meta("same_sat", sat)
+	who.set_meta("same_sat_until", Time.get_ticks_msec() + 6000)
+	_apply_size(who)
+	who.get_tree().create_timer(6.05).timeout.connect(func():
+		if is_instance_valid(who) and Time.get_ticks_msec() >= int(who.get_meta("same_sat_until", 0)):
+			who.set_meta("same_sat", 0)
+			_apply_size(who))
+	# rakipten sahibine akan mavi chakra (Ziyafet'te uzun akış)
+	var n = 6 if feast else 2
+	for k in n:
+		who.get_tree().create_timer(k * 0.06).timeout.connect(func():
+			if is_instance_valid(who) and is_instance_valid(h):
+				var a = h.global_position + Vector3.UP * 1.2
+				var b = who.global_position + Vector3.UP * 1.2
+				for j in 4:
+					FX.hit_spark(a.lerp(b, (j + 1) / 5.0), blue, 0.5))
