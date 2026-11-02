@@ -1876,7 +1876,21 @@ func _sk_panel(cx: float, y_top: float, h: float, w_top: float, w_bot: float, d:
 
 ## Konoha yeleği (set1.png): göğüste 2x2 parşömen cebi (üst sıra küçük, alt büyük), boydan boya fermuar,
 ## yeleğin üst kenarında dik yaka, omuzlarda yassı omuzluk — hepsi yelek kabuğunun yüzeyinden
+## Yelek ayrıntısı cinsiyet + stil + renge göre hep aynı çıkar: bir kez üretilip paylaşılır
+## (her ninja için baştan ~105 ms sürüyordu; köyde devriye/çatı ninjası doğarken takılma yapıyordu)
+static var _vest_kit_cache := {}
 func _vest_kit(src: ArrayMesh, g: Dictionary) -> void:
+	var ck = "%s|%d|%s" % [look["gender"], int(look.get("vest_style", 0)), Color(look["vest"]).to_html()]
+	if _vest_kit_cache.has(ck):
+		var cm = _vest_kit_cache[ck]
+		if cm != null:
+			var cmi = MeshInstance3D.new()
+			cmi.mesh = cm
+			skel.add_child(cmi)
+			cmi.skin = body_mesh.skin
+			cmi.skeleton = cmi.get_path_to(skel)
+			cmi.material_override = Props.toon()
+		return
 	if not _sk_begin(src):
 		return
 	var vs = int(look.get("vest_style", 0))
@@ -1946,7 +1960,8 @@ func _vest_kit(src: ArrayMesh, g: Dictionary) -> void:
 			_sk_plate(0.0, ch - 0.16, 0.21, 0.018, 0.03, dk.darkened(0.15))   # cep kapağı
 			_sk_ring(1, top_y + 0.003, 0.07, 0.018, vc.darkened(0.05), -PI, PI, 48, 0.004, 0.0, 0.035, 0.115)
 			_sk_ring(1, bot_y + 0.02, 0.035, 0.008, dk, -PI, PI, 40, 0.0)
-	_sk_end(g)
+	var vmi = _sk_end(g)
+	_vest_kit_cache[ck] = vmi.mesh if vmi else null
 
 
 ## Kunai kılıfı (set1.png): sağ uyluğun dış-önünde siyah kılıf + uyluğu saran iki beyaz bant; uyluk yüzeyi köşe taramasıyla bulunur

@@ -143,15 +143,20 @@ func _process(dt: float) -> void:
 		phase = new_phase
 		if phase == "aksam" or phase == "gece":
 			_send_home(v)
-	# uzaklaşanları temizle (karede birkaç tane)
+	# uzaklaşanları temizle (karede birkaç tane). Köy içindeyken uzaklaşan sokak NPC'si silinmez,
+	# oyuncunun yakınına taşınır (_recycle): koşarken her karede yeni karakter modeli kurmak (25-130 ms) takılma yapıyordu
 	var freed = 0
+	var far: Array = []
 	for n in npcs.duplicate():
 		if not is_instance_valid(n):
 			npcs.erase(n)
-		elif (n.global_position.distance_to(p) > 150.0 or v.is_empty()) and freed < 6:
-			freed += 1
-			n.queue_free()
-			npcs.erase(n)
+		elif v.is_empty() or v["id"] != current:
+			if freed < 6:
+				freed += 1
+				n.queue_free()
+				npcs.erase(n)
+		elif n.global_position.distance_to(p) > 150.0:
+			far.append(n)
 	_relocate(v)
 	_update_sites(v, p)
 	_update_crowd(v, p)
@@ -165,6 +170,10 @@ func _process(dt: float) -> void:
 	var target = base if phase != "gece" else int(base * 0.4)
 	var streets = _streets(v)
 	var roofs: Array = Builder.roof_points.get(v["id"], [])
+	for n in far:
+		if is_instance_valid(n) and not _recycle(n, streets, roofs, p):
+			n.queue_free()
+			npcs.erase(n)
 	var planned = npcs.size() + queue.size()
 	var groups = 0
 	while planned < target and groups < 6:
@@ -219,6 +228,50 @@ func _process(dt: float) -> void:
 				queue.append([role, at, streets])
 				planned += 1
 	current = v["id"]
+
+
+## Uzaklaşan sokak NPC'sini oyuncunun 30-150 m çevresinde, görüş dışındaki bir sokak noktasına taşı (modeli yeniden kurmadan)
+func _recycle(n: Node3D, streets: Array, roofs: Array, p: Vector3) -> bool:
+	if n is Villager:
+		if n.fading or n.going_home or n.role in ["shopper"]:
+			return false
+		if n.role == "roof":
+			var nr: Array = roofs.filter(func(q): return q.distance_to(p) < 110.0 and q.distance_to(p) > 40.0)
+			if nr.size() < 4:
+				return false
+			n.points = nr
+			n.hop_t = -1.0
+			n.global_position = nr.pick_random()
+			n.home = n.global_position
+			return true
+	var near: Array = streets.filter(func(q): return q.distance_to(p) < 140.0 and q.distance_to(p) > 35.0)
+	if near.is_empty():
+		return false
+	var cam = get_viewport().get_camera_3d()
+	var at: Vector3 = near.pick_random()
+	for k in 6:   # kamera önüne doğmasın
+		if cam == null or not cam.is_position_in_frustum(at + Vector3(0, 1, 0)):
+			break
+		at = near.pick_random()
+	at.y = Game.ground_height(at.x, at.z)
+	n.global_position = at
+	if "velocity" in n:
+		n.velocity = Vector3.ZERO
+	if n is Villager:
+		n.home = at
+		n.goal = at
+		n.wait = randf_range(0.0, 2.0)
+		n.nav = {}
+		if is_instance_valid(n.buddy):   # sohbet eşi de yanına
+			if n.buddy.global_position.distance_to(p) > 150.0:
+				n.buddy.global_position = at + Vector3(1.4, 0, 0.3)
+				n.buddy.home = n.buddy.global_position
+				n.buddy.goal = n.buddy.global_position
+			else:
+				n.buddy.buddy = null
+				n.buddy = null
+	n.reset_physics_interpolation()
+	return true
 
 
 ## Kurulumda (fizik yokken) konan tezgâhlar: oyuncu köydeyken bir kez açık zemine taşınır
