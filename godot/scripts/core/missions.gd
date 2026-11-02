@@ -1,4 +1,5 @@
 extends Node
+const WH = preload("res://scripts/core/weapon_holders.gd")
 ## Görev sistemi (autoload "Missions"). Rank: D C B A S.
 ## Görevler çok adımlıdır: her adımın türü (goto, talk, kill, collect, escort, stealth, chase, defend, track, points, babysit, cat, boss),
 ## kendi hedef işareti (pusula/ışık sütunu/mini harita) ve metni vardır. Konumlar procedural: görev masasının köyü çevresinden seçilir.
@@ -2622,6 +2623,37 @@ func add_swordsman(id: String, h: Dictionary) -> void:
 	_bingo()["list"].append(e)
 
 
+## Efsane silah sahibi (WeaponHolders) → Bingo girdisi: silah elinde, silahın kombosuyla dövüşür; yenilince silah düşer
+func add_weapon_holder(id: String, h: Dictionary) -> void:
+	for x in _bingo()["list"]:
+		if x["status"] == "alive" and String(x.get("legend_weapon", "")) == id:
+			return
+	var lv = int(h.get("level", 45))
+	var e = _bb_new("S" if lv >= 48 else "A")
+	e.erase("clan")
+	e.erase("beast")
+	e.erase("mist_sword")
+	e["legend_weapon"] = id
+	e["name"] = String(h.get("name", e["name"]))
+	e["alias"] = String(h.get("alias", e["alias"]))
+	e["village"] = String(h.get("village", e["village"]))
+	var el = String(WH.INFO[id]["el"])
+	if el != "":
+		e["element"] = el
+	e["level"] = lv
+	e["hp"] = 300.0 + lv * 28.0
+	e["power"] = 1.3 + lv * 0.038
+	e["bounty"] = int(lv * 900 / 50) * 50
+	e["look"]["village"] = e["village"]
+	e["look"]["gender"] = String(h.get("gender", "m"))
+	for k in (WH.INFO[id].get("look", {}) as Dictionary):   # silahın tarzına uygun görünüş (Uchiha yakası, Kiri kimonosu...)
+		e["look"][k] = WH.INFO[id]["look"][k]
+	if WH.INFO[id].has("clan"):
+		e["clan"] = String(WH.INFO[id]["clan"])
+	e["crimes"] = ["%s köyünden kaçak" % Game.village(e["village"]).get("name", e["village"]), "Taşıdığı silah: %s" % WH.weapon_name(id), String(WH.INFO[id]["tech"])]
+	_bingo()["list"].append(e)
+
+
 func remove_swordsman(id: String) -> void:
 	for x in _bingo()["list"]:
 		if x["status"] == "alive" and String(x.get("mist_sword", "")) == id:
@@ -2648,6 +2680,7 @@ func bingo_host_spawned(id: String) -> bool:
 func _bingo_tick(dt: float) -> void:
 	var bb = _bingo()
 	Swordsmen.world_tick(dt)
+	WH.state()   # efsane silah sahipleri (oyun başına bir kez üretilir)
 	var lst: Array = bb["list"]
 	var alive = lst.filter(func(x): return x["status"] == "alive")
 	bb["refresh"] = float(bb.get("refresh", 900.0)) - dt
@@ -2723,6 +2756,21 @@ func _bb_spawn(e: Dictionary, at: Vector3) -> void:
 		BossStyles.dress(a, String(e.get("rank", "A")), int(e["id"]) * 7919, "kenjutsu")
 		a["name"] = "«%s» %s — Sis'in Kılıç Ustası" % [e["alias"], e["name"]]
 		Swordsmen.dress(a, String(e["mist_sword"]))
+	elif e.has("legend_weapon"):
+		# efsane silah sahibi: silah elinde, silahın kombosuyla (KeyedCombos: AI aynı kombo)
+		var wid = String(e["legend_weapon"])
+		BossStyles.dress(a, String(e.get("rank", "A")), int(e["id"]) * 7919, "kenjutsu")
+		a["name"] = "«%s» %s — %s" % [e["alias"], e["name"], WH.weapon_name(wid)]
+		var hlook = _bb_look({"look": WH.INFO[wid].get("look", {})})
+		for k in (WH.INFO[wid].get("look", {}) as Dictionary):   # kıyafet stili silahın tarzını ezmesin
+			a["look"][k] = hlook[k]
+		if WH.INFO[wid].has("clan"):
+			a["clan"] = String(WH.INFO[wid]["clan"])
+		else:
+			a["no_clan"] = true   # rastgele klan (Hoshigaki vb.) eklenmesin
+		a["look"]["weapon_r"] = wid
+		a["kind_anim"] = "sword"
+		a["guard"] = 0.45
 	else:
 		ClanWorld.bingo_arch(e, a)   # klan / efsane jutsuları
 		if not e.has("beast") and String(a.get("clan", "")) == "":
@@ -2751,6 +2799,8 @@ func _bingo_killed(boss: Node) -> void:
 			Hud.banner("ARANAN ETKİSİZ", "«%s» %s — %d Ryō ödül" % [e["alias"], e["name"], int(e["bounty"])], Color(1, 0.8, 0.3))
 			if e.has("mist_sword"):   # kılıç ustası yenildi: kılıç oyuncuya geçer
 				Swordsmen.claim(String(e["mist_sword"]))
+			if e.has("legend_weapon"):   # efsane silah sahibi yenildi: silah düşer
+				WH.claim(String(e["legend_weapon"]))
 			if e.has("beast"):   # taşıyıcı yenildi: canavar bedeninden fışkırır
 				var bid = String(e["beast"])
 				var at = boss.global_position
