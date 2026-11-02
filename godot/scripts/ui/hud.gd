@@ -1008,6 +1008,17 @@ func _buy(id: String, title: String, items: Array) -> void:
 				return
 			Progress.add_ryo(-Stats.price(int(it["price"])))
 			Progress.learn(jid)
+		elif it["kind"] == "throw":
+			# aletler bir kez alınır, sonra sınırsız (her birinin 30 sn bekleme süresi var)
+			if int(Game.profile["inventory"].get(id, 0)) > 0:
+				msg("%s zaten sende (sınırsız, 30 sn bekleme)." % it["name"], Color(1, 0.85, 0.5))
+				shop(title, items)
+				return
+			Progress.add_ryo(-Stats.price(int(it["price"])))
+			Game.profile["inventory"][id] = 1
+			Game.profile["throw_sel"] = id
+			Sfx.play("coin")
+			msg("%s alındı — artık sınırsız! [R] fırlat, [T] değiştir." % it["name"], Color(0.6, 1, 0.6))
 		else:
 			Progress.add_ryo(-Stats.price(int(it["price"])))
 			var n = 5 if id in ["kunai", "shuriken"] else 1
@@ -1103,7 +1114,9 @@ func _process(dt: float) -> void:
 			st["empty"] = false; st["el"] = el; st["cd"] = cd; st["ok"] = ok; st["max"] = mx
 			sn[0].queue_redraw()
 	var tool: String = pr.get("throw_sel", "kunai")
-	tool_lbl.text = "R   %s  ×%d\nT   değiştir" % [Data.items.get(tool, {"name": tool})["name"], int(pr["inventory"].get(tool, 0))]
+	var tcd = float(pl.combat.tool_cd.get(tool, 0.0)) if pl.combat else 0.0
+	var tstate = ("%d sn" % ceili(tcd)) if tcd > 0.0 else ("hazır" if int(pr["inventory"].get(tool, 0)) > 0 else "yok")
+	tool_lbl.text = "R   %s  (%s)\nT   değiştir" % [Data.items.get(tool, {"name": tool})["name"], tstate]
 	item_lbl.text = "H   Merhem  ×%d\nY   Asker Hapı  ×%d" % [int(pr["inventory"].get("salve", 0)), int(pr["inventory"].get("pill", 0))]
 	if msg_t > 0.0:
 		msg_t -= dt

@@ -47,7 +47,7 @@ var hit_times: Array = []     # son darbelerin zamanı (kombodan sıyrılma)
 var dodge_dir := Vector3.ZERO
 var _saw_busy := false
 var leap_cd := 2.0
-var ammo := 8           # atılabilir alet sayısı (biter)
+var tool_cd := {}       # alet -> bir sonraki kullanım zamanı (sn): oyuncuyla aynı kural, sınırsız + alete özel 30 sn
 var maki := 1           # makibishi: kaçarken bir kez ayağının dibine saçar       # ninja sıçrayışı (oyuncunun Ctrl'i gibi): kaçan hedefi kovalar   # oyuncunun saldırısı başına tek okuma zarı
 
 
@@ -529,15 +529,14 @@ func _chase(dt: float) -> void:
 			model.overlay.set_pose("seal", 1.0)
 			Sfx.play("seal", global_position)
 			return
-		elif arch.get("tools", true) and ammo > 0:
-			# aletleri biter (sonsuz kunai yok); bazı ninjalar senbon kullanır
-			ammo -= 1
+		elif arch.get("tools", true) and _ready_tools().size() > 0:
+			# aletler sınırsız, ama her aletin kendi 30 sn bekleme süresi var (oyuncuyla aynı); bazı ninjalar senbon kullanır
+			var tk: String = _ready_tools().pick_random()
+			tool_cd[tk] = Time.get_ticks_msec() / 1000.0 + PlayerCombat.TOOL_CD
 			state = "throw"
 			state_t = 0.0
 			model.play("throw", 0.05, 1.6, true)
 			var s = global_position + Vector3.UP * 1.4
-			var kinds = ["kunai", "kunai", "shuriken"] + (["senbon", "senbon"] if String(arch.get("kind", "")) in ["kiri", "oto", "rogue"] else [])
-			var tk: String = kinds.pick_random()
 			var nn = 3 if tk in ["shuriken", "senbon"] and randf() < 0.5 else 1
 			var aim = (target.global_position + Vector3.UP - s).normalized()
 			for i in nn:
@@ -694,6 +693,13 @@ func _swing_keyed(wid: String) -> void:
 			tw.tween_property(rig, "two_hand_w", 0.0, 0.12)
 	model.flash(0.25)
 	set_meta("swung", false)
+
+
+## Bekleme süresi dolmuş aletler (düşmanın taşıdıkları: kunai, shuriken; Kiri/Oto/kaçaklar senbon da)
+func _ready_tools() -> Array:
+	var now = Time.get_ticks_msec() / 1000.0
+	var kinds = ["kunai", "shuriken"] + (["senbon"] if String(arch.get("kind", "")) in ["kiri", "oto", "rogue"] else [])
+	return kinds.filter(func(k): return now >= float(tool_cd.get(k, 0.0)))
 
 
 func _swing() -> void:

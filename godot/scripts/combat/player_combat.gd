@@ -274,6 +274,8 @@ func move_override(dt: float) -> bool:
 	last_hit_t += dt
 	invuln -= dt
 	sub_bars = minf(4.0, sub_bars + dt / 6.0)
+	for k in tool_cd.keys():   # alet bekleme süreleri
+		tool_cd[k] = maxf(0.0, float(tool_cd[k]) - dt)
 	for k in cooldowns.keys():
 		cooldowns[k] -= dt
 	jutsu_gcd -= dt
@@ -867,17 +869,29 @@ func _spawn_log(at: Vector3) -> void:
 	tw.tween_callback(log.queue_free)
 
 
-# ------------------------------------------------------------------ kunai/shuriken
+# ------------------------------------------------------------------ kunai/shuriken/tuzaklar
+## Fırlatılan aletler (kunai, shuriken, senbon, etiketli kunai, makibishi, duman): pazardan BİR KEZ alınır, sonra sınırsız;
+## her aletin kendi bekleme süresi var (TOOL_CD sn). Düşmanlar da aynı kurala tabi (Enemy.tool_cd).
+const TOOL_CD := 30.0
+var tool_cd := {}   # alet -> kalan bekleme (sn)
+
+
+static func tool_owned(id: String) -> bool:
+	return int(Game.profile.get("inventory", {}).get(id, 0)) > 0
+
+
 func throw_tool() -> void:
 	_break_henge()
 	if action != "" and action != "guard":
 		return
-	var inv: Dictionary = Game.profile.get("inventory", {})
 	var tool: String = Game.profile.get("throw_sel", "kunai")
-	if int(inv.get(tool, 0)) <= 0:
-		Hud.msg("Hiç %s kalmadı!" % tool, Color(1, 0.6, 0.5))
+	if not tool_owned(tool):
+		Hud.msg("%s sende yok — pazardan bir kez al, sonra sınırsız." % Data.items.get(tool, {"name": tool})["name"], Color(1, 0.6, 0.5))
 		return
-	inv[tool] = int(inv[tool]) - 1
+	if float(tool_cd.get(tool, 0.0)) > 0.0:
+		Hud.msg("%s hazır değil: %d sn" % [Data.items.get(tool, {"name": tool})["name"], ceili(float(tool_cd[tool]))], Color(1, 0.75, 0.5))
+		return
+	tool_cd[tool] = TOOL_CD
 	action = "throw"
 	t = 0.0
 	var tgt = _auto_target(40.0)

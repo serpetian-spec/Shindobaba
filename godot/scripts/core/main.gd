@@ -394,7 +394,7 @@ func _route(e: InputEvent) -> void:
 		var i = tools.find(Game.profile.get("throw_sel", "kunai"))
 		for k in tools.size():
 			i = (i + 1) % tools.size()
-			if int(Game.profile["inventory"].get(tools[i], 0)) > 0:
+			if int(Game.profile["inventory"].get(tools[i], 0)) > 0:   # sahip olunan (bir kez alınmış) aletler
 				break
 		Game.profile["throw_sel"] = tools[i]
 	elif e.is_action_pressed("salve"):
