@@ -93,6 +93,8 @@ func take_hit(info: Dictionary) -> void:
 	if has_status("marked"):
 		dmg *= 1.25   # Dinamik İşaretleme / algılama: işaretli hedef fazla hasar alır
 	dmg *= buff_mod("armor")   # kendi zırh buff'ı (Doton zırhı vb.)
+	if has_status("armor_broken"):
+		dmg *= 1.2   # Kabutowari: zırhı kırılan 5 sn fazla hasar alır
 	var atk = info.get("attacker")
 	if atk is Player:
 		var bs = Stats.skill(Game.profile, "backstab")

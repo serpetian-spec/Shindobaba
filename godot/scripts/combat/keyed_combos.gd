@@ -9,6 +9,7 @@ const TABLE := {
 	"raijin": [preload("res://scripts/combat/raijin_anim.gd"), 1.0],
 	"uc_tirpan": [preload("res://scripts/combat/tirpan_anim.gd"), 1.0],
 	"shibuki": [preload("res://scripts/combat/shibuki_anim.gd"), 1.0],
+	"kabutowari": [preload("res://scripts/combat/kabuto_anim.gd"), 1.0],
 }
 ## iki elli adımlarda sol elin sağ yumruktan sap boyunca uzaklığı
 const TWO_OFF := {"uc_tirpan": 0.42, "shibuki": 0.2, "samehada": 0.3}   # shibuki: sağ el sapın arka ucunda, sol el önde (ruloya yakın)
@@ -54,6 +55,17 @@ static func mods(id: String, i: int) -> Dictionary:
 				4: m.merge({"heavy": true, "launch": 9.0, "knock": 7.0, "reach_add": 0.4, "lunge_mul": 0.0})   # havadan yere çakar
 				5: m.merge({"heavy": true, "knock": 16.0, "launch": 8.5})   # öne yere çarpılıp savrulur (yakın dövüşte launch >= 8 olmazsa yere sermez, sadece iter)
 			return m
+		"kabutowari":
+			# zırh kırıcı (silahın armor_break özelliği her vuruşta); ağır: kurulurken kaymaz
+			var m = {"lunge_mul": 0.5}
+			match i:
+				0: m.merge({"heavy": true, "knock": 3.0})
+				1: m.merge({"heavy": true, "knock": 12.0})
+				2: m.merge({"pull": true, "knock": 1.0})
+				3: m.merge({"heavy": true, "stun": 0.9, "knock": 6.0, "shatter": true})
+				4: m.merge({"heavy": true, "knock": 3.0})
+				5: m.merge({"heavy": true, "launch": 10.0, "knock": 5.0, "shatter": true, "reach_add": 0.4})
+			return m
 		"shibuki":
 			# patlamalar on_strike'ta (her vuruşta kendi biçimi): silahın genel "explode" özelliği iki kez patlamasın
 			var m = {"lunge_mul": 0.6, "special": ""}
@@ -75,6 +87,8 @@ static func on_target(id: String, i: int, who: Node3D, h: Node3D) -> void:
 		h.velocity = (who.global_position - h.global_position).normalized() * 9.0 + Vector3.UP * 2.0
 	if bool(m.get("eat", false)):
 		_samehada_eat(who, h, i == 5)
+	if bool(m.get("shatter", false)):
+		_shatter(who, h)
 	if bool(m.get("throw_back", false)) and h is CharacterBody3D:
 		# Samehada bitiriş: saplı rakip başın üstünden arkaya savrulup yere çarpar
 		var f: Vector3 = who.face_dir() if who.has_method("face_dir") else -who.global_transform.basis.z
@@ -95,6 +109,29 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 		q.y = Game.ground_height(q.x, q.z) + 0.05
 		return q
 	match id:
+		"kabutowari":
+			match i:
+				2:   # çift darbe: kancadan sonra çekiç önde yere iner
+					who.get_tree().create_timer(0.24).timeout.connect(func():
+						if is_instance_valid(who):
+							var q = gp.call(1.7, 0.3)
+							VFX.cracks(q, 1.8)
+							VFX.debris(q, Color(0.5, 0.45, 0.4), 8, 5.0, 0.3)
+							_shake(who, 0.35))
+				3:   # kama çakma: çekiç baltanın sırtına çarpar — metal kıvılcım + beyaz flaş
+					var q = gp.call(1.6) + Vector3.UP * 1.2
+					VFX.star(q, Color(1, 1, 1), 3.6, 0.2)
+					FX.burst(q, {"amount": 22, "life": 0.4, "tex": FX.tex_spark, "size": 0.5, "vmin": 5, "vmax": 11, "colors": [Color(1, 0.95, 0.7, 1), Color(1, 0.6, 0.2, 0)]})
+					_shake(who, 0.6)
+				5:   # Kabuto Wari: balta yere çakılır, çekiç sırtına iner — önde uzun yarık
+					for k in 5:
+						who.get_tree().create_timer(k * 0.05).timeout.connect(func():
+							if is_instance_valid(who):
+								var q = gp.call(1.8 + k * 1.2)
+								VFX.cracks(q, 2.4 - k * 0.2)
+								VFX.debris(q, Color(0.5, 0.45, 0.4), 6, 6.0, 0.35))
+					VFX.star(gp.call(1.8) + Vector3.UP * 0.6, Color(1, 1, 1), 3.2, 0.2)
+					_shake(who, 0.8)
 		"samehada":
 			var blue = Color(0.45, 0.75, 1.0)
 			match i:
@@ -328,3 +365,31 @@ static func _samehada_eat(who: Node3D, h: Node3D, feast: bool) -> void:
 				var b = who.global_position + Vector3.UP * 1.2
 				for j in 4:
 					FX.hit_spark(a.lerp(b, (j + 1) / 5.0), blue, 0.5))
+
+
+## Kabutowari "miğfer kıran": savunmayı ve zırh buff'larını parçalar (oyuncu: zırh/kalkan jutsuları; AI: kendi buff'ları + blok)
+static func _shatter(who: Node3D, h: Node3D) -> void:
+	if not is_instance_valid(h):
+		return
+	var broke = false
+	if h is Player:
+		for k in Buffs.active.keys():
+			if float((Buffs.active[k]["mods"] as Dictionary).get("armor", 1.0)) < 1.0:
+				Buffs.remove(k)
+				broke = true
+		if h.combat and String(h.combat.get("action")) == "guard":
+			h.combat.action = ""
+			broke = true
+	else:
+		if h.get("buffs") is Dictionary:
+			for k in (h.buffs as Dictionary).keys():
+				if float((h.buffs[k]["mods"] as Dictionary).get("armor", 1.0)) < 1.0:
+					h.buffs.erase(k)
+					broke = true
+		if h.get("guarding"):
+			h.guarding = false
+			broke = true
+		if h.has_method("apply_status"):
+			h.apply_status("armor_broken", 5.0)
+	if broke:
+		Combat.popup_text(h.global_position + Vector3.UP * 2.4, "Zırh Kırıldı!", Color(1, 0.8, 0.4))

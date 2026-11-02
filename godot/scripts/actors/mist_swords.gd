@@ -16,6 +16,7 @@ static func build(id: String, b: MB) -> void:
 		"shibuki": _shibuki(b)
 		"nuibari": _nuibari(b)
 		"kabutowari": _kabutowari(b)
+		"kabutowari_cekic": _kabutowari_cekic(b)
 
 
 ## (x, y) kesit noktaları -> add_slab profili; slab Basis(z, y, -x) ile kullanılır (profil.y = -x)
@@ -344,28 +345,44 @@ static func _nuibari(b: MB) -> void:
 		p = q
 
 
-## Kabutowari: zincirle bağlı ikili — elde geniş ağızlı balta, saptan sarkan zincirin ucunda tuğla örgülü çekiç
+## KABUTOWARI — kabuto1-4 ortak sonucu: iki ayrı silah, sap uçlarındaki halkalar arasında halat (halat CharacterModel'de, dinamik).
+## BALTA (sağ el, "kabutowari"): kahverengi örgü sap, ucunda koyu halka; kafada geniş hilal ağız (ortası oval delik, kenarı açık),
+## arkasında (+Y) dikdörtgen koyu topuz bloğu. Kabza 0, sap +Z, ağız -Y, yassı yüz X.
 static func _kabutowari(b: MB) -> void:
-	var st = Color(0.74, 0.72, 0.74)
-	_grip(b, -0.16, 0.66, 0.028, Color(0.7, 0.66, 0.6), Color(0.52, 0.48, 0.42), 9)
-	var ax = [[0.03, 0.5], [-0.06, 0.48], [-0.22, 0.4], [-0.48, 0.34], [-0.58, 0.52], [-0.6, 0.78], [-0.52, 1.0], [-0.26, 0.92], [-0.06, 0.82], [0.03, 0.8]]
-	b.add_slab(_v(ax), 0.04, st, Transform3D.IDENTITY, func(p: Vector2) -> float: return 0.008 if p.x < -0.5 else 0.045, st.darkened(0.25))
-	b.add("box", Vector3(0, 0.07, 0.65), Vector3(0.06, 0.1, 0.3), st.darkened(0.15))   # arka topuz
-	b.add("torus", Vector3(0, 0, -0.2), Vector3(0.07, 0.07, 0.07), Color(0.4, 0.4, 0.42), Vector3(90, 0, 0), 8)
-	# zincir: sapın dibinden aşağı sarkar
-	var p = Vector3(0, -0.02, -0.24)
-	for k in 9:
-		b.add("torus", p, Vector3(0.05, 0.05, 0.05), Color(0.42, 0.42, 0.45), Vector3(90 * (k % 2), 0, 90 * ((k + 1) % 2)), 6)
-		p += Vector3(0, -0.055, -0.01)
-	# çekiç: yatay namlu, yüzü tuğla örgüsü
-	var hc = p + Vector3(0, -0.19, 0)
-	var hm = Color(0.7, 0.64, 0.62)
-	b.add("cyl", hc, Vector3(0.34, 0.42, 0.34), hm, Vector3(90, 0, 0), 16)
-	for ring in 5:
-		for k in 10:
-			var a = TAU * (k + (ring % 2) * 0.5) / 10.0
-			b.add_xf("box", Transform3D(Basis(Vector3.BACK, a) * Basis.from_scale(Vector3(0.014, 0.1, 0.078)), hc + Vector3(cos(a) * 0.172, sin(a) * 0.172, -0.17 + ring * 0.085)),
-				hm.lightened(0.15) if (k + ring) % 2 else hm.darkened(0.08))
-	for z in [-0.21, 0.21]:
-		b.add("cyl", hc + Vector3(0, 0, z), Vector3(0.36, 0.03, 0.36), hm.darkened(0.3), Vector3(90, 0, 0), 16)
-	b.add("cyl", hc + Vector3(0, 0.2, 0), Vector3(0.05, 0.14, 0.05), Color(0.35, 0.3, 0.25), Vector3.ZERO, 8)   # çekiç sapı kökü
+	var brown = Color(0.5, 0.35, 0.22)
+	var steel = Color(0.56, 0.58, 0.62)
+	var poll = Color(0.24, 0.31, 0.31)
+	_grip(b, -0.1, 0.66, 0.026, brown, brown.darkened(0.3), 11)
+	b.add("torus", Vector3(0, 0, -0.16), Vector3(0.13, 0.13, 0.13), poll, Vector3(0, 0, 90), 14)   # sap ucu halkası (halat buraya)
+	var out = _v([[-0.03, 0.44], [-0.12, 0.42], [-0.24, 0.36], [-0.36, 0.27], [-0.41, 0.4], [-0.43, 0.54], [-0.41, 0.68], [-0.36, 0.81],
+		[-0.24, 0.72], [-0.12, 0.66], [-0.03, 0.64]])
+	var holed = MB.hole(out, Vector2(-0.22, 0.54), 0.05, 14)   # ref3: ağzın ortasında oval delik
+	b.add_slab(holed, 0.035, steel, Transform3D.IDENTITY, func(q: Vector2) -> float: return 0.012 if q.x < -0.37 else 0.036, steel.darkened(0.2))
+	# açık renkli keskin kenar şeridi (dış yay)
+	var arc = [[-0.36, 0.27], [-0.41, 0.4], [-0.43, 0.54], [-0.41, 0.68], [-0.36, 0.81]]
+	var band = []
+	for q in arc:
+		band.append([q[0], q[1]])
+	for k in range(arc.size() - 1, -1, -1):
+		band.append([arc[k][0] + 0.045, arc[k][1] + (0.02 if k == 0 else (-0.02 if k == arc.size() - 1 else 0.0))])
+	b.add_slab(_v(band), 0.016, Color(0.86, 0.88, 0.92), Transform3D.IDENTITY, Callable(), Color(0.7, 0.72, 0.76))
+	b.add("box", Vector3(0, 0.11, 0.54), Vector3(0.085, 0.2, 0.3), poll)            # arka topuz bloğu (ref1/ref4: uzun, dışa taşan)
+	b.add("box", Vector3(0, 0.0, 0.54), Vector3(0.06, 0.07, 0.25), poll.darkened(0.1))   # sapı kavrayan yuva
+
+
+## ÇEKİÇ (sol el, "kabutowari_cekic"): fıçı biçimli koyu kafa (sapa dik, ±Y), ortasında kahverengi örgü bant; örgü sap, ucunda halka
+static func _kabutowari_cekic(b: MB) -> void:
+	var brown = Color(0.55, 0.4, 0.27)
+	var slate = Color(0.3, 0.31, 0.38)
+	_grip(b, -0.1, 0.5, 0.026, brown.darkened(0.08), brown.darkened(0.35), 9)
+	b.add("torus", Vector3(0, 0, -0.16), Vector3(0.13, 0.13, 0.13), slate.darkened(0.2), Vector3(0, 0, 90), 14)
+	var hc = Vector3(0, 0, 0.62)
+	b.add("cyl", hc, Vector3(0.3, 0.44, 0.3), slate, Vector3.ZERO, 20)                     # fıçı gövde
+	for sy in [-1.0, 1.0]:
+		b.add("cyl", hc + Vector3(0, sy * 0.215, 0), Vector3(0.27, 0.03, 0.27), slate.darkened(0.25), Vector3.ZERO, 20)   # yüzler
+		b.add("cyl", hc + Vector3(0, sy * 0.13, 0), Vector3(0.31, 0.1, 0.31), slate.lightened(0.05), Vector3.ZERO, 20)    # fıçı şişkinliği
+	b.add("cyl", hc, Vector3(0.318, 0.17, 0.318), brown, Vector3.ZERO, 20)                 # örgü bant
+	for k in 12:   # bant üstünde çapraz örgü çizgileri
+		var a = TAU * k / 12.0
+		b.add_xf("box", Transform3D(Basis(Vector3.UP, a) * Basis(Vector3.BACK, deg_to_rad(35.0 if k % 2 == 0 else -35.0)) * Basis.from_scale(Vector3(0.012, 0.17, 0.01)),
+			hc + Vector3(sin(a) * 0.16, 0, cos(a) * 0.16)), brown.darkened(0.35))

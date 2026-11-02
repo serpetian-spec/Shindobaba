@@ -2942,7 +2942,7 @@ const SAYA := {"katana": [0.075, 0.84, 0.042, 0.06], "wakizashi": [0.05, 0.6, 0.
 	"tanto": [0.06, 0.4, 0.045, 0.045], "chokuto": [0.13, 0.9, 0.05, 0.05]}
 const SHEATH_DUR := 0.42
 const KATANA_TIP_DOWN := -75.0
-const BACK_TIP_UP := ["savas_cekici", "uc_tirpan", "mizrak"]
+const BACK_TIP_UP := ["savas_cekici", "uc_tirpan", "mizrak", "kabutowari"]
 
 var weapons: Array = []     # [{id, side, kind, node, hand, sheath}]
 var drawn := true           # silah elde mi (oyuncu: kınında başlar, saldırınca çekilir)
@@ -3024,6 +3024,14 @@ func _weapons() -> void:
 			node.add_child(_raijin_beam())
 		var kind = sheath_kind(id)
 		weapons.append({"id": id, "side": side, "kind": kind, "node": node, "hand": hand, "sheath": _sheath_holder(kind, side, id, node)})
+		if id == "kabutowari" and side == "Right" and skel.find_bone("LeftHand") >= 0:
+			# Kabutowari ikilisi: sol elde çekiç (kılıflıyken sol kalçada; balta sırtta), halkalar arası halat
+			var hm = MeshInstance3D.new()
+			hm.mesh = weapon_mesh("kabutowari_cekic")
+			var lhand: Node3D = _attach("LeftHand", _grip_xf("Left")).get_child(0)
+			lhand.add_child(hm)
+			weapons.append({"id": "kabutowari_cekic", "side": "Left", "kind": "belt", "node": hm, "hand": lhand, "sheath": _sheath_holder("belt", "Left", "kabutowari_cekic", hm)})
+			_make_rope()
 
 
 ## Avuç içindeki tutma noktası: parmak kökü hizasında, avucun altında; kabza parmaklara dik, namlu başparmak tarafında (+Z ön)
@@ -3251,6 +3259,7 @@ static func _reach_pose(kind: String, side: String) -> Array:
 func _weapon_process(dt: float) -> void:
 	if weapons.is_empty() or rig == null:
 		return
+	_update_rope()
 	if _sheath_t >= 0.0:
 		_sheath_t += dt / SHEATH_DUR
 		var k = _sheath_t
@@ -3269,6 +3278,63 @@ func _weapon_process(dt: float) -> void:
 		_stowed = busy
 		if _sheath_t < 0.0 or _swapped:
 			_place_weapons()
+
+
+## Kabutowari halatı: balta ve çekiç sap halkaları arasında sarkan ip (yalnız ikisi de eldeyken görünür)
+var _rope: Array = []
+const ROPE_LEN := 1.7
+const ROPE_SEG := 14
+
+
+func _make_rope() -> void:
+	var mat = Props.toon_color(Color(0.5, 0.44, 0.38), 0.2)
+	var cm = CylinderMesh.new()
+	cm.top_radius = 0.012
+	cm.bottom_radius = 0.012
+	cm.height = 1.0
+	cm.radial_segments = 6
+	for k in ROPE_SEG:
+		var mi = MeshInstance3D.new()
+		mi.mesh = cm
+		mi.material_override = mat
+		mi.top_level = true
+		add_child(mi)
+		_rope.append(mi)
+
+
+func _update_rope() -> void:
+	if _rope.is_empty():
+		return
+	var ax: Dictionary = {}
+	var hm: Dictionary = {}
+	for w in weapons:
+		if w["id"] == "kabutowari":
+			ax = w
+		elif w["id"] == "kabutowari_cekic":
+			hm = w
+	var on = not ax.is_empty() and not hm.is_empty() and n_in_hand(ax) and n_in_hand(hm) and (ax["node"] as Node3D).visible
+	for mi in _rope:
+		mi.visible = on
+	if not on:
+		return
+	var a: Vector3 = (ax["node"] as Node3D).to_global(Vector3(0, 0, -0.2))
+	var b: Vector3 = (hm["node"] as Node3D).to_global(Vector3(0, 0, -0.2))
+	var d = a.distance_to(b)
+	var sag = 0.5 * sqrt(maxf(0.0, ROPE_LEN * ROPE_LEN - d * d))   # gevşek ip aşağı sarkar
+	var pts = []
+	for k in ROPE_SEG + 1:
+		var t = float(k) / ROPE_SEG
+		pts.append(a.lerp(b, t) + Vector3.DOWN * sag * 4.0 * t * (1.0 - t))
+	for k in ROPE_SEG:
+		var p0: Vector3 = pts[k]
+		var p1: Vector3 = pts[k + 1]
+		var dv = p1 - p0
+		var L = dv.length()
+		if L < 0.0001:
+			continue
+		var y = dv / L
+		var x = y.cross(Vector3.FORWARD if absf(y.dot(Vector3.FORWARD)) < 0.9 else Vector3.RIGHT).normalized()
+		_rope[k].global_transform = Transform3D(Basis(x, y * L, x.cross(y)), (p0 + p1) * 0.5)   # yalnız kendi ekseninde uzar
 
 
 ## Silah modeli: kabza başlangıçta, namlu +Z yönünde
@@ -3488,7 +3554,7 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 		"el_shuriken":
 			b.add("cyl", Vector3(0, 0, 0.1), Vector3(0.03, 0.4, 0.03), dark, Vector3(90, 0, 0), 8)   # sap göbeğe kadar
 			_w_star(b, Vector3(0, 0, 0.3), 0.34, 0.17, 4, Color(0.5, 0.52, 0.56), dark)
-		"kubikiribocho", "samehada", "samehada_acik", "kiba", "hiramekarei", "shibuki", "nuibari", "kabutowari":
+		"kubikiribocho", "samehada", "samehada_acik", "kiba", "hiramekarei", "shibuki", "nuibari", "kabutowari", "kabutowari_cekic":
 			MistSwords.build(id, b)   # Sis'in Yedi Kılıcı: referansla modellendi
 		"chokuto":
 			b.add("cyl", Vector3(0, 0, -0.08), Vector3(0.032, 0.22, 0.032), Color(0.85, 0.85, 0.85), Vector3(90, 0, 0), 8)
@@ -3917,7 +3983,7 @@ func set_dojutsu(kind: int, tomoe := 3) -> void:
 
 ## Uzun ağızlı silahlar (Samehada, Kubikiribōchō, Kiba...) beklerken elin ekseninde kalınca başın önünden geçip yüzü kapatıyordu:
 ## duruştayken ağız omzun üstünden başın arkasına yatırılır; saldırıda kolla aynı hizaya döner
-static var REST_TILT_OF := {"samehada": Vector3(0, 0, 0), "gunbai": Vector3(0, 0, 0), "uc_tirpan": Vector3(0, 0, -164), "shibuki": Vector3(0, 0, 171.6)}   # tırpan: yalnız sap ekseni etrafında (bıçaklar sırtın arkasında aşağı sarkar), sap yönü kol pozundan   # gunbai: silah yumruğun içinden düz geçer; yönü kol pozu verir (w_gunbai)   # silaha özel bekleme eğimi (kafanın içinden geçmesin)
+static var REST_TILT_OF := {"samehada": Vector3(0, 0, 0), "gunbai": Vector3(0, 0, 0), "uc_tirpan": Vector3(0, 0, -164), "shibuki": Vector3(0, 0, 171.6), "kabutowari": Vector3(0, 0, 112.1)}   # tırpan: yalnız sap ekseni etrafında (bıçaklar sırtın arkasında aşağı sarkar), sap yönü kol pozundan   # gunbai: silah yumruğun içinden düz geçer; yönü kol pozu verir (w_gunbai)   # silaha özel bekleme eğimi (kafanın içinden geçmesin)
 const REST_TILT := Vector3(-25.0, -55.0, 0.0)
 const IDLE_GRIP := {"samehada": 0.3}
 ## kalın saplar: kabza avucun derinine (parmaklar sarabilsin; eskiden sap parmakların önünden geçiyordu) — tutucu uzayında
@@ -3945,7 +4011,7 @@ func _rest_tilt(on: bool, dt: float) -> void:
 
 
 ## anahtar animasyonlu silahlar: [tutuş kaydırma (yumruk sap boyunca ileri), iz başı z, iz ucu z, elden uca boy]
-const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45]}
+const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45], "kabutowari": [0.0, 0.3, 0.82, 0.85]}
 
 
 var _edge_x := Vector3.ZERO   # gunbai: kenar önde savuruş için yüz normali (yumuşatılmış)
@@ -4077,7 +4143,7 @@ func react(world_dir: Vector3, amp: float, head := false) -> void:
 	overlay.hit_react(d, amp, head)
 
 
-const STANCE_ID := {"samehada": "w_samehada", "gunbai": "w_gunbai", "raijin": "w_raijin", "uc_tirpan": "w_tirpan", "shibuki": "w_shibuki"}
+const STANCE_ID := {"samehada": "w_samehada", "gunbai": "w_gunbai", "raijin": "w_raijin", "uc_tirpan": "w_tirpan", "shibuki": "w_shibuki", "kabutowari": "w_kabuto"}
 ## bekleme duruşunda iki elle tutulan silahlar: sol el IK ile kabzaya, sağ elin altına (kabza ekseninde -Z)
 static var TWO_HAND_IDLE := {"raijin": -0.1, "shibuki": 0.2}   # shibuki: sağ el sapın arka ucunda, sol el 0.2 önde (taramada sapa 4 mm oturdu)   # silaha özel duruş
 const STANCE_OF := {"blade": "w_blade", "dual": "w_dual", "sickle": "w_dual", "claw": "w_dual", "sword": "w_sword", "heavy": "w_shoulder", "staff": "w_shoulder", "chain": "w_dual", "fan": "w_fan"}   # kusarigama alçak tek el (omuzda bıçak kafaya değmesin)
