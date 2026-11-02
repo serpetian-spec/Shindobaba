@@ -4,6 +4,7 @@ extends Node
 ## Sol tık: kombo | Sağ tık (basılı): blok | Q: Kawarimi | C (basılı): chakra şarjı | R: kunai
 ## E/orta tık: hedefe kilitlen | Kilitliyken Shift: chakra dash | 1-6: jutsu slotları
 
+const TIRPAN_ANIM = preload("res://scripts/combat/tirpan_anim.gd")
 const COMBO := [
 	{"anim": "jab", "speed": 1.5, "hit": 0.10, "dur": 0.32, "dmg": 3.6, "reach": 1.3, "lunge": 4.0, "knock": 2.0},
 	{"anim": "cross", "speed": 1.5, "hit": 0.12, "dur": 0.34, "dmg": 4.2, "reach": 1.3, "lunge": 4.0, "knock": 2.0},
@@ -208,7 +209,7 @@ func _start_step() -> void:
 	p.model.overlay.snap("guard", 0.0)
 	p.model.play(c["anim"], 0.05, c["speed"], true)
 	p.model.overlay.set_pose("kick", 1.0 if c.get("kick", false) else 0.0)
-	_set_two_hand(c.get("two_hand", false), float(c.get("dur", 0.6)))
+	_set_two_hand(c.get("two_hand", false), float(c.get("dur", 0.6)), float(c.get("two_off", 0.32)))
 	if c.has("keys"):
 		p.model.overlay.play_keys(c["keys"], float(c.get("key_spd", 1.0)))
 		if int(c.get("rai", -1)) == COMBO.size() - 1:
@@ -375,6 +376,15 @@ func _do_attack(dt: float) -> bool:
 			_gunbai_gust(_ci(step))
 		if c.has("rai"):
 			_raijin_fx(int(c["rai"]), pt)
+		if c.get("chop", false):
+			# tırpan yere saplanır: bıçakların düştüğü yerde zemin yarılır (üstünden geçen yavaşlar), taş ve toz fışkırır
+			var gp = p.global_position + p.face_dir() * 2.3
+			gp.y = Game.ground_height(gp.x, gp.z) + 0.05
+			VFX.cracks(gp, 3.2)
+			VFX.debris(gp, Color(0.45, 0.38, 0.3), 12, 7.0, 0.35)
+			FX.impact(gp, Color(0.75, 0.65, 0.5), 0.9)
+			if Game.world:
+				Game.world.env.add_shake(0.45)
 		var hits = Combat.hit_sphere(p, pt, c["reach"] * 0.65 * Buffs.mod("reach"), _hit_info(c))
 		if not hits.is_empty():
 			_on_hit_fx(pt, c)
@@ -484,14 +494,14 @@ func _combo_base(i: int) -> Dictionary:
 			c["heavy"] = true
 		"drain":
 			c["drain"] = true
-	if wid in ["samehada", "gunbai", "kunai", "raijin"]:
+	if wid in ["samehada", "gunbai", "kunai", "raijin", "uc_tirpan"]:
 		# el yapımı anahtar animasyon (Samehada: videodan; Gunbai/Kunai: kendine anlatılmış tarif): süre/vuruş anı anahtarlardan
-		var kst: Array = {"samehada": SamehadaAnim, "gunbai": GunbaiAnim, "kunai": KunaiAnim, "raijin": RaijinAnim}[wid].steps()
+		var kst: Array = {"samehada": SamehadaAnim, "gunbai": GunbaiAnim, "kunai": KunaiAnim, "raijin": RaijinAnim, "uc_tirpan": TIRPAN_ANIM}[wid].steps()
 		var ks: Dictionary = kst[clampi(i, 0, 5)] if kst.size() >= 6 else kst[_ci(i)]
 		c["keys"] = ks
 		c["anim"] = "idle"
 		c["speed"] = 1.0
-		var ksp = {"samehada": 1.3, "gunbai": 1.05, "kunai": 1.0, "raijin": 1.0}[wid]   # gunbai: ağır silah ritmi; kunai zaten hızlı
+		var ksp = {"samehada": 1.3, "gunbai": 1.05, "kunai": 1.0, "raijin": 1.0, "uc_tirpan": 1.0}[wid]   # gunbai: ağır silah ritmi; kunai zaten hızlı
 		c["key_spd"] = ksp
 		c["dur"] = float(ks["len"]) / ksp
 		c["hit"] = float(ks["hit"]) / ksp
@@ -511,6 +521,29 @@ func _combo_base(i: int) -> Dictionary:
 			if i == COMBO.size() - 1:
 				c["knock"] = 12.0
 				c["heavy"] = true
+		if wid == "uc_tirpan":
+			# ağır tırpan: iki elli adımlarda sol el sapta; 2 yere serer, 3 kancayla çeker, 4 yere saplar, 5 havaya, 6 uzak savurur
+			c["two_hand"] = bool(ks.get("two", false))
+			c["two_off"] = TIRPAN_ANIM.TWO_OFF
+			c["lunge"] = float(c["lunge"]) * 0.5   # ağır: kurulurken kayarak atılmaz, adımla gelir
+			match i:
+				1:
+					c["heavy"] = true
+					c["knock"] = 3.0
+				2:
+					c["special"] = "pull"
+					c["knock"] = 0.5
+				3:
+					c["chop"] = true
+					c["stun"] = 0.6
+					c["knock"] = 2.0
+				4:
+					c["launch"] = 12.0
+					c["knock"] = 2.0
+				5:
+					c["reach"] = float(c["reach"]) + 0.6
+					c["knock"] = 18.0
+					c["heavy"] = true
 		if wid == "kunai" and i == COMBO.size() - 1:
 			c["knock"] = 9.0   # bitiriş biçmesi rakibi geri savurur
 		if i == COMBO.size() - 1 and wid == "samehada":
@@ -521,6 +554,8 @@ func _combo_base(i: int) -> Dictionary:
 
 ## Efsanevi silah yetenekleri: vuruş bilgisine eklenenler
 func _special_info(info: Dictionary, c: Dictionary) -> Dictionary:
+	if float(c.get("stun", 0.0)) > 0.0:
+		info["stun"] = float(c["stun"])   # tırpan yere saplama: sersemletir
 	match c.get("special", ""):
 		"raiton":
 			info["element"] = "raiton"
@@ -791,11 +826,12 @@ func _gunbai_gust(i: int) -> void:
 
 
 ## İki elle tutuş (videoda Kisame'nin iki elle savurduğu adımlar): sol el sağdaki silahın sapına IK ile uzanır
-func _set_two_hand(on: bool, dur: float) -> void:
+func _set_two_hand(on: bool, dur: float, off := 0.32) -> void:
 	var m = p.model
 	if m == null or m.get("rig") == null:
 		return
 	var rig: WeaponRig = m.rig
+	rig.two_hand_off = off   # sol elin sağ yumruktan sap boyunca uzaklığı (tırpan 0.42)
 	var wn: Node3D = null
 	for w in m.weapons:
 		if w["side"] == "Right" and is_instance_valid(w["node"]) and w["node"].get_parent() == w["hand"]:

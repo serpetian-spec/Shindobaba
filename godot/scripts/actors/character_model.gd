@@ -3534,22 +3534,66 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 				b.add("cyl", Vector3(0.04 * sx, 0, 0.1), Vector3(0.013, 0.1, 0.013), steel, Vector3(0, 0, -60 * sx), 6)
 				b.add("cyl", Vector3(0.065 * sx, 0, 0.15), Vector3(0.012, 0.09, 0.012), steel, Vector3(90, 0, 0), 6)
 		"uc_tirpan":
-			# üç bıçaklı kızıl tırpan: uzun sap, ucunda yelpaze gibi açılmış üç kavisli bıçak
-			b.add("cyl", Vector3(0, 0, 0.55), Vector3(0.035, 1.3, 0.035), Color(0.15, 0.12, 0.12), Vector3(90, 0, 0), 8)
-			b.add("cyl", Vector3(0, 0, 1.2), Vector3(0.06, 0.08, 0.06), Color(0.3, 0.3, 0.32), Vector3(90, 0, 0), 8)   # bıçak yuvası
-			# üç kavisli kızıl bıçak: sapın ucundan aynı yöne (+y) kıvrılır, öndeki en büyük; aralarında boşluk
-			for k in 3:
-				var sz = 1.0 - k * 0.18
-				var z0 = 1.2 - k * 0.11
-				var cr = PackedVector2Array()
-				# alt (keskin) kenar ve üst kenar aynı x adımında: üst = alt + incelen genişlik (kenarlar kesişmesin)
-				for j in 10:
-					var t = j / 9.0
-					cr.append(Vector2(0.02 + t * 0.55 * sz, z0 + 0.05 - t * t * 0.32 * sz))
-				for j in range(9, -1, -1):
-					var t = j / 9.0
-					cr.append(Vector2(0.02 + t * 0.55 * sz, z0 + 0.05 - t * t * 0.32 * sz + 0.11 * sz * pow(1.0 - t, 0.8) + 0.004))
-				b.add_slab(cr, 0.016, Color(0.82, 0.12, 0.1), Transform3D.IDENTITY, Callable(), Color(0.55, 0.06, 0.05))
+			# üç bıçaklı kızıl tırpan (kaynak tirpan.png, ölçüler resimden metreye): tutuş z=0 (sağ yumruk sargının alt kısmında),
+			# pommel z=-0.16; beyaz bez sargı -> kırmızı sap -> siyah boğaz -> üç beyaz bilezik (arkalarında koyu kırmızı takoz),
+			# her bilezikten +Y yönüne çıkıp sapa doğru geri kıvrılan hilal bıçak (aşağı doğru büyür); dış kavisli kenar beyaz
+			var o = -0.16
+			var red = Color(0.5, 0.06, 0.07)
+			var dred = Color(0.32, 0.03, 0.04)
+			var wrapc = Color(0.9, 0.88, 0.84)
+			var blk = Color(0.06, 0.05, 0.05)
+			var edge = Color(0.93, 0.93, 0.91)
+			b.add("cyl", Vector3(0, 0, o + 0.015), Vector3(0.05, 0.035, 0.05), red, Vector3(90, 0, 0), 10)   # pommel
+			b.add("cyl", Vector3(0, 0, o + 0.31), Vector3(0.042, 0.56, 0.042), wrapc, Vector3(90, 0, 0), 10)   # sargı
+			for k in 9:   # sargı sarımları (ince eğik çizgiler)
+				b.add("cyl", Vector3(0, 0, o + 0.08 + k * 0.058), Vector3(0.0436, 0.004, 0.0436), Color(0.5, 0.48, 0.46), Vector3(90 + 16, 0, 0), 10)
+			b.add("cyl", Vector3(0, 0, o + 0.875), Vector3(0.04, 0.57, 0.04), red, Vector3(90, 0, 0), 8)   # kırmızı sap
+			b.add("cyl", Vector3(0, 0, o + 1.605), Vector3(0.04, 0.89, 0.04), blk, Vector3(90, 0, 0), 8)    # siyah boğaz + bilezik arası
+			b.add("cyl", Vector3(0, 0, o + 2.065), Vector3(0.044, 0.04, 0.044), red, Vector3(90, 0, 0), 8)    # alt uç başlığı
+			# [bilezik üst z, bilezik alt z, uç y, uç z] (pommelden metre)
+			var BL = [[1.27, 1.47, 0.60, 0.92], [1.53, 1.73, 0.80, 1.15], [1.80, 2.03, 1.02, 1.39]]
+			for bl in BL:
+				var za = o + float(bl[0]); var zb = o + float(bl[1])
+				var tip = Vector2(float(bl[2]), o + float(bl[3]))
+				b.add("box", Vector3(0, 0, (za + zb) * 0.5), Vector3(0.052, 0.062, zb - za), wrapc)    # beyaz bilezik
+				b.add("box", Vector3(0, -0.05, (za + zb) * 0.5 + 0.01), Vector3(0.034, 0.04, (zb - za) * 0.85), dred)   # arka takoz
+				# hilal şerit (resim): dış (beyaz) kenar bilezik altından sapa dik çıkıp uca doğru sapa geri kıvrılır;
+				# iç kenar dış kenara paralel kayar — kalınlık kökte bilezik boyu, ortada ~%75, uçta sivri
+				var p_out = Vector2(0.03, zb - 0.01)
+				var c_out = Vector2(0.46 * tip.x, zb + 0.005)
+				var qb = func(a: Vector2, c: Vector2, e: Vector2, t: float) -> Vector2: return a * (1.0 - t) * (1.0 - t) + c * 2.0 * t * (1.0 - t) + e * t * t
+				var N = 22
+				var W0 = (zb - za) - 0.01
+				var outer = []
+				var inner = []
+				for j in N + 1:
+					var t = float(j) / N
+					var q: Vector2 = qb.call(p_out, c_out, tip, t)
+					var tg: Vector2 = (qb.call(p_out, c_out, tip, minf(1.0, t + 0.01)) - qb.call(p_out, c_out, tip, maxf(0.0, t - 0.01))).normalized()
+					var nrm = Vector2(-tg.y, tg.x)
+					if nrm.y > 0.0:
+						nrm = -nrm   # sapın tutuş tarafına (-z) doğru
+					outer.append(q)
+					inner.append(q + nrm * W0 * pow(maxf(0.0, 1.0 - pow(t, 2.4)), 0.75))
+				var body = PackedVector2Array()
+				for j in N + 1:
+					body.append(inner[j])
+				for j in range(N - 1, -1, -1):
+					body.append(outer[j])
+				b.add_slab(body, 0.014, Color(0.42, 0.05, 0.06), Transform3D.IDENTITY, Callable(), dred)
+				# beyaz keskin dış kenar: dış eğri boyunca içe doğru incelen şerit (gövdeden biraz kalın: iki yüzde de görünür)
+				var strip = PackedVector2Array()
+				var ins = []
+				for j in N:
+					var t = float(j) / N
+					var w = minf(0.04 * (1.0 - t * 0.6), (inner[j] - outer[j]).length() * 0.3)
+					ins.append(outer[j] + (inner[j] - outer[j]).normalized() * w)
+				for j in N:
+					strip.append(outer[j])
+				strip.append(tip)
+				for j in range(N - 1, -1, -1):
+					strip.append(ins[j])
+				b.add_slab(strip, 0.018, edge, Transform3D.IDENTITY, Callable(), Color(0.8, 0.8, 0.78))
 		"bashosen":
 			# Bashōsen (anime): yelpaze düzlemi YZ; sap +Z boyunca, göbek sapın ucunda, tüyler göbekten yelpaze gibi açılır
 			var white = Color(0.95, 0.95, 0.93)
@@ -3871,7 +3915,7 @@ func set_dojutsu(kind: int, tomoe := 3) -> void:
 
 ## Uzun ağızlı silahlar (Samehada, Kubikiribōchō, Kiba...) beklerken elin ekseninde kalınca başın önünden geçip yüzü kapatıyordu:
 ## duruştayken ağız omzun üstünden başın arkasına yatırılır; saldırıda kolla aynı hizaya döner
-static var REST_TILT_OF := {"samehada": Vector3(0, 0, 0), "gunbai": Vector3(0, 0, 0)}   # gunbai: silah yumruğun içinden düz geçer; yönü kol pozu verir (w_gunbai)   # silaha özel bekleme eğimi (kafanın içinden geçmesin)
+static var REST_TILT_OF := {"samehada": Vector3(0, 0, 0), "gunbai": Vector3(0, 0, 0), "uc_tirpan": Vector3(0, 0, -164)}   # tırpan: yalnız sap ekseni etrafında (bıçaklar sırtın arkasında aşağı sarkar), sap yönü kol pozundan   # gunbai: silah yumruğun içinden düz geçer; yönü kol pozu verir (w_gunbai)   # silaha özel bekleme eğimi (kafanın içinden geçmesin)
 const REST_TILT := Vector3(-25.0, -55.0, 0.0)
 const IDLE_GRIP := {"samehada": 0.3}
 ## kalın saplar: kabza avucun derinine (parmaklar sarabilsin; eskiden sap parmakların önünden geçiyordu) — tutucu uzayında
@@ -3899,7 +3943,7 @@ func _rest_tilt(on: bool, dt: float) -> void:
 
 
 ## anahtar animasyonlu silahlar: [tutuş kaydırma (yumruk sap boyunca ileri), iz başı z, iz ucu z, elden uca boy]
-const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5]}
+const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92]}
 
 
 var _edge_x := Vector3.ZERO   # gunbai: kenar önde savuruş için yüz normali (yumuşatılmış)
@@ -3987,6 +4031,15 @@ func _key_blade_sk(sk: Skeleton3D, blade: Vector3) -> void:
 				_edge_x = _edge_x.slerp(ex.normalized(), 0.35) if _edge_x != Vector3.ZERO else ex.normalized()
 			if _edge_x != Vector3.ZERO:
 				x = (_edge_x - z * _edge_x.dot(z)).normalized()
+		if w["id"] == "uc_tirpan":
+			# tırpan: bıçak tarafı (+Y) savuruş yönünde önde — keskin beyaz dış kenar keser; sap ekseni etrafında hıza göre döner
+			var tv: Vector3 = overlay._key_bv
+			var tx = tv.cross(z)
+			if tv.length() > 1.0 and tx.length() > 0.05:
+				_edge_x = _edge_x.slerp(tx.normalized(), 0.3).normalized() if _edge_x != Vector3.ZERO and _edge_x.dot(tx.normalized()) > -0.9 else tx.normalized()
+			var px = _edge_x - z * _edge_x.dot(z)
+			if px.length() > 0.05:
+				x = px.normalized()
 		var want = Basis(x, z.cross(x).normalized(), z)
 		if overlay.key_roll != 0.0:
 			want = want * Basis(Vector3.BACK, deg_to_rad(overlay.key_roll))   # sap ekseni etrafında (gunbai yüzü rakibe)
@@ -4011,7 +4064,7 @@ func react(world_dir: Vector3, amp: float, head := false) -> void:
 	overlay.hit_react(d, amp, head)
 
 
-const STANCE_ID := {"samehada": "w_samehada", "gunbai": "w_gunbai", "raijin": "w_raijin"}
+const STANCE_ID := {"samehada": "w_samehada", "gunbai": "w_gunbai", "raijin": "w_raijin", "uc_tirpan": "w_tirpan"}
 ## bekleme duruşunda iki elle tutulan silahlar: sol el IK ile kabzaya, sağ elin altına (kabza ekseninde -Z)
 const TWO_HAND_IDLE := {"raijin": -0.1}   # silaha özel duruş
 const STANCE_OF := {"blade": "w_blade", "dual": "w_dual", "sickle": "w_dual", "claw": "w_dual", "sword": "w_sword", "heavy": "w_shoulder", "staff": "w_shoulder", "chain": "w_dual", "fan": "w_fan"}   # kusarigama alçak tek el (omuzda bıçak kafaya değmesin)
