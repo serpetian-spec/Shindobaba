@@ -418,6 +418,21 @@ func _apply_keys(sk: Skeleton3D, dt: float) -> void:
 			_lsm[bone] = d
 		if bone == "Spine" or bone == "Chest":
 			d = lean_b * d
+		if bone.ends_with("UpperLeg") or bone.ends_with("LowerLeg"):
+			# adım: bu iki anahtar arasında ayak yer değiştiriyorsa (üst bacak yönü çok değişiyor) ayak kaymaz —
+			# diz kalkar, ayak havadan geçip basar (tüm silah animasyonları)
+			var side_pre = "Left" if bone.begins_with("Left") else "Right"
+			var ul = side_pre + "UpperLeg"
+			var ua: Vector3 = b1.get(ul, Vector3.ZERO)
+			var ue: Vector3 = b2.get(ul, Vector3.ZERO)
+			if ua != Vector3.ZERO and ue != Vector3.ZERO:
+				var move = ua.normalized().distance_to(ue.normalized())
+				if move > 0.35:
+					var lift = sin(u * PI) * clampf((move - 0.35) * 1.4, 0.0, 0.6)
+					if bone.ends_with("UpperLeg"):
+						d = (d.normalized() + Vector3(0, 0.55, 0.45) * lift).normalized()
+					else:
+						d = (d.normalized() + Vector3(0, 0.1, -0.75) * lift).normalized()
 		arms.append([bone, d])
 	cp["arms"] = arms
 	key_blade = blade
@@ -425,8 +440,41 @@ func _apply_keys(sk: Skeleton3D, dt: float) -> void:
 	var w_in = 1.0 if _key_chain else clampf(key_t / 0.08, 0.0, 1.0)
 	var w = w_in * w_out
 	_apply_cast(sk, w, cp)
+	_key_feet(sk, w, cp, raw_yaw, dt)
 	if key_weapon_cb.is_valid():
 		key_weapon_cb.call(sk, blade)
+
+
+## Ayaklar gövdeyi izler (tüm anahtar animasyonlar): gövde döndükçe ayaklar kısmen döner (topuk üstünde pivot), öne yüklenince
+## arka topuk kalkar (ayak ucuna basar), geriye yaslanınca ön ayak ucu kalkar; vuruş anında (silah ucu hızlıyken) kalça çöker,
+## sonra yaylanır — bacaklar kalas gibi sabit kalmasın
+var _key_bob := 0.0
+func _key_feet(sk: Skeleton3D, w: float, cp: Dictionary, yaw: float, dt: float) -> void:
+	if w <= 0.0:
+		return
+	var lean: float = float(cp.get("spine", 0.0))
+	var pivot = deg_to_rad(clampf(yaw, -70.0, 70.0)) * 0.35
+	for side in ["Left", "Right"]:
+		var fb = sk.find_bone(side + "Foot")
+		var ub = sk.find_bone(side + "UpperLeg")
+		if fb < 0 or ub < 0:
+			continue
+		var fdir: Vector3 = sk.get_bone_global_pose(fb).basis.y.normalized()
+		# ayak ileri mi geride mi: kalçadan ayak bileğine yatay z
+		var back = sk.get_bone_global_pose(fb).origin.z < sk.get_bone_global_pose(ub).origin.z - 0.05
+		var d = Basis(Vector3.UP, pivot) * fdir
+		if back and lean > 8.0:
+			d = Basis(Vector3.RIGHT, deg_to_rad(clampf((lean - 8.0) * 1.1, 0.0, 34.0))) * d   # arka topuk kalkar
+		elif not back and lean < -6.0:
+			d = Basis(Vector3.RIGHT, -deg_to_rad(clampf((-lean - 6.0) * 0.9, 0.0, 22.0))) * d   # ön ayak ucu kalkar
+		_rot_model(sk, side + "Foot", d, w)
+	# vuruş çökmesi: silah ucu hızı yüksekken kalça kısa süre alçalır, sonra yaylanır
+	var spd = _key_bv.length()
+	_key_bob = lerpf(_key_bob, clampf((spd - 4.0) * 0.012, 0.0, 0.07), clampf(dt * (14.0 if spd > 4.0 else 5.0), 0.0, 1.0))
+	if _key_bob > 0.001:
+		var hb = sk.find_bone("Hips")
+		if hb >= 0:
+			sk.set_bone_pose_position(hb, sk.get_bone_pose_position(hb) + Vector3(0, -_key_bob * w, 0))
 
 
 func _apply_cast(sk: Skeleton3D, w: float, cp_in := {}) -> void:

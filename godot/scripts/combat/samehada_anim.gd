@@ -10,6 +10,27 @@ const LEG_LUNGE := {"RightUpperLeg": Vector3(-0.2, -0.35, 0.92), "RightLowerLeg"
 	"LeftUpperLeg": Vector3(0.22, -0.6, -0.77), "LeftLowerLeg": Vector3(0.1, -0.75, -0.65), "LeftFoot": Vector3(0.1, -0.9, 0.4)}
 
 
+# ağırlık geride: arka (sol) diz bükük taşır, ön (sağ) bacak öne uzanmış, ön ayak ucu kalkık (kurulma anları)
+const LEG_BACK := {"RightUpperLeg": Vector3(-0.15, -0.88, 0.45), "RightLowerLeg": Vector3(-0.05, -0.95, 0.3), "RightFoot": Vector3(-0.05, -0.15, 0.99),
+	"LeftUpperLeg": Vector3(0.22, -0.85, -0.2), "LeftLowerLeg": Vector3(0.1, -0.8, -0.58), "LeftFoot": Vector3(0.1, -0.35, 0.93)}
+# adım: sağ diz kalkmış (öne adım atarken havada), sol bacak taşır
+const LEG_STEP := {"RightUpperLeg": Vector3(-0.15, -0.45, 0.88), "RightLowerLeg": Vector3(-0.05, -0.97, 0.15), "RightFoot": Vector3(-0.05, -0.55, 0.83),
+	"LeftUpperLeg": Vector3(0.2, -0.97, 0.05), "LeftLowerLeg": Vector3(0.05, -0.98, -0.1), "LeftFoot": Vector3(0.05, -0.45, 0.89)}
+# çapraz adım: sağ ayak sol ayağın arkasından geçer (dönüş öncesi / yan kaçış)
+const LEG_CROSS := {"RightUpperLeg": Vector3(0.12, -0.95, -0.25), "RightLowerLeg": Vector3(0.08, -0.88, -0.45), "RightFoot": Vector3(0.05, -0.65, 0.75),
+	"LeftUpperLeg": Vector3(0.28, -0.93, 0.2), "LeftLowerLeg": Vector3(0.1, -0.97, 0.1), "LeftFoot": Vector3(0.1, -0.4, 0.91)}
+
+
+## Bacak pozunu aynala (sol ayak önde)
+static func mirror(legs: Dictionary) -> Dictionary:
+	var o = {}
+	for k in legs:
+		var v: Vector3 = legs[k]
+		var nk = k.replace("Left", "#").replace("Right", "Left").replace("#", "Right")
+		o[nk] = Vector3(-v.x, v.y, v.z)
+	return o
+
+
 static func _k(t: float, crouch: float, yaw: float, spine: float, blade: Vector3, arms: Dictionary, legs: Dictionary) -> Dictionary:
 	# gövde eğimi: kalça + bel + göğüs yerel bükülür (kemik yönü yöntemi bu iskelette gövdeyi dik bırakıyordu); kafa ileri bakar
 	var b = arms.duplicate()
