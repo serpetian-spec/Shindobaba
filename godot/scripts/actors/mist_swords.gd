@@ -223,13 +223,19 @@ static func _shibuki(b: MB) -> void:
 		b.add("cyl", Vector3(0, 0, -0.03 + k * 0.034), Vector3(0.044, 0.008, 0.044), Color(0.4, 0.4, 0.43), Vector3(90 + 28, 0, 0), 10)
 	b.add("cyl", Vector3(0, 0, -0.065), Vector3(0.05, 0.03, 0.05), met, Vector3(90, 0, 0), 10)
 	b.add("cyl", Vector3(0, 0, 0.35), Vector3(0.07, 0.04, 0.07), met, Vector3(90, 0, 0), 12)
-	# rulo + uç bantları + disk kapaklar + mil topuzu
-	b.add("cyl", Vector3(0, 0, zm), Vector3(0.2, z1 - z0, 0.2), roll, Vector3(90, 0, 0), 20)
+	# rulo SEKİZGEN (Sketchfab sekizgen; ornek4/5'te düz yüz parlamaları): düz yüzlü prizma; uç bantları ve kapaklar da sekizgen
+	var oct = func(rad: float) -> PackedVector2Array:
+		var o = PackedVector2Array()
+		for k in 8:
+			var a = TAU * (k + 0.5) / 8.0   # düz yüz üstte/altta
+			o.append(Vector2(cos(a) * rad, sin(a) * rad))   # (y, -x)
+		return o
+	var zb = Basis(Vector3(0, 0, 1), Vector3(0, 1, 0), Vector3(-1, 0, 0))   # profil (y, -x), kalınlık z boyunca
+	b.add_slab(oct.call(0.108), z1 - z0, roll, Transform3D(zb, Vector3(0, 0, zm)), Callable(), roll.darkened(0.15))
 	for z in [z0 + 0.03, z1 - 0.03]:
-		b.add("cyl", Vector3(0, 0, z), Vector3(0.214, 0.06, 0.214), lt, Vector3(90, 0, 0), 20)
+		b.add_slab(oct.call(0.115), 0.06, lt, Transform3D(zb, Vector3(0, 0, z)), Callable(), lt.darkened(0.12))
 	for z in [z0 - 0.025, z1 + 0.025]:
-		b.add("cyl", Vector3(0, 0, z), Vector3(0.24, 0.05, 0.24), met, Vector3(90, 0, 0), 22)
-		b.add("torus", Vector3(0, 0, z), Vector3(0.24, 0.24, 0.24), lt, Vector3(90, 0, 0), 22)
+		b.add_slab(oct.call(0.13), 0.05, met, Transform3D(zb, Vector3(0, 0, z)), Callable(), met.darkened(0.12))
 	b.add("cyl", Vector3(0, 0, z1 + 0.08), Vector3(0.085, 0.07, 0.085), Color(0.12, 0.1, 0.14), Vector3(90, 0, 0), 12)   # mil topuzu
 	# çerçeveler (x = 0 düzleminde): yan plakalar kökte geniş (diske kaynaklı), dışa doğru daralır; dış çubuk
 	for fr in [[-1.0, 0.48], [1.0, 0.17]]:   # -Y: geniş kâğıtlı AĞIZ (vuran taraf); +Y: dar sırt (o da kâğıtlı)
@@ -243,10 +249,6 @@ static func _shibuki(b: MB) -> void:
 			b.add("sphere", Vector3(-0.011, sg * (L - 0.03), zc + zi * 0.01), Vector3(0.012, 0.012, 0.012), dk, Vector3.ZERO, 6)
 		b.add_slab(_v([[sg * (L - 0.02), z0 - 0.05], [sg * (L + 0.02), z0 - 0.05], [sg * (L + 0.02), z1 + 0.05], [sg * (L - 0.02), z1 + 0.05]]), 0.018, met, Transform3D.IDENTITY, Callable(), dk)
 		b.add("box", Vector3(0, sg * (L + 0.02), zm), Vector3(0.008, 0.006, z1 - z0 + 0.1), dk)   # dış kenar çizgisi
-	# rulonun mor dış bezi: rulonun sırt tarafını (+Y) saran ince örtü (kanat yok: sırtta da mühür kâğıdı var)
-	for k in 9:
-		var a = deg_to_rad(-60.0 + k * 15.0)
-		b.add_xf("box", Transform3D(Basis(Vector3.BACK, a + PI * 0.5) * Basis.from_scale(Vector3(0.03, 0.008, z1 - z0 - 0.14)), Vector3(cos(a) * 0.104, sin(a) * 0.104, zm)), cloth)
 
 
 ## Shibuki'nin dokulu parçası: -Y çerçevesinde gevşek duran 爆 kâğıt tabakası (çerçeveye tam yapışık değil, hafif kalkık/sarkık)
