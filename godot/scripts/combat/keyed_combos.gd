@@ -68,13 +68,12 @@ static func mods(id: String, i: int) -> Dictionary:
 				5: m.merge({"heavy": true, "knock": 16.0, "launch": 8.5})   # öne yere çarpılıp savrulur (yakın dövüşte launch >= 8 olmazsa yere sermez, sadece iter)
 			return m
 		"sai":
-			# çevik çift sai: kilitleme (sersemletir), topuz darbesi, çift saplama
+			# saplama silahı: kilitleme, yükselen saplama, çift delik
 			var m = {"lunge_mul": 1.0}
 			match i:
-				1: m.merge({"heavy": true, "knock": 8.0})                 # ters topuz şakağa
-				2: m.merge({"stun": 0.9, "knock": 0.5, "pull": true})   # kilit ve burgu: çekip dengesini bozar
-				4: m.merge({"launch": 8.5, "knock": 2.0})                 # makas: havaya
-				5: m.merge({"heavy": true, "launch": 8.5, "knock": 4.0, "reach_add": 0.4})   # ejder dişi: yere çakar
+				3: m.merge({"stun": 0.8, "knock": 1.0})                   # yakala ve sapla
+				4: m.merge({"launch": 9.0, "knock": 2.0})                 # yükselen saplama: havaya
+				5: m.merge({"heavy": true, "knock": 12.0, "reach_add": 0.4})   # çift delik
 			return m
 		"chakra_bicak":
 			# Asuma muştaları: hızlı; bitiriş Hien (chakra akışı: menzil uzar, sert)

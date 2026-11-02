@@ -4225,6 +4225,24 @@ const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 
 var _edge_x := Vector3.ZERO   # gunbai: kenar önde savuruş için yüz normali (yumuşatılmış)
 
 
+## Sol eldeki silahın ucunu ön kolun doğrultusuna (hafif yukarı) çevir: bilek döner, silah avuçta sabit kalır
+func _left_follow_forearm(sk: Skeleton3D, w: Dictionary) -> void:
+	var hb = sk.find_bone("LeftHand")
+	var lb = sk.find_bone("LeftLowerArm")
+	if hb < 0 or lb < 0:
+		return
+	var hp: Transform3D = sk.get_bone_global_pose(hb)
+	var fore: Vector3 = (hp.origin - sk.get_bone_global_pose(lb).origin).normalized()
+	var want = (fore + Vector3(0, 0.12, 0)).normalized()
+	var holder: Node3D = w["hand"]
+	var n: Node3D = w["node"]
+	var pb: Basis = (hp.basis * holder.transform.basis * n.transform.basis).orthonormalized()
+	var qh = Quaternion(pb.z.normalized(), want)
+	var par = sk.get_bone_parent(hb)
+	var parb: Basis = sk.get_bone_global_pose(par).basis if par >= 0 else Basis.IDENTITY
+	sk.set_bone_pose_rotation(hb, (parb.inverse() * (Basis(qh) * hp.basis)).get_rotation_quaternion())
+
+
 ## Anahtar animasyon bitince silahın kaydırılmış konumunu geri al
 func _key_blade() -> void:
 	if overlay != null and overlay.key_t >= 0.0:
@@ -4246,6 +4264,8 @@ func _key_blade_sk(sk: Skeleton3D, blade: Vector3) -> void:
 	for w0 in weapons:
 		if w0["id"] == "chakra_bicak":
 			return   # muşta bıçak: yumruğa bağlı, bilek silaha göre çevrilmez (kol pozları yeter)
+		if w0["id"] == "sai_sol" and n_in_hand(w0):
+			_left_follow_forearm(sk, w0)   # sol sai: ucu ön kol doğrultusunda (yumruk nereye uzanırsa oraya saplar)
 	var hb = sk.find_bone("RightHand")
 	if hb < 0:
 		return
