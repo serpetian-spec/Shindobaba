@@ -488,7 +488,7 @@ func _combo_base(i: int) -> Dictionary:
 	c["snd"] = st["snd"]
 	if w["style"] == "heavy" and i == COMBO.size() - 1:
 		c["launch"] = 8.0
-	if w["style"] == "chain":
+	if w["style"] == "chain" and not KEYED.has(wid):
 		# kusarigama: orta menzil — orak zincirle fırlar, savrulur, çeker, döner; oyuncu hedefe atılmaz
 		c["chain_kind"] = ["throw", "sweep", "reel", "throw", "spin"][_ci(i)]
 		c["reach"] = 6.5

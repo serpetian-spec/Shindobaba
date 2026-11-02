@@ -16,10 +16,11 @@ const TABLE := {
 	"hiraishin_kunai": [preload("res://scripts/combat/hiraishin_anim.gd"), 1.0],
 	"homatsu_kiseru": [preload("res://scripts/combat/kiseru_anim.gd"), 1.0],
 	"kusanagi": [preload("res://scripts/combat/kusanagi_anim.gd"), 1.0],
+	"kusarigama": [preload("res://scripts/combat/kusarigama_anim.gd"), 1.0],
 }
 ## silah ağırlığı (0 hafif .. 1 ağır): kol/silah yaylanması (PoseOverlay.key_mass) — ağır silah gecikip taşar
 const MASS := {"uc_tirpan": 1.0, "samehada": 0.9, "kabutowari": 0.9, "shibuki": 0.85, "gunbai": 0.8, "raijin": 0.35, "kunai": 0.1,
-	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35}
+	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55}
 
 
 static func mass(id: String) -> float:
@@ -69,6 +70,17 @@ static func mods(id: String, i: int) -> Dictionary:
 				3: m.merge({"launch": 11.0, "knock": 2.0})
 				4: m.merge({"heavy": true, "launch": 9.0, "knock": 7.0, "reach_add": 0.4, "lunge_mul": 0.0})   # havadan yere çakar
 				5: m.merge({"heavy": true, "knock": 16.0, "launch": 8.5})   # öne yere çarpılıp savrulur (yakın dövüşte launch >= 8 olmazsa yere sermez, sadece iter)
+			return m
+		"kusarigama":
+			# orta menzil: kanca çekişi, ağırlık/orak fırlatışları on_strike'ta (yakın vuruş yalnız sap/orak teması)
+			var m = {"lunge_mul": 0.35}
+			match i:
+				0: m.merge({"reach_add": 1.3, "kg_drag": true, "knock": 0.5})
+				1: m.merge({"lunge_mul": 0.0, "knock": 2.0})
+				2: m.merge({"lunge_mul": 0.0, "knock": 3.0})
+				3: m.merge({"lunge_mul": 0.0, "knock": 1.0})
+				4: m.merge({"launch": 7.5, "knock": 0.5, "stun": 0.6, "reach_add": 0.7, "lunge_mul": 0.7})
+				5: m.merge({"heavy": true, "knock": 15.0, "reach_add": 1.6, "lunge_mul": 1.0})
 			return m
 		"kusanagi":
 			# Chōtō: uzayan saplama/biçme menzili; uçan kılıç on_strike
@@ -151,6 +163,8 @@ static func on_target(id: String, i: int, who: Node3D, h: Node3D) -> void:
 	if bool(m.get("mark", false)) and h.has_method("apply_status"):
 		h.apply_status("marked", 12.0)   # Hiraishin işareti (shiki): işaretli hedef fazla hasar alır, ışınlanma ona gider
 		h.set_meta("hiraishin_by", who.get_instance_id())
+	if bool(m.get("kg_drag", false)):
+		_kg_drag(who, h)   # kusarigama kancası: mesafeye göre çeker, önünde durur (içinden geçmez)
 	if bool(m.get("eat", false)):
 		_samehada_eat(who, h, i == 5)
 	if bool(m.get("shatter", false)):
@@ -175,6 +189,19 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 		q.y = Game.ground_height(q.x, q.z) + 0.05
 		return q
 	match id:
+		"kusarigama":
+			match i:
+				1:
+					_kg_weight(who, dmg, "straight")
+				2:
+					_kg_weight(who, dmg, "whirl")
+				3:
+					_kg_sickle(who, dmg)
+				5:   # Shinigami Gari: uzun orak yere kadar iner — önde yarık + toz
+					var q = gp.call(2.2)
+					VFX.cracks(q, 2.4)
+					VFX.debris(q, Color(0.5, 0.45, 0.4), 8, 5.0, 0.3)
+					_shake(who, 0.5)
 		"kusanagi":
 			if i == 2:
 				_kusa_extend(who, 3.2, 0.32)
@@ -348,6 +375,9 @@ static func on_start(id: String, i: int, who: Node3D) -> void:
 	if who == null or not is_instance_valid(who):
 		return
 	match id:
+		"kusarigama":
+			if i == 5:   # bitiriş: ağırlık fırlatılıp hedefe dolanır, zincir çekilir
+				_kg_weight(who, 0.0, "wrap")
 		"hiraishin_kunai":
 			if i == 2 or i == 4:   # Hiraishin: hedefin (işaretli olanı önce) arkasında / yanında sarı flaşla belir
 				var tg = _hira_target(who)
@@ -774,7 +804,7 @@ static func _kusa_extend(who: Node3D, L: float, hold: float) -> void:
 	tw.tween_callback(func():
 		if is_instance_valid(ext):
 			ext.visible = false)
-	FX.hit_spark(n.to_global(Vector3(0, 0, 0.9)), Color(0.85, 0.9, 1.0), 0.8)
+	FX.hit_spark(n.to_global(Vector3(0, 0, 1.0)), Color(0.85, 0.9, 1.0), 0.8)
 
 
 ## Uçan Kusanagi: kılıç elden fırlar, hedefe uçup saplanır, çevresinde bir tur atıp tekrar saplar, ele döner (uzaktan yönetim)
@@ -826,3 +856,230 @@ static func _kusa_fly(who: Node3D, dmg: float) -> void:
 				FX.hit_spark(copy.global_position, Color(0.8, 0.9, 1.0), 1.0)
 				Combat.hit_sphere(who, copy.global_position, 1.2, {"dmg": dmg * 0.7, "knock": 3.0, "kind": "light", "hitstop": 0.03, "melee": true}))
 	Sfx.play("whoosh", start, 1.3, 0.6)
+
+
+# ------------------------------------------------------------------ Kusarigama (Hanzō tipi, sickle.png)
+## Zincir CharacterModel'de fizikli (kchain_*): burada yalnız uç noktası (ağırlık / uçan orak) bir işaretçiye tutturulup yol çizdirilir.
+static func _kg_model(who) -> Object:
+	if who == null or not is_instance_valid(who):
+		return null
+	var m = who.get("model")
+	if m == null or not is_instance_valid(m) or not ("kchain_pin" in m):
+		return null
+	return m
+
+
+static func _kg_face(who) -> Vector3:
+	var f: Vector3 = who.face_dir() if who.has_method("face_dir") else -who.global_transform.basis.z
+	f.y = 0
+	return f.normalized() if f.length() > 0.01 else Vector3.FORWARD
+
+
+## Hedef noktası: 9 m içindeki düşmanın göğsü, yoksa önde 6.5 m
+static func _kg_aim(who, tg, f: Vector3) -> Vector3:
+	if tg != null and is_instance_valid(tg) and tg.global_position.distance_to(who.global_position) < 9.0:
+		return tg.global_position + Vector3.UP * 1.0
+	return who.global_position + Vector3.UP * 1.1 + f * 6.5
+
+
+## Ağırlık zincirle: "straight" düz fırlatma, "whirl" baş üstünde döndürüp geniş çember, "wrap" hedefe dolanır (bitiriş)
+static func _kg_weight(who: Node3D, dmg: float, mode: String) -> void:
+	var m = _kg_model(who)
+	if m == null:
+		return
+	var tg = _hira_target(who)
+	var f = _kg_face(who)
+	var mk = Node3D.new()
+	who.get_tree().current_scene.add_child(mk)
+	var start: Vector3 = m.kchain_tip()
+	mk.global_position = start
+	m.kchain_pin = Callable(mk, "get_global_position")
+	var dur = {"straight": 1.05, "whirl": 1.0, "wrap": 0.85}[mode]
+	var tw = mk.create_tween()
+	tw.tween_method(_kg_path.bind(mk, who, tg, f, mode, start), 0.0, 1.0, dur)
+	tw.tween_callback(_kg_release.bind(who, mk))
+	Sfx.play("whoosh", who.global_position, 1.2, 0.6)
+	match mode:
+		"straight":
+			# ağırlık hedefe çarpar, zincir gövdesine dolanır: sersemletir (dolanma süresince), sonra çözülüp döner
+			who.get_tree().create_timer(dur * 0.24).timeout.connect(_kg_hit.bind(who, mk, 1.1, dmg * 0.9, {"knock": 0.5, "stun": 1.3, "kind": "light", "hitstop": 0.06}))
+		"whirl":
+			for k in 5:
+				who.get_tree().create_timer(dur * (0.42 + k * 0.1)).timeout.connect(_kg_hit.bind(who, mk, 1.4, dmg * 0.4, {"knock": 6.0, "kind": "light", "hitstop": 0.02}))
+		"wrap":
+			who.get_tree().create_timer(dur * 0.32).timeout.connect(_kg_bind.bind(who, tg))
+
+
+static func _kg_home(who) -> Vector3:
+	var n = _weapon_node(who)
+	if n != null:
+		return n.to_global(Vector3(0, 0, -0.39)) + Vector3.DOWN * 0.55
+	return who.global_position + Vector3.UP * 0.6
+
+
+static func _kg_path(u: float, mk, who, tg, f: Vector3, mode: String, start: Vector3) -> void:
+	if not is_instance_valid(mk) or not is_instance_valid(who):
+		return
+	var aim = _kg_aim(who, tg, f)
+	var home = _kg_home(who)
+	var p: Vector3
+	match mode:
+		"straight":   # 0..0.24 düz uçuş, 0.24..0.74 hedefin gövdesine dolanır (sarar), sonra çözülüp sarkarak geri
+			var c2 = aim if tg == null or not is_instance_valid(tg) or tg.global_position.distance_to(who.global_position) > 9.0 else tg.global_position + Vector3.UP * 1.0
+			if u < 0.24:
+				var k = u / 0.24
+				p = start.lerp(c2, 1.0 - (1.0 - k) * (1.0 - k)) + Vector3.UP * sin(k * PI) * 0.25
+			elif u < 0.74:
+				var a = (u - 0.24) / 0.5 * TAU * 3.5
+				var r = 0.45 if c2 != aim or tg != null else 0.0
+				p = c2 + Vector3(cos(a), (u - 0.24) * 0.5 - 0.12, sin(a)) * Vector3(r, 1.0, r)
+			else:
+				var k = (u - 0.74) / 0.26
+				p = c2.lerp(home, k * k) + Vector3.DOWN * sin(k * PI) * 0.6
+		"whirl":   # baş üstünde iki tur küçük çember -> genişleyip gövdenin çevresinde bel hizasında geniş çember -> geri
+			var c = who.global_position
+			var a = u * TAU * 3.2
+			if u < 0.35:
+				p = c + Vector3.UP * 2.35 + f * 0.15 + Vector3(cos(a), 0, sin(a)) * 0.9
+			elif u < 0.9:
+				var k = clampf((u - 0.35) / 0.15, 0.0, 1.0)
+				var r = lerpf(0.9, 3.4, k)
+				p = c + Vector3.UP * lerpf(2.35, 1.0, k) + Vector3(cos(a), 0, sin(a)) * r
+			else:
+				var k = (u - 0.9) / 0.1
+				var q = c + Vector3.UP * 1.0 + Vector3(cos(a), 0, sin(a)) * 3.4
+				p = q.lerp(home, k)
+		_:   # wrap: hedefe uçar, göğsünün çevresinde dolanır
+			if u < 0.3:
+				var k = u / 0.3
+				p = start.lerp(aim, k) + Vector3.UP * sin(k * PI) * 0.4
+			else:
+				var a = (u - 0.3) / 0.7 * TAU * 3.0
+				var c2 = aim if tg == null or not is_instance_valid(tg) else tg.global_position + Vector3.UP * 1.05
+				p = c2 + Vector3(cos(a), sin(a * 0.5) * 0.12, sin(a)) * 0.45
+	mk.global_position = p
+
+
+static func _kg_hit(who, mk, r: float, dmg: float, extra: Dictionary) -> void:
+	if not is_instance_valid(who) or not is_instance_valid(mk):
+		return
+	var info = {"dmg": dmg, "knock": 3.0, "kind": "light", "hitstop": 0.03, "melee": true}
+	info.merge(extra, true)
+	var hs = Combat.hit_sphere(who, mk.global_position, r, info)
+	if not hs.is_empty():
+		FX.hit_spark(mk.global_position, Color(0.85, 0.85, 0.95), 1.1)
+		Sfx.play("hit_heavy_weapon", mk.global_position, 1.1, 0.7)
+
+
+static func _kg_release(who, mk) -> void:
+	var m = _kg_model(who)
+	if m != null:
+		m.kchain_pin = Callable()
+	if is_instance_valid(mk):
+		mk.queue_free()
+
+
+## Bitiriş: zincir hedefe dolandı — sersemler ve kullanıcıya doğru sürüklenir
+static func _kg_bind(who, tg) -> void:
+	if not is_instance_valid(who) or tg == null or not is_instance_valid(tg):
+		return
+	if tg.has_method("apply_status"):
+		tg.apply_status("stun", 1.1)
+	FX.hit_spark(tg.global_position + Vector3.UP, Color(0.8, 0.8, 0.9), 1.2)
+	if tg is CharacterBody3D:
+		var d = who.global_position - tg.global_position
+		d.y = 0
+		var L = d.length()
+		if L > 2.0:
+			tg.velocity = d.normalized() * minf(18.0, (L - 1.5) * 3.6) + Vector3.UP * 1.0
+
+
+## Kama Nage: orak elden fırlar (zincir elde), dönerek hedefin arkasına kancalanır, zincirle geri çekilir (rakip sürüklenir), ele döner
+static func _kg_sickle(who: Node3D, dmg: float) -> void:
+	var n = _weapon_node(who)
+	var m = _kg_model(who)
+	if n == null or m == null:
+		return
+	var tg = _hira_target(who)
+	var f = _kg_face(who)
+	var copy = MeshInstance3D.new()
+	copy.mesh = CharacterModel.weapon_mesh("kusarigama")
+	who.get_tree().current_scene.add_child(copy)
+	copy.global_transform = n.global_transform
+	var butt = Node3D.new()
+	copy.add_child(butt)
+	butt.position = Vector3(0, 0, -0.39)
+	n.visible = false
+	m.kchain_start = Callable(n.get_parent(), "get_global_position")
+	m.kchain_pin = Callable(butt, "get_global_position")
+	m.kchain_hide_weight = true
+	var tw = copy.create_tween()
+	tw.tween_method(_kg_sickle_path.bind(copy, who, tg, f, copy.global_position), 0.0, 1.0, 0.78)
+	tw.tween_callback(_kg_sickle_end.bind(who, copy))
+	who.get_tree().create_timer(0.78 * 0.36).timeout.connect(_kg_hook.bind(who, copy, dmg))
+	Sfx.play("whoosh", who.global_position, 1.0, 0.7)
+
+
+static func _kg_sickle_path(u: float, copy, who, tg, f: Vector3, start: Vector3) -> void:
+	if not is_instance_valid(copy) or not is_instance_valid(who):
+		return
+	var aim = _kg_aim(who, tg, f)
+	var d = aim - start
+	d.y = 0
+	var dir = d.normalized() if d.length() > 0.1 else f
+	var side = dir.cross(Vector3.UP).normalized()
+	var hook = aim + dir * 0.55
+	var hand = _weapon_node(who)
+	var back_to: Vector3 = hand.get_parent().global_position if hand != null else who.global_position + Vector3.UP
+	var p: Vector3
+	var spin := 0.0
+	if u < 0.36:   # dönerek uçar
+		var k = u / 0.36
+		p = start.lerp(hook, k) + Vector3.UP * sin(k * PI) * 0.7
+		spin = k * TAU * 2.0
+	elif u < 0.5:   # kancalı: orak hedefin arkasında, sap kullanıcıya bakar
+		p = hook if tg == null or not is_instance_valid(tg) else tg.global_position + Vector3.UP * 1.0 + dir * 0.55
+		spin = 0.0
+	else:   # zincirle geri çekilir
+		var k = (u - 0.5) / 0.5
+		var from = hook if tg == null or not is_instance_valid(tg) else tg.global_position + Vector3.UP * 1.0 + dir * 0.55
+		p = from.lerp(back_to, k * k)
+		spin = -k * TAU * 1.5
+	var base = Basis.looking_at(-dir, Vector3.UP)   # silah +Z ileri (sap dibi geride)
+	if u >= 0.36 and u < 0.5:
+		base = Basis.looking_at(dir, Vector3.UP)   # kanca: sap dibi kullanıcıya, orak hedefin arkasından geri bakar
+	copy.global_transform = Transform3D(Basis(side, spin) * base, p)
+
+
+static func _kg_hook(who, copy, dmg: float) -> void:
+	if not is_instance_valid(who) or not is_instance_valid(copy):
+		return
+	var q: Vector3 = copy.global_position
+	var hs = Combat.hit_sphere(who, q, 1.4, {"dmg": dmg * 1.1, "knock": 0.0, "stun": 0.8, "kind": "light", "hitstop": 0.06, "melee": true})
+	FX.hit_spark(q, Color(0.9, 0.9, 1.0), 1.3)
+	Sfx.play("hit_heavy_weapon", q, 0.95, 0.8)
+	for h in hs:
+		who.get_tree().create_timer(0.1).timeout.connect(_kg_drag.bind(who, h))
+
+
+static func _kg_drag(who, h) -> void:
+	if not is_instance_valid(who) or not is_instance_valid(h) or not (h is CharacterBody3D):
+		return
+	var d = who.global_position - h.global_position
+	d.y = 0
+	var L = d.length()
+	if L > 1.8:
+		h.velocity = d.normalized() * minf(20.0, (L - 1.4) * 3.4) + Vector3.UP * 3.0
+
+
+static func _kg_sickle_end(who, copy) -> void:
+	if is_instance_valid(copy):
+		copy.queue_free()
+	var m = _kg_model(who)
+	if m != null:
+		m.kchain_start = Callable()
+		m.kchain_pin = Callable()
+		m.kchain_hide_weight = false
+	var n = _weapon_node(who) if is_instance_valid(who) else null
+	if n != null:
+		n.visible = true

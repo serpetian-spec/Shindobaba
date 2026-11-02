@@ -67,6 +67,7 @@ static var STANCE := {
 	"w_kusa": [["RightUpperArm", Vector3(-0.22, -0.88, 0.42)], ["RightLowerArm", Vector3(0.2, -0.35, 0.92)], ["RightHand", Vector3(0.1, -0.75, 0.65)]],   # Kusanagi: tek el, kılıç önde aşağı-ileri (Orochimaru gevşek duruş)
 	"w_ruzgar": [["RightUpperArm", Vector3(-0.2, -0.8, 0.55)], ["RightLowerArm", Vector3(0.0, -0.1, 1.0)], ["RightHand", Vector3(-0.447, -0.894, 0.0)]],   # Rüzgar bıçağı: düz tutuş, bıçak ileri (ruzgarchakrabicagi.png)
 	"w_kabuto": [["RightUpperArm", Vector3(-0.3, -0.9, 0.3)], ["RightLowerArm", Vector3(-0.05, -0.45, 0.9)], ["RightHand", Vector3(-0.333, -0.667, -0.667)], ["LeftUpperArm", Vector3(0.75, -0.25, 0.6)], ["LeftLowerArm", Vector3(-0.15, 0.95, 0.2)], ["LeftHand", Vector3(0.894, 0.0, -0.447)]],   # Kabutowari: balta sağda alçak-önde, çekiç sol omuzda (kabuto4)
+	"w_kgama": [["RightUpperArm", Vector3(-0.25, -0.9, 0.35)], ["RightLowerArm", Vector3(0.15, -0.1, 0.98)], ["RightHand", Vector3(0.0, 0.0, 1.0)], ["LeftUpperArm", Vector3(0.25, -0.85, 0.45)], ["LeftLowerArm", Vector3(-0.3, -0.25, 0.92)]],   # Hanzō kusarigaması: tek el, sap önde yukarı, zincir dipten sarkar
 	"w_tirpan": [["RightUpperArm", Vector3(-0.3, -0.85, 0.42)], ["RightLowerArm", Vector3(0.25, 0.55, 0.8)], ["RightHand", Vector3(0.98, 0.14, -0.14)]],   # tırpan omuzda: yumruk göğüs önünde, sap sağ omzun üstünden geriye, bıçaklar sırtın arkasında
 }
 
@@ -87,7 +88,7 @@ func _ready() -> void:
 		"plant": {"_Plant": 1},
 		"cast": {"_Cast": 1},
 		# silah duruşları (bekleme/koşu): ters tutuş kunai, iki elle kılıç, omuzda ağır silah, çift bıçak alçak, yelpaze yanda
-		"w_blade": {}, "w_raijin": {}, "w_gunbai": {}, "w_sword": {}, "w_shoulder": {}, "w_samehada": {}, "w_dual": {}, "w_fan": {}, "w_tirpan": {}, "w_shibuki": {}, "w_kabuto": {}, "w_ruzgar": {}, "w_kusa": {},
+		"w_blade": {}, "w_raijin": {}, "w_gunbai": {}, "w_sword": {}, "w_shoulder": {}, "w_samehada": {}, "w_dual": {}, "w_fan": {}, "w_tirpan": {}, "w_shibuki": {}, "w_kabuto": {}, "w_ruzgar": {}, "w_kusa": {}, "w_kgama": {},
 	}
 
 
