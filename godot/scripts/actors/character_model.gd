@@ -3020,6 +3020,8 @@ func _weapons() -> void:
 		hand.add_child(node)
 		if id == "hiraishin_kunai":
 			node.scale = Vector3.ONE * 0.6   # gerçek kunai boyu (~40 cm)
+		if id == "kusanagi":
+			node.add_child(_kusa_ext())   # Chōtō: uzayan ağız (gizli; kombo uzatır)
 		if SAYA.has(id):
 			node.transform.basis = Basis(Vector3.BACK, PI * 0.5) * Basis(Vector3.RIGHT, deg_to_rad(KATANA_TIP_DOWN))
 		if id == "raijin":
@@ -3376,6 +3378,48 @@ func _update_rope() -> void:
 		var y = dv / L
 		var x = y.cross(Vector3.FORWARD if absf(y.dot(Vector3.FORWARD)) < 0.9 else Vector3.RIGHT).normalized()
 		_rope[k].global_transform = Transform3D(Basis(x, y * L, x.cross(y)), (p0 + p1) * 0.5)   # yalnız kendi ekseninde uzar
+
+
+## Kusanagi no Tsurugi (orochikusanagi.png): siyah topuz, beyaz sargılı sap (siyah bantlar), siyah boğaz; muhafız iki yana açılıp
+## aşağı (ağız yönüne) kıvrılan pullu yılan gövdeleri, ortada mavi taş; düz, iki ağızlı, uca incelen çelik ağız (orta sırt).
+## Kabza 0, ağız +Z, yassı yüz X.
+static func _kusanagi(b: MB) -> void:
+	var blk = Color(0.12, 0.12, 0.14)
+	var wht = Color(0.92, 0.92, 0.9)
+	var scale_c = Color(0.82, 0.62, 0.38)
+	var steel = Color(0.68, 0.7, 0.75)
+	b.add("cyl", Vector3(0, 0, -0.11), Vector3(0.036, 0.24, 0.036), wht, Vector3(90, 0, 0), 10)        # sargılı sap
+	for k in 9:
+		b.add("cyl", Vector3(0, 0, -0.215 + k * 0.026), Vector3(0.039, 0.007, 0.039), blk.lightened(0.15), Vector3(90 + 18, 0, 0), 10)
+	b.add("cyl", Vector3(0, 0, -0.245), Vector3(0.04, 0.03, 0.04), blk, Vector3(90, 0, 0), 10)        # topuz
+	b.add("cyl", Vector3(0, 0, 0.025), Vector3(0.044, 0.04, 0.044), blk, Vector3(90, 0, 0), 10)        # boğaz
+	# muhafız: iki yana kıvrılan yılan gövdeleri (küre zinciri, pullu iki ton), uçta küçük baş
+	for sy in [-1.0, 1.0]:
+		var ctrl = [Vector2(0.0, 0.04), Vector2(0.045, 0.045), Vector2(0.085, 0.07), Vector2(0.098, 0.11), Vector2(0.088, 0.15), Vector2(0.065, 0.17)]
+		for k in 16:   # kesintisiz kalın yılan gövdesi: kontrol noktaları arasında sık küreler, uca doğru incelir
+			var tt = float(k) / 15.0 * (ctrl.size() - 1)
+			var i0 = mini(int(tt), ctrl.size() - 2)
+			var q: Vector2 = (ctrl[i0] as Vector2).lerp(ctrl[i0 + 1], tt - i0)
+			var r = 0.036 - k * 0.0012
+			b.add("sphere", Vector3(0, q.x * sy, q.y), Vector3(r * 1.3, r * 1.9, r * 1.9), scale_c if k % 3 != 0 else scale_c.darkened(0.2), Vector3.ZERO, 8)
+		b.add("sphere", Vector3(0, 0.058 * sy, 0.185), Vector3(0.036, 0.04, 0.05), scale_c.darkened(0.25), Vector3.ZERO, 8)   # yılan başı
+	b.add("sphere", Vector3(0, 0, 0.075), Vector3(0.04, 0.046, 0.05), Color(0.35, 0.75, 0.95), Vector3.ZERO, 10)   # mavi taş
+	# ağız: düz, iki ağızlı, uca doğru incelir (y genişlik, z boy); kalınlık ortada fazla (sırt), kenarda ince
+	var bl = PackedVector2Array([Vector2(-0.022, 0.07), Vector2(0.022, 0.07), Vector2(0.02, 0.8), Vector2(0.0, 0.98), Vector2(-0.02, 0.8)])
+	b.add_slab(bl, 0.012, steel, Transform3D.IDENTITY, func(q: Vector2) -> float: return 0.004 if absf(q.x) > 0.016 else 0.012, steel.darkened(0.15))
+
+
+## Kusanagi Chōtō: ağzın ucundan ileri uzayan ince çelik (boyu 1 m, ölçek.z ile uzar); varsayılan gizli
+static func _kusa_ext() -> MeshInstance3D:
+	var mi = MeshInstance3D.new()
+	mi.name = "KusaExt"
+	var b = MB.new()
+	b.add_slab(PackedVector2Array([Vector2(-0.02, 0.0), Vector2(0.02, 0.0), Vector2(0.016, 0.9), Vector2(0.0, 1.0), Vector2(-0.016, 0.9)]), 0.01, Color(0.85, 0.87, 0.92))
+	mi.mesh = b.build(Props.toon())
+	mi.position = Vector3(0, 0, 0.8)
+	mi.scale = Vector3(1, 1, 0.01)
+	mi.visible = false
+	return mi
 
 
 ## Hōmatsu Kiseru (utakatababa.png, Utakata'nın kabarcık borusu): bej bambu boru, aralıklı halka boğumlar; tutuş (z 0) ağızlığa
@@ -3874,6 +3918,8 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			_hiraishin_kunai(b)   # raijinbaba.png
 		"homatsu_kiseru":
 			_kiseru(b)   # utakatababa.png
+		"kusanagi":
+			_kusanagi(b)   # orochikusanagi.png
 		"uc_tirpan":
 			# üç bıçaklı kızıl tırpan (kaynak tirpan.png, ölçüler resimden metreye): tutuş z=0 (sağ yumruk sargının alt kısmında),
 			# pommel z=-0.16; beyaz bez sargı -> kırmızı sap -> siyah boğaz -> üç beyaz bilezik (arkalarında koyu kırmızı takoz),
@@ -4288,7 +4334,7 @@ func _rest_tilt(on: bool, dt: float) -> void:
 
 
 ## anahtar animasyonlu silahlar: [tutuş kaydırma (yumruk sap boyunca ileri), iz başı z, iz ucu z, elden uca boy]
-const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45], "kabutowari": [0.0, 0.3, 0.82, 0.85], "ruzgar_bicak": [0.0, 0.1, 0.6, 0.62], "hiraishin_kunai": [0.0, 0.14, 0.47, 0.48], "homatsu_kiseru": [0.1, 0.5, 0.72, 0.72]}   # uzunluklar silahın kendi ölçeğiyle çarpılır
+const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45], "kabutowari": [0.0, 0.3, 0.82, 0.85], "ruzgar_bicak": [0.0, 0.1, 0.6, 0.62], "hiraishin_kunai": [0.0, 0.14, 0.47, 0.48], "homatsu_kiseru": [0.1, 0.5, 0.72, 0.72], "kusanagi": [0.0, 0.1, 0.97, 0.98]}   # uzunluklar silahın kendi ölçeğiyle çarpılır
 
 
 var _edge_x := Vector3.ZERO   # gunbai: kenar önde savuruş için yüz normali (yumuşatılmış)
@@ -4443,7 +4489,7 @@ func react(world_dir: Vector3, amp: float, head := false, up := 0.0, heavy := 0.
 	overlay.hit_react(d, amp, head, up, heavy)
 
 
-const STANCE_ID := {"samehada": "w_samehada", "gunbai": "w_gunbai", "raijin": "w_raijin", "uc_tirpan": "w_tirpan", "shibuki": "w_shibuki", "kabutowari": "w_kabuto", "ruzgar_bicak": "w_ruzgar"}
+const STANCE_ID := {"samehada": "w_samehada", "gunbai": "w_gunbai", "raijin": "w_raijin", "uc_tirpan": "w_tirpan", "shibuki": "w_shibuki", "kabutowari": "w_kabuto", "ruzgar_bicak": "w_ruzgar", "kusanagi": "w_kusa"}
 ## bekleme duruşunda iki elle tutulan silahlar: sol el IK ile kabzaya, sağ elin altına (kabza ekseninde -Z)
 static var TWO_HAND_IDLE := {"raijin": -0.1, "shibuki": 0.2}   # shibuki: sağ el sapın arka ucunda, sol el 0.2 önde (taramada sapa 4 mm oturdu)   # silaha özel duruş
 const STANCE_OF := {"blade": "w_blade", "dual": "w_dual", "sickle": "w_dual", "claw": "w_dual", "sword": "w_sword", "heavy": "w_shoulder", "staff": "w_shoulder", "chain": "w_dual", "fan": "w_fan"}   # kusarigama alçak tek el (omuzda bıçak kafaya değmesin)

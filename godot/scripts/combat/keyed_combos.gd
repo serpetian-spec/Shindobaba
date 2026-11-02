@@ -15,10 +15,11 @@ const TABLE := {
 	"sai": [preload("res://scripts/combat/sai_anim.gd"), 1.0],
 	"hiraishin_kunai": [preload("res://scripts/combat/hiraishin_anim.gd"), 1.0],
 	"homatsu_kiseru": [preload("res://scripts/combat/kiseru_anim.gd"), 1.0],
+	"kusanagi": [preload("res://scripts/combat/kusanagi_anim.gd"), 1.0],
 }
 ## silah ağırlığı (0 hafif .. 1 ağır): kol/silah yaylanması (PoseOverlay.key_mass) — ağır silah gecikip taşar
 const MASS := {"uc_tirpan": 1.0, "samehada": 0.9, "kabutowari": 0.9, "shibuki": 0.85, "gunbai": 0.8, "raijin": 0.35, "kunai": 0.1,
-	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3}
+	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35}
 
 
 static func mass(id: String) -> float:
@@ -68,6 +69,15 @@ static func mods(id: String, i: int) -> Dictionary:
 				3: m.merge({"launch": 11.0, "knock": 2.0})
 				4: m.merge({"heavy": true, "launch": 9.0, "knock": 7.0, "reach_add": 0.4, "lunge_mul": 0.0})   # havadan yere çakar
 				5: m.merge({"heavy": true, "knock": 16.0, "launch": 8.5})   # öne yere çarpılıp savrulur (yakın dövüşte launch >= 8 olmazsa yere sermez, sadece iter)
+			return m
+		"kusanagi":
+			# Chōtō: uzayan saplama/biçme menzili; uçan kılıç on_strike
+			var m = {"lunge_mul": 0.9}
+			match i:
+				2: m.merge({"reach_add": 3.2, "knock": 7.0, "lunge_mul": 0.4})
+				3: m.merge({"launch": 9.0, "knock": 2.0})
+				4: m.merge({"lunge_mul": 0.0, "knock": 0.5})
+				5: m.merge({"heavy": true, "knock": 13.0, "reach_add": 2.6, "lunge_mul": 0.4})
 			return m
 		"homatsu_kiseru":
 			# kabarcıklar asıl hasarı verir (on_strike); yakın vuruş yalnız boru darbesi
@@ -165,6 +175,13 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 		q.y = Game.ground_height(q.x, q.z) + 0.05
 		return q
 	match id:
+		"kusanagi":
+			if i == 2:
+				_kusa_extend(who, 3.2, 0.32)
+			elif i == 5:
+				_kusa_extend(who, 2.6, 0.4)
+			elif i == 4:
+				_kusa_fly(who, dmg)
 		"homatsu_kiseru":
 			_kiseru_strike(who, i, dmg)
 		"hiraishin_kunai":
@@ -737,3 +754,75 @@ static func _chain_one(who: Node3D, b: Node3D, dmg: float) -> void:
 	_bub_pop(p, 1.6)
 	if is_instance_valid(who):
 		Combat.hit_sphere(who, p, 1.0, _kinfo(dmg, 0.45, {"knock": 4.0}))
+
+
+# ------------------------------------------------------------------ Kusanagi
+## Chōtō: ağız bir anda L metre uzar, kısa tutup geri kısalır (uzantı düğümü KusaExt)
+static func _kusa_extend(who: Node3D, L: float, hold: float) -> void:
+	var n = _weapon_node(who)
+	if n == null:
+		return
+	var ext = n.get_node_or_null("KusaExt")
+	if ext == null:
+		return
+	ext.visible = true
+	ext.scale = Vector3(1, 1, 0.01)
+	var tw = ext.create_tween()
+	tw.tween_property(ext, "scale", Vector3(1, 1, L / maxf(0.01, n.scale.z)), 0.06).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(hold)
+	tw.tween_property(ext, "scale", Vector3(1, 1, 0.01), 0.12)
+	tw.tween_callback(func():
+		if is_instance_valid(ext):
+			ext.visible = false)
+	FX.hit_spark(n.to_global(Vector3(0, 0, 0.9)), Color(0.85, 0.9, 1.0), 0.8)
+
+
+## Uçan Kusanagi: kılıç elden fırlar, hedefe uçup saplanır, çevresinde bir tur atıp tekrar saplar, ele döner (uzaktan yönetim)
+static func _kusa_fly(who: Node3D, dmg: float) -> void:
+	var n = _weapon_node(who)
+	if n == null:
+		return
+	var tg = _hira_target(who)
+	var copy = MeshInstance3D.new()
+	copy.mesh = CharacterModel.weapon_mesh("kusanagi")
+	who.get_tree().current_scene.add_child(copy)
+	copy.global_transform = n.global_transform
+	n.visible = false
+	var start: Vector3 = n.global_position
+	var f: Vector3 = who.face_dir() if who.has_method("face_dir") else Vector3.FORWARD
+	var center: Vector3 = (tg.global_position + Vector3.UP) if tg != null else start + f * 7.0
+	var hits = [0.35, 0.62]
+	var tw = copy.create_tween()
+	tw.tween_method(func(k: float):
+		if not is_instance_valid(copy):
+			return
+		var c = (tg.global_position + Vector3.UP) if tg != null and is_instance_valid(tg) else center
+		var p: Vector3
+		var look: Vector3
+		if k < 0.35:   # hedefe uç
+			p = start.lerp(c, k / 0.35)
+			look = c
+		elif k < 0.62:   # çevresinde tur
+			var a = (k - 0.35) / 0.27 * TAU
+			p = c + Vector3(cos(a), 0.2, sin(a)) * 1.2
+			look = c
+		else:   # ele dön
+			var hand = n.global_position if is_instance_valid(n) else start
+			p = c.lerp(hand, (k - 0.62) / 0.38)
+			look = p + (p - c)
+		var d = (look - p)
+		copy.global_position = p
+		if d.length() > 0.01:
+			copy.look_at(p - d.normalized(), Vector3.UP)   # silah +Z ileri: look_at -Z'yi hedefe çevirir
+		, 0.0, 1.0, 0.75)
+	tw.tween_callback(func():
+		if is_instance_valid(copy):
+			copy.queue_free()
+		if is_instance_valid(n):
+			n.visible = true)
+	for t in hits:
+		who.get_tree().create_timer(t * 0.75).timeout.connect(func():
+			if is_instance_valid(who) and is_instance_valid(copy):
+				FX.hit_spark(copy.global_position, Color(0.8, 0.9, 1.0), 1.0)
+				Combat.hit_sphere(who, copy.global_position, 1.2, {"dmg": dmg * 0.7, "knock": 3.0, "kind": "light", "hitstop": 0.03, "melee": true}))
+	Sfx.play("whoosh", start, 1.3, 0.6)
