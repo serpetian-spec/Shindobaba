@@ -203,8 +203,8 @@ static func _hiramekarei(b: MB) -> void:
 ## SHIBUKI — tüm kaynaklardan ortak sonuç (bombakilici, ornek2-5, boyleolmaliydi, yukardanbakis, Sketchfab "Shibuki"):
 ## - sap ~0.4 m ince spiral sargılı, rulo ekseninden çıkar (sağ yumruk arka uçta z 0, sol el 0.2 önde)
 ## - kalın koyu mor rulo (Ø0.2, ~0.9 m), uçlarında açık gri bantlar; sap tarafında gri disk, uçta gri disk + koyu mil topuzu
-## - HER ŞEY rulo ekseninden geçen TEK DÜZ DÜZLEMDE (x = 0): bir yanda (-Y) ince gri dikdörtgen çerçeve + içinde gevşek duran
-##   爆 kâğıt tabakası; öbür yanda (+Y) içi boş ince çerçeve + rulonun yarı açılmış mor dış bezi (yırtık kenar, krem astar)
+## - HER ŞEY rulo ekseninden geçen TEK DÜZ DÜZLEMDE (x = 0): AĞIZ (-Y, vuran kenar) geniş ince gri çerçeve + içinde gevşek duran
+##   爆 kâğıt tabakası; SIRT (+Y) dar çerçeve, onun içinde de 爆 kâğıdı; rulonun mor dış bezi sırt tarafını sarar
 ## - çerçeve yan plakaları düzlemde yassı, kökte geniş uca doğru daralan (ornek5'teki "damla" bunun perspektifi)
 const SH_Z0 := 0.41   # rulo başı
 const SH_Z1 := 1.31   # rulo sonu
@@ -232,7 +232,7 @@ static func _shibuki(b: MB) -> void:
 		b.add("torus", Vector3(0, 0, z), Vector3(0.24, 0.24, 0.24), lt, Vector3(90, 0, 0), 22)
 	b.add("cyl", Vector3(0, 0, z1 + 0.08), Vector3(0.085, 0.07, 0.085), Color(0.12, 0.1, 0.14), Vector3(90, 0, 0), 12)   # mil topuzu
 	# çerçeveler (x = 0 düzleminde): yan plakalar kökte geniş (diske kaynaklı), dışa doğru daralır; dış çubuk
-	for fr in [[-1.0, 0.48], [1.0, 0.36]]:
+	for fr in [[-1.0, 0.48], [1.0, 0.17]]:   # -Y: geniş kâğıtlı AĞIZ (vuran taraf); +Y: dar sırt (o da kâğıtlı)
 		var sg = float(fr[0]); var L = float(fr[1])
 		for zs in [[z0 - 0.025, 1.0], [z1 + 0.025, -1.0]]:
 			var zc = float(zs[0]); var zi = float(zs[1])   # zi: rulonun içine doğru
@@ -243,23 +243,10 @@ static func _shibuki(b: MB) -> void:
 			b.add("sphere", Vector3(-0.011, sg * (L - 0.03), zc + zi * 0.01), Vector3(0.012, 0.012, 0.012), dk, Vector3.ZERO, 6)
 		b.add_slab(_v([[sg * (L - 0.02), z0 - 0.05], [sg * (L + 0.02), z0 - 0.05], [sg * (L + 0.02), z1 + 0.05], [sg * (L - 0.02), z1 + 0.05]]), 0.018, met, Transform3D.IDENTITY, Callable(), dk)
 		b.add("box", Vector3(0, sg * (L + 0.02), zm), Vector3(0.008, 0.006, z1 - z0 + 0.1), dk)   # dış kenar çizgisi
-	# rulonun mor dış bezi: rulonun üst yarısını sarar ve +Y yanında yarı açılmış kanat olarak düzlemde uzanır (kenarı yırtık)
-	var wrap_n = 9
-	for k in wrap_n:
-		var a = deg_to_rad(-80.0 + k * 20.0)   # +y tarafını saran yay
-		b.add_xf("box", Transform3D(Basis(Vector3.BACK, a + PI * 0.5) * Basis.from_scale(Vector3(0.04, 0.008, z1 - z0 - 0.14)), Vector3(cos(a) * 0.104, sin(a) * 0.104, zm)), cloth)
-	var flap = PackedVector2Array()   # (y, z) profil: kökten (y 0.1) dışa, dalgalı yırtık kenar
-	var NZ = 18
-	for k in NZ + 1:
-		var z = lerpf(z0 + 0.08, z1 - 0.08, float(k) / NZ)
-		flap.append(Vector2(0.1 + 0.22 + 0.01 * sin(z * 13.0) + 0.005 * sin(z * 41.0), z))   # kenar hafif dalgalı (kaynaklarda bez kenarı düzgün)
-	flap.append(Vector2(0.1, z1 - 0.08))
-	flap.append(Vector2(0.1, z0 + 0.08))
-	b.add_slab(flap, 0.01, cloth, Transform3D(Basis.IDENTITY, Vector3(0.012, 0, 0)), Callable(), Color(0.9, 0.86, 0.76))   # yan duvar krem (astar)
-	var lining = PackedVector2Array()
-	for p in flap:
-		lining.append(Vector2(0.1 + (p.x - 0.1) * 0.97, p.y))
-	b.add_slab(lining, 0.004, Color(0.9, 0.86, 0.76), Transform3D(Basis.IDENTITY, Vector3(0.003, 0, 0)), Callable())   # krem astar (iç yüz)
+	# rulonun mor dış bezi: rulonun sırt tarafını (+Y) saran ince örtü (kanat yok: sırtta da mühür kâğıdı var)
+	for k in 9:
+		var a = deg_to_rad(-60.0 + k * 15.0)
+		b.add_xf("box", Transform3D(Basis(Vector3.BACK, a + PI * 0.5) * Basis.from_scale(Vector3(0.03, 0.008, z1 - z0 - 0.14)), Vector3(cos(a) * 0.104, sin(a) * 0.104, zm)), cloth)
 
 
 ## Shibuki'nin dokulu parçası: -Y çerçevesinde gevşek duran 爆 kâğıt tabakası (çerçeveye tam yapışık değil, hafif kalkık/sarkık)
@@ -275,24 +262,36 @@ static func shibuki_tags(m: ArrayMesh) -> void:
 	var st = SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var z0 = SH_Z0 + 0.07; var z1 = SH_Z1 - 0.07
+	# [x ofseti fonksiyonu yerine sabit kavis], ağız: rulodan teğet, çerçevenin hafif önünde gevşek; sırt: dar düz şerit
+	var sheets = []
 	var M = 6
-	var pts = []
+	var wide = []
 	for k in M + 1:
 		var t = float(k) / M
-		pts.append(Vector2(-0.07 * (1.0 - t) - 0.016 - 0.014 * sin(t * PI), -0.07 - t * 0.39))   # (x, y): rulodan teğet, çerçevenin hafif önünde
-	for sd in [1.0, -1.0]:
-		for k in M:
-			var pa: Vector2 = pts[k]; var pb: Vector2 = pts[k + 1]
-			var nrm = Vector3(pb.y - pa.y, -(pb.x - pa.x), 0).normalized() * sd
-			var o = nrm * 0.002
-			var q = [Vector3(pa.x, pa.y, z0) + o, Vector3(pb.x, pb.y, z0) + o, Vector3(pb.x, pb.y, z1) + o, Vector3(pa.x, pa.y, z1) + o]
-			var u0 = 0.6 * k / M; var u1 = 0.6 * (k + 1) / M
-			var uv = [Vector2(u0, 0), Vector2(u1, 0), Vector2(u1, 1.15), Vector2(u0, 1.15)]
-			for order in [[0, 2, 1, 0, 3, 2], [0, 1, 2, 0, 2, 3]]:
-				for i in order:
-					st.set_normal(nrm)
-					st.set_uv(uv[i])
-					st.add_vertex(q[i])
+		wide.append(Vector2(-0.07 * (1.0 - t) - 0.016 - 0.014 * sin(t * PI), -0.07 - t * 0.39))   # (x, y)
+	sheets.append([wide, 0.6])
+	var back = []
+	for k in 3:
+		var t = float(k) / 2.0
+		back.append(Vector2(0.06 * (1.0 - t) + 0.012, 0.075 + t * 0.085))
+	sheets.append([back, 0.13])
+	for sh in sheets:
+		var pts: Array = sh[0]
+		var uw = float(sh[1])
+		var n = pts.size() - 1
+		for sd in [1.0, -1.0]:
+			for k in n:
+				var pa: Vector2 = pts[k]; var pb: Vector2 = pts[k + 1]
+				var nrm = Vector3(pb.y - pa.y, -(pb.x - pa.x), 0).normalized() * sd
+				var o = nrm * 0.002
+				var q = [Vector3(pa.x, pa.y, z0) + o, Vector3(pb.x, pb.y, z0) + o, Vector3(pb.x, pb.y, z1) + o, Vector3(pa.x, pa.y, z1) + o]
+				var u0 = uw * k / n; var u1 = uw * (k + 1) / n
+				var uv = [Vector2(u0, 0), Vector2(u1, 0), Vector2(u1, 1.15), Vector2(u0, 1.15)]
+				for order in [[0, 2, 1, 0, 3, 2], [0, 1, 2, 0, 2, 3]]:
+					for i in order:
+						st.set_normal(nrm)
+						st.set_uv(uv[i])
+						st.add_vertex(q[i])
 	st.commit(m)
 	m.surface_set_material(m.get_surface_count() - 1, _tag_mat)
 

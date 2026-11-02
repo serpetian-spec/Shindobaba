@@ -2,6 +2,9 @@ extends Node
 ## Oyuncu üzerindeki geçici etkiler (autoload "Buffs"): Raiton zırhı, Henge, asker hapı, Sennin modu...
 
 var active = {}  # ad -> {t, mods}
+## Şu an jutsu atan (Jutsu.execute ayarlar): düşman/klon/çağrı bir buff jutsusu atınca buff ONA gider, oyuncuya değil
+## (eskiden düşmanın Doton Doryūkatsu vb. buff'ı oyuncuya yazılıyordu)
+var caster: Node = null
 
 
 ## Güç modu jutsuları: biri açılınca diğerleri ve Sennin / göz / kapı / canavar modları kapanır (üst üste binmez)
@@ -11,6 +14,10 @@ const MODE_GROUP := ["hachimon", "hachimon_3", "kairiki_muso", "barion", "chi_no
 
 
 func add(name: String, dur: float, mods: Dictionary) -> void:
+	if caster != null and is_instance_valid(caster) and not (caster is Player):
+		if caster.has_method("add_buff"):
+			caster.add_buff(name, dur, mods)
+		return
 	if name in MODE_GROUP and not active.has(name):
 		clear_modes(name)
 		var pl = Game.player

@@ -724,7 +724,7 @@ func _attack(dt: float) -> void:
 		var heavy = combo_left == 1 and randf() < 0.5
 		var wpn = Gear.weapon_of(self)   # oyuncuyla aynı kural: silahın kendi vuruş hasarı
 		var base_hit = float(wpn.get("hit", 4.5)) if wpn.get("style", "fist") != "fist" else 4.5
-		var hits = Combat.hit_sphere(self, pt, 0.9, {"dmg": base_hit * (1.0 if not heavy else 1.8) * power, "knock": 3.0 if not heavy else 10.0,
+		var hits = Combat.hit_sphere(self, pt, 0.9, {"dmg": base_hit * (1.0 if not heavy else 1.8) * power * buff_mod("melee"), "knock": 3.0 if not heavy else 10.0,
 			"launch": 0.0 if not heavy else 4.0, "kind": "heavy" if heavy else "light", "hitstop": 0.04, "melee": true})
 		if String(wpn.get("special", "")) == "drain":
 			for h in hits:   # Samehada: vurduğunun chakrasını emer
@@ -757,7 +757,7 @@ func _attack_keyed() -> void:
 		var reach = 1.3 + float(wpn.get("reach", 0.0))
 		var i = int(key_step["i"])
 		var wid = String(key_step["id"])
-		var dmg = float(wpn.get("hit", 4.5)) * power * (1.5 if i >= 5 else 1.0)
+		var dmg = float(wpn.get("hit", 4.5)) * power * buff_mod("melee") * (1.5 if i >= 5 else 1.0)
 		var info = {"dmg": dmg, "knock": 3.0, "launch": 0.0, "kind": "light", "hitstop": 0.05, "melee": true}
 		var km: Dictionary = KEYED.mods(wid, i)   # oyuncuyla AYNI adım değiştiricileri
 		if km.is_empty() and i >= 5:

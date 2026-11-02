@@ -4043,11 +4043,13 @@ func _key_blade_sk(sk: Skeleton3D, blade: Vector3) -> void:
 			if px.length() > 0.05:
 				x = px.normalized()
 		if w["id"] == "shibuki":
-			# Shibuki: kâğıt yüzü (yassı yüz, +X) savuruş yönüne bakar — kâğıtlar hedefe çarpıp patlar
+			# Shibuki: AĞIZ kenarı (kâğıtlı geniş taraf, silah -Y) savuruş yönünde önde — kılıç gibi kenarla vurur.
+			# -Y hız yönünde => x = z × hız (dikey bileşen)
 			var sv: Vector3 = overlay._key_bv
 			var sp = sv - z * sv.dot(z)
 			if sp.length() > 1.0:
-				_edge_x = _edge_x.slerp(sp.normalized(), 0.3).normalized() if _edge_x != Vector3.ZERO and _edge_x.dot(sp.normalized()) > -0.9 else sp.normalized()
+				var ex = z.cross(sp.normalized()).normalized()
+				_edge_x = _edge_x.slerp(ex, 0.3).normalized() if _edge_x != Vector3.ZERO and _edge_x.dot(ex) > -0.9 else ex
 			var sx2 = _edge_x - z * _edge_x.dot(z)
 			if sx2.length() > 0.05:
 				x = sx2.normalized()

@@ -54,10 +54,19 @@ func _process_modification() -> void:
 				_curl(sk, side + f + FINGER_SEG[i], Quaternion(AX, CURL[i] * sgn), w)
 		# başparmak kabzanın üstüne kapanır
 		# başparmak kabzayı sarar, parmakların üstüne kapanır (eskiden kabza boyunca dik havada duruyordu)
-		_curl(sk, side + "ThumbProximal", Quaternion.from_euler(Vector3(0.3 * sgn, 0.6 * sgn, 0.6 * sgn)), w)
-		_curl(sk, side + "ThumbDistal", Quaternion.from_euler(Vector3(0.5 * sgn, 0, 0)), w)
+		var th = Vector3(0.3 * sgn, 0.6 * sgn, 0.6 * sgn)
+		var tds = sgn
+		if side == "Left" and two_hand_w > 0.0:
+			# iki elli tutuşta SOL BAŞPARMAK (kullanıcı istedi): aynalanmış elde dört parmağın işaret çevirmesi başparmağı
+			# dışarı kaldırıyordu -> başparmak sol elin kendi sarma yönüyle kabzaya kapanır
+			th = LEFT_TWO_THUMB[left_thumb_mode]
+			tds = 1.0 if left_thumb_mode != 0 else sgn
+		_curl(sk, side + "ThumbProximal", Quaternion.from_euler(th), w)
+		_curl(sk, side + "ThumbDistal", Quaternion.from_euler(Vector3(0.5 * tds, 0, 0)), w)
 
 
+static var LEFT_TWO_THUMB := [Vector3(-0.3, -0.6, -0.6), Vector3(0.3, 0.6, 0.6), Vector3(-0.3, 0.6, 0.6), Vector3(0.3, -0.6, -0.6)]
+static var left_thumb_mode := 1
 var relax_meta := Vector3(0.6, -0.3, 0.0)   # boş el başparmağı içe kıvrık (dışa kanca gibi çıkmaz)
 var relax_dist := 0.4
 var relax_meta_r := Vector3(-0.6, -0.3, 0.0)   # sağ (silah) eli boşken başparmak içe kıvrık

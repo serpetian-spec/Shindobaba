@@ -4,7 +4,10 @@ extends Node
 
 
 func _mult(caster: Node3D) -> float:
-	return Stats.jutsu_mult(Game.profile) if caster is Player else caster.get("power") if caster.get("power") != null else 1.0
+	if caster is Player:
+		return Stats.jutsu_mult(Game.profile)
+	var pw = float(caster.get("power")) if caster.get("power") != null else 1.0
+	return pw * (caster.buff_mod("jutsu") if caster.has_method("buff_mod") else 1.0)   # AI'nın kendi buff'ları
 
 
 func _elem_bonus(caster: Node3D, el: String) -> float:
@@ -13,7 +16,7 @@ func _elem_bonus(caster: Node3D, el: String) -> float:
 		# element buff'ları (ör. Sanmai no Shinka "katon": 1.3) hasara gerçekten yansır
 		var wboost = Gear.elem_boost(caster, el)   # silah + kıyafet seti element güçlendirmesi
 		return ((1.2 if not els.is_empty() and els[0] == el else 1.0) + Stats.element_bonus(Game.profile, el) + (Stats.skill(Game.profile, "kg") if el in Stats.KG_NATURES else 0.0)) * Buffs.mod(el) * (1.0 + wboost)
-	return 1.0 + Gear.elem_boost(caster, el)   # AI: silah + set element güçlendirmesi
+	return (1.0 + Gear.elem_boost(caster, el)) * (caster.buff_mod(el) if caster.has_method("buff_mod") else 1.0)   # AI: silah + set + kendi element buff'ı
 
 
 func _aim(caster: Node3D, target: Node3D) -> Vector3:
@@ -134,6 +137,8 @@ func execute(caster: Node3D, id: String, target: Node3D) -> void:
 	# rütbeye/seviyeye göre büyütme kaldırıldı (kullanıcı: bazı jutsular anlamsız büyüyordu) — her jutsu kendi anime boyutunda;
 	# animede zaten dev olan imza teknikleri (Gōkakyū, Daitoppa, Suikōdan...) kendi ölçeğini korur
 	VFX.epic = float(JutsuEngine.SIGNATURE_SCALE.get(id, 1.0))
+	var prev_caster = Buffs.caster
+	Buffs.caster = caster   # buff'lar atana gitsin (düşmanın buff'ı oyuncuya değil düşmana)
 	if MsArts.handles(own_id):   # Mangekyō tarzlarının kendi teknikleri
 		MsArts.cast(caster, own_id, target)
 	elif PathJutsu.handles_path(own_id):   # Efsane Yolları teknikleri
@@ -144,6 +149,7 @@ func execute(caster: Node3D, id: String, target: Node3D) -> void:
 		call("j_" + id, caster, target)
 	else:
 		JutsuEngine.cast(caster, id, target)  # veri güdümlü: şekil × element × kademe
+	Buffs.caster = prev_caster
 	VFX.epic = prev
 
 

@@ -18,6 +18,7 @@ var grounded = true
 var state = "idle"
 var state_t = 0.0
 var statuses = {}  # ad -> kalan süre
+var buffs = {}     # ad -> {t, mods}: kendi attığı buff jutsuları (oyuncunun Buffs'ı ile aynı anahtarlar: armor, speed, melee, jutsu, element)
 var dead = false
 var poise = 0.0  # süper zırh (boss)
 ## Sersemletme kilidi kırıcı: kısa sürede üst üste sersemletilen savaşçı bir süre sersemlemez ve çevresini iterek kurtulur
@@ -70,6 +71,19 @@ func has_status(name: String) -> bool:
 	return statuses.get(name, 0.0) > 0.0
 
 
+## Kendi buff'ı (Buffs.add atan düşmansa buraya yönlendirir)
+func add_buff(name: String, dur: float, mods: Dictionary) -> void:
+	buffs[name] = {"t": dur, "mods": mods}
+
+
+func buff_mod(key: String) -> float:
+	var v = 1.0
+	for b in buffs.values():
+		if b["mods"].has(key):
+			v *= float(b["mods"][key])
+	return v
+
+
 func take_hit(info: Dictionary) -> void:
 	if dead:
 		return
@@ -78,6 +92,7 @@ func take_hit(info: Dictionary) -> void:
 	var dmg: float = info.get("dmg", 5.0) * em * react * Combat.jutsu_factor(info) * (1.0 - Gear.elem_resist(self, String(info.get("element", ""))))   # set direnci (AI)
 	if has_status("marked"):
 		dmg *= 1.25   # Dinamik İşaretleme / algılama: işaretli hedef fazla hasar alır
+	dmg *= buff_mod("armor")   # kendi zırh buff'ı (Doton zırhı vb.)
 	var atk = info.get("attacker")
 	if atk is Player:
 		var bs = Stats.skill(Game.profile, "backstab")
@@ -231,7 +246,7 @@ func step_move(wish: Vector3, dt: float, turn := true) -> void:
 	if state in ["hitstun", "knockdown", "dead"]:
 		hv = hv.move_toward(Vector3.ZERO, dt * (8.0 if state == "knockdown" else 25.0))
 	else:
-		hv = hv.lerp(wish * slow, minf(1.0, dt * 10.0))
+		hv = hv.lerp(wish * slow * buff_mod("speed"), minf(1.0, dt * 10.0))
 	velocity.x = hv.x; velocity.z = hv.z
 	velocity.y -= 32.0 * dt
 	var pre = global_position
@@ -288,6 +303,10 @@ func tick_status(dt: float) -> void:
 		statuses[k] -= dt
 		if statuses[k] <= 0.0:
 			statuses.erase(k)
+	for k in buffs.keys():
+		buffs[k]["t"] -= dt
+		if buffs[k]["t"] <= 0.0:
+			buffs.erase(k)
 	if has_status("burn"):
 		hp -= 4.0 * dt
 		if randf() < dt * 8.0:
