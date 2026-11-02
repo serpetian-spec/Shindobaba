@@ -377,24 +377,46 @@ func _seed_legends() -> void:
 	for e in lst:
 		if e.has("legend"):
 			have[e["legend"]] = true
-	var plv := int(Game.profile.get("level", 1))
 	for L in LEGENDS:
-		if have.has(L["key"]) or plv < int(L["minlv"]) or Game.village(L["v"]).is_empty():
+		if have.has(L["key"]) or Game.village(L["v"]).is_empty():   # oyuncunun gücünü beklemez (minlv artık kullanılmıyor)
 			continue
 		lst.append(_legend_entry(L, int(bb["next"])))
 		bb["next"] = int(bb["next"]) + 1
 		Hud.msg("Bingo Kitabı'na efsanevi bir isim eklendi: «%s»" % L["alias"], Color(1, 0.7, 0.4))
 
 
+## Efsane kalıbı (teknik tarzı, köy, suç) sabit; onu taşıyan KİŞİ her oyunda başka: ad, takma ad, cinsiyet, saç, güç
+const LEGEND_ALIAS := {"raiton": ["Kara Şimşek", "Gök Gürültüsü", "Mavi Kıvılcım", "Fırtına Ejderi", "Yıldırım Pençesi"],
+	"suiton": ["Buhar Cadısı", "Sis Gölgesi", "Kaynar Dalga", "Derin Akıntı"], "katon": ["Kedi Alevi", "Kül Kuşu", "Kızıl Ejder", "Yanık Gölge"],
+	"fuuton": ["Hazine Avcısı", "Rüzgar Hırsızı", "Kesen Esinti", "Boran"], "doton": ["Toz Hükümdarı", "Taş Kalp", "Dağ Yıkan", "Kum Kral"],
+	"": ["Sessiz Ölüm", "Yarım Ay", "Gece Kuzgunu", "Soluk Gölge", "Kayıp Ruh", "Kırık Mühür"]}   # + efsanenin kendi kanon takma adı
+const LEGEND_HAIR := ["uzun", "yele", "diken", "kısa", "atkuyruğu", "topuz", "dağınık", "geriye", "kirpik"]
+
+
+func _legend_person(L: Dictionary) -> Dictionary:
+	var f := randf() < 0.4
+	var c := String(L.get("clan", ""))
+	var nm := person_name(c, f) if c != "" else "%s %s" % [Missions.BB_FAMILY.pick_random(), (GIVEN_F if f else GIVEN_M).pick_random()]
+	var pool: Array = (LEGEND_ALIAS.get(String(L.get("el", "")), LEGEND_ALIAS[""]) as Array).duplicate()
+	if not L["alias"] in pool:
+		pool.append(L["alias"])
+	var hc: Color = L["hc"]
+	if c == "":   # klansız: saç rengi de kişiye göre
+		hc = [Color(0.06, 0.06, 0.08), Color(0.85, 0.82, 0.75), Color(0.55, 0.18, 0.12), Color(0.85, 0.72, 0.35), Color(0.3, 0.35, 0.5), Color(0.6, 0.6, 0.65)].pick_random()
+	return {"name": nm, "alias": pool.pick_random(), "f": f, "hair": LEGEND_HAIR.pick_random() if String(L["hair"]) != "kel" else "kel", "hc": hc,
+		"lv": maxi(20, int(L["lv"]) + randi_range(-8, 10))}
+
+
 func _legend_entry(L: Dictionary, id: int) -> Dictionary:
 	var hide: Array = Missions._spot(L["v"], 500, 1600)
-	var lk := clan_look(String(L.get("clan", "")), "rogue", L["v"], L.get("f", false))
-	lk.merge({"hair_style": L["hair"], "hair": L["hc"], "top": L["top"], "top2": (L["top"] as Color).darkened(0.2), "band_style": "slashed",
-		"face_mark": ["burun yarası", "yanak çizgisi", "yok"].pick_random()}, true)
+	var who := _legend_person(L)
+	var lk := clan_look(String(L.get("clan", "")), "rogue", L["v"], who["f"])
+	lk.merge({"hair_style": who["hair"], "hair": who["hc"], "top": L["top"], "top2": (L["top"] as Color).darkened(0.2), "band_style": "slashed",
+		"face_mark": ["burun yarası", "yanak çizgisi", "yok"].pick_random(), "gender": "f" if who["f"] else "m"}, true)
 	if L.has("skin"):
 		lk["skin"] = L["skin"]
-	var lv := int(L["lv"])
-	var e := {"id": id, "legend": L["key"], "name": L["name"], "alias": L["alias"], "village": L["v"], "rank": "S",
+	var lv := int(who["lv"])
+	var e := {"id": id, "legend": L["key"], "name": who["name"], "alias": who["alias"], "village": L["v"], "rank": "S",
 		"bounty": 40000 + lv * 900, "crimes": [L["crime"], "Efsanevi S-rank: imza teknikleri kullanır"], "element": L["el"],
 		"hide": hide, "area": [hide[0] + randf_range(-400, 400), hide[1] + randf_range(-400, 400)], "known": 650.0, "status": "alive", "tracked": false,
 		"level": lv, "hp": 900.0 + lv * 60.0, "power": 1.8 + lv * 0.04, "escorts": 2, "escort_kind": "rogue", "look": _hexlook(lk),

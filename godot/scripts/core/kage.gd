@@ -432,7 +432,7 @@ func _selection_mission() -> Dictionary:
 				"choices": [{"label": "Seni yardımcım olarak istiyorum; birlikte daha güçlüyüz", "ok": true, "vote": 2, "reply": "...Bunu beklemiyordum. Yine de gücünü göster, sonra elini sıkarım."},
 					{"label": "O halde dövüşelim", "ok": true, "vote": 1, "reply": "Güzel! Arenada görüşürüz."}]},
 			{"kind": "kill", "at_npc": "rakip", "at": Missions._inside(vid, 0.3, 0.5), "enemy": "rogue", "n": 1,
-				"boss": {"name": "Kurogane Daisuke (rakip aday)", "hp": 4200.0, "level": maxi(35, int(p()["level"])), "power": 2.6}, "text": "Rakip adayı onurlu bir düelloda yen."},
+				"boss": {"name": "Kurogane Daisuke (rakip aday)", "hp": 4200.0, "level": randi_range(45, 58), "power": 2.6}, "text": "Rakip adayı onurlu bir düelloda yen."},
 			{"kind": "defend", "at": gate, "enemy": "rogue", "waves": [4, 5, 6], "text": "KRİZ: Köy kapısına saldırı! Adaylığını savunmayla kanıtla."},
 			{"kind": "talk", "at": Missions._inside(vid, 0.0, 0.1), "npc": cur_kage, "text": "%s'in huzuruna çık." % kt, "say": "Konsey toplandı, oylar sayıldı..."}]}
 

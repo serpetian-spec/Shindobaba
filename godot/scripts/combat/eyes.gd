@@ -760,7 +760,8 @@ func _process(dt: float) -> void:
 		susanoo_node.follow = p.model
 		var cfg = Susanoo.config(Game.profile)
 		var before = Susanoo.max_tier(Game.profile)
-		cfg["mastery"] = float(cfg.get("mastery", 0.0)) + dt
+		if not _enemies_in(25.0).is_empty():   # yalnız dövüşürken gelişir (boşta açık tutmak saymaz)
+			cfg["mastery"] = float(cfg.get("mastery", 0.0)) + dt
 		if Susanoo.max_tier(Game.profile) > before:
 			Hud.banner("SUSANOO USTALIĞI", "Yeni kademe açıldı: %s" % Susanoo.TIER_NAMES[Susanoo.max_tier(Game.profile)], Color(0.8, 0.6, 1.0))
 	if active:
@@ -821,7 +822,7 @@ func check_awaken(dt: float) -> void:
 			if g.is_empty() or g["id"] != "goz_sharingan" or int(g.get("lvl", 1)) >= 3:
 				continue
 			g["xp"] = float(g.get("xp", 0.0)) + dt
-			if g["xp"] >= 120.0 * int(g.get("lvl", 1)):
+			if g["xp"] >= 600.0 * int(g.get("lvl", 1)):   # 2 tomoe: 10 dk dövüş, 3 tomoe: +20 dk
 				g["xp"] = 0.0
 				g["lvl"] = int(g.get("lvl", 1)) + 1
 				Hud.banner("SHARINGAN GELİŞTİ", "%d tomoe" % int(g["lvl"]), Color(1, 0.3, 0.3))
@@ -938,7 +939,7 @@ func evolve_tick(dt: float) -> void:
 			if g.is_empty() or not g["id"] in ["goz_byakugan", "goz_ketsuryugan"] or int(g.get("lvl", 1)) >= 3:
 				continue
 			g["xp"] = float(g.get("xp", 0.0)) + dt
-			if g["xp"] >= 140.0 * int(g.get("lvl", 1)):
+			if g["xp"] >= 700.0 * int(g.get("lvl", 1)):   # Byakugan/Ketsuryūgan: 12 dk, +23 dk dövüş
 				g["xp"] = 0.0
 				g["lvl"] = int(g.get("lvl", 1)) + 1
 				var nm = "BYAKUGAN" if g["id"] == "goz_byakugan" else "KETSURYŪGAN"
