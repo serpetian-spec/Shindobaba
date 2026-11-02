@@ -142,9 +142,9 @@ func start_raid(from: String) -> void:
 			best = float(g)
 	var gate = c + Vector2(sin(deg_to_rad(best)), cos(deg_to_rad(best))) * float(v["r"]) * 0.88
 	var at = Missions.open_ground(Game.from_map(gate), 40.0)
-	var lv = int(p().get("level", 1))
+	var lv = randi_range(20, 30)   # akın gücü köylerin kendi gücü (oyuncuya göre değil)
 	raid = {"from": from, "nodes": [], "allies": [], "t": 0.0, "at": at}
-	var n = 6 + mini(4, lv / 15)
+	var n = randi_range(6, 10)
 	for i in n + 1:
 		var e = _ninja_of(from, i, lv + (6 if i == n else randi_range(-3, 2)), "enemy")
 		if i == n:
@@ -160,9 +160,14 @@ func start_raid(from: String) -> void:
 	for i in maxi(5, n - 1):   # köyün muhafızları da gelir: akıncı sayısına yakın (10'a 1 savunma olmasın)
 		var d = _ninja_of(home, i, lv + randi_range(-2, 3), "player")
 		get_tree().current_scene.add_child(d)
-		var q = Missions.open_ground(at.lerp(Game.player.global_position, 0.6) + Vector3(randf_range(-10, 10), 0, randf_range(-10, 10)), 25.0)
+		# kapının köy tarafında, akıncılara 15-30 m: oyuncu uzaktaysa da savunma kapıda başlar (eskiden oyuncu yönünde 700 m ötede boşta kalıyorlardı)
+		var inward = (Game.from_map(c) - at)
+		inward.y = 0
+		inward = inward.normalized() if inward.length() > 1.0 else Vector3.FORWARD
+		var q = Missions.open_ground(at + inward * randf_range(15.0, 30.0) + Vector3(randf_range(-10, 10), 0, randf_range(-10, 10)), 25.0)
 		d.global_position = q
 		d.home = q
+		d.wander_to = at
 		FX.smoke_puff(q + Vector3.UP, 0.8, 10)
 		raid["allies"].append(d)
 	p()["waypoint"] = [at.x, at.y, at.z, "Olay: Baskın"]
@@ -215,6 +220,26 @@ func _raid_watch(dt: float) -> void:
 	for e in alive:
 		if e.target == null and Game.player and e.global_position.distance_to(Game.player.global_position) < 200.0:
 			e.wander_to = Game.player.global_position
+	# müttefikler boşta beklemez: hedefi yoksa en yakın akıncıya yürür ve ona saldırır
+	if not alive.is_empty():
+		for d in raid["allies"]:
+			if not is_instance_valid(d) or d.is_dead() or (d.target != null and is_instance_valid(d.target) and not d.target.is_dead()):
+				continue
+			var best: Node3D = null
+			var bd = 1e9
+			for e in alive:
+				var dd = d.global_position.distance_to(e.global_position)
+				if dd < bd:
+					bd = dd
+					best = e
+			if best != null:
+				d.home = best.global_position   # devriye/takip tasmasi savaş alanına taşınır (eve dönüp boşta kalmasın)
+				if bd < 40.0:
+					d.target = best
+					d.state = "chase"
+				else:
+					d.wander_to = best.global_position
+					d.state_t = 0.0
 	if alive.is_empty() or float(raid["t"]) > 600.0:
 		var won = alive.is_empty()
 		var from = String(raid["from"])
