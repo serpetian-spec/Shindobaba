@@ -18,6 +18,14 @@ static func build(id: String, b: MB) -> void:
 		"kabutowari": _kabutowari(b)
 
 
+## (x, y) kesit noktaları -> add_slab profili; slab Basis(z, y, -x) ile kullanılır (profil.y = -x)
+static func _xy_to_yz(pts: PackedVector2Array) -> PackedVector2Array:
+	var o = PackedVector2Array()
+	for p in pts:
+		o.append(Vector2(p.y, -p.x))
+	return o
+
+
 static func _v(arr: Array) -> PackedVector2Array:
 	var out = PackedVector2Array()
 	for p in arr:
@@ -219,17 +227,24 @@ static func _shibuki(b: MB) -> void:
 		b.add_slab(hull, 0.06, met, Transform3D(pl_b, Vector3(0, 0, z)), Callable(), dk)
 	b.add("cyl", Vector3(0, 0, 0.635), Vector3(0.2, 0.94, 0.2), roll, Vector3(90, 0, 0), 18)   # kalın rulo
 	b.add("cyl", Vector3(0, 0, 1.18), Vector3(0.21, 0.06, 0.21), met.lightened(0.05), Vector3(90, 0, 0), 18)   # uç bilezik
-	b.add("cyl", Vector3(0, 0, 1.235), Vector3(0.15, 0.05, 0.15), met, Vector3(90, 0, 0), 16)              # basamaklı kapak
+	b.add("cyl", Vector3(0, 0, 1.225), Vector3(0.19, 0.04, 0.19), met, Vector3(90, 0, 0), 18)
+	b.add("sphere", Vector3(0, 0, 1.245), Vector3(0.19, 0.19, 0.11), met.lightened(0.02), Vector3.ZERO, 16)   # yuvarlak kubbe kapak (Sketchfab ref)
 	b.add("cyl", Vector3(0, 0, 0.11), Vector3(0.07, 0.04, 0.07), met.darkened(0.1), Vector3(90, 0, 0), 10)   # sap boğazı
-	# yelken bez: rulonun arka-üstünden (+x) kalkıp hafif kıvrılan koyu mor tabaka
-	var prev = Vector2(0.05, 0.09)
-	for k in 5:
-		var t = float(k + 1) / 5.0
-		var cur = Vector2(0.05 + t * 0.3, 0.09 + t * t * 0.07)
-		var mid = (prev + cur) * 0.5
-		var ang = atan2(cur.y - prev.y, cur.x - prev.x)
-		b.add_xf("box", Transform3D(Basis(Vector3.BACK, ang) * Basis.from_scale(Vector3(prev.distance_to(cur) + 0.004, 0.012, 0.9)), Vector3(mid.x, mid.y, 0.635)), cloth if k % 2 == 0 else cloth.lightened(0.04))
-		prev = cur
+	# yelken bez: rulonun arka-üstünden (+x) kalkıp yumuşakça kıvrılan TEK parça koyu mor kumaş (ince, pürüzsüz yay; şeritli kutular değil)
+	var prof = PackedVector2Array()   # kesit (x, y): iç yüz yukarı, dış yüz geri
+	var outer = []
+	var N = 14
+	for k in N + 1:
+		var t = float(k) / N
+		outer.append(Vector2(0.04 + t * 0.3, 0.1 + t * t * 0.09))
+	for k in N + 1:
+		prof.append(outer[k])
+	for k in range(N, -1, -1):
+		var q: Vector2 = outer[k]
+		var tg = (outer[mini(k + 1, N)] - outer[maxi(k - 1, 0)]).normalized()
+		prof.append(q + Vector2(-tg.y, tg.x) * 0.011)
+	# profil (x, y) düzleminde -> uzunluk z boyunca: add_slab profili (yerel y, z) + kalınlık yerel x; yerel x -> dünya z
+	b.add_slab(_xy_to_yz(prof), 0.9, cloth, Transform3D(Basis(Vector3(0, 0, 1), Vector3(0, 1, 0), Vector3(-1, 0, 0)), Vector3(0, 0, 0.635)), Callable(), cloth.darkened(0.2))
 	# dış kenar rayı (kâğıdın dış ucu)
 	b.add("box", Vector3(-0.145, -0.47, 0.635), Vector3(0.035, 0.03, 0.97), met)
 
@@ -243,7 +258,7 @@ static func shibuki_tags(m: ArrayMesh) -> void:
 		_tag_mat.set_shader_parameter("use_vertex_color", false)
 		_tag_mat.set_shader_parameter("tex", load("res://assets/weapons/shibuki_tags.png"))
 		_tag_mat.set_shader_parameter("rim_amount", 0.1)
-		_tag_mat.set_shader_parameter("tint", Color(0.78, 0.77, 0.76))
+		_tag_mat.set_shader_parameter("tint", Color(0.86, 0.85, 0.83))
 	var st = SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var a = Vector2(-0.085, -0.07)    # (x, y) rulonun alt yanından
@@ -253,7 +268,7 @@ static func shibuki_tags(m: ArrayMesh) -> void:
 	for sd in [1.0, -1.0]:
 		var o = nrm2 * 0.003 * sd
 		var q = [Vector3(a.x + o.x, a.y + o.y, z0), Vector3(c.x + o.x, c.y + o.y, z0), Vector3(c.x + o.x, c.y + o.y, z1), Vector3(a.x + o.x, a.y + o.y, z1)]
-		var uv = [Vector2(0, 0), Vector2(0.75, 0), Vector2(0.75, 1.65), Vector2(0, 1.65)]
+		var uv = [Vector2(0, 0), Vector2(0.55, 0), Vector2(0.55, 1.2), Vector2(0, 1.2)]
 		var nn = Vector3(nrm2.x * sd, nrm2.y * sd, 0)
 		for order in [[0, 2, 1, 0, 3, 2], [0, 1, 2, 0, 2, 3]]:
 			for i in order:
