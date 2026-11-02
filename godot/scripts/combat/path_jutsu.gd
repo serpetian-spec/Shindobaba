@@ -26206,9 +26206,8 @@ func _bubble(size: float, tint := Color(0.75, 0.9, 1.0)) -> MeshInstance3D:
 	return VFX.soap_bubble(size, tint)   # gökkuşağı zarlı sabun köpüğü (utakatababa2.png)
 
 
-func _pop(p: Vector3, s := 1.0, col := Color(0.85, 0.95, 1.0)) -> void:
-	FX.burst(p, {"amount": int(10 * s), "life": 0.35, "tex": FX.tex_soft, "add": false, "size": 0.18 * s, "vmin": 2.0, "vmax": 5.0 * s, "spread": 180.0, "gravity": Vector3(0, -8, 0),
-		"colors": [Color(1, 1, 1, 1), col, Color(col.r, col.g, col.b, 0)]})
+func _pop(p: Vector3, s := 1.0, _col := Color(0.85, 0.95, 1.0)) -> void:
+	VFX.bubble_pop(p, clampf(s * 0.5, 0.12, 2.4))   # doğal köpük patlaması
 
 
 func p_suiton_suihachi(c: Node3D, t: Node3D) -> void:

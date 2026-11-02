@@ -594,8 +594,7 @@ static func _bub_fly(who: Node3D, size: float, dur: float, fn: Callable, arrive:
 
 
 static func _bub_pop(p: Vector3, s: float) -> void:
-	FX.burst(p, {"amount": int(8 + 10 * s), "life": 0.35, "tex": FX.tex_soft, "add": false, "size": 0.12 * maxf(0.6, s), "vmin": 1.5, "vmax": 4.0 * s,
-		"spread": 180.0, "gravity": Vector3(0, -6, 0), "colors": [Color(1, 1, 1, 0.9), Color(0.8, 0.9, 1.0, 0.6), Color(0.8, 0.9, 1.0, 0)]})
+	VFX.bubble_pop(p, clampf(s * 0.4, 0.12, 2.4))   # doğal köpük patlaması (duman/toz yok)
 
 
 static func _kiseru_strike(who: Node3D, i: int, dmg: float) -> void:
@@ -668,8 +667,7 @@ static func _arrive_small(p: Vector3, who: Node3D, sz: float, dmg: float) -> voi
 
 
 static func _arrive_big(p: Vector3, who: Node3D, dmg: float) -> void:
-	_bub_pop(p, 2.0)
-	FX.explosion(p, 0.6, Color(0.7, 0.85, 1.0))
+	_bub_pop(p, 2.2)
 	if is_instance_valid(who):
 		Combat.hit_sphere(who, p, 2.0, _kinfo(dmg, 2.4, {"knock": 9.0, "launch": 3.0, "kind": "heavy"}))
 		_shake(who, 0.4)
@@ -701,8 +699,8 @@ static func _cage_follow(k: float, cage: Node3D, tg: Node3D) -> void:
 
 static func _arrive_acid(p: Vector3, who: Node3D, sz: float, dmg: float) -> void:
 	_bub_pop(p, sz * 2.5)
-	FX.burst(p, {"amount": 8, "life": 0.6, "tex": FX.tex_soft, "add": false, "size": 0.3, "vmin": 0.5, "vmax": 2.0, "gravity": Vector3(0, -4, 0),
-		"colors": [Color(0.75, 0.95, 0.45, 0.8), Color(0.6, 0.85, 0.35, 0)]})   # aşındırıcı damla
+	FX.burst(p, {"amount": 6, "life": 0.5, "tex": FX.tex_spark, "add": false, "size": 0.06, "vmin": 0.5, "vmax": 1.5, "gravity": Vector3(0, -9, 0),
+		"colors": [Color(0.8, 1.0, 0.55, 0.9), Color(0.65, 0.9, 0.4, 0)]})   # aşındırıcı damlacıklar
 	if is_instance_valid(who):
 		for h in Combat.hit_sphere(who, p, 1.1, _kinfo(dmg, 0.6, {"knock": 0.5})):
 			if h.has_method("apply_status"):
@@ -737,6 +735,5 @@ static func _chain_one(who: Node3D, b: Node3D, dmg: float) -> void:
 	var p = b.global_position
 	b.queue_free()
 	_bub_pop(p, 1.6)
-	FX.explosion(p, 0.35, Color(0.75, 0.9, 1.0))
 	if is_instance_valid(who):
 		Combat.hit_sphere(who, p, 1.0, _kinfo(dmg, 0.45, {"knock": 4.0}))

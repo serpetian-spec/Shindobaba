@@ -1562,3 +1562,21 @@ static func soap_bubble(size: float, tint := Color(0.85, 0.92, 1.0)) -> MeshInst
 	mi.scale = Vector3.ONE * size
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	return mi
+
+
+## Doğal sabun köpüğü patlaması: zar bir an şişip kaybolur (0.07 sn), yüzeyinden birkaç minik parlak damla saçılıp düşer.
+## Duman / toz / alev yok. size: köpüğün çapı
+static func bubble_pop(p: Vector3, size := 0.4) -> void:
+	var sc = scene()
+	if sc == null:
+		return
+	var b = soap_bubble(size)
+	sc.add_child(b)
+	b.global_position = p
+	var tw = b.create_tween()
+	tw.tween_property(b, "scale", Vector3.ONE * size * 1.12, 0.05)
+	tw.tween_callback(b.queue_free)
+	var n = clampi(int(6 + size * 14.0), 6, 22)
+	FX.burst(p, {"amount": n, "life": 0.32, "tex": FX.tex_spark, "add": true, "size": 0.06 + size * 0.06, "radius": size * 0.45,
+		"vmin": 0.8 + size, "vmax": 2.0 + size * 2.5, "spread": 180.0, "gravity": Vector3(0, -7, 0), "damp": 1.5,
+		"colors": [Color(1, 1, 1, 0.95), Color(0.85, 0.95, 1.0, 0.7), Color(0.8, 0.9, 1.0, 0.0)]})
