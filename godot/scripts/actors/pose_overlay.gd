@@ -53,6 +53,7 @@ static var STANCE := {
 	"w_raijin": [["RightUpperArm", Vector3(0.0, -0.75, 0.66)], ["RightLowerArm", Vector3(0.45, 0.15, 0.88)], ["RightHand", Vector3(0.1, -0.75, 0.65)]],   # chūdan: eller göbek önünde ortada, ışın öne-yukarı (sol el IK ile kabzada)
 	"w_samehada": [["RightUpperArm", Vector3(-0.5, -0.8, 0.3)], ["RightLowerArm", Vector3(0.2, 0.3, 0.93)], ["RightHand", Vector3(0.6, 0.55, 0.6)]],   # omuzda: ön izlemede beğenilen poz, biraz sağ omza çevrik (kafadan geçmez)
 	"w_fan": [["RightUpperArm", Vector3(-0.85, -0.45, 0.25)], ["RightLowerArm", Vector3(-0.5, 0.3, 0.8)]],
+	"w_shibuki": [["RightUpperArm", Vector3(-0.2, -0.9, 0.38)], ["RightLowerArm", Vector3(0.35, -0.2, 0.92)], ["RightHand", Vector3(-0.24, -0.96, -0.12)]],   # Shibuki (ornek3): iki elle uzun saptan, sağ el karın önünde, rulo önde-solda hafif aşağıda, kâğıt yukarı
 	"w_tirpan": [["RightUpperArm", Vector3(-0.3, -0.85, 0.42)], ["RightLowerArm", Vector3(0.25, 0.55, 0.8)], ["RightHand", Vector3(0.98, 0.14, -0.14)]],   # tırpan omuzda: yumruk göğüs önünde, sap sağ omzun üstünden geriye, bıçaklar sırtın arkasında
 }
 
@@ -73,7 +74,7 @@ func _ready() -> void:
 		"plant": {"_Plant": 1},
 		"cast": {"_Cast": 1},
 		# silah duruşları (bekleme/koşu): ters tutuş kunai, iki elle kılıç, omuzda ağır silah, çift bıçak alçak, yelpaze yanda
-		"w_blade": {}, "w_raijin": {}, "w_gunbai": {}, "w_sword": {}, "w_shoulder": {}, "w_samehada": {}, "w_dual": {}, "w_fan": {}, "w_tirpan": {},
+		"w_blade": {}, "w_raijin": {}, "w_gunbai": {}, "w_sword": {}, "w_shoulder": {}, "w_samehada": {}, "w_dual": {}, "w_fan": {}, "w_tirpan": {}, "w_shibuki": {},
 	}
 
 

@@ -376,15 +376,8 @@ func _do_attack(dt: float) -> bool:
 			_gunbai_gust(_ci(step))
 		if c.has("rai"):
 			_raijin_fx(int(c["rai"]), pt)
-		if c.get("chop", false):
-			# tırpan yere saplanır: bıçakların düştüğü yerde zemin yarılır (üstünden geçen yavaşlar), taş ve toz fışkırır
-			var gp = p.global_position + p.face_dir() * 2.3
-			gp.y = Game.ground_height(gp.x, gp.z) + 0.05
-			VFX.cracks(gp, 3.2)
-			VFX.debris(gp, Color(0.45, 0.38, 0.3), 12, 7.0, 0.35)
-			FX.impact(gp, Color(0.75, 0.65, 0.5), 0.9)
-			if Game.world:
-				Game.world.env.add_shake(0.45)
+		if c.has("keyed_id"):
+			KEYED.on_strike(c["keyed_id"], int(c["keyed_i"]), p, float(c["dmg"]) * Stats.melee_mult(Game.profile))   # zemin/patlama/uçan kâğıt
 		var hits = Combat.hit_sphere(p, pt, c["reach"] * 0.65 * Buffs.mod("reach"), _hit_info(c))
 		if not hits.is_empty():
 			_on_hit_fx(pt, c)
@@ -393,6 +386,8 @@ func _do_attack(dt: float) -> bool:
 			for h in hits:
 				Progress.on_hit_landed(h)
 				_special_hit(h, pt, c)
+				if c.has("keyed_id"):
+					KEYED.on_target(c["keyed_id"], int(c["keyed_i"]), p, h)   # kanca çekişi vb.
 	if t >= c["dur"]:
 		p.model.overlay.set_pose("kick", 0.0)
 		combo_reset = 0.5
@@ -521,29 +516,18 @@ func _combo_base(i: int) -> Dictionary:
 			if i == COMBO.size() - 1:
 				c["knock"] = 12.0
 				c["heavy"] = true
-		if wid == "uc_tirpan":
-			# ağır tırpan: iki elli adımlarda sol el sapta; 2 yere serer, 3 kancayla çeker, 4 yere saplar, 5 havaya, 6 uzak savurur
+		# adım değiştiricileri + vuruş anı etkileri ORTAK (KeyedCombos.mods/on_strike/on_target): düşman da aynısını kullanır
+		var km: Dictionary = KEYED.mods(wid, i)
+		if not km.is_empty() or ks.has("two"):
 			c["two_hand"] = bool(ks.get("two", false))
 			c["two_off"] = KEYED.two_off(wid)
-			c["lunge"] = float(c["lunge"]) * 0.5   # ağır: kurulurken kayarak atılmaz, adımla gelir
-			match i:
-				1:
-					c["heavy"] = true
-					c["knock"] = 3.0
-				2:
-					c["special"] = "pull"
-					c["knock"] = 0.5
-				3:
-					c["chop"] = true
-					c["stun"] = 0.6
-					c["knock"] = 2.0
-				4:
-					c["launch"] = 12.0
-					c["knock"] = 2.0
-				5:
-					c["reach"] = float(c["reach"]) + 0.6
-					c["knock"] = 18.0
-					c["heavy"] = true
+			c["keyed_id"] = wid
+			c["keyed_i"] = i
+			c["lunge"] = float(c["lunge"]) * float(km.get("lunge_mul", 1.0))
+			for mk in ["heavy", "knock", "launch", "stun", "special"]:
+				if km.has(mk):
+					c[mk] = km[mk]
+			c["reach"] = float(c["reach"]) + float(km.get("reach_add", 0.0))
 		if wid == "kunai" and i == COMBO.size() - 1:
 			c["knock"] = 9.0   # bitiriş biçmesi rakibi geri savurur
 		if i == COMBO.size() - 1 and wid == "samehada":

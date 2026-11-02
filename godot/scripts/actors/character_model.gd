@@ -3682,6 +3682,8 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 		_:
 			b.add("box", Vector3(0, 0, 0.1), Vector3(0.02, 0.03, 0.2), steel)
 	var m = b.build(Props.toon())
+	if id == "shibuki":
+		MistSwords.shibuki_tags(m)   # mühür kâğıtlı rulo: dokulu ayrı yüzey
 	_weapon_cache[id] = m
 	return m
 
@@ -3915,7 +3917,7 @@ func set_dojutsu(kind: int, tomoe := 3) -> void:
 
 ## Uzun ağızlı silahlar (Samehada, Kubikiribōchō, Kiba...) beklerken elin ekseninde kalınca başın önünden geçip yüzü kapatıyordu:
 ## duruştayken ağız omzun üstünden başın arkasına yatırılır; saldırıda kolla aynı hizaya döner
-static var REST_TILT_OF := {"samehada": Vector3(0, 0, 0), "gunbai": Vector3(0, 0, 0), "uc_tirpan": Vector3(0, 0, -164)}   # tırpan: yalnız sap ekseni etrafında (bıçaklar sırtın arkasında aşağı sarkar), sap yönü kol pozundan   # gunbai: silah yumruğun içinden düz geçer; yönü kol pozu verir (w_gunbai)   # silaha özel bekleme eğimi (kafanın içinden geçmesin)
+static var REST_TILT_OF := {"samehada": Vector3(0, 0, 0), "gunbai": Vector3(0, 0, 0), "uc_tirpan": Vector3(0, 0, -164), "shibuki": Vector3(0, 0, 0)}   # tırpan: yalnız sap ekseni etrafında (bıçaklar sırtın arkasında aşağı sarkar), sap yönü kol pozundan   # gunbai: silah yumruğun içinden düz geçer; yönü kol pozu verir (w_gunbai)   # silaha özel bekleme eğimi (kafanın içinden geçmesin)
 const REST_TILT := Vector3(-25.0, -55.0, 0.0)
 const IDLE_GRIP := {"samehada": 0.3}
 ## kalın saplar: kabza avucun derinine (parmaklar sarabilsin; eskiden sap parmakların önünden geçiyordu) — tutucu uzayında
@@ -3943,7 +3945,7 @@ func _rest_tilt(on: bool, dt: float) -> void:
 
 
 ## anahtar animasyonlu silahlar: [tutuş kaydırma (yumruk sap boyunca ileri), iz başı z, iz ucu z, elden uca boy]
-const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92]}
+const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.2, 1.2, 1.26]}
 
 
 var _edge_x := Vector3.ZERO   # gunbai: kenar önde savuruş için yüz normali (yumuşatılmış)
@@ -4040,6 +4042,15 @@ func _key_blade_sk(sk: Skeleton3D, blade: Vector3) -> void:
 			var px = _edge_x - z * _edge_x.dot(z)
 			if px.length() > 0.05:
 				x = px.normalized()
+		if w["id"] == "shibuki":
+			# Shibuki: kâğıt yüzü (yassı yüz, +X) savuruş yönüne bakar — kâğıtlar hedefe çarpıp patlar
+			var sv: Vector3 = overlay._key_bv
+			var sp = sv - z * sv.dot(z)
+			if sp.length() > 1.0:
+				_edge_x = _edge_x.slerp(sp.normalized(), 0.3).normalized() if _edge_x != Vector3.ZERO and _edge_x.dot(sp.normalized()) > -0.9 else sp.normalized()
+			var sx2 = _edge_x - z * _edge_x.dot(z)
+			if sx2.length() > 0.05:
+				x = sx2.normalized()
 		var want = Basis(x, z.cross(x).normalized(), z)
 		if overlay.key_roll != 0.0:
 			want = want * Basis(Vector3.BACK, deg_to_rad(overlay.key_roll))   # sap ekseni etrafında (gunbai yüzü rakibe)
@@ -4064,9 +4075,9 @@ func react(world_dir: Vector3, amp: float, head := false) -> void:
 	overlay.hit_react(d, amp, head)
 
 
-const STANCE_ID := {"samehada": "w_samehada", "gunbai": "w_gunbai", "raijin": "w_raijin", "uc_tirpan": "w_tirpan"}
+const STANCE_ID := {"samehada": "w_samehada", "gunbai": "w_gunbai", "raijin": "w_raijin", "uc_tirpan": "w_tirpan", "shibuki": "w_shibuki"}
 ## bekleme duruşunda iki elle tutulan silahlar: sol el IK ile kabzaya, sağ elin altına (kabza ekseninde -Z)
-const TWO_HAND_IDLE := {"raijin": -0.1}   # silaha özel duruş
+const TWO_HAND_IDLE := {"raijin": -0.1, "shibuki": -0.26}   # silaha özel duruş
 const STANCE_OF := {"blade": "w_blade", "dual": "w_dual", "sickle": "w_dual", "claw": "w_dual", "sword": "w_sword", "heavy": "w_shoulder", "staff": "w_shoulder", "chain": "w_dual", "fan": "w_fan"}   # kusarigama alçak tek el (omuzda bıçak kafaya değmesin)
 var stance := ""
 

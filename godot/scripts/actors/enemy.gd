@@ -679,7 +679,7 @@ func _swing_keyed(wid: String) -> void:
 	var ks: Dictionary = st[i]
 	var spd = KEYED.speed(wid) * (1.0 + skill * 0.15)
 	model.overlay.play_keys(ks, spd)
-	key_step = {"hit": float(ks["hit"]) / spd, "len": float(ks["len"]) / spd, "two": bool(ks.get("two", false)), "i": i, "id": wid, "chop": ks.get("chop", false)}
+	key_step = {"hit": float(ks["hit"]) / spd, "len": float(ks["len"]) / spd, "two": bool(ks.get("two", false)), "i": i, "id": wid}
 	var rig: WeaponRig = model.rig
 	if rig:
 		var wn: Node3D = model.weapons[0]["node"]
@@ -756,35 +756,24 @@ func _attack_keyed() -> void:
 		var wpn = Gear.weapon_of(self)
 		var reach = 1.3 + float(wpn.get("reach", 0.0))
 		var i = int(key_step["i"])
-		var info = {"dmg": float(wpn.get("hit", 4.5)) * power * (1.5 if i >= 5 else 1.0), "knock": 3.0, "launch": 0.0, "kind": "light", "hitstop": 0.05, "melee": true}
-		if String(key_step["id"]) == "uc_tirpan":
-			match i:
-				1:
-					info["kind"] = "heavy"
-				3:
-					info["stun"] = 0.6
-				4:
-					info["launch"] = 12.0
-				5:
-					info["knock"] = 18.0
-					info["kind"] = "heavy"
-					reach += 0.6
-		elif i >= 5:
-			info["knock"] = 10.0
-			info["launch"] = 4.0
+		var wid = String(key_step["id"])
+		var dmg = float(wpn.get("hit", 4.5)) * power * (1.5 if i >= 5 else 1.0)
+		var info = {"dmg": dmg, "knock": 3.0, "launch": 0.0, "kind": "light", "hitstop": 0.05, "melee": true}
+		var km: Dictionary = KEYED.mods(wid, i)   # oyuncuyla AYNI adım değiştiricileri
+		if km.is_empty() and i >= 5:
+			km = {"knock": 10.0, "launch": 4.0, "heavy": true}
+		for mk in ["knock", "launch", "stun"]:
+			if km.has(mk):
+				info[mk] = km[mk]
+		if km.get("heavy", false):
 			info["kind"] = "heavy"
-		if key_step.get("chop", false):
-			var gp = global_position + face_dir() * 2.3
-			gp.y = Game.ground_height(gp.x, gp.z) + 0.05
-			VFX.cracks(gp, 3.2)
-			VFX.debris(gp, Color(0.45, 0.38, 0.3), 12, 7.0, 0.35)
-			FX.impact(gp, Color(0.75, 0.65, 0.5), 0.9)
+		reach += float(km.get("reach_add", 0.0))
+		KEYED.on_strike(wid, i, self, dmg)   # zemin/patlama/uçan kâğıt: oyuncuyla aynı
 		var pt = global_position + Vector3.UP * 1.1 + face_dir() * (radius + reach * 0.6)
 		var hits = Combat.hit_sphere(self, pt, reach * 0.65, info)
 		for h in hits:
-			if String(key_step["id"]) == "uc_tirpan" and i == 2 and h is CharacterBody3D:
-				h.velocity = (global_position - h.global_position).normalized() * 9.0 + Vector3.UP * 2.0   # kanca çekişi
-			if String(wpn.get("special", "")) == "drain":
+			KEYED.on_target(wid, i, self, h)   # kanca çekişi vb.
+			if String(km.get("special", wpn.get("special", ""))) == "drain":
 				if "chakra" in h:
 					h.chakra = maxf(0.0, float(h.chakra) - 6.0)
 				if h.has_method("apply_status"):
@@ -792,7 +781,7 @@ func _attack_keyed() -> void:
 		Sfx.play("swing_sword", global_position + Vector3.UP, randf_range(0.85, 1.0), 0.6)
 		if not hits.is_empty():
 			FX.hit_spark(pt, Color(1, 0.6, 0.4), 1.0)
-			Sfx.play("hit_heavy_weapon" if String(key_step["id"]) in ["uc_tirpan", "samehada", "gunbai"] else "hit_sword", pt, randf_range(0.92, 1.08))
+			Sfx.play("hit_heavy_weapon" if wid in ["uc_tirpan", "samehada", "gunbai", "shibuki"] else "hit_sword", pt, randf_range(0.92, 1.08))
 	if state_t >= float(key_step["len"]):
 		combo_left -= 1
 		if combo_left > 0:
