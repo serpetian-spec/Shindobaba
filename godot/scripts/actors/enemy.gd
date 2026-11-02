@@ -110,6 +110,28 @@ static func archetype(kind: String, i := 0) -> Dictionary:
 	return base
 
 
+## DÜNYA SEVİYESİ — düşmanlar oyuncuya göre ölçeklenmez: güç bölgeden gelir. Köy içi/çevresi sakin (5-10), köylerden
+## uzaklaştıkça artar (~180 m.de +1); her karşılaşmada sapma: çoğu bölge düzeyinde, bazıları belirgin güçlü, nadiren çok güçlü
+## (zayıfken uzak diyarlarda gerçek tehlike; güçlenince eski bölgeler kolaylaşır). Üst sınır yok.
+static func region_level(pos: Vector3) -> int:
+	var m = Game.to_map(pos)
+	var best = 1e9
+	for v in Game.world_info.get("villages", []):
+		var d = m.distance_to(Vector2(float(v["x"]), float(v["y"]))) - float(v.get("r", 500.0))
+		best = minf(best, d)
+	return int(6.0 + maxf(0.0, best) / 180.0)
+
+
+static func world_level(pos: Vector3) -> int:
+	var base = region_level(pos)
+	var r = randf()
+	if r < 0.7:
+		return maxi(2, base + randi_range(-4, 4))
+	if r < 0.92:
+		return base + randi_range(8, 18)
+	return base + randi_range(22, 40)   # yolda karşına çıkan çok güçlü ninja
+
+
 ## n kişilik grubun yerine tek güçlü ninja: can/güç/seviye artar, gerçek bir dövüş tarzı kuşanır
 static func toughen(a: Dictionary, n: int, rank := "C") -> void:
 	var k = float(maxi(0, n - 1))

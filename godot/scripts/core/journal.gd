@@ -244,8 +244,10 @@ static func _rival_tick(dt: float) -> void:
 	var a = Enemy.archetype(String(r["kind"]), 0)
 	a["respawn"] = false
 	a["name"] = "«Rakip» " + String(r["name"]).replace("«Rakip» ", "")
-	a["level"] = int(pr()["level"]) + 2
-	a["hp"] = float(a["hp"]) * 1.8 + int(pr()["level"]) * 18.0
+	var rlv = int(r.get("lv", randi_range(6, 12)))   # rakip kendi hızıyla güçlenir: her karşılaşmada biraz daha güçlü
+	r["lv"] = rlv + randi_range(2, 5)
+	a["level"] = rlv
+	a["hp"] = float(a["hp"]) * 1.8 + rlv * 18.0
 	a["power"] = float(a["power"]) * 1.25 + int(pr()["level"]) * 0.015
 	if String(r.get("element", "")) != "":
 		a["element"] = r["element"]

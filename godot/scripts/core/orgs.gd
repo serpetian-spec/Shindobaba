@@ -671,7 +671,7 @@ func _raid_wave(vid: String, wd: Dictionary) -> void:
 		var a = _village_arch(vid, i, "chunin" if int(wd["lv"]) == 0 else "jonin")
 		a["respawn"] = false
 		a["name"] = "%s %s" % [vname, "ANBU" if wd["kind"] == "anbu" else ("Jōnin" if int(wd["lv"]) > 0 else "Muhafızı")]
-		a["level"] = maxi(12, int(p()["level"])) + int(wd["lv"]) + rogue_rank()
+		a["level"] = randi_range(22, 30) + int(wd["lv"]) * 6 + rogue_rank() * 3
 		a["hp"] = (260.0 + a["level"] * 18.0) * float(wd["hp"])
 		a["power"] = 1.5 + a["level"] * 0.02
 		if wd["kind"] == "anbu":
@@ -693,7 +693,7 @@ func _raid_kage(vid: String) -> void:
 	var a = _village_arch(vid, 0, "jonin")
 	a["respawn"] = false
 	a["name"] = "%s — köyünü koruyor" % title
-	a["level"] = maxi(50, int(p()["level"]) + 12)
+	a["level"] = randi_range(85, 100)   # Kage: köyün en güçlüsü, oyuncuya göre küçülmez
 	a["hp"] = 4000.0 + a["level"] * 60.0
 	a["power"] = 3.0 + a["level"] * 0.02
 	a["guard"] = 0.5
@@ -750,7 +750,7 @@ func _hunter_tick(dt: float) -> void:
 		var a = Enemy.archetype(kind, i)
 		a["name"] = "Av-Ninjası"
 		a["respawn"] = false
-		a["level"] = maxi(15, int(p()["level"])) + rogue_rank() * 2
+		a["level"] = randi_range(26, 34) + rogue_rank() * 6
 		a["hp"] = 300.0 + a["level"] * 20.0
 		a["power"] = 1.8 + a["level"] * 0.02
 		a["look"]["face_style"] = ["anbu_kedi", "anbu_kurt", "anbu_kus"][i]

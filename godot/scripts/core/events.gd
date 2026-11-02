@@ -181,7 +181,7 @@ func _forest() -> void:
 func _rival_enemy(r: Dictionary, scale: float, i := 0) -> Enemy:
 	var e = Enemy.new()
 	var a = Enemy.archetype("genin_rival", i)
-	var lv = maxi(15, int(p()["level"]))
+	var lv = randi_range(13, 22)   # sınav rakipleri genin/chūnin adayı gücünde
 	a["name"] = r["name"]
 	a["respawn"] = false
 	a["level"] = lv

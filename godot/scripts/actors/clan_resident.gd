@@ -64,8 +64,7 @@ func _duel() -> void:
 	if Game.player == null:
 		return
 	duel_cd = 60.0
-	var plv := int(Game.profile.get("level", 1))
-	var lv := clampi(plv + randi_range(-2, 2), 2, 90)
+	var lv := 8 + absi(hash(String(given))) % 50   # sakinin kendi gücü (oyuncuya göre değil)
 	var at := global_position
 	FX.smoke_puff(at + Vector3.UP, 1.0, 14)
 	visible = false

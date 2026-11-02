@@ -2259,7 +2259,7 @@ static func _tab_skills(_main: Node, body: Control) -> void:
 		nl.custom_minimum_size = Vector2(240, 0)
 		row.add_child(nl)
 		var bar = ProgressBar.new()
-		bar.max_value = 100.0
+		bar.max_value = maxf(100.0, ceilf((val + 0.01) / 100.0) * 100.0)   # sınır yok: çubuk sonraki yüzlüğe kadar
 		bar.value = val
 		bar.show_percentage = false
 		bar.custom_minimum_size = Vector2(380, 22)

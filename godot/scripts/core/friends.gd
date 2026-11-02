@@ -1310,7 +1310,7 @@ func ambush(id: String, kind: String, n: int, title: String, ally: bool) -> void
 	for i in 1:   # 1v1: kalabalık yerine tek güçlü düşman
 		var a = Enemy.archetype(kind, i)
 		a["respawn"] = false
-		a["level"] = maxi(3, lv + randi_range(-2, 2) + 4)
+		a["level"] = Enemy.world_level(at)
 		a["hp"] = (120.0 + a["level"] * 14.0) * 2.0
 		a["power"] = 1.0 + a["level"] * 0.025
 		a["xp"] = 30 + a["level"] * 8

@@ -1,7 +1,7 @@
 class_name Mastery
 extends RefCounted
-## YAPTIKÇA GELİŞME (seviye sistemi yerine). profile["mastery"] = {anahtar: 0..100}.
-## Her şey kullanılarak gelişir; azalan getiri (100'e yaklaştıkça yavaşlar). Görünen "seviye" yok:
+## YAPTIKÇA GELİŞME (seviye sistemi yerine). profile["mastery"] = {anahtar: 0..∞} — ÜST SINIR YOK.
+## Her şey kullanılarak gelişir; azalan getiri (yükseldikçe yavaşlar ama hiç durmaz). Görünen "seviye" yok:
 ## eski seviye kontrolleri (jutsu şartı, düşman ölçeği) ustalıklardan türeyen GÜÇ değerini (profile["level"]) kullanır.
 
 const KEYS := ["ninjutsu", "taijutsu", "kenjutsu", "chakra", "dayaniklilik", "hiz"]
@@ -21,10 +21,8 @@ static func gain(p: Dictionary, key: String, amount: float) -> void:
 		p["mastery"] = {}
 	var m: Dictionary = p["mastery"]
 	var v = float(m.get(key, 0.0))
-	if v >= 100.0:
-		return
 	amount *= 1.0 + Stats.skill(p, "xp")   # eski "tecrübe" yetenekleri ustalık hızına
-	var nv = minf(100.0, v + amount * pow(1.0 - v / 100.0, 1.6) * 1.0)
+	var nv = v + amount * _rate(v)
 	m[key] = nv
 	if int(nv) > int(v):
 		Hud.float_text("%s %d" % [NAMES.get(key, key), int(nv)], Color(0.6, 0.95, 1.0))
@@ -42,6 +40,11 @@ static func gain(p: Dictionary, key: String, amount: float) -> void:
 		Progress.on_power_changed()
 
 
+## kazanım hızı: 0'da tam, 50'de ~%40, 100'de ~%14, 200'de ~%4 (eski eğriyle 60'a kadar benzer, sonra durmak yerine yavaşlar)
+static func _rate(v: float) -> float:
+	return 1.0 / (1.0 + pow(v / 45.0, 2.2))
+
+
 static func total(p: Dictionary) -> float:
 	var t = 0.0
 	for k in KEYS:
@@ -54,7 +57,7 @@ static func power(p: Dictionary) -> int:
 	var fight = maxf(get_v(p, "taijutsu"), get_v(p, "kenjutsu"))
 	var avg = (get_v(p, "ninjutsu") + fight + get_v(p, "chakra") + get_v(p, "dayaniklilik")) / 4.0
 	# eğri: başta hızlı yükselir (ustalık ort. 10 -> güç ~20, 32 -> 45 Jōnin, 54 -> 65 ANBU, 86 -> 90 Kage)
-	return clampi(int(round(100.0 * pow(avg / 100.0, 0.7))), 1, 100)
+	return maxi(1, int(round(100.0 * pow(avg / 100.0, 0.7))))   # üst sınır yok
 
 
 static func refresh_level(p: Dictionary) -> void:
@@ -80,4 +83,4 @@ static func cast_check(p: Dictionary, j: Dictionary) -> String:
 
 ## Mühür hızı çarpanı (1 = normal yavaş ve okunur; usta ninjada 0.45'e kadar hızlanır)
 static func seal_speed(p: Dictionary) -> float:
-	return lerpf(1.35, 0.45, get_v(p, "ninjutsu") / 100.0)
+	return lerpf(1.35, 0.45, minf(1.0, get_v(p, "ninjutsu") / 100.0)) / (1.0 + maxf(0.0, get_v(p, "ninjutsu") - 100.0) / 300.0)

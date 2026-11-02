@@ -94,7 +94,7 @@ func attack(v: Node) -> void:
 	var e: Enemy
 	if v is ClanResident:
 		var rank = int(Friends.all().get(fid, {}).get("rank", 1))
-		e = ClanWorld.spawn_enemy(String(v.clan), maxi(3, plv - 2 + rank * 4), at, {"outfit": "chunin", "village": String(v.vid), "name": String(v.given),
+		e = ClanWorld.spawn_enemy(String(v.clan), 6 + rank * 9 + randi_range(0, 4), at, {"outfit": "chunin", "village": String(v.vid), "name": String(v.given),
 			"female": v.look.get("gender", "m") == "f", "eye": int(v.eye_kind), "look": v.look})
 		if e == null:
 			return
@@ -105,7 +105,7 @@ func attack(v: Node) -> void:
 		a["no_clan"] = true
 		a["name"] = String(v.display)
 		a["respawn"] = false
-		a["level"] = maxi(2, plv - (6 if civ else 0))
+		a["level"] = randi_range(2, 5) if civ else randi_range(12, 22)
 		a["hp"] = 90.0 + a["level"] * (4.0 if civ else 14.0)
 		a["xp"] = 0 if civ else 20
 		a["ryo"] = 10
@@ -170,7 +170,7 @@ func _send_guards() -> void:
 	if Game.player == null:
 		return
 	var hi = Progress.home_info()
-	var lv = int(Game.profile.get("level", 1)) + 4
+	var lv = randi_range(24, 34)   # köy muhafızı: köyün kendi gücü (oyuncuya göre değil)
 	for i in 3:
 		var a = Enemy.archetype("genin_rival", i)
 		a["name"] = "Köy Muhafızı"

@@ -141,7 +141,7 @@ func _npc(name: String, at: Vector3, look := {}, mode := "idle") -> EncounterNPC
 func _enemy(kind: String, at: Vector3, i := 0, mods := {}) -> Enemy:
 	var a := Enemy.archetype(kind, i)
 	a["respawn"] = false
-	var lv := clampi(_lv() + randi_range(-2, 1), 2, 90)
+	var lv := Enemy.world_level(at)   # oyuncuya göre değil, bölgeye göre
 	a["level"] = maxi(int(a["level"]), lv) if kind != "bandit" else clampi(lv, 2, 20)
 	a["hp"] = float(a["hp"]) * (1.0 + a["level"] * 0.04)
 	a["power"] = float(a["power"]) * (1.0 + a["level"] * 0.015)
@@ -345,7 +345,7 @@ func _start_hunter(c: Vector3) -> void:
 		Hud.dialog(n.display, "%s klanından bir kaçağın izini sürüyorum. Tek başıma yetmem. Yardım eder misin? Ödül köyden." % ClanWorld.clan_name(rogue_clan), [
 			{"label": "Yardım et", "cb": func():
 				var at := _ahead(n.global_position, 35.0, 50.0)
-				var e: Enemy = ClanWorld.spawn_enemy(rogue_clan, clampi(_lv() + randi_range(0, 3), 4, 90), at)
+				var e: Enemy = ClanWorld.spawn_enemy(rogue_clan, maxi(4, Enemy.world_level(at)), at)
 				e.set_meta("eye_share", n.display)   # gözleri paylaşılır: biri oyuncuya, biri izciye
 				cur["nodes"].append(e)
 				cur["foes"] = [e]
@@ -625,7 +625,7 @@ func _start_lost_child(c: Vector3) -> void:
 func _start_clan_rogue(c: Vector3) -> void:
 	var reg := country_at(c)
 	var cl: String = (REGION_CLANS.get(reg, ["uchiha", "hyuga", "kaguya", "yuki", "hozuki", "chinoike"]) as Array).pick_random()
-	var e: Enemy = ClanWorld.spawn_enemy(cl, clampi(_lv() + randi_range(0, 3), 4, 90), c)
+	var e: Enemy = ClanWorld.spawn_enemy(cl, maxi(4, Enemy.world_level(c)), c)
 	cur["nodes"].append(e)
 	cur["foes"] = [e]
 	cur["after"] = "loot"
@@ -638,7 +638,7 @@ func _start_sandstorm(c: Vector3) -> void:
 		Game.world.env.weather_t = 70.0
 	var foes := []
 	for i in 3:
-		var e := _enemy("rogue", _around(Game.player.global_position, 16.0, i, 3), i, {"name": "Kum Akıncısı", "element": "fuuton", "jutsu": Enemy.auto_jutsu("rogue", "fuuton", _lv())})
+		var e := _enemy("rogue", _around(Game.player.global_position, 16.0, i, 3), i, {"name": "Kum Akıncısı", "element": "fuuton", "jutsu": Enemy.auto_jutsu("rogue", "fuuton", Enemy.region_level(Game.player.global_position))})
 		e.look["mask"] = "cloth"
 		foes.append(e)
 	cur["foes"] = foes
@@ -653,7 +653,7 @@ func _start_mist(c: Vector3) -> void:
 	var foes := []
 	var n := randi_range(3, 4)
 	for i in n:
-		var js: Array = ["kirigakure_no_jutsu"] + Enemy.auto_jutsu("rogue", "suiton", _lv()).slice(0, 2)
+		var js: Array = ["kirigakure_no_jutsu"] + Enemy.auto_jutsu("rogue", "suiton", Enemy.region_level(Game.player.global_position)).slice(0, 2)
 		var e := _enemy("rogue", _around(Game.player.global_position, 13.0, i, n), i, {"name": "Sis Suikastçısı", "element": "suiton", "jutsu": js, "sub": 0.35})
 		foes.append(e)
 		FX.smoke_puff(e.global_position + Vector3.UP, 1.2, 12)
@@ -671,7 +671,7 @@ func _start_storm(c: Vector3) -> void:
 	var foes := []
 	for i in 2:
 		foes.append(_enemy("rogue", _around(Game.player.global_position, 18.0, i, 2), i, {"name": "Fırtına Avcısı", "element": "raiton",
-			"jutsu": Enemy.auto_jutsu("rogue", "raiton", _lv())}))
+			"jutsu": Enemy.auto_jutsu("rogue", "raiton", Enemy.region_level(Game.player.global_position))}))
 	cur["foes"] = foes
 	cur["after"] = "loot"
 	Hud.banner("ŞİMŞEK FIRTINASI", "Gök gürlüyor — yıldırımlar yere iniyor, açıkta durma!", Color(0.7, 0.8, 1.0))
