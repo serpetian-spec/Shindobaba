@@ -200,56 +200,46 @@ static func _hiramekarei(b: MB) -> void:
 
 
 ## Shibuki: patlayıcı parşömen kılıcı — geniş düz ağız, sırtında koca parşömen rulosu, yüzü sıra sıra patlayıcı etiketlerle kaplı
+## Shibuki tutuş kaydırması: sağ el sapın ARKA ucunda (z 0), sol el önde ruloya yakın (TWO_OFF +0.32)
+const SHIBUKI_O := 0.42
+
+
 static func _shibuki(b: MB) -> void:
-	# kaynak ornek5.png / ornek4.png (+ ornek2/3 anime kareleri): uzun spiral sargılı ince sap; sapla aynı eksende KALIN koyu mor
-	# rulo; rulonun arkasından yelken gibi kalkan mor bez; iki uçta gri DAMLA biçimli plaka (rulonun çevresini sarıp dış kenara
-	# eğimle iner); rulodan rampa gibi inen ince mühür kâğıdı tabakası (dokulu: shibuki_tags), dış kenarda ince ray;
-	# uçta gri bilezik + basamaklı kapak. Tutuş z 0 (sap plakaya yakın), ağız +Z, kâğıt -Y yönünde, yassı yüz ~X.
+	# kaynak ornek2-5 (anime) + Sketchfab "Shibuki" (yukardanbakis.png: uçtan bakınca metal DÜZ): uzun spiral sargılı sap;
+	# sapla aynı eksende kalın koyu mor rulo, iki ucunda sapla eş eksenli disk kapak, uçta kubbe; METAL ÇERÇEVE VE KÂĞIT
+	# rulonun ekseninden geçen TEK DÜZ DÜZLEMDE (x = 0): rulodan -Y'ye ince yan çubuklar + kenara doğru incelen dış çubuk;
+	# mor bez aynı düzlemde rulonun karşı tarafında (+Y) yükselir. Kâğıt dokulu yüzey: shibuki_tags()
+	var O = SHIBUKI_O
 	var met = Color(0.62, 0.63, 0.67)
 	var dk = met.darkened(0.3)
 	var roll = Color(0.2, 0.17, 0.25)
 	var cloth = Color(0.17, 0.14, 0.21)
-	# sap: z -0.5..0.12, açık gri öz + koyu spiral sargı
-	b.add("cyl", Vector3(0, 0, -0.19), Vector3(0.046, 0.62, 0.046), Color(0.8, 0.8, 0.8), Vector3(90, 0, 0), 10)
+	# sap: z -0.1..O+0.18 (sağ yumruk z 0 arka uçta), açık gri öz + koyu spiral sargı; ucu disk kapağın içine girer
+	var h0 = -0.1
+	var h1 = O + 0.18
+	b.add("cyl", Vector3(0, 0, (h0 + h1) * 0.5), Vector3(0.046, h1 - h0, 0.046), Color(0.8, 0.8, 0.8), Vector3(90, 0, 0), 10)
 	for k in 17:
-		b.add("cyl", Vector3(0, 0, -0.48 + k * 0.036), Vector3(0.05, 0.009, 0.05), Color(0.42, 0.42, 0.45), Vector3(90 + 28, 0, 0), 10)
-	b.add("cyl", Vector3(0, 0, -0.5), Vector3(0.054, 0.02, 0.054), dk, Vector3(90, 0, 0), 10)
-	# damla plaka profili (dünya y, -x): rulo çevresi (r 0.13) + dış kenar köşeleri -> dışbükey zarf
-	var pts = PackedVector2Array()
-	for k in 20:
-		var a = TAU * k / 20.0
-		pts.append(Vector2(sin(a) * 0.13, -cos(a) * 0.13))
-	pts.append(Vector2(-0.47, 0.12)); pts.append(Vector2(-0.47, 0.165)); pts.append(Vector2(-0.43, 0.17))
-	var hull = Geometry2D.convex_hull(pts)
-	hull.remove_at(hull.size() - 1)
-	var pl_b = Basis(Vector3(0, 0, 1), Vector3(0, 1, 0), Vector3(-1, 0, 0))   # profil (y, z) -> dünya (y, -x); kalınlık z boyunca
-	for z in [0.15, 1.12]:
-		b.add_slab(hull, 0.06, met, Transform3D(pl_b, Vector3(0, 0, z)), Callable(), dk)
-	b.add("cyl", Vector3(0, 0, 0.635), Vector3(0.2, 0.94, 0.2), roll, Vector3(90, 0, 0), 18)   # kalın rulo
-	b.add("cyl", Vector3(0, 0, 1.18), Vector3(0.21, 0.06, 0.21), met.lightened(0.05), Vector3(90, 0, 0), 18)   # uç bilezik
-	b.add("cyl", Vector3(0, 0, 1.225), Vector3(0.19, 0.04, 0.19), met, Vector3(90, 0, 0), 18)
-	b.add("sphere", Vector3(0, 0, 1.245), Vector3(0.19, 0.19, 0.11), met.lightened(0.02), Vector3.ZERO, 16)   # yuvarlak kubbe kapak (Sketchfab ref)
-	b.add("cyl", Vector3(0, 0, 0.11), Vector3(0.07, 0.04, 0.07), met.darkened(0.1), Vector3(90, 0, 0), 10)   # sap boğazı
-	# yelken bez: rulonun arka-üstünden (+x) kalkıp yumuşakça kıvrılan TEK parça koyu mor kumaş (ince, pürüzsüz yay; şeritli kutular değil)
-	var prof = PackedVector2Array()   # kesit (x, y): iç yüz yukarı, dış yüz geri
-	var outer = []
-	var N = 14
-	for k in N + 1:
-		var t = float(k) / N
-		outer.append(Vector2(0.04 + t * 0.3, 0.1 + t * t * 0.09))
-	for k in N + 1:
-		prof.append(outer[k])
-	for k in range(N, -1, -1):
-		var q: Vector2 = outer[k]
-		var tg = (outer[mini(k + 1, N)] - outer[maxi(k - 1, 0)]).normalized()
-		prof.append(q + Vector2(-tg.y, tg.x) * 0.011)
-	# profil (x, y) düzleminde -> uzunluk z boyunca: add_slab profili (yerel y, z) + kalınlık yerel x; yerel x -> dünya z
-	b.add_slab(_xy_to_yz(prof), 0.9, cloth, Transform3D(Basis(Vector3(0, 0, 1), Vector3(0, 1, 0), Vector3(-1, 0, 0)), Vector3(0, 0, 0.635)), Callable(), cloth.darkened(0.2))
-	# dış kenar rayı (kâğıdın dış ucu)
-	b.add("box", Vector3(-0.145, -0.47, 0.635), Vector3(0.035, 0.03, 0.97), met)
+		b.add("cyl", Vector3(0, 0, h0 + 0.02 + k * 0.034), Vector3(0.05, 0.009, 0.05), Color(0.42, 0.42, 0.45), Vector3(90 + 28, 0, 0), 10)
+	b.add("cyl", Vector3(0, 0, h0 - 0.01), Vector3(0.054, 0.025, 0.054), dk, Vector3(90, 0, 0), 10)
+	b.add("cyl", Vector3(0, 0, O + 0.1), Vector3(0.075, 0.05, 0.075), met.darkened(0.1), Vector3(90, 0, 0), 10)   # sap boğazı
+	# rulo + eş eksenli İNCE disk kapaklar + uç kubbe (Sketchfab: metal ince, rulodan pek taşmaz)
+	b.add("cyl", Vector3(0, 0, O + 0.635), Vector3(0.2, 0.94, 0.2), roll, Vector3(90, 0, 0), 18)
+	for z in [O + 0.15, O + 1.12]:
+		b.add("cyl", Vector3(0, 0, z), Vector3(0.215, 0.03, 0.215), met, Vector3(90, 0, 0), 20)
+	b.add("cyl", Vector3(0, 0, O + 1.16), Vector3(0.2, 0.05, 0.2), met.lightened(0.05), Vector3(90, 0, 0), 18)
+	b.add("sphere", Vector3(0, 0, O + 1.2), Vector3(0.18, 0.18, 0.1), met.lightened(0.02), Vector3.ZERO, 16)   # kubbe kapak
+	# düz ince çerçeveler (x = 0 düzlemi): ALTTA kâğıt tabakası çerçevesi (yan çubuklar + dış çubuk),
+	# ÜSTTE alçak çerçeve (iki dikme + üst çubuk) — ikisinin de içinde patlayıcı kâğıt (shibuki_tags)
+	for fr in [[-0.1, -0.47], [0.1, 0.33]]:
+		var ya = float(fr[0]); var yb = float(fr[1])
+		var sg = signf(yb)
+		for z in [O + 0.15, O + 1.12]:
+			b.add("box", Vector3(0, (ya + yb) * 0.5, z), Vector3(0.016, absf(yb - ya), 0.03), met)   # yan çubuk
+		b.add("box", Vector3(0, yb + sg * 0.012, O + 0.635), Vector3(0.018, 0.026, 1.0), met)       # dış çubuk
+		b.add("box", Vector3(0, yb + sg * 0.026, O + 0.635), Vector3(0.008, 0.008, 1.0), dk)        # dış kenar ince sırt
 
 
-## Shibuki'nin dokulu parçası: rulodan rampa gibi inen ince mühür kâğıdı tabakası (iki yüzlü)
+## Shibuki'nin dokulu parçası: rulodan -Y'ye düz inen ince mühür kâğıdı tabakası (x = 0 düzleminde, iki yüzlü)
 static var _tag_mat: ShaderMaterial
 static func shibuki_tags(m: ArrayMesh) -> void:
 	if _tag_mat == null:
@@ -261,20 +251,19 @@ static func shibuki_tags(m: ArrayMesh) -> void:
 		_tag_mat.set_shader_parameter("tint", Color(0.86, 0.85, 0.83))
 	var st = SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var a = Vector2(-0.085, -0.07)    # (x, y) rulonun alt yanından
-	var c = Vector2(-0.135, -0.46)    # dış raya
-	var z0 = 0.18; var z1 = 1.09
-	var nrm2 = Vector2(-(c - a).y, (c - a).x).normalized()   # tabakaya dik (x, y)
-	for sd in [1.0, -1.0]:
-		var o = nrm2 * 0.003 * sd
-		var q = [Vector3(a.x + o.x, a.y + o.y, z0), Vector3(c.x + o.x, c.y + o.y, z0), Vector3(c.x + o.x, c.y + o.y, z1), Vector3(a.x + o.x, a.y + o.y, z1)]
-		var uv = [Vector2(0, 0), Vector2(0.55, 0), Vector2(0.55, 1.2), Vector2(0, 1.2)]
-		var nn = Vector3(nrm2.x * sd, nrm2.y * sd, 0)
-		for order in [[0, 2, 1, 0, 3, 2], [0, 1, 2, 0, 2, 3]]:
-			for i in order:
-				st.set_normal(nn)
-				st.set_uv(uv[i])
-				st.add_vertex(q[i])
+	var O = SHIBUKI_O
+	var z0 = O + 0.165; var z1 = O + 1.105
+	for sheet in [[-0.095, -0.465, 0.55], [0.095, 0.325, 0.35]]:   # alt tabaka, üst çerçevedeki tabaka [y0, y1, u boyu]
+		var y0 = float(sheet[0]); var y1 = float(sheet[1]); var uw = float(sheet[2])
+		for sx in [1.0, -1.0]:
+			var x = 0.003 * sx
+			var q = [Vector3(x, y0, z0), Vector3(x, y1, z0), Vector3(x, y1, z1), Vector3(x, y0, z1)]
+			var uv = [Vector2(0, 0), Vector2(uw, 0), Vector2(uw, 1.2), Vector2(0, 1.2)]
+			for order in [[0, 2, 1, 0, 3, 2], [0, 1, 2, 0, 2, 3]]:
+				for i in order:
+					st.set_normal(Vector3(sx, 0, 0))
+					st.set_uv(uv[i])
+					st.add_vertex(q[i])
 	st.commit(m)
 	m.surface_set_material(m.get_surface_count() - 1, _tag_mat)
 

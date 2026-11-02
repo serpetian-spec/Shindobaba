@@ -11,7 +11,7 @@ const TABLE := {
 	"shibuki": [preload("res://scripts/combat/shibuki_anim.gd"), 1.0],
 }
 ## iki elli adımlarda sol elin sağ yumruktan sap boyunca uzaklığı
-const TWO_OFF := {"uc_tirpan": 0.42, "shibuki": -0.26}   # shibuki: sol el uzun sapta sağ elin gerisinde
+const TWO_OFF := {"uc_tirpan": 0.42, "shibuki": 0.32}   # shibuki: sağ el sapın arka ucunda, sol el önde (ruloya yakın)
 
 
 static func has(id: String) -> bool:
