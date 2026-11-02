@@ -4,7 +4,7 @@ extends Node
 ## Sol tık: kombo | Sağ tık (basılı): blok | Q: Kawarimi | C (basılı): chakra şarjı | R: kunai
 ## E/orta tık: hedefe kilitlen | Kilitliyken Shift: chakra dash | 1-6: jutsu slotları
 
-const TIRPAN_ANIM = preload("res://scripts/combat/tirpan_anim.gd")
+const KEYED = preload("res://scripts/combat/keyed_combos.gd")   # elle yapılmış silah komboları (yapay zekâ da kullanır)
 const COMBO := [
 	{"anim": "jab", "speed": 1.5, "hit": 0.10, "dur": 0.32, "dmg": 3.6, "reach": 1.3, "lunge": 4.0, "knock": 2.0},
 	{"anim": "cross", "speed": 1.5, "hit": 0.12, "dur": 0.34, "dmg": 4.2, "reach": 1.3, "lunge": 4.0, "knock": 2.0},
@@ -494,14 +494,14 @@ func _combo_base(i: int) -> Dictionary:
 			c["heavy"] = true
 		"drain":
 			c["drain"] = true
-	if wid in ["samehada", "gunbai", "kunai", "raijin", "uc_tirpan"]:
+	if KEYED.has(wid):
 		# el yapımı anahtar animasyon (Samehada: videodan; Gunbai/Kunai: kendine anlatılmış tarif): süre/vuruş anı anahtarlardan
-		var kst: Array = {"samehada": SamehadaAnim, "gunbai": GunbaiAnim, "kunai": KunaiAnim, "raijin": RaijinAnim, "uc_tirpan": TIRPAN_ANIM}[wid].steps()
+		var kst: Array = KEYED.steps(wid)
 		var ks: Dictionary = kst[clampi(i, 0, 5)] if kst.size() >= 6 else kst[_ci(i)]
 		c["keys"] = ks
 		c["anim"] = "idle"
 		c["speed"] = 1.0
-		var ksp = {"samehada": 1.3, "gunbai": 1.05, "kunai": 1.0, "raijin": 1.0, "uc_tirpan": 1.0}[wid]   # gunbai: ağır silah ritmi; kunai zaten hızlı
+		var ksp = KEYED.speed(wid)
 		c["key_spd"] = ksp
 		c["dur"] = float(ks["len"]) / ksp
 		c["hit"] = float(ks["hit"]) / ksp
@@ -524,7 +524,7 @@ func _combo_base(i: int) -> Dictionary:
 		if wid == "uc_tirpan":
 			# ağır tırpan: iki elli adımlarda sol el sapta; 2 yere serer, 3 kancayla çeker, 4 yere saplar, 5 havaya, 6 uzak savurur
 			c["two_hand"] = bool(ks.get("two", false))
-			c["two_off"] = TIRPAN_ANIM.TWO_OFF
+			c["two_off"] = KEYED.two_off(wid)
 			c["lunge"] = float(c["lunge"]) * 0.5   # ağır: kurulurken kayarak atılmaz, adımla gelir
 			match i:
 				1:

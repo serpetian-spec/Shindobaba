@@ -346,6 +346,10 @@ func _physics_process(dt: float) -> void:
 	if arch.has("mist_sword"):
 		Swordsmen.tick(self, dt)
 	_footsteps(dt)
+	if not key_step.is_empty() and state != "attack":
+		key_step = {}
+		key_i = 0
+		model.overlay.stop_keys()   # vurulup saldırıdan çıktı: kombo pozu kalmasın
 	match state:
 		"idle":
 			_patrol(dt)
@@ -654,8 +658,49 @@ func _lunge() -> void:
 	_swing()
 
 
+## Elle yapılmış anahtar kombolu silahlar: oyuncuyla AYNI kayıt (combat/keyed_combos.gd) — yeni silah oraya eklenince düşman da kullanır
+const KEYED = preload("res://scripts/combat/keyed_combos.gd")
+var key_i := 0          # bu saldırı dizisindeki kombo adımı
+var key_step := {}      # oynayan adım: {hit, len, two, i}
+
+
+func _keyed_id() -> String:
+	var wid = look.get("weapon_r") if look is Dictionary else null
+	if wid == null or not KEYED.has(String(wid)) or model == null or model.weapons.is_empty() or not model.drawn:
+		return ""
+	return String(wid)
+
+
+## Silahın kendi kombo adımını oynat (oyuncunun animasyonu): süre ve vuruş anı anahtarlardan; iki elli adımda sol el sapta
+func _swing_keyed(wid: String) -> void:
+	var st: Array = KEYED.steps(wid)
+	var i = key_i % st.size()
+	key_i += 1
+	var ks: Dictionary = st[i]
+	var spd = KEYED.speed(wid) * (1.0 + skill * 0.15)
+	model.overlay.play_keys(ks, spd)
+	key_step = {"hit": float(ks["hit"]) / spd, "len": float(ks["len"]) / spd, "two": bool(ks.get("two", false)), "i": i, "id": wid, "chop": ks.get("chop", false)}
+	var rig: WeaponRig = model.rig
+	if rig:
+		var wn: Node3D = model.weapons[0]["node"]
+		rig.two_hand_node = wn
+		rig.two_hand_off = KEYED.two_off(wid)
+		var tw = model.create_tween()
+		tw.tween_property(rig, "two_hand_w", 1.0 if key_step["two"] else 0.0, 0.08)
+		if key_step["two"]:
+			tw.tween_interval(maxf(0.1, float(key_step["len"]) - 0.15))
+			tw.tween_property(rig, "two_hand_w", 0.0, 0.12)
+	model.flash(0.25)
+	set_meta("swung", false)
+
+
 func _swing() -> void:
 	swings += 1
+	var kw = _keyed_id()
+	if kw != "":
+		_swing_keyed(kw)
+		return
+	key_step = {}
 	var anims = ["jab", "cross", "slash_a", "hook"] if arch.get("kind") != "samurai" and arch.get("kind_anim", "") != "sword" else ["slash_a", "slash_b", "slash_c"]
 	model.play(anims.pick_random(), 0.05, 1.3 + skill * 0.45, true)
 	model.flash(0.25)  # saldırı öncesi küçük uyarı
@@ -670,6 +715,9 @@ func _attack(dt: float) -> void:
 	v.y = 0
 	facing = lerp_angle(facing, atan2(-v.x, -v.z), minf(1.0, dt * 10.0))
 	step_move(face_dir() * (3.0 if state_t < 0.2 else 0.0), dt, false)
+	if not key_step.is_empty():
+		_attack_keyed()
+		return
 	if not get_meta("swung") and state_t > 0.28 / (1.0 + skill * 0.35):
 		set_meta("swung", true)
 		var pt = global_position + Vector3.UP * 1.1 + face_dir() * (radius + 0.9)
@@ -701,7 +749,65 @@ func _attack(dt: float) -> void:
 			_end_attack()
 
 
+## Anahtar kombolu silah: vuruş anı ve menzil silaha göre; tırpan adımlarının etkileri oyuncununkiyle aynı
+func _attack_keyed() -> void:
+	if not get_meta("swung") and state_t >= float(key_step["hit"]):
+		set_meta("swung", true)
+		var wpn = Gear.weapon_of(self)
+		var reach = 1.3 + float(wpn.get("reach", 0.0))
+		var i = int(key_step["i"])
+		var info = {"dmg": float(wpn.get("hit", 4.5)) * power * (1.5 if i >= 5 else 1.0), "knock": 3.0, "launch": 0.0, "kind": "light", "hitstop": 0.05, "melee": true}
+		if String(key_step["id"]) == "uc_tirpan":
+			match i:
+				1:
+					info["kind"] = "heavy"
+				3:
+					info["stun"] = 0.6
+				4:
+					info["launch"] = 12.0
+				5:
+					info["knock"] = 18.0
+					info["kind"] = "heavy"
+					reach += 0.6
+		elif i >= 5:
+			info["knock"] = 10.0
+			info["launch"] = 4.0
+			info["kind"] = "heavy"
+		if key_step.get("chop", false):
+			var gp = global_position + face_dir() * 2.3
+			gp.y = Game.ground_height(gp.x, gp.z) + 0.05
+			VFX.cracks(gp, 3.2)
+			VFX.debris(gp, Color(0.45, 0.38, 0.3), 12, 7.0, 0.35)
+			FX.impact(gp, Color(0.75, 0.65, 0.5), 0.9)
+		var pt = global_position + Vector3.UP * 1.1 + face_dir() * (radius + reach * 0.6)
+		var hits = Combat.hit_sphere(self, pt, reach * 0.65, info)
+		for h in hits:
+			if String(key_step["id"]) == "uc_tirpan" and i == 2 and h is CharacterBody3D:
+				h.velocity = (global_position - h.global_position).normalized() * 9.0 + Vector3.UP * 2.0   # kanca çekişi
+			if String(wpn.get("special", "")) == "drain":
+				if "chakra" in h:
+					h.chakra = maxf(0.0, float(h.chakra) - 6.0)
+				if h.has_method("apply_status"):
+					h.apply_status("slow", 1.5)
+		Sfx.play("swing_sword", global_position + Vector3.UP, randf_range(0.85, 1.0), 0.6)
+		if not hits.is_empty():
+			FX.hit_spark(pt, Color(1, 0.6, 0.4), 1.0)
+			Sfx.play("hit_heavy_weapon" if String(key_step["id"]) in ["uc_tirpan", "samehada", "gunbai"] else "hit_sword", pt, randf_range(0.92, 1.08))
+	if state_t >= float(key_step["len"]):
+		combo_left -= 1
+		if combo_left > 0:
+			state_t = 0.0
+			_swing()
+		else:
+			_end_attack()
+
+
 func _end_attack() -> void:
+	if not key_step.is_empty():
+		key_step = {}
+		key_i = 0
+		if model:
+			model.overlay.stop_keys()
 	state = "recover"
 	state_t = 0.0
 	attack_cd = randf_range(0.35, 1.1) / arch["aggr"] / (1.0 + skill)
