@@ -2527,7 +2527,7 @@ func _bingo() -> Dictionary:
 
 
 func _bb_ranks() -> Array:
-	return {0: ["C"], 1: ["C", "B"], 2: ["C", "B", "A"], 3: ["B", "A", "S"], 4: ["A", "S"], 5: ["A", "S"], 6: ["A", "S"]}[int(Game.profile.get("rank", 0))]
+	return ["C", "C", "C", "C", "C", "C", "C", "B", "B", "B", "B", "B", "B", "A", "A", "A", "A", "S", "S", "S"]   # dünyanın dağılımı (oyuncu rütbesinden bağımsız)
 
 
 func _bb_new(force_rank := "") -> Dictionary:
@@ -2563,6 +2563,8 @@ func _bb_new(force_rank := "") -> Dictionary:
 		if not rh.is_empty():
 			_bb_host(e, String(rh["id"]), rh["host"])
 	ClanWorld.decorate_bingo(e)   # bazen bir klanın kaçağı (gözleri alınabilir)
+	if rank == "S" and not e.has("clan") and not e.has("beast") and randf() < 0.3:
+		ClanWorld.legend_pack(e)   # nadir: efsanevi imza teknikleri (Rinnegan, Jinton, Kuroi Kaminari...)
 	bb["next"] = int(bb["next"]) + 1
 	return e
 
@@ -2633,6 +2635,8 @@ func add_weapon_holder(id: String, h: Dictionary) -> void:
 	e.erase("clan")
 	e.erase("beast")
 	e.erase("mist_sword")
+	for k in ["legend", "jutsu", "eye", "style", "nat", "wander"]:   # rastgele imza paketi silah sahibine karışmasın
+		e.erase(k)
 	e["legend_weapon"] = id
 	e["name"] = String(h.get("name", e["name"]))
 	e["alias"] = String(h.get("alias", e["alias"]))

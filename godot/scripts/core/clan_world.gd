@@ -434,6 +434,29 @@ func _legend_entry(L: Dictionary, id: int) -> Dictionary:
 	return e
 
 
+## Rastgele S-rank kaçağa nadir İMZA: eski sabit efsanelerin teknik paketleri (kişi/ad/görünüş yok). Yalnız klansız
+## paketler (klanlılar zaten decorate_bingo ile rastgele çıkar): Kuroi Kaminari, Futton, Rinnegan, Bashōsen, kedi, Jinton, Ranton.
+func legend_pack(e: Dictionary) -> void:
+	var packs := LEGENDS.filter(func(L): return String(L.get("clan", "")) == "")
+	if packs.is_empty():
+		return
+	var L: Dictionary = packs.pick_random()
+	e["legend"] = L["key"]
+	e["jutsu"] = L["j"]
+	if String(L.get("el", "")) != "":
+		e["element"] = L["el"]
+	for k in ["eye", "style", "nat"]:
+		if L.has(k):
+			e[k] = L[k]
+	e["wander"] = L.get("wander", false)
+	e["level"] = int(e["level"]) + randi_range(6, 16)
+	e["hp"] = 900.0 + int(e["level"]) * 60.0
+	e["power"] = 1.8 + int(e["level"]) * 0.04
+	e["bounty"] = 40000 + int(e["level"]) * 900
+	e["crimes"].append(String(L["crime"]))
+	e["crimes"].append("Efsanevi S-rank: imza teknikleri kullanır")
+
+
 ## Gezgin efsaneler: oyuncu yakında değilken saklandığı yer başka bir köyün çevresine kayar
 func _wander_legends() -> void:
 	if Game.profile.is_empty():
@@ -618,10 +641,6 @@ func _process(dt: float) -> void:
 	if _res_t <= 0.0:
 		_res_t = 1.5
 		_tick_residents()
-	_legend_t -= dt
-	if _legend_t <= 0.0:
-		_legend_t = 30.0
-		_seed_legends()
 	_wander_t -= dt
 	if _wander_t <= 0.0:
 		_wander_t = 480.0
