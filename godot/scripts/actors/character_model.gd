@@ -2952,7 +2952,7 @@ var _swapped := false
 var rig: WeaponRig
 
 
-const HAND_FRAME := ["tonfa", "pence", "kama", "kusarigama", "chakra_bicak", "ruzgar_bicak"]
+const HAND_FRAME := ["tonfa", "pence", "kama", "kusarigama", "chakra_bicak"]
 
 
 static func sheath_kind(id: String) -> String:
@@ -3022,9 +3022,11 @@ func _weapons() -> void:
 			node.transform.basis = Basis(Vector3.BACK, PI * 0.5) * Basis(Vector3.RIGHT, deg_to_rad(KATANA_TIP_DOWN))
 		if id == "raijin":
 			node.add_child(_raijin_beam())
+		if id == "ruzgar_bicak":
+			node.add_child(_wind_ribbons())   # dönen rüzgar şeritleri (her kare döner, _wind_air)
 		var kind = sheath_kind(id)
 		weapons.append({"id": id, "side": side, "kind": kind, "node": node, "hand": hand, "sheath": _sheath_holder(kind, side, id, node)})
-		if id in ["chakra_bicak", "ruzgar_bicak"] and side == "Right" and skel.find_bone("LeftHand") >= 0:
+		if id == "chakra_bicak" and side == "Right" and skel.find_bone("LeftHand") >= 0:
 			# Asuma'nın bıçaklı muştaları çift: sol ele de aynısı (sağ elde 180° çevrilmiş çerçeve, solda düz)
 			var lm = MeshInstance3D.new()
 			lm.mesh = weapon_mesh(id)
@@ -3267,6 +3269,7 @@ func _weapon_process(dt: float) -> void:
 	if weapons.is_empty() or rig == null:
 		return
 	_update_rope()
+	_wind_air(dt)
 	if _sheath_t >= 0.0:
 		_sheath_t += dt / SHEATH_DUR
 		var k = _sheath_t
@@ -3285,6 +3288,35 @@ func _weapon_process(dt: float) -> void:
 		_stowed = busy
 		if _sheath_t < 0.0 or _swapped:
 			_place_weapons()
+
+
+## Rüzgar bıçağı eldeyken: şeritler bıçak ekseninde döner, aralıklarla bıçağı saran ince rüzgar çizgileri uca doğru savrulur
+var _wind_t := 0.0
+func _wind_air(dt: float) -> void:
+	for w in weapons:
+		if w["id"] != "ruzgar_bicak":
+			continue
+		var n: Node3D = w["node"]
+		if not is_instance_valid(n):
+			return
+		var rib = n.get_node_or_null("WindRibbons")
+		if rib:
+			rib.rotate_object_local(Vector3.BACK, dt * 7.0)
+		if not (n.visible and n_in_hand(w) and n.is_visible_in_tree()):
+			return
+		_wind_t -= dt
+		if _wind_t > 0.0:
+			return
+		_wind_t = 0.14
+		# bıçağı saran sarmal hava çizgisi: o anki bıçak konumundan kökten uca, uçta açılıp kopar
+		var xf = n.global_transform
+		var ph = randf() * TAU
+		var r0 = randf_range(0.07, 0.11)
+		WindFX.streak(func(k: float) -> Vector3:
+			var a = ph + k * TAU * 1.6
+			var r = r0 * (1.0 - k * 0.6) + k * k * 0.25
+			return xf * Vector3(cos(a) * r, sin(a) * r, lerpf(-0.05, 0.85, k)), randf_range(0.35, 0.5), 0.022, Color(0.85, 1.0, 0.93, 0.75), 0.0, 10)
+		return
 
 
 ## Kabutowari halatı: balta ve çekiç sap halkaları arasında sarkan ip (yalnız ikisi de eldeyken görünür)
@@ -3351,7 +3383,9 @@ func _update_rope() -> void:
 static func _trench_knife(b: MB, wind: bool) -> void:
 	var col = Color(0.27, 0.31, 0.5) if not wind else Color(0.3, 0.45, 0.55)
 	var edge = Color(0.86, 0.88, 0.92)
-	var xf = Transform3D(Basis.IDENTITY, Vector3(-0.012, 0.0, 0.0))   # plaka parmak köklerini sarar
+	# asumababa.png: plaka yumruğun ön yüzünde, kol ile parmak dizisinin düzleminde (x, z); parmaklar delikleri avuç yönünde (-y) geçer,
+	# basamaklı vuruş kenarı ileri (+x), bıçak serçe parmak ucundan (-z) yumruğun altına iner. Profil (u, v) -> (x = u, z = v), kalınlık y
+	var xf = Transform3D(Basis(Vector3(0, -1, 0), Vector3(1, 0, 0), Vector3(0, 0, 1)), Vector3(0.0, -0.015, 0.0))
 	var V = func(arr: Array) -> PackedVector2Array:
 		var o = PackedVector2Array()
 		for q in arr:
@@ -3387,6 +3421,98 @@ static func _trench_knife(b: MB, wind: bool) -> void:
 		for k in range(arc.size() - 1, -1, -1):
 			glow.append([arc[k][0] + 0.004, arc[k][1] - 0.004])
 		b.add_slab(V.call(glow), 0.004, Color(0.6, 1.0, 0.85), xf)
+
+
+## Rüzgar Chakra Bıçağı (ruzgarchakrabicagi.png): yalnız chakradan, yarı saydam açık yeşil kunai biçimli bıçak (baklava kesit,
+## uca incelen), yumruğun içinde ince öz. İçinde kökten uca AKAN rüzgar bantları (wind_flow shader). Dönen sarmal şeritler ve
+## halka ayrı düğüm (_wind_ribbons, CharacterModel her karede döndürür) + etrafta sürekli rüzgar çizgileri (_wind_air).
+static var _wind_core_mat: ShaderMaterial
+static var _wind_rib_mat: ShaderMaterial
+
+
+static func _wind_mat(alpha: float, speed: float, bands: float, soft: float) -> ShaderMaterial:
+	var m = ShaderMaterial.new()
+	m.shader = load("res://shaders/wind_flow.gdshader")
+	m.set_shader_parameter("base_alpha", alpha)
+	m.set_shader_parameter("flow_speed", speed)
+	m.set_shader_parameter("bands", bands)
+	m.set_shader_parameter("edge_soft", soft)
+	return m
+
+
+static func _wind_blade(m: ArrayMesh) -> void:
+	if _wind_core_mat == null:
+		_wind_core_mat = _wind_mat(0.62, 1.6, 2.5, 0.08)
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var put = func(p: Vector3, n: Vector3, uv: Vector2):
+		st.set_normal(n)
+		st.set_uv(uv)
+		st.add_vertex(p)
+	# bıçak: kesit baklava (genişlik y, kalınlık x); UV.x = boy (0 kök .. 1 uç), UV.y = çevre
+	var prof = [[0.06, 0.012, 0.004], [0.1, 0.03, 0.008], [0.24, 0.05, 0.012], [0.45, 0.026, 0.007], [0.6, 0.0, 0.0]]
+	for k in prof.size() - 1:
+		var a = prof[k]; var e = prof[k + 1]
+		var ring = func(q: Array) -> Array:
+			return [Vector3(0, q[1], q[0]), Vector3(q[2], 0, q[0]), Vector3(0, -q[1], q[0]), Vector3(-q[2], 0, q[0])]
+		var ra = ring.call(a); var re = ring.call(e)
+		var ua = (float(a[0]) - 0.06) / 0.54; var ue = (float(e[0]) - 0.06) / 0.54
+		for j in 4:
+			var j2 = (j + 1) % 4
+			var n = (ra[j2] - ra[j]).cross(re[j] - ra[j]).normalized()
+			var va = float(j) / 4.0; var vb = float(j + 1) / 4.0
+			for q in [[ra[j], ua, va], [ra[j2], ua, vb], [re[j2], ue, vb], [ra[j], ua, va], [re[j2], ue, vb], [re[j], ue, va]]:
+				put.call(q[0], n, Vector2(q[1], 0.15 + q[2] * 0.7))
+	# yumruğun içindeki ince öz
+	for j in 6:
+		var a0 = TAU * j / 6.0; var a1 = TAU * (j + 1) / 6.0
+		var r = 0.012
+		var p0 = Vector3(cos(a0) * r, sin(a0) * r, -0.08); var p1 = Vector3(cos(a1) * r, sin(a1) * r, -0.08)
+		var q0 = Vector3(cos(a0) * r, sin(a0) * r, 0.07); var q1 = Vector3(cos(a1) * r, sin(a1) * r, 0.07)
+		var n = Vector3(cos((a0 + a1) * 0.5), sin((a0 + a1) * 0.5), 0)
+		for q in [[p0, 0.0, 0.2], [p1, 0.0, 0.8], [q1, 0.1, 0.8], [p0, 0.0, 0.2], [q1, 0.1, 0.8], [q0, 0.1, 0.2]]:
+			put.call(q[0], n, Vector2(q[1], q[2]))
+	st.commit(m)
+	m.surface_set_material(m.get_surface_count() - 1, _wind_core_mat)
+
+
+## Dönen rüzgar şeritleri + kabza halkası (UV.x boy boyunca akar, UV.y şerit eni)
+static var _wind_rib_mesh: ArrayMesh
+static func _wind_ribbons() -> MeshInstance3D:
+	if _wind_rib_mesh == null:
+		_wind_rib_mat = _wind_mat(0.5, 3.2, 2.0, 0.45)
+		_wind_rib_mesh = ArrayMesh.new()
+		var st = SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		var quad = func(a: Vector3, b2: Vector3, c: Vector3, d: Vector3, u0: float, u1: float):
+			var n = (b2 - a).cross(d - a).normalized()
+			for q in [[a, u0, 0.0], [b2, u1, 0.0], [c, u1, 1.0], [a, u0, 0.0], [c, u1, 1.0], [d, u0, 1.0]]:
+				st.set_normal(n)
+				st.set_uv(Vector2(q[1], q[2]))
+				st.add_vertex(q[0])
+		var N = 24
+		for j in N:   # kabza halkası
+			var a0 = TAU * j / N; var a1 = TAU * (j + 1) / N
+			var R = 0.05
+			quad.call(Vector3(cos(a0) * R, sin(a0) * R, -0.115), Vector3(cos(a1) * R, sin(a1) * R, -0.115),
+				Vector3(cos(a1) * R * 1.25, sin(a1) * R * 1.25, -0.095), Vector3(cos(a0) * R * 1.25, sin(a0) * R * 1.25, -0.095), float(j) / N, float(j + 1) / N)
+		for s2 in 3:   # üç sarmal şerit: kökten uca dönerek daralır, uçta açılıp kopar
+			var ph = TAU * s2 / 3.0
+			var M = 22
+			for j in M:
+				var t0 = float(j) / M; var t1 = float(j + 1) / M
+				var pt = func(t: float, off: float) -> Vector3:
+					var a = ph + t * TAU * 1.4
+					var r = lerpf(0.08, 0.022, t) + off + (0.05 * t * t if s2 == 0 else 0.0)
+					return Vector3(cos(a) * r, sin(a) * r, lerpf(-0.06, 0.66, t))
+				quad.call(pt.call(t0, 0.0), pt.call(t1, 0.0), pt.call(t1, 0.012) + Vector3(0, 0, 0.022), pt.call(t0, 0.012) + Vector3(0, 0, 0.022), t0, t1)
+		st.commit(_wind_rib_mesh)
+		_wind_rib_mesh.surface_set_material(0, _wind_rib_mat)
+	var mi = MeshInstance3D.new()
+	mi.name = "WindRibbons"
+	mi.mesh = _wind_rib_mesh
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return mi
 
 
 ## Silah modeli: kabza başlangıçta, namlu +Z yönünde
@@ -3557,8 +3683,10 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			b.add("box", Vector3(0.035, 0.035, 0.0), Vector3(0.03, 0.035, 0.085), dark)
 			for k in 3:
 				b.add("cone", Vector3(0.15, 0.04, (k - 1) * 0.028), Vector3(0.012, 0.22, 0.006), steel, Vector3(0, 0, -90), 4)
-		"chakra_bicak", "ruzgar_bicak":
-			_trench_knife(b, id == "ruzgar_bicak")
+		"chakra_bicak":
+			_trench_knife(b, false)
+		"ruzgar_bicak":
+			pass   # tamamen chakradan: yarı saydam yüzeyler build sonrası (_wind_blade)
 		"wakizashi":
 			b.add("cyl", Vector3(0, 0, -0.05), Vector3(0.03, 0.16, 0.03), dark, Vector3(90, 0, 0), 8)
 			b.add("cyl", Vector3(0, 0, 0.04), Vector3(0.075, 0.012, 0.075), Color(0.55, 0.45, 0.25), Vector3(90, 0, 0), 12)
@@ -3795,6 +3923,8 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 	var m = b.build(Props.toon())
 	if id == "shibuki":
 		MistSwords.shibuki_tags(m)   # mühür kâğıtlı rulo: dokulu ayrı yüzey
+	if id == "ruzgar_bicak":
+		_wind_blade(m)   # rüzgar chakrasından bıçak: yarı saydam
 	_weapon_cache[id] = m
 	return m
 
@@ -4056,7 +4186,7 @@ func _rest_tilt(on: bool, dt: float) -> void:
 
 
 ## anahtar animasyonlu silahlar: [tutuş kaydırma (yumruk sap boyunca ileri), iz başı z, iz ucu z, elden uca boy]
-const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45], "kabutowari": [0.0, 0.3, 0.82, 0.85]}
+const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45], "kabutowari": [0.0, 0.3, 0.82, 0.85], "ruzgar_bicak": [0.0, 0.1, 0.6, 0.62]}
 
 
 var _edge_x := Vector3.ZERO   # gunbai: kenar önde savuruş için yüz normali (yumuşatılmış)
@@ -4080,6 +4210,9 @@ func _key_blade() -> void:
 ## İSKELET GÜNCELLEMESİNİN İÇİNDE çağrılır (kol pozu uygulandıktan hemen sonra): bir kare gecikmeyle elden kopmaz.
 ## Yumruk sapın en ucunda (silah sap boyunca kaydırılır); kılıç ucu yere girecekse yerin hemen üstüne kaldırılır.
 func _key_blade_sk(sk: Skeleton3D, blade: Vector3) -> void:
+	for w0 in weapons:
+		if w0["id"] == "chakra_bicak":
+			return   # muşta bıçak: yumruğa bağlı, bilek silaha göre çevrilmez (kol pozları yeter)
 	var hb = sk.find_bone("RightHand")
 	if hb < 0:
 		return
@@ -4188,7 +4321,7 @@ func react(world_dir: Vector3, amp: float, head := false) -> void:
 	overlay.hit_react(d, amp, head)
 
 
-const STANCE_ID := {"samehada": "w_samehada", "gunbai": "w_gunbai", "raijin": "w_raijin", "uc_tirpan": "w_tirpan", "shibuki": "w_shibuki", "kabutowari": "w_kabuto"}
+const STANCE_ID := {"samehada": "w_samehada", "gunbai": "w_gunbai", "raijin": "w_raijin", "uc_tirpan": "w_tirpan", "shibuki": "w_shibuki", "kabutowari": "w_kabuto", "ruzgar_bicak": "w_ruzgar"}
 ## bekleme duruşunda iki elle tutulan silahlar: sol el IK ile kabzaya, sağ elin altına (kabza ekseninde -Z)
 static var TWO_HAND_IDLE := {"raijin": -0.1, "shibuki": 0.2}   # shibuki: sağ el sapın arka ucunda, sol el 0.2 önde (taramada sapa 4 mm oturdu)   # silaha özel duruş
 const STANCE_OF := {"blade": "w_blade", "dual": "w_dual", "sickle": "w_dual", "claw": "w_dual", "sword": "w_sword", "heavy": "w_shoulder", "staff": "w_shoulder", "chain": "w_dual", "fan": "w_fan"}   # kusarigama alçak tek el (omuzda bıçak kafaya değmesin)

@@ -777,7 +777,7 @@ func _attack_keyed() -> void:
 		var km: Dictionary = KEYED.mods(wid, i)   # oyuncuyla AYNI adım değiştiricileri
 		if km.is_empty() and i >= 5:
 			km = {"knock": 10.0, "launch": 4.0, "heavy": true}
-		for mk in ["knock", "launch", "stun"]:
+		for mk in ["knock", "launch", "stun", "element"]:
 			if km.has(mk):
 				info[mk] = km[mk]
 		if km.get("heavy", false):

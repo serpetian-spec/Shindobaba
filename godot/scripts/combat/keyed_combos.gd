@@ -10,6 +10,8 @@ const TABLE := {
 	"uc_tirpan": [preload("res://scripts/combat/tirpan_anim.gd"), 1.0],
 	"shibuki": [preload("res://scripts/combat/shibuki_anim.gd"), 1.0],
 	"kabutowari": [preload("res://scripts/combat/kabuto_anim.gd"), 1.0],
+	"chakra_bicak": [preload("res://scripts/combat/asuma_anim.gd"), 1.0],
+	"ruzgar_bicak": [preload("res://scripts/combat/ruzgar_anim.gd"), 1.0],
 }
 ## iki elli adımlarda sol elin sağ yumruktan sap boyunca uzaklığı
 const TWO_OFF := {"uc_tirpan": 0.42, "shibuki": 0.2, "samehada": 0.3}   # shibuki: sağ el sapın arka ucunda, sol el önde (ruloya yakın)
@@ -54,6 +56,22 @@ static func mods(id: String, i: int) -> Dictionary:
 				3: m.merge({"launch": 11.0, "knock": 2.0})
 				4: m.merge({"heavy": true, "launch": 9.0, "knock": 7.0, "reach_add": 0.4, "lunge_mul": 0.0})   # havadan yere çakar
 				5: m.merge({"heavy": true, "knock": 16.0, "launch": 8.5})   # öne yere çarpılıp savrulur (yakın dövüşte launch >= 8 olmazsa yere sermez, sadece iter)
+			return m
+		"chakra_bicak":
+			# Asuma muştaları: hızlı; bitiriş Hien (chakra akışı: menzil uzar, sert)
+			var m = {"lunge_mul": 1.0}
+			match i:
+				2: m.merge({"launch": 9.0, "knock": 2.0})
+				4: m.merge({"knock": 8.0})
+				5: m.merge({"heavy": true, "knock": 14.0, "reach_add": 1.6})
+			return m
+		"ruzgar_bicak":
+			# her vuruş fuuton: rüzgar kesiği on_strike'ta ileri uçar
+			var m = {"lunge_mul": 0.8, "element": "fuuton"}
+			match i:
+				2: m.merge({"launch": 9.0, "knock": 2.0})
+				3: m.merge({"knock": 9.0, "reach_add": 0.6})
+				5: m.merge({"heavy": true, "knock": 16.0})
 			return m
 		"kabutowari":
 			# zırh kırıcı (silahın armor_break özelliği her vuruşta); ağır: kurulurken kaymaz
@@ -109,6 +127,16 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 		q.y = Game.ground_height(q.x, q.z) + 0.05
 		return q
 	match id:
+		"chakra_bicak":
+			if i == 5:   # Hien: bıçaklara chakra akar — mavi-beyaz uzayan ağız izi
+				var q = gp.call(1.6) + Vector3.UP * 1.2
+				for k in 2:
+					var sx = -0.35 + k * 0.7
+					WindFX.streak(func(t: float) -> Vector3: return q + side * sx + f * t * 2.6, 0.18, 0.09, Color(0.75, 0.9, 1.0, 0.9), k * 0.04, 12)
+				VFX.star(q + f * 1.8, Color(0.8, 0.92, 1.0), 2.4, 0.16)
+				_shake(who, 0.4)
+		"ruzgar_bicak":
+			_wind_slash(who, i, f, side, dmg)
 		"kabutowari":
 			match i:
 				2:   # çift darbe: kancadan sonra çekiç önde yere iner
@@ -393,3 +421,35 @@ static func _shatter(who: Node3D, h: Node3D) -> void:
 			h.apply_status("armor_broken", 5.0)
 	if broke:
 		Combat.popup_text(h.global_position + Vector3.UP * 2.4, "Zırh Kırıldı!", Color(1, 0.8, 0.4))
+
+
+## Rüzgar Chakra Bıçağı: her savuruşta ileri uçan rüzgar kesiği — görsel (perde + akım çizgileri) ve yol boyunca fuuton hasarı
+## (oyuncu da düşman da). i: adım (1 hilal çapraz, 2 yatay, 3 yükselen, 4 mızrak, 5 çift hilal, 6 dev dikey)
+static func _wind_slash(who: Node3D, i: int, f: Vector3, side: Vector3, dmg: float) -> void:
+	var from = who.global_position + Vector3.UP * 1.2 + f * 0.8
+	var length = [7.0, 7.0, 6.0, 10.0, 7.0, 13.0][clampi(i, 0, 5)]
+	var width = [3.0, 4.0, 2.6, 1.2, 3.0, 5.5][clampi(i, 0, 5)]
+	var lift = [0.0, 0.0, 1.2, 0.0, 0.0, 0.0][clampi(i, 0, 5)]
+	var fire = func(delay: float):
+		var go = func():
+			if not is_instance_valid(who):
+				return
+			WindFX.gust(from, f, length, width, {"n": 10, "sheets": 3 if i < 5 else 6, "speed": 38.0, "lift": lift, "leaves": i == 5, "dust": i == 5})
+			# yol boyunca isabet (yakın vuruşun ötesindeki düşmanlar da kesilir)
+			var info = {"dmg": dmg * (0.45 if i < 5 else 0.9), "element": "fuuton", "knock": 6.0 if i < 5 else 14.0, "launch": 4.0 if i == 2 else 0.0,
+				"kind": "heavy" if i == 5 else "light", "hitstop": 0.02}
+			var hit_once: Array = []
+			for k in 4:
+				var c = from + f * (2.0 + k * (length - 2.0) / 3.0)
+				for h in Combat.hit_sphere(who, c, width * 0.4 + 0.6, info, hit_once):
+					hit_once.append(h)
+					FX.hit_spark(h.global_position + Vector3.UP, Color(0.7, 1.0, 0.85), 1.0)
+			if i == 5:
+				_shake(who, 0.55)
+		if delay <= 0.0:
+			go.call()
+		else:
+			who.get_tree().create_timer(delay).timeout.connect(go)
+	fire.call(0.0)
+	if i == 4:   # çift hilal: ikinci kesik
+		fire.call(0.16)

@@ -526,7 +526,7 @@ func _combo_base(i: int) -> Dictionary:
 			c["keyed_id"] = wid
 			c["keyed_i"] = i
 			c["lunge"] = float(c["lunge"]) * float(km.get("lunge_mul", 1.0))
-			for mk in ["heavy", "knock", "launch", "stun", "special"]:
+			for mk in ["heavy", "knock", "launch", "stun", "special", "element"]:
 				if km.has(mk):
 					c[mk] = km[mk]
 			c["reach"] = float(c["reach"]) + float(km.get("reach_add", 0.0))
