@@ -26203,20 +26203,7 @@ func _water_rain(c: Node3D, at: Vector3, r: float, dur: float, id: String, mul: 
 
 ## Kabarcık görseli: ince parlak kenarlı saydam küre (sabun/su kabarcığı animede gerçekten küre)
 func _bubble(size: float, tint := Color(0.75, 0.9, 1.0)) -> MeshInstance3D:
-	var mi = MeshInstance3D.new()
-	mi.mesh = VFX._sphere(0.5, 16, 10)
-	var m = StandardMaterial3D.new()
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m.albedo_color = Color(tint.r, tint.g, tint.b, 0.18)
-	m.rim_enabled = true
-	m.rim = 1.0
-	m.rim_tint = 0.2
-	m.metallic_specular = 1.0
-	m.roughness = 0.05
-	mi.material_override = m
-	mi.scale = Vector3.ONE * size
-	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	return mi
+	return VFX.soap_bubble(size, tint)   # gökkuşağı zarlı sabun köpüğü (utakatababa2.png)
 
 
 func _pop(p: Vector3, s := 1.0, col := Color(0.85, 0.95, 1.0)) -> void:

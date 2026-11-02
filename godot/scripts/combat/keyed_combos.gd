@@ -14,10 +14,11 @@ const TABLE := {
 	"ruzgar_bicak": [preload("res://scripts/combat/ruzgar_anim.gd"), 1.0],
 	"sai": [preload("res://scripts/combat/sai_anim.gd"), 1.0],
 	"hiraishin_kunai": [preload("res://scripts/combat/hiraishin_anim.gd"), 1.0],
+	"homatsu_kiseru": [preload("res://scripts/combat/kiseru_anim.gd"), 1.0],
 }
 ## silah ağırlığı (0 hafif .. 1 ağır): kol/silah yaylanması (PoseOverlay.key_mass) — ağır silah gecikip taşar
 const MASS := {"uc_tirpan": 1.0, "samehada": 0.9, "kabutowari": 0.9, "shibuki": 0.85, "gunbai": 0.8, "raijin": 0.35, "kunai": 0.1,
-	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15}
+	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3}
 
 
 static func mass(id: String) -> float:
@@ -25,7 +26,7 @@ static func mass(id: String) -> float:
 
 
 ## iki elli adımlarda sol elin sağ yumruktan sap boyunca uzaklığı
-const TWO_OFF := {"uc_tirpan": 0.42, "shibuki": 0.2, "samehada": 0.3}   # shibuki: sağ el sapın arka ucunda, sol el önde (ruloya yakın)
+const TWO_OFF := {"uc_tirpan": 0.42, "shibuki": 0.2, "samehada": 0.3, "homatsu_kiseru": 0.3}   # shibuki: sağ el sapın arka ucunda, sol el önde (ruloya yakın)
 
 
 static func has(id: String) -> bool:
@@ -67,6 +68,12 @@ static func mods(id: String, i: int) -> Dictionary:
 				3: m.merge({"launch": 11.0, "knock": 2.0})
 				4: m.merge({"heavy": true, "launch": 9.0, "knock": 7.0, "reach_add": 0.4, "lunge_mul": 0.0})   # havadan yere çakar
 				5: m.merge({"heavy": true, "knock": 16.0, "launch": 8.5})   # öne yere çarpılıp savrulur (yakın dövüşte launch >= 8 olmazsa yere sermez, sadece iter)
+			return m
+		"homatsu_kiseru":
+			# kabarcıklar asıl hasarı verir (on_strike); yakın vuruş yalnız boru darbesi
+			var m = {"lunge_mul": 0.0}
+			match i:
+				2: m.merge({"lunge_mul": 0.8, "knock": 6.0, "heavy": true})
 			return m
 		"hiraishin_kunai":
 			# her isabet işaret koyar (on_target); 3 ve 5. adım ışınlanır (on_start); bitiriş flaşlı çoklu kesik (on_strike)
@@ -158,6 +165,8 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 		q.y = Game.ground_height(q.x, q.z) + 0.05
 		return q
 	match id:
+		"homatsu_kiseru":
+			_kiseru_strike(who, i, dmg)
 		"hiraishin_kunai":
 			if i == 5:   # Hiraishin Giri: hedefin çevresinde art arda üç flaşla belirip keser
 				var tg = _hira_target(who)
@@ -544,3 +553,190 @@ static func _blink(who: Node3D, tg: Node3D, off: Vector3) -> void:
 	VFX.star(to + Vector3.UP, yel, 2.8, 0.14)
 	FX.burst(to + Vector3.UP, {"amount": 18, "life": 0.35, "tex": FX.tex_spark, "size": 0.55, "vmin": 2, "vmax": 7, "colors": [Color(1, 1, 0.85, 1), Color(1, 0.75, 0.15, 0)]})
 	Sfx.play("whoosh", to, 1.6, 0.6)
+
+
+# ------------------------------------------------------------------ Hōmatsu Kiseru (kabarcık borusu)
+## Kabarcıklar borunun çanından çıkar ve hedefe süzülür. Oyuncu ve düşman aynı (suiton).
+static func _kiseru_bell(who: Node3D) -> Vector3:
+	var n = _weapon_node(who)
+	if n == null:
+		return who.global_position + Vector3.UP * 1.3
+	return n.to_global(Vector3(0, 0, 0.74))
+
+
+## Tek kabarcık uçuşu: çandan, hafif yükselip dalgalanarak hedef noktaya (fn: anlık hedef) süzülür; varınca arrive(pos) çağrılır
+static func _bub_fly(who: Node3D, size: float, dur: float, fn: Callable, arrive: Callable, delay := 0.0, arc := 0.6) -> void:
+	var go = func():
+		if not is_instance_valid(who):
+			return
+		var from = _kiseru_bell(who)
+		var b = VFX.soap_bubble(size)
+		who.get_tree().current_scene.add_child(b)
+		b.global_position = from
+		var ph = randf() * TAU
+		var tw = b.create_tween()
+		tw.tween_method(func(k: float):
+			if not is_instance_valid(b):
+				return
+			var to: Vector3 = fn.call()
+			var p = from.lerp(to, k) + Vector3.UP * sin(k * PI) * arc + Vector3(sin(k * 9.0 + ph), cos(k * 7.0 + ph) * 0.5, cos(k * 8.0 + ph)) * 0.08 * size
+			b.global_position = p
+			b.scale = Vector3.ONE * size * (0.35 + 0.65 * minf(1.0, k * 4.0)), 0.0, 1.0, dur).set_trans(Tween.TRANS_SINE)
+		tw.tween_callback(func():
+			if is_instance_valid(b):
+				var p = b.global_position
+				b.queue_free()
+				arrive.call(p))
+	if delay <= 0.0:
+		go.call()
+	else:
+		who.get_tree().create_timer(delay).timeout.connect(go)
+
+
+static func _bub_pop(p: Vector3, s: float) -> void:
+	FX.burst(p, {"amount": int(8 + 10 * s), "life": 0.35, "tex": FX.tex_soft, "add": false, "size": 0.12 * maxf(0.6, s), "vmin": 1.5, "vmax": 4.0 * s,
+		"spread": 180.0, "gravity": Vector3(0, -6, 0), "colors": [Color(1, 1, 1, 0.9), Color(0.8, 0.9, 1.0, 0.6), Color(0.8, 0.9, 1.0, 0)]})
+
+
+static func _kiseru_strike(who: Node3D, i: int, dmg: float) -> void:
+	var tg = _hira_target(who)
+	var f: Vector3 = who.face_dir() if who.has_method("face_dir") else -who.global_transform.basis.z
+	var aim_fn = _kiseru_aim.bind(who, tg, f)
+	match i:
+		0:   # Köpük Akışı: 10 küçük kabarcık art arda; her biri hedefte patlar (küçük hasar)
+			for k in 10:
+				var sz = randf_range(0.12, 0.3)
+				var jit = Vector3(randf_range(-0.6, 0.6), randf_range(-0.3, 0.5), randf_range(-0.6, 0.6))
+				_bub_fly(who, sz, randf_range(0.55, 0.8), _kiseru_aim_off.bind(who, tg, f, jit), _arrive_small.bind(who, sz, dmg), k * 0.04, 0.3)
+		1:   # Patlayan Köpük: kocaman kabarcık yavaş süzülür, hedefte patlar (sert)
+			_bub_fly(who, 0.85, 1.1, aim_fn, _arrive_big.bind(who, dmg), 0.0, 0.4)
+		2:   # Boru Darbesi: çan çarpınca kabarcık püskürür
+			var bp = _kiseru_bell(who)
+			for k in 6:
+				var b = VFX.soap_bubble(randf_range(0.1, 0.25))
+				who.get_tree().current_scene.add_child(b)
+				b.global_position = bp
+				var to = bp + Vector3(randf_range(-1, 1), randf_range(0.2, 1.2), randf_range(-1, 1))
+				var tw = b.create_tween()
+				tw.tween_property(b, "global_position", to, randf_range(0.5, 0.9)).set_ease(Tween.EASE_OUT)
+				tw.tween_callback(_pop_free.bind(b, 0.5))
+		3:   # Köpük Kafesi: dev kabarcık hedefe süzülür, içine alır ve hapseder (sersemletme), sonra patlar
+			_bub_fly(who, 0.6, 0.8, aim_fn, _arrive_cage.bind(who, tg, dmg), 0.0, 0.3)
+		4:   # Asit Yağmuru: kabarcıklar yukarı yay çizip hedefin çevresine düşer, aşındırır (yavaşlatma + hasar)
+			for k in 8:
+				var off = Vector3(randf_range(-1.6, 1.6), -0.6, randf_range(-1.6, 1.6))
+				var sz = randf_range(0.25, 0.5)
+				_bub_fly(who, sz, randf_range(0.9, 1.2), _kiseru_aim_off.bind(who, tg, f, off), _arrive_acid.bind(who, sz, dmg), k * 0.06, 2.2)
+		5:   # Köpük Seli: 22 kabarcık hedefin çevresine dolar, sonra zincirleme patlar
+			var bubs: Array = []
+			for k in 22:
+				var sz = [0.15, 0.25, 0.35, 0.5, 0.7][k % 5]
+				var a = TAU * k / 22.0
+				var ring = Vector3(cos(a), randf_range(-0.3, 0.9), sin(a)) * randf_range(0.8, 1.8)
+				_bub_fly(who, sz, randf_range(0.7, 1.0), _kiseru_aim_off.bind(who, tg, f, ring), _arrive_park.bind(who, sz, bubs), k * 0.035, 0.4)
+			who.get_tree().create_timer(1.75).timeout.connect(_chain_pop.bind(who, bubs, dmg))
+
+
+static func _kiseru_aim(who: Node3D, tg: Node3D, f: Vector3) -> Vector3:
+	if tg != null and is_instance_valid(tg):
+		return tg.global_position + Vector3.UP * 1.0
+	if is_instance_valid(who):
+		return who.global_position + f * 8.0 + Vector3.UP * 1.2
+	return Vector3.ZERO
+
+
+static func _kiseru_aim_off(who: Node3D, tg: Node3D, f: Vector3, off: Vector3) -> Vector3:
+	return _kiseru_aim(who, tg, f) + off
+
+
+static func _kinfo(dmg: float, mul: float, extra := {}) -> Dictionary:
+	var d = {"dmg": dmg * mul, "element": "suiton", "knock": 3.0, "kind": "light", "hitstop": 0.02}
+	d.merge(extra, true)
+	return d
+
+
+static func _pop_free(b: Node3D, s: float) -> void:
+	if is_instance_valid(b):
+		_bub_pop(b.global_position, s)
+		b.queue_free()
+
+
+static func _arrive_small(p: Vector3, who: Node3D, sz: float, dmg: float) -> void:
+	_bub_pop(p, sz * 2.0)
+	if is_instance_valid(who):
+		Combat.hit_sphere(who, p, 0.7, _kinfo(dmg, 0.4, {"knock": 1.0}))
+
+
+static func _arrive_big(p: Vector3, who: Node3D, dmg: float) -> void:
+	_bub_pop(p, 2.0)
+	FX.explosion(p, 0.6, Color(0.7, 0.85, 1.0))
+	if is_instance_valid(who):
+		Combat.hit_sphere(who, p, 2.0, _kinfo(dmg, 2.4, {"knock": 9.0, "launch": 3.0, "kind": "heavy"}))
+		_shake(who, 0.4)
+
+
+static func _arrive_cage(p: Vector3, who: Node3D, tg: Node3D, dmg: float) -> void:
+	if not is_instance_valid(who):
+		return
+	if tg == null or not is_instance_valid(tg):
+		_bub_pop(p, 1.5)
+		return
+	var cage = VFX.soap_bubble(2.4)
+	who.get_tree().current_scene.add_child(cage)
+	cage.global_position = tg.global_position + Vector3.UP * 0.95
+	if tg.has_method("apply_status"):
+		tg.apply_status("stun", 1.6)
+		tg.apply_status("wet", 6.0)
+	Combat.hit_sphere(who, cage.global_position, 1.0, _kinfo(dmg, 1.0, {"knock": 0.0, "stun": 1.6}))
+	var tw = cage.create_tween()
+	tw.tween_method(_cage_follow.bind(cage, tg), 0.0, 1.0, 1.6)
+	tw.tween_callback(_pop_free.bind(cage, 3.0))
+
+
+static func _cage_follow(k: float, cage: Node3D, tg: Node3D) -> void:
+	if is_instance_valid(cage) and is_instance_valid(tg):
+		cage.global_position = tg.global_position + Vector3.UP * 0.95
+		cage.scale = Vector3.ONE * 2.4 * (1.0 + sin(k * 18.0) * 0.02)
+
+
+static func _arrive_acid(p: Vector3, who: Node3D, sz: float, dmg: float) -> void:
+	_bub_pop(p, sz * 2.5)
+	FX.burst(p, {"amount": 8, "life": 0.6, "tex": FX.tex_soft, "add": false, "size": 0.3, "vmin": 0.5, "vmax": 2.0, "gravity": Vector3(0, -4, 0),
+		"colors": [Color(0.75, 0.95, 0.45, 0.8), Color(0.6, 0.85, 0.35, 0)]})   # aşındırıcı damla
+	if is_instance_valid(who):
+		for h in Combat.hit_sphere(who, p, 1.1, _kinfo(dmg, 0.6, {"knock": 0.5})):
+			if h.has_method("apply_status"):
+				h.apply_status("slow", 3.0)
+
+
+static func _arrive_park(p: Vector3, who: Node3D, sz: float, bubs: Array) -> void:
+	if not is_instance_valid(who):
+		return
+	var b = VFX.soap_bubble(sz)
+	who.get_tree().current_scene.add_child(b)
+	b.global_position = p
+	bubs.append(b)
+
+
+static func _chain_pop(who: Node3D, bubs: Array, dmg: float) -> void:
+	if not is_instance_valid(who):
+		for b in bubs:
+			if is_instance_valid(b):
+				b.queue_free()
+		return
+	var idx = 0
+	for b in bubs:
+		who.get_tree().create_timer(idx * 0.04).timeout.connect(_chain_one.bind(who, b, dmg))
+		idx += 1
+	_shake(who, 0.6)
+
+
+static func _chain_one(who: Node3D, b: Node3D, dmg: float) -> void:
+	if not is_instance_valid(b):
+		return
+	var p = b.global_position
+	b.queue_free()
+	_bub_pop(p, 1.6)
+	FX.explosion(p, 0.35, Color(0.75, 0.9, 1.0))
+	if is_instance_valid(who):
+		Combat.hit_sphere(who, p, 1.0, _kinfo(dmg, 0.45, {"knock": 4.0}))

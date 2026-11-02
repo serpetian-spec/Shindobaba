@@ -1544,3 +1544,21 @@ static func clay_blast(pos: Vector3, s := 1.0) -> void:
 		Game.world.env.screen_flash(0.035 * s)
 	Sfx.play("boom", pos)
 	epic = ep
+
+
+## Sabun köpüğü (utakatababa2.png): içi şeffaf, kenarda bakış açısıyla değişen gökkuşağı zar, beyaz parlama. size: çap (m)
+static var _bubble_mats := {}
+static func soap_bubble(size: float, tint := Color(0.85, 0.92, 1.0)) -> MeshInstance3D:
+	var key = "%s|%d" % [tint.to_html(false), randi() % 6]
+	if not _bubble_mats.has(key):
+		var m = ShaderMaterial.new()
+		m.shader = load("res://shaders/soap_bubble.gdshader")
+		m.set_shader_parameter("tint", tint)
+		m.set_shader_parameter("seed", float(_bubble_mats.size()) * 1.7)
+		_bubble_mats[key] = m
+	var mi = MeshInstance3D.new()
+	mi.mesh = _sphere(0.5, 24, 14)
+	mi.material_override = _bubble_mats[key]
+	mi.scale = Vector3.ONE * size
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return mi

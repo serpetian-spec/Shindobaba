@@ -3378,6 +3378,34 @@ func _update_rope() -> void:
 		_rope[k].global_transform = Transform3D(Basis(x, y * L, x.cross(y)), (p0 + p1) * 0.5)   # yalnız kendi ekseninde uzar
 
 
+## Hōmatsu Kiseru (utakatababa.png, Utakata'nın kabarcık borusu): bej bambu boru, aralıklı halka boğumlar; tutuş (z 0) ağızlığa
+## yakın; arkada (−Z) dar ağızlık kupası (üflenen uç), önde (+Z) açılan çan (kabarcıklar buradan); ortada kırmızı ip püskül, iki
+## beyaz boncuk. Toplam ~0.9 m.
+static func _kiseru(b: MB) -> void:
+	var tan = Color(0.82, 0.72, 0.5)
+	var tan_d = tan.darkened(0.18)
+	var red = Color(0.72, 0.25, 0.15)
+	b.add("cyl", Vector3(0, 0, 0.24), Vector3(0.042, 0.74, 0.042), tan, Vector3(90, 0, 0), 12)          # boru z -0.13..0.61
+	for z in [-0.08, 0.05, 0.2, 0.26, 0.42, 0.52]:
+		b.add("cyl", Vector3(0, 0, z), Vector3(0.052, 0.02, 0.052), tan_d, Vector3(90, 0, 0), 12)    # boğumlar
+	# ağızlık (dar uç, üflenen): küçük kupa
+	b.add("cyl", Vector3(0, 0, -0.15), Vector3(0.04, 0.04, 0.04), tan, Vector3(90, 0, 0), 12)
+	b.add_xf("cone", Transform3D(Basis(Vector3.RIGHT, deg_to_rad(-90)) * Basis.from_scale(Vector3(0.07, 0.05, 0.07)), Vector3(0, 0, -0.19)), tan_d, 14)
+	b.add("cyl", Vector3(0, 0, -0.205), Vector3(0.066, 0.012, 0.066), tan, Vector3(90, 0, 0), 14)
+	# çan (kabarcık ucu): genişleyen koni, içi koyu
+	b.add("cyl", Vector3(0, 0, 0.6), Vector3(0.05, 0.03, 0.05), tan_d, Vector3(90, 0, 0), 12)
+	b.add_xf("cone", Transform3D(Basis(Vector3.RIGHT, deg_to_rad(-90)) * Basis.from_scale(Vector3(0.17, 0.11, 0.17)), Vector3(0, 0, 0.665)), tan, 18)
+	b.add("cyl", Vector3(0, 0, 0.712), Vector3(0.16, 0.012, 0.16), Color(0.35, 0.18, 0.12), Vector3(90, 0, 0), 18)   # çan içi (koyu)
+	b.add("torus", Vector3(0, 0, 0.716), Vector3(0.17, 0.17, 0.17), tan_d, Vector3(90, 0, 0), 18)
+	# kırmızı ip + püskül (ortada bağlı, aşağı sarkar) + iki beyaz boncuk
+	b.add("cyl", Vector3(0, 0, 0.235), Vector3(0.042, 0.03, 0.042), red, Vector3(90, 0, 0), 12)
+	b.add("box", Vector3(0, -0.11, 0.25), Vector3(0.012, 0.2, 0.012), red, Vector3(-10, 0, 0))
+	b.add("box", Vector3(0, -0.13, 0.232), Vector3(0.01, 0.19, 0.01), red.darkened(0.15), Vector3(8, 0, 0))
+	for k in 2:
+		b.add("sphere", Vector3(0, -0.12 - k * 0.05, 0.245), Vector3(0.024, 0.024, 0.024), Color(0.95, 0.95, 0.92), Vector3.ZERO, 8)
+	b.add("cone", Vector3(0, -0.24, 0.25), Vector3(0.022, 0.06, 0.022), red, Vector3(180, 0, 0), 6)
+
+
 ## Hiraishin Kunai (raijinbaba.png, Minato): siyah halka topuz, kanjili bej sargılı sap, siyah boğaz; üç dişli ağız —
 ## ortada uzun sivri diş, iki yanda dışa açılıp ileri kıvrılan hilal dişler; koyu çelik gövde, açık renk keskin iç kenarlar.
 ## Kabza 0, ağız +Z, dişler y-z düzleminde (yassı yüz X).
@@ -3844,6 +3872,8 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			_sai(b)   # sai.png
 		"hiraishin_kunai":
 			_hiraishin_kunai(b)   # raijinbaba.png
+		"homatsu_kiseru":
+			_kiseru(b)   # utakatababa.png
 		"uc_tirpan":
 			# üç bıçaklı kızıl tırpan (kaynak tirpan.png, ölçüler resimden metreye): tutuş z=0 (sağ yumruk sargının alt kısmında),
 			# pommel z=-0.16; beyaz bez sargı -> kırmızı sap -> siyah boğaz -> üç beyaz bilezik (arkalarında koyu kırmızı takoz),
@@ -4258,7 +4288,7 @@ func _rest_tilt(on: bool, dt: float) -> void:
 
 
 ## anahtar animasyonlu silahlar: [tutuş kaydırma (yumruk sap boyunca ileri), iz başı z, iz ucu z, elden uca boy]
-const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45], "kabutowari": [0.0, 0.3, 0.82, 0.85], "ruzgar_bicak": [0.0, 0.1, 0.6, 0.62], "hiraishin_kunai": [0.0, 0.14, 0.47, 0.48]}   # uzunluklar silahın kendi ölçeğiyle çarpılır
+const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45], "kabutowari": [0.0, 0.3, 0.82, 0.85], "ruzgar_bicak": [0.0, 0.1, 0.6, 0.62], "hiraishin_kunai": [0.0, 0.14, 0.47, 0.48], "homatsu_kiseru": [0.1, 0.5, 0.72, 0.72]}   # uzunluklar silahın kendi ölçeğiyle çarpılır
 
 
 var _edge_x := Vector3.ZERO   # gunbai: kenar önde savuruş için yüz normali (yumuşatılmış)
