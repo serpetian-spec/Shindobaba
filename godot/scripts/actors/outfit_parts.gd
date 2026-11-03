@@ -107,23 +107,23 @@ static func accessories(m: CharacterModel) -> void:
 	if L.get("head_style") in ["kabuto", "tengai", "sarik", "kapuson"]:
 		var clumps = CharacterModel._hair_cache.values()
 		for mi in m.skel.find_children("*", "MeshInstance3D", true, false):
-			if mi.name == "VHair" or (mi.mesh != null and mi.mesh in clumps):
+			if mi.name in ["VHair", "HairDangle"] or (mi.mesh != null and mi.mesh in clumps):
 				mi.visible = false
 	match L.get("head_style"):
 		"hachimaki":
 			var mb = MB.new()
 			mb.add("cyl", Vector3.ZERO, Vector3(hw * 1.16, 0.04, hd * 1.1), hg, Vector3(5, 0, 0), 20)
 			mb.add("box", Vector3(0.0, -0.005, -hd * 0.56), Vector3(0.035, 0.035, 0.03), hg.darkened(0.15))
-			for sx in [-1.0, 1.0]:
-				mb.add("box", Vector3(0.03 * sx, -0.08, -hd * 0.6), Vector3(0.035, 0.16, 0.006), hg, Vector3(-18, 0, 14 * sx))
 			m._mesh_on("Head", mb.build(toon), Transform3D(Basis.IDENTITY, Vector3(hc.x, hc.y + 0.035, hc.z)))
+			for sx in [-1.0, 1.0]:   # düğümden sarkan bağ uçları (ikincil hareket)
+				m.dangle_strip("Head", Vector3(hc.x + 0.012 * sx, hc.y + 0.03, hc.z - hd * 0.58), Vector3(0.25 * sx, -1, -0.3), 0.17, 0.034, hg, 0.16, Vector3(1, 0, 0))
 		"basortu":
 			var mb = MB.new()
 			mb.add("hemi", Vector3.ZERO, Vector3(hw * 1.18, hh * 0.85, hd * 1.14), hg, Vector3(-8, 0, 0), 16)
 			mb.add("sphere", Vector3(0, -0.02, -hd * 0.58), Vector3(0.05, 0.045, 0.04), hg.darkened(0.12), Vector3.ZERO, 8)
-			for sx in [-1.0, 1.0]:
-				mb.add("box", Vector3(0.025 * sx, -0.09, -hd * 0.62), Vector3(0.04, 0.13, 0.008), hg, Vector3(-22, 0, 20 * sx))
 			m._mesh_on("Head", mb.build(toon), Transform3D(Basis.IDENTITY, Vector3(hc.x, hc.y - 0.0, hc.z)))
+			for sx in [-1.0, 1.0]:   # düğümden sarkan uçlar (ikincil hareket)
+				m.dangle_strip("Head", Vector3(hc.x + 0.012 * sx, hc.y - 0.03, hc.z - hd * 0.6), Vector3(0.3 * sx, -1, -0.35), 0.15, 0.04, hg, 0.14, Vector3(1, 0, 0), 0.005)
 		"sarik":
 			var mb = MB.new()
 			mb.add("hemi", Vector3(0, 0.0, 0), Vector3(hw * 1.24, hh * 0.95, hd * 1.18), hg, Vector3.ZERO, 16)

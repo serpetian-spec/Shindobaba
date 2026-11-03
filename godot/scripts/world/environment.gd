@@ -268,6 +268,9 @@ func _process(dt: float) -> void:
 
 	# bölgesel hava durumu
 	_update_weather(dt)
+	# saç/kumaş rüzgârı (ikincil hareket): hava durumuna göre
+	var wtar = {"kum fırtınası": Vector3(7.0, 0, 2.5), "yağmur": Vector3(2.5, 0, 1.0), "kar": Vector3(2.0, 0, 0.6), "sis": Vector3(0.3, 0, 0.1)}.get(weather, Vector3(0.8, 0, 0.35))
+	Dangle.wind = Dangle.wind.lerp((wtar as Vector3) * (0.4 + 0.6 * overcast if weather != "açık" else 1.0), clampf(dt * 0.5, 0.0, 1.0))
 	var zen: Color = p[0].lerp(Color(0.4, 0.42, 0.48), overcast * 0.45)
 	var hor: Color = p[1].lerp(Color(0.55, 0.57, 0.62), overcast * 0.45)
 	sun.light_color = p[2]

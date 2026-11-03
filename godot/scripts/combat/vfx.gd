@@ -1079,6 +1079,7 @@ static func smoke_ring(pos: Vector3, size := 3.0, col := Color(0.3, 0.27, 0.25))
 
 
 static func explosion(pos: Vector3, s := 1.0, col := Color(1.0, 0.55, 0.15)) -> void:
+	Dangle.blast(pos, 40.0 * s, 6.0 * s)   # yakındaki saç/kumaş dışa savrulur
 	var ep = epic
 	epic = 1.0
 	_explosion(pos, s * ep, col)

@@ -83,6 +83,7 @@ static func gust(from: Vector3, d: Vector3, length: float, width: float, opts :=
 	length *= VFX.epic
 	width *= VFX.epic
 	d = d.normalized()
+	Dangle.gust(from + d * length * 0.5, d * 28.0, maxf(length * 0.6, width), 0.7)   # yoldaki saç/kumaş savrulur
 	var ax = _axes(d)
 	var side: Vector3 = ax[0]
 	var up: Vector3 = ax[1]

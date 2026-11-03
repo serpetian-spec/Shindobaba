@@ -413,6 +413,7 @@ func _face_and_hair() -> void:
 		var hk = "vroid|%s|%s|%s|%s" % [hd[2], look["gender"], donor, look.get("age", "adult")]
 		if not _hair_cache.has(hk):
 			_hair_cache[hk] = _hair_clumps(hd[2], skull_c, skull_r)
+			_hair_dyn[hk] = _clump_dangle(_hair_cache[hk])
 		var cm = ShaderMaterial.new()
 		cm.shader = load("res://shaders/toon.gdshader")
 		cm.set_shader_parameter("tint", look["hair"])
@@ -420,8 +421,11 @@ func _face_and_hair() -> void:
 		materials.append(cm)
 		# tutamlar kafaya göre biraz küçültülür (kafa merkezi etrafında)
 		var cs = Transform3D(Basis.IDENTITY, skull_c) * Transform3D(Basis.from_scale(Vector3.ONE * CLUMP_SCALE), Vector3.ZERO) * Transform3D(Basis.IDENTITY, -skull_c)
-		var cl = _mesh_on("Head", _hair_cache[hk], cs)
-		cl.material_override = cm
+		# uzun tutamlar ikincil hareketli (kafa kemiğine takılı küçük iskelet); sallanacak tutam yoksa sabit mesh
+		var hdn = add_dangle("Head", _hair_dyn.get(hk, {}), cm, cs, "HairDangle") if not _hair_dyn.get(hk, {}).is_empty() else null
+		if hdn == null:
+			var cl = _mesh_on("Head", _hair_cache[hk], cs)
+			cl.material_override = cm
 	if hd[0] != "":
 		var hp = _donor_part(hd[0], hd[1], "HAIR")
 		if not hp.is_empty():
@@ -440,7 +444,20 @@ func _face_and_hair() -> void:
 			elif not fd.is_empty():
 				hc = fd["aabb"].get_center()
 			hair_mi.transform = head_fix * Transform3D(Basis.IDENTITY, hc) * Transform3D(Basis.from_scale(Vector3.ONE * hs), Vector3.ZERO) * Transform3D(Basis.IDENTITY, -hc)
-			holder2.add_child(hair_mi)
+			# uzun saç: kulak hizasının altında kalan kısım dilim zincirleriyle sallanır (sırta/omuza çarpar)
+			var vk = "%s|%s|%s|%s|%s" % [hd[0], donor, look["gender"], look.get("age", "adult"), look.get("hair_style", "")]
+			if not _vhair_dyn.has(vk):
+				_vhair_dyn[vk] = Dangle.sectors(hp["mesh"], head_rest * hair_mi.transform, skull_c, skull_c.y - skull_r.y * 0.35)
+			var vd = Dangle.make(_vhair_dyn[vk])
+			if vd != null:
+				vd.transform = hair_mi.transform
+				holder2.add_child(vd)
+				_dangles.append(vd)
+				hair_mi.free()
+				hair_mi = vd.mi
+				hair_mi.name = "VHair"
+			else:
+				holder2.add_child(hair_mi)
 			for si in hp["mats"].size():
 				var mat: Material = hp["mats"][si]
 				var hm = ShaderMaterial.new()
@@ -1445,7 +1462,117 @@ func _garment(key: String, build: Callable) -> void:
 	if not _garment_cache.has(k):
 		_garment_cache[k] = build.call()
 	if _garment_cache[k] != null:
-		_add_shell(_garment_cache[k], cloth_shell_mat)
+		_dyn_garment(_add_shell(_garment_cache[k], cloth_shell_mat), key)
+
+
+## Etekli dış giysiler: kalçanın altındaki kumaş dilim zincirleriyle sallanır (koşuda arkaya açılır, dönüşte savrulur,
+## bacak/diz küreleri kumaşı iter: bacak kumaşın içinden çıkmaz). Zincir kemikleri karakter iskeletine eklenir.
+const DYN_GARMENTS := {"pelerin": 0.26, "palto": 0.3, "haori": 0.34, "org_pelerin": 0.24, "panco": 0.3, "yirtik": 0.2, "jinbaori": 0.3,
+	"cuppe": 0.26, "haori_uzun": 0.28, "mino": 0.36, "hakama": 0.32}   # anahtar -> şekil sertliği
+static var _gdyn_cache := {}
+
+
+func _dyn_garment(shell: MeshInstance3D, key: String) -> void:
+	if shell == null or not DYN_GARMENTS.has(key) or body_mesh == null or body_mesh.skin == null:
+		return
+	var hb = skel.find_bone("Hips")
+	if hb < 0:
+		return
+	var hips = _bp("Hips")
+	var root_y = hips.y - 0.05
+	var base_skin: Skin = body_mesh.skin
+	var nb = base_skin.get_bind_count()
+	var ck = "%s|%s|%.3f|%d|%d" % [look["gender"], key, _outer_pad, nb, shell.mesh.get_instance_id()]
+	if not _gdyn_cache.has(ck):
+		_gdyn_cache[ck] = _build_dyn_garment(shell.mesh, Vector3(hips.x, 0, hips.z), root_y, nb, float(DYN_GARMENTS[key]))
+	var pk: Dictionary = _gdyn_cache[ck]
+	if pk.is_empty():
+		return
+	var flip_i = FLIP.affine_inverse()
+	var skin: Skin = base_skin.duplicate()
+	var defs = []
+	for ch in pk["defs"]:
+		var pts_s = PackedVector3Array()
+		var b0 = -1
+		for q in ch["pts"]:
+			var sp = flip_i * (q as Vector3)
+			var bi = skel.get_bone_count()
+			skel.add_bone("dyn%d" % bi)
+			skel.set_bone_rest(bi, Transform3D(Basis.IDENTITY, sp))
+			skel.set_bone_pose_position(bi, sp)
+			skin.add_bind(bi, Transform3D(Basis.IDENTITY, -sp) * flip_i)
+			if b0 < 0:
+				b0 = bi
+			pts_s.append(sp)
+		var d = ch.duplicate()
+		d["pts"] = pts_s
+		d["b0"] = b0
+		defs.append(d)
+	shell.mesh = pk["mesh"]
+	shell.skin = skin
+	var dn = Dangle.make_ext(skel, hb, defs)
+	add_child(dn)
+	_dangles.append(dn)
+
+
+static func _build_dyn_garment(mesh: ArrayMesh, center: Vector3, root_y: float, nb: int, stiff: float) -> Dictionary:
+	var arr = mesh.surface_get_arrays(0)
+	var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+	var sc = Dangle.sector_chains([v], center, root_y, {"sectors": 8, "points": 4, "min_len": 0.12, "fade": 0.05,
+		"def": {"stiff": stiff, "damp": 0.86, "grav": 0.5, "drag": 1.1, "col_r": 0.025, "col_from": 1}})
+	if sc.is_empty():
+		return {}
+	var defs: Array = sc["defs"]
+	var off = []
+	var acc = nb
+	for d in defs:
+		off.append(acc)
+		acc += (d["pts"] as PackedVector3Array).size()
+	var asg: Callable = sc["assign"]
+	var bones: PackedInt32Array = arr[Mesh.ARRAY_BONES]
+	var weights: PackedFloat32Array = arr[Mesh.ARRAY_WEIGHTS]
+	var per = bones.size() / maxi(v.size(), 1)
+	var nbones = bones.duplicate()
+	var nweights = weights.duplicate()
+	for i in v.size():
+		var res: Array = asg.call(i, 0)
+		if res.is_empty():
+			continue
+		var ent = {}
+		var fw = 0.0
+		for r in res:
+			var n: int = (defs[r[0]]["pts"] as PackedVector3Array).size()
+			var s = float(r[1])
+			var k = mini(int(floor(s)), n - 2)
+			var f = s - k
+			var b = int(off[r[0]]) + k
+			ent[b] = ent.get(b, 0.0) + float(r[2]) * (1.0 - f)
+			ent[b + 1] = ent.get(b + 1, 0.0) + float(r[2]) * f
+			fw += float(r[2])
+		for k in per:
+			var w = weights[i * per + k] * (1.0 - fw)
+			if w > 0.0:
+				var b = bones[i * per + k]
+				ent[b] = ent.get(b, 0.0) + w
+		var lst = []
+		for b in ent:
+			lst.append([b, ent[b]])
+		lst.sort_custom(func(x, y): return x[1] > y[1])
+		var tot = 0.0
+		for k in mini(per, lst.size()):
+			tot += lst[k][1]
+		for k in per:
+			nbones[i * per + k] = lst[k][0] if k < lst.size() else 0
+			nweights[i * per + k] = (lst[k][1] / maxf(tot, 0.0001)) if k < lst.size() else 0.0
+	arr[Mesh.ARRAY_BONES] = nbones
+	arr[Mesh.ARRAY_WEIGHTS] = nweights
+	var fmt = mesh.surface_get_format(0)
+	var cmask = Mesh.ARRAY_FLAG_USE_8_BONE_WEIGHTS
+	for c in 4:
+		cmask |= Mesh.ARRAY_FORMAT_CUSTOM_MASK << (Mesh.ARRAY_FORMAT_CUSTOM_BASE + c * Mesh.ARRAY_FORMAT_CUSTOM_BITS)
+	var m = ArrayMesh.new()
+	m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr, [], {}, fmt & cmask)
+	return {"mesh": m, "defs": defs}
 
 
 ## Görünümdeki giysi katmanlarını kur
@@ -1474,6 +1601,12 @@ func _garments(g: Dictionary) -> void:
 		"atki":
 			_garment("atki", func(): return _loft(g, 1, neck - 0.06, neck + 0.04, 5, func(p): return absf(p.x) < 0.16, flat.call(0.03), 8))
 	_outer_pad = 0.0
+	if look.get("outer_style") in ["atki", "kisa"] and look.get("outer") is Color:
+		# atkı: ense arkasındaki düğümden sırta sarkan, rüzgârda uçuşan iki uç (ikincil hareket)
+		var nk = _bp("Neck")
+		var bz = _back_z(neck - 0.02)
+		for sx in [-1.0, 1.0]:
+			dangle_strip("UpperChest", Vector3(nk.x + 0.025 * sx, neck - 0.02, bz - 0.03), Vector3(0.12 * sx, -1.0, -0.25), 0.34, 0.07, look["outer"], 0.18, Vector3(1, 0, 0), 0.006)
 	if top_style() == "kimono":
 		_garment("obi", func(): return _loft(g, 1, hips + 0.03, hips + 0.15, 5, torso, flat.call(0.03), 2))
 	if look.get("hakama", false):
@@ -2440,6 +2573,8 @@ const HAIR_ALIAS := {"mohikan": "kirpik", "kisa_kakul": "kısa", "dalgali": "uzu
 	"golge": "kakul", "cerceve": "uzun", "yan_orgu": "orgu", "bagli_uzun": "atkuyruğu", "tepe_diken": "diken", "yan_topuz": "topuz", "kel": "kirpik"}
 static var _scalp_cache := {}
 static var _hair_cache := {}
+static var _hair_dyn := {}      # saç anahtarı -> Dangle paketi
+static var _vhair_dyn := {}
 
 
 ## Saç tabanı modelinin sınırlarından kafa elipsoidini çıkarır (model uzayı)
@@ -2509,6 +2644,12 @@ static func _clump(st: SurfaceTool, root: Vector3, d: Vector3, grav: Vector3, le
 		var up = tan.cross(sd).normalized()
 		var w = width * pow(1.0 - t, 0.85)
 		rings.append([p, sd * w, up * w * flat])
+	var sid = _strands.size()
+	var cen = PackedVector3Array()
+	for rg in rings:
+		cen.append(rg[0])
+	_strands.append({"rings": cen, "len": length, "dir": d, "group": _sgroup})
+	var uv2 = Vector2(sid + 0.5, 0.0)
 	for k in segs:
 		var a = rings[k]; var b = rings[k + 1]
 		var ca = [a[0] + a[1], a[0] + a[2], a[0] - a[1], a[0] - a[2]]
@@ -2519,11 +2660,20 @@ static func _clump(st: SurfaceTool, root: Vector3, d: Vector3, grav: Vector3, le
 			var q2 = (q + 1) % 4
 			for vv in [[ca[q], shade_a], [cb[q], shade_b], [cb[q2], shade_b], [ca[q], shade_a], [cb[q2], shade_b], [ca[q2], shade_a]]:
 				st.set_color(Color(vv[1], vv[1], vv[1]))
+				st.set_uv2(uv2)
 				st.add_vertex(vv[0])
+
+
+static var _strands: Array = []   # _clump kayıtları (ikincil hareket: tutam zincirleri)
+static var _sgroup := -1          # >= 0: tutamlar tek zincirde (örgü)
+static var _gcount := 0
 
 
 ## Saç stili tutamları (kafa elipsoidi: merkez c, yarıçap r; +Z yüz)
 static func _hair_clumps(style: String, c: Vector3, r: Vector3) -> ArrayMesh:
+	_strands = []
+	_sgroup = -1
+	_gcount = 0
 	var st = SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var rng = RandomNumberGenerator.new()
@@ -2541,10 +2691,12 @@ static func _hair_clumps(style: String, c: Vector3, r: Vector3) -> ArrayMesh:
 	# saç örtüsü: kafa derisini yatık tutamlarla kapla (kel görünmesin)
 	# kafadan bir bağlama noktasına toplanan tutamlar (at kuyruğu / topuz kökü)
 	var gather = func(tie: Vector3, n: int, y0: float, y1: float, p0: float, p1: float) -> void:
+		_sgroup = -2
 		for i in n:
 			var a = at.call(rng.randf_range(y0, y1), rng.randf_range(p0, p1))
 			var to = tie - a[0]
 			_clump(st, a[0], to.normalized(), Vector3.ZERO, to.length() * 1.05, 0.06, 0.3)
+		_sgroup = -1
 	# bağlama noktasından sarkan kuyruk
 	var tail = func(tie: Vector3, dir: Vector3, n: int, length: float, width: float, spread: float, grav: Vector3) -> void:
 		for i in n:
@@ -2552,18 +2704,23 @@ static func _hair_clumps(style: String, c: Vector3, r: Vector3) -> ArrayMesh:
 			_clump(st, tie, d, grav, length * rng.randf_range(0.85, 1.1), width)
 	# yuvarlak topuz
 	var bun_at = func(bun: Vector3, n: int, size: float) -> void:
+		_sgroup = -2
 		for i in n:
 			var ang = TAU * i / float(n)
 			var d = Vector3(cos(ang), sin(ang) * 0.7 + 0.25, sin(ang) * 0.7).normalized()
 			_clump(st, bun - d * 0.035 * size, d.cross(Vector3.UP).normalized(), Vector3.ZERO, 0.1 * size, 0.075 * size, 0.6)
+		_sgroup = -1
 	# örgü: yön boyunca sağa-sola dönüşümlü kısa tutamlar
 	var braid = func(top: Vector3, dir: Vector3, segs: int, step: float, width: float) -> void:
+		_sgroup = _gcount
+		_gcount += 1
 		var dn = dir.normalized()
 		var sd = dn.cross(Vector3.FORWARD if absf(dn.z) < 0.9 else Vector3.RIGHT).normalized()
 		for k in segs:
 			var s = 1.0 if k % 2 == 0 else -1.0
 			var w = width * (1.0 - 0.35 * float(k) / segs)
 			_clump(st, top + dn * step * k + sd * 0.008 * s, (dn + sd * 0.22 * s).normalized(), Vector3.ZERO, step * 2.0, w * 1.15, 0.9)
+		_sgroup = -1   # örgü bitti: sonraki tutamlar serbest
 	if style in ["diken", "dağınık", "kase", "atkuyruğu", "ananas", "ikiz_topuz", "yele", "kakul", "geriye", "orgu", "kirpik", "kisa_kakul", "alev", "geriye_diken", "kabarik", "yabani", "savas_yelesi", "bilge_yelesi"]:
 		for row in [[8.0, 5], [30.0, 9], [55.0, 12], [80.0, 14], [98.0, 10]]:
 			for i in row[1]:
@@ -2581,7 +2738,9 @@ static func _hair_clumps(style: String, c: Vector3, r: Vector3) -> ArrayMesh:
 				var ln = rng.randf_range(0.09, 0.12) * (0.7 if row[0] > 90.0 else 1.0)
 				if front_short:
 					ln = 0.045
+				_sgroup = -2
 				_clump(st, root, (flow.normalized() + n * 0.15).normalized(), -n * 0.2, ln, 0.08, 0.32)
+				_sgroup = -1
 	match style:
 		"diken":
 			for ring in [[15.0, 4], [45.0, 8], [78.0, 10], [108.0, 8]]:
@@ -2678,9 +2837,12 @@ static func _hair_clumps(style: String, c: Vector3, r: Vector3) -> ArrayMesh:
 				_clump(st, a[0], to.normalized(), Vector3.ZERO, to.length(), 0.06, 0.3)
 		"orgu":  # ense arkasından inen tek örgü
 			var top = c + Vector3(0, -r.y * 0.2, -r.z * 0.95)
+			_sgroup = _gcount
+			_gcount += 1
 			for k in 7:
 				var pt = top + Vector3(0.012 * (1 if k % 2 == 0 else -1), -k * 0.06, -0.01 * k)
 				_clump(st, pt, Vector3(0.3 * (1 if k % 2 == 0 else -1), -1, -0.1).normalized(), Vector3.ZERO, 0.08, 0.055, 0.7)
+			_sgroup = -1
 			bangs.call(4, 45.0, 0.09, 0.045)
 		"mohikan":
 			for i in 9:
@@ -2842,6 +3004,219 @@ static func _hair_clumps(style: String, c: Vector3, r: Vector3) -> ArrayMesh:
 	return st.commit()
 
 
+## Tutam mesh'inden ikincil hareket paketi: uzun/sarkan tutamlar benzer kök+yönle zincirlerde toplanır,
+## örgüler tek zincir; kısa dikenler sabit kalır (kafa kemiğinde). _hair_clumps'tan hemen sonra çağrılır (_strands).
+static func _clump_dangle(mesh: ArrayMesh) -> Dictionary:
+	var strands = _strands
+	var groups = []   # [{ids, root, dir, len, group}]
+	var of = {}       # tutam -> zincir
+	var order = []
+	for i in strands.size():
+		order.append(i)
+	order.sort_custom(func(a, b): return strands[a]["len"] > strands[b]["len"])
+	for i in order:
+		var sd: Dictionary = strands[i]
+		var L: float = sd["len"]
+		var gid: int = sd["group"]
+		var rings: PackedVector3Array = sd["rings"]
+		var dir = (rings[rings.size() - 1] - rings[0]).normalized()
+		# sabit kalanlar: kafa derisine yatık/toplanan tutamlar, topuz, kısa ya da yukarı bakan dikenler
+		if gid == -2 or (gid < 0 and (L < 0.12 or dir.y > -0.15)):
+			continue
+		var best = -1
+		var bs = 1e9
+		for gi in groups.size():
+			var gr = groups[gi]
+			if gr["group"] != gid:
+				continue
+			if gid >= 0:
+				best = gi
+				break
+			var dd = (gr["root"] as Vector3).distance_to(rings[0])
+			var ok = dd < 0.05 and dir.dot(gr["dir"]) > 0.8 and L / gr["len"] > 0.65
+			var score = dd + (1.0 - dir.dot(gr["dir"])) * 0.2
+			if (ok or groups.size() >= 8) and score < bs:
+				bs = score
+				best = gi
+		if best < 0:
+			groups.append({"ids": [i], "root": rings[0], "dir": dir, "len": L, "group": gid})
+			best = groups.size() - 1
+		else:
+			groups[best]["ids"].append(i)
+		of[i] = best
+	if groups.is_empty():
+		return {}
+	var defs = []
+	for gr in groups:
+		var pts = PackedVector3Array()
+		if gr["group"] >= 0:
+			# örgü: tutam kökleri boyunca tek zincir (yukarıdan aşağı) + son tutamın ucu
+			var roots = []
+			for i in gr["ids"]:
+				roots.append(strands[i]["rings"][0])
+			roots.sort_custom(func(a, b): return a.y > b.y)
+			for q in roots:
+				pts.append(q)
+			var last: PackedVector3Array = strands[gr["ids"][0]]["rings"]
+			for i in gr["ids"]:
+				if (strands[i]["rings"][0] as Vector3).is_equal_approx(roots[roots.size() - 1]):
+					last = strands[i]["rings"]
+			pts.append(last[last.size() - 1])
+		else:
+			for k in 6:
+				var acc = Vector3.ZERO
+				for i in gr["ids"]:
+					acc += (strands[i]["rings"] as PackedVector3Array)[k]
+				pts.append(acc / gr["ids"].size())
+		var L: float = gr["len"]
+		var upward = (gr["dir"] as Vector3).y > 0.3
+		# tutamlar zaten sarkık modellendi: yerçekimi yalnız sapma için hafif (yoksa dinlenirken gövdeye gömülür)
+		var stiff = 0.45 if upward else clampf(0.44 - L * 0.5, 0.2, 0.38)
+		if gr["group"] >= 0:
+			stiff = 0.22
+		defs.append({"pts": pts, "stiff": stiff, "damp": 0.88, "grav": 0.15, "drag": 1.3, "col_r": 0.035, "col_from": 1})
+	var uv2: PackedVector2Array = mesh.surface_get_arrays(0)[Mesh.ARRAY_TEX_UV2]
+	var assign = func(i: int, v: Vector3, _si: int) -> Array:
+		var sid = int(uv2[i].x)
+		if not of.has(sid):
+			return []
+		var ci: int = of[sid]
+		return [[ci, Dangle.project(defs[ci]["pts"], v)[0], 1.0]]
+	return Dangle.build(mesh, defs, assign)
+
+
+## Sarkan kumaş şeridi (bant/başlık bağı, kuşak ucu...): kökten dir yönünde uzanan, ikincil hareketli yassı şerit.
+## model_root/dir model uzayında; bone'a takılır. Uçta hafif sivrilir.
+func dangle_strip(bone: String, model_root: Vector3, dir: Vector3, length: float, width: float, col: Color, stiff := 0.2, side := Vector3.ZERO, thick := 0.004) -> Dangle:
+	if skel == null or skel.find_bone(bone) < 0:
+		return null
+	var dn = dir.normalized()
+	var sd = side.normalized() if side != Vector3.ZERO else dn.cross(Vector3.BACK if absf(dn.z) < 0.9 else Vector3.RIGHT).normalized()
+	var nrm = dn.cross(sd).normalized()
+	var n = 6
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var pts = PackedVector3Array()
+	var ring = []
+	for k in n + 1:
+		var t = float(k) / n
+		var c = model_root + dn * length * t
+		pts.append(c)
+		var w = width * (1.0 - 0.35 * t) * 0.5
+		ring.append([c - sd * w - nrm * thick, c + sd * w - nrm * thick, c + sd * w + nrm * thick, c - sd * w + nrm * thick])
+	for k in n:
+		var a = ring[k]; var b = ring[k + 1]
+		for q in 4:
+			var q2 = (q + 1) % 4
+			for vv in [a[q], b[q], b[q2], a[q], b[q2], a[q2]]:
+				st.set_color(col)
+				st.add_vertex(vv)
+	st.generate_normals()
+	var mesh = st.commit()
+	var pack = Dangle.build(mesh, [{"pts": pts, "stiff": stiff, "damp": 0.9, "grav": 0.5, "drag": 2.2, "col_r": 0.012, "col_from": 1}],
+		func(_i, v, _si): return [[0, Dangle.project(pts, v)[0], 1.0]])
+	var d = Dangle.make(pack, Props.toon())
+	if d == null:
+		return null
+	_attach(bone, Transform3D.IDENTITY).get_child(0).add_child(d)
+	_dangles.append(d)
+	return d
+
+
+## Hazır paketi (saç vb.) bir kemiğe takar
+func add_dangle(bone: String, pack: Dictionary, mat: Material, model_xf: Transform3D, nm := "Dangle") -> Dangle:
+	var d = Dangle.make(pack, mat)
+	if d == null:
+		return null
+	d.mi.name = nm
+	_attach(bone, model_xf).get_child(0).add_child(d)
+	_dangles.append(d)
+	return d
+
+
+## Darbe/patlama: sarkan parçalar dünya yönünde savrulur
+func dangle_kick(world_v: Vector3) -> void:
+	for d in _dangles:
+		if is_instance_valid(d):
+			d.kick(world_v)
+
+
+# ------------------------------------------------------------------ ikincil hareket sürücüsü
+var _dangles: Array = []
+var _dangle_acc := 0.0
+var _dangle_fr := randi() % 6   # karakterler arasında yük dağılsın
+var _dcol_bones := []   # [kemik, yarıçap, kemik uzayı ofseti]
+const DANGLE_RANGE := 24.0
+
+
+func _dangle_process(dt: float) -> void:
+	if _dangles.is_empty() or skel == null:
+		return
+	var cam = get_viewport().get_camera_3d() if is_inside_tree() else null
+	var d2 = cam.global_position.distance_squared_to(global_position) if cam != null else 0.0
+	if d2 > DANGLE_RANGE * DANGLE_RANGE or not is_visible_in_tree():
+		for d in _dangles:
+			if is_instance_valid(d):
+				d.reset()
+		return
+	# uzaktakiler seyrek güncellenir (birikmiş süreyle): yakında her kare, 10 m+ iki karede bir, 18 m+ üç karede bir
+	_dangle_acc += dt
+	_dangle_fr += 1
+	var every = 1 if d2 < 36.0 else (2 if d2 < 144.0 else 4)
+	if _dangle_fr % every != 0:
+		return
+	dt = minf(_dangle_acc, 0.05)
+	_dangle_acc = 0.0
+	if _dcol_bones.is_empty():
+		# gövde küreleri (model uzayı): kafa, boyun, omurga boyunca göğüs/sırt, kürek kemikleri, omuz, kol, kalça, kaba et, uyluk
+		var hr = maxf(skull_r.x, skull_r.z)
+		var defs = [["Head", hr * 0.95, skull_c], ["Neck", 0.06, null], ["Spine", 0.125, null], ["Chest", 0.13, null], ["UpperChest", 0.13, null], ["Hips", 0.14, null]]
+		var uc = skel.find_bone("UpperChest")
+		if uc >= 0:
+			for sx in [-1.0, 1.0]:
+				defs.append(["UpperChest", 0.1, _grest(uc).origin + Vector3(0.085 * sx, 0.02, -0.035)])   # kürek kemiği
+		var hb = skel.find_bone("Hips")
+		for sd in ["Left", "Right"]:
+			var sx = -1.0 if sd == "Left" else 1.0
+			var ua = skel.find_bone(sd + "UpperArm")
+			var la = skel.find_bone(sd + "LowerArm")
+			if ua >= 0:
+				defs.append([sd + "UpperArm", 0.07, null])
+				if la >= 0:
+					defs.append([sd + "UpperArm", 0.055, (_grest(ua).origin + _grest(la).origin) * 0.5])
+					defs.append([sd + "LowerArm", 0.045, null])
+			var ul = skel.find_bone(sd + "UpperLeg")
+			var ll = skel.find_bone(sd + "LowerLeg")
+			if ul >= 0:
+				defs.append([sd + "UpperLeg", 0.09, _grest(ul).origin + Vector3(0, -0.04, -0.03)])   # kaba et
+				if ll >= 0:
+					defs.append([sd + "UpperLeg", 0.08, (_grest(ul).origin + _grest(ll).origin) * 0.5])
+					defs.append([sd + "LowerLeg", 0.065, null])   # diz
+					var ft = skel.find_bone(sd + "Foot")
+					if ft >= 0:
+						defs.append([sd + "LowerLeg", 0.055, (_grest(ll).origin + _grest(ft).origin) * 0.5])   # baldır
+		for e in defs:
+			var bi = skel.find_bone(e[0])
+			if bi < 0:
+				continue
+			var g = _grest(bi)
+			var at = g.origin if e[2] == null else (e[2] as Vector3)
+			if e[2] == null and e[0] in ["Spine", "Chest", "UpperChest"]:
+				at = g.origin + Vector3(0, 0.02, -0.015)
+			_dcol_bones.append([bi, e[1], g.affine_inverse() * at, e[0] in ["Head", "Neck"]])   # kafa/boyun yumuşak: kafa derisine yatık saçı itmez
+	var sxf = skel.global_transform
+	var sc = sxf.basis.get_scale().x
+	var cols = []
+	for e in _dcol_bones:
+		cols.append([sxf * (skel.get_bone_global_pose(e[0]) * (e[2] as Vector3)), float(e[1]) * sc, e[3]])
+	var alive = []
+	for d in _dangles:
+		if is_instance_valid(d):
+			d.step(dt, cols)
+			alive.append(d)
+	_dangles = alive
+
+
 func _attachments() -> void:
 	var hc = _head_center()
 	var female: bool = look["gender"] == "f"
@@ -2876,11 +3251,12 @@ func _attachments() -> void:
 				var plate: Vector3 = bm[1]
 				var pl = MB.new()
 				pl.add("box", plate, Vector3(0.07, 0.03, 0.006), Color(0.8, 0.82, 0.86))
-				# arkada sarkan bağ uçları
+				# arkada düğüm + sarkan, rüzgârda dalgalanan iki bağ ucu (ikincil hareket)
 				var bz = skull_c.z - (plate.z - skull_c.z) - 0.005
-				pl.add("box", Vector3(-0.01, plate.y - 0.03, bz), Vector3(0.016, 0.07, 0.005), bc, Vector3(20, 0, 8))
-				pl.add("box", Vector3(0.01, plate.y - 0.03, bz), Vector3(0.016, 0.07, 0.005), bc, Vector3(20, 0, -10))
+				pl.add("box", Vector3(0, plate.y + 0.002, bz - 0.004), Vector3(0.026, 0.026, 0.014), bc.darkened(0.1))
 				_mesh_on("Head", pl.build(Props.toon()), Transform3D.IDENTITY)
+				for sx in [-1.0, 1.0]:
+					dangle_strip("Head", Vector3(0.008 * sx, plate.y, bz - 0.008), Vector3(0.16 * sx, -1.0, -0.22), 0.2, 0.024, bc, 0.16, Vector3(1, 0, 0))
 				var q = QuadMesh.new()
 				q.size = Vector2(0.058, 0.023)
 				var sm = StandardMaterial3D.new()
@@ -4672,6 +5048,7 @@ func react(world_dir: Vector3, amp: float, head := false, up := 0.0, heavy := 0.
 		return
 	var d = global_transform.basis.inverse() * world_dir
 	overlay.hit_react(d, amp, head, up, heavy)
+	dangle_kick(world_dir.normalized() * (1.5 + amp * 3.0 + heavy * 4.0) + Vector3.UP * up * 2.0)
 
 
 const STANCE_ID := {"samehada": "w_samehada", "gunbai": "w_gunbai", "raijin": "w_raijin", "uc_tirpan": "w_tirpan", "shibuki": "w_shibuki", "kabutowari": "w_kabuto", "ruzgar_bicak": "w_ruzgar", "kusanagi": "w_kusa", "kusarigama": "w_kgama"}
@@ -4717,6 +5094,7 @@ func _process(dt: float) -> void:
 		if overlay.key_t < 0.0:
 			_rest_tilt(on, dt)
 	_key_blade()
+	_dangle_process(dt)
 	if hit_flash > 0.0:
 		hit_flash = maxf(0.0, hit_flash - dt * 5.0)
 		for m in materials:
