@@ -59,7 +59,7 @@ const SETS := {
 		"parts": [["tek_kol_ust", Color(0.66, 0.14, 0.18), Color(0.66, 0.14, 0.18)], ["iwa_pant", Color(0.66, 0.14, 0.18), null], ["iwa_yelek", Color(0.3, 0.22, 0.15), null], ["eldiven", Color(0.08, 0.08, 0.1), null], ["sandalet", Color(0.08, 0.08, 0.1), Color(0.3, 0.3, 0.33)]]},
 	"set_akatsuki": {"name": "Akatsuki Shōzoku", "slot": "set", "price": 0, "rank": 3, "desc": "Kızıl bulutlu dik yakalı siyah pelerin, koyu pantolon.",
 		"stats": {"def": 12, "chakra": 30}, "c1": Color(0.08, 0.08, 0.1), "c2": Color(0.8, 0.1, 0.12),
-		"parts": [["uzun_gomlek", Color(0.12, 0.12, 0.14), Color(0.12, 0.12, 0.14)], ["ninja_pant", Color(0.12, 0.12, 0.14), null], ["akatsuki_pelerini", Color(0.08, 0.08, 0.1), Color(0.8, 0.1, 0.12)], ["sandalet", Color(0.4, 0.3, 0.45), Color(0.92, 0.92, 0.9)]]},
+		"parts": [["uzun_gomlek", Color(0.12, 0.12, 0.14), Color(0.12, 0.12, 0.14)], ["ninja_pant", Color(0.12, 0.12, 0.14), null], ["akatsuki_pelerini", Color(0.13, 0.14, 0.26), Color(0.72, 0.07, 0.14)], ["sandalet", Color(0.4, 0.3, 0.45), Color(0.92, 0.92, 0.9)]]},
 	"set_kage": {"name": "Kage Shōzoku", "slot": "set", "price": 0, "rank": 6, "desc": "Köyün liderinin beyaz cübbesi.",
 		"stats": {"def": 16, "chakra": 50, "hp": 30}, "c1": Color(0.95, 0.95, 0.92), "c2": Color(0.8, 0.2, 0.15),
 		"parts": [["uzun_gomlek", Color(0.15, 0.2, 0.33), Color(0.12, 0.12, 0.14)], ["ninja_pant", Color(0.15, 0.2, 0.33), null], ["kage_cubbesi", Color(0.95, 0.95, 0.92), Color(0.8, 0.2, 0.15)], ["sandalet", Color(0.12, 0.12, 0.14), Color(0.92, 0.92, 0.9)]]},
@@ -393,7 +393,7 @@ const ITEMS := {
 	"ame_yelek": {"name": "Yağmur Köyü Yeleği", "slot": "zirh", "price": 700, "rank": 2, "desc": "Gri, nem tutmayan dikişli yelek.", "stats": {"def": 8, "chakra": 15}, "look": {"vest_style": 2}, "c1": Color(0.45, 0.48, 0.52)},
 	"jonin_koyu": {"name": "Gece Taktik Yeleği", "slot": "zirh", "price": 900, "rank": 2, "desc": "Koyu zeytin rengi, parşömen cepli yelek.", "stats": {"def": 10, "speed": 0.02}, "look": {"vest_style": 0}, "c1": Color(0.2, 0.26, 0.18)},
 	# --- dış giysi
-	"akatsuki_pelerini": {"name": "Kızıl Bulut Pelerini", "slot": "dis", "price": 0, "rank": 3, "desc": "Akatsuki üyelerinin dik yakalı siyah pelerini; beyaz kenarlı kızıl bulutlar.", "stats": {"def": 10, "chakra": 50, "hp": 40}, "look": {"outer_style": "org_pelerin", "outer_pattern": 6}, "c1": Color(0.05, 0.05, 0.07), "c2": Color(0.78, 0.08, 0.1)},
+	"akatsuki_pelerini": {"name": "Kızıl Bulut Pelerini", "slot": "dis", "price": 0, "rank": 3, "desc": "Akatsuki üyelerinin dik yakalı siyah pelerini; beyaz kenarlı kızıl bulutlar.", "stats": {"def": 10, "chakra": 50, "hp": 40}, "look": {"outer_style": "org_pelerin", "outer_pattern": 6}, "c1": Color(0.13, 0.14, 0.26), "c2": Color(0.72, 0.07, 0.14)},
 	# köye özel Jōnin kıyafetleri (terfide verilir)
 	"konoha_jonin": {"name": "Konoha Jōnin Haorisi", "slot": "dis", "price": 0, "rank": 3, "desc": "Konoha jōninlerinin kısa yeşil-gri haorisi, sırtında girdap arması.", "stats": {"def": 6, "chakra": 30, "speed": 0.02}, "look": {"outer_style": "haori", "outer_pattern": 1}, "c1": Color(0.32, 0.4, 0.28), "c2": Color(0.75, 0.2, 0.15)},
 	"suna_jonin": {"name": "Suna Jōnin Pelerini", "slot": "dis", "price": 0, "rank": 3, "desc": "Kum fırtınasına dayanıklı bej pelerin ve omuz kayışı.", "stats": {"def": 6, "hp": 30, "speed": 0.02}, "look": {"outer_style": "kisa", "outer_pattern": 1}, "c1": Color(0.78, 0.68, 0.5), "c2": Color(0.45, 0.35, 0.25)},

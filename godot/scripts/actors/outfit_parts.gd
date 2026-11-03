@@ -27,6 +27,8 @@ static func mat_params(m: CharacterModel, mat: ShaderMaterial) -> void:
 	var acc = L.get("outer_accent")
 	mat.set_shader_parameter("outer_accent", Color(acc) if acc != null else Color(0.75, 0.12, 0.12))
 	mat.set_shader_parameter("outer_hem", _hem(m))
+	mat.set_shader_parameter("outer_top", m._bp("Neck").y)
+	mat.set_shader_parameter("sleeve_end", absf(m._bp("LeftHand").x) - 0.03)
 	if L.get("outer_style") in OUTER_SLEEVES:
 		mat.set_shader_parameter("outer_sleeves", 1)
 
@@ -43,10 +45,16 @@ static func garments(m: CharacterModel, g: Dictionary) -> void:
 	match m.look.get("outer_style"):
 		"org_pelerin":
 			# ayak bileğine inen kapalı örgüt pelerini + dik yüksek yaka
-			m._garment("org_pelerin", func(): return m._loft(g, 1, neck - 0.01, ank + 0.12, 26, torso, func(t, _a): return 0.055 + t * 0.13, 8,
+			m._garment("org_pelerin", func(): return m._loft(g, 1, neck - 0.01, ank + 0.14, 26, torso, func(t, _a): return 0.065 + t * 0.16, 8,
 				func(t, ang): return t > 0.55 and front.call(ang) < 0.12, hips - 0.06))
-			m._garment("org_yaka", func(): return m._loft(g, 1, neck - 0.03, ey - 0.035, 6, neck_f, func(t, _a): return 0.05 + t * 0.035, 8,
-				func(t, ang): return t > 0.45 and front.call(ang) < 0.32))
+			m._garment("org_yaka", func(): return m._loft(g, 1, neck - 0.03, ey - 0.025, 7, neck_f, func(t, _a): return 0.055 + t * 0.045, 8,
+				func(t, ang): return t > 0.5 and front.call(ang) < 0.3))
+			var ha = m._bp("LeftHand").x
+			var la = m._bp("LeftLowerArm").x
+			for sx in [-1.0, 1.0]:
+				# çan kol: dirsekten bileğe genişleyerek açılır (ağzı kırmızı astarlı, shader)
+				m._garment("org_kol%d" % int(sx), func(): return m._loft(g, 0, (la + 0.02) * sx, (ha - 0.02) * sx, 9, func(p): return signf(p.x) == sx and p.y > neck - 0.4,
+					func(t, _a): return 0.025 + t * t * 0.075, 8, null, -99.0, 18))
 		"panco":
 			# omuzlardan dökülen, eteği saçaklı panço
 			m._garment("panco", func(): return m._loft(g, 1, neck + 0.01, hips - 0.06, 16, torso, func(t, _a): return 0.05 + sqrt(t) * 0.15, 8,

@@ -43,10 +43,13 @@ uniform vec4 outer_accent : source_color = vec4(0.75, 0.12, 0.12, 1.0);
 uniform float outer_hem = 0.5;  // dış giysinin etek ucu (dinlenme pozu y)
 uniform bool gloves = false;
 uniform bool arm_wraps = false;
+uniform float outer_top = 1.45;   // dış giysinin yaka dibi (boyun) y — desen yerleşimi
+uniform float sleeve_end = 0.6;   // kol ağzı (bilek) |x| — çan kol astarı
 uniform int outer_sleeves = 0; // 1: dış giysi kolları (palto/haori)
 uniform bool foot_cover = false; // tabi: ayak tamamen kapalı
 uniform float foot_toe_z = 0.1;  // shinobi sandaleti: bu z'den öndeki parmaklar açık
 varying float slot_ov;
+varying float lining;   // 1: giysinin iç yüzü (astar)
 uniform vec4 face_a = vec4(0.0);   // çene genişliği, çene ucu, elmacık, burun (metre)
 uniform vec4 face_b = vec4(0.0);   // kaş çıkıntısı, işaret türü (0 yok, 1 burun yarası, 2 yanak çizgisi, 3 çil, 4 kırışık), -, -
 uniform vec4 face_ref = vec4(0.0, 1.7, 0.08, 0.0);
@@ -104,6 +107,10 @@ void vertex() {
 	rest = CUSTOM0.xyz;
 	eye_side = VERTEX.x;
 	slot_ov = CUSTOM0.w;
+	// astar: yüzey normali gövde/kol ekseninden içe bakıyor (sarım yönünden bağımsız; iç kopya bazen dışa dönük çıkıyordu)
+	bool arm_r = abs(rest.x) > 0.24 && rest.y > outer_top - 0.4;   // T-pozu kol: eksen x boyunca (omuz hizası)
+	vec3 radial = arm_r ? vec3(0.0, rest.y - (outer_top - 0.08), rest.z) : vec3(rest.x, 0.0, rest.z);
+	lining = dot(NORMAL, radial) < 0.0 ? 1.0 : 0.0;
 	if (palette_mode && layer == 0 && rest.y > face_ref.y - 0.2) {
 		vec3 p = rest;
 		float ey = face_ref.y; float ez = face_ref.z;
@@ -458,17 +465,35 @@ void fragment() {
 					if (dh < 0.04) c.rgb = outer_accent.rgb * 0.8;
 				}
 				if (outer_pattern == 6) {
-					// beyaz kenarlı kızıl bulutlar
-					vec2 q = vec2(oa * 0.95, rest.y * 2.3);
-					vec2 cell = floor(q);
-					vec2 f = (fract(q) - 0.5) * vec2(1.0, 1.25);
-					if (mod(cell.x + cell.y, 2.0) < 0.5 && hash(cell) > 0.2) {
-						// üç tümsekli bulut + düz taban, kalın beyaz kontur
-						float d = min(min(length(f - vec2(-0.2, -0.02)) - 0.13, length(f - vec2(0.0, 0.07)) - 0.17), length(f - vec2(0.2, 0.0)) - 0.12);
-						d = min(d, max(abs(f.y + 0.06) - 0.08, abs(f.x) - 0.3));
-						d = max(d, -(f.y + 0.15));
-						if (d < 0.0) c.rgb = outer_accent.rgb; else if (d < 0.045) c.rgb = vec3(0.95, 0.94, 0.92);
+					// Akatsuki (ref akatsukiset.png): göğüs ortasında büyük kızıl bulut, eteğin iki yanında birer bulut, sırtta aynı düzen;
+					// beyaz kalın kontur + sarmal; önde boydan boya kırmızı kapanış çizgisi; astar (iç yüz, kol ağzı, yaka içi) kırmızı
+					vec2 pf = vec2(rest.z >= 0.0 ? rest.x : -rest.x, rest.y);
+					float cd = 9.0; float sw = 9.0;
+					vec3 cl[3] = vec3[3](vec3(0.0, outer_top - 0.3, 0.19), vec3(-0.17, outer_hem + 0.32, 0.16), vec3(0.2, outer_hem + 0.5, 0.16));
+					if (abs(rest.x) < sleeve_end - 0.12) {
+						for (int ci = 0; ci < 3; ci++) {
+							vec2 p = (pf - cl[ci].xy) / cl[ci].z;
+							// üç tümsek + yanda küçük kıvrım, düz-dalgalı taban
+							float d = length(p - vec2(-0.48, -0.08)) - 0.34;
+							d = min(d, length(p - vec2(-0.05, 0.2)) - 0.42);
+							d = min(d, length(p - vec2(0.42, 0.02)) - 0.34);
+							d = min(d, length(p - vec2(0.78, -0.2)) - 0.2);
+							d = min(d, length(p - vec2(-0.85, -0.25)) - 0.18);
+							d = max(d, -(p.y + 0.42 + 0.05 * sin(p.x * 9.0)));
+							cd = min(cd, d);
+							// sarmal: büyük tümseğin içinde beyaz kıvrım
+							vec2 sp = p - vec2(-0.05, 0.16);
+							float sa = atan(sp.y, sp.x);
+							float sr = length(sp);
+							float spiral = abs(fract((sr - 0.06 * (sa + 3.1416)) / 0.19) - 0.5) * 0.19;
+							if (sr < 0.3 && sr > 0.05 && sa > -1.2) sw = min(sw, spiral);
+						}
 					}
+					float ow = 0.07;   // beyaz kontur (bulut biriminde)
+					if (cd < 0.0) c.rgb = sw < 0.022 ? vec3(0.95, 0.94, 0.92) : outer_accent.rgb;
+					else if (cd < ow) c.rgb = vec3(0.95, 0.94, 0.92);
+					if (rest.z > 0.0 && abs(rest.x) < 0.007 && rest.y < outer_top + 0.2) c.rgb = outer_accent.rgb;   // ön kapanış çizgisi
+					if (lining > 0.5) c.rgb = outer_accent.rgb * 0.85;   // astar + kol ağzı
 				}
 				if (outer_pattern == 4) c.rgb *= 0.8 + 0.32 * step(0.45, fract(oa * 22.0 + vnoise(rest.xy * 30.0) * 0.6));
 				if (outer_pattern == 5) c.rgb *= 1.0 - 0.35 * smoothstep(0.25, 0.0, dh) * vnoise(rest.xz * 40.0) - 0.15 * smoothstep(0.55, 0.8, vnoise(rest.xy * 9.0));

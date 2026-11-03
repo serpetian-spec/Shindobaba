@@ -873,7 +873,7 @@ func _cloth_mat(layer: int) -> ShaderMaterial:
 	const OPEN_GAP := {"haori": 0.031, "haori_uzun": 0.029, "jinbaori": 0.038, "palto": 0.025}
 	mat.set_shader_parameter("outer_cover", 0 if os_ in ["", "atki", "kisa", "kesa"] else (1 if OPEN_GAP.has(os_) else 2))
 	mat.set_shader_parameter("outer_gap", float(OPEN_GAP.get(os_, 0.075)))
-	mat.set_shader_parameter("outer_sleeves", 1 if look.get("outer_style") in ["palto", "haori"] else 0)
+	mat.set_shader_parameter("outer_sleeves", 1 if look.get("outer_style") in ["palto", "haori", "org_pelerin"] else 0)
 	mat.set_shader_parameter("foot_cover", look.get("foot_style", "sandal") == "tabi")
 	var fz = 0.12
 	var fy = _grest(skel.find_bone("LeftFoot")).origin.y
@@ -1441,7 +1441,7 @@ func _skinned_mesh(g: Dictionary, verts: PackedVector3Array, custom: PackedFloat
 	for i in n:
 		all_v.append(verts[i] - nrm[i] * 0.003)
 		all_n.append(-nrm[i])
-	all_c.append_array(custom)
+	all_c.append_array(custom)   # iç yüz kopyası (astar shader'da normal yönünden ayırt edilir)
 	all_b.append_array(bones)
 	all_w.append_array(weights)
 	var all_i = idx.duplicate()
