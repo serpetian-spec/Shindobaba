@@ -74,8 +74,10 @@ func _ready() -> void:
 	sun = DirectionalLight3D.new()
 	sun.shadow_enabled = Game.settings["shadows"]
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
-	sun.directional_shadow_max_distance = 220.0
-	sun.shadow_blur = 1.5
+	sun.directional_shadow_max_distance = 170.0   # 220 -> 170: aynı gölge haritası daha dar alana, yakında keskin + ucuz
+	sun.directional_shadow_blend_splits = true    # katman sınırında gölge kalitesi sıçramasın
+	sun.directional_shadow_fade_start = 0.75      # uzak uçta gölge yavaşça söner (çizgi gibi kesilmesin)
+	sun.shadow_blur = 1.2
 	sun.light_angular_distance = 0.5
 	add_child(sun)
 

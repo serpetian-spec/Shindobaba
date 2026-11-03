@@ -26,6 +26,7 @@ const DENS := {2: [0.0125, [9, 9, 9, 9, 9, 0, 0, 8, 10, 10, 12, 6, 13, 14, 15, 1
 
 var meshes = {}
 var lods = {}
+var fars = {}   # anime ağaçları: çok uzak kademe
 ## görünen gövde yarıçapları (çarpışma görselle birebir olsun: ayak havada kalmasın)
 var radii = {0: 0.38, 1: 0.36, 2: 0.3, 3: 0.36, 4: 1.0, 5: 3.2, 6: 0.0, 7: 0.25, 8: 0.0, 9: Props.FOREST_TRUNK_R, 10: 0.0, 11: 1.0, 12: 0.0,
 	13: 0.0, 14: 0.0, 15: 0.0, 16: 0.0, 17: 0.0, 18: 0.0, 19: 0.0, 20: 0.0}
@@ -51,7 +52,7 @@ func _ready() -> void:
 		# prosedürel bitki örtüsü (hazır model ağaçlar doğal durmuyordu, kaldırıldı): yakın tam model + uzak LOD
 		meshes[t] = [[Props.vegetation_mesh(t), null]]
 		var_count[t] = 1
-		if t in [0, 9]:   # anime ağaçları: birkaç çeşit (geniş / ince / meşe; orman devlerinde iki farklı taç)
+		if t in [0, 9, 1]:   # anime ağaçları (çam: köknar / kara çam): birkaç çeşit (geniş / ince / meşe; orman devlerinde iki farklı taç)
 			meshes[t] = []
 			for vv in (3 if t == 0 else 2):
 				meshes[t].append([Props.vegetation_mesh(t, vv), null])
@@ -64,6 +65,7 @@ func _ready() -> void:
 				meshes[t].append([Props.flower_mesh(v), null])
 			var_count[t] = Props.FLOWER_KINDS
 		lods[t] = Props.vegetation_lod(t)
+		fars[t] = Props.vegetation_far(t)
 	for t in CONVEX:
 		convex[t] = []
 		for v in meshes[t]:
@@ -392,13 +394,24 @@ func _install(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 		else:
 			var a = _mmi(node, pv[0], buf, n, 0.0, near_end if has_lod or t in SMALL else FAR_R * 1.2 * view)
 			a.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if not t in SMALL else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			if has_lod and not t in SMALL and t in Props.ANIME_T:
+				# anime ağacı: gölgeyi az kartlı uzak modelden at (tam taçtaki yüzlerce alfa-kesmeli kart x 4 gölge katmanı pahalı);
+				# gölge mesafesi zaten kısa (~150 m), yakın model yalnız görünür geçişte çizilir
+				a.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				var sh2 = _mmi(node, Props.vegetation_shadow(t, vi), buf, n, 0.0, minf(near_end, 200.0))
+				sh2.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_SHADOWS_ONLY
 		if has_lod and not lod_done.has(t):
 			lod_done[t] = true
 			var all_buf := PackedFloat32Array()
 			for bk2 in bufs:
 				if int(bk2) / 100 == t:
 					all_buf.append_array(bufs[bk2])
-			var lb = _mmi(node, lods[t], all_buf, all_buf.size() / 16, near_end, FAR_R * 1.2 * view)
+			var mid_end = FAR_R * 1.2 * view
+			if fars.get(t) != null:
+				mid_end = maxf(near_end + 120.0, 700.0 * view)
+				var fb = _mmi(node, fars[t], all_buf, all_buf.size() / 16, mid_end, FAR_R * 1.2 * view)
+				fb.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			var lb = _mmi(node, lods[t], all_buf, all_buf.size() / 16, near_end, mid_end)
 			lb.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	chunks[key] = {"node": node, "detail": detail, "trees": holder.get("trees", [])}
 	if detail:
@@ -453,7 +466,7 @@ func _mmi(parent: Node3D, mesh: Mesh, buf: PackedFloat32Array, n: int, begin: fl
 	mmi.layers = 2
 	mmi.multimesh = mm
 	mmi.visibility_range_begin = begin
-	mmi.visibility_range_begin_margin = 25.0 if begin > 0.0 else 0.0
+	mmi.visibility_range_begin_margin = 40.0 if begin > 0.0 else 0.0   # yakın/uzak model çapraz geçişi simetrik (dither fade)
 	mmi.visibility_range_end = end
 	mmi.visibility_range_end_margin = 40.0
 	mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF

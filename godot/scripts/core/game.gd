@@ -600,7 +600,7 @@ func apply_graphics() -> void:
 	var env = world.get("env")
 	if env:
 		env.sun.shadow_enabled = bool(settings["shadows"])
-		env.sun.directional_shadow_max_distance = [90.0, 140.0, 220.0][q]
+		env.sun.directional_shadow_max_distance = [80.0, 120.0, 170.0][q]
 		env.sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS if q < 2 else DirectionalLight3D.SHADOW_PARALLEL_4_SPLITS
 		if env.post:
 			env.post.visible = bool(settings["outline"])

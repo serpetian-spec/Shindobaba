@@ -29,8 +29,8 @@ const KEEP := {
 
 ## iklim -> bahçe takımı
 const KITS := {
-	"green": {"tree": [0, 0, 0, 1], "bush": 18, "planter": true, "hedge": LEAF, "pots": true, "well": true, "laundry": true,
-		"bamboo": true, "sakura": true, "pond": true, "street_tree": [0, 0, 1], "ring": STONE},
+	"green": {"tree": [0, 0, 0, 0], "bush": 18, "planter": true, "hedge": LEAF, "pots": true, "well": true, "laundry": true,
+		"bamboo": true, "sakura": true, "pond": true, "street_tree": [0, 0, 0], "ring": STONE},
 	"mist": {"tree": [1, 1, 0], "bush": 18, "planter": true, "hedge": Color(0.28, 0.5, 0.3), "pots": true, "well": true, "laundry": true,
 		"bamboo": true, "sakura": false, "pond": true, "street_tree": [1, 0], "ring": Color(0.55, 0.6, 0.64)},
 	"rock": {"tree": [1, 1, 0], "bush": 18, "planter": false, "hedge": Color(0.3, 0.5, 0.26), "pots": true, "well": true, "laundry": true,
@@ -64,6 +64,9 @@ static func veg(t: int) -> Mesh:
 # ------------------------------------------------------------------ meshler (bir kez kurulur)
 static func mesh(name: String) -> Mesh:
 	if _meshes.has(name):
+		return _meshes[name]
+	if name == "sakura":   # anime sakura (AnimeTree): eski küre taç kaldırıldı
+		_meshes[name] = AnimeTree.mesh("broad", "sakura", 7)
 		return _meshes[name]
 	var b = MB.new()
 	var leafy := false

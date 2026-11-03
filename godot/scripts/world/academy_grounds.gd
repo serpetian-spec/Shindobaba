@@ -49,7 +49,7 @@ static func dress(b: Builder, cx: float, front_n: float, half_w: float, depth: f
 		b.pack_mesh(_vm(t), Vector3(x, g.call(x, n) - 0.15, n), rng.randf() * 360.0, sc, 1.0)
 		b._collide_cyl(b.w(Vector3(x, g.call(x, n) + 2.5 * sc, n)), 0.4 * sc, 5.0 * sc)
 	var green = climate != "desert"
-	var tree_types = [0, 0, 1] if climate == "green" else ([7, 7, 3] if climate == "desert" else [1, 0, 1])
+	var tree_types = [0, 0, 0] if climate == "green" else ([7, 7, 3] if climate == "desert" else [1, 0, 1])
 	var bush_t = 18 if green else 17
 
 	# ---- alçak taş duvar + ahşap korkuluk (güney ortasında kapı)

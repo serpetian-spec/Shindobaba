@@ -243,16 +243,21 @@ static func flower_mesh(v: int) -> ArrayMesh:
 
 
 ## Anime ağaçları (AnimeTree, ref tree1..10): orman/geniş yapraklı/Ölüm Ormanı/çalı
-const ANIME_T := {0: ["broad", "green"], 5: ["giant", "death"], 8: ["bush", "bush"], 9: ["forest", "forest"], 18: ["bush", "bush"]}
+const ANIME_T := {0: ["broad", "green"], 1: ["fir", "fir"], 2: ["dead", "dead"], 5: ["giant", "death"], 6: ["bamboo", "bamboo"], 7: ["palm", "palm"],
+	8: ["bush", "bush"], 9: ["forest", "forest"], 18: ["bush", "bush"]}
 
 
 static func vegetation_mesh(t: int, variant := 0) -> ArrayMesh:
 	if ANIME_T.has(t):
 		var k: Array = ANIME_T[t]
 		var kind: String = k[0]
+		var pl: String = k[1]
 		if t == 0:
 			kind = ["broad", "slender", "oak"][variant % 3]
-		return AnimeTree.mesh(kind, k[1], variant)
+		elif t == 1 and variant % 2 == 1:
+			kind = "pine"   # Japon kara çamı (eğri gövde, yassı pedler)
+			pl = "pine"
+		return AnimeTree.mesh(kind, pl, variant)
 	var b = MB.new()
 	var bark = Color(0.4, 0.27, 0.17)
 	match t:
@@ -390,8 +395,31 @@ static func vegetation_mesh(t: int, variant := 0) -> ArrayMesh:
 
 
 ## Uzak mesafe (LOD) modeli: aynı silüet, çok az poligon
+## Anime ağacının gölge modeli: aynı çeşidin az kartlı kopyası (silüet birebir, maliyet düşük)
+static func vegetation_shadow(t: int, variant := 0) -> ArrayMesh:
+	var k: Array = ANIME_T[t]
+	var kind: String = k[0]
+	var pl: String = k[1]
+	if t == 0:
+		kind = ["broad", "slender", "oak"][variant % 3]
+	elif t == 1 and variant % 2 == 1:
+		kind = "pine"
+		pl = "pine"
+	elif t == 9 and variant == 2:
+		pl = "death"
+	return AnimeTree.mesh(kind, pl, variant, true)
+
+
+## Çok uzak kademe (700 m+): ağaç başına birkaç düzine üçgen
+static func vegetation_far(t: int) -> ArrayMesh:
+	if not t in [0, 1, 2, 5, 6, 7, 9]:
+		return null
+	var k: Array = ANIME_T[t]
+	return AnimeTree.mesh(k[0], k[1], 0, true, true)
+
+
 static func vegetation_lod(t: int) -> ArrayMesh:
-	if t in [0, 5, 9]:
+	if t in [0, 1, 2, 5, 6, 7, 9]:
 		var k: Array = ANIME_T[t]
 		return AnimeTree.mesh(k[0], k[1], 0, true)
 	var b = MB.new()

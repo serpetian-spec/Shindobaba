@@ -29,7 +29,10 @@ void vertex() {
 
 void fragment() {
 	vec4 t = texture(leaf_tex, UV);
-	if (t.a < alpha_cut) discard;
+	// discard yerine alfa-kesme: Godot görünürlük aralığı geçişini (dither fade) uygulayabilsin; yoksa uzak/yakın
+	// model değişimi ve uzakta kayboluş sert "pop" oluyordu
+	ALPHA = t.a;
+	ALPHA_SCISSOR_THRESHOLD = alpha_cut;
 	// yaprak parlaklığı tona çarpılır: açık yapraklar canlı sarı-yeşile, koyular derin yeşile kayar
 	float b = t.r;
 	vec3 vc = COLOR.rgb;

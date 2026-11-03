@@ -337,7 +337,15 @@ func finish() -> void:
 		# ağır modeller (köy ağacı ~860 üçgen; Konoha'da binlercesi 1.5 km'ye dek ~17 M üçgen): uzakta sadeleştirilmiş kopya
 		var near = PACK_NEAR * float(Game.settings["view"])
 		var lv = [[pe[0], 0.0, end]]
-		if pe[0] is ArrayMesh and end > near + 50.0 and _tris(pe[0]) > 300:
+		if pe[0] is ArrayMesh and (pe[0] as ArrayMesh).has_meta("anime_tree"):
+			# anime ağacı: yakın tam taç -> az kartlı orta -> birkaç kartlı çok uzak (dither geçişli)
+			var at: Array = (pe[0] as ArrayMesh).get_meta("anime_tree")
+			var mid = maxf(near + 80.0, 600.0 * float(Game.settings["view"]))
+			if end > near + 50.0:
+				lv = [[pe[0], 0.0, near], [AnimeTree.mesh(at[0], at[1], at[2], true), near, minf(mid, end)]]
+				if end > mid + 50.0:
+					lv.append([AnimeTree.mesh(at[0], at[1], at[2], true, true), mid, end])
+		elif pe[0] is ArrayMesh and end > near + 50.0 and _tris(pe[0]) > 300:
 			lv = [[pe[0], 0.0, near], [AssetLib.lod(pe[0], 0.15), near, end]]
 		for l in lv:
 			var mm = MultiMesh.new()
@@ -355,8 +363,8 @@ func finish() -> void:
 			mmi.visibility_range_begin_margin = 20.0 if l[1] > 0.0 else 0.0
 			mmi.visibility_range_end = l[2]
 			mmi.visibility_range_end_margin = 60.0 if l[2] == end else 20.0
-			if l[2] == end:
-				mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+			if l[2] == end or (l[0] is ArrayMesh and (l[0] as ArrayMesh).has_meta("anime_tree")):
+				mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF   # ağaç kademeleri dither ile geçer (pop yok)
 			if l[1] > 0.0:
 				mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			root.add_child(mmi)

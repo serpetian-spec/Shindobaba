@@ -49,25 +49,13 @@ static func tree(b: Builder, x: float, n: float, y: float, climate: String, rng:
 	if b._underwater(x, n, y):
 		return
 	match climate:
-		"desert":
-			var h = rng.randf_range(6.5, 9.0) * s
-			var lean = rng.randf_range(-6, 6)
-			for k in 6:
-				b.cyl(Vector3(x + lean * 0.02 * k, y + h * (k + 0.5) / 6.0, n), (0.62 - k * 0.05) * s, h / 6.0 + 0.05, Color(0.55, 0.42, 0.28).darkened(0.08 * (k % 2)), k == 0, 8)
-			var top = Vector3(x + lean * 0.12, y + h, n)
-			for k in 8:
-				var a = k * 45.0 + rng.randf_range(-10, 10)
-				var L = rng.randf_range(3.2, 4.2) * s
-				var o = Builder.rot(0, L * 0.45, a)
-				b.box(top + Vector3(o.x, -0.5, o.y), Vector3(1.0 * s, 0.08, L), Color(0.3, 0.55, 0.25).lightened(rng.randf_range(-0.05, 0.08)), a, false, Vector3(18, 0, 0))
-			b.sphere(top + Vector3(0, -0.2, 0), Vector3(1.0, 0.8, 1.0) * s, Color(0.45, 0.35, 0.2), 8)
-		"mist", "rock", "cloud":
-			var h = rng.randf_range(7.0, 10.0) * s
-			b.cyl(Vector3(x, y + h * 0.25, n), 0.55 * s, h * 0.5, Color(0.4, 0.28, 0.18), true, 7)
-			var g = Color(0.18, 0.4, 0.26) if climate != "cloud" else Color(0.22, 0.46, 0.3)
-			for k in 4:
-				var t = float(k) / 4.0
-				b.cone(Vector3(x, y + h * (0.32 + t * 0.55), n), (4.8 - k * 1.0) * s, h * 0.34, g.lightened(k * 0.04), 9)
+		"desert":   # anime hurma palmiyesi (AnimeTree)
+			b.pack_mesh(AnimeTree.mesh("palm", "palm", rng.randi() % 3), Vector3(x, y, n), rng.randf() * 360.0, s * rng.randf_range(0.9, 1.1), 1.0)
+			b._collide_cyl(b.w(Vector3(x, y + 3.0 * s, n)), 0.3 * s, 6.0 * s)
+		"mist", "rock", "cloud":   # anime köknar / kara çam
+			var pine = rng.randf() < 0.4
+			b.pack_mesh(AnimeTree.mesh("pine" if pine else "fir", "pine" if pine else "fir", rng.randi() % 3), Vector3(x, y, n), rng.randf() * 360.0, s * rng.randf_range(0.7, 0.85), 1.0)
+			b._collide_cyl(b.w(Vector3(x, y + 3.0 * s, n)), 0.35 * s, 6.0 * s)
 		_:
 			b.tree(x, n, s * rng.randf_range(0.95, 1.2), rng, y)
 

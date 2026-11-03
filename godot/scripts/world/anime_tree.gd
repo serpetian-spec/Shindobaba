@@ -14,21 +14,32 @@ const PAL := {
 	"momiji": [Color(1.0, 0.66, 0.24), Color(0.94, 0.34, 0.14), Color(0.56, 0.1, 0.07)],
 	"ginkgo": [Color(1.0, 0.94, 0.42), Color(0.98, 0.8, 0.24), Color(0.72, 0.52, 0.08)],
 	"bush": [Color(0.6, 0.86, 0.3), Color(0.3, 0.62, 0.2), Color(0.1, 0.32, 0.14)],
+	"pine": [Color(0.42, 0.68, 0.36), Color(0.18, 0.44, 0.28), Color(0.05, 0.2, 0.14)],
+	"fir": [Color(0.36, 0.62, 0.42), Color(0.14, 0.38, 0.28), Color(0.04, 0.17, 0.13)],
+	"bamboo": [Color(0.7, 0.9, 0.36), Color(0.4, 0.68, 0.24), Color(0.14, 0.36, 0.14)],
+	"palm": [Color(0.62, 0.84, 0.32), Color(0.32, 0.6, 0.2), Color(0.12, 0.32, 0.12)],
+	"dead": [Color(0.5, 0.45, 0.4), Color(0.4, 0.36, 0.32), Color(0.3, 0.26, 0.23)],
 }
 const BARK := {"green": Color(0.43, 0.35, 0.28), "forest": Color(0.45, 0.39, 0.32), "death": Color(0.31, 0.26, 0.21),
-	"sakura": Color(0.32, 0.24, 0.22), "momiji": Color(0.38, 0.28, 0.2), "ginkgo": Color(0.46, 0.38, 0.28), "bush": Color(0.4, 0.32, 0.24)}
+	"sakura": Color(0.32, 0.24, 0.22), "momiji": Color(0.38, 0.28, 0.2), "ginkgo": Color(0.46, 0.38, 0.28), "bush": Color(0.4, 0.32, 0.24),
+	"pine": Color(0.36, 0.28, 0.24), "fir": Color(0.38, 0.3, 0.25), "bamboo": Color(0.52, 0.7, 0.3), "palm": Color(0.56, 0.45, 0.32),
+	"dead": Color(0.46, 0.42, 0.38)}
+const TEX := {"leaf": "res://assets/tex/anime_leaf.png", "needle": "res://assets/tex/anime_needle.png",
+	"bamboo": "res://assets/tex/anime_bamboo.png", "frond": "res://assets/tex/anime_frond.png"}
 
 static var _leaf_m: ShaderMaterial
 static var _bark_m: ShaderMaterial
 static var _cache := {}
 
 
-static func leaf_mat() -> ShaderMaterial:
-	if _leaf_m == null:
-		_leaf_m = ShaderMaterial.new()
-		_leaf_m.shader = load("res://shaders/anime_leaf.gdshader")
-		_leaf_m.set_shader_parameter("leaf_tex", load("res://assets/tex/anime_leaf.png"))
-	return _leaf_m
+static var _mats := {}
+static func leaf_mat(tex := "leaf") -> ShaderMaterial:
+	if not _mats.has(tex):
+		var m = ShaderMaterial.new()
+		m.shader = load("res://shaders/anime_leaf.gdshader")
+		m.set_shader_parameter("leaf_tex", load(TEX[tex]))
+		_mats[tex] = m
+	return _mats[tex]
 
 
 static func bark_mat() -> ShaderMaterial:
@@ -40,17 +51,19 @@ static func bark_mat() -> ShaderMaterial:
 
 
 ## kind: broad / oak / slender / forest / giant / bush; pal: PAL anahtarı; lod: uzak kopya (öbek başına tek kart, ince gövde)
-static func mesh(kind: String, pal := "green", seed := 0, lod := false) -> ArrayMesh:
-	var key = "%s|%s|%d|%s" % [kind, pal, seed, lod]
+static func mesh(kind: String, pal := "green", seed := 0, lod := false, far := false) -> ArrayMesh:
+	var key = "%s|%s|%d|%s|%s" % [kind, pal, seed, lod, far]
 	if _cache.has(key):
 		return _cache[key]
 	var t = AnimeTree.new()
 	t.rng.seed = hash(key)
 	t.pal = PAL.get(pal, PAL["green"])
 	t.bark = BARK.get(pal, BARK["green"])
-	t.lod = lod
+	t.lod = lod or far
+	t.far = far
 	t.call("_" + kind)
 	var m = t._commit()
+	m.set_meta("anime_tree", [kind, pal, seed])   # Builder paketleri: kendi orta/uzak kademeleri (genel sadeleştirici kartları bozar)
 	_cache[key] = m
 	return m
 
@@ -59,6 +72,8 @@ var rng := RandomNumberGenerator.new()
 var pal: Array
 var bark: Color
 var lod := false
+var far := false   # çok uzak kademe (700 m+): taçta birkaç büyük kart, 3 kenarlı gövde
+var tex := "leaf"
 var sb := SurfaceTool.new()   # gövde
 var sl := SurfaceTool.new()   # yaprak kartları
 var nb := 0
@@ -77,7 +92,7 @@ func _commit() -> ArrayMesh:
 		m.surface_set_material(m.get_surface_count() - 1, bark_mat())
 	if nl > 0:
 		sl.commit(m)
-		m.surface_set_material(m.get_surface_count() - 1, leaf_mat())
+		m.surface_set_material(m.get_surface_count() - 1, leaf_mat(tex))
 	return m
 
 
@@ -85,7 +100,9 @@ func _commit() -> ArrayMesh:
 ## a -> b sivrilen dal/gövde (kesit seg kenar); renk dibe doğru koyulaşır
 func limb(a: Vector3, b: Vector3, r0: float, r1: float, seg := 7) -> void:
 	if lod:
-		seg = 4
+		seg = 4 if not far else 3
+	if far and r0 < 0.2:
+		return   # çok uzakta ince dallar görünmez
 	var ax := b - a
 	var L := ax.length()
 	if L < 0.01:
@@ -132,20 +149,25 @@ func roots(r: float, n: int, spread: float) -> void:
 
 # ------------------------------------------------------------------ yaprak öbekleri
 ## c merkezli, r yarıçaplı öbek; cc taç merkezi (normal yönü), y0..y1 taç boyu (renk açılması)
-func clump(c: Vector3, r: float, cc: Vector3, y0: float, y1: float, cards := 6, tone := 0.0) -> void:
-	if lod:
-		cards = 2   # uzak kopya: öbek başına iki çapraz büyük kart (seyrek "çubuk" görünmesin)
+func clump(c: Vector3, r: float, cc: Vector3, y0: float, y1: float, cards := 6, tone := 0.0, flat := 0.0) -> void:
+	if far:
+		if rng.randf() < 0.65:
+			return   # çok uzak: öbeklerin çoğu atlanır, kalanlar büyür
+		cards = 1
+		r *= 1.7
+	elif lod:
+		cards = mini(cards, 3)   # uzak kopya: öbek başına üç kart (yakın modele benzesin: geçişte silüet değişmesin)
 	var jit = rng.randf_range(-0.05, 0.05) + tone
 	for i in cards:
-		var off := Vector3(rng.randf_range(-1, 1), rng.randf_range(-0.7, 0.8), rng.randf_range(-1, 1)) * r * (0.45 if not lod else 0.1)
+		var off := Vector3(rng.randf_range(-1, 1), rng.randf_range(-0.7, 0.8) * (1.0 - flat * 0.7), rng.randf_range(-1, 1)) * r * (0.45 if not lod else 0.3)
 		var p := c + off
-		var size := r * (rng.randf_range(1.15, 1.55) if not lod else 2.7)
+		var size := r * (rng.randf_range(1.15, 1.55) if not lod else rng.randf_range(1.6, 1.9))
 		var out := (p - cc)
 		out = out.normalized() if out.length() > 0.01 else Vector3.UP
 		var rnd := Vector3(rng.randf_range(-1, 1), rng.randf_range(-1, 1), rng.randf_range(-1, 1)).normalized()
 		var nrm := out.lerp(rnd, 0.55).normalized()
-		if lod:
-			nrm = (out + Vector3(0, 0.3, 0)).normalized().rotated(Vector3.UP, PI * 0.5 * i)
+		if flat > 0.0:   # iğne pedi: kartlar yataya yakın (yassı bulut katmanları)
+			nrm = nrm.lerp(Vector3.UP, flat).normalized()
 		var u := nrm.cross(Vector3.UP if absf(nrm.y) < 0.9 else Vector3.RIGHT).normalized()
 		var v := nrm.cross(u)
 		var rot := rng.randf() * TAU
@@ -160,6 +182,9 @@ func clump(c: Vector3, r: float, cc: Vector3, y0: float, y1: float, cards := 6, 
 			var pp: Vector3 = cr[0]
 			var h := clampf((pp.y - y0) / maxf(0.5, y1 - y0) + jit, 0.0, 1.0)
 			var col: Color = (pal[2] as Color).lerp(pal[1], smoothstep(0.0, 0.55, h)).lerp(pal[0], smoothstep(0.55, 1.0, h) * 0.75)
+			# taç içi ortam gölgesi: merkeze yakın / içe bakan kartlar koyulaşır (taç düz değil hacimli görünsün)
+			var depth := clampf((pp - cc).length() / maxf(1.0, (y1 - y0) * 0.5), 0.0, 1.0)
+			col = col.lerp(pal[2], (1.0 - smoothstep(0.35, 0.9, depth)) * 0.45)
 			var on := (pp - cc)
 			var vn := (on.normalized() * 0.75 + (pp - c).normalized() * 0.25 + Vector3(0, 0.12, 0)).normalized()
 			vs.append([pp, cr[1], col, vn])
@@ -195,6 +220,8 @@ func crown(cc: Vector3, rad: Vector3, n: int, cr: float, bottom := -0.35) -> Arr
 
 ## Gövde ucundan taçtaki öbeklere uzanan dallar (taçın içinde dallanma görünür)
 func branches_to(from: Vector3, tips: Array, k: int, r0: float) -> void:
+	if far:
+		return
 	var picks = tips.duplicate()
 	picks.shuffle()
 	for i in mini(k, picks.size()):
@@ -289,3 +316,158 @@ func _bush() -> void:
 		var p = cc + Vector3(cos(a) * 0.7, rng.randf_range(-0.1, 0.35), sin(a) * 0.7)
 		clump(p, 0.85, cc - Vector3(0, 0.4, 0), 0.0, 1.5, 4)
 	clump(cc + Vector3(0, 0.45, 0), 0.95, cc - Vector3(0, 0.4, 0), 0.0, 1.5, 4)
+
+
+# ------------------------------------------------------------------ iğne yapraklılar, bambu, palmiye, kuru ağaç
+## Japon kara çamı (kuromatsu; ref w_Pinus_thunbergii): eğri, yana yatık gövde; yatay dallarda yassı iğne pedleri (bulut katmanları)
+func _pine() -> void:
+	tex = "needle"
+	var lean = Vector3(rng.randf_range(0.8, 1.4), 0, rng.randf_range(-0.4, 0.4))
+	var pts = [Vector3.ZERO, Vector3(0.3, 3.2, 0) + lean * 0.3, Vector3(0, 6.5, 0) + lean * 1.0, Vector3(0, 9.5, 0) + lean * 0.7, Vector3(0, 11.5, 0) + lean * 0.4]
+	var rr = [0.42, 0.34, 0.26, 0.18, 0.08]
+	for i in pts.size() - 1:
+		limb(pts[i], pts[i + 1], rr[i], rr[i + 1], 7)
+	roots(0.4, 4, 0.7)
+	for k in 6:   # yatay dallar + uçlarında ped kümeleri
+		var t = 0.35 + k * 0.11
+		var seg = mini(int(t * 4.0), 3)
+		var base: Vector3 = (pts[seg] as Vector3).lerp(pts[seg + 1], t * 4.0 - seg)
+		var a = k * 2.4 + rng.randf_range(-0.4, 0.4)
+		var d = Vector3(cos(a), 0, sin(a))
+		var L = rng.randf_range(2.6, 4.2) * (1.0 - k * 0.08)
+		var tip = base + d * L + Vector3(0, rng.randf_range(0.2, 0.8), 0)
+		limb(base, tip, 0.13, 0.05, 5)
+		var pc = tip + Vector3(0, 0.3, 0)
+		for q in 3:
+			clump(pc + Vector3(rng.randf_range(-1, 1), rng.randf_range(0.0, 0.4), rng.randf_range(-1, 1)) * 0.9 - d * q * 0.7, 1.5, pc - Vector3(0, 1.0, 0), pc.y - 1.0, pc.y + 1.0, 4, 0.0, 0.7)
+	var top: Vector3 = pts[pts.size() - 1]
+	for q in 4:
+		clump(top + Vector3(rng.randf_range(-1, 1) * 1.2, rng.randf_range(-0.6, 0.4), rng.randf_range(-1, 1) * 1.2), 1.7, top - Vector3(0, 1.2, 0), top.y - 1.5, top.y + 1.0, 4, 0.1, 0.6)
+
+
+## Köknar (ref w_Abies_sachalinensis; karlı kuzey, Demir Ülkesi): düz gövde, aşağıdan yukarı daralan katlı iğne pedleri
+func _fir() -> void:
+	tex = "needle"
+	var H = 13.0
+	limb(Vector3.ZERO, Vector3(0, H, 0), 0.38, 0.06, 7)
+	roots(0.36, 4, 0.6)
+	var tiers = 8
+	for i in tiers:
+		var t = float(i) / (tiers - 1)
+		var y = 2.4 + t * (H - 2.8)
+		var R = lerpf(3.4, 0.7, t)
+		var n = maxi(3, int(lerpf(8, 3, t)))
+		for k in n:
+			var a = TAU * k / n + i * 0.7 + rng.randf_range(-0.2, 0.2)
+			var d = Vector3(cos(a), 0, sin(a))
+			var p = Vector3(0, y, 0) + d * R * 0.62 + Vector3(0, -R * 0.12, 0)   # uçları hafif sarkık
+			clump(p, maxf(0.9, R * 0.55), Vector3(0, y + 0.5, 0), y - 1.0, y + 1.2, 3 if R < 1.5 else 4, (0.1 if i % 2 == 0 else -0.05), 0.5)
+	clump(Vector3(0, H, 0), 0.8, Vector3(0, H - 1.0, 0), H - 1.0, H + 0.5, 3, 0.1, 0.2)
+
+
+## Bambu öbeği (ref Bamboo Village): boğumlu ince saplar, üst kısımda sarkık mızrak yaprak öbekleri
+func _bamboo() -> void:
+	tex = "bamboo"
+	var stalks = 7 if not lod else 4
+	for i in stalks:
+		var base = Vector3(rng.randf_range(-1.3, 1.3), 0, rng.randf_range(-1.3, 1.3))
+		var h = rng.randf_range(9.0, 13.0)
+		var tilt = Vector3(rng.randf_range(-0.6, 0.6), 0, rng.randf_range(-0.6, 0.6)) + base * 0.25
+		var segs = 7
+		var prev = base
+		for k in segs:
+			var t1 = float(k + 1) / segs
+			var q = base + Vector3(0, h * t1, 0) + tilt * t1 * t1
+			limb(prev, q, 0.11, 0.1, 6 if not lod else 4)
+			if not lod and k > 0:   # boğum halkası
+				limb(prev - (q - prev).normalized() * 0.04, prev + (q - prev).normalized() * 0.04, 0.125, 0.125, 6)
+			prev = q
+			if k >= 3:
+				clump(q + Vector3(rng.randf_range(-0.6, 0.6), 0.2, rng.randf_range(-0.6, 0.6)), 1.3 + (k - 3) * 0.15, q - Vector3(0, 1.5, 0), h * 0.4, h * 1.05, 2, 0.0)
+
+
+## Hurma palmiyesi (ref w_Phoenix_dactylifera; Rüzgar Ülkesi vahaları): halkalı kavisli gövde, tepede kemerli yapraklar
+func _palm() -> void:
+	tex = "frond"
+	var h = rng.randf_range(7.5, 9.5)
+	var bend = Vector3(rng.randf_range(0.8, 1.6), 0, rng.randf_range(-0.5, 0.5))
+	var prev = Vector3.ZERO
+	var segs = 9 if not lod else 4
+	var light = bark.lightened(0.12)
+	for k in segs:
+		var t = float(k + 1) / segs
+		var q = Vector3(0, h * t, 0) + bend * t * t
+		var keep = bark
+		if k % 2 == 1:
+			bark = light   # halkalar: ardışık açık/koyu parçalar
+		limb(prev, q, lerpf(0.34, 0.22, float(k) / segs), lerpf(0.34, 0.22, t), 7 if not lod else 4)
+		bark = keep
+		prev = q
+	var top = prev
+	var nf = 13 if not lod else 7
+	for i in nf:
+		var a = TAU * i / nf + rng.randf_range(-0.15, 0.15)
+		var d = Vector3(cos(a), 0, sin(a))
+		var up = rng.randf_range(0.35, 0.8)
+		var L = rng.randf_range(4.0, 5.4)
+		var mid = top + d * L * 0.5 + Vector3(0, up * L * 0.5, 0)
+		var tip = mid + d * L * 0.5 + Vector3(0, -L * rng.randf_range(0.35, 0.6), 0)   # uç sarkar
+		_frond_card(top, mid, 0.0, 0.5, L * 0.55, d)
+		_frond_card(mid, tip, 0.5, 1.0, L * 0.55, d)
+	for i in 3:   # hurma salkımı
+		_dates(top + Vector3(rng.randf_range(-0.4, 0.4), -0.5, rng.randf_range(-0.4, 0.4)))
+
+
+## Kemerli palmiye yaprağının bir parçası: a -> b boyunca, genişlik w; doku v0..v1 (taban aşağıda)
+func _frond_card(a: Vector3, b: Vector3, v0: float, v1: float, w: float, d: Vector3) -> void:
+	var ax = (b - a).normalized()
+	var side = ax.cross(Vector3.UP)
+	if side.length() < 0.1:
+		side = d.cross(Vector3.UP)
+	side = side.normalized() * w * 0.5
+	var nrm = side.cross(ax).normalized()
+	if nrm.y < 0.0:
+		nrm = -nrm
+	var col0: Color = (pal[1] as Color).lerp(pal[0], 0.4)
+	var col1: Color = pal[1]
+	var vs = [[a - side, Vector2(0, 1.0 - v0), col0], [a + side, Vector2(1, 1.0 - v0), col0], [b + side, Vector2(1, 1.0 - v1), col1], [b - side, Vector2(0, 1.0 - v1), col1]]
+	for k in [0, 1, 2, 0, 2, 3]:
+		var w2 = vs[k]
+		sl.set_color(w2[2])
+		sl.set_normal((nrm + Vector3(0, 0.4, 0)).normalized())
+		sl.set_uv(w2[1])
+		sl.add_vertex(w2[0])
+	nl += 2
+
+
+func _dates(p: Vector3) -> void:
+	if lod:
+		return
+	var keep = bark
+	bark = Color(0.78, 0.48, 0.16)
+	limb(p + Vector3(0, 0.4, 0), p - Vector3(0, 0.3, 0), 0.16, 0.1, 5)
+	bark = keep
+
+
+## Kuru ağaç (ref w_Snag_(ecology)): yapraksız, çatallanan gri gövde ve kırık dallar
+func _dead() -> void:
+	var th = rng.randf_range(5.5, 7.5)
+	var top = Vector3(rng.randf_range(-0.4, 0.4), th, rng.randf_range(-0.4, 0.4))
+	limb(Vector3.ZERO, top, 0.4, 0.2, 7)
+	roots(0.38, 4, 0.8)
+	_bare(top, Vector3.UP, 2.4, 0.2, 3)
+	for k in 3:
+		var y = rng.randf_range(2.5, th - 0.8)
+		var a = rng.randf() * TAU
+		_bare(Vector3(0, y, 0).lerp(top, y / th), Vector3(cos(a), 0.7, sin(a)).normalized(), 2.0, 0.14, 2)
+
+
+func _bare(p: Vector3, d: Vector3, L: float, r: float, depth: int) -> void:
+	var q = p + d * L
+	limb(p, q, r, r * 0.55, 5)
+	if depth <= 0 or lod:
+		return
+	for k in 2:
+		var a = rng.randf() * TAU
+		var nd = (d + Vector3(cos(a), rng.randf_range(0.1, 0.5), sin(a)) * 0.75).normalized()
+		_bare(q, nd, L * rng.randf_range(0.55, 0.75), r * 0.55, depth - 1)
