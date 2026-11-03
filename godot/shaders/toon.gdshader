@@ -52,6 +52,7 @@ uniform vec4 face_ref = vec4(0.0, 1.7, 0.08, 0.0);
 uniform float outer_gap = 0.075;  // önü açık dış giysinin açıklığının yarı genişliği (m): yelek yalnız bu kadar görünür
 uniform int outer_cover = 0;  // yelek katmanı: 1 önü açık dış giysi altında (yalnız ön şerit görünür), 2 kapalı pelerin altında (gizli)
 uniform vec4 scalp_cut = vec4(99.0, -99.0, 99.0, 0.0);  // x: bu yüksekliğin üstü, y/z: bu derinliğin arkasında z yüksekliğinin üstü  // saçlıyken gövdenin kafa derisi bu yüksekliğin üstünde çizilmez (saç arasından "kel" görünmesin)  // -, göz y, göz z
+varying float v_nospec;   // kafa derisi (saç arası) parlamasın: gri leke
 uniform vec4 scalp_col = vec4(0.0);   // a>0: kesim bölgesi atılmaz, saç rengine boyanır (ensede delik / saç arasında kel yok)
 uniform float fold_amount = 0.0032;
 varying vec3 rest;
@@ -183,6 +184,7 @@ int cloth_slot(vec3 p) {
 }
 
 void fragment() {
+	v_nospec = 0.0;
 	vec4 tx = texture(tex, UV);
 	vec4 c = tint * tx;
 	if (luma_tint) {
@@ -542,7 +544,7 @@ void fragment() {
 			c.rgb *= 1.0 + (lv - 0.5) * 2.0 * leaf_tex_amt * green;
 		}
 	}
-	if (scalp && scalp_col.a >= 0.5) c.rgb = scalp_col.rgb * 0.75;
+	if (scalp && scalp_col.a >= 0.5) { c.rgb = scalp_col.rgb * 0.75; v_nospec = 1.0; }
 	if (roof_tiles) {
 		// kiremit: eğim yönünde 0.45 m sıralar, her sıranın alt kenarı koyu gölge (tırtıklı kenar), sıralar arası şaşırtmalı derz
 		float row = wpos.y / 0.32;
@@ -589,7 +591,7 @@ void light() {
 		// fener/efekt ışıkları: sadece gerçekten aydınlattığı yerde, yumuşak
 		DIFFUSE_LIGHT += LIGHT_COLOR * (0.35 + 0.65 * t) * ATTENUATION / PI;
 	}
-	if (spec_amount > 0.0) {
+	if (spec_amount > 0.0 && v_nospec < 0.5) {
 		vec3 h = normalize(LIGHT + VIEW);
 		float s = smoothstep(0.93, 0.96, dot(NORMAL, h));
 		SPECULAR_LIGHT += LIGHT_COLOR * s * spec_amount * ATTENUATION;

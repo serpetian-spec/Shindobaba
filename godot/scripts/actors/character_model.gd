@@ -447,7 +447,7 @@ func _face_and_hair() -> void:
 			# uzun saç: kulak hizasının altında kalan kısım dilim zincirleriyle sallanır (sırta/omuza çarpar)
 			var vk = "%s|%s|%s|%s|%s" % [hd[0], donor, look["gender"], look.get("age", "adult"), look.get("hair_style", "")]
 			if not _vhair_dyn.has(vk):
-				_vhair_dyn[vk] = Dangle.sectors(hp["mesh"], head_rest * hair_mi.transform, skull_c, skull_c.y - skull_r.y * 0.35)
+				_vhair_dyn[vk] = Dangle.sectors(hp["mesh"], head_rest * hair_mi.transform, skull_c, skull_c.y + skull_r.y * 0.2, {"fade": 0.09})   # alın hizasından aşağısı (perçemler, yanlar, ense) oynar
 			var vd = Dangle.make(_vhair_dyn[vk])
 			if vd != null:
 				vd.transform = hair_mi.transform
@@ -1519,7 +1519,7 @@ static func _build_dyn_garment(mesh: ArrayMesh, center: Vector3, root_y: float, 
 	var arr = mesh.surface_get_arrays(0)
 	var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
 	var sc = Dangle.sector_chains([v], center, root_y, {"sectors": 8, "points": 4, "min_len": 0.12, "fade": 0.05,
-		"def": {"stiff": stiff, "damp": 0.86, "grav": 0.5, "drag": 1.1, "col_r": 0.025, "col_from": 1}})
+		"def": {"stiff": stiff, "stiff_tip": stiff * 0.55, "damp": 0.8, "grav": 0.6, "drag": 0.8, "air": 0.22, "follow": 0.6, "col_r": 0.025, "col_from": 1}})
 	if sc.is_empty():
 		return {}
 	var defs: Array = sc["defs"]
@@ -2564,13 +2564,13 @@ const HAIR_FILES := {
 ## Saç stilleri (arayüzde gösterilen adlar)
 const HAIR_STYLES := {"diken": "Dikenli", "dağınık": "Dağınık", "kase": "Kâse", "kısa": "Kısa", "uzun": "Uzun", "atkuyruğu": "At Kuyruğu",
 	"ananas": "Ananas Topuz", "topuz": "Topuz", "ikiz_topuz": "İkiz Topuz", "yele": "Uzun Yele", "kakul": "Tek Göz Kâkül", "geriye": "Geriye Taranmış",
-	"orgu": "Örgü", "kirpik": "Kısa Kirpi"}
+	"kirpik": "Kısa Kirpi"}
 ## Kaldırılan saç modelleri (kullanıcı: 14 ve 16–43) -> en yakın kalan model (eski kayıtlar, NPC'ler)
-const HAIR_ALIAS := {"mohikan": "kirpik", "kisa_kakul": "kısa", "dalgali": "uzun", "savas_yelesi": "yele", "bilge_yelesi": "yele",
-	"yuksek_kuyruk": "atkuyruğu", "yan_kuyruk": "atkuyruğu", "ikiz_kuyruk": "atkuyruğu", "ikiz_orgu": "orgu", "samuray": "topuz",
+const HAIR_ALIAS := {"orgu": "uzun", "mohikan": "kirpik", "kisa_kakul": "kısa", "dalgali": "uzun", "savas_yelesi": "yele", "bilge_yelesi": "yele",
+	"yuksek_kuyruk": "atkuyruğu", "yan_kuyruk": "atkuyruğu", "ikiz_kuyruk": "atkuyruğu", "ikiz_orgu": "uzun", "samuray": "topuz",
 	"savasci_kuyruk": "atkuyruğu", "alev": "diken", "geriye_diken": "geriye", "yan_tarama": "kısa", "perde": "uzun", "kabarik": "dağınık",
 	"ruzgar": "dağınık", "yabani": "yele", "ense_kuyruk": "atkuyruğu", "alcak_topuz": "topuz", "kazinmis": "kirpik", "yan_kazinmis": "kirpik",
-	"golge": "kakul", "cerceve": "uzun", "yan_orgu": "orgu", "bagli_uzun": "atkuyruğu", "tepe_diken": "diken", "yan_topuz": "topuz", "kel": "kirpik"}
+	"golge": "kakul", "cerceve": "uzun", "yan_orgu": "uzun", "bagli_uzun": "atkuyruğu", "tepe_diken": "diken", "yan_topuz": "topuz", "kel": "kirpik"}
 static var _scalp_cache := {}
 static var _hair_cache := {}
 static var _hair_dyn := {}      # saç anahtarı -> Dangle paketi
@@ -3021,7 +3021,7 @@ static func _clump_dangle(mesh: ArrayMesh) -> Dictionary:
 		var rings: PackedVector3Array = sd["rings"]
 		var dir = (rings[rings.size() - 1] - rings[0]).normalized()
 		# sabit kalanlar: kafa derisine yatık/toplanan tutamlar, topuz, kısa ya da yukarı bakan dikenler
-		if gid == -2 or (gid < 0 and (L < 0.12 or dir.y > -0.15)):
+		if gid == -2 or (gid < 0 and L < 0.035):
 			continue
 		var best = -1
 		var bs = 1e9
@@ -3035,9 +3035,11 @@ static func _clump_dangle(mesh: ArrayMesh) -> Dictionary:
 			var dd = (gr["root"] as Vector3).distance_to(rings[0])
 			var ok = dd < 0.05 and dir.dot(gr["dir"]) > 0.8 and L / gr["len"] > 0.65
 			var score = dd + (1.0 - dir.dot(gr["dir"])) * 0.2
-			if (ok or groups.size() >= 8) and score < bs:
+			if ok and score < bs:
 				bs = score
 				best = gi
+		if best < 0 and groups.size() >= 24:
+			continue   # zincir sınırı: kalan kısa tutam sabit (başka yöndeki zincire bağlanıp tuhaf dönmesin)
 		if best < 0:
 			groups.append({"ids": [i], "root": rings[0], "dir": dir, "len": L, "group": gid})
 			best = groups.size() - 1
@@ -3063,7 +3065,8 @@ static func _clump_dangle(mesh: ArrayMesh) -> Dictionary:
 					last = strands[i]["rings"]
 			pts.append(last[last.size() - 1])
 		else:
-			for k in 6:
+			var ks = [0, 1, 2, 3, 4, 5] if gr["len"] >= 0.12 else [0, 3, 5]   # kısa tutam: az nokta (performans)
+			for k in ks:
 				var acc = Vector3.ZERO
 				for i in gr["ids"]:
 					acc += (strands[i]["rings"] as PackedVector3Array)[k]
@@ -3071,10 +3074,9 @@ static func _clump_dangle(mesh: ArrayMesh) -> Dictionary:
 		var L: float = gr["len"]
 		var upward = (gr["dir"] as Vector3).y > 0.3
 		# tutamlar zaten sarkık modellendi: yerçekimi yalnız sapma için hafif (yoksa dinlenirken gövdeye gömülür)
-		var stiff = 0.45 if upward else clampf(0.44 - L * 0.5, 0.2, 0.38)
-		if gr["group"] >= 0:
-			stiff = 0.22
-		defs.append({"pts": pts, "stiff": stiff, "damp": 0.88, "grav": 0.15, "drag": 1.3, "col_r": 0.035, "col_from": 1})
+		var hp = hair_profile(L, upward)
+		hp["pts"] = pts
+		defs.append(hp)
 	var uv2: PackedVector2Array = mesh.surface_get_arrays(0)[Mesh.ARRAY_TEX_UV2]
 	var assign = func(i: int, v: Vector3, _si: int) -> Array:
 		var sid = int(uv2[i].x)
@@ -3083,6 +3085,14 @@ static func _clump_dangle(mesh: ArrayMesh) -> Dictionary:
 		var ci: int = of[sid]
 		return [[ci, Dangle.project(defs[ci]["pts"], v)[0], 1.0]]
 	return Dangle.build(mesh, defs, assign)
+
+
+## Saçın TEK hareket profili (tutam + VRoid saç aynı): fark yalnız boydan gelir — kısa parça az, uzun parça çok oynar,
+## hiçbiri kazık gibi sabit ya da yay gibi zıplayan olmaz (güçlü sönüm, kök başı izler).
+static func hair_profile(L: float, upward := false) -> Dictionary:
+	var k = clampf((L - 0.05) / 0.45, 0.0, 1.0)   # 0 kısa ... 1 uzun
+	return {"stiff": lerpf(0.5, 0.3, k), "stiff_tip": lerpf(0.32, 0.12, k), "damp": 0.7, "grav": lerpf(0.1, 0.45, k) * (0.5 if upward else 1.0),
+		"drag": 1.6, "air": lerpf(0.04, 0.14, k), "follow": lerpf(0.82, 0.62, k), "col_r": 0.03, "col_from": 1}
 
 
 ## Sarkan kumaş şeridi (bant/başlık bağı, kuşak ucu...): kökten dir yönünde uzanan, ikincil hareketli yassı şerit.
@@ -3113,7 +3123,7 @@ func dangle_strip(bone: String, model_root: Vector3, dir: Vector3, length: float
 				st.add_vertex(vv)
 	st.generate_normals()
 	var mesh = st.commit()
-	var pack = Dangle.build(mesh, [{"pts": pts, "stiff": stiff, "damp": 0.9, "grav": 0.5, "drag": 2.2, "col_r": 0.012, "col_from": 1}],
+	var pack = Dangle.build(mesh, [{"pts": pts, "stiff": stiff + 0.06, "stiff_tip": stiff * 0.4, "damp": 0.82, "grav": 0.7, "drag": 1.2, "air": 0.3, "follow": 0.5, "col_r": 0.012, "col_from": 1}],
 		func(_i, v, _si): return [[0, Dangle.project(pts, v)[0], 1.0]])
 	var d = Dangle.make(pack, Props.toon())
 	if d == null:
@@ -3159,10 +3169,10 @@ func _dangle_process(dt: float) -> void:
 			if is_instance_valid(d):
 				d.reset()
 		return
-	# uzaktakiler seyrek güncellenir (birikmiş süreyle): yakında her kare, 10 m+ iki karede bir, 18 m+ üç karede bir
+	# uzaktakiler seyrek güncellenir (birikmiş süreyle)
 	_dangle_acc += dt
 	_dangle_fr += 1
-	var every = 1 if d2 < 36.0 else (2 if d2 < 144.0 else 4)
+	var every = 1 if d2 < 16.0 else (2 if d2 < 100.0 else (3 if d2 < 324.0 else 4))   # 4 m içi her kare
 	if _dangle_fr % every != 0:
 		return
 	dt = minf(_dangle_acc, 0.05)
@@ -3170,7 +3180,7 @@ func _dangle_process(dt: float) -> void:
 	if _dcol_bones.is_empty():
 		# gövde küreleri (model uzayı): kafa, boyun, omurga boyunca göğüs/sırt, kürek kemikleri, omuz, kol, kalça, kaba et, uyluk
 		var hr = maxf(skull_r.x, skull_r.z)
-		var defs = [["Head", hr * 0.95, skull_c], ["Neck", 0.06, null], ["Spine", 0.125, null], ["Chest", 0.13, null], ["UpperChest", 0.13, null], ["Hips", 0.14, null]]
+		var defs = [["Head", hr * 0.95, skull_c], ["Neck", 0.06, null], ["Chest", 0.135, null], ["UpperChest", 0.13, null], ["Hips", 0.14, null]]
 		var uc = skel.find_bone("UpperChest")
 		if uc >= 0:
 			for sx in [-1.0, 1.0]:
@@ -3252,11 +3262,13 @@ func _attachments() -> void:
 				var pl = MB.new()
 				pl.add("box", plate, Vector3(0.07, 0.03, 0.006), Color(0.8, 0.82, 0.86))
 				# arkada düğüm + sarkan, rüzgârda dalgalanan iki bağ ucu (ikincil hareket)
-				var bz = skull_c.z - (plate.z - skull_c.z) - 0.005
-				pl.add("box", Vector3(0, plate.y + 0.002, bz - 0.004), Vector3(0.026, 0.026, 0.014), bc.darkened(0.1))
+				# düğüm saçın dışında (kafa derisinde kalırsa saçın içinde kayboluyordu)
+				var hair_th = 0.0 if look.get("hair_style", "") in ["kel", "kirpik"] else 0.032
+				var bz = skull_c.z - (plate.z - skull_c.z) - 0.005 - hair_th
+				pl.add("box", Vector3(0, plate.y + 0.002, bz - 0.004), Vector3(0.03, 0.028, 0.016), bc.darkened(0.1))
 				_mesh_on("Head", pl.build(Props.toon()), Transform3D.IDENTITY)
 				for sx in [-1.0, 1.0]:
-					dangle_strip("Head", Vector3(0.008 * sx, plate.y, bz - 0.008), Vector3(0.16 * sx, -1.0, -0.22), 0.2, 0.024, bc, 0.16, Vector3(1, 0, 0))
+					dangle_strip("Head", Vector3(0.009 * sx, plate.y, bz - 0.012), Vector3(0.18 * sx, -1.0, -0.45), 0.21, 0.026, bc, 0.16, Vector3(1, 0, 0))
 				var q = QuadMesh.new()
 				q.size = Vector2(0.058, 0.023)
 				var sm = StandardMaterial3D.new()
@@ -3733,6 +3745,7 @@ var _kch_w: MeshInstance3D
 var kchain_pin := Callable()
 var kchain_start := Callable()
 var kchain_hide_weight := false
+var _kch_prev_a := Vector3.INF
 var _kch_lh: Node3D   # sol el tutuşu: zincir sap dibinden sol ele gelir, kalanı sol elden sarkar
 const KCH_HOLD := 6
 
@@ -3807,17 +3820,30 @@ func _update_kchain(dt: float) -> void:
 		fixed[KCH_HOLD] = lh
 	if pinned:
 		fixed[KCH_N] = pin
+	# kında (sırtta): zincir sapa iki yerden bağlı, ağırlık sapın üst ucunda -> kısa iki sarkık halka; savrulup uzamaz
+	var stow = not pinned and not kchain_start.is_valid() and not n_in_hand(w)
+	if stow:
+		fixed[KCH_N / 2] = n.to_global(Vector3(0.035, 0, -0.12))
+		fixed[KCH_N] = n.to_global(Vector3(0.0, 0, 0.14))
+	# kök hareketi tüm zincire taşınır (hızlı koşu/dönüşte zincir geride kalıp uzamasın), ivme payı kalır
+	var da = a - _kch_prev_a if _kch_prev_a != Vector3.INF else Vector3.ZERO
+	_kch_prev_a = a
+	if da.length() < 3.0 and not pinned and not kchain_start.is_valid():
+		var fk = 1.0 if stow else 0.75
+		for k in range(1, KCH_N + 1):
+			_kch_p[k] += da * fk
+			_kch_o[k] += da * fk
 	var h = clampf(dt, 0.001, 0.033)
 	var floor_y = global_position.y + 0.03
 	for k in range(1, KCH_N + 1):
 		var p = _kch_p[k]
-		var v = (p - _kch_o[k]) * 0.97
+		var v = (p - _kch_o[k]) * (0.82 if stow else 0.97)
 		_kch_o[k] = p
 		p += v + Vector3.DOWN * 9.8 * h * h
 		if p.y < floor_y:
 			p.y = floor_y
 		_kch_p[k] = p
-	for it in 6:
+	for it in (12 if stow else 8):
 		for fk in fixed:
 			_kch_p[fk] = fixed[fk]
 		for k in KCH_N:

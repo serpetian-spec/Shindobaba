@@ -418,10 +418,21 @@ func _air_dash() -> void:
 
 
 # ------------------------------------------------------------------ fizik
+func _notification(what: int) -> void:
+	# pencere odağı giderken Shift bırakılmış sayılır (basılı kalmış görünüp kendi kendine depar atmasın)
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_WM_WINDOW_FOCUS_OUT:
+		Input.action_release("dash")
+		sprint_t = 0.0
+
+
 func _physics_process(dt: float) -> void:
 	if Game.paused:
 		return
 	dt *= Combat.player_comp()   # Sharingan algısı: dünya yavaş, oyuncu normal hızda
+	# depar sayacı her hareket kipinde sıfırlanır (duvar/ip/tutunmada Shift bırakılınca kalıyordu -> kısa basışta tam hız);
+	# jutsu/saldırı sırasında birikmez
+	if not Input.is_action_pressed("dash") or (combat != null and not combat.get("action") in [null, ""]):
+		sprint_t = 0.0
 	input_locked -= dt
 	wall_cd -= dt
 	_tick_status(dt)
@@ -468,8 +479,6 @@ func _ground_air_move(dt: float) -> void:
 	# Shift 5 sn basılı: ikinci depar kademesi (büyük harita için)
 	if sprint:
 		sprint_t += dt
-	elif not Input.is_action_pressed("dash"):
-		sprint_t = 0.0
 	var turbo = sprint and sprint_t > 5.0
 	if turbo and not was_turbo:
 		FX.speed_lines(global_position + Vector3.UP, wish)
@@ -483,7 +492,7 @@ func _ground_air_move(dt: float) -> void:
 	else:
 		var spd_mul = Buffs.mod("speed") * (1.0 + Stats.skill(Game.profile, "speed") + Mastery.get_v(Game.profile, "hiz") * 0.003) * (1.0 + Gear.stat(Game.profile, "speed") + Stats.clan_bonus(Game.profile, "speed")) * status_speed()
 		if sprint and wish.length() > 0.1:
-			Mastery.gain(Game.profile, "hiz", dt * 0.03)   # koştukça hız
+			Mastery.gain(Game.profile, "hiz", dt * 0.005)   # koştukça hız
 		var target = wish * ((DASH * 3.2 if turbo else DASH) if sprint else (WALK if walking else RUN)) * spd_mul   # tam hız (5 sn Shift) 2x; Caps Lock: yürüyüş
 		if swimming:
 			target *= 0.35
@@ -529,7 +538,7 @@ func _ground_air_move(dt: float) -> void:
 	if on_water and not swimming:
 		ground = 0.0
 		chakra -= 1.5 * maxf(0.1, 1.0 + Stats.skill(Game.profile, "water_cost")) * dt  # su üstünde durmak chakra ister
-		Mastery.gain(Game.profile, "chakra", dt * 0.03)   # su üstünde yürüme: chakra kontrolü antrenmanı
+		Mastery.gain(Game.profile, "chakra", dt * 0.005)   # su üstünde yürüme: chakra kontrolü antrenmanı
 		if chakra <= 0.0:
 			swimming = true
 			leaping = false
@@ -759,7 +768,7 @@ func _terrain_wall_move(dt: float) -> void:
 	var up_amt = wish.dot(-n)
 	var side_amt = wish.dot(side)
 	var spd = WALL_SPEED * (1.4 if Input.is_action_pressed("dash") else 1.0) * (1.0 + Stats.skill(Game.profile, "wall_run"))
-	Mastery.gain(Game.profile, "chakra", dt * 0.025)   # ağaç/duvar tırmanma: chakra kontrolü antrenmanı
+	Mastery.gain(Game.profile, "chakra", dt * 0.004)   # ağaç/duvar tırmanma: chakra kontrolü antrenmanı
 	if wall_boost_t > 0.0:
 		wall_boost_t -= dt
 		spd *= 2.3

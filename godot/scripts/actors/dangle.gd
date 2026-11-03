@@ -202,6 +202,9 @@ func step(dt: float, cols: Array) -> void:
 	if not _live or (_p.size() > 0 and (_p[0][0] as Vector3).distance_to(xf * (chains[0]["rest"] as PackedVector3Array)[0]) > 1.5):
 		_p.clear(); _o.clear()
 		for ch in chains:
+			ch.erase("_lq")
+			ch.erase("_rv")
+			ch.erase("_ra")
 			var pw = PackedVector3Array()
 			for q in ch["rest"]:
 				pw.append(xf * q)
@@ -230,35 +233,96 @@ func step(dt: float, cols: Array) -> void:
 		var p: PackedVector3Array = _p[ci]
 		var o: PackedVector3Array = _o[ci]
 		var n = rest.size()
-		var stiff = 1.0 - pow(1.0 - float(ch.get("stiff", 0.2)), h * 60.0)
-		var damp = pow(float(ch.get("damp", 0.9)), h * 60.0)
-		var grav = Vector3.DOWN * 9.8 * float(ch.get("grav", 1.0))
-		var drag = float(ch.get("drag", 1.5))
+		# kökten uca sertlik azalır (kök başı izler, uç gecikip kıvrılır); hız sönümü güçlü (yay gibi zıplamasın)
+		var s_root = float(ch.get("stiff", 0.3))
+		var s_tip = float(ch.get("stiff_tip", s_root * 0.4))
+		var damp = pow(float(ch.get("damp", 0.82)), h * 60.0)
+		var grav = Vector3.DOWN * 9.8 * float(ch.get("grav", 0.2))
+		var drag = float(ch.get("drag", 1.0))
+		var air = float(ch.get("air", 0.6))
+		var follow = float(ch.get("follow", 0.65))
 		var flut = 0.75 + 0.25 * sin(_t * 4.3 + ci * 1.7)
 		var col_from = int(ch.get("col_from", 2))
 		var cr = float(ch.get("col_r", 0.015))
+		var prev_root: Vector3 = p[0]
 		p[0] = xf * rest[0]
 		o[0] = p[0]
+		# kök hareketinin büyük kısmı doğrudan taşınır (konum + dönüş): yalnız kalan pay gecikme olur
+		var rq = xf.basis.get_rotation_quaternion()
+		var lq: Quaternion = ch.get("_lq", rq)
+		ch["_lq"] = rq
+		# konum tam taşınır (sabit hızla koşarken saç bayrak gibi geride kalmaz); dönüşün follow kadarı taşınır.
+		# gecikme/savrulma yalnız kökün İVMESİNDEN gelir (kalkışta geriye, duruşta öne) + hava direnci
+		var part = Quaternion.IDENTITY.slerp((rq * lq.inverse()).normalized(), follow)
+		if absf(rq.dot(lq)) > 0.999995:
+			var dl = p[0] - prev_root
+			for k in range(1, n):
+				p[k] += dl
+				o[k] += dl
+		else:
+			for k in range(1, n):
+				p[k] = p[0] + part * (p[k] - prev_root)
+				o[k] = p[0] + part * (o[k] - prev_root)
+		var hr = maxf(dt, 0.001)   # gerçek kare süresi (takılmada kırpılmış h ile hız şişmesin)
+		var rvel = (p[0] - prev_root) / hr
+		if rvel.length() > 14.0:
+			rvel = rvel.normalized() * 14.0
+		var lv: Vector3 = ch.get("_rv", rvel)
+		ch["_rv"] = rvel
+		var ra: Vector3 = (ch.get("_ra", Vector3.ZERO) as Vector3).lerp((rvel - lv) / maxf(hr, 0.016), 0.3)   # süzülmüş ivme (adım sarsıntısı zıplatmasın)
+		ch["_ra"] = ra
+		var racc = Vector3(ra.x, ra.y * 0.35, ra.z)
+		if racc.length() > 40.0:
+			racc = racc.normalized() * 40.0
+		var inertia = float(ch.get("inertia", 0.8))
 		# yalnız zincire erişebilecek küreler (saç bacak kürelerine bakmaz)
-		var reach = float(ch.get("_reach", -1.0))
-		if reach < 0.0:
-			reach = 0.0
-			for L0 in lens:
-				reach += L0
-			ch["_reach"] = reach
+		# zincirin dinlenme sınır küresi (merkez + yarıçap) — hareket payıyla
+		if not ch.has("_bc"):
+			var bc = Vector3.ZERO
+			for q in rest:
+				bc += q
+			bc /= n
+			var br = 0.0
+			for q in rest:
+				br = maxf(br, q.distance_to(bc))
+			ch["_bc"] = bc
+			ch["_br"] = br
+		var bcw: Vector3 = xf * (ch["_bc"] as Vector3)
+		var brw = float(ch["_br"]) * sc * 1.6 + cr + 0.04
 		var near = []
 		for c in cols:
-			if p[0].distance_to(c[0]) < reach * sc + float(c[1]) + cr + 0.05:
+			if bcw.distance_to(c[0]) < brw + float(c[1]):
 				near.append(c)
 		ch["_near"] = near
+		# kare süresine göre sertlik dizisi (önbellek)
+		var stv: PackedFloat32Array = ch.get("_stv", PackedFloat32Array())
+		if stv.size() != n or absf(float(ch.get("_sth", 0.0)) - h) > 0.002:
+			stv = PackedFloat32Array()
+			stv.resize(n)
+			for k in range(1, n):
+				stv[k] = 1.0 - pow(1.0 - lerpf(s_root, s_tip, float(k - 1) / maxf(n - 2, 1)), h * 60.0)
+			ch["_stv"] = stv
+			ch["_sth"] = h
+		var soft = false
+		for c in near:
+			if c[2]:
+				soft = true
+		var prev_rp = Vector3.ZERO
 		for k in range(1, n):
+			var stiff = stv[k]
 			var cur = p[k]
 			var vel = (cur - o[k]) / h
 			o[k] = cur
-			var acc = grav + ext * flut - vel * drag
+			var acc = grav + ext * flut - vel * drag - rvel * air - racc * inertia
 			cur += vel * h * damp + acc * h * h
-			# şekil hafızası: kök çerçevesindeki dinlenme yönü
-			var tgt = p[k - 1] + xf.basis * (rest[k] - rest[k - 1])
+			# şekil hafızası: üst parçanın şimdiki yönüne göre (dalga gibi bükülür, tahta gibi tek parça dönmez)
+			var seg = xf.basis * (rest[k] - rest[k - 1])
+			var tgt = p[k - 1] + seg
+			if k >= 2:
+				# üst parçanın yön değişimini (ucuz yaklaşım) bu parçaya da kısmen aktar
+				var cp = (p[k - 1] - p[k - 2]).normalized()
+				tgt += (cp - prev_rp) * (seg.length() * 0.6)
+			prev_rp = seg.normalized()
 			cur = cur.lerp(tgt, stiff)
 			# boy sabit
 			var dv = cur - p[k - 1]
@@ -266,7 +330,7 @@ func step(dt: float, cols: Array) -> void:
 			if L > 0.00001:
 				cur = p[k - 1] + dv * (lens[k - 1] * sc / L)
 			if k >= col_from:
-				var rw = xf * rest[k]   # yumuşak küre (kafa/boyun): dinlenme konumu zaten içerdeyse (kafa derisine yatık saç) o kadar içeri izin ver
+				var rw = xf * rest[k] if soft else Vector3.ZERO   # yumuşak küre (kafa/boyun): dinlenme konumu zaten içerdeyse (kafa derisine yatık saç) o kadar içeri izin ver
 				for c in near:
 					var cc: Vector3 = c[0]
 					var rr = float(c[1]) + cr
@@ -416,6 +480,9 @@ static func sector_chains(mv_list: Array, center: Vector3, root_y: float, opts :
 			pts.append(q)
 		sec_chain.append(defs.size())
 		var dd = opts.get("def", {}).duplicate()
+		if opts.get("auto", false):
+			dd = CharacterModel.hair_profile(span)   # saçın ortak profili (tutamlarla aynı)
+			dd["col_r"] = 0.035
 		dd["pts"] = pts
 		dd["sec"] = s
 		dd["nsec"] = nsec
@@ -460,7 +527,8 @@ static func sectors(mesh: ArrayMesh, to_model: Transform3D, center: Vector3, roo
 			mv[i] = to_model * v[i]
 		allv.append(mv)
 	var o = opts.duplicate()
-	o["def"] = {"stiff": opts.get("stiff", 0.24), "damp": 0.9, "grav": opts.get("grav", 0.15), "drag": opts.get("drag", 1.4), "col_r": 0.035, "col_from": 1}
+	o["def"] = {"stiff": 0.32, "stiff_tip": 0.14, "damp": 0.8, "grav": 0.4, "drag": 1.0, "air": 0.15, "follow": 0.65, "col_r": 0.035, "col_from": 1}
+	o["auto"] = true
 	var sc = sector_chains(allv, center, root_y, o)
 	if sc.is_empty():
 		return {}

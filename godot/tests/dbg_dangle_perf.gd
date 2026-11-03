@@ -15,6 +15,7 @@ func _ready() -> void:
 		m.setup({"gender": "f" if i % 2 == 0 else "m", "hair_style": hs[i % hs.size()], "band": Color(0.2, 0.2, 0.4), "band_style": "head", "outer_style": "pelerin", "outer": Color(0.5, 0.4, 0.3)})
 		m.global_position = base + Vector3((i % 5) * 1.5, 0, 3 + (i / 5) * 2.0)
 		m.play("run")
+		m.set_process(false)
 		ms.append(m)
 	var cam = Camera3D.new()
 	main.add_child(cam)

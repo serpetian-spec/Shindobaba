@@ -116,14 +116,14 @@ static func accessories(m: CharacterModel) -> void:
 			mb.add("box", Vector3(0.0, -0.005, -hd * 0.56), Vector3(0.035, 0.035, 0.03), hg.darkened(0.15))
 			m._mesh_on("Head", mb.build(toon), Transform3D(Basis.IDENTITY, Vector3(hc.x, hc.y + 0.035, hc.z)))
 			for sx in [-1.0, 1.0]:   # düğümden sarkan bağ uçları (ikincil hareket)
-				m.dangle_strip("Head", Vector3(hc.x + 0.012 * sx, hc.y + 0.03, hc.z - hd * 0.58), Vector3(0.25 * sx, -1, -0.3), 0.17, 0.034, hg, 0.16, Vector3(1, 0, 0))
+				m.dangle_strip("Head", Vector3(hc.x + 0.012 * sx, hc.y + 0.03, hc.z - hd * 0.62), Vector3(0.25 * sx, -1, -0.45), 0.17, 0.034, hg, 0.16, Vector3(1, 0, 0))
 		"basortu":
 			var mb = MB.new()
 			mb.add("hemi", Vector3.ZERO, Vector3(hw * 1.18, hh * 0.85, hd * 1.14), hg, Vector3(-8, 0, 0), 16)
 			mb.add("sphere", Vector3(0, -0.02, -hd * 0.58), Vector3(0.05, 0.045, 0.04), hg.darkened(0.12), Vector3.ZERO, 8)
 			m._mesh_on("Head", mb.build(toon), Transform3D(Basis.IDENTITY, Vector3(hc.x, hc.y - 0.0, hc.z)))
 			for sx in [-1.0, 1.0]:   # düğümden sarkan uçlar (ikincil hareket)
-				m.dangle_strip("Head", Vector3(hc.x + 0.012 * sx, hc.y - 0.03, hc.z - hd * 0.6), Vector3(0.3 * sx, -1, -0.35), 0.15, 0.04, hg, 0.14, Vector3(1, 0, 0), 0.005)
+				m.dangle_strip("Head", Vector3(hc.x + 0.012 * sx, hc.y - 0.03, hc.z - hd * 0.64), Vector3(0.3 * sx, -1, -0.45), 0.15, 0.04, hg, 0.14, Vector3(1, 0, 0), 0.005)
 		"sarik":
 			var mb = MB.new()
 			mb.add("hemi", Vector3(0, 0.0, 0), Vector3(hw * 1.24, hh * 0.95, hd * 1.18), hg, Vector3.ZERO, 16)

@@ -398,7 +398,7 @@ func _do_attack(dt: float) -> bool:
 		if not hits.is_empty():
 			_on_hit_fx(pt, c)
 			var armed_m = String(Gear.weapon(Game.profile).get("style", "fist")) != "fist" and bool(Game.profile.get("weapon_drawn", false))
-			Mastery.gain(Game.profile, "kenjutsu" if armed_m else "taijutsu", 0.12 * hits.size())
+			Mastery.gain(Game.profile, "kenjutsu" if armed_m else "taijutsu", 0.02 * hits.size())
 			for h in hits:
 				Progress.on_hit_landed(h)
 				_special_hit(h, pt, c)
@@ -729,7 +729,7 @@ func _update_guard() -> void:
 func _update_charge(dt: float) -> void:
 	var want = Input.is_action_pressed("charge") and p.grounded and (action == "" or action == "charge") and not Game.ui_open
 	if want and action == "charge":
-		Mastery.gain(Game.profile, "chakra", dt * 0.06)   # meditasyon / chakra toplama antrenmanı
+		Mastery.gain(Game.profile, "chakra", dt * 0.01)   # meditasyon / chakra toplama antrenmanı
 	if want:
 		if action != "charge":
 			action = "charge"
@@ -1058,10 +1058,10 @@ func _do_cast(dt: float) -> bool:
 			FX.smoke_puff(p.global_position + Vector3.UP * 1.3 + p.face_dir() * 0.4, 0.35, 5)
 			Combat.popup_text(p.global_position + Vector3.UP * 2.3, "Mühür bozuldu!", Color(1, 0.6, 0.4))
 			cooldowns[cast_jutsu] = minf(float(cooldowns.get(cast_jutsu, 0.0)), 2.0)
-			Mastery.gain(Game.profile, "ninjutsu", 0.15 * (1.0 + int(jd.get("tier", 2)) * 0.3))
+			Mastery.gain(Game.profile, "ninjutsu", 0.025 * (1.0 + int(jd.get("tier", 2)) * 0.3))
 			return true
-		Mastery.gain(Game.profile, "ninjutsu", 0.45 * (1.0 + int(jd.get("tier", 2)) * 0.35))
-		Mastery.gain(Game.profile, "chakra", jutsu_cost(jd) / 60.0)
+		Mastery.gain(Game.profile, "ninjutsu", 0.075 * (1.0 + int(jd.get("tier", 2)) * 0.35))
+		Mastery.gain(Game.profile, "chakra", jutsu_cost(jd) / 360.0)
 		Jutsu.execute(p, cast_jutsu, tg)
 		Progress.on_technique_used(cast_jutsu)
 	return true
@@ -1129,7 +1129,7 @@ func take_hit(info: Dictionary) -> void:
 				return
 	p.hp -= dmg
 	Combat.note_jutsu_dmg(atk, info, dmg)
-	Mastery.gain(Game.profile, "dayaniklilik", clampf(dmg / maxf(1.0, p.max_hp), 0.0, 0.5) * 2.5)   # dayak yedikçe dayanıklılık
+	Mastery.gain(Game.profile, "dayaniklilik", clampf(dmg / maxf(1.0, p.max_hp), 0.0, 0.5) * 0.4)   # dayak yedikçe dayanıklılık
 	last_hit_t = 0.0
 	# Jashin laneti: çemberdeyken sana gelen acı bağlı hedefe de gelir
 	if p.has_meta("jashin_link"):
