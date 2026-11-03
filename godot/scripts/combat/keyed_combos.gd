@@ -27,12 +27,14 @@ const TABLE := {
 	"bashosen": [preload("res://scripts/combat/bashosen_anim.gd"), 1.0],
 	"kubikiribocho": [preload("res://scripts/combat/kubikiri_anim.gd"), 0.95],
 	"yagura_sopa": [preload("res://scripts/combat/yagura_anim.gd"), 1.0],
+	"yelpaze": [preload("res://scripts/combat/tessen_anim.gd"), 1.0],
+	"kongo_asa": [preload("res://scripts/combat/kongo_anim.gd"), 1.0],
 }
 ## uzun menzil silahları: yapay zekâ uzakta durup atar (Enemy._chase)
 const RANGED := ["fuma_shuriken", "kyodai_shuriken", "fuma_makimono"]
 ## silah ağırlığı (0 hafif .. 1 ağır): kol/silah yaylanması (PoseOverlay.key_mass) — ağır silah gecikip taşar
 const MASS := {"uc_tirpan": 1.0, "samehada": 0.9, "kabutowari": 0.9, "shibuki": 0.85, "gunbai": 0.8, "raijin": 0.35, "kunai": 0.1,
-	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3, "tonfa": 0.3, "bashosen": 0.35, "kubikiribocho": 0.95, "yagura_sopa": 0.4}
+	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3, "tonfa": 0.3, "bashosen": 0.35, "kubikiribocho": 0.95, "yagura_sopa": 0.4, "yelpaze": 0.6, "kongo_asa": 0.45}
 
 
 static func mass(id: String) -> float:
@@ -40,7 +42,7 @@ static func mass(id: String) -> float:
 
 
 ## iki elli adımlarda sol elin sağ yumruktan sap boyunca uzaklığı
-const TWO_OFF := {"savas_cekici": 0.45, "uc_tirpan": 0.42, "shibuki": 0.2, "samehada": 0.3, "homatsu_kiseru": 0.3}   # shibuki: sağ el sapın arka ucunda, sol el önde (ruloya yakın)
+const TWO_OFF := {"kongo_asa": 0.5, "savas_cekici": 0.45, "uc_tirpan": 0.42, "shibuki": 0.2, "samehada": 0.3, "homatsu_kiseru": 0.3}   # shibuki: sağ el sapın arka ucunda, sol el önde (ruloya yakın)
 
 
 static func has(id: String) -> bool:
@@ -114,6 +116,24 @@ static func mods(id: String, i: int) -> Dictionary:
 				3: m.merge({"launch": 11.0, "knock": 2.0})
 				4: m.merge({"knock": 5.0})
 				5: m.merge({"heavy": true, "knock": 15.0, "reach_add": 1.2, "lunge_mul": 0.9})
+			return m
+		"yelpaze":
+			var m = {"lunge_mul": 0.4, "knock": 5.0}
+			match i:
+				0: m.merge({"heavy": true, "knock": 3.0})
+				2: m.merge({"knock": 12.0, "lunge_mul": 0.6})
+				4: m.merge({"heavy": true, "knock": 6.0})
+				5: m.merge({"knock": 14.0, "lunge_mul": 0.0})
+			return m
+		"kongo_asa":
+			var m = {"lunge_mul": 0.5, "knock": 4.0}
+			match i:
+				0: m.merge({"reach_add": 2.4, "knock": 9.0})
+				1: m.merge({"heavy": true, "knock": 4.0, "reach_add": 1.2})
+				2: m.merge({"lunge_mul": 0.0, "knock": 0.0, "reach_add": -9.0})   # yakın vuruş yok: Maymun Kral vurur
+				3: m.merge({"knock": 9.0, "reach_add": 2.0})
+				4: m.merge({"knock": 12.0, "lunge_mul": 0.4})
+				5: m.merge({"knock": 14.0, "reach_add": 3.5, "lunge_mul": 0.0})
 			return m
 		"yagura_sopa":
 			var m = {"lunge_mul": 0.5, "knock": 3.0}
@@ -332,25 +352,95 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 					if big:
 						Combat.hit_sphere(who, q + Vector3.UP * 0.5, 3.6, {"dmg": dmg * 0.6, "knock": 12.0, "launch": 7.0, "kind": "heavy", "hitstop": 0.07, "melee": false})
 						Dangle.blast(q, 45.0, 8.0)
-		"yagura_sopa":
-			var wc = Color(0.55, 0.8, 1.0, 0.85)
+		"yelpaze":
+			# kesici rüzgâr bıçakları (kamaitachi): ince keskin çizgiler + toz; Bashōsen'in yumuşak dalgalarından farklı
+			var blades = func(n: int, length: float, spread: float, h: float):
+				for k in n:
+					var off = (float(k) / maxf(n - 1, 1) - 0.5) * spread
+					var d = (f + side * off).normalized()
+					var o = who.global_position + Vector3.UP * (h + randf_range(-0.3, 0.3))
+					WindFX.streak(func(t: float) -> Vector3: return o + d * (0.8 + t * length) + side * sin(t * 6.0 + k) * 0.15, 0.22, 0.035, Color(0.9, 0.97, 1.0, 0.95), k * 0.03, 10)
+					Combat.hit_sphere(who, o + d * length * 0.6, 1.0, {"dmg": dmg * 0.35, "knock": 4.0, "kind": "light", "hitstop": 0.02, "melee": false, "element": "wind", "bleed": 2.0})
 			match i:
-				1, 2:   # sopa ucundan su izi
-					for k in (2 if i == 1 else 4):
-						WindFX.streak(func(t: float) -> Vector3:
-							var a = t * TAU * (0.5 if i == 1 else 1.0) + k * 1.6
-							return who.global_position + Vector3.UP * 1.1 + f * 1.0 + (side * cos(a) + Vector3.UP * sin(a)) * 1.0, 0.25, 0.07, wc, k * 0.06, 14)
-				4:   # su kalkanı + itme
-					VFX.splash(who.global_position + f * 1.2 + Vector3.UP * 0.2, 2.2)
-					Combat.hit_sphere(who, who.global_position + f * 2.2 + Vector3.UP, 2.0, {"dmg": dmg * 0.6, "knock": 10.0, "kind": "light", "hitstop": 0.03, "melee": false, "element": "water"})
+				1: blades.call(5, 9.0, 0.8, 1.2)
+				2: WindFX.gust(who.global_position + Vector3.UP * 1.0 + f, f, 6.0, 3.0, {"n": 12})
+				3:
+					for k in 8:
+						var d = f.rotated(Vector3.UP, TAU * k / 8.0)
+						var o = who.global_position + Vector3.UP * 1.0
+						WindFX.streak(func(t: float) -> Vector3: return o + d * (0.6 + t * 4.0), 0.2, 0.035, Color(0.9, 0.97, 1.0, 0.95), k * 0.02, 8)
+					Combat.hit_sphere(who, who.global_position + Vector3.UP, 4.0, {"dmg": dmg * 0.6, "knock": 9.0, "kind": "light", "hitstop": 0.03, "melee": false, "element": "wind"})
+				4:
+					var q = gp.call(1.6)
+					VFX.debris(q, Color(0.65, 0.58, 0.45), 12, 5.0, 0.3)
+					WindFX.wake(q, f, 5.0, 4.0, Color(0.75, 0.68, 0.55, 0.6), 0.8)
+					Combat.hit_sphere(who, q + Vector3.UP * 0.4, 3.2, {"dmg": dmg * 0.6, "knock": 8.0, "launch": 5.0, "kind": "heavy", "hitstop": 0.04, "melee": false})
+				5:
+					blades.call(9, 16.0, 1.2, 1.3)
+					WindFX.gust(who.global_position + Vector3.UP * 1.2 + f, f, 14.0, 5.0, {"n": 20})
+					Dangle.gust(who.global_position + f * 6.0, f * 40.0, 12.0, 1.0)
+					_shake(who, 0.5)
+		"kongo_asa":
+			match i:
+				0: _staff_extend(who, 2.2, 0.35)
+				1:
+					var q = gp.call(2.6)
+					VFX.cracks(q, 1.8)
+					_staff_extend(who, 1.6, 0.4)
+				2: _enma_cameo(who, dmg * 1.6, false)
+				3: _staff_extend(who, 2.0, 0.5)
+				5:
+					_staff_extend(who, 3.4, 0.55)
+					who.get_tree().create_timer(0.5).timeout.connect(func():
+						if is_instance_valid(who):
+							_enma_cameo(who, dmg * 2.0, true))
+		"yagura_sopa":
+			# her adımda su: sopa uçlarından su püskürür (kendi su chakrası), darbede sıçrama, bitirişte girdap
+			var wn = _weapon_node(who)
+			var tip: Vector3 = wn.to_global(Vector3(0, 0, 1.2)) if wn != null else who.global_position + Vector3.UP * 1.3 + f * 1.5
+			var hp = who.global_position + Vector3.UP * 1.1 + f * 1.8
+			match i:
+				0:   # kanca çekişi: kanca suyla hedefe uzanır, çekerken su kuyruğu
+					WaterArt.spray(tip, 0.9, f, 25.0, 1.4)
+					WaterArt.drops(hp, 8, 0.8, 5.0, -f, 0.5)
+				1:   # iki uçla: her vuruşta yandan su yayı
+					WaterArt.spray(tip, 0.8, (f + side).normalized(), 40.0, 1.2)
+					who.get_tree().create_timer(0.24).timeout.connect(func():
+						if is_instance_valid(who):
+							WaterArt.spray(who.global_position + Vector3.UP * 1.0 + f * 1.2, 0.8, (f - side).normalized(), 40.0, 1.2))
+					VFX.splash(hp, 1.4)
+				2:   # çark: sopa dönerken çevresine su halkası saçar
+					for k in 4:
+						who.get_tree().create_timer(k * 0.15).timeout.connect(func():
+							if is_instance_valid(who):
+								var a = TAU * k / 4.0
+								var dd = (f * cos(a) + Vector3.UP * sin(a)).normalized()
+								WaterArt.spray(who.global_position + Vector3.UP * 1.1 + f * 1.0, 0.7, dd, 30.0, 1.0)
+								Combat.hit_sphere(who, who.global_position + Vector3.UP * 1.1 + f * 1.6, 1.6, {"dmg": dmg * 0.25, "knock": 2.0, "kind": "light", "hitstop": 0.02, "melee": false, "element": "water"}))
+				3:   # süpürme + kaldırma: yerden su sütunu
+					var q = gp.call(1.8)
+					WaterArt.ripple(q, 2.0)
+					WaterArt.spray(q, 1.4, Vector3.UP, 15.0, 1.8)
+					WaterArt.splash(q, 1.2)
+				4:   # su kalkanı + itme: önde su duvarı, ardından su dalgası öne
+					var q = gp.call(1.2)
+					WaterArt.splash(q, 1.6)
+					WaterArt.spray(q + Vector3.UP * 0.3, 1.6, f, 30.0, 1.6, true)
+					Combat.hit_sphere(who, who.global_position + f * 2.4 + Vector3.UP, 2.2, {"dmg": dmg * 0.6, "knock": 11.0, "kind": "light", "hitstop": 0.03, "melee": false, "element": "water"})
 				5:   # Suiro Kaiten: yere saplanan sopa çevresinde yükselen su girdabı
 					var q = gp.call(1.0)
-					VFX.splash(q, 3.5)
+					WaterArt.ripple(q, 3.5)
+					WaterArt.splash(q, 2.4)
+					for k in 6:
+						who.get_tree().create_timer(k * 0.1).timeout.connect(func():
+							if is_instance_valid(who):
+								var a = TAU * k / 6.0
+								WaterArt.spray(q + Vector3(cos(a), 0, sin(a)) * 1.6, 1.3, (Vector3.UP * 2.0 + Vector3(-sin(a), 0, cos(a))).normalized(), 18.0, 1.8))
 					for k in 3:
 						WindFX.streak(func(t: float) -> Vector3:
 							var a = t * TAU * 2.0 + k * 2.1
-							return q + Vector3(cos(a) * (1.0 + t * 1.6), t * 3.2, sin(a) * (1.0 + t * 1.6)), 0.6, 0.12, wc, k * 0.08, 24)
-					Combat.hit_sphere(who, q + Vector3.UP, 3.4, {"dmg": dmg * 0.7, "knock": 12.0, "launch": 7.0, "kind": "heavy", "hitstop": 0.06, "melee": false, "element": "water"})
+							return q + Vector3(cos(a) * (1.0 + t * 1.6), t * 3.2, sin(a) * (1.0 + t * 1.6)), 0.6, 0.12, Color(0.55, 0.8, 1.0, 0.85), k * 0.08, 24)
+					Combat.hit_sphere(who, q + Vector3.UP, 3.6, {"dmg": dmg * 0.7, "knock": 12.0, "launch": 7.0, "kind": "heavy", "hitstop": 0.06, "melee": false, "element": "water"})
 					_shake(who, 0.5)
 		"kubikiribocho":
 			match i:
@@ -1528,4 +1618,78 @@ static func _summon_three(who: Node3D, dmg: float, form: String) -> void:
 				o["delay"] = k * 0.1
 				_spin_throw(who, dmg * 0.5, "circle", o.merged({"turns": 2.5, "orbit": 1.8, "return": false, "dur": 1.6}))
 
+
+## Elmas asa uzar: silah düğümü sap ekseninde (z) büyür, sonra eski boyuna döner
+static func _staff_extend(who: Node3D, mult: float, dur: float) -> void:
+	var n = _weapon_node(who)
+	if n == null:
+		return
+	var s0: Vector3 = n.scale
+	var tw = n.create_tween()
+	tw.tween_property(n, "scale", Vector3(s0.x, s0.y, s0.z * mult), dur * 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(dur * 0.3)
+	tw.tween_property(n, "scale", s0, dur * 0.4).set_trans(Tween.TRANS_SINE)
+	Sfx.play("whoosh", who.global_position, 0.8, 0.5)
+
+
+## Maymun Kral (Enma) asadan çıkar: asa elinden kaybolur, dumanla hedefin yanında (big: üstünde) belirir, yumruk(lar) atar,
+## dumanla kaybolur, asa ele döner. Oyuncu ve düşman aynı.
+static func _enma_cameo(who: Node3D, dmg: float, big: bool) -> void:
+	var n = _weapon_node(who)
+	var tg = _throw_target(who, 16.0)
+	var f: Vector3 = who.face_dir() if who.has_method("face_dir") else Vector3.FORWARD
+	f.y = 0
+	f = f.normalized()
+	var at: Vector3 = (tg.global_position - f * 1.6) if tg != null else who.global_position + f * 3.0
+	at.y = tg.global_position.y if tg != null else who.global_position.y   # ground_height burada gerçek zeminden alçak dönebiliyor
+	if n != null:
+		n.visible = false
+		FX.smoke_puff(n.global_position, 0.6, 8)
+	var parts = SummonModels.build("monkey_king", 2.6 if big else 2.1, 1.0)
+	var mk: Node3D = parts["root"]
+	who.get_tree().current_scene.add_child(mk)
+	var look_to = (tg.global_position if tg != null else at + f * 2.0)
+	mk.global_position = at + (Vector3.UP * 3.0 if big else Vector3.ZERO)
+	var d = look_to - at
+	d.y = 0
+	if d.length() > 0.01:
+		mk.look_at(mk.global_position + d.normalized(), Vector3.UP)   # model önü -Z: hedefe dönük
+	FX.smoke_puff(mk.global_position + Vector3.UP * 1.2, 0.7, 10)
+	Sfx.play("summon", mk.global_position, 1.0, 0.6)
+	var base = mk.global_position
+	var fwd = d.normalized() if d.length() > 0.01 else f
+	var tw = mk.create_tween()
+	var hits = [0.32] if not big else [0.4, 0.75]
+	if big:
+		# yukarıdan iniş + iki yumruk
+		tw.tween_property(mk, "global_position", at, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tw.tween_property(mk, "global_position", at + fwd * 0.6, 0.12)
+		tw.tween_property(mk, "global_position", at, 0.2)
+		tw.tween_property(mk, "global_position", at + fwd * 0.7, 0.12)
+		tw.tween_interval(0.35)
+	else:
+		# geri çekilip öne yumruk atılışı
+		tw.tween_property(mk, "global_position", base - fwd * 0.3, 0.18)
+		tw.tween_property(mk, "global_position", base + fwd * 0.9, 0.12).set_trans(Tween.TRANS_BACK)
+		tw.tween_interval(0.4)
+	tw.tween_callback(func():
+		if is_instance_valid(mk):
+			FX.smoke_puff(mk.global_position + Vector3.UP * 1.2, 0.7, 10)
+			mk.queue_free()
+		if n != null and is_instance_valid(n):
+			n.visible = true
+			FX.smoke_puff(n.global_position, 0.6, 8))
+	for ht in hits:
+		who.get_tree().create_timer(ht).timeout.connect(func():
+			if not is_instance_valid(who) or not is_instance_valid(mk):
+				return
+			var p = mk.global_position + fwd * 1.2 + Vector3.UP * 1.0
+			Combat.hit_sphere(who, p, 1.8 if not big else 2.6, {"dmg": dmg * (0.6 if big else 1.0), "knock": 14.0 if not big else 6.0, "launch": 0.0 if not big else 3.0, "kind": "heavy", "hitstop": 0.08, "melee": false})
+			VFX.star(p, Color(1.0, 0.9, 0.6), 1.6, 0.14)
+			_shake(who, 0.5)
+			if big:
+				var q = mk.global_position + fwd * 1.0
+				q.y = at.y + 0.05
+				VFX.cracks(q, 2.6)
+				VFX.debris(q, Color(0.5, 0.45, 0.4), 10, 5.0, 0.3))
 
