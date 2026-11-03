@@ -1,18 +1,15 @@
 class_name MsArts
 extends RefCounted
 ## Mangekyō tarzlarının kendi teknikleri (Eyes.MS_STYLES): her biri ayrı hazırlık + bırakış + çarpma efekti.
-## Susanoo teknikleri tarzın renginde geçici bir Susanoo çağırır (Itachi kırmızı, Sasuke mor, Madara mavi, Shisui yeşil,
-## Kakashi turkuaz); Kamui teknikleri boyut girdabı; Shisui / Itachi yanılsamaları karga ve hayal. Jutsu.execute çağırır.
+## Susanoo teknikleri sahibinin GERÇEK Susanoo'sunu kullanır (Susanoo.of); Kamui girdabı; Itachi yanılsaması karga sürüsü.
+## Jutsu.execute çağırır.
 
 const COL := {"itachi": Color(1.0, 0.3, 0.25), "sasuke": Color(0.6, 0.35, 1.0), "madara": Color(0.25, 0.5, 1.0),
 	"shisui": Color(0.3, 0.95, 0.5), "kakashi": Color(0.25, 0.95, 0.95)}
 
-const IDS := ["totsuka_no_tsurugi", "yata_no_kagami", "magen_karasu_bunshin",
-	"susanoo_kagutsuchi_no_yumiya", "enton_kagutsuchi_no_tsurugi", "susanoo_chidori", "enton_kokuen_no_tate", "enton_kokuryu",
-	"kamui_surinuke", "kamui_kyuin", "kamui_ikukan_toji", "kamui_hanten", "kamui_kusari_shibari", "kamui_ikukan_tobi", "kamui_ranbu",
-	"susanoo_kamui_ya", "raikiri_soryu", "kamui_kakushi", "kopi_ninja_no_me",
-	"kyubi_shihai", "susanoo_kenjutsu", "kanzen_tai_itto", "susanoo_tate", "susanoo_shuha",
-	"shunshin_genso", "susanoo_shisui_no_ya", "karasu_kuyo", "utakata_no_genso", "kotodama_no_shibari", "kyokei_shunshin"]
+const IDS := ["totsuka_no_tsurugi", "yata_no_kagami", "magen_karasu_bunshin", "susanoo_kagutsuchi_no_yumiya",
+	"enton_kagutsuchi_no_tsurugi", "susanoo_chidori", "susanoo", "susanoo_kobushi", "yasaka_no_magatama", "enton_yasaka_no_magatama",
+	"indora_no_ya", "susanoo_gokakyu", "susanoo_hozan", "susanoo_tsukumo"]   # yalnız kanon (uydurma tarz teknikleri silindi; Kamui/Shisui güçleri artık göz yeteneği)
 
 
 static func handles(id: String) -> bool:
@@ -61,45 +58,39 @@ static func _tint(col: Color, dur: float) -> void:
 		_later(dur, func(): if Game.world: Game.world.env.set_tint(Color(0, 0, 0, 0)))
 
 
-## Tarzın renginde geçici Susanoo (kademe, süre); oyuncuda kendi Susanoo ayarı (zırh/yüz), renk tarzdan
-static func _sus(c: Node3D, tier: int, col: Color, dur: float) -> Susanoo:
-	var sn = Susanoo.new()
-	c.add_child(sn)
-	# oyuncu: kendi özelleştirdiği Susanoo (renk, zırh, yüz, silah, kanat); başkaları tarzın renginde
-	# NPC: kendine özgü rastgele Susanoo (EnemyArts ile aynı; bir kez zar atılır, saklanır)
-	var mine = c == Game.player
-	var pr = Game.profile if mine else EnemyArts.random_susanoo(c)
-	sn.build(pr, tier, c.get("model"))
-	# Susanoo kullanıcının baktığı yöne döner ve teknikler o yöne atılır (sırtı dönük kalıyordu)
-	sn.face_owner = c
-	if "facing" in c:
-		sn.rotation.y = c.facing
-	var fs = sn.scale
-	sn.scale = fs * 0.1
-	var tw = sn.create_tween()
-	tw.tween_property(sn, "scale", fs, 0.35).set_trans(Tween.TRANS_BACK)
-	tw.tween_interval(maxf(0.1, dur - 0.7))
-	tw.tween_property(sn, "scale", fs * 0.05, 0.35)
-	tw.tween_callback(sn.queue_free)
-	Sfx.play("roar", c.global_position, 1.7, 0.45)
-	VFX.shockwave(c.global_position + Vector3.UP * 0.2, col, 3.0 + tier * 1.5, 0.4)
-	return sn
-
-
 static func _spiral(pos: Vector3, size: float, dur: float, normal := Vector3(0, 0, 1)) -> MeshInstance3D:
-	var sw = VFX._mi(VFX._sphere(0.5, 32, 16), VFX.mat_spiral(Color(0.05, 0.02, 0.08), Color(0.3, 0.15, 0.45), 3.0, 8.0, 10.0, 1.0, normal))
-	_scene().add_child(sw)
-	sw.global_position = pos
-	if Game.player and Game.player.cam:
-		sw.look_at(Game.player.cam.global_position, Vector3.UP)
-	sw.scale = Vector3(0.1, 0.1, 0.02)
-	var tw = sw.create_tween()
-	tw.tween_property(sw, "scale", Vector3(size, size, size * 0.12), 0.3).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-	tw.parallel().tween_property(sw, "rotation:z", TAU * 2.0, dur)
-	tw.tween_interval(maxf(0.0, dur - 0.6))
-	tw.tween_property(sw, "scale", Vector3.ONE * 0.02, 0.3).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
-	tw.tween_callback(sw.queue_free)
-	return sw
+	return kamui_vortex(pos, size, dur)
+
+
+## Kamui girdabı (anime): uzay merkeze doğru burkulur, ortası koyu boşluğa açılır; kameraya bakan, ekranı büken dörtgen
+static func kamui_vortex(pos: Vector3, size: float, dur: float) -> MeshInstance3D:
+	var q = QuadMesh.new()
+	q.size = Vector2(1, 1)
+	var m = ShaderMaterial.new()
+	m.shader = load("res://shaders/vfx_kamui.gdshader")
+	m.set_shader_parameter("strength", 0.0)
+	var mi = MeshInstance3D.new()
+	mi.mesh = q
+	mi.material_override = m
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	_scene().add_child(mi)
+	mi.global_position = pos
+	mi.scale = Vector3.ONE * size * 2.0
+	var face = func():
+		if is_instance_valid(mi) and Game.player and Game.player.cam:
+			mi.look_at(Game.player.cam.global_position, Vector3.UP)
+			mi.rotate_object_local(Vector3.UP, PI)
+	face.call()
+	var tw = mi.create_tween()
+	tw.tween_method(func(k: float):
+		m.set_shader_parameter("strength", k)
+		face.call(), 0.0, 1.0, minf(0.35, dur * 0.4)).set_ease(Tween.EASE_OUT)
+	tw.tween_method(func(_k: float): face.call(), 0.0, 1.0, maxf(0.05, dur - 0.65))
+	tw.tween_method(func(k: float):
+		m.set_shader_parameter("strength", k)
+		face.call(), 1.0, 0.0, 0.3).set_ease(Tween.EASE_IN)
+	tw.tween_callback(mi.queue_free)
+	return mi
 
 
 ## Karga: iki kanatlı siyah gövde (kanat çırpar)
@@ -171,93 +162,7 @@ static func _black_mesh(mb: MB) -> MeshInstance3D:
 	return mi
 
 
-## Susanoo oku / Kamui oku: yaydan çıkan parlak chakra oku, hedefe uçar
-static func _sus_arrow(c: Node3D, from: Vector3, to: Vector3, col: Color, size: float, speed: float, on_hit: Callable) -> void:
-	var mb = MB.new()
-	mb.add("cyl", Vector3(0, 0, 0.9), Vector3(0.12, 2.8, 0.12), Color.WHITE, Vector3(90, 0, 0), 8)
-	mb.add("cone", Vector3(0, 0, -0.75), Vector3(0.38, 0.9, 0.38), Color.WHITE, Vector3(-90, 0, 0), 8)
-	for sx in [-1.0, 1.0]:
-		mb.add("box", Vector3(0.18 * sx, 0, 2.1), Vector3(0.3, 0.02, 0.55), Color.WHITE)
-	var ar = MeshInstance3D.new()
-	ar.mesh = mb.build(null)
-	var m = StandardMaterial3D.new()
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.albedo_color = col.lightened(0.35)
-	m.emission_enabled = true
-	m.emission = col * 2.2
-	ar.material_override = m
-	ar.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	_scene().add_child(ar)
-	ar.global_position = from
-	ar.scale = Vector3.ONE * size
-	ar.look_at(to, Vector3.UP)
-	var tr = VFX.trail(ar, 0.5 * size, col.lightened(0.5), col, Color(col.r, col.g, col.b, 0.0), 20, 1.0)
-	var dur = clampf(from.distance_to(to) / speed, 0.08, 1.2)
-	var tw = ar.create_tween()
-	tw.tween_property(ar, "global_position", to, dur)
-	tw.tween_callback(func():
-		on_hit.call(to)
-		ar.queue_free())
-
-
 # ================================================================== ITACHI
-## Totsuka no Tsurugi: kırmızı Susanoo'nun elinde sıvı ateşten ruh kılıcı; saplar, hedef girdaba çekilip mühürlenir gibi sersemler
-static func m_totsuka_no_tsurugi(c: Node3D, t: Node3D) -> void:
-	var col: Color = COL["itachi"]
-	var sn = _sus(c, 3, col, 2.6)
-	col = sn.color()   # efektler Susanoo'nun kendi renginde (oyuncu: özelleştirdiği, NPC: rastgele)
-	var tg = Jutsu._tg(c, t, 18.0)
-	var aim = _chest(tg) if tg else c.global_position + c.face_dir() * 10.0 + Vector3.UP
-	var blade = VFX._mi(VFX._sphere(0.5, 16, 8), VFX.mat_fire("spirit", 3.0, 2.0, 0.35, 1.6, 0.18, Vector3(0, 0, 1)))
-	_scene().add_child(blade)
-	var base = c.global_position + Vector3.UP * 5.2 + c.face_dir() * 1.5
-	blade.global_position = base
-	blade.look_at(aim, Vector3.UP)
-	blade.scale = Vector3(0.6, 0.6, 0.2)
-	VFX.gather(base, col, 1.2)
-	var tw = blade.create_tween()
-	tw.tween_property(blade, "scale", Vector3(0.9, 0.9, 9.0), 0.45).set_trans(Tween.TRANS_BACK)
-	tw.tween_callback(func(): if is_instance_valid(sn) and sn.body: sn.body.play("jab", 0.05, 1.0, true))
-	tw.tween_property(blade, "global_position", base.lerp(aim, 0.55), 0.18)
-	tw.tween_callback(func():
-		var inf = Jutsu._inf(c, "totsuka_no_tsurugi", 2.4, {"knock": 4.0, "kind": "heavy", "hitstop": 0.12, "dir": c.face_dir()})
-		for h in Combat.hit_sphere(c, aim, 2.4, inf):
-			h.apply_status("stun", 4.0)
-			_spiral(_chest(h), 3.5, 1.6)   # sake testisine çekilir gibi
-		VFX.star(aim, col.lightened(0.4), 5.0, 0.2)
-		VFX.shockwave(aim, col, 6.0, 0.4, false, c.face_dir())
-		VFX.embers(aim, col, 20, 6.0, 0.8)
-		_shake(0.6))
-	tw.tween_interval(0.5)
-	tw.tween_property(blade, "scale", Vector3(0.1, 0.1, 0.1), 0.25)
-	tw.tween_callback(blade.queue_free)
-
-
-## Yata no Kagami: Susanoo'nun kolunda yansıtan ayna-kalkan; 6 sn ağır hasar azaltma, yakına gelen savrulur
-static func m_yata_no_kagami(c: Node3D, t: Node3D) -> void:
-	var col: Color = COL["itachi"]
-	var sn = _sus(c, 3, col, 6.2)
-	col = sn.color()   # efektler Susanoo'nun kendi renginde (oyuncu: özelleştirdiği, NPC: rastgele)
-	var disc = VFX._mi(VFX._sphere(0.5, 32, 4), VFX.mat_water(Color(0.6, 0.1, 0.1), col, Color(1.0, 0.85, 0.8), Vector3(0, 0, 1), 0.7, 0.3, 0.05))
-	c.add_child(disc)
-	disc.position = Vector3(0, 3.2, -2.2)
-	disc.scale = Vector3(0.1, 0.1, 0.02)
-	var tw = disc.create_tween()
-	tw.tween_property(disc, "scale", Vector3(4.6, 4.6, 0.35), 0.35).set_trans(Tween.TRANS_BACK)
-	tw.tween_interval(5.4)
-	tw.tween_property(disc, "scale", Vector3(0.1, 0.1, 0.02), 0.3)
-	tw.tween_callback(disc.queue_free)
-	if c is Player:
-		Buffs.add("yata", 6.0, {"armor": 0.12})
-	var inf = Jutsu._inf(c, "yata_no_kagami", 0.25, {"knock": 18.0, "launch": 4.0, "kind": "heavy", "hitstop": 0.04})
-	Jutsu._ticks(12, 0.5, func(_i):
-		if not is_instance_valid(c):
-			return
-		var hs = Combat.hit_sphere(c, c.global_position + Vector3.UP, 3.6, inf)
-		if not hs.is_empty():
-			VFX.shockwave(c.global_position + Vector3.UP * 1.5, col, 5.0, 0.3, false, c.face_dir()))
-
-
 ## Magen: Karasu Bunshin — beden karga sürüsüne dağılır, hedefin arkasında yeniden toplanır; hedef yanılsamada kalır
 static func m_magen_karasu_bunshin(c: Node3D, t: Node3D) -> void:
 	var tg = Jutsu._tg(c, t, 35.0)
@@ -284,34 +189,6 @@ static func m_magen_karasu_bunshin(c: Node3D, t: Node3D) -> void:
 
 
 # ================================================================== SASUKE
-## Susanoo: Kagutsuchi no Yumiya — mor Susanoo yay gerer, kara alevli ok; değdiği yerde kara alev sütunu
-static func m_susanoo_kagutsuchi_no_yumiya(c: Node3D, t: Node3D) -> void:
-	var col: Color = COL["sasuke"]
-	var sn = _sus(c, 3, col, 2.2)
-	col = sn.color()   # efektler Susanoo'nun kendi renginde (oyuncu: özelleştirdiği, NPC: rastgele)
-	var aim = _point(c, t, 60.0, 30.0)
-	_later(0.45, func():
-		if not is_instance_valid(c):
-			return
-		if is_instance_valid(sn) and sn.body:
-			sn.body.play("throw", 0.05, 1.0, true)
-		var from = c.global_position + Vector3.UP * 4.5 + c.face_dir() * 2.0
-		VFX.gather(from, Color(0.3, 0.0, 0.4), 1.0)
-		_sus_arrow(c, from, aim, col, 1.4, 70.0, func(p: Vector3):
-			var inf = Jutsu._inf(c, "susanoo_kagutsuchi_no_yumiya", 1.8, {"knock": 14.0, "launch": 4.0, "kind": "heavy", "hitstop": 0.08, "element": "katon"})
-			for h in Combat.hit_sphere(c, p, 3.2, inf):
-				Jutsu._ignite(h, 8.0)
-			var fl = VFX.black_flames(2.0)
-			_scene().add_child(fl)
-			fl.global_position = Jutsu._ground(p)
-			fl.scale = Vector3(1.0, 2.0, 1.0)
-			_later(3.0, func(): if is_instance_valid(fl): fl.queue_free())
-			VFX.shockwave(p, Color(0.25, 0.0, 0.3), 6.0, 0.5)
-			VFX.black_smolder(Jutsu._ground(p), 3.0, 6.0)
-			VFX.embers(p, Color(0.6, 0.15, 0.7), 24, 7.0, 1.0)
-			_shake(0.7)))
-
-
 ## Enton: Kagutsuchi no Tsurugi — elde kara alevden kılıç biçimlenir, ileri atılıp yay çizen kesik; kesik yanmaya devam eder
 static func m_enton_kagutsuchi_no_tsurugi(c: Node3D, t: Node3D) -> void:
 	var mb = MB.new()
@@ -350,633 +227,962 @@ static func m_enton_kagutsuchi_no_tsurugi(c: Node3D, t: Node3D) -> void:
 				sw.queue_free()))
 
 
-## Susanoo: Chidori — mor Susanoo'nun dev eli şimşek kürene dolar, yumrukla ileri
-static func m_susanoo_chidori(c: Node3D, t: Node3D) -> void:
-	var col: Color = COL["sasuke"]
-	var sn = _sus(c, 3, col, 2.0)
-	col = sn.color()   # efektler Susanoo'nun kendi renginde (oyuncu: özelleştirdiği, NPC: rastgele)
-	var ball = VFX.lightning_ball(3.2, Color(0.55, 0.6, 1.0))
-	c.add_child(ball)
-	ball.position = Vector3(1.8, 3.6, -2.0)
-	Sfx.play("chidori", c.global_position, 0.7)
-	var aim = _point(c, t, 16.0, 10.0)
-	_later(0.6, func():
-		if not is_instance_valid(c):
-			return
-		if is_instance_valid(sn) and sn.body:
-			sn.body.play("jab", 0.05, 1.2, true)
-		var from = ball.global_position if is_instance_valid(ball) else c.global_position + Vector3.UP * 3.0
-		if is_instance_valid(ball):
-			var tw = ball.create_tween()
-			tw.tween_property(ball, "global_position", aim, 0.16)
-			tw.tween_callback(ball.queue_free)
-		_later(0.16, func():
-			var inf = Jutsu._inf(c, "susanoo_chidori", 2.0, {"knock": 18.0, "launch": 5.0, "kind": "heavy", "hitstop": 0.1, "element": "raiton", "stun": 1.2})
-			Combat.hit_sphere(c, aim, 3.4, inf)
-			for k in 6:
-				VFX.bolt(aim, aim + Vector3(randf_range(-6, 6), randf_range(-1, 4), randf_range(-6, 6)), Color(0.6, 0.65, 1.0), 0.35, 0.3, 3)
-			VFX.bolt(from, aim, Color(0.7, 0.8, 1.0), 0.5, 0.2, 4)
-			VFX.star(aim, Color(0.8, 0.85, 1.0), 6.0, 0.2)
-			VFX.shockwave(aim, Color(0.5, 0.55, 1.0), 7.0, 0.4, false, c.face_dir())
-			VFX.cracks(Jutsu._ground(aim), 4.0)
-			_shake(0.8)))
+# ================================================================== SUSANOO TEKNİKLERİ (gerçek Susanoo)
+## Hepsi sahibinin GERÇEK Susanoo'sunu kullanır (Susanoo.of): oyuncunun V ile açtığı / özelleştirdiği, düşmanın kendi Susanoo'su.
+## Susanoo yoksa teknik atılmaz. Kollar hedefe göre pozlanır (PoseOverlay), efektler Susanoo'nun elinden / ağzından çıkar,
+## boyutlar Susanoo boyuyla (TIER_HEIGHT) ölçeklenir.
+
+static func _pj() -> PathJutsu:
+	return PathJutsu.get_pinst()
 
 
-## Enton: Kokuen no Tate — önünde yay biçiminde kara alev duvarı; içinden geçen tutuşur, arkasındaki sen korunursun
-static func m_enton_kokuen_no_tate(c: Node3D, t: Node3D) -> void:
-	var fd: Vector3 = c.face_dir()
-	var right = fd.cross(Vector3.UP).normalized()
-	var fls = []
-	Sfx.play("genjutsu", c.global_position, 0.6)
-	for k in 7:
-		var a = (k - 3) / 3.0
-		var p = Jutsu._ground(c.global_position + fd * (3.2 - absf(a) * 0.8) + right * a * 4.2)
-		var fl = VFX.black_flames(1.6)
-		_scene().add_child(fl)
-		fl.global_position = p
-		fl.scale = Vector3(1.0, 0.05, 1.0)
-		fl.create_tween().tween_property(fl, "scale", Vector3(1.0, 2.2, 1.0), 0.3 + absf(a) * 0.15).set_trans(Tween.TRANS_BACK)
-		VFX.black_smolder(p, 1.0, 6.5)
-		fls.append(fl)
-	if c is Player:
-		Buffs.add("kokuen", 6.0, {"armor": 0.55})
-	var center = c.global_position + fd * 3.0
-	var inf = Jutsu._inf(c, "enton_kokuen_no_tate", 0.15, {"knock": 10.0, "kind": "light", "element": "katon"})
-	Jutsu._ticks(12, 0.5, func(_i):
-		for h in Combat.hit_zone(c, c.global_position, fd, 4.5, 70.0, 3.5, inf):
-			Jutsu._ignite(h, 4.0)
-		VFX.embers(center + Vector3.UP, Color(0.6, 0.15, 0.7), 4, 2.0, 0.8), func():
-		for fl in fls:
-			if is_instance_valid(fl):
-				var tw = fl.create_tween()
-				tw.tween_property(fl, "scale", Vector3(1.0, 0.05, 1.0), 0.3)
-				tw.tween_callback(fl.queue_free))
+static func _alive(n: Node3D) -> bool:
+	return n != null and is_instance_valid(n) and not n.is_dead()
 
 
-## Enton: Kokuryū — kara alevler ejderha biçiminde yükselip kıvrılır, hedefe dalar; çarpınca kara alev patlaması
-static func m_enton_kokuryu(c: Node3D, t: Node3D) -> void:
-	var fd = Jutsu._aim_flat(c, t)
-	var tg = Jutsu._tg(c, t, 50.0)
-	var start = c.global_position + Vector3.UP * 2.0 + fd * 1.5
-	Sfx.play("genjutsu", c.global_position, 0.45)
-	VFX.black_smolder(Jutsu._ground(start), 2.0, 3.0)
-	var pr = Projectile.new()
-	pr.shooter = c
-	pr.vel = Vector3.UP * 7.0 + fd * 12.0
-	pr.radius = 1.6
-	pr.life = 3.5
-	pr.homing = tg
-	pr.homing_turn = 3.0
-	pr.info = Jutsu._inf(c, "enton_kokuryu", 1.6, {"knock": 16.0, "launch": 6.0, "kind": "heavy", "hitstop": 0.08, "element": "katon"})
-	var bm = Jutsu._black_mat()
-	var head = VfxSerpent.dragon_head(bm, 3.2, Color(0.85, 0.3, 1.0))
-	pr.add_child(head)
-	var body = VfxSerpent.new()
-	body.style = "dark"
-	body.seed_id = "enton_kokuryu"
-	body.head = pr
-	body.count = 18
-	body.spacing = 1.6
-	body.radius = 1.9
-	body.mat = bm
-	body.fin_mat = bm
-	_scene().add_child(body)
-	var age = {"t": 0.0}
-	pr.on_tick = func(p: Projectile, dt: float) -> void:
-		age["t"] += dt
-		# alçak, kıvrılarak yükselir (çok yükseğe fırlayıp düşmesin), sonra hedefe dalar
-		if age["t"] < 0.45:
-			p.vel = Vector3.UP * 8.0 + fd.cross(Vector3.UP) * cos(age["t"] * 8.0) * 9.0 + fd * 12.0
-			return
-		p.homing_turn = 6.0
-		if tg == null and p.life < 2.9:
-			p.vel = p.vel.lerp(Jutsu._aim(c, null) * 26.0, 0.06)
-		p.vel = p.vel.normalized() * minf(32.0, p.vel.length() + 0.7)
-	pr.on_hit = func(pos: Vector3, h: Node3D) -> void:
-		if h:
-			Jutsu._ignite(h, 8.0)
-		for x in Combat.hit_sphere(c, pos, 4.0, Jutsu._inf(c, "enton_kokuryu", 0.6, {"knock": 12.0, "element": "katon"}), pr.hit_list):
-			Jutsu._ignite(x, 6.0)
-		VFX.shockwave(pos, Color(0.25, 0.0, 0.3), 7.0, 0.5)
-		VFX.black_smolder(Jutsu._ground(pos), 3.5, 7.0)
-		VFX.embers(pos, Color(0.6, 0.15, 0.7), 30, 8.0, 1.0)
-		_shake(0.8)
-	_scene().add_child(pr)
-	pr.global_position = start
+## Sahibi (ve Susanoo'su) hedefe döner; yatay yön döner
+static func _turn(c: Node3D, to: Vector3) -> Vector3:
+	var d = to - c.global_position
+	d.y = 0.0
+	d = d.normalized() if d.length() > 0.1 else c.face_dir()
+	if "facing" in c:
+		c.facing = atan2(-d.x, -d.z)
+	return d
 
 
-# ================================================================== OBITO
-## Kamui: Surinuke — beden boyuta kayar: 3 sn saldırılar içinden geçer (yarı saydam, yüzünde girdap)
-static func m_kamui_surinuke(c: Node3D, t: Node3D) -> void:
-	Sfx.play("genjutsu", c.global_position, 1.1)
-	var sw = _spiral(c.global_position + Vector3.UP * 1.5, 1.2, 3.0)
-	if c is Player and c.combat:
-		c.combat.invuln = maxf(c.combat.invuln, 3.0)
-	if c.get("model") and c.model:
-		c.model.flash(0.6)
-	var ring = FX.aura(c, Color(0.35, 0.2, 0.55), 3.0, Vector3(0, 0.9, 0), 0.0)
-	Jutsu._ticks(10, 0.3, func(_i):
-		if is_instance_valid(sw) and is_instance_valid(c):
-			sw.global_position = c.global_position + Vector3.UP * 1.5
-		if is_instance_valid(c):
-			VFX.puffs(c.global_position + Vector3.UP, {"amount": 4, "life": 0.5, "size": 0.5, "radius": 0.6, "vmin": 0.5, "vmax": 1.5,
-				"colors": [Color(0.3, 0.15, 0.45, 0.6), Color(0.1, 0.05, 0.15, 0)]}), func():
-		if is_instance_valid(ring):
-			ring.emitting = false
-			_later(1.0, ring.queue_free))
+## Nişan: hedef varsa göğsü (her kare güncel), yoksa ileride yer
+static func _aim_fn(c: Node3D, tg: Node3D, dist: float) -> Callable:
+	var fb = Jutsu._ground(c.global_position + c.face_dir() * dist) + Vector3.UP
+	var wr = weakref(tg) if tg else null   # serbest kalan hedefi lambda yakalamasın
+	var last = {"p": _chest(tg) if tg else fb}
+	return func() -> Vector3:
+		var n = wr.get_ref() if wr else null
+		if n != null and not n.is_dead():
+			last["p"] = _chest(n)
+		return last["p"]
 
 
-## Kamui: Kyūin — bakılan alanda dev sarmal açılır, çevredekileri içine çeker, sonunda kapanıp ezer
-static func m_kamui_kyuin(c: Node3D, t: Node3D) -> void:
-	var pos = _point(c, t, 30.0, 14.0)
-	var sw = _spiral(pos, 12.0, 2.2)
-	Sfx.play("genjutsu", pos, 0.6)
-	var inf = Jutsu._inf(c, "kamui_kyuin", 0.3, {"knock": 0.0, "kind": "light"})
-	Jutsu._ticks(10, 0.2, func(_i):
-		for f in Jutsu.get_tree().get_nodes_in_group("fighters"):
-			if Combat.hostile(c, f) and not f.is_dead() and f.global_position.distance_to(pos) < 9.0:
-				var d = pos - f.global_position
-				f.velocity = d.normalized() * minf(14.0, d.length() * 3.0)
-				f.apply_status("stun", 0.4)
-				f.take_hit(inf.merged({"attacker": c, "dir": d.normalized()}))
-		VFX.puffs(pos, {"amount": 10, "life": 0.5, "size": 0.6, "radius": 5.0, "vmin": -6, "vmax": -3, "colors": [Color(0.3, 0.15, 0.45, 0.7), Color(0.05, 0.02, 0.08, 0)]}), func():
-		Combat.hit_sphere(c, pos, 4.0, Jutsu._inf(c, "kamui_kyuin", 1.2, {"knock": 12.0, "launch": 4.0, "kind": "heavy", "hitstop": 0.08}))
-		VFX.star(pos, Color(0.6, 0.4, 0.9), 6.0, 0.2)
-		VFX.shockwave(pos, Color(0.3, 0.15, 0.45), 8.0, 0.4, false)
-		_shake(0.6))
+## +Z ekseni dir'e bakan dönüş (looking_at -Z'yi çevirir); dikeye yakınsa yedek yukarı ekseni
+static func _zbasis(dir: Vector3, up := Vector3.UP) -> Basis:
+	var d = dir.normalized()
+	var u = up if absf(d.dot(up.normalized())) < 0.98 else Vector3.FORWARD
+	return Basis.looking_at(-d, u)
 
 
-## Kamui: Ikūkan Tōji — hedef küçük bir girdaba çekilip kaybolur (2 sn boyutta hasar), sonra fırlatılarak geri düşer
-static func m_kamui_ikukan_toji(c: Node3D, t: Node3D) -> void:
-	var tg = Jutsu._tg(c, t, 30.0)
-	if tg == null:
-		if c is Player: Hud.msg("Hapsedecek hedef yok.", Color(0.8, 0.8, 0.8))
+## İnce silindir parçasını a->b arasına yerleştir (yay kirişi)
+static func _seg(mi: MeshInstance3D, a: Vector3, b: Vector3, r: float) -> void:
+	var v = b - a
+	var L = maxf(0.01, v.length())
+	var y = v / L
+	var x = y.cross(Vector3.FORWARD if absf(y.z) < 0.9 else Vector3.RIGHT).normalized()
+	var z = x.cross(y)
+	mi.global_transform = Transform3D(Basis(x * r, y * L, z * r), (a + b) * 0.5)
+
+
+static func _rod() -> MeshInstance3D:
+	var mi = MeshInstance3D.new()
+	var cm = CylinderMesh.new()
+	cm.top_radius = 1.0
+	cm.bottom_radius = 1.0
+	cm.height = 1.0
+	cm.radial_segments = 6
+	cm.rings = 1
+	mi.mesh = cm
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return mi
+
+
+## Susanoo'nun gövdesinden yükselen chakra halkası (teknik başlarken)
+static func _sus_flare(sn: Susanoo, at: Vector3, s: float) -> void:
+	VFX.gather(at, sn.color().lightened(0.3), s)
+	VFX.star(at, sn.color().lightened(0.5), s * 1.6, 0.18)
+
+
+# ------------------------------------------------------------------ Susanoo (çağırma)
+static func m_susanoo(c: Node3D, t: Node3D) -> void:
+	var had = c == Game.player and c.combat and c.combat.modes and c.combat.modes.eyes and c.combat.modes.eyes.susanoo
+	var sn = Susanoo.of(c, "susanoo")
+	if sn == null:
 		return
-	var p0 = _chest(tg)
-	_spiral(p0, 4.0, 1.0)
-	Sfx.play("genjutsu", p0, 0.8)
-	tg.apply_status("stun", 3.0)
-	if tg.get("model"):
-		var tw = tg.model.create_tween()
-		tw.tween_property(tg.model, "scale", Vector3.ONE * 0.05, 0.35).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
-	Jutsu._ticks(5, 0.4, func(_i):
-		if is_instance_valid(tg) and not tg.is_dead():
-			tg.take_hit(Jutsu._inf(c, "kamui_ikukan_toji", 0.3, {"knock": 0.0, "attacker": c, "dir": Vector3.ZERO})), func():
-		if not is_instance_valid(tg):
+	if had:
+		Hud.msg("Susanoo zaten açık.", Color(0.8, 0.85, 1.0), 1.2)
+		return
+	var H = sn.h()
+	VFX.shockwave(c.global_position + Vector3.UP * 0.3, sn.color(), 4.0 + H * 0.5, 0.5)
+	VFX.embers(c.global_position + Vector3.UP * H * 0.3, sn.color().lightened(0.3), 30, 4.0 + H * 0.2, 1.2)
+	_shake(0.3 + sn.tier * 0.15)
+
+
+# ------------------------------------------------------------------ Totsuka no Tsurugi (Itachi)
+## Kanon: Susanoo'nun sağ elindeki sake testisinden (kabza) akan ruhani sıvı kılıç; deldiği her şeyi testiye çeker,
+## sonsuz sarhoş rüya dünyasına mühürler. Oyunda: saplama ağır hasar + sersemletme; zayıflamış (%40 altı, boss olmayan)
+## hedef testiye çekilip mühürlenir. Oyuncuyu öldürmez (sersemletir).
+static func _gourd(sn: Susanoo) -> MeshInstance3D:
+	var mb = MB.new()
+	mb.add("sphere", Vector3(0, 0, 0.0), Vector3(0.34, 0.34, 0.36), Color.WHITE, Vector3.ZERO, 16)
+	mb.add("sphere", Vector3(0, 0, 0.27), Vector3(0.23, 0.23, 0.25), Color.WHITE, Vector3.ZERO, 14)
+	mb.add("cyl", Vector3(0, 0, 0.42), Vector3(0.09, 0.12, 0.09), Color.WHITE, Vector3(90, 0, 0), 10)
+	mb.add("torus", Vector3(0, 0, 0.15), Vector3(0.2, 0.2, 0.2), Color.WHITE, Vector3(90, 0, 0), 14)   # bel bağı
+	mb.add("torus", Vector3(0, 0, 0.48), Vector3(0.1, 0.12, 0.1), Color.WHITE, Vector3(90, 0, 0), 10)   # ağız halkası
+	return sn.chakra_mesh(mb, 1.3)
+
+
+static var _blade_m: ArrayMesh
+static func _blade_mesh() -> ArrayMesh:
+	if _blade_m == null:
+		var mb = MB.new()
+		var pts = []
+		var rr = []
+		for k in 17:
+			var z = k / 16.0
+			pts.append(Vector3(sin(z * 11.0) * 0.025 * z, cos(z * 7.0) * 0.012 * z, z))
+			var w = (0.06 + 0.06 * sin(z * PI * 0.9)) * (1.0 - pow(z, 4.0)) + 0.004
+			rr.append(Vector2(w, w * 0.55))
+		Loft.tube(mb, pts, rr, Color.WHITE, 10, 2, true, true, Callable(), Vector3.UP)
+		_blade_m = mb.build(null)
+	return _blade_m
+
+
+static func m_totsuka_no_tsurugi(c: Node3D, t: Node3D) -> void:
+	var sn = Susanoo.of(c, "totsuka_no_tsurugi")
+	if sn == null:
+		return
+	var H = sn.h()
+	var S = H / 1.8
+	var col = sn.color()
+	var tg = Jutsu._tg(c, t, 10.0 + H * 1.3)
+	var aim = _aim_fn(c, tg, H * 0.9)
+	var d = _turn(c, aim.call())
+	var side = d.cross(Vector3.UP).normalized()
+	_pj().busy(c, 1.2)
+	_anim(c, "cast_out", 0.8)
+	sn.hide_weapons(2.9)
+	var left_idle = Susanoo.arm(false, -side * 0.25 - Vector3.UP * 0.9 + d * 0.25, d * 0.7 - Vector3.UP * 0.5 - side * 0.2)
+	# 1) testi omuz üstüne kalkar, kılıç ağzından göğe doğru akarak uzar
+	sn.pose({"arms": Susanoo.arm(true, side * 0.55 + Vector3.UP * 0.5 - d * 0.15, Vector3.UP * 0.9 + d * 0.3, Vector3.UP * 0.5 + d * 0.85) + left_idle, "spine": -5.0}, 2.8)
+	var gourd = _gourd(sn)
+	_scene().add_child(gourd)
+	var blade = Node3D.new()
+	var outer = VFX._mi(_blade_mesh(), sn.flame_mat())
+	var inner = VFX._mi(_blade_mesh(), VFX.mat_bolt(Color(1.0, 0.96, 0.9), 2.4))
+	inner.scale = Vector3(0.38, 0.38, 1.0)
+	blade.add_child(outer)
+	blade.add_child(inner)
+	_scene().add_child(blade)
+	var st = {"len": 0.0, "mode": 0, "gs": 0.05, "w": S * 0.5}
+	var o = {"sn": sn, "g": gourd, "b": blade}   # düğümler sözlükte: serbest kalınca lambda yakalaması hata vermesin
+	var upd = func(_x: float):
+		if not (is_instance_valid(o["sn"]) and is_instance_valid(o["g"]) and is_instance_valid(o["b"])):
 			return
-		_spiral(p0 + Vector3.UP * 3.0, 4.0, 0.8)
-		if tg.get("model"):
-			tg.model.create_tween().tween_property(tg.model, "scale", Vector3.ONE, 0.25).set_trans(Tween.TRANS_BACK)
-		if not tg.is_dead():
-			tg.take_hit(Jutsu._inf(c, "kamui_ikukan_toji", 0.8, {"knock": 10.0, "launch": 8.0, "kind": "heavy", "attacker": c, "dir": Vector3.UP})))
-
-
-## Kamui: Hanten — 2.5 sn boyutu açık tutar (hasar emilir), sonra emilen güç çevrene ters girdap patlaması olarak döner
-static func m_kamui_hanten(c: Node3D, t: Node3D) -> void:
-	var sw = _spiral(c.global_position + Vector3.UP * 1.3, 2.4, 2.6)
-	Sfx.play("genjutsu", c.global_position, 0.95)
-	if c is Player:
-		Buffs.add("hanten", 2.5, {"armor": 0.1})
-	Jutsu._ticks(8, 0.3, func(_i):
-		if is_instance_valid(sw) and is_instance_valid(c):
-			sw.global_position = c.global_position + Vector3.UP * 1.3, func():
+		var sn2: Susanoo = o["sn"]
+		var gourd2: Node3D = o["g"]
+		var blade2: Node3D = o["b"]
+		var hp = sn2.hand(true)
+		var dir: Vector3 = (Vector3.UP * 0.8 + d * 0.6).normalized() if st["mode"] == 0 else (aim.call() - hp).normalized()
+		gourd2.global_transform = Transform3D(_zbasis(dir) * Basis.from_scale(Vector3.ONE * S * 0.75 * st["gs"]), hp - dir * S * 0.08)
+		var mouth = gourd2.to_global(Vector3(0, 0, 0.5))
+		blade2.global_transform = Transform3D(_zbasis(dir) * Basis.from_scale(Vector3(st["w"], st["w"], maxf(0.02, st["len"]))), mouth)
+	var tw = blade.create_tween()
+	tw.set_parallel(true)
+	tw.tween_method(upd, 0.0, 1.0, 3.0)
+	tw.tween_method(func(x: float): st["gs"] = x, 0.05, 1.0, 0.25).set_trans(Tween.TRANS_BACK)
+	tw.tween_method(func(x: float): st["len"] = x, 0.0, H * 0.55, 0.45).set_delay(0.25).set_trans(Tween.TRANS_SINE)
+	_sus_flare(sn, sn.hand(true), 1.4)
+	Sfx.play("genjutsu", c.global_position, 0.6)
+	_later(0.3, func(): Sfx.play("fire", c.global_position, 0.5, 0.6))
+	# 2) saplama: kol hedefe uzanır, sıvı kılıç hedefe kadar akıp deler
+	_later(0.8, func():
+		if not (is_instance_valid(c) and is_instance_valid(sn)):
+			return
+		st["mode"] = 1
+		var ad = (aim.call() - sn.bone_at("RightUpperArm")).normalized()
+		sn.pose({"arms": Susanoo.arm(true, ad, ad, ad) + left_idle, "spine": 12.0}, 2.0, true)
+		var reach = sn.hand(true).distance_to(aim.call()) + H * 0.06
+		var tw2 = blade.create_tween()
+		tw2.tween_method(func(x: float): st["len"] = x, st["len"], reach, 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		Sfx.play("whoosh", c.global_position, 0.5, 0.9))
+	_later(0.93, func():
 		if not is_instance_valid(c):
 			return
-		var p = c.global_position + Vector3.UP
-		Combat.hit_sphere(c, p, 7.0, Jutsu._inf(c, "kamui_hanten", 1.6, {"knock": 20.0, "launch": 6.0, "kind": "heavy", "hitstop": 0.1}))
-		_spiral(p, 10.0, 0.8)
-		VFX.shockwave(p, Color(0.35, 0.2, 0.55), 10.0, 0.45, false)
-		VFX.debris(Jutsu._ground(p), Color(0.4, 0.35, 0.4), 16, 10.0, 0.5)
+		var p: Vector3 = aim.call()
+		VFX.star(p, col.lightened(0.5), 3.0 + H * 0.1, 0.2)
+		VFX.shockwave(p, col, 3.0 + H * 0.15, 0.35, false, d)
+		VFX.embers(p, col.lightened(0.3), 26, 7.0, 0.9)
+		_shake(0.7)
+		var inf = Jutsu._inf(c, "totsuka_no_tsurugi", 2.4, {"knock": 2.0, "kind": "heavy", "hitstop": 0.14, "dir": d})
+		if c != Game.player and is_instance_valid(Game.player):
+			# oyuncu Totsuka'yla mühürlenip ölmez: hasar mevcut canının yarısıyla sınırlı, sersemletme kalır
+			inf["dmg"] = minf(float(inf.get("dmg", 0.0)), maxf(1.0, float(Game.player.hp) * 0.5))
+		var hs = Combat.hit_sphere(c, p, 2.4 + H * 0.04, inf)
+		for h in hs:
+			if not _alive(h):
+				continue
+			h.apply_status("stun", 3.0)
+			var sealable = h.has_method("die") and not (h is Player) and not h.has_meta("boss") and float(h.hp) <= float(h.max_hp) * 0.4
+			if sealable:
+				_totsuka_seal(c, sn, h, gourd, col)
+			else:
+				Combat.popup_text(_chest(h) + Vector3.UP, "Mühüre direniyor!", Color(1, 0.65, 0.55))
+				# ruh testiye doğru çekiştirilir (iz), ama beden kopmaz
+				_soul_wisps(h, gourd, col, 8))
+	# 3) kılıç geri akar, testi kaybolur
+	_later(2.2, func():
+		if not is_instance_valid(blade):
+			return
+		var tw3 = blade.create_tween()
+		tw3.set_parallel(true)
+		tw3.tween_method(func(x: float): st["len"] = x, st["len"], 0.0, 0.3).set_trans(Tween.TRANS_SINE)
+		tw3.tween_method(func(x: float): st["gs"] = x, 1.0, 0.02, 0.35).set_delay(0.35)
+		tw3.chain().tween_callback(func():
+			blade.queue_free()
+			if is_instance_valid(gourd):
+				gourd.queue_free()))
+
+
+## Ruh izleri: hedeften testinin ağzına akan Susanoo renginde sıvı-alev damlaları
+static func _soul_wisps(h: Node3D, gourd: Node3D, col: Color, n: int) -> void:
+	for k in n:
+		_later(k * 0.07, func():
+			if not (is_instance_valid(h) and is_instance_valid(gourd)):
+				return
+			var w = VFX._mi(VFX._sphere(0.5, 10, 6), VFX.mat_bolt(col.lightened(0.4), 1.8))
+			_scene().add_child(w)
+			var from = _chest(h) + Vector3(randf_range(-0.5, 0.5), randf_range(-0.6, 0.6), randf_range(-0.5, 0.5))
+			w.global_position = from
+			w.scale = Vector3.ONE * randf_range(0.3, 0.6)
+			var tw = w.create_tween()
+			var o = {"g": gourd, "w": w}
+			tw.tween_method(func(x: float):
+				if is_instance_valid(o["g"]) and is_instance_valid(o["w"]):
+					var w2: Node3D = o["w"]
+					var to = o["g"].to_global(Vector3(0, 0, 0.5))
+					var mid = from.lerp(to, 0.5) + Vector3.UP * 2.0
+					w2.global_position = from.lerp(mid, x).lerp(mid.lerp(to, x), x)
+					w2.scale = Vector3.ONE * lerpf(0.5, 0.12, x), 0.0, 1.0, 0.55).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+			tw.tween_callback(w.queue_free))
+
+
+static func _totsuka_seal(c: Node3D, sn: Susanoo, h: Node3D, gourd: Node3D, col: Color) -> void:
+	Combat.popup_text(_chest(h) + Vector3.UP, "Totsuka: mühürlendi", col.lightened(0.4))
+	Sfx.play("genjutsu", h.global_position, 0.5)
+	_soul_wisps(h, gourd, col, 18)
+	var m = h.get("model")
+	if m:
+		var tw = m.create_tween()
+		tw.set_parallel(true)
+		tw.tween_property(m, "scale", m.scale * Vector3(0.05, 1.4, 0.05), 1.1).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+	_later(1.15, func():
+		if not _alive(h):
+			return
+		h.die({"execute": true, "attacker": c, "dmg": 9999.0, "sealed": true})
+		if is_instance_valid(h) and h.get("model"):
+			h.model.visible = false
+		if is_instance_valid(gourd):
+			VFX.star(gourd.to_global(Vector3(0, 0, 0.5)), col.lightened(0.6), 2.0 + sn.h() * 0.05, 0.25))
+
+
+# ------------------------------------------------------------------ Yata no Kagami (Itachi)
+## Kanon: Susanoo'nun sol kolundaki ayna kalkan; niteliğini saldırıya göre değiştirip her saldırıyı etkisiz kılar.
+## Oyunda: 6 sn boyunca gelen hasar %95 azalır (oyuncu ve düşman aynı); her darbe kalkanda dalgalanır ve önündekileri iter.
+static func m_yata_no_kagami(c: Node3D, t: Node3D) -> void:
+	var sn = Susanoo.of(c, "yata_no_kagami")
+	if sn == null:
+		return
+	var H = sn.h()
+	var S = H / 1.8
+	var col = sn.color()
+	var DUR = 6.0
+	var d = c.face_dir()
+	var side = d.cross(Vector3.UP).normalized()
+	_anim(c, "block", 1.0)
+	# sol kol kalkanı göğsün önünde tutar
+	sn.pose({"arms": Susanoo.arm(false, -side * 0.55 + d * 0.65 - Vector3.UP * 0.35, side * 0.8 + d * 0.45 + Vector3.UP * 0.3), "spine": 6.0}, DUR)
+	var shield = Node3D.new()
+	var mb = MB.new()
+	mb.add("torus", Vector3.ZERO, Vector3(1.0, 0.16, 1.0), Color.WHITE, Vector3(90, 0, 0), 28)
+	mb.add("torus", Vector3.ZERO, Vector3(0.62, 0.06, 0.62), Color.WHITE, Vector3(90, 0, 0), 24)
+	for k in 12:   # kenar boncukları (aynanın süslü çerçevesi)
+		var a = TAU * k / 12.0
+		mb.add("sphere", Vector3(cos(a), sin(a), 0) * 0.5, Vector3(0.08, 0.08, 0.08), Color.WHITE, Vector3.ZERO, 8)
+	mb.add("sphere", Vector3(0, 0, 0.02), Vector3(0.12, 0.12, 0.06), Color.WHITE, Vector3.ZERO, 10)
+	shield.add_child(sn.chakra_mesh(mb, 1.4))
+	var face = MeshInstance3D.new()
+	var cm = CylinderMesh.new()
+	cm.top_radius = 0.49
+	cm.bottom_radius = 0.49
+	cm.height = 0.02
+	cm.radial_segments = 32
+	face.mesh = cm
+	face.rotation = Vector3(PI * 0.5, 0, 0)
+	var fm = StandardMaterial3D.new()
+	fm.albedo_color = Color(col.lightened(0.55).r, col.lightened(0.55).g, col.lightened(0.55).b, 0.55)
+	fm.metallic = 1.0
+	fm.roughness = 0.06
+	fm.emission_enabled = true
+	fm.emission = col * 0.35
+	fm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	fm.cull_mode = BaseMaterial3D.CULL_DISABLED
+	face.material_override = fm
+	face.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	shield.add_child(face)
+	_scene().add_child(shield)
+	var st = {"s": 0.05}
+	var o = {"sn": sn, "sh": shield, "c": c}
+	var upd = func(_x: float):
+		if not (is_instance_valid(o["sn"]) and is_instance_valid(o["sh"]) and is_instance_valid(o["c"])):
+			return
+		var fd = o["c"].face_dir()
+		var at = o["sn"].bone_at("LeftLowerArm").lerp(o["sn"].bone_at("LeftHand"), 0.55) + fd * S * 0.12
+		o["sh"].global_transform = Transform3D(_zbasis(fd) * Basis.from_scale(Vector3.ONE * S * 1.05 * st["s"]), at)
+	var tw = shield.create_tween()
+	tw.set_parallel(true)
+	tw.tween_method(upd, 0.0, 1.0, DUR + 0.4)
+	tw.tween_method(func(x: float): st["s"] = x, 0.05, 1.0, 0.3).set_trans(Tween.TRANS_BACK)
+	tw.tween_method(func(x: float): st["s"] = x, 1.0, 0.02, 0.35).set_delay(DUR)
+	tw.chain().tween_callback(shield.queue_free)
+	VFX.star(shield.global_position, col.lightened(0.6), 2.0 + H * 0.08, 0.2)
+	Sfx.play("chakra", c.global_position, 0.6)
+	if c is Player:
+		Buffs.add("yata", DUR, {"armor": 0.05, "_name": "Yata no Kagami", "_desc": "ayna kalkan: gelen hasar %95 azalır"})
+	else:
+		c.set_meta("yata_until", Time.get_ticks_msec() + int(DUR * 1000.0))
+	var inf = Jutsu._inf(c, "yata_no_kagami", 0.3, {"knock": 20.0, "launch": 4.0, "kind": "heavy", "hitstop": 0.04})
+	var last = {"hp": float(c.hp)}
+	Jutsu._ticks(int(DUR / 0.25), 0.25, func(i):
+		if not (is_instance_valid(o["c"]) and is_instance_valid(o["sh"])):
+			return
+		var shield2: Node3D = o["sh"]
+		var fd = c.face_dir()
+		# darbe aldıysa ayna dalgalanır ve saldırganları geri savurur (niteliğini değiştirip yansıtır)
+		if float(c.hp) < last["hp"] - 0.01 or i % 2 == 0:
+			var struck = float(c.hp) < last["hp"] - 0.01
+			var hs = Combat.hit_sphere(c, c.global_position + fd * H * 0.3 + Vector3.UP * H * 0.2, H * 0.22 + 2.0, inf)
+			if struck or not hs.is_empty():
+				VFX.shockwave(shield2.global_position + fd * S * 0.1, col.lightened(0.4), S * 1.4, 0.3, false, fd)
+				VFX.star(shield2.global_position, Color(1, 1, 1), S * 0.5, 0.12)
+		last["hp"] = float(c.hp))
+
+
+# ------------------------------------------------------------------ Susanoo yayı: Enton: Susanoo Kagutsuchi (Sasuke) / Indora'nın Oku
+## Sol el yayı hedefe uzatır, sağ el kirişi yanağa kadar çeker; ok kirişte biçimlenir (kara alev / şimşek), bırakınca kiriş titrer.
+static func _bow_mesh(sn: Susanoo) -> MeshInstance3D:
+	var mb = MB.new()
+	var pts = []
+	var rr = []
+	for k in 15:
+		var a = lerpf(-1.25, 1.25, k / 14.0)
+		var tip = maxf(0.0, absf(a) - 1.0) * 4.0   # uçlar öne kıvrılır (recurve)
+		pts.append(Vector3(0, sin(a) * 0.82, (1.0 - cos(a)) * 0.38 - tip * 0.1))
+		var w = lerpf(0.045, 0.016, absf(a) / 1.25)
+		rr.append(Vector2(w, w * 1.4))
+	Loft.tube(mb, pts, rr, Color.WHITE, 8, 2, true, true, Callable(), Vector3.FORWARD)
+	mb.add("sphere", Vector3(0, 0, 0.0), Vector3(0.09, 0.2, 0.1), Color.WHITE, Vector3.ZERO, 10)   # kabza
+	for s in [-1.0, 1.0]:   # kanat süsleri
+		mb.add("cone", Vector3(0, 0.45 * s, 0.1), Vector3(0.05, 0.22, 0.04), Color.WHITE, Vector3(90 + 30 * s, 0, 0), 6)
+	return sn.chakra_mesh(mb, 1.5)
+
+
+static func _bow_tips() -> Array:
+	var a = 1.25
+	var tip = (a - 1.0) * 4.0
+	var z = (1.0 - cos(a)) * 0.38 - tip * 0.1
+	return [Vector3(0, sin(a) * 0.82, z), Vector3(0, -sin(a) * 0.82, z)]
+
+
+static func _sus_bow(c: Node3D, t: Node3D, jid: String, mode: String) -> void:
+	var sn = Susanoo.of(c, jid)
+	if sn == null:
+		return
+	var H = sn.h()
+	var S = H / 1.8
+	var col = sn.color()
+	var indora = mode == "indora"
+	var rng = (70.0 if indora else 45.0) + H * 1.5
+	var tg = Jutsu._tg(c, t, rng)
+	var aim = _aim_fn(c, tg, minf(rng, 25.0 + H))
+	var d = _turn(c, aim.call())
+	var side = d.cross(Vector3.UP).normalized()
+	var charge = 1.9 if indora else 1.0
+	_pj().busy(c, charge + 0.3)
+	_anim(c, "cast", 0.8)
+	sn.hide_weapons(charge + 0.9)
+	var ad = (aim.call() - sn.bone_at("LeftUpperArm")).normalized()
+	var draw = Susanoo.arm(true, side * 0.55 - d * 0.8 + Vector3.UP * 0.12, -side * 0.85 + d * 0.3 + Vector3.UP * 0.3, -side * 0.6 + d * 0.7)
+	sn.pose({"arms": Susanoo.arm(false, ad, ad, ad) + draw, "spine": -4.0}, charge + 0.8)
+	var bow = _bow_mesh(sn)
+	_scene().add_child(bow)
+	var strings = [_rod(), _rod()]
+	var smat = VFX.mat_bolt(col.lightened(0.6), 1.6)
+	for s in strings:
+		s.material_override = smat
+		_scene().add_child(s)
+	# ok: kara alev (Enton) ya da ak-mavi şimşek (Indora)
+	var arrow = Node3D.new()
+	var amb = MB.new()
+	amb.add("cyl", Vector3(0, 0, 0.0), Vector3(0.05, 1.4, 0.05), Color.WHITE, Vector3(90, 0, 0), 8)
+	amb.add("cone", Vector3(0, 0, -0.82), Vector3(0.16, 0.3, 0.06), Color.WHITE, Vector3(-90, 0, 0), 4)
+	for s in [-1.0, 1.0]:
+		amb.add("box", Vector3(0.06 * s, 0, 0.6), Vector3(0.12, 0.01, 0.22), Color.WHITE)
+	var shaft = MeshInstance3D.new()
+	shaft.mesh = amb.build(null)
+	shaft.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	shaft.material_override = VFX.mat_bolt(Color(0.85, 0.92, 1.0), 2.6) if indora else Jutsu._black_mat()
+	arrow.add_child(shaft)
+	if indora:
+		var arcs = Arcs.new()
+		arcs.color = Color(0.7, 0.85, 1.0)
+		arcs.radius = 0.5
+		arcs.count = 8
+		arcs.width = 0.04
+		arrow.add_child(arcs)
+	else:
+		var fl = VFX.black_flames(0.35)
+		fl.position = Vector3(0, 0, -0.3)
+		fl.scale = Vector3(0.22, 0.22, 0.9)
+		arrow.add_child(fl)
+	_scene().add_child(arrow)
+	var st = {"bs": 0.05, "as": 0.02, "drawn": true, "flying": false}
+	var o = {"sn": sn, "bow": bow, "ar": arrow}
+	var upd = func(_x: float):
+		if not (is_instance_valid(o["sn"]) and is_instance_valid(o["bow"])):
+			return
+		var sn2: Susanoo = o["sn"]
+		var bow2: Node3D = o["bow"]
+		var arrow2 = o["ar"]
+		var lh = sn2.hand(false)
+		var a2: Vector3 = (aim.call() - lh).normalized()
+		bow2.global_transform = Transform3D(_zbasis(-a2) * Basis.from_scale(Vector3.ONE * S * 1.35 * st["bs"]), lh)
+		var tips = _bow_tips()
+		var t0 = bow2.to_global(tips[0])
+		var t1 = bow2.to_global(tips[1])
+		var nock = sn2.hand(true) if st["drawn"] else bow2.to_global(Vector3(0, 0, (1.0 - cos(1.25)) * 0.38 - 0.1))
+		var r = S * 0.012 * st["bs"]
+		_seg(strings[0], t0, nock, r)
+		_seg(strings[1], nock, t1, r)
+		if is_instance_valid(arrow2) and not st["flying"]:
+			var ad2 = (lh - nock).normalized() if st["drawn"] else a2
+			arrow2.global_transform = Transform3D(_zbasis(-ad2) * Basis.from_scale(Vector3.ONE * S * 1.35 * st["as"]), nock + ad2 * S * 1.35 * st["as"] * 0.7)
+	var tw = bow.create_tween()
+	tw.set_parallel(true)
+	tw.tween_method(upd, 0.0, 1.0, charge + 1.2)
+	tw.tween_method(func(x: float): st["bs"] = x, 0.05, 1.0, 0.3).set_trans(Tween.TRANS_BACK)
+	tw.tween_method(func(x: float): st["as"] = x, 0.02, 1.0, 0.4).set_delay(0.3)
+	tw.tween_method(func(x: float): st["bs"] = x, 1.0, 0.02, 0.3).set_delay(charge + 0.85)
+	tw.chain().tween_callback(func():
+		bow.queue_free()
+		for s in strings:
+			if is_instance_valid(s):
+				s.queue_free())
+	_sus_flare(sn, sn.hand(false), 1.2)
+	if indora:
+		# Indora: gök kararır, her yandan şimşekler okun ucuna toplanır
+		Sfx.play("thunder", c.global_position, 0.7)
+		_tint(Color(0.06, 0.05, 0.16, 0.35), charge + 0.6)
+		for k in 22:
+			_later(0.3 + k * 0.07, func():
+				if not is_instance_valid(arrow) or st["flying"]:
+					return
+				var tip = arrow.to_global(Vector3(0, 0, -0.9))
+				var q = tip + Vector3(randf_range(-1, 1), randf_range(-0.2, 1.2), randf_range(-1, 1)).normalized() * randf_range(H * 0.3, H * 0.8)
+				VFX.bolt(q, tip, Color(0.65, 0.85, 1.0), S * 0.02, 0.18, 2))
+	else:
+		Sfx.play("genjutsu", c.global_position, 0.6)
+		_later(0.3, func(): if is_instance_valid(arrow): VFX.gather(arrow.global_position, Color(0.3, 0.05, 0.4), 1.4))
+	# bırakış
+	_later(charge, func():
+		if not (is_instance_valid(c) and is_instance_valid(sn) and is_instance_valid(arrow)):
+			if is_instance_valid(arrow):
+				arrow.queue_free()
+			return
+		st["drawn"] = false
+		st["flying"] = true
+		sn.pose({"arms": Susanoo.arm(false, ad, ad, ad) + Susanoo.arm(true, side * 0.5 - d * 0.85 + Vector3.UP * 0.1, side * 0.3 - d * 0.9 + Vector3.UP * 0.25), "spine": -8.0}, 0.7, true)
+		var from = arrow.global_position
+		var to: Vector3 = aim.call()
+		var dir = (to - from).normalized()
+		var dist = from.distance_to(to)
+		if not tg:
+			to = from + dir * rng * 0.8
+			dist = rng * 0.8
+		Sfx.play("thunder" if indora else "whoosh", from, 0.6 if indora else 0.7)
+		if indora:
+			_fire_indora(c, sn, arrow, from, to, dir, dist)
+		else:
+			_fire_kagutsuchi(c, sn, arrow, from, to, dir, dist))
+
+
+static func _fire_kagutsuchi(c: Node3D, sn: Susanoo, arrow: Node3D, from: Vector3, to: Vector3, dir: Vector3, dist: float) -> void:
+	var H = sn.h()
+	VFX.trail(arrow, H * 0.03, Color(0.45, 0.15, 0.55), Color(0.1, 0.02, 0.12), Color(0, 0, 0, 0), 24, 0.0)
+	var dur = clampf(dist / 110.0, 0.1, 0.7)
+	var tw = arrow.create_tween()
+	tw.tween_property(arrow, "global_position", to, dur)
+	tw.tween_callback(func():
+		arrow.queue_free()
+		if not is_instance_valid(c):
+			return
+		var inf = Jutsu._inf(c, "susanoo_kagutsuchi_no_yumiya", 1.8, {"knock": 14.0, "launch": 4.0, "kind": "heavy", "hitstop": 0.08, "element": "katon"})
+		for h in Combat.hit_sphere(c, to, 3.0 + H * 0.12, inf):
+			Jutsu._ignite(h, 8.0)
+		var g = Jutsu._ground(to)
+		var fl = VFX.black_flames(2.0 + H * 0.05)
+		_scene().add_child(fl)
+		fl.global_position = g
+		fl.scale = Vector3(1.0, 2.2, 1.0)
+		_later(4.0, func(): if is_instance_valid(fl): fl.queue_free())
+		VFX.shockwave(to, Color(0.22, 0.0, 0.3), 5.0 + H * 0.2, 0.5)
+		VFX.black_smolder(g, 3.0 + H * 0.06, 7.0)
+		VFX.embers(to, Color(0.6, 0.15, 0.7), 30, 8.0, 1.1)
 		_shake(0.8))
 
 
-## Kamui: Kusari Shibari — hedefin arkasında girdap açılır, içinden zincirler fırlayıp hedefi sarar (4 sn bağlı)
-static func m_kamui_kusari_shibari(c: Node3D, t: Node3D) -> void:
-	var tg = Jutsu._tg(c, t, 30.0)
-	if tg == null:
-		if c is Player: Hud.msg("Bağlanacak hedef yok.", Color(0.8, 0.8, 0.8))
-		return
-	var back = tg.global_position + (tg.global_position - c.global_position).normalized() * 3.0 + Vector3.UP * 2.5
-	_spiral(back, 3.0, 4.2)
-	Sfx.play("seal", back, 0.7)
-	var links = Node3D.new()
-	_scene().add_child(links)
-	var dst = _chest(tg)
-	var n = 14
-	for i in n:
-		var l = MeshInstance3D.new()
-		var tm = TorusMesh.new()
-		tm.inner_radius = 0.08; tm.outer_radius = 0.16; tm.rings = 8; tm.ring_segments = 6
-		l.mesh = tm
-		l.material_override = Props.toon_color(Color(0.3, 0.3, 0.34))
-		links.add_child(l)
-		l.global_position = back
-		l.rotation = Vector3(0, 0, PI * 0.5 * (i % 2))
-		var tw = l.create_tween()
-		tw.tween_interval(i * 0.02)
-		tw.tween_property(l, "global_position", back.lerp(dst, float(i) / (n - 1)), 0.2)
-	tg.apply_status("bind", 4.0)
-	tg.take_hit(Jutsu._inf(c, "kamui_kusari_shibari", 0.6, {"knock": 0.0, "attacker": c, "dir": Vector3.ZERO}))
-	_later(4.0, links.queue_free)
-
-
-## Kamui: Ikūkan Tobi — girdaba girer, hedefin arkasındaki girdaptan çıkıp vurursun
-static func m_kamui_ikukan_tobi(c: Node3D, t: Node3D) -> void:
-	var tg = Jutsu._tg(c, t, 40.0)
-	var from = c.global_position
-	_spiral(from + Vector3.UP * 1.2, 2.6, 0.7)
-	Sfx.play("genjutsu", from, 1.2)
-	var dest = Jutsu._ground((tg.global_position - (tg.global_position - from).normalized() * -1.8) if tg else from + Jutsu._aim_flat(c, t) * 16.0)
-	if c.get("model"):
-		c.model.visible = false
-	_later(0.35, func():
-		if not is_instance_valid(c):
-			return
-		_spiral(dest + Vector3.UP * 1.2, 2.6, 0.7)
-		c.global_position = dest
-		if c.has_method("reset_physics_interpolation"):
-			c.reset_physics_interpolation()
-		if c.get("model"):
-			c.model.visible = true
-		if tg and is_instance_valid(tg) and not tg.is_dead():
-			var d = tg.global_position - dest
-			d.y = 0
-			if c is Player:
-				c.facing = atan2(-d.x, -d.z)
-			_anim(c, "slash_c", 1.4)
-			tg.take_hit(Jutsu._inf(c, "kamui_ikukan_tobi", 1.4, {"knock": 9.0, "attacker": c, "dir": d.normalized(), "hitstop": 0.08}))
-			VFX.star(_chest(tg), Color(0.6, 0.4, 0.9), 3.0, 0.15))
-
-
-## Kamui: Ranbu — hedefin üstünde üç girdap açılır, içlerinden kunai ve shuriken yağar
-static func m_kamui_ranbu(c: Node3D, t: Node3D) -> void:
-	var pos = Jutsu._ground(_point(c, t, 35.0, 16.0))
-	var portals = []
+static func _fire_indora(c: Node3D, sn: Susanoo, arrow: Node3D, from: Vector3, to: Vector3, dir: Vector3, dist: float) -> void:
+	var H = sn.h()
+	arrow.queue_free()
+	# ışın: tüm yol boyunca kalın şimşek demeti + çatallar, sonda dev patlama
 	for k in 3:
-		var a = TAU * k / 3.0
-		var pp = pos + Vector3(cos(a) * 3.0, 9.0, sin(a) * 3.0)
-		_spiral(pp, 3.2, 2.6, Vector3.UP)
-		portals.append(pp)
-	Sfx.play("whoosh", pos, 0.8)
-	var kmesh = CharacterModel.weapon_mesh("kunai")
-	var inf = Jutsu._inf(c, "kamui_ranbu", 0.22, {"knock": 2.0, "kind": "light"})
-	Jutsu._ticks(18, 0.1, func(i):
-		var from: Vector3 = portals[int(i) % 3]
-		var to = pos + Vector3(randf_range(-3.5, 3.5), 0.1, randf_range(-3.5, 3.5))
-		var k = MeshInstance3D.new()
-		k.mesh = kmesh
-		_scene().add_child(k)
-		k.global_position = from
-		k.look_at(to, Vector3.UP)
-		var tw = k.create_tween()
-		tw.tween_property(k, "global_position", to, 0.22)
-		tw.tween_callback(func():
-			Combat.hit_sphere(c, to + Vector3.UP, 1.4, inf)
-			FX.dust(to, 0.4))
-		tw.tween_interval(1.5)
-		tw.tween_callback(k.queue_free))
-
-
-# ================================================================== KAKASHI
-## Susanoo: Kamui no Ya — turkuaz Susanoo'nun oku; değdiği yerde Kamui girdabı açılıp koparır
-static func m_susanoo_kamui_ya(c: Node3D, t: Node3D) -> void:
-	var col: Color = COL["kakashi"]
-	var sn = _sus(c, 3, col, 2.2)
-	col = sn.color()   # efektler Susanoo'nun kendi renginde (oyuncu: özelleştirdiği, NPC: rastgele)
-	var aim = _point(c, t, 60.0, 30.0)
-	var tg = Jutsu._tg(c, t, 60.0)
-	_later(0.45, func():
+		VFX.bolt(from, to, Color(0.8, 0.9, 1.0), H * 0.025 * (1.0 - k * 0.3), 0.45, 4)
+	var n = int(dist / 8.0)
+	for k in n:
+		var q = from + dir * (k * 8.0)
+		_later(k * 0.012, func():
+			VFX.bolt(q, q + Vector3(randf_range(-1, 1), randf_range(-1, 1), randf_range(-1, 1)) * H * 0.2, Color(0.6, 0.8, 1.0), H * 0.008, 0.3, 2))
+	var inf = Jutsu._inf(c, "indora_no_ya", 4.0, {"knock": 30.0, "launch": 8.0, "kind": "heavy", "element": "raiton", "stun": 1.0, "hitstop": 0.15, "dir": dir})
+	var flat = Vector3(dir.x, 0, dir.z).normalized()
+	Combat.hit_zone(c, Jutsu._ground(from), flat, dist + 6.0, 10.0, H * 0.6 + 6.0, inf)
+	_later(0.1, func():
 		if not is_instance_valid(c):
 			return
-		if is_instance_valid(sn) and sn.body:
-			sn.body.play("throw", 0.05, 1.0, true)
-		var from = c.global_position + Vector3.UP * 4.5 + c.face_dir() * 2.0
-		_sus_arrow(c, from, aim, col, 1.3, 75.0, func(p: Vector3):
-			_spiral(p, 8.0, 1.4)
-			Combat.hit_sphere(c, p, 3.0, Jutsu._inf(c, "susanoo_kamui_ya", 1.4, {"knock": 6.0, "kind": "heavy", "hitstop": 0.08}))
-			if tg and is_instance_valid(tg) and not tg.is_dead():
-				tg.apply_status("stun", 1.5)
-				Jutsu._ticks(5, 0.2, func(_i):
-					if is_instance_valid(tg) and not tg.is_dead():
-						tg.take_hit(Jutsu._inf(c, "susanoo_kamui_ya", 0.3, {"knock": 0.0, "attacker": c, "dir": Vector3.ZERO})))
-			VFX.shockwave(p, col, 6.0, 0.4, false)
-			_shake(0.6)))
+		Combat.hit_sphere(c, to, 6.0 + H * 0.12, inf)
+		_pj().impact_fx("raiton", Color(0.65, 0.85, 1.0), to, 2.0 + H * 0.06)
+		VFX.cracks(Jutsu._ground(to), 10.0 + H * 0.2)
+		VFX.shockwave(to, Color(0.7, 0.85, 1.0), 10.0 + H * 0.3, 0.6)
+		VFX.star(to, Color(0.9, 0.95, 1.0), 8.0 + H * 0.2, 0.3)
+		if c is Player:
+			VFX.screen_lines(0.5, 1.5, Color(0.7, 0.85, 1.0))
+		_shake(2.2))
 
 
-## Raikiri: Sōryū — iki elde Raikiri, ikiz şimşek ejderhası olarak kıvrılarak hedefe saldırır
-static func m_raikiri_soryu(c: Node3D, t: Node3D) -> void:
-	var aim = _point(c, t, 40.0, 20.0)
-	var right = c.face_dir().cross(Vector3.UP).normalized()
-	Sfx.play("chidori", c.global_position, 0.9)
-	_anim(c, "cast_out", 1.0)
-	for sx in [-1.0, 1.0]:
-		var ball = VFX.lightning_ball(0.7, Color(0.55, 0.75, 1.0))
-		_scene().add_child(ball)
-		var from = c.global_position + Vector3.UP * 1.3 + right * sx * 0.5 + c.face_dir() * 0.4
-		ball.global_position = from
-		var mid = (from + aim) * 0.5 + right * sx * 6.0 + Vector3.UP * 3.0
-		var last = [from]
-		var tw = ball.create_tween()
-		tw.tween_interval(0.25)
-		tw.tween_method(func(x: float):
-			if not is_instance_valid(ball):
+static func m_susanoo_kagutsuchi_no_yumiya(c: Node3D, t: Node3D) -> void:
+	_sus_bow(c, t, "susanoo_kagutsuchi_no_yumiya", "enton")
+
+
+static func m_indora_no_ya(c: Node3D, t: Node3D) -> void:
+	_sus_bow(c, t, "indora_no_ya", "indora")
+
+
+# ------------------------------------------------------------------ Susanoo: Chidori
+## Susanoo'nun sağ eli aşağıda dev Chidori'yi doldurur (yere sürten şimşekler, cıvıltı), sonra kol hedefe uzanır ve
+## şimşek mızrak gibi elden fırlar.
+static func m_susanoo_chidori(c: Node3D, t: Node3D) -> void:
+	var sn = Susanoo.of(c, "susanoo_chidori")
+	if sn == null:
+		return
+	var H = sn.h()
+	var S = H / 1.8
+	var col = sn.color().lerp(Color(0.6, 0.75, 1.0), 0.5)
+	var tg = Jutsu._tg(c, t, 16.0 + H * 1.2)
+	var aim = _aim_fn(c, tg, 10.0 + H * 0.6)
+	var d = _turn(c, aim.call())
+	var side = d.cross(Vector3.UP).normalized()
+	_pj().busy(c, 1.1)
+	_anim(c, "cast", 0.9)
+	sn.hide_weapons(1.6)
+	var lguard = Susanoo.arm(false, d * 0.55 - side * 0.35 - Vector3.UP * 0.55, d * 0.8 + side * 0.25 + Vector3.UP * 0.35)
+	sn.pose({"arms": Susanoo.arm(true, -d * 0.4 - Vector3.UP * 0.85 + side * 0.3, d * 0.35 - Vector3.UP * 0.9, d * 0.6 - Vector3.UP * 0.7) + lguard, "spine": 16.0}, 1.6)
+	var ball = VFX.lightning_ball(S * 0.32, col)
+	var arcs = Arcs.new()
+	arcs.color = col.lightened(0.3)
+	arcs.radius = S * 0.5
+	arcs.count = 12
+	arcs.width = S * 0.02
+	ball.add_child(arcs)
+	_scene().add_child(ball)
+	var st = {"free": false}
+	var tw = ball.create_tween()
+	var o = {"sn": sn, "ball": ball}
+	tw.tween_method(func(_x: float):
+		if is_instance_valid(o["sn"]) and is_instance_valid(o["ball"]) and not st["free"]:
+			o["ball"].global_position = o["sn"].hand(true), 0.0, 1.0, 1.0)
+	ball.scale = Vector3.ONE * 0.1
+	ball.create_tween().tween_property(ball, "scale", Vector3.ONE, 0.35).set_trans(Tween.TRANS_BACK)
+	Sfx.play("chidori", c.global_position, 0.6)
+	for k in 12:   # yere sürten şimşek dilleri
+		_later(0.1 + k * 0.065, func():
+			if not is_instance_valid(ball) or st["free"]:
 				return
-			var p = from.lerp(mid, x).lerp(mid.lerp(aim, x), x)
-			VFX.bolt(last[0], p, Color(0.6, 0.8, 1.0), 0.35, 0.25, 1)
-			last[0] = p
-			ball.global_position = p, 0.0, 1.0, 0.45)
-		tw.tween_callback(func():
-			Combat.hit_sphere(c, aim, 2.8, Jutsu._inf(c, "raikiri_soryu", 1.0, {"knock": 10.0, "launch": 3.0, "kind": "heavy", "element": "raiton", "stun": 0.8, "hitstop": 0.06}))
-			VFX.star(aim, Color(0.75, 0.85, 1.0), 4.5, 0.18)
-			VFX.shockwave(aim, Color(0.5, 0.7, 1.0), 5.0, 0.35, false)
-			ball.queue_free())
-	_later(0.75, func(): _shake(0.6))
-
-
-## Kamui: Kakushi — bedenini boyutun eşiğine çekersin: 6 sn görünmezsin, düşmanlar hedefini kaybeder
-static func m_kamui_kakushi(c: Node3D, t: Node3D) -> void:
-	_spiral(c.global_position + Vector3.UP * 1.2, 2.2, 0.8)
-	Sfx.play("genjutsu", c.global_position, 1.3)
-	if c.get("model"):
-		c.model.visible = false
-	for f in Jutsu.get_tree().get_nodes_in_group("fighters"):
-		if Combat.hostile(c, f) and f.get("target") == c:
-			f.set("target", null)
-	if c is Player:
-		Buffs.add("kakushi", 6.0, {"speed": 1.2})
-	_later(6.0, func():
-		if is_instance_valid(c) and c.get("model"):
-			c.model.visible = true
-			_spiral(c.global_position + Vector3.UP * 1.2, 2.2, 0.6))
-
-
-## Sharingan: Kopī Ninja no Me — göz rakibin hareketini okur: 10 sn jutsu gücü ve hız artar, kırmızı görüş
-static func m_kopi_ninja_no_me(c: Node3D, t: Node3D) -> void:
-	Sfx.play("sharingan", null)
-	if c is Player:
-		Buffs.add("kopi", 10.0, {"jutsu": 1.25, "speed": 1.12, "armor": 0.85})
-		_tint(Color(0.9, 0.05, 0.05, 0.12), 0.6)
-	var a = FX.aura(c, Color(1.0, 0.2, 0.2), 10.0, Vector3(0, 1.6, 0), 0.0)
-	VFX.shockwave(c.global_position + Vector3.UP * 1.6, Color(0.9, 0.05, 0.05), 3.0, 0.4, false, c.face_dir())
-	_later(10.0, func():
-		if is_instance_valid(a):
-			a.emitting = false
-			_later(1.0, a.queue_free))
-
-
-# ================================================================== MADARA
-## Sharingan: Kyūbi Shihai — dev tomoe halkası hedefin çevresinde döner: hedef uzun süre, çevresi kısa süre donar
-static func m_kyubi_shihai(c: Node3D, t: Node3D) -> void:
-	var tg = Jutsu._tg(c, t, 30.0)
-	if tg == null:
-		if c is Player: Hud.msg("Göz göze gelecek hedef yok.", Color(0.8, 0.8, 0.8))
-		return
-	Sfx.play("genjutsu", c.global_position, 0.4)
-	_tint(Color(0.7, 0.0, 0.05, 0.3), 0.8)
-	var p = _chest(tg)
-	var ring = Node3D.new()
-	_scene().add_child(ring)
-	ring.global_position = p
-	for k in 3:
-		var a = TAU * k / 3.0
-		var mb = MB.new()
-		mb.add("sphere", Vector3.ZERO, Vector3(0.6, 0.6, 0.15), Color(0.05, 0.02, 0.02), Vector3.ZERO, 10)
-		mb.add("cone", Vector3(0.3, 0.3, 0), Vector3(0.24, 0.6, 0.1), Color(0.05, 0.02, 0.02), Vector3(0, 0, -45), 6)
-		var tm = MeshInstance3D.new()
-		tm.mesh = mb.build(Props.toon())
-		ring.add_child(tm)
-		tm.position = Vector3(cos(a), sin(a), 0) * 2.4
-	var disc = VFX._mi(VFX._sphere(0.5, 32, 4), VFX.mat_spiral(Color(0.9, 0.05, 0.05), Color(0.5, 0.0, 0.02), 3.0, 2.0, 4.0, 0.9, Vector3(0, 0, 1)))
-	ring.add_child(disc)
-	disc.scale = Vector3(6.5, 6.5, 0.05)
-	if Game.player and Game.player.cam:
-		ring.look_at(Game.player.cam.global_position, Vector3.UP)
-	var tw = ring.create_tween()
-	tw.tween_property(ring, "rotation:z", TAU, 1.4)
-	tw.tween_property(ring, "scale", Vector3.ONE * 0.05, 0.3)
-	tw.tween_callback(ring.queue_free)
-	tg.apply_status("stun", 5.5)
-	tg.take_hit(Jutsu._inf(c, "kyubi_shihai", 1.0, {"knock": 0.0, "attacker": c, "dir": Vector3.ZERO}))
-	for f in Jutsu.get_tree().get_nodes_in_group("fighters"):
-		if f != tg and Combat.hostile(c, f) and not f.is_dead() and f.global_position.distance_to(tg.global_position) < 10.0:
-			f.apply_status("stun", 2.0)
-	VFX.shockwave(p, Color(0.9, 0.05, 0.05), 10.0, 0.6, false)
-
-
-## Susanoo: Kenjutsu — mavi Susanoo iki kılıçla çevreni yarar (iki geniş kesik)
-static func m_susanoo_kenjutsu(c: Node3D, t: Node3D) -> void:
-	var col: Color = COL["madara"]
-	var sn = _sus(c, 4, col, 2.6)
-	col = sn.color()   # efektler Susanoo'nun kendi renginde (oyuncu: özelleştirdiği, NPC: rastgele)
-	var fd = c.face_dir()
-	for k in 2:
-		_later(0.4 + k * 0.5, func():
+			var hp = ball.global_position
+			var g = Jutsu._ground(hp + Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)) * S * 0.6)
+			VFX.bolt(hp, g, col.lightened(0.2), S * 0.03, 0.14, 2)
+			if k % 4 == 0:
+				FX.light(hp, col, 6.0, 8.0 + H * 0.6, 0.3))
+	_later(0.9, func():
+		if not (is_instance_valid(c) and is_instance_valid(sn)):
+			if is_instance_valid(ball):
+				ball.queue_free()
+			return
+		var ad = (aim.call() - sn.bone_at("RightUpperArm")).normalized()
+		sn.pose({"arms": Susanoo.arm(true, ad, ad, ad) + lguard, "spine": -6.0}, 0.7, true))
+	_later(1.0, func():
+		if not (is_instance_valid(c) and is_instance_valid(ball)):
+			return
+		st["free"] = true
+		var from = ball.global_position
+		var to: Vector3 = aim.call()
+		for k in 3:
+			VFX.bolt(from, to, col.lightened(0.4), S * (0.05 - k * 0.012), 0.3, 4)
+		var tw2 = ball.create_tween()
+		tw2.tween_property(ball, "global_position", to, 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tw2.tween_callback(func():
+			ball.queue_free()
 			if not is_instance_valid(c):
 				return
-			if is_instance_valid(sn) and sn.body:
-				sn.body.play(["slash_a", "slash_b"][k], 0.05, 1.2, true)
-			Combat.hit_zone(c, c.global_position, fd, 16.0, 100.0, 12.0, Jutsu._inf(c, "susanoo_kenjutsu", 1.1, {"knock": 16.0, "launch": 4.0, "kind": "heavy", "hitstop": 0.08, "dir": fd}))
-			var arc = VFX._mi(VFX.asset("slash_arc"), VFX.mat_trail(col.lightened(0.6), col, Color(col.r, col.g, col.b, 0.0), 1.0))
-			_scene().add_child(arc)
-			arc.global_position = c.global_position + Vector3.UP * (5.0 - k * 2.0) + fd * 6.0
-			arc.look_at(arc.global_position + fd, Vector3.UP)
-			arc.rotation.z = deg_to_rad(-25.0 if k == 0 else 25.0)
-			arc.scale = Vector3.ONE * 10.0
-			var tw = arc.create_tween()
-			tw.tween_property(arc, "scale", Vector3.ONE * 14.0, 0.3)
-			tw.tween_property(arc, "scale", Vector3.ONE * 0.1, 0.2)
-			tw.tween_callback(arc.queue_free)
-			VFX.debris(Jutsu._ground(c.global_position + fd * 8.0), Color(0.5, 0.42, 0.32), 14, 10.0, 0.6)
-			_shake(0.7))
+			var inf = Jutsu._inf(c, "susanoo_chidori", 2.2, {"knock": 18.0, "launch": 5.0, "kind": "heavy", "hitstop": 0.1, "element": "raiton", "stun": 1.4, "dir": d})
+			Combat.hit_sphere(c, to, 3.0 + H * 0.1, inf)
+			for k in 8:
+				VFX.bolt(to, to + Vector3(randf_range(-1, 1), randf_range(-0.2, 1), randf_range(-1, 1)).normalized() * (4.0 + H * 0.3), col.lightened(0.3), S * 0.02, 0.3, 3)
+			VFX.star(to, Color(0.85, 0.9, 1.0), 4.0 + H * 0.15, 0.2)
+			VFX.shockwave(to, col, 5.0 + H * 0.25, 0.4, false, d)
+			VFX.cracks(Jutsu._ground(to), 4.0 + H * 0.15)
+			_shake(0.9)))
 
 
-## Kanzen Tai: Ittō — dev Susanoo tek savuruşla önündeki her şeyi yarar: uzayan kesik dalgası, yerde uzun yarık
-static func m_kanzen_tai_itto(c: Node3D, t: Node3D) -> void:
-	var col: Color = COL["madara"]
-	var sn = _sus(c, 5, col, 3.0)
-	col = sn.color()   # efektler Susanoo'nun kendi renginde (oyuncu: özelleştirdiği, NPC: rastgele)
-	var fd = Jutsu._aim_flat(c, t)
-	Sfx.play("roar", c.global_position, 0.6, 0.8)
-	_tint(Color(0.05, 0.1, 0.35, 0.25), 1.2)
-	_later(1.0, func():
-		if not is_instance_valid(c):
-			return
-		if is_instance_valid(sn) and sn.body:
-			sn.body.play("slash_c", 0.05, 0.9, true)
-		var wave = VFX._mi(VFX.asset("slash_arc"), VFX.mat_trail(Color(0.9, 0.95, 1.0), col, Color(col.r, col.g, col.b, 0.0), 1.0))
-		_scene().add_child(wave)
-		var from = c.global_position + Vector3.UP * 3.0 + fd * 4.0
-		wave.global_position = from
-		wave.look_at(from + fd, Vector3.UP)
-		wave.rotation.z = PI * 0.5
-		wave.scale = Vector3.ONE * 9.0
-		var tw = wave.create_tween()
-		tw.tween_property(wave, "global_position", from + fd * 60.0, 0.6)
-		tw.parallel().tween_property(wave, "scale", Vector3.ONE * 16.0, 0.6)
-		tw.tween_callback(wave.queue_free)
-		Combat.hit_zone(c, c.global_position, fd, 62.0, 9.0, 20.0, Jutsu._inf(c, "kanzen_tai_itto", 3.0, {"knock": 24.0, "launch": 8.0, "kind": "heavy", "hitstop": 0.14, "dir": fd}))
-		for k in 10:
-			var gp = Jutsu._ground(c.global_position + fd * (6.0 + k * 5.5))
-			_later(k * 0.05, func():
-				VFX.cracks(gp, 4.0)
-				VFX.debris(gp, Color(0.5, 0.42, 0.32), 8, 9.0, 0.6))
-		VFX.screen_lines(0.5, 1.0, col.lightened(0.5))
-		_shake(1.2))
+# ------------------------------------------------------------------ Yasaka no Magatama (Itachi) / Enton: Yasaka no Magatama (Sasuke)
+## Susanoo'nun eli üç magatamayı bir halkada döndürür (Yasaka kolyesi), kolunu savurup fırlatır; magatamalar dönerek
+## yay çizip hedefe iner. Enton türü: kara alevli magatamalar, değdiği yer kara alevle yanar.
+static func _magatama_mesh() -> MB:
+	var mb = MB.new()
+	mb.add("sphere", Vector3(0.13, 0, 0), Vector3(0.24, 0.24, 0.16), Color.WHITE, Vector3.ZERO, 12)
+	var pts = []
+	var rr = []
+	for k in 9:
+		var a = -k / 8.0 * 2.3
+		pts.append(Vector3(cos(a) * 0.13, sin(a) * 0.13, 0))
+		var w = lerpf(0.1, 0.01, k / 8.0)
+		rr.append(Vector2(w, w * 0.66))
+	Loft.tube(mb, pts, rr, Color.WHITE, 8, 2, true, true, Callable(), Vector3.BACK)
+	return mb
 
 
-## Susanoo: Tate — mavi Susanoo kaburgaları ve kolları seni sarar: 7 sn ağır hasar azaltma
-static func m_susanoo_tate(c: Node3D, t: Node3D) -> void:
-	var col: Color = COL["madara"]
-	var sn = _sus(c, 2, col, 7.0)
-	col = sn.color()   # efektler Susanoo'nun kendi renginde (oyuncu: özelleştirdiği, NPC: rastgele)
-	if is_instance_valid(sn) and sn.body:
-		sn.body.play("block", 0.1, 1.0, false)
-	if c is Player:
-		Buffs.add("susanoo_tate", 7.0, {"armor": 0.25})
-	Jutsu._ticks(7, 1.0, func(_i):
-		if is_instance_valid(c):
-			VFX.shockwave(c.global_position + Vector3.UP * 0.2, col, 4.0, 0.5))
-
-
-## Susanoo: Shūha — Susanoo yumruğunu yere indirir: üç halka şok dalgası, yer yarılır, düşmanlar havaya savrulur
-static func m_susanoo_shuha(c: Node3D, t: Node3D) -> void:
-	var col: Color = COL["madara"]
-	var sn = _sus(c, 3, col, 2.2)
-	col = sn.color()   # efektler Susanoo'nun kendi renginde (oyuncu: özelleştirdiği, NPC: rastgele)
-	_later(0.5, func():
-		if not is_instance_valid(c):
-			return
-		if is_instance_valid(sn) and sn.body:
-			sn.body.play("knock", 0.05, 1.4, true)
-		var gp = Jutsu._ground(c.global_position + c.face_dir() * 3.0)
-		for k in 3:
-			_later(k * 0.18, func():
-				VFX.shockwave(gp + Vector3.UP * 0.2, col, 8.0 + k * 6.0, 0.45)
-				Combat.hit_sphere(c, gp + Vector3.UP, 5.0 + k * 3.0, Jutsu._inf(c, "susanoo_shuha", 0.55, {"knock": 14.0, "launch": 9.0, "kind": "heavy", "hitstop": 0.05})))
-		VFX.cracks(gp, 9.0)
-		VFX.debris(gp, Color(0.5, 0.42, 0.32), 24, 14.0, 0.8)
-		FX.dust(gp, 3.0)
-		_shake(1.0))
-
-
-# ================================================================== SHISUI
-## Shunshin Gensō — göz açıp kapayana kadar hedefin arkasında; geride yeşil yanılsama izleri kalır
-static func m_shunshin_genso(c: Node3D, t: Node3D) -> void:
-	var tg = Jutsu._tg(c, t, 35.0)
-	var from = c.global_position
-	var dest = Jutsu._ground((tg.global_position - (tg.global_position - from).normalized() * -1.6) if tg else from + Jutsu._aim_flat(c, t) * 14.0)
-	var col: Color = COL["shisui"]
-	for k in 5:
-		var p = from.lerp(dest, k / 4.0) + Vector3.UP
-		VFX.puffs(p, {"amount": 6, "life": 0.5, "size": 0.8, "radius": 0.4, "vmin": 0.2, "vmax": 0.8, "colors": [Color(col.r, col.g, col.b, 0.5), Color(col.r, col.g, col.b, 0)]})
-	VFX.bolt(from + Vector3.UP, dest + Vector3.UP, col, 0.25, 0.15, 0)
-	c.global_position = dest
-	if c.has_method("reset_physics_interpolation"):
-		c.reset_physics_interpolation()
-	Sfx.play("whoosh", dest, 1.9)
-	if tg and is_instance_valid(tg) and not tg.is_dead():
-		var d = tg.global_position - dest
-		d.y = 0
-		if c is Player:
-			c.facing = atan2(-d.x, -d.z)
-		tg.take_hit(Jutsu._inf(c, "shunshin_genso", 1.1, {"knock": 8.0, "attacker": c, "dir": d.normalized(), "hitstop": 0.06}))
-		tg.apply_status("stun", 0.8)
-		VFX.star(_chest(tg), col, 3.0, 0.15)
-	VFX.screen_lines(0.3, 0.8, col)
-
-
-## Susanoo: Shisui no Ya — yeşil Susanoo'nun delici oku: yol boyunca herkesi deler geçer
-static func m_susanoo_shisui_no_ya(c: Node3D, t: Node3D) -> void:
-	var col: Color = COL["shisui"]
-	var sn = _sus(c, 3, col, 2.2)
-	col = sn.color()   # efektler Susanoo'nun kendi renginde (oyuncu: özelleştirdiği, NPC: rastgele)
-	var fd = Jutsu._aim(c, t)
-	_later(0.45, func():
-		if not is_instance_valid(c):
-			return
-		if is_instance_valid(sn) and sn.body:
-			sn.body.play("throw", 0.05, 1.0, true)
-		var from = c.global_position + Vector3.UP * 4.5 + c.face_dir() * 2.0
-		var to = from + fd * 55.0
-		_sus_arrow(c, from, to, col, 1.2, 90.0, func(_p: Vector3):
-			VFX.star(to, col, 4.0, 0.2))
-		Combat.hit_zone(c, c.global_position, Vector3(fd.x, 0, fd.z).normalized(), 55.0, 5.0, 10.0, Jutsu._inf(c, "susanoo_shisui_no_ya", 1.6, {"knock": 12.0, "kind": "heavy", "hitstop": 0.06, "dir": fd}))
-		VFX.screen_lines(0.35, 0.8, col)
-		_shake(0.5))
-
-
-## Karasu Kuyō — karga sürüsü hedef bölgenin üstüne çullanır: gagalar, gözleri kör eder (yavaşlama + sersemleme)
-static func m_karasu_kuyo(c: Node3D, t: Node3D) -> void:
-	var pos = Jutsu._ground(_point(c, t, 35.0, 14.0))
-	Sfx.play("genjutsu", c.global_position, 1.0)
-	_crows(c.global_position + Vector3.UP * 1.5, pos + Vector3.UP * 1.2, 34, 0.8, func():
-		var inf = Jutsu._inf(c, "karasu_kuyo", 0.25, {"knock": 1.0, "kind": "light"})
-		Jutsu._ticks(8, 0.25, func(_i):
-			for h in Combat.hit_sphere(c, pos + Vector3.UP, 5.5, inf):
-				h.apply_status("slow", 3.0)
-			VFX.puffs(pos + Vector3.UP * 1.5, {"amount": 10, "life": 0.6, "size": 0.35, "radius": 4.0, "vmin": 1.0, "vmax": 3.0,
-				"colors": [Color(0.04, 0.04, 0.06, 1), Color(0.04, 0.04, 0.06, 0)]}), func():
-			for h in Combat.hit_sphere(c, pos + Vector3.UP, 5.5, inf):
-				h.apply_status("stun", 1.6)))
-
-
-## Utakata no Gensō — yeşil-beyaz köpük halkası yayılır: çevrendeki herkes bir anlığına hayale dalar
-static func m_utakata_no_genso(c: Node3D, t: Node3D) -> void:
-	var col: Color = COL["shisui"]
-	Sfx.play("genjutsu", c.global_position, 0.75)
-	for k in 3:
-		_later(k * 0.15, func():
-			if is_instance_valid(c):
-				VFX.shockwave(c.global_position + Vector3.UP * (0.4 + k * 0.6), col.lightened(0.3), 14.0 + k * 3.0, 0.7, true))
-	VFX.puffs(c.global_position + Vector3.UP, {"amount": 40, "life": 1.2, "size": 0.5, "radius": 2.0, "vmin": 4.0, "vmax": 9.0, "spread": 180.0,
-		"colors": [Color(0.9, 1.0, 0.95, 0.7), Color(col.r, col.g, col.b, 0.0)]})
-	for f in Jutsu.get_tree().get_nodes_in_group("fighters"):
-		if Combat.hostile(c, f) and not f.is_dead() and f.global_position.distance_to(c.global_position) < 14.0:
-			f.apply_status("stun", 2.6)
-			f.take_hit(Jutsu._inf(c, "utakata_no_genso", 0.4, {"knock": 0.0, "attacker": c, "dir": Vector3.ZERO}))
-	_tint(Color(0.6, 1.0, 0.8, 0.12), 0.5)
-
-
-## Kotodama no Shibari — hedefin üstünde parlayan "縛" (bağ) yazısı belirir; tek emirle kıpırdayamaz (4.5 sn)
-static func m_kotodama_no_shibari(c: Node3D, t: Node3D) -> void:
-	var tg = Jutsu._tg(c, t, 30.0)
-	if tg == null:
-		if c is Player: Hud.msg("Göz göze gelecek hedef yok.", Color(0.8, 0.8, 0.8))
+static func _sus_yasaka(c: Node3D, t: Node3D, jid: String, black: bool) -> void:
+	var sn = Susanoo.of(c, jid)
+	if sn == null:
 		return
-	var col: Color = COL["shisui"]
-	Sfx.play("seal", tg.global_position, 0.8)
-	var l = Label3D.new()
-	l.text = "縛"
-	l.font_size = 220
-	l.pixel_size = 0.01
-	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	l.modulate = col.lightened(0.4)
-	l.outline_modulate = Color(0.0, 0.15, 0.05)
-	l.outline_size = 24
-	_scene().add_child(l)
-	l.global_position = tg.global_position + Vector3.UP * (float(tg.height) + 1.2)
-	l.scale = Vector3.ONE * 0.1
-	var tw = l.create_tween()
-	tw.tween_property(l, "scale", Vector3.ONE, 0.25).set_trans(Tween.TRANS_BACK)
-	tw.tween_interval(4.0)
-	tw.tween_property(l, "modulate:a", 0.0, 0.4)
-	tw.tween_callback(l.queue_free)
-	tg.apply_status("bind", 4.5)
-	tg.take_hit(Jutsu._inf(c, "kotodama_no_shibari", 0.5, {"knock": 0.0, "attacker": c, "dir": Vector3.ZERO}))
-	VFX.shockwave(tg.global_position + Vector3.UP * 0.2, col, 4.0, 0.5)
-
-
-## Kyōkei Shunshin — art arda belirip kaybolan üç yanılsama + gerçek gölge klonlar; düşman hangisinin sen olduğunu bilemez
-static func m_kyokei_shunshin(c: Node3D, t: Node3D) -> void:
-	var col: Color = COL["shisui"]
-	Sfx.play("whoosh", c.global_position, 1.6)
+	var H = sn.h()
+	var S = H / 1.8
+	var col = sn.color()
+	var tg = Jutsu._tg(c, t, 36.0 + H * 1.2)
+	var aim = _aim_fn(c, tg, 18.0 + H * 0.6)
+	var d = _turn(c, aim.call())
+	var side = d.cross(Vector3.UP).normalized()
+	_pj().busy(c, 1.0)
+	_anim(c, "cast", 0.9)
+	sn.hide_weapons(1.5)
+	# kurulma: sağ kol yana-geriye açılır, avuç yukarıda, magatamalar avuçta döner
+	sn.pose({"arms": Susanoo.arm(true, side * 0.75 + Vector3.UP * 0.35 - d * 0.35, Vector3.UP * 0.75 + d * 0.15 + side * 0.3, Vector3.UP * 0.6 - d * 0.3), "spine": -6.0}, 1.5)
+	var holder = Node3D.new()
+	_scene().add_child(holder)
+	var ring_mb = MB.new()
+	ring_mb.add("torus", Vector3.ZERO, Vector3(0.72, 0.04, 0.72), Color.WHITE, Vector3(90, 0, 0), 24)
+	var ring = sn.chakra_mesh(ring_mb, 1.2)
+	holder.add_child(ring)
+	var mags = []
 	for k in 3:
-		var a = TAU * k / 3.0 + randf()
-		var p = c.global_position + Vector3(cos(a), 0, sin(a)) * 3.0
-		_later(k * 0.1, func():
-			VFX.star(p + Vector3.UP, col, 2.5, 0.15)
-			VFX.puffs(p + Vector3.UP, {"amount": 8, "life": 0.5, "size": 0.7, "radius": 0.5, "vmin": 0.5, "vmax": 1.5, "colors": [Color(col.r, col.g, col.b, 0.6), Color(col.r, col.g, col.b, 0)]}))
-	JutsuEngine._clone(c, Data.jutsu.get("kyokei_shunshin", {}))
-	for f in Jutsu.get_tree().get_nodes_in_group("fighters"):
-		if Combat.hostile(c, f) and f.get("target") == c and randf() < 0.6:
-			f.apply_status("stun", 0.8)
+		var mi: MeshInstance3D
+		if black:
+			mi = _black_mesh(_magatama_mesh())
+			var fl = VFX.black_flames(0.08)
+			mi.add_child(fl)
+			fl.position = Vector3(0.13, 0, 0)
+		else:
+			mi = sn.chakra_mesh(_magatama_mesh(), 1.8)
+		var a = TAU * k / 3.0
+		mi.position = Vector3(cos(a), sin(a), 0) * 0.36
+		mi.rotation.z = a
+		holder.add_child(mi)
+		mags.append(mi)
+	var st = {"s": 0.05, "spin": 0.0, "free": false}
+	var tw = holder.create_tween()
+	tw.set_parallel(true)
+	var o = {"sn": sn, "h": holder}
+	tw.tween_method(func(x: float):
+		if not (is_instance_valid(o["sn"]) and is_instance_valid(o["h"])) or st["free"]:
+			return
+		st["spin"] = x * TAU * 6.0
+		var hp = o["sn"].hand(true) + Vector3.UP * S * 0.25
+		o["h"].global_transform = Transform3D(_zbasis(d) * Basis(Vector3.BACK, st["spin"]) * Basis.from_scale(Vector3.ONE * S * 0.6 * st["s"]), hp), 0.0, 1.0, 0.85)
+	tw.tween_method(func(x: float): st["s"] = x, 0.05, 1.0, 0.3).set_trans(Tween.TRANS_BACK)
+	_sus_flare(sn, sn.hand(true), 1.2)
+	Sfx.play("genjutsu" if black else "chakra", c.global_position, 0.7)
+	# savuruş: kol öne-aşağı iner
+	_later(0.7, func():
+		if is_instance_valid(sn):
+			var ad = (aim.call() - sn.bone_at("RightUpperArm")).normalized()
+			sn.pose({"arms": Susanoo.arm(true, (ad - side * 0.3).normalized(), (ad - side * 0.4 - Vector3.UP * 0.2).normalized()), "spine": 14.0}, 0.7, true))
+	_later(0.82, func():
+		st["free"] = true
+		if not is_instance_valid(holder):
+			return
+		if not is_instance_valid(c):
+			holder.queue_free()
+			return
+		ring.create_tween().tween_property(ring, "scale", Vector3.ONE * 1.8, 0.25)
+		_later(0.25, func(): if is_instance_valid(holder): holder.queue_free())
+		Sfx.play("whoosh", holder.global_position, 0.8)
+		for k in 3:
+			var mi: MeshInstance3D = mags[k]
+			var from = mi.global_position
+			mi.reparent(_scene())
+			_later(k * 0.09, func(): _fly_magatama(c, sn, mi, from, aim, k, black, jid)))
+
+
+static func _fly_magatama(c: Node3D, sn: Susanoo, mi: MeshInstance3D, from: Vector3, aim: Callable, k: int, black: bool, jid: String) -> void:
+	if not is_instance_valid(mi):
+		return
+	var H = sn.h() if is_instance_valid(sn) else 16.0
+	var col = sn.color() if is_instance_valid(sn) else Color(1, 0.3, 0.25)
+	var to0: Vector3 = aim.call()
+	var mid = (from + to0) * 0.5 + Vector3.UP * (2.0 + H * 0.12) + (to0 - from).cross(Vector3.UP).normalized() * (k - 1) * (3.0 + H * 0.15)
+	var dur = clampf(from.distance_to(to0) / 55.0, 0.25, 1.1)
+	if not black:
+		VFX.trail(mi, H * 0.02, col.lightened(0.5), col, Color(col.r, col.g, col.b, 0), 18, 1.0)
+	var sp = mi.global_basis
+	var tw = mi.create_tween()
+	var o = {"mi": mi}
+	tw.tween_method(func(x: float):
+		if is_instance_valid(o["mi"]):
+			var to: Vector3 = aim.call()
+			o["mi"].global_position = from.lerp(mid, x).lerp(mid.lerp(to, x), x)
+			o["mi"].global_basis = sp * Basis(Vector3.BACK, x * TAU * 5.0), 0.0, 1.0, dur)
+	tw.tween_callback(func():
+		var p = mi.global_position
+		mi.queue_free()
+		if not is_instance_valid(c):
+			return
+		var inf = Jutsu._inf(c, jid, 0.55 if black else 0.6, {"knock": 12.0, "launch": 3.0, "kind": "heavy", "hitstop": 0.06, "element": "katon" if black else ""})
+		for h in Combat.hit_sphere(c, p, 2.4 + H * 0.06, inf):
+			if black:
+				Jutsu._ignite(h, 6.0)
+		if black:
+			var fl = VFX.black_flames(1.2 + H * 0.03)
+			_scene().add_child(fl)
+			fl.global_position = Jutsu._ground(p)
+			_later(2.5, func(): if is_instance_valid(fl): fl.queue_free())
+			VFX.black_smolder(Jutsu._ground(p), 1.6 + H * 0.04, 5.0)
+			VFX.shockwave(p, Color(0.25, 0.0, 0.3), 3.0 + H * 0.12, 0.35)
+		else:
+			FX.impact(p, col, 1.0 + H * 0.05)
+			VFX.shockwave(p, col.lightened(0.3), 3.0 + H * 0.12, 0.35)
+			VFX.cracks(Jutsu._ground(p), 2.0 + H * 0.08)
+		_shake(0.35))
+
+
+static func m_yasaka_no_magatama(c: Node3D, t: Node3D) -> void:
+	_sus_yasaka(c, t, "yasaka_no_magatama", false)
+
+
+static func m_enton_yasaka_no_magatama(c: Node3D, t: Node3D) -> void:
+	_sus_yasaka(c, t, "enton_yasaka_no_magatama", true)
+
+
+# ------------------------------------------------------------------ Susanoo: Kobushi (yumruk)
+static func m_susanoo_kobushi(c: Node3D, t: Node3D) -> void:
+	var sn = Susanoo.of(c, "susanoo_kobushi")
+	if sn == null:
+		return
+	var H = sn.h()
+	var S = H / 1.8
+	var col = sn.color()
+	var tg = Jutsu._tg(c, t, 6.0 + H * 1.1)
+	var aim = _aim_fn(c, tg, 4.0 + H * 0.45)
+	var d = _turn(c, aim.call())
+	var side = d.cross(Vector3.UP).normalized()
+	_pj().busy(c, 0.7)
+	_anim(c, "cross", 1.0)
+	# geri çekiş: yumruk omuzun arkasında, gövde burulur
+	sn.pose({"arms": Susanoo.arm(true, -d * 0.7 + side * 0.55 - Vector3.UP * 0.25, d * 0.25 + Vector3.UP * 0.55 + side * 0.25, d * 0.6 + Vector3.UP * 0.4), "spine": -8.0}, 1.0)
+	_later(0.38, func():
+		if not (is_instance_valid(c) and is_instance_valid(sn)):
+			return
+		var ad = (aim.call() - sn.bone_at("RightUpperArm")).normalized()
+		sn.pose({"arms": Susanoo.arm(true, ad, ad, ad), "spine": 14.0}, 0.6, true)
+		Sfx.play("whoosh", c.global_position, 0.6, 0.7))
+	_later(0.5, func():
+		if not (is_instance_valid(c) and is_instance_valid(sn)):
+			return
+		var fist = sn.hand(true)
+		var to: Vector3 = aim.call()
+		var p = fist.lerp(to, 0.4) if tg and fist.distance_to(to) < S * 0.9 + 3.0 else fist
+		var inf = Jutsu._inf(c, "susanoo_kobushi", 2.4, {"knock": 24.0, "launch": 5.0, "kind": "heavy", "hitstop": 0.12, "dir": d})
+		Combat.hit_sphere(c, p, S * 0.45 + 2.0, inf)
+		# yumruk basıncı: kolun ucundan ileri chakra şoku (kolun yetmediği mesafe)
+		Combat.hit_zone(c, c.global_position, d, S * 1.2 + 6.0, 26.0, H * 0.8, inf)
+		var front = fist + d * (S * 0.6 + 3.0)
+		VFX.shockwave(front, col, S * 0.9 + 2.0, 0.3, false, d)
+		VFX.shockwave(fist, col.lightened(0.3), S * 1.2 + 2.0, 0.3, false, d)
+		VFX.star(fist, Color(1, 1, 1), S * 0.6 + 1.0, 0.12)
+		var g = Jutsu._ground(p)
+		if p.y - g.y < S * 0.8 + 2.0:
+			VFX.cracks(g, S * 0.7 + 3.0)
+			VFX.debris(g + Vector3.UP * 0.5, Color(0.5, 0.42, 0.32), 14, 8.0 + S, 0.4 + S * 0.05)
+		Sfx.play("punch", p, 0.6)
+		_shake(0.5 + sn.tier * 0.12))
+
+
+# ------------------------------------------------------------------ Susanoo: Gōkakyū
+## Susanoo nefes alıp geriye yaslanır, ağzında alev toplanır; öne eğilip dev ateş topunu üfler.
+static func m_susanoo_gokakyu(c: Node3D, t: Node3D) -> void:
+	var sn = Susanoo.of(c, "susanoo_gokakyu")
+	if sn == null:
+		return
+	var H = sn.h()
+	var S = H / 1.8
+	var tg = Jutsu._tg(c, t, 40.0 + H)
+	var aim = _aim_fn(c, tg, 22.0 + H * 0.6)
+	var d = _turn(c, aim.call())
+	var side = d.cross(Vector3.UP).normalized()
+	_pj().busy(c, 1.1)
+	_anim(c, "cast", 0.9)
+	# mühür eli: iki el göğüs önünde; nefes alırken gövde geriye
+	var seal = Susanoo.arm(true, -Vector3.UP * 0.7 + d * 0.45 + side * 0.2, -side * 0.75 + Vector3.UP * 0.55 + d * 0.35) + Susanoo.arm(false, -Vector3.UP * 0.7 + d * 0.45 - side * 0.2, side * 0.75 + Vector3.UP * 0.55 + d * 0.35)
+	sn.pose({"arms": seal, "spine": -16.0, "neck": -14.0}, 1.4)
+	VFX.gather(sn.mouth(d), Color(1.0, 0.55, 0.15), 1.6)
+	Sfx.play("fire", c.global_position, 0.5, 0.6)
+	_later(0.65, func():
+		if not (is_instance_valid(c) and is_instance_valid(sn)):
+			return
+		sn.pose({"arms": seal, "spine": 18.0, "neck": 12.0}, 0.8, true)
+		var from = sn.mouth(d)
+		var to: Vector3 = aim.call()
+		var ball = Node3D.new()
+		ball.add_child(VFX.fireball(1.6 + S * 0.5))
+		var inf = Jutsu._inf(c, "susanoo_gokakyu", 3.0, {"knock": 18.0, "launch": 8.0, "kind": "heavy", "element": "katon", "burn": 5.0})
+		var pr = _pj().shot(c, from, (to - from).normalized(), 20.0 + S, ball, inf, tg, false, 3.0, func(p, _h):
+			VFX.explosion(p, 2.0 + S * 0.3, Color(1.0, 0.5, 0.12))
+			GroundFX.add(p, "burning", 5.0 + S * 0.5, 5.0, c)
+			_shake(1.4))
+		pr.radius = 1.5 + S * 0.35
+		pr.homing_turn = 1.0
+		ball.scale = Vector3.ONE * 0.2
+		ball.create_tween().tween_property(ball, "scale", Vector3.ONE, 0.25).set_trans(Tween.TRANS_BACK)
+		Sfx.play("fire", from, 0.4))
+
+
+# ------------------------------------------------------------------ Susanoo: Hōzan
+## Susanoo'nun sol eli hedefi kavrayıp havaya kaldırır, sağ eldeki kılıç (yoksa chakra kılıcı) yukarıdan biçer.
+static func m_susanoo_hozan(c: Node3D, t: Node3D) -> void:
+	var sn = Susanoo.of(c, "susanoo_hozan")
+	if sn == null:
+		return
+	var H = sn.h()
+	var S = H / 1.8
+	var col = sn.color()
+	var tg0 = Jutsu._tg(c, t, 8.0 + H * 1.0)
+	if not _alive(tg0):
+		if c == Game.player:
+			Hud.msg("Hōzan: kavranacak hedef yok.", Color(0.85, 0.85, 0.85))
+		return
+	var d = _turn(c, tg0.global_position)
+	var side = d.cross(Vector3.UP).normalized()
+	_pj().busy(c, 1.2)
+	_anim(c, "cast_out", 0.9)
+	var wr = weakref(tg0)
+	var reach = func() -> Array:
+		var ad = (_chest(wr.get_ref()) - sn.bone_at("LeftUpperArm")).normalized() if _alive(wr.get_ref()) else d
+		return Susanoo.arm(false, ad, ad, ad)
+	sn.pose({"arms": reach.call()}, 1.5)
+	var st = {"held": false}
+	var o = {"sn": sn}
+	_later(0.35, func():
+		if not (_alive(wr.get_ref()) and is_instance_valid(sn)):
+			return
+		st["held"] = true
+		wr.get_ref().apply_status("bind", 1.2)
+		Combat.popup_text(_chest(wr.get_ref()) + Vector3.UP, "Kavrandı!", col.lightened(0.4))
+		# kavranan hedef ele çekilir, el yukarı kalkar
+		var lift = Susanoo.arm(false, d * 0.6 - side * 0.3 + Vector3.UP * 0.3, d * 0.5 + Vector3.UP * 0.75)
+		sn.pose({"arms": lift}, 1.2)
+		var g0 = wr.get_ref().global_position
+		var tw = wr.get_ref().create_tween()
+		tw.tween_method(func(x: float):
+			if _alive(wr.get_ref()) and is_instance_valid(o["sn"]) and st["held"]:
+				var tt = wr.get_ref()
+				var to = o["sn"].hand(false) - Vector3.UP * float(tt.get("height") if tt.get("height") != null else 1.8) * 0.5
+				tt.global_position = g0.lerp(to, minf(1.0, x * 3.0))
+				if "velocity" in tt:
+					tt.velocity = Vector3.ZERO, 0.0, 1.0, 0.75))
+	_later(0.55, func():
+		if is_instance_valid(sn):
+			sn.perform("slash_c", 0.9, 1.0))
+	_later(1.05, func():
+		st["held"] = false
+		if not (is_instance_valid(c) and _alive(wr.get_ref())):
+			return
+		var p = _chest(wr.get_ref())
+		_pj()._arc_cut(p, d, -70.0, 70.0, col.lightened(0.3), 2.0 + S * 0.35)
+		_pj()._tai_impact(c, p, 1.0 + S * 0.15, false)
+		var inf = Jutsu._inf(c, "susanoo_hozan", 3.0, {"knock": 18.0, "launch": 5.0, "kind": "heavy", "bleed": 5.0, "hitstop": 0.12, "dir": d})
+		Combat.hit_sphere(c, p, float(wr.get_ref().radius) + 0.8 + S * 0.1, inf)
+		_shake(0.9))
+
+
+# ------------------------------------------------------------------ Susanoo: Tsukumo
+## Susanoo iki elini kaldırır, ellerinin çevresinde onlarca chakra oku biçimlenir ve hedefe yağar.
+static func m_susanoo_tsukumo(c: Node3D, t: Node3D) -> void:
+	var sn = Susanoo.of(c, "susanoo_tsukumo")
+	if sn == null:
+		return
+	var H = sn.h()
+	var S = H / 1.8
+	var col = sn.color()
+	var tg = Jutsu._tg(c, t, 34.0 + H * 1.2)
+	var aim = _aim_fn(c, tg, 20.0 + H * 0.6)
+	var d = _turn(c, aim.call())
+	var side = d.cross(Vector3.UP).normalized()
+	_pj().busy(c, 1.2)
+	_anim(c, "cast", 0.9)
+	sn.hide_weapons(1.8)
+	sn.pose({"arms": Susanoo.arm(true, d * 0.55 + Vector3.UP * 0.55 + side * 0.45, d * 0.75 + Vector3.UP * 0.55) + Susanoo.arm(false, d * 0.55 + Vector3.UP * 0.55 - side * 0.45, d * 0.75 + Vector3.UP * 0.55), "spine": -6.0}, 1.8)
+	var spears = []
+	var smb = MB.new()
+	smb.add("cyl", Vector3(0, 0, 0.0), Vector3(0.04, 1.0, 0.04), Color.WHITE, Vector3(90, 0, 0), 6)
+	smb.add("cone", Vector3(0, 0, -0.62), Vector3(0.1, 0.25, 0.1), Color.WHITE, Vector3(-90, 0, 0), 6)
+	for k in 16:
+		_later(0.15 + k * 0.025, func():
+			if not is_instance_valid(sn):
+				return
+			var u = (k / 15.0) * 2.0 - 1.0
+			var base = sn.hand(true).lerp(sn.hand(false), 0.5) + side * u * S * 0.9 + Vector3.UP * (S * 0.25 + (1.0 - u * u) * S * 0.5)
+			var sp = sn.chakra_mesh(smb, 1.6)
+			_scene().add_child(sp)
+			sp.global_transform = Transform3D(_zbasis(-(aim.call() - base).normalized()) * Basis.from_scale(Vector3.ONE * S * 0.45), base)
+			sp.scale = Vector3.ONE * 0.05
+			sp.create_tween().tween_property(sp, "scale", Vector3.ONE * S * 0.45, 0.2).set_trans(Tween.TRANS_BACK)
+			spears.append(sp))
+	Sfx.play("chakra", c.global_position, 0.8)
+	_later(0.75, func():
+		if is_instance_valid(sn):
+			sn.pose({"arms": Susanoo.arm(true, d * 0.9 + side * 0.25, d) + Susanoo.arm(false, d * 0.9 - side * 0.25, d), "spine": 10.0}, 0.8, true))
+	_later(0.8, func():
+		for k in spears.size():
+			var sp: MeshInstance3D = spears[k]
+			_later(k * 0.035, func():
+				if not is_instance_valid(sp):
+					return
+				if not is_instance_valid(c):
+					sp.queue_free()
+					return
+				var from = sp.global_position
+				var to: Vector3 = aim.call() + Vector3(randf_range(-1, 1), randf_range(-0.5, 0.5), randf_range(-1, 1)) * (1.0 + S * 0.1)
+				var dir = (to - from).normalized()
+				sp.global_transform = Transform3D(_zbasis(-dir) * Basis.from_scale(Vector3.ONE * S * 0.45), from)
+				VFX.trail(sp, S * 0.05, col.lightened(0.5), col, Color(col.r, col.g, col.b, 0), 14, 1.0)
+				var dur = clampf(from.distance_to(to) / 80.0, 0.12, 0.8)
+				var tw = sp.create_tween()
+				tw.tween_property(sp, "global_position", to, dur)
+				tw.tween_callback(func():
+					sp.queue_free()
+					if is_instance_valid(c):
+						Combat.hit_sphere(c, to, 1.6 + S * 0.08, Jutsu._inf(c, "susanoo_tsukumo", 0.3, {"knock": 3.0, "kind": "heavy"}))
+						FX.impact(to, col, 0.6 + S * 0.05)))
+		Sfx.play("whoosh", c.global_position, 1.3))

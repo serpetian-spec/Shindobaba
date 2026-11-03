@@ -29,6 +29,8 @@ static func tick(e: Enemy, dt: float) -> void:
 	if not e.has_meta("eyes"):
 		return
 	var kind = int(e.get_meta("eyes").get("kind", 0))
+	if kind in [4, 5] and not e.has_meta("kamui_user"):
+		e.set_meta("kamui_user", randf() < 0.25)   # Obito tarzı Mangekyō: darbeler içinden geçer
 	maybe_izanagi(e)
 	var eblind = float(e.get_meta("ms_blind", 0.0))
 	if kind == 4 and e.has_meta("ea_susanoo") and is_instance_valid(e.get_meta("ea_susanoo")):
@@ -119,6 +121,31 @@ static func maybe_izanagi(e: Enemy) -> void:
 	if randf() > 0.4:
 		return
 	Jutsu.execute(e, "izanagi", null)   # oyuncunun İzanagi jutsusuyla aynı kod
+
+
+## Düşman Kamui geçirgenliği (oyuncuyla aynı kural): darbe gelince 2.5 sn içinden geçer, sonra katılaşır; 6 sn bekleme.
+## Geçirgenken saldıramaz; bitişte katılaşma anı açık (vurulabilir). Körlük biriktirir.
+static func kamui_phase(e: Enemy) -> bool:
+	if not e.get_meta("kamui_user", false) or float(e.get_meta("ms_blind", 0.0)) >= 1.0:
+		return false
+	var now = Time.get_ticks_msec()
+	if now < int(e.get_meta("kamui_until", 0)):
+		return true
+	if now < int(e.get_meta("kamui_next", 0)):
+		return false
+	e.set_meta("kamui_until", now + 2500)
+	e.set_meta("kamui_next", now + 8500)
+	_ms_strain(e, 0.05)
+	Combat.popup_text(e.global_position + Vector3.UP * 2.6, "Kamui!", Color(0.75, 0.6, 0.9))
+	MsArts.kamui_vortex(e.global_position + Vector3.UP * 1.0, 0.9, 2.7)
+	if e.model:
+		for g in e.model.find_children("*", "GeometryInstance3D", true, false):
+			(g as GeometryInstance3D).transparency = 0.55
+		e.get_tree().create_timer(2.5).timeout.connect(func():
+			if is_instance_valid(e) and e.model:
+				for g in e.model.find_children("*", "GeometryInstance3D", true, false):
+					(g as GeometryInstance3D).transparency = 0.0)
+	return true
 
 
 static func _gaze(e: Enemy, t: Node3D, stun: float, col: Color, label: String) -> void:

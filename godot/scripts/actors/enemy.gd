@@ -858,11 +858,19 @@ func _end_attack() -> void:
 func take_hit(info: Dictionary) -> void:
 	if dead:
 		return
+	if not info.get("kamui", false) and EnemyArts.kamui_phase(self):
+		return   # Kamui geçirgenliği: darbe içinden geçti (katılaşma anında vurulabilir)
 	# Susanoo içindeki düşman: darbeler Susanoo'ya çarpar (oyuncunun İnsansı kademesiyle aynı azaltma; eskiden hiç azaltmıyordu)
 	if has_meta("ea_susanoo") and is_instance_valid(get_meta("ea_susanoo")):
 		info = info.duplicate()
 		info["dmg"] = float(info.get("dmg", 5.0)) * 0.5
 		info["knock"] = float(info.get("knock", 2.0)) * 0.2
+		info["launch"] = 0.0
+	# Yata no Kagami (oyuncudaki Buff ile aynı): ayna kalkan açıkken gelen hasar %95 azalır
+	if has_meta("yata_until") and Time.get_ticks_msec() < int(get_meta("yata_until")):
+		info = info.duplicate()
+		info["dmg"] = float(info.get("dmg", 5.0)) * 0.05
+		info["knock"] = 0.0
 		info["launch"] = 0.0
 	# blok: yalnız önden gelen darbe, bekleme süresiyle; ağır darbe ya da üst üste 3 darbe savunmayı kırar
 	var atk0: Node3D = info.get("attacker")

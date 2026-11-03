@@ -38,65 +38,6 @@ const PSTYLE := {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ## Jutsuya özel koreografi (hazırlık "wind" + salınım "rel" pozları, zamanlama, gövde klibi) — CastAnim temel stilin üstüne uygular
 const PANIM := {
 	"kage_shuriken_no_jutsu": {"base": "throw", "pre": 0.3, "post": 0.35, "clip": "b/OverhandThrow", "wind": {"R": [Vector3(-0.6, 0.6, -0.5), Vector3(-0.2, 0.9, -0.4), Vector3(0.0, 1.0, -0.2)], "L": [Vector3(0.1, 0.45, 0.88), Vector3(-0.0, 0.5, 0.86), Vector3(-0.0, 0.9, 0.4)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0, 0, 0, 0, 0], "spine": -14.0, "hips_yaw": 35.0}, "rel": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.35, -0.85, -0.35), Vector3(-0.0, -0.4, 0.9), Vector3(-0.0, 0.2, 0.95)], "fR": [0, 0, 0, 0, 0], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 22.0, "hips_yaw": -25.0}},
@@ -3288,12 +3229,6 @@ func paper_sheet(s := 0.35) -> MeshInstance3D:
 	return mesh_of(b)
 
 
-
-
-
-
-
-
 ## Kâğıt Kanatlar: sırttan katmanlı kâğıt kanatlar açılır (kemiğe bağlı), 20 sn uçuş; kanat çırpınca kâğıt bıçaklar savrulur
 func p_kami_tsubasa(c: Node3D, _t: Node3D) -> void:
 	anim(c, "cast", 1.2)
@@ -3363,20 +3298,8 @@ func p_kami_tsubasa(c: Node3D, _t: Node3D) -> void:
 			c.stop_flight())
 
 
-
-
-
-
-
-
-
-
-
 # ================================================================== Kurbağa Bilgesi Yolu
 const TOAD_OIL := Color(0.92, 0.75, 0.3)
-
-
-
 
 
 ## Yağ gölü: içindekiler yavaşlar; ateş vurursa alev gölüne döner
@@ -3562,12 +3485,6 @@ func _face(c: Node3D, tt: Node3D) -> Vector3:
 	return d
 
 
-
-
-
-
-
-
 ## Yaprak Kasırgası (Senpū): zıplayıp dönen yüksek tekme — çevresindeki herkesi savurur, yapraklar uçuşur
 func p_konoha_senpu(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.55)
@@ -3628,9 +3545,6 @@ func p_dainamikku_entori(c: Node3D, t: Node3D) -> void:
 				c.velocity = -d * 5.0 + Vector3.UP * 5.0)
 
 
-
-
-
 ## Bin Yıllık Ölüm: hedefin arkasında belirip iki parmakla dürter — hedef havaya fırlar
 func p_sennen_goroshi(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 10.0)
@@ -3658,9 +3572,6 @@ func p_sennen_goroshi(c: Node3D, t: Node3D) -> void:
 		Sfx.play("punch", tt.global_position, 1.4))
 
 
-
-
-
 ## PSTYLE: doton_renga_no_jutsu=ground doton_sazareishi=palm doton_shinju_zanshu_no_jutsu=ground kasumi_jusha_no_jutsu=sense oboro_bunshin_no_jutsu=clone doton_tobi_tsubute=ground doton_dosekiryu=ground doton_retsudo_tensho=ground futon_reppusho=palm futon_kazekiri_no_jutsu=palm katon_endan=breath
 # ------------------------------------------------------------------ Grup 2: düşük seviye toprak / rüzgâr / ateş / klon
 const EARTH := Color(0.55, 0.42, 0.3)
@@ -3673,65 +3584,10 @@ func _rock(s: float, col := EARTH) -> MeshInstance3D:
 	return mesh_of(b)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ## PSTYLE: bubble_clone_technique=clone bubitorappu=ground chakura_kontororu_baku=palm earth_release_rock_shelter=ground fujinheki=two_palm futon_fujin_no_jutsu=breath futon_toppa=breath genjutsu_shibari=sense hayanie=rush jouro_senbon=throw juha_sho=spin kamaitachi_no_jutsu=spin konoha_daisenpu=rush konoha_otoshi=rush kaeru_kaeru_no_jutsu=palm
 
 # ------------------------------------------------------------------ Grup 3: rüzgâr / genjutsu / taijutsu / tuzak
 const WIND := Color(0.85, 1.0, 0.95)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 ## Erken Kurban: hedefi yakalar, havaya kaldırıp sırtüstü yere çakar
@@ -3754,15 +3610,6 @@ func p_hayanie(c: Node3D, t: Node3D) -> void:
 			VFX.debris(tt.global_position, EARTH, 12, 5.0)
 			shake(0.5)
 			Sfx.play("hit_heavy", tt.global_position, 1.0))
-
-
-
-
-
-
-
-
-
 
 
 ## Büyük Yaprak Kasırgası: art arda üç dönen tekme, her biri daha yüksek
@@ -3806,7 +3653,6 @@ func p_konoha_otoshi(c: Node3D, t: Node3D) -> void:
 			Sfx.play("hit_heavy", at, 0.9)))
 
 
-
 ## PSTYLE: futon_hanachiri_mai=spin genjutsu_suzune_bunshin=sense kage_buyo=rush karasu_bunshin_no_jutsu=clone kawazu_kumite=power kawazu_tataki=rush konoha_shofu=rush kumo_ryu_omotegiri=rush kumo_ryu_uragiri=rush kumo_shibari=palm kumo_soka=palm kumogakure_taijutsu_okami_ringu=spin kyomeisen=palm mizuame_teppo=breath nekozume=rush okasho=rush raigeki=rush raigyaku_suihei_choppu=rush raikyu=palm raiton_ikazuchi_unagi=palm raiton_raiju_tsuiga=palm rakanken=rush shikomishindan=throw shishi_rendan=rush
 
 # ------------------------------------------------------------------ Grup 4: rüzgâr dansı / ses / genjutsu / senjutsu / ağ / Bulut kılıcı / şimşek / ağır taijutsu
@@ -3824,12 +3670,6 @@ func _jump_at(c: Node3D, tt: Node3D, up: float, fwd_v: float) -> Vector3:
 	if c is CharacterBody3D:
 		c.velocity = d * fwd_v + Vector3.UP * up
 	return d
-
-
-
-
-
-
 
 
 ## Dans Eden Yaprağın Gölgesi: hedefi tekmeyle havaya fırlatır, gölgesi gibi peşinden sıçrar ve tepede vurur
@@ -3854,12 +3694,6 @@ func p_kage_buyo(c: Node3D, t: Node3D) -> void:
 				anim(c, "hook", 1.6)
 				tt.take_hit(inf(c, "kage_buyo", 0.9, {"knock": 8.0, "launch": -8.0, "kind": "heavy"}))
 				_mfx(c, tt.global_position + Vector3.UP, Color(1, 0.9, 0.7), 1.0)))
-
-
-
-
-
-
 
 
 ## Kurbağa Vuruşu: doğa enerjili tek ağır yumruk — dokunmadan önce aura çarpar, uzağa uçurur
@@ -3966,12 +3800,6 @@ func _arc_cut(at: Vector3, d: Vector3, a0: float, a1: float, col: Color, r := 1.
 		tw.tween_callback(seg.queue_free)
 
 
-
-
-
-
-
-
 ## Kurt Halkası: kılıçla kendi etrafında tam tur dönerek daire kesik — her yandaki düşmana
 func p_kumogakure_taijutsu_okami_ringu(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.7)
@@ -3982,12 +3810,6 @@ func p_kumogakure_taijutsu_okami_ringu(c: Node3D, t: Node3D) -> void:
 	after(0.15, func():
 		mhit(c, at, 3.2, inf(c, "kumogakure_taijutsu_okami_ringu", 1.2, {"knock": 12.0, "kind": "heavy", "bleed": 3.0})))
 	Sfx.play("clink", at, 1.0)
-
-
-
-
-
-
 
 
 ## Kedi Pençesi: çakralı pençelerle çapraz üçlü çizik
@@ -4015,24 +3837,6 @@ func p_nekozume(c: Node3D, t: Node3D) -> void:
 	Sfx.play("whoosh", c.global_position, 1.5)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ## Rakan Yumruğu: ağır, dalga gibi art arda dört yumruk — her biri ileri iter
 func p_rakanken(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 5.0)
@@ -4049,9 +3853,6 @@ func p_rakanken(c: Node3D, t: Node3D) -> void:
 			_mfx(c, at, Color(1, 0.85, 0.6), 0.8 + k * 0.2)
 			mhit(c, at, 1.6, inf(c, "rakanken", 0.5 + k * 0.15, {"knock": 3.0 + k * 4.0, "kind": "heavy"}))
 			Sfx.play("punch", at, 1.0 - k * 0.08))
-
-
-
 
 
 ## Aslan Kombosu: tekmeyle havaya atar, gölge gibi arkasından sıçrar, art arda tekmeler ve havadan yere çakar
@@ -4115,9 +3916,6 @@ func _water_shot(c: Node3D, id: String, tt: Node3D, from: Vector3, s: float, spe
 	return pr
 
 
-
-
-
 ## Su Klonu: ayağının dibindeki sudan bir kopya yükselir; vurulunca su olup sıçrar
 func p_mizu_bunshin_no_jutsu(c: Node3D, _t: Node3D) -> void:
 	busy(c, 0.5)
@@ -4126,24 +3924,6 @@ func p_mizu_bunshin_no_jutsu(c: Node3D, _t: Node3D) -> void:
 	decoy(c, at, 9.0, func(pos):
 		_splash(pos + Vector3.UP, 2.0))
 	Sfx.play("water", at, 1.1)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 ## Sarhoş Yumruk: sendeleyerek öngörülemez açılardan beş vuruş
@@ -4163,24 +3943,6 @@ func p_suiken(c: Node3D, t: Node3D) -> void:
 			for e in mhit(c, at, 1.6, inf(c, "suiken", 0.45, {"knock": 4.0, "kind": "heavy"})):
 				_mfx(c, e.global_position + Vector3.UP, Color(1, 0.85, 0.6), 0.8)
 			Sfx.play("punch", at, 1.0 + randf() * 0.3))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 ## Su Kırbacı: elde oluşan su kamçısı geniş yay çizer
@@ -4251,21 +4013,6 @@ func p_tsutenkyaku(c: Node3D, t: Node3D) -> void:
 			shake(0.9)
 			mhit(c, at + Vector3.UP, 5.0, inf(c, "tsutenkyaku", 1.9, {"knock": 14.0, "launch": 8.0, "kind": "heavy"}))
 			Sfx.play("boom", at, 0.9)))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 # ================================================================== ORTAK DETAYLI EFEKT KATMANI (VFX kütüphanesi: shader çekirdek + iz + toplanma + çarpma + kalıcı iz)
@@ -4388,7 +4135,6 @@ func p_futon_reppusho(c: Node3D, t: Node3D) -> void:
 	eshot(c, "futon_reppusho", "fuuton", Color(0.8, 1.0, 0.92), tg(c, t, 24.0), hand_pos(c, true), 1.3, 30.0, 0.8, {"knock": 18.0, "launch": 4.0}, 1.3)
 	FX.speed_lines(c.global_position + Vector3.UP * 1.3, c.face_dir())
 	Sfx.play("wind", c.global_position, 1.3)
-
 
 
 ## Su seli (mesh yok): ağızdan/elden ileri fışkıran, uzaklaştıkça genişleyen mavi cel su kütlesi (koyu mavi kontur),
@@ -8097,7 +7843,6 @@ func p_katon_homuranagase(c: Node3D, t: Node3D) -> void:
 	Sfx.play("fire", c.global_position, 0.8)
 
 
-
 ## Alev hortumu (koni/silindir mesh yok): üç sarmal kol boyunca dönerek yükselen cel alev topakları, yukarı genişleyen huni,
 ## tabanda dönen toz/kor, gövdeden kopan alev dilleri; içindekiler merkeze çekilip kaldırılır. follow verilirse onu izler
 func _fire_storm(c: Node3D, at: Vector3, R: float, H: float, dur: float, id: String, dmg: float, follow: Node3D = null) -> void:
@@ -9212,7 +8957,6 @@ func p_raiton_kangekiha(c: Node3D, t: Node3D) -> void:
 		Combat.hit_zone(c, c.global_position, d, 18.0, 30.0, 3.0, inf(c, "raiton_kangekiha", 1.2, {"knock": 10.0, "kind": "heavy", "element": "raiton", "stun": 0.6}))
 		shake(0.4))
 	Sfx.play("thunder", c.global_position, 1.1)
-
 
 
 ## Darui kara şimşek panteri (siyah-beyaz): yerde dörtnala koşan opak kara panter, beyaz çatırtılar, çarpınca siyah-beyaz şimşek patlaması
@@ -13809,54 +13553,6 @@ func p_hoshi_no_jutsu(c: Node3D, t: Node3D) -> void:
 	Sfx.play("smoke", c.global_position, 1.2)
 
 
-## İndra'nın Oku: Susanoo yayı gerilir, ok ucunda şimşek kasırgası toplanır — gökyüzünü yaran dev şimşek oku
-func p_indora_no_ya(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.8)
-	var tt = tg(c, t, 50.0)
-	var purple = Color(0.6, 0.4, 1.0)
-	var d = fwd(c, t)
-	# yay: mor şimşek arklarından kavis (simit yok)
-	var bow = Node3D.new()
-	c.add_child(bow)
-	bow.position = Vector3(0, 2.6, -1.2)
-	var bpts = []
-	for k in 7:
-		var a = lerpf(-1.2, 1.2, k / 6.0)
-		bpts.append(Vector3(0, sin(a) * 3.8, -cos(a) * 1.6 + 1.6))
-	for k in 6:
-		var arc = Arcs.new()
-		arc.color = purple
-		arc.position = bpts[k]
-		arc.to_point = bpts[k + 1] - bpts[k]
-		arc.count = 1
-		arc.width = 0.12
-		bow.add_child(arc)
-	var tip = c.global_position + Vector3.UP * 2.6 + d * 4.0
-	for k in 16:
-		after(k * 0.06, func():
-			if live(c):
-				var q = tip + Vector3(randf_range(-7, 7), randf_range(-3, 8), randf_range(-7, 7))
-				VFX.bolt(q, tip, Color(0.6, 0.85, 1.0), 0.2, 0.2, 2))
-	VFX.gather(tip, Color(0.6, 0.85, 1.0), 2.4)
-	after(1.1, func():
-		if is_instance_valid(bow):
-			bow.queue_free()
-		if not live(c):
-			return
-		var aim = aim_at(c, tt, tip)
-		var end = tip + aim * 50.0
-		stream_fx(tip, aim, 50.0, 3.0, VFX.mat_bolt(Color(0.6, 0.85, 1.0), 3.0), 0.5)
-		for k in 8:
-			VFX.bolt(tip + aim * k * 6.0, tip + aim * (k + 1) * 6.0 + Vector3(randf_range(-2, 2), randf_range(-2, 2), randf_range(-2, 2)), Color(0.75, 0.9, 1.0), 0.6, 0.4, 3)
-		Combat.hit_zone(c, tip - Vector3.UP * 2.6, aim, 50.0, 16.0, 6.0, inf(c, "indora_no_ya", 4.0, {"knock": 30.0, "launch": 8.0, "kind": "heavy", "element": "raiton", "stun": 1.0, "hitstop": 0.15}))
-		impact_fx("raiton", RAI, gp(end) + Vector3.UP, 3.0)
-		VFX.cracks(gp(end), 12.0)
-		if c is Player:
-			VFX.screen_lines(0.5, 1.5, Color(0.7, 0.85, 1.0))
-		shake(2.0))
-	Sfx.play("thunder", c.global_position, 0.8)
-
-
 ## Yin Mührü Çözülüşü: alındaki elmas patlar, siyah desenler yüze ve bedene yayılır — anında iyileşme + 6 sn hücre yenilenmesi (ölmez)
 func p_infuin_kai(c: Node3D, _t: Node3D) -> void:
 	busy(c, 0.6)
@@ -16268,39 +15964,6 @@ func p_shisho_fuin(c: Node3D, t: Node3D) -> void:
 	Sfx.play("seal", c.global_position, 0.8)
 
 
-## Susanoo Yumruğu: kırmızı Susanoo kolu omuzdan belirir, dev yumruk hedefe iner
-func p_susanoo_kobushi(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 14.0)
-	busy(c, 0.9)
-	var red = Color(1.0, 0.35, 0.3)
-	var d = fwd(c, t)
-	var arm = Node3D.new()
-	get_tree().current_scene.add_child(arm)
-	arm.global_position = c.global_position + Vector3.UP * 2.6 + d.cross(Vector3.UP) * 1.2 - d * 0.5
-	var b = MB.new()
-	b.add("cyl", Vector3(0, 0, 2.0), Vector3(0.6, 4.0, 0.6), red, Vector3(90, 0, 0), 8)
-	b.add("sphere", Vector3(0, 0, 4.3), Vector3(1.5, 1.4, 1.6), red.lightened(0.15))
-	for k in 4:
-		b.add("box", Vector3((k - 1.5) * 0.3, 0.45, 4.6), Vector3(0.22, 0.25, 0.6), red.lightened(0.2))
-	arm.add_child(mesh_of(b, VFX.mat_spiral(Color(1, 0.6, 0.55), red, 2.0, 1.0, 5.0, 0.7, Vector3.FORWARD)))
-	var goal = (tt.global_position + Vector3.UP if tt else c.global_position + d * 8.0 + Vector3.UP)
-	arm.look_at(goal + Vector3(0.001, 0, 0), Vector3.UP)
-	arm.rotation.y += PI
-	arm.scale = Vector3(1, 1, 0.05)
-	var tw = arm.create_tween()
-	tw.tween_property(arm, "scale", Vector3(1, 1, 0.5), 0.2)
-	tw.tween_property(arm, "scale", Vector3(1.2, 1.2, (arm.global_position.distance_to(goal)) / 4.3), 0.12).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tw.tween_callback(func():
-		impact_fx("", red, goal, 2.0)
-		VFX.cracks(gp(goal), 6.0)
-		hit(c, goal, 3.5, inf(c, "susanoo_kobushi", 2.4, {"knock": 24.0, "launch": 4.0, "kind": "heavy", "hitstop": 0.12}))
-		shake(0.9))
-	tw.tween_interval(0.3)
-	tw.tween_property(arm, "scale", Vector3(1, 1, 0.02), 0.2)
-	tw.tween_callback(arm.queue_free)
-	Sfx.play("punch", c.global_position, 0.7)
-
-
 ## Çoklu Ahşap Klon: gövdeden tomurcuklanan onlarca ahşap klon dört yana koşar — her biri hedefe hücum eder
 func p_taju_mokuton_bunshin_no_jutsu(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.0)
@@ -16482,40 +16145,6 @@ func p_ura_shisho_fuin(c: Node3D, t: Node3D) -> void:
 				c.hp = maxf(1.0, c.hp - c.max_hp * 0.5)
 			VFX.shockwave(at, Color(0.2, 0.2, 0.25), 6.0, 0.4, false)))
 	Sfx.play("seal", c.global_position, 0.5)
-
-
-## Yasaka Magatama: Susanoo eli mavi magatama halkası oluşturur, döndürerek fırlatır — üç magatama ayrı ayrı patlar
-func p_yasaka_no_magatama(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.0)
-	var tt = tg(c, t, 36.0)
-	var blue = Color(0.45, 0.65, 1.0)
-	var from = c.global_position + Vector3.UP * 2.6 + c.face_dir() * 1.2
-	VFX.gather(from, blue, 1.6)
-	after(0.4, func():
-		if not live(c):
-			return
-		for k in 3:
-			after(k * 0.1, func():
-				var mg = Node3D.new()
-				var head = VFX.element_core("", blue, 0.6)
-				mg.add_child(head)
-				var tail = MeshInstance3D.new()
-				var cm = CylinderMesh.new()
-				cm.top_radius = 0.0; cm.bottom_radius = 0.35; cm.height = 1.0
-				tail.mesh = cm
-				tail.material_override = VFX.mat_bolt(blue, 1.6)
-				tail.position = Vector3(0.3, 0, -0.5)
-				tail.rotation = Vector3(PI * 0.5, 0, 0.6)
-				mg.add_child(tail)
-				var spin = mg.create_tween().set_loops(20)
-				spin.tween_property(mg, "rotation:z", TAU, 0.25).as_relative()
-				var d = (aim_at(c, tt, from) + c.face_dir().cross(Vector3.UP) * (k - 1) * 0.06).normalized()
-				var pr = shot(c, from, d, 34.0, mg, inf(c, "yasaka_no_magatama", 1.2, {"knock": 12.0, "kind": "heavy"}), tt, false, 1.4, func(p, _h):
-					impact_fx("", blue, p, 1.6)
-					hit(c, p, 3.0, inf(c, "yasaka_no_magatama", 0.4, {"knock": 8.0, "kind": "heavy"})))
-				pr.radius = 0.7
-				_etrail(pr, "", blue, 0.8)))
-	Sfx.play("chakra", c.global_position, 0.8)
 
 
 ## Seksen Tanrı Vakum Saldırısı: bin kollu gibi görünen hızla yüzlerce vakum yumruk dalgası ileri yağar
@@ -18850,11 +18479,6 @@ func p_enton_kagutsuchi(c: Node3D, t: Node3D) -> void:
 	Jutsu.j_enton_kagutsuchi(c, t)
 
 
-func p_enton_yasaka_no_magatama(c: Node3D, t: Node3D) -> void:
-	_mangekyo(c, 1.5)
-	Jutsu.j_enton_yasaka_no_magatama(c, t)
-
-
 func p_amaterasu_entenka(c: Node3D, t: Node3D) -> void:
 	_mangekyo(c, 8.0)
 	Jutsu.j_amaterasu_entenka(c, t)
@@ -19190,13 +18814,6 @@ func _susanoo_ribs(c: Node3D, col: Color, dur: float) -> void:
 	tw.tween_interval(dur)
 	tw.tween_property(root, "scale", Vector3.ONE * 0.05, 0.3)
 	tw.tween_callback(root.queue_free)
-
-
-func p_susanoo(c: Node3D, t: Node3D) -> void:
-	_blood_eyes(c, 2.0)
-	_susanoo_ribs(c, Color(0.45, 0.55, 1.0), 15.0)
-	VFX.shockwave(c.global_position + Vector3.UP, Color(0.5, 0.6, 1.0), 8.0, 0.5, false)
-	_gen(c, "susanoo", t)
 
 
 func p_iso_susanoo(c: Node3D, t: Node3D) -> void:
@@ -21128,7 +20745,6 @@ func _mask_beast(c: Node3D, side: float, mask_col: Color) -> Node3D:
 	FX.burst(spot + Vector3.UP, {"amount": 14, "life": 0.5, "tex": FX.tex_smoke, "add": false, "cel": false, "size": 1.0, "radius": 0.8, "vmin": 1.0, "vmax": 3.0,
 		"colors": [Color(0.1, 0.1, 0.12, 0.8), Color(0.15, 0.15, 0.17, 0.0)]})
 	return bst
-
 
 
 func p_kakuzu_maske_katon(c: Node3D, t: Node3D) -> void:
@@ -26137,39 +25753,6 @@ func p_daburu_kuropansa(c: Node3D, t: Node3D) -> void:
 	Sfx.play("roar", c.global_position, 1.0)
 
 
-## Susanoo: Chidori — Susanoo'nun dev elinde çatırdayan Chidori
-func p_susanoo_chidori(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.2)
-	var tt = tg(c, t, 16.0)
-	var col = Color(0.65, 0.45, 1.0)
-	var hand_at = c.global_position + Vector3.UP * 5.0 + c.face_dir() * 2.5 + c.face_dir().cross(Vector3.UP) * 2.0
-	var ball = VFX.lightning_ball(2.0, col)
-	scene_add(ball, hand_at)
-	var arcs = Arcs.new()
-	arcs.color = col
-	arcs.radius = 4.0
-	arcs.count = 12
-	arcs.width = 0.14
-	ball.add_child(arcs)
-	FX.light(hand_at, col, 10.0, 18.0, 1.0)
-	after(0.7, func():
-		if not live(c):
-			fade_free(ball, 0.0, 0.2)
-			return
-		var dest = (tt.global_position + Vector3.UP * 1.5) if tt else c.global_position + c.face_dir() * 12.0 + Vector3.UP * 1.5
-		var tw = ball.create_tween()
-		tw.tween_property(ball, "global_position", dest, 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-		tw.tween_callback(func():
-			for i in 12:
-				var d = Vector3(randf_range(-1, 1), randf_range(-0.2, 1), randf_range(-1, 1)).normalized()
-				VFX.bolt(dest, dest + d * randf_range(5.0, 10.0), col, 0.35, 0.35, 3)
-			impact_fx("raiton", col, dest, 2.4)
-			hit(c, dest, 5.5, inf(c, "susanoo_chidori", 3.0, {"knock": 18.0, "launch": 6.0, "kind": "heavy", "element": "raiton", "stun": 1.5}))
-			shake(1.4)
-			ball.queue_free()))
-	Sfx.play("chidori", c.global_position, 0.6)
-
-
 # ================================================================== JUTSU SİLAHLARI: animede özel silahla atılan teknikler (elde belirir, sonra kaybolur)
 ## kind: "tessen" (Temari'nin dev demir yelpazesi, üç mor yıldız), "shakujo" (halkalı keşiş asası), "katana"
 func jutsu_weapon(c: Node3D, kind: String, dur: float) -> Node3D:
@@ -27500,8 +27083,6 @@ func p_katon_suyaki(c: Node3D, t: Node3D) -> void:
 	Sfx.play("fire", at, 0.7)
 
 
-
-
 ## Alev kuşu (Karura): alev malzemeli kuş — sivri gagalı baş, kabarık göğüs, uzun alev tüylü kuyruk, tüylü büyük kanatlar
 ## (kanatlar çırpar). +Z ile kurulur, -Z'ye bakar (ClayArt._fwd). s=1: ~5 m kanat açıklığı
 func _fire_bird(s: float) -> Node3D:
@@ -27587,25 +27168,6 @@ func p_katon_karura(c: Node3D, t: Node3D) -> void:
 					"colors": [Color(1.0, 0.95, 0.55, 1), Color(1.0, 0.6, 0.12, 1), Color(0.9, 0.3, 0.05, 0.8), Color(0.5, 0.12, 0.03, 0)]})
 		FX.light(mo, Color(1.0, 0.6, 0.2), 8.0, 20.0, 1.2))
 	Sfx.play("fire", c.global_position, 0.5)
-
-
-func p_susanoo_gokakyu(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.3)
-	_mangekyo(c, 2.0)
-	var tt = tg(c, t, 40.0)
-	after(0.6, func():
-		if not live(c):
-			return
-		var from = c.global_position + Vector3.UP * 7.0 + c.face_dir() * 3.0
-		var ball = Node3D.new()
-		ball.add_child(VFX.fireball(9.0))
-		var pr = shot(c, from, aim_at(c, tt, from), 18.0, ball, inf(c, "susanoo_gokakyu", 3.0, {"knock": 18.0, "launch": 8.0, "kind": "heavy", "element": "katon", "burn": 5.0}), tt, false, 3.0, func(p, _h):
-			VFX.explosion(p, 3.2, Color(1.0, 0.5, 0.12))
-			GroundFX.add(p, "burning", 7.0, 5.0, c)
-			shake(1.6))
-		pr.radius = 4.0
-		pr.homing_turn = 1.2)
-	Sfx.play("fire", c.global_position, 0.4)
 
 
 func p_katon_hikakure(c: Node3D, t: Node3D) -> void:
@@ -28863,29 +28425,6 @@ func p_konoha_ryu_yanagi(c: Node3D, t: Node3D) -> void:
 				v.y = 0
 				_blade_cut(c, c.global_position + Vector3.UP, v.normalized(), -35.0, 35.0, 1.6, "konoha_ryu_yanagi", 0.9), Callable())
 	Sfx.play("whoosh", c.global_position, 1.2)
-
-
-func p_susanoo_hozan(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.2)
-	_mangekyo(c, 1.5)
-	var tt = tg(c, t, 18.0)
-	if not tt:
-		return
-	var col = Color(0.65, 0.45, 1.0)
-	after(0.3, func():
-		if not live(tt):
-			return
-		var p = tt.global_position + Vector3.UP * 1.5
-		FX.burst(p, {"amount": 40, "life": 0.6, "tex": FX.tex_smoke, "add": false, "cel": false, "size": 2.0, "radius": 1.6, "vmin": 0.5, "vmax": 2.0,
-			"colors": [Color(col.r, col.g, col.b, 0), Color(col.r, col.g, col.b, 0.7), Color(col.r, col.g, col.b, 0)]})
-		if tt.has_method("apply_status"):
-			tt.apply_status("bind", 1.0))
-	after(0.8, func():
-		if live(tt):
-			_arc_cut(tt.global_position + Vector3.UP * 1.5, (tt.global_position - c.global_position).normalized(), -70.0, 70.0, col.lightened(0.3), 4.5)
-			_tai_impact(c, tt.global_position + Vector3.UP, 2.0)
-			hit(c, tt.global_position + Vector3.UP, tt.radius + 0.6, inf(c, "susanoo_hozan", 3.0, {"knock": 18.0, "launch": 5.0, "kind": "heavy", "bleed": 5.0})))
-	Sfx.play("whoosh", c.global_position, 0.6)
 
 
 func p_kusanagi_sora_no_tachi(c: Node3D, t: Node3D) -> void:
@@ -30614,26 +30153,6 @@ func p_kami_chakuramu(c: Node3D, t: Node3D) -> void:
 
 
 # ================================================================== VİDEO GENJUTSU / TIBBİ eksikleri
-## Susanoo Genjutsusu: Susanoo'nun dev silueti düşmanların zihnine çöker — çevredekiler illüzyonda donar
-func p_susanoo_genjutsu(c: Node3D, _t: Node3D) -> void:
-	busy(c, 1.0)
-	_mangekyo(c, 2.0)
-	var purple = Color(0.55, 0.3, 0.85)
-	VFX.screen_lines(0.6, 0.7, purple)
-	_susanoo_ribs(c, purple, 1.6)   # Susanoo'nun kaburgaları belirir, illüzyon ondan yayılır
-	FX.aura(c, purple, 1.6, Vector3(0, 1.4, 0), 1.6)
-	for k in 14:
-		var a = k * TAU / 14.0
-		after(k * 0.02, func():
-			if live(c):
-				var p = c.global_position + Vector3(cos(a) * 2.0, 0.2, sin(a) * 2.0)
-				WindFX.streak(func(q: float) -> Vector3: return p + Vector3.UP * q * 6.0 + Vector3(cos(a), 0, sin(a)) * sin(q * PI) * 1.5, 0.6, 0.35, Color(0.6, 0.4, 1.0, 0.6), 0.0, 10))
-	after(0.4, func():
-		for e in enemies_near(c, c.global_position, 16.0):
-			st(e, "stun", 4.0)
-			FX.aura(e, purple, 0.9, Vector3(0, 1.0, 0), 4.0)
-			Combat.popup_text(e.global_position + Vector3.UP * 2.4, "Susanoo illüzyonu!", purple))
-	Sfx.play("genjutsu", c.global_position, 0.5)
 
 
 ## Sharinnegan Genjutsusu: tomoeli Rinnegan bakışı — görüş alanındaki herkes aynı anda genjutsuya düşer
@@ -30728,56 +30247,6 @@ func p_kama_no_mai_rakko(c: Node3D, t: Node3D) -> void:
 		VFX.cracks(at, 1.5)
 		mhit(c, at + Vector3.UP, 1.8, inf(c, "kama_no_mai_rakko", 1.6, {"knock": 4.0, "kind": "heavy", "bleed": 4.0})))
 	Sfx.play("blade", c.global_position, 0.8)
-
-
-## Susanoo: Tsukumo — Susanoo'nun elinde oluşan onlarca mor ok aynı anda hedefe yağar
-func p_susanoo_tsukumo(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 34.0)
-	busy(c, 1.2)
-	_mangekyo(c, 1.5)
-	var purple = Color(0.65, 0.4, 1.0)
-	_susanoo_ribs(c, purple, 1.4)
-	for k in 14:
-		after(0.4 + k * 0.03, func():
-			if not live(c):
-				return
-			var o = c.global_position + Vector3.UP * 3.5 + c.face_dir().cross(Vector3.UP) * randf_range(-2.0, 2.0) + Vector3.UP * randf_range(-0.5, 1.0)
-			var b = MB.new()
-			b.add("cone", Vector3(0, 0, 0.6), Vector3(0.08, 1.2, 0.08), purple, Vector3(90, 0, 0), 5)
-			var pr = shot(c, o, aim_at(c, tt, o), 40.0, mesh_of(b, _flat_glow(purple)), inf(c, "susanoo_tsukumo", 0.3, {"knock": 3.0, "kind": "heavy"}), tt, false, 1.2)
-			if pr:
-				Projectile.trail(pr, [Color(0.9, 0.8, 1.0), purple, Color(purple.r, purple.g, purple.b, 0)], 0.4, 24, 0.25, null, true))
-	Sfx.play("whoosh", c.global_position, 1.3)
-
-
-## Susanoo: Tsubushi — Susanoo'nun dev eli hedefi kavrar ve ezer
-func p_susanoo_tsubushi(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 14.0)
-	busy(c, 1.2)
-	_mangekyo(c, 1.5)
-	var purple = Color(0.55, 0.3, 0.85)
-	_susanoo_ribs(c, purple, 1.4)
-	if tt == null:
-		return
-	var hand = MB.new()
-	for k in 4:
-		hand.add("cyl", Vector3((k - 1.5) * 0.45, 1.2, 0.3), Vector3(0.3, 1.6, 0.3), purple, Vector3(20, 0, 0), 6)
-	hand.add("box", Vector3(0, 0.3, 0), Vector3(2.0, 0.5, 1.2), purple)
-	var hm = mesh_of(hand, _flat_glow(Color(purple.r, purple.g, purple.b, 0.7), true))
-	scene_add(hm, tt.global_position + Vector3.UP * 5.0)
-	var tw = hm.create_tween()
-	tw.tween_property(hm, "global_position", tt.global_position + Vector3.UP * 0.5, 0.3).set_delay(0.3)
-	tw.tween_callback(func():
-		if live(tt):
-			st(tt, "bind", 1.5)
-			for k in 3:
-				after(k * 0.3, func():
-					if live(tt):
-						tt.take_hit(inf(c, "susanoo_tsubushi", 0.9, {"knock": 0.0, "kind": "heavy"})))
-		shake(0.5))
-	tw.tween_interval(1.2)
-	tw.tween_callback(hm.queue_free)
-	Sfx.play("earth", tt.global_position, 0.6)
 
 
 ## Shura no Kō: Asura yolunun açılan gövdesinden çok kol ve füze bataryası — ileriye füze yağmuru

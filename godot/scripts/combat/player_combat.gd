@@ -979,6 +979,15 @@ func begin_cast(jid: String) -> void:
 		if Progress.EYE_KINDS.has(ek) and not Progress.has_eye(ek):
 			Hud.msg("%s için en az bir gözün %s olmalı." % [String(j["name"]).split(" (")[0], {"rinnegan": "Rinnegan", "ems": "Eternal Mangekyō", "mangekyo": "Mangekyō", "sharingan": "Sharingan", "byakugan": "Byakugan", "tenseigan": "Tenseigan", "jogan": "Jōgan", "ketsuryugan": "Ketsuryūgan"}.get(ek, ek)], Color(1, 0.55, 0.5))
 			return
+	# Susanoo teknikleri gerçek Susanoo ile yapılır: Susanoo (yeterli kademede) açılabilmeli
+	if Susanoo.need_tier(jid) > 0:
+		var sg = Susanoo.gate_msg(jid, String(j["name"]))
+		var ey2 = modes.eyes if modes else null
+		if sg == "" and ey2 and not ey2.susanoo and ey2.blind() >= 1.0 and not (ey2._kind("sag") == 5 or ey2._kind("sol") == 5):
+			sg = "Gözlerin kör: Susanoo'yu çağıramıyorsun."
+		if sg != "":
+			Hud.msg(sg, Color(1, 0.55, 0.5))
+			return
 	# moda bağlı teknikler: animedeki gibi yalnız sennin modunda / kuyruklu canavar modunda atılır
 	var need = String(j.get("need", ""))
 	if need == "sage" and not (modes and modes.sage):

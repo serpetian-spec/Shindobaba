@@ -624,6 +624,216 @@ func _fly_bolt(owner_f: Node3D, from: Vector3, dir: Vector3, dist: float, length
 	tw.tween_callback(mi.queue_free)
 
 
+# ================================================================== Susanoo JUTSULARI (gerçek Susanoo)
+## Susanoo teknikleri ayrı / geçici bir Susanoo yaratmaz: sahibinin GERÇEK Susanoo'sunu kullanır (oyuncu: V ile açtığı,
+## kendi özelleştirdiği, ustalık kademesindeki; düşman: kendi Susanoo'su). Kapalıysa teknik onu açar ve açık kalır.
+## Efektler Susanoo'nun elinden / ağzından çıkar, kolları hedefe göre pozlanır, boyu kademeyle büyür.
+## Kanon kademe şartı: Totsuka / Yata / yay / magatama İnsansı Susanoo'da (Itachi, Sasuke), Indora'nın Oku Mükemmel Susanoo'da.
+const JUTSU_TIER := {"susanoo": 1, "susanoo_kobushi": 2, "yasaka_no_magatama": 3, "enton_yasaka_no_magatama": 3,
+	"totsuka_no_tsurugi": 3, "yata_no_kagami": 3, "susanoo_kagutsuchi_no_yumiya": 3, "susanoo_chidori": 3,
+	"susanoo_gokakyu": 3, "susanoo_hozan": 3, "susanoo_tsukumo": 3, "indora_no_ya": 5}
+var act_t = 0.0      # jutsu hareketi sürüyor (kullanıcı animasyonu eşlenmez)
+var posed = false
+
+
+static func need_tier(jid: String) -> int:
+	return int(JUTSU_TIER.get(jid, 0))
+
+
+## Oyuncu atmadan önce: Susanoo bu tekniği yapabilir mi (boş = evet, değilse nedeni)
+static func gate_msg(jid: String, jname: String) -> String:
+	var need = need_tier(jid)
+	if need <= 0:
+		return ""
+	var mt = max_tier(Game.profile)
+	if mt <= 0:
+		return "%s Susanoo'nun tekniği: iki gözün de Mangekyō olmalı." % jname
+	if mt < need:
+		return "%s için Susanoo en az %d. kademe (%s) olmalı — Susanoo ustalığın henüz %d. kademede." % [jname, need, TIER_NAMES[need], mt]
+	return ""
+
+
+## Tekniği yapacak GERÇEK Susanoo (yoksa null: teknik atılmaz). Oyuncu: kapalıysa açılır. Düşman: kendi Susanoo'su
+## (Ebedi Mangekyō sahibi gerekirse Mükemmel Susanoo'ya büyür).
+static func of(c: Node3D, jid := "") -> Susanoo:
+	if c == null or not is_instance_valid(c):
+		return null
+	var need = maxi(1, need_tier(jid))
+	var sn: Susanoo = null
+	if c == Game.player:
+		var cb = c.get("combat")
+		var ey = cb.modes.eyes if cb and cb.modes else null
+		if ey == null:
+			return null
+		if ey.susanoo and not is_instance_valid(ey.susanoo_node):
+			ey.susanoo = false   # model yenilenince Susanoo düğümü gitmiş: yeniden açılsın
+		if not ey.susanoo:
+			ey._start_susanoo()
+		if ey.susanoo and is_instance_valid(ey.susanoo_node):
+			sn = ey.susanoo_node
+		if sn and sn.tier < need:
+			Hud.msg("Susanoo kademe tercihin düşük (%d): bu teknik %d. kademe ister." % [sn.tier, need], Color(1, 0.6, 0.5))
+			return null
+	elif c is Enemy:
+		var kind = int(c.get_meta("eyes").get("kind", 0)) if c.has_meta("eyes") else 0
+		var cur = c.get_meta("ea_susanoo") if c.has_meta("ea_susanoo") else null
+		if (cur == null or not is_instance_valid(cur)) and kind in [4, 5] and (kind == 5 or float(c.get_meta("ms_blind", 0.0)) < 1.0):
+			EnemyArts._susanoo(c)
+			cur = c.get_meta("ea_susanoo") if c.has_meta("ea_susanoo") else null
+		if cur and is_instance_valid(cur) and cur.tier < need and kind == 5:
+			cur.build(EnemyArts.random_susanoo(c), need, c.get("model"))
+		if cur and is_instance_valid(cur) and cur.tier >= need:
+			sn = cur
+	if sn == null or sn.body == null or sn.body.skel == null:
+		return null
+	sn.warm_bones()
+	return sn
+
+
+func h() -> float:
+	return TIER_HEIGHT[tier]
+
+
+## Dünya yönü -> iskelet uzayı yönü (PoseOverlay cast_pose bu uzayda çalışır)
+func sk_dir(w: Vector3) -> Vector3:
+	return (body.skel.global_transform.basis.inverse() * w).normalized()
+
+
+## Kemiğin SON pozdaki dünya konumu: BoneAttachment3D poz katmanı (PoseOverlay kol pozları) uygulandıktan sonra güncellenir
+## (get_bone_global_pose katmansız animasyon pozunu veriyordu: el yerin altında hesaplanıyordu)
+var _ba := {}
+func bone_at(bone: String) -> Vector3:
+	var sk = body.skel
+	var bi = sk.find_bone(bone)
+	if bi < 0:
+		return global_position + Vector3.UP * h() * 0.6
+	var ba = _ba.get(bone)
+	if ba == null or not is_instance_valid(ba):
+		ba = BoneAttachment3D.new()
+		ba.bone_name = bone
+		sk.add_child(ba)
+		_ba[bone] = ba
+		return sk.global_transform * sk.get_bone_global_pose(bi).origin
+	return (ba as Node3D).global_position
+
+
+## Jutsu başlamadan kemik izleyicilerini hazırla (ilk karede de doğru konum)
+func warm_bones() -> void:
+	for b in ["RightHand", "LeftHand", "RightMiddleProximal", "LeftMiddleProximal", "RightUpperArm", "LeftUpperArm", "LeftLowerArm", "RightLowerArm", "Head"]:
+		bone_at(b)
+
+
+## Avuç ortası (bilek ile orta parmak kökü arası)
+func hand(right := true) -> Vector3:
+	var s = "Right" if right else "Left"
+	var a = bone_at(s + "Hand")
+	if body.skel.find_bone(s + "MiddleProximal") >= 0:
+		return a.lerp(bone_at(s + "MiddleProximal"), 0.7)
+	return a
+
+
+## Ağız (kafa kemiğinin önü)
+func mouth(fwd: Vector3) -> Vector3:
+	return bone_at("Head") + fwd * h() * 0.06 - Vector3.UP * h() * 0.01
+
+
+## Animasyonla hareket (savuruş, fırlatma) — kullanıcı animasyonu hold sn boyunca eşlenmez
+func perform(anim: String, speed := 1.0, hold := 0.8) -> void:
+	swing_t = -1.0
+	act_t = maxf(act_t, hold)
+	body.play(anim, 0.06, speed, true)
+
+
+## Kol pozu (dünya yönleriyle): cp = {"arms": [[kemik, dünya yönü], ...], "spine", "twist", "neck"}; hold sn sürer
+func pose(cp: Dictionary, hold: float, snap := false) -> void:
+	if body.overlay == null:
+		return
+	var out = cp.duplicate()
+	var arms = []
+	for a in cp.get("arms", []):
+		arms.append([a[0], sk_dir(a[1])])
+	out["arms"] = arms
+	body.overlay.cast_pose = out
+	if snap:
+		body.overlay.snap("cast", 1.0)
+	else:
+		body.overlay.set_pose("cast", 1.0)
+	body.overlay.speed = 7.0
+	swing_t = -1.0
+	act_t = maxf(act_t, hold)
+	posed = true
+
+
+## Kolun üç kemiği aynı yöne (uzanmış kol) ya da üst kol / ön kol ayrı yönlere
+static func arm(right: bool, upper: Vector3, lower := Vector3.ZERO, hand_d := Vector3.ZERO) -> Array:
+	var s = "Right" if right else "Left"
+	var lo = lower if lower != Vector3.ZERO else upper
+	return [[s + "UpperArm", upper], [s + "LowerArm", lo], [s + "Hand", hand_d if hand_d != Vector3.ZERO else lo]]
+
+
+## Susanoo'nun kendi silahı (kılıç / mızrak) teknik süresince gizlenir (el başka bir şey tutuyor)
+func hide_weapons(dur: float) -> void:
+	# görünürlük _place_weapons'ta yenilendiği için katman maskesi sıfırlanır (hiçbir kamera çizmez), sonra geri verilir
+	var hidden = []
+	for w in body.weapons:
+		for root in [w.get("node"), w.get("sheath")]:
+			if root == null or not is_instance_valid(root):
+				continue
+			var geos = (root as Node).find_children("*", "GeometryInstance3D", true, false)
+			if root is GeometryInstance3D:
+				geos.append(root)
+			for m in geos:
+				if m.layers != 0:
+					hidden.append([m, m.layers])
+					m.layers = 0
+	get_tree().create_timer(dur).timeout.connect(func():
+		for hm in hidden:
+			if is_instance_valid(hm[0]):
+				hm[0].layers = hm[1])
+
+
+## Efekt düğümü teknik boyunca Susanoo'nun bir noktasına bağlı kalır: at_fn() konum, look_fn() yön (Vector3, boşsa yön değişmez)
+func follow_fx(n: Node3D, dur: float, at_fn: Callable, look_fn := Callable(), up := Vector3.UP) -> void:
+	var upd = func(_x: float):
+		if not (is_instance_valid(n) and is_instance_valid(self) and n.is_inside_tree()):
+			return
+		n.global_position = at_fn.call()
+		if look_fn.is_valid():
+			var d: Vector3 = look_fn.call()
+			if d.length() > 0.001 and absf(d.normalized().dot(up.normalized())) < 0.995:
+				n.global_basis = Basis.looking_at(d, up).scaled(n.global_basis.get_scale())
+	upd.call(0.0)
+	n.create_tween().tween_method(upd, 0.0, 1.0, dur)
+
+
+## Susanoo malzemesinden parlak parça (gövdeden yoğun: uzaktan seçilsin)
+func chakra_mesh(mb: MB, extra_glow := 1.0) -> MeshInstance3D:
+	var mi = MeshInstance3D.new()
+	mi.mesh = mb.build(null)
+	var m = _fx_mat()
+	if extra_glow != 1.0:
+		m = m.duplicate()
+		m.set_shader_parameter("glow", 2.2 * extra_glow)
+		m.set_shader_parameter("density", 4.0 * extra_glow)
+	mi.material_override = m
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return mi
+
+
+## Susanoo renginde akan sıvı-alev malzemesi (Totsuka'nın ruh kılıcı, Chidori'nin çekirdeği)
+func flame_mat(core := Color(1, 1, 1)) -> ShaderMaterial:
+	var m = VFX.mat_fire("fire", 3.2, 2.2, 0.3, 1.7, 0.18, Vector3(0, 0, 1), true)
+	var c = color()
+	m.set_shader_parameter("c_core", core)
+	m.set_shader_parameter("c_hot", c.lightened(0.55))
+	m.set_shader_parameter("c_mid", c.lightened(0.15))
+	m.set_shader_parameter("c_edge", c.darkened(0.2))
+	m.set_shader_parameter("c_line", c.darkened(0.65))
+	m.set_shader_parameter("streak", 0.6)
+	m.set_shader_parameter("inner_lines", 0.6)
+	return m
+
+
 var face_owner: Node3D   # verilirse Susanoo her kare sahibinin baktığı yöne döner (geçici Susanoo teknikleri)
 
 
@@ -648,7 +858,13 @@ func _process(dt: float) -> void:
 		body.position = Vector3(-dd.x, 0.0, -dd.z)
 	for k in tech_cd.size():
 		tech_cd[k] = maxf(0.0, tech_cd[k] - dt)
-	if swing_t >= 0.0:
+	if act_t > 0.0:
+		# jutsu hareketi (Totsuka saplaması, yay germe...): kullanıcının animasyonu eşlenmez, poz bitince bırakılır
+		act_t -= dt
+		if act_t <= 0.0 and posed and body.overlay:
+			body.overlay.set_pose("cast", 0.0)
+			posed = false
+	elif swing_t >= 0.0:
 		swing_t += dt
 		if swing_t > 0.6:
 			swing_t = -1.0

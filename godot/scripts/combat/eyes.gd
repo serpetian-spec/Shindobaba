@@ -22,20 +22,23 @@ const SKILLS := {
 ## Mangekyō tarzları: her Mangekyō gözü uyanınca (ya da alınınca) rastgele bir tarza bağlanır. Tarz = 2 göz tekniği (sağ / sol göz
 ## yuvası) + 6 jutsu; toplam 8. Yalnız sahip olduğun tarzın teknikleri açılır (eskiden her Mangekyō tekniği açılıyordu: aşırı güçlü).
 ## Ebedi Mangekyō iki farklı tarzın gözlerini birleştirebilir. Yeni tarz eklemek: buraya bir kayıt (oyunda olmayan kendi tarzlarımız da).
+## Yalnız animedeki teknikler. "@..." = jutsu değil, gözün YETENEĞİ (yuva harcamaz, göz tuşuyla): Kamui içine çekme /
+## ışınlanma, Shisui'nin Shunshin'i. Obito tarzı Mangekyō ayrıca kaçma tuşunu Kamui geçirgenliğine çevirir (basılı tut).
 const MS_STYLES := {
-	"itachi": {"name": "Itachi tarzı", "theme": "Kara alev ve ay rüyası", "eyes": ["amaterasu", "tsukuyomi"],
+	"itachi": {"name": "Itachi tarzı", "theme": "Kara alev, ay rüyası ve Susanoo'nun kutsal hazineleri", "eyes": ["amaterasu", "tsukuyomi"],
 		"jutsu": ["izanami", "yasaka_no_magatama", "tensha_fuin_amaterasu", "totsuka_no_tsurugi", "yata_no_kagami", "magen_karasu_bunshin"]},
 	"sasuke": {"name": "Sasuke tarzı", "theme": "Enton: biçimlenen kara alev", "eyes": ["enton_kagutsuchi", "amaterasu_entenka"],
-		"jutsu": ["susanoo_kagutsuchi_no_yumiya", "enton_kagutsuchi_no_tsurugi", "susanoo_chidori", "enton_kokuen_no_tate", "enton_kokuryu", "indora_no_ya"]},
-	"obito": {"name": "Obito tarzı", "theme": "Kamui: bedeni boyuttan geçiren göz", "eyes": ["kamui_surinuke", "kamuibashiri"],
-		"jutsu": ["kamui_kyuin", "kamui_ikukan_toji", "kamui_hanten", "kamui_kusari_shibari", "kamui_ikukan_tobi", "kamui_ranbu"]},
-	"kakashi": {"name": "Kakashi tarzı", "theme": "Uzak Kamui ve şimşek", "eyes": ["kamui", "kamui_shuriken"],
-		"jutsu": ["kamui_raikiri", "raiden", "susanoo_kamui_ya", "raikiri_soryu", "kamui_kakushi", "kopi_ninja_no_me"]},
-	"madara": {"name": "Madara tarzı", "theme": "Susanoo ve hükmeden bakış", "eyes": ["susanoo_kobushi", "kyubi_shihai"],
-		"jutsu": ["susanoo", "susanoo_kenjutsu", "kanzen_tai_itto", "susanoo_tate", "susanoo_shuha", "enton_yasaka_no_magatama"]},
-	"shisui": {"name": "Shisui tarzı", "theme": "Kotoamatsukami ve göz açıp kapayan hız", "eyes": ["kotoamatsukami", "shunshin_genso"],
-		"jutsu": ["susanoo_shisui_no_ya", "karasu_kuyo", "utakata_no_genso", "kotodama_no_shibari", "kyokei_shunshin", "kyoso_enbu"]},
+		"jutsu": ["susanoo_kagutsuchi_no_yumiya", "enton_kagutsuchi_no_tsurugi", "susanoo_chidori", "indora_no_ya", "amaterasu", "susanoo"]},
+	"obito": {"name": "Obito tarzı", "theme": "Kamui: içinden geçen, içine çeken, ışınlanan göz", "eyes": ["@kamui_kyuin", "@kamui_tobi"],
+		"jutsu": ["kamui", "kamuibashiri"]},
+	"kakashi": {"name": "Kakashi tarzı", "theme": "Uzak menzil Kamui ve şimşek", "eyes": ["kamui", "kamui_shuriken"],
+		"jutsu": ["kamui_raikiri", "raiden", "kamuibashiri", "susanoo"]},
+	"madara": {"name": "Madara tarzı", "theme": "Susanoo ve kara alev", "eyes": ["susanoo_hozan", "susanoo_tsukumo"],
+		"jutsu": ["susanoo", "susanoo_gokakyu", "enton_yasaka_no_magatama"]},
+	"shisui": {"name": "Shisui tarzı", "theme": "Kotoamatsukami ve göz açıp kapayan hız", "eyes": ["kotoamatsukami", "@shisui_shunshin"],
+		"jutsu": ["susanoo", "kyoso_enbu"]},
 }
+const ABILITY_NAMES := {"@kamui_kyuin": "Kamui: içine çek", "@kamui_tobi": "Kamui: ışınlan", "@shisui_shunshin": "Shisui'nin Shunshin'i"}
 
 
 ## Göz eşyasının Mangekyō tarzı (yoksa uid'den sabit rastgele atanır ve kaydedilir)
@@ -282,6 +285,16 @@ func handle_input(e: InputEvent) -> bool:
 			sus_swipe_ready = maxi(sus_swipe_ready, now + 900)
 			susanoo_node.special(p, p.cam_forward())
 			return true
+	# Kamui geçirgenliği (Obito tarzı Mangekyō, gözler açıkken): kaçma tuşunu basılı tut — saldırılar içinden geçer
+	if e.is_action_pressed("substitute") and active and has_style("obito") and blind() < 1.0 and phase_cd <= 0.0:
+		_phase_start()
+		return true
+	if e.is_action_released("substitute") and phasing:
+		_phase_end()
+		return true
+	if phasing and (e.is_action_pressed("attack") or e.is_action_pressed("throw") or (e is InputEventKey and e.pressed and e.keycode >= KEY_1 and e.keycode <= KEY_9)):
+		Hud.msg("Kamui'deyken saldıramazsın — bırak, katılaş.", Color(0.75, 0.6, 0.9), 1.2)
+		return true
 	if e.is_action_pressed("interact") and steal_target != null:
 		_steal(steal_target)
 		return true
@@ -418,6 +431,8 @@ func _close() -> void:
 func _skill_name(side: String) -> String:
 	var k = _kind(side)
 	var mj = _ms_eye_jutsu(side)
+	if mj.begins_with("@"):
+		return String(ABILITY_NAMES.get(mj, mj))
 	if mj != "":
 		return String(Data.jutsu.get(mj, {}).get("name", mj))
 	return SKILLS[k][0 if side == "sag" else 1][0] if k > 0 else "—"
@@ -461,7 +476,7 @@ func use_skill(side: String) -> void:
 		return
 	p.chakra -= cost
 	cd[side] = sk[2] * maxf(0.3, 1.0 + Stats.skill(Game.profile, "eye_cd")) * (1.0 + blind() * 1.2)   # bozulan göz: teknikler gecikir
-	Combat.popup_text(p.global_position + Vector3.UP * 2.4, sk[0], Color(1, 0.5, 0.5) if k != 2 else Color(0.85, 0.9, 1))
+	Combat.popup_text(p.global_position + Vector3.UP * 2.4, _skill_name(side), Color(1, 0.5, 0.5) if k != 2 else Color(0.85, 0.9, 1))
 	var t = Combat.nearest_enemy(p, 30.0, p.face_dir(), 0.3)
 	if t == null:
 		t = Combat.nearest_enemy(p, 30.0)
@@ -486,7 +501,9 @@ func use_skill(side: String) -> void:
 					FX.ring(t.global_position + Vector3.UP, Color(0.8, 0.05, 0.1), 2.0, 0.5, false)
 		4, 5:
 			var mj = _ms_eye_jutsu(side)
-			if mj == "amaterasu" or mj == "":
+			if mj.begins_with("@"):
+				_eye_ability(mj, t)
+			elif mj == "amaterasu" or mj == "":
 				_amaterasu(t, k == 5) if right or mj == "amaterasu" else _genjutsu_gaze(t, 4.0, 40.0 if k == 4 else 55.0)
 			elif mj == "tsukuyomi":
 				_genjutsu_gaze(t, 4.0, 40.0 if k == 4 else 55.0)
@@ -770,6 +787,7 @@ func _process(dt: float) -> void:
 	for s in cd:
 		cd[s] = maxf(0.0, cd[s] - dt)
 	predict_t = maxf(0.0, predict_t - dt)
+	_phase_tick(dt)
 	_blind_tick(dt)
 	_hatred_tick(dt)
 	# V basılı tutma: Susanoo
@@ -1155,3 +1173,169 @@ static func genjutsu_resist(t: Node) -> float:
 	if t.has_meta("eyes") and int(t.get_meta("eyes").get("kind", 0)) in [1, 4, 5]:
 		return 0.0 if int(t.get_meta("eyes").get("lvl", 1)) >= 3 or int(t.get_meta("eyes").get("kind", 0)) >= 4 else 0.5
 	return 1.0
+
+
+# ------------------------------------------------------------------ Mangekyō göz YETENEKLERİ (jutsu değil; animede adı olmayan güçler)
+func has_style(st: String) -> bool:
+	return st in ms_styles(Game.profile)
+
+
+func _eye_ability(id: String, t: Node3D) -> void:
+	if t != null and (not is_instance_valid(t) or t.is_dead()):
+		t = null   # ölü / silinmiş hedef seçilmesin
+	match id:
+		"@kamui_kyuin":
+			_kamui_absorb(t)
+		"@kamui_tobi":
+			_kamui_warp(t)
+		"@shisui_shunshin":
+			_shisui_shunshin(t)
+
+
+## Kısa menzil Kamui (Obito): yakındaki hedef girdaba çekilir. Zayıfsa Kamui boyutuna yutulur; güçlüyse direnir,
+## ağır yarayla kurtulur (anime: Konan / Kakashi'nin kolu). Tutarken sen de yerindesin.
+func _kamui_absorb(t: Node3D) -> void:
+	var tg = t if t and t.global_position.distance_to(p.global_position) < 7.0 else Combat.nearest_enemy(p, 7.0, p.face_dir(), 0.2)
+	if tg != null and tg.is_dead():
+		tg = null
+	if tg == null:
+		Hud.msg("Kamui: dokunacak kadar yakında hedef yok (7 m).", Color(0.8, 0.8, 0.8))
+		cd["sag"] = 0.5
+		return
+	var at = tg.global_position + Vector3.UP * 1.1
+	MsArts.kamui_vortex(at, 1.8, 1.4)
+	tg.apply_status("stun", 1.3)
+	if p.combat:
+		p.combat.action = "cast"
+	var weak = not tg.has_meta("boss") and (int(tg.get("level")) <= int(Game.profile.get("level", 1)) or float(tg.get("hp")) < float(tg.get("max_hp")) * 0.5)
+	Sfx.play("genjutsu", at, 0.7)
+	if tg.get("model"):
+		var tw = tg.model.create_tween()
+		tw.tween_property(tg.model, "scale", tg.model.scale * (0.05 if weak else 0.7), 1.1).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+		tw.parallel().tween_property(tg.model, "rotation:y", tg.model.rotation.y + TAU * 2.0, 1.1)
+	get_tree().create_timer(1.15).timeout.connect(func():
+		if p.combat and p.combat.action == "cast":
+			p.combat.action = ""
+		if not is_instance_valid(tg) or tg.is_dead():
+			return
+		if weak:
+			Combat.popup_text(at + Vector3.UP, "Kamui boyutuna çekildi", Color(0.7, 0.55, 0.9))
+			Game.profile["kamui_store"] = int(Game.profile.get("kamui_store", 0)) + 1
+			tg.die({"execute": true, "attacker": p, "kamui": true, "dmg": 9999.0})
+			if is_instance_valid(tg) and tg.get("model"):
+				tg.model.visible = false
+		else:
+			if tg.get("model"):
+				tg.model.create_tween().tween_property(tg.model, "scale", Vector3.ONE, 0.2).set_trans(Tween.TRANS_BACK)
+			Combat.popup_text(at + Vector3.UP, "Direndi!", Color(1, 0.6, 0.5))
+			tg.take_hit({"dmg": float(tg.get("max_hp")) * 0.25 * _eye_pow(), "kind": "heavy", "knock": 10.0, "attacker": p, "dir": (tg.global_position - p.global_position).normalized()})
+			VFX.star(at, Color(0.6, 0.45, 0.9), 2.4, 0.15))
+
+
+## Kamui ışınlanması (Obito): baktığın yere / hedefin arkasına girdapla geçersin. Çıkışta kısa savunmasız an (anime: uzak geçiş anlık değil).
+func _kamui_warp(t: Node3D) -> void:
+	var from = p.global_position
+	var dest: Vector3
+	if t and is_instance_valid(t) and t.global_position.distance_to(from) < 40.0:
+		var v = t.global_position - from
+		v.y = 0
+		dest = t.global_position + v.normalized() * 1.8
+	else:
+		var f = p.cam_forward() if p.has_method("cam_forward") else p.face_dir()
+		f.y = 0
+		dest = from + f.normalized() * 22.0
+	dest.y = Game.jutsu_floor(dest.x, dest.z)
+	MsArts.kamui_vortex(from + Vector3.UP * 1.1, 1.3, 0.8)
+	add_blind(0.02 * minf(2.0, from.distance_to(dest) / 15.0))
+	p.model.visible = false
+	if p.combat:
+		p.combat.invuln = maxf(p.combat.invuln, 0.5)
+	Sfx.play("genjutsu", from, 1.2)
+	get_tree().create_timer(0.4).timeout.connect(func():
+		MsArts.kamui_vortex(dest + Vector3.UP * 1.1, 1.3, 0.8)
+		p.global_position = dest + Vector3.UP * 0.2
+		p.velocity = Vector3.ZERO
+		if p.has_method("reset_physics_interpolation"):
+			p.reset_physics_interpolation()
+		get_tree().create_timer(0.3).timeout.connect(func(): p.model.visible = true)
+		if t and is_instance_valid(t):
+			var d = t.global_position - dest
+			d.y = 0
+			p.facing = atan2(-d.x, -d.z))
+
+
+## Shisui'nin Shunshin'i: göz açıp kapayana dek hedefin yanına (ardıl görüntü izi), tek vuruş + kısa sersemletme
+func _shisui_shunshin(t: Node3D) -> void:
+	var tg = t if t and is_instance_valid(t) and t.global_position.distance_to(p.global_position) < 30.0 else Combat.nearest_enemy(p, 30.0)
+	var from = p.global_position
+	var dest = (tg.global_position + (from - tg.global_position).normalized() * 1.6) if tg else from + p.face_dir() * 14.0
+	dest.y = Game.jutsu_floor(dest.x, dest.z)
+	var col = Color(0.3, 0.95, 0.5)
+	for k in 6:
+		var q = from.lerp(dest, k / 5.0) + Vector3.UP
+		VFX.puffs(q, {"amount": 5, "life": 0.45, "size": 0.7, "radius": 0.3, "vmin": 0.2, "vmax": 0.6, "colors": [Color(col.r, col.g, col.b, 0.45), Color(col.r, col.g, col.b, 0)]})
+	p.global_position = dest + Vector3.UP * 0.1
+	p.velocity = Vector3.ZERO
+	if p.has_method("reset_physics_interpolation"):
+		p.reset_physics_interpolation()
+	Sfx.play("whoosh", dest, 1.9)
+	if tg and not tg.is_dead():
+		var d = tg.global_position - dest
+		d.y = 0
+		p.facing = atan2(-d.x, -d.z)
+		tg.take_hit({"dmg": 18.0 * _eye_pow(), "knock": 8.0, "kind": "heavy", "attacker": p, "dir": d.normalized(), "hitstop": 0.06})
+		tg.apply_status("stun", 0.8)
+	VFX.screen_lines(0.3, 0.8, col)
+
+
+# ------------------------------------------------------------------ Kamui geçirgenliği (Obito)
+## Basılı tuttukça (en fazla 3 sn) saldırılar içinden geçer; bu sırada saldıramazsın. Bırakınca katılaşırsın — animedeki zayıf
+## nokta: katılaşma anı (tam o an gelen darbe işler; Minato / Naruto Obito'yu böyle vurdu). Chakra yer, Mangekyō körlüğü biriktirir.
+const PHASE_MAX := 3.0
+var phasing := false
+var phase_t := 0.0
+var phase_cd := 0.0
+var _phase_vortex: Node3D
+
+
+func _phase_start() -> void:
+	phasing = true
+	phase_t = 0.0
+	if p.combat:
+		p.combat.invuln = maxf(p.combat.invuln, 0.12)   # ilk karede de geçirgen
+	_phase_vortex = MsArts.kamui_vortex(p.global_position + Vector3.UP * 1.0, 0.9, PHASE_MAX + 0.4)
+	_set_phase_look(true)
+	Sfx.play("genjutsu", p.global_position, 1.4, 0.5)
+
+
+func _phase_end() -> void:
+	if not phasing:
+		return
+	phasing = false
+	phase_cd = 0.6
+	_set_phase_look(false)
+	if is_instance_valid(_phase_vortex):
+		_phase_vortex.queue_free()
+	Combat.popup_text(p.global_position + Vector3.UP * 2.2, "Katılaştı", Color(0.75, 0.6, 0.9))
+
+
+func _phase_tick(dt: float) -> void:
+	phase_cd = maxf(0.0, phase_cd - dt)
+	if not phasing:
+		return
+	phase_t += dt
+	if p.combat:
+		p.combat.invuln = maxf(p.combat.invuln, 0.12)
+	p.chakra -= 9.0 * dt * _transplant_mult()
+	add_blind(0.006 * dt)
+	if is_instance_valid(_phase_vortex):
+		_phase_vortex.global_position = p.global_position + Vector3.UP * 1.0
+	if phase_t >= PHASE_MAX or p.chakra <= 0.0 or not active or blind() >= 1.0:
+		_phase_end()
+
+
+func _set_phase_look(on: bool) -> void:
+	if p.model == null:
+		return
+	for g in p.model.find_children("*", "GeometryInstance3D", true, false):
+		(g as GeometryInstance3D).transparency = 0.55 if on else 0.0
