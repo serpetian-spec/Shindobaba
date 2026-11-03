@@ -4137,6 +4137,7 @@ var rig: WeaponRig
 
 
 const HAND_FRAME := ["tonfa", "pence", "kama", "chakra_bicak"]
+const PAIR := ["tonfa"]   # çift el silahı: sağ elde takılıysa ve sol boşsa sol ele de aynısı (oyuncu ve NPC)
 
 
 static func sheath_kind(id: String) -> String:
@@ -4180,6 +4181,8 @@ func has_weapon() -> bool:
 
 
 func _weapons() -> void:
+	if String(look.get("weapon_r", "")) in PAIR and (look.get("weapon_l") == null or String(look.get("weapon_l")) == ""):
+		look["weapon_l"] = look["weapon_r"]
 	for pair in [["weapon_r", "Right"], ["weapon_l", "Left"]]:
 		var wid = look.get(pair[0])
 		if wid == null or wid == "":
@@ -4299,6 +4302,8 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 				var near_x = wab.position.x
 				if id == "samehada":
 					near_x = -0.12   # yassı gövde yarı kalınlığı (uçtaki pul dikenleri AABB'yi büyütüp silahı sırttan uzaklaştırıyordu)
+				elif id == "savas_cekici":
+					near_x = -0.035   # sap yarı kalınlığı: blok kafa (0.62 m) AABB'yi büyütüp sapı sırttan uzak tutuyordu
 				center.z = bz - pad + near_x + 0.02
 			var mid2 = mid if L > 1.2 else mid * 0.8
 			xf = Transform3D(b, center - b.z * mid2)
@@ -4310,7 +4315,7 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 			# tonfa: uzun gövde silah uzayında -x boyunca -> gövde uyluk boyunca aşağı sarkar, yan kabza öne bakar
 			var hp = _grest(skel.find_bone("Hips")).origin
 			var b = _frame(Vector3(sx * 0.15, 0.0, 1.0), Vector3(0, 1, 0))
-			xf = Transform3D(b, hp + Vector3(sx * 0.21, 0.05, 0.02))
+			xf = Transform3D(b, hp + Vector3(sx * 0.185, 0.05, 0.02))   # uyluğa yaslı (biraz dışarıda duruyordu)
 		_:
 			# belt: yan kalçada aşağı sarkar
 			var hp = _grest(skel.find_bone("Hips")).origin
@@ -5112,6 +5117,29 @@ static func _w_tsuba(b: MB, z: float, r: float, col: Color) -> void:
 ## Dev shuriken: göbek + n kavisli, sivri uçlu kol (kesici kenar bir yana kıvrık); göbek z düzleminde (kollar x-y düzleminde)
 ## Shuriken yıldızı (XY düzleminde, kalınlık Z): n sivri uç, uçlar arası içbükey kenar (düz kesici ağız), ortada delik;
 ## her ucun ortasında açık renkli bileylenmiş ağız şeridi. Eski kavisli bıçaklar yelpaze gibi duruyordu.
+## Tonfa: yan kabza yumrukta (z ekseni, kumaş sargılı, ucunda topuz), ana gövde serçe parmak altında ön kol boyunca (-x: dirseğe
+## doğru) uzanır; koyu cilalı ahşap, iki uçta koyu metal bilezik + yuvarlak başlık, kabza bağlantısında metal pul, gövdede ahşap damarı.
+static func _tonfa(b: MB) -> void:
+	var wood = Color(0.33, 0.21, 0.12)
+	var dwood = Color(0.22, 0.14, 0.08)
+	var metal = Color(0.25, 0.25, 0.28)
+	var wrapc = Color(0.15, 0.13, 0.14)
+	# yan kabza + sargı + topuz
+	b.add("cyl", Vector3(0, 0, -0.02), Vector3(0.032, 0.13, 0.032), wood, Vector3(90, 0, 0), 10)
+	for k in 5:
+		b.add("torus", Vector3(0, 0, -0.07 + k * 0.022), Vector3(0.038, 0.02, 0.038), wrapc, Vector3(90, 0, 12 if k % 2 == 0 else -12), 8)
+	b.add("sphere", Vector3(0, 0, 0.055), Vector3(0.045, 0.045, 0.03), dwood, Vector3.ZERO, 8)
+	# ana gövde (ön kol boyunca)
+	var gz = -0.085
+	b.add("cyl", Vector3(-0.14, 0, gz), Vector3(0.042, 0.56, 0.042), wood, Vector3(0, 0, 90), 12)
+	for xx in [-0.36, -0.22, -0.05, 0.08]:   # ahşap damarı: koyu ince halkalar
+		b.add("cyl", Vector3(xx, 0, gz), Vector3(0.0435, 0.006, 0.0435), dwood, Vector3(0, 0, 90), 12)
+	for xx in [-0.4, 0.12]:   # uç bilezikleri + yuvarlak başlık
+		b.add("cyl", Vector3(xx, 0, gz), Vector3(0.047, 0.04, 0.047), metal, Vector3(0, 0, 90), 12)
+		b.add("sphere", Vector3(xx + (-0.03 if xx < 0 else 0.03), 0, gz), Vector3(0.042, 0.042, 0.042), dwood, Vector3.ZERO, 10)
+	b.add("cyl", Vector3(0, 0, gz + 0.03), Vector3(0.05, 0.012, 0.05), metal, Vector3(90, 0, 0), 10)   # kabza pulu
+
+
 ## Savaş çekici (ref savascekici.png): koyu çatlaklı blok kafa (kenarları pahlı), ortasında perçinli açık çelik bant, sapla
 ## kafa arasında kare yaka; uzun gri sargılı sap (sarmal sargı çizgileri), uçta halka (siyah kurdele CharacterModel'de, sallanır).
 ## Tutuş z=0 (sağ yumruk sapın alt ucunda), kafa +Z ucunda, kafanın uzun ekseni X.
@@ -5301,11 +5329,7 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			b.add("box", Vector3(0.0, 0.0, 0.0), Vector3(0.03, 0.1, 0.12), dark)
 			b.add("box", Vector3(0, 0, 0.16), Vector3(0.01, 0.03, 0.2), steel)
 		"tonfa":
-			# yan kabza yumrukta (z ekseni), gövde serçe parmak altında ön kol boyunca (-x: dirseğe doğru) uzanır
-			b.add("cyl", Vector3(0, 0, -0.01), Vector3(0.03, 0.12, 0.03), Color(0.35, 0.25, 0.15), Vector3(90, 0, 0), 8)
-			b.add("cyl", Vector3(-0.14, 0, -0.085), Vector3(0.038, 0.56, 0.038), Color(0.3, 0.22, 0.14), Vector3(0, 0, 90), 10)
-			for xx in [-0.41, 0.13]:
-				b.add("cyl", Vector3(xx, 0, -0.085), Vector3(0.042, 0.03, 0.042), Color(0.18, 0.13, 0.09), Vector3(0, 0, 90), 10)
+			_tonfa(b)
 		"yelpaze":
 			# açık demir savaş yelpazesi (tessen): sap + menteşe, 110° açılmış kâğıt yaprak, demir kaburgalar, kırmızı kenar bandı
 			b.add("cyl", Vector3(0, 0, -0.06), Vector3(0.03, 0.2, 0.03), dark, Vector3(90, 0, 0), 8)

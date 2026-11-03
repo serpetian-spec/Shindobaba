@@ -36,8 +36,10 @@ func _ready() -> void:
 	pl.combat.lock_target = e
 	cam.global_position = pl.global_position - side * 11.0 + fw * 6.0 + Vector3.UP * 3.5
 	cam.look_at(pl.global_position + fw * 6.0 + Vector3.UP)
-	cam.global_position = pl.global_position - side * 6.5 + fw * 5.0 + Vector3.UP * 2.2
-	cam.look_at(pl.global_position + fw * 5.0 + Vector3.UP * 1.2)
+	var cfar = float(OS.get_environment("CAMD")) if OS.get_environment("CAMD") != "" else 6.5
+	var cmid = float(OS.get_environment("CAMF")) if OS.get_environment("CAMF") != "" else 5.0
+	cam.global_position = pl.global_position - side * cfar + fw * cmid + Vector3.UP * 2.2
+	cam.look_at(pl.global_position + fw * cmid + Vector3.UP * 1.2)
 	var steps = OS.get_environment("STEPS").split(",", false)
 	var si = 0
 	for i in 6:
@@ -46,9 +48,9 @@ func _ready() -> void:
 			for fr in 7:
 				await get_tree().create_timer(0.14).timeout
 				await main.shot("%s_s%d_f%d" % [OS.get_environment("WID"), i, fr])
-			await get_tree().create_timer(1.0).timeout
+			await get_tree().create_timer(float(OS.get_environment("GAP2")) if OS.get_environment("GAP2") != "" else 1.0).timeout
 		else:
-			await get_tree().create_timer(2.0).timeout
+			await get_tree().create_timer(float(OS.get_environment("GAP")) if OS.get_environment("GAP") != "" else 2.0).timeout
 	e.queue_free()
 	await get_tree().create_timer(2.0).timeout
 	pl.model.set_drawn(false, false)
