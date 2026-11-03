@@ -13,6 +13,7 @@ static func build(id: String, b: MB) -> void:
 		"samehada_acik": _samehada(b)        # açılmış mod: pullu canlı kılıç (moda bağlanacak)
 		"kiba": _kiba(b)
 		"hiramekarei": _hiramekarei(b)
+		"hiramekarei_yari": _hiramekarei_half(b)
 		"shibuki": _shibuki(b)
 		"nuibari": _nuibari(b)
 		"kabutowari": _kabutowari(b)
@@ -232,23 +233,45 @@ static func _kiba(b: MB) -> void:
 
 
 ## Hiramekarei: çift saplı geniş yaprak-balık ağzı (koyu), uca yakın iki delik, dipte geri kıvrılan yüzgeç kanca
-static func _hiramekarei(b: MB) -> void:
-	var dk = Color(0.13, 0.15, 0.24)
-	var pts = [[0.03, 0.02], [0.12, 0.12], [0.24, 0.4], [0.29, 0.72], [0.26, 1.05], [0.16, 1.32], [0.03, 1.48], [-0.07, 1.44],
-		[-0.19, 1.25], [-0.27, 0.95], [-0.29, 0.62], [-0.24, 0.32], [-0.16, 0.16],
-		# yüzgeç kanca: alt kenardan geriye ve aşağı kıvrılır
-		[-0.24, 0.1], [-0.34, -0.02], [-0.33, -0.12], [-0.26, -0.06], [-0.18, 0.02], [-0.06, 0.02]]
+## Hiramekarei (ref hiramekarei.png kapalı / hiramekarei2.png açık): koyu mavi-gri geniş yaprak ağız, ortadan boydan boya ince çizgi,
+## kabzaya yakın iki yanda geriye (sapa doğru) kıvrılan kanca yüzgeç, alt yarıda iki delik; üstte yan yana iki örgü sargılı kabza
+## (uçta birleşen ilmek). Açık hâl: ağız ikiye ayrılır, her yarı (daha dar yaprak) kendi kabzasıyla ayrı silah (_hiramekarei_half).
+## Kabza -Z, ağız +Z (tutuş z=0 kabza ortası); profil x -> Y, y -> Z.
+static func _leaf(b: MB, w: float, holes: Array, dk: Color, z0: float) -> void:
+	var L = 1.3
+	var pts = [[0.0, 0.0], [0.05 * w, 0.0], [0.17 * w, -0.04], [0.28 * w, -0.08], [0.25 * w, -0.03], [0.16 * w, 0.06], [0.12 * w, 0.14],
+		[0.2 * w, 0.34], [0.27 * w, 0.58], [0.28 * w, 0.84], [0.22 * w, 1.06], [0.12 * w, 1.22], [0.0, L],
+		[-0.12 * w, 1.22], [-0.22 * w, 1.06], [-0.28 * w, 0.84], [-0.27 * w, 0.58], [-0.2 * w, 0.34], [-0.12 * w, 0.14],
+		[-0.16 * w, 0.06], [-0.25 * w, -0.03], [-0.28 * w, -0.08], [-0.17 * w, -0.04], [-0.05 * w, 0.0]]
 	var o = _v(pts)
-	o = MB.hole(o, Vector2(0.05, 1.27), 0.04, 12)
-	o = MB.hole(o, Vector2(-0.07, 1.14), 0.035, 12)
-	b.add_slab(o, 0.04, dk, Transform3D.IDENTITY, func(p: Vector2) -> float: return 0.012 if absf(p.x) > 0.22 else 0.045, dk.lightened(0.2))
-	b.add("box", Vector3(0, 0, 0.75), Vector3(0.048, 0.02, 1.0), dk.lightened(0.12))   # orta sırt
-	var wr = Color(0.86, 0.84, 0.78)
-	_grip(b, -0.4, 0.02, 0.022, Color(0.2, 0.2, 0.22), wr, 5)
-	for sx in [-1.0, 1.0]:   # çift sap
-		b.add("cyl", Vector3(0, 0.05 * sx, -0.19), Vector3(0.04, 0.42, 0.04), wr.darkened(0.1), Vector3(90, 0, 0), 8)
+	for h in holes:
+		o = MB.hole(o, Vector2(h[0] * w, h[1]), h[2], 16)
+	b.add_slab(o, 0.026, dk, Transform3D(Basis.IDENTITY, Vector3(0, 0, z0)), func(p: Vector2) -> float: return 0.008 if absf(p.x) > 0.2 * w else 0.026, dk.darkened(0.25))
+	b.add("box", Vector3(0, 0, z0 + L * 0.5), Vector3(0.028, 0.004, L * 0.98), Color(0.55, 0.57, 0.66))   # orta çizgi
 
 
+static func _hk_grip(b: MB, y: float, tilt: float) -> void:
+	var cream = Color(0.86, 0.8, 0.6)
+	var tan = Color(0.6, 0.45, 0.3)
+	var xf = Transform3D(Basis(Vector3.RIGHT, tilt), Vector3(0, y, 0))
+	b.add_xf("cyl", xf * Transform3D(Basis(Vector3.RIGHT, PI * 0.5) * Basis.from_scale(Vector3(0.04, 0.34, 0.04)), Vector3(0, 0, -0.14)), cream, 10)
+	for k in 9:
+		for sg in [-1.0, 1.0]:
+			b.add_xf("torus", xf * Transform3D(Basis(Vector3.RIGHT, PI * 0.5) * Basis(Vector3.FORWARD, sg * 0.5) * Basis.from_scale(Vector3(0.044, 0.02, 0.044)), Vector3(0, 0, -0.29 + k * 0.035)), tan, 8)
+
+
+static func _hiramekarei(b: MB) -> void:
+	var dk = Color(0.24, 0.24, 0.3)
+	_leaf(b, 1.0, [[0.16, 0.84, 0.05], [0.06, 1.04, 0.04]], dk, 0.03)
+	for sy in [-1.0, 1.0]:
+		_hk_grip(b, sy * 0.022, 0.0)
+	b.add("torus", Vector3(0, 0, -0.33), Vector3(0.07, 0.07, 0.04), Color(0.15, 0.15, 0.17), Vector3(0, 90, 0), 10)   # kabza ucu ilmeği
+
+
+static func _hiramekarei_half(b: MB) -> void:
+	var dk = Color(0.24, 0.24, 0.3)
+	_leaf(b, 0.8, [[0.14, 0.86, 0.045], [0.05, 1.04, 0.035]], dk, 0.03)
+	_hk_grip(b, 0.0, 0.0)
 ## Shibuki: patlayıcı parşömen kılıcı — geniş düz ağız, sırtında koca parşömen rulosu, yüzü sıra sıra patlayıcı etiketlerle kaplı
 ## SHIBUKI — tüm kaynaklardan ortak sonuç (bombakilici, ornek2-5, boyleolmaliydi, yukardanbakis, Sketchfab "Shibuki"):
 ## - sap ~0.4 m ince spiral sargılı, rulo ekseninden çıkar (sağ yumruk arka uçta z 0, sol el 0.2 önde)

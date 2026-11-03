@@ -4121,13 +4121,13 @@ func _attachments() -> void:
 ## Silah kını yeri: pouch = kunai çantası/kılıfı (görünmez), hip = sol kalçada kınlı kılıç (çapraz çekiş),
 ## back = sırtta çapraz (dev kılıçlar, sopalar), low_back = belin arkasında yatay, belt = yan kalçada asılı
 const SHEATH_OF := {"blade": "pouch", "dual": "pouch", "claw": "pouch", "sickle": "belt", "sword": "hip", "heavy": "back", "staff": "back", "chain": "belt", "fan": "back"}
-const SHEATH_ID := {"raijin": "belt", "tanto": "low_back", "ikiz_hancer": "low_back", "tonfa": "belt", "bashosen": "back", "yagura_sopa": "back", "sai": "belt", "kiba": "back", "nodachi": "back", "kusanagi": "hip", "hiraishin_kunai": "belt", "kusarigama": "back", "fuma_shuriken": "back", "kyodai_shuriken": "back", "fuma_makimono": "back"}
+const SHEATH_ID := {"raijin": "belt", "tanto": "low_back", "ikiz_hancer": "low_back", "tonfa": "belt", "bashosen": "back", "yagura_sopa": "back", "kama": "back", "sai": "belt", "kiba": "back", "nodachi": "back", "kusanagi": "hip", "hiraishin_kunai": "belt", "kusarigama": "back", "fuma_shuriken": "back", "kyodai_shuriken": "back", "fuma_makimono": "back"}
 ## Kınlı kılıçlar: [kın başı z, kın ucu z, kalınlık, genişlik] (silah uzayında, kabza 0, namlu +Z)
 const SAYA := {"katana": [0.075, 0.84, 0.042, 0.06], "wakizashi": [0.05, 0.6, 0.04, 0.055], "nodachi": [0.1, 1.38, 0.05, 0.11],
 	"tanto": [0.06, 0.4, 0.045, 0.045], "chokuto": [0.13, 0.9, 0.05, 0.05]}
 const SHEATH_DUR := 0.42
 const KATANA_TIP_DOWN := -75.0
-const BACK_TIP_UP := ["savas_cekici", "uc_tirpan", "mizrak", "kabutowari", "kusarigama"]
+const BACK_TIP_UP := ["kama", "savas_cekici", "uc_tirpan", "mizrak", "kabutowari", "kusarigama"]
 
 var weapons: Array = []     # [{id, side, kind, node, hand, sheath}]
 var drawn := true           # silah elde mi (oyuncu: kınında başlar, saldırınca çekilir)
@@ -4137,8 +4137,8 @@ var _swapped := false
 var rig: WeaponRig
 
 
-const HAND_FRAME := ["tonfa", "pence", "kama", "chakra_bicak"]
-const PAIR := ["tonfa"]   # çift el silahı: sağ elde takılıysa ve sol boşsa sol ele de aynısı (oyuncu ve NPC)
+const HAND_FRAME := ["tonfa", "pence", "chakra_bicak"]
+const PAIR := ["tonfa", "pence", "senbon"]   # çift el silahı: sağ elde takılıysa ve sol boşsa sol ele de aynısı (oyuncu ve NPC)
 
 
 static func sheath_kind(id: String) -> String:
@@ -4214,6 +4214,9 @@ func _weapons() -> void:
 			node.scale = Vector3.ONE * 1.45   # Yagura'nın sopası boyundan uzun (~2.4 m)
 		if id == "kusanagi":
 			node.add_child(_kusa_ext())
+		if id == "kama":
+			for sx in [-1.0, 1.0]:   # halkaya bağlı kızıl kurdele (ikincil hareket)
+				dangle_strip("", Vector3(0.0, 0.0, -0.36), Vector3(0.2 * sx, -0.4, -1.0), 0.4, 0.07, Color(0.7, 0.07, 0.12), 0.16, Vector3(0, 1, 0), 0.004, node)
 		if id == "savas_cekici":
 			# halkaya bağlı siyah kurdele: iki uç, rüzgârda/savuruşta dalgalanır (ikincil hareket)
 			for sx in [-1.0, 1.0]:
@@ -5188,6 +5191,58 @@ static func _yagura(b: MB) -> void:
 	b.add("sphere", fc + Vector3(0.012, 0, 0), Vector3(0.018, 0.04, 0.04), Color(0.95, 0.82, 0.35), Vector3.ZERO, 8)
 
 
+## Orak (ref orak.png): uzun siyah sap, altta gri sargılı tutuş + uçta halka (kızıl kurdele CharacterModel'de, sallanır), üstte gri
+## sargı ve koyu blok baş; baştan -Y yönüne çıkıp sapa doğru (-Z) kıvrılan uzun hilal bıçak: koyu sırt, içte kızıl şerit, açık ağız.
+## Tutuş z=0 (alt sargı), baş z~1.6. Profil x -> Y, y -> Z.
+static func _orak(b: MB) -> void:
+	var blk = Color(0.1, 0.1, 0.12)
+	var gray = Color(0.66, 0.66, 0.7)
+	var red = Color(0.7, 0.07, 0.12)
+	b.add("cyl", Vector3(0, 0, 0.68), Vector3(0.05, 1.86, 0.05), blk, Vector3(90, 0, 0), 10)
+	for k in 9:   # alt sargı (tutuş)
+		b.add("cyl", Vector3(0, 0, -0.18 + k * 0.035), Vector3(0.058, 0.024, 0.058), gray if k % 2 == 0 else gray.darkened(0.25), Vector3(90, 0, 0), 10)
+	for k in 6:   # üst sargı
+		b.add("cyl", Vector3(0, 0, 1.3 + k * 0.035), Vector3(0.056, 0.024, 0.056), gray if k % 2 == 0 else gray.darkened(0.25), Vector3(90, 0, 0), 10)
+	b.add("torus", Vector3(0, 0, -0.3), Vector3(0.11, 0.11, 0.08), blk, Vector3(0, 90, 0), 12)   # uç halkası
+	b.add("box", Vector3(0, -0.04, 1.62), Vector3(0.07, 0.16, 0.11), blk.lightened(0.05))        # blok baş
+	b.add("box", Vector3(0, -0.04, 1.62), Vector3(0.075, 0.12, 0.02), gray)                      # baş bandı
+	# hilal bıçak
+	var outer = [[-0.1, 1.66], [-0.35, 1.63], [-0.58, 1.5], [-0.76, 1.28], [-0.86, 1.02], [-0.9, 0.82]]
+	var inner = [[-0.8, 0.98], [-0.68, 1.22], [-0.5, 1.4], [-0.28, 1.5], [-0.1, 1.55]]
+	var pts = PackedVector2Array()
+	for e in outer + inner:
+		pts.append(Vector2(e[0], e[1]))
+	b.add_slab(pts, 0.022, blk, Transform3D.IDENTITY, func(p: Vector2) -> float: return 0.022, blk.lightened(0.1))
+	# kızıl şerit (iç tarafta, iki yüzde) + açık ağız çizgisi
+	var rs = PackedVector2Array()
+	for e in [[-0.14, 1.58], [-0.32, 1.54], [-0.54, 1.42], [-0.72, 1.22], [-0.82, 1.0], [-0.86, 0.86], [-0.8, 0.98], [-0.68, 1.22], [-0.5, 1.4], [-0.28, 1.5], [-0.12, 1.555]]:
+		rs.append(Vector2(e[0], e[1]))
+	b.add_slab(rs, 0.026, red, Transform3D.IDENTITY, func(p: Vector2) -> float: return 0.026, red.darkened(0.2))
+
+
+## Pençe (ref claw.png): el sırtında koyu gri kavisli plaka (üç delik), parmak eklemlerinden ileri (+x) uzanan üç uzun hafif kavisli
+## koyu bıçak (uca doğru incelir, üst kenarda açık çizgi), bıçak diplerinde parmak halkaları. Yumruk boyunca (z) dizilir.
+static func _pence(b: MB) -> void:
+	var dk = Color(0.15, 0.15, 0.17)
+	var plate = Color(0.32, 0.32, 0.35)
+	b.add("box", Vector3(-0.02, 0.048, 0.0), Vector3(0.11, 0.022, 0.1), plate)
+	for k in 3:
+		b.add("cyl", Vector3(-0.03 + (k % 2) * 0.03, 0.06, -0.025 + k * 0.025), Vector3(0.012, 0.004, 0.012), Color(0.08, 0.08, 0.09), Vector3.ZERO, 8)   # delikler
+	b.add("box", Vector3(0.04, 0.035, 0.0), Vector3(0.035, 0.04, 0.095), dk)
+	for k in 3:
+		var z = (k - 1) * 0.03
+		b.add("torus", Vector3(0.06, 0.015, z), Vector3(0.028, 0.028, 0.02), dk, Vector3(0, 0, 0), 8)   # parmak halkası
+		var prev = Vector3(0.06, 0.04, z)
+		for j in range(1, 9):
+			var t = float(j) / 8.0
+			var p = Vector3(0.06 + t * 0.42, 0.04 + 0.03 * sin(t * PI * 0.8) - t * t * 0.05, z * (1.0 + t * 0.25))
+			var d = p - prev
+			var w = 0.024 * (1.0 - t * 0.85) + 0.003
+			b.add_xf("box", Transform3D(Basis.looking_at(d.normalized(), Vector3.UP) * Basis.from_scale(Vector3(0.006, w, d.length() * 1.1)), (p + prev) * 0.5), dk)
+			b.add_xf("box", Transform3D(Basis.looking_at(d.normalized(), Vector3.UP) * Basis.from_scale(Vector3(0.007, 0.003, d.length() * 1.1)), (p + prev) * 0.5 + Vector3(0, w * 0.5, 0)), Color(0.55, 0.56, 0.6))
+			prev = p
+
+
 ## Savaş çekici (ref savascekici.png): koyu çatlaklı blok kafa (kenarları pahlı), ortasında perçinli açık çelik bant, sapla
 ## kafa arasında kare yaka; uzun gri sargılı sap (sarmal sargı çizgileri), uçta halka (siyah kurdele CharacterModel'de, sallanır).
 ## Tutuş z=0 (sağ yumruk sapın alt ucunda), kafa +Z ucunda, kafanın uzun ekseni X.
@@ -5417,23 +5472,23 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 				b.add("box", Vector3(0, 0.016, -0.02), Vector3(0.012, 0.002, 0.07), Color(0.75, 0.1, 0.1))
 
 		"senbon":
-			for k in 3:
-				b.add("cyl", Vector3((k - 1) * 0.018, 0, 0.06), Vector3(0.004, 0.2, 0.004), steel, Vector3(90, (k - 1) * 8.0, 0), 4)
+			# parmak aralarında yelpaze gibi dört uzun ince iğne: arka uçta küçük halka, uçlar sivri, hafif parlak çelik
+			for k in 4:
+				var a = (k - 1.5) * 9.0
+				var rot = Basis(Vector3.UP, deg_to_rad(a))
+				var o = rot * Vector3(0, 0, 0.0) + Vector3((k - 1.5) * 0.012, 0, 0)
+				b.add_xf("cyl", Transform3D(rot * Basis(Vector3.RIGHT, PI * 0.5) * Basis.from_scale(Vector3(0.0045, 0.22, 0.0045)), o + rot * Vector3(0, 0, 0.08)), Color(0.86, 0.88, 0.92), 5)
+				b.add_xf("cone", Transform3D(rot * Basis(Vector3.RIGHT, PI * 0.5) * Basis.from_scale(Vector3(0.0045, 0.03, 0.0045)), o + rot * Vector3(0, 0, 0.205)), Color(0.95, 0.96, 0.98), 5)
+				b.add_xf("torus", Transform3D(rot * Basis.from_scale(Vector3(0.012, 0.012, 0.012)), o + rot * Vector3(0, 0, -0.035)), Color(0.55, 0.56, 0.6), 6)
 		"ikiz_hancer":
 			b.add("cyl", Vector3(0, 0, -0.03), Vector3(0.028, 0.11, 0.028), Color(0.35, 0.22, 0.15), Vector3(90, 0, 0), 8)
 			b.add("box", Vector3(0, 0, 0.03), Vector3(0.08, 0.02, 0.015), steel)
 			b.add("box", Vector3(0, 0, 0.14), Vector3(0.01, 0.04, 0.2), steel)
 			b.add("cone", Vector3(0, 0, 0.26), Vector3(0.01, 0.045, 0.04), steel, Vector3(90, 0, 0), 4)
 		"kama":
-			b.add("cyl", Vector3(0, 0, 0.02), Vector3(0.03, 0.26, 0.03), Color(0.45, 0.32, 0.2), Vector3(90, 0, 0), 8)
-			b.add("box", Vector3(0, 0.07, 0.14), Vector3(0.01, 0.15, 0.03), steel, Vector3(-20, 0, 0))
-			b.add("box", Vector3(0, 0.13, 0.09), Vector3(0.01, 0.025, 0.1), steel, Vector3(30, 0, 0))
+			_orak(b)   # orak.png: uzun saplı kızıl-siyah tırpan orak
 		"pence":
-			# el sırtı plakası (+y), pençeler parmak eklemlerinin üstünden ileri (+x) uzanır, yumruk boyunca (z) dizilir
-			b.add("box", Vector3(-0.02, 0.045, 0.0), Vector3(0.1, 0.02, 0.09), dark)
-			b.add("box", Vector3(0.035, 0.035, 0.0), Vector3(0.03, 0.035, 0.085), dark)
-			for k in 3:
-				b.add("cone", Vector3(0.15, 0.04, (k - 1) * 0.028), Vector3(0.012, 0.22, 0.006), steel, Vector3(0, 0, -90), 4)
+			_pence(b)   # claw.png
 		"chakra_bicak":
 			_trench_knife(b, false)
 		"chakra_bicak_sol":
@@ -5517,7 +5572,7 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 		"el_shuriken":
 			b.add("cyl", Vector3(0, 0, 0.1), Vector3(0.03, 0.4, 0.03), dark, Vector3(90, 0, 0), 8)   # sap göbeğe kadar
 			_w_star(b, Vector3(0, 0, 0.3), 0.34, 0.17, 4, Color(0.5, 0.52, 0.56), dark)
-		"kubikiribocho", "samehada", "samehada_acik", "kiba", "hiramekarei", "shibuki", "nuibari", "kabutowari", "kabutowari_cekic":
+		"kubikiribocho", "samehada", "samehada_acik", "kiba", "hiramekarei", "hiramekarei_yari", "shibuki", "nuibari", "kabutowari", "kabutowari_cekic":
 			MistSwords.build(id, b)   # Sis'in Yedi Kılıcı: referansla modellendi
 		"chokuto":
 			b.add("cyl", Vector3(0, 0, -0.08), Vector3(0.032, 0.22, 0.032), Color(0.85, 0.85, 0.85), Vector3(90, 0, 0), 8)
@@ -5991,7 +6046,7 @@ func _rest_tilt(on: bool, dt: float) -> void:
 
 
 ## anahtar animasyonlu silahlar: [tutuş kaydırma (yumruk sap boyunca ileri), iz başı z, iz ucu z, elden uca boy]
-const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45], "kabutowari": [0.0, 0.3, 0.82, 0.85], "ruzgar_bicak": [0.0, 0.1, 0.6, 0.62], "hiraishin_kunai": [0.0, 0.14, 0.47, 0.48], "homatsu_kiseru": [0.1, 0.5, 0.72, 0.72], "kusanagi": [0.0, 0.21, 1.08, 1.09], "kusarigama": [0.0, 0.3, 0.8, 0.85], "fuma_shuriken": [0.0, 0.05, 0.6, 0.62], "kyodai_shuriken": [0.0, 0.1, 1.3, 1.3], "fuma_makimono": [0.0, 0.05, 0.25, 0.26], "nuibari": [0.0, 0.1, 1.62, 1.62], "savas_cekici": [0.0, 1.1, 1.58, 1.58], "zincirli_kunai": [0.0, 0.06, 0.38, 0.38], "bashosen": [0.0, 0.55, 1.4, 1.45], "kubikiribocho": [0.0, 0.3, 1.9, 1.9], "yagura_sopa": [0.0, 0.6, 1.25, 1.27], "kongo_asa": [0.0, 0.6, 1.25, 1.26], "yelpaze": [0.0, 0.2, 0.6, 0.62]}   # uzunluklar silahın kendi ölçeğiyle çarpılır
+const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45], "kabutowari": [0.0, 0.3, 0.82, 0.85], "ruzgar_bicak": [0.0, 0.1, 0.6, 0.62], "hiraishin_kunai": [0.0, 0.14, 0.47, 0.48], "homatsu_kiseru": [0.1, 0.5, 0.72, 0.72], "kusanagi": [0.0, 0.21, 1.08, 1.09], "kusarigama": [0.0, 0.3, 0.8, 0.85], "fuma_shuriken": [0.0, 0.05, 0.6, 0.62], "kyodai_shuriken": [0.0, 0.1, 1.3, 1.3], "fuma_makimono": [0.0, 0.05, 0.25, 0.26], "nuibari": [0.0, 0.1, 1.62, 1.62], "savas_cekici": [0.0, 1.1, 1.58, 1.58], "zincirli_kunai": [0.0, 0.06, 0.38, 0.38], "bashosen": [0.0, 0.55, 1.4, 1.45], "kubikiribocho": [0.0, 0.3, 1.9, 1.9], "yagura_sopa": [0.0, 0.6, 1.25, 1.27], "kongo_asa": [0.0, 0.6, 1.25, 1.26], "yelpaze": [0.0, 0.2, 0.6, 0.62], "kama": [0.0, 1.0, 1.62, 1.64], "pence": [0.0, 0.1, 0.48, 0.48], "senbon": [0.0, 0.05, 0.22, 0.22], "hiramekarei": [0.0, 0.3, 1.3, 1.33], "bo": [0.0, 0.4, 0.95, 0.95]}   # uzunluklar silahın kendi ölçeğiyle çarpılır
 
 
 var _edge_x := Vector3.ZERO   # gunbai: kenar önde savuruş için yüz normali (yumuşatılmış)
@@ -6111,7 +6166,7 @@ func _key_blade_sk(sk: Skeleton3D, blade: Vector3) -> void:
 			var px = _edge_x - z * _edge_x.dot(z)
 			if px.length() > 0.05:
 				x = px.normalized()
-		if w["id"] in ["shibuki", "kubikiribocho", "yagura_sopa"]:   # kubikiri: keskin kenar da -Y; yagura: büyük kanca + çiçek -Y
+		if w["id"] in ["shibuki", "kubikiribocho", "yagura_sopa", "kama"]:   # kubikiri: keskin kenar da -Y; yagura: büyük kanca + çiçek -Y
 			# Shibuki: AĞIZ kenarı (kâğıtlı geniş taraf, silah -Y) savuruş yönünde önde — kılıç gibi kenarla vurur.
 			# -Y hız yönünde => x = z × hız (dikey bileşen)
 			var sv: Vector3 = overlay._key_bv

@@ -474,14 +474,14 @@ const ITEMS := {
 	"sirt_050": {"name": "Bambu Matara", "slot": "sirt", "price": 815, "rank": 2, "desc": "Bambu Matara — sırtta/belde taşınır.", "stats": {"def": 2}, "look": {"back_item": "bambu_matara"}, "c1": Color(0.15, 0.15, 0.18)},
 	# --- silahlar (el = iki ele de takılabilir)
 	"kunai": {"name": "Kunai", "slot": "el", "price": 30, "rank": 0, "desc": "Her ninjanın yakın dövüş bıçağı.", "stats": {}, "weapon": {"hit": 4.5, "dmg": 1.15, "reach": 0.15, "style": "blade"}, "c1": Color(0.6, 0.62, 0.66)},
-	"altin_kunai": {"name": "Chakra Metali Kunai", "slot": "el", "price": 600, "rank": 2, "desc": "Chakra iletebilen özel metalden kunai.", "stats": {"chakra": 15}, "weapon": {"hit": 5, "dmg": 1.35, "reach": 0.2, "style": "blade"}, "c1": Color(0.85, 0.7, 0.3)},
-	"patlayici_kunai": {"name": "Etiketli Kunai", "slot": "el", "price": 260, "rank": 1, "desc": "Sapına patlayıcı etiket sarılı kunai. Darbeler sert.", "stats": {}, "weapon": {"hit": 5, "dmg": 1.3, "reach": 0.15, "style": "blade"}, "c1": Color(0.6, 0.62, 0.66)},
+	"altin_kunai": {"removed": true, "name": "Chakra Metali Kunai", "slot": "el", "price": 600, "rank": 2, "desc": "Chakra iletebilen özel metalden kunai.", "stats": {"chakra": 15}, "weapon": {"hit": 5, "dmg": 1.35, "reach": 0.2, "style": "blade"}, "c1": Color(0.85, 0.7, 0.3)},
+	"patlayici_kunai": {"removed": true, "name": "Etiketli Kunai", "slot": "el", "price": 260, "rank": 1, "desc": "Sapına patlayıcı etiket sarılı kunai. Darbeler sert.", "stats": {}, "weapon": {"hit": 5, "dmg": 1.3, "reach": 0.15, "style": "blade"}, "c1": Color(0.6, 0.62, 0.66)},
 	"zincirli_kunai": {"name": "Zincirli Kunai", "slot": "el", "price": 300, "rank": 1, "desc": "Halkasına zincir bağlı kunai: menzil uzar.", "stats": {}, "weapon": {"hit": 5, "dmg": 1.2, "reach": 0.6, "style": "blade"}, "c1": Color(0.6, 0.62, 0.66)},
-	"senbon": {"name": "Senbon İğneleri", "slot": "el", "price": 120, "rank": 0, "desc": "İnce iğneler: hızlı, isabetli, düşük hasar.", "stats": {"speed": 0.02}, "weapon": {"hit": 4.5, "dmg": 1.1, "reach": 0.1, "style": "dual"}, "c1": Color(0.75, 0.77, 0.8)},
+	"senbon": {"name": "Senbon İğneleri", "slot": "el", "price": 120, "rank": 0, "desc": "Parmak aralarında yelpaze gibi tutulan ince iğneler (iki elde). UZUN MENZİL: iğne yağmuru, kesin noktalara atış.", "stats": {"speed": 0.02}, "weapon": {"hit": 4.5, "dmg": 1.1, "reach": 0.1, "style": "dual", "ranged": true}, "c1": Color(0.75, 0.77, 0.8)},
 	"tanto": {"name": "Tantō", "slot": "el", "price": 320, "rank": 1, "desc": "Kısa kılıç. Hızlı ve keskin.", "stats": {}, "weapon": {"hit": 5, "dmg": 1.35, "reach": 0.35, "style": "blade"}, "c1": Color(0.75, 0.77, 0.8)},
 	"ikiz_hancer": {"name": "Hançer", "slot": "el", "price": 240, "rank": 0, "desc": "Çift taşınmak için dengelenmiş kısa hançer.", "stats": {"speed": 0.02}, "weapon": {"hit": 5, "dmg": 1.25, "reach": 0.25, "style": "dual"}, "c1": Color(0.7, 0.72, 0.76)},
-	"kama": {"name": "Kama (Orak)", "slot": "el", "price": 280, "rank": 1, "desc": "Kavisli tarım orağından savaş aleti.", "stats": {}, "weapon": {"hit": 5, "dmg": 1.35, "reach": 0.3, "style": "sickle"}, "c1": Color(0.7, 0.72, 0.76)},
-	"pence": {"name": "Pençe", "slot": "el", "price": 400, "rank": 1, "desc": "Parmaklara takılan üç metal tırnak.", "stats": {"melee": 0.08}, "weapon": {"hit": 5, "dmg": 1.25, "reach": 0.2, "style": "claw"}, "c1": Color(0.6, 0.62, 0.66)},
+	"kama": {"name": "Ō-Kama (Orak)", "slot": "sag", "price": 1400, "rank": 2, "desc": "Uzun saplı kızıl-siyah tırpan orak. İki elle savrulur: hilal bıçak rakibi kancalayıp biçer.", "stats": {"melee": 0.05}, "weapon": {"hit": 6.5, "dmg": 1.75, "reach": 1.3, "style": "heavy"}, "c1": Color(0.7, 0.72, 0.76)},
+	"pence": {"name": "Pençe", "slot": "el", "price": 400, "rank": 1, "desc": "İki ele takılan, el sırtı plakalı üç uzun bıçaklı pençe. Kombo sırasında bıçaklara chakra akar.", "stats": {"melee": 0.08}, "weapon": {"hit": 5, "dmg": 1.3, "reach": 0.45, "style": "claw"}, "c1": Color(0.6, 0.62, 0.66)},
 	"musta": {"name": "Muşta Bıçağı", "slot": "el", "price": 450, "rank": 1, "desc": "Parmak korumalı bıçak. Rüzgar chakrası akıtılabilir.", "stats": {"melee": 0.1}, "weapon": {"hit": 5, "dmg": 1.3, "reach": 0.25, "style": "blade"}, "c1": Color(0.55, 0.57, 0.6)},
 	"chakra_bicak": {"name": "Chakura Tō (Chakra Bıçakları)", "slot": "el", "price": 1100, "rank": 3, "desc": "Parmaklara geçirilen çift muşta bıçak (iki elde). Dört parmak deliği, serçe parmak ucundan kıvrılan bıçak; chakra akıtılabilir.", "stats": {"melee": 0.12, "chakra": 15}, "weapon": {"hit": 6, "dmg": 1.55, "reach": 0.3, "style": "dual"}, "c1": Color(0.55, 0.8, 1.0)},
 	"tonfa": {"name": "Tonfa", "slot": "el", "price": 220, "rank": 0, "desc": "Çift savunma sopası (iki elde): ön kol boyunca kalkan gibi tutulur, yumruk ve dirsek uçlarıyla ezer, sersemletir. Gelen hasarı azaltır.", "stats": {"def": 4}, "weapon": {"hit": 5, "dmg": 1.25, "reach": 0.35, "style": "dual"}, "c1": Color(0.35, 0.25, 0.15)},
@@ -554,11 +554,11 @@ const SHOP_CLOTHES := ["uchiha_yakali", "uchiha_uzun", "uchiha_beyaz", "uchiha_p
 	"zincir_yelek", "kayis_kosum", "deri_pul_zirh", "gogus_plakasi", "ame_yelek", "jonin_koyu",
 	"panco", "yirtik_pelerin", "jinbaori", "kesis_cubbesi", "kesa", "bantli_palto", "mino", "gece_pelerini",
 	"omuz_zirhi", "dizlik", "agir_zirh", "uzun_sargi_eldiven", "tespih", "sirt_sepeti", "bel_parsomenleri", "bel_cantasi", "sashimono", "ip_kangali"]
-const SHOP_WEAPONS := ["sai", "kunai", "senbon", "ikiz_hancer", "tonfa", "bo", "tanto", "kama", "patlayici_kunai", "zincirli_kunai", "pence", "musta",
-	"wakizashi", "altin_kunai", "katana", "mizrak", "yelpaze", "kusarigama", "savas_cekici", "chakra_bicak", "nodachi", "kyodai_shuriken", "fuma_makimono"]
+const SHOP_WEAPONS := ["sai", "kunai", "senbon", "ikiz_hancer", "tonfa", "bo", "tanto", "kama", "zincirli_kunai", "pence", "musta",
+	"wakizashi", "katana", "mizrak", "yelpaze", "kusarigama", "savas_cekici", "chakra_bicak", "nodachi", "kyodai_shuriken", "fuma_makimono"]
 ## Sadece görev ödülü olarak düşen (dükkânda satılmayan) parçalar dahil ödül havuzu
 const REWARD_POOL := ["kafa_bandaji", "gozluk", "kasa", "kapuson", "atki", "kol_sargisi", "eldiven", "kolluk", "bacak_koruma", "tabi", "hakama",
-	"kisa_pelerin", "haori", "dev_parsomen", "sirt_shuriken", "senbon", "kama", "pence", "zincirli_kunai", "wakizashi", "altin_kunai",
+	"kisa_pelerin", "haori", "dev_parsomen", "sirt_shuriken", "senbon", "kama", "pence", "zincirli_kunai", "wakizashi",
 	"suna_yelek", "kiri_yelek", "kumo_yelek", "iwa_yelek", "chakra_bicak", "nodachi", "samuray_zirh", "uzun_palto", "anbu_kurt", "anbu_kus", "anbu_ayi",
 	"hachimaki_kizil", "jingasa", "kabuto", "kabuto_kizil", "mempo", "mempo_kizil", "golge_kapuson", "arma_gomlek", "beyaz_arma", "golge_ust", "panel_ceket",
 	"siyah_pant", "kizil_hakama", "zirhli_cizme", "siyah_tabi", "zincir_yelek", "deri_pul_zirh", "lake_zirh", "jonin_koyu", "jinbaori", "sennin_haorisi",
@@ -910,6 +910,8 @@ static func apply_look(p: Dictionary) -> void:
 	for g0 in p.get("gear", []):   # oyundan kaldırılan Dev Shuriken: eldeki kopyalar Kyodai Shuriken'e döner
 		if String(g0.get("id", "")) == "el_shuriken":
 			g0["id"] = "kyodai_shuriken"
+		elif String(g0.get("id", "")) in ["altin_kunai", "patlayici_kunai"]:   # oyundan kaldırıldı: düz kunaiye döner
+			g0["id"] = "kunai"
 	var L: Dictionary = p["look"]
 	for k in ["band", "vest", "mask", "weapon_r", "weapon_l", "head_style", "face_style", "outer_style", "back_item", "guards", "eye_r", "eye_l", "hood", "crest"]:
 		L[k] = null
