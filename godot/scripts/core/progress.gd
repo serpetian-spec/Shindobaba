@@ -703,6 +703,8 @@ func interact(it: Dictionary) -> void:
 				{"label": "Oda tut ve uyu (40 Ryō) — sabaha kadar, kaydet", "cb": func(): _sleep(40, "Han odasında rahat bir gece geçirdin. Sabah oldu! (Oyun kaydedildi)")},
 			])
 		"shrine":
+			if Eyes.clear_hatred():
+				Hud.banner("HUZUR", "Dua ederken içindeki nefret çözüldü. Kaybını taşıyabilirsin artık.", Color(0.8, 0.85, 1.0))
 			Buffs.add("shrine", 300.0, {"armor": 0.9, "melee": 1.05})
 			Game.player.chakra = Game.player.max_chakra
 			Game.save_game()

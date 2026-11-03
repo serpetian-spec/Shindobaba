@@ -29,8 +29,11 @@ static func tick(e: Enemy, dt: float) -> void:
 	if not e.has_meta("eyes"):
 		return
 	var kind = int(e.get_meta("eyes").get("kind", 0))
-	# Mangekyō: can yarıya inince Susanoo
-	if kind in [4, 5] and not e.has_meta("ea_susanoo") and e.hp < e.max_hp * 0.5:
+	var eblind = float(e.get_meta("ms_blind", 0.0))
+	if kind == 4 and e.has_meta("ea_susanoo") and is_instance_valid(e.get_meta("ea_susanoo")):
+		_ms_strain(e, dt * 0.004)   # açık Susanoo düşmanın da gözünü yorar (oyuncuyla aynı kural)
+	# Mangekyō: can yarıya inince Susanoo (kör Mangekyō açamaz)
+	if kind in [4, 5] and not e.has_meta("ea_susanoo") and e.hp < e.max_hp * 0.5 and (kind == 5 or eblind < 1.0):
 		_susanoo(e)
 	var sn = e.get_meta("ea_susanoo") if e.has_meta("ea_susanoo") else null
 	if sn and is_instance_valid(sn):
@@ -73,7 +76,14 @@ static func tick(e: Enemy, dt: float) -> void:
 				t.create_tween().tween_property(t, "global_position", pull, 0.35).set_trans(Tween.TRANS_QUAD)
 				t.apply_status("stun", 0.6)
 				e.set_meta("ea_cd", randf_range(7.0, 10.0))
-		4, 5:   # Mangekyō: Amaterasu (uzak) / Tsukuyomi (yakın)
+		4, 5:   # Mangekyō: Amaterasu (uzak) / Tsukuyomi (yakın); Mangekyō (Ebedi değil) her kullanımda gözünü yorar
+			if kind == 4 and eblind >= 1.0:
+				if d < 14.0:
+					_gaze(e, t, 1.2, Color(0.9, 0.05, 0.05), "Genjutsu!")   # kör Mangekyō: yalnız sıradan Sharingan genjutsusu
+					e.set_meta("ea_cd", randf_range(10.0, 14.0))
+				return
+			if kind == 4:
+				_ms_strain(e, 0.12)
 			if d < 9.0 and randf() < 0.45:
 				_gaze(e, t, 2.6, Color(0.6, 0.0, 0.05), "Tsukuyomi!")
 				if t == Game.player and Game.world:
@@ -84,7 +94,46 @@ static func tick(e: Enemy, dt: float) -> void:
 				e.set_meta("ea_cd", randf_range(12.0, 16.0))
 
 
+## Düşman Mangekyō körlüğü (oyuncuyla aynı kural): dolunca Mangekyō teknikleri ve Susanoo kapanır
+static func _ms_strain(e: Enemy, amount: float) -> void:
+	var b = float(e.get_meta("ms_blind", 0.0))
+	var nb = minf(1.0, b + amount)
+	e.set_meta("ms_blind", nb)
+	if b < 1.0 and nb >= 1.0:
+		Combat.popup_text(e.global_position + Vector3.UP * 2.6, "Gözleri karardı!", Color(0.7, 0.2, 0.25))
+		var sn = e.get_meta("ea_susanoo") if e.has_meta("ea_susanoo") else null
+		if sn and is_instance_valid(sn):
+			sn.queue_free()
+		e.remove_meta("ea_susanoo")
+
+
+## Düşman İzanagi (oyuncuyla aynı kural): Sharingan sahibi düşman ölümcül darbede bir kez, %40 olasılıkla
+## bir gözünü feda edip ayağa kalkar (gözü kararır: Sharingan tekniği kalmaz)
+static func try_izanagi(e: Enemy) -> bool:
+	if not e.has_meta("eyes") or e.get_meta("izanagi_used", false):
+		return false
+	if not int(e.get_meta("eyes").get("kind", 0)) in [1, 4, 5]:
+		return false
+	e.set_meta("izanagi_used", true)
+	if randf() > 0.4:
+		return false
+	e.hp = e.max_hp * 0.5
+	e.dead = false
+	Combat.popup_text(e.global_position + Vector3.UP * 2.6, "İzanagi!", Color(0.9, 0.15, 0.2))
+	FX.ring(e.global_position + Vector3.UP * 1.0, Color(0.85, 0.08, 0.1), 4.0, 0.5)
+	e.set_meta("eyes", {"kind": 0, "lvl": 0})   # feda edilen göz: göz teknikleri biter
+	if Game.player and is_instance_valid(Game.player) and Game.player.global_position.distance_to(e.global_position) < 14.0:
+		Game.player.apply_status("stun", 0.8)
+	return true
+
+
 static func _gaze(e: Enemy, t: Node3D, stun: float, col: Color, label: String) -> void:
+	var rs = Eyes.genjutsu_resist(t)
+	if rs < 1.0:
+		Combat.popup_text(t.global_position + Vector3.UP * 2.2, "Genjutsu kırıldı!" if rs == 0.0 else "Sharingan direndi", Color(1, 0.5, 0.5))
+		stun *= rs
+		if stun <= 0.05:
+			return
 	t.apply_status("stun", stun)
 	FX.ring(t.global_position + Vector3.UP * 1.6, col, 1.6, 0.6, false, (e.global_position - t.global_position).normalized())
 	Combat.popup_text(t.global_position + Vector3.UP * 2.2, label, col.lightened(0.3))

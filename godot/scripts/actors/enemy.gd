@@ -600,6 +600,7 @@ func _chase(dt: float) -> void:
 				attack_tokens += 1
 			combo_left = randi_range(2, 3 + int(skill * 3.0))
 			state = "attack"
+			Eyes.warn_attack(self)   # açık Sharingan hamleyi önceden görür (kırmızı iz)
 			state_t = 0.0
 			_swing()
 
@@ -681,6 +682,7 @@ func _lunge() -> void:
 		attack_tokens += 1
 	combo_left = randi_range(2, 3 + int(skill * 3.0))
 	state = "attack"
+	Eyes.warn_attack(self)   # açık Sharingan hamleyi önceden görür (kırmızı iz)
 	state_t = 0.0
 	_swing()
 
@@ -988,6 +990,8 @@ func catch() -> void:
 
 
 func die(info: Dictionary) -> void:
+	if not info.get("execute", false) and EnemyArts.try_izanagi(self):
+		return
 	if has_token:
 		has_token = false
 		attack_tokens = maxi(0, attack_tokens - 1)

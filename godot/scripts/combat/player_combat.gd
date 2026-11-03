@@ -1134,6 +1134,14 @@ func take_hit(info: Dictionary) -> void:
 				return
 	p.hp -= dmg
 	Combat.note_jutsu_dmg(atk, info, dmg)
+	if p.hp <= 0.0:
+		# ölüm kontrolü hemen burada: aşağıdaki düz vuruş / hafif darbe dalları erken dönüyordu, ölümcül darbede
+		# ölüm işlenmiyor, Kakuzu kalpleri / İzanagi de devreye girmiyordu
+		p.hp = 0.0
+		Combat.damage_number(p.global_position + Vector3.UP * 2.0, dmg, Color(1, 0.4, 0.35))
+		if not ClanMech.try_extra_life():
+			Progress.on_player_died()
+		return
 	Mastery.gain(Game.profile, "dayaniklilik", clampf(dmg / maxf(1.0, p.max_hp), 0.0, 0.5) * 0.4)   # dayak yedikçe dayanıklılık
 	last_hit_t = 0.0
 	# Jashin laneti: çemberdeyken sana gelen acı bağlı hedefe de gelir

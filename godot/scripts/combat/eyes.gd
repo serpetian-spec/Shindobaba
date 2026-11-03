@@ -451,13 +451,16 @@ func use_skill(side: String) -> void:
 	if cd[side] > 0.0:
 		Hud.msg("%s hazır değil (%.0f sn)" % [_skill_name(side), cd[side]], Color(0.9, 0.8, 0.6))
 		return
+	if k == 4 and blind() >= 1.0:
+		Hud.msg("Gözlerin kör: Mangekyō teknikleri kullanılamaz. Ebedi Mangekyō gerek.", Color(1, 0.45, 0.45))
+		return
 	var sk: Array = SKILLS[k][0 if side == "sag" else 1]
 	var cost: float = sk[1] * _transplant_mult() * maxf(0.3, 1.0 + Stats.skill(Game.profile, "eye_cost"))
 	if p.chakra < cost:
 		Hud.msg("Yeterli chakra yok.", Color(0.6, 0.7, 1))
 		return
 	p.chakra -= cost
-	cd[side] = sk[2] * maxf(0.3, 1.0 + Stats.skill(Game.profile, "eye_cd"))
+	cd[side] = sk[2] * maxf(0.3, 1.0 + Stats.skill(Game.profile, "eye_cd")) * (1.0 + blind() * 1.2)   # bozulan göz: teknikler gecikir
 	Combat.popup_text(p.global_position + Vector3.UP * 2.4, sk[0], Color(1, 0.5, 0.5) if k != 2 else Color(0.85, 0.9, 1))
 	var t = Combat.nearest_enemy(p, 30.0, p.face_dir(), 0.3)
 	if t == null:
@@ -490,9 +493,7 @@ func use_skill(side: String) -> void:
 			else:
 				Jutsu.execute(p, mj, t)   # tarzın göz tekniği (Kamui, Enton, Kotoamatsukami...)
 			if k == 4:
-				strain = minf(1.0, strain + 0.18)
-				if strain > 0.6:
-					Hud.msg("Gözlerin kanıyor, görüşün bulanıklaşıyor...", Color(1, 0.4, 0.4))
+				add_blind(0.035)
 		6:
 			if right:
 				_push(15.0, 22.0)
@@ -523,6 +524,11 @@ func _enemies_in(r: float) -> Array:
 
 
 func _genjutsu_gaze(t: Node3D, stun: float, dmg: float) -> void:
+	if t and is_instance_valid(t):
+		var rs = genjutsu_resist(t)
+		if rs < 1.0:
+			Combat.popup_text(t.global_position + Vector3.UP * 2.4, "Genjutsu kırıldı!" if rs == 0.0 else "Sharingan direndi", Color(1, 0.5, 0.5))
+			stun *= rs
 	if t == null:
 		Hud.msg("Göz göze gelecek hedef yok.", Color(0.8, 0.8, 0.8))
 		return
@@ -637,6 +643,9 @@ func _can_susanoo() -> bool:
 func _start_susanoo() -> void:
 	if not _can_susanoo() or susanoo:
 		return
+	if blind() >= 1.0 and not (_kind("sag") == 5 or _kind("sol") == 5):
+		Hud.msg("Gözlerin kör: Susanoo'yu çağıramıyorsun.", Color(1, 0.45, 0.45))
+		return
 	if not active:
 		toggle()
 	susanoo = true
@@ -717,7 +726,14 @@ func _steal(f: Node3D) -> void:
 # ------------------------------------------------------------------ Sharingan kopyalama
 var _copy_warned := {}   # kopyalanamayan teknik uyarısı jutsu başına bir kez
 func _on_jutsu_cast(caster: Node, id: String) -> void:
+	if caster == p and ms_tracked(id) and not (_kind("sag") == 5 or _kind("sol") == 5):
+		add_blind(0.03)   # Mangekyō tarzının jutsuları da gözü yıpratır
 	if not active or caster == p or not is_instance_valid(caster):
+		return
+	# Sharingan yalnız gördüğünü kopyalar: atan kişi önünde olmalı (arkandaki mühürleri okuyamazsın)
+	var to_c = (caster.global_position - p.global_position)
+	to_c.y = 0
+	if to_c.length() > 1.0 and to_c.normalized().dot(p.face_dir()) < 0.15:
 		return
 	var tl = 0
 	for s in ["sag", "sol"]:
@@ -735,9 +751,15 @@ func _on_jutsu_cast(caster: Node, id: String) -> void:
 			_copy_warned[id] = true
 			Hud.msg("Sharingan gördü ama kopyalayamaz: %s (%s)" % [Data.jutsu[id].get("name", id), why], Color(0.75, 0.55, 0.55))
 		return
+	# mühürler okunur: rakibin elleri izlenir (kanon: Kakashi / Sasuke mühürleri ezberler)
+	var seals: Array = Data.jutsu[id].get("seals", [])
+	if not seals.is_empty():
+		Combat.popup_text(caster.global_position + Vector3.UP * 2.8, " - ".join(seals.slice(0, 6)), Color(1, 0.45, 0.45))
 	if randf() < 0.2 * tl:
 		Progress.learn(id)
 		Hud.msg("SHARINGAN KOPYALADI: %s" % Data.jutsu[id].get("name", id), Color(1, 0.35, 0.35))
+		FX.ring(p.global_position + Vector3.UP * 1.6, Color(0.9, 0.1, 0.12), 1.4, 0.4, false)
+		Journal.add("Sharingan ile kopyaladım: %s" % Data.jutsu[id].get("name", id), "jutsu")
 
 
 # ------------------------------------------------------------------ güncelleme
@@ -748,7 +770,8 @@ func _process(dt: float) -> void:
 	for s in cd:
 		cd[s] = maxf(0.0, cd[s] - dt)
 	predict_t = maxf(0.0, predict_t - dt)
-	strain = maxf(0.0, strain - dt * 0.01)
+	_blind_tick(dt)
+	_hatred_tick(dt)
 	# V basılı tutma: Susanoo
 	if v_held >= 0.0:
 		v_held += dt
@@ -871,6 +894,7 @@ func _awaken_mangekyo() -> bool:
 		p.rebuild_model()
 		Hud.banner("MANGEKYŌ SHARINGAN", "Acı, gözlerini sonsuza dek değiştirdi", Color(0.8, 0.05, 0.1))
 		Sfx.play("roar", p.global_position, 0.7, 0.5)
+		start_hatred()
 	return ok
 
 
@@ -984,3 +1008,160 @@ func evolve_tick(dt: float) -> void:
 		if Gear.equipped(pr, "sag_goz").is_empty() and randf() < 0.12:
 			_replace_eyes("goz_jogan", ["sag_goz"], 1)
 			Hud.banner("JŌGAN", "Sağ gözün mavi parladı: görünmeyeni görüyorsun", Color(0.4, 0.65, 1.0))
+
+
+# ------------------------------------------------------------------ Mangekyō körlüğü (kanon: Itachi / Sasuke)
+## Kalıcı göz hasarı 0..1 (profilde): her Mangekyō tekniği, Mangekyō tarz jutsusu ve açık Susanoo saniyesi biriktirir.
+## Görüş kararır (ekran kenarı), göz teknikleri gecikir; 1.0 = kör: Mangekyō teknikleri + Susanoo kilitlenir.
+## Ebedi Mangekyō (yakının gözü) körlüğü tamamen iyileştirir ve bir daha birikmez. Nefretin Laneti birikimi hızlandırır.
+func blind() -> float:
+	return float(Game.profile.get("ms_blind", 0.0))
+
+
+func add_blind(amount: float) -> void:
+	var pr = Game.profile
+	if _kind("sag") == 5 or _kind("sol") == 5:
+		return
+	if not (_kind("sag") == 4 or _kind("sol") == 4):
+		return
+	var before = blind()
+	var mult = 1.35 if pr.get("flags", {}).get("hatred", false) else 1.0
+	var now = minf(1.0, before + amount * mult)
+	pr["ms_blind"] = now
+	for th in [[0.35, "Gözlerin kanıyor... Mangekyō'yu her kullanışında görüşün biraz daha bulanıklaşıyor."],
+			[0.65, "Görüşün kararıyor. Böyle giderse kör olacaksın — Ebedi Mangekyō tek çare."],
+			[0.9, "Neredeyse hiçbir şey göremiyorsun. Bir kez daha zorlarsan gözlerin kapanacak."]]:
+		if before < th[0] and now >= th[0]:
+			Hud.msg(th[1], Color(1, 0.4, 0.4), 6.0)
+	if before < 1.0 and now >= 1.0:
+		Hud.banner("GÖZLERİN KARARDI", "Mangekyō'nun bedeli: körsün. Ebedi Mangekyō (yakınının gözü) ışığı geri getirir.", Color(0.5, 0.05, 0.08))
+		Journal.add("Mangekyō gözlerimi kör etti.", "milestone")
+		if susanoo:
+			_end_susanoo()
+
+
+var _blind_vis := -1.0
+var _ems_healed := false
+func _blind_tick(dt: float) -> void:
+	var pr = Game.profile
+	# Ebedi Mangekyō: körlük iyileşir
+	if (_kind("sag") == 5 or _kind("sol") == 5) and blind() > 0.0:
+		pr["ms_blind"] = 0.0
+		Hud.banner("EBEDİ MANGEKYŌ", "Karanlık dağıldı: gözlerin bir daha kararmayacak", Color(0.9, 0.2, 0.25))
+	if susanoo and is_instance_valid(susanoo_node) and not (_kind("sag") == 5 or _kind("sol") == 5):
+		add_blind(dt * 0.0025)   # açık Susanoo da gözü yorar (~6-7 dk sürekli kullanım = körlük)
+	# görüş kararması: ekran kenarları (yalnız değişince ayarla)
+	var b = blind() if (_kind("sag") == 4 or _kind("sol") == 4) else 0.0
+	if absf(b - _blind_vis) > 0.01 and Game.world and Game.world.env.get("post_mat"):
+		_blind_vis = b
+		Game.world.env.post_mat.set_shader_parameter("vignette", 0.55 + b * 2.5)
+
+
+# ------------------------------------------------------------------ İzanagi (yasak Uchiha tekniği)
+## Gözler açıkken ölümcül darbe: bir Sharingan gözü sonsuza dek feda edilir, ölüm "yanılsamaya" dönüşür
+## (can %60, kısa dokunulmazlık, çevredeki düşmanlar şaşkın). Her göz bir kez; iki göz = en fazla iki İzanagi.
+func try_izanagi() -> bool:
+	if not active:
+		return false
+	var pr = Game.profile
+	var slot = ""
+	for s in ["sol_goz", "sag_goz"]:   # önce sol göz (kanon: Danzō / Itachi tek gözü karartır)
+		var g = Gear.equipped(pr, s)
+		if not g.is_empty() and int(Gear.item(g["id"]).get("eye", {}).get("kind", 0)) in [1, 4, 5]:
+			slot = s
+			break
+	if slot == "":
+		return false
+	var g2 = Gear.equipped(pr, slot)
+	pr["equip"].erase(slot)
+	pr["gear"] = (pr.get("gear", []) as Array).filter(func(x): return int(x["uid"]) != int(g2["uid"]))
+	pr["flags"]["izanagi_used"] = int(pr["flags"].get("izanagi_used", 0)) + 1
+	Gear.apply_look(pr)
+	p.hp = p.max_hp * 0.6
+	if p.combat:
+		p.combat.invuln = 2.5
+	for f in _enemies_in(14.0):
+		f.apply_status("stun", 1.6)   # "öldürdükleri" bir yanılsamaydı
+		if f.has_method("lose_target"):
+			f.lose_target(1.5)
+	FX.ring(p.global_position + Vector3.UP * 1.0, Color(0.85, 0.08, 0.1), 5.0, 0.6)
+	VFX.shockwave(p.global_position + Vector3.UP, Color(0.9, 0.1, 0.12), 8.0, 0.4, false)
+	Hud.banner("İZANAGİ", "Ölüm bir yanılsamaydı — %s gözün sonsuza dek karardı" % ("sol" if slot == "sol_goz" else "sağ"), Color(0.75, 0.05, 0.08))
+	Journal.add("İzanagi ile ölümden döndüm; bir gözümü sonsuza dek kaybettim.", "milestone")
+	Sfx.play("genjutsu", p.global_position, 0.6, 0.9)
+	p.rebuild_model()
+	refresh_visual()
+	return true
+
+
+# ------------------------------------------------------------------ Nefretin Laneti (kanon: Uchiha'nın sevgisi nefrete döner)
+## Mangekyō'yu açtıran kayıp karakterde iz bırakır: Uchiha'nın göz/ateş teknikleri güçlenir (+%12) ama Mangekyō körlüğü
+## %35 hızlı birikir; ara sıra kaybını hatırlatan iç ses. Bir tapınakta dua etmek (huzur) laneti çözer.
+func start_hatred() -> void:
+	var pr = Game.profile
+	pr["flags"]["hatred"] = true
+	_apply_hatred_buff()
+	Hud.msg("Kaybın içinde bir nefret uyandırdı. Gözlerin güçlü ama ruhun karanlık... (Bir tapınakta huzur bulabilirsin)", Color(0.85, 0.35, 0.4), 8.0)
+	Journal.add("Nefretin Laneti: kaybım gözlerimi uyandırdı ama içimi kararttı.", "milestone")
+
+
+func _apply_hatred_buff() -> void:
+	Buffs.add("hatred", 99999.0, {"jutsu": 1.12, "_name": "Nefretin Laneti", "_desc": "jutsu +%12, Mangekyō körlüğü %35 hızlı; tapınakta dua et"})
+
+
+static func clear_hatred() -> bool:
+	var pr = Game.profile
+	if not pr.get("flags", {}).get("hatred", false):
+		return false
+	pr["flags"].erase("hatred")
+	Buffs.remove("hatred")
+	Journal.add("Tapınakta dua ettim; nefret yerini huzura bıraktı.", "milestone")
+	return true
+
+
+var _hatred_t := 120.0
+const HATRED_LINES := ["Onu kurtaramadın...", "Güç... daha fazla güç olsaydı.", "Bu acıyı unutmayacaksın.", "Nefret seni ayakta tutuyor, ama neye mal oluyor?"]
+func _hatred_tick(dt: float) -> void:
+	var pr = Game.profile
+	if not pr.get("flags", {}).get("hatred", false):
+		return
+	if not Buffs.has("hatred"):
+		_apply_hatred_buff()   # kayıttan yüklenince
+	_hatred_t -= dt
+	if _hatred_t <= 0.0:
+		_hatred_t = randf_range(240.0, 420.0)
+		Hud.msg("(" + HATRED_LINES.pick_random() + ")", Color(0.75, 0.4, 0.45), 4.0)
+
+
+# ------------------------------------------------------------------ Sharingan okuma: saldırı öngörüsü + genjutsu direnci
+## Düşman vuruşa başlarken Sharingan açıksa kısa kırmızı iz: hamleyi önceden görürsün (Enemy saldırı başlangıcı çağırır)
+static func warn_attack(e: Node3D) -> void:
+	var pl = Game.player
+	if pl == null or not is_instance_valid(pl) or pl.combat == null or pl.combat.modes == null:
+		return
+	var ey = pl.combat.modes.eyes
+	if ey == null or not ey.active or not (ey._kind("sag") in [1, 4, 5] or ey._kind("sol") in [1, 4, 5]):
+		return
+	if e.global_position.distance_to(pl.global_position) > 14.0:
+		return
+	FX.ring(e.global_position + Vector3.UP * 1.3, Color(1.0, 0.12, 0.15), 1.1, 0.22, false)
+
+
+## Sharingan sahibine atılan genjutsu (göz göze sersemletme) kısalır; 3 tomoe / Mangekyō hemen kırar
+static func genjutsu_resist(t: Node) -> float:
+	if t == Game.player:
+		var pl = Game.player
+		if pl.combat and pl.combat.modes and pl.combat.modes.eyes and pl.combat.modes.eyes.active:
+			var ey = pl.combat.modes.eyes
+			var best = 0
+			for s in ["sag", "sol"]:
+				if ey._kind(s) in [1, 4, 5]:
+					best = maxi(best, ey._lvl(s) + (2 if ey._kind(s) >= 4 else 0))
+			if best >= 3:
+				return 0.0
+			if best > 0:
+				return 0.5
+		return 1.0
+	if t.has_meta("eyes") and int(t.get_meta("eyes").get("kind", 0)) in [1, 4, 5]:
+		return 0.0 if int(t.get_meta("eyes").get("lvl", 1)) >= 3 or int(t.get_meta("eyes").get("kind", 0)) >= 4 else 0.5
+	return 1.0
