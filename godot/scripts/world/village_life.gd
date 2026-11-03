@@ -19,6 +19,7 @@ var npcs: Array = []
 var current := ""
 var t := 0.0
 var street_cache := {}
+var spawn_cd := 0.0   # köylü kurulumu ~80 ms: art arda her karede değil, aralıklı (köye girerken saniyelerce kasma)
 var queue: Array = []  # bekleyen doğumlar: her karede en fazla bir karakter modeli yaratılır (takılma olmasın)
 var active_sites := {}  # site index -> [nodes]
 var phase := "oglen"
@@ -28,6 +29,7 @@ var glow_t := 0.0
 
 
 func _ready() -> void:
+	CharacterModel.prewarm()   # saç/yüz modelleri arka planda yüklensin
 	interiors = Interiors.new()
 	interiors.name = "Interiors"
 	add_child(interiors)
@@ -129,8 +131,13 @@ func _process(dt: float) -> void:
 		CityDecor.set_night(clampf(nk, 0.0, 1.0))
 	if Game.player == null or Game.paused:
 		return
-	if not queue.is_empty():
-		_spawn(queue.pop_front())
+	spawn_cd -= dt
+	if not queue.is_empty() and spawn_cd <= 0.0:
+		# oyuncu koşarken / atılırken (Ctrl) yeni karakter kurma: hareket bitince sırayla gelirler
+		var spd = Game.player.velocity.length() if "velocity" in Game.player else 0.0
+		if spd < 9.0 or npcs.size() < 4:
+			_spawn(queue.pop_front())
+			spawn_cd = 0.3
 	t -= dt
 	if t > 0.0:
 		return
@@ -173,8 +180,21 @@ func _process(dt: float) -> void:
 	var target = base if phase != "gece" else int(base * 0.4)
 	var streets = _streets(v)
 	var roofs: Array = Builder.roof_points.get(v["id"], [])
+	# sokak noktaları (Konoha'da binlerce): uzaklık süzgeci tikte BİR kez (her köylü / her grup için yeniden süzmek ~40 ms takılmaydı)
+	var near_r: Array = []
+	var near_spawn: Array = []
+	var near_far: Array = []
+	var inner = 22.0 if current == v["id"] else 4.0
+	for q in streets:
+		var dq = q.distance_to(p)
+		if dq < 220.0:
+			near_far.append(q)
+			if dq < 170.0 and dq > inner:
+				near_spawn.append(q)
+			if dq < 140.0 and dq > 35.0:
+				near_r.append(q)
 	for n in far:
-		if is_instance_valid(n) and not _recycle(n, streets, roofs, p):
+		if is_instance_valid(n) and not _recycle(n, near_r, roofs, p, true):
 			n.queue_free()
 			npcs.erase(n)
 	var planned = npcs.size() + queue.size()
@@ -182,10 +202,10 @@ func _process(dt: float) -> void:
 	while planned < target and groups < 6:
 		groups += 1
 		var role = _pick_role()
-		var near: Array = streets.filter(func(q): return q.distance_to(p) < 170.0 and q.distance_to(p) > (22.0 if current == v["id"] else 4.0))
+		var near: Array = near_spawn.duplicate()
 		if near.is_empty():
 			# yakında sokak noktası yok (Kiri'nin geniş meydanları, köprüler): uzaktaki sokaklar, o da yoksa çevredeki açık zemin
-			near = streets.filter(func(q): return q.distance_to(p) < 220.0)
+			near = near_far.duplicate()
 		if near.is_empty():
 			for k in 6:
 				var a = randf() * TAU
@@ -234,7 +254,7 @@ func _process(dt: float) -> void:
 
 
 ## Uzaklaşan sokak NPC'sini oyuncunun 30-150 m çevresinde, görüş dışındaki bir sokak noktasına taşı (modeli yeniden kurmadan)
-func _recycle(n: Node3D, streets: Array, roofs: Array, p: Vector3) -> bool:
+func _recycle(n: Node3D, streets: Array, roofs: Array, p: Vector3, prefiltered := false) -> bool:
 	if n is Villager:
 		if n.fading or n.going_home or n.role in ["shopper"]:
 			return false
@@ -247,7 +267,7 @@ func _recycle(n: Node3D, streets: Array, roofs: Array, p: Vector3) -> bool:
 			n.global_position = nr.pick_random()
 			n.home = n.global_position
 			return true
-	var near: Array = streets.filter(func(q): return q.distance_to(p) < 140.0 and q.distance_to(p) > 35.0)
+	var near: Array = streets if prefiltered else streets.filter(func(q): return q.distance_to(p) < 140.0 and q.distance_to(p) > 35.0)
 	if near.is_empty():
 		return false
 	var cam = get_viewport().get_camera_3d()

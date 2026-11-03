@@ -44,20 +44,25 @@ void vertex() {
 		if (length(root.xz - villages[i].xy) < villages[i].z * 0.95) { b = int(villages[i].w); }
 	}
 	vec2 rr = (root.xz - road_rect.xy) / max(road_rect.z, 1.0);
-	float road = (road_rect.z > 0.0 && rr.x > 0.0 && rr.y > 0.0 && rr.x < 1.0 && rr.y < 1.0) ? max(texture(road_tex, rr).r, texture(road_tex, rr).g) : bio.g;   // G: ara sokak patikası / ev tabanı
+	bool inr = road_rect.z > 0.0 && rr.x > 0.0 && rr.y > 0.0 && rr.x < 1.0 && rr.y < 1.0;
+	float rR = inr ? texture(road_tex, rr).r : bio.g;
+	float rG = inr ? texture(road_tex, rr).g : 0.0;
+	// toprak yol kenarı arazi ile AYNI düzensiz eşikte (çimen yolun dalgalı kenarına otursun, hafifçe üstüne taşsın)
+	float ew = vnoise(root.xz * 0.07) * 0.55 + vnoise(root.xz * 0.3) * 0.3 + vnoise(root.xz * 1.3) * 0.15;
+	float road = max(step(0.5, rR + (ew - 0.5) * 0.6), step(0.2, rG - rR));   // G-R: yalnız maske (ev tabanı, meydan)
 	// 2 orman 4 yağmur 6 pirinç 7 çimen 9 dağ 10 bataklık 11 köy
 	float ok = (b == 2 || b == 4 || b == 6 || b == 7 || b == 10) ? 1.0 : (b == 9 ? 0.5 : 0.0);
 	// köy içinde sadece duvar diplerinde/bahçelerde seyrek öbekler
-	if (b == 11) ok = step(0.35, hash(floor(root.xz * 0.18)));   // köy: zeminin çoğu otlu (yollar hariç); arada küçük açıklıklar
+	if (b == 11) ok = step(0.12, hash(floor(root.xz * 0.18)));   // köy: zeminin çoğu otlu, arada az açıklık   // köy: zeminin çoğu otlu (yollar hariç); arada küçük açıklıklar
 	// 13 çöl köyü, 14 taş köy, 15 karlı köy: çimen yok
-	ok *= 1.0 - step(0.2, road);            // yol
+	ok *= 1.0 - road;                       // yol / maske
 	ok *= 1.0 - step(0.5, bio.b);           // ıslak
 	ok *= step(0.6, h);                     // su altı
 	float rnd = hash(floor(root.xz * 3.0));
-	ok *= step(rnd, 0.92);
+	ok *= step(rnd, 0.985);   // seyrek boşluk (kesik kesik görünmesin)
 	float d = distance(root.xz, player_pos.xz);
 	fade = 1.0 - smoothstep(radius * 0.7, radius, d);
-	float s = ok * fade * (0.7 + rnd * 0.6);
+	float s = ok * fade * (0.8 + rnd * 0.45);
 	tip = clamp(VERTEX.y - root.y, 0.0, 1.0);
 	vec3 local = VERTEX - root0;
 	local = vec3(local.x * cos(ang) - local.z * sin(ang), local.y, local.x * sin(ang) + local.z * cos(ang));
@@ -91,7 +96,7 @@ void light() {
 	if (LIGHT_IS_DIRECTIONAL) {
 		// gölge zeminle aynı tonda (terrain.gdshader): gölgede mavimsi koyu, güneşte tam ışık
 		float t = mix(0.75, 1.0, smoothstep(0.0, 0.2, ndl));
-		vec3 shade = mix(vec3(0.5, 0.52, 0.7), vec3(1.0), t * ATTENUATION);
+		vec3 shade = mix(vec3(0.3, 0.33, 0.5), vec3(1.0), t * ATTENUATION);   // koyu, belirgin gölge (eskisi 0.5: gölgeler seçilmiyordu)
 		DIFFUSE_LIGHT += LIGHT_COLOR * shade / PI;
 	} else {
 		DIFFUSE_LIGHT += LIGHT_COLOR * mix(0.4, 1.0, smoothstep(0.0, 0.2, ndl)) * ATTENUATION / PI;

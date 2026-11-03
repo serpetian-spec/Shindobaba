@@ -662,6 +662,18 @@ func load_game(slot: int) -> bool:
 		profile["pos"] = null  # dünya ölçeği değişti: eski konum anlamsız, köyde başla
 		profile["world_ver"] = WORLD_VERSION
 	_migrate_jutsu_ids()
+	# eski kayıt: Hoshigaki oyuncu normal tenle kalmış olabilir (klan teni mavi / soluk gri)
+	if String(profile.get("clan", "")) == "hoshigaki" and profile.get("look") is Dictionary:
+		var sk = profile["look"].get("skin")
+		var col := Color(0.96, 0.8, 0.66)
+		if sk is Color:
+			col = sk
+		elif sk is String:   # JSON kaydı: "(r, g, b, a)"
+			var parts = String(sk).strip_edges().trim_prefix("(").trim_suffix(")").split(",")
+			if parts.size() >= 3:
+				col = Color(float(parts[0]), float(parts[1]), float(parts[2]))
+		if col.b < col.r + 0.02:   # mavimsi/gri değilse (normal insan teni)
+			profile["look"]["skin"] = ClanWorld.HOSHIGAKI_SKINS[0]
 	return true
 
 

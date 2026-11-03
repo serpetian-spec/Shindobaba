@@ -10,7 +10,7 @@ uniform float alpha_cut = 0.5;
 uniform bool use_alpha = false;  // gerçek saydamlık yerine kesme
 uniform float rim_amount = 0.35;
 uniform float hit_flash = 0.0;
-uniform float shade_floor = 0.62;
+uniform float shade_floor = 0.5;   // karakter gölgesi (dünyadan biraz açık: yüz kararmasın)
 // Byakugan: gözlerin çevresinde, şakaklara uzanan kabarık damarlar (yüz derisi)
 uniform float byakugan_veins = 0.0;
 uniform vec3 eye_c_r = vec3(-0.032, 1.62, 0.08);

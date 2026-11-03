@@ -703,7 +703,13 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 			carousel.call("Saç Stili", "hair_style", CharacterModel.HAIR_STYLES.keys(), CharacterModel.HAIR_STYLES.values())
 			swatches.call("Saç Rengi", "hair", [Color(0.3, 0.2, 0.12), Color(0.08, 0.08, 0.1), Color(0.18, 0.12, 0.1), Color(0.95, 0.8, 0.25), Color(0.98, 0.92, 0.6), Color(0.75, 0.25, 0.15),
 				Color(0.95, 0.4, 0.15), Color(0.9, 0.9, 0.92), Color(0.6, 0.6, 0.65), Color(0.2, 0.3, 0.6), Color(0.15, 0.18, 0.35), Color(0.9, 0.55, 0.7), Color(0.55, 0.3, 0.6), Color(0.25, 0.45, 0.25)])
-			swatches.call("Ten", "skin", [Color(0.98, 0.88, 0.8), Color(0.96, 0.8, 0.66), Color(0.86, 0.68, 0.52), Color(0.68, 0.5, 0.36), Color(0.5, 0.36, 0.26)])
+			if state["clan"] == "hoshigaki":
+				# Hoshigaki: mavi / soluk gri ten (normal ten seçenekleri yok)
+				if not ClanWorld.HOSHIGAKI_SKINS.has(state["skin"]):
+					state["skin"] = ClanWorld.HOSHIGAKI_SKINS[0]
+				swatches.call("Ten", "skin", ClanWorld.HOSHIGAKI_SKINS)
+			else:
+				swatches.call("Ten", "skin", [Color(0.98, 0.88, 0.8), Color(0.96, 0.8, 0.66), Color(0.86, 0.68, 0.52), Color(0.68, 0.5, 0.36), Color(0.5, 0.36, 0.26)])
 			if not state["clan"] in ["uchiha", "hyuga", "aburame"]:
 				swatches.call("Göz Rengi", "eye", [Color(0.25, 0.45, 0.8), Color(0.3, 0.2, 0.12), Color(0.25, 0.55, 0.3), Color(0.1, 0.1, 0.1), Color(0.6, 0.4, 0.15), Color(0.55, 0.55, 0.6), Color(0.6, 0.25, 0.55)])
 		"kiyafet":

@@ -138,6 +138,8 @@ func _ready() -> void:
 	if look_extra.is_empty():
 		lk.merge(Outfits.roll(_outfit_arch(), Outfits.village_near()), true)
 	lk.merge(look_extra, true)
+	if look_extra.is_empty():
+		lk["npc"] = true   # CharacterModel: hazır saç önbelleğini tercih et (kurulum donması olmasın)
 	look = lk
 	super._ready()
 	remove_from_group("fighters")

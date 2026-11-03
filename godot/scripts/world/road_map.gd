@@ -48,7 +48,7 @@ func _ready() -> void:
 render_mode unshaded, cull_disabled, blend_add, depth_draw_never, depth_test_disabled;
 void fragment() {
 	float e = 1.0 - smoothstep(0.36, 0.5, abs(UV.x - 0.5));
-	ALBEDO = vec3(0.0, e, 0.0);
+	ALBEDO = vec3(COLOR.r * e, e, 0.0);   // R: toprak sokak (arazi boyar), G: çimen maskesi
 }"""
 	_lane_mesh.material_override = lm
 	_sv.add_child(_lane_mesh)
@@ -123,8 +123,9 @@ void fragment() {
 	return s
 
 
-static func add_lane(a: Vector2, e: Vector2, half := 2.4) -> void:
-	lanes.append([a, e, half])
+## dirt: köy ara sokağı / patika -> arazide TOPRAK yol olarak boyanır (R + G); değilse yalnız çimen maskesi (G: ev tabanı, meydan)
+static func add_lane(a: Vector2, e: Vector2, half := 2.4, dirt := false) -> void:
+	lanes.append([a, e, half, dirt])
 	lanes_dirty = true
 
 
@@ -185,6 +186,7 @@ func _lane_ribbons() -> ArrayMesh:
 		var a: Vector2 = ln[0]
 		var e: Vector2 = ln[1]
 		var half: float = ln[2]
+		var dirt_c := Color(1, 0, 0) if ln.size() > 3 and bool(ln[3]) else Color(0, 0, 0)
 		if a.distance_to(center) > SIZE * 0.75:
 			continue
 		var A = Vector3(a.x, 0, a.y)
@@ -198,6 +200,7 @@ func _lane_ribbons() -> ArrayMesh:
 		B += dir * half * 0.5
 		for q in [[A - side, 0.0], [A + side, 1.0], [B + side, 1.0], [A - side, 0.0], [B + side, 1.0], [B - side, 0.0]]:
 			st.set_uv(Vector2(q[1], 0))
+			st.set_color(dirt_c)
 			st.add_vertex(q[0])
 		n += 1
 	if n == 0:

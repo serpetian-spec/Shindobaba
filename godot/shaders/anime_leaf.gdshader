@@ -8,7 +8,7 @@ uniform sampler2D leaf_tex : source_color, filter_linear_mipmap, repeat_disable;
 uniform float alpha_cut = 0.5;
 uniform float sway = 1.0;
 uniform float flutter = 1.0;
-uniform vec3 shadow_tint = vec3(0.5, 0.58, 0.62);
+uniform vec3 shadow_tint = vec3(0.32, 0.4, 0.47);
 global uniform float g_night;
 
 void vertex() {

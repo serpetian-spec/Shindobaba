@@ -129,15 +129,26 @@ void fragment() {
 	} else {
 		rmask = smoothstep(0.55, 0.9, bio.g) * 0.8;
 	}
-	float road = smoothstep(0.3, 0.6, rmask + (n2 - 0.5) * 0.22);
+	// toprak yol (ref toprakyol.png): kenar dalgalı ve düzensiz (genişlik yol boyunca değişir), çim öbekleri kenara taşar
+	float ew = vnoise(wpos.xz * 0.07) * 0.55 + vnoise(wpos.xz * 0.3) * 0.3 + vnoise(wpos.xz * 1.3) * 0.15;
+	float rm2 = rmask + (ew - 0.5) * 0.6;
+	float road = smoothstep(0.42, 0.5, rm2);
 	road *= smoothstep(-0.6, 0.1, wpos.y);   // su altında (deniz seviyesi 0) yol boyanmaz
-	vec3 dirt = vec3(0.74, 0.56, 0.36) * (0.85 + n3 * 0.2);
+	// lekeli toprak: büyük açık/koyu alanlar + küçük koyu benekler (çiğnenmiş toprak), ortası daha açık (yürüme izi)
+	// (yol dokusu 2 m/piksel: tonu ona bağlamak kare kare desen yapıyordu -> yalnız yumuşak dünya gürültüsü)
+	float blot = fbm(wpos.xz * 0.18 + vec2(13.1, 7.7));
+	float blot2 = fbm(wpos.xz * 0.6 + vec2(3.3, 1.9));
+	vec3 dirt = mix(vec3(0.5, 0.36, 0.23), vec3(0.74, 0.58, 0.39), smoothstep(0.32, 0.68, blot));   // sıcak kahve, açık-koyu alanlar
+	dirt = mix(dirt, dirt * vec3(0.78, 0.8, 0.7), smoothstep(0.55, 0.72, blot2) * 0.7);           // zeytin-koyu lekeler (ref)
+	dirt *= 0.94 + n3 * 0.1;
+	dirt = pow(dirt, vec3(2.2));   // tonlar sRGB'de seçildi (lineer verilince soluk bej görünüyordu)
 	if (b == 14 || b == 15) dirt = vec3(0.62, 0.6, 0.56) * (0.88 + n3 * 0.16);
 	if (b == 8 || b == 9) dirt = vec3(0.52, 0.47, 0.42) * (0.88 + n3 * 0.18);  // karlı/dağ yolu: ıslak çakıl
 	if (b != 11) dirt *= 1.0 + (texture(tex_dirt, wpos.xz * 0.2).r - 0.5) * 0.8;   // köy dışı toprak yol
-	// yol kenarı: tekerlek izi ortası hafif çimenli, kenarlarda çakıl
-	dirt *= 1.0 - 0.06 * smoothstep(0.75, 0.95, rmask);
-	base = mix(base, dirt, road * 0.92);
+	// kenar: toprağın hemen dışında koyu çim kuşağı (çim öbeklerinin gölgesi, anime boyama gibi)
+	float rim = smoothstep(0.3, 0.42, rm2) * (1.0 - road);
+	base *= 1.0 - rim * 0.28;
+	base = mix(base, dirt, road * 0.95);
 	// yarlar: katmanlı kaya
 	float rock = smoothstep(0.3, 0.5, slope + (n2 - 0.5) * 0.18);
 	float strata = sin(wpos.y * 0.9 + n1 * 3.0) * 0.5 + 0.5;
@@ -177,9 +188,10 @@ void fragment() {
 
 void light() {
 	float ndl = dot(NORMAL, LIGHT);
-	float t = smoothstep(-0.03, 0.05, ndl) * 0.6 + smoothstep(0.42, 0.5, ndl) * 0.4;
+	// ikinci bant yumuşak: düz zeminde ndl tam keskin eşiğe denk gelince her üçgen ayrı ton alıyor (kare kare zemin)
+	float t = smoothstep(-0.03, 0.05, ndl) * 0.6 + smoothstep(0.1, 0.65, ndl) * 0.4;
 	if (LIGHT_IS_DIRECTIONAL) {
-		vec3 shade = mix(vec3(0.5, 0.52, 0.7), vec3(1.0), t * ATTENUATION);
+		vec3 shade = mix(vec3(0.3, 0.33, 0.5), vec3(1.0), t * ATTENUATION);   // koyu, belirgin gölge (eskisi 0.5: gölgeler seçilmiyordu)
 		DIFFUSE_LIGHT += LIGHT_COLOR * shade / PI;
 	} else {
 		DIFFUSE_LIGHT += LIGHT_COLOR * (0.35 + 0.65 * t) * ATTENUATION / PI;

@@ -615,7 +615,7 @@ void light() {
 	float lit = t * ATTENUATION;
 	if (LIGHT_IS_DIRECTIONAL) {
 		// anime gölgesi: tamamen kararmaz, hafif soğuk tonlu (yalnız güneş/ay)
-		vec3 shade = mix(vec3(0.42, 0.44, 0.55), vec3(1.0), lit);
+		vec3 shade = mix(vec3(0.29, 0.31, 0.43), vec3(1.0), lit);   // koyu, belirgin anime gölgesi
 		DIFFUSE_LIGHT += LIGHT_COLOR * shade / PI;
 	} else {
 		// fener/efekt ışıkları: sadece gerçekten aydınlattığı yerde, yumuşak

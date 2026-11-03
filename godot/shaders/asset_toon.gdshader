@@ -60,7 +60,7 @@ void light() {
 	float t = smoothstep(-0.03, 0.05, ndl) * 0.6 + smoothstep(0.42, 0.5, ndl) * 0.4;
 	float lit = t * ATTENUATION;
 	if (LIGHT_IS_DIRECTIONAL) {
-		vec3 shade = mix(vec3(0.42, 0.45, 0.58), vec3(1.0), lit);
+		vec3 shade = mix(vec3(0.29, 0.32, 0.45), vec3(1.0), lit);
 		DIFFUSE_LIGHT += LIGHT_COLOR * shade / PI;
 	} else {
 		DIFFUSE_LIGHT += LIGHT_COLOR * (0.35 + 0.65 * t) * ATTENUATION / PI;

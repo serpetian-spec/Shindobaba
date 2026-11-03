@@ -188,6 +188,10 @@ static func clan_jutsu(c: String, lv: int, n := 4) -> Array:
 
 
 ## Klan görünümü (Color'lı look sözlüğü)
+## Hoshigaki teni (anime: Kisame mavi-gri, soluk gri): oyuncu yaratıcısı da bunları sunar
+const HOSHIGAKI_SKINS := [Color(0.5, 0.64, 0.8), Color(0.42, 0.56, 0.74), Color(0.66, 0.72, 0.78), Color(0.72, 0.76, 0.8)]
+
+
 static func clan_look(c: String, arch: String, vid: String, female := false, age := "adult") -> Dictionary:
 	var lk := CharacterModel.default_look()
 	lk.merge(Outfits.roll(arch, vid), true)
@@ -201,6 +205,8 @@ static func clan_look(c: String, arch: String, vid: String, female := false, age
 	for k in ["top_style", "mask", "face_mark", "skin"]:
 		if L.has(k):
 			lk[k] = L[k]
+	if c == "hoshigaki":
+		lk["skin"] = (HOSHIGAKI_SKINS as Array).pick_random()   # Kisame gibi mavi ya da soluk gri-mavi ten
 	if L.has("top") and arch != "rogue":
 		lk["top"] = L["top"]
 		lk["top2"] = (L["top"] as Color).darkened(0.15)

@@ -41,7 +41,7 @@ func _ready() -> void:
 	env.background_mode = Environment.BG_SKY
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_energy = 0.38
+	env.ambient_light_energy = 0.3   # gölgeleri yıkamasın (koyu, belirgin gölge)
 	# anime görünüm: filmic ton eşleme renkleri soldurur; lineer + yüksek doygunluk
 	env.tonemap_mode = Environment.TONE_MAPPER_LINEAR
 	env.tonemap_exposure = 1.0

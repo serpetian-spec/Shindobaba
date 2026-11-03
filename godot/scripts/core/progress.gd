@@ -147,6 +147,8 @@ func new_profile(opts: Dictionary) -> Dictionary:
 		"village": opts.get("village", "konoha"), "rep": {}, "bingo": {"list": [], "next": 1, "refresh": 900.0},
 	}
 	pr["look"]["village"] = pr["village"]
+	if pr["clan"] == "hoshigaki" and not ClanWorld.HOSHIGAKI_SKINS.has(pr["look"].get("skin")):
+		pr["look"]["skin"] = ClanWorld.HOSHIGAKI_SKINS[0]   # Hoshigaki teni mavi/gri (yaratıcıda değiştirilmediyse de)
 	# akademi öğrencisi: alın koruyucu yok
 	pr["look"]["band"] = null
 	return pr

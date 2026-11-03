@@ -40,30 +40,34 @@ func _ready() -> void:
 	mat.set_shader_parameter("village_count", vill.size())
 	mat.set_shader_parameter("radius", RADIUS)
 	material_override = mat
-	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON   # çimen öbekleri gölge düşürür (zemine otursun)
+	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF   # gür çimende gölge pahalı; dipteki koyulaşma oturtuyor
 	custom_aabb = AABB(Vector3(-RADIUS - 5, -500, -RADIUS - 5), Vector3(RADIUS * 2 + 10, 1500, RADIUS * 2 + 10))
 
 
 func _tuft_mesh() -> ArrayMesh:
-	## 3 çapraz yaprak demeti (her biri sivri üçgenler)
+	## Gür anime çimen tutamı (ref grass*.png): 7 geniş, kavisli, sivri yaprak; farklı boy ve eğim (halı gibi kesintisiz)
 	var st = SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for k in 3:
-		var a = k * PI / 3.0
-		var d = Vector3(cos(a), 0, sin(a))
-		for b in 3:
-			var o = d * (b - 1) * 0.12
-			var h = 0.32 + 0.14 * float(b == 1)
-			var lean = Vector3(-d.z, 0, d.x) * 0.12 * (b - 1)
-			st.set_normal(Vector3.UP)
-			st.set_uv(Vector2(0.0, 1.0))   # UV.x: yaprak enine (orta damar 0.5)
-			st.add_vertex(o - d * 0.035)
-			st.set_normal(Vector3.UP)
-			st.set_uv(Vector2(1.0, 1.0))
-			st.add_vertex(o + d * 0.035)
-			st.set_normal(Vector3.UP)
-			st.set_uv(Vector2(0.5, 0.0))
-			st.add_vertex(o + Vector3(0, h, 0) + lean)
+	var rng = RandomNumberGenerator.new()
+	rng.seed = 11
+	for k in 7:
+		var a = k * TAU / 7.0 + rng.randf_range(-0.4, 0.4)
+		var d = Vector3(cos(a), 0, sin(a))          # yaprağın yüzü
+		var side = Vector3(-d.z, 0, d.x)            # yaprağın eni
+		var o = d * rng.randf_range(0.0, 0.2) + side * rng.randf_range(-0.12, 0.12)
+		var h = rng.randf_range(0.45, 0.75)
+		var w = rng.randf_range(0.09, 0.13)
+		var lean = d * rng.randf_range(0.08, 0.22)   # dışa doğru kavis
+		var p0 = o
+		var p1 = o + Vector3(0, h * 0.55, 0) + lean * 0.4
+		var p2 = o + Vector3(0, h, 0) + lean
+		var q = [[p0 - side * w * 0.5, Vector2(0, 1.0)], [p0 + side * w * 0.5, Vector2(1, 1.0)],
+			[p1 + side * w * 0.36, Vector2(1, 0.45)], [p1 - side * w * 0.36, Vector2(0, 0.45)], [p2, Vector2(0.5, 0.0)]]
+		for tri in [[0, 1, 2], [0, 2, 3], [3, 2, 4]]:
+			for vi in tri:
+				st.set_normal(Vector3.UP)
+				st.set_uv(q[vi][1])   # UV.x: yaprak enine (orta damar 0.5)
+				st.add_vertex(q[vi][0])
 	return st.commit()
 
 
