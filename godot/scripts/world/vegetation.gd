@@ -51,6 +51,13 @@ func _ready() -> void:
 		# prosedürel bitki örtüsü (hazır model ağaçlar doğal durmuyordu, kaldırıldı): yakın tam model + uzak LOD
 		meshes[t] = [[Props.vegetation_mesh(t), null]]
 		var_count[t] = 1
+		if t in [0, 9]:   # anime ağaçları: birkaç çeşit (geniş / ince / meşe; orman devlerinde iki farklı taç)
+			meshes[t] = []
+			for vv in (3 if t == 0 else 2):
+				meshes[t].append([Props.vegetation_mesh(t, vv), null])
+			var_count[t] = meshes[t].size()
+			if t == 9:
+				meshes[t].append([AnimeTree.mesh("forest", "death", 2), null])   # yalnız Ölüm Ormanı (var_count dışında)
 		if t == 12:   # çiçek öbekleri: 6 farklı tür (öbek öbek, her öbekte tek tür)
 			meshes[t] = []
 			for v in Props.FLOWER_KINDS:
@@ -204,11 +211,14 @@ func _generate(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 		var my := -z
 		if _valley.w > 0.0 and absf(x - _valley.x) < _valley.w * 0.95 and my - _valley.y > _valley.z - 640.0 and my - _valley.y < _valley.z + 940.0:
 			continue   # Sonun Vadisi nehri / şelale üstü nehir: suyun içinde ağaç olmasın
+		var death := false
 		for sp in _specials:
 			var d := Vector2(x - sp[0], my - sp[1]).length()
 			if d > sp[2] and d < sp[3] and b != 11 and b < 13:
 				dens = maxf(dens, sp[5])
 				types = [sp[4], sp[4], 9, 0, 10, 8] if sp[4] == 5 else [9, 9, 9, 0, 10, 8]
+				if sp[4] == 5:
+					death = true
 		if dens <= 0.0:
 			continue
 		var clear := Game._wh_vn(x / 260.0, z / 260.0, 11) * 0.6 + Game._wh_vn(x / 130.0, z / 130.0, 12) * 0.4
@@ -268,6 +278,8 @@ func _generate(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 		var col := 1.0 + (rng.randf() - 0.5) * 0.2
 		var nv: int = var_count.get(t, 1)
 		var vi := int(rng.randf() * nv) % nv
+		if death and t == 9:
+			vi = 2   # Ölüm Ormanı: orman devleri koyu, kasvetli taçlı (anime 44. Alan)
 		# yer örtüsü: düzgün serpme yerine doğal öbekler; her öbekte tek tür
 		if t in [8, 10, 12, 15, 18]:
 			var patch := Game._wh_vn(x / 38.0, z / 38.0, 20 + t)
@@ -348,8 +360,10 @@ func _install(key: Vector2i, detail: bool, holder: Dictionary) -> void:
 			continue
 		var pv: Array = meshes[t][mini(vi, meshes[t].size() - 1)]
 		var near_end = (NEAR_FULL if not t in SMALL else (240.0 if t in [13, 19, 20, 17, 12] else 130.0)) * view
-		if t in [5, 11, 4, 9]:
+		if t in [11, 4]:
 			near_end = 650.0 * view
+		elif t in [5, 9]:
+			near_end = (420.0 if t == 5 else 280.0) * view   # anime ağacı: yakında öbek kartları, ötesi tek kartlı LOD (650 m tam model FPS'i öldürüyordu)
 		var has_lod = lods[t] != null
 		if pv.size() >= 3 and pv[1] != null and not t in SMALL:
 			# hazır model: yakında tam detay, orta mesafede basitleştirilmiş, en uzakta çok basit kopya

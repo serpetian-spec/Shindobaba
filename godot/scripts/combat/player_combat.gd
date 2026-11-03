@@ -974,6 +974,11 @@ func begin_cast(jid: String) -> void:
 		if ey == null or not ey.active:
 			Hud.msg("%s için önce gözlerini aç (V)." % String(j["name"]).split(" (")[0], Color(1, 0.55, 0.5))
 			return
+		# tekniğin gözü takılı olmalı (en az bir göz): Rinnegan tekniği Eternal Mangekyō ile atılmaz
+		var ek = String(j.get("learn", "")).substr(4)
+		if Progress.EYE_KINDS.has(ek) and not Progress.has_eye(ek):
+			Hud.msg("%s için en az bir gözün %s olmalı." % [String(j["name"]).split(" (")[0], {"rinnegan": "Rinnegan", "ems": "Eternal Mangekyō", "mangekyo": "Mangekyō", "sharingan": "Sharingan", "byakugan": "Byakugan", "tenseigan": "Tenseigan", "jogan": "Jōgan", "ketsuryugan": "Ketsuryūgan"}.get(ek, ek)], Color(1, 0.55, 0.5))
+			return
 	# moda bağlı teknikler: animedeki gibi yalnız sennin modunda / kuyruklu canavar modunda atılır
 	var need = String(j.get("need", ""))
 	if need == "sage" and not (modes and modes.sage):

@@ -79,23 +79,51 @@ class Animal extends Node3D:
 		var leg_x := 0.22
 		var leg_z := 0.5
 		match kind:
-			"geyik":
-				c = Color(0.62, 0.42, 0.25)
-				b.add("sphere", Vector3(0, 1.15, 0), Vector3(0.55, 0.6, 1.3), c, Vector3.ZERO, 10)
-				b.add("cyl", Vector3(0, 1.55, -0.62), Vector3(0.2, 0.7, 0.2), c, Vector3(-35, 0, 0), 6)
-				b.add("sphere", Vector3(0, 1.85, -0.85), Vector3(0.26, 0.26, 0.45), c, Vector3.ZERO, 8)
-				b.add("sphere", Vector3(0, 1.25, 0.66), Vector3(0.14, 0.14, 0.14), Color(0.95, 0.92, 0.88), Vector3.ZERO, 6)
+			"geyik":   # sika / Nara geyiği (ref Sika_deer.jpg + anime Nara ormanı): ince uzun bacak, yukarı boyun, dallı boynuz
+				c = Color(0.62, 0.4, 0.22)
+				var belly = Color(0.9, 0.82, 0.68)
+				var dk = c.darkened(0.25)
+				leg_h = 0.86; leg_z = 0.46; leg_x = 0.14; leg_r = 0.045
+				b.add_grad("sphere", Vector3(0, 1.12, 0.02), Vector3(0.46, 0.5, 1.2), c, c.lerp(belly, 0.45), Vector3.ZERO, 12)   # gövde (karın biraz açık)
+				b.add_grad("sphere", Vector3(0, 1.16, -0.38), Vector3(0.44, 0.58, 0.55), c, c.lerp(belly, 0.35), Vector3.ZERO, 10)   # göğüs
+				b.add_grad("sphere", Vector3(0, 1.18, 0.4), Vector3(0.44, 0.54, 0.54), c, c.darkened(0.1), Vector3.ZERO, 10)   # sağrı
+				b.add("cyl", Vector3(0, 1.5, -0.6), Vector3(0.2, 0.62, 0.24), c, Vector3(-38, 0, 0), 8)   # boyun
+				b.add("sphere", Vector3(0, 1.38, -0.56), Vector3(0.2, 0.26, 0.22), c.lerp(belly, 0.5), Vector3.ZERO, 8)   # boğaz
+				b.add("sphere", Vector3(0, 1.8, -0.8), Vector3(0.22, 0.24, 0.32), c, Vector3(-10, 0, 0), 10)   # kafa
+				b.add("sphere", Vector3(0, 1.74, -0.98), Vector3(0.13, 0.13, 0.24), c.lightened(0.05), Vector3(-15, 0, 0), 8)   # burun
+				b.add("sphere", Vector3(0, 1.72, -1.09), Vector3(0.07, 0.06, 0.05), Color(0.08, 0.07, 0.07), Vector3.ZERO, 6)
 				for sx in [-1.0, 1.0]:
-					b.add("cyl", Vector3(0.1 * sx, 2.2, -0.82), Vector3(0.04, 0.5, 0.04), Color(0.85, 0.78, 0.65), Vector3(10, 0, 30 * sx), 4)
-					b.add("cyl", Vector3(0.22 * sx, 2.35, -0.78), Vector3(0.035, 0.3, 0.035), Color(0.85, 0.78, 0.65), Vector3(-20, 0, 60 * sx), 4)
+					b.add("sphere", Vector3(0.1 * sx, 1.85, -0.87), Vector3(0.045, 0.05, 0.04), Color(0.06, 0.05, 0.05), Vector3.ZERO, 6)   # göz
+					b.add("sphere", Vector3(0.16 * sx, 1.93, -0.74), Vector3(0.07, 0.19, 0.1), c, Vector3(10, 0, 55 * sx), 6)   # kulak
+					# boynuz: ana dal yukarı-geri-dışa, önde bir çatal, tepede ikiye ayrılır
+					var ac = Color(0.72, 0.62, 0.48)
+					b.add("cyl", Vector3(0.1 * sx, 2.16, -0.74), Vector3(0.04, 0.42, 0.04), ac, Vector3(14, 0, -16 * sx), 5)
+					b.add("cyl", Vector3(0.12 * sx, 2.12, -0.83), Vector3(0.028, 0.22, 0.028), ac, Vector3(-45, 0, -8 * sx), 4)
+					b.add("cyl", Vector3(0.18 * sx, 2.44, -0.66), Vector3(0.028, 0.24, 0.028), ac, Vector3(25, 0, -30 * sx), 4)
+					b.add("cyl", Vector3(0.14 * sx, 2.46, -0.76), Vector3(0.026, 0.22, 0.026), ac, Vector3(-25, 0, -12 * sx), 4)
+				b.add("sphere", Vector3(0, 1.22, 0.66), Vector3(0.24, 0.28, 0.1), Color(0.97, 0.95, 0.92), Vector3.ZERO, 8)   # beyaz kuyruk lekesi
+				b.add("sphere", Vector3(0, 1.3, 0.7), Vector3(0.08, 0.16, 0.06), dk, Vector3(20, 0, 0), 6)   # kısa kuyruk
 				run_speed = 12.0
-			"domuz":
-				c = Color(0.32, 0.25, 0.2)
-				leg_h = 0.45; leg_z = 0.4; leg_r = 0.1
-				b.add("sphere", Vector3(0, 0.75, 0), Vector3(0.7, 0.7, 1.2), c, Vector3.ZERO, 10)
-				b.add("sphere", Vector3(0, 0.7, -0.65), Vector3(0.42, 0.42, 0.5), c.darkened(0.1), Vector3.ZERO, 8)
+			"domuz":   # yaban domuzu (ref Wild_boar.jpg): yüksek omuz kamburu, alçak sağrı, uzun kama kafa, yassı burun diski, sırt yelesi
+				c = Color(0.3, 0.26, 0.22)
+				var dk2 = Color(0.16, 0.14, 0.13)
+				leg_h = 0.44; leg_z = 0.38; leg_x = 0.16; leg_r = 0.055
+				b.add_grad("sphere", Vector3(0, 0.74, 0.05), Vector3(0.6, 0.66, 1.2), c, dk2, Vector3.ZERO, 12)   # gövde
+				b.add_grad("sphere", Vector3(0, 0.84, -0.3), Vector3(0.62, 0.78, 0.62), c.lightened(0.04), dk2, Vector3.ZERO, 10)   # omuz kamburu
+				b.add_grad("sphere", Vector3(0, 0.7, 0.45), Vector3(0.52, 0.56, 0.5), c, dk2, Vector3.ZERO, 10)   # sağrı
+				b.add_grad("sphere", Vector3(0, 0.7, -0.68), Vector3(0.36, 0.42, 0.5), c, dk2, Vector3(12, 0, 0), 10)   # kafa (kama)
+				b.add("cone", Vector3(0, 0.6, -0.98), Vector3(0.24, 0.42, 0.22), c.darkened(0.08), Vector3(-100, 0, 0), 8)   # uzun burun
+				b.add("cyl", Vector3(0, 0.57, -1.18), Vector3(0.15, 0.05, 0.13), Color(0.42, 0.34, 0.32), Vector3(80, 0, 0), 10)   # burun diski
 				for sx in [-1.0, 1.0]:
-					b.add("cone", Vector3(0.12 * sx, 0.6, -0.9), Vector3(0.04, 0.2, 0.04), Color(0.95, 0.92, 0.85), Vector3(-70, 0, 0), 4)
+					b.add("sphere", Vector3(0.035 * sx, 0.57, -1.205), Vector3(0.03, 0.03, 0.02), Color(0.08, 0.06, 0.06), Vector3.ZERO, 5)   # burun deliği
+					b.add("sphere", Vector3(0.13 * sx, 0.79, -0.82), Vector3(0.04, 0.035, 0.03), Color(0.05, 0.04, 0.04), Vector3.ZERO, 5)   # göz
+					b.add("cone", Vector3(0.13 * sx, 0.98, -0.6), Vector3(0.09, 0.18, 0.05), dk2, Vector3(-10, 0, -15 * sx), 5)   # dik kulak
+					b.add("cone", Vector3(0.09 * sx, 0.56, -1.04), Vector3(0.025, 0.12, 0.025), Color(0.95, 0.92, 0.84), Vector3(-25, 0, -25 * sx), 4)   # diş
+				for k in 8:   # sırt yelesi: omuzdan sağrıya diken diken kıl
+					var z = -0.6 + k * 0.14
+					b.add("cone", Vector3(0, 1.17 - absf(z + 0.3) * 0.22, z), Vector3(0.1, 0.16, 0.1), dk2, Vector3(15, 0, 0), 4)
+				b.add("cyl", Vector3(0, 0.66, 0.72), Vector3(0.03, 0.3, 0.03), dk2, Vector3(25, 0, 0), 4)   # ince kuyruk
+				b.add("sphere", Vector3(0, 0.53, 0.78), Vector3(0.06, 0.1, 0.05), dk2, Vector3.ZERO, 5)
 				run_speed = 8.0
 			"tilki":
 				c = Color(0.9, 0.45, 0.15)
@@ -134,7 +162,16 @@ class Animal extends Node3D:
 				pivot.position = Vector3(leg_x * sx, leg_h, sz)
 				body.add_child(pivot)
 				var lb = MB.new()
-				lb.add("cyl", Vector3(0, -leg_h * 0.5, 0), Vector3(leg_r * 2.0, leg_h, leg_r * 2.0), c.darkened(0.25) if kind != "turna" else Color(0.2, 0.2, 0.2), Vector3.ZERO, 5)
+				var lc = c.darkened(0.25) if kind != "turna" else Color(0.2, 0.2, 0.2)
+				if kind in ["geyik", "domuz"]:
+					# üst bacak (kas) + ince alt bacak + toynak; arka bacakta kalça kası
+					lb.add("cyl", Vector3(0, -leg_h * 0.22, 0), Vector3(leg_r * 2.2, leg_h * 0.48, leg_r * 2.4), c.darkened(0.08), Vector3.ZERO, 6)
+					lb.add("cyl", Vector3(0, -leg_h * 0.7, 0.0), Vector3(leg_r * 1.6, leg_h * 0.5, leg_r * 1.6), lc, Vector3(-4 if sz > 0 else 4, 0, 0), 5)
+					lb.add("cyl", Vector3(0, -leg_h + 0.04, 0), Vector3(leg_r * 2.0, 0.08, leg_r * 2.4), Color(0.1, 0.08, 0.07), Vector3.ZERO, 6)
+					if sz > 0:
+						lb.add("sphere", Vector3(-signf(sx) * leg_r * 0.6, 0.02, 0.02), Vector3(leg_r * 2.8, leg_h * 0.36, leg_r * 3.4), c, Vector3.ZERO, 7)
+				else:
+					lb.add("cyl", Vector3(0, -leg_h * 0.5, 0), Vector3(leg_r * 2.0, leg_h, leg_r * 2.0), lc, Vector3.ZERO, 5)
 				var lm = MeshInstance3D.new()
 				lm.mesh = lb.build(Props.toon())
 				pivot.add_child(lm)

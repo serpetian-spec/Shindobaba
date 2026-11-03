@@ -46,6 +46,8 @@ static func _site(vid: String, d: Dictionary) -> void:
 
 ## Ağaç: iklime göre (yeşil: geniş yapraklı, çöl: palmiye, sis/kaya/bulut: çam)
 static func tree(b: Builder, x: float, n: float, y: float, climate: String, rng: RandomNumberGenerator, s := 1.0) -> void:
+	if b._underwater(x, n, y):
+		return
 	match climate:
 		"desert":
 			var h = rng.randf_range(6.5, 9.0) * s
@@ -198,6 +200,9 @@ static func plaza(b: Builder, o: Dictionary) -> void:
 	var nm = front - depth * 0.5
 	# --- döşeme: kalın plaka (eğimde boşluk kalmasın), sınır bandı, derzler, orta yol
 	b.box(Vector3(cx, -0.55, nm), Vector3(hw * 2.0, 1.2, depth), stone, 0, false)
+	# yürüme katmanı: döşemenin (derz/yol/mozaik dahil) üstüne basılır, ayak araziye gömülmez
+	b._collide(b.w(Vector3(cx, -0.48, nm)), Vector3(hw * 2.0, 1.2, depth), 0.0)
+	grass_mask(b, cx, n0, front, hw)   # çimen döşemeden çıkmasın
 	for sz in [-1.0, 1.0]:
 		b.box(Vector3(cx, 0.07, nm + sz * (depth * 0.5 - 0.7)), Vector3(hw * 2.0, 0.04, 1.4), trim, 0, false)
 		b.box(Vector3(cx + sz * (hw - 0.7), 0.07, nm), Vector3(1.4, 0.04, depth), trim, 0, false)
@@ -300,6 +305,25 @@ static func plaza(b: Builder, o: Dictionary) -> void:
 	_site(vid, {"type": "pigeons", "pos": _gp(b, cx + 12, nm - 8)})
 	b.yoff = yo
 
+
+## Dikdörtgen alanı çimen maskesine yaz (yol dokusu G kanalı): yerel x [cx-hw, cx+hw], n [n0, n1].
+## RoadMap şeridi dikdörtgendir, uçları half*0.5 uzar: uzun eksen boyunca 4 şerit, taşma yok.
+static func grass_mask(b: Builder, cx: float, n0: float, n1: float, hw: float) -> void:
+	var RM = preload("res://scripts/world/road_map.gd")
+	var along_x = hw * 2.0 >= n1 - n0
+	var short = (n1 - n0) if along_x else hw * 2.0
+	var rows = 4
+	var half = short / rows * 0.5 * 1.1   # komşu şeritler hafif örtüşür
+	for r in rows:
+		var t = (r + 0.5) / rows
+		var a: Vector3; var e: Vector3
+		if along_x:
+			var nn = lerpf(n0, n1, t)
+			a = b.w(Vector3(cx - hw + half * 0.5, 0, nn)); e = b.w(Vector3(cx + hw - half * 0.5, 0, nn))
+		else:
+			var xx = lerpf(cx - hw, cx + hw, t)
+			a = b.w(Vector3(xx, 0, n0 + half * 0.5)); e = b.w(Vector3(xx, 0, n1 - half * 0.5))
+		RM.add_lane(Vector2(a.x, a.z), Vector2(e.x, e.z), half)
 
 ## Kage ofisi kapısı (iç mekân: Interiors "kage" odası)
 static func door(b: Builder, x: float, n: float, y: float, vid: String, label: String, radius := 5.0) -> void:

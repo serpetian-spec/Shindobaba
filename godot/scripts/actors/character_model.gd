@@ -6133,8 +6133,9 @@ func _key_blade() -> void:
 ## Yumruk sapın en ucunda (silah sap boyunca kaydırılır); kılıç ucu yere girecekse yerin hemen üstüne kaldırılır.
 func _key_blade_sk(sk: Skeleton3D, blade: Vector3) -> void:
 	for w0 in weapons:
-		if w0["id"] == "chakra_bicak":
-			return   # muşta bıçak: yumruğa bağlı, bilek silaha göre çevrilmez (kol pozları yeter)
+		if w0["id"] in ["chakra_bicak", "pence"]:
+			return   # muşta bıçak / pençe: yumruğa bağlı, bilek silaha göre çevrilmez (kol pozları yeter; pençenin ucu +x,
+			# kılıç gibi +z'yi "blade"e çevirmek sağ eldeki pençeyi yan yatırıyordu, sol el hiç çevrilmiyordu)
 		if w0["id"] == "sai_sol" and n_in_hand(w0):
 			_left_follow_forearm(sk, w0)   # sol sai: ucu ön kol doğrultusunda (yumruk nereye uzanırsa oraya saplar)
 	var hb = sk.find_bone("RightHand")

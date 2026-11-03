@@ -169,14 +169,23 @@ static func _hamlet(b: Builder, node: Node3D, p: Dictionary, rng: RandomNumberGe
 		b.box(Vector3(1.2 * sx, gy + 1.4, 0), Vector3(0.18, 1.8, 0.18), Color(0.45, 0.32, 0.2), 0, false)
 	# tarla + çit
 	var fx = rng.randf_range(45, 60) * (1 if rng.randf() < 0.5 else -1)
-	_fence(b, fx, 0, 26, 20, rng)
-	for k in 6:
-		var rowx = fx - 10 + k * 4
-		b.box(Vector3(rowx, _ground(b, rowx, 0) + 0.35, 0), Vector3(1.0, 0.7, 17), Color(0.4, 0.62, 0.25), 0, false)
+	# tarla bir yolun/sokağın üstüne düşmesin: o taraf doluysa öbür tarafa, ikisi de doluysa tarla yok
+	var pc = Vector2(float(p["x"]), float(p["y"]))
+	if not Roadside._road_clear(pc + Vector2(fx, 0), 16.0):
+		fx = -fx
+	if Roadside._road_clear(pc + Vector2(fx, 0), 16.0):
+		_hamlet_field(b, fx, rng)
 	# köylüler
 	var pts = _ring_pts(30, 6)
 	for i in rng.randi_range(3, 5):
 		_villager(node, b, ["walker", "walker", "sitter", "kid"][i % 4], spots[i % spots.size()] * 0.6, pts)
+
+
+static func _hamlet_field(b: Builder, fx: float, rng: RandomNumberGenerator) -> void:
+	_fence(b, fx, 0, 26, 20, rng)
+	for k in 6:
+		var rowx = fx - 10 + k * 4
+		b.box(Vector3(rowx, _ground(b, rowx, 0) + 0.35, 0), Vector3(1.0, 0.7, 17), Color(0.4, 0.62, 0.25), 0, false)
 
 
 # ------------------------------------------------------------------ han: büyük iki katlı yapı, tabela, banklar, ahır

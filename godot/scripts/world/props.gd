@@ -107,14 +107,18 @@ static func _leaf_cluster_c(b: MB, p: Vector3, s: float, hi: Color, lo: Color) -
 
 ## Köy / şehir ağacı türleri (her biri ayrı silüet + renk). Yaprak dökümü de bu renkleri kullanır (VILLAGE_TREE_LEAF).
 ## 0 geniş yapraklı, 1 sakura, 2 momiji (kızıl akçaağaç), 3 yaşlı meşe (geniş, katlı taç), 4 servi (sütun), 5 ginkgo (sarı), 6 söğüt (sarkık)
-const VILLAGE_TREE_W := [30, 12, 8, 16, 12, 6, 8]
+const VILLAGE_TREE_W := [30, 12, 8, 16, 0, 6, 0]   # 4 servi + 6 söğüt (eski küre/şerit stil) kaldırıldı: anime ağaçları
 const VILLAGE_TREE_LEAF := [Color(0.42, 0.68, 0.26), Color(1.0, 0.75, 0.84), Color(0.92, 0.33, 0.16), Color(0.36, 0.58, 0.22), Color(0.2, 0.42, 0.24), Color(0.98, 0.82, 0.25), Color(0.55, 0.75, 0.32)]
 const VILLAGE_TREE_TOP := [7.4, 6.2, 6.0, 8.6, 9.0, 7.6, 6.0]   # yaprak dökümü için taç yüksekliği (ölçek 1)
 
 
 static func village_tree_mesh(v: int) -> ArrayMesh:
-	if v == 0:
-		return vegetation_mesh(0)
+	match v:
+		0: return AnimeTree.mesh("broad", "green", 1)
+		1: return AnimeTree.mesh("broad", "sakura", 2)
+		2: return AnimeTree.mesh("slender", "momiji", 3)
+		3: return AnimeTree.mesh("oak", "green", 4)
+		5: return AnimeTree.mesh("slender", "ginkgo", 5)
 	var b = MB.new()
 	var bark = Color(0.4, 0.27, 0.17)
 	match v:
@@ -238,7 +242,17 @@ static func flower_mesh(v: int) -> ArrayMesh:
 	return b.build(foliage())
 
 
-static func vegetation_mesh(t: int) -> ArrayMesh:
+## Anime ağaçları (AnimeTree, ref tree1..10): orman/geniş yapraklı/Ölüm Ormanı/çalı
+const ANIME_T := {0: ["broad", "green"], 5: ["giant", "death"], 8: ["bush", "bush"], 9: ["forest", "forest"], 18: ["bush", "bush"]}
+
+
+static func vegetation_mesh(t: int, variant := 0) -> ArrayMesh:
+	if ANIME_T.has(t):
+		var k: Array = ANIME_T[t]
+		var kind: String = k[0]
+		if t == 0:
+			kind = ["broad", "slender", "oak"][variant % 3]
+		return AnimeTree.mesh(kind, k[1], variant)
 	var b = MB.new()
 	var bark = Color(0.4, 0.27, 0.17)
 	match t:
@@ -377,6 +391,9 @@ static func vegetation_mesh(t: int) -> ArrayMesh:
 
 ## Uzak mesafe (LOD) modeli: aynı silüet, çok az poligon
 static func vegetation_lod(t: int) -> ArrayMesh:
+	if t in [0, 5, 9]:
+		var k: Array = ANIME_T[t]
+		return AnimeTree.mesh(k[0], k[1], 0, true)
 	var b = MB.new()
 	var bark = Color(0.4, 0.27, 0.17)
 	match t:

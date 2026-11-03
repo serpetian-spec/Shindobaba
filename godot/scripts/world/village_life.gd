@@ -155,8 +155,11 @@ func _process(dt: float) -> void:
 				freed += 1
 				n.queue_free()
 				npcs.erase(n)
-		elif n.global_position.distance_to(p) > 150.0:
-			far.append(n)
+		else:
+			var dn = n.global_position.distance_to(p)
+			if dn > 150.0:
+				far.append(n)
+			_shadow_lod(n, dn)
 	_relocate(v)
 	_update_sites(v, p)
 	_update_crowd(v, p)
@@ -700,3 +703,17 @@ class PigeonFlock extends Node3D:
 			if reset_t > 20.0 and pd > 25.0:
 				reset_t = 0.0
 				_land()
+
+
+## Uzak köylü gölge atmaz (kişi başı ~40 bin üçgen x gölge katmanları: kalabalık meydanda/antrenman alanında FPS düşüyordu)
+static func _shadow_lod(n: Node, d: float) -> void:
+	var want = d < 40.0
+	if n.has_meta("shadow_on") and bool(n.get_meta("shadow_on")) == want:
+		return
+	n.set_meta("shadow_on", want)
+	for g in n.find_children("*", "GeometryInstance3D", true, false):
+		if g.has_meta("no_shadow_base"):
+			continue
+		if not g.has_meta("shadow0"):
+			g.set_meta("shadow0", g.cast_shadow)
+		g.cast_shadow = g.get_meta("shadow0") if want else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

@@ -137,6 +137,24 @@ static func _pillar(b: Builder, x: float, n: float, g: float, h: float, r: float
 
 
 static func _torii(b: Builder, x: float, n: float, g: float, yaw: float, s: float) -> void:
+	# yolun üstündeyse yolu tam kaplasın: direkler yol kenarının dışında (dar torii yolun ortasında kalıyordu)
+	var c0 = b.w(Vector3(x, 0, n))
+	if Game.road_at(c0.x, c0.z) > 0.3:
+		var ax = Builder.rot(1.0, 0.0, yaw)
+		var axw = Vector3(ax.x, 0, -ax.y)
+		var ext = [0.0, 0.0]
+		for k in 2:
+			var sg = 1.0 if k == 0 else -1.0
+			var d = 0.0
+			while d < 24.0 and Game.road_at(c0.x + axw.x * d * sg, c0.z + axw.z * d * sg) > 0.12:
+				d += 0.5
+			ext[k] = d
+		var need = (ext[0] + ext[1] + 2.0) / 5.2
+		if need > s and ext[0] < 24.0 and ext[1] < 24.0:   # 24 m'ye ulaştıysa torii yol boyunca duruyor: ölçekleme
+			var mid = (ext[0] - ext[1]) * 0.5   # yolun ortasına kaydır
+			x += ax.x * mid
+			n += ax.y * mid
+			s = need
 	# hazır torii modeli (kırmızı, siyah üst kiriş)
 	if b.prop("torii_red", Vector3(x, g - 0.1, n), yaw, 7.2 * s):
 		for sx2 in [-1.0, 1.0]:

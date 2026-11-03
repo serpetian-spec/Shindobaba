@@ -59,6 +59,8 @@ const CLEAR_R := {"farm": 62.0, "teahouse": 16.0, "stall": 12.0, "campfire": 10.
 	"ruin_tower": 12.0, "cave": 14.0, "rocks": 10.0, "statue": 9.0, "rest": 11.0, "haystack": 11.0, "shrine": 10.0, "torii": 9.0,
 	"jizo_row": 7.0, "well": 8.0, "bridge": 0.0, "milestone": 0.0, "deck": 0.0}
 static func _add_slot(s: Dictionary) -> void:
+	if not s["t"] in ["bridge", "deck"] and Game.terrain_height(float(s["x"]), -float(s["y"])) < 0.5:
+		return   # su altında / kıyı çizgisinde yol kenarı yapısı yok
 	var cr: float = CLEAR_R.get(s["t"], 10.0)
 	if cr > 0.0:
 		_add_clear(s["x"], s["y"], cr)
@@ -121,6 +123,15 @@ static func _wiggle_path(a: Vector2, b: Vector2, seed_v: int) -> PackedVector2Ar
 		out.append(a + d * t + side * rng.randf_range(-1.0, 1.0) * minf(d.length() * 0.06, 12.0))
 	out.append(b)
 	return out
+
+
+## r metre içinde hiçbir yol (ana yol, sokak, patika) yok mu
+static func _road_clear(m: Vector2, r: float) -> bool:
+	for e in Game.road_segments_near(m, r):
+		var pts: PackedVector2Array = Game.roads[e.x]["pts"]
+		if Geometry2D.get_closest_point_to_segment(m, pts[e.y], pts[e.y + 1]).distance_to(m) < r + 3.0:
+			return false
+	return true
 
 
 ## Bir noktaya en yakın ana yol noktası
@@ -191,7 +202,8 @@ static func init() -> void:
 						var sd := 1.0 if (h >> 3) % 2 == 0 else -1.0
 						var q := p + side * (15.0 + float((h >> 5) % 8)) * sd
 						var kind: String = ROADSIDE_KINDS[(h >> 8) % ROADSIDE_KINDS.size()]
-						_add_slot({"t": kind, "x": q.x, "y": q.y, "yaw": yaw + (90.0 * sd), "seed": h})
+						if _road_clear(q, float(CLEAR_R.get(kind, 10.0)) * 0.8):   # başka bir yol/sokak üstüne kurulmasın
+							_add_slot({"t": kind, "x": q.x, "y": q.y, "yaw": yaw + (90.0 * sd), "seed": h})
 				if here >= next_farm:
 					var h2 := hash(Vector3i(ri, si, int(here) * 3))
 					next_farm += FARM_STEP + float(h2 % 600) - 200.0
@@ -199,7 +211,11 @@ static func init() -> void:
 						var sd2 := 1.0 if (h2 >> 2) % 2 == 0 else -1.0
 						var fq := p + side * (55.0 + float((h2 >> 4) % 30)) * sd2
 						var b_bio := Game.biome_at(fq.x, -fq.y)
-						if not b_bio in [0, 1, 8, 9, 11, 12, 13, 14, 15]:
+						var fyaw := rad_to_deg(atan2(-side.x * sd2, -side.y * sd2))
+						var gq := fq + Builder.rot(0.0, 22.0, fyaw)
+						var gq2 := gq + Builder.rot(24.0, 0.0, fyaw)
+						# çiftlik evi, bahçe/tarla ve ikinci tarla başka bir yolun üstüne düşmesin (yolun ortasında tarla olayı)
+						if not b_bio in [0, 1, 8, 9, 11, 12, 13, 14, 15] and _road_clear(fq, 22.0) and _road_clear(gq, 18.0) and _road_clear(gq2, 16.0):
 							_add_slot({"t": "farm", "x": fq.x, "y": fq.y, "yaw": rad_to_deg(atan2(-side.x * sd2, -side.y * sd2)), "seed": h2})
 							add_path(_wiggle_path(p, fq, h2))
 				t += 20.0

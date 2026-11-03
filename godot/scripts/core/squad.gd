@@ -108,11 +108,10 @@ static func sensei_arch(level: int) -> Dictionary:
 	a["sub"] = 0.45
 	a["aggr"] = 0.45
 	a["element"] = s["element"]
-	var auto = Enemy.auto_jutsu("rogue", String(s["element"]), level)
-	if not auto.is_empty():
-		a["jutsu"] = auto
-		a["auto_jutsu"] = auto.duplicate()
-		a["auto_lv"] = level
+	var arts = sensei_arts()
+	var own = arts.filter(func(j): return String(Data.jutsu.get(j, {}).get("category", "")) == "ninjutsu")
+	if not own.is_empty():
+		a["jutsu"] = own.slice(maxi(0, own.size() - 4))   # savaşta kendi tekniklerini kullanır (öğrettikleri gözünün önünde)
 	var L: Dictionary = a["look"]
 	L["hair"] = _c(s["hair"])
 	L["hair_style"] = s["hair_style"]
@@ -284,7 +283,10 @@ func _talk(key: String) -> void:
 	var lines = ["Bugün hangi göreve gidiyoruz?", "Seninle aynı takımda olmak iyi. Arkanı ben kollarım.", "Chūnin Sınavı'na birlikte gireceğiz, unutma!",
 		"Dün gece yeni bir mühür dizisi çalıştım; görmelisin."]
 	var txt = lines.pick_random() if key != "sensei" else "Takımın hocası olarak yanınızdayım; ama işi siz bitirin. Ben yalnız işler kötüye giderse araya girerim."
-	Hud.dialog(who, txt, [
+	var extra: Array = []
+	if key == "sensei":
+		extra.append({"label": "Bana bir teknik öğretir misin?", "cb": func(): _lesson_menu()})
+	Hud.dialog(who, txt, extra + [
 		{"label": "Takım: köyde bekleyin (tek başıma gideceğim)", "cb": func():
 			sq["follow"] = false
 			_despawn_all()
@@ -299,3 +301,154 @@ static func recall() -> void:
 		return
 	sq["follow"] = true
 	Hud.msg("Takımın yola çıktı, birazdan yanında.", Color(0.6, 1.0, 0.7))
+
+
+# ------------------------------------------------------------------ hocadan teknik öğrenme
+## Hocanın kendi teknikleri (klan / kekkei genkai / göz / yasak / yol / imza DEĞİL): kendi doğasından ninjutsu (C..S) +
+## bir genel teknik (taijutsu / genjutsu / akademi eğitmen dalı). Takım kurulunca bir kez seçilir, kayıtta sabit kalır.
+const NOT_TEACH := ["clan", "kg", "eye", "kinjutsu", "quest", "sage", "path", "beast", "weapon", "contract", "locked"]
+
+
+static func _teachable(jid: String) -> bool:
+	var j = Data.jutsu.get(jid)
+	if not j is Dictionary or jid.begins_with("_") or jid in Enemy.SIGNATURE or jid.begins_with("bashosen"):
+		return false
+	var lp = String(j.get("learn", "")).split(":")[0]
+	if lp in NOT_TEACH or String(j.get("blood", "")) != "" or String(j.get("need", "")) != "" or String(j.get("virtual", "")) != "":
+		return false
+	return true
+
+
+static func sensei_arts() -> Array:
+	var sq = ensure_formed()
+	if sq.is_empty():
+		return []
+	var s: Dictionary = sq["sensei"]
+	if s.has("arts"):
+		return s["arts"]
+	var el = String(s["element"])
+	# jōnin iki doğa taşır: kendi doğası + öğrencisinin doğası (yoksa öğretebileceği hiçbir şey öğrenciye uymazdı)
+	var mine: Array = pr().get("elements", [])
+	var el2 = String(mine[0]) if not mine.is_empty() and String(mine[0]) != el else ""
+	var by_rank = {}
+	var by2 = {}
+	var general = []
+	for jid in Data.jutsu:
+		if not _teachable(jid):
+			continue
+		var j: Dictionary = Data.jutsu[jid]
+		var lp = String(j.get("learn", ""))
+		var r = int(Enemy.RANK_I.get(String(j.get("canon_rank", "")), -1))
+		var jel = String(j.get("element", ""))
+		if jel != "" and jel in [el, el2] and String(j.get("category", "")) == "ninjutsu" and (j.get("elements", []) as Array).size() <= 1 and r >= 2 and r <= 5:
+			var bucket: Dictionary = by_rank if jel == el else by2
+			if not bucket.has(r):
+				bucket[r] = []
+			bucket[r].append(jid)
+		elif String(j.get("element", "")) == "" and lp in ["trainer:taijutsu", "trainer:genjutsu", "trainer:jonin"] and r >= 2 and r <= 4:
+			general.append(jid)
+	var out = []
+	for r in [2, 3, 3, 4, 5]:   # C, iki B, A, S: yolun başından jōnin sırrına
+		var pool: Array = (by_rank.get(r, []) as Array).filter(func(x): return not x in out)
+		if not pool.is_empty():
+			out.append(pool.pick_random())
+	for r in [2, 3, 4]:   # öğrencinin doğasından C, B, A
+		var pool2: Array = (by2.get(r, []) as Array).filter(func(x): return not x in out)
+		if not pool2.is_empty():
+			out.append(pool2.pick_random())
+	if not general.is_empty():
+		out.append(general.pick_random())
+	out.sort_custom(func(a, b): return int(Data.jutsu[a].get("level", 1)) < int(Data.jutsu[b].get("level", 1)))
+	s["arts"] = out
+	return out
+
+
+## Ders hakkı: takım kurulurken 1 + bitirilen her görev 1 (hoca emeği görür)
+static func lessons_left() -> int:
+	var sq = data()
+	return 1 + Progress.genin_missions() - int(sq.get("lessons", 0))
+
+
+func _sensei_node() -> Node:
+	for m in members:
+		if m["key"] == "sensei" and m["node"] != null and is_instance_valid(m["node"]) and not m["node"].is_dead():
+			return m["node"]
+	return null
+
+
+func _lesson_menu() -> void:
+	var sq: Dictionary = data()
+	var who = String(sq["sensei"]["name"])
+	var learned: Array = pr().get("learned", [])
+	var opts = []
+	var locked = []
+	for jid in sensei_arts():
+		if jid in learned:
+			continue
+		var j: Dictionary = Data.jutsu[jid]
+		var why = Progress.can_learn(jid)
+		if why == "":
+			why = Progress.element_block(jid)
+		if why == "":
+			opts.append({"label": "%s [%s]" % [String(j["name"]), String(j.get("canon_rank", "?"))], "tip": String(j.get("desc", "")), "cb": func(): _teach(jid)})
+		else:
+			locked.append("%s — %s" % [String(j["name"]).split(" (")[0], why])
+	if opts.is_empty() and locked.is_empty():
+		Hud.dialog(who, "Bildiğim her şeyi sana öğrettim. Gerisi senin yolun; kendi tekniğini kendin bul.", [])
+		return
+	var txt = "Klanımın ya da kanımın sırları değil, kendi emeğimle edindiğim teknikler bunlar. Hangisini göstermemi istersin?"
+	if lessons_left() <= 0:
+		txt = "Önce bir görev daha bitirelim. Sahada ne öğrendiğini görmeden yeni teknik vermem."
+		opts.clear()
+	if not locked.is_empty():
+		txt += "
+
+Henüz hazır değilsin:
+" + "
+".join(locked)
+	opts.append({"label": "Sonra", "cb": func(): pass})
+	Hud.dialog(who, txt, opts)
+
+
+## Ders: hoca açık alana döner, mühürleri yavaşça yapıp tekniği gösterir; sonra öğrenci dener ve öğrenir
+func _teach(jid: String) -> void:
+	var sq: Dictionary = data()
+	var who = String(sq["sensei"]["name"])
+	var j: Dictionary = Data.jutsu[jid]
+	var e = _sensei_node()
+	sq["lessons"] = int(sq.get("lessons", 0)) + 1
+	var jn = String(j["name"]).split(" (")[0]
+	var seals: Array = j.get("seals", [])
+	Hud.dialog(who, "İyi izle. %s%s" % [jn, (" — mühürler: " + " - ".join(seals)) if not seals.is_empty() else ""], [])
+	if e != null and Game.player:
+		# gösteri: oyuncudan uzağa, boş tarafa doğru (kimseye zarar vermeden)
+		var away = (e.global_position - Game.player.global_position)
+		away.y = 0
+		if away.length() < 0.5:
+			away = -Game.player.face_dir()
+		away = away.normalized()
+		var mark = TrainingDummy.new()   # hoca bir kukla diker ve tekniği ona gösterir
+		mark.position = e.global_position + away * 10.0
+		get_tree().current_scene.add_child(mark)
+		FX.smoke_puff(mark.global_position + Vector3.UP, 0.7, 8)
+		e.set_physics_process(false)
+		e.facing = atan2(-away.x, -away.z)
+		e.model.rotation = Vector3(0, e.facing, 0)
+		CastAnim.play(e, jid, 1.2)   # yavaş, gösterir gibi mühür
+		e.model.overlay.set_pose("seal", 1.0)
+		await get_tree().create_timer(1.25).timeout
+		if is_instance_valid(e):
+			e.model.overlay.set_pose("seal", 0.0)
+			Jutsu.execute(e, jid, mark)
+		await get_tree().create_timer(2.0).timeout
+		if is_instance_valid(e):
+			e.set_physics_process(true)
+		await get_tree().create_timer(1.5).timeout
+		if is_instance_valid(mark):
+			FX.smoke_puff(mark.global_position + Vector3.UP, 0.7, 8)
+			mark.queue_free()
+	else:
+		await get_tree().create_timer(0.8).timeout
+	if Progress.learn(jid):
+		Journal.add("%s bana %s tekniğini öğretti." % [who, jn], "milestone")
+		Hud.dialog(who, "Şimdi sen dene. İlk denemede olmazsa üzülme; ben de yüz kere yaktım ellerimi. Çalıştıkça ustalaşırsın.", [])

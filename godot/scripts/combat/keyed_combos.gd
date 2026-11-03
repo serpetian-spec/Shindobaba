@@ -1840,7 +1840,7 @@ static func _summon_three(who: Node3D, dmg: float, form: String) -> void:
 	var side = Vector3.UP.cross(f).normalized()
 	FX.smoke_puff(who.global_position + Vector3.UP * 1.3 + f * 1.4, 0.7, 10)
 	for k in 3:
-		var o = {"mesh": "fuma_kare", "hold": false, "hide_held": false, "return": false, "radius": 0.6, "spin": 2.4, "knock": 5.0}
+		var o = {"mesh": "fuma_kare", "hold": false, "hide_held": false, "return": false, "radius": 1.05, "spin": 2.4, "knock": 5.0, "scale": 1.8}   # büyük çağrı shurikenleri (1.8x)
 		var s = float(k - 1)
 		match form:
 			"fan":

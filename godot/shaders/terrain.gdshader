@@ -130,6 +130,7 @@ void fragment() {
 		rmask = smoothstep(0.55, 0.9, bio.g) * 0.8;
 	}
 	float road = smoothstep(0.3, 0.6, rmask + (n2 - 0.5) * 0.22);
+	road *= smoothstep(-0.6, 0.1, wpos.y);   // su altında (deniz seviyesi 0) yol boyanmaz
 	vec3 dirt = vec3(0.74, 0.56, 0.36) * (0.85 + n3 * 0.2);
 	if (b == 14 || b == 15) dirt = vec3(0.62, 0.6, 0.56) * (0.88 + n3 * 0.16);
 	if (b == 8 || b == 9) dirt = vec3(0.52, 0.47, 0.42) * (0.88 + n3 * 0.18);  // karlı/dağ yolu: ıslak çakıl

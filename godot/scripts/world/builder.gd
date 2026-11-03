@@ -659,6 +659,8 @@ func tree(x: float, n: float, s: float, rng: RandomNumberGenerator, y := 0.0) ->
 		pick -= Props.VILLAGE_TREE_W[vi]
 		vi += 1
 	var tm = _tree_meshes[vi]
+	if _underwater(x, n, y):
+		return   # su altında ağaç yok
 	for gx in range(-1, 2):   # yalnız evler (32 m ızgara): tacı binanın içinden fışkırmasın; saksı ağaçları etkilenmez
 		for gz in range(-1, 2):
 			for h in house_grid.get(Vector2i(floori(x / 32.0) + gx, floori(n / 32.0) + gz), []):
@@ -691,7 +693,15 @@ func pack_mesh(m: Mesh, p: Vector3, yaw_deg := 0.0, scale := 1.0, dist := 1.0) -
 
 ## Hazır aksesuar (AssetLib.PROPS anahtarı): torii, pagoda, stone_lamp, red_lantern, post_lantern, bench, shrine...
 ## collide: >0 ise o yarıçapta silindir çarpışma
+## Bu yerel noktada taban su yüzeyinin (deniz seviyesi 0) altında mı (arazi de suyun altında)
+func _underwater(x: float, n: float, y: float) -> bool:
+	var wp = w(Vector3(x, y, n))
+	return wp.y < -0.3 and Game.terrain_height(wp.x, wp.z) < -0.3
+
+
 func prop(kind: String, p: Vector3, yaw_deg := 0.0, height := 0.0, collide := 0.0) -> bool:
+	if _underwater(p.x, p.z, p.y):
+		return true   # su altında süs yok (true: çağıran yedek prosedürel modeli de kurmasın)
 	var m = AssetLib.prop(kind, height)
 	if m == null:
 		return false
