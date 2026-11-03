@@ -34,9 +34,9 @@ const MS_STYLES := {
 	"kakashi": {"name": "Kakashi tarzı", "theme": "Uzak menzil Kamui ve şimşek", "eyes": ["kamui", "kamui_shuriken"],
 		"jutsu": ["kamui_raikiri", "raiden", "kamuibashiri", "susanoo"]},
 	"madara": {"name": "Madara tarzı", "theme": "Susanoo ve kara alev", "eyes": ["susanoo_hozan", "susanoo_tsukumo"],
-		"jutsu": ["susanoo", "susanoo_gokakyu", "enton_yasaka_no_magatama"]},
+		"jutsu": ["susanoo", "susanoo_gokakyu", "enton_yasaka_no_magatama", "kyoso_enbu"]},
 	"shisui": {"name": "Shisui tarzı", "theme": "Kotoamatsukami ve göz açıp kapayan hız", "eyes": ["kotoamatsukami", "@shisui_shunshin"],
-		"jutsu": ["susanoo", "kyoso_enbu"]},
+		"jutsu": ["susanoo"]},
 }
 const ABILITY_NAMES := {"@kamui_kyuin": "Kamui: içine çek", "@kamui_tobi": "Kamui: ışınlan", "@shisui_shunshin": "Shisui'nin Shunshin'i"}
 

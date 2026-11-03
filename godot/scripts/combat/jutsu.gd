@@ -2559,26 +2559,34 @@ func j_tsukuyomi(c: Node3D, t: Node3D) -> void:
 		Combat.popup_text(n.global_position + Vector3.UP * 2.4, "Zihni çöktü", Color(0.9, 0.3, 0.35)))
 
 
-## Kamui: hedefin çevresinde uzayı büken girdap — çekip parçalar
+## Kamui (kanon, Kakashi'nin uzak menzili): bakılan odak noktasında uzay bükülür ve oradaki şey boyuta çekilir. Odaklanma
+## zaman ister: girdap ~1.1 sn büyür; hedef bu sürede noktadan çıkarsa kurtulur (Deidara kolunu böyle kaybetti). Yakalanırsa
+## Kamui çekişi (MsArts.kamui_warp): zayıflamış hedef bütünüyle, güçlüsünün bir parçası boyuta gider.
 func j_kamui(c: Node3D, t: Node3D) -> void:
-	var tg = _tg(c, t, 30.0)
-	var pos: Vector3 = (tg.global_position + Vector3.UP * tg.height * 0.5) if tg else _aim_ground(c, t, 12.0, 30.0) + Vector3.UP
-	var sw = VFX._mi(VFX._sphere(0.5, 32, 16), VFX.mat_spiral(Color(0.05, 0.02, 0.08), Color(0.3, 0.15, 0.45), 3.0, 8.0, 10.0, 1.0, Vector3(0, 0, 1)))
-	get_tree().current_scene.add_child(sw)
-	sw.global_position = pos
-	sw.scale = Vector3(0.1, 0.1, 0.02)
-	var tw = sw.create_tween()
-	tw.tween_property(sw, "scale", Vector3(9.0, 9.0, 1.0), 0.4).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-	tw.parallel().tween_property(sw, "rotation:z", TAU * 2.0, 1.4)
-	tw.tween_interval(0.6)
-	tw.tween_property(sw, "scale", Vector3(0.02, 0.02, 0.02), 0.4).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
-	tw.tween_callback(sw.queue_free)
+	var tg = _tg(c, t, 35.0)
+	var pos: Vector3 = (tg.global_position + Vector3.UP * float(tg.height) * 0.5) if tg else _aim_ground(c, t, 12.0, 35.0) + Vector3.UP
+	var FOCUS = 1.1
+	MsArts.kamui_vortex(pos, 2.4, FOCUS + 0.5)
 	Sfx.play("genjutsu", pos, 0.7)
+	if c is Player:
+		Hud.msg("Kamui: odaklanıyor...", Color(0.75, 0.6, 0.95), 0.9)
 	if tg:
-		tg.apply_status("stun", 1.4)
-		_ticks(5, 0.2, func(_i):
-			if is_instance_valid(tg) and not tg.is_dead():
-				tg.take_hit(_inf(c, "kamui", 0.35, {"knock": 0.0, "attacker": c, "dir": Vector3.ZERO})))
+		tg.apply_status("slow", FOCUS)
+	var wr = weakref(tg) if tg else null
+	get_tree().create_timer(FOCUS).timeout.connect(func():
+		if not is_instance_valid(c):
+			return
+		var n = wr.get_ref() if wr else null
+		var caught = []
+		for h in MsArts._foes(c, pos, 2.2):
+			caught.append(h)
+		if n != null and is_instance_valid(n) and not n in caught:
+			Combat.popup_text(n.global_position + Vector3.UP * 2.4, "Kamui'den kaçtı!", Color(0.8, 0.8, 0.8))
+		var inf = _inf(c, "kamui", 2.2, {"knock": 0.0, "kind": "heavy", "attacker": c, "dir": Vector3.ZERO})
+		for h in caught:
+			MsArts.kamui_warp(c, h, inf, pos)
+		if Game.world:
+			Game.world.env.add_shake(0.3))
 
 
 ## Hiraishin: sarı flaşla hedefin arkasına ışınlan ve kes

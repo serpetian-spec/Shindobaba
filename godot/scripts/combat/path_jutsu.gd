@@ -11602,25 +11602,55 @@ func p_orochimaru_no_juinjutsu(c: Node3D, t: Node3D) -> void:
 	Sfx.play("seal", c.global_position, 0.8)
 
 
-## Şimşek İletimi: iki klon arasında şimşek köprüsü kurulur — aradaki her şey çarpılır
+## Raiden (kanon, Kakashi): Kakashi ve gölge klonu iki ayrı elde Raikiri açar, aralarını keskin bir şimşek ipiyle bağlar;
+## ikisi hedefin iki yanından geçerken ip hedefi biçer ve sarıp bağlar (kuyruklu canavar kollarını kesecek güçte).
 func p_raiden(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.6)
+	busy(c, 1.2)
 	var tt = tg(c, t, 18.0)
-	var center = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 7.0)
-	var side = fwd(c, t).cross(Vector3.UP)
-	var clones = []
-	for sx in [-1.0, 1.0]:
-		var q = gp(center + side * 4.0 * sx)
-		FX.smoke_puff(q + Vector3.UP, 0.8, 10)
-		clones.append(decoy(c, q, 3.0))
-	every(2.5, 0.07, func(_i, _k):
-		if clones.size() == 2 and is_instance_valid(clones[0]) and is_instance_valid(clones[1]):
-			VFX.bolt(clones[0].global_position + Vector3.UP * 1.2, clones[1].global_position + Vector3.UP * 1.2, RAI, 0.2, 0.12, 3), Callable())
-	every(2.5, 0.4, func(_i, _k):
-		for e in enemies_near(c, center, 4.5):
-			st(e, "stun", 0.5)
-			e.take_hit(inf(c, "raiden", 0.3, {"knock": 0.0, "kind": "light", "element": "raiton"})), Callable())
-	Sfx.play("thunder", center, 1.2)
+	var d = fwd(c, t)
+	var side = d.cross(Vector3.UP).normalized()
+	var center = gp(tt.global_position if tt else c.global_position + d * 7.0)
+	_rai_hand(c, 1.2)
+	FX.smoke_puff(c.global_position + side * 1.5 + Vector3.UP, 0.8, 10)
+	var cl = decoy(c, gp(c.global_position + side * 1.5), 1.6)   # gölge klon
+	if cl and cl.get("model"):
+		cl.model.play("cast", 0.05, 1.0)
+	Sfx.play("chidori", c.global_position, 0.9)
+	var o = {"c": c, "cl": cl}
+	var hand_of = func(n) -> Vector3:
+		return (n.global_position + Vector3.UP * 1.2 + (n.face_dir() if n.has_method("face_dir") else d) * 0.4) if n != null and is_instance_valid(n) else center + Vector3.UP
+	# ip: iki el arasında sürekli çıtırdayan keskin şimşek
+	every(1.4, 0.06, func(_i, _k):
+		if is_instance_valid(o["c"]) and o["cl"] != null and is_instance_valid(o["cl"]):
+			VFX.bolt(hand_of.call(o["c"]), hand_of.call(o["cl"]), RAI, 0.12, 0.1, 1), Callable())
+	# ikisi hedefin iki yanından geçer
+	after(0.35, func():
+		if not live(c):
+			return
+		var a_end = gp(center - side * 2.2 + d * 3.0)
+		var b_end = gp(center + side * 2.2 + d * 3.0)
+		c.create_tween().tween_property(c, "global_position", a_end, 0.3).set_trans(Tween.TRANS_QUAD)
+		anim(c, "dash", 1.4)
+		if cl and is_instance_valid(cl):
+			cl.create_tween().tween_property(cl, "global_position", b_end, 0.3).set_trans(Tween.TRANS_QUAD)
+		after(0.18, func():
+			var hit_any = false
+			for e in enemies_near(c, center, 3.2):
+				hit_any = true
+				st(e, "bind", 2.2)
+				e.take_hit(inf(c, "raiden", 1.6, {"knock": 0.0, "kind": "heavy", "element": "raiton", "stun": 0.5, "bleed": 3.0}))
+				# ip hedefe sarılır
+				for k in 3:
+					var y = 0.7 + k * 0.4
+					var p0 = e.global_position + Vector3.UP * y
+					every(2.0, 0.12, func(_i, _k2):
+						if live(e):
+							var a = randf() * TAU
+							VFX.bolt(p0 + Vector3(cos(a), 0, sin(a)) * 0.55, p0 + Vector3(cos(a + 2.2), 0.05, sin(a + 2.2)) * 0.55, RAI, 0.06, 0.12, 0), Callable())
+			if hit_any:
+				impact_fx("raiton", RAI, center + Vector3.UP, 1.4)
+				shake(0.5)
+			Sfx.play("thunder", center, 1.2)))
 
 
 ## Elektromanyetik Şimşek: avuçtan yoğun, mor-beyaz şimşek ışını uzun süre akar
@@ -13975,26 +14005,16 @@ func p_goton_dairendan_no_jutsu(c: Node3D, t: Node3D) -> void:
 const KAMUI := Color(0.2, 0.15, 0.3)
 
 
-## Kamui girdabı: hedef noktada içe dönen mor-siyah spiral
+## Kamui girdabı: ortak uzay bükülmesi (MsArts.kamui_vortex; geometrik koni kabuk yok). parent verilirse onu izler.
 func _kamui_swirl(at: Vector3, r: float, dur: float, parent: Node3D = null) -> MeshInstance3D:
-	var sw = MeshInstance3D.new()
-	var dm = CylinderMesh.new()
-	dm.top_radius = r; dm.bottom_radius = r * 0.05; dm.height = r * 0.6; dm.radial_segments = 32
-	sw.mesh = dm
-	sw.material_override = VFX.mat_spiral(Color(0.55, 0.45, 0.75), KAMUI, 6.0, 4.0, 9.0, 0.85, Vector3.UP)
+	var pos = parent.to_global(at) if parent else at
+	var v = MsArts.kamui_vortex(pos, r, dur)
 	if parent:
-		parent.add_child(sw)
-		sw.position = at
-	else:
-		get_tree().current_scene.add_child(sw)
-		sw.global_position = at
-	sw.scale = Vector3.ONE * 0.05
-	var tw = sw.create_tween()
-	tw.tween_property(sw, "scale", Vector3.ONE, 0.2)
-	tw.parallel().tween_property(sw, "rotation:y", -TAU * dur * 2.0, dur)
-	tw.tween_property(sw, "scale", Vector3.ONE * 0.02, 0.2)
-	tw.tween_callback(sw.queue_free)
-	return sw
+		var o = {"v": v, "p": parent}
+		v.create_tween().tween_method(func(_x: float):
+			if is_instance_valid(o["v"]) and is_instance_valid(o["p"]):
+				o["v"].global_position = o["p"].to_global(at), 0.0, 1.0, dur)
+	return v
 
 
 ## Zincir halkalarından oluşan düğüm (u boyunca uzanır)
@@ -14132,93 +14152,114 @@ func p_kama(c: Node3D, _t: Node3D) -> void:
 	Sfx.play("genjutsu", c.global_position, 0.6)
 
 
-## Kamui Şimşek Kesici: elde siyah çekirdekli mavi Chidori, ucunda Kamui girdabı — hedefe dalış, kesilen yer boyuta emilir
+## Kamui Raikiri (kanon, Kakashi): Kamui gücüyle dolan Raikiri — deldiği şey anında Kamui boyutuna gider; yaklaşırken
+## Kamui geçirgenliği karşı saldırıyı boşa çıkarır (atılma boyunca dokunulmaz).
 func p_kamui_raikiri(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 14.0)
 	busy(c, 1.1)
 	_rai_hand(c, 0.9)
 	var ba = bone_attach(c, "RightHand")
 	if ba:
-		_kamui_swirl(Vector3(0, 0.15, 0.15), 0.35, 0.8, ba)
-		after(0.9, func():
+		_kamui_swirl(Vector3(0, 0.15, 0.15), 0.35, 0.9, ba)
+		after(0.95, func():
 			if is_instance_valid(ba):
 				ba.queue_free())
 	after(0.45, func():
 		if not live(c):
 			return
-		var d = _jump_at(c, tt, 1.2, 12.0)
+		if c is Player:
+			c.combat.invuln = maxf(c.combat.invuln, 0.35)   # geçirgen yaklaşma
+		var m = c.get("model")
+		MsArts.ghost(m, 0.5)
+		after(0.3, func(): MsArts.ghost(m, 0.0))
+		# Raikiri hücumu: hedefe kadar atılır (eskiden ~2 m sıçrıyor, uzaktaki hedefe hiç ulaşmıyordu)
+		var d = fwd(c, tt)
+		var dest = gp(tt.global_position - d * 1.1) if live(tt) else gp(c.global_position + d * 8.0)
+		_face(c, tt)
+		anim(c, "dash", 1.6)
+		var from = c.global_position
+		var dash = c.create_tween()
+		dash.tween_method(func(x: float):
+			if live(c):
+				var q = from.lerp(dest, x)
+				q.y = maxf(q.y, Game.jutsu_floor(q.x, q.z))
+				c.global_position = q
+				if "velocity" in c:
+					c.velocity = Vector3.ZERO, 0.0, 1.0, 0.16)
 		after(0.18, func():
 			if not live(c):
 				return
+			anim(c, "jab", 2.0)
 			var at = c.global_position + Vector3.UP * 1.1 + d * 1.2
 			impact_fx("raiton", RAI, at, 1.6)
-			_kamui_swirl(at, 1.6, 0.6)
 			VFX.bolt(at, at + d * 6.0, RAI, 0.4, 0.3, 3)
-			mhit(c, at, 2.4, inf(c, "kamui_raikiri", 3.0, {"knock": 14.0, "kind": "heavy", "element": "raiton", "stun": 0.8, "bleed": 4.0, "hitstop": 0.12}))))
+			var kinf = inf(c, "kamui_raikiri", 3.0, {"knock": 8.0, "kind": "heavy", "element": "raiton", "stun": 0.8, "hitstop": 0.12})
+			var hs = enemies_near(c, at, 2.4)
+			for h in hs:
+				MsArts.kamui_warp(c, h, kinf, at)
+			if hs.is_empty():
+				_kamui_swirl(at, 1.2, 0.5)
+			shake(0.6)))
 	Sfx.play("chidori", c.global_position, 1.0)
 
 
-## Kamui Şurikeni: Susanoo eli iki dev siyah üç kollu şuriken fırlatır — dokunduğu yerde boyut girdabı açılır
-func p_kamui_shuriken(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.0)
-	var tt = tg(c, t, 40.0)
-	var blue = Color(0.35, 0.65, 1.0)
-	VFX.gather(c.global_position + Vector3.UP * 2.5, blue, 2.0)
-	for k in 2:
-		after(0.35 + k * 0.2, func():
-			if not live(c):
-				return
-			var from = c.global_position + Vector3.UP * 2.6 + c.face_dir().cross(Vector3.UP) * (1.6 if k == 0 else -1.6)
-			var b = MB.new()
-			b.add("cyl", Vector3.ZERO, Vector3(1.0, 0.12, 1.0), Color(0.05, 0.05, 0.07), Vector3.ZERO, 16)
-			b.add("cyl", Vector3.ZERO, Vector3(0.35, 0.14, 0.35), Color(0.6, 0.15, 0.15), Vector3.ZERO, 12)
-			for j in 3:
-				var a = j * TAU / 3.0
-				b.add("box", Vector3(cos(a) * 0.65, 0, sin(a) * 0.65), Vector3(0.75, 0.1, 0.35), Color(0.05, 0.05, 0.07), Vector3(0, -rad_to_deg(a) + 30, 0))
-			var sh = mesh_of(b)
-			var spin = sh.create_tween().set_loops(20)
-			spin.tween_property(sh, "rotation:y", TAU, 0.2).as_relative()
-			var pr = shot(c, from, aim_at(c, tt, from), 34.0, sh, inf(c, "kamui_shuriken", 1.8, {"knock": 10.0, "kind": "heavy", "bleed": 3.0}), tt, false, 1.6, func(p, h):
-				_kamui_swirl(p, 2.2, 0.8)
-				impact_fx("", blue, p, 1.4)
-				if h and live(h):
-					st(h, "stun", 0.8))
-			pr.radius = 1.0
-			_etrail(pr, "", blue, 1.0))
-	Sfx.play("blade", c.global_position, 0.6)
+## (Kamui Shuriken artık MsArts.m_kamui_shuriken: gerçek Susanoo)
+func _p_kamui_shuriken_unused() -> void:
+	pass
 
 
-## Kamui Koşusu: beden yarı saydam boyuta geçer — saldırıların içinden geçerek hedefin arkasına süzülür, zincirle vurur
+## Kamuibashiri (kanon adı Storm 4, Obito): Kamui geçirgenliğiyle hedefe atılır — saldırılar içinden geçer — ve kolundan
+## fışkıran Mokuton dallarıyla hedefi şişler (Hashirama hücreleri).
 func p_kamuibashiri(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 22.0)
-	busy(c, 0.8)
-	_kamui_swirl(c.global_position + Vector3.UP * 1.0, 1.2, 0.4)
+	busy(c, 0.9)
+	_kamui_swirl(c.global_position + Vector3.UP * 1.0, 1.0, 0.4)
 	if c is Player:
-		Buffs.add("kamuibashiri", 1.5, {"armor": 1.0, "_name": "Kamui Koşusu", "_desc": "saldırılar içinden geçer"})
-	if tt == null:
-		var d = c.face_dir()
-		var tw0 = c.create_tween()
-		tw0.tween_property(c, "global_position", c.global_position + d * 12.0, 0.4)
-		return
-	var behind = gp(tt.global_position + (tt.global_position - c.global_position).normalized() * 2.0)
+		Buffs.add("kamuibashiri", 0.9, {"armor": 0.0, "_name": "Kamui Koşusu", "_desc": "saldırılar içinden geçer"})
+		c.combat.invuln = maxf(c.combat.invuln, 0.6)
+	var m = c.get("model")
+	MsArts.ghost(m, 0.55)
+	var d = fwd(c, t)
+	var dest = gp(tt.global_position - (tt.global_position - c.global_position).normalized() * 1.6) if tt else gp(c.global_position + d * 12.0)
 	var tw = c.create_tween()
-	tw.tween_property(c, "global_position", behind, 0.45).set_trans(Tween.TRANS_SINE)
+	tw.tween_property(c, "global_position", dest, 0.45).set_trans(Tween.TRANS_SINE)
 	tw.tween_callback(func():
+		MsArts.ghost(m, 0.0)
 		if not live(c):
 			return
-		if c is Player:
-			c.combat.face_to(tt)
-		_kamui_swirl(c.global_position + Vector3.UP * 1.0, 1.2, 0.4)
-		var ch = _chain_links(10, Color(0.35, 0.35, 0.4))
-		get_tree().current_scene.add_child(ch)
-		ch.global_position = c.global_position + Vector3.UP * 1.2
-		if live(tt):
-			ch.look_at(tt.global_position + Vector3.UP + Vector3(0.001, 0, 0), Vector3.UP)
-			ch.rotation.y += PI
-		var tw2 = ch.create_tween()
-		tw2.tween_interval(0.35)
-		tw2.tween_callback(ch.queue_free)
-		mhit(c, c.global_position + Vector3.UP + c.face_dir() * 1.5, 3.0, inf(c, "kamuibashiri", 1.6, {"knock": 12.0, "kind": "heavy", "stun": 0.5})))
+		if tt and live(tt):
+			_face(c, tt)
+		anim(c, "jab", 1.6)
+		var hand = Jutsu._hand(c)
+		var aim = (tt.global_position + Vector3.UP * 1.1) if tt and live(tt) else hand + c.face_dir() * 4.0
+		# koldan fışkıran sivri Mokuton dalları: hedefi delip arkasına uzanır
+		for k in 5:
+			var dir = (aim - hand).normalized().rotated(Vector3.UP, randf_range(-0.25, 0.25))
+			dir = (dir + Vector3.UP * randf_range(-0.15, 0.2)).normalized()
+			var L = hand.distance_to(aim) + randf_range(1.0, 2.2)
+			var pts = []
+			var rr = []
+			var bend = Vector3(randf_range(-1, 1), randf_range(-0.3, 0.6), randf_range(-1, 1)) * 0.25
+			for j in 8:
+				var u = j / 7.0
+				pts.append(dir * L * u + bend * sin(u * PI))
+				var w = lerpf(0.11, 0.01, u)
+				rr.append(Vector2(w, w))
+			var mb = MB.new()
+			Loft.tube(mb, pts, rr, WOOD, 6, 2)
+			mb.add("cone", dir * L * 0.55 + bend * 0.8, Vector3(0.05, 0.4, 0.05), WOOD.darkened(0.2), Vector3(randf_range(-60, 60), 0, randf_range(-60, 60)), 4)   # yan filiz
+			var br = mesh_of(mb)
+			get_tree().current_scene.add_child(br)
+			br.global_position = hand
+			br.scale = Vector3.ONE * 0.05
+			var tw2 = br.create_tween()
+			tw2.tween_interval(k * 0.03)
+			tw2.tween_property(br, "scale", Vector3.ONE, 0.12).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+			tw2.tween_interval(0.9)
+			tw2.tween_property(br, "scale", Vector3.ONE * 0.05, 0.25)
+			tw2.tween_callback(br.queue_free)
+		VFX.debris(aim, WOOD, 10, 6.0, 0.15)
+		hit(c, aim, 2.0, inf(c, "kamuibashiri", 1.8, {"knock": 10.0, "kind": "heavy", "stun": 0.6, "bleed": 3.0, "element": "mokuton"})))
 	Sfx.play("wind", c.global_position, 1.8, 0.5)
 
 
@@ -14470,42 +14511,9 @@ func p_kuchiyose_gedo_mazo(c: Node3D, t: Node3D) -> void:
 	Sfx.play("roar", at, 0.4)
 
 
-## Kötü Huzursuzluk Valsi: arkada Susanoo belirir, iki dev kılıçla art arda dönerek savrulur — her dönüşte mavi alev kesiği
-func p_kyoso_enbu(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.6)
-	var tt = tg(c, t, 12.0)
-	var blue = Color(0.45, 0.6, 1.0)
-	var root = Node3D.new()
-	c.add_child(root)
-	root.position = Vector3(0, 0, -0.5)
-	var b = MB.new()
-	b.add("sphere", Vector3(0, 3.2, 0), Vector3(2.4, 3.2, 1.6), blue)
-	b.add("sphere", Vector3(0, 5.2, 0.2), Vector3(1.2, 1.4, 1.2), blue.lightened(0.2))
-	for sx in [-1.0, 1.0]:
-		b.add("cyl", Vector3(sx * 1.6, 3.6, 0.6), Vector3(0.45, 2.2, 0.45), blue, Vector3(70, 0, 0), 8)
-		b.add("box", Vector3(sx * 1.6, 3.8, 3.6), Vector3(0.2, 0.08, 4.2), Color(0.85, 0.9, 1.0))
-	var sus = mesh_of(b, VFX.mat_spiral(Color(0.7, 0.85, 1.0), blue, 2.0, 1.0, 5.0, 0.65, Vector3.UP))
-	root.add_child(sus)
-	root.scale = Vector3.ONE * 0.05
-	var tw = root.create_tween()
-	tw.tween_property(root, "scale", Vector3.ONE, 0.25).set_trans(Tween.TRANS_BACK)
-	if tt:
-		_face(c, tt)
-	for k in 4:
-		after(0.3 + k * 0.28, func():
-			if not (live(c) and is_instance_valid(root)):
-				return
-			var tw2 = root.create_tween()
-			tw2.tween_property(root, "rotation:y", root.rotation.y + TAU * (1 if k % 2 == 0 else -1), 0.25)
-			_arc_cut(c.global_position + Vector3.UP * 2.5, c.face_dir(), -100.0 if k % 2 == 0 else 100.0, 100.0 if k % 2 == 0 else -100.0, blue, 5.0)
-			VFX.shockwave(c.global_position + Vector3.UP * 3.5, blue, 9.0, 0.3, true)
-			hit(c, c.global_position + Vector3.UP * 2.0, 6.0, inf(c, "kyoso_enbu", 1.0, {"knock": 8.0 + k * 3.0, "kind": "heavy", "bleed": 2.0})))
-	after(1.5, func():
-		if is_instance_valid(root):
-			var tw3 = root.create_tween()
-			tw3.tween_property(root, "scale", Vector3.ONE * 0.02, 0.25)
-			tw3.tween_callback(root.queue_free))
-	Sfx.play("blade", c.global_position, 0.6)
+## (Kyōsō Enbu artık MsArts.m_kyoso_enbu: gerçek Susanoo)
+func _p_kyoso_enbu_unused() -> void:
+	pass
 
 
 ## Dokuz Kuyruk Çakra Modu: bedeni altın alev örtüsü sarar, kara mühür çizgileri, karnında spiral — 20 sn hız, güç, çakra kolları

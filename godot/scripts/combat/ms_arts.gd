@@ -9,7 +9,7 @@ const COL := {"itachi": Color(1.0, 0.3, 0.25), "sasuke": Color(0.6, 0.35, 1.0), 
 
 const IDS := ["totsuka_no_tsurugi", "yata_no_kagami", "magen_karasu_bunshin", "susanoo_kagutsuchi_no_yumiya",
 	"enton_kagutsuchi_no_tsurugi", "susanoo_chidori", "susanoo", "susanoo_kobushi", "yasaka_no_magatama", "enton_yasaka_no_magatama",
-	"indora_no_ya", "susanoo_gokakyu", "susanoo_hozan", "susanoo_tsukumo"]   # yalnız kanon (uydurma tarz teknikleri silindi; Kamui/Shisui güçleri artık göz yeteneği)
+	"indora_no_ya", "susanoo_gokakyu", "susanoo_hozan", "susanoo_tsukumo", "kamui_shuriken", "kyoso_enbu"]   # yalnız kanon (uydurma tarz teknikleri silindi; Kamui/Shisui güçleri artık göz yeteneği)
 
 
 static func handles(id: String) -> bool:
@@ -93,7 +93,6 @@ static func kamui_vortex(pos: Vector3, size: float, dur: float) -> MeshInstance3
 	return mi
 
 
-## Karga: iki kanatlı siyah gövde (kanat çırpar)
 ## Itachi'nin kargası: sivri gagalı başı, kalın gövdesi, yelpaze kuyruğu ve parmak parmak tüylenen kanatları (Sharingan gözlü).
 ## Örgüler bir kez kurulur (sürüler yüzlerce karga çağırır).
 static var _crow_body: ArrayMesh
@@ -1214,3 +1213,197 @@ static func m_susanoo_tsukumo(c: Node3D, t: Node3D) -> void:
 						Combat.hit_sphere(c, to, 1.6 + S * 0.08, Jutsu._inf(c, "susanoo_tsukumo", 0.3, {"knock": 3.0, "kind": "heavy"}))
 						FX.impact(to, col, 0.6 + S * 0.05)))
 		Sfx.play("whoosh", c.global_position, 1.3))
+
+
+# ================================================================== KAMUI (Kakashi / Obito) — ortak boyut çekişi
+## Kamui geçirgenliği görünümü: modelin tüm parçaları yarı saydam (0 = normal)
+static func ghost(model: Node, amount: float) -> void:
+	if model == null or not is_instance_valid(model):
+		return
+	for g in model.find_children("*", "GeometryInstance3D", true, false):
+		(g as GeometryInstance3D).transparency = amount
+
+
+## Hasar vermeden: konumun çevresindeki düşmanlar
+static func _foes(c: Node3D, pos: Vector3, r: float) -> Array:
+	var out = []
+	for f in c.get_tree().get_nodes_in_group("fighters"):
+		if Combat.hostile(c, f) and not f.is_dead() and f.global_position.distance_to(pos) <= r + float(f.get("radius") if f.get("radius") != null else 0.5):
+			out.append(f)
+	return out
+
+
+## Kamui çekişi (kanon: deldiği / odakladığı şey anında Kamui boyutuna gider). Hasar verir; zayıflamış (boss olmayan, canı
+## %35 altı) hedef bütünüyle boyuta çekilir, güçlü hedefin yalnız bir parçası kopar (ağır kanama). Oyuncu hedefse öldürmez.
+static func kamui_warp(c: Node3D, h: Node3D, info: Dictionary, at: Vector3) -> void:
+	if not _alive(h):
+		return
+	kamui_vortex(at, 1.6, 1.0)
+	var inf = info.duplicate()
+	if h == Game.player:
+		inf["dmg"] = minf(float(inf.get("dmg", 0.0)), maxf(1.0, float(h.hp) * 0.5))
+	h.take_hit(inf)
+	if not _alive(h):
+		return
+	var weak = not (h is Player) and not h.has_meta("boss") and float(h.hp) <= float(h.max_hp) * 0.35 and h.has_method("die")
+	if weak:
+		Combat.popup_text(_chest(h) + Vector3.UP, "Kamui boyutuna çekildi", Color(0.7, 0.55, 0.9))
+		h.apply_status("stun", 1.2)
+		var m = h.get("model")
+		if m:
+			var tw = m.create_tween()
+			tw.set_parallel(true)
+			tw.tween_property(m, "scale", m.scale * 0.05, 0.9).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+			tw.tween_property(m, "rotation:y", m.rotation.y + TAU * 2.0, 0.9)
+		if c == Game.player:
+			Game.profile["kamui_store"] = int(Game.profile.get("kamui_store", 0)) + 1
+		_later(0.95, func():
+			if _alive(h):
+				h.die({"execute": true, "attacker": c, "kamui": true, "dmg": 9999.0})
+				if is_instance_valid(h) and h.get("model"):
+					h.model.visible = false)
+	else:
+		Combat.popup_text(_chest(h) + Vector3.UP, "Bir parçası koptu", Color(0.8, 0.6, 0.95))
+		h.apply_status("bleed", 5.0)
+
+
+## Kamui Shuriken (kanon, Kakashi): Susanoo, Obito'nun Mangekyō'su biçiminde dev shuriken'ler oluşturur, Kamui ile doldurup
+## fırlatır; dönerek gider, değdiğini keser ve anında boyuta çeker. GERÇEK Susanoo'nun elinden atılır.
+static func _kamui_shuriken_mesh(sn: Susanoo) -> MeshInstance3D:
+	var mb = MB.new()
+	mb.add("cyl", Vector3.ZERO, Vector3(0.28, 0.05, 0.28), Color.WHITE, Vector3.ZERO, 16)
+	for k in 3:   # Obito'nun Mangekyō deseni: merkezden kıvrılan üç kanat
+		var pts = []
+		var rr = []
+		for j in 9:
+			var u = j / 8.0
+			var a = TAU * k / 3.0 + u * 1.9
+			pts.append(Vector3(cos(a), 0, sin(a)) * lerpf(0.1, 0.62, u))
+			var w = lerpf(0.13, 0.015, u)
+			rr.append(Vector2(w, 0.025))
+		Loft.tube(mb, pts, rr, Color.WHITE, 6, 2, true, true, Callable(), Vector3.UP)
+	mb.add("torus", Vector3.ZERO, Vector3(1.0, 0.05, 1.0), Color.WHITE, Vector3.ZERO, 24)
+	return sn.chakra_mesh(mb, 1.6)
+
+
+static func m_kamui_shuriken(c: Node3D, t: Node3D) -> void:
+	var sn = Susanoo.of(c, "kamui_shuriken")
+	if sn == null:
+		return
+	var H = sn.h()
+	var S = H / 1.8
+	var tg = Jutsu._tg(c, t, 40.0 + H)
+	var aim = _aim_fn(c, tg, 20.0 + H * 0.6)
+	var d = _turn(c, aim.call())
+	var side = d.cross(Vector3.UP).normalized()
+	_pj().busy(c, 1.1)
+	_anim(c, "throw", 1.0)
+	sn.hide_weapons(1.6)
+	for k in 3:
+		var right = k != 1
+		_later(k * 0.28, func():
+			if not (is_instance_valid(c) and is_instance_valid(sn)):
+				return
+			var arm_side = side if right else -side
+			sn.pose({"arms": Susanoo.arm(right, arm_side * 0.7 + Vector3.UP * 0.35 - d * 0.3, Vector3.UP * 0.6 + d * 0.5)}, 0.4, true)
+			var sh = _kamui_shuriken_mesh(sn)
+			_scene().add_child(sh)
+			sh.global_position = sn.hand(right)
+			sh.scale = Vector3.ONE * S * 0.9
+			var vortex = kamui_vortex(sh.global_position, S * 0.5, 2.0)
+			_later(0.22, func():
+				if not (is_instance_valid(c) and is_instance_valid(sh) and is_instance_valid(sn)):
+					if is_instance_valid(sh):
+						sh.queue_free()
+					return
+				var ad = (aim.call() - sn.bone_at("RightUpperArm" if right else "LeftUpperArm")).normalized()
+				sn.pose({"arms": Susanoo.arm(right, ad, ad)}, 0.4, true)
+				var from = sh.global_position
+				var to: Vector3 = aim.call() + side * (k - 1) * 2.0
+				var dur = clampf(from.distance_to(to) / 60.0, 0.15, 0.9)
+				var o = {"sh": sh, "v": vortex}
+				var tw = sh.create_tween()
+				tw.tween_method(func(x: float):
+					if is_instance_valid(o["sh"]):
+						var p = from.lerp(to, x) + side * sin(x * PI) * (k - 1) * S * 0.6
+						o["sh"].global_position = p
+						o["sh"].rotation.y = x * TAU * 6.0
+						if is_instance_valid(o["v"]):
+							o["v"].global_position = p, 0.0, 1.0, dur)
+				tw.tween_callback(func():
+					sh.queue_free()
+					if not is_instance_valid(c):
+						return
+					var inf = Jutsu._inf(c, "kamui_shuriken", 0.7, {"knock": 6.0, "kind": "heavy", "hitstop": 0.1})
+					for h in _foes(c, to, 2.0 + S * 0.15):
+						kamui_warp(c, h, inf, _chest(h))
+					kamui_vortex(to, 1.4 + S * 0.15, 0.9)
+					_shake(0.4))
+				Sfx.play("blade", from, 0.7)))
+
+
+## Kyōsō Enbu (kanon, Madara): Susanoo'ya bürünmüş Madara chakra kılıcını shuriken gibi döndürerek fırlatır; yolundakileri biçer,
+## hedefte döner durur, sonra Susanoo'nun eline geri gelir. GERÇEK Susanoo'nun kılıcı kullanılır.
+static func m_kyoso_enbu(c: Node3D, t: Node3D) -> void:
+	var sn = Susanoo.of(c, "kyoso_enbu")
+	if sn == null:
+		return
+	var H = sn.h()
+	var S = H / 1.8
+	var col = sn.color()
+	var tg = Jutsu._tg(c, t, 40.0 + H)
+	var aim = _aim_fn(c, tg, 22.0 + H * 0.6)
+	var d = _turn(c, aim.call())
+	var side = d.cross(Vector3.UP).normalized()
+	_pj().busy(c, 1.2)
+	_anim(c, "slash_c", 1.0)
+	sn.hide_weapons(2.6)
+	# kurulma: kılıç omuz arkasına çekilir
+	sn.pose({"arms": Susanoo.arm(true, side * 0.6 - d * 0.6 + Vector3.UP * 0.4, -side * 0.5 + Vector3.UP * 0.6 - d * 0.3)}, 0.6)
+	var mb = MB.new()
+	mb.add("box", Vector3(0, 0, -0.85), Vector3(0.05, 0.14, 1.7), Color.WHITE)
+	mb.add("cone", Vector3(0, 0, -1.8), Vector3(0.05, 0.25, 0.14), Color.WHITE, Vector3(-90, 0, 0), 4)
+	mb.add("box", Vector3(0, 0, 0.05), Vector3(0.3, 0.06, 0.06), Color.WHITE)
+	mb.add("cyl", Vector3(0, 0, 0.3), Vector3(0.05, 0.45, 0.05), Color.WHITE, Vector3(90, 0, 0), 8)
+	var sw = sn.chakra_mesh(mb, 1.7)
+	_scene().add_child(sw)
+	sw.global_position = sn.hand(true)
+	sw.scale = Vector3.ONE * S * 1.2
+	VFX.trail(sw, S * 0.15, col.lightened(0.5), col, Color(col.r, col.g, col.b, 0.0), 22, 1.0)
+	_later(0.45, func():
+		if not (is_instance_valid(c) and is_instance_valid(sw) and is_instance_valid(sn)):
+			if is_instance_valid(sw):
+				sw.queue_free()
+			return
+		var ad = (aim.call() - sn.bone_at("RightUpperArm")).normalized()
+		sn.pose({"arms": Susanoo.arm(true, ad, ad)}, 0.5, true)
+		var from = sw.global_position
+		var to: Vector3 = aim.call()
+		var dist = from.distance_to(to)
+		var go = clampf(dist / 55.0, 0.2, 0.9)
+		var hits = []
+		var inf = Jutsu._inf(c, "kyoso_enbu", 0.6, {"knock": 10.0, "kind": "heavy", "bleed": 3.0, "hitstop": 0.05})
+		var o = {"sw": sw}
+		var tw = sw.create_tween()
+		# git — hedefte dönerek biç — geri dön
+		tw.tween_method(func(x: float):
+			if is_instance_valid(o["sw"]):
+				var p = from.lerp(to, x) + Vector3.UP * sin(x * PI) * S * 0.4
+				o["sw"].global_position = p
+				o["sw"].global_basis = Basis(Vector3.UP, x * TAU * 5.0) * Basis(Vector3.RIGHT, -PI * 0.5) * Basis.from_scale(Vector3.ONE * S * 1.2)
+				if is_instance_valid(c):
+					for h in Combat.hit_sphere(c, p, 1.5 + S * 0.35, inf, hits):
+						hits.append(h), 0.0, 1.0, go)
+		tw.tween_method(func(x: float):
+			if is_instance_valid(o["sw"]):
+				o["sw"].global_basis = Basis(Vector3.UP, x * TAU * 4.0) * Basis(Vector3.RIGHT, -PI * 0.5) * Basis.from_scale(Vector3.ONE * S * 1.2)
+				if is_instance_valid(c) and int(x * 8.0) != int((x - 0.02) * 8.0):
+					Combat.hit_sphere(c, to, 1.8 + S * 0.4, Jutsu._inf(c, "kyoso_enbu", 0.25, {"knock": 4.0, "kind": "heavy", "bleed": 2.0}))
+					VFX.shockwave(to, col.lightened(0.3), 3.0 + S * 0.4, 0.2)
+			, 0.0, 1.0, 0.6)
+		tw.tween_method(func(x: float):
+			if is_instance_valid(o["sw"]) and is_instance_valid(sn):
+				o["sw"].global_position = to.lerp(sn.hand(true), x)
+				o["sw"].global_basis = Basis(Vector3.UP, x * TAU * 4.0) * Basis(Vector3.RIGHT, -PI * 0.5) * Basis.from_scale(Vector3.ONE * S * 1.2), 0.0, 1.0, go)
+		tw.tween_callback(sw.queue_free)
+		Sfx.play("blade", from, 0.6))
