@@ -495,6 +495,7 @@ const ITEMS := {
 	"mizrak": {"name": "Yari Mızrağı", "slot": "sag", "price": 650, "rank": 2, "desc": "Uzun mızrak. En uzun menzil.", "stats": {}, "weapon": {"hit": 6, "dmg": 1.55, "reach": 1.4, "style": "staff"}, "c1": Color(0.75, 0.77, 0.8)},
 	"kusarigama": {"name": "Kusarigama", "slot": "sag", "price": 1400, "rank": 2, "desc": "Hanzō tipi zincirli orak: uzun saplı orak, sap dibinden zincir ve çan ağırlık. Orta menzil: kancalayıp çeker, ağırlığı fırlatır ve döndürür, orağı zincirle fırlatıp geri çeker.", "stats": {"melee": 0.05}, "weapon": {"hit": 5.8, "dmg": 1.5, "reach": 1.3, "style": "chain"}, "c1": Color(0.2, 0.17, 0.29)},
 	"el_shuriken": {"removed": true, "name": "Dev Shuriken", "slot": "sag", "price": 700, "rank": 2, "desc": "Elde tutulan dev dört kollu shuriken. Kesici savuruşlar.", "stats": {}, "weapon": {"hit": 6, "dmg": 1.6, "reach": 0.8, "style": "heavy"}, "c1": Color(0.5, 0.52, 0.56)},
+	"yagura_sopa": {"name": "Yagura'nın Kancalı Sopası", "slot": "sag", "price": 0, "rank": 4, "legend": true, "desc": "Sanbi'nin taşıyıcısı Mizukage'nin iki ucu ters kancalı uzun sopası; dibinde mavi-yeşil çiçek. Kancayla çeker, iki ucuyla döner, su chakrası akıtır.", "stats": {"chakra": 30, "def": 3}, "weapon": {"hit": 6, "dmg": 1.6, "reach": 1.3, "style": "staff", "special": "pull"}, "c1": Color(0.18, 0.2, 0.26)},
 	"yelpaze": {"name": "Savaş Yelpazesi", "slot": "sag", "price": 700, "rank": 2, "desc": "Büyük demir yelpaze. Fuuton jutsularını güçlendirir.", "stats": {"chakra": 30}, "weapon": {"hit": 5.5, "dmg": 1.4, "reach": 0.8, "style": "fan"}, "c1": Color(0.85, 0.82, 0.75)},
 	# --- gözler (goz = sağ/sol göz yuvasına takılır; satılmaz). Örnek başına "lvl" (tomoe 1-3) ve "origin" (dogustan/nakil)
 	"goz_sharingan": {"name": "Sharingan", "slot": "goz", "price": 0, "rank": 0, "desc": "Uchiha'nın kopyalayan gözü. Hareketleri önceden okur.", "stats": {"melee": 0.05, "chakra": 10}, "eye": {"kind": 1, "name": "Sharingan"}, "c1": Color(0.8, 0.05, 0.08)},
@@ -529,7 +530,7 @@ const ITEMS := {
 }
 
 ## Efsanevi silahlar (dükkânda yok; A/S görevleri, boss düşürmesi)
-const LEGENDARY := ["kubikiribocho", "samehada", "kiba", "hiramekarei", "shibuki", "nuibari", "kabutowari", "chokuto", "raijin", "ruzgar_bicak", "fuma_shuriken", "gunbai", "bashosen", "uc_tirpan"]
+const LEGENDARY := ["yagura_sopa", "kubikiribocho", "samehada", "kiba", "hiramekarei", "shibuki", "nuibari", "kabutowari", "chokuto", "raijin", "ruzgar_bicak", "fuma_shuriken", "gunbai", "bashosen", "uc_tirpan"]
 
 
 static func random_legendary() -> String:

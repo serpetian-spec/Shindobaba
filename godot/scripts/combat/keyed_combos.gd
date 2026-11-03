@@ -26,12 +26,13 @@ const TABLE := {
 	"tonfa": [preload("res://scripts/combat/tonfa_anim.gd"), 1.05],
 	"bashosen": [preload("res://scripts/combat/bashosen_anim.gd"), 1.0],
 	"kubikiribocho": [preload("res://scripts/combat/kubikiri_anim.gd"), 0.95],
+	"yagura_sopa": [preload("res://scripts/combat/yagura_anim.gd"), 1.0],
 }
 ## uzun menzil silahları: yapay zekâ uzakta durup atar (Enemy._chase)
 const RANGED := ["fuma_shuriken", "kyodai_shuriken", "fuma_makimono"]
 ## silah ağırlığı (0 hafif .. 1 ağır): kol/silah yaylanması (PoseOverlay.key_mass) — ağır silah gecikip taşar
 const MASS := {"uc_tirpan": 1.0, "samehada": 0.9, "kabutowari": 0.9, "shibuki": 0.85, "gunbai": 0.8, "raijin": 0.35, "kunai": 0.1,
-	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3, "tonfa": 0.3, "bashosen": 0.35, "kubikiribocho": 0.95}
+	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3, "tonfa": 0.3, "bashosen": 0.35, "kubikiribocho": 0.95, "yagura_sopa": 0.4}
 
 
 static func mass(id: String) -> float:
@@ -113,6 +114,16 @@ static func mods(id: String, i: int) -> Dictionary:
 				3: m.merge({"launch": 11.0, "knock": 2.0})
 				4: m.merge({"knock": 5.0})
 				5: m.merge({"heavy": true, "knock": 15.0, "reach_add": 1.2, "lunge_mul": 0.9})
+			return m
+		"yagura_sopa":
+			var m = {"lunge_mul": 0.5, "knock": 3.0}
+			match i:
+				0: m.merge({"pull": true, "knock": 0.5, "reach_add": 1.2})
+				1: m.merge({"knock": 4.0, "reach_add": 0.6})
+				2: m.merge({"knock": 2.0})
+				3: m.merge({"launch": 10.0, "knock": 1.0, "reach_add": 0.6})
+				4: m.merge({"knock": 9.0, "reach_add": 1.0})
+				5: m.merge({"heavy": true, "knock": 12.0, "lunge_mul": 0.0})
 			return m
 		"kubikiribocho":
 			var m = {"lunge_mul": 0.6}
@@ -321,6 +332,26 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 					if big:
 						Combat.hit_sphere(who, q + Vector3.UP * 0.5, 3.6, {"dmg": dmg * 0.6, "knock": 12.0, "launch": 7.0, "kind": "heavy", "hitstop": 0.07, "melee": false})
 						Dangle.blast(q, 45.0, 8.0)
+		"yagura_sopa":
+			var wc = Color(0.55, 0.8, 1.0, 0.85)
+			match i:
+				1, 2:   # sopa ucundan su izi
+					for k in (2 if i == 1 else 4):
+						WindFX.streak(func(t: float) -> Vector3:
+							var a = t * TAU * (0.5 if i == 1 else 1.0) + k * 1.6
+							return who.global_position + Vector3.UP * 1.1 + f * 1.0 + (side * cos(a) + Vector3.UP * sin(a)) * 1.0, 0.25, 0.07, wc, k * 0.06, 14)
+				4:   # su kalkanı + itme
+					VFX.splash(who.global_position + f * 1.2 + Vector3.UP * 0.2, 2.2)
+					Combat.hit_sphere(who, who.global_position + f * 2.2 + Vector3.UP, 2.0, {"dmg": dmg * 0.6, "knock": 10.0, "kind": "light", "hitstop": 0.03, "melee": false, "element": "water"})
+				5:   # Suiro Kaiten: yere saplanan sopa çevresinde yükselen su girdabı
+					var q = gp.call(1.0)
+					VFX.splash(q, 3.5)
+					for k in 3:
+						WindFX.streak(func(t: float) -> Vector3:
+							var a = t * TAU * 2.0 + k * 2.1
+							return q + Vector3(cos(a) * (1.0 + t * 1.6), t * 3.2, sin(a) * (1.0 + t * 1.6)), 0.6, 0.12, wc, k * 0.08, 24)
+					Combat.hit_sphere(who, q + Vector3.UP, 3.4, {"dmg": dmg * 0.7, "knock": 12.0, "launch": 7.0, "kind": "heavy", "hitstop": 0.06, "melee": false, "element": "water"})
+					_shake(who, 0.5)
 		"kubikiribocho":
 			match i:
 				1:   # boyun biçmesi: geniş kılıç izi
