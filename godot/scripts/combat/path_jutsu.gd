@@ -7515,6 +7515,17 @@ func p_futon_shinku_renpa(c: Node3D, t: Node3D) -> void:
 ## Dev Vakum Küresi: ağızda büyük vakum küresi toplanır, fırlar — yol boyunca zemini kazır, dev patlama
 func p_futon_shinku_taigyoku(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.0)
+	# (ref fuuton3.png) ağzın önünde hava merkeze emilir: her yönden içe akan koyu radyal hız çizgileri, sonra vakum küresi fırlar
+	var cen = _mouth_pos(c) + c.face_dir() * 1.5
+	var fw = c.face_dir()
+	var sd = fw.cross(Vector3.UP).normalized()
+	var upv = sd.cross(fw).normalized()
+	for k in 34:
+		var a = TAU * k / 34.0 + randf_range(-0.08, 0.08)
+		var dirr = sd * cos(a) + upv * sin(a)
+		var r0 = randf_range(5.0, 8.0)
+		var dk = Color(0.28, 0.3, 0.32, 0.85) if k % 3 != 0 else Color(0.85, 0.9, 0.9, 0.8)
+		WindFX.streak(func(u: float) -> Vector3: return cen + dirr * lerpf(r0, 0.4, u), 0.3, 0.06, dk, randf() * 0.12, 10)
 	eshot(c, "futon_shinku_taigyoku", "fuuton", WIND, tg(c, t, 28.0), _mouth_pos(c) + c.face_dir() * 0.8, 2.6, 26.0, 1.8, {"knock": 24.0, "launch": 6.0}, 2.0, 0.4)
 	Sfx.play("wind", c.global_position, 0.5)
 

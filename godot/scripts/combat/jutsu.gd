@@ -453,7 +453,33 @@ func j_suiton_suijinheki(c: Node3D, _t: Node3D) -> void:
 	# (saydam küre yok) — dört su kolu sarmal çizip tepede birleşir, köpük ve damla saçar
 	var wm = VFX.mat_water(Color(0.04, 0.27, 0.78), Color(0.2, 0.55, 1.0), Color(0.65, 0.9, 1.0), Vector3(0, 0, 1), 0.92, 0.8, 0.08)
 	var dur = 2.4
-	for k in 4:
+	# (ref suiton.png / suiton3.png) ağızdan yere püsküren su, kullanıcının çevresinde dönen kalın halka bir su duvarına
+	# dönüşüp yükselir; yüzeyinde dikey beyaz akış çizgileri. Halka: kapaksız silindir, yere oturur
+	var ringm = VFX.mat_water(Color(0.04, 0.27, 0.78), Color(0.2, 0.55, 1.0), Color(0.65, 0.9, 1.0), Vector3(0, 1, 0), 0.9, 0.7, 0.05)
+	var cm = CylinderMesh.new()
+	cm.top_radius = 3.0; cm.bottom_radius = 3.4; cm.height = 1.0; cm.radial_segments = 40; cm.rings = 6
+	cm.cap_top = false; cm.cap_bottom = false
+	var ring = MeshInstance3D.new()
+	ring.mesh = cm
+	ring.material_override = ringm
+	ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	get_tree().current_scene.add_child(ring)
+	var gy0 = Game.jutsu_floor(c.global_position.x, c.global_position.z)
+	ring.global_position = Vector3(c.global_position.x, gy0, c.global_position.z)
+	ring.scale = Vector3(1, 0.05, 1)
+	var rt = ring.create_tween()
+	rt.tween_method(func(h: float):
+		if is_instance_valid(ring) and is_instance_valid(c):
+			ring.global_position = Vector3(c.global_position.x, gy0 + h * 0.5, c.global_position.z)
+			ring.scale = Vector3(1, h, 1)
+			ring.rotation.y += 0.08, 0.05, 6.0, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	rt.tween_interval(dur - 0.9)
+	rt.tween_method(func(h: float):
+		if is_instance_valid(ring):
+			ring.global_position.y = gy0 + h * 0.5
+			ring.scale = Vector3(1, h, 1), 6.0, 0.05, 0.45).set_ease(Tween.EASE_IN)
+	rt.tween_callback(ring.queue_free)
+	for k in 2:
 		var head = Node3D.new()
 		get_tree().current_scene.add_child(head)
 		var a0 = k * TAU / 4.0
@@ -541,12 +567,36 @@ func j_fuuton_daitoppa(c: Node3D, t: Node3D) -> void:
 	var mo = _mouth(c)
 	# Daitoppa: ağızdan patlayan geniş fırtına — iki dalga akım çizgisi, yerde kalkan toz seli, savrulan yaprak/çakıl
 	WindFX.gust(mo + d * 0.4, d, 16.0, 9.0, {"n": 26, "speed": 38.0, "lift": 0.4})
+	_wind_mass(c, mo, d, 20.0, 10.0, 6.5, 1.1)   # ref fuuton2 (Temari): kıvrılan beyaz çizgili yoğun rüzgâr kütlesi
 	get_tree().create_timer(0.14).timeout.connect(func(): WindFX.gust(mo + d * 0.4, d, 18.0, 11.0, {"n": 18, "speed": 34.0, "leaves": false}))
 	if c is Player:
 		VFX.screen_lines(0.35, 0.7, Color(0.92, 1.0, 0.96))
 	for k in 5:
 		var pos = c.global_position + Vector3.UP * 1.2 + d * (2.0 + k * 2.4)
 		Combat.hit_sphere(c, pos, 1.5 + k * 0.5, {"dmg": 12.0 * m, "element": "fuuton", "knock": 22.0, "launch": 3.0, "kind": "heavy", "dir": d, "hitstop": 0.05})
+
+
+## Rüzgâr kütlesi: ağızdan ileri genişleyen yarı saydam soluk gövde + akışla kıvrılan yoğun beyaz çizgiler (kabuk değil: kenarları söner)
+func _wind_mass(c: Node3D, mo: Vector3, d: Vector3, reach: float, width: float, height: float, dur: float) -> void:
+	var gy = Game.jutsu_floor(mo.x, mo.z)
+	var root = Node3D.new()
+	get_tree().current_scene.add_child(root)
+	root.global_transform = Transform3D(Basis.looking_at(-d, Vector3.UP), Vector3(mo.x, gy, mo.z))
+	var m = ShaderMaterial.new()
+	m.shader = load("res://shaders/vfx_windmass.gdshader")
+	m.set_shader_parameter("reach", reach)
+	var mi = MeshInstance3D.new()
+	mi.material_override = m
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(mi)
+	var mh = mo.y - gy
+	var tw = root.create_tween()
+	tw.tween_method(func(k: float):
+		if is_instance_valid(mi):
+			mi.mesh = FireArt.sheet_mesh(maxf(1.0, reach * k), lerpf(1.5, width, k), lerpf(1.2, height, k), mh, k * 1.5)
+			m.set_shader_parameter("reach", maxf(1.0, reach * k)), 0.05, 1.0, dur * 0.45).set_ease(Tween.EASE_OUT)
+	tw.tween_method(func(a: float): m.set_shader_parameter("alpha", a), 1.0, 0.0, dur * 0.55)
+	tw.tween_callback(root.queue_free)
 
 
 ## Ağızdan/elden ileri fırlayan saydam, kırılan hava konisi
