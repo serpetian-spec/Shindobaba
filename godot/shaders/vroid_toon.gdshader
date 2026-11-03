@@ -1,6 +1,7 @@
 // VRoid parçaları (yüz derisi, saç): anime cel gölge, doku x renk ya da parlaklık x renk (saç boyama), alfa kesme
 shader_type spatial;
 render_mode cull_back, diffuse_toon, specular_disabled;
+#include "res://shaders/hair_mask.gdshaderinc"
 
 uniform sampler2D tex : source_color, filter_linear_mipmap, hint_default_white;
 uniform vec4 tint : source_color = vec4(1.0);
@@ -19,6 +20,7 @@ varying vec3 lp;
 
 void vertex() {
 	lp = VERTEX;
+	hm_p = (hm_xf * vec4(VERTEX, 1.0)).xyz;
 }
 
 float vein_mask(vec3 p, vec3 c, float ir, float side) {
@@ -37,6 +39,7 @@ float vein_mask(vec3 p, vec3 c, float ir, float side) {
 
 void fragment() {
 	vec4 tx = texture(tex, UV);
+	if (hm_cut(hm_p)) discard;
 	vec3 c = tx.rgb * tint.rgb;
 	if (mode == 1) {
 		float l = dot(tx.rgb, vec3(0.3, 0.59, 0.11));

@@ -158,10 +158,10 @@ const ITEMS := {
 	"col_sarigi": {"name": "Çöl Sarığı", "slot": "kafa", "price": 180, "rank": 0, "desc": "Kat kat sarılmış kum rengi sarık. Güneşten ve kum fırtınasından korur.", "stats": {"def": 2, "hp": 15}, "look": {"head_style": "sarik"}, "c1": Color(0.85, 0.76, 0.58)},
 	"jingasa": {"name": "Jingasa", "slot": "kafa", "price": 240, "rank": 1, "desc": "Lake kaplı yassı asker şapkası; önünde pirinç arma.", "stats": {"def": 4}, "look": {"head_style": "jingasa"}, "c1": Color(0.16, 0.14, 0.14)},
 	"kabuto": {"name": "Samuray Kabutosu", "slot": "kafa", "price": 1300, "rank": 3, "desc": "Katmanlı boyun korumalı, altın boynuz armalı savaş miğferi.", "stats": {"def": 10, "hp": 30, "speed": -0.03}, "look": {"head_style": "kabuto"}, "c1": Color(0.22, 0.2, 0.22)},
-	"kabuto_kizil": {"name": "Kızıl Lake Kabuto", "slot": "kafa", "price": 1600, "rank": 3, "desc": "Komutanların kırmızı lake miğferi.", "stats": {"def": 11, "hp": 35, "speed": -0.03}, "look": {"head_style": "kabuto"}, "c1": Color(0.55, 0.1, 0.1)},
+	"kabuto_kizil": {"name": "Kızıl Lake Kabuto", "slot": "kafa", "price": 1600, "rank": 3, "desc": "Komutanların kırmızı lake miğferi.", "stats": {"def": 11, "hp": 35, "speed": -0.03}, "look": {"head_style": "kabuto", "crest": "kuwagata"}, "c1": Color(0.55, 0.1, 0.1)},
 	"tengai": {"name": "Tengai", "slot": "kafa", "price": 220, "rank": 0, "desc": "Yüzü tamamen örten derin hasır sepet şapka. Gezgin keşişlerin kimliği gizlidir.", "stats": {"def": 2, "chakra": 25}, "look": {"head_style": "tengai"}, "c1": Color(0.72, 0.6, 0.38)},
-	"golge_kapuson": {"name": "Gölge Kapüşonu", "slot": "kafa", "price": 380, "rank": 1, "desc": "Koyu, derin kapüşon. Suikastçıların sevdiği.", "stats": {"def": 2, "speed": 0.04}, "look": {"head_style": "kapuson"}, "c1": Color(0.1, 0.1, 0.12)},
-	"col_kapusonu": {"name": "Çöl Kapüşonu", "slot": "kafa", "price": 160, "rank": 0, "desc": "Kum rengi hafif kapüşon.", "stats": {"def": 2, "hp": 10}, "look": {"head_style": "kapuson"}, "c1": Color(0.78, 0.68, 0.5)},
+	"golge_kapuson": {"name": "Gölge Kapüşonu", "slot": "kafa", "price": 380, "rank": 1, "desc": "Koyu, derin kapüşon. Suikastçıların sevdiği.", "stats": {"def": 2, "speed": 0.04}, "look": {"head_style": "kapuson", "hood": "derin"}, "c1": Color(0.1, 0.1, 0.12)},
+	"col_kapusonu": {"name": "Çöl Kapüşonu", "slot": "kafa", "price": 160, "rank": 0, "desc": "Kum rengi hafif kapüşon.", "stats": {"def": 2, "hp": 10}, "look": {"head_style": "kapuson", "hood": "hafif"}, "c1": Color(0.78, 0.68, 0.5)},
 	"yirtik_kasa": {"name": "Yırtık Gezgin Kasası", "slot": "kafa", "price": 70, "rank": 0, "desc": "Kenarları yıpranmış eski hasır şapka. Ronin işi.", "stats": {"def": 1}, "look": {"head_style": "kasa"}, "c1": Color(0.48, 0.4, 0.28)},
 	"cizik_alin": {"name": "Çizik Alın Koruyucu", "slot": "kafa", "price": 0, "rank": 1, "desc": "Köyüne sırt çevirenlerin sembolü üstünden çizilmiş plakası.", "stats": {"def": 2, "melee": 0.04}, "look": {"band_style": "slashed"}, "c1": Color(0.2, 0.2, 0.24)},
 	# --- yüz
@@ -905,7 +905,7 @@ static func _ensure_eyes(p: Dictionary) -> bool:
 ## Takılı parçalardan görünüm sözlüğünü yeniden kurar
 static func apply_look(p: Dictionary) -> void:
 	var L: Dictionary = p["look"]
-	for k in ["band", "vest", "mask", "weapon_r", "weapon_l", "head_style", "face_style", "outer_style", "back_item", "guards", "eye_r", "eye_l"]:
+	for k in ["band", "vest", "mask", "weapon_r", "weapon_l", "head_style", "face_style", "outer_style", "back_item", "guards", "eye_r", "eye_l", "hood", "crest"]:
 		L[k] = null
 	L["band_style"] = "none"
 	L["gloves"] = false

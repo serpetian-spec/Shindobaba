@@ -70,6 +70,7 @@ const VROID_SKIN := Color(0.99, 0.89, 0.82)  # VRoid doku ten rengi (oyuncu teni
 static var _scenes := {}
 static var _donor_cache := {}
 var face_mi: MeshInstance3D
+var _face_xf := Transform3D.IDENTITY   # yüz mesh'i yerel -> model uzayı
 var head_fix := Transform3D.IDENTITY
 var eye_center_model := Vector3(0, 1.62, 0.08)
 var eye_half := 0.032
@@ -339,6 +340,7 @@ func _face_and_hair() -> void:
 		face_mi.name = "VFace"
 		face_mi.mesh = fd["mesh"]
 		face_mi.transform = head_fix
+		_face_xf = place
 		holder.add_child(face_mi)
 		eyes_mesh = face_mi
 		var ratio = _skin_ratio()
@@ -422,6 +424,7 @@ func _face_and_hair() -> void:
 		# tutamlar kafaya göre biraz küçültülür (kafa merkezi etrafında)
 		var cs = Transform3D(Basis.IDENTITY, skull_c) * Transform3D(Basis.from_scale(Vector3.ONE * CLUMP_SCALE), Vector3.ZERO) * Transform3D(Basis.IDENTITY, -skull_c)
 		# uzun tutamlar ikincil hareketli (kafa kemiğine takılı küçük iskelet); sallanacak tutam yoksa sabit mesh
+		_hair_mats.append([cm, cs])
 		var hdn = add_dangle("Head", _hair_dyn.get(hk, {}), cm, cs, "HairDangle") if not _hair_dyn.get(hk, {}).is_empty() else null
 		if hdn == null:
 			var cl = _mesh_on("Head", _hair_cache[hk], cs)
@@ -445,6 +448,7 @@ func _face_and_hair() -> void:
 				hc = fd["aabb"].get_center()
 			hair_mi.transform = head_fix * Transform3D(Basis.IDENTITY, hc) * Transform3D(Basis.from_scale(Vector3.ONE * hs), Vector3.ZERO) * Transform3D(Basis.IDENTITY, -hc)
 			# uzun saç: kulak hizasının altında kalan kısım dilim zincirleriyle sallanır (sırta/omuza çarpar)
+			var vxf = hair_mi.transform
 			var vk = "%s|%s|%s|%s|%s" % [hd[0], donor, look["gender"], look.get("age", "adult"), look.get("hair_style", "")]
 			if not _vhair_dyn.has(vk):
 				_vhair_dyn[vk] = Dangle.sectors(hp["mesh"], head_rest * hair_mi.transform, skull_c, skull_c.y + skull_r.y * 0.2, {"fade": 0.09})   # alın hizasından aşağısı (perçemler, yanlar, ense) oynar
@@ -469,6 +473,7 @@ func _face_and_hair() -> void:
 				hm.set_shader_parameter("rim_amount", 0.5)
 				hair_mi.set_surface_override_material(si, hm)
 				materials.append(hm)
+				_hair_mats.append([hm, head_rest * vxf])
 
 
 static func default_look() -> Dictionary:
@@ -512,6 +517,7 @@ func setup(l: Dictionary) -> void:
 	_cloth_details()
 	_attachments()
 	_accessories()
+	_apply_hair_mask()
 	anim = AnimationPlayer.new()
 	anim.name = "Anim"
 	inst.add_child(anim)
@@ -1614,10 +1620,12 @@ func _garments(g: Dictionary) -> void:
 		_garment("hakama", func(): return _loft(g, 1, hips + 0.06, ank + 0.06, 22, torso, func(t, _a): return 0.03 + t * 0.06, 3, null, hips - 0.12, 28))
 	var hs = look.get("head_style")
 	if hs == "kapuson":
-		_garment("kapuson", func(): return _loft(g, 1, ey + 0.17, neck - 0.04, 14, func(p): return p.y > neck - 0.1 and absf(p.x) < 0.15,
-			func(t, _a): return 0.055 + t * 0.02, 10, func(t, ang): return t > 0.32 and t < 0.9 and absf(wrapf(ang - PI * 0.5, -PI, PI)) < 1.05))
+		# kapüşonun omuz etek kısmı (gövdeye derili): boyundan omuz başına açılan kumaş; kafa kısmı hood()
+		var hk = "kapuson_etek_" + String(look.get("hood", ""))
+		_garment(hk, func(): return _loft(g, 1, neck + 0.05, neck - 0.1, 9, func(p): return p.y > neck - 0.17 and absf(p.x) < ua * 1.05,
+			func(t, _a): return 0.03 + t * 0.045, 10, func(t, ang): return t < 0.35 and absf(wrapf(ang - PI * 0.5, -PI, PI)) < 0.5))
 	var fs = look.get("face_style")
-	if fs in ["cloth", "gas"]:
+	if fs in []:   # bez/gaz maske artık yüz kabuğu (face_item)
 		_garment("maske", func(): return _loft(g, 1, ey - 0.038, neck - 0.03, 10, func(p): return p.y > neck - 0.08 and absf(p.x) < 0.13, flat.call(0.009), 11))
 	var gd = look.get("guards")
 	if gd in ["kol", "ikisi"]:
@@ -2305,6 +2313,8 @@ func _accessories() -> void:
 	var sf_head = _sf_acc(SFProps.HEAD_MAP.get(look.get("head_style"), ""), hc)
 	var sf_face = _sf_acc(SFProps.FACE_MAP.get(look.get("face_style"), ""), hc)
 	var sf_back = _sf_acc(SFProps.BACK_MAP.get(look.get("back_item"), ""), ch)
+	if sf_head and look.get("head_style") in ["kasa", "kage"]:
+		hair_mask_plane(Vector3.UP, Vector3(0, htop - 0.06, 0))
 	if not sf_head and look.get("head_style") == "kage":
 		KageAttire.hat(self, String(look.get("village", "konoha")))
 	match (null if sf_head else look.get("head_style")):
@@ -2314,17 +2324,18 @@ func _accessories() -> void:
 			m.add("cyl", Vector3(0, -0.075, 0), Vector3(hw * 3.1, 0.014, hw * 3.1), hg.darkened(0.15), Vector3.ZERO, 18)
 			m.add("cyl", Vector3(0, -0.05, 0), Vector3(hw * 1.05, 0.04, hw * 1.12), hg.darkened(0.35), Vector3.ZERO, 14)
 			_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, Vector3(hcen.x, htop + 0.02, hcen.z)))
+			hair_mask_plane(Vector3.UP, Vector3(0, htop + 0.02 - 0.08, 0))   # şapka kenarının üstündeki saç şapkanın içinde kalır
 		"bandana":
-			var m = MB.new()
-			m.add("hemi", Vector3.ZERO, Vector3(hw * 1.16, hh * 0.8, hd * 1.12), hg, Vector3.ZERO, 16)
-			m.add("box", Vector3(0, -0.012, hd * 0.56), Vector3(0.07, 0.03, 0.006), Color(0.8, 0.82, 0.86))
-			m.add("box", Vector3(0.0, -0.03, -hd * 0.56), Vector3(0.03, 0.06, 0.02), hg, Vector3(-30, 0, 0))
-			_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, Vector3(hcen.x, hc.y - 0.005, hcen.z)))
+			if band_ring.is_empty():
+				var m = MB.new()
+				m.add("hemi", Vector3.ZERO, Vector3(hw * 1.16, hh * 0.8, hd * 1.12), hg, Vector3.ZERO, 16)
+				_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, Vector3(hcen.x, hc.y - 0.005, hcen.z)))
+			else:
+				_hitai_bandana(hg)
 		"bandaj":
-			var m = MB.new()
-			m.add("cyl", Vector3.ZERO, Vector3(hw * 1.14, 0.05, hd * 1.08), hg, Vector3(6, 0, 0), 20)
-			m.add("box", Vector3(0.03, -0.04, -hd * 0.55), Vector3(0.03, 0.09, 0.006), hg, Vector3(-15, 0, 12))
-			_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, Vector3(hcen.x, hc.y + 0.02, hcen.z)))
+			# alnı saran sargı: iki kat (biri hafif eğik), ensede kısa sarkan uç
+			var ybj = cloth_band(hg, 0.004, 0.034, 0.1, 0.026, 0.004)
+			cloth_band(hg.darkened(0.06), 0.02, 0.02, 0.0, 0.0, 0.018, 0.0165)
 	var fg: Color = look.get("facegear", Color.WHITE) if look.get("facegear") != null else Color.WHITE
 	var fs = null if sf_face else look.get("face_style")
 	if fs != null and String(fs).begins_with("anbu"):
@@ -2386,7 +2397,7 @@ func _accessories() -> void:
 				m.add("box", Vector3(0, -0.07, 0.045), Vector3(0.1, 0.02, 0.006), Color(0.1, 0.03, 0.03))
 				m.add("box", Vector3(0, 0.06, 0.05), Vector3(0.11, 0.015, 0.006), Color(0.1, 0.03, 0.03), Vector3(0, 0, 0))
 		_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0, -0.035, 0.1)))
-	elif fs == "gas":
+	elif fs == "gas" and face_mi == null:
 		var m = MB.new()
 		for sx in [-1.0, 1.0]:
 			m.add("cyl", Vector3(0.05 * sx, -0.02, 0.0), Vector3(0.045, 0.06, 0.045), Color(0.35, 0.38, 0.35), Vector3(80, 0, 25 * sx), 10)
@@ -2410,14 +2421,30 @@ func _accessories() -> void:
 			var gc = Color(0.78, 0.6, 0.4) if big else Color(0.82, 0.62, 0.32)
 			var k = 1.0 if big else 0.32
 			var m = MB.new()
-			m.add("sphere", Vector3(0, -0.14 * k, 0), Vector3(0.36, 0.38, 0.34) * k, gc, Vector3.ZERO, 16)
-			m.add("sphere", Vector3(0, 0.2 * k, 0), Vector3(0.24, 0.26, 0.23) * k, gc.lightened(0.04), Vector3.ZERO, 14)
-			m.add("cyl", Vector3(0, 0.04 * k, 0), Vector3(0.13, 0.03, 0.13) * k, Color(0.55, 0.14, 0.12), Vector3.ZERO, 12)   # boğum ipi
-			m.add("cyl", Vector3(0, 0.36 * k, 0), Vector3(0.08, 0.08, 0.08) * k, Color(0.45, 0.3, 0.18), Vector3.ZERO, 10)   # tıpa
+			# tek parça dönel gövde (iki hazne bel ile kesintisiz bağlı; eskiden iki ayrı küre arasında boşluk vardı)
+			var prof = [[-0.33, 0.0], [-0.31, 0.09], [-0.26, 0.15], [-0.18, 0.183], [-0.1, 0.18], [-0.02, 0.15], [0.04, 0.095], [0.075, 0.072],
+				[0.11, 0.09], [0.16, 0.118], [0.22, 0.12], [0.28, 0.095], [0.32, 0.055], [0.345, 0.04], [0.37, 0.04]]
+			var lt = SurfaceTool.new()
+			lt.begin(Mesh.PRIMITIVE_TRIANGLES)
+			var nseg = 20
+			for i in prof.size() - 1:
+				for j in nseg:
+					var a0 = TAU * j / nseg; var a1 = TAU * (j + 1) / nseg
+					var y0 = prof[i][0] * k; var r0 = prof[i][1] * k
+					var y1 = prof[i + 1][0] * k; var r1 = prof[i + 1][1] * k
+					var q = [Vector3(cos(a0) * r0, y0, sin(a0) * r0), Vector3(cos(a1) * r0, y0, sin(a1) * r0), Vector3(cos(a1) * r1, y1, sin(a1) * r1), Vector3(cos(a0) * r1, y1, sin(a0) * r1)]
+					var sh = 0.92 + 0.08 * sin(a0 * 3.0)   # hafif boğum dokusu
+					for t in [0, 2, 1, 0, 3, 2]:
+						lt.set_color(gc * Color(sh, sh, sh)); lt.add_vertex(q[t])
+			lt.index()
+			lt.generate_normals()
+			m.add_arrays(lt.commit_to_arrays(), Transform3D.IDENTITY, gc)
+			m.add("torus", Vector3(0, 0.075 * k, 0), Vector3(0.16, 0.16, 0.16) * k, Color(0.55, 0.14, 0.12), Vector3.ZERO, 14)   # boğum ipi (belde)
+			m.add("cyl", Vector3(0, 0.385 * k, 0), Vector3(0.075, 0.05, 0.075) * k, Color(0.45, 0.3, 0.18), Vector3.ZERO, 10)   # tıpa
 			if big:
 				m.add("box", Vector3(0, 0.0, 0.17), Vector3(0.05, 0.6, 0.01), Color(0.3, 0.22, 0.14), Vector3(0, 0, 38))   # kayış
 				m.add("box", Vector3(0, -0.12, -0.18), Vector3(0.12, 0.12, 0.006), Color(0.6, 0.12, 0.1), Vector3(0, 0, 45))   # mühür kâğıdı
-				_mesh_on("UpperChest", m.build(Props.toon()), Transform3D(Basis(Vector3.BACK, deg_to_rad(-8)), ch + Vector3(0, -0.12, -0.33)))
+				_mesh_on("UpperChest", m.build(Props.toon()), Transform3D(Basis(Vector3.BACK, deg_to_rad(-8)), ch + Vector3(0, -0.12, -0.305)))
 			else:
 				var hp = _grest(skel.find_bone("Hips")).origin
 				_mesh_on("Hips", m.build(Props.toon()), Transform3D(Basis.IDENTITY, hp + Vector3(0.18, -0.05, 0.02)))
@@ -3133,6 +3160,775 @@ func dangle_strip(bone: String, model_root: Vector3, dir: Vector3, length: float
 	return d
 
 
+## Alın koruyucu (kafa) — referans: _tmp/ref_band (Kotetsu/Izumo): kumaş bant saçın ÜSTÜNDEN kafayı sarar
+## (saç maskesi bandın içinde kalan saçı keser, bant saçı bastırmış görünür), alında kafaya uyan kavisli metal plaka
+## (pahlı kenar, dört köşe perçini, kazınmış köy arması), arkada düğüm + iki kısa sarkan uç (ikincil hareket).
+func _hitai_head(bc: Color) -> void:
+	_band_ring_full()
+	var by: float = band_ring[0] + 0.01   # göz kapağını kapatmasın
+	_hitai("Head", Vector3(skull_c.x, by, skull_c.z), band_ring[1], bc, 0.036, 0.037, 0.6, 0.008, Vector3(0.22, -1.0, -0.62))
+	# saç maskesi: bant yüksekliğinde (öndeki eğim dahil) bandın dışına taşan saç kesilir -> bant saçın üstünde
+	hair_mask_band(by - 0.004, 0.046, 0.008)
+
+
+## Boyun alın koruyucusu (Hinata tarzı): boynu saran bant, gırtlağın önünde kavisli plaka, ensede düğüm + iki kısa uç
+func _hitai_neck(bc: Color) -> void:
+	var ny = _bp("Neck").y + 0.035
+	var bins = 24
+	var rad = PackedFloat32Array()
+	rad.resize(bins)
+	var nk = _bp("Neck")
+	for q in body_mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+		if absf(q.y - ny) > 0.012:
+			continue
+		var d = Vector2(q.x - nk.x, q.z - nk.z)
+		if d.length() > 0.12:
+			continue
+		var k = int(floor((atan2(d.y, d.x) + PI) / TAU * bins)) % bins
+		rad[k] = maxf(rad[k], d.length())
+	for it in 4:
+		for k in bins:
+			if rad[k] <= 0.0:
+				rad[k] = maxf(rad[(k + 1) % bins], rad[(k + bins - 1) % bins])
+	for k in bins:
+		rad[k] = maxf(rad[k], 0.04) + 0.006   # yakanın/gömleğin üstünde
+	_hitai("Neck", Vector3(nk.x, ny, nk.z), rad, bc, 0.032, 0.034, 0.75, 0.0, Vector3(0.25, -1.0, -0.5))
+
+
+## Bandana alın koruyucu (Izumo/Asuma): bant + plaka (ortak kurucu) ve bandın üstünde kafanın tepesini ve arkasını
+## enseye kadar sıkıca saran kumaş başlık; altındaki saç kesilir (enseden/yanlardan taşan uçlar kalır).
+func _hitai_bandana(cc: Color) -> void:
+	_band_ring_full()
+	var by: float = band_ring[0] + 0.01
+	_hitai("Head", Vector3(skull_c.x, by, skull_c.z), band_ring[1], cc, 0.036, 0.037, 0.6, 0.008, Vector3(0.22, -1.0, -0.62))
+	head_cap(cc, by + 0.016, 0.07)
+	hair_mask_band(by - 0.004, 0.046, 0.008)
+
+
+## Kumaş alın bandı (hachimaki, kafa bandajı, haydut bezi bandı): plakasız ortak bant; dy: alın bandı hizasına göre,
+## saç maskesiyle saçın üstünde durur. Dönüş: bant merkezi y.
+func cloth_band(cc: Color, dy := 0.0, bh := 0.04, tail_len := 0.24, tail_w := 0.032, tilt := 0.006, rpad := 0.011) -> float:
+	_band_ring_full()
+	if band_ring.is_empty():
+		return skull_c.y
+	var by: float = band_ring[0] + 0.01 + dy
+	_hitai("Head", Vector3(skull_c.x, by, skull_c.z), band_ring[1], cc, bh, 0.0, 0.0, tilt, Vector3(0.25, -1.0, -0.6), false, tail_len, tail_w, rpad)
+	hair_mask_band(by - absf(tilt) * 0.5, bh + absf(tilt) + 0.008, 0.008)
+	return by
+
+
+## Gövde kafasının gerçek tepesi (model y): şapkalar buna oturur (yüz mesh'inden ölçülen htop alçak kalıyordu)
+func head_top() -> float:
+	var top = skull_c.y + skull_r.y
+	if body_mesh != null and body_mesh.mesh != null:
+		for q in body_mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+			if q.y > skull_c.y and absf(q.x) < 0.05:
+				top = maxf(top, q.y)
+	return top
+
+
+## Kapüşon (kafa kısmı, Head kemiğine): kafayı bol saran kumaş; önde yüz açıklığı (alından çeneye oval),
+## yanlar ve arka çene hizasının altına iner (omuz eteği gövdeye derili ayrı parça). deep: "derin" = önü öne taşan,
+## yüzü gölgeleyen; "hafif" = ince, kafaya yakın. Saç tamamen içeride (OutfitParts saçı gizler).
+func hood(cc: Color, deep := "") -> void:
+	if body_mesh == null or body_mesh.mesh == null:
+		return
+	var pad = {"derin": 0.04, "hafif": 0.02}.get(deep, 0.03)
+	var brow = eye_center_model.y + 0.05
+	var y_lo = _bp("Neck").y + 0.02
+	var top = head_top() + pad + 0.01
+	var cen = Vector3(skull_c.x, 0, skull_c.z)
+	# gövde kafa/boyun yarıçapı: 32 yön x yükseklik dilimleri (1.5 cm)
+	var nb = 32
+	var dy = 0.015
+	var rmap = {}
+	for q in body_mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+		if q.y < y_lo - 0.02:
+			continue
+		var d = Vector2(q.x - cen.x, q.z - cen.z)
+		if d.length() > 0.2:
+			continue
+		var k = Vector2i(int(floor((atan2(d.y, d.x) + PI) / TAU * nb)) % nb, int(floor((q.y - y_lo) / dy)))
+		rmap[k] = maxf(rmap.get(k, 0.0), d.length())
+	if face_mi != null:
+		for si in face_mi.mesh.get_surface_count():
+			for v in face_mi.mesh.surface_get_arrays(si)[Mesh.ARRAY_VERTEX]:
+				var q = _face_xf * v
+				var d = Vector2(q.x - cen.x, q.z - cen.z)
+				var k = Vector2i(int(floor((atan2(d.y, d.x) + PI) / TAU * nb)) % nb, int(floor((q.y - y_lo) / dy)))
+				rmap[k] = maxf(rmap.get(k, 0.0), d.length())
+	var rows = int(ceil((top - y_lo) / dy)) + 1
+	var na = 40
+	var grid = []
+	var r_top_ref = 0.0
+	for j in rows:
+		var y = minf(y_lo + j * dy, top)
+		var row = []
+		for k in na + 1:
+			var a = float(k) / na * TAU - PI
+			var bk = int(floor((a + PI) / TAU * nb)) % nb
+			var r = 0.0
+			for jj in range(j - 1, j + 2):   # komşu dilimlerle yumuşat
+				r = maxf(r, float(rmap.get(Vector2i(bk, jj), 0.0)))
+			if r <= 0.0:
+				r = 0.07
+			r += pad
+			# tepeye doğru kapan (yarım küre gibi), alnın üstünde kumaş bolluğu
+			var tt = clampf((y - brow) / maxf(top - brow, 0.01), 0.0, 1.0)
+			if tt > 0.0:
+				r = r * sqrt(maxf(0.0, 1.0 - tt * tt)) + pad * 0.5 * (1.0 - tt)
+			# derin kapüşon: önde alın hizasında öne taşan siper
+			var df = absf(wrapf(a - PI * 0.5, -PI, PI))
+			if deep == "derin" and df < 1.0:
+				r += 0.035 * (1.0 - df) * clampf(1.0 - absf(y - brow) / 0.08, 0.0, 1.0)
+			row.append(cen + Vector3(cos(a) * r, y, sin(a) * r))
+		grid.append(row)
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var chin = eye_center_model.y - 0.11
+	for j in rows - 1:
+		var y = y_lo + (j + 0.5) * dy
+		for k in na:
+			var a = (float(k) + 0.5) / na * TAU - PI
+			var df = absf(wrapf(a - PI * 0.5, -PI, PI))
+			# yüz açıklığı: alın hizasından çeneye oval
+			var open_w = 0.0
+			if y < brow + 0.015 and y > chin:
+				var u = (y - chin) / (brow + 0.015 - chin)
+				open_w = 0.95 * sqrt(clampf(1.0 - pow(u * 2.0 - 1.0, 2.0) * 0.55, 0.0, 1.0))
+			elif y <= chin:
+				open_w = 0.5
+			if df < open_w:
+				continue
+			var q = [grid[j][k], grid[j][k + 1], grid[j + 1][k + 1], grid[j + 1][k]]
+			var sh = 0.9 + 0.1 * float(j) / rows
+			if open_w > 0.0 and df < open_w + 0.12:
+				sh *= 0.8   # açıklık kenarı: katlı kenar gölgesi
+			for i in [0, 1, 2, 0, 2, 3]:
+				st.set_color(cc * Color(sh, sh, sh))
+				st.add_vertex(q[i])
+			for i in [0, 2, 1, 0, 3, 2]:   # iç yüz (açıklıktan görünür, koyu): biraz içeride (dış yüzle titreşmesin)
+				var c0 = Vector3(cen.x, q[i].y, cen.z)
+				st.set_color(cc.darkened(0.45))
+				st.add_vertex(c0 + (q[i] - c0) * 0.96)
+	st.generate_normals()
+	_mesh_on("Head", st.commit(), Transform3D.IDENTITY).material_override = Props.toon()
+
+
+var cap_grid: Array = []   # son head_cap ızgarası [satır (alt->tepe)][açı] (kaburga/süs için)
+var cap_cen := Vector3.ZERO
+
+
+## Samuray kabutosu (ref: _tmp/ref_kabuto): kafaya oturan lake çanak (hachi) + dikey kaburgalar, alında siper (mabizashi),
+## yanlardan/arkadan açılarak inen 4 kat lamel boyun koruması (shikoro) ve aralarında bağcık şeritleri, yüz yanlarında
+## dışa kıvrık kanatlar (fukigaeshi), önde altın arma: hilal (varsayılan) ya da V boynuz (kuwagata).
+func kabuto(cc: Color, crest := "") -> void:
+	_band_ring_full()
+	if band_ring.is_empty():
+		return
+	var by: float = band_ring[0] + 0.012
+	var gold = Color(0.9, 0.72, 0.25)
+	var lace = Color(0.85, 0.45, 0.15) if cc.r < 0.4 else Color(0.15, 0.12, 0.1)
+	head_cap(cc, by, 0.02, 0.06, 0.028, 0.03, false)
+	# kaburgalar: çanak boyunca 14 meridyen, hafif kabarık koyu şerit
+	var mb = MB.new()
+	var rows: int = cap_grid.size()
+	var na: int = cap_grid[0].size() - 1
+	for r in 14:
+		var k = int(round(float(r) / 14.0 * na)) % na
+		for j in rows - 2:
+			var p0: Vector3 = cap_grid[j][k]; var p1: Vector3 = cap_grid[j + 1][k]
+			var out = (p0 - cap_cen).normalized()
+			mb.add_xf("box", Transform3D(Basis.looking_at(p1 - p0, out) * Basis.from_scale(Vector3(0.006, 0.004, p0.distance_to(p1) * 1.05)), (p0 + p1) * 0.5 + out * 0.002), cc.darkened(0.3))
+	# tepe süsü (tehen): küçük halka
+	var tp: Vector3 = cap_grid[rows - 1][0]
+	mb.add("cyl", tp + Vector3(0, 0.004, 0), Vector3(0.03, 0.008, 0.03), gold, Vector3.ZERO, 10)
+	var rad: PackedFloat32Array = band_ring[1]
+	var bins = rad.size()
+	var r_at = func(ang: float) -> float: return rad[int(floor((wrapf(ang, -PI, PI) + PI) / TAU * bins)) % bins] + 0.03
+	var cen = Vector3(skull_c.x, by, skull_c.z)
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var quad = func(q: Array, col: Color) -> void:
+		for i in [0, 1, 2, 0, 2, 3]:
+			st.set_color(col); st.add_vertex(q[i])
+		for i in [0, 2, 1, 0, 3, 2]:
+			st.set_color(col.darkened(0.35)); st.add_vertex(q[i])
+	# siper: alın önünde öne-aşağı eğik dar yay
+	for k in 16:
+		var a0 = PI * 0.5 - 0.9 + 1.8 * k / 16.0
+		var a1 = PI * 0.5 - 0.9 + 1.8 * (k + 1) / 16.0
+		var w0 = 1.0 - pow(absf(a0 - PI * 0.5) / 0.9, 2.0) * 0.6
+		var w1 = 1.0 - pow(absf(a1 - PI * 0.5) / 0.9, 2.0) * 0.6
+		var i0 = cen + Vector3(cos(a0), 0, sin(a0)) * r_at.call(a0)
+		var i1 = cen + Vector3(cos(a1), 0, sin(a1)) * r_at.call(a1)
+		var o0 = cen + Vector3(cos(a0), 0, sin(a0)) * (r_at.call(a0) + 0.045 * w0) + Vector3(0, -0.02 * w0, 0)
+		var o1 = cen + Vector3(cos(a1), 0, sin(a1)) * (r_at.call(a1) + 0.045 * w1) + Vector3(0, -0.02 * w1, 0)
+		quad.call([i0, i1, o1, o0], cc.darkened(0.15))
+	# shikoro: 4 kat, yüzün önü (±62°) açık, her kat aşağıda ve daha geniş; katlar arasında bağcık şeridi
+	var open = 1.08
+	for layer in 4:
+		var ytop = by + 0.005 - layer * 0.03
+		var ybot = ytop - 0.04
+		var flare0 = 0.012 + layer * 0.022
+		var flare1 = flare0 + 0.03
+		var n = 30
+		for k in n:
+			var a0 = PI * 0.5 + open + (TAU - 2.0 * open) * k / n
+			var a1 = PI * 0.5 + open + (TAU - 2.0 * open) * (k + 1) / n
+			var d0 = Vector3(cos(a0), 0, sin(a0)); var d1 = Vector3(cos(a1), 0, sin(a1))
+			var t0 = cen + d0 * (r_at.call(a0) + flare0) + Vector3(0, ytop - by, 0)
+			var t1 = cen + d1 * (r_at.call(a1) + flare0) + Vector3(0, ytop - by, 0)
+			var b0 = cen + d0 * (r_at.call(a0) + flare1) + Vector3(0, ybot - by, 0)
+			var b1 = cen + d1 * (r_at.call(a1) + flare1) + Vector3(0, ybot - by, 0)
+			quad.call([t0, t1, b1, b0], cc.darkened(0.08 * layer))
+			# bağcık: katın alt kenarında ince renkli şerit
+			var l0 = b0 + Vector3(0, 0.007, 0) + d0 * 0.0015; var l1 = b1 + Vector3(0, 0.007, 0) + d1 * 0.0015
+			quad.call([l0, l1, b1 + d1 * 0.0015, b0 + d0 * 0.0015], lace)
+		# fukigaeshi: üst katın iki ucu dışa kıvrık kanat
+		if layer == 0:
+			for sx in [-1.0, 1.0]:
+				var a = PI * 0.5 + sx * open
+				var d = Vector3(cos(a), 0, sin(a))
+				var side = Vector3(0, 1, 0).cross(d) * (-sx)
+				var p0 = cen + d * (r_at.call(a) + flare0) + Vector3(0, 0.005, 0)
+				var pts = [p0, p0 + Vector3(0, -0.06, 0), p0 + Vector3(0, -0.06, 0) + d * 0.04 + side * 0.045, p0 + d * 0.035 + side * 0.05]
+				quad.call(pts, cc.darkened(0.05))
+				quad.call([pts[3], pts[2], pts[2] + d * 0.002 - side * 0.006, pts[3] + d * 0.002 - side * 0.006], gold)
+	st.generate_normals()
+	_mesh_on("Head", st.commit(), Transform3D.IDENTITY).material_override = Props.toon()
+	# arma: alnın önünde altın hilal ya da V boynuz
+	var fz = skull_c.z + r_at.call(PI * 0.5) + 0.012
+	var base = Vector3(skull_c.x, by + 0.02, fz)
+	if crest == "kuwagata":
+		for sx in [-1.0, 1.0]:
+			for k in 6:
+				var t0 = float(k) / 6.0; var t1 = float(k + 1) / 6.0
+				var p0 = base + Vector3(sx * (0.012 + t0 * 0.07), t0 * 0.17 + t0 * t0 * 0.02, 0.004 + t0 * 0.02)
+				var p1 = base + Vector3(sx * (0.012 + t1 * 0.07), t1 * 0.17 + t1 * t1 * 0.02, 0.004 + t1 * 0.02)
+				mb.add_xf("box", Transform3D(Basis.looking_at(p1 - p0, Vector3.BACK) * Basis.from_scale(Vector3(0.016 * (1.0 - t0 * 0.5), 0.005, p0.distance_to(p1) * 1.1)), (p0 + p1) * 0.5), gold)
+	else:
+		for k in 20:
+			var u0 = -1.0 + 2.0 * k / 20.0; var u1 = -1.0 + 2.0 * (k + 1) / 20.0
+			var p0 = base + Vector3(u0 * 0.15, 0.06 * u0 * u0 + 0.008, 0.004)
+			var p1 = base + Vector3(u1 * 0.15, 0.06 * u1 * u1 + 0.008, 0.004)
+			var wv = 0.004 + 0.016 * (1.0 - absf((u0 + u1) * 0.5))
+			mb.add_xf("box", Transform3D(Basis.looking_at(p1 - p0, Vector3.BACK) * Basis.from_scale(Vector3(0.004, wv, p0.distance_to(p1) * 1.08)), (p0 + p1) * 0.5), gold)
+	mb.add("sphere", base, Vector3(0.024, 0.024, 0.012), gold, Vector3.ZERO, 8)
+	_mesh_on("Head", mb.build(Props.toon()), Transform3D.IDENTITY)
+
+
+## ------------------------------------------------------------------ yüz kabuğu (maske, peçe, sargı, boya)
+## Yüz + kafa + boyun yüzeyinin kafa ekseni etrafında (skull_c.x, skull_c.z) yön (a: atan2(z, x), önde PI/2) ve yükseklik
+## başına yarıçapı. Yüz parçaları bu yüzeye oturur: havada durmaz, yüzün içine girmez.
+var _fmap := {}
+const FM_NA := 48
+const FM_DY := 0.008
+
+
+func _face_map() -> void:
+	if not _fmap.is_empty():
+		return
+	var pts = []
+	var chin0 = eye_center_model.y - 0.1
+	if face_mi != null:
+		for si in face_mi.mesh.get_surface_count():
+			for v in face_mi.mesh.surface_get_arrays(si)[Mesh.ARRAY_VERTEX]:
+				var fq = _face_xf * v
+				if fq.y > chin0 - 0.01:   # çene altı (yatay yüzey) haritayı disk gibi açıyordu: orada yalnız boyun
+					pts.append(fq)
+	var chest_y = _bp("UpperChest").y + 0.05
+	if body_mesh != null and body_mesh.mesh != null:
+		for q in body_mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+			if q.y > chest_y:
+				pts.append(q)
+	var chin = eye_center_model.y - 0.1
+	for q in pts:
+		var d = Vector2(q.x - skull_c.x, q.z - skull_c.z)
+		# çenenin altında yalnız boyun (omuz/trapez köşeleri maskeyi disk gibi açıyordu)
+		if d.length() > (0.2 if q.y > chin else 0.075):
+			continue
+		var k = Vector2i(int(floor((atan2(d.y, d.x) + PI) / TAU * FM_NA)) % FM_NA, int(floor(q.y / FM_DY)))
+		_fmap[k] = maxf(_fmap.get(k, 0.0), d.length())
+
+
+## Yüzey yarıçapı (komşu yön/yükseklik hücreleriyle yumuşatılmış en dış değer)
+func face_r(a: float, y: float) -> float:
+	_face_map()
+	var fa = (wrapf(a, -PI, PI) + PI) / TAU * FM_NA - 0.5
+	var fy = y / FM_DY - 0.5
+	var a0 = int(floor(fa)); var y0 = int(floor(fy))
+	var ta = fa - a0; var ty = fy - y0
+	var acc = 0.0; var wsum = 0.0
+	for da in [0, 1]:
+		for dy in [0, 1]:
+			var r = 0.0
+			for ey in [-1, 0, 1]:
+				for ea in [-1, 0, 1]:
+					r = maxf(r, float(_fmap.get(Vector2i(posmod(a0 + da + ea, FM_NA), y0 + dy + ey), 0.0)))
+			if r <= 0.0:
+				continue
+			var w = (ta if da == 1 else 1.0 - ta) * (ty if dy == 1 else 1.0 - ty)
+			acc += r * w; wsum += w
+	return acc / wsum if wsum > 0.0001 else maxf(skull_r.x, 0.07)
+
+
+func face_pt(a: float, y: float, pad: float) -> Vector3:
+	var r = face_r(a, y) + pad
+	return Vector3(skull_c.x + cos(a) * r, y, skull_c.z + sin(a) * r)
+
+
+## Yüzeye oturan kabuk parçası: a_c merkezli ±a_half yay, y0..y1 arası; tilt(a) -> y kayması, hole(a, y) -> true ise boş.
+## İki yüzlü (iç yüz koyu); kenarlar hafif koyu. Dönüş: Head'e takılan mesh örneği.
+func face_patch(cc: Color, a_c: float, a_half: float, y0: float, y1: float, pad: float, hole := Callable(), tilt := Callable(), na := 32, ny := 10, edge_dark := 0.12, two_side := true) -> MeshInstance3D:
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var grid = []
+	for j in ny + 1:
+		var row = []
+		for k in na + 1:
+			var a = a_c - a_half + 2.0 * a_half * k / na
+			var y = lerpf(y0, y1, float(j) / ny) + (float(tilt.call(a)) if tilt.is_valid() else 0.0)
+			row.append(face_pt(a, y, pad))
+		grid.append(row)
+	for j in ny:
+		for k in na:
+			var a = a_c - a_half + 2.0 * a_half * (k + 0.5) / na
+			var y = lerpf(y0, y1, (j + 0.5) / ny)
+			if hole.is_valid() and hole.call(a, y):
+				continue
+			var q = [grid[j][k], grid[j][k + 1], grid[j + 1][k + 1], grid[j + 1][k]]
+			var edge = j == 0 or j == ny - 1 or (a_half < PI - 0.01 and (k == 0 or k == na - 1))
+			var col = cc.darkened(edge_dark) if edge else cc
+			for i in [0, 1, 2, 0, 2, 3]:
+				st.set_color(col); st.add_vertex(q[i])
+			if two_side:
+				for i in [0, 2, 1, 0, 3, 2]:
+					var c0 = Vector3(skull_c.x, q[i].y, skull_c.z)
+					st.set_color(cc.darkened(0.4)); st.add_vertex(c0 + (q[i] - c0) * 0.985)
+	st.generate_normals()
+	var mi = _mesh_on("Head", st.commit(), Transform3D.IDENTITY)
+	mi.material_override = Props.toon()
+	return mi
+
+
+## Yüz yüzeyi üzerinde (a, y) yolu boyunca ince kabarık şerit (bıyık, sarmal oluk, boya çizgisi, kayış)
+func face_line(cc: Color, path: Array, w: float, pad: float) -> void:
+	if path.size() < 2:
+		return
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for i in path.size() - 1:
+		var p0: Vector2 = path[i]; var p1: Vector2 = path[i + 1]
+		var c0 = face_pt(p0.x, p0.y, pad); var c1 = face_pt(p1.x, p1.y, pad)
+		var nrm = (c0 - Vector3(skull_c.x, c0.y, skull_c.z)).normalized()
+		var side = (c1 - c0).cross(nrm).normalized() * w * 0.5
+		var q = [c0 - side, c1 - side, c1 + side, c0 + side]
+		for k in [0, 1, 2, 0, 2, 3, 0, 2, 1, 0, 3, 2]:
+			st.set_color(cc); st.add_vertex(q[k])
+	st.generate_normals()
+	_mesh_on("Head", st.commit(), Transform3D.IDENTITY).material_override = Props.toon()
+
+
+## Göz merkezi yönleri (a, y): sağ göz = karakterin sağı (-X)
+func eye_a(right: bool) -> float:
+	var ex = eye_center_model.x + 0.034 * (-1.0 if right else 1.0)
+	var ez = face_r(PI * 0.5, eye_center_model.y)
+	return atan2(ez, ex)
+
+
+## Yüz eşyaları (yüz kabuğuna oturan yeni sürümler). true = işlendi (eski kurucular atlanır).
+func face_item(fs: String, fg: Color) -> bool:
+	if face_mi == null:
+		return false
+	var ey = eye_center_model.y
+	var nose_y = ey - 0.032        # burun kemeri (maske üst kenarı)
+	var chin = ey - 0.115
+	var neck_y = _bp("Neck").y + 0.04   # boyun dibinde trapez başlıyor: alt kenar biraz yukarıda
+	var F = PI * 0.5
+	var dark = Color(0.08, 0.08, 0.1)
+	var white = Color(0.94, 0.92, 0.86)
+	match fs:
+		"cloth":
+			# bez maske (Kakashi tarzı): burun kemerinden boyna, başı tam saran sıkı kumaş; üst kenarda katlı bant
+			face_patch(fg, F, PI, neck_y, nose_y, 0.008, Callable(), Callable(), 48, 14)
+			face_patch(fg.darkened(0.12), F, PI, nose_y - 0.012, nose_y + 0.002, 0.008, Callable(), Callable(), 48, 2, 0.0)
+		"pece":
+			# çöl peçesi: burun ve ağzı örten ince kumaş, arkada bağlı; çenenin altından göğse sarkan bol uç (rüzgârda uçuşur)
+			face_patch(fg, F, PI, chin - 0.012, nose_y, 0.006, Callable(), Callable(), 48, 10)
+			face_patch(fg.darkened(0.1), F, PI, nose_y - 0.01, nose_y + 0.002, 0.009, Callable(), Callable(), 48, 2, 0.0)
+			var cp = face_pt(F, chin - 0.008, 0.008)
+			dangle_strip("Head", cp, Vector3(0, -1, 0.25), 0.16, 0.12, fg, 0.2, Vector3(1, 0, 0), 0.003)
+			var bp = face_pt(-F, nose_y - 0.02, 0.012)
+			for sx in [-1.0, 1.0]:
+				dangle_strip("Head", bp + Vector3(0.008 * sx, 0, 0), Vector3(0.2 * sx, -1, -0.4), 0.14, 0.03, fg, 0.15, Vector3(1, 0, 0), 0.003)
+		"bandaj_alt", "tam_bandaj":
+			# sargılar: üst üste binen, hafif eğik bandaj turları (her tur ayrı şerit, kenarları koyu); tam sargıda göz yarıkları
+			var full = fs == "tam_bandaj"
+			var top = (ey + 0.075) if full else nose_y + 0.004
+			var bc = white if fg.get_luminance() < 0.35 else fg
+			var n = 8 if full else 5
+			var ar = eye_a(true); var al = eye_a(false)
+			var eyes = func(a: float, y: float) -> bool: return full and absf(y - ey) < 0.017 and (absf(wrapf(a - ar, -PI, PI)) < 0.2 or absf(wrapf(a - al, -PI, PI)) < 0.2)
+			for k in n:
+				var y1 = lerpf(top, neck_y, float(k) / n) + 0.004
+				var y0 = lerpf(top, neck_y, float(k + 1) / n) - 0.004
+				var sgn = 1.0 if k % 2 == 0 else -1.0
+				var tl = func(a: float) -> float: return sgn * 0.006 * cos(a)
+				face_patch(bc.darkened(0.03 * (k % 3)), F, PI, y0, y1, 0.005 + 0.0025 * (k % 2), eyes, tl, 48, 3, 0.15)
+			# sargının altında kalan saç taşmasın
+			hair_mask_slab(neck_y, top + 0.004, Vector2(skull_c.x, skull_c.z), face_r(0.0, ey) + 0.008, face_r(F, ey) + 0.008)
+			var ep = face_pt(-F + 0.4, neck_y + 0.02, 0.012)
+			dangle_strip("Head", ep, Vector3(0.1, -1, -0.3), 0.1, 0.022, bc, 0.15, Vector3(1, 0, 0), 0.003)
+		"mempo", "demir_yarim_maske":
+			# mempo: burnun altından çeneye lake yarım yüz zırhı, burun siperi, bıyık kabartması, ağız yarığı, boğaz koruması (3 kat)
+			var steel = fs == "demir_yarim_maske"
+			var mc = Color(0.62, 0.65, 0.7) if steel else fg
+			face_patch(mc, F, 1.3, chin - 0.012, nose_y - 0.006, 0.012, Callable(), Callable(), 28, 9, 0.2)
+			face_patch(mc.darkened(0.08), F, 0.16, nose_y - 0.014, nose_y + 0.012, 0.016, Callable(), Callable(), 6, 4, 0.2)   # burun siperi
+			var my = ey - 0.075
+			face_line(dark, [Vector2(F - 0.3, my), Vector2(F - 0.1, my + 0.003), Vector2(F + 0.1, my + 0.003), Vector2(F + 0.3, my)], 0.006, 0.0135)   # ağız yarığı
+			if not steel:
+				for sx in [-1.0, 1.0]:   # bıyık: ağzın üstünden yanlara kıvrılan kabartma
+					face_line(Color(0.9, 0.88, 0.8), [Vector2(F + sx * 0.05, my + 0.014), Vector2(F + sx * 0.2, my + 0.01), Vector2(F + sx * 0.38, my - 0.006)], 0.006, 0.015)
+				for k in 3:   # boğaz koruması: çenenin altından boyna inen katlar
+					var yt = chin - 0.006 - k * 0.022
+					face_patch(mc.darkened(0.1 + k * 0.06), F, 1.15 - k * 0.05, yt - 0.026, yt, 0.022 + k * 0.012, Callable(), Callable(), 22, 2, 0.25)
+					face_line(Color(0.85, 0.45, 0.15), [Vector2(F - 1.05, yt - 0.024), Vector2(F, yt - 0.024), Vector2(F + 1.05, yt - 0.024)], 0.004, 0.024 + k * 0.012)
+			else:
+				for sx in [-1.0, 1.0]:
+					for k in 3:   # perçinler
+						face_line(Color(0.4, 0.4, 0.45), [Vector2(F + sx * 0.75, ey - 0.06 - k * 0.018), Vector2(F + sx * 0.78, ey - 0.06 - k * 0.018)], 0.008, 0.015)
+			# arkaya giden bağ ipi
+			face_patch(dark, F, PI, my - 0.004, my + 0.004, 0.007, func(a, _y): return absf(wrapf(a - F, -PI, PI)) < 1.3, Callable(), 40, 1, 0.0, false)
+		"spiral_maske":
+			# sarmal maske (ref: Tobi): yüzün tamamını örten turuncu düz maske, sağ gözde tek delik, delikten dışa açılan sarmal oluk
+			var ar = eye_a(true)
+			var ty = ey + 0.004
+			var top = ey + 0.085
+			var hole = func(a: float, y: float) -> bool: return pow(wrapf(a - ar, -PI, PI) * 0.09 / 0.016, 2.0) + pow((y - ty) / 0.016, 2.0) < 1.0
+			var orange = Color(0.93, 0.5, 0.12)
+			face_patch(orange, F, 1.0, chin + 0.012, top, 0.014, hole, Callable(), 40, 22, 0.1)
+			var path = []
+			for i in 120:
+				var th = i * 0.16
+				var r = 0.018 + th * 0.0055
+				path.append(Vector2(ar + cos(th) * r / 0.09, ty + sin(th) * r))
+			var clipped = []
+			for pnt in path:
+				if pnt.y > chin + 0.016 and pnt.y < top - 0.006 and absf(wrapf(pnt.x - F, -PI, PI)) < 0.94:
+					clipped.append(pnt)
+				elif clipped.size() > 1:
+					face_line(orange.darkened(0.4), clipped, 0.004, 0.0155)
+					clipped = []
+			if clipped.size() > 1:
+				face_line(orange.darkened(0.4), clipped, 0.004, 0.0155)
+			# kenar ipi: maskeyi başa bağlar
+			face_patch(dark, F, PI, ey + 0.02, ey + 0.028, 0.01, func(a, _y): return absf(wrapf(a - F, -PI, PI)) < 1.3, Callable(), 40, 1, 0.0, false)
+		"gas", "gaz_maskesi":
+			# gaz maskesi: burun-ağzı örten kauçuk yüz parçası, iki yanda aşağı-öne bakan filtre kutusu, ortada valf, başa kayış
+			var rub = Color(0.2, 0.22, 0.2) if fs == "gas" else Color(0.25, 0.27, 0.3)
+			face_patch(rub, F, 1.05, chin - 0.01, nose_y + 0.006, 0.016, Callable(), Callable(), 26, 9, 0.2)
+			var mb = MB.new()
+			var vp = face_pt(F, ey - 0.07, 0.03)
+			mb.add("cyl", vp, Vector3(0.04, 0.03, 0.04), dark, Vector3(-75, 0, 0), 10)
+			for sx in [-1.0, 1.0]:
+				var a = F + sx * 0.62
+				var cpn = face_pt(a, ey - 0.075, 0.035)
+				var out = (cpn - Vector3(skull_c.x, cpn.y, skull_c.z)).normalized()
+				mb.add_xf("cyl", Transform3D(Basis.looking_at(out + Vector3(0, -0.6, 0), Vector3.UP) * Basis(Vector3.RIGHT, PI * 0.5) * Basis.from_scale(Vector3(0.05, 0.05, 0.05)), cpn), Color(0.45, 0.47, 0.42), 12)
+				mb.add_xf("cyl", Transform3D(Basis.looking_at(out + Vector3(0, -0.6, 0), Vector3.UP) * Basis(Vector3.RIGHT, PI * 0.5) * Basis.from_scale(Vector3(0.054, 0.01, 0.054)), cpn + (out + Vector3(0, -0.6, 0)).normalized() * 0.026), dark, 12)
+			_mesh_on("Head", mb.build(Props.toon()), Transform3D.IDENTITY)
+			face_patch(dark, F, PI, ey - 0.012, ey - 0.002, 0.01, func(a, _y): return absf(wrapf(a - F, -PI, PI)) < 1.0, Callable(), 40, 1, 0.0, false)
+			if fs == "gaz_maskesi":   # yağmur tipi: göz camları da var
+				for right in [true, false]:
+					var ea = eye_a(right)
+					face_patch(Color(0.55, 0.75, 0.7), ea, 0.3, ey - 0.02, ey + 0.022, 0.012, Callable(), Callable(), 8, 4, 0.5)
+		"solunum_maskesi":
+			# samuray solunum maskesi: ağız-burun üstünde çelik plaka, yatay nefes yarıkları, iki yandan enseye kıvrılan boğumlu hortum
+			var stc = Color(0.32, 0.34, 0.38)
+			face_patch(stc, F, 1.1, chin - 0.008, nose_y - 0.002, 0.014, Callable(), Callable(), 26, 9, 0.2)
+			for k in 4:
+				var yy = ey - 0.06 - k * 0.014
+				face_line(dark, [Vector2(F - 0.35, yy), Vector2(F, yy), Vector2(F + 0.35, yy)], 0.004, 0.0155)
+			for sx in [-1.0, 1.0]:
+				var hp = []
+				for i in 14:
+					var t = float(i) / 13.0
+					hp.append(Vector2(F + sx * (0.85 + t * 1.6), ey - 0.07 - t * 0.04))
+				for i in 13:   # boğumlu hortum: kısa halka parçaları
+					face_line(Color(0.22, 0.22, 0.25) if i % 2 == 0 else Color(0.4, 0.42, 0.46), [hp[i], hp[i + 1]], 0.018, 0.03)
+		"goz_bandi":
+			# göz bandı: sağ gözün üstünde yüze oturan siyah yama + yamadan şakağın üstünden enseye çapraz ince kayış
+			var ar = eye_a(true)
+			face_patch(fg if fg.get_luminance() < 0.3 else dark, ar, 0.27, ey - 0.024, ey + 0.026, 0.008, Callable(), Callable(), 10, 6, 0.25)
+			var sp = []
+			for i in 33:
+				var t = float(i) / 32.0
+				sp.append(Vector2(ar - t * TAU * 0.98, lerpf(ey + 0.022, ey + 0.05, sin(t * PI * 0.5)) - t * t * 0.02))
+			face_line(dark, sp, 0.008, 0.016)
+		"savas_boyasi":
+			# savaş boyası: yanaklarda göz altından inen iki çizgi + alında çentik (yüz yüzeyine oturur, havada değil)
+			var red = Color(0.78, 0.1, 0.1)
+			for right in [true, false]:
+				var ea = eye_a(right)
+				var sx = 1.0 if right else -1.0   # dışa doğru (sağ göz büyük açı tarafında)
+				for k in 2:
+					var a0 = ea + sx * (0.02 + k * 0.1)
+					face_line(red, [Vector2(a0, ey - 0.022), Vector2(a0 + sx * 0.06, ey - 0.06)], 0.007, 0.0012)
+			face_line(red, [Vector2(F - 0.14, ey + 0.06), Vector2(F, ey + 0.045), Vector2(F + 0.14, ey + 0.06)], 0.006, 0.0012)
+		_:
+			return false
+	return true
+
+
+## Kafaya oturan kumaş başlık (bandana, haydut bezi, sarık, kapüşon tepesi...): alt kenar önde edge_y, arkada back_drop kadar
+## enseye iner; yüzey her yönde gövde kafasının en az 1.2 cm dışında (kafa derisi içinden çıkmaz). Altındaki saç kesilir.
+## puff: tepede kabarıklık, pad: halkadan dışarı pay. Dönüş: mesh örneği.
+func head_cap(cc: Color, edge_y: float, back_drop: float, puff := 0.04, pad := 0.011, top_pad := 0.012, mask := true) -> MeshInstance3D:
+	_band_ring_full()
+	var rad: PackedFloat32Array = band_ring[1]
+	var bins = rad.size()
+	var cen = Vector3(skull_c.x, band_ring[0], skull_c.z)
+	var top = skull_c.y + skull_r.y
+	for q in body_mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+		if q.y > cen.y and absf(q.x) < 0.05:
+			top = maxf(top, q.y)
+	top += top_pad
+	var r_at = func(ang: float) -> float: return rad[int(floor((wrapf(ang, -PI, PI) + PI) / TAU * bins)) % bins] + pad
+	# gövde kafasının yön başına en dış noktası: 24 yön x 8 yükseklik
+	var hmax = {}
+	var neck_y = _bp("Neck").y + 0.05
+	for q in body_mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+		if q.y < edge_y - back_drop - 0.03 or q.y < neck_y:
+			continue
+		var d = q - cen
+		var hk = Vector2i(int(floor((atan2(d.z, d.x) + PI) / TAU * 24)) % 24, clampi(int(floor((atan2(d.y, Vector2(d.x, d.z).length()) + PI * 0.5) / PI * 8)), 0, 7))
+		hmax[hk] = maxf(hmax.get(hk, 0.0), d.length())
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var na = 40
+	var nr = 10
+	var ring = []
+	for j in nr + 1:
+		var t = float(j) / nr
+		var row = []
+		for k in na + 1:
+			var a = float(k) / na * TAU - PI
+			var back = maxf(0.0, -sin(a))
+			var y0 = edge_y - back * back_drop
+			var r0 = r_at.call(a) - back * 0.012
+			var e = t * PI * 0.5
+			var r = r0 * cos(e) * (1.0 + puff * sin(e * 2.0))
+			var y = y0 + (top - y0) * sin(e)
+			var dv = Vector3(cos(a) * r, y - cen.y, sin(a) * r)
+			var hk = Vector2i(int(floor((atan2(dv.z, dv.x) + PI) / TAU * 24)) % 24, clampi(int(floor((atan2(dv.y, Vector2(dv.x, dv.z).length()) + PI * 0.5) / PI * 8)), 0, 7))
+			var need = float(hmax.get(hk, 0.0)) + 0.012
+			if dv.length() < need:
+				dv = dv.normalized() * need
+			row.append(cen + dv)
+		ring.append(row)
+	for j in nr:
+		for k in na:
+			var q = [ring[j][k], ring[j][k + 1], ring[j + 1][k + 1], ring[j + 1][k]]
+			var sh = 1.0 - 0.1 * float(j) / nr
+			for i in [0, 1, 2, 0, 2, 3]:
+				st.set_color(cc * Color(sh, sh, sh))
+				st.add_vertex(q[i])
+	st.generate_normals()
+	cap_grid = ring
+	cap_cen = cen
+	var mi = _mesh_on("Head", st.commit(), Transform3D.IDENTITY)
+	mi.material_override = Props.toon()
+	if mask:
+		# başlığın altında kalan saç kesilir: önde alt kenar, arkada ense hizası düzlemi
+		var fz = skull_c.z + r_at.call(PI * 0.5)
+		var bz = skull_c.z - r_at.call(-PI * 0.5)
+		var pf = Vector3(0, edge_y - 0.036, fz)
+		var pb = Vector3(0, edge_y - back_drop + 0.01, bz)
+		var v = pb - pf
+		var nrm = Vector3(0, -v.z, v.y).normalized()
+		if nrm.y < 0.0:
+			nrm = -nrm
+		hair_mask_plane(nrm, pf)
+	return mi
+
+
+## Ortak alın koruyucu kurucusu (kafa/boyun): cen merkezli rad[] halkası üstüne kumaş bant (içe kalın), önde kavisli plaka
+## (pahlı kenar, perçinler, kazınmış arma), arkada düğüm + iki sarkan uç. tilt: önde aşağı eğim.
+func _hitai(bone: String, cen: Vector3, rad: PackedFloat32Array, bc: Color, bh: float, ph: float, a_half: float, tilt_amt: float, tail_dir: Vector3, plate := true, tail_len := 0.15, tail_w := 0.03, rpad := 0.011) -> void:
+	var bins = rad.size()
+	var r_at = func(ang: float) -> float: return rad[int(floor((wrapf(ang, -PI, PI) + PI) / TAU * bins)) % bins]
+	var tilt = func(ang: float) -> float: return -tilt_amt * maxf(0.0, sin(ang))   # önde hafif aşağı (+Z = sin)
+	var p_of = func(ang: float, r: float, dy: float) -> Vector3: return cen + Vector3(cos(ang) * r, dy + tilt.call(ang), sin(ang) * r)
+	# --- kumaş bant: kalınlıklı halka (dış yüz + üst/alt kenar), saçın üstünde
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var n = 48
+	var cloth = bc
+	for k in n:
+		var a0 = float(k) / n * TAU - PI
+		var a1 = float(k + 1) / n * TAU - PI
+		var ro0 = r_at.call(a0) + rpad; var ro1 = r_at.call(a1) + rpad
+		var ri0 = ro0 - 0.045; var ri1 = ro1 - 0.045   # içe kalın: kesilen saçın yerinde boşluk görünmesin
+		var quads = [
+			[p_of.call(a0, ro0, -bh * 0.5), p_of.call(a1, ro1, -bh * 0.5), p_of.call(a1, ro1, bh * 0.5), p_of.call(a0, ro0, bh * 0.5), cloth],
+			[p_of.call(a0, ro0, bh * 0.5), p_of.call(a1, ro1, bh * 0.5), p_of.call(a1, ri1, bh * 0.5), p_of.call(a0, ri0, bh * 0.5), cloth.darkened(0.12)],
+			[p_of.call(a0, ri0, -bh * 0.5), p_of.call(a1, ri1, -bh * 0.5), p_of.call(a1, ro1, -bh * 0.5), p_of.call(a0, ro0, -bh * 0.5), cloth.darkened(0.25)]]
+		for q in quads:
+			for i in [0, 1, 2, 0, 2, 3]:
+				st.set_color(q[4])
+				st.add_vertex(q[i])
+	st.generate_normals()
+	var bmi = _mesh_on(bone, st.commit(), Transform3D.IDENTITY)
+	bmi.material_override = Props.toon()
+	var rv = MB.new()
+	var front = PI * 0.5
+	var rp = func(ang: float) -> float: return r_at.call(ang) + 0.013
+	if plate:
+		# --- metal plaka: alnın kavsini izleyen yay (önde ±0.5 rad), pahlı kenar
+		var steel = Color(0.78, 0.8, 0.85)
+		var ps = SurfaceTool.new()
+		ps.begin(Mesh.PRIMITIVE_TRIANGLES)
+		var m = 16
+		for k in m:
+			var a0 = front - a_half + 2.0 * a_half * float(k) / m
+			var a1 = front - a_half + 2.0 * a_half * float(k + 1) / m
+			var e0 = 1.0 if k == 0 else 0.0
+			var e1 = 1.0 if k == m - 1 else 0.0
+			# yüz: iç dikdörtgen (pah içi) + pah halkası (kenara doğru içe eğik)
+			var t = 0.0045
+			var bev = 0.004
+			var rows = [[-ph * 0.5, 0.0], [-ph * 0.5 + bev, t], [ph * 0.5 - bev, t], [ph * 0.5, 0.0]]
+			for r in 3:
+				var y0 = rows[r][0]; var y1 = rows[r + 1][0]
+				var d0 = rows[r][1]; var d1 = rows[r + 1][1]
+				var col = steel if r == 1 else steel.darkened(0.18)
+				var q = [p_of.call(a0, rp.call(a0) + d0, y0), p_of.call(a1, rp.call(a1) + d0, y0), p_of.call(a1, rp.call(a1) + d1, y1), p_of.call(a0, rp.call(a0) + d1, y1)]
+				for i in [0, 1, 2, 0, 2, 3]:
+					ps.set_color(col)
+					ps.add_vertex(q[i])
+			# uç kapakları
+			for ec in [[e0, a0], [e1, a1]]:
+				if ec[0] > 0.5:
+					var aa: float = ec[1]
+					var q2 = [p_of.call(aa, rp.call(aa), -ph * 0.5), p_of.call(aa, rp.call(aa) + t, -ph * 0.5 + bev), p_of.call(aa, rp.call(aa) + t, ph * 0.5 - bev), p_of.call(aa, rp.call(aa), ph * 0.5)]
+					for i in [0, 1, 2, 0, 2, 3, 0, 2, 1, 0, 3, 2]:
+						ps.set_color(steel.darkened(0.25))
+						ps.add_vertex(q2[i])
+		ps.generate_normals()
+		var pmi = _mesh_on(bone, ps.commit(), Transform3D.IDENTITY)
+		pmi.material_override = Props.toon()
+		# perçinler: dört köşe
+		for sa in [-1.0, 1.0]:
+			for sy in [-1.0, 1.0]:
+				var aa = front + sa * (a_half - 0.07)
+				rv.add("sphere", p_of.call(aa, rp.call(aa) + 0.005, sy * (ph * 0.5 - 0.0075)), Vector3(0.006, 0.006, 0.006), steel.darkened(0.35), Vector3.ZERO, 6)
+	# arkada düğüm: bandın üstünde iki küçük kumaş topak
+	var back = -PI * 0.5
+	var kp = p_of.call(back, r_at.call(back) + 0.014, 0.0)
+	if tail_len > 0.0:
+		rv.add("sphere", kp, Vector3(0.026, 0.024, 0.016), cloth.darkened(0.08), Vector3.ZERO, 7)
+	_mesh_on(bone, rv.build(Props.toon()), Transform3D.IDENTITY)
+	if plate:
+		# kazınmış arma: plakanın kavsine oturan dokulu şerit
+		var ss = SurfaceTool.new()
+		ss.begin(Mesh.PRIMITIVE_TRIANGLES)
+		var sa_half = a_half * 0.62
+		var sh = ph * 0.62
+		for k in 10:
+			var u0 = float(k) / 10.0; var u1 = float(k + 1) / 10.0
+			var a0 = front + sa_half - 2.0 * sa_half * u0
+			var a1 = front + sa_half - 2.0 * sa_half * u1
+			var q = [[p_of.call(a0, rp.call(a0) + 0.0052, -sh * 0.5), Vector2(u0, 1)], [p_of.call(a1, rp.call(a1) + 0.0052, -sh * 0.5), Vector2(u1, 1)],
+				[p_of.call(a1, rp.call(a1) + 0.0052, sh * 0.5), Vector2(u1, 0)], [p_of.call(a0, rp.call(a0) + 0.0052, sh * 0.5), Vector2(u0, 0)]]
+			for i in [0, 1, 2, 0, 2, 3]:
+				ss.set_uv(q[i][1])
+				ss.add_vertex(q[i][0])
+		ss.generate_normals()
+		var smesh = ss.commit()
+		var sm = StandardMaterial3D.new()
+		sm.albedo_texture = symbol_texture(look["village"], look["band_style"] == "slashed")
+		sm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+		sm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		sm.cull_mode = BaseMaterial3D.CULL_DISABLED
+		var smi = _mesh_on(bone, smesh, Transform3D.IDENTITY)
+		smi.material_override = sm
+	# iki kısa bağ ucu: düğümden enseye sarkar (ikincil hareket)
+	for sx in ([-1.0, 1.0] if tail_len > 0.0 else []):
+		dangle_strip(bone, kp + Vector3(0.006 * sx, -0.004, -0.012), Vector3(tail_dir.x * sx, tail_dir.y, tail_dir.z), tail_len, tail_w, cloth, 0.16, Vector3(1, 0, 0), 0.003)
+
+
+## Kafanın arkası yüz mesh'inde yok: bant halkasına gövde mesh'inin (model uzayına çevrilmiş) kafa köşeleri de katılır
+## (yoksa bant arkada kafanın içinde kalıyordu). skull_c/skull_r değişmez (saç tutamları onlara göre yerleşik).
+var _ring_full := false
+func _band_ring_full() -> void:
+	if _ring_full or band_ring.is_empty() or body_mesh == null or body_mesh.mesh == null:
+		return
+	_ring_full = true
+	var by: float = band_ring[0]
+	var rad: PackedFloat32Array = (band_ring[1] as PackedFloat32Array).duplicate()
+	var bins = rad.size()
+	for q in body_mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
+		if absf(q.y - by) > 0.014 or q.y < _bp("Neck").y + 0.05:
+			continue
+		var d = Vector2(q.x - skull_c.x, q.z - skull_c.z)
+		var k = int(floor((atan2(d.y, d.x) + PI) / TAU * bins)) % bins
+		rad[k] = maxf(rad[k], d.length())
+	band_ring = [by, rad]
+
+
+## ------------------------------------------------------------------ saç maskesi
+## Başlıklar saçı bastırır: kayıtlı dilim/düzlem bölgesinde saç başlığın dışına taşmaz (shaders/hair_mask.gdshaderinc).
+## Model uzayı (Y yukarı, +Z yüz). Dilim: y0..y1 arası, merkez (cx, cz) etrafında rx/rz elipsinin dışı kesilir.
+var _hair_mats: Array = []   # [malzeme, mesh yerel -> model]
+var _hm_slabs: Array = []    # [Vector4(y0, y1, rx, rz), Vector2(cx, cz)]
+var _hm_planes: Array = []   # Vector4(n, d): dot(n, p) > d kesilir
+
+
+func hair_mask_slab(y0: float, y1: float, c: Vector2, rx: float, rz: float) -> void:
+	_hm_slabs.append([Vector4(y0, y1, rx, rz), c])
+
+
+func hair_mask_plane(n: Vector3, through: Vector3) -> void:
+	n = n.normalized()
+	_hm_planes.append(Vector4(n.x, n.y, n.z, n.dot(through)))
+
+
+## Başlık bandı için: kafa çevresi yarıçapları (band_ring) ölçüsünde elips, y'de h yüksekliğinde dilim
+func hair_mask_band(y: float, h: float, pad := 0.004) -> void:
+	_band_ring_full()
+	var rx = maxf(skull_r.x, 0.06) + pad
+	var rz = maxf(skull_r.z, 0.06) + pad
+	if not band_ring.is_empty():
+		var rad: PackedFloat32Array = band_ring[1]
+		var bins = rad.size()
+		# elips halkanın içinde kalsın (dışında kalırsa arada saç taşar): eksenlerdeki en küçük yarıçap
+		var at = func(ang: float) -> float: return rad[int(floor((ang + PI) / TAU * bins)) % bins]
+		rx = minf(at.call(0.0), at.call(PI - 0.001)) + pad
+		# kafa ön-arka asimetrik (arka ~2x): elips merkezi kaydırılır
+		var rf = at.call(PI * 0.5); var rb = at.call(-PI * 0.5)
+		rz = (rf + rb) * 0.5 + pad
+		hair_mask_slab(y - h * 0.5, y + h * 0.5, Vector2(skull_c.x, skull_c.z + (rf - rb) * 0.5), rx, rz)
+		return
+	hair_mask_slab(y - h * 0.5, y + h * 0.5, Vector2(skull_c.x, skull_c.z), rx, rz)
+
+
+func _apply_hair_mask() -> void:
+	if _hm_slabs.is_empty() and _hm_planes.is_empty():
+		return
+	for e in _hair_mats:
+		var m: ShaderMaterial = e[0]
+		m.set_shader_parameter("hm_on", true)
+		m.set_shader_parameter("hm_xf", Projection(e[1] as Transform3D))
+		for i in 2:
+			if i < _hm_slabs.size():
+				m.set_shader_parameter("hm_slab%d" % i, _hm_slabs[i][0])
+				m.set_shader_parameter("hm_c%d" % i, _hm_slabs[i][1])
+			if i < _hm_planes.size():
+				m.set_shader_parameter("hm_plane%d" % i, _hm_planes[i])
+
+
 ## Hazır paketi (saç vb.) bir kemiğe takar
 func add_dangle(bone: String, pack: Dictionary, mat: Material, model_xf: Transform3D, nm := "Dangle") -> Dangle:
 	var d = Dangle.make(pack, mat)
@@ -3248,35 +4044,13 @@ func _attachments() -> void:
 		var band = MB.new()
 		var bc: Color = look["band"]
 		if look["band_style"] == "neck":
-			band.add("torus", Vector3.ZERO, Vector3(0.24, 0.24, 0.24), bc, Vector3.ZERO, 16)
-			_mesh_on("Neck", band.build(Props.toon()), Transform3D(Basis.IDENTITY, _grest(skel.find_bone("Neck")).origin + Vector3(0, 0.03, 0)))
+			_hitai_neck(bc)
 		else:
 			if band_ring.is_empty():
 				band.add("cyl", Vector3.ZERO, Vector3(0.2, 0.034, 0.21), bc, Vector3.ZERO, 22)
 				_mesh_on("Head", band.build(Props.toon()), Transform3D(Basis.IDENTITY, hc + Vector3(0, 0.025, 0)))
 			else:
-				var bm = _band_mesh(bc)
-				var bmi = _mesh_on("Head", bm[0], Transform3D.IDENTITY)
-				bmi.material_override = Props.toon()
-				var plate: Vector3 = bm[1]
-				var pl = MB.new()
-				pl.add("box", plate, Vector3(0.07, 0.03, 0.006), Color(0.8, 0.82, 0.86))
-				# arkada düğüm + sarkan, rüzgârda dalgalanan iki bağ ucu (ikincil hareket)
-				# düğüm saçın dışında (kafa derisinde kalırsa saçın içinde kayboluyordu)
-				var hair_th = 0.0 if look.get("hair_style", "") in ["kel", "kirpik"] else 0.032
-				var bz = skull_c.z - (plate.z - skull_c.z) - 0.005 - hair_th
-				pl.add("box", Vector3(0, plate.y + 0.002, bz - 0.004), Vector3(0.03, 0.028, 0.016), bc.darkened(0.1))
-				_mesh_on("Head", pl.build(Props.toon()), Transform3D.IDENTITY)
-				for sx in [-1.0, 1.0]:
-					dangle_strip("Head", Vector3(0.009 * sx, plate.y, bz - 0.012), Vector3(0.18 * sx, -1.0, -0.45), 0.21, 0.026, bc, 0.16, Vector3(1, 0, 0))
-				var q = QuadMesh.new()
-				q.size = Vector2(0.058, 0.023)
-				var sm = StandardMaterial3D.new()
-				sm.albedo_texture = symbol_texture(look["village"], look["band_style"] == "slashed")
-				sm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
-				sm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-				q.material = sm
-				_mesh_on("Head", q, Transform3D(Basis.IDENTITY, plate + Vector3(0, 0, 0.0035)))
+				_hitai_head(bc)
 	# --- yelek: kumaş katmanına boyanır; üstüne sadece yaka + parşömen cepleri (dış giysi altındayken yok: taşıyordu)
 	if look["vest"] != null and (look.get("outer_style") == null or String(look.get("outer_style")) in ["atki", "kisa", "kesa"]):
 		var v = MB.new()

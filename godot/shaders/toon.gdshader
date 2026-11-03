@@ -1,6 +1,7 @@
 // Karakter + bina toon shader'ı: 2 bantlı anime gölge, kenar ışığı, vertex renkleri
 shader_type spatial;
 render_mode cull_back, diffuse_toon, specular_toon;
+#include "res://shaders/hair_mask.gdshaderinc"
 
 uniform vec4 tint : source_color = vec4(1.0);
 uniform bool use_vertex_color = true;
@@ -86,6 +87,7 @@ float vnoise(vec2 p) {
 }
 
 void vertex() {
+	hm_p = (hm_xf * vec4(VERTEX, 1.0)).xyz;
 	if (sway > 0.0) {
 		vec3 w = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 		float k = max(VERTEX.y - 1.5, 0.0);
@@ -185,6 +187,7 @@ int cloth_slot(vec3 p) {
 
 void fragment() {
 	v_nospec = 0.0;
+	if (hm_cut(hm_p)) discard;
 	vec4 tx = texture(tex, UV);
 	vec4 c = tint * tx;
 	if (luma_tint) {

@@ -104,33 +104,28 @@ static func accessories(m: CharacterModel) -> void:
 	var hg: Color = L.get("headgear") if L.get("headgear") != null else Color(0.5, 0.4, 0.3)
 	var toon = Props.toon()
 	# başı tamamen saran başlıklar: saç içinden taşmasın
-	if L.get("head_style") in ["kabuto", "tengai", "sarik", "kapuson"]:
+	if L.get("head_style") in ["kabuto", "tengai", "kapuson"]:
 		var clumps = CharacterModel._hair_cache.values()
 		for mi in m.skel.find_children("*", "MeshInstance3D", true, false):
 			if mi.name in ["VHair", "HairDangle"] or (mi.mesh != null and mi.mesh in clumps):
 				mi.visible = false
 	match L.get("head_style"):
 		"hachimaki":
-			var mb = MB.new()
-			mb.add("cyl", Vector3.ZERO, Vector3(hw * 1.16, 0.04, hd * 1.1), hg, Vector3(5, 0, 0), 20)
-			mb.add("box", Vector3(0.0, -0.005, -hd * 0.56), Vector3(0.035, 0.035, 0.03), hg.darkened(0.15))
-			m._mesh_on("Head", mb.build(toon), Transform3D(Basis.IDENTITY, Vector3(hc.x, hc.y + 0.035, hc.z)))
-			for sx in [-1.0, 1.0]:   # düğümden sarkan bağ uçları (ikincil hareket)
-				m.dangle_strip("Head", Vector3(hc.x + 0.012 * sx, hc.y + 0.03, hc.z - hd * 0.62), Vector3(0.25 * sx, -1, -0.45), 0.17, 0.034, hg, 0.16, Vector3(1, 0, 0))
+			# alına sıkıca bağlı kumaş bant (saçın üstünde), ensede düğüm + uzun uçuşan iki uç
+			m.cloth_band(hg, 0.0, 0.04, 0.26, 0.034)
 		"basortu":
-			var mb = MB.new()
-			mb.add("hemi", Vector3.ZERO, Vector3(hw * 1.18, hh * 0.85, hd * 1.14), hg, Vector3(-8, 0, 0), 16)
-			mb.add("sphere", Vector3(0, -0.02, -hd * 0.58), Vector3(0.05, 0.045, 0.04), hg.darkened(0.12), Vector3.ZERO, 8)
-			m._mesh_on("Head", mb.build(toon), Transform3D(Basis.IDENTITY, Vector3(hc.x, hc.y - 0.0, hc.z)))
-			for sx in [-1.0, 1.0]:   # düğümden sarkan uçlar (ikincil hareket)
-				m.dangle_strip("Head", Vector3(hc.x + 0.012 * sx, hc.y - 0.03, hc.z - hd * 0.64), Vector3(0.3 * sx, -1, -0.45), 0.15, 0.04, hg, 0.14, Vector3(1, 0, 0), 0.005)
+			# haydut bezi: alnın üstünden kafanın tepesini ve arkasını saran bez, ensede iri düğüm + iki uç
+			var yb = m.cloth_band(hg, -0.004, 0.034, 0.17, 0.042, 0.004)
+			m.head_cap(hg, yb + 0.014, 0.075, 0.06)
 		"sarik":
-			var mb = MB.new()
-			mb.add("hemi", Vector3(0, 0.0, 0), Vector3(hw * 1.24, hh * 0.95, hd * 1.18), hg, Vector3.ZERO, 16)
-			for k in 3:
-				mb.add("cyl", Vector3(0, -0.01 + k * 0.035, 0), Vector3(hw * (1.27 - k * 0.07), 0.035, hd * (1.2 - k * 0.07)), hg.darkened(0.06 * k), Vector3(0, 0, 6 - k * 5), 18)
-			mb.add("box", Vector3(-0.06, -0.18, -hd * 0.5), Vector3(0.09, 0.3, 0.012), hg.darkened(0.1), Vector3(-12, 0, -8))
-			m._mesh_on("Head", mb.build(toon), Transform3D(Basis.IDENTITY, Vector3(hc.x, hc.y + 0.01, hc.z)))
+			# çöl sarığı: kafaya oturan kabarık bez + farklı eğimlerde üç kat sargı + arkada rüzgârda uçuşan uzun uç
+			var ys = m.cloth_band(hg.darkened(0.04), 0.004, 0.036, 0.0, 0.0, 0.004, 0.02)
+			m.head_cap(hg, ys + 0.016, 0.085, 0.12, 0.024, 0.045)
+			m.cloth_band(hg.darkened(0.1), 0.03, 0.03, 0.0, 0.0, -0.022, 0.03)
+			m.cloth_band(hg.darkened(0.02), 0.055, 0.026, 0.0, 0.0, 0.02, 0.026)
+			var rr: PackedFloat32Array = m.band_ring[1]
+			var rb = rr[int(floor((-PI * 0.5 + PI) / TAU * rr.size())) % rr.size()]
+			m.dangle_strip("Head", Vector3(m.skull_c.x - 0.03, ys + 0.01, m.skull_c.z - rb - 0.03), Vector3(-0.15, -1.0, -0.35), 0.32, 0.085, hg.darkened(0.06), 0.12, Vector3(1, 0, 0.2), 0.004)
 		"jingasa":
 			var mb = MB.new()
 			mb.add("cone", Vector3.ZERO, Vector3(hw * 2.5, 0.1, hw * 2.5), hg, Vector3.ZERO, 20)
@@ -138,19 +133,11 @@ static func accessories(m: CharacterModel) -> void:
 			mb.add("cyl", Vector3(0, 0.0, hw * 0.62), Vector3(0.06, 0.006, 0.06), gold, Vector3(70, 0, 0), 12)
 			for sx in [-1.0, 1.0]:
 				mb.add("box", Vector3(hw * 0.5 * sx, -0.14, 0.02), Vector3(0.008, 0.2, 0.008), dark, Vector3(0, 0, -8 * sx))
-			m._mesh_on("Head", mb.build(toon), Transform3D(Basis.IDENTITY, Vector3(hc.x, htop + 0.0, hc.z)))
+			var jy = maxf(htop, m.head_top() + 0.005)   # kafanın gerçek tepesi koninin içinde kalsın
+			m._mesh_on("Head", mb.build(toon), Transform3D(Basis.IDENTITY, Vector3(hc.x, jy, hc.z)))
+			m.hair_mask_plane(Vector3.UP, Vector3(0, jy - 0.045, 0))   # şapka kenarının üstündeki saç şapkanın içinde kalır
 		"kabuto":
-			var mb = MB.new()
-			mb.add("hemi", Vector3.ZERO, Vector3(hw * 1.3, hh * 0.95, hd * 1.25), hg, Vector3.ZERO, 16)
-			# boyun koruması (shikoro): arkaya ve yanlara açılan katmanlar
-			for k in 3:
-				mb.add("cone", Vector3(0, -0.02 - k * 0.035, -0.015), Vector3(hw * (1.55 + k * 0.18), 0.05, hd * (1.5 + k * 0.16)), hg.darkened(0.12 + k * 0.06), Vector3.ZERO, 16)
-			mb.add("box", Vector3(0, -0.015, hd * 0.62), Vector3(hw * 1.15, 0.025, 0.07), hg.darkened(0.25), Vector3(-15, 0, 0))
-			# kuwagata: V boynuz arması
-			for sx in [-1.0, 1.0]:
-				mb.add("box", Vector3(0.045 * sx, 0.12, hd * 0.6), Vector3(0.018, 0.2, 0.008), gold, Vector3(-10, 0, -24 * sx))
-			mb.add("sphere", Vector3(0, 0.03, hd * 0.63), Vector3(0.04, 0.04, 0.015), gold, Vector3.ZERO, 8)
-			m._mesh_on("Head", mb.build(toon), Transform3D(Basis.IDENTITY, Vector3(hc.x, hc.y + 0.04, hc.z)))
+			m.kabuto(hg, String(L.get("crest", "")))
 		"tengai":
 			# keşişlerin yüzü örten derin hasır sepet şapkası
 			var mb = MB.new()
@@ -161,16 +148,15 @@ static func accessories(m: CharacterModel) -> void:
 				mb.add("cyl", Vector3(0, -0.19 + k * 0.06, 0), Vector3(r + 0.006, 0.008, r * 1.04 + 0.006), hg.darkened(0.25), Vector3.ZERO, 18)
 			mb.add("box", Vector3(0, -0.03, r * 0.52), Vector3(0.09, 0.03, 0.01), dark)
 			m._mesh_on("Head", mb.build(toon), Transform3D(Basis.IDENTITY, Vector3(hc.x, hc.y + 0.02, hc.z)))
-	# kapüşon: kafayı saran sert kabuk + enseye dökülen etek (VRoid gövdesinde kafa köşesi yok, loft kafayı saramıyor)
+	# kapüşon: kafaya bol oturan, yüzü açık, enseden omuzlara dökülen kumaş (CharacterModel.hood)
 	if L.get("head_style") == "kapuson":
-		var mb = MB.new()
-		mb.add("sphere", Vector3(0, 0.0, -0.015), Vector3(hw * 1.36, hh * 1.32, hd * 1.32), hg, Vector3.ZERO, 16)
-		mb.add("cone", Vector3(0, -0.13, -hd * 0.42), Vector3(hw * 1.5, 0.2, hd * 0.9), hg.darkened(0.08), Vector3(-12, 0, 0), 12)
-		mb.add("cyl", Vector3(0, -0.02, hd * 0.42), Vector3(hw * 1.15, 0.03, 0.05), hg.darkened(0.2), Vector3(70, 0, 0), 14)
-		m._mesh_on("Head", mb.build(toon), Transform3D(Basis.IDENTITY, Vector3(hc.x, hc.y + 0.02, hc.z)))
+		m.hood(hg, String(L.get("hood", "")))
 	var fg: Color = L.get("facegear") if L.get("facegear") != null else Color.WHITE
 	var fs = String(L.get("face_style", "")) if L.get("face_style") != null else ""
-	if fs in ["cloth", "pece"]:
+	var handled = fs != "" and m.face_item(fs, fg)   # yüz kabuğuna oturan yeni sürüm
+	if handled:
+		pass
+	elif fs in ["cloth", "pece"]:
 		# bez maske / peçe: burundan çeneye sarılan kumaş + boyun
 		var mb = MB.new()
 		var ey = m.eye_center_model.y if m.face_mi else hc.y - 0.03
@@ -179,7 +165,7 @@ static func accessories(m: CharacterModel) -> void:
 		if fs == "pece":
 			mb.add("box", Vector3(0, ey - 0.15 - hc.y, hd * 0.47), Vector3(hw * 0.8, 0.12, 0.012), fg, Vector3(8, 0, 0))
 		m._mesh_on("Head", mb.build(toon), Transform3D(Basis.IDENTITY, hc))
-	match fs:
+	match ("" if handled else fs):
 		"mempo":
 			var mb = MB.new()
 			mb.add("hemi", Vector3(0, 0, 0), Vector3(0.15, 0.1, 0.11), fg, Vector3(90, 0, 0), 12)

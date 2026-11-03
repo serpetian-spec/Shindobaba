@@ -47,11 +47,6 @@ static func hat(model: Node, vid: String) -> void:
 	m.add("cyl", Vector3(0, -H * 0.5 + 0.006, 0), Vector3(D * 1.01, 0.012, D * 1.01), white.darkened(0.12), Vector3.ZERO, 24)
 	m.add("cyl", Vector3(0, -H * 0.5 - 0.02, 0), Vector3(hw * 1.08, 0.05, hw * 1.16), c.darkened(0.3), Vector3.ZERO, 14)
 	m.add("sphere", Vector3(0, H * 0.5, 0), Vector3(0.025, 0.025, 0.025), c.darkened(0.2), Vector3.ZERO, 8)
-	# arkadan ve yanlardan sarkan beyaz örtü
-	for k in 5:
-		var a = deg_to_rad(110.0 + k * 35.0)
-		var r = D * 0.36
-		m.add("box", Vector3(sin(a) * r, -H * 0.5 - 0.11, cos(a) * r), Vector3(0.11, 0.17, 0.01), white.darkened(0.04), Vector3(-8, rad_to_deg(a), 0))
 	# önde: kanji çevresinde beyaz eşkenar dörtgen
 	var slope = rad_to_deg(atan2(H, D * 0.5))
 	var fy = H * 0.06
@@ -59,6 +54,14 @@ static func hat(model: Node, vid: String) -> void:
 	m.add("box", Vector3(0, fy, fz), Vector3(0.075, 0.075, 0.006), white, Vector3(-(90.0 - slope), 0, 45))
 	var top = hc.y + hh * 0.42
 	var mi = model._mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, Vector3(hc.x, top + 0.05, hc.z)))
+	# arkadan ve yanlardan sarkan beyaz örtü: rüzgârda/koşuda dalgalanan kumaş paneller (ikincil hareket)
+	var brim_y = top + 0.05 - H * 0.5
+	for k in 5:
+		var a = deg_to_rad(110.0 + k * 35.0)
+		var r = D * 0.36
+		var out = Vector3(sin(a), 0, cos(a))
+		model.dangle_strip("Head", Vector3(hc.x, brim_y - 0.01, hc.z) + out * r, (Vector3.DOWN + out * 0.12).normalized(), 0.19, 0.11, white.darkened(0.04), 0.22, out.cross(Vector3.UP).normalized(), 0.004)
+	model.hair_mask_plane(Vector3.UP, Vector3(0, brim_y, 0))   # kenarın üstündeki saç şapkanın içinde kalır
 	var l = Label3D.new()
 	l.text = KANJI.get(vid, "影")
 	l.font = _font()
