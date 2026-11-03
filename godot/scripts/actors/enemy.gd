@@ -990,8 +990,8 @@ func catch() -> void:
 
 
 func die(info: Dictionary) -> void:
-	if not info.get("execute", false) and EnemyArts.try_izanagi(self):
-		return
+	if not info.get("execute", false) and PathJutsu.izanagi_rewrite(self):
+		return   # açık İzanagi: ölüm yanılsamaydı
 	if has_token:
 		has_token = false
 		attack_tokens = maxi(0, attack_tokens - 1)

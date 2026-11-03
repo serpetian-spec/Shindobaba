@@ -13922,24 +13922,65 @@ func p_issai_kaiku(c: Node3D, t: Node3D) -> void:
 
 
 ## İzanagi: bir göz kapanır, ışığı söner — 5 sn sonra gerçeklik yeniden yazılır: o sürede kaybedilen can geri gelir
+const IZANAGI_DUR := 10.0   # animede ~1 dk / göz; oyunda 10 sn (yoksa ölümsüzlük)
+
+
 func p_izanagi(c: Node3D, _t: Node3D) -> void:
+	# Kanon (Danzō / Obito): kullanıcı İzanagi'yi ÖNCEDEN açar; süre boyunca başına gelen kötü her şey — yara, ölüm —
+	# yanılsamaya döner (gerçeği yeniden yazar). Süre bitince kullanılan Sharingan gözü kalıcı olarak ışığını kaybeder.
 	busy(c, 0.4)
 	var start_hp = float(c.get("hp")) if c.get("hp") != null else 0.0
+	var dur = IZANAGI_DUR
+	c.set_meta("izanagi_hp", start_hp)
+	c.set_meta("izanagi_until", Time.get_ticks_msec() + int(dur * 1000.0))
 	if c is Player:
 		VFX.screen_lines(0.4, 0.8, Color(0.8, 0.3, 0.3))
-		Buffs.add("izanagi", 5.0, {"_name": "İzanagi", "_desc": "5 sn içinde kaybedilen can geri yazılır"})
+		Buffs.add("izanagi", dur, {"_name": "İzanagi", "_desc": "%d sn: ölüm dahil başına gelen her şey yanılsama; sonunda bir Sharingan gözün kararır" % int(dur)})
+		Hud.msg("İzanagi: gerçekle yanılsama yer değiştirdi (%d sn). Bedeli bir göz." % int(dur), Color(1, 0.45, 0.45), 5.0)
+	else:
+		Combat.popup_text(c.global_position + Vector3.UP * 2.6, "İzanagi!", Color(0.9, 0.15, 0.2))
 	VFX.shockwave(c.global_position + Vector3.UP, Color(0.85, 0.2, 0.2), 4.0, 0.3, false)
-	after(5.0, func():
-		if not live(c):
+	after(dur, func():
+		if not is_instance_valid(c):
 			return
+		c.remove_meta("izanagi_hp")
+		c.remove_meta("izanagi_until")
 		var now = float(c.get("hp"))
-		if now < start_hp:
-			heal(c, start_hp - now)
+		if now < start_hp and now > 0.0:
+			heal(c, start_hp - now)   # süre içindeki yaralar da yanılsamaydı
 		VFX.star(c.global_position + Vector3.UP * 1.5, Color(0.9, 0.2, 0.2), 2.6)
 		VFX.shockwave(c.global_position + Vector3.UP, Color(0.6, 0.6, 0.6), 6.0, 0.4, false)
+		# bedel: Sharingan gözü kararır
 		if c is Player:
-			VFX.screen_lines(0.5, 1.2, Color(0.9, 0.9, 0.9)))
+			VFX.screen_lines(0.5, 1.2, Color(0.9, 0.9, 0.9))
+			if c.combat and c.combat.modes and c.combat.modes.eyes:
+				c.combat.modes.eyes.izanagi_cost()
+		elif c.has_meta("eyes"):
+			c.set_meta("eyes", {"kind": 0, "lvl": 0})
+			Combat.popup_text(c.global_position + Vector3.UP * 2.6, "Gözü karardı", Color(0.7, 0.2, 0.25)))
 	Sfx.play("genjutsu", c.global_position, 0.8)
+
+
+## İzanagi süresi içinde ölümcül darbe: ölüm yanılsamaya döner — kullanıcı yeniden yazılmış gerçekte (biraz ötede, açılış canıyla) belirir
+static func izanagi_rewrite(c: Node3D) -> bool:
+	if c == null or not is_instance_valid(c) or not c.has_meta("izanagi_until"):
+		return false
+	if Time.get_ticks_msec() > int(c.get_meta("izanagi_until")):
+		return false
+	c.set("hp", maxf(1.0, float(c.get_meta("izanagi_hp", 1.0))))
+	if "dead" in c:
+		c.set("dead", false)
+	var back = -c.face_dir() if c.has_method("face_dir") else Vector3.BACK
+	var side = back.cross(Vector3.UP) * (1.0 if randf() < 0.5 else -1.0)
+	FX.smoke_puff(c.global_position + Vector3.UP, 0.6, 8)
+	var to = c.global_position + back * 2.5 + side * 2.0
+	to.y = Game.jutsu_floor(to.x, to.z)
+	c.global_position = to
+	Combat.popup_text(c.global_position + Vector3.UP * 2.6, "Yanılsama — İzanagi", Color(0.95, 0.25, 0.3))
+	FX.ring(c.global_position + Vector3.UP, Color(0.85, 0.08, 0.1), 3.0, 0.4)
+	if c is Player and c.combat:
+		c.combat.invuln = 0.6
+	return true
 
 
 ## İzanami: hedef aynı anı tekrar tekrar yaşar — etrafında geri saran halkalar ve ardıl gölgeler, döngüye kilitlenir

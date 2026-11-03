@@ -29,6 +29,7 @@ static func tick(e: Enemy, dt: float) -> void:
 	if not e.has_meta("eyes"):
 		return
 	var kind = int(e.get_meta("eyes").get("kind", 0))
+	maybe_izanagi(e)
 	var eblind = float(e.get_meta("ms_blind", 0.0))
 	if kind == 4 and e.has_meta("ea_susanoo") and is_instance_valid(e.get_meta("ea_susanoo")):
 		_ms_strain(e, dt * 0.004)   # açık Susanoo düşmanın da gözünü yorar (oyuncuyla aynı kural)
@@ -107,24 +108,17 @@ static func _ms_strain(e: Enemy, amount: float) -> void:
 		e.remove_meta("ea_susanoo")
 
 
-## Düşman İzanagi (oyuncuyla aynı kural): Sharingan sahibi düşman ölümcül darbede bir kez, %40 olasılıkla
-## bir gözünü feda edip ayağa kalkar (gözü kararır: Sharingan tekniği kalmaz)
-static func try_izanagi(e: Enemy) -> bool:
-	if not e.has_meta("eyes") or e.get_meta("izanagi_used", false):
-		return false
-	if not int(e.get_meta("eyes").get("kind", 0)) in [1, 4, 5]:
-		return false
-	e.set_meta("izanagi_used", true)
+## Düşman İzanagi (oyuncuyla aynı kural, kanon): Sharingan sahibi düşman canı %35'in altına inince bir kez,
+## bu tekniği biliyorsa (%40) İzanagi'yi ÖNCEDEN açar — 10 sn içinde ölürse yanılsama; süre bitince gözü kararır
+static func maybe_izanagi(e: Enemy) -> void:
+	if e.get_meta("izanagi_checked", false) or e.hp > e.max_hp * 0.35:
+		return
+	if not e.has_meta("eyes") or not int(e.get_meta("eyes").get("kind", 0)) in [1, 4, 5]:
+		return
+	e.set_meta("izanagi_checked", true)
 	if randf() > 0.4:
-		return false
-	e.hp = e.max_hp * 0.5
-	e.dead = false
-	Combat.popup_text(e.global_position + Vector3.UP * 2.6, "İzanagi!", Color(0.9, 0.15, 0.2))
-	FX.ring(e.global_position + Vector3.UP * 1.0, Color(0.85, 0.08, 0.1), 4.0, 0.5)
-	e.set_meta("eyes", {"kind": 0, "lvl": 0})   # feda edilen göz: göz teknikleri biter
-	if Game.player and is_instance_valid(Game.player) and Game.player.global_position.distance_to(e.global_position) < 14.0:
-		Game.player.apply_status("stun", 0.8)
-	return true
+		return
+	Jutsu.execute(e, "izanagi", null)   # oyuncunun İzanagi jutsusuyla aynı kod
 
 
 static func _gaze(e: Enemy, t: Node3D, stun: float, col: Color, label: String) -> void:

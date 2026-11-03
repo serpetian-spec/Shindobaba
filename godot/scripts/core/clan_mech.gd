@@ -143,11 +143,10 @@ static func steal_heart(tt: Node3D) -> void:
 ## Ölüm anı: çalınmış kalp varsa biri kırılır, beden iplerle dikilip kalkar
 static func try_extra_life() -> bool:
 	var pr = Game.profile
+	if Game.player and PathJutsu.izanagi_rewrite(Game.player):
+		return true   # açık İzanagi: ölüm yanılsamaydı
 	var hs: Array = pr.get("kakuzu_hearts", [])
 	if hs.is_empty() or Game.player == null:
-		# İzanagi: gözler açık + Sharingan gözü varsa bir gözü feda edip ölümden dön
-		if Game.player and Game.player.combat and Game.player.combat.modes and Game.player.combat.modes.eyes:
-			return Game.player.combat.modes.eyes.try_izanagi()
 		return false
 	var el = hs.pop_back()
 	var pl = Game.player

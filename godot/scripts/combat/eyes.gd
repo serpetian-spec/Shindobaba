@@ -1057,41 +1057,31 @@ func _blind_tick(dt: float) -> void:
 		Game.world.env.post_mat.set_shader_parameter("vignette", 0.55 + b * 2.5)
 
 
-# ------------------------------------------------------------------ İzanagi (yasak Uchiha tekniği)
-## Gözler açıkken ölümcül darbe: bir Sharingan gözü sonsuza dek feda edilir, ölüm "yanılsamaya" dönüşür
-## (can %60, kısa dokunulmazlık, çevredeki düşmanlar şaşkın). Her göz bir kez; iki göz = en fazla iki İzanagi.
-func try_izanagi() -> bool:
-	if not active:
-		return false
+# ------------------------------------------------------------------ İzanagi bedeli (yasak Uchiha tekniği)
+## İzanagi jutsusunun süresi bitince çağrılır: kullanılan Sharingan gözü sonsuza dek ışığını kaybeder (eşya silinir).
+## Önce sol göz (kanon: Danzō / Itachi tek gözü karartır).
+func izanagi_cost() -> void:
 	var pr = Game.profile
 	var slot = ""
-	for s in ["sol_goz", "sag_goz"]:   # önce sol göz (kanon: Danzō / Itachi tek gözü karartır)
+	for s in ["sol_goz", "sag_goz"]:
 		var g = Gear.equipped(pr, s)
 		if not g.is_empty() and int(Gear.item(g["id"]).get("eye", {}).get("kind", 0)) in [1, 4, 5]:
 			slot = s
 			break
 	if slot == "":
-		return false
+		return
 	var g2 = Gear.equipped(pr, slot)
 	pr["equip"].erase(slot)
 	pr["gear"] = (pr.get("gear", []) as Array).filter(func(x): return int(x["uid"]) != int(g2["uid"]))
 	pr["flags"]["izanagi_used"] = int(pr["flags"].get("izanagi_used", 0)) + 1
 	Gear.apply_look(pr)
-	p.hp = p.max_hp * 0.6
-	if p.combat:
-		p.combat.invuln = 2.5
-	for f in _enemies_in(14.0):
-		f.apply_status("stun", 1.6)   # "öldürdükleri" bir yanılsamaydı
-		if f.has_method("lose_target"):
-			f.lose_target(1.5)
-	FX.ring(p.global_position + Vector3.UP * 1.0, Color(0.85, 0.08, 0.1), 5.0, 0.6)
-	VFX.shockwave(p.global_position + Vector3.UP, Color(0.9, 0.1, 0.12), 8.0, 0.4, false)
-	Hud.banner("İZANAGİ", "Ölüm bir yanılsamaydı — %s gözün sonsuza dek karardı" % ("sol" if slot == "sol_goz" else "sağ"), Color(0.75, 0.05, 0.08))
-	Journal.add("İzanagi ile ölümden döndüm; bir gözümü sonsuza dek kaybettim.", "milestone")
+	Hud.banner("İZANAGİ'NİN BEDELİ", "%s gözün sonsuza dek ışığını kaybetti" % ("Sol" if slot == "sol_goz" else "Sağ"), Color(0.75, 0.05, 0.08))
+	Journal.add("İzanagi kullandım; bir gözüm sonsuza dek karardı.", "milestone")
 	Sfx.play("genjutsu", p.global_position, 0.6, 0.9)
+	if not has_eyes() and active:
+		_close()
 	p.rebuild_model()
 	refresh_visual()
-	return true
 
 
 # ------------------------------------------------------------------ Nefretin Laneti (kanon: Uchiha'nın sevgisi nefrete döner)
