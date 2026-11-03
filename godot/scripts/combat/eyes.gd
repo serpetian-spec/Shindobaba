@@ -561,21 +561,10 @@ func _genjutsu_gaze(t: Node3D, stun: float, dmg: float) -> void:
 func _amaterasu(t: Node3D, eternal: bool) -> void:
 	if t == null:
 		return
-	# söndürülemeyen kara alev: uzun yanma
-	t.apply_status("burn", 10.0 if eternal else 8.0)
-	t.set_meta("black_flame", true)
+	# ortak Amaterasu sistemi (jutsu ve düşmanla aynı kurallar): anında tutuşur, söndürülemez, yalnız hızla sıyrılınır
 	t.take_hit({"dmg": (25.0) * _eye_pow(), "knock": 0.0, "kind": "light", "dir": p.face_dir(), "element": "katon"})
-	# hedefi saran kara cel alev (mor konturlu), süre bitince söner
-	var flame = VFX.black_flames(maxf(1.2, t.height * 0.75) if "height" in t else 1.3)
-	t.add_child(flame)
-	flame.position = Vector3(0, 0.1, 0)
-	VFX.black_smolder(t.global_position, 1.8, 8.0)
-	t.get_tree().create_timer(10.0 if eternal else 8.0).timeout.connect(func(): if is_instance_valid(flame): flame.queue_free())
-	VFX.puffs(t.global_position + Vector3.UP, {"amount": 30, "life": 0.8, "size": 1.4, "vmin": 1, "vmax": 4, "gravity": Vector3(0, 3, 0), "glow": 1.0,
-		"outline_col": Color(0.4, 0.05, 0.45), "colors": [Color(0.12, 0.02, 0.15, 1), Color(0.05, 0.0, 0.08, 1), Color(0.02, 0.0, 0.03, 0)]})
-	if Game.world:
-		Game.world.env.set_tint(Color(0.6, 0.0, 0.05, 0.25))
-		t.get_tree().create_timer(0.35).timeout.connect(func(): Game.world.env.set_tint(Color(0, 0, 0, 0)))
+	Amaterasu.focus_flash(p)
+	Amaterasu.ignite(p, t, t.global_position, 10.0 if eternal else 8.0, {"dmg": 3.0 * _eye_pow(), "knock": 0.0, "kind": "light", "element": "katon", "attacker": p})
 
 
 func _air_palm() -> void:

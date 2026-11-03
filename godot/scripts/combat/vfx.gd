@@ -952,10 +952,60 @@ static func _explosion(pos: Vector3, s := 1.0, col := Color(1.0, 0.55, 0.15)) ->
 
 ## Amaterasu kara alevi: hedefi saran, yukarı yalayan sivri alev dilleri (iç siyah, kenar koyu mor)
 static func black_flames(size := 1.0) -> Node3D:
-	# Amaterasu: küre kabuk yok (sıvı gibi duruyordu) — yukarı yalayan sivri kara alev dilleri, mor-koyu kenarlı iç diller, kara duman
+	# Amaterasu (anime): bedeni saran, net konturlu, opak kara alev dilleri yukarı yalar ve titrer; kenarlarda koyu mor çizgi.
+	# (eskiden yalnız ince parçacık çizgileriydi: duman tütüyor gibiydi, ateş gibi değil)
 	var root = Node3D.new()
-	_black_fire_particles(root, size, 0.45 * size, 1.0)
+	var fm = mat_fire("black", 3.0, 2.0, 0.44, 1.0, 0.34, Vector3.UP)
+	var n = 12
+	for k in n + 1:
+		var core = k == n
+		var tongue = _mi(_tongue_mesh(k % 3), fm)
+		tongue.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var a = TAU * k / n + randf_range(-0.25, 0.25)
+		var rr = 0.0 if core else randf_range(0.26, 0.4) * size
+		tongue.position = Vector3(cos(a) * rr, -0.05 * size, sin(a) * rr)
+		tongue.rotation.y = a + PI * 0.5 + randf_range(-0.4, 0.4)
+		if not core:   # dış diller dışa doğru açılır (yelpaze gibi yalayan alev)
+			tongue.rotate(Vector3(-sin(a), 0, cos(a)).normalized(), randf_range(0.12, 0.32))
+		var h = (2.2 if core else randf_range(0.9, 2.0)) * size
+		var w = (0.7 if core else randf_range(0.38, 0.58)) * size
+		tongue.scale = Vector3(w, h, w)
+		root.add_child(tongue)
+		# titreme: boy uzayıp kısalır, uç yana savrulur (her dil kendi ritminde)
+		var per = randf_range(0.22, 0.4)
+		var tw = tongue.create_tween().set_loops()
+		tw.tween_property(tongue, "scale", Vector3(w * 0.9, h * 1.12, w * 0.9), per).set_trans(Tween.TRANS_SINE)
+		tw.tween_property(tongue, "scale", Vector3(w * 1.05, h * 0.86, w * 1.05), per).set_trans(Tween.TRANS_SINE)
+	# kopup yükselen kara alev topakları (mor konturlu cel) + az kara duman
+	var q = FX.burst(Vector3.UP * 0.4 * size, {"parent": root, "local": true, "amount": 14, "life": 0.6, "tex": FX.tex_smoke, "add": false, "cel": true,
+		"size": 0.75 * size, "radius": 0.35 * size, "vmin": 1.5 * size, "vmax": 3.2 * size, "dir": Vector3.UP, "spread": 18.0, "gravity": Vector3(0, 2.5, 0), "explosive": 0.0,
+		"hot": 0.0, "glow": 0.0, "outline": 0.05, "rough": 0.25, "outline_col": Color(0.42, 0.08, 0.5), "scale_curve": [[0.0, 0.5], [0.3, 1.0], [1.0, 0.2]],
+		"colors": [Color(0.03, 0.0, 0.05, 1), Color(0.05, 0.01, 0.08, 1), Color(0.08, 0.02, 0.12, 0.0)]})
+	if q:
+		q.one_shot = false
+	_black_fire_particles(root, size * 0.7, 0.35 * size, 0.4)
 	return root
+
+
+## Alev dili: tabanda geniş, yukarı incelip S çizerek sivrilen tüp (Y ekseninde 0..1). 3 farklı kıvrım
+static var _tongue_cache := {}
+static func _tongue_mesh(v: int) -> ArrayMesh:
+	if _tongue_cache.has(v):
+		return _tongue_cache[v]
+	var mb = MB.new()
+	var pts = []
+	var rr = []
+	var ph = [0.0, 2.1, 4.2][v]
+	var curl = [0.16, 0.22, 0.12][v]
+	for k in 13:
+		var y = k / 12.0
+		pts.append(Vector3(sin(y * 3.4 + ph) * curl * y, y, cos(y * 2.6 + ph) * curl * 0.5 * y))
+		var r = 0.5 * pow(1.0 - y, 0.85) * (0.75 + 0.25 * sin(y * PI * 0.9 + 0.3)) + 0.004
+		rr.append(Vector2(r, r * 0.75))
+	Loft.tube(mb, pts, rr, Color.WHITE, 10, 2, false, true, Callable(), Vector3.FORWARD)
+	var m = mb.build(null)
+	_tongue_cache[v] = m
+	return m
 
 
 ## Kara alev parçacıkları (kalıcı): parent'a bağlı, yerinde yanar. r: yayılım yarıçapı, k: yoğunluk

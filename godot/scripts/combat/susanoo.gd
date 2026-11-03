@@ -629,7 +629,7 @@ func _fly_bolt(owner_f: Node3D, from: Vector3, dir: Vector3, dist: float, length
 ## kendi özelleştirdiği, ustalık kademesindeki; düşman: kendi Susanoo'su). Kapalıysa teknik onu açar ve açık kalır.
 ## Efektler Susanoo'nun elinden / ağzından çıkar, kolları hedefe göre pozlanır, boyu kademeyle büyür.
 ## Kanon kademe şartı: Totsuka / Yata / yay / magatama İnsansı Susanoo'da (Itachi, Sasuke), Indora'nın Oku Mükemmel Susanoo'da.
-const JUTSU_TIER := {"susanoo": 1, "susanoo_kobushi": 2, "yasaka_no_magatama": 3, "enton_yasaka_no_magatama": 3,
+const JUTSU_TIER := {"susanoo": 1, "amaterasu_entenka": 1, "susanoo_kobushi": 2, "yasaka_no_magatama": 3, "enton_yasaka_no_magatama": 3,
 	"totsuka_no_tsurugi": 3, "yata_no_kagami": 3, "susanoo_kagutsuchi_no_yumiya": 3, "susanoo_chidori": 3,
 	"susanoo_gokakyu": 3, "susanoo_hozan": 3, "susanoo_tsukumo": 3, "indora_no_ya": 5}
 var act_t = 0.0      # jutsu hareketi sürüyor (kullanıcı animasyonu eşlenmez)
@@ -715,6 +715,14 @@ func bone_at(bone: String) -> Vector3:
 		_ba[bone] = ba
 		return sk.global_transform * sk.get_bone_global_pose(bi).origin
 	return (ba as Node3D).global_position
+
+
+## Kemiğe bağlı düğüm (son pozu izler, Susanoo ölçeğiyle büyür): Entenka alevleri vb. buna eklenir
+func attach(bone: String) -> Node3D:
+	if body == null or body.skel == null or body.skel.find_bone(bone) < 0:
+		return null
+	bone_at(bone)
+	return _ba.get(bone)
 
 
 ## Jutsu başlamadan kemik izleyicilerini hazırla (ilk karede de doğru konum)

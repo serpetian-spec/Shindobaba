@@ -165,13 +165,9 @@ static func _gaze(e: Enemy, t: Node3D, stun: float, col: Color, label: String) -
 static func _amaterasu(e: Enemy, t: Node3D) -> void:
 	Combat.popup_text(e.global_position + Vector3.UP * 2.4, "Amaterasu!", Color(0.9, 0.3, 0.35))
 	e.model.play("cast_out", 0.05, 1.2, true)
-	t.apply_status("burn", 6.0)
 	t.take_hit({"dmg": 12.0 * e.power, "knock": 0.0, "kind": "light", "dir": e.face_dir(), "element": "katon", "attacker": e})
-	var flame = VFX.black_flames(maxf(1.2, float(t.height) * 0.75) if "height" in t else 1.3)
-	t.add_child(flame)
-	flame.position = Vector3(0, 0.1, 0)
-	VFX.black_smolder(t.global_position, 1.8, 6.0)
-	t.get_tree().create_timer(6.0).timeout.connect(func(): if is_instance_valid(flame): flame.queue_free())
+	# oyuncunun Amaterasu'suyla aynı ortak sistem: yer değiştirme / ani atılmayla sıyrılabilirsin
+	Amaterasu.ignite(e, t, t.global_position, 6.0, {"dmg": 1.5 * e.power, "knock": 0.0, "kind": "light", "element": "katon", "attacker": e})
 
 
 ## Düşman Susanoo'su: İnsansı kademe; her düşmanda rengi ve yapısı farklı (renk, zırh, yüz, silah, yoğunluk rastgele;

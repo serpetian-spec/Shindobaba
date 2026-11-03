@@ -866,6 +866,10 @@ func take_hit(info: Dictionary) -> void:
 		info["dmg"] = float(info.get("dmg", 5.0)) * 0.5
 		info["knock"] = float(info.get("knock", 2.0)) * 0.2
 		info["launch"] = 0.0
+	# Amaterasu: Entenka (oyuncudaki Buff ile aynı): kara alevli Susanoo hasarı %40 azaltır
+	if has_meta("entenka_until") and Time.get_ticks_msec() < int(get_meta("entenka_until")):
+		info = info.duplicate()
+		info["dmg"] = float(info.get("dmg", 5.0)) * 0.6
 	# Yata no Kagami (oyuncudaki Buff ile aynı): ayna kalkan açıkken gelen hasar %95 azalır
 	if has_meta("yata_until") and Time.get_ticks_msec() < int(get_meta("yata_until")):
 		info = info.duplicate()

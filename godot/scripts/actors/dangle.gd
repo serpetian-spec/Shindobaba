@@ -397,7 +397,7 @@ func step(dt: float, cols: Array) -> void:
 			var rd = (rest[a + 1] - rest[a]).normalized()
 			var cd = (lp[a + 1] - lp[a]).normalized()
 			var q = Quaternion.IDENTITY
-			if rd.dot(cd) < 0.99999:
+			if rd != Vector3.ZERO and cd != Vector3.ZERO and rd.dot(cd) < 0.99999:   # üst üste düşen noktalar (ışınlanma) sıfır vektör vermesin
 				q = Quaternion(rd, cd) if rd.dot(cd) > -0.999 else Quaternion(Vector3.UP, PI)
 			skel.set_bone_pose_position(b0 + k, lp[k])
 			skel.set_bone_pose_rotation(b0 + k, q)
