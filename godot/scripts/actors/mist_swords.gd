@@ -328,21 +328,24 @@ static func shibuki_tags(m: ArrayMesh) -> void:
 
 
 ## Nuibari: uzun ince iğne-kılıç; sapın dibindeki iğne gözünden sarkan tel
+## NUIBARI (ref nuibari.png): çok uzun ince iğne-kılıç — üstte uzun baklava (çapraz) sargılı kabza, kabza ucunda iğne gözü
+## (tel buradan geçer, telin kendisi kombo sırasında dinamik), kabzadan sonra boydan boya ince düz ağız, iğne gibi sivri uç.
+## Kabza 0, ağız +Z (toplam ~1.9 m).
 static func _nuibari(b: MB) -> void:
-	var st = Color(0.82, 0.84, 0.88)
-	b.add("cyl", Vector3(0, 0, 0.78), Vector3(0.028, 1.5, 0.028), st, Vector3(90, 0, 0), 8)
-	b.add("cone", Vector3(0, 0, 1.6), Vector3(0.028, 0.18, 0.028), st, Vector3(90, 0, 0), 8)
-	b.add("cyl", Vector3(0, 0, 0.02), Vector3(0.07, 0.02, 0.07), Color(0.3, 0.3, 0.34), Vector3(90, 0, 0), 10)
-	_grip(b, -0.36, 0.01, 0.025, Color(0.22, 0.22, 0.25), Color(0.6, 0.6, 0.65), 7)
-	b.add("torus", Vector3(0, 0, -0.42), Vector3(0.08, 0.08, 0.08), st, Vector3(0, 90, 0), 10)   # iğne gözü
-	# tel: gözden sarkıp kıvrılarak uzanır
-	var p = Vector3(0, -0.03, -0.45)
-	for k in 14:
-		var q = p + Vector3(sin(k * 0.6) * 0.05, -0.06, -0.03)
-		var mid = (p + q) * 0.5
-		var d = q - p
-		b.add_xf("cyl", Transform3D(Basis(Quaternion(Vector3.UP, d.normalized())) * Basis.from_scale(Vector3(0.006, d.length(), 0.006)), mid), Color(0.85, 0.86, 0.9), 4)
-		p = q
+	var st = Color(0.8, 0.82, 0.86)
+	var dk = Color(0.2, 0.2, 0.23)
+	# kabza: koyu öz + çapraz (baklava) sargı
+	b.add("cyl", Vector3(0, 0, -0.16), Vector3(0.036, 0.42, 0.036), dk, Vector3(90, 0, 0), 10)
+	for k in 12:
+		var z = -0.35 + k * 0.034
+		for sg in [-1.0, 1.0]:
+			b.add("torus", Vector3(0, 0, z), Vector3(0.042, 0.026, 0.042), Color(0.58, 0.58, 0.62), Vector3(90, 0, 28 * sg), 8)
+	b.add("cyl", Vector3(0, 0, 0.06), Vector3(0.03, 0.03, 0.03), Color(0.3, 0.3, 0.34), Vector3(90, 0, 0), 10)   # bilezik
+	# ağız: boydan boya incelen ince çubuk + iğne ucu
+	b.add_xf("cone", Transform3D(Basis(Vector3.RIGHT, deg_to_rad(90)) * Basis.from_scale(Vector3(0.024, 1.5, 0.024)), Vector3(0, 0, 0.82)), st, 8)
+	b.add("cyl", Vector3(0, 0, 0.3), Vector3(0.022, 0.46, 0.022), st, Vector3(90, 0, 0), 8)
+	# iğne gözü: kabza ucunda yassı halka
+	b.add("torus", Vector3(0, 0, -0.42), Vector3(0.07, 0.07, 0.05), st, Vector3(0, 90, 0), 10)
 
 
 ## KABUTOWARI — kabuto1-4 ortak sonucu: iki ayrı silah, sap uçlarındaki halkalar arasında halat (halat CharacterModel'de, dinamik).

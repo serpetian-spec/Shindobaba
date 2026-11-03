@@ -20,12 +20,15 @@ const TABLE := {
 	"fuma_shuriken": [preload("res://scripts/combat/fuma_anim.gd"), 1.0],
 	"kyodai_shuriken": [preload("res://scripts/combat/kyodai_anim.gd"), 0.95],
 	"fuma_makimono": [preload("res://scripts/combat/makimono_anim.gd"), 1.0],
+	"nuibari": [preload("res://scripts/combat/nuibari_anim.gd"), 1.0],
+	"savas_cekici": [preload("res://scripts/combat/cekic_anim.gd"), 0.95],
+	"zincirli_kunai": [preload("res://scripts/combat/zkunai_anim.gd"), 1.0],
 }
 ## uzun menzil silahları: yapay zekâ uzakta durup atar (Enemy._chase)
 const RANGED := ["fuma_shuriken", "kyodai_shuriken", "fuma_makimono"]
 ## silah ağırlığı (0 hafif .. 1 ağır): kol/silah yaylanması (PoseOverlay.key_mass) — ağır silah gecikip taşar
 const MASS := {"uc_tirpan": 1.0, "samehada": 0.9, "kabutowari": 0.9, "shibuki": 0.85, "gunbai": 0.8, "raijin": 0.35, "kunai": 0.1,
-	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15}
+	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3}
 
 
 static func mass(id: String) -> float:
@@ -33,7 +36,7 @@ static func mass(id: String) -> float:
 
 
 ## iki elli adımlarda sol elin sağ yumruktan sap boyunca uzaklığı
-const TWO_OFF := {"uc_tirpan": 0.42, "shibuki": 0.2, "samehada": 0.3, "homatsu_kiseru": 0.3}   # shibuki: sağ el sapın arka ucunda, sol el önde (ruloya yakın)
+const TWO_OFF := {"savas_cekici": 0.45, "uc_tirpan": 0.42, "shibuki": 0.2, "samehada": 0.3, "homatsu_kiseru": 0.3}   # shibuki: sağ el sapın arka ucunda, sol el önde (ruloya yakın)
 
 
 static func has(id: String) -> bool:
@@ -86,6 +89,33 @@ static func mods(id: String, i: int) -> Dictionary:
 				3: m.merge({"lunge_mul": 0.0, "knock": 1.0})
 				4: m.merge({"launch": 7.5, "knock": 0.5, "stun": 0.6, "reach_add": 0.7, "lunge_mul": 0.7})
 				5: m.merge({"heavy": true, "knock": 15.0, "reach_add": 1.6, "lunge_mul": 1.0})
+			return m
+		"nuibari":
+			# iğneleme: uzun saplama menzili, hat boyu delme, tel fırlatışı ve dikiş (on_strike)
+			var m = {"lunge_mul": 0.7, "knock": 2.0}
+			match i:
+				0: m.merge({"reach_add": 1.4, "knock": 3.0})
+				1: m.merge({"reach_add": 1.0, "knock": 2.0})
+				2: m.merge({"lunge_mul": 0.0})
+				3: m.merge({"launch": 9.5, "knock": 1.0, "reach_add": 0.8})
+				4: m.merge({"lunge_mul": 0.0})
+				5: m.merge({"lunge_mul": 0.0, "stun": 1.2})
+			return m
+		"savas_cekici":
+			var m = {"lunge_mul": 0.5}
+			match i:
+				0: m.merge({"knock": 12.0, "reach_add": 0.8})
+				1: m.merge({"heavy": true, "knock": 5.0, "reach_add": 0.6})
+				2: m.merge({"knock": 8.0, "reach_add": 0.9})
+				3: m.merge({"launch": 11.0, "knock": 2.0})
+				4: m.merge({"knock": 5.0})
+				5: m.merge({"heavy": true, "knock": 15.0, "reach_add": 1.2, "lunge_mul": 0.9})
+			return m
+		"zincirli_kunai":
+			var m = {"lunge_mul": 0.5}
+			match i:
+				1, 2, 4: m.merge({"lunge_mul": 0.0, "knock": 1.0})
+				5: m.merge({"heavy": true, "knock": 10.0, "lunge_mul": 0.3})
 			return m
 		"fuma_shuriken", "kyodai_shuriken", "fuma_makimono":
 			# uzun menzil: hasar uçan shurikende (on_strike); kurulurken öne kaymaz, yakın vuruş yalnız elde tutulan adımlarda
@@ -232,6 +262,40 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 							_shake(who, 0.7))
 		"fuma_makimono":
 			_summon_three(who, dmg, ["fan", "orbit", "rain", "line", "pincer", "cage"][clampi(i, 0, 5)])
+		"nuibari":
+			var o = {"mesh": "nuibari", "radius": 0.45, "orient": "path", "wire": true, "range": 20.0}
+			match i:
+				1:   # Nui Tsuki: iğne öndekinden arkasındakine geçer (hat boyu delme)
+					for k in 5:
+						Combat.hit_sphere(who, who.global_position + Vector3.UP * 1.1 + f * (1.4 + k * 0.9), 0.6, {"dmg": dmg * 0.5, "knock": 1.5, "kind": "light", "hitstop": 0.02, "melee": true, "bleed": 2.0})
+					WindFX.streak(func(t: float) -> Vector3: return who.global_position + Vector3.UP * 1.1 + f * (0.6 + t * 5.0), 0.16, 0.03, Color(0.9, 0.93, 1.0, 0.9), 0.0, 10)
+				2: _spin_throw(who, dmg, "straight", o.merged({"stitch": true}))
+				4: _spin_throw(who, dmg * 0.6, "orbit_self", o.merged({"dur": 1.0, "orbit": 3.4, "turns": 2.0}))
+				5: _spin_throw(who, dmg * 1.3, "straight", o.merged({"stitch": true, "bind": 2.0, "dur": 1.3}))
+		"savas_cekici":
+			match i:
+				0:   # yatay savuruş: rüzgâr izi yay
+					for k in 3:
+						WindFX.streak(func(t: float) -> Vector3:
+							var a = lerpf(-1.3, 1.3, t)
+							return who.global_position + Vector3.UP * (1.0 + k * 0.15) + (f * cos(a) - side * sin(a)) * 2.3, 0.22, 0.07, Color(0.85, 0.9, 1.0, 0.7), k * 0.03, 14)
+				1, 5:   # yere çakma: yarık, taşlar, sarsıntı (bitirişte şok dalgası)
+					var big = i == 5
+					var q = gp.call(2.2 if big else 2.0)
+					VFX.cracks(q, 3.4 if big else 2.2)
+					VFX.debris(q, Color(0.5, 0.45, 0.4), 14 if big else 8, 6.5 if big else 5.0, 0.35)
+					_shake(who, 0.8 if big else 0.5)
+					if big:
+						Combat.hit_sphere(who, q + Vector3.UP * 0.5, 3.6, {"dmg": dmg * 0.6, "knock": 12.0, "launch": 7.0, "kind": "heavy", "hitstop": 0.07, "melee": false})
+						Dangle.blast(q, 45.0, 8.0)
+		"zincirli_kunai":
+			match i:
+				1:
+					_kg_weight(who, dmg, "straight")
+				2:
+					_kg_weight(who, dmg, "whirl")
+				4:
+					_kg_weight(who, dmg, "wrap")
 		"kusarigama":
 			match i:
 				1:
@@ -418,6 +482,12 @@ static func on_start(id: String, i: int, who: Node3D) -> void:
 	if who == null or not is_instance_valid(who):
 		return
 	match id:
+		"zincirli_kunai":
+			if i == 5:
+				_kg_weight(who, 0.0, "wrap")
+		"savas_cekici":
+			if i == 5 and who is CharacterBody3D:
+				who.velocity.y = 9.5
 		"fuma_shuriken", "kyodai_shuriken":
 			var jmp = 6.0 if (id == "fuma_shuriken" and i == 2) else (9.0 if (id == "kyodai_shuriken" and i == 5) else 0.0)
 			if jmp > 0.0 and who is CharacterBody3D:
@@ -1180,6 +1250,20 @@ static func _spin_throw(who: Node3D, dmg: float, mode: String, opts := {}) -> vo
 	var info = {"dmg": dmg, "knock": float(opts.get("knock", 4.0)), "kind": "light", "hitstop": 0.04, "melee": false, "element": "wind" if opts.get("wind", false) else ""}
 	var t0 = Time.get_ticks_msec() / 1000.0
 	var vertical = mode == "roll"
+	var orient_path = opts.get("orient", "") == "path"   # iğne: uç gidiş yönüne bakar (dönmez)
+	var last_p = [start]
+	var pierced: Array = []
+	var wire_mi: MeshInstance3D = null
+	if opts.get("wire", false):
+		wire_mi = MeshInstance3D.new()
+		var cm = CylinderMesh.new()
+		cm.top_radius = 0.004
+		cm.bottom_radius = 0.004
+		cm.height = 1.0
+		cm.radial_segments = 4
+		wire_mi.mesh = cm
+		wire_mi.material_override = Props.toon_color(Color(0.85, 0.87, 0.92), 0.2)
+		who.get_tree().current_scene.add_child(wire_mi)
 	var tw = copy.create_tween()
 	if float(opts.get("delay", 0.0)) > 0.0:
 		copy.visible = false
@@ -1223,6 +1307,11 @@ static func _spin_throw(who: Node3D, dmg: float, mode: String, opts := {}) -> vo
 					p = c.lerp(hand, (k - 0.8) / 0.2)
 				else:
 					p = c   # kafes: içeri çöker
+			"orbit_self":
+				var a = k * TAU * float(opts.get("turns", 2.0))
+				var rr = float(opts.get("orbit", 3.0)) * sin(PI * clampf(k * 1.15, 0.0, 1.0))
+				var wf = who.global_position + Vector3.UP * 1.1
+				p = wf + Vector3(cos(a), 0, sin(a)) * rr
 			"roll":
 				var g0 = Vector3(start.x, Game.ground_height(start.x, start.z) + R * sc * 0.9, start.z)
 				var far = c + (c - start).normalized() * 4.0
@@ -1242,7 +1331,23 @@ static func _spin_throw(who: Node3D, dmg: float, mode: String, opts := {}) -> vo
 		copy.global_position = p
 		var tnow = Time.get_ticks_msec() / 1000.0 - t0
 		var ang = tnow * spin * TAU
-		if vertical:
+		if wire_mi != null:
+			var dv = p - hand
+			if dv.length() > 0.05:
+				wire_mi.global_transform = Transform3D(Basis(Quaternion(Vector3.UP, dv.normalized())) * Basis.from_scale(Vector3(1, dv.length(), 1)), (p + hand) * 0.5)
+		if opts.get("stitch", false) and k > ko:
+			# dikiş: delinenler telle iğneye bağlı, dönüşte birbirine dikilip sürüklenir
+			for pj in pierced:
+				if is_instance_valid(pj) and not pj.is_dead():
+					var to = p - Vector3.UP * 0.9 - pj.global_position
+					if to.length() > 0.8:
+						pj.global_position += to * 0.18
+		if orient_path:
+			var mv = p - last_p[0]
+			if mv.length() > 0.001:
+				copy.global_transform = Transform3D(Basis.looking_at(-mv.normalized(), Vector3.UP if absf(mv.normalized().y) < 0.95 else Vector3.RIGHT), p)
+			last_p[0] = p
+		elif vertical:
 			var dirv = (c - start); dirv.y = 0
 			copy.global_transform.basis = Basis.looking_at(dirv.normalized() if dirv.length() > 0.1 else f, Vector3.UP).rotated(Vector3.UP, PI * 0.5) * Basis(Vector3(0, 0, 1), ang)
 			copy.global_transform.basis = copy.global_transform.basis.scaled(Vector3.ONE * sc)
@@ -1260,9 +1365,15 @@ static func _spin_throw(who: Node3D, dmg: float, mode: String, opts := {}) -> vo
 					var inf = info.duplicate()
 					inf["attacker"] = who
 					fi.take_hit(inf)
+					if not fi in pierced:
+						pierced.append(fi)
+						if float(opts.get("bind", 0.0)) > 0.0 and fi.has_method("apply_status"):
+							fi.apply_status("bind", float(opts["bind"]))
 					FX.hit_spark(p, Color(0.85, 0.9, 1.0), 1.0)
 		, 0.0, 1.0, dur)
 	tw.tween_callback(func():
+		if is_instance_valid(wire_mi):
+			wire_mi.queue_free()
 		if is_instance_valid(copy):
 			if not opts.get("return", true):
 				FX.smoke_puff(copy.global_position, 0.6, 8)

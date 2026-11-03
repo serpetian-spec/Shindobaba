@@ -3125,8 +3125,8 @@ static func hair_profile(L: float, upward := false) -> Dictionary:
 
 ## Sarkan kumaş şeridi (bant/başlık bağı, kuşak ucu...): kökten dir yönünde uzanan, ikincil hareketli yassı şerit.
 ## model_root/dir model uzayında; bone'a takılır. Uçta hafif sivrilir.
-func dangle_strip(bone: String, model_root: Vector3, dir: Vector3, length: float, width: float, col: Color, stiff := 0.2, side := Vector3.ZERO, thick := 0.004) -> Dangle:
-	if skel == null or skel.find_bone(bone) < 0:
+func dangle_strip(bone: String, model_root: Vector3, dir: Vector3, length: float, width: float, col: Color, stiff := 0.2, side := Vector3.ZERO, thick := 0.004, parent: Node3D = null) -> Dangle:
+	if parent == null and (skel == null or skel.find_bone(bone) < 0):
 		return null
 	var dn = dir.normalized()
 	var sd = side.normalized() if side != Vector3.ZERO else dn.cross(Vector3.BACK if absf(dn.z) < 0.9 else Vector3.RIGHT).normalized()
@@ -3156,7 +3156,10 @@ func dangle_strip(bone: String, model_root: Vector3, dir: Vector3, length: float
 	var d = Dangle.make(pack, Props.toon())
 	if d == null:
 		return null
-	_attach(bone, Transform3D.IDENTITY).get_child(0).add_child(d)
+	if parent != null:
+		parent.add_child(d)   # silahın kendi parçası (çekiç kurdelesi): silahla birlikte gelir
+	else:
+		_attach(bone, Transform3D.IDENTITY).get_child(0).add_child(d)
 	_dangles.append(d)
 	return d
 
@@ -4203,8 +4206,12 @@ func _weapons() -> void:
 			node.scale = Vector3.ONE * 0.6   # gerçek kunai boyu (~40 cm)
 		if id == "kusanagi":
 			node.add_child(_kusa_ext())
-		if id == "kusarigama" and _kch.is_empty():
-			_make_kchain()   # Hanzō tipi: sap dibinden fizikli zincir + çan ağırlık   # Chōtō: uzayan ağız (gizli; kombo uzatır)
+		if id == "savas_cekici":
+			# halkaya bağlı siyah kurdele: iki uç, rüzgârda/savuruşta dalgalanır (ikincil hareket)
+			for sx in [-1.0, 1.0]:
+				dangle_strip("", Vector3(0.0, 0.0, -0.2), Vector3(0.18 * sx, -0.3, -1.0), 0.34, 0.06, Color(0.08, 0.08, 0.1), 0.16, Vector3(0, 1, 0), 0.004, node)
+		if id in KCHAIN and _kch.is_empty():
+			_make_kchain(id)   # kusarigama: sap dibinden zincir + çan ağırlık; zincirli kunai: halkadan uzun zincir + ikinci kunai
 		if SAYA.has(id):
 			node.transform.basis = Basis(Vector3.BACK, PI * 0.5) * Basis(Vector3.RIGHT, deg_to_rad(KATANA_TIP_DOWN))
 		if id == "raijin":
@@ -4562,7 +4569,13 @@ var _kch_lh: Node3D   # sol el tutuşu: zincir sap dibinden sol ele gelir, kalan
 const KCH_HOLD := 6
 
 
-func _make_kchain() -> void:
+## Fizikli zincirli silahlar: zincir başlangıcı (silah uzayı), halka boyu
+const KCHAIN := {"kusarigama": [Vector3(0, 0, -0.39), 0.048], "zincirli_kunai": [Vector3(0, 0, -0.12), 0.1]}
+var _kch_id := "kusarigama"
+
+
+func _make_kchain(id := "kusarigama") -> void:
+	_kch_id = id
 	var mat = Props.toon_color(Color(0.12, 0.11, 0.15), 0.35)
 	var tm = TorusMesh.new()
 	tm.inner_radius = 0.012
@@ -4577,13 +4590,20 @@ func _make_kchain() -> void:
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		add_child(mi)
 		_kch.append(mi)
-	var b = MB.new()
-	var dpur = Color(0.13, 0.11, 0.19)
-	b.add("frustum", Vector3(0, -0.045, 0), Vector3(0.1, 0.085, 0.1), dpur, Vector3(0, 45, 0), 4)   # çan: aşağı genişleyen dört yüzlü
-	b.add("box", Vector3(0, 0.0, 0), Vector3(0.04, 0.016, 0.04), dpur.lightened(0.1))
-	b.add("torus", Vector3(0, 0.018, 0), Vector3(0.022, 0.022, 0.022), dpur, Vector3(90, 0, 0), 8)
 	_kch_w = MeshInstance3D.new()
-	_kch_w.mesh = b.build(Props.toon())
+	if id == "zincirli_kunai":
+		# zincirin ucunda ikinci kunai: halkası zincire bağlı, ucu zincirden dışa bakar
+		var km = MeshInstance3D.new()
+		km.mesh = weapon_mesh("zk_ucu")
+		km.transform = Transform3D(Basis(Vector3.RIGHT, PI * 0.5), Vector3(0, -0.105, 0))
+		_kch_w.add_child(km)
+	else:
+		var b = MB.new()
+		var dpur = Color(0.13, 0.11, 0.19)
+		b.add("frustum", Vector3(0, -0.045, 0), Vector3(0.1, 0.085, 0.1), dpur, Vector3(0, 45, 0), 4)   # çan: aşağı genişleyen dört yüzlü
+		b.add("box", Vector3(0, 0.0, 0), Vector3(0.04, 0.016, 0.04), dpur.lightened(0.1))
+		b.add("torus", Vector3(0, 0.018, 0), Vector3(0.022, 0.022, 0.022), dpur, Vector3(90, 0, 0), 8)
+		_kch_w.mesh = b.build(Props.toon())
 	_kch_w.top_level = true
 	add_child(_kch_w)
 	if skel != null and skel.find_bone("LeftHand") >= 0:
@@ -4602,7 +4622,7 @@ func _update_kchain(dt: float) -> void:
 		return
 	var w: Dictionary = {}
 	for x in weapons:
-		if x["id"] == "kusarigama":
+		if x["id"] == _kch_id:
 			w = x
 	var n: Node3D = w.get("node") if not w.is_empty() else null
 	var on = n != null and is_instance_valid(n) and is_visible_in_tree() and (n.visible or kchain_start.is_valid())
@@ -4611,29 +4631,30 @@ func _update_kchain(dt: float) -> void:
 	_kch_w.visible = on and not kchain_hide_weight
 	if not on:
 		return
-	var a: Vector3 = kchain_start.call() if kchain_start.is_valid() else n.to_global(Vector3(0, 0, -0.39))
+	var a: Vector3 = kchain_start.call() if kchain_start.is_valid() else n.to_global(KCHAIN.get(_kch_id, KCHAIN["kusarigama"])[0])
+	var KSEG: float = KCHAIN.get(_kch_id, KCHAIN["kusarigama"])[1]
 	var pinned = kchain_pin.is_valid()
 	var pin: Vector3 = kchain_pin.call() if pinned else Vector3.ZERO
 	if _kch_p.size() != KCH_N + 1 or (_kch_p[1].distance_to(a) > 3.0 and not pinned):
 		_kch_p.resize(KCH_N + 1)
 		_kch_o.resize(KCH_N + 1)
 		for k in KCH_N + 1:
-			_kch_p[k] = a + Vector3.DOWN * KCH_SEG * k
+			_kch_p[k] = a + Vector3.DOWN * KSEG * k
 			_kch_o[k] = _kch_p[k]
-	var seg = KCH_SEG
+	var seg = KSEG
 	if pinned:
-		seg = maxf(KCH_SEG, a.distance_to(pin) / KCH_N * 1.03)
+		seg = maxf(KSEG, a.distance_to(pin) / KCH_N * 1.03)
 	# sol el zinciri tutar (elde, fırlatma yokken): sap dibi -> sol el gevşek, sol elden ağırlığa sarkar
 	var hold = not pinned and not kchain_start.is_valid() and _kch_lh != null and is_instance_valid(_kch_lh) and n_in_hand(w)
 	var lh: Vector3 = _kch_lh.global_position if hold else Vector3.ZERO
-	var segh = maxf(KCH_SEG, a.distance_to(lh) / KCH_HOLD * 1.08) if hold else seg
+	var segh = maxf(KSEG, a.distance_to(lh) / KCH_HOLD * 1.08) if hold else seg
 	var fixed := {0: a}
 	if hold:
 		fixed[KCH_HOLD] = lh
 	if pinned:
 		fixed[KCH_N] = pin
 	# kında (sırtta): zincir sapa iki yerden bağlı, ağırlık sapın üst ucunda -> kısa iki sarkık halka; savrulup uzamaz
-	var stow = not pinned and not kchain_start.is_valid() and not n_in_hand(w)
+	var stow = _kch_id == "kusarigama" and not pinned and not kchain_start.is_valid() and not n_in_hand(w)
 	if stow:
 		fixed[KCH_N / 2] = n.to_global(Vector3(0.035, 0, -0.12))
 		fixed[KCH_N] = n.to_global(Vector3(0.0, 0, 0.14))
@@ -5091,6 +5112,69 @@ static func _w_tsuba(b: MB, z: float, r: float, col: Color) -> void:
 ## Dev shuriken: göbek + n kavisli, sivri uçlu kol (kesici kenar bir yana kıvrık); göbek z düzleminde (kollar x-y düzleminde)
 ## Shuriken yıldızı (XY düzleminde, kalınlık Z): n sivri uç, uçlar arası içbükey kenar (düz kesici ağız), ortada delik;
 ## her ucun ortasında açık renkli bileylenmiş ağız şeridi. Eski kavisli bıçaklar yelpaze gibi duruyordu.
+## Savaş çekici (ref savascekici.png): koyu çatlaklı blok kafa (kenarları pahlı), ortasında perçinli açık çelik bant, sapla
+## kafa arasında kare yaka; uzun gri sargılı sap (sarmal sargı çizgileri), uçta halka (siyah kurdele CharacterModel'de, sallanır).
+## Tutuş z=0 (sağ yumruk sapın alt ucunda), kafa +Z ucunda, kafanın uzun ekseni X.
+static func _cekic(b: MB) -> void:
+	var blk = Color(0.2, 0.2, 0.23)
+	var band = Color(0.6, 0.62, 0.66)
+	var wrapc = Color(0.62, 0.62, 0.66)
+	b.add("cyl", Vector3(0, 0, 0.5), Vector3(0.062, 1.2, 0.062), wrapc.darkened(0.1), Vector3(90, 0, 0), 10)
+	for k in 16:   # sarmal sargı çizgileri
+		b.add("torus", Vector3(0, 0, -0.04 + k * 0.072), Vector3(0.07, 0.03, 0.07), wrapc.darkened(0.35), Vector3(90, 0, 14), 10)
+	b.add("torus", Vector3(0, 0, -0.16), Vector3(0.14, 0.14, 0.1), blk, Vector3(0, 90, 0), 12)   # uç halkası
+	b.add("cyl", Vector3(0, 0, -0.08), Vector3(0.075, 0.05, 0.075), blk, Vector3(90, 0, 0), 10)
+	b.add("box", Vector3(0, 0, 1.12), Vector3(0.2, 0.2, 0.05), blk.lightened(0.05))   # kare yaka
+	# blok kafa: ana gövde + pahlı kenarlar (her köşede yarım kutu)
+	var hz = 1.36
+	b.add("box", Vector3(0, 0, hz), Vector3(0.62, 0.42, 0.44), blk)
+	for sx in [-1.0, 1.0]:
+		b.add("box", Vector3(sx * 0.32, 0, hz), Vector3(0.04, 0.36, 0.38), blk.darkened(0.15))   # vuruş yüzü pahı
+	b.add("box", Vector3(0, 0, hz), Vector3(0.13, 0.44, 0.46), band)   # çelik bant
+	for sy in [-1.0, 1.0]:
+		for sz in [-1.0, 0.0, 1.0]:
+			b.add("sphere", Vector3(0, sy * 0.225, hz + sz * 0.15), Vector3(0.025, 0.012, 0.025), band.darkened(0.35), Vector3.ZERO, 6)
+	for sz in [-1.0, 1.0]:
+		for sy in [-1.0, 1.0]:
+			b.add("sphere", Vector3(0, sy * 0.14, hz + sz * 0.235), Vector3(0.025, 0.025, 0.012), band.darkened(0.35), Vector3.ZERO, 6)
+	# çatlaklar
+	for c in [[0.2, 0.08, 20.0], [-0.18, -0.1, -35.0], [0.24, -0.12, 60.0]]:
+		b.add("box", Vector3(c[0], c[1], hz + 0.222), Vector3(0.12, 0.006, 0.003), Color(0.08, 0.08, 0.09), Vector3(0, 0, c[2]))
+
+
+## Zincirli kunai (ref zincirlikunai.png): büyük köşeli koyu kunai (elmas kesitli yaprak ağız), açık gri bantlı sap, sap ucunda halka.
+## Tutuş z=0, uç +Z.
+static func _zkunai(b: MB) -> void:
+	var dk = Color(0.2, 0.2, 0.23)
+	var lt = Color(0.65, 0.66, 0.7)
+	b.add("cyl", Vector3(0, 0, -0.01), Vector3(0.03, 0.12, 0.03), dk, Vector3(90, 0, 0), 8)
+	for k in 5:
+		b.add("cyl", Vector3(0, 0, -0.055 + k * 0.022), Vector3(0.034, 0.012, 0.034), lt, Vector3(90, 0, 0), 8)
+	b.add("torus", Vector3(0, 0, -0.105), Vector3(0.07, 0.07, 0.05), dk, Vector3(0, 90, 0), 10)
+	# elmas kesitli ağız: dört yüzlü (sapa geniş taban, uca sivri), en geniş yer %30'da
+	var L = 0.32
+	var z0 = 0.06
+	var w = 0.075
+	var t = 0.028
+	var pts = [Vector3(0, 0, z0), Vector3(w, 0, z0 + L * 0.3), Vector3(0, t, z0 + L * 0.3), Vector3(-w, 0, z0 + L * 0.3), Vector3(0, -t, z0 + L * 0.3), Vector3(0, 0, z0 + L)]
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for k in 4:
+		var a = pts[1 + k]; var c = pts[1 + (k + 1) % 4]
+		var shade = 1.0 if k % 2 == 0 else 0.78
+		for tri in [[pts[0], c, a], [pts[5], a, c]]:
+			for v in tri:
+				st.set_color(dk.lightened(0.08) * Color(shade, shade, shade))
+				st.add_vertex(v)
+	st.generate_normals()
+	_mb_add_surface(b, st)
+
+
+static func _mb_add_surface(b: MB, st: SurfaceTool) -> void:
+	st.index()
+	b.add_arrays(st.commit_to_arrays(), Transform3D.IDENTITY, Color(0.24, 0.24, 0.27))
+
+
 ## Fūma shuriken (ref fuumashuriken.png): göbek halkası z=0.09'da (el halkayı kavrar), düzlem XY (yassı yüz ±Z).
 ## Her bıçak: göbekten dışa uzanan, uca doğru yana kıvrılan orak; koyu çelik, içbükey kenarında açık bileylenmiş ağız şeridi.
 ## closed: dört bıçak aynı yöne yelpaze gibi üst üste (kın hâli).
@@ -5242,7 +5326,9 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			for k in 9:
 				var a = deg_to_rad(lerpf(-55.0, 55.0, k / 8.0))
 				b.add_xf("box", Transform3D(Basis(Vector3.RIGHT, -a) * Basis.from_scale(Vector3(0.016, 0.012, 0.6)), Vector3(0, sin(a) * 0.32, 0.05 + cos(a) * 0.32)), Color(0.22, 0.22, 0.25))
-		"altin_kunai", "patlayici_kunai", "zincirli_kunai":
+		"zincirli_kunai", "zk_ucu":
+			_zkunai(b)   # zincirlikunai.png (zincir CharacterModel'de fizikli; zk_ucu = zincirin ucundaki ikinci kunai)
+		"altin_kunai", "patlayici_kunai":
 			var bl = Color(0.85, 0.7, 0.3) if id == "altin_kunai" else steel
 			b.add("cyl", Vector3(0, 0, -0.02), Vector3(0.022, 0.1, 0.022), wrap if id != "altin_kunai" else dark, Vector3(90, 0, 0), 6)
 			b.add("torus", Vector3(0, 0, -0.085), Vector3(0.05, 0.05, 0.05), dark, Vector3(90, 0, 0), 8)
@@ -5250,9 +5336,7 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			if id == "patlayici_kunai":
 				b.add("box", Vector3(0, 0.0, -0.02), Vector3(0.04, 0.03, 0.1), Color(0.95, 0.92, 0.82))
 				b.add("box", Vector3(0, 0.016, -0.02), Vector3(0.012, 0.002, 0.07), Color(0.75, 0.1, 0.1))
-			if id == "zincirli_kunai":
-				for k in 6:
-					b.add("torus", Vector3(0, -0.02 - k * 0.035, -0.11 - k * 0.012), Vector3(0.03, 0.03, 0.03), dark, Vector3(90 * (k % 2), 0, 0), 6)
+
 		"senbon":
 			for k in 3:
 				b.add("cyl", Vector3((k - 1) * 0.018, 0, 0.06), Vector3(0.004, 0.2, 0.004), steel, Vector3(90, (k - 1) * 8.0, 0), 4)
@@ -5287,9 +5371,7 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			_w_tsuba(b, 0.075, 0.055, Color(0.45, 0.36, 0.2))
 			_w_blade(b, 0.085, 1.22, 0.042, 0.055, steel)
 		"savas_cekici":
-			b.add("cyl", Vector3(0, 0, 0.25), Vector3(0.035, 0.95, 0.035), Color(0.35, 0.25, 0.15), Vector3(90, 0, 0), 8)
-			b.add("box", Vector3(0, 0, 0.72), Vector3(0.14, 0.24, 0.16), Color(0.4, 0.4, 0.42))
-			b.add("box", Vector3(0, 0, 0.72), Vector3(0.16, 0.06, 0.18), dark)
+			_cekic(b)   # savascekici.png
 		"kongo_asa":
 			# elmas asa (referans: Maymun Kral'ın dönüştüğü asa): düz siyah gövde, iki uçta kemik beyazı başlık
 			b.add("cyl", Vector3(0, 0, 0.15), Vector3(0.05, 2.1, 0.05), Color(0.08, 0.08, 0.09), Vector3(90, 0, 0), 12)
@@ -5814,7 +5896,7 @@ func _rest_tilt(on: bool, dt: float) -> void:
 
 
 ## anahtar animasyonlu silahlar: [tutuş kaydırma (yumruk sap boyunca ileri), iz başı z, iz ucu z, elden uca boy]
-const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45], "kabutowari": [0.0, 0.3, 0.82, 0.85], "ruzgar_bicak": [0.0, 0.1, 0.6, 0.62], "hiraishin_kunai": [0.0, 0.14, 0.47, 0.48], "homatsu_kiseru": [0.1, 0.5, 0.72, 0.72], "kusanagi": [0.0, 0.21, 1.08, 1.09], "kusarigama": [0.0, 0.3, 0.8, 0.85], "fuma_shuriken": [0.0, 0.05, 0.6, 0.62], "kyodai_shuriken": [0.0, 0.1, 1.3, 1.3], "fuma_makimono": [0.0, 0.05, 0.25, 0.26]}   # uzunluklar silahın kendi ölçeğiyle çarpılır
+const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45], "kabutowari": [0.0, 0.3, 0.82, 0.85], "ruzgar_bicak": [0.0, 0.1, 0.6, 0.62], "hiraishin_kunai": [0.0, 0.14, 0.47, 0.48], "homatsu_kiseru": [0.1, 0.5, 0.72, 0.72], "kusanagi": [0.0, 0.21, 1.08, 1.09], "kusarigama": [0.0, 0.3, 0.8, 0.85], "fuma_shuriken": [0.0, 0.05, 0.6, 0.62], "kyodai_shuriken": [0.0, 0.1, 1.3, 1.3], "fuma_makimono": [0.0, 0.05, 0.25, 0.26], "nuibari": [0.0, 0.1, 1.62, 1.62], "savas_cekici": [0.0, 1.1, 1.58, 1.58], "zincirli_kunai": [0.0, 0.06, 0.38, 0.38]}   # uzunluklar silahın kendi ölçeğiyle çarpılır
 
 
 var _edge_x := Vector3.ZERO   # gunbai: kenar önde savuruş için yüz normali (yumuşatılmış)

@@ -4,7 +4,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	Menus.clear()
 	var base = Vector3(0, 3000, 0)
-	var ids = ["fuma_shuriken", "fuma_kapali", "kyodai_shuriken", "fuma_kare", "fuma_makimono"]
+	var ids = OS.get_environment("IDS").split(",", false) if OS.get_environment("IDS") != "" else PackedStringArray(["fuma_shuriken", "fuma_kapali", "kyodai_shuriken", "fuma_kare", "fuma_makimono"])
 	var cam = Camera3D.new()
 	main.add_child(cam)
 	cam.current = true

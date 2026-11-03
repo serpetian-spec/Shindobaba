@@ -31,7 +31,7 @@ func _ready() -> void:
 	a["hp"] = 5000.0
 	e.setup(a)
 	get_tree().current_scene.add_child(e)
-	e.global_position = pl.global_position + fw * 12.0
+	e.global_position = pl.global_position + fw * (float(OS.get_environment("EDIST")) if OS.get_environment("EDIST") != "" else 12.0)
 	e.set_physics_process(false)
 	pl.combat.lock_target = e
 	cam.global_position = pl.global_position - side * 11.0 + fw * 6.0 + Vector3.UP * 3.5
