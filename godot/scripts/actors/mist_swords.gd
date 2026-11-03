@@ -44,23 +44,40 @@ static func _grip(b: MB, z0: float, z1: float, r: float, core: Color, wrapc: Col
 
 ## Kubikiribōchō: dev satır — düz uzun keskin alt kenar, geniş kare uç, uca yakın yuvarlak delik,
 ## sapın dibinde sırtta yarım ay oyuk; kısa sargılı sap
+## Kubikiribōchō (ref zabuza.png): geniş dikdörtgen ağız, düz kalın sırt (x+), açık renk bileylenmiş ağız şeridi keskin kenarda (x-),
+## keskin kenarda sapa yakın yarım ay kesik, uca yakın (sırt tarafına) yuvarlak delik, uç alt kenarı eğik (keskin köşe öne çıkar);
+## ağızla sap arasında koyu yatay muhafız + ortada yuvarlak topuz; sap üç koyu boğum + aralarında açık halkalar, pommel.
 static func _kubikiri(b: MB) -> void:
-	var steel = Color(0.56, 0.58, 0.62)
-	var sp = 0.07          # sırt çizgisi (y)
-	# uzun ve görece ince ağız (boy/en ≈ 4.5); uçta keskin kenar sırttan daha ileri uzanır, uç yüzü eğik ve hafif kavisli
-	var pts = [[-0.03, 0.04], [-0.26, 0.08], [-0.36, 0.18], [-0.37, 0.9], [-0.385, 1.6], [-0.375, 1.78], [-0.33, 1.86], [-0.25, 1.86],
-		[-0.12, 1.79], [-0.02, 1.72], [sp, 1.66], [sp, 0.42]]
-	var c = Vector2(sp, 0.27)
-	var r = 0.15
-	for k in range(1, 12):   # yarım ay oyuk (sırttan içeri)
+	var steel = Color(0.4, 0.45, 0.66)   # ref: mavimsi çelik
+	var edge_c = Color(0.84, 0.86, 0.92)
+	var dark = Color(0.12, 0.12, 0.15)
+	var sp = 0.075          # sırt (x)
+	var ed = -0.36          # keskin kenar (x)
+	var pts = [[sp, 0.06], [sp, 1.66], [sp - 0.02, 1.74], [ed + 0.05, 1.86], [ed - 0.025, 1.9], [ed - 0.02, 1.8], [ed, 1.55], [ed, 0.42]]
+	# keskin kenarda sapa yakın yarım ay kesik
+	var c = Vector2(ed, 0.33)
+	var r = 0.07
+	for k in range(1, 12):
 		var t = PI * k / 12.0
-		pts.append([c.x - sin(t) * r, c.y + cos(t) * r])
-	pts.append([sp, 0.12])
-	pts.append([0.03, 0.04])
-	var outline = MB.hole(_v(pts), Vector2(-0.19, 1.6), 0.1, 20)
-	b.add_slab(outline, 0.03, steel, Transform3D.IDENTITY, func(p: Vector2) -> float: return 0.006 if p.x < -0.33 else 0.03, steel.darkened(0.25))
-	_grip(b, -0.36, 0.04, 0.032, Color(0.12, 0.12, 0.14), Color(0.32, 0.3, 0.34), 7)
-	b.add("sphere", Vector3(0, 0, -0.38), Vector3(0.07, 0.07, 0.05), Color(0.2, 0.2, 0.22), Vector3.ZERO, 8)
+		pts.append([c.x + sin(t) * r, c.y + cos(t) * r])
+	pts.append([ed, 0.2])
+	pts.append([ed + 0.03, 0.06])
+	var outline = MB.hole(_v(pts), Vector2(-0.07, 1.6), 0.085, 20)
+	b.add_slab(outline, 0.03, steel, Transform3D.IDENTITY, func(p: Vector2) -> float: return 0.008 if p.x < ed + 0.05 else 0.03, steel.darkened(0.25))
+	# bileylenmiş ağız şeridi (iki yüzde açık renk): kesiğin altından uca kadar
+	var strip = PackedVector2Array()
+	for e in [[ed - 0.002, 0.27], [ed - 0.002, 1.55], [ed - 0.022, 1.8], [ed - 0.027, 1.89], [ed + 0.02, 1.86], [ed + 0.045, 1.55], [ed + 0.045, 0.27]]:
+		strip.append(Vector2(e[0], e[1]))
+	b.add_slab(strip, 0.034, edge_c, Transform3D.IDENTITY, func(p: Vector2) -> float: return 0.012 if p.x < ed + 0.01 else 0.034, edge_c.darkened(0.2))
+	# muhafız: ağzın tabanında yatay koyu çubuk + ortada yuvarlak topuz
+	b.add("box", Vector3(0, (sp + ed) * 0.5, 0.045), Vector3(0.06, sp - ed + 0.1, 0.045), dark)
+	b.add("sphere", Vector3(0, 0, 0.02), Vector3(0.1, 0.1, 0.1), dark.lightened(0.1), Vector3.ZERO, 10)
+	# sap: üç koyu boğum, aralarında açık halkalar, uçta pommel
+	for k in 3:
+		var z = -0.06 - k * 0.11
+		b.add("cyl", Vector3(0, 0, z), Vector3(0.06, 0.085, 0.06), dark, Vector3(90, 0, 0), 12)
+		b.add("cyl", Vector3(0, 0, z - 0.055), Vector3(0.042, 0.025, 0.042), Color(0.82, 0.82, 0.84), Vector3(90, 0, 0), 10)
+	b.add("sphere", Vector3(0, 0, -0.4), Vector3(0.06, 0.06, 0.06), dark, Vector3.ZERO, 8)
 
 
 ## Samehada (sargılı, anime/Storm): uca doğru kalınlaşan kalın sopa, spiral beyaz bez sargısı (bantlar arası ince gri çizgi,

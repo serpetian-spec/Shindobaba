@@ -494,7 +494,7 @@ const ITEMS := {
 	"bo": {"name": "Bō Sopası", "slot": "sag", "price": 180, "rank": 0, "desc": "Uzun ahşap sopa. Geniş vuruş alanı.", "stats": {"def": 2}, "weapon": {"hit": 5, "dmg": 1.3, "reach": 1.0, "style": "staff"}, "c1": Color(0.45, 0.32, 0.2)},
 	"mizrak": {"name": "Yari Mızrağı", "slot": "sag", "price": 650, "rank": 2, "desc": "Uzun mızrak. En uzun menzil.", "stats": {}, "weapon": {"hit": 6, "dmg": 1.55, "reach": 1.4, "style": "staff"}, "c1": Color(0.75, 0.77, 0.8)},
 	"kusarigama": {"name": "Kusarigama", "slot": "sag", "price": 1400, "rank": 2, "desc": "Hanzō tipi zincirli orak: uzun saplı orak, sap dibinden zincir ve çan ağırlık. Orta menzil: kancalayıp çeker, ağırlığı fırlatır ve döndürür, orağı zincirle fırlatıp geri çeker.", "stats": {"melee": 0.05}, "weapon": {"hit": 5.8, "dmg": 1.5, "reach": 1.3, "style": "chain"}, "c1": Color(0.2, 0.17, 0.29)},
-	"el_shuriken": {"name": "Dev Shuriken", "slot": "sag", "price": 700, "rank": 2, "desc": "Elde tutulan dev dört kollu shuriken. Kesici savuruşlar.", "stats": {}, "weapon": {"hit": 6, "dmg": 1.6, "reach": 0.8, "style": "heavy"}, "c1": Color(0.5, 0.52, 0.56)},
+	"el_shuriken": {"removed": true, "name": "Dev Shuriken", "slot": "sag", "price": 700, "rank": 2, "desc": "Elde tutulan dev dört kollu shuriken. Kesici savuruşlar.", "stats": {}, "weapon": {"hit": 6, "dmg": 1.6, "reach": 0.8, "style": "heavy"}, "c1": Color(0.5, 0.52, 0.56)},
 	"yelpaze": {"name": "Savaş Yelpazesi", "slot": "sag", "price": 700, "rank": 2, "desc": "Büyük demir yelpaze. Fuuton jutsularını güçlendirir.", "stats": {"chakra": 30}, "weapon": {"hit": 5.5, "dmg": 1.4, "reach": 0.8, "style": "fan"}, "c1": Color(0.85, 0.82, 0.75)},
 	# --- gözler (goz = sağ/sol göz yuvasına takılır; satılmaz). Örnek başına "lvl" (tomoe 1-3) ve "origin" (dogustan/nakil)
 	"goz_sharingan": {"name": "Sharingan", "slot": "goz", "price": 0, "rank": 0, "desc": "Uchiha'nın kopyalayan gözü. Hareketleri önceden okur.", "stats": {"melee": 0.05, "chakra": 10}, "eye": {"kind": 1, "name": "Sharingan"}, "c1": Color(0.8, 0.05, 0.08)},
@@ -554,7 +554,7 @@ const SHOP_CLOTHES := ["uchiha_yakali", "uchiha_uzun", "uchiha_beyaz", "uchiha_p
 	"panco", "yirtik_pelerin", "jinbaori", "kesis_cubbesi", "kesa", "bantli_palto", "mino", "gece_pelerini",
 	"omuz_zirhi", "dizlik", "agir_zirh", "uzun_sargi_eldiven", "tespih", "sirt_sepeti", "bel_parsomenleri", "bel_cantasi", "sashimono", "ip_kangali"]
 const SHOP_WEAPONS := ["sai", "kunai", "senbon", "ikiz_hancer", "tonfa", "bo", "tanto", "kama", "patlayici_kunai", "zincirli_kunai", "pence", "musta",
-	"wakizashi", "altin_kunai", "katana", "mizrak", "yelpaze", "el_shuriken", "kusarigama", "savas_cekici", "chakra_bicak", "nodachi", "kyodai_shuriken", "fuma_makimono"]
+	"wakizashi", "altin_kunai", "katana", "mizrak", "yelpaze", "kusarigama", "savas_cekici", "chakra_bicak", "nodachi", "kyodai_shuriken", "fuma_makimono"]
 ## Sadece görev ödülü olarak düşen (dükkânda satılmayan) parçalar dahil ödül havuzu
 const REWARD_POOL := ["kafa_bandaji", "gozluk", "kasa", "kapuson", "atki", "kol_sargisi", "eldiven", "kolluk", "bacak_koruma", "tabi", "hakama",
 	"kisa_pelerin", "haori", "dev_parsomen", "sirt_shuriken", "senbon", "kama", "pence", "zincirli_kunai", "wakizashi", "altin_kunai",
@@ -906,6 +906,9 @@ static func _ensure_eyes(p: Dictionary) -> bool:
 
 ## Takılı parçalardan görünüm sözlüğünü yeniden kurar
 static func apply_look(p: Dictionary) -> void:
+	for g0 in p.get("gear", []):   # oyundan kaldırılan Dev Shuriken: eldeki kopyalar Kyodai Shuriken'e döner
+		if String(g0.get("id", "")) == "el_shuriken":
+			g0["id"] = "kyodai_shuriken"
 	var L: Dictionary = p["look"]
 	for k in ["band", "vest", "mask", "weapon_r", "weapon_l", "head_style", "face_style", "outer_style", "back_item", "guards", "eye_r", "eye_l", "hood", "crest"]:
 		L[k] = null

@@ -25,12 +25,13 @@ const TABLE := {
 	"zincirli_kunai": [preload("res://scripts/combat/zkunai_anim.gd"), 1.0],
 	"tonfa": [preload("res://scripts/combat/tonfa_anim.gd"), 1.05],
 	"bashosen": [preload("res://scripts/combat/bashosen_anim.gd"), 1.0],
+	"kubikiribocho": [preload("res://scripts/combat/kubikiri_anim.gd"), 0.95],
 }
 ## uzun menzil silahları: yapay zekâ uzakta durup atar (Enemy._chase)
 const RANGED := ["fuma_shuriken", "kyodai_shuriken", "fuma_makimono"]
 ## silah ağırlığı (0 hafif .. 1 ağır): kol/silah yaylanması (PoseOverlay.key_mass) — ağır silah gecikip taşar
 const MASS := {"uc_tirpan": 1.0, "samehada": 0.9, "kabutowari": 0.9, "shibuki": 0.85, "gunbai": 0.8, "raijin": 0.35, "kunai": 0.1,
-	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3, "tonfa": 0.3, "bashosen": 0.35}
+	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3, "tonfa": 0.3, "bashosen": 0.35, "kubikiribocho": 0.95}
 
 
 static func mass(id: String) -> float:
@@ -112,6 +113,16 @@ static func mods(id: String, i: int) -> Dictionary:
 				3: m.merge({"launch": 11.0, "knock": 2.0})
 				4: m.merge({"knock": 5.0})
 				5: m.merge({"heavy": true, "knock": 15.0, "reach_add": 1.2, "lunge_mul": 0.9})
+			return m
+		"kubikiribocho":
+			var m = {"lunge_mul": 0.6}
+			match i:
+				0: m.merge({"heavy": true, "knock": 6.0, "reach_add": 0.8})
+				1: m.merge({"knock": 12.0, "reach_add": 1.1, "bleed": 4.0})
+				2: m.merge({"launch": 11.0, "knock": 2.0, "reach_add": 0.6})
+				3: m.merge({"knock": 9.0, "reach_add": 1.0})
+				4: m.merge({"knock": 14.0, "lunge_mul": 0.4})
+				5: m.merge({"heavy": true, "knock": 16.0, "reach_add": 1.4, "lunge_mul": 0.9})
 			return m
 		"bashosen":
 			# yelpaze: asıl etki rüzgâr dalgası (on_strike); yakın vuruş itici
@@ -310,6 +321,22 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 					if big:
 						Combat.hit_sphere(who, q + Vector3.UP * 0.5, 3.6, {"dmg": dmg * 0.6, "knock": 12.0, "launch": 7.0, "kind": "heavy", "hitstop": 0.07, "melee": false})
 						Dangle.blast(q, 45.0, 8.0)
+		"kubikiribocho":
+			match i:
+				1:   # boyun biçmesi: geniş kılıç izi
+					WindFX.streak(func(t: float) -> Vector3:
+						var a = lerpf(-1.4, 1.4, t)
+						return who.global_position + Vector3.UP * 1.45 + (f * cos(a) - side * sin(a)) * 2.6, 0.2, 0.09, Color(0.85, 0.9, 1.0, 0.75), 0.0, 16)
+				4:   # kılıcın saplandığı yer
+					var q = gp.call(1.3)
+					VFX.cracks(q, 1.2)
+				5:
+					var q = gp.call(2.4)
+					VFX.cracks(q, 3.6)
+					VFX.debris(q, Color(0.5, 0.45, 0.4), 14, 6.5, 0.35)
+					Combat.hit_sphere(who, q + Vector3.UP * 0.5, 3.4, {"dmg": dmg * 0.6, "knock": 12.0, "launch": 6.0, "kind": "heavy", "hitstop": 0.07, "melee": false})
+					Dangle.blast(q, 40.0, 7.0)
+					_shake(who, 0.8)
 		"bashosen":
 			# her savuruşun kendi rüzgârı: yatay yelpaze dalgası, yere basan dalga, yükselen burgu, çevre halkası, dev fırtına koridoru
 			var from = who.global_position + Vector3.UP * 1.1 + f * 0.7
@@ -538,7 +565,7 @@ static func on_start(id: String, i: int, who: Node3D) -> void:
 		"zincirli_kunai":
 			if i == 5:
 				_kg_weight(who, 0.0, "wrap")
-		"savas_cekici":
+		"savas_cekici", "kubikiribocho":
 			if i == 5 and who is CharacterBody3D:
 				who.velocity.y = 9.5
 		"fuma_shuriken", "kyodai_shuriken":

@@ -49,7 +49,7 @@ func _ready() -> void:
 	var have = {}
 	for g in pr["gear"]:
 		have[String(g["id"])] = true
-	for gid in Gear.ITEMS.keys() + Gear.SETS.keys():   # kıyafet setleri de çantada
+	for gid in (Gear.ITEMS.keys().filter(func(k): return not Gear.ITEMS[k].get("removed", false))) + Gear.SETS.keys():   # kıyafet setleri de çantada (kaldırılanlar hariç)
 		if not have.has(gid):
 			Gear.grant(pr, gid, "", null, null, {"lvl": 3, "origin": "dogustan"})
 	# bütün kullanılabilir eşyalar (hap, merhem, parşömen, klan eşyaları...)
