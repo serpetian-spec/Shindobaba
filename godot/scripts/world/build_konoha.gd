@@ -241,7 +241,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 			b.disc(Vector3(hxp + fo.x, _gy(b, hxp, hnp) + 2.6, hnp + fo.y), 1.4, 0.12, Color(0.8, 0.15, 0.15), a + 180.0, 12)
 	b.yoff = _gy(b, ux, un)
 	var _tt = Time.get_ticks_msec()
-	var tm = AssetLib.temple(28.0)
+	var tm = null   # hazır tapınak modeli (jp_temple) pakete girmiyor: oyunda görünmez tapınak + çarpışma kalıyordu -> kendi modelimiz
 	print("SURE tapinak ", Time.get_ticks_msec() - _tt, " ms")
 	if tm != null:
 		b.pack_mesh(tm, Vector3(ux, 0, un + 4), 180.0, 1.0, 1.5)

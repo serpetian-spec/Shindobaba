@@ -142,6 +142,7 @@ static func add_bond(id: String, n: int, quiet := false) -> void:
 	if n > 0:
 		n = int(round(n * (1.0 + Stats.skill(pr(), "charm"))))   # Sosyal: Sohbet Ustası / Karizma
 	f["bond"] = clampi(int(f["bond"]) + n, -100, 100)
+	f["peak"] = maxi(int(f.get("peak", 0)), int(f["bond"]))   # en yüksek yakınlık (ihanet/kaçış sonrası da hatırlanır: Mangekyō)
 	var after = level_name(int(f["bond"]))
 	if after != before:
 		Hud.banner(after.to_upper(), "%s ile aranız: %s" % [f["name"], after], level_color(int(f["bond"])))
@@ -866,15 +867,22 @@ func _defect(id: String) -> void:
 	Hud.banner("%s KÖYDEN KAÇTI" % String(f["name"]).to_upper(), "Bandını çizip gitti. Artık Bingo Kitabı'nda bir kaçak.", Color(1, 0.45, 0.4))
 
 
-## Dost gözünün önünde öldü: kalıcı. Yakın dostsa ve 3 tomoe Sharingan'ın varsa acı Mangekyō'yu uyandırır.
+## Dost gözünün önünde öldü: kalıcı (Mangekyō artık yalnız yakın birini kendi elinle öldürünce: Enemy.die).
 func _die_in_battle(id: String, n: Node) -> void:
 	var f: Dictionary = all()[id]
 	f["status"] = "öldü"
 	f["party"] = false
 	log_event(f, "Senin yanında savaşırken öldü")
 	Hud.banner("%s ÖLDÜ" % String(f["name"]).to_upper(), "Son nefesinde sana gülümsedi. %s onu asla unutmayacak." % Game.village(String(f.get("village", Progress.home()))).get("name", "Köy"), Color(0.85, 0.85, 0.95))
-	if int(f["bond"]) >= 50 and n != null and is_instance_valid(n) and Game.player.combat and Game.player.combat.modes and Game.player.combat.modes.get("eyes"):
-		Game.player.combat.modes.eyes.on_ally_died(n)
+
+
+
+## Yakınlık (Mangekyō şartı): dostluk, gönül ve bugüne kadarki en yüksek bağın en büyüğü
+static func closeness(id: String) -> int:
+	var f: Dictionary = all().get(id, {})
+	if f.is_empty():
+		return 0
+	return maxi(maxi(int(f.get("bond", 0)), int(f.get("love", 0))), int(f.get("peak", 0)))
 
 
 ## Kaçak dostun Bingo durumu: "alive" / "dead" / ""

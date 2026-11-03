@@ -830,10 +830,19 @@ func check_awaken(dt: float) -> void:
 				refresh_visual()
 
 
-## Mangekyō uyanışı: 3 tomoe iken yakın bir müttefik (eskort, rehine, takım arkadaşı) gözlerinin önünde ölürse
-func on_ally_died(ally: Node3D) -> void:
-	if not is_instance_valid(ally) or ally.global_position.distance_to(p.global_position) > 40.0:
-		return
+## Mangekyō uyanışı (kanon): 3 tomoe iken ilişkinin yüksek olduğu birini (yakınlık >= 60) KENDİ ELİNLE öldürmek.
+## Enemy.die çağırır. (Eskiden müttefik gözünün önünde ölünce açılıyordu.)
+func on_close_kill(who: String) -> void:
+	if _awaken_mangekyo():
+		Hud.msg("%s'i kendi ellerinle öldürdün..." % who, Color(1, 0.6, 0.6), 6.0)
+
+
+## Eski tetik (gözünün önünde ölen müttefik): artık Mangekyō açmaz
+func on_ally_died(_ally: Node3D) -> void:
+	pass
+
+
+func _awaken_mangekyo() -> bool:
 	var pr = Game.profile
 	var ok = false
 	for slot in ["sag_goz", "sol_goz"]:
@@ -853,6 +862,7 @@ func on_ally_died(ally: Node3D) -> void:
 		p.rebuild_model()
 		Hud.banner("MANGEKYŌ SHARINGAN", "Acı, gözlerini sonsuza dek değiştirdi", Color(0.8, 0.05, 0.1))
 		Sfx.play("roar", p.global_position, 0.7, 0.5)
+	return ok
 
 
 ## Hastanede nakil: saklanan bir gözü seçilen yuvaya takar (eski göz kavanoza)

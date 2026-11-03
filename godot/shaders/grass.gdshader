@@ -48,7 +48,7 @@ void vertex() {
 	// 2 orman 4 yağmur 6 pirinç 7 çimen 9 dağ 10 bataklık 11 köy
 	float ok = (b == 2 || b == 4 || b == 6 || b == 7 || b == 10) ? 1.0 : (b == 9 ? 0.5 : 0.0);
 	// köy içinde sadece duvar diplerinde/bahçelerde seyrek öbekler
-	if (b == 11) ok = step(0.82, hash(floor(root.xz * 0.18)));   // köy: duvar diplerinde / bahçelerde seyrek öbekler (eski hâl)
+	if (b == 11) ok = step(0.35, hash(floor(root.xz * 0.18)));   // köy: zeminin çoğu otlu (yollar hariç); arada küçük açıklıklar
 	// 13 çöl köyü, 14 taş köy, 15 karlı köy: çimen yok
 	ok *= 1.0 - step(0.2, road);            // yol
 	ok *= 1.0 - step(0.5, bio.b);           // ıslak

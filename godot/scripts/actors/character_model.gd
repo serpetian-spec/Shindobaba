@@ -402,6 +402,7 @@ func _face_and_hair() -> void:
 		head_ab = AABB(place * fa.position, Vector3.ZERO).expand(place * fa.end)
 		head_ab = head_ab.abs()
 		var sk_key = "%s|%s|%s" % [look["gender"], donor, look.get("age", "adult")]
+		_sk_key = sk_key
 		if _skull_cache.has(sk_key):
 			var sc = _skull_cache[sk_key]
 			skull_c = sc[0]; skull_r = sc[1]; band_ring = sc[2]
@@ -3219,11 +3220,15 @@ func cloth_band(cc: Color, dy := 0.0, bh := 0.04, tail_len := 0.24, tail_w := 0.
 
 ## Gövde kafasının gerçek tepesi (model y): şapkalar buna oturur (yüz mesh'inden ölçülen htop alçak kalıyordu)
 func head_top() -> float:
+	if _sk_key != "" and _top_cache.has(_sk_key):
+		return _top_cache[_sk_key]
 	var top = skull_c.y + skull_r.y
 	if body_mesh != null and body_mesh.mesh != null:
 		for q in body_mesh.mesh.surface_get_arrays(0)[Mesh.ARRAY_VERTEX]:
 			if q.y > skull_c.y and absf(q.x) < 0.05:
 				top = maxf(top, q.y)
+	if _sk_key != "":
+		_top_cache[_sk_key] = top
 	return top
 
 
@@ -3429,6 +3434,9 @@ const FM_DY := 0.008
 func _face_map() -> void:
 	if not _fmap.is_empty():
 		return
+	if _sk_key != "" and _fmap_cache.has(_sk_key):
+		_fmap = _fmap_cache[_sk_key]
+		return
 	var pts = []
 	var chin0 = eye_center_model.y - 0.1
 	if face_mi != null:
@@ -3450,6 +3458,8 @@ func _face_map() -> void:
 			continue
 		var k = Vector2i(int(floor((atan2(d.y, d.x) + PI) / TAU * FM_NA)) % FM_NA, int(floor(q.y / FM_DY)))
 		_fmap[k] = maxf(_fmap.get(k, 0.0), d.length())
+	if _sk_key != "":
+		_fmap_cache[_sk_key] = _fmap
 
 
 ## Yüzey yarıçapı (komşu yön/yükseklik hücreleriyle yumuşatılmış en dış değer)
@@ -3862,10 +3872,17 @@ func _hitai(bone: String, cen: Vector3, rad: PackedFloat32Array, bc: Color, bh: 
 ## Kafanın arkası yüz mesh'inde yok: bant halkasına gövde mesh'inin (model uzayına çevrilmiş) kafa köşeleri de katılır
 ## (yoksa bant arkada kafanın içinde kalıyordu). skull_c/skull_r değişmez (saç tutamları onlara göre yerleşik).
 var _ring_full := false
+var _sk_key := ""
+static var _ringfull_cache := {}   # yüz/cinsiyet/yaş -> tam bant halkası (gövde taraması her NPC'de tekrarlanmasın)
+static var _top_cache := {}
+static var _fmap_cache := {}
 func _band_ring_full() -> void:
 	if _ring_full or band_ring.is_empty() or body_mesh == null or body_mesh.mesh == null:
 		return
 	_ring_full = true
+	if _sk_key != "" and _ringfull_cache.has(_sk_key):
+		band_ring = _ringfull_cache[_sk_key]
+		return
 	var by: float = band_ring[0]
 	var rad: PackedFloat32Array = (band_ring[1] as PackedFloat32Array).duplicate()
 	var bins = rad.size()
@@ -3876,6 +3893,8 @@ func _band_ring_full() -> void:
 		var k = int(floor((atan2(d.y, d.x) + PI) / TAU * bins)) % bins
 		rad[k] = maxf(rad[k], d.length())
 	band_ring = [by, rad]
+	if _sk_key != "":
+		_ringfull_cache[_sk_key] = band_ring
 
 
 ## ------------------------------------------------------------------ saç maskesi

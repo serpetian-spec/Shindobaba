@@ -64,7 +64,7 @@ void fragment() {
 	float n4 = fbm(wpos.xz * 0.011);
 	// geniş ölçekli renk çeşitliliği (32 m doku düz görünmesin)
 	base *= 0.9 + n4 * 0.22;
-	if (b == 11) base = vec3(0.3, 0.5, 0.2);   // köy çimeni: öğle güneşinde solgun açık yeşile patlamasın (çayır tonunda)
+	if (b == 11) base = vec3(0.2, 0.42, 0.1);   // köy çimeni: ot öbekleriyle aynı koyu doygun yeşil (soluk açık yeşil lekeler kalmasın)
 	if (b == 13) base = vec3(0.85, 0.71, 0.52);
 	if (b == 14) base = vec3(0.59, 0.57, 0.53);
 	if (b == 15) base = vec3(0.89, 0.91, 0.94);

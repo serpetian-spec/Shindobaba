@@ -9,10 +9,10 @@ const MAX_LOG := 200
 
 ## Seçilebilir kişisel hedefler (hepsi isteğe bağlı; birden fazla seçilebilir)
 const GOALS := {
-	"chunin": {"name": "Chūnin ol", "desc": "Sv.15'ten sonra Chūnin Seçme Sınavı'na başvur ve jüriyi etkile.", "icon": "star"},
-	"jonin": {"name": "Jōnin ol", "desc": "Chūnin'ken Sv.45, 3 A-rank görev ve ikinci doğa ile Kage Kulesi'nde terfi değerlendirmesi.", "icon": "star"},
-	"anbu": {"name": "ANBU'ya katıl", "desc": "Jōnin + Sv.65 + bir S-rank görevle ANBU seçmelerine çağrılırsın.", "icon": "mask"},
-	"kage": {"name": "Köyün Kage'si ol", "desc": "Sv.90'da adaylık, Sv.100'de seçim. Köyün kaderi senin elinde olur.", "icon": "crown"},
+	"chunin": {"name": "Chūnin ol", "desc": "Güç 15'ten sonra Chūnin Seçme Sınavı'na başvur ve jüriyi etkile.", "icon": "star"},
+	"jonin": {"name": "Jōnin ol", "desc": "Chūnin'ken Güç 45, 3 A-rank görev ve ikinci doğa ile Kage Kulesi'nde terfi değerlendirmesi.", "icon": "star"},
+	"anbu": {"name": "ANBU'ya katıl", "desc": "Jōnin + Güç 65 + bir S-rank görevle ANBU seçmelerine çağrılırsın.", "icon": "mask"},
+	"kage": {"name": "Köyün Kage'si ol", "desc": "Güç 90'da adaylık, Güç 100'de seçim. Köyün kaderi senin elinde olur.", "icon": "crown"},
 	"legend": {"name": "Bir Efsane Yolu'na katıl", "desc": "Söylentileri takip et; gizli bir ustayı bul ve sınavını geç.", "icon": "scroll"},
 	"beast": {"name": "Bir Kuyruklu Canavarla bağ kur", "desc": "Bir canavarı mühürle ya da onunla anlaş. Bedeli ağır olabilir.", "icon": "flame"},
 	"summon": {"name": "Bir çağırma sözleşmesi imzala", "desc": "Sözleşme ustalarını ve gizli diyarları bul.", "icon": "scroll"},
@@ -39,7 +39,7 @@ static func is_free() -> bool:
 
 
 # ------------------------------------------------------------------ kronik
-## Günlüğe bir satır: "Sv.12 • Genin — Kumo'da bir tüccarı haydutlardan kurtardın."
+## Günlüğe bir satır: "Güç 12 • Genin — Kumo'da bir tüccarı haydutlardan kurtardın."
 static func add(text: String, kind := "") -> void:
 	if pr().is_empty():
 		return
@@ -118,9 +118,9 @@ static func goal_progress(id: String) -> String:
 	var p = pr()
 	match id:
 		"chunin": return "Güç %d/15" % int(p["level"]) if int(p["level"]) < 15 else "Sınava başvurabilirsin (Stadyum / Kage Kulesi)"
-		"jonin": return "Sv.%d/45 • A-rank %d/3" % [int(p["level"]), int(p["missions_done"].get("A", 0))]
-		"anbu": return "Sv.%d/65 • S-rank %d/1" % [int(p["level"]), int(p["missions_done"].get("S", 0))]
-		"kage": return "Sv.%d/90 adaylık" % int(p["level"])
+		"jonin": return "Güç %d/45 • A-rank %d/3" % [int(p["level"]), int(p["missions_done"].get("A", 0))]
+		"anbu": return "Güç %d/65 • S-rank %d/1" % [int(p["level"]), int(p["missions_done"].get("S", 0))]
+		"kage": return "Güç %d/90 adaylık" % int(p["level"])
 		"explore":
 			var n = 0
 			for v in ["konoha", "suna", "kiri", "kumo", "iwa"]:

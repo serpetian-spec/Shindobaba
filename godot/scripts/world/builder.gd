@@ -504,7 +504,7 @@ func _house_body(x: float, n: float, wdt: float, dep: float, floors: int, yaw: f
 		placer = HouseKit.Placer.new(root, key)
 		placer.view = view_dist
 		# Konoha: evlerin bir kısmı hazır renkli Japon kasaba evleri
-		placer.pack_chance = 0.3 if style == "konoha" else 0.0
+		placer.pack_chance = 0.0   # hazır kasaba evi modeli (jp_town_street) pakete girmiyor: oyunda görünmez ev + çarpışma kalıyordu
 	var wcol: Color = walls[rng.randi() % walls.size()]
 	var rcol: Color = roofs[rng.randi() % roofs.size()]
 	if style == "konoha":

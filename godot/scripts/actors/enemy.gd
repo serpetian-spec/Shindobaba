@@ -129,7 +129,9 @@ static func world_level(pos: Vector3) -> int:
 		return maxi(2, base + randi_range(-4, 4))
 	if r < 0.92:
 		return base + randi_range(8, 18)
-	return base + randi_range(22, 40)   # yolda karşına çıkan çok güçlü ninja
+	if r < 0.96:
+		return base + randi_range(22, 40)   # yolda karşına çıkan çok güçlü ninja
+	return base + randi_range(50, 120)   # nadiren canavar gibi biri: güç üst sınırı yok
 
 
 ## n kişilik grubun yerine tek güçlü ninja: can/güç/seviye artar, gerçek bir dövüş tarzı kuşanır
@@ -479,6 +481,9 @@ func _think(dt: float) -> void:
 		if target and state == "idle":
 			state = "chase"
 			Combat.popup_text(global_position + Vector3.UP * (height + 0.8), "!", Color(1, 0.3, 0.2))
+	# hedef dışarıdan verildiyse (düello, taraf tutma, vurulma) boşta gezinmesin: saldırıya geçsin
+	if target != null and is_instance_valid(target) and not target.is_dead() and state == "idle" and Combat.hostile(self, target):
+		state = "chase"
 	if target == null and state in ["chase"]:
 		state = "idle"
 	# hedef yakında saldırıya kalktıysa: usta düşman darbeyi okuyup kaçar
@@ -921,8 +926,11 @@ func take_hit(info: Dictionary) -> void:
 		set_physics_process(false)
 		RogueBonds.yield_to(self)
 		return
-	if target == null and info.get("attacker"):
-		target = info["attacker"]
+	var atk = info.get("attacker")
+	if atk != null and is_instance_valid(atk) and Combat.hostile(self, atk) and (target == null or (atk != target and randf() < 0.5)):
+		target = atk   # vurana karşılık verir (düelloda araya giren oyuncuya da)
+		if state == "idle":
+			state = "chase"
 	# kombodan sıyrılma: 1.4 sn'de 3+ darbe yiyen usta ninja geri sıçrar (tek komboyla dövüş bitmesin)
 	var now = Time.get_ticks_msec() / 1000.0
 	hit_times.append(now)
@@ -986,6 +994,15 @@ func die(info: Dictionary) -> void:
 	if not has_meta("teammate") and size < 2.5:
 		_make_loot()
 	super.die(info)
+	# Mangekyō: yakın olduğun birini (dost, sevgili; hain/kaçak olmuş olsa bile) kendi elinle öldürmek
+	if info.get("attacker") is Player:
+		var fid = String(get_meta("friend_id", ""))
+		if fid == "" and has_meta("bingo_id"):
+			for be in Missions._bingo()["list"]:
+				if int(be["id"]) == int(get_meta("bingo_id")):
+					fid = String(be.get("friend_id", ""))
+		if fid != "" and Friends.closeness(fid) >= 60 and Game.player.combat and Game.player.combat.modes and Game.player.combat.modes.get("eyes"):
+			Game.player.combat.modes.eyes.on_close_kill(String(Friends.all().get(fid, {}).get("name", display_name)))
 	if has_meta("teammate"):
 		return   # takım arkadaşı düştü: öldürme sayılmaz (XP, görev sayacı yok), yeniden doğmaz
 	Progress.on_enemy_killed(self)

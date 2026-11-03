@@ -695,4 +695,4 @@ func slot_summary(slot: int) -> String:
 	var d = JSON.parse_string(FileAccess.get_file_as_string(p))
 	if d == null:
 		return ""
-	return "%s — %s, Sv.%d  (%s)" % [d.get("name", "?"), Data.RANKS[int(d.get("rank", 0))], int(d.get("level", 1)), d.get("saved_at", "")]
+	return "%s — %s, Güç %d  (%s)" % [d.get("name", "?"), Data.RANKS[int(d.get("rank", 0))], int(d.get("level", 1)), d.get("saved_at", "")]

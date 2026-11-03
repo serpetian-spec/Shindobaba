@@ -2512,7 +2512,7 @@ const BB_ALIAS := ["Kızıl Tilki", "Sessiz Çekiç", "Sis Hayaleti", "Kemik Kı
 const BB_CRIMES := ["Köy hazinesini soydu", "Daimyo kervanına pusu kurdu", "Yasak bir parşömen çaldı", "Sınır karakolunu yaktı",
 	"Üç Chunin'i öldürdü", "Köyünden kaçıp gizli teknikleri sattı", "Kaçakçılık çetesi yönetiyor", "Tüccarları fidye için kaçırıyor",
 	"Kuyu sularını zehirledi", "Bir tapınağı yağmaladı", "Bir Kage muhafızını yaraladı", "Sahte görev ilanlarıyla genin'leri tuzağa düşürüyor"]
-const BB_RANKS := {"C": [800, 1500, 8, 12, 2, "bandit"], "B": [2500, 5000, 16, 22, 3, "rogue"], "A": [8000, 15000, 28, 35, 3, "rogue"], "S": [30000, 60000, 40, 50, 4, "rogue"]}
+const BB_RANKS := {"C": [800, 1500, 8, 14, 2, "bandit"], "B": [2500, 5000, 18, 30, 3, "rogue"], "A": [8000, 15000, 35, 60, 3, "rogue"], "S": [30000, 60000, 60, 120, 4, "rogue"]}   # güç üst sınırı yok: S-rank'ın bir kısmı efsanevi (_bb_new)
 const BB_VILLAGES := ["konoha", "suna", "kiri", "kumo", "iwa", "ame", "kusa", "taki", "oto"]
 const BB_ELEM := {"konoha": "katon", "suna": "fuuton", "kiri": "suiton", "kumo": "raiton", "iwa": "doton", "ame": "suiton", "kusa": "doton", "taki": "suiton", "oto": "fuuton"}
 var _bb_spawned := {}   # id -> [boss, escorts..., camp]
@@ -2541,6 +2541,8 @@ func _bb_new(force_rank := "") -> Dictionary:
 	var crimes = BB_CRIMES.duplicate()
 	crimes.shuffle()
 	var lv = randi_range(int(rd[2]), int(rd[3]))
+	if rank == "S" and randf() < 0.15:
+		lv = randi_range(120, 220)   # efsanevi kaçak: oyuncu gücünden bağımsız, çok güçlü
 	var e = {
 		"id": int(bb["next"]), "name": "%s %s" % [BB_FAMILY.pick_random(), BB_GIVEN.pick_random()], "alias": BB_ALIAS.pick_random(),
 		"village": vid, "rank": rank, "bounty": int(randi_range(int(rd[0]), int(rd[1])) / 50) * 50, "crimes": crimes.slice(0, 2 if rank in ["C", "B"] else 3),

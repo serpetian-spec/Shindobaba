@@ -295,7 +295,7 @@ static func _eye_panel(main: Node, dv: VBoxContainer, pr: Dictionary) -> void:
 			var need = 120.0 * lvl
 			dv.add_child(UI.label("Sonraki tomoe: gözler açıkken dövüşerek  %d / %d" % [int(xp), int(need)], 14, Color(1, 0.7, 0.6), HORIZONTAL_ALIGNMENT_LEFT, true))
 		elif k == 1 and lvl >= 3:
-			dv.add_child(UI.label("Mangekyō, yakın birini kaybetmenin acısıyla uyanır...", 14, Color(1, 0.7, 0.6), HORIZONTAL_ALIGNMENT_LEFT, true))
+			dv.add_child(UI.label("Mangekyō, en yakınını kendi ellerinle öldürmenin acısıyla uyanır...", 14, Color(1, 0.7, 0.6), HORIZONTAL_ALIGNMENT_LEFT, true))
 		var sk = Eyes.SKILLS.get(k, [])
 		if not sk.is_empty():
 			var si = sk[0 if _eq_slot == "sag_goz" else 1]
@@ -1369,7 +1369,7 @@ static func _tab_inventory(main: Node, body: Control) -> void:
 	if pl:
 		stat_row.call("heart", "Can", "%d / %d" % [int(pl.hp), int(pl.max_hp)], UI.GOOD)
 		stat_row.call("chakra", "Chakra", "%d / %d" % [int(pl.chakra), int(pl.max_chakra)], Color(0.5, 0.75, 1.0))
-	stat_row.call("star", "Seviye", "%d  (XP %d)" % [int(pr["level"]), int(pr["xp"])])
+	stat_row.call("star", "Toplam Ustalık", "%d" % int(Mastery.total(pr)))
 	stat_row.call("leaf", "Klan", Data.clans.get(pr["clan"], {}).get("name", "Klansız"))
 	if KgPaths.SOY.has(String(pr.get("soy", ""))):
 		stat_row.call("leaf", "Kan Soyu", KgPaths.SOY[String(pr["soy"])]["name"])
@@ -2817,7 +2817,7 @@ static func bingo_book(main: Node = null) -> void:
 	v.custom_minimum_size = Vector2(492, 0)
 	rp.add_child(v)
 	v.add_child(_rank_stamp(String(e.get("rank", "C")), 84))
-	var info = [["Köy", "%s (kaçak)" % e.get("village_name", "?")], ["Tehlike", "%s-rank  •  Seviye ~%d" % [e.get("rank", "?"), int(e.get("level", 1))]],
+	var info = [["Köy", "%s (kaçak)" % e.get("village_name", "?")], ["Tehlike", "%s-rank  •  %s" % [e.get("rank", "?"), _threat_word(int(e.get("level", 1)))]],
 		["Element", String(e.get("element", "?")).capitalize()], ["Son görüldüğü yer", "%s (~%d m alan)" % [e.get("region", "?"), int(e.get("known", 0))]]]
 	for row in info:
 		var r = UI.hbox(10)
@@ -3190,3 +3190,19 @@ static func world_map(main: Node) -> void:
 	sv.add_child(UI.icon_label("person", "Sen", 14, Color(0.4, 0.7, 1.0)))
 	sv.add_child(UI.icon_label("target", "Görev hedefi", 14, UI.GOLD))
 	_close_button(bg, func(): main.resume())
+
+
+## Seviye sayısı göstermeden düşmanın oyuncuya göre tehlikesi (güç değeri iç hesap)
+static func _threat_word(lv: int) -> String:
+	var me = maxf(1.0, float(Game.profile.get("level", 1)))
+	var r = float(lv) / me
+	if r < 0.7:
+		return "Senden zayıf"
+	if r < 1.2:
+		return "Dengin"
+	if r < 2.0:
+		return "Senden güçlü"
+	if r < 3.5:
+		return "Çok tehlikeli"
+	return "Ölümcül — kaç"
+

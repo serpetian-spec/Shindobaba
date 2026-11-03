@@ -377,7 +377,7 @@ static func next_step(pid: String) -> String:
 	var P: Dictionary = PATHS[pid]
 	match state(pid):
 		UNKNOWN:
-			return "Henüz bir söylenti duymadın (Sv.%d civarı)." % lv_need(pid, "rumor_level")
+			return "Henüz bir söylenti duymadın (Güç %d civarı)." % lv_need(pid, "rumor_level")
 		RUMOR:
 			return "Söylentinin peşine düş: %s. (İzi takip et)" % P["site"]["place"]
 		FOUND:

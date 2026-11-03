@@ -37,11 +37,7 @@ func _ready() -> void:
 	# kıyafet kabuklarını yükleme ekranında hazırla (oyunda ilk NPC'de takılma olmasın)
 	_loading_progress(0.98, "Ninjalar giydiriliyor")
 	await get_tree().process_frame
-	for g in ["m", "f"]:
-		var cm = CharacterModel.new()
-		add_child(cm)
-		cm.setup({"gender": g, "vest": Color(0.38, 0.48, 0.28)})
-		cm.queue_free()
+	await _warm_characters()
 	# jutsu efekt shader/parçacıklarını önceden derle (ilk yayında 50-140 ms takılma olmasın)
 	_loading_progress(0.99, "Jutsu efektleri hazırlanıyor")
 	await VFX.warmup()
@@ -516,3 +512,40 @@ func shot(name: String) -> void:
 	await RenderingServer.frame_post_draw
 	var img = get_viewport().get_texture().get_image()
 	img.save_png(shot_dir.path_join(name + ".png"))
+
+
+## Karakter shader/malzeme ısıtması: çeşitli görünümler (saç maskesi, alın koruyucu, başlık, yüz kabuğu, sallanan
+## parçalar, etekli giysi) gizli bir alt görüş alanında birkaç kare ÇİZİLİR -> oyunda ilk görüldüklerinde derleme takılması olmaz
+func _warm_characters() -> void:
+	var W = Vector3(0, 2400, 0)
+	var sv = SubViewport.new()
+	sv.size = Vector2i(320, 180)
+	sv.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	sv.world_3d = get_viewport().world_3d
+	add_child(sv)
+	var cam = Camera3D.new()
+	sv.add_child(cam)
+	cam.global_position = W + Vector3(0, 1.4, 9)
+	cam.look_at(W + Vector3(0, 1.2, 0))
+	cam.current = true
+	var looks = [
+		{"gender": "m", "vest": Color(0.38, 0.48, 0.28), "band": Color(0.15, 0.2, 0.45), "band_style": "head", "hair_style": "uzun", "outer_style": "pelerin", "outer": Color(0.5, 0.4, 0.3)},
+		{"gender": "f", "hair_style": "atkuyruğu", "band": Color(0.15, 0.2, 0.45), "band_style": "neck", "face_style": "cloth", "facegear": Color(0.2, 0.2, 0.24)},
+		{"gender": "m", "hair_style": "diken", "head_style": "kapuson", "headgear": Color(0.3, 0.3, 0.3), "face_style": "mempo", "facegear": Color(0.2, 0.2, 0.2), "outer_style": "palto", "outer": Color(0.4, 0.4, 0.5)},
+		{"gender": "f", "hair_style": "yele", "head_style": "kabuto", "headgear": Color(0.3, 0.3, 0.3), "hakama": true},
+		{"gender": "m", "hair_style": "kase", "head_style": "bandana", "headgear": Color(0.2, 0.25, 0.5), "face_style": "spiral_maske"},
+	]
+	var ms = []
+	for i in looks.size():
+		var cm = CharacterModel.new()
+		add_child(cm)
+		cm.setup(looks[i])
+		cm.global_position = W + Vector3((i - 2) * 1.3, 0, 0)
+		cm.play("idle")
+		ms.append(cm)
+	for f in 4:
+		await get_tree().process_frame
+	for cm in ms:
+		cm.queue_free()
+	sv.queue_free()
+

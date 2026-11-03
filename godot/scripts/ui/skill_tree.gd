@@ -236,7 +236,7 @@ static func build(main: Node, body: Control) -> void:
 		nl.size = Vector2(170, 18)
 		nl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		canvas.add_child(nl)
-		var ll = UI.label("Sv.%d" % int(n["level"]), 11, Color(1, 1, 1, 0.35), HORIZONTAL_ALIGNMENT_CENTER)
+		var ll = UI.label("Güç %d" % int(n["level"]), 11, Color(1, 1, 1, 0.35), HORIZONTAL_ALIGNMENT_CENTER)
 		ll.position = pos[sid] + Vector2(-40, 60)
 		ll.size = Vector2(80, 14)
 		ll.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -273,7 +273,7 @@ static func _detail(main: Node, rv: VBoxContainer, sid: String) -> void:
 	# şartlar
 	rv.add_child(UI.label("Şartlar", 14, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
 	var ok_lv = int(pr["level"]) >= int(n["level"])
-	rv.add_child(UI.label(("✓ " if ok_lv else "✗ ") + "Seviye %d" % int(n["level"]), 14, UI.GOOD if ok_lv else UI.BAD))
+	rv.add_child(UI.label(("✓ " if ok_lv else "✗ ") + "Güç %d" % int(n["level"]), 14, UI.GOOD if ok_lv else UI.BAD))
 	for r in n["req"]:
 		var have = r in pr["skills"]
 		rv.add_child(UI.label(("✓ " if have else "✗ ") + nodes.get(r, {}).get("name", r), 14, UI.GOOD if have else UI.BAD))

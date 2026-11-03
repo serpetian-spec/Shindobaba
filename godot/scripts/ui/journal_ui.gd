@@ -96,7 +96,7 @@ static func build_chronicle(rv: VBoxContainer) -> void:
 	for i in range(es.size() - 1, maxi(-1, es.size() - 41), -1):
 		var e: Dictionary = es[i]
 		var col = {"milestone": UI.GOLD, "goal_done": UI.GOOD, "rival": Color(1, 0.6, 0.45), "exam": Color(0.7, 0.85, 1)}.get(String(e.get("kind", "")), UI.TEXT)
-		box.add_child(UI.label("Sv.%d • %s" % [int(e.get("lv", 1)), String(e.get("rank", ""))], 11, UI.MUTED))
+		box.add_child(UI.label("Güç %d • %s" % [int(e.get("lv", 1)), String(e.get("rank", ""))], 11, UI.MUTED))
 		var l = UI.label(String(e.get("text", "")), 14, col)
 		l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		l.custom_minimum_size = Vector2(330, 0)
