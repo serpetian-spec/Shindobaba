@@ -467,9 +467,11 @@ void fragment() {
 				if (outer_pattern == 6) {
 					// Akatsuki (ref akatsukiset.png): göğüs ortasında büyük kızıl bulut, eteğin iki yanında birer bulut, sırtta aynı düzen;
 					// beyaz kalın kontur + sarmal; önde boydan boya kırmızı kapanış çizgisi; astar (iç yüz, kol ağzı, yaka içi) kırmızı
-					vec2 pf = vec2(rest.z >= 0.0 ? rest.x : -rest.x, rest.y);
+					// gövde çevresinde yay uzunluğu (ön/arka ortadan): yanlarda düz kesilmesin; bulutlar ön/arka sınırından uzak
+					float ua = rest.z >= 0.0 ? atan(rest.x, rest.z) : atan(-rest.x, -rest.z);
+					vec2 pf = vec2(ua * 0.17, rest.y);
 					float cd = 9.0; float sw = 9.0;
-					vec3 cl[3] = vec3[3](vec3(0.0, outer_top - 0.3, 0.19), vec3(-0.17, outer_hem + 0.32, 0.16), vec3(0.2, outer_hem + 0.5, 0.16));
+					vec3 cl[3] = vec3[3](vec3(0.0, outer_top - 0.3, 0.17), vec3(-0.1, outer_hem + 0.3, 0.12), vec3(0.11, outer_hem + 0.48, 0.12));
 					if (abs(rest.x) < sleeve_end - 0.12) {
 						for (int ci = 0; ci < 3; ci++) {
 							vec2 p = (pf - cl[ci].xy) / cl[ci].z;

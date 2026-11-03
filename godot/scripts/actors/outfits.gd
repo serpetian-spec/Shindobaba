@@ -212,9 +212,9 @@ static func roll(arch: String, village := "") -> Dictionary:
 		"akatsuki", "org":
 			L["top"] = Color(0.12, 0.12, 0.14); L["top2"] = Color(0.12, 0.12, 0.14); L["pants"] = Color(0.12, 0.12, 0.14)
 			L["top_style"] = "yakali_uzun"; L["pants_style"] = "ninja"
-			L["outer_style"] = "org_pelerin"; L["outer"] = Color(0.05, 0.05, 0.07)
+			L["outer_style"] = "org_pelerin"; L["outer"] = Color(0.13, 0.14, 0.26) if arch == "akatsuki" else Color(0.05, 0.05, 0.07)   # Akatsuki: oyuncu setiyle aynı lacivert
 			L["outer_pattern"] = 6 if arch == "akatsuki" else 3
-			L["outer_accent"] = Color(0.78, 0.08, 0.1)
+			L["outer_accent"] = Color(0.72, 0.07, 0.14) if arch == "akatsuki" else Color(0.78, 0.08, 0.1)
 			L["band"] = V["band"]; L["band_style"] = "slashed"
 			if _ch(0.25):
 				L["head_style"] = "kasa"; L["headgear"] = Color(0.78, 0.66, 0.42)

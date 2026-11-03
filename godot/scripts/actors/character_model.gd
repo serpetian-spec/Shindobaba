@@ -4121,7 +4121,7 @@ func _attachments() -> void:
 ## Silah kını yeri: pouch = kunai çantası/kılıfı (görünmez), hip = sol kalçada kınlı kılıç (çapraz çekiş),
 ## back = sırtta çapraz (dev kılıçlar, sopalar), low_back = belin arkasında yatay, belt = yan kalçada asılı
 const SHEATH_OF := {"blade": "pouch", "dual": "pouch", "claw": "pouch", "sickle": "belt", "sword": "hip", "heavy": "back", "staff": "back", "chain": "belt", "fan": "back"}
-const SHEATH_ID := {"raijin": "belt", "tanto": "low_back", "ikiz_hancer": "low_back", "tonfa": "belt", "sai": "belt", "kiba": "back", "nodachi": "back", "kusanagi": "hip", "hiraishin_kunai": "belt", "kusarigama": "back", "fuma_shuriken": "back", "kyodai_shuriken": "back", "fuma_makimono": "back"}
+const SHEATH_ID := {"raijin": "belt", "tanto": "low_back", "ikiz_hancer": "low_back", "tonfa": "belt", "bashosen": "back", "sai": "belt", "kiba": "back", "nodachi": "back", "kusanagi": "hip", "hiraishin_kunai": "belt", "kusarigama": "back", "fuma_shuriken": "back", "kyodai_shuriken": "back", "fuma_makimono": "back"}
 ## Kınlı kılıçlar: [kın başı z, kın ucu z, kalınlık, genişlik] (silah uzayında, kabza 0, namlu +Z)
 const SAYA := {"katana": [0.075, 0.84, 0.042, 0.06], "wakizashi": [0.05, 0.6, 0.04, 0.055], "nodachi": [0.1, 1.38, 0.05, 0.11],
 	"tanto": [0.06, 0.4, 0.045, 0.045], "chokuto": [0.13, 0.9, 0.05, 0.05]}
@@ -5197,20 +5197,27 @@ static func _zkunai(b: MB) -> void:
 	for k in 5:
 		b.add("cyl", Vector3(0, 0, -0.055 + k * 0.022), Vector3(0.034, 0.012, 0.034), lt, Vector3(90, 0, 0), 8)
 	b.add("torus", Vector3(0, 0, -0.105), Vector3(0.07, 0.07, 0.05), dk, Vector3(0, 90, 0), 10)
-	# elmas kesitli ağız: dört yüzlü (sapa geniş taban, uca sivri), en geniş yer %30'da
-	var L = 0.32
-	var z0 = 0.06
+	b.add("cyl", Vector3(0, 0, 0.055), Vector3(0.036, 0.02, 0.036), dk, Vector3(90, 0, 0), 8)   # ağız bileziği (sapla ağzı birleştirir)
+	# elmas kesitli ağız: tabanı sapa gömülü kısa boyun (dörtgen kesit), en geniş yer %30'da, uca sivri
+	var L = 0.34
+	var z0 = 0.04
 	var w = 0.075
 	var t = 0.028
-	var pts = [Vector3(0, 0, z0), Vector3(w, 0, z0 + L * 0.3), Vector3(0, t, z0 + L * 0.3), Vector3(-w, 0, z0 + L * 0.3), Vector3(0, -t, z0 + L * 0.3), Vector3(0, 0, z0 + L)]
+	var nw = 0.016
+	var nt = 0.012
+	var ring0 = [Vector3(nw, 0, z0), Vector3(0, nt, z0), Vector3(-nw, 0, z0), Vector3(0, -nt, z0)]
+	var ring1 = [Vector3(w, 0, z0 + L * 0.3), Vector3(0, t, z0 + L * 0.3), Vector3(-w, 0, z0 + L * 0.3), Vector3(0, -t, z0 + L * 0.3)]
+	var tip = Vector3(0, 0, z0 + L)
+	var base = Vector3(0, 0, z0 - 0.005)
 	var st = SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for k in 4:
-		var a = pts[1 + k]; var c = pts[1 + (k + 1) % 4]
+		var k2 = (k + 1) % 4
 		var shade = 1.0 if k % 2 == 0 else 0.78
-		for tri in [[pts[0], c, a], [pts[5], a, c]]:
+		var col = dk.lightened(0.08) * Color(shade, shade, shade)
+		for tri in [[ring0[k], ring1[k2], ring1[k]], [ring0[k], ring0[k2], ring1[k2]], [tip, ring1[k], ring1[k2]], [base, ring0[k2], ring0[k]]]:
 			for v in tri:
-				st.set_color(dk.lightened(0.08) * Color(shade, shade, shade))
+				st.set_color(col)
 				st.add_vertex(v)
 	st.generate_normals()
 	_mb_add_surface(b, st)
@@ -5593,13 +5600,14 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			for q in 6:
 				b.add("cyl", Vector3(0, 0, 0.04 + q * 0.075), Vector3(0.062, 0.022, 0.062), Color(0.82, 0.82, 0.84), Vector3(90, 0, 0), 10)
 			var H = Vector3(0, 0, 0.55)
+			var r0 = 0.085   # göbek deliği yarıçapı: tüyler halkanın dışından başlar (ortası boş, arkası görünür)
 			var L = 0.9
 			var n = 17
 			for k in n:
 				var a = deg_to_rad(lerpf(-80.0, 80.0, float(k) / (n - 1)))
 				var w = 0.075
 				var xo = 0.004 * (k % 2)
-				var xf = Transform3D(Basis(Vector3.RIGHT, a), H + Vector3(xo, 0, 0))
+				var xf = Transform3D(Basis(Vector3.RIGHT, a), H + Vector3(xo, 0, 0)) * Transform3D(Basis.IDENTITY, Vector3(0, r0, 0))
 				# beyaz kök kısmı: üst kenarı tırtıklı (anime: beyazla kırmızının sınırı yırtık gibi)
 				var wo = PackedVector2Array([Vector2(-w * 0.55, 0.0), Vector2(-w, L * 0.3)])
 				var zz = []
@@ -5629,10 +5637,10 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 					var w2 = 0.045
 					var L2 = 0.3 + 0.05 * (1.0 - absf(k - 5) / 5.0)
 					var o = PackedVector2Array([Vector2(-w2 * 0.5, 0.0), Vector2(-w2, L2 * 0.5), Vector2(0, L2), Vector2(w2, L2 * 0.5), Vector2(w2 * 0.5, 0.0)])
-					b.add_slab(o, 0.01, crimson, Transform3D(Basis(Vector3.RIGHT, a), H + Vector3(sxo, 0, 0)))
-			# göbek: beyaz halka + mavi göz (iki yüz)
-			b.add("cyl", H, Vector3(0.15, 0.06, 0.15), white, Vector3(0, 0, 90), 16)
-			b.add("cyl", H, Vector3(0.09, 0.07, 0.09), Color(0.35, 0.55, 0.85), Vector3(0, 0, 90), 14)
+					b.add_slab(o, 0.01, crimson, Transform3D(Basis(Vector3.RIGHT, a), H + Vector3(sxo, 0, 0)) * Transform3D(Basis.IDENTITY, Vector3(0, r0, 0)))
+			# göbek: ortası DELİK beyaz kalın halka (eskiden deliğin arkasındaki gök mavi diye mavi disk yapılmıştı)
+			b.add("torus", H, Vector3(0.2, 0.2, 0.2), white, Vector3(0, 0, 90), 20)
+			b.add("torus", H, Vector3(0.21, 0.21, 0.07), Color(0.82, 0.82, 0.84), Vector3(0, 0, 90), 20)
 		"gunbai":
 			# Madara gunbai'si (kaynak gunbaielde.png / gunbaisirt.png): su kabağı (8) biçimli yelpaze — sapa yakın küçük, uçta büyük
 			# yuvarlak lob, belde boğum; kalın koyu gri çerçeve, krem-beyaz yüz, iki lobda 3'er kırmızı tomoe; yüzün ortasından
@@ -5938,7 +5946,7 @@ func _rest_tilt(on: bool, dt: float) -> void:
 
 
 ## anahtar animasyonlu silahlar: [tutuş kaydırma (yumruk sap boyunca ileri), iz başı z, iz ucu z, elden uca boy]
-const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45], "kabutowari": [0.0, 0.3, 0.82, 0.85], "ruzgar_bicak": [0.0, 0.1, 0.6, 0.62], "hiraishin_kunai": [0.0, 0.14, 0.47, 0.48], "homatsu_kiseru": [0.1, 0.5, 0.72, 0.72], "kusanagi": [0.0, 0.21, 1.08, 1.09], "kusarigama": [0.0, 0.3, 0.8, 0.85], "fuma_shuriken": [0.0, 0.05, 0.6, 0.62], "kyodai_shuriken": [0.0, 0.1, 1.3, 1.3], "fuma_makimono": [0.0, 0.05, 0.25, 0.26], "nuibari": [0.0, 0.1, 1.62, 1.62], "savas_cekici": [0.0, 1.1, 1.58, 1.58], "zincirli_kunai": [0.0, 0.06, 0.38, 0.38]}   # uzunluklar silahın kendi ölçeğiyle çarpılır
+const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45], "kabutowari": [0.0, 0.3, 0.82, 0.85], "ruzgar_bicak": [0.0, 0.1, 0.6, 0.62], "hiraishin_kunai": [0.0, 0.14, 0.47, 0.48], "homatsu_kiseru": [0.1, 0.5, 0.72, 0.72], "kusanagi": [0.0, 0.21, 1.08, 1.09], "kusarigama": [0.0, 0.3, 0.8, 0.85], "fuma_shuriken": [0.0, 0.05, 0.6, 0.62], "kyodai_shuriken": [0.0, 0.1, 1.3, 1.3], "fuma_makimono": [0.0, 0.05, 0.25, 0.26], "nuibari": [0.0, 0.1, 1.62, 1.62], "savas_cekici": [0.0, 1.1, 1.58, 1.58], "zincirli_kunai": [0.0, 0.06, 0.38, 0.38], "bashosen": [0.0, 0.55, 1.4, 1.45]}   # uzunluklar silahın kendi ölçeğiyle çarpılır
 
 
 var _edge_x := Vector3.ZERO   # gunbai: kenar önde savuruş için yüz normali (yumuşatılmış)
