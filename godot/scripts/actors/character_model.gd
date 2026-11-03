@@ -535,6 +535,7 @@ func setup(l: Dictionary) -> void:
 		rig.left_grip_pos = lr.basis.orthonormalized().inverse() * (_grip_xf("Left").origin - lr.origin)
 	drawn = look.get("drawn", true)
 	_place_weapons()
+	_register_forearm_lock()
 	apply_age(look.get("age", "adult"))
 	stance = _stance_for_look()
 	play("idle", 0.0)
@@ -4419,6 +4420,23 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 	return holder
 
 
+## Tonfa: gövdesi ön kol boyunca dirseğe kilitlenir (WeaponRig.forearm_lock); elde dururken her karede uygulanır
+const FOREARM_LOCK := {"tonfa": Vector3(-1, 0, 0)}   # mesh uzayında dirseğe giden gövde ekseni
+func _register_forearm_lock() -> void:
+	if rig == null:
+		return
+	rig.forearm_lock = {}
+	for w in weapons:
+		if not FOREARM_LOCK.has(w["id"]):
+			continue
+		var n: Node3D = w["node"]
+		var holder: Node3D = w["hand"]
+		var b: Basis = holder.transform.basis * n.transform.basis
+		if not n is MeshInstance3D and n.get_child_count() > 0:
+			b = b * (n.get_child(0) as Node3D).transform.basis   # sağ el çerçevesi (z etrafında 180°) sarmalayıcı
+		rig.forearm_lock[w["side"]] = [b.orthonormalized(), FOREARM_LOCK[w["id"]]]
+
+
 ## Silahları duruma göre ele ya da kına yerleştir
 func _place_weapons() -> void:
 	var in_hand = drawn and not _stowed
@@ -5125,12 +5143,12 @@ static func _tonfa(b: MB) -> void:
 	var metal = Color(0.25, 0.25, 0.28)
 	var wrapc = Color(0.15, 0.13, 0.14)
 	# yan kabza + sargı + topuz
-	b.add("cyl", Vector3(0, 0, -0.02), Vector3(0.032, 0.13, 0.032), wood, Vector3(90, 0, 0), 10)
+	b.add("cyl", Vector3(0, 0, -0.035), Vector3(0.032, 0.16, 0.032), wood, Vector3(90, 0, 0), 10)
 	for k in 5:
 		b.add("torus", Vector3(0, 0, -0.07 + k * 0.022), Vector3(0.038, 0.02, 0.038), wrapc, Vector3(90, 0, 12 if k % 2 == 0 else -12), 8)
 	b.add("sphere", Vector3(0, 0, 0.055), Vector3(0.045, 0.045, 0.03), dwood, Vector3.ZERO, 8)
-	# ana gövde (ön kol boyunca)
-	var gz = -0.085
+	# ana gövde (ön kol boyunca): ön kolun dış yüzünde (kol + kolluk ~6 cm; eskiden 8.5 cm'de kolun içine gömülüyordu, yalnız kısa uç görünüyordu)
+	var gz = -0.115
 	b.add("cyl", Vector3(-0.14, 0, gz), Vector3(0.042, 0.56, 0.042), wood, Vector3(0, 0, 90), 12)
 	for xx in [-0.36, -0.22, -0.05, 0.08]:   # ahşap damarı: koyu ince halkalar
 		b.add("cyl", Vector3(xx, 0, gz), Vector3(0.0435, 0.006, 0.0435), dwood, Vector3(0, 0, 90), 12)

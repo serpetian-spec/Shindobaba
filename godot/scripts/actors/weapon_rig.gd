@@ -25,11 +25,41 @@ var reach_open := false       # true: kol uzanırken el açık kalır (Rasengan 
 static var AX := Vector3(-1, 0, 0)   # VRoid parmak kıvrım ekseni (kemik yerel -X)
 
 
+## Ön kol kilidi (tonfa): taraf -> [mesh'in el kemiğine göre basis'i, mesh uzayında dirseğe giden gövde ekseni].
+## Her karede el kemiği döndürülür ki gövde ön kol boyunca dirseğe uzansın (bilek bükülse de tonfa koldan ayrılmaz).
+var forearm_lock := {}
+
+
+func _forearm_lock(sk: Skeleton3D) -> void:
+	for side in forearm_lock:
+		if float(hold.get(side, 0.0)) <= 0.0:
+			continue
+		var hb = sk.find_bone(side + "Hand")
+		var lb = sk.find_bone(side + "LowerArm")
+		if hb < 0 or lb < 0:
+			continue
+		var hp: Transform3D = sk.get_bone_global_pose(hb)
+		var to_elbow: Vector3 = sk.get_bone_global_pose(lb).origin - hp.origin
+		if to_elbow.length() < 0.01:
+			continue
+		var e: Array = forearm_lock[side]
+		var axis: Vector3 = (hp.basis * (e[0] as Basis) * (e[1] as Vector3)).normalized()
+		var want = to_elbow.normalized()
+		if axis.dot(want) > 0.9999:
+			continue
+		var q = Quaternion(axis, want)
+		var par = sk.get_bone_parent(hb)
+		var parb: Basis = sk.get_bone_global_pose(par).basis if par >= 0 else Basis.IDENTITY
+		sk.set_bone_pose_rotation(hb, (parb.inverse() * (Basis(q) * hp.basis)).get_rotation_quaternion())
+
+
 func _process_modification() -> void:
 	var sk = get_skeleton()
 	if sk == null:
 		return
 	var dt = get_process_delta_time()
+	if not forearm_lock.is_empty():
+		_forearm_lock(sk)
 	if reach_w > 0.0:
 		for a in reach_arms:
 			_rot_model(sk, a[0], a[1], reach_w)
