@@ -13679,37 +13679,67 @@ static func izanagi_rewrite(c: Node3D) -> bool:
 	return true
 
 
-## İzanami: hedef aynı anı tekrar tekrar yaşar — etrafında geri saran halkalar ve ardıl gölgeler, döngüye kilitlenir
+## Izanami (kanon, Itachi): kurban iki anın arasında döngüye hapsolur — her seferinde aynı ana geri sarılır; döngüden
+## yalnız kaderini kabul ederek çıkar (Kabuto Edo Tensei'yi bıraktı). Bedeli: kullanıcının bir gözü sonsuza dek kararır.
+## Oyunda: 6 sn döngü (her 1 sn başa sarılır), sonunda boss olmayan düşman savaşmayı bırakır; boss/oyuncu ağır sersemler.
 func p_izanami(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 20.0)
-	busy(c, 0.8)
 	if tt == null:
+		if c is Player:
+			Hud.msg("Izanami: döngüye alınacak hedef yok.", Color(0.8, 0.8, 0.8))
 		return
-	var red = Color(0.9, 0.2, 0.25)
+	var gm = Eyes.genjutsu_land(c, tt, true)
+	if gm <= 0.0:
+		return
+	busy(c, 0.8)
+	_mangekyo(c, 6.0)
 	var anchor = tt.global_position
-	st(tt, "stun", 4.0)
+	var white = Color(0.95, 0.92, 0.9)
+	Sfx.play("genjutsu", anchor, 0.6)
+	if c is Player:
+		VFX.screen_lines(0.4, 1.0, Color(0.9, 0.2, 0.25))
+	st(tt, "stun", 6.2)
+	# döngü: her saniye kurban aynı ana geri sarılır — ardında geri akan ak çizgiler ve titreyen ardıl görüntü
 	for k in 6:
-		after(k * 0.65, func():
+		after(k * 1.0, func():
 			if not live(tt):
 				return
+			var from = tt.global_position
 			tt.global_position = anchor
-			var ring = MeshInstance3D.new()
-			var tm = TorusMesh.new()
-			tm.inner_radius = 1.6; tm.outer_radius = 1.75; tm.rings = 32; tm.ring_segments = 4
-			ring.mesh = tm
-			ring.material_override = VFX.mat_bolt(red, 1.5)
-			get_tree().current_scene.add_child(ring)
-			ring.global_position = anchor + Vector3.UP * 1.0
-			ring.scale = Vector3.ONE * 2.2
-			var tw = ring.create_tween()
-			tw.tween_property(ring, "scale", Vector3.ONE * 0.2, 0.6)
-			tw.parallel().tween_property(ring, "rotation:y", -TAU, 0.6)
-			tw.tween_callback(ring.queue_free)
-			FX.smoke_puff(anchor + Vector3.UP + Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)), 0.6, 6)
-			tt.take_hit(inf(c, "izanami", 0.3, {"knock": 0.0, "kind": "light"})))
-	if c is Player:
-		VFX.screen_lines(0.4, 1.0, red)
-	Sfx.play("genjutsu", anchor, 0.6)
+			if tt.get("model"):
+				tt.model.play(["hit", "block", "idle", "hit", "crouch", "idle"][k], 0.02, 1.2, true)
+				var m = tt.model
+				var tw = m.create_tween()
+				for f in 3:
+					tw.tween_callback(func(): if is_instance_valid(m): m.visible = false)
+					tw.tween_interval(0.04)
+					tw.tween_callback(func(): if is_instance_valid(m): m.visible = true)
+					tw.tween_interval(0.05)
+			for n in 6:   # geri sarma çizgileri (zamanda geri akış)
+				var q = anchor + Vector3(randf_range(-0.8, 0.8), randf_range(0.2, 1.9), randf_range(-0.8, 0.8))
+				WindFX.streak(func(u: float) -> Vector3: return q + (from - anchor) * (1.0 - u) + Vector3.UP * sin(u * PI) * 0.4, 0.35, 0.05, white, n * 0.02, 10)
+			VFX.star(anchor + Vector3.UP * 1.2, white, 1.2, 0.12)
+			tt.take_hit(inf(c, "izanami", 0.25, {"knock": 0.0, "kind": "light"})))
+	after(6.1, func():
+		if not live(tt):
+			return
+		if not (tt is Player) and not tt.has_meta("boss") and "team" in tt:
+			# kaderini kabul etti: savaşmayı bırakır
+			tt.team = "neutral"
+			tt.set("target", null)
+			if tt.get("model"):
+				tt.model.play("idle", 0.2)
+			Combat.popup_text(tt.global_position + Vector3.UP * 2.6, "Kaderini kabul etti...", Color(0.95, 0.85, 0.85))
+		else:
+			st(tt, "stun", 2.5)
+			st(tt, "fear", 4.0)
+			Combat.popup_text(tt.global_position + Vector3.UP * 2.6, "Döngüden kurtuldu", Color(0.95, 0.85, 0.85)))
+	# kanon bedeli: bir göz sonsuza dek kararır (Izanagi ile aynı sistem; düşman da gözünü kaybeder)
+	if c is Player and c.combat and c.combat.modes and c.combat.modes.eyes:
+		c.combat.modes.eyes.izanagi_cost("İzanami")
+	elif c.has_meta("eyes"):
+		c.remove_meta("eyes")
+		Combat.popup_text(c.global_position + Vector3.UP * 2.6, "Gözü karardı", Color(0.7, 0.2, 0.25))
 
 
 ## Cehennem Yolu: yerden alevli taçlı dev Cehennem Kralı başı yükselir — dili uzanıp yakın düşmanı yakalar; kullanıcı onarılır
@@ -14340,31 +14370,63 @@ func p_kisho_tensei(c: Node3D, _t: Node3D) -> void:
 	Sfx.play("heal", c.global_position, 0.5)
 
 
-## Kotoamatsukami: Mangekyō'nun dört kollu deseni parlar — hedefin iradesi fark ettirmeden değişir, bir süre senin için savaşır
+## Kotoamatsukami (kanon, Shisui): en güçlü genjutsu — kurbanın zihnine girer, iradesini O FARK ETMEDEN değiştirir.
+## Gösterişsiz: yalnız gözde bir parıltı ve bir anlık göz göze ışık. Oyunda: boss olmayan düşman 45 sn senin tarafına geçer
+## ve eski dostlarına saldırır (boss 6 sn tereddüt eder). Düşman kullanırsa senin müttefikini (çağrı/yoldaş) kendine çevirir,
+## müttefik yoksa seni bir an yanılsamaya düşürür. Kanonda yeniden kullanım çok uzun: bekleme süresi uzun.
 func p_kotoamatsukami(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 22.0)
-	busy(c, 0.9)
-	if tt == null:
-		return
+	busy(c, 0.6)
 	var red = Color(0.95, 0.15, 0.2)
-	if c is Player:
-		VFX.screen_lines(0.5, 1.3, Color(0.3, 0.5, 1.0))
-	var lbl = Label3D.new()
-	lbl.text = "✣"
-	lbl.font_size = 200
-	lbl.pixel_size = 0.008
-	lbl.modulate = red
-	lbl.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	get_tree().current_scene.add_child(lbl)
-	lbl.global_position = tt.global_position + Vector3.UP * 2.4
-	var tw = lbl.create_tween()
-	tw.tween_property(lbl, "rotation:z", TAU, 0.8)
-	tw.parallel().tween_property(lbl, "scale", Vector3.ONE * 0.2, 0.8)
-	tw.tween_callback(lbl.queue_free)
-	VFX.shockwave(tt.global_position + Vector3.UP * 1.2, Color(0.3, 0.5, 1.0), 4.0, 0.4, false)
-	st(tt, "stun", 3.5)
-	tt.take_hit(inf(c, "kotoamatsukami", 1.2, {"knock": 0.0, "kind": "heavy", "chakra_drain": 20.0}))
-	Sfx.play("genjutsu", tt.global_position, 0.6)
+	var eye = Jutsu._mouth(c) + Vector3.UP * 0.12
+	var tt = tg(c, t, 22.0)
+	if not (c is Player):
+		# düşman: oyuncunun yanındaki müttefiki çevirir
+		for f in get_tree().get_nodes_in_group("fighters"):
+			if f != Game.player and f.get("team") == "player" and live(f) and f.global_position.distance_to(c.global_position) < 22.0:
+				tt = f
+				break
+	if tt == null:
+		if c is Player:
+			Hud.msg("Kotoamatsukami: hedef yok.", Color(0.8, 0.8, 0.8))
+		return
+	var gm = Eyes.genjutsu_land(c, tt, true)
+	if gm <= 0.0:
+		return
+	VFX.star(eye, red, 1.0, 0.25)
+	var to = tt.global_position + Vector3.UP * 1.6
+	tether(func(): return eye, func(): return to, 0.015, glow(red.lightened(0.3)), 0.18)
+	after(0.2, func():
+		if not live(tt):
+			return
+		VFX.star(to, red.lightened(0.2), 0.6, 0.15)
+		Sfx.play("genjutsu", tt.global_position, 1.4, 0.4)
+		if tt == Game.player:
+			st(tt, "stun", 1.6)
+			if Game.world:
+				Game.world.env.flash_tint(Color(0.85, 0.05, 0.05, 0.2), 0.8)
+			return
+		if tt.has_meta("boss") or not ("team" in tt):
+			st(tt, "stun", 6.0)
+			Combat.popup_text(tt.global_position + Vector3.UP * 2.4, "İradesi sarsıldı", red.lightened(0.3))
+			return
+		# irade değişti: yeni tarafının dostu olur, eski dostlarına saldırır; süre bitince eski hâline döner
+		var old_team = String(tt.team)
+		tt.team = c.team
+		tt.set("target", null)
+		tt.set_meta("koto_mark", true)
+		var mark = _sharingan_disc(0.18)
+		tt.add_child(mark)
+		mark.position = Vector3.UP * (float(tt.get("height")) + 0.5 if tt.get("height") != null else 2.3)
+		var spin = mark.create_tween().set_loops()
+		spin.tween_property(mark, "rotation:y", TAU, 2.0).as_relative()
+		var dur = 45.0 * gm
+		after(dur, func():
+			if is_instance_valid(mark):
+				mark.queue_free()
+			if live(tt) and tt.has_meta("koto_mark"):
+				tt.remove_meta("koto_mark")
+				tt.team = old_team
+				tt.set("target", null)))
 
 
 ## Dış Yol İblis Heykeli Çağrısı: yerden lotus kaidesinde oturan dev heykel yükselir — ağzından çakra emen sis yayılır

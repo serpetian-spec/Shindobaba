@@ -1068,7 +1068,7 @@ func _blind_tick(dt: float) -> void:
 # ------------------------------------------------------------------ İzanagi bedeli (yasak Uchiha tekniği)
 ## İzanagi jutsusunun süresi bitince çağrılır: kullanılan Sharingan gözü sonsuza dek ışığını kaybeder (eşya silinir).
 ## Önce sol göz (kanon: Danzō / Itachi tek gözü karartır).
-func izanagi_cost() -> void:
+func izanagi_cost(tech := "İzanagi") -> void:
 	var pr = Game.profile
 	var slot = ""
 	for s in ["sol_goz", "sag_goz"]:
@@ -1083,8 +1083,8 @@ func izanagi_cost() -> void:
 	pr["gear"] = (pr.get("gear", []) as Array).filter(func(x): return int(x["uid"]) != int(g2["uid"]))
 	pr["flags"]["izanagi_used"] = int(pr["flags"].get("izanagi_used", 0)) + 1
 	Gear.apply_look(pr)
-	Hud.banner("İZANAGİ'NİN BEDELİ", "%s gözün sonsuza dek ışığını kaybetti" % ("Sol" if slot == "sol_goz" else "Sağ"), Color(0.75, 0.05, 0.08))
-	Journal.add("İzanagi kullandım; bir gözüm sonsuza dek karardı.", "milestone")
+	Hud.banner("%s'NİN BEDELİ" % tech.to_upper(), "%s gözün sonsuza dek ışığını kaybetti" % ("Sol" if slot == "sol_goz" else "Sağ"), Color(0.75, 0.05, 0.08))
+	Journal.add("%s kullandım; bir gözüm sonsuza dek karardı." % tech, "milestone")
 	Sfx.play("genjutsu", p.global_position, 0.6, 0.9)
 	if not has_eyes() and active:
 		_close()

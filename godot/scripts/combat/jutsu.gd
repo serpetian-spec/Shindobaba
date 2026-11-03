@@ -2460,39 +2460,103 @@ func j_tensha_fuin_amaterasu(c: Node3D, t: Node3D) -> void:
 			VFX.star(c.global_position + Vector3.UP * 1.65, Color(0.85, 0.2, 0.9), 2.4, 0.2)
 			j_amaterasu(c, m))
 
-## Tsukuyomi: göz göze gelen hedef kırmızı-siyah illüzyon dünyasına hapsolur
+## Tsukuyomi (kanon, Itachi): GÖZ TEMASI — kurban, zamanı kullanıcının yönettiği kızıl-kara bir dünyaya çekilir:
+## çarmıha gerilir, 72 saat boyunca kılıçlanır; dışarıda yalnız bir an geçer. Kurban çöker, uzun süre kendine gelemez.
+## Sharingan sahibi direnir, Kyō Tenchi-ten yansıtır (Eyes.genjutsu_land).
 func j_tsukuyomi(c: Node3D, t: Node3D) -> void:
 	var tg = _tg(c, t, 20.0)
 	if tg == null:
 		if c is Player: Hud.msg("Göz göze gelecek hedef yok.", Color(0.8, 0.8, 0.8))
 		return
+	var gm = Eyes.genjutsu_land(c, tg, true)
+	if gm <= 0.0:
+		return
 	Sfx.play("genjutsu", c.global_position, 0.5)
-	var cl = CanvasLayer.new()
-	cl.layer = 6
-	var bg = ColorRect.new()
-	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
-	bg.color = Color(0.55, 0.02, 0.04, 0.0)
-	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	cl.add_child(bg)
-	var moon = Label.new()
-	moon.text = "●"
-	moon.add_theme_font_size_override("font_size", 360)
-	moon.add_theme_color_override("font_color", Color(0.02, 0, 0, 0.0))
-	moon.set_anchors_preset(Control.PRESET_CENTER)
-	moon.position = Vector2(-120, -260)
-	cl.add_child(moon)
-	get_tree().current_scene.add_child(cl)
-	var tw = bg.create_tween()
-	tw.tween_property(bg, "color:a", 0.75, 0.15)
-	tw.parallel().tween_property(moon, "theme_override_colors/font_color:a", 1.0, 0.15)
-	tw.tween_interval(1.1)
-	tw.tween_property(bg, "color:a", 0.0, 0.3)
-	tw.parallel().tween_property(moon, "theme_override_colors/font_color:a", 0.0, 0.3)
-	tw.tween_callback(cl.queue_free)
-	tg.apply_status("stun", 6.0)
-	tg.apply_status("fear", 6.0)
-	tg.take_hit(_inf(c, "tsukuyomi", 1.5, {"knock": 0.0, "attacker": c, "dir": Vector3.ZERO}))
-	VFX.shockwave(tg.global_position + Vector3.UP * 1.6, Color(0.9, 0.05, 0.05), 5.0, 0.6, false)
+	# 1) Tsukuyomi dünyası: ekran negatif kızıl-kara, kara ay (oyuncu kullanan ya da kurbansa)
+	if c == Game.player or tg == Game.player:
+		var cl = CanvasLayer.new()
+		cl.layer = 6
+		var rect = ColorRect.new()
+		rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+		rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var sm = ShaderMaterial.new()
+		sm.shader = load("res://shaders/vfx_tsukuyomi.gdshader")
+		sm.set_shader_parameter("amount", 0.0)
+		rect.material = sm
+		cl.add_child(rect)
+		get_tree().current_scene.add_child(cl)
+		var tw = rect.create_tween()
+		tw.tween_method(func(x: float): sm.set_shader_parameter("amount", x), 0.0, 1.0, 0.12)
+		tw.tween_interval(1.5)
+		tw.tween_method(func(x: float): sm.set_shader_parameter("amount", x), 1.0, 0.0, 0.3)
+		tw.tween_callback(cl.queue_free)
+	tg.apply_status("stun", 1.9)
+	# 2) çarmıh: kurbanın arkasında kara haç, kurban üstüne gerilir
+	var base: Vector3 = tg.global_position
+	var back: Vector3 = (base - c.global_position)
+	back.y = 0.0
+	back = back.normalized() if back.length() > 0.1 else Vector3.FORWARD
+	var cross = Node3D.new()
+	var mb = MB.new()
+	mb.add("box", Vector3(0, 1.6, 0), Vector3(0.28, 3.4, 0.22), Color(0.02, 0.0, 0.0))
+	mb.add("box", Vector3(0, 2.45, 0), Vector3(2.3, 0.26, 0.22), Color(0.02, 0.0, 0.0))
+	var cmi = MeshInstance3D.new()
+	cmi.mesh = mb.build(null)
+	var cm = StandardMaterial3D.new()
+	cm.albedo_color = Color(0.02, 0.0, 0.0)
+	cm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	cmi.material_override = cm
+	cross.add_child(cmi)
+	get_tree().current_scene.add_child(cross)
+	cross.global_position = base + back * 0.35
+	cross.look_at(cross.global_position + back, Vector3.UP)
+	cross.scale = Vector3(1, 0.02, 1)
+	cross.create_tween().tween_property(cross, "scale", Vector3.ONE, 0.12).set_trans(Tween.TRANS_BACK)
+	if tg.get("model"):
+		tg.model.play("hit", 0.05, 0.4, true)
+	# 3) 72 saat: kara kılıçlar art arda saplanır (dışarıda yalnız bir an)
+	var wr = weakref(tg)
+	for k in 8:
+		get_tree().create_timer(0.15 + k * 0.14).timeout.connect(func():
+			var n = wr.get_ref()
+			if n == null or not is_instance_valid(n):
+				return
+			var a = (k * 2.3) + randf_range(-0.3, 0.3)
+			var side = back.cross(Vector3.UP).normalized()
+			var dir = (-back * 0.8 + side * cos(a) * 0.7 + Vector3.UP * sin(a) * 0.4).normalized()   # önden ve yanlardan
+			var hitp = n.global_position + Vector3.UP * randf_range(0.9, 1.6)
+			var bm = MB.new()
+			bm.add("box", Vector3(0, 0, -0.75), Vector3(0.05, 0.12, 1.5), Color(0.02, 0.0, 0.0))
+			bm.add("box", Vector3(0, 0, 0.1), Vector3(0.22, 0.05, 0.05), Color(0.02, 0.0, 0.0))
+			var sw = MeshInstance3D.new()
+			sw.mesh = bm.build(null)
+			sw.material_override = cm
+			get_tree().current_scene.add_child(sw)
+			var from = hitp - dir * 2.6
+			sw.global_transform = Transform3D(Basis.looking_at(dir, Vector3.UP), from)
+			var tw2 = sw.create_tween()
+			tw2.tween_property(sw, "global_position", hitp - dir * 0.6, 0.06).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+			tw2.tween_callback(func():
+				FX.burst(hitp, {"amount": 8, "life": 0.4, "size": 0.15, "vmin": 2.0, "vmax": 4.0, "gravity": Vector3(0, -6, 0), "colors": [Color(0.9, 0.9, 0.9), Color(0.5, 0.0, 0.0, 0)]})
+				Sfx.play("kunai", hitp, 0.7))
+			tw2.tween_interval(1.5 - k * 0.12)
+			tw2.tween_callback(sw.queue_free))
+	Combat.popup_text(base + Vector3.UP * 2.8, "72 saat...", Color(0.95, 0.2, 0.2))
+	# 4) gerçek dünyada bir an geçti: kurban çöker
+	get_tree().create_timer(1.75).timeout.connect(func():
+		if is_instance_valid(cross):
+			var tw3 = cross.create_tween()
+			tw3.tween_property(cross, "scale", Vector3(1, 0.02, 1), 0.2)
+			tw3.tween_callback(cross.queue_free)
+		var n = wr.get_ref()
+		if n == null or not is_instance_valid(n) or n.is_dead():
+			return
+		n.apply_status("stun", 5.0 * gm)
+		n.apply_status("fear", 7.0 * gm)
+		n.take_hit(_inf(c, "tsukuyomi", 2.2 * gm, {"knock": 0.0, "attacker": c, "dir": Vector3.ZERO}))
+		if n.get("model"):
+			n.model.play("crouch", 0.1, 0.8)
+		Combat.popup_text(n.global_position + Vector3.UP * 2.4, "Zihni çöktü", Color(0.9, 0.3, 0.35)))
 
 
 ## Kamui: hedefin çevresinde uzayı büken girdap — çekip parçalar
