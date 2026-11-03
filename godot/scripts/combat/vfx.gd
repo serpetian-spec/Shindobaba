@@ -54,6 +54,10 @@ static func mat_fire(preset := "fire", speed := 2.2, scale_ := 2.4, erode := 0.4
 	m.set_shader_parameter("glow", glow)
 	m.set_shader_parameter("wobble", wobble)
 	m.set_shader_parameter("flow", flow)
+	if preset == "fire":
+		# Katon (ref katon.png): akış boyunca uzun alev dilleri + katman konturları
+		m.set_shader_parameter("streak", 0.55)
+		m.set_shader_parameter("inner_lines", 0.7)
 	if not unique:
 		_cache[key] = m
 	return m

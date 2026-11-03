@@ -43,6 +43,20 @@ static func rock_toon() -> ShaderMaterial:
 	return _rock_m
 
 
+static var _earth := {}
+## Doton toprağı/kayası (ref doton*.png): düz renk yerine çatlaklı, lekeli kaya dokusu (dünya uzayı, üç yönlü)
+static func earth_color(c: Color) -> ShaderMaterial:
+	var k = c.to_html()
+	if not _earth.has(k):
+		var m = toon_color(c, 0.2)
+		m.set_shader_parameter("detail_tex", load("res://assets/tex/rock.png"))
+		m.set_shader_parameter("detail_tex_amt", 0.75)
+		m.set_shader_parameter("detail_tex_scale", 0.45)
+		m.set_shader_parameter("detail_noise", 0.35)
+		_earth[k] = m
+	return _earth[k]
+
+
 ## Ahşap (Mokuton, kütükler): ağaç kabuğu dokusu
 static func bark_toon() -> ShaderMaterial:
 	if _bark_m == null:

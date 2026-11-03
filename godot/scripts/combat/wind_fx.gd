@@ -42,6 +42,13 @@ static func streak(path: Callable, dur: float, width := 0.08, col := LINE, delay
 	var sc = _scene()
 	if sc == null or VFX.busy():
 		return
+	if mat == null:
+		# Fūton (ref fuuton*.png): rüzgâr bıçağı çizgileri belirgin beyaz, kalın ve biraz daha uzun ömürlü (ince soluk çizgi kayboluyordu)
+		width *= 1.6
+		col = Color(col.r, col.g, col.b, col.a).lerp(Color(1, 1, 1, col.a), 0.45)
+		col.a = minf(1.0, col.a * 1.3)
+		dur *= 1.2
+		length = int(length * 1.4)
 	var head = Node3D.new()
 	sc.add_child(head)
 	head.global_position = path.call(0.0)

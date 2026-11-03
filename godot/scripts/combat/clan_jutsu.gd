@@ -3783,36 +3783,31 @@ func c_katon_goka_mekkyaku(c: Node3D, t: Node3D) -> void:
 	VFX.shockwave(mo, Color(1, 0.7, 0.3), 6.0, 0.4, false)
 	Sfx.play("fire", mo, 0.5, 1.6)
 	var start: Vector3 = gp(c.global_position)
-	# ateş duvarı: yan yana 15 alev sütunu; yelpaze gibi açılarak ileri yürür
-	var wall = Node3D.new()
-	get_tree().current_scene.add_child(wall)
-	var cols = []
-	for n in 15:
-		var cm = CylinderMesh.new()
-		cm.top_radius = 0.3; cm.bottom_radius = 1.0; cm.height = 1.0; cm.radial_segments = 12; cm.rings = 4
-		cm.cap_top = false; cm.cap_bottom = false
-		var col = VFX._mi(cm, VFX.mat_fire("fire", 3.4, 1.7, 0.42, 1.3, 0.25, Vector3.UP, true))
-		wall.add_child(col)
-		cols.append(col)
+	# Gōka Mekkyaku (ref katon.png üst): ağızdan çıkan kesintisiz alev kütlesi ileri aktıkça devasa bir dalgaya genişler,
+	# yere iner ve önündeki her şeyi yutar (sütun duvarı değil). Kütle her tikte büyüyen tek gövde, uzun alev dilleriyle akar.
+	var root = Node3D.new()
+	get_tree().current_scene.add_child(root)
+	root.global_transform = Transform3D(Basis.looking_at(-d, Vector3.UP), Vector3(mo.x, start.y, mo.z))
+	var fm = VFX.mat_fire("fire", 3.2, 0.32, 0.22, 1.25, 0.08, Vector3(0, 0, 1), true)
+	fm.set_shader_parameter("fres_k", 0.42)   # dev yayvan kütle: kenar aşınması zayıf (delik delik kırmızı kabuk olmasın)
+	var body = MeshInstance3D.new()
+	body.material_override = fm
+	body.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(body)
+	var mouth_h = mo.y - start.y
 	var light = OmniLight3D.new()
 	light.light_color = Color(1, 0.55, 0.2); light.light_energy = 5.0; light.omni_range = 40.0
-	wall.add_child(light)
+	root.add_child(light)
 	var hits = []
 	every(2.0, 0.05, func(i, k):
-		var reach = 6.0 + k * 34.0
-		var w = lerpf(5.0, 46.0, minf(1.0, k * 1.5))
-		var h = lerpf(2.5, 10.0, minf(1.0, k * 2.0))
-		var cen = gp(start + d * reach)
+		var reach = 6.0 + minf(1.0, k * 1.3) * 40.0
+		var w = lerpf(4.0, 46.0, minf(1.0, k * 1.5))
+		var h = lerpf(3.0, 12.0, minf(1.0, k * 1.8))
+		body.mesh = FireArt.sheet_mesh(reach, w, h, mouth_h, k * 2.0)
+		var cen = gp(start + d * reach * 0.8)
 		light.global_position = cen + Vector3.UP * 4.0
-		for n in cols.size():
-			var u = (n - 7) / 7.0
-			var pp = cen + side * u * w * 0.5 - d * absf(u) * 3.0
-			pp.y = Game.jutsu_floor(pp.x, pp.z)
-			var hh = h * (1.0 - absf(u) * 0.35) * (0.85 + 0.15 * sin(i * 0.7 + n))
-			cols[n].global_position = pp + Vector3.UP * hh * 0.5
-			cols[n].scale = Vector3(2.2, hh, 2.2)
 		if i % 2 == 0:
-			VFX.puffs(Jutsu._mouth(c) if is_instance_valid(c) else start, {"amount": 10, "life": 0.4, "size": 1.4, "vmin": 10, "vmax": 26, "dir": d, "spread": 22.0, "damp": 1.5,
+			VFX.puffs(Jutsu._mouth(c) if is_instance_valid(c) else start, {"amount": 6, "life": 0.4, "size": 1.2, "vmin": 10, "vmax": 26, "dir": d, "spread": 16.0, "damp": 1.5,
 				"glow": 1.2, "hot": 0.35, "stretch": 1.6, "outline_col": Color(0.3, 0.04, 0.02), "colors": UCHIHA_FIRE})
 		if i % 3 == 0:
 			for n in 5:
@@ -3826,10 +3821,10 @@ func c_katon_goka_mekkyaku(c: Node3D, t: Node3D) -> void:
 		if i % 6 == 0:
 			shake(0.35)
 	, func():
-		var tw = wall.create_tween()
-		for col in cols:
-			tw.parallel().tween_property(col, "scale:y", 0.05, 0.5).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-		tw.tween_callback(wall.queue_free))
+		# söner: kütle yerinde erir (malzeme aşınması)
+		var tw = root.create_tween()
+		tw.tween_method(func(x: float): fm.set_shader_parameter("alpha_cut", x), 0.0, 1.1, 0.7)
+		tw.tween_callback(root.queue_free))
 
 
 # ================================================================== JİNTON — toz: atomlarına ayırma

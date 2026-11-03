@@ -166,11 +166,11 @@ func j_katon_goukakyuu(c: Node3D, t: Node3D) -> void:
 	var pr = Projectile.new()
 	pr.shooter = c
 	pr.vel = dir * 5.0
-	pr.radius = 2.4
+	pr.radius = 1.7
 	pr.life = 3.6
 	pr.info = {"dmg": 26.0 * m, "element": "katon", "knock": 14.0, "launch": 6.0, "kind": "heavy", "hitstop": 0.09, "burn": 3.0}
 	# 1) nefesle ağzın önünde şişen dev ateş topu (8–12 m), 2) yuvarlanarak ilerler, altında yanık izi bırakır
-	var ball = VFX.fireball(5.0)
+	var ball = VFX.fireball(3.3)   # anime boyu (~6 m çap); 5.0 fazla büyüktü
 	ball.scale = Vector3.ONE * 0.12
 	pr.add_child(ball)
 	var gt = ball.create_tween()
@@ -197,7 +197,7 @@ func j_katon_goukakyuu(c: Node3D, t: Node3D) -> void:
 			p.vel = p.vel.move_toward(dir * 24.0, dt * 40.0)
 		# top yerin üstünde yuvarlansın (merkez görsel yarıçapın yarısı kadar yukarıda)
 		var gy = Game.jutsu_floor(p.global_position.x, p.global_position.z)
-		p.global_position.y = lerpf(p.global_position.y, gy + 2.2 * g, minf(1.0, dt * 3.0))
+		p.global_position.y = lerpf(p.global_position.y, gy + 1.6 * g, minf(1.0, dt * 3.0))
 		st["scar"] -= dt
 		if st["scar"] <= 0.0 and st["age"] > 0.3:
 			st["scar"] = 0.12
@@ -216,10 +216,10 @@ func j_katon_goukakyuu(c: Node3D, t: Node3D) -> void:
 		var colm = VFX._mi(cm, fm)
 		get_tree().current_scene.add_child(colm)
 		colm.global_position = gp
-		colm.scale = Vector3(3.5 * ge, 0.5, 3.5 * ge)
+		colm.scale = Vector3(2.4 * ge, 0.5, 2.4 * ge)
 		var ct = colm.create_tween()
-		ct.tween_property(colm, "scale", Vector3(3.0 * ge, 9.0 * ge, 3.0 * ge), 0.35).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-		ct.parallel().tween_property(colm, "global_position:y", gp.y + 4.5 * ge, 0.35).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+		ct.tween_property(colm, "scale", Vector3(2.1 * ge, 6.5 * ge, 2.1 * ge), 0.35).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+		ct.parallel().tween_property(colm, "global_position:y", gp.y + 3.2 * ge, 0.35).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
 		ct.tween_method(func(x: float): fm.set_shader_parameter("alpha_cut", x), 0.0, 1.1, 1.1)
 		ct.tween_callback(colm.queue_free)
 		VFX.linger(pos, "katon", Color(1, 0.5, 0.1), ge * 1.2, 4.0)
@@ -687,7 +687,7 @@ func j_doton_doryuheki(c: Node3D, _t: Node3D) -> void:
 		for k in 10:
 			b.add("sphere", Vector3(randf_range(-5.8, 5.8), randf_range(0.1, 0.4), side * randf_range(1.0, 1.7)), Vector3(randf_range(0.4, 0.9), randf_range(0.3, 0.6), randf_range(0.4, 0.8)), strata[k % strata.size()].darkened(0.1))
 	var mi = MeshInstance3D.new()
-	mi.mesh = b.build(Props.toon())
+	mi.mesh = b.build(Props.rock_toon())
 	mi.scale = Vector3.ONE * wk
 	wall.add_child(mi)
 	get_tree().current_scene.add_child(wall)
@@ -731,7 +731,7 @@ func j_doton_doryuusou(c: Node3D, t: Node3D) -> void:
 			var b = MB.new()
 			for s in 3:
 				b.add("cone", Vector3(randf_range(-0.6, 0.6), 1.2, randf_range(-0.6, 0.6)), Vector3(0.9, 2.6 + randf() * 1.2, 0.9), Color(0.5, 0.42, 0.32), Vector3(randf_range(-15, 15), 0, randf_range(-15, 15)), 6)
-			sp.mesh = b.build(Props.toon())
+			sp.mesh = b.build(Props.rock_toon())
 			get_tree().current_scene.add_child(sp)
 			sp.global_position = p - Vector3(0, 3, 0)
 			var tw = sp.create_tween()

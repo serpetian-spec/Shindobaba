@@ -16,7 +16,9 @@ uniform float swirl = 1.2;
 uniform float wobble = 0.12;
 uniform vec3 flow = vec3(0.0, 1.0, 0.0);   // nesne uzayında akış yönü
 uniform float alpha_cut = 0.0;      // >0: tüm kütleyi eritir (sönme animasyonu)
-uniform float fres_k = 1.0;         // <1: kenar aşınması zayıf (boyuna bakılan tüp gövdeler kaybolmasın)
+uniform float fres_k = 1.0;
+uniform float streak = 0.0;        // >0: gürültü akış yönünde uzar -> anime alev dilleri (ref katon.png: pul pul uzun yalazlar)
+uniform float inner_lines = 0.0;   // >0: bant sınırlarında koyu turuncu iç kontur (boyalı alev katmanları)         // <1: kenar aşınması zayıf (boyuna bakılan tüp gövdeler kaybolmasın)
 
 varying vec3 lp;
 
@@ -47,6 +49,11 @@ void fragment() {
 	vec3 p = lp * scale;
 	float a = TIME * swirl;
 	p.xz = mat2(vec2(cos(a), sin(a)), vec2(-sin(a), cos(a))) * p.xz;
+	if (streak > 0.0) {
+		vec3 fl = normalize(flow + vec3(1e-4));
+		float al = dot(p, fl);
+		p = (p - fl * al) + fl * al * (1.0 - streak * 0.75);   // akış boyunca seyrek gürültü = uzun alev dilleri
+	}
 	p -= flow * TIME * speed;
 	float n = vn(p) * 0.55 + vn(p * 2.3 + vec3(3.1, 7.7, 1.3)) * 0.3 + vn(p * 5.2) * 0.15;
 	float v = fres * 0.95 + (n - 0.5) * 1.0;
@@ -58,6 +65,11 @@ void fragment() {
 	col = mix(col, c_mid.rgb, smoothstep(0.33 - e, 0.33 + e, v));
 	col = mix(col, c_edge.rgb, smoothstep(0.6 - e, 0.6 + e, v));
 	col = mix(col, c_line.rgb, smoothstep(0.86 - e * 0.6, 0.86 + e * 0.6, v));
+	if (inner_lines > 0.0) {
+		// alev katmanlarının sınırında ince koyu turuncu çizgi (anime boyama: her yalazın konturu)
+		float ln = (1.0 - smoothstep(0.0, 0.022, abs(v - 0.33))) + (1.0 - smoothstep(0.0, 0.02, abs(v - 0.6)));
+		col = mix(col, c_edge.rgb * 0.7, clamp(ln, 0.0, 1.0) * inner_lines);
+	}
 	// iç dalgalanma: sıcak/soğuk damarlar (düz renk alanı kalmasın)
 	col *= 0.86 + 0.28 * vn(p * 3.7 + vec3(TIME * 0.7));
 	// Storm alev dilleri: akış yönünde hızla yukarı kayan parlak sarı-beyaz yalaz çizgileri

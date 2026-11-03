@@ -45,17 +45,23 @@ void fragment() {
 	float n = fbm(p + fl);
 	float n2 = fbm(p * 1.7 - fl * 1.3 + 5.0);
 	// cel tonları: açık / orta / derin — sert sınırlar, sınırlar akışla dalgalanır
-	float shade = fres + (n - 0.5) * 0.45;
+	// (ref suiton*.png) açık camgöbeği su: koyu ton yalnız en dış kenarda, köşeli yüzeyler koyu bloklara bölünmesin
+	float shade = fres * 0.75 + (n - 0.5) * 0.4;
 	vec3 col = c_light.rgb;
-	col = mix(col, c_mid.rgb, step(0.32, shade));
-	col = mix(col, c_deep.rgb, step(0.62, shade));
+	col = mix(col, c_mid.rgb, step(0.42, shade));
+	col = mix(col, c_deep.rgb, step(0.74, shade));
 	// koyu mavi dış hat (Storm'daki net su silueti)
 	float edge = step(0.86, fres + (n2 - 0.5) * 0.12);
-	col = mix(col, c_deep.rgb * 0.55, edge);
+	col = mix(col, c_deep.rgb * 0.7, edge);
 	// akım şeritleri: akış yönünde hızla kayan keskin beyaz çizgiler (iki frekans)
 	float along = dot(lp, normalize(flow + vec3(1e-4)));
-	float s1 = step(0.86, sin(along * 6.0 * scale - TIME * speed * 6.0 + n * 8.0) * 0.5 + 0.5) * step(0.45, n2);
-	float s2 = step(0.92, sin(along * 13.0 * scale - TIME * speed * 9.0 + n2 * 6.0) * 0.5 + 0.5) * step(0.5, n);
+	// akış çizgileri: ref su duvarı/dalga gibi uzun beyaz yollar (akışa dik yönde ince, akış boyunca uzun)
+	vec3 fln = normalize(flow + vec3(1e-4));
+	vec3 perp = lp - fln * along;
+	float lanes = vn(perp * scale * 2.2 + vec3(0.0, 0.0, 0.0) - fln * TIME * speed * 0.2);
+	float s1 = step(0.8, sin(along * 3.0 * scale - TIME * speed * 5.0 + n * 6.0) * 0.5 + 0.5) * step(0.4, n2);
+	float s2 = step(0.72, lanes) * step(0.35, vn(p * 0.6 + fl * 0.5));   // uzun beyaz akış şeritleri
+	s2 *= 1.0 - step(0.8, lanes) * 0.6;
 	float streak = max(s1, s2) * (1.0 - edge);
 	// köpük: yırtık beyaz lekeler (kabaran tepelerde ve kenara yakın)
 	float fm = step(0.7, n + fres * 0.35 * foam) * foam * (1.0 - edge);
@@ -66,7 +72,7 @@ void fragment() {
 	// çok hafif kırılma: yalnız ortada arkası sezilir (boyanmış su, cam değil)
 	vec2 off = (vec2(n, n2) - 0.5) * 0.03;
 	vec3 behind = textureLod(screen_tex, SCREEN_UV + off, 1.0).rgb;
-	float see = (1.0 - smoothstep(0.0, 0.35, fres)) * 0.18 * (1.0 - streak) * (1.0 - fm);
+	float see = (1.0 - smoothstep(0.0, 0.5, fres)) * 0.42 * (1.0 - streak) * (1.0 - fm);   // yarı saydam (ref: arkası seçilir)
 	col = mix(col, behind, see);
 	ALBEDO = col;
 	ALPHA = clamp(0.9 + fres * 0.1, 0.0, 1.0) * clamp(alpha / 0.88, 0.0, 1.0);

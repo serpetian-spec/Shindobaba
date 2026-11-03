@@ -7955,30 +7955,42 @@ func p_kassokuken(c: Node3D, t: Node3D) -> void:
 
 ## Patlama Dalgası Çılgın Dansı: ağızdan dönen dev ateş girdabı — sarmal alev seli
 func p_katon_bakufu_ranbu(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.3)
+	busy(c, 1.4)
 	var d = fwd(c, t)
 	VFX.gather(_mouth_pos(c), FIRE, 1.4)
 	after(0.25, func():
 		if not live(c):
 			return
-		# alev çılgın dansı: ağızdan burgu gibi dönerek ilerleyen alev seli (koni mesh yok) — üç sarmal kol + kalın orta akış
-		_flame_jet(c, _mouth_pos(c), d, 22.0, 4.0, 0.8)
-		var side = d.cross(Vector3.UP).normalized()
-		var up = side.cross(d).normalized()
-		var st0 = {"t": 0.0}
-		every(0.8, 0.035, func(_i, _k):
-			st0["t"] += 0.035
-			var mo = _mouth_pos(c) if live(c) else c.global_position
-			for arm in 3:
-				var a = st0["t"] * 14.0 + arm * TAU / 3.0
-				var r = 0.6
-				var off = (side * cos(a) + up * sin(a))
-				var tan = (side * -sin(a) + up * cos(a))
-				VFX.puffs(mo + d * 0.8 + off * r, {"amount": 2, "life": 0.6, "size": 1.0, "radius": 0.15, "vmin": 22.0, "vmax": 26.0, "dir": (d + off * 0.22 + tan * 0.25).normalized(), "spread": 4.0,
-					"damp": 2.0, "gravity": Vector3(0, 1.5, 0), "spin": 90.0, "glow": 1.15, "hot": 0.55, "outline_col": Color(0.7, 0.2, 0.03), "outline": 0.03, "rough": 0.2,
-					"colors": [Color(1.0, 0.95, 0.55, 1), Color(1.0, 0.6, 0.12, 1), Color(0.9, 0.3, 0.05, 0.85), Color(0.45, 0.1, 0.03, 0)], "scale_curve": [[0.0, 0.3], [0.4, 1.0], [1.0, 1.8]]}), Callable())
-		Combat.hit_zone(c, c.global_position, d, 22.0, 26.0, 4.0, inf(c, "katon_bakufu_ranbu", 1.6, {"knock": 12.0, "kind": "heavy", "element": "katon", "burn": 3.0}))
-		after(0.5, func(): VFX.linger(gp(c.global_position + d * 16.0), "katon", FIRE, 2.0, 3.5))
+		# Alev Çılgın Dansı (ref katon.png orta): ağızdan çıkan alev kullanıcının önünde dönen kalın bir spirale sarılır,
+		# spiral dönerek açılır ve ileri savrulup önündekileri yakar (koni / sütun yok)
+		var mo = _mouth_pos(c)
+		var root = Node3D.new()
+		get_tree().current_scene.add_child(root)
+		root.global_transform = Transform3D(Basis.looking_at(-d, Vector3.UP), mo + d * 1.2)
+		var spin = Node3D.new()
+		root.add_child(spin)
+		var fm = VFX.mat_fire("fire", 3.0, 0.55, 0.34, 1.25, 0.06, Vector3(0, 0, 1), true)
+		var mi = MeshInstance3D.new()
+		mi.mesh = FireArt.spiral_mesh(2.6, 0.5, 6.5, 2.6, 1.6)
+		mi.material_override = fm
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		spin.add_child(mi)
+		spin.scale = Vector3.ONE * 0.2
+		var tw = root.create_tween()
+		tw.tween_property(spin, "scale", Vector3.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw.parallel().tween_property(spin, "rotation:z", -TAU * 1.6, 1.3)
+		tw.parallel().tween_property(root, "global_position", mo + d * 15.0, 1.3).set_delay(0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tw.parallel().tween_property(spin, "scale", Vector3.ONE * 1.35, 1.0).set_delay(0.35)
+		tw.tween_method(func(x: float): fm.set_shader_parameter("alpha_cut", x), 0.0, 1.1, 0.45)
+		tw.tween_callback(root.queue_free)
+		# ağızdan spirale beslenen alev akışı
+		_flame_jet(c, mo, d, 6.0, 2.0, 0.45, 0.8)
+		var light = OmniLight3D.new()
+		light.light_color = Color(1, 0.55, 0.2); light.light_energy = 5.0; light.omni_range = 24.0
+		root.add_child(light)
+		after(0.45, func():
+			if live(c):
+				Combat.hit_zone(c, c.global_position, d, 18.0, 22.0, 4.0, inf(c, "katon_bakufu_ranbu", 1.6, {"knock": 12.0, "kind": "heavy", "element": "katon", "burn": 3.0})))
 		shake(0.7))
 	Sfx.play("fire", c.global_position, 0.5)
 
@@ -10309,7 +10321,7 @@ func p_doton_ressenga(c: Node3D, t: Node3D) -> void:
 			var q = at + d * (0.8 + k * 0.7) + d.cross(Vector3.UP) * randf_range(-0.8, 0.8)
 			var sp = MeshInstance3D.new()
 			sp.mesh = VFX._sphere(0.5, 6, 4)
-			sp.material_override = Props.toon_color(EARTH.darkened(0.15))
+			sp.material_override = Props.earth_color(EARTH.darkened(0.15))
 			scene_add(sp, gp(q))
 			sp.scale = Vector3(0.5, 0.05, 0.5)
 			sp.rotation = Vector3(randf_range(-0.4, 0.4), randf() * TAU, randf_range(-0.4, 0.4))
@@ -26819,7 +26831,7 @@ func p_ame_kakure(c: Node3D, t: Node3D) -> void:
 func _rock3(size: Vector3, col := EARTH) -> MeshInstance3D:
 	var mi = MeshInstance3D.new()
 	mi.mesh = VFX._sphere(0.5, 7, 5)
-	mi.material_override = Props.toon_color(col)
+	mi.material_override = Props.earth_color(col)
 	mi.scale = size
 	mi.rotation = Vector3(randf_range(-0.3, 0.3), randf() * TAU, randf_range(-0.3, 0.3))
 	return mi
@@ -26851,7 +26863,7 @@ func _wall_block(c: Node3D, at: Vector3, d: Vector3, w: float, h: float, dur: fl
 	var bm = BoxMesh.new()
 	bm.size = Vector3(w, h, 1.2)
 	mi.mesh = bm
-	mi.material_override = Props.toon_color(EARTH.darkened(0.05))
+	mi.material_override = Props.earth_color(EARTH.darkened(0.05))
 	mi.position = Vector3.UP * h * 0.5
 	root.add_child(mi)
 	var sb = StaticBody3D.new()
@@ -26863,6 +26875,7 @@ func _wall_block(c: Node3D, at: Vector3, d: Vector3, w: float, h: float, dur: fl
 	sb.add_child(cs)
 	root.add_child(sb)
 	root.scale = Vector3(1, 0.02, 1)
+	after(delay, func(): FX.dust(gp(at), maxf(1.2, w * 0.25)))   # yükselen duvarın dibinde toz bulutu (ref doton2)
 	var tw = root.create_tween()
 	tw.tween_interval(delay)
 	tw.tween_property(root, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_QUAD)
@@ -27121,7 +27134,7 @@ func p_doton_otoshibuta(c: Node3D, t: Node3D) -> void:
 	var cm = CylinderMesh.new()
 	cm.top_radius = 4.5; cm.bottom_radius = 4.8; cm.height = 1.2; cm.radial_segments = 10
 	lid.mesh = cm
-	lid.material_override = Props.toon_color(EARTH.darkened(0.1))
+	lid.material_override = Props.earth_color(EARTH.darkened(0.1))
 	scene_add(lid, at + Vector3.UP * 14.0)
 	var tw = lid.create_tween()
 	tw.tween_property(lid, "global_position", at + Vector3.UP * 0.6, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
@@ -27209,7 +27222,7 @@ func p_retsudo_tenshin(c: Node3D, t: Node3D) -> void:
 		var cm = CylinderMesh.new()
 		cm.top_radius = 0.0; cm.bottom_radius = 0.18; cm.height = 1.0; cm.radial_segments = 5
 		sp.mesh = cm
-		sp.material_override = Props.toon_color(Color(0.42, 0.32, 0.22))
+		sp.material_override = Props.earth_color(Color(0.42, 0.32, 0.22))
 		scene_add(sp, q)
 		sp.rotation = Vector3(randf_range(-0.3, 0.3), 0, randf_range(-0.3, 0.3))
 		sp.scale = Vector3(1, 0.05, 1)

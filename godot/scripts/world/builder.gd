@@ -606,7 +606,7 @@ func wall_ring(r: float, h: float, thick: float, col: Color, gaps: Array, step :
 			var bot = minf(g.x, 0.0) - 2.0
 			var top = g.y + h
 			box(Vector3(r * sin(rad), (bot + top) * 0.5, r * cos(rad)), Vector3(L, top - bot, thick), col, mid)
-			box(Vector3(r * sin(rad), top + 0.4, r * cos(rad)), Vector3(L, 0.8, thick + 0.8), top_col, mid, false)
+			box(Vector3(r * sin(rad), top + 0.4, r * cos(rad)), Vector3(L, 0.8, thick + 0.8), top_col, mid, true)   # başlık çarpışmalı: surun tepesinde yürürken içinden geçilmesin
 		a += step
 
 
@@ -631,7 +631,7 @@ func village_gate(ang: float, r: float, half_open: float, height: float, post_co
 			var wg = _ground_off(wc.x, wc.y, wing * 0.5)
 			var wy0 = minf(y0, wg.x - 1.0)
 			box(Vector3(wc.x, (wy0 + g.y + wh) * 0.5, wc.y), Vector3(wing + 0.6, g.y + wh - wy0, 8.0 if gap_deg > 0.0 else 3.0), wcol, ang)
-			box(Vector3(wc.x, g.y + wh + 0.5, wc.y), Vector3(wing + 1.2, 1.0, 9.0 if gap_deg > 0.0 else 3.8), roof_col, ang, false)  # mazgal başlığı
+			box(Vector3(wc.x, g.y + wh + 0.5, wc.y), Vector3(wing + 1.2, 1.0, 9.0 if gap_deg > 0.0 else 3.8), roof_col, ang, true)  # mazgal başlığı (üstünde yürünür)
 			if gap_deg <= 0.0:
 				# sursuz köy: kanat ucu kare gözetleme kulesiyle biter (kapı boşlukta asılı durmasın, kapı binası gibi okunsun)
 				var tp = c + t * (half_open + 3.2 + wing + 2.5) * sx
