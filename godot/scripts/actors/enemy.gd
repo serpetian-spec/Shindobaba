@@ -569,7 +569,8 @@ func _chase(dt: float) -> void:
 			for i in nn:
 				Projectile.tool(self, s, aim.rotated(Vector3.UP, deg_to_rad((i - (nn - 1) * 0.5) * 7.0)), tk, target)
 			return
-	if d > 1.6:
+	var stop_d = 9.0 if _keyed_id() in KEYED.RANGED else 1.6   # uzun menzil silahı (Fūma/Kyodai/Kuchiyose): uzakta durup atar
+	if d > stop_d:
 		# yakın dövüş sırası yoksa etrafında dolaş
 		var sp: float = arch["speed"]
 		var dir = v.normalized()

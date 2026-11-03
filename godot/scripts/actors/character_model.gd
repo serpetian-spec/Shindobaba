@@ -4117,7 +4117,7 @@ func _attachments() -> void:
 ## Silah kını yeri: pouch = kunai çantası/kılıfı (görünmez), hip = sol kalçada kınlı kılıç (çapraz çekiş),
 ## back = sırtta çapraz (dev kılıçlar, sopalar), low_back = belin arkasında yatay, belt = yan kalçada asılı
 const SHEATH_OF := {"blade": "pouch", "dual": "pouch", "claw": "pouch", "sickle": "belt", "sword": "hip", "heavy": "back", "staff": "back", "chain": "belt", "fan": "back"}
-const SHEATH_ID := {"raijin": "belt", "tanto": "low_back", "ikiz_hancer": "low_back", "tonfa": "belt", "sai": "belt", "kiba": "back", "nodachi": "back", "kusanagi": "hip", "hiraishin_kunai": "belt", "kusarigama": "back"}
+const SHEATH_ID := {"raijin": "belt", "tanto": "low_back", "ikiz_hancer": "low_back", "tonfa": "belt", "sai": "belt", "kiba": "back", "nodachi": "back", "kusanagi": "hip", "hiraishin_kunai": "belt", "kusarigama": "back", "fuma_shuriken": "back", "kyodai_shuriken": "back", "fuma_makimono": "back"}
 ## Kınlı kılıçlar: [kın başı z, kın ucu z, kalınlık, genişlik] (silah uzayında, kabza 0, namlu +Z)
 const SAYA := {"katana": [0.075, 0.84, 0.042, 0.06], "wakizashi": [0.05, 0.6, 0.04, 0.055], "nodachi": [0.1, 1.38, 0.05, 0.11],
 	"tanto": [0.06, 0.4, 0.045, 0.045], "chokuto": [0.13, 0.9, 0.05, 0.05]}
@@ -4309,8 +4309,25 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 			var hp = _grest(skel.find_bone("Hips")).origin
 			var b = _frame(Vector3(sx * 0.12, -1.0, 0.18), Vector3(sx, 0, 0))
 			xf = Transform3D(b, hp + Vector3(sx * 0.2, 0.1 - (0.12 if id == "raijin" else 0.0), 0.03))   # raijin kabzası kemerden aşağı sarkar
+	if kind == "back" and id in ["fuma_shuriken", "kyodai_shuriken", "fuma_makimono"]:
+		# yassı shurikenler sırta düz yaslanır (yassı yüz sırttan dışarı, kürek kemiklerinin arası); parşömen sırtta çapraz
+		var ch2 = _grest(skel.find_bone("UpperChest")).origin
+		var bz2 = _back_z(ch2.y - 0.06)
+		var pad2 = 0.03 + (0.025 if look.get("vest") != null else 0.0) + (0.04 if look.get("outer_style") != null else 0.0)
+		if id == "fuma_makimono":
+			var bm = _frame(Vector3(-sx * 0.9, -0.45, 0.0), Vector3(0, 0, -1))
+			xf = Transform3D(Basis(Vector3(1, 0, 0), Vector3(0, 1, 0), Vector3(0, 0, 1)).rotated(Vector3.BACK, sx * 0.5), ch2 + Vector3(0, -0.1, minf(bz2, -0.08) - pad2 - 0.07))
+		else:
+			var big = id == "kyodai_shuriken"
+			# model: yassı düzlem XY, kalınlık Z -> Z sırttan dışarı (-Z model), Y yukarı; kapalı Fūma sapı aşağıda
+			var bb = Basis(Vector3(-1, 0, 0), Vector3(0, 1, 0), Vector3(0, 0, -1))
+			if not big:
+				bb = bb.rotated(Vector3.BACK, PI + sx * 0.35)   # kapalı yelpaze: göbek halkası aşağıda, bıçaklar omuza doğru
+			xf = Transform3D(bb, ch2 + Vector3(0, (0.0 if big else -0.08), minf(bz2, -0.08) - pad2 - (0.06 if big else 0.02)))
 	var holder: Node3D = _attach("UpperChest" if kind == "back" else "Hips", xf).get_child(0)
-	if kind == "back" and id in ["bashosen", "samehada", "gunbai"]:
+	if kind == "back" and id in ["fuma_shuriken", "kyodai_shuriken", "fuma_makimono"]:
+		_back_strap(sx)
+	elif kind == "back" and id in ["bashosen", "samehada", "gunbai"]:
 		# Bashōsen / Samehada / Gunbai: havada duran deri kelepçe yok; Samehada ve Gunbai'de göğüs kayışı var (animedeki gibi)
 		if id in ["samehada", "gunbai"]:
 			_back_strap(sx)
@@ -4408,6 +4425,8 @@ func _place_weapons() -> void:
 		if SAYA.has(w["id"]):
 			n.transform.basis = Basis(Vector3.BACK, PI * 0.5) * Basis(Vector3.RIGHT, deg_to_rad(KATANA_TIP_DOWN)) if n.get_parent() == w["hand"] else Basis.IDENTITY
 		n.visible = in_hand or w["sheath"] != null
+		if w["id"] == "fuma_shuriken" and n is MeshInstance3D:
+			n.mesh = weapon_mesh("fuma_shuriken" if in_hand else "fuma_kapali")   # kında bıçaklar yelpaze gibi kapalı
 		var beam = n.get_node_or_null("RaijinBeam")
 		if beam:
 			beam.visible = in_hand   # Raijin: ışın yalnız elde; belde yalnız kabza
@@ -5072,9 +5091,83 @@ static func _w_tsuba(b: MB, z: float, r: float, col: Color) -> void:
 ## Dev shuriken: göbek + n kavisli, sivri uçlu kol (kesici kenar bir yana kıvrık); göbek z düzleminde (kollar x-y düzleminde)
 ## Shuriken yıldızı (XY düzleminde, kalınlık Z): n sivri uç, uçlar arası içbükey kenar (düz kesici ağız), ortada delik;
 ## her ucun ortasında açık renkli bileylenmiş ağız şeridi. Eski kavisli bıçaklar yelpaze gibi duruyordu.
-static func _w_star(b: MB, c: Vector3, R: float, w: float, n: int, steel: Color, hub: Color) -> void:
+## Fūma shuriken (ref fuumashuriken.png): göbek halkası z=0.09'da (el halkayı kavrar), düzlem XY (yassı yüz ±Z).
+## Her bıçak: göbekten dışa uzanan, uca doğru yana kıvrılan orak; koyu çelik, içbükey kenarında açık bileylenmiş ağız şeridi.
+## closed: dört bıçak aynı yöne yelpaze gibi üst üste (kın hâli).
+static func _fuma(b: MB, closed: bool) -> void:
+	var dark = Color(0.13, 0.13, 0.15)
+	var edge = Color(0.82, 0.83, 0.86)
+	var hub = Vector3(0, 0, 0.09)
+	var R = 0.58
+	var to_xy := Basis(Vector3(0, 0, 1), Vector3(0, 1, 0), Vector3(-1, 0, 0))   # profil (u: göbekten dışa, v: yan) -> (x=-v, y=u)
+	for k in 4:
+		var ang = TAU * k / 4.0 if not closed else deg_to_rad(-12.0 + k * 8.0)
+		var rot = Basis(Vector3(0, 0, 1), ang)
+		var zoff = (float(k) - 1.5) * 0.007 if closed else 0.0
+		var n = 14
+		var cen = []
+		for i in n + 1:
+			var t = float(i) / n
+			var c = Vector2(0.07 + t * (R - 0.07), 0.32 * R * t * t)   # uca doğru yana kıvrılır (orak)
+			var w = 0.21 * sin(PI * clampf(0.1 + t * 0.92, 0.0, 1.0)) * (1.0 - t * 0.25) + 0.03   # geniş orak gövde (ref)
+			cen.append([c, w])
+		var bl = PackedVector2Array()
+		for e in cen:
+			bl.append(e[0] + Vector2(0, -1) * e[1] * 0.5)
+		for i in range(cen.size() - 1, -1, -1):
+			bl.append(cen[i][0] + Vector2(0, 1) * cen[i][1] * 0.5)
+		b.add_slab(bl, 0.012, dark, Transform3D(rot * to_xy, hub + Vector3(0, 0, zoff)), Callable(), dark.darkened(0.3))
+		# bileylenmiş ağız: içbükey (kıvrılan) kenar boyunca açık şerit, iki yüzde
+		for i in range(2, n):
+			var p0: Vector2 = cen[i][0] + Vector2(0, 1) * float(cen[i][1]) * 0.36
+			var p1: Vector2 = cen[i + 1][0] + Vector2(0, 1) * float(cen[i + 1][1]) * 0.36
+			var mid = (p0 + p1) * 0.5
+			var seg = p1 - p0
+			var d3 = rot * Vector3(-seg.y, seg.x, 0)
+			for sz in [-1.0, 1.0]:
+				var wp = rot * Vector3(-mid.y, mid.x, 0) + hub + Vector3(0, 0, zoff + sz * 0.0065)
+				b.add("box", wp, Vector3(seg.length() * 1.15, float(cen[i][1]) * 0.26, 0.002), edge, Vector3(0, 0, rad_to_deg(atan2(d3.y, d3.x))))
+	# göbek halkası (el içinden geçer)
+	b.add("torus", hub, Vector3(0.15, 0.15, 0.15), dark.lightened(0.05), Vector3(90, 0, 0), 14)
+	b.add("cyl", hub, Vector3(0.1, 0.03 if not closed else 0.045, 0.1), dark, Vector3(90, 0, 0), 12)
+
+
+## Dev shuriken (ref fumavaryasyon.png): 2.5 m düz kenarlı dört köşeli koyu yıldız, ortada halka girinti; tutuş göbekte (z=0.12)
+static func _kyodai(b: MB) -> void:
+	_w_star(b, Vector3(0, 0, 0.12), 1.25, 0.42, 4, Color(0.22, 0.21, 0.2), Color(0.1, 0.1, 0.1), 0.44)   # geniş gövdeli yıldız (ref)
+	b.add("torus", Vector3(0, 0, 0.12), Vector3(0.32, 0.32, 0.32), Color(0.12, 0.12, 0.12), Vector3(90, 0, 0), 16)
+
+
+## Kare Fūma (ref fumavaryasyon2.png): dört sivri köşeli kare yıldız, açık gri kalın çerçeve, koyu iç yüz, ortada delik
+static func _fuma_kare(b: MB) -> void:
+	var c = Vector3.ZERO
+	var R = 0.55
+	_w_star(b, c, R, R * 0.36, 4, Color(0.78, 0.79, 0.82), Color(0.3, 0.3, 0.32), 0.62)   # kareye yakın, köşeleri sivri (ref)
+	# koyu iç yüz (iki yanda hafif kabarık)
+	var to_xy := Basis(Vector3(0, 0, 1), Vector3(0, 1, 0), Vector3(-1, 0, 0))
+	var o := PackedVector2Array()
+	for k in 4:
+		var a = TAU * k / 4.0
+		var a2 = TAU * (k + 0.5) / 4.0
+		o.append(Vector2(sin(a), cos(a)) * R * 0.72)
+		o.append(Vector2(sin(a2), cos(a2)) * R * 0.46)
+	for sz in [-1.0, 1.0]:
+		b.add_slab(o, 0.004, Color(0.3, 0.3, 0.33), Transform3D(to_xy, c + Vector3(0, 0, sz * 0.012)), Callable(), Color(0.25, 0.25, 0.28))
+	b.add("torus", c, Vector3(0.16, 0.16, 0.16), Color(0.7, 0.71, 0.74), Vector3(90, 0, 0), 14)
+	b.add("cyl", c, Vector3(0.1, 0.035, 0.1), Color(0.05, 0.05, 0.06), Vector3(90, 0, 0), 12)   # delik (koyu)
+
+
+## Çağırma parşömeni: kalın rulo, iki uçta koyu kapak, ortada kırmızı mühür bağı (tutuş ortada, rulo ekseni X)
+static func _makimono(b: MB) -> void:
+	b.add("cyl", Vector3(0, 0, 0.05), Vector3(0.11, 0.42, 0.11), Color(0.92, 0.88, 0.76), Vector3(0, 0, 90), 14)
+	for sx in [-1.0, 1.0]:
+		b.add("cyl", Vector3(sx * 0.22, 0, 0.05), Vector3(0.125, 0.03, 0.125), Color(0.35, 0.2, 0.12), Vector3(0, 0, 90), 14)
+	b.add("cyl", Vector3(0, 0, 0.05), Vector3(0.118, 0.04, 0.118), Color(0.75, 0.12, 0.1), Vector3(0, 0, 90), 14)
+
+
+static func _w_star(b: MB, c: Vector3, R: float, w: float, n: int, steel: Color, hub: Color, ratio := -1.0) -> void:
 	var to_xy := Basis(Vector3(0, 0, 1), Vector3(0, 1, 0), Vector3(-1, 0, 0))   # profil (u,v) -> dünya (x=-v, y=u)
-	var r_in := R * clampf(w / R, 0.26, 0.36)   # uçlar arası iç köşe
+	var r_in := R * (ratio if ratio > 0.0 else clampf(w / R, 0.26, 0.36))   # uçlar arası iç köşe
 	var o := PackedVector2Array()
 	for k in n:
 		var a := TAU * k / n
@@ -5290,8 +5383,15 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 				b.add("sphere", q, Vector3(0.02, 0.02, 0.02) * (1.0 - t * 0.35), dk2, Vector3.ZERO, 8)
 			b.add("cyl", Vector3(0, 0, 0.04), Vector3(0.03, 0.025, 0.03), Color(0.95, 0.85, 0.4), Vector3(90, 0, 0), 10)   # ışın çıkış ağzı
 		"fuma_shuriken":
-			b.add("cyl", Vector3(0, 0, 0.2), Vector3(0.032, 0.6, 0.032), dark, Vector3(90, 0, 0), 8)   # sap göbeğe kadar
-			_w_star(b, Vector3(0, 0, 0.5), 0.62, 0.3, 4, Color(0.55, 0.57, 0.62), dark)
+			_fuma(b, false)   # fuumashuriken.png / acilmishali.png: halka göbek + 4 kavisli orak bıçak (açık)
+		"fuma_kapali":
+			_fuma(b, true)    # acilmamishaliholster.png: bıçaklar yelpaze gibi üst üste kapalı (kında)
+		"kyodai_shuriken":
+			_kyodai(b)        # fumavaryasyon.png: insandan büyük düz kenarlı dört köşeli yıldız
+		"fuma_kare":
+			_fuma_kare(b)     # fumavaryasyon2.png: ortası delik, açık çerçeveli kare shuriken (parşömenden çağrılır)
+		"fuma_makimono":
+			_makimono(b)      # çağırma parşömeni (elde/sırtta)
 		"sai", "sai_sol":
 			_sai(b)   # sai.png
 		"hiraishin_kunai":
@@ -5714,7 +5814,7 @@ func _rest_tilt(on: bool, dt: float) -> void:
 
 
 ## anahtar animasyonlu silahlar: [tutuş kaydırma (yumruk sap boyunca ileri), iz başı z, iz ucu z, elden uca boy]
-const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45], "kabutowari": [0.0, 0.3, 0.82, 0.85], "ruzgar_bicak": [0.0, 0.1, 0.6, 0.62], "hiraishin_kunai": [0.0, 0.14, 0.47, 0.48], "homatsu_kiseru": [0.1, 0.5, 0.72, 0.72], "kusanagi": [0.0, 0.21, 1.08, 1.09], "kusarigama": [0.0, 0.3, 0.8, 0.85]}   # uzunluklar silahın kendi ölçeğiyle çarpılır
+const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45], "kabutowari": [0.0, 0.3, 0.82, 0.85], "ruzgar_bicak": [0.0, 0.1, 0.6, 0.62], "hiraishin_kunai": [0.0, 0.14, 0.47, 0.48], "homatsu_kiseru": [0.1, 0.5, 0.72, 0.72], "kusanagi": [0.0, 0.21, 1.08, 1.09], "kusarigama": [0.0, 0.3, 0.8, 0.85], "fuma_shuriken": [0.0, 0.05, 0.6, 0.62], "kyodai_shuriken": [0.0, 0.1, 1.3, 1.3], "fuma_makimono": [0.0, 0.05, 0.25, 0.26]}   # uzunluklar silahın kendi ölçeğiyle çarpılır
 
 
 var _edge_x := Vector3.ZERO   # gunbai: kenar önde savuruş için yüz normali (yumuşatılmış)

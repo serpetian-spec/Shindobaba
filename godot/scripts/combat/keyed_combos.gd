@@ -17,10 +17,15 @@ const TABLE := {
 	"homatsu_kiseru": [preload("res://scripts/combat/kiseru_anim.gd"), 1.0],
 	"kusanagi": [preload("res://scripts/combat/kusanagi_anim.gd"), 1.0],
 	"kusarigama": [preload("res://scripts/combat/kusarigama_anim.gd"), 1.0],
+	"fuma_shuriken": [preload("res://scripts/combat/fuma_anim.gd"), 1.0],
+	"kyodai_shuriken": [preload("res://scripts/combat/kyodai_anim.gd"), 0.95],
+	"fuma_makimono": [preload("res://scripts/combat/makimono_anim.gd"), 1.0],
 }
+## uzun menzil silahları: yapay zekâ uzakta durup atar (Enemy._chase)
+const RANGED := ["fuma_shuriken", "kyodai_shuriken", "fuma_makimono"]
 ## silah ağırlığı (0 hafif .. 1 ağır): kol/silah yaylanması (PoseOverlay.key_mass) — ağır silah gecikip taşar
 const MASS := {"uc_tirpan": 1.0, "samehada": 0.9, "kabutowari": 0.9, "shibuki": 0.85, "gunbai": 0.8, "raijin": 0.35, "kunai": 0.1,
-	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55}
+	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15}
 
 
 static func mass(id: String) -> float:
@@ -81,6 +86,14 @@ static func mods(id: String, i: int) -> Dictionary:
 				3: m.merge({"lunge_mul": 0.0, "knock": 1.0})
 				4: m.merge({"launch": 7.5, "knock": 0.5, "stun": 0.6, "reach_add": 0.7, "lunge_mul": 0.7})
 				5: m.merge({"heavy": true, "knock": 15.0, "reach_add": 1.6, "lunge_mul": 1.0})
+			return m
+		"fuma_shuriken", "kyodai_shuriken", "fuma_makimono":
+			# uzun menzil: hasar uçan shurikende (on_strike); kurulurken öne kaymaz, yakın vuruş yalnız elde tutulan adımlarda
+			var m = {"lunge_mul": 0.0, "knock": 1.0}
+			if id == "fuma_shuriken" and i == 3:
+				m.merge({"knock": 3.0, "reach_add": 0.8})
+			if id == "kyodai_shuriken" and i == 3:
+				m.merge({"heavy": true, "knock": 14.0, "reach_add": 0.6, "lunge_mul": 0.8})
 			return m
 		"kusanagi":
 			# Chōtō: uzayan saplama/biçme menzili; uçan kılıç on_strike
@@ -189,6 +202,36 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 		q.y = Game.ground_height(q.x, q.z) + 0.05
 		return q
 	match id:
+		"fuma_shuriken":
+			var o = {"mesh": "fuma_shuriken", "radius": 0.6, "spin": 3.2, "wind": true}
+			match i:
+				0: _spin_throw(who, dmg, "straight", o)
+				1: _spin_throw(who, dmg, "arc", o)
+				2: _spin_throw(who, dmg * 1.1, "down", o)
+				4:   # Kage Fūsha: ikinci shuriken ilkinin gölgesinde (hemen ardından, biraz alçak)
+					_spin_throw(who, dmg, "straight", o)
+					_spin_throw(who, dmg, "straight", o.merged({"hold": false, "hide_held": false, "delay": 0.12, "return": false}))
+				5: _spin_throw(who, dmg * 0.6, "circle", o.merged({"turns": 4.0, "orbit": 1.4, "dur": 2.2}))
+		"kyodai_shuriken":
+			var o = {"mesh": "kyodai_shuriken", "radius": 1.25, "spin": 1.4, "knock": 9.0, "dur_k": 1.0}
+			match i:
+				0: _spin_throw(who, dmg * 1.2, "straight", o)
+				1: _spin_throw(who, dmg, "arc", o)
+				2: _spin_throw(who, dmg, "roll", o.merged({"spin": 1.8}))
+				4: _spin_throw(who, dmg, "boomerang", o.merged({"side": -1.0}))
+				5:
+					_spin_throw(who, dmg * 1.4, "down", o.merged({"return": true}))
+					who.get_tree().create_timer(0.55).timeout.connect(func():
+						if is_instance_valid(who):
+							var tg = _throw_target(who)
+							var q = (tg.global_position if tg != null else who.global_position + f * 8.0)
+							q.y = Game.ground_height(q.x, q.z) + 0.05
+							VFX.cracks(q, 3.2)
+							VFX.debris(q, Color(0.5, 0.45, 0.4), 12, 6.0, 0.35)
+							Combat.hit_sphere(who, q + Vector3.UP * 0.6, 3.2, {"dmg": dmg * 0.5, "knock": 10.0, "launch": 6.0, "kind": "heavy", "hitstop": 0.06, "melee": false})
+							_shake(who, 0.7))
+		"fuma_makimono":
+			_summon_three(who, dmg, ["fan", "orbit", "rain", "line", "pincer", "cage"][clampi(i, 0, 5)])
 		"kusarigama":
 			match i:
 				1:
@@ -375,6 +418,10 @@ static func on_start(id: String, i: int, who: Node3D) -> void:
 	if who == null or not is_instance_valid(who):
 		return
 	match id:
+		"fuma_shuriken", "kyodai_shuriken":
+			var jmp = 6.0 if (id == "fuma_shuriken" and i == 2) else (9.0 if (id == "kyodai_shuriken" and i == 5) else 0.0)
+			if jmp > 0.0 and who is CharacterBody3D:
+				who.velocity.y = jmp
 		"kusarigama":
 			if i == 5:   # bitiriş: ağırlık fırlatılıp hedefe dolanır, zincir çekilir
 				_kg_weight(who, 0.0, "wrap")
@@ -1083,3 +1130,180 @@ static func _kg_sickle_end(who, copy) -> void:
 	var n = _weapon_node(who) if is_instance_valid(who) else null
 	if n != null:
 		n.visible = true
+
+
+## ------------------------------------------------------------------ uzun menzil atılan shurikenler (Fūma / Kyodai / Kuchiyose)
+## Hedef: en yakın düşman (24 m), yoksa ileri. Uçan kopya kendi ekseninde döner; yol boyunca küreyle vurur (her geçişte hedef başına bir kez).
+static func _throw_target(who: Node3D, rng := 24.0) -> Node3D:
+	var best: Node3D = null
+	var bd = rng
+	var f: Vector3 = who.face_dir() if who.has_method("face_dir") else -who.global_transform.basis.z
+	for fi in who.get_tree().get_nodes_in_group("fighters"):
+		if fi == who or not Combat.hostile(who, fi) or fi.is_dead():
+			continue
+		var dv = fi.global_position - who.global_position
+		var d = dv.length()
+		if d < 0.5:
+			continue
+		var score = d * (1.6 - 0.6 * f.dot(dv / d))   # önündekiler öncelikli
+		if score < bd:
+			bd = score
+			best = fi
+	return best
+
+
+## mode: straight / arc / down / circle / roll / boomerang / shadow(gecikmeli ikinci)
+## opts: mesh, hold (eldeki silah uçarken gizlensin), radius, dur, spin (tur/sn), return (ele dön), delay, side, scale, knock
+static func _spin_throw(who: Node3D, dmg: float, mode: String, opts := {}) -> void:
+	if who == null or not is_instance_valid(who):
+		return
+	var n = _weapon_node(who) if opts.get("hold", true) else null
+	var tg = _throw_target(who, float(opts.get("range", 24.0)))
+	var copy = MeshInstance3D.new()
+	copy.mesh = CharacterModel.weapon_mesh(String(opts.get("mesh", "fuma_shuriken")))
+	who.get_tree().current_scene.add_child(copy)
+	var f: Vector3 = who.face_dir() if who.has_method("face_dir") else Vector3.FORWARD
+	f.y = 0
+	f = f.normalized()
+	var side = Vector3.UP.cross(f).normalized() * float(opts.get("side", 1.0))
+	var start: Vector3 = n.global_position if n != null else who.global_position + Vector3.UP * 1.3 + f * 0.6
+	copy.global_position = start
+	var sc = float(opts.get("scale", 1.0))
+	if n != null and opts.get("hide_held", true):
+		n.visible = false
+	var aim: Vector3 = (tg.global_position + Vector3.UP * 1.0) if tg != null else start + f * 16.0
+	var dist = start.distance_to(aim)
+	var dur = float(opts.get("dur", clampf(dist / 16.0, 0.6, 1.5) * (2.0 if opts.get("return", true) else 1.0)))
+	var R = float(opts.get("radius", 1.0))
+	var spin = float(opts.get("spin", 3.0))
+	var hit_t = {}
+	var info = {"dmg": dmg, "knock": float(opts.get("knock", 4.0)), "kind": "light", "hitstop": 0.04, "melee": false, "element": "wind" if opts.get("wind", false) else ""}
+	var t0 = Time.get_ticks_msec() / 1000.0
+	var vertical = mode == "roll"
+	var tw = copy.create_tween()
+	if float(opts.get("delay", 0.0)) > 0.0:
+		copy.visible = false
+		tw.tween_interval(float(opts["delay"]))
+		tw.tween_callback(func(): if is_instance_valid(copy): copy.visible = true)
+	tw.tween_method(func(k: float):
+		if not is_instance_valid(copy) or not is_instance_valid(who):
+			return
+		var c = (tg.global_position + Vector3.UP * 1.0) if tg != null and is_instance_valid(tg) and not tg.is_dead() else aim
+		var hand = n.global_position if n != null and is_instance_valid(n) else who.global_position + Vector3.UP * 1.3
+		var p: Vector3
+		var ret = opts.get("return", true)
+		var ko = 0.5 if ret else 1.0
+		if not ret:
+			k = minf(k, 0.9999)   # dönmeyen uçuş: son karede (k - ko) / (1 - ko) = 0/0 olmasın
+		match mode:
+			"arc", "boomerang":
+				var u = k / ko if k < ko else (k - ko) / (1.0 - ko)
+				var mid = start.lerp(c, 0.5) + side * dist * 0.45
+				if k < ko:
+					p = start.lerp(mid, u).lerp(mid.lerp(c + f * 2.0, u), u)
+				else:
+					var mid2 = c.lerp(hand, 0.5) - side * dist * 0.45
+					p = (c + f * 2.0).lerp(mid2, u).lerp(mid2.lerp(hand, u), u)
+			"down":
+				var top = c + Vector3.UP * 7.0 - f * 2.0
+				if k < 0.45:
+					var u = k / 0.45
+					p = start.lerp(top, u).lerp(top.lerp(c, u), u)
+				elif ret:
+					p = c.lerp(hand, (k - 0.45) / 0.55)
+				else:
+					p = c
+			"circle":
+				if k < 0.3:
+					p = start.lerp(c, k / 0.3)
+				elif k < 0.8:
+					var a = (k - 0.3) / 0.5 * TAU * float(opts.get("turns", 3.0))
+					p = c + Vector3(cos(a), 0.15 * sin(a * 2.0), sin(a)) * float(opts.get("orbit", 1.5))
+				elif ret:
+					p = c.lerp(hand, (k - 0.8) / 0.2)
+				else:
+					p = c   # kafes: içeri çöker
+			"roll":
+				var g0 = Vector3(start.x, Game.ground_height(start.x, start.z) + R * sc * 0.9, start.z)
+				var far = c + (c - start).normalized() * 4.0
+				var g1 = Vector3(far.x, Game.ground_height(far.x, far.z) + R * sc * 0.9, far.z)
+				if k < ko:
+					p = g0.lerp(g1, k / ko)
+					p.y = Game.ground_height(p.x, p.z) + R * sc * 0.9
+				else:
+					p = g1.lerp(hand, (k - ko) / (1.0 - ko))
+			_:
+				if k < ko:
+					p = start.lerp(c + (c - start).normalized() * 1.5, k / ko)
+				else:
+					p = (c + (c - start).normalized() * 1.5).lerp(hand, (k - ko) / (1.0 - ko))
+		if not p.is_finite():
+			return
+		copy.global_position = p
+		var tnow = Time.get_ticks_msec() / 1000.0 - t0
+		var ang = tnow * spin * TAU
+		if vertical:
+			var dirv = (c - start); dirv.y = 0
+			copy.global_transform.basis = Basis.looking_at(dirv.normalized() if dirv.length() > 0.1 else f, Vector3.UP).rotated(Vector3.UP, PI * 0.5) * Basis(Vector3(0, 0, 1), ang)
+			copy.global_transform.basis = copy.global_transform.basis.scaled(Vector3.ONE * sc)
+		else:
+			# yassı yüz yere paralel (XY düzlemli model): X ekseni etrafında 90° yatır, Y'de döndür
+			copy.global_transform.basis = (Basis(Vector3.UP, ang) * Basis(Vector3.RIGHT, PI * 0.5)).scaled(Vector3.ONE * sc)
+		# yol boyunca vuruş (her hedefe 0.3 sn'de bir)
+		for fi in who.get_tree().get_nodes_in_group("fighters"):
+			if fi == who or not Combat.hostile(who, fi) or fi.is_dead():
+				continue
+			if fi.global_position.distance_to(p - Vector3.UP * 0.9) < R * sc * 0.8 + 0.5:
+				var id = fi.get_instance_id()
+				if tnow - float(hit_t.get(id, -9.0)) > 0.3:
+					hit_t[id] = tnow
+					var inf = info.duplicate()
+					inf["attacker"] = who
+					fi.take_hit(inf)
+					FX.hit_spark(p, Color(0.85, 0.9, 1.0), 1.0)
+		, 0.0, 1.0, dur)
+	tw.tween_callback(func():
+		if is_instance_valid(copy):
+			if not opts.get("return", true):
+				FX.smoke_puff(copy.global_position, 0.6, 8)
+			copy.queue_free()
+		if n != null and is_instance_valid(n) and opts.get("hide_held", true):
+			n.visible = true)
+	Sfx.play("whoosh", start, 0.8 if sc > 1.5 else 1.2, 0.5)
+
+
+## Kuchiyose: parşömenden dumanla üç kare Fūma çıkar, düzenine göre uçar (dönmez, sonunda dumanla kaybolur)
+static func _summon_three(who: Node3D, dmg: float, form: String) -> void:
+	if who == null or not is_instance_valid(who):
+		return
+	var f: Vector3 = who.face_dir() if who.has_method("face_dir") else Vector3.FORWARD
+	f.y = 0
+	f = f.normalized()
+	var side = Vector3.UP.cross(f).normalized()
+	FX.smoke_puff(who.global_position + Vector3.UP * 1.3 + f * 1.4, 0.7, 10)
+	for k in 3:
+		var o = {"mesh": "fuma_kare", "hold": false, "hide_held": false, "return": false, "radius": 0.6, "spin": 2.4, "knock": 5.0}
+		var s = float(k - 1)
+		match form:
+			"fan":
+				o["side"] = s * 0.6
+				_spin_throw(who, dmg * 0.55, "arc" if k != 1 else "straight", o)
+			"orbit":
+				o["delay"] = k * 0.08
+				_spin_throw(who, dmg * 0.55, "circle", o.merged({"turns": 1.5, "orbit": 1.2, "return": false}))
+			"rain":
+				o["delay"] = k * 0.12
+				_spin_throw(who, dmg * 0.6, "down", o)
+			"line":
+				o["delay"] = k * 0.14
+				_spin_throw(who, dmg * 0.55, "straight", o)
+			"pincer":
+				o["side"] = -1.0 if k == 0 else 1.0
+				if k == 1:
+					o["delay"] = 0.2
+				_spin_throw(who, dmg * 0.6, "arc" if k != 1 else "down", o)
+			"cage":
+				o["delay"] = k * 0.1
+				_spin_throw(who, dmg * 0.5, "circle", o.merged({"turns": 2.5, "orbit": 1.8, "return": false, "dur": 1.6}))
+
+
