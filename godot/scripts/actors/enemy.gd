@@ -1005,6 +1005,8 @@ func die(info: Dictionary) -> void:
 		if fid != "" and Friends.closeness(fid) >= 60 and Game.player.combat and Game.player.combat.modes and Game.player.combat.modes.get("eyes"):
 			Game.player.combat.modes.eyes.on_close_kill(String(Friends.all().get(fid, {}).get("name", display_name)))
 	if has_meta("teammate"):
+		if Game.player and Game.player.combat and Game.player.combat.modes and Game.player.combat.modes.get("eyes"):
+			Game.player.combat.modes.eyes.on_ally_died(self)   # yanında ölen dost: Mangekyō uyanabilir (yalnız gerçek ölüm)
 		return   # takım arkadaşı düştü: öldürme sayılmaz (XP, görev sayacı yok), yeniden doğmaz
 	Progress.on_enemy_killed(self)
 	if info.get("attacker") is Player and display_name != "" and (level >= 15 or self is Boss):

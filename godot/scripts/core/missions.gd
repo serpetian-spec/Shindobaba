@@ -1939,11 +1939,10 @@ func _after_talk(npc: QuestNPC, s: Dictionary) -> void:
 
 func on_quest_npc_died(npc: QuestNPC) -> void:
 	var s = _cur()
-	if s.is_empty():
-		return
-	if s["kind"] == "escort" or s.get("followers", false) or s["kind"] == "babysit":
-		if Game.player and Game.player.combat and Game.player.combat.modes and Game.player.combat.modes.eyes:
-			Game.player.combat.modes.eyes.on_ally_died(npc)  # Mangekyō uyanışı tetiklenebilir
+	var guarded = not s.is_empty() and (s["kind"] == "escort" or s.get("followers", false) or s["kind"] == "babysit")
+	if (npc.get("team") == "player" or guarded) and Game.player and Game.player.combat and Game.player.combat.modes and Game.player.combat.modes.get("eyes"):
+		Game.player.combat.modes.eyes.on_ally_died(npc)  # yanında ölen dost (korunan/peşinden gelen): Mangekyō uyanışı
+	if guarded:
 		fail("%s öldü." % npc.display)
 
 

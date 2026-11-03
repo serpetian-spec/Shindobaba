@@ -78,13 +78,14 @@ static func steps() -> Array:
 			_t(1.25, 0.36, 0, 4, RDY, R_READY, L_READY, W),
 		]},
 		# 6 Tenkū Otoshi (bitiriş): yüksek sıçrar, havada iki kolla baş üstüne kaldırır, aşağı fırlatır -> yere saplanır, şok dalgası
-		{"len": 1.5, "hit": 0.72, "keys": [
+		# 6 Tenkū Nage (bitiriş): iki kolla yere kadar eğilip dev yıldızı alttan kavrar -> tüm gövdeyle göğe fırlatır; yıldız yükselip
+		#   dönerek rakibin üstüne çakılır (KeyedCombos, oyuncu zıplamaz)
+		{"len": 1.6, "hit": 0.62, "keys": [
 			_t(0.0, 0.36, 0, 4, RDY, R_READY, L_READY, W),
-			_t(0.14, 0.7, 0, 12, RDY, R_READY, L_READY, W),
-			_t(0.36, 0.1, -6, -22, Vector3(0, 0.6, -0.8), R_UP, L_UP, ST),
-			_t(0.64, 0.12, -8, -26, Vector3(0, 0.55, -0.83), R_UP, L_UP, ST),
-			_t(0.72, 0.2, 6, 40, Vector3(0, -0.6, 0.8), R_BOWL, L_FWD, ST),
-			_t(1.05, 0.6, 4, 20, Vector3(0, -0.5, 0.85), R_BOWL, L_FWD, W),
-			_t(1.5, 0.36, 0, 4, RDY, R_READY, L_READY, W),
+			_t(0.22, 0.74, 0, 30, Vector3(0, -0.6, 0.8), R_BOWL, L_FWD, W),
+			_t(0.5, 0.76, 0, 32, Vector3(0, -0.6, 0.8), R_BOWL, L_FWD, W),
+			_t(0.62, 0.18, 0, -20, Vector3(0, 1, 0.2), R_UP, L_UP, ST),
+			_t(0.9, 0.2, 0, -16, Vector3(0, 1, 0.2), R_UP, L_UP, ST),
+			_t(1.6, 0.36, 0, 4, RDY, R_READY, L_READY, W),
 		]},
 	]

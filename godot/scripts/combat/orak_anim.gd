@@ -74,13 +74,16 @@ static func steps() -> Array:
 			_t(0.9, 0.5, 290, 8, Vector3(-0.9, 0.1, 0.3), R_WIDE, CR),
 			_t(1.3, 0.36, 0, 4, RDY, R_READY, W),
 		]},
-		{"len": 1.5, "hit": 0.78, "two": true, "keys": [
+		# 6 Kama Nage (bitiriş): orak baş üstünde döndürülür -> sağ-arkaya kurulur -> tek kolla fırlatılır; orak rakibin çevresinde
+		#   dönerek biçer ve ele döner (KeyedCombos._spin_throw); kol uzanmış bekler, yakalar
+		{"len": 1.9, "hit": 0.7, "keys": [
 			_t(0.0, 0.36, 0, 4, RDY, R_READY, W),
-			_t(0.16, 0.72, 0, 14, RDY, R_READY, W),
-			_t(0.4, 0.14, -8, -26, Vector3(0, 0.7, -0.7), R_HIGH, ST),
-			_t(0.7, 0.16, -10, -30, Vector3(0, 0.65, -0.75), R_HIGH, ST),
-			_t(0.78, 0.7, 10, 38, Vector3(0, -0.8, 0.6), R_DOWN, L),
-			_t(1.1, 0.72, 8, 32, Vector3(0, -0.85, 0.5), R_DOWN, L),
-			_t(1.5, 0.36, 0, 4, RDY, R_READY, W),
+			_t(0.2, 0.36, -20, -8, Vector3(0, 0.95, 0.2), R_UP, W),
+			_t(0.42, 0.38, 24, -8, Vector3(0, 0.95, 0.2), R_UP, CR),
+			_t(0.6, 0.44, -50, -10, Vector3(-0.8, 0.3, -0.5), R_BACK, BK),
+			_t(0.7, 0.5, 30, 20, Vector3(0, 0.3, 0.95), R_REACH, L),
+			_t(1.4, 0.46, 20, 14, Vector3(0, 0.3, 0.95), R_REACH, L),
+			_t(1.6, 0.42, 0, 6, RDY, R_PULL, BK),
+			_t(1.9, 0.36, 0, 4, RDY, R_READY, W),
 		]},
 	]

@@ -1,6 +1,6 @@
 extends RefCounted
-## Kusanagi no Tsurugi (ref kusanagi.png, muhafızsız düz kılıç): tek el, HIZLI kılıç. Kanon: ağız bir anda uzar (Chōtō),
-## kılıç uzaktan yönetilip hedefe uçar ve döner. Kombo: akıcı kesikler + uzayan saplama + uçan kılıç + uzayan geniş biçme.
+## Kusanagi no Tsurugi (ref kusanagi.png, muhafızsız düz kılıç): tek el, HIZLI kılıç (Sasuke tarzı). Uçma/uzama YOK.
+## Kombo: akıcı kesikler + Shunshin saplama + kesik yağmuru sonunda Chidori Nagashi (yere saplama) + iai geçiş bitirişi.
 ## Her vuruşta geri çekiş ve ayak işi (BK -> ST -> L/LL -> W). Uzama/uçuş etkileri KeyedCombos (oyuncu + düşman).
 
 const S = preload("res://scripts/combat/samehada_anim.gd")
@@ -15,6 +15,7 @@ const R_STAB := {"RightUpperArm": Vector3(-0.04, -0.03, 1), "RightLowerArm": Vec
 const R_LOW := {"RightUpperArm": Vector3(-0.35, -0.9, 0.2), "RightLowerArm": Vector3(-0.1, -0.6, 0.8)}
 const R_UP := {"RightUpperArm": Vector3(-0.15, 0.7, 0.7), "RightLowerArm": Vector3(0.0, 0.95, 0.3)}
 const R_THROW := {"RightUpperArm": Vector3(-0.1, 0.25, 0.96), "RightLowerArm": Vector3(0.0, 0.2, 0.98)}       # kol öne uzanmış, el açık yönetir
+const R_PLANT := {"RightUpperArm": Vector3(-0.15, -0.6, 0.78), "RightLowerArm": Vector3(0.0, -0.9, 0.4)}       # kılıç önde yere saplı (Chidori Nagashi)
 const L_GUARD := {"LeftUpperArm": Vector3(0.3, -0.75, 0.55), "LeftLowerArm": Vector3(-0.2, 0.3, 0.93)}
 const L_BACK := {"LeftUpperArm": Vector3(0.55, -0.6, -0.6), "LeftLowerArm": Vector3(0.3, -0.5, -0.8)}
 const L_SEAL := {"LeftUpperArm": Vector3(0.25, -0.6, 0.75), "LeftLowerArm": Vector3(-0.6, 0.65, 0.45)}
@@ -70,14 +71,15 @@ static func steps() -> Array:
 			_t(0.55, 0.34, 0, 4, RDY, R_READY, L_GUARD, W),
 		]},
 		# 5 Ranbu: art arda dört hızlı kesik (çapraz-yatay-çapraz-yatay), sonunda kılıç elden uçup hedefin çevresinde döner
-		{"len": 1.05, "hit": 0.2, "extra": [0.34, 0.48, 0.62], "extra_r": 1.6, "keys": [
+		{"len": 1.15, "hit": 0.2, "extra": [0.34, 0.48, 0.62, 0.8], "extra_r": 1.6, "keys": [
 			_t(0.0, 0.34, 0, 4, RDY, R_READY, L_GUARD, W),
 			_t(0.1, 0.4, -18, -6, Vector3(-0.2, 0.8, -0.5), R_HIGH, L_GUARD, BK),
 			_t(0.2, 0.46, 16, 16, Vector3(0.6, -0.6, 0.5), R_LOWEND, L_GUARD, ST),
 			_t(0.34, 0.44, -22, 12, Vector3(-0.9, 0.1, 0.4), R_WIDE, L_GUARD, LL),
 			_t(0.48, 0.46, 18, 16, Vector3(0.6, -0.6, 0.5), R_LOWEND, L_GUARD, L),
 			_t(0.62, 0.44, -24, 12, Vector3(-0.9, 0.1, 0.4), R_WIDE, L_GUARD, ST),
-			_t(0.76, 0.42, 6, 14, Vector3(0, 0.2, 1), R_THROW, L_SEAL, L),
+			_t(0.76, 0.6, 0, 24, Vector3(0, -0.95, 0.3), R_PLANT, L_SEAL, L),
+			_t(0.9, 0.62, 0, 26, Vector3(0, -0.95, 0.3), R_PLANT, L_SEAL, L),
 			_t(1.05, 0.34, 0, 4, RDY, R_READY, L_GUARD, W),
 		]},
 		# 6 Iai Chōtō (bitiriş): kılıç sol kalçaya çekilir (kın tutuşu, bekle) -> şimşek yatay iai, ağız uzayıp geniş biçer

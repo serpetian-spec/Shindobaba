@@ -7,6 +7,7 @@ extends RefCounted
 
 const DIR := "user://bake"
 const VL = preload("res://scripts/world/village_life.gd")
+const RM = preload("res://scripts/world/road_map.gd")
 static var _key := ""
 
 
@@ -37,7 +38,7 @@ static func _path(vid: String, ext: String) -> String:
 
 
 static func snapshot(vid: String) -> Dictionary:
-	return {"inter": Interact.items.size(), "lights": Lights.points.size(), "leaf": Builder.leaf_spots.size(), "spawn": Spawner.pending.size()}
+	return {"inter": Interact.items.size(), "lights": Lights.points.size(), "leaf": Builder.leaf_spots.size(), "spawn": Spawner.pending.size(), "lanes": RM.lanes.size()}
 
 
 ## Kurulmuş köyü kaydet (root: köyün kök düğümü, snap: kurulumdan önceki snapshot)
@@ -55,6 +56,7 @@ static func save(root: Node3D, vid: String, snap: Dictionary) -> void:
 		"lights": Array(Lights.points).slice(int(snap["lights"])),
 		"leaf": Builder.leaf_spots.slice(int(snap["leaf"])),
 		"spawn": Spawner.pending.slice(int(snap["spawn"])),
+		"lanes": RM.lanes.slice(int(snap.get("lanes", 0))),   # ara sokak patikaları (çimen maskesi)
 		"sites": VL.sites.get(vid, []), "doors": VL.doors.get(vid, []),
 		"roofs": Builder.roof_points.get(lk, []),
 		"lots": CityInfill.lots_by.get(vid, []), "lots_done": CityInfill.done.has(vid),
@@ -98,6 +100,9 @@ static func try_load(parent: Node3D, vid: String) -> Node3D:
 		Lights.add(p)
 	Builder.leaf_spots.append_array(data["leaf"])
 	Spawner.pending.append_array(data["spawn"])
+	if data.has("lanes") and not (data["lanes"] as Array).is_empty():
+		RM.lanes.append_array(data["lanes"])
+		RM.lanes_dirty = true
 	VL.sites[vid] = data["sites"]
 	VL.doors[vid] = data["doors"]
 	Builder.roof_points[vid.to_lower()] = data["roofs"]

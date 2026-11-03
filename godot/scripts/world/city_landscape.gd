@@ -677,6 +677,7 @@ static func _clear(c: Ctx, a: Vector2, e: Vector2) -> bool:
 static func _draw_lane(c: Ctx, a: Vector2, e: Vector2) -> void:
 	_strip(c, c.loc(a), c.loc(e), 1.5, LANE_COL[c.climate])
 	c.add_lane(a, e)
+	preload("res://scripts/world/road_map.gd").add_lane(a, e)   # çimen patikada çıkmasın (yol dokusuna)
 
 
 ## Zemini izleyen kenarlı şerit (yerel a -> e). Eğim azsa parçalar 9 m'ye kadar uzar (az köşe).
@@ -794,6 +795,7 @@ static func _trunk_piece(c: Ctx, pa: Vector2, pb: Vector2, wd: float, col: Color
 	_strip(c, pa, pb, wd, col)
 	var wa = c.wxz(pa.x, pa.y); var wb = c.wxz(pb.x, pb.y)
 	c.add_lane(wa, wb)
+	preload("res://scripts/world/road_map.gd").add_lane(wa, wb, wd * 0.5 + 1.6)   # ara sokakta çimen çıkmasın
 	var steps = maxi(1, int(pa.distance_to(pb) / 4.0))
 	for s in steps + 1:
 		_add_node(c.nodes, wa.lerp(wb, float(s) / steps))

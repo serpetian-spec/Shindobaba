@@ -71,13 +71,15 @@ static func steps() -> Array:
 			_t(0.6, 0.5, 14, 18, Vector3(0.5, -0.4, 0.75), R_DOWN, L_READY, L),
 			_t(0.9, 0.36, 0, 4, RDY, R_READY, L_READY, W),
 		]},
-		{"len": 1.4, "hit": 0.74, "keys": [
+		# 6 Hiramekarei Kaihō — Tsuchi (bitiriş, kanon): birleşmiş kılıç iki elle sağ-arkaya kurulur, chakra kılıcın ucunda dev bir
+		#   ÇEKİÇ biçimini alır (KeyedCombos) -> çekiç gövdeyle öne yatay savrulur, önündekileri ezip savurur
+		{"len": 1.5, "hit": 0.82, "keys": [
 			_t(0.0, 0.36, 0, 4, RDY, R_READY, L_READY, W),
-			_t(0.16, 0.7, 0, 14, RDY, R_READY, L_READY, W),
-			_t(0.38, 0.14, -10, -24, Vector3(-0.2, 0.7, -0.7), R_HIGH, L_HIGH, ST),
-			_t(0.66, 0.16, -12, -28, Vector3(-0.2, 0.7, -0.7), R_HIGH, L_HIGH, ST),
-			_t(0.74, 0.68, 14, 36, Vector3(0.2, -0.8, 0.55), R_DOWN, L_DOWN, L),
-			_t(1.05, 0.7, 12, 30, Vector3(0.2, -0.85, 0.5), R_DOWN, L_DOWN, L),
-			_t(1.4, 0.36, 0, 4, RDY, R_READY, L_READY, W),
+			_t(0.24, 0.46, -52, -10, Vector3(-0.85, 0.2, -0.45), R_WIDE, L_WIDE, BK),
+			_t(0.74, 0.48, -58, -12, Vector3(-0.85, 0.2, -0.45), R_WIDE, L_WIDE, BK),
+			_t(0.82, 0.52, 8, 16, Vector3(-0.2, 0.15, 0.96), R_WIDE, L_IN, ST),
+			_t(0.92, 0.56, 54, 22, Vector3(0.9, 0.15, 0.35), R_IN, L_IN, L),
+			_t(1.12, 0.54, 62, 18, Vector3(0.9, 0.1, 0.3), R_IN, L_IN, L),
+			_t(1.5, 0.36, 0, 4, RDY, R_READY, L_READY, W),
 		]},
 	]

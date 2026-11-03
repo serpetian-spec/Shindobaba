@@ -83,13 +83,16 @@ static func steps() -> Array:
 			_t(1.05, 0.36, 0, 4, RST, R_REST, L_GUARD, W),
 		]},
 		# 6 Kubikiri Nage (bitiriş): sıçrar, havada baş üstünde iki tur döndürür -> dev iniş, ağız yere saplanır, şok dalgası
-		{"len": 1.55, "hit": 0.8, "keys": [
+		# 6 Kirigakure Kubikiri (bitiriş, Zabuza): tek el mühür -> sis yayılır, sisin içinde kaybolur, rakibin ARKASINDA belirir
+		#   (KeyedCombos) -> omuzdan sağ-arkaya açılıp boyun hizasında tek ağır yatay biçme
+		{"len": 1.5, "hit": 0.92, "keys": [
 			_t(0.0, 0.36, 0, 4, RST, R_REST, L_GUARD, W),
-			_t(0.14, 0.7, 0, 14, RST, R_REST, L_GUARD, W),
-			_t(0.38, 0.12, -10, -24, Vector3(-0.2, 0.7, -0.7), R_HIGH, L_SEAL, ST),
-			_t(0.7, 0.14, -12, -28, Vector3(-0.2, 0.7, -0.7), R_HIGH, L_SEAL, ST),
-			_t(0.8, 0.68, 14, 36, Vector3(0.2, -0.8, 0.55), R_DOWN, L_BACK, L),
-			_t(1.15, 0.7, 12, 30, Vector3(0.2, -0.85, 0.5), R_DOWN, L_BACK, L),
-			_t(1.55, 0.36, 0, 4, RST, R_REST, L_GUARD, W),
+			_t(0.16, 0.36, 0, -2, RST, R_REST, L_SEAL, W),
+			_t(0.5, 0.38, 0, -4, RST, R_REST, L_SEAL, W),
+			_t(0.66, 0.46, -44, -6, Vector3(-0.8, 0.3, -0.5), R_BACK_R, L_POINT, BK),
+			_t(0.86, 0.48, -50, -8, Vector3(-0.8, 0.3, -0.5), R_BACK_R, L_POINT, BK),
+			_t(0.92, 0.5, 30, 14, Vector3(0.9, 0.2, 0.35), R_ACROSS, L_BACK, L),
+			_t(1.12, 0.48, 50, 14, Vector3(0.9, 0.1, 0.3), R_ACROSS, L_BACK, L),
+			_t(1.5, 0.36, 0, 4, RST, R_REST, L_GUARD, W),
 		]},
 	]

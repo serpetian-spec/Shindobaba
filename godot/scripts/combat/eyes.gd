@@ -831,15 +831,24 @@ func check_awaken(dt: float) -> void:
 
 
 ## Mangekyō uyanışı (kanon): 3 tomoe iken ilişkinin yüksek olduğu birini (yakınlık >= 60) KENDİ ELİNLE öldürmek.
-## Enemy.die çağırır. (Eskiden müttefik gözünün önünde ölünce açılıyordu.)
+## Enemy.die çağırır. İkinci yol: yanında ölen dost (on_ally_died).
 func on_close_kill(who: String) -> void:
 	if _awaken_mangekyo():
 		Hud.msg("%s'i kendi ellerinle öldürdün..." % who, Color(1, 0.6, 0.6), 6.0)
 
 
-## Eski tetik (gözünün önünde ölen müttefik): artık Mangekyō açmaz
-func on_ally_died(_ally: Node3D) -> void:
-	pass
+## Mangekyō (kanon, ikinci yol): 3 tomoe iken YANINDA savaşan dost biri (takım arkadaşı, eskort edilen, peşinden gelen) gözünün
+## önünde ÖLÜRSE. Yalnız gerçek ölüm sayılır (die çağrısı) — yaralanma/bayılma açmaz. Uzaktaki ölüm sayılmaz (40 m).
+func on_ally_died(ally: Node3D) -> void:
+	if ally == null or not is_instance_valid(ally) or p == null:
+		return
+	if ally.global_position.distance_to(p.global_position) > 40.0:
+		return
+	var nm = String(ally.get("display_name")) if ally.get("display_name") != null else ""
+	if nm == "" and ally.get("display") != null:
+		nm = String(ally.get("display"))
+	if _awaken_mangekyo():
+		Hud.msg("%s gözlerinin önünde öldü..." % (nm if nm != "" else "Yoldaşın"), Color(1, 0.6, 0.6), 6.0)
 
 
 func _awaken_mangekyo() -> bool:

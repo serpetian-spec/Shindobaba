@@ -44,7 +44,7 @@ void vertex() {
 		if (length(root.xz - villages[i].xy) < villages[i].z * 0.95) { b = int(villages[i].w); }
 	}
 	vec2 rr = (root.xz - road_rect.xy) / max(road_rect.z, 1.0);
-	float road = (road_rect.z > 0.0 && rr.x > 0.0 && rr.y > 0.0 && rr.x < 1.0 && rr.y < 1.0) ? texture(road_tex, rr).r : bio.g;
+	float road = (road_rect.z > 0.0 && rr.x > 0.0 && rr.y > 0.0 && rr.x < 1.0 && rr.y < 1.0) ? max(texture(road_tex, rr).r, texture(road_tex, rr).g) : bio.g;   // G: ara sokak patikası / ev tabanı
 	// 2 orman 4 yağmur 6 pirinç 7 çimen 9 dağ 10 bataklık 11 köy
 	float ok = (b == 2 || b == 4 || b == 6 || b == 7 || b == 10) ? 1.0 : (b == 9 ? 0.5 : 0.0);
 	// köy içinde sadece duvar diplerinde/bahçelerde seyrek öbekler

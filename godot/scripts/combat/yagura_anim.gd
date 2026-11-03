@@ -81,13 +81,17 @@ static func steps() -> Array:
 			_t(1.05, 0.34, 0, 4, RDY, R_READY, L_GUARD, W),
 		]},
 		# 6 Suiro Kaiten (bitiriş): baş üstünde iki tur döndürür -> sıçrayıp tüm ağırlıkla yere çakar, su girdabı yükselir
-		{"len": 1.5, "hit": 0.78, "keys": [
+		# 6 Suijin Senpū (bitiriş): sopa baş üstünde iki tur çevrilir (su toplanır) -> sağ-arkaya derin kurulum -> öne dev yatay savuruş,
+		#   çiçekli uçtan su dalgası 13 m ilerler (zıplama yok)
+		{"len": 1.5, "hit": 0.86, "keys": [
 			_t(0.0, 0.34, 0, 4, RDY, R_READY, L_GUARD, W),
 			_t(0.18, 0.36, -20, -8, Vector3(0, 0.95, 0.2), R_UP, L_SEAL, W),
 			_t(0.4, 0.38, 24, -8, Vector3(0, 0.95, 0.2), R_UP, L_SEAL, CR),
-			_t(0.62, 0.36, -6, -24, Vector3(-0.2, 0.7, -0.7), R_HIGH, L_SEAL, BK),
-			_t(0.78, 0.66, 14, 34, Vector3(0.2, -0.8, 0.55), R_DOWN, L_BACK, L),
-			_t(1.1, 0.68, 12, 30, Vector3(0.2, -0.85, 0.5), R_DOWN, L_BACK, L),
+			_t(0.62, 0.46, -54, -10, Vector3(-0.8, 0.3, -0.5), R_BACK_R, L_SEAL, BK),
+			_t(0.8, 0.48, -60, -12, Vector3(-0.8, 0.3, -0.5), R_BACK_R, L_SEAL, BK),
+			_t(0.86, 0.52, 10, 16, Vector3(-0.2, 0.2, 0.96), R_WIDE, L_POINT, L),
+			_t(0.96, 0.56, 52, 22, Vector3(0.9, 0.2, 0.35), R_ACROSS, L_BACK, L),
+			_t(1.15, 0.54, 60, 18, Vector3(0.9, 0.1, 0.3), R_ACROSS, L_BACK, L),
 			_t(1.5, 0.34, 0, 4, RDY, R_READY, L_GUARD, W),
 		]},
 	]

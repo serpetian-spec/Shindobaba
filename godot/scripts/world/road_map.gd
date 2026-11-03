@@ -25,6 +25,12 @@ var _mroads: MeshInstance3D
 var _mground: MeshInstance3D
 var _mmat: ShaderMaterial
 var _pending := 0
+## Köy içi ara sokak patikaları + ev tabanları (CityLandscape, Builder): dünya xz [a, e, yarı genişlik]. Yol dokusunun G kanalına
+## çizilir: çimen (R ya da G) burada çıkmaz; arazi yalnız R'yi (gerçek yollar) okur, köy zemini toprağa boyanmaz.
+static var lanes: Array = []
+static var lanes_dirty := false
+var _lane_mesh: MeshInstance3D
+var _lane_t := 0.0
 
 
 func _ready() -> void:
@@ -35,6 +41,17 @@ func _ready() -> void:
 	m.shader = _ribbon_shader(false)
 	_mesh.material_override = m
 	_sv.add_child(_mesh)
+	_lane_mesh = MeshInstance3D.new()
+	var lm = ShaderMaterial.new()
+	lm.shader = Shader.new()
+	lm.shader.code = """shader_type spatial;
+render_mode unshaded, cull_disabled, blend_add, depth_draw_never, depth_test_disabled;
+void fragment() {
+	float e = 1.0 - smoothstep(0.36, 0.5, abs(UV.x - 0.5));
+	ALBEDO = vec3(0.0, e, 0.0);
+}"""
+	_lane_mesh.material_override = lm
+	_sv.add_child(_lane_mesh)
 	# küçük harita
 	_msv = _make_viewport(MAP_PIX)
 	_mcam = _ortho_cam(_msv, MAP_SIZE)
@@ -106,7 +123,12 @@ void fragment() {
 	return s
 
 
-func _process(_dt: float) -> void:
+static func add_lane(a: Vector2, e: Vector2, half := 2.4) -> void:
+	lanes.append([a, e, half])
+	lanes_dirty = true
+
+
+func _process(dt: float) -> void:
 	if _pending > 0:
 		return
 	var cam = get_viewport().get_camera_3d()
@@ -114,6 +136,12 @@ func _process(_dt: float) -> void:
 		return
 	var p = cam.global_position
 	var c = Vector2(p.x, p.z)
+	_lane_t += dt
+	if lanes_dirty and _lane_t > 1.5 and center.x < 1e8:   # köy kurulurken yeni patikalar: en fazla 1.5 sn'de bir yeniden çiz
+		lanes_dirty = false
+		_lane_t = 0.0
+		_rebuild()
+		return
 	if c.distance_to(center) < RECENTER:
 		return
 	center = Vector2(snappedf(c.x, 64.0), snappedf(c.y, 64.0))
@@ -124,6 +152,7 @@ func _rebuild() -> void:
 	var m = Vector2(center.x, -center.y)
 	var segs = Game.road_segments_near(m, SIZE * 0.75)
 	_mesh.mesh = _ribbons(segs, 1.0, false)
+	_lane_mesh.mesh = _lane_ribbons()
 	_mroads.mesh = _ribbons(Game.road_segments_near(m, MAP_SIZE * 0.75), 2.6, true)
 	for cam in [_cam, _mcam]:
 		cam.position = Vector3(center.x, 1000.0, center.y)
@@ -138,13 +167,42 @@ func _rebuild() -> void:
 	for i in 3:
 		await RenderingServer.frame_post_draw
 	var img: Image = _sv.get_texture().get_image()
-	img.convert(Image.FORMAT_R8)
+	img.convert(Image.FORMAT_RG8)   # R: yollar (arazi + çimen), G: patika/ev tabanı (yalnız çimen)
 	texture = ImageTexture.create_from_image(img)
 	local_map = ImageTexture.create_from_image(_msv.get_texture().get_image())
 	_sv.render_target_update_mode = SubViewport.UPDATE_DISABLED
 	_msv.render_target_update_mode = SubViewport.UPDATE_DISABLED
 	_pending = 0
 	version += 1
+
+
+## Ara sokak patikaları (pencere içindekiler): yarı genişlik 2.4 m (patika 1.5 m + kenar; 2 m/piksel dokuda kaybolmasın)
+func _lane_ribbons() -> ArrayMesh:
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var n = 0
+	for ln in lanes:
+		var a: Vector2 = ln[0]
+		var e: Vector2 = ln[1]
+		var half: float = ln[2]
+		if a.distance_to(center) > SIZE * 0.75:
+			continue
+		var A = Vector3(a.x, 0, a.y)
+		var B = Vector3(e.x, 0, e.y)
+		var dir = B - A
+		if dir.length() < 0.01:
+			continue
+		dir = dir.normalized()
+		var side = Vector3(-dir.z, 0, dir.x) * half
+		A -= dir * half * 0.5
+		B += dir * half * 0.5
+		for q in [[A - side, 0.0], [A + side, 1.0], [B + side, 1.0], [A - side, 0.0], [B + side, 1.0], [B - side, 0.0]]:
+			st.set_uv(Vector2(q[1], 0))
+			st.add_vertex(q[0])
+		n += 1
+	if n == 0:
+		return null
+	return st.commit()
 
 
 ## Yol parçalarından şerit ağı (UV.x yol kesiti, köşelerde yuvarlak kapak için ek dörtgen)

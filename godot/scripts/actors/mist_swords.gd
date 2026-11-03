@@ -50,67 +50,70 @@ static func _grip(b: MB, z0: float, z1: float, r: float, core: Color, wrapc: Col
 ## uçta keskin kenar köşesi sivri öne çıkar, uç kenarı içbükey kıvrılır. Kabza tabanında ince koyu muhafız plakası + sırtta küçük koyu
 ## yama; ince sap: siyah sargı bölümleri, aralarında gümüş halkalar, uçta gümüş topuz. Profil x -> model Y (keskin kenar -Y).
 static func _kubikiri(b: MB) -> void:
-	var steel = Color(0.27, 0.28, 0.3)
-	var edge_c = Color(0.88, 0.89, 0.9)
+	# ref zabuzababa.png: SIRT ucu en ileride; uç, sırttan keskin kenara İÇBÜKEY kıvrılıp kenarda sivri bir kanca yapar.
+	# keskin kenarda kabzaya yakın yarım ay kesik, uca yakın ortada yuvarlak delik; kenar+kesik+uç boyunca beyaz ağız şeridi
+	var steel = Color(0.3, 0.31, 0.33)
+	var edge_c = Color(0.9, 0.91, 0.92)
 	var dark = Color(0.1, 0.1, 0.11)
-	var silver = Color(0.78, 0.79, 0.82)
+	var silver = Color(0.8, 0.81, 0.84)
 	var sp = 0.075          # sırt (x)
 	var ed = -0.36          # keskin kenar (x)
-	var L = 1.84
-	var pts = [[sp, 0.03], [sp, L - 0.2]]
-	# uç: sırttan keskin kenara içbükey kıvrılan uç kenarı, keskin köşe öne (sivri)
-	for k in range(1, 9):
-		var t = float(k) / 8.0
-		var x = lerpf(sp, ed - 0.02, t)
-		var y = L - 0.2 + 0.24 * t - 0.09 * sin(t * PI)   # içbükey
-		pts.append([x, y])
-	pts.append([ed, L - 0.24])
-	# keskin kenarda derin yarım ay kesik (kabzaya yakın)
-	var c = Vector2(ed, 0.3)
+	var L = 1.86
+	var tipc = []           # uç kıvrımı: sırt (sp, L) -> kenar kancası (ed, L - 0.2)
+	for k in range(0, 11):
+		var t = float(k) / 10.0
+		tipc.append(Vector2(lerpf(sp, ed, t), L - 0.2 * t - 0.09 * sin(t * PI)))
+	var c = Vector2(ed, 0.32)
 	var r = 0.13
-	pts.append([ed, c.y + r])
-	for k in range(1, 14):
-		var t = PI * k / 14.0
-		pts.append([c.x + sin(t) * r, c.y + cos(t) * r])
-	pts.append([ed, c.y - r])
-	pts.append([ed, 0.03])
-	var outline = MB.hole(_v(pts), Vector2(sp - 0.12, L - 0.32), 0.085, 22)
-	b.add_slab(outline, 0.02, steel, Transform3D.IDENTITY, func(p: Vector2) -> float: return 0.005 if p.x < ed + 0.06 else 0.02, steel.darkened(0.3))
-	# beyaz ağız şeridi: keskin kenar boyunca (kesiğin çevresi + uç köşesi dahil), iki yüzde
-	var band = PackedVector2Array()
-	var inner = []
-	var outer = []
-	var path = [[ed, 0.05], [ed, c.y - r]]
+	var notch = []          # kenardaki yarım ay (kabza yakını), uçtan kabzaya doğru
 	for k in range(0, 15):
 		var t = PI * k / 14.0
-		path.append([c.x + sin(t) * r, c.y - cos(t) * r])
-	path.append([ed, c.y + r])
-	path.append([ed, L - 0.24])
-	path.append([ed - 0.02, L + 0.04])
-	for e in path:
-		outer.append(Vector2(e[0], e[1]))
-	for i in outer.size():
-		var p: Vector2 = outer[i]
-		var q: Vector2 = outer[mini(i + 1, outer.size() - 1)] - outer[maxi(i - 1, 0)]
-		var nrm = Vector2(-q.y, q.x).normalized()
-		if nrm.x < 0.0 and absf(nrm.x) > 0.2:
-			nrm = -nrm
-		inner.append(p + nrm * 0.045)
-	for p in outer:
-		band.append(p)
-	for i in range(inner.size() - 1, -1, -1):
-		band.append(inner[i])
-	b.add_slab(band, 0.022, edge_c, Transform3D.IDENTITY, func(p: Vector2) -> float: return 0.006, edge_c.darkened(0.2))
-	# muhafız: ince koyu plaka (ağız eni boyunca) + sırt tarafında küçük koyu yama
-	b.add("box", Vector3(0, (sp + ed) * 0.5, 0.025), Vector3(0.05, sp - ed + 0.04, 0.03), dark)
-	b.add("box", Vector3(0, sp - 0.06, 0.12), Vector3(0.024, 0.1, 0.13), dark.lightened(0.05))
-	# ince sap: siyah sargı bölümleri + gümüş halkalar + topuz
-	for k in 3:
-		var z = -0.05 - k * 0.11
-		b.add("cyl", Vector3(0, 0, z), Vector3(0.04, 0.085, 0.04), dark, Vector3(90, 0, 0), 10)
-		b.add("cyl", Vector3(0, 0, z - 0.055), Vector3(0.044, 0.024, 0.044), silver, Vector3(90, 0, 0), 10)
-	b.add("cyl", Vector3(0, 0, 0.0), Vector3(0.05, 0.03, 0.05), silver, Vector3(90, 0, 0), 10)
-	b.add("sphere", Vector3(0, 0, -0.39), Vector3(0.05, 0.05, 0.05), silver, Vector3.ZERO, 8)
+		notch.append(Vector2(c.x + sin(t) * r, c.y + cos(t) * r))
+	var pts = PackedVector2Array([Vector2(sp, 0.03)])
+	for q in tipc:
+		pts.append(q)
+	for q in notch:
+		pts.append(q)
+	pts.append(Vector2(ed, 0.03))
+	var outline = MB.hole(pts, Vector2((sp + ed) * 0.5 - 0.03, L - 0.36), 0.095, 24)
+	b.add_slab(outline, 0.02, steel, Transform3D.IDENTITY, func(p: Vector2) -> float: return lerpf(0.006, 0.02, clampf((p.x - ed) / 0.2, 0.0, 1.0)), steel.darkened(0.3))
+	# beyaz ağız şeridi: parça parça dörtgenler (kendini kesen tek çokgen üçgenlenmiyordu -> görünmüyordu)
+	var w = 0.042
+	var path = []           # [nokta, içe yön]
+	for k in 6:
+		path.append([Vector2(ed, lerpf(0.05, c.y - r, k / 5.0)), Vector2(1, 0)])
+	for k in range(notch.size() - 1, -1, -1):
+		var q: Vector2 = notch[k]
+		path.append([q, (q - c).normalized()])
+	for k in 12:
+		path.append([Vector2(ed, lerpf(c.y + r, L - 0.2, k / 11.0)), Vector2(1, 0)])
+	for k in range(tipc.size() - 1, 2, -1):
+		var q: Vector2 = tipc[k]
+		var dq: Vector2 = tipc[k - 1] - tipc[k]
+		var n = Vector2(dq.y, -dq.x).normalized()
+		if n.y > 0.0:
+			n = -n
+		path.append([q, n])
+	for i in path.size() - 1:
+		var p0: Vector2 = path[i][0]
+		var p1: Vector2 = path[i + 1][0]
+		var q = PackedVector2Array([p0, p1, p1 + path[i + 1][1] * w, p0 + path[i][1] * w])
+		b.add_slab(q, 0.023, edge_c, Transform3D.IDENTITY, func(_p: Vector2) -> float: return 0.0215, edge_c.darkened(0.15))
+	# muhafız: ince koyu plaka + sırt tarafında kabzaya yaslı yuvarlak koyu yama
+	b.add("box", Vector3(0, (sp + ed) * 0.5, 0.02), Vector3(0.05, sp - ed + 0.05, 0.035), dark)
+	var patch = PackedVector2Array()
+	for k in range(0, 9):
+		var t = PI * 0.5 * k / 8.0
+		patch.append(Vector2(sp - 0.15 + cos(t) * 0.15, 0.04 + sin(t) * 0.17))
+	patch.append(Vector2(sp - 0.15, 0.04))
+	b.add_slab(patch, 0.026, dark.lightened(0.08), Transform3D.IDENTITY, Callable(), dark)
+	# sap: siyah sargı + gümüş halkalar (ref: ince, uzun), gümüş topuz
+	b.add("cyl", Vector3(0, 0, -0.01), Vector3(0.05, 0.04, 0.05), silver, Vector3(90, 0, 0), 10)
+	for k in 4:
+		var z = -0.08 - k * 0.12
+		b.add("cyl", Vector3(0, 0, z), Vector3(0.038, 0.095, 0.038), dark, Vector3(90, 0, 0), 10)
+		b.add("cyl", Vector3(0, 0, z - 0.06), Vector3(0.042, 0.026, 0.042), silver, Vector3(90, 0, 0), 10)
+	b.add("cyl", Vector3(0, 0, -0.56), Vector3(0.044, 0.04, 0.044), silver, Vector3(90, 0, 0), 10)
 
 
 ## Samehada (sargılı, anime/Storm): uca doğru kalınlaşan kalın sopa, spiral beyaz bez sargısı (bantlar arası ince gri çizgi,
@@ -215,21 +218,25 @@ static func _samehada(b: MB) -> void:
 		b.add("sphere", Vector3(0.022 * sx, 0.015, -0.592), Vector3(0.025, 0.028, 0.02), Color(0.1, 0.1, 0.1), Vector3.ZERO, 6)
 
 
-## Kiba: ikiz yıldırım kılıcı — ince uzun ağız, iki kenarda geriye dönük dikenler, yuvarlak tsuba, sargılı sap
+## Kiba (ref kiba.png): düz, ince, uzun açık gümüş-lavanta ağız; kabza yanında bir yana, uca yakın öbür yana çıkan kavisli kanca
+## dikenler (ikisi de hafif uca doğru kıvrık); eğik kesik uç; kalın yuvarlak gümüş tsuba; kahverengi ahşap sap, gümüş topuz kapağı
 static func _kiba(b: MB) -> void:
-	var st = Color(0.68, 0.76, 0.88)
-	var w = 0.026
-	var pts = [[w, 0.06]]
-	for z0 in [0.5, 0.88]:   # +y kenarı: iki büyük geri dönük diken
-		pts += [[w, z0 - 0.02], [w + 0.14, z0 - 0.2], [w + 0.02, z0 + 0.05]]
-	pts += [[w * 0.6, 1.0], [0.0, 1.1], [-w * 0.6, 1.0]]
-	for z0 in [0.72, 0.3]:   # -y kenarı (aralı)
-		pts += [[-w - 0.02, z0 + 0.05], [-w - 0.14, z0 - 0.2], [-w, z0 - 0.02]]
-	pts += [[-w, 0.06]]
-	b.add_slab(_v(pts), 0.014, st, Transform3D.IDENTITY, Callable(), st.darkened(0.2))
-	b.add("box", Vector3(0, 0, 0.55), Vector3(0.004, 0.01, 0.9), Color(0.9, 0.95, 1.0))   # ortada parlak oluk
-	b.add("cyl", Vector3(0, 0, 0.04), Vector3(0.12, 0.02, 0.12), Color(0.18, 0.2, 0.26), Vector3(90, 0, 0), 14)   # tsuba
-	_grip(b, -0.22, 0.03, 0.026, Color(0.15, 0.17, 0.24), Color(0.35, 0.4, 0.55), 5)
+	var st = Color(0.6, 0.62, 0.72)
+	var w = 0.024
+	var pts = [[w, 0.05], [w, 0.12],
+		[0.06, 0.14], [0.11, 0.17], [0.16, 0.205], [0.21, 0.25],   # kabza yanı diken (dış kavis)
+		[0.15, 0.228], [0.1, 0.22], [0.06, 0.225], [w, 0.24],     # iç kavis
+		[w, 1.04], [-w, 0.97],                                    # eğik uç
+		[-w, 0.8], [-0.06, 0.785], [-0.11, 0.79], [-0.16, 0.81], [-0.21, 0.85],   # uç yanı diken
+		[-0.15, 0.76], [-0.1, 0.735], [-0.06, 0.72], [-w, 0.705],
+		[-w, 0.05]]
+	b.add_slab(_v(pts), 0.016, st, Transform3D.IDENTITY, func(p: Vector2) -> float: return 0.005 if absf(p.x) > w * 0.8 else 0.016, st.darkened(0.2))
+	b.add("box", Vector3(0, 0, 0.55), Vector3(0.018, 0.004, 0.88), st.lightened(0.25))   # orta sırt parlaklığı
+	b.add("cyl", Vector3(0, 0, 0.025), Vector3(0.075, 0.035, 0.075), Color(0.72, 0.73, 0.82), Vector3(90, 0, 0), 16)   # kalın tsuba
+	b.add("cyl", Vector3(0, 0, 0.025), Vector3(0.06, 0.04, 0.06), Color(0.55, 0.56, 0.66), Vector3(90, 0, 0), 16)
+	b.add("cyl", Vector3(0, 0, -0.12), Vector3(0.028, 0.23, 0.028), Color(0.36, 0.22, 0.13), Vector3(90, 0, 0), 10)   # ahşap sap
+	b.add("cyl", Vector3(0, 0, -0.245), Vector3(0.031, 0.03, 0.031), Color(0.5, 0.5, 0.6), Vector3(90, 0, 0), 10)
+	b.add("cyl", Vector3(0, 0, -0.272), Vector3(0.032, 0.03, 0.032), Color(0.78, 0.79, 0.86), Vector3(90, 0, 0), 10)   # topuz kapağı
 
 
 ## Hiramekarei: çift saplı geniş yaprak-balık ağzı (koyu), uca yakın iki delik, dipte geri kıvrılan yüzgeç kanca

@@ -295,7 +295,7 @@ static func _eye_panel(main: Node, dv: VBoxContainer, pr: Dictionary) -> void:
 			var need = 120.0 * lvl
 			dv.add_child(UI.label("Sonraki tomoe: gözler açıkken dövüşerek  %d / %d" % [int(xp), int(need)], 14, Color(1, 0.7, 0.6), HORIZONTAL_ALIGNMENT_LEFT, true))
 		elif k == 1 and lvl >= 3:
-			dv.add_child(UI.label("Mangekyō, en yakınını kendi ellerinle öldürmenin acısıyla uyanır...", 14, Color(1, 0.7, 0.6), HORIZONTAL_ALIGNMENT_LEFT, true))
+			dv.add_child(UI.label("Mangekyō, en yakınını kendi ellerinle öldürmenin ya da yanında savaşan bir dostun gözlerinin önünde ölmesinin acısıyla uyanır...", 14, Color(1, 0.7, 0.6), HORIZONTAL_ALIGNMENT_LEFT, true))
 		var sk = Eyes.SKILLS.get(k, [])
 		if not sk.is_empty():
 			var si = sk[0 if _eq_slot == "sag_goz" else 1]

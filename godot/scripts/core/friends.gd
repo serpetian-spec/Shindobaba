@@ -867,9 +867,11 @@ func _defect(id: String) -> void:
 	Hud.banner("%s KÖYDEN KAÇTI" % String(f["name"]).to_upper(), "Bandını çizip gitti. Artık Bingo Kitabı'nda bir kaçak.", Color(1, 0.45, 0.4))
 
 
-## Dost gözünün önünde öldü: kalıcı (Mangekyō artık yalnız yakın birini kendi elinle öldürünce: Enemy.die).
+## Dost gözünün önünde öldü: kalıcı. Mangekyō: yanında ölen dost da gözü uyandırır (yakın birini kendi elinle öldürmenin yanında).
 func _die_in_battle(id: String, n: Node) -> void:
 	var f: Dictionary = all()[id]
+	if n is Node3D and Game.player and Game.player.combat and Game.player.combat.modes and Game.player.combat.modes.get("eyes"):
+		Game.player.combat.modes.eyes.on_ally_died(n)
 	f["status"] = "öldü"
 	f["party"] = false
 	log_event(f, "Senin yanında savaşırken öldü")

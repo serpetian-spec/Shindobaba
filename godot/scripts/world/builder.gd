@@ -468,6 +468,11 @@ func _record_house(x: float, n: float, wdt: float, dep: float, yaw: float, base:
 	house_grid[hk].append(houses[houses.size() - 1])
 	var c = w(Vector3(x, 0, n))
 	add_solid(c, hw * 0.5 + 0.3, hd * 0.5 + 0.3, deg_to_rad(-yaw))
+	# ev tabanı: çimen evin içinde/zemininden çıkmasın (yol dokusuna düşük değerle)
+	var hb = Basis(Vector3.UP, deg_to_rad(-yaw))
+	var ha = c + hb * Vector3(0, 0, -hd * 0.5 + 0.6)
+	var he = c + hb * Vector3(0, 0, hd * 0.5 - 0.6)
+	preload("res://scripts/world/road_map.gd").add_lane(Vector2(ha.x, ha.z), Vector2(he.x, he.z), hw * 0.5)
 	var cols: Array = last_house.get("cols", [])
 	if not cols.is_empty():
 		var bs = Basis(Vector3.UP, deg_to_rad(-yaw) + PI)
