@@ -542,10 +542,11 @@ func _enemies_in(r: float) -> Array:
 
 func _genjutsu_gaze(t: Node3D, stun: float, dmg: float) -> void:
 	if t and is_instance_valid(t):
-		var rs = genjutsu_resist(t)
-		if rs < 1.0:
-			Combat.popup_text(t.global_position + Vector3.UP * 2.4, "Genjutsu kırıldı!" if rs == 0.0 else "Sharingan direndi", Color(1, 0.5, 0.5))
-			stun *= rs
+		var rs = genjutsu_land(p, t, true)
+		if rs <= 0.0:
+			return
+		stun *= rs
+		dmg *= rs
 	if t == null:
 		Hud.msg("Göz göze gelecek hedef yok.", Color(0.8, 0.8, 0.8))
 		return
@@ -1162,6 +1163,37 @@ static func genjutsu_resist(t: Node) -> float:
 	if t.has_meta("eyes") and int(t.get_meta("eyes").get("kind", 0)) in [1, 4, 5]:
 		return 0.0 if int(t.get_meta("eyes").get("lvl", 1)) >= 3 or int(t.get_meta("eyes").get("kind", 0)) >= 4 else 0.5
 	return 1.0
+
+
+## Genjutsu isabet kapısı (tüm Sharingan genjutsuları, oyuncu ve düşman aynı): döndürdüğü çarpan 0 ise genjutsu tutmadı.
+## - Göz teması (need_eye): hedef sana bakmıyorsa tutmaz (kanon karşı-oyun: gözlerine bakma).
+## - Magen: Kyō Tenchi-ten açık hedef genjutsuyu çözüp SALDIRANA geri yansıtır.
+## - Sharingan direnci (genjutsu_resist).
+static func genjutsu_land(caster: Node3D, t: Node3D, need_eye := true) -> float:
+	if t == null or not is_instance_valid(t) or t.is_dead():
+		return 0.0
+	if need_eye and t.has_method("face_dir") and not (t.has_method("has_status") and (t.has_status("stun") or t.has_status("bind"))):
+		var v = caster.global_position - t.global_position
+		v.y = 0.0
+		if v.length() > 0.5 and t.face_dir().dot(v.normalized()) < 0.25:
+			Combat.popup_text(t.global_position + Vector3.UP * 2.3, "Göz göze gelmedi", Color(0.8, 0.8, 0.8))
+			return 0.0
+	var kyo = (t == Game.player and Buffs.has("magen_kyo")) or (t.has_meta("kyo_until") and Time.get_ticks_msec() < int(t.get_meta("kyo_until")))
+	if kyo and caster != t and is_instance_valid(caster) and not caster.is_dead():
+		# ayna: genjutsu çözülür ve aynen saldırana döner
+		Combat.popup_text(t.global_position + Vector3.UP * 2.4, "Kyō Tenchi-ten!", Color(1, 0.35, 0.4))
+		Combat.popup_text(caster.global_position + Vector3.UP * 2.4, "Genjutsu geri döndü!", Color(1, 0.35, 0.4))
+		VFX.star(t.global_position + Vector3.UP * 1.65, Color(1, 0.2, 0.25), 2.2, 0.2)
+		VFX.shockwave(caster.global_position + Vector3.UP * 1.6, Color(0.9, 0.1, 0.15), 3.0, 0.35, false)
+		caster.apply_status("stun", 3.0)
+		caster.apply_status("fear", 3.0)
+		if caster == Game.player and Game.world:
+			Game.world.env.flash_tint(Color(0.85, 0.05, 0.05, 0.3), 1.2)
+		return 0.0
+	var rs = genjutsu_resist(t)
+	if rs < 1.0:
+		Combat.popup_text(t.global_position + Vector3.UP * 2.4, "Genjutsu kırıldı!" if rs == 0.0 else "Sharingan direndi", Color(1, 0.5, 0.5))
+	return rs
 
 
 # ------------------------------------------------------------------ Mangekyō göz YETENEKLERİ (jutsu değil; animede adı olmayan güçler)

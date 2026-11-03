@@ -149,12 +149,10 @@ static func kamui_phase(e: Enemy) -> bool:
 
 
 static func _gaze(e: Enemy, t: Node3D, stun: float, col: Color, label: String) -> void:
-	var rs = Eyes.genjutsu_resist(t)
-	if rs < 1.0:
-		Combat.popup_text(t.global_position + Vector3.UP * 2.2, "Genjutsu kırıldı!" if rs == 0.0 else "Sharingan direndi", Color(1, 0.5, 0.5))
-		stun *= rs
-		if stun <= 0.05:
-			return
+	# ortak genjutsu kapısı (oyuncununkiyle aynı): göz teması, Kyō Tenchi-ten yansıtması, Sharingan direnci
+	stun *= Eyes.genjutsu_land(e, t, true)
+	if stun <= 0.05:
+		return
 	t.apply_status("stun", stun)
 	FX.ring(t.global_position + Vector3.UP * 1.6, col, 1.6, 0.6, false, (e.global_position - t.global_position).normalized())
 	Combat.popup_text(t.global_position + Vector3.UP * 2.2, label, col.lightened(0.3))

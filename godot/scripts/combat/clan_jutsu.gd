@@ -4019,148 +4019,238 @@ func _gen_power(c: Node3D) -> float:
 	return (1.0 + Stats.skill(Game.profile, "gen_power")) if c is Player else 1.0
 
 
-## Sharingan İllüzyonu: göz göze gelinir; hedefin önünde dev dönen Sharingan, hedef donakalır (3 sn), dünya kızıla boyanır
+## Genjutsu: Sharingan (kanon): GÖZ TEMASI şart — hedef sana bakmıyorsa tutmaz. Kurban yanılsamaya düşer: bilinci kayar,
+## dizlerinin üstüne çöker; yanılsamada yerden yükselen gölge eller onu kavrar (izleyen de görür). Sharingan sahibi direnir.
 func c_genjutsu_sharingan(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 22.0)
 	if tt == null:
 		return
 	busy(c, 0.5)
-	var gm = _gen_power(c)
-	var eye_pos = Jutsu._mouth(c) + Vector3.UP * 0.12
-	VFX.star(eye_pos, Color(1, 0.15, 0.1), 1.4, 0.2)
-	tether(func(): return eye_pos, func(): return tt.global_position + Vector3.UP * 1.5 if is_instance_valid(tt) else eye_pos, 0.04, glow(Color(1, 0.1, 0.08)), 0.35)
-	var disc = _sharingan_disc(0.1)
-	get_tree().current_scene.add_child(disc)
-	var face = tt.global_position + Vector3.UP * 1.6
-	disc.global_position = face + (c.global_position - tt.global_position).normalized() * 1.2
-	disc.look_at(face, Vector3.UP)
-	var tw = disc.create_tween()
-	tw.tween_property(disc, "scale", Vector3.ONE * 2.6, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_interval(0.8)
-	tw.tween_property(disc, "scale", Vector3.ONE * 0.01, 0.25)
-	tw.tween_callback(disc.queue_free)
-	st(tt, "stun", 3.0 * gm)
-	st(tt, "fear", 3.0 * gm)
+	_eye_flash(c)
+	var gm = _gen_power(c) * Eyes.genjutsu_land(c, tt, true)
+	if gm <= 0.0:
+		return
+	var dur = 3.0 * gm
+	st(tt, "stun", dur)
+	st(tt, "fear", dur)
+	_illusion(tt, dur, Color(0.85, 0.05, 0.05))
+	_shadow_hands(tt, dur)
 	hit(c, tt.global_position + Vector3.UP, 0.8, inf(c, "genjutsu_sharingan", 0.35, {"knock": 0.0, "dir": Vector3.ZERO}))
-	if Game.world:
-		if tt == Game.player:
-			Game.world.env.flash_tint(Color(0.85, 0.05, 0.05, 0.28), 1.4)
-		elif c is Player:
-			Game.world.env.flash_tint(Color(0.85, 0.05, 0.05, 0.14), 0.6)
 	Sfx.play("genjutsu", tt.global_position)
 
 
-## Zorlayıcı Sharingan: gözlerden yayılan kızıl baskı dalgası; 18 m içindekiler diz çöker (sersem + korku)
-func c_iatsu_sharingan(c: Node3D, _t: Node3D) -> void:
-	busy(c, 0.7)
-	var gm = _gen_power(c)
-	var center = c.global_position
-	var fd: Vector3 = c.face_dir() if c.has_method("face_dir") else Vector3.FORWARD
+## Iatsu Sharingan (kanon): tek bir BAKIŞ — kurbana kabus genjutsusu çöker, ezici baskı onu dizlerinin üstüne düşürür
+## (Sai bile sarsılmıştı). Tek hedef, göz teması şart. Kurban çöker, korkudan kıpırdayamaz.
+func c_iatsu_sharingan(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 18.0)
+	if tt == null:
+		return
+	busy(c, 0.6)
+	_eye_flash(c, 1.6)
+	var gm = _gen_power(c) * Eyes.genjutsu_land(c, tt, true)
+	if gm <= 0.0:
+		return
+	var dur = 2.6 * gm
+	st(tt, "stun", dur)
+	st(tt, "fear", dur + 1.5)
+	# baskı: bakışın yönünde kızıl-kara öldürme niyeti dalgası kurbanın üstüne çöker
+	var from = Jutsu._mouth(c) + Vector3.UP * 0.12
+	var to = tt.global_position + Vector3.UP * 1.4
 	for k in 3:
-		after(k * 0.15, func():
-			VFX.shockwave(center + Vector3.UP * 1.5, Color(0.9, 0.08, 0.06), 10.0 + k * 8.0, 0.5, false)
-			VFX.shockwave(gp(center) + Vector3.UP * 0.1, Color(0.6, 0.02, 0.02), 16.0 + k * 10.0, 0.6))
-	var disc = _sharingan_disc(1.0)
-	get_tree().current_scene.add_child(disc)
-	disc.global_position = Jutsu._mouth(c) + Vector3.UP * 0.6 + fd * 0.8
-	disc.look_at(disc.global_position + fd, Vector3.UP)
-	var tw = disc.create_tween()
-	tw.tween_property(disc, "scale", Vector3.ONE * 3.5, 0.5).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-	tw.parallel().tween_property(disc, "global_position:y", disc.global_position.y + 2.0, 0.5)
-	tw.tween_property(disc, "scale", Vector3.ONE * 0.01, 0.3)
-	tw.tween_callback(disc.queue_free)
-	for e in enemies_near(c, center, 18.0):
-		st(e, "stun", 2.4 * gm)
-		st(e, "fear", 3.5 * gm)
-		if e.get("model"):
-			e.model.play("crouch", 0.1)
-		FX.burst(e.global_position + Vector3.UP * 1.8, {"amount": 10, "life": 0.8, "size": 0.3, "vmin": 0.5, "vmax": 1.5, "gravity": Vector3(0, -2, 0), "colors": [Color(1, 0.2, 0.2), Color(0.5, 0, 0, 0)]})
-	var near = tg(c, null, 18.0)
-	if near:
-		hit(c, near.global_position + Vector3.UP, 0.8, inf(c, "iatsu_sharingan", 0.5, {"knock": 0.0}))
-	shake(0.5)
+		after(k * 0.08, func():
+			VFX.shockwave(from.lerp(to, 0.35 + k * 0.3), Color(0.7, 0.02, 0.03), 2.0 + k * 1.2, 0.3, false, (to - from).normalized()))
+	after(0.2, func():
+		if not live(tt):
+			return
+		if tt.get("model"):
+			tt.model.play("crouch", 0.05, 1.0)
+		VFX.puffs(tt.global_position + Vector3.UP * 0.2, {"amount": 18, "life": 0.6, "size": 0.9, "radius": 0.6, "vmin": 2.0, "vmax": 4.0, "dir": Vector3.UP, "spread": 70.0,
+			"hot": 0.0, "glow": 0.0, "outline": 0.05, "outline_col": Color(0.5, 0.0, 0.03), "colors": [Color(0.12, 0.0, 0.02, 0.9), Color(0.05, 0.0, 0.01, 0.0)]})
+		_illusion(tt, dur, Color(0.7, 0.0, 0.03))
+		shake(0.35))
+	hit(c, tt.global_position + Vector3.UP, 0.8, inf(c, "iatsu_sharingan", 0.5, {"knock": 0.0}))
 	if Game.world and c is Player:
-		Game.world.env.flash_tint(Color(0.6, 0.0, 0.0, 0.18), 0.9)
-	Sfx.play("genjutsu", center, 0.7)
+		Game.world.env.flash_tint(Color(0.6, 0.0, 0.0, 0.14), 0.6)
+	Sfx.play("genjutsu", tt.global_position, 0.7)
 
 
-## Serap Karga: kara kargalar sürüsü hedefin etrafında döner; hedef kör olur, yavaşlar; sonunda tüyler saçılır
+## Bakış anı: kullanıcının gözünde Sharingan çakar
+func _eye_flash(c: Node3D, s := 1.2) -> void:
+	VFX.star(Jutsu._mouth(c) + Vector3.UP * 0.12, Color(1, 0.12, 0.1), s, 0.18)
+
+
+## Kurbanın yaşadığı yanılsama (izleyen de görür): bedeninden yükselen kızıl-kara tüller;
+## kurban oyuncuysa ekran kızıla çalar
+func _illusion(tt: Node3D, dur: float, col: Color) -> void:
+	if not live(tt):
+		return
+	var wr = weakref(tt)
+	every(maxf(0.9, dur), 0.2, func(_i, _k):
+		var n = wr.get_ref()
+		if n == null or not is_instance_valid(n):
+			return
+		VFX.puffs(n.global_position + Vector3.UP * randf_range(0.3, 1.6), {"amount": 3, "life": 0.9, "size": 0.5, "radius": 0.5, "vmin": 0.4, "vmax": 1.2, "dir": Vector3.UP, "spread": 40.0,
+			"hot": 0.0, "glow": 0.0, "outline": 0.0, "colors": [Color(col.r, col.g, col.b, 0.0), Color(col.r, col.g, col.b, 0.55), Color(0.02, 0.0, 0.01, 0.0)]}))
+	VFX.star(tt.global_position + Vector3.UP * 1.6, col.lightened(0.3), 1.2, 0.15)
+	if tt == Game.player and Game.world:
+		Game.world.env.flash_tint(Color(col.r, col.g, col.b, 0.3), minf(dur, 2.0))
+
+
+## Genjutsu: Sharingan'ın yanılsaması (kanon örneği: gölge bir figür kurbanı kavrar): yerden gölge eller yükselip bedeni sarar
+func _shadow_hands(tt: Node3D, dur: float) -> void:
+	var base = tt.global_position
+	var m = Jutsu._black_mat()
+	for k in 5:
+		var a = k * TAU / 5.0 + randf_range(-0.3, 0.3)
+		var pts = []
+		var rr = []
+		for j in 9:
+			var u = j / 8.0
+			var ang = a + u * 2.4
+			var rad = lerpf(1.1, 0.42, u)
+			pts.append(Vector3(cos(ang) * rad, sin(u * PI * 0.75) * 1.25, sin(ang) * rad))
+			var w = lerpf(0.13, 0.03, u)
+			rr.append(Vector2(w, w))
+		var mb = MB.new()
+		Loft.tube(mb, pts, rr, Color.WHITE, 6, 2)
+		for f in 4:   # parmak uçları
+			var fa = a + 2.4 + (f - 1.5) * 0.22
+			mb.add("cone", Vector3(cos(fa) * 0.4, 1.0, sin(fa) * 0.4), Vector3(0.04, 0.24, 0.04), Color.WHITE, Vector3(0, -rad_to_deg(fa), 150), 5)
+		var mi = MeshInstance3D.new()
+		mi.mesh = mb.build(null)
+		mi.material_override = m
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		get_tree().current_scene.add_child(mi)
+		mi.global_position = base
+		mi.scale = Vector3(1, 0.02, 1)
+		var tw = mi.create_tween()
+		tw.tween_interval(k * 0.05)
+		tw.tween_property(mi, "scale", Vector3(1.15, 0.6, 1.15), 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)   # alçaktan sarar (kurban yere çöker)
+		tw.tween_interval(maxf(0.3, dur - 0.7))
+		tw.tween_property(mi, "scale", Vector3(1, 0.02, 1), 0.3)
+		tw.tween_callback(mi.queue_free)
+
+
+## Magen: Shinkarasu (kanon, Itachi): göz teması GEREKMEZ — kullanıcıdan bir karga seli boşalır, kurbanı sarıp yutar ve
+## onu savunmasız bırakır (sersem + hedefini kaybeder). Kargalar Itachi'nin kargaları (MsArts._crow), sonunda tüye dağılır.
 func c_magen_shinkarasu(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 26.0)
 	if tt == null:
 		return
-	busy(c, 0.4)
-	var gm = _gen_power(c)
+	busy(c, 0.5)
+	anim(c, "cast_out", 1.2)
+	_eye_flash(c)
+	var gm = _gen_power(c) * Eyes.genjutsu_land(c, tt, false)
 	var crows = []
-	for k in 18:
-		var cb = MB.new()
-		cb.add("sphere", Vector3.ZERO, Vector3(0.22, 0.2, 0.5), Color(0.05, 0.04, 0.07), Vector3.ZERO, 8)
-		cb.add("cone", Vector3(0, 0, -0.32), Vector3(0.06, 0.16, 0.06), Color(0.15, 0.12, 0.1), Vector3(-90, 0, 0), 5)
-		cb.add("sphere", Vector3(0.05, 0.05, -0.22), Vector3(0.04, 0.04, 0.03), Color(0.9, 0.1, 0.1), Vector3.ZERO, 5)
-		var wl = MB.new()
-		wl.add("box", Vector3(0.35, 0, 0), Vector3(0.7, 0.03, 0.3), Color(0.06, 0.05, 0.08), Vector3.ZERO)
-		var bird = mesh_of(cb)
-		for sx in [-1.0, 1.0]:
-			var w = mesh_of(wl)
-			w.scale.x = sx
-			bird.add_child(w)
-			var fl = w.create_tween().set_loops()
-			fl.tween_property(w, "rotation:z", 0.8 * sx, 0.12)
-			fl.tween_property(w, "rotation:z", -0.5 * sx, 0.12)
-		get_tree().current_scene.add_child(bird)
-		bird.global_position = c.global_position + Vector3(randf_range(-2, 2), randf_range(1, 3), randf_range(-2, 2))
-		crows.append([bird, randf() * TAU, randf_range(1.6, 3.4), randf_range(0.6, 2.8), randf_range(2.5, 4.5)])
-	every(3.5, 1.0 / 30.0, func(i, k):
-		if not live(tt):
-			return
-		var cen = tt.global_position
+	var N = 34
+	for k in N:
+		after(k * 0.025, func():
+			if not (is_instance_valid(c) and live(tt)):
+				return
+			var cr = MsArts._crow()
+			get_tree().current_scene.add_child(cr)
+			var from = c.global_position + Vector3.UP * 1.3 + Vector3(randf_range(-0.4, 0.4), randf_range(-0.3, 0.4), randf_range(-0.4, 0.4))
+			cr.global_position = from
+			cr.scale = Vector3.ONE * randf_range(0.8, 1.2)
+			crows.append({"n": cr, "a": randf() * TAU, "r": randf_range(0.5, 1.6), "y": randf_range(0.3, 2.3), "w": randf_range(3.0, 6.0) * (1.0 if randf() < 0.5 else -1.0), "t": 0.0, "from": from}))
+	var dur = 3.2
+	every(dur, 1.0 / 30.0, func(i, _k):
+		var cen = tt.global_position if live(tt) else c.global_position
 		for cr in crows:
-			var b: Node3D = cr[0]
+			var b = cr["n"]
 			if not is_instance_valid(b):
 				continue
-			cr[1] += cr[4] / 30.0
-			var target_p = cen + Vector3(cos(cr[1]) * cr[2], cr[3] + sin(cr[1] * 2.0) * 0.3, sin(cr[1]) * cr[2])
+			cr["t"] += 1.0 / 30.0
+			cr["a"] += cr["w"] / 30.0
+			var orbit = cen + Vector3(cos(cr["a"]) * cr["r"], cr["y"], sin(cr["a"]) * cr["r"])
 			var prev = b.global_position
-			b.global_position = prev.lerp(target_p, 0.25 if k > 0.1 else 0.08)
-			if (b.global_position - prev).length() > 0.01:
-				b.look_at(b.global_position + (b.global_position - prev), Vector3.UP)
-		if i % 10 == 0:
-			st(tt, "slow", 1.2)
+			var k = clampf(cr["t"] / 0.35, 0.0, 1.0)   # önce sel hâlinde hedefe akar, sonra etrafında döner
+			b.global_position = (cr["from"] as Vector3).lerp(orbit, k * k * (3.0 - 2.0 * k)) if k < 1.0 else prev.lerp(orbit, 0.35)
+			var dv = b.global_position - prev
+			if dv.length() > 0.01 and absf(dv.normalized().y) < 0.97:   # büyük dünya koordinatında küçük fark kaybolmasın: birim yön
+				b.look_at(b.global_position + dv.normalized() * 3.0, Vector3.UP)
+			MsArts._flap(b, cr["t"] * 2.2)
+		if i == 12 and gm > 0.0 and live(tt):
+			# karga seli kurbanı yuttu: savunmasız
+			st(tt, "stun", 2.4 * gm)
+			st(tt, "fear", 3.0 * gm)
 			if tt.has_method("lose_target"):
-				tt.lose_target(1.5 * gm)
-			elif tt == Game.player and Game.world:
-				Game.world.env.flash_tint(Color(0.05, 0.02, 0.08, 0.45), 0.5)
-			hit(c, tt.global_position + Vector3.UP, 0.8, inf(c, "magen_shinkarasu", 0.08, {"knock": 0.0}))
+				tt.lose_target(3.0 * gm)
+			_illusion(tt, 2.4 * gm, Color(0.3, 0.05, 0.08))
+		if i % 10 == 5 and gm > 0.0 and live(tt):
+			hit(c, tt.global_position + Vector3.UP, 0.8, inf(c, "magen_shinkarasu", 0.1, {"knock": 0.0}))
 	, func():
 		for cr in crows:
-			if is_instance_valid(cr[0]):
-				FX.burst(cr[0].global_position, {"amount": 6, "life": 1.2, "tex": FX.tex_leaf, "add": false, "cel": false, "size": 0.25, "vmin": 0.5, "vmax": 2.0, "gravity": Vector3(0, -1.5, 0), "spin": 300.0,
+			var b = cr["n"]
+			if is_instance_valid(b):
+				FX.burst(b.global_position, {"amount": 5, "life": 1.2, "tex": FX.tex_leaf, "add": false, "cel": false, "size": 0.22, "vmin": 0.5, "vmax": 2.0, "gravity": Vector3(0, -1.5, 0), "spin": 300.0,
 					"colors": [Color(0.05, 0.04, 0.07), Color(0.05, 0.04, 0.07, 0)]})
-				cr[0].queue_free())
+				b.queue_free())
 	Sfx.play("genjutsu", tt.global_position, 1.2)
 
 
-## Zincirli Kazıklar: hedefin etrafında yerden kızıl kazıklar fırlar, kollarını ve bacaklarını çiviler; bağlı kalır ve kanar
+## Magen: Kasegui no Jutsu (kanon): önce Genjutsu: Sharingan (GÖZ TEMASI) — yanılsamada kurbanın bedenine yukarıdan dev kazıklar
+## çakılır, hareket özgürlüğü elinden alınır; acı gerçektir (işkence). Kazıklar yanılsamadır: yarı saydam kızıl-kara.
 func c_magen_kasegui_no_jutsu(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 22.0)
 	if tt == null:
 		return
 	busy(c, 0.5)
-	var gm = _gen_power(c)
-	var cen = gp(tt.global_position)
-	VFX.shockwave(cen + Vector3.UP * 0.1, Color(0.5, 0.0, 0.02), 8.0, 0.5)
+	_eye_flash(c)
+	var gm = _gen_power(c) * Eyes.genjutsu_land(c, tt, true)
+	if gm <= 0.0:
+		return
 	var dur = 3.5 * gm
-	for k in 7:
-		var a = k * TAU / 7.0 + randf() * 0.3
-		var base = cen + Vector3(cos(a), 0, sin(a)) * 1.6
-		var tip = tt.global_position + Vector3.UP * randf_range(0.6, 1.6)
-		var dir = (tip - base).normalized()
-		after(k * 0.05, func():
-			spike(base, (tip - base).length() + 0.5, 0.18, Color(0.55, 0.04, 0.05), dur, Vector3(-dir.z * 60.0, 0, dir.x * 60.0)))
 	st(tt, "bind", dur)
-	st(tt, "burn", dur)
-	hit(c, tt.global_position + Vector3.UP, 0.8, inf(c, "magen_kasegui_no_jutsu", 0.5, {"knock": 0.0}))
-	if Game.world:
-		Game.world.env.flash_tint(Color(0.35, 0.0, 0.05, 0.3 if tt == Game.player else 0.12), 1.2)
-	shake(0.35)
+	_illusion(tt, dur, Color(0.5, 0.0, 0.03))
+	var cen = tt.global_position
+	var mat = StandardMaterial3D.new()
+	mat.albedo_color = Color(0.2, 0.0, 0.02, 0.92)
+	mat.emission_enabled = true
+	mat.emission = Color(0.75, 0.02, 0.06)
+	mat.emission_energy_multiplier = 1.4
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var stakes = []
+	for k in 6:
+		after(0.12 + k * 0.11, func():
+			if not live(tt):
+				return
+			var a = k * TAU / 6.0 + randf_range(-0.3, 0.3)
+			var tilt = randf_range(0.35, 0.65)
+			var dir = Vector3(cos(a) * sin(tilt), -cos(tilt), sin(a) * sin(tilt)).normalized()   # yukarıdan, eğik çakılır
+			var through = tt.global_position + Vector3.UP * randf_range(0.6, 1.5)
+			var b = MB.new()
+			b.add("cone", Vector3(0, 0, -1.6), Vector3(0.22, 1.0, 0.22), Color.WHITE, Vector3(-90, 0, 0), 6)
+			b.add("cyl", Vector3(0, 0, 0.6), Vector3(0.26, 3.4, 0.26), Color.WHITE, Vector3(90, 0, 0), 6)
+			b.add("cyl", Vector3(0, 0, 2.35), Vector3(0.36, 0.14, 0.36), Color.WHITE, Vector3(90, 0, 0), 8)   # çakılan baş
+			var mi = MeshInstance3D.new()
+			mi.mesh = b.build(null)
+			mi.material_override = mat
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			get_tree().current_scene.add_child(mi)
+			var start = through - dir * 5.0
+			mi.global_transform = Transform3D(Basis.looking_at(dir, Vector3.UP if absf(dir.y) < 0.95 else Vector3.FORWARD), start)
+			var end = through + dir * 0.9
+			var tw = mi.create_tween()
+			tw.tween_property(mi, "global_position", end, 0.09).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+			tw.tween_callback(func():
+				VFX.star(through, Color(0.9, 0.1, 0.12), 1.2, 0.1)
+				FX.burst(through, {"amount": 10, "life": 0.5, "size": 0.18, "vmin": 2.0, "vmax": 5.0, "gravity": Vector3(0, -6, 0), "colors": [Color(0.7, 0.02, 0.04), Color(0.3, 0.0, 0.02, 0)]})
+				shake(0.12)
+				Sfx.play("kunai", through, 0.6))
+			stakes.append(mi))
+	# işkence: acı gerçek — süre boyunca tik hasarı, kurban kıvranır
+	every(dur, 0.5, func(i, _k):
+		if live(tt):
+			hit(c, tt.global_position + Vector3.UP, 0.8, inf(c, "magen_kasegui_no_jutsu", 0.12, {"knock": 0.0, "kind": "light"}))
+			if i % 2 == 0 and tt.get("model"):
+				tt.model.play("hit", 0.05, 0.8, true), func():
+		for mi in stakes:
+			if is_instance_valid(mi):
+				var tw = mi.create_tween()
+				tw.tween_property(mi, "scale", Vector3(0.05, 0.05, 1.0), 0.3)
+				tw.tween_callback(mi.queue_free))
+	if Game.world and tt == Game.player:
+		Game.world.env.flash_tint(Color(0.35, 0.0, 0.05, 0.3), 1.2)
 	Sfx.play("genjutsu", cen, 0.8)

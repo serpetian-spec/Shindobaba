@@ -14488,44 +14488,29 @@ func p_kyubi_chakura_modo(c: Node3D, _t: Node3D) -> void:
 	Sfx.play("roar", c.global_position, 1.1)
 
 
-## Şeytani Yanılsama Ayna Cennet-Dünya Dönüşü: önde ayna yüzeyi belirir (4 sn) — gelen saldırıyı yapan kendi yanılsamasına hapsolur
+## Magen: Kyō Tenchi-ten (kanon): Sharingan genjutsuyu anında çözer ve AYNISINI saldırana uygular (ayna). 6 sn duruş:
+## bu sürede sana yapılan her genjutsu (Sharingan bakışı, Kasegui, Iatsu, düşman göz genjutsusu...) saldırana döner
+## (Eyes.genjutsu_land). Hasar değil, yalnız genjutsu yansıtır.
 func p_magen_kyo_tenchi_ten(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.4)
-	var mirror = MeshInstance3D.new()
-	var qm = QuadMesh.new()
-	qm.size = Vector2(2.4, 3.0)
-	mirror.mesh = qm
-	var m = StandardMaterial3D.new()
-	m.albedo_color = Color(0.9, 0.3, 0.35, 0.35)
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m.metallic = 1.0
-	m.roughness = 0.0
-	m.cull_mode = BaseMaterial3D.CULL_DISABLED
-	m.emission_enabled = true
-	m.emission = Color(0.6, 0.1, 0.15)
-	mirror.material_override = m
-	c.add_child(mirror)
-	mirror.position = Vector3(0, 1.5, 1.2)
-	mirror.rotation.y = PI
-	var start_hp = float(c.get("hp")) if c.get("hp") != null else 0.0
-	var done = [false]
-	every(4.0, 0.1, func(_i, _k):
-		if done[0] or not live(c):
-			return
-		if float(c.get("hp")) < start_hp:
-			done[0] = true
-			heal(c, start_hp - float(c.get("hp")))
-			var tt = tg(c, t, 20.0)
-			if tt and live(tt):
-				VFX.shockwave(tt.global_position + Vector3.UP, Color(0.9, 0.2, 0.25), 4.0, 0.4, false)
-				if c is Player:
-					VFX.screen_lines(0.4, 1.0, Color(0.9, 0.2, 0.25))
-				st(tt, "stun", 3.0)
-				tt.take_hit(inf(c, "magen_kyo_tenchi_ten", 2.0, {"knock": 0.0, "kind": "heavy"})), func():
-		if is_instance_valid(mirror):
-			mirror.queue_free())
+	var DUR = 6.0
+	_blood_eyes(c, DUR)
 	if c is Player:
-		Buffs.add("magen_kyo", 4.0, {"_name": "Ayna Cennet-Dünya", "_desc": "ilk alınan hasar geri döner, saldıran yanılsamaya düşer"})
+		Buffs.add("magen_kyo", DUR, {"_name": "Kyō Tenchi-ten", "_desc": "sana yapılan genjutsu saldırana geri döner"})
+	else:
+		c.set_meta("kyo_until", Time.get_ticks_msec() + int(DUR * 1000.0))
+	# gözde dönen tomoe, açılışta kızıl ayna çakması
+	var face = Jutsu._mouth(c) + Vector3.UP * 0.12
+	VFX.star(face, Color(1, 0.2, 0.25), 1.6, 0.2)
+	var disc = _sharingan_disc(0.1)
+	get_tree().current_scene.add_child(disc)
+	disc.global_position = face + c.face_dir() * 0.5
+	disc.look_at(face + c.face_dir() * 2.0, Vector3.UP)
+	var tw = disc.create_tween()
+	tw.tween_property(disc, "scale", Vector3.ONE * 1.6, 0.2).set_trans(Tween.TRANS_BACK)
+	tw.parallel().tween_property(disc, "rotation:z", TAU, 0.45)
+	tw.tween_property(disc, "scale", Vector3.ONE * 0.01, 0.2)
+	tw.tween_callback(disc.queue_free)
 	Sfx.play("genjutsu", c.global_position, 1.2)
 
 

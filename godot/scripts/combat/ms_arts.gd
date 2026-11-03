@@ -94,21 +94,49 @@ static func kamui_vortex(pos: Vector3, size: float, dur: float) -> MeshInstance3
 
 
 ## Karga: iki kanatlı siyah gövde (kanat çırpar)
+## Itachi'nin kargası: sivri gagalı başı, kalın gövdesi, yelpaze kuyruğu ve parmak parmak tüylenen kanatları (Sharingan gözlü).
+## Örgüler bir kez kurulur (sürüler yüzlerce karga çağırır).
+static var _crow_body: ArrayMesh
+static var _crow_wing: ArrayMesh
 static func _crow() -> Node3D:
+	if _crow_body == null:
+		var ink = Color(0.04, 0.04, 0.06)
+		var mb = MB.new()
+		var pts = []
+		var rr = []
+		for k in 8:   # gövde: göğüs kalın, kuyruğa doğru incelir
+			var z = lerpf(-0.16, 0.2, k / 7.0)
+			pts.append(Vector3(0, -0.01 * sin(k / 7.0 * PI), z))
+			var w = 0.085 * sin(lerpf(0.35, 2.9, k / 7.0)) + 0.012
+			rr.append(Vector2(w, w * 0.9))
+		Loft.tube(mb, pts, rr, ink, 8, 2)
+		mb.add("sphere", Vector3(0, 0.05, -0.2), Vector3(0.11, 0.11, 0.12), ink, Vector3.ZERO, 8)   # baş
+		mb.add("cone", Vector3(0, 0.04, -0.3), Vector3(0.035, 0.11, 0.03), Color(0.12, 0.12, 0.14), Vector3(-90, 0, 0), 5)   # gaga
+		for sx in [-1.0, 1.0]:
+			mb.add("sphere", Vector3(0.045 * sx, 0.075, -0.23), Vector3(0.026, 0.026, 0.02), Color(0.95, 0.05, 0.05), Vector3.ZERO, 5)   # Sharingan gözler
+		for k in 5:   # yelpaze kuyruk
+			var a = lerpf(-0.45, 0.45, k / 4.0)
+			mb.add("box", Vector3(sin(a) * 0.06, -0.005, 0.27 + cos(a) * 0.05), Vector3(0.04, 0.008, 0.16), ink, Vector3(0, rad_to_deg(a), 0))
+		_crow_body = mb.build(Props.toon())
+		var wm = MB.new()   # sağ kanat (+X); sol kanat aynası
+		wm.add("box", Vector3(0.12, 0, 0.0), Vector3(0.2, 0.018, 0.17), ink, Vector3(0, -8, 0))   # iç kanat (örtü tüyleri)
+		for k in 5:   # dış kanat: parmak gibi ayrılan uç tüyler
+			var a = lerpf(-22.0, 18.0, k / 4.0)
+			var L = 0.2 + 0.04 * sin(k / 4.0 * PI)
+			var dir = Vector3(cos(deg_to_rad(a)), 0, sin(deg_to_rad(a)))
+			wm.add("box", Vector3(0.22, 0, 0.02) + dir * L * 0.5, Vector3(L, 0.012, 0.045), ink, Vector3(0, -a, 0))
+		_crow_wing = wm.build(Props.toon())
 	var root = Node3D.new()
-	var mb = MB.new()
-	mb.add("sphere", Vector3.ZERO, Vector3(0.18, 0.16, 0.36), Color(0.05, 0.05, 0.07), Vector3.ZERO, 6)
-	mb.add("sphere", Vector3(0, 0.06, -0.2), Vector3(0.12, 0.12, 0.12), Color(0.04, 0.04, 0.06), Vector3.ZERO, 6)
-	mb.add("cone", Vector3(0, 0.05, -0.3), Vector3(0.03, 0.09, 0.03), Color(0.2, 0.2, 0.22), Vector3(-90, 0, 0), 4)
-	mb.add("sphere", Vector3(0.05, 0.09, -0.25), Vector3(0.025, 0.025, 0.025), Color(0.9, 0.05, 0.05), Vector3.ZERO, 4)   # kırmızı göz (Sharingan kargası)
 	var body = MeshInstance3D.new()
-	body.mesh = mb.build(Props.toon())
+	body.mesh = _crow_body
+	body.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	root.add_child(body)
 	for sx in [-1.0, 1.0]:
-		var wm = MB.new()
-		wm.add("box", Vector3(sx * 0.3, 0, 0.02), Vector3(0.55, 0.02, 0.24), Color(0.06, 0.06, 0.08))
 		var w = MeshInstance3D.new()
-		w.mesh = wm.build(Props.toon())
+		w.mesh = _crow_wing
+		w.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		w.scale = Vector3(sx, 1, 1)
+		w.position = Vector3(0.04 * sx, 0.02, -0.04)
 		w.name = "W%d" % int(sx)
 		root.add_child(w)
 	return root
