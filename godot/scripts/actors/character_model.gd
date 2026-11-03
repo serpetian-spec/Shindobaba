@@ -4208,6 +4208,8 @@ func _weapons() -> void:
 		hand.add_child(node)
 		if id == "hiraishin_kunai":
 			node.scale = Vector3.ONE * 0.6   # gerçek kunai boyu (~40 cm)
+		if id == "kubikiribocho":
+			node.scale = Vector3.ONE * 0.74   # ~1.7 m toplam, ağız ~32 cm geniş (2.3 m çok büyüktü)
 		if id == "yagura_sopa":
 			node.scale = Vector3.ONE * 1.45   # Yagura'nın sopası boyundan uzun (~2.4 m)
 		if id == "kusanagi":
@@ -4376,13 +4378,12 @@ func _sheath_holder(kind: String, side: String, id: String, node: Node3D) -> Nod
 		cmi.mesh = cm.build(Props.toon())
 		holder.add_child(cmi)
 	if id == "kusanagi":
-		# Kusanagi kını: ağız boyunca siyah cilalı düz kın, ağızda gümüş halka, beyaz ip bağı (sap ve yılan muhafız dışarıda)
+		# Kusanagi kını (ref kusanagi.png): ağız boyunca düz, süssüz simsiyah kın (iki ince oluk), sap dışarıda
 		var km = MB.new()
 		var kl = Color(0.08, 0.08, 0.1)
-		km.add("box", Vector3(0, 0, 0.64), Vector3(0.026, 0.06, 0.9), kl)
-		km.add("box", Vector3(0, 0, 1.105), Vector3(0.03, 0.064, 0.03), Color(0.72, 0.74, 0.78))   # uç kapağı
-		km.add("box", Vector3(0, 0, 0.205), Vector3(0.032, 0.068, 0.03), Color(0.72, 0.74, 0.78))   # ağız halkası
-		km.add("box", Vector3(0, 0, 0.31), Vector3(0.034, 0.07, 0.03), Color(0.9, 0.9, 0.88))   # ip bağı
+		km.add("box", Vector3(0, 0, 0.615), Vector3(0.03, 0.056, 0.95), kl)
+		for sy in [-1.0, 1.0]:
+			km.add("box", Vector3(0.0155, sy * 0.012, 0.615), Vector3(0.002, 0.004, 0.93), kl.lightened(0.12))
 		var kmi = MeshInstance3D.new()
 		kmi.mesh = km.build(Props.toon())
 		holder.add_child(kmi)
@@ -4799,29 +4800,19 @@ func _update_rope() -> void:
 ## aşağı (ağız yönüne) kıvrılan pullu yılan gövdeleri, ortada mavi taş; düz, iki ağızlı, uca incelen çelik ağız (orta sırt).
 ## Kabza 0, ağız +Z, yassı yüz X.
 static func _kusanagi(b: MB) -> void:
-	var blk = Color(0.12, 0.12, 0.14)
-	var wht = Color(0.92, 0.92, 0.9)
-	var scale_c = Color(0.82, 0.62, 0.38)
-	var steel = Color(0.68, 0.7, 0.75)
-	b.add("cyl", Vector3(0, 0, 0.0), Vector3(0.036, 0.24, 0.036), wht, Vector3(90, 0, 0), 10)        # sargılı sap
-	for k in 9:
-		b.add("cyl", Vector3(0, 0, -0.105 + k * 0.026), Vector3(0.039, 0.007, 0.039), blk.lightened(0.15), Vector3(90 + 18, 0, 0), 10)
-	b.add("cyl", Vector3(0, 0, -0.135), Vector3(0.04, 0.03, 0.04), blk, Vector3(90, 0, 0), 10)        # topuz
-	b.add("cyl", Vector3(0, 0, 0.135), Vector3(0.044, 0.04, 0.044), blk, Vector3(90, 0, 0), 10)        # boğaz
-	# muhafız: iki yana kıvrılan yılan gövdeleri (küre zinciri, pullu iki ton), uçta küçük baş
-	for sy in [-1.0, 1.0]:
-		var ctrl = [Vector2(0.0, 0.04), Vector2(0.045, 0.045), Vector2(0.085, 0.07), Vector2(0.098, 0.11), Vector2(0.088, 0.15), Vector2(0.065, 0.17)]
-		for k in 16:   # kesintisiz kalın yılan gövdesi: kontrol noktaları arasında sık küreler, uca doğru incelir
-			var tt = float(k) / 15.0 * (ctrl.size() - 1)
-			var i0 = mini(int(tt), ctrl.size() - 2)
-			var q: Vector2 = (ctrl[i0] as Vector2).lerp(ctrl[i0 + 1], tt - i0)
-			var r = 0.036 - k * 0.0012
-			b.add("sphere", Vector3(0, q.x * sy, q.y + 0.11), Vector3(r * 1.3, r * 1.9, r * 1.9), scale_c if k % 3 != 0 else scale_c.darkened(0.2), Vector3.ZERO, 8)
-		b.add("sphere", Vector3(0, 0.058 * sy, 0.185), Vector3(0.036, 0.04, 0.05), scale_c.darkened(0.25), Vector3.ZERO, 8)   # yılan başı
-	b.add("sphere", Vector3(0, 0, 0.185), Vector3(0.04, 0.046, 0.05), Color(0.35, 0.75, 0.95), Vector3.ZERO, 10)   # mavi taş
-	# ağız: düz, iki ağızlı, uca doğru incelir (y genişlik, z boy); kalınlık ortada fazla (sırt), kenarda ince
-	var bl = PackedVector2Array([Vector2(-0.022, 0.07), Vector2(0.022, 0.07), Vector2(0.02, 0.8), Vector2(0.0, 0.98), Vector2(-0.02, 0.8)])
-	b.add_slab(bl, 0.012, steel, Transform3D(Basis(), Vector3(0, 0, 0.11)), func(q: Vector2) -> float: return 0.004 if absf(q.x) > 0.016 else 0.012, steel.darkened(0.15))
+	# ref kusanagi.png: muhafızsız düz kılıç — uzun siyah sap (hafif oval), sapın ağza girdiği yerde ince metal boğaz + küçük pim,
+	# ince uzun düz ağız (beyaz-gümüş, tek ağızlı, sırtta koyu çizgi), ucu eğik kesik (kiriha). Tutuş z=0, uç +Z ~1.08.
+	var blk = Color(0.1, 0.1, 0.12)
+	var steel = Color(0.88, 0.89, 0.9)
+	var metal = Color(0.62, 0.63, 0.66)
+	b.add("cyl", Vector3(0, 0, -0.04), Vector3(0.044, 0.32, 0.05), blk, Vector3(90, 0, 0), 12)          # uzun siyah sap
+	b.add("cyl", Vector3(0, 0, -0.2), Vector3(0.046, 0.012, 0.052), blk.lightened(0.08), Vector3(90, 0, 0), 12)   # sap ucu
+	b.add("cyl", Vector3(0, 0, 0.13), Vector3(0.036, 0.03, 0.04), metal, Vector3(90, 0, 0), 10)        # boğaz
+	b.add("cyl", Vector3(0.019, 0, 0.13), Vector3(0.008, 0.004, 0.008), blk, Vector3(0, 0, 90), 6)     # pim
+	# ağız: düz, sırt (+Y) kalın, keskin kenar (-Y) ince; uç eğik (keskin kenar uzun, sırt kısa)
+	var bl = PackedVector2Array([Vector2(-0.016, 0.145), Vector2(0.017, 0.145), Vector2(0.017, 1.0), Vector2(-0.016, 1.08)])
+	b.add_slab(bl, 0.01, steel, Transform3D.IDENTITY, func(q: Vector2) -> float: return 0.003 if q.x < -0.01 else 0.01, steel.darkened(0.15))
+	b.add("box", Vector3(0, 0.012, 0.57), Vector3(0.011, 0.003, 0.84), steel.darkened(0.35))           # sırt çizgisi
 
 
 ## Kusanagi Chōtō: ağzın ucundan ileri uzayan ince çelik (boyu 1 m, ölçek.z ile uzar); varsayılan gizli
@@ -4829,9 +4820,9 @@ static func _kusa_ext() -> MeshInstance3D:
 	var mi = MeshInstance3D.new()
 	mi.name = "KusaExt"
 	var b = MB.new()
-	b.add_slab(PackedVector2Array([Vector2(-0.02, 0.0), Vector2(0.02, 0.0), Vector2(0.016, 0.9), Vector2(0.0, 1.0), Vector2(-0.016, 0.9)]), 0.01, Color(0.85, 0.87, 0.92))
+	b.add_slab(PackedVector2Array([Vector2(-0.016, 0.0), Vector2(0.017, 0.0), Vector2(0.017, 0.92), Vector2(-0.016, 1.0)]), 0.01, Color(0.88, 0.89, 0.9))
 	mi.mesh = b.build(Props.toon())
-	mi.position = Vector3(0, 0, 0.91)
+	mi.position = Vector3(0, 0, 1.0)
 	mi.scale = Vector3(1, 1, 0.01)
 	mi.visible = false
 	return mi
@@ -5461,7 +5452,10 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 		"savas_cekici":
 			_cekic(b)   # savascekici.png
 		"yagura_sopa":
-			_yagura(b)   # yagurastaff.png
+			# çiçekli büyük kancalı uç VURAN uç (+Z, elden uzak); ele yakın taraf küçük kancalı uç
+			var yb = MB.new()
+			_yagura(yb)
+			b.add_mesh(yb, Transform3D(Basis(Vector3.UP, PI), Vector3(0, 0, 0.8)))   # Y ekseninde çevir: büyük kanca + çiçek -Y'de kalır (vuran yüz)
 		"kongo_asa":
 			# elmas asa (referans: Maymun Kral'ın dönüştüğü asa): düz siyah gövde, iki uçta kemik beyazı başlık
 			b.add("cyl", Vector3(0, 0, 0.15), Vector3(0.05, 2.1, 0.05), Color(0.08, 0.08, 0.09), Vector3(90, 0, 0), 12)
@@ -5641,14 +5635,13 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			for q in 6:
 				b.add("cyl", Vector3(0, 0, 0.04 + q * 0.075), Vector3(0.062, 0.022, 0.062), Color(0.82, 0.82, 0.84), Vector3(90, 0, 0), 10)
 			var H = Vector3(0, 0, 0.55)
-			var r0 = 0.085   # göbek deliği yarıçapı: tüyler halkanın dışından başlar (ortası boş, arkası görünür)
 			var L = 0.9
 			var n = 17
 			for k in n:
 				var a = deg_to_rad(lerpf(-80.0, 80.0, float(k) / (n - 1)))
 				var w = 0.075
 				var xo = 0.004 * (k % 2)
-				var xf = Transform3D(Basis(Vector3.RIGHT, a), H + Vector3(xo, 0, 0)) * Transform3D(Basis.IDENTITY, Vector3(0, r0, 0))
+				var xf = Transform3D(Basis(Vector3.RIGHT, a), H + Vector3(xo, 0, 0))
 				# beyaz kök kısmı: üst kenarı tırtıklı (anime: beyazla kırmızının sınırı yırtık gibi)
 				var wo = PackedVector2Array([Vector2(-w * 0.55, 0.0), Vector2(-w, L * 0.3)])
 				var zz = []
@@ -5678,10 +5671,9 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 					var w2 = 0.045
 					var L2 = 0.3 + 0.05 * (1.0 - absf(k - 5) / 5.0)
 					var o = PackedVector2Array([Vector2(-w2 * 0.5, 0.0), Vector2(-w2, L2 * 0.5), Vector2(0, L2), Vector2(w2, L2 * 0.5), Vector2(w2 * 0.5, 0.0)])
-					b.add_slab(o, 0.01, crimson, Transform3D(Basis(Vector3.RIGHT, a), H + Vector3(sxo, 0, 0)) * Transform3D(Basis.IDENTITY, Vector3(0, r0, 0)))
-			# göbek: ortası DELİK beyaz kalın halka (eskiden deliğin arkasındaki gök mavi diye mavi disk yapılmıştı)
-			b.add("torus", H, Vector3(0.2, 0.2, 0.2), white, Vector3(0, 0, 90), 20)
-			b.add("torus", H, Vector3(0.21, 0.21, 0.07), Color(0.82, 0.82, 0.84), Vector3(0, 0, 90), 20)
+					b.add_slab(o, 0.01, crimson, Transform3D(Basis(Vector3.RIGHT, a), H + Vector3(sxo, 0, 0)))
+			# göbek: eski beyaz göbek boyunda halka, ortası DELİK (deliğin arkasındaki gök mavi diye mavi disk yapılmıştı)
+			b.add("torus", H, Vector3(0.15, 0.15, 0.15), white, Vector3(0, 0, 90), 20)
 		"gunbai":
 			# Madara gunbai'si (kaynak gunbaielde.png / gunbaisirt.png): su kabağı (8) biçimli yelpaze — sapa yakın küçük, uçta büyük
 			# yuvarlak lob, belde boğum; kalın koyu gri çerçeve, krem-beyaz yüz, iki lobda 3'er kırmızı tomoe; yüzün ortasından
@@ -6119,7 +6111,7 @@ func _key_blade_sk(sk: Skeleton3D, blade: Vector3) -> void:
 			var px = _edge_x - z * _edge_x.dot(z)
 			if px.length() > 0.05:
 				x = px.normalized()
-		if w["id"] == "shibuki":
+		if w["id"] in ["shibuki", "kubikiribocho", "yagura_sopa"]:   # kubikiri: keskin kenar da -Y; yagura: büyük kanca + çiçek -Y
 			# Shibuki: AĞIZ kenarı (kâğıtlı geniş taraf, silah -Y) savuruş yönünde önde — kılıç gibi kenarla vurur.
 			# -Y hız yönünde => x = z × hız (dikey bileşen)
 			var sv: Vector3 = overlay._key_bv

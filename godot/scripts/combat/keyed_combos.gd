@@ -136,14 +136,15 @@ static func mods(id: String, i: int) -> Dictionary:
 				5: m.merge({"knock": 14.0, "reach_add": 3.5, "lunge_mul": 0.0})
 			return m
 		"yagura_sopa":
-			var m = {"lunge_mul": 0.5, "knock": 3.0}
+			# ağır kılıç gibi: geniş savuruşlar, uzun menzil (2.4 m sopa)
+			var m = {"lunge_mul": 0.5, "knock": 6.0, "reach_add": 1.0}
 			match i:
-				0: m.merge({"pull": true, "knock": 0.5, "reach_add": 1.2})
-				1: m.merge({"knock": 4.0, "reach_add": 0.6})
-				2: m.merge({"knock": 2.0})
-				3: m.merge({"launch": 10.0, "knock": 1.0, "reach_add": 0.6})
-				4: m.merge({"knock": 9.0, "reach_add": 1.0})
-				5: m.merge({"heavy": true, "knock": 12.0, "lunge_mul": 0.0})
+				0: m.merge({"heavy": true, "knock": 5.0})
+				1: m.merge({"knock": 10.0})
+				2: m.merge({"knock": 6.0})
+				3: m.merge({"launch": 10.0, "knock": 1.0})
+				4: m.merge({"pull": true, "knock": 12.0})
+				5: m.merge({"heavy": true, "knock": 14.0, "lunge_mul": 0.8, "reach_add": 1.4})
 			return m
 		"kubikiribocho":
 			var m = {"lunge_mul": 0.6}
@@ -397,7 +398,7 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 		"yagura_sopa":
 			# her adımda su: sopa uçlarından su püskürür (kendi su chakrası), darbede sıçrama, bitirişte girdap
 			var wn = _weapon_node(who)
-			var tip: Vector3 = wn.to_global(Vector3(0, 0, 1.2)) if wn != null else who.global_position + Vector3.UP * 1.3 + f * 1.5
+			var tip: Vector3 = wn.to_global(Vector3(0, 0, 1.15)) if wn != null else who.global_position + Vector3.UP * 1.3 + f * 1.5
 			var hp = who.global_position + Vector3.UP * 1.1 + f * 1.8
 			match i:
 				0:   # kanca çekişi: kanca suyla hedefe uzanır, çekerken su kuyruğu
@@ -427,21 +428,29 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 					WaterArt.splash(q, 1.6)
 					WaterArt.spray(q + Vector3.UP * 0.3, 1.6, f, 30.0, 1.6, true)
 					Combat.hit_sphere(who, who.global_position + f * 2.4 + Vector3.UP, 2.2, {"dmg": dmg * 0.6, "knock": 11.0, "kind": "light", "hitstop": 0.03, "melee": false, "element": "water"})
-				5:   # Suiro Kaiten: yere saplanan sopa çevresinde yükselen su girdabı
-					var q = gp.call(1.0)
-					WaterArt.ripple(q, 3.5)
-					WaterArt.splash(q, 2.4)
-					for k in 6:
-						who.get_tree().create_timer(k * 0.1).timeout.connect(func():
-							if is_instance_valid(who):
-								var a = TAU * k / 6.0
-								WaterArt.spray(q + Vector3(cos(a), 0, sin(a)) * 1.6, 1.3, (Vector3.UP * 2.0 + Vector3(-sin(a), 0, cos(a))).normalized(), 18.0, 1.8))
-					for k in 3:
-						WindFX.streak(func(t: float) -> Vector3:
-							var a = t * TAU * 2.0 + k * 2.1
-							return q + Vector3(cos(a) * (1.0 + t * 1.6), t * 3.2, sin(a) * (1.0 + t * 1.6)), 0.6, 0.12, Color(0.55, 0.8, 1.0, 0.85), k * 0.08, 24)
-					Combat.hit_sphere(who, q + Vector3.UP, 3.6, {"dmg": dmg * 0.7, "knock": 12.0, "launch": 7.0, "kind": "heavy", "hitstop": 0.06, "melee": false, "element": "water"})
+				5:   # Suiro Kaiten (UZUN MENZİL): sopa yere çakılır -> öne 14 m ilerleyen su fışkırması dizisi -> ucunda su girdabı
+					var q0 = gp.call(1.6)
+					WaterArt.splash(q0, 1.8)
 					_shake(who, 0.5)
+					for k in 8:
+						who.get_tree().create_timer(0.06 + k * 0.07).timeout.connect(func():
+							if not is_instance_valid(who):
+								return
+							var qd = q0 + f * (1.2 + k * 1.6)
+							qd.y = q0.y
+							WaterArt.ripple(qd, 1.4)
+							WaterArt.spray(qd, 1.2 + k * 0.05, Vector3.UP, 14.0, 1.6)
+							Combat.hit_sphere(who, qd + Vector3.UP * 0.8, 1.6, {"dmg": dmg * 0.3, "knock": 6.0, "launch": 5.0, "kind": "heavy", "hitstop": 0.03, "melee": false, "element": "water"}))
+					who.get_tree().create_timer(0.66).timeout.connect(func():
+						if not is_instance_valid(who):
+							return
+						var q = q0 + f * 13.0
+						WaterArt.splash(q, 2.4)
+						for k in 3:
+							WindFX.streak(func(t: float) -> Vector3:
+								var a2 = t * TAU * 2.0 + k * 2.1
+								return q + Vector3(cos(a2) * (1.0 + t * 1.6), t * 3.2, sin(a2) * (1.0 + t * 1.6)), 0.6, 0.12, Color(0.55, 0.8, 1.0, 0.85), k * 0.08, 24)
+						Combat.hit_sphere(who, q + Vector3.UP, 3.4, {"dmg": dmg * 0.7, "knock": 12.0, "launch": 7.0, "kind": "heavy", "hitstop": 0.06, "melee": false, "element": "water"}))
 		"kubikiribocho":
 			match i:
 				1:   # boyun biçmesi: geniş kılıç izi
@@ -515,8 +524,10 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 				_kusa_extend(who, 3.2, 0.32)
 			elif i == 5:
 				_kusa_extend(who, 2.6, 0.4)
-			elif i == 4:
-				_kusa_fly(who, dmg)
+			elif i == 4:   # kesik yağmurunun sonunda kılıç elden uçar
+				who.get_tree().create_timer(0.56).timeout.connect(func():
+					if is_instance_valid(who):
+						_kusa_fly(who, dmg))
 		"homatsu_kiseru":
 			_kiseru_strike(who, i, dmg)
 		"hiraishin_kunai":
@@ -686,7 +697,7 @@ static func on_start(id: String, i: int, who: Node3D) -> void:
 		"zincirli_kunai":
 			if i == 5:
 				_kg_weight(who, 0.0, "wrap")
-		"savas_cekici", "kubikiribocho":
+		"savas_cekici", "kubikiribocho", "yagura_sopa":
 			if i == 5 and who is CharacterBody3D:
 				who.velocity.y = 9.5
 		"fuma_shuriken", "kyodai_shuriken":
