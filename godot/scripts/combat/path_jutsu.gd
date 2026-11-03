@@ -18182,7 +18182,6 @@ func p_uchiha_ryu_shurikenjutsu_ikazuchi_sanren(c: Node3D, t: Node3D) -> void:
 
 func p_uchiha_kaenjin(c: Node3D, t: Node3D) -> void:
 	_blood_eyes(c, 2.0)
-	VFX.cracks(gp(c.global_position), 5.0)
 	c_uchiha_kaenjin(c, t)
 
 
