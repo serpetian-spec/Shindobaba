@@ -1,6 +1,6 @@
 extends Node
 ## Sınavlar ve terfiler (autoload "Exams"):
-##  Akademi mezuniyeti (yazılı + Bunshin/Henge/Kawarimi uygulaması + hedef parkuru), Zil Testi (jōnin hocaya karşı takım sınavı),
+##  Akademi mezuniyeti (yazılı + sınav odasında Bunshin/Henge + bahçede Kawarimi ve atış), takım sınavı (Parşömen Kapma),
 ##  Jōnin terfi değerlendirmesi (iki jōnin tavsiyesi + rehine krizi), Tokubetsu Jōnin uzmanlığı, ANBU seçmeleri (+ Kök teklifi).
 ##  Chūnin sınavı ChuninExam'da (events.gd); arena/takım arkadaşı yardımcıları buradan kullanılır.
 
@@ -204,8 +204,8 @@ func academy_talk() -> void:
 	var sensei = Progress.home_info()["s1"]
 	var f = flags()
 	if f.get("academy_passed", false):
-		Hud.dialog(sensei, "Mezuniyet sınavını geçtin ama gerçek sınav %s'nin Zil Testi! Antrenman alanına git." % Progress.home_info()["s2"],
-			[{"label": "Zil Testine başla", "cb": bell_start}])
+		Hud.dialog(sensei, "Mezuniyet sınavını geçtin ama asıl sınav jōnin hocan %s'nin takım sınavı! Antrenman alanına git." % Progress.home_info()["s2"],
+			[{"label": "Takım sınavına başla", "cb": bell_start}])
 		return
 	if cur.begins_with("academy"):
 		Hud.dialog(sensei, "Sınav devam ediyor, odaklan!", [])
@@ -213,7 +213,7 @@ func academy_talk() -> void:
 	if int(pr["level"]) < 5:
 		Hud.dialog(sensei, "Mezuniyet sınavı için en az Güç 5 olmalısın (şu an %d). Kuklalarla çalış, D-rank işlere yardım et, sonra gel." % int(pr["level"]), [])
 		return
-	Hud.dialog(sensei, "Mezuniyet sınavı üç bölüm: önce yazılı sınav, sonra benim önümde Bunshin, Henge ve Kawarimi, en son da hedef parkuru. Toplamda %60 başarı yeterli. Hazır mısın %s?" % pr["name"], [
+	Hud.dialog(sensei, "Mezuniyet sınavı üç bölüm: önce yazılı sınav; sonra sınav odasında, hocaların önünde Bunshin ve Henge; en son bahçede Kawarimi ve atış hedefleri. Toplamda %60 başarı yeterli. Hazır mısın %s?" % pr["name"], [
 		{"label": "Hazırım! (yazılı sınav)", "cb": academy_written},
 		{"label": "Biraz daha çalışayım", "cb": func(): pass}])
 
@@ -225,7 +225,7 @@ func academy_written() -> void:
 	data = {"written": 0.0, "practical": 0, "targets": 0}
 	ExamUI.written({"title": "Akademi Mezuniyet Sınavı — Yazılı", "subtitle": "8 soru • 2 dakika • Kâğıdına odaklan.", "questions": pool.slice(0, 8), "time": 120.0, "cheat": 0}, func(r: Dictionary):
 		data["written"] = float(r["correct"]) / float(r["total"])
-		Hud.dialog(Progress.home_info()["s1"], "Kâğıtlar toplandı (%d/%d doğru). Şimdi uygulama: önce Bunshin no Jutsu ile klonlarını göster. Mühürler: Koç - Yılan - Kaplan." % [r["correct"], r["total"]],
+		Hud.dialog(Progress.home_info()["s1"], "Kâğıtlar toplandı (%d/%d doğru). Şimdi sırayla sınav odasına çağıracağım. %s! Masanın önüne geç: Bunshin no Jutsu ile klonlarını göster. Mühürler: Koç - Yılan - Kaplan." % [r["correct"], r["total"], p()["name"]],
 			[{"label": "Başla", "cb": academy_practical}]))
 
 
@@ -254,13 +254,111 @@ func _practical_next(ok: bool) -> void:
 			Hud.banner("UYGULAMA 2/3", "Henge no Jutsu: hocanın kılığına gir", Color(0.6, 0.85, 1))
 			Hud.objective_progress("Henge no Jutsu'yu kullan")
 		"henge":
-			data["task"] = "kawarimi"
-			data["t"] = -4.0
-			data["throw_at"] = 2.0 + randf() * 2.0
-			Hud.banner("UYGULAMA 3/3", "Kawarimi: hoca kunai fırlattığı an [Q]", Color(0.6, 0.85, 1))
-			Hud.objective_progress("Dikkat! Kunai gelince [Q] Kawarimi")
+			academy_yard()
 		"kawarimi":
 			academy_targets()
+
+
+## Bahçe bölümü: sınav odasından çıkılır; yardımcı hoca karşıda durur, gerçekten kunai fırlatır (görünür mermi).
+## Kunai havadayken Kawarimi yapılırsa yer değiştirme kütüğü vurulur; geç kalınırsa kunai sana saplanır.
+func academy_yard() -> void:
+	cur = "academy_wait"
+	var pl = Game.player
+	if Interiors.inst and Interiors.inst.inside != "":
+		Hud.banner("BAHÇEYE", "Sınavın devamı akademinin bahçesinde", Color(0.6, 0.85, 1))
+		await get_tree().create_timer(1.2).timeout
+		await Interiors.inst.exit()
+		await get_tree().create_timer(0.5).timeout
+	var fw: Vector3 = pl.face_dir()
+	var at = Missions.open_ground(pl.global_position + fw * 10.0, 6.0)
+	var t = Villager.new()
+	t.role = "teacher"
+	t.display_override = "Yardımcı Hoca"
+	t.lines_override = ["Gözünü kunaiden ayırma!"]
+	get_tree().current_scene.add_child(t)
+	t.global_position = at
+	t.home = at
+	var dv = pl.global_position - at
+	t.facing = atan2(-dv.x, -dv.z)
+	t.stand_face = t.facing
+	t.fixed_face = true
+	nodes.append(t)
+	FX.smoke_puff(at + Vector3.UP, 0.7, 8)
+	data["task"] = "kawarimi"
+	data["teacher"] = t
+	data["tries"] = 0
+	data["kw_ok"] = 0
+	Hud.banner("UYGULAMA 3/3: KAWARIMI", "Yardımcı hoca kunai atacak — kunai havadayken yer değiştir [Q]", Color(0.6, 0.85, 1))
+	Hud.objective_progress("Kawarimi: kunai havadayken [Q]  (3 atıştan 2'si)")
+	cur = "academy_kawarimi"
+	await get_tree().create_timer(2.5).timeout
+	_kawarimi_throw()
+
+
+func _kawarimi_throw() -> void:
+	var t = data.get("teacher")
+	var pl = Game.player
+	if cur != "academy_kawarimi" or t == null or not is_instance_valid(t) or pl == null:
+		return
+	data["tries"] = int(data["tries"]) + 1
+	data["flying"] = true
+	var dv = pl.global_position - t.global_position
+	t.facing = atan2(-dv.x, -dv.z)
+	t.model.rotation.y = t.facing
+	t.model.play("throw", 0.1)
+	await get_tree().create_timer(0.35).timeout   # kolun savrulduğu an kunai çıkar
+	if not is_instance_valid(t) or cur != "academy_kawarimi":
+		return
+	var k = MeshInstance3D.new()
+	var b = MB.new()
+	b.add("box", Vector3(0, 0, -0.18), Vector3(0.05, 0.02, 0.32), Color(0.6, 0.62, 0.66))
+	b.add("cyl", Vector3(0, 0, 0.08), Vector3(0.03, 0.18, 0.03), Color(0.2, 0.2, 0.22), Vector3(90, 0, 0), 6)
+	b.add("torus", Vector3(0, 0, 0.2), Vector3(0.08, 0.08, 0.08), Color(0.3, 0.3, 0.32), Vector3(90, 0, 0), 8)
+	k.mesh = b.build(Props.toon())
+	get_tree().current_scene.add_child(k)
+	var from: Vector3 = t.global_position + Vector3.UP * 1.4
+	var to: Vector3 = pl.global_position + Vector3.UP * 1.1
+	k.global_position = from
+	k.look_at(to, Vector3.UP)
+	Sfx.play("whoosh", from, 1.4)
+	data["kunai"] = k
+	var tw = k.create_tween()
+	tw.tween_property(k, "global_position", to, 0.75)
+	tw.tween_callback(func():
+		if not data.get("flying", false):
+			return
+		data["flying"] = false
+		if is_instance_valid(k):
+			k.queue_free()
+		Game.player.hp = maxf(1.0, Game.player.hp - 8.0)
+		Combat.damage_number(Game.player.global_position + Vector3.UP * 2.0, 8.0, Color(1, 0.4, 0.35))
+		Combat.popup_text(Game.player.global_position + Vector3.UP * 2.4, "Geç kaldın!", UI.BAD)
+		_kawarimi_after())
+
+
+func _kawarimi_dodged() -> void:
+	data["flying"] = false
+	data["kw_ok"] = int(data["kw_ok"]) + 1
+	var k = data.get("kunai")
+	var pl = Game.player
+	# kunai yer değiştirme kütüğüne saplanır (Kawarimi kendi kütüğünü bırakır; kunai orada durur)
+	if k != null and is_instance_valid(k):
+		var kt = k.create_tween()
+		kt.tween_property(k, "global_position", k.global_position.lerp(pl.global_position + Vector3.UP, 0.5), 0.12)
+		kt.tween_interval(1.5)
+		kt.tween_callback(k.queue_free)
+	Combat.popup_text(pl.global_position + Vector3.UP * 2.4, "Kawarimi!", UI.GOOD)
+	_kawarimi_after()
+
+
+func _kawarimi_after() -> void:
+	if int(data["tries"]) >= 3 or int(data["kw_ok"]) >= 2:
+		data["practical"] = int(data["practical"]) + (1 if int(data["kw_ok"]) >= 2 else 0)
+		academy_targets()
+		return
+	Hud.objective_progress("Kawarimi: %d / %d başarılı (3 atış)" % [int(data["kw_ok"]), int(data["tries"])])
+	await get_tree().create_timer(2.2).timeout
+	_kawarimi_throw()
 
 
 func academy_targets() -> void:
@@ -269,10 +367,13 @@ func academy_targets() -> void:
 	# akademi odası dünyanın üstünde kurulu: kuklalar aşağıdaki araziye düşüyordu (görünmez → sınav bitmiyordu).
 	# parkur akademinin bahçesinde: önce dışarı çık
 	if Interiors.inst and Interiors.inst.inside != "":
-		Hud.banner("HEDEF PARKURU", "Bahçeye çık: hedef kuklalar dışarıda!", Color(1, 0.8, 0.4))
 		await get_tree().create_timer(1.2).timeout
 		await Interiors.inst.exit()
 		await get_tree().create_timer(0.4).timeout
+	# kanon (akademi atış dersi): hedefler yalnız kunai/shuriken atışıyla düşer; alet çantasına alıştırma kunaileri
+	var inv: Dictionary = p()["inventory"]
+	inv["kunai"] = maxi(int(inv.get("kunai", 0)), 20)
+	inv["shuriken"] = maxi(int(inv.get("shuriken", 0)), 20)
 	cur = "academy_targets"
 	data["t"] = 60.0
 	data["broken"] = 0
@@ -282,13 +383,14 @@ func academy_targets() -> void:
 		var q = Missions.open_ground(c + Vector3(sin(a), 0, cos(a)) * randf_range(8, 14), 10.0)
 		var d = TrainingDummy.new()
 		d.set_meta("exam_target", true)
+		d.set_meta("throw_only", true)
 		d.position = q
 		get_tree().current_scene.add_child(d)
 		d.global_position = q
 		nodes.append(d)
 		FX.smoke_puff(q + Vector3.UP, 0.7, 8)
 	Missions.target_marker = nodes.back().global_position if not nodes.is_empty() else c
-	Hud.banner("HEDEF PARKURU", "60 saniyede 6 hedef kuklayı devir!", Color(1, 0.8, 0.4))
+	Hud.banner("ATIŞ HEDEFLERİ", "60 saniyede 6 hedefi kunai/shuriken ile vur [R at, T değiştir]", Color(1, 0.8, 0.4))
 
 
 func _academy_results() -> void:
@@ -299,21 +401,25 @@ func _academy_results() -> void:
 	var tg = int(data["broken"])
 	var total = w * 0.4 + pr_ok / 3.0 * 0.35 + tg / 6.0 * 0.25
 	var passed = total >= 0.6
-	var rows = [["Yazılı sınav", "%%%d" % int(w * 100), w >= 0.5], ["Akademi teknikleri", "%d / 3" % pr_ok, pr_ok >= 2], ["Hedef parkuru", "%d / 6" % tg, tg >= 4], ["Toplam", "%%%d" % int(total * 100), passed]]
+	var rows = [["Yazılı sınav", "%%%d" % int(w * 100), w >= 0.5], ["Bunshin / Henge / Kawarimi", "%d / 3" % pr_ok, pr_ok >= 2], ["Atış hedefleri", "%d / 6" % tg, tg >= 4], ["Toplam", "%%%d" % int(total * 100), passed]]
 	if passed:
 		flags()["academy_passed"] = true
 		Progress.add_xp(120)
-		ExamUI.scorecard("Akademi Mezuniyet Sınavı", rows, "MEZUN OLDUN! Ama alın koruyucuyu hak etmek için bir sınav daha var: %s'nin Zil Testi. Antrenman alanına git." % Progress.home_info()["s2"], true, func():
+		ExamUI.scorecard("Akademi Mezuniyet Sınavı", rows, "MEZUN OLDUN! Ama alın koruyucuyu hak etmek için bir sınav daha var: jōnin hocan %s'nin takım sınavı. Antrenman alanına git." % Progress.home_info()["s2"], true, func():
 			Missions.target_marker = find_point(["training"])
 			Missions.has_marker = true
-			Missions.target_name = "Antrenman Alanı (Zil Testi)")
+			Missions.target_name = "Antrenman Alanı (Takım Sınavı)")
 		exam_finished.emit("academy", true)
 	else:
 		ExamUI.scorecard("Akademi Mezuniyet Sınavı", rows, "Bu sefer olmadı. Biraz daha çalış ve hocanla tekrar konuş.", false, func(): pass, "Tamam")
 		exam_finished.emit("academy", false)
 
 
-# ================================================================== ZİL TESTİ
+# ================================================================== TAKIM SINAVI (Parşömen Kapma)
+## Zil Testi Kakashi'ye özgüydü; her jōnin kendi sınavını yapar. Bu hocanın sınavı: antrenman alanındaki kütüğün üstünde mühürlü
+## bir parşömen; hoca onu korur (yenilmez). Parşömene 2.5 sn kesintisiz dokunan alır — hoca parşömene yaklaşanı hedefler, yani
+## biri hocayı oyalamadan alınamaz (takım arkadaşları hocaya saldırdıkça hoca onlarla uğraşır). Süre ortasında hoca bir arkadaşı
+## bağlar: onu çözmeden [F] parşömeni alan sınavı kaybeder ("arkadaşını terk eden ninja"). İsimler eski kayıtlarla uyumlu: bell_*.
 func bell_start() -> void:
 	Hud.close_dialog()
 	_clear_nodes()
@@ -322,13 +428,25 @@ func bell_start() -> void:
 	if pl.global_position.distance_to(at) > 60.0:
 		Missions.target_marker = at
 		Missions.has_marker = true
-		Missions.target_name = "Antrenman Alanı (Zil Testi)"
-		Hud.msg("Zil Testi antrenman alanında. Pusulayı takip et ve hocanla konuş.", Color(1, 0.85, 0.5))
+		Missions.target_name = "Antrenman Alanı (Takım Sınavı)"
+		Hud.msg("Takım sınavı antrenman alanında. Pusulayı takip et ve hocanla konuş.", Color(1, 0.85, 0.5))
 		data = {"bell_wait": true}
 		cur = "bell_wait"
 		return
 	cur = "bell"
 	var hi = Progress.home_info()
+	# parşömen: kütüğün üstünde
+	var sp = Missions.open_ground(at + Vector3(0, 0, -12), 6.0)
+	var stump = MeshInstance3D.new()
+	var b = MB.new()
+	b.add("cyl", Vector3(0, 0.35, 0), Vector3(0.55, 0.7, 0.55), Color(0.45, 0.32, 0.2), Vector3.ZERO, 12)
+	b.add("cyl", Vector3(0, 0.71, 0), Vector3(0.5, 0.02, 0.5), Color(0.72, 0.58, 0.4), Vector3.ZERO, 12)
+	b.add("cyl", Vector3(0, 0.8, 0), Vector3(0.12, 0.42, 0.12), Color(0.92, 0.88, 0.75), Vector3(0, 0, 90), 10)
+	b.add("cyl", Vector3(0, 0.8, 0), Vector3(0.13, 0.08, 0.13), Color(0.75, 0.15, 0.12), Vector3(0, 0, 90), 10)
+	stump.mesh = b.build(Props.toon())
+	get_tree().current_scene.add_child(stump)
+	stump.global_position = sp
+	nodes.append(stump)
 	var s = Enemy.new()
 	var a = Enemy.archetype("rogue", 0)
 	a["name"] = hi["s2"]
@@ -345,19 +463,21 @@ func bell_start() -> void:
 	a["look"]["band"] = hi["band"]
 	a["look"]["vest"] = hi["vest"]
 	a["look"]["village"] = Progress.home()
-	a["look"]["face_style"] = "cloth"
 	s.setup(a)
 	s.set_meta("bell_sensei", true)
 	get_tree().current_scene.add_child(s)
-	var q = at + Vector3(0, 0, -10)
+	var q = sp + Vector3(1.5, 0, 0)
 	q.y = Game.ground_height(q.x, q.z)
 	s.global_position = q
 	s.home = q
 	nodes.append(s)
 	var team = spawn_teammates(pl.global_position, 2, 6)
-	data = {"sensei": s, "team": team, "t": 150.0, "hits": 0, "bells": 0, "together": 0.0, "mate": String(team[0].display_name).replace(" (takım)", "")}
-	Hud.dialog(hi["s2"], "Bende iki zil var, siz üç kişisiniz. Öğlene kadar (150 sn) zili alamayan öğle yemeği yiyemez ve akademiye geri döner. Bana öldürme niyetiyle gelin! Başla!", [])
-	Hud.banner("ZİL TESTİ", "Hocadan iki zili al! (vuruşlarını isabet ettir)", Color(1, 0.75, 0.3))
+	data = {"sensei": s, "team": team, "t": 150.0, "scroll": sp, "grab": 0.0, "bound": null, "bound_at": randf_range(55.0, 80.0), "together": 0.0}
+	Hud.dialog(hi["s2"], "Benim sınavım basit: şu kütüğün üstündeki parşömeni alın. 150 saniyeniz var, ben de onu koruyacağım. Tek başına gelen hiçbir şey alamaz. Başla!", [])
+	Hud.banner("TAKIM SINAVI", "Parşömeni al! (2.5 sn dokun — hoca korurken olmaz, arkadaşların onu oyalasın)", Color(1, 0.75, 0.3))
+	Missions.target_marker = sp
+	Missions.has_marker = true
+	Missions.target_name = "Mühürlü Parşömen"
 
 
 func _bell_tick(dt: float) -> void:
@@ -367,61 +487,99 @@ func _bell_tick(dt: float) -> void:
 		return
 	s.hp = s.max_hp  # hoca yenilmez
 	data["t"] = float(data["t"]) - dt
-	follow_player(data["team"])
 	var pl = Game.player
-	var near_team = 0
-	for e in data["team"]:
-		if is_instance_valid(e) and e.global_position.distance_to(pl.global_position) < 14.0:
-			near_team += 1
-	if near_team >= 1 and s.global_position.distance_to(pl.global_position) < 18.0:
+	var sp: Vector3 = data["scroll"]
+	# hoca parşömenden uzaklaşmaz; parşömene en yakın olanı hedefler (oyalayan arkadaş varsa ona takılır)
+	s.home = sp + Vector3(1.5, 0, 0)
+	var mates: Array = data["team"].filter(func(e): return is_instance_valid(e) and not e.is_dead())
+	var busy_mate = null
+	for e in mates:
+		if e != data.get("bound") and e.global_position.distance_to(s.global_position) < 5.0:
+			busy_mate = e
+	if busy_mate != null and pl.global_position.distance_to(sp) < 4.0:
+		s.target = busy_mate   # arkadaşın onu oyalıyor
+	elif pl.global_position.distance_to(sp) < 8.0:
+		s.target = pl
+	# arkadaşlar: bağlı olan yerinde, diğerleri hocaya saldırır (oyalama)
+	for e in mates:
+		if e == data.get("bound"):
+			e.velocity = Vector3.ZERO
+			continue
+		e.target = s
+	if pl.global_position.distance_to(s.global_position) < 18.0 and mates.size() > 0:
 		data["together"] = float(data["together"]) + dt
-	Hud.objective_progress("⏰ %d sn   •   Zil: %d/2   •   Takım çalışması: %d sn" % [int(data["t"]), int(data["bells"]), int(data["together"])])
+	# ortada: hoca bir arkadaşı bağlar
+	if data.get("bound") == null and float(data["t"]) < 150.0 - float(data["bound_at"]) and mates.size() > 0:
+		var m = mates[0]
+		data["bound"] = m
+		m.set_physics_process(false)
+		FX.smoke_puff(m.global_position + Vector3.UP, 0.6, 8)
+		Hud.banner("ARKADAŞIN BAĞLANDI", "%s tel ile kütüğe bağlandı — yanına git, [F] ile çöz" % String(m.display_name).replace(" (takım)", ""), Color(1, 0.5, 0.4))
+	var bm = data.get("bound")
+	if bm != null and is_instance_valid(bm) and not data.get("freed", false):
+		if pl.global_position.distance_to(bm.global_position) < 2.2 and Input.is_action_just_pressed("interact"):
+			data["freed"] = true
+			bm.set_physics_process(true)
+			Combat.popup_text(bm.global_position + Vector3.UP * 2.2, "Çözüldü!", UI.GOOD)
+	# parşömeni alma: 2.5 sn kesintisiz (vurulursan sıfırlanır — Player.hit_t kullanılmıyor, hp düşüşüyle)
+	var hp_now = pl.hp
+	if pl.global_position.distance_to(sp) < 1.6:
+		if hp_now < float(data.get("last_hp", hp_now)) - 0.5:
+			data["grab"] = 0.0
+		else:
+			data["grab"] = float(data["grab"]) + dt
+		if float(data["grab"]) >= 2.5:
+			data["got"] = true
+			_bell_end()
+			return
+	else:
+		data["grab"] = maxf(0.0, float(data["grab"]) - dt * 2.0)
+	data["last_hp"] = hp_now
+	var bound_txt = ""
+	if bm != null and not data.get("freed", false):
+		bound_txt = "   •   ⚠ Bağlı arkadaş!"
+	Hud.objective_progress("⏰ %d sn   •   Parşömen: %d%%%s" % [int(data["t"]), int(float(data["grab"]) / 2.5 * 100.0), bound_txt])
 	if float(data["t"]) <= 0.0:
 		_bell_end()
 
 
 func _bell_end() -> void:
 	cur = "bell_twist"
-	var hi = Progress.home_info()
-	var mate = String(data.get("mate", "Hayato"))
-	var bells = int(data.get("bells", 0))
+	var got = data.get("got", false)
+	var left_mate = data.get("bound") != null and not data.get("freed", false)
+	for e in data.get("team", []):
+		if is_instance_valid(e):
+			e.set_physics_process(true)
 	_clear_nodes()
+	Missions.has_marker = false
 	Sfx.play("levelup", null, 1.6, 0.6)
-	var txt = "Öğle oldu! "
-	if bells >= 2:
-		txt += "İki zili de aldın, etkileyici. "
-	elif bells == 1:
-		txt += "Bir zil aldın. "
+	if got and not left_mate:
+		_bell_result(true, "scroll")
+	elif got and left_mate:
+		_bell_result(false, "abandon")
+	elif not left_mate and float(data.get("together", 0.0)) >= 40.0:
+		_bell_result(true, "team")   # parşömen alınamadı ama takım birlikte savaştı ve kimse geride kalmadı
 	else:
-		txt += "Hiç zil alamadın. "
-	txt += "%s'yi kütüğe bağladım; ona yemek vermek yasak. Kim verirse sınavdan kalır. Şimdi yemeğinizi yiyin." % mate
-	var opts = [{"label": "Kuralı çiğner, yemeğimi %s ile paylaşırım" % mate, "cb": func(): _bell_result(true, "share")},
-		{"label": "Kurala uyar, yemeğimi yerim", "cb": func(): _bell_result(false, "obey")}]
-	if bells >= 1:
-		opts.insert(1, {"label": "Zilimi %s'ye veririm" % mate, "cb": func(): _bell_result(true, "give")})
-	Hud.dialog(hi["s2"], txt, opts)
+		_bell_result(false, "time")
 
 
 func _bell_result(passed: bool, why: String) -> void:
 	cur = ""
 	var hi = Progress.home_info()
-	var team_ok = float(data.get("together", 0.0)) >= 25.0
 	if passed:
-		var t = "SİZ... GEÇTİNİZ! Kuralları çiğneyen pisliktir, ama arkadaşını terk eden pislikten de beterdir. Bu testin amacı takım çalışmasıydı."
-		if team_ok:
-			t += " Arkadaşlarınla birlikte saldırman da dikkatimi çekti."
+		var t = "Parşömeni aldınız — ve bunu birlikte yaptınız. GEÇTİNİZ." if why == "scroll" else "Parşömeni alamadınız, ama hiçbiriniz diğerini geride bırakmadı ve birlikte savaştınız. Aradığım buydu. GEÇTİNİZ."
 		flags()["bell_passed"] = true
 		Progress.promote(1)
 		Progress.add_xp(200)
 		Progress.add_ryo(200)
 		Progress.set_story(4)
 		Missions.has_marker = false
-		Hud.dialog(hi["s2"], t + "
-
-Artık %s'nin bir Genin'isin! Bundan sonra kimse sana hangi yoldan yürüyeceğini söylemeyecek. Görev panosundan iş al, dünyayı dolaş, ustalar ara, rakipler edin... İstersen Tab > Görevler > Yolun bölümünden kendine hedefler seç." % String(Game.village(Progress.home()).get("name", "Köy")), [])
+		Hud.dialog(hi["s2"], t + "\n\nArtık %s'nin bir Genin'isin! Görevleri bundan sonra ben alacağım; takım olarak çıkacağız." % String(Game.village(Progress.home()).get("name", "Köy")), [])
 		exam_finished.emit("bell", true)
 	else:
-		Hud.dialog(hi["s2"], "Yanlış cevap. Bir ninja asla takım arkadaşını yalnız bırakmaz. Yarın tekrar dene — benimle antrenman alanında konuş.", [])
+		var why_t = {"abandon": "Parşömeni aldın ama arkadaşını bağlı bıraktın. Görevi tamamlamak için arkadaşını terk eden bir ninjayı takımımda istemem.",
+			"time": "Süre doldu. Tek başına koştunuz, birbirinizi kollamadınız."}.get(why, "Olmadı.")
+		Hud.dialog(hi["s2"], why_t + " Yarın tekrar dene — benimle antrenman alanında konuş.", [])
 		exam_finished.emit("bell", false)
 
 
@@ -627,6 +785,9 @@ func anbu_done(m: Dictionary, ok: bool) -> void:
 
 # ================================================================== olay kancaları (Progress yönlendirir)
 func on_technique(id: String) -> void:
+	if cur == "academy_kawarimi" and "kawarimi" in id and data.get("flying", false):
+		_kawarimi_dodged()
+		return
 	if cur == "academy_practical":
 		if id == String(data.get("task", "")) or (data.get("task", "") == "bunshin_no_jutsu" and id in ["bunshin_no_jutsu", "bunshin", "oboro_bunshin_no_jutsu"]):
 			if data["task"] == "kawarimi" and float(data.get("t", 0.0)) < 0.0:
@@ -635,7 +796,7 @@ func on_technique(id: String) -> void:
 
 
 func on_hit(t: Node) -> void:
-	if cur == "bell" and is_instance_valid(t) and t.has_meta("bell_sensei"):
+	if false and cur == "bell" and is_instance_valid(t) and t.has_meta("bell_sensei"):
 		data["hits"] = int(data["hits"]) + 1
 		if int(data["hits"]) % 9 == 0 and int(data["bells"]) < 2:
 			data["bells"] = int(data["bells"]) + 1
@@ -662,19 +823,7 @@ func _process(dt: float) -> void:
 	match cur:
 		"academy_practical":
 			data["t"] = float(data.get("t", 0.0)) + dt
-			if data["task"] == "kawarimi":
-				# kunai fırlatıldıktan sonra 2 sn içinde Kawarimi
-				if float(data["t"]) >= 0.0 and not data.get("thrown", false):
-					data["thrown"] = true
-					var pl = Game.player
-					Hud.banner("KUNAI!", "Şimdi [Q]!", Color(1, 0.4, 0.3))
-					FX.speed_lines(pl.global_position + Vector3.UP, -pl.face_dir())
-					Sfx.play("kunai", pl.global_position)
-				elif data.get("thrown", false) and float(data["t"]) > 2.0:
-					Game.player.hp = maxf(1.0, Game.player.hp - 12.0)
-					Combat.damage_number(Game.player.global_position + Vector3.UP * 2.0, 12.0, Color(1, 0.4, 0.35))
-					_practical_next(false)
-			elif float(data["t"]) > 45.0:
+			if float(data["t"]) > 45.0:
 				_practical_next(false)
 		"academy_targets":
 			data["t"] = float(data["t"]) - dt
@@ -694,8 +843,8 @@ func _process(dt: float) -> void:
 					if not _bell_greeted:
 						_bell_greeted = true
 						var hi = Progress.home_info()
-						Hud.dialog(hi["s2"], "Geldin demek. Gerçek ninjalar bu testten sonra belli olur: Zil Testi. Hazır mısın?",
-							[{"label": "Zil Testine başla", "cb": bell_start}, {"label": "Biraz sonra", "cb": func(): pass}])
+						Hud.dialog(hi["s2"], "Geldin demek. Ben takımımı kendi sınavımla seçerim. Hazır mısın?",
+							[{"label": "Takım sınavına başla", "cb": bell_start}, {"label": "Biraz sonra", "cb": func(): pass}])
 				else:
 					_bell_greeted = false
 	# Jōnin krizi: 4 dakika sınırı (görevin 3. adımı)

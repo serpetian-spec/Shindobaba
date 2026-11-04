@@ -17,7 +17,7 @@ const PATHS := {
 		"mentor": {"name": "Yamikage Jaen", "title": "Yılan Ustası",
 			"look": {"gender": "m", "skin": Color(0.94, 0.91, 0.9), "hair": Color(0.07, 0.07, 0.1), "hair_style": "uzun", "eye": Color(0.9, 0.78, 0.15),
 				"top": Color(0.88, 0.85, 0.78), "top2": Color(0.6, 0.5, 0.75), "pants": Color(0.28, 0.2, 0.38), "band": null, "vest": null, "age": "adult"}},
-		"rumor_level": 8, "join_level": 10,
+		"rumor_level": 52, "join_level": 60,
 		"rumor": "Gezginler, Ses Ülkesi'nin sisli dağlarında yılanların bekçilik ettiği bir mağaradan söz ediyor. İçeride ölümsüzlüğü arayan solgun bir usta yaşarmış...",
 		"intro": "Solgun usta sarı gözlerini sana dikiyor: \"Merak... ne güzel bir koku. Yılanlar yalnızca bedelini ödemeye hazır olanlara sırlarını açar. Sınavımı geçersen sana deri değiştirmeyi öğretirim.\"",
 		"passive": {"poison_resist": 0.3, "speed": 0.04},
@@ -36,7 +36,7 @@ const PATHS := {
 			"look": {"gender": "f", "skin": Color(0.93, 0.78, 0.64), "hair": Color(0.28, 0.16, 0.1), "hair_style": "atkuyruğu", "eye": Color(0.35, 0.22, 0.12),
 				"top": Color(0.82, 0.28, 0.22), "top2": Color(0.6, 0.18, 0.14), "pants": Color(0.18, 0.17, 0.2), "vest": Color(0.42, 0.28, 0.16),
 				"band": Color(0.2, 0.2, 0.25), "age": "adult"}},
-		"rumor_level": 5, "join_level": 6,
+		"rumor_level": 18, "join_level": 24,
 		"rumor": "Konoha'nın batısındaki tepelerde, örsünden kıvılcım eksik olmayan bir demirhane varmış. Ustası, parşömeninden yüz silahı aynı anda yağdırabiliyormuş.",
 		"intro": "Demirci çekicini bırakıp alnını siliyor: \"Silah, onu tutanın iradesi kadar keskindir. Önce ellerinin işe yarar olduğunu göster, sonra parşömenlerimi açarım.\"",
 		"passive": {"throw_dmg": 0.3, "w_all": 0.12},
@@ -53,7 +53,7 @@ const PATHS := {
 		"mentor": {"name": "Hōseki Rindō", "title": "Şifacı Usta",
 			"look": {"gender": "f", "skin": Color(0.96, 0.84, 0.72), "hair": Color(0.85, 0.75, 0.45), "hair_style": "atkuyruğu", "eye": Color(0.55, 0.4, 0.2),
 				"top": Color(0.92, 0.92, 0.9), "top2": Color(0.45, 0.75, 0.55), "pants": Color(0.3, 0.32, 0.36), "band": Color(0.2, 0.2, 0.25), "age": "adult"}},
-		"rumor_level": 4, "join_level": 6,
+		"rumor_level": 22, "join_level": 28,
 		"rumor": "Sıcak Su Ülkesi'nde, buharı şifa veren bir tapınakta yaralı askerleri ölümden döndüren bir şifacı varmış. Öğrenci arıyormuş.",
 		"intro": "Şifacı ellerini yeşil chakrayla ısıtıyor: \"Yıkmak kolay, onarmak zor. Chakra kontrolün yeterince ince mi? Önce yaralılara yetiş, sonra konuşuruz.\"",
 		"passive": {"heal_power": 0.3, "chakra_regen": 0.15},
@@ -69,7 +69,7 @@ const PATHS := {
 		"mentor": {"name": "Kōtetsu Gōriki", "title": "Taijutsu Ustası",
 			"look": {"gender": "m", "skin": Color(0.93, 0.78, 0.62), "hair": Color(0.08, 0.08, 0.1), "hair_style": "kase", "eye": Color(0.1, 0.1, 0.1),
 				"top": Color(0.2, 0.5, 0.25), "top2": Color(0.2, 0.5, 0.25), "pants": Color(0.2, 0.5, 0.25), "vest": Color(0.38, 0.48, 0.28), "band": Color(0.75, 0.15, 0.15), "age": "adult"}},
-		"rumor_level": 8, "join_level": 10,
+		"rumor_level": 28, "join_level": 35,
 		"rumor": "Ateş Ülkesi dağlarında, şafakta binlerce şınav çeken yeşil tulumlu bir ustanın dojosu varmış. Azmi olan her genci kabul ediyormuş.",
 		"intro": "Usta tek elle amuda kalkmış: \"Gençliğin ateşi! Ninjutsu yoksa ne olmuş? Bedenin sekiz kapısı var ve onları açacak kadar azimliysen dünyayı yerinden oynatırsın!\"",
 		"passive": {"gates": 0.3, "melee": 0.1},
@@ -85,7 +85,7 @@ const PATHS := {
 		"mentor": {"name": "Shirobana Ayame", "title": "Kâğıt Ustası",
 			"look": {"gender": "f", "skin": Color(0.96, 0.88, 0.84), "hair": Color(0.45, 0.35, 0.65), "hair_style": "topuz", "eye": Color(0.85, 0.75, 0.4),
 				"top": Color(0.15, 0.15, 0.2), "top2": Color(0.15, 0.15, 0.2), "pants": Color(0.15, 0.15, 0.2), "band": Color(0.3, 0.3, 0.35), "age": "adult"}},
-		"rumor_level": 9, "join_level": 11,
+		"rumor_level": 40, "join_level": 48,
 		"rumor": "Yağmur Ülkesi'nde, tepesinde kâğıt çiçek açan bir kulede yaşayan sessiz bir kadın varmış. Rüzgârla dağılıp yeniden toplanırmış.",
 		"intro": "Kadının bedeni bir an kâğıt yapraklara dağılıp yeniden birleşiyor: \"Kâğıt zayıf görünür. Ama bin kat katlanınca çelik keser. Sabrın varsa öğretirim.\"",
 		"passive": {"jutsu": 0.1, "speed": 0.03},
@@ -101,7 +101,7 @@ const PATHS := {
 		"mentor": {"name": "Hōrō Gamasuke", "title": "Gezgin Kurbağa Bilgesi",
 			"look": {"gender": "m", "skin": Color(0.94, 0.8, 0.68), "hair": Color(0.92, 0.92, 0.9), "hair_style": "uzun", "eye": Color(0.3, 0.25, 0.2),
 				"top": Color(0.3, 0.45, 0.3), "top2": Color(0.75, 0.2, 0.15), "pants": Color(0.3, 0.45, 0.3), "band": Color(0.85, 0.85, 0.82), "age": "adult", "face_mark": "yanak çizgisi"}},
-		"rumor_level": 8, "join_level": 10,
+		"rumor_level": 50, "join_level": 58,
 		"rumor": "Şelale Ülkesi'nde, yosunlu bir kurbağa tapınağında roman yazan beyaz saçlı bir bilge görülmüş. Kurbağalarla konuşurmuş.",
 		"intro": "Beyaz saçlı adam kaleminden başını kaldırıyor: \"Bir öğrenci mi? Hah! Önce bana kurbağaların gözünden dünyayı göstermelisin. Sonra saçımın bile silah olduğunu görürsün.\"",
 		"passive": {"chakra": 0.12, "hp": 0.06},
@@ -117,7 +117,7 @@ const PATHS := {
 		"mentor": {"name": "Bakufū Gen", "title": "Kil Sanatçısı",
 			"look": {"gender": "m", "skin": Color(0.95, 0.84, 0.72), "hair": Color(0.95, 0.85, 0.45), "hair_style": "uzun", "eye": Color(0.3, 0.45, 0.75),
 				"top": Color(0.18, 0.18, 0.22), "top2": Color(0.75, 0.15, 0.15), "pants": Color(0.18, 0.18, 0.22), "band": Color(0.4, 0.35, 0.3), "age": "adult"}},
-		"rumor_level": 10, "join_level": 12,
+		"rumor_level": 42, "join_level": 50,
 		"rumor": "Toprak Ülkesi'nin kanyonlarında patlamalar duyuluyormuş. Kilden kuşlar uçuran, sanatın bir an olduğuna inanan bir zanaatkâr yaşarmış.",
 		"intro": "Sarışın adam elindeki kili yoğuruyor, avucundaki ağız sırıtıyor: \"Sanat bir patlamadır! Kalıcı olan sıkıcıdır, hm. Gözlerinle görmek istiyorsan önce benim işimi kanıtla.\"",
 		"passive": {"jutsu": 0.12, "chakra": 0.05},
@@ -133,7 +133,7 @@ const PATHS := {
 		"mentor": {"name": "Kurogane Zeni", "title": "İplik Ustası",
 			"look": {"gender": "m", "skin": Color(0.75, 0.6, 0.48), "hair": Color(0.1, 0.1, 0.12), "hair_style": "uzun", "eye": Color(0.3, 0.7, 0.3),
 				"top": Color(0.2, 0.22, 0.2), "top2": Color(0.15, 0.15, 0.15), "pants": Color(0.2, 0.2, 0.2), "band": Color(0.4, 0.4, 0.42), "age": "adult"}},
-		"rumor_level": 12, "join_level": 14,
+		"rumor_level": 50, "join_level": 58,
 		"rumor": "Şelale Ülkesi'nin mezarlığında, para için ödül avlayan, yüzü dikişlerle dolu yaşlı bir paralı askerden söz ediliyor. Kalbi bir değil beşmiş...",
 		"intro": "Dikişli adam paranı sayar gibi sana bakıyor: \"Para asla ihanet etmez. Sen de etmeyeceksen... bedenini dikmeyi öğretirim. Önce ödülünü getir.\"",
 		"passive": {"hp": 0.15, "def": 0.05},
@@ -149,7 +149,7 @@ const PATHS := {
 		"mentor": {"name": "Kōsoku Hayate", "title": "Sarı Şimşek",
 			"look": {"gender": "m", "skin": Color(0.95, 0.82, 0.7), "hair": Color(0.98, 0.85, 0.3), "hair_style": "diken", "eye": Color(0.25, 0.5, 0.85),
 				"top": Color(0.25, 0.35, 0.25), "top2": Color(0.95, 0.95, 0.92), "pants": Color(0.15, 0.2, 0.35), "band": Color(0.15, 0.22, 0.55), "age": "adult"}},
-		"rumor_level": 14, "join_level": 16,
+		"rumor_level": 62, "join_level": 72,
 		"rumor": "Girdap Ülkesi'nin harabelerinde, sarı bir şimşek gibi göz açıp kapayana kadar yer değiştiren bir ninja görülmüş. Ardında yalnız üç kollu kunailer kalırmış.",
 		"intro": "Sarı saçlı adam gülümsüyor, bir an yerinde, bir an arkanda: \"Hız, işaret koymaktır. Nereye işaret koyarsan oradasın. Önce işaretlerimi bul.\"",
 		"passive": {"speed": 0.1, "seal_speed": 0.15},
@@ -165,7 +165,7 @@ const PATHS := {
 		"mentor": {"name": "Raikō Shinobu", "title": "Şimşek Kılıcı",
 			"look": {"gender": "m", "skin": Color(0.95, 0.84, 0.74), "hair": Color(0.08, 0.08, 0.12), "hair_style": "diken", "eye": Color(0.15, 0.15, 0.2),
 				"top": Color(0.9, 0.9, 0.92), "top2": Color(0.3, 0.25, 0.45), "pants": Color(0.15, 0.15, 0.2), "band": null, "age": "adult"}},
-		"rumor_level": 12, "join_level": 14,
+		"rumor_level": 40, "join_level": 48,
 		"rumor": "Demir Ülkesi'nin karlı uçurumlarında bin kuşun ötüşü gibi bir ses yankılanıyormuş. Elinde şimşek taşıyan sessiz bir kılıç ustası...",
 		"intro": "Kara saçlı adam kılıcını kınından yarım çekiyor, namlu boyunca şimşek akıyor: \"Şimşek keskinliktir. Zayıf olan kırılır. Bana keskin olduğunu göster.\"",
 		"passive": {"melee": 0.08, "el_raiton": 0.15},
@@ -181,7 +181,7 @@ const PATHS := {
 		"mentor": {"name": "Chimatsuri Ren", "title": "Ayin Rahibi",
 			"look": {"gender": "m", "skin": Color(0.95, 0.88, 0.82), "hair": Color(0.85, 0.85, 0.9), "hair_style": "geriye", "eye": Color(0.7, 0.2, 0.55),
 				"top": Color(0.12, 0.12, 0.14), "top2": Color(0.7, 0.1, 0.12), "pants": Color(0.12, 0.12, 0.14), "band": Color(0.35, 0.35, 0.38), "age": "adult"}},
-		"rumor_level": 14, "join_level": 16,
+		"rumor_level": 45, "join_level": 52,
 		"rumor": "Sıcak Su Ülkesi'nin terk edilmiş bir tapınağında kanla çizilmiş çemberlerin içinde dua eden, ölmeyen bir rahipten bahsediliyor.",
 		"intro": "Rahip boynundaki kolyeyi öpüyor: \"Jashin-sama acıyı sever. Acı çekmekten korkmuyor musun? O zaman ayine katıl... ama önce kurbanları getir.\"",
 		"passive": {"hp": 0.1, "regen_hp": 0.5},
@@ -197,7 +197,7 @@ const PATHS := {
 		"mentor": {"name": "Hachiryū Biito", "title": "Ritim Ustası",
 			"look": {"gender": "m", "skin": Color(0.42, 0.3, 0.22), "hair": Color(0.92, 0.92, 0.9), "hair_style": "kisa", "eye": Color(0.15, 0.15, 0.15),
 				"top": Color(0.9, 0.9, 0.88), "top2": Color(0.25, 0.25, 0.28), "pants": Color(0.2, 0.2, 0.22), "band": Color(0.15, 0.22, 0.55), "age": "adult"}},
-		"rumor_level": 16, "join_level": 18,
+		"rumor_level": 58, "join_level": 66,
 		"rumor": "Yıldırım Ülkesi'nin şelalesinde ritimle konuşan, sırtında yedi kılıç taşıyan güçlü bir savaşçı yaşarmış. Bazen ahtapot kolları çıkarırmış!",
 		"intro": "İri adam ritim tutarak sana bakıyor: \"Yo! Ritmini bulamazsan kılıcın da şaşar, bebeğim! Şelalenin altında kendinle yüzleş, sonra rap yapalım!\"",
 		"passive": {"melee": 0.1, "hp": 0.08},
@@ -213,7 +213,7 @@ const PATHS := {
 		"mentor": {"name": "Sumizome Kōji", "title": "Mürekkep Ustası",
 			"look": {"gender": "m", "skin": Color(0.95, 0.9, 0.86), "hair": Color(0.06, 0.06, 0.08), "hair_style": "kisa", "eye": Color(0.08, 0.08, 0.1),
 				"top": Color(0.12, 0.12, 0.14), "top2": Color(0.4, 0.4, 0.45), "pants": Color(0.12, 0.12, 0.14), "band": Color(0.2, 0.2, 0.22), "age": "adult"}},
-		"rumor_level": 8, "join_level": 10,
+		"rumor_level": 30, "join_level": 38,
 		"rumor": "Ateş Ülkesi ormanında, dağıtılmış eski bir Kök karakolunda sessizce resim yapan solgun bir adam varmış. Çizdiği kuşlar sayfadan kalkıp uçarmış.",
 		"intro": "Solgun adam fırçasını kaldırmadan konuşuyor: \"Kök duyguları siler, yalnız görev kalır. Ben resmimle bir şeyler geri kazandım. Önce elinin titremediğini göster.\"",
 		"passive": {"chakra": 0.1, "jutsu": 0.05},
@@ -229,7 +229,7 @@ const PATHS := {
 		"mentor": {"name": "Akabane Sōen", "title": "Kukla Ustası",
 			"look": {"gender": "m", "skin": Color(0.95, 0.85, 0.78), "hair": Color(0.65, 0.18, 0.14), "hair_style": "dağınık", "eye": Color(0.45, 0.35, 0.3),
 				"top": Color(0.2, 0.18, 0.2), "top2": Color(0.55, 0.15, 0.15), "pants": Color(0.2, 0.18, 0.2), "band": Color(0.4, 0.4, 0.42), "age": "adult"}},
-		"rumor_level": 12, "join_level": 14,
+		"rumor_level": 48, "join_level": 56,
 		"rumor": "Rüzgâr Ülkesi'nin kızıl kumlarında, hiç yaşlanmayan genç yüzlü bir kuklacının atölyesi varmış. Kuklalarının bazıları bir zamanlar insanmış...",
 		"intro": "Genç görünen adamın gözleri cansız: \"Gerçek sanat sonsuza kadar kalır. Kuklalar çürümez, ihanet etmez. Parmaklarına ip bağlamayı öğrenmek istiyorsan önce elinin hızını göster.\"",
 		"passive": {"jutsu": 0.08, "poison_resist": 0.3},
@@ -336,6 +336,30 @@ static func set_state(pid: String, s: int) -> void:
 		d["s"] = s
 
 
+## ------------------------------------------------------------------ ipucu (söylenti sistemi yok)
+## Her yolun yalnız kısa bir ipucu var (ülke + yerin alameti). İn ancak keşfedilerek (45 m yakına gelince) bulunur.
+const SIGNS := {"snake": "kayalara dökülmüş dev yılan derileri ve ıslak bir mağara ağzı", "forge": "geceleri tepeden yükselen kıvılcımlar ve örs sesleri",
+	"clinic": "buharı ilaç kokan sıcak bir pınar ve basamaklı bir tapınak", "dojo": "şafakta yankılanan sayma sesleri ve kırık ağaç kütükleri",
+	"paper": "rüzgârda uçuşan kâğıt yapraklar ve yağmurda kurumayan bir kule", "toad": "yosun tutmuş kurbağa heykelleri ve sürekli damlayan bir kaya",
+	"clay": "kanyon duvarlarında patlama izleri ve yerde kurumuş kil parçaları", "thread": "kazılmış mezarlar ve dallara takılmış kara iplikler",
+	"thunder": "eski bir girdap mührü taşıyan harabeler ve yerde yanık işaretler", "chidori": "yıldırım düşmüş, yarılmış kayalar ve kuş cıvıltısına benzer bir çatırtı",
+	"jashin": "yerde kanla çizilmiş üçgenli halkalar", "octo": "şelalenin dibinde dev vantuz izleri ve dövülmüş kayalar",
+	"ink": "yıkık bir karakol ve ağaçlarda mürekkeple çizilmiş hayvan resimleri", "puppet": "kumda yarı gömülü kukla uzuvları ve kızıl kum"}
+
+
+static func country_name(pid: String) -> String:
+	var cid = String(PATHS[pid]["site"]["country"])
+	for c in Game.world_info.get("countries", []):
+		if c["id"] == cid:
+			return String(c.get("name", cid))
+	return cid
+
+
+## Tek kısa ipucu: hangi ülkede, neye benzeyen bir yer (tam yer, ok, işaret yok — oyuncu kendisi bulur)
+static func hint(pid: String) -> String:
+	return "%s'nde bir yerde; %s." % [country_name(pid).split(" (")[0], SIGNS.get(String(PATHS[pid]["site"]["kind"]), "tuhaf izler")]
+
+
 static func joined(pid: String) -> bool:
 	return state(pid) >= JOINED
 
@@ -349,7 +373,7 @@ static func blood(pid: String) -> bool:
 
 
 static func lv_need(pid: String, key: String) -> int:
-	return int(PATHS[pid][key]) - (6 if blood(pid) else 0)
+	return int(PATHS[pid][key]) - (10 if blood(pid) else 0)   # kan yatkınlığı biraz erken açar
 
 
 ## Stats.skill eklentisi: katıldığın yolların pasif bonusları
@@ -376,10 +400,8 @@ static func price(jid: String) -> int:
 static func next_step(pid: String) -> String:
 	var P: Dictionary = PATHS[pid]
 	match state(pid):
-		UNKNOWN:
-			return "Henüz bir söylenti duymadın (Güç %d civarı)." % lv_need(pid, "rumor_level")
-		RUMOR:
-			return "Söylentinin peşine düş: %s. (İzi takip et)" % P["site"]["place"]
+		UNKNOWN, RUMOR:
+			return "İpucu: " + hint(pid) + " Yeri kendin bulmalısın."
 		FOUND:
 			if int(pr().get("level", 1)) < lv_need(pid, "join_level"):
 				return "Ustan seni Güç %d olunca kabul edecek." % lv_need(pid, "join_level")
@@ -419,13 +441,9 @@ func _process(dt: float) -> void:
 	for pid in PATHS:
 		var P: Dictionary = PATHS[pid]
 		var s = state(pid)
-		if s == UNKNOWN and lv >= lv_need(pid, "rumor_level"):
-			set_state(pid, RUMOR)
-			Hud.banner("SÖYLENTİ: " + P["name"].to_upper(), P["site"]["place"], P["color"])
-			Hud.msg(P["rumor"] + "  [Tab > Yollar]", P["color"].lightened(0.3), 8.0)
 		if s < FOUND and lairs.has(pid):
 			var lp = Game.from_map(Vector2(lairs[pid][0], lairs[pid][1]))
-			if Vector2(lp.x - Game.player.global_position.x, lp.z - Game.player.global_position.z).length() < 70.0:
+			if Vector2(lp.x - Game.player.global_position.x, lp.z - Game.player.global_position.z).length() < 45.0:
 				set_state(pid, FOUND)
 				Hud.banner("GİZLİ YER BULUNDU", P["site"]["place"], P["color"])
 				Hud.msg("%s burada yaşıyor. Onunla konuş [F]." % P["mentor"]["title"], P["color"].lightened(0.3), 5.0)

@@ -37,21 +37,22 @@ static func _card(main: Node, pid: String) -> Control:
 	var head = UI.hbox(14)
 	v.add_child(head)
 	head.add_child(UI.icon_label(P["icon"], P["name"], 22, pcol))
-	var stxt = ["", "Söylenti", "İn bulundu", "Sınavda", "Yoldasın"][s]
+	var stxt = ["Aranıyor", "Aranıyor", "İn bulundu", "Sınavda", "Yoldasın"][s]
 	head.add_child(UI.label("•  " + stxt, 16, pcol.lightened(0.3) if s >= LegendPaths.JOINED else UI.TEXT))
 	v.add_child(UI.label(P["style"], 14, UI.MUTED))
 	var M: Dictionary = P["mentor"]
-	v.add_child(UI.label("Usta: %s (%s)   •   Yer: %s" % [M["name"] if s >= LegendPaths.FOUND else "???", M["title"], P["site"]["place"]], 15, UI.TEXT))
+	v.add_child(UI.label("Usta: %s (%s)   •   Yer: %s" % [M["name"] if s >= LegendPaths.FOUND else "???", M["title"], P["site"]["place"] if s >= LegendPaths.FOUND else "???"], 15, UI.TEXT))
 	if s >= LegendPaths.JOINED:
 		v.add_child(UI.label("Yol bonusu: " + P["passive_desc"], 14, UI.GOOD))
 	var nx = UI.label("Sıradaki adım: " + LegendPaths.next_step(pid), 15, UI.GOLD)
 	nx.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	nx.custom_minimum_size = Vector2(1000, 0)
 	v.add_child(nx)
-	if LegendPaths.lairs.has(pid):
-		var at: Array = LegendPaths.lairs[pid]
-		var place: String = P["site"]["place"]
-		v.add_child(UI.button("İzi takip et", func():
+	var area = LegendPaths.lairs.get(pid) if s >= LegendPaths.FOUND else null   # yalnız bulduğun ine dönüş yolu
+	if area != null:
+		var at: Array = area
+		var place: String = P["site"]["place"] if s >= LegendPaths.FOUND else "Arama bölgesi (%s)" % P["name"]
+		v.add_child(UI.button("İzi takip et" if s >= LegendPaths.FOUND else "Arama bölgesine git", func():
 			var wp = Game.from_map(Vector2(float(at[0]), float(at[1])))
 			Game.profile["waypoint"] = [wp.x, wp.y, wp.z, place]
 			Game.profile["track"] = "waypoint"

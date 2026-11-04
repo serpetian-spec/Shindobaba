@@ -187,6 +187,9 @@ func _process(_dt: float) -> void:
 		Game.player._leave_wall()
 	if not spawn_q.is_empty():
 		_spawn_npc(spawn_q.pop_front())
+	for it in items:
+		if it.has("npc") and is_instance_valid(it["npc"]):
+			it["pos"] = (it["npc"] as Node3D).global_position
 	# odadan düşme güvenliği
 	if Game.player.global_position.y < origin.y - 6.0:
 		_teleport(origin + Vector3(0, 0.05, -2.4), 0.0)
@@ -247,6 +250,9 @@ func person(role: String, x: float, d: float, face_deg: float, display := "", li
 	spawn_q.append({"role": role, "pos": L(x, 0.05, d), "face": face_deg, "display": display, "lines": lines, "extra": extra})
 
 
+const NOT_PERSON := ["exit", "bed", "home_note", "enter"]
+
+
 func _spawn_npc(req: Dictionary) -> void:
 	var vg = Villager.new()
 	vg.role = req["role"]
@@ -270,6 +276,15 @@ func _spawn_npc(req: Dictionary) -> void:
 	if vg.model:
 		vg.model.rotation.y = vg.facing
 	npcs.append(vg)
+	# konuşma noktası masada değil kişinin kendisinde: yakındaki hizmet noktası bu kişiye bağlanır, onunla birlikte gezer
+	for it in items:
+		if it.has("npc") or String(it["kind"]) in NOT_PERSON:
+			continue
+		var dv: Vector3 = it["pos"] - vg.home
+		dv.y = 0
+		if dv.length() < 3.5:
+			it["npc"] = vg
+			it["radius"] = maxf(float(it["radius"]), 2.6)
 
 
 ## Ahşap zemin, sıvalı duvarlar + ahşap dikmeler, tavan kirişleri, kapı + çıkış, shoji pencereler

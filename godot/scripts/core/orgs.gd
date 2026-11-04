@@ -448,7 +448,7 @@ func rogue_shop(kind: String) -> void:
 			# kaçakların hastanesi: soru sormadan iyileştirir, çalıntı gözleri takar (pahalı)
 			if Game.player:
 				Game.player.hp = Game.player.max_hp
-			var opts = Progress.transplant_options(1200, "Kara Cerrah dikişleri attı: \"Kimden aldığını sormadım, sen de unut.\"")
+			var opts = EyeSurgery.options("black")   # Orochimaru/Kabuto benzeri gizli ameliyat
 			Hud.dialog("Kara Cerrah", "Yaralarını sardım. Kavanozunda göz varsa takarım; nereden geldiği beni ilgilendirmez." if not opts.is_empty() else "Yaralarını sardım. Takacak bir gözün yok; getirirsen takarım, soru sormam.", opts)
 
 

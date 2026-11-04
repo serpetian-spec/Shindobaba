@@ -21,19 +21,24 @@ var drill_t = 0.0
 func _ready() -> void:
 	add_to_group("fighters")
 	add_to_group("ninken")
+	# kanon: Akamaru Part I'de (Akademi/Genin) ceketine sığan yavru, Chūnin'de orta boy, Part II'de (Jōnin+) dev köpek
+	var rk = int(Game.profile.get("rank", 1))
+	var dog_h = 0.45 if rk <= 1 else (0.8 if rk == 2 else 1.3)
+	radius = clampf(0.45 * dog_h / 1.3, 0.2, 0.45)
+	height = dog_h / 1.3
 	collision_layer = 4
 	collision_mask = 1
 	var cs = CollisionShape3D.new()
 	var cap = CapsuleShape3D.new()
 	cap.radius = radius
-	cap.height = 1.0
+	cap.height = maxf(radius * 2.0, height)
 	cs.shape = cap
-	cs.position.y = 0.5
+	cs.position.y = cap.height * 0.5
 	add_child(cs)
 	vis = Node3D.new()
 	add_child(vis)
 	# referans (Akamaru, Part II): kabarık krem-beyaz dev köpek, sarkık kahve kulaklar, kısık gözler (InuzukaModels)
-	parts = InuzukaModels.akamaru(1.3)   # Part II: omzu Kiba'nın göğsüne gelir
+	parts = InuzukaModels.akamaru(dog_h)   # rütbeyle büyür (yavru -> dev köpek)
 	vis.add_child(parts["root"])
 
 
@@ -117,6 +122,13 @@ func _physics_process(dt: float) -> void:
 				if not Combat.hit_sphere(self, pt, 0.8, {"dmg": 6.0 * Stats.melee_mult(Game.profile), "knock": 2.0, "kind": "light"}).is_empty():
 					FX.hit_spark(pt, Color(1, 0.9, 0.7), 0.5)
 					Sfx.play("punch", pt, 1.4, 0.6)
+		elif cmd == "bekle" and has_meta("hold_pos"):
+			# Bekle: nöbet yerinde durur (sahibinin peşinden gitmez)
+			var v: Vector3 = get_meta("hold_pos") - global_position
+			v.y = 0
+			if v.length() > 1.0:
+				wish = v.normalized() * minf(10.0, v.length() * 3.0)
+				facing = atan2(-v.x, -v.z)
 		else:
 			var v = owner_f.global_position + owner_f.global_transform.basis.x * 1.8 - global_position
 			v.y = 0

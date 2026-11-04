@@ -137,6 +137,18 @@ func _physics_process(dt: float) -> void:
 		"cower":
 			step_move(Vector3.ZERO, dt, false)
 			model.play("crouch", 0.25)
+		"march":
+			# yürüyen takım (AmbientTeams): goal'e yürür; yöneticisi goal'i her an günceller
+			var v = goal - global_position
+			v.y = 0
+			if v.length() > 1.4:
+				step_move(NpcNav.steer(self, v.normalized(), dt) * speed, dt)
+				model.play("jog" if speed > 4.5 else "walk", 0.2)
+				facing = atan2(-v.x, -v.z)
+				model.rotation.y = facing
+			else:
+				step_move(Vector3.ZERO, dt)
+				model.play("idle", 0.25)
 		_:
 			step_move(Vector3.ZERO, dt, false)
 			if model.current not in ["talk"] or model.anim_progress() > 0.98:

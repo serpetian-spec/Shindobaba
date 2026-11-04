@@ -50,6 +50,13 @@ func face_dir() -> Vector3:
 func take_hit(info: Dictionary) -> void:
 	if dead:
 		return
+	if has_meta("throw_only"):
+		# atış hedefi: yalnız kunai/shuriken; tek isabet yeter
+		if not info.has("tool"):
+			Combat.popup_text(global_position + Vector3.UP * 2.2, "Yalnız atış! [R]", Color(1, 0.8, 0.4))
+			return
+		info = info.duplicate()
+		info["dmg"] = hp + 1.0
 	var dmg: float = info.get("dmg", 5.0)
 	hp -= dmg
 	Combat.damage_number(global_position + Vector3.UP * 2.3, dmg, Color(1, 0.9, 0.3) if info.get("kind", "") != "heavy" else Color(1, 0.55, 0.2))

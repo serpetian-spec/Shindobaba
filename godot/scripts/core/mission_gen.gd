@@ -163,7 +163,7 @@ static func _one(here: String, r: String, rng: RandomNumberGenerator) -> Diction
 	match p:
 		"collect":
 			var c: Array = _rand(COLLECT, rng)
-			sp.merge({"t": c[0], "b": c[2], "item": c[1], "n": rng.randi_range(4, 8),
+			sp.merge({"t": c[0], "b": c[2], "item": c[1], "n": 1 if r == "D" else rng.randi_range(4, 8),   # D-rank: tek iş, tek seferde biter
 				"s1": "%s Biraz acele edersen iyi olur." % c[2], "s2": "Hepsini getirdin mi? Harika, eline sağlık!"})
 			if r != "D":
 				sp["ge"] = foe[0]
@@ -171,7 +171,7 @@ static func _one(here: String, r: String, rng: RandomNumberGenerator) -> Diction
 				sp["b"] += " Bölgede %s dolaşıyor, dikkatli ol." % gang
 		"defend":
 			var d: Array = _rand(DEFEND, rng)
-			var w = {"D": [2, 2], "C": [3, 3], "B": [3, 4, 4], "A": [4, 4, 5], "S": [5, 5, 6]}[r]
+			var w = {"D": [2], "C": [3, 3], "B": [3, 4, 4], "A": [4, 4, 5], "S": [5, 5, 6]}[r]
 			sp.merge({"t": d[0], "b": d[1] % gang, "w": w, "s1": "%s Lütfen yardım et!" % (d[1] % gang), "s2": "Gittiler! Sen olmasan her şey biterdi."})
 		"camp":
 			var cp: Array = _rand(CAMP, rng)

@@ -791,6 +791,7 @@ func dialog(title: String, text: String, options: Array) -> void:
 	box.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	box.custom_minimum_size = Vector2(1180, 230)
 	box.position = Vector2(-590, -280 - (180 if many else 0))
+	box.grow_vertical = Control.GROW_DIRECTION_BEGIN   # içerik uzarsa kutu yukarı büyür (seçenekler ekran dışına kaçmaz)
 	root.add_child(box)
 	var h = UI.hbox(24)
 	box.add_child(h)
@@ -803,7 +804,17 @@ func dialog(title: String, text: String, options: Array) -> void:
 	var body = UI.label(text, 19, UI.TEXT)
 	body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	body.custom_minimum_size = Vector2(560 if not many else 900, 0)
-	v.add_child(body)
+	if text.length() > 420 or text.count("
+") > 7:
+		# uzun metin: kaydırılabilir alan (kutu ekrandan taşmasın)
+		var bsc = ScrollContainer.new()
+		bsc.custom_minimum_size = Vector2(560 if not many else 900, 220)
+		bsc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		v.add_child(bsc)
+		body.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		bsc.add_child(body)
+	else:
+		v.add_child(body)
 	# daktilo efekti (tıklayınca tamamlanır)
 	body.visible_ratio = 0.0
 	var tw = body.create_tween()
@@ -851,7 +862,11 @@ func dialog(title: String, text: String, options: Array) -> void:
 	var t2 = box.create_tween().set_parallel(true)
 	t2.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	t2.tween_property(box, "modulate:a", 1.0, 0.16)
-	t2.tween_property(box, "position:y", box.position.y, 0.2).from(box.position.y + 24).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	# yerleşimden sonra: kutunun altı ekranın içinde kalsın
+	box.resized.connect(func():
+		var vh = box.get_viewport_rect().size.y
+		if box.global_position.y + box.size.y > vh - 30.0:
+			box.global_position.y = maxf(20.0, vh - 30.0 - box.size.y))
 
 
 ## Hap şeklinde diyalog seçeneği

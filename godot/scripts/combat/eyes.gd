@@ -820,6 +820,15 @@ func _process(dt: float) -> void:
 				marker_t = 0.5
 				for f in _enemies_in(90.0):
 					_mark(f, Color(0.75, 0.85, 1.0, 0.9))
+	# kanon (Kakashi): Uchiha kanı olmayan bedende nakil Sharingan kapanmaz — kapalıyken de chakrayı yavaşça emer
+	if not active and String(Game.profile.get("clan", "")) != "uchiha":
+		var open_n = 0
+		for sd in ["sag", "sol"]:
+			var ee = eye(sd)
+			if ee != null and String(ee.get("origin", "dogustan")) == "nakil" and _kind(sd) in [1, 4, 5]:
+				open_n += 1
+		if open_n > 0 and p.chakra > 0.0:
+			p.chakra = maxf(0.0, p.chakra - 0.5 * open_n * dt)
 	# göz çalma: yakında gözleri alınmamış düşmüş dōjutsu sahibi
 	steal_target = null
 	for f in get_tree().get_nodes_in_group("dojutsu_bearers"):

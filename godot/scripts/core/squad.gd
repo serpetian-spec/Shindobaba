@@ -1,7 +1,9 @@
 class_name GeninSquad
 extends Node
-## Genin takımı: Zil Testi'ndeki iki takım arkadaşı + jōnin hoca kalıcı takımın olur (profil "squad").
-## Genin olduğun sürece dünyada yanında yürür ve seninle savaşırlar; düşen geri çekilir, bir süre sonra döner.
+## Genin takımı: takım sınavındaki iki arkadaş + jōnin hoca kalıcı takımın olur (profil "squad").
+## Üçü de Friends kaydıdır (sq_m0 / sq_m1 / sq_sensei): bağ, sohbet, hediye, antrenman; rütbe atlar, evlenir, ölebilirler.
+## Görevleri hoca alır: önce 2 D-rank, sonra C-rank (isteğe bağlı — "Bu sefer yokum" denebilir). Hoca bir buluşma yeri söyler;
+## oraya gidince takım toplanır ve görev başlar, görev bitince dağılırlar (köyde kendi hayatlarına döner, Friends ziyaretleriyle görünürler).
 ## Chūnin Sınavı'na da bu iki arkadaşla girersin (Exams.spawn_teammates squad'dan okur). Chūnin olunca takım dağılır.
 ## Hocanın yanında [F]: "Bizimle gelin" / "Köyde bekleyin".
 
@@ -20,7 +22,10 @@ static func data() -> Dictionary:
 	var p = pr()
 	if p.is_empty():
 		return {}
-	return p.get("squad", {})
+	var sq: Dictionary = p.get("squad", {})
+	if not sq.is_empty() and not Friends.all().has("sq_sensei"):
+		register_friends()   # eski kayıt: takım kalıcı dost olarak kaydolur
+	return sq
 
 
 static func _c(a) -> Color:
@@ -52,12 +57,126 @@ static func ensure_formed() -> Dictionary:
 	var mates = []
 	for i in 2:
 		var nm: Array = names[i]
-		mates.append({"name": nm[0], "gender": nm[1], "hair_style": nm[2], "hair": _a(hairs[i]), "top": _a(tops[i]), "element": others[i % others.size()]})
+		mates.append({"name": nm[0], "gender": nm[1], "hair_style": nm[2], "hair": _a(hairs[i]), "top": _a(tops[i]), "element": others[i % others.size()], "medic": i == 1})
 	var hi = Progress.home_info()
 	var sensei = {"name": String(hi.get("s2", "Kurogane-sensei")), "hair": _a(hairs[2]), "hair_style": ["diken", "kısa", "geriye", "dağınık"].pick_random(),
 		"element": ELS.pick_random()}
 	p["squad"] = {"mates": mates, "sensei": sensei, "state": "active", "follow": true}
+	register_friends()
 	return p["squad"]
+
+
+## Takım üyesinin Friends kimliği
+static func fid(key: String) -> String:
+	return "sq_sensei" if key == "sensei" else "sq_" + key
+
+
+## Takımı Friends'e kalıcı karakter olarak kaydet (eski kayıtlar da ilk erişimde kaydolur)
+static func register_friends() -> void:
+	var p = pr()
+	var sq: Dictionary = p.get("squad", {})
+	if sq.is_empty():
+		return
+	var fs = Friends.all()
+	for key in ["m0", "m1", "sensei"]:
+		var id = fid(key)
+		if fs.has(id):
+			continue
+		var a: Dictionary = sensei_arch(45) if key == "sensei" else mate_arch(int(key.substr(1)), 6)
+		var lk: Dictionary = (a["look"] as Dictionary).duplicate()
+		lk.erase("age")
+		var female = String(lk.get("gender", "m")) == "f"
+		var nm = _name_of_static(key)
+		var rank = 2 if key == "sensei" else 0
+		fs[id] = {"name": nm, "role": "teacher" if key == "sensei" else "spar", "ninja": true, "look": Friends._ser(lk), "bond": 10 if key == "sensei" else 20,
+			"village": Progress.home(), "party": false, "last_talk": 0.0, "element": String((sq["sensei"] if key == "sensei" else sq["mates"][int(key.substr(1))]).get("element", "katon")),
+			"clan": "", "eye": [0, 0], "rank": rank, "family": Friends._family("", female, rank), "status": "", "log": [], "news": "",
+			"title": "Jōnin hocan" if key == "sensei" else "Takım arkadaşın", "squad_key": key}
+
+
+static func _name_of_static(key: String) -> String:
+	var sq = pr().get("squad", {})
+	if key == "sensei":
+		return String(sq["sensei"]["name"])
+	return String(sq["mates"][int(key.substr(1))]["name"])
+
+
+## Üye yaşıyor ve köyde mi (ölü / uzun görevde / kaçak değil)
+static func alive_here(key: String) -> bool:
+	var f: Dictionary = Friends.all().get(fid(key), {})
+	return f.is_empty() or String(f.get("status", "")) == ""
+
+
+# ------------------------------------------------------------------ hocanın görevleri + buluşma
+## Hoca görev önerir: ilk iki D-rank (tek adımlık işler), sonra C-rank. Kabul edersen buluşma yeri söyler.
+static func request_mission() -> void:
+	var sq = data()
+	if sq.is_empty() or not alive_here("sensei"):
+		Hud.msg("Hocan şu an köyde değil.", Color(1, 0.7, 0.4))
+		return
+	var who = String(sq["sensei"]["name"])
+	if not Missions.active().is_empty() or sq.has("pending"):
+		Hud.dialog(who, "Önce elimizdeki işi bitirelim.", [])
+		return
+	var done = int(sq.get("missions", 0))
+	var rank = "D" if done < 2 else "C"
+	var specs = MissionGen.specs(Progress.home(), [rank], 1)
+	if specs.is_empty():
+		Hud.dialog(who, "Bugün masada bize uygun bir iş yok. Yarın tekrar sor.", [])
+		return
+	var m: Dictionary = Missions._from_spec(Progress.home(), specs[0])
+	if m.is_empty():
+		Hud.dialog(who, "Bugün masada bize uygun bir iş yok. Yarın tekrar sor.", [])
+		return
+	m["squad"] = true
+	var meet = Exams.find_point(["training"])
+	var intro = "Görev masasından bir %s-rank aldım: \"%s\". %s" % [rank, String(m.get("title", "")), String(m.get("brief", ""))]
+	if rank == "D" and done == 0:
+		intro += "\n\nİlk işlerimiz basit olacak; takım olmayı önce bunlarla öğreneceğiz."
+	intro += "\n\nAntrenman alanında buluşalım. Hazır olunca gel — gelmezsen başkasına veririz."
+	Hud.dialog(who, intro, [
+		{"label": "Geliyorum (buluşma: antrenman alanı)", "cb": func():
+			sq["pending"] = m
+			sq["meet"] = [meet.x, meet.y, meet.z]
+			Missions.target_marker = meet
+			Missions.has_marker = true
+			Missions.target_name = "Takım buluşması"
+			Hud.msg("Buluşma yeri işaretlendi: antrenman alanı.", Color(0.6, 1.0, 0.7))},
+		{"label": "Bu sefer yokum", "cb": func(): Hud.msg("%s başını salladı: \"Peki. Ama takım seni bekler, unutma.\"" % who, Color(0.85, 0.85, 0.9))}])
+
+
+## Buluşma yerine gelince: takım toplanır, görev başlar
+func _meet_tick() -> void:
+	var sq = data()
+	if not sq.has("meet") or Game.player == null:
+		return
+	var at = Vector3(float(sq["meet"][0]), float(sq["meet"][1]), float(sq["meet"][2]))
+	if Game.player.global_position.distance_to(at) > 14.0:
+		return
+	var m: Dictionary = sq["pending"]
+	sq.erase("meet")
+	sq.erase("pending")
+	sq["on_mission"] = true
+	Missions.has_marker = false
+	Hud.dialog(String(sq["sensei"]["name"]), "Hepimiz buradayız. Görev: \"%s\". Yola çıkıyoruz — birbirinizi kollayın!" % String(m.get("title", "")), [])
+	Missions.accept(m)
+
+
+## Görev bitti (ya da bırakıldı): takım dağılır, herkes kendi hayatına döner
+func _mission_tick() -> void:
+	var sq = data()
+	if not sq.get("on_mission", false):
+		return
+	if not Missions.active().is_empty():
+		return
+	sq["on_mission"] = false
+	sq["missions"] = int(sq.get("missions", 0)) + 1
+	for key in ["m0", "m1", "sensei"]:
+		if Friends.all().has(fid(key)):
+			Friends.add_bond(fid(key), 4, true)   # birlikte görev: bağ güçlenir
+	Hud.msg("Görev bitti, takım dağıldı. %s: \"İyi iş çıkardınız. Yeni bir iş olunca size haber veririm.\"" % String(sq["sensei"]["name"]), Color(0.6, 1.0, 0.7), 5.0)
+	if int(sq["missions"]) == 2:
+		Hud.msg("Hocan artık C-rank görevler alacak.", Color(1, 0.85, 0.5), 5.0)
 
 
 ## Sınav/Zil Testi için takım arkadaşı arketipi (i: 0 / 1)
@@ -167,8 +286,8 @@ func _active() -> bool:
 	if sq.is_empty():
 		ensure_formed()   # eski kayıt: Genin ama takımı yok
 		sq = p["squad"]
-	if sq.get("state", "") != "active" or not sq.get("follow", true):
-		return false
+	if sq.get("state", "") != "active" or not sq.get("on_mission", false):
+		return false   # takım yalnız hocanın görevlerinde birlikte (buluşmadan görev bitene kadar)
 	if Exams.cur != "" or int(ChuninExam.stage) != 0:
 		return false   # sınavlar kendi takımını kurar
 	var life = get_parent().get_node_or_null("VillageLife")
@@ -181,7 +300,8 @@ func _spawn(key: String) -> Node:
 	var lv = int(pr().get("level", 1))
 	var a: Dictionary
 	if key == "sensei":
-		a = sensei_arch(clampi(lv + 25, 40, 85))   # jōnin hoca: en az Sv.40
+		var srk = int(Friends.all().get(fid("sensei"), {}).get("rank", 2))
+		a = sensei_arch(clampi(lv + 25 + (srk - 2) * 10, 40, 95))   # jōnin hoca: en az Sv.40; Elit Jōnin olunca güçlenir
 	else:
 		a = mate_arch(int(key.substr(1)), maxi(5, lv - 1 + randi_range(0, 2)))
 	var e = Enemy.new()
@@ -189,6 +309,7 @@ func _spawn(key: String) -> Node:
 	e.team = "player"
 	e.set_meta("teammate", true)
 	e.set_meta("respawn", false)
+	e.set_meta("friend_id", fid(key))
 	get_tree().current_scene.add_child(e)
 	if e.nameplate:
 		e.nameplate.modulate = Color(0.55, 1.0, 0.6) if key != "sensei" else Color(0.6, 0.85, 1.0)
@@ -217,13 +338,17 @@ func _process(dt: float) -> void:
 	if t > 0.0:
 		return
 	t = 0.4
+	if not pr().is_empty() and pr().has("squad"):
+		_meet_tick()
+		_mission_tick()
 	if not _active():
 		if not members.is_empty():
 			_despawn_all()
 		return
 	if members.is_empty():
 		for k in ["m0", "m1", "sensei"]:
-			members.append({"key": k, "node": null, "down": 0.0})
+			if alive_here(k):
+				members.append({"key": k, "node": null, "down": 0.0})
 	var pp = Game.player.global_position
 	var i = 0
 	for m in members:
@@ -243,10 +368,21 @@ func _process(dt: float) -> void:
 				n.wander_to = pp + off
 		elif n != null and (not is_instance_valid(n) or n.is_dead()):
 			# düştü: geri çekilir, sonra döner
-			m["node"] = null
-			m["down"] = RETURN_T
 			var nm = _name_of(m["key"])
-			Hud.msg("%s yaralandı ve geri çekildi. Biraz sonra yanına döner." % nm, Color(1, 0.75, 0.5))
+			var f: Dictionary = Friends.all().get(fid(m["key"]), {})
+			if not f.is_empty() and randf() < (0.03 if m["key"] == "sensei" else 0.05):
+				# kalıcı ölüm (nadir): Friends kaydı ölür; yakın ölüm Mangekyō uyanışını tetikleyebilir
+				if n is Node3D and Game.player and Game.player.combat and Game.player.combat.modes and Game.player.combat.modes.get("eyes"):
+					Game.player.combat.modes.eyes.on_ally_died(n)
+				f["status"] = "öldü"
+				Friends.log_event(f, "Takım görevinde senin yanında öldü")
+				Hud.banner("%s ÖLDÜ" % nm.to_upper(), "Takımın artık eksik. Onu asla unutmayacaksın.", Color(0.85, 0.85, 0.95))
+				m["node"] = null
+				m["down"] = 1e9
+			else:
+				m["node"] = null
+				m["down"] = RETURN_T
+				Hud.msg("%s yaralandı ve geri çekildi. Biraz sonra yanına döner." % nm, Color(1, 0.75, 0.5))
 		elif float(m["down"]) > 0.0:
 			m["down"] = float(m["down"]) - 0.4
 		else:
@@ -284,8 +420,25 @@ func _talk(key: String) -> void:
 		"Dün gece yeni bir mühür dizisi çalıştım; görmelisin."]
 	var txt = lines.pick_random() if key != "sensei" else "Takımın hocası olarak yanınızdayım; ama işi siz bitirin. Ben yalnız işler kötüye giderse araya girerim."
 	var extra: Array = []
+	# takımın tıbbi ninjası (eski kayıtlarda ikinci arkadaş): sahada göz nakli yapabilir (kanon: Rin -> Kakashi)
+	var mates: Array = sq.get("mates", [])
+	if mates.size() > 1 and not mates.any(func(m): return bool(m.get("medic", false))):
+		mates[1]["medic"] = true
+	if key != "sensei" and bool(mates[int(key.substr(1))].get("medic", false)):
+		var eo = EyeSurgery.options("medic")
+		if not eo.is_empty():
+			extra.append({"label": "Kavanozdaki gözü bana tak (sahada nakil)", "cb": func():
+				Hud.dialog(who, "Tıbbi ninjutsum yeter... ama düşman yokken yapalım. Hangi göz, hangi yuva?", eo)})
 	if key == "sensei":
 		extra.append({"label": "Bana bir teknik öğretir misin?", "cb": func(): _lesson_menu()})
+		extra.append({"label": "Görev var mı, hocam?", "cb": func(): request_mission()})
+	var fd = fid(key)
+	if Friends.all().has(fd):
+		var nd = null
+		for mm in members:
+			if mm["key"] == key:
+				nd = mm.get("node")
+		extra.append_array(Friends._friend_opts(fd, nd))
 	Hud.dialog(who, txt, extra + [
 		{"label": "Takım: köyde bekleyin (tek başıma gideceğim)", "cb": func():
 			sq["follow"] = false
@@ -299,8 +452,7 @@ static func recall() -> void:
 	var sq = data()
 	if sq.is_empty():
 		return
-	sq["follow"] = true
-	Hud.msg("Takımın yola çıktı, birazdan yanında.", Color(0.6, 1.0, 0.7))
+	request_mission()   # takım artık hep peşinde değil: hocaya haber gönder, görev varsa buluşma yeri söyler
 
 
 # ------------------------------------------------------------------ hocadan teknik öğrenme
@@ -386,9 +538,9 @@ func _lesson_menu() -> void:
 		if jid in learned:
 			continue
 		var j: Dictionary = Data.jutsu[jid]
+		if Progress.element_block(jid) != "":
+			continue   # doğana uymayan teknik hiç önerilmez (hoca senin doğana göre öğretir)
 		var why = Progress.can_learn(jid)
-		if why == "":
-			why = Progress.element_block(jid)
 		if why == "":
 			opts.append({"label": "%s [%s]" % [String(j["name"]), String(j.get("canon_rank", "?"))], "tip": String(j.get("desc", "")), "cb": func(): _teach(jid)})
 		else:
@@ -405,7 +557,8 @@ func _lesson_menu() -> void:
 
 Henüz hazır değilsin:
 " + "
-".join(locked)
+".join(locked.slice(0, 5)) + ("
+... ve %d teknik daha" % (locked.size() - 5) if locked.size() > 5 else "")
 	opts.append({"label": "Sonra", "cb": func(): pass})
 	Hud.dialog(who, txt, opts)
 

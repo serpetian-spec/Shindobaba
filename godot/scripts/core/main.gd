@@ -51,6 +51,9 @@ func _ready() -> void:
 	var squad = preload("res://scripts/core/squad.gd").new()
 	squad.name = "GeninSquad"
 	actors.add_child(squad)
+	var teams = preload("res://scripts/world/ambient_teams.gd").new()
+	teams.name = "AmbientTeams"   # çevrede gezen başka ninja takımları
+	actors.add_child(teams)
 	var friends = preload("res://scripts/core/friends.gd").new()
 	friends.name = "Friends"
 	actors.add_child(friends)
@@ -376,6 +379,17 @@ func _route(e: InputEvent) -> void:
 		elif qn != null:
 			qn.talk()
 		elif not it.is_empty():
+			# hizmet bir kişiye bağlıysa: o kişi sana döner ve konuşur (masayla konuşmak yok)
+			var who = it.get("npc")
+			if who != null and is_instance_valid(who):
+				var to: Vector3 = player.global_position - who.global_position
+				who.facing = atan2(-to.x, -to.z)
+				who.wait = 4.0
+				if who.model:
+					who.model.rotation.y = who.facing
+					who.model.play("talk", 0.2)
+				var back: Vector3 = who.global_position - player.global_position
+				player.facing = atan2(-back.x, -back.z)
 			Progress.interact(it)
 		else:
 			var c = Hud._near_catchable(player)
@@ -440,6 +454,16 @@ func use_item(id: String) -> void:
 			Buffs.add("pill", 20.0, {"melee": 1.15})
 			FX.aura(player, Color(1, 0.7, 0.3), 0.8)
 			Sfx.play("heal", player.global_position, 0.8)
+
+
+## Haritadaki bir bölgeye / yere ışınlanma (ülke merkezi, önemli yer): açık zemine iner
+func travel_to_map(mx: float, my: float, name: String) -> void:
+	resume()
+	FX.smoke_puff(player.global_position + Vector3.UP, 1.0, 14)
+	var q = Missions.open_ground(Game.from_map(Vector2(mx, my)), 80.0)
+	q.y = Game.ground_height(q.x, q.z)
+	player.respawn(q + Vector3.UP * 0.5)
+	Hud.banner(name, "Işınlanma", Color(0.8, 0.95, 1.0))
 
 
 func fast_travel(vid: String) -> void:

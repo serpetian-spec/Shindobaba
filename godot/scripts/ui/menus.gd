@@ -332,7 +332,13 @@ static func _eye_panel(main: Node, dv: VBoxContainer, pr: Dictionary) -> void:
 			dv.add_child(UI.button("Bu göze geri tak", func():
 				_eye_insert(pr, uid, slot_here)
 				ninja_menu(main, "eyes"), 300, "eye"))
-	dv.add_child(UI.label("Kendi gözünü buradan geri takabilirsin. Başkasından alınan gözlerin nakli yalnızca hastanede, bir tıbbi ninja tarafından yapılır.", 13, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
+	if not EyeSurgery.options("self").is_empty():
+		if EyeSurgery.can_self(pr):
+			dv.add_child(UI.button("Kendi tıbbi ninjutsunla nakil yap (tutma %%%d)" % int(round(EyeSurgery.self_chance(pr) * 100.0)), func():
+				Hud.dialog("Kendi Ameliyatın", "Düşman yokken oturup gözünü kendin değiştireceksin. Beden ağır yıpranır; tutmazsa göz bozulur.", EyeSurgery.options("self")), 420, "eye"))
+		else:
+			dv.add_child(UI.label("Kendi naklini yapmak için Shōsen (tıbbi ninjutsu) ve en az 50 chakra kontrolü ustalığı gerekir.", 13, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
+	dv.add_child(UI.label("Başkasından alınan gözü köy hastanesi takmaz (kanon: klan gözü klanın malıdır). Nakli takımındaki tıbbi ninja sahada yapar (Rin–Kakashi), kendi tıbbi ninjutsunla yaparsın ya da yeraltındaki Kara Cerrah gizlice takar.", 13, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
 
 
 ## Takılı gözü kavanoza koyar (yuvası boşalır = normal göz); açık gözler kapanır
@@ -2296,12 +2302,15 @@ static func _tab_missions(main: Node, body: Control) -> void:
 		var tv = UI.vbox(6)
 		tc.add_child(tv)
 		tv.add_child(UI.label("Takımın: %s, %s  •  Hoca: %s" % [sqd["mates"][0]["name"], sqd["mates"][1]["name"], sqd["sensei"]["name"]], 16, UI.TEXT))
-		if not sqd.get("follow", true):
-			tv.add_child(UI.button("Takımı çağır", func():
-				GeninSquad.recall()
-				main.resume(), 260, "person"))
+		if sqd.get("on_mission", false):
+			tv.add_child(UI.label("Takım görevde, yanında. Görev bitince dağılırsınız.", 13, UI.MUTED))
+		elif sqd.has("meet"):
+			tv.add_child(UI.label("Buluşma: antrenman alanı — oraya gidince görev başlar.", 13, UI.GOLD))
 		else:
-			tv.add_child(UI.label("Yanında geziyorlar. Hocanın yanında [F] ile köyde bekletebilirsin. Chūnin olana kadar seninle.", 13, UI.MUTED))
+			tv.add_child(UI.button("Hocana haber gönder (görev iste)", func():
+				main.resume()
+				GeninSquad.recall(), 300, "person"))
+			tv.add_child(UI.label("Arkadaşların ve hocan köyde kendi hayatlarını yaşıyor; Tab > İlişkiler'de görünürler. Görevleri hocan alır: önce 2 D-rank, sonra C-rank. %d görev yapıldı." % int(sqd.get("missions", 0)), 13, UI.MUTED))
 	# hikâye
 	var sc = UI.card(UI.GOLD)
 	left.add_child(sc)
@@ -3156,7 +3165,7 @@ static func world_map(main: Node) -> void:
 	sv.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	scroll.add_child(sv)
 	sv.add_child(UI.header("HIZLI SEYAHAT", 18))
-	sv.add_child(UI.label("Keşfettiğin köylere ışınlan.", 13, UI.MUTED))
+	sv.add_child(UI.label("Keşfettiğin köylere, haritadaki bölgelere ve yerlere ışınlan.", 13, UI.MUTED))
 	for v in Game.world_info["villages"]:
 		var visited: bool = v["id"] in Game.profile.get("visited", [])
 		if not visited:
@@ -3165,6 +3174,15 @@ static func world_map(main: Node) -> void:
 		if Orgs.is_rogue() and vid in Orgs.ROGUE_BANNED:
 			continue   # kaçak gizli köylere ışınlanamaz
 		sv.add_child(UI.button(v["name"], func(): main.fast_travel(vid), side_w - 40, "village"))
+	# haritadaki her bölge ve önemli yer (aşırı hızlı koşmaya gerek kalmasın)
+	sv.add_child(UI.header("BÖLGELER", 16))
+	for c in Game.world_info.get("countries", []):
+		var cx = float(c["x"]); var cy = float(c["y"]); var cn = String(c["name"])
+		sv.add_child(UI.button(cn, func(): main.travel_to_map(cx, cy, cn), side_w - 40, "map"))
+	sv.add_child(UI.header("YERLER", 16))
+	for l in Game.world_info.get("landmarks", []):
+		var lx = float(l["x"]); var ly = float(l["y"]); var ln = String(l["name"])
+		sv.add_child(UI.button(ln, func(): main.travel_to_map(lx, ly, ln), side_w - 40, "map"))
 	if Orgs.is_rogue():
 		sv.add_child(UI.button("Kaçak Sığınağı", func():
 			main.resume()

@@ -41,7 +41,7 @@ func kage_title(vid: String) -> String:
 	return HOME_VILLAGES.get(vid, {}).get("kage", "Köy Lideri")
 
 
-## Kavanozdaki gözler için nakil seçenekleri (hastane: 500 Ryō; kaçakların Kara Cerrahı: 1200 Ryō, soru sorulmaz)
+## (eski) doğrudan nakil seçenekleri — artık EyeSurgery kullanılır (ameliyat olayı + risk)
 func transplant_options(price: int, done_msg: String) -> Array:
 	var pr = Game.profile
 	var opts = []
@@ -733,9 +733,11 @@ func interact(it: Dictionary) -> void:
 			if int(pr["level"]) >= 4 and not "shousen" in pr["learned"]:
 				opts.append({"label": "Tıbbi ninjutsu öğren (200 Ryō)", "cb": func(): _buy_learn("shousen", 200)})
 			opts.append_array(trainer_options(["hospital"], 5))
-			# göz nakli: kavanozdaki gözler
-			opts.append_array(transplant_options(500, "Nakil başarılı. Bir süre gözlerin ağrıyacak."))
-			Hud.dialog("Hastane", "Yaraların sarıldı. Tamamen iyileştin.", opts)
+			# kanon: köy hastanesi başkasının dōjutsusunu takmaz (klan gözü klanın malıdır; nakiller sahada ya da gizlice yapılır)
+			var jar = not EyeSurgery.options("black").is_empty()
+			Hud.dialog("Hastane", "Yaraların sarıldı. Tamamen iyileştin." + ("
+
+Tıbbi ninja kavanozuna bakıp başını salladı: \"Başkasının gözünü burada takmayız — klan gözü klanın malıdır. Bunu bir daha göstermesen iyi olur.\"" if jar else ""), opts)
 		"training":
 			_training_ground()
 		"swing":

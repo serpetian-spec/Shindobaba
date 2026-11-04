@@ -1336,6 +1336,7 @@ func c_tsuga(c: Node3D, t: Node3D) -> void:
 	var drill = Jutsu.gatsuga_drill(0.75)
 	c.add_child(drill)
 	drill.top_level = true
+	drill.scale = Vector3(0.5, 0.5, 0.95)   # Tsūga: Gatsūga'dan ince, uzun tek matkap
 	# matkap bedenin yerinde, gidiş yönüne bakar (gövde düğümü dönmez; yön hızdan/hedeften)
 	var follow = drill.create_tween().set_loops()
 	follow.tween_callback(func():
@@ -1348,9 +1349,19 @@ func c_tsuga(c: Node3D, t: Node3D) -> void:
 			v = c.face_dir()
 		drill.look_at(drill.global_position + v.normalized(), Vector3.UP))
 	follow.tween_interval(0.016)
+	var st = {"done": false}
+	var reveal = func():
+		st["done"] = true
+		if is_instance_valid(drill):
+			drill.queue_free()
+		if is_instance_valid(c) and c.get("model"):
+			c.model.visible = true
+	# emniyet: kombo kesilse de (tween öldürülse de) beden en geç 2 sn sonra görünür
+	c.get_tree().create_timer(2.0).timeout.connect(reveal)
 	var step = func(next_t):
 		Jutsu._dash(c, next_t, 0.45, 26.0, func(pt):
-			c.model.visible = false   # kanon: beden matkabın içinde görünmez (kendi etrafında topaç gibi dönmez)
+			if not st["done"]:
+				c.model.visible = false   # kanon: beden matkabın içinde görünmez (kendi etrafında topaç gibi dönmez)
 			for h in hit(c, pt, 1.4, inf(c, "tsuga", 1.0, {"knock": 10.0, "launch": 4.0, "kind": "heavy"}), chain):
 				chain.append(h))
 	step.call(tt)
@@ -1362,10 +1373,7 @@ func c_tsuga(c: Node3D, t: Node3D) -> void:
 			if not e in chain:
 				nxt = e
 		if nxt:
-			step.call(nxt), func():
-		drill.queue_free()
-		if is_instance_valid(c):
-			c.model.visible = true)
+			step.call(nxt), reveal)
 	Sfx.play("wind", c.global_position, 1.8)
 
 
@@ -1394,13 +1402,55 @@ func c_shikyaku_no_jutsu(c: Node3D, _t: Node3D) -> void:
 	if c is Player:
 		Buffs.add("shikyaku", 20.0, {"speed": 1.18, "melee": 1.18})
 	FX.aura(c, Color(0.95, 0.35, 0.2), 1.0, Vector3(0, 0.9, 0), 20.0)
-	for side in [-1.0, 1.0]:
-		var b = MB.new()
-		for k in 3:
-			b.add("cone", Vector3((k - 1) * 0.05, 0, -0.12), Vector3(0.03, 0.22, 0.03), Color(0.95, 0.93, 0.88), Vector3(-90, 0, 0), 4)
-		var claw = mesh_of(b)
-		attach(c, claw, 20.0, Vector3(0.35 * side, 1.0, -0.35))
+	finger_claws(c, 20.0)
 	Sfx.play("roar", c.global_position, 1.6, 0.6)
+
+
+## Kanon (Shikyaku no Jutsu): tırnaklar parmak uçlarından pençe gibi uzar. Her parmağın uç kemiğine bağlı,
+## parmağın baktığı yöne (orta boğum -> uç) dönük kısa kıvrık pençe; her karede kemikle birlikte hareket eder.
+func finger_claws(c: Node3D, dur: float) -> void:
+	var m = c.get("model")
+	if m == null or not is_instance_valid(m) or m.get("skel") == null:
+		return
+	var sk: Skeleton3D = m.skel
+	var b = MB.new()
+	Loft.tube(b, [Vector3(0, 0, 0), Vector3(0, -0.006, -0.035), Vector3(0, -0.018, -0.065)], [0.011, 0.007, 0.001], Color(0.93, 0.9, 0.82), 6, 2)
+	var mesh = b.build(Props.toon())
+	var pairs = []
+	for side in ["Left", "Right"]:
+		for f in ["Index", "Middle", "Ring", "Little", "Thumb"]:
+			var a = sk.find_bone(side + f + ("Proximal" if f == "Thumb" else "Intermediate"))
+			var d = sk.find_bone(side + f + "Distal")
+			if a < 0 or d < 0:
+				continue
+			var mi = MeshInstance3D.new()
+			mi.mesh = mesh
+			mi.top_level = true
+			c.add_child(mi)
+			pairs.append([mi, a, d])
+	if pairs.is_empty():
+		return
+	var tw = c.create_tween()
+	tw.tween_method(func(_u: float):
+		if not is_instance_valid(sk):
+			return
+		for pr in pairs:
+			var mi: MeshInstance3D = pr[0]
+			if not is_instance_valid(mi):
+				continue
+			mi.visible = m.visible
+			var pa: Vector3 = (sk.global_transform * sk.get_bone_global_pose(pr[1])).origin
+			var pd: Vector3 = (sk.global_transform * sk.get_bone_global_pose(pr[2])).origin
+			var dv = pd - pa
+			if dv.length() < 0.0001:
+				continue
+			var tip = pd + dv.normalized() * dv.length() * 0.9   # uç kemiğin ucu (uç boğum ~ orta boğum boyu)
+			var up = Vector3.UP if absf(dv.normalized().y) < 0.95 else Vector3.FORWARD
+			mi.global_transform = Transform3D(Basis.looking_at(dv.normalized(), up), tip), 0.0, 1.0, dur)
+	tw.tween_callback(func():
+		for pr in pairs:
+			if is_instance_valid(pr[0]):
+				pr[0].queue_free())
 
 
 ## Çift Kurt Dişi: sen ve ninken iki dev kurt kafalı matkap; hedefte birleşip patlarsınız

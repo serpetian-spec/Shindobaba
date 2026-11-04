@@ -356,6 +356,12 @@ static func _friend_opts(id: String, v: Node) -> Array:
 	if f.get("rogue", false) and String(f.get("status", "")) == "kaçak":
 		opts.append_array(RogueBonds.options(id))   # kaçak dostun kendi işleri (kamp ateşi, sake, ortak iş, geçmişi, sonlar)
 	opts.append_array(FriendPlots.option(id))
+	if String(f.get("squad_key", "")) == "sensei" and String(f.get("status", "")) == "" and int(pr().get("rank", 0)) == 1:
+		opts.append({"label": "Görev var mı, hocam?", "cb": func(): GeninSquad.request_mission()})
+		opts.append({"label": "Bana bir teknik öğretir misin?", "cb": func():
+			var sqn = (Engine.get_main_loop() as SceneTree).current_scene.find_child("GeninSquad", true, false)
+			if sqn and sqn.has_method("_lesson_menu"):
+				sqn._lesson_menu()})
 	if b < 0:
 		if can_talk:
 			opts.append({"label": "Özür dile, arayı düzelt", "cb": func():

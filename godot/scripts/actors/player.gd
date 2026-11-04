@@ -9,13 +9,13 @@ signal died
 const RUN := 11.0
 const WALK := 2.4   # Caps Lock: sakin köylü yürüyüşü
 var walking := false
-const DASH := 19.0
+const DASH := 17.0   # anime: ninja koşusu hızlı ama araç hızında değil
 const GRAV := 36.0
-const JUMP := 14.2
+const JUMP := 16.0   # ~3.6 m: tek sıçrayışta çatı/dal
 const WALL_SPEED := 12.0
 const AIR_DASH := 28.0
-const LEAP_FWD := 23.0   # Ctrl: Shinobi Striker uzun ninja sıçrayışı
-const LEAP_UP := 14.5
+const LEAP_FWD := 17.0   # Ctrl: Shinobi Striker uzun ninja sıçrayışı
+const LEAP_UP := 15.5
 
 var model: CharacterModel
 var cam_pivot: Node3D
@@ -431,7 +431,7 @@ func _physics_process(dt: float) -> void:
 	dt *= Combat.player_comp()   # Sharingan algısı: dünya yavaş, oyuncu normal hızda
 	# depar sayacı her hareket kipinde sıfırlanır (duvar/ip/tutunmada Shift bırakılınca kalıyordu -> kısa basışta tam hız);
 	# jutsu/saldırı sırasında birikmez
-	if not Input.is_action_pressed("dash") or (combat != null and not combat.get("action") in [null, ""]):
+	if not Input.is_action_pressed("dash") or not Input.is_physical_key_pressed(KEY_SHIFT) or (combat != null and not combat.get("action") in [null, ""]):
 		sprint_t = 0.0
 	input_locked -= dt
 	wall_cd -= dt
@@ -475,7 +475,12 @@ func _process(dt: float) -> void:
 
 func _ground_air_move(dt: float) -> void:
 	var wish = wish_dir()
-	var sprint = Input.is_action_pressed("dash") and grounded and wish.length() > 0.1
+	# Shift takılı kalmasın (menü açıkken / pencere odağı giderken bırakma olayı kaçınca hep koşuyordu):
+	# depar yalnız fiziksel Shift gerçekten basılıyken ve arayüz kapalıyken
+	var shift_down = Input.is_action_pressed("dash") and Input.is_physical_key_pressed(KEY_SHIFT) and not Game.ui_open
+	if Input.is_action_pressed("dash") and not shift_down:
+		Input.action_release("dash")
+	var sprint = shift_down and grounded and wish.length() > 0.1
 	# Shift 5 sn basılı: ikinci depar kademesi (büyük harita için)
 	if sprint:
 		sprint_t += dt
@@ -493,7 +498,7 @@ func _ground_air_move(dt: float) -> void:
 		var spd_mul = Buffs.mod("speed") * (1.0 + Stats.skill(Game.profile, "speed") + Mastery.get_v(Game.profile, "hiz") * 0.003) * (1.0 + Gear.stat(Game.profile, "speed") + Stats.clan_bonus(Game.profile, "speed")) * status_speed()
 		if sprint and wish.length() > 0.1:
 			Mastery.gain(Game.profile, "hiz", dt * 0.005)   # koştukça hız
-		var target = wish * ((DASH * 3.2 if turbo else DASH) if sprint else (WALK if walking else RUN)) * spd_mul   # tam hız (5 sn Shift) 2x; Caps Lock: yürüyüş
+		var target = wish * ((DASH * 1.35 if turbo else DASH) if sprint else (WALK if walking else RUN)) * spd_mul   # tam hız (5 sn Shift) 2x; Caps Lock: yürüyüş
 		if swimming:
 			target *= 0.35
 		var hv = Vector3(velocity.x, 0, velocity.z)
