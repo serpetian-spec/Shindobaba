@@ -533,6 +533,10 @@ func set_size(s: float, dur: float) -> void:
 
 # ------------------------------------------------------------------ hasar kancası: true = darbe tamamen önlendi
 func on_player_hit(info: Dictionary) -> bool:
+	Combat.larch_counter(p, info)   # Karamatsu: yakın dövüş saldıranı kendini saplar
+	# Shikotsumyaku (kanon yetenek): çelikten sert kemikler — fiziksel darbe azalır (düşman Kaguya da aynı)
+	if ClanMech.clan() == "kaguya" and String(info.get("element", "")) == "":
+		info["dmg"] = float(info.get("dmg", 0.0)) * 0.8
 	# Hōzuki (kanon): beden darbe anında kendiliğinden sıvılaşır — fiziksel darbe içinden geçer (su harcar); raiton suyu iletir
 	if ClanMech.clan() == "hozuki" and not Buffs.has("suika"):
 		var hel = String(info.get("element", ""))

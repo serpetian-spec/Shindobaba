@@ -905,7 +905,7 @@
   "level": 3,
   "rank": 0,
   "learn": "clan",
-  "desc": "Parmak kemiği mermileri.",
+  "desc": "Parmak uçlarından kemik mermiler: on keskin kemik art arda saplanır.",
   "seals": [],
   "canon_rank": "?",
   "category": "hiden",
@@ -913,27 +913,6 @@
   "elements": [],
   "tier": 2,
   "name_en": "Ten-Finger Drilling Bullets"
- },
- "bone_armor": {
-  "id": "bone_armor",
-  "name": "Kotsu no Yoroi",
-  "cost": 30,
-  "cd": 20,
-  "element": "",
-  "clan": "kaguya",
-  "level": 7,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "20 sn gelen hasar yarıya iner.",
-  "seals": [],
-  "canon_rank": "B",
-  "category": "kekkei_genkai",
-  "shape": "melee",
-  "elements": [],
-  "tier": 4,
-  "name_en": "Dance of the Willow",
-  "research_id": "yanagi_no_mai",
-  "meaning": "Kemik Zırh"
  },
  "chakra_chains": {
   "id": "chakra_chains",
@@ -3950,7 +3929,7 @@
   "level": 28,
   "rank": 3,
   "learn": "kg:shikotsumyaku",
-  "desc": "Kemik matkapla tek, deliciliği en yüksek hamle.",
+  "desc": "Lanetli Mühür II şart: bütün kemik gücü tek dev matkapta — Tsuru ile bağlanmış hedefe tam güç, blok ve zırhı deler.",
   "seals": [],
   "canon_rank": "S",
   "tier": 5,
@@ -3965,7 +3944,8 @@
   "signature": false,
   "kinjutsu": false,
   "series": "Naruto Part I",
-  "meaning": "Clematis Dansı: Çiçek"
+  "meaning": "Clematis Dansı: Çiçek",
+  "need": "juin2"
  },
  "tessenka_no_mai_tsuru": {
   "id": "tessenka_no_mai_tsuru",
@@ -3980,7 +3960,7 @@
   "level": 18,
   "rank": 3,
   "learn": "kg:shikotsumyaku",
-  "desc": "Esnek omurga kamçısıyla hedefi sarmalar.",
+  "desc": "Lanetli Mühür II şart: uzayan omurgayı kamçı yapar, hedefe dolanıp çeker ve bağlar.",
   "seals": [],
   "canon_rank": "A",
   "tier": 4,
@@ -3995,7 +3975,8 @@
   "signature": false,
   "kinjutsu": false,
   "series": "Naruto Part I",
-  "meaning": "Clematis Dansı: Sarmaşık"
+  "meaning": "Clematis Dansı: Sarmaşık",
+  "need": "juin2"
  },
  "mikazuki_no_mai": {
   "id": "mikazuki_no_mai",
@@ -4036,7 +4017,7 @@
   "level": 18,
   "rank": 3,
   "learn": "kg:shikotsumyaku",
-  "desc": "Vücuttan dışarı kemik dikenler çıkarıp dönerek savunur ve saldırır.",
+  "desc": "Bedenden sivri kemikler çıkar (5 sn): yakın dövüşle vuran kendini saplar, güçlü darbe daha çok yaralar. Uzak saldırıya ve jutsuya işe yaramaz.",
   "seals": [],
   "canon_rank": "A",
   "tier": 4,
@@ -4066,7 +4047,7 @@
   "level": 28,
   "rank": 3,
   "learn": "kg:shikotsumyaku",
-  "desc": "Yerden dev kemik ormanı yükselir.",
+  "desc": "Yeraltından binlerce kemik bıçak yükselir. Lanetli Mühür II açıksa kemik ormanıyla birleşip hedefin kör noktasından çıkar ve vurur.",
   "seals": [],
   "canon_rank": "S",
   "tier": 5,
@@ -20389,7 +20370,10 @@
   "byakugan_tenketsu": "juken",
   "sosho_kaiten": "kaiten",
   "hozuki_kubikiri_zan": "suiton_gosuiwan_no_jutsu",
-  "hozuki_suiryu_tenshin": "mizudeppo_nicho"
+  "hozuki_suiryu_tenshin": "mizudeppo_nicho",
+  "bone_armor": "karamatsu_no_mai",
+  "kaguya_hone_tate": "karamatsu_no_mai",
+  "jusshi_sendan": "bone_bullets"
  },
  "kusanagi_kuchi": {
   "id": "kusanagi_kuchi",
@@ -21631,25 +21615,6 @@
   "category": "hiden",
   "shape": "summon",
   "tier": 4
- },
- "kaguya_hone_tate": {
-  "id": "kaguya_hone_tate",
-  "name": "Kaguya: Hone no Tate",
-  "name_en": "Bone Shield Dome",
-  "cost": 38,
-  "cd": 9.9,
-  "element": "",
-  "elements": [],
-  "clan": "kaguya",
-  "level": 14,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Bedenden çıkan kemik plakalar kubbe kalkan olur.",
-  "seals": [],
-  "canon_rank": "B",
-  "category": "hiden",
-  "shape": "wall",
-  "tier": 3
  },
  "terumi_futton_komu": {
   "id": "terumi_futton_komu",
@@ -27624,27 +27589,6 @@
   "shape": "beam",
   "need": "contract:kurbağa",
   "meaning": "Rüzgârlı Kurbağa Yağı Alevi"
- },
- "jusshi_sendan": {
-  "id": "jusshi_sendan",
-  "name": "Jūshi Sendan",
-  "name_en": "Digital Shrapnel",
-  "cost": 28,
-  "cd": 9.0,
-  "element": "",
-  "elements": [],
-  "natures": [],
-  "clan": "",
-  "level": 10,
-  "rank": 2,
-  "learn": "kg:shikotsumyaku",
-  "desc": "Parmak uçlarından kemik mermiler fırlatırsın: on keskin kemik art arda saplanır.",
-  "seals": [],
-  "canon_rank": "B",
-  "tier": 3,
-  "category": "taijutsu",
-  "shape": "projectile",
-  "meaning": "On Parmak Mermisi"
  },
  "yanagi_no_mai": {
   "id": "yanagi_no_mai",

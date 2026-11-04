@@ -1371,26 +1371,7 @@ func c_dainamikku_makingu(c: Node3D, t: Node3D) -> void:
 		n.tgt = tt
 
 
-# ================================================================== KAGUYA — kemik dansları (her biri ayrı)
-## Söğüt Dansı: bedenin her yerinden kemikler fışkırır; sonra kemik zırh
-func c_bone_armor(c: Node3D, t: Node3D) -> void:
-	Jutsu.j_bone_armor(c, t)
-	var p = c.global_position
-	for k in 16:
-		var a = k * TAU / 16.0
-		var dir = Vector3(cos(a), 0.25 + (k % 3) * 0.2, sin(a)).normalized()
-		var b = MB.new()
-		b.add_grad("cone", Vector3(0, 1.0, 0), Vector3(0.22, 2.0, 0.22), Color(0.98, 0.96, 0.9), Color(0.85, 0.82, 0.75), Vector3.ZERO, 6)
-		var bone = place(b, p + Vector3.UP * (0.8 + (k % 4) * 0.3))
-		bone.global_transform.basis = Basis(Quaternion(Vector3.UP, dir))
-		bone.scale = Vector3(1, 0.05, 1)
-		var tw = bone.create_tween()
-		tw.tween_property(bone, "scale", Vector3.ONE, 0.08)
-		fade_free(bone, 0.6, 0.2)
-	hit(c, p + Vector3.UP, 2.6, inf(c, "bone_armor", 1.0, {"knock": 9.0, "kind": "heavy"}))
-	Sfx.play("hit_heavy", p, 1.3)
-
-
+# ================================================================== KAGUYA — kemik dansları (Shikotsumyaku; çelikten sert kemik = yetenek, PlayerModes/Enemy)
 func _bone_blade(c: Node3D, len_: float, dur: float) -> Node3D:
 	var b = MB.new()
 	b.add_grad("cone", Vector3(0, 0, -len_ * 0.5), Vector3(0.2, len_, 0.16), Color(0.98, 0.96, 0.9), Color(0.82, 0.78, 0.7), Vector3(-90, 0, 0), 6)
@@ -1432,7 +1413,12 @@ func c_tessenka_no_mai_hana(c: Node3D, t: Node3D) -> void:
 		Jutsu._dash(c, t, 0.35, 34.0, func(pt):
 			if is_instance_valid(drill):
 				drill.rotation.z += 0.8
-			for h in hit(c, pt + c.face_dir() * 1.5, 1.8, inf(c, "tessenka_no_mai_hana", 2.6, {"knock": 16.0, "launch": 3.0, "kind": "heavy", "pierce_guard": true, "hitstop": 0.1}), hits):
+			# kanon: Hana, Tsuru ile bağlanmış hedefe vurulmak içindir — bağlıya tam güç, serbeste yarı
+			var bound_mul = 1.0
+			for e2 in enemies_near(c, pt + c.face_dir() * 1.5, 1.8):
+				if e2.has_method("has_status") and e2.has_status("bind"):
+					bound_mul = 1.6
+			for h in hit(c, pt + c.face_dir() * 1.5, 1.8, inf(c, "tessenka_no_mai_hana", 1.7 * bound_mul, {"knock": 16.0, "launch": 3.0, "kind": "heavy", "pierce_guard": true, "hitstop": 0.1}), hits):
 				hits.append(h)
 				VFX.debris(h.global_position + Vector3.UP, Color(0.95, 0.92, 0.85), 10, 8.0, 0.3)))
 	Sfx.play("whoosh", c.global_position, 0.6)
@@ -1473,7 +1459,9 @@ func c_tessenka_no_mai_tsuru(c: Node3D, t: Node3D) -> void:
 	Sfx.play("whoosh", c.global_position, 1.1)
 
 
-## Karaçam Dansı: tüm bedenden sivri kemikler çıkar: 8 sn yanına gelen her düşman delinir, gelen hasar azalır
+## Karamatsu no Mai (kanon, Kimimaro): yakın dövüşle vurulmak üzereyken bedenin her yerinden sivri kemikler çıkar —
+## saldıran kendini kemiklere saplar; saldırı ne kadar güçlü/hızlıysa kendine o kadar zarar verir (Combat.larch_counter).
+## 5 sn açık kalır; jutsu ve uzak saldırıya karşı işe yaramaz (zayıf nokta). Oyuncu ve düşman aynı kural.
 func c_karamatsu_no_mai(c: Node3D, _t: Node3D) -> void:
 	var b = MB.new()
 	for k in 30:
@@ -1481,12 +1469,8 @@ func c_karamatsu_no_mai(c: Node3D, _t: Node3D) -> void:
 		var bs = Basis(Quaternion(Vector3.UP, dir))
 		b.add_xf("cone", Transform3D(bs * Basis.from_scale(Vector3(0.1, 0.65, 0.1)), dir * 0.42 + Vector3.UP * randf_range(0.3, 1.5)), Color(0.97, 0.95, 0.88))
 	var spikes = mesh_of(b)
-	attach(c, spikes, 8.0, Vector3.ZERO)
-	if c is Player:
-		Buffs.add("karamatsu", 8.0, {"armor": 0.5})
-	every(8.0, 0.4, func(_i, _k):
-		if is_instance_valid(c):
-			hit(c, c.global_position + Vector3.UP, 1.9, inf(c, "karamatsu_no_mai", 0.25, {"knock": 6.0, "kind": "light", "burn": 1.0})))
+	attach(c, spikes, 5.0, Vector3.ZERO)
+	Buffs.add("karamatsu", 5.0, {"_name": "Karamatsu no Mai", "_desc": "yakın dövüşle vuran kemiklere saplanır"})
 	Sfx.play("hit_heavy", c.global_position, 1.1)
 
 
@@ -1511,6 +1495,22 @@ func c_sawarabi_no_mai(c: Node3D, t: Node3D) -> void:
 	after(0.2, func():
 		shake(1.0)
 		Sfx.play("earth", center, 0.6))
+	# kanon: lanet mührü II'deyken Kimimaro kemik ormanıyla birleşir, hedefin kör noktasındaki kemikten çıkıp bitirir
+	var j2 = Buffs.has("juin2") if c is Player else (c.get("buffs") != null and c.buffs.has("juin2"))
+	var tt = tg(c, t, 30.0)
+	if j2 and tt:
+		after(1.3, func():
+			if not (live(c) and live(tt)):
+				return
+			var back = -tt.face_dir() if tt.has_method("face_dir") else Vector3.BACK
+			VFX.debris(c.global_position + Vector3.UP, Color(0.97, 0.95, 0.88), 10, 6.0, 0.3)
+			c.global_position = gp(tt.global_position + back * 1.4)
+			spike(c.global_position, 3.0, 0.9, Color(0.97, 0.95, 0.88), 1.0, Vector3.ZERO, true)
+			if c is Player:
+				c.combat.face_to(tt)
+			anim(c, "cross", 2.0)
+			Combat.popup_text(tt.global_position + Vector3.UP * 2.5, "Kemikten çıktı!", Color(0.97, 0.95, 0.88))
+			hit(c, tt.global_position + Vector3.UP, 1.3, inf(c, "sawarabi_no_mai", 1.4, {"knock": 14.0, "launch": 3.0, "kind": "heavy", "pierce_guard": true})))
 
 
 # ================================================================== UZUMAKI — mühürler ve zincirler
@@ -1673,6 +1673,41 @@ func c_suiton_gosuiwan_no_jutsu(c: Node3D, t: Node3D) -> void:
 		Sfx.play("water", p, 0.7))
 
 
+## Su girdabı dokusu (Tate Eboshi yüzeyi): saydam zemin üzerinde ak, uçları kıvrılan "ε" biçimli su çizgileri — döşenebilir
+static var _swirl: ImageTexture = null
+static func _swirl_tex() -> ImageTexture:
+	if _swirl:
+		return _swirl
+	var N = 128
+	var img = Image.create(N, N, false, Image.FORMAT_RGBA8)
+	img.fill(Color(1, 1, 1, 0))
+	var col = Color(1, 1, 1, 0.85)
+	var rng = RandomNumberGenerator.new()
+	rng.seed = 7
+	var stamp = func(x: float, y: float, r: float):
+		for yy in range(int(y - r) - 1, int(y + r) + 2):
+			for xx in range(int(x - r) - 1, int(x + r) + 2):
+				if Vector2(xx - x, yy - y).length() <= r:
+					img.set_pixel(posmod(xx, N), posmod(yy, N), col)
+	for k in 5:
+		var cx = rng.randf_range(0, N)
+		var cy = rng.randf_range(0, N)
+		var R = rng.randf_range(9.0, 15.0)
+		var dirs = 1.0 if rng.randf() < 0.5 else -1.0
+		# iç içe açılan sarmal (girdap) + dışa uzanan kuyruk
+		for i in 90:
+			var u = i / 89.0
+			var a = dirs * u * TAU * 1.4
+			var rr = R * (0.15 + u)
+			stamp.call(cx + cos(a) * rr, cy + sin(a) * rr * 0.8, 1.6 * (1.0 - u * 0.4))
+		for i in 30:
+			var u = i / 29.0
+			stamp.call(cx + dirs * (R * 1.15 + u * 14.0), cy + R * 0.3 + sin(u * PI) * 6.0, 1.4 * (1.0 - u * 0.7))
+	img.generate_mipmaps()
+	_swirl = ImageTexture.create_from_image(img)
+	return _swirl
+
+
 ## Suiton: Tate Eboshi (kanon, Suigetsu): Hōzuki bir su kaynağıyla birleşir, dev bir dalga (şeytan balığı gibi) kaldırır:
 ## 6 sn önündeki mermileri yutar, yaklaşanı geri iter, dostları korur. Su kaynağı yoksa yapılamaz (oyuncu: ClanMech; AI: burada).
 func c_suiton_tate_eboshi(c: Node3D, t: Node3D) -> void:
@@ -1702,6 +1737,17 @@ func c_suiton_tate_eboshi(c: Node3D, t: Node3D) -> void:
 	body.material_override = wm
 	body.scale = Vector3(W, H, D)
 	body.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# yüzeyde ak girdaplar (referanstaki kıvrık su çizgileri): koddan çizilmiş döşenen doku, ikinci katman
+	var sw = StandardMaterial3D.new()
+	sw.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	sw.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	sw.albedo_texture = _swirl_tex()
+	sw.uv1_scale = Vector3(11.0, 5.0, 1.0)
+	sw.cull_mode = BaseMaterial3D.CULL_BACK
+	sw.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	body.material_overlay = sw
+	var uvt = body.create_tween().set_loops()   # girdaplar yavaşça yukarı akar
+	uvt.tween_property(sw, "uv1_offset", Vector3(0.0, -1.0, 0.0), 4.0).from(Vector3.ZERO)
 	root.add_child(body)
 	# dikenler gökyüzüne karşı seçilsin: daha koyu, doygun mavi (soluk ak dikenler açık gökte kayboluyordu)
 	var spm = VFX.mat_water(Color(0.12, 0.38, 0.72), Color(0.35, 0.62, 0.9), Color(0.85, 0.94, 1.0), Vector3.UP, 0.92, 0.5, 0.0)

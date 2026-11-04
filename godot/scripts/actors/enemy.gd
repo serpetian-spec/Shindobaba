@@ -548,6 +548,7 @@ func _chase(dt: float) -> void:
 		# her jutsu oyuncudakiyle aynı bekleme süresine tabi (aynı dalga jutsusu 15 sn'de 6 kez gelmez)
 		var nowj = Time.get_ticks_msec() / 1000.0
 		var ready = jl.filter(func(id): return nowj >= float(jcd.get(id, 0.0)))
+		ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("need", "")) != "juin2" or buffs.has("juin2"))   # oyuncuyla aynı şart
 		if has_status("sealed"):   # tenketsu kapalı: chakra yoğrulamaz, yalnız taijutsu (oyuncuyla aynı kural)
 			ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("category", "")) == "taijutsu")
 		if not ready.is_empty() and nowj >= jgap and randf() < 0.85:
@@ -864,6 +865,9 @@ func _end_attack() -> void:
 
 
 func take_hit(info: Dictionary) -> void:
+	Combat.larch_counter(self, info)
+	if String(arch.get("clan", "")) == "kaguya" and String(info.get("element", "")) == "":
+		info["dmg"] = float(info.get("dmg", 0.0)) * 0.8   # Shikotsumyaku: çelikten sert kemik (oyuncuyla aynı)
 	# Hōzuki (oyuncuyla aynı kural): fiziksel darbe kendiliğinden sıvılaşan bedenden geçer (su harcar); raiton 1.5x
 	if String(arch.get("clan", "")) == "hozuki" and not dead:
 		var hel = String(info.get("element", ""))

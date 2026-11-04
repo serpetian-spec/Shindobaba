@@ -190,6 +190,24 @@ func hit_sphere(attacker: Node3D, center: Vector3, radius: float, info: Dictiona
 	return hits
 
 
+## Karamatsu no Mai (kanon): kemik dikenli bedene yakın dövüşle vuran kendini saplar — darbenin gücü kadar kendine zarar,
+## kemiklere çarpan darbe büyük ölçüde boşa gider. Oyuncu (PlayerModes) ve düşman (Enemy.take_hit) aynı fonksiyonu çağırır.
+func larch_counter(def: Node3D, info: Dictionary) -> bool:
+	var on = Buffs.has("karamatsu") if def is Player else (def.get("buffs") != null and def.buffs.has("karamatsu"))
+	if not on or not info.get("melee", false):
+		return false
+	var atk = info.get("attacker")
+	var dmg = float(info.get("dmg", 0.0))
+	info["dmg"] = dmg * 0.25
+	if atk is Node3D and is_instance_valid(atk) and atk.has_method("take_hit") and not atk.is_dead():
+		var heavy = String(info.get("kind", "light")) == "heavy"
+		atk.take_hit({"dmg": dmg * (1.6 if heavy else 1.1) + 6.0, "knock": 4.0, "kind": "heavy" if heavy else "light", "bleed": 3.0,
+			"attacker": def, "dir": (atk.global_position - def.global_position).normalized()})
+		VFX.debris(atk.global_position + Vector3.UP, Color(0.75, 0.05, 0.05), 8, 5.0, 0.25)
+		popup_text(atk.global_position + Vector3.UP * 2.3, "Kemiklere saplandı!", Color(1.0, 0.85, 0.7))
+	return true
+
+
 ## Jūho Sōshiken (kanon): aslan başları dokunduğu kişinin chakra ağını emer — oyuncunun chakrası azalır,
 ## düşmanın (chakra değeri yok) ağı kısa süre kapanır; emen taraf chakra kazanır. Oyuncu ve düşman aynı kural.
 func _lion_drain(attacker: Node3D, f: Node3D) -> void:
