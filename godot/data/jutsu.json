@@ -849,7 +849,7 @@
  },
  "hyoton_senbon": {
   "id": "hyoton_senbon",
-  "name": "Hyōton: Sensatsu Suishō",
+  "name": "Hyōton: Tsurara Rendan",
   "cost": 22,
   "cd": 4,
   "element": "",
@@ -857,7 +857,7 @@
   "level": 3,
   "rank": 0,
   "learn": "clan",
-  "desc": "Buz iğnesi yelpazesi.",
+  "desc": "Senbonla kesikler ve tekmeyle hedefi savurur, ardından havada oluşan iri buz iğneleri hedefe yağar.",
   "seals": [
    "Hitsuji",
    "Tatsu"
@@ -871,7 +871,7 @@
  },
  "hyoton_spears": {
   "id": "hyoton_spears",
-  "name": "Hyōton: Tsurara",
+  "name": "Sensatsu Suishō",
   "cost": 35,
   "cd": 8,
   "element": "",
@@ -879,7 +879,7 @@
   "level": 7,
   "rank": 0,
   "learn": "clan",
-  "desc": "Hedefin etrafında buz: dondurur.",
+  "desc": "Yakındaki sudan bin iğne yaratılır, hedefin etrafını sarar ve birden fırlar. Yakında su (göl/deniz, yağmur, ıslak zemin) şart.",
   "seals": [
    "Ne",
    "Mi",
@@ -20187,7 +20187,8 @@
   "yamanaka_shinkaitai": "shinranshin_no_jutsu",
   "hoshigaki_ryudan": "suiton_daikodan_no_jutsu",
   "hoshigaki_samehada_kyushu": "hoshigaki_same",
-  "kurama_kokuangyo": "yuhi_kokuangyo"
+  "kurama_kokuangyo": "yuhi_kokuangyo",
+  "hyoton_hyoryu_boppa": "hyoton_tsubame_fubuki"
  },
  "kusanagi_kuchi": {
   "id": "kusanagi_kuchi",
@@ -20476,27 +20477,6 @@
   "category": "hiden",
   "shape": "projectile",
   "tier": 3
- },
- "hyoton_hyoryu_boppa": {
-  "id": "hyoton_hyoryu_boppa",
-  "name": "Hyōton: Hyōryū Boppa",
-  "name_en": "Ice Release: Ice Dragon Blast",
-  "cost": 42,
-  "cd": 11.3,
-  "element": "hyoton",
-  "elements": [
-   "hyoton"
-  ],
-  "clan": "yuki",
-  "level": 18,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Dev buz ejderi kükreyerek ileri atılır; yolundakileri dondurup parçalar.",
-  "seals": [],
-  "canon_rank": "A",
-  "category": "hiden",
-  "shape": "beam",
-  "tier": 4
  },
  "hozuki_mizu_muchi": {
   "id": "hozuki_mizu_muchi",

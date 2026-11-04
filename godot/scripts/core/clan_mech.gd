@@ -89,6 +89,8 @@ static func cast_block(jid: String, j: Dictionary) -> String:
 	# Tate Eboshi (kanon): Hōzuki bir su kaynağıyla birleşip dalgayı oradan kaldırır
 	if jid == "suiton_tate_eboshi" and Game.player and not water_near(Game.player.global_position):
 		return "Tate Eboshi için yakında su olmalı (göl/deniz, yağmur ya da ıslak zemin)."
+	if jid == "hyoton_spears" and Game.player and not water_near(Game.player.global_position):   # Sensatsu Suishō (kanon): iğneler yakındaki sudan
+		return "Sensatsu Suishō için yakında su olmalı (göl/deniz, yağmur ya da ıslak zemin)."
 	return ""
 
 

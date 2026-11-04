@@ -2010,6 +2010,8 @@ func j_hyoton_senbon(c: Node3D, t: Node3D) -> void:
 
 
 func j_hyoton_spears(c: Node3D, t: Node3D) -> void:
+	if not (c is Player) and not ClanMech.water_near(c.global_position):   # oyuncuyla aynı: yakında su şart
+		return
 	var m = _mult(c)
 	var center = _ground(_aim_ground(c, t, 8.0))
 	Sfx.play("clink", center, 0.6)
