@@ -13729,12 +13729,24 @@ func p_izanami(c: Node3D, t: Node3D) -> void:
 	if c is Player:
 		VFX.screen_lines(0.4, 1.0, Color(0.9, 0.2, 0.25))
 	st(tt, "stun", 6.2)
-	# döngü: her saniye kurban aynı ana geri sarılır — ardında geri akan ak çizgiler ve titreyen ardıl görüntü
+	# kurban oyuncuysa dünyası solar (aynı anı yaşıyor): soluk ak perde döngü boyunca
+	if tt is Player and Game.world and Game.world.env:
+		Game.world.env.flash_tint(Color(0.92, 0.9, 0.86, 0.3), 6.0)
+	var echoes: Array = []
+	# döngü: her saniye kurban aynı ana geri sarılır — terk ettiği an donmuş ak bir kopya olarak kalır, kopyalar birikir
 	for k in 6:
 		after(k * 1.0, func():
 			if not live(tt):
 				return
 			var from = tt.global_position
+			if k > 0:
+				# kopya kurbanın ardında, her döngüde biraz daha geride ve sırayla sağa-sola (iz gibi okunur); eskiler solar
+				var bk = -tt.face_dir() if tt.has_method("face_dir") else Vector3.BACK
+				var sd = bk.cross(Vector3.UP) * (0.55 if k % 2 == 0 else -0.55)
+				for e in echoes:
+					if is_instance_valid(e):
+						e.transparency = minf(0.85, e.transparency + 0.12)
+				echoes.append_array(_izanami_echo(tt, 0.7, bk * (0.6 + 0.55 * k) + sd))
 			tt.global_position = anchor
 			if tt.get("model"):
 				tt.model.play(["hit", "block", "idle", "hit", "crouch", "idle"][k], 0.02, 1.2, true)
@@ -13745,12 +13757,25 @@ func p_izanami(c: Node3D, t: Node3D) -> void:
 					tw.tween_interval(0.04)
 					tw.tween_callback(func(): if is_instance_valid(m): m.visible = true)
 					tw.tween_interval(0.05)
-			for n in 6:   # geri sarma çizgileri (zamanda geri akış)
-				var q = anchor + Vector3(randf_range(-0.8, 0.8), randf_range(0.2, 1.9), randf_range(-0.8, 0.8))
-				WindFX.streak(func(u: float) -> Vector3: return q + (from - anchor) * (1.0 - u) + Vector3.UP * sin(u * PI) * 0.4, 0.35, 0.05, white, n * 0.02, 10)
-			VFX.star(anchor + Vector3.UP * 1.2, white, 1.2, 0.12)
-			tt.take_hit(inf(c, "izanami", 0.25, {"knock": 0.0, "kind": "light"})))
+			for n in 10:   # geri sarma çizgileri (zamanda geri akış): kopyadan bedene akar
+				var q = Vector3(randf_range(-0.6, 0.6), randf_range(0.2, 1.9), randf_range(-0.6, 0.6))
+				WindFX.streak(func(u: float) -> Vector3: return anchor + q + (from - anchor) * (1.0 - u) + Vector3.UP * sin(u * PI) * 0.4, 0.4, 0.05, white, n * 0.02, 10)
+			VFX.star(anchor + Vector3.UP * 1.2, white, 1.6, 0.16)
+			VFX.puffs(anchor + Vector3.UP, {"amount": 14, "life": 0.7, "size": 0.08, "radius": 0.9, "vmin": 0.3, "vmax": 1.2, "dir": Vector3.DOWN, "spread": 180.0, "add": true,
+				"colors": [Color(1, 1, 1, 0.9), Color(0.95, 0.9, 0.9, 0)]})
+			if tt is Player:
+				VFX.screen_lines(0.3, 0.8, Color(0.95, 0.93, 0.9))
+				if Game.world and Game.world.env:
+					Game.world.env.screen_flash(0.35)
+			Sfx.play("genjutsu", anchor, 0.35))   # kanon: Izanami hasar vermez, yalnız hapseder (vuruş kilidi kırıp kurbanı yere yatırıyordu)
 	after(6.1, func():
+		for e in echoes:   # döngü kırılır: donmuş anlar ak toz olup dağılır
+			if is_instance_valid(e):
+				VFX.puffs(e.global_position + Vector3.UP, {"amount": 10, "life": 0.9, "size": 0.1, "radius": 0.5, "vmin": 0.5, "vmax": 2.0, "dir": Vector3.UP, "spread": 120.0, "add": true,
+					"colors": [Color(1, 1, 1, 0.8), Color(0.9, 0.9, 0.95, 0)]})
+				var tw = e.create_tween()
+				tw.tween_property(e, "transparency", 1.0, 0.5)
+				tw.tween_callback(e.queue_free)
 		if not live(tt):
 			return
 		if not (tt is Player) and not tt.has_meta("boss") and "team" in tt:
@@ -13770,6 +13795,44 @@ func p_izanami(c: Node3D, t: Node3D) -> void:
 	elif c.has_meta("eyes"):
 		c.remove_meta("eyes")
 		Combat.popup_text(c.global_position + Vector3.UP * 2.6, "Gözü karardı", Color(0.7, 0.2, 0.25))
+
+
+## Izanami anı: kurbanın o anki pozu donmuş, ak-yarı saydam bir kopya olarak dünyada kalır (iskelet pozundan pişirilir)
+func _izanami_echo(tt: Node3D, alpha: float, shift := Vector3.ZERO) -> Array:
+	var out: Array = []
+	var m = tt.get("model")
+	if m == null or not is_instance_valid(m):
+		return out
+	var mat = StandardMaterial3D.new()
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mat.albedo_color = Color(0.78, 0.84, 1.0, alpha)
+	mat.emission_enabled = true
+	mat.emission = Color(0.75, 0.82, 1.0)
+	mat.emission_energy_multiplier = 0.9
+	mat.rim_enabled = true
+	mat.rim = 1.0
+	mat.rim_tint = 0.2
+	mat.roughness = 0.4
+	for mi in m.find_children("*", "MeshInstance3D", true, false):
+		var src = mi as MeshInstance3D
+		if src.mesh == null or not src.is_visible_in_tree():
+			continue
+		var mesh: Mesh = src.mesh
+		if src.skin != null or src.get_node_or_null(src.skeleton) is Skeleton3D:
+			var baked = src.bake_mesh_from_current_skeleton_pose()
+			if baked:
+				mesh = baked
+		var e = MeshInstance3D.new()
+		e.mesh = mesh
+		e.material_override = mat
+		e.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		get_tree().current_scene.add_child(e)
+		e.global_transform = src.global_transform
+		e.global_position += shift
+		e.transparency = 1.0
+		e.create_tween().tween_property(e, "transparency", 0.0, 0.15)
+		out.append(e)
+	return out
 
 
 ## Cehennem Yolu: yerden alevli taçlı dev Cehennem Kralı başı yükselir — dili uzanıp yakın düşmanı yakalar; kullanıcı onarılır

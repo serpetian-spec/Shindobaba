@@ -103,6 +103,10 @@ func build(pr: Dictionary, preview_tier := -1, follow_model: CharacterModel = nu
 	mat.set_shader_parameter("cut_y", cut)
 	for mi in body.find_children("*", "MeshInstance3D", true, false):
 		mi.material_override = mat
+		# override altında kullanılmayan yüzey malzemeleri (VRoid yüzü 7 yüzey): Susanoo silinirken "material is null" uyarısı veriyordu
+		if mi.mesh:
+			for si in mi.mesh.get_surface_count():
+				mi.set_surface_override_material(si, null)
 		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		if tier <= 2:
 			mi.visible = false

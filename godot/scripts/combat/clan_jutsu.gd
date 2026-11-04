@@ -3682,27 +3682,32 @@ func c_uchiha_kaenjin(c: Node3D, _t: Node3D) -> void:
 		var root = Node3D.new()
 		get_tree().current_scene.add_child(root)
 		root.global_position = center
-		var mats = []
-		for layer in 2:   # iki kat: dış duvar + içte daha ince, daha yüksek alev perdesi (derinlik)
-			var cm = CylinderMesh.new()
-			var rr = r if layer == 0 else r * 0.93
-			cm.top_radius = rr * 0.9
-			cm.bottom_radius = rr
-			cm.height = 1.0
-			cm.radial_segments = 48
-			cm.rings = 6
-			cm.cap_top = false
-			cm.cap_bottom = false
-			var fm = VFX.mat_fire("fire", 3.6 + layer, 2.2, 0.5 + layer * 0.1, 1.35, 0.3, Vector3.UP, true)
-			mats.append(fm)
-			var wall = VFX._mi(cm, fm)
-			root.add_child(wall)
-			var hh = H * (1.0 if layer == 0 else 1.2)
-			wall.scale = Vector3(1, 0.05, 1)
-			var tw = wall.create_tween()
-			tw.set_parallel(true)
-			tw.tween_property(wall, "scale", Vector3(1, hh, 1), 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-			tw.tween_property(wall, "position:y", hh * 0.5, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		# duvar: dolu kabuk değil — çember boyunca yan yana yükselen, boyları ve eğimleri farklı alev dilleri (arada aralık kalır)
+		var fm = VFX.mat_fire("fire", 3.6, 2.2, 0.46, 1.35, 0.3, Vector3.UP, true)
+		var mats = [fm]
+		var N = 44
+		for k in N:
+			var a = TAU * k / N + randf_range(-0.05, 0.05)
+			var rr = r + randf_range(-0.25, 0.2)
+			var tongue = VFX._mi(VFX._tongue_mesh(k % 3), fm)
+			tongue.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			root.add_child(tongue)
+			tongue.position = Vector3(cos(a) * rr, -0.1, sin(a) * rr)
+			tongue.rotation.y = -a + randf_range(-0.5, 0.5)
+			tongue.rotate(Vector3(cos(a), 0, sin(a)).cross(Vector3.UP).normalized(), randf_range(-0.12, 0.12))   # yana yalar
+			var h = H * (randf_range(0.55, 1.05) if k % 4 != 0 else randf_range(1.0, 1.25))
+			var w = randf_range(1.0, 1.5)
+			tongue.scale = Vector3(w, 0.05, w)
+			var tw = tongue.create_tween()
+			tw.tween_interval(absf(sin(a * 0.5)) * 0.12)   # yerden dalga gibi dışa doğru yükselir
+			tw.tween_property(tongue, "scale", Vector3(w, h, w), 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tw.tween_callback(func():
+				if not is_instance_valid(tongue):
+					return
+				var per = randf_range(0.22, 0.42)
+				var fl = tongue.create_tween().set_loops()
+				fl.tween_property(tongue, "scale", Vector3(w * 0.9, h * 1.1, w * 0.9), per).set_trans(Tween.TRANS_SINE)
+				fl.tween_property(tongue, "scale", Vector3(w * 1.05, h * 0.85, w * 1.05), per).set_trans(Tween.TRANS_SINE))
 		var light = OmniLight3D.new()
 		light.light_color = Color(1, 0.5, 0.2)
 		light.light_energy = 4.0
@@ -3710,6 +3715,10 @@ func c_uchiha_kaenjin(c: Node3D, _t: Node3D) -> void:
 		root.add_child(light)
 		light.position.y = 3.0
 		every(DUR, 0.1, func(i, _k):
+			# gövde: dillerin arasından yükselen cel alev topakları
+			var ab = randf() * TAU
+			VFX.puffs(center + Vector3(cos(ab) * r, randf_range(0.5, H * 0.6), sin(ab) * r), {"amount": 3, "life": 0.5, "size": 1.1, "radius": 0.5, "vmin": 2.0, "vmax": 4.5, "dir": Vector3.UP, "spread": 15.0,
+				"glow": 1.2, "hot": 0.3, "stretch": 1.4, "colors": UCHIHA_FIRE})
 			# duvarın tepesinden kopan alev dilleri
 			if i % 2 == 0:
 				var a = randf() * TAU
@@ -3735,9 +3744,9 @@ func c_uchiha_kaenjin(c: Node3D, _t: Node3D) -> void:
 				VFX.puffs(center + v.normalized() * r + Vector3.UP * 1.2, {"amount": 10, "life": 0.4, "size": 0.7, "vmin": 4.0, "vmax": 8.0, "dir": v.normalized(), "spread": 40.0,
 					"glow": 1.2, "hot": 0.3, "colors": UCHIHA_FIRE})
 		, func():
-			for fm in mats:
+			for fmx in mats:
 				var tw = root.create_tween()
-				tw.tween_method(func(x: float): fm.set_shader_parameter("alpha_cut", x), 0.0, 1.1, 0.6)
+				tw.tween_method(func(x: float): fmx.set_shader_parameter("alpha_cut", x), 0.0, 1.1, 0.6)
 			get_tree().create_timer(0.7).timeout.connect(func(): if is_instance_valid(root): root.queue_free())))
 
 
