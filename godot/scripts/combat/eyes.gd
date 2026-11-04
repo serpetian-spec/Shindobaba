@@ -11,7 +11,7 @@ const ALWAYS_VISIBLE := [2, 6, 7]
 const SKILLS := {
 	1: [["Genjutsu: Sharingan", 15.0, 12.0], ["Genjutsu: Sharingan", 15.0, 12.0]],
 	2: [["Hakke Kūshō", 14.0, 6.0], ["Hakkeshō Kaiten", 22.0, 10.0]],
-	3: [["Kan Genjutsu", 18.0, 12.0], ["Kanashibari", 20.0, 14.0]],
+	3: [["Ketsuryūgan Genjutsu", 18.0, 12.0], ["Ketsuryūgan: Chi Sōsa", 20.0, 14.0]],
 	4: [["Amaterasu", 40.0, 20.0], ["Tsukuyomi", 45.0, 24.0]],
 	5: [["Amaterasu", 30.0, 14.0], ["Tsukuyomi", 32.0, 16.0]],
 	6: [["Shinra Tensei", 35.0, 14.0], ["Banshō Ten'in", 25.0, 10.0]],
@@ -504,15 +504,19 @@ func use_skill(side: String) -> void:
 			else:
 				_kaiten()
 		3:
+			# Ketsuryūgan (kanon): göz göze/tene dokunarak genjutsu; kanına chakra karışmış (yaralı) hedefin kanını yönetir
 			if right:
-				for f in _enemies_in(12.0):
-					f.apply_status("slow", 4.0)
-					f.apply_status("stun", 1.5)
-				FX.ring(p.global_position + Vector3.UP * 0.2, Color(0.8, 0.05, 0.1), 12.0, 0.6)
+				_genjutsu_gaze(t, 2.0 + 0.5 * _lvl(side), 0.0)
 			else:
-				if t:
+				var wounded = t != null and t.has_method("has_status") and (t.has_status("bleed") or (t.has_meta("last_wound") and Time.get_ticks_msec() - int(t.get_meta("last_wound")) < 20000))
+				if t == null or not wounded:
+					Hud.msg("Kan kontrolü için önce hedefi yaralamalısın (kanına chakra karışmalı).", Color(0.9, 0.3, 0.3))
+					cd[side] = 1.0
+				else:
 					t.apply_status("bind", 3.0)
-					FX.ring(t.global_position + Vector3.UP, Color(0.8, 0.05, 0.1), 2.0, 0.5, false)
+					t.take_hit({"dmg": 14.0 * _eye_pow(), "knock": 0.0, "launch": 0.0, "kind": "light", "pierce_guard": true, "bleed": 3.0, "attacker": p})
+					Combat.popup_text(t.global_position + Vector3.UP * 2.4, "Kanı kontrol ediliyor", Color(0.85, 0.1, 0.12))
+					VFX.debris(t.global_position + Vector3.UP, Color(0.6, 0.02, 0.04), 8, 3.0, 0.2)
 		4, 5:
 			var mj = _ms_eye_jutsu(side)
 			if mj.begins_with("@"):

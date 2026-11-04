@@ -865,6 +865,8 @@ func _end_attack() -> void:
 
 
 func take_hit(info: Dictionary) -> void:
+	if info.get("blade", false) or float(info.get("bleed", 0.0)) > 0.0:
+		set_meta("last_wound", Time.get_ticks_msec())   # Ketsuryūgan kan kontrolü: kanına chakra karışabilecek yara
 	Combat.larch_counter(self, info)
 	if String(arch.get("clan", "")) == "kaguya" and String(info.get("element", "")) == "":
 		info["dmg"] = float(info.get("dmg", 0.0)) * 0.8   # Shikotsumyaku: çelikten sert kemik (oyuncuyla aynı)
