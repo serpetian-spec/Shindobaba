@@ -19400,31 +19400,108 @@ func p_hoshigaki_bakusui_shoha(c: Node3D, t: Node3D) -> void:
 	Sfx.play("water", at, 0.5)
 
 
-## Samehada Birleşmesi: beden mavi köpekbalığı-insana dönüşür (yüzgeç, solungaç, diş) — 20 sn
+## Samehada Yūgō (kanon, Kisame): Samehada ile birleşip köpekbalığı-insana dönüşür — referans: gri-mavi koyu çizgili ten,
+## sivri burunlu dişli köpekbalığı kafası, sırtta ve kollarda iri yüzgeçler, arkada kuyruk, iri gövde. Gerçek model üstünde
+## (ten rengi, kemik kalınlaştırma, kemiğe takılı parçalar). 20 sn: suda hız, ısırık can çalar.
+func _bone_world_attach(c: Node3D, bone: String, mesh_node: Node3D, world_xf: Transform3D) -> Node3D:
+	var m = c.get("model")
+	var ba = bone_attach(c, bone)
+	if ba == null:
+		mesh_node.queue_free()
+		return null
+	var bi = m.skel.find_bone(bone)
+	var bone_xf: Transform3D = m.skel.global_transform * m.skel.get_bone_global_pose(bi)
+	ba.add_child(mesh_node)
+	mesh_node.transform = bone_xf.affine_inverse() * world_xf
+	return ba
+
+
 func p_hoshigaki_gyojin(c: Node3D, _t: Node3D) -> void:
 	busy(c, 0.9)
 	VFX.splash(c.global_position + Vector3.UP, 3.0)
+	var m = c.get("model")
+	if m == null or not is_instance_valid(m) or m.skel == null:
+		return
+	var SKIN = Color(0.55, 0.62, 0.72)
+	var STRIPE = Color(0.25, 0.3, 0.4)
+	var FIN = Color(0.48, 0.55, 0.66)
+	# ten: gri-mavi (lanet mührü II'deki ten değişimiyle aynı yol)
+	var ratio: Color = m._skin_ratio()
+	var skin_mats = []
+	for sm in m.materials:
+		if sm is ShaderMaterial and sm.get_shader_parameter("tint") == ratio:
+			skin_mats.append(sm)
+			sm.set_shader_parameter("tint", SKIN)
+	# iri gövde ve kollar (kemik)
+	m.overlay.bulk["LeftUpperArm"] = 1.45
+	m.overlay.bulk["RightUpperArm"] = 1.45
+	var fd: Vector3 = c.face_dir()
+	var sd: Vector3 = fd.cross(Vector3.UP)
+	var head_pos: Vector3 = m.skel.global_transform * m.skel.get_bone_global_pose(m.skel.find_bone("Head")).origin
 	var parts = []
-	var back = bone_attach(c, "UpperChest")
-	if back:
-		var b = MB.new()
-		b.add("cone", Vector3(0, 0.15, -0.2), Vector3(0.08, 0.6, 0.45), Color(0.3, 0.4, 0.6), Vector3(-30, 0, 0), 4)
-		back.add_child(mesh_of(b))
-		parts.append(back)
+	# köpekbalığı kafası: başı saran, öne uzanan sivri burun, açık çene ve diş sıraları
+	var hb = MB.new()
+	Loft.tube(hb, [Vector3(0, 0.0, -0.1), Vector3(0, 0.06, 0.06), Vector3(0, 0.09, 0.26), Vector3(0, 0.1, 0.46)],   # sivri, öne-yukarı uzayan burun
+		[Vector2(0.12, 0.13), Vector2(0.12, 0.12), Vector2(0.07, 0.07), Vector2(0.015, 0.015)], SKIN, 14, 3, true, true)
+	Loft.tube(hb, [Vector3(0, -0.12, -0.02), Vector3(0, -0.13, 0.14), Vector3(0, -0.09, 0.26)], [Vector2(0.12, 0.05), Vector2(0.09, 0.04), Vector2(0.03, 0.02)], SKIN.lightened(0.25), 10, 3, true, true)
+	for q in 9:   # diş sıraları
+		var ang = (q - 4) * 0.28
+		var tp = Vector3(sin(ang) * 0.1, -0.05, 0.24 - absf(q - 4) * 0.025)
+		hb.add("cone", tp, Vector3(0.025, 0.055, 0.02), Color.WHITE, Vector3(180, 0, 0), 4)
+		hb.add("cone", tp + Vector3(0, -0.07, -0.02), Vector3(0.022, 0.045, 0.02), Color.WHITE, Vector3.ZERO, 4)
+	for sx in [-1.0, 1.0]:   # küçük kara göz + solungaç çizgileri
+		hb.add("sphere", Vector3(sx * 0.11, 0.06, 0.12), Vector3(0.025, 0.03, 0.03), Color(0.05, 0.05, 0.08), Vector3.ZERO, 6)
+		for g in 3:
+			hb.add("box", Vector3(sx * 0.15, -0.04, -0.02 - g * 0.04), Vector3(0.008, 0.08, 0.01), STRIPE)
+	var head = mesh_of(hb)
+	var hp = _bone_world_attach(c, "Head", head, Transform3D(Basis.looking_at(-fd, Vector3.UP), head_pos + Vector3.UP * 0.06 + fd * 0.02))
+	if hp:
+		parts.append(hp)
+	# sırt yüzgeci (iri, geriye eğik) ve kol yüzgeçleri
+	var chest_pos: Vector3 = m.skel.global_transform * m.skel.get_bone_global_pose(m.skel.find_bone("UpperChest")).origin
+	var fb = MB.new()
+	Loft.tube(fb, [Vector3(0, 0, 0), Vector3(0, 0.3, -0.12), Vector3(0, 0.55, -0.3)], [Vector2(0.03, 0.2), Vector2(0.025, 0.12), Vector2(0.008, 0.02)], FIN, 8, 3, true, true)
+	var dfin = mesh_of(fb)
+	var dp = _bone_world_attach(c, "UpperChest", dfin, Transform3D(Basis.looking_at(-fd, Vector3.UP), chest_pos - fd * 0.18 + Vector3.UP * 0.05))
+	if dp:
+		parts.append(dp)
 	for side in ["LeftLowerArm", "RightLowerArm"]:
-		var ba = bone_attach(c, side)
-		if ba:
-			var b2 = MB.new()
-			b2.add("cone", Vector3(0, 0.1, -0.08), Vector3(0.04, 0.3, 0.2), Color(0.3, 0.4, 0.6), Vector3(-40, 0, 0), 4)
-			ba.add_child(mesh_of(b2))
-			parts.append(ba)
-	FX.aura(c, Color(0.35, 0.5, 0.85), 1.4, Vector3(0, 0.9, 0), 20.0)
+		var bi = m.skel.find_bone(side)
+		if bi < 0:
+			continue
+		var ap: Vector3 = m.skel.global_transform * m.skel.get_bone_global_pose(bi).origin
+		var ab = MB.new()
+		Loft.tube(ab, [Vector3(0, 0, 0), Vector3(0, 0.12, -0.08), Vector3(0, 0.24, -0.2)], [Vector2(0.02, 0.1), Vector2(0.015, 0.06), Vector2(0.005, 0.01)], FIN, 8, 3, true, true)
+		var afin = mesh_of(ab)
+		var outward = sd * (1.0 if side.begins_with("Right") else -1.0)
+		var ap2 = _bone_world_attach(c, side, afin, Transform3D(Basis.looking_at(outward, Vector3.UP), ap + outward * 0.06))   # ön kolun dışından yukarı-dışa kalkar
+		if ap2:
+			parts.append(ap2)
+	# kuyruk: kalçadan arkaya, sallanır
+	var hips_pos: Vector3 = m.skel.global_transform * m.skel.get_bone_global_pose(m.skel.find_bone("Hips")).origin
+	var tb = MB.new()
+	Loft.tube(tb, [Vector3(0, 0, 0), Vector3(0, -0.15, -0.35), Vector3(0, -0.3, -0.7), Vector3(0, -0.38, -1.05)], [Vector2(0.12, 0.12), Vector2(0.09, 0.09), Vector2(0.05, 0.05), Vector2(0.01, 0.01)], SKIN, 10, 3, true, true)
+	var tail = mesh_of(tb)
+	var tp2 = _bone_world_attach(c, "Hips", tail, Transform3D(Basis.looking_at(fd, Vector3.UP), hips_pos - fd * 0.12))
+	if tp2:
+		parts.append(tp2)
+		var tw = tail.create_tween().set_loops()
+		var base_rot = tail.rotation
+		tw.tween_property(tail, "rotation", base_rot + Vector3(0, 0.35, 0), 0.4).set_trans(Tween.TRANS_SINE)
+		tw.tween_property(tail, "rotation", base_rot - Vector3(0, 0.35, 0), 0.4).set_trans(Tween.TRANS_SINE)
 	if c is Player:
-		Buffs.add("gyojin", 20.0, {"melee": 1.4, "speed": 1.18, "armor": 0.7, "lifesteal": 0.15, "_name": "Samehada Birleşmesi", "_desc": "köpekbalığı-insan: ısırık can çalar"})
+		Buffs.add("gyojin", 20.0, {"melee": 1.4, "speed": 1.18, "armor": 0.7, "lifesteal": 0.15, "_name": "Samehada Yūgō", "_desc": "köpekbalığı-insan: ısırık can çalar"})
+	elif c.has_method("add_buff"):
+		c.add_buff("gyojin", 20.0, {"melee": 1.4, "speed": 1.18, "armor": 0.7})
 	after(20.0, func():
 		for pp in parts:
 			if is_instance_valid(pp):
-				pp.queue_free())
+				pp.queue_free()
+		if is_instance_valid(m):
+			m.overlay.bulk.erase("LeftUpperArm")
+			m.overlay.bulk.erase("RightUpperArm")
+			for sm in skin_mats:
+				sm.set_shader_parameter("tint", m._skin_ratio()))
 	Sfx.play("roar", c.global_position, 1.2)
 
 
