@@ -1011,32 +1011,27 @@
  },
  "hatake_hakko": {
   "id": "hatake_hakko",
-  "name": "Hakkō Chakuratō",
+  "name": "Hakkō Chakura Tō",
   "cost": 25,
   "cd": 7,
-  "element": "raiton",
+  "element": "",
   "clan": "hatake",
   "level": 3,
   "rank": 0,
   "learn": "clan",
-  "desc": "Beyaz chakra ile parlayan bıçak hücumu.",
-  "seals": [
-   "Ushi",
-   "U",
-   "Saru"
-  ],
+  "desc": "Babadan kalma Beyaz Işık Chakra Kılıcı ile atılma kesiği: kılıç savrulunca ardında beyaz bir chakra izi kalır (\"Konoha'nın Beyaz Dişi\"). Kılıç elinde olmalı.",
+  "seals": [],
   "canon_rank": "?",
-  "category": "hiden",
-  "shape": "projectile",
-  "elements": [
-   "raiton"
-  ],
+  "category": "kenjutsu",
+  "shape": "dash",
+  "elements": [],
   "tier": 2,
-  "meaning": "Hakkō Chakra Bıçağı"
+  "meaning": "Beyaz Işık Chakra Kılıcı",
+  "need": "weapon:hakko_chakura_to"
  },
  "hatake_ninken": {
   "id": "hatake_ninken",
-  "name": "Tsuiga no Jutsu: Ninken Gundan",
+  "name": "Kuchiyose: Doton: Tsuiga no Jutsu",
   "cost": 20,
   "cd": 30,
   "element": "",
@@ -1044,20 +1039,20 @@
   "level": 6,
   "rank": 0,
   "learn": "clan",
-  "desc": "İz süren ninja köpeklerini çağır.",
+  "desc": "Kanlı parşömenle yeraltına bir ninken sürüsü çağrılır: koku alarak hedefi bulur, hepsi birden topraktan fırlayıp dişleriyle yakalar. Göremediğin hedef de bulunur (sis, gizlenme).",
   "seals": [
-   "I",
-   "Inu",
-   "Tori",
-   "Saru",
-   "Hitsuji"
+   "Tora",
+   "Mi",
+   "Tatsu",
+   "Inu"
   ],
-  "canon_rank": "?",
+  "canon_rank": "B",
   "category": "hiden",
   "shape": "projectile",
   "elements": [],
   "tier": 2,
-  "meaning": "Ninken Sürüsü"
+  "meaning": "Ninken Sürüsü",
+  "name_en": "Summoning: Earth Release: Tracking Fang Technique"
  },
  "hoshigaki_same": {
   "id": "hoshigaki_same",
@@ -2860,11 +2855,11 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "hatake",
+  "clan": "sarutobi",
   "level": 10,
   "rank": 2,
-  "learn": "clan:hatake",
-  "desc": "Rüzgâr çakrası verilmiş bıçaklarla uzatılmış kesik.",
+  "learn": "clan",
+  "desc": "Chakra bıçağı yatay tutulur, rüzgâr chakrası akıtılıp bıçak boyu uzatılır: tek, geniş düz kesik (Sarutobi). Chakra bıçağı elinde olmalı.",
   "seals": [],
   "canon_rank": "B",
   "tier": 3,
@@ -2875,7 +2870,8 @@
   "signature": false,
   "kinjutsu": false,
   "series": "Naruto Shippūden",
-  "meaning": "Çakra Bıçağı Düz Hat"
+  "meaning": "Çakra Bıçağı Düz Hat",
+  "need": "weapon:chakra_bicak"
  },
  "chakura_kontororu_baku": {
   "id": "chakura_kontororu_baku",
@@ -6045,11 +6041,11 @@
   "natures": [
    "katon"
   ],
-  "clan": "sarutobi",
+  "clan": "uchiha",
   "level": 10,
   "rank": 2,
-  "learn": "clan:sarutobi",
-  "desc": "Kül bulutuyla gizlenme ve ardından patlatma.",
+  "learn": "clan",
+  "desc": "Chakralı kül geniş alana yayılır: değeni yakar, aynı zamanda duman perdesi olur. Mühür ve boş el gerekmez (Madara Uchiha).",
   "seals": [],
   "canon_rank": "B",
   "tier": 3,
@@ -8442,7 +8438,7 @@
   "level": 22,
   "rank": 3,
   "learn": "clan:hatake",
-  "desc": "Chidori'nin rafine hali; şimşeği yaran el bıçağı.",
+  "desc": "Kakashi'nin Chidori'si: elde yoğunlaşan şimşekle öne atılıp delmek. Sharingan olmadan güvenle kullanılamaz: hız yüzünden tünel görüşü — karşı saldırıya açık kalırsın ve isabet düşer.",
   "seals": [
    "Ushi",
    "U",
@@ -19486,27 +19482,6 @@
   "shape": "melee",
   "meaning": "Uçan Kırlangıç"
  },
- "hatake_tsubame": {
-  "id": "hatake_tsubame",
-  "name": "Hakkō Tō: Tsubame Gaeshi",
-  "name_en": "White Light Blade: Swallow Return",
-  "cost": 34,
-  "cd": 11.2,
-  "element": "",
-  "elements": [],
-  "natures": [],
-  "clan": "hatake",
-  "level": 18,
-  "rank": 3,
-  "learn": "clan:hatake",
-  "desc": "Beyaz chakra bıçağıyla ileri ve geri iki hilal kesik: geçtiğin yoldan geri dönersin.",
-  "seals": [],
-  "canon_rank": "A",
-  "tier": 4,
-  "category": "hiden",
-  "shape": "melee",
-  "meaning": "Kırlangıç Dönüşü"
- },
  "fuma_kaze_guruma": {
   "id": "fuma_kaze_guruma",
   "name": "Fūma Shuriken: Kaze Guruma",
@@ -20157,7 +20132,9 @@
   "yuhi_genei_ken": "yuhi_hanabira",
   "yuhi_kabus": "yuhi_hanabira",
   "yuhi_kyoka": "yuhi_hanabira",
-  "mushikui": "kidaichu_mushikui"
+  "mushikui": "kidaichu_mushikui",
+  "hatake_tsubame": "hatake_hakko",
+  "hatake_gin_no_kiba": "hatake_hakko"
  },
  "kusanagi_kuchi": {
   "id": "kusanagi_kuchi",
@@ -20557,7 +20534,7 @@
  },
  "sarutobi_enma_kongonyoi": {
   "id": "sarutobi_enma_kongonyoi",
-  "name": "Kongōnyoi",
+  "name": "Kuchiyose: Enma — Henge: Kongōnyoi",
   "name_en": "Adamantine Staff",
   "cost": 34,
   "cd": 8.5,
@@ -20567,12 +20544,13 @@
   "level": 10,
   "rank": 0,
   "learn": "clan",
-  "desc": "Maymun kral asaya dönüşür; uzayan asa ile geniş savuruş ve saplama.",
+  "desc": "Maymun kral Enma çağrılır ve elmas kadar sert bir asaya dönüşür: uzayıp kısalan asayla geniş savuruş ve saplama. Maymun sözleşmesi gerekir (Hiruzen Sarutobi).",
   "seals": [],
   "canon_rank": "A",
   "category": "hiden",
   "shape": "melee",
-  "tier": 3
+  "tier": 3,
+  "need": "contract:maymun"
  },
  "sarutobi_shuriken_tajuu": {
   "id": "sarutobi_shuriken_tajuu",
@@ -20612,25 +20590,6 @@
   "canon_rank": "A",
   "category": "hiden",
   "shape": "beam",
-  "tier": 4
- },
- "hatake_gin_no_kiba": {
-  "id": "hatake_gin_no_kiba",
-  "name": "Hatake: Gin no Kiba",
-  "name_en": "White Light Chakra Sabre",
-  "cost": 46,
-  "cd": 12.7,
-  "element": "",
-  "elements": [],
-  "clan": "hatake",
-  "level": 22,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Beyaz ışıklı bıçakla havadan dalış: tek, devasa kesik.",
-  "seals": [],
-  "canon_rank": "S",
-  "category": "hiden",
-  "shape": "melee",
   "tier": 4
  },
  "hoshigaki_bakusui_shoha": {

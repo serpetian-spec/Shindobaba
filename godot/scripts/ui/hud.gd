@@ -1136,7 +1136,8 @@ func _process(dt: float) -> void:
 	var tcd = float(pl.combat.tool_cd.get(tool, 0.0)) if pl.combat else 0.0
 	var tstate = ("%d sn" % ceili(tcd)) if tcd > 0.0 else ("hazır" if int(pr["inventory"].get(tool, 0)) > 0 else "yok")
 	tool_lbl.text = "R   %s  (%s)\nT   değiştir" % [Data.items.get(tool, {"name": tool})["name"], tstate]
-	item_lbl.text = "H   Merhem  ×%d\nY   Asker Hapı  ×%d" % [int(pr["inventory"].get("salve", 0)), int(pr["inventory"].get("pill", 0))]
+	var pcd = get_tree().current_scene.pill_cooldown() if get_tree().current_scene.has_method("pill_cooldown") else 0.0
+	item_lbl.text = "H   Merhem  ×%d\nY   Asker Hapı  %s" % [int(pr["inventory"].get("salve", 0)), ("(%d sn)" % ceili(pcd)) if pcd > 0.0 else "(hazır)"]
 	if msg_t > 0.0:
 		msg_t -= dt
 		if msg_t <= 0.0:

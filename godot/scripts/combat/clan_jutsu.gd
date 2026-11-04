@@ -2273,7 +2273,9 @@ func c_hatake_hakko(c: Node3D, t: Node3D) -> void:
 	c.global_position = end
 	if c is Player:
 		c.facing = atan2(-d.x, -d.z)
-	tether(func(): return start + Vector3.UP * 1.1, func(): return end + Vector3.UP * 1.1, 0.12, glow(Color(1, 1, 1)), 0.35)
+	# kanon: kılıç savrulunca ardında beyaz chakra izi (Konoha'nın Beyaz Dişi) — hat boyunca ince parlak iz + savrulan yay
+	tether(func(): return start + Vector3.UP * 1.1, func(): return end + Vector3.UP * 1.1, 0.07, glow(Color(1, 1, 1)), 0.45)
+	_slash_arc(end + Vector3.UP * 1.1, d, -20.0, Color(1, 1, 1), 2.6)
 	FX.light(end + Vector3.UP, Color(0.95, 0.97, 1.0), 6.0, 8.0, 0.25)
 	VFX.star(end + Vector3.UP * 1.1, Color(1, 1, 1), 3.0, 0.2)
 	Sfx.play("whoosh", end, 1.6)
@@ -2285,7 +2287,12 @@ func c_hatake_ninken(c: Node3D, t: Node3D) -> void:
 	if tt == null:
 		Hud.msg("Ninken sürüsü: önce bir hedef seç", Color(0.9, 0.8, 0.6))
 		return
-	busy(c, 0.5)
+	busy(c, 0.6)
+	# kanon: başparmaktan kan, parşömen yere açılır, çağırma formülü — köpekler yeraltından kokuyu izler
+	if has_method("summon_circle"):
+		call("summon_circle", gp(c.global_position + c.face_dir() * 0.9), 2.2, Color(0.6, 0.45, 0.3), 1.0)
+	if tt.has_meta("hidden") or tt.has_meta("invisible"):
+		tt.remove_meta("hidden")
 	VFX.cracks(tt.global_position, 3.0)
 	for k in 6:
 		var a = k * TAU / 6.0

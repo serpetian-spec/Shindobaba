@@ -20729,15 +20729,14 @@ func p_kokuton_kuro_pansa(c: Node3D, t: Node3D) -> void:
 func p_sarutobi_enma_kongonyoi(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.2)
 	var d = fwd(c, t)
+	# kanon: önce Enma çağrılır (kuchiyose mührü, duman), sonra Henge: Kongōnyoi — elinde siyah, uçları altın halkalı asa
+	summon_circle(gp(c.global_position + d * 0.8), 2.0, Color(0.75, 0.55, 0.3), 1.0)
 	FX.smoke_puff(c.global_position + Vector3.UP * 1.2, 1.2, 14)
-	var staff = MeshInstance3D.new()
-	var cm = CylinderMesh.new()
-	cm.top_radius = 0.12; cm.bottom_radius = 0.12; cm.height = 1.0; cm.radial_segments = 8
-	staff.mesh = cm
-	var m = StandardMaterial3D.new()
-	m.albedo_color = Color(0.15, 0.13, 0.12)
-	m.metallic = 0.6
-	staff.material_override = m
+	var sb = MB.new()
+	sb.add("cyl", Vector3.ZERO, Vector3(0.24, 1.0, 0.24), Color(0.12, 0.11, 0.1), Vector3.ZERO, 10)
+	for e in [-0.47, 0.47]:
+		sb.add("cyl", Vector3(0, e, 0), Vector3(0.3, 0.06, 0.3), Color(0.85, 0.66, 0.2), Vector3.ZERO, 10)   # altın halka
+	var staff = mesh_of(sb)
 	c.add_child(staff)
 	staff.position = Vector3(0.3, 1.2, 0.5)
 	staff.rotation.x = PI * 0.5

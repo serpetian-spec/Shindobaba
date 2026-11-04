@@ -2867,6 +2867,18 @@ func bansho_core(c: Node3D, t: Node3D, rng := 26.0) -> void:
 ## Raikiri: Chidori'nin keskin, beyaz-mavi hali — daha hızlı hücum
 func j_raikiri(c: Node3D, t: Node3D) -> void:
 	var m = _mult(c) * _elem_bonus(c, "raiton")
+	# kanon: Sharingan olmadan güvenle kullanılamaz (tünel görüşü). Sharingan yoksa: hasar düşük ve karşı darbeye açık
+	var has_sh = false
+	if c is Player and c.combat and c.combat.modes and c.combat.modes.get("eyes"):
+		var ey = c.combat.modes.eyes
+		has_sh = ey.active and (ey._kind("sag") in [1, 4, 5] or ey._kind("sol") in [1, 4, 5])
+	elif c.has_meta("eyes"):
+		has_sh = int(c.get_meta("eyes").get("kind", 0)) in [1, 4, 5]
+	if not has_sh:
+		m *= 0.75
+		if c is Player:
+			Hud.msg("Sharingan olmadan Raikiri: tünel görüşü — karşı saldırıya açıksın!", Color(1, 0.7, 0.4), 2.0)
+			Buffs.add("tunel_gorus", 2.5, {"armor": 1.4, "_name": "Tünel Görüşü"})
 	var hand = _lightning_ball(c, Color(1, 1, 1), Color(0.75, 0.88, 1.0), "chidori")
 	hand.scale = Vector3.ONE * 1.25
 	_pose_chidori_charge(c)

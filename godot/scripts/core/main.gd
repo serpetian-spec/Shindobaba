@@ -441,10 +441,35 @@ func resume() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
+const PILL_CD := 60.0   # asker hapı bekleme süresi (sn)
+
+
+## Asker hapının kalan bekleme süresi (0 = hazır)
+func pill_cooldown() -> float:
+	var at = float(Game.profile.get("pill_ready_at", 0.0))
+	var now = Time.get_ticks_msec() / 1000.0
+	if at - now > PILL_CD + 1.0:
+		Game.profile["pill_ready_at"] = 0.0   # oyun yeniden açıldı (saat sıfırlandı): kayıttaki eski süre geçersiz
+		return 0.0
+	return maxf(0.0, at - now)
+
+
 func use_item(id: String) -> void:
 	if id == "pill" and ClanMech.use_aki_pill():   # Akimichi: sıradaki renkli hap
 		return
 	var inv: Dictionary = Game.profile["inventory"]
+	if id == "pill":
+		# asker hapı bitmez: bekleme süresiyle kullanılır
+		var left = pill_cooldown()
+		if left > 0.0:
+			Hud.msg("Asker hapı için %d sn bekle." % ceili(left), Color(1, 0.75, 0.45))
+			return
+		Game.profile["pill_ready_at"] = Time.get_ticks_msec() / 1000.0 + PILL_CD
+		player.chakra = minf(player.max_chakra, player.chakra + maxf(60.0, player.max_chakra * 0.35))
+		Buffs.add("pill", 20.0, {"melee": 1.15})
+		FX.aura(player, Color(1, 0.7, 0.3), 0.8)
+		Sfx.play("heal", player.global_position, 0.8)
+		return
 	if int(inv.get(id, 0)) <= 0:
 		Hud.msg("Hiç %s yok." % Data.items.get(id, {"name": id})["name"], Color(1, 0.6, 0.5))
 		return
