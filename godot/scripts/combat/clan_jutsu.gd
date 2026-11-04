@@ -2651,7 +2651,19 @@ func c_kamizuru_wax(c: Node3D, t: Node3D) -> void:
 		var pr = shot(c, Jutsu._mouth(c), d, 22.0, _honey_mesh(0.7), inf(c, "kamizuru_wax", 0.3, {"knock": 0.0}), tt, false, 1.6, func(pos, target):
 			if live(target):
 				st(target, "bind", 3.0)
-			var pool = ground_disc(pos, 2.4, Color(0.95, 0.7, 0.15), 5.0, 2, 0)
+			# yere yayılan yapışkan bal-balmumu gölü (ak halka değil)
+			var pool = MeshInstance3D.new()
+			var pcm = CylinderMesh.new()
+			pcm.top_radius = 2.2; pcm.bottom_radius = 2.4; pcm.height = 0.06; pcm.radial_segments = 24
+			pool.mesh = pcm
+			var pmat = StandardMaterial3D.new()
+			pmat.albedo_color = Color(0.92, 0.66, 0.16)
+			pmat.roughness = 0.15
+			pmat.metallic = 0.1
+			pool.material_override = pmat
+			get_tree().current_scene.add_child(pool)
+			pool.global_position = gp(pos) + Vector3.UP * 0.03
+			fade_free(pool, 5.0, 0.4)
 			every(5.0, 0.3, func(_i, _k):
 				for e in enemies_near(c, pos, 2.4):
 					st(e, "slow", 0.5)))
@@ -2665,6 +2677,24 @@ func c_kamizuru_hachi(c: Node3D, _t: Node3D) -> void:
 	Sfx.play("wind", c.global_position, 2.0, 0.6)
 
 
+## Kamizuru arısı: dev arı çağrısının (ClanConstruct "bee") modeli, önbellekli; küçültülüp mermi olarak kullanılır
+static var _kz_bee_mesh: ArrayMesh = null
+func _kz_bee(sc: float) -> Node3D:
+	if _kz_bee_mesh == null:
+		var cc = ClanConstruct.new()
+		cc.kind = "bee"
+		_kz_bee_mesh = cc._build_mesh()
+		cc.free()
+	var root = Node3D.new()
+	var mi = MeshInstance3D.new()
+	mi.mesh = _kz_bee_mesh
+	mi.material_override = Props.toon()
+	mi.scale = Vector3.ONE * sc
+	mi.rotation.y = PI   # burun uçuş yönüne
+	root.add_child(mi)
+	return root
+
+
 ## Arı İğnesi Yağmuru: sürüden on iki zehirli iğne kıvrılarak hedeflere uçar
 func c_kamizuru_hari(c: Node3D, t: Node3D) -> void:
 	var list = enemies_near(c, c.global_position, 28.0)
@@ -2673,7 +2703,7 @@ func c_kamizuru_hari(c: Node3D, t: Node3D) -> void:
 	for k in 12:
 		var target = list[k % list.size()] if not list.is_empty() else null
 		var d = (Jutsu._aim(c, t) + Vector3(randf_range(-0.6, 0.6), randf_range(0.1, 0.6), randf_range(-0.6, 0.6))).normalized()
-		var nd = JutsuEngine.shape_mesh("needles", Color(0.95, 0.8, 0.2), 0.35, "")
+		var nd = _kz_bee(0.35)   # referans: iğne fırlatan arılar (dev arı çağrısıyla aynı model, küçük)
 		after(k * 0.04, func():
 			shot(c, origin, d, 30.0, nd, inf(c, "kamizuru_hari", 0.12, {"knock": 0.5, "kind": "light", "burn": 2.5}), target, false, 1.6, func(_p, tgt):
 				st(tgt, "slow", 2.0)))

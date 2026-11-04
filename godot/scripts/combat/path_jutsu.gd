@@ -763,9 +763,6 @@ const PANIM := {
 	"fuma_kunai_ame": {"base": "throw", "pre": 0.3, "post": 0.6, "wind": {"R": [Vector3(-0.6, 0.6, -0.5), Vector3(-0.2, 0.9, -0.4), Vector3(0.0, 1.0, -0.2)], "L": [Vector3(0.6, 0.6, -0.5), Vector3(0.2, 0.9, -0.4), Vector3(-0.0, 1.0, -0.2)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "spine": -12.0}, "rel": {"R": [Vector3(-0.2, 0.8, 0.55), Vector3(-0.1, 0.85, 0.5), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.2, 0.8, 0.55), Vector3(0.1, 0.85, 0.5), Vector3(-0.0, 0.9, 0.4)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -8.0}},
 	"fuma_kaiten_jin": {"base": "spin", "pre": 0.2, "post": 1.0, "wind": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7]}, "rel": {"R": [Vector3(-0.85, 0.1, -0.5), Vector3(-0.7, 0.1, -0.7), Vector3(-0.6, 0.1, -0.8)], "L": [Vector3(0.85, 0.1, -0.5), Vector3(0.7, 0.1, -0.7), Vector3(0.6, 0.1, -0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7]}},
 	"fuma_kage_shuriken": {"base": "throw", "pre": 0.35, "post": 0.5, "wind": {"R": [Vector3(-0.6, 0.6, -0.5), Vector3(-0.2, 0.9, -0.4), Vector3(0.0, 1.0, -0.2)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0, 0, 0, 0, 0], "spine": -10.0, "hips_yaw": 40.0}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.4, -0.7, -0.5), Vector3(-0.0, -0.3, -0.95), Vector3(-0.0, -0.6, -0.8)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 20.0, "hips_yaw": -40.0}},
-	"kamizuru_jo_bachi": {"base": "summon", "pre": 0.5, "post": 0.8, "rel": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0, 0, 0, 0, 0], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "spine": -10.0}},
-	"kamizuru_mitsu_nami": {"base": "two_palm", "pre": 0.3, "post": 0.7, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0]}, "rel": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.1, -0.35, 0.93), Vector3(-0.0, -0.3, 0.95), Vector3(-0.0, 0.5, 0.85)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 20.0, "crouch": 0.3}},
-	"kamizuru_hachi_tatsumaki": {"base": "sky", "pre": 0.4, "post": 0.8, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.15, 0.98, 0.1), Vector3(0.05, 1.0, 0.05), Vector3(-0.0, 1.0, 0.0)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -12.0, "neck": -18.0}},
 	"shirogane_doku_kiri": {"base": "palm", "pre": 0.3, "post": 0.8, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4]}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 6.0}},
 	"hoki_sumi_ryu": {"base": "scroll", "pre": 0.4, "post": 0.7, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "crouch": 0.3}, "rel": {"R": [Vector3(-0.1, 0.1, 0.99), Vector3(0.7, 0.1, 0.7), Vector3(0.8, 0.1, 0.6)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "spine": 10.0, "hips_yaw": -30.0}},
 	"hoki_sumi_tora": {"base": "scroll", "pre": 0.4, "post": 0.6, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "crouch": 0.4}, "rel": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "spine": 25.0, "crouch": 0.5}},
@@ -19691,68 +19688,6 @@ func _queen_bee(s: float) -> Node3D:
 	var m = mesh_of(b)
 	m.scale = Vector3.ONE * s
 	return m
-
-
-func p_kamizuru_jo_bachi(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.0)
-	var tt = tg(c, t, 26.0)
-	var at = c.global_position + Vector3.UP * 3.5 - c.face_dir() * 1.5
-	summon_circle(gp(c.global_position), 2.4, HONEY, 1.0)
-	FX.smoke_puff(at, 2.0, 24)
-	var q = _queen_bee(1.6)
-	get_tree().current_scene.add_child(q)
-	q.global_position = at
-	q.rotation.y = atan2(c.face_dir().x, c.face_dir().z)
-	_bee_cloud(at, 2.0, 80, Vector3.UP, 2.0)
-	var tw = q.create_tween().set_loops(5)
-	tw.tween_property(q, "global_position:y", at.y + 0.4, 0.3)
-	tw.tween_property(q, "global_position:y", at.y, 0.3)
-	for k in 5:
-		after(0.5 + k * 0.5, func():
-			if live(c) and is_instance_valid(q):
-				var from = q.global_position - q.global_basis.z * 1.5
-				var sting = MeshInstance3D.new()
-				var cm = CylinderMesh.new()
-				cm.top_radius = 0.0; cm.bottom_radius = 0.06; cm.height = 0.8
-				sting.mesh = cm
-				sting.material_override = _flat_glow(Color(0.2, 0.15, 0.08))
-				var holder = Node3D.new()
-				holder.add_child(sting)
-				sting.rotation.x = PI * 0.5
-				var tgt = tg(c, t, 26.0)
-				shot(c, from, aim_at(c, tgt, from), 34.0, holder, inf(c, "kamizuru_jo_bachi", 0.6, {"knock": 3.0, "kind": "heavy", "poison": 4.0}), tgt, false, 1.0))
-	after(3.2, func():
-		if is_instance_valid(q):
-			FX.smoke_puff(q.global_position, 1.6, 20)
-			q.queue_free())
-	Sfx.play("wind", c.global_position, 2.0, 0.6)
-
-
-func p_kamizuru_mitsu_nami(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.9)
-	var d = fwd(c, t)
-	var honey = VFX.mat_water(Color(0.7, 0.45, 0.05), Color(1.0, 0.75, 0.2), Color(1.0, 0.95, 0.6), Vector3(0, 0, 1), 1.0, 0.7, 0.15)
-	stream_fx(c.global_position + Vector3.UP * 0.6 + d, (d - Vector3.UP * 0.1).normalized(), 14.0, 2.4, honey, 0.8, func(end):
-		VFX.linger(gp(end), "", HONEY, 2.4, 5.0))
-	Combat.hit_zone(c, c.global_position, d, 14.0, 30.0, 2.0, inf(c, "kamizuru_mitsu_nami", 0.9, {"knock": 4.0, "kind": "heavy", "slow": 4.0}))
-	for e in enemies_near(c, c.global_position + d * 7.0, 7.0):
-		st(e, "bind", 1.5)
-	Sfx.play("water", c.global_position, 0.6)
-
-
-func p_kamizuru_hachi_tatsumaki(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.0)
-	var at = gp(Jutsu._aim_ground(c, t, 8.0, 20.0))
-	every(4.0, 0.08, func(i, _k):
-		var a = i * 0.6
-		for h in 3:
-			var r = 1.0 + h * 1.0
-			var q = at + Vector3(cos(a + h) * r, 0.5 + h * 2.0 + fmod(i * 0.3, 2.0), sin(a + h) * r)
-			_bee_cloud(q, 0.3, 6, Vector3(-sin(a + h), 0.5, cos(a + h)), 6.0)
-		if i % 6 == 0:
-			for e in enemies_near(c, at, 4.0):
-				e.take_hit(inf(c, "kamizuru_hachi_tatsumaki", 0.3, {"knock": 2.0, "launch": 3.0, "kind": "light", "poison": 2.0})), Callable())
-	Sfx.play("wind", at, 1.8, 0.6)
 
 
 ## Kukla şeyleri: basit ahşap kukla gövdesi
