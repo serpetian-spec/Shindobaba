@@ -9,7 +9,7 @@ const ALT := 1500.0
 
 const TITLES := {
 	"academy": "Ninja Akademisi", "hokage": "Hokage Kulesi — Görev Ofisi", "weapon_shop": "Silah Dükkânı",
-	"pharmacy": "Eczane", "scrolls": "Parşömenci", "secret_hq": "Gizli Birlik Karargâhı", "tailor": "Terzi", "bbq": "Yakiniku Restoranı", "hospital": "Konoha Hastanesi",
+	"pharmacy": "Eczane", "scrolls": "Parşömenci", "contract_hall": "Sözleşme Ustası — Kuchiyose Salonu", "secret_hq": "Gizli Birlik Karargâhı", "tailor": "Terzi", "bbq": "Yakiniku Restoranı", "hospital": "Konoha Hastanesi",
 	"home_player": "Senin Evin", "home": "Bir Ev", "teahouse": "Dango ve Çay Evi", "inn": "Han (Ryokan)",
 	"summit": "Demir Kalesi — Beş Kage Zirve Salonu", "lair_cave": "Kaçakların Sığınağı", "lair_lab": "Gizli Deney İni",
 }
@@ -559,6 +559,7 @@ func _build(kind: String, seed: int) -> void:
 		"pharmacy": _pharmacy()
 		"tailor": _tailor()
 		"scrolls": _scrolls()
+		"contract_hall": _contract_hall(String(door.get("vid", "konoha")))
 		"secret_hq": _secret_hq(String(door.get("vid", "konoha")))
 		"bbq": _bbq()
 		"hospital": _hospital()
@@ -983,6 +984,47 @@ func _secret_hq(vid: String) -> void:
 
 ## Parşömenci: duvar boyu bölmeli raflarda dürülü parşömenler (element renkli), tezgâhta açık parşömen + fırça + mürekkep,
 ## tavandan asılı mühür kâğıtları, köşede parşömen sepetleri; satıcı tezgâhın arkasında
+## Sözleşme salonu: yerde mürekkeple çizilmiş dev çağırma çemberi, sözleşme parşömeni rafları, mühür kâğıtları, usta
+func _contract_hall(vid: String) -> void:
+	var W = 11.0; var D = 11.0; var H = 3.8
+	shell(W, D, H, Color(0.42, 0.3, 0.22), Color(0.35, 0.25, 0.18))
+	var ink = Color(0.08, 0.06, 0.06)
+	# çağırma çemberi: iç içe halkalar + ışınsal yazı çizgileri (kuchiyose formülü)
+	for ring in [[2.6, 0.05], [2.2, 0.035], [1.0, 0.04]]:
+		for k in 40:
+			var a0 = TAU * k / 40.0
+			bx(cos(a0) * ring[0], 0.012, 5.5 + sin(a0) * ring[0], ring[0] * 0.17, 0.004, ring[1], ink, false, Vector3(0, rad_to_deg(a0) + 90.0, 0))
+	for k in 16:
+		var a1 = TAU * k / 16.0
+		bx(cos(a1) * 1.6, 0.013, 5.5 + sin(a1) * 1.6, 0.035, 0.004, 1.0, ink, false, Vector3(0, rad_to_deg(a1) + 90.0, 0))
+	# arka duvar: dev sözleşme parşömeni (imza satırları)
+	bx(0, 2.0, D - 0.15, 4.4, 2.4, 0.04, Color(0.93, 0.88, 0.74))
+	cy(0, 3.25, D - 0.2, 0.18, 4.8, Color(0.5, 0.32, 0.2), 10, Vector3(0, 0, 90))
+	cy(0, 0.8, D - 0.2, 0.18, 4.8, Color(0.5, 0.32, 0.2), 10, Vector3(0, 0, 90))
+	for row in 6:
+		bx(-1.6 + row * 0.62, 2.0, D - 0.18, 0.06, 2.0, 0.01, ink)   # dikey yazı sütunları
+		bx(-1.6 + row * 0.62, 1.05, D - 0.18, 0.18, 0.18, 0.012, Color(0.7, 0.1, 0.08))   # kan imzası (parmak izi)
+	# yan raflar: sarılı sözleşme parşömenleri
+	for side in [-1.0, 1.0]:
+		for row in 3:
+			bx(side * (W * 0.5 - 0.3), 0.7 + row * 0.8, 5.5, 0.5, 0.05, 6.0, Color(0.38, 0.26, 0.17))
+			for k in 8:
+				cy(side * (W * 0.5 - 0.35), 0.85 + row * 0.8, 3.0 + k * 0.7, 0.16, 0.42, Color(0.9, 0.85, 0.7), 8, Vector3(0, 0, 90))
+	for k in 9:   # tavandan sarkan mühür kâğıtları
+		var x = -4.0 + k * 1.0
+		bx(x, H - 0.55, 2.4, 0.22, 0.6, 0.01, Color(0.96, 0.9, 0.7))
+		bx(x, H - 0.5, 2.4, 0.08, 0.3, 0.012, Color(0.75, 0.12, 0.1))
+	counter(0, D - 2.6, 3.4, Color(0.4, 0.27, 0.18))
+	bx(0, 1.13, D - 2.6, 1.4, 0.01, 0.55, Color(0.95, 0.92, 0.82))   # açık sözleşme
+	cy(0.95, 1.15, D - 2.6, 0.12, 0.08, Color(0.08, 0.08, 0.1))   # mürekkep kabı
+	paper_lantern(-3.0, H - 0.6, D - 3.0)
+	paper_lantern(3.0, H - 0.6, D - 3.0)
+	lamp(0, H - 0.5, 4.0, Color(1.0, 0.85, 0.65), 1.3, 10.0)
+	person("keeper", 0, D - 1.8, 0.0, "Sözleşme Ustası", ["Bir hayvanla kan bağı kurmak ömürlük bir yemindir.", "Parmağını kanat, adını yaz, mührünü bas.",
+		"Çağırdığın hayvan seni efendisi değil, ortağı sayar."])
+	act(0, D - 3.4, 2.4, "contract_keeper", "[F] Sözleşme Ustasıyla konuş", {"village": vid})
+
+
 func _scrolls() -> void:
 	var W = 9.0; var D = 8.0; var H = 3.4
 	shell(W, D, H, Color(0.92, 0.86, 0.72), Color(0.5, 0.36, 0.24))

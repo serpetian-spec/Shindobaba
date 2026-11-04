@@ -104,7 +104,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	Interact.items[Interact.items.size() - 1]["vid"] = "konoha"
 	KageHall.plaza(b, {"vid": "konoha", "front": tfront, "hw": 58.0, "depth": 74.0, "climate": "green", "stone": Color(0.8, 0.74, 0.64),
 		"trim": Color(0.6, 0.52, 0.44), "acc": Color(0.72, 0.18, 0.15), "gate": Color(0.72, 0.18, 0.15), "kanji": "火", "terrace_h": 0.9, "terrace_w": 34.0, "decor": decor})
-	occupied.append([0, tn - 18, 116, 98])
+	occupied.append([0, tn - 18, 116, 98, 25.0])
 
 	# ---- Ninja Akademisi (kulenin batısı) + avlu
 	var ax = -540.0; var an = 610.0
@@ -125,7 +125,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 		"kanji": "忍", "flag_kanji": "木", "roof": Color(0.72, 0.18, 0.15), "bw": 100.0, "decor": decor})
 	_door(b, ax, an - 19, 5.0, "academy", "[F] Gir: Ninja Akademisi", "academy")
 	_site(b, "pigeons", ax + 8, an - 40)
-	occupied.append([ax, an - 25, 65, 70])
+	occupied.append([ax, an - 25, 65, 70, 25.0])
 
 	# ---- çarşı: ana doğu-batı caddesi (n=0) boyunca tezgâhlar, arkada dükkânlar
 	for i in 26:
@@ -205,7 +205,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	var hpx = 545.0; var hpn = 230.0
 	SpecialBuildings.hospital(b, decor, hpx, hpn, rng)
 	_door(b, hpx, hpn - 27.5, 5.0, "hospital", "[F] Gir: Konoha Hastanesi", "hospital")
-	occupied.append([hpx + 12, hpn - 26, 64, 58])
+	occupied.append([hpx + 12, hpn - 26, 64, 58, 25.0])
 
 	# ---- Chunin Sınavı stadyumu (güneydoğu)
 	var sx0 = 1050.0; var sn0 = -700.0
@@ -221,7 +221,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	b.box(Vector3(sx0, _gy(b, sx0, sn0) + 0.05, sn0), Vector3(100, 0.1, 100), Color(0.62, 0.72, 0.42), 0, false)
 	b.box(Vector3(sx0, _gy(b, sx0, sn0 + 76) + 24, sn0 + 76), Vector3(20, 4, 10), Color(0.72, 0.18, 0.15))
 	_act(b, sx0, sn0 - 84, 8, "chunin_exam", "[F] Chunin Sınavı başvurusu")
-	occupied.append([sx0, sn0, 86, 86])
+	occupied.append([sx0, sn0, 86, 86, 25.0])
 
 	# ---- Uchiha Bölgesi (güneybatı) + Naka Tapınağı
 	var ux = -1020.0; var un = -640.0
@@ -271,19 +271,19 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	b.box(Vector3(yx - 25, 0.05, yn - 28), Vector3(50, 0.1, 30), Color(0.8, 0.78, 0.7), 0, false)
 	b.yoff = 0.0
 	_act(b, yx, yn - 56, 6, "hyuga", "[F] Hyuga Konağı")
-	occupied.append([yx, yn, 80, 60])
+	occupied.append([yx, yn, 80, 60, 25.0])
 
 	# ---- ANBU karargâhı (uçurumun dibinde, karanlık)
 	var anx = -480.0; var ann = cliff_n - 110.0
 	SpecialBuildings.anbu(b, decor, anx, ann)
 	b.interact(Vector3(anx, _gy(b, anx, ann - 22), ann - 22), 4.0, "enter", "[F] Gir: Anbu Karargâhı", {"room": "secret_hq", "vid": "konoha", "alias": "anbu", "out": _gp(b, anx, ann - 22)})
-	occupied.append([anx, ann + 2, 40, 30])
+	occupied.append([anx, ann + 2, 40, 30, 25.0])
 
 	# ---- Antrenman Alanı 3 (TrainingGround: çan kütükleri, Anıt Taşı, şelaleli gölet, dere + köprü, hedefler, parkur, sakura...)
 	var tgx = 1050.0; var tgn = 560.0
 	TG.road_check = func(x: float, n: float) -> bool: return _on_road(b, x, n, 12.0)
 	TG.build(b, decor, tgx, tgn, rng, func(x: float, n: float) -> float: return _gy(b, x, n), _act, _site)
-	occupied.append([tgx, tgn, 72, 58])
+	occupied.append([tgx, tgn, 72, 58, 25.0])
 
 	# ---- oyuncunun evi (başlangıç noktasının yakınında) + inşaat alanı + park
 	b.house(-150, 110, 10, 9, 2, 0, "konoha", rng)
@@ -829,7 +829,8 @@ static func _naka_falls(b: Builder, decor: Node3D, at: Vector2, cliff_n: float) 
 
 static func _free(x: float, n: float, occ: Array, pad: float) -> bool:
 	for o in occ:
-		if absf(x - o[0]) < o[2] + pad and absf(n - o[1]) < o[3] + pad:
+		var extra = float(o[4]) if o.size() > 4 else 0.0   # önemli bina: çevresinde ek boşluk (evler dibine dayanmaz)
+		if absf(x - o[0]) < o[2] + pad + extra and absf(n - o[1]) < o[3] + pad + extra:
 			return false
 	return true
 

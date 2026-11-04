@@ -101,8 +101,14 @@ func _commit() -> ArrayMesh:
 func limb(a: Vector3, b: Vector3, r0: float, r1: float, seg := 7) -> void:
 	if lod:
 		seg = 4 if not far else 3
-	if far and r0 < 0.2:
-		return   # çok uzakta ince dallar görünmez
+	var trunk = a.y < 1.2   # yerden başlayan parça gövdedir: uzak kademede de kalır
+	if far and r0 < 0.2 and not trunk:
+		return   # çok uzakta ince dallar görünmez (gövde DEĞİL: eskiden ince gövdeli ağaçların gövdesi uzakta kayboluyordu)
+	if trunk and lod:
+		# uzak kademede gövde birkaç piksele düşüp titremesin: biraz kalınlaşır (yakın kademeyle geçişte göze batmaz)
+		var k = 1.6 if far else 1.25
+		r0 = maxf(r0 * k, 0.22)
+		r1 = maxf(r1 * k, 0.16)
 	var ax := b - a
 	var L := ax.length()
 	if L < 0.01:

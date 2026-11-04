@@ -4,8 +4,16 @@ extends RefCounted
 ## Her şey kullanılarak gelişir; azalan getiri (yükseldikçe yavaşlar ama hiç durmaz). Görünen "seviye" yok:
 ## eski seviye kontrolleri (jutsu şartı, düşman ölçeği) ustalıklardan türeyen GÜÇ değerini (profile["level"]) kullanır.
 
-const KEYS := ["ninjutsu", "taijutsu", "kenjutsu", "chakra", "dayaniklilik", "hiz"]
-const NAMES := {"ninjutsu": "Ninjutsu", "taijutsu": "Taijutsu", "kenjutsu": "Kenjutsu", "chakra": "Chakra Kontrolü", "dayaniklilik": "Dayanıklılık", "hiz": "Hız"}
+const KEYS := ["ninjutsu", "taijutsu", "kenjutsu", "chakra", "dayaniklilik", "hiz", "genjutsu", "fuinjutsu", "iryo", "senjutsu", "kuchiyose", "shurikenjutsu"]
+const NAMES := {"ninjutsu": "Ninjutsu", "taijutsu": "Taijutsu", "kenjutsu": "Kenjutsu", "chakra": "Chakra Kontrolü", "dayaniklilik": "Dayanıklılık", "hiz": "Hız",
+	"genjutsu": "Genjutsu", "fuinjutsu": "Fūinjutsu", "iryo": "Iryō Ninjutsu (Tıbbi)", "senjutsu": "Senjutsu", "kuchiyose": "Kuchiyose", "shurikenjutsu": "Shurikenjutsu"}
+## Teknik kategorisi -> ustalık dalı (yapıldıkça o dal gelişir; yapabilme şartı da o dala bakar)
+const BRANCH := {"genjutsu": "genjutsu", "fuinjutsu": "fuinjutsu", "medical": "iryo", "senjutsu": "senjutsu", "summoning": "kuchiyose",
+	"kenjutsu": "kenjutsu", "taijutsu": "taijutsu"}
+
+
+static func branch_of(j: Dictionary) -> String:
+	return String(BRANCH.get(String(j.get("category", "ninjutsu")), "ninjutsu"))
 const SP_PER := 4.0   # her 4 toplam ustalık puanında 1 yetenek puanı
 
 
@@ -71,11 +79,13 @@ static func cast_check(p: Dictionary, j: Dictionary) -> String:
 	if cat == "taijutsu" or String(j.get("virtual", "")) != "":
 		return ""
 	var need = float(j.get("level", 1))
-	var nin = get_v(p, "ninjutsu")
+	var br = branch_of(j)
+	# kendi dalının ustalığı; ninjutsu ustalığının %80'i taban (eski kayıtlar, dallar yeni eklendi)
+	var nin = maxf(get_v(p, br), get_v(p, "ninjutsu") * (0.8 if br != "ninjutsu" else 1.0))
 	if need <= 3.0:
 		return ""
 	if nin < need * 0.55:
-		return "Ninjutsu ustalığın yetersiz (%d / %d) — bu tekniği yapamazsın" % [int(nin), int(need)]
+		return "%s ustalığın yetersiz (%d / %d) — bu tekniği yapamazsın" % [NAMES.get(br, "Ninjutsu"), int(nin), int(need)]
 	if nin < need:
 		return "fail:%.3f" % clampf((need - nin) / (need * 0.45), 0.05, 0.85)
 	return ""

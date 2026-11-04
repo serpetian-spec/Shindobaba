@@ -138,9 +138,9 @@ static func request_mission() -> void:
 		{"label": "Geliyorum (buluşma: antrenman alanı)", "cb": func():
 			sq["pending"] = m
 			sq["meet"] = [meet.x, meet.y, meet.z]
-			Missions.target_marker = meet
-			Missions.has_marker = true
-			Missions.target_name = "Takım buluşması"
+			# haritanın takip sistemi (ok + ışık sütunu + harita işareti); görev işaretçisi takip tarafından eziliyordu
+			Game.profile["waypoint"] = [meet.x, meet.y, meet.z, "Takım buluşması (antrenman alanı)"]
+			Game.profile["track"] = "waypoint"
 			Hud.msg("Buluşma yeri işaretlendi: antrenman alanı.", Color(0.6, 1.0, 0.7))},
 		{"label": "Bu sefer yokum", "cb": func(): Hud.msg("%s başını salladı: \"Peki. Ama takım seni bekler, unutma.\"" % who, Color(0.85, 0.85, 0.9))}])
 
@@ -157,7 +157,9 @@ func _meet_tick() -> void:
 	sq.erase("meet")
 	sq.erase("pending")
 	sq["on_mission"] = true
-	Missions.has_marker = false
+	if Game.profile.get("waypoint") is Array and "Takım buluşması" in String(Game.profile["waypoint"][3]):
+		Game.profile.erase("waypoint")
+	Game.profile["track"] = "mission"   # görev başladı: ok artık görevi gösterir
 	Hud.dialog(String(sq["sensei"]["name"]), "Hepimiz buradayız. Görev: \"%s\". Yola çıkıyoruz — birbirinizi kollayın!" % String(m.get("title", "")), [])
 	Missions.accept(m)
 

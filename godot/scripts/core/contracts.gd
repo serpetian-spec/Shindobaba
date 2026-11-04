@@ -373,7 +373,14 @@ static func keeper_interact(it: Dictionary) -> void:
 					Progress.add_ryo(-price)
 					_blood_sign(id)})
 	if opts.is_empty():
-		opts.append({"label": "Burada sözleşme yok", "cb": func(): pass})
+		# bu köyde sözleşme yok: hangi sözleşme hangi köyde (gidip bulmak için)
+		var where = []
+		for id in DEFS:
+			var kv = String(DEFS[id].get("keeper", ""))
+			if kv != "" and DEFS[id]["realm"] == "":
+				where.append("%s — %s" % [DEFS[id]["name"], String(Game.village(kv).get("name", kv))])
+		Hud.dialog("Sözleşme Ustası", "Bu köyün hayvanlarla bir sözleşmesi yok. Kan bağı kurmak istiyorsan şuralara git:\n" + "\n".join(where), [])
+		return
 	Hud.dialog("Kaçak Sözleşme Ustası" if rogue else "Sözleşme Ustası", ("Köylerin ustaları seninle konuşmaz ama hayvanlar kimin kaçak olduğunu umursamaz. Bedeli yüksek." if rogue else "Hayvanlarla kan bağı kurmak isteyen ninja... Hangi sözleşmeyi istersin?"), opts)
 
 

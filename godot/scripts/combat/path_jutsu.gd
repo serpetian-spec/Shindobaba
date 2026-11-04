@@ -18042,28 +18042,16 @@ func p_choharite(c: Node3D, t: Node3D) -> void:
 				"colors": [Color(0.85, 0.78, 0.65, 0.8), Color(0.75, 0.68, 0.55, 0)]}))
 
 
-## Kikaichū sürüsü: kollardan ve yakadan kara böcek akını
+## Kikaichū no Jutsu: sürü yakadan ve iki koldan hedefe kıvrılarak akar
 func p_mushi_swarm(c: Node3D, t: Node3D) -> void:
-	for k in 4:
-		after(k * 0.1, func():
+	var tt = tg(c, t, 18.0)
+	var goal = (tt.global_position + Vector3.UP) if tt else c.global_position + fwd(c, t) * 10.0 + Vector3.UP
+	for k in 6:
+		after(k * 0.08, func():
 			if live(c):
-				_bug_cloud(c.global_position + Vector3.UP * 1.3, 0.6, 50, fwd(c, t), 8.0))
+				for from in [hand_pos(c, true), hand_pos(c, false), c.global_position + Vector3.UP * 1.45]:
+					_bug_cloud(from, 0.25, 26, (goal - from).normalized(), 14.0))
 	c_mushi_swarm(c, t)
-
-
-## Böcek Isırığı: böcek seli hedefe kıvrılarak akar, bedenini kaplar
-func p_mushikui(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 16.0)
-	c_mushikui(c, t)
-	if tt:
-		for k in 6:
-			after(k * 0.08, func():
-				if live(c) and live(tt):
-					var from = hand_pos(c, true)
-					_bug_cloud(from, 0.3, 30, (tt.global_position + Vector3.UP - from).normalized(), 16.0))
-		after(0.6, func():
-			if live(tt):
-				_bug_cloud(tt.global_position + Vector3.UP, 0.8, 80, Vector3.UP, 1.5))
 
 
 ## Böcek Klonu: klon belirirken kara böcekler toplanıp beden şeklini alır
@@ -18100,7 +18088,7 @@ func p_kidaichu_mushikui(c: Node3D, t: Node3D) -> void:
 	c_kidaichu_mushikui(c, t)
 
 
-## Böcek Duvarı: yerden kara böcek seli yükselip döner kubbeye dönüşür
+## Mushi Kame: bedenden fışkıran böcekler çevresinde dönen kubbeye dönüşür
 func p_mushi_kabe(c: Node3D, t: Node3D) -> void:
 	for k in 10:
 		var a = k * TAU / 10.0
@@ -21441,60 +21429,58 @@ func p_karatachi_sanmai_oroshi(c: Node3D, t: Node3D) -> void:
 	Sfx.play("blade", c.global_position, 0.8)
 
 
+## Hijutsu: Mushitatsumaki (kanon): böcekler geniş alana yayılır (algılar), hedefi bulduğu an toplanıp onu saran
+## hızlı bir hortum olur — dar, kumlu gri-kara sütun (referans); içindekinin chakrasını sömürür.
 func p_aburame_mushi_hashira(c: Node3D, t: Node3D) -> void:
-	# Mushi Bashira: hedeflerin altından kara böcek sütunları fışkırır, onları içine alıp yukarı taşır, chakralarını emer
-	busy(c, 1.0)
-	var targets = enemies_near(c, c.global_position, 18.0).slice(0, 4)
-	var tt = tg(c, t, 18.0)
-	if tt and not targets.has(tt):
-		targets.append(tt)
-	_bug_cloud(hand_pos(c, true), 0.4, 40, fwd(c, t), 5.0)
-	for e in targets:
-		var at0 = gp(e.global_position)
-		# önce yerde kaynayan kara leke (böcekler toprağın altından geliyor)
-		ground_disc(at0, 2.4, Color(0.05, 0.05, 0.04), 2.8, 2, 0)
-		_bug_cloud(at0 + Vector3.UP * 0.2, 1.4, 50, Vector3.UP, 1.5)
-		after(0.35, func():
-			if not live(e):
-				return
-			var at = gp(e.global_position)
-			# sütun: dönen kara gövde (rüzgâr malzemesi koyu) + içinde kaynayan sürü
-			var col = MeshInstance3D.new()
-			var cm = CylinderMesh.new()
-			cm.top_radius = 1.6
-			cm.bottom_radius = 2.2
-			cm.height = 9.0
-			col.mesh = cm
-			var cmat = StandardMaterial3D.new()   # kaynayan kara sürü gövdesi (eklemeli değil, koyu)
-			cmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-			cmat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-			cmat.albedo_color = Color(0.06, 0.06, 0.05, 0.8)
-			col.material_override = cmat
-			get_tree().current_scene.add_child(col)
-			col.global_position = at + Vector3.UP * 4.5
-			col.scale = Vector3(1, 0.05, 1)
-			var ctw = col.create_tween()
-			ctw.tween_property(col, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_BACK)
-			ctw.tween_interval(1.8)
-			ctw.tween_property(col, "scale", Vector3(1.8, 1.0, 1.8), 0.4)
-			ctw.parallel().tween_property(cmat, "albedo_color:a", 0.0, 0.4)
-			ctw.tween_callback(col.queue_free)
-			for k in 12:
-				after(k * 0.06, func():
-					_bug_cloud(at + Vector3.UP * k * 0.75, 1.3, 36, Vector3.UP, 4.0))
-			VFX.debris(at + Vector3.UP * 0.4, EARTH, 8, 7.0, 0.4)
-			VFX.cracks(at, 4.0)
-			st(e, "bind", 2.2)
-			var lift = e.create_tween()
-			lift.tween_property(e, "global_position", at + Vector3.UP * 3.0, 0.5).set_trans(Tween.TRANS_QUAD)
-			every(2.0, 0.4, func(_i, _k):
-				if live(e):
-					e.take_hit(inf(c, "aburame_mushi_hashira", 0.3, {"knock": 0.0, "kind": "light", "chakra_drain": 6.0}))
-					chakra_gain(c, 2.0)
-					_bug_cloud(e.global_position + Vector3.UP, 1.0, 20, Vector3.UP, 3.0), Callable())
-			after(2.3, func():   # sürü dağılır, hedef düşer
-				_bug_cloud(at + Vector3.UP * 3.0, 3.0, 80, Vector3.UP, 6.0)))
+	busy(c, 0.8)
+	var tt = tg(c, t, 24.0)
+	for k in 8:   # yayılma
+		var a = k * TAU / 8.0
+		_bug_cloud(c.global_position + Vector3.UP * 1.2, 0.4, 30, Vector3(cos(a), 0.2, sin(a)), 9.0)
+	if tt == null:
+		return
+	after(0.9, func():
+		if not live(tt):
+			return
+		var col = MeshInstance3D.new()
+		var cm = CylinderMesh.new()
+		cm.top_radius = 1.9
+		cm.bottom_radius = 1.2
+		cm.height = 7.0
+		cm.radial_segments = 24
+		cm.rings = 12
+		col.mesh = cm
+		var m = swarm_mat(0.0, 1.6, 260.0)
+		m.set_shader_parameter("col", Color(0.3, 0.3, 0.29))
+		m.set_shader_parameter("fleck", Color(0.55, 0.55, 0.52))
+		m.set_shader_parameter("edge", 0.45)
+		m.set_shader_parameter("cover", 0.8)   # puslu, taneli gri hortum (referans)
+		col.material_override = m
+		col.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		attach(tt, col, 3.0, Vector3.UP * 3.3)
+		var tw = col.create_tween()
+		tw.tween_method(func(v): m.set_shader_parameter("fade", v), 0.0, 1.0, 0.3)
+		tw.tween_interval(2.2)
+		tw.tween_method(func(v): m.set_shader_parameter("fade", v), 1.0, 0.0, 0.4)
+		st(tt, "bind", 2.6)
+		every(2.8, 0.35, func(_i, _k):
+			if live(tt):
+				tt.take_hit(inf(c, "aburame_mushi_hashira", 0.28, {"knock": 0.0, "kind": "light", "chakra_drain": 9.0}))
+				chakra_gain(c, 2.0)
+				_bug_cloud(tt.global_position + Vector3.UP * randf_range(0.5, 5.5), 1.4, 16, Vector3.UP, 2.0), Callable()))
 	Sfx.play("wind", c.global_position, 2.0, 0.6)
+
+
+func p_hijutsu_mushiheki(c: Node3D, t: Node3D) -> void:
+	var d = fwd(c, t)
+	for k in 12:
+		_bug_cloud(gp(c.global_position + d * 3.0 + d.cross(Vector3.UP) * (k - 6) * 1.0) + Vector3.UP * 0.3, 0.5, 20, Vector3.UP, 6.0)
+	c_hijutsu_mushiheki(c, t)
+
+
+func p_hijutsu_mushimayu(c: Node3D, t: Node3D) -> void:
+	_bug_cloud(c.global_position + Vector3.UP, 1.0, 60, Vector3.UP, 0.6)
+	c_hijutsu_mushimayu(c, t)
 
 
 ## ================================================================ Inuzuka (kanon) — kurt biçimleri

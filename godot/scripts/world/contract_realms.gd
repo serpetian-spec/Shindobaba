@@ -261,32 +261,71 @@ static func _slug_forest(root: Node3D, c: Vector3) -> void:
 
 # ------------------------------------------------------------------ köy sözleşme ustaları
 static func _keepers(parent: Node3D) -> void:
-	var seen = {}
-	for id in Contracts.DEFS:
-		var k = String(Contracts.DEFS[id].get("keeper", ""))
-		if k != "":
-			seen[k] = true
-	for vid in seen:
-		var v = Game.village(vid)
-		if v.is_empty():
-			continue
+	# her köyde Sözleşme Ustası salonu (içine girilir): sözleşmesi olan köyde usta imzalatır, olmayanda nerede olduğunu söyler
+	for v in Game.world_info.get("villages", []):
+		var vid = String(v["id"])
 		var a = deg_to_rad(205.0)
 		var r = float(v.get("r", 300)) * 0.33
 		var m = Vector2(float(v["x"]) + cos(a) * r, float(v["y"]) + sin(a) * r)
 		var wp = Game.from_map(m)
 		wp.y = Game.terrain_height(wp.x, wp.z)
-		var b = MB.new()
-		b.add("box", Vector3(0, 1.4, 0), Vector3(3.0, 2.8, 2.0), Color(0.45, 0.3, 0.2))
-		b.add("box", Vector3(0, 3.0, 0), Vector3(3.6, 0.3, 2.6), Color(0.7, 0.15, 0.15))
-		b.add("cyl", Vector3(0, 2.0, -1.05), Vector3(0.25, 1.6, 0.25), Color(0.9, 0.85, 0.7), Vector3(0, 0, 90), 8)  # açık parşömen
-		b.add("box", Vector3(0, 2.0, -1.05), Vector3(1.5, 0.9, 0.02), Color(0.95, 0.9, 0.78))
-		var mi = MeshInstance3D.new()
-		mi.mesh = b.build(Props.toon())
-		parent.add_child(mi)
-		mi.global_position = wp
-		# fizik hazır olunca (oyuncu köye gelince) açık zemine taşınır: Suna'da bir evin içinde kalıyordu
-		Interact.add({"pos": wp + Vector3(0, 1.0, -1.5), "radius": 4.0, "kind": "contract_keeper", "village": vid, "label": "Sözleşme Ustası",
-			"relocate": true, "node": mi, "node_off": Vector3(0, -1.0, 1.5)})
+		var hall = _hall_node()
+		parent.add_child(hall)
+		hall.global_position = wp
+		# fizik hazır olunca (oyuncu köye gelince) açık zemine taşınır
+		Interact.add({"pos": wp + Vector3(0, 0.2, -5.2), "radius": 3.0, "kind": "enter", "room": "contract_hall", "vid": vid, "village": vid,
+			"label": "[F] Gir: Sözleşme Ustası (kuchiyose sözleşmeleri)", "relocate": true, "node": hall, "node_off": Vector3(0, -0.2, 5.2)})
+
+
+## Sözleşme salonu dış görünüşü: koyu ahşap, kırmızı çatı, "契" noren, iki yanda hayvan sancakları + çarpışma
+static func _hall_node() -> Node3D:
+	var root = Node3D.new()
+	var b = MB.new()
+	var wood = Color(0.3, 0.2, 0.14)
+	var red = Color(0.62, 0.14, 0.12)
+	b.add("box", Vector3(0, 0.2, 0), Vector3(10.0, 0.4, 9.0), Color(0.55, 0.52, 0.48))   # taş taban
+	b.add("box", Vector3(0, 2.6, 0), Vector3(9.0, 4.4, 8.0), wood)
+	for sx in [-1.0, 1.0]:
+		b.add("box", Vector3(sx * 2.25, 6.0, 0), Vector3(5.6, 0.35, 9.4), red, Vector3(0, 0, -sx * 28))   # kırma çatı
+	b.add("box", Vector3(0, 7.2, 0), Vector3(0.6, 0.5, 9.4), red.darkened(0.3))
+	for sx in [-1.0, 1.0]:   # kapı direkleri + yan sancaklar
+		b.add("box", Vector3(sx * 1.6, 2.0, -4.05), Vector3(0.35, 3.6, 0.35), Color(0.18, 0.12, 0.09))
+		b.add("cyl", Vector3(sx * 4.2, 2.6, -4.6), Vector3(0.12, 5.2, 0.12), Color(0.2, 0.14, 0.1), Vector3.ZERO, 6)
+		b.add("box", Vector3(sx * 4.2 + sx * 0.45, 3.8, -4.6), Vector3(0.8, 2.4, 0.04), Color(0.92, 0.88, 0.78))
+	for k in 3:   # noren perde
+		b.add("box", Vector3(-1.0 + k * 1.0, 3.0, -4.1), Vector3(0.95, 1.2, 0.04), Color(0.12, 0.1, 0.18))
+	b.add("box", Vector3(0, 1.4, -4.02), Vector3(2.8, 2.8, 0.1), Color(0.08, 0.06, 0.05))   # kapı boşluğu
+	var mi = MeshInstance3D.new()
+	mi.mesh = b.build(Props.toon())
+	root.add_child(mi)
+	var kj = Label3D.new()
+	kj.text = "契"
+	kj.font_size = 160
+	kj.pixel_size = 0.006
+	kj.modulate = Color(0.95, 0.92, 0.85)
+	kj.position = Vector3(0, 3.1, -4.14)
+	kj.rotation.y = PI
+	root.add_child(kj)
+	for sx in [-1.0, 1.0]:
+		var an = Label3D.new()
+		an.text = "口寄"
+		an.font_size = 110
+		an.pixel_size = 0.006
+		an.modulate = Color(0.12, 0.1, 0.1)
+		an.position = Vector3(sx * 4.2 + sx * 0.45, 3.8, -4.64)
+		an.rotation.y = PI
+		root.add_child(an)
+	var body = StaticBody3D.new()
+	var cs = CollisionShape3D.new()
+	var bs = BoxShape3D.new()
+	bs.size = Vector3(9.0, 4.8, 8.0)
+	cs.shape = bs
+	cs.position = Vector3(0, 2.4, 0)
+	body.add_child(cs)
+	root.add_child(body)
+	return root
+
+
 	pass   # eski açık hava çarşı tezgâhları kaldırıldı: dükkânlar artık iç mekânlı binalar (BuildSites._shop_row)
 
 

@@ -1204,57 +1204,84 @@ func c_choharite(c: Node3D, t: Node3D) -> void:
 # ================================================================== ABURAME — kikaichū: yapışır, chakra emer, kör eder
 ## Kikaichū sürüsü + yapışma: sürünün değdiği düşmanların üstünde böcekler kalır, chakra sana akar
 func c_mushi_swarm(c: Node3D, t: Node3D) -> void:
-	Jutsu.j_mushi_swarm(c, t)
-	var center = Jutsu._aim_ground(c, t, 10.0)
-	after(1.4, func():
-		for e in enemies_near(c, tt_pos(t, center), 6.0):
-			_insects_cling(c, e, 6.0, "mushi_swarm"))
+	# Kikaichū no Jutsu: sürü hedefe akar ve yapışır (bulut alanı değil, yapışan sürü)
+	var tt = tg(c, t, 18.0)
+	var center = tt_pos(tt, Jutsu._aim_ground(c, t, 10.0))
+	after(0.7, func():
+		var hit_any = false
+		for e in enemies_near(c, center, 3.5):
+			_insects_cling(c, e, 6.0, "mushi_swarm")
+			hit_any = true
+		if not hit_any and live(tt) and tt.global_position.distance_to(center) < 6.0:
+			_insects_cling(c, tt, 6.0, "mushi_swarm"))
 
 
 func tt_pos(t: Node3D, fallback: Vector3) -> Vector3:
 	return t.global_position if live(t) else fallback
 
 
+## Böcek kütlesi malzemesi (kumlu, kaynayan, tırtıklı silüet) — Aburame ortak görünüşü
+func swarm_mat(fade := 1.0, spin := 0.0, grain := 200.0) -> ShaderMaterial:
+	var m = ShaderMaterial.new()
+	m.shader = load("res://shaders/vfx_swarm.gdshader")
+	m.set_shader_parameter("fade", fade)
+	m.set_shader_parameter("spin", spin)
+	m.set_shader_parameter("grain", grain)
+	return m
+
+
+## Bedenin şeklini alan böcek kaplaması (referans: Insect Sphere — hedef kollu bacaklı kara, kumlu bir silüete gömülür;
+## Kikaichū yapışması: bedenin üstünde sürünen benekler). Modelin kendi meshlerine kaplama; modeli yoksa kapsül.
+func swarm_body(e: Node3D, dur: float, cover := 1.0, grow := 0.06) -> void:
+	var m = swarm_mat(0.0, 0.0, 220.0)
+	m.set_shader_parameter("cover", cover)
+	m.set_shader_parameter("grow", grow)
+	m.set_shader_parameter("edge", 0.85 if cover < 1.0 else 0.72)
+	var mdl = e.get("model")
+	var meshes = []
+	var prev = []
+	if mdl and is_instance_valid(mdl):
+		for mi in (mdl as Node).find_children("*", "MeshInstance3D", true, false):
+			if (mi as MeshInstance3D).visible:
+				prev.append((mi as MeshInstance3D).material_overlay)   # var olan kaplama (dış çizgi vb.) sonra geri gelir
+				(mi as MeshInstance3D).material_overlay = m
+				meshes.append(mi)
+	if meshes.is_empty():
+		var cmi = MeshInstance3D.new()
+		var cm = CapsuleMesh.new()
+		cm.radius = e.radius * 1.1
+		cm.height = e.height * 1.05
+		cmi.mesh = cm
+		cmi.material_override = m
+		attach(e, cmi, dur, Vector3.UP * e.height * 0.5)
+	var tw = e.create_tween()
+	tw.tween_method(func(v): m.set_shader_parameter("fade", v), 0.0, 1.0, 0.35)
+	tw.tween_interval(maxf(0.1, dur - 0.8))
+	tw.tween_method(func(v): m.set_shader_parameter("fade", v), 1.0, 0.0, 0.4)
+	tw.tween_callback(func():
+		for i in meshes.size():
+			var mi = meshes[i]
+			if is_instance_valid(mi) and (mi as MeshInstance3D).material_overlay == m:
+				(mi as MeshInstance3D).material_overlay = prev[i])
+
+
 func _insects_cling(c: Node3D, e: Node3D, dur: float, id: String) -> void:
-	var cloud = Projectile.trail(e, [Color(0.0, 0.0, 0.0), Color(0.02, 0.02, 0.01), Color(0.0, 0.0, 0.0, 0)], 0.6, 260, 0.7, null, false)
+	# kanon: kikaichū bedene yapışıp chakrayı yer — üstünde sürünen kara kılıf + çevresinde uçuşan böcekler
+	swarm_body(e, dur, 0.45, 0.02)   # bedenin üstünde sürünen kikaichū benekleri
+	var cloud = Projectile.trail(e, [Color(0.0, 0.0, 0.0), Color(0.02, 0.02, 0.01), Color(0.0, 0.0, 0.0, 0)], 0.25, 120, 0.7, null, false)
 	cloud.position = Vector3.UP * e.height * 0.5
-	# bedeni saran kara böcek kabuğu: dalgalanır
-	var shell = MeshInstance3D.new()
-	shell.mesh = VFX._sphere(0.5, 14, 8)
-	var shm = StandardMaterial3D.new()
-	shm.albedo_color = Color(0.01, 0.01, 0.01, 0.8)
-	shm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	shm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	shm.disable_fog = true
-	shell.material_override = shm
-	shell.scale = Vector3(e.radius * 2.6, e.height * 0.9, e.radius * 2.6)
-	attach(e, shell, dur, Vector3.UP * e.height * 0.5)
 	after(dur, func():
 		if is_instance_valid(cloud):
 			cloud.emitting = false)
 	st(e, "slow", dur)
 	every(dur, 0.6, func(_i, _k):
 		if live(e):
-			hit(c, e.global_position + Vector3.UP, 0.8, inf(c, id, 0.12, {"knock": 0.0, "kind": "light"}))
+			hit(c, e.global_position + Vector3.UP, 0.8, inf(c, id, 0.1, {"knock": 0.0, "kind": "light", "chakra_drain": 5.0}))
 			if _i % 3 == 0:
 				chakra_gain(c, 2.0))
 
 
-## Böcek Isırığı: böcekler tek hedefe akın edip chakrasını yer: 4 sn jutsu yapamaz, chakrası sana geçer
-func c_mushikui(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 16.0)
-	if tt == null:
-		return
-	tether(func(): return Jutsu._hand(c), func(): return tt.global_position + Vector3.UP if is_instance_valid(tt) else Jutsu._hand(c), 0.35, flat_mat(Color(0.05, 0.05, 0.04, 0.85)), 0.7)
-	after(0.6, func():
-		if live(tt):
-			_insects_cling(c, tt, 4.0, "mushikui")
-			seal_points(tt, 4.0, Color(0.4, 0.5, 0.3))
-			chakra_gain(c, 18.0))
-	Sfx.play("wind", c.global_position, 2.2, 0.5)
-
-
-## Böcek Klonu: düşmanları üstüne çeken klon; vurulunca böcek bulutuna dağılıp vuranlara yapışır
+## Böcek Klonu: kikaichū toplanıp senin şeklini alır; vurulunca dağılıp vuranlara yapışır
 func c_mushi_bunshin_no_jutsu(c: Node3D, _t: Node3D) -> void:
 	decoy(c, c.global_position + c.global_transform.basis.x * 2.5, 12.0, func(p: Vector3):
 		FX.burst(p + Vector3.UP, {"amount": 60, "life": 0.8, "size": 0.12, "vmin": 2, "vmax": 7, "add": false, "colors": [Color(0.06, 0.06, 0.05), Color(0.06, 0.06, 0.05, 0)]})
@@ -1263,64 +1290,190 @@ func c_mushi_bunshin_no_jutsu(c: Node3D, _t: Node3D) -> void:
 	FX.smoke_puff(c.global_position + Vector3.UP, 0.8, 10)
 
 
-## Böcek Karıştırma: böcek sisi alana çöker: içindekiler seni kaybeder, algılama ve jutsu bozulur
+## Mushi Jamingu (kanon): yayılan böcekler sahte chakra izleri salar — algılayıcılar ve nişan alanlar seni kaybeder.
+## (Jutsu yapmayı engellemez; yalnız hedef bulmayı bozar.) Oyuncuya karşı düşman: kilidin kırılır.
 func c_mushi_jamingu_no_jutsu(c: Node3D, t: Node3D) -> void:
-	var center = gp(Jutsu._aim_ground(c, t, 8.0, 18.0))
-	FX.burst(center + Vector3.UP * 1.5, {"amount": 220, "life": 5.0, "size": 0.14, "vmin": 0.5, "vmax": 2.0, "add": false, "gravity": Vector3.ZERO,
-		"colors": [Color(0.05, 0.05, 0.04, 0.0), Color(0.05, 0.05, 0.04, 0.9), Color(0.05, 0.05, 0.04, 0)]})
-	every(5.0, 0.5, func(_i, _k):
-		for e in enemies_near(c, center, 7.0):
+	var center = gp(c.global_position)
+	c.set_meta("jamming_until", Time.get_ticks_msec() / 1000.0 + 8.0)
+	every(8.0, 0.5, func(_i, _k):
+		for e in enemies_near(c, center, 22.0):
 			if e.has_method("lose_target"):
 				e.lose_target(1.0)
-			st(e, "sealed", 1.0))
+			if e is Player and e.combat:
+				e.combat.lock_target = null)
 	Sfx.play("wind", center, 2.4, 0.6)
 
 
-## Böcek Küresi: böcek kabuğu hedefi tamamen sarar, 4 sn hapseder ve chakrasını emer
+## Hijutsu: Mushidama (kanon): hedefi bedeninin şeklinde saran kara küre; chakrasını yer, kaçsa da peşinden gider
 func c_hijutsu_mushidama(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 18.0)
+	var tt = tg(c, t, 22.0)
 	if tt == null:
 		return
-	var sp = MeshInstance3D.new()
-	sp.mesh = VFX._sphere(0.5, 20, 12)
-	sp.material_override = VFX.mat_spiral(Color(0.2, 0.22, 0.15), Color(0.04, 0.04, 0.03), 9.0, 4.0, 3.0, 0.6)
-	sp.scale = Vector3.ONE * (tt.height + 0.6)
-	attach(tt, sp, 4.0, Vector3.UP * tt.height * 0.5)
-	st(tt, "bind", 4.0)
-	every(4.0, 0.5, func(_i, _k):
-		if live(tt):
-			hit(c, tt.global_position + Vector3.UP, 1.0, inf(c, "hijutsu_mushidama", 0.2, {"knock": 0.0}))
-			if _i % 2 == 0:
-				chakra_gain(c, 3.0))
+	after(0.6, func():
+		if not live(tt):
+			return
+		swarm_body(tt, 4.5, 1.0, 0.12)   # kollu bacaklı kara silüet
+		st(tt, "bind", 3.5)
+		every(4.5, 0.5, func(_i, _k):
+			if live(tt):
+				hit(c, tt.global_position + Vector3.UP, 1.0, inf(c, "hijutsu_mushidama", 0.18, {"knock": 0.0, "chakra_drain": 8.0}))
+				if _i % 2 == 0:
+					chakra_gain(c, 3.0)))
 	Sfx.play("wind", tt.global_position, 2.0, 0.5)
 
 
-## Dev Parazit Böcekleri: yerde koşan dev kınkanatlılar (ClanConstruct) düşmanları ısırır
-func c_kidaichu_mushikui(c: Node3D, _t: Node3D) -> void:
-	ClanConstruct.spawn(c, "beetle", 3, Jutsu._jd("kidaichu_mushikui"))
+## Kidaichū — Mushikui (kanon): temas! Düşmanın derisine dev böcekler bırakılır; içine girip eti ve chakrayı yerken büyürler
+func c_kidaichu_mushikui(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 3.2)
+	if tt == null or tt.global_position.distance_to(c.global_position) > 3.2 + tt.radius:
+		if c is Player:
+			Hud.msg("Kidaichū için düşmana dokunmalısın (yakın mesafe).", Color(0.85, 0.85, 0.7))
+		return
+	var bugs = []
+	for k in 3:
+		var bm = mesh_of(_kidaichu_mesh())
+		attach(tt, bm, 8.0, Vector3(randf_range(-0.2, 0.2), tt.height * randf_range(0.35, 0.8), -tt.radius * 0.95).rotated(Vector3.UP, k * 2.1))
+		bm.scale = Vector3.ONE * 0.7
+		bugs.append(bm)
+	every(8.0, 0.5, func(i, k):
+		for bm in bugs:
+			if is_instance_valid(bm):
+				bm.scale = Vector3.ONE * (0.7 + k * 1.3)   # yedikçe büyür (referans: bedeni delip çıkan iri böcekler)
+		if live(tt):
+			hit(c, tt.global_position + Vector3.UP, 1.0, inf(c, "kidaichu_mushikui", 0.08 + k * 0.3, {"knock": 0.0, "kind": "light", "chakra_drain": 4.0 + k * 8.0, "bleed": 0.5}))
+			if i % 4 == 0:
+				FX.burst(tt.global_position + Vector3.UP * tt.height * 0.6, {"amount": 8, "life": 0.4, "size": 0.08, "vmin": 1, "vmax": 3, "add": false, "colors": [Color(0.5, 0.05, 0.05), Color(0.3, 0.02, 0.02, 0)]}))
 	Sfx.play("wind", c.global_position, 1.6, 0.6)
 
 
-## Böcek Duvarı: etrafında dönen böcek kubbesi 8 sn mermileri yutar, değenin chakrasını emer
+## Kidaichū: kara iri böcek (referans: koyu gövde, gri kabuk, açık camgöbeği gözler, ince uzun bacaklar)
+func _kidaichu_mesh() -> MB:
+	var b = MB.new()
+	b.add("sphere", Vector3(0, 0, 0.05), Vector3(0.5, 0.32, 0.7), Color(0.16, 0.16, 0.15))
+	b.add("sphere", Vector3(0, 0.06, 0.12), Vector3(0.42, 0.26, 0.48), Color(0.45, 0.45, 0.43))   # gri kabuk
+	b.add("sphere", Vector3(0, 0.02, -0.34), Vector3(0.26, 0.22, 0.22), Color(0.14, 0.14, 0.13))
+	for sx in [-1.0, 1.0]:
+		b.add("sphere", Vector3(sx * 0.09, 0.06, -0.42), Vector3(0.08, 0.08, 0.06), Color(0.35, 0.75, 0.72))
+		for k in 3:
+			var z = -0.12 + k * 0.16
+			BeastRig.claw(b, Vector3(sx * 0.2, -0.02, z), Vector3(sx, -0.6, 0.1 * (k - 1)), 0.32, 0.02, Color(0.12, 0.12, 0.11))
+	return b
+
+
+## Mushi Kame no Jutsu (kanon): çevrende Kaiten gibi hızla dönen böcek kubbesi; mermileri yutar, değenin chakrasını emer.
+## Yeterli patlama gücü kubbeyi dağıtır (yutulan mermi hasarı eşiği aşınca).
 func c_mushi_kabe(c: Node3D, _t: Node3D) -> void:
 	var dome = MeshInstance3D.new()
-	dome.mesh = VFX._sphere(0.5, 24, 12)
-	dome.material_override = VFX.mat_spiral(Color(0.22, 0.24, 0.16, 0.9), Color(0.03, 0.03, 0.02), 12.0, 3.0, 4.0, 0.5)
+	var sm = SphereMesh.new()
+	sm.radius = 0.5
+	sm.height = 1.0
+	sm.radial_segments = 28
+	sm.rings = 14
+	dome.mesh = sm
+	var m = swarm_mat(1.0, 0.9, 240.0)
+	dome.material_override = m
+	dome.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	dome.scale = Vector3.ONE * 6.0
 	attach(c, dome, 8.0, Vector3.UP * 1.0)
+	var taken = [0.0]
+	var cap = 140.0 * Jutsu._mult(c)
 	every(8.0, 0.1, func(_i, _k):
-		if not is_instance_valid(c):
+		if not is_instance_valid(c) or not is_instance_valid(dome):
 			return
-		dome.rotation.y += 0.3
+		dome.rotation.y += 0.45
 		for n in get_tree().current_scene.get_children():
 			if n is Projectile and not n.dead and n.shooter != c and Combat.hostile(c, n.shooter) and n.global_position.distance_to(c.global_position + Vector3.UP) < 3.4:
+				taken[0] += float(n.info.get("dmg", 10.0))
 				FX.burst(n.global_position, {"amount": 10, "life": 0.4, "size": 0.15, "vmin": 1, "vmax": 3, "add": false, "colors": [Color(0.06, 0.06, 0.05), Color(0.06, 0.06, 0.05, 0)]})
 				n.queue_free()
+		if taken[0] > cap:   # yeterince güçlü saldırı: kubbe dağılır
+			FX.burst(c.global_position + Vector3.UP, {"amount": 120, "life": 1.0, "size": 0.12, "vmin": 3, "vmax": 9, "add": false, "colors": [Color(0.06, 0.06, 0.05), Color(0.06, 0.06, 0.05, 0)]})
+			dome.queue_free()
+			return
 		if _i % 5 == 0:
 			for e in enemies_near(c, c.global_position, 3.6):
-				hit(c, e.global_position + Vector3.UP, 0.8, inf(c, "mushi_kabe", 0.15, {"knock": 5.0}))
+				hit(c, e.global_position + Vector3.UP, 0.8, inf(c, "mushi_kabe", 0.12, {"knock": 5.0, "chakra_drain": 4.0}))
 				chakra_gain(c, 2.0))
 	Sfx.play("wind", c.global_position, 2.2, 0.6)
+
+
+## Hijutsu: Mushiheki (kanon): önünde dev böcek duvarı — seni ve arkandakileri korur (mermi, düşen cisim, Katon)
+func c_hijutsu_mushiheki(c: Node3D, t: Node3D) -> void:
+	var d = c.face_dir() if c.has_method("face_dir") else Vector3.FORWARD
+	d.y = 0
+	d = d.normalized()
+	var at = gp(c.global_position + d * 3.0)
+	# referans: tırtıklı kenarlı dev duvar — üst üste binen düzensiz böcek kütleleri (kutu değil)
+	var wall = Node3D.new()
+	get_tree().current_scene.add_child(wall)
+	wall.global_position = at
+	wall.look_at(at + d, Vector3.UP)
+	var m = swarm_mat(0.0, 0.0, 240.0)
+	m.set_shader_parameter("edge", 0.8)
+	m.set_shader_parameter("col", Color(0.17, 0.17, 0.16))   # referans: gri-kara taneli
+	var sm = SphereMesh.new()
+	sm.radial_segments = 16
+	sm.rings = 10
+	for k in 46:
+		var mi = MeshInstance3D.new()
+		mi.mesh = sm
+		mi.material_override = m
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var x = randf_range(-5.5, 5.5)
+		var top = 10.5 - absf(x) * 0.3 + randf_range(-1.5, 1.5)   # referans: insanın birkaç katı yüksek
+		var y = randf_range(0.0, top) if k >= 12 else randf_range(0.0, 1.5)   # ilk kütleler tabanı yere oturtur
+		mi.position = Vector3(x, y, randf_range(-0.3, 0.3))
+		mi.scale = Vector3(randf_range(3.0, 4.4), randf_range(2.8, 4.0), randf_range(1.2, 1.8))
+		if k >= 38:   # kenarlardan dışa uzanan sivri tırtıklar
+			mi.position.x = signf(x) * randf_range(5.0, 6.5)
+			mi.scale = Vector3(randf_range(2.6, 3.6), randf_range(0.8, 1.2), 1.0)
+		wall.add_child(mi)
+	wall.scale = Vector3(1, 0.05, 1)
+	var tw = wall.create_tween()
+	tw.tween_property(wall, "scale", Vector3.ONE, 0.45).set_trans(Tween.TRANS_BACK)
+	tw.parallel().tween_method(func(v): m.set_shader_parameter("fade", v), 0.0, 1.0, 0.3)
+	tw.tween_interval(6.0)
+	tw.tween_method(func(v): m.set_shader_parameter("fade", v), 1.0, 0.0, 0.6)
+	tw.tween_callback(wall.queue_free)
+	every(6.5, 0.05, func(_i, _k):
+		if not is_instance_valid(wall):
+			return
+		for n in get_tree().current_scene.get_children():
+			if n is Projectile and not n.dead and n.shooter != c and Combat.hostile(c, n.shooter):
+				var rel: Vector3 = n.global_position - at
+				if absf(rel.dot(d)) < 1.2 and absf(rel.dot(d.cross(Vector3.UP))) < 6.0 and rel.y < 8.5:
+					FX.burst(n.global_position, {"amount": 12, "life": 0.4, "size": 0.15, "vmin": 1, "vmax": 3, "add": false, "colors": [Color(0.06, 0.06, 0.05), Color(0.06, 0.06, 0.05, 0)]})
+					n.queue_free())
+	Sfx.play("wind", at, 1.8, 0.7)
+
+
+## Hijutsu: Mushimayu (kanon): kendini kozaya sarar — hareketsiz ve savunmasız; böcekler hızla büyür, koloni dolar
+func c_hijutsu_mushimayu(c: Node3D, _t: Node3D) -> void:
+	var DUR = 5.0
+	var mi = MeshInstance3D.new()
+	var cm = CapsuleMesh.new()
+	cm.radius = 0.7
+	cm.height = 2.2
+	mi.mesh = cm
+	var mat = StandardMaterial3D.new()
+	mat.albedo_color = Color(0.82, 0.8, 0.72)
+	mat.roughness = 1.0
+	mi.material_override = mat
+	attach(c, mi, DUR, Vector3.UP * 1.05)
+	busy(c, DUR)
+	if c is Player:
+		c.input_locked = DUR
+		Buffs.add("mushimayu", DUR, {"speed": 0.0, "armor": 1.3})   # savunmasız: aldığı hasar artar
+	after(DUR, func():
+		if not live(c):
+			return
+		FX.burst(c.global_position + Vector3.UP, {"amount": 90, "life": 1.0, "size": 0.1, "vmin": 2, "vmax": 6, "add": false, "colors": [Color(0.06, 0.06, 0.05), Color(0.06, 0.06, 0.05, 0)]})
+		if c is Player:
+			Game.profile["kikaichu"] = ClanMech.KOLONI_MAX
+			Buffs.add("mushi_buyume", 40.0, {"jutsu": 1.25, "_name": "Büyümüş Kikaichū", "_desc": "böcek teknikleri güçlü"})
+			Hud.msg("Koza açıldı: kikaichū kolonin doldu ve böceklerin güçlendi.", Color(0.75, 0.85, 0.6))
+		elif c.has_method("add_buff"):
+			c.add_buff("mushi_buyume", 40.0, {"jutsu": 1.25}))
 
 
 # ================================================================== İNUZUKA — ninken ile çift hücum

@@ -520,7 +520,11 @@ static func _house_infill(c, houses: Array) -> void:
 			n += step
 			if Vector2(px, pn).length() > lim:
 				continue
-			if not site.is_empty() and Vector2(px - float(site[0]), pn - float(site[1])).length() < float(site[2]) + 12.0:
+			var in_site = false
+			for st in site:   # önemli yapıların her biri: [x, n, yarıçap]
+				if Vector2(px - float(st[0]), pn - float(st[1])).length() < float(st[2]) + 12.0:
+					in_site = true
+			if in_site:
 				continue
 			var near = false
 			var kc = Vector2i(floori(px / 24.0), floori(pn / 24.0))

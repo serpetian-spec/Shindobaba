@@ -23,7 +23,7 @@ const INFO := {
 }
 const GIVEN := ["Kaigen", "Sazanami", "Mizuchi", "Uzume", "Nagare", "Kaname", "Shiomi", "Tsurara", "Kirisaki", "Seiran", "Umihiko", "Aogiri", "Namito", "Kurose", "Hisui", "Tōgo"]
 const FAMILY := ["Kaizuka", "Mizushima", "Kirikawa", "Shiozawa", "Uragami", "Isonade", "Fukami", "Kurashio", "Ōnami", "Kiritani"]
-const EVENT_T := 720.0
+const EVENT_T := 3600.0   # kılıç ustaları da güçlü: nadiren kaçar ya da yakalanır
 
 
 static func _p() -> Dictionary:
@@ -65,7 +65,7 @@ static func state() -> Dictionary:
 
 
 static func _news(title: String, text: String, col := Color(0.55, 0.8, 1.0)) -> void:
-	Hud.banner(title, text, col)
+	Hud.msg("Haber: " + text, col.lerp(Color.WHITE, 0.3), 4.0)   # büyük başlık yok
 	var pr = _p()
 	if not pr.has("beast_news"):
 		pr["beast_news"] = []
@@ -84,6 +84,8 @@ static func world_tick(dt: float) -> void:
 	if _t > 0.0:
 		return
 	_t = EVENT_T * randf_range(0.7, 1.3)
+	if randf() > 0.35:
+		return   # çoğu zaman bir şey olmaz
 	var kiri = []
 	var rogue = []
 	for id in s:

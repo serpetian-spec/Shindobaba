@@ -3174,6 +3174,17 @@ static func world_map(main: Node) -> void:
 		if Orgs.is_rogue() and vid in Orgs.ROGUE_BANNED:
 			continue   # kaçak gizli köylere ışınlanamaz
 		sv.add_child(UI.button(v["name"], func(): main.fast_travel(vid), side_w - 40, "village"))
+	# köylerinde yaşayan jinchūriki'ler: kim nerede (gidip bulmak için)
+	if not TailedBeasts.host_list().is_empty():
+		sv.add_child(UI.header("JİNCHŪRİKİ", 16))
+		for row in TailedBeasts.host_list():
+			var hv = String(row[3]); var hn = String(row[0])
+			sv.add_child(UI.button("%s — %s (%s)" % [hn, row[1], row[2]], func():
+				var at = Exams.find_point(["training"], hv)
+				Game.profile["waypoint"] = [at.x, at.y, at.z, "%s (%s)" % [hn, row[2]]]
+				Game.profile["track"] = "waypoint"
+				Hud.msg("Yol gösteriliyor: %s, %s antrenman alanında." % [hn, row[2]], Color(1, 0.8, 0.5))
+				main.resume(), side_w - 40, "person"))
 	# haritadaki her bölge ve önemli yer (aşırı hızlı koşmaya gerek kalmasın)
 	sv.add_child(UI.header("BÖLGELER", 16))
 	for c in Game.world_info.get("countries", []):

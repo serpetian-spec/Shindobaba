@@ -926,6 +926,7 @@ func throw_tool() -> void:
 		n += 2  # Silah Yağmuru
 	for i in n:
 		var dir = aim.rotated(Vector3.UP, deg_to_rad((i - (n - 1) * 0.5) * 8.0))
+		Mastery.gain(Game.profile, "shurikenjutsu", 0.01)   # atış: shurikenjutsu
 		Projectile.tool(p, start, dir, tool, tgt)
 
 
@@ -1098,9 +1099,12 @@ func _do_cast(dt: float) -> bool:
 			FX.smoke_puff(p.global_position + Vector3.UP * 1.3 + p.face_dir() * 0.4, 0.35, 5)
 			Combat.popup_text(p.global_position + Vector3.UP * 2.3, "Mühür bozuldu!", Color(1, 0.6, 0.4))
 			cooldowns[cast_jutsu] = minf(float(cooldowns.get(cast_jutsu, 0.0)), 2.0)
-			Mastery.gain(Game.profile, "ninjutsu", 0.025 * (1.0 + int(jd.get("tier", 2)) * 0.3))
+			Mastery.gain(Game.profile, Mastery.branch_of(jd), 0.025 * (1.0 + int(jd.get("tier", 2)) * 0.3))
 			return true
-		Mastery.gain(Game.profile, "ninjutsu", 0.075 * (1.0 + int(jd.get("tier", 2)) * 0.35))
+		var br = Mastery.branch_of(jd)   # teknik kendi dalını geliştirir (genjutsu, fūinjutsu, tıbbi...)
+		Mastery.gain(Game.profile, br, 0.075 * (1.0 + int(jd.get("tier", 2)) * 0.35))
+		if br != "ninjutsu" and br != "taijutsu" and br != "kenjutsu":
+			Mastery.gain(Game.profile, "ninjutsu", 0.02)   # chakra şekillendirme ortak temel
 		Mastery.gain(Game.profile, "chakra", jutsu_cost(jd) / 360.0)
 		Jutsu.execute(p, cast_jutsu, tg)
 		Progress.on_technique_used(cast_jutsu)

@@ -12,6 +12,7 @@ var body: StaticBody3D
 var view_dist = 1400.0
 var interactables: Array = []
 var key := ""
+var stream_vid := ""   # akış köyü kimliği (Koy_<id> altında kurulduysa)
 var placer = null  # HouseKit.Placer (Japon tarzı detaylı evler)
 var house_ti := -1   # >= 0: bir sonraki şablon ev bu şablon olsun (bitişik dizilimde genişlik önceden bilinir)
 var yoff := 0.0  # geçici dikey ofset (eğimli arazide bina tabanı)
@@ -40,6 +41,13 @@ func _init(parent: Node3D, map_x: float, map_y: float, base_h: float, name := "Y
 	root.name = name
 	key = name.to_lower()
 	parent.add_child(root)
+	# akışla kurulan köyün içindeyse hangi köy (etkileşim noktaları köy silinince yalnız kendi köyünden silinir)
+	var n: Node = parent
+	while n != null:
+		if String(n.name).begins_with("Koy_"):
+			stream_vid = String(n.name).substr(4)
+			break
+		n = n.get_parent()
 	origin = Vector3(map_x, base_h, -map_y)
 	body = StaticBody3D.new()
 	body.collision_layer = 1
@@ -180,6 +188,25 @@ func box(p: Vector3, size: Vector3, col: Color, yaw := 0.0, collide := true, rot
 	_mb(wp, _msz(size)).add("box", wp, size, col, Vector3(rot.x, -yaw + rot.y, rot.z))
 	if collide:
 		_collide(wp, size, -yaw)
+	# yere döşenmiş yassı yüzey (avlu taşı, kaldırım, meydan, platform): altından çimen çıkmasın
+	# (yere gömülü kalın döşemeler de: ölçüt kalınlık değil, üst yüzeyin zemin hizasında olması)
+	if rot == Vector3.ZERO and size.y <= 2.5 and maxf(size.x, size.z) >= 1.5 and minf(size.x, size.z) >= 0.9:
+		var gh = Game.terrain_height(wp.x, wp.z)
+		var top = wp.y + size.y * 0.5
+		if top > gh - 0.4 and top < gh + 0.9:
+			_grass_clear(wp, size, -yaw)
+
+
+## Döşemenin kapladığı alanı çimen maskesine yaz (RoadMap şerit: uzun eksen boyunca, yarı genişlik = kısa kenar / 2)
+func _grass_clear(wp: Vector3, size: Vector3, yaw_deg: float) -> void:
+	var th = deg_to_rad(yaw_deg)
+	var ax = Vector2(cos(th), -sin(th))   # kutunun yerel x ekseni (dünya xz)
+	var az = Vector2(sin(th), cos(th))    # yerel z
+	var c = Vector2(wp.x, wp.z)
+	if size.x >= size.z:
+		preload("res://scripts/world/road_map.gd").add_lane(c - ax * size.x * 0.5, c + ax * size.x * 0.5, size.z * 0.5 + 0.3)
+	else:
+		preload("res://scripts/world/road_map.gd").add_lane(c - az * size.z * 0.5, c + az * size.z * 0.5, size.x * 0.5 + 0.3)
 
 
 func cyl(p: Vector3, d: float, h: float, col: Color, collide := true, seg := 16, top := -1.0) -> void:
@@ -314,6 +341,8 @@ var defer_interact = null   # Array ise etkileşimler buraya toplanır (iş par�
 func interact(p: Vector3, radius: float, kind: String, label: String, data := {}) -> void:
 	var d = {"pos": w(p), "radius": radius, "kind": kind, "label": label}
 	d.merge(data)
+	if stream_vid != "":
+		d["_koy"] = stream_vid
 	if defer_interact != null:
 		defer_interact.append(d)
 	else:

@@ -28,7 +28,8 @@ var tick = 0.0
 var last_missions = -1
 var mind: Node3D = null   # zihin dünyası sahnesi
 var mind_return := Vector3.ZERO
-var host_t := 60.0       # dünya olayı sayacı (gerçek sn)
+var host_t := 900.0      # dünya olayı sayacı (gerçek sn)
+var host_npcs := {}      # canavar id -> köyde duran jinchūriki karakteri
 
 ## Dinamik jinchūriki: canavarlar köylerin taşıyıcılarında ("host") ya da inlerinde ("wild") olabilir; zamanla değişir.
 ## Köyün geleneksel canavarları (başlangıçta çoğunlukla taşıyıcıda):
@@ -36,7 +37,7 @@ const HOME_VILLAGE := {"shukaku": "suna", "isobu": "kiri", "saiken": "kiri", "so
 	"matatabi": "kumo", "gyuki": "kumo", "chomei": "taki", "kurama": "konoha"}
 const HOST_GIVEN := ["Hayate", "Rinka", "Sōma", "Akane", "Kairi", "Tōya", "Mizuki", "Raiga", "Fuyu", "Jinpachi", "Sayo", "Kōen", "Nagi", "Ibuki", "Tenma", "Yura"]
 const HOST_FAMILY := ["Kazahana", "Mibu", "Kurenai", "Tsuchigumo", "Hōzuki", "Yotsuki", "Sakigake", "Kamizuru", "Shirogane", "Nanase", "Hagane", "Kirigaya"]
-const HOST_EVENT_T := 600.0   # ~10 dakikada bir dünya olayı
+const HOST_EVENT_T := 3600.0   # ~saatte bir olay ihtimali (jinchūriki güçlüdür; her gün ölmez, el değiştirmez)
 
 
 # ------------------------------------------------------------------ profil durumu
@@ -94,7 +95,8 @@ func _vname(vid: String) -> String:
 
 
 func _news(title: String, text: String, col := Color(1, 0.6, 0.35)) -> void:
-	Hud.banner(title, text, col)
+	# ekranı doldurmasın: büyük başlık yok, kısa bir satır; tam metin haber listesinde
+	Hud.msg("Haber: " + text, col.lerp(Color.WHITE, 0.3), 4.0)
 	var pr = Game.profile
 	if not pr.has("beast_news"):
 		pr["beast_news"] = []
@@ -158,18 +160,21 @@ func _host_events() -> void:
 		elif st == "host":
 			(rogue_h if bs[id]["host"].get("rogue", false) else village_h).append(id)
 	var roll = randf()
-	if roll < 0.35 and not wild.is_empty():
+	if roll > 0.45:
+		return   # çoğu saat hiçbir şey olmaz
+	roll = randf()
+	if roll < 0.45 and not wild.is_empty():
 		var id: String = wild.pick_random()
 		var vid: String = HOME_VILLAGE.get(id, "kumo") if randf() < 0.6 else ["konoha", "suna", "kiri", "kumo", "iwa"].pick_random()
 		bs[id]["state"] = "host"
 		bs[id]["host"] = _new_host(id, vid)
 		_news("SÖYLENTİ", "%s yakalandı! %s onu yeni jinchūriki'sine mühürledi: %s." % [_bname(id), _vname(vid), bs[id]["host"]["name"]])
-	elif roll < 0.6 and not village_h.is_empty():
+	elif roll < 0.6 and not village_h.is_empty() and randf() < 0.35:
 		var id: String = village_h.pick_random()
 		var h: Dictionary = bs[id]["host"]
 		Missions.add_rogue_jinchuriki(id, h)
 		_news("KAÇAK JİNCHŪRİKİ", "%s köyünden %s kaçtı; içinde %s var. Bingo Kitabı'na girdi." % [_vname(String(h["village"])), h["name"], _bname(id)], Color(1, 0.4, 0.3))
-	elif roll < 0.8 and not rogue_h.is_empty():
+	elif roll < 0.8 and not rogue_h.is_empty() and randf() < 0.3:
 		var id: String = rogue_h.pick_random()
 		var h: Dictionary = bs[id]["host"]
 		if Missions.bingo_host_spawned(id):
@@ -178,7 +183,7 @@ func _host_events() -> void:
 		bs[id]["state"] = "wild"
 		bs[id].erase("host")
 		_news("SÖYLENTİ", "Kaçak jinchūriki %s avcı ninjalarca öldürüldü; %s serbest kalıp inine döndü." % [h["name"], _bname(id)])
-	elif not village_h.is_empty() and randf() < 0.5:
+	elif not village_h.is_empty() and randf() < 0.08:   # kontrol kaybı: çok nadir
 		var id: String = village_h.pick_random()
 		var h: Dictionary = bs[id]["host"]
 		bs[id]["state"] = "wild"
@@ -336,6 +341,7 @@ func _process(dt: float) -> void:
 	if host_t <= 0.0:
 		host_t = HOST_EVENT_T * randf_range(0.7, 1.3)
 		_host_events()
+	_host_npcs()
 	var pp = Game.to_map(Game.player.global_position)
 	for id in LAIRS:
 		var st = beast_state(id)
@@ -622,3 +628,46 @@ func _mind_dialog() -> void:
 			Hud.banner("TAM UYUM", "%s ile uyum sağlandı: tam dönüşüm artık kontrollü." % nm, Color(1, 0.7, 0.3))})
 	opts.append({"label": "Geri dön", "cb": func(): exit_mindscape()})
 	Hud.dialog(nm, "Kafesin ardından devasa gözler sana bakıyor. (Güven: %d/100)" % int(tr), opts)
+
+
+## Köydeki jinchūriki'ler köylerinde yaşar: köye yaklaşınca antrenman alanının yanında durur (adı + canavarı başında).
+## Gidip bulunabilir; liste dünya haritasında (Menus) — "kim nerede".
+func _host_npcs() -> void:
+	var pp: Vector3 = Game.player.global_position
+	for id in LAIRS:
+		var h: Dictionary = host_of(id)
+		var npc = host_npcs.get(id)
+		var vid = String(h.get("village", ""))
+		var ok = not h.is_empty() and not h.get("rogue", false) and vid != ""
+		var v = Game.village(vid) if ok else {}
+		var near = ok and not v.is_empty() and Game.to_map(pp).distance_to(Vector2(float(v["x"]), float(v["y"]))) < float(v.get("r", 300)) * 1.2
+		if near and (npc == null or not is_instance_valid(npc)):
+			var at = Exams.find_point(["training"], vid)
+			var off = Vector3(cos(LAIRS.keys().find(id) * 0.8), 0, sin(LAIRS.keys().find(id) * 0.8)) * 9.0
+			at = Missions.open_ground(at + off, 12.0)
+			var vg = Villager.new()
+			vg.role = "spar"
+			vg.display_override = "%s (%s jinchūriki)" % [String(h["name"]), _bname(id)]
+			vg.lines_override = ["İçimdeki %s'i kontrol etmek ömür boyu süren bir antrenman." % _bname(id), "Köyüm beni silah olarak görüyor... ama ben onu korumayı seçtim.",
+				"Bana bakan gözlerden korku okuyorum. Alıştım."]
+			vg.look_extra = {"gender": String(h.get("gender", "m")), "age": "adult"}
+			get_tree().current_scene.add_child(vg)
+			vg.global_position = at
+			vg.home = at
+			vg.goal = at
+			vg.set_meta("jinchuriki_of", id)
+			host_npcs[id] = vg
+		elif not near and npc != null and is_instance_valid(npc):
+			npc.queue_free()
+			host_npcs.erase(id)
+
+
+## Dünya haritası listesi: [ad, canavar, köy adı, köy id] (yalnız köyünde yaşayan taşıyıcılar)
+func host_list() -> Array:
+	var out = []
+	for id in LAIRS:
+		var h: Dictionary = host_of(id)
+		if h.is_empty() or h.get("rogue", false):
+			continue
+		out.append([String(h["name"]), _bname(id), _vname(String(h["village"])), String(h["village"])])
+	return out

@@ -53,3 +53,8 @@ g_night={
 "type": "float",
 "value": 0.0
 }
+
+[debug]
+
+file_logging/enable_file_logging=true
+file_logging/max_log_files=30
