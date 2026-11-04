@@ -1275,21 +1275,39 @@ func j_juuken_64(c: Node3D, t: Node3D) -> void:
 
 func j_kaiten(c: Node3D, _t: Node3D) -> void:
 	var m = _mult(c)
-	# dönen chakra kubbesi: kabuk yok — kubbe yüzeyinde dönerek akan ak-mavi chakra çizgileri + yerde toz halkası
+	# referans (Kaiten karesi): yarı saydam MAVİ kubbe (içinde açık çizgiler) + çevresinde dönen kahverengi toz kuşakları
 	var R = 3.2
-	var kcol = Color(0.82, 0.92, 1.0)
+	var kcol = Color(0.62, 0.52, 0.4)   # toz kuşağı
+	var dome = MeshInstance3D.new()
+	var dsm = SphereMesh.new()
+	dsm.radius = 1.0
+	dsm.height = 1.0
+	dsm.is_hemisphere = true
+	dsm.radial_segments = 36
+	dsm.rings = 14
+	dome.mesh = dsm
+	dome.material_override = VFX.mat_spiral(Color(0.78, 0.9, 1.0), Color(0.3, 0.55, 0.95), 5.0, 2.0, 14.0, 1.25, Vector3.UP)
+	dome.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	get_tree().current_scene.add_child(dome)
+	dome.global_position = c.global_position
+	dome.scale = Vector3(0.3, 0.3, 0.3)
+	var dtw = dome.create_tween()
+	dtw.tween_property(dome, "scale", Vector3(R, R * 0.85, R), 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	dtw.parallel().tween_property(dome, "rotation:y", TAU * 3.0, 1.15)
+	dtw.tween_property(dome, "scale", Vector3(R * 1.05, 0.05, R * 1.05), 0.2)
+	dtw.tween_callback(dome.queue_free)
 	var swirl = func():
 		if not is_instance_valid(c):
 			return
 		var o = c.global_position + Vector3.UP * 0.05
-		for n in 16:
+		for n in 6:   # toz kuşakları: kubbenin dışında, alçak, yatay dönen kahverengi şeritler
 			var a0 = randf() * TAU
-			var ph = randf_range(0.08, 1.35)   # yükseklik açısı (0 = yer, PI/2 = tepe)
-			var rr = R * randf_range(0.9, 1.05)
+			var ph = randf_range(0.05, 0.7)
+			var rr = R * randf_range(1.02, 1.15)
 			WindFX.streak(func(u: float) -> Vector3:
 				var a = a0 + u * 2.4
 				var p2 = ph + u * 0.12
-				return o + Vector3(cos(a) * cos(p2), sin(p2) * 0.8, sin(a) * cos(p2)) * rr, 0.3, 0.12, kcol, randf() * 0.05, 10)
+				return o + Vector3(cos(a) * cos(p2), sin(p2) * 0.8, sin(a) * cos(p2)) * rr, 0.35, 0.22, kcol, randf() * 0.05, 12)
 	swirl.call()
 	VFX.shockwave(c.global_position + Vector3.UP * 0.1, Color(0.7, 0.85, 1.0), 12.0, 0.5)
 	FX.dust(c.global_position, 1.5)

@@ -531,12 +531,6 @@ func c_juken(c: Node3D, t: Node3D) -> void:
 		_palm_flash(p, c.face_dir(), 1.0)
 		FX.ring(p, Color(0.6, 0.85, 1.0), 1.6, 0.2, false, c.face_dir())
 		for h in hit(c, p, 1.0, inf(c, "juken", 0.55, {"knock": 1.0, "kind": "light", "pierce_guard": true})):
-			var ripple = MeshInstance3D.new()
-			ripple.mesh = VFX._sphere(0.5, 16, 8)
-			ripple.material_override = glow(Color(0.55, 0.8, 1.0), 0.6)
-			attach(h, ripple, 0.3, Vector3.UP * 1.1)
-			var tw = ripple.create_tween()
-			tw.tween_property(ripple, "scale", Vector3.ONE * 2.2, 0.3)
 			seal_points(h, 1.5 * (i + 1))
 		Sfx.play("punch", p, 1.2))
 
@@ -566,19 +560,40 @@ func c_jukenho_ichigekishin(c: Node3D, _t: Node3D) -> void:
 		anim(c, "cast_out", 2.0)
 		var cp = c.global_position + Vector3.UP * 1.0
 		# bütün bedenden dışa fışkıran chakra çizgileri (kabuk yok)
-		for n in 64:
-			var dir = Vector3(randf_range(-1, 1), randf_range(-0.35, 0.9), randf_range(-1, 1)).normalized()
-			var st0 = cp + dir * 0.3 + Vector3.UP * randf_range(-0.7, 0.7)
-			var L = randf_range(3.2, 5.2)
-			WindFX.streak(func(u: float) -> Vector3: return st0 + dir * L * sqrt(u), 0.45, 0.24, col, randf() * 0.03, 8)
+		# referans (Ichigekishin karesi): bedeni saran ak, sivri dikenli patlama silüeti — dikenler kısa, bedene yakın
+		var smat = StandardMaterial3D.new()
+		smat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		smat.albedo_color = Color(0.97, 0.98, 1.0)
+		for n in 46:
+			var hy = randf_range(0.05, 1.85)
+			var ang = randf() * TAU
+			var outd = Vector3(cos(ang), randf_range(-0.3, 0.5) + (0.6 if hy > 1.6 else 0.0), sin(ang)).normalized()
+			var basep = c.global_position + Vector3(cos(ang) * 0.32, hy, sin(ang) * 0.32)
+			var Ls = randf_range(0.45, 1.15)
+			var sp = MeshInstance3D.new()
+			var scm = CylinderMesh.new()
+			scm.top_radius = 0.0
+			scm.bottom_radius = randf_range(0.1, 0.18)
+			scm.height = 1.0
+			scm.radial_segments = 4
+			sp.mesh = scm
+			sp.material_override = smat
+			sp.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			get_tree().current_scene.add_child(sp)
+			var sdv = outd.cross(Vector3.UP if absf(outd.y) < 0.95 else Vector3.RIGHT).normalized()
+			var bsp = Basis(sdv, outd, sdv.cross(outd))
+			var stw = sp.create_tween()
+			stw.tween_method(func(x: float):
+				if is_instance_valid(sp):
+					sp.global_transform = Transform3D(bsp * Basis.from_scale(Vector3(1, maxf(0.01, Ls * x), 1)), basep + outd * Ls * x * 0.5), 0.0, 1.0, 0.08)
+			stw.tween_interval(0.22)
+			stw.tween_method(func(x: float):
+				if is_instance_valid(sp):
+					sp.global_transform = Transform3D(bsp * Basis.from_scale(Vector3(x, maxf(0.01, Ls * x), x)), basep + outd * Ls * x * 0.5), 1.0, 0.0, 0.15)
+			stw.tween_callback(sp.queue_free)
 		# bedenden bir an taşan parlak chakra (tenketsulardan) — gövdeyi saran yumuşak ak-mavi bulut, hızla dışa açılır
-		VFX.puffs(cp, {"amount": 26, "life": 0.35, "size": 1.6, "radius": 0.6, "vmin": 4.0, "vmax": 8.0, "dir": Vector3.UP, "spread": 180.0, "damp": 6.0, "add": true,
-			"colors": [Color(0.95, 0.98, 1.0, 0.8), Color(0.55, 0.8, 1.0, 0.0)]})
-		VFX.puffs(cp, {"amount": 60, "life": 0.45, "size": 0.22, "radius": 0.5, "vmin": 6.0, "vmax": 13.0, "dir": Vector3.UP, "spread": 180.0, "damp": 4.0, "add": true,
-			"colors": [Color(1, 1, 1, 1), Color(0.6, 0.82, 1.0, 0)]})
-		# bedenin çevresinde bir an yanan ak chakra pusu (tenketsulardan sızan)
-		VFX.puffs(cp, {"amount": 18, "life": 0.5, "size": 1.1, "radius": 0.45, "vmin": 1.5, "vmax": 3.5, "dir": Vector3.UP, "spread": 180.0, "damp": 3.0, "add": true,
-			"colors": [Color(0.85, 0.94, 1.0, 0.55), Color(0.5, 0.75, 1.0, 0)]})
+		VFX.puffs(cp, {"amount": 16, "life": 0.3, "size": 0.12, "radius": 0.5, "vmin": 5.0, "vmax": 9.0, "dir": Vector3.UP, "spread": 180.0, "damp": 4.0, "add": true,
+			"colors": [Color(1, 1, 1, 1), Color(0.8, 0.9, 1.0, 0)]})   # referans: bulut yok, yalnız kıvılcım
 		VFX.star(cp, col, 2.4, 0.14)
 		VFX.shockwave(gp(c.global_position) + Vector3.UP * 0.1, col, 7.0, 0.3)
 		FX.dust(c.global_position, 1.2)
@@ -617,7 +632,33 @@ func c_hakke_hasangeki(c: Node3D, t: Node3D) -> void:
 			return
 		anim(c, "cross", 1.6)
 		var p0 = c.global_position + Vector3.UP * 1.1 + d * 0.9
-		VFX.star(p0, col, 3.2, 0.16)
+		VFX.star(p0, col, 4.5, 0.2)
+		# avuçtan ileri açılan parlak dalga: ak çekirdek, mavi kenar; 0.3 sn'de söner
+		for layer in 2:
+			var bm = CylinderMesh.new()
+			bm.top_radius = 0.6 if layer == 0 else 0.9
+			bm.bottom_radius = 3.2 if layer == 0 else 4.0
+			bm.height = 12.0
+			bm.radial_segments = 24
+			bm.cap_top = false
+			bm.cap_bottom = false
+			var bmat = StandardMaterial3D.new()
+			bmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			bmat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			bmat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+			bmat.cull_mode = BaseMaterial3D.CULL_DISABLED
+			bmat.albedo_color = Color(1, 1, 1, 0.85) if layer == 0 else Color(0.45, 0.7, 1.0, 0.6)
+			var beam = MeshInstance3D.new()
+			beam.mesh = bm
+			beam.material_override = bmat
+			beam.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			get_tree().current_scene.add_child(beam)
+			var up = d
+			var sd = up.cross(Vector3.UP).normalized()
+			beam.global_transform = Transform3D(Basis(sd, up, sd.cross(up)), p0 + d * 6.0)
+			var btw = beam.create_tween()
+			btw.tween_method(func(a: float): bmat.albedo_color.a = a, bmat.albedo_color.a, 0.0, 0.32)
+			btw.tween_callback(beam.queue_free)
 		# dalga: avuçtan ileri açılan basınç çizgileri + yerde yarılan toprak
 		for n in 40:
 			var off = Vector3(randf_range(-1, 1), randf_range(-0.6, 1), randf_range(-1, 1)) * 0.5
