@@ -1133,38 +1133,6 @@
   "name_en": "Water Release: Water Shark Bullet Technique",
   "research_id": "suiton_suikodan_no_jutsu"
  },
- "hoshigaki_ryudan": {
-  "id": "hoshigaki_ryudan",
-  "name": "Suiton: Bakusui Ryūdan",
-  "cost": 40,
-  "cd": 10,
-  "element": "suiton",
-  "clan": "hoshigaki",
-  "level": 8,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Dev su ejderhası.",
-  "seals": [
-   "Ushi",
-   "Saru",
-   "U",
-   "Ne",
-   "I",
-   "Tori",
-   "Ushi",
-   "Uma"
-  ],
-  "canon_rank": "B",
-  "impl": "suiton_suiryuudan",
-  "category": "ninjutsu",
-  "shape": "projectile",
-  "elements": [
-   "suiton"
-  ],
-  "tier": 3,
-  "name_en": "Water Release: Water Dragon Bullet Technique",
-  "research_id": "suiton_suiryudan_no_jutsu"
- },
  "kurama_genjutsu": {
   "id": "kurama_genjutsu",
   "name": "Kurama: Gen'ei Jitsuzō",
@@ -20376,7 +20344,9 @@
   "jusshi_sendan": "bone_bullets",
   "nara_kage_bunshin": "kagemane",
   "uzumaki_kongo_kekkai": "chakra_chains",
-  "yamanaka_shinkaitai": "shinranshin_no_jutsu"
+  "yamanaka_shinkaitai": "shinranshin_no_jutsu",
+  "hoshigaki_ryudan": "suiton_daikodan_no_jutsu",
+  "hoshigaki_samehada_kyushu": "hoshigaki_same"
  },
  "kusanagi_kuchi": {
   "id": "kusanagi_kuchi",
@@ -20708,25 +20678,6 @@
   "shape": "melee",
   "tier": 3
  },
- "hoshigaki_samehada_kyushu": {
-  "id": "hoshigaki_samehada_kyushu",
-  "name": "Samehada: Chakra Kyūshū",
-  "name_en": "Samehada",
-  "cost": 32,
-  "cd": 7.8,
-  "element": "",
-  "elements": [],
-  "clan": "hoshigaki",
-  "level": 8,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Dişli Samehada kılıcıyla vuruş; değdiği yerden chakra emer.",
-  "seals": [],
-  "canon_rank": "B",
-  "category": "hiden",
-  "shape": "melee",
-  "tier": 3
- },
  "hoshigaki_gyojin": {
   "id": "hoshigaki_gyojin",
   "name": "Samehada Yūgō",
@@ -20741,12 +20692,13 @@
   "level": 22,
   "rank": 0,
   "learn": "clan",
-  "desc": "Kılıçla birleşip köpekbalığı-insana dönüşür: suda hız, ısırık, chakra emme.",
+  "desc": "Samehada şart: kılıçla birleşip köpekbalığı-insana dönüşür — suda hız, ısırık, chakra emme.",
   "seals": [],
   "canon_rank": "S",
   "category": "hiden",
   "shape": "mode",
-  "tier": 4
+  "tier": 4,
+  "need": "weapon:samehada"
  },
  "raiton_sutoreeto": {
   "id": "raiton_sutoreeto",

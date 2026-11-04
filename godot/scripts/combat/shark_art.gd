@@ -12,12 +12,10 @@ static var _mat: ShaderMaterial
 
 
 static func mat() -> ShaderMaterial:
+	# referans (Gōshokuzame/Daikōdan kareleri): köpekbalıkları SUDAN — yarı saydam soluk mavi-ak, akan köpük çizgili
+	# (eskiden opak koyu mavi toon balık: oyuncak gibi duruyordu)
 	if _mat == null:
-		_mat = ShaderMaterial.new()
-		_mat.shader = load("res://shaders/toon.gdshader")
-		_mat.set_shader_parameter("tint", Color.WHITE)
-		_mat.set_shader_parameter("use_vertex_color", true)
-		_mat.set_shader_parameter("rim_amount", 0.6)
+		_mat = VFX.mat_water(Color(0.32, 0.58, 0.85), Color(0.62, 0.84, 0.97), Color(0.95, 1.0, 1.0), Vector3(0, 0, 1), 0.74, 0.95, 0.05)
 	return _mat
 
 

@@ -2235,7 +2235,7 @@ func c_hoshigaki_same(c: Node3D, t: Node3D) -> void:
 ## Büyük Köpekbalığı Mermisi: dev köpekbalığı yolundaki düşman jutsularını yutar ve her yuttuğunda büyür
 func c_suiton_daikodan_no_jutsu(c: Node3D, t: Node3D) -> void:
 	var d = Jutsu._aim(c, t)
-	var shark = JutsuEngine.shape_mesh("shark", Color(0.3, 0.55, 1.0), 2.6, "suiton")
+	var shark = SharkArt.shark(3.2)   # referans: tek, dev, çenesi açık SU köpekbalığı (ortak su malzemesi)
 	var pr = shot(c, c.global_position + Vector3.UP * 1.6 + d * 2.0, d, 20.0, shark, inf(c, "suiton_daikodan_no_jutsu", 1.8, {"knock": 18.0, "launch": 4.0, "kind": "heavy"}), tg(c, t, 40.0), false, 3.0, func(pos, _tg):
 		VFX.splash(pos, 4.0)
 		VFX.shockwave(pos, Color(0.5, 0.8, 1.0), 10.0, 0.4, false))
