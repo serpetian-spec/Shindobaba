@@ -649,9 +649,26 @@ func c_kagemane(c: Node3D, t: Node3D) -> void:
 		return
 	Jutsu.j_kagemane(c, tt)
 	var last = {"p": c.global_position}
+	var held = [true]
 	Combat.popup_text(tt.global_position + Vector3.UP * 3.0, "Gölge taklidi: hareketlerini kopyalıyor!", Color(0.65, 0.6, 0.85))
-	every(4.0 * Jutsu.shadow_k(), 1.0 / 30.0, func(_i, _k):
-		if not live(tt) or not is_instance_valid(c):
+	# kanon: bağı tutmak sürekli büyük chakra ister (uzun tutulamaz); hedef bağı kırarsa (ortak sersemletme sınırı) biter
+	every(10.0, 1.0 / 30.0, func(_i, _k):
+		if not held[0] or not live(tt) or not is_instance_valid(c):
+			return
+		if _i > 15 and not tt.has_status("bind"):
+			held[0] = false
+			return
+		if c is Player:
+			c.chakra -= 8.0 / 30.0
+			if c.chakra <= 0.0:
+				c.chakra = 0.0
+				held[0] = false
+				tt.statuses.erase("bind")
+				Combat.popup_text(c.global_position + Vector3.UP * 2.4, "Chakra bitti — gölge çekildi", Color(0.65, 0.6, 0.85))
+				return
+			st(tt, "bind", 0.2)
+		elif _i > int(4.0 * Jutsu.shadow_k() * 30.0):
+			held[0] = false
 			return
 		var dp: Vector3 = c.global_position - last["p"]
 		last["p"] = c.global_position

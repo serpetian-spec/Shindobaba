@@ -633,7 +633,7 @@
   "level": 3,
   "rank": 0,
   "learn": "clan",
-  "desc": "Gölgen hedefe uzanır ve onu 4 sn kilitler.",
+  "desc": "Gölgen hedefin gölgesine bağlanır: hedef yalnız senin yaptığın hareketi yapar. Menzil ışığa bağlı (şafak/gün batımı uzun, öğle/gece kısa). Tutmak sürekli chakra yer.",
   "seals": [
    "Ne"
   ],
@@ -20373,7 +20373,8 @@
   "hozuki_suiryu_tenshin": "mizudeppo_nicho",
   "bone_armor": "karamatsu_no_mai",
   "kaguya_hone_tate": "karamatsu_no_mai",
-  "jusshi_sendan": "bone_bullets"
+  "jusshi_sendan": "bone_bullets",
+  "nara_kage_bunshin": "kagemane"
  },
  "kusanagi_kuchi": {
   "id": "kusanagi_kuchi",
@@ -30310,29 +30311,6 @@
   "category": "ninjutsu",
   "shape": "clone",
   "meaning": "Çoklu Duman Klonu"
- },
- "nara_kage_bunshin": {
-  "id": "nara_kage_bunshin",
-  "name": "Kage Bunshin: Kage no Naka",
-  "name_en": "Shadow Clone Inside Shadow",
-  "cost": 34,
-  "cd": 14.4,
-  "element": "",
-  "elements": [],
-  "natures": [],
-  "clan": "nara",
-  "level": 10,
-  "rank": 2,
-  "learn": "clan",
-  "desc": "Gölgeden yükselen klon hedefin arkasından çıkar ve onu gölgeyle tutar (ışığa bağlı).",
-  "seals": [
-   "Ne"
-  ],
-  "canon_rank": "B",
-  "tier": 3,
-  "category": "ninjutsu",
-  "shape": "clone",
-  "meaning": "Gölge İçinde Klon"
  },
  "ryoken_bunshin": {
   "id": "ryoken_bunshin",

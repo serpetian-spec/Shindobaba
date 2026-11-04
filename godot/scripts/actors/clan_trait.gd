@@ -62,7 +62,7 @@ func _physics_process(dt: float) -> void:
 				_blood_gaze(t)
 				cd = randf_range(10.0, 13.0)
 		"nara":
-			if d < 15.0:
+			if d < Jutsu.shadow_reach():   # oyuncuyla aynı: gölge menzili ışığa bağlı
 				_shadow_bind(t)
 				cd = randf_range(11.0, 14.0)
 		"akimichi":
