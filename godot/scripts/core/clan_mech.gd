@@ -214,19 +214,55 @@ static func try_extra_life() -> bool:
 
 
 # ------------------------------------------------------------------ Akimichi hapları
-## [Y]: Akimichi sıradaki hapı alır (yeşil -> sarı -> kırmızı); hap yoksa false (normal asker hapı)
+## Akimichi hapları tükenmez, her birinin kendi bekleme süresi var (sn): kırmızı en ağır bedelli olduğu için en uzun
+const AKI_PILL_CD := {"hap_horenzai": 90.0, "hap_kare": 180.0, "hap_togarashi": 600.0}
+const AKI_PILL_NAMES := {"pill": "Asker Hapı", "hap_horenzai": "Yeşil Hap (Hōrenzai)", "hap_kare": "Sarı Hap (Karē)", "hap_togarashi": "Kırmızı Hap (Tōgarashi)"}
+
+
+## Seçilebilir haplar: herkes asker hapı; Akimichi ayrıca üç renkli hap
+static func pill_list() -> Array:
+	return ["pill"] + AKI_PILLS if clan() == "akimichi" else ["pill"]
+
+
+static func pill_sel() -> String:
+	var s = String(Game.profile.get("pill_sel", "pill"))
+	return s if s in pill_list() else "pill"
+
+
+## [O]: seçili hapı değiştir
+static func next_pill() -> void:
+	var l = pill_list()
+	var i = (l.find(pill_sel()) + 1) % l.size()
+	Game.profile["pill_sel"] = l[i]
+	Hud.msg("Seçili hap: %s" % AKI_PILL_NAMES.get(l[i], l[i]), Color(1.0, 0.75, 0.4), 1.5)
+
+
+static func aki_pill_left(id: String) -> float:
+	var at = float(Game.profile.get("aki_pill_cd", {}).get(id, 0.0))
+	var now = Time.get_ticks_msec() / 1000.0
+	if at - now > float(AKI_PILL_CD.get(id, 0.0)) + 1.0:   # eski oturumdan kalan zaman damgası
+		Game.profile["aki_pill_cd"][id] = 0.0
+		return 0.0
+	return maxf(0.0, at - now)
+
+
+## [Y] seçili Akimichi hapı (yeşil / sarı / kırmızı); seçili hap asker hapıysa false
 static func use_aki_pill() -> bool:
 	if clan() != "akimichi":
 		return false
-	var inv: Dictionary = Game.profile["inventory"]
-	var stage = 0
-	if Buffs.has("hap_kare"):
-		stage = 2
-	elif Buffs.has("hap_horenzai"):
-		stage = 1
-	if stage >= AKI_PILLS.size() or int(inv.get(AKI_PILLS[stage], 0)) <= 0:
+	var id = pill_sel()
+	var stage = AKI_PILLS.find(id)
+	if stage < 0:
 		return false
-	inv[AKI_PILLS[stage]] = int(inv[AKI_PILLS[stage]]) - 1
+	var left = aki_pill_left(id)
+	if left > 0.0:
+		Hud.msg("%s hazır değil: %d sn" % [AKI_PILL_NAMES[id], ceili(left)], Color(1, 0.75, 0.5))
+		return true
+	if Buffs.has(id):
+		return true
+	if not Game.profile.has("aki_pill_cd"):
+		Game.profile["aki_pill_cd"] = {}
+	Game.profile["aki_pill_cd"][id] = Time.get_ticks_msec() / 1000.0 + float(AKI_PILL_CD[id])
 	var pl = Game.player
 	match stage:
 		0:
@@ -317,15 +353,7 @@ static func tick(dt: float) -> void:
 			# sarı hap: yağ chakraya dönerken beden yıpranır
 			if Buffs.has("hap_kare") and Game.player.hp > Game.player.max_hp * 0.15:
 				Game.player.hp -= Game.player.max_hp * 0.01 * dt
-			# klan haplarını tükettiysen klan bir süre sonra yeni takım gönderir
-			var inv: Dictionary = pr["inventory"]
-			if int(inv.get("hap_horenzai", 0)) <= 0:
-				_pill_gift_t += dt
-				if _pill_gift_t > 900.0:
-					_pill_gift_t = 0.0
-					for id in AKI_PILLS:
-						inv[id] = int(inv.get(id, 0)) + 1
-					Hud.msg("Klanın yeni bir takım Akimichi hapı gönderdi (yeşil, sarı, kırmızı).", Color(1.0, 0.7, 0.3), 5.0)
+			pass   # renkli haplar tükenmez: her birinin bekleme süresi var (AKI_PILL_CD)
 
 
 ## Yeni karakter / eski kayıt: klan başlangıç eşyaları

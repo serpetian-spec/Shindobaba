@@ -172,8 +172,12 @@ static func melee_mult(p: Dictionary) -> float:
 	return m
 
 
-static func jutsu_mult(p: Dictionary) -> float:
-	var m = 1.0 + Mastery.get_v(p, "ninjutsu") * 0.03   # ninjutsu ustalığı
+static func jutsu_mult(p: Dictionary, branch := "ninjutsu") -> float:
+	# tekniğin kendi dalının ustalığı (genjutsu, fūinjutsu, iryō, senjutsu, kuchiyose, kenjutsu, taijutsu); ninjutsunun yarısı taban
+	var mv = Mastery.get_v(p, "ninjutsu")
+	if branch != "ninjutsu":
+		mv = maxf(Mastery.get_v(p, branch), mv * 0.5)
+	var m = 1.0 + mv * 0.03
 	m += skill(p, "jutsu")
 	m += clan_bonus(p, "jutsu")
 	m *= Buffs.mod("jutsu")

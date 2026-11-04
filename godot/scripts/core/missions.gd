@@ -2247,10 +2247,10 @@ func _tick_defend(dt: float, s: Dictionary) -> void:
 			var a = randf() * TAU
 			var from = c + Vector3(cos(a), 0, sin(a)) * 45.0
 			var es = []
+			# eski hali (kullanıcı isteği): her dalga dalga sayısı kadar düşman grubu; son dalgada (B+) grubun başında komutan
+			es = _spawn(s["enemy"], from, int(waves[w]), 8.0, s.get("ename", ""), false)
 			if w == waves.size() - 1 and RANK_IDX.get(active()["rank"], 0) >= 3:
-				es.append(_spawn_boss({"name": "Öncü Komutan", "hp": 700.0 * (1.0 + 0.2 * int(waves[w])), "level": 26, "power": 2.4}, s["enemy"], from))
-			else:
-				es = _spawn(s["enemy"], from, int(waves[w]), 8.0, s.get("ename", ""))   # her dalga: tek güçlü ninja
+				es.append(_spawn_boss({"name": "Öncü Komutan", "hp": 700.0, "level": 26, "power": 2.4}, s["enemy"], from))
 			for e in es:
 				e.home = c
 				e.wander_to = c

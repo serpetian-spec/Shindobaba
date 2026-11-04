@@ -687,8 +687,7 @@ func interact(it: Dictionary) -> void:
 		"graveyard":
 			Graveyard.talk(it)
 		"ramen":
-			_sit_at(it.get("seats", []))
-			_eat(50, "Sıcak bir kase miso chashu ramen... Can ve chakra doldu!", "Ramen Ustası")
+			_ramen(it)
 		"enter":
 			if Interiors.inst:
 				Interiors.inst.enter(it)
@@ -825,19 +824,27 @@ func _hospital_pos() -> Vector3:
 
 
 ## Tezgâhtaki en yakın tabureye oturt (ramen)
-func _sit_at(seats: Array) -> void:
+func _sit_at(seats: Array, face := 0.0) -> void:
 	var pl = Game.player
 	if seats.is_empty() or pl == null:
 		return
-	var best: Vector3 = seats[0]
-	for q in seats:
+	# boş tabure: üstünde oturan müşteri varsa atla (iki kişi aynı tabureye oturuyordu)
+	var free = seats.filter(func(q):
+		for v in pl.get_tree().get_nodes_in_group("talkers"):
+			if is_instance_valid(v) and Vector2(v.global_position.x - q.x, v.global_position.z - q.z).length() < 0.7:
+				return false
+		return true)
+	if free.is_empty():
+		free = seats
+	var best: Vector3 = free[0]
+	for q in free:
 		if q.distance_to(pl.global_position) < best.distance_to(pl.global_position):
 			best = q
 	pl.global_position = best
 	pl.velocity = Vector3.ZERO
 	pl.reset_physics_interpolation()
-	pl.facing = 0.0
-	pl.model.rotation.y = 0.0
+	pl.facing = face
+	pl.model.rotation.y = face
 	pl.model.play("sit", 0.2)
 	pl.input_locked = 3.5
 
@@ -861,6 +868,23 @@ func _sleep(price: int, text: String) -> void:
 		await get_tree().create_timer(0.6).timeout
 		await Interiors.inst._fade(0.0, 0.8)
 	Hud.dialog("Uyku", text, [])
+
+
+## Ramen: taburede oturup gerçekten yer (EatAnim: Itadakimasu, çubuklarla lokmalar, suyunu içme); yemek bitince doyar
+func _ramen(it: Dictionary) -> void:
+	if int(p()["ryo"]) < 50:
+		Hud.dialog("Ramen Ustası", "Kusura bakma, 50 Ryō lazım.", [])
+		return
+	if Game.player.get_node_or_null("EatAnim"):
+		return
+	add_ryo(-50)
+	_sit_at(it.get("seats", []), float(it.get("seat_face", 0.0)))
+	var ea = EatAnim.start(Game.player, BuildKonoha.RAMEN_STOOL_H)
+	await ea.done
+	Game.player.hp = Game.player.max_hp
+	Game.player.chakra = Game.player.max_chakra
+	ClanMech.on_eat()
+	Hud.dialog("Ramen Ustası", "Sıcak bir kase miso chashu ramen... Can ve chakra doldu! Bir kase daha?", [])
 
 
 func _eat(price: int, text: String, who: String) -> void:

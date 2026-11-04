@@ -195,8 +195,8 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	b.yoff = 0.0
 	var seats = []
 	for i in 4:
-		seats.append(_gp(b, ix - 3 + i * 2, inn + 3.0))
-	_act(b, ix, inn + 4, 4, "ramen", "[F] Tezgâha otur, ramen ye (50 Ryō)", {"seats": seats})
+		seats.append(_gp(b, ix - 3 + i * 2, inn + RAMEN_SEAT_N))
+	_act(b, ix, inn + 4, 4, "ramen", "[F] Tezgâha otur, ramen ye (50 Ryō)", {"seats": seats, "seat_face": _face(0, -1)})
 	_site(b, "ramen", ix, inn + 3.0, {"back": _gp(b, ix, inn - 0.3), "seats": seats, "face": _face(0, -1)})
 	CityDecor.banner(decor, _gp(b, ix + 5.6, inn + 3.2), 0.0, Color(0.85, 0.25, 0.2), Color(0.98, 0.95, 0.9))
 	occupied.append([ix, inn, 8, 6])
@@ -736,18 +736,67 @@ static func _stone_head(b: Builder, i: int, at: Vector3, height: float, col: Col
 		mi.material_override = null
 
 
-## Prosedürel Ichiraku tarzı tezgâh (hayran modeli yoksa)
+## Prosedürel Ichiraku tarzı tezgâh (referans: Ichiraku Ramen, Teuchi sahneleri): caddeye açık tezgâh, kırmızı tezgâh üstü,
+## önde "ラーメン一楽" yazılı lacivert noren perdeleri, yanda kırmızı fener, tezgâh önünde kırmızı minderli yuvarlak tabureler,
+## tezgâhın arkasında usta için mutfak boşluğu: kaynayan kazanlar (buhar), kase rafı, çubuk kutuları. Müşteri tarafı = büyük n.
+const RAMEN_SEAT_N := 2.2   # tabure merkezi (inn + bu)
+const RAMEN_STOOL_H := 0.48
 static func _ichiraku_boxes(b: Builder, ix: float, inn: float) -> void:
-	b.box(Vector3(ix, 0.65, inn + 1.5), Vector3(9, 1.3, 1.2), Color(0.55, 0.35, 0.2))
-	b.box(Vector3(ix, 1.35, inn + 1.5), Vector3(9.5, 0.12, 1.6), Color(0.8, 0.62, 0.4), 0, false)
-	b.box(Vector3(ix, 1.8, inn - 2.2), Vector3(9, 3.6, 4.5), Color(0.92, 0.88, 0.8))
-	for sx in [-4.4, 4.4]:
-		b.box(Vector3(ix + sx, 1.9, inn + 2.4), Vector3(0.35, 3.8, 0.35), Color(0.35, 0.24, 0.16), 0, false)
-	b.box(Vector3(ix, 3.9, inn), Vector3(10.5, 0.5, 7.5), Color(0.72, 0.18, 0.15))
+	var wood = Color(0.62, 0.44, 0.28)
+	var dark = Color(0.36, 0.25, 0.16)
+	b.box(Vector3(ix, 0.03, inn + 1.0), Vector3(10.6, 0.06, 9.0), Color(0.56, 0.5, 0.42))   # sıkıştırılmış toprak/taş zemin (çimeni temizler)
+	# arka bina (mutfak duvarı + depo): ön yüzü inn-1.2'de; usta inn-0.3'te durur
+	b.box(Vector3(ix, 1.9, inn - 3.3), Vector3(9.4, 3.8, 4.2), Color(0.86, 0.78, 0.62))
+	for k in 7:   # ahşap tahta derzleri
+		b.box(Vector3(ix - 4.2 + k * 1.4, 1.9, inn - 1.19), Vector3(0.08, 3.8, 0.04), wood.darkened(0.2), 0, false)
+	# arka tezgâh: kazanlar, raf
+	b.box(Vector3(ix, 0.5, inn - 0.85), Vector3(8.6, 1.0, 0.7), wood.darkened(0.1))
+	b.box(Vector3(ix, 1.02, inn - 0.85), Vector3(8.8, 0.06, 0.8), Color(0.7, 0.7, 0.68), 0, false)   # paslanmaz çelik
+	for k in 3:
+		var px = ix - 3.0 + k * 1.3
+		b.cyl(Vector3(px, 1.3, inn - 0.85), 0.62, 0.55, Color(0.62, 0.62, 0.64), false, 14)   # kazan
+		b.cyl(Vector3(px, 1.58, inn - 0.85), 0.56, 0.02, Color(0.78, 0.6, 0.35), false, 14)   # et suyu
+	for r in 2:   # kase rafı
+		b.box(Vector3(ix + 2.2, 1.75 + r * 0.45, inn - 1.05), Vector3(3.0, 0.05, 0.3), wood, 0, false)
+		for k in 7:
+			b.cyl(Vector3(ix + 1.0 + k * 0.4, 1.83 + r * 0.45, inn - 1.05), 0.2, 0.1, Color(0.75, 0.18, 0.14) if (k + r) % 2 == 0 else Color(0.93, 0.92, 0.88), false, 10)
+	# ana tezgâh: gövde, kırmızı üst, müşteri tarafında ayak dayama çıtası
+	b.box(Vector3(ix, 0.4, inn + 1.35), Vector3(9.0, 0.8, 0.95), wood)   # gövde geride: üst levha öne taşar (diz boşluğu)
+	b.box(Vector3(ix, 0.84, inn + 1.55), Vector3(9.4, 0.08, 1.35), Color(0.72, 0.16, 0.12), 0, false)
+	b.box(Vector3(ix, 0.22, inn + 1.86), Vector3(9.0, 0.06, 0.1), dark, 0, false)
+	for k in 6:   # tezgâh gövdesinde dikey çıtalar
+		b.box(Vector3(ix - 3.75 + k * 1.5, 0.4, inn + 1.84), Vector3(0.1, 0.8, 0.04), dark, 0, false)
+	# tezgâh üstü: çubuk kutuları, baharat, peçete
+	for k in 4:
+		var cx = ix - 3.0 + k * 2.0 + 1.0
+		b.cyl(Vector3(cx, 0.96, inn + 1.2), 0.14, 0.16, Color(0.75, 0.75, 0.72), false, 8)
+		for q in 5:
+			b.box(Vector3(cx - 0.03 + q * 0.015, 1.1, inn + 1.2), Vector3(0.012, 0.22, 0.012), Color(0.86, 0.72, 0.5), 0, false)
+		b.cyl(Vector3(cx + 0.18, 0.93, inn + 1.2), 0.07, 0.1, Color(0.85, 0.35, 0.15), false, 8)
+	# direkler, çatı
+	for sx in [-4.55, 4.55]:
+		b.box(Vector3(ix + sx, 1.9, inn + 2.3), Vector3(0.3, 3.8, 0.3), dark, 0, false)
+		b.box(Vector3(ix + sx, 1.9, inn - 0.9), Vector3(0.3, 3.8, 0.3), dark, 0, false)
+	b.box(Vector3(ix, 3.72, inn + 0.5), Vector3(9.8, 0.25, 4.6), wood.darkened(0.15), 0, false)   # tavan
+	b.roof(Vector3(ix, 3.85, inn - 0.4), Vector3(10.6, 1.2, 8.0), Color(0.48, 0.36, 0.26), 0.0)
+	b.box(Vector3(ix, 3.55, inn + 2.42), Vector3(9.6, 0.3, 0.12), dark, 0, false)   # noren çıtası
+	# noren: 6 lacivert perde, her birinde bir harf (ラーメン一楽), sarı-beyaz
+	var txt = ["ラ", "ー", "メ", "ン", "一", "楽"]
 	for i in 6:
-		b.box(Vector3(ix - 3.7 + i * 1.48, 3.1, inn + 2.55), Vector3(1.3, 1.1, 0.06), Color(0.95, 0.95, 0.95) if i % 2 else Color(0.85, 0.28, 0.22), 0, false)
+		var px = ix + 3.75 - i * 1.5   # müşteri tarafından (büyük n) bakınca soldan sağa okunur
+		b.box(Vector3(px, 3.0, inn + 2.45), Vector3(1.42, 1.0, 0.03), Color(0.14, 0.2, 0.32), 0, false)
+		b.kanji(Vector3(px, 3.0, inn + 2.47), txt[i], 0.62, Color(0.98, 0.9, 0.45), 180.0)
+	# kırmızı kâğıt fener (chōchin) sol direkte
+	b.cyl(Vector3(ix - 4.95, 2.6, inn + 2.4), 0.5, 0.7, Color(0.85, 0.15, 0.1), false, 12)
+	b.cyl(Vector3(ix - 4.95, 2.96, inn + 2.4), 0.36, 0.06, Color(0.15, 0.12, 0.1), false, 12)
+	b.cyl(Vector3(ix - 4.95, 2.24, inn + 2.4), 0.36, 0.06, Color(0.15, 0.12, 0.1), false, 12)
+	b.kanji(Vector3(ix - 4.95, 2.6, inn + 2.66), "一楽", 0.22, Color(0.1, 0.08, 0.06), 180.0)
+	# tabureler: ahşap ayak, kırmızı yuvarlak minder (oturma yüksekliği RAMEN_STOOL_H); geçilebilir (oturan karakter içine girmesin)
 	for i in 4:
-		b.cyl(Vector3(ix - 3 + i * 2, 0.4, inn + 3.4), 0.7, 0.8, Color(0.72, 0.18, 0.15), false, 10)
+		var sxp = ix - 3 + i * 2
+		b.cyl(Vector3(sxp, RAMEN_STOOL_H * 0.5 - 0.04, inn + RAMEN_SEAT_N), 0.14, RAMEN_STOOL_H - 0.08, Color(0.3, 0.3, 0.32), false, 8)
+		b.cyl(Vector3(sxp, 0.03, inn + RAMEN_SEAT_N), 0.5, 0.06, Color(0.3, 0.3, 0.32), false, 10)
+		b.cyl(Vector3(sxp, RAMEN_STOOL_H - 0.04, inn + RAMEN_SEAT_N), 0.52, 0.08, Color(0.78, 0.16, 0.12), false, 14)
 
 
 ## Uçurum yüzeyi: verilen yükseklikte kuzeye doğru arazinin bu yüksekliği geçtiği ilk n

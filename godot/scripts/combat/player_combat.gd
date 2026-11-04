@@ -907,7 +907,7 @@ func throw_tool() -> void:
 	if float(tool_cd.get(tool, 0.0)) > 0.0:
 		Hud.msg("%s hazır değil: %d sn" % [Data.items.get(tool, {"name": tool})["name"], ceili(float(tool_cd[tool]))], Color(1, 0.75, 0.5))
 		return
-	tool_cd[tool] = TOOL_CD
+	tool_cd[tool] = TOOL_CD / (1.0 + Mastery.get_v(Game.profile, "shurikenjutsu") / 50.0)   # shurikenjutsu ustalığı: alet daha çabuk hazır
 	action = "throw"
 	t = 0.0
 	var tgt = _auto_target(40.0)
@@ -1102,12 +1102,12 @@ func _do_cast(dt: float) -> bool:
 			FX.smoke_puff(p.global_position + Vector3.UP * 1.3 + p.face_dir() * 0.4, 0.35, 5)
 			Combat.popup_text(p.global_position + Vector3.UP * 2.3, "Mühür bozuldu!", Color(1, 0.6, 0.4))
 			cooldowns[cast_jutsu] = minf(float(cooldowns.get(cast_jutsu, 0.0)), 2.0)
-			Mastery.gain(Game.profile, Mastery.branch_of(jd), 0.025 * (1.0 + int(jd.get("tier", 2)) * 0.3))
+			Mastery.gain(Game.profile, Mastery.branch_of(jd), 0.1 * (1.0 + int(jd.get("tier", 2)) * 0.3))
 			return true
 		var br = Mastery.branch_of(jd)   # teknik kendi dalını geliştirir (genjutsu, fūinjutsu, tıbbi...)
-		Mastery.gain(Game.profile, br, 0.075 * (1.0 + int(jd.get("tier", 2)) * 0.35))
+		Mastery.gain(Game.profile, br, 0.3 * (1.0 + int(jd.get("tier", 2)) * 0.35))   # temel teknikler (Henge) de hissedilir ilerletir: ~20 Henge -> Bunshin
 		if br != "ninjutsu" and br != "taijutsu" and br != "kenjutsu":
-			Mastery.gain(Game.profile, "ninjutsu", 0.02)   # chakra şekillendirme ortak temel
+			Mastery.gain(Game.profile, "ninjutsu", 0.06)   # chakra şekillendirme ortak temel
 		Mastery.gain(Game.profile, "chakra", jutsu_cost(jd) / 360.0)
 		Jutsu.execute(p, cast_jutsu, tg)
 		Progress.on_technique_used(cast_jutsu)

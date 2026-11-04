@@ -1137,7 +1137,11 @@ func _process(dt: float) -> void:
 	var tstate = ("%d sn" % ceili(tcd)) if tcd > 0.0 else ("hazır" if int(pr["inventory"].get(tool, 0)) > 0 else "yok")
 	tool_lbl.text = "R   %s  (%s)\nT   değiştir" % [Data.items.get(tool, {"name": tool})["name"], tstate]
 	var pcd = get_tree().current_scene.pill_cooldown() if get_tree().current_scene.has_method("pill_cooldown") else 0.0
-	item_lbl.text = "H   Merhem  ×%d\nY   Asker Hapı  %s" % [int(pr["inventory"].get("salve", 0)), ("(%d sn)" % ceili(pcd)) if pcd > 0.0 else "(hazır)"]
+	var psel = ClanMech.pill_sel()
+	if psel != "pill":
+		pcd = ClanMech.aki_pill_left(psel)
+	item_lbl.text = "H   Merhem  ×%d
+Y   %s  %s%s" % [int(pr["inventory"].get("salve", 0)), ClanMech.AKI_PILL_NAMES.get(psel, "Asker Hapı"), ("(%d sn)" % ceili(pcd)) if pcd > 0.0 else "(hazır)", "  [O] değiştir" if ClanMech.pill_list().size() > 1 else ""]
 	if msg_t > 0.0:
 		msg_t -= dt
 		if msg_t <= 0.0:

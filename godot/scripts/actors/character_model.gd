@@ -2161,7 +2161,19 @@ func _thigh_holster() -> void:
 	var vs: PackedVector3Array = _body_vs()
 	var hipb = _bp("RightUpperLeg")
 	var kn = _bp("RightLowerLeg")
-	var pad = 0.026   # pantolon kabuğu
+	var pad = 0.026   # pantolon kabuğu (kumaş kabuğu yoksa)
+	# kayış gerçek kumaşın üstüne otursun: bol pantolonda (çoğu set) kayış kumaşın içinde kalıp kesik kesik görünüyordu
+	var gk = ""
+	var cloth_vs := PackedVector3Array()
+	for c in skel.get_children():
+		if c is MeshInstance3D and String(c.name).begins_with("Cloth") and c.mesh is ArrayMesh and c.visible:
+			gk += "|%d" % c.mesh.get_instance_id()
+			for si in c.mesh.get_surface_count():
+				cloth_vs.append_array(c.mesh.surface_get_arrays(si)[Mesh.ARRAY_VERTEX])
+	if cloth_vs.size() > 0:
+		vs = vs.duplicate()
+		vs.append_array(cloth_vs)
+		pad = 0.007
 	var ring0 = func(y: float) -> Array:
 		# o yükseklikte uyluk kesiti: merkez + açı başına yarıçap
 		var cx = 0.0; var cz = 0.0; var cn = 0
@@ -2184,7 +2196,7 @@ func _thigh_holster() -> void:
 						best = r
 			out.append(c + d * (best + pad))
 		return out
-	var gkey = String(look.get("gender", "m"))
+	var gkey = String(look.get("gender", "m")) + gk
 	var ring = func(y: float) -> Array:
 		var k = "%s|%.4f" % [gkey, y]
 		if not _holster_rings.has(k):
@@ -2205,7 +2217,10 @@ func _thigh_holster() -> void:
 			var nrm = Vector3(t.z, 0, -t.x).normalized()
 			if nrm.dot(p0 - Vector3(hipb.x, y, p0.z)) < 0.0 and false:
 				nrm = -nrm
-			m.add_xf("box", Transform3D(Basis(t * 1.1, Vector3.UP * 0.024, nrm * 0.008), (p0 + p1) * 0.5), white)
+			var bb = Basis(t * 1.1, Vector3.UP * 0.024, nrm * 0.012)
+			if bb.determinant() < 0.0:   # ters (sol el) taban yüzleri içe çevirip kayışı saydam gösteriyordu
+				bb.z = -bb.z
+			m.add_xf("box", Transform3D(bb, (p0 + p1) * 0.5), white)
 		outer_pt = outer_pt + pts[int(pts.size() * 0.79) % pts.size()]   # dış-ön (sağ bacakta -x ile ön arası)
 	if outer_pt != Vector3.ZERO:
 		outer_pt /= 2.0

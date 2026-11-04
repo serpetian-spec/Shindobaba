@@ -2263,28 +2263,50 @@ static func _tab_skills(_main: Node, body: Control) -> void:
 	var how = {"ninjutsu": "Jutsu attıkça (mühür bozulsa da biraz). Yüksek rütbe teknikler için gerekli; mühür hızı.",
 		"taijutsu": "Yumrukla vurdukça; antrenman kuklası 2 kat.", "kenjutsu": "Silahla vurdukça; antrenman kuklası 2 kat.",
 		"chakra": "Jutsu attıkça, [C] meditasyon, duvar/ağaç tırmanma, su üstünde yürüme.", "dayaniklilik": "Hasar aldıkça.", "hiz": "Koştukça.",
-		"genjutsu": "Genjutsu yaptıkça. Genjutsu tekniklerinin şartı.", "fuinjutsu": "Mühürleme teknikleri yaptıkça.", "iryo": "Tıbbi teknikler yaptıkça (Shōsen...).",
-		"senjutsu": "Senjutsu teknikleri yaptıkça.", "kuchiyose": "Çağırma teknikleri yaptıkça.", "shurikenjutsu": "Kunai, shuriken, senbon attıkça."}
+		"genjutsu": "Genjutsu yaptıkça. Genjutsu gücü + sana atılan genjutsunun etkisi azalır.", "fuinjutsu": "Mühürleme teknikleri yaptıkça. Fūinjutsu gücü.", "iryo": "Tıbbi teknikler yaptıkça (Shōsen...). İyileştirme gücü.",
+		"senjutsu": "Senjutsu teknikleri yaptıkça. Senjutsu gücü + Sage Modu güçlenir.", "kuchiyose": "Çağırma teknikleri yaptıkça. Çağrının canı ve hasarı artar.", "shurikenjutsu": "Kunai, shuriken, senbon attıkça. Atış hasarı + alet bekleme süresi kısalır."}
+	# 12 dal: iki sütun + kaydırma (tek sütunda alttakiler ekranın dışına taşıyordu)
+	var sc = ScrollContainer.new()
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	v.add_child(sc)
+	var inner = UI.vbox(14)
+	inner.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	sc.add_child(inner)
+	var grid = GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 40)
+	grid.add_theme_constant_override("v_separation", 14)
+	inner.add_child(grid)
 	for k in Mastery.KEYS:
 		var val = Mastery.get_v(pr, k)
-		var row = UI.hbox(14)
-		v.add_child(row)
-		var nl = UI.label(Mastery.NAMES[k], 20, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true)
-		nl.custom_minimum_size = Vector2(240, 0)
+		var cell = UI.vbox(4)
+		cell.custom_minimum_size = Vector2(620, 0)
+		grid.add_child(cell)
+		var row = UI.hbox(12)
+		cell.add_child(row)
+		var nl = UI.label(Mastery.NAMES[k], 19, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true)
+		nl.custom_minimum_size = Vector2(220, 0)
 		row.add_child(nl)
 		var bar = ProgressBar.new()
 		bar.max_value = maxf(100.0, ceilf((val + 0.01) / 100.0) * 100.0)   # sınır yok: çubuk sonraki yüzlüğe kadar
 		bar.value = val
 		bar.show_percentage = false
-		bar.custom_minimum_size = Vector2(380, 22)
+		bar.custom_minimum_size = Vector2(300, 20)
 		row.add_child(bar)
-		row.add_child(UI.label("%d" % int(val), 20, UI.CREAM))
-		v.add_child(UI.label(how[k], 14, UI.MUTED))
+		row.add_child(UI.label("%d" % int(val), 19, UI.CREAM))
+		var hl = UI.label(how[k], 14, UI.MUTED)
+		hl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		hl.custom_minimum_size = Vector2(600, 0)
+		cell.add_child(hl)
 	var opened = []
 	for f in Stats.UNLOCK_AT:
 		var u = Stats.UNLOCK_AT[f]
 		opened.append("%s %s (%s %d)" % ["✓" if Stats.has_unlock(pr, f) else "·", f, Mastery.NAMES[u[0]], int(u[1])])
-	v.add_child(UI.label("Ustalıkla açılanlar:  " + "   ".join(opened), 13, UI.MUTED))
+	var ol = UI.label("Ustalıkla açılanlar:  " + "   ".join(opened), 13, UI.MUTED)
+	ol.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	ol.custom_minimum_size = Vector2(1240, 0)
+	inner.add_child(ol)
 
 
 # ------------------------------------------------------------------ görevler sekmesi

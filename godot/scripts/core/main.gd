@@ -100,7 +100,7 @@ func _setup_input() -> void:
 		"throw": [KEY_R], "tool_next": [KEY_T], "interact": [KEY_F], "lock": [KEY_E], "menu": [KEY_TAB], "salve": [KEY_H], "pill": [KEY_Y],
 		"slot1": [KEY_1], "slot2": [KEY_2], "slot3": [KEY_3], "slot4": [KEY_4], "slot5": [KEY_5], "slot6": [KEY_6],
 		"inventory": [KEY_I], "skills": [KEY_K], "map": [KEY_M], "pause": [KEY_ESCAPE], "dojutsu": [KEY_V],
-		"walk": [KEY_CAPSLOCK], "sage": [KEY_Z], "beast": [KEY_X], "gates": [KEY_B], "seal_mode": [KEY_G], "weapon_draw": [KEY_N], "summon_cmd": [KEY_J], "summon_special": [KEY_U],
+		"walk": [KEY_CAPSLOCK], "sage": [KEY_Z], "beast": [KEY_X], "gates": [KEY_B], "seal_mode": [KEY_G], "weapon_draw": [KEY_N], "summon_cmd": [KEY_J], "summon_special": [KEY_U], "pill_next": [KEY_O],
 	}
 	for action in keys:
 		if not InputMap.has_action(action):
@@ -417,6 +417,8 @@ func _route(e: InputEvent) -> void:
 		use_item("salve")
 	elif e.is_action_pressed("pill"):
 		use_item("pill")
+	elif e.is_action_pressed("pill_next"):
+		ClanMech.next_pill()
 
 
 func _toggle_panel(open: Callable) -> void:
@@ -467,6 +469,10 @@ func use_item(id: String) -> void:
 		Game.profile["pill_ready_at"] = Time.get_ticks_msec() / 1000.0 + PILL_CD
 		player.chakra = minf(player.max_chakra, player.chakra + maxf(60.0, player.max_chakra * 0.35))
 		Buffs.add("pill", 20.0, {"melee": 1.15})
+		if String(Game.profile.get("clan", "")) == "akimichi":
+			# asker hapı (Hyōrōgan) sıkıştırılmış besin: Akimichi kalorisinin yarısını doldurur
+			Game.profile["kalori"] = minf(ClanMech.KALORI_MAX, float(Game.profile.get("kalori", ClanMech.KALORI_MAX)) + ClanMech.KALORI_MAX * 0.5)
+			Hud.msg("Asker hapı: kalori doldu (+%%%d)." % 50, Color(1.0, 0.65, 0.25))
 		FX.aura(player, Color(1, 0.7, 0.3), 0.8)
 		Sfx.play("heal", player.global_position, 0.8)
 		return

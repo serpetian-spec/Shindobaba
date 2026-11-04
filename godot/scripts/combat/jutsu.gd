@@ -5,7 +5,11 @@ extends Node
 
 func _mult(caster: Node3D) -> float:
 	if caster is Player:
-		return Stats.jutsu_mult(Game.profile)
+		# az önce yapılan tekniğin dalı (ör. genjutsu ise genjutsu ustalığı) gücü belirler
+		var br = "ninjutsu"
+		if caster.has_meta("jid") and Time.get_ticks_msec() / 1000.0 - float(caster.get_meta("jid_t", 0.0)) < 12.0:
+			br = Mastery.branch_of(Data.jutsu.get(String(caster.get_meta("jid")), {}))
+		return Stats.jutsu_mult(Game.profile, br)
 	var pw = float(caster.get("power")) if caster.get("power") != null else 1.0
 	return pw * (caster.buff_mod("jutsu") if caster.has_method("buff_mod") else 1.0)   # AI'nın kendi buff'ları
 
@@ -1145,7 +1149,7 @@ func j_shousen(c: Node3D, _t: Node3D) -> void:
 	for i in 10:
 		tw.tween_callback(func():
 			if c is Player:
-				c.hp = minf(c.max_hp, c.hp + 4.0 * Stats.jutsu_mult(Game.profile))
+				c.hp = minf(c.max_hp, c.hp + 4.0 * Stats.jutsu_mult(Game.profile, "iryo"))
 			for f in get_tree().get_nodes_in_group("fighters"):
 				if f != c and not Combat.hostile(c, f) and f.global_position.distance_to(c.global_position) < 5 and f.get("hp") != null:
 					f.hp = minf(f.max_hp, f.hp + 4.0))

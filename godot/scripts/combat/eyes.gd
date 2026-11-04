@@ -1160,6 +1160,11 @@ static func warn_attack(e: Node3D) -> void:
 
 
 ## Sharingan sahibine atılan genjutsu (göz göze sersemletme) kısalır; 3 tomoe / Mangekyō hemen kırar
+## Genjutsu ustalığı: genjutsuyu tanıyıp chakra akışını bozarak (Kai) çözme — oyuncuya tutan genjutsunun etkisi azalır (60 ustalıkta yarı)
+static func _gen_mastery_resist() -> float:
+	return 1.0 / (1.0 + Mastery.get_v(Game.profile, "genjutsu") / 60.0)
+
+
 static func genjutsu_resist(t: Node) -> float:
 	if t == Game.player:
 		var pl = Game.player
@@ -1172,8 +1177,8 @@ static func genjutsu_resist(t: Node) -> float:
 			if best >= 3:
 				return 0.0
 			if best > 0:
-				return 0.5
-		return 1.0
+				return 0.5 * _gen_mastery_resist()
+		return _gen_mastery_resist()
 	if t.has_meta("eyes") and int(t.get_meta("eyes").get("kind", 0)) in [1, 4, 5]:
 		return 0.0 if int(t.get_meta("eyes").get("lvl", 1)) >= 3 or int(t.get_meta("eyes").get("kind", 0)) >= 4 else 0.5
 	return 1.0

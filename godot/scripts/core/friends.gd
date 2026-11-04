@@ -113,6 +113,13 @@ static func _ser(look: Dictionary) -> Dictionary:
 
 
 static func look_of(f: Dictionary) -> Dictionary:
+	var o = _look_raw(f)
+	if int(f.get("rank", 0)) < 1:
+		o["vest"] = null   # genin chūnin yeleği giymez (yelekli kaynaktan tanışılmış olsa da)
+	return o
+
+
+static func _look_raw(f: Dictionary) -> Dictionary:
 	var o = {}
 	var src: Dictionary = f.get("look", {})
 	for k in src:
@@ -671,6 +678,24 @@ static func _meet(v: Node, name_over := "") -> void:
 	tag(v)
 	Hud.dialog(given, "Ben %s, %s. Tanıştığımıza memnun oldum! Bir gün birlikte savaşırız belki." % [given, RANKS[rank]], [])
 	Hud.msg("Yeni tanıdık: %s (Tab > İlişkiler)" % given, Color(0.6, 1.0, 0.7))
+
+
+## Sahnede olmayan kalıcı biriyle tanışma (gezen köy takımlarının üyeleri): dost kaydı açar, kimliği döner
+static func add_person(given: String, look: Dictionary, rank: int, role: String, village: String, pos: Vector3, title := "") -> String:
+	var fs = all()
+	var female = String(look.get("gender", "m")) == "f"
+	var id = "f%d" % (int(pr().get("friend_seq", 0)) + 1)
+	pr()["friend_seq"] = int(pr().get("friend_seq", 0)) + 1
+	var lk: Dictionary = look.duplicate()
+	lk.erase("age")
+	var rep = int(pr().get("rep", {}).get(village, 0))
+	fs[id] = {"name": given, "role": role, "ninja": true, "look": _ser(lk), "bond": clampi(rep / 10, -25, 20), "village": village, "party": false,
+		"last_talk": Time.get_unix_time_from_system(), "element": ELS.pick_random(), "clan": "", "eye": [0, 0], "rank": rank,
+		"family": _family("", female, rank), "status": "", "log": [], "news": "",
+		"title": title if title != "" else "%s ninjası" % String(Game.village(village).get("name", "Köy")),
+		"home": [snappedf(pos.x, 0.1), snappedf(pos.y, 0.1), snappedf(pos.z, 0.1)]}
+	Hud.msg("Yeni tanıdık: %s (Tab > İlişkiler)" % given, Color(0.6, 1.0, 0.7))
+	return id
 
 
 static func set_party(id: String, on: bool) -> bool:

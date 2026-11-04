@@ -325,7 +325,7 @@ func _enter_sage() -> void:
 	sage = true
 	sage_t = 999999.0   # süresiz: tuşa tekrar basılana kadar açık (kullanıcı isteği)
 	var mods: Dictionary = fx["mods"].duplicate()
-	var sp = Stats.skill(Game.profile, "sage_power")
+	var sp = Stats.skill(Game.profile, "sage_power") + Mastery.get_v(Game.profile, "senjutsu") * 0.004   # senjutsu ustalığı: 100'de +%40
 	for k in ["melee", "jutsu"]:
 		if mods.has(k):
 			mods[k] = float(mods[k]) * (1.0 + sp)

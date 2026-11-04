@@ -97,7 +97,7 @@ func _ready() -> void:
 	radius = clampf((length * 0.22 if long_body else h * 0.45), 0.25, 18.0)
 	height = h
 	if owner_f is Player:
-		max_hp = def.get("hp", 200.0) * (1.0 + float(Game.profile.get("level", 1)) * 0.03) * (1.0 + Stats.skill(Game.profile, "summon_power"))
+		max_hp = def.get("hp", 200.0) * (1.0 + float(Game.profile.get("level", 1)) * 0.03) * (1.0 + Stats.skill(Game.profile, "summon_power") + Mastery.get_v(Game.profile, "kuchiyose") * 0.01)
 	else:
 		# düşman çağrısı: oyuncunun hasarıyla ölçeklenir (eskiden tanım canının tamamı + sahibin seviyesi: öldürülemiyordu)
 		var plv = float(Game.profile.get("level", 1))
@@ -421,7 +421,7 @@ func _attack() -> void:
 		sa.bite()
 	# denge: çağrılar tek başına kuyruklu canavar kesiyordu — seviye çarpanı ve taban düşürüldü, dev hedeflere yarı hasar
 	# çağrılan, oyuncunun jutsu gücüyle yarı oranda büyür (yüksek seviyede işe yaramaz kalmasın, tek başına da savaşı bitirmesin)
-	var dmg: float = def.get("dmg", 20.0) * 0.5 * (1.0 + float(Game.profile.get("level", 1)) * 0.025) * (1.0 + Stats.skill(Game.profile, "summon_power") + Stats.skill(Game.profile, "squad"))
+	var dmg: float = def.get("dmg", 20.0) * 0.5 * (1.0 + float(Game.profile.get("level", 1)) * 0.025) * (1.0 + Stats.skill(Game.profile, "summon_power") + Stats.skill(Game.profile, "squad") + Mastery.get_v(Game.profile, "kuchiyose") * 0.01)
 	if tgt != null and is_instance_valid(tgt) and (tgt.has_method("hit_test") or tgt.get("arch") is Dictionary and (tgt.arch as Dictionary).has("style")):
 		dmg *= 0.5
 	var model: String = def.get("model", "")
