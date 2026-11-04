@@ -56,6 +56,8 @@ func _process(dt: float) -> void:
 
 
 func _can_start(p: Vector3) -> bool:
+	if int(ChuninExam.stage) != 0 or Exams.cur != "":
+		return false   # sınav sürerken yol karşılaşması (haydut, haraççı...) yok
 	if not ClanWorld._village_here(p).is_empty():
 		return false
 	if p.y > Game.terrain_height(p.x, p.z) + 300.0:   # iç mekân / gizli diyar

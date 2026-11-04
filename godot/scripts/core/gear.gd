@@ -60,11 +60,56 @@ const SETS := {
 	"set_akatsuki": {"name": "Akatsuki Shōzoku", "slot": "set", "price": 0, "rank": 3, "desc": "Kızıl bulutlu dik yakalı siyah pelerin, koyu pantolon.",
 		"stats": {"def": 12, "chakra": 30}, "c1": Color(0.08, 0.08, 0.1), "c2": Color(0.8, 0.1, 0.12),
 		"parts": [["uzun_gomlek", Color(0.12, 0.12, 0.14), Color(0.12, 0.12, 0.14)], ["ninja_pant", Color(0.12, 0.12, 0.14), null], ["akatsuki_pelerini", Color(0.13, 0.14, 0.26), Color(0.72, 0.07, 0.14)], ["sandalet", Color(0.4, 0.3, 0.45), Color(0.92, 0.92, 0.9)]]},
+	"set_tabibito": {"name": "Tabibito Shōzoku", "slot": "set", "price": 250, "rank": 0, "desc": "Biyeli tunik, sargılı pantolon, seyahat pelerini, sargılı gezgin botu. Uzun yolların ninjası.",
+		"stats": {"def": 6, "hp": 15, "speed": 0.04}, "c1": Color(0.55, 0.42, 0.3), "c2": Color(0.3, 0.22, 0.16),
+		"parts": [["tunik", Color(0.55, 0.42, 0.3), Color(0.3, 0.22, 0.16)], ["sargili_pant", Color(0.35, 0.3, 0.24), null], ["seyahat_pelerini", Color(0.42, 0.36, 0.28), null], ["ayak_014", Color(0.3, 0.24, 0.18), Color(0.8, 0.75, 0.65)]]},
+	"set_iryonin": {"name": "Iryō-nin Shōzoku", "slot": "set", "price": 300, "rank": 1, "desc": "Yüksek yakalı açık gömlek, ninja pantolonu, kol sargıları: sahada yaralı taşıyan tıbbi ninjanın sade takımı. Tıbbi tekniklerin chakrası daha az.",
+		"stats": {"def": 6, "chakra": 30, "hp": 10}, "c1": Color(0.86, 0.84, 0.78), "c2": Color(0.65, 0.2, 0.2),
+		"parts": [["yakali", Color(0.86, 0.84, 0.78), Color(0.65, 0.2, 0.2)], ["ninja_pant", Color(0.2, 0.22, 0.28), null], ["kol_sargisi", Color(0.95, 0.95, 0.92), null], ["sandalet", Color(0.2, 0.22, 0.28), Color(0.92, 0.92, 0.9)]]},
+	"set_kenpo": {"name": "Kenpō Dōgi", "slot": "set", "price": 280, "rank": 0, "desc": "Beyaz dövüş gi'si, bol paçalı pantolon, sargılı eldiven, tabi. Taijutsu ustalarının antrenman giysisi.",
+		"stats": {"def": 5, "melee": 0.07, "speed": 0.03}, "c1": Color(0.94, 0.93, 0.9), "c2": Color(0.2, 0.2, 0.22),
+		"parts": [["gi_beyaz", Color(0.94, 0.93, 0.9), Color(0.2, 0.2, 0.22)], ["bol_pantolon", Color(0.92, 0.9, 0.86), null], ["uzun_sargi_eldiven", Color(0.9, 0.88, 0.82), null], ["tabi", Color(0.15, 0.15, 0.17), null]]},
+	"set_kenshi": {"name": "Kenshi Shōzoku", "slot": "set", "price": 400, "rank": 1, "desc": "Kimono üstü ve obi, hakama, metal kolluk, hasır zori. Kılıç yolunu seçenlerin giysisi.",
+		"stats": {"def": 8, "melee": 0.06, "hp": 15}, "c1": Color(0.2, 0.24, 0.36), "c2": Color(0.75, 0.7, 0.6),
+		"parts": [["kimono_ust", Color(0.2, 0.24, 0.36), Color(0.75, 0.7, 0.6)], ["hakama", Color(0.16, 0.16, 0.2), null], ["kolluk", Color(0.55, 0.56, 0.6), null], ["zori", Color(0.7, 0.6, 0.42), null]]},
+	"set_samurai": {"name": "Samurai Yoroi", "slot": "set", "price": 700, "rank": 2, "desc": "Zincir örgü gömlek, hakama, hafif samuray zırhı ve zırhlı tozluk. Demir Ülkesi'nin kılıç ustaları gibi.",
+		"stats": {"def": 18, "hp": 30, "speed": -0.03}, "c1": Color(0.3, 0.3, 0.32), "c2": Color(0.2, 0.2, 0.22),
+		"parts": [["zirhli_gomlek", Color(0.3, 0.3, 0.32), Color(0.2, 0.2, 0.22)], ["hakama", Color(0.18, 0.2, 0.28), null], ["samuray_zirh", Color(0.32, 0.34, 0.42), null], ["ayak_012", Color(0.3, 0.3, 0.33), Color(0.6, 0.6, 0.62)]]},
+	"set_sengoku": {"name": "Sengoku Musha", "slot": "set", "price": 900, "rank": 3, "desc": "Uzun kollu gömlek, kızıl hakama, kızıl lake Sengoku zırhı, zırhlı çizme. Savaşan Devletler çağının ruhu.",
+		"stats": {"def": 20, "hp": 35, "melee": 0.04, "speed": -0.04}, "c1": Color(0.12, 0.12, 0.14), "c2": Color(0.12, 0.12, 0.14),
+		"parts": [["uzun_gomlek", Color(0.12, 0.12, 0.14), Color(0.12, 0.12, 0.14)], ["kizil_hakama", Color(0.62, 0.12, 0.12), null], ["sengoku_kizil", Color(0.66, 0.14, 0.12), null], ["zirhli_cizme", Color(0.2, 0.18, 0.18), Color(0.5, 0.45, 0.4)]]},
+	"set_kage_no": {"name": "Kage no Shinobi", "slot": "set", "price": 450, "rank": 1, "desc": "Gölge ninja üstü, siyah taktik pantolon, kayış koşum, siyah tabi. Gece görevleri için sessiz giysi.",
+		"stats": {"def": 7, "speed": 0.06}, "c1": Color(0.1, 0.1, 0.12), "c2": Color(0.18, 0.18, 0.2),
+		"parts": [["golge_ust", Color(0.1, 0.1, 0.12), Color(0.18, 0.18, 0.2)], ["siyah_pant", Color(0.08, 0.08, 0.1), null], ["kayis_kosum", Color(0.25, 0.2, 0.16), null], ["siyah_tabi", Color(0.08, 0.08, 0.1), null]]},
+	"set_ame": {"name": "Ame Shōzoku", "slot": "set", "price": 500, "rank": 2, "desc": "Gri uzun kollu gömlek ve pantolon, Yağmur Köyü yeleği, panço. Hiç dinmeyen yağmura göre.",
+		"stats": {"def": 12, "hp": 20, "chakra": 15}, "c1": Color(0.32, 0.34, 0.38), "c2": Color(0.32, 0.34, 0.38),
+		"parts": [["uzun_gomlek", Color(0.32, 0.34, 0.38), Color(0.32, 0.34, 0.38)], ["ninja_pant", Color(0.28, 0.3, 0.34), null], ["ame_yelek", Color(0.4, 0.42, 0.46), null], ["panco", Color(0.3, 0.32, 0.36), null], ["ayak_014", Color(0.22, 0.22, 0.25), Color(0.6, 0.6, 0.62)]]},
+	"set_ne": {"name": "Ne Shōzoku", "slot": "set", "price": 850, "rank": 3, "desc": "Siyah gömlek ve pantolon, Kök Birliği yeleği, kol sargıları. Adı ve yüzü olmayan ninjalar.",
+		"stats": {"def": 15, "speed": 0.05, "melee": 0.04}, "c1": Color(0.1, 0.1, 0.12), "c2": Color(0.1, 0.1, 0.12),
+		"parts": [["uzun_gomlek", Color(0.1, 0.1, 0.12), Color(0.1, 0.1, 0.12)], ["siyah_pant", Color(0.08, 0.08, 0.1), null], ["kok_yelek", Color(0.22, 0.22, 0.24), null], ["kol_sargisi", Color(0.85, 0.85, 0.82), null], ["sandalet", Color(0.08, 0.08, 0.1), Color(0.9, 0.9, 0.88)]]},
+	"set_soryo": {"name": "Sōryo Shōzoku", "slot": "set", "price": 350, "rank": 1, "desc": "Keşiş üstü, bol pantolon, kesa, hasır zori. Tapınakların savaşçı rahiplerinin giysisi.",
+		"stats": {"def": 7, "chakra": 35, "hp": 10}, "c1": Color(0.85, 0.82, 0.72), "c2": Color(0.6, 0.4, 0.2),
+		"parts": [["kesis_ustu", Color(0.85, 0.82, 0.72), Color(0.6, 0.4, 0.2)], ["bol_pantolon", Color(0.82, 0.78, 0.68), null], ["kesa", Color(0.72, 0.4, 0.15), null], ["zori", Color(0.7, 0.6, 0.42), null]]},
+	"set_ronin": {"name": "Rōnin Shōzoku", "slot": "set", "price": 200, "rank": 0, "desc": "Yamalı gömlek ve pantolon, yırtık gezgin pelerini. Efendisiz kalmış savaşçı.",
+		"stats": {"def": 6, "melee": 0.05, "hp": 10}, "c1": Color(0.4, 0.36, 0.3), "c2": Color(0.3, 0.26, 0.2),
+		"parts": [["yamali_gomlek", Color(0.4, 0.36, 0.3), Color(0.3, 0.26, 0.2)], ["yamali_pant", Color(0.3, 0.28, 0.24), null], ["yirtik_pelerin", Color(0.35, 0.3, 0.26), null], ["ayak_014", Color(0.3, 0.24, 0.18), Color(0.75, 0.7, 0.6)]]},
+	"set_yuki_tabi": {"name": "Yuki Tabi Shōzoku", "slot": "set", "price": 450, "rank": 1, "desc": "Deri ceket, sargılı pantolon, gece pelerini, kürk kenarlı kar çizmesi. Kar Ülkesi yolları için.",
+		"stats": {"def": 10, "hp": 30, "speed": -0.01}, "c1": Color(0.36, 0.26, 0.2), "c2": Color(0.8, 0.78, 0.74),
+		"parts": [["deri_ceket", Color(0.36, 0.26, 0.2), Color(0.8, 0.78, 0.74)], ["sargili_pant", Color(0.28, 0.26, 0.24), null], ["gece_pelerini", Color(0.22, 0.24, 0.3), null], ["ayak_010", Color(0.4, 0.32, 0.26), Color(0.9, 0.9, 0.88)]]},
+	"set_matsuri": {"name": "Matsuri Yukata", "slot": "set", "price": 150, "rank": 0, "desc": "Çizgili yukata ve hasır zori. Festival akşamları için; savaşta koruması az.",
+		"stats": {"def": 2, "chakra": 10, "speed": 0.02}, "c1": Color(0.28, 0.36, 0.62), "c2": Color(0.9, 0.86, 0.78),
+		"parts": [["yukata", Color(0.28, 0.36, 0.62), Color(0.9, 0.86, 0.78)], ["sivil_pant", Color(0.2, 0.22, 0.3), null], ["zori", Color(0.7, 0.6, 0.42), null]]},
+	"set_kurenai_kenpo": {"name": "Akai Kenpō Shōzoku", "slot": "set", "price": 380, "rank": 1, "desc": "Kızıl dövüş ceketi, siyah taktik pantolon, parmaksız eldiven, bağcıklı bilek botu.",
+		"stats": {"def": 7, "melee": 0.06, "speed": 0.03}, "c1": Color(0.7, 0.14, 0.14), "c2": Color(0.12, 0.12, 0.14),
+		"parts": [["kizil_ceket", Color(0.7, 0.14, 0.14), Color(0.12, 0.12, 0.14)], ["siyah_pant", Color(0.1, 0.1, 0.12), null], ["eldiven", Color(0.1, 0.1, 0.12), null], ["ayak_005", Color(0.18, 0.15, 0.14), Color(0.6, 0.55, 0.5)]]},
+	"set_sennin_shugyo": {"name": "Sennin Shugyō Shōzoku", "slot": "set", "price": 950, "rank": 3, "desc": "Uzun kollu gömlek, ninja pantolonu, alev etekli uzun haori. Doğa enerjisi eğitimi alan ninjanın giysisi.",
+		"stats": {"def": 12, "chakra": 45, "hp": 25}, "c1": Color(0.85, 0.48, 0.15), "c2": Color(0.12, 0.12, 0.14),
+		"parts": [["uzun_gomlek", Color(0.85, 0.48, 0.15), Color(0.12, 0.12, 0.14)], ["ninja_pant", Color(0.85, 0.48, 0.15), null], ["sennin_haorisi", Color(0.72, 0.18, 0.15), Color(0.95, 0.9, 0.8)], ["sandalet", Color(0.12, 0.12, 0.14), Color(0.92, 0.92, 0.9)]]},
 	"set_kage": {"name": "Kage Shōzoku", "slot": "set", "price": 0, "rank": 6, "desc": "Köyün liderinin beyaz cübbesi.",
 		"stats": {"def": 16, "chakra": 50, "hp": 30}, "c1": Color(0.95, 0.95, 0.92), "c2": Color(0.8, 0.2, 0.15),
 		"parts": [["uzun_gomlek", Color(0.15, 0.2, 0.33), Color(0.12, 0.12, 0.14)], ["ninja_pant", Color(0.15, 0.2, 0.33), null], ["kage_cubbesi", Color(0.95, 0.95, 0.92), Color(0.8, 0.2, 0.15)], ["sandalet", Color(0.12, 0.12, 0.14), Color(0.92, 0.92, 0.9)]]},
 }
-const SHOP_SETS := ["set_genin", "set_shinobi", "set_chunin", "set_suna_chunin", "set_kiri_chunin", "set_kumo_chunin", "set_iwa_chunin", "set_uchiha", "set_suna"]
+const SHOP_SETS := ["set_genin", "set_shinobi", "set_chunin", "set_suna_chunin", "set_kiri_chunin", "set_kumo_chunin", "set_iwa_chunin", "set_uchiha", "set_suna", "set_tabibito", "set_iryonin", "set_kenpo", "set_kenshi", "set_samurai", "set_sengoku", "set_kage_no", "set_ame", "set_soryo", "set_ronin", "set_yuki_tabi", "set_matsuri", "set_kurenai_kenpo", "set_ne", "set_sennin_shugyo"]
 ## Boş bırakılamayan yuvalar (çıplak kalınmaz)
 const REQUIRED := ["govde", "bacak", "ayak"]
 
@@ -933,6 +978,10 @@ static func apply_look(p: Dictionary) -> void:
 	L["guard_stripes"] = null
 	L["knee_wraps"] = false
 	L["pants_flap"] = null
+	# önceki setin zırhı / desenleri sıfırlanır (Sengoku zırhı başka sete geçince üstte kalıyordu)
+	L["armor_style"] = null
+	L["pants_pattern"] = 0
+	L["foot_pattern"] = 0
 	var wear: Array = []   # [yuva, eşya, c1, c2, kayıt]
 	for s in SLOTS:
 		var g0 = equipped(p, s[0])

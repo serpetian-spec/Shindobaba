@@ -1310,6 +1310,8 @@ func order_done(m: Dictionary, ok: bool) -> void:
 
 ## Yakında dövüş: düşmanlar + (ally ise) dost yanında savaşır. Kazanırsan bağ, kaybedersen dost ölebilir.
 func ambush(id: String, kind: String, n: int, title: String, ally: bool) -> void:
+	if int(ChuninExam.stage) != 0 or Exams.cur != "":
+		return   # sınav sürerken pusu olayı yok
 	if Game.player == null:
 		return
 	var f: Dictionary = all()[id]

@@ -209,17 +209,10 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 
 	# ---- Chunin Sınavı stadyumu (güneydoğu)
 	var sx0 = 1050.0; var sn0 = -700.0
-	for k in 72:
-		var a = k * 5.0
-		var rad = deg_to_rad(a)
-		var o = Vector2(78 * sin(rad), 78 * cos(rad))
-		var gy = _gy(b, sx0 + o.x, sn0 + o.y)
-		b.box(Vector3(sx0 + o.x, gy + 11, sn0 + o.y), Vector3(7.4, 24, 4), Color(0.85, 0.78, 0.62), a)
-		for t in 5:
-			var ro = 74.0 - t * 2.6
-			b.box(Vector3(sx0 + ro * sin(rad), gy + 2 + t * 3.8, sn0 + ro * cos(rad)), Vector3(7, 1, 2.6), Color(0.7, 0.6, 0.48), a)
-	b.box(Vector3(sx0, _gy(b, sx0, sn0) + 0.05, sn0), Vector3(100, 0.1, 100), Color(0.62, 0.72, 0.42), 0, false)
-	b.box(Vector3(sx0, _gy(b, sx0, sn0 + 76) + 24, sn0 + 76), Vector3(20, 4, 10), Color(0.72, 0.18, 0.15))
+	# referans (Konoha stadyumu): nervürlü eğimli dış duvar, tribünler, ağaçlı saha, katlı çatılı ana bina + Kage locası (kuzeyde)
+	var srng = RandomNumberGenerator.new()
+	srng.seed = 7123
+	Stadium.build(b, sx0, sn0, _gy(b, sx0, sn0), Stadium.style_for("konoha"), srng, 0.0)
 	_act(b, sx0, sn0 - 84, 8, "chunin_exam", "[F] Chunin Sınavı başvurusu")
 	occupied.append([sx0, sn0, 86, 86, 25.0])
 

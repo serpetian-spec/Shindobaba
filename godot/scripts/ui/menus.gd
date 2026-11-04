@@ -2261,8 +2261,10 @@ static func _tab_skills(_main: Node, body: Control) -> void:
 	body.add_child(v)
 	v.add_child(UI.label("Güç %d  —  seviye yok: yaptıkça gelişirsin" % int(pr.get("level", 1)), 24, UI.CREAM, HORIZONTAL_ALIGNMENT_LEFT, true))
 	var how = {"ninjutsu": "Jutsu attıkça (mühür bozulsa da biraz). Yüksek rütbe teknikler için gerekli; mühür hızı.",
-		"taijutsu": "Yumrukla vurdukça; antrenman kuklası 4 kat.", "kenjutsu": "Silahla vurdukça; antrenman kuklası 4 kat.",
-		"chakra": "Jutsu attıkça, [C] meditasyon, duvar/ağaç tırmanma, su üstünde yürüme.", "dayaniklilik": "Hasar aldıkça.", "hiz": "Koştukça."}
+		"taijutsu": "Yumrukla vurdukça; antrenman kuklası 2 kat.", "kenjutsu": "Silahla vurdukça; antrenman kuklası 2 kat.",
+		"chakra": "Jutsu attıkça, [C] meditasyon, duvar/ağaç tırmanma, su üstünde yürüme.", "dayaniklilik": "Hasar aldıkça.", "hiz": "Koştukça.",
+		"genjutsu": "Genjutsu yaptıkça. Genjutsu tekniklerinin şartı.", "fuinjutsu": "Mühürleme teknikleri yaptıkça.", "iryo": "Tıbbi teknikler yaptıkça (Shōsen...).",
+		"senjutsu": "Senjutsu teknikleri yaptıkça.", "kuchiyose": "Çağırma teknikleri yaptıkça.", "shurikenjutsu": "Kunai, shuriken, senbon attıkça."}
 	for k in Mastery.KEYS:
 		var val = Mastery.get_v(pr, k)
 		var row = UI.hbox(14)

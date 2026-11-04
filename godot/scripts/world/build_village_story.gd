@@ -31,7 +31,7 @@ static func build_all(parent: Node3D) -> void:
 const INSIDE := ["suna", "kiri", "kumo", "iwa"]
 const MIN_SEP := 110.0
 ## yapı -> evlerin girmeyeceği yarıçap (avlu ve çevresi dahil)
-const CLEAR := {"academy": 62.0, "training": 34.0, "lookout": 24.0, "hospital": 34.0, "anbu": 40.0}
+const CLEAR := {"stadium": 92.0, "academy": 62.0, "training": 34.0, "lookout": 24.0, "hospital": 34.0, "anbu": 40.0}
 
 
 static func _sites(v: Dictionary) -> Dictionary:
@@ -43,7 +43,8 @@ static func _sites(v: Dictionary) -> Dictionary:
 	var out = {}
 	var taken: Array = []
 	var inside = String(v.get("id", "")) in INSIDE
-	for key in ["academy", "hospital", "anbu", "training", "lookout"]:
+	var keys = []
+	for key in ["stadium", "academy", "hospital", "anbu", "training", "lookout"]:
 		var best = Vector2.INF
 		var best_score = -1e9
 		for k in 60:
@@ -63,9 +64,14 @@ static func _sites(v: Dictionary) -> Dictionary:
 			if String(v.get("id", "")) == "kiri" and absf(po.x) < r * 0.8 and po.y > r * 0.15:
 				continue   # Kiri'nin kuzey gölü
 			var sep = 1e9
-			for q in taken:
-				sep = minf(sep, p.distance_to(q))
-			if sep < MIN_SEP:
+			var ok = true
+			for qi in taken.size():
+				var dq = p.distance_to(taken[qi])
+				sep = minf(sep, dq)
+				# yapıların kendi boşlukları birbirine girmesin (stadyum büyük)
+				if dq < maxf(MIN_SEP, float(CLEAR[key]) + float(CLEAR[keys[qi]]) + 15.0):
+					ok = false
+			if not ok:
 				continue
 			var var_h = 0.0
 			for o in [Vector2(40, 0), Vector2(-40, 0), Vector2(0, 30), Vector2(0, -30)]:
@@ -77,6 +83,7 @@ static func _sites(v: Dictionary) -> Dictionary:
 		if best == Vector2.INF:
 			best = c + Vector2(r * 0.5, 0).rotated(taken.size() * 1.3)
 		taken.append(best)
+		keys.append(key)
 		out[key] = best
 	return out
 
@@ -146,6 +153,15 @@ static func _compound(parent: Node3D, v: Dictionary, sty: Dictionary) -> void:
 	b.interact(Vector3(0, 0, -7.0), 4, "enter", "[F] Gir: %s Hastanesi" % vn, {"room": "hospital", "vid": v["id"], "out": b.w(Vector3(0, 0, -9.0))})
 	for i in 3:
 		b.lantern(-6 + i * 6, -10)
+	b.finish()
+	# --- Chūnin Sınavı final stadyumu (köyün renginde)
+	p = sites["stadium"]
+	base = Game.terrain_height(p.x, -p.y)
+	b = Builder.new(parent, p.x, p.y, base, "Story_%s_stadyum" % v["id"])
+	var srng = RandomNumberGenerator.new()
+	srng.seed = hash(v["id"] + "_stadyum")
+	var kdir = rad_to_deg(atan2(float(v["x"]) - p.x, float(v["y"]) - p.y))   # Kage locası köy merkezine bakan tarafta
+	Stadium.build(b, 0.0, 0.0, 0.0, Stadium.style_for(String(v["id"])), srng, kdir)
 	b.finish()
 	# --- ANBU / Kage muhafızları karargâhı
 	p = sites["anbu"]

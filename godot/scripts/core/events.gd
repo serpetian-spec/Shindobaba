@@ -64,6 +64,9 @@ func stadium_pos(vid := "") -> Vector3:
 			if it.get("kind", "") == "chunin_exam":
 				return it["pos"] + Vector3(0, 0, -84)
 	var v = Game.village(vid)
+	if BuildVillageStory.STYLE.has(vid):
+		var s: Vector2 = BuildVillageStory._sites(v)["stadium"]   # köyün kalıcı stadyumu
+		return Game.from_map(s)
 	return Game.from_map(Vector2(float(v["x"]) + float(v["r"]) * 0.35, float(v["y"]) - float(v["r"]) * 0.2))
 
 
@@ -154,24 +157,22 @@ func _forest() -> void:
 	inv.erase("scroll_heaven")
 	inv.erase("scroll_earth")
 	inv["scroll_" + have] = 1
-	# girişe ışınla (ormanın kenarı)
-	var start = c + Vector3(150, 0, 0)
+	# girişe ışınla: ormanın KENARI (kuleye yürünür; eskiden kulenin dibinde başlıyordu)
+	var fr = _forest_r()
+	var start_a = randf() * TAU
+	var start = c + Vector3(cos(start_a), 0, sin(start_a)) * fr * 0.85
+	start = Missions.open_ground(start, 30.0)
 	start.y = Game.ground_height(start.x, start.z)
-	Game.player.respawn(start)
+	Game.player.respawn(start + Vector3.UP * 0.5)
 	Exams._clear_nodes()
 	team = Exams.spawn_teammates(start, 2, maxi(10, int(p()["level"])))
 	rivals.clear()
-	for t in 3:
-		var ang = TAU * t / 3.0 + 0.4
-		var tc = c + Vector3(cos(ang), 0, sin(ang)) * 85.0
-		var carrier = t < 2
-		for i in 3:
-			var e = _rival_enemy(RIVALS[(t * 3 + i) % RIVALS.size()], 0.75, i)
-			if carrier and i == 0:
-				e.set_meta("carries", st["need"])
-				e.display_name += " ✉"
-			_place(e, tc + Vector3(randf_range(-8, 8), 0, randf_range(-8, 8)))
-			rivals.append(e)
+	# rakip takımların kampları ormana dağılır; oyuncu yaklaşınca doğarlar (uzakta arazi çarpışması yokken düşüp kayboluyorlardı)
+	st["camps"] = []
+	for t in 4:
+		var ang = start_a + PI * 0.5 + TAU * t / 4.0 + randf_range(-0.3, 0.3)
+		var tc = c + Vector3(cos(ang), 0, sin(ang)) * fr * randf_range(0.35, 0.7)
+		st["camps"].append({"pos": [tc.x, tc.y, tc.z], "carrier": t < 3, "i": t, "spawned": false})
 	_mark(c, "Ölüm Ormanı — Kule")
 	Game.profile["active_mission"] = {"title": "Ölüm Ormanı", "desc": "%s Parşömeni'ni rakip takımlardan al (✉) ve 5 gün içinde kuleye ulaş." % ("Yer" if st["need"] == "earth" else "Gök"), "type": "story", "rank": "C", "count": 1, "progress": 0}
 	Hud.objective_changed()
@@ -201,6 +202,7 @@ func _rival_enemy(r: Dictionary, scale: float, i := 0) -> Enemy:
 	a["look"]["village"] = r["v"]
 	a["look"]["gender"] = "f" if r.get("f", false) else "m"
 	a["xp"] = 60 + lv * 4
+	a["no_level"] = true   # sınav adayı: isim etiketinde seviye yok
 	e.setup(a)
 	get_tree().current_scene.add_child(e)
 	Exams.nodes.append(e)
@@ -220,8 +222,35 @@ func _mark(at: Vector3, nm: String) -> void:
 	Missions.target_name = nm
 
 
+func _forest_r() -> float:
+	if host == "konoha" and not Game.village("forest_death").is_empty():
+		return float(Game.village("forest_death").get("r", 500))
+	return 450.0
+
+
+func _spawn_camps() -> void:
+	var pp = Game.player.global_position
+	for cp in st.get("camps", []):
+		if cp["spawned"]:
+			continue
+		var tc = Vector3(cp["pos"][0], cp["pos"][1], cp["pos"][2])
+		if Vector2(tc.x - pp.x, tc.z - pp.z).length() > 140.0:
+			continue
+		cp["spawned"] = true
+		for i in 3:
+			var e = _rival_enemy(RIVALS[(int(cp["i"]) * 3 + i) % RIVALS.size()], 0.75, i)
+			if cp["carrier"] and i == 0:
+				e.set_meta("carries", st["need"])
+				e.display_name += " ✉"
+				if e.nameplate:
+					e.nameplate.text = e.display_name
+			_place(e, Missions.open_ground(tc + Vector3(randf_range(-8, 8), 0, randf_range(-8, 8)), 12.0))
+			rivals.append(e)
+
+
 func _forest_tick(dt: float) -> void:
 	Exams.follow_player(team)
+	_spawn_camps()
 	st["forest_t"] = float(st["forest_t"]) - dt
 	var day = 6 - int(ceil(float(st["forest_t"]) / DAY_LEN))
 	day = clampi(day, 1, 5)
@@ -247,7 +276,7 @@ func _forest_tick(dt: float) -> void:
 		Hud.objective_progress("Gün %d/5  •  Kuleye ulaş!" % day)
 		# yatay mesafe: Konoha'nın Ölüm Ormanı kulesi 40 m yarıçaplı; merkezine 30 m yaklaşmak imkânsızdı
 		var tw: Vector3 = st["tower"]
-		if Vector2(Game.player.global_position.x - tw.x, Game.player.global_position.z - tw.z).length() < 58.0 or st.get("at_tower", false):
+		if Vector2(Game.player.global_position.x - tw.x, Game.player.global_position.z - tw.z).length() < 34.0 or st.get("at_tower", false):
 			st["forest_days"] = float(st["forest_t"]) / DAY_LEN
 			var alive = 0
 			for m in team:
@@ -285,9 +314,15 @@ func _prelims() -> void:
 	st["opponents"] = [pool[0], pool[1]]
 	st["finalists"] = [pool[2], pool[3], pool[4]]
 	st["prelim_i"] = 0
+	# kanon: ön elemeler kulenin içindeki salonda (dev el mührü heykeli, balkonlardan izleyen adaylar)
 	var arena = st["tower"] + Vector3(0, 0, 60)
+	if Interiors.inst:
+		Interiors.inst.enter({"pos": st["tower"], "out": st["tower"] + Vector3(0, 0, 40), "room": "chunin_hall", "kind": "enter"})
+		await get_tree().create_timer(1.6).timeout
+		arena = Interiors.inst.origin + Vector3(0, 0, -Interiors.HALL_D * 0.5)
+	else:
+		Exams.make_arena(arena, 26.0, false)
 	st["arena"] = arena
-	Exams.make_arena(arena, 26.0, false)
 	Hud.dialog("Ön Eleme Gözetmeni", "Kuleye çok fazla takım ulaştı. Finaller için ön elemeler yapacağız: bire bir, kaybeden elenir. Takım arkadaşların da kendi maçlarında. İlk rakibin: %s — %s." % [pool[0]["name"], pool[0]["style"]],
 		[{"label": "Eşleşmeleri gör", "cb": func():
 			ExamUI.bracket("Ön Elemeler", [[p()["name"], pool[0]["name"], ""], [team_name(0), pool[5]["name"], team_name(0)], [team_name(1), pool[6]["name"], pool[6]["name"]], [p()["name"] + " / ?", pool[1]["name"], ""]],
@@ -325,6 +360,8 @@ func _next_prelim() -> void:
 # ------------------------------------------------------------------ 4. aşama: final turnuvası
 func _to_finals() -> void:
 	stage = 4
+	if Interiors.inst and Interiors.inst.inside == "chunin_hall":
+		await Interiors.inst.exit()
 	var sp = stadium_pos()
 	Hud.dialog("Ön Eleme Gözetmeni", "Finale kaldın! Bir ay boyunca hazırlan (zaman atlanır) ve %s stadyumuna gel. Final turnuvasını Kage'ler, daimyōlar ve tüm köy izleyecek." % Game.village(host).get("name", host), [])
 	if Game.world:
@@ -338,9 +375,9 @@ func _finals() -> void:
 	stage = 5
 	var sp = stadium_pos()
 	st["arena"] = sp
-	if host != "konoha":
+	if host != "konoha" and not BuildVillageStory.STYLE.has(host):
 		Exams.make_arena(sp, 34.0, true)
-	Exams.spawn_audience(sp, 74.0 if host == "konoha" else 34.0, 30)
+	Exams.spawn_audience(sp, 34.0, 40, host == "konoha" or BuildVillageStory.STYLE.has(host))
 	var fin: Array = st["finalists"]
 	st["final_i"] = 0
 	ExamUI.bracket("Chūnin Final Turnuvası — %s" % Game.village(host).get("name", host),

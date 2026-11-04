@@ -1397,11 +1397,44 @@ static func forest_death(parent: Node3D, l: Dictionary) -> void:
 	var b = Builder.new(parent, l["x"], l["y"], l["base"], "OlumOrmani")
 	b.view_dist = 4000.0
 	var r = float(l["r"])
+	Roadside._add_clear(float(l["x"]), float(l["y"]), 70.0)   # kulenin çevresi açıklık (ağaçlar kuleyi ve kapıyı örtmesin)
 	b.wall_ring_at(0, 0, r, 12.0, Color(0.35, 0.3, 0.25), [[270.0, 2.0]], 1.5)
 	b.box(Vector3(-r, 14, 0), Vector3(3, 3, 20), Color(0.6, 0.15, 0.12), 0, false)
-	b.cyl(Vector3(0, 35, 0), 80, 70, Color(0.75, 0.7, 0.62), true, 24)
-	b.cone(Vector3(0, 82, 0), 92, 26, Color(0.4, 0.4, 0.45), 24, true)
-	b.interact(Vector3(0, 0, -42), 7, "fod_tower", "[F] Merkez Kule")
+	# Merkez Kule (referans: Ölüm Ormanı kulesi): yukarı daralan katlar, kırmızı-kahve duvar, aralarda krem saçak kuşakları,
+	# pencere sıraları, tepede gözlem kulübesi; önünde çatılı, fenerli kırmızı kapı
+	var red = Color(0.62, 0.24, 0.18)
+	var cream = Color(0.9, 0.84, 0.66)
+	var y = 0.0
+	for t in 7:
+		var rr = 22.0 - t * 1.4
+		var hh = 10.0
+		b.cyl(Vector3(0, y + hh * 0.5, 0), rr * 2.0, hh, red if t % 2 == 0 else red.darkened(0.08), true, 28)
+		for k in 14:   # pencere sırası
+			var a = TAU * k / 14.0
+			b.box(Vector3(sin(a) * (rr + 0.05), y + hh * 0.55, cos(a) * (rr + 0.05)), Vector3(1.6, 1.8, 0.3), Color(0.24, 0.16, 0.12), rad_to_deg(a), false)
+		b.frustum(Vector3(0, y + hh + 0.6, 0), (rr + 3.0) * 2.0, 1.4, cream, false, 28)   # saçak kuşağı
+		for q in 3:   # dışa taşan odacıklar (referans): kırmızı kutu + krem çatı + pencere
+			var aq = deg_to_rad(40.0 + t * 53.0 + q * 120.0)
+			var pq = Vector3(sin(aq) * (rr + 1.4), y + hh * 0.45, cos(aq) * (rr + 1.4))
+			b.box(pq, Vector3(4.4, 4.2, 3.2), red.darkened(0.05), rad_to_deg(aq), false)
+			b.roof(pq + Vector3(0, 2.8, 0), Vector3(5.2, 1.4, 4.0), cream, rad_to_deg(aq))
+			b.box(pq + Vector3(sin(aq) * 1.65, 0.2, cos(aq) * 1.65), Vector3(1.6, 1.4, 0.2), Color(0.24, 0.16, 0.12), rad_to_deg(aq), false)
+		y += hh + 1.2
+	b.cyl(Vector3(0, y + 3.0, 0), 12.0, 6.0, red.darkened(0.15), true, 16)   # gözlem kulübesi
+	b.cone(Vector3(0, y + 8.0, 0), 16.0, 5.0, cream, 16, true)
+	b.cyl(Vector3(0, y + 12.0, 0), 0.4, 4.0, Color(0.3, 0.3, 0.32), false, 6)   # anten
+	# kapı: 22 m yarıçaplı tabanın güneyinde (yerel -n), çatılı kırmızı çerçeve, iki fener, 天 levhası
+	var dn = -22.6
+	b.box(Vector3(0, 3.2, dn), Vector3(6.0, 6.4, 1.0), Color(0.12, 0.08, 0.06), 0, false)   # kapı boşluğu
+	for sx in [-1.0, 1.0]:
+		b.box(Vector3(sx * 3.6, 4.0, dn - 0.6), Vector3(0.9, 8.0, 0.9), Color(0.75, 0.15, 0.12))
+		b.cyl(Vector3(sx * 5.2, 5.4, dn - 1.4), 1.0, 1.6, Color(1.0, 0.85, 0.55), false, 10)   # fener
+	b.box(Vector3(0, 8.4, dn - 0.6), Vector3(9.6, 0.8, 1.2), Color(0.75, 0.15, 0.12))
+	b.roof(Vector3(0, 9.6, dn - 1.0), Vector3(11.0, 1.8, 3.6), cream, 0.0)
+	b.kanji(Vector3(0, 7.0, dn - 0.62), "天", 1.4, Color(0.95, 0.9, 0.8), 0.0)
+	for k in 6:   # kapıya giden taş yol
+		b.box(Vector3(0, 0.1, dn - 4.0 - k * 5.0), Vector3(5.0, 0.2, 4.4), Color(0.6, 0.58, 0.52), 0, false)
+	b.interact(Vector3(0, 0, dn - 2.0), 6, "fod_tower", "[F] Merkez Kule")
 	b.interact(Vector3(-r + 6, 0, 0), 8, "fod_gate", "[F] 44. Alan Kapısı")
 	b.finish()
 

@@ -1344,10 +1344,15 @@ func pull_to(c: Node3D, e: Node3D, dur: float, stop := 1.6) -> void:
 		e.global_position = gp(from.lerp(to, k * k)), Callable())
 
 
+## Jutsu kuchiyoseleri de normal kuchiyose ile aynı mührü kullanır: avuç yere vurur, mürekkep çağırma formülü yayılır, duman
 func summon_circle(pos: Vector3, r: float, col: Color, dur: float) -> void:
-	ground_disc(pos, r, col, dur, 2, 12)
-	FX.smoke_puff(pos + Vector3.UP * 0.6, r * 0.35, 14)
-	Sfx.play("poof", pos, 0.8)
+	var gpos = gp(pos)
+	var host_n: Node3D = Game.player if Game.player else get_tree().current_scene as Node3D
+	if host_n:
+		Contracts._slam(host_n, gpos, col, r)
+		Contracts._circle(host_n, gpos, maxf(1.6, r * 1.1), col)
+	FX.smoke_puff(gpos + Vector3.UP * 0.6, r * 0.35, 14)
+	Sfx.play("poof", gpos, 0.8)
 
 
 # ================================================================== YILAN YOLU
@@ -2509,6 +2514,7 @@ func p_kuchiyose_tetsuzan(c: Node3D, t: Node3D) -> void:
 	var center = gp(Jutsu._aim_ground(c, t, 14.0, 32.0))
 	busy(c, 0.8)
 	var sky = center + Vector3.UP * 28.0
+	summon_circle(gp(c.global_position + c.face_dir() * 1.2), 3.0, Color(0.85, 0.3, 0.25), 1.0)   # kanon kuchiyose mührü: avuç yere
 	ground_disc(sky, 6.0, Color(0.85, 0.3, 0.25), 1.0, 2, 12).global_position = sky
 	ground_disc(center, 8.0, Color(1.0, 0.4, 0.3), 1.0, 1, 0)
 	Sfx.play("poof", sky, 0.6)
@@ -15190,6 +15196,7 @@ func p_kuchiyose_gedo_mazo(c: Node3D, _t: Node3D) -> void:
 	var fd: Vector3 = c.face_dir()
 	var at = gp(c.global_position - fd * 28.0)
 	var yaw = atan2(-fd.x, -fd.z)
+	summon_circle(gp(c.global_position + fd * 1.0), 7.0, Color(0.6, 0.45, 0.75), 1.6)   # avuçlar yere: çağırma formülü yayılır
 	# bedel türü
 	var clan = String(Game.profile.get("clan", "")) if c is Player else String(c.get_meta("clan", ""))
 	var senju_uchiha = c is Player and ((clan == "uchiha" and Progress.has_nature("mokuton")) or (clan == "senju" and _player_eye_kinds().any(func(k): return k in [1, 4, 5, 6])))

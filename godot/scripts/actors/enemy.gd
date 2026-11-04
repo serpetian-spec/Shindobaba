@@ -208,6 +208,8 @@ static func auto_jutsu(kind: String, el: String, lv: int) -> Array:
 
 
 func setup(a: Dictionary) -> void:
+	if a.get("no_level", false):
+		set_meta("no_level", true)
 	arch = a
 	var k = String(a.get("kind", ""))
 	set_meta("faction", String(a.get("faction", k if k in ["konoha", "suna", "kiri", "kumo", "iwa", "ame", "samurai", "bandit"] else ("rogue" if k in ["rogue", "jinchuriki", "oto"] else k))))
@@ -274,7 +276,7 @@ func _ready() -> void:
 	super._ready()
 	home = global_position
 	nameplate = Label3D.new()
-	nameplate.text = "%s  Sv.%d" % [display_name, level]
+	nameplate.text = display_name if (has_meta("no_level") or get_meta("teammate", false)) else "%s  Sv.%d" % [display_name, level]
 	nameplate.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	# uzaktaki isimler üst üste binmesin: dünya boyutunda, 30 m'den sonra solarak kaybolur
 	nameplate.fixed_size = false

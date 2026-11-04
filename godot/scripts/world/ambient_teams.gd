@@ -43,8 +43,8 @@ func _process(dt: float) -> void:
 	if t > 0.0:
 		return
 	t = randf_range(50.0, 90.0)
-	if teams.size() >= MAX_TEAMS or not _outdoors(pp):
-		return
+	if teams.size() >= MAX_TEAMS or not _outdoors(pp) or int(ChuninExam.stage) != 0 or Exams.cur != "":
+		return   # sınav sürerken gezen takım çıkmaz
 	_spawn(pp)
 
 

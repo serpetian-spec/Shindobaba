@@ -9,7 +9,7 @@ const ALT := 1500.0
 
 const TITLES := {
 	"academy": "Ninja Akademisi", "hokage": "Hokage Kulesi — Görev Ofisi", "weapon_shop": "Silah Dükkânı",
-	"pharmacy": "Eczane", "scrolls": "Parşömenci", "contract_hall": "Sözleşme Ustası — Kuchiyose Salonu", "secret_hq": "Gizli Birlik Karargâhı", "tailor": "Terzi", "bbq": "Yakiniku Restoranı", "hospital": "Konoha Hastanesi",
+	"pharmacy": "Eczane", "scrolls": "Parşömenci", "contract_hall": "Sözleşme Ustası — Kuchiyose Salonu", "chunin_hall": "Merkez Kule — Ön Eleme Salonu", "secret_hq": "Gizli Birlik Karargâhı", "tailor": "Terzi", "bbq": "Yakiniku Restoranı", "hospital": "Konoha Hastanesi",
 	"home_player": "Senin Evin", "home": "Bir Ev", "teahouse": "Dango ve Çay Evi", "inn": "Han (Ryokan)",
 	"summit": "Demir Kalesi — Beş Kage Zirve Salonu", "lair_cave": "Kaçakların Sığınağı", "lair_lab": "Gizli Deney İni",
 }
@@ -247,7 +247,10 @@ func act(x: float, d: float, radius: float, kind: String, label: String, data :=
 
 ## İnsan: rol + yerel konum + bakış (derece; 0 = kapıya doğru bakar) + isteğe bağlı ad/replikler
 func person(role: String, x: float, d: float, face_deg: float, display := "", lines: Array = [], extra := {}) -> void:
-	spawn_q.append({"role": role, "pos": L(x, 0.05, d), "face": face_deg, "display": display, "lines": lines, "extra": extra})
+	var y = float(extra.get("y", 0.0))   # balkon gibi yüksek yerlerde duranlar
+	var ex = extra.duplicate()
+	ex.erase("y")
+	spawn_q.append({"role": role, "pos": L(x, 0.05 + y, d), "face": face_deg, "display": display, "lines": lines, "extra": ex})
 
 
 const NOT_PERSON := ["exit", "bed", "home_note", "enter"]
@@ -560,6 +563,7 @@ func _build(kind: String, seed: int) -> void:
 		"tailor": _tailor()
 		"scrolls": _scrolls()
 		"contract_hall": _contract_hall(String(door.get("vid", "konoha")))
+		"chunin_hall": _chunin_hall()
 		"secret_hq": _secret_hq(String(door.get("vid", "konoha")))
 		"bbq": _bbq()
 		"hospital": _hospital()
@@ -984,6 +988,73 @@ func _secret_hq(vid: String) -> void:
 
 ## Parşömenci: duvar boyu bölmeli raflarda dürülü parşömenler (element renkli), tezgâhta açık parşömen + fırça + mürekkep,
 ## tavandan asılı mühür kâğıtları, köşede parşömen sepetleri; satıcı tezgâhın arkasında
+## Ölüm Ormanı kulesinin ön eleme salonu (referans: Chūnin Sınavı ön elemeleri): gri-yeşil karo zemin, arka duvardan çıkan
+## pullu yeşil kollar ve Koç mührü yapan dev eller, önünde yarım daire kürsü; iki yanda korkuluklu balkonlar, üstte yüksek pencereler.
+const HALL_W := 32.0
+const HALL_D := 40.0
+func _chunin_hall() -> void:
+	var W = HALL_W; var D = HALL_D; var H = 15.0
+	shell(W, D, H, Color(0.62, 0.64, 0.6), Color(0.56, 0.6, 0.55), false)
+	# karo derzleri
+	var tile = Color(0.44, 0.48, 0.44)
+	for i in range(1, int(W / 4.0)):
+		bx(-W * 0.5 + i * 4.0, 0.012, D * 0.5, 0.06, 0.006, D, tile)
+	for j in range(1, int(D / 4.0)):
+		bx(0, 0.013, j * 4.0, W, 0.006, 0.06, tile)
+	# yüksek pencereler (iki yan duvar)
+	for side in [-1.0, 1.0]:
+		for k in 6:
+			bx(side * (W * 0.5 - 0.06), 11.5, 4.0 + k * 6.0, 0.05, 2.6, 3.4, Color(0.78, 0.86, 0.9))
+			bx(side * (W * 0.5 - 0.08), 11.5, 4.0 + k * 6.0, 0.05, 2.7, 0.15, Color(0.3, 0.3, 0.3))
+	# balkonlar: iki yanda 6 m yükseklikte, korkuluklu (katılımcılar buradan izler)
+	var bal = Color(0.5, 0.52, 0.5)
+	for side in [-1.0, 1.0]:
+		var x = side * (W * 0.5 - 2.0)
+		bx(x, 6.0, D * 0.45, 4.0, 0.4, D * 0.8, bal, true)
+		bx(x - side * 2.0, 7.0, D * 0.45, 0.08, 0.08, D * 0.8, Color(0.25, 0.25, 0.27))   # korkuluk
+		for k in 20:
+			bx(x - side * 2.0, 6.6, D * 0.05 + k * (D * 0.8 / 19.0), 0.06, 0.8, 0.06, Color(0.25, 0.25, 0.27))
+		for k in 3:   # balkon altı payandalar
+			bx(x - side * 1.6, 3.0, D * 0.15 + k * D * 0.3, 0.5, 6.0, 0.5, bal.darkened(0.15), true)
+	# arka duvar: kürsü (yarım daire, iki basamak)
+	for k in 14:
+		var a = PI * k / 13.0
+		bx(cos(a) * 6.5, 0.3, D - 1.0 - sin(a) * 4.0, 2.6, 0.6, 2.6, Color(0.58, 0.6, 0.56), true, Vector3(0, rad_to_deg(a), 0))
+	bx(0, 0.3, D - 1.0, 13.0, 0.6, 2.0, Color(0.58, 0.6, 0.56), true)
+	# dev heykel: iki kol arka duvardan çıkıp ortada Koç mührü yapar (pullu yeşil kollar, ten rengi eller)
+	var sleeve = Color(0.3, 0.42, 0.34)
+	var skin = Color(0.72, 0.6, 0.46)
+	for side in [-1.0, 1.0]:
+		var sh = L(side * 13.0, 9.0, D - 0.2)
+		var el = L(side * 9.0, 6.0, D - 7.0)
+		var wr = L(side * 2.6, 7.0, D - 9.5)
+		Loft.tube(mb, [sh, el, wr], [3.2, 2.9, 2.1], sleeve, 16, 4)
+		for q in 9:   # pullu kol: halka halka koyu bantlar
+			var t = q / 8.0
+			var pp = sh.lerp(el, t * 2.0) if t < 0.5 else el.lerp(wr, (t - 0.5) * 2.0)
+			var nx = (el - sh).normalized() if t < 0.5 else (wr - el).normalized()
+			var rr = lerpf(3.25, 2.15, t)
+			Loft.tube(mb, [pp - nx * 0.18, pp + nx * 0.18], [rr, rr], sleeve.darkened(0.25), 14, 1)
+	# eller: avuçlar birbirine kenetli, işaret + orta parmaklar yukarıda (Koç mührü)
+	var hc = L(0, 9.6, D - 10.0)
+	mb.add("box", hc, Vector3(5.6, 5.0, 3.0), skin)   # kenetli avuçlar (referans: insanın birkaç katı)
+	mb.add("box", hc + Vector3(0, -2.2, 0), Vector3(5.0, 1.6, 3.3), skin.darkened(0.08))   # kenetli alt parmaklar
+	for k in 2:
+		var fx = -0.8 + k * 1.6
+		Loft.tube(mb, [hc + Vector3(fx, 2.2, 0), hc + Vector3(fx, 6.0, 0.1), hc + Vector3(fx, 8.2, 0.2)], [0.85, 0.8, 0.62], skin, 10, 2)   # iki parmak yukarı
+	for sx in [-1.0, 1.0]:
+		Loft.tube(mb, [hc + Vector3(sx * 2.6, 0.4, -1.1), hc + Vector3(sx * 1.8, 2.0, -1.6)], [0.75, 0.62], skin, 10, 1)   # başparmaklar
+	lamp(0, H - 1.0, D * 0.3, Color(0.95, 0.97, 1.0), 2.2, 26.0)
+	lamp(0, H - 1.0, D * 0.75, Color(0.95, 0.97, 1.0), 2.2, 26.0)
+	lamp(0, 6.0, D - 10.0, Color(1.0, 0.92, 0.8), 1.4, 14.0)
+	# gözetmen kürsüde, katılımcılar balkonlarda
+	person("teacher", 0, D - 2.0, 0.0, "Ön Eleme Gözetmeni", ["Bire bir. Kaybeden elenir.", "Ölüm yok — gerekirse maçı ben durdururum."])
+	var names = ["Kenta", "Mio", "Daichi", "Aoi", "Ren", "Hana", "Sora", "Yui", "Ryō", "Emi"]
+	for k in 10:
+		var side = -1.0 if k % 2 == 0 else 1.0
+		person("teacher", side * (W * 0.5 - 2.6), 5.0 + (k / 2) * 6.5, -90.0 * side, "%s (aday)" % names[k], ["Sıradaki maç kimin?", "Rakibini iyi incele."], {"y": 6.2, "wander_r": 0.0})
+
+
 ## Sözleşme salonu: yerde mürekkeple çizilmiş dev çağırma çemberi, sözleşme parşömeni rafları, mühür kâğıtları, usta
 func _contract_hall(vid: String) -> void:
 	var W = 11.0; var D = 11.0; var H = 3.8

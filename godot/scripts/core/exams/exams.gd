@@ -102,6 +102,7 @@ func spawn_teammates(at: Vector3, n := 2, level := 8) -> Array:
 			nm = [String(a["name"]).replace(" (takım)", ""), a["look"]["gender"], a["look"]["hair_style"]]
 		a["name"] = "%s (takım)" % nm[0]
 		a["respawn"] = false
+		a["no_level"] = true
 		a["hp"] = 220.0 + level * 12.0
 		a["level"] = level
 		a["power"] = 0.9
@@ -184,7 +185,7 @@ func make_arena(center: Vector3, r := 34.0, stands := true) -> Node3D:
 
 
 ## Tribünlere oturmuş seyirciler (sayı kadar köylü)
-func spawn_audience(center: Vector3, r: float, n := 26) -> void:
+func spawn_audience(center: Vector3, r: float, n := 26, tiered := false) -> void:
 	for i in n:
 		var a = TAU * i / n + randf_range(-0.05, 0.05)
 		var vg = Villager.new()
@@ -192,6 +193,10 @@ func spawn_audience(center: Vector3, r: float, n := 26) -> void:
 		get_tree().current_scene.add_child(vg)
 		var q = center + Vector3(sin(a), 0, cos(a)) * (r + 4.0 + (i % 3) * 2.2)
 		q.y = Game.ground_height(center.x, center.z) + 5.2 + (i % 3) * 1.6
+		if tiered:   # Stadium tribün basamakları
+			var t = i % 5
+			q = center + Vector3(sin(a), 0, cos(a)) * (Stadium.R_FIELD + 2.2 + t * 2.4)
+			q.y = Game.ground_height(center.x, center.z) + 9.85 + t * 1.6
 		vg.global_position = q
 		vg.home = q
 		vg.facing = atan2(sin(a), cos(a))
