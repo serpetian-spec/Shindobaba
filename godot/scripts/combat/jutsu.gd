@@ -1275,17 +1275,22 @@ func j_juuken_64(c: Node3D, t: Node3D) -> void:
 
 func j_kaiten(c: Node3D, _t: Node3D) -> void:
 	var m = _mult(c)
-	# dönen chakra kubbesi: beyaz-mavi spiral kabuk + iç çekirdek + yerde şok dalgası ve toz halkası
-	var dome = Node3D.new()
-	c.add_child(dome)
-	dome.position = Vector3(0, 0.8, 0)
-	dome.add_child(VFX._mi(VFX._sphere(0.5, 28, 14), VFX.mat_spiral(Color(1, 1, 1), Color(0.55, 0.75, 1.0), 6.0, 3.0, 16.0, 1.7, Vector3.UP)))
-	var inner = VFX._mi(VFX._sphere(0.5, 20, 10), VFX.mat_wind(Color(0.85, 0.92, 1.0), 6.0, 10.0, Vector3.UP))
-	inner.scale = Vector3.ONE * 0.85
-	dome.add_child(inner)
-	dome.scale = Vector3.ONE * 0.3
-	var tw = dome.create_tween()
-	tw.tween_property(dome, "scale", Vector3(6.5, 5.0, 6.5), 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	# dönen chakra kubbesi: kabuk yok — kubbe yüzeyinde dönerek akan ak-mavi chakra çizgileri + yerde toz halkası
+	var R = 3.2
+	var kcol = Color(0.82, 0.92, 1.0)
+	var swirl = func():
+		if not is_instance_valid(c):
+			return
+		var o = c.global_position + Vector3.UP * 0.05
+		for n in 16:
+			var a0 = randf() * TAU
+			var ph = randf_range(0.08, 1.35)   # yükseklik açısı (0 = yer, PI/2 = tepe)
+			var rr = R * randf_range(0.9, 1.05)
+			WindFX.streak(func(u: float) -> Vector3:
+				var a = a0 + u * 2.4
+				var p2 = ph + u * 0.12
+				return o + Vector3(cos(a) * cos(p2), sin(p2) * 0.8, sin(a) * cos(p2)) * rr, 0.3, 0.12, kcol, randf() * 0.05, 10)
+	swirl.call()
 	VFX.shockwave(c.global_position + Vector3.UP * 0.1, Color(0.7, 0.85, 1.0), 12.0, 0.5)
 	FX.dust(c.global_position, 1.5)
 	if c is Player:
@@ -1297,7 +1302,7 @@ func j_kaiten(c: Node3D, _t: Node3D) -> void:
 		if not is_instance_valid(c):
 			return
 		c.model.rotation.y += 1.4
-		dome.rotation.y += 1.9
+		swirl.call()
 		if _i % 3 == 0:
 			VFX.puffs(c.global_position, {"amount": 10, "life": 0.5, "size": 1.0, "radius": 3.2, "vmin": 3, "vmax": 6, "dir": Vector3.UP, "spread": 30.0, "tangent": 20.0,
 				"colors": [Color(0.85, 0.78, 0.62, 1), Color(0.75, 0.68, 0.52, 1), Color(0.7, 0.62, 0.48, 0)]})
@@ -1311,10 +1316,7 @@ func j_kaiten(c: Node3D, _t: Node3D) -> void:
 				VFX.star(pr.global_position, Color(0.8, 0.9, 1.0), 2.0, 0.12)
 		Combat.hit_sphere(c, c.global_position + Vector3.UP, 3.4, {"dmg": 3.0 * m, "knock": 22.0, "launch": 4.0, "kind": "heavy"}), func():
 		if c is Player:
-			c.combat.action = ""
-		var tw2 = dome.create_tween()
-		tw2.tween_property(dome, "scale", Vector3.ONE * 0.1, 0.2)
-		tw2.tween_callback(dome.queue_free))
+			c.combat.action = "")
 
 
 # ---------------------------------------------------------------- Nara

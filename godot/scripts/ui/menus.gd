@@ -299,7 +299,7 @@ static func _eye_panel(main: Node, dv: VBoxContainer, pr: Dictionary) -> void:
 		var sk = Eyes.SKILLS.get(k, [])
 		if not sk.is_empty():
 			var si = sk[0 if _eq_slot == "sag_goz" else 1]
-			dv.add_child(UI.label("Göz tekniği: %s  (Jutsular sekmesinden yuvaya koy)" % si[0], 15, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
+			dv.add_child(UI.label("Göz tekniği: %s  (Jutsular sekmesinden yuvaya koy)" % Eyes.eye_skill_label(pr, "sag" if _eq_slot == "sag_goz" else "sol", k), 15, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
 		if k in [4, 5]:
 			_ms_editor(main, dv, Eyes.design_for(pr, _eq_slot))
 		# gözü çıkar: kavanoza konur, yerine normal göz kalır (geri takmak için aşağıdaki listeden)

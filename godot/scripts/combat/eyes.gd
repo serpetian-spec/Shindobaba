@@ -440,16 +440,30 @@ func _skill_name(side: String) -> String:
 
 ## Mangekyō/EMS gözünün yuva tekniği (tarzına göre: sağ göz 1., sol göz 2. teknik)
 func _ms_eye_jutsu(side: String) -> String:
-	var k = _kind(side)
+	return ms_eye_jutsu_of(Game.profile, side, _kind(side))
+
+
+## Statik: profil + göz tarafı + göz türü -> tarzın yuva tekniği ("" = varsayılan Amaterasu/Tsukuyomi)
+static func ms_eye_jutsu_of(pr: Dictionary, side: String, k: int) -> String:
 	if not k in [4, 5]:
 		return ""
-	var st = ms_style_of(Gear.equipped(Game.profile, side + "_goz"))
+	var st = ms_style_of(Gear.equipped(pr, side + "_goz"))
 	if k == 4:
-		var all = ms_styles(Game.profile)
+		var all = ms_styles(pr)
 		st = all[0] if not all.is_empty() else st   # normal Mangekyō: iki göz tek tarz
 	if st == "":
 		return ""
 	return String(MS_STYLES[st]["eyes"][0 if side == "sag" else 1])
+
+
+## Statik: yuvada / menüde görünen göz tekniği adı — basınca çalışan teknikle aynı (eskiden hep "Amaterasu" yazıyordu)
+static func eye_skill_label(pr: Dictionary, side: String, k: int) -> String:
+	var mj = ms_eye_jutsu_of(pr, side, k)
+	if mj.begins_with("@"):
+		return String(ABILITY_NAMES.get(mj, mj))
+	if mj != "":
+		return String(Data.jutsu.get(mj, {}).get("name", mj)).split(" (")[0]
+	return String(SKILLS[k][0 if side == "sag" else 1][0]) if SKILLS.has(k) else "—"
 
 
 # ------------------------------------------------------------------ teknikler
@@ -580,20 +594,7 @@ func _air_palm() -> void:
 
 func _kaiten() -> void:
 	c.invuln = 1.4
-	_push(5.0, 16.0)
-	p.model.play("roll", 0.05, 0.6, true)
-	# dönen chakra kubbesi (Kaiten): spiral kabuk + yer şok dalgası + toz
-	var dome = VFX._mi(VFX._sphere(0.5, 28, 14), VFX.mat_spiral(Color(1, 1, 1), Color(0.55, 0.75, 1.0), 6.0, 3.0, 14.0, 1.6, Vector3.UP))
-	p.add_child(dome)
-	dome.position = Vector3(0, 0.6, 0)
-	dome.scale = Vector3.ONE * 0.5
-	var tw = dome.create_tween()
-	tw.tween_property(dome, "scale", Vector3(7.0, 5.5, 7.0), 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.parallel().tween_property(dome, "rotation:y", TAU * 3.0, 1.2)
-	tw.tween_property(dome, "scale", Vector3.ONE * 0.1, 0.25).set_ease(Tween.EASE_IN)
-	tw.tween_callback(dome.queue_free)
-	VFX.shockwave(p.global_position + Vector3.UP * 0.1, Color(0.7, 0.85, 1.0), 12.0, 0.5)
-	FX.dust(p.global_position, 1.4)
+	Jutsu.j_kaiten(p, null)   # tek Kaiten: jutsu ile aynı (dönen chakra çizgileri, mermi geri savurma)
 
 
 func _push(r: float, force: float) -> void:

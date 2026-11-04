@@ -177,7 +177,7 @@ static func clan_jutsu(c: String, lv: int, n := 4) -> Array:
 			mine = String(j.get("element", "")) in nat or learn.trim_prefix("kg:") in nat
 		if not mine and eye != "":
 			mine = learn == "eye:" + eye
-		if not mine:
+		if not mine or id == "hyuga_soke_no_juinjutsu":   # kafes kuş mührü dövüş tekniği değil (yalnız mühürlü yan aileye)
 			continue
 		var r := int(Enemy.RANK_I.get(String(j.get("canon_rank", "")), 2))
 		if r > cap:

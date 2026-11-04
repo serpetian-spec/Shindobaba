@@ -361,6 +361,12 @@ func _physics_process(dt: float) -> void:
 	if has_status("stun") or has_status("bind"):
 		step_move(Vector3.ZERO, dt, false)
 		model.play("idle" if has_status("bind") else "hit", 0.2, 0.3)
+		# Jūkenhō Ichigekishin (kanon, Neji): bağlanan Hyūga bütün tenketsulardan chakra fışkırtıp bağı kırar — oyuncuyla aynı kural
+		var esc = "jukenho_ichigekishin"
+		var nowe = Time.get_ticks_msec() / 1000.0
+		if has_status("bind") and not has_status("stun") and esc in arch.get("jutsu", []) and nowe >= float(jcd.get(esc, 0.0)) and randf() < dt * 2.0:
+			jcd[esc] = nowe + Combat.jutsu_cd(Data.jutsu.get(esc, {}))
+			Jutsu.execute(self, esc, target)
 		return
 	_think(dt)
 	if arch.has("style"):
@@ -542,7 +548,9 @@ func _chase(dt: float) -> void:
 		# her jutsu oyuncudakiyle aynı bekleme süresine tabi (aynı dalga jutsusu 15 sn'de 6 kez gelmez)
 		var nowj = Time.get_ticks_msec() / 1000.0
 		var ready = jl.filter(func(id): return nowj >= float(jcd.get(id, 0.0)))
-		if not ready.is_empty() and nowj >= jgap and randf() < 0.85 and not has_status("sealed"):   # chakra noktaları kapalıysa jutsu yok
+		if has_status("sealed"):   # tenketsu kapalı: chakra yoğrulamaz, yalnız taijutsu (oyuncuyla aynı kural)
+			ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("category", "")) == "taijutsu")
+		if not ready.is_empty() and nowj >= jgap and randf() < 0.85:
 			var pick = String(ready.pick_random())
 			jcd[pick] = nowj + Combat.jutsu_cd(Data.jutsu.get(pick, {})) * randf_range(1.0, 1.25)
 			_jdmg[pick] = 0.0

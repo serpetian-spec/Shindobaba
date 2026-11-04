@@ -496,6 +496,7 @@ func _hakke(c: Node3D, t: Node3D, id: String, strikes: int, r: float, seal_dur: 
 			if live(v):
 				hit(c, v.global_position + Vector3.UP, 1.4, inf(c, id, 0.8, {"knock": 16.0, "launch": 4.0, "kind": "heavy", "hitstop": 0.1}))
 				seal_points(v, seal_dur)
+				st(v, "slow", seal_dur * 0.5)   # kanon: tenketsu kapanınca hareket etmek de zorlaşır
 				_palm_flash(v.global_position + Vector3.UP * 1.1, v.global_position - c.global_position, 2.2)
 		VFX.shockwave(center + Vector3.UP * 0.8, Color(0.7, 0.85, 1.0), r * 2.4, 0.35, false)
 		VFX.shockwave(center + Vector3.UP * 0.1, Color(0.6, 0.85, 1.0), r * 3.5, 0.5)
@@ -540,52 +541,100 @@ func c_juken(c: Node3D, t: Node3D) -> void:
 		Sfx.play("punch", p, 1.2))
 
 
-## Tek Darbe Beden: tek avuç, şok dalgası hedefin içinden geçip arkasındakileri de vurur
-func c_jukenho_ichigekishin(c: Node3D, t: Node3D) -> void:
-	var d = fwd(c, t)
-	busy(c, 0.6)
-	_byakugan_on(c, 1.0)
-	anim(c, "cross", 1.2)
-	after(0.25, func():
-		var p = c.global_position + Vector3.UP * 1.1 + d * 1.2
-		_palm_flash(p, d, 2.0)
-		VFX.shockwave(p, Color(0.7, 0.88, 1.0), 7.0, 0.3, false, d)
-		VFX.star(p, Color(0.8, 0.92, 1.0), 3.0, 0.15)
-		for k in 6:
-			var q = p + d * k * 1.6
-			after(k * 0.03, func():
-				FX.ring(q, Color(0.6, 0.85, 1.0), 2.6 + k * 0.6, 0.3, false, d)
-				if k % 2 == 0:
-					_palm_flash(q, d, 1.4 + k * 0.2)
-				hit(c, q, 1.3, inf(c, "jukenho_ichigekishin", 0.6, {"knock": 9.0, "launch": 2.0, "kind": "heavy", "hitstop": 0.05})))
-		shake(0.4))
-
-
-## Dağ Kıran: dev, saydam chakra avucu ileri kayar; yolundaki herkes bir kez ezilip savrulur
-func c_hakke_hasangeki(c: Node3D, t: Node3D) -> void:
-	var d = fwd(c, t)
-	var b = MB.new()
-	b.add("sphere", Vector3.ZERO, Vector3(4.2, 4.8, 0.9), Color.WHITE, Vector3.ZERO, 16)
-	for k in 4:
-		b.add("cyl", Vector3(-1.4 + k * 0.95, 3.4 + (0.5 if k in [1, 2] else 0.0), 0), Vector3(0.75, 2.6, 0.6), Color.WHITE, Vector3(0, 0, (-12 + k * 8)), 8)
-	b.add("cyl", Vector3(2.4, 0.6, 0), Vector3(0.8, 2.2, 0.6), Color.WHITE, Vector3(0, 0, -55), 8)
-	var palm = place(b, c.global_position + Vector3.UP * 5.0 + d * 3.0, VFX.mat_spiral(Color(0.9, 0.97, 1.0), Color(0.45, 0.7, 1.0), 3.0, 1.0, 3.0, 1.6))
-	palm.look_at(palm.global_position + d, Vector3.UP)
-	palm.scale = Vector3.ONE * 0.4
+## Jūkenhō Ichigekishin (kanon, Neji): Hyūga bedenindeki bütün tenketsulardan aynı anda chakra fışkırtır — yakındakiler
+## savrulur; ağ, su hapsi gibi bağlar parçalanır (Kidōmaru'nun ağı, Kisame'nin Suirō'su). Tenketsu kapalıysa yapılamaz (ninjutsu kuralı).
+func c_jukenho_ichigekishin(c: Node3D, _t: Node3D) -> void:
 	busy(c, 0.5)
-	Sfx.play("wind", c.global_position, 0.6)
-	var hits = []
-	var tw = palm.create_tween()
-	tw.tween_property(palm, "scale", Vector3.ONE * 2.1, 0.15)
-	every(0.7, 1.0 / 30.0, func(_i, k):
-		palm.global_position = c.global_position + Vector3.UP * 5.0 + d * 3.0 if k < 0.02 else palm.global_position + d * 1.1
-		for h in hit(c, palm.global_position - Vector3.UP * 1.2, 6.0, inf(c, "hakke_hasangeki", 1.6, {"knock": 22.0, "launch": 6.0, "kind": "heavy", "hitstop": 0.06}), hits):
-			hits.append(h)
-		if _i % 3 == 0:
-			FX.dust(gp(palm.global_position), 1.3), func():
-		VFX.shockwave(palm.global_position, Color(0.75, 0.9, 1.0), 9.0, 0.35, false, d)
-		fade_free(palm, 0.0, 0.2))
-	shake(0.6)
+	_byakugan_on(c, 0.9)
+	anim(c, "crouch", 2.4)
+	var col = Color(0.78, 0.9, 1.0)
+	# bağı çözer (kanon: bütün beden chakra basıncı)
+	for k in ["bind", "mud", "slow", "chilled"]:
+		if c.get("statuses") != null:
+			c.statuses.erase(k)
+	if c is Player:
+		c.input_locked = 0.0
+	# toplanma: tenketsu noktalarında küçük ışıltılar
+	for k in 14:
+		var q = Vector3(randf_range(-0.3, 0.3), randf_range(0.3, 1.7), randf_range(-0.3, 0.3))
+		after(k * 0.008, func():
+			if live(c):
+				VFX.star(c.global_position + q, col, 0.35, 0.12))
+	after(0.16, func():
+		if not live(c):
+			return
+		anim(c, "cast_out", 2.0)
+		var cp = c.global_position + Vector3.UP * 1.0
+		# bütün bedenden dışa fışkıran chakra çizgileri (kabuk yok)
+		for n in 48:
+			var dir = Vector3(randf_range(-1, 1), randf_range(-0.35, 0.9), randf_range(-1, 1)).normalized()
+			var st0 = cp + dir * 0.3 + Vector3.UP * randf_range(-0.6, 0.6)
+			var L = randf_range(2.6, 4.4)
+			WindFX.streak(func(u: float) -> Vector3: return st0 + dir * L * u, 0.36, 0.16, col, randf() * 0.04, 8)
+		VFX.puffs(cp, {"amount": 60, "life": 0.45, "size": 0.22, "radius": 0.5, "vmin": 6.0, "vmax": 13.0, "dir": Vector3.UP, "spread": 180.0, "damp": 4.0, "add": true,
+			"colors": [Color(1, 1, 1, 1), Color(0.6, 0.82, 1.0, 0)]})
+		# bedenin çevresinde bir an yanan ak chakra pusu (tenketsulardan sızan)
+		VFX.puffs(cp, {"amount": 18, "life": 0.5, "size": 1.1, "radius": 0.45, "vmin": 1.5, "vmax": 3.5, "dir": Vector3.UP, "spread": 180.0, "damp": 3.0, "add": true,
+			"colors": [Color(0.85, 0.94, 1.0, 0.55), Color(0.5, 0.75, 1.0, 0)]})
+		VFX.star(cp, col, 2.4, 0.14)
+		VFX.shockwave(gp(c.global_position) + Vector3.UP * 0.1, col, 7.0, 0.3)
+		FX.dust(c.global_position, 1.2)
+		# yakındaki mermiler/teknik parçaları basınçla söner
+		for n in get_tree().current_scene.get_children():
+			if n is Projectile and not n.dead and n.shooter != c and n.global_position.distance_to(cp) < 3.0:
+				n.block()
+		for e in enemies_near(c, c.global_position, 3.4):
+			var v = e.global_position - c.global_position
+			v.y = 0.0
+			v = v.normalized() if v.length() > 0.05 else c.face_dir()
+			hit(c, e.global_position + Vector3.UP, 0.9, inf(c, "jukenho_ichigekishin", 0.7, {"knock": 18.0, "launch": 3.0, "kind": "heavy", "dir": v, "hitstop": 0.06}))
+		Combat.popup_text(c.global_position + Vector3.UP * 2.6, "Ichigekishin!", col)
+		Sfx.play("wind", c.global_position, 1.3)
+		shake(0.35))
+
+
+## Hakke Hazangeki (kanon, Hiashi/Neji): Kūshō'nun güçlü hâli — YAKIN mesafede avuç hedefe dayanır, avuçtan çıkan dev
+## chakra dalgası hedefi kayalara çarpacak kadar uçurur (dalga arkasındaki toprağı da yarar)
+func c_hakke_hasangeki(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 6.0)
+	if tt and is_instance_valid(tt):
+		c.global_position = gp(tt.global_position - (tt.global_position - c.global_position).normalized() * (tt.radius + 0.9))
+		if c is Player:
+			c.combat.face_to(tt)
+	var d = fwd(c, tt if tt else t)
+	d.y = 0.0
+	d = d.normalized()
+	busy(c, 0.75)
+	_byakugan_on(c, 1.2)
+	anim(c, "crouch", 2.0)   # geri çekiliş: ağırlık arka ayağa
+	var col = Color(0.8, 0.92, 1.0)
+	VFX.gather(Jutsu._hand(c), col, 0.9)
+	after(0.28, func():
+		if not live(c):
+			return
+		anim(c, "cross", 1.6)
+		var p0 = c.global_position + Vector3.UP * 1.1 + d * 0.9
+		VFX.star(p0, col, 3.2, 0.16)
+		# dalga: avuçtan ileri açılan basınç çizgileri + yerde yarılan toprak
+		for n in 40:
+			var off = Vector3(randf_range(-1, 1), randf_range(-0.6, 1), randf_range(-1, 1)) * 0.5
+			var spread = d.cross(Vector3.UP) * randf_range(-0.22, 0.22) + Vector3.UP * randf_range(-0.08, 0.16)
+			var L = randf_range(9.0, 15.0)
+			WindFX.streak(func(u: float) -> Vector3: return p0 + off + (d + spread * u) * L * u, 0.4, 0.09, col, randf() * 0.06, 10)
+		for k in 7:
+			after(k * 0.04, func():
+				var g = gp(c.global_position + d * (2.0 + k * 2.0))
+				VFX.debris(g, Color(0.55, 0.42, 0.3), 6, 7.0, 0.35)
+				WindFX.soft_dust(g, {"amount": 6, "life": 0.9, "size": 1.2, "radius": 0.9, "vmin": 2.0, "vmax": 5.0, "dir": Vector3.UP + d, "spread": 50.0}, WindFX.dust_col(g)))
+		VFX.cracks(gp(c.global_position + d * 4.0), 5.0, Color(0.15, 0.12, 0.1, 0.8), 4.0)
+		# yakın darbe: dayanılan hedef + önündeki dar koridor
+		var hits = []
+		for k in 5:
+			for h in hit(c, p0 + d * (0.6 + k * 1.6), 1.2 + k * 0.15, inf(c, "hakke_hasangeki", 1.7, {"knock": 34.0, "launch": 5.0, "kind": "heavy", "dir": d, "hitstop": 0.1, "pierce_guard": true}), hits):
+				hits.append(h)
+		Sfx.play("wind", p0, 0.6)
+		Sfx.play("punch", p0, 0.7)
+		shake(0.7))
 
 
 # ================================================================== NARA — gölge: bağla, taklit ettir, dik, boğ

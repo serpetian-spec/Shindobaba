@@ -183,9 +183,27 @@ func hit_sphere(attacker: Node3D, center: Vector3, radius: float, info: Dictiona
 				inf["dir"] = d.normalized() if d.length() > 0.01 else -attacker.global_transform.basis.z
 			f.take_hit(inf)
 			hits.append(f)
+			if inf.get("melee", false):
+				_lion_drain(attacker, f)
 	if not hits.is_empty() and info.get("hitstop", 0.0) > 0.0:
 		hitstop(info["hitstop"])
 	return hits
+
+
+## Jūho Sōshiken (kanon): aslan başları dokunduğu kişinin chakra ağını emer — oyuncunun chakrası azalır,
+## düşmanın (chakra değeri yok) ağı kısa süre kapanır; emen taraf chakra kazanır. Oyuncu ve düşman aynı kural.
+func _lion_drain(attacker: Node3D, f: Node3D) -> void:
+	var on = Buffs.active.has("juho_soshiken") if attacker is Player else (attacker.get("buffs") != null and attacker.buffs.has("juho_soshiken"))
+	if not on or not is_instance_valid(f):
+		return
+	if f is Player:
+		f.chakra = maxf(0.0, f.chakra - 6.0)
+	else:
+		f.apply_status("sealed", 1.2)
+	if attacker is Player:
+		attacker.chakra = minf(attacker.max_chakra, attacker.chakra + 4.0)
+	FX.burst(f.global_position + Vector3.UP * 1.1, {"amount": 6, "life": 0.35, "tex": FX.tex_spark, "size": 0.35, "vmin": 1.5, "vmax": 3.5, "dir": (attacker.global_position - f.global_position).normalized(),
+		"colors": [Color(0.75, 0.9, 1.0, 1), Color(0.35, 0.65, 1.0, 0)]})
 
 
 ## Dev saldırı alanı: origin (yerde) önündeki yelpaze dilimine giren HER düşmana vurur — boy farkı önemsiz

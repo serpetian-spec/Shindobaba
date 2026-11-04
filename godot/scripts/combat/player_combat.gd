@@ -968,6 +968,10 @@ func begin_cast(jid: String) -> void:
 	var j: Dictionary = Data.jutsu.get(jid, {})
 	if j.is_empty():
 		return
+	# Jūken ile tenketsu kapatıldıysa chakra yoğrulamaz: yalnız taijutsu (düşmanla aynı kural)
+	if p.has_status("sealed") and String(j.get("category", "")) != "taijutsu":
+		Hud.msg("Chakra noktaların kapalı: şimdilik yalnız taijutsu yapabilirsin.", Color(0.6, 0.8, 1.0))
+		return
 	# dōjutsu teknikleri: göz açık olmadan yapılamaz (V)
 	if String(j.get("learn", "")).begins_with("eye:") and not String(j.get("learn", "")).ends_with("susanoo"):
 		var ey = modes.eyes if modes else null

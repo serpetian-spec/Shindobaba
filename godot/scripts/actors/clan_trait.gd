@@ -152,23 +152,7 @@ func _kusho(t: Node3D) -> void:
 func _kaiten() -> void:
 	_cast_pose("Hakkeshō Kaiten", Color(0.85, 0.92, 1.0))
 	f.model.play("spin", 0.05, 1.4, true)
-	var dome := MeshInstance3D.new()
-	var sm := SphereMesh.new()
-	sm.radius = 1.0
-	sm.height = 1.2
-	sm.is_hemisphere = true
-	dome.mesh = sm
-	dome.material_override = VFX.mat_wind(Color(0.82, 0.92, 1.0), 9.0, 7.0, Vector3.UP, 0.75)
-	get_tree().current_scene.add_child(dome)
-	dome.global_position = f.global_position
-	var tw := dome.create_tween().set_parallel()
-	tw.tween_property(dome, "scale", Vector3(4.0, 3.2, 4.0), 0.25)
-	tw.tween_property(dome, "rotation:y", TAU * 3.0, 0.9)
-	tw.chain().tween_property(dome, "scale", Vector3(4.6, 0.2, 4.6), 0.25)
-	tw.chain().tween_callback(dome.queue_free)
-	FX.dust(f.global_position, 2.0)
-	VFX.cracks(f.global_position, 4.0)
-	Combat.hit_sphere(f, f.global_position + Vector3.UP, 3.8, {"dmg": 14.0 * f.power, "knock": 18.0, "launch": 5.0, "kind": "heavy", "hitstop": 0.08})
+	Jutsu.j_kaiten(f, null)   # oyuncuyla aynı Kaiten: mermileri geri savurur, aynı görünüş (AI eşitliği)
 
 
 ## Jūken: chakra noktalarına vuruş — oyuncunun chakrası kesilir

@@ -1099,7 +1099,7 @@ func _process(dt: float) -> void:
 				st["empty"] = true; st["cd"] = 0.0
 				sn[0].queue_redraw()
 			continue
-		if not Data.jutsu.has(jid) and (jid in SpecialSlots.EYE_IDS or jid in SpecialSlots.BIJUU_IDS or jid in SpecialSlots.SUS_IDS) and Time.get_ticks_msec() > _ss_t:
+		if (jid in SpecialSlots.EYE_IDS or ((jid in SpecialSlots.BIJUU_IDS or jid in SpecialSlots.SUS_IDS) and not Data.jutsu.has(jid))) and Time.get_ticks_msec() > _ss_t:   # göz yuvası: tarz değişince ad da değişsin
 			_ss_t = Time.get_ticks_msec() + 2000
 			SpecialSlots.refresh(pr)
 		var j: Dictionary = Data.jutsu.get(jid, {})

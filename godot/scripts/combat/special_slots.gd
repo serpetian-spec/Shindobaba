@@ -21,7 +21,7 @@ static func refresh(pr: Dictionary) -> Array:
 		var id = EYE_IDS[i]
 		if k > 0 and Eyes.SKILLS.has(k):
 			var sk: Array = Eyes.SKILLS[k][i]
-			Data.jutsu[id] = {"name": "%s (%s göz)" % [sk[0], "sağ" if i == 0 else "sol"], "cost": int(sk[1]), "cd": float(sk[2]), "element": "",
+			Data.jutsu[id] = {"name": "%s (%s göz)" % [Eyes.eye_skill_label(pr, side, k), "sağ" if i == 0 else "sol"], "cost": int(sk[1]), "cd": float(sk[2]), "element": "",
 				"category": "dojutsu", "canon_rank": "S" if k >= 4 else "A", "seals": [], "virtual": "eye:" + side,
 				"desc": "%s gözünün tekniği. Gözler açıkken (V) slottan kullanılır." % Eyes.KINDS.get(k, "Göz")}
 			out.append(id)
