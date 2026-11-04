@@ -31,6 +31,7 @@ var boss_lbl: Label
 var lock_ret: Control
 var minimap: Control
 var vignette: ColorRect
+var darkness: ColorRect
 var fps_lbl: Label
 var dialog_layer: Control
 var game_hud: Control
@@ -130,6 +131,12 @@ func _build_vitals() -> void:
 	sm.shader = sh
 	vignette.material = sm
 	game_hud.add_child(vignette)
+	# Kokuangyo: görüş tamamen kararır (yalnız arayüz görünür)
+	darkness = ColorRect.new()
+	darkness.set_anchors_preset(Control.PRESET_FULL_RECT)
+	darkness.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	darkness.color = Color(0.0, 0.0, 0.01, 0.0)
+	game_hud.add_child(darkness)
 	# --- oyuncu çerçevesi (sol üst): yuvarlak portre + isim + ince çubuklar
 	var frame = Control.new()
 	frame.position = Vector2(26, 22)
@@ -1107,6 +1114,8 @@ func _process(dt: float) -> void:
 		for i in 4:
 			sub_pips[i].modulate.a = 1.0 if comb.sub_bars >= i + 1 else 0.18
 	(vignette.material as ShaderMaterial).set_shader_parameter("amount", clampf(1.0 - pl.hp / pl.max_hp * 2.5, 0.0, 0.8))
+	var dk = 0.97 if pl.has_status("kokuangyo") else 0.0
+	darkness.color.a = lerpf(darkness.color.a, dk, 0.25)
 	var slots: Array = pr.get("slots", [])
 	for i in SLOT_COUNT:
 		var jid = slots[i] if i < slots.size() else ""
@@ -1140,8 +1149,9 @@ func _process(dt: float) -> void:
 	var psel = ClanMech.pill_sel()
 	if psel != "pill":
 		pcd = ClanMech.aki_pill_left(psel)
-	item_lbl.text = "H   Merhem  ×%d
-Y   %s  %s%s" % [int(pr["inventory"].get("salve", 0)), ClanMech.AKI_PILL_NAMES.get(psel, "Asker Hapı"), ("(%d sn)" % ceili(pcd)) if pcd > 0.0 else "(hazır)", "  [O] değiştir" if ClanMech.pill_list().size() > 1 else ""]
+	var scd = get_tree().current_scene.salve_cooldown() if get_tree().current_scene.has_method("salve_cooldown") else 0.0
+	item_lbl.text = "H   Merhem  %s
+Y   %s  %s%s" % [("(%d sn)" % ceili(scd)) if scd > 0.0 else "(hazır)", ClanMech.AKI_PILL_NAMES.get(psel, "Asker Hapı"), ("(%d sn)" % ceili(pcd)) if pcd > 0.0 else "(hazır)", "  [O] değiştir" if ClanMech.pill_list().size() > 1 else ""]
 	if msg_t > 0.0:
 		msg_t -= dt
 		if msg_t <= 0.0:

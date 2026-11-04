@@ -1012,6 +1012,12 @@ func begin_cast(jid: String) -> void:
 	if need.begins_with("weapon:") and not need.substr(7) in Gear.held_ids(Game.profile):   # kılıca özgü teknik
 		Hud.msg("%s için %s kuşanmalısın." % [String(j["name"]), String(Gear.item(need.substr(7)).get("name", need.substr(7)))], Color(1, 0.75, 0.45))
 		return
+	if need == "islak_zemin":
+		var tgj = _cast_target()
+		var gpos: Vector3 = tgj.global_position if tgj else p.aim_point(40.0)
+		if not ClanMech.prepared_ground(gpos):
+			Hud.msg("%s için zemini hazırla: toprağı kır (Doton) ve su ekle (Suiton) — ya da çamur/su başında kullan." % String(j["name"]), Color(0.7, 0.85, 0.5))
+			return
 	if need == "sototoro" and not (Buffs.has("sototoro") or Buffs.has("santoro")):   # kanon: ninkenle birleşik kurt biçiminde
 		Hud.msg("%s yalnız Sōtōrō (ya da Santōrō) biçimindeyken yapılır." % String(j["name"]), Color(0.9, 0.9, 0.95))
 		return

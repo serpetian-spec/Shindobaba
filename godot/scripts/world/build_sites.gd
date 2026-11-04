@@ -226,14 +226,24 @@ static func _shop_row(b: Builder, style: String, rng: RandomNumberGenerator, inn
 	var nrm = Vector2(-dir.y, dir.x)
 	var list: Array = SHOPS if r >= 700.0 else [SHOPS[0], SHOPS[1], SHOPS[4], SHOPS[5]]
 	var d0 = minf(inner + 14.0, r * 0.6)   # merkez meydan / Kage binası dışında, ilk ev halkasında
+	# dükkânlar köye dağılır: her biri ayrı bir yönde (kapı caddeleri + aralar), merkezden farklı uzaklıkta;
+	# eskiden hepsi ana caddede 24 m arayla iç içe kümeleniyordu (Kiri'nin geniş kuleleri üst üste biniyordu)
+	var spread = clampf(r * 0.12, 30.0, 140.0)
 	for i in list.size():
 		var sh: Array = list[i]
 		var sd = 1.0 if i % 2 == 0 else -1.0
-		var along = d0 + float(i / 2) * 24.0
-		var q = dir * along + nrm * sd * 16.0
-		var wq = b.w(Vector3(q.x, 0, q.y))
-		if not b.area_free(Vector2(wq.x, wq.z), 7.0):
-			q += dir * 30.0   # yer doluysa (meydan yapısı) caddenin ilerisine
+		var ang = ga + 360.0 * i / list.size() + rng.randf_range(-12.0, 12.0)
+		if i < gates.size():
+			ang = float(gates[i]) + rng.randf_range(-6.0, 6.0)   # önce kapı caddelerinin kenarına
+		dir = Vector2(sin(deg_to_rad(ang)), cos(deg_to_rad(ang)))
+		nrm = Vector2(-dir.y, dir.x)
+		var along = d0 + rng.randf_range(0.2, 1.0) * spread
+		var q = dir * along + nrm * sd * 18.0
+		for tries in 8:
+			var wq = b.w(Vector3(q.x, 0, q.y))
+			if b.area_free(Vector2(wq.x, wq.z), 12.0):
+				break
+			q += dir * 22.0   # yer doluysa caddenin ilerisine
 		var fd = -nrm * sd   # cadde yönü
 		var yaw = rad_to_deg(atan2(-fd.x, -fd.y))
 		b.shift_off_road = true

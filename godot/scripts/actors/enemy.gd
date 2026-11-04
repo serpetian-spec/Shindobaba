@@ -81,7 +81,7 @@ static func archetype(kind: String, i := 0) -> Dictionary:
 			L.merge({"top": Color(0.3, 0.32, 0.36), "top2": Color(0.5, 0.52, 0.55), "pants": Color(0.25, 0.26, 0.3), "band": null, "vest": Color(0.55, 0.57, 0.6)}, true)
 			base.merge({"hp": 180.0, "level": 18, "power": 2.0, "aggr": 0.8, "name": "Samuray", "xp": 140, "ryo": 100, "guard": 0.5, "tools": false}, true)
 		"genin_rival":
-			L.merge({"top": Color(0.3, 0.45, 0.35), "band": Color(0.15, 0.22, 0.55), "hair_style": ["diken", "atkuyruğu", "kase"][i % 3]}, true)
+			L.merge({"top": Color(0.3, 0.45, 0.35), "band": Color(0.15, 0.22, 0.55), "hair_style": ["diken", "atkuyruğu", "kase"][i % 3], "age": "teen"}, true)
 			base.merge({"hp": 140.0, "level": 10, "power": 1.3, "element": ["katon", "fuuton", "suiton"][i % 3], "aggr": 0.75, "name": "Rakip Genin",
 				"xp": 100, "ryo": 0, "guard": 0.35, "sub": 0.25}, true)
 			base["jutsu"] = {"katon": ["katon_goukakyuu", "katon_housenka"], "fuuton": ["fuuton_daitoppa"], "suiton": ["suiton_suikoudan"]}[base["element"]]
@@ -554,6 +554,7 @@ func _chase(dt: float) -> void:
 		ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("need", "")) != "raiton_modo" or buffs.has("raiton_chakura_modo"))
 		ready = ready.filter(func(id): return (String(Data.jutsu.get(id, {}).get("need", "")) != "senninka" or buffs.has("jugo_senninka") or buffs.has("jugo_senninka2")) and (String(Data.jutsu.get(id, {}).get("need", "")) != "senninka2" or buffs.has("jugo_senninka2")))   # Jūgo: oyuncuyla aynı şart
 		ready = ready.filter(func(id): return (String(Data.jutsu.get(id, {}).get("need", "")) != "sototoro" or buffs.has("sototoro") or buffs.has("santoro")) and (String(Data.jutsu.get(id, {}).get("need", "")) != "santoro" or buffs.has("santoro")))   # Inuzuka: kurt biçimi şartı   # Raikage nintaijutsusu: önce Raiton Chakra Modu
+		ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("need", "")) != "islak_zemin" or (target != null and is_instance_valid(target) and ClanMech.prepared_ground(target.global_position)))   # Jubaku Eisō: oyuncuyla aynı hazırlık şartı
 		if has_status("sealed"):   # tenketsu kapalı: chakra yoğrulamaz, yalnız taijutsu (oyuncuyla aynı kural)
 			ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("category", "")) == "taijutsu")
 		if not ready.is_empty() and nowj >= jgap and randf() < 0.85:

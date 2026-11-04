@@ -9,6 +9,7 @@ const VL = preload("res://scripts/world/village_life.gd")
 const WALL_H := 28.0
 
 static var R := 1460.0
+static var hospital_door := Vector3.ZERO   # ölünce doğma noktası (hastane kapısının önü)
 static var _veg_cache := {}
 
 
@@ -205,6 +206,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 	var hpx = 545.0; var hpn = 230.0
 	SpecialBuildings.hospital(b, decor, hpx, hpn, rng)
 	_door(b, hpx, hpn - 27.5, 5.0, "hospital", "[F] Gir: Konoha Hastanesi", "hospital")
+	hospital_door = _gp(b, hpx, hpn - 33.0)
 	occupied.append([hpx + 12, hpn - 26, 64, 58, 25.0])
 
 	# ---- Chunin Sınavı stadyumu (güneydoğu)

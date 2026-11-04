@@ -580,7 +580,8 @@ func _bell_result(passed: bool, why: String) -> void:
 		exam_finished.emit("bell", true)
 	else:
 		var why_t = {"abandon": "Parşömeni aldın ama arkadaşını bağlı bıraktın. Görevi tamamlamak için arkadaşını terk eden bir ninjayı takımımda istemem.",
-			"time": "Süre doldu. Tek başına koştunuz, birbirinizi kollamadınız."}.get(why, "Olmadı.")
+			"time": "Süre doldu. Tek başına koştunuz, birbirinizi kollamadınız.",
+			"dead": "Yere serildin; sınav bitti. Gerçek bir görevde bu ölüm demekti."}.get(why, "Olmadı.")
 		Hud.dialog(hi["s2"], why_t + " Yarın tekrar dene — benimle antrenman alanında konuş.", [])
 		exam_finished.emit("bell", false)
 

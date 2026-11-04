@@ -72,7 +72,7 @@ static func kiri_house(b: Builder, x: float, n: float, wdt: float, dep: float, f
 	var c = Color(0.74, 0.64, 0.62).lerp(Color(0.68, 0.66, 0.68), rng.randf()).darkened(rng.randf_range(0.0, 0.12))
 	var cap = [Color(0.32, 0.4, 0.66), Color(0.46, 0.36, 0.58), Color(0.74, 0.5, 0.58), Color(0.36, 0.5, 0.6)][rng.randi() % 4]
 	var low = rng.randf() < 0.22
-	var d = maxf(wdt, dep) * (1.05 if low else rng.randf_range(0.6, 0.8))
+	var d = minf(wdt, dep) * (1.0 if low else rng.randf_range(0.78, 0.95))   # kısa kenar: kule yuvasından taşıp komşusunun içine geçmesin
 	var hgt = 5.0 if low else (floors + rng.randi_range(2, 5)) * 4.0
 	b.cyl(Vector3(x, hgt * 0.5, n), d, hgt, c, true, 18)
 	# tuğla dokusu izi: ince koyu yatay derzler
@@ -91,8 +91,8 @@ static func kiri_house(b: Builder, x: float, n: float, wdt: float, dep: float, f
 				b.box(Vector3(x + o.x, fy, n + o.y), Vector3(1.3, 0.42, 0.2), Color(0.18, 0.16, 0.18), a, false)
 				fy += 2.0
 	# başlık: geniş renkli bant + üstünde yeşillik ya da kubbe
-	b.cyl(Vector3(x, hgt + 0.7, n), d + 1.0, 1.4, cap, false, 18)
-	b.cyl(Vector3(x, hgt + 1.45, n), d + 1.2, 0.2, cap.darkened(0.2), false, 18)
+	b.cyl(Vector3(x, hgt + 0.7, n), d + 1.0, 1.4, cap, true, 18)   # katı: tepeye çıkan başlığın içine gömülmesin
+	b.cyl(Vector3(x, hgt + 1.45, n), d + 1.2, 0.2, cap.darkened(0.2), true, 18)
 	if low:
 		b.cyl(Vector3(x, hgt + 1.3, n), d * 0.9, 0.2, Color(0.82, 0.84, 0.86), false, 18)
 	elif rng.randf() < 0.65:
@@ -127,7 +127,7 @@ static func iwa_house(b: Builder, x: float, n: float, wdt: float, dep: float, fl
 	var y = hgt
 	for k in rings:
 		var rd = (d + 1.2) * (1.0 - float(k) / rings * 0.85)
-		b.cyl(Vector3(x, y + 0.45, n), rd, 0.9, c.lightened(0.04 * (k % 2)) if k < rings - 1 else c, k == 0, 16)
+		b.cyl(Vector3(x, y + 0.45, n), rd, 0.9, c.lightened(0.04 * (k % 2)) if k < rings - 1 else c, true, 16)   # tüm kademeler katı (çatının içine geçiliyordu)
 		y += 0.9
 	b.cone(Vector3(x, y + 0.7, n), d * 0.3, 1.4, capc, 10)
 	var fo = Builder.rot(0, -d * 0.5 - 0.05, yaw)
@@ -190,7 +190,7 @@ static func kumo_house(b: Builder, x: float, n: float, wdt: float, dep: float, f
 		var hgt = floors * 4.0 + 1.0
 		b.frustum(Vector3(x, hgt * 0.5, n), d, hgt, c, true, 16)
 		b.cyl(Vector3(x, hgt * 0.62, n), d * 0.95, 0.5, blue, false, 16)
-		b.cyl(Vector3(x, hgt + 0.25, n), d * 0.85, 0.5, blue.darkened(0.15), false, 16)
+		b.cyl(Vector3(x, hgt + 0.25, n), d * 0.85, 0.5, blue.darkened(0.15), true, 16)
 		b.dome(Vector3(x, hgt + 0.5, n), d * 0.8, d * 0.35, blue, 16)
 		for f in floors:
 			var cnt = maxi(3, int(d * 0.5))

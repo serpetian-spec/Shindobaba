@@ -11599,6 +11599,11 @@ func p_mokuton_mokujoheki(c: Node3D, _t: Node3D) -> void:
 	_earth_burst(at, 2.0)
 	if c is Player:
 		Buffs.add("mokujoheki", 5.0, {"armor": 0.15, "_name": "Ahşap Kubbe", "_desc": "ahşap kubbe seni koruyor"})
+	elif c.has_method("add_buff"):
+		c.add_buff("mokujoheki", 5.0, {"armor": 0.15})   # AI aynı koruma
+	# kanon: yakındaki düşman kubbenin içinde kapana kısılır
+	for e in enemies_near(c, at, 2.6):
+		st(e, "bind", 1.5)
 	Sfx.play("earth", at, 0.8)
 
 
@@ -15835,41 +15840,65 @@ func p_mokuton_hijutsu_jukai_kotan(c: Node3D, t: Node3D) -> void:
 
 ## Ahşap Ağaç Hapsi: hedefin etrafında ahşap kubbe, içinde sarmal bağlayan dallar — yüzde ahşap mühür deseni; çakrası bastırılır
 func p_mokuton_hobi_no_jutsu(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 22.0)
-	busy(c, 1.0)
-	if tt == null:
-		return
-	var at = gp(tt.global_position)
-	_earth_burst(at, 1.2)
-	var dome = Node3D.new()
-	get_tree().current_scene.add_child(dome)
-	dome.global_position = at
-	for k in 12:
-		var a = k * TAU / 12.0
-		var br = _branch(5.5, 0.35)
-		dome.add_child(br)
-		br.position = Vector3(cos(a) * 2.0, 2.2, sin(a) * 2.0)
-		br.rotation = Vector3(0, -a, 0)
-		br.rotate_object_local(Vector3.FORWARD, 0.55)
-	for k in 4:
-		var ring = MeshInstance3D.new()
-		var tm = TorusMesh.new()
-		tm.inner_radius = 0.6; tm.outer_radius = 0.85; tm.rings = 16; tm.ring_segments = 6
-		ring.mesh = tm
-		ring.material_override = _wood_mat()
-		dome.add_child(ring)
-		ring.position = Vector3.UP * (0.3 + k * 0.45)
-	dome.scale = Vector3(1, 0.02, 1)
-	var tw = dome.create_tween()
-	tw.tween_property(dome, "scale", Vector3.ONE, 0.35).set_trans(Tween.TRANS_BACK)
-	tw.tween_interval(3.6)
-	tw.tween_property(dome, "scale", Vector3(1, 0.02, 1), 0.4)
-	tw.tween_callback(dome.queue_free)
-	st(tt, "bind", 4.0)
-	every(4.0, 0.5, func(_i, _k):
-		if live(tt):
-			tt.take_hit(inf(c, "mokuton_hobi_no_jutsu", 0.2, {"knock": 0.0, "kind": "light", "chakra_drain": 10.0, "element": "mokuton"})), Callable())
-	Sfx.play("earth", at, 0.8)
+	# kanon (Hōbi, fūinjutsu): kullanıcının çevresinde bir anda ejder yüzü biçiminde ahşap kubbe; içerideyken gelen saldırılar
+	# büyük ölçüde zayıflar (Hashirama, Kurama'nın Bijūdama'sını böyle söndürdü); süre bitince kubbe ortadan ikiye açılır.
+	busy(c, 0.5)
+	var at = gp(c.global_position)
+	var yaw = atan2(-c.face_dir().x, -c.face_dir().z)
+	var root = Node3D.new()
+	get_tree().current_scene.add_child(root)
+	root.global_position = at
+	root.rotation.y = yaw
+	var b2 = MB.new()
+	var halves = [Node3D.new(), Node3D.new()]
+	for k in 18:   # kubbe: yerden yükselip tepede birleşen kalın kaburgalar (iki yarım)
+		var a = k * TAU / 18.0
+		var side = 0 if sin(a) >= 0.0 else 1
+		for q in 6:
+			var e0 = PI * 0.5 * q / 6.0
+			var e1 = PI * 0.5 * (q + 1) / 6.0
+			var p0 = Vector3(cos(a) * cos(e0), sin(e0), sin(a) * cos(e0)) * 3.0
+			var p1 = Vector3(cos(a) * cos(e1), sin(e1), sin(a) * cos(e1)) * 3.0
+			var mi = MeshInstance3D.new()
+			var cm = CylinderMesh.new()
+			cm.top_radius = 0.32 - q * 0.03; cm.bottom_radius = 0.36 - q * 0.03; cm.height = p0.distance_to(p1) + 0.2; cm.radial_segments = 7
+			mi.mesh = cm
+			mi.material_override = Props.toon_color(WOOD_C.darkened(0.08 * (k % 3)))
+			halves[side].add_child(mi)
+			mi.position = (p0 + p1) * 0.5
+			mi.look_at_from_position(mi.position, p1, Vector3.UP if absf((p1 - p0).normalized().y) < 0.95 else Vector3.FORWARD)
+			mi.rotate_object_local(Vector3.RIGHT, PI * 0.5)
+	# ön yüz: ejder başı — çıkık burun, iki boynuz, kaş çıkıntıları, oyuk gözler, açık ağız çizgisi
+	b2.add("box", Vector3(0, 1.5, -3.1), Vector3(1.6, 1.0, 1.4), WOOD_C.darkened(0.1))
+	b2.add("box", Vector3(0, 1.05, -3.35), Vector3(1.4, 0.18, 1.2), WOOD_C.darkened(0.45))
+	for sx in [-1.0, 1.0]:
+		b2.add("box", Vector3(sx * 0.9, 2.45, -2.75), Vector3(0.9, 0.3, 0.5), WOOD_C.darkened(0.15), Vector3(0, 0, sx * -12))
+		b2.add("box", Vector3(sx * 0.85, 2.15, -2.85), Vector3(0.45, 0.3, 0.2), Color(0.12, 0.08, 0.05))
+		b2.add("cone", Vector3(sx * 1.3, 3.5, -2.0), Vector3(0.45, 2.2, 0.45), WOOD_C.lightened(0.05), Vector3(-30, 0, sx * -28), 7)
+		b2.add("box", Vector3(sx * 0.45, 1.75, -3.85), Vector3(0.18, 0.14, 0.1), Color(0.12, 0.08, 0.05))
+	var face = MeshInstance3D.new()
+	face.mesh = b2.build(Props.toon())
+	halves[0].add_child(face)
+	for h in halves:
+		root.add_child(h)
+	root.scale = Vector3(1, 0.03, 1)
+	var tw = root.create_tween()
+	tw.tween_property(root, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_BACK)
+	tw.tween_interval(4.0)
+	tw.tween_callback(func():   # komutla ortadan ikiye açılır
+		var tw2 = root.create_tween().set_parallel(true)
+		tw2.tween_property(halves[0], "position", Vector3(2.6, -0.4, 0), 0.5)
+		tw2.tween_property(halves[1], "position", Vector3(-2.6, -0.4, 0), 0.5)
+		tw2.tween_property(halves[0], "rotation:z", -0.5, 0.5)
+		tw2.tween_property(halves[1], "rotation:z", 0.5, 0.5)
+		tw2.chain().tween_callback(root.queue_free))
+	_earth_burst(at, 2.0)
+	var mods = {"armor": 0.08, "_name": "Hōbi", "_desc": "ejder yüzlü ahşap kubbe gelen saldırıları söndürüyor"}
+	if c is Player:
+		Buffs.add("mokuton_hobi", 4.3, mods)
+	elif c.has_method("add_buff"):
+		c.add_buff("mokuton_hobi", 4.3, mods)
+	Sfx.play("earth", at, 0.6)
 
 
 # ================================================================== Yeni jutsular O (Sv.28): ahşap devler, sonsuz Tsukuyomi, Altı Yol güçleri, şimşek kapısı, demir kum
@@ -15931,38 +15960,55 @@ func _magatama_ring(c: Node3D, col: Color) -> Node3D:
 
 ## Ahşap Hotei: yerdeki dev ahşap mühürden mavi çakra ruh-ejder yükselir, hedefi sarar — çakrasını emip kilitler
 func p_mokuton_hotei_no_jutsu(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.2)
-	var tt = tg(c, t, 22.0)
-	var blue = Color(0.45, 0.65, 1.0)
-	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 8.0)
-	for k in 3:
-		var ring = MeshInstance3D.new()
-		var tm = TorusMesh.new()
-		tm.inner_radius = 1.5 + k * 1.2; tm.outer_radius = 1.9 + k * 1.2; tm.rings = 32; tm.ring_segments = 4
-		ring.mesh = tm
-		ring.material_override = _wood_mat()
-		get_tree().current_scene.add_child(ring)
-		ring.global_position = at + Vector3.UP * 0.1
-		ring.scale = Vector3(1, 0.3, 1)
-		var tw0 = ring.create_tween()
-		tw0.tween_interval(2.6)
-		tw0.tween_callback(ring.queue_free)
-	var spirit = Node3D.new()
-	get_tree().current_scene.add_child(spirit)
-	spirit.global_position = at
-	for k in 10:
-		var seg = VFX.element_core("", blue, 0.9 - k * 0.06)
-		spirit.add_child(seg)
-		seg.position = Vector3(cos(k * 0.7) * 2.0, k * 0.5, sin(k * 0.7) * 2.0)
-	var tw = spirit.create_tween()
-	tw.tween_property(spirit, "rotation:y", TAU * 2.0, 2.4)
-	tw.parallel().tween_property(spirit, "scale", Vector3(0.5, 1.2, 0.5), 2.4)
-	tw.tween_callback(spirit.queue_free)
-	for e in enemies_near(c, at, 5.0):
-		st(e, "bind", 2.6)
-		e.take_hit(inf(c, "mokuton_hotei_no_jutsu", 1.4, {"knock": 0.0, "kind": "heavy", "chakra_drain": 25.0, "element": "mokuton"}))
-	VFX.shockwave(at + Vector3.UP, blue, 8.0, 0.5, true)
-	Sfx.play("seal", at, 0.7)
+	# kanon (Hotei no Jutsu): avuçlar birleşir; hedefin çevresinde yerden kuyruklu canavar boyunda dev ahşap eller fışkırır,
+	# onu çevreleyip kavrar ve tutar. Hedef büyükse eller de büyür.
+	busy(c, 1.0)
+	var tt = tg(c, t, 30.0)
+	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 10.0)
+	var big = 1.0
+	if tt and tt.get("height") != null:
+		big = clampf(float(tt.get("height")) / 2.0, 1.0, 6.0)
+	var n = 3 if big < 2.0 else 4
+	for k in n:
+		var a = TAU * k / n + randf() * 0.3
+		var hand = _wood_hand(big * 1.6)
+		var base = at + Vector3(cos(a), 0, sin(a)) * (2.4 * big)
+		scene_add(hand, base + Vector3.DOWN * 4.0 * big)
+		hand.look_at_from_position(hand.global_position, Vector3(at.x, hand.global_position.y, at.z), Vector3.UP)   # yalnız yatay yön (dik dursun)
+		hand.rotate_y(PI)   # avuç (+z) hedefe dönük
+		var tw = hand.create_tween()
+		tw.tween_interval(k * 0.08)
+		tw.tween_property(hand, "global_position", base, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw.tween_property(hand.get_child(0), "rotation:x", 0.6, 0.3)   # öne kapanıp kavrar (yerel eğim: kök yönü bozulmaz)
+		tw.tween_interval(4.0)
+		tw.tween_property(hand, "global_position", base + Vector3.DOWN * 4.0 * big, 0.6)
+		tw.tween_callback(hand.queue_free)
+		after(k * 0.08, func(): _earth_burst(base, big))
+	after(0.55, func():
+		for e in enemies_near(c, at, 2.6 * big):
+			st(e, "bind", 4.0)
+			e.take_hit(inf(c, "mokuton_hotei_no_jutsu", 0.8, {"knock": 0.0, "kind": "heavy", "element": "mokuton"})))
+	shake(0.6 * big)
+	Sfx.play("earth", at, 0.5)
+
+
+## Dev ahşap el (avuç +z yönüne bakar, bilek yerde): kalın avuç, dört parmak + başparmak, oyma ahşap derzleri
+func _wood_hand(s: float) -> Node3D:
+	var b = MB.new()
+	var wc = WOOD_C
+	b.add("box", Vector3(0, 1.6 * s, 0), Vector3(1.0 * s, 3.2 * s, 0.9 * s), wc.darkened(0.1))         # bilek/kol
+	b.add("box", Vector3(0, 3.9 * s, 0.05 * s), Vector3(1.9 * s, 1.8 * s, 0.75 * s), wc)               # avuç
+	for f in 4:
+		var fx = (-0.7 + f * 0.47) * s
+		var L = [1.3, 1.5, 1.45, 1.15][f] * s
+		b.add("box", Vector3(fx, 4.8 * s + L * 0.5, 0.15 * s), Vector3(0.38 * s, L, 0.42 * s), wc.lightened(0.04 * f), Vector3(-12, 0, 0))
+		b.add("box", Vector3(fx, 4.8 * s + L * 0.35, 0.37 * s), Vector3(0.4 * s, 0.06 * s, 0.05 * s), wc.darkened(0.4))   # boğum çizgisi
+	b.add("box", Vector3(1.05 * s, 3.9 * s, 0.35 * s), Vector3(0.4 * s, 1.2 * s, 0.42 * s), wc, Vector3(-20, 0, -35))   # başparmak
+	var mi = MeshInstance3D.new()
+	mi.mesh = b.build(Props.toon())
+	var root = Node3D.new()
+	root.add_child(mi)
+	return root
 
 
 ## Ahşap Dev Savaşçı: yanında zırhlı dev ahşap savaşçı yükselir — iki büyük yumruk indirir
@@ -19618,12 +19664,40 @@ func p_narakumi(c: Node3D, t: Node3D) -> void:
 
 
 func p_kokuangyo(c: Node3D, t: Node3D) -> void:
-	for k in 3:
-		after(k * 0.15, func():
-			if live(c):
-				VFX.shockwave(gp(c.global_position) + Vector3.UP * 0.15, Color(0.05, 0.05, 0.07), 16.0 + k * 10.0, 0.8, true))
-	_shadow_wisps(c.global_position, 8.0, 50)
-	Jutsu.j_kokuangyo(c, t)
+	# kanon (Kokuangyo no Jutsu, A): Kaplan mührü; hedefin görüşüne karanlık çöker — kubbe/alan yok, yalnız gözü kararan hedef(ler).
+	# Göz teması gerekmez; Sharingan/genjutsu ustalığı direnci ve Kai geçerli. Oyuncu ve AI aynı fonksiyon.
+	busy(c, 0.4)
+	var tt = tg(c, t, 18.0)
+	var victims = []
+	if tt:
+		victims.append(tt)
+	for e in enemies_near(c, c.global_position + fwd(c, t) * 6.0, 7.0):
+		if not e in victims and victims.size() < 3:
+			victims.append(e)
+	for e in victims:
+		var gm = Eyes.genjutsu_land(c, e, false)
+		if gm <= 0.0:
+			continue
+		var dur = 6.0 * gm
+		if e == Game.player:
+			e.apply_status("kokuangyo", dur)
+		else:
+			if e.has_method("lose_target"):
+				e.lose_target(dur)
+			if e.has_method("apply_status"):
+				e.apply_status("kokuangyo", dur)
+		_kokuangyo_eyes(e, dur)
+	Sfx.play("genjutsu", c.global_position, 0.7)
+
+
+## Karanlık hedefin gözlerinde: başın çevresinde kara, ağır bir sis bandı (gözleri örter), süre boyunca
+func _kokuangyo_eyes(e: Node3D, dur: float) -> void:
+	every(dur, 0.25, func(_i, _k):
+		if not live(e):
+			return
+		var hp = e.global_position + Vector3.UP * (float(e.get("height")) * 0.88 if e.get("height") != null and float(e.get("height")) < 3.0 else 1.55)
+		VFX.puffs(hp, {"amount": 6, "life": 0.5, "size": 0.22, "radius": 0.18, "vmin": 0.05, "vmax": 0.25, "dir": Vector3.UP, "spread": 80.0, "add": false,
+			"colors": [Color(0.02, 0.02, 0.03, 0.9), Color(0.0, 0.0, 0.0, 0)]}), Callable())
 
 
 func p_kuchiyose(c: Node3D, t: Node3D) -> void:
@@ -29249,11 +29323,16 @@ func p_mokuton_kajukai_korin(c: Node3D, t: Node3D) -> void:
 	every(6.0, 0.4, func(_i, _k):
 		FX.burst(at + Vector3.UP * 3.0, {"amount": 20, "life": 2.0, "tex": FX.tex_soft, "add": false, "size": 0.25, "radius": 8.0, "vmin": 0.2, "vmax": 0.6, "gravity": Vector3(0, -0.3, 0),
 			"colors": [Color(1, 0.95, 0.6, 0), Color(1, 0.95, 0.6, 0.8), Color(1, 0.95, 0.6, 0)]})
+		# kanon: çiçek tozunu soluyan bilinçsiz düşer — ~2 sn soluyan uyur (rastgele değil)
 		for e in enemies_near(c, at, 9.0):
 			if live(e) and e.has_method("apply_status"):
 				e.apply_status("slow", 0.6)
-				if randf() < 0.12:
-					e.apply_status("sleep", 2.0), Callable())
+				var pt = float(e.get_meta("pollen_t", 0.0)) + 0.4
+				e.set_meta("pollen_t", pt)
+				if pt >= 2.0:
+					e.set_meta("pollen_t", -3.0)
+					e.apply_status("sleep", 4.0)
+					Combat.popup_text(e.global_position + Vector3.UP * 2.2, "Zzz", Color(1, 0.9, 0.95)), Callable())
 	shake(0.8)
 	Sfx.play("earth", at, 0.6)
 

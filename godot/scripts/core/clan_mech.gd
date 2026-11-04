@@ -113,6 +113,11 @@ static func su_cost(j: Dictionary) -> float:
 
 
 ## Yakında su kaynağı: deniz/göl (arazi su seviyesinin altında), yağmur ya da ıslak zemin (su jutsularının birikintisi)
+## Jubaku Eisō hazırlığı (kanon: Yamato önce toprağı kırdı, su ekledi): hedef zemini çamur/ıslak/çatlak ya da yakında su
+static func prepared_ground(pos: Vector3) -> bool:
+	return GroundFX.kind_at(pos) in ["wet", "mud", "cracked"] or water_near(pos, 6.0)
+
+
 static func water_near(pos: Vector3, r := 9.0) -> bool:
 	if Game.world and Game.world.env and String(Game.world.env.weather) == "yağmur":
 		return true

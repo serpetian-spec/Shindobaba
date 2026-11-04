@@ -143,6 +143,19 @@ func _process(dt: float) -> void:
 		return
 	t = 0.8
 	var p = Game.player.global_position
+	# Chūnin Sınavı sürerken (orman, ön eleme, final yolu/final) sınav alanında sıradan köylü olmaz: sokak ve mekân NPC'leri kalkar, yenisi gelmez
+	if int(ChuninExam.stage) in [2, 3, 4, 5]:
+		for n in npcs.duplicate():
+			if is_instance_valid(n) and n.global_position.distance_to(p) < 220.0:
+				n.queue_free()
+				npcs.erase(n)
+		for key in active_sites:
+			for n in (active_sites[key]["nodes"] as Array).duplicate():
+				if is_instance_valid(n) and n is Villager and n.global_position.distance_to(p) < 220.0:
+					n.queue_free()
+					active_sites[key]["nodes"].erase(n)
+		queue.clear()
+		return
 	var v = _village_at(p)
 	var tod2: float = Game.world.env.time_of_day if Game.world else 0.5
 	var new_phase = _phase_of(tod2)

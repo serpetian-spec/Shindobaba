@@ -77,7 +77,7 @@ const LORE := {
 	"yamanaka": ["Zihnini benim zihnimle değiştirirsem bedenin artık benim. Çiçekçimizden bir şey alır mısın?"],
 	"aburame": ["Böceklerim chakranı yer. Korkma, sana dokunmazlar... ben istemedikçe.", "Konuşmayı pek sevmeyiz. Ama dinleriz."],
 	"inuzuka": ["Ninken'im kokunu bir kez aldı, artık dünyanın öbür ucunda da bulur.", "Dört ayak üstünde koşmak daha hızlı, dene!"],
-	"senju": ["Yaşam gücümüz büyüktür. Ağaç Elementi ise... nesiller boyu bir kez uyanır."],
+	"senju": ["Yaşam gücümüz büyüktür. Ağaç Elementi ise... toprağı ve suyu birlikte taşıyan nadir birinde uyanır."],
 	"uzumaki": ["Mühürler bizim sanatımız. Bir zincir yeter, en vahşi canavarı bile bağlar.", "Uzun yaşarız; kızıl saçlarımızdan tanınırız."],
 	"kaguya": ["Kemiklerim kılıcım, zırhım, mızrağım. Savaşmadan duramam.", "Dans eder gibi öldürürüz; Kemik Dansları beş tanedir."],
 	"yuki": ["Rüzgarla suyu birleştiren buz... aynalar arasında hızımı göremezsin.", "Kanımız yüzünden avlandık. Şimdi saklanmıyoruz."],
@@ -164,6 +164,8 @@ static func person_name(c: String, female: bool) -> String:
 static func clan_jutsu(c: String, lv: int, n := 4) -> Array:
 	var info: Dictionary = Data.clans.get(c, {})
 	var nat: Array = info.get("kg_natures", [])
+	if c == "senju" and randf() > 0.06:
+		nat = []   # kanon: Mokuton Senju'da bile çok nadir (oyuncuyla aynı: toprak+su birlikte gerekir) — çoğu Senju ninjası Mokutonsuz
 	var eye := String(info.get("dojutsu", ""))
 	var cap := Enemy._lv_cap(lv) + 1
 	var pool := []

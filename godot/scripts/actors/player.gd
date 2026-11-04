@@ -142,10 +142,11 @@ func _unhandled_input(e: InputEvent) -> void:
 		elif e.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			cam_dist = minf(cam_range.y, cam_dist + cam_range.y * 0.04)
 	# Kai: genjutsu/sersemletmeyi chakrayla boz
-	if e.is_action_pressed("substitute") and (has_status("stun") or has_status("fear")) and Stats.has_unlock(Game.profile, "kai") and chakra >= 12.0:
+	if e.is_action_pressed("substitute") and (has_status("stun") or has_status("fear") or has_status("kokuangyo")) and Stats.has_unlock(Game.profile, "kai") and chakra >= 12.0:
 		chakra -= 12.0
 		statuses.erase("stun")
 		statuses.erase("fear")
+		statuses.erase("kokuangyo")
 		input_locked = 0.0
 		Combat.popup_text(global_position + Vector3.UP * 2.2, "KAI!", Color(0.8, 0.6, 1.0))
 		FX.ring(global_position + Vector3.UP, Color(0.8, 0.6, 1.0), 3.0, 0.3, false)
@@ -1185,7 +1186,7 @@ var statuses = {}  # element durumları: burn, wet, frozen, chilled, shocked, mu
 
 
 func apply_status(n: String, d: float) -> void:
-	if n in ["stun", "bind", "fear"]:
+	if n in ["stun", "bind", "fear", "kokuangyo"]:
 		d /= 1.0 + Stats.skill(Game.profile, "gen_resist")  # genjutsu direnci
 		if n != "bind" and Stats.has_unlock(Game.profile, "kai") and not statuses.has("_kai_tip"):
 			statuses["_kai_tip"] = 30.0

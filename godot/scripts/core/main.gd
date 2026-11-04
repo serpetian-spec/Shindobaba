@@ -456,7 +456,28 @@ func pill_cooldown() -> float:
 	return maxf(0.0, at - now)
 
 
+const SALVE_CD := 45.0
+## Merhem de bitmez: bekleme süresiyle (asker hapı gibi)
+func salve_cooldown() -> float:
+	var at = float(Game.profile.get("salve_ready_at", 0.0))
+	var now = Time.get_ticks_msec() / 1000.0
+	if at - now > SALVE_CD + 1.0:
+		Game.profile["salve_ready_at"] = 0.0
+		return 0.0
+	return maxf(0.0, at - now)
+
+
 func use_item(id: String) -> void:
+	if id == "salve":
+		var sl = salve_cooldown()
+		if sl > 0.0:
+			Hud.msg("Merhem için %d sn bekle." % ceili(sl), Color(0.6, 1.0, 0.65))
+			return
+		Game.profile["salve_ready_at"] = Time.get_ticks_msec() / 1000.0 + SALVE_CD
+		player.hp = minf(player.max_hp, player.hp + maxf(50.0, player.max_hp * 0.35) * (1.0 + Stats.skill(Game.profile, "heal")))
+		FX.aura(player, Color(0.5, 1, 0.6), 0.8)
+		Sfx.play("heal", player.global_position)
+		return
 	if id == "pill" and ClanMech.use_aki_pill():   # Akimichi: sıradaki renkli hap
 		return
 	var inv: Dictionary = Game.profile["inventory"]

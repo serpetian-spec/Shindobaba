@@ -33,6 +33,16 @@ const RIVALS := [
 	{"name": "Sora Kirishima", "style": "Rüzgar bıçakları ve kawarimi ustası", "el": "fuuton", "j": ["fuuton_shinkuu"], "power": 1.4, "hp": 0.95, "sub": 0.55, "hair": "uzun", "top": Color(0.35, 0.3, 0.5), "v": "ame"},
 ]
 
+## 2. aşama alanının adı ev sahibi köye göre: [ad, (yedek), "...ın" tamlaması, "...a gir" düğmesi]
+const AREA := {"konoha": ["Ölüm Ormanı", "", "ormanın", "Ormana"], "suna": ["Ölüm Çölü", "", "çölün", "Çöle"],
+	"kiri": ["Ölüm Bataklığı", "", "bataklığın", "Bataklığa"], "kumo": ["Ölüm Uçurumları", "", "uçurumların", "Uçurumlara"],
+	"iwa": ["Ölüm Kanyonu", "", "kanyonun", "Kanyona"]}
+
+
+func area_name() -> String:
+	return String(AREA.get(host, AREA["konoha"])[0])
+
+
 var stage = 0      # 0 yok, 1 yazılı, 2 orman, 3 ön eleme, 4 final yolu, 5 final, 9 seyahat
 var host = "konoha"
 var rivals: Array = []
@@ -143,7 +153,7 @@ func _written_done(r: Dictionary) -> void:
 		Game.profile["active_mission"] = {}
 		Hud.dialog("Baş Gözetmen", "Çekilmeyi seçtin. Bu da bir karardır... ama bir chūnin, takımı için bilinmezliğe adım atabilmeli. Bir sonraki dönem tekrar dene.", [])
 		return
-	Hud.dialog("Baş Gözetmen", "Onuncu soru... yoktu. Asıl soru, bilinmeyen bir tehlikeye takımını götürme cesaretiydi. Kalan herkes GEÇTİ! (Yazılı puanın: %d)\n\n2. AŞAMA — ÖLÜM ORMANI. Takımına bir parşömen veriyoruz; diğerini rakiplerden alıp 5 gün içinde ormanın ortasındaki kuleye ulaşın. Parşömenleri kulede açın, önce değil!" % st["written"], [{"label": "Ormana gir", "cb": _forest}])
+	Hud.dialog("Baş Gözetmen", "Onuncu soru... yoktu. Asıl soru, bilinmeyen bir tehlikeye takımını götürme cesaretiydi. Kalan herkes GEÇTİ! (Yazılı puanın: %d)\n\n2. AŞAMA — %s. Takımına bir parşömen veriyoruz; diğerini rakiplerden alıp 5 gün içinde %s ortasındaki kuleye ulaşın. Parşömenleri kulede açın, önce değil!" % [st["written"], area_name().to_upper(), AREA.get(host, AREA["konoha"])[2]], [{"label": "%s gir" % AREA.get(host, AREA["konoha"])[3], "cb": _forest}])
 
 
 # ------------------------------------------------------------------ 2. aşama: Ölüm Ormanı
@@ -175,10 +185,10 @@ func _forest() -> void:
 		var ang = start_a + PI * 0.5 + TAU * t / 4.0 + randf_range(-0.3, 0.3)
 		var tc = c + Vector3(cos(ang), 0, sin(ang)) * fr * randf_range(0.35, 0.7)
 		st["camps"].append({"pos": [tc.x, tc.y, tc.z], "carrier": t < 3, "i": t, "spawned": false})
-	_mark(c, "Ölüm Ormanı — Kule")
-	Game.profile["active_mission"] = {"title": "Ölüm Ormanı", "desc": "%s Parşömeni'ni rakip takımlardan al (✉) ve 5 gün içinde kuleye ulaş." % ("Yer" if st["need"] == "earth" else "Gök"), "type": "story", "rank": "C", "count": 1, "progress": 0}
+	_mark(c, "%s — Kule" % area_name())
+	Game.profile["active_mission"] = {"title": area_name(), "desc": "%s Parşömeni'ni rakip takımlardan al (✉) ve 5 gün içinde kuleye ulaş." % ("Yer" if st["need"] == "earth" else "Gök"), "type": "story", "rank": "C", "count": 1, "progress": 0}
 	Hud.objective_changed()
-	Hud.banner("ÖLÜM ORMANI", "Gün 1 / 5 — elinde %s Parşömeni var" % ("Gök" if have == "heaven" else "Yer"), Color(0.5, 0.85, 0.4))
+	Hud.banner(area_name().to_upper(), "Gün 1 / 5 — elinde %s Parşömeni var" % ("Gök" if have == "heaven" else "Yer"), Color(0.5, 0.85, 0.4))
 
 
 func _rival_enemy(r: Dictionary, scale: float, i := 0) -> Enemy:
@@ -203,6 +213,8 @@ func _rival_enemy(r: Dictionary, scale: float, i := 0) -> Enemy:
 	a["look"]["top"] = r["top"]
 	a["look"]["village"] = r["v"]
 	a["look"]["gender"] = "f" if r.get("f", false) else "m"
+	a["look"]["age"] = "teen"   # Chūnin adayları genin: genç boyu (yetişkin boyunda çıkıyorlardı)
+	a["look"]["vest"] = null
 	a["xp"] = 60 + lv * 4
 	a["no_level"] = true   # sınav adayı: isim etiketinde seviye yok
 	e.setup(a)
@@ -462,7 +474,7 @@ func _judge() -> void:
 	var hp_ratio = clampf(1.0 - float(st["hp_lost"]) / maxf(1.0, float(int(st["final_wins"]) + int(st.get("final_i", 1)))), 0.0, 1.0)
 	var rows = [
 		["Yazılı sınav", "%d / 9" % int(st["written"]), int(st["written"]) >= 5],
-		["Ölüm Ormanı (kalan gün, takım)", "%.1f gün • %d/2" % [float(st["forest_days"]), int(st["mates_alive"])], float(st["forest_days"]) > 0.5],
+		["%s (kalan gün, takım)" % area_name(), "%.1f gün • %d/2" % [float(st["forest_days"]), int(st["mates_alive"])], float(st["forest_days"]) > 0.5],
 		["Ön eleme galibiyeti", "%d" % int(st["prelim_wins"]), int(st["prelim_wins"]) >= 2],
 		["Final galibiyeti", "%d" % int(st["final_wins"]), int(st["final_wins"]) >= 1],
 		["Taktik çeşitliliği (farklı jutsu)", "%d" % jcount, jcount >= 3],
