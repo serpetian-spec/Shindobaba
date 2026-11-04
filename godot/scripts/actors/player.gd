@@ -443,7 +443,7 @@ func _physics_process(dt: float) -> void:
 	if clan == "uzumaki":
 		regen *= 1.6
 	chakra = minf(max_chakra, chakra + regen * dt)
-	if hp > 0.0:
+	if hp > 0.0 and not Buffs.has("rinne_bedel"):   # Rinne Tensei bedeli: iyileşme yok
 		var hreg = 0.5 * (1.0 + Stats.skill(Game.profile, "regen_hp"))
 		if clan == "senju":
 			hreg *= 3.0

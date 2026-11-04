@@ -120,6 +120,24 @@ func take_hit(info: Dictionary) -> void:
 		dmg *= 0.5
 	hp -= dmg
 	Combat.damage_number(global_position + Vector3.UP * (height + 0.5), dmg, Color(1, 0.8, 0.5))
+	# Chikushōdō Çok Başlı Dev Köpek (kanon): her darbe aldığında bölünüp çoğalır (aile en çok 4)
+	if def.get("split", false) and dmg > 0.0 and hp > 0.0 and owner_f != null and is_instance_valid(owner_f):
+		var fam = int(owner_f.get_meta("rin_dogs", 1))
+		if fam < 4:
+			owner_f.set_meta("rin_dogs", fam + 1)
+			var cl = Summon.new()
+			cl.contract = contract
+			cl.tier = tier
+			cl.def = def
+			cl.owner_f = owner_f
+			cl.team = team
+			cl.scale_m = scale_m
+			get_tree().current_scene.add_child(cl)
+			cl.global_position = global_position + Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)).normalized() * (radius * 2.0 + 1.0)
+			cl.life = life
+			cl.hp = maxf(hp, cl.max_hp * 0.5)
+			Combat.popup_text(global_position + Vector3.UP * (height + 1.0), "Bölündü!", Color(0.8, 0.7, 1.0))
+			FX.smoke_puff(cl.global_position + Vector3.UP * height * 0.5, maxf(1.0, height * 0.3), 14)
 	if parts.has("root"):
 		var r: Node3D = parts["root"]
 		var tw = r.create_tween()
@@ -134,6 +152,8 @@ func dismiss() -> void:
 	if dead:
 		return
 	dead = true
+	if def.get("split", false) and owner_f != null and is_instance_valid(owner_f):
+		owner_f.set_meta("rin_dogs", maxi(0, int(owner_f.get_meta("rin_dogs", 1)) - 1))
 	_dismount()
 	for k in markers:
 		if is_instance_valid(markers[k]):
@@ -367,11 +387,43 @@ const SIG_NAME := {"toad_small": "Suiton: Kurbağa Tükürüğü", "toad_mid": "
 func _special() -> void:
 	var model: String = def.get("model", "")
 	var role: String = def.get("role", "")
-	var nm = String(SIG_NAME.get(model, ""))
+	var nm = String(def.get("sig_name", SIG_NAME.get(model, "")))
 	if nm != "":
 		Combat.popup_text(global_position + Vector3.UP * (height + 1.2), nm + "!", Contracts.DEFS[contract]["color"].lightened(0.35))
 	var dmg: float = def.get("dmg", 20.0) * 0.6
 	match model:
+		"rin_rhino", "rin_ox":   # Chikushōdō: boynuzlu hücum — öne yıkarak koşar
+			var dir = face_dir()
+			var to = global_position + dir * (8.0 + height)
+			to.y = Game.jutsu_floor(to.x, to.z)
+			var tw = create_tween()
+			tw.tween_property(self, "global_position", to, 0.45).set_trans(Tween.TRANS_QUAD)
+			for k in 4:
+				get_tree().create_timer(0.1 * k).timeout.connect(func():
+					if not dead:
+						Combat.hit_sphere(self, global_position + dir * height * 0.6 + Vector3.UP * height * 0.4, height * 0.6, {"dmg": dmg * 0.5, "knock": 22.0, "launch": 5.0, "kind": "heavy", "dir": dir})
+						FX.dust(global_position, 1.2))
+		"rin_crab":   # Suiton: Haran Banshō — ağızdan dalga dalga köpük kabarcıkları, yolundakileri savurur
+			var dir = face_dir()
+			var mo = global_position + Vector3.UP * height * 0.5 + dir * height * 0.8
+			for k in 6:
+				get_tree().create_timer(0.08 * k).timeout.connect(func():
+					if dead:
+						return
+					VFX.puffs(mo + dir * k * 1.5, {"amount": 22, "life": 0.9, "size": 0.9, "radius": 1.2, "vmin": 6, "vmax": 12, "dir": dir, "spread": 25.0, "add": false,
+						"colors": [Color(0.95, 0.98, 1, 0.9), Color(0.7, 0.85, 1, 0.6), Color(0.7, 0.85, 1, 0)]})
+					Combat.hit_sphere(self, mo + dir * (2.0 + k * 2.0), 2.4, {"dmg": dmg * 0.25, "knock": 12.0, "launch": 2.0, "kind": "heavy", "element": "suiton", "dir": dir}))
+		"rin_centipede":   # yere dalıp hedefin altından fırlar
+			if tgt:
+				var at = tgt.global_position
+				FX.dust(global_position, 2.0)
+				global_position = at - face_dir() * 2.0
+				FX.dust(global_position, 2.5)
+				VFX.debris(at, Color(0.5, 0.42, 0.32), 14, 8.0, 0.4)
+				Combat.hit_sphere(self, at + Vector3.UP, height * 0.9, {"dmg": dmg, "knock": 10.0, "launch": 9.0, "kind": "heavy"})
+		"rin_panda":   # iki pençeyle yere vurur
+			Combat.hit_sphere(self, _front(height * 0.3), height * 0.7, {"dmg": dmg, "knock": 14.0, "launch": 6.0, "kind": "heavy"})
+			VFX.cracks(_front(0.0), height * 0.8)
 		"toad_mid":
 			if tgt:  # dil ile yakala ve çek
 				var from = global_position + Vector3.UP * height * 0.5

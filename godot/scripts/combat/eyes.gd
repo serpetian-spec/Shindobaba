@@ -480,6 +480,9 @@ func use_skill(side: String) -> void:
 	if cd[side] > 0.0:
 		Hud.msg("%s hazır değil (%.0f sn)" % [_skill_name(side), cd[side]], Color(0.9, 0.8, 0.6))
 		return
+	if k == 6 and Jutsu.tendo_wait(p) > 0.0:
+		Hud.msg("Tendō dolmadı — itme ve çekme peş peşe yapılamaz (%.1f sn)" % Jutsu.tendo_wait(p), Color(0.75, 0.9, 0.8))
+		return
 	if k == 4 and blind() >= 1.0:
 		Hud.msg("Gözlerin kör: Mangekyō teknikleri kullanılamaz. Ebedi Mangekyō gerek.", Color(1, 0.45, 0.45))
 		return
@@ -529,14 +532,11 @@ func use_skill(side: String) -> void:
 				Jutsu.execute(p, mj, t)   # tarzın göz tekniği (Kamui, Enton, Kotoamatsukami...)
 			if k == 4:
 				add_blind(0.035)
-		6:
+		6:   # Tendō: jutsu ile aynı çekirdek ve aynı 5 sn dolum
 			if right:
-				_push(15.0, 22.0)
-			elif t:
-				var d = (p.global_position - t.global_position)
-				t.velocity = d.normalized() * minf(30.0, d.length() * 2.2) + Vector3.UP * 4.0
-				t.apply_status("stun", 1.2)
-				FX.ring(t.global_position + Vector3.UP, Color(0.7, 0.6, 1), 2.5, 0.4, false)
+				Jutsu.j_shinra_tensei(p, t)
+			else:
+				Jutsu.bansho_core(p, t, 30.0)
 		7:
 			if right:
 				_truth_orb(t)

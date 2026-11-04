@@ -222,6 +222,8 @@ func chakra_gain(c: Node3D, amt: float) -> void:
 
 
 func heal(c: Node3D, amt: float) -> void:
+	if (c is Player and Buffs.has("rinne_bedel")) or c.has_meta("rinne_bedel"):   # Rinne Tensei bedeli: iyileşemez
+		return
 	c.hp = minf(c.max_hp, c.hp + amt)
 	Combat.popup_text(c.global_position + Vector3.UP * 2.3, "+%d" % int(amt), Color(0.5, 1.0, 0.5))
 
@@ -1324,10 +1326,7 @@ func c_mushi_kabe(c: Node3D, _t: Node3D) -> void:
 # ================================================================== İNUZUKA — ninken ile çift hücum
 ## Gatsūga: matkap hücumu bitince sekip geri döner ve ikinci kez çarpar
 func c_gatsuga(c: Node3D, t: Node3D) -> void:
-	Jutsu.j_gatsuga(c, t)
-	after(1.05, func():
-		if is_instance_valid(c) and live(t) and t.global_position.distance_to(c.global_position) < 15.0:
-			Jutsu.j_gatsuga(c, t))
+	Jutsu.j_gatsuga(c, t)   # çapraz geçişler j_gatsuga içinde
 
 
 ## Tsūga: küçük matkap; ilk çarptığından en yakın sonraki düşmana seker (en fazla 3)
@@ -1339,7 +1338,7 @@ func c_tsuga(c: Node3D, t: Node3D) -> void:
 	drill.position = Vector3(0, 1.0, 0)
 	var step = func(next_t):
 		Jutsu._dash(c, next_t, 0.45, 26.0, func(pt):
-			c.model.rotation.y += 1.4
+			c.model.visible = false   # kanon: beden matkabın içinde görünmez (kendi etrafında topaç gibi dönmez)
 			for h in hit(c, pt, 1.4, inf(c, "tsuga", 1.0, {"knock": 10.0, "launch": 4.0, "kind": "heavy"}), chain):
 				chain.append(h))
 	step.call(tt)
@@ -1354,7 +1353,7 @@ func c_tsuga(c: Node3D, t: Node3D) -> void:
 			step.call(nxt), func():
 		drill.queue_free()
 		if is_instance_valid(c):
-			c.model.rotation.y = 0.0)
+			c.model.visible = true)
 	Sfx.play("wind", c.global_position, 1.8)
 
 
@@ -1413,7 +1412,7 @@ func c_garoga(c: Node3D, t: Node3D) -> void:
 	Sfx.play("roar", c.global_position, 0.9)
 
 
-## İz İşaretleme: hedef 20 sn işaretli: senden ve ninkenden %25 fazla hasar alır, saklanamaz
+## Dainamikku Mākingu (kanon): ninken havada dönerek hedefe işer — koku izi 60 sn; Inuzuka onu nereye giderse bulur (Garōga güdümü).
 func c_dainamikku_makingu(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 18.0)
 	if tt == null:
@@ -1422,7 +1421,7 @@ func c_dainamikku_makingu(c: Node3D, t: Node3D) -> void:
 	b.add("sphere", Vector3.ZERO, Vector3(0.4, 0.4, 0.4), Color.WHITE, Vector3.ZERO, 8)
 	shot(c, Jutsu._hand(c), (tt.global_position + Vector3.UP - Jutsu._hand(c)).normalized(), 30.0, mesh_of(b, glow(Color(0.95, 0.85, 0.3))), {"dmg": 1.0, "knock": 0.0}, tt, false, 1.5, func(_p, target):
 		if live(target):
-			st(target, "marked", 20.0)
+			target.set_meta("inu_scent", Time.get_ticks_msec() / 1000.0 + 60.0)   # kanon: koku izi — Garōga onu dönerken bile bulur
 			var tag = MeshInstance3D.new()
 			tag.mesh = VFX._sphere(0.3, 10, 6)
 			tag.material_override = glow(Color(0.95, 0.8, 0.25))
@@ -3205,7 +3204,7 @@ func c_kazahana_kazekiri_mai(c: Node3D, _t: Node3D) -> void:
 			pr.spin = Vector3(0, 22, 0)
 		Sfx.play("wind", c.global_position, 1.6, 0.6), func():
 		if is_instance_valid(c) and c.get("model"):
-			c.model.rotation.y = 0.0)
+			c.model.visible = true)
 
 
 ## Çöl Fırtınası: 8 sn çevrende kum fırtınası; düşmanlar kör ve yavaş, sen rüzgarla hızlanırsın

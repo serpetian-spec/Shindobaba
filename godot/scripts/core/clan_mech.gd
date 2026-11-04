@@ -63,6 +63,10 @@ static func meter() -> Dictionary:
 static func cast_block(jid: String, j: Dictionary) -> String:
 	var pr = Game.profile
 	var jc = jutsu_clan(j)
+	if jid == "indora_no_ya" and TailedBeasts.held().size() + TailedBeasts.jarred().size() < 9:   # kanon: dokuz canavarın çakrasını emen Sasuke
+		return "Indora no Ya dokuz kuyruklu canavarın çakrasıyla yapılır (%d/9)." % (TailedBeasts.held().size() + TailedBeasts.jarred().size())
+	if jid in ["shinra_tensei", "bansho_ten_in", "tendo", "chibaku_tensei"] and Game.player and Jutsu.tendo_wait(Game.player) > 0.0:   # Tendō dolumu (kanon: en az 5 sn)
+		return "Tendō dolmadı — itme ve çekme peş peşe yapılamaz (%.1f sn)" % Jutsu.tendo_wait(Game.player)
 	if jid == "byakugo_no_in" and float(pr.get("byakugo", 0.0)) < 50.0:
 		return "Byakugō mührüne henüz yeterli chakra birikmedi (%d/50) — mühür zamanla dolar." % int(pr.get("byakugo", 0.0))
 	if jid == "sozo_saisei" and not Buffs.has("byakugo") and float(pr.get("byakugo", 0.0)) < 30.0:

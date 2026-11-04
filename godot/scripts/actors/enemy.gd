@@ -549,6 +549,9 @@ func _chase(dt: float) -> void:
 		var nowj = Time.get_ticks_msec() / 1000.0
 		var ready = jl.filter(func(id): return nowj >= float(jcd.get(id, 0.0)))
 		ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("need", "")) != "juin2" or buffs.has("juin2"))   # oyuncuyla aynı şart
+		ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("need", "")) != "raiton_modo" or buffs.has("raiton_chakura_modo"))
+		ready = ready.filter(func(id): return (String(Data.jutsu.get(id, {}).get("need", "")) != "senninka" or buffs.has("jugo_senninka") or buffs.has("jugo_senninka2")) and (String(Data.jutsu.get(id, {}).get("need", "")) != "senninka2" or buffs.has("jugo_senninka2")))   # Jūgo: oyuncuyla aynı şart
+		ready = ready.filter(func(id): return (String(Data.jutsu.get(id, {}).get("need", "")) != "sototoro" or buffs.has("sototoro") or buffs.has("santoro")) and (String(Data.jutsu.get(id, {}).get("need", "")) != "santoro" or buffs.has("santoro")))   # Inuzuka: kurt biçimi şartı   # Raikage nintaijutsusu: önce Raiton Chakra Modu
 		if has_status("sealed"):   # tenketsu kapalı: chakra yoğrulamaz, yalnız taijutsu (oyuncuyla aynı kural)
 			ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("category", "")) == "taijutsu")
 		if not ready.is_empty() and nowj >= jgap and randf() < 0.85:
@@ -868,6 +871,13 @@ func take_hit(info: Dictionary) -> void:
 	if info.get("blade", false) or float(info.get("bleed", 0.0)) > 0.0:
 		set_meta("last_wound", Time.get_ticks_msec())   # Ketsuryūgan kan kontrolü: kanına chakra karışabilecek yara
 	Combat.larch_counter(self, info)
+	# Iburi (kanon): duman hâlindeyken rüzgâr bedeni dağıtır — ölümcül zayıflık
+	if String(info.get("element", "")) == "fuuton" and (has_meta("kemuri_tai_until") and float(get_meta("kemuri_tai_until")) > Time.get_ticks_msec() / 1000.0 or has_meta("ibushimi")):
+		info["dmg"] = float(info.get("dmg", 0.0)) * 4.0 + 30.0
+		info["pierce_guard"] = true
+		Combat.popup_text(self.global_position + Vector3.UP * 2.4, "Rüzgâr dumanı dağıttı!", Color(0.85, 0.9, 1.0))
+	if Jutsu.preta_absorbs(self, info):   # Gakidō bariyeri (oyuncuyla aynı kural)
+		return
 	if String(arch.get("clan", "")) == "kaguya" and String(info.get("element", "")) == "":
 		info["dmg"] = float(info.get("dmg", 0.0)) * 0.8   # Shikotsumyaku: çelikten sert kemik (oyuncuyla aynı)
 	# Hōzuki (oyuncuyla aynı kural): fiziksel darbe kendiliğinden sıvılaşan bedenden geçer (su harcar); raiton 1.5x
@@ -1025,7 +1035,16 @@ func catch() -> void:
 	FX.burst(global_position + Vector3.UP * 0.4, {"amount": 10, "life": 0.5, "size": 0.12, "vmin": 1.0, "vmax": 2.5, "colors": [Color(1, 0.85, 0.3, 1), Color(1, 0.85, 0.3, 0)]})
 
 
+## Düşenler (kanon Dış Yol için): {arch, pos, team, teammate, friend_id, t, name} — son 2 dk, en çok 30
+static var fallen: Array = []
+
+
 func die(info: Dictionary) -> void:
+	if not info.get("execute", false) or true:
+		fallen.append({"arch": arch, "pos": global_position, "team": String(team), "teammate": bool(get_meta("teammate", false)), "friend_id": String(get_meta("friend_id", "")),
+			"t": Time.get_ticks_msec() / 1000.0, "name": display_name, "size": size})
+		if fallen.size() > 30:
+			fallen.pop_front()
 	if not info.get("execute", false) and PathJutsu.izanagi_rewrite(self):
 		return   # açık İzanagi: ölüm yanılsamaydı
 	if has_token:

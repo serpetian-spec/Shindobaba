@@ -19,6 +19,7 @@ var facing := 0.0
 var speed := 13.0
 var vis: Node3D
 var threads: Array = []
+var limp_t := 0.0   # kukla: ipler kopunca / kuklacı yönetemeyince çöker
 var lunge_t := 0.0
 var slot := 0
 
@@ -378,6 +379,14 @@ func take_hit(info: Dictionary) -> void:
 	if dead:
 		return
 	var d: float = info.get("dmg", 5.0)
+	# kanon: böcekler (Kamizuru arıları, Aburame böcekleri) ateşte yanar
+	if kind in ["bee", "beetle"] and String(info.get("element", "")) in ["katon", "yoton", "enton"]:
+		d *= 3.0
+		Combat.popup_text(global_position + Vector3.UP * (height + 0.6), "Yanıyor!", Color(1, 0.55, 0.2))
+	# kanon: kesici darbe kuklanın chakra iplerini koparabilir — kukla 3 sn çöker
+	if kind == "puppet" and info.get("blade", false) and randf() < 0.5:
+		limp_t = 3.0
+		Combat.popup_text(global_position + Vector3.UP * (height + 0.6), "İpler koptu!", Color(0.7, 0.85, 1.0))
 	hp -= d
 	Combat.damage_number(global_position + Vector3.UP * (height + 0.3), d, Color(1, 0.6, 0.5))
 	if hp <= 0.0:
@@ -411,6 +420,29 @@ func _physics_process(dt: float) -> void:
 	if life <= 0.0 or owner_f == null or not is_instance_valid(owner_f):
 		vanish()
 		return
+	# kanon: kukla kuklacının chakra ipleriyle yürür — ip menzili (30 m) aşılır, ipler koparsa ya da kuklacı
+	# sersemler/bağlanır/tenketsusu kapanırsa kukla yere çöker (oyuncu ve düşman kuklacı aynı)
+	if kind == "puppet":
+		limp_t = maxf(0.0, limp_t - dt)
+		var od = owner_f.global_position.distance_to(global_position)
+		var lost = limp_t > 0.0 or od > 30.0 or (owner_f.has_method("has_status") and (owner_f.has_status("stun") or owner_f.has_status("bind") or owner_f.has_status("sealed")))
+		if lost:
+			velocity.x = 0.0
+			velocity.z = 0.0
+			velocity.y -= 30.0 * dt
+			move_and_slide()
+			var gl = Game.ground_height(global_position.x, global_position.z)
+			if global_position.y < gl:
+				global_position.y = gl
+			vis.rotation.z = lerpf(vis.rotation.z, 1.3, minf(1.0, dt * 8.0))   # yere yığılır
+			vis.position.y = lerpf(vis.position.y, -0.3, minf(1.0, dt * 8.0))
+			for th in threads:
+				if is_instance_valid(th):
+					th.visible = false
+			return
+		for th in threads:
+			if is_instance_valid(th):
+				th.visible = true
 	if tgt == null or not is_instance_valid(tgt) or tgt.is_dead():
 		tgt = Combat.nearest_enemy(self, 32.0)
 	var wish = Vector3.ZERO

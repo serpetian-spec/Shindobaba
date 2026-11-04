@@ -534,6 +534,15 @@ func set_size(s: float, dur: float) -> void:
 # ------------------------------------------------------------------ hasar kancası: true = darbe tamamen önlendi
 func on_player_hit(info: Dictionary) -> bool:
 	Combat.larch_counter(p, info)   # Karamatsu: yakın dövüş saldıranı kendini saplar
+	# Iburi (kanon): duman hâlindeyken rüzgâr bedeni dağıtır — ölümcül zayıflık
+	if String(info.get("element", "")) == "fuuton" and (Buffs.has("kemuri_tai") or p.has_meta("ibushimi")):
+		info["dmg"] = float(info.get("dmg", 0.0)) * 4.0 + 30.0
+		info["pierce_guard"] = true
+		Combat.popup_text(p.global_position + Vector3.UP * 2.4, "Rüzgâr dumanı dağıttı!", Color(0.85, 0.9, 1.0))
+	elif Buffs.has("kemuri_tai") and (info.get("melee", false) or info.get("blade", false) or info.get("weapon", false)):   # duman: fiziksel darbe içinden geçer
+		return true
+	if Jutsu.preta_absorbs(p, info):   # Gakidō: Fūjutsu Kyūin bariyeri ninjutsuyu emer
+		return true
 	# Shikotsumyaku (kanon yetenek): çelikten sert kemikler — fiziksel darbe azalır (düşman Kaguya da aynı)
 	if ClanMech.clan() == "kaguya" and String(info.get("element", "")) == "":
 		info["dmg"] = float(info.get("dmg", 0.0)) * 0.8

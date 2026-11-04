@@ -53,7 +53,15 @@ static func build(model: String, h: float, length: float) -> Dictionary:
 			_slug(out, model, h, length)
 		"hawk_small", "hawk_mount", "hawk_giant":
 			_hawk(out, model, h)
-		"dog_small", "dog_pack", "wolf_giant", "dog_giant":
+		"rin_dog":
+			_rin_dog(out, h)
+		"rin_centipede":
+			_rin_centipede(out, h)
+		"rin_crab":
+			_rin_crab(out, h)
+		"rin_rhino", "rin_ox", "rin_panda", "rin_chameleon":
+			_rin_beast(out, model, h)
+		"dog_small", "dog_pack", "wolf_giant", "wolf3_giant", "dog_giant":
 			_dog(out, model, h)
 		"monkey_small", "monkey_king":
 			_monkey(out, model, h)
@@ -1089,6 +1097,8 @@ static func _dog_proc(out: Dictionary, model: String, h: float) -> void:
 			_mesh(out["root"], b)
 		"wolf_giant":
 			_wolf2(out, h)
+		"wolf3_giant":
+			_wolf2(out, h, [-0.32, 0.0, 0.32])
 		"dog_giant":
 			_war_hound(out, h)
 
@@ -1144,15 +1154,15 @@ static func _pug(out: Dictionary, h: float, c: Color, gear: bool) -> void:
 	out["mouth"] = hc + Vector3(0, -h * 0.15, -h * 0.34)
 
 
-static func _wolf2(out: Dictionary, h: float) -> void:
+static func _wolf2(out: Dictionary, h: float, heads := [-0.22, 0.22]) -> void:
 	var white = Color(0.96, 0.96, 0.97)
-	var b = _quad(out, h, white, {"len": 1.25, "leg": 0.4, "snout": 0.34, "ear": 0.18, "heads": [-0.22, 0.22], "eye": Color(0.85, 0.15, 0.1), "tail": "bushy", "belly": white, "mark": Color(0.5, 0.5, 0.55)})
+	var b = _quad(out, h, white, {"len": 1.25, "leg": 0.4, "snout": 0.34, "ear": 0.18, "heads": heads, "eye": Color(0.85, 0.15, 0.1), "tail": "bushy", "belly": white, "mark": Color(0.5, 0.5, 0.55)})
 	var by = h * 0.4 + h * 0.12
 	var L = h * 1.25
 	# iri kaslı kütle: geniş göğüs, kambur omuzlar, kalça
 	b.add("sphere", Vector3(0, by + h * 0.12, -L * 0.3), Vector3(0.62, 0.55, 0.6) * h, white, Vector3.ZERO, 14)
 	b.add("sphere", Vector3(0, by + h * 0.08, L * 0.3), Vector3(0.5, 0.48, 0.5) * h, white, Vector3.ZERO, 14)
-	for hx in [-0.22, 0.22]:   # boyun yelesi: her baş için gür tüy kütlesi
+	for hx in heads:   # boyun yelesi: her baş için gür tüy kütlesi
 		b.add("sphere", Vector3(hx * h, by + h * 0.3, -L * 0.5), Vector3(0.34, 0.36, 0.3) * h, white, Vector3.ZERO, 12)
 	# gür beyaz yele: omuzlarda, boyunlarda ve sırtta kabarık tüy dikenleri
 	var rng = RandomNumberGenerator.new()
@@ -1164,7 +1174,8 @@ static func _wolf2(out: Dictionary, h: float) -> void:
 		var r = h * (0.24 if z < -L * 0.2 else 0.2)
 		BeastRig.claw(b, Vector3(sin(a) * r, by + h * 0.08 + cos(a) * r, z), Vector3(sin(a) * 0.7, cos(a), 0.6).normalized(), h * rng.randf_range(0.12, 0.22), h * 0.04, white.darkened(0.04))
 	# iki başta açık çene ve sivri dişler
-	for hx in [-0.2, 0.2]:
+	for hx0 in heads:
+		var hx = float(hx0) * 0.92
 		var hp = Vector3(hx * h * 1.2, by + h * 0.48, -L * 0.62)
 		var sn = h * 0.34
 		b.add("sphere", hp + Vector3(0, -h * 0.11, -h * 0.06 - sn * 0.7), Vector3(0.1, 0.03, 0.2) * h, Color(0.55, 0.15, 0.18), Vector3(15, 0, 0), 8)   # ağız içi
@@ -1178,6 +1189,148 @@ static func _wolf2(out: Dictionary, h: float) -> void:
 		lg.scale = Vector3(1.9, 1.0, 1.7)
 	if out["tail"]:
 		out["tail"].scale = Vector3.ONE * 1.6
+
+
+## Chikushōdō Çok Başlı Dev Köpek (kanon, Pain): koyu kömür grisi, zırhsız, üç başlı (Cerberus), uzun bacaklı;
+## gözleri mor Rinnegan, bedeni kara alıcılarla delik (alıcılar ve göz halkası _rinnegan_mark ile eklenir).
+static func _rin_dog(out: Dictionary, h: float) -> void:
+	var c = Color(0.2, 0.19, 0.22)
+	var b = _quad(out, h, c, {"len": 1.2, "leg": 0.48, "snout": 0.3, "ear": 0.14, "heads": [-0.3, 0.0, 0.3], "eye": Color(0.72, 0.6, 0.95), "tail": "thin", "belly": c.lightened(0.12), "mark": c.darkened(0.3)})
+	var by = h * 0.48 + h * 0.12
+	var L = h * 1.2
+	b.add("sphere", Vector3(0, by + h * 0.1, -L * 0.28), Vector3(0.6, 0.5, 0.6) * h, c, Vector3.ZERO, 14)
+	for hx in [-0.3, 0.0, 0.3]:   # üç boyun
+		b.add("sphere", Vector3(hx * h, by + h * 0.28, -L * 0.48), Vector3(0.26, 0.3, 0.26) * h, c, Vector3.ZERO, 10)
+	_mesh(out["root"], b)
+	_rin_eyes(out, h, [-0.3, 0.0, 0.3], by + h * 0.42, -L * 0.66, 0.06)
+
+
+## Rinnegan gözleri (Pain'in çağrıları): her başta iki parlak lila göz, koyu halkalı; ışıksız (gölgede de seçilir)
+static func _rin_eyes(out: Dictionary, h: float, heads: Array, y: float, z: float, sep: float) -> void:
+	var eb = MB.new()
+	for hx in heads:
+		for sx in [-1.0, 1.0]:
+			var p = Vector3(float(hx) * h + sx * sep * h, y, z)
+			eb.add("sphere", p, Vector3(0.07, 0.06, 0.03) * h, Color(0.85, 0.78, 1.0), Vector3(0, sx * 30, 0), 8)
+			eb.add("torus", p + Vector3(0, 0, -0.012 * h), Vector3(0.035, 0.035, 0.035) * h, Color(0.3, 0.18, 0.45), Vector3(90, sx * 30, 0), 10)
+	var mi = MeshInstance3D.new()
+	mi.mesh = eb.build(null)
+	var m = StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.vertex_color_use_as_albedo = true
+	mi.material_override = m
+	out["root"].add_child(mi)
+
+
+## Dev Çıyan (kanon, Pain): uzun segmentli koyu gövde, turuncu yüz ve bacaklar, başından geçen alıcı, Rinnegan gözler
+static func _rin_centipede(out: Dictionary, h: float) -> void:
+	var b = MB.new()
+	var body = Color(0.18, 0.12, 0.1)
+	var ora = Color(0.9, 0.45, 0.12)
+	var n = 14
+	var seg = h * 0.55
+	for i in n:
+		var z = -h * 1.2 + i * seg
+		var y = h * 0.42 + sin(i * 0.6) * h * 0.08
+		var w = h * (0.42 - absf(i - 3.0) * 0.008)
+		b.add("sphere", Vector3(0, y, z), Vector3(w * 2.0, w * 1.3, seg * 1.25), body, Vector3.ZERO, 12)
+		b.add("box", Vector3(0, y + w * 0.6, z), Vector3(w * 1.7, w * 0.12, seg * 0.6), body.lightened(0.12))   # sırt plakası
+		for sx in [-1.0, 1.0]:   # turuncu bacaklar
+			Loft.tube(b, [Vector3(sx * w * 0.8, y - w * 0.2, z), Vector3(sx * w * 2.0, y + w * 0.3, z - seg * 0.1), Vector3(sx * w * 2.6, 0.0, z - seg * 0.25)], [h * 0.06, h * 0.045, h * 0.02], ora, 6, 2)
+	var hz = -h * 1.2 - seg * 0.9
+	var hy = h * 0.5
+	b.add("sphere", Vector3(0, hy, hz), Vector3(h * 0.9, h * 0.6, h * 0.8), ora, Vector3.ZERO, 12)   # turuncu yüz
+	for sx in [-1.0, 1.0]:   # çeneler (forcipule) ve antenler
+		Loft.tube(b, [Vector3(sx * h * 0.25, hy - h * 0.15, hz - h * 0.3), Vector3(sx * h * 0.35, hy - h * 0.2, hz - h * 0.6), Vector3(sx * h * 0.12, hy - h * 0.2, hz - h * 0.8)], [h * 0.07, h * 0.05, h * 0.015], Color(0.25, 0.1, 0.08), 6, 2)
+		Loft.tube(b, [Vector3(sx * h * 0.2, hy + h * 0.2, hz - h * 0.2), Vector3(sx * h * 0.6, hy + h * 0.7, hz - h * 0.6), Vector3(sx * h * 0.9, hy + h * 0.9, hz - h * 0.4)], [h * 0.03, h * 0.02, h * 0.008], body, 5, 2)
+	b.add("cyl", Vector3(h * 0.1, hy + h * 0.3, hz), Vector3(h * 0.05, h * 0.9, h * 0.05), Color(0.05, 0.04, 0.06), Vector3(0, 0, 25), 6)   # başı delen alıcı
+	_mesh(out["root"], b)
+	_rin_eyes(out, h, [0.0], hy + h * 0.12, hz - h * 0.38, 0.18)
+	out["mouth"] = Vector3(0, hy - h * 0.15, hz - h * 0.5)
+
+
+## Dev Kabuklu (kanon, Pain): kırmızımsı zırhlı yengeç-istakoz; ağız çevresi ve altı beyaz, sekiz yengeç bacağı,
+## iki iri kıskaç, sırtın altında çok sayıda iri diken (ortada en büyüğü), sırtta iki alıcı; Rinnegan gözler
+static func _rin_crab(out: Dictionary, h: float) -> void:
+	var b = MB.new()
+	var red = Color(0.72, 0.22, 0.16)
+	var white = Color(0.92, 0.9, 0.86)
+	var by = h * 0.55
+	b.add("sphere", Vector3(0, by, 0), Vector3(h * 1.9, h * 0.75, h * 1.5), red, Vector3.ZERO, 16)
+	b.add("sphere", Vector3(0, by - h * 0.2, 0), Vector3(h * 1.7, h * 0.4, h * 1.3), white, Vector3.ZERO, 14)   # beyaz alt
+	b.add("sphere", Vector3(0, by - h * 0.05, -h * 0.68), Vector3(h * 0.6, h * 0.35, h * 0.3), white, Vector3.ZERO, 10)   # ağız çevresi
+	b.add("sphere", Vector3(0, by - h * 0.05, -h * 0.78), Vector3(h * 0.3, h * 0.15, h * 0.1), Color(0.05, 0.03, 0.03), Vector3.ZERO, 8)
+	for k in 7:   # sırtın arkasında iri dikenler
+		var a = (k - 3) * 0.32
+		var big = k == 3
+		BeastRig.claw(b, Vector3(sin(a) * h * 0.55, by + h * 0.2, h * 0.45 + cos(a) * h * 0.1), Vector3(sin(a) * 0.4, 1, 0.5), h * (0.9 if big else 0.45), h * (0.14 if big else 0.08), red.darkened(0.15))
+	for sx in [-1.0, 1.0]:
+		for k in 4:   # sekiz bacak
+			var z = lerpf(-h * 0.3, h * 0.45, k / 3.0)
+			Loft.tube(b, [Vector3(sx * h * 0.8, by - h * 0.1, z), Vector3(sx * h * 1.4, by + h * 0.25, z), Vector3(sx * h * 1.75, 0.0, z + h * 0.1)], [h * 0.09, h * 0.07, h * 0.03], red, 6, 2)
+		# kıskaç
+		var c0 = Vector3(sx * h * 0.7, by, -h * 0.55)
+		var c1 = Vector3(sx * h * 1.1, by + h * 0.1, -h * 1.0)
+		Loft.tube(b, [c0, c1], [h * 0.12, h * 0.14], red, 8, 2)
+		b.add("sphere", c1 + Vector3(0, 0, -h * 0.25), Vector3(h * 0.45, h * 0.32, h * 0.6), red, Vector3.ZERO, 10)
+		BeastRig.claw(b, c1 + Vector3(sx * h * 0.05, h * 0.05, -h * 0.5), Vector3(0, 0.2, -1), h * 0.4, h * 0.1, red.darkened(0.1))
+		BeastRig.claw(b, c1 + Vector3(-sx * h * 0.05, -h * 0.08, -h * 0.45), Vector3(0, -0.2, -1), h * 0.3, h * 0.08, red.darkened(0.1))
+	for q in [Vector3(-h * 0.4, by + h * 0.35, -h * 0.1), Vector3(h * 0.45, by + h * 0.3, h * 0.25)]:   # sırttaki alıcılar
+		b.add("cyl", q, Vector3(h * 0.05, h * 0.7, h * 0.05), Color(0.05, 0.04, 0.06), Vector3(15, 0, 10), 6)
+	_mesh(out["root"], b)
+	for sx in [-1.0, 1.0]:   # sapı üstünde gözler
+		var es = MB.new()
+		Loft.tube(es, [Vector3(sx * h * 0.25, by + h * 0.25, -h * 0.6), Vector3(sx * h * 0.28, by + h * 0.5, -h * 0.65)], [h * 0.04, h * 0.035], red, 6, 2)
+		_mesh(out["root"], es)
+	_rin_eyes(out, h, [-0.28, 0.28], by + h * 0.55, -h * 0.7, 0.0)
+	out["mouth"] = Vector3(0, by - h * 0.05, -h * 0.8)
+
+
+## Chikushōdō'nun diğer kanon çağrıları: Dev Gergedan, Dev Öküz, Dev Panda, Dev Bukalemun (görünmezlik)
+static func _rin_beast(out: Dictionary, model: String, h: float) -> void:
+	var p := {}
+	var c := Color(0.5, 0.5, 0.52)
+	match model:
+		"rin_rhino":
+			c = Color(0.55, 0.53, 0.55)
+			p = {"len": 1.5, "leg": 0.36, "snout": 0.32, "ear": 0.1, "heads": [0.0], "eye": Color(0.8, 0.7, 1.0), "tail": "thin", "belly": c.lightened(0.1), "mark": c.darkened(0.3)}
+		"rin_ox":
+			c = Color(0.42, 0.3, 0.22)
+			p = {"len": 1.45, "leg": 0.42, "snout": 0.26, "ear": 0.12, "heads": [0.0], "eye": Color(0.8, 0.7, 1.0), "tail": "thin", "belly": c.lightened(0.15), "mark": c.darkened(0.35)}
+		"rin_panda":
+			c = Color(0.95, 0.95, 0.93)
+			p = {"len": 1.15, "leg": 0.34, "snout": 0.16, "ear": 0.1, "heads": [0.0], "eye": Color(0.8, 0.7, 1.0), "tail": "thin", "belly": c, "mark": Color(0.1, 0.1, 0.12)}
+		_:
+			c = Color(0.38, 0.5, 0.36)
+			p = {"len": 1.8, "leg": 0.22, "snout": 0.3, "ear": 0.02, "heads": [0.0], "eye": Color(0.8, 0.7, 1.0), "tail": "thin", "belly": c.lightened(0.2), "mark": c.darkened(0.25)}
+	var b = _quad(out, h, c, p)
+	var by = h * float(p["leg"]) + h * 0.12
+	var L = h * float(p["len"])
+	var head = Vector3(0, by + h * 0.3, -L * 0.62)
+	match model:
+		"rin_rhino":   # iri gövde, burun boynuzları
+			b.add("sphere", Vector3(0, by + h * 0.12, 0), Vector3(0.75, 0.62, 1.2) * h, c, Vector3.ZERO, 14)
+			BeastRig.claw(b, head + Vector3(0, -h * 0.02, -h * 0.28), Vector3(0, 1, -0.6), h * 0.3, h * 0.07, Color(0.85, 0.82, 0.75))
+			BeastRig.claw(b, head + Vector3(0, h * 0.06, -h * 0.12), Vector3(0, 1, -0.3), h * 0.16, h * 0.05, Color(0.85, 0.82, 0.75))
+		"rin_ox":   # kambur omuz, yana kıvrık boynuzlar
+			b.add("sphere", Vector3(0, by + h * 0.2, -L * 0.25), Vector3(0.7, 0.66, 0.7) * h, c, Vector3.ZERO, 14)
+			for sx in [-1.0, 1.0]:
+				Loft.tube(b, [head + Vector3(sx * h * 0.1, h * 0.1, 0), head + Vector3(sx * h * 0.3, h * 0.12, -h * 0.02), head + Vector3(sx * h * 0.38, h * 0.3, -h * 0.1)], [h * 0.04, h * 0.03, h * 0.008], Color(0.88, 0.84, 0.72), 6, 2)
+		"rin_panda":   # yuvarlak beyaz gövde; siyah bacak-omuz kuşağı, kulaklar, göz lekeleri
+			b.add("sphere", Vector3(0, by + h * 0.15, 0), Vector3(0.85, 0.8, 1.0) * h, c, Vector3.ZERO, 14)
+			b.add("sphere", Vector3(0, by + h * 0.22, -L * 0.15), Vector3(0.9, 0.5, 0.45) * h, Color(0.1, 0.1, 0.12), Vector3.ZERO, 12)
+			for sx in [-1.0, 1.0]:
+				b.add("sphere", head + Vector3(sx * h * 0.13, h * 0.17, h * 0.02), Vector3(0.11, 0.11, 0.06) * h, Color(0.1, 0.1, 0.12), Vector3.ZERO, 8)
+				b.add("sphere", head + Vector3(sx * h * 0.07, h * 0.03, -h * 0.13), Vector3(0.09, 0.07, 0.04) * h, Color(0.1, 0.1, 0.12), Vector3.ZERO, 8)
+		_:   # bukalemun: alçak uzun gövde, sırt sırtı, kıvrık kuyruk, çıkık gözler
+			for k in 8:
+				BeastRig.claw(b, Vector3(0, by + h * 0.3, lerpf(-L * 0.4, L * 0.35, k / 7.0)), Vector3(0, 1, 0.2), h * 0.12, h * 0.04, c.darkened(0.15))
+	_mesh(out["root"], b)
+	_rin_eyes(out, h, [0.0], head.y + h * 0.04, head.z - h * 0.16, 0.09)
+	out["mouth"] = head + Vector3(0, -h * 0.05, -h * 0.25)
+
+
+
 
 
 ## Savaş ninkeni Kurogane (özgün): tek başlı dev kömür grisi köpek — kısa sert tüy, açık gri namlu ve göğüs, sol gözde dikey yara izi (kör, soluk göz),

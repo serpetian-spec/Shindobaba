@@ -13,6 +13,8 @@ var tgt: Node3D = null
 var cd = 0.0
 var facing = 0.0
 var vis: Node3D
+var parts := {}
+var gait := 0.0
 var drill_t = 0.0
 
 
@@ -30,22 +32,9 @@ func _ready() -> void:
 	add_child(cs)
 	vis = Node3D.new()
 	add_child(vis)
-	var b = MB.new()
-	var c = Color(0.92, 0.9, 0.85)
-	b.add("sphere", Vector3(0, 0.62, 0), Vector3(0.55, 0.5, 1.0), c, Vector3.ZERO, 10)
-	b.add("sphere", Vector3(0, 0.85, -0.55), Vector3(0.42, 0.4, 0.45), c, Vector3.ZERO, 10)
-	b.add("box", Vector3(0, 0.78, -0.82), Vector3(0.2, 0.16, 0.24), c.darkened(0.05))
-	b.add("box", Vector3(0, 0.82, -0.95), Vector3(0.08, 0.06, 0.04), Color(0.1, 0.08, 0.08))
-	for sx in [-1.0, 1.0]:
-		b.add("cone", Vector3(0.13 * sx, 1.08, -0.5), Vector3(0.14, 0.22, 0.12), c.darkened(0.1), Vector3(0, 0, -12 * sx), 5)
-		b.add("box", Vector3(0.1 * sx, 0.9, -0.76), Vector3(0.05, 0.05, 0.02), Color(0.1, 0.08, 0.08))
-		for fz in [-0.3, 0.3]:
-			b.add("cyl", Vector3(0.17 * sx, 0.22, fz), Vector3(0.14, 0.45, 0.14), c.darkened(0.06), Vector3.ZERO, 6)
-	b.add("cyl", Vector3(0, 0.8, 0.52), Vector3(0.08, 0.4, 0.08), c, Vector3(-55, 0, 0), 5)
-	b.add("torus", Vector3(0, 0.78, -0.33), Vector3(0.38, 0.38, 0.38), Color(0.7, 0.15, 0.12), Vector3(80, 0, 0), 12)
-	var mi = MeshInstance3D.new()
-	mi.mesh = b.build(Props.toon())
-	vis.add_child(mi)
+	# referans (Akamaru, Part II): kabarık krem-beyaz dev köpek, sarkık kahve kulaklar, kısık gözler (InuzukaModels)
+	parts = InuzukaModels.akamaru(1.3)   # Part II: omzu Kiba'nın göğsüne gelir
+	vis.add_child(parts["root"])
 
 
 func is_dead() -> bool:
@@ -124,6 +113,15 @@ func _physics_process(dt: float) -> void:
 				global_position = owner_f.global_position + Vector3(2, 0, 0)
 	velocity.x = wish.x; velocity.z = wish.z
 	move_and_slide()
+	# yürüyüş: hızla orantılı çapraz bacak salınımı, kuyruk sallanır
+	var spd = Vector2(velocity.x, velocity.z).length()
+	gait += dt * (3.0 + spd * 1.2)
+	var mv = clampf(spd / 6.0, 0.0, 1.0)
+	if parts.has("legs"):
+		for i in parts["legs"].size():
+			(parts["legs"][i] as Node3D).rotation.x = sin(gait) * 0.6 * mv * (1.0 if i % 2 == 0 else -1.0) * (1.0 if i < 2 else -1.0)
+	if parts.get("tail"):
+		(parts["tail"] as Node3D).rotation.z = sin(gait * 1.7) * 0.35
 	var g = Game.ground_height(global_position.x, global_position.z)
 	if global_position.y < g:
 		global_position.y = g

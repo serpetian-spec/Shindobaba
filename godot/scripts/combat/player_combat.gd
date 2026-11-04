@@ -1004,6 +1004,21 @@ func begin_cast(jid: String) -> void:
 	if need.begins_with("weapon:") and not need.substr(7) in Gear.held_ids(Game.profile):   # kılıca özgü teknik
 		Hud.msg("%s için %s kuşanmalısın." % [String(j["name"]), String(Gear.item(need.substr(7)).get("name", need.substr(7)))], Color(1, 0.75, 0.45))
 		return
+	if need == "sototoro" and not (Buffs.has("sototoro") or Buffs.has("santoro")):   # kanon: ninkenle birleşik kurt biçiminde
+		Hud.msg("%s yalnız Sōtōrō (ya da Santōrō) biçimindeyken yapılır." % String(j["name"]), Color(0.9, 0.9, 0.95))
+		return
+	if need == "santoro" and not Buffs.has("santoro"):
+		Hud.msg("%s yalnız Santōrō (üç başlı kurt) biçimindeyken yapılır." % String(j["name"]), Color(0.9, 0.9, 0.95))
+		return
+	if need == "senninka" and not (Buffs.has("jugo_senninka") or Buffs.has("jugo_senninka2")):   # kanon: Jūgo bu biçimleri Senninka ile alır
+		Hud.msg("%s için önce Senninka ile bedenini dönüştürmelisin." % String(j["name"]), Color(0.75, 0.9, 0.6))
+		return
+	if need == "senninka2" and not Buffs.has("jugo_senninka2"):
+		Hud.msg("%s Senninka'nın ikinci aşamasında yapılır (dönüşümdeyken Senninka'yı yeniden kullan)." % String(j["name"]), Color(0.75, 0.9, 0.6))
+		return
+	if need == "raiton_modo" and not Buffs.has("raiton_chakura_modo"):   # kanon: Raikage nintaijutsusu yalnız Raiton Chakra Modu'ndayken
+		Hud.msg("%s yalnız Raiton Chakra Modu'ndayken yapılır." % String(j["name"]), Color(0.75, 0.88, 1.0))
+		return
 	if need == "juin2" and not Buffs.has("juin2"):   # kanon: Kimimaro yalnız lanet mührünün ikinci aşamasında
 		Hud.msg("%s için Lanetli Mühür'ün ikinci aşamasında olmalısın." % String(j["name"]), Color(0.85, 0.55, 1.0))
 		return
