@@ -924,7 +924,7 @@
   "level": 5,
   "rank": 0,
   "learn": "clan",
-  "desc": "Altın chakra zincirleri hedefi bağlar.",
+  "desc": "Kongō Fūsa: birbirine geçmiş chakra zincirleri sırttan ve yerden fışkırıp hedefe dolanır, bağlar ve mühürler.",
   "seals": [
    "I",
    "Inu",
@@ -5705,7 +5705,7 @@
   "level": 18,
   "rank": 3,
   "learn": "clan:uzumaki",
-  "desc": "Lanetli mühür gibi kötü çakrayı bastırır.",
+  "desc": "Lanet mührünün çevresine kanla mühür formülü çizer: etkin Lanetli Mühür söner ve 60 sn yeniden açılamaz. Başka etkiye işe yaramaz.",
   "seals": [
    "U",
    "Mi",
@@ -6260,7 +6260,7 @@
   "level": 10,
   "rank": 2,
   "learn": "clan:uzumaki",
-  "desc": "Ateşi parşömene mühürleyip söndürür.",
+  "desc": "Yazılı parşömen açılır: yakındaki ateş (Amaterasu dahil) ortadaki boşluğa emilip mühürlenir ve geri salınır. Ateş olmayan saldırıya etkisiz.",
   "seals": [
    "Ne",
    "Tori",
@@ -20374,7 +20374,8 @@
   "bone_armor": "karamatsu_no_mai",
   "kaguya_hone_tate": "karamatsu_no_mai",
   "jusshi_sendan": "bone_bullets",
-  "nara_kage_bunshin": "kagemane"
+  "nara_kage_bunshin": "kagemane",
+  "uzumaki_kongo_kekkai": "chakra_chains"
  },
  "kusanagi_kuchi": {
   "id": "kusanagi_kuchi",
@@ -21484,7 +21485,7 @@
  },
  "uzumaki_uzu_fuin": {
   "id": "uzumaki_uzu_fuin",
-  "name": "Uzumaki: Uzu Fūin",
+  "name": "Uzumaki Fūin no Jutsu",
   "name_en": "Spiral Seal",
   "cost": 38,
   "cd": 9.9,
@@ -21494,31 +21495,12 @@
   "level": 14,
   "rank": 0,
   "learn": "clan",
-  "desc": "Hedefin karnına girdap mühür basılır; chakrası akmaz, jutsu yapamaz.",
+  "desc": "El yere vurulur; hedefin altında Uzumaki sarmal mühür formülü açılır. Zayıflamış hedef bütünüyle mühürlenir, güçlüsünün chakra ağı 6 sn kapanır.",
   "seals": [],
   "canon_rank": "A",
   "category": "hiden",
   "shape": "seal",
   "tier": 3
- },
- "uzumaki_kongo_kekkai": {
-  "id": "uzumaki_kongo_kekkai",
-  "name": "Uzumaki: Kongō Kekkai",
-  "name_en": "Adamantine Chain Barrier",
-  "cost": 46,
-  "cd": 12.7,
-  "element": "",
-  "elements": [],
-  "clan": "uzumaki",
-  "level": 22,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Zincirlerden kubbe bariyer; içeri saldırı geçmez, dokunan bağlanır.",
-  "seals": [],
-  "canon_rank": "S",
-  "category": "hiden",
-  "shape": "wall",
-  "tier": 4
  },
  "karatachi_mizu_kagami": {
   "id": "karatachi_mizu_kagami",

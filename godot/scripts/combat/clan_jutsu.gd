@@ -1614,16 +1614,21 @@ func c_kinbaku_kingusari_no_jutsu(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 22.0)
 	if tt == null:
 		return
-	var gold = VFX.mat_spiral(Color(1.0, 0.95, 0.6), Color(1.0, 0.75, 0.2), 6.0, 1.0, 2.0, 2.0)
+	# referans (Kinbaku karesi, Karin): chakra zincirleri doğrudan kullanıcının bedeninden (göğüs/sırt) fışkırıp hedefe saplanır
+	var root = Node3D.new()
+	get_tree().current_scene.add_child(root)
+	var cm = Jutsu._chain_mat()
+	var fdv = c.face_dir() if c.has_method("face_dir") else Vector3.FORWARD
+	var sdv = fdv.cross(Vector3.UP)
 	for k in 4:
-		var a = k * TAU / 4.0 + 0.4
-		var root_p = gp(tt.global_position + Vector3(cos(a), 0, sin(a)) * 5.0)
-		tether(func(): return root_p, func(): return tt.global_position + Vector3.UP * 1.1 if is_instance_valid(tt) else root_p, 0.3, gold, 4.0)
+		var from = c.global_position + Vector3.UP * (1.0 + (k % 2) * 0.35) + sdv * (-0.25 + (k / 2) * 0.5) + fdv * 0.15
+		Jutsu._chain_line(root, from, tt.global_position + Vector3.UP * (0.8 + k * 0.2) + sdv * ((k - 1.5) * 0.15), -0.4 + k * 0.25, 0.2, cm, true)
+	get_tree().create_timer(4.0).timeout.connect(func(): if is_instance_valid(root): root.queue_free())
 	st(tt, "bind", 4.0)
 	st(tt, "stun", 1.0)
 	every(4.0, 0.5, func(_i, _k):
 		if live(tt):
-			hit(c, tt.global_position + Vector3.UP, 0.8, inf(c, "kinbaku_kingusari_no_jutsu", 0.18, {"knock": 0.0})))
+			hit(c, tt.global_position + Vector3.UP, 0.8, inf(c, "kinbaku_kingusari_no_jutsu", 0.18, {"knock": 0.0, "launch": 0.0, "kind": "light"})))   # bağlanan ayakta kalır
 	Sfx.play("clink", tt.global_position, 0.8)
 	Combat.popup_text(tt.global_position + Vector3.UP * 2.6, "Altın zincirler!", Color(1, 0.85, 0.3))
 
@@ -1668,33 +1673,74 @@ func c_shikoku_fuin(c: Node3D, t: Node3D) -> void:
 			Sfx.play("seal", tt.global_position))
 
 
-## Ateş Mühürleme: parşömen açılır, 3 sn çevredeki düşman mermilerini yutar; yuttuğu ateşi geri kusar
+## Fūka Hōin (kanon): önceden yazılmış, ortası boş parşömen açılır — yakındaki ATEŞ (katon/yoton, Amaterasu dahil) ortadaki
+## boşluğa emilip mühürlenir, yerine "火" belirir. Ateş olmayan saldırıya etkisiz (zayıf nokta). Emilen ateş geri salınır.
 func c_fuka_hoin(c: Node3D, t: Node3D) -> void:
-	var b = MB.new()
-	b.add("cyl", Vector3.ZERO, Vector3(0.35, 2.4, 0.35), Color(0.85, 0.78, 0.6), Vector3(0, 0, 90), 10)
-	b.add("box", Vector3(0, -0.6, 0.02), Vector3(2.2, 1.2, 0.02), Color(0.95, 0.92, 0.82))
-	var scroll = place(b, c.global_position + Vector3.UP * 1.6 + c.face_dir() * 1.2)
-	scroll.look_at(c.global_position + Vector3.UP * 1.6, Vector3.UP)
-	var store = {"fire": 0, "n": 0}
+	var fd = c.face_dir() if c.has_method("face_dir") else Vector3.FORWARD
+	var scroll = Node3D.new()
+	get_tree().current_scene.add_child(scroll)
+	scroll.global_position = c.global_position + Vector3.UP * 1.25 + fd * 0.65
+	scroll.look_at(scroll.global_position + fd, Vector3.UP)
+	var paper = MeshInstance3D.new()
+	var qm = QuadMesh.new()
+	qm.size = Vector2(1.5, 0.42)
+	paper.mesh = qm
+	var pm = StandardMaterial3D.new()
+	pm.albedo_color = Color(0.97, 0.95, 0.88)
+	pm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED   # referans: ak kâğıt (ışıklı malzemede arka yüz kapkara görünüyordu)
+	pm.cull_mode = BaseMaterial3D.CULL_DISABLED
+	paper.material_override = pm
+	scroll.add_child(paper)
+	paper.rotation.y = PI
+	for sx in [-1.0, 1.0]:   # iki uçta rulolar
+		var rl = MeshInstance3D.new()
+		var cm = CylinderMesh.new()
+		cm.top_radius = 0.045; cm.bottom_radius = 0.045; cm.height = 0.5
+		rl.mesh = cm
+		rl.material_override = pm
+		scroll.add_child(rl)
+		rl.position = Vector3(sx * 0.77, 0, 0)
+	for k in 8:   # kenarlarda yazı sütunları, ortası boş
+		var lb = Label3D.new()
+		lb.text = ["封", "印", "火", "禁", "吸", "法", "式", "結"][k]
+		lb.font_size = 48
+		lb.pixel_size = 0.0035
+		lb.modulate = Color(0.05, 0.04, 0.04)
+		lb.position = Vector3((-0.62 + (k % 4) * 0.1) * (1.0 if k < 4 else -1.0), 0, -0.01)
+		scroll.add_child(lb)
+	scroll.scale = Vector3(0.05, 1, 1)
+	scroll.create_tween().tween_property(scroll, "scale", Vector3.ONE, 0.2)
+	var store = {"fire": 0}
 	busy(c, 3.0)
 	every(3.0, 1.0 / 20.0, func(_i, _k):
-		FX.ring(scroll.global_position, Color(0.85, 0.75, 0.5), 3.0, 0.2, false, c.face_dir())
+		if not is_instance_valid(scroll):
+			return
 		for n in get_tree().current_scene.get_children():
-			if n is Projectile and not n.dead and n.shooter != c and Combat.hostile(c, n.shooter) and n.global_position.distance_to(scroll.global_position) < 14.0:
+			if n is Projectile and not n.dead and n.shooter != c and Combat.hostile(c, n.shooter) and String(n.info.get("element", "")) in ["katon", "yoton", "enton"]:
 				var v = scroll.global_position - n.global_position
-				if v.length() < 1.2:
-					store["n"] += 1
-					if String(n.info.get("element", "")) in ["katon", "yoton"]:
-						store["fire"] += 1
-					FX.burst(scroll.global_position, {"amount": 8, "life": 0.3, "size": 0.4, "vmin": 1, "vmax": 3, "colors": [Color(1, 0.9, 0.6), Color(1, 0.8, 0.4, 0)]})
+				if v.length() < 1.0:
+					store["fire"] += 1
+					VFX.embers(scroll.global_position, Color(1, 0.6, 0.2), 10, 3.0, 0.3)
 					n.queue_free()
-				else:
-					n.vel = v.normalized() * maxf(n.vel.length(), 18.0), func():
-		if store["n"] > 0:
-			chakra_gain(c, store["n"] * 8.0)
-		if store["fire"] > 0:
+				elif v.length() < 14.0:
+					n.vel = v.normalized() * maxf(n.vel.length(), 18.0)   # ateş parşömene çekilir
+		# Amaterasu dahil: yakındaki yanan hedefin/yerin ateşi de çekilir
+		for e in get_tree().get_nodes_in_group("fighters"):
+			if e != c and e.has_method("has_status") and e.has_status("burn") and e.global_position.distance_to(c.global_position) < 8.0:
+				e.statuses.erase("burn")
+				store["fire"] += 1, func():
+		if is_instance_valid(scroll) and store["fire"] > 0:
+			var mark = Label3D.new()
+			mark.text = "火"
+			mark.font_size = 140
+			mark.pixel_size = 0.004
+			mark.modulate = Color(0.1, 0.05, 0.03)
+			scroll.add_child(mark)
+			mark.position = Vector3(0, 0, -0.012)
+			Combat.popup_text(scroll.global_position + Vector3.UP * 0.6, "Ateş mühürlendi", Color(1, 0.8, 0.5))
 			Jutsu._stream(c, t, 1.0 + store["fire"] * 0.3, Color(1.0, 0.55, 0.15), "katon", 4.0 * mult(c) * store["fire"], "fire")
-		fade_free(scroll, 0.0, 0.3))
+		if is_instance_valid(scroll):
+			fade_free(scroll, 0.6, 0.3))
 	Sfx.play("seal", c.global_position, 0.8)
 
 
@@ -1721,20 +1767,23 @@ func c_hakke_no_fuin_shiki(c: Node3D, t: Node3D) -> void:
 		Sfx.play("seal", tt.global_position, 0.7))
 
 
-## Kötülük Mühürleme: üstündeki her etki silinir (bağ, sersemleme, zehir, mühür); 10 sn genjutsu ve sersemlemeye bağışıksın
+## Fūja Hōin (kanon, Kakashi -> Sasuke): lanet mührünün çevresine kanla yazılmış mühür formülü çizilir, mührün gücü bastırılır.
+## Yalnız lanet mührüne işler (genel arınma değil): kendi ya da yakındaki dostun Lanetli Mühür I/II'si söner, 60 sn yeniden açılamaz.
 func c_fuja_hoin(c: Node3D, _t: Node3D) -> void:
-	ground_disc(c.global_position, 3.0, Color(1.0, 0.85, 0.4), 1.0, 2, 12)
-	for k in ["bind", "stun", "burn", "slow", "sealed", "fear", "mud", "chilled", "frozen"]:
-		if c.get("statuses") != null:
-			c.statuses.erase(k)
+	var had = Buffs.has("juin1") or Buffs.has("juin2") if c is Player else (c.get("buffs") != null and (c.buffs.has("juin1") or c.buffs.has("juin2")))
+	if not had:
+		if c is Player:
+			Hud.msg("Fūja Hōin yalnız lanet mührünü bastırır — üstünde etkin bir lanet mührü yok.", Color(0.9, 0.6, 0.6))
+		return
 	if c is Player:
-		c.input_locked = 0.0
-	_seal_glyph(c, Color(1.0, 0.85, 0.4), 10.0, 1.1)
-	every(10.0, 0.1, func(_i, _k):
-		if is_instance_valid(c) and c.get("statuses") != null:
-			for k in ["stun", "fear", "bind"]:
-				c.statuses.erase(k))
-	Combat.popup_text(c.global_position + Vector3.UP * 2.4, "Mühürle arındın!", Color(1, 0.9, 0.5))
+		Buffs.remove("juin1")
+		Buffs.remove("juin2")
+	else:
+		c.buffs.erase("juin1")
+		c.buffs.erase("juin2")
+	c.set_meta("fuja_until", Time.get_ticks_msec() + 60000)
+	# (bedendeki parlak halka kaldırıldı: ortak parlama malzemesi kırmızıyı beyaza patlatıyordu; formül yerde, kan kırmızısı)
+	Combat.popup_text(c.global_position + Vector3.UP * 2.4, "Lanet mührü bastırıldı", Color(0.85, 0.3, 0.3))
 	Sfx.play("seal", c.global_position, 1.1)
 
 

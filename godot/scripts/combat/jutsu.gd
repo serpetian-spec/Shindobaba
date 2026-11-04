@@ -1930,6 +1930,65 @@ func j_bone_armor(c: Node3D, _t: Node3D) -> void:
 
 
 # ---------------------------------------------------------------- Uzumaki
+## Uzumaki chakra zinciri (referans: Kongō Fūsa / Kinbaku kareleri): birbirine GEÇMİŞ oval halkalar — her halka bir öncekine
+## 90° dönük ve üstüne biner (aralarında boşluk yok); soluk sarı-altın, hafif ışıldayan chakra. a'dan b'ye, ortası sag kadar sarkar.
+func _chain_mat() -> StandardMaterial3D:
+	var m = StandardMaterial3D.new()
+	m.albedo_color = Color(0.84, 0.85, 0.6)    # referans: soluk zeytin-sarısı chakra
+	m.emission_enabled = true
+	m.emission = Color(0.78, 0.84, 0.5)
+	m.emission_energy_multiplier = 0.45
+	m.roughness = 0.5
+	return m
+
+
+func _chain_line(parent: Node3D, a: Vector3, b: Vector3, sag := 0.4, grow := 0.25, mat: Material = null, spiky := false) -> void:
+	var mt = mat if mat else _chain_mat()
+	var link_len = 0.27  # oval halkanın boyu (referans: el büyüklüğü)
+	var step = 0.18      # adım < boy: halkalar birbirine geçer
+	var L = a.distance_to(b)
+	var n = maxi(2, int(L / step))
+	var tm = TorusMesh.new()
+	tm.inner_radius = 0.055
+	tm.outer_radius = 0.092
+	tm.rings = 12
+	tm.ring_segments = 8
+	var prev = a
+	for j in n + 1:
+		var u = float(j) / n
+		var p = a.lerp(b, u) + Vector3.DOWN * sin(u * PI) * sag
+		var u2 = minf(1.0, u + 0.01)
+		var d = (a.lerp(b, u2) + Vector3.DOWN * sin(u2 * PI) * sag) - p
+		if d.length() < 0.0001:
+			d = b - a
+		d = d.normalized()
+		var n1 = d.cross(Vector3.UP if absf(d.y) < 0.95 else Vector3.RIGHT).normalized()
+		var axis = n1 if j % 2 == 0 else d.cross(n1).normalized()   # halka ekseni sırayla 90° döner
+		var xb = axis.cross(d).normalized()
+		var link = MeshInstance3D.new()
+		link.mesh = tm
+		link.material_override = mt
+		link.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		parent.add_child(link)
+		var basis = Basis(xb, axis, d) * Basis.from_scale(Vector3(1.0, 1.0, link_len / 0.184))   # yerel Z boyunca uzun oval
+		if spiky and j % 2 == 0:   # Karin'in zincirleri: halkada iki yana sivri diken
+			for sgn in [-1.0, 1.0]:
+				var sp = MeshInstance3D.new()
+				var scm = CylinderMesh.new()
+				scm.top_radius = 0.0; scm.bottom_radius = 0.03; scm.height = 0.12; scm.radial_segments = 5
+				sp.mesh = scm
+				sp.material_override = mt
+				link.add_child(sp)
+				sp.position = Vector3(sgn * 0.11, 0, 0)
+				sp.rotation = Vector3(0, 0, -sgn * PI * 0.5)
+		link.global_transform = Transform3D(basis * Basis.from_scale(Vector3.ONE * 0.01), p)
+		var tw = link.create_tween()
+		tw.tween_interval(u * grow)
+		tw.tween_method(func(x: float):
+			if is_instance_valid(link):
+				link.global_transform = Transform3D(basis * Basis.from_scale(Vector3.ONE * x), p), 0.01, 1.0, 0.06)
+
+
 func j_chakra_chains(c: Node3D, t: Node3D) -> void:
 	var m = _mult(c)
 	if t == null or c.global_position.distance_to(t.global_position) > 28.0:
@@ -1938,30 +1997,23 @@ func j_chakra_chains(c: Node3D, t: Node3D) -> void:
 	var root = Node3D.new()
 	get_tree().current_scene.add_child(root)
 	var center = _ground(t.global_position)
-	var gold = JutsuEngine.glow_mat(Color(1.0, 0.82, 0.3), 1.0)
 	var back = c.global_position + Vector3.UP * 1.3 - (c.face_dir() if c.has_method("face_dir") else Vector3.FORWARD) * 0.3
+	var cm = _chain_mat()
+	# kanon: birkaç zincir kullanıcının sırtından çıkar, ötekiler yere dalıp hedefin çevresinden fışkırır; hepsi hedefe dolanır
 	for k in 5:
 		var a = k * TAU / 5.0 + 0.4
 		var base = back + Vector3(cos(a), sin(a) * 0.6, 0) * 0.3 if k < 3 else center + Vector3(cos(a), 0, sin(a)) * 3.5
 		var top = t.global_position + Vector3.UP * (0.8 + k * 0.25)
-		var L = base.distance_to(top)
-		var n = int(L / 0.38)
-		var ch = Node3D.new()
-		root.add_child(ch)
-		for j in n:
-			var link = MeshInstance3D.new()
-			var tm = TorusMesh.new()
-			tm.inner_radius = 0.11; tm.outer_radius = 0.19; tm.rings = 10; tm.ring_segments = 6
-			link.mesh = tm
-			link.material_override = gold
-			ch.add_child(link)
-			var u = float(j) / n
-			var dir = (top - base).normalized()
-			link.global_transform = Transform3D(Basis.looking_at(dir, Vector3.UP if absf(dir.y) < 0.95 else Vector3.RIGHT) * Basis(Vector3.BACK, PI * 0.5 * (j % 2)) * Basis(Vector3.RIGHT, PI * 0.5), base.lerp(top, u) + Vector3.UP * sin(u * PI) * 0.4)
-			link.scale = Vector3.ONE * 0.01
-			var tw = link.create_tween()
-			tw.tween_interval(u * 0.25)
-			tw.tween_property(link, "scale", Vector3.ONE, 0.08)
+		_chain_line(root, base, top, -0.35 if k < 3 else 0.2, 0.25, cm)
+	# gövdeye dolanan zincir halkaları (referans: Dokuz Kuyruk'u saran zincirler)
+	for wv in 3:
+		var hy = 0.7 + wv * 0.35
+		var R = 0.42
+		var a0 = wv * 1.3
+		for seg in 6:
+			var p1 = t.global_position + Vector3(cos(a0 + seg * TAU / 6.0) * R, hy + seg * 0.02, sin(a0 + seg * TAU / 6.0) * R)
+			var p2 = t.global_position + Vector3(cos(a0 + (seg + 1) * TAU / 6.0) * R, hy + (seg + 1) * 0.02, sin(a0 + (seg + 1) * TAU / 6.0) * R)
+			_chain_line(root, p1, p2, 0.0, 0.0, cm)
 	VFX.shockwave(t.global_position + Vector3.UP * 1.2, Color(1, 0.8, 0.3), 3.0, 0.3, false)
 	FX.aura(t, Color(1.0, 0.8, 0.3), 0.9, Vector3(0, 1.0, 0), 5.0)
 	Sfx.play("clink", center, 0.7)

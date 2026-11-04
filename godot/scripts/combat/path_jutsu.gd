@@ -798,7 +798,6 @@ const PANIM := {
 	"iwao_golem_ken": {"base": "rush", "pre": 0.3, "post": 0.6, "wind": {"R": [Vector3(-0.4, -0.7, -0.5), Vector3(0.0, -0.3, -0.95), Vector3(0.0, -0.6, -0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "hips_yaw": 40.0, "crouch": 0.5}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.4, -0.7, -0.5), Vector3(-0.0, -0.3, -0.95), Vector3(-0.0, -0.6, -0.8)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 30.0, "hips_yaw": -40.0}},
 	"iwao_ganseki_ame": {"base": "sky", "pre": 0.4, "post": 0.9, "wind": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 40.0, "crouch": 0.9}, "rel": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.15, 0.98, 0.1), Vector3(0.05, 1.0, 0.05), Vector3(-0.0, 1.0, 0.0)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -15.0}},
 	"uzumaki_uzu_fuin": {"base": "rush", "pre": 0.3, "post": 0.7, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0, 0, 0, 0, 0]}, "rel": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0, 0, 0, 0, 0], "spine": 22.0}},
-	"uzumaki_kongo_kekkai": {"base": "power", "pre": 0.5, "post": 0.7, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "crouch": 0.4}, "rel": {"R": [Vector3(-0.85, 0.1, -0.5), Vector3(-0.7, 0.1, -0.7), Vector3(-0.6, 0.1, -0.8)], "L": [Vector3(0.85, 0.1, -0.5), Vector3(0.7, 0.1, -0.7), Vector3(0.6, 0.1, -0.8)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -12.0}},
 	"karatachi_mizu_kagami": {"base": "two_palm", "pre": 0.15, "post": 0.4, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7]}, "rel": {"R": [Vector3(-0.1, 0.45, 0.88), Vector3(0.0, 0.5, 0.86), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7]}},
 	"karatachi_sanmai_oroshi": {"base": "rush", "pre": 0.2, "post": 0.7, "wind": {"R": [Vector3(-0.35, -0.85, -0.35), Vector3(0.0, -0.4, 0.9), Vector3(0.0, 0.2, 0.95)], "L": [Vector3(0.35, -0.85, -0.35), Vector3(-0.0, -0.4, 0.9), Vector3(-0.0, 0.2, 0.95)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "hips_yaw": 40.0, "crouch": 0.6}, "rel": {"R": [Vector3(-0.1, 0.1, 0.99), Vector3(0.7, 0.1, 0.7), Vector3(0.8, 0.1, 0.6)], "L": [Vector3(0.4, -0.7, -0.5), Vector3(-0.0, -0.3, -0.95), Vector3(-0.0, -0.6, -0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 25.0, "hips_yaw": -50.0}},
 	"yamanaka_shinkaitai": {"base": "seal", "pre": 0.4, "post": 0.7, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3]}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "spine": 10.0}},
@@ -1744,6 +1743,10 @@ func juin_marks(c: Node3D, col: Color, dur: float, spread: float) -> Array:
 
 ## Ten no Juin — 1. aşama: kara alev desenleri, güç ve hız; can yavaşça erir (canın %15'in altına inince söner)
 func p_ten_no_juin(c: Node3D, _t: Node3D) -> void:
+	if c.has_meta("fuja_until") and Time.get_ticks_msec() < int(c.get_meta("fuja_until")):   # Fūja Hōin bastırdı
+		if c is Player:
+			Hud.msg("Lanet mührü Fūja Hōin ile bastırılmış — şimdilik uyanmıyor.", Color(0.85, 0.3, 0.3))
+		return
 	var dur = 22.0
 	juin_marks(c, Color(0.04, 0.02, 0.05), dur, 1.0)
 	var a = FX.aura(c, Color(0.35, 0.08, 0.45), 1.3, Vector3(0, 0.9, 0), 0.0)
@@ -1873,6 +1876,10 @@ func juin_parts(c: Node3D, form: String) -> Array:
 
 
 func p_juin_ni_no_dankai(c: Node3D, _t: Node3D) -> void:
+	if c.has_meta("fuja_until") and Time.get_ticks_msec() < int(c.get_meta("fuja_until")):   # Fūja Hōin bastırdı
+		if c is Player:
+			Hud.msg("Lanet mührü Fūja Hōin ile bastırılmış — şimdilik uyanmıyor.", Color(0.85, 0.3, 0.3))
+		return
 	var dur = 18.0
 	juin_marks(c, Color(0.02, 0.0, 0.03), dur, 1.6)
 	var a = FX.aura(c, Color(0.25, 0.05, 0.35), 1.8, Vector3(0, 0.9, 0), 0.0)
@@ -14259,7 +14266,7 @@ func _chain_links(n: int, col: Color) -> Node3D:
 		link.mesh = tm
 		link.material_override = m
 		link.position = Vector3(0, 0, k * 0.42)
-		link.rotation = Vector3(PI * 0.5, 0, (PI * 0.5) * (k % 2))
+		link.rotation = Vector3(0, 0, (PI * 0.5) * (k % 2))   # halka düzlemi zincir eksenini içerir, sırayla 90° döner: birbirine geçer (eskiden eksene dikti: ayrık pullar gibiydi)
 		link.scale = Vector3(1, 1, 1.5)
 		root.add_child(link)
 	return root
@@ -17195,17 +17202,6 @@ func p_sawarabi_no_mai(c: Node3D, t: Node3D) -> void:
 
 ## Altın Zincir: zincirler yerden çıkarken altın çakra kıvılcımları ve toprak patlaması
 func p_kinbaku_kingusari_no_jutsu(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 20.0)
-	if tt:
-		for k in 4:
-			var a = k * TAU / 4.0 + PI * 0.25
-			var q = gp(tt.global_position + Vector3(cos(a), 0, sin(a)) * 3.0)
-			after(0.1 + k * 0.05, func():
-				_earth_burst(q, 0.6)
-				VFX.embers(q + Vector3.UP * 0.5, GOLD, 14, 6.0))
-		after(0.5, func():
-			if live(tt):
-				VFX.star(tt.global_position + Vector3.UP, GOLD, 2.4))
 	c_kinbaku_kingusari_no_jutsu(c, t)
 
 
@@ -17227,33 +17223,7 @@ func p_shikoku_fuin(c: Node3D, t: Node3D) -> void:
 				_script_ring(tt, 0.7, 4.0))
 
 
-## Ateş Mühürleme: dev parşömen önde açılır, kara yazılar sarmal halinde döner
 func p_fuka_hoin(c: Node3D, t: Node3D) -> void:
-	var scroll = MeshInstance3D.new()
-	var qm = QuadMesh.new()
-	qm.size = Vector2(4.0, 1.2)
-	scroll.mesh = qm
-	var m = StandardMaterial3D.new()
-	m.albedo_color = Color(0.96, 0.93, 0.84)
-	m.cull_mode = BaseMaterial3D.CULL_DISABLED
-	scroll.material_override = m
-	c.add_child(scroll)
-	scroll.position = Vector3(0, 1.3, 1.4)
-	scroll.rotation.y = PI
-	for k in 10:
-		var lb = Label3D.new()
-		lb.text = ["封", "火", "印", "吸", "禁"][k % 5]
-		lb.font_size = 72
-		lb.pixel_size = 0.005
-		lb.modulate = Color(0.05, 0.04, 0.04)
-		lb.position = Vector3(-1.7 + k * 0.38, 0, 0.01)
-		scroll.add_child(lb)
-	scroll.scale = Vector3(0.05, 1, 1)
-	var tw = scroll.create_tween()
-	tw.tween_property(scroll, "scale", Vector3.ONE, 0.2)
-	tw.tween_interval(2.8)
-	tw.tween_property(scroll, "scale", Vector3(0.05, 1, 1), 0.2)
-	tw.tween_callback(scroll.queue_free)
 	c_fuka_hoin(c, t)
 
 
@@ -17279,22 +17249,38 @@ func p_hakke_no_fuin_shiki(c: Node3D, t: Node3D) -> void:
 
 ## Kötülük Mühürleme: yere mühür dairesi, kara yazılar bedenden sökülüp yukarı akar
 func p_fuja_hoin(c: Node3D, t: Node3D) -> void:
-	summon_circle(gp(c.global_position), 2.4, Color(0.1, 0.08, 0.08), 1.2)
-	for k in 10:
-		after(k * 0.06, func():
-			if live(c):
-				var lb = Label3D.new()
-				lb.text = ["封", "邪", "法", "印"][k % 4]
-				lb.font_size = 80
-				lb.pixel_size = 0.005
-				lb.modulate = Color(0.1, 0.05, 0.05)
-				lb.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-				get_tree().current_scene.add_child(lb)
-				lb.global_position = c.global_position + Vector3(randf_range(-0.4, 0.4), 0.6 + randf() * 0.8, randf_range(-0.4, 0.4))
-				var tw = lb.create_tween()
-				tw.tween_property(lb, "global_position", lb.global_position + Vector3.UP * 2.5, 0.8)
-				tw.parallel().tween_property(lb, "modulate:a", 0.0, 0.8)
-				tw.tween_callback(lb.queue_free))
+	# referans: kanla yazılmış yer formülü — çember + merkeze uzanan yazı satırları, koyu kan kırmızısı (ak çağırma çemberi değil)
+	var img = Image.create(256, 256, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var ink = Color(0.45, 0.03, 0.03, 0.95)
+	for i in 700:
+		var a = i / 700.0 * TAU
+		for rr in [112.0, 96.0]:
+			for w in 3:
+				var x = int(128 + cos(a) * (rr + w)); var y = int(128 + sin(a) * (rr + w))
+				img.set_pixel(clampi(x, 0, 255), clampi(y, 0, 255), ink)
+	for k in 12:   # merkeze uzanan yazı satırları: kesik çizgiler (harf lekeleri)
+		var a2 = k * TAU / 12.0
+		for j in 26:
+			if j % 3 == 2:
+				continue
+			var r2 = 20.0 + j * 3.0
+			for dw in 4:
+				var x2 = int(128 + cos(a2) * r2 + cos(a2 + PI * 0.5) * (dw - 1.5)); var y2 = int(128 + sin(a2) * r2 + sin(a2 + PI * 0.5) * (dw - 1.5))
+				img.set_pixel(clampi(x2, 0, 255), clampi(y2, 0, 255), ink)
+	var fq = MeshInstance3D.new()
+	var qm2 = QuadMesh.new()
+	qm2.size = Vector2(4.8, 4.8)
+	fq.mesh = qm2
+	var fmat = StandardMaterial3D.new()
+	fmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	fmat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	fmat.albedo_texture = ImageTexture.create_from_image(img)
+	fq.material_override = fmat
+	get_tree().current_scene.add_child(fq)
+	fq.global_position = gp(c.global_position) + Vector3.UP * 0.04
+	fq.rotation.x = -PI * 0.5
+	fade_free(fq, 2.5, 0.4)
 	c_fuja_hoin(c, t)
 
 
@@ -20366,60 +20352,84 @@ func p_iwao_ganseki_ame(c: Node3D, t: Node3D) -> void:
 	Sfx.play("earth", at, 0.6)
 
 
+## Uzumaki Fūin (kanon, Kushina/anime): mühürlerden sonra el yere vurulur; elden çıkan mürekkep yazı satırı hedefe uzanır,
+## altında Uzumaki'ye özgü kara sarmal mühür formülü açılır ve üstündeki mühürlenir: zayıflamış (boss olmayan, canı %35 altı)
+## hedef bütünüyle formülün içine çekilir; güçlü hedefin chakra ağı 6 sn mühürlenir.
+static var _uzu_tex: ImageTexture = null
+func _uzu_seal_tex() -> ImageTexture:
+	if _uzu_tex:
+		return _uzu_tex
+	var N = 256
+	var img = Image.create(N, N, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	var ink = Color(0.04, 0.03, 0.03, 0.95)
+	var dot = func(x: float, y: float, r: float):
+		for yy in range(int(y - r), int(y + r) + 1):
+			for xx in range(int(x - r), int(x + r) + 1):
+				if xx >= 0 and yy >= 0 and xx < N and yy < N and Vector2(xx - x, yy - y).length() <= r:
+					img.set_pixel(xx, yy, ink)
+	for i in 900:   # ortadan dışa açılan sarmal
+		var u = i / 899.0
+		var a = u * TAU * 3.2
+		dot.call(128 + cos(a) * u * 100.0, 128 + sin(a) * u * 100.0, 3.2)
+	for i in 400:   # dış çember
+		var a = i / 400.0 * TAU
+		dot.call(128 + cos(a) * 118.0, 128 + sin(a) * 118.0, 2.2)
+	var rng = RandomNumberGenerator.new()
+	rng.seed = 3
+	for k in 40:   # çemberin dışına taşan yazı lekeleri
+		var a = k / 40.0 * TAU
+		dot.call(128 + cos(a) * 124.0, 128 + sin(a) * 124.0, rng.randf_range(2.0, 4.0))
+	img.generate_mipmaps()
+	_uzu_tex = ImageTexture.create_from_image(img)
+	return _uzu_tex
+
+
 func p_uzumaki_uzu_fuin(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.9)
-	var tt = tg(c, t, 8.0)
+	busy(c, 1.0)
+	var tt = tg(c, t, 14.0)
 	if tt == null:
 		return
-	_jump_at(c, tt, 0.4, 8.0)
-	after(0.3, func():
+	anim(c, "crouch", 2.0)   # el yere
+	Sfx.play("seal", c.global_position, 0.8)
+	var from = gp(c.global_position + c.face_dir() * 0.5)
+	Jutsu._shadow_path(func(): return from, func(): return tt.global_position if is_instance_valid(tt) else Vector3.ZERO, 1.6, 0.12, false)   # mürekkep yazı satırı
+	after(0.45, func():
 		if not (live(c) and live(tt)):
 			return
-		var sw = MeshInstance3D.new()
-		var tm = TorusMesh.new()
-		tm.inner_radius = 0.1; tm.outer_radius = 0.6; tm.rings = 24; tm.ring_segments = 12
-		sw.mesh = tm
-		sw.material_override = VFX.mat_spiral(Color(0.3, 0.3, 0.35), Color(0.05, 0.05, 0.06), 6.0, 4.0, 8.0, 0.9, Vector3.UP)
-		tt.add_child(sw)
-		sw.position = Vector3(0, 1.0, 0.3)
-		sw.rotation.x = PI * 0.5
-		get_tree().create_timer(6.0).timeout.connect(sw.queue_free)
-		_script_ring(tt, 0.7, 6.0)
-		st(tt, "sealed", 6.0)
-		st(tt, "stun", 1.0)
-		tt.take_hit(inf(c, "uzumaki_uzu_fuin", 1.2, {"knock": 0.0, "kind": "heavy", "chakra_drain": 40.0})))
-	Sfx.play("seal", c.global_position, 0.8)
+		var disc = MeshInstance3D.new()
+		var qm = QuadMesh.new()
+		qm.size = Vector2(3.2, 3.2)
+		disc.mesh = qm
+		var dm = StandardMaterial3D.new()
+		dm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		dm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		dm.albedo_texture = _uzu_seal_tex()
+		disc.material_override = dm
+		get_tree().current_scene.add_child(disc)
+		disc.global_position = gp(tt.global_position) + Vector3.UP * 0.04
+		disc.rotation.x = -PI * 0.5
+		disc.scale = Vector3.ONE * 0.1
+		var tw = disc.create_tween()
+		tw.tween_property(disc, "scale", Vector3.ONE, 0.25)
+		tw.tween_interval(2.2)
+		tw.tween_property(disc, "scale", Vector3.ONE * 0.02, 0.4)
+		tw.tween_callback(disc.queue_free)
+		var weak = not tt.has_meta("boss") and float(tt.get("hp")) < float(tt.get("max_hp")) * 0.35 and not (tt is Player)
+		if weak:
+			Combat.popup_text(tt.global_position + Vector3.UP * 2.4, "Mühürlendi!", Color(0.9, 0.85, 0.7))
+			var m = tt.get("model")
+			if m:
+				var mt = m.create_tween()
+				mt.tween_property(m, "scale", Vector3(1.0, 0.02, 1.0), 0.5).set_ease(Tween.EASE_IN)
+			after(0.5, func():
+				if live(tt):
+					tt.die({"execute": true, "attacker": c, "dmg": 9999.0, "sealed": true}))
+		else:
+			st(tt, "sealed", 6.0)
+			st(tt, "stun", 0.8)
+			tt.take_hit(inf(c, "uzumaki_uzu_fuin", 1.0, {"knock": 0.0, "launch": 0.0, "kind": "light", "chakra_drain": 40.0})))
 
-
-func p_uzumaki_kongo_kekkai(c: Node3D, _t: Node3D) -> void:
-	busy(c, 1.0)
-	var root = Node3D.new()
-	c.add_child(root)
-	for k in 8:
-		var ch = _chain_links(14, GOLD)
-		root.add_child(ch)
-		ch.position = Vector3(cos(k * TAU / 8.0) * 3.0, 0.1, sin(k * TAU / 8.0) * 3.0)
-		ch.look_at_from_position(ch.position, Vector3.UP * 4.0, Vector3.UP)
-		ch.rotation.y += PI
-	root.scale = Vector3.ONE * 0.05
-	var tw = root.create_tween()
-	tw.tween_property(root, "scale", Vector3.ONE, 0.35).set_trans(Tween.TRANS_BACK)
-	tw.tween_interval(6.0)
-	tw.tween_property(root, "scale", Vector3.ONE * 0.05, 0.3)
-	tw.tween_callback(root.queue_free)
-	every(6.0, 0.1, func(i, _k):
-		if not live(c):
-			return
-		for p in get_tree().get_nodes_in_group("projectiles"):
-			if p.get("shooter") != c and p.global_position.distance_to(c.global_position + Vector3.UP) < 3.5:
-				VFX.star(p.global_position, GOLD, 1.0)
-				p.queue_free()
-		if i % 5 == 0:
-			for e in enemies_near(c, c.global_position, 3.5):
-				st(e, "bind", 1.0), Callable())
-	if c is Player:
-		Buffs.add("kongo_kekkai", 6.0, {"armor": 0.85, "_name": "Elmas Zincir Bariyeri", "_desc": "içeri saldırı geçmez"})
-	Sfx.play("chain", c.global_position, 0.7)
 
 
 func p_karatachi_mizu_kagami(c: Node3D, t: Node3D) -> void:
