@@ -15008,7 +15008,9 @@ func p_kanzeon_renge_o(c: Node3D, t: Node3D) -> void:
 		var goal = gp(tt.global_position if tt and live(tt) else at + face_d * 16.0)
 		for k in 14:
 			after(k * 0.08, func():
-				var q = goal + Vector3(randf_range(-4, 4), 0, randf_range(-4, 4))
+				# yumruk yağmuru hedefi izler (ilk darbe savurup geri kalanı boşa düşürüyordu); son yumruğa kadar savurmaz, bastırır
+				var q = (gp(tt.global_position) if tt and live(tt) else goal) + Vector3(randf_range(-2, 2), 0, randf_range(-2, 2))
+				var last_fist = k == 13
 				var fist = _branch(14.0, 1.0)
 				get_tree().current_scene.add_child(fist)
 				var src = at + Vector3.UP * 11.0 + Vector3(randf_range(-5, 5), randf_range(-2, 3), 0)
@@ -15019,7 +15021,7 @@ func p_kanzeon_renge_o(c: Node3D, t: Node3D) -> void:
 				tw2.tween_property(fist, "global_position", src.lerp(q, 0.55), 0.15)
 				tw2.tween_callback(func():
 					impact_fx("doton", EARTH, q + Vector3.UP * 0.5, 1.3)
-					hit(c, q + Vector3.UP, 3.0, inf(c, "kanzeon_renge_o", 0.6, {"knock": 10.0, "kind": "heavy"})))
+					hit(c, q + Vector3.UP, 3.0, inf(c, "kanzeon_renge_o", 0.6, {"knock": 10.0 if last_fist else 0.0, "kind": "heavy"})))
 				tw2.tween_interval(0.3)
 				tw2.tween_property(fist, "scale", Vector3.ONE * 0.02, 0.2)
 				tw2.tween_callback(fist.queue_free))
@@ -18019,10 +18021,12 @@ func p_nikudan_hari_sensha(c: Node3D, t: Node3D) -> void:
 		FX.dust(gp(c.global_position), 0.9)
 		VFX.debris(gp(c.global_position), EARTH, 2, 5.0, 0.3)
 		for e in enemies_near(c, pt, 2.4):
-			if Time.get_ticks_msec() - int(last.get(e.get_instance_id(), 0)) > 450:
-				last[e.get_instance_id()] = Time.get_ticks_msec()
+			# hedef başına tek, tam darbe (dikenli top çarpıp savurur); eskiden 0.45 sn'de bir tekrar vuruyordu, denge ölçümü
+			# duran kuklada bunu 3-4 vuruş sayıp hasarı 0.41'e indirmişti -> savrulan gerçek hedefe tek vuruşta ~5-7 hasar
+			if not last.has(e.get_instance_id()):
+				last[e.get_instance_id()] = true
 				VFX.debris(e.global_position + Vector3.UP, Color(0.6, 0.05, 0.05), 6, 5.0, 0.2)
-				hit(c, e.global_position + Vector3.UP, 1.0, inf(c, "nikudan_hari_sensha", 0.6, {"knock": 9.0, "launch": 3.0, "kind": "heavy", "bleed": 3.0})), func():
+				hit(c, e.global_position + Vector3.UP, 1.0, inf(c, "nikudan_hari_sensha", 2.0, {"knock": 9.0, "launch": 3.0, "kind": "heavy", "bleed": 3.0})), func():
 		ball.queue_free()
 		if is_instance_valid(c):
 			c.model.visible = true)
