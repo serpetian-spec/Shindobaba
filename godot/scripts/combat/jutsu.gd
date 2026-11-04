@@ -1472,11 +1472,11 @@ func _shadow_mat(alpha := 0.86) -> StandardMaterial3D:
 
 ## Gölge kamçısı (referans: Kagezukami / Kageyose kareleri): hedefin altındaki gölgeden kalkan, pürüzsüz, kapkara, sabit enli
 ## tek parça kol; hedefin bedenine sarmal dolanıp yükselir, ucu sivrilir. hand=true: ucu boğazı kavrayan kara el (Kubishibari).
-func _shadow_coil(t: Node3D, dur: float, turns := 1.2, top := 0.8, hand := false, a0 := -1.0) -> void:
+func _shadow_coil(t: Node3D, dur: float, turns := 1.2, top := 0.8, hand := false, a0 := -1.0, col := Color(0.03, 0.025, 0.04)) -> void:
 	if t == null or not is_instance_valid(t):
 		return
 	var mat = StandardMaterial3D.new()
-	mat.albedo_color = Color(0.03, 0.025, 0.04)
+	mat.albedo_color = col
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	var mi = MeshInstance3D.new()
 	mi.top_level = true
@@ -1543,7 +1543,8 @@ func kurama_painting(c: Node3D, t: Node3D) -> void:
 			Hud.msg("Resim genjutsusu: görebildiğin bir hedef seç (26 m).", Color(0.85, 0.6, 0.8))
 		return
 	var fd = c.face_dir() if c.has_method("face_dir") else Vector3.FORWARD
-	# tuval: elde tutulan kâğıt, üstünde fırça darbeleri yavaş yavaş belirir
+	var INKS = [Color(0.08, 0.06, 0.07), Color(0.62, 0.08, 0.14), Color(0.14, 0.24, 0.52), Color(0.1, 0.36, 0.22)]
+	# tuval: elde tutulan kâğıt
 	var canvas = MeshInstance3D.new()
 	var qm = QuadMesh.new()
 	qm.size = Vector2(0.7, 0.5)
@@ -1554,61 +1555,121 @@ func kurama_painting(c: Node3D, t: Node3D) -> void:
 	cm.cull_mode = BaseMaterial3D.CULL_DISABLED
 	canvas.material_override = cm
 	get_tree().current_scene.add_child(canvas)
-	canvas.global_position = c.global_position + Vector3.UP * 1.12 + fd * 0.42   # göğsün önünde, ellerde
+	canvas.global_position = c.global_position + Vector3.UP * 1.12 + fd * 0.42
 	canvas.look_at(canvas.global_position + fd, Vector3.UP)
+	# fırça darbeleri: kavisli, uçları incelen mürekkep şeritleri (tuval düzleminde), sırayla belirir
 	var strokes = []
-	for k in 7:
-		var st = MeshInstance3D.new()
-		var sq = QuadMesh.new()
-		sq.size = Vector2(randf_range(0.15, 0.45), randf_range(0.02, 0.05))
-		st.mesh = sq
+	for k in 8:
+		var sb = MB.new()
+		var x0 = randf_range(-0.26, 0.1)
+		var y0 = randf_range(-0.18, 0.18)
+		var L = randf_range(0.18, 0.36)
+		var bend = randf_range(-0.12, 0.12)
+		var ang = randf_range(-0.9, 0.9)
+		var pts = []
+		var rad = []
+		for q in 9:
+			var u = q / 8.0
+			var lx = u * L
+			var ly = sin(u * PI) * bend
+			pts.append(Vector3(x0 + cos(ang) * lx - sin(ang) * ly, y0 + sin(ang) * lx + cos(ang) * ly, -0.004))
+			var w = 0.022 * sin(clampf(u, 0.08, 0.92) * PI) + 0.003
+			rad.append(Vector2(w, 0.0015))
+		Loft.tube(sb, pts, rad, INKS[k % 4], 6, 2, true, true)
 		var sm = StandardMaterial3D.new()
 		sm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		sm.cull_mode = BaseMaterial3D.CULL_DISABLED   # iki yüzlü: tuvalin her yanından görünür
-		sm.albedo_color = [Color(0.6, 0.1, 0.15), Color(0.15, 0.25, 0.5), Color(0.1, 0.35, 0.2), Color(0.1, 0.08, 0.08)][k % 4]
+		sm.cull_mode = BaseMaterial3D.CULL_DISABLED
+		sm.vertex_color_use_as_albedo = true
+		var st = MeshInstance3D.new()
+		st.mesh = sb.build(null)
 		st.material_override = sm
 		canvas.add_child(st)
-		st.position = Vector3(randf_range(-0.2, 0.2), randf_range(-0.18, 0.18), -0.005)
-		st.rotation.z = randf_range(-0.8, 0.8)
 		st.visible = false
 		strokes.append(st)
+	# elde fırça
+	var brush: Node3D = null
+	var m = c.get("model")
+	if m and m.skel and m.skel.find_bone("RightHand") >= 0:
+		var ba = BoneAttachment3D.new()
+		ba.bone_name = "RightHand"
+		m.skel.add_child(ba)
+		var bb = MB.new()
+		bb.add("cyl", Vector3(0, 0.12, 0), Vector3(0.022, 0.24, 0.022), Color(0.55, 0.4, 0.22), Vector3.ZERO, 6)
+		bb.add("cone", Vector3(0, 0.27, 0), Vector3(0.03, 0.07, 0.03), Color(0.05, 0.04, 0.05), Vector3.ZERO, 6)
+		var bmi = MeshInstance3D.new()
+		bmi.mesh = bb.build(null)
+		var bm = StandardMaterial3D.new()
+		bm.vertex_color_use_as_albedo = true
+		bmi.material_override = bm
+		ba.add_child(bmi)
+		brush = ba
 	if c.get("model"):
 		c.model.play("cast", 0.1, 0.6, true)
 	if c is Player:
 		c.input_locked = 1.5
 	var hp0 = float(c.get("hp"))
 	var broke = [false]
-	for k in 7:
-		get_tree().create_timer(0.2 * k).timeout.connect(func():
+	var cleanup = func():
+		if is_instance_valid(brush):
+			brush.queue_free()
+	for k in 8:
+		get_tree().create_timer(0.18 * k).timeout.connect(func():
 			if broke[0] or not is_instance_valid(canvas):
 				return
-			if is_instance_valid(c) and float(c.get("hp")) < hp0 - 0.5:   # çizerken vuruldu: çizim bozulur
+			if is_instance_valid(c) and float(c.get("hp")) < hp0 - 0.5:   # çizerken vuruldu: çizim bozulur (animedeki karşı oyun)
 				broke[0] = true
 				Combat.popup_text(c.global_position + Vector3.UP * 2.4, "Çizim bozuldu!", Color(1, 0.6, 0.5))
 				if c is Player:
 					c.input_locked = 0.0
+				VFX.puffs(canvas.global_position, {"amount": 10, "life": 0.5, "size": 0.12, "radius": 0.2, "vmin": 1, "vmax": 3, "dir": Vector3.DOWN, "spread": 120.0, "add": false,
+					"colors": [Color(0.9, 0.88, 0.82, 1), Color(0.9, 0.88, 0.82, 0)]})
 				canvas.queue_free()
+				cleanup.call()
 				return
-			strokes[k].visible = true)
+			var stv = strokes[k]
+			stv.visible = true
+			stv.scale = Vector3(0.05, 1, 1)
+			stv.create_tween().tween_property(stv, "scale", Vector3.ONE, 0.14))
 	get_tree().create_timer(1.5).timeout.connect(func():
+		cleanup.call()
 		if broke[0] or not is_instance_valid(c) or not is_instance_valid(t) or t.is_dead():
 			if is_instance_valid(canvas):
 				canvas.queue_free()
 			return
 		if is_instance_valid(canvas):
 			var tw = canvas.create_tween()
-			tw.tween_property(canvas, "global_position", t.global_position + Vector3.UP * 1.3, 0.25)
-			tw.parallel().tween_property(canvas, "scale", Vector3.ONE * 3.5, 0.25)
-			tw.tween_property(canvas, "scale", Vector3.ONE * 0.01, 0.15)
+			tw.tween_property(canvas, "global_position", t.global_position + Vector3.UP * 1.3, 0.22)
+			tw.parallel().tween_property(canvas, "scale", Vector3.ONE * 3.0, 0.22)
+			tw.tween_property(canvas, "scale", Vector3.ONE * 0.01, 0.12)
 			tw.tween_callback(canvas.queue_free)
-		var gm = Eyes.genjutsu_land(c, t, false)   # Yakumo'nun resmi göz teması istemez; direnç/ayna yine işler
-		if gm <= 0.0:
-			return
-		var boss = t.has_meta("boss")
-		t.apply_status("bind", (2.0 if boss else 4.0) * gm)
-		t.take_hit({"dmg": (18.0 if boss else 32.0) * _mult(c) * gm, "knock": 0.0, "launch": 0.0, "kind": "light", "pierce_guard": true, "attacker": c})
-		Combat.popup_text(t.global_position + Vector3.UP * 2.6, "Resmin içine çekildi", Color(0.9, 0.5, 0.8))
-		Sfx.play("genjutsu", t.global_position, 0.8))
+		get_tree().create_timer(0.22).timeout.connect(func():
+			if not is_instance_valid(t) or not is_instance_valid(c):
+				return
+			var gm = Eyes.genjutsu_land(c, t, false)   # Yakumo'nun resmi göz teması istemez; direnç/ayna yine işler
+			if gm <= 0.0:
+				return
+			var boss = t.has_meta("boss")
+			var hold = (2.0 if boss else 4.0) * gm
+			# resim gerçeğe dönüşür: hedefin çevresinde dönen renkli fırça darbeleri, yerden kalkıp bedeni saran mürekkep dalları
+			var o = t.global_position
+			for n in 14:
+				var col = INKS[n % 4]
+				var a0 = randf() * TAU
+				var h0 = randf_range(0.2, 1.9)
+				var rr = randf_range(0.7, 1.3)
+				WindFX.streak(func(u: float) -> Vector3:
+					var aa = a0 + u * TAU * 0.8
+					return o + Vector3(cos(aa) * rr * (1.0 - u * 0.4), h0 + sin(u * PI) * 0.3, sin(aa) * rr * (1.0 - u * 0.4)), 0.5, 0.09, col, n * 0.025, 12)
+			for k in 3:
+				_shadow_coil(t, hold, 1.0 + k * 0.3, 0.75 + k * 0.08, false, k * TAU / 3.0, [Color(0.06, 0.05, 0.06), Color(0.55, 0.07, 0.12), Color(0.06, 0.05, 0.06)][k])
+			VFX.puffs(o + Vector3.UP * 1.0, {"amount": 18, "life": 0.5, "size": 0.18, "radius": 0.5, "vmin": 2, "vmax": 5, "dir": Vector3.UP, "spread": 160.0, "add": false,
+				"colors": [Color(0.08, 0.06, 0.07, 1), Color(0.55, 0.07, 0.12, 0.0)]})
+			if t is Player and Game.world and Game.world.env:
+				Game.world.env.flash_tint(Color(0.85, 0.78, 0.6, 0.35), hold)   # kurban resmin dünyasında: kâğıt tonu
+			t.apply_status("bind", hold)
+			t.take_hit({"dmg": (18.0 if boss else 32.0) * _mult(c) * gm, "knock": 0.0, "launch": 0.0, "kind": "light", "pierce_guard": true, "attacker": c})
+			Combat.popup_text(t.global_position + Vector3.UP * 2.6, "Resmin içine çekildi", Color(0.9, 0.5, 0.8))
+			Sfx.play("genjutsu", t.global_position, 0.8)))
 
 
 ## Kurama kusuru (kanon): bastırılmış ikinci kişilik (Ido) gücü kontrol eder — can %25 altına düşünce 60 sn'de bir uyanır:
