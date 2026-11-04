@@ -566,11 +566,14 @@ func c_jukenho_ichigekishin(c: Node3D, _t: Node3D) -> void:
 		anim(c, "cast_out", 2.0)
 		var cp = c.global_position + Vector3.UP * 1.0
 		# bütün bedenden dışa fışkıran chakra çizgileri (kabuk yok)
-		for n in 48:
+		for n in 64:
 			var dir = Vector3(randf_range(-1, 1), randf_range(-0.35, 0.9), randf_range(-1, 1)).normalized()
-			var st0 = cp + dir * 0.3 + Vector3.UP * randf_range(-0.6, 0.6)
-			var L = randf_range(2.6, 4.4)
-			WindFX.streak(func(u: float) -> Vector3: return st0 + dir * L * u, 0.36, 0.16, col, randf() * 0.04, 8)
+			var st0 = cp + dir * 0.3 + Vector3.UP * randf_range(-0.7, 0.7)
+			var L = randf_range(3.2, 5.2)
+			WindFX.streak(func(u: float) -> Vector3: return st0 + dir * L * sqrt(u), 0.45, 0.24, col, randf() * 0.03, 8)
+		# bedenden bir an taşan parlak chakra (tenketsulardan) — gövdeyi saran yumuşak ak-mavi bulut, hızla dışa açılır
+		VFX.puffs(cp, {"amount": 26, "life": 0.35, "size": 1.6, "radius": 0.6, "vmin": 4.0, "vmax": 8.0, "dir": Vector3.UP, "spread": 180.0, "damp": 6.0, "add": true,
+			"colors": [Color(0.95, 0.98, 1.0, 0.8), Color(0.55, 0.8, 1.0, 0.0)]})
 		VFX.puffs(cp, {"amount": 60, "life": 0.45, "size": 0.22, "radius": 0.5, "vmin": 6.0, "vmax": 13.0, "dir": Vector3.UP, "spread": 180.0, "damp": 4.0, "add": true,
 			"colors": [Color(1, 1, 1, 1), Color(0.6, 0.82, 1.0, 0)]})
 		# bedenin çevresinde bir an yanan ak chakra pusu (tenketsulardan sızan)
@@ -1670,13 +1673,22 @@ func c_suiton_gosuiwan_no_jutsu(c: Node3D, t: Node3D) -> void:
 		Sfx.play("water", p, 0.7))
 
 
-## Su Kalkanı (Tate Eboshi): önünde yükselen su duvarı 6 sn mermileri yutar, yaklaşanı geri iter
+## Suiton: Tate Eboshi (kanon, Suigetsu): Hōzuki bir su kaynağıyla birleşir, dev bir dalga (şeytan balığı gibi) kaldırır:
+## 6 sn önündeki mermileri yutar, yaklaşanı geri iter, dostları korur. Su kaynağı yoksa yapılamaz (oyuncu: ClanMech; AI: burada).
 func c_suiton_tate_eboshi(c: Node3D, t: Node3D) -> void:
+	if not (c is Player) and not ClanMech.water_near(c.global_position):
+		return
 	var d = fwd(c, t)
-	var b = MB.new()
-	b.add("box", Vector3(0, 2.0, 0), Vector3(7.0, 4.0, 0.6), Color.WHITE)
-	var wall = place(b, gp(c.global_position + d * 2.5), VFX.mat_water())
+	d.y = 0.0
+	d = d.normalized()
+	var wall = MeshInstance3D.new()
+	wall.mesh = WaterArt.wave_mesh(8.0, 5.0)
+	wall.material_override = WaterArt.mat()
+	get_tree().current_scene.add_child(wall)
+	wall.global_position = gp(c.global_position + d * 2.5)
 	wall.look_at(wall.global_position + d, Vector3.UP)
+	VFX.splash(wall.global_position + Vector3.UP * 0.5, 3.0)
+	WaterArt.drops(wall.global_position + Vector3.UP * 3.0, 14, 2.0, 9.0)
 	wall.scale = Vector3(1, 0.05, 1)
 	var tw = wall.create_tween()
 	tw.tween_property(wall, "scale", Vector3.ONE, 0.25).set_ease(Tween.EASE_OUT)

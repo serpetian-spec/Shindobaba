@@ -29,12 +29,9 @@ func _physics_process(dt: float) -> void:
 			_yielded = true
 			on_yield.call(true)
 		return
-	# Hōzuki: gelen hasarın bir kısmını su bedeniyle boşa çıkar
-	if clan == "hozuki" and last_hp > 0.0 and f.hp < last_hp and randf() < 0.4:
-		var lost: float = last_hp - f.hp
-		f.hp = minf(f.max_hp, f.hp + lost * 0.85)
-		VFX.splash(f.global_position + Vector3.UP * 1.0, 1.6)
-		Combat.popup_text(f.global_position + Vector3.UP * 2.2, "Suika!", Color(0.6, 0.85, 1.0))
+	# Hōzuki suyu (oyuncuyla aynı): suda hızla, yağmurda orta, matarayla yavaş dolar — Suika Enemy.take_hit içinde
+	if clan == "hozuki":
+		f.set_meta("su", minf(ClanMech.SU_MAX, float(f.get_meta("su", ClanMech.SU_MAX)) + maxf(1.5, ClanMech.su_refill(f.global_position, false, false)) * get_process_delta_time()))
 	last_hp = f.hp
 	if duel and f.hp < f.max_hp * 0.25:
 		_yield()

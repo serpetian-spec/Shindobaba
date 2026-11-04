@@ -864,6 +864,16 @@ func _end_attack() -> void:
 
 
 func take_hit(info: Dictionary) -> void:
+	# Hōzuki (oyuncuyla aynı kural): fiziksel darbe kendiliğinden sıvılaşan bedenden geçer (su harcar); raiton 1.5x
+	if String(arch.get("clan", "")) == "hozuki" and not dead:
+		var hel = String(info.get("element", ""))
+		if hel in ["raiton", "ranton", "jinton"]:
+			info["dmg"] = float(info.get("dmg", 0.0)) * 1.5
+		elif hel == "" and float(get_meta("su", ClanMech.SU_MAX)) >= ClanMech.SUIKA_HIT_COST:
+			set_meta("su", float(get_meta("su", ClanMech.SU_MAX)) - ClanMech.SUIKA_HIT_COST)
+			VFX.splash(global_position + Vector3.UP * 1.0, 1.2)
+			Combat.popup_text(global_position + Vector3.UP * (height + 0.5), "Suika", Color(0.6, 0.85, 1.0))
+			return
 	if dead:
 		return
 	if not info.get("kamui", false) and EnemyArts.kamui_phase(self):

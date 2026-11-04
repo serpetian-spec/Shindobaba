@@ -969,7 +969,7 @@
   "level": 3,
   "rank": 0,
   "learn": "clan",
-  "desc": "15 sn bedenin suya dönüşür: darbeler içinden geçer.",
+  "desc": "Bütün beden 15 sn suya döner: elementli saldırılar dahil içinden geçer. Hōzuki bedeni zaten fiziksel darbelerde kendiliğinden sıvılaşır (su harcar); raiton bu bedene ağır işler.",
   "seals": [
    "Ushi",
    "U"
@@ -16459,7 +16459,7 @@
   "level": 10,
   "rank": 2,
   "learn": "clan:hozuki",
-  "desc": "Su kalkan duvarı.",
+  "desc": "Su kaynağıyla birleşip dev dalga kaldırır: 6 sn mermileri yutar, yaklaşanı iter. Yakında su (göl/deniz, yağmur, ıslak zemin) şart.",
   "seals": [],
   "canon_rank": "B",
   "tier": 3,
@@ -20387,7 +20387,9 @@
   "katon_zukokku": "kakuzu_maske_katon",
   "water_release_wild_water_wave": "suiton_mizurappa",
   "byakugan_tenketsu": "juken",
-  "sosho_kaiten": "kaiten"
+  "sosho_kaiten": "kaiten",
+  "hozuki_kubikiri_zan": "suiton_gosuiwan_no_jutsu",
+  "hozuki_suiryu_tenshin": "mizudeppo_nicho"
  },
  "kusanagi_kuchi": {
   "id": "kusanagi_kuchi",
@@ -20698,28 +20700,9 @@
   "shape": "beam",
   "tier": 4
  },
- "hozuki_kubikiri_zan": {
-  "id": "hozuki_kubikiri_zan",
-  "name": "Hōzuki: Kubikiribōchō Zan",
-  "name_en": "Kubikiribōchō",
-  "cost": 32,
-  "cd": 7.8,
-  "element": "",
-  "elements": [],
-  "clan": "hozuki",
-  "level": 8,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Dev cellat kılıcıyla iki yönlü biçme; kanla kendini onarır.",
-  "seals": [],
-  "canon_rank": "B",
-  "category": "hiden",
-  "shape": "melee",
-  "tier": 3
- },
  "hozuki_mizu_muchi": {
   "id": "hozuki_mizu_muchi",
-  "name": "Hōzuki: Mizu Muchi",
+  "name": "Suiton: Suiben",
   "name_en": "Water Whip",
   "cost": 34,
   "cd": 8.5,
@@ -20727,37 +20710,16 @@
   "elements": [
    "suiton"
   ],
-  "clan": "hozuki",
+  "clan": "",
   "level": 10,
   "rank": 0,
-  "learn": "clan",
-  "desc": "Suya dönen kol uzun su kırbacına dönüşür; geniş yayda şaklar.",
+  "learn": "trainer:kiri",
+  "desc": "Sudan kırbaç: hedefe dolanıp bağlar. Raiton doğan varsa kırbaçtan şimşek akıtıp bağlananı çarpar.",
   "seals": [],
   "canon_rank": "B",
   "category": "hiden",
   "shape": "melee",
   "tier": 3
- },
- "hozuki_suiryu_tenshin": {
-  "id": "hozuki_suiryu_tenshin",
-  "name": "Hōzuki: Suiryū Tenshin",
-  "name_en": "Water Release: Water Dragon Bullet Technique",
-  "cost": 42,
-  "cd": 11.3,
-  "element": "suiton",
-  "elements": [
-   "suiton"
-  ],
-  "clan": "hozuki",
-  "level": 18,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Sulaşan beden ejderhaya dönüşüp hedefe dalar, sonra yeniden insana döner.",
-  "seals": [],
-  "canon_rank": "A",
-  "category": "hiden",
-  "shape": "projectile",
-  "tier": 4
  },
  "hoshigaki_samehada_kyushu": {
   "id": "hoshigaki_samehada_kyushu",
@@ -25816,31 +25778,6 @@
   "shape": "bind",
   "meaning": "Şurup İpi"
  },
- "suika_no_jutsu": {
-  "id": "suika_no_jutsu",
-  "name": "Suika no Jutsu",
-  "name_en": "Liquefy Technique",
-  "cost": 22,
-  "cd": 10.8,
-  "element": "suiton",
-  "elements": [
-   "suiton"
-  ],
-  "natures": [
-   "suiton"
-  ],
-  "clan": "hozuki",
-  "level": 10,
-  "rank": 2,
-  "learn": "trainer:kiri",
-  "desc": "Bedenin suya dönüşür: 2.5 sn boyunca vuruşlar içinden geçer, ardından yeniden şekillenirsin.",
-  "seals": [],
-  "canon_rank": "B",
-  "tier": 3,
-  "category": "ninjutsu",
-  "shape": "counter",
-  "meaning": "Sıvılaşma"
- },
  "suiton_suikyu": {
   "id": "suiton_suikyu",
   "name": "Suiton: Suikyū",
@@ -25920,31 +25857,6 @@
   "category": "ninjutsu",
   "shape": "projectile",
   "meaning": "Asit Sızıntısı"
- },
- "iryo_suiton_suika": {
-  "id": "iryo_suiton_suika",
-  "name": "Iryō Suiton: Suika",
-  "name_en": "Medical Water Release: Water Mosquito",
-  "cost": 28,
-  "cd": 9.0,
-  "element": "suiton",
-  "elements": [
-   "suiton"
-  ],
-  "natures": [
-   "suiton"
-  ],
-  "clan": "",
-  "level": 10,
-  "rank": 2,
-  "learn": "trainer:hospital",
-  "desc": "Sudan sivrisinekler hedefe yapışıp kan çeker; çekilen kan sana can olarak döner.",
-  "seals": [],
-  "canon_rank": "B",
-  "tier": 3,
-  "category": "ninjutsu",
-  "shape": "projectile",
-  "meaning": "Tıbbi Su Sivrisineği"
  },
  "iryo_suiton_mizukamakiri": {
   "id": "iryo_suiton_mizukamakiri",

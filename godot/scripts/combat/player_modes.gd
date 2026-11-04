@@ -533,6 +533,20 @@ func set_size(s: float, dur: float) -> void:
 
 # ------------------------------------------------------------------ hasar kancası: true = darbe tamamen önlendi
 func on_player_hit(info: Dictionary) -> bool:
+	# Hōzuki (kanon): beden darbe anında kendiliğinden sıvılaşır — fiziksel darbe içinden geçer (su harcar); raiton suyu iletir
+	if ClanMech.clan() == "hozuki" and not Buffs.has("suika"):
+		var hel = String(info.get("element", ""))
+		if hel in ["raiton", "ranton", "jinton"]:
+			info["dmg"] = float(info.get("dmg", 0.0)) * 1.5
+			Combat.popup_text(p.global_position + Vector3.UP * 2.2, "Su beden elektriği iletti!", Color(1, 1, 0.4))
+			return false
+		var pr = Game.profile
+		if hel == "" and float(pr.get("su", ClanMech.SU_MAX)) >= ClanMech.SUIKA_HIT_COST and not info.get("sealed", false):
+			pr["su"] = float(pr.get("su", ClanMech.SU_MAX)) - ClanMech.SUIKA_HIT_COST
+			VFX.splash(p.global_position + Vector3.UP * 1.1, 1.2)
+			Combat.popup_text(p.global_position + Vector3.UP * 2.2, "Suika", Color(0.5, 0.8, 1))
+			Sfx.play("water", p.global_position, 1.5, 0.5)
+			return true
 	if Buffs.has("suika"):
 		# su beden: Raiton suyu iletir — iki kat hasar, beden dağılır (zayıflık); ağır darbe yarıya iner; her darbe chakra yer
 		var sel = String(info.get("element", ""))

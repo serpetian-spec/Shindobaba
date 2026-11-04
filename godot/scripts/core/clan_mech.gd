@@ -9,6 +9,9 @@ extends RefCounted
 
 const KALORI_MAX := 100.0
 const KOLONI_MAX := 100.0
+## Hōzuki (kanon): Suika bedeni sürekli su ister (Suigetsu/Mangetsu matara taşır) — su teknikleri ve sıvılaşma su harcar
+const SU_MAX := 100.0
+const SUIKA_HIT_COST := 8.0
 const AKI_PILLS := ["hap_horenzai", "hap_kare", "hap_togarashi"]
 const NINKEN_RESPAWN := 45.0
 ## Kakuzu (Toprak Kini Yolu): maskeli kalbin istediği doğa
@@ -46,6 +49,8 @@ static func meter() -> Dictionary:
 			return {"label": "Kalori", "v": float(pr.get("kalori", KALORI_MAX)), "max": KALORI_MAX, "col": Color(1.0, 0.62, 0.2)}
 		"aburame":
 			return {"label": "Kikaichū", "v": float(pr.get("kikaichu", KOLONI_MAX)), "max": KOLONI_MAX, "col": Color(0.35, 0.55, 0.3)}
+		"hozuki":
+			return {"label": "Su", "v": float(pr.get("su", SU_MAX)), "max": SU_MAX, "col": Color(0.35, 0.7, 1.0)}
 		"inuzuka":
 			var d = dog()
 			if d:
@@ -75,9 +80,15 @@ static func cast_block(jid: String, j: Dictionary) -> String:
 		"aburame":
 			if jc == "aburame" and float(pr.get("kikaichu", KOLONI_MAX)) < koloni_cost(j):
 				return "Kikaichū kolonin yetersiz — böceklerin çoğalmasını bekle."
+		"hozuki":
+			if jc == "hozuki" and float(pr.get("su", SU_MAX)) < su_cost(j):
+				return "Bedenindeki su azaldı — mataradan iç, yağmura ya da suya gir."
 		"inuzuka":
 			if jid in DOG_COMBO and dog() == null:
 				return "%s yanında değil — ortak teknik köpeğinle yapılır." % String(pr.get("ninken_name", "Ninken"))
+	# Tate Eboshi (kanon): Hōzuki bir su kaynağıyla birleşip dalgayı oradan kaldırır
+	if jid == "suiton_tate_eboshi" and Game.player and not water_near(Game.player.global_position):
+		return "Tate Eboshi için yakında su olmalı (göl/deniz, yağmur ya da ıslak zemin)."
 	return ""
 
 
@@ -89,6 +100,35 @@ static func kalori_cost(jid: String, j: Dictionary) -> float:
 
 static func koloni_cost(j: Dictionary) -> float:
 	return float(j.get("cost", 20)) * 0.8
+
+
+static func su_cost(j: Dictionary) -> float:
+	return float(j.get("cost", 20)) * 0.6
+
+
+## Yakında su kaynağı: deniz/göl (arazi su seviyesinin altında), yağmur ya da ıslak zemin (su jutsularının birikintisi)
+static func water_near(pos: Vector3, r := 9.0) -> bool:
+	if Game.world and Game.world.env and String(Game.world.env.weather) == "yağmur":
+		return true
+	if GroundFX.kind_at(pos) == "wet":
+		return true
+	for k in 9:
+		var q = pos if k == 8 else pos + Vector3(cos(k * TAU / 8.0), 0, sin(k * TAU / 8.0)) * r
+		if Game.terrain_height(q.x, q.z) < -0.3:
+			return true
+	return false
+
+
+## Hōzuki suyu dolar: suyun içinde/üstünde hızla, yağmurda orta, sırtta matara taşırken yavaş (yudumlar)
+static func su_refill(pos: Vector3, swimming: bool, has_flask: bool) -> float:
+	var r = 0.0
+	if swimming or Game.terrain_height(pos.x, pos.z) < -0.3:
+		r = 25.0
+	elif Game.world and Game.world.env and String(Game.world.env.weather) == "yağmur":
+		r = 6.0
+	if has_flask:
+		r = maxf(r, 1.5)
+	return r
 
 
 static func pay(jid: String, j: Dictionary) -> void:
@@ -106,6 +146,8 @@ static func pay(jid: String, j: Dictionary) -> void:
 			pr["kalori"] = maxf(0.0, float(pr.get("kalori", KALORI_MAX)) - kalori_cost(jid, j))
 	elif clan() == "aburame" and jc == "aburame":
 		pr["kikaichu"] = maxf(0.0, float(pr.get("kikaichu", KOLONI_MAX)) - koloni_cost(j))
+	elif clan() == "hozuki" and jc == "hozuki":
+		pr["su"] = maxf(0.0, float(pr.get("su", SU_MAX)) - su_cost(j))
 
 
 ## Yemek yendi (çay evi, ramen): Akimichi kalorisi dolar
@@ -113,6 +155,9 @@ static func on_eat() -> void:
 	if clan() == "akimichi":
 		Game.profile["kalori"] = KALORI_MAX
 		Hud.msg("Kaloriler doldu!", Color(1.0, 0.65, 0.25))
+	elif clan() == "hozuki":
+		Game.profile["su"] = SU_MAX
+		Hud.msg("Bedenindeki su doldu.", Color(0.4, 0.75, 1.0))
 
 
 ## Oyuncuya darbe: ateş bedendeki kikaichū'yu yakar
@@ -237,6 +282,11 @@ static func tick(dt: float) -> void:
 	if "byakugo_no_in" in pr.get("learned", []) and not Buffs.has("byakugo"):
 		pr["byakugo"] = minf(100.0, float(pr.get("byakugo", 0.0)) + dt / 3.0)
 	match clan():
+		"hozuki":
+			var flask = String(Gear.equipped(pr, "sirt").get("id", "")) in ["sake_kabagi", "sirt_015", "sirt_050"]   # matara/kabak
+			var gain = su_refill(Game.player.global_position, Game.player.swimming, flask)
+			if gain > 0.0:
+				pr["su"] = minf(SU_MAX, float(pr.get("su", SU_MAX)) + gain * dt)
 		"aburame":
 			# böcekler chakra yiyerek çoğalır
 			var k = float(pr.get("kikaichu", KOLONI_MAX))
