@@ -19432,6 +19432,14 @@ func p_hoshigaki_gyojin(c: Node3D, _t: Node3D) -> void:
 		if sm is ShaderMaterial and sm.get_shader_parameter("tint") == ratio:
 			skin_mats.append(sm)
 			sm.set_shader_parameter("tint", SKIN)
+	# gövde derisi: giysinin bel üstüne köpekbalığı derisi katmanı (referans: çizgili gri-mavi gövde; pantolon kalır)
+	var shark_skin = ShaderMaterial.new()
+	shark_skin.shader = load("res://shaders/vfx_sharkskin.gdshader")
+	var skinned = []
+	for mi in m.find_children("*", "MeshInstance3D", true, false):
+		if String(mi.name) in ["Cloth", "Body"]:
+			(mi as MeshInstance3D).material_overlay = shark_skin
+			skinned.append(mi)
 	# iri gövde ve kollar (kemik)
 	m.overlay.bulk["LeftUpperArm"] = 1.45
 	m.overlay.bulk["RightUpperArm"] = 1.45
@@ -19501,7 +19509,10 @@ func p_hoshigaki_gyojin(c: Node3D, _t: Node3D) -> void:
 			m.overlay.bulk.erase("LeftUpperArm")
 			m.overlay.bulk.erase("RightUpperArm")
 			for sm in skin_mats:
-				sm.set_shader_parameter("tint", m._skin_ratio()))
+				sm.set_shader_parameter("tint", m._skin_ratio())
+			for mi in skinned:
+				if is_instance_valid(mi) and (mi as MeshInstance3D).material_overlay == shark_skin:
+					(mi as MeshInstance3D).material_overlay = null)
 	Sfx.play("roar", c.global_position, 1.2)
 
 
