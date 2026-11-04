@@ -31,6 +31,7 @@ func _ready() -> void:
 		["ak_side", p + Vector3(-4.0, 1.3, -0.6), p + Vector3(0, 1.0, -0.3)],
 		["wolf_front", p2 + Vector3(-4.5, 2.2, -11.0), p2 + Vector3(-0.5, 2.0, -2.0)],
 		["wolf_side", p2 + Vector3(-12.0, 3.0, 2.0), p2 + Vector3(0, 2.5, 0)],
+		["wolf_face", p2 + Vector3(-3.0, 3.0, -9.5), p2 + Vector3(-1.2, 2.6, -4.5)],
 	]
 	for s in shots:
 		pl.cam.global_position = s[1]

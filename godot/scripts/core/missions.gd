@@ -2741,16 +2741,21 @@ func _bb_spawn(e: Dictionary, at: Vector3) -> void:
 	var a = Enemy.archetype("rogue", 0)
 	a["respawn"] = false
 	a["name"] = "«%s» %s" % [e["alias"], e["name"]]
-	a["hp"] = float(e["hp"]) * 0.6
+	a["hp"] = float(e["hp"]) * 1.25   # kaçak elit: aynı seviyedeki yol ninjasından dayanıklı (eskiden 0.6 ile kırpılıyordu)
 	a["level"] = int(e["level"])
 	a["power"] = float(e["power"])
-	a["guard"] = 0.45
-	a["sub"] = 0.3
+	a["guard"] = 0.55
+	a["sub"] = 0.4
 	a["xp"] = int(e["level"]) * 30
 	a["ryo"] = 0
 	a["element"] = e["element"]
 	a["jutsu"] = {"suiton": ["suiton_suikoudan", "suiton_suiryuudan"], "doton": ["doton_doryuusou", "doton_doryuheki"], "raiton": ["raiton_nagashi", "raiton_chidori"],
 		"katon": ["katon_goukakyuu", "katon_housenka"], "fuuton": ["fuuton_shinkuu", "fuuton_daitoppa"]}.get(e["element"], [])
+	# seviyesine uygun tam jutsu listesi (yol ninjaları gibi; eskiden yalnız iki temel jutsu biliyordu)
+	for jid in Enemy.auto_jutsu("rogue", String(e["element"]), int(e["level"])):
+		if not jid in a["jutsu"]:
+			a["jutsu"].append(jid)
+	a["skill"] = clampf(0.3 + int(e["level"]) * 0.011, 0.35, 0.95)   # elit: yol ninjasından usta (kawarimi, blok, karşı saldırı)
 	a["look"] = _bb_look(e)
 	if e.has("beast"):
 		a["beast"] = e["beast"]
@@ -2781,7 +2786,7 @@ func _bb_spawn(e: Dictionary, at: Vector3) -> void:
 		if not e.has("beast") and String(a.get("clan", "")) == "":
 			BossStyles.dress(a, String(e.get("rank", "B")), int(e["id"]) * 7919, String(e.get("style", "")))
 		else:
-			a["skill"] = float(BossStyles.RANK_SKILL.get(String(e.get("rank", "B")), 0.55))
+			a["skill"] = maxf(float(a.get("skill", 0.0)), float(BossStyles.RANK_SKILL.get(String(e.get("rank", "B")), 0.55)))
 	var b = Enemy.new()
 	b.setup(a)
 	b.set_meta("bingo_id", int(e["id"]))

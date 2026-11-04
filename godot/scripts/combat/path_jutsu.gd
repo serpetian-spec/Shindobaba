@@ -14253,69 +14253,102 @@ func _king_head() -> Dictionary:
 	var root = Node3D.new()
 	var b = MB.new()
 	var SK = Color(0.86, 0.86, 0.9)
-	var PUR = Color(0.36, 0.16, 0.42)
-	var COL = Color(0.5, 0.13, 0.18)
-	# yüksek yaka: başın arkasında yarım halka, yukarı ve dışa açılır
-	# referans: başın arkasında simetrik, başı aşan geniş bordo yaka (tabak gibi), iç yüzü daha açık
-	b.add("sphere", Vector3(0, 3.6, 1.25), Vector3(6.6, 7.2, 0.7), COL, Vector3(-10, 0, 0), 20)
-	b.add("sphere", Vector3(0, 3.6, 1.0), Vector3(5.9, 6.5, 0.4), COL.lightened(0.15), Vector3(-10, 0, 0), 20)
-	# yüz: uzun, iri çeneli
-	Loft.blob(b, Vector3(0, 3.1, 0), Vector3(0, 1, 0), 5.2, [Vector2(1.3, 1.1), Vector2(1.6, 1.4), Vector2(1.55, 1.35), Vector2(1.35, 1.2), Vector2(0.9, 0.8)], SK, 18)
-	# mor bant: alından üst dudağa, gözleri kaplar
-	Loft.tube(b, [Vector3(0, 5.2, -0.9), Vector3(0, 4.3, -1.42), Vector3(0, 3.4, -1.5), Vector3(0, 2.75, -1.42)], [Vector2(0.62, 0.05), Vector2(0.85, 0.05), Vector2(0.75, 0.05), Vector2(0.5, 0.05)], PUR, 6, 3)
-	# burun
-	Loft.tube(b, [Vector3(0, 3.9, -1.48), Vector3(0, 3.3, -1.75), Vector3(0, 3.0, -1.62)], [Vector2(0.14, 0.12), Vector2(0.26, 0.22), Vector2(0.3, 0.18)], SK.darkened(0.05), 8, 3)
-	# Rinnegan gözler: açık mor zemin, koyu halkalar
+	var PUR = Color(0.38, 0.2, 0.45)
+	var COL = Color(0.62, 0.16, 0.2)
+	var COL_IN = Color(0.42, 0.1, 0.14)
+	var BLK = Color(0.08, 0.07, 0.09)
+	var HAIR = Color(0.82, 0.74, 0.55)
+	var LINE = Color(0.2, 0.18, 0.22)
+	# yüksek kırmızı yaka: başı arkadan çanak gibi saran, dışa açılan paneller (iç yüzü koyu)
+	for k in 15:
+		var ang = lerpf(-1.75, 1.75, k / 14.0)
+		var dirv = Vector3(sin(ang), 0, cos(ang))
+		var pp = dirv * 2.6 + Vector3(0, 3.3, 0.5)
+		var yaw = rad_to_deg(atan2(dirv.x, dirv.z))
+		b.add("box", pp, Vector3(1.15, 6.4 - absf(ang) * 0.7, 0.18), COL, Vector3(-14, yaw, 0))
+		b.add("box", pp - dirv * 0.12, Vector3(1.1, 6.2 - absf(ang) * 0.7, 0.08), COL_IN, Vector3(-14, yaw, 0))
+	# geniş maske yüz: alında dar, yanaklarda ve çenede geniş
+	Loft.blob(b, Vector3(0, 3.4, 0.1), Vector3(0, 1, 0), 4.4, [Vector2(0.9, 1.9), Vector2(1.05, 2.35), Vector2(1.1, 2.4), Vector2(1.0, 2.1), Vector2(0.8, 1.4)], SK, 20)   # yassı, geniş maske yüz (dikey eksende Vector2.x = derinlik)
+	# mor bölge: gözleri ve yanakları kaplayan maske lekesi (burun kemeri üstünde açık)
+	b.add("sphere", Vector3(0, 4.05, -0.72), Vector3(4.3, 3.0, 0.9), PUR, Vector3.ZERO, 18)
+	# basık, iri burun: alından iner, genişler, iki burun deliği
+	Loft.tube(b, [Vector3(0, 4.9, -1.12), Vector3(0, 4.2, -1.24), Vector3(0, 3.55, -1.4), Vector3(0, 3.3, -1.34)], [Vector2(0.22, 0.12), Vector2(0.3, 0.16), Vector2(0.46, 0.24), Vector2(0.5, 0.2)], SK.darkened(0.04), 10, 3)
 	for sx in [-1.0, 1.0]:
-		var ep = Vector3(sx * 0.62, 4.05, -1.62)
-		b.add("sphere", ep, Vector3(0.62, 0.42, 0.12), Color(0.82, 0.76, 0.92), Vector3(0, sx * 20, 0), 12)
+		b.add("sphere", Vector3(sx * 0.24, 3.3, -1.5), Vector3(0.15, 0.09, 0.06), LINE, Vector3.ZERO, 8)
+	# Rinnegan gözler: açık mor zemin, koyu halkalar, çatık kaş
+	for sx in [-1.0, 1.0]:
+		var ep = Vector3(sx * 0.8, 4.25, -1.2)
+		b.add("sphere", ep, Vector3(0.7, 0.42, 0.12), Color(0.85, 0.8, 0.95), Vector3(0, sx * 18, 0), 12)
 		for q in 3:
-			b.add("torus", ep + Vector3(sx * 0.02, 0, -0.04 - q * 0.005), Vector3(0.16 + q * 0.11, 0.16 + q * 0.11, 0.16 + q * 0.11), Color(0.3, 0.2, 0.38), Vector3(90, sx * 20, 0), 14)
-		b.add("box", ep + Vector3(0, 0.33, -0.02), Vector3(0.75, 0.1, 0.06), Color(0.2, 0.1, 0.2), Vector3(0, sx * 20, sx * -12))   # kaş
-	# siyah şapka (eboshi): yüzün üstünde, öne panel
-	b.add("box", Vector3(0, 6.15, -0.35), Vector3(1.9, 1.4, 1.5), Color(0.08, 0.07, 0.09), Vector3(-8, 0, 0))
-	b.add("box", Vector3(0, 6.9, -0.15), Vector3(1.3, 0.6, 1.2), Color(0.08, 0.07, 0.09), Vector3(-8, 0, 0))
-	b.add("box", Vector3(0, 6.1, -1.12), Vector3(1.4, 1.2, 0.08), Color(0.12, 0.1, 0.13), Vector3(-8, 0, 0))
-	# tüyler: şapkanın yanlarından yukarı-geriye kıvrılan, kenarları saçaklı uzun beyaz tüyler
+			b.add("torus", ep + Vector3(0, 0, -0.04 - q * 0.004), Vector3(0.16 + q * 0.11, 0.16 + q * 0.11, 0.16 + q * 0.11), Color(0.34, 0.22, 0.42), Vector3(90, sx * 18, 0), 14)
+		b.add("box", ep + Vector3(-sx * 0.02, 0.36, -0.03), Vector3(0.85, 0.1, 0.06), BLK, Vector3(0, sx * 18, sx * -14))
+	# saç: şapkanın altından iki yana dökülen uzun bej tutamlar
 	for sx in [-1.0, 1.0]:
-		var pts = [Vector3(sx * 0.7, 6.6, -0.3), Vector3(sx * 1.6, 8.6, 0.0), Vector3(sx * 2.4, 9.6, 1.0), Vector3(sx * 2.9, 9.4, 2.4), Vector3(sx * 3.1, 8.2, 3.4)]
-		Loft.tube(b, pts, [0.08, 0.07, 0.06, 0.05, 0.03], Color(0.95, 0.95, 0.93), 6, 4)
-		for q in 18:
-			var u = q / 17.0
+		for k in 3:
+			var x0 = sx * (1.55 + k * 0.22)
+			Loft.tube(b, [Vector3(x0, 5.6, -0.2 + k * 0.25), Vector3(x0 + sx * 0.35, 4.0, 0.1 + k * 0.2), Vector3(x0 + sx * 0.3, 2.2, 0.3 + k * 0.15), Vector3(x0 + sx * 0.15, 1.0, 0.4)],
+				[Vector2(0.08, 0.32), Vector2(0.09, 0.38), Vector2(0.08, 0.32), Vector2(0.03, 0.1)], HAIR.darkened(k * 0.06), 6, 3, true, true, Callable(), Vector3(0, 0, 1))
+	# şapka (taç): sivri tepeli siyah orta parça + şakaklardan dışa açılan siyah kanatlar (beyaz kenarlı)
+	b.add("box", Vector3(0, 6.2, -0.1), Vector3(1.5, 1.6, 1.3), BLK, Vector3(-6, 0, 0))
+	b.add("cone", Vector3(0, 7.35, -0.3), Vector3(1.0, 0.8, 0.9), BLK, Vector3.ZERO, 4)
+	Loft.tube(b, [Vector3(0, 6.05, -0.85), Vector3(0, 6.6, -0.83)], [Vector2(0.62, 0.06), Vector2(0.4, 0.06)], Color(0.95, 0.95, 0.93), 4, 2)   # beyaz alın şeridi
+	b.add("box", Vector3(0, 5.65, -0.95), Vector3(1.4, 1.3, 0.1), BLK, Vector3(-6, 0, 0))   # 王 plakası
+	for sx in [-1.0, 1.0]:
+		var w0 = Vector3(sx * 0.6, 5.9, -0.7)
+		var pts = [w0, w0 + Vector3(sx * 0.9, 0.6, 0.1), w0 + Vector3(sx * 1.6, 0.2, 0.25), w0 + Vector3(sx * 1.7, -0.9, 0.2), w0 + Vector3(sx * 1.3, -1.8, 0.0)]
+		Loft.tube(b, pts, [Vector2(0.08, 0.95), Vector2(0.08, 1.15), Vector2(0.08, 1.0), Vector2(0.07, 0.7), Vector2(0.04, 0.15)], BLK, 6, 3, true, true, Callable(), Vector3(0, 0, -1))
+		Loft.tube(b, [p0_offset(pts[1], -0.08), p0_offset(pts[2], -0.08), p0_offset(pts[3], -0.08)], [Vector2(0.05, 0.25), Vector2(0.05, 0.3), Vector2(0.04, 0.2)], Color(0.92, 0.92, 0.9), 6, 3, true, true, Callable(), Vector3(0, 0, -1))
+	# tüyler: şapka tepesinden yukarı kalkıp dışa ve aşağı kıvrılan kalın beyaz tüy, iki yanında ince saçaklar
+	for sx in [-1.0, 1.0]:
+		var fp = [Vector3(sx * 0.45, 6.9, -0.2), Vector3(sx * 1.0, 9.2, 0.1), Vector3(sx * 2.0, 10.6, 0.5), Vector3(sx * 3.2, 10.4, 0.8), Vector3(sx * 3.9, 8.8, 0.9)]
+		Loft.tube(b, fp, [0.12, 0.11, 0.1, 0.08, 0.03], Color(0.96, 0.96, 0.94), 6, 4)
+		for q in 60:
+			var u = q / 59.0
 			var i0 = mini(3, int(u * 4.0))
-			var pp: Vector3 = (pts[i0] as Vector3).lerp(pts[i0 + 1], u * 4.0 - i0)
+			var pp: Vector3 = (fp[i0] as Vector3).lerp(fp[i0 + 1], u * 4.0 - i0)
+			var nx: Vector3 = ((fp[mini(4, i0 + 1)] as Vector3) - (fp[i0] as Vector3)).normalized()
+			var side = nx.cross(Vector3(0, 0, 1)).normalized()
 			for sd in [-1.0, 1.0]:
-				b.add("box", pp + Vector3(sd * 0.18, 0.05, 0), Vector3(0.32, 0.03, 0.06), Color(0.92, 0.92, 0.9), Vector3(0, 0, sd * 35))
-	# ağız içi (örtü kalkınca görünür): kara gırtlak, üst diş sırası
-	b.add("sphere", Vector3(0, 1.95, -1.05), Vector3(2.0, 1.7, 0.9), Color(0.05, 0.02, 0.04), Vector3.ZERO, 14)
+				Loft.tube(b, [pp, pp + side * sd * 0.22 - nx * 0.14], [0.025, 0.006], Color(0.9, 0.9, 0.88), 3, 1)
+	# ağız içi (örtü kalkınca): kara gırtlak, üstte iri kare dişler
+	b.add("sphere", Vector3(0, 1.9, -0.85), Vector3(2.6, 2.0, 1.0), Color(0.05, 0.02, 0.04), Vector3.ZERO, 14)
 	for k in 9:
-		var x = lerpf(-0.95, 0.95, k / 8.0)
-		b.add("box", Vector3(x, 2.65, -1.42 + absf(x) * 0.25), Vector3(0.2, 0.32, 0.12), Color(0.96, 0.95, 0.92))
+		var x = lerpf(-1.1, 1.1, k / 8.0)
+		b.add("box", Vector3(x, 2.85, -1.22 + absf(x) * 0.3), Vector3(0.24, 0.38, 0.14), Color(0.97, 0.96, 0.93))
 	var mi = MeshInstance3D.new()
 	mi.mesh = b.build(Props.toon())
 	root.add_child(mi)
 	var kanji = Label3D.new()
 	kanji.text = "王"
 	kanji.font_size = 160
-	kanji.pixel_size = 0.006
+	kanji.pixel_size = 0.005
 	kanji.modulate = Color(0.98, 0.82, 0.2)
 	kanji.outline_size = 0
-	kanji.position = Vector3(0, 6.05, -1.3)
-	kanji.rotation = Vector3(0.14, PI, 0)
-	kanji.pixel_size = 0.005
+	kanji.position = Vector3(0, 5.6, -1.03)
+	kanji.rotation = Vector3(0.1, PI, 0)
 	root.add_child(kanji)
-	# pilili kâğıt örtü: üst kenarından menteşeli, ağzı kapatır
+	# pilili, dikişli beyaz kâğıt örtü: burnun altından çeneye ağzı kapatır (menteşe üstte)
 	var flap = Node3D.new()
 	root.add_child(flap)
-	flap.position = Vector3(0, 2.75, -1.45)
+	flap.position = Vector3(0, 3.05, -1.15)
 	var fb = MB.new()
-	for k in 11:
-		var x = lerpf(-1.25, 1.25, k / 10.0)
-		Loft.tube(fb, [Vector3(x, 0.05, -absf(x) * 0.0), Vector3(x * 1.02, -1.1, -0.06), Vector3(x * 0.95, -2.2, 0.05)], [Vector2(0.13, 0.06), Vector2(0.13, 0.06), Vector2(0.12, 0.05)], Color(0.95, 0.95, 0.93) if k % 2 == 0 else Color(0.84, 0.84, 0.82), 5, 2)
+	for k in 17:
+		var x = lerpf(-1.7, 1.7, k / 16.0)
+		var zc = absf(x) * absf(x) * 0.16
+		Loft.tube(fb, [Vector3(x, 0.05, zc), Vector3(x * 1.03, -1.2, zc - 0.05), Vector3(x * 0.95, -2.4, zc + 0.05)], [Vector2(0.17, 0.07), Vector2(0.17, 0.07), Vector2(0.16, 0.06)], Color(0.96, 0.96, 0.94) if k % 2 == 0 else Color(0.86, 0.86, 0.84), 5, 2)
+	for row in 5:   # dikiş izleri: pililerin üstünde yatay kısa çizgiler
+		var y = -0.3 - row * 0.45
+		for k in 12:
+			var x = lerpf(-1.4, 1.4, k / 11.0)
+			fb.add("box", Vector3(x, y, absf(x) * absf(x) * 0.18 - 0.1), Vector3(0.12, 0.025, 0.02), LINE)
 	var fmi = MeshInstance3D.new()
 	fmi.mesh = fb.build(Props.toon())
 	flap.add_child(fmi)
-	return {"root": root, "flap": flap, "mouth": Vector3(0, 2.0, -1.6)}
+	return {"root": root, "flap": flap, "mouth": Vector3(0, 2.0, -1.3)}
+
+
+func p0_offset(v: Vector3, dz: float) -> Vector3:
+	return v + Vector3(0, 0, dz)
 
 
 ## Pembe el-dil: ağızdan uzanan, ucunda el olan dil (Cehennem Kralı); a: ağız, b: tutulan nokta
