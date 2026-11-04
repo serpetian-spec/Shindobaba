@@ -2232,6 +2232,140 @@ func _thigh_holster() -> void:
 	_mesh_on("RightUpperLeg", m.build(Props.toon()), Transform3D.IDENTITY)
 
 
+## Gövde + kumaş kabuğu köşeleri (üste giyilenler kumaşın üstüne otursun)
+func _wear_vs() -> PackedVector3Array:
+	var vs: PackedVector3Array = _body_vs().duplicate()
+	for c in skel.get_children():
+		if c is MeshInstance3D and String(c.name).begins_with("Cloth") and c.mesh is ArrayMesh and c.visible:
+			for si in c.mesh.get_surface_count():
+				vs.append_array(c.mesh.surface_get_arrays(si)[Mesh.ARRAY_VERTEX])
+	return vs
+
+
+## y yüksekliğinde sel(v) köşelerinin kesiti: n açıda en dış yarıçap (+pad), yumuşatılmış
+func _wear_ring(vs: PackedVector3Array, y: float, sel: Callable, n: int, pad: float, cen = null) -> Array:
+	var c: Vector3
+	if cen != null:
+		c = Vector3(cen.x, y, cen.z)
+	else:
+		var cx = 0.0; var cz = 0.0; var cn = 0
+		for v in vs:
+			if absf(v.y - y) < 0.02 and sel.call(v):
+				cx += v.x; cz += v.z; cn += 1
+		if cn == 0:
+			return []
+		c = Vector3(cx / cn, y, cz / cn)
+	var rad = []
+	for i in n:
+		rad.append(-1.0)
+	for v in vs:
+		if absf(v.y - y) < 0.02 and sel.call(v):
+			var h = Vector2(v.x - c.x, v.z - c.z)
+			var r = h.length()
+			if r < 0.005 or r > 0.2:
+				continue
+			var i = int(round(fposmod(atan2(h.x, h.y), TAU) / TAU * n)) % n
+			rad[i] = maxf(rad[i], r)
+	var avg = 0.0; var an = 0
+	for r in rad:
+		if r > 0.0:
+			avg += r; an += 1
+	if an == 0:
+		return []
+	avg /= an
+	for i in n:
+		if rad[i] <= 0.0:
+			rad[i] = avg
+	for k in 3:   # yumuşat (köşeli görünmesin)
+		var r2 = rad.duplicate()
+		for i in n:
+			r2[i] = maxf(rad[i], (rad[(i + n - 1) % n] + rad[i] * 2.0 + rad[(i + 1) % n]) * 0.25)
+		rad = r2
+	var out = []
+	for i in n:
+		var a = TAU * i / n
+		out.append(c + Vector3(sin(a), 0, cos(a)) * (rad[i] + pad))
+	return out
+
+
+## Halkalar arası tüp; her 'stripe' dilimde bir koyu dikiş sütunu
+func _ring_tube(m: MB, rings: Array, col: Color, stripe: int, cen: Vector3) -> void:
+	for r in range(rings.size() - 1):
+		var A: Array = rings[r]
+		var B: Array = rings[r + 1]
+		if A.is_empty() or B.is_empty():
+			continue
+		var n = A.size()
+		for i in n:
+			var j = (i + 1) % n
+			var cc = col.darkened(0.32) if stripe > 0 and i % stripe == 0 else col
+			var mid = (A[i] + A[j]) * 0.5
+			var nrm = Vector3(mid.x - cen.x, 0, mid.z - cen.z).normalized()
+			var arr = []
+			arr.resize(Mesh.ARRAY_MAX)
+			arr[Mesh.ARRAY_VERTEX] = PackedVector3Array([A[i], B[i], B[j], A[i], B[j], A[j]])
+			arr[Mesh.ARRAY_NORMAL] = PackedVector3Array([nrm, nrm, nrm, nrm, nrm, nrm])
+			arr[Mesh.ARRAY_INDEX] = PackedInt32Array([0, 1, 2, 3, 4, 5])
+			m.add_arrays(arr, Transform3D.IDENTITY, cc)
+
+
+## Ağırlıklı tozluk (ref lee.png, Gōken): dizin altından bileğe turuncu, alta doğru hafif bol, dikey dikişli panelli tüp; üstte kalın kıvrık ağız.
+## İncik tek kemik: kabuk yüzeyinden ölçülüp LowerLeg kemiğine bağlanır (bacakla birlikte döner, kumaşın içine girmez)
+func _leg_warmers(col: Color) -> void:
+	if body_mesh == null or body_mesh.mesh == null:
+		return
+	var vs = _wear_vs()
+	for side in ["Left", "Right"]:
+		var kn = _bp(side + "LowerLeg")
+		var an = _bp(side + "Foot")
+		var sel = func(v: Vector3) -> bool: return Vector2(v.x - kn.x, v.z - kn.z).length() < 0.13 and signf(v.x) == signf(kn.x)
+		var y0 = an.y + 0.03
+		var y1 = kn.y - 0.04
+		var rows = 9
+		var rings = []
+		for r in rows + 1:
+			var t = float(r) / rows
+			var y = lerpf(y0, y1, t)
+			var cy = an.lerp(kn, clampf((y - an.y) / maxf(0.01, kn.y - an.y), 0.0, 1.0))
+			rings.append(_wear_ring(vs, y, sel, 28, 0.012 + (1.0 - t) * 0.012, cy))
+		var m = MB.new()
+		_ring_tube(m, rings, col, 7, kn)
+		var top: Array = rings[rings.size() - 1]
+		if not top.is_empty():   # üst ağız: dışa kıvrık kalın kenar
+			var l0 = []; var l1 = []; var l2 = []
+			for p in top:
+				var o2 = Vector3(p.x - kn.x, 0, p.z - kn.z).normalized()
+				l0.append(p)
+				l1.append(p + o2 * 0.012 + Vector3.UP * 0.012)
+				l2.append(p + o2 * 0.004 + Vector3.UP * 0.028)
+			_ring_tube(m, [l0, l1, l2], col.darkened(0.08), 0, kn)
+		var bot: Array = rings[0]
+		if not bot.is_empty():   # alt ağız
+			var b1 = []
+			for p in bot:
+				b1.append(p + Vector3(p.x - an.x, 0, p.z - an.z).normalized() * 0.006 + Vector3.DOWN * 0.012)
+			_ring_tube(m, [b1, bot], col.darkened(0.1), 0, an)
+		_mesh_on(side + "LowerLeg", m.build(Props.toon()), Transform3D.IDENTITY)
+
+
+## Turuncu boyunluk (ref lee.png): boynu saran kalın, dikey dilimli halka
+func _neck_warmer(col: Color) -> void:
+	if body_mesh == null or body_mesh.mesh == null:
+		return
+	var vs = _wear_vs()
+	var nk = _bp("Neck")
+	var hd = _bp("Head")
+	var sel = func(v: Vector3) -> bool: return Vector2(v.x - nk.x, v.z - nk.z).length() < 0.1
+	var rings = []
+	for r in 6:
+		var t = r / 5.0
+		var y = lerpf(nk.y - 0.04, lerpf(nk.y, hd.y, 0.55), t)
+		rings.append(_wear_ring(vs, y, sel, 28, 0.016 + sin(t * PI) * 0.012, nk))
+	var m = MB.new()
+	_ring_tube(m, rings, col, 4, nk)
+	_mesh_on("Neck", m.build(Props.toon()), Transform3D.IDENTITY)
+
+
 ## Set kıyafet ayrıntıları (kaynak: köy set görselleri) — 3B parçalar, kemiğe bağlı:
 ## guard_stripes: koruyucuların üstünde boyuna çizgiler (Kumo kırmızı, Kiri açık mavi), knee_wraps: dizde çapraz beyaz sargı (Kumo),
 ## pants_flap: pantolonun sağ yanından dize kadar sarkan koyu kanat (Iwa)
@@ -4192,6 +4326,10 @@ func _attachments() -> void:
 	pouch.add("box", Vector3.ZERO, Vector3(0.14, 0.09, 0.07), Color(0.42, 0.33, 0.22))
 	_mesh_on("Hips", pouch.build(Props.toon()), Transform3D(Basis.IDENTITY, hip + Vector3(0.0, 0.02, -0.14)))
 	_thigh_holster()
+	if look.get("leg_warmers") is Color:
+		_leg_warmers(look["leg_warmers"])
+	if look.get("neck_warmer") is Color:
+		_neck_warmer(look["neck_warmer"])
 
 
 # ------------------------------------------------------------------ silahlar: tutuş, kın, çekme/sokma

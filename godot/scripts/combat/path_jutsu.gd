@@ -7225,15 +7225,37 @@ func p_futon_senpuken(c: Node3D, t: Node3D) -> void:
 		Sfx.play("wind", at, 1.3))
 
 
-## Ardışık Vakum Dalgaları: ağızdan art arda beş vakum mermisi
+## Fūton: Shinkū Renpa (kanon, Danzō): başını hızla farklı yönlere savurarak ağızdan farklı açılarda art arda vakum bıçakları
 func p_futon_shinku_renpa(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.9)
 	var tt = tg(c, t, 26.0)
 	for k in 5:
 		after(k * 0.12, func():
-			if live(c):
-				eshot(c, "futon_shinku_renpa", "fuuton", WIND, tt, _mouth_pos(c) + c.face_dir().cross(Vector3.UP) * ((k - 2) * 0.3), 0.6, 38.0, 0.3, {"knock": 6.0, "bleed": 1.0}, 0.7, 0.05))
+			if not live(c):
+				return
+			var from = _mouth_pos(c)
+			var dk = aim_at(c, tt, from).rotated(Vector3.UP, [0.0, -0.22, 0.22, -0.11, 0.11][k])
+			var pr = shot(c, from, dk, 40.0, VFX.element_core("fuuton", WIND, 0.45), inf(c, "futon_shinku_renpa", 0.6, {"knock": 6.0, "kind": "heavy", "element": "fuuton", "bleed": 1.0}), null, false, 1.0, func(pp, _h):
+				impact_fx("fuuton", WIND, pp, 0.6))
+			_etrail(pr, "fuuton", WIND, 0.45))
 	Sfx.play("wind", c.global_position, 1.2)
+
+
+## Fūton: Shinkūgyoku (kanon, Danzō): nefesle çok sayıda küçük vakum küresi farklı yönlere saçılır; ete saplanıp delip geçer
+func p_futon_shinkugyoku(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.7)
+	var tt = tg(c, t, 26.0)
+	for k in 9:
+		after(0.05 + k * 0.03, func():
+			if not live(c):
+				return
+			var from = _mouth_pos(c)
+			var dk = aim_at(c, tt, from).rotated(Vector3.UP, randf_range(-0.22, 0.22))
+			dk = (dk + Vector3.UP * randf_range(-0.05, 0.05)).normalized()
+			var pr = shot(c, from, dk, 50.0, VFX.element_core("fuuton", WIND, 0.25), inf(c, "futon_shinkugyoku", 0.28, {"knock": 2.0, "kind": "light", "element": "fuuton", "bleed": 2.0}), null, true, 0.8)
+			pr.radius = 0.55
+			_etrail(pr, "fuuton", WIND, 0.25))
+	Sfx.play("wind", c.global_position, 1.4)
 
 
 ## Dev Vakum Küresi: ağızda büyük vakum küresi toplanır, fırlar — yol boyunca zemini kazır, dev patlama
@@ -7254,15 +7276,24 @@ func p_futon_shinku_taigyoku(c: Node3D, t: Node3D) -> void:
 	Sfx.play("wind", c.global_position, 0.5)
 
 
-## Vakum Dalgası: kendi etrafında dönerek tüm yönlere kesici vakum halkası savurur
+## Fūton: Shinkūha (kanon, Danzō): derin nefes, ağızdan ileri doğru keskin vakum dalgaları — yolundaki her şeyi keser, uzun menzil
 func p_futon_shinkuha(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.7)
-	var at = c.global_position + Vector3.UP * 1.0
-	WindFX.blast(at, 9.0, 30)
-	after(0.12, func(): WindFX.blast(at, 7.0, 16, WindFX.LINE, false))
-	after(0.12, func():
-		mhit(c, at, 8.0, inf(c, "futon_shinkuha", 1.1, {"knock": 14.0, "kind": "heavy", "element": "fuuton", "bleed": 3.0})))
-	Sfx.play("wind", at, 0.8)
+	busy(c, 0.6)
+	var tt = tg(c, t, 30.0)
+	var from = _mouth_pos(c)
+	var d = aim_at(c, tt, from)
+	var sd = d.cross(Vector3.UP).normalized()
+	for k in 3:
+		after(k * 0.08, func():
+			if not live(c):
+				return
+			var pr = shot(c, from, d, 42.0, Node3D.new(), inf(c, "futon_shinkuha", 0.37, {"knock": 5.0, "kind": "heavy", "element": "fuuton", "bleed": 2.0}), null, true, 0.75)
+			pr.radius = 1.3
+			for q in 7:
+				var o2 = from + sd * (q - 3) * 0.3
+				var spread = sd * (q - 3) * 0.04
+				WindFX.streak(func(u: float) -> Vector3: return o2 + (d + spread) * u * 30.0, 0.6, 0.05, WindFX.LINE, q * 0.01, 12))
+	Sfx.play("wind", from, 0.9)
 
 
 ## Vakum Bıçağı: kunainin etrafında yeşil vakum halkaları döner (uzar), hızlı çapraz kesik
@@ -17477,45 +17508,72 @@ func p_ukojizai_no_jutsu(c: Node3D, t: Node3D) -> void:
 	Sfx.play("water", at, 0.6)
 
 
-func p_ura_shisho_fuin(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 14.0)
-	busy(c, 1.6)
+## Ura Shishō Fūin (kanon, Danzō): göğse önceden çizilen mühür; kullanıcı ÖLÜNCE kanından dört sembol çıkar, çevresinde kara bir küre
+## oluşur ve içindeki herkesi cesedine çeker/mühürler. Yapınca yalnız mühür çizilir (saldırı değil). Oyuncu ve AI aynı (ura_shisho_trigger).
+func p_ura_shisho_fuin(c: Node3D, _t: Node3D) -> void:
+	busy(c, 1.2)
 	var ch = bone_attach(c, "UpperChest")
 	if ch:
 		var b = MB.new()
 		for k in 6:
 			b.add("box", Vector3((k % 2) * 0.12 - 0.06, -0.05 + (k / 2) * 0.08, 0.14), Vector3(0.07, 0.05, 0.005), Color(0.05, 0.05, 0.05))
 		ch.add_child(mesh_of(b))
-		after(1.6, func():
+		after(1.4, func():
 			if is_instance_valid(ch):
 				ch.queue_free())
-	if tt == null:
-		return
-	_jump_at(c, tt, 0.5, 10.0)
-	after(0.5, func():
-		if not (live(c) and live(tt)):
-			return
-		var at = (c.global_position + tt.global_position) * 0.5 + Vector3.UP
-		var sw = MeshInstance3D.new()
-		var tm = TorusMesh.new()
-		tm.inner_radius = 0.5; tm.outer_radius = 2.4; tm.rings = 32; tm.ring_segments = 12
-		sw.mesh = tm
-		sw.material_override = VFX.mat_spiral(Color(0.3, 0.3, 0.35), Color(0.02, 0.02, 0.03), 6.0, 4.0, 8.0, 0.85, Vector3.UP)
-		get_tree().current_scene.add_child(sw)
-		sw.global_position = at
-		var tw = sw.create_tween()
-		tw.tween_property(sw, "rotation:y", TAU * 3.0, 0.9)
-		tw.parallel().tween_property(sw, "scale", Vector3.ONE * 0.1, 0.9).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-		tw.tween_callback(sw.queue_free)
-		st(tt, "bind", 1.0)
-		after(0.9, func():
-			if live(tt):
-				st(tt, "stun", 4.0)
-				tt.take_hit(inf(c, "ura_shisho_fuin", 4.0, {"knock": 0.0, "kind": "heavy", "chakra_drain": 80.0, "hitstop": 0.15}))
-			if live(c) and c is Player:
-				c.hp = maxf(1.0, c.hp - c.max_hp * 0.5)
-			VFX.shockwave(at, Color(0.2, 0.2, 0.25), 6.0, 0.4, false)))
+	c.set_meta("ura_shisho", true)
+	if c is Player:
+		Buffs.add("ura_shisho", 600.0, {"_name": "Ura Shishō Fūin", "_desc": "ölürsen çevrendekileri bedenine mühürlersin"})
+		Hud.msg("Mühür göğsüne çizildi: ölürsen çevrendekileri de götürürsün.", Color(0.75, 0.75, 0.8), 3.0)
+	elif c.has_method("add_buff"):
+		c.add_buff("ura_shisho", 600.0, {})
 	Sfx.play("seal", c.global_position, 0.5)
+
+
+## Ölüm anında: mühür etkinse kara küre çevredekileri cesede çeker (boss olmayanlar mühürlenir, güçlüler ağır yaralanır)
+static func ura_shisho_trigger(c: Node3D) -> void:
+	if not is_instance_valid(c) or not c.has_meta("ura_shisho"):
+		return
+	c.remove_meta("ura_shisho")
+	if c is Player:
+		if not Buffs.has("ura_shisho"):
+			return   # süresi dolmuş
+		Buffs.remove("ura_shisho")
+	var pi = get_pinst()
+	var at = c.global_position + Vector3.UP * 1.2
+	var R = 8.0
+	for k in 4:   # kandan dört sembol
+		var a = TAU * k / 4.0
+		VFX.puffs(at + Vector3(cos(a), 0.4, sin(a)) * 1.2, {"amount": 10, "life": 0.6, "size": 0.25, "radius": 0.2, "vmin": 1, "vmax": 3, "dir": Vector3.UP, "spread": 30.0, "add": false,
+			"colors": [Color(0.55, 0.02, 0.02, 1), Color(0.2, 0.0, 0.0, 0)]})
+	var sp = MeshInstance3D.new()
+	var sm = SphereMesh.new()
+	sm.radius = 1.0
+	sm.height = 2.0
+	sp.mesh = sm
+	var m = StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.albedo_color = Color(0.01, 0.01, 0.015)
+	sp.material_override = m
+	pi.get_tree().current_scene.add_child(sp)
+	sp.global_position = at
+	sp.scale = Vector3.ONE * 0.1
+	var tw = sp.create_tween()
+	tw.tween_interval(0.35)
+	tw.tween_property(sp, "scale", Vector3.ONE * R, 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(0.6)
+	tw.tween_property(sp, "scale", Vector3.ONE * 0.05, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_callback(sp.queue_free)
+	pi.after(0.8, func():
+		for f in pi.get_tree().get_nodes_in_group("fighters"):
+			if not is_instance_valid(f) or f == c or (f.has_method("is_dead") and f.is_dead()) or not Combat.hostile(c, f):
+				continue
+			if f.global_position.distance_to(at) > R:
+				continue
+			var big = f.get("size") != null and float(f.get("size")) >= 2.5
+			var mh = float(f.get("max_hp")) if f.get("max_hp") != null else 300.0
+			f.take_hit({"dmg": mh * (0.4 if big or f == Game.player else 1.5), "kind": "heavy", "knock": 0.0, "attacker": c, "hitstop": 0.2, "melee": true}))
+	Sfx.play("seal", at, 0.4)
 
 
 ## Seksen Tanrı Vakum Saldırısı: bin kollu gibi görünen hızla yüzlerce vakum yumruk dalgası ileri yağar

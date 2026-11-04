@@ -1050,6 +1050,7 @@ func die(info: Dictionary) -> void:
 			fallen.pop_front()
 	if not info.get("execute", false) and PathJutsu.izanagi_rewrite(self):
 		return   # açık İzanagi: ölüm yanılsamaydı
+	PathJutsu.ura_shisho_trigger(self)   # Ura Shishō Fūin: ölünce kara küre (oyuncuyla aynı)
 	if has_token:
 		has_token = false
 		attack_tokens = maxi(0, attack_tokens - 1)

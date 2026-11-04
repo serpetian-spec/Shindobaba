@@ -630,6 +630,7 @@ func on_technique_used(id: String) -> void:
 
 
 func on_player_died() -> void:
+	PathJutsu.ura_shisho_trigger(Game.player)   # Danzō'nun ölüm mührü: çevredekileri de götürür
 	Journal.on_player_defeated()   # seni yenen kişi rakibin olur; bir gün geri döner
 	# sınavda ölen elenir: sınav o an biter (Chūnin her aşaması, takım sınavı)
 	if not int(ChuninExam.stage) in [0, 9]:   # 9 = ev sahibi köye yolculuk (henüz sınav yok)
@@ -822,8 +823,12 @@ func _in_home(it: Dictionary) -> bool:
 func _hospital_pos() -> Vector3:
 	var v = Game.village(home())
 	# hastane kapısının önü (hastane iç mekânlı: eski "hospital" etkileşimi yok, rastgele noktaya düşülüyordu)
-	if home() == "konoha" and BuildKonoha.hospital_door != Vector3.ZERO:
-		return BuildKonoha.hospital_door + Vector3.UP * 0.5
+	if home() == "konoha":
+		# Konoha önbellekten (pişirilmiş) yüklenince kurulum kodu çalışmaz: kapı konumu köy merkezinden hesaplanır
+		# (build_konoha: hastane yerel x 545, n 230; kapının önü n - 33)
+		var q = Game.from_map(Vector2(float(v["x"]) + 545.0, float(v["y"]) + 230.0 - 33.0))
+		q.y = Game.ground_height(q.x, q.z) + 0.5
+		return q
 	if BuildVillageStory.STYLE.has(home()):
 		var hp: Vector2 = BuildVillageStory._sites(v)["hospital"]
 		var q = Game.from_map(hp) + Vector3(0, 0, 11.0)   # kapı yerel -z'de (dünya +z), 11 m önü
@@ -988,7 +993,8 @@ var _wt_last := Vector3.INF
 var _wt_dist := 0.0
 ## Bacak ağırlıkları: hız %25 düşer; yerde koşulan her 25 m dayanıklılık (+ az hız) ustalığı verir
 func _weights_tick() -> void:
-	if not p().get("flags", {}).get("leg_weights", false):
+	var gs: Dictionary = Gear.equipped(p(), "set")
+	if gs.is_empty() or not Gear.item(String(gs["id"])).get("agirlik", false):   # ağırlıklı tozluklu set (Gōken Shōzoku)
 		_wt_last = Vector3.INF
 		return
 	var pl = Game.player
@@ -1023,16 +1029,6 @@ func _training_ground() -> void:
 		Journal.add("Chakra kâğıdı doğanı gösterdi: %s." % el.capitalize(), "milestone")
 		return
 	var opts = [respec_option()]
-	# Gai / Lee usulü dayanıklılık: bacak ağırlıkları (takılıyken yavaşsın, koştuğun her mesafe dayanıklılık kazandırır)
-	if pr.get("flags", {}).get("leg_weights", false):
-		opts.append({"label": "Bacak ağırlıklarını çıkar", "cb": func():
-			pr["flags"]["leg_weights"] = false
-			Buffs.remove("agirlik")
-			Hud.dialog("Antrenman Alanı", "Ağırlıkları çıkardın... bedenin tüy gibi hafif!", [])})
-	else:
-		opts.append({"label": "Bacak ağırlıklarını tak (dayanıklılık idmanı)", "cb": func():
-			pr["flags"]["leg_weights"] = true
-			Hud.dialog("Antrenman Alanı", "Bacaklarına ağır kum torbaları bağladın. Yavaşlarsın ama koştukça, zıpladıkça bedenin dayanıklılaşır. Gerçek bir dövüşte çıkarmayı unutma! (Tekrar buradan çıkarırsın)", [])})
 	if int(pr["rank"]) >= 2 and int(pr["level"]) >= 25 and "raiton" in pr["elements"] and not "raiton_chidori" in pr["learned"]:
 		opts.append({"label": "Chidori eğitimi (800 Ryō)", "cb": func(): _buy_learn("raiton_chidori", 800)})
 	if int(pr["rank"]) >= 2 and int(pr["level"]) >= 30 and "katon" in pr["elements"] and not "katon_karyuu" in pr["learned"]:

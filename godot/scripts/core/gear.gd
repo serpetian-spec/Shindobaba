@@ -99,6 +99,9 @@ const SETS := {
 	"set_matsuri": {"name": "Matsuri Yukata", "slot": "set", "price": 150, "rank": 0, "desc": "Çizgili yukata ve hasır zori. Festival akşamları için; savaşta koruması az.",
 		"stats": {"def": 2, "chakra": 10, "speed": 0.02}, "c1": Color(0.28, 0.36, 0.62), "c2": Color(0.9, 0.86, 0.78),
 		"parts": [["yukata", Color(0.28, 0.36, 0.62), Color(0.9, 0.86, 0.78)], ["sivil_pant", Color(0.2, 0.22, 0.3), null], ["zori", Color(0.7, 0.6, 0.42), null]]},
+	"set_goken": {"name": "Gōken Shōzoku", "slot": "set", "price": 50, "rank": 0, "agirlik": true, "desc": "Yeşil kolsuz tulum, sargılı ön kollar, turuncu boyunluk ve içi ağırlıklı turuncu tozluklar. Giyiliyken yavaşlarsın ama koştukça bedenin dayanıklılaşır (Gōken ustalarının antrenmanı).",
+		"stats": {"def": 3, "melee": 0.03}, "c1": Color(0.16, 0.36, 0.2), "c2": Color(0.16, 0.36, 0.2),
+		"parts": [["sargili_kolsuz", Color(0.16, 0.36, 0.2), Color(0.16, 0.36, 0.2)], ["ninja_pant", Color(0.16, 0.36, 0.2), null], ["turuncu_boyunluk", Color(0.96, 0.6, 0.18), null], ["agirlikli_tozluk", Color(0.96, 0.58, 0.16), null], ["sandalet", Color(0.18, 0.2, 0.3), Color(0.92, 0.92, 0.9)]]},
 	"set_kurenai_kenpo": {"name": "Akai Kenpō Shōzoku", "slot": "set", "price": 380, "rank": 1, "desc": "Kızıl dövüş ceketi, siyah taktik pantolon, parmaksız eldiven, bağcıklı bilek botu.",
 		"stats": {"def": 7, "melee": 0.06, "speed": 0.03}, "c1": Color(0.7, 0.14, 0.14), "c2": Color(0.12, 0.12, 0.14),
 		"parts": [["kizil_ceket", Color(0.7, 0.14, 0.14), Color(0.12, 0.12, 0.14)], ["siyah_pant", Color(0.1, 0.1, 0.12), null], ["eldiven", Color(0.1, 0.1, 0.12), null], ["ayak_005", Color(0.18, 0.15, 0.14), Color(0.6, 0.55, 0.5)]]},
@@ -109,7 +112,7 @@ const SETS := {
 		"stats": {"def": 16, "chakra": 50, "hp": 30}, "c1": Color(0.95, 0.95, 0.92), "c2": Color(0.8, 0.2, 0.15),
 		"parts": [["uzun_gomlek", Color(0.15, 0.2, 0.33), Color(0.12, 0.12, 0.14)], ["ninja_pant", Color(0.15, 0.2, 0.33), null], ["kage_cubbesi", Color(0.95, 0.95, 0.92), Color(0.8, 0.2, 0.15)], ["sandalet", Color(0.12, 0.12, 0.14), Color(0.92, 0.92, 0.9)]]},
 }
-const SHOP_SETS := ["set_genin", "set_shinobi", "set_chunin", "set_suna_chunin", "set_kiri_chunin", "set_kumo_chunin", "set_iwa_chunin", "set_uchiha", "set_suna", "set_tabibito", "set_iryonin", "set_kenpo", "set_kenshi", "set_samurai", "set_sengoku", "set_kage_no", "set_ame", "set_soryo", "set_ronin", "set_yuki_tabi", "set_matsuri", "set_kurenai_kenpo", "set_ne", "set_sennin_shugyo"]
+const SHOP_SETS := ["set_goken", "set_genin", "set_shinobi", "set_chunin", "set_suna_chunin", "set_kiri_chunin", "set_kumo_chunin", "set_iwa_chunin", "set_uchiha", "set_suna", "set_tabibito", "set_iryonin", "set_kenpo", "set_kenshi", "set_samurai", "set_sengoku", "set_kage_no", "set_ame", "set_soryo", "set_ronin", "set_yuki_tabi", "set_matsuri", "set_kurenai_kenpo", "set_ne", "set_sennin_shugyo"]
 ## Boş bırakılamayan yuvalar (çıplak kalınmaz)
 const REQUIRED := ["govde", "bacak", "ayak"]
 
@@ -181,6 +184,8 @@ const ITEMS := {
 	# --- kol / koruma
 	"kolluk": {"name": "Metal Kolluk", "slot": "kol", "price": 200, "rank": 0, "desc": "Ön kolu saran metal plakalı koruyucu. Bloklar daha sağlam.", "stats": {"def": 4}, "look": {"guards": "kol"}, "c1": Color(0.55, 0.58, 0.62)},
 	"eldiven": {"name": "Parmaksız Eldiven", "slot": "kol", "price": 90, "rank": 0, "desc": "Elin üstünde metal plaka, parmaklar açık.", "stats": {"melee": 0.05}, "look": {"gloves": true}, "c1": Color(0.12, 0.12, 0.14)},
+	"agirlikli_tozluk": {"name": "Ağırlıklı Tozluk", "slot": "kol", "price": 0, "rank": 0, "desc": "İncikleri saran turuncu tozluk; içinde ağırlıklar var.", "stats": {}, "look": {"leg_warmers": Color(0.96, 0.58, 0.16)}, "c1": Color(0.96, 0.58, 0.16)},
+	"turuncu_boyunluk": {"name": "Turuncu Boyunluk", "slot": "kol", "price": 0, "rank": 0, "desc": "Boynu saran kalın, dilimli turuncu boyunluk.", "stats": {}, "look": {"neck_warmer": Color(0.96, 0.6, 0.18)}, "c1": Color(0.96, 0.6, 0.18)},
 	"kol_sargisi": {"name": "Kol Sargısı", "slot": "kol", "price": 30, "rank": 0, "desc": "Ön kolları saran bandaj.", "stats": {"melee": 0.03}, "look": {"arm_wraps": true}, "c1": Color(0.92, 0.92, 0.9)},
 	"bacak_koruma": {"name": "Kaval Koruyucu", "slot": "kol", "price": 180, "rank": 0, "desc": "Kaval kemiğini saran metal plaka.", "stats": {"def": 3, "melee": 0.03}, "look": {"guards": "bacak"}, "c1": Color(0.55, 0.58, 0.62)},
 	"iwa_pant": {"name": "Iwa Kanatlı Pantolonu", "slot": "bacak", "price": 0, "rank": 1, "desc": "Bir yanından dize kadar koyu kanat sarkan pantolon.", "stats": {"def": 2}, "look": {"pants_style": "ninja", "pants_flap": Color(0.48, 0.07, 0.1)}, "c1": Color(0.72, 0.16, 0.2)},
@@ -866,7 +871,7 @@ static func ensure(p: Dictionary) -> void:
 
 
 ## Karakter yaratıcıdaki önizleme: setin parçalarını görünüme yazar (kıyafet artık sadece set)
-const START_SETS := ["set_genin", "set_shinobi", "set_suna", "set_uchiha"]
+const START_SETS := ["set_genin", "set_shinobi", "set_suna", "set_uchiha", "set_goken"]
 static func preview_set_look(L: Dictionary, sid: String) -> void:
 	for pt in item(sid).get("parts", []):
 		var pit = item(String(pt[0]))
@@ -965,7 +970,7 @@ static func apply_look(p: Dictionary) -> void:
 		elif String(g0.get("id", "")) == "mizrak":   # oyundan kaldırıldı: bo sopasına döner
 			g0["id"] = "bo"
 	var L: Dictionary = p["look"]
-	for k in ["band", "vest", "mask", "weapon_r", "weapon_l", "head_style", "face_style", "outer_style", "back_item", "guards", "eye_r", "eye_l", "hood", "crest"]:
+	for k in ["band", "vest", "mask", "weapon_r", "weapon_l", "head_style", "face_style", "outer_style", "back_item", "guards", "eye_r", "eye_l", "hood", "crest", "leg_warmers", "neck_warmer"]:
 		L[k] = null
 	L["band_style"] = "none"
 	L["gloves"] = false

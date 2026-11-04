@@ -10118,11 +10118,11 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "",
-  "level": 28,
+  "clan": "shimura",
+  "level": 30,
   "rank": 3,
-  "learn": "trainer:fuin",
-  "desc": "Kullanıcıyla birlikte etraftakileri mühürleyen intihar mührü.",
+  "learn": "clan",
+  "desc": "Göğse önceden çizilen ölüm mührü: kullanıcı ölünce kanından dört sembol çıkar, kara bir küre çevresindekileri cesedine çekip mühürler (Danzō). Yapınca yalnız mühür çizilir.",
   "seals": [],
   "canon_rank": "S",
   "tier": 5,
@@ -13709,11 +13709,11 @@
   "natures": [
    "fuuton"
   ],
-  "clan": "",
+  "clan": "shimura",
   "level": 10,
   "rank": 2,
-  "learn": "scroll",
-  "desc": "Vakum rüzgârıyla bıçak.",
+  "learn": "clan",
+  "desc": "Kunaiye rüzgâr chakrası üfler: açık yeşil vakum, kunaiyi pala gibi uzatıp keskinleştirir (Danzō).",
   "seals": [],
   "canon_rank": "B",
   "tier": 3,
@@ -13739,11 +13739,11 @@
   "natures": [
    "fuuton"
   ],
-  "clan": "",
+  "clan": "shimura",
   "level": 10,
   "rank": 2,
-  "learn": "trainer:suna",
-  "desc": "Dev vakum küresi.",
+  "learn": "clan",
+  "desc": "Aldığı bütün nefesi tek, ezici dev bir vakum küresi olarak ağızdan fırlatır (Danzō).",
   "seals": [
    "Tora",
    "Inu"
@@ -13772,11 +13772,11 @@
   "natures": [
    "fuuton"
   ],
-  "clan": "",
+  "clan": "shimura",
   "level": 10,
   "rank": 2,
-  "learn": "scroll",
-  "desc": "Ardışık vakum dalgaları.",
+  "learn": "clan",
+  "desc": "Başını hızla farklı yönlere savurarak ağızdan farklı açılarda art arda vakum bıçakları üfler (Danzō).",
   "seals": [
    "Ne",
    "Mi",
@@ -13808,11 +13808,11 @@
   "natures": [
    "fuuton"
   ],
-  "clan": "",
+  "clan": "shimura",
   "level": 10,
   "rank": 2,
-  "learn": "scroll",
-  "desc": "Dairesel vakum dalgası.",
+  "learn": "clan",
+  "desc": "Derin nefes alıp ağızdan ileri keskin vakum dalgaları üfler: yolundaki her şeyi keser (Danzō).",
   "seals": [
    "Ne",
    "Mi",
@@ -13822,7 +13822,7 @@
   "canon_rank": "B",
   "tier": 3,
   "category": "ninjutsu",
-  "shape": "aoe",
+  "shape": "beam",
   "range": "Short, Mid, Long",
   "requires": {},
   "signature": false,
@@ -20093,7 +20093,15 @@
   "mokuton_kawarimi": "taju_mokuton_bunshin_no_jutsu",
   "mokuton_toge_wa": "mokuton_jukai_kotan",
   "mokuton_shishi_gashira": "mokuton_daisoju",
-  "yuhi_kokuangyo": "kokuangyo"
+  "yuhi_kokuangyo": "kokuangyo",
+  "shimura_shinkuha": "futon_shinkuha",
+  "shimura_shinku_renpa": "futon_shinku_renpa",
+  "shimura_kaze_kunai": "futon_shinkujin",
+  "shimura_zetsuei": "futon_shinkujin",
+  "shimura_bakuu": "futon_shinku_taigyoku",
+  "shimura_kaze_tatsu": "futon_shinku_taigyoku",
+  "shimura_kaze_tate": "futon_shinkugyoku",
+  "shimura_ne_fuin": "ura_shisho_fuin"
  },
  "kusanagi_kuchi": {
   "id": "kusanagi_kuchi",
@@ -21336,176 +21344,6 @@
   "category": "hiden",
   "shape": "buff",
   "tier": 2
- },
- "shimura_shinkuha": {
-  "id": "shimura_shinkuha",
-  "name": "Fūton: Shinkūha",
-  "name_en": "Fūton: Shinkūha",
-  "cost": 26,
-  "cd": 6.0,
-  "element": "fuuton",
-  "elements": [
-   "fuuton"
-  ],
-  "clan": "shimura",
-  "level": 3,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Ağızdan çıkan ince vakum dalgası hattı keser.",
-  "seals": [],
-  "canon_rank": "B",
-  "category": "hiden",
-  "shape": "beam",
-  "tier": 2
- },
- "shimura_kaze_kunai": {
-  "id": "shimura_kaze_kunai",
-  "name": "Fūton: Kaze Kunai",
-  "name_en": "Rüzgâr Chakralı Kunai",
-  "cost": 30,
-  "cd": 6.8,
-  "element": "fuuton",
-  "elements": [
-   "fuuton"
-  ],
-  "clan": "shimura",
-  "level": 5,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Rüzgâr chakrasıyla bilenmiş kunailer; zırhı deler.",
-  "seals": [],
-  "canon_rank": "B",
-  "category": "hiden",
-  "shape": "projectile",
-  "tier": 2,
-  "meaning": "Rüzgâr Chakralı Kunai"
- },
- "shimura_ne_fuin": {
-  "id": "shimura_ne_fuin",
-  "name": "Ne no Fūin: Zetsuhō Fūin",
-  "name_en": "Kök Mührü: Dil Mührü",
-  "cost": 36,
-  "cd": 7.8,
-  "element": "",
-  "elements": [],
-  "clan": "shimura",
-  "level": 8,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Hedefin diline kara mühür basılır: 8 sn jutsu yapamaz.",
-  "seals": [],
-  "canon_rank": "B",
-  "category": "hiden",
-  "shape": "seal",
-  "tier": 3,
-  "meaning": "Kök Mührü: Dil Mührü"
- },
- "shimura_kaze_tate": {
-  "id": "shimura_kaze_tate",
-  "name": "Fūton: Kaze no Tate",
-  "name_en": "Rüzgâr Duvarı",
-  "cost": 40,
-  "cd": 8.5,
-  "element": "fuuton",
-  "elements": [
-   "fuuton"
-  ],
-  "clan": "shimura",
-  "level": 10,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Önde dönen rüzgâr duvarı mermileri savurur.",
-  "seals": [],
-  "canon_rank": "B",
-  "category": "hiden",
-  "shape": "wall",
-  "tier": 3,
-  "meaning": "Rüzgâr Duvarı"
- },
- "shimura_shinku_renpa": {
-  "id": "shimura_shinku_renpa",
-  "name": "Fūton: Shinkū Renpa",
-  "name_en": "Fūton: Shinkū Renpa",
-  "cost": 44,
-  "cd": 9.2,
-  "element": "fuuton",
-  "elements": [
-   "fuuton"
-  ],
-  "clan": "shimura",
-  "level": 12,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Art arda beş vakum mermisi.",
-  "seals": [],
-  "canon_rank": "B",
-  "category": "hiden",
-  "shape": "projectile",
-  "tier": 3
- },
- "shimura_zetsuei": {
-  "id": "shimura_zetsuei",
-  "name": "Fūton: Mumei Zetsuei",
-  "name_en": "Sessiz Rüzgâr Kesiği",
-  "cost": 52,
-  "cd": 10.6,
-  "element": "fuuton",
-  "elements": [
-   "fuuton"
-  ],
-  "clan": "shimura",
-  "level": 16,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Görünmez rüzgâr bıçağıyla arkadan sessiz suikast atılışı.",
-  "seals": [],
-  "canon_rank": "A",
-  "category": "hiden",
-  "shape": "melee",
-  "tier": 4,
-  "meaning": "Sessiz Rüzgâr Kesiği"
- },
- "shimura_bakuu": {
-  "id": "shimura_bakuu",
-  "name": "Fūton: Bakūzan",
-  "name_en": "Fūton: Bakūzan",
-  "cost": 60,
-  "cd": 12.0,
-  "element": "fuuton",
-  "elements": [
-   "fuuton"
-  ],
-  "clan": "shimura",
-  "level": 20,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Dev patlayan vakum küresi alanı biçer.",
-  "seals": [],
-  "canon_rank": "A",
-  "category": "hiden",
-  "shape": "aoe",
-  "tier": 4
- },
- "shimura_kaze_tatsu": {
-  "id": "shimura_kaze_tatsu",
-  "name": "Fūton: Kaze no Tatsu",
-  "name_en": "Fūton: Kaze no Tatsu",
-  "cost": 68,
-  "cd": 13.4,
-  "element": "fuuton",
-  "elements": [
-   "fuuton"
-  ],
-  "clan": "shimura",
-  "level": 24,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Sıkıştırılmış rüzgârdan şeffaf ejder hedefe dalar.",
-  "seals": [],
-  "canon_rank": "A",
-  "category": "hiden",
-  "shape": "projectile",
-  "tier": 5
  },
  "tsuchigumo_ito": {
   "id": "tsuchigumo_ito",
@@ -29699,5 +29537,39 @@
   "category": "hiden",
   "shape": "wall",
   "meaning": "Böcek Duvarı"
+ },
+ "futon_shinkugyoku": {
+  "id": "futon_shinkugyoku",
+  "name": "Fūton: Shinkūgyoku",
+  "name_en": "Wind Release: Vacuum Sphere",
+  "cost": 24,
+  "cd": 8.0,
+  "element": "fuuton",
+  "elements": [
+   "fuuton"
+  ],
+  "natures": [
+   "fuuton"
+  ],
+  "clan": "shimura",
+  "level": 10,
+  "rank": 2,
+  "learn": "clan",
+  "desc": "Nefesle çok sayıda küçük vakum küresi farklı yönlere saçılır; kaçması zordur, ete saplanıp delip geçer (Danzō).",
+  "seals": [
+   "Ne",
+   "U",
+   "Inu"
+  ],
+  "canon_rank": "B",
+  "tier": 3,
+  "category": "ninjutsu",
+  "shape": "projectile",
+  "range": "Short, Mid, Long",
+  "requires": {},
+  "signature": false,
+  "kinjutsu": false,
+  "series": "Naruto Shippūden",
+  "meaning": "Vakum Küresi"
  }
 }
