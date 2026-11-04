@@ -10,6 +10,7 @@ var poses = {}
 var head_scale = 1.0   # çocuk/genç oranları: büyük kafa
 var chest_scale = 1.0
 var limb_scale = 1.0    # çocuk: ince kol ve bacaklar
+var bulk := {}          # kemik -> kalınlık (Gōsuiwan: kol kasları suyla şişer); el/ayak çocuğu orantılı kalır
 var leg_len = 1.0       # çocuk: kısa bacaklar (model yere indirilir)
 var foot_pitch = 0.0    # VRoid kadın ayağı (topuklu ayakkabı kalıbı): ayağı düzle (derece)
 var toe_pitch = 0.0     # VRoid: içe aktarıcı ayak parmağı kemiğini yükseltiyor; parmakları yere indirir (derece)
@@ -196,6 +197,15 @@ func _process_modification() -> void:
 			var li = sk.find_bone(b)
 			if li >= 0:
 				sk.set_bone_pose_scale(li, Vector3(limb_scale, leg_len if b.ends_with("Leg") else 1.0, limb_scale))
+	for bb in bulk.keys():
+		var bi2 = sk.find_bone(String(bb))
+		var sv = float(bulk[bb])
+		if bi2 >= 0 and absf(sv - 1.0) > 0.001:
+			sk.set_bone_pose_scale(bi2, Vector3(sv, 1.0, sv))
+			var hand_b = String(bb).replace("UpperArm", "Hand").replace("UpperLeg", "Foot")
+			var hi2 = sk.find_bone(hand_b)
+			if hi2 >= 0 and hand_b != String(bb):
+				sk.set_bone_pose_scale(hi2, Vector3(1.0 / sv, 1.0, 1.0 / sv))   # el kaslı kolla şişmez
 	if chest_scale != 1.0:
 		var cb = sk.find_bone("UpperChest")
 		if cb >= 0:

@@ -1743,18 +1743,37 @@ func c_mizudeppo_nicho(c: Node3D, t: Node3D) -> void:
 
 ## Büyük Su Kolu: kol suyla şişip dev yumruğa dönüşür; ileri savurur, 10 sn kolun dev kalır
 func c_suiton_gosuiwan_no_jutsu(c: Node3D, t: Node3D) -> void:
-	var arm = VFX.water_ball(1.4)
-	attach(c, arm, 10.0, Vector3(0.45, 1.1, -0.5))
+	# kanon: bedendeki su kola pompalanır, kol kasları anında şişer; şişen kolla yıkıcı yumruk. 10 sn kol iri kalır.
+	var m = c.get("model")
+	var ov = m.overlay if m and m.get("overlay") else null
 	if c is Player:
-		Buffs.add("gosuiwan", 10.0, {"melee": 1.3, "reach": 1.8})
-	busy(c, 0.45)
-	after(0.25, func():
+		Buffs.add("gosuiwan", 10.0, {"melee": 1.3, "reach": 1.3, "_name": "Gōsuiwan", "_desc": "su pompalanmış kaslı kol"})
+	elif c.has_method("add_buff"):
+		c.add_buff("gosuiwan", 10.0, {"melee": 1.3})
+	if ov:
+		var tw = c.create_tween()
+		tw.tween_method(func(x: float): if is_instance_valid(m): m.overlay.bulk["RightUpperArm"] = x, 1.0, 2.6, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw.tween_interval(9.4)
+		tw.tween_method(func(x: float): if is_instance_valid(m): m.overlay.bulk["RightUpperArm"] = x, 2.6, 1.0, 0.3)
+		tw.tween_callback(func(): if is_instance_valid(m): m.overlay.bulk.erase("RightUpperArm"))
+	# bedenden kola akan su damlaları (nem toplanıyor)
+	for k in 10:
+		var q = Vector3(randf_range(-0.35, 0.35), randf_range(0.3, 1.5), randf_range(-0.3, 0.3))
+		after(k * 0.02, func():
+			if live(c):
+				var to = Jutsu._hand(c) + Vector3.UP * 0.25
+				WindFX.streak(func(u: float) -> Vector3: return (c.global_position + q).lerp(to, u), 0.25, 0.05, Color(0.6, 0.85, 1.0), 0.0, 8))
+	busy(c, 0.55)
+	anim(c, "crouch", 2.0)
+	after(0.3, func():
+		if not live(c):
+			return
+		anim(c, "cross", 1.5)
 		var d = fwd(c, t)
-		var p = c.global_position + Vector3.UP * 1.1 + d * 2.0
-		VFX.splash(p, 3.0)
-		VFX.shockwave(p, Color(0.5, 0.8, 1.0), 6.0, 0.3, false, d)
-		hit(c, p, 2.4, inf(c, "suiton_gosuiwan_no_jutsu", 1.8, {"knock": 18.0, "launch": 3.0, "kind": "heavy", "hitstop": 0.1}))
-		Sfx.play("water", p, 0.7))
+		var p = c.global_position + Vector3.UP * 1.1 + d * 1.6
+		VFX.shockwave(p, Color(0.9, 0.92, 0.95), 4.0, 0.25, false, d)   # referans: su değil, kaslı yumruğun darbesi
+		hit(c, p, 1.8, inf(c, "suiton_gosuiwan_no_jutsu", 1.8, {"knock": 18.0, "launch": 3.0, "kind": "heavy", "hitstop": 0.1}))
+		Sfx.play("punch", p, 0.7))
 
 
 ## Su girdabı dokusu (Tate Eboshi yüzeyi): saydam zemin üzerinde ak, uçları kıvrılan "ε" biçimli su çizgileri — döşenebilir

@@ -1976,14 +1976,18 @@ func j_suika(c: Node3D, _t: Node3D) -> void:
 	if c is Player:
 		Buffs.add("suika", 15.0, {"_desc": "Hafif darbeler içinden geçer (chakra yer), ağır darbe yarı hasar; Raiton 2x hasar ve bedeni dağıtır"})
 		var a = FX.aura(c, Color(0.35, 0.65, 1.0), 1.0, Vector3(0, 0.9, 0), 0.0)
-		var shell = MeshInstance3D.new()
-		shell.mesh = VFX._sphere(0.5, 20, 10)
-		shell.material_override = VFX.mat_water(Color(0.1, 0.35, 0.85), Color(0.3, 0.6, 1.0), Color(0.75, 0.92, 1.0), Vector3.UP, 0.45, 0.6, 0.12)
-		shell.scale = Vector3(0.9, 2.0, 0.9)
-		c.add_child(shell)
-		shell.position = Vector3(0, 0.95, 0)
-		FX.burst(c.global_position + Vector3.UP, {"amount": 40, "life": 0.7, "tex": FX.tex_smoke, "add": false, "size": 0.5, "vmin": 2, "vmax": 5, "gravity": Vector3(0, -10, 0), "colors": [Color(0.85, 0.95, 1, 1), Color(0.3, 0.6, 1, 0)]})
-		get_tree().create_timer(15.0).timeout.connect(func(): if is_instance_valid(shell): shell.queue_free())
+		# referans (Suika karesi): bedenin KENDİSİ suya döner — kapsül değil; tenin üstünde yarı saydam su, damlalar süzülür
+		var wm = VFX.mat_water(Color(0.45, 0.68, 0.92), Color(0.72, 0.88, 1.0), Color(0.97, 1.0, 1.0), Vector3.DOWN, 0.78, 0.9, 0.03)   # belirgin (referans: yüz-saç suya döner)
+		var mm = c.get("model")
+		var meshes = mm.find_children("*", "MeshInstance3D", true, false) if mm else []
+		for mi in meshes:
+			(mi as MeshInstance3D).material_overlay = wm
+		_ticks(30, 0.5, func(_i):
+			if is_instance_valid(c):
+				WaterArt.drops(c.global_position + Vector3(randf_range(-0.25, 0.25), randf_range(0.8, 1.7), randf_range(-0.25, 0.25)), 2, 0.4, 1.0, Vector3.DOWN, 0.3), func():
+			for mi in meshes:
+				if is_instance_valid(mi) and (mi as MeshInstance3D).material_overlay == wm:
+					(mi as MeshInstance3D).material_overlay = null)
 		get_tree().create_timer(15.0).timeout.connect(func():
 			if is_instance_valid(a):
 				a.emitting = false

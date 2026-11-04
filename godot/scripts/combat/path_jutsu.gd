@@ -17317,25 +17317,7 @@ func p_mizudeppo_nicho(c: Node3D, t: Node3D) -> void:
 
 ## Büyük Su Kolu: kol su kasıyla şişer, savruluşta su seli
 func p_suiton_gosuiwan_no_jutsu(c: Node3D, t: Node3D) -> void:
-	var ba = bone_attach(c, "RightLowerArm")
-	if ba:
-		var arm = MeshInstance3D.new()
-		arm.mesh = SphereMesh.new()
-		arm.material_override = _wmat()
-		arm.scale = Vector3(0.35, 0.5, 0.35)
-		arm.position = Vector3(0, 0.15, 0)
-		ba.add_child(arm)
-		var tw = arm.create_tween()
-		tw.tween_property(arm, "scale", Vector3(0.6, 0.6, 0.6), 0.3)
-		after(10.0, func():
-			if is_instance_valid(ba):
-				ba.queue_free())
 	c_suiton_gosuiwan_no_jutsu(c, t)
-	after(0.35, func():
-		if live(c):
-			var d = c.face_dir()
-			stream_fx(c.global_position + Vector3.UP * 1.2 + d, d, 7.0, 1.4, _wmat(), 0.35)
-			VFX.splash(c.global_position + Vector3.UP + d * 6.0, 2.0))
 
 
 ## Su Kalkanı: dikenli su kubbesi yükselir (referanstaki gibi)
@@ -19340,6 +19322,40 @@ func p_hyoton_hyoryu_boppa(c: Node3D, t: Node3D) -> void:
 		Projectile.trail(pr, [Color(1, 1, 1, 0.8), Color(0.82, 0.94, 1.0, 0.5), Color(0.7, 0.88, 1.0, 0)], 1.6, 30, 0.4, null, true))
 	Sfx.play("roar", c.global_position, 0.8)
 
+func _ticks_local(n: int, dt: float, fn: Callable, done := Callable()) -> void:
+	every(n * dt, dt, func(i, _k): fn.call(i), done)
+
+
+## Su kırbacı (referans: Suiben karesi): elden çıkan, havada kavis çizip hedefe dolanan ince ak-mavi su ipi; sallanır
+func _water_whip(c: Node3D, tt: Node3D, dur: float) -> void:
+	var mi = MeshInstance3D.new()
+	mi.top_level = true
+	mi.material_override = VFX.mat_water(Color(0.45, 0.65, 0.85), Color(0.75, 0.9, 1.0), Color(1, 1, 1), Vector3.FORWARD, 0.9, 0.8, 0.0)
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	get_tree().current_scene.add_child(mi)
+	var side_sgn = 1.0 if randf() < 0.5 else -1.0
+	_ticks_local(int(dur / 0.05), 0.05, func(i):
+		if not (live(c) and is_instance_valid(tt)):
+			return
+		var a: Vector3 = hand_pos(c, true)
+		var b: Vector3 = tt.global_position + Vector3.UP * 1.0
+		var reach = ease(clampf(i * 0.05 / 0.25, 0.0, 1.0), 0.5)
+		var d = b - a
+		var sd = d.cross(Vector3.UP).normalized() * side_sgn
+		var pts = []
+		var rad = []
+		for k in 25:
+			var u = k / 24.0 * reach
+			var arc = sin(u * PI) * (1.6 * (1.0 - reach * 0.6))   # fırlarken yüksek yay, dolanınca gerilir
+			var wave = sin(u * TAU * 1.5 - i * 0.6) * 0.18 * (1.0 - u)
+			pts.append(a + d * u + Vector3.UP * arc + sd * (sin(u * PI) * 0.8 * (1.0 - reach * 0.5) + wave))
+			rad.append(Vector2(0.06, 0.06) * (1.0 - u * 0.4))
+		var mb = MB.new()
+		Loft.tube(mb, pts, rad, Color.WHITE, 8, 2, true, true)
+		mi.mesh = mb.build(null), func():
+		mi.queue_free())
+
+
 ## Suiton: Suiben (kanon, Kiri av ninjaları): sudan kırbaç hedefe dolanıp bağlar; kullanan raiton bilirse kırbaçtan şimşek
 ## akıtıp bağlananı çarpar. (Eski "Mizu Muchi" — Hōzuki tekniği değil, Kiri öğretmeninden öğrenilir.) Hedef yoksa önünü savurur.
 func p_hozuki_mizu_muchi(c: Node3D, t: Node3D) -> void:
@@ -19356,7 +19372,7 @@ func p_hozuki_mizu_muchi(c: Node3D, t: Node3D) -> void:
 			Combat.hit_zone(c, c.global_position, d, 9.0, 14.0, 2.5, inf(c, "hozuki_mizu_muchi", 0.6, {"knock": 8.0, "kind": "heavy", "element": "suiton"}))
 			return
 		# kırbaç elden hedefe uzanır, bedenine dolanır (halkalar), bağlar
-		var whip = tether(func(): return hand_pos(c, true) if live(c) else Vector3.ZERO, func(): return tt.global_position + Vector3.UP * 1.0 if is_instance_valid(tt) else Vector3.ZERO, 0.16, _wmat(), 2.2)
+		_water_whip(c, tt, 2.2)
 		for k in 3:
 			var ring = MeshInstance3D.new()
 			var tm = TorusMesh.new()
@@ -26377,12 +26393,25 @@ func p_nensuikai(c: Node3D, t: Node3D) -> void:
 		if not live(c):
 			return
 		var from = hand_pos(c, true)
-		var pr = _water_jet(c, from, aim_at(c, tt, from), 22.0, 0.9, inf(c, "nensuikai", 0.6, {"knock": 1.0, "kind": "heavy", "element": "suiton"}), tt, 1.4, func(p, h):
+		# referans (Nensuikai karesi): dönerek uçan yassı, kalın kenarlı yapışkan su diski
+		var disc = MeshInstance3D.new()
+		var dcm = CylinderMesh.new()
+		dcm.top_radius = 0.95
+		dcm.bottom_radius = 0.95
+		dcm.height = 0.18
+		dcm.radial_segments = 28
+		disc.mesh = dcm
+		disc.material_override = VFX.mat_water(Color(0.35, 0.55, 0.75), Color(0.65, 0.82, 0.95), Color(0.95, 0.99, 1.0), Vector3.FORWARD, 0.82, 0.8, 0.05)
+		disc.rotation = Vector3(0.25, 0, 0.3)
+		var holder = Node3D.new()
+		holder.add_child(disc)
+		var pr = shot(c, from, aim_at(c, tt, from), 20.0, holder, inf(c, "nensuikai", 0.6, {"knock": 1.0, "kind": "heavy", "element": "suiton"}), tt, false, 1.4, func(p, h):
 			VFX.puffs(gp(p) + Vector3.UP * 0.2, {"amount": 10, "life": 4.0, "size": 1.2, "radius": 1.0, "vmin": 0.0, "vmax": 0.3, "gravity": Vector3.ZERO, "outline": 0.03, "rough": 0.12,
 				"outline_col": Color(0.3, 0.5, 0.8), "colors": [Color(0.6, 0.8, 1.0, 0), Color(0.55, 0.78, 1.0, 0.85), Color(0.5, 0.75, 1.0, 0)]})
 			if h and live(h) and h.has_method("apply_status"):
 				h.apply_status("bind", 2.0)
-				h.apply_status("slow", 5.0), 10)
+				h.apply_status("slow", 5.0))
+		pr.spin = Vector3(0, 14.0, 0)
 		pr.homing_turn = 2.0)
 	Sfx.play("water", c.global_position, 1.2)
 
