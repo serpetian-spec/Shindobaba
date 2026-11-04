@@ -1681,27 +1681,97 @@ func c_suiton_tate_eboshi(c: Node3D, t: Node3D) -> void:
 	var d = fwd(c, t)
 	d.y = 0.0
 	d = d.normalized()
-	var wall = MeshInstance3D.new()
-	wall.mesh = WaterArt.wave_mesh(8.0, 5.0)
-	wall.material_override = WaterArt.mat()
-	get_tree().current_scene.add_child(wall)
-	wall.global_position = gp(c.global_position + d * 2.5)
-	wall.look_at(wall.global_position + d, Vector3.UP)
-	VFX.splash(wall.global_position + Vector3.UP * 0.5, 3.0)
-	WaterArt.drops(wall.global_position + Vector3.UP * 3.0, 14, 2.0, 9.0)
-	wall.scale = Vector3(1, 0.05, 1)
-	var tw = wall.create_tween()
-	tw.tween_property(wall, "scale", Vector3.ONE, 0.25).set_ease(Tween.EASE_OUT)
+	# referans (Suigetsu vs Hachibi): yerden kalkan dev, yarı saydam soluk su kütlesi — tepede uzun sırt dikeni, kenar
+	# boyunca dışa bakan dikenler (kirpi balığı gibi), yüzeyde ak girdaplar; kullanıcı kütlenin içinde, arkadakiler korunur
+	var W = 8.5   # referans: en ≈ boy, insanın ~5 katı (Hachibi'yi geri itecek kadar dev)
+	var H = 9.0
+	var D = 6.0
+	var root = Node3D.new()
+	get_tree().current_scene.add_child(root)
+	root.global_position = gp(c.global_position + d * 2.0)
+	root.look_at(root.global_position + d, Vector3.UP)
+	var wm = VFX.mat_water(Color(0.3, 0.55, 0.8), Color(0.62, 0.8, 0.94), Color(0.96, 0.99, 1.0), Vector3.UP, 0.66, 1.0, 0.1)
+	var body = MeshInstance3D.new()
+	var sm = SphereMesh.new()
+	sm.radius = 1.0
+	sm.height = 1.0   # bu sürümde yarım kürenin boyu doğrudan height (2.0 kütleyi iki kat uzatıyordu)
+	sm.is_hemisphere = true
+	sm.radial_segments = 40
+	sm.rings = 18
+	body.mesh = sm
+	body.material_override = wm
+	body.scale = Vector3(W, H, D)
+	body.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(body)
+	# dikenler gökyüzüne karşı seçilsin: daha koyu, doygun mavi (soluk ak dikenler açık gökte kayboluyordu)
+	var spm = VFX.mat_water(Color(0.12, 0.38, 0.72), Color(0.35, 0.62, 0.9), Color(0.85, 0.94, 1.0), Vector3.UP, 0.92, 0.5, 0.0)
+	var spike = func(pos: Vector3, dir: Vector3, ln: float, rad: float):
+		var cm = CylinderMesh.new()
+		cm.top_radius = 0.0
+		cm.bottom_radius = rad
+		cm.height = ln
+		cm.radial_segments = 10
+		var mi = MeshInstance3D.new()
+		mi.mesh = cm
+		mi.material_override = spm
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		root.add_child(mi)
+		var up = dir.normalized()
+		var side = up.cross(Vector3.FORWARD if absf(up.dot(Vector3.FORWARD)) < 0.9 else Vector3.RIGHT).normalized()
+		mi.transform = Transform3D(Basis(side, up, side.cross(up)), pos + up * ln * 0.45)
+	# kenar dikenleri: ön düzlemdeki elips çevresi boyunca, dışa (elips normali) bakar; tepede en uzun sırt dikeni
+	for k in 13:
+		var ang = lerpf(-1.45, 1.45, k / 12.0)
+		var pos = Vector3(sin(ang) * W, cos(ang) * H, -0.4)
+		var nrm = Vector3(sin(ang) / W, cos(ang) / H, 0.0).normalized()
+		var top = k == 6
+		spike.call(pos * 0.95, (nrm + Vector3(0, 0.2, 0)).normalized() if not top else Vector3.UP, 5.0 if top else randf_range(2.0, 3.0), 0.85 if top else 0.55)
+	# ön yüzeyde birkaç kısa diken
+	for k in 5:
+		var ang2 = randf_range(-0.9, 0.9)
+		var el = randf_range(0.3, 0.75)
+		var q = Vector3(sin(ang2) * W * 0.8, el * H, -D * 0.7)
+		spike.call(q, (Vector3(sin(ang2) * 0.4, 0.5, -1.0)).normalized(), randf_range(1.0, 1.6), 0.3)
+	# yükseliş: sudan kabarır
+	root.scale = Vector3(0.6, 0.05, 0.6)
+	var tw = root.create_tween()
+	tw.tween_property(root, "scale", Vector3.ONE, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	var bt = body.create_tween().set_loops()
+	bt.tween_property(body, "scale", Vector3(W * 1.02, H * 0.98, D * 1.03), 0.5).set_trans(Tween.TRANS_SINE)
+	bt.tween_property(body, "scale", Vector3(W, H, D), 0.5).set_trans(Tween.TRANS_SINE)
+	VFX.splash(root.global_position + Vector3.UP * 0.5, 4.0)
+	WaterArt.drops(root.global_position + Vector3.UP * 4.0, 18, 2.4, 10.0)
+	shake(0.5)
+	var center = root.global_position + Vector3.UP * H * 0.4
 	every(6.0, 0.1, func(_i, _k):
+		if not is_instance_valid(root):
+			return
+		# kütleye giren düşman mermisi yutulur
 		for n in get_tree().current_scene.get_children():
-			if n is Projectile and not n.dead and Combat.hostile(c, n.shooter) and n.global_position.distance_to(wall.global_position + Vector3.UP * 2.0) < 3.8:
-				VFX.splash(n.global_position, 1.0)
-				n.queue_free()
-		for e in enemies_near(c, wall.global_position, 3.0):
-			var v = e.global_position - c.global_position
+			if n is Projectile and not n.dead and Combat.hostile(c, n.shooter):
+				var v2 = n.global_position - root.global_position
+				var lx = v2.dot(root.global_basis.x) / W
+				var ly = v2.dot(Vector3.UP) / H
+				var lz = v2.dot(-root.global_basis.z) / (D + 1.5)
+				if ly > -0.1 and lx * lx + ly * ly + lz * lz < 1.1:
+					VFX.splash(n.global_position, 1.0)
+					n.queue_free()
+		# kütleye dayanan düşman dışarı itilir
+		for e in enemies_near(c, root.global_position + d * 1.5, W + 0.5):
+			var v = e.global_position - root.global_position
 			v.y = 0
-			e.global_position = gp(e.global_position + v.normalized() * 0.4))
-	fade_free(wall, 6.0, 0.4)
+			if v.dot(d) > -0.5:
+				e.global_position = gp(e.global_position + (d * 0.6 + v.normalized() * 0.2)))
+	# çöküş: kütle yere boşalır, ıslak zemin bırakır (raitonla elektriklenebilir)
+	after(6.0, func():
+		if not is_instance_valid(root):
+			return
+		var tw2 = root.create_tween()
+		tw2.tween_property(root, "scale", Vector3(1.25, 0.02, 1.25), 0.35).set_ease(Tween.EASE_IN)
+		tw2.tween_callback(root.queue_free)
+		VFX.splash(center, 4.5)
+		WaterArt.drops(center, 20, 2.6, 8.0)
+		GroundFX.add(root.global_position + d * 1.5, "wet", W + 1.0, 10.0, c))
 	Sfx.play("water", c.global_position, 0.6)
 
 
