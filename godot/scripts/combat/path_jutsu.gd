@@ -18148,10 +18148,12 @@ func p_garoga(c: Node3D, t: Node3D) -> void:
 	if c is Player and tt and not scented:
 		Hud.msg("Hedef kokuyla işaretli değil — dönerken göremezsiniz, düz gidiyor.", Color(1, 0.85, 0.4))
 	var side = d.cross(Vector3.UP).normalized()
+	var prs = []
 	for k in 2:
 		var start = c.global_position + Vector3.UP * 1.5 + side * (1.6 if k == 0 else -1.6)
 		var aim = ((tt.global_position + Vector3.UP - start).normalized()) if tt else d
-		_inu_drill(c, start, aim, tt if scented else null, 1.0, 1.3, "garoga")
+		prs.append(_inu_drill(c, start, aim, tt if scented else null, 1.0, 1.3, "garoga"))
+	_ride_drills(c, prs, 1.3)
 	Sfx.play("roar", c.global_position, 0.9)
 
 
@@ -18161,10 +18163,12 @@ func p_cho_garoga(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.0)
 	var d = fwd(c, t)
 	var side = d.cross(Vector3.UP).normalized()
+	var prs = []
 	for k in 2:
 		var start = c.global_position + Vector3.UP * 1.8 + side * (1.4 if k == 0 else -1.4)
 		var aim = ((tt.global_position + Vector3.UP - start).normalized()) if tt else d
-		_inu_drill(c, start, aim, tt, 1.35, 2.0, "cho_garoga")
+		prs.append(_inu_drill(c, start, aim, tt, 1.35, 2.0, "cho_garoga"))
+	_ride_drills(c, prs, 1.3)
 	shake(0.8)
 	Sfx.play("roar", c.global_position, 0.7)
 
@@ -18180,12 +18184,7 @@ func p_gatenga(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.2)
 	var users = [c] if partner == null else [c, partner]
 	for u in users:
-		var saw = MeshInstance3D.new()
-		var tm = TorusMesh.new()
-		tm.inner_radius = 0.2
-		tm.outer_radius = 0.9
-		saw.mesh = tm
-		saw.material_override = VFX.mat_spiral(Color(0.95, 0.95, 1.0), Color(0.55, 0.5, 0.45), 4.0, 6.0, 14.0, 0.9, Vector3.UP)
+		var saw = Jutsu.gatsuga_drill(1.2 if u == c else 1.0)
 		get_tree().current_scene.add_child(saw)
 		var start = u.global_position + Vector3.UP * 0.9
 		var goal = (tt.global_position + Vector3.UP * 0.9) if tt else start + fwd(c, t) * 10.0
@@ -18198,8 +18197,11 @@ func p_gatenga(c: Node3D, t: Node3D) -> void:
 		every(1.0, 1.0 / 30.0, func(_k, kk):
 			if not is_instance_valid(saw):
 				return
-			saw.global_position = start.lerp(goal, minf(1.0, kk * 1.4)) + Vector3(sin(kk * 30.0), 0, cos(kk * 30.0)) * 0.4
-			saw.rotate_object_local(Vector3.FORWARD, 0.9)
+			var np = start.lerp(goal, minf(1.0, kk * 1.4)) + Vector3(sin(kk * 30.0), 0, cos(kk * 30.0)) * 0.4
+			var mv = np - saw.global_position
+			saw.global_position = np
+			if mv.length() > 0.01:
+				saw.look_at(np + mv.normalized(), Vector3.UP)
 			if is_instance_valid(u):
 				u.global_position = gp(saw.global_position)
 			for e in enemies_near(c, saw.global_position, 1.6):
@@ -21577,22 +21579,46 @@ func _inuzuka_form(c: Node3D, heads: int) -> void:
 				dg2.global_position = gp(c.global_position + c.face_dir().cross(Vector3.UP) * 2.0))
 
 
-func _inu_drill(c: Node3D, from: Vector3, dir: Vector3, homing: Node3D, scale: float, mul: float, jid: String) -> void:
-	var drill = Node3D.new()
-	var cone = MeshInstance3D.new()
-	var cm = CylinderMesh.new()
-	cm.top_radius = 0.25 * scale
-	cm.bottom_radius = 2.4 * scale
-	cm.height = 6.0 * scale
-	cone.mesh = cm
-	cone.material_override = VFX.mat_spiral(Color(0.97, 0.97, 1.0), Color(0.58, 0.55, 0.52), 4.0, 6.0, 14.0, 1.1, Vector3.UP)
-	cone.rotation.x = -PI * 0.5
-	drill.add_child(cone)
+## Garōga matkabı: kurt bedeninin kendisi; Gatsūga ile aynı matkap (opak çizgili tüp + krem patlama halkası), daha iri.
+func _inu_drill(c: Node3D, from: Vector3, dir: Vector3, homing: Node3D, scale: float, mul: float, jid: String) -> Projectile:
+	var drill = Jutsu.gatsuga_drill(2.4 * scale)
 	var pr = shot(c, from, dir, 30.0, drill, inf(c, jid, mul, {"knock": 18.0, "launch": 7.0, "kind": "heavy", "pierce_guard": true, "bleed": 2.0}), homing, true, 1.4)
 	if pr:
-		pr.spin = Vector3(0, 0, 22.0)
 		pr.radius = 1.6 * scale
-		Projectile.trail(pr, [Color(1, 1, 1), Color(0.8, 0.75, 0.7), Color(0.6, 0.55, 0.5, 0)], 1.8 * scale, 40, 0.4)
+		Projectile.trail(pr, [Color(0.85, 0.83, 0.9), Color(0.6, 0.57, 0.66), Color(0.45, 0.42, 0.5, 0)], 1.8 * scale, 40, 0.4)
+	return pr
+
+
+## Beden matkabın içinde: kurt (ve kullanıcı) görünmez, kullanıcı ilk matkapla birlikte gider; matkaplar bitince
+## ikisinin ortasında yeniden belirir (kurt biçimi sürüyorsa kurt da).
+func _ride_drills(c: Node3D, prs: Array, dur: float) -> void:
+	var wolf = c.get_meta("inu_wolf") if c.has_meta("inu_wolf") else null
+	if is_instance_valid(wolf):
+		wolf.visible = false
+	if c.get("model"):
+		c.model.visible = false
+	var last = [c.global_position]
+	every(dur, 1.0 / 60.0, func(_k, _kk):
+		var sum = Vector3.ZERO
+		var n = 0
+		for pr in prs:
+			if is_instance_valid(pr):
+				sum += pr.global_position
+				n += 1
+		if n > 0 and live(c):
+			last[0] = sum / n
+			c.global_position = gp(last[0])
+			if c is Player:
+				c.velocity = Vector3.ZERO, func():
+		for pr in prs:
+			if is_instance_valid(pr):
+				pr.life = 0.0
+		if is_instance_valid(c):
+			FX.smoke_puff(gp(c.global_position) + Vector3.UP * 1.5, 1.6, 12)
+			if is_instance_valid(wolf):
+				wolf.visible = true
+			elif c.get("model"):
+				c.model.visible = true)
 
 
 func p_inuzuka_sototoro(c: Node3D, _t: Node3D) -> void:

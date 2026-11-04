@@ -75,7 +75,21 @@ func _physics_process(dt: float) -> void:
 	if owner_f == null or not is_instance_valid(owner_f):
 		queue_free()
 		return
-	if tgt == null or not is_instance_valid(tgt) or tgt.is_dead():
+	var cmd = Summon.command_of(owner_f)
+	if cmd == "takip" and drill_t <= 0.0:
+		tgt = null
+	elif cmd == "koru" and (tgt == null or not is_instance_valid(tgt) or tgt.is_dead() or tgt.global_position.distance_to(owner_f.global_position) > 10.0):
+		tgt = Combat.nearest_enemy(owner_f, 8.0)
+	elif cmd == "bekle" and has_meta("hold_pos") and (tgt == null or not is_instance_valid(tgt) or tgt.is_dead()):
+		tgt = null
+		var hp0: Vector3 = get_meta("hold_pos")
+		for f in get_tree().get_nodes_in_group("fighters"):
+			if Combat.hostile(owner_f, f) and not f.is_dead() and f.global_position.distance_to(hp0) < 9.0:
+				tgt = f
+				break
+	elif cmd == "saldir" and owner_f is Player and owner_f.combat and owner_f.combat.lock_target and is_instance_valid(owner_f.combat.lock_target) and not owner_f.combat.lock_target.is_dead():
+		tgt = owner_f.combat.lock_target
+	elif tgt == null or not is_instance_valid(tgt) or tgt.is_dead():
 		tgt = Combat.nearest_enemy(self, 25.0)
 		if tgt and tgt.global_position.distance_to(owner_f.global_position) > 30.0:
 			tgt = null

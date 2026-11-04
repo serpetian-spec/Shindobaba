@@ -97,6 +97,10 @@ func _unhandled_input(e: InputEvent) -> void:
 		toggle_weapon()
 	elif e.is_action_pressed("lock"):
 		toggle_lock()
+	elif e.is_action_pressed("summon_cmd"):   # Kuchiyose komutu: Saldır -> Koru -> Bekle -> Takip
+		Summon.issue_next(p)
+	elif e.is_action_pressed("summon_special"):   # çağrılar imza tekniğini hemen kullanır
+		Summon.order_special(p)
 	elif e.is_action_pressed("dash") and lock_target and p.grounded and action == "":
 		chakra_dash()
 	for i in 6:

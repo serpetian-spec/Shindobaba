@@ -23,6 +23,70 @@ var bubble_t = 0.0
 var trail: Array = []          # yılan: baş izi (gövde segmentleri takip eder)
 var markers := {}
 var mount_prompt = false
+var hold_pos := Vector3.INF   # "Bekle" komutunda nöbet yeri
+var cmd_label: Label3D
+
+
+## ------------------------------------------------------------------ Kuchiyose komut sistemi
+## Komutlar (sahibin meta'sı summon_cmd): saldir (kilitli hedef ya da en yakın düşman), koru (sahibin yanında, ona
+## yaklaşanlara saldırır), bekle (bulunduğu yerde nöbet, yalnız yakına gelenle dövüşür), takip (dövüşmez, peşinden gelir).
+## Oyuncu: [J] komutu değiştirir, [U] bütün çağrılar imza tekniğini hemen kilitli hedefe kullanır. Düşman çağrıları saldırır.
+const CMDS := ["saldir", "koru", "bekle", "takip"]
+const CMD_NAMES := {"saldir": "Saldır", "koru": "Koru", "bekle": "Bekle", "takip": "Takip"}
+
+
+static func command_of(owner: Node) -> String:
+	return String(owner.get_meta("summon_cmd")) if owner and is_instance_valid(owner) and owner.has_meta("summon_cmd") else "saldir"
+
+
+static func issue_next(owner: Node3D) -> void:
+	var cur = command_of(owner)
+	var nxt = CMDS[(CMDS.find(cur) + 1) % CMDS.size()]
+	owner.set_meta("summon_cmd", nxt)
+	var n = 0
+	for s in owner.get_tree().get_nodes_in_group("summons"):
+		if s.get("owner_f") == owner and not s.dead:
+			n += 1
+			s.hold_pos = s.global_position
+			s.tgt = null
+			s.show_cmd()
+	for d in owner.get_tree().get_nodes_in_group("ninken"):
+		if d.get("owner_f") == owner:
+			n += 1
+			d.set_meta("hold_pos", d.global_position)
+	Hud.msg("Çağrı komutu: %s%s" % [CMD_NAMES[nxt], "" if n > 0 else " (çağrın yok)"], Color(1.0, 0.85, 0.5))
+
+
+static func order_special(owner: Node3D) -> void:
+	for s in owner.get_tree().get_nodes_in_group("summons"):
+		if s.get("owner_f") == owner and not s.dead:
+			var lt = owner.combat.lock_target if owner is Player and owner.combat else null
+			if lt and is_instance_valid(lt) and not lt.is_dead():
+				s.tgt = lt
+			if s.tgt == null:
+				s.tgt = Combat.nearest_enemy(s, 40.0 + s.height * 2.0)
+			if s.tgt:
+				s.special_cd = 0.0
+				s.say("Anlaşıldı!", 1.2)
+
+
+func show_cmd() -> void:
+	if cmd_label == null:
+		cmd_label = Label3D.new()
+		cmd_label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		cmd_label.font_size = 42
+		cmd_label.pixel_size = 0.006 * clampf(height * 0.5, 1.0, 5.0)
+		cmd_label.outline_size = 10
+		cmd_label.no_depth_test = true
+		cmd_label.modulate = Color(1.0, 0.85, 0.5)
+		add_child(cmd_label)
+	cmd_label.position = Vector3(0, height * 1.05 + 0.3, 0)
+	cmd_label.text = "[%s]" % CMD_NAMES[command_of(owner_f)]
+	cmd_label.visible = true
+	var tw = cmd_label.create_tween()
+	tw.tween_interval(2.5)
+	tw.tween_callback(func(): cmd_label.visible = false)
+
 
 
 func _ready() -> void:
@@ -205,8 +269,28 @@ func _ai(dt: float) -> void:
 	var fly: bool = def.get("fly", false)
 	if not fly:
 		velocity.y -= 32.0 * dt
-	if tgt == null or not is_instance_valid(tgt) or tgt.is_dead():
-		tgt = Combat.nearest_enemy(self, 30.0 + height * 2.0)
+	# komut: hedef seçimi sahibin emrine göre
+	var cmd = command_of(owner_f) if owner_f is Player else "saldir"
+	var lt = owner_f.combat.lock_target if owner_f is Player and owner_f.combat else null
+	if cmd == "takip":
+		tgt = null
+	elif cmd == "koru" and owner_f:
+		if tgt == null or not is_instance_valid(tgt) or tgt.is_dead() or tgt.global_position.distance_to(owner_f.global_position) > 10.0:
+			tgt = Combat.nearest_enemy(owner_f, 8.0)   # sahibine yaklaşan
+	elif cmd == "bekle":
+		if hold_pos == Vector3.INF:
+			hold_pos = global_position
+		if tgt == null or not is_instance_valid(tgt) or tgt.is_dead() or tgt.global_position.distance_to(hold_pos) > 12.0 + height:
+			tgt = null
+			for f in get_tree().get_nodes_in_group("fighters"):
+				if Combat.hostile(self, f) and not f.is_dead() and f.global_position.distance_to(hold_pos) < 9.0 + height:
+					tgt = f
+					break
+	else:
+		if lt and is_instance_valid(lt) and not lt.is_dead() and Combat.hostile(self, lt):
+			tgt = lt   # kilitlediğin hedefe saldır
+		elif tgt == null or not is_instance_valid(tgt) or tgt.is_dead():
+			tgt = Combat.nearest_enemy(self, 30.0 + height * 2.0)
 	var wish = Vector3.ZERO
 	var spd: float = def.get("speed", 9.0)
 	var keep = 5.0 + height * 0.5
@@ -229,10 +313,15 @@ func _ai(dt: float) -> void:
 		if special_cd <= 0.0 and v.length() < 30.0 + height:
 			special_cd = 7.0 + height * 0.2
 			_special()
+	elif cmd == "bekle" and hold_pos != Vector3.INF:
+		var v = hold_pos - global_position
+		v.y = 0
+		if v.length() > 1.5:
+			wish = v.normalized() * spd
 	elif owner_f:
 		var v = owner_f.global_position - global_position
 		v.y = 0
-		if v.length() > keep:
+		if v.length() > (keep * 0.6 if cmd in ["koru", "takip"] else keep):
 			wish = v.normalized() * spd
 	if wish.length() > 0.1:
 		facing = lerp_angle(facing, atan2(-wish.x, -wish.z), minf(1.0, dt * 6.0))

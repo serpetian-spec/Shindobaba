@@ -1852,9 +1852,22 @@ func gatsuga_run(node: Node3D, p: Vector3, side: float, size: float, jid: String
 	drill.top_level = true
 	node.add_child(drill)
 	var vis: Node3D = node.get("model") if node.get("model") else node.get("vis")
-	if vis:
-		vis.visible = false
+	var dm: ShaderMaterial = drill.get_meta("drill_mat")
+	dm.set_shader_parameter("fade", 0.0)
 	var start: Vector3 = node.global_position
+	drill.global_position = start + Vector3.UP * 1.0 * size
+	drill.look_at(drill.global_position + Vector3(p.x - start.x, 0, p.z - start.z).normalized() if Vector2(p.x - start.x, p.z - start.z).length() > 0.1 else drill.global_position + Vector3.FORWARD, Vector3.UP)
+	# kanon: beden yerinde fırıl fırıl döner, etrafında matkap oluşur; matkap tamamlanınca beden onun içinde kaybolur
+	var form = 0.22
+	var tw0 = node.create_tween()
+	tw0.tween_method(func(u: float):
+		if is_instance_valid(drill):
+			dm.set_shader_parameter("fade", u)
+		if is_instance_valid(vis):
+			vis.rotation.y += 0.9, 0.0, 1.0, form)
+	tw0.tween_callback(func():
+		if is_instance_valid(vis):
+			vis.visible = false)
 	var d0: Vector3 = (p - start)
 	d0.y = 0
 	d0 = d0.normalized() if d0.length() > 0.1 else Vector3.FORWARD
@@ -1869,6 +1882,7 @@ func gatsuga_run(node: Node3D, p: Vector3, side: float, size: float, jid: String
 	var hitd = {}
 	var dur = 0.95
 	var tw = node.create_tween()
+	tw.tween_interval(form)
 	tw.tween_method(func(u: float):
 		if not is_instance_valid(node) or not is_instance_valid(drill):
 			return
@@ -1908,20 +1922,82 @@ func gatsuga_run(node: Node3D, p: Vector3, side: float, size: float, jid: String
 		node.combat.t = -10.0
 
 
-## Gatsūga matkabı: yatay dönen gri-beyaz rüzgâr hortumu (iki kat koni) + uç kıvılcımı; karakteri içine alır
+## Gatsūga matkabı (referans Fang Passing Fang): küt burunlu opak gri-lavanta tüp; sık siyah spiral taramalar shader'da akar,
+## önde krem renkli tırtıklı çakra halkası titrer. Beden içinde görünmez (çağıran gizler). -Z ileri. fade: 0..1 oluşum.
 func gatsuga_drill(size: float) -> Node3D:
 	var root = Node3D.new()
-	for k in 2:
-		var cm = CylinderMesh.new()
-		cm.top_radius = 0.55 - k * 0.15; cm.bottom_radius = 1.0 - k * 0.25; cm.height = 2.6 - k * 0.5; cm.radial_segments = 20; cm.rings = 6
-		cm.cap_top = false; cm.cap_bottom = false
-		var mi = VFX._mi(cm, Props.toon_color(Color(0.5, 0.5, 0.56), 0.5) if k == 1 else VFX.mat_wind(Color(0.85, 0.85, 0.9), 16.0, 6.0, Vector3.UP, 1.0))   # referans: koyu gri çizgili gövde, açık rüzgâr kenarı   # içte opak gri dönen gövde, dışta beyaz rüzgâr çizgileri
-		mi.rotation_degrees = Vector3(-90, 0, 0)   # sivri uç ileri (-Z)
-		mi.position = Vector3(0, 0, -0.4)
-		root.add_child(mi)
-		var sp = mi.create_tween().set_loops()
-		sp.tween_property(mi, "rotation:y", TAU * (1 if k == 0 else -1), 0.25 - k * 0.08).from(0.0)
-	root.scale = Vector3.ONE * size * 1.3
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	# torna profili (z, yarıçap): arka ince kuyruk -> gövde -> küt yuvarlak burun
+	var prof = [[1.5, 0.35], [1.1, 0.62], [0.6, 0.86], [0.0, 0.98], [-0.6, 1.0], [-0.95, 0.94], [-1.15, 0.78], [-1.28, 0.52], [-1.34, 0.2], [-1.35, 0.0]]
+	var SEG = 24
+	var L = 0.0
+	var acc = [0.0]
+	for i in range(1, prof.size()):
+		L += Vector2(prof[i][0] - prof[i - 1][0], prof[i][1] - prof[i - 1][1]).length()
+		acc.append(L)
+	for i in prof.size() - 1:
+		for k in SEG:
+			var quad = []
+			for d in [[0, 0], [1, 0], [1, 1], [0, 1]]:
+				var ii = i + d[0]
+				var kk = k + d[1]
+				var ang = TAU * kk / SEG
+				var r: float = prof[ii][1]
+				quad.append([Vector3(cos(ang) * r, sin(ang) * r, prof[ii][0]), Vector2(float(kk) / SEG, acc[ii] / L)])
+			for t in [0, 1, 2, 0, 2, 3]:
+				st.set_uv(quad[t][1])
+				st.add_vertex(quad[t][0])
+	st.generate_normals()
+	var mi = MeshInstance3D.new()
+	mi.mesh = st.commit()
+	var m = ShaderMaterial.new()
+	m.shader = load("res://shaders/vfx_drill.gdshader")
+	mi.material_override = m
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	root.add_child(mi)
+	root.set_meta("drill_mat", m)
+	# önde tırtıklı krem çakra halkası: dışa sivrilen düzensiz dikenler (her an yeniden titrer)
+	var ring = Node3D.new()
+	ring.position = Vector3(0, 0, -1.05)   # referans: patlama halkası tam burun kenarında
+	root.add_child(ring)
+	var rm = StandardMaterial3D.new()
+	rm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	rm.albedo_color = Color(0.98, 0.95, 0.74)
+	rm.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var rmi = MeshInstance3D.new()
+	rmi.material_override = rm
+	rmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	ring.add_child(rmi)
+	var rebuild = func():
+		var rs = SurfaceTool.new()
+		rs.begin(Mesh.PRIMITIVE_TRIANGLES)
+		# kalın krem bant (burun kenarını saran) + dışa düzensiz geniş sivri patlamalar
+		var n = 11
+		var BAND = 24
+		for k in BAND:
+			var a0 = TAU * k / BAND
+			var a1 = TAU * (k + 1) / BAND
+			var r0 = 0.88
+			var r1 = 1.12 + randf_range(-0.03, 0.06)
+			var q = [Vector3(cos(a0) * r0, sin(a0) * r0, -0.05), Vector3(cos(a1) * r0, sin(a1) * r0, -0.05), Vector3(cos(a1) * r1, sin(a1) * r1, 0.3), Vector3(cos(a0) * r1, sin(a0) * r1, 0.3)]   # burun kenarını saran huni bant
+			for t in [0, 1, 2, 0, 2, 3]:
+				rs.add_vertex(q[t])
+		for k in n:
+			var am = TAU * (k + randf_range(-0.3, 0.3)) / n
+			var w = TAU / n * randf_range(0.28, 0.45)
+			var ro = randf_range(1.35, 1.8)
+			var p0 = Vector3(cos(am - w) * 1.05, sin(am - w) * 1.05, 0.2)
+			var p1 = Vector3(cos(am + w) * 1.05, sin(am + w) * 1.05, 0.2)
+			var tip = Vector3(cos(am) * ro, sin(am) * ro, randf_range(0.45, 0.9))   # dışa ve geriye savrulur (yandan da görünür)
+			for v in [p0, p1, tip]:
+				rs.add_vertex(v)
+		rmi.mesh = rs.commit()
+	rebuild.call()
+	var tw = ring.create_tween().set_loops()
+	tw.tween_callback(rebuild)
+	tw.tween_interval(0.06)
+	root.scale = Vector3.ONE * size * 1.1
 	return root
 
 

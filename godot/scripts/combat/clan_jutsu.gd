@@ -1335,7 +1335,19 @@ func c_tsuga(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 14.0)
 	var drill = Jutsu.gatsuga_drill(0.75)
 	c.add_child(drill)
-	drill.position = Vector3(0, 1.0, 0)
+	drill.top_level = true
+	# matkap bedenin yerinde, gidiş yönüne bakar (gövde düğümü dönmez; yön hızdan/hedeften)
+	var follow = drill.create_tween().set_loops()
+	follow.tween_callback(func():
+		if not is_instance_valid(c):
+			return
+		drill.global_position = c.global_position + Vector3.UP * 1.0
+		var v: Vector3 = c.velocity if "velocity" in c else Vector3.ZERO
+		v.y = 0
+		if v.length() < 1.0:
+			v = c.face_dir()
+		drill.look_at(drill.global_position + v.normalized(), Vector3.UP))
+	follow.tween_interval(0.016)
 	var step = func(next_t):
 		Jutsu._dash(c, next_t, 0.45, 26.0, func(pt):
 			c.model.visible = false   # kanon: beden matkabın içinde görünmez (kendi etrafında topaç gibi dönmez)
