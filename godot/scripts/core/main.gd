@@ -236,6 +236,11 @@ func _update_preview() -> void:
 func _frame_creator_cam(snap := false) -> void:
 	if preview == null:
 		return
+	# yaratıcıda kamera hep menü kamerası (oyundan menüye dönünce başka kamera etkin kalıp karakter görünmüyordu)
+	if not menu_cam.current:
+		menu_cam.current = true
+		if world and world.env:
+			world.env.attach_post(menu_cam)
 	var base = preview.global_position
 	var close = Menus._ctab == "gorunum"
 	var dist = 2.3 if close else 3.7
@@ -382,6 +387,7 @@ func _route(e: InputEvent) -> void:
 			# hizmet bir kişiye bağlıysa: o kişi sana döner ve konuşur (masayla konuşmak yok)
 			var who = it.get("npc")
 			if who != null and is_instance_valid(who):
+				Hud.forced_speaker = who   # konuşma kamerası bu kişiye (yakındaki başka birine/oyuncuya değil)
 				var to: Vector3 = player.global_position - who.global_position
 				who.facing = atan2(-to.x, -to.z)
 				who.wait = 4.0

@@ -254,6 +254,7 @@ func person(role: String, x: float, d: float, face_deg: float, display := "", li
 
 
 const NOT_PERSON := ["exit", "bed", "home_note", "enter"]
+const PASSIVE_ROLES := ["student", "customer", "patient", "sitter", "kid"]
 
 
 func _spawn_npc(req: Dictionary) -> void:
@@ -280,14 +281,27 @@ func _spawn_npc(req: Dictionary) -> void:
 		vg.model.rotation.y = vg.facing
 	npcs.append(vg)
 	# konuşma noktası masada değil kişinin kendisinde: yakındaki hizmet noktası bu kişiye bağlanır, onunla birlikte gezer
+	# yalnız hizmet veren kişiye (öğrenci/müşteri/hasta değil); birden çok aday varsa noktanın asıl yerine en yakını
+	if String(vg.role) in PASSIVE_ROLES:
+		return
 	for it in items:
-		if it.has("npc") or String(it["kind"]) in NOT_PERSON:
+		if String(it["kind"]) in NOT_PERSON:
 			continue
-		var dv: Vector3 = it["pos"] - vg.home
+		if not it.has("orig_pos"):
+			it["orig_pos"] = it["pos"]
+		var dv: Vector3 = it["orig_pos"] - vg.home
 		dv.y = 0
-		if dv.length() < 3.5:
+		if dv.length() >= 3.5:
+			continue
+		var cur = it.get("npc")
+		if cur != null and is_instance_valid(cur):
+			var dc: Vector3 = it["orig_pos"] - cur.home
+			dc.y = 0
+			if dc.length() <= dv.length():
+				continue
+		if true:
 			it["npc"] = vg
-			it["radius"] = maxf(float(it["radius"]), 2.6)
+			it["radius"] = 3.4   # yalnız kişiye bağlı: masanın karşısından da yetişilir (masa noktası yok)
 
 
 ## Ahşap zemin, sıvalı duvarlar + ahşap dikmeler, tavan kirişleri, kapı + çıkış, shoji pencereler

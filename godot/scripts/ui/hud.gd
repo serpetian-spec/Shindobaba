@@ -753,6 +753,9 @@ func boss_bar(b: Node) -> void:
 
 # ------------------------------------------------------------------ diyalog / dükkân
 ## Görsel roman tarzı diyalog: altta cam kutu, solda konuşanın portresi, isim plakası, daktilo metin, hap seçenekler
+var forced_speaker: Node3D = null   # hizmet noktasının bağlı olduğu kişi (konuşma kamerası onu hedefler)
+
+
 func dialog(title: String, text: String, options: Array) -> void:
 	# görev masası ve bingo kitabı kendi ekranlarında
 	if title.begins_with("Görev Masası — ") and Missions.board_village != "":
@@ -823,7 +826,8 @@ func dialog(title: String, text: String, options: Array) -> void:
 	tw.tween_property(body, "visible_ratio", 1.0, talk_dur)
 	# RPG konuşma kamerası: konuşanın yüzüne; yazı bitince (cevap seçerken) oyuncunun yüzüne döner
 	if Game.player and not Game.paused:
-		var sp = _near_talker(Game.player)
+		var sp = forced_speaker if (forced_speaker != null and is_instance_valid(forced_speaker)) else _near_talker(Game.player)
+		forced_speaker = null
 		if sp:
 			var tc = TalkCam.ensure()
 			tc.begin(sp, talk_dur)
@@ -1196,7 +1200,7 @@ func _process(dt: float) -> void:
 
 func _near_talker(pl: Node3D) -> Node:
 	var best: Node = null
-	var bd = 2.6
+	var bd = 3.4
 	for c in get_tree().get_nodes_in_group("talkers"):
 		var d = c.global_position.distance_to(pl.global_position)
 		if d < bd:
