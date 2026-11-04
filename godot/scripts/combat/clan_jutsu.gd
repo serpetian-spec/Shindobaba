@@ -3021,14 +3021,17 @@ func c_kurohigi_kiki_ippatsu(c: Node3D, t: Node3D) -> void:
 
 ## Mekanik Kalkan: önünde kukla açılır, kalkan plakaları 6 sn mermileri keser; yaklaşanı gizli bıçaklar deler
 func c_kiko_junbu(c: Node3D, t: Node3D) -> void:
+	# referans (Kikō Junbū, Chiyo): iki kuklanın uzun tahta kolları önde çapraz kilitlenir — kalkan duvar değil, X biçimli kol bariyeri
 	var d = fwd(c, t)
 	var b = MB.new()
-	for k in 5:
-		var a = (k - 2) * 28.0
-		b.add("box", Vector3(sin(deg_to_rad(a)) * 1.4, 1.5, -cos(deg_to_rad(a)) * 0.4), Vector3(0.9, 2.6, 0.12), Color(0.55, 0.4, 0.28), Vector3(0, a, 0))
-		b.add("box", Vector3(sin(deg_to_rad(a)) * 1.4, 1.5, -cos(deg_to_rad(a)) * 0.4 - 0.07), Vector3(0.5, 0.5, 0.03), Color(0.75, 0.15, 0.15), Vector3(0, a, 0))
-	b.add("sphere", Vector3(0, 2.9, 0.3), Vector3(0.4, 0.45, 0.4), Color(0.92, 0.88, 0.8), Vector3.ZERO, 8)
-	var shield = place(b, gp(c.global_position + d * 2.0))
+	var WOOD = Color(0.78, 0.74, 0.66)
+	for sgn in [-1.0, 1.0]:
+		b.add("cyl", Vector3(0, 1.5, 0), Vector3(0.34, 3.2, 0.34), WOOD, Vector3(0, 0, sgn * 42.0), 8)   # kol (referans: kalın tahta kol)
+		b.add("cyl", Vector3(sgn * 0.62, 2.05, 0), Vector3(0.26, 1.4, 0.26), WOOD.darkened(0.1), Vector3(0, 0, sgn * 42.0), 8)   # ön kol
+		b.add("sphere", Vector3(sgn * 0.0, 1.5, 0), Vector3(0.24, 0.24, 0.24), WOOD.darkened(0.2), Vector3.ZERO, 8)   # dirsek eklemi
+		for f in 4:   # el ve parmaklar
+			b.add("cyl", Vector3(sgn * (1.0 + f * 0.06), 2.55 + f * 0.05, 0), Vector3(0.04, 0.25, 0.04), WOOD, Vector3(0, 0, sgn * (20.0 + f * 8.0)), 5)
+	var shield = place(b, gp(c.global_position + d * 1.6))
 	shield.look_at(shield.global_position - d, Vector3.UP)
 	every(6.0, 0.1, func(i, _k):
 		for n in get_tree().current_scene.get_children():

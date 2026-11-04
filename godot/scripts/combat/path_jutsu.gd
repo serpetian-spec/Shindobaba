@@ -767,8 +767,6 @@ const PANIM := {
 	"kamizuru_mitsu_nami": {"base": "two_palm", "pre": 0.3, "post": 0.7, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0]}, "rel": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.1, -0.35, 0.93), Vector3(-0.0, -0.3, 0.95), Vector3(-0.0, 0.5, 0.85)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 20.0, "crouch": 0.3}},
 	"kamizuru_hachi_tatsumaki": {"base": "sky", "pre": 0.4, "post": 0.8, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.15, 0.98, 0.1), Vector3(0.05, 1.0, 0.05), Vector3(-0.0, 1.0, 0.0)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -12.0, "neck": -18.0}},
 	"shirogane_doku_kiri": {"base": "palm", "pre": 0.3, "post": 0.8, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4]}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 6.0}},
-	"shirogane_senbon_ame": {"base": "palm", "pre": 0.3, "post": 0.9, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4]}, "rel": {"R": [Vector3(-0.1, 0.45, 0.88), Vector3(0.0, 0.5, 0.86), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 4.0}},
-	"shirogane_ito_kago": {"base": "two_palm", "pre": 0.3, "post": 0.8, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4]}, "rel": {"R": [Vector3(-0.85, 0.1, -0.5), Vector3(-0.7, 0.1, -0.7), Vector3(-0.6, 0.1, -0.8)], "L": [Vector3(0.85, 0.1, -0.5), Vector3(0.7, 0.1, -0.7), Vector3(0.6, 0.1, -0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": -8.0}},
 	"hoki_sumi_ryu": {"base": "scroll", "pre": 0.4, "post": 0.7, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "crouch": 0.3}, "rel": {"R": [Vector3(-0.1, 0.1, 0.99), Vector3(0.7, 0.1, 0.7), Vector3(0.8, 0.1, 0.6)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "spine": 10.0, "hips_yaw": -30.0}},
 	"hoki_sumi_tora": {"base": "scroll", "pre": 0.4, "post": 0.6, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "crouch": 0.4}, "rel": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "spine": 25.0, "crouch": 0.5}},
 	"hoki_sumi_tori": {"base": "scroll", "pre": 0.3, "post": 0.4, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7]}, "rel": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.15, 0.98, 0.1), Vector3(0.05, 1.0, 0.05), Vector3(-0.0, 1.0, 0.0)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -10.0}},
@@ -17736,7 +17734,7 @@ func p_kugutsu_no_jutsu(c: Node3D, _t: Node3D) -> void:
 
 ## Beyaz Gizli Teknik On Kukla: on parmağın her birinden bir ipliğe dört kukla
 func p_shirohigi_jikki_chikamatsu_no_shu(c: Node3D, _t: Node3D) -> void:
-	FX.smoke_puff(c.global_position + Vector3.UP * 2.0, 2.4, 30)
+	FX.smoke_puff(c.global_position + Vector3.UP * 2.0, 1.2, 10)   # referans: kuklalar görünsün (kısa çağırma dumanı)
 	var list = ClanConstruct.spawn(c, "puppet", 4, Jutsu._jd("shirohigi_jikki_chikamatsu_no_shu"))
 	_chakra_strings(c, list if list is Array else [], 20.0)
 	Sfx.play("clink", c.global_position, 0.7)
@@ -19792,55 +19790,6 @@ func p_shirogane_doku_kiri(c: Node3D, t: Node3D) -> void:
 			FX.smoke_puff(pup.global_position + Vector3.UP, 1.0, 10)
 			pup.queue_free())
 	Sfx.play("smoke", c.global_position, 0.8)
-
-
-func p_shirogane_senbon_ame(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.0)
-	var tt = tg(c, t, 26.0)
-	var d = fwd(c, t)
-	var pup = _puppet_body()
-	get_tree().current_scene.add_child(pup)
-	pup.global_position = gp(c.global_position + d * 1.8)
-	pup.rotation.y = atan2(d.x, d.z)
-	_chakra_strings(c, [pup], 1.8)
-	for k in 24:
-		after(0.3 + k * 0.03, func():
-			if not is_instance_valid(pup):
-				return
-			var from = pup.global_position + Vector3.UP * 1.1 + d * 0.3
-			var dd = aim_at(c, tt, from).rotated(Vector3.UP, deg_to_rad(randf_range(-25, 25)))
-			var sp = MeshInstance3D.new()
-			var cm = CylinderMesh.new()
-			cm.top_radius = 0.0; cm.bottom_radius = 0.025; cm.height = 0.5
-			sp.mesh = cm
-			sp.material_override = _flat_glow(Color(0.55, 0.3, 0.65))
-			var holder = Node3D.new()
-			holder.add_child(sp)
-			sp.rotation.x = PI * 0.5
-			shot(c, from, dd, 40.0, holder, inf(c, "shirogane_senbon_ame", 0.12, {"knock": 0.5, "kind": "light", "poison": 2.0}), null, false, 0.8))
-	after(1.8, func():
-		if is_instance_valid(pup):
-			FX.smoke_puff(pup.global_position + Vector3.UP, 1.0, 10)
-			pup.queue_free())
-	Sfx.play("throw", c.global_position, 1.4)
-
-
-func p_shirogane_ito_kago(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.9)
-	var tt = tg(c, t, 20.0)
-	if tt == null:
-		return
-	for k in 10:
-		var a = k * TAU / 10.0
-		after(k * 0.03, func():
-			if live(c) and live(tt):
-				tether(func(): return hand_pos(c, k % 2 == 0) if is_instance_valid(c) else Vector3.ZERO,
-					func(): return tt.global_position + Vector3(cos(a), 0.4 + (k % 3) * 0.6, sin(a)) * 0.9 if is_instance_valid(tt) else Vector3.ZERO, 0.02, VFX.mat_bolt(CSTRING, 2.0), 3.0))
-	st(tt, "bind", 3.0)
-	every(3.0, 0.5, func(_i, _k):
-		if live(tt):
-			tt.take_hit(inf(c, "shirogane_ito_kago", 0.25, {"knock": 0.0, "kind": "light", "bleed": 1.0})), Callable())
-	Sfx.play("clink", c.global_position, 0.8)
 
 
 ## Mürekkep canlı: düz kara siluet + beyaz çizgiler

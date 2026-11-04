@@ -20188,7 +20188,9 @@
   "hoshigaki_ryudan": "suiton_daikodan_no_jutsu",
   "hoshigaki_samehada_kyushu": "hoshigaki_same",
   "kurama_kokuangyo": "yuhi_kokuangyo",
-  "hyoton_hyoryu_boppa": "hyoton_tsubame_fubuki"
+  "hyoton_hyoryu_boppa": "hyoton_tsubame_fubuki",
+  "shirogane_senbon_ame": "kurohigi_kiki_ippatsu",
+  "shirogane_ito_kago": "kugutsu_no_jutsu"
  },
  "kusanagi_kuchi": {
   "id": "kusanagi_kuchi",
@@ -20842,7 +20844,7 @@
  },
  "shirogane_doku_kiri": {
   "id": "shirogane_doku_kiri",
-  "name": "Shirogane: Doku Kiri",
+  "name": "Dokugiri",
   "name_en": "Poison Mist Puppet",
   "cost": 34,
   "cd": 8.5,
@@ -20858,44 +20860,6 @@
   "category": "hiden",
   "shape": "aoe",
   "tier": 3
- },
- "shirogane_senbon_ame": {
-  "id": "shirogane_senbon_ame",
-  "name": "Shirogane: Senbon Ame",
-  "name_en": "Puppet Needle Rain",
-  "cost": 38,
-  "cd": 9.9,
-  "element": "",
-  "elements": [],
-  "clan": "shirogane",
-  "level": 14,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Kukla göğsü açılır, yüzlerce zehirli iğne yelpaze gibi saçılır.",
-  "seals": [],
-  "canon_rank": "B",
-  "category": "hiden",
-  "shape": "projectile",
-  "tier": 3
- },
- "shirogane_ito_kago": {
-  "id": "shirogane_ito_kago",
-  "name": "Shirogane: Ito Kago",
-  "name_en": "Chakra Thread Cage",
-  "cost": 46,
-  "cd": 12.7,
-  "element": "",
-  "elements": [],
-  "clan": "shirogane",
-  "level": 22,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "On parmaktan çıkan chakra ipleri hedefin etrafında kafes örer.",
-  "seals": [],
-  "canon_rank": "A",
-  "category": "hiden",
-  "shape": "bind",
-  "tier": 4
  },
  "hoki_sumi_ryu": {
   "id": "hoki_sumi_ryu",
