@@ -1707,7 +1707,7 @@ func j_shintenshin(c: Node3D, t: Node3D) -> void:
 		Hud.msg("Shintenshin: sıradan bir düşmanı hedefle (boss'lar dirençli)", Color(0.8, 0.7, 1))
 		return
 	Sfx.play("genjutsu", t.global_position, 1.2)
-	FX.ring(t.global_position + Vector3.UP, Color(0.75, 0.5, 1.0), 4.0, 0.4, false)
+	pass   # referans: görünür halka/ışın/aura yok
 	# ruh bedenden çıkar: mor top hedefe uçar, oyuncunun bedeni yere çöker (anime Shintenshin)
 	var cj = ClanJutsu.get_inst()
 	cj._mind_orb(c, t, func(): if is_instance_valid(t): cj._mind_halo(t, 12.0))
@@ -1722,8 +1722,7 @@ func j_shintenshin(c: Node3D, t: Node3D) -> void:
 	t.team = "player"
 	t.target = null
 	t.state = "chase"
-	var a = FX.aura(t, Color(0.7, 0.45, 1.0), 0.9, Vector3(0, 0.9, 0), 0.0)
-	t.set_meta("possess_aura", a)
+	var a = null   # referans: ele geçirilen bedende görünür aura yok (yalnız isim etiketi mora döner)
 	t.nameplate.modulate = Color(0.75, 0.6, 1.0)
 	Combat.popup_text(t.global_position + Vector3.UP * 2.6, "Zihin ele geçirildi!", Color(0.8, 0.65, 1))
 	get_tree().create_timer(dur).timeout.connect(func(): shintenshin_release(c, t, a))

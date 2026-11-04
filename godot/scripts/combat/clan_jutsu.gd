@@ -882,46 +882,24 @@ func c_kagemane_kage_shibari_no_jutsu(c: Node3D, t: Node3D) -> void:
 	Sfx.play("genjutsu", c.global_position, 0.6)
 
 
-# ================================================================== YAMANAKA — zihin
-## Yamanaka imzası: ellerle elmas mühür, ruh mor bir kıvılcım topu olarak hedefe uçar; varınca hedefin başında zihin halkası
+## Yamanaka ruhu (referans: Shintenshin): ruh GÖRÜNMEZ, düz bir hatta hedefe gider (ıskalarsa döner) — top/iz/patlama yok;
+## yalnız varışta hedefin bir an sarsılması
 func _mind_orb(c: Node3D, tt: Node3D, done: Callable) -> void:
-	if c.get("model"):
+	if c.get("model") and c.model.get("overlay"):
 		c.model.overlay.set_pose("seal", 1.0)
 		after(0.5, func(): if is_instance_valid(c) and c.get("model"): c.model.overlay.set_pose("seal", 0.0))
 	var from: Vector3 = Jutsu._hand(c) + Vector3.UP * 0.2
-	VFX.star(from, Color(0.85, 0.55, 1.0), 1.6, 0.15)
-	var orb = VFX.rasengan(0.5, Color(0.6, 0.25, 0.95), Color(0.95, 0.85, 1.0))
-	get_tree().current_scene.add_child(orb)
-	orb.global_position = from
-	VFX.trail(orb, 0.45, Color(1, 0.9, 1), Color(0.75, 0.4, 1.0), Color(0.4, 0.1, 0.7, 0.0), 18, 0.6)
 	var dur = clampf(from.distance_to(tt.global_position) / 30.0, 0.15, 0.7)
-	var tw = orb.create_tween()
-	tw.tween_method(func(k: float):
-		if is_instance_valid(tt):
-			var to = tt.global_position + Vector3.UP * tt.height * 0.85
-			orb.global_position = from.lerp(to, k) + Vector3.UP * sin(k * PI) * 1.5 + Vector3(sin(k * 18.0), 0, cos(k * 18.0)) * 0.15 * sin(k * PI), 0.0, 1.0, dur)
-	tw.tween_callback(func():
-		if is_instance_valid(tt):
-			VFX.shockwave(tt.global_position + Vector3.UP * tt.height * 0.85, Color(0.85, 0.55, 1.0), 3.5, 0.3, false)
-			FX.burst(tt.global_position + Vector3.UP * tt.height * 0.85, {"amount": 26, "life": 0.7, "tex": FX.tex_spark, "size": 0.4, "vmin": 2, "vmax": 6, "colors": [Color(1, 0.9, 1), Color(0.6, 0.2, 0.9, 0)]})
-		orb.queue_free()
+	after(dur, func():
+		if is_instance_valid(tt) and tt.get("model"):
+			tt.model.play("hit_head", 0.05, 1.0, true)
 		done.call())
 	Sfx.play("genjutsu", c.global_position, 1.3)
 
 
-## Zihin halkası: hedefin başı üstünde dönen mor halka + göz hizasında soluk ışık (zihni ele geçirildi/karıştı)
-func _mind_halo(tt: Node3D, dur: float, col := Color(0.85, 0.5, 1.0)) -> void:
-	for k in 2:
-		var halo = MeshInstance3D.new()
-		var tm = TorusMesh.new()
-		tm.inner_radius = 0.32 + k * 0.18
-		tm.outer_radius = 0.4 + k * 0.18
-		halo.mesh = tm
-		halo.material_override = glow(col, 0.9 - k * 0.3)
-		attach(tt, halo, dur, Vector3.UP * (tt.height + 0.35 + k * 0.15))
-		var sp = halo.create_tween().set_loops()
-		sp.tween_property(halo, "rotation:y", TAU * (1 if k == 0 else -1), 1.2 + k * 0.6).from(0.0)
-	var a = FX.aura(tt, col, 0.8, Vector3(0, tt.height * 0.5, 0), dur)
+## Zihni ele geçirilmiş/karışmış hedef: animede görünür halka yok (yalnız davranış değişir) — işaret bırakmaz
+func _mind_halo(_tt: Node3D, _dur: float, _col := Color(0.85, 0.5, 1.0)) -> void:
+	pass
 
 
 ## Zihin Karıştırma: hedef 6 sn kimin dost olduğunu bilemez, yakınındakilere saldırır
@@ -954,13 +932,13 @@ func c_shinranshin_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 ## Zihin Aktarımı: 60 m içindeki tüm düşmanların yeri ışık sütunlarıyla belli olur, saklanamazlar
 func c_shindenshin_no_jutsu(c: Node3D, _t: Node3D) -> void:
-	VFX.shockwave(c.global_position + Vector3.UP, Color(0.85, 0.6, 1.0), 30.0, 0.8, true)
 	for e in enemies_near(c, c.global_position, 60.0):
 		st(e, "marked", 15.0)
+		# zihin ağıyla aktarılan konum: başın üstünde küçük işaret (12 m ışık sütunu animede yok)
 		var b = MB.new()
-		b.add("cyl", Vector3(0, 6, 0), Vector3(0.3, 12, 0.3), Color.WHITE, Vector3.ZERO, 6)
-		var pillar = mesh_of(b, glow(Color(0.85, 0.55, 1.0), 0.55))
-		attach(e, pillar, 15.0, Vector3.ZERO)
+		b.add("cone", Vector3.ZERO, Vector3(0.4, 0.6, 0.4), Color.WHITE, Vector3(180, 0, 0), 4)
+		var arrow = mesh_of(b, glow(Color(0.85, 0.55, 1.0)))
+		attach(e, arrow, 15.0, Vector3.UP * (e.height + 0.9))
 	Hud.msg("Zihin ağı: düşmanların yerini görüyorsun", Color(0.85, 0.7, 1.0))
 	Sfx.play("genjutsu", c.global_position, 1.5)
 
@@ -971,16 +949,17 @@ func c_shinten_kugutsu_juin_no_jutsu(c: Node3D, t: Node3D) -> void:
 	if tt == null or not tt is Enemy or tt is Boss:
 		Hud.msg("Bu teknik sıradan bir düşmanı hedef almalı", Color(0.8, 0.7, 1))
 		return
-	var mark = ground_disc(tt.global_position, 1.6, Color(0.6, 0.2, 0.8), 0.6, 2, 6)
+	var mark = Node3D.new()   # referans: yerde mor çember yok (yalnız mühür kâğıdı)
+	get_tree().current_scene.add_child(mark)
 	mark.reparent(tt)
 	_mind_orb(c, tt, func(): if is_instance_valid(tt): _mind_halo(tt, 15.0, Color(0.7, 0.25, 1.0)))
 	for k in 3:
-		tether(func(): return Jutsu._hand(c) if is_instance_valid(c) else Vector3.ZERO, func(): return tt.global_position + Vector3.UP * (1.8 - k * 0.5) if is_instance_valid(tt) else Vector3.ZERO, 0.025, glow(Color(0.85, 0.6, 1.0), 0.7), 15.0)
+		pass   # referans: görünür halka/ışın/aura yok
 	tt.team = c.team
 	tt.target = null
 	tt.power = float(tt.power) * 1.4
 	Combat.popup_text(tt.global_position + Vector3.UP * 2.6, "Zihin kuklası!", Color(0.8, 0.5, 1))
-	var a = FX.aura(tt, Color(0.65, 0.25, 0.95), 1.0, Vector3(0, 0.9, 0), 0.0)
+	var a = null   # referans: görünür aura yok
 	after(15.0, func():
 		if is_instance_valid(a):
 			a.emitting = false
@@ -998,7 +977,7 @@ func c_shinten_bunshin_no_jutsu(c: Node3D, t: Node3D) -> void:
 	if tt == null or not tt is Enemy:
 		return
 	var others = enemies_near(c, tt.global_position, 25.0).filter(func(e): return e != tt)
-	FX.ring(tt.global_position + Vector3.UP, Color(0.8, 0.5, 1.0), 3.0, 0.3, false)
+	pass   # referans: görünür halka/ışın/aura yok
 	_mind_orb(c, tt, func(): if is_instance_valid(tt): _mind_halo(tt, 1.6))
 	if others.is_empty():
 		st(tt, "stun", 2.5)
@@ -1024,7 +1003,7 @@ func c_shindenshin_no_jin(c: Node3D, _t: Node3D) -> void:
 		if f != c and f.get("team") == c.team and f.global_position.distance_to(c.global_position) < 40.0:
 			allies.append(f)
 	for a in allies:
-		tether(func(): return c.global_position + Vector3.UP * 1.6, func(): return a.global_position + Vector3.UP * 1.4 if is_instance_valid(a) else c.global_position, 0.06, glow(Color(0.85, 0.6, 1.0)), 20.0)
+		pass   # referans: görünür halka/ışın/aura yok
 		if a.get("dmg") != null:
 			a.dmg = float(a.dmg) * 1.5
 	if c is Player:
@@ -1034,9 +1013,7 @@ func c_shindenshin_no_jin(c: Node3D, _t: Node3D) -> void:
 
 ## Algılama Aktarımı: chakra nabzı 80 m'ye yayılır, düşmanlar 10 sn işaretli kalır ve yavaşlar
 func c_kanchi_denden(c: Node3D, _t: Node3D) -> void:
-	for k in 3:
-		after(k * 0.25, func(): VFX.shockwave(c.global_position + Vector3.UP * 0.3, Color(0.6, 0.85, 1.0), 40.0, 0.9, true))
-	for e in enemies_near(c, c.global_position, 80.0):
+	for e in enemies_near(c, c.global_position, 80.0):   # referans: görünür algı dalgası yok; algılanan düşman işaretlenir
 		st(e, "marked", 10.0)
 		var b = MB.new()
 		b.add("cone", Vector3.ZERO, Vector3(0.5, 0.8, 0.5), Color.WHITE, Vector3(180, 0, 0), 4)

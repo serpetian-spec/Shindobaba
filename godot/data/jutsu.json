@@ -20375,7 +20375,8 @@
   "kaguya_hone_tate": "karamatsu_no_mai",
   "jusshi_sendan": "bone_bullets",
   "nara_kage_bunshin": "kagemane",
-  "uzumaki_kongo_kekkai": "chakra_chains"
+  "uzumaki_kongo_kekkai": "chakra_chains",
+  "yamanaka_shinkaitai": "shinranshin_no_jutsu"
  },
  "kusanagi_kuchi": {
   "id": "kusanagi_kuchi",
@@ -21540,25 +21541,6 @@
   "canon_rank": "A",
   "category": "hiden",
   "shape": "melee",
-  "tier": 4
- },
- "yamanaka_shinkaitai": {
-  "id": "yamanaka_shinkaitai",
-  "name": "Yamanaka: Shin Kaitai",
-  "name_en": "Mind Destruction",
-  "cost": 42,
-  "cd": 11.3,
-  "element": "",
-  "elements": [],
-  "clan": "yamanaka",
-  "level": 18,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Hedefin zihnine girip parçalar: ağır hasar ve uzun sersemleme.",
-  "seals": [],
-  "canon_rank": "A",
-  "category": "hiden",
-  "shape": "genjutsu_stun",
   "tier": 4
  },
  "aburame_mushi_hashira": {

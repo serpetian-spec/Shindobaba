@@ -800,7 +800,6 @@ const PANIM := {
 	"uzumaki_uzu_fuin": {"base": "rush", "pre": 0.3, "post": 0.7, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0, 0, 0, 0, 0]}, "rel": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0, 0, 0, 0, 0], "spine": 22.0}},
 	"karatachi_mizu_kagami": {"base": "two_palm", "pre": 0.15, "post": 0.4, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7]}, "rel": {"R": [Vector3(-0.1, 0.45, 0.88), Vector3(0.0, 0.5, 0.86), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7]}},
 	"karatachi_sanmai_oroshi": {"base": "rush", "pre": 0.2, "post": 0.7, "wind": {"R": [Vector3(-0.35, -0.85, -0.35), Vector3(0.0, -0.4, 0.9), Vector3(0.0, 0.2, 0.95)], "L": [Vector3(0.35, -0.85, -0.35), Vector3(-0.0, -0.4, 0.9), Vector3(-0.0, 0.2, 0.95)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "hips_yaw": 40.0, "crouch": 0.6}, "rel": {"R": [Vector3(-0.1, 0.1, 0.99), Vector3(0.7, 0.1, 0.7), Vector3(0.8, 0.1, 0.6)], "L": [Vector3(0.4, -0.7, -0.5), Vector3(-0.0, -0.3, -0.95), Vector3(-0.0, -0.6, -0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 25.0, "hips_yaw": -50.0}},
-	"yamanaka_shinkaitai": {"base": "seal", "pre": 0.4, "post": 0.7, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3]}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "spine": 10.0}},
 	"aburame_mushi_hashira": {"base": "two_palm", "pre": 0.4, "post": 0.8, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0]}, "rel": {"R": [Vector3(-0.2, 0.8, 0.55), Vector3(-0.1, 0.85, 0.5), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.2, 0.8, 0.55), Vector3(0.1, 0.85, 0.5), Vector3(-0.0, 0.9, 0.4)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -6.0}},
 	"inuzuka_sototoro": {"base": "power", "pre": 0.4, "post": 0.9, "wind": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 50.0, "crouch": 1.0}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 40.0, "crouch": 0.6}},
 	"terumi_futton_komu": {"base": "breath", "pre": 0.4, "post": 0.8, "wind": {"R": [Vector3(-0.25, -0.55, 0.8), Vector3(0.75, 0.6, 0.25), Vector3(0.5, 0.8, 0.3)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "spine": -15.0}, "rel": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 20.0}},
@@ -16622,25 +16621,13 @@ func _shadow_wisps(pos: Vector3, r: float, n := 14) -> void:
 		"colors": [Color(0.08, 0.04, 0.12, 0.85), Color(0.02, 0.01, 0.04, 0)]})
 
 
-## Yamanaka elmas mühürü: ellerin önünde mor parlayan elmas çerçeve
+## Yamanaka el işareti (referans: Shintenshin karesi): iki el öne uzanıp elmas biçimli pencere yapar — parlayan çerçeve yok
 func _yama_seal(c: Node3D) -> void:
-	var at = c.global_position + Vector3.UP * 1.35 + c.face_dir() * 0.45
-	var dia = MeshInstance3D.new()
-	var tm = TorusMesh.new()
-	tm.inner_radius = 0.22; tm.outer_radius = 0.27; tm.rings = 4; tm.ring_segments = 4
-	dia.mesh = tm
-	dia.material_override = VFX.mat_bolt(MIND, 2.0)
-	get_tree().current_scene.add_child(dia)
-	dia.global_position = at
-	dia.look_at(at + c.face_dir() + Vector3(0, 0.001, 0), Vector3.UP)
-	dia.rotate_object_local(Vector3.RIGHT, PI * 0.5)
-	dia.rotate_object_local(Vector3.UP, PI * 0.25)
-	var tw = dia.create_tween()
-	tw.tween_property(dia, "scale", Vector3.ONE * 2.2, 0.35)
-	tw.parallel().tween_property(dia, "transparency", 1.0, 0.35)
-	tw.tween_callback(dia.queue_free)
-	VFX.puffs(at, {"amount": 14, "life": 0.6, "size": 0.25, "radius": 0.2, "vmin": 1, "vmax": 3, "dir": c.face_dir(), "spread": 40.0, "add": true,
-		"colors": [Color(1, 0.85, 1, 0.9), Color(0.6, 0.2, 0.9, 0)]})
+	if c.get("model") and c.model.get("overlay"):
+		c.model.overlay.set_pose("seal", 1.0)
+		after(0.6, func():
+			if is_instance_valid(c) and c.get("model"):
+				c.model.overlay.set_pose("seal", 0.0))
 
 
 func p_juuken_64(c: Node3D, t: Node3D) -> void:
@@ -16725,11 +16712,7 @@ func p_shinranshin_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 ## Zihin Aktarımı: başın üstünden mor çakra nabzı halka halka yayılır
 func p_shindenshin_no_jutsu(c: Node3D, t: Node3D) -> void:
-	_yama_seal(c)
-	for k in 4:
-		after(k * 0.2, func():
-			if live(c):
-				VFX.shockwave(c.global_position + Vector3.UP * 2.0, MIND, 20.0 + k * 15.0, 0.6, true))
+	_yama_seal(c)   # referans: el başa / işaretle iletim — görünür dalga yok
 	c_shindenshin_no_jutsu(c, t)
 
 
@@ -16738,9 +16721,24 @@ func p_shinten_kugutsu_juin_no_jutsu(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 20.0)
 	c_shinten_kugutsu_juin_no_jutsu(c, t)
 	if tt:
-		after(0.6, func():
-			if live(tt) and live(c):
-				tether(func(): return c.global_position + Vector3.UP * 1.4 if is_instance_valid(c) else Vector3.ZERO, func(): return tt.global_position + Vector3.UP * 1.6 if is_instance_valid(tt) else Vector3.ZERO, 0.05, VFX.mat_bolt(MIND, 1.6), 3.0))
+		after(0.6, func():   # referans: hedefe yapıştırılan lanet mühür kâğıdı (ışın yok)
+			if live(tt):
+				var tag = MeshInstance3D.new()
+				var qm = QuadMesh.new()
+				qm.size = Vector2(0.14, 0.32)
+				tag.mesh = qm
+				var tmm = StandardMaterial3D.new()
+				tmm.albedo_color = Color(0.95, 0.92, 0.8)
+				tmm.cull_mode = BaseMaterial3D.CULL_DISABLED
+				tag.material_override = tmm
+				var lb = Label3D.new()
+				lb.text = "封"
+				lb.font_size = 40
+				lb.pixel_size = 0.004
+				lb.modulate = Color(0.6, 0.05, 0.05)
+				lb.position = Vector3(0, 0, 0.002)
+				tag.add_child(lb)
+				attach(tt, tag, 6.0, Vector3(0, tt.height * 0.62 if tt.get("height") else 1.1, 0.28)))
 
 
 ## Zihin Klon Değişimi: mavi çakra seli kullanıcıdan hedefe akar (referanstaki gibi kristalimsi akım)
@@ -16750,22 +16748,19 @@ func p_shinten_bunshin_no_jutsu(c: Node3D, t: Node3D) -> void:
 	if tt:
 		var from = c.global_position + Vector3.UP * 1.2
 		var d = (tt.global_position + Vector3.UP - from)
-		stream_fx(from, d.normalized(), d.length(), 0.8, VFX.mat_bolt(Color(0.55, 0.75, 1.0), 1.6), 0.6)
+		# referans (Shinten Bunshin karesi): kalın, açık mavi, kristalsi chakra akışı (şimşek değil)
+		stream_fx(from, d.normalized(), d.length(), 0.55, VFX.mat_spiral(Color(0.85, 0.95, 1.0), Color(0.45, 0.7, 1.0), 4.0, 1.0, 3.0, 1.2, Vector3(0, 0, 1)), 0.8)
 	c_shinten_bunshin_no_jutsu(c, t)
 
 
 func p_shindenshin_no_jin(c: Node3D, t: Node3D) -> void:
 	_yama_seal(c)
-	VFX.shockwave(c.global_position + Vector3.UP * 0.1, MIND, 16.0, 0.6, true)
 	c_shindenshin_no_jin(c, t)
 
 
 ## Algılama Aktarımı: avuç yere değer, mor algı dalgaları zemin boyunca 80 m'ye yayılır
 func p_kanchi_denden(c: Node3D, t: Node3D) -> void:
-	for k in 5:
-		after(k * 0.18, func():
-			if live(c):
-				VFX.shockwave(gp(c.global_position) + Vector3.UP * 0.1, MIND, 30.0 + k * 25.0, 0.8, true))
+	_yama_seal(c)   # referans: el başa konarak algı aktarımı — görünür dalga yok
 	c_kanchi_denden(c, t)
 
 
@@ -20472,28 +20467,6 @@ func p_karatachi_sanmai_oroshi(c: Node3D, t: Node3D) -> void:
 			_arc_cut(at, c.face_dir(), [-70.0, 70.0, -20.0][k], [70.0, -70.0, 20.0][k], Color(0.85, 0.92, 1.0), 2.4)
 			mhit(c, at + c.face_dir() * 1.2, 2.2, inf(c, "karatachi_sanmai_oroshi", 0.8, {"knock": 4.0 + k * 6.0, "kind": "heavy", "bleed": 2.0})))
 	Sfx.play("blade", c.global_position, 0.8)
-
-
-func p_yamanaka_shinkaitai(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.0)
-	_yama_seal(c)
-	var tt = tg(c, t, 20.0)
-	if tt == null:
-		return
-	after(0.4, func():
-		if not (live(c) and live(tt)):
-			return
-		tether(func(): return c.global_position + Vector3.UP * 1.6 if is_instance_valid(c) else Vector3.ZERO, func(): return tt.global_position + Vector3.UP * 1.6 if is_instance_valid(tt) else Vector3.ZERO, 0.08, VFX.mat_bolt(MIND, 2.0), 0.6)
-		for k in 6:
-			after(k * 0.08, func():
-				if live(tt):
-					VFX.shockwave(tt.global_position + Vector3.UP * 1.6, MIND, 1.5 + k * 0.5, 0.3, false)
-					VFX.debris(tt.global_position + Vector3.UP * 1.6, MIND, 6, 4.0, 0.15))
-		if c is Player:
-			VFX.screen_lines(0.4, 1.0, MIND)
-		st(tt, "stun", 3.0)
-		tt.take_hit(inf(c, "yamanaka_shinkaitai", 2.6, {"knock": 0.0, "kind": "heavy", "chakra_drain": 20.0, "hitstop": 0.12})))
-	Sfx.play("genjutsu", c.global_position, 0.8)
 
 
 func p_aburame_mushi_hashira(c: Node3D, t: Node3D) -> void:
