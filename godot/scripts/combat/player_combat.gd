@@ -1095,6 +1095,7 @@ func take_hit(info: Dictionary) -> void:
 	if modes and modes.on_player_hit(info):
 		return
 	ClanMech.on_player_hit(info)
+	Jutsu.kurama_ido_check(p)   # Kurama: can düşünce Ido uyanabilir
 	if p.has_meta("shintenshin_t"):   # boş bedene darbe: Yamanaka'nın ruhu bedene geri çekilir
 		Combat.popup_text(p.global_position + Vector3.UP * 2.4, "Ruh bedene döndü!", Color(0.8, 0.65, 1))
 		Jutsu.shintenshin_release(p, p.get_meta("shintenshin_t"))

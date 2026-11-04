@@ -113,6 +113,17 @@ func execute(caster: Node3D, id: String, target: Node3D) -> void:
 	jutsu_cast.emit(caster, id)
 	caster.set_meta("jid", id)   # hasar dengesi: bu jutsunun isabetleri ölçülmüş çarpanla
 	caster.set_meta("jid_t", Time.get_ticks_msec() / 1000.0)
+	# Kurama kekkei genkai (kanon, Yakumo): genjutsusu bedeni gerçekten yaralar — yakalanan (sersem/korku/bağ/uyku) düşman gerçek hasar alır.
+	# Oyuncu ve düşman Kurama aynı kural.
+	var kurama = (caster == Game.player and String(Game.profile.get("clan", "")) == "kurama") or (caster.get("arch") is Dictionary and String(caster.arch.get("clan", "")) == "kurama")
+	if kurama and String(Data.jutsu.get(id, {}).get("category", "")) == "genjutsu":
+		get_tree().create_timer(0.7).timeout.connect(func():
+			if not is_instance_valid(caster):
+				return
+			for f in get_tree().get_nodes_in_group("fighters"):
+				if Combat.hostile(caster, f) and not f.is_dead() and f.global_position.distance_to(caster.global_position) < 24.0 and f.has_method("has_status") and (f.has_status("stun") or f.has_status("fear") or f.has_status("bind") or f.has_status("sleep")):
+					f.take_hit({"dmg": 22.0 * _mult(caster), "knock": 0.0, "launch": 0.0, "kind": "light", "pierce_guard": true, "attacker": caster})
+					Combat.popup_text(f.global_position + Vector3.UP * 2.4, "Genjutsu gerçeğe döndü", Color(0.85, 0.4, 0.7)))
 	# taijutsu: mühür yok, ninjutsu atma sesi de yok
 	if not String(Data.jutsu.get(id, {}).get("virtual", "")).begins_with("eye:") and String(Data.jutsu.get(id, {}).get("category", "")) != "taijutsu":
 		if caster == Game.player:
@@ -1521,6 +1532,100 @@ func _shadow_coil(t: Node3D, dur: float, turns := 1.2, top := 0.8, hand := false
 
 func after_t(t: float, fn: Callable) -> void:
 	get_tree().create_timer(t).timeout.connect(fn)
+
+
+## Kurama kekkei genkai (kanon, anime Yakumo): kullanıcı hedefin sahnesini çizer (1.5 sn savunmasız — vurulursa çizim bozulur,
+## animedeki karşı oyun). Tamamlanırsa hedef resmin içine çekilir: genjutsu kilidi + kan gücüyle gerçek hasar. Boss kısa etkilenir.
+## Oyuncu ve düşman Kurama aynı fonksiyonu kullanır.
+func kurama_painting(c: Node3D, t: Node3D) -> void:
+	if t == null or not is_instance_valid(t) or t.is_dead() or c.global_position.distance_to(t.global_position) > 26.0:
+		if c is Player:
+			Hud.msg("Resim genjutsusu: görebildiğin bir hedef seç (26 m).", Color(0.85, 0.6, 0.8))
+		return
+	var fd = c.face_dir() if c.has_method("face_dir") else Vector3.FORWARD
+	# tuval: elde tutulan kâğıt, üstünde fırça darbeleri yavaş yavaş belirir
+	var canvas = MeshInstance3D.new()
+	var qm = QuadMesh.new()
+	qm.size = Vector2(0.7, 0.5)
+	canvas.mesh = qm
+	var cm = StandardMaterial3D.new()
+	cm.albedo_color = Color(0.96, 0.94, 0.88)
+	cm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	cm.cull_mode = BaseMaterial3D.CULL_DISABLED
+	canvas.material_override = cm
+	get_tree().current_scene.add_child(canvas)
+	canvas.global_position = c.global_position + Vector3.UP * 1.12 + fd * 0.42   # göğsün önünde, ellerde
+	canvas.look_at(canvas.global_position + fd, Vector3.UP)
+	var strokes = []
+	for k in 7:
+		var st = MeshInstance3D.new()
+		var sq = QuadMesh.new()
+		sq.size = Vector2(randf_range(0.15, 0.45), randf_range(0.02, 0.05))
+		st.mesh = sq
+		var sm = StandardMaterial3D.new()
+		sm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		sm.cull_mode = BaseMaterial3D.CULL_DISABLED   # iki yüzlü: tuvalin her yanından görünür
+		sm.albedo_color = [Color(0.6, 0.1, 0.15), Color(0.15, 0.25, 0.5), Color(0.1, 0.35, 0.2), Color(0.1, 0.08, 0.08)][k % 4]
+		st.material_override = sm
+		canvas.add_child(st)
+		st.position = Vector3(randf_range(-0.2, 0.2), randf_range(-0.18, 0.18), -0.005)
+		st.rotation.z = randf_range(-0.8, 0.8)
+		st.visible = false
+		strokes.append(st)
+	if c.get("model"):
+		c.model.play("cast", 0.1, 0.6, true)
+	if c is Player:
+		c.input_locked = 1.5
+	var hp0 = float(c.get("hp"))
+	var broke = [false]
+	for k in 7:
+		get_tree().create_timer(0.2 * k).timeout.connect(func():
+			if broke[0] or not is_instance_valid(canvas):
+				return
+			if is_instance_valid(c) and float(c.get("hp")) < hp0 - 0.5:   # çizerken vuruldu: çizim bozulur
+				broke[0] = true
+				Combat.popup_text(c.global_position + Vector3.UP * 2.4, "Çizim bozuldu!", Color(1, 0.6, 0.5))
+				if c is Player:
+					c.input_locked = 0.0
+				canvas.queue_free()
+				return
+			strokes[k].visible = true)
+	get_tree().create_timer(1.5).timeout.connect(func():
+		if broke[0] or not is_instance_valid(c) or not is_instance_valid(t) or t.is_dead():
+			if is_instance_valid(canvas):
+				canvas.queue_free()
+			return
+		if is_instance_valid(canvas):
+			var tw = canvas.create_tween()
+			tw.tween_property(canvas, "global_position", t.global_position + Vector3.UP * 1.3, 0.25)
+			tw.parallel().tween_property(canvas, "scale", Vector3.ONE * 3.5, 0.25)
+			tw.tween_property(canvas, "scale", Vector3.ONE * 0.01, 0.15)
+			tw.tween_callback(canvas.queue_free)
+		var gm = Eyes.genjutsu_land(c, t, false)   # Yakumo'nun resmi göz teması istemez; direnç/ayna yine işler
+		if gm <= 0.0:
+			return
+		var boss = t.has_meta("boss")
+		t.apply_status("bind", (2.0 if boss else 4.0) * gm)
+		t.take_hit({"dmg": (18.0 if boss else 32.0) * _mult(c) * gm, "knock": 0.0, "launch": 0.0, "kind": "light", "pierce_guard": true, "attacker": c})
+		Combat.popup_text(t.global_position + Vector3.UP * 2.6, "Resmin içine çekildi", Color(0.9, 0.5, 0.8))
+		Sfx.play("genjutsu", t.global_position, 0.8))
+
+
+## Kurama kusuru (kanon): bastırılmış ikinci kişilik (Ido) gücü kontrol eder — can %25 altına düşünce 60 sn'de bir uyanır:
+## 6 sn genjutsu/jutsu gücü artar ama kontrol tamamen sende değildir (hareketlerin yavaşlar).
+func kurama_ido_check(c: Node3D) -> void:
+	if not (c is Player) or String(Game.profile.get("clan", "")) != "kurama":
+		return
+	if float(c.hp) > float(c.max_hp) * 0.25:
+		return
+	var now = Time.get_ticks_msec()
+	if c.has_meta("ido_t") and now - int(c.get_meta("ido_t")) < 60000:
+		return
+	c.set_meta("ido_t", now)
+	Buffs.add("ido", 6.0, {"jutsu": 1.5, "speed": 0.75, "_name": "Ido", "_desc": "bastırılmış kişilik uyandı: güç artar, kontrol azalır"})
+	Combat.popup_text(c.global_position + Vector3.UP * 2.6, "Ido uyandı...", Color(0.75, 0.2, 0.4))
+	if Game.world and Game.world.env:
+		Game.world.env.flash_tint(Color(0.45, 0.05, 0.2, 0.3), 6.0)
 
 
 ## Nara gölgesi ışığa bağlı (anime: gün batımında gölge uzar, öğlen kısalır, karanlıkta gölge zayıf)

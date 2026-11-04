@@ -1090,53 +1090,6 @@
   "name_en": "Water Release: Water Shark Bullet Technique",
   "research_id": "suiton_suikodan_no_jutsu"
  },
- "kurama_genjutsu": {
-  "id": "kurama_genjutsu",
-  "name": "Kurama: Gen'ei Jitsuzō",
-  "cost": 25,
-  "cd": 10,
-  "element": "",
-  "clan": "kurama",
-  "level": 3,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Hayal gerçeğe dönüşür: hedef korkuyla kilitlenir.",
-  "seals": [
-   "Ne",
-   "Mi"
-  ],
-  "canon_rank": "D",
-  "category": "genjutsu",
-  "shape": "genjutsu_stun",
-  "elements": [],
-  "tier": 1,
-  "name_en": "Demonic Illusion: Hell Viewing Technique",
-  "research_id": "magen_narakumi_no_jutsu",
-  "meaning": "Kurama: Gerçeklik Genjutsusu"
- },
- "kurama_kokuangyo": {
-  "id": "kurama_kokuangyo",
-  "name": "Kurama: Kokuan Maku",
-  "cost": 35,
-  "cd": 18,
-  "element": "",
-  "clan": "kurama",
-  "level": 8,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Tüm düşmanlar seni kaybeder.",
-  "seals": [
-   "Tora"
-  ],
-  "canon_rank": "A",
-  "category": "genjutsu",
-  "shape": "genjutsu_stun",
-  "elements": [],
-  "tier": 4,
-  "name_en": "Bringer-of-Darkness Technique",
-  "research_id": "kokuangyo_no_jutsu",
-  "meaning": "Kurama: Karanlık Perde"
- },
  "fuma_shuriken_j": {
   "id": "fuma_shuriken_j",
   "name": "Fūma Shuriken: Kazeguruma",
@@ -4253,10 +4206,10 @@
   "natures": [
    "inton"
   ],
-  "clan": "kurama",
+  "clan": "yuhi",
   "level": 5,
   "rank": 1,
-  "learn": "clan:kurama",
+  "learn": "clan:yuhi",
   "desc": "Çevreyi yanıltıcı biçimde değiştirerek kaybolmaya yol açar.",
   "seals": [],
   "canon_rank": "C",
@@ -4345,10 +4298,10 @@
   "natures": [
    "inton"
   ],
-  "clan": "kurama",
+  "clan": "yuhi",
   "level": 10,
   "rank": 2,
-  "learn": "clan:kurama",
+  "learn": "clan:yuhi",
   "desc": "Hedef ağaca bağlandığını sanır; kullanıcı arkadan saldırır.",
   "seals": [
    "Inu",
@@ -17645,10 +17598,10 @@
   "natures": [
    "inton"
   ],
-  "clan": "kurama",
+  "clan": "yuhi",
   "level": 10,
   "rank": 2,
-  "learn": "clan:kurama",
+  "learn": "clan:yuhi",
   "desc": "Katmanlı ortam illüzyonu.",
   "seals": [],
   "canon_rank": "B",
@@ -20233,7 +20186,8 @@
   "uzumaki_kongo_kekkai": "chakra_chains",
   "yamanaka_shinkaitai": "shinranshin_no_jutsu",
   "hoshigaki_ryudan": "suiton_daikodan_no_jutsu",
-  "hoshigaki_samehada_kyushu": "hoshigaki_same"
+  "hoshigaki_samehada_kyushu": "hoshigaki_same",
+  "kurama_kokuangyo": "yuhi_kokuangyo"
  },
  "kusanagi_kuchi": {
   "id": "kusanagi_kuchi",
@@ -20789,63 +20743,6 @@
   "kinjutsu": false,
   "series": "Naruto Shippūden",
   "meaning": "Hatake"
- },
- "kurama_ikiru_e": {
-  "id": "kurama_ikiru_e",
-  "name": "Kurama: Ikiru E",
-  "name_en": "Living Painting",
-  "cost": 34,
-  "cd": 8.5,
-  "element": "",
-  "elements": [],
-  "clan": "kurama",
-  "level": 10,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Havaya çizilen tuval canlanır; resimdeki canavarlar dışarı fırlar.",
-  "seals": [],
-  "canon_rank": "B",
-  "category": "hiden",
-  "shape": "summon",
-  "tier": 3
- },
- "kurama_gaku_ori": {
-  "id": "kurama_gaku_ori",
-  "name": "Kurama: Gaku Ori",
-  "name_en": "Picture Frame Cage",
-  "cost": 38,
-  "cd": 9.9,
-  "element": "",
-  "elements": [],
-  "clan": "kurama",
-  "level": 14,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Hedef dev bir resim çerçevesine hapsolur; boya onu yavaşça yutar.",
-  "seals": [],
-  "canon_rank": "B",
-  "category": "hiden",
-  "shape": "bind",
-  "tier": 3
- },
- "kurama_irodori_kaen": {
-  "id": "kurama_irodori_kaen",
-  "name": "Kurama: Irodori Kaen",
-  "name_en": "Painted Flames",
-  "cost": 46,
-  "cd": 12.7,
-  "element": "",
-  "elements": [],
-  "clan": "kurama",
-  "level": 22,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Fırçayla boyanan alevler gerçeğe dönüşür; çizilen alan yanar.",
-  "seals": [],
-  "canon_rank": "A",
-  "category": "hiden",
-  "shape": "aoe",
-  "tier": 4
  },
  "fuma_kunai_ame": {
   "id": "fuma_kunai_ame",

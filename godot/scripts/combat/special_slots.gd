@@ -28,6 +28,13 @@ static func refresh(pr: Dictionary) -> Array:
 		else:
 			Data.jutsu.erase(id)
 	var bid = TailedBeasts.player_jinchuriki() if TailedBeasts else ""
+	# Kurama kekkei genkai (kanon, anime: Yakumo): çizilen resim genjutsusu — ad yok, yetenek (yuva girişi olarak konabilir)
+	if String(pr.get("clan", "")) == "kurama":
+		Data.jutsu["kurama_e"] = {"name": "Kurama Kekkei Genkai (resim)", "cost": 40, "cd": 18.0, "element": "", "category": "genjutsu", "canon_rank": "A",
+			"seals": [], "virtual": "clan:kurama", "desc": "Hedefin sahnesini çizersin (1.5 sn, savunmasız; vurulursan çizim bozulur). Tamamlanırsa hedef resmin içine çekilir: güçlü genjutsu ve gerçek hasar."}
+		out.append("kurama_e")
+	else:
+		Data.jutsu.erase("kurama_e")
 	var tl: Array = BijuuArts.techs(bid) if bid != "" else []
 	for i in 3:
 		var id = BIJUU_IDS[i]
@@ -106,6 +113,17 @@ static func cast(p: Player, jid: String) -> bool:
 			Hud.msg("%s için önce gözlerini aç (V)." % String(j["name"]).split(" (")[0], Color(1, 0.55, 0.5))
 			return true
 		ey.use_skill(v.substr(4))
+		return true
+	if v == "clan:kurama":
+		if float(p.combat.cooldowns.get(jid, 0.0)) > 0.0:
+			Hud.msg("Resim henüz hazır değil (%.0f sn)" % float(p.combat.cooldowns[jid]), Color(0.9, 0.8, 0.6))
+			return true
+		if p.chakra < 40.0:
+			Hud.msg("Yeterli chakra yok (40).", Color(0.6, 0.7, 1))
+			return true
+		p.chakra -= 40.0
+		p.combat.cooldowns[jid] = 18.0
+		Jutsu.kurama_painting(p, p.combat._cast_target())
 		return true
 	if v.begins_with("susanoo:"):
 		var i = int(v.substr(8))

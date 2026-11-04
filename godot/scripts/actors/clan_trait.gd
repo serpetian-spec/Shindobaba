@@ -61,6 +61,10 @@ func _physics_process(dt: float) -> void:
 			if d < 14.0 and _sees(t):
 				_blood_gaze(t)
 				cd = randf_range(10.0, 13.0)
+		"kurama":
+			if d < 22.0 and _sees(t):   # oyuncuyla aynı resim genjutsusu (çizerken vurulursa bozulur)
+				Jutsu.kurama_painting(f, t)
+				cd = randf_range(16.0, 20.0)
 		"nara":
 			if d < Jutsu.shadow_reach():   # oyuncuyla aynı: gölge menzili ışığa bağlı
 				_shadow_bind(t)
