@@ -1458,8 +1458,9 @@ func c_dainamikku_makingu(c: Node3D, t: Node3D) -> void:
 # ================================================================== KAGUYA — kemik dansları (Shikotsumyaku; çelikten sert kemik = yetenek, PlayerModes/Enemy)
 func _bone_blade(c: Node3D, len_: float, dur: float) -> Node3D:
 	var b = MB.new()
-	b.add_grad("cone", Vector3(0, 0, -len_ * 0.5), Vector3(0.2, len_, 0.16), Color(0.98, 0.96, 0.9), Color(0.82, 0.78, 0.7), Vector3(-90, 0, 0), 6)
-	b.add("sphere", Vector3.ZERO, Vector3(0.22, 0.22, 0.22), Color(0.95, 0.92, 0.85), Vector3.ZERO, 6)
+	# referans (Tsubaki karesi): kolundan çektiği ince, uzun, beyaz kemik kılıç
+	b.add_grad("cone", Vector3(0, 0, -len_ * 0.5), Vector3(0.07, len_, 0.06), Color(0.99, 0.98, 0.95), Color(0.88, 0.86, 0.8), Vector3(-90, 0, 0), 8)
+	b.add("sphere", Vector3.ZERO, Vector3(0.1, 0.1, 0.1), Color(0.97, 0.95, 0.9), Vector3.ZERO, 8)
 	var bl = mesh_of(b)
 	attach(c, bl, dur, Vector3(0.38, 1.15, -0.45))
 	return bl
@@ -1483,9 +1484,19 @@ func c_tsubaki_no_mai(c: Node3D, t: Node3D) -> void:
 
 ## Clematis Çiçeği: kol sarmal kemik matkaba dönüşür; yüklenip tek dev saplama: blok ve zırh delinir
 func c_tessenka_no_mai_hana(c: Node3D, t: Node3D) -> void:
+	# referans (Hana karesi): koldan öne uzanan dev, sivri, sarmal kemik katmanlı matkap
 	var b = MB.new()
-	for k in 7:
-		b.add_grad("cone", Vector3(0, 0, -0.4 - k * 0.45), Vector3(0.9 - k * 0.11, 0.7, 0.9 - k * 0.11), Color(0.98, 0.96, 0.9), Color(0.8, 0.76, 0.68), Vector3(-90, k * 25, 0), 7)
+	b.add_grad("cone", Vector3(0, 0, -1.4), Vector3(0.9, 2.8, 0.9), Color(0.99, 0.98, 0.95), Color(0.86, 0.84, 0.78), Vector3(-90, 0, 0), 14)
+	for sp in 5:   # sarmal sırtlar (katmanlar)
+		var pts = []
+		var rad = []
+		for k in 16:
+			var u = k / 15.0
+			var a = sp * TAU / 5.0 + u * TAU * 1.3
+			var r = 0.48 * (1.0 - u) + 0.02
+			pts.append(Vector3(cos(a) * r, sin(a) * r, -u * 2.75))
+			rad.append(Vector2(0.09, 0.05) * (1.0 - u * 0.8))
+		Loft.tube(b, pts, rad, Color(0.97, 0.96, 0.92), 6, 2, true, true)
 	var drill = mesh_of(b)
 	attach(c, drill, 1.3, Vector3(0.3, 1.1, -0.4))
 	drill.scale = Vector3.ONE * 0.2
@@ -1563,19 +1574,19 @@ func c_sawarabi_no_mai(c: Node3D, t: Node3D) -> void:
 	var center = gp(Jutsu._aim_ground(c, t, 10.0, 25.0))
 	VFX.cracks(center, 12.0)
 	busy(c, 0.8)
-	var n = 64
+	var n = 120
 	for k in n:
 		var ring = sqrt(float(k) / n)
 		var a = k * 2.4
 		var p = center + Vector3(cos(a), 0, sin(a)) * ring * 18.0
 		after(ring * 0.8, func():
-			var h = randf_range(5.0, 11.0) * (1.25 - ring * 0.4)
-			spike(p, h, randf_range(0.7, 1.3), Color(0.97, 0.95, 0.88), 10.0, Vector3(randf_range(-14, 14), 0, randf_range(-14, 14)), true)
+			# referans (Sawarabi karesi): çok sık, ince, sivri, ak-mavimsi kemik bıçaklar
+			var h = randf_range(3.5, 9.0) * (1.25 - ring * 0.4)
+			spike(p, h, randf_range(0.22, 0.42), Color(0.93, 0.96, 1.0), 10.0, Vector3(randf_range(-18, 18), 0, randf_range(-18, 18)), true)
 			for e in enemies_near(c, p, 1.6):
 				hit(c, e.global_position + Vector3.UP, 1.2, inf(c, "sawarabi_no_mai", 0.7, {"knock": 2.0, "launch": 6.0, "kind": "heavy"}))
 				st(e, "bind", 2.0)
-			if k % 6 == 0:
-				FX.dust(p, 1.4))
+			pass)
 	after(0.2, func():
 		shake(1.0)
 		Sfx.play("earth", center, 0.6))

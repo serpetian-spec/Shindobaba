@@ -17168,7 +17168,6 @@ func p_tessenka_no_mai_hana(c: Node3D, t: Node3D) -> void:
 	after(0.7, func():
 		if live(c):
 			var d = c.face_dir()
-			VFX.shockwave(c.global_position + Vector3.UP * 1.1 + d * 2.5, BONE, 5.0, 0.3, false, d)
 			_bone_shards(c.global_position + Vector3.UP * 1.1 + d * 3.0, 16, 10.0))
 
 
@@ -17191,11 +17190,6 @@ func p_sawarabi_no_mai(c: Node3D, t: Node3D) -> void:
 	_kaguya_dots(c, 3.0)
 	var at = gp(Jutsu._aim_ground(c, t, 8.0, 18.0))
 	VFX.cracks(at, 10.0)
-	for k in 8:
-		after(k * 0.06, func():
-			var q = at + Vector3(randf_range(-6, 6), 0, randf_range(-6, 6))
-			VFX.puffs(q + Vector3.UP * 0.3, {"amount": 12, "life": 0.9, "size": 1.0, "radius": 1.0, "vmin": 2, "vmax": 5, "dir": Vector3.UP, "spread": 40.0, "add": false,
-				"colors": [Color(0.95, 0.93, 0.88, 0.8), Color(0.85, 0.82, 0.75, 0)]}))
 	c_sawarabi_no_mai(c, t)
 
 
@@ -27674,14 +27668,16 @@ func _bone_blade2(c: Node3D, bone: String, length: float, dir := Vector3.UP, dur
 
 func p_yanagi_no_mai(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.9)
-	for b in [["LeftLowerArm", Vector3(-1, 0.3, 0)], ["RightLowerArm", Vector3(1, 0.3, 0)], ["LeftLowerLeg", Vector3(0, 0.2, 1)], ["RightLowerLeg", Vector3(0, 0.2, 1)], ["UpperChest", Vector3(0, 0.3, -1)]]:
-		_bone_blade2(c, b[0], 0.6, b[1].normalized(), 0.8)
+	# referans (Yanagi karesi): avuçlardan, dirseklerden, omuzlardan ve dizlerden uzun kavisli kemik bıçaklar; yerde iz yok
+	for b in [["LeftHand", Vector3(-0.3, 0.2, 1)], ["RightHand", Vector3(0.3, 0.2, 1)], ["LeftLowerArm", Vector3(-1, 0.2, -0.3)], ["RightLowerArm", Vector3(1, 0.2, -0.3)],
+			["LeftUpperArm", Vector3(-0.7, 0.8, 0)], ["RightUpperArm", Vector3(0.7, 0.8, 0)], ["LeftLowerLeg", Vector3(0, 0.2, 1)], ["RightLowerLeg", Vector3(0, 0.2, 1)]]:
+		_bone_blade2(c, b[0], 0.95, b[1].normalized(), 1.1)
 	for k in 3:
 		after(0.15 + k * 0.2, func():
 			if not live(c):
 				return
 			var at = c.global_position + Vector3.UP * 1.0
-			_arc_cut(at, c.face_dir(), 0.0, 360.0, Color(0.95, 0.93, 0.85), 1.8)
+			anim(c, ["slash_a", "slash_b", "cross"][k], 2.0)
 			mhit(c, at, 2.2, inf(c, "yanagi_no_mai", 0.5, {"knock": 5.0, "kind": "heavy", "bleed": 3.0})))
 	Sfx.play("whoosh", c.global_position, 1.3)
 

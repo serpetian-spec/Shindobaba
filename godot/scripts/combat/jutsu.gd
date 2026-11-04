@@ -1894,9 +1894,10 @@ func j_bone_bullets(c: Node3D, t: Node3D) -> void:
 		pr.info = {"dmg": 6.0 * m, "knock": 2.0, "kind": "light", "hitstop": 0.02}
 		var mi = MeshInstance3D.new()
 		var b = MB.new()
-		b.add("cyl", Vector3.ZERO, Vector3(0.2, 0.7, 0.2), Color(0.97, 0.95, 0.86), Vector3(90, 0, 0), 8)
-		b.add("cone", Vector3(0, 0, -0.5), Vector3(0.2, 0.35, 0.2), Color(0.97, 0.95, 0.86), Vector3(-90, 0, 0), 8)
-		b.add("sphere", Vector3(0, 0, 0.36), Vector3(0.28, 0.28, 0.24), Color(0.92, 0.9, 0.8), Vector3.ZERO, 8)
+		# referans (Teshi Sendan karesi): iki ucu şişkin, yuvarlak beyaz parmak kemiği boğumu
+		b.add("cyl", Vector3.ZERO, Vector3(0.2, 0.42, 0.2), Color(0.98, 0.97, 0.94), Vector3(90, 0, 0), 10)
+		b.add("sphere", Vector3(0, 0, -0.24), Vector3(0.3, 0.3, 0.26), Color(0.98, 0.97, 0.94), Vector3.ZERO, 10)
+		b.add("sphere", Vector3(0, 0, 0.24), Vector3(0.3, 0.3, 0.26), Color(0.95, 0.94, 0.9), Vector3.ZERO, 10)
 		mi.mesh = b.build(Props.toon())
 		pr.add_child(mi)
 		pr.spin = Vector3(0, 0, 25)
