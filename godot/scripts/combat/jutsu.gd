@@ -1321,63 +1321,188 @@ func j_kaiten(c: Node3D, _t: Node3D) -> void:
 
 # ---------------------------------------------------------------- Nara
 func _shadow_line(c: Node3D, t: Node3D, dur: float) -> void:
-	# yerde sürünerek uzanan, kenarları dalgalanan kalın gölge şeridi (araziye yapışık); iki uçta gölge göleti
+	# referans (Kagemane / Kagemane Kage Shibari anime kareleri): yere yapışık, KENARSIZ ve PARLAMASIZ düz gölge şeridi —
+	# doğal gölge tonunda, eni sabit (omuz genişliği), yumuşak S kıvrımı atışta bir kez seçilir (zamanla dalgalanmaz);
+	# kullanıcının ayağından akıp hedefin altındaki yuvarlak gölge göletine bağlanır
 	var mat = StandardMaterial3D.new()
-	mat.albedo_color = Color(0.02, 0.01, 0.04, 0.95)
+	mat.albedo_color = Color(0.05, 0.045, 0.06, 0.86)
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-	var rim = StandardMaterial3D.new()
-	rim.albedo_color = Color(0.45, 0.25, 0.75, 0.55)
-	rim.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	rim.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
-	rim.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	rim.cull_mode = BaseMaterial3D.CULL_DISABLED
 	var im = ImmediateMesh.new()
 	var mi = MeshInstance3D.new()
 	mi.mesh = im
 	mi.top_level = true
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	get_tree().current_scene.add_child(mi)
-	var pools = []
-	for k in 2:
-		var pm = MeshInstance3D.new()
-		var cm = CylinderMesh.new()
-		cm.top_radius = 1.0; cm.bottom_radius = 1.0; cm.height = 0.02; cm.radial_segments = 24
-		pm.mesh = cm
-		pm.material_override = mat
-		get_tree().current_scene.add_child(pm)
-		pools.append(pm)
+	var pool = MeshInstance3D.new()
+	var cm = CylinderMesh.new()
+	cm.top_radius = 1.0; cm.bottom_radius = 1.0; cm.height = 0.02; cm.radial_segments = 32
+	pool.mesh = cm
+	pool.material_override = mat
+	pool.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	get_tree().current_scene.add_child(pool)
+	var bend = randf_range(0.5, 1.0) * (1.0 if randf() < 0.5 else -1.0)   # S kıvrımının yönü/genliği (sabit)
+	var half_w = 0.38
 	var upd = func(_i):
 		if not is_instance_valid(c) or not is_instance_valid(t):
 			return
 		var a = _ground(c.global_position)
 		var b = _ground(t.global_position)
-		var grow = clampf(_i * 0.05 / 0.45, 0.05, 1.0)
+		var grow = ease(clampf(_i * 0.05 / 0.45, 0.0, 1.0), 0.5)
 		var full = maxf(0.2, Vector2(b.x - a.x, b.z - a.z).length())
 		var fwd = Vector3(b.x - a.x, 0, b.z - a.z).normalized() if full > 0.3 else Vector3.FORWARD
 		var side = fwd.cross(Vector3.UP)
+		var amp = bend * minf(1.2, full * 0.08)
 		im.clear_surfaces()
-		for pass_i in 2:
-			im.surface_begin(Mesh.PRIMITIVE_TRIANGLE_STRIP, mat if pass_i == 0 else rim)
-			var n = 28
-			for k in n + 1:
-				var u = float(k) / n
-				var p = a + fwd * full * grow * u
-				p.y = Game.jutsu_floor(p.x, p.z) + 0.06 + pass_i * 0.005
-				var w = (0.55 + 0.25 * sin(u * 18.0 - _i * 0.6) + 0.35 * (1.0 - u)) * (1.3 if pass_i == 1 else 1.0)
-				im.surface_add_vertex(p + side * w)
-				im.surface_add_vertex(p - side * w)
-			im.surface_end()
-		pools[0].global_position = a + Vector3.UP * 0.05
-		pools[0].scale = Vector3(1.3, 1, 1.3)
-		pools[1].global_position = a + fwd * full * grow + Vector3.UP * 0.05
-		pools[1].scale = Vector3.ONE * (1.6 * grow) + Vector3(0, 1.0 - 1.6 * grow, 0)
+		im.surface_begin(Mesh.PRIMITIVE_TRIANGLE_STRIP, mat)
+		var n = 40
+		var prev = a
+		for k in n + 1:
+			var u = float(k) / n * grow
+			var p = a + fwd * full * u + side * amp * sin(u * TAU)   # yumuşak S (iki uç merkez hatta)
+			p.y = Game.jutsu_floor(p.x, p.z) + 0.05
+			var dir = (p - prev)
+			dir.y = 0.0
+			var sd = dir.normalized().cross(Vector3.UP) if dir.length() > 0.001 else side
+			prev = p
+			im.surface_add_vertex(p + sd * half_w)
+			im.surface_add_vertex(p - sd * half_w)
+		im.surface_end()
+		pool.visible = grow > 0.95
+		pool.global_position = b + Vector3.UP * 0.05
+		pool.scale = Vector3(0.75, 1, 0.75)
 	upd.call(0)
 	_ticks(int(dur / 0.05), 0.05, upd, func():
 		mi.queue_free()
-		for pm in pools:
-			pm.queue_free())
+		pool.queue_free())
+
+
+## Yerde serbest gölge şeridi (uçlar fonksiyonla): _shadow_line ile aynı görünüş — kenarsız, parlamasız, sabit en, sabit S kıvrımı
+func _shadow_path(a_fn: Callable, b_fn: Callable, dur: float, half_w := 0.38, pool := true) -> void:
+	var mat = _shadow_mat(0.86)
+	var im = ImmediateMesh.new()
+	var mi = MeshInstance3D.new()
+	mi.mesh = im
+	mi.top_level = true
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	get_tree().current_scene.add_child(mi)
+	var pm = MeshInstance3D.new()
+	var cm = CylinderMesh.new()
+	cm.top_radius = 1.0; cm.bottom_radius = 1.0; cm.height = 0.02; cm.radial_segments = 32
+	pm.mesh = cm
+	pm.material_override = mat
+	pm.visible = false
+	get_tree().current_scene.add_child(pm)
+	var bend = randf_range(0.5, 1.0) * (1.0 if randf() < 0.5 else -1.0)
+	var upd = func(_i):
+		var a: Vector3 = a_fn.call()
+		var b: Vector3 = b_fn.call()
+		if a == Vector3.ZERO or b == Vector3.ZERO:
+			return
+		a = _ground(a)
+		b = _ground(b)
+		var grow = ease(clampf(_i * 0.05 / 0.45, 0.0, 1.0), 0.5)
+		var full = maxf(0.2, Vector2(b.x - a.x, b.z - a.z).length())
+		var fwd = Vector3(b.x - a.x, 0, b.z - a.z).normalized() if full > 0.3 else Vector3.FORWARD
+		var side = fwd.cross(Vector3.UP)
+		var amp = bend * minf(1.2, full * 0.08)
+		im.clear_surfaces()
+		im.surface_begin(Mesh.PRIMITIVE_TRIANGLE_STRIP, mat)
+		var n = 40
+		var prev = a
+		for k in n + 1:
+			var u = float(k) / n * grow
+			var p = a + fwd * full * u + side * amp * sin(u * TAU)
+			p.y = Game.jutsu_floor(p.x, p.z) + 0.05
+			var dir = p - prev
+			dir.y = 0.0
+			var sd = dir.normalized().cross(Vector3.UP) if dir.length() > 0.001 else side
+			prev = p
+			im.surface_add_vertex(p + sd * half_w)
+			im.surface_add_vertex(p - sd * half_w)
+		im.surface_end()
+		pm.visible = pool and grow > 0.95
+		pm.global_position = b + Vector3.UP * 0.05
+		pm.scale = Vector3(0.75, 1, 0.75)
+	upd.call(0)
+	_ticks(int(dur / 0.05), 0.05, upd, func():
+		mi.queue_free()
+		pm.queue_free())
+
+
+## Gölge malzemesi (referans: doğal gölge tonu, parlamasız)
+func _shadow_mat(alpha := 0.86) -> StandardMaterial3D:
+	var mat = StandardMaterial3D.new()
+	mat.albedo_color = Color(0.05, 0.045, 0.06, alpha)
+	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA if alpha < 1.0 else BaseMaterial3D.TRANSPARENCY_DISABLED
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+	return mat
+
+
+## Gölge kamçısı (referans: Kagezukami / Kageyose kareleri): hedefin altındaki gölgeden kalkan, pürüzsüz, kapkara, sabit enli
+## tek parça kol; hedefin bedenine sarmal dolanıp yükselir, ucu sivrilir. hand=true: ucu boğazı kavrayan kara el (Kubishibari).
+func _shadow_coil(t: Node3D, dur: float, turns := 1.2, top := 0.8, hand := false, a0 := -1.0) -> void:
+	if t == null or not is_instance_valid(t):
+		return
+	var mat = StandardMaterial3D.new()
+	mat.albedo_color = Color(0.03, 0.025, 0.04)
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var mi = MeshInstance3D.new()
+	mi.top_level = true
+	mi.material_override = mat
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	get_tree().current_scene.add_child(mi)
+	var start = a0 if a0 >= 0.0 else randf() * TAU
+	var spin = 1.0 if randf() < 0.5 else -1.0
+	var upd = func(_i):
+		if not is_instance_valid(t):
+			return
+		var grow = ease(clampf(_i * 0.05 / 0.5, 0.02, 1.0), 0.6)
+		var o = t.global_position
+		var R = 0.3   # bedene yapışık (kapsül yarıçapı geniş kalıyordu: kol bedenden uzakta yay gibi duruyordu)
+		var H = minf(float(t.get("height") if t.get("height") != null else 1.7), 1.75) * top   # kapsül boyu büyük olabiliyor: insan boyuyla sınırla
+		if hand:
+			# kol tam hedefin önünde (boğazda) bitsin: başlangıç açısını bitişe göre seç
+			var fr = t.face_dir() if t.has_method("face_dir") else Vector3.FORWARD
+			start = atan2(fr.z, fr.x) - spin * turns * TAU
+		var pts = []
+		var rad = []
+		var N = 22
+		for k in N + 1:
+			var u = float(k) / N * grow
+			var ang = start + spin * u * turns * TAU
+			var r = lerpf(R + 0.35, R, clampf(u * 4.0, 0.0, 1.0))
+			pts.append(o + Vector3(cos(ang) * r, maxf(0.02, u * H), sin(ang) * r))
+			var w = lerpf(0.085, 0.05 if hand else 0.012, u / maxf(grow, 0.01))
+			rad.append(Vector2(w, w * 0.8))
+		var b = MB.new()
+		Loft.tube(b, pts, rad, Color.WHITE, 8, 2, true, true)
+		if hand and grow >= 0.99:
+			# kara el (referans: Kubishibari karesi): iri yassı avuç boğazın önüne yapışık, parmaklar boynun iki yanına sarılır
+			var fr2 = t.face_dir() if t.has_method("face_dir") else Vector3.FORWARD
+			fr2.y = 0.0
+			fr2 = fr2.normalized()
+			var palm = o + Vector3.UP * (H - 0.06) + fr2 * 0.15
+			var fwd = -fr2   # avuçtan boyna doğru
+			var sd = fwd.cross(Vector3.UP)
+			# avuç boğazın yanına yapışık, parmaklar boynun önünden öbür yana sarılır
+			b.add_xf("sphere", Transform3D(Basis(fwd, Vector3.UP, -sd) * Basis.from_scale(Vector3(0.05, 0.24, 0.2)), palm), Color.WHITE, 10)   # referans: boğazı kaplayan iri yassı el
+			for f in 4:
+				var fy = (f - 1.5) * 0.07
+				var base = palm + Vector3.UP * (0.06 + fy)
+				var fp = [base, base + sd * 0.1 + fwd * 0.02, base + sd * 0.17 + fwd * 0.1, base + sd * 0.17 + fwd * 0.2]
+				Loft.tube(b, fp, [Vector2(0.042, 0.03), Vector2(0.04, 0.028), Vector2(0.034, 0.024), Vector2(0.016, 0.012)], Color.WHITE, 6, 2, true, true)
+			Loft.tube(b, [palm - Vector3.UP * 0.06, palm - Vector3.UP * 0.04 - sd * 0.12 + fwd * 0.04, palm - Vector3.UP * 0.02 - sd * 0.17 + fwd * 0.14], [Vector2(0.04, 0.03), Vector2(0.034, 0.026), Vector2(0.016, 0.012)], Color.WHITE, 6, 2, true, true)   # başparmak öbür yandan
+		mi.mesh = b.build(null)
+	upd.call(0)
+	_ticks(int(dur / 0.05), 0.05, upd, func():
+		mi.queue_free())
+
+
+func after_t(t: float, fn: Callable) -> void:
+	get_tree().create_timer(t).timeout.connect(fn)
 
 
 ## Nara gölgesi ışığa bağlı (anime: gün batımında gölge uzar, öğlen kısalır, karanlıkta gölge zayıf)
@@ -1417,31 +1542,14 @@ func j_kage_kubi(c: Node3D, t: Node3D) -> void:
 	if t.has_method("apply_status"):
 		t.apply_status("bind", 4.0 * shadow_k())
 	Sfx.play("genjutsu", c.global_position, 0.5)
-	# gölge elleri hedefin bedenine tırmanıp boynunu sarar
-	for k in 4:
-		var hand = MeshInstance3D.new()
-		var cm = CylinderMesh.new()
-		cm.top_radius = 0.06; cm.bottom_radius = 0.16; cm.height = 1.0; cm.radial_segments = 8
-		hand.mesh = cm
-		var hm = StandardMaterial3D.new()
-		hm.albedo_color = Color(0.02, 0.01, 0.04)
-		hm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		hand.material_override = hm
-		t.add_child(hand)
-		var a2 = k * TAU / 4.0
-		var off = Vector3(cos(a2), 0, sin(a2)) * (t.radius + 0.12)
-		hand.position = off + Vector3.UP * 0.1
-		hand.scale = Vector3(1, 0.05, 1)
-		var tw = hand.create_tween()
-		tw.tween_interval(0.3 + k * 0.08)
-		tw.tween_property(hand, "scale", Vector3(1, t.height * 0.85, 1), 0.6).set_trans(Tween.TRANS_CUBIC)
-		tw.parallel().tween_property(hand, "position:y", t.height * 0.45, 0.6)
-		tw.parallel().tween_property(hand, "rotation:z", 0.25 * (1 if k % 2 else -1), 0.6)
-		tw.tween_interval(2.8)
-		tw.tween_callback(hand.queue_free)
+	# referans (Kubishibari karesi): gölgeden kalkan kara kol bedene dolanıp tırmanır, ucundaki kara el boğazı kavrar
+	var hold = 4.0 * shadow_k()
+	after_t(0.45, func():
+		if is_instance_valid(t):
+			_shadow_coil(t, hold - 0.45, 1.1, 0.8, true, 0.0)
+			_shadow_coil(t, hold - 0.45, 0.8, 0.6, false, PI))
 	_ticks(8, 0.5, func(_i):
 		if is_instance_valid(t) and not t.is_dead():
-			FX.burst(t.global_position + Vector3.UP * 1.5, {"amount": 8, "life": 0.5, "tex": FX.tex_smoke, "add": false, "size": 0.6, "vmin": 0.5, "vmax": 1.5, "colors": [Color(0.05, 0.03, 0.08, 0.9), Color(0.05, 0.03, 0.08, 0)]})
 			Combat.hit_sphere(c, t.global_position + Vector3.UP, 1.0, {"dmg": 6.0 * m, "knock": 0.0, "kind": "light"}))
 
 

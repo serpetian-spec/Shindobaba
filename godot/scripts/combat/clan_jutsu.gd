@@ -650,10 +650,13 @@ func c_kagemane(c: Node3D, t: Node3D) -> void:
 	Jutsu.j_kagemane(c, tt)
 	var last = {"p": c.global_position}
 	var held = [true]
+	tt.set_meta("kagemane_hold", true)   # ortak 3 sn kilit sınırından muaf: chakra ve ışık yettikçe tutar (anime)
 	Combat.popup_text(tt.global_position + Vector3.UP * 3.0, "Gölge taklidi: hareketlerini kopyalıyor!", Color(0.65, 0.6, 0.85))
 	# kanon: bağı tutmak sürekli büyük chakra ister (uzun tutulamaz); hedef bağı kırarsa (ortak sersemletme sınırı) biter
-	every(10.0, 1.0 / 30.0, func(_i, _k):
+	every(30.0, 1.0 / 30.0, func(_i, _k):
 		if not held[0] or not live(tt) or not is_instance_valid(c):
+			if is_instance_valid(tt) and tt.has_meta("kagemane_hold"):
+				tt.remove_meta("kagemane_hold")
 			return
 		if _i > 15 and not tt.has_status("bind"):
 			held[0] = false
@@ -677,73 +680,72 @@ func c_kagemane(c: Node3D, t: Node3D) -> void:
 		if tt.get("facing") != null and c.get("facing") != null:
 			tt.facing = c.facing
 		if c.get("model") and tt.get("model") and c.model.current != "" and c.model.current != tt.model.current:
-			tt.model.play(c.model.current, 0.1))
+			tt.model.play(c.model.current, 0.1), func():
+		if is_instance_valid(tt) and tt.has_meta("kagemane_hold"):
+			tt.remove_meta("kagemane_hold"))
 
 
-## Ağ Gölge Felci: gölge ağ gibi her yöne yayılır, ağın üstündeki herkes donar
+## Kage Nageami Shibari (kanon, ağ gibi atılan gölge): kullanıcının gölgesinden öne doğru ağ gibi açılan kalın gölge şeritleri —
+## şeritlerden birine değen her düşman donar. Görünüş: ortak gölge şeridi (kenarsız, parlamasız).
 func c_kage_nageami_shibari_no_jutsu(c: Node3D, t: Node3D) -> void:
-	var center = gp(Jutsu._aim_ground(c, t, 8.0, 20.0))
-	var m = flat_mat(Color(0.03, 0.02, 0.06, 0.9))
-	var root = Node3D.new()
-	get_tree().current_scene.add_child(root)
-	root.global_position = center + Vector3.UP * 0.05
-	for k in 12:
-		var bar = MeshInstance3D.new()
-		var bm = BoxMesh.new()
-		bm.size = Vector3(0.25, 0.02, 9.0)
-		bar.mesh = bm
-		bar.material_override = m
-		bar.rotation.y = k * PI / 6.0
-		root.add_child(bar)
-	for r in [2.5, 5.0, 8.0]:
-		var tor = MeshInstance3D.new()
-		var tm = TorusMesh.new()
-		tm.inner_radius = r - 0.12
-		tm.outer_radius = r
-		tor.mesh = tm
-		tor.material_override = m
-		tor.scale = Vector3(1, 0.03, 1)
-		root.add_child(tor)
-	root.scale = Vector3(0.05, 1, 0.05)
-	var tw = root.create_tween()
-	tw.tween_property(root, "scale", Vector3.ONE, 0.5).set_ease(Tween.EASE_OUT)
-	Sfx.play("genjutsu", center, 0.5)
-	after(0.5, func():
-		for e in enemies_near(c, center, 9.0):
-			st(e, "bind", 3.5)
-			Combat.popup_text(e.global_position + Vector3.UP * 2.5, "Gölge ağı!", Color(0.6, 0.55, 0.8)))
-	fade_free(root, 4.0, 0.4)
+	var d = Jutsu._aim(c, t)
+	d.y = 0.0
+	d = d.normalized() if d.length() > 0.01 else c.face_dir()
+	var L = minf(20.0, Jutsu.shadow_reach())
+	var ends = []
+	for k in 7:
+		var dd = d.rotated(Vector3.UP, (k - 3) * 0.16)
+		var e_p = c.global_position + dd * L * randf_range(0.85, 1.0)
+		ends.append(e_p)
+		Jutsu._shadow_path(func(): return c.global_position if is_instance_valid(c) else Vector3.ZERO, func(): return e_p, 4.0, 0.32, false)
+	Sfx.play("genjutsu", c.global_position, 0.5)
+	after(0.45, func():
+		for e in enemies_near(c, c.global_position, L + 1.0):
+			var v = e.global_position - c.global_position
+			v.y = 0
+			if v.length() > 0.1 and v.normalized().dot(d) > cos(0.6):
+				st(e, "bind", 3.5)
+				Combat.popup_text(e.global_position + Vector3.UP * 2.5, "Gölge ağı!", Color(0.6, 0.55, 0.8)))
 
 
-## Gölge Kavrama: gölgeden çıkan eller hedefe tırmanıp boğar (en fazla 3 hedef)
+## Kagezukami (kanon): hedefin gölgesinden kalkan kara gölge kolları bedene dolanıp kavrar ve sıkar (en fazla 3 hedef)
 func c_kagezukami_no_jutsu(c: Node3D, t: Node3D) -> void:
-	var list = enemies_near(c, c.global_position, 20.0)
+	var list = enemies_near(c, c.global_position, minf(20.0, Jutsu.shadow_reach()))
 	list.sort_custom(func(a, b): return a.global_position.distance_to(c.global_position) < b.global_position.distance_to(c.global_position))
-	var m = flat_mat(Color(0.02, 0.01, 0.04, 0.95))
 	for e in list.slice(0, 3):
 		Jutsu._shadow_line(c, e, 4.0)
 		st(e, "bind", 4.0)
-		for k in 4:
-			var b = MB.new()
-			b.add("cyl", Vector3(0, 0.6, 0), Vector3(0.12, 1.2, 0.12), Color.WHITE, Vector3.ZERO, 5)
-			for f in 3:
-				b.add("cyl", Vector3((f - 1) * 0.06, 1.25, 0), Vector3(0.04, 0.25, 0.04), Color.WHITE, Vector3(0, 0, (f - 1) * 20), 4)
-			var hand = mesh_of(b, m)
-			hand.rotation = Vector3(0.3, k * PI * 0.5, 0.2)
-			attach(e, hand, 4.0, Vector3(cos(k * 1.57) * e.radius, 0.1, sin(k * 1.57) * e.radius))
-			hand.scale = Vector3(1, 0.05, 1)
-			var tw = hand.create_tween()
-			tw.tween_property(hand, "scale", Vector3(1, e.height * 0.8, 1), 0.6 + k * 0.1)
+		after(0.45, func():
+			if live(e):
+				Jutsu._shadow_coil(e, 3.5, 1.4, 0.95, false)
+				Jutsu._shadow_coil(e, 3.5, 1.0, 0.7, false))
 		every(4.0, 0.5, func(_i, _k):
 			if live(e):
-				hit(c, e.global_position + Vector3.UP * e.height * 0.8, 0.8, inf(c, "kagezukami_no_jutsu", 0.22, {"knock": 0.0, "kind": "light"})))
+				hit(c, e.global_position + Vector3.UP * e.height * 0.8, 0.8, inf(c, "kagezukami_no_jutsu", 0.22, {"knock": 0.0, "launch": 0.0, "kind": "light"})))
 
 
-## Gölge Toplama: çevredeki gölgeler tek noktaya akar, düşmanları içine çeker ve sıkıştırır
+## Kageyose (kanon, gölge toplama): çevredeki gölgeler dört bir yandan şerit şerit tek noktaya akar, oradaki gölge göleti
+## büyür; düşmanlar merkeze sürüklenir ve sıkıştırılır
 func c_kageyose_no_jutsu(c: Node3D, t: Node3D) -> void:
 	var center = gp(Jutsu._aim_ground(c, t, 10.0, 22.0))
-	var pool = ground_disc(center, 6.0, Color(0.05, 0.02, 0.1), 2.0, 4, 16)
-	pool.get_child(0).material_override = flat_mat(Color(0.03, 0.01, 0.06, 0.9))
+	for k in 8:
+		var a = k * TAU / 8.0 + randf_range(-0.2, 0.2)
+		var from = center + Vector3(cos(a), 0, sin(a)) * 10.0
+		Jutsu._shadow_path(func(): return from, func(): return center, 2.0, 0.3, false)
+	var pool = MeshInstance3D.new()
+	var cm = CylinderMesh.new()
+	cm.top_radius = 1.0; cm.bottom_radius = 1.0; cm.height = 0.02; cm.radial_segments = 40
+	pool.mesh = cm
+	pool.material_override = Jutsu._shadow_mat(0.9)
+	get_tree().current_scene.add_child(pool)
+	pool.global_position = center + Vector3.UP * 0.05
+	pool.scale = Vector3(0.3, 1, 0.3)
+	var tw = pool.create_tween()
+	tw.tween_interval(0.4)
+	tw.tween_property(pool, "scale", Vector3(3.2, 1, 3.2), 1.2).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(0.6)
+	tw.tween_property(pool, "scale", Vector3(0.05, 1, 0.05), 0.4)
+	tw.tween_callback(pool.queue_free)
 	every(1.6, 1.0 / 30.0, func(_i, _k):
 		for e in enemies_near(c, center, 11.0):
 			var v = center - e.global_position
@@ -752,8 +754,8 @@ func c_kageyose_no_jutsu(c: Node3D, t: Node3D) -> void:
 				e.global_position = gp(e.global_position + v.normalized() * minf(v.length(), 0.28)), func():
 		for e in enemies_near(c, center, 3.0):
 			st(e, "bind", 3.0)
-			hit(c, e.global_position + Vector3.UP, 1.0, inf(c, "kageyose_no_jutsu", 1.2, {"knock": 0.0}))
-		FX.ring(center + Vector3.UP * 0.2, Color(0.2, 0.1, 0.3), 6.0, 0.3))
+			Jutsu._shadow_coil(e, 2.5, 1.2, 0.9, false)
+			hit(c, e.global_position + Vector3.UP, 1.0, inf(c, "kageyose_no_jutsu", 1.2, {"knock": 0.0, "launch": 0.0, "kind": "light"})))
 	Sfx.play("genjutsu", center, 0.4)
 
 
@@ -777,41 +779,65 @@ func c_kagemane_shuriken_no_jutsu(c: Node3D, t: Node3D) -> void:
 	Sfx.play("kunai", c.global_position)
 
 
-## Gölge Dikiş: gölgeden fışkıran kara iğneler birden çok hedefi deler ve yere diker
+## Kage Nui (kanon, referans: Hidan karesi): gölge şeridi hedefe ulaşır, hedefin gölgesinden çok ince, dümdüz, kapkara
+## iğneler uzaktan çapraz fırlayıp bedeninde birleşir ve içinden geçer — deler ve yere diker
 func c_kage_nui_no_jutsu(c: Node3D, t: Node3D) -> void:
-	var list = enemies_near(c, c.global_position, 18.0).slice(0, 4)
+	var list = enemies_near(c, c.global_position, minf(18.0, Jutsu.shadow_reach())).slice(0, 4)
 	if list.is_empty():
 		Hud.msg("Kage Nui: yakında hedef yok", Color(0.8, 0.8, 0.9))
 		return
+	var nm = StandardMaterial3D.new()
+	nm.albedo_color = Color(0.03, 0.025, 0.04)
+	nm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	for e in list:
-		Jutsu._shadow_line(c, e, 1.0)
-		after(0.4, func():
+		Jutsu._shadow_line(c, e, 3.0)
+		after(0.45, func():
 			if not live(e):
 				return
-			for k in 5:
-				var a = k * TAU / 5.0
-				var p = e.global_position + Vector3(cos(a), 0, sin(a)) * 1.6
-				var s = spike(p, 2.6, 0.18, Color(0.05, 0.03, 0.08), 2.0, Vector3(cos(a) * 30, 0, -sin(a) * 30))
-				s.look_at(e.global_position + Vector3.UP * 1.2, Vector3.UP)
-				s.rotate_object_local(Vector3.RIGHT, -PI * 0.5)
-			hit(c, e.global_position + Vector3.UP, 1.2, inf(c, "kage_nui_no_jutsu", 1.0, {"knock": 0.0, "kind": "heavy"}))
+			var body = e.global_position + Vector3.UP * 1.0   # göğüs (height ölçekli kapsül boyu; iğneler başın üstünde birleşiyordu)
+			for k in 7:
+				var a = k * TAU / 7.0 + randf_range(-0.2, 0.2)
+				var g = gp(e.global_position + Vector3(cos(a), 0, sin(a)) * randf_range(1.2, 2.0))   # dik açı (referans)
+				var dir = (body + Vector3(randf_range(-0.2, 0.2), randf_range(-0.3, 0.4), randf_range(-0.2, 0.2)) - g).normalized()
+				var L = g.distance_to(body) + 0.35   # bedenin içinden geçip hemen öbür yanda biter (referans)
+				var nd = MeshInstance3D.new()
+				var cm = CylinderMesh.new()
+				cm.top_radius = 0.012
+				cm.bottom_radius = 0.035
+				cm.height = 1.0
+				cm.radial_segments = 6
+				nd.mesh = cm
+				nd.material_override = nm
+				nd.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				get_tree().current_scene.add_child(nd)
+				var sd = dir.cross(Vector3.UP if absf(dir.y) < 0.95 else Vector3.RIGHT).normalized()
+				var bs = Basis(sd, dir, sd.cross(dir))
+				nd.global_transform = Transform3D(bs * Basis.from_scale(Vector3(1, 0.01, 1)), g)
+				var tw = nd.create_tween()
+				tw.tween_interval(k * 0.02)
+				tw.tween_method(func(x: float):
+					if is_instance_valid(nd):
+						nd.global_transform = Transform3D(bs * Basis.from_scale(Vector3(1, L * x, 1)), g + dir * L * x * 0.5), 0.01, 1.0, 0.12)
+				tw.tween_interval(2.3)
+				tw.tween_callback(nd.queue_free)
+			hit(c, e.global_position + Vector3.UP, 1.2, inf(c, "kage_nui_no_jutsu", 1.0, {"knock": 0.0, "launch": 0.0, "kind": "light"}))   # çivilenen hedef ayakta kalır (referans)
 			st(e, "bind", 2.5))
 	Sfx.play("genjutsu", c.global_position, 0.7)
 
 
-## Gölge Taklit Bağı: gölge yelpaze gibi açılır, koninin içindeki herkes donar
+## Kagemane Kage Shibari (kanon, Ensui): gölge birden çok kola ayrılır, önündeki her düşmana ayrı bir kıvrımlı şerit uzanır ve bağlar
 func c_kagemane_kage_shibari_no_jutsu(c: Node3D, t: Node3D) -> void:
 	var d = fwd(c, t)
-	for k in 5:
-		var dd = d.rotated(Vector3.UP, (k - 2) * 0.25)
-		var end = gp(c.global_position + dd * 16.0)
-		var strip = tether(func(): return gp(c.global_position) + Vector3.UP * 0.05, func(): return end + Vector3.UP * 0.05, 0.6, flat_mat(Color(0.03, 0.02, 0.06, 0.9)), 3.0)
-		strip.scale = Vector3.ONE
-	for e in enemies_near(c, c.global_position, 16.0):
+	var n = 0
+	for e in enemies_near(c, c.global_position, minf(16.0, Jutsu.shadow_reach())):
 		var v = e.global_position - c.global_position
 		v.y = 0
-		if v.normalized().dot(d) > 0.75:
+		if v.length() > 0.1 and v.normalized().dot(d) > 0.5 and n < 6:
+			n += 1
+			Jutsu._shadow_line(c, e, 3.0)
 			st(e, "bind", 3.0)
+	if n == 0:
+		Hud.msg("Kage Shibari: önünde gölgenin uzanacağı hedef yok", Color(0.8, 0.8, 0.9))
 	Sfx.play("genjutsu", c.global_position, 0.6)
 
 

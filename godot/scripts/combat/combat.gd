@@ -17,6 +17,9 @@ const CC_MAX := 3.0
 func cc_dur(n: Node, kind: String, d: float) -> float:
 	if not kind in CC or d <= 0.0:
 		return d
+	# kanon teknikler ortak sınırdan muaf (kullanıcı kuralı: anime neyse o) — ör. Kagemane chakra yettikçe tutar
+	if kind == "bind" and n.has_meta("kagemane_hold"):
+		return d
 	var now = Time.get_ticks_msec() / 1000.0
 	if now < float(n.get_meta("cc_imm", 0.0)):
 		_cc_pop(n, "Direnç!")

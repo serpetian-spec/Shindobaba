@@ -16682,69 +16682,32 @@ func p_hakke_hasangeki(c: Node3D, t: Node3D) -> void:
 	c_hakke_hasangeki(c, t)
 
 
-## Gölge Taklidi: yerdeki gölge kara mürekkep gibi kıvrılarak uzanır, iki ucunda gölge buharı
+## Nara gölge teknikleri (referans: anime kareleri): gölge duman/buhar çıkarmaz, parlamaz — görünüş ClanJutsu c_* içinde
 func p_kagemane(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 22.0)
-	if tt:
-		_shadow_wisps(c.global_position, 0.8)
-		after(0.3, func():
-			if live(tt):
-				_shadow_wisps(tt.global_position, 1.0, 20)
-				VFX.shockwave(gp(tt.global_position) + Vector3.UP * 0.05, Color(0.15, 0.08, 0.25), 3.0, 0.4, true))
 	c_kagemane(c, t)
 
 
 func p_kage_nageami_shibari_no_jutsu(c: Node3D, t: Node3D) -> void:
-	var center = gp(Jutsu._aim_ground(c, t, 8.0, 20.0))
-	for k in 10:
-		after(k * 0.05, func():
-			var a = k * TAU / 10.0
-			_shadow_wisps(center + Vector3(cos(a), 0, sin(a)) * 6.0, 0.8, 8))
-	_shadow_wisps(center, 3.0, 30)
 	c_kage_nageami_shibari_no_jutsu(c, t)
 
 
 func p_kagezukami_no_jutsu(c: Node3D, t: Node3D) -> void:
-	for e in enemies_near(c, c.global_position, 20.0).slice(0, 3):
-		_shadow_wisps(e.global_position, 0.9, 16)
-		after(0.4, func():
-			if live(e):
-				VFX.puffs(e.global_position + Vector3.UP * 1.5, {"amount": 10, "life": 0.6, "size": 0.35, "radius": 0.3, "vmin": 0.5, "vmax": 1.5, "dir": Vector3.UP, "spread": 60.0, "add": false,
-					"colors": [Color(0.1, 0.05, 0.15, 0.9), Color(0.02, 0.01, 0.04, 0)]}))
 	c_kagezukami_no_jutsu(c, t)
 
 
 func p_kageyose_no_jutsu(c: Node3D, t: Node3D) -> void:
-	var center = gp(Jutsu._aim_ground(c, t, 10.0, 22.0))
-	for k in 12:
-		after(k * 0.08, func():
-			var a = randf() * TAU
-			var q = center + Vector3(cos(a), 0, sin(a)) * 9.0
-			VFX.puffs(q + Vector3.UP * 0.2, {"amount": 8, "life": 0.6, "size": 0.6, "radius": 0.4, "vmin": 8, "vmax": 12, "dir": (center - q).normalized(), "spread": 8.0, "add": false,
-				"colors": [Color(0.08, 0.04, 0.12, 0.9), Color(0.02, 0.01, 0.04, 0)]}))
 	c_kageyose_no_jutsu(c, t)
 
 
 func p_kagemane_shuriken_no_jutsu(c: Node3D, t: Node3D) -> void:
 	c_kagemane_shuriken_no_jutsu(c, t)
-	_shadow_wisps(c.global_position, 0.6, 8)
 
 
-## Gölge Dikiş: hedeflerin altında gölge göleti köpürür, iğneler fışkırınca kara buhar patlar
 func p_kage_nui_no_jutsu(c: Node3D, t: Node3D) -> void:
-	for e in enemies_near(c, c.global_position, 18.0).slice(0, 4):
-		after(0.35, func():
-			if live(e):
-				_shadow_wisps(e.global_position, 1.6, 24)
-				VFX.shockwave(gp(e.global_position) + Vector3.UP * 0.05, Color(0.12, 0.06, 0.2), 4.0, 0.3, true))
 	c_kage_nui_no_jutsu(c, t)
 
 
 func p_kagemane_kage_shibari_no_jutsu(c: Node3D, t: Node3D) -> void:
-	var d = fwd(c, t)
-	for k in 8:
-		after(k * 0.04, func():
-			_shadow_wisps(c.global_position + d.rotated(Vector3.UP, randf_range(-0.5, 0.5)) * (2.0 + k * 1.8), 0.6, 8))
 	c_kagemane_kage_shibari_no_jutsu(c, t)
 
 

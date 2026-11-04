@@ -79,7 +79,7 @@ func _ready() -> void:
 		await _wait(0.1)
 		if f0.has_status("bind"):
 			held_t = (Time.get_ticks_msec() - t0) / 1000.0
-	print("NR kagemane held=", held_t, "s chakra_used=", 200.0 - pl.chakra)
+	print("NR kagemane held=", held_t, "s chakra=", pl.chakra)
 	f0.statuses.clear()
 	pl.chakra = 5.0
 	Jutsu.execute(pl, "kagemane", f0)
