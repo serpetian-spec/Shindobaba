@@ -88,6 +88,34 @@ static func _sites(v: Dictionary) -> Dictionary:
 	return out
 
 
+## Chūnin Sınavı 2. aşamasının alanı (köy dışı, sabit): kapı yollarından uzak, karada, köy kenarından ~550 m
+static func exam_ground(v: Dictionary) -> Vector2:
+	var c = Vector2(float(v["x"]), float(v["y"]))
+	var r = float(v.get("r", 250))
+	var gates: Array = v.get("gates", [])
+	var rng = RandomNumberGenerator.new()
+	rng.seed = hash(String(v.get("id", "")) + "_sinav_alani")
+	var best = c + Vector2(0, r + 550.0)
+	var best_score = -1e9
+	for k in 48:
+		var a = rng.randf_range(0.0, 360.0)
+		var gate_d = 180.0
+		for g in gates:
+			gate_d = minf(gate_d, absf(fmod(a - float(g) + 540.0, 360.0) - 180.0))
+		var p = c + Vector2(sin(deg_to_rad(a)), cos(deg_to_rad(a))) * (r + rng.randf_range(450.0, 650.0))
+		var h0 = Game.terrain_height(p.x, -p.y)
+		if h0 < 2.0:
+			continue
+		var var_h = 0.0
+		for o2 in [Vector2(40, 0), Vector2(-40, 0), Vector2(0, 40), Vector2(0, -40)]:
+			var_h += absf(Game.terrain_height(p.x + o2.x, -(p.y + o2.y)) - h0)
+		var score = minf(gate_d, 40.0) - var_h * 3.0 + rng.randf() * 5.0
+		if score > best_score:
+			best_score = score
+			best = p
+	return best
+
+
 ## Eski kayıtların / başka kodların beklediği tek nokta: akademi
 static func _site(v: Dictionary) -> Vector2:
 	return _sites(v)["academy"]
@@ -162,6 +190,16 @@ static func _compound(parent: Node3D, v: Dictionary, sty: Dictionary) -> void:
 	srng.seed = hash(v["id"] + "_stadyum")
 	var kdir = rad_to_deg(atan2(float(v["x"]) - p.x, float(v["y"]) - p.y))   # Kage locası köy merkezine bakan tarafta
 	Stadium.build(b, 0.0, 0.0, 0.0, Stadium.style_for(String(v["id"])), srng, kdir)
+	b.finish()
+	# --- Chūnin Sınavı 2. aşama alanı: köyün dışında, köy tarzında kule (Konoha'daki Ölüm Ormanı kulesinin karşılığı)
+	var eg: Vector2 = exam_ground(v)
+	var eb = Game.terrain_height(eg.x, -eg.y)
+	Roadside._add_clear(eg.x, eg.y, 70.0)
+	b = Builder.new(parent, eg.x, eg.y, eb, "Story_%s_sinav_kulesi" % v["id"])
+	b.view_dist = 3000.0
+	var tsty = {"suna": [Color(0.8, 0.64, 0.42), Color(0.58, 0.42, 0.28), "砂"], "kiri": [Color(0.4, 0.5, 0.58), Color(0.78, 0.84, 0.86), "霧"],
+		"kumo": [Color(0.86, 0.86, 0.84), Color(0.3, 0.46, 0.7), "雲"], "iwa": [Color(0.55, 0.36, 0.26), Color(0.72, 0.6, 0.46), "岩"]}.get(String(v["id"]), [Color(0.62, 0.24, 0.18), Color(0.9, 0.84, 0.66), "天"])
+	BuildSites.exam_tower(b, tsty[0], tsty[1], tsty[2])
 	b.finish()
 	# --- ANBU / Kage muhafızları karargâhı
 	p = sites["anbu"]

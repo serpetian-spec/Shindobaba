@@ -74,6 +74,8 @@ func forest_center() -> Vector3:
 	if host == "konoha" and not Game.village("forest_death").is_empty():
 		var fd = Game.village("forest_death")
 		return Game.from_map(Vector2(fd["x"], fd["y"]))
+	if BuildVillageStory.STYLE.has(host):
+		return Game.from_map(BuildVillageStory.exam_ground(Game.village(host)))   # köyün kalıcı sınav kulesi
 	var s = Missions._spot(host, 600, 900)
 	return Game.from_map(Vector2(s[0], s[1]))
 

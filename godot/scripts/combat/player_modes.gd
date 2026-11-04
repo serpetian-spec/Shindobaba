@@ -513,7 +513,7 @@ func _end_beast() -> void:
 func set_size(s: float, dur: float) -> void:
 	size = s
 	size_t = dur
-	p.model.scale = Vector3.ONE * s
+	p.model.scale = Vector3.ONE * s * float(p.model.age_scale)   # yaş ölçeği korunur (çocuk karakter Baika bitince yetişkin boyuna dönüyordu)
 	p.radius = base_radius * s
 	p.height = base_height * s
 	var cs: CollisionShape3D = null

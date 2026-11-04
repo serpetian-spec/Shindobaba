@@ -17,7 +17,7 @@ const STORY_T := [
 	"Ninja Akademisi'ne git ve hocan {s1} ile konuş. (Akademi, {dir})",
 	"Akademi avlusundaki kuklalara 25 darbe vur, sonra hocana dön.",
 	"Hocandan Henge no Jutsu'yu öğren ve bir kez kullan [slot 1].",
-	"Mezuniyet Sınavı: hocanla konuş (yazılı + Bunshin/Henge/Kawarimi + hedef parkuru), ardından {s2} ile Zil Testi.",
+	"Mezuniyet Sınavı: hocanla konuş (yazılı + sınav odasında Bunshin/Henge + bahçede Kawarimi ve atış), ardından jōnin hocan {s2} ile takım sınavı.",
 	# 4: serbest oyun — sabit ana hikâye yok; metin Journal.objective_text() ile oyuncunun kendi hedeflerinden kurulur
 	"Yolun açık.",
 ]
@@ -130,7 +130,7 @@ func objective_text() -> String:
 	var t: String = STORY[mini(s, STORY.size() - 1)] if not STORY.is_empty() else ""
 	var pr = p()
 	if s == 3 and pr.get("flags", {}).get("academy_passed", false):
-		t = "Mezun oldun! Zil Testi: Antrenman Alanı'na git ve %s ile konuş (oku takip et)." % home_info()["s2"]
+		t = "Mezun oldun! Takım sınavı: Antrenman Alanı'na git ve jōnin hocan %s ile konuş (oku takip et)." % home_info()["s2"]
 	elif s == 3:
 		t = "Mezuniyet Sınavı: Akademi'de hocan %s ile konuş (Güç %d/5)." % [home_info()["s1"], int(pr.get("level", 1))]
 	return t
@@ -943,7 +943,7 @@ func _training_ground() -> void:
 	var pr = p()
 	var s = story()
 	if s == 3 and pr["flags"].get("academy_passed", false):
-		Hud.dialog(home_info()["s2"], "Demek mezun oldun. Ama gerçek ninjalar bu testten sonra belli olur: Zil Testi. Hazır mısın?", [{"label": "Zil Testine başla", "cb": Exams.bell_start}, {"label": "Biraz sonra", "cb": func(): pass}])
+		Hud.dialog(home_info()["s2"], "Demek mezun oldun. Ben takımımı kendi sınavımla seçerim. Hazır mısın?", [{"label": "Takım sınavına başla", "cb": Exams.bell_start}, {"label": "Biraz sonra", "cb": func(): pass}])
 		return
 	# chakra kâğıdı testi: mezun olmuş ama doğasını bilmeyen herkes isteğe bağlı yapabilir
 	if s >= Journal.FREE and not pr.get("element_known", false):

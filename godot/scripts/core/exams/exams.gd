@@ -215,10 +215,7 @@ func academy_talk() -> void:
 	if cur.begins_with("academy"):
 		Hud.dialog(sensei, "Sınav devam ediyor, odaklan!", [])
 		return
-	if int(pr["level"]) < 5:
-		Hud.dialog(sensei, "Mezuniyet sınavı için en az Güç 5 olmalısın (şu an %d). Kuklalarla çalış, D-rank işlere yardım et, sonra gel." % int(pr["level"]), [])
-		return
-	Hud.dialog(sensei, "Mezuniyet sınavı üç bölüm: önce yazılı sınav; sonra sınav odasında, hocaların önünde Bunshin ve Henge; en son bahçede Kawarimi ve atış hedefleri. Toplamda %60 başarı yeterli. Hazır mısın %s?" % pr["name"], [
+	Hud.dialog(sensei, "Mezuniyet sınavı üç bölüm: önce yazılı sınav; sonra sınav odasında, hocaların önünde Bunshin ve Henge; en son bahçede Kawarimi ve atış hedefleri. Toplamda %%60 başarı yeterli. Hazır mısın %s?" % pr["name"], [
 		{"label": "Hazırım! (yazılı sınav)", "cb": academy_written},
 		{"label": "Biraz daha çalışayım", "cb": func(): pass}])
 

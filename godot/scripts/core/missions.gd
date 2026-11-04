@@ -2427,7 +2427,7 @@ func story_target_for(s: int) -> Dictionary:
 	# Akademi geçildiyse adım 3'ün hedefi antrenman alanı (Zil Testi)
 	if s == 3 and Game.profile.get("flags", {}).get("academy_passed", false):
 		var tp = Exams.find_point(["training"])
-		return {"pos": tp, "name": "Antrenman Alanı — Zil Testi"}
+		return {"pos": tp, "name": "Antrenman Alanı — Takım Sınavı"}
 	var ck = "%s|%d" % [home, s]
 	if _story_cache.has(ck):
 		return _story_cache[ck]
