@@ -739,10 +739,13 @@ func _update_charge(dt: float) -> void:
 		if action != "charge":
 			action = "charge"
 			p.model.play("idle", 0.15)
-			# animedeki chakra toplama: eller göğüs önünde Kaplan mühründe, dirsekler dışa, dizler bükük, gövde hafif öne, baş eğik
-			p.model.overlay.cast_pose = {"arms": [["LeftUpperArm", Vector3(0.35, -0.7, 0.45)], ["LeftLowerArm", Vector3(-0.85, 0.35, 0.4)], ["LeftHand", Vector3(-0.15, 0.95, 0.25)],
-				["RightUpperArm", Vector3(-0.35, -0.7, 0.45)], ["RightLowerArm", Vector3(0.85, 0.35, 0.4)], ["RightHand", Vector3(0.15, 0.95, 0.25)]],
-				"fL": [0.0, 0.0, 1.5, 1.5, 0.1], "fR": [0.0, 0.0, 1.5, 1.5, 0.1], "spine": 3.0, "neck": 8.0, "crouch": 0.15}   # dik, ayaklar açık, sağlam duruş
+			# animedeki chakra toplama (Kaplan/Tora mührü: iki el simetrik birleşir; Koç mührünün asimetrik elleri yandan ayrık duruyordu): eller göğüs önünde birleşik mühürde —
+			# mühür pozu CastAnim'in mühür tablosundan (elle yazılmış kol yönleri elleri birleştirmiyordu), dik ve sağlam duruş
+			var sp: Dictionary = CastAnim._arms_from(CastAnim.SEALS["Tora"])
+			sp["spine"] = 3.0
+			sp["neck"] = 8.0
+			sp["crouch"] = 0.15
+			p.model.overlay.cast_pose = sp
 			p.model.overlay.set_pose("cast", 1.0)
 			p.model.overlay.set_pose("plant", 1.0)
 			if aura == null:

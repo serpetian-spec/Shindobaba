@@ -336,7 +336,7 @@ func finish() -> void:
 
 
 # ------------------------------------------------------------------ pozlar
-func _arms_from(seal: Dictionary) -> Dictionary:
+static func _arms_from(seal: Dictionary) -> Dictionary:
 	var lift: float = seal.get("lift", 0.0)
 	var p = {"fL": seal.get("fL", []), "fR": seal.get("fR", [])}
 	var arms = []
