@@ -29,6 +29,8 @@ func _ready() -> void:
 	print("ROG kaçtı: rütbe=%s rogue=%s news='%s'" % [Friends.rank_label(f0), f0.get("rogue"), f0.get("news")])
 	for k in 4:
 		print("ROG selam: ", Friends.greeting(id0))
+	fs["t_kamp"] = {"name": "Takumi", "role": "spar", "ninja": true, "look": {"gender": "m", "band_style": "slashed"}, "bond": 10, "village": "konoha", "rank": 1, "family": [], "status": "", "log": [], "news": ""}
+	print("ROG kamp kaçağı rütbe: ", Friends.rank_label(fs["t_kamp"]))
 	var low = 0
 	for k in 400:
 		var d = {}

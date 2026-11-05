@@ -1093,7 +1093,13 @@ func begin_cast(jid: String) -> void:
 	if cm_block != "" and not Game.has_meta("sandbox"):
 		Hud.msg(cm_block, Color(1, 0.75, 0.45))
 		return
-	if p.chakra < cost:
+	var tai = Stats.is_taijutsu(j)   # taijutsu chakra değil stamina harcar
+	if tai and not Game.has_meta("sandbox"):
+		cost = float(j.get("cost", 0))   # stamina bedeli seviyeyle şişmez (büyüyen şey stamina barı: dayanıklılık/taijutsu ustalığı)
+	if tai and p.stamina < cost:
+		Hud.msg("Nefesin tükendi! Biraz soluklan (stamina)", Color(1, 0.75, 0.35))
+		return
+	if not tai and p.chakra < cost:
 		Hud.msg("Yeterli chakra yok! [C] ile chakra topla", Color(0.5, 0.8, 1))
 		return
 	# ninjutsu ustalığı: yetersizse teknik yapılamaz; sınırdaysa mühür bozulabilir (yaptıkça gelişme)
@@ -1102,7 +1108,11 @@ func begin_cast(jid: String) -> void:
 		Hud.msg(mc, Color(1, 0.55, 0.45))
 		return
 	_seal_fail = mc.begins_with("fail:") and randf() < float(mc.substr(5))
-	p.chakra -= cost
+	if tai:
+		p.spend_stamina(cost)
+		Mastery.gain(Game.profile, "dayaniklilik", cost / 500.0)   # beden zorladıkça dayanıklılık gelişir
+	else:
+		p.chakra -= cost
 	ClanMech.pay(jid, j)
 	cooldowns[jid] = Combat.jutsu_cd(j)
 	cd_max[jid] = cooldowns[jid]

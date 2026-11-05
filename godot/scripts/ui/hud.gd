@@ -48,6 +48,7 @@ var rank_lbl: Label
 var ryo_lbl: Label
 var hp_txt: Label
 var ck_txt: Label
+var st_bar: ProgressBar   # stamina (taijutsu)
 var tool_box: PanelContainer
 var item_box: PanelContainer
 var item_lbl: Label
@@ -193,8 +194,12 @@ func _build_vitals() -> void:
 	ck_txt.position = Vector2(378, 70)
 	ck_txt.size = Vector2(60, 14)
 	frame.add_child(ck_txt)
+	st_bar = UI.bar(Color(0.95, 0.62, 0.22), 200, 5)
+	st_bar.position = Vector2(110, 85)
+	st_bar.tooltip_text = "Stamina — taijutsu harcar, soluklanınca dolar"
+	frame.add_child(st_bar)
 	xp_bar = UI.bar(Color(0.98, 0.8, 0.35), 260, 3)
-	xp_bar.position = Vector2(110, 90)
+	xp_bar.position = Vector2(110, 93)
 	frame.add_child(xp_bar)
 	clan_bar = UI.bar(Color(1, 0.6, 0.2), 160, 6)
 	clan_bar.position = Vector2(110, 112)
@@ -1110,6 +1115,7 @@ func _process(dt: float) -> void:
 	hp_trail.value = move_toward(hp_trail.value, pl.hp, dt * pl.max_hp * 0.35) if hp_trail.value > pl.hp else pl.hp
 	ck_bar.max_value = pl.max_chakra; ck_bar.value = pl.chakra
 	ck_txt.text = "%d" % int(pl.chakra)
+	st_bar.max_value = pl.max_stamina; st_bar.value = pl.stamina
 	xp_bar.max_value = 600.0; xp_bar.value = Mastery.total(pr)   # toplam ustalık (yaptıkça gelişme)
 	var cm = ClanMech.meter()
 	clan_bar.visible = not cm.is_empty()
@@ -1143,7 +1149,7 @@ func _process(dt: float) -> void:
 		var j: Dictionary = Data.jutsu.get(jid, {})
 		sn[1].text = String(j.get("name", jid)).split(":")[-1].split("(")[0].strip_edges()
 		var cd: float = SpecialSlots.cooldown(pl, jid) if j.has("virtual") else (comb.cooldowns.get(jid, 0.0) if comb else 0.0)
-		var ok = pl.chakra >= float(j.get("cost", 0))
+		var ok = (pl.stamina if Stats.is_taijutsu(j) else pl.chakra) >= float(j.get("cost", 0))
 		sn[2].text = ("%.1f" % cd) if cd > 0.0 else ""
 		sn[2].add_theme_color_override("font_color", Color(1, 1, 1))
 		var el = String(j.get("element", ""))

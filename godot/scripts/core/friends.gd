@@ -28,7 +28,8 @@ static func rank_label(f: Dictionary) -> String:
 ## Kaçak mı: rogue bayrağı ya da köyden kaçmış durumu (eskiden kaçış yalnız status yazıyordu: Chūnin/Jōnin görünüyor,
 ## köydeki gibi akademi/aile haberleri anlatıyordu)
 static func is_rogue(f: Dictionary) -> bool:
-	return bool(f.get("rogue", false)) or String(f.get("status", "")) == "kaçak"
+	# alın bandı çizik (slashed) olan = köyünü terk etmiş (sığınaktaki ateş başı kaçakları dahil; eski kayıtlar da)
+	return bool(f.get("rogue", false)) or String(f.get("status", "")) == "kaçak" or String((f.get("look", {}) as Dictionary).get("band_style", "")) == "slashed"
 
 
 const NINJA_ROLES := ["patrol", "roof", "guard", "spar", "teacher"]
@@ -708,6 +709,12 @@ static func _meet(v: Node, name_over := "") -> void:
 		"last_talk": Time.get_unix_time_from_system(), "element": ELS.pick_random(), "clan": clan, "eye": eye, "rank": rank,
 		"family": _family(clan, female, rank), "status": "", "log": [], "news": "",
 		"title": ("%s klanı" % ClanWorld.clan_name(clan)) if clan != "" else "%s ninjası" % String(Game.village(Progress.home()).get("name", "Köy"))}
+	if v.has_meta("rogue_npc") or String(v.look.get("band_style", "")) == "slashed":
+		# sığınaktaki kaçak: köy rütbesi, köy ailesi yok; rütbesi Bingo Kitabı sınıfı (Nukenin)
+		fs[id]["rogue"] = true
+		fs[id]["family"] = []
+		fs[id]["village"] = String(v.look.get("village", Progress.home()))
+		fs[id]["title"] = "Kaçak ninja (%s)" % String(Game.village(fs[id]["village"]).get("name", "?"))
 	if v.has_meta("site_key"):
 		fs[id]["site"] = String(v.get_meta("site_key"))   # aynı yerde (kapı, avlu) yeniden kurulunca yine o
 	var hp: Vector3 = v.global_position

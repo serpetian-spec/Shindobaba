@@ -295,6 +295,8 @@ func pardon_done(m: Dictionary, ok: bool) -> void:
 	var f: Dictionary = Friends.all()[id]
 	f["rogue"] = false
 	f["status"] = ""
+	if f.get("look") is Dictionary and String(f["look"].get("band_style", "")) == "slashed":
+		f["look"]["band_style"] = "head"   # affedildi: yeni bant (çizik bant kaçak sayılıyor)
 	f["party"] = false
 	f["village"] = Progress.home()
 	f["title"] = "Affedilmiş ninja"

@@ -404,6 +404,7 @@ func _ensure_hideout() -> void:
 		var vg = Villager.new()
 		vg.role = "spar"
 		vg.wander_r = 5.0
+		vg.set_meta("rogue_npc", true)
 		var vlist = ["konoha", "suna", "kiri", "kumo", "iwa"]
 		vg.look_extra = {"band_style": "slashed", "band": Color(0.25, 0.25, 0.28), "village": vlist[i % vlist.size()], "vest": null,
 			"top": [Color(0.2, 0.2, 0.24), Color(0.35, 0.15, 0.15), Color(0.25, 0.3, 0.25), Color(0.4, 0.35, 0.3)][i], "age": "adult"}

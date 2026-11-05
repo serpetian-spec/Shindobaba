@@ -73,6 +73,8 @@ var hp = 100.0
 var max_chakra = 100.0
 var chakra = 100.0
 var stamina = 100.0
+var max_stamina = 100.0
+var _stam_rest := 0.0   # son harcamadan beri (dinlenince hızlı dolar)
 # uçuş kipi: kaynak ("light" Keijūgan, "sand" kum bulutu, "susanoo" kanatlar...) ve ayarları
 var fly_src := ""
 var fly_cfg := {}
@@ -115,13 +117,20 @@ func _ready() -> void:
 	yaw = 180.0
 
 
+func spend_stamina(n: float) -> void:
+	stamina = maxf(0.0, stamina - n)
+	_stam_rest = 0.0
+
+
 func apply_profile_stats() -> void:
 	if Game.profile.is_empty():
 		return
 	max_hp = Stats.max_hp(Game.profile)
 	max_chakra = Stats.max_chakra(Game.profile)
+	max_stamina = Stats.max_stamina(Game.profile)
 	hp = minf(hp, max_hp)
 	chakra = minf(chakra, max_chakra)
+	stamina = minf(stamina, max_stamina)
 
 
 # ------------------------------------------------------------------ girdi
@@ -444,6 +453,10 @@ func _physics_process(dt: float) -> void:
 	if clan == "uzumaki":
 		regen *= 1.6
 	chakra = minf(max_chakra, chakra + regen * dt)
+	# stamina: nefeslenince dolar; harcadıktan 1.5 sn sonra hızlanır, dayanıklılık ustalığı hızlandırır
+	_stam_rest += dt
+	var sreg = (6.0 if _stam_rest < 1.5 else 16.0) * (1.0 + Mastery.get_v(Game.profile, "dayaniklilik") * 0.015)
+	stamina = minf(max_stamina, stamina + sreg * dt)
 	if hp > 0.0 and not Buffs.has("rinne_bedel"):   # Rinne Tensei bedeli: iyileşme yok
 		var hreg = 0.5 * (1.0 + Stats.skill(Game.profile, "regen_hp"))
 		if clan == "senju":

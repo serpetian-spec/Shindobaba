@@ -164,6 +164,16 @@ static func max_hp(p: Dictionary) -> float:
 	return v + Gear.stat(p, "hp") + clan_bonus(p, "hp") + skill(p, "hp")
 
 
+## Stamina (beden gücü): taijutsu chakra değil stamina harcar (anime: taijutsu chakrasız beden tekniği).
+## Dayanıklılık ve taijutsu ustalığıyla büyür (yaptıkça gelişme), ekipman "stamina" ekleyebilir
+static func max_stamina(p: Dictionary) -> float:
+	return 100.0 + Mastery.get_v(p, "dayaniklilik") * 6.0 + Mastery.get_v(p, "taijutsu") * 2.0 + Gear.stat(p, "stamina")
+
+
+static func is_taijutsu(j: Dictionary) -> bool:
+	return String(j.get("category", "")) == "taijutsu"
+
+
 static func max_chakra(p: Dictionary) -> float:
 	var v = 80.0 + Mastery.get_v(p, "chakra") * 7.0   # chakra kontrolü ustalığı
 	return v + Gear.stat(p, "chakra") + clan_bonus(p, "chakra") + skill(p, "chakra")
