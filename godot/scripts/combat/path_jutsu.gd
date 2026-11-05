@@ -21141,21 +21141,21 @@ func p_hatake_raiju_tsuiga(c: Node3D, t: Node3D) -> void:
 			return
 		var d = fwd(c, tt)
 		var head = Node3D.new()
-		var hound = RantonArt.hound(2.2)
-		hound.position.y = -0.9
+		var hound = RantonArt.hound(3.2)   # anime: insan boyunu aşan dev tazı
+		hound.position.y = -1.3
 		head.add_child(hound)
 		var eb = MB.new()
 		for sx in [-1.0, 1.0]:
-			eb.add("sphere", Vector3(sx * 0.075, 0.71, 0.82) * 2.2, Vector3(0.07, 0.045, 0.05) * 2.2, Color(1.0, 0.15, 0.12), Vector3(0, 0, sx * -15.0), 8)
+			eb.add("sphere", Vector3(sx * 0.075, 0.71, 0.82) * 3.2, Vector3(0.07, 0.045, 0.05) * 3.2, Color(1.0, 0.15, 0.12), Vector3(0, 0, sx * -15.0), 8)
 		var eyes = MeshInstance3D.new()
 		eyes.mesh = eb.build(null)
 		var em = StandardMaterial3D.new()
 		em.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		em.albedo_color = Color(1.0, 0.15, 0.12)
 		eyes.material_override = em
-		eyes.position.y = -0.9
+		eyes.position.y = -1.3
 		head.add_child(eyes)
-		var pr = shot(c, gp(c.global_position + d) + Vector3.UP * 0.9, d, 24.0, head, inf(c, "hatake_raiju_tsuiga", 2.0, {"knock": 10.0, "kind": "heavy", "element": "raiton", "stun": 1.2}), tt, false, 2.0, func(p, _h):
+		var pr = shot(c, gp(c.global_position + d) + Vector3.UP * 1.3, d, 24.0, head, inf(c, "hatake_raiju_tsuiga", 2.0, {"knock": 10.0, "kind": "heavy", "element": "raiton", "stun": 1.2}), tt, false, 2.0, func(p, _h):
 			impact_fx("raiton", RAI, p, 1.6))
 		every(2.0, 0.035, func(_i, _k):
 			if is_instance_valid(pr):
@@ -29640,11 +29640,12 @@ func p_mokuton_kajukai_korin(c: Node3D, t: Node3D) -> void:
 		ftw.tween_property(fl, "scale", Vector3.ONE, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		every(6.0, 0.6, func(_i, _k):   # çiçekten dökülen polen
 			if is_instance_valid(tr):
-				FX.burst(tr.global_position + top + Vector3.UP * 0.6, {"amount": 6, "life": 2.2, "tex": FX.tex_soft, "add": false, "size": 0.35, "radius": 0.8, "vmin": 0.3, "vmax": 0.9,
+				FX.burst(tr.global_position + top + Vector3.UP * 0.6, {"amount": 6, "life": 2.2, "tex": FX.tex_soft, "add": false, "cel": false, "size": 0.45, "radius": 0.8, "vmin": 0.3, "vmax": 0.9,
 					"spread": 180.0, "gravity": Vector3(0, -0.6, 0), "colors": [Color(1, 0.9, 0.35, 0), Color(1, 0.9, 0.35, 0.9), Color(1, 0.9, 0.4, 0)]}), Callable())
 	every(6.0, 0.35, func(_i, _k):
-		FX.burst(at + Vector3.UP * 1.6, {"amount": 18, "life": 2.6, "tex": FX.tex_soft, "add": false, "size": 4.0, "radius": 8.5, "vmin": 0.05, "vmax": 0.3, "gravity": Vector3(0, 0.05, 0),
-			"colors": [Color(0.95, 0.85, 0.45, 0), Color(0.95, 0.85, 0.45, 0.5), Color(0.95, 0.85, 0.45, 0)]})
+		# anime: alanı yoğun, yumuşak sarı polen pusu kaplar (cel çizgili bulut topağı değil)
+		FX.burst(at + Vector3.UP * randf_range(0.8, 2.6), {"amount": 24, "life": 3.2, "tex": FX.tex_soft, "add": false, "cel": false, "size": 7.0, "radius": 9.0, "vmin": 0.05, "vmax": 0.25,
+			"gravity": Vector3(0, 0.03, 0), "colors": [Color(0.96, 0.86, 0.42, 0.0), Color(0.96, 0.86, 0.42, 0.5), Color(0.95, 0.84, 0.4, 0.0)]})
 		# kanon: çiçek tozunu soluyan bilinçsiz düşer — ~2 sn soluyan uyur (rastgele değil)
 		for e in enemies_near(c, at, 9.0):
 			if live(e) and e.has_method("apply_status"):
