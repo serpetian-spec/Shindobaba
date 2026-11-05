@@ -144,10 +144,16 @@ func every(dur: float, dt: float, fn: Callable, done := Callable()) -> void:
 	var ep = VFX.epic
 	var own = _own()
 	var tw = create_tween()
+	var fin = {"done": false}
 	for i in n:
 		tw.tween_callback(func():
 			if _gone(own):
 				tw.kill()
+				# atan öldü ve silindi: döngü durur ama sahnedeki parçalar (kubbe, köpekbalıkları, alanlar) temizlenmeli —
+				# eskiden done hiç çağrılmıyor, Suirō Sameodori kubbesi ve köpekbalıkları sonsuza dek yerde kalıyordu
+				if done.is_valid() and not fin["done"]:
+					fin["done"] = true
+					done.call()
 				return
 			var o = VFX.epic
 			VFX.epic = ep
@@ -156,7 +162,8 @@ func every(dur: float, dt: float, fn: Callable, done := Callable()) -> void:
 		tw.tween_interval(dt)
 	if done.is_valid():
 		tw.tween_callback(func():
-			if not _gone(own):
+			if not fin["done"]:
+				fin["done"] = true
 				done.call())
 
 
