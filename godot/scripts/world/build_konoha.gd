@@ -628,29 +628,8 @@ static func _hokage_faces(b: Builder, rock: Dictionary, cliff_n: float, v: Dicti
 		var fx = (float(i) - 2.0) * gap
 		var fc = rc.lightened(0.03 * float(i % 2))
 		# kafanın orta yüksekliğinde uçurum yüzeyi (kuzeye doğru arazi bu yüksekliği geçtiği ilk nokta)
-		var fn = _cliff_surface(b, fx, cliff_n, fy)
-		_stone_head(b, i, Vector3(fx, fy, fn), H, fc.darkened(0.1))
-		# başın üstünde uçurumdan çıkan ince kaya saçağı (yüzleri çerçeveler)
-		var tn = _cliff_surface(b, fx, cliff_n, fy + H * 0.66)
-		b.box(Vector3(fx, fy + H * 0.66, tn - 1.5), Vector3(gap * 0.95, 2.5, 4.0), fc.darkened(0.25), 0, true)
-		# kafa havada asılı duruyordu: çeneden yere inen, aşağıya ve iki yana doğal yayılan kaya kütlesi (düzensiz kayalar,
-		# basamak gibi dizili kutular değil); yan yanaki kafaların kayalarıyla birleşir, arkası uçuruma gömülü
-		var chin = fy - H * 0.4   # büstün omuz hattı: kaya omuzların altını sarsın (arada boşluk kalmasın)
-		var gb = _gy(b, fx, fn - H * 1.2) - 2.0
-		var hrng = RandomNumberGenerator.new()
-		hrng.seed = 900 + i
-		var rows = 7
-		for k in rows:
-			var t = (float(k) + 0.5) / rows          # 0 çene .. 1 dip
-			var y = lerpf(chin, gb, t)
-			var span = H * (1.0 + 0.8 * t)          # aşağı indikçe genişler (komşu kafanınkiyle birleşir)
-			var cnt = 2 + int(t * 4.0)
-			for j in cnt:
-				var lx = fx + (float(j) + 0.5) / cnt * span - span * 0.5 + hrng.randf_range(-4.0, 4.0)
-				var sz = H * hrng.randf_range(0.36, 0.52) * (0.9 + t * 0.5)
-				var sn = _cliff_surface(b, lx, cliff_n, y)
-				var lc = rc.darkened(hrng.randf_range(0.04, 0.2))
-				b.boulder(Vector3(lx, y - sz * 0.1, sn - sz * 0.25 + 2.0), Vector3(sz * 1.3, sz, sz * 1.1), lc, hrng.randi() % 4, true, hrng.randf_range(0, 360))
+		# kayaya OYULMUŞ kabartma (anime): uçurum yüzeyine yapışık ızgara — kenarları kayanın içine gömülür, havada kafa/kaya yığını yok
+		_relief_head(b, fx, fy, cliff_n, H, fc.darkened(0.06), i)
 	# halk için uçuruma çıkan zikzak taş merdiven (yüzlerin batısında, seyir yerine çıkar)
 	_cliff_stairs(b, -2.0 * gap - gap * 1.1, cliff_n, top, rc.darkened(0.2))
 	# tepe seyir yeri (uçurumun hemen arkası)
@@ -660,6 +639,160 @@ static func _hokage_faces(b: Builder, rock: Dictionary, cliff_n: float, v: Dicti
 		b.box(Vector3(cx - 34 + k * 9.7, _gy(b, cx, ln) + 1.6, ln - 12), Vector3(0.3, 1.2, 0.3), Color(0.42, 0.3, 0.2), 0, false)
 	_act(b, cx, ln, 14, "lookout", "[F] Köyü seyret (kayıt)")
 	_act(b, cx + 30, ln, 4, "shrine", "[F] Kayadaki küçük sunakta dua et")
+
+
+## Hokage Kayası kabartması (anime ref refs/hokage_rock): baş, uçurumun kendisine oyulmuş — ızgaranın her noktası uçurum
+## yüzeyinden içeri/dışarı itilir, kenarlar kayanın içinde kalır (tam duvara yapışık). Yüz oval kubbe; saç kütlesi stile göre
+## (0 uzun saç, 1 geriye dikenli, 2 kâse kesim, 3 kısa dikenli, 4 kâküllü uzun — kadın); 1-3'te alın koruyucusu bandı;
+## göz çukurları, kaş çıkıntısı, burun, elmacık, ağız çizgisi, çene; altta boyun ve omuzlar kayaya karışır.
+## Oyunun kendi Hokage'leri (kanon yüz kopyası değil). Renk: oyuk yerler koyu, dikey akıntı izleri.
+static func _relief_head(b: Builder, fx: float, fy: float, cliff_n: float, H: float, col: Color, style: int) -> void:
+	var W = H * 1.4
+	var TOP = H * 0.8
+	var BOT = -H * 1.1
+	# uçurum yüzeyi: kaba ızgarada ölçülür, aradaki noktalar çift doğrusal (her noktada ikili arama çok pahalı)
+	var CX = 9; var CY = 10
+	var surf: Array = []
+	for jy in CY:
+		var row: Array = []
+		for ix in CX:
+			var sx = fx - W * 0.5 + W * ix / float(CX - 1)
+			var sy = fy + BOT + (TOP - BOT) * jy / float(CY - 1)
+			row.append(_cliff_surface(b, sx, cliff_n, sy))
+		surf.append(row)
+	var surf_at = func(x: float, y: float) -> float:
+		var fu = clampf((x - (fx - W * 0.5)) / W * (CX - 1), 0.0, CX - 1.001)
+		var fv = clampf((y - (fy + BOT)) / (TOP - BOT) * (CY - 1), 0.0, CY - 1.001)
+		var i0 = int(fu); var j0 = int(fv)
+		var a = fu - i0; var c = fv - j0
+		return lerpf(lerpf(surf[j0][i0], surf[j0][i0 + 1], a), lerpf(surf[j0 + 1][i0], surf[j0 + 1][i0 + 1], a), c)
+	var g2 = func(dx: float, dy: float, sx: float, sy: float) -> float:
+		return exp(-(dx * dx) / (2.0 * sx * sx) - (dy * dy) / (2.0 * sy * sy))
+	var dome = func(u: float, v: float, cx: float, cy: float, rx: float, ry: float, d: float) -> float:
+		var q = pow((u - cx) / rx, 2.0) + pow((v - cy) / ry, 2.0)
+		return d * sqrt(maxf(0.0, 1.0 - q))
+	var banded = style in [1, 2, 3]
+	# derinlik (H biriminde, uçurum yüzeyinden dışarı)
+	var depth = func(u: float, v: float) -> float:
+		var face = dome.call(u, v, 0.0, -0.02, 0.31, 0.46, 0.3)
+		var hair = 0.0
+		match style:
+			0:   # uzun saç: kafa kütlesi + omuza inen yan perdeler
+				hair = maxf(dome.call(u, v, 0.0, 0.06, 0.43, 0.5, 0.25), maxf(dome.call(u, v, -0.36, -0.35, 0.12, 0.5, 0.17), dome.call(u, v, 0.36, -0.35, 0.12, 0.5, 0.17)))
+			1:   # geriye taranmış dikenli: tepede yukarı-geri uzanan diken yelpazesi
+				hair = dome.call(u, v, 0.0, 0.1, 0.37, 0.48, 0.25)
+				for k in 7:
+					var ang = deg_to_rad(-63.0 + k * 21.0)
+					var dirv = Vector2(sin(ang), cos(ang))
+					var rel = Vector2(u, v - 0.18)
+					var al = rel.dot(dirv)
+					var pr = absf(rel.x * dirv.y - rel.y * dirv.x)
+					if al > 0.0 and al < 0.48:
+						hair = maxf(hair, 0.2 * (1.0 - al / 0.48) * exp(-pr * pr / (2.0 * pow(0.05 * (1.0 - al / 0.6), 2.0) + 0.0001)))
+			2:   # kâse kesim: yuvarlak kütle, kâküller alnın üstünde düz biter
+				hair = dome.call(u, v, 0.0, 0.12, 0.42, 0.44, 0.27)
+			3:   # kısa dikenli: kafanın çevresinde küçük diken tutamları
+				hair = dome.call(u, v, 0.0, 0.08, 0.37, 0.46, 0.24)
+				for k in 11:
+					var ang = deg_to_rad(-100.0 + k * 20.0)
+					var tip = Vector2(sin(ang), cos(ang)) * 0.46 + Vector2(0, 0.08)
+					hair = maxf(hair, 0.16 * g2.call(u - tip.x, v - tip.y, 0.05, 0.05))
+			4:   # kâküllü uzun (kadın): alna dökülen kâkül + uzun yan saç
+				hair = maxf(dome.call(u, v, 0.0, 0.06, 0.42, 0.5, 0.25), maxf(dome.call(u, v, -0.35, -0.42, 0.11, 0.55, 0.16), dome.call(u, v, 0.35, -0.42, 0.11, 0.55, 0.16)))
+		var t = maxf(face, hair)
+		# kâkül / kâse: alnın üstünde saç yüzün önüne gelir
+		if style in [2, 4] and v > 0.16 and absf(u) < 0.32 and face > 0.0:
+			t = maxf(t, face + 0.012 + 0.004 * sin(u * 60.0))
+		# alın koruyucusu bandı + plaka
+		if banded and v > 0.19 and v < 0.29 and absf(u) < 0.34:
+			t = maxf(t, dome.call(u, 0.0, 0.0, 0.0, 0.34, 1.0, 0.318))
+			if absf(u) < 0.1:
+				t += 0.008
+		# yüz ayrıntıları (yalnız yüzün önde olduğu yerde)
+		if face > 0.0 and face >= hair - 0.004 and v < 0.19:
+			for sx in [-1.0, 1.0]:
+				# badem göz: dış kenarı hafif yukarı kalkık oyuk + üst kapak çizgisi (anime taş yüzlerinde göz çizgisi okunur)
+				var ex = u - sx * 0.125
+				var ey = v - 0.055 - ex * sx * 0.12
+				var alm = clampf(1.0 - pow(ex / 0.075, 2.0) - pow(ey / 0.024, 2.0), 0.0, 1.0)
+				t -= 0.03 * sqrt(alm)
+				t += 0.008 * g2.call(ex, ey - 0.026, 0.07, 0.008)               # üst kapak
+				t += 0.01 * g2.call(u - sx * 0.19, v + 0.05, 0.07, 0.05)        # elmacık
+				t += 0.014 * g2.call(u - sx * 0.12, v - 0.125, 0.085, 0.012)    # kaş çıkıntısı
+			var nose_k = clampf((0.05 - v) / 0.17, 0.0, 1.0)
+			t += 0.035 * nose_k * g2.call(u, v + 0.05, 0.02 + 0.016 * nose_k, 0.09)   # ince burun
+			t -= 0.014 * g2.call(u, v + 0.24, 0.085, 0.009)                   # ağız çizgisi
+			t += 0.004 * g2.call(u, v + 0.265, 0.06, 0.015)                   # alt dudak
+			t += 0.008 * g2.call(u, v + 0.4, 0.09, 0.05)                      # çene
+		# boyun ve omuzlar: kayaya karışarak genişler
+		# boyun: çenenin altından aşağı kayaya karışarak söner (omuz kaidesi yok — anime: baş kayadan çıkar)
+		var neck = 0.14 * g2.call(u, 0.0, 0.15, 1.0) * clampf((v + 0.95) / 0.45, 0.0, 1.0) * clampf((-0.3 - v) / 0.1, 0.0, 1.0)
+		return maxf(t, neck)
+	var NX = 110; var NY = 146
+	var pos: Array = []
+	var dep: Array = []
+	for jy in NY:
+		var drow: Array = []
+		for ix in NX:
+			var x = fx - W * 0.5 + W * ix / float(NX - 1)
+			var y = fy + BOT + (TOP - BOT) * jy / float(NY - 1)
+			drow.append(float(depth.call((x - fx) / H, (y - fy) / H)))
+		dep.append(drow)
+	for _pass in 2:
+		var nd: Array = []
+		for jy in NY:
+			var r2: Array = []
+			for ix in NX:
+				var acc = 0.0
+				for oy in [-1, 0, 1]:
+					for ox in [-1, 0, 1]:
+						acc += float(dep[clampi(jy + oy, 0, NY - 1)][clampi(ix + ox, 0, NX - 1)])
+				r2.append(acc / 9.0)
+			nd.append(r2)
+		dep = nd
+	for jy in NY:
+		var prow: Array = []
+		for ix in NX:
+			var x = fx - W * 0.5 + W * ix / float(NX - 1)
+			var y = fy + BOT + (TOP - BOT) * jy / float(NY - 1)
+			# kenarlar kayanın 0.6 m içinde: yüzeyle birleşim yerinde boşluk/yarık kalmaz
+			var n = float(surf_at.call(x, y)) - float(dep[jy][ix]) * H + 0.6
+			prow.append(b.w(Vector3(x, y, n)))
+		pos.append(prow)
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var rng = RandomNumberGenerator.new()
+	rng.seed = 4100 + style
+	var streak: Array = []
+	for ix in NX:
+		streak.append(rng.randf())
+	var cfn = func(ix: int, jy: int) -> Color:
+		var d0: float = dep[jy][ix]
+		var avg = (float(dep[jy][maxi(ix - 1, 0)]) + float(dep[jy][mini(ix + 1, NX - 1)]) + float(dep[maxi(jy - 1, 0)][ix]) + float(dep[mini(jy + 1, NY - 1)][ix])) * 0.25
+		var concave = clampf((avg - d0) * 160.0, 0.0, 0.45)   # oyuk/yarık: koyu (göz, ağız, saç araları)
+		var c = col.darkened(concave + float(streak[ix]) * 0.07 + (0.06 if d0 < 0.01 else 0.0))
+		return c
+	for jy in NY - 1:
+		for ix in NX - 1:
+			var q = [[ix, jy], [ix + 1, jy + 1], [ix + 1, jy], [ix, jy], [ix, jy + 1], [ix + 1, jy + 1]]   # ön yüz köye bakar
+			for e in q:
+				st.set_color(cfn.call(e[0], e[1]))
+				st.add_vertex(pos[e[1]][e[0]])
+	st.generate_normals()
+	var mesh = st.commit()
+	var mat = Props.toon()
+	var mi = MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.material_override = mat
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	b.root.add_child(mi)
+	mi.global_transform = Transform3D.IDENTITY
+	# çarpışma: kabartmanın kendisi (üstüne basılır, tırmanılır)
+	if is_instance_valid(b.body):
+		var cs = CollisionShape3D.new()
+		cs.shape = mesh.create_trimesh_shape()
+		b.body.add_child(cs)
+		cs.global_transform = Transform3D.IDENTITY if cs.is_inside_tree() else Transform3D.IDENTITY
 
 
 ## Gerçek karakter kafasından oyulmuş dev taş yüz: her Hokage farklı saç, yüz ve bant
