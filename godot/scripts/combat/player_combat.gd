@@ -730,6 +730,7 @@ func _update_guard() -> void:
 
 
 # ------------------------------------------------------------------ chakra şarjı
+var _chg_fx := 0.0
 func _update_charge(dt: float) -> void:
 	var want = Input.is_action_pressed("charge") and p.grounded and (action == "" or action == "charge") and not Game.ui_open
 	if want and action == "charge":
@@ -741,23 +742,31 @@ func _update_charge(dt: float) -> void:
 			# animedeki chakra toplama: eller göğüs önünde Kaplan mühründe, dirsekler dışa, dizler bükük, gövde hafif öne, baş eğik
 			p.model.overlay.cast_pose = {"arms": [["LeftUpperArm", Vector3(0.35, -0.7, 0.45)], ["LeftLowerArm", Vector3(-0.85, 0.35, 0.4)], ["LeftHand", Vector3(-0.15, 0.95, 0.25)],
 				["RightUpperArm", Vector3(-0.35, -0.7, 0.45)], ["RightLowerArm", Vector3(0.85, 0.35, 0.4)], ["RightHand", Vector3(0.15, 0.95, 0.25)]],
-				"fL": [0.0, 0.0, 1.5, 1.5, 0.1], "fR": [0.0, 0.0, 1.5, 1.5, 0.1], "spine": 12.0, "neck": 10.0, "crouch": 0.45}
+				"fL": [0.0, 0.0, 1.5, 1.5, 0.1], "fR": [0.0, 0.0, 1.5, 1.5, 0.1], "spine": 3.0, "neck": 8.0, "crouch": 0.15}   # dik, ayaklar açık, sağlam duruş
 			p.model.overlay.set_pose("cast", 1.0)
 			p.model.overlay.set_pose("plant", 1.0)
 			if aura == null:
-				aura = FX.aura(p, Color(0.35, 0.7, 1.0), 1.2, Vector3(0, 0.9, 0), 0.0)
+				aura = FX.chakra_aura(p, Color(0.3, 0.62, 1.0), p.model.age_scale if p.model and p.model.get("age_scale") else 1.0)
+			_chg_fx = 0.0
 			Sfx.play("wind", p.global_position, 0.8, 0.6)
 		p.chakra = minf(p.max_chakra, p.chakra + 32.0 * dt)
+		# ayak dibinde chakra basıncı: dışa açılan rüzgâr halkası, kalkan toz ve küçük taşlar (anime)
+		_chg_fx -= dt
+		if action == "charge" and _chg_fx <= 0.0:
+			_chg_fx = 0.45
+			var gp = p.global_position + Vector3.UP * 0.05
+			FX.ring(gp, Color(0.55, 0.8, 1.0), 2.4, 0.45)
+			FX.dust(p.global_position, 0.5)
+			FX.burst(gp, {"amount": 5, "life": 0.6, "tex": FX.tex_smoke, "add": false, "size": 0.12, "radius": 0.9, "vmin": 1.5, "vmax": 3.0,
+				"dir": Vector3.UP, "spread": 25.0, "gravity": Vector3(0, -2.0, 0), "colors": [Color(0.5, 0.45, 0.4, 1), Color(0.5, 0.45, 0.4, 0)]})
 	elif action == "charge":
 		action = ""
 	if action != "charge" and float(p.model.overlay.targets.get("plant", 0.0)) > 0.0:
 		p.model.overlay.set_pose("cast", 0.0)
 		p.model.overlay.set_pose("plant", 0.0)
 	if aura and action != "charge":
-		aura.emitting = false
-		var a = aura
+		FX.stop_aura(aura)
 		aura = null
-		get_tree().create_timer(1.0).timeout.connect(a.queue_free)
 
 
 ## Raijin Kılıcı: her vuruşta ağızdan şimşek çatırtısı; saplamada ağız şimşek olarak ileri uzar; bitirişte gökten yıldırım çakar

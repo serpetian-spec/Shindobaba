@@ -342,6 +342,16 @@ static func _ensure_persona(f: Dictionary) -> void:
 		f["loyalty"] = randi_range(5, 30) if randf() < 0.2 else randi_range(40, 100)
 		f["ambition"] = FriendPlots.AMBITIONS.pick_random()
 		f["love"] = 0
+	# takım hocası (Akademi'nin atadığı jōnin) gizli hain olamaz: kötü plan/hırsızlık/ihbar/arkadan saldırı/kaçış onu seçmez.
+	# Eski kayıtlarda sadakati düşük gelip bu yüzden Düşman'a dönmüş hoca bir kez onarılır.
+	if String(f.get("role", "")) == "teacher":
+		if int(f.get("loyalty", 50)) < 65:
+			f["loyalty"] = randi_range(65, 100)
+		if not f.get("teacher_fix", false):
+			f["teacher_fix"] = true
+			if int(f.get("bond", 0)) < 10 and not f.get("rogue", false):
+				f["bond"] = 10
+				f.erase("plot")
 
 
 static func trait_known(f: Dictionary) -> bool:
@@ -797,7 +807,10 @@ func _life_event() -> void:
 		var defect_p = 0.03 + (0.1 if b < 0 else 0.0) + (0.08 if f.get("grief", false) else 0.0) - (0.025 if b >= 60 else 0.0)
 		var r = randf()
 		_ensure_persona(f)
-		if int(f.get("loyalty", 50)) < 30 and b < 70 and randf() < 0.3:
+		var teacher = String(f.get("role", "")) == "teacher"
+		if teacher:
+			defect_p = 0.0   # takım hocası köyünü bırakıp kaçmaz
+		if not teacher and int(f.get("loyalty", 50)) < 30 and b < 70 and randf() < 0.3:
 			_betrayal_event(id)
 		elif r < defect_p:
 			_defect(id)

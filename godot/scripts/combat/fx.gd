@@ -6,6 +6,7 @@ var tex_spark: ImageTexture
 var tex_smoke: ImageTexture
 var tex_ring: ImageTexture
 var tex_leaf: ImageTexture
+var tex_flame: ImageTexture   # chakra alev dili: sivri uçlu damla, yumuşak kenar
 var tex_water: ImageTexture   # Storm su parçası: sivri tırtıklı kenar, 3 düz ton, beyaz akış çizgileri
 var _mats = {}
 
@@ -17,6 +18,7 @@ func _ready() -> void:
 	tex_ring = _ring()
 	tex_leaf = _leaf()
 	tex_water = _water_chunk()
+	tex_flame = _flame_tongue()
 
 
 # ------------------------------------------------------------------ dokular
@@ -74,6 +76,21 @@ func _spark() -> ImageTexture:
 		for x in w:
 			var u = absf(x - w * 0.5 + 0.5) / (w * 0.5); var v = absf(y - h * 0.5 + 0.5) / (h * 0.5)
 			img.set_pixel(x, y, Color(1, 1, 1, pow(clampf(1.0 - u, 0, 1), 2.0) * pow(clampf(1.0 - v, 0, 1), 0.8)))
+	return ImageTexture.create_from_image(img)
+
+
+## Chakra alev dili (anime chakra aurası): altta tombul, yukarı doğru incelip sivrilen, hafif kıvrık damla; içi dolu, kenarı yumuşak
+func _flame_tongue() -> ImageTexture:
+	var w = 32; var h = 64
+	var img = Image.create(w, h, false, Image.FORMAT_RGBA8)
+	for y in h:
+		for x in w:
+			var v = 1.0 - float(y) / float(h - 1)          # 0 alt, 1 üst
+			var cx = 0.5 + sin(v * 3.0) * 0.06 * v           # uca doğru hafif kıvrım
+			var half = 0.42 * pow(clampf(1.0 - v, 0.0, 1.0), 0.7) * smoothstep(0.0, 0.18, v + 0.05)
+			var u = absf(float(x) / float(w - 1) - cx)
+			var a = clampf(1.0 - smoothstep(half * 0.6, half + 0.02, u), 0.0, 1.0)
+			img.set_pixel(x, y, Color(1, 1, 1, a))
 	return ImageTexture.create_from_image(img)
 
 
@@ -444,6 +461,67 @@ func explosion(pos: Vector3, s := 1.0, col := Color(1.0, 0.55, 0.15)) -> void:
 ## Döngüsel emitter: chakra aurası, jutsu çekirdekleri vb.
 ## dur > 0: o kadar saniye sonra kendiliğinden söner (iyileşme/seviye atlama gibi tek seferlik parıltılar).
 ## dur <= 0: kalıcı; çağıran durdurmalı (emitting = false + queue_free).
+## Chakra toplama aurası (anime/Storm): bedeni saran, yukarı yalazlanan mavi alev dilleri (karışım harmanı: parlak zeminde
+## de mavi kalır, eskiden toplama harmanlı ince kıvılcımlar kumda beyaza boğulup kayboluyordu) + içte parlak kıvılcımlar.
+## Dönen düğüm ana parçacık sistemidir; emitting=false çocuklarını da durdurmak için stop_aura kullanılır.
+func chakra_aura(parent: Node3D, col := Color(0.3, 0.62, 1.0), s := 1.0) -> GPUParticles3D:
+	var p = GPUParticles3D.new()
+	p.amount = int(70 * s)
+	p.lifetime = 0.7
+	p.local_coords = false
+	var pm = ParticleProcessMaterial.new()
+	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	pm.emission_box_extents = Vector3(0.32, 0.75, 0.22) * s
+	pm.direction = Vector3.UP
+	pm.spread = 8.0
+	pm.initial_velocity_min = 0.9
+	pm.initial_velocity_max = 2.0
+	pm.gravity = Vector3(0, 2.0, 0)
+	pm.scale_min = 0.7; pm.scale_max = 1.25
+	pm.color_ramp = _gradient([Color(col.lightened(0.5).r, col.lightened(0.5).g, col.lightened(0.5).b, 0.0), Color(col.r, col.g, col.b, 0.5),
+		Color(col.darkened(0.15).r, col.darkened(0.15).g, col.darkened(0.15).b, 0.0)])
+	pm.scale_curve = _curve([[0.0, 0.5], [0.35, 1.0], [1.0, 0.35]])
+	pm.particle_flag_align_y = true
+	p.process_material = pm
+	var q = QuadMesh.new()
+	q.size = Vector2(0.38, 0.8) * s
+	q.material = _draw_mat(tex_flame, false, BaseMaterial3D.BILLBOARD_FIXED_Y)
+	p.draw_pass_1 = q
+	p.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	parent.add_child(p)
+	p.position = Vector3(0, 0.95, 0) * s
+	p.emitting = true
+	# içte açık camgöbeği parıltı dilleri (toplama harmanı, küçük): alevin çekirdeği
+	var g = GPUParticles3D.new()
+	g.amount = int(36 * s)
+	g.lifetime = 0.5
+	g.local_coords = false
+	var gm = pm.duplicate()
+	gm.emission_box_extents = Vector3(0.24, 0.7, 0.16) * s
+	gm.color_ramp = _gradient([Color(0.85, 0.95, 1.0, 0.0), Color(0.6, 0.85, 1.0, 0.3), Color(0.5, 0.75, 1.0, 0.0)])
+	g.process_material = gm
+	var gq = QuadMesh.new()
+	gq.size = Vector2(0.18, 0.55) * s
+	gq.material = _draw_mat(tex_flame, true, BaseMaterial3D.BILLBOARD_FIXED_Y)
+	g.draw_pass_1 = gq
+	g.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	p.add_child(g)
+	g.emitting = true
+	return p
+
+
+func stop_aura(a: GPUParticles3D) -> void:
+	if not is_instance_valid(a):
+		return
+	a.emitting = false
+	for ch in a.get_children():
+		if ch is GPUParticles3D:
+			ch.emitting = false
+	get_tree().create_timer(1.0).timeout.connect(func():
+		if is_instance_valid(a):
+			a.queue_free())
+
+
 func aura(parent: Node3D, col: Color, s := 1.0, offset := Vector3(0, 0.9, 0), dur := 1.6) -> GPUParticles3D:
 	var p = GPUParticles3D.new()
 	p.amount = int(60 * s)
