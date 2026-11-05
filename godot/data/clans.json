@@ -605,8 +605,8 @@
  },
  "shiranui": {
   "name": "Shiranui",
-  "desc": "Senbon ustası Konoha ailesi: ağızdan iğne, chakra noktası iğneleri, iğne kafesleri.",
-  "kg": "Senbon Sanatı",
+  "desc": "Genma Shiranui'nin ailesi. Klanın gizli tekniği yoktur; senbon bir ninja aletidir (Genma ağzında taşır). Genma'nın asıl tekniği Hokage Muhafız Birliği'nin üç kişiyle yaptığı Hiraijin no Jutsu'dur. Senbon tekniklerini (Jōro Senbon, Kebari Senbon) parşömenlerden öğrenir; atışta isabetli ve hızlıdır.",
+  "kg": "Senbon isabeti",
   "eye": [
    0.35,
    0.28,
