@@ -47,8 +47,13 @@ func soft_target(caster: Node3D) -> Node3D:
 	var ar: Array = caster.aim_ray()
 	var from: Vector3 = ar[0]
 	var dir: Vector3 = ar[1]
+	# nişan yardımı: nişangâhın ~25° çevresindeki düşman (eskiden ~8°: biraz kayık nişanda jutsu boş noktaya gidiyordu,
+	# "adam menzilde ama tutmuyor"); o da yoksa karakterin önündeki 60° koni içinde 25 m'ye kadar en yakın düşman
 	var best: Node3D = null
-	var bd := 0.99
+	var bd := 0.906
+	var near: Node3D = null
+	var nd := 25.0
+	var fd: Vector3 = caster.face_dir()
 	for f in caster.get_tree().get_nodes_in_group("fighters"):
 		if f == caster or not Combat.hostile(caster, f) or f.is_dead():
 			continue
@@ -61,7 +66,13 @@ func soft_target(caster: Node3D) -> Node3D:
 		if dt > bd:
 			bd = dt
 			best = f
-	return best
+		var hv: Vector3 = f.global_position - caster.global_position
+		hv.y = 0.0
+		var hd = hv.length()
+		if hd < nd and hd > 0.3 and hv.normalized().dot(fd) > 0.5:
+			nd = hd
+			near = f
+	return best if best != null else near
 
 
 ## Yatay nişan yönü (duvar, yer jutsuları, atılmalar)
