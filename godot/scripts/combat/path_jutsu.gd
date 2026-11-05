@@ -3013,20 +3013,47 @@ func p_hachimon_tonko_no_jin(c: Node3D, _t: Node3D) -> void:
 
 ## Sabah Tavuskuşu: altıncı kapı; sürtünmeden alev alan yumruklar tavuskuşu kuyruğu gibi yelpazelenir
 func p_asakujaku(c: Node3D, t: Node3D) -> void:
+	# anime (refs/kapi/asakujaku.png): önce kullanıcının ARKASINDA tavuskuşu kuyruğu gibi yarım daire açan alevli yumruk
+	# yelpazesi belirir; sonra yumruklar o yelpazeden hedefe yağar. Duman yok: alev topları + kıvılcım + ışık.
 	_gate_cost(c, 0.12)
-	busy(c, 1.3)
+	busy(c, 1.6)
 	var d = fwd(c, t)
 	var right = d.cross(Vector3.UP).normalized()
-	for k in 18:
-		after(k * 0.05, func():
+	var tt = tg(c, t, 18.0)
+	var aim_at = (tt.global_position + Vector3.UP * 1.0) if tt else c.global_position + d * 12.0 + Vector3.UP
+	var fans: Array = []
+	for k in 22:
+		var a = lerpf(-1.35, 1.35, k / 21.0)   # yarım daire
+		var r = 2.2 + (k % 3) * 0.6
+		var off = (right * sin(a) + Vector3.UP * cos(a)) * r - d * 0.6
+		fans.append(off)
+	for k in fans.size():
+		after(0.015 * k, func():
 			if not live(c):
 				return
-			anim(c, "jab" if k % 2 == 0 else "cross", 2.6)
-			var off = right * randf_range(-2.2, 2.2) + Vector3.UP * randf_range(0.6, 2.6)
-			var from = c.global_position + Vector3.UP * 1.3 + d * 0.6
-			var pr = shot(c, from, (d * 12.0 + off).normalized(), 46.0, VFX.fireball(0.55), inf(c, "asakujaku", 0.18, {"element": "katon", "burn": 1.5, "knock": 2.0, "kind": "light"}), null, false, 0.6, func(p, _h):
-				VFX.explosion(p, 0.5, Color(1, 0.55, 0.15)))
-			VFX.element_trail(pr, "katon", Color(1, 0.55, 0.15), 0.5)
+			var q = c.global_position + Vector3.UP * 1.3 + fans[k]
+			var fb = VFX.fireball(0.5 + randf() * 0.2)
+			get_tree().current_scene.add_child(fb)
+			fb.global_position = q
+			fb.scale = Vector3.ONE * 0.1
+			var tw = fb.create_tween()
+			tw.tween_property(fb, "scale", Vector3.ONE, 0.12)
+			tw.tween_interval(0.5 - k * 0.012)
+			tw.tween_callback(fb.queue_free)
+			FX.light(q, Color(1.0, 0.55, 0.15), 3.0, 5.0, 0.3))
+	FX.light(c.global_position + Vector3.UP * 1.5, Color(1.0, 0.6, 0.2), 8.0, 14.0, 1.2)
+	for k in fans.size():
+		after(0.55 + k * 0.035, func():
+			if not live(c):
+				return
+			anim(c, "jab" if k % 2 == 0 else "cross", 2.8)
+			var from = c.global_position + Vector3.UP * 1.3 + (fans[k] as Vector3) * 0.6
+			var target = aim_at + right * randf_range(-1.6, 1.6) + Vector3.UP * randf_range(-0.8, 1.2)
+			var pr = shot(c, from, (target - from).normalized(), 44.0, VFX.fireball(0.55), inf(c, "asakujaku", 0.16, {"element": "katon", "burn": 1.5, "knock": 2.0, "kind": "light"}), null, false, 0.6, func(hp, _h):
+				FX.burst(hp, {"amount": 14, "life": 0.3, "tex": FX.tex_spark, "size": 0.35, "radius": 0.3, "vmin": 4.0, "vmax": 9.0, "spread": 180.0,
+					"colors": [Color(1, 0.95, 0.6, 1), Color(1, 0.5, 0.1, 0.8), Color(1, 0.3, 0.05, 0)]})
+				FX.light(hp, Color(1.0, 0.55, 0.15), 4.0, 6.0, 0.2))
+			VFX.trail(pr, 0.4, Color(1, 0.95, 0.6), Color(1, 0.55, 0.15), Color(0.9, 0.25, 0.05), 10, 0.8)
 			if k % 4 == 0:
 				Sfx.play("fire", from, 1.4, 0.4))
 	FX.speed_lines(c.global_position + Vector3.UP, d)
@@ -3034,70 +3061,135 @@ func p_asakujaku(c: Node3D, t: Node3D) -> void:
 
 ## Gündüz Kaplanı: yedinci kapı; avuç ileri, kaplan başı biçiminde dev hava basıncı topu (her şeyi savurur)
 func p_hirudora(c: Node3D, t: Node3D) -> void:
+	# anime (refs/kapi/hirudora.png): avuç ileri, sıkışmış havadan KAPLAN BAŞI — açık çene, dişler, kulaklar, parlayan gözler;
+	# arkasında akan hava yelesi. Gövde yarı saydam hava (mat_wind), çevresinde savrulan moloz.
 	_gate_cost(c, 0.15)
-	busy(c, 1.0)
+	busy(c, 1.1)
 	anim(c, "push", 1.0)
 	var d = fwd(c, t)
 	after(0.35, func():
 		if not live(c):
 			return
-		var from = c.global_position + Vector3.UP * 1.3 + d * 1.2
-		var node = Node3D.new()
-		var core = MeshInstance3D.new()
-		core.mesh = VFX._sphere(1.6, 18, 10)
-		core.material_override = VFX.mat_wind(Color(0.75, 0.9, 1.0), 9.0, 6.0, Vector3(0, 0, 1), 0.8)
-		node.add_child(core)
-		for sx in [-1.0, 1.0]:   # kaplan kulakları ve çene hatları (hava girdabı)
-			var ear = MeshInstance3D.new()
-			ear.mesh = VFX._sphere(0.6, 10, 6)
-			ear.material_override = VFX.mat_wind(Color(0.75, 0.9, 1.0), 9.0, 6.0, Vector3(0, 1, 0), 0.75)
-			ear.position = Vector3(sx * 1.2, 1.3, 0.2)
-			node.add_child(ear)
-		var inner = MeshInstance3D.new()
-		inner.mesh = VFX._sphere(1.1, 16, 8)
-		inner.material_override = VFX.mat_spiral(Color(1, 1, 1), Color(0.4, 0.6, 1.0), 4.0, 2.5, 9.0, 1.5, Vector3(0, 0, 1))
-		node.add_child(inner)
+		var from = c.global_position + Vector3.UP * 1.4 + d * 1.6
+		var node = _tiger_head(1.4)
 		VFX.gather(from, Color(0.7, 0.85, 1.0), 2.0)
-		var pr = shot(c, from, d, 26.0, node, inf(c, "hirudora", 2.2, {"knock": 22.0, "launch": 6.0, "kind": "heavy", "hitstop": 0.1}), null, true, 1.4)
-		pr.radius = 2.0
-		_etrail(pr, "fuuton", Color(0.75, 0.9, 1.0), 2.4)
-		every(1.4, 0.15, func(_i, _k):
+		var pr = shot(c, from, d, 24.0, node, inf(c, "hirudora", 2.2, {"knock": 22.0, "launch": 6.0, "kind": "heavy", "hitstop": 0.1}), null, true, 1.5)
+		pr.radius = 2.4
+		node.scale = Vector3.ONE * 0.2
+		node.create_tween().tween_property(node, "scale", Vector3.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		WindFX.bullet(pr, 3.0)   # yele: arkaya akan hava çizgileri
+		every(1.5, 0.15, func(_i, _k):
 			if is_instance_valid(pr):
-				VFX.shockwave(pr.global_position, Color(0.75, 0.9, 1.0), 4.0, 0.25, false, d)
+				VFX.shockwave(pr.global_position, Color(0.75, 0.9, 1.0), 5.0, 0.25, false, d)
 				VFX.debris(gp(pr.global_position), EARTH, 4, 8.0, 0.3), Callable())
-		shake(0.9)
+		shake(1.0)
 		Sfx.play("wind", from, 0.5)
-		Sfx.play("roar", from, 1.3, 0.5))
+		Sfx.play("roar", from, 1.3, 0.6))
+
+
+## Hirudora kaplan başı (-Z ileri): kafatası + burun + açık alt çene + dişler + kulaklar (hava malzemesi), parlak gözler
+func _tiger_head(s: float) -> Node3D:
+	var root = Node3D.new()
+	var airm = VFX.mat_wind(Color(0.92, 0.97, 1.0), 9.0, 7.0, Vector3(0, 0, 1), 1.0)   # opak-beyaz hava (kaplan biçimi okunsun)
+	var b = MB.new()
+	var wc = Color(1, 1, 1)
+	Loft.blob(b, Vector3(0, 0.2, 0.4) * s, Vector3(0, 0, -1), 3.2 * s, [0.9 * s, 1.55 * s, 1.7 * s, 1.5 * s, 1.0 * s], wc, 18)   # kafatası
+	Loft.blob(b, Vector3(0, -0.05, -1.6) * s, Vector3(0, -0.1, -1).normalized(), 2.0 * s, [1.0 * s, 1.05 * s, 0.85 * s, 0.4 * s], wc, 16)   # burun / üst çene
+	Loft.blob(b, Vector3(0, -1.05, -1.0) * s, Vector3(0, -0.45, -1).normalized(), 2.2 * s, [0.75 * s, 0.85 * s, 0.7 * s, 0.3 * s], wc, 14)   # açık alt çene
+	for sx in [-1.0, 1.0]:
+		b.add("cone", Vector3(0.9 * sx, 1.45, 0.6) * s, Vector3(0.9, 1.1, 0.6) * s, wc, Vector3(0, 0, -sx * 18.0), 8)   # kulak
+		b.add("sphere", Vector3(0.75 * sx, 0.75, -1.05) * s, Vector3(0.75, 0.35, 0.5) * s, wc, Vector3(0, 0, sx * 12.0), 10)   # kaş çıkıntısı
+		for f in 2:   # üst köpek dişi + alt diş
+			b.add("cone", Vector3(0.5 * sx, -0.55 - f * 0.05, -2.45 + f * 0.6) * s, Vector3(0.22, 0.7, 0.22) * s, wc, Vector3(180, 0, 0), 6)
+			b.add("cone", Vector3(0.42 * sx, -1.3, -2.2 + f * 0.5) * s, Vector3(0.2, 0.55, 0.2) * s, wc, Vector3.ZERO, 6)
+	var mi = MeshInstance3D.new()
+	mi.mesh = b.build(airm)
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(mi)
+	# parlak gözler (sarı-beyaz) + içte girdap
+	for sx in [-1.0, 1.0]:
+		var e = Projectile.energy_mesh(Color(1.0, 0.9, 0.45), Color(1, 1, 1), 0.42 * s, 10.0, 0.0, 2.2)
+		e.position = Vector3(0.72 * sx, 0.6, -1.45) * s
+		root.add_child(e)
+	var maw = MeshInstance3D.new()   # açık çenenin içi: koyu mavi boşluk
+	maw.mesh = VFX._sphere(0.75 * s, 12, 8)
+	maw.scale = Vector3(1.0, 0.55, 1.3)
+	var mm = StandardMaterial3D.new()
+	mm.albedo_color = Color(0.18, 0.28, 0.5, 0.85)
+	mm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	maw.material_override = mm
+	maw.position = Vector3(0, -0.6, -1.9) * s
+	root.add_child(maw)
+	var inner = MeshInstance3D.new()
+	inner.mesh = VFX._sphere(1.2 * s, 16, 8)
+	inner.material_override = VFX.mat_spiral(Color(1, 1, 1), Color(0.45, 0.65, 1.0), 4.0, 2.5, 9.0, 1.2, Vector3(0, 0, 1))
+	inner.position = Vector3(0, 0, 0.2) * s
+	root.add_child(inner)
+	return root
 
 
 ## Akşam Fili: sekizinci kapı; beş ardışık süpersonik yumruk, her biri öne uzanan hava şoku
 func p_sekizo(c: Node3D, t: Node3D) -> void:
+	# anime (refs/kapi/sekizo.png): her yumruk öne uzanan DEV beyaz hava basıncı sütunu atar; beş sütun çaprazlanarak
+	# (sağ-sol, yukarı-aşağı) hedefin üstünde X çizer. Sütun: uzun sivrilen hava silindiri, hızla belirir ve incelerek söner.
 	_gate_cost(c, 0.2)
 	busy(c, 2.0)
 	var d = fwd(c, t)
+	var right = d.cross(Vector3.UP).normalized()
 	for k in 5:
-		after(0.2 + k * 0.32, func():
+		after(0.2 + k * 0.3, func():
 			if not live(c):
 				return
-			anim(c, "cross", 2.0)
-			var o = c.global_position + Vector3.UP * 0.4
-			FX.ring(o + d * 2.0 + Vector3.UP, Color(0.8, 1, 0.8), 3.5 + k * 0.6, 0.3, false, d)
-			var dd = d.rotated(Vector3.UP, deg_to_rad((k - 2) * 9.0)) + Vector3.UP * (0.06 * (k % 2))
-			stream_fx(c.global_position + Vector3.UP * 1.2 + d * 0.8, dd.normalized(), 18.0 + k * 3.0, 1.4, VFX.mat_wind(Color(0.95, 1.0, 0.97), 10.0, 5.0, Vector3(0, 1, 0), 0.85), 0.25)
-			VFX.star(c.global_position + Vector3.UP * 1.2 + d * 0.8, Color(1, 1, 1), 1.8)
-			VFX.debris(gp(o + d * 6.0), EARTH, 8, 9.0, 0.4)
-			shake(0.5 + k * 0.1)
+			anim(c, "cross" if k % 2 == 0 else "jab", 2.0)
+			var o = c.global_position + Vector3.UP * 1.3 + d * 0.8
+			var yaw = [-11.0, 11.0, -5.0, 6.0, 0.0][k]
+			var pitch = [5.0, -4.0, -7.0, 6.0, 0.0][k]
+			var dd = d.rotated(Vector3.UP, deg_to_rad(yaw)).rotated(right, deg_to_rad(pitch)).normalized()
+			var L = 34.0 + k * 2.0
+			var col = MeshInstance3D.new()
+			var cm = CylinderMesh.new()
+			cm.top_radius = 0.7
+			cm.bottom_radius = 2.0
+			cm.height = L
+			cm.radial_segments = 18
+			col.mesh = cm
+			var wm = VFX.mat_wind(Color(0.95, 0.98, 1.0), 14.0, 6.0, Vector3(0, 1, 0), 0.9)
+			col.material_override = wm
+			col.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			get_tree().current_scene.add_child(col)
+			# silindir ekseni (+Y) sütun yönüne; dip yumrukta, uç ileride
+			var bas = Basis(dd.cross(Vector3.UP).normalized(), 0.0)
+			var yax = -dd
+			var xax = yax.cross(Vector3.UP).normalized()
+			if xax.length() < 0.1:
+				xax = Vector3.RIGHT
+			var zax = xax.cross(yax).normalized()
+			col.global_transform = Transform3D(Basis(xax, yax, zax), o + dd * L * 0.5)
+			col.scale = Vector3(0.2, 1.0, 0.2)
+			var tw = col.create_tween()
+			tw.tween_property(col, "scale", Vector3(1.0, 1.0, 1.0), 0.08)
+			tw.tween_interval(0.25)
+			tw.tween_property(col, "scale", Vector3(0.05, 1.0, 0.05), 0.5).set_ease(Tween.EASE_IN)
+			tw.parallel().tween_method(func(v: float): wm.set_shader_parameter("alpha", v), 0.9, 0.0, 0.5)
+			tw.tween_callback(col.queue_free)
+			VFX.star(o, Color(1, 1, 1), 2.2)
+			VFX.shockwave(o, Color(1, 1, 1), 6.0, 0.25, false, dd)
+			VFX.debris(gp(o + dd * 8.0), EARTH, 10, 10.0, 0.4)
+			shake(0.6 + k * 0.12)
 			Sfx.play("boom", o, 1.2 - k * 0.08, 0.6)
-			Combat.hit_zone(c, o, d, 18.0 + k * 3.0, 14.0, 4.0, inf(c, "sekizo", 0.75, {"knock": 16.0, "launch": 3.0, "kind": "heavy", "hitstop": 0.05})))
+			Combat.hit_zone(c, c.global_position + Vector3.UP * 0.4, dd, L, 10.0, 5.0, inf(c, "sekizo", 0.75, {"knock": 16.0, "launch": 3.0, "kind": "heavy", "hitstop": 0.05})))
 
 
 ## Gece Gayı: sekizinci kapının son tekmesi; kızıl ejderha biçimli buhar, uzayı büken tek hamlede hedefin içinden geç.
 ## Bedeli: canın %10'a iner, 12 sn bitkin (yavaş)
 func p_yagai(c: Node3D, t: Node3D) -> void:
+	# anime (refs/kapi/yagai.png): kızıl buhar EJDERHA biçimini alır (sarı parlayan gözler, boynuzlar, dişli ağız), kullanıcı
+	# uzayı büken tek tekmeyle hedefin içinden geçer; yol boyunca kıvrılan ejderha gövdesi, havaya kalkan kayalar. Duman yok.
 	var tt = tg(c, t, 30.0)
 	busy(c, 1.8)
 	anim(c, "crouch", 0.8)
-	var a = FX.aura(c, Color(1, 0.25, 0.2), 2.4, Vector3(0, 0.9, 0), 0.0)
+	var steam = FX.chakra_aura(c, Color(1.0, 0.22, 0.16), 1.2, Color(1.0, 0.62, 0.52))
 	Sfx.play("roar", c.global_position, 0.6)
 	shake(1.0)
 	after(0.9, func():
@@ -3107,20 +3199,40 @@ func p_yagai(c: Node3D, t: Node3D) -> void:
 		var start = c.global_position
 		var dist = 26.0 if tt == null else c.global_position.distance_to(tt.global_position) + 6.0
 		var end = gp(start + d * dist)
-		# ejderha: başlangıçtan bitişe kıvrılan kızıl buhar şeridi
-		for k in 14:
-			var q = start.lerp(end, k / 13.0) + Vector3.UP * (1.2 + sin(k * 0.8) * 0.8) + d.cross(Vector3.UP) * cos(k * 0.6) * 1.2
-			VFX.puffs(q, {"amount": 14, "life": 1.2, "size": 1.6 - k * 0.05, "radius": 0.8, "vmin": 0.5, "vmax": 2, "colors": [Color(1, 0.3, 0.2, 0.85), Color(0.7, 0.1, 0.1, 0)]})
-			var fb = VFX.fireball(2.2 - k * 0.1, "blood" if false else "fire")
-			get_tree().current_scene.add_child(fb)
-			fb.global_position = q
-			fb.scale = Vector3.ONE * 0.1
-			var tw = fb.create_tween()
-			tw.tween_interval(k * 0.02)
-			tw.tween_property(fb, "scale", Vector3.ONE, 0.15)
-			tw.tween_interval(0.6)
-			tw.tween_property(fb, "scale", Vector3.ONE * 0.05, 0.4)
-			tw.tween_callback(fb.queue_free)
+		var side = d.cross(Vector3.UP).normalized()
+		# ejderha gövdesi: başlangıçtan bitişe kıvrılan kızıl hava tüpü, başı hedefin ötesinde
+		var pts: Array = []
+		var rads: Array = []
+		for k in 12:
+			var f = k / 11.0
+			pts.append(start.lerp(end, f) + Vector3.UP * (1.4 + sin(f * 7.0) * 1.2 + f * 1.5) + side * sin(f * 5.5) * 2.2)
+			rads.append(lerpf(0.4, 1.6, f))
+		var b = MB.new()
+		Loft.tube(b, pts, rads, Color(1, 1, 1), 14, 3, false, false)
+		var head = pts[-1]
+		var hd = (pts[-1] - pts[-2]).normalized()
+		Loft.blob(b, head + hd * 0.6, hd, 3.6, [1.6, 1.8, 1.4, 0.8], Color(1, 1, 1), 14)   # baş
+		var hs = hd.cross(Vector3.UP).normalized()
+		for sx in [-1.0, 1.0]:
+			b.add("cone", head + Vector3.UP * 1.6 + hs * sx * 0.9 - hd * 0.6, Vector3(0.4, 2.2, 0.4), Color(1, 1, 1), Vector3(-30, 0, sx * 25), 6)   # boynuz
+		var rm = VFX.mat_wind(Color(1.0, 0.32, 0.24), 10.0, 6.0, Vector3(0, 1, 0), 0.8)
+		var mi = MeshInstance3D.new()
+		mi.mesh = b.build(rm)
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		get_tree().current_scene.add_child(mi)
+		for sx in [-1.0, 1.0]:   # sarı parlayan gözler
+			var e = Projectile.energy_mesh(Color(1.0, 0.85, 0.3), Color(1, 1, 0.8), 0.32, 10.0, 0.0, 1.8)
+			get_tree().current_scene.add_child(e)
+			e.global_position = head + hd * 1.6 + Vector3.UP * 0.7 + hs * sx * 0.7
+			e.create_tween().tween_interval(1.1)
+			get_tree().create_timer(1.3).timeout.connect(e.queue_free)
+		var tw = mi.create_tween()
+		tw.tween_interval(0.8)
+		tw.tween_method(func(v: float): rm.set_shader_parameter("alpha", v), 0.8, 0.0, 0.6)
+		tw.tween_callback(mi.queue_free)
+		for k in 10:   # yol boyunca havaya kalkan kayalar
+			var q = start.lerp(end, k / 9.0)
+			VFX.debris(gp(q), Color(0.45, 0.2, 0.18), 6, 10.0, 0.5)
 			VFX.cracks(gp(q), 3.0, Color(0.15, 0.04, 0.03, 0.9), 8.0)
 		c.global_position = end
 		anim(c, "dash", 1.4)
@@ -3132,8 +3244,7 @@ func p_yagai(c: Node3D, t: Node3D) -> void:
 			VFX.screen_lines(0.6, 1.2, Color(1, 0.35, 0.3))
 		shake(2.0)
 		Sfx.play("boom", end, 0.4)
-		if is_instance_valid(a):
-			a.emitting = false
+		get_tree().create_timer(1.2).timeout.connect(func(): FX.stop_aura(steam))
 		if c is Player:
 			c.hp = minf(c.hp, c.max_hp * 0.1)
 			st(c, "slow", 12.0)
@@ -4078,7 +4189,6 @@ func melee_fx(c: Node3D, at: Vector3, col: Color, s := 1.0, ground := false) -> 
 		var g = gp(at)
 		VFX.cracks(g, 3.0 * s)
 		VFX.debris(g, EARTH, int(16 * s), 9.0 * s, 0.5)
-		VFX.smoke_ring(g + Vector3.UP * 0.1, 3.5 * s, Color(0.6, 0.52, 0.42))
 	if s >= 1.3 and c is Player:
 		VFX.screen_lines(0.3, 0.8)
 	shake(0.2 + 0.3 * s)
