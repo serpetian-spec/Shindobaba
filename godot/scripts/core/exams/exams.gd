@@ -200,6 +200,7 @@ func spawn_audience(center: Vector3, r: float, n := 26, tiered := false) -> void
 		var a = TAU * i / n + randf_range(-0.05, 0.05)
 		var vg = Villager.new()
 		vg.role = "sitter"
+		vg.stay = true   # tribünde kalır (sahaya inmez)
 		get_tree().current_scene.add_child(vg)
 		var q = center + Vector3(sin(a), 0, cos(a)) * (r + 4.0 + (i % 3) * 2.2)
 		q.y = Game.ground_height(center.x, center.z) + 5.2 + (i % 3) * 1.6

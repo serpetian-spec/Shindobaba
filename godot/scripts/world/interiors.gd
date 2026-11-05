@@ -1026,6 +1026,12 @@ func _chunin_hall() -> void:
 		var x = side * (W * 0.5 - 2.0)
 		bx(x, 6.0, D * 0.45, 4.0, 0.4, D * 0.8, bal, true)
 		bx(x - side * 2.0, 7.0, D * 0.45, 0.08, 0.08, D * 0.8, Color(0.25, 0.25, 0.27))   # korkuluk
+		var rcs = CollisionShape3D.new()   # korkuluk çarpışması (yalnız çarpışma, görünmez)
+		var rsh = BoxShape3D.new()
+		rsh.size = Vector3(0.12, 1.0, D * 0.8)
+		rcs.shape = rsh
+		rcs.position = L(x - side * 2.0, 6.7, D * 0.45)
+		body.add_child(rcs)
 		for k in 20:
 			bx(x - side * 2.0, 6.6, D * 0.05 + k * (D * 0.8 / 19.0), 0.06, 0.8, 0.06, Color(0.25, 0.25, 0.27))
 		for k in 3:   # balkon altı payandalar
@@ -1066,7 +1072,7 @@ func _chunin_hall() -> void:
 	var names = ["Kenta", "Mio", "Daichi", "Aoi", "Ren", "Hana", "Sora", "Yui", "Ryō", "Emi"]
 	for k in 10:
 		var side = -1.0 if k % 2 == 0 else 1.0
-		person("teacher", side * (W * 0.5 - 2.6), 5.0 + (k / 2) * 6.5, -90.0 * side, "%s (aday)" % names[k], ["Sıradaki maç kimin?", "Rakibini iyi incele."], {"y": 6.2, "wander_r": 0.0})
+		person("teacher", side * (W * 0.5 - 2.6), 5.0 + (k / 2) * 6.5, -90.0 * side, "%s (aday)" % names[k], ["Sıradaki maç kimin?", "Rakibini iyi incele."], {"y": 6.2, "wander_r": 0.0, "stay": true})
 
 
 ## Sözleşme salonu: yerde mürekkeple çizilmiş dev çağırma çemberi, sözleşme parşömeni rafları, mühür kâğıtları, usta

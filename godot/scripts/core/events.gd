@@ -225,7 +225,11 @@ func _rival_enemy(r: Dictionary, scale: float, i := 0) -> Enemy:
 
 
 func _place(e: Node3D, at: Vector3) -> void:
-	at.y = Game.ground_height(at.x, at.z)
+	var it = Interiors.inst
+	if it and it.inside != "":
+		at.y = it.origin.y + 0.3   # iç mekân (kule ön eleme salonu gökte kurulu): dış zemin yüksekliği rakibi 1500 m aşağıya koyuyordu
+	else:
+		at.y = Game.ground_height(at.x, at.z)
 	e.global_position = at
 	e.home = at
 	e.wander_to = at

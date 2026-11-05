@@ -53,6 +53,7 @@ var look_extra := {}         # rol görünümünün üstüne yazılır (Kage cü
 var eat_mode := false
 var floor_sit := false
 var wander_r := 0.0
+var stay := false             # yerinden hiç ayrılmaz (balkondaki izleyiciler: dolaşınca korkuluktan arenaya düşüyorlardı)
 var stand_face := 0.0        # sabit rollerin baktığı yön (radyan)
 var fixed_face := false
 var going_home := false
@@ -372,6 +373,12 @@ func _physics_process(dt: float) -> void:
 
 
 func _wander_small(dt: float) -> void:
+	if stay:
+		step_move(Vector3.ZERO, dt)
+		if fixed_face:
+			_hold_face(dt)
+		model.play("idle", 0.3)
+		return
 	if wait > 0.0:
 		wait -= dt
 		step_move(Vector3.ZERO, dt)
