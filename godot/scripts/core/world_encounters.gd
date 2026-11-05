@@ -91,6 +91,9 @@ func _pick_kind(p: Vector3) -> String:
 	if randf() < 0.35:
 		pool.append_array(GENERIC)
 	pool = pool.filter(func(k): return k != last_kind)
+	# kaçakken: yolda ateş başında tek başına bir kaçak (tanışırsan sığınağa gelir)
+	if Orgs.is_rogue() and last_kind != "lone_rogue" and randf() < 0.3:
+		return "lone_rogue"
 	return pool.pick_random()
 
 
@@ -241,6 +244,42 @@ func start(kind: String) -> void:
 	cur["center"] = c
 	if kind in COMBAT and _has("ally") and randf() < 0.6:
 		_ally_join()
+
+
+## Yolda tek başına kaçak (kaçak oyuncu için): küçük ateşin başında oturur; konuşup tanışırsan sığınaktaki ateş başına
+## yerleşir (Friends site "hideout_N"), bir dahakine orada bulursun. Düşman değil: tanışılır, dost olunur, takıma alınır.
+func _start_lone_rogue(c: Vector3) -> void:
+	var vg = Villager.new()
+	vg.role = "spar"
+	vg.set_meta("rogue_npc", true)
+	vg.wander_r = 1.5
+	var vlist = ["konoha", "suna", "kiri", "kumo", "iwa", "ame", "taki", "kusa"]
+	vg.look_extra = {"band_style": "slashed", "band": Color(0.25, 0.25, 0.28), "village": vlist.pick_random(), "vest": null,
+		"top": [Color(0.2, 0.2, 0.24), Color(0.35, 0.15, 0.15), Color(0.25, 0.3, 0.25), Color(0.4, 0.35, 0.3)].pick_random(), "age": "adult"}
+	vg.lines_override = ["Yolun açık olsun... ya da değil. Bana fark etmez.", "Bandımı çizeli çok oldu. Sen de mi?", "Bu yollarda av-ninjası çok. Ateşi küçük tut."]
+	var at = Missions.open_ground(c, 15.0)
+	at.y = Game.ground_height(at.x, at.z)
+	get_tree().current_scene.add_child(vg)
+	vg.global_position = at
+	vg.home = at
+	cur["nodes"].append(vg)
+	cur["rogue"] = vg
+	var fb = MB.new()
+	for k in 5:
+		fb.add("cyl", Vector3(0, 0.1, 0), Vector3(0.1, 0.9, 0.1), Color(0.32, 0.22, 0.13), Vector3(80, k * 36, 0), 5)
+	var fm = MeshInstance3D.new()
+	fm.mesh = fb.build(Props.toon())
+	get_tree().current_scene.add_child(fm)
+	fm.global_position = at + Vector3(1.6, 0, 0)
+	cur["nodes"].append(fm)
+	var fl = OmniLight3D.new()
+	fl.light_color = Color(1.0, 0.6, 0.3)
+	fl.light_energy = 1.4
+	fl.omni_range = 6.0
+	fm.add_child(fl)
+	fl.position = Vector3(0, 0.7, 0)
+	_marker(at, "?", Color(0.8, 0.8, 0.85))
+	Hud.msg("%s küçük bir kamp ateşi var; başında bandı çizik biri oturuyor." % _dir_text(at).capitalize(), Color(0.85, 0.85, 0.9))
 
 
 func _start_merchant(c: Vector3) -> void:

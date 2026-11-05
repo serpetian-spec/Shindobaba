@@ -60,7 +60,7 @@ const LOOK := {
 	"momochi": {"hair": [Color(0.12, 0.12, 0.14)], "hs": ["diken", "kısa"], "top": Color(0.4, 0.45, 0.48), "top_style": "kolsuz", "mask": "cloth"},
 	"kurosuki": {"hair": [Color(0.15, 0.15, 0.2), Color(0.5, 0.55, 0.6)], "hs": ["uzun", "dağınık"], "top": Color(0.22, 0.22, 0.28), "top_style": "kolsuz"},
 	"hagoromo": {"hair": [Color(0.85, 0.85, 0.88), Color(0.2, 0.3, 0.3)], "hs": ["uzun", "atkuyruğu"], "top": Color(0.85, 0.9, 0.88), "top_style": "kimono"},
-	"namikaze": {"hair": [Color(0.98, 0.85, 0.3), Color(0.92, 0.78, 0.38), Color(0.35, 0.24, 0.14), Color(0.12, 0.1, 0.1), Color(0.55, 0.3, 0.16)],   # hepsi sarışın değil (~%40) "hs": ["diken", "dağınık"], "top": Color(0.25, 0.35, 0.25), "top_style": "ceket"},
+	"namikaze": {"hair": [Color(0.98, 0.85, 0.3), Color(0.92, 0.78, 0.38), Color(0.35, 0.24, 0.14), Color(0.12, 0.1, 0.1), Color(0.55, 0.3, 0.16)], "hs": ["diken", "dağınık"], "top": Color(0.25, 0.35, 0.25), "top_style": "ceket"},
 	"iburi": {"hair": [Color(0.7, 0.7, 0.72), Color(0.25, 0.25, 0.28)], "hs": ["dağınık", "atkuyruğu", "uzun"], "top": Color(0.35, 0.35, 0.4), "top_style": "kimono"},
 	"shimura": {"hair": [Color(0.08, 0.08, 0.1)], "hs": ["kısa", "geriye"], "top": Color(0.15, 0.15, 0.18), "top_style": "yakali_uzun"},
 	"tsuchigumo": {"hair": [Color(0.4, 0.25, 0.45), Color(0.12, 0.1, 0.12)], "hs": ["uzun", "orgu"], "top": Color(0.3, 0.22, 0.35)},

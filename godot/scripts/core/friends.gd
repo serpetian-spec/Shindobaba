@@ -731,6 +731,13 @@ static func _meet(v: Node, name_over := "") -> void:
 		fs[id]["family"] = []
 		fs[id]["village"] = String(v.look.get("village", Progress.home()))
 		fs[id]["title"] = "Kaçak ninja (%s)" % String(Game.village(fs[id]["village"]).get("name", "?"))
+		# yolda tanıştığın kaçak sığınaktaki ateş başına yerleşir (boş yer varsa)
+		if not v.has_meta("site_key"):
+			for k in 4:
+				var sk = "hideout_%d" % k
+				if at_site(sk) == "":
+					fs[id]["site"] = sk
+					break
 	if v.has_meta("site_key"):
 		fs[id]["site"] = String(v.get_meta("site_key"))   # aynı yerde (kapı, avlu) yeniden kurulunca yine o
 	var hp: Vector3 = v.global_position

@@ -422,18 +422,31 @@ func _ensure_hideout() -> void:
 		var d = TrainingDummy.new()
 		_hideout_node.add_child(d)
 		d.global_position = dp
-	# ateş başında takılan başka kaçaklar: konuşulur, dost/sevgili olunur, takıma katılır (kaçak diye herkes düşman değil)
-	for i in 3:
+	# eski kayıt: sığınakta tanıştığın (yeri kaydedilmemiş) kaçaklar ateş başına yerleşir
+	for fid0 in Friends.all():
+		var f0: Dictionary = Friends.all()[fid0]
+		if Friends.is_rogue(f0) and String(f0.get("status", "")) == "" and not f0.has("site") and String(f0.get("title", "")).begins_with("Kaçak ninja"):
+			for k in 4:
+				if Friends.at_site("hideout_%d" % k) == "":
+					f0["site"] = "hideout_%d" % k
+					break
+	# ateş başında YALNIZ yolda tanıştığın kaçaklar (eskiden 4 yabancı hep oradaydı: kalabalık, yanlış vuruşta hepsi saldırıyordu)
+	for i in 4:
+		var fid = Friends.at_site("hideout_%d" % i)
+		if fid == "":
+			continue
+		var fr: Dictionary = Friends.all()[fid]
 		var vg = Villager.new()
 		vg.role = "spar"
 		vg.set_meta("rogue_npc", true)
+		vg.set_meta("site_key", "hideout_%d" % i)
+		vg.set_meta("friend_id", fid)
+		vg.display_override = String(fr["name"])
 		vg.wander_r = 2.0
-		var vlist = ["konoha", "suna", "kiri", "kumo", "iwa"]
-		vg.look_extra = {"band_style": "slashed", "band": Color(0.25, 0.25, 0.28), "village": vlist[i % vlist.size()], "vest": null,
-			"top": [Color(0.2, 0.2, 0.24), Color(0.35, 0.15, 0.15), Color(0.25, 0.3, 0.25), Color(0.4, 0.35, 0.3)][i], "age": "adult"}
+		vg.look_extra = Friends.look_of(fr)
 		vg.lines_override = ["Burada kimse geçmişini sormaz.", "Köyüm beni sattı, ben de onları.", "Bir iş varsa haber ver, ortak olalım.", "Av-ninjalarından sakın; dün iki kişiyi aldılar."]
 		_hideout_node.add_child(vg)
-		var a2 = TAU * i / 3.0 + 0.4
+		var a2 = TAU * i / 4.0 + 0.4
 		var q2 = fire_at + Vector3(cos(a2), 0, sin(a2)) * 2.6
 		q2.y = Game.ground_height(q2.x, q2.z)
 		vg.global_position = q2
