@@ -1162,7 +1162,8 @@ func _ro_member_down(org_name: String, member: String) -> void:
 		if rest.is_empty() and not o.get("base_open", false):
 			o["base_open"] = true
 			Hud.banner(String(o["name"]).to_upper(), "Üyeleri düştü. Liderin gizli merkezinin yeri ortaya çıktı!", Color.html(o["accent"]))
-			get_tree().create_timer(2.0).timeout.connect(func(): _ro_base_offer(o))
+			if int(p().get("rank", 0)) >= 3:
+				get_tree().create_timer(2.0).timeout.connect(func(): _ro_base_offer(o))
 
 
 func _ro_base_offer(o: Dictionary) -> void:
@@ -1182,9 +1183,9 @@ func _ro_base_offer(o: Dictionary) -> void:
 	Hud.dialog("Köy Haberci Kuşu", job["brief"], opts)
 
 
-## Ara sıra köyden örgüt haberi (Sv.18+, kaçak değilsen, görevin yokken)
+## Ara sıra köyden örgüt haberi (Güç 18+, en az Chūnin — A-rank işi genine verilmez; lider baskını S-rank: Jōnin)
 func _ro_job_tick(dt: float) -> void:
-	if int(p().get("level", 1)) < 18 or is_rogue() or not Missions.active().is_empty() or Game.player == null:
+	if int(p().get("level", 1)) < 18 or int(p().get("rank", 0)) < 2 or is_rogue() or not Missions.active().is_empty() or Game.player == null:
 		return
 	_ro_job_t -= dt
 	if _ro_job_t > 0.0:
@@ -1195,7 +1196,8 @@ func _ro_job_tick(dt: float) -> void:
 		return
 	var o: Dictionary = orgs.pick_random()
 	if o.get("base_open", false):
-		_ro_base_offer(o)
+		if int(p().get("rank", 0)) >= 3:
+			_ro_base_offer(o)
 		return
 	var job = ro_goal_job(o)
 	if job.is_empty():

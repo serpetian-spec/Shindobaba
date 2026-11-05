@@ -4397,7 +4397,8 @@ func has_weapon() -> bool:
 
 
 func _weapons() -> void:
-	if String(look.get("weapon_r", "")) in PAIR and (look.get("weapon_l") == null or String(look.get("weapon_l")) == ""):
+	var wr0 = look.get("weapon_r")   # silahsız karakterde null (başlangıçta kunai yok)
+	if wr0 != null and String(wr0) in PAIR and (look.get("weapon_l") == null or String(look.get("weapon_l")) == ""):
 		look["weapon_l"] = look["weapon_r"]
 	for pair in [["weapon_r", "Right"], ["weapon_l", "Left"]]:
 		var wid = look.get(pair[0])

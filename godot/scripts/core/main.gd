@@ -331,6 +331,7 @@ func _begin_game(pos: Vector3) -> void:
 	Gear.ensure(Game.profile)
 	ClanMech.ensure(Game.profile)
 	Progress.ensure_rank_outfit()   # terfi edip rütbe kıyafeti almamış eski kayıtlar
+	Progress.clan_starter_kit(Game.profile)   # eski Shiranui kayıtlarına bir kez senbon
 	Gear.apply_look(Game.profile)
 	player = Player.new()
 	add_child(player)

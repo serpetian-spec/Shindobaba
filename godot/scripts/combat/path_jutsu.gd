@@ -3974,6 +3974,13 @@ func p_tsukikage(c: Node3D, t: Node3D) -> void:
 		Sfx.play("clink", at, 0.9))
 
 
+## Elindeki silahın kimliği; silahsızsa (null/boş) yedek
+func _held_or(c: Node3D, fallback: String) -> String:
+	var m = c.get("model")
+	var w = m.look.get("weapon_r") if m and is_instance_valid(m) else null
+	return String(w) if w != null and String(w) != "" else fallback
+
+
 ## Hız ardıl görüntüsü (anime: kendi renklerinde yarı saydam kopyalar): o anki pozdan pişirilmiş gövde, kendi malzemeleriyle; kısa sürede söner
 func _trail_ghost(c: Node3D, alpha: float, life: float) -> void:
 	var m = c.get("model")
@@ -11491,7 +11498,7 @@ func p_mikazuki_no_mai(c: Node3D, t: Node3D) -> void:
 	for k in 2:
 		var cl = decoy(c, c.global_position + d0.cross(Vector3.UP) * (2.0 if k == 0 else -2.0), 1.4)
 		if cl.get("model") and cl.model:
-			cl.model.look["weapon_r"] = String(c.model.look.get("weapon_r", "katana")) if c.get("model") else "katana"
+			cl.model.look["weapon_r"] = _held_or(c, "katana")
 		FX.smoke_puff(cl.global_position + Vector3.UP, 0.7, 10)
 		actors.append(cl)
 	# hilal düzeni: ortadaki (gerçek) önden, klonlar iki yandan — üçü aynı anda yay çizerek iner
@@ -29224,7 +29231,7 @@ func p_oborozukiyo(c: Node3D, t: Node3D) -> void:
 			if c is CharacterBody3D:
 				c.velocity = Vector3.ZERO, Callable())
 	# ışınsal kılıç halkası: savuruşun ardıl görüntüleri (kılıç ağzı dışa bakar), birer birer belirip söner
-	var wm = CharacterModel.weapon_mesh(String(c.model.look.get("weapon_r", "katana")) if c.get("model") and String(c.model.look.get("weapon_r", "")) != "" else "katana")
+	var wm = CharacterModel.weapon_mesh(_held_or(c, "katana"))
 	var side = d.cross(Vector3.UP).normalized()
 	var center = top + Vector3.UP * 0.95   # gövdenin ortası (anime: kılıç halkası karakteri çevreler)
 	var n = 26

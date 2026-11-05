@@ -1306,6 +1306,12 @@ func _plot_tick() -> void:
 ## ANBU kötü planı fark etti: Kage sana durdurma görevi verir (acil = plan başarıya çok yakın)
 func _kage_order(id: String, sc: Dictionary, urgent: bool) -> void:
 	var f: Dictionary = all()[id]
+	# Kage A-rank emri Chūnin'e, S-rank (acil) emri Jōnin'e verir; genin/akademi öğrencisine değil — işi ANBU halleder
+	if int(pr().get("rank", 0)) < (3 if urgent else 2) or Orgs.is_rogue():
+		f["bond"] = int(f["bond"]) - 10
+		log_event(f, "ANBU '%s' planını bozdu" % sc.get("title", ""))
+		Hud.msg("Köyde fısıltı: ANBU, %s'in gizli bir planını son anda bozmuş." % f["name"], Color(0.85, 0.8, 0.95), 6.0)
+		return
 	var vid = String(f.get("village", Progress.home()))
 	var kt = Kage.kage_name(vid)
 	var lv = int(pr().get("level", 1))

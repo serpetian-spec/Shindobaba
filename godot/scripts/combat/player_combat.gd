@@ -861,13 +861,37 @@ func substitute() -> void:
 		face_to(tgt)
 	else:
 		dest = from - p.face_dir() * 7.0
-	dest.y = Game.ground_height(dest.x, dest.z) + 0.1
+	dest = safe_dest(p, from, dest)
 	p.global_position = dest
 	p.velocity = Vector3.ZERO
 	action = ""
 	invuln = 0.5
 	FX.smoke_puff(dest + Vector3.UP * 0.9, 0.7, 10)
 	Progress.on_technique_used("kawarimi")
+
+
+## Işınlanma/kaçış varışı: duvarın içinden geçmez (önünde durur), zemin iç mekânda oda zemini (Chūnin kulesi, mağara inleri
+## dünyanın üstünde kurulu: arazi yüksekliği oyuncuyu odanın altına, dışarı düşürüyordu). Düşmanlar da aynı yardımcıyı kullanır.
+static func safe_dest(body: Node3D, from: Vector3, dest: Vector3) -> Vector3:
+	var space = body.get_world_3d().direct_space_state
+	var ex = [body.get_rid()] if body is CollisionObject3D else []
+	var a = from + Vector3.UP * 1.0
+	var b = Vector3(dest.x, from.y + 1.0, dest.z)
+	var hw = space.intersect_ray(PhysicsRayQueryParameters3D.create(a, b, 1, ex))
+	if not hw.is_empty():
+		var dirv = (b - a)
+		dirv.y = 0
+		var back = hw["position"] - dirv.normalized() * 0.6
+		dest = Vector3(back.x, dest.y, back.z)
+	var top = Vector3(dest.x, from.y + 2.5, dest.z)
+	var hf = space.intersect_ray(PhysicsRayQueryParameters3D.create(top, top + Vector3.DOWN * 12.0, 1, ex))
+	if not hf.is_empty():
+		dest.y = float(hf["position"].y) + 0.05
+	elif Interiors.inst and Interiors.inst.inside != "":
+		return Vector3(from.x, from.y, from.z)   # odada zemin bulunamadı (duvar dışı/boşluk): yerinde kal, asla araziye düşme
+	else:
+		dest.y = Game.jutsu_floor(dest.x, dest.z) + 0.1
+	return dest
 
 
 func _spawn_log(at: Vector3) -> void:

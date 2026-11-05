@@ -242,7 +242,7 @@ func ground_height(x: float, z: float, on_water := true) -> float:
 ## (Yer jutsuları mağarada 1500 m aşağıda patlıyordu.) Yalnız savaş/efekt kodu kullanır; NPC yürüyüşü ground_height ile kalır.
 func jutsu_floor(x: float, z: float) -> float:
 	var it = Interiors.inst
-	if it and it.inside != "" and Vector2(x - it.origin.x, z - it.origin.z).length() < 50.0:
+	if it and it.inside != "" and Vector2(x - it.origin.x, z - it.origin.z).length() < 160.0:   # Chūnin salonu 50 m'den büyük: uzak uçta araziye (1500 m aşağı) düşülüyordu
 		return it.origin.y
 	return ground_height(x, z)
 

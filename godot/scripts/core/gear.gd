@@ -862,7 +862,9 @@ static func ensure(p: Dictionary) -> void:
 	p["equip"] = {}
 	var L: Dictionary = p.get("look", {})
 	grant(p, _starter_set(p), "set", L.get("top", null), L.get("pants", null))
-	grant(p, "kunai", "sag")
+	# silahsız başlanır (kunai silah dükkânında); Shiranui ailesi senbon iğneleriyle (Genma)
+	if String(p.get("clan", "")) == "shiranui":
+		grant(p, "senbon", "sag")
 	if L.get("band") != null:
 		grant(p, "alin_koruyucu", "kafa", L["band"])
 		grant(p, "alin_boyun", "", L["band"])

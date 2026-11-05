@@ -236,6 +236,9 @@ func setup(a: Dictionary) -> void:
 		if not auto.is_empty():
 			a["jutsu"] = auto
 	_maybe_clan(a)
+	# Shiranui (Genma'nın ailesi) senbon iğneleriyle savaşır — oyuncunun başlangıç silahıyla aynı (AI eşitliği)
+	if String(a.get("clan", "")) == "shiranui" and look is Dictionary and String(look.get("weapon_r", "") if look.get("weapon_r") != null else "") == "":
+		look["weapon_r"] = "senbon"
 
 
 ## Rastgele klan: köyün klanlarından biri (kaçaklar herhangi bir köyden); klan teknikleri jutsu listesinin başına
@@ -972,7 +975,7 @@ func take_hit(info: Dictionary) -> void:
 		if atk:
 			var behind = atk.global_position - atk.face_dir() * 2.0 if atk.has_method("face_dir") else global_position
 			behind.y = _floor_y(behind.x, behind.z)
-			global_position = behind
+			global_position = PlayerCombat.safe_dest(self, global_position, behind)   # duvar içine / oda dışına geçmesin (oyuncuyla aynı)
 		Combat.popup_text(global_position + Vector3.UP * 2.2, "Kawarimi!", Color(0.9, 0.9, 0.6))
 		state = "chase"
 		attack_cd = 0.0
