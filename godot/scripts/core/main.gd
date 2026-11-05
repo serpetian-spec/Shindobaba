@@ -323,6 +323,7 @@ func _begin_game(pos: Vector3) -> void:
 	Game.profile["slots"] = sl
 	Gear.ensure(Game.profile)
 	ClanMech.ensure(Game.profile)
+	Progress.ensure_rank_outfit()   # terfi edip rütbe kıyafeti almamış eski kayıtlar
 	Gear.apply_look(Game.profile)
 	player = Player.new()
 	add_child(player)

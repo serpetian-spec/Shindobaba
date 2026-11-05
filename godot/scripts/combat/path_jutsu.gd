@@ -21141,24 +21141,40 @@ func p_sarutobi_shuriken_tajuu(c: Node3D, t: Node3D) -> void:
 
 ## Şimşek Canavarı İz Süren Diş: kılıç ucundan şimşek tazısı fırlar, hedefi izleyip ısırır
 func p_hatake_raiju_tsuiga(c: Node3D, t: Node3D) -> void:
+	# anime (Kakashi): Raikiri chakrası yere yakın dörtnala koşan, kırmızı gözlü dev bir şimşek tazısına döner — gövdesi
+	# sürekli çatırdayan dallı şimşeklerle sarılı, hedefe kilitlenip ısırır. Köpek gövdesi ortak RantonArt.hound (eklemli dörtnal),
+	# raiton görünüşü: gövde boyunca çakan beyaz-mavi şimşek dalları + kırmızı gözler (Ranton Kōga'nın pürüzsüz ışık tazısından ayrı).
 	busy(c, 0.8)
 	var tt = tg(c, t, 30.0)
 	_rai_hand(c, 0.8)
 	after(0.3, func():
 		if not live(c):
 			return
-		var b = MB.new()
-		b.add("sphere", Vector3(0, 0, 0), Vector3(0.8, 0.7, 1.6), Color.WHITE)
-		b.add("sphere", Vector3(0, 0.2, 0.9), Vector3(0.6, 0.55, 0.7), Color.WHITE)
+		var d = fwd(c, tt)
+		var head = Node3D.new()
+		var hound = RantonArt.hound(2.2)
+		hound.position.y = -0.9
+		head.add_child(hound)
+		var eb = MB.new()
 		for sx in [-1.0, 1.0]:
-			b.add("cone", Vector3(sx * 0.2, 0.55, 0.85), Vector3(0.1, 0.25, 0.08), Color.WHITE, Vector3.ZERO, 4)
-		var hound = mesh_of(b, VFX.mat_bolt(Color(0.6, 0.8, 1.0), 2.0))
-		var from = hand_pos(c, true)
-		var pr = shot(c, from, aim_at(c, tt, from), 26.0, hound, inf(c, "hatake_raiju_tsuiga", 2.0, {"knock": 10.0, "kind": "heavy", "element": "raiton", "stun": 1.2}), tt, false, 2.0, func(p, _h):
+			eb.add("sphere", Vector3(sx * 0.075, 0.71, 0.82) * 2.2, Vector3(0.07, 0.045, 0.05) * 2.2, Color(1.0, 0.15, 0.12), Vector3(0, 0, sx * -15.0), 8)
+		var eyes = MeshInstance3D.new()
+		eyes.mesh = eb.build(null)
+		var em = StandardMaterial3D.new()
+		em.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		em.albedo_color = Color(1.0, 0.15, 0.12)
+		eyes.material_override = em
+		eyes.position.y = -0.9
+		head.add_child(eyes)
+		var pr = shot(c, gp(c.global_position + d) + Vector3.UP * 0.9, d, 24.0, head, inf(c, "hatake_raiju_tsuiga", 2.0, {"knock": 10.0, "kind": "heavy", "element": "raiton", "stun": 1.2}), tt, false, 2.0, func(p, _h):
 			impact_fx("raiton", RAI, p, 1.6))
-		every(2.0, 0.05, func(_i, _k):
+		every(2.0, 0.035, func(_i, _k):
 			if is_instance_valid(pr):
-				VFX.bolt(pr.global_position, pr.global_position + Vector3(randf_range(-1.2, 1.2), randf_range(-0.5, 1.2), randf_range(-1.2, 1.2)), RAI, 0.1, 0.1, 1), Callable()))
+				var bd = pr.global_basis
+				for q in 2:   # gövde boyunca (baş -> kuyruk) çakan dallı şimşekler
+					var along = randf_range(-1.8, 1.6)
+					var p0 = pr.global_position + bd.z * along + Vector3.UP * randf_range(-0.5, 0.6)
+					VFX.bolt(p0, p0 + Vector3(randf_range(-1.4, 1.4), randf_range(-0.6, 1.4), randf_range(-1.4, 1.4)), Color(0.85, 0.95, 1.0) if q == 0 else RAI, 0.08, 0.09, 2), Callable()))
 	Sfx.play("chidori", c.global_position, 1.2)
 
 

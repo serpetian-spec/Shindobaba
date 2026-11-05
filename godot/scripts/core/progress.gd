@@ -477,6 +477,35 @@ func learn(jid: String, announce := true) -> bool:
 	return true
 
 
+## Eski kayıt: rütbe alındığı halde rütbe kıyafeti hiç verilmemiş (set yuvasına geçişten önce terfi edenler) — bir kez verilir
+func ensure_rank_outfit() -> void:
+	var pr = p()
+	if pr.is_empty() or not pr.has("flags"):
+		return
+	var rk = int(pr.get("rank", 0))
+	if rk < 2 or rk > 4 or pr["flags"].has("rank_outfit_%d" % rk):
+		return
+	match rk:
+		2:
+			_rank_set("set_%s_chunin" % home(), "set_chunin")
+		3:
+			_rank_set("set_%s_jonin" % home(), "set_jonin")
+		4:
+			_rank_set("set_anbu", "set_anbu")
+
+
+## Rütbe kıyafeti: köye özel set yoksa genel set; set yuvasına kuşanır ve karakter hemen yeniden giydirilir
+func _rank_set(id: String, fallback: String) -> void:
+	var pr = p()
+	if Gear.item(id).is_empty():
+		id = fallback
+	Gear.grant(pr, id, "set")
+	pr["flags"]["rank_outfit_%d" % int(pr["rank"])] = true
+	Hud.msg("Yeni kıyafet: %s  [Tab > Ekipman]" % Gear.item(id).get("name", id), Color(0.6, 0.9, 1.0))
+	if Game.player and is_instance_valid(Game.player):
+		Game.player.rebuild_model()
+
+
 func promote(rank: int) -> void:
 	var pr = p()
 	pr["rank"] = rank
@@ -490,20 +519,12 @@ func promote(rank: int) -> void:
 			Hud.msg("Yeni ekipman: Alın Koruyucu  [Tab > Ekipman]", Color(0.6, 0.9, 1.0))
 		2:
 			GeninSquad.disband()
-			var vest_id = "%s_yelek" % home()
-			if home() == "konoha" or Gear.item(vest_id).is_empty():
-				vest_id = "chunin_yelek"
-			Gear.grant(pr, vest_id, "zirh", hi["vest"])
-			Hud.msg("Yeni ekipman: Taktik Yelek  [Tab > Ekipman]", Color(0.6, 0.9, 1.0))
+			# kıyafetler set yuvasında (eski "zirh" yuvası kalktı: yelek verilip görünmüyordu) — köyün Chūnin seti giydirilir
+			_rank_set("set_%s_chunin" % home(), "set_chunin")
 		3:
-			var jid = "%s_jonin" % home()
-			if Gear.item(jid).is_empty():
-				jid = "konoha_jonin"
-			Gear.grant(pr, jid, "dis")
-			Hud.msg("Yeni ekipman: %s  [Tab > Ekipman]" % Gear.item(jid)["name"], Color(0.6, 0.9, 1.0))
+			_rank_set("set_%s_jonin" % home(), "set_jonin")
 		4:
-			Gear.grant(pr, "anbu_zirh", "zirh")
-			Hud.msg("Yeni ekipman: ANBU Zırhı  [Tab > Ekipman]", Color(0.6, 0.9, 1.0))
+			_rank_set("set_anbu", "set_anbu")
 		5:
 			Hud.msg("Kage adaylığın resmen ilan edildi.", Color(1, 0.85, 0.5))
 		6:
