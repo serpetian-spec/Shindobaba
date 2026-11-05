@@ -534,7 +534,7 @@ func _kinjutsu_dialog() -> void:
 		if lv > int(pr["level"]) + r * 2:
 			continue
 		var price = 1500 + lv * 220
-		opts.append({"label": "%s  (Sv.%d) — %d Ryō" % [j.get("name", jid), lv, price], "tip": String(j.get("desc", "")), "cb": func():
+		opts.append({"label": "%s  (Güç %d) — %d Ryō" % [j.get("name", jid), lv, price], "tip": String(j.get("desc", "")), "cb": func():
 			if int(pr["ryo"]) < price:
 				Hud.msg("Yeterli ryō yok.", Color(1, 0.6, 0.5))
 				return

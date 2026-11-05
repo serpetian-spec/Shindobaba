@@ -438,6 +438,8 @@ func add_ryo(amount: int) -> void:
 	if amount > 0:
 		Hud.float_text("+%d Ryō" % amount, Color(1, 0.85, 0.4))
 		Sfx.play("coin")
+	elif amount < 0:
+		Hud.float_text("%d Ryō" % amount, Color(1, 0.45, 0.4))   # her harcama/kayıp görünür (para "kendi kendine" azalıyor sanılıyordu)
 
 
 ## Mangekyō tarzı dışında kalan (ya da göz yuvasında zaten olan) öğrenilmiş teknikleri kaldır: önceden her Mangekyō
@@ -663,7 +665,10 @@ func on_player_died() -> void:
 	var rogue = Orgs.is_rogue()
 	Hud.banner("YENİLDİN", "Sığınağında, ateşin başında uyanıyorsun..." if rogue else "Hastanede uyanıyorsun...", Color(0.9, 0.3, 0.3))
 	var pr = p()
-	pr["ryo"] = int(int(pr["ryo"]) * 0.9)
+	var lost = int(int(pr["ryo"]) * 0.1)
+	if lost > 0:
+		add_ryo(-lost)
+		Hud.msg("Bayılınca kesendeki paranın %%10'u kayboldu (%d Ryō)." % lost, Color(1, 0.6, 0.5), 6.0)
 	if Interiors.inst and Interiors.inst.inside != "":
 		Interiors.inst.abort()   # içeride (mağara/in) öldün: oda kapanır, kapıya atılmazsın; düşman inde seni bekler
 	get_tree().create_timer(2.5).timeout.connect(func():
@@ -829,7 +834,7 @@ Tıbbi ninja kavanozuna bakıp başını salladı: \"Başkasının gözünü bur
 		"contract_keeper":
 			Contracts.keeper_interact(it)
 		"valley":
-			Hud.dialog("Sonun Vadisi", "İki dev heykelin arasında nehir köpürüyor. Burada bir zamanlar büyük bir savaş olmuş... (Sv.35'te gizli bir uyanış seni bekliyor)", [])
+			Hud.dialog("Sonun Vadisi", "İki dev heykelin arasında nehir köpürüyor. Burada bir zamanlar büyük bir savaş olmuş... (Güç 35'te gizli bir uyanış seni bekliyor)", [])
 		"anbu":
 			Exams.anbu_offer()
 		_:

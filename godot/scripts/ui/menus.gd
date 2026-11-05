@@ -1410,7 +1410,6 @@ static func _tab_inventory(main: Node, body: Control) -> void:
 	if KgPaths.SOY.has(String(pr.get("soy", ""))):
 		stat_row.call("leaf", "Kan Soyu", KgPaths.SOY[String(pr["soy"])]["name"])
 	stat_row.call(UI.ELEMENT_ICONS.get(String(pr["elements"][0]) if not pr["elements"].is_empty() else "", "chakra"), "Chakra doğası", ", ".join(pr["elements"]).capitalize())
-	stat_row.call("plus", "Yetenek puanı", str(int(pr["sp"])))
 	var md: Dictionary = pr["missions_done"]
 	stat_row.call("mission", "Görevler", "D%d  C%d  B%d  A%d  S%d" % [md.get("D", 0), md.get("C", 0), md.get("B", 0), md.get("A", 0), md.get("S", 0)])
 
@@ -2605,7 +2604,7 @@ static func _hanging_scroll(m: Dictionary, cb: Callable) -> Button:
 	r1.position = Vector2(20, 222)
 	r1.size = Vector2(160, 20)
 	b.add_child(r1)
-	var r2 = UI.label("%d XP%s" % [rw[1], "   ✦ ekipman" if rw[2] >= 0.5 else ""], 13, Color(0.35, 0.25, 0.15), HORIZONTAL_ALIGNMENT_CENTER)
+	var r2 = UI.label("✦ ekipman şansı" if rw[2] >= 0.5 else "", 13, Color(0.35, 0.25, 0.15), HORIZONTAL_ALIGNMENT_CENTER)   # XP kalktı (ustalık sistemi)
 	r2.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0))
 	r2.position = Vector2(20, 246)
 	r2.size = Vector2(160, 18)
@@ -2709,10 +2708,7 @@ static func _unroll(m: Dictionary, village_id: String) -> void:
 	r1.add_child(Icons.view("coin", 22, Color(0.6, 0.42, 0.1)))
 	r1.add_child(mk.call("%d Ryō" % rw[0], 18, ink, true))
 	rv.add_child(r1)
-	var r2 = UI.hbox(8)
-	r2.add_child(Icons.view("star", 22, Color(0.6, 0.42, 0.1)))
-	r2.add_child(mk.call("%d XP" % rw[1], 18, ink, true))
-	rv.add_child(r2)
+	# XP satırı kaldırıldı: seviye sistemi yok, gelişim yaptıkça (ustalık)
 	if rw[2] > 0.0:
 		var r3 = UI.hbox(8)
 		r3.add_child(Icons.view("chest", 22, Color(0.6, 0.42, 0.1)))

@@ -71,6 +71,31 @@ func _teleport(pos: Vector3, yaw_deg: float) -> void:
 	pl.model.play("idle", 0.0)
 
 
+## Girişte kamera kapı duvarına çarpıp karakterin dibine geliyordu (karakter, özellikle çocuk, ekranı dolduruyordu):
+## arkada kameraya ~4.5 m kalacak kadar odanın içine ilerle (önündeki boşluk elverdiği kadar)
+func _room_for_cam() -> void:
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	var pl = Game.player
+	if pl == null or inside == "":
+		return
+	var space = pl.get_world_3d().direct_space_state
+	var f: Vector3 = pl.face_dir()
+	f.y = 0
+	f = f.normalized()
+	var eye = pl.global_position + Vector3.UP * 1.2
+	var hb = space.intersect_ray(PhysicsRayQueryParameters3D.create(eye, eye - f * 8.0, 1, [pl.get_rid()]))
+	var back = eye.distance_to(hb["position"]) if not hb.is_empty() else 8.0
+	var hf = space.intersect_ray(PhysicsRayQueryParameters3D.create(eye, eye + f * 12.0, 1, [pl.get_rid()]))
+	var front = eye.distance_to(hf["position"]) if not hf.is_empty() else 12.0
+	var move = clampf(4.5 - back, 0.0, maxf(0.0, front - 2.0))
+	if move > 0.1:
+		var to = pl.global_position + f * move
+		pl.global_position = to
+		pl.cam_pivot.global_position = to + Vector3.UP * 1.6 * pl.model.age_scale
+		pl.reset_physics_interpolation()
+
+
 # ------------------------------------------------------------------ giriş / çıkış
 func enter(it: Dictionary) -> void:
 	if busy or inside != "" or Game.player == null:
@@ -87,6 +112,7 @@ func enter(it: Dictionary) -> void:
 	_build(kind, int(it.get("seed", 0)))
 	inside = kind
 	_teleport(origin + Vector3(0, 0.05, -2.4), 0.0)
+	_room_for_cam.call_deferred()
 	if kind.begins_with("lair_"):
 		Missions.lair_room(origin)
 	_rain(false)

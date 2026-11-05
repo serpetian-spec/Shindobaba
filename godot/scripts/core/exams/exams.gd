@@ -36,7 +36,7 @@ const SPECIALTIES := [
 	{"id": "sensor", "title": "Sensör Birliği", "icon": "target", "desc": "Chakra algısı: yazılı sınavlarda güvenli kopya, menzil +%10, gizlilikte düşmanları uzaktan sezersin.", "mods": {"reach": 1.1}},
 	{"id": "zehir", "title": "Zehir ve İlaç Uzmanı", "icon": "potion", "desc": "Silahlarına zehir sürersin: yakın dövüş +%12.", "mods": {"melee": 1.12}},
 	{"id": "silah", "title": "Silah Ustası", "icon": "sword", "desc": "Her türlü ninja aletinde ustalık: yakın dövüş +%10, hız +%4.", "mods": {"melee": 1.1, "speed": 1.04}},
-	{"id": "egitmen", "title": "Akademi Eğitmeni", "icon": "book", "desc": "Yeni nesli yetiştirirsin. Kazanılan XP +%15 (Kage olunca akademi takımları daha güçlü).", "mods": {}},
+	{"id": "egitmen", "title": "Akademi Eğitmeni", "icon": "book", "desc": "Yeni nesli yetiştirirsin. Ustalık gelişimi +%15 (Kage olunca akademi takımları daha güçlü).", "mods": {}},
 ]
 
 
@@ -374,6 +374,9 @@ func _kawarimi_after() -> void:
 	_kawarimi_throw()
 
 
+const TARGETS := 3   # akademi atış hedefi sayısı (6 idi; alet bekleme süresiyle yetişmiyordu)
+
+
 func academy_targets() -> void:
 	cur = "academy_wait"
 	var pl = Game.player
@@ -388,11 +391,11 @@ func academy_targets() -> void:
 	inv["kunai"] = maxi(int(inv.get("kunai", 0)), 20)
 	inv["shuriken"] = maxi(int(inv.get("shuriken", 0)), 20)
 	cur = "academy_targets"
-	data["t"] = 60.0
+	data["t"] = 90.0   # atış bekleme süresi yüzünden 60 sn yetmiyordu
 	data["broken"] = 0
 	var c = pl.global_position
-	for i in 6:
-		var a = TAU * i / 6.0 + randf_range(-0.3, 0.3)
+	for i in TARGETS:
+		var a = TAU * i / float(TARGETS) + randf_range(-0.3, 0.3)
 		var q = Missions.open_ground(c + Vector3(sin(a), 0, cos(a)) * randf_range(8, 14), 10.0)
 		var d = TrainingDummy.new()
 		d.set_meta("exam_target", true)
@@ -403,7 +406,7 @@ func academy_targets() -> void:
 		nodes.append(d)
 		FX.smoke_puff(q + Vector3.UP, 0.7, 8)
 	Missions.target_marker = nodes.back().global_position if not nodes.is_empty() else c
-	Hud.banner("ATIŞ HEDEFLERİ", "60 saniyede 6 hedefi kunai/shuriken ile vur [R at, T değiştir]", Color(1, 0.8, 0.4))
+	Hud.banner("ATIŞ HEDEFLERİ", "90 saniyede %d hedefi kunai/shuriken ile vur [R at, T değiştir]" % TARGETS, Color(1, 0.8, 0.4))
 
 
 func _academy_results() -> void:
@@ -412,9 +415,9 @@ func _academy_results() -> void:
 	var w = float(data["written"])
 	var pr_ok = int(data["practical"])
 	var tg = int(data["broken"])
-	var total = w * 0.4 + pr_ok / 3.0 * 0.35 + tg / 6.0 * 0.25
+	var total = w * 0.4 + pr_ok / 3.0 * 0.35 + tg / float(TARGETS) * 0.25
 	var passed = total >= 0.6
-	var rows = [["Yazılı sınav", "%%%d" % int(w * 100), w >= 0.5], ["Bunshin / Henge / Kawarimi", "%d / 3" % pr_ok, pr_ok >= 2], ["Atış hedefleri", "%d / 6" % tg, tg >= 4], ["Toplam", "%%%d" % int(total * 100), passed]]
+	var rows = [["Yazılı sınav", "%%%d" % int(w * 100), w >= 0.5], ["Bunshin / Henge / Kawarimi", "%d / 3" % pr_ok, pr_ok >= 2], ["Atış hedefleri", "%d / %d" % [tg, TARGETS], tg >= 2], ["Toplam", "%%%d" % int(total * 100), passed]]
 	if passed:
 		flags()["academy_passed"] = true
 		Progress.add_xp(120)
@@ -827,7 +830,7 @@ func on_dummy_broken(d: Node) -> void:
 	if cur == "academy_targets" and is_instance_valid(d) and d.has_meta("exam_target") and not d.has_meta("counted"):
 		d.set_meta("counted", true)
 		data["broken"] = int(data["broken"]) + 1
-		if int(data["broken"]) >= 6:
+		if int(data["broken"]) >= TARGETS:
 			_academy_results()
 
 
@@ -843,7 +846,7 @@ func _process(dt: float) -> void:
 				_practical_next(false)
 		"academy_targets":
 			data["t"] = float(data["t"]) - dt
-			Hud.objective_progress("Hedef: %d / 6   •   ⏰ %d sn" % [int(data["broken"]), int(data["t"])])
+			Hud.objective_progress("Hedef: %d / %d   •   ⏰ %d sn" % [int(data["broken"]), TARGETS, int(data["t"])])
 			if float(data["t"]) <= 0.0:
 				_academy_results()
 		"bell":

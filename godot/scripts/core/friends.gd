@@ -1453,6 +1453,9 @@ func _betrayal_event(id: String) -> void:
 		f["bond"] = mini(int(f["bond"]), -40)
 		f["party"] = false
 		Friends.log_event(f, "Kesenden %d Ryō çaldı" % amt)
+		if amt > 0:   # eskiden sessizdi: para kendi kendine azalıyor sanılıyordu
+			Hud.msg("Kesen hafifledi... %s %d Ryō'nu çalıp ortadan kayboldu!" % [f["name"], amt], Color(1, 0.45, 0.4), 8.0)
+			Journal.add("%s kesemden %d Ryō çaldı." % [f["name"], amt], "milestone")
 		Hud.banner("HIRSIZLIK", "%s kesenden %d Ryō çalıp ortadan kayboldu!" % [f["name"], amt], Color(1, 0.5, 0.4))
 	else:
 		Missions._rep(Progress.home(), -15)

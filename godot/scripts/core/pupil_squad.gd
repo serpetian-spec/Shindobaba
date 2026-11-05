@@ -77,9 +77,9 @@ static func options(id: String) -> Array:
 		d["follow"] = not fol
 		Hud.msg("Öğrencilerin %s." % ("D/C/B görevlerinde seninle gelecek" if not fol else "köyde kalacak"), Color(0.7, 0.95, 0.7))})
 	opts.append({"label": "Sana bir teknik öğreteyim...", "cb": func(): _teach_menu(id)})
-	opts.append({"label": "Gelişimin nasıl? (seviye %d, %d teknik)" % [int(f.get("pupil_lv", 6)), (f.get("taught", []) as Array).size()], "cb": func():
-		Hud.dialog(String(f["name"]), "Seviyem %d. %s Sizin sayenizde her görevde biraz daha güçleniyorum, hocam!" % [int(f.get("pupil_lv", 6)),
-			("Chūnin oldum!" if int(f.get("rank", 0)) >= 1 else "Chūnin olmama %d seviye var." % maxi(0, int(CHUNIN_LV) - int(f.get("pupil_lv", 6))))], [])})
+	opts.append({"label": "Gelişimin nasıl? (Güç %d, %d teknik)" % [int(f.get("pupil_lv", 6)), (f.get("taught", []) as Array).size()], "cb": func():
+		Hud.dialog(String(f["name"]), "Gücüm %d. %s Sizin sayenizde her görevde biraz daha güçleniyorum, hocam!" % [int(f.get("pupil_lv", 6)),
+			("Chūnin oldum!" if int(f.get("rank", 0)) >= 1 else "Chūnin olmama %d Güç var." % maxi(0, int(CHUNIN_LV) - int(f.get("pupil_lv", 6))))], [])})
 	return opts
 
 
@@ -126,7 +126,7 @@ static func _grow(f: Dictionary, amt: float) -> void:
 	var nv = before + amt
 	f["pupil_lv"] = nv
 	if int(nv) > int(before):
-		Hud.msg("%s gelişti — seviye %d" % [f["name"], int(nv)], Color(0.7, 0.95, 0.7))
+		Hud.msg("%s gelişti — Güç %d" % [f["name"], int(nv)], Color(0.7, 0.95, 0.7))
 	if before < CHUNIN_LV and nv >= CHUNIN_LV and int(f.get("rank", 0)) < 1:
 		f["rank"] = 1
 		f["title"] = "Öğrencin (Chūnin)"

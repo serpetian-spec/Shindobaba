@@ -117,10 +117,10 @@ static func goal_done(id: String) -> bool:
 static func goal_progress(id: String) -> String:
 	var p = pr()
 	match id:
-		"chunin": return "Güç %d/15" % int(p["level"]) if int(p["level"]) < 15 else "Sınava başvurabilirsin (Stadyum / Kage Kulesi)"
-		"jonin": return "Güç %d/45 • A-rank %d/3" % [int(p["level"]), int(p["missions_done"].get("A", 0))]
-		"anbu": return "Güç %d/65 • S-rank %d/1" % [int(p["level"]), int(p["missions_done"].get("S", 0))]
-		"kage": return "Güç %d/90 adaylık" % int(p["level"])
+		"chunin": return "Güç %d/15 • D-rank %d/8 • C-rank %d/4" % [int(p["level"]), int(p["missions_done"].get("D", 0)), int(p["missions_done"].get("C", 0))]
+		"jonin": return "Güç %d/45 • B-rank %d/6 • A-rank %d/4" % [int(p["level"]), int(p["missions_done"].get("B", 0)), int(p["missions_done"].get("A", 0))]
+		"anbu": return "Güç %d/65 • A-rank %d/8 • S-rank %d/2" % [int(p["level"]), int(p["missions_done"].get("A", 0)), int(p["missions_done"].get("S", 0))]
+		"kage": return "Güç %d/90 • S-rank %d/5 (adaylık)" % [int(p["level"]), int(p["missions_done"].get("S", 0))]
 		"explore":
 			var n = 0
 			for v in ["konoha", "suna", "kiri", "kumo", "iwa"]:

@@ -190,7 +190,7 @@ func _reward(ryo: int, xp: int, txt: String) -> void:
 		Progress.add_ryo(ryo)
 	if xp > 0:
 		Progress.add_xp(xp)
-	Hud.banner("KARŞILAŞMA", "%s  (+%d Ryō, +%d XP)" % [txt, ryo, xp], Color(0.95, 0.85, 0.5))
+	Hud.banner("KARŞILAŞMA", "%s  (+%d Ryō)" % [txt, ryo] if ryo > 0 else txt, Color(0.95, 0.85, 0.5))
 
 
 func finish(delay := 25.0) -> void:

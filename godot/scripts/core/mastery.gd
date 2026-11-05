@@ -34,6 +34,7 @@ static func gain(p: Dictionary, key: String, amount: float) -> void:
 	var v = float(m.get(key, 0.0))
 	amount *= 1.0 + Stats.skill(p, "xp")   # eski "tecrübe" yetenekleri ustalık hızına
 	amount *= SPEED
+	amount *= Exams.xp_mult()   # Akademi Eğitmeni uzmanlığı: ustalık +%15 (eski XP bonusu)
 	var nv = v + amount * _rate(v)
 	m[key] = nv
 	if int(nv) > int(v):

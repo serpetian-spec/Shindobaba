@@ -730,7 +730,7 @@ func open_board(it: Dictionary) -> void:
 	var opts = []
 	for m in board:
 		var rw: Dictionary = m["rewards"]
-		opts.append({"label": "[%s] %s%s — %d Ryō, %d XP%s" % [m["rank"], "★ " if m.get("local", false) else "", m["title"], rw["ryo"], rw["xp"], "  ✦ekipman" if rw["gear_chance"] >= 0.5 else ""],
+		opts.append({"label": "[%s] %s%s — %d Ryō%s" % [m["rank"], "★ " if m.get("local", false) else "", m["title"], rw["ryo"], "  ✦ekipman" if rw["gear_chance"] >= 0.5 else ""],
 			"cb": _brief.bind(m), "tip": m["brief"]})
 	var lim = board_limits(here)
 	Hud.dialog("Görev Masası — %s" % Game.village(here)["name"], "Rütben: %s   •   %s itibarın: %d%s\n★ = köye özgü görev" % [Data.RANKS[int(Game.profile["rank"])], Game.village(here)["name"], rep(here), ("\n" + lim["note"]) if lim["note"] != "" else ""], opts)
