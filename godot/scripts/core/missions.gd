@@ -1150,8 +1150,38 @@ func _make_npc(spec: Dictionary, pos: Vector3) -> QuestNPC:
 
 ## Görev düşmanları 1v1 ağırlıklı: n kişilik grup yerine n'nin gücünü toplayan TEK ninja doğar
 ## (çok kişilik grup yalnız gizlilik nöbetçilerinde: solo=false)
+## Rütbeye göre düşman (B ve üstü): kanonda B rütbe chūnin, A jōnin, S kage seviyesi rakip ister. Eskiden görev rütbesi düşmanı
+## hiç etkilemiyordu (B rütbe haydut = 70 can, seviye 2) ve gruplar tek düşmana indirgeniyordu: "bir haydut çıktı, tek attım".
+## Seviye rütbeden; can/güç NPC eğrisinden (Stats.ninja_hp, missions güç eğrisi 1.3 + lv x 0.035). En az B 3, A 4, S 5 düşman.
+const RANK_LV := {"B": 24, "A": 36, "S": 50}
+const RANK_MIN_N := {"B": 3, "A": 3, "S": 4}
+const RANK_MAX_N := {"B": 4, "A": 4, "S": 5}   # 8 kişilik S grupları 7 sn'de öldürüyordu
+
+
+func _mission_rank() -> String:
+	return String(active().get("rank", "C")) if not active().is_empty() else "C"
+
+
+func _rank_scale(a: Dictionary, rank: String) -> void:
+	if not RANK_LV.has(rank):
+		return
+	var lv = int(RANK_LV[rank]) + randi_range(-3, 3)
+	var kf = 0.75 if String(a.get("kind", "")) == "bandit" else 1.0   # haydut ninjadan biraz zayıf
+	a["level"] = maxi(int(a.get("level", 1)), lv)
+	a["hp"] = maxf(float(a.get("hp", 70.0)), (180.0 + lv * 18.0) * kf)   # Enemy.setup ayrıca x(0.75 + lv x 0.004)
+	a["power"] = maxf(float(a.get("power", 1.0)), (1.3 + lv * 0.035) * kf * 0.85)   # grup üyesi: birlikte vurdukları için %15 hafif (boss değil)
+	a["guard"] = maxf(float(a.get("guard", 0.15)), 0.3)
+	a["sub"] = maxf(float(a.get("sub", 0.0)), 0.2)
+	a["xp"] = int(float(a.get("xp", 20)) * (1.0 + lv * 0.05))
+	a["ryo"] = int(float(a.get("ryo", 10)) * (1.0 + lv * 0.05))
+
+
 func _spawn(kind: String, at: Vector3, n: int, spread: float, nm := "", solo := true) -> Array:
 	var out = []
+	var rk = _mission_rank()
+	if RANK_LV.has(rk):
+		solo = false   # B+ görevler gerçek grup
+		n = clampi(n, int(RANK_MIN_N[rk]), int(RANK_MAX_N[rk]))
 	var cnt = n
 	if solo and n > 1:
 		cnt = 1
@@ -1163,6 +1193,7 @@ func _spawn(kind: String, at: Vector3, n: int, spread: float, nm := "", solo := 
 			a["name"] = nm
 		if cnt == 1 and n > 1:
 			Enemy.toughen(a, n, String(active().get("rank", "C")) if not active().is_empty() else "C")
+		_rank_scale(a, rk)
 		e.setup(a)
 		e.set_meta("mission", true)
 		e.set_meta("q", _key())
@@ -1188,6 +1219,12 @@ func _spawn_boss(b: Dictionary, kind: String, at: Vector3) -> Enemy:
 	a["power"] = float(b.get("power", 2.0)) * 0.85
 	a["guard"] = 0.35
 	a["sub"] = 0.3
+	var rk = _mission_rank()
+	if RANK_LV.has(rk):   # B+ boss: rütbesinin adamlarından belirgin güçlü (taban)
+		var blv = int(RANK_LV[rk]) + 6
+		a["level"] = maxi(int(a["level"]), blv)
+		a["hp"] = maxf(float(a["hp"]), (180.0 + blv * 18.0) * 2.5)
+		a["power"] = maxf(float(a["power"]), (1.3 + blv * 0.035) * 1.15)
 	a["xp"] = int(b.get("level", 20)) * 25
 	a["ryo"] = int(b.get("level", 20)) * 20
 	if b.has("look"):
@@ -1245,6 +1282,9 @@ func _spawn_kill(s: Dictionary, c: Vector3) -> Array:
 		b2["hp"] = float(b2.get("hp", 600.0)) * (1.0 + 0.12 * maxi(0, n - 1))
 		b2["power"] = float(b2.get("power", 2.0)) * (1.0 + 0.03 * maxi(0, n - 1))
 		es.append(_spawn_boss(b2, s["enemy"], c))
+		if RANK_LV.has(_mission_rank()) and n > 1:   # B+: boss adamlarıyla gelir (eskiden "3 baskıncı ve örgüt üyesi" yalnız üyeydi)
+			var mrk = _mission_rank()
+			es.append_array(_spawn(s["enemy"], c, clampi(n - 1, 2, int(RANK_MAX_N[mrk]) - 1), 14.0, s.get("ename", ""), false))
 	else:
 		es = _spawn(s["enemy"], c, n, 14.0, s.get("ename", ""))
 	s["n"] = es.size()
