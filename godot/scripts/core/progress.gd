@@ -764,6 +764,8 @@ func interact(it: Dictionary) -> void:
 				{"label": "Akşam yemeği ye (30 Ryō) — can + chakra", "cb": func(): _eat(30, "Pirinç, miso çorbası ve ızgara balık... Karnın doydu!", "Han Sahibi")},
 				{"label": "Oda tut ve uyu (40 Ryō) — sabaha kadar, kaydet", "cb": func(): _sleep(40, "Han odasında rahat bir gece geçirdin. Sabah oldu! (Oyun kaydedildi)")},
 			])
+		"naka_tatami", "naka_up", "naka_tablet":
+			UchihaLife.interact(kind)
 		"shrine":
 			if Eyes.clear_hatred():
 				Hud.banner("HUZUR", "Dua ederken içindeki nefret çözüldü. Kaybını taşıyabilirsin artık.", Color(0.8, 0.85, 1.0))

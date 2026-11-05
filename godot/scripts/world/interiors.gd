@@ -11,7 +11,7 @@ const TITLES := {
 	"academy": "Ninja Akademisi", "hokage": "Hokage Kulesi — Görev Ofisi", "weapon_shop": "Silah Dükkânı",
 	"pharmacy": "Eczane", "scrolls": "Parşömenci", "contract_hall": "Sözleşme Ustası — Kuchiyose Salonu", "chunin_hall": "Merkez Kule — Ön Eleme Salonu", "secret_hq": "Gizli Birlik Karargâhı", "tailor": "Terzi", "bbq": "Yakiniku Restoranı", "hospital": "Konoha Hastanesi",
 	"home_player": "Senin Evin", "home": "Bir Ev", "teahouse": "Dango ve Çay Evi", "inn": "Han (Ryokan)",
-	"summit": "Demir Kalesi — Beş Kage Zirve Salonu", "lair_cave": "Kaçakların Sığınağı", "lair_lab": "Gizli Deney İni",
+	"summit": "Demir Kalesi — Beş Kage Zirve Salonu", "naka_shrine": "Naka Tapınağı", "lair_cave": "Kaçakların Sığınağı", "lair_lab": "Gizli Deney İni",
 }
 
 var inside := ""
@@ -652,6 +652,7 @@ func _build(kind: String, seed: int) -> void:
 		"teahouse": _teahouse()
 		"inn": _inn()
 		"summit": _summit()
+		"naka_shrine": _naka_shrine()
 		"creator": _creator_room(String(door.get("vid", "konoha")))
 		"lair_cave": _lair(false)
 		"lair_lab": _lair(true)
@@ -1380,6 +1381,142 @@ func _home(player_home: bool) -> void:
 			person("sitter", -0.95, D * 0.5 + 0.5, -90.0, "", [], {"floor_sit": true})
 		if fam > 2:
 			person("kid", 1.5, 3.0, 0.0, "", [], {"wander_r": 1.5})
+
+
+## Odanın içinde başka bir noktaya geç (ör. Naka Tapınağı'nın gizli salonu): kararıp açılır, duvar-geçme koruması sıfırlanır
+func goto_local(x: float, d: float, yaw_deg: float, title := "") -> void:
+	if busy or inside == "":
+		return
+	busy = true
+	await _fade(1.0)
+	_teleport(L(x, 0.05, d), yaw_deg)
+	_safe.clear()
+	_room_for_cam.call_deferred()
+	await _fade(0.0)
+	if title != "":
+		title_lbl.text = title
+		var tw = create_tween()
+		tw.tween_property(title_lbl, "modulate:a", 1.0, 0.3)
+		tw.tween_interval(1.4)
+		tw.tween_property(title_lbl, "modulate:a", 0.0, 0.6)
+	busy = false
+
+
+## Uchiha yelpazesi (uchiwa) arması: üstü kırmızı, altı beyaz daire + sap. Yatay ince şeritlerle (daire kirişleri) çizilir.
+func _uchiwa(x: float, y: float, d: float, r: float, face_side := 0.0) -> void:
+	var n = 12
+	for k in n:
+		var yy = r * (1.0 - (k + 0.5) / n)
+		var w = 2.0 * sqrt(maxf(0.0, r * r - yy * yy))
+		var hh = r / n + 0.004
+		if face_side == 0.0:
+			bx(x, y + yy, d, w, hh, 0.04, Color(0.78, 0.1, 0.1))
+			bx(x, y - yy, d, w, hh, 0.04, Color(0.96, 0.95, 0.92))
+		else:
+			bx(x, y + yy, d, 0.04, hh, w, Color(0.78, 0.1, 0.1))
+			bx(x, y - yy, d, 0.04, hh, w, Color(0.96, 0.95, 0.92))
+	if face_side == 0.0:
+		bx(x, y - r - r * 0.35, d, r * 0.22, r * 0.7, 0.05, Color(0.35, 0.22, 0.14))
+	else:
+		bx(x, y - r - r * 0.35, d, 0.05, r * 0.7, r * 0.22, Color(0.35, 0.22, 0.14))
+
+
+## Naka Tapınağı (kanon): Uchiha'nın koruyucu tanrısının tapınağı. Ana salonda sağdan yedinci tataminin altında,
+## ortasında Sharingan oyulu mühür taşıyla kapatılmış gizli toplantı yeri; orada yalnız belirli dōjutsu ile okunan
+## taş tablet durur (Altı Yol'un Bilgesi yazdı; Sharingan/Mangekyō kısmen, Rinnegan tamamen okur).
+## Gizli salon odanın yanına (x=+30) kurulur: iç mekân koruması odanın 3 m altını "dışarı" sayar.
+const NAKA_X := 30.0
+func _naka_shrine() -> void:
+	var W = 14.0; var D = 16.0; var H = 5.6
+	var wood = Color(0.3, 0.19, 0.12)
+	shell(W, D, H, Color(0.82, 0.76, 0.64), Color(0.36, 0.24, 0.15), false)
+	# yedi sütun tatami (dört sıra); oyuncu içeri bakarken sağ = +x, yedinci sağdan = en sol sütun
+	tatami(-2.85, 4.6, 7, 4)
+	# iki sıra kırmızı sütun
+	for sx in [-1.0, 1.0]:
+		for k in 4:
+			cy(sx * 4.8, H * 0.5, 2.5 + k * 3.6, 0.42, H, Color(0.62, 0.12, 0.1), 12)
+	# sunak: yükseltilmiş kürsü, arkada büyük uchiwa arması, iki yanda mum ve tütsü, önde sunu tepsileri
+	bx(0, 0.25, D - 1.6, 8.0, 0.5, 2.6, wood, true)
+	bx(0, 0.52, D - 1.6, 8.2, 0.05, 2.8, wood.lightened(0.15))
+	_uchiwa(0, 3.3, D - 0.15, 1.15)
+	for sx in [-1.0, 1.0]:
+		for k in 3:
+			cy(sx * (1.8 + k * 0.5), 0.75, D - 1.2, 0.07, 0.4, Color(0.95, 0.93, 0.85))
+			gl("sphere", sx * (1.8 + k * 0.5), 1.0, D - 1.2, Vector3(0.06, 0.1, 0.06), Color(1.0, 0.75, 0.35))
+		lamp(sx * 2.4, 1.4, D - 1.4, Color(1.0, 0.7, 0.4), 1.0, 6.0)
+		cy(sx * 1.0, 0.62, D - 2.2, 0.35, 0.18, Color(0.55, 0.45, 0.3))   # tütsü kabı
+		bx(sx * 0.4, 0.6, D - 2.4, 0.5, 0.06, 0.35, Color(0.7, 0.55, 0.3))   # sunu tepsisi
+	# yan duvarlarda Uchiha armaları ve asılı şimenava ipi
+	for sx in [-1.0, 1.0]:
+		_uchiwa(sx * (W * 0.5 - 0.15), 3.1, D * 0.5, 0.6, sx)
+	bx(0, H - 0.6, D - 3.0, 8.0, 0.14, 0.14, Color(0.85, 0.8, 0.6))
+	for k in 5:
+		bx(-3.2 + k * 1.6, H - 0.95, D - 3.0, 0.08, 0.6, 0.02, Color(0.98, 0.98, 0.98))   # shide kâğıtları
+	paper_lantern(-3.0, H - 1.2, 3.0, Color(1.0, 0.75, 0.5))
+	paper_lantern(3.0, H - 1.2, 3.0, Color(1.0, 0.75, 0.5))
+	lamp(0, H - 0.6, D * 0.5, Color(1.0, 0.8, 0.55), 1.1, 12.0)
+	person("keeper", 3.6, D - 3.6, 180.0, "Tapınak Bekçisi", ["Burası klanımızın koruyucu tanrısının yeri.", "Uchiha'nın kökü bu tapınaktan gelir.", "Sessiz ol; ataların burada dinlenir."])
+	# sağdan yedinci tatami (en sol sütun, üçüncü sıra): altında mühür taşı
+	act(-2.85, 8.4, 1.3, "naka_tatami", "[F] Sağdan yedinci tatami")
+	# ---- gizli toplantı salonu (yer altı görünümlü taş oda)
+	var X = NAKA_X
+	var SW = 12.0; var SD = 15.0; var SH = 4.4
+	var stone = Color(0.3, 0.29, 0.3)
+	bx(X, -0.1, SD * 0.5, SW + 0.4, 0.2, SD + 0.4, Color(0.25, 0.24, 0.25), true)
+	for i in 8:
+		for j in 10:
+			bx(X - SW * 0.5 + (i + 0.5) * SW / 8.0, 0.005, (j + 0.5) * SD / 10.0, SW / 8.0 - 0.05, 0.01, SD / 10.0 - 0.05,
+				Color(0.3, 0.29, 0.3).darkened(rng.randf_range(0.0, 0.18)))
+	bx(X - SW * 0.5 - 0.3, SH * 0.5, SD * 0.5, 0.6, SH, SD + 0.6, stone, true)
+	bx(X + SW * 0.5 + 0.3, SH * 0.5, SD * 0.5, 0.6, SH, SD + 0.6, stone, true)
+	bx(X, SH * 0.5, SD + 0.3, SW + 1.2, SH, 0.6, stone, true)
+	bx(X, SH * 0.5, -0.3, SW + 1.2, SH, 0.6, stone, true)
+	bx(X, SH + 0.2, SD * 0.5, SW + 1.2, 0.4, SD + 1.2, stone.darkened(0.2), true)
+	# duvarlarda kaba taş blok dokusu
+	for sx in [-1.0, 1.0]:
+		for k in 9:
+			for q in 3:
+				bx(X + sx * (SW * 0.5 - 0.02), 0.6 + q * 1.4, 0.8 + k * 1.6 + (q % 2) * 0.8, 0.05, 1.3, 1.5, stone.lightened(rng.randf_range(-0.08, 0.1)))
+	# giriş: yukarı çıkan taş merdiven
+	# merdiven sol köşede, duvara dayalı (girişte kameranın önünü kapatmasın)
+	for k in 6:
+		bx(X - SW * 0.5 + 1.2, 0.15 + k * 0.3, 2.4 - k * 0.35, 2.0, 0.3 + k * 0.6, 0.35, Color(0.38, 0.36, 0.36), false)
+	act(X - SW * 0.5 + 1.2, 3.0, 1.6, "naka_up", "[F] Merdivenden tapınağa çık")
+	# meşaleler
+	for sx in [-1.0, 1.0]:
+		for k in 3:
+			var dd = 3.0 + k * 4.5
+			bx(X + sx * (SW * 0.5 - 0.15), 2.2, dd, 0.12, 0.5, 0.12, Color(0.25, 0.16, 0.1))
+			gl("sphere", X + sx * (SW * 0.5 - 0.2), 2.55, dd, Vector3(0.18, 0.3, 0.18), Color(1.0, 0.6, 0.2))
+			lamp(X + sx * (SW * 0.5 - 0.6), 2.6, dd, Color(1.0, 0.62, 0.3), 1.2, 7.0)
+	# toplantı minderleri (yarım daire)
+	for k in 7:
+		var a = PI * (0.15 + 0.7 * k / 6.0)
+		cushion(X + cos(a) * 3.6, 8.5 - sin(a) * 2.2, Color(0.35, 0.12, 0.12))
+	# TAŞ TABLET: kaba kenarlı dikilitaş, yüzünde oyulmuş yazı sütunları, arkada Uchiha arması
+	var tz = SD - 1.6
+	bx(X, 0.3, tz, 4.2, 0.6, 1.6, Color(0.34, 0.33, 0.33), true)
+	bx(X, 2.6, tz, 3.0, 4.0, 0.55, Color(0.48, 0.47, 0.46), true)
+	bx(X, 4.65, tz, 2.6, 0.2, 0.5, Color(0.48, 0.47, 0.46))
+	# dikey yazı sütunları: her karakter 2-4 ince oyuk fırça çizgisi (kare ızgara QR kodu gibi duruyordu)
+	var ink = Color(0.3, 0.29, 0.29)
+	for k in 9:
+		var cx = X - 1.2 + k * 0.3
+		for q in 11:
+			if rng.randf() > 0.88:
+				continue
+			var cyy = 4.1 - q * 0.29
+			for st in rng.randi_range(2, 4):
+				var horiz = rng.randf() < 0.5
+				var ox = rng.randf_range(-0.06, 0.06); var oy = rng.randf_range(-0.07, 0.07)
+				var ln = rng.randf_range(0.07, 0.16)
+				bx(cx + ox, cyy + oy, tz - 0.285, ln if horiz else 0.022, 0.022 if horiz else ln, 0.02, ink, false, Vector3(0, 0, rng.randf_range(-25.0, 25.0)))
+	# kenarları yontulmuş: köşelerde kırık parçalar
+	for e in [[-1.45, 4.5], [1.45, 4.4], [-1.48, 0.9], [1.46, 1.6], [0.0, 4.62]]:
+		bx(X + e[0], e[1], tz, 0.25, 0.3, 0.6, Color(0.42, 0.41, 0.4), false, Vector3(0, 0, rng.randf_range(-30.0, 30.0)))
+	_uchiwa(X, 3.4, SD - 0.05, 0.9)
+	act(X, tz - 1.6, 1.8, "naka_tablet", "[F] Taş tableti oku")
 
 
 func _teahouse() -> void:

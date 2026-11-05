@@ -251,7 +251,7 @@ static func build(parent: Node3D, v: Dictionary) -> void:
 		b.box(Vector3(ux + sx, 3.2, un - 16), Vector3(0.8, 6.4, 0.8), Color(0.8, 0.2, 0.15), 0, false)
 	b.yoff = 0.0
 	print("SURE uchiha ", Time.get_ticks_msec() - _tu, " ms")
-	_act(b, ux, un - 13, 5, "naka", "[F] Naka Tapınağı")
+	_act(b, ux, un - 13, 5, "enter", "[F] Gir: Naka Tapınağı", {"room": "naka_shrine", "vid": "konoha", "out": _gp(b, ux, un - 13)})
 	_act(b, ux + 8, un - 13, 3, "shrine", "[F] Tapınakta dua et (kısa kutsama)")
 	occupied.append([ux, un, 128, 128])
 
