@@ -1199,6 +1199,50 @@ func snake_head(col: Color, size: float) -> Node3D:
 	return root
 
 
+## Yamata başı (anime ref refs/yilan/Eight_Branches_Technique.png): beyaz, küt geniş baş, ensede geriye yatık
+## dikenli pul yelesi, koyu kaş çizgisi altında sarı gözler, açık pembe ağız ve iki uzun diş
+func yamata_head(size: float) -> Node3D:
+	var mesh = cached("yamata_head", func():
+		var b = MB.new()
+		var w = Color(0.93, 0.93, 0.95)
+		var sh = Color(0.68, 0.68, 0.74)
+		b.add_grad("sphere", Vector3(0, 0.05, 0), Vector3(0.8, 0.55, 1.0), w, sh, Vector3.ZERO, 12)            # kafatası
+		b.add_grad("sphere", Vector3(0, 0.08, -0.45), Vector3(0.66, 0.34, 0.7), w, sh, Vector3(-6, 0, 0), 10)   # üst çene
+		b.add_grad("sphere", Vector3(0, -0.28, -0.36), Vector3(0.6, 0.18, 0.66), w, sh, Vector3(26, 0, 0), 9)  # alt çene (açık)
+		b.add("sphere", Vector3(0, -0.12, -0.42), Vector3(0.5, 0.22, 0.56), Color(0.85, 0.45, 0.5), Vector3(12, 0, 0), 9)   # pembe ağız içi
+		for sx in [-1.0, 1.0]:
+			b.add("sphere", Vector3(0.27 * sx, 0.2, -0.3), Vector3(0.17, 0.11, 0.17), Color(1.0, 0.82, 0.1), Vector3.ZERO, 8)   # sarı göz
+			b.add("box", Vector3(0.27 * sx, 0.205, -0.37), Vector3(0.025, 0.1, 0.03), Color(0.05, 0.03, 0.02))                  # yarık bebek
+			b.add("box", Vector3(0.27 * sx, 0.29, -0.3), Vector3(0.26, 0.04, 0.12), Color(0.2, 0.2, 0.24), Vector3(0, 0, 14 * sx))   # koyu kaş çizgisi
+			b.add("cone", Vector3(0.2 * sx, -0.14, -0.72), Vector3(0.06, 0.3, 0.06), Color(1, 1, 0.96), Vector3(180, 0, 0), 4)  # uzun diş
+			b.add("sphere", Vector3(0.1 * sx, 0.12, -0.84), Vector3(0.04, 0.03, 0.03), Color(0.1, 0.1, 0.12), Vector3.ZERO, 5) # burun deliği
+			for k in 4:   # yanak dikenleri (çene köşesinden geriye)
+				b.add("cone", Vector3(0.38 * sx, -0.05 + k * 0.08, 0.05 + k * 0.08), Vector3(0.07, 0.36, 0.07), w, Vector3(-70, 0, -40 * sx), 4)
+		for k in 14:   # ense yelesi: geriye yatık sivri pullar
+			var a = lerpf(-1.1, 1.1, (k % 7) / 6.0)
+			var zz = -0.1 + int(k / 7) * 0.3
+			b.add("cone", Vector3(sin(a) * 0.32, 0.25 + cos(a) * 0.22, zz), Vector3(0.09, 0.5, 0.09), w.lerp(sh, (k % 3) * 0.25), Vector3(-65, 0, -rad_to_deg(a) * 0.8), 4)
+		return b)
+	var root = Node3D.new()
+	var mi = mi_of(mesh)
+	mi.scale = Vector3.ONE * size * 1.3
+	root.add_child(mi)
+	return root
+
+
+## Yılan gövdesinin sırt pul kümesi (her parçaya; segment birim yarıçaplı)
+func spine_mesh() -> Mesh:
+	return cached("yamata_spines", func():
+		var b = MB.new()
+		var w = Color(0.93, 0.93, 0.95)
+		var sh = Color(0.66, 0.66, 0.72)
+		for k in 7:
+			var a = lerpf(-1.25, 1.25, k / 6.0)
+			b.add("cone", Vector3(sin(a) * 0.42, cos(a) * 0.38, 0.05), Vector3(0.2, 0.6, 0.2), w.lerp(sh, (k % 2) * 0.4), Vector3(65, 0, -rad_to_deg(a) * 0.85), 4)
+			b.add("cone", Vector3(sin(a + 0.18) * 0.4, cos(a + 0.18) * 0.36, -0.25), Vector3(0.16, 0.45, 0.16), w, Vector3(65, 0, -rad_to_deg(a) * 0.85), 4)
+		return b)
+
+
 ## Kafası ve kıvrılan gövdesiyle yılan: döndürülen baş düğümünü hareket ettir, gövde izini takip eder
 func make_snake(from: Vector3, col: Color, size: float, segs := 10) -> Node3D:
 	var head = Node3D.new()
@@ -1437,13 +1481,39 @@ func rashomon_gate(c: Node3D, pos: Vector3, d: Vector3, s: float, dur: float, id
 				b.add("sphere", Vector3(2.2 * sx, 1.6 + k * 2.3, -0.62), Vector3(0.32, 0.32, 0.25), Color(0.7, 0.6, 0.25), Vector3.ZERO, 6)   # perçinler
 		b.add("box", Vector3(0, 12.3, 0), Vector3(12.5, 0.9, 2.2), wood)                        # üst kiriş
 		b.add("box", Vector3(0, 13.2, 0), Vector3(14.0, 0.5, 2.8), Color(0.18, 0.15, 0.15))
-		# şeytan yüzü
-		b.add_grad("sphere", Vector3(0, 7.2, -0.7), Vector3(4.2, 4.0, 1.4), Color(0.75, 0.25, 0.18), Color(0.4, 0.1, 0.08), Vector3.ZERO, 12)
+		# şeytan yüzü (anime ref refs/yilan/Summoning_Rashmon.png): koyu taş yüz, iri yuvarlak beyaz gözler + bebek,
+		# çatık kaş çıkıntıları, iri yassı burun + burun delikleri, kulaktan kulağa sırıtan ağız ve iki sıra kalın beyaz diş
+		var face = Color(0.3, 0.3, 0.33)
+		b.add_grad("sphere", Vector3(0, 6.0, -0.6), Vector3(8.8, 9.6, 1.3), face.lightened(0.08), face.darkened(0.2), Vector3.ZERO, 16)
 		for sx in [-1.0, 1.0]:
-			b.add("sphere", Vector3(0.95 * sx, 7.9, -1.3), Vector3(0.75, 0.45, 0.3), Color(1.0, 0.9, 0.2), Vector3(0, 0, 15 * sx), 8)
-			b.add("cone", Vector3(1.4 * sx, 9.4, -0.9), Vector3(0.45, 1.7, 0.45), Color(0.9, 0.85, 0.7), Vector3(0, 0, -25 * sx), 6)
-			b.add("cone", Vector3(0.7 * sx, 6.0, -1.35), Vector3(0.2, 0.7, 0.2), Color(1, 1, 0.95), Vector3(180, 0, 0), 4)
-		b.add("box", Vector3(0, 6.15, -1.3), Vector3(2.2, 0.35, 0.3), Color(0.1, 0.02, 0.02))
+			b.add("sphere", Vector3(1.35 * sx, 8.6, -1.25), Vector3(1.3, 1.1, 0.5), Color(0.95, 0.92, 0.78), Vector3.ZERO, 12)   # göz akı
+			b.add("sphere", Vector3(1.3 * sx, 8.65, -1.5), Vector3(0.5, 0.5, 0.2), Color(0.55, 0.42, 0.15), Vector3.ZERO, 10)   # iris
+			b.add("sphere", Vector3(1.3 * sx, 8.65, -1.58), Vector3(0.22, 0.22, 0.1), Color(0.05, 0.04, 0.04), Vector3.ZERO, 8)   # bebek
+			b.add("box", Vector3(1.4 * sx, 9.45, -1.2), Vector3(1.8, 0.4, 0.5), face.darkened(0.25), Vector3(0, 0, -16 * sx))   # kaş
+			b.add("sphere", Vector3(0.5 * sx, 6.75, -1.95), Vector3(0.55, 0.5, 0.3), Color(0.04, 0.03, 0.04), Vector3.ZERO, 8)   # iri burun deliği
+			b.add("sphere", Vector3(0.75 * sx, 6.95, -1.65), Vector3(0.8, 0.8, 0.7), face.darkened(0.1), Vector3.ZERO, 10)   # burun kanadı
+		b.add("sphere", Vector3(0, 7.4, -1.6), Vector3(1.9, 1.8, 1.0), face.darkened(0.3), Vector3.ZERO, 12)   # iri goril burnu
+		b.add("box", Vector3(0, 8.3, -1.55), Vector3(0.9, 1.0, 0.4), face.darkened(0.3), Vector3(-20, 0, 0))   # burun kemeri
+		for k in 15:   # hilal sırıtış: kulaktan kulağa kıvrık pembe ağız + üstten sarkan kalın kıvrık dişler
+			var tx = lerpf(-3.7, 3.7, k / 14.0)
+			var ty = 4.6 + tx * tx * 0.11
+			var tilt = rad_to_deg(atan(tx * 0.26))
+			b.add("sphere", Vector3(tx, ty - 0.15, -1.36), Vector3(0.75, 1.1 - absf(tx) * 0.13, 0.3), Color(0.72, 0.28, 0.3), Vector3.ZERO, 8)
+			b.add("sphere", Vector3(tx, ty + 0.12, -1.5), Vector3(0.52, 1.15 - absf(tx) * 0.12, 0.22), Color(0.95, 0.93, 0.8), Vector3(0, 0, tilt), 7)   # kalın küt diş
+		b.add("box", Vector3(0, 5.55, -1.46), Vector3(0.1, 0.1, 0.05), face)
+		for sx in [-1.0, 1.0]:   # kaş çıkıntısındaki perçin kabarcıkları + yanlarda sarı çark süsleri
+			for k in 5:
+				b.add("sphere", Vector3((0.6 + k * 0.38) * sx, 9.75 - k * 0.12, -1.45), Vector3(0.12, 0.12, 0.08), face.darkened(0.35), Vector3.ZERO, 5)
+			b.add("cyl", Vector3(3.9 * sx, 4.3, -0.62), Vector3(0.9, 0.12, 0.9), Color(0.8, 0.65, 0.25), Vector3(90, 0, 0), 8)
+		for k in 9:   # çerçevede alev dilleri (kırmızı-turuncu)
+			var fy = 1.5 + k * 1.2
+			for sx in [-1.0, 1.0]:
+				b.add("cone", Vector3(5.75 * sx, fy, 0), Vector3(0.6, 1.5, 0.5), Color(0.85, 0.22, 0.12).lerp(Color(0.95, 0.5, 0.15), (k % 3) * 0.3), Vector3(0, 0, -70.0 * sx), 5)
+		for k in 7:
+			b.add("cone", Vector3(-5.4 + k * 1.8, 13.8, 0), Vector3(0.7, 1.6, 0.6), Color(0.85, 0.22, 0.12).lerp(Color(0.95, 0.5, 0.15), (k % 2) * 0.4), Vector3.ZERO, 5)
+		for sx in [-1.0, 1.0]:   # sarkan zincirler
+			for k in 8:
+				b.add("torus", Vector3(3.6 * sx, 12.6 - k * 0.55, -1.2), Vector3(0.35, 0.35, 0.35), Color(0.25, 0.24, 0.26), Vector3(90 if k % 2 else 0, 90 * (k % 2), 0), 8)
 		return b)
 	var gate = mi_of(mesh)
 	gate.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
@@ -1451,7 +1521,7 @@ func rashomon_gate(c: Node3D, pos: Vector3, d: Vector3, s: float, dur: float, id
 	scene_add(root, gp(pos) - Vector3.UP * 13.0 * s)
 	root.add_child(gate)
 	gate.scale = Vector3.ONE * s
-	toward(root, -d)
+	toward(root, d)   # şeytan yüzü (-z) düşmana bakar
 	# engel: gövde ve mermiler geçemez
 	var sb = StaticBody3D.new()
 	sb.collision_layer = 1
@@ -1483,8 +1553,7 @@ func rashomon_gate(c: Node3D, pos: Vector3, d: Vector3, s: float, dur: float, id
 		if is_instance_valid(root):
 			var t2 = root.create_tween()
 			t2.tween_property(root, "global_position", root.global_position - Vector3.UP * 14.0 * s, 0.5).set_ease(Tween.EASE_IN)
-			t2.tween_callback(root.queue_free)
-			FX.smoke_puff(root.global_position + Vector3.UP * 3.0, 2.0 * s, 16))
+			t2.tween_callback(root.queue_free))
 	return root
 
 
@@ -1968,7 +2037,6 @@ func p_yamata_no_jutsu(c: Node3D, _t: Node3D) -> void:
 	VFX.slowmo(0.4, 0.6)
 	shake(1.2)
 	Sfx.play("roar", c.global_position, 0.5)
-	FX.smoke_puff(c.global_position + Vector3.UP * 2.0, 4.0, 24)
 	if m:
 		m.visible = false
 	if c is Player:
@@ -1977,7 +2045,7 @@ func p_yamata_no_jutsu(c: Node3D, _t: Node3D) -> void:
 		var cd0 = c.cam_dist
 		c.cam_dist = 26.0
 		after(dur, func(): if is_instance_valid(c): c.cam_dist = cd0)
-	var col = Color(0.36, 0.28, 0.42)
+	var col = Color(0.9, 0.9, 0.88)   # anime: beyaz pullu sekiz başlı yılan (mor değil)
 	var mound = MB.new()
 	mound.add_grad("sphere", Vector3(0, 1.5, 0), Vector3(9.0, 5.0, 10.0), col.lightened(0.1), col.darkened(0.3), Vector3.ZERO, 14)
 	for k in 6:
@@ -1986,7 +2054,18 @@ func p_yamata_no_jutsu(c: Node3D, _t: Node3D) -> void:
 	var heads = []
 	for k in 8:
 		var ang = TAU * k / 8.0
-		var h = make_snake(c.global_position + Vector3.UP * 3.0, col.lerp(Color(0.5, 0.4, 0.3), k % 3 * 0.2), 2.6, 18)
+		var h = Node3D.new()
+		scene_add(h, c.global_position + Vector3.UP * 3.0)
+		h.add_child(yamata_head(3.4))
+		var sb = VfxSerpent.new()
+		sb.thin = 0.95
+		sb.head = h
+		sb.count = 18
+		sb.spacing = 0.42 * 2.6
+		sb.radius = 0.4 * 2.6
+		sb.mat = Props.toon_color(col)
+		sb.spines = spine_mesh()
+		get_tree().current_scene.add_child(sb)
 		heads.append({"n": h, "ang": ang, "cd": 0.6 + k * 0.22, "busy": 0.0, "y": randf_range(9.0, 14.0)})
 	var tick = func(_i, _k):
 		if not is_instance_valid(c):

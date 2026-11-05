@@ -17,6 +17,7 @@ var spacing = 1.1
 var radius = 1.0
 var mat: Material
 var fin_mat: Material
+var spines: Mesh   # varsa her parçanın sırtına dikenli pul kümesi (Yamata: beyaz dikenli yılan)
 var ring_mat: Material   # varsa her parçaya koyu boğum halkası (tahta/kabuk gövde)
 var style := ""
 var thin := -1.0          # gövde kalınlık çarpanı (-1: stile göre)
@@ -106,6 +107,12 @@ func _ready() -> void:
 			ring.position = Vector3(0, 0, spacing * 0.5)
 			ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			seg.add_child(ring)
+		if spines and i < count - 1:
+			var sp = MeshInstance3D.new()
+			sp.mesh = spines
+			sp.scale = Vector3.ONE * r * 2.0
+			sp.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			seg.add_child(sp)
 		if fin_mat and i % 2 == 0 and i < count - 2:
 			var fin = MeshInstance3D.new()
 			if not VFX._cache.has("seg_fin"):

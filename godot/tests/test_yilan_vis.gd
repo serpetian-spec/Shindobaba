@@ -76,8 +76,11 @@ func _ready() -> void:
 	for f in foes:
 		f.global_position = base + fwd * 60.0 + side * 30.0
 		f.set_physics_process(false)
-	var plan = {"sen_ei_jashu": [0.4, 0.8], "sen_ei_tajashu": [0.5, 1.0], "kusanagi_kuchi": [0.4, 0.8], "yamata_no_jutsu": [1.0, 2.0], "kuchiyose_rashomon": [0.6, 1.2], "hakuja_sennin_modo": [0.8, 1.5]}
+	var plan = {"kuchiyose_rashomon": [0.6, 1.2], "hakuja_sennin_modo": [1.5, 3.0], "yamata_no_jutsu": [1.0, 2.5, 4.0]}
+	var b0 = base
 	for id in plan.keys():
+		base = b0 + side * 45.0 * plan.keys().find(id)
+		base.y = Game.ground_height(base.x, base.z)
 		pr["learned"].append(id)
 		pl.combat.cooldowns.erase(id)
 		pl.combat.action = ""
@@ -93,8 +96,11 @@ func _ready() -> void:
 		for k in plan[id].size():
 			await _wait(float(plan[id][k]) - tsum)
 			tsum = float(plan[id][k])
-			cc.global_position = pl.global_position + side * 9.0 + fwd * 3.0 + Vector3.UP * 3.0
-			cc.look_at(pl.global_position + fwd * 3.0 + Vector3.UP * 1.5)
+			cc.global_position = pl.global_position + side * 9.0 + fwd * 3.0 + Vector3.UP * 3.0 if id != "kuchiyose_rashomon" else pl.global_position + fwd * 14.0 + side * 3.0 + Vector3.UP * 6.0
+			cc.look_at(pl.global_position + fwd * 3.0 + Vector3.UP * 1.5 if id != "kuchiyose_rashomon" else pl.global_position + fwd * 5.0 + Vector3.UP * 7.0)
+			if id == "yamata_no_jutsu":
+				cc.global_position = pl.global_position + fwd * 17.0 + side * 5.0 + Vector3.UP * 10.0
+				cc.look_at(pl.global_position + Vector3.UP * 8.0)
 			cc.current = true
 			Hud.close_dialog()
 			await main.shot("yil_%s_%d" % [id, k])
