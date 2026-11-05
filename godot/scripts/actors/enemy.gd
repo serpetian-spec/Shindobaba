@@ -65,9 +65,9 @@ static func archetype(kind: String, i := 0) -> Dictionary:
 		"rogue":
 			L.merge({"top": Color(0.25, 0.25, 0.28), "top2": Color(0.18, 0.18, 0.2), "pants": Color(0.2, 0.2, 0.22), "band": Color(0.2, 0.2, 0.25),
 				"band_style": "slashed", "village": ["kiri", "iwa", "kumo", "konoha"][i % 4], "hair_style": ["uzun", "dağınık"][i % 2]}, true)
-			base.merge({"hp": 120.0, "level": 8, "power": 1.4, "element": ["suiton", "doton", "raiton", "katon"][i % 4], "aggr": 0.7,
+			base.merge({"hp": 120.0, "level": 8, "power": 1.4, "element": ["suiton", "doton", "raiton", "katon", "fuuton"].pick_random(), "aggr": 0.7,
 				"xp": 70, "ryo": 60, "name": "Kaçak Ninja", "guard": 0.3, "sub": 0.15}, true)
-			base["jutsu"] = {"suiton": ["suiton_suikoudan"], "doton": ["doton_doryuusou"], "raiton": ["raiton_nagashi"], "katon": ["katon_goukakyuu"]}[base["element"]]
+			base["jutsu"] = {"suiton": ["suiton_suikoudan"], "doton": ["doton_doryuusou"], "raiton": ["raiton_nagashi"], "katon": ["katon_goukakyuu"], "fuuton": ["fuuton_daitoppa"]}[base["element"]]   # element rastgele (eskiden i % 4: çağrıların çoğu i=0 -> hep aynı)
 		"oto":
 			L.merge({"top": Color(0.45, 0.4, 0.5), "top2": Color(0.3, 0.25, 0.35), "pants": Color(0.3, 0.28, 0.32), "band": Color(0.3, 0.3, 0.35),
 				"village": "oto", "vest": null, "hair_style": "uzun"}, true)
@@ -85,9 +85,9 @@ static func archetype(kind: String, i := 0) -> Dictionary:
 			base.merge({"hp": 180.0, "level": 18, "power": 2.0, "aggr": 0.8, "name": "Samuray", "xp": 140, "ryo": 100, "guard": 0.5, "tools": false}, true)
 		"genin_rival":
 			L.merge({"top": Color(0.3, 0.45, 0.35), "band": Color(0.15, 0.22, 0.55), "hair_style": ["diken", "atkuyruğu", "kase"][i % 3], "age": "teen"}, true)
-			base.merge({"hp": 140.0, "level": 10, "power": 1.3, "element": ["katon", "fuuton", "suiton"][i % 3], "aggr": 0.75, "name": "Rakip Genin",
+			base.merge({"hp": 140.0, "level": 10, "power": 1.3, "element": ["katon", "fuuton", "suiton", "doton", "raiton"].pick_random(), "aggr": 0.75, "name": "Rakip Genin",
 				"xp": 100, "ryo": 0, "guard": 0.35, "sub": 0.25}, true)
-			base["jutsu"] = {"katon": ["katon_goukakyuu", "katon_housenka"], "fuuton": ["fuuton_daitoppa"], "suiton": ["suiton_suikoudan"]}[base["element"]]
+			base["jutsu"] = {"katon": ["katon_goukakyuu", "katon_housenka"], "fuuton": ["fuuton_daitoppa"], "suiton": ["suiton_suikoudan"], "doton": ["doton_doryuusou"], "raiton": ["raiton_nagashi"]}[base["element"]]
 		"jinchuriki":
 			# içinde kuyruklu canavar taşıyan kaçak ninja: pelerin aurası + canavarın kendi teknikleri (BijuuArts)
 			var bid: String = ["shukaku", "matatabi", "isobu", "son_goku", "kokuo", "saiken", "chomei", "gyuki"][i % 8]
