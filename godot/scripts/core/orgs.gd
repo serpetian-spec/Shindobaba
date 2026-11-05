@@ -722,6 +722,27 @@ func _end_raid() -> void:
 	_raid = {}
 
 
+## Oyuncu yenildi: av-ninjaları seni ölü sanıp bırakır (ödülü alamadan izini kaybeder), köy kuşatması çekilir —
+## olay biter; sığınakta dirilince aynı av ekibi seni yeniden kesmez
+func on_player_defeated() -> void:
+	var gone = 0
+	for s2 in _spawned:
+		if is_instance_valid(s2) and s2.has_meta("hunter_nin") and not s2.is_dead():
+			FX.smoke_puff(s2.global_position + Vector3.UP, 0.8, 10)
+			s2.queue_free()
+			gone += 1
+	if gone > 0:
+		_hunter_t = 0.0
+		_hunter_next = randf_range(900.0, 1500.0)
+		var lost = int(int(p().get("ryo", 0)) * 0.15)
+		if lost > 0:
+			Progress.add_ryo(-lost)
+		Hud.msg("Av-ninjaları seni ölü sanıp bıraktı; kesendekilerin bir kısmını (%d Ryō) aldılar. Bir süre izini kaybettiler." % lost, Color(1, 0.6, 0.5), 7.0)
+	if not _raid.is_empty():
+		_end_raid()
+		Hud.msg("Kuşatma bitti: köyün muhafızları seni püskürttü.", Color(1, 0.6, 0.5), 6.0)
+
+
 func _hunter_tick(dt: float) -> void:
 	if not is_rogue() or Game.player == null or _pardon_active():
 		return   # Kefaret görevinde av-ninjaları gelmez (köy affı bekliyor)

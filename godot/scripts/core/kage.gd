@@ -211,6 +211,28 @@ func _raid_rally() -> void:
 		(raid["allies"] as Array).append(d)
 
 
+## Oyuncu baskında öldü: baskıncılar kazanır — köyü yağmalayıp çekilir (itibar ve kasa kaybı), olay biter
+func lose_raid() -> void:
+	if raid.is_empty():
+		return
+	var from = String(raid["from"])
+	for e in (raid["nodes"] as Array) + (raid["allies"] as Array):
+		if is_instance_valid(e) and not e.is_dead():
+			FX.smoke_puff(e.global_position + Vector3.UP, 0.8, 10)
+			e.queue_free()
+	for vg in raid.get("rallied", []):
+		if is_instance_valid(vg):
+			vg.visible = true
+			vg.process_mode = Node.PROCESS_MODE_INHERIT
+	if p().has("waypoint") and String(p()["waypoint"][3]) == "Olay: Baskın":
+		p().erase("waypoint")
+		p()["track"] = ""
+	Missions._rep(Progress.home(), -15)
+	Hud.banner("BASKIN KAYBEDİLDİ", "%s baskıncıları köyü yağmalayıp çekildi." % Game.village(from).get("name", from), Color(0.9, 0.35, 0.3))
+	Journal.add("Baskında yenildim; %s köyü yağmalayıp çekildi." % Game.village(from).get("name", from), "milestone")
+	raid = {}
+
+
 func _raid_watch(dt: float) -> void:
 	if raid.is_empty():
 		return

@@ -684,6 +684,11 @@ func on_player_died() -> void:
 	elif Exams.cur == "bell":
 		Exams._clear_nodes()
 		Exams._bell_result(false, "dead")
+	# ölüm = yenilgi (eskiden olay sürüyordu: dirilip aynı düşmana 4-5 kez dönülüyordu)
+	if not Missions.active().is_empty():
+		Missions.fail("Ağır yaralandın ve bayıldın. Görev senin için bitti.")
+	Kage.lose_raid()
+	Orgs.on_player_defeated()
 	var rogue = Orgs.is_rogue()
 	Hud.banner("YENİLDİN", "Sığınağında, ateşin başında uyanıyorsun..." if rogue else "Hastanede uyanıyorsun...", Color(0.9, 0.3, 0.3))
 	var pr = p()
@@ -696,7 +701,23 @@ func on_player_died() -> void:
 	get_tree().create_timer(2.5).timeout.connect(func():
 		# kaçak köy hastanesinde doğamaz: sığınağında uyanır
 		var pos = Missions.open_ground(Orgs.hideout_pos() + Vector3(0, 0, 6), 20.0) if Orgs.is_rogue() else _hospital_pos()
-		Game.player.respawn(pos))
+		Game.player.respawn(pos)
+		_calm_after_death(pos))
+
+
+## Doğduğun yerin çevresinde seni hedefleyen düşmanlar (kalıcı olanlar) peşini bırakıp evine döner; geçici olanlar çekilip gider
+func _calm_after_death(pos: Vector3) -> void:
+	for f in get_tree().get_nodes_in_group("fighters"):
+		if not f is Enemy or not is_instance_valid(f) or f.is_dead() or String(f.team) in ["player", "neutral"]:
+			continue
+		if f.global_position.distance_to(pos) > 120.0 and f.target != Game.player:
+			continue
+		if f.target == Game.player or f.global_position.distance_to(pos) < 60.0:
+			f.lose_target(30.0)
+			f.state = "idle"
+			if f.get("home") != null and f.home.distance_to(pos) < 60.0 and not bool(f.arch.get("respawn", true)):
+				FX.smoke_puff(f.global_position + Vector3.UP, 0.7, 8)   # yalnız bu dövüş için gelmiş: çekilir
+				f.queue_free()
 
 
 func _process(_dt: float) -> void:
