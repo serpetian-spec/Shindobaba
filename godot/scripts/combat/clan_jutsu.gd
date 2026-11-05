@@ -1045,26 +1045,86 @@ func c_baika(c: Node3D, t: Node3D) -> void:
 		Sfx.play("boom", p, 0.6))
 
 
-## Kısmi Büyüme: kollar devleşir (20 sn uzun erim) ve hemen dev yumruk hedefin üstüne iner
+## Kısmi Büyüme (anime ref): karakterin GERÇEK kolu ve yumruğu devleşir (kemik büyümesi), yumruk tepeden aşağı iner;
+## darbe devleşen elin yere değdiği yerde. Oyuncuda kol buff süresince (20 sn) büyük kalır, sonra küçülür.
 func c_bubun_baika_no_jutsu(c: Node3D, t: Node3D) -> void:
-	var at = gp(Jutsu._aim_ground(c, t, 6.0, 10.0))
+	var dur = 20.0 if c is Player else 8.0
 	if c is Player:
-		Buffs.add("bubun_baika", 20.0, {"reach": 2.6, "melee": 1.25})
-	var b = MB.new()
-	b.add("sphere", Vector3.ZERO, Vector3(2.4, 2.0, 2.8), Color(0.95, 0.75, 0.6), Vector3.ZERO, 12)
-	for k in 4:
-		b.add("sphere", Vector3(-0.9 + k * 0.6, 0.7, -1.2), Vector3(0.6, 0.6, 0.7), Color(0.92, 0.72, 0.58), Vector3.ZERO, 8)
-	var fist = place(b, at + Vector3.UP * 12.0)
-	busy(c, 0.6)
-	var tw = fist.create_tween()
-	tw.tween_property(fist, "global_position", at + Vector3.UP * 1.2, 0.28).set_ease(Tween.EASE_IN)
-	tw.tween_callback(func():
+		Buffs.add("bubun_baika", dur, {"reach": 2.6, "melee": 1.25})
+	busy(c, 1.2)
+	var tt = tg(c, t, 14.0)
+	# kurulma: kol geriye/yukarı (throw), büyürken avuçtan duman
+	anim(c, "throw", 0.75)
+	_aki_arm(c, true, [1.6, 1.85, 4.0], 0.3, dur, 0.45, true)   # el ~x12 (anime: yumruk gövdeden büyük)
+	after(0.12, func():
+		if live(c):
+			FX.smoke_puff(_aki_hand(c), 0.45, 6))   # kol büyürken küçük duman (büyüğü dev eli örtüyordu)
+	# vuruş: yumruk yere iner (devleşen elin gerçek konumu)
+	after(0.58, func():
+		if not live(c):
+			return
+		var hp = _aki_hand(c)
+		var at = gp(hp)
+		if hp.distance_to(at) > 4.0 and tt:
+			at = gp(tt.global_position)
 		VFX.cracks(at, 6.0)
-		FX.impact(at, Color(1, 0.85, 0.6), 1.8)
-		hit(c, at + Vector3.UP, 3.5, inf(c, "bubun_baika_no_jutsu", 1.6, {"knock": 10.0, "launch": 2.0, "kind": "heavy"}))
+		FX.impact(at + Vector3.UP * 0.5, Color(1, 0.85, 0.6), 1.8)
+		VFX.debris(at, Color(0.55, 0.42, 0.3), 16, 11.0, 0.55)
+		VFX.puffs(at + Vector3.UP, {"amount": 26, "life": 1.0, "size": 1.5, "radius": 2.4, "vmin": 3, "vmax": 7, "dir": Vector3.UP, "spread": 70.0, "add": false,
+			"colors": [Color(0.85, 0.78, 0.65, 0.9), Color(0.75, 0.68, 0.55, 0)]})
+		hit(c, at + Vector3.UP, 3.6, inf(c, "bubun_baika_no_jutsu", 1.6, {"knock": 10.0, "launch": 2.0, "kind": "heavy", "hitstop": 0.08}))
 		shake(0.7)
 		Sfx.play("boom", at, 0.7))
-	fade_free(fist, 0.6, 0.3)
+
+
+## Akimichi kemik büyümesi: kol (üst kol, ön kol, el) devleşir — PoseOverlay.grow; t_in sürede büyür, hold kalır, t_out'ta küçülür.
+## Katsayılar kemik başınadır, çocuk kemiklere çarpılarak geçer (el = üst x ön x el).
+func _aki_arm(c: Node3D, right: bool, k: Array, t_in: float, hold: float, t_out: float, make_fist := false, open_palm := false) -> void:
+	var m = c.get("model")
+	if m == null or not is_instance_valid(m) or m.get("overlay") == null:
+		return
+	var ov = m.overlay
+	var sd = "Right" if right else "Left"
+	var bones = [sd + "UpperArm", sd + "LowerArm", sd + "Hand"]
+	var tw = m.create_tween()
+	tw.tween_method(func(u: float):
+		if is_instance_valid(ov):
+			for i in 3:
+				ov.grow[bones[i]] = lerpf(1.0, float(k[i]), u)
+			if make_fist:
+				ov.fist[sd] = u
+			elif open_palm:
+				ov.fist[sd] = -u, 0.0, 1.0, t_in).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(hold)
+	tw.tween_method(func(u: float):
+		if is_instance_valid(ov):
+			for i in 3:
+				ov.grow[bones[i]] = lerpf(float(k[i]), 1.0, u), 0.0, 1.0, t_out).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_callback(func():
+		if is_instance_valid(ov):
+			for b in bones:
+				ov.grow.erase(b)
+			ov.fist.erase(sd))
+
+## Akimichi: sağ elin dünya konumu (kemikten; devleşen elin gerçek yeri)
+func _aki_hand(c: Node3D) -> Vector3:
+	var m = c.get("model")
+	if m and is_instance_valid(m) and m.get("skel"):
+		var bi = m.skel.find_bone("RightHand")
+		if bi >= 0:
+			return (m.skel.global_transform * m.skel.get_bone_global_pose(bi)).origin
+	return c.global_position + Vector3.UP * 1.2
+
+
+## Kemiğe iliştirme düğümü (PathJutsu.bone_attach ile aynı)
+func _aki_bone(c: Node3D, bone: String) -> Node3D:
+	var m = c.get("model")
+	if m == null or not is_instance_valid(m) or m.get("skel") == null or m.skel.find_bone(bone) < 0:
+		return null
+	var ba = BoneAttachment3D.new()
+	ba.bone_name = bone
+	m.skel.add_child(ba)
+	return ba
 
 
 ## Süper Büyüme: dağ gibi devleşirsin; her adımın yeri sarsar
@@ -1180,32 +1240,39 @@ func c_cho_modo(c: Node3D, _t: Node3D) -> void:
 	Hud.msg("Chō Mōdo! Kalorilerin yanıyor (25 sn)", Color(1, 0.6, 0.75))
 
 
-## Süper Tokat: dev açık el yandan savrulur, önündeki yarım dairede herkesi yere yapıştırır
+## Süper Açık El Tokadı (anime ref): kol ve açık avuç devleşir (kemik büyümesi), avuç mavi chakrayla parlar;
+## gerilip yandan savrulan tokat önündeki yarım dairede herkesi yere yapıştırır, sonra kol küçülür.
 func c_choharite(c: Node3D, t: Node3D) -> void:
 	var d = fwd(c, t)
-	var side = d.cross(Vector3.UP)
-	var b = MB.new()
-	b.add("box", Vector3.ZERO, Vector3(0.6, 3.4, 2.8), Color(0.95, 0.75, 0.6))
-	for k in 4:
-		b.add("box", Vector3(0, 2.3, -1.05 + k * 0.7), Vector3(0.55, 1.5, 0.55), Color(0.93, 0.73, 0.58))
-	var hand = mesh_of(b)
-	var pivot = Node3D.new()
-	get_tree().current_scene.add_child(pivot)
-	pivot.global_position = c.global_position + Vector3.UP * 1.5
-	pivot.look_at(pivot.global_position + d, Vector3.UP)
-	pivot.add_child(hand)
-	hand.position = Vector3(3.5, 0, -3.0)
-	pivot.rotation.y += 1.4
-	busy(c, 0.5)
-	var hits = []
-	var tw = pivot.create_tween()
-	tw.tween_property(pivot, "rotation:y", pivot.rotation.y - 2.8, 0.3).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-	every(0.3, 1.0 / 30.0, func(_i, _k):
-		for h in hit(c, hand.global_position, 2.4, inf(c, "choharite", 1.6, {"knock": 20.0, "launch": 1.0, "kind": "heavy", "hitstop": 0.08}), hits):
-			hits.append(h)
-			st(h, "stun", 1.2))
-	fade_free(pivot, 0.5, 0.2)
-	Sfx.play("punch", c.global_position, 0.5)
+	busy(c, 1.0)
+	var tt = tg(c, t, 10.0)
+	anim(c, "hook", 0.85)
+	_aki_arm(c, true, [1.4, 1.7, 3.8], 0.28, 0.6, 0.4, false, true)   # açık avuç ~x9
+	var ba = _aki_bone(c, "RightHand")
+	if ba:
+		# avucu saran mavi chakra (ref): küre değil, elden sürekli yükselen mavi parçacıklar
+		every(1.0, 0.04, func(_i, _k):
+			if is_instance_valid(ba):
+				FX.burst(ba.global_position, {"amount": 4, "life": 0.35, "tex": FX.tex_soft, "size": 0.55, "radius": 0.6, "vmin": 0.4, "vmax": 1.4,
+					"spread": 180.0, "colors": [Color(0.55, 0.85, 1.0, 0.0), Color(0.45, 0.75, 1.0, 0.7), Color(0.4, 0.7, 1.0, 0.0)]}), Callable())
+		after(1.1, func():
+			if is_instance_valid(ba):
+				ba.queue_free())
+	after(0.42, func():
+		if not live(c):
+			return
+		var hp = _aki_hand(c)
+		_palm_flash(hp, d, 3.0)
+		VFX.shockwave(hp, Color(0.45, 0.75, 1.0), 9.0, 0.3, false, d)
+		VFX.puffs(gp(c.global_position + d * 4.0) + Vector3.UP * 0.3, {"amount": 22, "life": 0.8, "size": 1.2, "radius": 2.2, "vmin": 3, "vmax": 7, "dir": d + Vector3.UP * 0.3, "spread": 55.0, "add": false,
+			"colors": [Color(0.85, 0.78, 0.65, 0.8), Color(0.75, 0.68, 0.55, 0)]})
+		for e in enemies_near(c, c.global_position, 6.0):
+			var to = e.global_position - c.global_position
+			to.y = 0.0
+			if to.length() < 0.5 or to.normalized().dot(d) > -0.15:   # önündeki yarım daire
+				hit(c, e.global_position + Vector3.UP, e.radius + 0.3, inf(c, "choharite", 1.3, {"knock": 14.0, "launch": 0.0, "kind": "heavy", "hitstop": 0.1}))
+		shake(0.6)
+		Sfx.play("boom", c.global_position, 1.1))
 
 
 # ================================================================== ABURAME — kikaichū: yapışır, chakra emer, kör eder

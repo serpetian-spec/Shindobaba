@@ -12,6 +12,8 @@ var chest_scale = 1.0
 var limb_scale = 1.0    # çocuk: ince kol ve bacaklar
 var hide := {}          # kemik -> true: kemik (ve çocukları) görünmez küçülür (Shuradō: bilekten kopan el)
 var bulk := {}          # kemik -> kalınlık (Gōsuiwan: kol kasları suyla şişer); el/ayak çocuğu orantılı kalır
+var fist := {}          # "Left"/"Right" -> 0..1 yumruk (parmaklar avuca kıvrılır; Bubun Baika dev yumruğu)
+var grow := {}          # kemik -> düzgün büyüme (Akimichi Bubun Baika / Chōharite: gerçek kol ve el devleşir; çocuk kemikler de büyür)
 var leg_len = 1.0       # çocuk: kısa bacaklar (model yere indirilir)
 var foot_pitch = 0.0    # VRoid kadın ayağı (topuklu ayakkabı kalıbı): ayağı düzle (derece)
 var toe_pitch = 0.0     # VRoid: içe aktarıcı ayak parmağı kemiğini yükseltiyor; parmakları yere indirir (derece)
@@ -215,6 +217,36 @@ func _process_modification() -> void:
 		var cb = sk.find_bone("UpperChest")
 		if cb >= 0:
 			sk.set_bone_pose_scale(cb, Vector3(chest_scale, 1.0, chest_scale))
+	for fs in fist.keys():
+		var fv = clampf(float(fist[fs]), -1.0, 1.0)
+		var sgn = 1.0 if String(fs) == "Left" else -1.0
+		if fv > 0.001:   # yumruk: parmaklar avuca kıvrılır
+			for i in 4:
+				for seg in FINGER_SEG:
+					_add_local(sk, String(fs) + FINGERS[i] + seg, Vector3(1.45 * sgn, 0, 0), fv)
+			for seg in THUMB_SEG:
+				_add_local(sk, String(fs) + "Thumb" + seg, Vector3(0.7 * sgn, 0, -0.5), fv)
+		elif fv < -0.001:   # açık avuç: animasyonun kıvırdığı parmaklar dinlenme pozuna (düz) açılır
+			for i in 4:
+				for seg in FINGER_SEG:
+					var fi = sk.find_bone(String(fs) + FINGERS[i] + seg)
+					if fi >= 0:
+						sk.set_bone_pose_rotation(fi, sk.get_bone_pose_rotation(fi).slerp(sk.get_bone_rest(fi).basis.get_rotation_quaternion(), -fv))
+	for gb in grow.keys():
+		var gi = sk.find_bone(String(gb))
+		var gv = float(grow[gb])
+		if gi >= 0 and absf(gv - 1.0) > 0.001:
+			# mutlak ölçek (kare başında sıfırlanmıyor; çarpınca katlanarak büyürdü): bu karenin diğer ölçekleri x büyüme
+			var bn = String(gb)
+			var s0 = Vector3.ONE
+			if bn in ["LeftUpperArm", "RightUpperArm", "LeftUpperLeg", "RightUpperLeg"] and (limb_scale != 1.0 or leg_len != 1.0):
+				s0 = Vector3(limb_scale, leg_len if bn.ends_with("Leg") else 1.0, limb_scale)
+			if bulk.has(bn):
+				s0 *= Vector3(float(bulk[bn]), 1.0, float(bulk[bn]))
+			var up_b = bn.replace("Hand", "UpperArm").replace("Foot", "UpperLeg")
+			if up_b != bn and bulk.has(up_b):
+				s0 *= Vector3(1.0 / float(bulk[up_b]), 1.0, 1.0 / float(bulk[up_b]))
+			sk.set_bone_pose_scale(gi, s0 * gv)
 	_root_motion(sk, dt)
 	_foot_ik(sk)
 

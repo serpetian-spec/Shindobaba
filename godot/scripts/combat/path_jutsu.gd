@@ -18192,16 +18192,8 @@ func _beast_flames(c: Node3D, dur: float) -> void:
 
 ## Kısmi Büyüme: kol göğe doğru devleşir, mavi çakra halkası sarar — gölgesi büyürken dev yumruk iner
 func p_bubun_baika_no_jutsu(c: Node3D, t: Node3D) -> void:
-	var at = gp(Jutsu._aim_ground(c, t, 6.0, 10.0))
-	for k in 3:
-		after(k * 0.08, func():
-			VFX.shockwave(at + Vector3.UP * 0.1, Color(0.2, 0.15, 0.1), 6.0 - k * 1.5, 0.3, true))
-	VFX.gather(hand_pos(c, true), AKI_BLUE, 1.2)
+	VFX.gather(hand_pos(c, true), AKI_BLUE, 1.2)   # chakra ele toplanır; asıl teknik: gerçek kol devleşir (c_bubun_baika_no_jutsu)
 	c_bubun_baika_no_jutsu(c, t)
-	after(0.28, func():
-		VFX.debris(at, EARTH, 18, 12.0, 0.6)
-		VFX.puffs(at + Vector3.UP, {"amount": 30, "life": 1.0, "size": 1.6, "radius": 2.5, "vmin": 3, "vmax": 7, "dir": Vector3.UP, "spread": 70.0, "add": false,
-			"colors": [Color(0.85, 0.78, 0.65, 0.9), Color(0.75, 0.68, 0.55, 0)]}))
 
 
 ## Süper Büyüme: bedeni mavi çakra halkaları sarar, sonra dağ gibi şişer
@@ -18323,14 +18315,18 @@ func p_chodan_bakugeki(c: Node3D, t: Node3D) -> void:
 			return
 		c.global_position = at + Vector3.UP * 8.0
 		c.velocity = Vector3(0, -40, 0)
-		var fist = MeshInstance3D.new()
-		fist.mesh = VFX._sphere(3.2, 18, 10)
-		fist.material_override = VFX.mat_spiral(Color(0.85, 0.95, 1.0), AKI_BLUE, 3.0, 1.0, 4.0, 2.0)
-		c.add_child(fist)
-		fist.position = Vector3(0, 0.6, -0.8)
-		_etrail_node(fist, AKI_BLUE, 2.0)
+		# anime: gerçek kol ve yumruk devleşir (kemik büyümesi), kanatlardaki mavi chakrayla sarılı yumruk yere iner
+		anim(c, "throw", 1.3)
+		_aki_arm(c, true, [1.5, 1.6, 3.0], 0.15, 0.45, 0.4)
+		var fb = bone_attach(c, "RightHand")
+		if fb:
+			var fx = VFX.element_core("", AKI_BLUE, 0.16)   # el büyümesini alır (~x7)
+			fb.add_child(fx)
+			_etrail_node(fx, AKI_BLUE, 2.0)
+			after(1.0, func():
+				if is_instance_valid(fb):
+					fb.queue_free())
 		after(0.25, func():
-			fist.queue_free()
 			VFX.cracks(at, 18.0)
 			VFX.shockwave(at + Vector3.UP * 0.3, AKI_BLUE, 34.0, 0.5)
 			impact_fx("fuuton", AKI_BLUE, at + Vector3.UP, 3.0)
@@ -18358,14 +18354,7 @@ func p_cho_modo(c: Node3D, _t: Node3D) -> void:
 
 ## Süper Açık El Tokadı: elin önünde mavi çakra avuç izi parlar, tokatla basınç dalgası
 func p_choharite(c: Node3D, t: Node3D) -> void:
-	var d = fwd(c, t)
-	c_choharite(c, t)
-	after(0.2, func():
-		if live(c):
-			_palm_flash(c.global_position + Vector3.UP * 1.5 + d * 3.0, d, 4.0)
-			VFX.shockwave(c.global_position + Vector3.UP * 1.5 + d * 3.0, AKI_BLUE, 8.0, 0.3, false, d)
-			VFX.puffs(gp(c.global_position + d * 4.0) + Vector3.UP * 0.3, {"amount": 20, "life": 0.8, "size": 1.2, "radius": 2.0, "vmin": 3, "vmax": 7, "dir": d + Vector3.UP * 0.3, "spread": 50.0, "add": false,
-				"colors": [Color(0.85, 0.78, 0.65, 0.8), Color(0.75, 0.68, 0.55, 0)]}))
+	c_choharite(c, t)   # gerçek kol + açık avuç devleşir, mavi chakralı yandan tokat (c_choharite)
 
 
 ## Kikaichū no Jutsu: sürü yakadan ve iki koldan hedefe kıvrılarak akar
