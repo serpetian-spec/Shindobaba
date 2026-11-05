@@ -220,7 +220,7 @@ func academy_talk() -> void:
 	var sensei = Progress.home_info()["s1"]
 	var f = flags()
 	if f.get("academy_passed", false):
-		Hud.dialog(sensei, "Mezuniyet sınavını geçtin ama asıl sınav jōnin hocan %s'nin takım sınavı! Antrenman alanına git." % Progress.home_info()["s2"],
+		Hud.dialog(sensei, "Mezuniyet sınavını geçtin ama asıl sınav jōnin hocan %s'nin takım sınavı! Antrenman alanına git." % GeninSquad.sensei_name(),
 			[{"label": "Takım sınavına başla", "cb": bell_start}])
 		return
 	if cur.begins_with("academy"):
@@ -418,7 +418,7 @@ func _academy_results() -> void:
 	if passed:
 		flags()["academy_passed"] = true
 		Progress.add_xp(120)
-		ExamUI.scorecard("Akademi Mezuniyet Sınavı", rows, "MEZUN OLDUN! Ama alın koruyucuyu hak etmek için bir sınav daha var: jōnin hocan %s'nin takım sınavı. Antrenman alanına git." % Progress.home_info()["s2"], true, func():
+		ExamUI.scorecard("Akademi Mezuniyet Sınavı", rows, "MEZUN OLDUN! Ama alın koruyucuyu hak etmek için bir sınav daha var: jōnin hocan %s'nin takım sınavı. Antrenman alanına git." % GeninSquad.sensei_name(), true, func():
 			Missions.target_marker = find_point(["training"])
 			Missions.has_marker = true
 			Missions.target_name = "Antrenman Alanı (Takım Sınavı)")
@@ -462,7 +462,7 @@ func bell_start() -> void:
 	nodes.append(stump)
 	var s = Enemy.new()
 	var a = Enemy.archetype("rogue", 0)
-	a["name"] = hi["s2"]
+	a["name"] = GeninSquad.sensei_name()
 	a["hp"] = 99999.0
 	a["level"] = 40
 	a["power"] = 0.25
@@ -476,6 +476,7 @@ func bell_start() -> void:
 	a["look"]["band"] = hi["band"]
 	a["look"]["vest"] = hi["vest"]
 	a["look"]["village"] = Progress.home()
+	GeninSquad.dress_sensei(a["look"])
 	s.setup(a)
 	s.set_meta("bell_sensei", true)
 	get_tree().current_scene.add_child(s)
@@ -486,7 +487,7 @@ func bell_start() -> void:
 	nodes.append(s)
 	var team = spawn_teammates(pl.global_position, 2, 6)
 	data = {"sensei": s, "team": team, "t": 150.0, "scroll": sp, "grab": 0.0, "bound": null, "bound_at": randf_range(55.0, 80.0), "together": 0.0}
-	Hud.dialog(hi["s2"], "Benim sınavım basit: şu kütüğün üstündeki parşömeni alın. 150 saniyeniz var, ben de onu koruyacağım. Tek başına gelen hiçbir şey alamaz. Başla!", [])
+	Hud.dialog(GeninSquad.sensei_name(), "Benim sınavım basit: şu kütüğün üstündeki parşömeni alın. 150 saniyeniz var, ben de onu koruyacağım. Tek başına gelen hiçbir şey alamaz. Başla!", [])
 	Hud.banner("TAKIM SINAVI", "Parşömeni al! (2.5 sn dokun — hoca korurken olmaz, arkadaşların onu oyalasın)", Color(1, 0.75, 0.3))
 	Missions.target_marker = sp
 	Missions.has_marker = true
@@ -587,13 +588,13 @@ func _bell_result(passed: bool, why: String) -> void:
 		Progress.add_ryo(200)
 		Progress.set_story(4)
 		Missions.has_marker = false
-		Hud.dialog(hi["s2"], t + "\n\nArtık %s'nin bir Genin'isin! Görevleri bundan sonra ben alacağım; takım olarak çıkacağız." % String(Game.village(Progress.home()).get("name", "Köy")), [])
+		Hud.dialog(GeninSquad.sensei_name(), t + "\n\nArtık %s'nin bir Genin'isin! Görevleri bundan sonra ben alacağım; takım olarak çıkacağız." % String(Game.village(Progress.home()).get("name", "Köy")), [])
 		exam_finished.emit("bell", true)
 	else:
 		var why_t = {"abandon": "Parşömeni aldın ama arkadaşını bağlı bıraktın. Görevi tamamlamak için arkadaşını terk eden bir ninjayı takımımda istemem.",
 			"time": "Süre doldu. Tek başına koştunuz, birbirinizi kollamadınız.",
 			"dead": "Yere serildin; sınav bitti. Gerçek bir görevde bu ölüm demekti."}.get(why, "Olmadı.")
-		Hud.dialog(hi["s2"], why_t + " Yarın tekrar dene — benimle antrenman alanında konuş.", [])
+		Hud.dialog(GeninSquad.sensei_name(), why_t + " Yarın tekrar dene — benimle antrenman alanında konuş.", [])
 		exam_finished.emit("bell", false)
 
 
@@ -858,7 +859,7 @@ func _process(dt: float) -> void:
 					if not _bell_greeted:
 						_bell_greeted = true
 						var hi = Progress.home_info()
-						Hud.dialog(hi["s2"], "Geldin demek. Ben takımımı kendi sınavımla seçerim. Hazır mısın?",
+						Hud.dialog(GeninSquad.sensei_name(), "Geldin demek. Ben takımımı kendi sınavımla seçerim. Hazır mısın?",
 							[{"label": "Takım sınavına başla", "cb": bell_start}, {"label": "Biraz sonra", "cb": func(): pass}])
 				else:
 					_bell_greeted = false

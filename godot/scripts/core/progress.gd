@@ -66,7 +66,7 @@ func refresh_story() -> void:
 	var vn = String(Game.village(home()).get("name", "Konoha")) if Game.world_info.has("villages") else "Konoha"
 	STORY.clear()
 	for t in STORY_T:
-		STORY.append(String(t).replace("{kage}", info["kage"]).replace("{vn}", vn).replace("{s1}", info["s1"]).replace("{s2}", info["s2"])
+		STORY.append(String(t).replace("{kage}", info["kage"]).replace("{vn}", vn).replace("{s1}", info["s1"]).replace("{s2}", GeninSquad.sensei_name() if not p().is_empty() else info["s2"])
 			.replace("{lookout}", info["lookout"]).replace("{dir}", info["dir"]))
 
 
@@ -130,7 +130,7 @@ func objective_text() -> String:
 	var t: String = STORY[mini(s, STORY.size() - 1)] if not STORY.is_empty() else ""
 	var pr = p()
 	if s == 3 and pr.get("flags", {}).get("academy_passed", false):
-		t = "Mezun oldun! Takım sınavı: Antrenman Alanı'na git ve jōnin hocan %s ile konuş (oku takip et)." % home_info()["s2"]
+		t = "Mezun oldun! Takım sınavı: Antrenman Alanı'na git ve jōnin hocan %s ile konuş (oku takip et)." % GeninSquad.sensei_name()
 	elif s == 3:
 		t = "Mezuniyet Sınavı: Akademi'de hocan %s ile konuş (Güç %d/5)." % [home_info()["s1"], int(pr.get("level", 1))]
 	return t
@@ -1037,7 +1037,7 @@ func _training_ground() -> void:
 	var pr = p()
 	var s = story()
 	if s == 3 and pr["flags"].get("academy_passed", false):
-		Hud.dialog(home_info()["s2"], "Demek mezun oldun. Ben takımımı kendi sınavımla seçerim. Hazır mısın?", [{"label": "Takım sınavına başla", "cb": Exams.bell_start}, {"label": "Biraz sonra", "cb": func(): pass}])
+		Hud.dialog(GeninSquad.sensei_name(), "Demek mezun oldun. Ben takımımı kendi sınavımla seçerim. Hazır mısın?", [{"label": "Takım sınavına başla", "cb": Exams.bell_start}, {"label": "Biraz sonra", "cb": func(): pass}])
 		return
 	# chakra kâğıdı testi: mezun olmuş ama doğasını bilmeyen herkes isteğe bağlı yapabilir
 	if s >= Journal.FREE and not pr.get("element_known", false):
@@ -1045,7 +1045,7 @@ func _training_ground() -> void:
 		var names = {"katon": "kâğıt yanıp kül oldu: ATEŞ (Katon)", "suiton": "kâğıt ıslandı: SU (Suiton)", "fuuton": "kâğıt ikiye bölündü: RÜZGAR (Fuuton)",
 			"doton": "kâğıt ufalandı: TOPRAK (Doton)", "raiton": "kâğıt buruştu: YILDIRIM (Raiton)"}
 		pr["element_known"] = true
-		Hud.dialog(home_info()["s2"], "Chakra kâğıdına chakranı akıt... %s! İlk element tekniğini öğretiyorum." % names[el], [])
+		Hud.dialog(GeninSquad.sensei_name(), "Chakra kâğıdına chakranı akıt... %s! İlk element tekniğini öğretiyorum." % names[el], [])
 		var starter = {"katon": "katon_goukakyuu", "suiton": "suiton_suikoudan", "fuuton": "fuuton_shinkuu", "doton": "doton_doryuusou", "raiton": "raiton_nagashi"}[el]
 		learn(starter)
 		Journal.add("Chakra kâğıdı doğanı gösterdi: %s." % el.capitalize(), "milestone")

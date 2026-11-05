@@ -54,12 +54,26 @@ static func _ink_label(text: String, size := 17, col := INK, bold := false, alig
 	return l
 
 
+## Soruların şıklarını karıştır (doğru cevabın yeri her seferinde rastgele); [soru, şıklar, doğru_idx] biçimi korunur
+static func shuffle_options(qs: Array) -> Array:
+	var out = []
+	for q in qs:
+		var opts: Array = (q[1] as Array).duplicate()
+		var right = String(opts[int(q[2])])
+		opts.shuffle()
+		var nq: Array = (q as Array).duplicate()
+		nq[1] = opts
+		nq[2] = opts.find(right)
+		out.append(nq)
+	return out
+
+
 ## Yazılı sınav. cfg: title, subtitle, questions [[soru, [şıklar], doğru_idx], ...], time (sn),
 ## cheat: 0 yok / 1 riskli kopya (yan sıraya bakmak) / 2 dōjutsu-sensör ile güvenli kopya, q10: Chūnin 10. soru ikilemi.
 ## done(result: {correct, total, caught, cheated, q10})
 static func written(cfg: Dictionary, done: Callable) -> void:
 	_pause()
-	var qs: Array = cfg["questions"]
+	var qs: Array = shuffle_options(cfg["questions"])   # doğru cevap hep ilk şık olmasın
 	var st = {"i": 0, "correct": 0, "caught": 0, "cheated": 0, "answers": [], "t": float(cfg.get("time", 120.0)), "over": false}
 	var bg = Menus._full(0.62)
 	var paper = _paper(bg, Vector2(860, 640), float(hash(cfg.get("title", "")) % 100) * 0.01)

@@ -43,9 +43,15 @@ static func ensure_formed() -> Dictionary:
 		return {}
 	if p.has("squad"):
 		return p["squad"]
-	var names = [["Hayato", "m", "diken"], ["Sayuri", "f", "uzun"], ["Kenta", "m", "kase"], ["Mio", "f", "atkuyruğu"], ["Daichi", "m", "kısa"], ["Aoi", "f", "uzun"],
-		["Ren", "m", "dağınık"], ["Hana", "f", "topuz"], ["Sora", "m", "diken"], ["Yui", "f", "atkuyruğu"]]
-	names.shuffle()
+	# her oyunda farklı takım: isimler üretilir (Chūnin sınavı adaylarıyla aynı üretici), cinsiyet ve saç rastgele
+	var rng = RandomNumberGenerator.new()
+	rng.randomize()
+	var hs_m = ["diken", "kısa", "kase", "dağınık", "geriye"]
+	var hs_f = ["uzun", "atkuyruğu", "topuz", "kısa", "kase"]
+	var names = []
+	for i in 2:
+		var fem = rng.randf() < 0.5
+		names.append([ChuninExam.gen_name(fem, rng).split(" ")[-1], "f" if fem else "m", (hs_f if fem else hs_m)[rng.randi() % 5]])
 	var hairs = [Color(0.3, 0.2, 0.12), Color(0.08, 0.08, 0.1), Color(0.95, 0.8, 0.25), Color(0.75, 0.25, 0.15), Color(0.9, 0.55, 0.7), Color(0.2, 0.3, 0.6), Color(0.85, 0.85, 0.88)]
 	hairs.shuffle()
 	var tops = [Color(0.3, 0.45, 0.35), Color(0.6, 0.25, 0.2), Color(0.2, 0.3, 0.55), Color(0.85, 0.55, 0.2), Color(0.45, 0.3, 0.55), Color(0.2, 0.2, 0.22)]
@@ -59,11 +65,28 @@ static func ensure_formed() -> Dictionary:
 		var nm: Array = names[i]
 		mates.append({"name": nm[0], "gender": nm[1], "hair_style": nm[2], "hair": _a(hairs[i]), "top": _a(tops[i]), "element": others[i % others.size()], "medic": i == 1})
 	var hi = Progress.home_info()
-	var sensei = {"name": String(hi.get("s2", "Kurogane-sensei")), "hair": _a(hairs[2]), "hair_style": ["diken", "kısa", "geriye", "dağınık"].pick_random(),
-		"element": ELS.pick_random()}
+	var s_fem = rng.randf() < 0.35   # kanon: Kurenai gibi kadın jōnin hocalar da var
+	var sensei = {"name": "%s-sensei" % ChuninExam.gen_name(s_fem, rng).split(" ")[-1], "gender": "f" if s_fem else "m", "hair": _a(hairs[2]),
+		"hair_style": (hs_f if s_fem else ["diken", "kısa", "geriye", "dağınık"])[rng.randi() % 4], "element": ELS.pick_random()}
 	p["squad"] = {"mates": mates, "sensei": sensei, "state": "active", "follow": true}
 	register_friends()
 	return p["squad"]
+
+
+## Takımın jōnin hocasının adı (her oyunda üretilir; çan sınavı ve diyaloglar bunu kullanır)
+static func sensei_name() -> String:
+	var sq = ensure_formed()
+	return String(sq.get("sensei", {}).get("name", Progress.home_info().get("s2", "Sensei")))
+
+
+## Hocanın görünüşü (çan sınavındaki hoca da aynı kişi)
+static func dress_sensei(L: Dictionary) -> void:
+	var s: Dictionary = ensure_formed().get("sensei", {})
+	if s.is_empty():
+		return
+	L["gender"] = String(s.get("gender", "m"))
+	L["hair"] = _c(s["hair"])
+	L["hair_style"] = s["hair_style"]
 
 
 ## Takım üyesinin Friends kimliği
@@ -234,6 +257,7 @@ static func sensei_arch(level: int) -> Dictionary:
 	if not own.is_empty():
 		a["jutsu"] = own.slice(maxi(0, own.size() - 4))   # savaşta kendi tekniklerini kullanır (öğrettikleri gözünün önünde)
 	var L: Dictionary = a["look"]
+	L["gender"] = String(s.get("gender", "m"))
 	L["hair"] = _c(s["hair"])
 	L["hair_style"] = s["hair_style"]
 	L["band_style"] = "head"

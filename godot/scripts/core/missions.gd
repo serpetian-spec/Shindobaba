@@ -576,7 +576,10 @@ func _from_spec(here: String, sp: Dictionary) -> Dictionary:
 				{"kind": "talk", "npc_id": "veren", "text": "%s'e dön." % v["name"], "say": "Gerçek ortaya çıktı. Köy sana minnettar."}]
 			giver = v
 		"chase":
-			var market = _inside(here, 0.15, 0.55)
+			# olay yeri açık zeminde: rastgele nokta bir binanın (ör. hastane) içine düşünce işaret orayı gösteriyor, oyuncu yaklaşamıyor, kaçak da içeride doğuyordu
+			var mw = open_ground(_w(_inside(here, 0.15, 0.55)), 40.0)
+			var mm = Game.to_map(mw)
+			var market = [mm.x, mm.y]
 			steps = [{"kind": "goto", "at": market, "r": 10.0, "name": "Olay Yeri", "text": "Olay yerine git."},
 				{"kind": "chase", "at": market, "time": 75.0, "thief": sp.get("en", "Kaçak"), "text": "Kaçağı yakala!"},
 				{"kind": "goto", "at": _inside(here, 0.0, 0.25), "r": 18.0, "name": "Köy", "text": "Köye dön ve teslim et."}]
@@ -972,7 +975,7 @@ func _begin_step() -> void:
 			e.setup(a)
 			e.set_meta("q", _key())
 			root.add_child(e)
-			var p = c + Vector3(8, 0, 0)
+			var p = open_ground(c + Vector3(8, 0, 0), 20.0)
 			p.y = Game.ground_height(p.x, p.z)
 			e.global_position = p
 			e.home = p

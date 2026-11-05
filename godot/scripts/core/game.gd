@@ -624,8 +624,37 @@ func save_settings() -> void:
 	apply_settings()
 
 
+## Ekran seçenekleri: tam ekran ya da sabit boyutlu pencere (ekrandan büyükse ekrana sığdırılır)
+const DISPLAYS := ["full", "max", "1280x720", "1366x768", "1600x900", "1920x1080", "2560x1440"]
+
+
+static func display_label(k: String) -> String:
+	match k:
+		"full": return "Tam ekran"
+		"max": return "Pencere (ekranı kapla)"
+	return "Pencere %s" % k.replace("x", " × ")
+
+
+func display_key() -> String:
+	var d = String(settings.get("display", ""))
+	if d == "" or not d in DISPLAYS:
+		d = "full" if bool(settings.get("fullscreen", false)) else "max"
+	return d
+
+
 func apply_settings() -> void:
-	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if settings["fullscreen"] else DisplayServer.WINDOW_MODE_WINDOWED)
+	var d = display_key()
+	if d == "full":
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
+	elif d == "max":
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_MAXIMIZED)
+	else:
+		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED)
+		var pp = d.split("x")
+		var scr = DisplayServer.screen_get_usable_rect(DisplayServer.window_get_current_screen())
+		var want = Vector2i(mini(int(pp[0]), scr.size.x), mini(int(pp[1]), scr.size.y - 32))
+		DisplayServer.window_set_size(want)
+		DisplayServer.window_set_position(scr.position + (scr.size - want) / 2)
 	var bus := AudioServer.get_bus_index("Master")
 	AudioServer.set_bus_volume_db(bus, 0.0)
 	get_tree().root.content_scale_factor = float(settings.get("ui_scale", 1.0))   # arayüz ölçeği (yalnız 2B arayüz; 3B görüntü etkilenmez)

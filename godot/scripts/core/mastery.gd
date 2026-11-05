@@ -41,6 +41,9 @@ static func gain(p: Dictionary, key: String, amount: float) -> void:
 		Sfx.play("pickup", null, 1.3, 0.35)
 		if int(nv) % 10 == 0:
 			Hud.banner(NAMES.get(key, key).to_upper(), "Ustalık %d" % int(nv), Color(0.6, 0.95, 1.0))
+	elif int(nv * 4.0) > int(v * 4.0):   # yavaş gelişimde de artış görünsün: her çeyrek puanda küçük yazı (6 kat yavaşlatmadan sonra tam sayı çok seyrek geliyordu)
+		if Game.player and is_instance_valid(Game.player):
+			Combat.popup_text(Game.player.global_position + Vector3.UP * 2.1, "%s %.2f" % [NAMES.get(key, key), nv], Color(0.55, 0.85, 0.95))
 	# ikinci / üçüncü chakra doğası: ninjutsu 40 / 75'te seçim (eski yetenek ağacı düğümü yerine)
 	if key == "ninjutsu":
 		var els: Array = p.get("elements", [])

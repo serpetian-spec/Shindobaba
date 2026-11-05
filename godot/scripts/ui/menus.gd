@@ -292,8 +292,8 @@ static func _eye_panel(main: Node, dv: VBoxContainer, pr: Dictionary) -> void:
 		var k = int(e.get("kind", 0))
 		if k == 1 and lvl < 3:
 			var xp = float(cur.get("xp", 0.0))
-			var need = 120.0 * lvl
-			dv.add_child(UI.label("Sonraki tomoe: gözler açıkken dövüşerek  %d / %d" % [int(xp), int(need)], 14, Color(1, 0.7, 0.6), HORIZONTAL_ALIGNMENT_LEFT, true))
+			var need = 600.0 * lvl   # Eyes.gd ile aynı: gözler açık + 25 m içinde düşman varken geçen saniye
+			dv.add_child(UI.label("Sonraki tomoe: Sharingan açıkken düşmanla dövüşerek  %d:%02d / %d dk" % [int(xp) / 60, int(xp) % 60, int(need) / 60], 14, Color(1, 0.7, 0.6), HORIZONTAL_ALIGNMENT_LEFT, true))
 		elif k == 1 and lvl >= 3:
 			dv.add_child(UI.label("Mangekyō, en yakınını kendi ellerinle öldürmenin ya da yanında savaşan bir dostun gözlerinin önünde ölmesinin acısıyla uyanır...", 14, Color(1, 0.7, 0.6), HORIZONTAL_ALIGNMENT_LEFT, true))
 		var sk = Eyes.SKILLS.get(k, [])
@@ -339,6 +339,11 @@ static func _eye_panel(main: Node, dv: VBoxContainer, pr: Dictionary) -> void:
 		else:
 			dv.add_child(UI.label("Kendi naklini yapmak için Shōsen (tıbbi ninjutsu) ve en az 50 chakra kontrolü ustalığı gerekir.", 13, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
 	dv.add_child(UI.label("Başkasından alınan gözü köy hastanesi takmaz (kanon: klan gözü klanın malıdır). Nakli takımındaki tıbbi ninja sahada yapar (Rin–Kakashi), kendi tıbbi ninjutsunla yaparsın ya da yeraltındaki Kara Cerrah gizlice takar.", 13, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
+	# uzun açıklamalar tek satır kalınca paneli genişletip sol göz kutusunu ekranın dışına itiyordu (her çözünürlükte): satırları kaydır
+	for l in dv.get_children():
+		if l is Label:
+			l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			l.custom_minimum_size.x = 0.0
 
 
 ## Takılı gözü kavanoza koyar (yuvası boşalır = normal göz); açık gözler kapanır
@@ -1093,6 +1098,25 @@ static func settings(back: Callable) -> void:
 	ur.add_child(uv)
 	ur.add_child(_arrow_btn("▶", func(): set_scale.call(si + 1)))
 	g0.add_child(ur)
+	# ekran: ◀ Tam ekran / Pencere 1280×720 ... ▶ (küçük ekranlı bilgisayarlarda pencere ekrana sığsın)
+	var disp = Game.DISPLAYS
+	var cur_d = Game.display_key()
+	var di = maxi(0, disp.find(cur_d))
+	var dr = UI.hbox(12)
+	var dl = UI.label("Ekran", 15)
+	dl.custom_minimum_size = Vector2(200, 0)
+	dr.add_child(dl)
+	var set_disp = func(k: int) -> void:
+		s["display"] = disp[posmod(k, disp.size())]
+		s["fullscreen"] = s["display"] == "full"
+		Game.apply_settings()
+		settings(back)
+	dr.add_child(_arrow_btn("◀", func(): set_disp.call(di - 1)))
+	var dvl = UI.label(Game.display_label(disp[di]), 16, UI.GOLD, HORIZONTAL_ALIGNMENT_CENTER, true)
+	dvl.custom_minimum_size = Vector2(220, 0)
+	dr.add_child(dvl)
+	dr.add_child(_arrow_btn("▶", func(): set_disp.call(di + 1)))
+	g0.add_child(dr)
 	# kan efekti ◀ Açık / Kapalı ▶
 	var br = UI.hbox(12)
 	var bl = UI.label("Kan efekti", 15)
@@ -1125,7 +1149,7 @@ static func settings(back: Callable) -> void:
 	var gr = HFlowContainer.new()
 	gr.add_theme_constant_override("h_separation", 18)
 	g2.add_child(gr)
-	for opt in [["Tam ekran", "fullscreen"], ["Gölgeler", "shadows"], ["Anime çizgileri", "outline"], ["Yumuşak filtre", "dreamy"], ["FPS göster", "show_fps"]]:
+	for opt in [["Gölgeler", "shadows"], ["Anime çizgileri", "outline"], ["Yumuşak filtre", "dreamy"], ["FPS göster", "show_fps"]]:
 		check.call(gr, opt[0], opt[1])
 	var g3 = group.call("sound", "Ses")
 	slider.call(g3, "Müzik", "music", 0.0, 1.0, 0.05)
@@ -2061,7 +2085,7 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 	sh.add_child(trash)
 	# sağ: ayrıntı
 	var right = UI.card()
-	right.custom_minimum_size = Vector2(440, 0)
+	right.custom_minimum_size = Vector2(420, 0)
 	h.add_child(right)
 	var rv = UI.vbox(10)
 	right.add_child(rv)
@@ -2081,6 +2105,8 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 			txt = "Hocadan öğrenilir (%s)" % lp.trim_prefix("trainer").trim_prefix(":")
 		elif lp.begins_with("clan:"):
 			txt = "%s klan tekniği — klan üyeleri Güç %d'de kendiliğinden öğrenir" % [Data.clans.get(lp.substr(5), {}).get("name", lp.substr(5)), int(j.get("level", 1))]
+		elif lp == "element":
+			txt = "İlk element tekniği: mezuniyetten sonra Antrenman Alanı'nda hocanın chakra kâğıdı testiyle öğrenilir (o doğa sende olmalı)"
 		elif lp.begins_with("kg"):
 			txt = "Kekkei genkai gerekir (%s)" % lp.trim_prefix("kg:")
 		elif lp.begins_with("eye"):
@@ -2133,13 +2159,13 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 	var mean = String(j.get("meaning", ""))
 	var d = UI.label(("“%s” — " % mean if mean != "" else "") + String(j.get("desc", "")), 15, UI.MUTED)   # ad Japonca; Türkçe anlamı açıklamada
 	d.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	d.custom_minimum_size = Vector2(400, 0)
+	d.custom_minimum_size = Vector2(380, 0)
 	rv.add_child(d)
 	var fx = _jutsu_effects(picked, j)
 	if fx != "":
 		var fl2 = UI.label(fx, 15, Color(1, 0.82, 0.55))
 		fl2.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		fl2.custom_minimum_size = Vector2(400, 0)
+		fl2.custom_minimum_size = Vector2(380, 0)
 		rv.add_child(fl2)
 
 
@@ -2294,7 +2320,7 @@ static func _tab_skills(_main: Node, body: Control) -> void:
 		bar.show_percentage = false
 		bar.custom_minimum_size = Vector2(300, 20)
 		row.add_child(bar)
-		row.add_child(UI.label("%d" % int(val), 19, UI.CREAM))
+		row.add_child(UI.label("%.2f" % val, 19, UI.CREAM))   # ondalıklı: yavaş artış da görünsün
 		var hl = UI.label(how[k], 14, UI.MUTED)
 		hl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		hl.custom_minimum_size = Vector2(600, 0)
@@ -3003,16 +3029,17 @@ static func region_map(main: Node) -> void:
 	var r: Vector4 = rm.local_rect
 	vp = vp / maxf(0.01, float(Game.settings.get("ui_scale", 1.0))) if bg.get_viewport_rect().size.x > 3000.0 else vp
 	var sz = Vector2.ONE * minf(vp.x - side_w - 180, vp.y - 140)
+	var ox = maxf(40.0, (vp.x - (sz.x + 40.0 + side_w)) * 0.5)   # harita + yer listesi ortada yan yana (liste sağ köşeye yapışıyordu)
 	var frame = Panel.new()
 	frame.add_theme_stylebox_override("panel", UI.glass(16, 0, 0.6))
-	frame.position = Vector2(60, (vp.y - sz.y) * 0.5 + 10) - Vector2(10, 10)
+	frame.position = Vector2(ox, (vp.y - sz.y) * 0.5 + 10) - Vector2(10, 10)
 	frame.size = sz + Vector2(20, 20)
 	bg.add_child(frame)
 	var tr = TextureRect.new()
 	tr.texture = rm.local_map
 	tr.stretch_mode = TextureRect.STRETCH_SCALE
 	tr.size = sz
-	tr.position = Vector2(60, (vp.y - sz.y) * 0.5 + 10)
+	tr.position = Vector2(ox, (vp.y - sz.y) * 0.5 + 10)
 	tr.clip_contents = true
 	bg.add_child(tr)
 	var pm = Game.to_map(Game.player.global_position)
@@ -3067,9 +3094,8 @@ static func region_map(main: Node) -> void:
 	# yan panel: yerler listesi (tıkla -> yol göster) + dünya haritası
 	var side = PanelContainer.new()
 	side.add_theme_stylebox_override("panel", UI.glass(16, 20, 0.8))
-	side.anchor_left = 1.0; side.anchor_right = 1.0
-	side.anchor_bottom = 1.0
-	side.offset_left = -side_w - 40; side.offset_right = -40; side.offset_top = 100; side.offset_bottom = -110
+	side.position = Vector2(ox + sz.x + 40.0, (vp.y - sz.y) * 0.5 + 10)
+	side.size = Vector2(side_w, sz.y)
 	side.custom_minimum_size = Vector2(side_w, 0)
 	bg.add_child(side)
 	var scroll = ScrollContainer.new()
@@ -3103,16 +3129,17 @@ static func world_map(main: Node) -> void:
 	var side_w = 330.0
 	var scale = minf((vp.x - side_w - 180) / tex.get_width(), (vp.y - 140) / tex.get_height())
 	var sz = Vector2(tex.get_width(), tex.get_height()) * scale
+	var ox = maxf(40.0, (vp.x - (sz.x + 40.0 + side_w)) * 0.5)   # harita + yer listesi ortada yan yana (liste sağ köşeye yapışıyordu)
 	var frame = Panel.new()
 	frame.add_theme_stylebox_override("panel", UI.glass(16, 0, 0.6))
-	frame.position = Vector2(60, (vp.y - sz.y) * 0.5 + 10) - Vector2(10, 10)
+	frame.position = Vector2(ox, (vp.y - sz.y) * 0.5 + 10) - Vector2(10, 10)
 	frame.size = sz + Vector2(20, 20)
 	bg.add_child(frame)
 	var tr = TextureRect.new()
 	tr.texture = tex
 	tr.stretch_mode = TextureRect.STRETCH_SCALE
 	tr.size = sz
-	tr.position = Vector2(60, (vp.y - sz.y) * 0.5 + 10)
+	tr.position = Vector2(ox, (vp.y - sz.y) * 0.5 + 10)
 	bg.add_child(tr)
 	var title = UI.label("SHINOBİ DÜNYASI", 30, UI.TEXT, HORIZONTAL_ALIGNMENT_LEFT, true)
 	title.position = Vector2(tr.position.x, tr.position.y - 50)
@@ -3167,9 +3194,8 @@ static func world_map(main: Node) -> void:
 	# yan panel: hızlı seyahat
 	var side = PanelContainer.new()
 	side.add_theme_stylebox_override("panel", UI.glass(16, 20, 0.8))
-	side.anchor_left = 1.0; side.anchor_right = 1.0
-	side.anchor_bottom = 1.0
-	side.offset_left = -side_w - 40; side.offset_right = -40; side.offset_top = 100; side.offset_bottom = -110
+	side.position = Vector2(ox + sz.x + 40.0, (vp.y - sz.y) * 0.5 + 10)
+	side.size = Vector2(side_w, sz.y)
 	side.custom_minimum_size = Vector2(side_w, 0)
 	bg.add_child(side)
 	# liste uzun olunca tekerlekle aşağı kaydırılabilsin
