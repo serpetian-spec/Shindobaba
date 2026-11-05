@@ -279,7 +279,7 @@ func _ready() -> void:
 	super._ready()
 	home = global_position
 	nameplate = Label3D.new()
-	nameplate.text = display_name if (has_meta("no_level") or get_meta("teammate", false)) else "%s  Sv.%d" % [display_name, level]
+	nameplate.text = display_name   # seviye yok (ustalık sistemi): isim etiketinde "Sv." yazmaz
 	nameplate.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	# uzaktaki isimler üst üste binmesin: dünya boyutunda, 30 m'den sonra solarak kaybolur
 	nameplate.fixed_size = false

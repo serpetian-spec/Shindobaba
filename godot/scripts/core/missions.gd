@@ -1280,16 +1280,44 @@ static func glade(x: float, z: float) -> bool:
 
 
 ## Yoldan uzak (en az 70 m), köy dışında, karada, tercihen orman açıklığında bir nokta; bulunamazsa olduğu yer
+## Dev ağaçlı özel ormanlar (Ölüm Ormanı, Nara ormanı): glade() yalnız sıradan ormanın gürültüsüne bakar, bunları görmez —
+## in ağzı dev bir gövdenin içine düşüyordu (işaretçi ağacı gösteriyor, giriş yok, görev ilerlemiyordu)
+static func in_special_forest(q: Vector3, pad := 40.0) -> bool:
+	var m = Game.to_map(q)
+	for l in Game.world_info.get("landmarks", []):
+		if String(l.get("id", "")) in ["forest_death", "nara_forest"]:
+			if Vector2(m.x - float(l["x"]), m.y - float(l["y"])).length() < float(l.get("r", 300)) + pad:
+				return true
+	return false
+
+
 func _lair_site(c: Vector3) -> Vector3:
+	var q0 = _lair_site_pick(c)
+	var mm = Game.to_map(q0)
+	Roadside._add_clear(mm.x, mm.y, 24.0)   # in ağzının çevresinde ağaç çıkmasın
+	return q0
+
+
+func _lair_site_pick(c: Vector3) -> Vector3:
+	# özel ormanın içindeyse önce ormanın kenarının dışına (merkezden uzaklaşan yönde) taşı
+	var m0 = Game.to_map(c)
+	for l in Game.world_info.get("landmarks", []):
+		if String(l.get("id", "")) in ["forest_death", "nara_forest"]:
+			var lc = Vector2(float(l["x"]), float(l["y"]))
+			var dv = m0 - lc
+			if dv.length() < float(l.get("r", 300)) + 40.0:
+				var dir = dv.normalized() if dv.length() > 1.0 else Vector2.RIGHT.rotated(randf() * TAU)
+				m0 = lc + dir * (float(l.get("r", 300)) + 60.0)
+				c = Game.from_map(m0)
 	var fallback = c
-	var have_fb = Game.road_dist(c.x, c.z) > 70.0
+	var have_fb = Game.road_dist(c.x, c.z) > 70.0 and not in_special_forest(c)
 	if have_fb and glade(c.x, c.z):
 		return c
 	for i in 120:
 		var a = randf() * TAU
 		var q = c + Vector3(cos(a), 0, sin(a)) * randf_range(40.0, 260.0)
 		var m = Game.to_map(q)
-		if Game.road_dist(q.x, q.z) < 70.0 or Game.terrain_height(m.x, -m.y) < 0.8 or Game.in_village_wall(m.x, -m.y):
+		if Game.road_dist(q.x, q.z) < 70.0 or Game.terrain_height(m.x, -m.y) < 0.8 or Game.in_village_wall(m.x, -m.y) or in_special_forest(q):
 			continue
 		q.y = Game.ground_height(q.x, q.z)
 		if glade(q.x, q.z):
@@ -2120,13 +2148,28 @@ func _tick_kill_guard(dt: float, s: Dictionary) -> void:
 		if is_instance_valid(e) and e is Enemy and not e.dead and e.get_meta("q", "") == _key():
 			alive.append(e)
 	var need = int(s["n"]) - int(st.get("n", 0))
-	var near = Game.player.global_position.distance_to(c) < 90.0
+	var pp = Game.player.global_position
+	var near = pp.distance_to(c) < 90.0
+	var at_camp = pp.distance_to(c) < 30.0
 	for e in alive:
-		if e.global_position.distance_to(c) > 120.0 and e.target != Game.player:
+		var far_camp = e.global_position.distance_to(c) > 120.0
+		var far_pl = e.global_position.distance_to(pp) > 60.0
+		# oyuncuyu kovalayıp yolda takılan / izini kaybeden düşman: oyuncu kampa dönünce (ya da kimseyle dövüşmüyorsa) kampa geri
+		if (far_camp and e.target != Game.player) or (at_camp and far_pl and e.global_position.distance_to(c) > 40.0):
 			e.global_position = open_ground(c + Vector3(randf_range(-10, 10), 0, randf_range(-10, 10)), 30.0)
 			e.home = e.global_position
 			e.wander_to = e.global_position
 			e.target = null
+	# işaretçi: kampta kimse yoksa en yakın canlı görev düşmanını göster (boş kampı gösterip duruyordu)
+	var in_camp = alive.filter(func(e): return e.global_position.distance_to(c) < 40.0)
+	if in_camp.is_empty() and not alive.is_empty():
+		var best = alive[0]
+		for e in alive:
+			if e.global_position.distance_to(pp) < best.global_position.distance_to(pp):
+				best = e
+		target_marker = best.global_position
+	else:
+		target_marker = c
 	if near and alive.size() < need:
 		var es = _spawn(s["enemy"], c, need - alive.size(), 14.0, s.get("ename", ""))
 		if not es.is_empty():

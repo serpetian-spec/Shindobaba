@@ -44,13 +44,13 @@ func _process(dt: float) -> void:
 		_tick(dt)
 		return
 	gap_t -= dt
-	if gap_t > 0.0 or dist_acc < 400.0:
+	if gap_t > 0.0 or dist_acc < 800.0:
 		return
 	check_t -= dt
 	if check_t > 0.0:
 		return
 	check_t = 4.0
-	if not _can_start(p) or randf() > 0.3:
+	if not _can_start(p) or randf() > 0.15:
 		return
 	start(_pick_kind(p))
 
@@ -58,6 +58,8 @@ func _process(dt: float) -> void:
 func _can_start(p: Vector3) -> bool:
 	if int(ChuninExam.stage) != 0 or Exams.cur != "":
 		return false   # sınav sürerken yol karşılaşması (haydut, haraççı...) yok
+	if not (Game.profile.get("active_mission", {}) as Dictionary).is_empty():
+		return false   # görevdeyken intikamcı / takipçi / haydut çıkmaz (görevin önüne geçiyordu)
 	if not ClanWorld._village_here(p).is_empty():
 		return false
 	if p.y > Game.terrain_height(p.x, p.z) + 300.0:   # iç mekân / gizli diyar
@@ -206,7 +208,7 @@ func finish(delay := 25.0) -> void:
 					FX.smoke_puff(n.global_position + Vector3.UP, 0.8, 10)
 				n.queue_free())
 	cur = {}
-	gap_t = randf_range(240.0, 480.0)
+	gap_t = randf_range(480.0, 900.0)
 	dist_acc = 0.0
 
 
@@ -223,7 +225,7 @@ func _abort() -> void:
 		if is_instance_valid(n):
 			n.queue_free()
 	cur = {}
-	gap_t = randf_range(120.0, 240.0)
+	gap_t = randf_range(300.0, 600.0)
 	dist_acc = 0.0
 
 
@@ -1001,7 +1003,7 @@ func _start_rival_rematch(c: Vector3) -> void:
 		e.power *= 1.2
 	var lead: Enemy = cur["foes"][0]
 	lead.display_name = "Rakip Lider " + ["Kotetsu", "Hayabusa", "Sumire", "Onikiri", "Raiga"].pick_random()
-	lead.nameplate.text = "%s  Sv.%d" % [lead.display_name, lead.level]
+	lead.nameplate.text = lead.display_name   # seviye yazısı yok
 	var line := "\"Rövanş! Bu sefer hazırız!\"" if d.get("won", true) else "\"Geçen sefer kaçtın, bu sefer kaçamazsın!\""
 	Hud.msg("Rakip takım geri döndü: %s" % line, Color(1, 0.75, 0.45))
 

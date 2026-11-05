@@ -43,7 +43,7 @@ func setup(beast_id: String) -> void:
 	size = 1.0
 	# efsanevi canavarlar: Sv. 60 (Shukaku) .. 100 (Kurama); can ve güç seviyeyle (eskiden çok zayıftı)
 	level = 55 + num * 5
-	display_name = "%s  •  Sv.%d" % [info["name"], level]
+	display_name = String(info["name"])   # seviye yazısı yok (ustalık sistemi)
 	max_hp = 9000.0 + num * 4200.0 + (14000.0 if id == "kurama" else 0.0)
 	hp = max_hp
 	power = 4.0 + num * 0.7
