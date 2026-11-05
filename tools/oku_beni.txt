@@ -1,0 +1,29 @@
+Shinobi Yolu v{v}
+================
+
+Kurulum yok: ShinobiYolu.exe'ye çift tıkla, oyun açılır.
+(Windows "bilinmeyen yayıncı" uyarısı verirse: "Ek bilgi" > "Yine de çalıştır".)
+
+GÜNCELLEME: bu ShinobiYolu.exe'yi eskisinin üstüne koy. Kayıtların bilgisayarında ayrı bir
+klasörde durur (%APPDATA%\Godotpp_userdata\Shinobi Yolu), silinmez; kaldığın yerden devam edersin.
+Ekran sığmıyorsa: Ayarlar > Ekran (tam ekran / pencere boyutları).
+
+TUŞLAR
+W A S D        hareket
+Space / Ctrl   zıpla / uzun sıçrayış
+Shift          atılma
+Sol / Sağ tık  saldırı / blok
+1-6            jutsu yuvaları
+G              mühür modu
+Q              kawarimi (yer değiştirme)
+C              chakra doldur
+R / T          fırlat / alet değiştir
+E / orta tık   hedefe kilitlen
+F              etkileşim / konuş
+H / Y / O      merhem / hap / hap değiştir
+V Z X B        göz / sennin / canavar / kapılar
+N              silah çek
+J / U          çağrı komutu / çağrı özel
+L              haritadaki işaretçiyi değiştir (görev, dost, aranan, hedef)
+Tab I K M      ninja menüsü / envanter / jutsular / harita
+Esc            duraklat
