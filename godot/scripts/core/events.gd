@@ -151,6 +151,7 @@ func _written_done(r: Dictionary) -> void:
 		stage = 0
 		Journal.add("Chūnin Sınavı'nın yazılı aşamasında çekilmeyi seçtin.", "exam")
 		Game.profile["active_mission"] = {}
+		Hud.objective_changed()
 		Hud.dialog("Baş Gözetmen", "Çekilmeyi seçtin. Bu da bir karardır... ama bir chūnin, takımı için bilinmezliğe adım atabilmeli. Bir sonraki dönem tekrar dene.", [])
 		return
 	Hud.dialog("Baş Gözetmen", "Onuncu soru... yoktu. Asıl soru, bilinmeyen bir tehlikeye takımını götürme cesaretiydi. Kalan herkes GEÇTİ! (Yazılı puanın: %d)\n\n2. AŞAMA — %s. Takımına bir parşömen veriyoruz; diğerini rakiplerden alıp 5 gün içinde %s ortasındaki kuleye ulaşın. Parşömenleri kulede açın, önce değil!" % [st["written"], area_name().to_upper(), AREA.get(host, AREA["konoha"])[2]], [{"label": "%s gir" % AREA.get(host, AREA["konoha"])[3], "cb": _forest}])
@@ -518,6 +519,7 @@ func _fail(text: String) -> void:
 	p()["inventory"].erase("scroll_earth")
 	Missions.has_marker = false
 	Game.profile["active_mission"] = {}
+	Hud.objective_changed()   # sağdaki görev listesi temizlensin (süre dolunca/ölünce listede kalıyordu)
 	Journal.add("Chūnin Sınavı'ndan elendin.", "exam")
 	Hud.dialog("Sınav Gözetmeni", text, [])
 

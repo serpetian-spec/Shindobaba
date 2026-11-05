@@ -105,7 +105,17 @@ func spawn_teammates(at: Vector3, n := 2, level := 8) -> Array:
 		a["no_level"] = true
 		a["hp"] = 220.0 + level * 12.0
 		a["level"] = level
-		a["power"] = 0.9
+		# takım arkadaşı = rakip genin ile aynı ayar (eskiden sabit 0.9: rakipler 1.3-1.55 vururken arkadaşlar hiçbir şey yapamıyordu)
+		var rp = 0.0
+		for r in ChuninExam.RIVALS:
+			rp += float(r["power"])
+		a["power"] = rp / ChuninExam.RIVALS.size() * 0.95
+		var js: Array = (a.get("jutsu", []) as Array).duplicate()
+		for x in Enemy.auto_jutsu("rogue", String(a.get("element", "")), level):   # rakipler gibi seviyesine göre ek jutsu
+			if not x in js and js.size() < 4:
+				js.append(x)
+		a["jutsu"] = js
+		a["aggr"] = maxf(float(a.get("aggr", 0.5)), 0.75)
 		a["xp"] = 0
 		a["ryo"] = 0
 		a["look"]["gender"] = nm[1]

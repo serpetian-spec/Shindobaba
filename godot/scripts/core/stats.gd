@@ -152,8 +152,15 @@ static func price(base: int) -> int:
 	return int(round(base * clampf(1.0 + skill(Game.profile, "shop"), 0.65, 1.0)))
 
 
+## Ninja can eğrisi (NPC ninjalarla ORTAK): Güç/seviye L olan bir ninjanın tabanı. Sınav rakipleri ve köy ninjaları
+## (events._rival_enemy 180 + L*18, Enemy.setup x(0.75 + L*0.004)) bununla aynı; oyuncu da aynı kuralla — eskiden oyuncu
+## 100 + dayanıklılık*8 ile aynı Güç'teki NPC'nin 1/3'ü kadar candaydı.
+static func ninja_hp(lv: float) -> float:
+	return (180.0 + lv * 18.0) * (0.75 + lv * 0.004)
+
+
 static func max_hp(p: Dictionary) -> float:
-	var v = 100.0 + Mastery.get_v(p, "dayaniklilik") * 8.0   # dayanıklılık ustalığı
+	var v = ninja_hp(float(Mastery.power(p))) + Mastery.get_v(p, "dayaniklilik") * 8.0   # Güç tabanı (NPC ile aynı) + dayanıklılık idmanı
 	return v + Gear.stat(p, "hp") + clan_bonus(p, "hp") + skill(p, "hp")
 
 

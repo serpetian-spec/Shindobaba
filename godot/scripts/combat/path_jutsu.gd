@@ -7272,7 +7272,32 @@ func p_futon_shinku_taigyoku(c: Node3D, t: Node3D) -> void:
 		var r0 = randf_range(5.0, 8.0)
 		var dk = Color(0.28, 0.3, 0.32, 0.85) if k % 3 != 0 else Color(0.85, 0.9, 0.9, 0.8)
 		WindFX.streak(func(u: float) -> Vector3: return cen + dirr * lerpf(r0, 0.4, u), 0.3, 0.06, dk, randf() * 0.12, 10)
-	eshot(c, "futon_shinku_taigyoku", "fuuton", WIND, tg(c, t, 28.0), _mouth_pos(c) + c.face_dir() * 0.8, 2.6, 26.0, 1.8, {"knock": 24.0, "launch": 6.0}, 2.0, 0.4)
+	# (ref anime) fırlayan şey dev, şeffaf bir hava küresi: dönen akım perdeleri + kameraya dönük ince iç içe halka kenarları
+	var tt2 = tg(c, t, 28.0)
+	after(0.4, func():
+		if not live(c):
+			return
+		var from = _mouth_pos(c) + c.face_dir() * 1.2
+		var core = Node3D.new()
+		WindFX.bullet(core, 3.2)
+		for q in 3:
+			var rg = MeshInstance3D.new()
+			var qm = QuadMesh.new()
+			qm.size = Vector2.ONE * (5.4 - q * 1.2)
+			var m = StandardMaterial3D.new()
+			m.albedo_texture = FX.tex_ring
+			m.albedo_color = Color(0.92, 0.97, 1.0, 0.5 - q * 0.12)
+			m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			m.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
+			qm.material = m
+			rg.mesh = qm
+			rg.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			core.add_child(rg)
+		var pr = shot(c, from, aim_at(c, tt2, from), 24.0, core, inf(c, "futon_shinku_taigyoku", 1.8, {"knock": 24.0, "launch": 6.0, "kind": "heavy", "element": "fuuton", "hitstop": 0.05}), null, false, 1.6, func(p, _h):
+			impact_fx("fuuton", WIND, p, 2.0))
+		pr.radius = 1.4
+		_etrail(pr, "fuuton", WIND, 2.6))
 	Sfx.play("wind", c.global_position, 0.5)
 
 
@@ -7303,8 +7328,28 @@ func p_futon_shinkujin(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.6)
 	var ba = bone_attach(c, "RightHand")
 	if ba:
-		WindFX.bullet(ba, 0.9)
-		after(0.6, func():
+		# (ref anime) kunaiye akıtılan rüzgâr: bıçak boyunca ve ucunun ötesine uzanan, dönen ince yeşil-beyaz halkalar
+		var kb = MB.new()
+		CharacterModel._kunai_mesh(kb)
+		ba.add_child(mesh_of(kb, Props.toon()))
+		var rings = Node3D.new()
+		ba.add_child(rings)
+		for q in 4:
+			var r = MeshInstance3D.new()
+			var tm = TorusMesh.new()
+			tm.inner_radius = 0.06 + q * 0.025
+			tm.outer_radius = tm.inner_radius + 0.016
+			tm.rings = 28
+			tm.ring_segments = 4
+			r.mesh = tm
+			r.material_override = glow(Color(0.72, 1.0, 0.82), 0.8)
+			r.position = Vector3(0, 0, 0.16 + q * 0.14)
+			r.rotation.x = PI * 0.5
+			r.scale = Vector3(1.0, 1.0, 0.6)
+			rings.add_child(r)
+		var rtw = rings.create_tween().set_loops(12)
+		rtw.tween_property(rings, "rotation:z", TAU, 0.12).as_relative()
+		after(0.7, func():
 			if is_instance_valid(ba):
 				ba.queue_free())
 	after(0.25, func():
@@ -17603,6 +17648,32 @@ static func ura_shisho_trigger(c: Node3D) -> void:
 		var a = TAU * k / 4.0
 		VFX.puffs(at + Vector3(cos(a), 0.4, sin(a)) * 1.2, {"amount": 10, "life": 0.6, "size": 0.25, "radius": 0.2, "vmin": 1, "vmax": 3, "dir": Vector3.UP, "spread": 30.0, "add": false,
 			"colors": [Color(0.55, 0.02, 0.02, 1), Color(0.2, 0.0, 0.0, 0)]})
+	# (ref anime) gövdede kara mühür formülü (dört yönde üçlü çizgi sembolleri) belirir
+	var ch = pi.bone_attach(c, "UpperChest")
+	if ch:
+		var gb = MB.new()
+		for g in [Vector2(0, 0.11), Vector2(0, -0.09), Vector2(-0.1, 0.01), Vector2(0.1, 0.01)]:
+			for q in 3:
+				var y = g.y + (q - 1) * 0.022
+				if (int(g.x * 100) + q) % 2 == 0:
+					gb.add("box", Vector3(g.x, 0.05 + y, 0.14), Vector3(0.07, 0.012, 0.006), Color(0.02, 0.02, 0.02))
+				else:
+					for hx in [-1.0, 1.0]:
+						gb.add("box", Vector3(g.x + hx * 0.021, 0.05 + y, 0.14), Vector3(0.028, 0.012, 0.006), Color(0.02, 0.02, 0.02))
+		ch.add_child(pi.mesh_of(gb, Props.toon()))
+		pi.after(1.8, func():
+			if is_instance_valid(ch):
+				ch.queue_free())
+	# küreyi saran, içe çeken gri burgu kollar
+	for k in 10:
+		var a0 = TAU * k / 10.0
+		var e0 = randf_range(-0.2, 0.5)
+		var dirn = 1.0 if k % 2 == 0 else -1.0
+		var pth = func(u: float) -> Vector3:
+			var a = a0 + dirn * u * TAU * 0.9
+			var e = e0 + sin(u * PI) * 0.6
+			return at + Vector3(cos(a) * cos(e), sin(e), sin(a) * cos(e)) * R * lerpf(1.25, 0.95, u)
+		WindFX.streak(pth, 1.1, 0.7, Color.WHITE, 0.7 + k * 0.04, 24, WindFX.sheet_mat(Color(0.42, 0.45, 0.45), 0.9))
 	var sp = MeshInstance3D.new()
 	var sm = SphereMesh.new()
 	sm.radius = 1.0
@@ -27401,7 +27472,8 @@ func p_suiton_suikyu(c: Node3D, t: Node3D) -> void:
 		if not live(c) or not tt:
 			return
 		var blob = _bubble(1.1, Color(0.3, 0.6, 1.0))
-		blob.material_override.albedo_color = Color(0.3, 0.6, 1.0, 0.55)
+		if blob.material_override is BaseMaterial3D:
+			blob.material_override.albedo_color = Color(0.3, 0.6, 1.0, 0.55)
 		tt.add_child(blob)
 		blob.position = Vector3.UP * (tt.height * 0.9 if "height" in tt else 1.6)
 		if tt.has_method("apply_status"):
