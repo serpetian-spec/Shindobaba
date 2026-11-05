@@ -18,6 +18,10 @@ const DRILLS := {
 	"ura_renge": {"type": "laps", "n": 3, "time": 0.0, "say": "Ters Lotus kapıları açık tutacak nefes ister. Avlunun çevresinde üç tur koş, durmak yok!"},
 	"asakujaku": {"type": "hits", "n": 80, "time": 60.0, "say": "Sabah Tavuskuşu yumruk yağmurudur. Bir dakikada seksen vuruş! Hızın ateş gibi olmalı!"},
 	"hirudora": {"type": "laps", "n": 5, "time": 0.0, "weights": true, "say": "Gündüz Kaplanı tek darbede her şeyi toplar. Bacak ağırlıklarını tak ve beş tur koş — ağırlıkla!"},
+	# Yılan Yolu: zehir (kanon: yılan ustaları zehre bağışık, yılanlardan zehir toplar)
+	"jagei_jubaku": {"type": "collect", "n": 6, "time": 120.0, "item": "zehir kesesi", "say": "Gölge yılanlar zehirden beslenir. İnin çevresindeki ölü yılanlardan altı zehir kesesi topla, iki dakikan var."},
+	"hebi_bunshin_no_jutsu": {"type": "survive", "n": 20, "time": 0.0, "say": "Deri değiştiren beden zehre dayanır. Şu mor sisin içinde yirmi saniye dur — kaçarsan baştan."},
+	"sen_ei_tajashu": {"type": "survive", "n": 30, "time": 0.0, "say": "Bin yılan kolundan fışkırır; damarların zehri tanımalı. Otuz saniye sisin içinde kal."},
 }
 var drill := {}   # aktif antrenman: {pid, jid, type, n, c, t, time, center, ang, dummies}
 
@@ -592,6 +596,51 @@ func start_drill(pid: String, jid: String) -> void:
 		center += q
 	center /= maxf(1.0, posts.size())
 	drill["center"] = center + Vector3(0, 0, 4.0)
+	if D["type"] in ["collect", "survive"]:
+		center = sp.get("center", Game.player.global_position)
+		drill["center"] = center
+	if D["type"] == "collect":
+		# in çevresine dağılmış zehir keseleri (mor parlayan küçük keseler): yaklaşınca toplanır
+		for k in int(D["n"]):
+			var a = TAU * k / float(D["n"]) + randf_range(-0.3, 0.3)
+			var q: Vector3 = center + Vector3(cos(a), 0, sin(a)) * randf_range(9.0, 20.0)
+			q.y = Game.ground_height(q.x, q.z) + 0.3
+			var bag = MeshInstance3D.new()
+			var sm = SphereMesh.new()
+			sm.radius = 0.28
+			sm.height = 0.46
+			bag.mesh = sm
+			var bm = StandardMaterial3D.new()
+			bm.albedo_color = Color(0.6, 0.25, 0.85)
+			bm.emission_enabled = true
+			bm.emission = Color(0.55, 0.2, 0.85)
+			bm.emission_energy_multiplier = 1.4
+			bag.material_override = bm
+			get_tree().current_scene.add_child(bag)
+			bag.global_position = q
+			var bt = bag.create_tween().set_loops()
+			bt.tween_property(bag, "position:y", q.y + 0.25, 0.8).set_trans(Tween.TRANS_SINE)
+			bt.tween_property(bag, "position:y", q.y, 0.8).set_trans(Tween.TRANS_SINE)
+			drill["dummies"].append(bag)
+	elif D["type"] == "survive":
+		# zehirli mor sis alanı (yerde halka + yükselen zehir zerreleri); içinde durdukça can erir
+		var ring = MeshInstance3D.new()
+		var tm = TorusMesh.new()
+		tm.inner_radius = 6.6
+		tm.outer_radius = 7.0
+		ring.mesh = tm
+		var rmat = StandardMaterial3D.new()
+		rmat.albedo_color = Color(0.7, 0.3, 1.0)
+		rmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		ring.material_override = rmat
+		get_tree().current_scene.add_child(ring)
+		ring.global_position = center + Vector3.UP * 0.1
+		drill["dummies"].append(ring)
+		var mist = FX.burst(center + Vector3.UP * 0.6, {"amount": 50, "life": 2.0, "tex": FX.tex_spark, "size": 0.5, "radius": 6.0, "vmin": 0.2, "vmax": 0.8,
+			"dir": Vector3.UP, "spread": 20.0, "gravity": Vector3(0, 0.4, 0), "colors": [Color(0.75, 0.4, 1.0, 0.0), Color(0.7, 0.35, 1.0, 0.6), Color(0.5, 0.2, 0.8, 0.0)]})
+		if mist:
+			mist.one_shot = false
+			drill["dummies"].append(mist)
 	if D["type"] == "hits":
 		for q in posts:
 			var d = TrainingDummy.new()
@@ -612,7 +661,7 @@ func start_drill(pid: String, jid: String) -> void:
 
 
 func _drill_text() -> String:
-	var unit = "vuruş" if drill["type"] == "hits" else "tur"
+	var unit = {"hits": "vuruş", "laps": "tur", "collect": String(DRILLS.get(String(drill["jid"]), {}).get("item", "parça")), "survive": "sn"}.get(String(drill["type"]), "")
 	var tl = (" — %d sn" % int(maxf(0.0, float(drill["time"]) - float(drill["t"])))) if float(drill["time"]) > 0.0 else ""
 	return "%d / %d %s%s" % [int(drill["c"]), int(drill["n"]), unit, tl]
 
@@ -630,6 +679,8 @@ func on_drill_hit(d: Node) -> void:
 func _drill_tick(dt: float) -> void:
 	if drill.is_empty() or Game.player == null:
 		return
+	if Interiors.inst and Interiors.inst.inside != "":
+		return   # usta içeride (laboratuvar) anlattı: antrenman dışarıda, çıkana kadar sayaç bekler
 	drill["t"] = float(drill["t"]) + dt
 	var c: Vector3 = drill["center"]
 	var pp = Game.player.global_position
@@ -654,7 +705,36 @@ func _drill_tick(dt: float) -> void:
 			Hud.objective_progress(_drill_text())
 			if laps >= int(drill["n"]):
 				end_drill(true)
-	elif int(drill["t"] * 4.0) % 4 == 0:
+	elif drill["type"] == "collect":
+		for bag in drill["dummies"]:
+			if is_instance_valid(bag) and bag.visible and bag.global_position.distance_to(pp + Vector3.UP * 0.5) < 1.6:
+				bag.visible = false
+				drill["c"] = int(drill["c"]) + 1
+				Sfx.play("pickup", pp, 1.2, 0.6)
+				Hud.objective_progress(_drill_text())
+				if int(drill["c"]) >= int(drill["n"]):
+					end_drill(true)
+					return
+	elif drill["type"] == "survive":
+		var inside = Vector2(pp.x - c.x, pp.z - c.z).length() < 6.8
+		if not inside:
+			if float(drill["c"]) > 0.0:
+				Hud.msg("Sisten çıktın — baştan!", Color(1, 0.6, 0.45))
+			drill["c"] = 0
+			drill["acc"] = 0.0
+		else:
+			drill["acc"] = float(drill["acc"]) + dt
+			Game.player.hp = maxf(1.0, Game.player.hp - Game.player.max_hp * 0.012 * dt * (1.0 - passive(pr(), "poison_resist")))   # zehir yavaşça yakar (asla öldürmez)
+			if int(drill["acc"]) != int(drill["c"]):
+				drill["c"] = int(drill["acc"])
+				Hud.objective_progress(_drill_text())
+			if int(drill["c"]) >= int(drill["n"]):
+				Mastery.gain(pr(), "dayaniklilik", 0.5)
+				end_drill(true)
+				return
+	if drill.is_empty():
+		return
+	if drill["type"] == "hits" and int(drill["t"] * 4.0) % 4 == 0:
 		Hud.objective_progress(_drill_text())
 
 

@@ -266,7 +266,8 @@ static func _snake(b: Builder, pid: String, p: Vector2, base: float) -> float:
 	fog(b, b.w(Vector3(0, my + 0.6, mouth_n + 2.0)), 6.0, Color(0.55, 0.45, 0.7, 0.4), 14)
 	fog(b, b.w(Vector3(-8.0, y0 + 0.5, 0.0)), 9.0, Color(0.6, 0.52, 0.72, 0.3), 14)
 	fog(b, b.w(Vector3(8.0, y0 + 0.5, -4.0)), 9.0, Color(0.6, 0.52, 0.72, 0.3), 14)
-	# usta yer altı laboratuvarında (Interiors "snake_lab"); dışarıda yalnız ağızda bekleyen yılan
+	# usta yer altı laboratuvarında (Interiors "snake_lab"); antrenmanlar (zehir sisi, zehir keseleri) dışarıdaki meydanda
+	LegendPaths.drill_spots[pid] = {"center": b.w(Vector3(0, y0, 0.0))}
 	return mouth_n - 7.0
 
 
