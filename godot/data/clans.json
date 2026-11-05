@@ -622,8 +622,8 @@
  },
  "momochi": {
   "name": "Momochi",
-  "desc": "Sisli Köy'ün sessiz katilleri. Sis, su hapishanesi ve dev kafa kesen kılıç.",
-  "kg": "Sessiz Öldürme",
+  "desc": "Zabuza Momochi'nin ailesi. Klanın gizli tekniği yoktur; Zabuza'nın teknikleri Kiri'nin teknikleridir: Kirigakure no Jutsu, Mizu Bunshin, Suirō no Jutsu (parşömen), Daibakufu ve Suiryūdan (Kiri hocaları). Sessiz öldürmede ve ağır kılıçta güçlüdür; Kubikiribōchō efsane bir kılıçtır, ancak bulunarak ele geçer.",
+  "kg": "Sessiz öldürme sezgisi",
   "eye": [
    0.3,
    0.3,
