@@ -1026,16 +1026,47 @@ const RO_STYLES := ["kenjutsu", "kugutsu", "genjutsu", "taijutsu", "fuin", "baku
 var _ro_t := 0.0
 
 
-## Kayda özel 2 örgüt: ad, pelerin rengi/deseni, amaç, lider (tarzlı) + 4 üye (her kayıtta farklı)
+## Akatsuki ayakta mı (üyelerinin hepsi düşmediyse)
+func akatsuki_alive() -> bool:
+	return (state().get("akatsuki_dead", []) as Array).size() < AKATSUKI.size()
+
+
+func _org_gone(o: Dictionary) -> bool:
+	return (o["dead"] as Array).size() >= (o["members"] as Array).size()
+
+
+## Yeraltı örgütleri: Akatsuki ayaktayken başka örgüt YOKTUR (eskiden baştan 2 örgüt daha vardı, üyeleri sık sık
+## geliyordu: "her gün bir organizasyon"). Akatsuki çökünce boşluğu TEK yeni örgüt doldurur; o da çökerse bir süre sonra
+## başka biri. Dönen liste yalnız yaşayan (çökmemiş) örgütler.
 func random_orgs() -> Array:
 	var st = state()
-	if st.has("rorgs"):
-		return st["rorgs"]
+	if akatsuki_alive():
+		return []
+	var all_o: Array = st.get("rorgs", [])
+	var live = all_o.filter(func(o): return not _org_gone(o))
+	if not live.is_empty():
+		return live.slice(0, 1)
+	# boşluk: yeni örgüt (son çöküşten 30 dk sonra; ilki Akatsuki düşer düşmez)
+	var now = Time.get_unix_time_from_system()
+	if not all_o.is_empty() and now - float(st.get("rorg_gone_t", now)) < 1800.0:
+		if not st.has("rorg_gone_t"):
+			st["rorg_gone_t"] = now
+		return []
+	var o = _make_org(all_o.size())
+	all_o.append(o)
+	st["rorgs"] = all_o
+	st.erase("rorg_gone_t")
+	Hud.banner("YENİ BİR ÖRGÜT", "Yeraltındaki boşluğu biri doldurdu: %s. Amaçları: %s" % [o["name"], o["goal"]], Color.html(o["accent"]))
+	Journal.add("Yeraltında yeni bir örgüt doğdu: %s (%s)." % [o["name"], o["goal"]], "milestone")
+	return [o]
+
+
+func _make_org(oi: int) -> Dictionary:
 	var rng = RandomNumberGenerator.new()
-	rng.seed = int(p().get("seed", 1)) * 31 + 7
+	rng.seed = int(p().get("seed", 1)) * 31 + 7 + oi * 977
 	var out = []
 	var used_goals = []
-	for oi in 2:
+	for _k in 1:
 		var g = rng.randi() % RO_GOALS.size()
 		while g in used_goals:
 			g = (g + 1) % RO_GOALS.size()
@@ -1060,8 +1091,7 @@ func random_orgs() -> Array:
 			"top": Color.from_hsv(rng.randf(), rng.randf_range(0.1, 0.4), rng.randf_range(0.1, 0.35)).to_html(false)}
 		out.append({"name": name, "cloak": cloak.to_html(false), "accent": accent.to_html(false), "pattern": int(dress["pattern"]), "dress": dress,
 			"goal": RO_GOALS[g][0], "speech": RO_GOALS[g][1], "members": members, "dead": []})
-	st["rorgs"] = out
-	return out
+	return out[0]
 
 
 func _ro_look(o: Dictionary, m: Dictionary) -> Dictionary:
@@ -1110,14 +1140,14 @@ func _ro_tick(dt: float) -> void:
 	if int(p().get("level", 1)) < 18 or Game.player == null:
 		return
 	_ro_t += dt
-	if _ro_t < 520.0:
+	if _ro_t < 1500.0:   # örgüt üyesi karşılaşması seyrek (eskiden ~9 dk'da bir)
 		return
 	_ro_t = 0.0
 	var m0 = Game.to_map(Game.player.global_position)
 	for v in Game.world_info.get("villages", []):
 		if m0.distance_to(Vector2(v["x"], v["y"])) < float(v["r"]) * 1.2:
 			return
-	if randf() > 0.45:
+	if randf() > 0.35 or random_orgs().is_empty():
 		return
 	var o: Dictionary = random_orgs().pick_random()
 	var alive = (o["members"] as Array).filter(func(x): return not String(x["name"]) in o["dead"] and not x["leader"])
