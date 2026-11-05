@@ -2229,10 +2229,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "karatachi",
+  "clan": "",
   "level": 18,
   "rank": 3,
-  "learn": "clan:karatachi",
+  "learn": "weapon:hiramekarei",
   "desc": "Çakra kılıcını dalgalandırıp ana kemiklere vuran ölümcül kılıç tekniği.",
   "seals": [
    "Ne"
@@ -14820,10 +14820,10 @@
   "natures": [
    "suiton"
   ],
-  "clan": "",
+  "clan": "karatachi",
   "level": 18,
   "rank": 3,
-  "learn": "quest:hiden",
+  "learn": "clan:karatachi",
   "desc": "Rakibin yansımasını oluşturup aynı tekniklerini kopyalar.",
   "seals": [],
   "canon_rank": "A",
@@ -19663,101 +19663,6 @@
   "shape": "projectile",
   "meaning": "Rüzgar Tanrısı Okları"
  },
- "karatachi_suijin_giri": {
-  "id": "karatachi_suijin_giri",
-  "name": "Suijin Giri",
-  "name_en": "Water Blade Slash",
-  "cost": 22,
-  "cd": 7.2,
-  "element": "suiton",
-  "elements": [
-   "suiton"
-  ],
-  "natures": [
-   "suiton"
-  ],
-  "clan": "karatachi",
-  "level": 10,
-  "rank": 2,
-  "learn": "clan:karatachi",
-  "desc": "Kılıç çekilişinde basınçlı su yayı: uzun yatay kesik.",
-  "seals": [],
-  "canon_rank": "B",
-  "tier": 3,
-  "category": "hiden",
-  "shape": "melee",
-  "meaning": "Su Bıçağı Kesiği"
- },
- "karatachi_kirisame": {
-  "id": "karatachi_kirisame",
-  "name": "Kirisame",
-  "name_en": "Mist Rain",
-  "cost": 36,
-  "cd": 16.2,
-  "element": "suiton",
-  "elements": [
-   "suiton"
-  ],
-  "natures": [
-   "suiton"
-  ],
-  "clan": "karatachi",
-  "level": 10,
-  "rank": 2,
-  "learn": "clan:karatachi",
-  "desc": "Sis çöker, sen kaybolursun; sisin içindeki düşmanlara su iğneleri yağar.",
-  "seals": [
-   "Hitsuji",
-   "Tora"
-  ],
-  "canon_rank": "B",
-  "tier": 3,
-  "category": "hiden",
-  "shape": "field",
-  "meaning": "Sis Yağmuru"
- },
- "karatachi_nanatachi": {
-  "id": "karatachi_nanatachi",
-  "name": "Nanatachi no Mai",
-  "name_en": "Seven Blades Dance",
-  "cost": 38,
-  "cd": 11.2,
-  "element": "",
-  "elements": [],
-  "natures": [],
-  "clan": "karatachi",
-  "level": 18,
-  "rank": 3,
-  "learn": "clan:karatachi",
-  "desc": "Yedi ışık hızında atılış: yakındaki düşmanlar arasında zikzak çizerek kesersin.",
-  "seals": [],
-  "canon_rank": "A",
-  "tier": 4,
-  "category": "hiden",
-  "shape": "rush",
-  "meaning": "Yedi Kılıç Dansı"
- },
- "karatachi_kubikiri": {
-  "id": "karatachi_kubikiri",
-  "name": "Kubikiri",
-  "name_en": "Decapitating Draw",
-  "cost": 34,
-  "cd": 11.2,
-  "element": "",
-  "elements": [],
-  "natures": [],
-  "clan": "karatachi",
-  "level": 18,
-  "rank": 3,
-  "learn": "clan:karatachi",
-  "desc": "Kılıcı yükle ve tek dev kesik indir: canı azalmış hedeflere iki kat hasar.",
-  "seals": [],
-  "canon_rank": "A",
-  "tier": 4,
-  "category": "hiden",
-  "shape": "melee",
-  "meaning": "Baş Kesen Çekiliş"
- },
  "ikazuchi_reiza_ame": {
   "id": "ikazuchi_reiza_ame",
   "name": "Ranton: Reizā Ame",
@@ -20041,6 +19946,7 @@
   "meaning": "Toz Silindiri"
  },
  "_aliases": {
+  "karatachi_mizu_kagami": "suiton_mizukagami_no_jutsu",
   "kurosuki_raiu": "kurosuki_ikazuchi_kiba",
   "kurosuki_rakurai": "raikyu",
   "sabaku_suna_no_kumo": "sabaku_fuyu",
@@ -20968,46 +20874,6 @@
   "category": "hiden",
   "shape": "seal",
   "tier": 3
- },
- "karatachi_mizu_kagami": {
-  "id": "karatachi_mizu_kagami",
-  "name": "Karatachi: Mizu Kagami",
-  "name_en": "Water Mirror Parry",
-  "cost": 34,
-  "cd": 8.5,
-  "element": "suiton",
-  "elements": [
-   "suiton"
-  ],
-  "clan": "karatachi",
-  "level": 10,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Kılıcın önünde su aynası; ilk saldırıyı yansıtıp karşı keser.",
-  "seals": [],
-  "canon_rank": "B",
-  "category": "hiden",
-  "shape": "counter",
-  "tier": 3
- },
- "karatachi_sanmai_oroshi": {
-  "id": "karatachi_sanmai_oroshi",
-  "name": "Karatachi: Sanmai Oroshi",
-  "name_en": "Triple Fillet Slash",
-  "cost": 42,
-  "cd": 11.3,
-  "element": "",
-  "elements": [],
-  "clan": "karatachi",
-  "level": 18,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Üç katlı ışık hızında çapraz kesik.",
-  "seals": [],
-  "canon_rank": "A",
-  "category": "hiden",
-  "shape": "melee",
-  "tier": 4
  },
  "aburame_mushi_hashira": {
   "id": "aburame_mushi_hashira",

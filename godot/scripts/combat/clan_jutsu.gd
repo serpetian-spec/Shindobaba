@@ -34,8 +34,8 @@ const STYLE := {
 	"sabaku_soso": "ground", "sabaku_fuyu": "ground",
 	"kurohigi_kiki_ippatsu": "summon", "kiko_junbu": "summon", "kugutsu_no_jutsu": "summon", "akahigi_hyakki_no_soen": "summon",
 	"shirohigi_jikki_chikamatsu_no_shu": "summon",
-	"chigiri_toho_honenuki": "rush", "sairento_kiringu": "sense", "karatachi_suijin_giri": "charge", "karatachi_kirisame": "sense",
-	"karatachi_nanatachi": "flicker", "karatachi_kubikiri": "charge",
+	"chigiri_toho_honenuki": "rush", "sairento_kiringu": "sense", 
+	
 	"doton_goremu_no_jutsu": "ground", "doton_keijugan_no_jutsu": "power", "doton_iwayado_kuzushi": "ground", "doton_kakogan": "power",
 	"doton_koka_jutsu": "power", "doton_kajugan_no_jutsu": "palm", "doton_chokajugan_no_jutsu": "palm",
 	"erubo": "rush", "girochin_doroppu": "rush", "jigokuzuki": "charge", "raiga_bomu": "rush", "raiton_rariatto": "rush",
@@ -3627,98 +3627,6 @@ func c_chigiri_toho_honenuki(c: Node3D, t: Node3D) -> void:
 			st(h, "stun", 1.0)
 			FX.burst(h.global_position + Vector3.UP, {"amount": 20, "life": 0.5, "size": 0.4, "vmin": 2, "vmax": 6, "add": false, "colors": [Color(0.75, 0.05, 0.08), Color(0.5, 0.0, 0.03, 0)]})
 		Sfx.play("kunai", p, 0.8))
-
-
-## Su Bıçağı Kesiği: kılıç çekilişinde 10 m genişliğinde basınçlı su hilali ileri kayar
-func c_karatachi_suijin_giri(c: Node3D, t: Node3D) -> void:
-	var d = fwd(c, t)
-	busy(c, 0.45)
-	anim(c, "slash_a", 2.0)
-	var b = MB.new()
-	b.add("torus", Vector3.ZERO, Vector3(5.0, 5.0, 5.0), Color.WHITE, Vector3(90, 0, 0), 24)
-	var arc = mesh_of(b, VFX.mat_water())
-	arc.scale = Vector3(1.0, 0.18, 0.4)
-	var pr = shot(c, c.global_position + Vector3.UP * 1.1 + d, d, 34.0, arc, inf(c, "karatachi_suijin_giri", 1.1, {"knock": 9.0, "kind": "heavy", "element": "suiton"}), null, true, 0.8)
-	pr.radius = 2.4
-	pr.on_tick = func(p, _dt):
-		if randf() < 0.4:
-			VFX.splash(p.global_position, 0.8)
-	Sfx.play("water", c.global_position, 1.2)
-
-
-## Sis Yağmuru: bölgeye sis çöker; 4 sn içindeki düşmanların üstüne su iğneleri yağar, sen görünmezsin
-func c_karatachi_kirisame(c: Node3D, t: Node3D) -> void:
-	var center = gp(Jutsu._aim_ground(c, t, 8.0, 18.0))
-	FX.burst(center + Vector3.UP * 2.0, {"amount": 160, "life": 4.5, "tex": FX.tex_smoke, "add": false, "size": 3.0, "vmin": 0.3, "vmax": 1.2, "gravity": Vector3.ZERO,
-		"colors": [Color(0.85, 0.9, 0.95, 0.0), Color(0.85, 0.9, 0.95, 0.8), Color(0.85, 0.9, 0.95, 0)]})
-	if c.get("model"):
-		c.model.visible = false
-		after(4.0, func():
-			if is_instance_valid(c):
-				c.model.visible = true)
-	every(4.0, 0.12, func(_i, _k):
-		var list = enemies_near(c, center, 9.0)
-		if list.is_empty():
-			return
-		var e = list[randi() % list.size()]
-		var from = e.global_position + Vector3(randf_range(-2, 2), 7.0, randf_range(-2, 2))
-		var nd = JutsuEngine.shape_mesh("needles", Color(0.6, 0.85, 1.0), 0.4, "suiton")
-		shot(c, from, (e.global_position + Vector3.UP - from).normalized(), 40.0, nd, inf(c, "karatachi_kirisame", 0.06, {"knock": 0.0, "kind": "light"}), null, false, 0.6))
-	Sfx.play("water", center, 0.5)
-
-
-## Yedi Kılıç Dansı: ışık hızında yedi atılış; yakındaki düşmanlar arasında zikzak çizerek kesersin
-func c_karatachi_nanatachi(c: Node3D, _t: Node3D) -> void:
-	var list = enemies_near(c, c.global_position, 16.0)
-	if list.is_empty():
-		Hud.msg("Yakında düşman yok", Color(0.8, 0.8, 0.8))
-		return
-	busy(c, 1.2)
-	if c is Player:
-		c.combat.invuln = 1.2
-	var prev = {"p": c.global_position}
-	every(1.15, 0.16, func(i, _k):
-		var alive = list.filter(func(e): return live(e))
-		if alive.is_empty():
-			return
-		var e = alive[i % alive.size()]
-		var side = Vector3(cos(i * 2.1), 0, sin(i * 2.1))
-		var to = gp(e.global_position + side * (e.radius + 1.0))
-		var from = prev["p"]
-		tether(func(): return from + Vector3.UP * 1.1, func(): return to + Vector3.UP * 1.1, 0.1, glow(Color(0.8, 0.9, 1.0)), 0.18)
-		c.global_position = to
-		prev["p"] = to
-		if c is Player:
-			c.combat.face_to(e)
-		anim(c, ["slash_a", "slash_b"][i % 2], 2.8)
-		hit(c, e.global_position + Vector3.UP, 1.2, inf(c, "karatachi_nanatachi", 0.4, {"knock": 4.0, "kind": "heavy", "hitstop": 0.04}))
-		VFX.star(e.global_position + Vector3.UP, Color(0.85, 0.95, 1.0), 1.4, 0.12)
-		Sfx.play("kunai", to, 1.5))
-
-
-## Baş Kesen Çekiliş: kılıcı yükle, tek dev yay kesik; canı azalmış düşmanlara iki kat hasar
-func c_karatachi_kubikiri(c: Node3D, t: Node3D) -> void:
-	var a = FX.aura(c, Color(0.75, 0.85, 1.0), 1.0, Vector3(0, 0.9, 0), 0.8)
-	busy(c, 1.2)
-	after(0.75, func():
-		if not is_instance_valid(c):
-			return
-		var d = fwd(c, t)
-		anim(c, "slash_b", 1.4)
-		var b = MB.new()
-		b.add("torus", Vector3.ZERO, Vector3(4.0, 4.0, 4.0), Color.WHITE, Vector3(90, 0, 0), 24)
-		var arc = place(b, c.global_position + Vector3.UP * 1.1 + d * 1.5, glow(Color(0.85, 0.93, 1.0)))
-		arc.look_at(arc.global_position + d, Vector3.UP)
-		arc.scale = Vector3(1.0, 1.0, 0.15)
-		fade_free(arc, 0.12, 0.15)
-		for e in enemies_near(c, c.global_position + d * 2.5, 4.0):
-			var low = e.hp < e.max_hp * 0.4
-			hit(c, e.global_position + Vector3.UP, 1.2, inf(c, "karatachi_kubikiri", 3.6 if low else 1.8, {"knock": 14.0, "launch": 3.0, "kind": "heavy", "hitstop": 0.16}))
-			if low:
-				Combat.popup_text(e.global_position + Vector3.UP * 2.6, "İnfaz!", Color(1, 0.4, 0.4))
-		shake(0.7)
-		Sfx.play("hit_heavy", c.global_position, 0.8))
-
 
 # ================================================================== YOTSUKİ — yıldırım güreşi
 func _lightning_limb(c: Node3D, dur: float) -> void:

@@ -419,8 +419,8 @@
  },
  "karatachi": {
   "name": "Karatachi",
-  "desc": "Kiri'nin kılıç ustaları yetiştiren klanı. Yedi Kılıç geleneğine yakın.",
-  "kg": "Kılıç Ustalığı",
+  "desc": "Dördüncü Mizukage Yagura ve Kagura Karatachi'nin ailesi (Kiri). Yagura'nın Suiton: Mizukagami no Jutsu'su (su aynasında rakibin kopyası) aile tekniğidir. Kagura Hiramekarei taşıyıcısıdır; kılıç teknikleri o kılıçla gelir.",
+  "kg": "Su aynası",
   "eye": [
    0.4,
    0.45,
