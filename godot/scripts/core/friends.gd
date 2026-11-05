@@ -22,9 +22,15 @@ const ROGUE_CLASS := ["C", "B", "A", "S"]
 ## Gösterilecek rütbe: köylü ninjada köy rütbesi; kaçakta (köyden ayrılmış) köy rütbesi yok -> Nukenin + Bingo Book sınıfı
 static func rank_label(f: Dictionary) -> String:
 	var rk = clampi(int(f.get("rank", 0)), 0, RANKS.size() - 1)
-	if f.get("rogue", false):
+	if is_rogue(f):
 		return "Nukenin (%s-rank)" % ROGUE_CLASS[rk]
 	return RANKS[rk]
+## Kaçak mı: rogue bayrağı ya da köyden kaçmış durumu (eskiden kaçış yalnız status yazıyordu: Chūnin/Jōnin görünüyor,
+## köydeki gibi akademi/aile haberleri anlatıyordu)
+static func is_rogue(f: Dictionary) -> bool:
+	return bool(f.get("rogue", false)) or String(f.get("status", "")) == "kaçak"
+
+
 const NINJA_ROLES := ["patrol", "roof", "guard", "spar", "teacher"]
 const ELS := ["katon", "suiton", "fuuton", "doton", "raiton"]
 const CHAT := ["Bugün hava güzel, değil mi? Antrenman için ideal.", "Geçen gün pazarda harika bir dango buldum, sana da getiririm.",
@@ -275,10 +281,15 @@ static func greeting(id: String) -> String:
 		return HOSTILE.pick_random()
 	if b < 0:
 		return COLD.pick_random()
+	if is_rogue(f) and not f.get("rogue", false):   # eski kayıt: kaçmış ama bayrağı yok -> köy haberi kalmasın
+		f["rogue"] = true
+		f["news"] = ""
 	var news = String(f.get("news", ""))
 	if news != "":
 		f["news"] = ""
 		return news
+	if is_rogue(f):
+		return "%s... %s" % [String(pr().get("name", "")), ROGUE_CHAT.pick_random()]
 	return "Ooo, %s! %s" % [String(pr().get("name", "")), CHAT.pick_random()]
 
 
@@ -307,6 +318,22 @@ const TOPIC_TALK := {
 		[["şaka", "Demek dersler bu yüzden geç başlıyor!"], ["dürüst", "Başkalarının hayatı bizi ilgilendirmez."], ["dinle", "Kimmiş? Anlat!"]]],
 	"övgü": ["Gerçekten mi? ...Bunu bana pek kimse söylemez.",
 		[["övgü", "Ciddiyim, köyün en iyilerindensin."], ["destek", "Kendine daha çok güvenmelisin."], ["şaka", "Tamam tamam, şımarma hemen."]]],
+}
+## Kaçak ninjanın sözleri: köyden ayrılmış, saklanan, av ninjalarından kaçan biri (köy hayatı/akademi/aile haberi yok)
+const ROGUE_CHAT := ["Sesini alçak tut. Bu yolda av ninjaları dolaşıyor.", "Bandımı çizdiğim gün geri dönüş yolunu da çizdim.",
+	"Bingo Kitabı'nda yüzüm biraz daha yaşlı çizilmiş. Hah.", "Sığınakta ateş yakmıyorum artık; duman ele veriyor.",
+	"Eski köyümün kokusunu bazen rüzgârda alıyorum. Geçiyor sonra.", "Simsar yine iş buldu. Kimin kanı, sormadım."]
+const ROGUE_TOPIC_TALK := {
+	"antrenman": ["Kaçakken antrenman başka: kimse seni izlemiyor, kimse de düzeltmiyor. Hatan seni ilk kavgada öldürür.",
+		[["destek", "Yine de hâlâ ayaktasın."], ["dürüst", "O yüzden dikkatsiz olamazsın."], ["şaka", "Hocasız da iyi gidiyorsun ama."]]],
+	"aile": ["Ailem mi? Kaçtığım gün benim adımı ağızlarına almamaya yemin ettiler. Belki doğrusu da buydu.",
+		[["dinle", "Anlat, dinliyorum."], ["destek", "Belki bir gün affederler."], ["dürüst", "Seçimini sen yaptın."]]],
+	"şaka": ["Ödülüm arttı, biliyor musun? Artık beni teslim edip zengin olabilirsin. ...Şaka. Değil mi?",
+		[["şaka", "Fiyatın daha düşük olsa düşünürdüm!"], ["dinle", "Merak etme."], ["dürüst", "Böyle şeylerle şaka yapma."]]],
+	"dedikodu": ["Yeraltında söylenti var: bir örgüt kuyruklu canavarların peşindeymiş. İkişer ikişer geziyorlarmış.",
+		[["şaka", "Sen de katılsana, kıyafetleri güzelmiş."], ["dürüst", "Uzak dur onlardan."], ["dinle", "Başka ne duydun?"]]],
+	"övgü": ["Övgü mü? Benim gibi birine? ...Garip bir insansın.",
+		[["övgü", "Ciddiyim, güçlüsün."], ["destek", "Herkes geçmişinden ibaret değil."], ["şaka", "Tamam, şımarma."]]],
 }
 ## Kişiliğe göre sevilen / sevilmeyen cevap üslubu
 const STYLE_TASTE := {
@@ -441,7 +468,7 @@ static func _topic_dialog(id: String) -> void:
 				Hud.dialog(String(f["name"]), txt, [])
 				return
 			# dost konuyu açar, sen cevap verirsin: kişiliğine göre hoşuna gider ya da gitmez
-			var tk: Array = TOPIC_TALK[key]
+			var tk: Array = (ROGUE_TOPIC_TALK if is_rogue(f) else TOPIC_TALK)[key]
 			var ropts = []
 			for r in tk[1]:
 				var style = String(r[0])
@@ -900,6 +927,9 @@ func _life_event() -> void:
 func _defect(id: String) -> void:
 	var f: Dictionary = all()[id]
 	f["status"] = "kaçak"
+	f["rogue"] = true   # rütbesi Nukenin olur, köy haberleri/sohbetleri biter
+	f["title"] = "Kaçak ninja"
+	f["news"] = ""
 	f["party"] = false
 	var rank = int(f.get("rank", 0))
 	var e: Dictionary = Missions._bb_new(["C", "B", "A", "S"][rank])
@@ -1702,7 +1732,7 @@ func _act_arrive() -> void:
 			Game.player.model.play("sit", 0.2)
 			Game.player.input_locked = 13.0
 			var date = act["kind"] == "date"
-			var topic = String(f.get("news", "")) if String(f.get("news", "")) != "" else ["Geçen gün görevde öyle bir şey oldu ki...", "Akademideyken hep birinci olmak isterdim, biliyor musun?", "Bazen her şeyi bırakıp gezmek istiyorum."].pick_random()
+			var topic = String(f.get("news", "")) if String(f.get("news", "")) != "" else (ROGUE_CHAT.pick_random() if is_rogue(f) else ["Geçen gün görevde öyle bir şey oldu ki...", "Akademideyken hep birinci olmak isterdim, biliyor musun?", "Bazen her şeyi bırakıp gezmek istiyorum."].pick_random())
 			var seq = [[0.6, "İtadakimasu!"], [3.4, topic], [7.4, "Sen ne yapıyorsun bu aralar? Anlatsana." if not date else "Seninle böyle oturmak... iyi geliyor."],
 				[10.6, "Bir dahakine ben ısmarlarım, söz!" if not date else "Bugün çok güzeldi."]]
 			if act["kind"] == "sake":   # kaçakla handa: başını eğik tutar, kapıyı kollar
