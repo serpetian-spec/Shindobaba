@@ -134,6 +134,25 @@ func _collide_convex(center: Vector3, pts: PackedVector3Array, r: float) -> void
 	add_solid(center, r, r, 0.0)
 
 
+## Anime ağacının kalın dallarına kapsül çarpışma (mesh meta "limbs"); pack_mesh ile aynı konum/dönüş/ölçek
+func tree_limbs(m: Mesh, local_pos: Vector3, rot_deg: float, sc: float) -> void:
+	if not is_instance_valid(body) or not (m is ArrayMesh) or not m.has_meta("limbs"):
+		return
+	var base = Transform3D(Basis(Vector3.UP, deg_to_rad(rot_deg)) * Basis.from_scale(Vector3.ONE * sc), w(local_pos))
+	for L in m.get_meta("limbs"):
+		var a: Vector3 = L[0]
+		var b: Vector3 = L[1]
+		var r = maxf(0.12, float(L[2]))
+		var cs = CollisionShape3D.new()
+		var cap = CapsuleShape3D.new()
+		cap.radius = r * sc
+		cap.height = maxf(cap.radius * 2.0 + 0.01, ((b - a).length() + r * 2.0) * sc)
+		cs.shape = cap
+		var lx = AnimeTree.limb_xf(a, b)
+		cs.transform = Transform3D(base.basis.orthonormalized() * lx.basis, base * lx.origin)
+		body.add_child(cs)
+
+
 func _collide_cyl(center: Vector3, r: float, h: float) -> void:
 	if not is_instance_valid(body):
 		return
@@ -705,7 +724,9 @@ func tree(x: float, n: float, s: float, rng: RandomNumberGenerator, y := 0.0) ->
 					return
 	if tm != null:
 		var sc = s * rng.randf_range(0.85, 1.15)
-		pack_mesh(tm, Vector3(x, y, n), rng.randf() * 360.0, sc, 1.0)
+		var rot = rng.randf() * 360.0
+		pack_mesh(tm, Vector3(x, y, n), rot, sc, 1.0)
+		tree_limbs(tm, Vector3(x, y, n), rot, sc)
 		leaf_spots.append([w(Vector3(x, y + Props.VILLAGE_TREE_TOP[vi] * sc, n)), Props.VILLAGE_TREE_LEAF[vi], 3.0 * sc])
 		add_solid(w(Vector3(x, 0, n)), 2.6 * s, 2.6 * s, 0.0)   # yerleşim için taç genişliği (gövde değil): sonradan konan evlerin içinden ağaç geçmesin
 		_collide_cyl(w(Vector3(x, y + 2.6 * s, n)), 0.35 * s, 5.2 * s)

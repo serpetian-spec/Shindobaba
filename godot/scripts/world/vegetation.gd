@@ -107,6 +107,12 @@ func _ready() -> void:
 			var bc = CollisionShape3D.new()
 			bc.shape = BoxShape3D.new()
 			sb.add_child(bc)
+		for q in 6:   # anime ağacı dalları (kapsül): dalların içinden geçilmesin
+			var lc = CollisionShape3D.new()
+			lc.shape = CapsuleShape3D.new()
+			lc.disabled = true
+			lc.set_meta("limb", true)
+			sb.add_child(lc)
 		sb.position = Vector3(0, -2000, 0)
 		add_child(sb)
 		bodies.append(sb)
@@ -523,6 +529,7 @@ func _physics_process(_dt: float) -> void:
 		var yaw: float = tr[4]
 		sb.global_transform = Transform3D(Basis(Vector3.UP, yaw), Vector3(tr[0], tr[1] - 0.3, tr[2]))
 		var trunk: CollisionShape3D = sb.get_child(0)
+		_set_limbs(sb, t, int(tr[6]) if tr.size() > 6 else 0, s)
 		if t in CONVEX:
 			trunk.shape = convex[t][mini(int(tr[6]) if tr.size() > 6 else 0, convex[t].size() - 1)]
 			trunk.scale = Vector3.ONE * s
@@ -554,6 +561,31 @@ func _physics_process(_dt: float) -> void:
 				var d = Vector3(sin(a), 0, cos(a))
 				(bc.shape as BoxShape3D).size = Vector3(1.4, 0.8, L) * s
 				bc.transform = Transform3D(Basis(Vector3.UP, a), (d * (Props.FOREST_TRUNK_R + L * 0.5) + Vector3(0, br[0], 0)) * s)
+
+
+func _set_limbs(sb: StaticBody3D, t: int, v: int, s: float) -> void:
+	var limbs: Array = []
+	if meshes.has(t) and not (meshes[t] as Array).is_empty():
+		var mm = meshes[t][clampi(v, 0, (meshes[t] as Array).size() - 1)][0]
+		if mm is ArrayMesh and (mm as ArrayMesh).has_meta("limbs"):
+			limbs = (mm as ArrayMesh).get_meta("limbs")
+	var k = 0
+	for ch in sb.get_children():
+		if not ch.has_meta("limb"):
+			continue
+		var lc: CollisionShape3D = ch
+		if k < limbs.size() and t not in CONVEX:
+			var L: Array = limbs[k]
+			var a: Vector3 = L[0] * s
+			var b: Vector3 = L[1] * s
+			var cap: CapsuleShape3D = lc.shape
+			cap.radius = maxf(0.12, float(L[2]) * s)
+			cap.height = maxf(cap.radius * 2.0 + 0.01, (b - a).length() + cap.radius * 2.0)
+			lc.transform = AnimeTree.limb_xf(a, b)
+			lc.disabled = false
+		else:
+			lc.disabled = true
+		k += 1
 
 
 ## Bir noktada yüklenmiş en yakın ağaçlar (başka sistemler için: ör. hayvanlar, kamp yerleşimi)

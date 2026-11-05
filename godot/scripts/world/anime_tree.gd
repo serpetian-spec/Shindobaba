@@ -78,6 +78,7 @@ var sb := SurfaceTool.new()   # gövde
 var sl := SurfaceTool.new()   # yaprak kartları
 var nb := 0
 var nl := 0
+var cols: Array = []   # çarpışma dalları [a, b, r] (gövde hariç kalın dallar; yakın kademe)
 
 
 func _init() -> void:
@@ -93,7 +94,19 @@ func _commit() -> ArrayMesh:
 	if nl > 0:
 		sl.commit(m)
 		m.surface_set_material(m.get_surface_count() - 1, leaf_mat(tex))
+	if not lod:
+		# en kalın 6 dal çarpışma alır (dalların içinden geçiliyordu; üstlerine basılabilir — ağaçtan ağaca parkur)
+		cols.sort_custom(func(x, y): return float(x[2]) * (x[1] - x[0]).length() > float(y[2]) * (y[1] - y[0]).length())
+		m.set_meta("limbs", cols.slice(0, 6))
 	return m
+
+
+## Dal kapsülü: a -> b ekseninde, yerel dönüş/ölçekle (CollisionShape3D'nin yerel dönüşümü)
+static func limb_xf(a: Vector3, b: Vector3) -> Transform3D:
+	var d = (b - a).normalized()
+	var x = d.cross(Vector3.FORWARD if absf(d.z) < 0.9 else Vector3.RIGHT).normalized()
+	var z = x.cross(d).normalized()
+	return Transform3D(Basis(x, d, z), (a + b) * 0.5)
 
 
 # ------------------------------------------------------------------ gövde parçaları
@@ -113,6 +126,8 @@ func limb(a: Vector3, b: Vector3, r0: float, r1: float, seg := 7) -> void:
 	var L := ax.length()
 	if L < 0.01:
 		return
+	if not lod and not trunk and r0 >= 0.13 and L >= 1.0:
+		cols.append([a, b, maxf(r0, r1)])
 	var d := ax / L
 	var u := d.cross(Vector3.UP if absf(d.y) < 0.95 else Vector3.RIGHT).normalized()
 	var v := d.cross(u)
