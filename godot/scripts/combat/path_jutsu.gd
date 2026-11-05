@@ -7329,26 +7329,56 @@ func p_futon_shinkujin(c: Node3D, t: Node3D) -> void:
 	var ba = bone_attach(c, "RightHand")
 	if ba:
 		# (ref anime) kunaiye akıtılan rüzgâr: bıçak boyunca ve ucunun ötesine uzanan, dönen ince yeşil-beyaz halkalar
+		# kunai + halkalar elin konumunu izler, yönü her karede bakış yönü (el kemiğinin ekseni beklemede geriye bakıyordu)
+		var blade = Node3D.new()
+		ba.add_child(blade)
+		blade.top_level = true
 		var kb = MB.new()
 		CharacterModel._kunai_mesh(kb)
-		ba.add_child(mesh_of(kb, Props.toon()))
+		blade.add_child(mesh_of(kb, Props.toon()))
 		var rings = Node3D.new()
-		ba.add_child(rings)
-		for q in 4:
+		blade.add_child(rings)
+		var rmat = StandardMaterial3D.new()   # yeşil, saydam, ışıksız (glow parlak zeminde beyaza dönüyordu)
+		rmat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		rmat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		rmat.albedo_color = Color(0.42, 0.95, 0.5, 0.9)
+		var dmat = rmat.duplicate()
+		dmat.albedo_color = Color(0.55, 1.0, 0.62, 0.28)
+		dmat.cull_mode = BaseMaterial3D.CULL_DISABLED
+		for q in 5:   # bıçaktan uca doğru büyüyen yeşil girdap diskleri (ref: kunainin ötesine uzanan rüzgâr bıçağı)
+			var rr = 0.05 + q * 0.022
 			var r = MeshInstance3D.new()
 			var tm = TorusMesh.new()
-			tm.inner_radius = 0.06 + q * 0.025
-			tm.outer_radius = tm.inner_radius + 0.016
-			tm.rings = 28
-			tm.ring_segments = 4
+			tm.inner_radius = rr
+			tm.outer_radius = rr + 0.012
+			tm.rings = 32
+			tm.ring_segments = 5
 			r.mesh = tm
-			r.material_override = glow(Color(0.72, 1.0, 0.82), 0.8)
-			r.position = Vector3(0, 0, 0.16 + q * 0.14)
+			r.material_override = rmat
+			r.position = Vector3(0, 0, 0.12 + q * 0.09)
 			r.rotation.x = PI * 0.5
-			r.scale = Vector3(1.0, 1.0, 0.6)
 			rings.add_child(r)
+			var dk = MeshInstance3D.new()
+			var cm = CylinderMesh.new()
+			cm.top_radius = rr
+			cm.bottom_radius = rr
+			cm.height = 0.004
+			cm.radial_segments = 24
+			dk.mesh = cm
+			dk.material_override = dmat
+			dk.position = r.position
+			dk.rotation.x = PI * 0.5
+			rings.add_child(dk)
 		var rtw = rings.create_tween().set_loops(12)
 		rtw.tween_property(rings, "rotation:z", TAU, 0.12).as_relative()
+		var follow = func():
+			if is_instance_valid(blade) and is_instance_valid(ba) and live(c):
+				var fd = c.face_dir()
+				blade.global_transform = Transform3D(Basis.looking_at(-fd, Vector3.UP), ba.global_position)
+		get_tree().process_frame.connect(follow)
+		after(0.75, func():
+			if get_tree().process_frame.is_connected(follow):
+				get_tree().process_frame.disconnect(follow))
 		after(0.7, func():
 			if is_instance_valid(ba):
 				ba.queue_free())
