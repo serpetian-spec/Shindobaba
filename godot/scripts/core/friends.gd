@@ -366,10 +366,16 @@ static func _ensure_persona(f: Dictionary) -> void:
 		f["gift_hate"] = gs[1]
 		f["talks"] = 0
 	if not f.has("loyalty"):
-		# herkes iyi değildir: ~%20'si gizlice hain ruhlu
-		f["loyalty"] = randi_range(5, 30) if randf() < 0.2 else randi_range(40, 100)
+		# herkes iyi değildir ama çoğu iyidir: ~%6'sı gizlice hain ruhlu (eskiden %20: "herkes hain oldu")
+		f["loyalty"] = randi_range(5, 30) if randf() < 0.06 else randi_range(40, 100)
+		f["loyalty_v2"] = true
 		f["ambition"] = FriendPlots.AMBITIONS.pick_random()
 		f["love"] = 0
+	# eski kayıtlar (%20 hain oranıyla zar atılmış): bir kez yeniden zar — yeni oranla
+	if not f.get("loyalty_v2", false):
+		f["loyalty_v2"] = true
+		if int(f.get("loyalty", 50)) < 30 and randf() > 0.3:
+			f["loyalty"] = randi_range(40, 100)
 	# takım hocası (Akademi'nin atadığı jōnin) gizli hain olamaz: kötü plan/hırsızlık/ihbar/arkadan saldırı/kaçış onu seçmez.
 	# Eski kayıtlarda sadakati düşük gelip bu yüzden Düşman'a dönmüş hoca bir kez onarılır.
 	if String(f.get("role", "")) == "teacher":
@@ -1359,8 +1365,7 @@ func _kage_order(id: String, sc: Dictionary, urgent: bool) -> void:
 	var f: Dictionary = all()[id]
 	# Kage A-rank emri Chūnin'e, S-rank (acil) emri Jōnin'e verir; genin/akademi öğrencisine değil — işi ANBU halleder
 	if int(pr().get("rank", 0)) < (3 if urgent else 2) or Orgs.is_rogue():
-		f["bond"] = int(f["bond"]) - 10
-		log_event(f, "ANBU '%s' planını bozdu" % sc.get("title", ""))
+		log_event(f, "ANBU '%s' planını bozdu" % sc.get("title", ""))   # seninle ilişkisi bundan bozulmaz
 		Hud.msg("Köyde fısıltı: ANBU, %s'in gizli bir planını son anda bozmuş." % f["name"], Color(0.85, 0.8, 0.95), 6.0)
 		return
 	var vid = String(f.get("village", Progress.home()))
@@ -1501,6 +1506,11 @@ func betray_attack(id: String) -> void:
 ## Hain ruhlu dostların küçük ihanetleri (yaşam olayı)
 func _betrayal_event(id: String) -> void:
 	var f: Dictionary = all()[id]
+	# sevdiği kişiye kazık atmaz: karanlık işine ORTAK olmayı teklif eder (kötülükte anlaşabilirsiniz)
+	if int(f.get("bond", 0)) >= 30:
+		if not f.has("plot"):
+			FriendPlots.start(id)
+		return
 	var r = randf()
 	if f.get("party", false) and r < 0.35:
 		betray_attack(id)
