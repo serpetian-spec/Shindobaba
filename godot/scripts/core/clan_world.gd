@@ -93,7 +93,7 @@ const LORE := {
 	"bakuha": ["Dokunduğumu patlatırım. Sanat bir anlık patlamadır, derler."],
 	"yuhi": ["Gördüğün ağaç gerçek mi? Sarmaşık boynuna dolanınca anlarsın.", "Yūhi ailesi savaşmaz; düşman kendi kâbusunda kaybolur."],
 	"gekko": ["Ay doğduğunda kılıcım hafifler.", "Hilal Dansı'nı gören ikinci bir şey görmez."],
-	"mitarashi": ["Yılanlarım kolumun içinde uyur. Uyandırma onları.", "Zehir en sabırlı silahtır."],
+	"mitarashi": ["Zehir bana işlemez; o sabrı başkalarına sakla.", "Yılan gibi bekle, tek seferde vur."],
 	"shiranui": ["Bir iğne yeter; doğru noktaya.", "Dudağımdaki senbon süs değil."],
 	"momochi": ["Sekiz nokta var: gırtlak, omurga, akciğer, karaciğer, boyun damarı, köprücük, böbrek, kalp.", "Sis kalktığında iş bitmiş olur."],
 	"kurosuki": ["Kılıçlarım şimşeği çağırır; yağmurlu günü severim.", "Kara bulut bir yangın gibidir, bir kıvılcım yeter."],

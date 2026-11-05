@@ -154,10 +154,10 @@ const PANIM := {
 	"hirudora": {"base": "two_palm", "pre": 0.5, "post": 0.6, "wind": {"R": [Vector3(-0.35, -0.85, -0.35), Vector3(0.0, -0.4, 0.9), Vector3(0.0, 0.2, 0.95)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [0, 0, 0, 0, 0], "spine": 20.0, "hips_yaw": 40.0, "crouch": 0.75}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.4, -0.7, -0.5), Vector3(-0.0, -0.3, -0.95), Vector3(-0.0, -0.6, -0.8)], "fR": [0, 0, 0, 0, 0], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 24.0, "hips_yaw": -30.0, "crouch": 0.5}},
 	"sekizo": {"base": "rush", "pre": 0.3, "post": 1.6, "clip": "a/Punch_Cross", "wind": {"R": [Vector3(-0.35, -0.85, -0.35), Vector3(0.0, -0.4, 0.9), Vector3(0.0, 0.2, 0.95)], "L": [Vector3(0.35, -0.85, -0.35), Vector3(-0.0, -0.4, 0.9), Vector3(-0.0, 0.2, 0.95)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 12.0, "crouch": 0.6}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.35, -0.85, -0.35), Vector3(-0.0, -0.4, 0.9), Vector3(-0.0, 0.2, 0.95)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 20.0, "crouch": 0.4}},
 	"yagai": {"base": "power", "pre": 0.8, "post": 0.8, "wind": {"R": [Vector3(-0.85, -0.45, 0.1), Vector3(-0.9, -0.3, 0.2), Vector3(-0.9, -0.2, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 45.0, "neck": -25.0, "crouch": 1.0}, "rel": {"R": [Vector3(-0.4, -0.7, -0.5), Vector3(0.0, -0.3, -0.95), Vector3(0.0, -0.6, -0.8)], "L": [Vector3(0.4, -0.7, -0.5), Vector3(-0.0, -0.3, -0.95), Vector3(-0.0, -0.6, -0.8)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 40.0, "crouch": 0.3}},
-	"sen_ei_jashu": {"base": "palm", "pre": 0.25, "post": 0.45, "wind": {"R": [Vector3(-0.4, -0.7, -0.5), Vector3(0.0, -0.3, -0.95), Vector3(0.0, -0.6, -0.8)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0, 0, 0, 0, 0], "spine": -6.0, "hips_yaw": 30.0}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0, 0, 0, 0, 0], "spine": 14.0, "hips_yaw": -20.0}},
+	"sen_ei_jashu": {"base": "palm", "pre": 0.25, "post": 2.0, "wind": {"R": [Vector3(-0.4, -0.7, -0.5), Vector3(0.0, -0.3, -0.95), Vector3(0.0, -0.6, -0.8)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0, 0, 0, 0, 0], "spine": -6.0, "hips_yaw": 30.0}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, -0.1, 1.0)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0, 0, 0, 0, 0], "spine": 14.0, "hips_yaw": -20.0}},
 	"jagei_jubaku": {"base": "sense", "pre": 0.3, "post": 0.45, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "crouch": 0.3}, "rel": {"R": [Vector3(-0.1, -0.35, 0.93), Vector3(0.0, -0.3, 0.95), Vector3(0.0, 0.5, 0.85)], "L": [Vector3(0.1, -0.35, 0.93), Vector3(-0.0, -0.3, 0.95), Vector3(-0.0, 0.5, 0.85)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 18.0, "neck": 10.0}},
 	"hebi_bunshin_no_jutsu": {"base": "clone", "pre": 0.3, "post": 0.35, "spin": -180.0, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0, 0, 0, 0, 0]}, "rel": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -8.0}},
-	"sen_ei_tajashu": {"base": "two_palm", "pre": 0.35, "post": 0.55, "wind": {"R": [Vector3(-0.85, -0.45, 0.1), Vector3(-0.9, -0.3, 0.2), Vector3(-0.9, -0.2, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "crouch": 0.3}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 16.0}},
+	"sen_ei_tajashu": {"base": "two_palm", "pre": 0.35, "post": 2.8, "wind": {"R": [Vector3(-0.85, -0.45, 0.1), Vector3(-0.9, -0.3, 0.2), Vector3(-0.9, -0.2, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "crouch": 0.3}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 16.0}},
 	"kuchiyose_rashomon": {"base": "summon", "pre": 0.45, "post": 0.8, "wind": {"R": [Vector3(-0.3, -0.5, 0.8), Vector3(0.6, 0.7, 0.35), Vector3(0.3, 0.9, 0.3)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [0, 0, 0, 0, 0]}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0, 0, 0, 0, 0], "spine": 40.0, "crouch": 0.8}},
 	"kuchiyose_sanju_rashomon": {"base": "summon", "pre": 0.55, "post": 1.0, "wind": {"R": [Vector3(-0.3, -0.5, 0.8), Vector3(0.6, 0.7, 0.35), Vector3(0.3, 0.9, 0.3)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "spine": -6.0}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 55.0, "crouch": 1.0}},
 	"kusanagi_kuchi": {"base": "breath", "pre": 0.4, "post": 0.55, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": -30.0, "neck": -40.0}, "rel": {"R": [Vector3(-0.25, -0.96, -0.05), Vector3(-0.1, -0.97, 0.2), Vector3(0.0, -1.0, 0.1)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 30.0, "neck": 25.0}},
@@ -893,14 +893,6 @@ const PANIM := {
 	"gekko_hangetsu": {"base": "spin", "pre": 0.25, "post": 0.5, "wind": {"R": [Vector3(-0.4, -0.7, -0.5), Vector3(0.0, -0.3, -0.95), Vector3(0.0, -0.6, -0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "crouch": 0.4}, "rel": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0, 0, 0, 0, 0], "hips_yaw": -90.0, "crouch": 0.5}},
 	"gekko_mangetsu": {"base": "charge", "pre": 0.6, "post": 0.6, "wind": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.15, 0.98, 0.1), Vector3(0.05, 1.0, 0.05), Vector3(-0.0, 1.0, 0.0)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "spine": -12.0}, "rel": {"R": [Vector3(-0.25, -0.96, -0.05), Vector3(-0.1, -0.97, 0.2), Vector3(0.0, -1.0, 0.1)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "spine": 40.0, "crouch": 0.5}},
 	"gekko_tsukiyo": {"base": "sky", "pre": 0.5, "post": 1.2, "wind": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "neck": -25.0}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.4, -0.7, -0.5), Vector3(-0.0, -0.3, -0.95), Vector3(-0.0, -0.6, -0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 18.0}},
-	"mitarashi_senei": {"base": "palm", "pre": 0.2, "post": 0.6, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0, 0, 0, 0, 0]}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 10.0}},
-	"mitarashi_jagei": {"base": "ground_slam", "pre": 0.3, "post": 0.6, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0, 0, 0, 0, 0], "spine": 30.0, "crouch": 0.6}},
-	"mitarashi_doku_kiba": {"base": "throw", "pre": 0.25, "post": 0.5, "wind": {"R": [Vector3(-0.6, 0.6, -0.5), Vector3(-0.2, 0.9, -0.4), Vector3(0.0, 1.0, -0.2)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "hips_yaw": 35.0}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.4, -0.7, -0.5), Vector3(-0.0, -0.3, -0.95), Vector3(-0.0, -0.6, -0.8)], "fR": [0, 0, 0, 0, 0], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 14.0, "hips_yaw": -35.0}},
-	"mitarashi_dachi": {"base": "flicker", "pre": 0.1, "post": 0.4, "rel": {"R": [Vector3(-0.4, -0.7, -0.5), Vector3(0.0, -0.3, -0.95), Vector3(0.0, -0.6, -0.8)], "L": [Vector3(0.4, -0.7, -0.5), Vector3(-0.0, -0.3, -0.95), Vector3(-0.0, -0.6, -0.8)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -10.0, "crouch": 0.3}},
-	"mitarashi_tasou": {"base": "two_palm", "pre": 0.25, "post": 0.8, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "crouch": 0.3}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 16.0}},
-	"mitarashi_yuva": {"base": "ground_slam", "pre": 0.4, "post": 0.8, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 40.0, "crouch": 0.8}},
-	"mitarashi_jagan": {"base": "seal", "pre": 0.3, "post": 0.7, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.15, 0.15, 0.15, 0.15, 0.3]}, "rel": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0, 0, 0, 0, 0], "spine": 6.0, "neck": 10.0}},
-	"mitarashi_orochi": {"base": "summon", "pre": 0.5, "post": 1.0, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0, 0, 0, 0, 0], "spine": 35.0, "crouch": 0.7}},
 	"shiranui_fukibari": {"base": "palm", "pre": 0.15, "post": 0.3, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.35, -0.85, -0.35), Vector3(-0.0, -0.4, 0.9), Vector3(-0.0, 0.2, 0.95)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "neck": -5.0}, "rel": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.35, -0.85, -0.35), Vector3(-0.0, -0.4, 0.9), Vector3(-0.0, 0.2, 0.95)], "fR": [0, 0, 0, 0, 0], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 6.0, "neck": 10.0}},
 	"shiranui_senbon_ame": {"base": "throw", "pre": 0.25, "post": 0.5, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7]}, "rel": {"R": [Vector3(-0.2, 0.8, 0.55), Vector3(-0.1, 0.85, 0.5), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.2, 0.8, 0.55), Vector3(0.1, 0.85, 0.5), Vector3(-0.0, 0.9, 0.4)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -8.0}},
 	"shiranui_tenketsu": {"base": "throw", "pre": 0.2, "post": 0.4, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.15, 0.15, 0.15, 0.15, 0.3]}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 1.5, 1.5, 1.5, 0.9], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 10.0}},
@@ -1348,34 +1340,62 @@ func summon_circle(pos: Vector3, r: float, col: Color, dur: float) -> void:
 
 
 # ================================================================== YILAN YOLU
-## Sen'ei Jashu: iki yılan yenden fırlar, hedefi ısırıp sarar, sonra seni ona değil onu sana çeker
+## Sen'ei Jashu (anime: Anko / Orochimaru): kol hedefe uzatılır, yenin içinden dört yılan fırlar — kuyrukları yende kalır,
+## gövdeleri koldan hedefe uzanır, ısırır (zehir) ve gövdesine sarılıp bağlar; sonra kullanıcı onu kendine çeker
 func p_sen_ei_jashu(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 20.0)
-	busy(c, 0.9)
-	anim(c, "cross", 1.2)
+	busy(c, 1.2)
 	Sfx.play("whoosh", c.global_position, 0.7)
-	var to = tt.global_position + Vector3.UP * tt.height * 0.55 if tt else c.global_position + Vector3.UP * 1.1 + fwd(c, t) * 16.0
-	for k in 2:
-		var from = hand_pos(c, k == 0)
-		var head = make_snake(from, SNAKE, 0.9, 14)
-		var side = fwd(c, t).cross(Vector3.UP).normalized() * (0.6 if k == 0 else -0.6)
-		slither(head, from, to + side, 0.32, 1.2, func():
-			if tt and live(tt):
-				poison(c, tt, "sen_ei_jashu", 0.45, 4.0)
-				st(tt, "bind", 2.4)
-			else:
-				FX.dust(gp(to), 0.8))
-		after(0.32, func():
-			if is_instance_valid(head) and tt and live(tt):
-				every(1.6, 1.0 / 30.0, func(_i, _k):
-					if is_instance_valid(head) and live(tt):
-						head.global_position = tt.global_position + Vector3.UP * tt.height * 0.55 + side * 0.5, Callable()))
-		fade_free(head, 2.2, 0.2)
+	var d = fwd(c, t)
+	var snakes = []
+	var right = fore_hand(c)   # yılanlar hedefe uzatılan kolun yeninden
+	for k in 4:
+		var sn = sleeve_snake(c, right, tt, k, 4, d * 16.0)
+		snakes.append(sn)
+		sn.extend(0.32 + k * 0.03, func():
+			if k == 0:
+				if tt and live(tt):
+					poison(c, tt, "sen_ei_jashu", 0.45, 4.0)
+					st(tt, "bind", 2.4)
+					Combat.popup_text(tt.global_position + Vector3.UP * (tt.height + 0.8), "Yılanlar sardı!", Color(0.7, 0.75, 0.5))
+				else:
+					FX.dust(gp(c.global_position + d * 16.0), 0.8))
 	if tt:
-		Combat.popup_text(tt.global_position + Vector3.UP * (tt.height + 0.8), "Yılanlar sardı!", Color(0.7, 0.5, 0.85))
-		after(0.5, func():
+		after(0.55, func():
 			if live(tt):
 				pull_to(c, tt, 0.5))
+	after(2.0, func():
+		for sn in snakes:
+			if is_instance_valid(sn):
+				sn.retract(0.3))
+
+
+## Hangi el daha önde (uzatılan kol): true = sağ
+func fore_hand(c: Node3D) -> bool:
+	var f = c.face_dir()
+	return (hand_pos(c, true) - c.global_position).dot(f) >= (hand_pos(c, false) - c.global_position).dot(f)
+
+
+## Yenden çıkan yılan (SleeveSnake): kuyruğu yende, başı hedefte; birden fazlası yelpaze gibi ayrılır
+func sleeve_snake(c: Node3D, right: bool, e: Node3D, i: int, n: int, free_off: Vector3) -> SleeveSnake:
+	var sn = SleeveSnake.new()
+	var side_k = (float(i) / maxf(1.0, n - 1) - 0.5) * 2.0 if n > 1 else 0.0
+	sn.anchor = func():
+		if not is_instance_valid(c):
+			return Vector3.ZERO
+		return hand_pos(c, right) - c.face_dir() * 0.05
+	sn.aim_dir = c.face_dir()
+	sn.target = e if e and live(e) else null
+	sn.free_to = c.global_position + Vector3.UP * 1.2 + free_off.rotated(Vector3.UP, side_k * 0.1)
+	sn.side = side_k * 0.3   # anime: yılanlar yenden sıkı bir demet hâlinde çıkar, hedefe yakın ayrılır
+	sn.lift = (0.25 if i % 2 == 0 else 0.05)
+	sn.phase = float(i) * 1.7 + (0.0 if right else 0.9)
+	sn.coil_y0 = 0.3 + 0.08 * (i % 3)
+	sn.coil_y1 = sn.coil_y0 + 0.32
+	sn.coil_turns = 1.1 + 0.25 * (i % 2)
+	get_tree().current_scene.add_child(sn)
+	sn.set_head(snake_head(Color(0.24, 0.26, 0.17), 0.3))
+	return sn
 
 
 ## Jagei Jubaku: arkanda dev bir yılan hayali yükselir, bakışınla dehşete düşen herkes donar
@@ -1439,35 +1459,35 @@ func p_hebi_bunshin_no_jutsu(c: Node3D, t: Node3D) -> void:
 	FX.smoke_puff(c.global_position + Vector3.UP, 0.6, 8)
 
 
-## Sen'ei Tajashu: iki koldan onlarca yılan yelpaze gibi açılır, menzildeki 6 düşmana kadar hepsini sarar
+## Sen'ei Tajashu: Sen'ei Jashu'nun çok yılanlı hâli (anime: iki yenden yılan sürüsü) — her yılan menzildeki 6 düşmandan birine uzanıp sarılır
 func p_sen_ei_tajashu(c: Node3D, t: Node3D) -> void:
 	var d = fwd(c, t)
-	busy(c, 1.0)
-	anim(c, "cross", 1.0)
+	busy(c, 1.4)
 	var victims = cone_enemies(c, d, 24.0, 140.0).slice(0, 6)
 	Sfx.play("whoosh", c.global_position, 0.6)
 	var n = 12
+	var snakes = []
 	for k in n:
 		var right = k % 2 == 0
-		var from = hand_pos(c, right)
 		var e = victims[k % victims.size()] if not victims.is_empty() else null
-		var ang = deg_to_rad(-60.0 + 120.0 * float(k) / (n - 1))
-		var free_to = from + d.rotated(Vector3.UP, ang) * 20.0
-		var to = e.global_position + Vector3.UP * e.height * 0.5 + Vector3(randf_range(-0.4, 0.4), randf_range(-0.3, 0.3), randf_range(-0.4, 0.4)) if e else free_to
-		var head = make_snake(from, SNAKE.lerp(Color(0.3, 0.45, 0.25), randf() * 0.5), 0.7, 12)
+		var ang = deg_to_rad(-55.0 + 110.0 * float(k) / (n - 1))
+		var sn = sleeve_snake(c, right, e, k / 2, n / 2, d.rotated(Vector3.UP, ang) * 18.0)
+		sn.radius = 0.075
+		snakes.append(sn)
 		after(k * 0.03, func():
-			if not is_instance_valid(head):
-				return
-			slither(head, from, to, 0.38, 1.6, func():
-				if e and live(e):
-					poison(c, e, "sen_ei_tajashu", 0.22, 4.0)
-					st(e, "bind", 3.0)
-				else:
-					FX.dust(gp(to), 0.6)
-					hit(c, to, 1.5, inf(c, "sen_ei_tajashu", 0.25, {"knock": 3.0, "kind": "light"}))))
-		fade_free(head, 3.0, 0.25)
+			if is_instance_valid(sn):
+				sn.extend(0.38, func():
+					if e and live(e):
+						poison(c, e, "sen_ei_tajashu", 0.22, 4.0)
+						st(e, "bind", 3.0)
+					else:
+						hit(c, sn.free_to, 1.5, inf(c, "sen_ei_tajashu", 0.25, {"knock": 3.0, "kind": "light"}))))
+	after(2.8, func():
+		for sn in snakes:
+			if is_instance_valid(sn):
+				sn.retract(0.35))
 	for e in victims:
-		Combat.popup_text(e.global_position + Vector3.UP * (e.height + 0.8), "Yılan ağı!", Color(0.7, 0.5, 0.85))
+		Combat.popup_text(e.global_position + Vector3.UP * (e.height + 0.8), "Yılan ağı!", Color(0.7, 0.75, 0.5))
 
 
 ## Rashōmon kapısı: şeytan yüzlü dev kapı yerden fırlar (önündekileri havaya savurur), saldırıları gerçekten durdurur
@@ -24429,7 +24449,6 @@ func p_otsutsuki_ten_no_kama(c: Node3D, t: Node3D) -> void:
 # ================================================================== Yeni klanlar 3: Yūhi (orman illüzyonları) / Gekkō (ay kılıcı) / Mitarashi (yılanlar) / Shiranui (senbon)
 const YUHI := Color(0.9, 0.25, 0.42)
 const GEKKO := Color(0.78, 0.88, 1.0)
-const MITA := Color(0.5, 0.3, 0.62)
 const SHIRA := Color(0.86, 0.88, 0.93)
 
 
@@ -25017,193 +25036,6 @@ func p_gekko_tsukiyo(c: Node3D, t: Node3D) -> void:
 		hit(c, at + Vector3.UP, 6.5, inf(c, "gekko_tsukiyo", 1.4, {"knock": 10.0, "kind": "heavy", "hitstop": 0.1}))
 		shake(0.8))
 	Sfx.play("blade", at, 0.6)
-
-
-# ------------------------------------------------------------------ Mitarashi: yılanlar
-## Kolundan / zeminden uzanan yılanı a'dan b'ye sürünerek gönder
-func _mt_snake(a: Vector3, b: Vector3, size: float, dur: float, done := Callable()) -> Node3D:
-	var h = make_snake(a, MITA, size, 9)
-	slither(h, a, b, dur, 0.5, func():
-		if done.is_valid():
-			done.call()
-		after(0.4, func():
-			if is_instance_valid(h):
-				VFX.smoke_ring(h.global_position, 0.6, MITA)
-				h.queue_free()))
-	return h
-
-
-## Gizli Gölge Yılanlar: kol yeninden dört yılan fırlar, hedefi ısırır
-func p_mitarashi_senei(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 14.0)
-	busy(c, 0.7)
-	var from = hand_pos(c, true)
-	var to = (tt.global_position + Vector3.UP) if tt else from + fwd(c, t) * 10.0
-	for k in 4:
-		var off = Vector3(randf_range(-0.6, 0.6), randf_range(-0.3, 0.5), randf_range(-0.6, 0.6))
-		after(k * 0.06, func():
-			_mt_snake(from, to + off * 0.3, 0.45, 0.35, func():
-				if tt and live(tt) and live(c):
-					poison(c, tt, "mitarashi_senei", 0.35, 3.0)))
-	Sfx.play("whoosh", c.global_position, 1.2)
-
-
-## Yılan Kuyruğu: yerden kalın yılan çıkar, hedefe sarılıp sıkar
-func p_mitarashi_jagei(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 18.0)
-	busy(c, 0.6)
-	if tt == null:
-		return
-	var a = gp(tt.global_position + Vector3(1.5, 0, 0)) - Vector3.UP * 0.5
-	var h = make_snake(a, MITA, 0.8, 12)
-	VFX.cracks(gp(tt.global_position), 2.0)
-	every(3.0, 1.0 / 40.0, func(_i, k):
-		if not (is_instance_valid(h) and live(tt)):
-			return
-		var ang = k * TAU * 3.0
-		h.global_position = tt.global_position + Vector3(cos(ang) * 0.7, 0.2 + k * 1.8, sin(ang) * 0.7)
-		toward(h, Vector3(-sin(ang), 0.2, cos(ang))), func():
-		if is_instance_valid(h):
-			VFX.smoke_ring(h.global_position, 0.8, MITA)
-			h.queue_free())
-	st(tt, "bind", 3.0)
-	every(3.0, 0.6, func(_i, _k):
-		if live(tt) and live(c):
-			tt.take_hit(inf(c, "mitarashi_jagei", 0.4, {"knock": 0.0, "kind": "light"})), Callable())
-	Sfx.play("earth", tt.global_position, 1.3)
-
-
-## Zehirli Diş Kunai: yılan zehrine batırılmış üç kunai; isabet zehirler ve yavaşlatır
-func p_mitarashi_doku_kiba(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.5)
-	var tt = tg(c, t, 26.0)
-	after(0.15, func():
-		if not live(c):
-			return
-		var from = hand_pos(c, true)
-		for k in 3:
-			var d = aim_at(c, tt, from).rotated(Vector3.UP, (k - 1) * 0.08)
-			var b = MB.new()
-			b.add("cone", Vector3(0, 0, 0.2), Vector3(0.07, 0.3, 0.02), Color(0.45, 0.6, 0.35), Vector3(90, 0, 0), 4)
-			b.add("cyl", Vector3(0, 0, -0.05), Vector3(0.03, 0.18, 0.03), PDARK, Vector3(90, 0, 0), 6)
-			var pr = shot(c, from, d, 38.0, mesh_of(b), inf(c, "mitarashi_doku_kiba", 0.5, {"knock": 2.0, "kind": "light", "burn": 4.0}), tt, false, 1.2, func(p, h):
-				FX.burst(p, {"amount": 10, "life": 0.6, "size": 0.4, "vmin": 1, "vmax": 3, "colors": [Color(0.55, 0.25, 0.7), Color(0.3, 0.6, 0.2, 0)]})
-				if h and live(h):
-					st(h, "slow", 2.5))
-			_etrail(pr, "", Color(0.55, 0.3, 0.7), 0.1))
-	Sfx.play("throw", c.global_position, 1.1)
-
-
-## Yılan Derisi: deri soyulup yerde kalır (tuzak), sen geriye kayarsın; deriye dokunan zehirlenir
-func p_mitarashi_dachi(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.3)
-	var start = c.global_position
-	decoy(c, start, 4.0, func(p: Vector3):
-		FX.burst(p + Vector3.UP, {"amount": 24, "life": 0.8, "size": 0.6, "vmin": 1, "vmax": 4, "colors": [Color(0.75, 0.7, 0.6), Color(0.55, 0.3, 0.7, 0)]})
-		for e in enemies_near(c, p, 3.5):
-			poison(c, e, "mitarashi_dachi", 0.6, 5.0)
-			st(e, "slow", 2.0))
-	VFX.smoke_ring(start + Vector3.UP * 0.1, 1.0, Color(0.75, 0.7, 0.6))
-	var to = gp(start - fwd(c, t) * 7.0)
-	stream_fx(start + Vector3.UP * 0.4, (to - start).normalized(), start.distance_to(to), 0.25, Props.toon_color(MITA), 0.3)
-	c.global_position = to
-	Sfx.play("whoosh", to, 0.9)
-
-
-## Çok Başlı Yılan: kollardan altı yılan başı aynı anda öne atılır, önü dişler
-func p_mitarashi_tasou(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.9)
-	var d = fwd(c, t)
-	var from = c.global_position + Vector3.UP * 1.2 + d * 0.5
-	for k in 6:
-		var side = d.cross(Vector3.UP).normalized() * (k - 2.5) * 0.7
-		var to = from + d * 7.0 + side + Vector3.UP * randf_range(-0.6, 0.6)
-		after(k * 0.05, func():
-			_mt_snake(from, to, 0.55, 0.3, func():
-				impact_fx("", MITA, to, 0.6)))
-	after(0.35, func():
-		if live(c):
-			for e in cone_enemies(c, d, 8.0, 70.0):
-				poison(c, e, "mitarashi_tasou", 0.5, 3.0)
-				e.take_hit(inf(c, "mitarashi_tasou", 1.1, {"knock": 7.0, "kind": "heavy"})))
-	Sfx.play("roar", c.global_position, 1.8)
-
-
-## Yılan Yuvası: zemin yarılır, onlarca yılan kaynar; içindekiler bağlanır, zehirlenir
-func p_mitarashi_yuva(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.9)
-	var tt = tg(c, t, 22.0)
-	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 8.0)
-	VFX.cracks(at, 9.0, Color(0.15, 0.08, 0.15, 0.9))
-	summon_circle(at, 4.5, MITA, 6.0)
-	every(6.0, 0.25, func(i, _k):
-		var a = randf() * TAU
-		var p = gp(at + Vector3(cos(a), 0, sin(a)) * randf_range(0.5, 4.2))
-		_mt_snake(p - Vector3.UP * 0.6, p + Vector3(randf_range(-1, 1), 1.6, randf_range(-1, 1)), 0.4, 0.4)
-		if i % 3 == 0:
-			for e in enemies_near(c, at, 4.8):
-				st(e, "slow", 1.0)
-				if i % 6 == 0:
-					st(e, "bind", 0.8)
-				poison(c, e, "mitarashi_yuva", 0.25, 2.0), Callable())
-	Sfx.play("earth", at, 0.8)
-
-
-## Yılan Gözü Felci: altın yılan gözleri parlar; bakan herkes donar kalır
-func p_mitarashi_jagan(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.8)
-	var d = fwd(c, t)
-	var at = c.global_position + Vector3.UP * 2.6 + d * 1.2
-	for sx in [-1.0, 1.0]:
-		var eye = MeshInstance3D.new()
-		eye.mesh = SphereMesh.new()
-		eye.material_override = glow(Color(1.0, 0.85, 0.15), 1.0)
-		scene_add(eye, at + d.cross(Vector3.UP).normalized() * sx * 0.9)
-		eye.scale = Vector3(0.6, 0.35, 0.2)
-		eye.look_at(eye.global_position + d + Vector3(0, 0.001, 0), Vector3.UP)
-		var pupil = MeshInstance3D.new()
-		var bm = BoxMesh.new()
-		bm.size = Vector3(0.12, 0.9, 0.4)
-		pupil.mesh = bm
-		pupil.material_override = glow(Color(0.05, 0.03, 0.02), 1.0)
-		eye.add_child(pupil)
-		var tw = eye.create_tween()
-		tw.tween_interval(1.2)
-		tw.tween_property(eye, "scale", Vector3(0.6, 0.02, 0.2), 0.15)
-		tw.tween_callback(eye.queue_free)
-	after(0.35, func():
-		if not live(c):
-			return
-		VFX.shockwave(at, Color(1.0, 0.85, 0.2), 10.0, 0.35, false, d)
-		for e in cone_enemies(c, d, 16.0, 80.0):
-			st(e, "stun", 2.6)
-			e.take_hit(inf(c, "mitarashi_jagan", 0.6, {"knock": 0.0, "kind": "light"})))
-	Sfx.play("genjutsu", c.global_position, 0.7)
-
-
-## Dev Yılan Çağrısı: duman bulutundan dev mor yılan fırlar, hedefe atılıp yutarcasına ısırır
-func p_mitarashi_orochi(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.2)
-	var tt = tg(c, t, 30.0)
-	var d = fwd(c, t)
-	var at = gp(tt.global_position if tt else c.global_position + d * 14.0)
-	var src = gp(c.global_position - d * 2.0 + d.cross(Vector3.UP).normalized() * 2.0)
-	summon_circle(src, 2.5, MITA, 1.0)
-	VFX.smoke_ring(src + Vector3.UP * 0.5, 4.0, Color(0.9, 0.9, 0.9))
-	after(0.4, func():
-		var h = make_snake(src + Vector3.UP * 1.5, MITA.darkened(0.15), 3.0, 16)
-		slither(h, src + Vector3.UP * 3.5, at + Vector3.UP * 1.4, 0.55, 1.6, func():
-			impact_fx("", MITA, at + Vector3.UP, 2.2)
-			VFX.cracks(at, 6.0)
-			hit(c, at + Vector3.UP, 4.5, inf(c, "mitarashi_orochi", 3.0, {"knock": 18.0, "launch": 5.0, "kind": "heavy", "hitstop": 0.15}))
-			for e in enemies_near(c, at, 4.5):
-				poison(c, e, "mitarashi_orochi", 0.4, 5.0)
-			shake(1.0)
-			after(0.8, func():
-				if is_instance_valid(h):
-					VFX.smoke_ring(h.global_position, 4.0, Color(0.9, 0.9, 0.9))
-					h.queue_free())))
-	Sfx.play("roar", src, 0.6)
 
 
 # ------------------------------------------------------------------ Shiranui: senbon

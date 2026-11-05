@@ -588,8 +588,8 @@
  },
  "mitarashi": {
   "name": "Mitarashi",
-  "desc": "Yılan sözleşmeli Konoha ailesi: kollardan yılanlar, zehir ve yılan gözü.",
-  "kg": "Yılan Sözleşmesi",
+  "desc": "Anko'nun ailesi. Klanın gizli tekniği yoktur; Anko'nun yılan sanatları Orochimaru'dan öğrenilmiştir (Sen'ei Jashu, Sen'ei Tajashu, Hebi Bunshin, Sōjasōsai) — Yılan Yolu'nda bu soy daha erken çağrılır, yarı fiyata öğrenir, yol pasifleri x1.5. Anko gibi zehre dayanıklıdır.",
+  "kg": "Yılan Yolu yatkınlığı",
   "eye": [
    0.55,
    0.4,

@@ -364,8 +364,8 @@ static func joined(pid: String) -> bool:
 	return state(pid) >= JOINED
 
 
-## Kan yatkınlığı: Namikaze soyu Uçan Yıldırım Yolu'na erken çağrılır, sınavsız kabul edilir, yarı fiyata öğrenir, pasif 1.5 kat
-const BLOOD := {"hiraishin": "namikaze"}
+## Kan yatkınlığı: Namikaze soyu Uçan Yıldırım Yolu'na, Mitarashi soyu (Anko: Orochimaru'nun öğrencisi) Yılan Yolu'na erken çağrılır, sınavsız kabul edilir, yarı fiyata öğrenir, pasif 1.5 kat
+const BLOOD := {"hiraishin": "namikaze", "yilan": "mitarashi"}
 
 
 static func blood(pid: String) -> bool:
