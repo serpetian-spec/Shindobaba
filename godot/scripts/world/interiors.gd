@@ -200,13 +200,54 @@ func _clear() -> void:
 		room = null
 
 
+## Oda içi güvenli konumlar (savaşçı -> son geçerli konum): itme/savrulma/hızlı atılış duvarı delip odadan atmasın
+var _safe := {}
+
+
+func _physics_process(_dt: float) -> void:
+	if inside == "" or busy or Game.player == null:
+		_safe.clear()
+		return
+	var space = Game.player.get_world_3d().direct_space_state
+	for f in get_tree().get_nodes_in_group("fighters"):
+		if not is_instance_valid(f) or not f is CharacterBody3D or f.is_queued_for_deletion():
+			continue
+		var p: Vector3 = f.global_position
+		if Vector2(p.x - origin.x, p.z - origin.z).length() > 90.0 or absf(p.y - origin.y) > 40.0:
+			continue   # bu odada değil
+		var key = f.get_instance_id()
+		var last = _safe.get(key, null)
+		var out = p.y < origin.y - 3.0 or p.y > origin.y + 14.0 or Vector2(p.x - origin.x, p.z - origin.z).length() > 45.0
+		if last != null:
+			var a = (last as Vector3) + Vector3.UP * 0.9
+			var b = p + Vector3.UP * 0.9
+			var hit = {} if a.distance_to(b) < 0.05 else space.intersect_ray(PhysicsRayQueryParameters3D.create(a, b, 1, [f.get_rid()]))
+			if out or not hit.is_empty():
+				# duvarın içinden geçti / odadan çıktı: duvarın önünde (ya da son güvenli yerde) dur
+				var back: Vector3 = last
+				if not hit.is_empty():
+					var dv = b - a
+					dv.y = 0
+					var hp: Vector3 = hit["position"] - (dv.normalized() * 0.45 if dv.length() > 0.01 else Vector3.ZERO)
+					back = Vector3(hp.x, (last as Vector3).y, hp.z)
+				f.global_position = back
+				f.velocity = Vector3(0, minf(f.velocity.y, 0.0), 0)
+				if f.has_method("reset_physics_interpolation"):
+					f.reset_physics_interpolation()
+				continue
+		# güvenli konum yalnız odanın zemininde dururken (havadayken kaydedilirse geri dönüş noktası da oda dışında kalıyordu)
+		if not out and f.is_on_floor() and absf(p.y - origin.y) < 2.5:
+			_safe[key] = p
+
+
 func _process(_dt: float) -> void:
 	if inside == "" or Game.player == null:
 		return
-	# güvenlik ağı: oda dünyanın 1500 m üstünde; duvar koşusuyla duvarı aşıp düşen oyuncu kapıdan dışarı çıkarılır
+	# güvenlik ağı (son çare): oda dışına düşen oyuncu dışarı ATILMAZ — girişe geri konur (sınavda/görevde kapıdan atılıyordu)
 	var pp: Vector3 = Game.player.global_position
-	if not busy and (pp.y < origin.y - 4.0 or pp.y > origin.y + 14.0 or Vector2(pp.x - origin.x, pp.z - origin.z).length() > 45.0):
-		exit()
+	if not busy and (pp.y < origin.y - 6.0 or pp.y > origin.y + 18.0 or Vector2(pp.x - origin.x, pp.z - origin.z).length() > 60.0):
+		_teleport(origin + Vector3(0, 0.05, -2.4), 0.0)
+		_room_for_cam.call_deferred()
 		return
 	# odada duvar koşusu yok (tavana tırmanıp üstünden aşılıyordu)
 	if Game.player.wall_n != Vector3.ZERO and Game.player.has_method("_leave_wall"):
