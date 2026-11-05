@@ -2164,6 +2164,13 @@ static var _holster_rings := {}   # cinsiyet|y -> uyluk kesiti (gövde tabanı a
 func _thigh_holster() -> void:
 	if body_mesh == null or body_mesh.mesh == null:
 		return
+	# her kıyafette/çocukta olmasın: kanonda kılıf alnında bandı olan ninjanın teçhizatı (Akademi öğrencisi, çocuk, sivil
+	# takmaz); kıyafet seti "holster": false/true ile ezebilir
+	var want = look.get("holster", null)
+	if want == null:
+		want = String(look.get("age", "adult")) != "child" and look.get("band") != null
+	if not bool(want):
+		return
 	var vs: PackedVector3Array = _body_vs()
 	var hipb = _bp("RightUpperLeg")
 	var kn = _bp("RightLowerLeg")
@@ -2179,28 +2186,47 @@ func _thigh_holster() -> void:
 	if cloth_vs.size() > 0:
 		vs = vs.duplicate()
 		vs.append_array(cloth_vs)
-		pad = 0.007
+		pad = 0.012   # bol kumaşın kıvrımlarında kayış içeride kalmasın
 	var ring0 = func(y: float) -> Array:
 		# o yükseklikte uyluk kesiti: merkez + açı başına yarıçap
 		var cx = 0.0; var cz = 0.0; var cn = 0
 		for v in vs:
-			if absf(v.y - y) < 0.02 and v.x < -0.02 and absf(v.x - hipb.x) < 0.13:
+			if absf(v.y - y) < 0.02 and v.x < -0.004 and absf(v.x - hipb.x) < 0.14:
 				cx += v.x; cz += v.z; cn += 1
 		if cn == 0:
 			return []
 		var c = Vector3(cx / cn, y, cz / cn)
-		var out = []
+		# açı başına en dış yarıçap; köşe düşmeyen açılar komşulardan doldurulur (eskiden 5 cm'de kalıp kumaşın içine
+		# gömülüyor, kayış kesik kesik/ayrık bloklar gibi görünüyordu)
+		var rad: Array = []
 		for i in 24:
 			var a = TAU * i / 24.0
 			var d = Vector3(sin(a), 0, cos(a))
-			var best = 0.05
+			var best = -1.0
 			for v in vs:
-				if absf(v.y - y) < 0.02 and v.x < -0.02 and absf(v.x - hipb.x) < 0.13:
+				if absf(v.y - y) < 0.02 and v.x < -0.004 and absf(v.x - hipb.x) < 0.14:
 					var h = Vector2(v.x - c.x, v.z - c.z)
 					var r = h.length()
-					if r > 0.01 and Vector2(d.x, d.z).dot(h / r) > 0.96 and r > best:
+					if r > 0.01 and Vector2(d.x, d.z).dot(h / r) > 0.93 and r > best:
 						best = r
-			out.append(c + d * (best + pad))
+			rad.append(best)
+		var mx = 0.05
+		for r in rad:
+			mx = maxf(mx, r)
+		for i in 24:
+			if rad[i] < 0.0:
+				var acc = 0.0; var cnt = 0
+				for o in [-2, -1, 1, 2]:
+					var q = rad[(i + o + 24) % 24]
+					if q > 0.0:
+						acc += q; cnt += 1
+				rad[i] = acc / cnt if cnt > 0 else mx
+		var out = []
+		for i in 24:
+			# hafif yumuşatma: tek köşe çıkıntısı kayışı kırmasın
+			var r = maxf(rad[i], (rad[(i + 23) % 24] + rad[i] * 2.0 + rad[(i + 1) % 24]) * 0.25)
+			var a = TAU * i / 24.0
+			out.append(c + Vector3(sin(a), 0, cos(a)) * (r + pad))
 		return out
 	var gkey = String(look.get("gender", "m")) + gk
 	var ring = func(y: float) -> Array:
@@ -2216,25 +2242,31 @@ func _thigh_holster() -> void:
 		var pts: Array = ring.call(y)
 		if pts.is_empty():
 			continue
+		var hi = 21   # kılıf dış-önde (a=315°); kayışlar onun ÜSTÜNDEN geçer (kılıf bacağa bağlı görünsün)
+		var lift = func(q: int) -> Vector3:
+			var pp: Vector3 = pts[q % pts.size()]
+			var dd = absi(((q - hi) % 24 + 36) % 24 - 12)
+			var dirv = Vector3(pp.x - hipb.x, 0, pp.z - hipb.z).normalized()
+			return pp + dirv * (0.034 if dd <= 1 else (0.018 if dd == 2 else 0.0))
 		for i in pts.size():
-			var p0: Vector3 = pts[i]
-			var p1: Vector3 = pts[(i + 1) % pts.size()]
+			var p0: Vector3 = lift.call(i)
+			var p1: Vector3 = lift.call(i + 1)
 			var t = p1 - p0
 			var nrm = Vector3(t.z, 0, -t.x).normalized()
 			if nrm.dot(p0 - Vector3(hipb.x, y, p0.z)) < 0.0 and false:
 				nrm = -nrm
-			var bb = Basis(t * 1.1, Vector3.UP * 0.024, nrm * 0.012)
+			var bb = Basis(t * 1.15, Vector3.UP * 0.014, nrm * 0.005)   # ince bez kayış (2.4 cm kalın beyaz blok gibiydi)
 			if bb.determinant() < 0.0:   # ters (sol el) taban yüzleri içe çevirip kayışı saydam gösteriyordu
 				bb.z = -bb.z
 			m.add_xf("box", Transform3D(bb, (p0 + p1) * 0.5), white)
-		outer_pt = outer_pt + pts[int(pts.size() * 0.79) % pts.size()]   # dış-ön (sağ bacakta -x ile ön arası)
+		outer_pt = outer_pt + pts[21 % pts.size()]   # dış-ön (kayış kaldırma noktasıyla aynı)
 	if outer_pt != Vector3.ZERO:
 		outer_pt /= 2.0
 		var od = Vector3(outer_pt.x - hipb.x, 0, outer_pt.z - hipb.z).normalized()
 		var bas = Basis(Vector3.UP.cross(od).normalized(), Vector3.UP, od)
 		var black = Color(0.1, 0.1, 0.12)
-		m.add_xf("box", Transform3D(bas.scaled(Vector3(0.075, 0.12, 0.035)), outer_pt + od * 0.022 + Vector3(0, -0.01, 0)), black)
-		m.add_xf("box", Transform3D(bas.scaled(Vector3(0.08, 0.03, 0.04)), outer_pt + od * 0.026 + Vector3(0, 0.055, 0)), black.lightened(0.08))   # kapak
+		m.add_xf("box", Transform3D(bas.scaled(Vector3(0.07, 0.11, 0.03)), outer_pt + od * 0.016 + Vector3(0, -0.012, 0)), black)
+		m.add_xf("box", Transform3D(bas.scaled(Vector3(0.074, 0.028, 0.034)), outer_pt + od * 0.018 + Vector3(0, 0.048, 0)), black.lightened(0.08))   # kapak
 	_mesh_on("RightUpperLeg", m.build(Props.toon()), Transform3D.IDENTITY)
 
 
