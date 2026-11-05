@@ -180,6 +180,7 @@ func faction_hostile(fa: String, fb: String) -> bool:
 func hit_sphere(attacker: Node3D, center: Vector3, radius: float, info: Dictionary, exclude: Array = []) -> Array:
 	var hits: Array = []
 	WorldDamage.impact(center, radius, info)   # ağaçlar/evler yanar, devrilir, yıkılır
+	_strike_bystanders(attacker, center, radius, info)
 	for f in get_tree().get_nodes_in_group("fighters"):
 		if f in exclude or not hostile(attacker, f) or f.is_dead():
 			continue
@@ -197,6 +198,18 @@ func hit_sphere(attacker: Node3D, center: Vector3, radius: float, info: Dictiona
 	if not hits.is_empty() and info.get("hitstop", 0.0) > 0.0:
 		hitstop(info["hitstop"])
 	return hits
+
+
+## Oyuncunun hasarlı vuruşu alandaki köylüye/klan sakinine değerse suç (Crime.on_struck): kişi savaşçıya dönüşür
+func _strike_bystanders(attacker: Node3D, center: Vector3, radius: float, info: Dictionary) -> void:
+	if not attacker is Player or float(info.get("dmg", 0.0)) <= 0.0 or info.get("heal", false):
+		return
+	for v in get_tree().get_nodes_in_group("talkers"):
+		if not v is Node3D or not is_instance_valid(v) or not v.visible:
+			continue
+		var d: Vector3 = v.global_position + Vector3.UP * 0.9 - center
+		if d.length() < radius + 0.5:
+			Crime.on_struck(v)
 
 
 ## Karamatsu no Mai (kanon): kemik dikenli bedene yakın dövüşle vuran kendini saplar — darbenin gücü kadar kendine zarar,
@@ -241,6 +254,7 @@ func hit_zone(attacker: Node3D, origin: Vector3, dir: Vector3, reach: float, hal
 	dir.y = 0
 	dir = dir.normalized() if dir.length() > 0.01 else Vector3.ZERO
 	WorldDamage.impact(origin + dir * reach * 0.55, reach * 0.45, info)
+	_strike_bystanders(attacker, origin + dir * reach * 0.5, reach * 0.55, info)
 	var cmin = cos(deg_to_rad(half_deg))
 	for f in get_tree().get_nodes_in_group("fighters"):
 		if f in exclude or not hostile(attacker, f) or f.is_dead():

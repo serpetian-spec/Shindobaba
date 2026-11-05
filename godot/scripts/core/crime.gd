@@ -83,6 +83,19 @@ static func attack_option(v: Node) -> Array:
 			c.attack(v)}]
 
 
+## Oyuncunun vuruşu (yumruk/silah/jutsu) bir köylüye değdi: konuşmadaki "Saldır!" ile aynı suç (eskiden vuruşlar köylünün
+## içinden geçiyordu, saldırı sayılmıyordu — köyden atılmıyordun)
+static func on_struck(v: Node) -> void:
+	if v == null or not is_instance_valid(v) or v.is_queued_for_deletion() or v.has_meta("struck"):
+		return
+	if attack_option(v).is_empty():
+		return
+	v.set_meta("struck", true)
+	var c = inst()
+	if c:
+		c.attack(v)
+
+
 ## Köylü / klan üyesi -> gerçek düşman savaşçı (aynı yerde, aynı görünüşle)
 func attack(v: Node) -> void:
 	if not is_instance_valid(v):
