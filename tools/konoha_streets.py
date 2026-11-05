@@ -82,9 +82,57 @@ def local_streets(R, gates):
     return S
 
 
+def _avoid_landmarks(pts, margin=8.0, names=("hospital",)):
+    """Cadde simge yapının (LANDMARKS daire) içinden geçmesin: o bölüm sıklaştırılır ve dairenin TEK bir yanından dolaştırılır
+    (yan, yolun yapıya en yakın geçtiği noktaya göre seçilir; zikzak olmaz). Hastane bir ara caddenin tam üstündeydi."""
+    for name, (cx, cn, r) in LANDMARKS.items():
+        if name not in names:
+            continue
+        R = r + margin
+        # sıklaştır: daireye yaklaşan parçalar 6 m adımlarla
+        dense = [pts[0]]
+        for (ax, an), (bx, bn) in zip(pts, pts[1:]):
+            L = math.hypot(bx - ax, bn - an)
+            near = _seg_dist(cx, cn, ax, an, bx, bn) < R + 6.0
+            k = max(1, int(L / 6.0)) if near else 1
+            for i in range(1, k + 1):
+                t = i / k
+                p = (ax + (bx - ax) * t, an + (bn - an) * t)
+                if i == k or math.hypot(p[0] - cx, p[1] - cn) < R + 14.0:   # yalnız dairenin yakınında sık nokta
+                    dense.append(p)
+        inside = [i for i, (x, n) in enumerate(dense) if math.hypot(x - cx, n - cn) < R]
+        if not inside:
+            continue
+        i0, i1 = max(0, inside[0] - 1), min(len(dense) - 1, inside[-1] + 1)
+        ex, en = dense[i0]
+        fx, fn = dense[i1]
+        cl = math.hypot(fx - ex, fn - en) or 1.0
+        nx, nn = -(fn - en) / cl, (fx - ex) / cl   # kirişe dik
+        mx, mn = min((dense[i] for i in inside), key=lambda p: math.hypot(p[0] - cx, p[1] - cn))
+        side = 1.0 if (mx - cx) * nx + (mn - cn) * nn >= 0 else -1.0
+        for i in inside:
+            qx, qn = dense[i][0] - cx, dense[i][1] - cn
+            d = qx * nx + qn * nn
+            if d * side < 0:   # yanlış yandaki nokta kirişe göre yansıtılır
+                qx -= 2 * d * nx
+                qn -= 2 * d * nn
+            q = math.hypot(qx, qn) or 1.0
+            dense[i] = (cx + qx / q * R, cn + qn / q * R)
+        pts = dense
+    return pts
+
+
+def _seg_dist(px, pn, ax, an, bx, bn):
+    dx, dn = bx - ax, bn - an
+    L2 = dx * dx + dn * dn or 1.0
+    t = max(0.0, min(1.0, ((px - ax) * dx + (pn - an) * dn) / L2))
+    return math.hypot(ax + dx * t - px, an + dn * t - pn)
+
+
 def streets(v):
     out = []
     for pts in local_streets(float(v['r']) - 40.0, [float(g) for g in v.get('gates', [180.0, 100.0, 260.0])]):
+        pts = _avoid_landmarks(pts)
         out.append(dict(a=v['id'], b=v['id'], kind='street', pts=[[round(v['x'] + x, 1), round(v['y'] + n, 1)] for x, n in pts]))
     return out
 

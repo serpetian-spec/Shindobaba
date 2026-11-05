@@ -50,6 +50,22 @@ func _ready() -> void:
 			n += 1
 			await _wait(0.25)
 		print("KILL ", r.display_name if is_instance_valid(r) else "?", " hits=", n, " dead=", (r.is_dead() if is_instance_valid(r) else "freed"), " hp_left=", (r.hp if is_instance_valid(r) else -1), " t=", (Time.get_ticks_msec() - t0) / 1000.0)
+	# pusu dalgası: gün değişsin, parşömeni sıfırla
+	pr["inventory"].erase("scroll_" + String(ChuninExam.st["need"]))
+	ChuninExam.st["forest_t"] = 4.0 * ChuninExam.DAY_LEN - 0.5
+	await _wait(1.5)
+	for r in ChuninExam.rivals:
+		if is_instance_valid(r) and not r.dead and r.display_name.begins_with("Pusucu"):
+			print("AMBUSH ", r.display_name, " carries=", r.get_meta("carries", ""))
+			while is_instance_valid(r) and not r.is_dead():
+				r.take_hit({"dmg": 60.0, "attacker": pl, "kind": "light", "knock": 1.0, "dir": Vector3.FORWARD, "melee": true})
+				await _wait(0.2)
+	await _wait(1.0)
+	print("SCROLLS need=", ChuninExam.st.get("need"), " inv=", {"heaven": pr["inventory"].get("scroll_heaven", 0), "earth": pr["inventory"].get("scroll_earth", 0)}, " stage=", ChuninExam.stage)
+	for r in ChuninExam.rivals:
+		if is_instance_valid(r):
+			print("  R ", r.display_name, " carries=", r.get_meta("carries", ""), " looted=", r.has_meta("looted"), " dead=", r.dead)
+	get_tree().quit()
 	# takım arkadaşları tek başına: ikinci kamp, oyuncu uzakta bekler (hasar vermez)
 	var cp2 = ChuninExam.st["camps"][1]
 	var tc2 = Vector3(cp2["pos"][0], cp2["pos"][1], cp2["pos"][2])

@@ -276,6 +276,13 @@ func _forest_tick(dt: float) -> void:
 		for i in 2:
 			var e = _rival_enemy(RIVALS.pick_random(), 0.6, i)
 			e.display_name = "Pusucu " + e.display_name
+			if i == 0:
+				# kanon: her takım bir parşömen taşır (yarısı Gök, yarısı Yer) — pusucular parşömensizdi, kesen eli boş kalıyordu
+				var need = String(st["need"])
+				e.set_meta("carries", need if (randf() < 0.75 or day >= 3) else ("earth" if need == "heaven" else "heaven"))
+				e.display_name += " ✉"
+			if e.nameplate:
+				e.nameplate.text = e.display_name
 			_place(e, pp + Vector3(randf_range(-25, 25), 0, randf_range(-25, 25)))
 			rivals.append(e)
 	var have_both = int(p()["inventory"].get("scroll_heaven", 0)) > 0 and int(p()["inventory"].get("scroll_earth", 0)) > 0
@@ -283,9 +290,14 @@ func _forest_tick(dt: float) -> void:
 		for r in rivals:
 			if is_instance_valid(r) and r.dead and r.has_meta("carries") and not r.has_meta("looted"):
 				r.set_meta("looted", true)
-				p()["inventory"]["scroll_" + String(r.get_meta("carries"))] = 1
-				Hud.banner("PARŞÖMEN ALINDI", "İki parşömen de sende! Kuleye git.", Color(0.95, 0.85, 0.5))
-				Sfx.play("coin")
+				var cr = String(r.get_meta("carries"))
+				var nm = "Gök" if cr == "heaven" else "Yer"
+				if cr == String(st["need"]):
+					p()["inventory"]["scroll_" + cr] = 1
+					Hud.banner("PARŞÖMEN ALINDI", "%s Parşömeni! İki parşömen de sende — kuleye git." % nm, Color(0.95, 0.85, 0.5))
+					Sfx.play("coin")
+				else:
+					Hud.banner("YANLIŞ PARŞÖMEN", "Bu takım da %s Parşömeni taşıyordu — sende zaten var. Başka takım bul (✉)." % nm, Color(0.85, 0.7, 0.5))
 		Hud.objective_progress("Gün %d/5  •  ⏰ %d sn  •  Gerekli: %s ✉" % [day, int(st["forest_t"]), "Yer" if st["need"] == "earth" else "Gök"])
 	else:
 		Hud.objective_progress("Gün %d/5  •  Kuleye ulaş!" % day)
