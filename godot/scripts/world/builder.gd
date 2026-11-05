@@ -585,7 +585,7 @@ func _house_body(x: float, n: float, wdt: float, dep: float, floors: int, yaw: f
 	# Konoha: yuvarlatılmış/düz çatı + su tankı veya beşik çatı
 	if rng.randf() < 0.55 and style == "konoha":
 		box(Vector3(x, hgt + 0.35, n), Vector3(wdt + 1.2, 0.7, dep + 1.2), rc, yaw)
-		if rng.randf() < 0.7:
+		if rng.randf() < 0.25:
 			var o = rot(rng.randf_range(-wdt * 0.25, wdt * 0.25), rng.randf_range(-dep * 0.25, dep * 0.25), yaw)
 			cyl(Vector3(x + o.x, hgt + 1.9, n + o.y), 2.4, 2.4, Color(0.62, 0.66, 0.7), true, 12)
 			cyl(Vector3(x + o.x, hgt + 3.2, n + o.y), 2.6, 0.3, Color(0.5, 0.52, 0.55), false, 12)

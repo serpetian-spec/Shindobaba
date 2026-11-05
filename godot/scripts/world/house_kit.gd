@@ -256,7 +256,7 @@ static func _make(rng: RandomNumberGenerator, i: int) -> Dictionary:
 			for sz in [-1.0, 1.0]:
 				det.add("box", Vector3(0, h + 0.75, sz * (top_d * 0.5 + 0.25)), Vector3(top_w + 0.6, 0.7, 0.15), WOOD.lightened(0.2))
 				cols.append([Vector3(0, h + 0.75, sz * (top_d * 0.5 + 0.25)), Vector3(top_w + 0.6, 0.75, 0.2), 0.0])
-			var ntank = 2 if (apt and w > 19.0) else 1
+			var ntank = 1 if rng.randf() < 0.3 else 0   # su deposu seyrek: her çatıda olunca şehir depo tarlasına dönüyordu
 			for tk in ntank:
 				var tx = rng.randf_range(-top_w * 0.25, top_w * 0.25) if ntank == 1 else (tk - 0.5) * top_w * 0.5
 				for sx in [-1.0, 1.0]:
