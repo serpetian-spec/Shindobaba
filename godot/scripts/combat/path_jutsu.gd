@@ -884,14 +884,7 @@ const PANIM := {
 	"yuhi_genei_ken": {"base": "flicker", "pre": 0.15, "post": 0.6, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.15, 0.15, 0.15, 0.15, 0.3]}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.4, -0.7, -0.5), Vector3(-0.0, -0.3, -0.95), Vector3(-0.0, -0.6, -0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 24.0, "crouch": 0.4}},
 	"yuhi_kabus": {"base": "seal", "pre": 0.5, "post": 0.8, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.25, -0.96, -0.05), Vector3(-0.1, -0.97, 0.2), Vector3(0.0, -1.0, 0.1)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 20.0, "crouch": 0.5}},
 	"yuhi_kyoka": {"base": "sky", "pre": 0.6, "post": 1.0, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.85, 0.1, -0.5), Vector3(-0.7, 0.1, -0.7), Vector3(-0.6, 0.1, -0.8)], "L": [Vector3(0.85, 0.1, -0.5), Vector3(0.7, 0.1, -0.7), Vector3(0.6, 0.1, -0.8)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -14.0, "neck": -15.0}},
-	"kurosuki_kiba": {"base": "rush", "pre": 0.2, "post": 0.5, "wind": {"R": [Vector3(-0.6, 0.6, -0.5), Vector3(-0.2, 0.9, -0.4), Vector3(0.0, 1.0, -0.2)], "L": [Vector3(0.6, 0.6, -0.5), Vector3(0.2, 0.9, -0.4), Vector3(-0.0, 1.0, -0.2)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "crouch": 0.4}, "rel": {"R": [Vector3(-0.1, 0.1, 0.99), Vector3(0.7, 0.1, 0.7), Vector3(0.8, 0.1, 0.6)], "L": [Vector3(0.1, 0.1, 0.99), Vector3(-0.7, 0.1, 0.7), Vector3(-0.8, 0.1, 0.6)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "spine": 24.0}},
-	"kurosuki_raiu": {"base": "sky", "pre": 0.3, "post": 0.7, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7]}, "rel": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.15, 0.98, 0.1), Vector3(0.05, 1.0, 0.05), Vector3(-0.0, 1.0, 0.0)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "spine": -14.0, "neck": -25.0}},
-	"kurosuki_kuro_kumo": {"base": "seal", "pre": 0.35, "post": 0.6, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7]}, "rel": {"R": [Vector3(-0.2, 0.8, 0.55), Vector3(-0.1, 0.85, 0.5), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "spine": -6.0}},
-	"kurosuki_rakurai": {"base": "throw", "pre": 0.25, "post": 0.5, "wind": {"R": [Vector3(-0.6, 0.6, -0.5), Vector3(-0.2, 0.9, -0.4), Vector3(0.0, 1.0, -0.2)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "hips_yaw": 30.0}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.4, -0.7, -0.5), Vector3(-0.0, -0.3, -0.95), Vector3(-0.0, -0.6, -0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "spine": 16.0, "hips_yaw": -30.0}},
-	"kurosuki_tate": {"base": "two_palm", "pre": 0.2, "post": 0.4, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7]}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "crouch": 0.3}},
 	"kurosuki_ikazuchi_kiba": {"base": "charge", "pre": 0.45, "post": 0.6, "wind": {"R": [Vector3(-0.4, -0.7, -0.5), Vector3(0.0, -0.3, -0.95), Vector3(0.0, -0.6, -0.8)], "L": [Vector3(0.4, -0.7, -0.5), Vector3(-0.0, -0.3, -0.95), Vector3(-0.0, -0.6, -0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "crouch": 0.4}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "spine": 18.0}},
-	"kurosuki_raiko": {"base": "flicker", "pre": 0.1, "post": 0.5, "wind": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.15, 0.98, 0.1), Vector3(0.05, 1.0, 0.05), Vector3(-0.0, 1.0, 0.0)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7]}, "rel": {"R": [Vector3(-0.25, -0.96, -0.05), Vector3(-0.1, -0.97, 0.2), Vector3(0.0, -1.0, 0.1)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "spine": 30.0, "crouch": 0.8}},
-	"kurosuki_arashi": {"base": "sky", "pre": 0.5, "post": 1.2, "wind": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.15, 0.98, 0.1), Vector3(0.05, 1.0, 0.05), Vector3(-0.0, 1.0, 0.0)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "spine": -15.0}, "rel": {"R": [Vector3(-0.85, 0.1, -0.5), Vector3(-0.7, 0.1, -0.7), Vector3(-0.6, 0.1, -0.8)], "L": [Vector3(0.85, 0.1, -0.5), Vector3(0.7, 0.1, -0.7), Vector3(0.6, 0.1, -0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "spine": -20.0, "neck": -30.0}},
 	"hagoromo_kasumi_giri": {"base": "rush", "pre": 0.2, "post": 0.5, "wind": {"R": [Vector3(-0.6, 0.6, -0.5), Vector3(-0.2, 0.9, -0.4), Vector3(0.0, 1.0, -0.2)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "crouch": 0.4}, "rel": {"R": [Vector3(-0.1, 0.1, 0.99), Vector3(0.7, 0.1, 0.7), Vector3(0.8, 0.1, 0.6)], "L": [Vector3(0.4, -0.7, -0.5), Vector3(-0.0, -0.3, -0.95), Vector3(-0.0, -0.6, -0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 20.0, "hips_yaw": -40.0}},
 	"hagoromo_hane": {"base": "throw", "pre": 0.2, "post": 0.5, "wind": {"R": [Vector3(-0.4, -0.7, -0.5), Vector3(0.0, -0.3, -0.95), Vector3(0.0, -0.6, -0.8)], "L": [Vector3(0.4, -0.7, -0.5), Vector3(-0.0, -0.3, -0.95), Vector3(-0.0, -0.6, -0.8)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 6.0}},
 	"hagoromo_genkaku": {"base": "seal", "pre": 0.3, "post": 0.5, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 1.5, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "spine": 6.0}},
@@ -24977,171 +24970,23 @@ func _ks_cloud(at: Vector3, r: float, dur: float) -> void:
 		"colors": [Color(0.1, 0.1, 0.14, 0.75), Color(0.12, 0.12, 0.16, 0.6), Color(0.1, 0.1, 0.12, 0)]})
 
 
-## Kiba Kesiği: iki şimşek kılıçla çapraz kesik; çarpılan sersemler
-func p_kurosuki_kiba(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 8.0)
-	busy(c, 0.6)
-	_ks_swords(c, 0.7)
-	_jump_at(c, tt, 0.2, 8.0)
-	after(0.22, func():
-		if not live(c):
-			return
-		var at = c.global_position + Vector3.UP * 1.1 + c.face_dir() * 0.9
-		_arc_cut(at, c.face_dir(), -70.0, 70.0, KUROS, 1.8)
-		_arc_cut(at, c.face_dir(), 70.0, -70.0, KUROS.lightened(0.3), 1.6)
-		for k in 4:
-			VFX.bolt(at, at + Vector3(randf_range(-1.5, 1.5), randf_range(-0.5, 1.5), randf_range(-1.5, 1.5)), KUROS, 0.08, 0.2, 1)
-		mhit(c, at, 2.2, inf(c, "kurosuki_kiba", 1.4, {"knock": 8.0, "kind": "heavy", "element": "raiton", "stun": 0.5})))
-	Sfx.play("chidori", c.global_position, 1.4)
-
-
-## Yıldırım Yağmuru: kılıçlar göğe kalkar; hedef alana beş yıldırım iner
-func p_kurosuki_raiu(c: Node3D, t: Node3D) -> void:
+## Ikazuchi no Kiba (anime, Raiga Kurosuki): iki Kiba kılıcı birleşir, kılıçlardan buluta elektrik akar ve istenen yere
+## (hedefin çevresine) yıldırımlar iner. Kiba ile öğrenilir (weapon:kiba); kılıç elde değilse (NPC) geçici ikiz kılıç çıkar
+func p_kurosuki_ikazuchi_kiba(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.8)
-	_ks_swords(c, 0.9)
+	if _held_or(c, "") != "kiba":
+		_ks_swords(c, 0.9)
 	var tt = tg(c, t, 24.0)
 	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 9.0)
+	VFX.bolt(c.global_position + Vector3.UP * 2.0, c.global_position + Vector3.UP * 14.0, KUROS, 0.4, 0.25, 2)   # kılıçlardan göğe akış
 	_ks_cloud(at + Vector3.UP * 12.0, 4.0, 2.0)
 	for k in 5:
 		after(0.35 + k * 0.12, func():
 			var p = at + Vector3(randf_range(-2.5, 2.5), 0, randf_range(-2.5, 2.5))
 			VFX.bolt(p + Vector3.UP * 12.0, p, KUROS, 0.5, 0.3, 3)
 			impact_fx("raiton", KUROS, p + Vector3.UP * 0.4, 0.9)
-			hit(c, p + Vector3.UP, 2.0, inf(c, "kurosuki_raiu", 0.55, {"knock": 4.0, "kind": "heavy", "element": "raiton", "stun": 0.3})))
+			hit(c, p + Vector3.UP, 2.0, inf(c, "kurosuki_ikazuchi_kiba", 0.55, {"knock": 4.0, "kind": "heavy", "element": "raiton", "stun": 0.3})))
 	Sfx.play("thunder", at, 1.0)
-
-
-## Kara Bulut: alana yanıcı kara bulut çöker; içindekiler yavaşlar, ıslanır. Bulut 6 sn içinde bir şimşekle tutuşursa patlar
-func p_kurosuki_kuro_kumo(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.7)
-	var tt = tg(c, t, 22.0)
-	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 8.0)
-	_ks_cloud(at + Vector3.UP * 2.5, 4.5, 6.0)
-	_ks_cloud(at + Vector3.UP * 4.0, 4.0, 6.0)
-	every(6.0, 0.4, func(i, _k):
-		for e in enemies_near(c, at, 5.0):
-			st(e, "slow", 0.6)
-			st(e, "wet", 1.0)
-		if i % 4 == 0:
-			VFX.bolt(at + Vector3(randf_range(-3, 3), 3.5, randf_range(-3, 3)), at + Vector3(randf_range(-3, 3), 2.5, randf_range(-3, 3)), KUROS, 0.08, 0.15, 1), func():
-		VFX.bolt(at + Vector3.UP * 10.0, at + Vector3.UP, KUROS, 0.8, 0.3, 4)
-		impact_fx("raiton", KUROS, at + Vector3.UP, 2.2)
-		VFX.shockwave(at + Vector3.UP * 0.5, Color(1.0, 0.7, 0.3), 10.0, 0.35)
-		hit(c, at + Vector3.UP, 5.0, inf(c, "kurosuki_kuro_kumo", 2.2, {"knock": 12.0, "kind": "heavy", "element": "raiton", "stun": 0.8}))
-		shake(0.6))
-	Sfx.play("wind", at, 0.6)
-
-
-## Yıldırım Düşüşü: kılıç ucundan fırlatılan dişli şimşek küresi; çarptığı yere yıldırım iner
-func p_kurosuki_rakurai(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.6)
-	_ks_swords(c, 0.7)
-	var tt = tg(c, t, 30.0)
-	after(0.25, func():
-		if not live(c):
-			return
-		var from = hand_pos(c, true)
-		var pr = shot(c, from, aim_at(c, tt, from), 34.0, VFX.lightning_ball(0.5, KUROS), inf(c, "kurosuki_rakurai", 1.2, {"knock": 6.0, "kind": "heavy", "element": "raiton", "stun": 0.5}), tt, false, 1.4, func(p, _h):
-			VFX.bolt(p + Vector3.UP * 14.0, p, KUROS, 0.6, 0.3, 3)
-			impact_fx("raiton", KUROS, p, 1.4)
-			hit(c, p, 2.6, inf(c, "kurosuki_rakurai", 0.8, {"knock": 8.0, "kind": "heavy", "element": "raiton"})))
-		_etrail(pr, "raiton", KUROS, 0.3))
-	Sfx.play("chidori", c.global_position, 1.2)
-
-
-## Şimşek Kalkanı: iki kılıç çapraz tutulur, önde şimşek perdesi; mermileri yakar, yaklaşanı çarpar
-func p_kurosuki_tate(c: Node3D, _t: Node3D) -> void:
-	busy(c, 0.4)
-	_ks_swords(c, 5.0)
-	var wall = MeshInstance3D.new()
-	var qm = QuadMesh.new()
-	qm.size = Vector2(3.0, 2.6)
-	wall.mesh = qm
-	wall.material_override = VFX.mat_bolt(KUROS, 1.2)
-	c.add_child(wall)
-	wall.position = Vector3(0, 1.2, 1.2)
-	wall.rotation.y = PI
-	get_tree().create_timer(5.0).timeout.connect(wall.queue_free)
-	every(5.0, 0.08, func(i, _k):
-		if not (live(c) and is_instance_valid(wall)):
-			return
-		var wp = wall.global_position
-		if i % 2 == 0:
-			VFX.bolt(wp + Vector3(randf_range(-1.4, 1.4), 1.2, 0), wp + Vector3(randf_range(-1.4, 1.4), -1.2, 0), KUROS, 0.05, 0.1, 1)
-		for pr in get_tree().get_nodes_in_group("projectiles"):
-			if pr.get("shooter") != c and pr.global_position.distance_to(wp) < 2.0:
-				VFX.bolt(wp, pr.global_position, KUROS, 0.1, 0.15, 1)
-				pr.queue_free()
-		if i % 5 == 0:
-			for e in enemies_near(c, wp, 2.2):
-				st(e, "stun", 0.4)
-				e.take_hit(inf(c, "kurosuki_tate", 0.3, {"knock": 6.0, "kind": "light", "element": "raiton"})), Callable())
-	Sfx.play("chidori", c.global_position, 1.6)
-
-
-## Şimşek Dişi: iki kılıcın uçları birleşir, dişli şimşek hattı uzun mesafeyi deler
-func p_kurosuki_ikazuchi_kiba(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.9)
-	_ks_swords(c, 1.0)
-	var tt = tg(c, t, 32.0)
-	after(0.45, func():
-		if not live(c):
-			return
-		var from = c.global_position + Vector3.UP * 1.3 + c.face_dir() * 1.0
-		var d = aim_at(c, tt, from)
-		var side = d.cross(Vector3.UP).normalized()
-		for k in 3:
-			var o = side * (k - 1) * 0.35
-			VFX.bolt(from + o, from + d * 30.0 + o * 3.0, KUROS, 0.35, 0.4, 4)
-		stream_fx(from, d, 30.0, 0.3, VFX.mat_bolt(Color(0.85, 0.97, 1.0), 2.6), 0.35)
-		Combat.hit_zone(c, from - Vector3.UP * 1.3, d, 30.0, 6.0, 2.0, inf(c, "kurosuki_ikazuchi_kiba", 2.4, {"knock": 14.0, "kind": "heavy", "element": "raiton", "stun": 0.8, "hitstop": 0.1}))
-		shake(0.6))
-	Sfx.play("thunder", c.global_position, 1.3)
-
-
-## Şimşek Bedeni: beden şimşeğe döner; hedefe yıldırım gibi düşer, iner inmez çevreyi çarpar
-func p_kurosuki_raiko(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 26.0)
-	busy(c, 0.6)
-	_ks_swords(c, 0.8)
-	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 12.0)
-	var start = c.global_position
-	VFX.bolt(start + Vector3.UP, start + Vector3.UP * 14.0, KUROS, 0.5, 0.25, 2)
-	c.global_position = at + c.face_dir() * -1.2
-	after(0.12, func():
-		if not live(c):
-			return
-		VFX.bolt(at + Vector3.UP * 14.0, at, KUROS, 0.8, 0.3, 4)
-		impact_fx("raiton", KUROS, at + Vector3.UP * 0.5, 1.8)
-		VFX.cracks(at, 4.0)
-		hit(c, at + Vector3.UP, 3.5, inf(c, "kurosuki_raiko", 1.9, {"knock": 12.0, "launch": 4.0, "kind": "heavy", "element": "raiton", "stun": 0.6}))
-		shake(0.5))
-	Sfx.play("thunder", at, 1.5)
-
-
-## Kara Fırtına: gök kara bulutla kaplanır; alana ardı ardına yıldırım iner, en sonunda dev ejder biçimli şimşek
-func p_kurosuki_arashi(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.4)
-	_ks_swords(c, 1.6)
-	var tt = tg(c, t, 30.0)
-	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 11.0)
-	_ks_cloud(at + Vector3.UP * 14.0, 8.0, 3.5)
-	summon_circle(at, 7.0, KUROS, 3.2)
-	for k in 14:
-		after(0.5 + k * 0.13, func():
-			var p = at + Vector3(randf_range(-6, 6), 0, randf_range(-6, 6))
-			VFX.bolt(p + Vector3.UP * 14.0, p, KUROS if k % 3 else Color(0.2, 0.2, 0.3), 0.45, 0.25, 2)
-			impact_fx("raiton", KUROS, p + Vector3.UP * 0.4, 0.8)
-			hit(c, p + Vector3.UP, 2.4, inf(c, "kurosuki_arashi", 0.45, {"knock": 4.0, "kind": "light", "element": "raiton", "stun": 0.2})))
-	after(2.6, func():
-		for k in 5:
-			VFX.bolt(at + Vector3(randf_range(-1, 1), 16.0, randf_range(-1, 1)), at, Color(0.85, 0.97, 1.0), 1.2, 0.45, 4)
-		stream_fx(at + Vector3.UP * 16.0, Vector3.DOWN, 16.0, 2.0, VFX.mat_bolt(KUROS, 3.0), 0.4)
-		impact_fx("raiton", KUROS, at + Vector3.UP, 2.6)
-		VFX.cracks(at, 9.0)
-		hit(c, at + Vector3.UP, 6.5, inf(c, "kurosuki_arashi", 2.4, {"knock": 16.0, "launch": 6.0, "kind": "heavy", "element": "raiton", "stun": 1.0, "hitstop": 0.15}))
-		shake(1.1))
-	Sfx.play("thunder", at, 0.6)
 
 
 # ------------------------------------------------------------------ Hagoromo: tüy pelerin, kumaş ve illüzyon kılıcı

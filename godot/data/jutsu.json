@@ -20041,6 +20041,8 @@
   "meaning": "Toz Silindiri"
  },
  "_aliases": {
+  "kurosuki_raiu": "kurosuki_ikazuchi_kiba",
+  "kurosuki_rakurai": "raikyu",
   "sabaku_suna_no_kumo": "sabaku_fuyu",
   "kongo_fusa": "chakra_chains",
   "suika_no_jutsu": "suika",
@@ -22024,116 +22026,6 @@
   "tier": 3,
   "meaning": "Sarmaşık Kıskacı"
  },
- "kurosuki_kiba": {
-  "id": "kurosuki_kiba",
-  "name": "Kiba Giri",
-  "name_en": "Kiba Kesiği",
-  "cost": 26,
-  "cd": 6.0,
-  "element": "raiton",
-  "elements": [
-   "raiton"
-  ],
-  "clan": "kurosuki",
-  "level": 3,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "İki şimşek kılıçla çapraz kesik; çarpılan sersemler.",
-  "seals": [],
-  "canon_rank": "B",
-  "category": "hiden",
-  "shape": "melee",
-  "tier": 2,
-  "meaning": "Kiba Kesiği"
- },
- "kurosuki_raiu": {
-  "id": "kurosuki_raiu",
-  "name": "Raiton: Raiu",
-  "name_en": "Yıldırım Yağmuru",
-  "cost": 30,
-  "cd": 6.8,
-  "element": "raiton",
-  "elements": [
-   "raiton"
-  ],
-  "clan": "kurosuki",
-  "level": 5,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Kılıçlar göğe kalkar; hedef alana beş yıldırım iner.",
-  "seals": [],
-  "canon_rank": "B",
-  "category": "hiden",
-  "shape": "aoe",
-  "tier": 2,
-  "meaning": "Yıldırım Yağmuru"
- },
- "kurosuki_kuro_kumo": {
-  "id": "kurosuki_kuro_kumo",
-  "name": "Raiton: Kurokumo",
-  "name_en": "Kara Bulut",
-  "cost": 36,
-  "cd": 7.8,
-  "element": "raiton",
-  "elements": [
-   "raiton"
-  ],
-  "clan": "kurosuki",
-  "level": 8,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Yanıcı kara bulut çöker: yavaşlatır, ıslatır; dağılırken yıldırımla patlar.",
-  "seals": [],
-  "canon_rank": "B",
-  "category": "hiden",
-  "shape": "field",
-  "tier": 3,
-  "meaning": "Kara Bulut"
- },
- "kurosuki_rakurai": {
-  "id": "kurosuki_rakurai",
-  "name": "Raiton: Rakurai",
-  "name_en": "Yıldırım Düşüşü",
-  "cost": 40,
-  "cd": 8.5,
-  "element": "raiton",
-  "elements": [
-   "raiton"
-  ],
-  "clan": "kurosuki",
-  "level": 10,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Şimşek küresi; çarptığı yere gökten yıldırım iner.",
-  "seals": [],
-  "canon_rank": "B",
-  "category": "hiden",
-  "shape": "projectile",
-  "tier": 3,
-  "meaning": "Yıldırım Düşüşü"
- },
- "kurosuki_tate": {
-  "id": "kurosuki_tate",
-  "name": "Raiton: Raimaku",
-  "name_en": "Şimşek Perdesi",
-  "cost": 44,
-  "cd": 9.2,
-  "element": "raiton",
-  "elements": [
-   "raiton"
-  ],
-  "clan": "kurosuki",
-  "level": 12,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Önde şimşek perdesi: mermileri yakar, yaklaşanı çarpar.",
-  "seals": [],
-  "canon_rank": "B",
-  "category": "hiden",
-  "shape": "wall",
-  "tier": 3,
-  "meaning": "Şimşek Perdesi"
- },
  "kurosuki_ikazuchi_kiba": {
   "id": "kurosuki_ikazuchi_kiba",
   "name": "Raiton: Ikazuchi no Kiba",
@@ -22144,61 +22036,17 @@
   "elements": [
    "raiton"
   ],
-  "clan": "kurosuki",
+  "clan": "",
   "level": 16,
   "rank": 0,
-  "learn": "clan",
-  "desc": "İki kılıcın uçları birleşir; dişli şimşek hattı uzun mesafeyi deler.",
+  "learn": "weapon:kiba",
+  "desc": "İki Kiba kılıcı birleşir; kılıçlardan buluta elektrik akar ve hedefin çevresine yıldırımlar iner (Raiga Kurosuki). Kiba ele geçirilince öğrenilir.",
   "seals": [],
   "canon_rank": "A",
   "category": "hiden",
   "shape": "beam",
   "tier": 4,
   "meaning": "Şimşek Dişi"
- },
- "kurosuki_raiko": {
-  "id": "kurosuki_raiko",
-  "name": "Raiton: Raikō Shintai",
-  "name_en": "Şimşek Bedeni",
-  "cost": 60,
-  "cd": 12.0,
-  "element": "raiton",
-  "elements": [
-   "raiton"
-  ],
-  "clan": "kurosuki",
-  "level": 20,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Şimşeğe dönüp hedefe yıldırım gibi düşersin.",
-  "seals": [],
-  "canon_rank": "A",
-  "category": "hiden",
-  "shape": "teleport",
-  "tier": 4,
-  "meaning": "Şimşek Bedeni"
- },
- "kurosuki_arashi": {
-  "id": "kurosuki_arashi",
-  "name": "Raiton: Kuro Arashi",
-  "name_en": "Kara Fırtına",
-  "cost": 72,
-  "cd": 14.1,
-  "element": "raiton",
-  "elements": [
-   "raiton"
-  ],
-  "clan": "kurosuki",
-  "level": 26,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Kara bulut göğü kaplar; ardı ardına yıldırım, sonunda dev şimşek sütunu.",
-  "seals": [],
-  "canon_rank": "A",
-  "category": "hiden",
-  "shape": "aoe",
-  "tier": 5,
-  "meaning": "Kara Fırtına"
  },
  "hagoromo_kasumi_giri": {
   "id": "hagoromo_kasumi_giri",
@@ -23623,7 +23471,7 @@
   "clan": "",
   "level": 18,
   "rank": 3,
-  "learn": "trainer:kumo",
+  "learn": "weapon:kiba",
   "desc": "Şimşekten bir ejder dönerek yükselip bir hortuma dönüşür; hortum ilerleyip içine gireni çarpar.",
   "seals": [
    "Tatsu",
