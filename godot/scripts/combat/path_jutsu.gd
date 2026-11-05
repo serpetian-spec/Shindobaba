@@ -11605,27 +11605,41 @@ func _ras_hand(c: Node3D, dur: float, s := 0.4, side := "RightHand") -> void:
 
 ## Ahşap Kilit Duvarı: yerden kemerli ahşap kubbe yükselir, içindekileri korur
 func p_mokuton_mokujoheki(c: Node3D, _t: Node3D) -> void:
+	# anime: kullanıcının üstünde yerden fışkıran dolu yarım silindir ahşap tünel — kesik uçları açık turuncu, gövde kahverengi
 	busy(c, 0.6)
 	var at = gp(c.global_position)
-	var root = Node3D.new()
+	var b = MB.new()
+	var ol = PackedVector2Array()
+	var RO = 3.0
+	var RI = 2.5
+	for k in 29:
+		var a = PI * k / 28.0
+		ol.append(Vector2(sin(a) * RO, cos(a) * RO))
+	for k in 29:
+		var a = PI * (28 - k) / 28.0
+		ol.append(Vector2(sin(a) * RI, cos(a) * RI))
+	b.add_slab(ol, 5.2, Color(0.86, 0.52, 0.27), Transform3D.IDENTITY, Callable(), WOOD_C)
+	b.add_slab(ol, 5.2, Color(0.86, 0.52, 0.27), Transform3D(Basis.from_scale(Vector3(-1, 1, 1)), Vector3.ZERO), Callable(), WOOD_C.darkened(0.15))   # ters sargı: kabuk iki yandan da görünür
+	for q in 3:   # kesitte yıllık halkalar
+		var rr = lerpf(RI, RO, (q + 1) / 4.0)
+		for k in 28:
+			var a0 = PI * k / 28.0
+			var a1 = PI * (k + 1) / 28.0
+			for sx in [-1.0, 1.0]:
+				var p0 = Vector3(sx * 2.605, sin(a0) * rr, cos(a0) * rr)
+				var p1 = Vector3(sx * 2.605, sin(a1) * rr, cos(a1) * rr)
+				var xf = Transform3D(Basis.looking_at((p1 - p0).normalized(), Vector3.RIGHT), (p0 + p1) * 0.5)
+				b.add_xf("box", xf.scaled_local(Vector3(0.01, 0.04, p0.distance_to(p1) + 0.01)), Color(0.7, 0.4, 0.2))
+	var root = mesh_of(b, Props.bark_toon())
 	get_tree().current_scene.add_child(root)
 	root.global_position = at
-	for k in 14:
-		var a = k * PI / 13.0
-		var plank = MeshInstance3D.new()
-		var bm = BoxMesh.new()
-		bm.size = Vector3(0.5, 0.3, 5.0)
-		plank.mesh = bm
-		plank.material_override = _wood_mat()
-		plank.position = Vector3(cos(a) * 2.6, sin(a) * 2.6, 0)
-		plank.rotation.z = a
-		root.add_child(plank)
-	root.rotation.y = atan2(c.face_dir().x, c.face_dir().z) + PI * 0.5
-	root.scale = Vector3(0.05, 0.05, 1)
+	var fd = c.face_dir()
+	root.rotation.y = atan2(-fd.z, fd.x)   # tünel ekseni bakış yönünde
+	root.scale = Vector3(1, 0.05, 0.05)
 	var tw = root.create_tween()
 	tw.tween_property(root, "scale", Vector3.ONE, 0.35).set_trans(Tween.TRANS_BACK)
 	tw.tween_interval(5.0)
-	tw.tween_property(root, "scale", Vector3(0.05, 0.05, 1), 0.4)
+	tw.tween_property(root, "scale", Vector3(1, 0.05, 0.05), 0.4)
 	tw.tween_callback(root.queue_free)
 	_earth_burst(at, 2.0)
 	if c is Player:
@@ -15873,8 +15887,9 @@ func p_mokuton_hijutsu_jukai_kotan(c: Node3D, t: Node3D) -> void:
 
 ## Ahşap Ağaç Hapsi: hedefin etrafında ahşap kubbe, içinde sarmal bağlayan dallar — yüzde ahşap mühür deseni; çakrası bastırılır
 func p_mokuton_hobi_no_jutsu(c: Node3D, t: Node3D) -> void:
-	# kanon (Hōbi, fūinjutsu): kullanıcının çevresinde bir anda ejder yüzü biçiminde ahşap kubbe; içerideyken gelen saldırılar
+	# kanon (Hōbi, fūinjutsu): kullanıcının çevresinde bir anda yüz oymalı dolu ahşap kubbe; içerideyken gelen saldırılar
 	# büyük ölçüde zayıflar (Hashirama, Kurama'nın Bijūdama'sını böyle söndürdü); süre bitince kubbe ortadan ikiye açılır.
+	# anime yüzü: iç içe halkalı iri yuvarlak gözler, kalın kavisli kaşlar, yassı burun, dudak çıkıntısı ve kare diş sırası.
 	busy(c, 0.5)
 	var at = gp(c.global_position)
 	var yaw = atan2(-c.face_dir().x, -c.face_dir().z)
@@ -15882,38 +15897,45 @@ func p_mokuton_hobi_no_jutsu(c: Node3D, t: Node3D) -> void:
 	get_tree().current_scene.add_child(root)
 	root.global_position = at
 	root.rotation.y = yaw
-	var b2 = MB.new()
-	var halves = [Node3D.new(), Node3D.new()]
-	for k in 18:   # kubbe: yerden yükselip tepede birleşen kalın kaburgalar (iki yarım)
-		var a = k * TAU / 18.0
-		var side = 0 if sin(a) >= 0.0 else 1
-		for q in 6:
-			var e0 = PI * 0.5 * q / 6.0
-			var e1 = PI * 0.5 * (q + 1) / 6.0
-			var p0 = Vector3(cos(a) * cos(e0), sin(e0), sin(a) * cos(e0)) * 3.0
-			var p1 = Vector3(cos(a) * cos(e1), sin(e1), sin(a) * cos(e1)) * 3.0
-			var mi = MeshInstance3D.new()
-			var cm = CylinderMesh.new()
-			cm.top_radius = 0.32 - q * 0.03; cm.bottom_radius = 0.36 - q * 0.03; cm.height = p0.distance_to(p1) + 0.2; cm.radial_segments = 7
-			mi.mesh = cm
-			mi.material_override = Props.toon_color(WOOD_C.darkened(0.08 * (k % 3)))
-			halves[side].add_child(mi)
-			mi.position = (p0 + p1) * 0.5
-			mi.look_at_from_position(mi.position, p1, Vector3.UP if absf((p1 - p0).normalized().y) < 0.95 else Vector3.FORWARD)
-			mi.rotate_object_local(Vector3.RIGHT, PI * 0.5)
-	# ön yüz: ejder başı — çıkık burun, iki boynuz, kaş çıkıntıları, oyuk gözler, açık ağız çizgisi
-	b2.add("box", Vector3(0, 1.5, -3.1), Vector3(1.6, 1.0, 1.4), WOOD_C.darkened(0.1))
-	b2.add("box", Vector3(0, 1.05, -3.35), Vector3(1.4, 0.18, 1.2), WOOD_C.darkened(0.45))
-	for sx in [-1.0, 1.0]:
-		b2.add("box", Vector3(sx * 0.9, 2.45, -2.75), Vector3(0.9, 0.3, 0.5), WOOD_C.darkened(0.15), Vector3(0, 0, sx * -12))
-		b2.add("box", Vector3(sx * 0.85, 2.15, -2.85), Vector3(0.45, 0.3, 0.2), Color(0.12, 0.08, 0.05))
-		b2.add("cone", Vector3(sx * 1.3, 3.5, -2.0), Vector3(0.45, 2.2, 0.45), WOOD_C.lightened(0.05), Vector3(-30, 0, sx * -28), 7)
-		b2.add("box", Vector3(sx * 0.45, 1.75, -3.85), Vector3(0.18, 0.14, 0.1), Color(0.12, 0.08, 0.05))
-	var face = MeshInstance3D.new()
-	face.mesh = b2.build(Props.toon())
-	halves[0].add_child(face)
-	for h in halves:
+	var mb = [MB.new(), MB.new()]   # 0: +x yarısı, 1: -x yarısı
+	var R = 3.0
+	for k in 30:   # birbirine yaslanan kalın kaburgalar = dolu, oluklu kubbe
+		var a = (k + 0.5) * TAU / 30.0
+		var hi = 0 if cos(a) >= 0.0 else 1
+		var pts = []
+		var rad = []
+		for q in 7:
+			var e = 1.48 * q / 6.0
+			pts.append(Vector3(cos(a) * cos(e), sin(e), sin(a) * cos(e)) * R + Vector3.DOWN * (0.15 if q == 0 else 0.0))
+			rad.append(lerpf(0.42, 0.2, q / 6.0))
+		var rc = WOOD_C.darkened(0.06 * (k % 3))
+		Loft.tube(mb[hi], pts, rad, rc, 9, 3, false, false, _bark_fn(rc))
+	var dark = Color(0.14, 0.09, 0.05)
+	var lite = WOOD_C.lightened(0.18)
+	for hi in 2:
+		var sx = 1.0 - hi * 2.0
+		var b = mb[hi]
+		for rg in [[1.25, 0.05, lite, "cyl"], [1.15, 0.12, dark, "torus"], [0.78, 0.16, dark, "torus"], [0.42, 0.2, dark, "torus"], [0.16, 0.2, dark, "cyl"]]:   # iç içe halkalı göz
+			_dome_put(b, rg[3], sx * 0.95, 1.7, rg[1], Vector3(rg[0], 0.12 if rg[3] == "cyl" else 0.5, rg[0]), rg[2], R + 0.4, 22)
+		for q in 5:   # kalın kavisli kaş
+			var u = q / 4.0
+			_dome_put(b, "box", sx * lerpf(0.25, 1.75, u), 2.3 + sin(u * PI) * 0.3 - u * 0.15, 0.12, Vector3(0.42, 0.26, 0.3), WOOD_C.darkened(0.28), R + 0.4)
+		_dome_put(b, "box", sx * 0.2, 1.1, 0.22, Vector3(0.4, 0.62, 0.45), WOOD_C.lightened(0.06), R + 0.4)   # yassı burun yarısı
+		_dome_put(b, "box", sx * 0.24, 0.88, 0.42, Vector3(0.16, 0.1, 0.08), dark, R + 0.4)                  # burun deliği
+		for q in 6:   # dudak çıkıntısı
+			var u = q / 5.0
+			_dome_put(b, "box", sx * lerpf(0.1, 1.7, u), 0.72 + u * u * 0.15, 0.14, Vector3(0.34, 0.16, 0.24), WOOD_C.darkened(0.22), R + 0.4)
+		for q in 4:
+			var u = q / 3.0
+			_dome_put(b, "box", sx * lerpf(0.2, 1.4, u), 0.4 + u * u * 0.12, 0.02, Vector3(0.48, 0.5, 0.2), dark, R + 0.4)  # ağız boşluğu
+			_dome_put(b, "box", sx * lerpf(0.2, 1.4, u), 0.52 + u * u * 0.12, 0.1, Vector3(0.34, 0.2, 0.14), lite, R + 0.4)   # üst diş
+			_dome_put(b, "box", sx * lerpf(0.2, 1.4, u), 0.28 + u * u * 0.12, 0.1, Vector3(0.34, 0.18, 0.14), lite.darkened(0.08), R + 0.4)   # alt diş
+	var halves = []
+	for hi in 2:
+		var h = Node3D.new()
+		h.add_child(mesh_of(mb[hi], Props.bark_toon()))
 		root.add_child(h)
+		halves.append(h)
 	root.scale = Vector3(1, 0.03, 1)
 	var tw = root.create_tween()
 	tw.tween_property(root, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_BACK)
@@ -15926,12 +15948,24 @@ func p_mokuton_hobi_no_jutsu(c: Node3D, t: Node3D) -> void:
 		tw2.tween_property(halves[1], "rotation:z", 0.5, 0.5)
 		tw2.chain().tween_callback(root.queue_free))
 	_earth_burst(at, 2.0)
-	var mods = {"armor": 0.08, "_name": "Hōbi", "_desc": "ejder yüzlü ahşap kubbe gelen saldırıları söndürüyor"}
+	var mods = {"armor": 0.08, "_name": "Hōbi", "_desc": "yüz oymalı ahşap kubbe gelen saldırıları söndürüyor"}
 	if c is Player:
 		Buffs.add("mokuton_hobi", 4.3, mods)
 	elif c.has_method("add_buff"):
 		c.add_buff("mokuton_hobi", 4.3, mods)
 	Sfx.play("earth", at, 0.6)
+
+## Kubbe (yarıçap R, ön yüz -z) yüzeyine parça koyar: (x, y) ön görünüşte konum, off yüzeyden dışarı taşma; parça normale hizalanır
+func _dome_put(b: MB, kind: String, x: float, y: float, off: float, size: Vector3, col: Color, R: float, seg := 8) -> void:
+	var z = -sqrt(maxf(R * R - x * x - y * y, 0.04))
+	var n = Vector3(x, y, z).normalized()
+	var p = n * (R + off)
+	var bas: Basis
+	if kind == "box":
+		bas = Basis.looking_at(n, Vector3.UP)
+	else:
+		bas = Basis(Quaternion(Vector3.UP, n))
+	b.add_xf(kind, Transform3D(bas.scaled_local(size), p), col, seg)
 
 
 # ================================================================== Yeni jutsular O (Sv.28): ahşap devler, sonsuz Tsukuyomi, Altı Yol güçleri, şimşek kapısı, demir kum
@@ -15993,52 +16027,75 @@ func _magatama_ring(c: Node3D, col: Color) -> Node3D:
 
 ## Ahşap Hotei: yerdeki dev ahşap mühürden mavi çakra ruh-ejder yükselir, hedefi sarar — çakrasını emip kilitler
 func p_mokuton_hotei_no_jutsu(c: Node3D, t: Node3D) -> void:
-	# kanon (Hotei no Jutsu): avuçlar birleşir; hedefin çevresinde yerden kuyruklu canavar boyunda dev ahşap eller fışkırır,
-	# onu çevreleyip kavrar ve tutar. Hedef büyükse eller de büyür.
+	# kanon (Hotei no Jutsu): avuçlar birleşir; hedefin çevresinde yerden halka hâlinde çok sayıda dev ahşap el fışkırır,
+	# onu çevreleyip kavrar ve tutar (anime: yukarıdan bakınca sarmal ahşap zemin + el çemberi). Hedef büyükse eller de büyür.
 	busy(c, 1.0)
 	var tt = tg(c, t, 30.0)
 	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 10.0)
 	var big = 1.0
 	if tt and tt.get("height") != null:
 		big = clampf(float(tt.get("height")) / 2.0, 1.0, 6.0)
-	var n = 3 if big < 2.0 else 4
+	# zeminde sarmal ahşap halka (ellerin çıktığı yer)
+	var sb = MB.new()
+	var sp = []
+	var sr = []
+	for i in 26:
+		var a = i * 0.5
+		sp.append(Vector3(cos(a), 0.0, sin(a)) * (4.2 - i * 0.12) * big + Vector3.UP * 0.12 * big)
+		sr.append(Vector2(0.42, 0.22) * big)
+	Loft.tube(sb, sp, sr, WOOD_C.darkened(0.12), 10, 3, true, true, _bark_fn(WOOD_C.darkened(0.12)))
+	var coil = mesh_of(sb, Props.bark_toon())
+	scene_add(coil, at)
+	coil.scale = Vector3(1, 0.05, 1)
+	var ctw = coil.create_tween()
+	ctw.tween_property(coil, "scale", Vector3.ONE, 0.25)
+	ctw.tween_interval(4.6)
+	ctw.tween_property(coil, "scale", Vector3(1, 0.05, 1), 0.5)
+	ctw.tween_callback(coil.queue_free)
+	var n = 8 if big < 2.0 else 10
 	for k in n:
-		var a = TAU * k / n + randf() * 0.3
-		var hand = _wood_hand(big * 1.6)
-		var base = at + Vector3(cos(a), 0, sin(a)) * (2.4 * big)
-		scene_add(hand, base + Vector3.DOWN * 4.0 * big)
+		var a = TAU * k / n + randf() * 0.2
+		var hand = _wood_hand(big * randf_range(0.9, 1.1))
+		var base = at + Vector3(cos(a), 0, sin(a)) * (2.9 * big)
+		scene_add(hand, base + Vector3.DOWN * 5.0 * big)
 		hand.look_at_from_position(hand.global_position, Vector3(at.x, hand.global_position.y, at.z), Vector3.UP)   # yalnız yatay yön (dik dursun)
 		hand.rotate_y(PI)   # avuç (+z) hedefe dönük
 		var tw = hand.create_tween()
-		tw.tween_interval(k * 0.08)
+		tw.tween_interval(0.1 + k * 0.05)
 		tw.tween_property(hand, "global_position", base, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-		tw.tween_property(hand.get_child(0), "rotation:x", 0.6, 0.3)   # öne kapanıp kavrar (yerel eğim: kök yönü bozulmaz)
+		tw.tween_property(hand.get_child(0), "rotation:x", 0.35, 0.3)   # öne kapanıp kavrar
 		tw.tween_interval(4.0)
-		tw.tween_property(hand, "global_position", base + Vector3.DOWN * 4.0 * big, 0.6)
+		tw.tween_property(hand, "global_position", base + Vector3.DOWN * 5.0 * big, 0.6)
 		tw.tween_callback(hand.queue_free)
-		after(k * 0.08, func(): _earth_burst(base, big))
-	after(0.55, func():
+		after(0.1 + k * 0.05, func(): _earth_burst(base, big * 0.7))
+	after(0.6, func():
 		for e in enemies_near(c, at, 2.6 * big):
 			st(e, "bind", 4.0)
-			e.take_hit(inf(c, "mokuton_hotei_no_jutsu", 0.8, {"knock": 0.0, "kind": "heavy", "element": "mokuton"})))
+			e.take_hit(inf(c, "mokuton_hotei_no_jutsu", 0.8, {"knock": 0.0, "launch": 0.0, "kind": "crush", "element": "mokuton"})))
 	shake(0.6 * big)
 	Sfx.play("earth", at, 0.5)
 
 
 ## Dev ahşap el (avuç +z yönüne bakar, bilek yerde): kalın avuç, dört parmak + başparmak, oyma ahşap derzleri
 func _wood_hand(s: float) -> Node3D:
+	# yerden çıkan kol + yassı avuç (+z avuç içi), boğumlu kıvrık dört parmak ve başparmak — hepsi pürüzsüz kabuklu tüp
 	var b = MB.new()
 	var wc = WOOD_C
-	b.add("box", Vector3(0, 1.6 * s, 0), Vector3(1.0 * s, 3.2 * s, 0.9 * s), wc.darkened(0.1))         # bilek/kol
-	b.add("box", Vector3(0, 3.9 * s, 0.05 * s), Vector3(1.9 * s, 1.8 * s, 0.75 * s), wc)               # avuç
+	var bark = _bark_fn(wc)
+	Loft.tube(b, [Vector3(0, -1.2 * s, -0.25 * s), Vector3(0, 0.9 * s, -0.12 * s), Vector3(0, 2.5 * s, 0)], [0.58 * s, 0.5 * s, 0.44 * s], wc.darkened(0.06), 12, 3, false, false, bark)
+	Loft.tube(b, [Vector3(0, 2.35 * s, 0), Vector3(0, 3.0 * s, 0.06 * s), Vector3(0, 3.65 * s, 0.08 * s)], [Vector2(0.48 * s, 0.3 * s), Vector2(0.62 * s, 0.3 * s), Vector2(0.6 * s, 0.24 * s)], wc, 14, 3, true, true, bark, Vector3(0, 0, 1))
+	var FL = [0.95, 1.1, 1.05, 0.82]
 	for f in 4:
-		var fx = (-0.7 + f * 0.47) * s
-		var L = [1.3, 1.5, 1.45, 1.15][f] * s
-		b.add("box", Vector3(fx, 4.8 * s + L * 0.5, 0.15 * s), Vector3(0.38 * s, L, 0.42 * s), wc.lightened(0.04 * f), Vector3(-12, 0, 0))
-		b.add("box", Vector3(fx, 4.8 * s + L * 0.35, 0.37 * s), Vector3(0.4 * s, 0.06 * s, 0.05 * s), wc.darkened(0.4))   # boğum çizgisi
-	b.add("box", Vector3(1.05 * s, 3.9 * s, 0.35 * s), Vector3(0.4 * s, 1.2 * s, 0.42 * s), wc, Vector3(-20, 0, -35))   # başparmak
+		var fx = (-0.43 + f * 0.287) * s
+		var L = FL[f] * s
+		var p0 = Vector3(fx, 3.55 * s, 0.1 * s)
+		var p1 = p0 + Vector3(fx * 0.06, L * 0.45, L * 0.1)
+		var p2 = p1 + Vector3(fx * 0.04, L * 0.35, L * 0.28)
+		var p3 = p2 + Vector3(0, L * 0.12, L * 0.34)
+		Loft.tube(b, [p0, p1, p2, p3], [0.16 * s, 0.15 * s, 0.13 * s, 0.1 * s], wc.lightened(0.03 * f), 9, 3, false, true, bark)
+	Loft.tube(b, [Vector3(0.5 * s, 2.7 * s, 0.12 * s), Vector3(0.92 * s, 3.2 * s, 0.42 * s), Vector3(0.88 * s, 3.65 * s, 0.75 * s)], [0.19 * s, 0.16 * s, 0.11 * s], wc, 9, 3, false, true, bark)
 	var mi = MeshInstance3D.new()
-	mi.mesh = b.build(Props.toon())
+	mi.mesh = b.build(Props.bark_toon())
 	var root = Node3D.new()
 	root.add_child(mi)
 	return root
@@ -29319,27 +29376,59 @@ func p_daburu_nikudan_sensha(c: Node3D, t: Node3D) -> void:
 const WOOD_C := Color(0.5, 0.36, 0.22)
 
 ## Yerden fışkıran, kıvrılarak büyüyen tahta gövde (kök/dal): dur sonra geri çekilir
-func _wood_trunk(from: Vector3, to: Vector3, r: float, dur: float, delay := 0.0) -> void:
-	var head = Node3D.new()
-	scene_add(head, gp(from))
-	var body = VfxSerpent.new()
-	body.style = "wood"
-	body.thin = 1.0
-	body.head = head
-	body.count = int(clampf(from.distance_to(to) / 0.7, 5, 16))
-	body.spacing = 0.6
-	body.radius = r
-	body.mat = Props.toon_color(WOOD_C)
-	body.ring_mat = Props.toon_color(WOOD_C.darkened(0.3))
-	get_tree().current_scene.add_child(body)
-	var tw = head.create_tween()
+func _wood_trunk(from: Vector3, to: Vector3, r: float, dur: float, delay := 0.0, bend := 0.5) -> Node3D:
+	# kıvrık organik ahşap gövde: tabandan büyüyerek fışkırır (disk yığını değil, kabuk lifli pürüzsüz tüp)
+	var root = Node3D.new()
+	scene_add(root, gp(from))
+	var mi = MeshInstance3D.new()
+	mi.mesh = _wood_tube_mesh(to - gp(from), r, bend)
+	root.add_child(mi)
+	root.scale = Vector3.ONE * 0.02
+	root.visible = delay <= 0.0
+	var tw = root.create_tween()
 	tw.tween_interval(delay)
-	tw.tween_property(head, "global_position", to, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_callback(func(): root.visible = true)
+	tw.tween_property(root, "scale", Vector3.ONE, 0.4).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tw.tween_interval(dur)
-	tw.tween_callback(head.queue_free)
+	tw.tween_property(root, "scale", Vector3(0.5, 0.02, 0.5), 0.45).set_ease(Tween.EASE_IN)
+	tw.tween_callback(root.queue_free)
 	after(delay, func():
 		VFX.debris(gp(from), EARTH, 5, 6.0, 0.3)
 		VFX.cracks(gp(from), 1.6))
+	return root
+
+
+## Kabuk deseni: boyuna akan koyu lif çizgileri, ara ara düğüm halkası, üstte hafif ışık
+func _bark_fn(base: Color) -> Callable:
+	return func(t: float, ang: float, _sd) -> Color:
+		var g = sin(ang * 6.0 + t * 4.0 + sin(t * 9.0) * 0.6)
+		var col = base.darkened(0.3) if g > 0.78 else base
+		if fmod(t * 7.0 + 0.3, 1.0) < 0.05:
+			col = col.darkened(0.15)
+		return col.lightened(0.07) if ang > 0.7 else col
+
+
+## Yerel uzayda 0 -> d arası kıvrık gövde mesh'i; tabanda yayılan kök saçakları
+func _wood_tube_mesh(d: Vector3, r: float, bend := 0.5, roots := 3) -> Mesh:
+	var b = MB.new()
+	var L = maxf(d.length(), 0.1)
+	var up = d / L
+	var s1 = up.cross(Vector3.FORWARD if absf(up.z) < 0.9 else Vector3.RIGHT).normalized()
+	var s2 = up.cross(s1)
+	var ph = randf() * TAU
+	var pts = []
+	var rad = []
+	for i in 6:
+		var t = i / 5.0
+		var off = (s1 * cos(ph + t * 2.4) + s2 * sin(ph + t * 2.4)) * sin(t * PI) * bend * L * 0.14
+		pts.append(d * t + off)
+		rad.append(r * lerpf(1.3, 0.55, t))
+	Loft.tube(b, pts, rad, WOOD_C, 12, 4, false, true, _bark_fn(WOOD_C))
+	for k in roots:
+		var a = ph + TAU * k / roots + randf() * 0.5
+		var o = s1 * cos(a) + s2 * sin(a)
+		Loft.tube(b, [up * r * 1.3 + o * r * 0.5, o * r * 1.7 + up * r * 0.25, o * r * 2.8 - up * r * 0.35], [r * 0.5, r * 0.32, r * 0.08], WOOD_C.darkened(0.08), 8, 3, false, true)
+	return b.build(Props.bark_toon())
 
 
 func _wood_house(at: Vector3, yaw: float, dur: float) -> Node3D:
@@ -29373,23 +29462,34 @@ func _wood_house(at: Vector3, yaw: float, dur: float) -> Node3D:
 
 
 func p_mokuton_kajukai_korin(c: Node3D, t: Node3D) -> void:
+	# anime: kalın kıvrık gövdeler fışkırır, tepelerinde dev pembe lotus çiçekleri açar; alanı sarı polen sisi kaplar
 	busy(c, 1.4)
 	var at = gp(c.global_position)
-	for k in 14:
-		var a = TAU * k / 14.0 + randf() * 0.3
-		var p = at + Vector3(cos(a), 0, sin(a)) * randf_range(3.0, 9.0)
-		_wood_trunk(p, p + Vector3(randf_range(-1, 1), randf_range(5.0, 8.0), randf_range(-1, 1)), 0.7, 6.0, k * 0.05)
-		after(0.5 + k * 0.05, func():   # tepede açan çiçekler ve dökülen polen
-			FX.burst(p + Vector3.UP * 6.5, {"amount": 14, "life": 1.4, "tex": FX.tex_leaf, "size": 0.6, "radius": 1.2, "vmin": 0.5, "vmax": 2.0, "spread": 180.0,
-				"gravity": Vector3(0, -1.0, 0), "add": false, "colors": [Color(1, 0.75, 0.85, 1), Color(1, 0.9, 0.95, 1), Color(1, 0.8, 0.9, 0)]}))
-	every(6.0, 0.4, func(_i, _k):
-		FX.burst(at + Vector3.UP * 3.0, {"amount": 20, "life": 2.0, "tex": FX.tex_soft, "add": false, "size": 0.25, "radius": 8.0, "vmin": 0.2, "vmax": 0.6, "gravity": Vector3(0, -0.3, 0),
-			"colors": [Color(1, 0.95, 0.6, 0), Color(1, 0.95, 0.6, 0.8), Color(1, 0.95, 0.6, 0)]})
+	for k in 13:
+		var a = TAU * k / 13.0 + randf() * 0.3
+		var p = at + Vector3(cos(a), 0, sin(a)) * randf_range(3.5, 9.0)
+		var h = randf_range(4.0, 7.5)
+		var top = Vector3(randf_range(-1.2, 1.2), h, randf_range(-1.2, 1.2))
+		var tr = _wood_trunk(p, p + top, randf_range(0.7, 1.0), 6.0, k * 0.05, 1.3)
+		var fl = _lotus(randf_range(1.4, 2.0))
+		tr.add_child(fl)
+		fl.position = top
+		fl.scale = Vector3.ONE * 0.01
+		var ftw = fl.create_tween()
+		ftw.tween_interval(0.5 + k * 0.05)
+		ftw.tween_property(fl, "scale", Vector3.ONE, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		every(6.0, 0.6, func(_i, _k):   # çiçekten dökülen polen
+			if is_instance_valid(tr):
+				FX.burst(tr.global_position + top + Vector3.UP * 0.6, {"amount": 6, "life": 2.2, "tex": FX.tex_soft, "add": false, "size": 0.35, "radius": 0.8, "vmin": 0.3, "vmax": 0.9,
+					"spread": 180.0, "gravity": Vector3(0, -0.6, 0), "colors": [Color(1, 0.9, 0.35, 0), Color(1, 0.9, 0.35, 0.9), Color(1, 0.9, 0.4, 0)]}), Callable())
+	every(6.0, 0.35, func(_i, _k):
+		FX.burst(at + Vector3.UP * 1.6, {"amount": 18, "life": 2.6, "tex": FX.tex_soft, "add": false, "size": 4.0, "radius": 8.5, "vmin": 0.05, "vmax": 0.3, "gravity": Vector3(0, 0.05, 0),
+			"colors": [Color(0.95, 0.85, 0.45, 0), Color(0.95, 0.85, 0.45, 0.5), Color(0.95, 0.85, 0.45, 0)]})
 		# kanon: çiçek tozunu soluyan bilinçsiz düşer — ~2 sn soluyan uyur (rastgele değil)
 		for e in enemies_near(c, at, 9.0):
 			if live(e) and e.has_method("apply_status"):
 				e.apply_status("slow", 0.6)
-				var pt = float(e.get_meta("pollen_t", 0.0)) + 0.4
+				var pt = float(e.get_meta("pollen_t", 0.0)) + 0.35
 				e.set_meta("pollen_t", pt)
 				if pt >= 2.0:
 					e.set_meta("pollen_t", -3.0)
@@ -29397,6 +29497,29 @@ func p_mokuton_kajukai_korin(c: Node3D, t: Node3D) -> void:
 					Combat.popup_text(e.global_position + Vector3.UP * 2.2, "Zzz", Color(1, 0.9, 0.95)), Callable())
 	shake(0.8)
 	Sfx.play("earth", at, 0.6)
+
+
+## Dev lotus çiçeği: iki kat sivri pembe taç yaprak (uçları açık), sarı tohum kesesi
+func _lotus(s: float) -> MeshInstance3D:
+	var b = MB.new()
+	var deep = Color(0.86, 0.42, 0.55)
+	var pink = Color(0.95, 0.62, 0.7)
+	var tip = Color(1.0, 0.86, 0.88)
+	b.add("cyl", Vector3(0, 0.2 * s, 0), Vector3(0.55 * s, 0.32 * s, 0.55 * s), Color(0.88, 0.8, 0.32), Vector3.ZERO, 14)
+	b.add("sphere", Vector3(0, -0.05 * s, 0), Vector3(0.9 * s, 0.35 * s, 0.9 * s), Color(0.35, 0.5, 0.25), Vector3.ZERO, 12)
+	for ring in 2:
+		var n = 9 - ring * 3
+		var op = 0.95 - ring * 0.5
+		for k in n:
+			var a = TAU * k / n + ring * 0.35
+			var o = Vector3(cos(a), 0, sin(a))
+			var p0 = o * 0.2 * s
+			var p1 = o * (0.55 + 0.35 * op) * s + Vector3.UP * 0.45 * s
+			var p2 = o * (0.7 + 0.55 * op) * s + Vector3.UP * (1.2 - 0.35 * op) * s
+			Loft.tube(b, [p0, p1, p2], [Vector2(0.16 * s, 0.05 * s), Vector2(0.34 * s, 0.07 * s), Vector2(0.03 * s, 0.02 * s)], [deep, pink, tip], 8, 3, true, true, Callable(), o)
+	var mi = MeshInstance3D.new()
+	mi.mesh = b.build(Props.toon())
+	return mi
 
 
 func p_chojo_kebutsu(c: Node3D, t: Node3D) -> void:
@@ -29481,12 +29604,22 @@ func p_mokuton_shichuka(c: Node3D, t: Node3D) -> void:
 
 
 func p_mokuton_jubaku_eiso(c: Node3D, t: Node3D) -> void:
+	# anime: hedefin çevresinden kalın burgulu kökler fışkırıp gövdesine sarılır, yalnız başı açıkta kalır; arkada iri gövdeler
 	busy(c, 1.0)
 	var tt = tg(c, t, 22.0)
 	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 9.0)
-	for k in 6:
-		var a = TAU * k / 6.0
-		_wood_trunk(at + Vector3(cos(a), 0, sin(a)) * 1.6, at + Vector3(cos(a + 2.0) * 0.4, 3.5 + k * 0.2, sin(a + 2.0) * 0.4), 0.5, 3.0, k * 0.05)
+	var th = 1.8
+	var tr = 0.42
+	if tt:
+		if tt.get("height") != null:
+			th = float(tt.get("height"))
+		if tt.get("radius") != null:
+			tr = float(tt.get("radius")) + 0.08
+	_wood_wrap(at, th * 0.72, tr, 3.4)
+	for k in 4:
+		var a = TAU * k / 4.0 + 0.4
+		var o = Vector3(cos(a), 0, sin(a))
+		_wood_trunk(at + o * 2.2, at + o * 0.7 + Vector3.UP * th * 1.4, 0.38, 3.0, 0.1 + k * 0.05, 0.9)
 	after(0.4, func():
 		for e in enemies_near(c, at, 2.0):
 			if live(e) and e.has_method("apply_status"):
@@ -29494,8 +29627,39 @@ func p_mokuton_jubaku_eiso(c: Node3D, t: Node3D) -> void:
 		every(3.0, 0.6, func(_i, _k):
 			for e in enemies_near(c, at, 2.0):
 				if live(e):
-					hit(c, e.global_position + Vector3.UP, e.radius + 0.3, inf(c, "mokuton_jubaku_eiso", 0.4, {"knock": 0.0, "kind": "heavy", "element": "mokuton"})), Callable()))
+					hit(c, e.global_position + Vector3.UP, e.radius + 0.3, inf(c, "mokuton_jubaku_eiso", 0.4, {"knock": 0.0, "launch": 0.0, "kind": "crush", "element": "mokuton"})), Callable()))
 	Sfx.play("earth", at, 0.7)
+
+
+## Hedefe sarılan kökler: geniş tabandan dönerek daralıp h yüksekliğinde (boyun) gövdeye yapışan burgu tüpler
+func _wood_wrap(at: Vector3, h: float, rr: float, dur: float) -> void:
+	var b = MB.new()
+	var n = 10
+	var th = maxf(1.0, rr / 0.45)
+	for k in n:
+		var a0 = TAU * k / n
+		var dirn = 1.0 if k % 2 == 0 else -1.0
+		var hk = h * (0.85 + 0.15 * float(k % 3) / 2.0)
+		var pts = []
+		var rad = []
+		for i in 8:
+			var q = i / 7.0
+			var a = a0 + dirn * q * 2.8
+			var r = lerpf(rr * 2.8, rr + 0.12, smoothstep(0.0, 0.4, q))
+			pts.append(Vector3(cos(a) * r, q * hk - 0.25, sin(a) * r))
+			rad.append(lerpf(0.4, 0.17, q) * th)
+		var wc = WOOD_C.darkened(0.06 * (k % 3))
+		Loft.tube(b, pts, rad, wc, 10, 3, false, true, _bark_fn(wc))
+	var root = mesh_of(b, Props.bark_toon())
+	scene_add(root, at)
+	root.scale = Vector3(1, 0.02, 1)
+	var tw = root.create_tween()
+	tw.tween_property(root, "scale", Vector3.ONE, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(dur)
+	tw.tween_property(root, "scale", Vector3(1, 0.02, 1), 0.45)
+	tw.tween_callback(root.queue_free)
+	VFX.debris(at, EARTH, 8, 6.0, 0.3)
+	VFX.cracks(at, 2.2)
 
 
 func p_mokuton_renchuka(c: Node3D, t: Node3D) -> void:

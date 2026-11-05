@@ -118,7 +118,7 @@ func _register() -> void:
 		Missions.target_marker = sp
 		Missions.has_marker = true
 		Missions.target_name = "Chūnin Sınavı — %s" % Game.village(host).get("name", host)
-		Game.profile["active_mission"] = {"title": "Chūnin Sınavı", "desc": "Ev sahibi köye (%s) git; sınav salonu stadyumun yanında." % Game.village(host).get("name", host), "type": "story", "rank": "C", "count": 1, "progress": 0}
+		Game.profile["active_mission"] = {"exam": "chunin", "title": "Chūnin Sınavı", "desc": "Ev sahibi köye (%s) git; sınav salonu stadyumun yanında." % Game.village(host).get("name", host), "type": "story", "rank": "C", "count": 1, "progress": 0}
 		Hud.objective_changed()
 		Hud.banner("CHŪNİN SINAVI", "Ev sahibi: %s — yola çık!" % Game.village(host).get("name", host), Color(1, 0.75, 0.3))
 		return
@@ -186,7 +186,7 @@ func _forest() -> void:
 		var tc = c + Vector3(cos(ang), 0, sin(ang)) * fr * randf_range(0.35, 0.7)
 		st["camps"].append({"pos": [tc.x, tc.y, tc.z], "carrier": t < 3, "i": t, "spawned": false})
 	_mark(c, "%s — Kule" % area_name())
-	Game.profile["active_mission"] = {"title": area_name(), "desc": "%s Parşömeni'ni rakip takımlardan al (✉) ve 5 gün içinde kuleye ulaş." % ("Yer" if st["need"] == "earth" else "Gök"), "type": "story", "rank": "C", "count": 1, "progress": 0}
+	Game.profile["active_mission"] = {"exam": "chunin", "title": area_name(), "desc": "%s Parşömeni'ni rakip takımlardan al (✉) ve 5 gün içinde kuleye ulaş." % ("Yer" if st["need"] == "earth" else "Gök"), "type": "story", "rank": "C", "count": 1, "progress": 0}
 	Hud.objective_changed()
 	Hud.banner(area_name().to_upper(), "Gün 1 / 5 — elinde %s Parşömeni var" % ("Gök" if have == "heaven" else "Yer"), Color(0.5, 0.85, 0.4))
 
@@ -381,7 +381,7 @@ func _to_finals() -> void:
 	if Game.world:
 		Game.world.env.time_of_day = 0.4
 	_mark(sp, "Chūnin Finalleri — Stadyum")
-	Game.profile["active_mission"] = {"title": "Chūnin Finalleri", "desc": "Stadyuma git: final turnuvası.", "type": "story", "rank": "B", "count": 1, "progress": 0}
+	Game.profile["active_mission"] = {"exam": "chunin", "title": "Chūnin Finalleri", "desc": "Stadyuma git: final turnuvası.", "type": "story", "rank": "B", "count": 1, "progress": 0}
 	Hud.objective_changed()
 
 
@@ -530,7 +530,35 @@ func on_technique(id: String) -> void:
 			st["jutsu"][id] = true
 
 
+## Sınav aşaması kayda yazılmaz (rakipler/takım sahnede yaşar): oyun yeniden yüklenince stage 0 olur ama görev
+## ("parşömeni al") kayıtta kalıyordu — ormanda kaçaklar doğuyor, ölünce sınav bitmiyordu. Yarım kalan sınav iptal edilir.
+var _stale_t = 0.0
+func _stale_check(dt: float) -> void:
+	_stale_t -= dt
+	if _stale_t > 0.0 or Game.profile.is_empty():
+		return
+	_stale_t = 1.0
+	var am = Game.profile.get("active_mission", {})
+	if not am is Dictionary or am.is_empty():
+		return
+	var titles = ["Chūnin Sınavı", "Chūnin Finalleri"]
+	for a in AREA.values():
+		titles.append(a[0])
+	if String(am.get("exam", "")) != "chunin" and not String(am.get("title", "")) in titles:
+		return
+	var inv: Dictionary = p()["inventory"]
+	inv.erase("scroll_heaven")
+	inv.erase("scroll_earth")
+	Missions.has_marker = false
+	Game.profile["active_mission"] = {}
+	Hud.objective_changed()
+	Journal.add("Chūnin Sınavı yarıda kaldı.", "exam")
+	Hud.dialog("Sınav Gözetmeni", "Sınav sen yokken sona erdi; yarıda kalan aday elenmiş sayılır. Bir sonraki dönem yeniden kaydolabilirsin.", [])
+
+
 func _process(dt: float) -> void:
+	if stage == 0:
+		_stale_check(dt)
 	if stage == 0 or Game.player == null or Game.paused:
 		return
 	match stage:

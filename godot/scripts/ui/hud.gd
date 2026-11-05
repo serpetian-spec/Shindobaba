@@ -136,6 +136,12 @@ func _build_vitals() -> void:
 	darkness.set_anchors_preset(Control.PRESET_FULL_RECT)
 	darkness.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	darkness.color = Color(0.0, 0.0, 0.01, 0.0)
+	# Kokuangyo (anime): her yer zifiri; ayak altında uzaklaşan gri girdap/odun damarı çizgileri — derin kuyunun dibi
+	var dsm = ShaderMaterial.new()
+	var dsh = Shader.new()
+	dsh.code = "shader_type canvas_item;\nvoid fragment(){\n vec2 s = SCREEN_UV; float h = s.y - 0.42; vec3 c = vec3(0.0, 0.0, 0.01);\n if (h > 0.0) {\n  vec2 g = vec2((s.x - 0.5) * 1.78 / h, 1.0 / h) * 0.3;\n  float w = sin(g.x * 4.0 + sin(g.y * 2.6 + g.x * 1.4) * 2.6 + g.y * 1.1 + TIME * 0.15);\n  float ln = smoothstep(0.72, 0.95, w) * smoothstep(0.0, 0.2, h);\n  c += vec3(0.3) * ln;\n }\n COLOR = vec4(c, COLOR.a);\n}\n"
+	dsm.shader = dsh
+	darkness.material = dsm
 	game_hud.add_child(darkness)
 	# --- oyuncu çerçevesi (sol üst): yuvarlak portre + isim + ince çubuklar
 	var frame = Control.new()
