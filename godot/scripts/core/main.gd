@@ -358,7 +358,7 @@ func _route(e: InputEvent) -> void:
 	if mode == "creator" and e is InputEventMouseMotion and Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 		preview_yaw += e.relative.x * 0.01
 		if preview:
-			preview.rotation.y = preview_yaw
+			preview.rotation.y = PI + preview_yaw   # kurulumla aynı (klan/saç değişince model ters dönüyordu)
 	if mode != "game":
 		return
 	if e.is_action_pressed("pause"):
