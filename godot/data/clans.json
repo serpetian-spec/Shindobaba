@@ -520,8 +520,8 @@
  },
  "funato": {
   "name": "Funato",
-  "desc": "Uzak adaların denizci klanı. Dalgalar, girdaplar ve zincirli kancalarla savaşır.",
-  "kg": "Deniz Sanatı",
+  "desc": "Su Ülkesi'nin en eski korsan klanı (Araumi, Isari, Tenma). Tenma'nın sanatı: parşömenden çağrılan kemancı yengeç kıskaçları (Shiomaneki), kıskaçla kesik (Isō Ryōdan) ve kıskaçtan su pulları (Suisairin). Denizde güçlüdürler.",
+  "kg": "Kemancı yengeç kıskacı",
   "eye": [
    0.2,
    0.45,
