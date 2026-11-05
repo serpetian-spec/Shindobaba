@@ -9,6 +9,9 @@ extends Node
 
 enum {UNKNOWN, RUMOR, FOUND, TRIAL, JOINED}
 
+## Yol mekânlarındaki antrenman noktaları (PathLairs yazar): pid -> {"posts": [..], "weights": [..], "boulder": .., "pushup": ..}
+static var drill_spots: Dictionary = {}
+
 const PATHS := {
 	"yilan": {
 		"name": "Yılan Yolu", "icon": "seal", "color": Color(0.7, 0.5, 0.9),

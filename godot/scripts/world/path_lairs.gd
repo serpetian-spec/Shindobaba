@@ -13,7 +13,9 @@ static func build(kind: String, b: Builder, pid: String, p: Vector2, base: float
 			return _snake(b, pid, p, base)
 		"forge":
 			return _forge(b, pid, p, base)
-		"clinic", "dojo", "paper", "toad", "clay", "thread", "thunder", "chidori", "jashin", "octo", "ink", "puppet":
+		"dojo":
+			return _dojo(b, pid, p, base)
+		"clinic", "paper", "toad", "clay", "thread", "thunder", "chidori", "jashin", "octo", "ink", "puppet":
 			return _hall(b, pid, p, base, kind)
 	return 0.0
 
@@ -373,6 +375,150 @@ static func _forge(b: Builder, pid: String, p: Vector2, base: float) -> float:
 	LegendPaths._mentor(b, pid, Vector3(-1.5, fy + 0.8, 8.4), PI)
 	b.interact(Vector3(-1.5, fy, 6.0), 6.5, "path_mentor", "[F] Silah ustasıyla konuş", {"path": pid})
 	return 5.0
+
+
+## Seishun Dojosu (Sekiz Kapı Yolu): açık cepheli ahşap dojo + toprak antrenman avlusu. Kanon taijutsu antrenmanının izleri:
+## iple sarılı, tekme izli vuruş kütükleri; ip kulplu taş ağırlıklar; iple çekilen dev kaya; avluyu dolanan aşınmış koşu izi;
+## amuda/şınav kalasları; yeşil-kırmızı nobori sancakları; kanji levhalı ahşap kapı; bambu çit. Dojonun içinde parlak ahşap zemin,
+## arka duvarda "根性" (azim) parşömeni, silah rafı (bō, nunçaku), duvarda asılı bacak ağırlıkları.
+## Antrenman noktaları LegendPaths.drill_spots'a yazılır (teknik öğrenme antrenmanı orada yapılır).
+static func _dojo(b: Builder, pid: String, p: Vector2, base: float) -> float:
+	var wood = Color(0.46, 0.31, 0.18)
+	var dark = Color(0.24, 0.16, 0.1)
+	var floor_c = Color(0.62, 0.46, 0.28)
+	var plaster = Color(0.93, 0.9, 0.82)
+	var earth = Color(0.58, 0.46, 0.32)
+	var stone = Color(0.55, 0.53, 0.5)
+	var green = Color(0.22, 0.52, 0.26)
+	var red = Color(0.72, 0.16, 0.13)
+	var fy = maxf(maxf(_g(p, base, -9, 16), _g(p, base, 9, 16)), _g(p, base, 0, 22))
+	var spots: Dictionary = {}
+	# ---- dojo binası (kuzeyde): taş kaide, yükseltilmiş ahşap zemin, güneyi açık (verandalı), kiremit çatı
+	b.box(Vector3(0, fy + 0.45, 17), Vector3(20, 0.9, 12), stone)
+	b.box(Vector3(0, fy + 0.95, 17), Vector3(19.2, 0.12, 11.4), floor_c)
+	for k in 12:   # zemin tahtaları
+		b.box(Vector3(-9.0 + k * 1.64, fy + 1.02, 17), Vector3(1.55, 0.02, 11.2), floor_c.darkened(0.06 if k % 2 else -0.04), 0.0, false)
+	for k in 4:   # veranda basamakları
+		b.box(Vector3(0, fy + 0.8 - k * 0.22, 10.9 - k * 0.45), Vector3(6.0, 0.22, 0.5), wood)
+	for x in [-9.6, -4.8, 0.0, 4.8, 9.6]:   # ön sütunlar
+		b.box(Vector3(x, fy + 3.2, 11.3), Vector3(0.45, 4.4, 0.45), dark)
+	b.box(Vector3(0, fy + 5.25, 11.3), Vector3(20.2, 0.45, 0.5), dark)   # ön kiriş
+	b.box(Vector3(0, fy + 3.2, 22.8), Vector3(19.6, 4.4, 0.35), plaster)   # arka duvar
+	for sx in [-1.0, 1.0]:
+		b.box(Vector3(9.8 * sx, fy + 3.2, 17), Vector3(0.35, 4.4, 11.5), plaster)
+		for k in 3:   # yan duvarda ahşap çerçeve
+			b.box(Vector3(9.75 * sx, fy + 3.2, 12.5 + k * 4.5), Vector3(0.4, 4.4, 0.25), dark, 0.0, false)
+	b.roof(Vector3(0, fy + 5.5, 17), Vector3(22.5, 3.4, 14.5), Color(0.55, 0.18, 0.15))
+	b.box(Vector3(0, fy + 7.1, 17), Vector3(22.8, 0.35, 0.5), dark, 0.0, false)   # mahya
+	# arka duvar: 根性 parşömeni, iki yanda 青春 ve 努力
+	b.box(Vector3(0, fy + 3.4, 22.55), Vector3(2.4, 3.6, 0.05), Color(0.95, 0.92, 0.84), 0.0, false)
+	b.kanji(Vector3(0, fy + 3.6, 22.5), "根性", 1.1, Color(0.1, 0.08, 0.08), 0.0)
+	for sx in [-1.0, 1.0]:
+		b.box(Vector3(5.5 * sx, fy + 3.4, 22.55), Vector3(1.6, 3.0, 0.05), Color(0.95, 0.92, 0.84), 0.0, false)
+		b.kanji(Vector3(5.5 * sx, fy + 3.5, 22.5), "青春" if sx < 0 else "努力", 0.75, Color(0.1, 0.08, 0.08), 0.0)
+	# silah rafı (bō ve nunçaku) + duvarda asılı bacak ağırlıkları
+	b.box(Vector3(-8.0, fy + 2.2, 21.8), Vector3(2.6, 0.12, 0.5), wood, 0.0, false)
+	b.box(Vector3(-8.0, fy + 1.2, 21.8), Vector3(2.6, 0.12, 0.5), wood, 0.0, false)
+	for k in 5:
+		b.box(Vector3(-9.1 + k * 0.55, fy + 2.4, 21.9), Vector3(0.07, 2.9, 0.07), Color(0.55, 0.4, 0.24), 0.0, false, Vector3(8, 0, 0))
+	for k in 4:
+		b.box(Vector3(6.6 + k * 0.8, fy + 2.6, 22.45), Vector3(0.35, 0.6, 0.18), Color(0.2, 0.34, 0.2), 0.0, false)   # bacak ağırlıkları
+		b.box(Vector3(6.6 + k * 0.8, fy + 3.0, 22.5), Vector3(0.05, 0.3, 0.05), dark, 0.0, false)
+	for sx in [-1.0, 1.0]:   # içeride iki fener
+		b.box(Vector3(7.5 * sx, fy + 4.6, 18.5), Vector3(0.05, 0.6, 0.05), dark, 0.0, false)
+		b.sphere(Vector3(7.5 * sx, fy + 4.1, 18.5), Vector3(0.6, 0.75, 0.6), Color(1.0, 0.86, 0.6), 8)
+		light(b, b.w(Vector3(7.5 * sx, fy + 4.0, 18.5)), Color(1.0, 0.8, 0.55), 1.1, 9.0)
+	# ---- antrenman avlusu (güneyde): aşınmış toprak meydan + koşu izi halkası
+	var cy = _g(p, base, 0, -2)
+	# avlu toprak: otsuz (çimen yol haritasından okur — şeritlerle avlu çemberini kapla)
+	var RM = preload("res://scripts/world/road_map.gd")
+	for k in 9:
+		var zz = -2.0 - 16.0 + k * 4.0
+		var half = sqrt(maxf(0.0, 17.0 * 17.0 - pow(zz + 2.0, 2.0)))
+		var wa = b.w(Vector3(-half, 0, zz))
+		var wb = b.w(Vector3(half, 0, zz))
+		RM.add_lane(Vector2(wa.x, wa.z), Vector2(wb.x, wb.z), 2.4, true)   # arazi de toprak boyanır (eğim diskin üstüne çıkınca yeşil kalıyordu)
+	for k in 36:   # koşu izi: avluyu dolanan koyu, ayak izi gibi aşınmış halka
+		var a = TAU * k / 36.0
+		var q = Vector3(cos(a) * 15.5, 0, -2 + sin(a) * 15.5)
+		b.box(Vector3(q.x, _g(p, base, q.x, q.z) + 0.06, q.z), Vector3(2.9, 0.04, 1.4), earth.darkened(0.16), rad_to_deg(-a) + 90.0, false)
+	# vuruş kütükleri: iple sarılı tepe, tekme/yumruk izleri (çentikler), bazısı eğik
+	var posts: Array = []
+	for k in 6:
+		var x = -11.0 + k * 4.4
+		var n = 3.5 - absf(k - 2.5) * 0.8
+		var gy = _g(p, base, x, n)
+		var tilt = [0.0, 6.0, -3.0, 0.0, 8.0, -5.0][k]
+		b.cyl(Vector3(x, gy + 1.0, n), 0.55, 2.0, wood.darkened(0.05 * (k % 2)), true, 9)
+		for r in 3:
+			b.cyl(Vector3(x, gy + 1.35 + r * 0.16, n), 0.6, 0.1, Color(0.82, 0.76, 0.6), false, 9)   # ip sargısı
+		for c in 4:
+			b.box(Vector3(x + 0.27, gy + 0.6 + c * 0.25, n - 0.05), Vector3(0.04, 0.08, 0.2), dark, tilt, false)   # darbe çentikleri
+		posts.append(b.w(Vector3(x, gy, n - 1.0)))
+	spots["posts"] = posts
+	# ip kulplu taş ağırlıklar (boy boy) + kütük kaldırma barı
+	var wts: Array = []
+	for k in 4:
+		var x = 11.0 + (k % 2) * 1.8
+		var n = -6.0 - (k / 2) * 2.0
+		var gy = _g(p, base, x, n)
+		var r = 0.6 + k * 0.18
+		b.sphere(Vector3(x, gy + r * 0.8, n), Vector3(r * 2.0, r * 1.6, r * 2.0), stone.darkened(0.05 * k), 9, true)
+		b.cyl(Vector3(x, gy + r * 1.75, n), r * 0.9, 0.12, Color(0.75, 0.68, 0.5), false, 10)   # ip kulp
+		wts.append(b.w(Vector3(x - 1.4, gy, n)))
+	spots["weights"] = wts
+	var bx = -12.0; var bn = -7.0
+	var bgy = _g(p, base, bx, bn)
+	b.boulder(Vector3(bx, bgy + 1.6, bn), Vector3(4.2, 3.2, 3.8), stone.darkened(0.08), 2, true, 20.0)   # çekilecek dev kaya
+	for k in 6:   # kayaya bağlı halat (yerde uzanır)
+		b.box(Vector3(bx + 2.4 + k * 0.9, _g(p, base, bx + 2.4 + k * 0.9, bn + 0.5) + 0.1, bn + 0.5), Vector3(0.95, 0.12, 0.12), Color(0.78, 0.7, 0.5), 0.0, false)
+	spots["boulder"] = b.w(Vector3(bx + 8.0, _g(p, base, bx + 8.0, bn + 0.5), bn + 0.5))
+	# amut / şınav kalasları
+	for k in 3:
+		var x = -2.0 + k * 2.0
+		var gy = _g(p, base, x, -10)
+		b.box(Vector3(x, gy + 0.25, -10), Vector3(1.6, 0.12, 0.5), wood, 0.0, false)
+		for sx in [-1.0, 1.0]:
+			b.box(Vector3(x + 0.7 * sx, gy + 0.12, -10), Vector3(0.12, 0.24, 0.4), dark, 0.0, false)
+	spots["pushup"] = b.w(Vector3(0, _g(p, base, 0, -10), -10))
+	# su fıçısı + kova
+	b.cyl(Vector3(8.5, _g(p, base, 8.5, 9.5) + 0.55, 9.5), 1.1, 1.1, wood.darkened(0.1), true, 12)
+	b.cyl(Vector3(8.5, _g(p, base, 8.5, 9.5) + 1.12, 9.5), 1.0, 0.05, Color(0.3, 0.45, 0.6), false, 12)
+	# nobori sancakları (yeşil / kırmızı)
+	for k in 6:
+		var x = -16.0 + (k % 3) * 1.2 if k < 3 else 13.6 + (k % 3) * 1.2
+		var n = -14.0
+		var gy = _g(p, base, x, n)
+		b.box(Vector3(x, gy + 2.6, n), Vector3(0.1, 5.2, 0.1), dark, 0.0, false)
+		b.box(Vector3(x + 0.35, gy + 3.4, n), Vector3(0.6, 3.0, 0.04), green if k % 2 == 0 else red, 0.0, false)
+		b.kanji(Vector3(x + 0.35, gy + 3.6, n - 0.04), "青" if k % 2 == 0 else "火", 0.42, Color(0.97, 0.95, 0.9), 0.0)
+	# dojo kapısı (güney): iki direk + çatılı kiriş + 道場 levhası
+	var gy0 = _g(p, base, 0, -19)
+	for sx in [-1.0, 1.0]:
+		b.box(Vector3(3.2 * sx, gy0 + 2.4, -19), Vector3(0.55, 4.8, 0.55), dark)
+	b.box(Vector3(0, gy0 + 4.95, -19), Vector3(8.4, 0.45, 0.8), dark, 0.0, false)
+	b.roof(Vector3(0, gy0 + 5.2, -19), Vector3(9.4, 1.0, 2.2), Color(0.55, 0.18, 0.15))
+	b.box(Vector3(0, gy0 + 4.2, -19.3), Vector3(2.6, 0.9, 0.08), Color(0.9, 0.86, 0.74), 0.0, false)
+	b.kanji(Vector3(0, gy0 + 4.2, -19.36), "道場", 0.7, Color(0.1, 0.08, 0.08), 0.0)
+	# bambu çit (kapı açıklığı hariç)
+	for k in 40:
+		var a = TAU * k / 40.0
+		var q = Vector3(cos(a) * 19.0, 0, 1.5 + sin(a) * 21.0)
+		if q.z < -17.0 and absf(q.x) < 4.0:
+			continue
+		if q.z > 11.0 and absf(q.x) < 10.5:
+			continue   # dojo binası
+		var gy = _g(p, base, q.x, q.z)
+		b.box(Vector3(q.x, gy + 0.65, q.z), Vector3(0.12, 1.3, 0.12), Color(0.62, 0.58, 0.34), 0.0, false)
+		b.box(Vector3(q.x, gy + 0.9, q.z), Vector3(2.9, 0.07, 0.07), Color(0.6, 0.55, 0.32), rad_to_deg(-a) + 90.0, false)
+		b.box(Vector3(q.x, gy + 0.45, q.z), Vector3(2.9, 0.07, 0.07), Color(0.6, 0.55, 0.32), rad_to_deg(-a) + 90.0, false)
+	b.lantern(-4.5, -17.5)
+	b.lantern(4.5, -17.5)
+	LegendPaths.drill_spots[pid] = spots
+	# usta avluda, dojonun önünde (amut duruşu değil: konuşulur)
+	LegendPaths._mentor(b, pid, Vector3(0, _g(p, base, 0, 7.5) + 0.05, 7.5), PI)
+	b.interact(Vector3(0, _g(p, base, 0, 5.5), 5.5), 5.5, "path_mentor", "[F] Taijutsu Ustası ile konuş", {"path": pid})
+	return 5.5
 
 
 ## Şifa tapınağı / dövüş dojosu: taş temelli ahşap salon, verandada usta; tapınakta buhar havuzu, dojoda kütükler ve ağırlıklar
