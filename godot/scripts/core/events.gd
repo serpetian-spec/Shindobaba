@@ -163,6 +163,7 @@ func _forest() -> void:
 	var c = forest_center()
 	var have = ["heaven", "earth"].pick_random()
 	st["need"] = "earth" if have == "heaven" else "heaven"
+	st["field"] = _build_field()
 	st["forest_t"] = 5.0 * DAY_LEN
 	st["day"] = 1
 	st["tower"] = c
@@ -192,10 +193,285 @@ func _forest() -> void:
 	Hud.banner(area_name().to_upper(), "Gün 1 / 5 — elinde %s Parşömeni var" % ("Gök" if have == "heaven" else "Yer"), Color(0.5, 0.85, 0.4))
 
 
+## Sınav adayları — sabit liste yok, her dönem yeni insanlar (anime: her köyden, her tarzdan aday):
+## köy dünyadaki 15 köyden biri; isim hece + aile kökünden üretilir; klan bütün oynanabilir klanlardan (ya da klansız);
+## DÖVÜŞ ODAĞI (ninjutsu / taijutsu / kenjutsu / genjutsu / fūinjutsu / tıbbi / klan hiden) ve kit oyunun jutsu verisinden süzülür:
+## yalnız klansız teknikler + ADAYIN KENDİ klanının teknikleri; kanon karakter imza teknikleri, göz/kekkei genkai/sennin/kontrat şartlı
+## teknikler yok; silahlı odakta yalnız dükkânda satılan sıradan silahlar (efsanevi / karaktere bağlı / klan silahı yok).
+## Sahada sokakta tanıdığın köy takımları (AmbientTeams.roster) ve önceki dönemde kalıp yeniden giren adaylar (profile.exam_pool) de olur.
+const _AT = preload("res://scripts/world/ambient_teams.gd")
+const _MORA := ["a", "ka", "ki", "ku", "ke", "ko", "sa", "shi", "su", "se", "so", "ta", "chi", "tsu", "te", "to", "na", "ni", "no", "ha", "hi", "fu",
+	"ho", "ma", "mi", "mu", "me", "mo", "ya", "yu", "yo", "ra", "ri", "ru", "re", "ro", "wa", "ga", "gi", "go", "za", "ji", "zu", "da", "do", "ba", "bi", "bu", "ei", "ō", "ū"]
+const _END_M := ["ta", "ki", "to", "ru", "ji", "suke", "rō", "ma", "ya", "shi", "hiko", "zō", "kichi", "go", "nosuke", "ichi", "hei", "shin", "tarō", "ma"]
+const _END_F := ["ko", "mi", "na", "ka", "e", "ri", "ne", "yo", "ho", "no", "sa", "ki", "ha", "ru", "yu", "e", "mi", "ka", "ri", "na"]
+const _FAM_A := ["Yama", "Kawa", "Mori", "Ishi", "Kuro", "Shira", "Taka", "Naka", "Hoshi", "Tsuki", "Kaze", "Mizu", "Hi", "Kane", "Ao", "Aka", "Sugi",
+	"Matsu", "Take", "Fuji", "Hara", "Saka", "Tani", "Miya", "Ono", "Ina", "Kita", "Minami", "Nishi", "Higashi", "Sawa", "Hama", "Shima", "Oka", "Mura",
+	"Kage", "Kiri", "Kumo", "Iwa", "Suna", "Asa", "Yoru", "Tora", "Washi", "Kitsune", "Sakura", "Ume", "Kiku", "Hasu", "Kusa", "Ame", "Yuki"]
+const _FAM_B := ["moto", "mura", "yama", "kawa", "da", "no", "zaki", "shima", "hara", "saki", "gawa", "be", "oka", "tani", "sawa", "naga", "ki", "ba",
+	"zawa", "hashi", "kubo", "mine", "zuka", "nami", "ide", "gaki", "wara", "sato", "mizu", "kage"]
+const _HAIRS := ["kısa", "uzun", "kase", "dağınık", "topuz", "diken", "atkuyruğu"]
+const _ELS := ["katon", "fuuton", "suiton", "doton", "raiton"]
+const _EL_TR := {"katon": "Katon", "fuuton": "Fūton", "suiton": "Suiton", "doton": "Doton", "raiton": "Raiton"}
+## odak -> jutsu kategorileri + açıklama
+const _FOCUS := {
+	"ninjutsu": [["ninjutsu"], "%s ninjutsusu"], "taijutsu": [["taijutsu"], "taijutsu ustası, yakın dövüşte acımasız"],
+	"kenjutsu": [["kenjutsu", "taijutsu"], "%s ile kenjutsu"], "genjutsu": [["genjutsu", "ninjutsu"], "genjutsu kullanıcısı, aklını karıştırır"],
+	"fuinjutsu": [["fuinjutsu", "ninjutsu"], "mühür ustası, bağlar ve kilitler"], "iryo": [["medical", "taijutsu"], "tıbbi ninja, yaralarını kapatır"],
+	"hiden": [["hiden", "kekkei_genkai", "ninjutsu"], "klanının gizli teknikleri"]}
+const _FOCUS_W := {"ninjutsu": 5, "taijutsu": 3, "kenjutsu": 3, "genjutsu": 2, "fuinjutsu": 1, "iryo": 1, "hiden": 4}
+const _BAD_LEARN := ["eye:", "kg:", "sage:", "path:", "quest:", "beast", "contract", "legend"]
+static var _users := {}
+
+
+## Kanon kullanıcıları (Narutopedia bilgi kutusu, data/jutsu_users.json): "~game" (yalnız oyunda geçen) sayılmaz
+static func _canon_users(id: String) -> int:
+	if _users.is_empty():
+		var d = JSON.parse_string(FileAccess.get_file_as_string("res://data/jutsu_users.json"))
+		_users = d if d is Dictionary else {"_": []}
+	if not _users.has(id):
+		return -1
+	var n = 0
+	for u in _users[id]:
+		if not "~game" in String(u).to_lower():
+			n += 1
+	return n
+
+
+static func gen_name(female: bool, rng: RandomNumberGenerator) -> String:
+	var g = ""
+	for k in (1 if rng.randf() < 0.55 else 2):
+		g += _MORA[rng.randi() % _MORA.size()]
+	var ends: Array = _END_F if female else _END_M
+	g += ends[rng.randi() % ends.size()]
+	return "%s %s" % [String(_FAM_A[rng.randi() % _FAM_A.size()]) + String(_FAM_B[rng.randi() % _FAM_B.size()]), g.capitalize()]
+
+
+static func _pick_w(rng: RandomNumberGenerator, w: Dictionary) -> String:
+	var tot = 0
+	for k in w:
+		tot += int(w[k])
+	var r = rng.randi() % maxi(1, tot)
+	for k in w:
+		r -= int(w[k])
+		if r < 0:
+			return String(k)
+	return String(w.keys()[0])
+
+
+## Sıradan silahlar: dükkânda satılan, efsanevi / klan / karaktere bağlı / kaldırılmış olmayan
+static func _plain_weapons() -> Array:
+	var out = []
+	for k in Gear.ITEMS:
+		var it: Dictionary = Gear.ITEMS[k]
+		if it.has("weapon") and not it.has("removed") and not it.has("legend") and not it.has("clan") and int(it.get("price", 0)) > 0 and int(it.get("price", 0)) <= 1500:
+			out.append(String(k))
+	return out
+
+
+## Adayın kiti: odağın kategorilerinden, seviyesine uygun, yalnız klansız + kendi klanının teknikleri
+static func _kit(focus: String, clan: String, el: String, el2: String, weapon: String, lv: int, rng: RandomNumberGenerator) -> Array:
+	var cats: Array = _FOCUS[focus][0]
+	var pool = []
+	for id in Data.jutsu:
+		var j = Data.jutsu[id]
+		if not j is Dictionary:
+			continue
+		if not String(j.get("category", "")) in cats or int(j.get("level", 99)) > lv + 4:
+			continue
+		var jc = j.get("clan", "")
+		var jclan = String(jc[0]) if jc is Array and not jc.is_empty() else String(jc) if jc is String else ""
+		if jclan != "" and jclan != clan:
+			continue   # başka klanın tekniği yok
+		if focus == "hiden" and jclan == "":
+			continue
+		var rq = j.get("requires", {})
+		if rq is Dictionary and not rq.is_empty() and not rq.has("clan_or_lineage"):
+			continue   # göz / kekkei genkai / sennin şartlı
+		var ln = String(j.get("learn", ""))
+		var bad = false
+		for b in _BAD_LEARN:
+			if ln.begins_with(b):
+				bad = true
+		if bad or j.get("signature", false) or j.has("path") or j.has("virtual"):
+			continue   # kanon karakter imza teknikleri / efsane yolları
+		var nd = String(j.get("need", ""))
+		if nd != "" and nd != "weapon:" + weapon:
+			continue
+		if jclan == "":
+			# genin adayı: yalnız E/D/C/B rütbe ve kanonda en az 3 kişinin kullandığı (tek karaktere ait imza tekniği değil);
+			# kanon kaydı yoksa yalnız akademi / temel element tekniği
+			if String(j.get("canon_rank", "C")) in ["A", "S"]:
+				continue
+			var cu = _canon_users(String(id))
+			if cu >= 0 and cu < 3:
+				continue
+			if cu < 0 and not ln in ["academy", "element"]:
+				continue
+		var jel = String(j.get("element", ""))
+		if focus == "ninjutsu" and jel != "" and jel != el and jel != el2:
+			continue
+		pool.append(String(id))
+	var out = []
+	for k in mini(4, pool.size()):
+		var x = pool[rng.randi() % pool.size()]
+		pool.erase(x)
+		out.append(x)
+	return out
+
+
+## Adayın kalıcı sınav kimliği
+func _exam_id(rng: RandomNumberGenerator) -> Dictionary:
+	var clans = []
+	for cc in Data.clans:
+		if cc != "none" and not cc in Progress.UNPLAYABLE_CLANS:
+			clans.append(cc)
+	var clan = "" if clans.is_empty() or rng.randf() < 0.3 else String(clans[rng.randi() % clans.size()])
+	var fw = _FOCUS_W.duplicate()
+	if clan == "":
+		fw.erase("hiden")
+	var focus = _pick_w(rng, fw)
+	var el = String(_ELS[rng.randi() % _ELS.size()]) if focus != "taijutsu" else ""
+	var el2 = String(_ELS[rng.randi() % _ELS.size()]) if el != "" and rng.randf() < 0.3 else ""
+	if el2 == el:
+		el2 = ""
+	var weapon = ""
+	if focus == "kenjutsu" or rng.randf() < 0.15:
+		var ws = _plain_weapons()
+		if not ws.is_empty():
+			weapon = String(ws[rng.randi() % ws.size()])
+	var lvl = rng.randi_range(13, 22)
+	return {"el": el, "el2": el2, "focus": focus, "weapon": weapon, "lv": lvl, "kit": _kit(focus, clan, el, el2, weapon, lvl, rng),
+		"power": rng.randf_range(1.22, 1.68), "hp": rng.randf_range(0.9, 1.2), "sub": rng.randf_range(0.15, 0.45), "tries": 0, "clan": clan}
+
+
+func _cand_of(src: String, ti: int, pi: int, person: Dictionary) -> Dictionary:
+	var look: Dictionary = Friends.look_of(person)
+	var rng = RandomNumberGenerator.new()
+	rng.seed = hash("%s:%d:%d:%s" % [src, ti, pi, person["name"]])
+	if not person.has("exam") or not (person["exam"] as Dictionary).has("focus"):
+		person["exam"] = _exam_id(rng)
+	var ex: Dictionary = person["exam"]
+	var vid = String(person.get("vid", src))
+	var vn = String(Game.village(vid).get("name", vid))
+	var focus = String(ex["focus"])
+	var what = String(_FOCUS[focus][1])
+	if "%s" in what:
+		var w = String(Gear.item(String(ex["weapon"])).get("name", "silah")) if focus == "kenjutsu" else _EL_TR.get(String(ex["el"]), "Chakra")
+		what = what % w
+	if String(ex.get("el2", "")) != "":
+		what += " + " + String(_EL_TR.get(String(ex["el2"]), ""))
+	var cn = ClanWorld.clan_name(String(ex["clan"])) if String(ex["clan"]) != "" else ""
+	var style = ("%s — %s" % [cn, what]) if cn != "" else what.capitalize()
+	return {"name": "%s (%s)" % [person["name"], vn], "style": style, "el": ex["el"], "el2": ex.get("el2", ""), "j": ex.get("kit", []),
+		"power": float(ex["power"]) + int(ex["tries"]) * 0.04, "hp": float(ex["hp"]) + int(ex["tries"]) * 0.03, "sub": ex["sub"],
+		"hair": look.get("hair_style", "diken"), "top": look.get("top", Color(0.3, 0.4, 0.35)), "v": vid, "f": String(look.get("gender", "m")) == "f",
+		"clan": String(ex.get("clan", "")), "weapon": String(ex.get("weapon", "")), "lv": int(ex.get("lv", 16)), "ref": [src, ti, pi]}
+
+
+## Yepyeni bir genin takımı (rastgele köy, üretilmiş isimler ve görünüşler) — exam_pool'a yazılır
+func _new_team() -> Dictionary:
+	var vids = []
+	for v in Game.world_info.get("villages", []):
+		vids.append(String(v["id"]))
+	if vids.is_empty():
+		vids = ["konoha", "suna", "kiri", "kumo", "iwa"]
+	var vid = String(vids.pick_random())
+	var rng = RandomNumberGenerator.new()
+	rng.randomize()
+	var people = []
+	for i in 3:
+		var female = rng.randf() < 0.45
+		var look = {"gender": "f" if female else "m", "hair_style": _HAIRS[rng.randi() % _HAIRS.size()],
+			"hair": Color(rng.randf_range(0.03, 0.95), rng.randf_range(0.03, 0.8), rng.randf_range(0.03, 0.75)),
+			"top": Color(rng.randf_range(0.1, 0.85), rng.randf_range(0.1, 0.8), rng.randf_range(0.1, 0.8))}
+		var person = {"name": gen_name(female, rng), "rank": 0, "look": Friends._ser(look), "fid": "", "vid": vid}
+		person["exam"] = _exam_id(rng)
+		people.append(person)
+	return {"vid": vid, "people": people}
+
+
+## Bu dönemin sahası: 7 takım × 3 aday — 3-5 yepyeni takım, kalanı sokaktaki köy takımları ve önceki dönemden kalanlar karışık
+func _build_field() -> Array:
+	var pr = p()
+	if not pr.has("exam_pool"):
+		pr["exam_pool"] = []
+	var pool: Array = pr["exam_pool"]
+	var old = []
+	for vid in ["konoha", "suna", "kiri", "kumo", "iwa"]:
+		var ros: Array = _AT.roster(vid)
+		for ti in ros.size():
+			old.append([vid, ti, ros[ti]["people"]])
+	for ti in pool.size():
+		old.append(["pool", ti, pool[ti]["people"]])
+	old.shuffle()
+	var teams = []
+	for k in 3 + randi() % 3:
+		pool.append(_new_team())
+		var ti = pool.size() - 1
+		var t = []
+		for pi in 3:
+			t.append(_cand_of("pool", ti, pi, pool[ti]["people"][pi]))
+		teams.append(t)
+	for o in old:
+		if teams.size() >= 7:
+			break
+		var t = []
+		var ppl: Array = o[2]
+		for pi in ppl.size():
+			if int(ppl[pi].get("rank", 0)) == 0:
+				t.append(_cand_of(o[0], o[1], pi, ppl[pi]))
+		if t.size() >= 3:
+			teams.append(t.slice(0, 3))
+	while teams.size() < 7:
+		pool.append(_new_team())
+		var ti = pool.size() - 1
+		var t = []
+		for pi in 3:
+			t.append(_cand_of("pool", ti, pi, pool[ti]["people"][pi]))
+		teams.append(t)
+	teams.shuffle()
+	return teams
+
+
+func _field() -> Array:
+	if not st.has("field") or (st["field"] as Array).is_empty():
+		st["field"] = _build_field()
+	return st["field"]
+
+
+func _person_of(ref: Array) -> Dictionary:
+	if String(ref[0]) == "pool":
+		var pool: Array = p().get("exam_pool", [])
+		return pool[int(ref[1])]["people"][int(ref[2])] if int(ref[1]) < pool.size() else {}
+	return _AT.roster(String(ref[0]))[int(ref[1])]["people"][int(ref[2])]
+
+
+## Dönem sonu: finalistlerin bir kısmı chūnin olur (havuzdan çıkar), diğerleri bir dahaki dönem güçlenmiş döner; havuz şişmez
+func _field_after() -> void:
+	var fin_refs = []
+	for r in st.get("finalists", []):
+		if r.has("ref"):
+			fin_refs.append(r["ref"])
+	for team in _field():
+		for r in team:
+			if not r.has("ref"):
+				continue
+			var person = _person_of(r["ref"])
+			if person.is_empty():
+				continue
+			if r["ref"] in fin_refs and randf() < 0.4:
+				person["rank"] = 1
+			elif person.has("exam"):
+				person["exam"]["tries"] = int(person["exam"]["tries"]) + 1
+	var pool: Array = p().get("exam_pool", [])
+	while pool.size() > 40:
+		pool.pop_front()
+
+
 func _rival_enemy(r: Dictionary, scale: float, i := 0) -> Enemy:
 	var e = Enemy.new()
 	var a = Enemy.archetype("genin_rival", i)
-	var lv = randi_range(13, 22)   # sınav rakipleri genin/chūnin adayı gücünde
+	var lv = int(r.get("lv", randi_range(13, 22)))   # sınav rakipleri genin/chūnin adayı gücünde (adayın kalıcı seviyesi)
 	a["name"] = r["name"]
 	a["respawn"] = false
 	a["level"] = lv
@@ -208,6 +484,10 @@ func _rival_enemy(r: Dictionary, scale: float, i := 0) -> Enemy:
 	for x in Enemy.auto_jutsu("rogue", String(r["el"]), lv):
 		if not x in js and js.size() < 4:
 			js.append(x)
+	if String(r.get("el2", "")) != "":
+		for x in Enemy.auto_jutsu("rogue", String(r["el2"]), lv):
+			if not x in js and js.size() < 5:
+				js.append(x)
 	a["jutsu"] = js
 	a["aggr"] = maxf(float(a.get("aggr", 0.5)), 0.75)
 	a["look"]["hair_style"] = r["hair"]
@@ -215,10 +495,17 @@ func _rival_enemy(r: Dictionary, scale: float, i := 0) -> Enemy:
 	a["look"]["village"] = r["v"]
 	a["look"]["gender"] = "f" if r.get("f", false) else "m"
 	a["look"]["age"] = "teen"   # Chūnin adayları genin: genç boyu (yetişkin boyunda çıkıyorlardı)
+	if String(r.get("weapon", "")) != "":
+		a["look"]["weapon_r"] = String(r["weapon"])   # kenjutsu adayı: sıradan dükkân silahı
+	if String(r.get("clan", "")) != "":
+		a["clan_force"] = String(r["clan"])   # adayın kendi klanı (her dönem aynı kişi aynı klanla)
+	elif r.has("ref"):
+		a["no_clan"] = true
 	a["look"]["vest"] = null
 	a["xp"] = 60 + lv * 4
 	a["no_level"] = true   # sınav adayı: isim etiketinde seviye yok
 	e.setup(a)
+	e.set_meta("eyes_taken", true)   # sınavda ölen adayın gözleri alınamaz (gözetmenler var; saçma olur)
 	get_tree().current_scene.add_child(e)
 	Exams.nodes.append(e)
 	return e
@@ -257,7 +544,7 @@ func _spawn_camps() -> void:
 			continue
 		cp["spawned"] = true
 		for i in 3:
-			var e = _rival_enemy(RIVALS[(int(cp["i"]) * 3 + i) % RIVALS.size()], 0.75, i)
+			var e = _rival_enemy(_field()[int(cp["i"])][i], 0.75, i)
 			if cp["carrier"] and i == 0:
 				e.set_meta("carries", st["need"])
 				e.display_name += " ✉"
@@ -278,7 +565,7 @@ func _forest_tick(dt: float) -> void:
 		Hud.banner("GÜN %d / 5" % day, "Gece pusuları başlıyor, dikkat!", Color(0.6, 0.7, 1))
 		var pp = Game.player.global_position
 		for i in 2:
-			var e = _rival_enemy(RIVALS.pick_random(), 0.6, i)
+			var e = _rival_enemy((_field()[4 + randi() % 3] as Array).pick_random(), 0.6, i)
 			e.display_name = "Pusucu " + e.display_name
 			if i == 0:
 				# kanon: her takım bir parşömen taşır (yarısı Gök, yarısı Yer) — pusucular parşömensizdi, kesen eli boş kalıyordu
@@ -340,7 +627,9 @@ func _prelims() -> void:
 		if is_instance_valid(r):
 			r.queue_free()
 	rivals.clear()
-	var pool = RIVALS.duplicate()
+	var pool = []
+	for k in range(4, 7):
+		pool.append_array(_field()[k])
 	pool.shuffle()
 	st["opponents"] = [pool[0], pool[1]]
 	st["finalists"] = [pool[2], pool[3], pool[4]]
@@ -485,6 +774,7 @@ func _invasion_over(won: bool) -> void:
 
 func _judge() -> void:
 	stage = 0
+	_field_after()
 	Exams._clear_nodes()
 	Hud.boss_bar(null)
 	var jcount = (st.get("jutsu", {}) as Dictionary).size()
@@ -524,6 +814,8 @@ func _judge() -> void:
 
 func _fail(text: String) -> void:
 	stage = 0
+	if st.has("field"):
+		_field_after()
 	Exams._clear_nodes()
 	for r in rivals:
 		if is_instance_valid(r):

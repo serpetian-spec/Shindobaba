@@ -1,0 +1,3802 @@
+{
+"henge": [
+"Hyōi Yorishiro~anime",
+"Kagerō~anime",
+"Kazan~movie",
+"Menō (ninja)~game",
+"Nanafushi~anime",
+"Tsunade"
+],
+"shunshin": [
+"A (Fourth Raikage)",
+"A (Third Raikage)",
+"Shisui Uchiha<!-- Do not add Naruto or any other ninja here. Only notable shinobi who extensively use this technique as their fighting style are added. -->"
+],
+"bunshin": [
+"A (Fourth Raikage)~movie",
+"Anko Mitarashi~game",
+"Boar-Masked Anbu Member~anime",
+"Boruto Uzumaki",
+"Breeze Dancer~game",
+"Chino~novel",
+"Darui~anime",
+"Deidara",
+"Ebisu~anime",
+"Enra~anime",
+"Fugaku Uchiha~anime",
+"Garashi Tōno~anime",
+"Genma Shiranui~game",
+"Hana Kaka~anime",
+"Hayate Gekkō",
+"Hidari (missing-nin)~anime",
+"Hiruzen Sarutobi",
+"Hōki (Watari)~anime",
+"Itachi Uchiha",
+"Jiraiya",
+"Jirōbō~game",
+"Kakashi Hatake",
+"Kakui~anime",
+"Kawaki",
+"Kiba Inuzuka",
+"Kido Tsumiki~novel",
+"Killer B~anime",
+"Koji Kashin",
+"Konohamaru Sarutobi",
+"Kushina Uzumaki~game",
+"Madara Uchiha",
+"Mahiru",
+"Makinami Senka",
+"Marui~anime",
+"Midnight Blade~game",
+"Minato Namikaze",
+"Mitsuki~anime",
+"Momoshiki Otsutsuki",
+"Monkey King: Enma",
+"Mukai Kohinata~novel",
+"Nagato~anime",
+"Naruto Uzumaki",
+"Omoi~anime",
+"Orochimaru",
+"Sabiru~anime",
+"Sai~anime",
+"Sarada Uchiha~anime",
+"Sasuke Uchiha",
+"Sazanami Senka",
+"Sekiei (spectator)~anime",
+"Shikadai Nara~game",
+"Shikamaru Nara~novel",
+"Shisui Uchiha~game",
+"Shizune~anime",
+"Suna Reincarnated Shinobi~anime",
+"Takanami Senka",
+"Tobirama Senju",
+"Tsunade~anime",
+"Yanaru Aze~novel",
+"Yūgao Uzuki~anime"
+],
+"katon_goukakyuu": [
+"Aniki (missing-nin)~anime",
+"Boro~anime",
+"Fugaku Uchiha",
+"Hidari~manga",
+"Hiruzen Sarutobi~game",
+"Hōki (Watari)~anime",
+"Itachi Uchiha",
+"Izuna Uchiha~anime",
+"Kakashi Hatake~anime",
+"Madara Uchiha",
+"Nanashi Uchiha~game",
+"Obito Uchiha",
+"Rōshi~game",
+"Sarada Uchiha",
+"Sasuke Uchiha",
+"Scarlet Blaze~game",
+"Shisui Uchiha~novel",
+"Suika~anime",
+"Victor~anime"
+],
+"katon_housenka": [
+"Aniki (missing-nin)~anime",
+"Fūka~anime",
+"Hikari Uchiha~game",
+"Hiruzen Sarutobi~anime",
+"Hōki (Watari)~anime",
+"Itachi Uchiha",
+"Izuna Uchiha~game",
+"Kiseru Gankubi~anime",
+"Obito Uchiha~anime",
+"Sarada Uchiha",
+"Sasuke Uchiha",
+"Scarlet Blaze~game",
+"Shisui Uchiha~game"
+],
+"katon_karyuu": [
+"Anko Mitarashi~anime",
+"Jiraiya",
+"Sasuke Uchiha",
+"Scarlet Blaze~game"
+],
+"suiton_suikoudan": [
+"Azure Fang~game",
+"Kakashi Hatake",
+"Kisame Hoshigaki"
+],
+"hoshigaki_same": [
+"Azure Fang~game",
+"Kakashi Hatake",
+"Kisame Hoshigaki"
+],
+"suiton_suijinheki": [
+"Ao~game",
+"Boro",
+"Boruto Uzumaki~novel",
+"Chino~anime",
+"Chōjūrō~anime",
+"Darui",
+"Funamushi~anime",
+"Hiruzen Sarutobi~game",
+"Kakashi Hatake",
+"Kakuzu~anime",
+"Kosuke Maruboshi~anime",
+"Ruka~anime",
+"Sasuke Uchiha~novel",
+"Shizuma Hoshigaki~anime",
+"Suien~anime",
+"Suigetsu Hōzuki~game",
+"Sumire Kakei~anime",
+"Tobirama Senju",
+"Victor~anime",
+"Yamato~anime"
+],
+"suiton_suiryuudan": [
+"Azure Fang~game",
+"Darui~game",
+"Gengetsu Hōzuki~game",
+"Hiruzen Sarutobi~game",
+"Hōki (Watari)~anime",
+"Itachi Uchiha",
+"Jūzō Biwa~game",
+"Kabuto Yakushi",
+"Kajika~anime",
+"Kakashi Hatake",
+"Kiiro~novel",
+"Kisame Hoshigaki~game",
+"Kosuke Maruboshi~anime",
+"Mei Terumī",
+"Merz~game",
+"Momoshiki Ōtsutsuki",
+"Shibuki~anime",
+"Shizuku~movie",
+"Suigetsu Hōzuki~game",
+"Tatsunami~anime",
+"Tobirama Senju",
+"Utakata~game",
+"Yagura Karatachi~game",
+"Yahiko~game",
+"Yamato~game",
+"Zabuza Momochi"
+],
+"fuuton_shinkuu": [
+"Danzō Shimura"
+],
+"futon_shinkugyoku": [
+"Danzō Shimura"
+],
+"fuuton_daitoppa": [
+"Bandō~anime",
+"Gaara",
+"Jakō Ryūdōin~game",
+"Kakashi Hatake~game",
+"Kokage Yanagikage",
+"Mitsuki~anime",
+"Orochimaru"
+],
+"fuma_kaze": [
+"Bandō~anime",
+"Gaara",
+"Jakō Ryūdōin~game",
+"Kakashi Hatake~game",
+"Kokage Yanagikage",
+"Mitsuki~anime",
+"Orochimaru"
+],
+"fuuton_rasenshuriken": [
+"Naruto Uzumaki"
+],
+"doton_doryuusou": [
+"Fudō",
+"Iwabee Yuino",
+"Kurotsuchi",
+"Yamato"
+],
+"doton_doryuheki": [
+"Akatsuchi~game",
+"Fudō~Anime",
+"Hiruzen Sarutobi",
+"Iwabee Yuino~Anime",
+"Jiji",
+"Jiraiya~Anime",
+"Kakashi Hatake",
+"Kakō~anime",
+"Karyū",
+"Moegi Kazamatsuri~Anime",
+"Monga~Anime",
+"Nagato~Anime",
+"Naruto Uzumaki",
+"Sadai~Anime",
+"Shamo~Anime",
+"Yamato"
+],
+"doton_yomi": [
+"Jiraiya",
+"Koji Kashin"
+],
+"raiton_nagashi": [
+"Kakuzu"
+],
+"raiton_gian": [
+"Kakuzu"
+],
+"raiton_chidori": [
+"Hidari~manga",
+"Kakashi Hatake",
+"Sarada Uchiha",
+"Sasuke Uchiha"
+],
+"raiton_armor": [
+"A (Fourth Raikage)",
+"A (Third Raikage)",
+"Killer B~game",
+"Midnight Blade~game"
+],
+"rasengan": [
+"<!--Do NOT add Asura. See the Amenomihashira article for his technique-->Boruto Uzumaki",
+"Breeze Dancer~Game",
+"Hiruko (missing-nin)~movie",
+"Jiraiya",
+"Kakashi Hatake",
+"Koji Kashin",
+"Konohamaru Sarutobi",
+"Minato Namikaze",
+"Momoshiki Ōtsutsuki",
+"Naruto Uzumaki"
+],
+"shousen": [
+"Amai~anime",
+"Ameno~anime",
+"Asura Ōtsutsuki~anime",
+"Azure Fang~game",
+"Buntan Kurosuki~anime",
+"C",
+"Chiyo",
+"Dōshu Goetsu~anime",
+"En Oyashiro~anime",
+"Hagoromo Ōtsutsuki~anime",
+"Hako Kuroi~anime",
+"Hakuto~novel",
+"Hana Inuzuka~game",
+"Hinata Hyūga~anime",
+"Hinoto~game",
+"Ino Yamanaka",
+"Inojin Yamanaka~anime",
+"Iwabee Yuino~anime",
+"Iyashi~anime",
+"Kabuto Yakushi",
+"Kakashi Hatake~novel",
+"Kanna~anime",
+"Karin~anime",
+"Kiri (ninja)",
+"Kiseru Gankubi~anime",
+"Kitō~anime",
+"Kusushi~anime",
+"Mabui~game",
+"Mogusa~anime",
+"Mozuku (Land of Calm Seas)~anime",
+"Nonō Yakushi",
+"Rin Nohara",
+"Sakura Haruno",
+"Sarada Uchiha~anime",
+"Sasuke Uchiha",
+"Shizune",
+"Tsunade",
+"Wasabi Izuno~anime",
+"Yome~anime",
+"Yubina~anime"
+],
+"narakumi": [
+"Iruka Umino~anime",
+"Kakashi Hatake",
+"Kurenai Yūhi~game",
+"Scarlet Blaze~game"
+],
+"kokuangyo": [
+"Black Shadow~game",
+"Hashirama Senju~manga",
+"Tobirama Senju~anime"
+],
+"kuchiyose": [
+"<!-- Gari",
+"Ajisai~anime",
+"Amachi~anime",
+"Aoba Yamashiro~game",
+"Azure Fang~game",
+"Benga~anime",
+"Boruto Uzumaki~anime",
+"Crimson Fist~game",
+"Danzō Shimura",
+"Disonasu~anime",
+"Ebisu",
+"Fudō~anime",
+"Funamushi~anime",
+"Gengetsu Hōzuki",
+"Gengo~anime",
+"Gennō~anime",
+"Hagoromo Ōtsutsuki",
+"Hamura Ōtsutsuki~anime",
+"Hanzō",
+"Hashirama Senju",
+"Hiruko (missing-nin)~movie",
+"Hiruzen Sarutobi",
+"Hisen~novel",
+"Ibiki Morino",
+"Ichi~movie",
+"Itachi Uchiha",
+"Jakō Ryūdōin~game",
+"Jiraiya",
+"Jirōbō~anime",
+"Kabuto Yakushi",
+"Kaguya Ōtsutsuki",
+"Kakashi Hatake",
+"Kandachi~anime",
+"Kidōmaru",
+"Kisame Hoshigaki",
+"Koji Kashin",
+"Konohamaru Sarutobi~anime",
+"Kotetsu Hagane~game",
+"Kōza Kubisaki~anime",
+"Madara Uchiha",
+"Mamushi (Genin)~anime",
+"Midnight Blade~game",
+"Might Guy",
+"Minato Namikaze",
+"Mitsuki",
+"Motoi",
+"Mui",
+"Mujō~anime",
+"Muyami~anime",
+"Nagato",
+"Naruto Uzumaki",
+"Ni~movie",
+"Obito Uchiha",
+"Orochimaru",
+"Pakura and Torune were just mediums for Kabuto's summoning -->Anko Mitarashi",
+"Rin Nohara~game",
+"Ruiga~anime",
+"Sakon and Ukon",
+"Sakura Haruno",
+"San~movie",
+"Sasuke Uchiha",
+"Shibuki~novel",
+"Shima",
+"Shinnō~game",
+"Shino Aburame",
+"Shisui Uchiha",
+"Suien~novel",
+"Suika~anime",
+"Sumire Kakei",
+"Suzumebachi~anime",
+"Tayuya",
+"Temari",
+"Tenten~anime",
+"Tobirama Senju",
+"Tonbee~anime",
+"Tsunade",
+"Tōjūrō~novel",
+"Yomito Hirasaka~game",
+"Zetsu~game"
+],
+"juuken_64": [
+"Hanabi Hyūga~game",
+"Hiashi Hyūga",
+"Hinata Hyūga",
+"Neji Hyūga"
+],
+"kaiten": [
+"Hanabi Hyūga~anime",
+"Hiashi Hyūga",
+"Hinata Hyūga~game",
+"Hizashi Hyūga~anime",
+"Neji Hyūga"
+],
+"kagemane": [
+"Daen Nara",
+"Ensui Nara",
+"Kakashi Hatake~game",
+"Kasuga Nara",
+"Maen Nara",
+"Momoshiki Ōtsutsuki",
+"Shikadai Nara",
+"Shikaku Nara",
+"Shikamaru Nara",
+"Suzaku Nara",
+"Urashiki Ōtsutsuki~anime"
+],
+"kage_kubi": [
+"Shikadai Nara~anime",
+"Shikaku Nara",
+"Shikamaru Nara"
+],
+"baika": [
+"Chōbee Akimichi~anime",
+"Chōchō Akimichi",
+"Chōji Akimichi",
+"Chōza Akimichi",
+"Shitō Akimichi"
+],
+"nikudan": [
+"Chōchō Akimichi",
+"Chōji Akimichi",
+"Chōza Akimichi"
+],
+"mushi_swarm": [
+"Harika Aburame~anime",
+"Muta Aburame",
+"Shibi Aburame",
+"Shikuro Aburame",
+"Shino Aburame",
+"Tatsuma Aburame",
+"Torune Aburame",
+"Yōji Aburame~novel"
+],
+"gatsuga": [
+"Akamaru~~with~Kiba Inuzuka",
+"Akita Inuzuka~~with~Chamaru",
+"Chamaru~~with~Akita Inuzuka",
+"Kakashi Hatake~game",
+"Kiba Inuzuka~~with~Akamaru",
+"Kuromaru~~with~Tsume Inuzuka",
+"Tsume Inuzuka~~with~Kuromaru"
+],
+"shintenshin": [
+"Fū Yamanaka",
+"Ino Yamanaka",
+"Inoichi Yamanaka",
+"Inojin Yamanaka",
+"Kakashi Hatake~game",
+"Kohan Yamanaka~anime",
+"Santa Yamanaka"
+],
+"hyoton_senbon": [
+"Haku"
+],
+"bone_bullets": [
+"Kabuto Yakushi~game",
+"Kimimaro"
+],
+"chakra_chains": [
+"Karin~game",
+"Kushina Uzumaki"
+],
+"suika": [
+"Gengetsu Hōzuki",
+"Mangetsu Hōzuki",
+"Suigetsu Hōzuki<!-- Do not add Kabuto",
+"he created a technique like this one based off his research which has its own article -->"
+],
+"water_gun": [
+"Gengetsu Hōzuki",
+"Mangetsu Hōzuki",
+"Suigetsu Hōzuki"
+],
+"mizudeppo_no_jutsu": [
+"Gengetsu Hōzuki",
+"Mangetsu Hōzuki",
+"Suigetsu Hōzuki"
+],
+"sarutobi_haisekisho": [
+"Asuma Sarutobi",
+"Konohamaru Sarutobi~anime",
+"Scarlet Blaze~game"
+],
+"hatake_ninken": [
+"Kakashi Hatake"
+],
+"kuchiyose_doton_tsuiga_no_jutsu": [
+"Kakashi Hatake"
+],
+"akurobatto": [
+"Killer B"
+],
+"kongo_roheki": [
+"Hiruzen Sarutobi~game",
+"Monkey King: Enma"
+],
+"zanko": [
+"Sasuke Uchiha"
+],
+"kusa_boheki": [
+"Gaara",
+"Shinki~anime"
+],
+"shihohappo_shuriken": [
+"Naruto Uzumaki"
+],
+"issai_kaiku": [
+"Tobi (Zetsu)"
+],
+"tomogoroshi_no_haikotsu": [
+"Black Zetsu",
+"Kaguya Ōtsutsuki"
+],
+"amanohabaya": [
+"Kinshiki Ōtsutsuki"
+],
+"amaterasu": [
+"Indra Ōtsutsuki~game",
+"Itachi Uchiha",
+"Nanashi Uchiha~game<!-- DO NOT ADD ANY OTHER SUSANOO USERS! -->",
+"Sasuke Uchiha"
+],
+"amaterasu_entenka": [
+"Sasuke Uchiha"
+],
+"amenotejikara": [
+"Sasuke Uchiha"
+],
+"zofuku_kuchiyose_no_jutsu": [
+"Nagato"
+],
+"chikushodo": [
+"Hagoromo Ōtsutsuki",
+"Madara Uchiha",
+"Nagato",
+"Obito Uchiha",
+"Sasuke Uchiha"
+],
+"rakanken": [
+"Jirōbō"
+],
+"suna_no_yoroi": [
+"Gaara"
+],
+"nenkin_no_yoroi": [
+"Kidōmaru"
+],
+"ansatsu_jutsu": [
+"Fū Yamanaka",
+"Hyō",
+"Sai",
+"Shin",
+"Torune Aburame~anime"
+],
+"shurado": [
+"Hagoromo Ōtsutsuki",
+"Madara Uchiha",
+"Nagato",
+"Obito Uchiha",
+"Sasuke Uchiha"
+],
+"bansho_ten_in": [
+"Madara Uchiha~game",
+"Nagato",
+"Sasuke Uchiha~anime"
+],
+"kekkai_hojin": [
+"Eagle-Masked Anbu Member~game",
+"Iruka Umino~game",
+"Jirōbō",
+"Kidōmaru",
+"Motoi~game",
+"Riichi (ninja)~game",
+"Sakon and Ukon",
+"Tayuya"
+],
+"kekkaifu_gansoko": [
+"Ao"
+],
+"kekkai_tengai_hojin": [
+"Jiraiya"
+],
+"kekkai_gama_hyoro": [
+"Jiraiya"
+],
+"barion_modo": [
+"Kurama",
+"Naruto Uzumaki"
+],
+"bashosen_hi_no_maki": [
+"Kinkaku",
+"Tenten~anime"
+],
+"bashosen_kaze_no_maki": [
+"Kinkaku~game",
+"Tenten"
+],
+"jujin_bunshin": [
+"Akamaru",
+"Kiba Inuzuka"
+],
+"odama_rasengan": [
+"Boruto Uzumaki~manga",
+"Breeze Dancer~Game",
+"Hiruko (missing-nin)~movie",
+"Jiraiya",
+"Koji Kashin",
+"Konohamaru Sarutobi",
+"Momoshiki Ōtsutsuki",
+"Naruto Uzumaki"
+],
+"odama_rasenshuriken": [
+"Naruto Uzumaki"
+],
+"odama_rasen_tairengan": [
+"Naruto Uzumaki"
+],
+"jagei_jubaku": [
+"Mitsuki",
+"Orochimaru",
+"Sasuke Uchiha"
+],
+"kuroi_kaminari": [
+"A (Third Raikage)",
+"Darui"
+],
+"kuroki_jushinki": [
+"Black Zetsu",
+"Demonic Statue of the Outer Path",
+"Hagoromo Ōtsutsuki~game",
+"Madara Uchiha",
+"Momoshiki Ōtsutsuki",
+"Nagato",
+"Obito Uchiha",
+"Urashiki Ōtsutsuki~anime"
+],
+"kurohigi_kiki_ippatsu": [
+"Kankurō~~puppet~Kuroari~Karasu"
+],
+"kaze_no_yaiba": [
+"Baki",
+"Reto~game"
+],
+"enton_kagutsuchi": [
+"Hikari Uchiha~game",
+"Sasuke Uchiha"
+],
+"enton_yasaka_no_magatama": [
+"Sasuke Uchiha"
+],
+"fujutsu_kyuin": [
+"Madara Uchiha",
+"Nagato<!-- Do not add Sasuke -->"
+],
+"chigiri_toho_honenuki": [
+"Chōjūrō"
+],
+"ranshinsho": [
+"Sakura Haruno~game",
+"Tsunade"
+],
+"futton_komu_no_jutsu": [
+"Futsu",
+"Mei Terumī"
+],
+"terumi_futton_komu": [
+"Futsu",
+"Mei Terumī"
+],
+"futton_kairiki_muso": [
+"Han",
+"Kokuō",
+"Naruto Uzumaki"
+],
+"bubitorappu": [
+"Iō~anime",
+"Kiba Inuzuka",
+"Konohamaru Sarutobi~anime",
+"Rin Nohara~game",
+"Sakura Haruno~game",
+"Sarada Uchiha~game"
+],
+"masakari": [
+"Jūgo"
+],
+"chodan_bakugeki": [
+"Chōji Akimichi",
+"Chōza Akimichi~game"
+],
+"cho_modo": [
+"Chōchō Akimichi",
+"Chōji Akimichi",
+"Chōza Akimichi~game"
+],
+"shi_wan": [
+"Deidara",
+"Sekiei~anime"
+],
+"shi_tsu": [
+"Deidara"
+],
+"shi_suri": [
+"Deidara"
+],
+"shi_fo": [
+"Deidara"
+],
+"shi_o": [
+"Deidara"
+],
+"karori_kontororu": [
+"Chōbee Akimichi~anime",
+"Chōchō Akimichi",
+"Chōji Akimichi",
+"Chōza Akimichi",
+"Dōtō Akimichi",
+"Makaro Akimichi",
+"Maruten Akimichi",
+"Shitō Akimichi",
+"Torifu Akimichi"
+],
+"nekozume": [
+"<!-- Do not remove Matatabi",
+"Matatabi",
+"Yugito Nii",
+"the Fourth Databook implied that it is a user -->"
+],
+"byoen_hoka": [
+"Matatabi",
+"Yugito Nii"
+],
+"kusari": [
+"Jūgo",
+"Tosaka~anime~~with~Cursed Seal device"
+],
+"chakura_to_maichimonji": [
+"Asuma Sarutobi",
+"Sora~anime"
+],
+"chakura_kontororu_baku": [
+"Sakura Haruno"
+],
+"chakura_no_mesu": [
+"Azure Fang~game",
+"Kabuto Yakushi",
+"Nonō Yakushi~game",
+"Orochimaru~anime",
+"Sakura Haruno",
+"Shizune~game",
+"Tsunade"
+],
+"okasho": [
+"<!-- Warning: Do not remove the game tag from Tsunade",
+"Please Review the talkpage. -->",
+"Sakura Haruno",
+"Sarada Uchiha",
+"Tsunade~game"
+],
+"chibaku_tensei": [
+"Hagoromo Ōtsutsuki",
+"Madara Uchiha",
+"Nagato",
+"Sasuke Uchiha"
+],
+"chidori_nagashi": [
+"Sarada Uchiha~manga",
+"Sasuke Uchiha"
+],
+"chidori_senbon": [
+"Sasuke Uchiha"
+],
+"chidori_eiso": [
+"Midnight Blade~Game",
+"Sasuke Uchiha"
+],
+"nendo_bunshin": [
+"Deidara"
+],
+"kakuremino_no_jutsu": [
+"Magire Kakuremino~anime"
+],
+"bunshin_taiatari": [
+"Naruto Uzumaki"
+],
+"bunshin_daibakuha": [
+"Itachi Uchiha"
+],
+"nunoshibari_no_jutsu": [
+"Maki",
+"Nonota"
+],
+"kumo_ryu_mikazukigiri": [
+"Omoi"
+],
+"kumo_ryu_kaengiri": [
+"Atsui"
+],
+"kumo_ryu_omotegiri": [
+"Karui"
+],
+"kumo_ryu_uragiri": [
+"Omoi",
+"Samui~Game Only"
+],
+"iatsu_sharingan": [
+"Sasuke Uchiha"
+],
+"sensa_kaibyo": [
+"Gaara"
+],
+"senpuku": [
+"Kabuto Yakushi"
+],
+"renzoku_bijudama": [
+"Blue B~anime",
+"Gyūki",
+"Kaguya Ōtsutsuki~game",
+"Killer B",
+"Kurama",
+"Naruto Uzumaki",
+"Ten-Tails~game"
+],
+"keiyaku_fuin": [
+"Hashirama Senju~anime",
+"Minato Namikaze"
+],
+"sangosho": [
+"Isobu<!-- Do not remove Isobu",
+"Yagura Karatachi",
+"the Fourth Databook implied that it is a user -->"
+],
+"shikabane_bunshin_no_jutsu": [
+"Shojoji"
+],
+"sozo_saisei": [
+"Sakura Haruno",
+"Tsunade"
+],
+"karasu_bunshin_no_jutsu": [
+"Itachi Uchiha"
+],
+"jujutsu_shiji_hyoketsu": [
+"Hidan"
+],
+"chi_no_juin": [
+"Kimimaro"
+],
+"ten_no_juin": [
+"Anko Mitarashi",
+"Sasuke Uchiha"
+],
+"zekka_konzetsu_no_in": [
+"Danzō Shimura"
+],
+"tsubaki_no_mai": [
+"Kabuto Yakushi~game",
+"Kimimaro"
+],
+"tessenka_no_mai_hana": [
+"Kabuto Yakushi~game",
+"Kimimaro"
+],
+"tessenka_no_mai_tsuru": [
+"Kimimaro"
+],
+"mikazuki_no_mai": [
+"Hayate Gekkō",
+"Tobirama Senju~game",
+"Yūgao Uzuki~anime"
+],
+"karamatsu_no_mai": [
+"Kabuto Yakushi~Game",
+"Kimimaro"
+],
+"sawarabi_no_mai": [
+"Kabuto Yakushi",
+"Kimimaro"
+],
+"shikigami_no_mai": [
+"Konan"
+],
+"fukoku_hoin": [
+"Sakon"
+],
+"hirudora": [
+"Might Guy"
+],
+"shiki_fujin": [
+"Hiruzen Sarutobi",
+"Minato Namikaze"
+],
+"shikon_no_jutsu": [
+"Kabuto Yakushi"
+],
+"zankuha": [
+"Zaku Abumi"
+],
+"saikan_chushutsu_no_jutsu": [
+"Sakura Haruno"
+],
+"mateki_genbu_sokyoku": [
+"Tayuya"
+],
+"mateki_mugen_onsa": [
+"Hebihime~Game",
+"Kabuto Yakushi",
+"Tayuya"
+],
+"magen_kokoni_arazu_no_jutsu": [
+"Dōshin~game",
+"Kotetsu Hagane",
+"Oboro~anime",
+"Orochimaru~game"
+],
+"magen_shinkarasu": [
+"Itachi Uchiha",
+"Sasuke Uchiha"
+],
+"magen_kasegui_no_jutsu": [
+"Itachi Uchiha",
+"Sasuke Uchiha"
+],
+"magen_jubaku_satsu": [
+"Kurenai Yūhi",
+"Mirai Sarutobi",
+"Sakura Haruno~game",
+"Unkai Kurama~anime"
+],
+"mazo_no_kusari": [
+"Demonic Statue of the Outer Path",
+"Madara Uchiha",
+"Obito Uchiha<!--Do NOT add Nagato as a user-->"
+],
+"sabaku_fuyu": [
+"Gaara",
+"Rasa~game",
+"Shinki"
+],
+"sabakuha": [
+"Gaara",
+"Ryū~manga",
+"Shinki~anime"
+],
+"sabaku_hando": [
+"Gaara",
+"Rasa~game",
+"Shinki~anime",
+"Urashiki Ōtsutsuki~anime"
+],
+"tendo": [
+"Hagoromo Ōtsutsuki",
+"Madara Uchiha",
+"Nagato",
+"Obito Uchiha",
+"Sasuke Uchiha"
+],
+"suiken": [
+"Rock Lee"
+],
+"jinton_genkai_hakuri_no_jutsu": [
+"Kakō~anime",
+"Kū~anime",
+"Mū",
+"Ōnoki"
+],
+"mujin_meisai": [
+"Mū"
+],
+"dainamikku_entori": [
+"Ebisu~game",
+"Genma Shiranui~game",
+"Kakashi Hatake~game",
+"Lars Alexandersson~game",
+"Metal Lee~anime",
+"Might Guy",
+"Rock Lee~anime",
+"Tenten~anime"
+],
+"hayanie": [
+"Itachi Uchiha"
+],
+"jiongu": [
+"Kakuzu"
+],
+"doton_kekkai_doro_domu": [
+"Jirōbō",
+"Kū~anime"
+],
+"doton_kajugan_no_jutsu": [
+"Crimson Fist~game",
+"Ōnoki"
+],
+"doton_shinju_zanshu_no_jutsu": [
+"Hiruzen Sarutobi~anime",
+"Kabuto Yakushi~game<!-- Do not Add Kabuto or Deidara",
+"Kakashi Hatake",
+"that was Earth Release: Hiding Like a Mole Technique -->"
+],
+"doton_doryukatsu": [
+"Yamato"
+],
+"doton_doryo_dango": [
+"Akatsuchi~game",
+"Crimson Fist~game",
+"Jirōbō",
+"Kabuto Yakushi~game",
+"Rokkaku Ryūdōin~game"
+],
+"doton_doryu_joheki": [
+"Fudō~anime",
+"Yamato"
+],
+"doton_kengan_no_jutsu": [
+"Akatsuchi~anime",
+"Crimson Fist~game",
+"Kitsuchi",
+"Kurotsuchi~anime",
+"Kū~anime",
+"Ōnoki"
+],
+"doton_goremu_no_jutsu": [
+"Akatsuchi",
+"Kitsuchi~game",
+"Kurotsuchi~anime",
+"Kū~anime",
+"Mū~game",
+"Ōnoki"
+],
+"doton_sazareishi": [
+"Iwabee Yuino~anime",
+"Matsuri (God Tree)~manga",
+"Moegi Kazamatsuri"
+],
+"doton_moguragakure_no_jutsu": [
+"Deidara",
+"Gozu~anime",
+"Jirōbō",
+"Kabuto Yakushi",
+"Kakashi Hatake",
+"Kankurō~novel",
+"Konohamaru Sarutobi~anime",
+"Kosuke Maruboshi~anime",
+"Kurotsuchi",
+"Muyami~anime",
+"Obito Uchiha",
+"Orochimaru",
+"Sai",
+"Tobi (Zetsu)~game",
+"Ōnoki~game"
+],
+"doton_keijugan_no_jutsu": [
+"Crimson Fist~game",
+"Ishikawa",
+"Kurotsuchi~game",
+"Kū~anime",
+"Mū",
+"Ōnoki"
+],
+"doton_kaido_shokutsu": [
+"Kakō~anime",
+"Kitsuchi",
+"Kurotsuchi"
+],
+"doton_renga_no_jutsu": [
+"Chōji Akimichi",
+"Ino Yamanaka",
+"Kitsuchi",
+"Shikamaru Nara"
+],
+"doton_ressenga": [
+"Kakashi Hatake"
+],
+"doton_iwayado_kuzushi": [
+"Kakkō",
+"Mugino"
+],
+"doton_sando_no_jutsu": [
+"Akatsuchi~anime",
+"Fudō~anime",
+"Iwabee Yuino~anime",
+"Kitsuchi"
+],
+"doton_dochu_senko": [
+"Kisame Hoshigaki"
+],
+"doton_retsudo_tensho": [
+"Fudō~anime",
+"Kakashi Hatake~game",
+"Sumashi",
+"Victor~anime"
+],
+"doton_chokajugan_no_jutsu": [
+"Ōnoki"
+],
+"doton_dochu_eigyo_no_jutsu": [
+"Kagari",
+"Kagerō~anime",
+"Mahiru",
+"Mizuki~anime",
+"Mubi",
+"Muyami~anime",
+"Oboro"
+],
+"yamata_no_jutsu": [
+"Orochimaru"
+],
+"hachimon_tonko_no_jin": [
+"Might Duy",
+"Might Guy"
+],
+"hakke_no_fuin_shiki": [
+"Kushina Uzumaki",
+"Minato Namikaze",
+"Obito Uchiha~manga",
+"Orochimaru~anime"
+],
+"hakke_kusho": [
+"Hanabi Hyūga~anime",
+"Hiashi Hyūga",
+"Hinata Hyūga",
+"Hizashi Hyūga~game",
+"Neji Hyūga"
+],
+"hakke_kuhekisho": [
+"Hamura Ōtsutsuki~game",
+"Hanabi Hyūga~game",
+"Hiashi Hyūga",
+"Hinata Hyūga",
+"Neji Hyūga"
+],
+"erubo": [
+"A (Fourth Raikage)"
+],
+"funyu_no_jutsu": [
+"Ajisai and Yūgao are only listed because this technique is their speciality -->",
+"Ajisai~anime",
+"Tenten",
+"Yūgao Uzuki~anime<!-- Do not add other users"
+],
+"utakata": [
+"Itachi Uchiha"
+],
+"funsuiken": [
+"Han",
+"Naruto Uzumaki"
+],
+"sekizo": [
+"Might Guy"
+],
+"fuja_hoin": [
+"Kakashi Hatake",
+"Kurenai Yūhi~anime"
+],
+"bakuton_jiraiken": [
+"Gari"
+],
+"kibaku_nendo": [
+"Deidara",
+"Sekiei~anime"
+],
+"zankukyokuha": [
+"Zaku Abumi"
+],
+"fang_s_rush": [
+"Ameyuri Ringo"
+],
+"tanuki_neiri_no_jutsu": [
+"Gaara"
+],
+"zessenbaku": [
+"Shima"
+],
+"shikoku_fuin": [
+"Fudō~anime",
+"Jiraiya"
+],
+"katon_dai_endan": [
+"Jiraiya",
+"Koji Kashin"
+],
+"katon_bakufu_ranbu": [
+"Obito Uchiha",
+"Scarlet Blaze~game"
+],
+"katon_kibaku_enjin": [
+"Hanzō"
+],
+"katon_goryuka_no_jutsu": [
+"Itachi Uchiha~game",
+"Nanashi Uchiha~game",
+"Sasuke Uchiha",
+"Scarlet Blaze~game",
+"Shisui Uchiha~game"
+],
+"katon_goka_mekkyaku": [
+"Indra Ōtsutsuki~game",
+"Izuna Uchiha~game",
+"Madara Uchiha",
+"Nanashi Uchiha~game"
+],
+"katon_goka_messhitsu": [
+"Madara Uchiha"
+],
+"katon_goen_no_jutsu": [
+"Konohamaru Sarutobi"
+],
+"katon_haijingakure_no_jutsu": [
+"Madara Uchiha"
+],
+"katon_hosenka_tsumabeni": [
+"Itachi Uchiha",
+"Shisui Uchiha~game<!-- Do NOT add Sasuke",
+"see trivia -->"
+],
+"fuka_hoin": [
+"Jiraiya"
+],
+"bunretsu_no_jutsu": [
+"Mū"
+],
+"gogyo_fuin": [
+"Orochimaru"
+],
+"gogyo_kaiin": [
+"Hiruzen Sarutobi~anime",
+"Jiraiya",
+"Kazuma~anime",
+"Orochimaru~anime",
+"Tsunade~anime<!-- do NOT add Naruto he doesn't use this technique there were no elemental symbols on his fingers -->"
+],
+"goton_dairendan_no_jutsu": [
+"Hiruzen Sarutobi"
+],
+"gofu_kekkai": [
+"Nagato"
+],
+"kaiwan_no_hiya": [
+"Nagato"
+],
+"kakazan": [
+"Rōshi",
+"Son Gokū<!-- Do not remove Son Gokū",
+"the Fourth Databook states it is a user -->"
+],
+"hisenken": [
+"Kakashi Hatake~anime",
+"Zabuza Momochi"
+],
+"hien": [
+"Asuma Sarutobi",
+"Kazuma~anime",
+"Konohamaru Sarutobi~anime",
+"Mirai Sarutobi",
+"Sora~anime"
+],
+"hiraishingiri": [
+"Minato Namikaze",
+"Tobirama Senju"
+],
+"hiraishin_no_jutsu": [
+"Minato Namikaze",
+"Tobirama Senju"
+],
+"hiraishin_dorai": [
+"Minato Namikaze"
+],
+"kinkoju_no_fuda": [
+"Madara Uchiha"
+],
+"mandara_no_jin": [
+"Orochimaru"
+],
+"shikyaku_no_jutsu": [
+"Akita Inuzuka",
+"Hana Inuzuka~manga",
+"Kiba Inuzuka",
+"Tsume Inuzuka"
+],
+"shisho_fuin": [
+"Kushina Uzumaki",
+"Minato Namikaze",
+"Obito Uchiha~manga",
+"Orochimaru~anime"
+],
+"kawazu_kumite": [
+"Fukasaku",
+"Jiraiya",
+"Naruto Uzumaki",
+"Shima"
+],
+"kawazu_tataki": [
+"Naruto Uzumaki"
+],
+"omote_renge": [
+"Crimson Fist~Game",
+"Kakashi Hatake~anime",
+"Might Guy",
+"Naruto Uzumaki~game",
+"Rock Lee"
+],
+"genjutsu_tsushin": [
+"Amado Sanzu",
+"Boro",
+"Code",
+"Deepa~anime",
+"Delta",
+"Isshiki Ōtsutsuki",
+"Koji Kashin",
+"Victor",
+"Ōga~anime"
+],
+"genjutsu_sharingan": [
+"Danzō Shimura~anime",
+"Fugaku Uchiha~anime",
+"Indra Ōtsutsuki~anime",
+"Itachi Uchiha",
+"Izuna Uchiha~anime",
+"Kakashi Hatake",
+"Madara Uchiha",
+"Obito Uchiha",
+"Sarada Uchiha",
+"Sasuke Uchiha",
+"Shisui Uchiha~anime",
+"Tekka Uchiha~novel"
+],
+"juken": [
+"Boruto Uzumaki",
+"Hamura Ōtsutsuki~game",
+"Hanabi Hyūga",
+"Hiashi Hyūga",
+"Himawari Uzumaki",
+"Hinata Hyūga",
+"Hizashi Hyūga",
+"Momoshiki Ōtsutsuki",
+"Mukai Kohinata~novel",
+"Neji Hyūga"
+],
+"jukenho_ichigekishin": [
+"Neji Hyūga"
+],
+"juho_soshiken": [
+"Hanabi Hyūga~game",
+"Hinata Hyūga"
+],
+"daibyo_sogeki": [
+"Matatabi",
+"Yugito Nii"
+],
+"daihoko": [
+"Ginkaku~game",
+"Gyūki~game",
+"Isobu~anime",
+"Killer B~game",
+"Kurama",
+"Naruto Uzumaki",
+"Nine-Tailed Naruto Clone~anime",
+"Shukaku~anime",
+"Sora~anime",
+"Ten-Tails",
+"Yugito Nii~game"
+],
+"daikamaitachi_no_jutsu": [
+"Temari"
+],
+"daijatsuki": [
+"Mitsuki"
+],
+"girochin_doroppu": [
+"A (Fourth Raikage)"
+],
+"kebari_senbon": [
+"Fuguki Suikazan",
+"Jiraiya"
+],
+"haremu_no_jutsu": [
+"Boruto Uzumaki",
+"Breeze Dancer~game",
+"Konohamaru Sarutobi~anime",
+"Naruto Uzumaki"
+],
+"oboro_bunshin_no_jutsu": [
+"Hōki (Watari)~anime",
+"Kagari",
+"Mubi",
+"Oboro",
+"Scarlet Blaze~game"
+],
+"tsutenkyaku": [
+"Sakura Haruno~movie",
+"Tsunade"
+],
+"tenso_no_jutsu": [
+"Mabui"
+],
+"jigokuzuki": [
+"A (Third Raikage)"
+],
+"sen_ei_jashu": [
+"Anko Mitarashi",
+"Kabuto Yakushi",
+"Mamushi (Genin)~anime",
+"Mitsuki",
+"Orochimaru",
+"Sasuke Uchiha"
+],
+"kirigakure_no_jutsu": [
+"Chōjūrō~anime",
+"Itachi Uchiha~game",
+"Jūzō Biwa~anime",
+"Kakashi Hatake~anime",
+"Kisame Hoshigaki~game",
+"Kurobane~anime",
+"Mei Terumī",
+"Raiga Kurosuki~anime",
+"Yūkimaru~anime",
+"Zabuza Momochi"
+],
+"gamagakure_no_jutsu": [
+"Jiraiya"
+],
+"meisaigakure_no_jutsu": [
+"Black Zetsu~anime",
+"Fuen~game",
+"Fūka~anime",
+"Hokushin~anime",
+"Iwana (Otogakure)~anime",
+"Jibachi~anime",
+"Kabuto Yakushi~anime",
+"Kajika~anime",
+"Karenbana~movie",
+"Kazuma~anime",
+"Kurobachi~anime",
+"Nagare~anime",
+"Nurari~anime",
+"Shiranami~anime",
+"Suzumebachi~anime",
+"Taiseki",
+"Yamame~anime"
+],
+"hokage_shiki_jijun_jutsu_kakuan_nitten_suishu": [
+"Hashirama Senju",
+"Yamato"
+],
+"tsunoori": [
+"Han",
+"Kokuō"
+],
+"ningendo": [
+"Hagoromo Ōtsutsuki",
+"Madara Uchiha",
+"Nagato",
+"Obito Uchiha",
+"Sasuke Uchiha"
+],
+"hyuga_soke_no_juinjutsu": [
+"Hiashi Hyūga"
+],
+"iaigiri": [
+"Mifune"
+],
+"iaido": [
+"Araya~game",
+"Boruto Uzumaki~manga",
+"Kisame Hoshigaki~game",
+"Midnight Blade~game",
+"Mifune",
+"Okisuke~anime",
+"Sasuke Uchiha",
+"Sazanami~anime",
+"Sazanka~anime",
+"Tatewaki~anime",
+"Tobirama Senju~game",
+"Tsubaki Kurogane~anime",
+"Waraji",
+"Zōri"
+],
+"hyoton_hyogan_domu": [
+"Haku"
+],
+"indora_no_ya": [
+"Sasuke Uchiha"
+],
+"sumi_bunshin_no_jutsu": [
+"Killer B",
+"Sai"
+],
+"sumigasumi_no_jutsu": [
+"Sai"
+],
+"uchi_naru_sakura": [
+"Sakura Haruno"
+],
+"mushi_bunshin_no_jutsu": [
+"Shino Aburame",
+"Tatsuma Aburame~game",
+"Torune Aburame~anime"
+],
+"mushi_jamingu_no_jutsu": [
+"Muta Aburame",
+"Shino Aburame"
+],
+"satetsu_shigure": [
+"Sasori~~puppet~Third Kazekage",
+"Shinki~anime",
+"Third Kazekage"
+],
+"satetsu_kesshu": [
+"Sasori~~puppet~Third Kazekage",
+"Third Kazekage"
+],
+"satetsu_kaiho": [
+"Sasori~~puppet~Third Kazekage",
+"Third Kazekage"
+],
+"izanagi": [
+"Baru Uchiha~anime",
+"Danzō Shimura",
+"Madara Uchiha",
+"Naka Uchiha~anime",
+"Obito Uchiha",
+"Rai Uchiha~anime <!-- Do not add the Sage of the Six Paths. See talkpage for more info. -->"
+],
+"izanami": [
+"Itachi Uchiha",
+"Naori Uchiha~anime"
+],
+"kamui": [
+"Black Zetsu",
+"Kakashi Hatake",
+"Madara Uchiha",
+"Obito Uchiha"
+],
+"kamui_raikiri": [
+"Kakashi Hatake"
+],
+"kamui_shuriken": [
+"Kakashi Hatake"
+],
+"kanzeon_renge_o": [
+"Asura Ōtsutsuki~game",
+"Tobi (Zetsu)"
+],
+"kirin": [
+"Sasuke Uchiha"
+],
+"kotoamatsukami": [
+"Danzō Shimura",
+"Shisui Uchiha <!-- Do not add Itachi nor his crow",
+"see talkpage -->"
+],
+"yoton_chakura_modo": [
+"Rōshi"
+],
+"yoton_kaisekifu_no_jutsu": [
+"Kurotsuchi"
+],
+"yoton_yokai_no_jutsu": [
+"Mei Terumī"
+],
+"yoton_sekkaigyo_no_jutsu": [
+"Kurotsuchi",
+"Kyūsuke~anime"
+],
+"yoton_shakugaikoken": [
+"Rōshi"
+],
+"yoton_shakugaryugan_no_jutsu": [
+"Rōshi"
+],
+"konoha_reppu": [
+"Might Guy",
+"Naruto Uzumaki~game",
+"Rock Lee"
+],
+"konoha_daisenpu": [
+"Chen~anime",
+"Metal Lee~anime",
+"Might Guy~anime",
+"Rock Lee"
+],
+"konoha_shofu": [
+"Metal Lee~game",
+"Rock Lee"
+],
+"konoha_goriki_senpu": [
+"Might Guy",
+"Naruto Uzumaki~game",
+"Rock Lee~game"
+],
+"konoha_senpu": [
+"Chen~anime",
+"Crimson Fist~game",
+"Metal Lee",
+"Might Guy",
+"Naruto Uzumaki~game",
+"Rock Lee"
+],
+"chodan_koro": [
+"Isobu",
+"Rin Nohara~game",
+"Yagura Karatachi"
+],
+"hiruma": [
+"Saiken<!-- Do not remove Saiken",
+"Utakata",
+"the Fourth Databook implied that it is a user -->"
+],
+"raiga_bomu": [
+"A (Fourth Raikage)",
+"A (Third Raikage)~game",
+"Killer B~game"
+],
+"raikiri": [
+"Hiruko (missing-nin)~Movie",
+"Kakashi Hatake"
+],
+"raisen": [
+"Sarada Uchiha",
+"Sasuke Uchiha"
+],
+"raigyaku_suihei_choppu": [
+"A (Fourth Raikage)",
+"A (Third Raikage)~game"
+],
+"raiton_kuropansa": [
+"Darui"
+],
+"raiton_rariatto": [
+"A (Fourth Raikage)",
+"A (Third Raikage)~game<!-- Do NOT add Kushina",
+"Blue B~anime",
+"Killer B",
+"it was a simple physical attack -->"
+],
+"raiton_raiju_tsuiga": [
+"Kakashi Hatake"
+],
+"hatake_raiju_tsuiga": [
+"Kakashi Hatake"
+],
+"raiton_raigen_raikochu": [
+"C"
+],
+"raiton_shiden": [
+"Boruto Uzumaki~manga",
+"Kakashi Hatake",
+"Mitsuki~manga"
+],
+"raiton_kage_bunshin_no_jutsu": [
+"Kakashi Hatake",
+"Kakui~anime",
+"Kido Tsumiki~novel",
+"Marui~anime",
+"Midnight Blade~game",
+"Omoi~anime"
+],
+"raiton_jinraisen": [
+"Boruto Uzumaki",
+"Momoshiki Ōtsutsuki~game"
+],
+"raiton_kangekiha": [
+"Darui"
+],
+"raitoningu_sutoreto": [
+"A (Fourth Raikage)",
+"A (Third Raikage)"
+],
+"rinbo_hengoku": [
+"Madara Uchiha"
+],
+"shishi_rendan": [
+"Kakashi Hatake~game",
+"Sasuke Uchiha"
+],
+"fushi_tensei": [
+"<!-- Do not add Kabuto Yakushi",
+"Orochimaru",
+"he didn't use this technique. He just manifested Orochimaru's true form -->"
+],
+"jiton_sakin_taiso": [
+"Rasa"
+],
+"iso_susanoo": [
+"Madara Uchiha",
+"Merz~game~~with~artificial Sharingan",
+"Sasuke Uchiha"
+],
+"soshujin": [
+"Amagi~novel",
+"Chiyo",
+"Mukade (movie)~movie",
+"Tenten~anime",
+"Yashamaru"
+],
+"sofushasan_no_tachi": [
+"Sasuke Uchiha"
+],
+"kiko_junbu": [
+"Chiyo",
+"Kankurō~~puppet~Sasori",
+"Mecha-Naruto~game"
+],
+"senno_sosa_no_jutsu": [
+"Sasori"
+],
+"shinranshin_no_jutsu": [
+"Ino Yamanaka~anime",
+"Inoichi Yamanaka"
+],
+"shindenshin_no_jutsu": [
+"Ino Yamanaka",
+"Inoichi Yamanaka",
+"Inojin Yamanaka",
+"Sai~manga"
+],
+"shinten_kugutsu_juin_no_jutsu": [
+"Fū Yamanaka"
+],
+"kagura_shingan": [
+"Karin"
+],
+"mini_rasenshuriken": [
+"Naruto Uzumaki"
+],
+"kyomen_shuja_no_jutsu": [
+"Nagato",
+"Orochimaru~game"
+],
+"kasumi_jusha_no_jutsu": [
+"Mubi",
+"Murasame~novel"
+],
+"suna_no_kaiwan": [
+"Gaara"
+],
+"asakujaku": [
+"Might Guy"
+],
+"taju_kage_bunshin_no_jutsu": [
+"Boruto Uzumaki~anime",
+"Breeze Dancer~game",
+"Kakashi Hatake",
+"Konohamaru Sarutobi~anime",
+"Naruto Uzumaki",
+"Shizune~anime"
+],
+"gojo_kibaku_fuda": [
+"Tobirama Senju"
+],
+"jigokudo": [
+"Hagoromo Ōtsutsuki",
+"Madara Uchiha",
+"Nagato",
+"Obito Uchiha",
+"Sasuke Uchiha"
+],
+"uzumaki_naruto_rendan": [
+"Boruto Uzumaki~game",
+"Kakashi Hatake~game",
+"Naruto Uzumaki",
+"Rock Lee~game"
+],
+"kage_nageami_shibari_no_jutsu": [
+"Shikadai Nara"
+],
+"yagai": [
+"Might Guy"
+],
+"kyubi_chakura_modo": [
+"Kurama",
+"Menma Namikaze~anime",
+"Minato Namikaze",
+"Naruto Uzumaki"
+],
+"sennen_goroshi": [
+"Kakashi Hatake",
+"Naruto Uzumaki",
+"Obito Uchiha~game",
+"Sasuke Uchiha~game"
+],
+"kisho_tensei": [
+"Chiyo"
+],
+"orochimaru_no_juinjutsu": [
+"Orochimaru"
+],
+"orochimaru_ryu_no_kawarimi_no_jutsu": [
+"Kabuto Yakushi",
+"Orochimaru",
+"Sasuke Uchiha"
+],
+"gedo": [
+"Hagoromo Ōtsutsuki",
+"Madara Uchiha",
+"Nagato",
+"Obito Uchiha",
+"Sasuke Uchiha"
+],
+"gedo_rinne_tensei_no_jutsu": [
+"Nagato",
+"Obito Uchiha"
+],
+"shotei": [
+"Hanabi Hyūga~anime",
+"Hiashi Hyūga",
+"Hinata Hyūga",
+"Neji Hyūga"
+],
+"kami_bunshin": [
+"Konan"
+],
+"kami_no_shisha_no_jutsu": [
+"Konan"
+],
+"kami_shuriken": [
+"Konan"
+],
+"bubun_baika_no_jutsu": [
+"Chōbee Akimichi~anime",
+"Chōchō Akimichi",
+"Chōji Akimichi",
+"Chōza Akimichi",
+"Shitō Akimichi"
+],
+"tsuga": [
+"Akamaru",
+"Akita Inuzuka",
+"Chamaru",
+"Kiba Inuzuka",
+"Kuromaru",
+"Tsume Inuzuka"
+],
+"kassokuken": [
+"Jūgo"
+],
+"wakusei_rasengan": [
+"Naruto Uzumaki"
+],
+"dokugiri": [
+"Azure Fang~game",
+"Hanzō~game",
+"Ibuse",
+"Kakashi Hatake~game",
+"Manda II~game",
+"Manda~game",
+"Reki~game",
+"Saiken~game",
+"Shizune",
+"Taisa Amagiri~game",
+"Utakata~game"
+],
+"gakido": [
+"Hagoromo Ōtsutsuki",
+"Madara Uchiha",
+"Nagato",
+"Obito Uchiha",
+"Sasuke Uchiha"
+],
+"gokusa_maiso": [
+"Gaara"
+],
+"saiko_denshin": [
+"Aoba Yamashiro",
+"Ino Yamanaka~anime",
+"Inoichi Yamanaka",
+"Kurenai Yūhi~anime",
+"Mawashi Dokuraku",
+"Mozuku~anime",
+"Shimon Hijiri",
+"Tonbo Tobitake"
+],
+"kugutsu_no_jutsu": [
+"Araya~anime",
+"Asura Path (character)~anime",
+"Chiyo",
+"Gandō~game",
+"Hako Kuroi~anime",
+"Ibushi~game",
+"Kankurō",
+"Kokuyō (puppeteer)~anime",
+"Komushi~anime",
+"Korobi~anime",
+"Malice~game",
+"Menō (ninja)~game",
+"Mizuki~anime",
+"Monzaemon Chikamatsu",
+"Mukade (movie)~movie",
+"Sasori",
+"Saya~anime",
+"Setsuna~movie",
+"Shamon",
+"Shinki",
+"Suna Assassin Captain~anime",
+"Tenten~anime",
+"Toneri Ōtsutsuki~movie canon",
+"Urashiki Ōtsutsuki~anime",
+"Yaoki~anime",
+"Ōga~anime"
+],
+"ryusa_bakuryu": [
+"Gaara"
+],
+"ukojizai_no_jutsu": [
+"Nagato"
+],
+"akahigi_hyakki_no_soen": [
+"Kankurō~game",
+"Sasori"
+],
+"kyomeisen": [
+"Dosu Kinuta"
+],
+"ura_shisho_fuin": [
+"Danzō Shimura"
+],
+"ura_renge": [
+"Might Guy",
+"Rock Lee"
+],
+"iwa_bunshin_no_jutsu": [
+"Kakō~anime",
+"Ōnoki"
+],
+"nawanuke_no_jutsu": [
+"<!-- do NOT add anyone",
+"everyone can do basic techniques -->"
+],
+"senpo_muki_tensei": [
+"Kabuto Yakushi"
+],
+"senpo_yoton_rasenshuriken": [
+"Naruto Uzumaki"
+],
+"senpo_jiton_rasengan": [
+"Naruto Uzumaki"
+],
+"senpo_myojinmon": [
+"Hashirama Senju"
+],
+"senpo_hakugeki_no_jutsu": [
+"Kabuto Yakushi"
+],
+"sennin_modo": [
+"Fukasaku",
+"Gamakichi",
+"Gamamaru~anime",
+"Hashirama Senju",
+"Jiraiya",
+"Jūgo",
+"Kabuto Yakushi",
+"Koji Kashin",
+"Minato Namikaze",
+"Mitsuki",
+"Naruto Uzumaki",
+"Shima",
+"White Snake Sage"
+],
+"senninka": [
+"Jūgo",
+"Kabuto Yakushi",
+"Mitsuki",
+"Tosaka~anime~~with~a Cursed Seal device"
+],
+"sabaku_kyu": [
+"Gaara",
+"Shinki~anime",
+"Third Kazekage~game"
+],
+"suna_bunshin": [
+"Gaara",
+"Sasori~anime"
+],
+"suna_shuriken": [
+"Gaara"
+],
+"sabaku_soso": [
+"Gaara",
+"Shinki~anime",
+"Third Kazekage~game"
+],
+"sabaku_taiso": [
+"Gaara"
+],
+"sanzengarasu_no_jutsu": [
+"Aoba Yamashiro"
+],
+"jukai_shinshoku": [
+"Black Zetsu",
+"Hashirama Senju~game",
+"Obito Uchiha"
+],
+"fuinjutsu_shishi_heiko": [
+"Chiyo",
+"Monzaemon Chikamatsu"
+],
+"fuinjutsu_genryu_kyufujin": [
+"Demonic Statue of the Outer Path",
+"Nagato",
+"Obito Uchiha"
+],
+"fuinjutsu_koshi_tandan": [
+"Inojin Yamanaka~anime",
+"Sai"
+],
+"hijutsu_mushidama": [
+"Shibi Aburame~Anime",
+"Shino Aburame",
+"Tatsuma Aburame~Game",
+"Torune Aburame~Game"
+],
+"jigo_jubaku_no_in": [
+"Danzō Shimura"
+],
+"jouro_senbon": [
+"Aoi Rokushō~anime",
+"Fuyō~anime",
+"Genma Shiranui~game",
+"Kin Tsuchi~game",
+"Midare~game",
+"Shigure",
+"Suiren~anime"
+],
+"kanchi_no_jutsu": [
+"Akahoshi~anime",
+"Ao",
+"Asura Ōtsutsuki~anime",
+"Black Zetsu",
+"Blue B~anime",
+"Boruto Uzumaki~manga",
+"C",
+"Chino~novel",
+"Chūkichi",
+"Code~manga",
+"Fuyō~anime",
+"Fū Yamanaka",
+"Gengo~novel",
+"Hagoromo Ōtsutsuki",
+"Hiruzen Sarutobi",
+"Hokuto~anime",
+"Indra Ōtsutsuki~anime",
+"Ino Yamanaka",
+"Inoichi Yamanaka",
+"Inojin Yamanaka~anime",
+"Iruka Umino~anime",
+"Jura~manga",
+"Kaguya Ōtsutsuki",
+"Kinshiki Ōtsutsuki",
+"Kohan Yamanaka~anime",
+"Konan~anime",
+"Kurama",
+"Kurenai Yūhi~anime",
+"Madara Uchiha",
+"Minato Namikaze",
+"Mitsuki~anime",
+"Mizuki~anime",
+"Mū",
+"Nagato",
+"Natsuhi~anime",
+"Nishi (sensor)",
+"Obito Uchiha",
+"Sagan",
+"Sana~anime",
+"Santa Yamanaka",
+"Sasuke Uchiha",
+"Suiren~anime",
+"Tekka Uchiha~novel",
+"Tobirama Senju",
+"Toneri Ōtsutsuki~movie canon",
+"Urashiki Ōtsutsuki~anime",
+"Utakata~anime",
+"Yūgao Uzuki~anime",
+"Zaji"
+],
+"kanchi_suikyu": [
+"Ao",
+"Inoichi Yamanaka",
+"Kakoi",
+"Kussaku"
+],
+"oiroke_no_jutsu": [
+"Boruto Uzumaki",
+"Kakashi Hatake~game",
+"Konohamaru Sarutobi",
+"Moegi Kazamatsuri~anime",
+"Naruto Uzumaki",
+"Rock Lee~game",
+"Sasuke Uchiha~game",
+"Udon Ise~anime"
+],
+"kagezukami_no_jutsu": [
+"Shikamaru Nara"
+],
+"kageyose_no_jutsu": [
+"Shikadai Nara~anime",
+"Shikamaru Nara"
+],
+"kagemane_shuriken_no_jutsu": [
+"Shikamaru Nara"
+],
+"kage_senbon": [
+"Kin Tsuchi"
+],
+"kage_nui_no_jutsu": [
+"Ensui Nara",
+"Shikaku Nara~anime",
+"Shikamaru Nara"
+],
+"kage_shuriken_no_jutsu": [
+"Ebisu~game",
+"Iruka Umino~game",
+"Mirai Sarutobi",
+"Mizuki~game",
+"Naruto Uzumaki",
+"Sarada Uchiha~game",
+"Sasuke Uchiha"
+],
+"kage_buyo": [
+"Kakashi Hatake~anime",
+"Metal Lee~game",
+"Might Guy",
+"Rock Lee",
+"Sasuke Uchiha"
+],
+"shinra_tensei": [
+"Kaguya Ōtsutsuki~game",
+"Madara Uchiha~game",
+"Momoshiki Ōtsutsuki~game",
+"Nagato",
+"Sasuke Uchiha~game"
+],
+"shuriken_kage_bunshin_no_jutsu": [
+"Hashirama Senju~game",
+"Hiruzen Sarutobi",
+"Konohamaru Sarutobi~anime",
+"Kosuke Maruboshi~anime",
+"Minato Namikaze~movie",
+"Naruto Uzumaki~anime",
+"Orochimaru~anime",
+"Yōrō~anime"
+],
+"sarutobi_shuriken_tajuu": [
+"Hashirama Senju~game",
+"Hiruzen Sarutobi",
+"Konohamaru Sarutobi~anime",
+"Kosuke Maruboshi~anime",
+"Minato Namikaze~movie",
+"Naruto Uzumaki~anime",
+"Orochimaru~anime",
+"Yōrō~anime"
+],
+"kamaitachi_no_jutsu": [
+"Breeze Dancer~game",
+"Daizen Matsushige~anime",
+"Mitsuki~anime",
+"Shikadai Nara",
+"Temari",
+"Uō~anime"
+],
+"sairento_kiringu": [
+"Ameyuri Ringo",
+"Buntan Kurosuki~anime",
+"Chōjūrō",
+"Chūkichi~anime",
+"Fuguki Suikazan",
+"Haku",
+"Jinin Akebino",
+"Jinpachi Munashi",
+"Jūzō Biwa~game",
+"Kakashi Hatake",
+"Kisame Hoshigaki",
+"Kushimaru Kuriarare",
+"Mangetsu Hōzuki",
+"Mizuki~anime",
+"Suigetsu Hōzuki",
+"Zabuza Momochi"
+],
+"rikudo_sennin_modo": [
+"Naruto Uzumaki"
+],
+"rikudo_senjutsu": [
+"Asura Ōtsutsuki",
+"Hagoromo Ōtsutsuki",
+"Hamura Ōtsutsuki",
+"Madara Uchiha",
+"Naruto Uzumaki",
+"Obito Uchiha",
+"Ten-Tails"
+],
+"rikudo_no_yo_no_chikara": [
+"Hagoromo Ōtsutsuki",
+"Naruto Uzumaki"
+],
+"rikudo_no_in_no_chikara": [
+"Hagoromo Ōtsutsuki",
+"Hamura Ōtsutsuki",
+"Sasuke Uchiha"
+],
+"pein_rikudo": [
+"Nagato",
+"Obito Uchiha"
+],
+"rikudo_jubi_kyuin": [
+"Madara Uchiha",
+"Obito Uchiha"
+],
+"musekiyojin": [
+"Obito Uchiha"
+],
+"katsuyu_daibunretsu": [
+"Katsuyu"
+],
+"hebi_bunshin_no_jutsu": [
+"Anko Mitarashi~anime",
+"Kabuto Yakushi~anime",
+"Mitsuki",
+"Orochimaru~anime"
+],
+"shabondama_no_ninjutsu": [
+"Chino",
+"Harusame~anime",
+"Naruto Uzumaki~anime",
+"Saiken~anime",
+"Utakata"
+],
+"nan_no_kaizo": [
+"Kabuto Yakushi",
+"Misumi Tsurugi",
+"Mitsuki",
+"Mizuki~anime",
+"Nurari~anime",
+"Orochimaru"
+],
+"gekito_yokaku": [
+"Chōmei",
+"Fū~game"
+],
+"kumo_shibari": [
+"Kidōmaru"
+],
+"kumo_nenkin": [
+"Kabuto Yakushi~game",
+"Kidōmaru"
+],
+"kumo_senkyu_suzaku": [
+"Kabuto Yakushi~game",
+"Kidōmaru"
+],
+"kumo_sokei": [
+"Kidōmaru"
+],
+"kumo_soka": [
+"Kidōmaru"
+],
+"nikudan_hari_sensha": [
+"Chōji Akimichi",
+"Chōza Akimichi~game"
+],
+"rasenkyugan": [
+"Naruto Uzumaki"
+],
+"rasenrengan": [
+"Breeze Dancer~game",
+"Jiraiya",
+"Konohamaru Sarutobi~manga",
+"Minato Namikaze~game",
+"Naruto Uzumaki"
+],
+"rasenrangan": [
+"Naruto Uzumaki"
+],
+"reika_no_jutsu": [
+"Dan Katō"
+],
+"spontaneous_tree_summoning": [
+"Danzō Shimura"
+],
+"hoshi_no_jutsu": [
+"Black Zetsu",
+"White Zetsu"
+],
+"mizuame_teppo": [
+"Gamakichi"
+],
+"joki_boi": [
+"Gengetsu Hōzuki"
+],
+"ranton_reiza_sakasu": [
+"Darui"
+],
+"kimen_no_bakuen": [
+"Kakuzu"
+],
+"byakugo_no_in": [
+"SHE WAS NEVER CONFIRMED AS A USER! \\\\\\\\ -->",
+"Sakura Haruno",
+"Tsunade<!-- //// DO NOT ADD MITO UZUMAKI TO THIS ARTICLE"
+],
+"isshi_tojin": [
+"Boruto Uzumaki~anime",
+"Chōchō Akimichi~anime",
+"Denki Kaminarimon~anime",
+"Dōshu Goetsu‎~anime",
+"Enko Onikuma~anime",
+"Hako Kuroi~anime",
+"Hōki Taketori~anime",
+"Inojin Yamanaka~anime",
+"Iruka Umino",
+"Iwabee Yuino~anime",
+"Konohamaru Sarutobi~anime",
+"Metal Lee~anime",
+"Mitsuki~anime",
+"Namida Suzumeno~anime",
+"Renga Kokubō‎~anime",
+"Sarada Uchiha~anime",
+"Shikadai Nara~anime",
+"Sumire Kakei~anime",
+"Tsuru Itoi~anime",
+"Wasabi Izuno~anime"
+],
+"goken": [
+"Kakashi Hatake~anime",
+"Metal Lee",
+"Might Guy",
+"Naruto Uzumaki~anime",
+"Rock Lee",
+"Sasuke Uchiha"
+],
+"narikawari_no_jutsu": [
+"Orochimaru",
+"White Zetsu",
+"White Zetsu Army"
+],
+"jibaku_bunshin": [
+"Deidara"
+],
+"kuchiyose_gedo_mazo": [
+"Madara Uchiha",
+"Nagato",
+"Obito Uchiha"
+],
+"kuchiyose_yatai_kuzushi_no_jutsu": [
+"Gamabunta~game",
+"Gamagorō~game",
+"Jiraiya",
+"Koji Kashin",
+"Konohamaru Sarutobi~game",
+"Minato Namikaze",
+"Naruto Uzumaki"
+],
+"kuchiyose_edo_tensei": [
+"Kabuto Yakushi",
+"Orochimaru",
+"Tobirama Senju"
+],
+"kuchiyose_kirikiri_mai": [
+"Temari"
+],
+"kuchiyose_rashomon": [
+"Hashirama Senju",
+"Orochimaru",
+"Sakon and Ukon"
+],
+"kuchiyose_gamaguchi_shibari": [
+"Jiraiya"
+],
+"choju_giga": [
+"Inojin Yamanaka",
+"Sai"
+],
+"cho_mini_bijudama": [
+"Naruto Uzumaki"
+],
+"cho_baika_no_jutsu": [
+"Chōchō Akimichi",
+"Chōji Akimichi",
+"Chōza Akimichi"
+],
+"choharite": [
+"Chōji Akimichi"
+],
+"susanoo": [
+"Hagoromo Ōtsutsuki~anime",
+"Indra Ōtsutsuki",
+"Itachi Uchiha",
+"Kakashi Hatake",
+"Madara Uchiha",
+"Merz~game~~with~artificial Sharingan",
+"Sasuke Uchiha",
+"Shisui Uchiha~game"
+],
+"kusanagi_no_tsurugi_chidorigatana": [
+"Midnight Blade~game",
+"Sasuke Uchiha"
+],
+"kaibi_hoin": [
+"Obito Uchiha"
+],
+"bijudama": [
+"Blue B~anime",
+"Chōmei",
+"Fū~game",
+"Gaara~game",
+"Gyūki",
+"Han",
+"Himawari Uzumaki~manga",
+"Isobu",
+"Jura~manga",
+"Kaguya Ōtsutsuki~game",
+"Kido Tsumiki~novel",
+"Killer B",
+"Kokuō",
+"Kurama",
+"Matatabi",
+"Mecha-Kurama~game",
+"Menma Namikaze~game",
+"Minato Namikaze",
+"Momoshiki Ōtsutsuki",
+"Naruto Uzumaki",
+"Nine-Tailed Naruto Clone~anime",
+"Obito Uchiha",
+"Rin Nohara~game",
+"Rōshi",
+"Saiken",
+"Shukaku",
+"Son Gokū",
+"Ten-Tails",
+"Utakata~game",
+"Yagura Karatachi~anime",
+"Yugito Nii~game"
+],
+"tailed_beast_telepathy": [
+"Chōmei",
+"Gyūki",
+"Isobu",
+"Kokuō",
+"Kurama",
+"Matatabi",
+"Saiken",
+"Shukaku",
+"Son Gokū"
+],
+"tomegane_no_jutsu": [
+"Gamamaru",
+"Gensui Amagiri~game",
+"Hiruzen Sarutobi",
+"Obito Uchiha"
+],
+"nehan_shoja_no_jutsu": [
+"Hebihime~Game",
+"Kabuto Yakushi",
+"Scarlet Blaze~game",
+"Tsukino~game"
+],
+"kanashibari_no_jutsu": [
+"Black Zetsu",
+"Boar-Masked Anbu Member",
+"Eagle-Masked Anbu Member",
+"Fūka~anime",
+"Kaguya Ōtsutsuki",
+"Log",
+"Orochimaru"
+],
+"tengai_shinsei": [
+"Madara Uchiha"
+],
+"kinbaku_kingusari_no_jutsu": [
+"Karin",
+"Kushina Uzumaki~game"
+],
+"gamayudan": [
+"Gamabunta",
+"Gamatatsu~anime",
+"Gama~game",
+"Jiraiya",
+"Koji Kashin"
+],
+"toton_jutsu": [
+"Hayate Gekkō~anime",
+"Jiraiya",
+"Naruto Uzumaki~movie"
+],
+"gudodama": [
+"Asura Ōtsutsuki",
+"Hagoromo Ōtsutsuki",
+"Hamura Ōtsutsuki",
+"Kaguya Ōtsutsuki",
+"Madara Uchiha",
+"Naruto Uzumaki",
+"Obito Uchiha",
+"Ten-Tails",
+"Toneri Ōtsutsuki~movie canon"
+],
+"tsukuyomi": [
+"<!-- DO NOT ADD ANY OTHER SUSANOO USERS! -->Itachi Uchiha",
+"Merz~game~~with~artificial Sharingan",
+"Nanashi Uchiha~game"
+],
+"kaeru_kaeru_no_jutsu": [
+"Jiraiya",
+"Naruto Uzumaki~anime"
+],
+"sojasosai_no_jutsu": [
+"Anko Mitarashi",
+"Orochimaru"
+],
+"uchiha_kaenjin": [
+"Obito Uchiha"
+],
+"uchihagaeshi": [
+"Madara Uchiha",
+"Obito Uchiha"
+],
+"choodama_rasengan": [
+"Boruto Uzumaki~manga",
+"Jiraiya",
+"Koji Kashin",
+"Minato Namikaze~game",
+"Momoshiki Ōtsutsuki",
+"Naruto Uzumaki"
+],
+"kaifu_no_jutsu": [
+"Ajisai~anime<!-- Do not add other users",
+"Tenten",
+"Toroi",
+"Toroi and Ajisai are only listed because this technique is their speciality -->"
+],
+"mizu_bunshin_no_jutsu": [
+"Ao~game",
+"Asaka~anime",
+"Azure Fang~game",
+"Chōjūrō~game",
+"Eagle-Masked Anbu Member~anime",
+"Gengetsu Hōzuki",
+"Haku~game",
+"Hiruga~anime",
+"Hōki (Watari)~anime",
+"Itachi Uchiha~game",
+"Jūzō Biwa~anime",
+"Kajika~anime",
+"Kakashi Hatake",
+"Kakuzu~anime",
+"Kirisame~novel",
+"Kisame Hoshigaki",
+"Mangetsu Hōzuki~game",
+"Misumi Tsurugi~Anime",
+"Mubi~anime",
+"Oboro~anime",
+"Shizuma Hoshigaki~anime",
+"Suien~novel",
+"Suigetsu Hōzuki~anime",
+"Sumire Kakei~anime",
+"Tobirama Senju~game",
+"Yoroi Akadō~anime",
+"Zabuza Momochi"
+],
+"suiro_sameodori_no_jutsu": [
+"Kisame Hoshigaki"
+],
+"suiro_no_jutsu": [
+"Daibutsu~anime",
+"Gokai~anime",
+"Isari Funato~anime",
+"Kisame Hoshigaki",
+"Ruiga~anime",
+"Shizuma Hoshigaki~anime",
+"Suigetsu Hōzuki~game",
+"Tobirama Senju~game",
+"Umibōzu~anime",
+"Zabuza Momochi"
+],
+"suiton_senshokuko": [
+"Kisame Hoshigaki"
+],
+"suiton_bakusui_shoha": [
+"Isari Funato~anime",
+"Kisame Hoshigaki",
+"Nagato~anime"
+],
+"hoshigaki_bakusui_shoha": [
+"Isari Funato~anime",
+"Kisame Hoshigaki",
+"Nagato~anime"
+],
+"suiton_daikodan_no_jutsu": [
+"Azure Fang~game",
+"Kisame Hoshigaki"
+],
+"suiton_daibakufu_no_jutsu": [
+"Chōjūrō~anime",
+"Hōki (Watari)~anime",
+"Kabuto Yakushi",
+"Kakashi Hatake",
+"Kisame Hoshigaki~game",
+"Senji~novel",
+"Urashiki Ōtsutsuki~game",
+"Zabuza Momochi"
+],
+"suiton_suidan_no_jutsu": [
+"Hōki (Watari)~anime",
+"Itachi Uchiha",
+"Kabuto Yakushi",
+"Kajika~anime",
+"Kakashi Hatake",
+"Kiiro~novel",
+"Kisame Hoshigaki",
+"Kosuke Maruboshi~anime",
+"Mei Terumī",
+"Momoshiki Ōtsutsuki",
+"Shibuki~anime",
+"Tobirama Senju",
+"Yagura Karatachi~game",
+"Zabuza Momochi"
+],
+"suiton_suigadan": [
+"Chōjūrō~anime",
+"Itachi Uchiha",
+"Suigetsu Hōzuki~game",
+"Tobirama Senju~anime"
+],
+"suiton_mizurappa": [
+"Azure Fang~game",
+"Kurotsuchi",
+"Tobirama Senju~game"
+],
+"suiton_teppodama": [
+"Gamabunta",
+"Gamakichi~game",
+"Suigetsu Hōzuki~game",
+"Tobirama Senju~game",
+"Umibōzu~anime"
+],
+"suiton_mizuame_nabara": [
+"Itachi Uchiha~novel",
+"Izumo Kamizuki",
+"Saiken",
+"Saō~anime"
+],
+"shirohigi_jikki_chikamatsu_no_shu": [
+"Chiyo",
+"Monzaemon Chikamatsu"
+],
+"ranjishigami_no_jutsu": [
+"Jiraiya",
+"Koji Kashin"
+],
+"futon_toppa": [
+"Bandō~anime",
+"Boruto Uzumaki~manga",
+"Gaara",
+"Kokage Yanagikage",
+"Mitsuki",
+"Orochimaru"
+],
+"futon_reppusho": [
+"Boruto Uzumaki",
+"Hana Kaka~anime",
+"Mitsuki~anime",
+"Nagato",
+"Orochimaru~anime",
+"Sarada Uchiha~anime"
+],
+"futon_atsugai": [
+"Kakuzu"
+],
+"futon_rasengan": [
+"Boruto Uzumaki~anime",
+"Konohamaru Sarutobi",
+"Naruto Uzumaki"
+],
+"futon_shinkujin": [
+"Danzō Shimura"
+],
+"futon_shinku_taigyoku": [
+"Danzō Shimura"
+],
+"futon_shinku_renpa": [
+"Breeze Dancer~game",
+"Danzō Shimura"
+],
+"futon_shinkuha": [
+"Baki~game",
+"Danzō Shimura"
+],
+"futon_kazekiri_no_jutsu": [
+"Bird-Masked Anbu Member",
+"Temari<!--PLEASE do not add Naruto",
+"it was a mistranslation.-->"
+],
+"moku_bunshin_no_jutsu": [
+"Hashirama Senju",
+"Madara Uchiha",
+"Yamato"
+],
+"mokuton_shichuro_no_jutsu": [
+"Yamato"
+],
+"mokuton_daijurin_no_jutsu": [
+"Hashirama Senju",
+"Obito Uchiha",
+"Yamato"
+],
+"mokuton_mokuryu_no_jutsu": [
+"Hashirama Senju",
+"Madara Uchiha",
+"Obito Uchiha"
+],
+"mokuton_mokujin_no_jutsu": [
+"Hashirama Senju",
+"Tobi (Zetsu)"
+],
+"mokuton_mokujoheki": [
+"Hashirama Senju~anime",
+"Yamato"
+],
+"mokuton_jukai_kotan": [
+"Hashirama Senju~game",
+"Yamato"
+],
+"mokuton_mokusatsu_shibari_no_jutsu": [
+"Yamato"
+],
+"mokuton_hijutsu_jukai_kotan": [
+"Hashirama Senju",
+"Madara Uchiha"
+],
+"mokuton_henge": [
+"Yamato"
+],
+"in_yu_shometsu": [
+"Kabuto Yakushi"
+],
+"infuin_kai": [
+"Sakura Haruno",
+"Tsunade"
+],
+"nezumi_kedama": [
+"Yugito Nii"
+],
+"suiton_suidanha": [
+"Izumo Kamizuki~game",
+"Tobirama Senju"
+],
+"tenkyu": [
+"Tobirama Senju"
+],
+"kumogakure_taijutsu_okami_ringu": [
+"Yurui"
+],
+"raiton_ikazuchi_unagi": [
+"Ōga"
+],
+"gentoshin_no_jutsu": [
+"Nagato"
+],
+"futon_fujin_no_jutsu": [
+"Asuma Sarutobi"
+],
+"futon_mugen_sajin_daitoppa": [
+"Gaara"
+],
+"futon_fuhakujin": [
+"Shojoji"
+],
+"futon_fuhakujun": [
+"Shojoji"
+],
+"gudokasa": [
+"Obito Uchiha"
+],
+"suiton_homatsu_rappa": [
+"Giant Crustacean"
+],
+"suiton_hahonryu": [
+"Gamakichi~game",
+"Yamato"
+],
+"suiton_takitsubo_no_jutsu": [
+"Yamato"
+],
+"suiton_mizukagami_no_jutsu": [
+"Tobirama Senju~game",
+"Yagura Karatachi"
+],
+"suiton_suijinchu": [
+"Mei Terumī"
+],
+"raiton_hebi_ikazuchi": [
+"Mitsuki"
+],
+"kieru_rasengan": [
+"Boruto Uzumaki",
+"Momoshiki Otsutsuki"
+],
+"suiton_hato": [
+"Boruto Uzumaki"
+],
+"shakuton_kajosatsu": [
+"Pakura"
+],
+"futton_joki_bakuhatsu": [
+"Naruto Uzumaki"
+],
+"jitetsu_ryufusho": [
+"Ryū",
+"Shinki"
+],
+"gamadosuzan": [
+"Gamabunta",
+"Gamakichi",
+"Gama~game"
+],
+"senpo_kawazu_naki": [
+"Fukasaku",
+"Shima"
+],
+"senpo_ryosei_no_jutsu": [
+"Fukasaku",
+"Shima"
+],
+"senpo_gokashin_ensen": [
+"Koji Kashin"
+],
+"kuchiyose_sanju_rashomon": [
+"Orochimaru",
+"Sakon and Ukon~anime<!-- DO NOT add Hashirama",
+"he uses five gates",
+"not this -->"
+],
+"kuchiyose_gama_mise_no_jutsu": [
+"Jiraiya"
+],
+"hiraishin_ni_no_dan": [
+"Minato Namikaze"
+],
+"kamuibashiri": [
+"Obito Uchiha"
+],
+"kagero": [
+"Black Zetsu",
+"Tobi (Zetsu)",
+"White Zetsu",
+"White Zetsu Army"
+],
+"soshinki": [
+"Yamato"
+],
+"mokuton_hotei_no_jutsu": [
+"Hashirama Senju"
+],
+"wood_release_stocks": [
+"Yamato"
+],
+"mokuton_daisoju": [
+"Black Zetsu~game",
+"Obito Uchiha",
+"Tobi (Zetsu)",
+"White Zetsu~game"
+],
+"mokuton_sashiki_no_jutsu": [
+"Hashirama Senju~game",
+"Obito Uchiha",
+"Ten-Tails~~with~Obito Uchiha",
+"Tobi (Zetsu)",
+"Zetsu~game"
+],
+"mokuton_hobi_no_jutsu": [
+"Hashirama Senju"
+],
+"taju_mokuton_bunshin_no_jutsu": [
+"Madara Uchiha"
+],
+"senpo_mokuton_shin_susenju": [
+"Asura Ōtsutsuki~anime",
+"Hashirama Senju"
+],
+"yasaka_no_magatama": [
+"Indra Ōtsutsuki~game",
+"Itachi Uchiha",
+"Madara Uchiha",
+"Merz~game~~with~artificial Sharingan",
+"Sasuke Uchiha~game",
+"Shisui Uchiha~game"
+],
+"susanoo_kobushi": [
+"Itachi Uchiha",
+"Madara Uchiha",
+"Sasuke Uchiha",
+"Shisui Uchiha~game"
+],
+"tensha_fuin_amaterasu": [
+"Itachi Uchiha"
+],
+"magen_kyo_tenchi_ten": [
+"Itachi Uchiha"
+],
+"kaija_hoin": [
+"Sasuke Uchiha"
+],
+"biju_fuin": [
+"Yamato"
+],
+"tenchu": [
+"Baji~anime",
+"Gennō~anime",
+"Hana Kaka~anime",
+"Yashamaru"
+],
+"hiden_rinpungakure_no_jutsu": [
+"Chōmei~game",
+"Fū"
+],
+"kidaichu_mushikui": [
+"Shino Aburame"
+],
+"shinten_bunshin_no_jutsu": [
+"Ino Yamanaka"
+],
+"shindenshin_no_jin": [
+"Inojin Yamanaka"
+],
+"kanchi_denden": [
+"Ino Yamanaka"
+],
+"futon_senpuken": [
+"Asuma Sarutobi~game",
+"Mirai Sarutobi"
+],
+"genjutsu_rinka": [
+"Mirai Sarutobi"
+],
+"katon_homuranagase": [
+"Konohamaru Sarutobi"
+],
+"katon_endan": [
+"Anbu Commander~game",
+"Benga~anime",
+"Gamakichi~anime",
+"Jiraiya",
+"Kakashi Hatake~game",
+"Kiseru Gankubi~anime",
+"Koji Kashin",
+"Madara Uchiha~game",
+"Nagato~game",
+"Naruto Uzumaki~game",
+"Obito Uchiha~game",
+"Shisui Uchiha~game",
+"Urashiki Ōtsutsuki~game"
+],
+"aian_kuro": [
+"A (Fourth Raikage)"
+],
+"hijutsu_ishibari": [
+"Aoba Yamashiro"
+],
+"mizudeppo_nicho": [
+"Gengetsu Hōzuki~game",
+"Suigetsu Hōzuki"
+],
+"suiton_gosuiwan_no_jutsu": [
+"Azure Fang~game",
+"Suigetsu Hōzuki"
+],
+"suiton_tate_eboshi": [
+"Suigetsu Hōzuki"
+],
+"issen": [
+"Midnight Blade~game",
+"Mifune",
+"Tsubaki Kurogane~anime",
+"Yoshiteru"
+],
+"yojinbo": [
+"Midnight Blade~game",
+"Mifune"
+],
+"uchiha_ryu_kenjutsu": [
+"Boruto Uzumaki~manga",
+"Izuna Uchiha~Game",
+"Midnight Blade~game",
+"Sasuke Uchiha"
+],
+"uchiha_ryu_shurikenjutsu_ikazuchi_sanren": [
+"Boruto Uzumaki",
+"Sasuke Uchiha"
+],
+"tsukikage": [
+"Sasuke Uchiha"
+],
+"konoha_otoshi": [
+"Might Guy~novel",
+"Rock Lee"
+],
+"soshuga": [
+"Might Guy"
+],
+"zessenzan": [
+"Fukasaku"
+],
+"fuinjutsu_okutopasu_horudo": [
+"Killer B"
+],
+"takoashi_bunshin_no_jutsu": [
+"Killer B"
+],
+"cho_biburato_raitonto": [
+"Killer B"
+],
+"choshin_giga": [
+"Sai"
+],
+"zesshi_nensan": [
+"Katsuyu"
+],
+"kagemane_kage_shibari_no_jutsu": [
+"Ensui Nara"
+],
+"shikomishindan": [
+"Shizune"
+],
+"katon_ryuen_hoka_no_jutsu": [
+"Izuna Uchiha~game",
+"Madara Uchiha",
+"Nanashi Uchiha~game",
+"Sasuke Uchiha~game"
+],
+"chirokyu": [
+"Naruto Uzumaki",
+"Saiken",
+"Utakata"
+],
+"raiden": [
+"Kakashi Hatake"
+],
+"kyoso_enbu": [
+"Madara Uchiha"
+],
+"banbutsu_sozo_no_jutsu": [
+"Hagoromo Ōtsutsuki<!-- Do NOT add Naruto",
+"Madara or Obito",
+"that was a translation error -->"
+],
+"bocho_gudodama": [
+"Kaguya Ōtsutsuki"
+],
+"yasogami_kugeki": [
+"Kaguya Ōtsutsuki"
+],
+"rasengan_uzuhiko": [
+"Boruto Uzumaki"
+],
+"senpo_choodama_rasen_tarengan": [
+"Naruto Uzumaki"
+],
+"fuinjutsu_kai": [
+"Konohamaru Sarutobi"
+],
+"sen_ei_ranjashu": [
+"Mitsuki"
+],
+"sen_ei_tajashu": [
+"Anko Mitarashi",
+"Kabuto Yakushi",
+"Mitsuki~anime",
+"Orochimaru"
+],
+"satetsu_kurogane_no_tsubasa": [
+"Sasori~~puppet~Third Kazekage",
+"Shinki~anime",
+"Third Kazekage~game"
+],
+"doton_kakogan": [
+"Sasuke Uchiha"
+],
+"juha_sho": [
+"Sora"
+],
+"bubble_clone_technique": [
+"Utakata"
+],
+"hissatsu_hyoso": [
+"Haku"
+],
+"komu_kekkaijutsu": [
+"Shizuma Hoshigaki",
+"Tsurushi Hachiya"
+],
+"kessho_no_yoroi": [
+"Guren"
+],
+"shoton_kessho_gokakuro": [
+"Guren"
+],
+"shoton_suishoto": [
+"Guren"
+],
+"shoton_suisho_rokkakuchu": [
+"Guren"
+],
+"shoton_suisho_kyo": [
+"Guren"
+],
+"shoton_suishoro_no_jutsu": [
+"Guren"
+],
+"kessho_rokkaku_shuriken_ranbu": [
+"Guren"
+],
+"suisho_bunshin_no_jutsu": [
+"Guren"
+],
+"magen_niju_kokoni_arazu_no_jutsu": [
+"Oboro"
+],
+"magen_jigoku_koka_no_jutsu": [
+"Yoroi Akadō"
+],
+"doton_sokonashi_numa": [
+"Garakuta Gang Leader"
+],
+"doton_doryudan": [
+"Hiruzen Sarutobi"
+],
+"doton_doryu_taiga": [
+"Hiruzen Sarutobi"
+],
+"doton_tobi_tsubute": [
+"Iō (medical-nin)"
+],
+"doton_koka_jutsu": [
+"Akatsuchi~game",
+"Crimson Fist~game",
+"Gitai~movie",
+"Sadai~anime"
+],
+"doton_iwagakure_no_jutsu": [
+"Boar-Masked Anbu Member",
+"Fudō",
+"Fuen",
+"Fūka",
+"Kazuma",
+"Sadai",
+"Yamato"
+],
+"doton_dosekiryu": [
+"Sadai"
+],
+"doton_dorojigoku": [
+"Akatsuchi",
+"Iwabee Yuino",
+"Kū"
+],
+"doton_ganchuso": [
+"Fuen~game",
+"Fūka"
+],
+"doton_kage_bunshin": [
+"Hidari (missing-nin)",
+"Hiruzen Sarutobi",
+"Orochimaru",
+"Sekiei (spectator)"
+],
+"katon_goenka": [
+"Madara Uchiha~anime",
+"Sasuke Uchiha~game",
+"Victor~anime"
+],
+"katon_karyudan": [
+"Aoba Yamashiro",
+"Ebisu",
+"Hiruzen Sarutobi",
+"Konohamaru Sarutobi"
+],
+"genjutsu_shibari": [
+"Kabuto Yakushi~game",
+"Orochimaru",
+"Tsunade"
+],
+"genjutsu_suzune_bunshin": [
+"Kin Tsuchi"
+],
+"shimogakure_no_jutsu": [
+"Chūkichi"
+],
+"hyoton_suishoheki": [
+"Ryōgi"
+],
+"hyoton_mangehyo": [
+"Ryōgi"
+],
+"raikyu": [
+"Buntan Kurosuki",
+"Raiga Kurosuki~anime",
+"Sarada Uchiha"
+],
+"raiton_raiga": [
+"Ameyuri Ringo"
+],
+"raiton_hiraishin": [
+"Fūka"
+],
+"raiton_amigumo": [
+"Motoi"
+],
+"raiton_sandageto": [
+"Ameyuri Ringo"
+],
+"raiton_kaminari_shibari": [
+"Kitane"
+],
+"raiton_jibashi": [
+"Fūka"
+],
+"raigeki": [
+"Karai",
+"Mitsuki",
+"Naruto Uzumaki~game"
+],
+"sosai_no_ne": [
+"Menma (anime)"
+],
+"fujinheki": [
+"Asura Ōtsutsuki"
+],
+"suiton_kokuu_no_jutsu": [
+"Kagari"
+],
+"suiton_ja_no_kuchi": [
+"Fūka"
+],
+"suiton_mizu_shuriken": [
+"Kegon",
+"Shigezane~novel"
+],
+"suiton_suiben": [
+"Hisame",
+"Kirisame",
+"Murasame"
+],
+"suiton_amefuribari": [
+"Samidare Amaashi"
+],
+"futon_gofu_boheki": [
+"Temari"
+],
+"futon_hanachiri_mai": [
+"Fūka"
+],
+"bakuton_shogeki": [
+"Gari"
+],
+"ningyo_kibaku_nendo": [
+"Deidara"
+],
+"katon_goka_senpu": [
+"Madara Uchiha",
+"Obito Uchiha"
+],
+"katon_kaen_senpu": [
+"Suika"
+],
+"suiton_mizu_shibari": [
+"Funato Soldier Leader",
+"Tobirama Senju~anime"
+],
+"suiton_abare_kurage": [
+"Funamushi"
+],
+"joki_bakushin": [
+"Han~game<!--Do not remove the game tag",
+"the anime Han using this technique was his \"Genjutsu World\" counterpart-->"
+],
+"ressenpu": [
+"Shizuka"
+],
+"mokuton_jukai_heki": [
+"Crimson Fist~game",
+"Yamato"
+],
+"nadeshiko_ryu_koha_reppuken": [
+"Shizuka"
+],
+"jigyaku_no_jutsu": [
+"Mitate",
+"Zō"
+],
+"katon_tenro": [
+"Benga",
+"Mui",
+"Mujō",
+"Scarlet Blaze~game"
+],
+"wind_release_air_bullets": [
+"Nagato"
+],
+"earth_release_rock_shelter": [
+"Akatsuchi~game",
+"Ittan",
+"Kitsuchi",
+"Kurotsuchi"
+],
+"hachimon": [
+"Kakashi Hatake",
+"Metal Lee~anime",
+"Might Duy",
+"Might Guy",
+"Rock Lee",
+"Shinnō~movie"
+],
+"reverse_summoning_technique": [
+"Fukasaku",
+"Gamakichi",
+"Jiraiya~anime",
+"Kabuto Yakushi",
+"Koji Kashin",
+"Sasuke Uchiha",
+"Shima",
+"Tenten~anime",
+"Tsunade~anime"
+],
+"four_pillar_bind": [
+"Zō"
+],
+"thunderbolt": [
+"Omoi"
+],
+"sly_mind_affect_technique": [
+"Anko Mitarashi~anime",
+"Kagari",
+"Mubi",
+"Oboro"
+],
+"hakke_sanjuni_sho": [
+"Hinata Hyūga"
+],
+"hakke_hyakunijuhachi_sho": [
+"Neji Hyūga"
+],
+"hakke_hasangeki": [
+"Neji Hyūga"
+],
+"mushi_kabe": [
+"Shino Aburame",
+"Tatsuma Aburame~game"
+],
+"garoga": [
+"Akamaru~~with~Kiba Inuzuka",
+"Kiba Inuzuka~~with~Akamaru"
+],
+"cho_garoga": [
+"Akamaru~~with~Kiba Inuzuka",
+"Kiba Inuzuka~~with~Akamaru"
+],
+"gatenga": [
+"Akamaru~~with~Kiba Inuzuka",
+"Kiba Inuzuka~~with~Akamaru"
+],
+"ooiga_gatenga": [
+"Akamaru~~with~Kiba Inuzuka",
+"Kiba Inuzuka~~with~Akamaru"
+],
+"dainamikku_makingu": [
+"Akamaru"
+],
+"kamizuru_mitsu_bunshin": [
+"Jibachi",
+"Kurobachi",
+"Suzumebachi"
+],
+"soshoryu": [
+"Tenten"
+],
+"bashosen_rai_no_maki": [
+"Kinkaku",
+"Tenten"
+],
+"bashosen_mizu_no_maki": [
+"Kinkaku",
+"Tenten"
+],
+"hozuki_mizu_muchi": [
+"Hisame",
+"Kirisame",
+"Murasame"
+],
+"raiton_daburu_rariatto": [
+"A (Fourth Raikage)~~with~Killer B",
+"Killer B~~with~A"
+],
+"kokuton_kuro_pansa": [
+"Darui"
+],
+"hatake_shiden": [
+"Boruto Uzumaki~manga",
+"Kakashi Hatake",
+"Mitsuki~manga"
+],
+"fuma_kage_shuriken": [
+"Boruto Uzumaki~game",
+"Chōji Akimichi~game",
+"Chūshin~anime",
+"C~game",
+"First Animal Path (character)",
+"Fukasaku",
+"Hashirama Senju~game",
+"Hiruzen Sarutobi",
+"Iruka Umino~game",
+"Itachi Uchiha~game",
+"Iwabee Yuino~anime",
+"Iwana (Otogakure)~anime",
+"Jiraiya",
+"Jūgo~game",
+"Konohamaru Sarutobi~game",
+"Kōtarō Fūma~anime",
+"Madara Uchiha",
+"Metal Lee~game",
+"Mizuki",
+"Naruto Uzumaki",
+"Obito Uchiha",
+"Raidō Namiashi~game",
+"Sarada Uchiha",
+"Sasuke Uchiha",
+"Shin~game",
+"Shisui Uchiha~game",
+"Tenten",
+"Toroi",
+"Toroi (Genin)",
+"Udon Ise~game"
+],
+"aburame_mushi_hashira": [
+"Shino Aburame"
+],
+"tenseigan_chakura_modo": [
+"Toneri Ōtsutsuki"
+],
+"totsuka_no_tsurugi": [
+"Itachi Uchiha"
+],
+"yata_no_kagami": [
+"Itachi Uchiha"
+],
+"magen_karasu_bunshin": [
+"Itachi Uchiha"
+],
+"juha_reppusho": [
+"Sora"
+],
+"nadeshiko_senkai_giri": [
+"Shizuka"
+],
+"shinkuken": [
+"Hayama Shirakumo"
+],
+"futon_rasen_kyudan": [
+"Fūka",
+"Urashiki Ōtsutsuki~game"
+],
+"futon_hata_ryu": [
+"Kazami"
+],
+"rasengan_shunki": [
+"Naruto Uzumaki"
+],
+"senpo_cho_biju_rasenshuriken": [
+"Naruto Uzumaki"
+],
+"rikudo_chooodama_rasenshuriken": [
+"Naruto Uzumaki"
+],
+"kazanami": [
+"Danzō Shimura",
+"Mitsuki~game"
+],
+"chooodama_rasenshuriken": [
+"Naruto Uzumaki"
+],
+"raigeki_no_yoroi": [
+"Ameyuri Ringo~game",
+"Buntan Kurosuki",
+"Raiga Kurosuki~anime",
+"Sarada Uchiha"
+],
+"raiso_ikazuchi_no_utage": [
+"Buntan Kurosuki",
+"Raiga Kurosuki~anime",
+"Sarada Uchiha"
+],
+"raiso_gekishin": [
+"Nigai"
+],
+"raiton_bakurai": [
+"Ameyuri Ringo",
+"Mangetsu Hōzuki~game"
+],
+"rairyu_no_tatsumaki": [
+"Raiga Kurosuki"
+],
+"suiton_suihachi": [
+"Yamato"
+],
+"suiton_suishoha": [
+"Ao",
+"Suigetsu Hōzuki~game",
+"Tobirama Senju~anime",
+"Yahiko~game"
+],
+"santoka": [
+"Utakata"
+],
+"sumi_awa_bakuhatsu": [
+"Utakata"
+],
+"kibaku_awa": [
+"Utakata"
+],
+"sekken_awa": [
+"Utakata"
+],
+"suiton_suichu": [
+"Kajika"
+],
+"uramiame": [
+"Samidare~~with~Suiu",
+"Suiu~~with~Samidare"
+],
+"mizufusen_no_jutsu": [
+"Gengetsu Hōzuki"
+],
+"doton_iwa_no_michi": [
+"Fudō",
+"Iwabee Yuino",
+"Kakuzu~Game",
+"Merz~game",
+"Momoshiki Ōtsutsuki~Game"
+],
+"doton_chiwari": [
+"Fudō"
+],
+"doton_dochu_kussaku": [
+"Iwabee Yuino~anime",
+"Yamato"
+],
+"doton_ganseki_atsu": [
+"Fudō"
+],
+"doton_iwa_no_yoroi": [
+"Fudō"
+],
+"doton_sunaodori": [
+"Daimaru"
+],
+"doton_dochubaku": [
+"Iwa Kunoichi",
+"Iwabee Yuino~anime",
+"Jirōbō~game"
+],
+"doton_nentsuchi_otoshi": [
+"Boar-Masked Anbu Member"
+],
+"retsudo_tenshin": [
+"Sekiei (spectator)"
+],
+"doton_tekkenro": [
+"Tokiwa"
+],
+"katon_enryuheki": [
+"Aniki (missing-nin)"
+],
+"katon_hobaku_en": [
+"Benga"
+],
+"katon_enarare": [
+"Kiseru Gankubi"
+],
+"katon_hiuchi_yagura": [
+"Asuma Sarutobi~anime",
+"Mirai Sarutobi"
+],
+"biju_rairai_netsuto": [
+"Blue B~anime",
+"Killer B"
+],
+"atama_hatto": [
+"A (Fourth Raikage)~game",
+"Killer B"
+],
+"daburu_dainamikku_entori": [
+"Kakashi Hatake~game",
+"Might Guy",
+"Rock Lee"
+],
+"konoha_ryujin": [
+"Chen"
+],
+"doroppu_kikku": [
+"A (Fourth Raikage)"
+],
+"hayabusa_otoshi": [
+"Anko Mitarashi~game",
+"Itachi Uchiha~game",
+"Kakashi Hatake~anime",
+"Sasuke Uchiha"
+],
+"uzumaki_nisen_rendan": [
+"Naruto Uzumaki"
+],
+"tetsuzanko": [
+"Shino Aburame"
+],
+"chakura_shogeki_zan": [
+"Mifune",
+"Tatewaki"
+],
+"susanoo_hozan": [
+"Sasuke Uchiha"
+],
+"kusanagi_sora_no_tachi": [
+"Orochimaru"
+],
+"shunrai_konbineshon": [
+"Naruto Uzumaki~~with~Sasuke Uchiha",
+"Sasuke Uchiha~~with~Naruto Uzumaki"
+],
+"chidori_koken": [
+"Sasuke Uchiha"
+],
+"senpo_goemon": [
+"Fukasaku~~with~Jiraiya and Shima",
+"Jiraiya~~with~Shima and Fukasaku",
+"Shima~~with~Jiraiya and Fukasaku"
+],
+"gama_no_hiho": [
+"Gamamaru",
+"Hagoromo Ōtsutsuki"
+],
+"senrai_no_senshu": [
+"Hagoromo Ōtsutsuki"
+],
+"oyako_rasengan": [
+"Boruto Uzumaki~~with~Naruto Uzumaki",
+"Minato Namikaze~~with~Naruto Uzumaki",
+"Naruto Uzumaki~~with~Minato Namikaze or Boruto Uzumaki"
+],
+"saiho_kyuin": [
+"Jūgo"
+],
+"saiho_haishutsu": [
+"Jūgo"
+],
+"tarenpu_jirenpo": [
+"Jūgo"
+],
+"senpo_daijarai": [
+"Mitsuki",
+"Urashiki Ōtsutsuki~game"
+],
+"shoton_suisho_toge": [
+"Guren"
+],
+"shoton_suisho_meikyu": [
+"Guren"
+],
+"shoton_kurenai_no_kajitsu": [
+"Guren"
+],
+"shoton_suisho_yari": [
+"Guren"
+],
+"shoton_suisho_hado": [
+"Guren"
+],
+"shoton_suisho_hari": [
+"Guren"
+],
+"shoton_hasho_koryu": [
+"Guren"
+],
+"shoton_suisho_sharin": [
+"Guren"
+],
+"shoton_suisho_jinheki": [
+"Guren"
+],
+"shoton_isshi_komyo": [
+"Guren"
+],
+"yoton_gomu_heki": [
+"Dodai",
+"Karyū"
+],
+"shakuton_daijohappa": [
+"Pakura"
+],
+"shikomi_shinshin_happa": [
+"Sasori~~puppet~Hiruko"
+],
+"gishu_senbon": [
+"Hiruko"
+],
+"kaen_hosha": [
+"Kankurō~manga",
+"Sasori",
+"Shura~anime"
+],
+"suiryu_hosha": [
+"Sasori"
+],
+"dokugiri_jigoku_baribari": [
+"Kankurō~~puppet~Karasu~Kuroari"
+],
+"hebi_saisetsugo": [
+"Orochimaru"
+],
+"sennyu_no_jutsu": [
+"Black Zetsu",
+"Danzō Shimura~anime",
+"Eagle-Masked Anbu Member~anime",
+"Kurenai Yūhi ~anime",
+"Madara Uchiha",
+"Orochimaru",
+"Raido Namiashi~game",
+"Saya~anime",
+"Yamato"
+],
+"shikokujaijin": [
+"Orochimaru"
+],
+"hebi_nyoro": [
+"Kabuto Yakushi",
+"Orochimaru"
+],
+"kami_shigure": [
+"Konan"
+],
+"kami_chakuramu": [
+"Konan"
+],
+"kuchiyose_ibuse_dokukami": [
+"Hanzō~~with~Ibuse",
+"Ibuse~~with~Hanzō"
+],
+"kama_no_mai_rakko": [
+"Hanzō"
+],
+"susanoo_tsukumo": [
+"Shisui Uchiha~game"
+],
+"shura_no_ko": [
+"Nagato"
+],
+"danto_no_hiya": [
+"Nagato"
+],
+"konbi_henge": [
+"Akaboshi~anime",
+"Akamaru~~with~Kiba Inuzuka",
+"Benten~anime",
+"Chūshin~anime",
+"Gamabunta~~with~Naruto Uzumaki",
+"Jirōbō",
+"Kiba Inuzuka~~with~Akamaru",
+"Kidōmaru",
+"Nangō~anime",
+"Naruto Uzumaki~~with~Gamabunta",
+"Sakon and Ukon",
+"Sasuke Uchiha~anime",
+"Tayuya"
+],
+"kemuri_bunshin": [
+"Himushi",
+"Kigiri"
+],
+"soshuriken_no_jutsu": [
+"Kurobane~anime",
+"Sasuke Uchiha",
+"Shino Aburame~anime",
+"Tenten~anime"
+],
+"hijutsu_mushiheki": [
+"Shibi Aburame",
+"Shino Aburame"
+],
+"hijutsu_mushimayu": [
+"Shino Aburame"
+]
+}

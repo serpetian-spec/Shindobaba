@@ -67,6 +67,9 @@ func _ready() -> void:
 	await _wait(1.5)
 	pr["inventory"]["scroll_heaven"] = 1
 	pr["inventory"]["scroll_earth"] = 1
+	for t in ChuninExam._field():
+		for r in t:
+			print("CAND %s | %s | w=%s | j=%s" % [r["name"], r["style"], r.get("weapon", ""), r["j"]])
 	var tw: Vector3 = ChuninExam.st["tower"]
 	tw.y = Game.ground_height(tw.x, tw.z)
 	pl.respawn(tw + Vector3(10, 1.0, 0))

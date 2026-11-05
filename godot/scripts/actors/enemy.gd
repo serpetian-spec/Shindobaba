@@ -240,21 +240,24 @@ func setup(a: Dictionary) -> void:
 
 ## Rastgele klan: köyün klanlarından biri (kaçaklar herhangi bir köyden); klan teknikleri jutsu listesinin başına
 func _maybe_clan(a: Dictionary) -> void:
-	if a.has("clan") or a.get("no_clan", false) or a.has("beast") or int(a.get("level", 1)) < 5:
+	var forced = String(a.get("clan_force", ""))   # dışarıdan seçilmiş kalıcı klan (sınav adayı kaydındaki klan)
+	if forced == "" and (a.has("clan") or a.get("no_clan", false) or a.has("beast") or int(a.get("level", 1)) < 5):
 		return
 	var k = String(a.get("kind", ""))
-	if not k in CLAN_KINDS or randf() > CLAN_P:
-		return
-	var vid = String(a.get("look", {}).get("village", k))
-	var cands = []
-	for c in Data.clans:
-		if c == "none" or c in Progress.UNPLAYABLE_CLANS:
-			continue
-		if k in ["rogue", "oto"] or vid in Data.clans[c].get("villages", []):
-			cands.append(c)
-	if cands.is_empty():
-		return
-	var c = String(cands.pick_random())
+	var c = forced
+	if c == "":
+		if not k in CLAN_KINDS or randf() > CLAN_P:
+			return
+		var vid = String(a.get("look", {}).get("village", k))
+		var cands = []
+		for cc in Data.clans:
+			if cc == "none" or cc in Progress.UNPLAYABLE_CLANS:
+				continue
+			if k in ["rogue", "oto"] or vid in Data.clans[cc].get("villages", []):
+				cands.append(cc)
+		if cands.is_empty():
+			return
+		c = String(cands.pick_random())
 	a["clan"] = c
 	a["clan_auto"] = true
 	var cj = ClanWorld.clan_jutsu(c, int(a["level"]), 2)
