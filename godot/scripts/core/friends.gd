@@ -1134,7 +1134,7 @@ static func where(id: String) -> Vector3:
 		if f.has("lair"):   # bağışladığın kaçak: kendi gizli kampı
 			return Game.from_map(Vector2(float(f["lair"][0]), float(f["lair"][1])))
 		if Orgs.is_rogue():
-			return Orgs.hideout_pos() + Vector3(6, 0, 6)
+			return Orgs.hideout_spawn() + Vector3(3, 0, 0)
 		for e in Game.profile.get("bingo", {}).get("list", []):
 			if String(e.get("friend_id", "")) == id and String(e.get("status", "")) == "alive":
 				var a: Array = e.get("area", e.get("hide", [0, 0]))

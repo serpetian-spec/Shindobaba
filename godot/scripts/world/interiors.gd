@@ -11,7 +11,7 @@ const TITLES := {
 	"academy": "Ninja Akademisi", "hokage": "Hokage Kulesi — Görev Ofisi", "weapon_shop": "Silah Dükkânı",
 	"pharmacy": "Eczane", "scrolls": "Parşömenci", "contract_hall": "Sözleşme Ustası — Kuchiyose Salonu", "chunin_hall": "Merkez Kule — Ön Eleme Salonu", "secret_hq": "Gizli Birlik Karargâhı", "tailor": "Terzi", "bbq": "Yakiniku Restoranı", "hospital": "Konoha Hastanesi",
 	"home_player": "Senin Evin", "home": "Bir Ev", "teahouse": "Dango ve Çay Evi", "inn": "Han (Ryokan)",
-	"summit": "Demir Kalesi — Beş Kage Zirve Salonu", "naka_shrine": "Naka Tapınağı", "lair_cave": "Kaçakların Sığınağı", "lair_lab": "Gizli Deney İni",
+	"summit": "Demir Kalesi — Beş Kage Zirve Salonu", "naka_shrine": "Naka Tapınağı", "rogue_hideout": "Kaçak Sığınağı", "lair_cave": "Kaçakların Sığınağı", "lair_lab": "Gizli Deney İni",
 }
 
 var inside := ""
@@ -653,6 +653,7 @@ func _build(kind: String, seed: int) -> void:
 		"inn": _inn()
 		"summit": _summit()
 		"naka_shrine": _naka_shrine()
+		"rogue_hideout": _rogue_hideout()
 		"creator": _creator_room(String(door.get("vid", "konoha")))
 		"lair_cave": _lair(false)
 		"lair_lab": _lair(true)
@@ -1419,6 +1420,40 @@ func _uchiwa(x: float, y: float, d: float, r: float, face_side := 0.0) -> void:
 		bx(x, y - r - r * 0.35, d, r * 0.22, r * 0.7, 0.05, Color(0.35, 0.22, 0.14))
 	else:
 		bx(x, y - r - r * 0.35, d, 0.05, r * 0.7, r * 0.22, Color(0.35, 0.22, 0.14))
+
+
+## Kaçak sığınağı (mağara): ortada ateş çukuru ve yer yatakları; duvar oyuklarında kara pazar tezgâhları (fenerli),
+## dipte simsarın masası (harita, Bingo Kitabı sayfaları); çalıntı sandıklar, kurutulan av, su küpü. Kaçaklar ateş başında.
+func _rogue_hideout() -> void:
+	_lair(false)
+	var W = 20.0
+	# kara pazar: sağ/sol duvar oyukları (tahta tezgâh + fener + mal) — Orgs.ROGUE_STALLS ile aynı işler
+	var stalls: Array = Orgs.ROGUE_STALLS
+	for i in stalls.size():
+		var st: Array = stalls[i]
+		var side = -1.0 if i % 2 == 0 else 1.0
+		var d = 7.0 + i * 5.0
+		var x = side * (W * 0.5 - 2.2)
+		bx(x, 0.5, d, 1.0, 1.0, 2.6, Color(0.42, 0.3, 0.19), true)
+		bx(x, 1.03, d, 1.2, 0.06, 2.8, Color(0.52, 0.38, 0.24))
+		for q in 4:
+			var gc = [Color(0.6, 0.55, 0.45), Color(0.45, 0.45, 0.5), Color(0.75, 0.68, 0.5), Color(0.35, 0.25, 0.3)][(q + i) % 4]
+			bx(x, 1.18, d - 0.9 + q * 0.6, 0.4, 0.26, 0.4, gc)
+		paper_lantern(x + side * -0.6, 2.4, d, Color(1.0, 0.62, 0.3))
+		person("keeper", x + side * 1.2, d, 90.0 * side, ["Kara Terzi", "Kara Silahçı", "Kara Parşömenci", "Sözleşme Ustası", "Kara Cerrah"][i % 5],
+			["Para peşin, soru yok.", "Ne arıyorsan bende var... fiyatı da var.", "Av-ninjası görürsen bilmiyorum de."])
+		act(x - side * 1.1, d, 1.8, String(st[0]), String(st[1]))
+	# simsar: dipte masa, harita, Bingo sayfaları
+	bx(0, 0.8, 29.0, 3.2, 0.12, 1.6, Color(0.38, 0.26, 0.16), true)
+	bx(0, 0.87, 29.0, 2.4, 0.02, 1.1, Color(0.86, 0.8, 0.64))
+	for k in 4:
+		bx(-1.2 + k * 0.8, 0.9, 28.6, 0.5, 0.02, 0.4, Color(0.95, 0.92, 0.8))
+	lamp(0, 2.2, 29.0, Color(1.0, 0.6, 0.3), 1.3, 7.0)
+	person("keeper", 0, 30.4, 180.0, "Yeraltı Simsarı", ["Kaçaklar için iş hep vardır.", "Ödülü yüksek olanın riski de yüksek.", "Bandını çizdiysen, geri dönüş yok."])
+	act(0, 27.6, 2.2, "rogue_broker", "[F] Yeraltı Simsarı (kaçak işleri, rütbe, dinlen)")
+	# ateş başında iki kaçak
+	for k in 2:
+		person("sitter", -1.6 + k * 3.2, 14.5 + k * 1.6, 90.0 - k * 180.0, "Kaçak", ["Burada kimse geçmişini sormaz.", "Sığınakta ateş küçük yanar; duman ele verir."], {"floor_sit": true})
 
 
 ## Naka Tapınağı (kanon): Uchiha'nın koruyucu tanrısının tapınağı. Ana salonda sağdan yedinci tataminin altında,

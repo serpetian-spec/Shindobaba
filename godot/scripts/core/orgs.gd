@@ -315,6 +315,16 @@ func own_bingo_entry() -> Dictionary:
 
 # ------------------------------------------------------------------ kaçak hayatı: sığınak, rütbe, işler, köy yasağı
 ## Kaçak sığınağı: terk edilen köyden uzak (1.5-3 km), karada sabit bir nokta (dünya yeri yoksa açık arazi)
+## Sığınakta doğma/ışınlanma noktası: mağara ağzının önü (kaya tepenin içine değil)
+func hideout_spawn() -> Vector3:
+	if is_instance_valid(_hideout_node):
+		var fz: Vector3 = _hideout_node.global_transform.basis.z.normalized()
+		var q = _hideout_node.global_position + fz * 5.0
+		q.y = Game.ground_height(q.x, q.z)
+		return q
+	return hideout_pos() + Vector3(0, 0, 6)
+
+
 func hideout_pos() -> Vector3:
 	var f = flags()
 	if not f.has("hideout"):
@@ -371,47 +381,60 @@ func _ensure_hideout() -> void:
 	if is_instance_valid(_hideout_node) or Game.world == null:
 		return
 	var at = hideout_pos()
-	_hideout_node = Missions._camp(at)
+	# kaçak sığınağı MAĞARA (eskiden içinden geçilen çadırlı kamptı): kaya tepenin ağzı; simsar ve kara pazar içeride
+	# (Interiors "rogue_hideout"); dışarıda ateş başında takılan kaçaklar ve antrenman kuklaları
+	_hideout_node = Missions._lair_mouth(at + Vector3(0, 0, -10), false, "rogue_hideout", "[F] Sığınağa gir (simsar, kara pazar, dinlen)")
 	Interact.items = Interact.items.filter(func(it): return not String(it.get("kind", "")) in ROGUE_KINDS)
-	Interact.add({"pos": at + Vector3(0, 1.0, 4.0), "radius": 4.0, "kind": "rogue_broker", "label": "[F] Yeraltı Simsarı (kaçak işleri, rütbe, dinlen)"})
-	# kara pazar tezgâhları: kampın çevresinde yarım çember
-	for i in ROGUE_STALLS.size():
-		var s: Array = ROGUE_STALLS[i]
-		var ang = deg_to_rad(-70.0 + i * 47.0)
-		var q = at + Vector3(sin(ang), 0, cos(ang)) * 11.0
-		q.y = Game.ground_height(q.x, q.z)
-		var mi = MeshInstance3D.new()
-		mi.mesh = CityInfill.mesh("stall")
-		_hideout_node.add_child(mi)
-		mi.global_position = q
-		mi.rotation.y = ang + PI
-		var cr = MeshInstance3D.new()
-		cr.mesh = CityInfill.mesh(s[3])
-		_hideout_node.add_child(cr)
-		cr.global_position = q + Vector3(sin(ang + 1.2), 0, cos(ang + 1.2)) * 2.0
-		var lb = Label3D.new()
-		lb.text = s[2]
-		lb.font_size = 96
-		lb.pixel_size = 0.006
-		lb.modulate = Color(0.95, 0.85, 0.6)
-		lb.outline_size = 10
-		lb.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-		_hideout_node.add_child(lb)
-		lb.global_position = q + Vector3.UP * 3.1
-		Interact.add({"pos": q + Vector3(0, 1.0, 0) - Vector3(sin(ang), 0, cos(ang)) * 1.2, "radius": 3.5, "kind": s[0], "label": s[1]})
+	# ağız köye bakar (Missions._lair_mouth döndürür): ateş/kuklalar ağzın önüne, kayanın içine değil
+	var fz: Vector3 = _hideout_node.global_transform.basis.z.normalized()
+	var fx: Vector3 = _hideout_node.global_transform.basis.x.normalized()
+	var mouth: Vector3 = _hideout_node.global_position
+	var fire_at = mouth + fz * 8.0
+	fire_at.y = Game.ground_height(fire_at.x, fire_at.z)
+	var fb = MB.new()
+	for k in 6:
+		fb.add("cyl", Vector3(0, 0.12, 0), Vector3(0.14, 1.3, 0.14), Color(0.32, 0.22, 0.13), Vector3(80, k * 30, 0), 5)
+	for k in 9:
+		var a = TAU * k / 9.0
+		fb.add("sphere", Vector3(cos(a) * 0.9, 0.12, sin(a) * 0.9), Vector3(0.4, 0.28, 0.4), Color(0.4, 0.38, 0.36), Vector3.ZERO, 6)
+	for k in 4:   # ateş çevresinde kütük oturaklar
+		var a = TAU * k / 4.0 + 0.4
+		fb.add("cyl", Vector3(cos(a) * 2.6, 0.25, sin(a) * 2.6), Vector3(0.45, 1.4, 0.45), Color(0.42, 0.3, 0.18), Vector3(90, rad_to_deg(-a), 0), 8)
+	var fmi = MeshInstance3D.new()
+	fmi.mesh = fb.build(Props.toon())
+	_hideout_node.add_child(fmi)
+	fmi.global_position = fire_at
+	var fire = FX.burst(fire_at + Vector3.UP * 0.3, {"parent": _hideout_node, "amount": 24, "life": 0.7, "tex": FX.tex_soft, "size": 0.6, "radius": 0.3,
+		"vmin": 0.6, "vmax": 1.6, "dir": Vector3.UP, "spread": 15.0, "gravity": Vector3(0, 1.5, 0),
+		"colors": [Color(1.0, 0.85, 0.4, 0.9), Color(1.0, 0.45, 0.12, 0.7), Color(0.4, 0.15, 0.05, 0.0)]})
+	if fire:
+		fire.one_shot = false
+	var fl = OmniLight3D.new()
+	fl.light_color = Color(1.0, 0.6, 0.3)
+	fl.light_energy = 2.0
+	fl.omni_range = 9.0
+	_hideout_node.add_child(fl)
+	fl.global_position = fire_at + Vector3.UP * 0.8
+	# antrenman kuklaları (kaçak da çalışır)
+	for k in 3:
+		var dp = mouth + fz * (6.0 + k * 1.2) + fx * (7.0 + k * 2.2)
+		dp.y = Game.ground_height(dp.x, dp.z)
+		var d = TrainingDummy.new()
+		_hideout_node.add_child(d)
+		d.global_position = dp
 	# ateş başında takılan başka kaçaklar: konuşulur, dost/sevgili olunur, takıma katılır (kaçak diye herkes düşman değil)
-	for i in 4:
+	for i in 3:
 		var vg = Villager.new()
 		vg.role = "spar"
-		vg.wander_r = 5.0
 		vg.set_meta("rogue_npc", true)
+		vg.wander_r = 2.0
 		var vlist = ["konoha", "suna", "kiri", "kumo", "iwa"]
 		vg.look_extra = {"band_style": "slashed", "band": Color(0.25, 0.25, 0.28), "village": vlist[i % vlist.size()], "vest": null,
 			"top": [Color(0.2, 0.2, 0.24), Color(0.35, 0.15, 0.15), Color(0.25, 0.3, 0.25), Color(0.4, 0.35, 0.3)][i], "age": "adult"}
 		vg.lines_override = ["Burada kimse geçmişini sormaz.", "Köyüm beni sattı, ben de onları.", "Bir iş varsa haber ver, ortak olalım.", "Av-ninjalarından sakın; dün iki kişiyi aldılar."]
 		_hideout_node.add_child(vg)
-		var a2 = TAU * i / 4.0 + 0.4
-		var q2 = at + Vector3(cos(a2), 0, sin(a2)) * 7.0
+		var a2 = TAU * i / 3.0 + 0.4
+		var q2 = fire_at + Vector3(cos(a2), 0, sin(a2)) * 2.6
 		q2.y = Game.ground_height(q2.x, q2.z)
 		vg.global_position = q2
 		vg.home = q2

@@ -1527,7 +1527,7 @@ func _lair_outpost(c: Vector3) -> Node3D:
 
 
 ## Mağara / in girişi: kaya yığını, karanlık ağız, iki meşale; [F] ile içeri (Interiors "lair_cave"/"lair_lab")
-func _lair_mouth(c: Vector3, lab: bool) -> Node3D:
+func _lair_mouth(c: Vector3, lab: bool, room := "", label := "") -> Node3D:
 	var root = Node3D.new()
 	get_tree().current_scene.add_child(root)
 	root.global_position = c
@@ -1574,8 +1574,8 @@ func _lair_mouth(c: Vector3, lab: bool) -> Node3D:
 	l.omni_range = 8.0
 	l.position = Vector3(0, 2.0, 1.0)
 	root.add_child(l)
-	var door = {"pos": c + face * 0.6 + Vector3(0, 0.4, 0), "radius": 2.6, "kind": "enter", "label": "[F] %s" % ("İne gir" if lab else "Mağaraya gir"),
-		"room": "lair_lab" if lab else "lair_cave", "out": c + face * 3.0 + Vector3(0, 0.2, 0), "seed": int(c.x)}
+	var door = {"pos": c + face * 0.6 + Vector3(0, 0.4, 0), "radius": 2.6, "kind": "enter", "label": label if label != "" else "[F] %s" % ("İne gir" if lab else "Mağaraya gir"),
+		"room": room if room != "" else ("lair_lab" if lab else "lair_cave"), "out": c + face * 3.0 + Vector3(0, 0.2, 0), "seed": int(c.x)}
 	Interact.add(door)
 	root.tree_exiting.connect(func(): Interact.items.erase(door))
 	return root

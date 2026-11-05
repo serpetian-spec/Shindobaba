@@ -700,7 +700,7 @@ func on_player_died() -> void:
 		Interiors.inst.abort()   # içeride (mağara/in) öldün: oda kapanır, kapıya atılmazsın; düşman inde seni bekler
 	get_tree().create_timer(2.5).timeout.connect(func():
 		# kaçak köy hastanesinde doğamaz: sığınağında uyanır
-		var pos = Missions.open_ground(Orgs.hideout_pos() + Vector3(0, 0, 6), 20.0) if Orgs.is_rogue() else _hospital_pos()
+		var pos = Missions.open_ground(Orgs.hideout_spawn(), 6.0) if Orgs.is_rogue() else _hospital_pos()
 		Game.player.respawn(pos)
 		_calm_after_death(pos))
 
