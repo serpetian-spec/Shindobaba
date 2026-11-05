@@ -659,8 +659,94 @@ func j_fuuton_shinkuu(c: Node3D, t: Node3D) -> void:
 			VFX.element_trail(pr, "fuuton", Color(0.8, 1, 0.9), 0.9))
 
 
+## Rasenshuriken gövdesi (anime ref refs/rasenshuriken): mavi Rasengan çekirdek + dört kıvrık beyaz rüzgâr bıçağı (iki
+## katmanlı düz disk, farklı hızda dönen). size = disk çapı (m).
+func rasenshuriken_body(size := 2.8) -> Node3D:
+	var root = Node3D.new()
+	root.add_child(VFX.rasengan(size * 0.22))   # animede çekirdek: bıçaklardan küçük mavi top
+	var sh: Shader = load("res://shaders/vfx_rasenshuriken.gdshader")
+	var discs: Array = []
+	for k in 2:
+		var pm = PlaneMesh.new()
+		pm.size = Vector2.ONE
+		var mi = MeshInstance3D.new()
+		mi.mesh = pm
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		var mt = ShaderMaterial.new()
+		mt.shader = sh
+		mt.set_shader_parameter("alpha", 1.0 if k == 0 else 0.55)
+		mi.material_override = mt
+		mi.scale = Vector3.ONE * size * (1.0 if k == 0 else 1.12)
+		mi.position.y = -0.03 * k
+		mi.rotation.x = 0.05 * k
+		root.add_child(mi)
+		discs.append(mt)
+	root.set_meta("discs", discs)
+	# anime fırıldağı hızlı döner (ikinci katman biraz yavaş = derinlik)
+	var tw = root.create_tween().set_loops()
+	tw.tween_method(func(v: float):
+		for q in discs.size():
+			(discs[q] as ShaderMaterial).set_shader_parameter("spin", v * (1.0 if q == 0 else 0.8)), 0.0, TAU * 4.0, 1.0)
+	return root
+
+
+## Hazırlık (CastAnim çağırır): kol başın üstünde; avuçta önce Rasengan, sonra rüzgâr bıçakları dışa açılarak büyür.
+func form_fuuton_rasenshuriken(c: Node3D, dur: float) -> void:
+	var md = c.get("model")
+	if md == null or md.skel == null or md.skel.find_bone("RightHand") < 0:
+		return
+	var ba = BoneAttachment3D.new()
+	ba.bone_name = "RightHand"
+	md.skel.add_child(ba)
+	var holder = Node3D.new()
+	ba.add_child(holder)
+	holder.top_level = true   # kemik dönüşünü almasın: disk dünyada yatay kalır
+	var body = rasenshuriken_body(2.8 * VFX.epic)
+	holder.add_child(body)
+	body.scale = Vector3.ONE * 0.05
+	var discs: Array = body.get_meta("discs")
+	for d in discs:
+		(d as ShaderMaterial).set_shader_parameter("grow", 0.0)
+	c.set_meta("rs_form", holder)
+	var tw = body.create_tween()
+	tw.tween_property(body, "scale", Vector3.ONE, maxf(0.2, dur * 0.45)).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_method(func(v: float):
+		for d in discs:
+			(d as ShaderMaterial).set_shader_parameter("grow", v), 0.0, 1.0, maxf(0.2, dur * 0.5))
+	Sfx.play("rasengan", c.global_position, 0.8)
+	var stt = {"t": 0.0}
+	var timer = Timer.new()
+	timer.wait_time = 1.0 / 60.0
+	holder.add_child(timer)
+	timer.timeout.connect(func():
+		stt["t"] += 1.0 / 60.0
+		if not is_instance_valid(ba) or not ba.is_inside_tree():
+			return
+		holder.global_position = ba.global_position + Vector3.UP * 0.55
+		var fdv: Vector3 = c.face_dir() if is_instance_valid(c) and c.has_method("face_dir") else Vector3.FORWARD
+		holder.global_basis = Basis(fdv.cross(Vector3.UP).normalized(), 0.6)   # disk arkaya (kameraya) eğik: bıçaklar görünür (ref: geniş elips)
+		if int(stt["t"] * 60.0) % 6 == 0:
+			FX.burst(holder.global_position, {"amount": 6, "life": 0.35, "tex": FX.tex_spark, "size": 0.7, "vmin": 4.0, "vmax": 9.0, "spread": 180.0, "gravity": Vector3.ZERO,
+				"colors": [Color(1, 1, 1, 0.0), Color(0.9, 0.97, 1.0, 0.7), Color(1, 1, 1, 0.0)]})
+		if stt["t"] > 0.25 and int(stt["t"] * 60.0) % 20 == 0:
+			Sfx.play("wind", holder.global_position, 1.8, 0.35)   # ince çınlama/uğultu
+		if stt["t"] > dur + 0.6:   # atış kesildiyse kendini temizler
+			ba.queue_free())
+	timer.start()
+	holder.global_position = ba.global_position + Vector3.UP * 0.55
+
+
 func j_fuuton_rasenshuriken(c: Node3D, t: Node3D) -> void:
 	var m = _mult(c) * _elem_bonus(c, "fuuton")
+	var start = _hand(c) + Vector3.UP * 0.5
+	if c.has_meta("rs_form"):
+		var held = c.get_meta("rs_form")
+		c.remove_meta("rs_form")
+		if is_instance_valid(held):
+			start = held.global_position
+			var hb = held.get_parent()
+			if is_instance_valid(hb):
+				hb.queue_free()
 	var pr = Projectile.new()
 	pr.shooter = c
 	pr.vel = _aim(c, t) * 26.0
@@ -669,45 +755,75 @@ func j_fuuton_rasenshuriken(c: Node3D, t: Node3D) -> void:
 	pr.homing = t
 	pr.homing_turn = 2.0
 	pr.info = {"dmg": 20.0 * m, "element": "fuuton", "knock": 4.0, "kind": "heavy", "hitstop": 0.05}
-	pr.add_child(VFX.rasengan(1.5))
-	# bıçakların etrafında çığlık atan rüzgâr: dönen akım çizgileri (saydam disk yerine)
-	WindFX.bullet(pr, 4.2)
-	for k in 4:
-		var bl = VFX._mi(VFX._sphere(0.5, 12, 6), VFX.mat_spiral(Color(1, 1, 1), Color(0.55, 0.85, 1.0), 2.0, 1.0, 10.0, 1.4))
-		bl.scale = Vector3(0.7, 0.12, 3.0)
-		bl.position = Vector3(cos(k * PI * 0.5), 0, sin(k * PI * 0.5)) * 2.1
-		bl.rotation.y = -k * PI * 0.5 + 0.5
-		pr.add_child(bl)
-	pr.spin = Vector3(0, 25, 0)
+	var rb = rasenshuriken_body(2.8 * VFX.epic)
+	rb.rotation.x = 0.5   # uçuşta disk hafif eğik (yandan bakınca bıçaklar görünür)
+	pr.add_child(rb)
+	WindFX.bullet(pr, 2.2)   # çevresinde çığlık atan akım çizgileri
 	Sfx.play("rasengan", c.global_position, 1.4)
 	pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
-		# patlama: kubbe yerine milyonlarca rüzgâr bıçağı — yoğun girdap + her yöne kaçan akım + kalkan toz
-		var dome = Node3D.new()
-		get_tree().current_scene.add_child(dome)
-		dome.global_position = pos
-		WindFX.blast(pos, 12.0, 36, Color(0.92, 0.97, 1.0, 0.9))
-		WindFX.swirl(pos + Vector3.DOWN * 3.0, 6.0, 8.0, 1.2, 14, Color(0.9, 0.96, 1.0, 0.85))
-		FX.burst(pos, {"amount": 90, "life": 1.0, "tex": FX.tex_spark, "size": 2.4, "vmin": 6.0, "vmax": 14.0, "spread": 180.0, "radius": 4.0, "tangent": 30.0, "explosive": 0.3,
-			"colors": [Color(1, 1, 1, 0.0), Color(0.85, 0.95, 1.0, 0.85), Color(1, 1, 1, 0.0)]})
-		VFX.cracks(pos, 8.0)
-		VFX.debris(pos, Color(0.5, 0.42, 0.32), 10, 14.0, 0.4)
-		VFX.screen_lines(0.6, 1.0)
-		var tw = dome.create_tween()
-		tw.tween_property(dome, "scale", Vector3.ONE * 12.0, 0.4).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-		for i in 8:
-			tw.tween_callback(func():
-				Combat.hit_sphere(c, pos, 6.0, {"dmg": 9.0 * m, "element": "fuuton", "knock": 1.0, "kind": "light", "hitstop": 0.02}))
-			tw.tween_interval(0.12)
-		tw.tween_property(dome, "scale", Vector3.ONE * 0.1, 0.25)
-		tw.tween_callback(dome.queue_free)
-		FX.light(pos, Color(0.5, 0.8, 1.0), 10.0, 30.0, 1.4)
-		Sfx.play("wind", pos, 0.7)
-		if Game.world:
-			Game.world.env.add_shake(1.0)
-			Game.world.env.screen_flash(0.3)
+		_rasen_burst(c, pos, m)
 	get_tree().current_scene.add_child(pr)
-	pr.global_position = _hand(c) + Vector3.UP * 0.5
+	pr.global_position = start
 	VFX.element_trail(pr, "fuuton", Color(0.7, 0.9, 1), 2.0)
+
+
+## Genişleme (anime): hedefi içine alan dev beyaz küre; yüzeyinde fırça gibi kıvrılan şeritler (mikro rüzgâr bıçakları),
+## tabanda halka hâlinde savrulan toz, yerde krater. İçerideki hedef çok sayıda küçük darbeyle tutulur.
+func _rasen_burst(c: Node3D, pos: Vector3, m: float, rad := 6.0) -> void:
+	rad *= VFX.epic
+	var sp = MeshInstance3D.new()
+	var sm = SphereMesh.new()
+	sm.radius = 1.0
+	sm.height = 2.0
+	sm.radial_segments = 40
+	sm.rings = 20
+	sp.mesh = sm
+	sp.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	var mat = ShaderMaterial.new()
+	mat.shader = load("res://shaders/vfx_rasen_burst.gdshader")
+	sp.material_override = mat
+	get_tree().current_scene.add_child(sp)
+	sp.global_position = pos
+	sp.scale = Vector3.ONE * 0.3
+	var hold := 1.0
+	var tw = sp.create_tween()
+	tw.tween_property(sp, "scale", Vector3.ONE * rad, 0.3).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(hold)
+	tw.tween_method(func(v: float): mat.set_shader_parameter("alpha", v), 1.0, 0.0, 0.45)
+	tw.parallel().tween_property(sp, "scale", Vector3.ONE * rad * 1.15, 0.45)
+	tw.tween_callback(sp.queue_free)
+	sp.create_tween().tween_method(func(v: float): mat.set_shader_parameter("t", v), 0.0, 3.0, 0.3 + hold + 0.45)
+	# içte soluk mavi çekirdek (ref: ortada Rasengan)
+	var core = VFX.rasengan(1.2)
+	get_tree().current_scene.add_child(core)
+	core.global_position = pos
+	var ct = core.create_tween()
+	ct.tween_interval(0.3 + hold)
+	ct.tween_property(core, "scale", Vector3.ONE * 0.05, 0.3)
+	ct.tween_callback(core.queue_free)
+	# tabanda dışa savrulan toz halkası + yerde krater
+	var gy = Game.jutsu_floor(pos.x, pos.z)
+	var base = Vector3(pos.x, gy, pos.z)
+	for k in 14:
+		var a = TAU * k / 14.0
+		FX.smoke_puff(base + Vector3(cos(a) * rad * 1.08, 0.2, sin(a) * rad * 1.08), 0.9, 3)   # küre tabanında savrulan toz (küreyi örtmesin)
+	WindFX.blast(base + Vector3.UP * 0.5, rad * 1.8, 30, Color(0.92, 0.97, 1.0, 0.9))
+	VFX.cracks(base, rad * 1.3)
+	VFX.debris(base, Color(0.5, 0.42, 0.32), 14, 16.0, 0.4)
+	VFX.screen_lines(0.6, 1.0)
+	FX.light(pos, Color(0.85, 0.93, 1.0), 12.0, rad * 5.0, 1.6)
+	Sfx.play("wind", pos, 0.6)
+	Sfx.play("rasengan", pos, 0.7)
+	if Game.world:
+		Game.world.env.add_shake(1.0)
+		Game.world.env.screen_flash(0.35)
+	# içeridekiler çok sayıda küçük darbeyle tutulur (hücre düzeyinde kesik)
+	var ht = sp.create_tween()
+	ht.tween_interval(0.15)
+	for i in 9:
+		ht.tween_callback(func():
+			Combat.hit_sphere(c, pos, rad, {"dmg": 8.0 * m, "element": "fuuton", "knock": 0.5, "kind": "light", "hitstop": 0.02}))
+		ht.tween_interval(0.12)
 
 
 # ================================================================== DOTON
@@ -893,8 +1009,9 @@ func j_rasengan(c: Node3D, t: Node3D) -> void:
 	ras.create_tween().tween_property(ras, "scale", Vector3.ONE, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	FX.aura(hand, Color(0.5, 0.8, 1.0), 0.4, Vector3.ZERO, 0.0)
 	Sfx.play("rasengan", c.global_position)
-	_hand_dash(c, t, hand, 0.6, 26.0, {"dmg": 42.0 * m, "knock": 32.0, "launch": 9.0, "kind": "heavy", "hitstop": 0.16},
-		Color(0.4, 0.7, 1.0), true)
+	# anime: Rasengan elde, hedefe KOŞARAK gidilir (kayarak değil) ve avuçla vurup öğütür
+	_hand_dash(c, t, hand, 0.6, 22.0, {"dmg": 42.0 * m, "knock": 32.0, "launch": 9.0, "kind": "heavy", "hitstop": 0.16},
+		Color(0.4, 0.7, 1.0), true, true, false)
 
 
 ## El tekniği: hazırlan, hedefe hücum et, çarpınca büyük patlama
@@ -929,7 +1046,7 @@ func _palm_release(c: Node3D) -> void:
 		tw.tween_callback(func(): rig.reach_open = false)
 
 
-func _hand_dash(c: Node3D, t: Node3D, hand: Node3D, charge: float, speed: float, info: Dictionary, col: Color, grind := false, run := false) -> void:
+func _hand_dash(c: Node3D, t: Node3D, hand: Node3D, charge: float, speed: float, info: Dictionary, col: Color, grind := false, run := false, chidori_pose := true) -> void:
 	var tw = create_tween()
 	tw.tween_interval(charge)
 	var state = {"t": 0.0, "done": false}
@@ -963,7 +1080,8 @@ func _hand_dash(c: Node3D, t: Node3D, hand: Node3D, charge: float, speed: float,
 				# kaymadan koşar: bacaklar koşu animasyonunda, sağ kol geride aşağıda
 				if not state.has("ran"):
 					state["ran"] = true
-					_pose_chidori_run(c)
+					if chidori_pose:
+						_pose_chidori_run(c)   # Chidori: kol geride aşağıda; Rasengan: kol önde (avuç tutuşu kalır)
 				c.model.play("run", 0.08, 1.9)
 			if not state.has("trail") and is_instance_valid(hand):
 				state["trail"] = VFX.trail(hand, 0.22, Color(1, 1, 1), col.lightened(0.3), col, 12, 0.6)
@@ -972,7 +1090,7 @@ func _hand_dash(c: Node3D, t: Node3D, hand: Node3D, charge: float, speed: float,
 					VFX.screen_lines(0.5, 0.6, col.lightened(0.5))
 			FX.burst(c.global_position + Vector3.UP, {"amount": 4, "life": 0.3, "tex": FX.tex_spark, "size": 1.2, "vmin": 1, "vmax": 3, "colors": [Color(1, 1, 1, 0.8), Color(col.r, col.g, col.b, 0)]})
 			# arkada çatırdayan şimşek izi (sert bant yerine)
-			if is_instance_valid(hand) and state.has("last") and int(state["t"] * 60.0) % 3 == 0:
+			if String(info.get("element", "")) == "raiton" and is_instance_valid(hand) and state.has("last") and int(state["t"] * 60.0) % 3 == 0:
 				var hp = hand.global_position
 				VFX.bolt(hp, state["last"] + Vector3(randf_range(-0.4, 0.4), randf_range(-0.6, 0.3), randf_range(-0.4, 0.4)), col.lightened(0.3), 0.07, 0.15, 1)
 				state["last"] = hp

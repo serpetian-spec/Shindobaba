@@ -258,6 +258,9 @@ func _begin() -> void:
 		_track = f.state == "cast"
 	model.overlay.set_pose("seal", 0.0)
 	model.overlay.set_pose("cast", 1.0)
+	# jutsuya özel hazırlık görseli (ör. Rasenshuriken başın üstünde oluşur)
+	if Jutsu.has_method("form_" + jid):
+		Jutsu.call("form_" + jid, f, release_t)
 	if seals.size() > 0:
 		model.play("idle", 0.08)
 	else:
