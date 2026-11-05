@@ -362,6 +362,7 @@ static func _friend_opts(id: String, v: Node) -> Array:
 	var can_talk = now - float(f.get("last_talk", 0.0)) >= TALK_CD
 	if f.get("rogue", false) and String(f.get("status", "")) == "kaçak":
 		opts.append_array(RogueBonds.options(id))   # kaçak dostun kendi işleri (kamp ateşi, sake, ortak iş, geçmişi, sonlar)
+	opts.append_array(PupilSquad.options(id))   # öğrencin: göreve götür / teknik öğret / gelişimi
 	opts.append_array(FriendPlots.option(id))
 	if String(f.get("squad_key", "")) == "sensei" and String(f.get("status", "")) == "" and int(pr().get("rank", 0)) == 1:
 		opts.append({"label": "Görev var mı, hocam?", "cb": func(): GeninSquad.request_mission()})
@@ -394,7 +395,9 @@ static func _friend_opts(id: String, v: Node) -> Array:
 			Hud.dialog(String(f["name"]), ["Ne dedin sen?!", "Bunu unutmayacağım.", "Hadi oradan!"].pick_random(), [])
 			add_bond(id, -14)})
 	opts.append_array(_romance_opts(id))
-	if f.get("party", false):
+	if f.get("pupil", false):
+		pass   # öğrencin zaten senin takımın (görevlere PupilSquad ile gelir)
+	elif f.get("party", false):
 		opts.append({"label": "Takımdan ayrıl (köyde bekle)", "cb": func(): set_party(id, false)})
 	elif b >= JOIN_BOND and rank_ok(f):
 		opts.append({"label": "Takımıma katıl", "cb": func():
@@ -487,6 +490,8 @@ static func _romance_opts(id: String) -> Array:
 	var opts = []
 	if String(f["look"].get("gender", "m")) == player_gender() or not available(f):
 		return opts
+	if f.get("pupil", false) or int(f.get("rank", 0)) == 0:
+		return opts   # genin (çocuk) ve öğrencin: flört yok
 	# niyet en baştan seçilir: flört (başkasıyla evlenmez, hemen flört aşaması) ya da sadece arkadaş
 	var wed = (f.get("family", []) as Array).any(func(m): return String(m["rel"]) in ["Karısı", "Kocası"])
 	if romance_of(id) == "" and not wed and String(f.get("intent", "")) == "":
@@ -736,6 +741,8 @@ static func on_player_pardon() -> void:
 ## Ninja dostun savaşçı arketipi: seviye oyuncuya ve rütbesine göre
 static func arch(f: Dictionary) -> Dictionary:
 	var lv = maxi(5, int(pr().get("level", 1)) - 2 + int(f.get("rank", 0)) * 4 + randi_range(-1, 1))
+	if f.has("pupil_lv"):
+		lv = int(f["pupil_lv"])   # öğrencin: oyuncuya göre değil, kendi gelişimiyle
 	var c = String(f.get("clan", ""))
 	var a: Dictionary
 	if c != "":
@@ -755,6 +762,13 @@ static func arch(f: Dictionary) -> Dictionary:
 	a["hp"] = 240.0 + lv * 16.0
 	a["level"] = lv
 	a["power"] = 0.9 + lv * 0.011
+	if f.has("taught"):   # hocasının öğrettiği teknikler önce
+		var js: Array = (a.get("jutsu", []) as Array).duplicate()
+		for jid in f["taught"]:
+			if not jid in js:
+				js.push_front(jid)
+		a["jutsu"] = js.slice(0, 5)
+		a.erase("auto_jutsu")
 	a["xp"] = 0
 	a["ryo"] = 0
 	var L: Dictionary = a["look"]
@@ -1083,7 +1097,7 @@ static func show_on_map(id: String) -> void:
 	Game.profile["waypoint"] = [p.x, p.y, p.z, "Dost: %s" % all()[id]["name"]]
 	Game.profile["track"] = "waypoint"
 	Game.profile["find_friend"] = id
-	Hud.msg("%s haritada işaretlendi (ışık sütunu)." % all()[id]["name"], Color(0.6, 1.0, 0.75))
+	Hud.msg("%s haritada işaretlendi (ışık sütunu). L: görev / diğer hedeflere geri dön." % all()[id]["name"], Color(0.6, 1.0, 0.75))
 
 
 ## İşaretlenen dostun yerine varınca orada yoksa ortaya çıkar (seni bekler)
@@ -1762,6 +1776,7 @@ func _spar_end(won: bool) -> void:
 	f["last_train"] = Time.get_unix_time_from_system()
 	add_bond(id, 3 if TRAITS.get(String(f.get("trait", "")), {}).get("like", []).has("antrenman") else 2)
 	log_event(f, "Antrenman alanında idman yaptınız (%s)" % ("sen kazandın" if won else "o kazandı"))
+	PupilSquad.on_spar(id, won)
 	act["stage"] = "done"
 	await get_tree().create_timer(4.0).timeout
 	_act_end("")

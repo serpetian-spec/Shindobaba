@@ -2377,22 +2377,13 @@ static func _tab_missions(main: Node, body: Control) -> void:
 	var tv2 = UI.vbox(8)
 	tc.add_child(tv2)
 	tv2.add_child(UI.icon_label("target", "TAKİP — ok ve ışık sütunu neyi göstersin?", 15, UI.GOLD))
-	var cur_tr = String(pr.get("track", ""))
-	var trow = HFlowContainer.new()
-	trow.add_theme_constant_override("h_separation", 8)
-	trow.add_theme_constant_override("v_separation", 8)
-	tv2.add_child(trow)
-	var topts = [["", "Otomatik (aktif görev)"], ["story", "İlk hedefim" if Journal.is_free() else "Akademi hedefi"]]
+	var topts = Missions.track_options()
+	var tlabels = topts.map(func(o): return o[1])
+	tv2.add_child(_arrow_row("Göster", tlabels, Missions.track_index(topts), func(i):
+		Missions.set_track(String(topts[i][0]))
+		Sfx.play("click")
+		ninja_menu(main, "missions")))
 	var wp = pr.get("waypoint")
-	if wp is Array and wp.size() >= 4:
-		topts.append(["waypoint", "Seçilen yer: %s" % wp[3]])
-	topts.append(["none", "Takibi kapat"])
-	for o in topts:
-		var key: String = o[0]
-		trow.add_child(UI.chip(o[1], cur_tr == key or (key == "" and cur_tr == "mission"), func():
-			pr["track"] = key
-			Sfx.play("click")
-			ninja_menu(main, "missions")))
 	if wp is Array and wp.size() >= 4:
 		tv2.add_child(UI.button("Seçilen yeri sil", func():
 			pr.erase("waypoint")
@@ -2400,7 +2391,7 @@ static func _tab_missions(main: Node, body: Control) -> void:
 				pr["track"] = ""
 			ninja_menu(main, "missions"), 240, "close"))
 		tv2.get_child(tv2.get_child_count() - 1).size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-	tv2.add_child(UI.label("Yeni yer seçmek için: Harita > Yakındaki Yerler.", 13, UI.MUTED))
+	tv2.add_child(UI.label("Oyun içinde L tuşu: aktif hedefler arasında geç. Yeni yer seçmek için: Harita > Yakındaki Yerler.", 13, UI.MUTED))
 	var acts = UI.hbox(12)
 	left.add_child(acts)
 	acts.add_child(UI.button("Haritada göster", func(): world_map(main), 240, "map"))

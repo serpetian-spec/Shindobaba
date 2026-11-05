@@ -770,8 +770,10 @@ var forced_speaker: Node3D = null   # hizmet noktasının bağlı olduğu kişi 
 
 
 var last_dialog := ""   # son diyalog metni (testler ve hata ayıklama)
+var last_options: Array = []
 func dialog(title: String, text: String, options: Array) -> void:
 	last_dialog = text
+	last_options = options
 	# görev masası ve bingo kitabı kendi ekranlarında
 	if title.begins_with("Görev Masası — ") and Missions.board_village != "":
 		show_mission_board(Missions.board_village)

@@ -615,6 +615,11 @@ func board_limits(vid: String) -> Dictionary:
 			ranks.append("A")
 		else:
 			note = "A-rank görevler Güç 30'da açılır (jōnin terfisi için 6 B-rank + 4 A-rank gerekli)."
+	# genin takımı olan hoca: takımına D/C görevleri de verilir (kanon: Kakashi ve Takım 7)
+	if int(Game.profile["rank"]) >= 3 and String(Game.profile.get("pupils", {}).get("state", "")) == "active":
+		for r in ["C", "D"]:
+			if not r in ranks:
+				ranks.push_front(r)
 	if vid == Progress.home():
 		return {"ranks": ranks, "max": 6, "note": note}
 	var rp = rep(vid)
@@ -868,6 +873,7 @@ func _begin_step() -> void:
 	st = {"n": 0, "t": 0.0}
 	m["progress"] = int(m["step"])
 	m["desc"] = s["text"]
+	_track_base = null   # başka hedef takip edilirken saklanan eski görev değerleri yeni adımın adını ezmesin
 	has_marker = true
 	target_name = s.get("name", m["title"])
 	Hud.objective_changed()
@@ -2028,6 +2034,53 @@ func _process(dt: float) -> void:
 	_apply_track()
 
 
+## Takip edilebilecek şu an aktif her şey: [anahtar, etiket] — ok/ışık sütunu bunlardan birini gösterir (menüde ◀ ▶, oyunda L tuşu)
+func track_options() -> Array:
+	var out = []
+	var m = active()
+	out.append(["", "Görev: %s" % String(m.get("title", "")) if not m.is_empty() else "Otomatik (görev / sıradaki hedef)"])
+	var tb = _tracked_bounty()
+	if not tb.is_empty():
+		out.append(["bounty", "Aranan: «%s»" % tb["alias"]])
+	var wp = Game.profile.get("waypoint")
+	if wp is Array and wp.size() >= 4:
+		out.append(["waypoint", String(wp[3])])
+	var st = story_target_for(Progress.story())
+	if not st.is_empty():
+		out.append(["story", "%s: %s" % ["İlk hedefim" if Journal.is_free() else "Hikâye", st["name"]]])
+	for gid in Journal.goals():
+		if not Journal.goal_target(String(gid)).is_empty():
+			out.append(["goal:" + String(gid), "Hedef: %s" % Journal.GOALS[gid]["name"]])
+	out.append(["none", "Takip kapalı"])
+	return out
+
+
+func track_index(opts: Array) -> int:
+	var tr = String(Game.profile.get("track", ""))
+	if tr == "mission":
+		tr = ""
+	for i in opts.size():
+		if String(opts[i][0]) == tr:
+			return i
+	return 0
+
+
+func set_track(key: String, label := "") -> void:
+	Game.profile["track"] = key
+	if label != "":
+		Hud.msg("Takip: %s" % label, Color(0.75, 0.95, 1.0))
+
+
+## L: aktif hedefler arasında sıradakine geç
+func cycle_track() -> void:
+	if Game.profile.is_empty():
+		return
+	var opts = track_options()
+	var i = posmod(track_index(opts) + 1, opts.size())
+	set_track(String(opts[i][0]), "%s   (%d/%d — L: sonraki)" % [opts[i][1], i + 1, opts.size()])
+	Sfx.play("click")
+
+
 func _apply_track() -> void:
 	if Game.profile.is_empty():
 		return
@@ -2047,6 +2100,15 @@ func _apply_track() -> void:
 		has_marker = not gt.is_empty()
 		if has_marker:
 			target_marker = gt["pos"]; target_name = gt["name"]; story_target = true
+	elif tr == "bounty":
+		var tb = _tracked_bounty()
+		has_marker = not tb.is_empty()
+		if not has_marker:
+			Game.profile["track"] = ""
+			return
+		target_marker = Game.from_map(Vector2(tb["area"][0], tb["area"][1]))
+		target_name = "Aranan: %s (~%d m)" % [tb["alias"], int(tb["known"])]
+		story_target = false
 	elif tr == "waypoint":
 		var wp = Game.profile.get("waypoint")
 		if not (wp is Array and wp.size() >= 4):
@@ -2870,6 +2932,8 @@ func _bb_spawn(e: Dictionary, at: Vector3) -> void:
 			BossStyles.dress(a, String(e.get("rank", "B")), int(e["id"]) * 7919, String(e.get("style", "")))
 		else:
 			a["skill"] = maxf(float(a.get("skill", 0.0)), float(BossStyles.RANK_SKILL.get(String(e.get("rank", "B")), 0.55)))
+	if String(a.get("clan", "")) == "":
+		a["no_clan"] = true   # bingo kaydı kalıcı kimlik: doğarken rastgele klan (saç/isim) zarlanmasın — kitaptaki adam neyse o
 	var b = Enemy.new()
 	b.setup(a)
 	b.set_meta("bingo_id", int(e["id"]))
@@ -2941,7 +3005,8 @@ func track_bounty(id: int) -> void:
 		e["tracked"] = int(e["id"]) == id and e["status"] == "alive"
 	var t = _tracked_bounty()
 	if not t.is_empty():
-		Hud.msg("Takipte: «%s» — tahmini bölge haritada." % t["alias"], Color(1, 0.8, 0.5))
+		Game.profile["track"] = "bounty"   # aktif görev varken de ok kaçağı göstersin (L ile değiştirilir)
+		Hud.msg("Takipte: «%s» — tahmini bölge haritada. L: görev / diğer hedefler." % t["alias"], Color(1, 0.8, 0.5))
 
 
 ## Muhbire sor: bölge daralır ve gerçek saklanma yerine yaklaşır

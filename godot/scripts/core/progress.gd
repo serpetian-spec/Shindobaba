@@ -523,6 +523,7 @@ func promote(rank: int) -> void:
 			_rank_set("set_%s_chunin" % home(), "set_chunin")
 		3:
 			_rank_set("set_%s_jonin" % home(), "set_jonin")
+			PupilSquad.form.call_deferred(true)   # jōnin hoca: köy sana üç genin verir
 		4:
 			_rank_set("set_anbu", "set_anbu")
 		5:

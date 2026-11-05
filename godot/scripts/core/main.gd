@@ -51,6 +51,9 @@ func _ready() -> void:
 	var squad = preload("res://scripts/core/squad.gd").new()
 	squad.name = "GeninSquad"
 	actors.add_child(squad)
+	var pupils = preload("res://scripts/core/pupil_squad.gd").new()
+	pupils.name = "PupilSquad"   # jōnin olunca kendi genin takımın
+	actors.add_child(pupils)
 	var teams = preload("res://scripts/world/ambient_teams.gd").new()
 	teams.name = "AmbientTeams"   # çevrede gezen başka ninja takımları
 	actors.add_child(teams)
@@ -100,7 +103,7 @@ func _setup_input() -> void:
 		"throw": [KEY_R], "tool_next": [KEY_T], "interact": [KEY_F], "lock": [KEY_E], "menu": [KEY_TAB], "salve": [KEY_H], "pill": [KEY_Y],
 		"slot1": [KEY_1], "slot2": [KEY_2], "slot3": [KEY_3], "slot4": [KEY_4], "slot5": [KEY_5], "slot6": [KEY_6],
 		"inventory": [KEY_I], "skills": [KEY_K], "map": [KEY_M], "pause": [KEY_ESCAPE], "dojutsu": [KEY_V],
-		"walk": [KEY_CAPSLOCK], "sage": [KEY_Z], "beast": [KEY_X], "gates": [KEY_B], "seal_mode": [KEY_G], "weapon_draw": [KEY_N], "summon_cmd": [KEY_J], "summon_special": [KEY_U], "pill_next": [KEY_O],
+		"walk": [KEY_CAPSLOCK], "sage": [KEY_Z], "beast": [KEY_X], "gates": [KEY_B], "seal_mode": [KEY_G], "weapon_draw": [KEY_N], "summon_cmd": [KEY_J], "summon_special": [KEY_U], "pill_next": [KEY_O], "track_next": [KEY_L],
 	}
 	for action in keys:
 		if not InputMap.has_action(action):
@@ -372,6 +375,8 @@ func _route(e: InputEvent) -> void:
 		_toggle_panel(func(): Menus.ninja_menu(self, "jutsu"))
 	elif e.is_action_pressed("map"):
 		_toggle_panel(func(): Menus.region_map(self))
+	elif e.is_action_pressed("track_next") and not Game.paused:
+		Missions.cycle_track()   # harita işaretçisi: görev / dost / aranan / hedef arasında geç
 	elif Game.paused:
 		return
 	elif e.is_action_pressed("interact"):
