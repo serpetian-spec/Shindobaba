@@ -21,6 +21,7 @@ uniform vec2 iris_c_r = vec2(0.255, 0.52);   // dokuda sağ göz irisi merkezi
 uniform vec2 iris_c_l = vec2(0.745, 0.52);
 uniform vec2 iris_rad = vec2(0.085, 0.2);     // iris yarıçapı (u, v)
 uniform float hit_flash = 0.0;
+uniform float simple_hl = 0.0;   // 1: dokudaki süslü (yıldız/artı) parıltılar iris rengine karışır, yerine yuvarlak tek anime parlaması (VRoid kadın yüzü)
 uniform vec3 eye_c_r = vec3(-0.032, 1.62, 0.08);
 uniform vec3 eye_c_l = vec3(0.032, 1.62, 0.08);
 uniform float iris_r3 = 0.011;
@@ -52,8 +53,13 @@ void fragment() {
 	{
 		float l = dot(tx.rgb, vec3(0.3, 0.59, 0.11));
 		// VRoid iris: kahverengi doku -> oyuncunun göz rengi (parlak vurgu korunur)
-		float hl = smoothstep(0.75, 0.95, l);
-		c = vec4(mix(eye_color.rgb * (0.35 + l * 1.5), tx.rgb, hl), tx.a);
+		float hl = smoothstep(0.75, 0.95, l) * (1.0 - simple_hl);
+		float lu = mix(l, min(l, 0.5), simple_hl);
+		c = vec4(mix(eye_color.rgb * (0.35 + lu * 1.5), tx.rgb, hl), tx.a);
+		if (simple_hl > 0.5) {
+			float hd = length((iq - vec2(-0.32, -0.34)) * vec2(1.0, 0.85));
+			c.rgb = mix(c.rgb, vec3(1.0), 1.0 - smoothstep(0.17, 0.22, hd));
+		}
 		int dk = eye_side > 0.0 ? dojutsu_l : dojutsu;
 		if (sage_eyes > 0 && dk == 0) {
 			vec2 sq = iq;

@@ -374,6 +374,7 @@ func _face_and_hair() -> void:
 				eye_mat.shader = load("res://shaders/vroid_eye.gdshader")
 				eye_mat.set_shader_parameter("tex", tex)
 				eye_mat.set_shader_parameter("eye_color", look["eye"])
+				eye_mat.set_shader_parameter("simple_hl", 1.0 if look.get("gender", "m") == "f" else 0.0)
 				var ic2: Array = fd.get("iris_c", [])
 				if ic2.size() >= 3:
 					eye_mat.set_shader_parameter("eye_c_r", ic2[0])
@@ -412,6 +413,11 @@ func _face_and_hair() -> void:
 				var cm = _face_part_mat(mat, mname)
 				if mname.contains("FaceBrow"):
 					cm.albedo_color = Color(look["hair"]).lerp(Color(0.1, 0.08, 0.08), 0.4)
+				elif look.get("gender", "m") == "f" and (mname.contains("Eyelash") or mname.contains("Eyeline")):
+					cm.albedo_color = Color(0.32, 0.2, 0.18)   # VRoid kadın yüzü: kirpik/göz çizgisi pembe-kırmızıydı -> koyu kahve (anime)
+				elif look.get("gender", "m") == "f" and mname.contains("EyeHighlight"):
+					face_mi.set_surface_override_material(si, _invisible_mat())   # irisin içindeki "+" yıldız parıltıları (kullanıcı: "bu gözler ne?")
+					continue
 				face_mi.set_surface_override_material(si, cm)
 		var ir: AABB = fd["iris"]
 		var ic = ir.get_center() if ir.size != Vector3.ZERO else fd["aabb"].get_center()
