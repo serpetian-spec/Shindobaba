@@ -11,7 +11,7 @@ const TITLES := {
 	"academy": "Ninja Akademisi", "hokage": "Hokage Kulesi — Görev Ofisi", "weapon_shop": "Silah Dükkânı",
 	"pharmacy": "Eczane", "scrolls": "Parşömenci", "contract_hall": "Sözleşme Ustası — Kuchiyose Salonu", "chunin_hall": "Merkez Kule — Ön Eleme Salonu", "secret_hq": "Gizli Birlik Karargâhı", "tailor": "Terzi", "bbq": "Yakiniku Restoranı", "hospital": "Konoha Hastanesi",
 	"home_player": "Senin Evin", "home": "Bir Ev", "teahouse": "Dango ve Çay Evi", "inn": "Han (Ryokan)",
-	"summit": "Demir Kalesi — Beş Kage Zirve Salonu", "naka_shrine": "Naka Tapınağı", "rogue_hideout": "Kaçak Sığınağı", "lair_cave": "Kaçakların Sığınağı", "lair_lab": "Gizli Deney İni",
+	"summit": "Demir Kalesi — Beş Kage Zirve Salonu", "naka_shrine": "Naka Tapınağı", "rogue_hideout": "Kaçak Sığınağı", "snake_lab": "Yer Altı Laboratuvarı", "lair_cave": "Kaçakların Sığınağı", "lair_lab": "Gizli Deney İni",
 }
 
 var inside := ""
@@ -654,6 +654,7 @@ func _build(kind: String, seed: int) -> void:
 		"summit": _summit()
 		"naka_shrine": _naka_shrine()
 		"rogue_hideout": _rogue_hideout()
+		"snake_lab": _snake_lab()
 		"creator": _creator_room(String(door.get("vid", "konoha")))
 		"lair_cave": _lair(false)
 		"lair_lab": _lair(true)
@@ -1420,6 +1421,82 @@ func _uchiwa(x: float, y: float, d: float, r: float, face_side := 0.0) -> void:
 		bx(x, y - r - r * 0.35, d, r * 0.22, r * 0.7, 0.05, Color(0.35, 0.22, 0.14))
 	else:
 		bx(x, y - r - r * 0.35, d, 0.05, r * 0.7, r * 0.22, Color(0.35, 0.22, 0.14))
+
+
+## Yılan Ustasının yer altı laboratuvarı (Yılan Yolu): mum ışıklı taş dehliz -> deney salonu. Yeşil parlayan numune
+## tüpleri (içinde karanlık siluetler), taş ameliyat masası, parşömen ve kavanoz rafları, tavandan sarkan deri değiştirmiş
+## yılan kabukları, dipte çöreklenmiş taş yılan sunağı; usta masasının başında.
+func _snake_lab() -> void:
+	var W = 14.0; var D = 30.0; var H = 5.5
+	var stone = Color(0.24, 0.22, 0.27)
+	bx(0, -0.1, D * 0.5, W + 1.0, 0.2, D + 1.0, Color(0.2, 0.19, 0.22), true)
+	for i in 7:
+		for j in 15:
+			bx(-W * 0.5 + (i + 0.5) * W / 7.0, 0.005, (j + 0.5) * D / 15.0, W / 7.0 - 0.05, 0.01, D / 15.0 - 0.05, Color(0.22, 0.21, 0.24).darkened(rng.randf_range(0.0, 0.15)))
+	bx(-W * 0.5 - 0.3, H * 0.5, D * 0.5, 0.6, H, D + 0.6, stone, true)
+	bx(W * 0.5 + 0.3, H * 0.5, D * 0.5, 0.6, H, D + 0.6, stone, true)
+	bx(0, H * 0.5, D + 0.3, W + 1.2, H, 0.6, stone, true)
+	bx(0, H * 0.5, -0.3, W + 1.2, H, 0.6, stone, true)
+	bx(0, H + 0.2, D * 0.5, W + 1.2, 0.4, D + 1.2, stone.darkened(0.3), true)
+	for k in 10:   # kemer kaburgaları
+		var d = 1.5 + k * 3.0
+		for sx in [-1.0, 1.0]:
+			bx(sx * (W * 0.5 - 0.25), H * 0.5, d, 0.5, H, 0.6, stone.lightened(0.05))
+		bx(0, H - 0.25, d, W, 0.5, 0.6, stone.lightened(0.05))
+	act(0, 0.9, 1.8, "exit", "[F] Yukarı çık")
+	# mumlu duvar rafları
+	for k in 8:
+		var d = 3.0 + k * 3.2
+		for sx in [-1.0, 1.0]:
+			bx(sx * (W * 0.5 - 0.5), 1.2, d, 0.4, 0.08, 0.9, Color(0.3, 0.22, 0.15))
+			cy(sx * (W * 0.5 - 0.5), 1.38, d, 0.08, 0.28, Color(0.92, 0.9, 0.82))
+			gl("sphere", sx * (W * 0.5 - 0.5), 1.6, d, Vector3(0.07, 0.12, 0.07), Color(1.0, 0.75, 0.35))
+		if k % 2 == 0:
+			lamp(0, 3.2, d, Color(0.85, 0.65, 0.4), 0.9, 8.0)
+	# numune tüpleri (iki sıra), içinde karanlık siluetler
+	for k in 5:
+		var d = 11.0 + k * 3.0
+		for sx in [-1.0, 1.0]:
+			var x = sx * 4.3
+			cy(x, 0.15, d, 1.5, 0.3, Color(0.25, 0.25, 0.28))
+			cy(x, 3.3, d, 1.5, 0.3, Color(0.25, 0.25, 0.28))
+			gl("cyl", x, 1.75, d, Vector3(1.25, 2.9, 1.25), Color(0.22, 0.62, 0.4))
+			# içteki karanlık silüet camın koridora bakan yüzünde (cam opak parlak: içine konunca görünmüyordu)
+			var fx = x - sx * 0.64
+			gl("box", fx, 1.5, d, Vector3(0.02, 1.2, 0.34), Color(0.06, 0.16, 0.1))
+			gl("sphere", fx, 2.3, d, Vector3(0.02, 0.34, 0.3), Color(0.06, 0.16, 0.1))
+			gl("box", fx, 1.7, d, Vector3(0.02, 0.12, 0.7), Color(0.06, 0.16, 0.1))
+			for q in 3:   # kabarcıklar
+				gl("sphere", fx - sx * 0.01, 0.9 + q * 0.7, d + 0.35 - q * 0.2, Vector3(0.02, 0.08, 0.08), Color(0.6, 1.0, 0.75))
+		lamp(0, 2.0, d, Color(0.4, 1.0, 0.6), 0.7, 6.0)
+	# taş ameliyat masası + aletler
+	bx(0, 0.85, 8.0, 2.4, 0.18, 1.1, Color(0.5, 0.5, 0.52), true)
+	for sx in [-1.0, 1.0]:
+		bx(sx * 1.0, 0.42, 8.0, 0.25, 0.84, 0.9, Color(0.38, 0.38, 0.4))
+	for k in 4:
+		bx(-0.6 + k * 0.4, 0.96, 7.5, 0.06, 0.02, 0.3, Color(0.8, 0.82, 0.85))
+	# parşömen/kavanoz rafları
+	shelf(-W * 0.5 + 0.4, 25.0, 4.0, 2.4, 1.0, [Color(0.75, 0.68, 0.5), Color(0.55, 0.75, 0.5), Color(0.6, 0.4, 0.55)])
+	shelf(W * 0.5 - 0.4, 25.0, 4.0, 2.4, -1.0, [Color(0.4, 0.7, 0.45), Color(0.75, 0.68, 0.5), Color(0.45, 0.4, 0.5)])
+	# tavandan sarkan yılan kabukları
+	for k in 4:   # ince, soluk, kıvrık deri şeritleri
+		var x = -3.0 + k * 2.0
+		for q in 7:
+			bx(x + sin(q * 0.8 + k) * 0.12, H - 0.35 - q * 0.32, 4.5 + k * 0.5, 0.09, 0.34, 0.015, Color(0.78, 0.76, 0.66).darkened(q * 0.03), false, Vector3(0, 0, sin(q * 1.3) * 10.0))
+	# dipte çöreklenmiş taş yılan sunağı + mor ışık
+	for k in 4:
+		cy(0, 0.3 + k * 0.45, D - 2.2, 3.8 - k * 0.7, 0.45, Color(0.42, 0.38, 0.48))
+	sp(0, 2.4, D - 2.6, Vector3(0.9, 0.7, 1.3), Color(0.45, 0.41, 0.5))
+	for sx in [-1.0, 1.0]:
+		gl("sphere", sx * 0.35, 2.55, D - 3.2, Vector3(0.18, 0.1, 0.1), Color(1.0, 0.82, 0.12))
+	lamp(0, 3.5, D - 3.0, Color(0.7, 0.35, 1.0), 1.4, 10.0)
+	# usta masasının başında
+	bx(0, 0.8, D - 6.0, 3.0, 0.12, 1.3, Color(0.3, 0.2, 0.13), true)
+	bx(0, 0.87, D - 6.0, 2.2, 0.02, 0.9, Color(0.86, 0.8, 0.64))
+	var pid = String(door.get("path", "yilan"))
+	var M: Dictionary = LegendPaths.PATHS.get(pid, {}).get("mentor", {})
+	person("keeper", 0, D - 4.8, 180.0, "%s\n%s" % [M.get("name", "Usta"), M.get("title", "")], ["Merak... ne güzel bir koku.", "Yılanlar bedelini ödeyene sırrını açar."], {"look_extra": M.get("look", {})})
+	act(0, D - 7.6, 2.4, "path_mentor", "[F] %s ile konuş" % String(M.get("title", "Usta")), {"path": pid})
 
 
 ## Kaçak sığınağı (mağara): ortada ateş çukuru ve yer yatakları; duvar oyuklarında kara pazar tezgâhları (fenerli),

@@ -12,7 +12,7 @@ func _ready() -> void:
 	Hud.close_dialog()
 	Hud.show_game_hud(false)
 	main.world.env.time_of_day = 0.42
-	var L: Array = LegendPaths.lairs["kapi"]
+	var L: Array = LegendPaths.lairs[OS.get_environment("PID") if OS.get_environment("PID") != "" else "kapi"]
 	var c = Vector3(L[0], 0, -(L[1] - 5.5))
 	c.y = Game.terrain_height(c.x, c.z)
 	main.player.respawn(c + Vector3(0, 1, 30))
@@ -26,5 +26,5 @@ func _ready() -> void:
 		cc.look_at(c + views[k][1])
 		cc.current = true
 		await get_tree().create_timer(0.4).timeout
-		await main.shot("dojo_%d" % k)
+		await main.shot("lair_%s_%d" % [OS.get_environment("PID"), k])
 	get_tree().quit()

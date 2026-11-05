@@ -188,23 +188,48 @@ static func _snake(b: Builder, pid: String, p: Vector2, base: float) -> float:
 	rock_arch(b, 0.0, my - 0.5, mouth_n, 11.0, 8.0, rock.lightened(0.04))
 	for k in 4:
 		hanging_skin(b, -3.6 + k * 2.4, my + 7.4 - absf(k - 1.5) * 0.6, mouth_n - 0.4, 2.6 + (k % 2) * 1.2)
-	# girişi çerçeveleyen dev sarmal yılan oymaları (başları kemerin üstüne eğilir)
+	# girişi çerçeveleyen dev taş yılanlar: kaidede çöreklenmiş sarmal gövde yükselir, boyun kemerin üstüne eğilir;
+	# açık ağız (üst/alt çene, dört diş, çatal dil), yarık göz bebekli sarı gözler, boyunca pul sırtı
 	for sx in [-1.0, 1.0]:
 		var cx = 11.5 * sx
 		var cn = mouth_n - 2.0
 		var gy = _g(p, base, cx, cn)
-		for k in 6:
-			var wp = b.w(Vector3(cx, gy + 0.9 + k * 1.45, cn))
-			b._mb(wp).add("torus", wp, Vector3.ONE * (5.6 - k * 0.62), Color(0.42, 0.38, 0.47).lerp(Color(0.5, 0.46, 0.4), k * 0.12), Vector3(0, k * 47, 0), 18)
-		var neck = b.w(Vector3(cx - 1.2 * sx, gy + 10.5, cn + 0.4))
-		b._mb(neck).add("cyl", neck, Vector3(1.6, 4.0, 1.6), Color(0.45, 0.41, 0.49), Vector3(0, 0, 28 * sx), 10)
-		var hp = b.w(Vector3(cx - 2.8 * sx, gy + 12.8, cn - 0.6))
-		b._mb(hp).add("sphere", hp, Vector3(2.6, 1.9, 3.8), Color(0.46, 0.42, 0.5), Vector3(18, 25 * sx, 0), 12)
-		b._mb(hp).add("sphere", hp + Vector3(0, -0.75, -1.2), Vector3(2.0, 0.5, 2.6), Color(0.62, 0.58, 0.48), Vector3(28, 25 * sx, 0), 10)
+		var bw = b.w(Vector3(cx, gy, cn))
+		var mb = b._mb(bw)
+		var scol = Color(0.44, 0.4, 0.5)
+		var belly = Color(0.62, 0.58, 0.5)
+		var pts: Array = []
+		var rads: Array = []
+		for k in 26:   # sarmal: 2.2 tur, yukarı daralır
+			var f = k / 25.0
+			var a = f * TAU * 2.2 + (0.0 if sx > 0 else PI)
+			var rr = lerpf(4.2, 1.6, f)
+			pts.append(bw + Vector3(cos(a) * rr, 0.9 + f * 8.0, sin(a) * rr))
+			rads.append(lerpf(1.25, 0.95, f))
+		var inward = Vector3(-sx, 0, 0)
+		var top: Vector3 = pts[-1]
+		for k in 5:   # boyun: yukarı ve kemere doğru kıvrılır
+			var f = (k + 1) / 5.0
+			pts.append(top + Vector3(0, sin(f * 1.4) * 3.2, 0) + inward * f * 3.6 + Vector3(0, 0, -f * 1.2))
+			rads.append(lerpf(0.95, 0.85, f))
+		Loft.tube(mb, pts, rads, scol, 14, 3, true, false, func(t2: float, a2: float, d2: Vector3) -> Color: return belly if d2.y < -0.35 else (scol.darkened(0.12) if int(t2 * 60.0) % 2 == 0 else scol))
+		var nk: Vector3 = pts[-1]
+		var hd = (pts[-1] - pts[-2]).normalized()
+		hd = (hd + Vector3(0, -0.55, -0.4)).normalized()   # baş aşağı-öne (girişe) bakar
+		var hs = hd.cross(Vector3.UP).normalized()
+		var hu = hs.cross(hd).normalized()
+		var hc = nk + hd * 1.0
+		Loft.blob(mb, hc, hd, 3.4, [0.9, 1.25, 1.1, 0.7], scol, 14)   # üst kafa
+		Loft.blob(mb, hc - hu * 0.75 + hd * 0.2, (hd - hu * 0.55).normalized(), 2.8, [0.7, 0.95, 0.8, 0.4], belly, 12)   # açık alt çene
 		for fx in [-1.0, 1.0]:
-			b._mb(hp).add("cone", hp + Vector3(0.6 * fx, -0.9, -1.9), Vector3(0.3, 1.2, 0.3), Color(0.92, 0.9, 0.82), Vector3(195, 0, 0), 5)
-			b._mb(hp).add("sphere", hp + Vector3(0.85 * fx, 0.55, -1.5), Vector3(0.55, 0.32, 0.4), Color(1.0, 0.82, 0.12), Vector3.ZERO, 8)
-		b._collide(b.w(Vector3(cx, gy + 4.5, cn)), Vector3(9.0, 9.0, 9.0), 0.0)
+			mb.add("cone", hc + hd * 1.9 + hs * 0.45 * fx - hu * 0.35, Vector3(0.28, 1.0, 0.28), Color(0.93, 0.9, 0.82), Vector3(180, 0, 0), 5)   # üst diş
+			mb.add("sphere", hc + hd * 0.9 + hs * 0.78 * fx + hu * 0.55, Vector3(0.55, 0.32, 0.42), Color(1.0, 0.82, 0.12), Vector3.ZERO, 8)   # göz
+			mb.add("box", hc + hd * 1.02 + hs * 0.95 * fx + hu * 0.55, Vector3(0.06, 0.3, 0.06), Color(0.05, 0.04, 0.03), Vector3.ZERO)   # yarık bebek
+		for fx in [-1.0, 1.0]:   # çatal dil
+			mb.add("box", hc + hd * 2.6 - hu * 0.6 + hs * 0.12 * fx, Vector3(0.1, 0.06, 1.0), Color(0.75, 0.2, 0.25), Vector3(0, fx * 12.0, 0))
+		b._collide(b.w(Vector3(cx, gy + 4.5, cn)), Vector3(8.0, 9.0, 8.0), 0.0)
+	# dehlizin sonunda yer altı laboratuvarına inen kapı
+	b.interact(Vector3(0, my + 0.4, mouth_n + tunnel_len - 1.5), 3.5, "enter", "[F] Aşağı in: Yılan Ustasının Laboratuvarı", {"room": "snake_lab", "path": pid, "out": b.w(Vector3(0, my + 0.4, mouth_n + tunnel_len - 3.0))})
 	# mor meşaleler: direk + demir sepet + alev + titreyen ışık
 	for q in [Vector2(-6.5, 12.5), Vector2(6.5, 12.5), Vector2(-7.5, 2.0), Vector2(7.5, 2.0), Vector2(-6.0, -9.0), Vector2(6.0, -9.0)]:
 		var gy = _g(p, base, q.x, q.y)
@@ -241,8 +266,7 @@ static func _snake(b: Builder, pid: String, p: Vector2, base: float) -> float:
 	fog(b, b.w(Vector3(0, my + 0.6, mouth_n + 2.0)), 6.0, Color(0.55, 0.45, 0.7, 0.4), 14)
 	fog(b, b.w(Vector3(-8.0, y0 + 0.5, 0.0)), 9.0, Color(0.6, 0.52, 0.72, 0.3), 14)
 	fog(b, b.w(Vector3(8.0, y0 + 0.5, -4.0)), 9.0, Color(0.6, 0.52, 0.72, 0.3), 14)
-	LegendPaths._mentor(b, pid, Vector3(0, my + 0.05, mouth_n - 3.0), PI)
-	b.interact(Vector3(0, my, mouth_n - 6.0), 6.5, "path_mentor", "[F] Yılan Ustası ile konuş", {"path": pid})
+	# usta yer altı laboratuvarında (Interiors "snake_lab"); dışarıda yalnız ağızda bekleyen yılan
 	return mouth_n - 7.0
 
 
