@@ -363,7 +363,7 @@ func _update_leap_charge(dt: float) -> void:
 	facing = lerp_angle(facing, atan2(-d.x, -d.z), minf(1.0, dt * 12.0))
 	# Striker çıkışı: derin çömelme, şarj doldukça daha alçak ve gergin
 	model.play("idle", 0.12)
-	model.overlay.charge_k = leap_charge
+	model.overlay.charge_k = maxf(leap_charge, 1.0 if has_meta("kneel") else 0.0)   # Mushimayu vb. diz çökme
 	model.overlay.set_pose("charge", 1.0)
 	model.overlay.snap("ninja_run", 0.0)
 	# iniş yayı: balistik yörünge araziye çarpana kadar

@@ -1540,16 +1540,38 @@ func c_hijutsu_mushiheki(c: Node3D, t: Node3D) -> void:
 ## Hijutsu: Mushimayu (kanon): kendini kozaya sarar — hareketsiz ve savunmasız; böcekler hızla büyür, koloni dolar
 func c_hijutsu_mushimayu(c: Node3D, _t: Node3D) -> void:
 	var DUR = 5.0
+	# anime: kullanıcı diz çöküp mühür yapar; böcekler ipek örer, yarı saydam parlayan koza alttan yukarı kapanır (içi görünür)
 	var mi = MeshInstance3D.new()
-	var cm = CapsuleMesh.new()
-	cm.radius = 0.7
-	cm.height = 2.2
-	mi.mesh = cm
-	var mat = StandardMaterial3D.new()
-	mat.albedo_color = Color(0.82, 0.8, 0.72)
-	mat.roughness = 1.0
+	var sm = SphereMesh.new()
+	sm.radius = 0.95
+	sm.height = 2.1
+	sm.radial_segments = 40
+	sm.rings = 24
+	mi.mesh = sm
+	var mat = ShaderMaterial.new()
+	mat.shader = preload("res://shaders/vfx_cocoon.gdshader")
+	mat.set_shader_parameter("grow", 0.0)
+	mat.set_shader_parameter("height", 2.1)
 	mi.material_override = mat
-	attach(c, mi, DUR, Vector3.UP * 1.05)
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mi.scale = Vector3(1.0, 1.0, 0.92)
+	attach(c, mi, DUR + 0.6, Vector3.UP * 0.75)
+	var tw = mi.create_tween()
+	tw.tween_method(func(v): mat.set_shader_parameter("grow", v), 0.0, 1.05, 1.2).set_trans(Tween.TRANS_SINE)
+	tw.tween_interval(DUR - 1.2)
+	tw.tween_method(func(v): mat.set_shader_parameter("grow", v), 1.05, 0.0, 0.5)
+	var tt = [0.0]
+	every(DUR, 0.1, func(i, _k):
+		tt[0] += 0.1
+		mat.set_shader_parameter("t", tt[0])
+		if live(c) and c.get("model"):   # koza boyunca diz çökük + eller mühürde (anime); klip oyuncu animasyonunca eziliyordu
+			c.set_meta("kneel", true)
+			c.model.overlay.charge_k = 1.0
+			c.model.overlay.set_pose("seal", 1.0)
+		if live(c) and i % 2 == 0:   # örülen ipeğin etrafında dolaşan böcekler
+			var a = randf() * TAU
+			FX.burst(c.global_position + Vector3(cos(a) * 1.0, randf_range(0.2, 1.6), sin(a) * 1.0), {"amount": 4, "life": 0.6, "size": 0.06, "vmin": 0.3, "vmax": 1.0, "add": false,
+				"tangent": 4.0, "colors": [Color(0.06, 0.06, 0.05), Color(0.06, 0.06, 0.05, 0)]}), Callable())
 	busy(c, DUR)
 	if c is Player:
 		c.input_locked = DUR
@@ -1557,6 +1579,11 @@ func c_hijutsu_mushimayu(c: Node3D, _t: Node3D) -> void:
 	after(DUR, func():
 		if not live(c):
 			return
+		if c.get("model"):
+			c.model.overlay.charge_k = 0.0
+			c.model.overlay.set_pose("seal", 0.0)
+		if c.has_meta("kneel"):
+			c.remove_meta("kneel")
 		FX.burst(c.global_position + Vector3.UP, {"amount": 90, "life": 1.0, "size": 0.1, "vmin": 2, "vmax": 6, "add": false, "colors": [Color(0.06, 0.06, 0.05), Color(0.06, 0.06, 0.05, 0)]})
 		if c is Player:
 			Game.profile["kikaichu"] = ClanMech.KOLONI_MAX
