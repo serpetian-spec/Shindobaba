@@ -79,7 +79,7 @@ func _ready() -> void:
 	pl.max_chakra = 500.0
 	Input.action_press("charge")
 	await _wait(1.2)
-	if pl.combat.aura: pl.combat.aura.visible = false
+	pass
 	print("CHG action=%s aura=%s chakra=%.1f cast=%s plant=%s" % [pl.combat.action, pl.combat.aura, pl.chakra, pl.model.overlay.targets.get("cast", -1), pl.model.overlay.targets.get("plant", -1)])
 	var fd = pl.face_dir()
 	var sd = fd.cross(Vector3.UP).normalized()

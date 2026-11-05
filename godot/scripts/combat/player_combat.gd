@@ -53,7 +53,7 @@ var invuln = 0.0
 var stun_meter := 0.0
 var stun_last_ms := 0
 var last_hit_t = 99.0
-var aura: GPUParticles3D
+var aura: Node3D
 var cast_jutsu = ""
 var cast_time = 0.0
 var cooldowns = {}

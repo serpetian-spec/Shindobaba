@@ -464,62 +464,75 @@ func explosion(pos: Vector3, s := 1.0, col := Color(1.0, 0.55, 0.15)) -> void:
 ## Chakra toplama aurası (anime/Storm): bedeni saran, yukarı yalazlanan mavi alev dilleri (karışım harmanı: parlak zeminde
 ## de mavi kalır, eskiden toplama harmanlı ince kıvılcımlar kumda beyaza boğulup kayboluyordu) + içte parlak kıvılcımlar.
 ## Dönen düğüm ana parçacık sistemidir; emitting=false çocuklarını da durdurmak için stop_aura kullanılır.
-func chakra_aura(parent: Node3D, col := Color(0.3, 0.62, 1.0), s := 1.0) -> GPUParticles3D:
-	var p = GPUParticles3D.new()
-	p.amount = int(70 * s)
-	p.lifetime = 0.7
-	p.local_coords = false
+func chakra_aura(parent: Node3D, col := Color(0.3, 0.62, 1.0), s := 1.0) -> Node3D:
+	# Storm tarzı: bedene giydirilen dalgalı chakra katmanı (vfx_chakra_aura, material_overlay) — eskiden yüzen alev
+	# kartlarıydı ("üçgenler uçuyor"); üstte birkaç küçük yükselen kıvılcım
+	var node = Node3D.new()
+	parent.add_child(node)
+	var mat = ShaderMaterial.new()
+	mat.shader = load("res://shaders/vfx_chakra_aura.gdshader")
+	mat.set_shader_parameter("deep", Color(col.r * 0.4, col.g * 0.6, col.b))
+	mat.set_shader_parameter("k", 0.0)
+	mat.render_priority = 1
+	var meshes: Array = []
+	var m = parent.get("model")
+	if m != null and is_instance_valid(m):
+		for mi in m.find_children("*", "MeshInstance3D", true, false):
+			var g = mi as MeshInstance3D
+			if g.mesh == null or g.material_overlay != null:
+				continue
+			g.material_overlay = mat
+			meshes.append(g)
+	node.set_meta("mat", mat)
+	node.set_meta("meshes", meshes)
+	var tw = node.create_tween()
+	tw.tween_method(func(v: float): mat.set_shader_parameter("k", v), 0.0, 1.0, 0.35)
+	var tt = node.create_tween().set_loops()
+	tt.tween_method(func(v: float):
+		mat.set_shader_parameter("t", v)
+		if is_instance_valid(parent):
+			mat.set_shader_parameter("base_y", parent.global_position.y), 0.0, 100.0, 100.0)
+	var sp = GPUParticles3D.new()
+	sp.amount = int(18 * s)
+	sp.lifetime = 0.9
+	sp.local_coords = false
 	var pm = ParticleProcessMaterial.new()
 	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-	pm.emission_box_extents = Vector3(0.32, 0.75, 0.22) * s
+	pm.emission_box_extents = Vector3(0.35, 0.8, 0.25) * s
 	pm.direction = Vector3.UP
-	pm.spread = 8.0
-	pm.initial_velocity_min = 0.9
-	pm.initial_velocity_max = 2.0
-	pm.gravity = Vector3(0, 2.0, 0)
-	pm.scale_min = 0.7; pm.scale_max = 1.25
-	pm.color_ramp = _gradient([Color(col.lightened(0.5).r, col.lightened(0.5).g, col.lightened(0.5).b, 0.0), Color(col.r, col.g, col.b, 0.5),
-		Color(col.darkened(0.15).r, col.darkened(0.15).g, col.darkened(0.15).b, 0.0)])
-	pm.scale_curve = _curve([[0.0, 0.5], [0.35, 1.0], [1.0, 0.35]])
-	pm.particle_flag_align_y = true
-	p.process_material = pm
+	pm.spread = 10.0
+	pm.initial_velocity_min = 1.0
+	pm.initial_velocity_max = 2.4
+	pm.gravity = Vector3(0, 1.5, 0)
+	pm.scale_min = 0.5; pm.scale_max = 1.0
+	pm.color_ramp = _gradient([Color(0.8, 0.95, 1.0, 0.0), Color(0.75, 0.9, 1.0, 0.9), Color(0.5, 0.75, 1.0, 0.0)])
+	sp.process_material = pm
 	var q = QuadMesh.new()
-	q.size = Vector2(0.38, 0.8) * s
-	q.material = _draw_mat(tex_flame, false, BaseMaterial3D.BILLBOARD_FIXED_Y)
-	p.draw_pass_1 = q
-	p.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	parent.add_child(p)
-	p.position = Vector3(0, 0.95, 0) * s
-	p.emitting = true
-	# içte açık camgöbeği parıltı dilleri (toplama harmanı, küçük): alevin çekirdeği
-	var g = GPUParticles3D.new()
-	g.amount = int(36 * s)
-	g.lifetime = 0.5
-	g.local_coords = false
-	var gm = pm.duplicate()
-	gm.emission_box_extents = Vector3(0.24, 0.7, 0.16) * s
-	gm.color_ramp = _gradient([Color(0.85, 0.95, 1.0, 0.0), Color(0.6, 0.85, 1.0, 0.3), Color(0.5, 0.75, 1.0, 0.0)])
-	g.process_material = gm
-	var gq = QuadMesh.new()
-	gq.size = Vector2(0.18, 0.55) * s
-	gq.material = _draw_mat(tex_flame, true, BaseMaterial3D.BILLBOARD_FIXED_Y)
-	g.draw_pass_1 = gq
-	g.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	p.add_child(g)
-	g.emitting = true
-	return p
+	q.size = Vector2(0.05, 0.22) * s
+	q.material = _draw_mat(tex_spark, true, BaseMaterial3D.BILLBOARD_FIXED_Y)
+	sp.draw_pass_1 = q
+	sp.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	node.add_child(sp)
+	sp.position = Vector3(0, 0.95, 0) * s
+	sp.emitting = true
+	return node
 
 
-func stop_aura(a: GPUParticles3D) -> void:
+func stop_aura(a: Node3D) -> void:
 	if not is_instance_valid(a):
 		return
-	a.emitting = false
 	for ch in a.get_children():
 		if ch is GPUParticles3D:
 			ch.emitting = false
-	get_tree().create_timer(1.0).timeout.connect(func():
-		if is_instance_valid(a):
-			a.queue_free())
+	var mat: ShaderMaterial = a.get_meta("mat") if a.has_meta("mat") else null
+	var tw = a.create_tween()
+	if mat:
+		tw.tween_method(func(v: float): mat.set_shader_parameter("k", v), 1.0, 0.0, 0.4)
+	tw.tween_callback(func():
+		for g in a.get_meta("meshes", []):
+			if is_instance_valid(g) and g.material_overlay == mat:
+				g.material_overlay = null
+		a.queue_free())
 
 
 func aura(parent: Node3D, col: Color, s := 1.0, offset := Vector3(0, 0.9, 0), dur := 1.6) -> GPUParticles3D:
