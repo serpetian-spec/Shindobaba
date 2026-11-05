@@ -1086,6 +1086,19 @@ func _aki_arm(c: Node3D, right: bool, k: Array, t_in: float, hold: float, t_out:
 	var ov = m.overlay
 	var sd = "Right" if right else "Left"
 	var bones = [sd + "UpperArm", sd + "LowerArm", sd + "Hand"]
+	# büyüyen eldeki silah da kemikle devleşiyordu: teknik süresince gizlenir (katman maskesi; görünürlük her kare yenilendiği için)
+	var hidden = []
+	for w in m.get("weapons") if m.get("weapons") != null else []:
+		var wn = w.get("node")
+		if String(w.get("side", "")) != sd or wn == null or not is_instance_valid(wn) or wn.get_parent() != w.get("hand"):
+			continue
+		var geos = (wn as Node).find_children("*", "GeometryInstance3D", true, false)
+		if wn is GeometryInstance3D:
+			geos.append(wn)
+		for g in geos:
+			if g.layers != 0:
+				hidden.append([g, g.layers])
+				g.layers = 0
 	var tw = m.create_tween()
 	tw.tween_method(func(u: float):
 		if is_instance_valid(ov):
@@ -1104,7 +1117,10 @@ func _aki_arm(c: Node3D, right: bool, k: Array, t_in: float, hold: float, t_out:
 		if is_instance_valid(ov):
 			for b in bones:
 				ov.grow.erase(b)
-			ov.fist.erase(sd))
+			ov.fist.erase(sd)
+		for hv in hidden:
+			if is_instance_valid(hv[0]):
+				hv[0].layers = hv[1])
 
 ## Akimichi: sağ elin dünya konumu (kemikten; devleşen elin gerçek yeri)
 func _aki_hand(c: Node3D) -> Vector3:

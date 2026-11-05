@@ -15,6 +15,9 @@ const BRANCH := {"genjutsu": "genjutsu", "fuinjutsu": "fuinjutsu", "medical": "i
 static func branch_of(j: Dictionary) -> String:
 	return String(BRANCH.get(String(j.get("category", "ninjutsu")), "ninjutsu"))
 const SP_PER := 4.0   # her 4 toplam ustalık puanında 1 yetenek puanı
+## Gelişme hızı (kullanıcı 2026-11-05: "30-40 dk'da rahat jōnin oluyorsun, en az 3-4 saat sürmeli"): bütün kazanımlar x0.17 (~6 kat yavaş;
+## dv/dt = miktar x _rate(v) olduğundan aynı ustalığa varış süresi tam 1/0.17 katı uzar)
+const SPEED := 0.17
 
 
 static func get_v(p: Dictionary, key: String) -> float:
@@ -30,6 +33,7 @@ static func gain(p: Dictionary, key: String, amount: float) -> void:
 	var m: Dictionary = p["mastery"]
 	var v = float(m.get(key, 0.0))
 	amount *= 1.0 + Stats.skill(p, "xp")   # eski "tecrübe" yetenekleri ustalık hızına
+	amount *= SPEED
 	var nv = v + amount * _rate(v)
 	m[key] = nv
 	if int(nv) > int(v):

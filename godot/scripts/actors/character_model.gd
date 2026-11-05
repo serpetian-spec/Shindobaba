@@ -6308,6 +6308,29 @@ func _rest_tilt(on: bool, dt: float) -> void:
 const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45], "kabutowari": [0.0, 0.3, 0.82, 0.85], "ruzgar_bicak": [0.0, 0.1, 0.6, 0.62], "hiraishin_kunai": [0.0, 0.14, 0.47, 0.48], "homatsu_kiseru": [0.1, 0.5, 0.72, 0.72], "kusanagi": [0.0, 0.21, 1.08, 1.09], "kusarigama": [0.0, 0.3, 0.8, 0.85], "fuma_shuriken": [0.0, 0.05, 0.6, 0.62], "kyodai_shuriken": [0.0, 0.1, 1.3, 1.3], "fuma_makimono": [0.0, 0.05, 0.25, 0.26], "nuibari": [0.0, 0.1, 1.62, 1.62], "savas_cekici": [0.0, 1.1, 1.58, 1.58], "zincirli_kunai": [0.0, 0.06, 0.38, 0.38], "bashosen": [0.0, 0.55, 1.4, 1.45], "kubikiribocho": [0.0, 0.3, 1.9, 1.9], "yagura_sopa": [0.0, 0.87, 1.77, 1.8], "kongo_asa": [0.0, 0.6, 1.25, 1.26], "yelpaze": [0.0, 0.2, 0.6, 0.62], "kama": [0.0, 1.0, 1.62, 1.64], "pence": [0.0, 0.1, 0.48, 0.48], "senbon": [0.0, 0.05, 0.22, 0.22], "hiramekarei": [0.0, 0.3, 1.3, 1.33], "bo": [0.0, 0.4, 0.95, 0.95], "kiba": [0.0, 0.2, 1.11, 1.15]}   # uzunluklar silahın kendi ölçeğiyle çarpılır
 
 
+static var _kp_cache := {}
+
+
+## Silahın iz/boy değerleri: tabloda varsa o, yoksa modelin kendi ölçüsünden (bıçak ucu = mesh'in +z sonu, iz başı = ucun %15'i).
+## Eskiden tabloda olmayan her silah (wakizashi, katana, tantō, nodachi, chokutō, sai, muşta...) 0.5-1.8 m iz alıyordu:
+## iz kılıca denk gelmiyor, ucundan taşıyordu.
+static func weapon_kp(id: String, node: Node3D) -> Array:
+	if KEY_WEAPON.has(id):
+		return KEY_WEAPON[id]
+	if _kp_cache.has(id):
+		return _kp_cache[id]
+	var end_z = 0.0
+	var mis: Array = [node] if node is MeshInstance3D else node.find_children("*", "MeshInstance3D", true, false)
+	for mi in mis:
+		if (mi as MeshInstance3D).mesh:
+			end_z = maxf(end_z, (mi as MeshInstance3D).mesh.get_aabb().end.z)
+	if end_z <= 0.02:
+		return [0.0, 0.5, 1.8, 2.0]
+	var kp = [0.0, end_z * 0.15, end_z, end_z]
+	_kp_cache[id] = kp
+	return kp
+
+
 var _edge_x := Vector3.ZERO   # gunbai: kenar önde savuruş için yüz normali (yumuşatılmış)
 
 
@@ -6370,12 +6393,12 @@ func _key_blade_sk(sk: Skeleton3D, blade: Vector3) -> void:
 		if not w.has("trail") and is_inside_tree():
 			var tr = SwordTrail.new()
 			tr.node = n
-			var kp0: Array = KEY_WEAPON.get(w["id"], [0.0, 0.5, 1.8, 2.0])
+			var kp0: Array = weapon_kp(String(w["id"]), n)
 			tr.z0 = kp0[1]
 			tr.z1 = kp0[2]
 			get_tree().current_scene.add_child(tr)
 			w["trail"] = tr
-		var kp: Array = KEY_WEAPON.get(w["id"], [0.0, 0.5, 1.8, 2.0])   # [tutuş kaydırma, iz başı, iz ucu, boy]
+		var kp: Array = weapon_kp(String(w["id"]), n)   # [tutuş kaydırma, iz başı, iz ucu, boy]
 		var grip = float(kp[0]) * sc.z
 		# yer kontrolü (dünya): el + uç * boy yerin altına inmesin
 		var z: Vector3 = blade.normalized()
