@@ -27,6 +27,7 @@ var roam_t = 0.0
 var roam_goal := Vector3.ZERO
 var num = 1
 var cam_set = false
+var jin_host: Node3D = null   # bir düşman jinchūriki'nin tam dönüşümüyse: bastırılınca form dağılır, jinchūriki geri gelir
 
 
 func setup(beast_id: String) -> void:
@@ -91,6 +92,9 @@ func take_hit(inf: Dictionary) -> void:
 	Combat.damage_number(global_position + Vector3.UP * height * 0.6, dmg, Color(1, 0.7, 0.3))
 	Hud.boss_bar(self)
 	if hp <= max_hp * SUBDUE + 0.01 and not subdued:
+		if jin_host != null:
+			EnemyJin.form_broken(self)   # jinchūriki dönüşümü: mühürleme yok, form dağılır
+			return
 		_subdue()
 
 

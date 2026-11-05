@@ -4,7 +4,8 @@ render_mode unshaded, cull_disabled, depth_draw_never, blend_mix;
 
 uniform vec4 col : source_color = vec4(1.0, 0.45, 0.1, 1.0);
 uniform float grow = 0.06;
-uniform float dark = 0.0;      // V2: kara-kırmızı katman
+uniform float dark = 0.0;      // V2: koyulaşan katman
+uniform vec4 dark_col : source_color = vec4(0.35, 0.02, 0.02, 1.0);   // Kurama: kara-kırmızı; diğer canavarlar: kendi chakrasının koyusu
 uniform float strength = 1.0;
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -24,7 +25,7 @@ void vertex() {
 void fragment() {
 	float rim = pow(1.0 - clamp(abs(dot(NORMAL, VIEW)), 0.0, 1.0), 1.8);
 	float flow = vnoise(wp.xz * 3.0 + vec2(0.0, -TIME * 2.5) + wp.y * 2.0) * 0.6 + vnoise(wp.xy * 6.0 - vec2(TIME * 1.2, TIME * 3.0)) * 0.4;
-	vec3 c = mix(col.rgb, vec3(0.35, 0.02, 0.02), dark);
+	vec3 c = mix(col.rgb, dark_col.rgb, dark);
 	float a = clamp((0.22 + rim * 0.75 + flow * 0.3) * strength, 0.0, 0.92);
 	ALBEDO = c * (0.85 + rim * 0.8 + flow * 0.4);
 	ALPHA = a;

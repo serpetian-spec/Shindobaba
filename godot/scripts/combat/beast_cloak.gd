@@ -80,9 +80,46 @@ func handle_input(e: InputEvent) -> bool:
 
 func _tap() -> void:
 	if level < max_level():
-		set_level(level + 1)
+		set_level(next_level(level, beast_tails(beast_id())))
 	else:
 		_bomb()
+
+
+## Canavarın kuyruk sayısı
+static func beast_tails(id: String) -> int:
+	return int(BeastModels.INFO.get(id, {}).get("tails", 4))
+
+
+## Anime: Sürüm 1 pelerin canavarın kendi kuyruk sayısını geçemez (en çok 4) — iki kuyruklu canavar 1 -> 2 kuyruk -> Sürüm 2;
+## eskiden her canavar 4 kuyruğa kadar sayıyordu ("2 kuyruklu canavar 4 kuyruk açtı"). Oyuncu ve düşman jinchūriki ORTAK.
+static func next_level(l: int, tails: int) -> int:
+	var n = l + 1
+	if n >= 1 and n <= 4 and n > mini(4, maxi(1, tails)):
+		n = 5
+	return n
+
+
+## Teknik şartı (kuyruk sayısına göre): 3 kuyruk isteyen teknik iki kuyruklu canavarda Sürüm 2'de açılır
+static func tech_need(i: int, tails: int) -> int:
+	var n = int(TECH_NEED[i])
+	if n >= 1 and n <= 4 and n > mini(4, maxi(1, tails)):
+		n = 5
+	return n
+
+
+## Sürüm 2'nin koyu rengi: Kurama kara-kırmızı, diğer canavarlar kendi chakrasının koyusu (eskiden hepsi kırmızıya karışıp mor/kahve oluyordu)
+static func v2_dark(id: String) -> Color:
+	if id == "kurama":
+		return Color(0.35, 0.02, 0.02)
+	var cc: Color = BeastModels.INFO.get(id, BeastModels.INFO["kurama"])["chakra"]
+	return cc.darkened(0.62)
+
+
+## Seviye adı (kuyruk sayısıyla)
+static func level_name(l: int) -> String:
+	if l >= 1 and l <= 4:
+		return "Sürüm 1 — %s Kuyruk" % ["Tek", "İki", "Üç", "Dört"][l - 1]
+	return NAMES[clampi(l, 0, NAMES.size() - 1)]
 
 
 func set_level(l: int) -> void:
@@ -92,11 +129,13 @@ func set_level(l: int) -> void:
 	if l <= 0:
 		deactivate()
 		return
+	if l >= 1 and l <= 4 and l > mini(4, beast_tails(beast_id())):
+		l = 5   # canavarın kuyruğundan fazla Sürüm 1 kuyruğu yok
 	level = clampi(l, 0, max_level())
 	var tr = TailedBeasts.trust()
 	var col = chakra_col()
 	Buffs.add("beast", 9999.0, {"melee": 1.1 + level * 0.08, "speed": 1.05 + level * 0.04, "armor": maxf(0.6, 1.0 - level * 0.06), "jutsu": 1.05 + level * 0.06})
-	Hud.banner("JİNCHŪRİKİ: %s" % NAMES[level].to_upper(), "Güven %d/100%s" % [int(tr), "  —  DİKKAT: canavar kontrolü ele geçirebilir!" if tr < SAFE_TRUST[level] else ""], col)
+	Hud.banner("JİNCHŪRİKİ: %s" % level_name(level).to_upper(), "Güven %d/100%s" % [int(tr), "  —  DİKKAT: canavar kontrolü ele geçirebilir!" if tr < SAFE_TRUST[level] else ""], col)
 	var hint = tech_hint()
 	if hint != "":
 		Hud.msg(hint, col.lightened(0.3), 6.0)
@@ -113,6 +152,7 @@ func set_level(l: int) -> void:
 		_set_tails(mini(level, int(BeastModels.INFO.get(beast_id(), {}).get("tails", 4))) if level <= 4 else int(BeastModels.INFO.get(beast_id(), {}).get("tails", 4)))   # iki kuyruklu canavar 4 kuyruklu pelerin çıkarmasın
 		mat.set_shader_parameter("col", chakra_col())
 		mat.set_shader_parameter("dark", 0.85 if level == 5 and chakra_col() == BeastModels.INFO.get(beast_id(), {}).get("chakra", Color.BLACK) else 0.0)
+		mat.set_shader_parameter("dark_col", v2_dark(beast_id()))
 		mat.set_shader_parameter("grow", 0.05 + level * 0.012)
 
 
@@ -139,36 +179,49 @@ func deactivate() -> void:
 func _ensure_cloak() -> void:
 	if is_instance_valid(cloak_mesh) and cloak_mesh.get_parent() != null and cloak_mesh.get_parent() == p.model.skel:
 		return
-	var m = p.model
-	mat = ShaderMaterial.new()
-	mat.shader = load("res://shaders/beast_cloak.gdshader")
-	mat.set_shader_parameter("col", chakra_col())
-	cloak_mesh = MeshInstance3D.new()
-	cloak_mesh.mesh = m.body_mesh.mesh
-	m.skel.add_child(cloak_mesh)
-	cloak_mesh.skin = m.body_mesh.skin
-	cloak_mesh.skeleton = cloak_mesh.get_path_to(m.skel)
-	cloak_mesh.material_override = mat
-	cloak_mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	# chakra kulakları (kafaya bağlı)
-	var hc = m._head_center()
-	var eb = MB.new()
-	for sx in [-1.0, 1.0]:
-		eb.add("cone", Vector3(0.09 * sx, 0.16, -0.02), Vector3(0.09, 0.22, 0.06), Color.WHITE, Vector3(0, 0, -18 * sx), 6)
-	ears = m._mesh_on("Head", eb.build(null), Transform3D(Basis.IDENTITY, hc))
-	ears.material_override = mat
-	# kuyruk kökü (kalça, arkaya)
-	var hp = m.skel.get_bone_global_rest(m.skel.find_bone("Hips")).origin
-	var ba = m._attach("Hips", Transform3D(Basis.IDENTITY, hp + Vector3(0, 0.0, -0.16)))
-	tail_root = ba.get_child(0)
+	var d = build_cloak(p.model, chakra_col())
+	mat = d["mat"]
+	cloak_mesh = d["mesh"]
+	ears = d["ears"]
+	tail_root = d["tail_root"]
 
 
 func _set_tails(n: int) -> void:
 	for tl in tails:
 		if is_instance_valid(tl[0]):
 			tl[0].queue_free()
-	tails.clear()
-	var length = 1.3 if level <= 4 else 2.2
+	tails = build_tails(tail_root, n, level, mat)
+
+
+## Pelerin görseli (oyuncu ve düşman jinchūriki ORTAK): gövde kabuğu shader'ı, chakra kulakları, kuyruk kökü
+static func build_cloak(m: CharacterModel, col: Color) -> Dictionary:
+	var mt = ShaderMaterial.new()
+	mt.shader = load("res://shaders/beast_cloak.gdshader")
+	mt.set_shader_parameter("col", col)
+	var cm = MeshInstance3D.new()
+	cm.mesh = m.body_mesh.mesh
+	m.skel.add_child(cm)
+	cm.skin = m.body_mesh.skin
+	cm.skeleton = cm.get_path_to(m.skel)
+	cm.material_override = mt
+	cm.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# chakra kulakları (kafaya bağlı)
+	var hc = m._head_center()
+	var eb = MB.new()
+	for sx in [-1.0, 1.0]:
+		eb.add("cone", Vector3(0.09 * sx, 0.16, -0.02), Vector3(0.09, 0.22, 0.06), Color.WHITE, Vector3(0, 0, -18 * sx), 6)
+	var er = m._mesh_on("Head", eb.build(null), Transform3D(Basis.IDENTITY, hc))
+	er.material_override = mt
+	# kuyruk kökü (kalça, arkaya)
+	var hp = m.skel.get_bone_global_rest(m.skel.find_bone("Hips")).origin
+	var ba = m._attach("Hips", Transform3D(Basis.IDENTITY, hp + Vector3(0, 0.0, -0.16)))
+	return {"mat": mt, "mesh": cm, "ears": er, "tail_root": ba.get_child(0)}
+
+
+## n kuyruk (seviye 5+ uzun kuyruklar); [kök, segmentler...] listesi döner
+static func build_tails(tail_root: Node3D, n: int, lvl: int, mt: Material) -> Array:
+	var out = []
+	var length = 1.3 if lvl <= 4 else 2.2
 	for i in n:
 		var yaw = 0.0 if n == 1 else lerpf(-55.0, 55.0, float(i) / (n - 1))
 		var root = Node3D.new()
@@ -191,12 +244,13 @@ func _set_tails(n: int) -> void:
 			mi.mesh = sm
 			mi.rotation.x = PI * 0.5
 			mi.position = Vector3(0, 0, length / nseg * 0.5)
-			mi.material_override = mat
+			mi.material_override = mt
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			sg.add_child(mi)
 			segs.append(sg)
 			parent = sg
-		tails.append(segs)
+		out.append(segs)
+	return out
 
 
 # ------------------------------------------------------------------ tam dönüşüm
@@ -314,7 +368,7 @@ func tech_hint() -> String:
 	var l = BijuuArts.techs(beast_id())
 	var parts = []
 	for i in l.size():
-		if level >= TECH_NEED[i]:
+		if level >= tech_need(i, beast_tails(beast_id())):
 			parts.append(l[i]["name"])
 	if parts.is_empty():
 		return ""
@@ -332,8 +386,8 @@ func _tech(i: int) -> void:
 	if i >= l.size():
 		return
 	var tdef: Dictionary = l[i]
-	if level < TECH_NEED[i]:
-		Hud.msg("%s için en az: %s" % [tdef["name"], NAMES[TECH_NEED[i]]], chakra_col())
+	if level < tech_need(i, beast_tails(beast_id())):
+		Hud.msg("%s için en az: %s" % [tdef["name"], level_name(tech_need(i, beast_tails(beast_id())))], chakra_col())
 		return
 	var key: String = tdef["key"]
 	if float(tech_cd.get(key, 0.0)) > 0.0:

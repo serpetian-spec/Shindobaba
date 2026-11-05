@@ -461,6 +461,11 @@ func _physics_process(dt: float) -> void:
 
 
 func _think(dt: float) -> void:
+	# jinchūriki: dövüşte can azaldıkça pelerin aşamaları ve tam dönüşüm (oyuncuyla aynı kurallar — EnemyJin)
+	if arch.has("beast") and ((target != null and is_instance_valid(target)) or hp < max_hp * 0.999):
+		EnemyJin.tick(self)
+		if not visible:
+			return
 	think_t -= dt
 	if think_t > 0.0:
 		return

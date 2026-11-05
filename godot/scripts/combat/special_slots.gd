@@ -42,7 +42,7 @@ static func refresh(pr: Dictionary) -> Array:
 			var t: Dictionary = tl[i]
 			Data.jutsu[id] = {"name": String(t["name"]), "cost": int(t.get("cost", 0)), "cd": float(t.get("cd", 6.0)), "element": "",
 				"category": "bijuu", "canon_rank": "S", "seals": [], "virtual": "bijuu:%d" % i,
-				"desc": "%s tekniği. Jinchūriki pelerini (X) en az %s iken slottan kullanılır." % [String(BeastModels.INFO.get(bid, {}).get("name", bid)).split(" — ")[0], BeastCloak.NAMES[BeastCloak.TECH_NEED[i]]]}
+				"desc": "%s tekniği. Jinchūriki pelerini (X) en az %s iken slottan kullanılır." % [String(BeastModels.INFO.get(bid, {}).get("name", bid)).split(" — ")[0], BeastCloak.level_name(BeastCloak.tech_need(i, BeastCloak.beast_tails(bid)))]}
 			out.append(id)
 		else:
 			Data.jutsu.erase(id)
