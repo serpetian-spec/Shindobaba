@@ -18059,27 +18059,80 @@ const AKI_BLUE := Color(0.35, 0.65, 1.0)
 const BUG := Color(0.04, 0.04, 0.03)
 
 
-## Mavi kelebek kanatları: iki büyük üst + iki alt kanat, damar çizgili, çırpınır
+## Kelebek Modu kanatları (anime ref: Chōji / Chōchō): sırttan (göğüs kemiğine bağlı — karakterle döner) çıkan iki büyük sivri uçlu
+## üst kanat + iki küçük alt kanat; yarı saydam camgöbeği chakra yüzeyi, içinde akan koyu mavi alev lekeleri, parlak kenar
 func _blue_wings(c: Node3D, dur: float) -> Node3D:
+	var ba = bone_attach(c, "UpperChest")
 	var root = Node3D.new()
-	var m = VFX.mat_spiral(Color(0.45, 0.75, 1.0), Color(0.1, 0.35, 1.0), 2.0, 1.0, 3.0, 1.1)
-	var vein = VFX.mat_bolt(Color(0.8, 0.95, 1.0), 1.6)
+	var m = ShaderMaterial.new()
+	m.shader = load("res://shaders/vfx_cho_wing.gdshader")
+	var UP_W = [Vector2(0.05, 0.1), Vector2(0.35, 0.9), Vector2(0.9, 1.6), Vector2(1.6, 2.15), Vector2(2.25, 2.45), Vector2(2.55, 2.2),
+		Vector2(2.6, 1.6), Vector2(2.35, 0.9), Vector2(1.9, 0.35), Vector2(1.2, 0.0), Vector2(0.5, -0.05)]
+	var LO_W = [Vector2(0.1, -0.1), Vector2(0.8, -0.2), Vector2(1.5, -0.55), Vector2(1.85, -1.1), Vector2(1.75, -1.65), Vector2(1.3, -1.9),
+		Vector2(0.8, -1.6), Vector2(0.4, -1.0), Vector2(0.12, -0.45)]
 	for sx in [-1.0, 1.0]:
 		var wing = Node3D.new()
 		root.add_child(wing)
-		for k in 2:
-			var b = MB.new()
-			b.add("sphere", Vector3(1.3 * sx, 0.7 - k * 1.3, 0), Vector3(2.4 - k * 0.8, 1.9 - k * 0.6, 0.05), Color.WHITE, Vector3(0, 0, 28 * sx * (1 - k * 2)), 14)
-			wing.add_child(mesh_of(b, m))
-			var vb = MB.new()
-			for j in 4:
-				vb.add("box", Vector3(0.7 * sx + sx * j * 0.25, 0.6 - k * 1.2 + (j - 1.5) * 0.25, 0.03), Vector3(1.6 - j * 0.2, 0.03, 0.02), Color.WHITE, Vector3(0, 0, sx * (20 - j * 15) * (1 - k * 2)))
-			wing.add_child(mesh_of(vb, vein))
+		wing.position = Vector3(sx * 0.03, 0.0, 0.0)
+		for outline in [UP_W, LO_W]:
+			wing.add_child(_wing_sheet(outline, sx, m))
+		wing.rotation.y = -0.38 * sx   # uçlar geriye açılır
 		var tw = wing.create_tween().set_loops()
-		tw.tween_property(wing, "rotation:y", 0.4 * sx, 0.28)
-		tw.tween_property(wing, "rotation:y", -0.15 * sx, 0.28)
-	attach(c, root, dur, Vector3(0, 1.4, -0.3))
+		tw.tween_property(wing, "rotation:y", -0.62 * sx, 0.7).set_trans(Tween.TRANS_SINE)
+		tw.tween_property(wing, "rotation:y", -0.3 * sx, 0.7).set_trans(Tween.TRANS_SINE)
+	root.scale = Vector3.ONE * 0.05
+	root.create_tween().tween_property(root, "scale", Vector3.ONE * 1.6, 0.35)   # anime: açıklık gövdenin ~3 katı.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	var mdl = c.get("model")
+	if ba and mdl is CharacterModel:
+		ba.queue_free()
+		# sırt eşyalarıyla aynı yöntem: model uzayında ölçülen sırt yüzeyine (yelek/dış giysi payıyla) yapışık, göğüs kemiğine bağlı
+		var ch: Vector3 = mdl._bp("UpperChest")
+		var y = ch.y - 0.02
+		var bz: float = mdl._back_z(y)
+		var pad = 0.015 + (0.025 if mdl.look.get("vest") != null else 0.0) + (0.04 if mdl.look.get("outer_style") != null else 0.0)
+		var hold = mdl._attach("UpperChest", Transform3D(Basis.IDENTITY, Vector3(0, y, (bz if bz < 0.0 else -0.12) - pad)))
+		hold.get_child(0).add_child(root)
+		after(dur, func():
+			if is_instance_valid(hold):
+				hold.queue_free())
+	elif ba:
+		ba.add_child(root)
+		root.position = Vector3(0, 0.12, -0.14)
+		after(dur, func():
+			if is_instance_valid(ba):
+				ba.queue_free())
+	else:
+		attach(c, root, dur, Vector3(0, 1.4, -0.3))
 	return root
+
+
+## Kanat yüzeyi: merkezden yelpaze (kenar katsayısı UV.y: merkez 0 -> kenar 1), sx ile aynalanır, hafif öne kavisli
+func _wing_sheet(outline: Array, sx: float, m: Material) -> MeshInstance3D:
+	var cen = Vector2.ZERO
+	for p in outline:
+		cen += p
+	cen /= outline.size()
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var n = outline.size()
+	var bend = func(p: Vector2) -> Vector3:
+		return Vector3(p.x * sx, p.y, -maxf(0.0, p.length() - 0.25) * 0.12)
+	for i in n:
+		var a: Vector2 = outline[i]
+		var b: Vector2 = outline[(i + 1) % n]
+		for ring in 3:   # merkezden kenara 3 halka: kenar parıltısı yumuşak geçsin
+			var t0 = ring / 3.0
+			var t1 = (ring + 1) / 3.0
+			var a0 = cen.lerp(a, t0); var b0 = cen.lerp(b, t0)
+			var a1 = cen.lerp(a, t1); var b1 = cen.lerp(b, t1)
+			for v in [[a0, t0], [a1, t1], [b1, t1], [a0, t0], [b1, t1], [b0, t0]]:
+				st.set_uv(Vector2(float(i) / n, v[1]))
+				st.add_vertex(bend.call(v[0]))
+	var mi = MeshInstance3D.new()
+	mi.mesh = st.commit()
+	mi.material_override = m
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return mi
 
 
 ## Kara böcek bulutu (yoğun parçacık)

@@ -293,9 +293,43 @@ func toggle_sage() -> void:
 	Hud.msg("Doğa enerjisini topluyorsun... kıpırdama!", SAGE_FX[sage_kind]["col"], 1.5)
 
 
-## Güç modları üst üste binmez (kullanıcı kuralı): sennin, göz (Sharingan/Byakugan...), Sekiz Kapı, kuyruklu canavar —
-## biri açılınca diğerleri kapanır
-func exclusive(keep: String) -> void:
+## Güç modları ÜST ÜSTE BİNER (kullanıcı 2026-11-05: "sannin ve sharinganı aynı anda açabilelim, ama chakra yesin"):
+## açılan mod diğerlerini kapatmaz; aynı anda açık her fazladan mod chakra yer (_stack_tick). Eski çağrılar için boş bırakıldı.
+func exclusive(_keep: String) -> void:
+	pass
+
+
+## Açık güç modu sayısı: sennin, göz/dōjutsu, Sekiz Kapı, kuyruklu canavar/örtü, mod jutsuları (Buffs.MODE_GROUP)
+func active_modes() -> int:
+	var n = 0
+	if sage:
+		n += 1
+	if (eyes and eyes.active) or dojutsu:
+		n += 1
+	if gates > 0:
+		n += 1
+	if beast or (cloak != null and cloak.level > 0):
+		n += 1
+	for k in Buffs.active.keys():
+		if k in Buffs.MODE_GROUP:
+			n += 1
+	return n
+
+
+## Üst üste binen modların bedeli: fazladan her mod saniyede 3 + azami chakranın %1.5'i; chakra biterse hepsi kapanır
+func _stack_tick(dt: float) -> void:
+	var n = active_modes()
+	if n < 2:
+		return
+	p.chakra -= (n - 1) * (3.0 + p.max_chakra * 0.015) * dt
+	if p.chakra <= 0.0:
+		p.chakra = 0.0
+		close_all("")
+		Hud.msg("Chakra tükendi: üst üste açtığın modlar kapandı.", Color(0.8, 0.8, 1), 3.0)
+
+
+## Bütün güç modlarını kapat (keep hariç)
+func close_all(keep: String) -> void:
 	if keep != "jutsu":
 		Buffs.clear_modes()
 	if keep != "sage" and sage:
@@ -684,6 +718,7 @@ func _process(dt: float) -> void:
 			_gate_look(0)
 			Hud.msg("Bedenin dayanamıyor! Kapılar kapandı.", Color(1, 0.5, 0.4))
 	_sage_tick(dt)
+	_stack_tick(dt)
 	if beast:
 		beast_t -= dt
 		if beast_t <= 0.0:
