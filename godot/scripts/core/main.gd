@@ -73,6 +73,10 @@ func _ready() -> void:
 		_run_test()
 		return
 	to_main_menu()
+	var upd = Updater.new()   # ana exe: GitHub'da yeni sürüm varsa sorar, indirip kendini günceller
+	upd.name = "Updater"
+	add_child(upd)
+	upd.check()
 
 
 func _parse_args() -> void:
