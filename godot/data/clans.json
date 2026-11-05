@@ -537,8 +537,8 @@
  },
  "namikaze": {
   "name": "Namikaze",
-  "desc": "Sarı Şimşek'in soyu. Göz açıp kapayana kadar hız, üç kollu kunailer ve ışınlanma mühürleri. Uçan Yıldırım Yolu'na kanları yatkındır.",
-  "kg": "Sarı Şimşek Hızı",
+  "desc": "Sarı Şimşek'in soyu. Klanın gizli tekniği yoktur; Minato'nun ustalığı öğrenilmiş tekniklerdir — Uçan Yıldırım Yolu'nda (Hiraishin) bu soyun ustalaşması daha hızlıdır (yol pasifleri x1.5).",
+  "kg": "Uçan Yıldırım Yolu yatkınlığı",
   "eye": [
    0.25,
    0.5,
