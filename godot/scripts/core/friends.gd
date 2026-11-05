@@ -790,7 +790,8 @@ static func arch(f: Dictionary) -> Dictionary:
 	var c = String(f.get("clan", ""))
 	var a: Dictionary
 	if c != "":
-		a = ClanWorld.make_enemy(c, lv, {"outfit": "chunin", "village": String(f.get("village", "konoha")), "female": f["look"].get("gender", "m") == "f"})
+		# kaçak dost köy yeleği (chūnin) giymez: kaçak kıyafeti + çizik bant
+		a = ClanWorld.make_enemy(c, lv, {"outfit": "rogue" if is_rogue(f) else "chunin", "village": String(f.get("village", "konoha")), "female": f["look"].get("gender", "m") == "f"})
 		a["aggr"] = 0.6
 	else:
 		a = Enemy.archetype("genin_rival", 0)
@@ -2176,6 +2177,8 @@ func graduation() -> void:
 	var teach = pr().get("teacher", false) and int(pr().get("lessons", 0)) > 0
 	for g in cohort:
 		g["student"] = teach
+	if Orgs.is_rogue():
+		return   # köy hayatı sürer ama kaçağa köyün mezuniyet duyurusu/öğretmen teklifi gelmez
 	Hud.banner("AKADEMİ MEZUNİYETİ", "%d yeni genin alın koruyucusunu taktı. Bir saat boyunca akademi avlusundalar." % names.size(), Color(0.7, 0.9, 1.0))
 	Hud.msg("Mezunlar: " + ", ".join(names.slice(0, 6)), Color(0.75, 0.9, 1.0), 8.0)
 	if teach:
