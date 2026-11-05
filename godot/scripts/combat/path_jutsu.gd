@@ -18830,10 +18830,10 @@ func p_katon_goen_no_jutsu(c: Node3D, t: Node3D) -> void:
 	# Büyük Alev: ağızdan 1.5 sn kesintisiz, kullanıcının baktığı yönü izleyen kalın alev seli (köşeye kaçan parçacık yok)
 	VFX.gather(_mouth_pos(c), FIRE, 0.5)
 	anim(c, "push", 1.5)
-	_flame_jet(c, _mouth_pos(c), d, 18.0, 4.0, 1.5, 1.4)
+	_flame_jet(c, _mouth_pos(c), d, 20.0, 8.5, 1.5, 2.0)   # anime: geniş, yüksek alev duvarı
 	every(1.5, 0.25, func(_i, _k):
 		if live(c):
-			Combat.hit_zone(c, c.global_position, c.face_dir(), 18.0, 22.0, 3.5, inf(c, "katon_goen_no_jutsu", 0.4, {"knock": 3.0, "kind": "light", "element": "katon", "burn": 1.5})), Callable())
+			Combat.hit_zone(c, c.global_position, c.face_dir(), 20.0, 30.0, 4.5, inf(c, "katon_goen_no_jutsu", 0.4, {"knock": 3.0, "kind": "light", "element": "katon", "burn": 1.5})), Callable())
 	for k in 4:
 		after(0.4 + k * 0.15, func():
 			if live(c):
@@ -18853,9 +18853,27 @@ func p_katon_haijingakure_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 ## Uçan Kırlangıç: bıçaklarda mavi rüzgâr çakrası, her kesikte hilal
 func p_sarutobi_hien(c: Node3D, t: Node3D) -> void:
+	# kanon (Asuma): rüzgâr chakrası bıçakların ağzına akar, bıçak uzar ve keskinleşir — yakın dövüşte uzamış menzille hızlı kesikler
+	# (uçan disk mermisi değil). Bıçak ağzında mavi-beyaz chakra; her kesikte bıçak izi kavisi
 	_hand_blade(c, 1.6, Color(0.75, 0.9, 1.0), 0.7, "RightHand", _windmat(0.85))
 	_hand_blade(c, 1.6, Color(0.75, 0.9, 1.0), 0.7, "LeftHand", _windmat(0.85))
-	c_sarutobi_hien(c, t)
+	if c is Player:
+		Buffs.add("hien", 10.0, {"reach": 1.8, "melee": 1.15})
+	elif c.has_method("add_buff"):
+		c.add_buff("hien", 10.0, {"reach": 1.8, "melee": 1.15})
+	busy(c, 0.9)
+	var tt = tg(c, t, 8.0)
+	if tt:
+		_jump_at(c, tt, 0.0, 8.0)
+	every(0.8, 0.2, func(i, _k):
+		if not live(c):
+			return
+		anim(c, ["slash_a", "slash_b"][i % 2], 2.0)
+		var d = fwd(c, tt)
+		var at = c.global_position + Vector3.UP * 1.1 + d * 0.8
+		_arc_cut(at, d, -70.0 if i % 2 == 0 else 70.0, 70.0 if i % 2 == 0 else -70.0, Color(0.7, 0.92, 1.0), 2.4)
+		mhit(c, c.global_position + Vector3.UP + d * 1.8, 2.1, inf(c, "sarutobi_hien", 0.4, {"knock": 4.0, "kind": "light", "bleed": 1.0}))
+		Sfx.play("wind", c.global_position, 1.8, 0.5))
 
 
 ## Beyaz Işık Chakra Bıçağı: bıçak beyaz ışıkla parlar, geçişte uzun beyaz iz ve parlama
@@ -21109,22 +21127,43 @@ func p_sarutobi_karyu_endan(c: Node3D, t: Node3D) -> void:
 
 ## Çoklu Shuriken Klonu: tek shuriken havada yüzlerce kopyaya bölünüp yağmur gibi iner
 func p_sarutobi_shuriken_tajuu(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.0)
+	# kanon (Hiruzen): bir-iki gerçek shuriken fırlatılır, havada küçük bir dumanla yüzlercesine bölünür ve hedef bölgesine yağar.
+	# shuriken modeli oyuncunun fırlattığıyla aynı (CharacterModel._w_star), görünür boyda ve dönen
+	busy(c, 0.9)
 	var tt = tg(c, t, 28.0)
 	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 12.0)
-	FX.smoke_puff(c.global_position + Vector3.UP * 4.0 + c.face_dir() * 3.0, 2.0, 24)
-	for k in 30:
-		after(0.3 + k * 0.025, func():
-			if not live(c):
-				return
-			var from = c.global_position + Vector3.UP * 5.0 + c.face_dir() * 3.0 + Vector3(randf_range(-3, 3), randf_range(-1, 1), randf_range(-3, 3))
-			var b = MB.new()
-			for j in 4:
-				b.add("cone", Vector3(cos(j * 1.57) * 0.15, 0, sin(j * 1.57) * 0.15), Vector3(0.08, 0.3, 0.02), Color(0.35, 0.35, 0.4), Vector3(0, -j * 90, -90), 4)
-			var sh = mesh_of(b)
-			var goal = at + Vector3(randf_range(-3, 3), 0.6, randf_range(-3, 3))
-			var pr = shot(c, from, (goal - from).normalized(), 34.0, sh, inf(c, "sarutobi_shuriken_tajuu", 0.15, {"knock": 1.0, "kind": "light", "bleed": 1.0}), null, false, 1.0)
-			pr.spin = Vector3(0, 25.0, 0))
+	anim(c, "throw", 1.4)
+	var mk = func(scale: float) -> Node3D:
+		var sb = MB.new()
+		CharacterModel._w_star(sb, Vector3.ZERO, 0.19 * scale, 0.06 * scale, 4, Color(0.62, 0.64, 0.68), Color(0.15, 0.15, 0.17))
+		var b = MB.new()
+		b.add_mesh(sb, Transform3D(Basis(Vector3.RIGHT, PI * 0.5), Vector3.ZERO))
+		return mesh_of(b, Props.toon())
+	var split = []
+	after(0.15, func():
+		if not live(c):
+			return
+		for q in 2:
+			var from = hand_pos(c, true)
+			var mid = from.lerp(at + Vector3.UP * 1.2, 0.35) + Vector3.UP * (1.2 + q * 0.4)
+			var sh = mk.call(1.6)
+			scene_add(sh, from)
+			var tw = sh.create_tween()
+			tw.tween_property(sh, "global_position", mid, 0.22)
+			tw.tween_callback(sh.queue_free)
+			var spin = sh.create_tween().set_loops(8)
+			spin.tween_property(sh, "rotation:y", TAU, 0.05).as_relative()
+			split.append(mid))
+	after(0.4, func():
+		if not live(c) or split.is_empty():
+			return
+		for mp in split:
+			FX.smoke_puff(mp, 0.7, 8)   # Kage Bunshin dumanı: bölünme anı
+		for k in 70:
+			var from: Vector3 = split[k % split.size()] + Vector3(randf_range(-0.8, 0.8), randf_range(-0.5, 0.5), randf_range(-0.8, 0.8))
+			var goal = at + Vector3(randf_range(-4.0, 4.0), randf_range(0.3, 1.6), randf_range(-4.0, 4.0))
+			var pr = shot(c, from, (goal - from).normalized(), randf_range(30.0, 38.0), mk.call(1.7), inf(c, "sarutobi_shuriken_tajuu", 0.065, {"knock": 1.0, "kind": "light", "bleed": 1.0}), null, false, 1.0)
+			pr.spin = Vector3(0, 28.0, 0))
 	Sfx.play("throw", c.global_position, 1.0)
 
 
