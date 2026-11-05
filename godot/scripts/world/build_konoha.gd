@@ -442,6 +442,8 @@ static func _street_houses(b: Builder, v: Dictionary, rng: RandomNumberGenerator
 						b.house_ti = ti
 						b.house(q.x, q.y, tw + 0.1, td + 0.1, 3, yaw, "konoha", rng)
 						placed = b.house_ok   # yol yüzünden atlandıysa kapı/fener eklenmez (sokak ortasında binasız kapı kalıyordu)
+						if placed:
+							q = b.placed_xn   # komşuyla çakışmamak için kaydırıldıysa kapı/fener onunla gelir
 						var fo = Builder.rot(0, -td * 0.5 - 1.0, yaw)
 						if row == 0 and placed:
 							VL.doors["konoha"].append(_gp(b, q.x + fo.x, q.y + fo.y))
@@ -452,7 +454,7 @@ static func _street_houses(b: Builder, v: Dictionary, rng: RandomNumberGenerator
 								var gy = b._ground_off(q.x, q.y, 6.0).y
 								lantern_xf.append(Transform3D(Basis(Vector3.UP, deg_to_rad(-yaw)), b.w(Vector3(q.x + lo.x, gy + 2.55, q.y + lo.y))))
 						count += 1
-					t += tw + rng.randf_range(0.3, 1.0) if placed else 4.0
+					t += tw + rng.randf_range(1.8, 3.0) if placed else 4.0   # evler arası dar geçit (dip dibe değil)
 					run += 1
 					if run >= alley_at:   # dar ara sokak
 						t += rng.randf_range(2.8, 4.0)

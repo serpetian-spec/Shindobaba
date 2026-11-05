@@ -473,10 +473,71 @@ func footprint_on_road(x: float, n: float, wdt: float, dep: float, yaw: float, h
 	return false
 
 
+static var overlap_moved := 0
+static var overlap_skipped := 0
+static var overlap_post := 0
+static var overlap_log: Array = []
+
+
+## Yerel (x, n) merkezli, yaw (derece) dönük hx×hz yarı boyutlu ev ayak izi daha önce kurulmuş bir evle çakışıyor mu
+## (dönmüş dikdörtgen SAT; 0.6 m pay: bitişik nizam olur, iç içe girmez — yapi.png: yuvarlak kule evlerin içindeydi)
+func house_overlaps(x: float, n: float, hx: float, hz: float, yaw: float) -> bool:
+	var pad = 0.05   # değebilir ama iç içe giremez (eskiden 0.6 m iç içe girmeye izin veriliyordu); aralık sokak düzeninden (build_konoha)
+	var a0 = deg_to_rad(-yaw)
+	var ax = [Vector2(cos(a0), sin(a0)), Vector2(-sin(a0), cos(a0))]
+	var ah = [maxf(0.5, hx - pad), maxf(0.5, hz - pad)]
+	var gx = floori(x / 32.0); var gz = floori(n / 32.0)
+	for dx in range(-1, 2):
+		for dz in range(-1, 2):
+			for h in house_grid.get(Vector2i(gx + dx, gz + dz), []):
+				var b0 = deg_to_rad(-float(h[4]))
+				var bx_ = [Vector2(cos(b0), sin(b0)), Vector2(-sin(b0), cos(b0))]
+				var bh = [maxf(0.5, float(h[2]) * 0.5 - pad), maxf(0.5, float(h[3]) * 0.5 - pad)]
+				var d = Vector2(float(h[0]) - x, float(h[1]) - n)
+				if d.length() > (Vector2(ah[0], ah[1]).length() + Vector2(bh[0], bh[1]).length()):
+					continue
+				var sep = false
+				for axis in ax + bx_:
+					var ra = absf(axis.dot(ax[0])) * ah[0] + absf(axis.dot(ax[1])) * ah[1]
+					var rb = absf(axis.dot(bx_[0])) * bh[0] + absf(axis.dot(bx_[1])) * bh[1]
+					if absf(axis.dot(d)) > ra + rb:
+						sep = true
+						break
+				if not sep:
+					return true
+	return false
+
+
 func house(x: float, n: float, wdt: float, dep: float, floors: int, yaw: float, style: String, rng: RandomNumberGenerator) -> void:
 	last_house = {}
 	house_ok = false
 	placed_xn = Vector2(x, n)
+	# gerçek ayak izi: zorla seçilmiş şablon (yuvarlak kule vb.) arsadan büyük olabilir
+	var fw = wdt; var fd = dep
+	if house_ti >= 0 and house_ti < HouseKit.templates.size():
+		fw = maxf(fw, float(HouseKit.templates[house_ti]["w"]))
+		fd = maxf(fd, float(HouseKit.templates[house_ti]["d"]))
+	if house_overlaps(x, n, fw * 0.5, fd * 0.5, yaw):
+		var moved = false
+		for step in range(1, 7):
+			for k in 8:
+				var dv = Vector2(cos(TAU * k / 8.0), sin(TAU * k / 8.0)) * 2.0 * step
+				if house_overlaps(x + dv.x, n + dv.y, fw * 0.5, fd * 0.5, yaw):
+					continue
+				if road_guard and footprint_on_road(x + dv.x, n + dv.y, wdt, dep, yaw):
+					continue
+				x += dv.x
+				n += dv.y
+				moved = true
+				break
+			if moved:
+				break
+		if not moved:
+			overlap_skipped += 1
+			house_ti = -1
+			return   # boş yer yok: iç içe ev kurma
+		overlap_moved += 1
+		placed_xn = Vector2(x, n)
 	if road_guard and footprint_on_road(x, n, wdt, dep, yaw):
 		if not shift_off_road:
 			return   # bina caddeyi / yolu kapatmasın (sokağın ortasına dikilen binalar)
@@ -517,6 +578,10 @@ func house(x: float, n: float, wdt: float, dep: float, floors: int, yaw: float, 
 func _record_house(x: float, n: float, wdt: float, dep: float, yaw: float, base: float, style: String) -> void:
 	var hw = float(last_house.get("w", wdt))
 	var hd = float(last_house.get("d", dep))
+	if house_overlaps(x, n, hw * 0.5, hd * 0.5, yaw):
+		overlap_post += 1   # gerçek şablon ölçüsüyle çakışma (ölçüm)
+		if overlap_log.size() < 12:
+			overlap_log.append([key, int(x), int(n), int(hw), int(hd), int(last_house.get("arch", -1))])
 	houses.append([x, n, hw, hd, yaw, base, style])
 	var hk = Vector2i(floori(x / 32.0), floori(n / 32.0))
 	if not house_grid.has(hk):
