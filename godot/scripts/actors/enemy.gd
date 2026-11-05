@@ -1119,6 +1119,13 @@ func die(info: Dictionary) -> void:
 		has_token = false
 		attack_tokens = maxi(0, attack_tokens - 1)
 	nameplate.visible = false
+	if has_meta("stolen_ryo") and int(get_meta("stolen_ryo")) > 0:
+		Progress.add_ryo(int(get_meta("stolen_ryo")))
+		Hud.msg("Çalınan %d Ryō'nu geri aldın." % int(get_meta("stolen_ryo")), Color(0.7, 1.0, 0.7), 5.0)
+		var tf: Dictionary = Friends.all().get(String(get_meta("thief_id", "")), {})
+		if not tf.is_empty():
+			tf["stolen"] = 0
+		remove_meta("stolen_ryo")
 	if not has_meta("teammate") and size < 2.5:
 		_make_loot()
 	super.die(info)

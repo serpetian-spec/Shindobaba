@@ -1503,6 +1503,46 @@ func betray_attack(id: String) -> void:
 	Hud.banner("İHANET", "%s sana arkadan saldırdı!" % f["name"], Color(1, 0.3, 0.25))
 
 
+## Hırsızlıktan sonra: köylüysen Kage'ye bildir (tutuklanır, paran geri gelir); kaçaksan kanun yok — peşine düş, kavgayla al
+func theft_dialog(id: String) -> void:
+	var f: Dictionary = all()[id]
+	var amt = int(f.get("stolen", 0))
+	var opts: Array = []
+	if not Orgs.is_rogue():
+		opts.append({"label": "%s'ye bildir" % Progress.home_info().get("kage", "Kage"), "cb": func():
+			f["status"] = "hapiste"
+			f["party"] = false
+			Progress.add_ryo(amt)
+			f["stolen"] = 0
+			Friends.log_event(f, "Hırsızlıktan tutuklandı")
+			Hud.banner("TUTUKLANDI", "%s yakalandı; çaldığı %d Ryō sana geri verildi." % [f["name"], amt], Color(0.7, 0.85, 1.0))})
+	opts.append({"label": "Peşine düş (kavgayla geri al)", "cb": func(): _chase_thief(id)})
+	opts.append({"label": "Bırak gitsin", "cb": func(): pass})
+	Hud.dialog("Hırsızlık", "%s kesenden %d Ryō aldı ve kaçtı. Ne yapacaksın?" % [f["name"], amt], opts)
+
+
+## Hırsızın izini sürersin: yakınında yakalarsın, dövüşürsün; yenince parayı geri alırsın (ölürse kaydı kalıcı)
+func _chase_thief(id: String) -> void:
+	var f: Dictionary = all()[id]
+	f["party"] = false
+	var e = _spawn(id)
+	if e == null:
+		return
+	e.team = "enemy"
+	e.set_meta("teammate", false)
+	e.set_meta("stolen_ryo", int(f.get("stolen", 0)))
+	e.set_meta("thief_id", id)
+	var pp = Game.player.global_position
+	var q = Missions.open_ground(pp + Game.player.face_dir() * 14.0, 6.0)
+	e.global_position = q
+	e.home = q
+	e.target = Game.player
+	if e.nameplate:
+		e.nameplate.modulate = Color(1, 0.45, 0.35)
+	e.display_name = "%s (HIRSIZ)" % f["name"]
+	Hud.banner("PEŞİNDESİN", "%s kaçarken yakaladın!" % f["name"], Color(1, 0.55, 0.35))
+
+
 ## Hain ruhlu dostların küçük ihanetleri (yaşam olayı)
 func _betrayal_event(id: String) -> void:
 	var f: Dictionary = all()[id]
@@ -1515,6 +1555,9 @@ func _betrayal_event(id: String) -> void:
 	if f.get("party", false) and r < 0.35:
 		betray_attack(id)
 	elif r < 0.65:
+		# kesene ancak yanındaysa (takımında) uzanabilir — uzaktaki biri "rastgele" çalamaz
+		if not f.get("party", false):
+			return
 		var amt = int(int(pr().get("ryo", 0)) * randf_range(0.1, 0.2))
 		Progress.add_ryo(-amt)
 		f["bond"] = mini(int(f["bond"]), -40)
@@ -1524,6 +1567,8 @@ func _betrayal_event(id: String) -> void:
 			Hud.msg("Kesen hafifledi... %s %d Ryō'nu çalıp ortadan kayboldu!" % [f["name"], amt], Color(1, 0.45, 0.4), 8.0)
 			Journal.add("%s kesemden %d Ryō çaldı." % [f["name"], amt], "milestone")
 		Hud.banner("HIRSIZLIK", "%s kesenden %d Ryō çalıp ortadan kayboldu!" % [f["name"], amt], Color(1, 0.5, 0.4))
+		f["stolen"] = int(f.get("stolen", 0)) + amt
+		theft_dialog(id)
 	else:
 		Missions._rep(Progress.home(), -15)
 		if Crime.heat() > 0:

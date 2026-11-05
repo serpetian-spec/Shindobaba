@@ -1149,7 +1149,7 @@ func _process(dt: float) -> void:
 		var j: Dictionary = Data.jutsu.get(jid, {})
 		sn[1].text = String(j.get("name", jid)).split(":")[-1].split("(")[0].strip_edges()
 		var cd: float = SpecialSlots.cooldown(pl, jid) if j.has("virtual") else (comb.cooldowns.get(jid, 0.0) if comb else 0.0)
-		var ok = (pl.stamina if Stats.is_taijutsu(j) else pl.chakra) >= float(j.get("cost", 0))
+		var ok = (pl.stamina if Stats.is_taijutsu(j) else pl.chakra) >= PlayerCombat.cast_cost(j)
 		sn[2].text = ("%.1f" % cd) if cd > 0.0 else ""
 		sn[2].add_theme_color_override("font_color", Color(1, 1, 1))
 		var el = String(j.get("element", ""))

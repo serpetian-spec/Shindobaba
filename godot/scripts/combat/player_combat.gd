@@ -248,6 +248,14 @@ func _start_step() -> void:
 
 ## Jutsu chakra maliyeti: gücü gibi seviyeyle büyür (sabit kalınca yüksek seviyede chakra hiç bitmiyordu);
 ## yetenek indirimi en fazla %30
+## Gerçek atış bedeli ve kaynağı (HUD yuvası ve begin_cast aynı hesabı kullanır: yuva "hazır" görünüp
+## "yeterli chakra yok" demesin): taijutsu -> stamina (seviyeyle şişmez), diğerleri -> chakra (seviyeyle büyür)
+static func cast_cost(j: Dictionary) -> float:
+	if Game.has_meta("sandbox"):
+		return 0.0
+	return float(j.get("cost", 0)) if Stats.is_taijutsu(j) else jutsu_cost(j)
+
+
 static func jutsu_cost(j: Dictionary) -> float:
 	var lv = int(Game.profile.get("level", 1))
 	var c = float(j.get("cost", 0)) * (1.0 + (lv - 1) * 0.045) * clampf(1.0 + Stats.skill(Game.profile, "jutsu_cost"), 0.7, 1.0)
