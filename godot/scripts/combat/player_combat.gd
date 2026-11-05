@@ -1128,6 +1128,10 @@ func begin_cast(jid: String) -> void:
 			var bn = String(BeastModels.INFO.get(bid, {}).get("name", bid)).split(" —")[0]
 			Hud.msg("%s sadece %s jinchūriki'si olarak, canavar modundayken atılabilir." % [String(j["name"]), bn], Color(1, 0.55, 0.3))
 			return
+	if PlayerModes.GATE_NEED.has(jid) and int(modes.gates) < int(PlayerModes.GATE_NEED[jid]) and not Game.has_meta("sandbox"):
+		var gn = int(PlayerModes.GATE_NEED[jid])
+		Hud.msg("%s için %d. kapı%s açık olmalı [B]." % [String(j["name"]), gn, " (Ölüm Kapısı)" if gn == 8 else ""], Color(0.5, 1.0, 0.5))
+		return
 	if cooldowns.get(jid, 0.0) > 0.0:
 		Hud.msg("%s hazır değil (%.1fsn)" % [j["name"], cooldowns[jid]], Color(0.8, 0.8, 1))
 		return

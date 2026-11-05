@@ -1,7 +1,7 @@
 {
  "none": {
   "name": "Klansız",
-  "desc": "Saf çaba: taijutsu +%15. İleride Sekiz Kapı.",
+  "desc": "Klansız: kana bağlı bir güç yok, saf çaba (taijutsu +%15). Bütün Efsane Yolları açık — Sekiz Kapı da dahil, yolunu kendin seçersin.",
   "kg": "Yok",
   "eye": [
    0.25,
@@ -21,7 +21,7 @@
  },
  "uchiha": {
   "name": "Uchiha",
-  "desc": "Glass-cannon fire/genjutsu duelist. Passive: Sharingan Perception (slow-motion telegraph of enemy attacks, timed-dodge window +X%). Unique: Copy Technique (learn an observed enemy jutsu temporarily or",
+  "desc": "Sharingan: öngörü, teknik kopyalama, genjutsu. Mangekyō en yakınını kaybetmenin acısıyla uyanır; kullandıkça kör eder (Ebedi Mangekyō çözer). Katona yatkın; İzanagi, Susanoo. Konoha'da Naka Tapınağı'nın altında klanın taş tableti durur.",
   "kg": "Sharingan (dojutsu; evolves 1 -> 2 -> 3 tomoe, rare Mangekyo Sharingan); strong ",
   "eye": [
    0.12,
@@ -39,7 +39,7 @@
  },
  "nara": {
   "name": "Nara",
-  "desc": "Controller/tactician. Passive: shadow range scales with available shadows (more powerful at dusk, in forests, near large objects; uses the game's lighting system). Unique: Shadow Possession roots a ta",
+  "desc": "Gölge teknikleri (Kagemane, Kage Kubishibari, Kage Nui): gölgenin gücü ışığa bağlıdır — akşamüstü, ormanda, büyük nesnelerin yanında uzar. Stratejist klan.",
   "kg": "Hiden: Shadow Techniques (Kagemane)",
   "eye": [
    0.2,
@@ -55,7 +55,7 @@
  },
  "akimichi": {
   "name": "Akimichi",
-  "desc": "Tank/bruiser. Passive: food items restore extra chakra and grant temporary size buffs (calories as a resource bar). Unique: Expansion stance (larger hitbox, high poise and damage, slower move speed), ",
+  "desc": "Beden büyütme (Baika, Nikudan Sensha): kalori harcar, yemekle dolar. Üç renkli haplar sırayla (yeşil, sarı, kırmızı); kırmızı hap Kelebek Modu'nu açar ama bedeni tüketir.",
   "kg": "Hiden: Body expansion (Baika no Jutsu), converting calories to chakra",
   "eye": [
    0.3,
@@ -72,7 +72,7 @@
  },
  "yamanaka": {
   "name": "Yamanaka",
-  "desc": "Support/possession specialist. Passive: telepathic link shows allies' HP and lets the player issue commands to the party. Unique: Mind Body Switch to temporarily control an enemy (player's body become",
+  "desc": "Zihin teknikleri (Shintenshin, Shinranshin): zihin başka bedene geçerken kendi bedeni yerde savunmasız kalır. Algı ve telepati; çiçekçi aile.",
   "kg": "Hiden: Mind Body Switch and mind/telepathy techniques; sensory skills",
   "eye": [
    0.4,
@@ -88,7 +88,7 @@
  },
  "aburame": {
   "name": "Aburame",
-  "desc": "Summoner/DoT controller. Passive: insect swarm auto-attacks and drains enemy chakra over time. Unique: plant a tracker beetle on an enemy (minimap marker), insect clones as decoys. Milestones: swarm s",
+  "desc": "Bedeninde kikaichū kolonisi taşır: böcek teknikleri koloniden harcar, böcekler chakra yiyerek çoğalır, ateş böcekleri yakar. Mushidama, Mushimayu kozası, temasla Kidaichū.",
   "kg": "Hiden: Insect symbiosis (kikaichu chakra-eating beetles live inside the body)",
   "eye": [
    0.1,
@@ -105,7 +105,7 @@
  },
  "inuzuka": {
   "name": "Inuzuka",
-  "desc": "Pet-class skirmisher. Passive: companion ninken (AI pet) that grows from puppy to giant dog; scent tracking reveals footprints. Unique: combination drill attacks with the pet; 'Beast Clone' turns the ",
+  "desc": "Ninken ortağı hep yanında; rütbeyle yavrudan dev köpeğe büyür. Ortak teknikler (Gatsūga, Gārōga) köpek yanındayken yapılır; koku ile iz sürer.",
   "kg": "Hiden: Ninken partnership techniques; enhanced smell/hearing",
   "eye": [
    0.45,
@@ -122,7 +122,7 @@
  },
  "senju": {
   "name": "Senju",
-  "desc": "Durable all-rounder / rare bloodline unlock. Passive: HP regeneration and larger chakra pool. Unique: Wood Release as a rare legendary skill line (create cover walls, root-binding, wooden clones). Mil",
+  "desc": "Güçlü yaşam gücü: yaraları hızla kapanır, chakrası büyüktür. Mokuton yalnız Doton ve Suiton birlikte varsa uyanır — nadir kan.",
   "kg": "Extraordinary chakra/life force; very rare Wood Release (Mokuton) kekkei genkai;",
   "eye": [
    0.3,
@@ -143,7 +143,7 @@
  },
  "uzumaki": {
   "name": "Uzumaki",
-  "desc": "Sealing specialist with huge stamina. Passive: chakra pool +50%, slow chakra regen even in combat. Unique: Seal Tags (place seals on terrain to trap, store items, seal summoned creatures or bosses for",
+  "desc": "Muazzam chakra ve yaşam gücü: chakrası çok hızlı dolar. Fūinjutsu ustası; Kongō Fūsa mühür zincirleri ve mühür teknikleri.",
   "kg": "Exceptional life force and chakra; master sealing techniques (fuinjutsu); rare A",
   "eye": [
    0.25,
@@ -160,7 +160,7 @@
  },
  "kaguya": {
   "name": "Kaguya",
-  "desc": "Melee bruiser/self-armor. Passive: bone armor reduces damage, regenerates out of combat. Unique: bone weapons (crafted from own body: sword, spear, drill) that never break. Milestones: bone bullets ra",
+  "desc": "Shikotsumyaku: kemiklerini büyütüp silaha çevirir (Tsubaki no Mai, Karamatsu no Mai, Sawarabi no Mai). Savaşçı klan; kemik zırhı darbeleri karşılar.",
   "kg": "Shikotsumyaku (Dead Bone Pulse): control of bone growth, density and structure",
   "eye": [
    0.55,
@@ -181,7 +181,7 @@
  },
  "yuki": {
   "name": "Yuki",
-  "desc": "Ranged precision/zone control. Passive: senbon crit vs. pressure points, slow on hit. Unique: Ice Mirror dome (trap enemy, teleport between mirrors). Milestones: freezing terrain, ice armour, environm",
+  "desc": "Hyōton (Rüzgâr + Su): Makyō Hyōshō buz aynaları, buz iğneleri ve mızrakları; senbonla hayati noktalara isabet. Kiri'de kanından korkulan soy.",
   "kg": "Ice Release (Hyoton): combines Wind and Water",
   "eye": [
    0.45,

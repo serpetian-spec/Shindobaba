@@ -464,7 +464,7 @@ func explosion(pos: Vector3, s := 1.0, col := Color(1.0, 0.55, 0.15)) -> void:
 ## Chakra toplama aurası (anime/Storm): bedeni saran, yukarı yalazlanan mavi alev dilleri (karışım harmanı: parlak zeminde
 ## de mavi kalır, eskiden toplama harmanlı ince kıvılcımlar kumda beyaza boğulup kayboluyordu) + içte parlak kıvılcımlar.
 ## Dönen düğüm ana parçacık sistemidir; emitting=false çocuklarını da durdurmak için stop_aura kullanılır.
-func chakra_aura(parent: Node3D, col := Color(0.3, 0.62, 1.0), s := 1.0) -> Node3D:
+func chakra_aura(parent: Node3D, col := Color(0.3, 0.62, 1.0), s := 1.0, light := Color(0, 0, 0, 0)) -> Node3D:
 	# Storm tarzı: bedene giydirilen dalgalı chakra katmanı (vfx_chakra_aura, material_overlay) — eskiden yüzen alev
 	# kartlarıydı ("üçgenler uçuyor"); üstte birkaç küçük yükselen kıvılcım
 	var node = Node3D.new()
@@ -472,6 +472,8 @@ func chakra_aura(parent: Node3D, col := Color(0.3, 0.62, 1.0), s := 1.0) -> Node
 	var mat = ShaderMaterial.new()
 	mat.shader = load("res://shaders/vfx_chakra_aura.gdshader")
 	mat.set_shader_parameter("deep", Color(col.r * 0.4, col.g * 0.6, col.b))
+	if light.a > 0.0:
+		mat.set_shader_parameter("light", light)   # renkli aura (ör. 8. kapı kızıl buharı): kenar rengi de o tonda
 	mat.set_shader_parameter("k", 0.0)
 	mat.render_priority = 1
 	var meshes: Array = []

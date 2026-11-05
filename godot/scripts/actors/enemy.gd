@@ -1136,6 +1136,11 @@ func die(info: Dictionary) -> void:
 			for be in Missions._bingo()["list"]:
 				if int(be["id"]) == int(get_meta("bingo_id")):
 					fid = String(be.get("friend_id", ""))
+		if fid != "" and Friends.all().has(fid) and String(Friends.all()[fid].get("status", "")) != "öldü":
+			# öldürdüğün tanıdık: kaydı "öldü" (ilişki listesinde Ezeli Düşman diye yaşamaya devam ediyordu)
+			Friends.all()[fid]["status"] = "öldü"
+			Friends.all()[fid]["party"] = false
+			Friends.log_event(Friends.all()[fid], "Onu sen öldürdün")
 		if fid != "" and Friends.closeness(fid) >= 60 and Game.player.combat and Game.player.combat.modes and Game.player.combat.modes.get("eyes"):
 			Game.player.combat.modes.eyes.on_close_kill(String(Friends.all().get(fid, {}).get("name", display_name)))
 	if has_meta("teammate"):

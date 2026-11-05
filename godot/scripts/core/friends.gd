@@ -71,6 +71,16 @@ static func level_name(b: int) -> String:
 	return "Yakın Dost" if b >= 60 else ("Arkadaş" if b >= 30 else "Tanıdık")
 
 
+## İlişki etiketi duruma göre: ölmüşse "Öldü" (öldürdüğün kişi "Ezeli Düşman" görünüyordu), hapisteyse "Hapiste"
+static func bond_label(f: Dictionary) -> String:
+	match String(f.get("status", "")):
+		"öldü":
+			return "Öldü"
+		"hapiste":
+			return "Hapiste"
+	return level_name(int(f.get("bond", 0)))
+
+
 static func level_color(b: int) -> Color:
 	if b <= -30:
 		return Color(1.0, 0.4, 0.35)

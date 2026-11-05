@@ -789,7 +789,7 @@ static func _tab_relations(main: Node, body: Control) -> void:
 			var f: Dictionary = fs[id]
 			var b = int(f["bond"])
 			var stt = String(f.get("status", ""))
-			var txt = "%s  —  %s, %s  •  %s (%d)%s" % [f["name"], String(f.get("title", "")), Friends.rank_label(f), Friends.level_name(b), b,
+			var txt = "%s  —  %s, %s  •  %s (%d)%s" % [f["name"], String(f.get("title", "")), Friends.rank_label(f), Friends.bond_label(f), b,
 				"  •  ÖLDÜ" if stt == "öldü" else ("  •  KAÇAK" if stt == "kaçak" else ("  ★ takımda" if f.get("party", false) else ""))]
 			var row = UI.chip(txt, ids.find(id) == _friend_i, func():
 				_friend_i = ids.find(id)
@@ -886,7 +886,7 @@ static func _friends_card(main: Node, left: Control) -> void:
 	var rm = Friends.romance_of(id)
 	if rm != "":
 		st_txt += "  •  %s ♥" % {"eş": "Eşin", "sevgili": "Sevgilin", "flört": "Flört"}.get(rm, rm)
-	fv.add_child(UI.label("%s  •  %s  •  %s: %d (%s)%s" % [String(f.get("title", "")), Friends.rank_label(f), "Güven" if f.get("rogue", false) else "Bağ", b, Friends.level_name(b), st_txt], 13, Friends.level_color(b)))
+	fv.add_child(UI.label("%s  •  %s  •  %s: %d (%s)%s" % [String(f.get("title", "")), Friends.rank_label(f), "Güven" if f.get("rogue", false) else "Bağ", b, Friends.bond_label(f), st_txt], 13, Friends.level_color(b)))
 	if f.get("rogue", false) and int(f.get("motive_known", 0)) > 0:
 		fv.add_child(UI.label("Neden kaçtı: " + String(RogueBonds.motive_of(f)[int(f["motive_known"])]), 12, Color(0.85, 0.8, 0.7), HORIZONTAL_ALIGNMENT_LEFT, true))
 	var bar = UI.bar(Friends.level_color(b), 700, 8)

@@ -221,8 +221,21 @@ func next_gate() -> void:
 	if not LegendPaths.joined("kapi"):
 		Hud.msg("Sekiz Kapı'yı açmayı bir usta öğretmeli: Sekiz Kapı Yolu'nu bul (Tab > Yollar, Güç 8+ söylenti).", Color(0.8, 0.8, 0.8))
 		return
+	if gates == 8:
+		return   # Ölüm Kapısı açıldı: geri dönüş yok (kapanmaz)
+	if gates == 7:
+		# 8. kapı — Ölüm Kapısı (kanon, Guy): açan kırmızı buhar saçar, Kage'leri aşan güç kazanır; süresi dolunca bedeni kül olur
+		Hud.dialog("Ölüm Kapısı", "Sekizinci kapı, Ölüm Kapısı. Açarsan kanın buhar olup kaynar, gücün her şeyi aşar: Sekizō ve Yagai yalnız bu kapıda yapılır. Ama kapı bir kez açıldı mı kapanmaz; dövüşün sonunda bedenin kül olur ve ölürsün.", [
+			{"label": "Ölüm Kapısı'nı aç", "cb": func(): _open_death_gate()},
+			{"label": "Kapıları kapat", "cb": func():
+				gates = 0
+				Buffs.remove("gates")
+				_set_aura("gates", null)
+				_gate_look(0)
+				Hud.msg("Kapılar kapandı.", Color(0.8, 0.9, 0.8))}])
+		return
 	gates += 1
-	if gates > 7:   # 8. kapı (Ölüm Kapısı) yalnızca Gece Gayı tekniğiyle açılır
+	if gates > 7:
 		gates = 0
 		Buffs.remove("gates")
 		_set_aura("gates", null)
@@ -249,6 +262,68 @@ func next_gate() -> void:
 	if Game.world:
 		Game.world.env.add_shake(0.3 * gates)
 	Sfx.play("roar", p.global_position, 1.6, 0.5)
+
+
+const DEATH_GATE_TIME := 45.0
+var _red_steam: Node3D = null
+
+
+## 8. kapı: kırmızı buhar (Sekizō/Yagai açılır), devasa güç; DEATH_GATE_TIME sonra beden kül olur (ölüm)
+func _open_death_gate() -> void:
+	gates = 8
+	var gm = Stats.skill(Game.profile, "gates")
+	Buffs.add("gates", 9999.0, {"speed": 2.0 * (1.0 + gm * 0.5), "melee": 3.2 * (1.0 + gm * 0.5), "armor": 0.55})
+	_gate_look(8)
+	_gate_burst(7)
+	_set_aura("gates", Color(1.0, 0.22, 0.15), 3.6)
+	p.set_meta("death_gate_until", Time.get_ticks_msec() + int(DEATH_GATE_TIME * 1000.0))
+	VFX.shockwave(p.global_position + Vector3.UP * 0.2, Color(1.0, 0.3, 0.2), 26.0, 0.6, true)
+	VFX.debris(p.global_position, Color(0.55, 0.45, 0.35), 40, 12.0)
+	VFX.cracks(p.global_position, 9.0)
+	Hud.banner("HACHIMON", "8. Kapı: Ölüm Kapısı!  — Sekizō ve Yagai açıldı (%d sn)" % int(DEATH_GATE_TIME), Color(1.0, 0.25, 0.2))
+	if Game.world:
+		Game.world.env.add_shake(2.5)
+		Game.world.env.screen_flash(0.4)
+	Sfx.play("roar", p.global_position, 1.2, 0.8)
+	# kızıl buhar (kanon): bedeni saran kırmızı chakra katmanı (duman bulutu DEĞİL — kullanıcı: duman efekti her şeye konmasın)
+	if is_instance_valid(_red_steam):
+		FX.stop_aura(_red_steam)
+	_red_steam = FX.chakra_aura(p, Color(1.0, 0.22, 0.16), 1.0, Color(1.0, 0.62, 0.52))
+	var st = {"t": 0.0}
+	var tm = Timer.new()
+	tm.wait_time = 0.12
+	p.add_child(tm)
+	tm.timeout.connect(func():
+		st["t"] += 0.12
+		if not is_instance_valid(p) or p.hp <= 0.0 or gates != 8:
+			tm.queue_free()
+			return
+		if st["t"] >= DEATH_GATE_TIME:
+			tm.queue_free()
+			_death_gate_end())
+	tm.start()
+
+
+func _death_gate_end() -> void:
+	gates = 0
+	Buffs.remove("gates")
+	_set_aura("gates", null)
+	_gate_look(0)
+	p.remove_meta("death_gate_until")
+	if is_instance_valid(_red_steam):
+		FX.stop_aura(_red_steam)
+	_red_steam = null
+	if not is_instance_valid(p) or p.hp <= 0.0:
+		return
+	Hud.banner("ÖLÜM KAPISI", "Bedenin dayanamadı; kül olup dağıldın...", Color(0.7, 0.2, 0.2))
+	Journal.add("Ölüm Kapısı'nı açtım. Bedenim kül oldu.", "milestone")
+	p.hp = 0.0
+	if not ClanMech.try_extra_life():
+		Progress.on_player_died()
+
+
+## Kapı şartı olan teknikler (kanon): Asakujaku 6., Hirudora 7., Sekizō/Yagai 8. kapı açıkken
+const GATE_NEED := {"asakujaku": 6, "hirudora": 7, "sekizo": 8, "yagai": 8}
 
 
 # ------------------------------------------------------------------ Sennin Modu (Z): sözleşmeye özel
@@ -709,7 +784,7 @@ func _process(dt: float) -> void:
 			if marker_t <= 0.0:
 				marker_t = 0.5
 				_update_byakugan()
-	if gates > 0:
+	if gates > 0 and gates < 8:   # Ölüm Kapısı can emmez: bedel süre sonunda (beden kül olur)
 		p.hp -= [0.0, 1.5, 3.0, 5.5, 9.0, 13.0, 18.0, 25.0][gates] * dt * maxf(0.3, 1.0 - Stats.skill(Game.profile, "gates") * 0.8)
 		if p.hp <= p.max_hp * 0.1:
 			gates = 0
