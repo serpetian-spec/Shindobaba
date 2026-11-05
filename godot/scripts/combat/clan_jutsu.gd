@@ -1470,26 +1470,34 @@ func c_kidaichu_mushikui(c: Node3D, t: Node3D) -> void:
 	Sfx.play("wind", c.global_position, 1.6, 0.6)
 
 
-## Kidaichū: iri kara böcek (anime: koyu gövde, gri çizgili kabuk, camgöbeği gözler, ince uzun eklemli bacaklar, çene ve anten).
-## phase 0/1: üçlü yürüyüş bacak fazları (sırayla gösterilince yürür). İleri = -Z, sırt = +Y
+## Kidaichū / Kikaichū (anime referansı): uzun, parlak koyu karın (enine bölüm çizgileri), önde mor-gri çatlak göğüs kalkanı,
+## küçük koyu baş, iri oval camgöbeği gözler, dizleri gövdeden yukarıda duran ince uzun eklemli bacaklar. İleri = -Z, sırt = +Y.
+## phase 0/1: üçlü yürüyüş bacak fazları
 func _kidaichu_mesh(phase := 0) -> MB:
 	var b = MB.new()
-	var DK = Color(0.14, 0.14, 0.13)
-	var SH = Color(0.5, 0.5, 0.47)
-	for k in 4:   # bölmeli karın, uca doğru küçülür
-		var z = 0.08 + k * 0.13
-		b.add_grad("sphere", Vector3(0, 0.0, z), Vector3(0.46 - k * 0.07, 0.28 - k * 0.04, 0.2), DK.lightened(0.08), DK.darkened(0.3), Vector3.ZERO, 12)
-		b.add_grad("sphere", Vector3(0, 0.09, z), Vector3(0.38 - k * 0.06, 0.14, 0.17), SH.lightened(0.15) if k % 2 == 0 else SH, SH.darkened(0.3), Vector3.ZERO, 10)   # parlak gri kabuk çizgileri
-	b.add_grad("sphere", Vector3(0, 0.02, -0.12), Vector3(0.36, 0.22, 0.24), DK.lightened(0.06), DK.darkened(0.3), Vector3.ZERO, 10)   # göğüs
-	b.add("sphere", Vector3(0, 0.02, -0.32), Vector3(0.24, 0.2, 0.2), DK, Vector3.ZERO, 10)   # baş
+	var DK = Color(0.11, 0.11, 0.11)
+	var GL = Color(0.32, 0.32, 0.34)
+	var SH = Color(0.56, 0.53, 0.62)
+	b.add_grad("sphere", Vector3(0, 0.02, 0.2), Vector3(0.44, 0.3, 0.66), GL, DK, Vector3.ZERO, 14)   # karın
+	for k in 5:   # enine bölüm çizgileri (koyu oluklar)
+		var z = 0.0 + k * 0.1
+		var w = sqrt(maxf(0.05, 1.0 - pow((z - 0.2) / 0.33, 2.0)))
+		b.add("sphere", Vector3(0, 0.03, z), Vector3(0.45 * w, 0.31 * w, 0.025), DK.darkened(0.4), Vector3.ZERO, 12)
+	b.add_grad("sphere", Vector3(0, 0.05, -0.18), Vector3(0.36, 0.27, 0.3), SH.lightened(0.08), SH.darkened(0.3), Vector3.ZERO, 12)   # göğüs kalkanı
+	b.add_grad("sphere", Vector3(0, 0.0, -0.36), Vector3(0.22, 0.19, 0.18), GL, DK, Vector3.ZERO, 10)   # baş
 	for sx in [-1.0, 1.0]:
-		b.add("sphere", Vector3(sx * 0.09, 0.06, -0.4), Vector3(0.08, 0.08, 0.06), Color(0.4, 0.85, 0.8), Vector3.ZERO, 6)   # gözler
-		BeastRig.claw(b, Vector3(sx * 0.05, -0.02, -0.42), Vector3(-sx * 0.4, -0.1, -1.0), 0.12, 0.018, DK.lightened(0.1))   # çene
-		BeastRig.claw(b, Vector3(sx * 0.06, 0.1, -0.38), Vector3(sx * 0.45, 0.5, -0.8), 0.18, 0.01, DK)   # anten
+		b.add_grad("sphere", Vector3(sx * 0.085, 0.03, -0.42), Vector3(0.08, 0.1, 0.09), Color(0.35, 0.75, 0.75), Color(0.12, 0.4, 0.42), Vector3.ZERO, 8)   # iri oval göz
+		b.add("sphere", Vector3(sx * 0.095, 0.07, -0.46), Vector3(0.022, 0.025, 0.02), Color(0.9, 1.0, 1.0), Vector3.ZERO, 4)   # göz parıltısı
+		BeastRig.claw(b, Vector3(sx * 0.04, -0.05, -0.43), Vector3(-sx * 0.3, -0.3, -1.0), 0.09, 0.016, DK)   # çene
+		BeastRig.claw(b, Vector3(sx * 0.05, 0.08, -0.42), Vector3(sx * 0.35, 0.45, -0.85), 0.16, 0.008, DK)   # anten
 		for k in 3:
-			var z = -0.16 + k * 0.16
-			var lift = 1.0 if ((k + (0 if sx > 0 else 1) + phase) % 2 == 0) else -0.2   # tripod: çapraz bacaklar birlikte kalkar
-			BeastRig.claw(b, Vector3(sx * 0.18, -0.03, z), Vector3(sx, -0.75 + lift * 0.3, 0.15 * (k - 1) - lift * 0.2), 0.24, 0.022, Color(0.1, 0.1, 0.09))
+			var z = -0.2 + k * 0.17
+			var lift = 1.0 if ((k + (0 if sx > 0 else 1) + phase) % 2 == 0) else 0.0   # tripod: çapraz bacaklar birlikte kalkar
+			var hip = Vector3(sx * 0.16, -0.04, z)
+			var knee = hip + Vector3(sx * 0.2, 0.16 + lift * 0.05, (k - 1) * 0.07 - lift * 0.05)   # diz gövdeden yukarıda
+			var foot = knee + Vector3(sx * 0.1, -0.42 + lift * 0.08, (k - 1) * 0.08)
+			BeastRig.claw(b, hip, knee - hip, (knee - hip).length(), 0.022, DK)   # uyluk
+			BeastRig.claw(b, knee, foot - knee, (foot - knee).length(), 0.017, DK)   # bacak
 	return b
 
 
