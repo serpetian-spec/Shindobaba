@@ -486,8 +486,8 @@
  },
  "tsuchigumo": {
   "name": "Tsuchigumo",
-  "desc": "Toprak Örümceği klanı: örümcek ipeği, zehir ve köyü yerle bir eden yasak teknik.",
-  "kg": "Toprak Örümceği İpeği",
+  "desc": "Üçüncü Hokage ile antlaşmalı Toprak Örümceği klanı (En no Gyōja, Hotaru). Sırları köyü silen yasak teknik Dohatsuten'dir; ancak Tenchi Kaibyaku ile doğa enerjisi toplanınca yapılabilir. Hokage, antlaşma gereği onu yasakladı.",
+  "kg": "Doğa enerjisi mührü",
   "eye": [
    0.45,
    0.3,

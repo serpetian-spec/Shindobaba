@@ -825,13 +825,6 @@ const PANIM := {
 	"shimura_zetsuei": {"base": "flicker", "pre": 0.1, "post": 0.5, "rel": {"R": [Vector3(-0.1, 0.1, 0.99), Vector3(0.7, 0.1, 0.7), Vector3(0.8, 0.1, 0.6)], "L": [Vector3(0.4, -0.7, -0.5), Vector3(-0.0, -0.3, -0.95), Vector3(-0.0, -0.6, -0.8)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 20.0, "hips_yaw": -40.0}},
 	"shimura_bakuu": {"base": "two_palm", "pre": 0.4, "post": 0.7, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4]}, "rel": {"R": [Vector3(-0.1, 0.45, 0.88), Vector3(0.0, 0.5, 0.86), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.1, 0.45, 0.88), Vector3(-0.0, 0.5, 0.86), Vector3(-0.0, 0.9, 0.4)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -6.0}},
 	"shimura_kaze_tatsu": {"base": "seal", "pre": 0.45, "post": 0.8, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.2, 0.8, 0.55), Vector3(-0.1, 0.85, 0.5), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.2, 0.8, 0.55), Vector3(0.1, 0.85, 0.5), Vector3(-0.0, 0.9, 0.4)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -8.0}},
-	"tsuchigumo_ito": {"base": "breath", "pre": 0.2, "post": 0.6, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 10.0}},
-	"tsuchigumo_kumo_ya": {"base": "bow", "pre": 0.3, "post": 0.5, "wind": {"R": [Vector3(-0.4, -0.7, -0.5), Vector3(0.0, -0.3, -0.95), Vector3(0.0, -0.6, -0.8)], "L": [Vector3(0.1, 0.45, 0.88), Vector3(-0.0, 0.5, 0.86), Vector3(-0.0, 0.9, 0.4)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0, 0, 0, 0, 0], "hips_yaw": -50.0}, "rel": {"R": [Vector3(-0.4, -0.7, -0.5), Vector3(0.0, -0.3, -0.95), Vector3(0.0, -0.6, -0.8)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 6.0, "hips_yaw": -50.0}},
-	"tsuchigumo_doku": {"base": "rush", "pre": 0.2, "post": 0.5, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "crouch": 0.5}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 25.0}},
-	"tsuchigumo_su": {"base": "ground_slam", "pre": 0.3, "post": 0.7, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4]}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 45.0, "crouch": 0.9}},
-	"tsuchigumo_kumo_bunshin": {"base": "summon", "pre": 0.3, "post": 0.7, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "spine": 40.0, "crouch": 0.8}},
-	"tsuchigumo_kumo_yoroi": {"base": "power", "pre": 0.3, "post": 0.5, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 25.0, "crouch": 0.5}, "rel": {"R": [Vector3(-0.85, 0.1, -0.5), Vector3(-0.7, 0.1, -0.7), Vector3(-0.6, 0.1, -0.8)], "L": [Vector3(0.85, 0.1, -0.5), Vector3(0.7, 0.1, -0.7), Vector3(0.6, 0.1, -0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": -15.0}},
-	"tsuchigumo_ganseki": {"base": "sky", "pre": 0.3, "post": 1.0, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4]}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "spine": 15.0}},
 	"tsuchigumo_kinjutsu": {"base": "seal", "pre": 1.2, "post": 1.0, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "crouch": 0.3}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 50.0, "crouch": 1.0}},
 	"jugo_dikenler": {"base": "power", "pre": 0.3, "post": 0.5, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 30.0, "crouch": 0.5}, "rel": {"R": [Vector3(-0.85, 0.1, -0.5), Vector3(-0.7, 0.1, -0.7), Vector3(-0.6, 0.1, -0.8)], "L": [Vector3(0.85, 0.1, -0.5), Vector3(0.7, 0.1, -0.7), Vector3(0.6, 0.1, -0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": -15.0}},
 	"jugo_jet_yumruk": {"base": "rush", "pre": 0.2, "post": 0.6, "wind": {"R": [Vector3(-0.4, -0.7, -0.5), Vector3(0.0, -0.3, -0.95), Vector3(0.0, -0.6, -0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "hips_yaw": 40.0, "crouch": 0.5}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.4, -0.7, -0.5), Vector3(-0.0, -0.3, -0.95), Vector3(-0.0, -0.6, -0.8)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 30.0, "hips_yaw": -40.0}},
@@ -23422,73 +23415,6 @@ func p_shimura_kaze_tatsu(c: Node3D, t: Node3D) -> void:
 func _silk_mat() -> Material:
 	return VFX.mat_bolt(SILK, 1.4)
 
-
-func p_tsuchigumo_ito(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 20.0)
-	busy(c, 0.6)
-	if tt == null:
-		return
-	tether(func(): return _mouth_pos(c) if is_instance_valid(c) else Vector3.ZERO, func(): return tt.global_position + Vector3.UP if is_instance_valid(tt) else Vector3.ZERO, 0.05, _silk_mat(), 3.0)
-	after(0.15, func():
-		if live(tt):
-			var w = _web(1.2)
-			tt.add_child(w)
-			w.position = Vector3.UP * 1.0
-			get_tree().create_timer(3.0).timeout.connect(w.queue_free)
-			st(tt, "bind", 3.0)
-			tt.take_hit(inf(c, "tsuchigumo_ito", 0.6, {"knock": 0.0, "kind": "light"})))
-	Sfx.play("blade", c.global_position, 1.6, 0.5)
-
-
-func p_tsuchigumo_kumo_ya(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.7)
-	var tt = tg(c, t, 34.0)
-	after(0.3, func():
-		if not live(c):
-			return
-		var b = MB.new()
-		b.add("cyl", Vector3(0, 0, 0), Vector3(0.05, 1.4, 0.05), SILK, Vector3(90, 0, 0), 6)
-		b.add("cone", Vector3(0, 0, 0.8), Vector3(0.12, 0.3, 0.12), SILK.lightened(0.2), Vector3(90, 0, 0), 4)
-		var from = hand_pos(c, true)
-		var pr = shot(c, from, aim_at(c, tt, from), 50.0, mesh_of(b, _silk_mat()), inf(c, "tsuchigumo_kumo_ya", 1.4, {"knock": 8.0, "kind": "heavy", "pierce_guard": true}), tt, true, 1.0)
-		_etrail(pr, "", SILK, 0.25))
-	Sfx.play("throw", c.global_position, 1.0)
-
-
-func p_tsuchigumo_doku(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 6.0)
-	busy(c, 0.6)
-	_jump_at(c, tt, 0.3, 6.0)
-	after(0.25, func():
-		if not live(c):
-			return
-		var at = c.global_position + Vector3.UP * 1.4 + c.face_dir() * 0.9
-		for sx in [-1.0, 1.0]:
-			VFX.bolt(at + Vector3(sx * 0.2, 0.3, 0), at + Vector3(sx * 0.05, -0.2, 0.3), Color(0.6, 0.2, 0.8), 0.06, 0.2, 0)
-		VFX.puffs(at, {"amount": 14, "life": 0.6, "size": 0.3, "radius": 0.3, "vmin": 1, "vmax": 3, "dir": Vector3.UP, "spread": 70.0, "add": false,
-			"colors": [Color(0.55, 0.25, 0.7, 0.9), Color(0.3, 0.1, 0.4, 0)]})
-		mhit(c, at, 1.8, inf(c, "tsuchigumo_doku", 1.0, {"knock": 3.0, "kind": "heavy", "poison": 5.0})))
-	Sfx.play("blade", c.global_position, 0.9)
-
-
-func p_tsuchigumo_su(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.7)
-	var at = gp(Jutsu._aim_ground(c, t, 8.0, 18.0))
-	var w = _web(7.0)
-	get_tree().current_scene.add_child(w)
-	w.global_position = at + Vector3.UP * 0.1
-	w.rotation.x = -PI * 0.5
-	var tw = w.create_tween()
-	tw.tween_interval(6.0)
-	tw.tween_property(w, "scale", Vector3.ONE * 0.05, 0.4)
-	tw.tween_callback(w.queue_free)
-	every(6.0, 0.4, func(_i, _k):
-		for e in enemies_near(c, at, 7.0):
-			st(e, "slow", 0.6)
-			st(e, "bind", 0.3), Callable())
-	Sfx.play("blade", at, 1.4, 0.4)
-
-
 func _spider(s: float) -> Node3D:
 	var b = MB.new()
 	var dark = Color(0.2, 0.15, 0.12)
@@ -23502,172 +23428,44 @@ func _spider(s: float) -> Node3D:
 	m.scale = Vector3.ONE * s
 	return m
 
-
-func p_tsuchigumo_kumo_bunshin(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.8)
-	var tt = tg(c, t, 24.0)
-	for k in 6:
-		after(0.2 + k * 0.08, func():
-			if not live(c):
-				return
-			var a = randf() * TAU
-			var q = gp(c.global_position + Vector3(cos(a), 0, sin(a)) * 2.5)
-			_earth_burst(q, 0.5)
-			var sp = _spider(1.5)
-			get_tree().current_scene.add_child(sp)
-			sp.global_position = q
-			var goal = gp((tt.global_position if tt and live(tt) else c.global_position + c.face_dir() * 10.0) + Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)))
-			sp.look_at(Vector3(goal.x, q.y, goal.z) + Vector3(0.001, 0, 0), Vector3.UP)
-			sp.rotation.y += PI
-			var tw = sp.create_tween()
-			tw.tween_property(sp, "global_position", goal, 0.5)
-			tw.tween_callback(func():
-				VFX.debris(goal + Vector3.UP * 0.4, EARTH, 6, 4.0, 0.3)
-				hit(c, goal + Vector3.UP * 0.5, 1.6, inf(c, "tsuchigumo_kumo_bunshin", 0.4, {"knock": 3.0, "kind": "light", "poison": 2.0})))
-			tw.tween_interval(0.6)
-			tw.tween_property(sp, "scale", Vector3.ONE * 0.05, 0.3)
-			tw.tween_callback(sp.queue_free))
-	Sfx.play("earth", c.global_position, 1.2)
-
-
-## Örümcek Kolları: sırttan (kürek kemiklerinden) altı gerçek kol çıkar — omuz, üst kol, dirsek, ön kol, yumruk; ten renginde,
-## gövdeye bağlı (model döndükçe döner). 15 sn boyunca düşman yaklaşınca altı kol sırayla uzanıp vurur.
-func p_tsuchigumo_kumo_yoroi(c: Node3D, _t: Node3D) -> void:
-	busy(c, 0.5)
-	if not c.get("model") or c.model == null:
-		return
-	var m: CharacterModel = c.model
-	var skin: Color = m.look.get("skin", Color(0.95, 0.8, 0.66)) if m.look is Dictionary else Color(0.95, 0.8, 0.66)
-	var cloth: Color = m.look.get("top", Color(0.25, 0.2, 0.18)) if m.look is Dictionary else Color(0.25, 0.2, 0.18)
-	var chest := Vector3(0, 1.3, 0)
-	var bi = m.skel.find_bone("UpperChest") if m.skel else -1
-	if bi >= 0:
-		chest = m._grest(bi).origin
-	var rig = Node3D.new()
-	rig.name = "OrumcekKollari"
-	m.add_child(rig)
-	rig.position = chest + Vector3(0, -0.02, -0.1)   # sırtın üstü (model uzayı: +Z ön)
-	var arms: Array = []
-	for sx in [-1.0, 1.0]:
-		for k in 3:
-			# omuz yuvası: kürek kemiği hizasında, üstten alta üç sıra
-			var sh = Node3D.new()
-			rig.add_child(sh)
-			sh.position = Vector3(sx * 0.13, 0.06 - k * 0.12, -0.02)
-			sh.rotation = Vector3(deg_to_rad(-30.0 + k * 28.0), deg_to_rad(sx * (78.0 + k * 8.0)), deg_to_rad(sx * (-15.0 + k * 10.0)))
-			var mb = MB.new()
-			mb.add("sphere", Vector3.ZERO, Vector3(0.11, 0.11, 0.11), skin.darkened(0.05), Vector3.ZERO, 8)   # omuz eklemi
-			mb.add("cyl", Vector3(0, 0, 0.17), Vector3(0.075, 0.34, 0.075), skin, Vector3(90, 0, 0), 8)      # üst kol (+Z boyunca)
-			mb.add("cyl", Vector3(0, 0, 0.17), Vector3(0.085, 0.12, 0.085), cloth, Vector3(90, 0, 0), 8)      # kol bandı
-			var upper = MeshInstance3D.new()
-			upper.mesh = mb.build(Props.toon())
-			sh.add_child(upper)
-			# dirsek: ön kol öne doğru kıvrılır
-			var el = Node3D.new()
-			sh.add_child(el)
-			el.position = Vector3(0, 0, 0.34)
-			el.rotation = Vector3(deg_to_rad(-10.0), deg_to_rad(-sx * 42.0), 0)
-			var mb2 = MB.new()
-			mb2.add("sphere", Vector3.ZERO, Vector3(0.085, 0.085, 0.085), skin, Vector3.ZERO, 8)            # dirsek
-			mb2.add("cyl", Vector3(0, 0, 0.15), Vector3(0.065, 0.3, 0.065), skin, Vector3(90, 0, 0), 8)      # ön kol
-			mb2.add("box", Vector3(0, 0, 0.33), Vector3(0.09, 0.08, 0.1), skin.darkened(0.04))                 # yumruk
-			for f in 4:
-				mb2.add("box", Vector3(-0.03 + f * 0.02, 0.0, 0.385), Vector3(0.016, 0.05, 0.02), skin.darkened(0.12))   # parmak boğumları
-			var fore = MeshInstance3D.new()
-			fore.mesh = mb2.build(Props.toon())
-			el.add_child(fore)
-			sh.scale = Vector3.ONE * 0.05
-			arms.append({"sh": sh, "el": el, "rest": sh.rotation, "el_rest": el.rotation, "sx": sx})
-	# çıkış: kollar sırttan büyüyerek açılır
-	for i in arms.size():
-		var a: Dictionary = arms[i]
-		var tw = a["sh"].create_tween()
-		tw.tween_interval(0.05 * i)
-		tw.tween_property(a["sh"], "scale", Vector3.ONE * 1.15, 0.25).set_trans(Tween.TRANS_BACK)
-	FX.smoke_puff(c.global_position + Vector3.UP * 1.3, 0.5, 8)
-	if c is Player:
-		Buffs.add("kumo_yoroi", 15.0, {"melee": 1.25, "_name": "Örümcek Kolları", "_desc": "düşman yaklaşınca altı kol sırayla vurur"})
-	var busy_arms := {"t": 0.0}
-	var tick = func(i, _k):
-		if not live(c) or not is_instance_valid(rig):
+## Tsuchigumo-Ryū: Tenchi Kaibyaku (kanon): mühür çözülür, kullanıcı yere çöker ve 4 sn yerden/havadan doğa enerjisi toplar
+## (vurulursa toplama bozulur); toplanan enerji 60 sn Dohatsuten'i besler
+func p_tsuchigumo_tenchi_kaibyaku(c: Node3D, _t: Node3D) -> void:
+	busy(c, 4.0)
+	anim(c, "seal", 0.6)
+	var hp0 = float(c.get("hp"))
+	var at = gp(c.global_position)
+	summon_circle(at, 3.0, Color(0.75, 0.55, 0.25), 4.0)
+	every(4.0, 0.12, func(i, _k):
+		if not live(c):
 			return
-		# boşta: kollar hafifçe nefes alır gibi oynar
-		for a in arms:
-			var sh: Node3D = a["sh"]
-			if not sh.has_meta("striking"):
-				sh.rotation = a["rest"] + Vector3(sin(i * 0.35 + float(arms.find(a))) * 0.08, 0, 0)
-		busy_arms["t"] = float(busy_arms["t"]) - 0.1
-		if float(busy_arms["t"]) > 0.0:
+		var a = randf() * TAU
+		var p = at + Vector3(cos(a), 0.1, sin(a)) * randf_range(2.0, 5.0)
+		VFX.puffs(p, {"amount": 3, "life": 0.7, "size": 0.25, "radius": 0.2, "vmin": 1.5, "vmax": 3.0, "dir": (c.global_position + Vector3.UP - p).normalized(), "spread": 10.0, "add": true,
+			"colors": [Color(1.0, 0.85, 0.45, 0.8), Color(0.9, 0.6, 0.25, 0)]}), func():
+		if not live(c):
 			return
-		var foes = enemies_near(c, c.global_position, 4.5)
-		if foes.is_empty():
+		if float(c.get("hp")) < hp0 - 1.0:
+			if c is Player:
+				Hud.msg("Toplama bozuldu — vuruldun.", Color(1, 0.6, 0.45))
 			return
-		var tgt: Node3D = foes[0]
-		busy_arms["t"] = 1.1
-		# altı kol sırayla: her biri hedefe dönüp uzanır, vurur, geri çekilir
-		for n in arms.size():
-			var a: Dictionary = arms[[0, 3, 1, 4, 2, 5][n]]
-			after(0.12 * n, func():
-				if not live(c) or not is_instance_valid(a["sh"]) or not live(tgt):
-					return
-				var sh: Node3D = a["sh"]
-				sh.set_meta("striking", true)
-				var aim = tgt.global_position + Vector3.UP * 1.0
-				var lp = sh.get_parent().to_local(aim)
-				var dir = (lp - sh.position).normalized()
-				var yaw = atan2(dir.x, dir.z)
-				var pitch = -asin(clampf(dir.y, -1.0, 1.0))
-				var tw = sh.create_tween()
-				tw.tween_property(sh, "rotation", Vector3(pitch, yaw, 0), 0.06)
-				tw.parallel().tween_property(a["el"], "rotation", Vector3.ZERO, 0.06)
-				tw.parallel().tween_property(sh, "scale", Vector3(1.15, 1.15, 1.9), 0.06)
-				tw.tween_callback(func():
-					if live(tgt) and live(c):
-						tgt.take_hit(inf(c, "tsuchigumo_kumo_yoroi", 0.22, {"knock": 1.5, "kind": "light", "poison": 0.6}))
-						FX.hit_spark(tgt.global_position + Vector3.UP * 1.0, Color(1.0, 0.85, 0.6), 0.6)
-						Sfx.play("punch", tgt.global_position, randf_range(1.0, 1.3), 0.6))
-				tw.tween_property(sh, "scale", Vector3.ONE * 1.15, 0.12)
-				tw.parallel().tween_property(sh, "rotation", a["rest"], 0.12)
-				tw.parallel().tween_property(a["el"], "rotation", a["el_rest"], 0.12)
-				tw.tween_callback(func(): sh.remove_meta("striking")))
-	var finish = func():
-		if is_instance_valid(rig):
-			var tw2 = rig.create_tween()
-			tw2.tween_property(rig, "scale", Vector3.ONE * 0.05, 0.25)
-			tw2.tween_callback(rig.queue_free)
-	every(15.0, 0.1, tick, finish)
-	Sfx.play("blade", c.global_position, 1.2)
+		c.set_meta("dohatsuten_until", Time.get_ticks_msec() / 1000.0 + 60.0)
+		VFX.shockwave(at + Vector3.UP * 0.2, Color(1.0, 0.8, 0.4), 6.0, 0.5, true)
+		if c is Player:
+			Hud.msg("Doğa enerjisi toplandı: Dohatsuten 60 sn hazır.", Color(1.0, 0.85, 0.5), 5.0))
+	Sfx.play("wind", c.global_position, 0.6)
 
 
-func p_tsuchigumo_ganseki(c: Node3D, t: Node3D) -> void:
-	busy(c, 1.1)
-	var tt = tg(c, t, 22.0)
-	var goal = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 10.0)
-	for k in 4:
-		after(0.15 + k * 0.15, func():
-			if not live(c):
-				return
-			var q = gp(c.global_position + Vector3(randf_range(-4, 4), 0, randf_range(-4, 4)))
-			var rk = _rock(1.0)
-			get_tree().current_scene.add_child(rk)
-			rk.global_position = q
-			tether(func(): return hand_pos(c, true) if is_instance_valid(c) else q, func(): return rk.global_position if is_instance_valid(rk) else q, 0.03, _silk_mat(), 1.2)
-			var top = q + Vector3.UP * 6.0
-			var tw = rk.create_tween()
-			tw.tween_property(rk, "global_position", top, 0.35).set_trans(Tween.TRANS_QUAD)
-			tw.tween_property(rk, "global_position", goal + Vector3.UP * 0.6, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-			tw.tween_callback(func():
-				_earth_burst(goal, 0.8)
-				hit(c, goal + Vector3.UP, 2.6, inf(c, "tsuchigumo_ganseki", 0.8, {"knock": 10.0, "kind": "heavy", "element": "doton"})))
-			tw.tween_interval(0.4)
-			tw.tween_property(rk, "scale", Vector3.ONE * 0.05, 0.25)
-			tw.tween_callback(rk.queue_free))
-	Sfx.play("earth", c.global_position, 0.8)
-
-
+## Kinjutsu: Dohatsuten (kanon, En no Gyōja): köyü silen yasak patlama — Tenchi Kaibyaku ile toplanmış enerji şart
 func p_tsuchigumo_kinjutsu(c: Node3D, t: Node3D) -> void:
+	if not c.has_meta("dohatsuten_until") or float(c.get_meta("dohatsuten_until")) < Time.get_ticks_msec() / 1000.0:
+		if c is Player:
+			Hud.msg("Dohatsuten için önce Tenchi Kaibyaku ile doğa enerjisi toplamalısın.", Color(1, 0.75, 0.45), 5.0)
+		return
+	c.remove_meta("dohatsuten_until")
 	busy(c, 2.0)
-	var at = gp(Jutsu._aim_ground(c, t, 10.0, 20.0))
+	var tt = tg(c, t, 30.0)
+	var at = gp(tt.global_position) if tt else gp(Jutsu._aim_ground(c, t, 10.0, 20.0))
 	summon_circle(at, 6.0, Color(0.7, 0.4, 0.15), 2.0)
 	if c is Player:
 		c.hp = maxf(1.0, c.hp - c.max_hp * 0.3)
