@@ -11,6 +11,15 @@ enum {UNKNOWN, RUMOR, FOUND, TRIAL, JOINED}
 
 ## Yol mekânlarındaki antrenman noktaları (PathLairs yazar): pid -> {"posts": [..], "weights": [..], "boulder": .., "pushup": ..}
 static var drill_spots: Dictionary = {}
+## Teknik öğrenme antrenmanları (ustanın gözetiminde, mekânda gerçek iş — tıkla-öğren değil):
+## jid -> {"type": "hits"|"laps", "n": hedef, "time": süre (sn, 0 = süresiz), "weights": bacak ağırlıklı mı, "say": ustanın sözü}
+const DRILLS := {
+	"omote_renge": {"type": "hits", "n": 40, "time": 0.0, "say": "Lotus bedenin sağlamlığıyla başlar. Şu kütüklere kırk kez vur — yumruk da tekme de sayılır!"},
+	"ura_renge": {"type": "laps", "n": 3, "time": 0.0, "say": "Ters Lotus kapıları açık tutacak nefes ister. Avlunun çevresinde üç tur koş, durmak yok!"},
+	"asakujaku": {"type": "hits", "n": 80, "time": 60.0, "say": "Sabah Tavuskuşu yumruk yağmurudur. Bir dakikada seksen vuruş! Hızın ateş gibi olmalı!"},
+	"hirudora": {"type": "laps", "n": 5, "time": 0.0, "weights": true, "say": "Gündüz Kaplanı tek darbede her şeyi toplar. Bacak ağırlıklarını tak ve beş tur koş — ağırlıkla!"},
+}
+var drill := {}   # aktif antrenman: {pid, jid, type, n, c, t, time, center, ang, dummies}
 
 const PATHS := {
 	"yilan": {
@@ -436,6 +445,7 @@ static func node() -> LegendPaths:
 
 
 func _process(dt: float) -> void:
+	_drill_tick(dt)
 	_t -= dt
 	if _t > 0.0 or Game.profile.is_empty() or Game.player == null or Game.paused:
 		return
@@ -543,6 +553,14 @@ static func interact(it: Dictionary) -> void:
 				Progress.add_ryo(-pc)
 				st_of(pid)["q"] = k
 				Missions.accept(_quest(pid, qk, k))})
+		elif DRILLS.has(jid) and drill_spots.has(pid):
+			var k3 = jid
+			opts.append({"label": "Antrenman: %s (%d Ryō)%s" % [nm, pc, tag], "tip": j.get("desc", ""), "cb": func():
+				if int(pr()["ryo"]) < pc:
+					Hud.msg("Yeterli Ryō yok.", Color(1, 0.5, 0.4))
+					return
+				Progress.add_ryo(-pc)
+				node().start_drill(pid, k3)})
 		else:
 			var k2 = jid
 			opts.append({"label": "Öğren: %s (%d Ryō)%s" % [nm, pc, tag], "tip": j.get("desc", ""), "cb": func():
@@ -558,6 +576,102 @@ static func interact(it: Dictionary) -> void:
 	if opts.is_empty():
 		txt = "\"Sana öğretebileceğim her şeyi öğrendin. Artık kendi yolunu çiz.\""
 	Hud.dialog(title, txt, opts)
+
+
+## Antrenman başlar: vuruşta kütüklere görünmez kukla konur (kütük zaten modelli), turda avlu merkezi etrafında açı izlenir
+func start_drill(pid: String, jid: String) -> void:
+	end_drill(false)
+	var D: Dictionary = DRILLS[jid]
+	var sp: Dictionary = drill_spots[pid]
+	var M: Dictionary = PATHS[pid]["mentor"]
+	drill = {"pid": pid, "jid": jid, "type": D["type"], "n": int(D["n"]), "c": 0, "t": 0.0, "time": float(D.get("time", 0.0)), "dummies": [],
+		"weights": bool(D.get("weights", false)), "last_ang": 0.0, "acc": 0.0}
+	var posts: Array = sp.get("posts", [])
+	var center = Vector3.ZERO
+	for q in posts:
+		center += q
+	center /= maxf(1.0, posts.size())
+	drill["center"] = center + Vector3(0, 0, 4.0)
+	if D["type"] == "hits":
+		for q in posts:
+			var d = TrainingDummy.new()
+			d.set_meta("drill", true)
+			d.max_hp = 1e9
+			d.hp = 1e9
+			get_tree().current_scene.add_child(d)
+			d.global_position = (q as Vector3) + Vector3(0, 0, 1.0)
+			d.vis.visible = false
+			drill["dummies"].append(d)
+	else:
+		var v = Game.player.global_position - Vector3(drill["center"])
+		drill["last_ang"] = atan2(v.z, v.x)
+		if drill["weights"]:
+			Buffs.add("drill_weights", 9999.0, {"speed": 0.7, "_name": "Bacak Ağırlıkları", "_desc": "antrenman: hız -%30"})
+	Hud.dialog("%s — %s" % [M["name"], M["title"]], "\"%s\"" % D["say"], [])
+	Hud.banner("ANTRENMAN", "%s: %s" % [String(Data.jutsu.get(jid, {}).get("name", jid)), _drill_text()], PATHS[pid]["color"])
+
+
+func _drill_text() -> String:
+	var unit = "vuruş" if drill["type"] == "hits" else "tur"
+	var tl = (" — %d sn" % int(maxf(0.0, float(drill["time"]) - float(drill["t"])))) if float(drill["time"]) > 0.0 else ""
+	return "%d / %d %s%s" % [int(drill["c"]), int(drill["n"]), unit, tl]
+
+
+## Kukla vuruşu (Progress.on_dummy_hit çağırır)
+func on_drill_hit(d: Node) -> void:
+	if drill.is_empty() or not d.has_meta("drill") or drill["type"] != "hits":
+		return
+	drill["c"] = int(drill["c"]) + 1
+	Hud.objective_progress(_drill_text())
+	if int(drill["c"]) >= int(drill["n"]):
+		end_drill(true)
+
+
+func _drill_tick(dt: float) -> void:
+	if drill.is_empty() or Game.player == null:
+		return
+	drill["t"] = float(drill["t"]) + dt
+	var c: Vector3 = drill["center"]
+	var pp = Game.player.global_position
+	if Vector2(pp.x - c.x, pp.z - c.z).length() > 45.0:
+		Hud.msg("Antrenmandan ayrıldın. Usta başını iki yana salladı.", Color(1, 0.6, 0.45))
+		end_drill(false)
+		return
+	if float(drill["time"]) > 0.0 and float(drill["t"]) > float(drill["time"]):
+		Hud.msg("Süre doldu! \"Yeniden! Gençlik pes etmez!\"", Color(1, 0.6, 0.45))
+		end_drill(false)
+		return
+	if drill["type"] == "laps":
+		var v = pp - c
+		var a = atan2(v.z, v.x)
+		var da = wrapf(a - float(drill["last_ang"]), -PI, PI)
+		drill["last_ang"] = a
+		if Vector2(v.x, v.z).length() > 7.0:   # koşu izinde (avlunun kenarı)
+			drill["acc"] = float(drill["acc"]) + da
+		var laps = int(absf(float(drill["acc"])) / TAU)
+		if laps != int(drill["c"]):
+			drill["c"] = laps
+			Hud.objective_progress(_drill_text())
+			if laps >= int(drill["n"]):
+				end_drill(true)
+	elif int(drill["t"] * 4.0) % 4 == 0:
+		Hud.objective_progress(_drill_text())
+
+
+func end_drill(ok: bool) -> void:
+	if drill.is_empty():
+		return
+	for d in drill.get("dummies", []):
+		if is_instance_valid(d):
+			d.queue_free()
+	Buffs.remove("drill_weights")
+	var pid = String(drill["pid"])
+	var jid = String(drill["jid"])
+	drill = {}
+	Hud.objective_progress("")
+	if ok:
+		Hud.banner("ANTRENMAN TAMAM", "Usta gözleri dolu dolu başparmağını kaldırdı!", PATHS[pid]["color"])
+		_teach(pid, jid, false)
 
 
 static func _teach(pid: String, jid: String, from_quest: bool) -> void:

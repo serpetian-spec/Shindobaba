@@ -645,6 +645,8 @@ func on_hit_landed(t: Node) -> void:
 
 func on_dummy_hit(_d: Node, _dmg: float) -> void:
 	var pr = p()
+	if _d.has_meta("drill"):
+		LegendPaths.node().on_drill_hit(_d)   # yol antrenmanı vuruşu
 	# antrenman kuklası: vuruş ustalığı 2 kat (normal isabet 0.02 + kukla 0.02; ~25 vuruşta 1 puan) (yumrukla taijutsu, silahla kenjutsu)
 	var armed = String(Gear.weapon(pr).get("style", "fist")) != "fist" and bool(pr.get("weapon_drawn", false))
 	Mastery.gain(pr, "kenjutsu" if armed else "taijutsu", 0.02)   # kukla: normal isabetin (0.02) üstüne -> toplam 2 kat
