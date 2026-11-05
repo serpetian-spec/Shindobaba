@@ -50,6 +50,10 @@ static func gain(p: Dictionary, key: String, amount: float) -> void:
 		var els: Array = p.get("elements", [])
 		if (v < 40.0 and nv >= 40.0 and els.size() < 2) or (v < 75.0 and nv >= 75.0 and els.size() < 3):
 			Menus._pick_element.call_deferred(null)
+	# can/chakra/stamina sınırını doğrudan büyüten ustalıklar: artış hemen statlara yansısın (eskiden yalnız Güç atlayınca
+	# yenileniyordu — dayak yiyip dayanıklılık artsa da can barı aynı kalıyordu)
+	if key in ["dayaniklilik", "chakra", "taijutsu"] and int(nv * 4.0) > int(v * 4.0) and Game.player and is_instance_valid(Game.player) and Game.player.has_method("apply_profile_stats"):
+		Game.player.apply_profile_stats()
 	var old_lv = int(p.get("level", 1))
 	refresh_level(p)
 	if int(p["level"]) != old_lv:
