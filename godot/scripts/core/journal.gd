@@ -230,14 +230,16 @@ static func _rival_tick(dt: float) -> void:
 	if not r is Dictionary or r.is_empty() or Game.player == null or Game.ui_open:
 		return
 	r["t"] = float(r.get("t", 0.0)) + dt
-	if float(r["t"]) < 480.0 or r.get("active", false):
+	if float(r["t"]) < 1500.0 or r.get("active", false):   # en erken 25 dk'da bir (8 dk idi)
 		return
+	if not Missions.active().is_empty() or int(ChuninExam.stage) != 0 or Exams.cur != "":
+		return   # görevdeyken / sınavdayken rakip araya girmez
 	# köy dışında, savaş yokken ara sıra karşına çıkar
 	var m = Game.to_map(Game.player.global_position)
 	for v in Game.world_info.get("villages", []):
 		if m.distance_to(Vector2(v["x"], v["y"])) < float(v["r"]) + 60.0:
 			return
-	if randf() > 0.05:
+	if randf() > 0.03:
 		return
 	r["active"] = true
 	var e = Enemy.new()

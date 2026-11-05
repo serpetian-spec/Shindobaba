@@ -571,8 +571,8 @@
  },
  "gekko": {
   "name": "Gekkō",
-  "desc": "Ay ışığında kılıç çeken Konoha ailesi. Hilal kesikler, gölge adımları.",
-  "kg": "Ay Kılıcı",
+  "desc": "Hayate Gekkō'nun ailesi. Klanın gizli tekniği yoktur; Hayate'nin teknikleri Konoha kılıç stilidir: Konoha-Ryū Mikazuki no Mai (jōnin hocalar öğretir) ve Hiken: Tsukikage (taijutsu/kılıç hocası). Kılıçta usta, hızlı ailedir.",
+  "kg": "Konoha kılıç stili",
   "eye": [
    0.3,
    0.32,

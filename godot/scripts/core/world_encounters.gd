@@ -23,7 +23,7 @@ const REGION_CLANS := {"fire": ["uchiha", "hyuga", "nara", "akimichi", "aburame"
 const COMBAT := ["patrol", "mist", "sandstorm", "storm", "clan_rogue", "toll_revenge", "nemesis"]
 const DIRS := ["kuzeyde", "kuzeydoğuda", "doğuda", "güneydoğuda", "güneyde", "güneybatıda", "batıda", "kuzeybatıda"]
 
-var gap_t := 150.0
+var gap_t := 900.0   # oyun başında ilk karşılaşma 15 dk sonra (150 sn idi)
 var dist_acc := 0.0
 var check_t := 3.0
 var last_pos := Vector3.INF
@@ -44,13 +44,13 @@ func _process(dt: float) -> void:
 		_tick(dt)
 		return
 	gap_t -= dt
-	if gap_t > 0.0 or dist_acc < 800.0:
+	if gap_t > 0.0 or dist_acc < 1500.0:   # kullanıcı: çok sık çıkıyordu (800 m idi)
 		return
 	check_t -= dt
 	if check_t > 0.0:
 		return
 	check_t = 4.0
-	if not _can_start(p) or randf() > 0.15:
+	if not _can_start(p) or randf() > 0.10:
 		return
 	start(_pick_kind(p))
 
@@ -208,7 +208,7 @@ func finish(delay := 25.0) -> void:
 					FX.smoke_puff(n.global_position + Vector3.UP, 0.8, 10)
 				n.queue_free())
 	cur = {}
-	gap_t = randf_range(480.0, 900.0)
+	gap_t = randf_range(1200.0, 2100.0)   # iki karşılaşma arası 20-35 dk (8-15 dk idi)
 	dist_acc = 0.0
 
 
@@ -225,7 +225,7 @@ func _abort() -> void:
 		if is_instance_valid(n):
 			n.queue_free()
 	cur = {}
-	gap_t = randf_range(300.0, 600.0)
+	gap_t = randf_range(900.0, 1500.0)
 	dist_acc = 0.0
 
 

@@ -2545,13 +2545,8 @@ func _legacy_advance(n := 1) -> void:
 	var m = active()
 	m["progress"] = int(m.get("progress", 0)) + n
 	if int(m["progress"]) >= int(m.get("count", 1)):
-		var rw: Array = REWARD[m["rank"]]
-		_cleanup()
-		Game.profile["active_mission"] = {}
-		Progress.add_ryo(rw[0])
-		Progress.add_xp(rw[1])
-		Hud.banner("GÖREV TAMAMLANDI", m["title"], Color(0.5, 1, 0.6))
-		Hud.objective_changed()
+		# normal tamamlama: rütbe sayacı (Chūnin/Jōnin şartları), takım/dost, itibar, ödül — eskiden yalnız para veriliyordu, görev sayılmıyordu
+		complete()
 
 
 func _process_legacy(m: Dictionary) -> void:
