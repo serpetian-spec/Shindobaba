@@ -38,6 +38,9 @@ var xp = 20
 var ryo = 15
 var display_name = ""
 var nameplate: Label3D
+var hp_bar: MeshInstance3D   # başın üstünde can barı (savaşta / hasar alınca); tüm düşmanlarda
+var _hp_lag := 1.0
+var _bar_t := 0.0
 var wander_to = Vector3.ZERO
 ## Dövüş ustalığı 0..1 (stat değil, davranış): kaçınma, blok/karşılık, kawarimi, kombo uzunluğu, sıra bekleme.
 ## arch["skill"] verilmezse güçten türetilir: haydut ~0.1, chūnin ~0.4, jōnin ~0.6, S-rank/boss ~0.9
@@ -296,6 +299,18 @@ func _ready() -> void:
 	nameplate.position.y = height + 0.5
 	nameplate.no_depth_test = false
 	add_child(nameplate)
+	hp_bar = MeshInstance3D.new()
+	var q = QuadMesh.new()
+	q.size = Vector2(0.9, 0.075)
+	hp_bar.mesh = q
+	var bm = ShaderMaterial.new()
+	bm.shader = preload("res://shaders/hp_bar.gdshader")
+	bm.render_priority = 2
+	hp_bar.material_override = bm
+	hp_bar.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	hp_bar.position.y = height + 0.32
+	hp_bar.visible = false
+	add_child(hp_bar)
 	facing = randf() * TAU
 	wander_to = home
 	if arch.has("beast"):
@@ -353,6 +368,7 @@ func _physics_process(dt: float) -> void:
 	dodge_cd -= dt
 	blind_t -= dt
 	nameplate.modulate.a = 1.0 if global_position.distance_to(pl.global_position) < 30 else 0.0
+	_update_hp_bar(dt, pl)
 	match state:
 		"hitstun":
 			step_move(Vector3.ZERO, dt, false)
@@ -879,6 +895,43 @@ func _end_attack() -> void:
 	if has_token:
 		has_token = false
 		attack_tokens = maxi(0, attack_tokens - 1)
+
+
+## Can barı: düşmansa ve (hasar almışsa ya da sana saldırıyorsa) görünür; rengi sana göre tehlikesini söyler
+## (kırmızı = çok güçlü, turuncu = güçlü, sarı = denk, gri-yeşil = zayıf) — eskiden yalnız boss/olay düşmanlarında bar vardı,
+## sıradan düşmanın senden 20-100 seviye güçlü olabildiği görünmüyordu
+func _update_hp_bar(dt: float, pl: Node3D) -> void:
+	if hp_bar == null:
+		return
+	var hostile = String(team) not in ["player", "neutral"] and not has_meta("teammate")
+	var d = global_position.distance_to(pl.global_position)
+	var engaged = hp < max_hp - 0.5 or (target == pl and state in ["chase", "attack", "cast", "ranged", "guard", "dodge"])
+	if engaged:
+		_bar_t = 6.0
+	_bar_t -= dt
+	var show = hostile and not dead and d < 32.0 and _bar_t > 0.0
+	hp_bar.visible = show
+	if not show:
+		return
+	var f = clampf(hp / maxf(1.0, max_hp), 0.0, 1.0)
+	_hp_lag = maxf(f, lerpf(_hp_lag, f, minf(1.0, dt * 2.5)))
+	var m: ShaderMaterial = hp_bar.material_override
+	m.set_shader_parameter("fill", f)
+	m.set_shader_parameter("lag", _hp_lag)
+	m.set_shader_parameter("col", threat_color())
+
+
+## Oyuncunun Gücüne göre tehlike rengi (seviye rakamı gösterilmez: ustalık sistemi)
+func threat_color() -> Color:
+	var mine = float(Mastery.power(Game.profile)) if not Game.profile.is_empty() else 1.0
+	var diff = float(level) - mine
+	if diff >= 25.0:
+		return Color(0.85, 0.05, 0.25)
+	if diff >= 10.0:
+		return Color(0.95, 0.45, 0.1)
+	if diff >= -8.0:
+		return Color(0.92, 0.78, 0.2)
+	return Color(0.55, 0.75, 0.45)
 
 
 func take_hit(info: Dictionary) -> void:
