@@ -486,14 +486,14 @@ func chakra_aura(parent: Node3D, col := Color(0.3, 0.62, 1.0), s := 1.0) -> Node
 	node.set_meta("mat", mat)
 	node.set_meta("meshes", meshes)
 	var tw = node.create_tween()
-	tw.tween_method(func(v: float): mat.set_shader_parameter("k", v), 0.0, 1.0, 0.35)
+	tw.tween_method(func(v: float): mat.set_shader_parameter("k", v), 0.0, 0.55, 0.5)   # yumuşak: %55 yoğunluk (tam güç "mod gibi" aşırı duruyordu)
 	var tt = node.create_tween().set_loops()
 	tt.tween_method(func(v: float):
 		mat.set_shader_parameter("t", v)
 		if is_instance_valid(parent):
 			mat.set_shader_parameter("base_y", parent.global_position.y), 0.0, 100.0, 100.0)
 	var sp = GPUParticles3D.new()
-	sp.amount = int(18 * s)
+	sp.amount = int(10 * s)
 	sp.lifetime = 0.9
 	sp.local_coords = false
 	var pm = ParticleProcessMaterial.new()
@@ -527,7 +527,7 @@ func stop_aura(a: Node3D) -> void:
 	var mat: ShaderMaterial = a.get_meta("mat") if a.has_meta("mat") else null
 	var tw = a.create_tween()
 	if mat:
-		tw.tween_method(func(v: float): mat.set_shader_parameter("k", v), 1.0, 0.0, 0.4)
+		tw.tween_method(func(v: float): mat.set_shader_parameter("k", v), 0.55, 0.0, 0.4)
 	tw.tween_callback(func():
 		for g in a.get_meta("meshes", []):
 			if is_instance_valid(g) and g.material_overlay == mat:
