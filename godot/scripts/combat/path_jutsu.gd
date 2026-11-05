@@ -24873,6 +24873,60 @@ func p_yuhi_kyoka(c: Node3D, t: Node3D) -> void:
 	Sfx.play("genjutsu", at, 0.5)
 
 
+# ------------------------------------------------------------------ Shiranui: Hiraijin no Jutsu (Hokage Muhafız Birliği)
+## Kanon (Genma, Raidō, Iwashi; Dördüncü Hokage öğretti): ÜÇ kişi gerekir — kullanıcı ve yanındaki iki müttefik halka olup
+## Yüzleşme Mührü'nde parmaklarını birleştirir; halkanın içindeki herkes işaretli yere ışınlanır. İşaret köyün Kage'sinde
+## (muhafızlar Hokage'yi işaretlemişti): takım Kage Kulesi'nin önüne iner. Yanında iki müttefik yoksa çalışmaz.
+func p_hiraijin_no_jutsu(c: Node3D, _t: Node3D) -> void:
+	var allies = []
+	for f in get_tree().get_nodes_in_group("fighters"):
+		if f != c and is_instance_valid(f) and f is Enemy and not f.dead and f.get("team") == c.get("team") and f.global_position.distance_to(c.global_position) < 6.0:
+			allies.append(f)
+	if allies.size() < 2:
+		if c is Player:
+			Hud.msg("Hiraijin üç kişiyle yapılır: yanında (6 m) en az iki takım arkadaşın olmalı.", Color(1, 0.75, 0.45), 5.0)
+		return
+	if Interiors.inst and Interiors.inst.inside != "":
+		if c is Player:
+			Hud.msg("Kapalı bir yerdesin: işarete ışınlanmak için dışarıda ol.", Color(1, 0.75, 0.45))
+		return
+	if c is Player and Orgs.is_rogue():
+		Hud.msg("İşaret köyünün Kage'sinde — kaçak bir ninjaya o halka açılmaz.", Color(1, 0.6, 0.5))
+		return
+	var vid = Progress.home() if c is Player else String(c.get("look").get("village", "konoha") if c.get("look") is Dictionary else "konoha")
+	var dest = Missions.open_ground(Exams.find_point(["mission_board"], vid), 25.0)
+	var group = [c] + allies.slice(0, 5)
+	busy(c, 1.0)
+	anim(c, "seal", 1.0)
+	# halka: herkes kullanıcıya döner, mühürde altın ışık birleşir
+	for g in group:
+		VFX.star(g.global_position + Vector3.UP * 1.2, Color(1.0, 0.85, 0.2), 1.4, 0.3)
+	VFX.shockwave(c.global_position + Vector3.UP * 0.2, Color(1.0, 0.85, 0.25), 4.0, 0.4, false)
+	Sfx.play("whoosh", c.global_position, 1.6)
+	after(0.55, func():
+		for i in group.size():
+			var g = group[i]
+			if not is_instance_valid(g):
+				continue
+			var a = TAU * i / group.size()
+			var q = gp(dest + Vector3(cos(a), 0, sin(a)) * 2.2)
+			VFX.star(g.global_position + Vector3.UP, Color(1.0, 0.9, 0.3), 3.0, 0.2)
+			g.global_position = q + Vector3.UP * 0.1
+			if g is CharacterBody3D:
+				g.velocity = Vector3.ZERO
+			if g.has_method("reset_physics_interpolation"):
+				g.reset_physics_interpolation()
+			if g is Enemy:
+				g.home = q
+				g.target = null
+			if g is Player:
+				g.cam_pivot.global_position = q + Vector3.UP * 1.6 * g.model.age_scale
+			VFX.star(q + Vector3.UP, Color(1.0, 0.9, 0.3), 3.0, 0.25)
+		VFX.shockwave(dest + Vector3.UP * 0.2, Color(1.0, 0.85, 0.25), 5.0, 0.4, false)
+		if c is Player:
+			Hud.msg("Hiraijin — takım %s Kulesi'nin önüne indi." % Progress.kage_title(vid), Color(1, 0.9, 0.5)))
+
+
 # ================================================================== Yeni klanlar 4: Momochi (sessiz öldürme) / Kurosuki (şimşek kılıçları) / Hagoromo (tüy ve illüzyon)
 const MOMO := Color(0.78, 0.84, 0.9)
 const KUROS := Color(0.4, 0.85, 1.0)
