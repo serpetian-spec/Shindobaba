@@ -88,7 +88,7 @@ static func glow_mat(col: Color, alpha := 1.0) -> StandardMaterial3D:
 static func info(c: Node3D, d: Dictionary, mul := 1.0, extra := {}) -> Dictionary:
 	var el: String = d.get("element", "")
 	var t = int(d.get("tier", 2))
-	var inf = {"dmg": base_dmg(c, d) * mul, "element": el, "knock": 4.0 + t * 2.0, "launch": 1.0 + t * 0.6,
+	var inf = {"dmg": base_dmg(c, d) * mul, "element": el, "knock": 4.0 + t * 2.0, "launch": 0.0,
 		"kind": "heavy" if t >= 3 else "light", "hitstop": 0.03 + t * 0.012, "tier": t}
 	if el in ["katon", "yoton"]:
 		inf["burn"] = 1.5 + t * 0.4

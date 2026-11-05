@@ -1266,7 +1266,7 @@ func take_hit(info: Dictionary) -> void:
 	t = 0.0
 	if aura:
 		_update_charge(0)
-	if heavy:
+	if heavy and Combat.knocks_down(info):
 		action = "knockdown"
 		p.velocity = dir * info.get("knock", 8.0) * 0.4 + Vector3.UP * (info.get("launch", 0.0) * 0.6 + 2.5)
 		p.model.play("knock", 0.05, 1.2, true)

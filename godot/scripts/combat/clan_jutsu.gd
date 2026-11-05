@@ -1419,34 +1419,77 @@ func c_kidaichu_mushikui(c: Node3D, t: Node3D) -> void:
 		if c is Player:
 			Hud.msg("Kidaichū için düşmana dokunmalısın (yakın mesafe).", Color(0.85, 0.85, 0.7))
 		return
+	# böcekler hedefin bedeninde CANLI: kemiklere bağlı deride sürünür (hedef düşse de bedeninde), gittiği yöne döner,
+	# bacakları iki fazda yürür; yedikçe büyür (küçük başlar)
+	var mA = _kidaichu_mesh(0).build(Props.toon())
+	var mB = _kidaichu_mesh(1).build(Props.toon())
+	var bones = ["Hips", "Spine", "Chest", "UpperChest", "RightUpperArm", "LeftUpperArm", "RightUpperLeg", "LeftUpperLeg"]
 	var bugs = []
-	for k in 3:
-		var bm = mesh_of(_kidaichu_mesh())
-		attach(tt, bm, 8.0, Vector3(randf_range(-0.2, 0.2), tt.height * randf_range(0.35, 0.8), -tt.radius * 0.95).rotated(Vector3.UP, k * 2.1))
-		bm.scale = Vector3.ONE * 0.7
-		bugs.append(bm)
-	every(8.0, 0.5, func(i, k):
-		for bm in bugs:
-			if is_instance_valid(bm):
-				bm.scale = Vector3.ONE * (0.7 + k * 1.3)   # yedikçe büyür (referans: bedeni delip çıkan iri böcekler)
-		if live(tt):
+	for k in 5:
+		var mi = MeshInstance3D.new()
+		mi.mesh = mA
+		get_tree().current_scene.add_child(mi)
+		bugs.append({"mi": mi, "bone": bones[(k * 3) % bones.size()], "a": randf() * TAU, "sp": randf_range(0.6, 1.2) * (1.0 if k % 2 == 0 else -1.0), "ph": randf() * TAU})
+	var dur = 8.0
+	var tm = tt.get("model")
+	var sk: Skeleton3D = tm.skel if tm and is_instance_valid(tm) else null
+	every(dur, 1.0 / 30.0, func(i, k):
+		if not live(tt):
+			return
+		for bg in bugs:
+			var mi: MeshInstance3D = bg["mi"]
+			if not is_instance_valid(mi):
+				continue
+			var bxf: Transform3D
+			var bi = sk.find_bone(bg["bone"]) if sk and is_instance_valid(sk) else -1
+			if bi >= 0:
+				bxf = sk.global_transform * sk.get_bone_global_pose(bi)
+			else:
+				bxf = Transform3D(Basis.IDENTITY, tt.global_position + Vector3.UP * float(tt.height) * 0.6)
+			bg["a"] = float(bg["a"]) + float(bg["sp"]) * 0.06
+			var r = 0.16 if String(bg["bone"]).contains("Arm") or String(bg["bone"]).contains("Leg") else 0.2
+			var ax: Vector3 = bxf.basis.y.normalized()   # kemik ekseni etrafında dolaş
+			var px: Vector3 = bxf.basis.x.normalized()
+			var pz: Vector3 = bxf.basis.z.normalized()
+			var off = (px * cos(float(bg["a"])) + pz * sin(float(bg["a"]))) * r
+			var slide = ax * sin(i * 0.05 + float(bg["ph"])) * 0.12
+			var pos = bxf.origin + off + slide
+			var tang = (px * -sin(float(bg["a"])) + pz * cos(float(bg["a"]))) * signf(float(bg["sp"]))
+			mi.global_position = pos
+			if tang.length() > 0.01 and off.length() > 0.01:
+				mi.global_basis = Basis.looking_at(tang, off.normalized()).scaled(Vector3.ONE * (0.3 + k * 0.1))   # önkol boyunu geçmez (kullanıcı: "kolu kadar olsa yeter")
+			if i % 3 == 0:
+				mi.mesh = mB if mi.mesh == mA else mA   # tripod yürüyüş: bacak fazları değişir
+		if i % 15 == 0:
 			hit(c, tt.global_position + Vector3.UP, 1.0, inf(c, "kidaichu_mushikui", 0.08 + k * 0.3, {"knock": 0.0, "kind": "light", "chakra_drain": 4.0 + k * 8.0, "bleed": 0.5}))
-			if i % 4 == 0:
-				FX.burst(tt.global_position + Vector3.UP * tt.height * 0.6, {"amount": 8, "life": 0.4, "size": 0.08, "vmin": 1, "vmax": 3, "add": false, "colors": [Color(0.5, 0.05, 0.05), Color(0.3, 0.02, 0.02, 0)]}))
+			if i % 60 == 0:
+				FX.burst(tt.global_position + Vector3.UP * float(tt.height) * 0.6, {"amount": 8, "life": 0.4, "size": 0.08, "vmin": 1, "vmax": 3, "add": false, "colors": [Color(0.5, 0.05, 0.05), Color(0.3, 0.02, 0.02, 0)]}), func():
+		for bg in bugs:
+			if is_instance_valid(bg["mi"]):
+				bg["mi"].queue_free())
 	Sfx.play("wind", c.global_position, 1.6, 0.6)
 
 
-## Kidaichū: kara iri böcek (referans: koyu gövde, gri kabuk, açık camgöbeği gözler, ince uzun bacaklar)
-func _kidaichu_mesh() -> MB:
+## Kidaichū: iri kara böcek (anime: koyu gövde, gri çizgili kabuk, camgöbeği gözler, ince uzun eklemli bacaklar, çene ve anten).
+## phase 0/1: üçlü yürüyüş bacak fazları (sırayla gösterilince yürür). İleri = -Z, sırt = +Y
+func _kidaichu_mesh(phase := 0) -> MB:
 	var b = MB.new()
-	b.add("sphere", Vector3(0, 0, 0.05), Vector3(0.5, 0.32, 0.7), Color(0.16, 0.16, 0.15))
-	b.add("sphere", Vector3(0, 0.06, 0.12), Vector3(0.42, 0.26, 0.48), Color(0.45, 0.45, 0.43))   # gri kabuk
-	b.add("sphere", Vector3(0, 0.02, -0.34), Vector3(0.26, 0.22, 0.22), Color(0.14, 0.14, 0.13))
+	var DK = Color(0.14, 0.14, 0.13)
+	var SH = Color(0.5, 0.5, 0.47)
+	for k in 4:   # bölmeli karın, uca doğru küçülür
+		var z = 0.08 + k * 0.13
+		b.add_grad("sphere", Vector3(0, 0.0, z), Vector3(0.46 - k * 0.07, 0.28 - k * 0.04, 0.2), DK.lightened(0.08), DK.darkened(0.3), Vector3.ZERO, 12)
+		b.add_grad("sphere", Vector3(0, 0.09, z), Vector3(0.38 - k * 0.06, 0.14, 0.17), SH.lightened(0.15) if k % 2 == 0 else SH, SH.darkened(0.3), Vector3.ZERO, 10)   # parlak gri kabuk çizgileri
+	b.add_grad("sphere", Vector3(0, 0.02, -0.12), Vector3(0.36, 0.22, 0.24), DK.lightened(0.06), DK.darkened(0.3), Vector3.ZERO, 10)   # göğüs
+	b.add("sphere", Vector3(0, 0.02, -0.32), Vector3(0.24, 0.2, 0.2), DK, Vector3.ZERO, 10)   # baş
 	for sx in [-1.0, 1.0]:
-		b.add("sphere", Vector3(sx * 0.09, 0.06, -0.42), Vector3(0.08, 0.08, 0.06), Color(0.35, 0.75, 0.72))
+		b.add("sphere", Vector3(sx * 0.09, 0.06, -0.4), Vector3(0.08, 0.08, 0.06), Color(0.4, 0.85, 0.8), Vector3.ZERO, 6)   # gözler
+		BeastRig.claw(b, Vector3(sx * 0.05, -0.02, -0.42), Vector3(-sx * 0.4, -0.1, -1.0), 0.12, 0.018, DK.lightened(0.1))   # çene
+		BeastRig.claw(b, Vector3(sx * 0.06, 0.1, -0.38), Vector3(sx * 0.45, 0.5, -0.8), 0.18, 0.01, DK)   # anten
 		for k in 3:
-			var z = -0.12 + k * 0.16
-			BeastRig.claw(b, Vector3(sx * 0.2, -0.02, z), Vector3(sx, -0.6, 0.1 * (k - 1)), 0.32, 0.02, Color(0.12, 0.12, 0.11))
+			var z = -0.16 + k * 0.16
+			var lift = 1.0 if ((k + (0 if sx > 0 else 1) + phase) % 2 == 0) else -0.2   # tripod: çapraz bacaklar birlikte kalkar
+			BeastRig.claw(b, Vector3(sx * 0.18, -0.03, z), Vector3(sx, -0.75 + lift * 0.3, 0.15 * (k - 1) - lift * 0.2), 0.24, 0.022, Color(0.1, 0.1, 0.09))
 	return b
 
 

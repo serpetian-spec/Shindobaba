@@ -144,6 +144,12 @@ func capsule_hit(point: Vector3, f: Node3D, extra: float) -> bool:
 	return point.distance_to(c) <= f.radius + extra
 
 
+## Yere devirme kuralı (oyuncu + NPC ortak): yalnız tekniği gerçekten havaya kaldıran (launch >= 3) ya da çok sert iten
+## (knock >= 14) vuruş devirir; diğer ağır vuruşlar sendeletir (eskiden her jutsu vuruşu yere atıyordu)
+func knocks_down(info: Dictionary) -> bool:
+	return float(info.get("launch", 0.0)) >= 3.0 or float(info.get("knock", 0.0)) >= 14.0
+
+
 func hostile(a: Node, b: Node) -> bool:
 	if a == b or b == null or a == null:
 		return false

@@ -174,7 +174,7 @@ func take_hit(info: Dictionary) -> void:
 		# darbe: mühür / sıçrama / blok pozunda kalmasın (o pozda donuyordu)
 		for pz in ["seal", "leap", "guard", "cast", "charge"]:
 			model.overlay.set_pose(pz, 0.0)
-	if heavy and size < 2.5:
+	if heavy and size < 2.5 and Combat.knocks_down(info):
 		state = "knockdown"
 		velocity = dir * info.get("knock", 8.0) / size + Vector3.UP * (info.get("launch", 0.0) + 3.0)
 		model.play("knock", 0.05, 1.2, true)
