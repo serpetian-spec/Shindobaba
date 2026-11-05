@@ -589,7 +589,6 @@ const PANIM := {
 	"gokusa_maiso": {"base": "palm", "pre": 0.4, "post": 0.9, "wind": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0, 0, 0, 0, 0], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "spine": 10.0}},
 	"suna_bunshin": {"base": "clone", "pre": 0.3, "post": 0.5, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.15, 0.15, 0.15, 0.15, 0.3]}},
 	"sabaku_soso": {"base": "palm", "pre": 0.5, "post": 1.0, "wind": {"R": [Vector3(-0.1, 0.45, 0.88), Vector3(0.0, 0.5, 0.86), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0, 0, 0, 0, 0], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.45, 1.45, 1.45, 1.45, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "spine": 12.0}},
-	"sabaku_suna_no_kumo": {"base": "power", "pre": 0.3, "post": 0.4, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.15, 0.15, 0.15, 0.15, 0.3]}, "rel": {"R": [Vector3(-0.85, -0.45, 0.1), Vector3(-0.9, -0.3, 0.2), Vector3(-0.9, -0.2, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0]}},
 	"kugutsu_no_jutsu": {"base": "palm", "pre": 0.3, "post": 0.6, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0]}, "rel": {"R": [Vector3(-0.08, 0.05, 1.0), Vector3(0.0, 0.05, 1.0), Vector3(0.0, 0.9, 0.45)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 6.0}},
 	"shirohigi_jikki_chikamatsu_no_shu": {"base": "scroll", "pre": 0.5, "post": 0.8, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7]}, "rel": {"R": [Vector3(-0.85, 0.1, -0.5), Vector3(-0.7, 0.1, -0.7), Vector3(-0.6, 0.1, -0.8)], "L": [Vector3(0.85, 0.1, -0.5), Vector3(0.7, 0.1, -0.7), Vector3(0.6, 0.1, -0.8)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": -6.0}},
 	"akahigi_hyakki_no_soen": {"base": "scroll", "pre": 0.6, "post": 1.0, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7]}, "rel": {"R": [Vector3(-0.2, 0.8, 0.55), Vector3(-0.1, 0.85, 0.5), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.2, 0.8, 0.55), Vector3(0.1, 0.85, 0.5), Vector3(-0.0, 0.9, 0.4)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": -10.0}},
@@ -19288,33 +19287,54 @@ func p_suna_bunshin(c: Node3D, t: Node3D) -> void:
 	c_suna_bunshin(c, t)
 
 
-## Kum Şelalesi Cenazesi: dalga yükselirken kum fırtınası, kapanınca yıldız biçimli kum patlaması (referans)
+## Sabaku Sōsō (Gaara): kum tabutundaki hedefin üstüne kum çöker ve sıkıştırır — dikenli kum patlamasıyla ezer.
+## Hedef henüz sarılı değilse kum önce hızla onu sarar (Sabaku Kyū), sonra sıkar.
 func p_sabaku_soso(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 30.0)
-	c_sabaku_soso(c, t)
-	if tt:
-		var at = tt.global_position
-		after(0.9, func():
+	busy(c, 1.0)
+	if tt == null:
+		return
+	var st = tt.get_meta("sand_coat") if tt.has_meta("sand_coat") else {}
+	var wrap_t = 0.0
+	if st.is_empty():
+		st = _sand_wrap(c, tt, 0.35)
+		wrap_t = 0.45
+	after(wrap_t + 0.15, func():
+		if not live(tt):
+			return
+		SandCoat.squeeze(st, 0.35)
+		after(0.32, func():
+			if not live(tt):
+				return
+			var at = tt.global_position
 			for k in 16:
 				var a = k * TAU / 16.0
-				var sp = _branch(randf_range(3.0, 5.0), 0.5)
+				var sp = _branch(randf_range(2.6, 4.2), 0.45)
 				sp.material_override = _flat_glow(SAND)
 				get_tree().current_scene.add_child(sp)
-				sp.global_position = at + Vector3.UP * 1.0
-				sp.rotation = Vector3(PI * 0.5, -a, 0)
+				sp.global_position = at + Vector3.UP * tt.height * 0.55
+				sp.rotation = Vector3(PI * 0.5 + randf_range(-0.4, 0.4), -a, 0)
 				sp.scale = Vector3(1, 0.05, 1)
 				var tw = sp.create_tween()
-				tw.tween_property(sp, "scale", Vector3.ONE, 0.12)
-				tw.tween_interval(0.4)
+				tw.tween_property(sp, "scale", Vector3.ONE, 0.1)
+				tw.tween_interval(0.3)
 				tw.tween_property(sp, "scale", Vector3(0.2, 0.05, 0.2), 0.3)
 				tw.tween_callback(sp.queue_free)
-			_sand_gust(at + Vector3.UP, 4.0, 60)
-			shake(0.8))
+			_sand_gust(at + Vector3.UP, 3.0, 60)
+			tt.take_hit(inf(c, "sabaku_soso", 2.6, {"knock": 0.0, "launch": 0.0, "kind": "crush", "hitstop": 0.15}))
+			shake(0.9)
+			Sfx.play("earth", at, 0.5)
+			SandCoat.remove(st, 0.5)))
 
 
-func p_sabaku_suna_no_kumo(c: Node3D, t: Node3D) -> void:
-	_sand_gust(gp(c.global_position) + Vector3.UP * 0.3, 1.5, 40)
-	c_sabaku_suna_no_kumo(c, t)
+## Kum hedefin ayaklarından yükselip bedenine boyna kadar sarılır (baş dışarıda), hedef bağlanır
+func _sand_wrap(c: Node3D, tt: Node3D, rise: float) -> Dictionary:
+	_sand_gust(gp(tt.global_position) + Vector3.UP * 0.2, 1.2, 40, Vector3.UP)
+	VFX.puffs(gp(tt.global_position), {"amount": 24, "life": 0.6, "size": 0.7, "radius": 1.2, "vmin": 2, "vmax": 5, "dir": Vector3.UP, "spread": 25.0, "tangent": 5.0, "add": false,
+		"colors": [Color(0.9, 0.78, 0.55, 1), Color(0.8, 0.66, 0.44, 0)]})
+	st(tt, "bind", 2.6)
+	Sfx.play("earth", tt.global_position, 1.3)
+	return SandCoat.apply(tt, 0.78, rise, 0.03, 1.0)
 
 
 ## Kukla Tekniği: parmaklardan mavi chakra iplikleri kuklaya bağlanır
@@ -20223,11 +20243,19 @@ func p_hiraishin_no_jutsu(c: Node3D, t: Node3D) -> void:
 			tw.tween_callback(ring.queue_free))
 
 
+## Sabaku Kyū (Gaara): kum hedefin altından yükselip bedenini boyna kadar sarar, kıpırdatmaz (baş dışarıda; ezmek Sabaku Sōsō'nün işi)
 func p_sabaku_kyu(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 24.0)
-	if tt:
-		_sand_gust(tt.global_position + Vector3.UP, 1.5, 40)
-	Jutsu.j_sabaku_kyu(c, t)
+	busy(c, 0.8)
+	if tt == null:
+		if c is Player:
+			Hud.msg("Hedef yok.", Color(0.8, 0.8, 0.8))
+		return
+	var stc = _sand_wrap(c, tt, 0.6)
+	tt.take_hit(inf(c, "sabaku_kyu", 0.4, {"knock": 0.0, "launch": 0.0, "kind": "crush"}))
+	after(3.2, func():
+		if is_instance_valid(tt) and tt.has_meta("sand_coat") and tt.get_meta("sand_coat") == stc:
+			SandCoat.remove(stc, 0.5))
 
 
 ## Patlayıcı Kil: avuçtaki ağız kili çiğner, beyaz kil parçacıkları
@@ -20418,13 +20446,11 @@ func p_sensa_kaibyo(c: Node3D, t: Node3D) -> void:
 	_gen(c, "sensa_kaibyo", t)
 
 
+## Sabaku Fuyū (kanon, Gaara: Desert Suspension): ayağının altında kum toplanır, üstüne binip havada süzülür/uçarsın
+## (Space yüksel, Ctrl alçal); tekrar yapınca inersin. Kum yolda dökülür.
 func p_sabaku_fuyu(c: Node3D, t: Node3D) -> void:
-	_sand_gust(gp(c.global_position) + Vector3.UP * 0.2, 1.2, 40)
-	every(8.0, 0.25, func(_i, _k):
-		if live(c):
-			VFX.puffs(c.global_position, {"amount": 4, "life": 0.8, "size": 0.25, "radius": 0.5, "vmin": 0.5, "vmax": 1.5, "dir": Vector3.DOWN, "spread": 30.0, "add": false,
-				"colors": [Color(0.88, 0.76, 0.52, 1), Color(0.78, 0.66, 0.44, 0)]}), Callable())
-	_gen(c, "sabaku_fuyu", t)
+	_sand_gust(gp(c.global_position) + Vector3.UP * 0.3, 1.5, 40)
+	c_sabaku_suna_no_kumo(c, t)
 
 
 func p_mujin_meisai(c: Node3D, t: Node3D) -> void:

@@ -31,7 +31,7 @@ const STYLE := {
 	"fuma_shuriken_j": "throw", "fuma_kaze": "palm", "sofushasan_no_tachi": "throw", "shuriken_kage_bunshin_no_jutsu": "throw", "fuma_kaze_guruma": "throw",
 	"kamizuru_bees": "two_palm", "kamizuru_wax": "breath", "kamizuru_hachi": "summon", "kamizuru_hari": "two_palm", "kamizuru_mitsu_bunshin": "clone",
 	"kusa_boheki": "power", "suna_no_yoroi": "power", "gokusa_maiso": "ground", "suna_bunshin": "clone", "suna_shuriken": "sand_arms",
-	"sabaku_soso": "ground", "sabaku_suna_no_kumo": "ground",
+	"sabaku_soso": "ground", "sabaku_fuyu": "ground",
 	"kurohigi_kiki_ippatsu": "summon", "kiko_junbu": "summon", "kugutsu_no_jutsu": "summon", "akahigi_hyakki_no_soen": "summon",
 	"shirohigi_jikki_chikamatsu_no_shu": "summon",
 	"chigiri_toho_honenuki": "rush", "sairento_kiringu": "sense", "karatachi_suijin_giri": "charge", "karatachi_kirisame": "sense",
@@ -3043,28 +3043,47 @@ func c_kamizuru_mitsu_bunshin(c: Node3D, _t: Node3D) -> void:
 
 # ================================================================== SABAKU — kum ve demir
 ## Kum Zırhı: tenin ince kum tabakasıyla kaplanır: 20 sn gelen hasar yarıya iner
+## Suna no Yoroi (Gaara): bedeni ince, çatlak bir kum katmanı kaplar (kabuk/küre değil; pozu izler); hasarı emer
 func c_suna_no_yoroi(c: Node3D, _t: Node3D) -> void:
-	var shell = MeshInstance3D.new()
-	shell.mesh = VFX._sphere(0.5, 16, 10)
-	shell.material_override = VFX.mat_spiral(Color(0.95, 0.85, 0.6, 0.35), Color(0.8, 0.65, 0.4, 0.25), 9.0, 2.0, 0.6, 0.4)
-	shell.scale = Vector3(1.0, 2.0, 1.0)
-	attach(c, shell, 20.0, Vector3.UP * 0.95)
+	var old = c.get_meta("sand_coat") if c.has_meta("sand_coat") else {}
+	if not old.is_empty():
+		SandCoat.remove(old, 0.1)
+	var st = SandCoat.apply(c, 1.35, 0.35, 0.012, 1.6)
 	if c is Player:
 		Buffs.add("suna_no_yoroi", 20.0, {"armor": 0.75})
+	elif c.has_method("add_buff"):
+		c.add_buff("suna_no_yoroi", 20.0, {"armor": 0.75})   # AI eşitliği
+	after(20.0, func():
+		if is_instance_valid(c):
+			SandCoat.remove(st, 0.6))
 	VFX.puffs(c.global_position, {"amount": 30, "life": 0.7, "size": 0.8, "radius": 1.2, "vmin": 2, "vmax": 5, "dir": Vector3.UP, "spread": 30.0,
 		"colors": [Color(0.92, 0.8, 0.58), Color(0.82, 0.68, 0.45, 0)]})
 	Sfx.play("earth", c.global_position, 1.4)
 
 
-## Hava-Kum Kalkanı: etrafında kum kubbesi döner; 8 sn mermileri kendiliğinden durdurur, yaklaşanı iter
+## Kūsa Bōheki (Gaara): kum havaya kalkıp başının üstünde kalın, kenarları yırtık bir kalkan tabakası olarak yayılır
+## (kubbe değil); 8 sn mermileri durdurur, yaklaşanı iter
 func c_kusa_boheki(c: Node3D, _t: Node3D) -> void:
-	var dome = MeshInstance3D.new()
-	dome.mesh = VFX._sphere(0.5, 24, 12)
-	dome.material_override = VFX.mat_spiral(Color(0.95, 0.85, 0.6, 0.8), Color(0.75, 0.6, 0.38, 0.7), 7.0, 2.0, 2.0, 0.6)
-	dome.scale = Vector3.ONE * 6.4
-	attach(c, dome, 8.0, Vector3.UP * 0.8)
+	var sheet = MeshInstance3D.new()
+	var pm = PlaneMesh.new()
+	pm.size = Vector2(8.0, 8.0)
+	pm.subdivide_width = 28
+	pm.subdivide_depth = 28
+	sheet.mesh = pm
+	var mat = ShaderMaterial.new()
+	mat.shader = preload("res://shaders/vfx_sand_sheet.gdshader")
+	mat.set_shader_parameter("spread", 0.0)
+	sheet.material_override = mat
+	sheet.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
+	attach(c, sheet, 8.0, Vector3.UP * 3.2)
+	var tw = sheet.create_tween()
+	tw.tween_method(func(v): mat.set_shader_parameter("spread", v), 0.0, 1.0, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(7.0)
+	tw.tween_method(func(v): mat.set_shader_parameter("spread", v), 1.0, 0.0, 0.5)
+	var tt = [0.0]
 	every(8.0, 0.1, func(_i, _k):
-		dome.rotation.y -= 0.25
+		tt[0] += 0.1
+		mat.set_shader_parameter("t", tt[0])
 		for n in get_tree().current_scene.get_children():
 			if n is Projectile and not n.dead and Combat.hostile(c, n.shooter) and n.global_position.distance_to(c.global_position + Vector3.UP) < 3.6:
 				VFX.puffs(n.global_position, {"amount": 10, "life": 0.4, "size": 0.6, "radius": 0.4, "vmin": 1, "vmax": 3, "colors": [Color(0.9, 0.78, 0.55), Color(0.8, 0.65, 0.4, 0)]})
@@ -3298,20 +3317,29 @@ func c_sabaku_soso(c: Node3D, t: Node3D) -> void:
 	Sfx.play("earth", c.global_position, 0.5)
 
 
-## Uçan Kum Bulutu: ayağının altındaki kum bulutuna binip uçarsın
+## Kum bulutu uçuşu (Sabaku Fuyū kullanır): ayağının altındaki kum bulutuna binip uçarsın
 func c_sabaku_suna_no_kumo(c: Node3D, _t: Node3D) -> void:
 	if not c is Player:
 		return
 	if c.flight_source() == "sand":
 		c.stop_flight()
 		return
+	# anime (Sabaku Fuyū): ayağın altında toplu, kalın bir kum kütlesi (altı yuvarlak topak), taneli ve çatlak kum dokusu
 	var b = MB.new()
-	for k in 9:
-		var a = k * TAU / 9.0
-		b.add_grad("sphere", Vector3(cos(a) * 0.9, 0, sin(a) * 0.9), Vector3(1.3, 0.55, 1.3), Color(0.95, 0.85, 0.62), Color(0.75, 0.6, 0.38), Vector3.ZERO, 9)
-	b.add_grad("sphere", Vector3.ZERO, Vector3(2.4, 0.7, 2.4), Color(0.95, 0.86, 0.64), Color(0.72, 0.58, 0.36), Vector3.ZERO, 12)
+	b.add("sphere", Vector3(0, 0, 0), Vector3(1.7, 0.75, 1.6), Color.WHITE, Vector3.ZERO, 12)
+	b.add("sphere", Vector3(0, -0.35, 0.05), Vector3(1.2, 0.8, 1.15), Color.WHITE, Vector3.ZERO, 10)
+	for k in 6:
+		var a = k * TAU / 6.0 + 0.4
+		b.add("sphere", Vector3(cos(a) * 0.62, -0.05 + 0.06 * (k % 2), sin(a) * 0.58), Vector3(0.75, 0.5, 0.7), Color.WHITE, Vector3(0, rad_to_deg(a), 0), 8)
 	var cloud = mesh_of(b)
-	cloud.position = Vector3(0, -0.15, 0)
+	var smat = ShaderMaterial.new()
+	smat.shader = preload("res://shaders/vfx_sand_coat.gdshader")
+	smat.set_shader_parameter("reveal_h", 99.0)
+	smat.set_shader_parameter("inflate", 0.0)
+	smat.set_shader_parameter("crack", 0.6)
+	smat.set_shader_parameter("selfglow", 0.35)
+	cloud.material_override = smat
+	cloud.position = Vector3(0, -0.3, 0)
 	var vis = Node3D.new()
 	vis.add_child(cloud)
 	add_child(vis)
