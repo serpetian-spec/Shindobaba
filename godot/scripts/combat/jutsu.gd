@@ -661,7 +661,7 @@ func j_fuuton_shinkuu(c: Node3D, t: Node3D) -> void:
 
 ## Rasenshuriken gövdesi (anime ref refs/rasenshuriken): mavi Rasengan çekirdek + dört kıvrık beyaz rüzgâr bıçağı (iki
 ## katmanlı düz disk, farklı hızda dönen). size = disk çapı (m).
-func rasenshuriken_body(size := 2.8) -> Node3D:
+func rasenshuriken_body(size := 2.8, tint := Color(0.78, 0.9, 1.0)) -> Node3D:
 	var root = Node3D.new()
 	root.add_child(VFX.rasengan(size * 0.22))   # animede çekirdek: bıçaklardan küçük mavi top
 	var sh: Shader = load("res://shaders/vfx_rasenshuriken.gdshader")
@@ -675,6 +675,7 @@ func rasenshuriken_body(size := 2.8) -> Node3D:
 		var mt = ShaderMaterial.new()
 		mt.shader = sh
 		mt.set_shader_parameter("alpha", 1.0 if k == 0 else 0.55)
+		mt.set_shader_parameter("tint", tint)
 		mi.material_override = mt
 		mi.scale = Vector3.ONE * size * (1.0 if k == 0 else 1.12)
 		mi.position.y = -0.03 * k
@@ -769,7 +770,7 @@ func j_fuuton_rasenshuriken(c: Node3D, t: Node3D) -> void:
 
 ## Genişleme (anime): hedefi içine alan dev beyaz küre; yüzeyinde fırça gibi kıvrılan şeritler (mikro rüzgâr bıçakları),
 ## tabanda halka hâlinde savrulan toz, yerde krater. İçerideki hedef çok sayıda küçük darbeyle tutulur.
-func _rasen_burst(c: Node3D, pos: Vector3, m: float, rad := 6.0) -> void:
+func _rasen_burst(c: Node3D, pos: Vector3, m: float, rad := 6.0, hits := true, hold := 1.0) -> void:
 	rad *= VFX.epic
 	var sp = MeshInstance3D.new()
 	var sm = SphereMesh.new()
@@ -785,7 +786,6 @@ func _rasen_burst(c: Node3D, pos: Vector3, m: float, rad := 6.0) -> void:
 	get_tree().current_scene.add_child(sp)
 	sp.global_position = pos
 	sp.scale = Vector3.ONE * 0.3
-	var hold := 1.0
 	var tw = sp.create_tween()
 	tw.tween_property(sp, "scale", Vector3.ONE * rad, 0.3).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
 	tw.tween_interval(hold)
@@ -794,7 +794,7 @@ func _rasen_burst(c: Node3D, pos: Vector3, m: float, rad := 6.0) -> void:
 	tw.tween_callback(sp.queue_free)
 	sp.create_tween().tween_method(func(v: float): mat.set_shader_parameter("t", v), 0.0, 3.0, 0.3 + hold + 0.45)
 	# içte soluk mavi çekirdek (ref: ortada Rasengan)
-	var core = VFX.rasengan(1.2)
+	var core = VFX.rasengan(clampf(rad * 0.2, 0.5, 3.0))
 	get_tree().current_scene.add_child(core)
 	core.global_position = pos
 	var ct = core.create_tween()
@@ -804,9 +804,10 @@ func _rasen_burst(c: Node3D, pos: Vector3, m: float, rad := 6.0) -> void:
 	# tabanda dışa savrulan toz halkası + yerde krater
 	var gy = Game.jutsu_floor(pos.x, pos.z)
 	var base = Vector3(pos.x, gy, pos.z)
-	for k in 14:
-		var a = TAU * k / 14.0
-		FX.smoke_puff(base + Vector3(cos(a) * rad * 1.08, 0.2, sin(a) * rad * 1.08), 0.9, 3)   # küre tabanında savrulan toz (küreyi örtmesin)
+	var npuff = clampi(int(rad * 2.3), 6, 22)   # toz halkası küre boyuna göre (Mini'de küreyi örtmesin)
+	for k in npuff:
+		var a = TAU * k / float(npuff)
+		FX.smoke_puff(base + Vector3(cos(a) * rad * 1.08, 0.2, sin(a) * rad * 1.08), clampf(rad / 6.0, 0.4, 1.4) * 0.9, 3)   # küre tabanında savrulan toz (küreyi örtmesin)
 	WindFX.blast(base + Vector3.UP * 0.5, rad * 1.8, 30, Color(0.92, 0.97, 1.0, 0.9))
 	VFX.cracks(base, rad * 1.3)
 	VFX.debris(base, Color(0.5, 0.42, 0.32), 14, 16.0, 0.4)
@@ -818,6 +819,8 @@ func _rasen_burst(c: Node3D, pos: Vector3, m: float, rad := 6.0) -> void:
 		Game.world.env.add_shake(1.0)
 		Game.world.env.screen_flash(0.35)
 	# içeridekiler çok sayıda küçük darbeyle tutulur (hücre düzeyinde kesik)
+	if not hits:
+		return
 	var ht = sp.create_tween()
 	ht.tween_interval(0.15)
 	for i in 9:

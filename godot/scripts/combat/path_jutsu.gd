@@ -11502,25 +11502,13 @@ func p_mini_rasenshuriken(c: Node3D, t: Node3D) -> void:
 	after(0.35, func():
 		if not live(c):
 			return
-		var core = Node3D.new()
-		core.add_child(VFX.rasengan(0.4))
-		for k in 4:
-			var bl = MeshInstance3D.new()
-			var pm = PrismMesh.new()
-			pm.size = Vector3(0.3, 0.9, 0.03)
-			bl.mesh = pm
-			bl.material_override = glow(Color(0.94, 0.98, 1.0), 0.9)
-			bl.rotation = Vector3(PI * 0.5, k * PI * 0.5, 0)
-			bl.position = Vector3(cos(k * PI * 0.5), 0, sin(k * PI * 0.5)) * 0.55
-			core.add_child(bl)
-		WindFX.bullet(core, 1.3)
+		var core = _rsh_big(0.5)   # avuç boyu küçük Rasenşuriken (yetişkin Naruto)
+
 		var pr = shot(c, from, aim_at(c, tt, from), 28.0, core, inf(c, "mini_rasenshuriken", 0.6, {"knock": 4.0, "kind": "heavy", "element": "fuuton"}), tt, false, 1.6, func(p, _h):
-			WindFX.blast(p, 5.0, 20, Color(0.9, 0.96, 1.0, 0.9))
-			WindFX.swirl(p + Vector3.DOWN * 1.5, 3.0, 4.0, 0.8, 12, Color(0.9, 0.96, 1.0, 0.85))
+			Jutsu._rasen_burst(c, p, 1.0, 3.0, false, 0.7)   # küçük beyaz girdap küresi
 			every(0.8, 0.1, func(_i, _k):
 				hit(c, p, 3.0, inf(c, "mini_rasenshuriken", 0.2, {"knock": 0.0, "kind": "light", "element": "fuuton", "bleed": 1.0})), Callable())
 			shake(0.5))
-		pr.spin = Vector3(0, 30, 0)
 		pr.homing_turn = 3.0
 		_etrail(pr, "fuuton", Color(0.6, 0.85, 1.0), 1.0))
 	Sfx.play("wind", from, 1.6, 0.5)
@@ -16101,22 +16089,14 @@ func _dome_put(b: MB, kind: String, x: float, y: float, off: float, size: Vector
 const RIKUDO := Color(1.0, 0.85, 0.35)
 
 
-## Dev ölçekli Rasenşuriken düğümü
-func _rsh_big(s: float) -> Node3D:
+## Rasenşuriken düğümü (anime): Jutsu.rasenshuriken_body — mavi çekirdek + dört kıvrık beyaz rüzgâr bıçağı diski,
+## uçuşta kameraya hafif eğik; çevresinde çığlık atan akım çizgileri. s = eski ölçek birimi (disk çapı ≈ s * 2.6 m).
+func _rsh_big(s: float, tint := Color(0.78, 0.9, 1.0)) -> Node3D:
 	var core = Node3D.new()
-	core.add_child(VFX.rasengan(s * 0.45))
-	WindFX.bullet(core, s * 2.6)
-	for k in 4:
-		var bl = MeshInstance3D.new()
-		var pm = PrismMesh.new()
-		pm.size = Vector3(s * 0.6, s * 1.8, s * 0.05)
-		bl.mesh = pm
-		bl.material_override = glow(Color(0.94, 0.98, 1.0), 0.9)
-		bl.rotation = Vector3(PI * 0.5, k * PI * 0.5, 0)
-		bl.position = Vector3(cos(k * PI * 0.5), 0, sin(k * PI * 0.5)) * s * 1.1
-		core.add_child(bl)
-	var spin = core.create_tween().set_loops(40)
-	spin.tween_property(core, "rotation:y", TAU, 0.18).as_relative()
+	var body = Jutsu.rasenshuriken_body(s * 2.6, tint)
+	body.rotation.x = 0.5
+	core.add_child(body)
+	WindFX.bullet(core, s * 1.6)
 	return core
 
 
@@ -16486,12 +16466,7 @@ func p_odama_rasenshuriken(c: Node3D, t: Node3D) -> void:
 		if not live(c):
 			return
 		var pr = shot(c, over, aim_at(c, tt, over), 26.0, _rsh_big(1.6), inf(c, "odama_rasenshuriken", 2.0, {"knock": 10.0, "kind": "heavy", "element": "fuuton"}), tt, false, 2.0, func(p, _h):
-			WindFX.blast(p, 16.0, 40, Color(0.92, 0.97, 1.0, 0.9))
-			WindFX.swirl(gp(p), 8.0, 12.0, 1.4, 16, Color(0.9, 0.96, 1.0, 0.85))
-			FX.burst(p, {"amount": 120, "life": 1.2, "tex": FX.tex_spark, "size": 3.0, "vmin": 8.0, "vmax": 18.0, "spread": 180.0, "radius": 6.0, "tangent": 34.0, "explosive": 0.25,
-				"colors": [Color(1, 1, 1, 0.0), Color(0.85, 0.95, 1.0, 0.85), Color(1, 1, 1, 0.0)]})
-			impact_fx("fuuton", Color(0.7, 0.9, 1.0), p, 3.0)
-			VFX.cracks(gp(p), 12.0)
+			Jutsu._rasen_burst(c, p, 1.0, 9.0, false, 1.4)   # dev beyaz girdap küresi (Ōdama: alanın tamamı)
 			every(1.4, 0.2, func(_i, _k):
 				hit(c, p, 9.0, inf(c, "odama_rasenshuriken", 0.5, {"knock": 0.0, "kind": "light", "element": "fuuton", "bleed": 2.0})), Callable())
 			shake(1.6))
@@ -17199,7 +17174,7 @@ func p_senpo_yoton_rasenshuriken(c: Node3D, t: Node3D) -> void:
 	after(0.5, func():
 		if not live(c):
 			return
-		var core = _rsh_big(0.7)
+		var core = _rsh_big(0.7, Color(1.0, 0.55, 0.2))
 		var lava = VFX.element_core("yoton", LAVA, 0.9)
 		core.add_child(lava)
 		var pr = shot(c, from, aim_at(c, tt, from), 28.0, core, inf(c, "senpo_yoton_rasenshuriken", 2.0, {"knock": 10.0, "kind": "heavy", "element": "yoton", "burn": 4.0}), tt, false, 1.8, func(p, _h):
@@ -24811,10 +24786,7 @@ func p_senpo_futon_rasenshuriken(c: Node3D, t: Node3D) -> void:
 			return
 		var core = _rsh_big(1.1)
 		var pr = shot(c, over, aim_at(c, tt, over), 22.0, core, inf(c, "senpo_futon_rasenshuriken", 1.4, {"knock": 6.0, "kind": "heavy", "element": "fuuton"}), tt, false, 2.6, func(p, _h):
-			WindFX.blast(p, 14.0, 34, Color(0.95, 0.97, 1.0, 0.9))
-			WindFX.swirl(gp(p), 7.0, 10.0, 1.6, 14, Color(0.92, 0.96, 1.0, 0.85))
-			FX.burst(p, {"amount": 110, "life": 1.2, "tex": FX.tex_spark, "size": 2.6, "vmin": 6.0, "vmax": 16.0, "spread": 180.0, "radius": 5.0, "tangent": 34.0, "explosive": 0.3,
-				"colors": [Color(1, 1, 1, 0.0), Color(0.9, 0.96, 1.0, 0.85), Color(1, 1, 1, 0.0)]})
+			Jutsu._rasen_burst(c, p, 1.0, 8.0, false, 1.6)   # Senpō: fırlatılır, uçarken büyür, dev küre
 			every(1.6, 0.2, func(_i, _k):
 				hit(c, p, 8.0, inf(c, "senpo_futon_rasenshuriken", 0.45, {"knock": 0.0, "kind": "light", "element": "fuuton", "bleed": 2.0})), Callable())
 			shake(1.4))
@@ -25072,11 +25044,9 @@ func _big_rsh(c: Node3D, t: Node3D, id: String, s: float, tails: Array, mul: flo
 			var tr = VFX.trail(h, 0.5 * s, Color.WHITE, Color.WHITE, Color.WHITE, 14, 0.0)
 			tr.material_override = WindFX.sheet_mat(tc, 0.75)
 		var pr = shot(c, over, aim_at(c, tt, over), 20.0, core, inf(c, id, mul, {"knock": 8.0, "kind": "heavy", "element": "fuuton"}), tt, false, 3.0, func(p, _h):
-			WindFX.blast(p, blast_r, 40, Color(0.95, 0.97, 1.0, 0.9))
-			WindFX.swirl(gp(p), blast_r * 0.5, blast_r * 0.7, 1.8, 16, Color(0.92, 0.96, 1.0, 0.85))
+			Jutsu._rasen_burst(c, p, 1.0, blast_r * 0.6, false, 1.8)
 			FX.burst(p, {"amount": 140, "life": 1.3, "tex": FX.tex_spark, "size": 3.2, "vmin": 8.0, "vmax": 20.0, "spread": 180.0, "radius": blast_r * 0.4, "tangent": 36.0, "explosive": 0.25,
 				"colors": [Color(1, 1, 1, 0.0), tails[0].lightened(0.3), Color(1, 1, 1, 0.0)]})
-			VFX.cracks(gp(p), blast_r * 0.8)
 			every(1.8, 0.2, func(_i, _k):
 				hit(c, p, blast_r * 0.6, inf(c, id, mul * 0.3, {"knock": 0.0, "kind": "light", "element": "fuuton", "bleed": 2.0})), Callable())
 			shake(1.8))
