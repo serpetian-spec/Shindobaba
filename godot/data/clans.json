@@ -324,6 +324,7 @@
   ]
  },
  "fuma": {
+  "family_arts": ["kage_shuriken_no_jutsu", "soshuriken_no_jutsu"],
   "name": "Fūma",
   "desc": "Uchiha'nın uzak akrabası, saldırgan ve köklü bir klan (Sharingan'ları yok). Gizli tekniği yoktur; alametleri dev, dört kollu Fūma Shuriken'dir — Fūma Shuriken: Kage Fūsha o silahla öğrenilir. Chakra bilgileri derindir.",
   "kg": "Fūma Shuriken ustalığı",
@@ -536,6 +537,7 @@
   ]
  },
  "namikaze": {
+  "family_arts": ["hiraishin_no_jutsu", "rasengan"],
   "name": "Namikaze",
   "desc": "Sarı Şimşek'in soyu. Klanın gizli tekniği yoktur; Minato'nun ustalığı öğrenilmiş tekniklerdir — Uçan Yıldırım Yolu'nda (Hiraishin) bu soyun ustalaşması daha hızlıdır (yol pasifleri x1.5).",
   "kg": "Uçan Yıldırım Yolu yatkınlığı",
@@ -570,6 +572,7 @@
   ]
  },
  "gekko": {
+  "family_arts": ["mikazuki_no_mai", "tsukikage"],
   "name": "Gekkō",
   "desc": "Hayate Gekkō'nun ailesi. Klanın gizli tekniği yoktur; Hayate'nin teknikleri Konoha kılıç stilidir: Konoha-Ryū Mikazuki no Mai (jōnin hocalar öğretir) ve Hiken: Tsukikage (taijutsu/kılıç hocası). Kılıçta usta, hızlı ailedir.",
   "kg": "Konoha kılıç stili",
@@ -587,6 +590,7 @@
   ]
  },
  "mitarashi": {
+  "family_arts": ["sen_ei_jashu", "hebi_bunshin_no_jutsu", "sen_ei_tajashu"],
   "name": "Mitarashi",
   "desc": "Anko'nun ailesi. Klanın gizli tekniği yoktur; Anko'nun yılan sanatları Orochimaru'dan öğrenilmiştir (Sen'ei Jashu, Sen'ei Tajashu, Hebi Bunshin, Sōjasōsai) — Yılan Yolu'nda bu soy daha erken çağrılır, yarı fiyata öğrenir, yol pasifleri x1.5. Anko gibi zehre dayanıklıdır.",
   "kg": "Yılan Yolu yatkınlığı",
@@ -621,6 +625,7 @@
   ]
  },
  "momochi": {
+  "family_arts": ["kirigakure_no_jutsu", "mizu_bunshin_no_jutsu", "sairento_kiringu", "suiro_no_jutsu", "suiton_suiryuudan", "suiton_daibakufu_no_jutsu"],
   "name": "Momochi",
   "desc": "Zabuza Momochi'nin ailesi. Klanın gizli tekniği yoktur; Zabuza'nın teknikleri Kiri'nin teknikleridir: Kirigakure no Jutsu, Mizu Bunshin, Suirō no Jutsu (parşömen), Daibakufu ve Suiryūdan (Kiri hocaları). Sessiz öldürmede ve ağır kılıçta güçlüdür; Kubikiribōchō efsane bir kılıçtır, ancak bulunarak ele geçer.",
   "kg": "Sessiz öldürme sezgisi",
@@ -638,6 +643,7 @@
   ]
  },
  "kurosuki": {
+  "family_arts": ["raikyu", "raigeki_no_yoroi", "raiso_ikazuchi_no_utage"],
   "name": "Kurosuki",
   "desc": "Raiga ve Buntan Kurosuki'nin ailesi (Kiri). Klanın gizli tekniği yoktur; güçleri Kiba ikiz yıldırım kılıçlarından ve Raiton'dan gelir: Raikyū, Raigeki no Yoroi, Raisō: Ikazuchi no Utage (hocalar); Ikazuchi no Kiba ve Rairyū no Tatsumaki Kiba ele geçirilince açılır.",
   "kg": "Kiba yatkınlığı",

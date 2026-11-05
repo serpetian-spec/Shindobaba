@@ -174,7 +174,7 @@ static func clan_jutsu(c: String, lv: int, n := 4) -> Array:
 		if not j is Dictionary:
 			continue
 		var learn := String(j.get("learn", ""))
-		var mine: bool = String(j.get("clan", "")) == c or learn == "clan:" + c
+		var mine: bool = String(j.get("clan", "")) == c or learn == "clan:" + c or id in info.get("family_arts", [])   # aile öğretisi (oyuncuyla aynı)
 		if not mine and not nat.is_empty():
 			mine = String(j.get("element", "")) in nat or learn.trim_prefix("kg:") in nat
 		if not mine and eye != "":

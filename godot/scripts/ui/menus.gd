@@ -2120,6 +2120,8 @@ static func _tab_jutsu(main: Node, body: Control, picked: String) -> void:
 			txt = "%s imzalanınca bilge öğretir (Güç %d)" % [String(Contracts.DEFS.get(lp.substr(9), {}).get("name", "Çağırma sözleşmesi")), int(j.get("level", 1))]
 		elif lp.begins_with("special") or lp == "signature":
 			txt = "Özel görev ile açılır"
+		if picked in Data.clans.get(String(Game.profile.get("clan", "")), {}).get("family_arts", []):
+			txt = "Aile öğretisi: Güç %d olunca ailen öğretir (rütbe gerekmez)" % int(j.get("level", 1))
 		rv.add_child(UI.label("🔒 Öğrenilmedi — " + (txt if txt != "" else lp) + ((".  " + why) if why != "" else ""), 14, Color(1, 0.75, 0.45), HORIZONTAL_ALIGNMENT_LEFT, true))
 	var top = UI.hbox(14)
 	var badge = Panel.new()

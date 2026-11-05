@@ -222,6 +222,16 @@ func clan_unlocks(announce := true) -> void:
 		# göz teknikleri gözle gelir: rütbe şartı aranmaz (Rinnegan takılıyken teknikleri hiç açılmıyordu)
 		if ok and lv >= int(j.get("level", 1)) and (lp.begins_with("eye:") or int(pr.get("rank", 0)) >= int(j.get("rank", 0))) and element_block(jid) == "":
 			learn(jid, announce)
+	# aile öğretisi: gizli tekniği olmayan klanlar, ünlü üyesinin kanon tekniklerini evde öğrenir (Güç şartı; rütbe aranmaz)
+	var fam: Array = Data.clans.get(String(pr.get("clan", "")), {}).get("family_arts", [])
+	for jid in fam:
+		if jid in pr["learned"] or not Data.jutsu.has(jid):
+			continue
+		if lv >= int(Data.jutsu[jid].get("level", 1)) and element_block(jid) == "":
+			learn(jid, false)
+			if announce:
+				Hud.msg("Ailen sana %s tekniğini öğretti." % String(Data.jutsu[jid].get("name", jid)), Color(0.85, 0.9, 0.7), 5.0)
+				Journal.add("Ailemden %s tekniğini öğrendim." % String(Data.jutsu[jid].get("name", jid)), "milestone")
 
 
 # ------------------------------------------------------------------ doğalar (element + kekkei genkai) ve öğrenme şartları
