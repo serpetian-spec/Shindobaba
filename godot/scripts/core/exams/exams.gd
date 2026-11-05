@@ -256,7 +256,7 @@ func academy_practical() -> void:
 
 func _practical_next(ok: bool) -> void:
 	if ok:
-		data["practical"] = int(data["practical"]) + 1
+		data["practical"] = int(data.get("practical", 0)) + 1
 		Combat.popup_text(Game.player.global_position + Vector3.UP * 2.4, "Başarılı!", UI.GOOD)
 	else:
 		Combat.popup_text(Game.player.global_position + Vector3.UP * 2.4, "Başarısız", UI.BAD)
