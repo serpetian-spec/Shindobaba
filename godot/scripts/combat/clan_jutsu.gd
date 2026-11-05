@@ -2368,25 +2368,35 @@ func c_hatake_ninken(c: Node3D, t: Node3D) -> void:
 	if tt.has_meta("hidden") or tt.has_meta("invisible"):
 		tt.remove_meta("hidden")
 	VFX.cracks(tt.global_position, 3.0)
-	for k in 6:
-		var a = k * TAU / 6.0
-		var p = tt.global_position + Vector3(cos(a), 0, sin(a)) * (tt.radius + 0.5)
-		var b = MB.new()
-		var col = [Color(0.6, 0.5, 0.35), Color(0.25, 0.22, 0.2), Color(0.85, 0.82, 0.75)][k % 3]
-		b.add("sphere", Vector3(0, 0.0, 0.3), Vector3(0.5, 0.45, 0.9), col, Vector3.ZERO, 8)
-		b.add("sphere", Vector3(0, 0.25, -0.25), Vector3(0.4, 0.38, 0.42), col, Vector3.ZERO, 8)
-		b.add("box", Vector3(0, 0.15, -0.5), Vector3(0.18, 0.14, 0.26), col.darkened(0.1))
-		b.add("torus", Vector3(0, 0.18, -0.05), Vector3(0.32, 0.32, 0.32), Color(0.2, 0.25, 0.5), Vector3(80, 0, 0), 10)
-		var dog = place(b, gp(p) - Vector3.UP * 0.8)
-		dog.look_at(tt.global_position, Vector3.UP)
+	# anime (Zabuza yakalanışı): sekiz ninken (biri küçük Pakkun) hedefin altından fışkırır, bacaklarına, beline, kollarına
+	# farklı yüksekliklerde kenetlenip ısırır. Köpekler ortak çağrı modeli (SummonModels dog_pack: alın bandı/yelekli sürü köpeği)
+	var th = float(tt.get("height")) if tt.get("height") != null else 1.8
+	var bites = [[0.0, 0.15], [1.6, 0.2], [3.2, 0.55], [4.7, 0.6], [0.8, 1.0], [2.4, 1.05], [3.9, 1.2], [5.5, 0.3]]
+	for k in 8:
+		var md = SummonModels.build("dog_small" if k == 0 else "dog_pack", 0.45 if k == 0 else 0.66, 1.0)
+		var dog: Node3D = md["root"]
+		get_tree().current_scene.add_child(dog)
+		var a = float(bites[k][0])
+		var hy = float(bites[k][1]) * th * 0.6
+		var p = gp(tt.global_position) + Vector3(cos(a), 0, sin(a)) * (tt.radius + 0.42)
+		dog.global_position = p - Vector3.UP * 1.2
+		dog.look_at(Vector3(tt.global_position.x, p.y + hy, tt.global_position.z), Vector3.UP)
+		dog.rotate_object_local(Vector3.RIGHT, -0.35 if hy > 0.5 else 0.0)   # üstten ısıranlar hafif yukarı
 		var tw = dog.create_tween()
-		tw.tween_property(dog, "global_position", gp(p) + Vector3.UP * (0.5 + (k % 3) * 0.3), 0.15).set_delay(k * 0.04)
-		fade_free(dog, 3.0, 0.3)
+		tw.tween_interval(0.05 + k * 0.035)
+		tw.tween_callback(func(): FX.dust(p, 0.5))
+		tw.tween_property(dog, "global_position", p + Vector3.UP * hy, 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		for q in 6:   # ısırırken silkelenir
+			tw.tween_property(dog, "rotation:z", 0.18 * (1 if q % 2 == 0 else -1), 0.12)
+		tw.tween_property(dog, "rotation:z", 0.0, 0.1)
+		tw.tween_interval(1.3)
+		tw.tween_callback(func(): FX.smoke_puff(dog.global_position + Vector3.UP * 0.3, 0.5, 8))
+		tw.tween_callback(dog.queue_free)
 	FX.dust(tt.global_position, 1.6)
 	st(tt, "bind", 3.0)
 	every(3.0, 0.4, func(_i, _k):
 		if live(tt):
-			hit(c, tt.global_position + Vector3.UP * 0.8, 0.9, inf(c, "hatake_ninken", 0.15, {"knock": 0.0}))
+			hit(c, tt.global_position + Vector3.UP * 0.8, 0.9, inf(c, "hatake_ninken", 0.15, {"knock": 0.0, "launch": 0.0, "kind": "crush"}))   # ısırma tiki: bağlı hedef devrilmez
 			Sfx.play("punch", tt.global_position, 1.6, 0.4))
 	Combat.popup_text(tt.global_position + Vector3.UP * 2.4, "Ninkenler yakaladı!", Color(0.9, 0.8, 0.6))
 

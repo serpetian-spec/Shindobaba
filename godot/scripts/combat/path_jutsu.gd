@@ -18904,7 +18904,7 @@ func p_hatake_ninken(c: Node3D, t: Node3D) -> void:
 		after(0.2, func():
 			if live(tt):
 				_earth_burst(tt.global_position, 1.0)
-				FX.smoke_puff(tt.global_position + Vector3.UP, 1.6, 16))
+				FX.smoke_puff(tt.global_position + Vector3.UP * 0.4, 0.7, 7))   # küçük duman: büyüğü köpekleri örtüyordu
 	c_hatake_ninken(c, t)
 
 

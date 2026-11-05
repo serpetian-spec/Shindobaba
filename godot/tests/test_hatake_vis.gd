@@ -74,7 +74,7 @@ func _ready() -> void:
 	pr["weapon_drawn"] = true
 	if pl.model and pl.model.has_method("refresh_gear"):
 		pl.model.refresh_gear()
-	var SH = {"hatake_hakko": [0.25, 0.45], "raikiri": [0.6, 1.2], "hatake_shiden": [0.5, 1.0], "hatake_raiju_tsuiga": [0.45, 0.6], "hatake_ninken": [0.6, 1.3]}
+	var SH = {"hatake_ninken": [0.4, 1.0], "hatake_hakko": [0.2, 0.32]}
 	for id in SH.keys():
 		pl.global_position = base
 		pl.chakra = 1e9

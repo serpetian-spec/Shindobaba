@@ -457,7 +457,7 @@ func pill_cooldown() -> float:
 	return maxf(0.0, at - now)
 
 
-const SALVE_CD := 45.0
+const SALVE_CD := 120.0
 ## Merhem de bitmez: bekleme süresiyle (asker hapı gibi)
 func salve_cooldown() -> float:
 	var at = float(Game.profile.get("salve_ready_at", 0.0))
