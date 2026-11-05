@@ -769,7 +769,9 @@ func boss_bar(b: Node) -> void:
 var forced_speaker: Node3D = null   # hizmet noktasının bağlı olduğu kişi (konuşma kamerası onu hedefler)
 
 
+var last_dialog := ""   # son diyalog metni (testler ve hata ayıklama)
 func dialog(title: String, text: String, options: Array) -> void:
+	last_dialog = text
 	# görev masası ve bingo kitabı kendi ekranlarında
 	if title.begins_with("Görev Masası — ") and Missions.board_village != "":
 		show_mission_board(Missions.board_village)

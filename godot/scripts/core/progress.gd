@@ -704,7 +704,7 @@ func _check_story_levels() -> void:
 	var rk = int(p()["rank"])
 	if story() >= Journal.FREE and rk == 1 and lv == 15:
 		Hud.msg("Chūnin Sınavı'na başvurabilirsin (Stadyum ya da %s Kulesi) — istersen." % home_info()["kage"], Color(1, 0.8, 0.4))
-	if rk == 2 and lv >= 45 and int(p()["missions_done"].get("A", 0)) >= 3:
+	if rk == 2 and lv >= 45 and int(p()["missions_done"].get("A", 0)) >= 4 and int(p()["missions_done"].get("B", 0)) >= 6:
 		Hud.msg("Jōnin terfi değerlendirmesine başvurabilirsin (%s Kulesi)." % home_info()["kage"], Color(1, 0.8, 0.4))
 
 

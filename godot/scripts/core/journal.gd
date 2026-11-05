@@ -9,10 +9,10 @@ const MAX_LOG := 200
 
 ## Seçilebilir kişisel hedefler (hepsi isteğe bağlı; birden fazla seçilebilir)
 const GOALS := {
-	"chunin": {"name": "Chūnin ol", "desc": "Güç 15'ten sonra Chūnin Seçme Sınavı'na başvur ve jüriyi etkile.", "icon": "star"},
-	"jonin": {"name": "Jōnin ol", "desc": "Chūnin'ken Güç 45, 3 A-rank görev ve ikinci doğa ile Kage Kulesi'nde terfi değerlendirmesi.", "icon": "star"},
-	"anbu": {"name": "ANBU'ya katıl", "desc": "Jōnin + Güç 65 + bir S-rank görevle ANBU seçmelerine çağrılırsın.", "icon": "mask"},
-	"kage": {"name": "Köyün Kage'si ol", "desc": "Güç 90'da adaylık, Güç 100'de seçim. Köyün kaderi senin elinde olur.", "icon": "crown"},
+	"chunin": {"name": "Chūnin ol", "desc": "Güç 15, 8 D-rank ve 4 C-rank görevle Chūnin Seçme Sınavı'na başvur ve jüriyi etkile.", "icon": "star"},
+	"jonin": {"name": "Jōnin ol", "desc": "Chūnin'ken Güç 45, 6 B-rank + 4 A-rank görev ve ikinci doğa ile Kage Kulesi'nde terfi değerlendirmesi.", "icon": "star"},
+	"anbu": {"name": "ANBU'ya katıl", "desc": "Jōnin + Güç 65 + 8 A-rank ve 2 S-rank görevle ANBU seçmelerine çağrılırsın.", "icon": "mask"},
+	"kage": {"name": "Köyün Kage'si ol", "desc": "Güç 90, 5 S-rank görev ve köyde itibarla adaylık, Güç 100'de seçim. Köyün kaderi senin elinde olur.", "icon": "crown"},
 	"legend": {"name": "Bir Efsane Yolu'na katıl", "desc": "Söylentileri takip et; gizli bir ustayı bul ve sınavını geç.", "icon": "scroll"},
 	"beast": {"name": "Bir Kuyruklu Canavarla bağ kur", "desc": "Bir canavarı mühürle ya da onunla anlaş. Bedeli ağır olabilir.", "icon": "flame"},
 	"summon": {"name": "Bir çağırma sözleşmesi imzala", "desc": "Sözleşme ustalarını ve gizli diyarları bul.", "icon": "scroll"},

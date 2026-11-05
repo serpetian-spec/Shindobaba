@@ -609,12 +609,12 @@ func rep(vid: String) -> int:
 func board_limits(vid: String) -> Dictionary:
 	var ranks: Array = RANK_FOR[int(Game.profile["rank"])].duplicate()
 	var note = ""
-	# chūnin: jōnin terfisi 3 A-rank görev ister; Sv.30'dan itibaren panoda A-rank görevler de çıkar
+	# chūnin: jōnin terfisi 6 B-rank + 4 A-rank görev ister; Sv.30'dan itibaren panoda A-rank görevler de çıkar
 	if int(Game.profile["rank"]) == 2:
 		if int(Game.profile.get("level", 1)) >= 30:
 			ranks.append("A")
 		else:
-			note = "A-rank görevler Sv.30'da açılır (jōnin terfisi için 3 A-rank gerekli)."
+			note = "A-rank görevler Güç 30'da açılır (jōnin terfisi için 6 B-rank + 4 A-rank gerekli)."
 	if vid == Progress.home():
 		return {"ranks": ranks, "max": 6, "note": note}
 	var rp = rep(vid)

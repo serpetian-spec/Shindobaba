@@ -402,8 +402,8 @@ func candidacy_ready() -> String:
 		return "Kage adaylığı için Güç 90 gerekli (şu an %d)." % int(pr["level"])
 	if Missions.rep(Progress.home()) < 150:
 		return "Köyünde 150 itibar gerekli (şu an %d)." % Missions.rep(Progress.home())
-	if int(pr["missions_done"].get("S", 0)) < 3:
-		return "3 S-rank görev gerekli (şu an %d)." % int(pr["missions_done"].get("S", 0))
+	if int(pr["missions_done"].get("S", 0)) < 5:
+		return "5 S-rank görev gerekli (şu an %d)." % int(pr["missions_done"].get("S", 0))
 	if Orgs.is_rogue():
 		return "Kaçak bir ninja Kage olamaz."
 	return ""
