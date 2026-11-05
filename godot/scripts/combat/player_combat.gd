@@ -731,6 +731,43 @@ func _update_guard() -> void:
 
 # ------------------------------------------------------------------ chakra şarjı
 var _chg_fx := 0.0
+
+
+## Chakra toplama mührü (Kaplan): iki el göğsün önünde YAN YANA birleşik, parmaklar dik yukarı (kullanıcı yakından baktı:
+## sabit kol yönleriyle bir el ötekinden öndeydi, parmaklar eğikti) — iki kemik IK ile iki bilek aynı noktaya çekilir
+func _charge_seal_pose() -> Dictionary:
+	var m = p.model
+	var sk: Skeleton3D = m.skel
+	var fd: Vector3 = p.face_dir()
+	var left = -fd.cross(Vector3.UP).normalized()
+	var age = float(m.age_scale) if m.get("age_scale") else 1.0
+	var bp = func(nm: String) -> Vector3:
+		var bi = sk.find_bone(nm)
+		return sk.global_transform * sk.get_bone_global_pose(bi).origin if bi >= 0 else p.global_position + Vector3.UP * 1.3
+	var chest: Vector3 = bp.call("UpperChest") if sk.find_bone("UpperChest") >= 0 else bp.call("Chest")
+	var c = chest + fd * 0.2 * age + Vector3.DOWN * 0.02 * age
+	var inv = sk.global_basis.orthonormalized().inverse()
+	var arms: Array = []
+	for side in ["Left", "Right"]:
+		var sg = 1.0 if side == "Left" else -1.0
+		var T = c + left * sg * 0.028 * age   # bilekler avuç kalınlığı kadar ayrık: avuçlar birbirine değer
+		var S: Vector3 = bp.call(side + "UpperArm")
+		var Eb: Vector3 = bp.call(side + "LowerArm")
+		var H: Vector3 = bp.call(side + "Hand")
+		var a = maxf(0.05, S.distance_to(Eb))
+		var b = maxf(0.05, Eb.distance_to(H))
+		var v = T - S
+		var d = clampf(v.length(), 0.05, (a + b) * 0.995)
+		var n = v.normalized()
+		var along = (a * a - b * b + d * d) / (2.0 * d)
+		var h = sqrt(maxf(0.0, a * a - along * along))
+		var pole = Vector3.DOWN + left * sg * 0.9 - fd * 0.1   # dirsekler aşağı-dışa (anime mühür duruşu)
+		pole = (pole - n * pole.dot(n)).normalized()
+		var E = S + n * along + pole * h
+		arms.append([side + "UpperArm", inv * (E - S).normalized()])
+		arms.append([side + "LowerArm", inv * (S + n * d - E).normalized()])
+		arms.append([side + "Hand", inv * (Vector3.UP * 0.98 + fd * 0.12).normalized()])   # parmaklar dik
+	return {"arms": arms, "fL": [0.0, 0.0, 1.5, 1.5, 0.1], "fR": [0.0, 0.0, 1.5, 1.5, 0.1], "spine": 3.0, "neck": 8.0, "crouch": 0.15}
 func _update_charge(dt: float) -> void:
 	var want = Input.is_action_pressed("charge") and p.grounded and (action == "" or action == "charge") and not Game.ui_open
 	if want and action == "charge":
@@ -753,6 +790,8 @@ func _update_charge(dt: float) -> void:
 			_chg_fx = 0.0
 			Sfx.play("wind", p.global_position, 0.8, 0.6)
 		p.chakra = minf(p.max_chakra, p.chakra + 32.0 * dt)
+		if action == "charge":
+			p.model.overlay.cast_pose = _charge_seal_pose()   # her kare IK: animasyonla oynayan omuzlara rağmen eller tam birleşik
 		# ayak dibinde chakra basıncı: dışa açılan rüzgâr halkası, kalkan toz ve küçük taşlar (anime)
 		_chg_fx -= dt
 		if action == "charge" and _chg_fx <= 0.0:

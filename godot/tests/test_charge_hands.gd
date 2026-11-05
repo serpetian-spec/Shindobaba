@@ -84,9 +84,9 @@ func _ready() -> void:
 	var fd = pl.face_dir()
 	var sd = fd.cross(Vector3.UP).normalized()
 	for k in 3:
-		var off = [fd * 1.3 + Vector3.UP * 1.25, sd * 1.3 + Vector3.UP * 1.2, fd * 0.9 + sd * 0.9 + Vector3.UP * 1.5][k]
+		var off = [fd * 0.9 + Vector3.UP * 1.15, sd * 0.8 + Vector3.UP * 1.15, -sd * 0.8 + Vector3.UP * 1.15][k]
 		cc.global_position = pl.global_position + off
-		cc.look_at(pl.global_position + Vector3.UP * 1.1)
+		cc.look_at(pl.global_position + Vector3.UP * 1.12 + fd * 0.2)
 		cc.current = true
 		Hud.close_dialog()
 		await _wait(0.05)
