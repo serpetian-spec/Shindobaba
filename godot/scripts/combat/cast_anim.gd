@@ -124,7 +124,7 @@ const JUTSU_STYLE := {
 	"chakra_chains": "scroll", "suika": "power", "water_gun": "palm",
 	"sarutobi_haisekisho": "breath", "sarutobi_karyu": "breath", "hatake_hakko": "charge", "hatake_ninken": "summon",
 	"chinoike_ketsuryugan": "sense", "chinoike_kanshu": "sense", "hoshigaki_same": "two_palm", "hoshigaki_ryudan": "two_palm",
-	"kurama_genjutsu": "sense", "kurama_kokuangyo": "sense", "fuma_shuriken_j": "throw", "fuma_kaze": "palm",
+	"kurama_genjutsu": "sense", "kurama_kokuangyo": "sense", 
 	"kamizuru_bees": "two_palm", "kamizuru_wax": "breath",
 	"suna_shuriken_swing": "sand_swing",
 }

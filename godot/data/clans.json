@@ -325,8 +325,8 @@
  },
  "fuma": {
   "name": "Fūma",
-  "desc": "Ses Ülkesi'nin eski ninja klanı. Dev shuriken ve rüzgar teknikleri.",
-  "kg": "Dev Shuriken Sanatı",
+  "desc": "Uchiha'nın uzak akrabası, saldırgan ve köklü bir klan (Sharingan'ları yok). Gizli tekniği yoktur; alametleri dev, dört kollu Fūma Shuriken'dir — Fūma Shuriken: Kage Fūsha o silahla öğrenilir. Chakra bilgileri derindir.",
+  "kg": "Fūma Shuriken ustalığı",
   "eye": [
    0.35,
    0.3,

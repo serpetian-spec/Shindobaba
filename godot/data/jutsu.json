@@ -1037,57 +1037,6 @@
   "name_en": "Water Release: Water Shark Bullet Technique",
   "research_id": "suiton_suikodan_no_jutsu"
  },
- "fuma_shuriken_j": {
-  "id": "fuma_shuriken_j",
-  "name": "Fūma Shuriken: Kazeguruma",
-  "cost": 20,
-  "cd": 5,
-  "element": "fuuton",
-  "clan": "fuma",
-  "level": 3,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Rüzgar destekli dev shuriken fırtınası.",
-  "seals": [
-   "Tora"
-  ],
-  "canon_rank": "?",
-  "category": "hiden",
-  "shape": "projectile",
-  "elements": [
-   "fuuton"
-  ],
-  "tier": 2,
-  "meaning": "Fūma Shuriken Fırlatışı"
- },
- "fuma_kaze": {
-  "id": "fuma_kaze",
-  "name": "Fuuton: Kamaitachi",
-  "cost": 25,
-  "cd": 7,
-  "element": "fuuton",
-  "clan": "fuma",
-  "level": 7,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Kesen rüzgar dalgası.",
-  "seals": [
-   "Tora",
-   "Ushi",
-   "Inu",
-   "U",
-   "Mi"
-  ],
-  "canon_rank": "C",
-  "category": "ninjutsu",
-  "shape": "aoe",
-  "elements": [
-   "fuuton"
-  ],
-  "tier": 2,
-  "name_en": "Wind Release: Great Breakthrough",
-  "research_id": "futon_daitoppa"
- },
  "kamizuru_bees": {
   "id": "kamizuru_bees",
   "name": "Hachi Kuchiyose: Hachi no Mure",
@@ -8966,10 +8915,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "fuma",
+  "clan": "",
   "level": 5,
   "rank": 1,
-  "learn": "clan:fuma",
+  "learn": "scroll",
   "desc": "İp bağlı şurikenlerle hedefi sarma.",
   "seals": [],
   "canon_rank": "C",
@@ -11174,10 +11123,10 @@
   "element": "",
   "elements": [],
   "natures": [],
-  "clan": "fuma",
+  "clan": "",
   "level": 18,
   "rank": 3,
-  "learn": "clan:fuma",
+  "learn": "trainer:jonin",
   "desc": "Fırlatılan şurikeni yüzlerce kopyaya çoğaltır.",
   "seals": [
    "Ushi",
@@ -19462,7 +19411,7 @@
  },
  "fuma_kaze_guruma": {
   "id": "fuma_kaze_guruma",
-  "name": "Fūma Shuriken: Kaze Guruma",
+  "name": "Fūma Shuriken: Kage Fūsha",
   "name_en": "Demon Wind Shuriken: Wind Wheel",
   "cost": 28,
   "cd": 9.0,
@@ -19473,11 +19422,11 @@
   "natures": [
    "fuuton"
   ],
-  "clan": "fuma",
+  "clan": "",
   "level": 10,
   "rank": 2,
-  "learn": "clan:fuma",
-  "desc": "Dev Fūma shurikeni bumerang gibi gider gelir, iki kez keser.",
+  "learn": "weapon:fuma_shuriken",
+  "desc": "Gölge Yel Değirmeni (Sasuke): açılan dev Fūma Shuriken dönerek bumerang gibi gider gelir, iki kez keser. Fūma Shuriken ele geçirilince öğrenilir.",
   "seals": [
    "Tora"
   ],
@@ -20028,6 +19977,9 @@
   "meaning": "Su Pulları"
  },
  "_aliases": {
+  "fuma_shuriken_j": "fuma_kaze_guruma",
+  "fuma_kaze": "kamaitachi_no_jutsu",
+  "fuma_kage_shuriken": "kage_shuriken_no_jutsu",
   "funato_kani_yoroi": "funato_shiomaneki",
   "funato_nami_giri": "funato_iso_ryodan",
   "funato_mizu_ito": "funato_suisairin",
@@ -20616,65 +20568,6 @@
   "kinjutsu": false,
   "series": "Naruto Shippūden",
   "meaning": "Hatake"
- },
- "fuma_kunai_ame": {
-  "id": "fuma_kunai_ame",
-  "name": "Fūma: Kunai Ame",
-  "name_en": "Kunai Rain",
-  "cost": 32,
-  "cd": 7.8,
-  "element": "",
-  "elements": [],
-  "clan": "fuma",
-  "level": 8,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Göğe atılan kunai sürüsü hedef bölgeye yağmur gibi iner.",
-  "seals": [],
-  "canon_rank": "B",
-  "category": "hiden",
-  "shape": "aoe",
-  "tier": 3
- },
- "fuma_kaiten_jin": {
-  "id": "fuma_kaiten_jin",
-  "name": "Fūma: Kaiten Jin",
-  "name_en": "Rotating Blade Dance",
-  "cost": 38,
-  "cd": 9.9,
-  "element": "fuuton",
-  "elements": [
-   "fuuton"
-  ],
-  "clan": "fuma",
-  "level": 14,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "İki dev shurikenle dönerek ilerleyen rüzgâr bıçağı kasırgası.",
-  "seals": [],
-  "canon_rank": "B",
-  "category": "hiden",
-  "shape": "melee",
-  "tier": 3
- },
- "fuma_kage_shuriken": {
-  "id": "fuma_kage_shuriken",
-  "name": "Fūma: Kage Shuriken",
-  "name_en": "Shadow Windmill",
-  "cost": 46,
-  "cd": 12.7,
-  "element": "",
-  "elements": [],
-  "clan": "fuma",
-  "level": 22,
-  "rank": 0,
-  "learn": "clan",
-  "desc": "Görünen shurikenin gölgesindeki ikinci dev shuriken hedefi şaşırtır.",
-  "seals": [],
-  "canon_rank": "A",
-  "category": "hiden",
-  "shape": "projectile",
-  "tier": 4
  },
  "shirogane_doku_kiri": {
   "id": "shirogane_doku_kiri",

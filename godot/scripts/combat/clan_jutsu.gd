@@ -28,7 +28,7 @@ const STYLE := {
 	"hoshigaki_same": "two_palm", "suiro_sameodori_no_jutsu": "two_palm", "suiton_senshokuko": "sky", "suiton_daikodan_no_jutsu": "two_palm",
 	"kurama_genjutsu": "sense", "kurama_kokuangyo": "sense", "magen_kokoni_arazu_no_jutsu": "sense", "magen_jubaku_satsu": "sense",
 	"magen_niju_kokoni_arazu_no_jutsu": "sense",
-	"fuma_shuriken_j": "throw", "fuma_kaze": "palm", "sofushasan_no_tachi": "throw", "shuriken_kage_bunshin_no_jutsu": "throw", "fuma_kaze_guruma": "throw",
+	"sofushasan_no_tachi": "throw", "shuriken_kage_bunshin_no_jutsu": "throw", "fuma_kaze_guruma": "throw",
 	"kamizuru_bees": "two_palm", "kamizuru_wax": "breath", "kamizuru_hachi": "summon", "kamizuru_hari": "two_palm", "kamizuru_mitsu_bunshin": "clone",
 	"kusa_boheki": "power", "suna_no_yoroi": "power", "gokusa_maiso": "ground", "suna_bunshin": "clone", "suna_shuriken": "sand_arms",
 	"sabaku_soso": "ground", "sabaku_fuyu": "ground",
@@ -2835,39 +2835,6 @@ func _fuma_mesh(size: float) -> Node3D:
 	var mi = mesh_of(b)
 	mi.scale = Vector3.ONE * size
 	return mi
-
-
-## Fūma Shuriken: dev shuriken düşmanları delip geçer, 20 m sonra geri dönüp yine keser
-func c_fuma_shuriken_j(c: Node3D, t: Node3D) -> void:
-	var d = Jutsu._aim(c, t)
-	var sh = _fuma_mesh(1.8)
-	var pr = shot(c, Jutsu._hand(c), d, 30.0, sh, inf(c, "fuma_shuriken_j", 0.8, {"knock": 6.0, "kind": "heavy"}), null, true, 1.6)
-	pr.spin = Vector3(0, 28, 0)
-	var turned = {"v": false}
-	pr.on_tick = func(p, _dt):
-		if not turned["v"] and p.global_position.distance_to(c.global_position) > 20.0:
-			turned["v"] = true
-			p.hit_list.clear()
-			p.homing = c
-			p.homing_turn = 6.0
-			p.shooter = c
-		if turned["v"] and p.global_position.distance_to(c.global_position + Vector3.UP) < 1.5:
-			p.queue_free()
-	Sfx.play("wind", c.global_position, 1.2)
-
-
-## Kamaitachi: üç dev dönen rüzgar hilali yelpaze halinde keser, kanatır
-func c_fuma_kaze(c: Node3D, t: Node3D) -> void:
-	for k in 3:
-		var d = Jutsu._aim(c, t).rotated(Vector3.UP, (k - 1) * 0.3)
-		var b = MB.new()
-		b.add("torus", Vector3.ZERO, Vector3(2.4, 2.4, 2.4), Color.WHITE, Vector3(90, 0, 0), 20)
-		var crescent = mesh_of(b, VFX.mat_wind(Color(0.75, 1.0, 0.9), 10.0, 5.0, Vector3.UP, 0.85))
-		crescent.scale = Vector3(1, 0.25, 0.5)
-		var pr = shot(c, c.global_position + Vector3.UP * 1.2 + d, d, 30.0, crescent, inf(c, "fuma_kaze", 0.55, {"knock": 8.0, "kind": "heavy", "burn": 2.0, "element": "fuuton"}), null, true, 0.9)
-		pr.spin = Vector3(0, 0, 18)
-	Sfx.play("wind", c.global_position, 0.9)
-
 
 ## Üçlü Yel Değirmeni: tellere bağlı üç shuriken hedefin etrafında dönüp onu sarar, sonra tel sıkılır
 func c_sofushasan_no_tachi(c: Node3D, t: Node3D) -> void:
