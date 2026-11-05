@@ -71,7 +71,9 @@ static func power(c: Node3D, d: Dictionary) -> float:
 
 
 static func base_dmg(c: Node3D, d: Dictionary) -> float:
-	return DMG[clampi(int(d.get("tier", 2)), 0, 5)] * power(c, d)
+	# dmg_k: jutsuya özgü hasar çarpanı (jutsu.json) — aynı rütbedeki teknikler aynı vurmasın (taijutsu animedeki etkisine göre elle,
+	# diğerleri aynı kategori+rütbe içinde chakra bedeli ve bekleme süresine göre)
+	return DMG[clampi(int(d.get("tier", 2)), 0, 5)] * float(d.get("dmg_k", 1.0)) * power(c, d)
 
 
 static func glow_mat(col: Color, alpha := 1.0) -> StandardMaterial3D:
