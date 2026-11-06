@@ -13,7 +13,7 @@ const MAIN_EL := {"uchiha": "katon", "sarutobi": "katon", "hatake": "raiton", "s
 	"iburi": "katon", "shimura": "fuuton", "tsuchigumo": "doton", "jugo": "doton", "funato": "suiton", "kaminarimon": "raiton", "otsutsuki": "", "namikaze": "fuuton", "yuhi": "", "gekko": "fuuton", "mitarashi": "katon", "shiranui": "katon", "momochi": "suiton", "kurosuki": "raiton", "hagoromo": "fuuton"}
 const GIVEN_M := ["Raito", "Shun", "Haruki", "Daichi", "Kenta", "Riku", "Takumi", "Isamu", "Souta", "Jun", "Asahi", "Kiyoshi", "Tomoya", "Ryūsei",
 	"Gaku", "Hayao", "Kōki", "Masaru", "Seiji", "Tatsuo", "Yūto", "Akihiro", "Benjirō", "Fumio"]
-const GIVEN_F := ["Kaede", "Akane", "Mio", "Yua", "Nao", "Sayuri", "Hikari", "Mei", "Yuzuki", "Rin", "Hotaru", "Midori", "Chiyoko", "Emi",
+const GIVEN_F := ["Kaede", "Akane", "Mio", "Yua", "Nao", "Sayuri", "Hikari", "Suzuha", "Yuzuki", "Kotone", "Hotaru", "Midori", "Chiyoko", "Emi",
 	"Fuyuko", "Haruna", "Kasumi", "Natsuki", "Reika", "Shizue"]
 const NAMES := {"uchiha": "Uchiha", "hyuga": "Hyūga", "nara": "Nara", "akimichi": "Akimichi", "yamanaka": "Yamanaka", "aburame": "Aburame",
 	"inuzuka": "Inuzuka", "senju": "Senju", "uzumaki": "Uzumaki", "kaguya": "Kaguya", "yuki": "Yuki", "hozuki": "Hōzuki", "sarutobi": "Sarutobi",

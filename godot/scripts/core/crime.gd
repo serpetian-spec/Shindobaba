@@ -39,11 +39,12 @@ static func _village_at(p: Vector3) -> String:
 
 
 ## Suç işlendi: köyündeysen aranma puanı, başka köydeysen o köyle itibar/ilişki bozulur
-static func commit(points: int, what: String, at: Vector3) -> void:
+## witness_vid: suçu gören taraf köyü belliyse (yolda saldırdığın köy takımı) yabanda da sayılır
+static func commit(points: int, what: String, at: Vector3, witness_vid := "") -> void:
 	var pr = Game.profile
 	if pr.is_empty():
 		return
-	var vid = _village_at(at)
+	var vid = witness_vid if witness_vid != "" else _village_at(at)
 	if Orgs.is_rogue():
 		Orgs.flags()["infamy"] = int(Orgs.flags().get("infamy", 0)) + points / 3
 		Hud.msg("Kaçak şöhretin arttı: %s" % what, Color(1, 0.5, 0.45))
@@ -184,16 +185,20 @@ func _send_guards() -> void:
 		return
 	var hi = Progress.home_info()
 	var lv = randi_range(24, 34)   # köy muhafızı: köyün kendi gücü (oyuncuya göre değil)
-	for i in 3:
+	var gn = Combat.foe_count(3)   # takımın kadar muhafız (yalnızsan 1, güçlü); eksik güç kalana biner
+	for i in gn:
 		var a = Enemy.archetype("genin_rival", i)
 		a["name"] = "Köy Muhafızı"
 		a["respawn"] = false
 		a["level"] = lv
 		a["hp"] = 260.0 + lv * 18.0
+		if gn < 3:
+			Enemy.toughen(a, ceili(3.0 / gn), "B")   # tek muhafız üç kişinin gücünün bir kısmını taşır
 		a["power"] = 1.1 + lv * 0.02
 		a["xp"] = 30 + lv * 6
 		a["ryo"] = 0
-		var auto = Enemy.auto_jutsu("genin_rival", String(hi.get("element", ["katon", "suiton", "fuuton", "doton", "raiton"][absi(hash(String(hi.get("name", "")))) % 5])), lv)
+		a["element"] = ["katon", "suiton", "fuuton", "doton", "raiton"].pick_random()   # 5 doğa eşit (köyün elementine kilitliydi: Konoha muhafızları hep katon)
+		var auto = Enemy.auto_jutsu("genin_rival", String(a["element"]), lv)
 		if not auto.is_empty():
 			a["jutsu"] = auto
 		var L: Dictionary = a["look"]

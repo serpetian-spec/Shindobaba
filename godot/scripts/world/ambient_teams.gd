@@ -5,7 +5,12 @@ extends Node
 
 const MAX_TEAMS := 2
 const GENIN_M := ["Haruto", "Kaito", "Sōta", "Ren", "Daiki", "Yūma", "Takumi", "Riku", "Kenji", "Shin"]
-const GENIN_F := ["Hina", "Mei", "Aiko", "Sakura", "Nanami", "Yui", "Rin", "Emi", "Kaede", "Mio"]
+const GENIN_F := ["Hina", "Kotone", "Aiko", "Suzuha", "Nanami", "Yui", "Ayane", "Emi", "Kaede", "Mio"]   # kanon isim yok (Sakura/Rin/Mei çıkarıldı)
+## Kanon karakter adları: eski kayıtlarda kalmışsa özgün adla değiştirilir
+const CANON := ["Naruto", "Sasuke", "Sakura", "Kakashi", "Hinata", "Shikamaru", "Ino", "Chōji", "Choji", "Neji", "Lee", "Tenten", "Gaara", "Temari",
+	"Kankurō", "Kankuro", "Rin", "Obito", "Minato", "Kushina", "Itachi", "Mei", "Jiraiya", "Tsunade", "Orochimaru", "Kiba", "Shino", "Sai", "Yamato",
+	"Asuma", "Kurenai", "Gai", "Iruka", "Konohamaru", "Boruto", "Sarada", "Mitsuki", "Himawari", "Haku", "Zabuza", "Hashirama", "Tobirama", "Madara",
+	"Nagato", "Konan", "Yahiko", "Deidara", "Sasori", "Kisame", "Hidan", "Kakuzu", "Karin", "Suigetsu", "Jūgo", "Kabuto", "Shisui", "Hiruzen"]
 const LINES := ["D-rank bir işten dönüyoruz. Bütün gün bir kedinin peşindeydik...", "Hocamız bizi sınır karakoluna götürüyor. İlk C-rank görevimiz!",
 	"Bir tüccarı yanındaki köye kadar koruyacağız.", "Chūnin Sınavı yaklaşıyor, her gün antrenman yapıyoruz.",
 	"Takım olmak zormuş... ama birbirimizi bırakmıyoruz.", "Yolda kaçak izleri gördük, dikkatli ol."]
@@ -23,6 +28,10 @@ func _process(dt: float) -> void:
 	# takımları yürüt: lider hedefe, diğerleri liderin arkasında üçgen dizilişte
 	for tm in teams.duplicate():
 		var ns: Array = tm["nodes"].filter(func(n): return is_instance_valid(n) and not n.dead)
+		if Orgs.is_rogue() and not ns.is_empty() and ns[0].global_position.distance_to(pp) < 22.0 and not tm.get("hostile", false):
+			Hud.msg("«Kaçak! Bu o — alnındaki çizik!» Köyün takımı seni tanıdı.", Color(1, 0.45, 0.35))
+			_team_attack(tm, false)
+			continue
 		if ns.is_empty() or ns[0].global_position.distance_to(pp) > 260.0 or ns[0].global_position.distance_to(tm["dest"]) < 6.0:
 			for n in tm["nodes"]:
 				if is_instance_valid(n):
@@ -129,6 +138,11 @@ static func roster(vid: String) -> Array:
 	if not p.has("vteams"):
 		p["vteams"] = {}
 	if p["vteams"].has(vid):
+		for tm in p["vteams"][vid]:
+			for pe in tm["people"]:
+				if String(pe["name"]) in CANON:
+					var fem = String((pe.get("look", {}) as Dictionary).get("gender", "m")) == "f"
+					pe["name"] = ((GENIN_F if fem else GENIN_M) as Array).pick_random()
 		return p["vteams"][vid]
 	var out = []
 	var used = {}
@@ -168,7 +182,25 @@ func _talk(n: Node) -> void:
 		Hud.dialog(String(f["name"]), Friends.greeting(fid), opts)
 		return
 	var nm = String(person["name"])
+	var tm_of = func() -> Dictionary:
+		for tm in teams:
+			if n in tm["nodes"]:
+				return tm
+		return {}
+	if Orgs.is_rogue():
+		Hud.dialog(n.display, "Kaçak! Alnındaki çizik her şeyi anlatıyor. Teslim ol!", [
+			{"label": "Savaş", "cb": func():
+				var tm2 = tm_of.call()
+				if not tm2.is_empty():
+					_team_attack(tm2, false)},
+			{"label": "Kaç", "cb": func(): pass}])
+		return
 	Hud.dialog(n.display, n.line, [
+		{"label": "Dostça düello teklif et", "cb": func(): _spar(n, person, String(vt[0]))},
+		{"label": "Saldır! (köyde suç sayılır)", "cb": func():
+			var tm3 = tm_of.call()
+			if not tm3.is_empty():
+				_team_attack(tm3, true)},
 		{"label": "Kendini tanıt", "cb": func():
 			var lk = Friends.look_of({"look": person["look"], "rank": person["rank"]})
 			lk["gender"] = String(lk.get("gender", "m"))
@@ -176,3 +208,83 @@ func _talk(n: Node) -> void:
 			person["fid"] = id
 			Hud.dialog(nm, "Ben %s, %s. Takımımla göreve gidiyoruz — köyde görürsen selam ver!" % [nm, Friends.RANKS[clampi(int(person["rank"]), 0, 3)]], [])},
 		{"label": "Kolay gelsin.", "cb": func(): pass}])
+
+
+## Takım gerçek savaşçıya döner: her üye rütbesine göre köy ninjası (jōnin hoca güçlü, geninler zayıf ve kalabalık).
+## crime: oyuncu saldırdıysa köyde suç; kaçağı tanıyıp saldırdılarsa suç yok.
+func _team_attack(tm: Dictionary, crime: bool) -> void:
+	tm["hostile"] = true
+	var at0 := Vector3.ZERO
+	for n in tm["nodes"]:
+		if not is_instance_valid(n) or n.dead:
+			continue
+		var vt: Array = n.get_meta("vt", ["konoha", 0, 0])
+		var ros: Array = roster(String(vt[0]))
+		var person: Dictionary = ros[int(vt[1])]["people"][int(vt[2])]
+		var rank := int(person["rank"])
+		var a: Dictionary = Orgs._village_arch(String(vt[0]), int(vt[2]), "jonin" if rank >= 2 else "chunin")
+		a["name"] = String(n.display)
+		a["respawn"] = false
+		a["no_clan"] = true
+		a["level"] = [8, 16, 30][clampi(rank, 0, 2)] + randi_range(0, 4)
+		a["hp"] = 140.0 + float(a["level"]) * 16.0
+		a["look"] = (n.look as Dictionary).duplicate()
+		var e := Enemy.new()
+		e.setup(a)
+		get_tree().current_scene.add_child(e)
+		var at: Vector3 = Missions.open_ground(n.global_position, 6.0)
+		e.global_position = at
+		e.home = at
+		e.team = "enemy"
+		e.target = Game.player
+		e.state = "chase"
+		at0 = at
+		n.queue_free()
+	tm["nodes"] = []
+	if crime:
+		Crime.commit(Crime.ATTACK, "Yoldaki köy takımına saldırdın", at0, String(tm.get("key", "konoha:0")).split(":")[0])   # takım tanık: köyleri bilir
+
+
+## Dostça düello: tek üye kendi rütbesinin gücüyle dövüşür, canı %25'e inince pes eder; kazanırsan tanışırsınız (bağ +6)
+func _spar(n: Node, person: Dictionary, vid: String) -> void:
+	if not is_instance_valid(n):
+		return
+	var rank := int(person["rank"])
+	var a: Dictionary = Orgs._village_arch(vid, 0, "jonin" if rank >= 2 else "chunin")
+	a["name"] = "%s (düello)" % String(person["name"])
+	a["respawn"] = false
+	a["no_clan"] = true
+	a["level"] = [8, 16, 30][clampi(rank, 0, 2)]
+	a["look"] = (n.look as Dictionary).duplicate()
+	var at: Vector3 = n.global_position
+	n.visible = false
+	n.set_meta("sparring", true)
+	var e := Enemy.new()
+	e.setup(a)
+	get_tree().current_scene.add_child(e)
+	e.global_position = at
+	e.home = at
+	e.team = "enemy"
+	e.set_meta("faction", "duel")
+	e.target = Game.player
+	e.state = "chase"
+	var t := ClanTrait.new()   # teslim olma mekanizması (can %25 altı): klansız düello rakibi
+	t.name = "ClanTrait"
+	t.clan = ""
+	t.duel = true
+	e.add_child(t)
+	t.on_yield = func(won: bool):
+		if is_instance_valid(n):
+			n.visible = true
+			n.remove_meta("sparring")
+			n.global_position = e.global_position if is_instance_valid(e) else at
+		if won:
+			Progress.add_xp(20 + int(a["level"]) * 6)
+			var fid = String(person.get("fid", ""))
+			if fid == "" or not Friends.all().has(fid):
+				var lk = Friends.look_of({"look": person["look"], "rank": person["rank"]})
+				fid = Friends.add_person(String(person["name"]), lk, rank, "patrol", vid, at, "")
+				person["fid"] = fid
+			Friends.add_bond(fid, 6)
+			Hud.dialog(String(person["name"]), "İyi dövüştün! Bir dahaki sefere ben kazanacağım. Yolun açık olsun.", [])
+	Hud.banner("DOSTÇA DÜELLO", String(person["name"]), Color(0.9, 0.85, 0.55))
