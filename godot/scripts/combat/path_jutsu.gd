@@ -30771,7 +30771,9 @@ func p_chakura_kyuin_jutsu(c: Node3D, t: Node3D) -> void:
 		if live(c) and live(tt):
 			var a = tt.global_position + Vector3.UP * 1.2
 			var b2 = c.global_position + Vector3.UP * 1.2
-			WindFX.streak(func(q: float) -> Vector3: return a.lerp(b2, q) + Vector3.UP * sin(q * PI) * 0.4, 0.3, 0.07, Color(0.55, 0.8, 1.0, 0.9), 0.0, 8)
+			for j in 3:   # ref: hedefin bedeninden ele akan mavi chakra telleri (dalgalı, üç kol)
+				var ph = j * 2.1 + _i * 0.7
+				WindFX.streak(func(q: float) -> Vector3: return a.lerp(b2, q) + Vector3(sin(q * 8.0 + ph), sin(q * PI) * 2.0 + cos(q * 6.0 + ph) * 0.5, cos(q * 8.0 + ph)) * 0.18, 0.35, 0.12, Color(0.55, 0.8, 1.0, 0.95), j * 0.04, 12)
 			tt.take_hit(inf(c, "chakura_kyuin_jutsu", 0.15, {"knock": 0.0, "kind": "light"}))
 			if c is Player:
 				c.chakra = minf(c.max_chakra, c.chakra + c.max_chakra * 0.04)
