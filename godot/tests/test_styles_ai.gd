@@ -8,7 +8,7 @@ func _ready() -> void:
 		"hair": Color(0.25, 0.2, 0.15), "top": Color(0.85, 0.85, 0.8), "pants": Color(0.2, 0.2, 0.25), "skin": Color(0.96, 0.8, 0.66), "eye": Color(0.2, 0.2, 0.2)}
 	main._start_new_game()
 	await get_tree().create_timer(1.0).timeout
-	for cl in ["hyuga", "akimichi", "inuzuka", "kaguya", "nara"]:
+	for cl in ["jugo", "hozuki", "aburame", "yuki", "sabaku", "uzumaki", "yotsuki"]:
 		var e := Enemy.new()
 		e.setup(Enemy.archetype(cl, 2))
 		e.look["weapon_r"] = null

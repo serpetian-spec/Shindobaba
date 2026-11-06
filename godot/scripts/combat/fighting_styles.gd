@@ -22,6 +22,14 @@ const STYLES := {
 		"desc": "Uzaktan: yenlerden fırlayan böcek sürüleri, böcek sütunu, böcek küresi; isabette chakra emer. Yakın dövüşte zayıf, rakibe yanaşmaz."},
 	"jugo": {"name": "Senninka — Jūgo", "key": "style_jugo", "src": "clan:jugo", "range": "yakın (ağır)", "stop": 1.8,
 		"desc": "Kol taş gibi dev balyoza dönüşür; dirsekten buhar jetiyle atılan yumruklar, yere çakış, dikenli kol saplaması, jetli aparkat. Yavaş ama çok sert."},
+	"yuki": {"name": "Hyōton — Yuki", "key": "style_yuki", "src": "clan:yuki", "range": "orta", "stop": 5.0,
+		"desc": "Çevik, sekerek: parmak arasından buz iğneleri, yakında donduran buz avucu, takip eden buz kırlangıçları (Tsubame Fubuki); bitiriş rakibin çevresinde beliren bin iğne (Sensatsu Suishō)."},
+	"sabaku": {"name": "Suna — Sabaku", "key": "style_sabaku", "src": "clan:sabaku", "range": "uzak", "stop": 7.0,
+		"desc": "Kıpırdamazsın, kum dövüşür: yerden kum yumruğu, kum shurikenleri, kum dalgası, rakibi saran Sabaku Kyū ve avucu kapatınca sıkıştıran Sōsō. Yakında yavaş."},
+	"uzumaki": {"name": "Kongō Fūsa — Uzumaki", "key": "style_uzumaki", "src": "clan:uzumaki", "range": "orta", "stop": 4.5,
+		"desc": "Gövdeden çıkan chakra zincirleri: kırbaç, mızrak gibi saplanan zincir, rakibi sarıp chakrasını mühürleyen bağ, çevreyi süpüren zincirler; bitiriş zincirle kaldırıp yere çarpma."},
+	"yotsuki": {"name": "Raiton Nintai — Yotsuki", "key": "style_yotsuki", "src": "clan:yotsuki", "range": "yakın (atılış)", "stop": 1.6,
+		"desc": "Raiton Chakra zırhıyla ezici hız ve güç: şimşekli yumruk, omuz dalışı, Lariat, Raigyaku Suihei el kılıcı, seri şimşek yumruklar; bitiriş Liger Bomb (kavra, kaldır, yere çak)."},
 }
 
 
