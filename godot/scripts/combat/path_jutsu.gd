@@ -3091,15 +3091,24 @@ func p_saikan_chushutsu_no_jutsu(c: Node3D, _t: Node3D) -> void:
 	VFX.gather(hand_pos(c, true), MED, 0.9)
 	tether(func(): return c.global_position + Vector3.UP * 1.1 if live(c) else Vector3.ZERO, func(): return orb.global_position if is_instance_valid(orb) else Vector3.ZERO, 0.06,
 		VFX.mat_water(Color(0.25, 0.05, 0.3), Color(0.5, 0.2, 0.6), Color(0.75, 0.5, 0.85), Vector3(0, 0, 1), 0.9, 0.5, 0.1), 1.1)
+	# ref (refs/tip/Delicate_Illness...): su kabarcığı bedenden koyu mor zehri çeker — kabarcığın içinde zehir çekirdeği büyür (duman yok)
+	var poison = MeshInstance3D.new()
+	poison.mesh = VFX._sphere(0.16, 12, 6)
+	var pm = StandardMaterial3D.new()
+	pm.albedo_color = Color(0.22, 0.05, 0.28)
+	pm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	poison.material_override = pm
+	orb.add_child(poison)
+	poison.scale = Vector3.ONE * 0.05
 	every(1.1, 1.0 / 30.0, func(_i, k):
 		if is_instance_valid(orb) and live(c):
 			orb.global_position = hand_pos(c, true) + Vector3.UP * 0.15
 			orb.scale = Vector3.ONE * (0.6 + k * 0.8)
-			if randf() < 0.5:
-				VFX.puffs(c.global_position + Vector3.UP * randf_range(0.6, 1.5), {"amount": 2, "life": 0.4, "size": 0.15, "radius": 0.2, "vmin": 1, "vmax": 2,
-					"colors": [Color(0.55, 0.2, 0.65, 0.9), Color(0.4, 0.1, 0.5, 0)]}), func():
+			poison.scale = Vector3.ONE * (0.05 + k * 0.85) * Vector3(1.0 + sin(k * 20.0) * 0.12, 1.0, 1.0 - sin(k * 20.0) * 0.12), func():
 		if is_instance_valid(orb):
-			FX.burst(orb.global_position, {"amount": 20, "life": 0.5, "tex": FX.tex_smoke, "add": false, "size": 0.3, "vmin": 2, "vmax": 4, "gravity": Vector3(0, -8, 0), "colors": [Color(0.5, 0.2, 0.6, 0.9), Color(0.3, 0.1, 0.4, 0)]})
+			# kirli su yere boşaltılır: mor damlalar düşer
+			FX.burst(orb.global_position, {"amount": 18, "life": 0.6, "tex": FX.tex_soft, "add": false, "size": 0.09, "radius": 0.1, "vmin": 1.0, "vmax": 2.5,
+				"dir": Vector3.DOWN, "spread": 40.0, "gravity": Vector3(0, -9, 0), "colors": [Color(0.3, 0.08, 0.38, 0.95), Color(0.2, 0.05, 0.25, 0.0)]})
 			orb.queue_free()
 		if live(c):
 			for s in ["poison", "slow", "bind", "stun", "burn"]:
@@ -3155,13 +3164,17 @@ func p_chakura_no_mesu(c: Node3D, _t: Node3D) -> void:
 		var ba = bone_attach(c, "RightHand" if right else "LeftHand")
 		if ba == null:
 			continue
+		# ref (refs/tip/Chakra_Scalpel): parmaklardan öne alev gibi titreşen mavi chakra + ön kolu saran ince alev; içinde soluk ince çekirdek
 		var b = MB.new()
-		b.add("box", Vector3(0, 0.12, 0.02), Vector3(0.02, 0.22, 0.07), Color(0.6, 0.9, 1.0))
-		var mi = mesh_of(b, VFX.mat_bolt(Color(0.55, 0.9, 1.0), 1.8))
+		b.add("box", Vector3(0, 0.14, 0.02), Vector3(0.01, 0.2, 0.04), Color(0.75, 0.95, 1.0))
+		var mi = mesh_of(b, VFX.mat_bolt(Color(0.6, 0.9, 1.0), 0.8))
 		ba.add_child(mi)
-		mi.scale = Vector3(1.3, 1.3, 1.3)
+		_hand_glow(ba, "blade", Color(0.35, 0.65, 1.0))
 		blades.append(ba)
-		VFX.gather(hand_pos(c, right), Color(0.55, 0.9, 1.0), 0.6)
+		var fa = bone_attach(c, "RightLowerArm" if right else "LeftLowerArm")
+		if fa:
+			_hand_glow(fa, "arm", Color(0.35, 0.65, 1.0))
+			blades.append(fa)
 	Sfx.play("chidori", c.global_position, 2.0, 0.3)
 	if c is Player:
 		Buffs.add("chakura_no_mesu", 12.0, {"melee": 1.25, "_name": "Chakra Neşteri", "_desc": "vurduğun düşman yavaşlar (kas kesildi)"})
@@ -20359,15 +20372,39 @@ func p_raiton_armor(c: Node3D, t: Node3D) -> void:
 
 
 ## Şifa Avucu: avuçlarda yeşil çakra parıltısı
+## Mistik Avuç (ref refs/tip): avuçta yumuşak, yarı saydam yeşil parıltı bulutu + yukarı süzülen ince ışık kıvılcımları (katı küre değil)
 func p_shousen(c: Node3D, t: Node3D) -> void:
 	for side in ["RightHand", "LeftHand"]:
 		var ba = bone_attach(c, side)
 		if ba:
-			ba.add_child(VFX.element_core("", Color(0.4, 1.0, 0.55), 0.22))
+			_hand_glow(ba, "palm", Color(0.45, 1.0, 0.6))
 			after(2.0, func():
 				if is_instance_valid(ba):
 					ba.queue_free())
 	Jutsu.j_shousen(c, t)
+
+
+## Ele bağlı sürekli parçacık ışığı (yerel koordinat: el kemiğiyle hareket eder; kemik eki silinince söner).
+## kind: "palm" = yumuşak avuç parıltısı (Mistik Avuç), "blade" = parmaklardan öne alev gibi titreşen chakra bıçağı (Chakra Neşteri),
+## "arm" = ön kolu saran ince chakra alevi
+func _hand_glow(ba: Node3D, kind: String, col: Color) -> void:
+	match kind:
+		"palm":
+			FX.burst(Vector3(0, 0.09, 0.05), {"amount": 22, "life": 0.6, "explosive": 0.0, "local": true, "parent": ba, "tex": FX.tex_soft, "size": 0.42, "radius": 0.07,
+				"vmin": 0.02, "vmax": 0.15, "spread": 180.0, "damp": 0.5, "smin": 0.7, "smax": 1.1, "scale_curve": [[0.0, 0.4], [0.4, 1.0], [1.0, 0.6]],
+				"colors": [Color(col.r, col.g, col.b, 0.0), Color(col.r, col.g, col.b, 0.55), Color(col.r * 0.8, col.g, col.b * 0.8, 0.0)]}).one_shot = false
+			FX.burst(Vector3(0, 0.1, 0.05), {"amount": 8, "life": 0.9, "explosive": 0.0, "local": true, "parent": ba, "tex": FX.tex_spark, "size": 0.05, "radius": 0.08,
+				"vmin": 0.15, "vmax": 0.4, "dir": Vector3.UP, "spread": 35.0, "damp": 0.2,
+				"colors": [Color(0.85, 1.0, 0.9, 0.9), Color(col.r, col.g, col.b, 0.0)]}).one_shot = false
+		"blade":
+			FX.burst(Vector3(0, 0.14, 0.02), {"amount": 44, "life": 0.36, "explosive": 0.0, "local": true, "parent": ba, "tex": FX.tex_flame, "add": false, "size": 0.32, "radius": 0.07,
+				"vmin": 0.35, "vmax": 0.8, "dir": Vector3.UP, "spread": 14.0, "damp": 0.3, "smin": 0.6, "smax": 1.0, "angle_min": -15.0, "angle_max": 15.0,
+				"scale_curve": [[0.0, 0.6], [0.3, 1.0], [1.0, 0.2]],
+				"colors": [Color(col.r, col.g, col.b, 0.0), Color(col.r, col.g, col.b, 0.8), Color(col.r * 0.6, col.g * 0.7, col.b * 0.9, 0.0)]}).one_shot = false   # normal karışım (toplamalıda parlak zeminde beyaza patlıyordu); karışımda açık mavi beyaza patlıyordu: koyu doygun mavi
+		"arm":
+			FX.burst(Vector3(0, 0.12, 0.0), {"amount": 30, "life": 0.45, "explosive": 0.0, "local": true, "parent": ba, "tex": FX.tex_flame, "add": false, "size": 0.26, "radius": 0.12,
+				"vmin": 0.1, "vmax": 0.3, "dir": Vector3.UP, "spread": 40.0, "damp": 0.4, "scale_curve": [[0.0, 0.5], [0.4, 1.0], [1.0, 0.2]],
+				"colors": [Color(col.r, col.g, col.b, 0.0), Color(col.r, col.g, col.b, 0.45), Color(col.r * 0.6, col.g * 0.8, col.b, 0.0)]}).one_shot = false
 
 
 ## Anka Çiçeği: her ateş topunda gizli shuriken parıltısı (çıkışta toplanma)

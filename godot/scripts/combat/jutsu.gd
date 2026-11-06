@@ -157,7 +157,7 @@ func execute(caster: Node3D, id: String, target: Node3D) -> void:
 	var shp = String(jd.get("shape", ""))
 	if tier < 3 and JutsuEngine.SIGNATURE_SCALE.has(id):
 		tier = 3   # imza element jutsuları B gibi sahnelenir
-	var calm = shp in ["transform", "stealth", "sensor", "utility", "heal", "revive", "teleport", "clone", "counter"]
+	var calm = shp in ["transform", "stealth", "sensor", "utility", "heal", "revive", "teleport", "clone", "counter"] or String(jd.get("category", "")) == "medical"   # tıbbi teknikler sessiz: ayakta toz/şok yok
 	VFX.release(caster, _cast_origin(caster, id), JutsuEngine.color_of(jd), g, tier if not calm else mini(tier, 2), not calm)
 	var prev = VFX.epic
 	# rütbeye/seviyeye göre büyütme kaldırıldı (kullanıcı: bazı jutsular anlamsız büyüyordu) — her jutsu kendi anime boyutunda;
