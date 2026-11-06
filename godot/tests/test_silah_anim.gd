@@ -38,7 +38,7 @@ func _ready() -> void:
 	Hud.close_dialog()
 	var cc = Camera3D.new()
 	get_tree().current_scene.add_child(cc)
-	var plan = {"buki_kuchiyose": [0.1, 0.35, 0.6, 1.0], "sogu_tensasai": [0.15, 0.4, 0.75, 1.2], "soshoryu": [0.1, 0.6, 1.1, 1.6, 2.4, 3.2]}
+	var plan = {"buki_kuchiyose": [0.1, 0.35, 0.6, 1.0]}
 	var n = 0
 	for id in plan:
 		var b0 = base + Vector3(60.0 * n, 0, 0)
@@ -68,7 +68,7 @@ func _ready() -> void:
 				cc.global_position = b0 + side * 9.0 - fwd * 2.0 + Vector3.UP * 4.0
 				cc.look_at(b0 + fwd * 4.0 + Vector3.UP * 5.0)
 			else:
-				cc.global_position = b0 + side * 3.2 + fwd * 2.2 + Vector3.UP * 1.6
+				cc.global_position = b0 + side * 1.2 + fwd * 3.4 + Vector3.UP * 1.7
 				cc.look_at(b0 + Vector3.UP * 1.2)
 			cc.current = true
 			await main.shot("anm_%s_%d" % [id, k])
