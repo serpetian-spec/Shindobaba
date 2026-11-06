@@ -55,6 +55,12 @@ func _ready() -> void:
 		Game.profile["learned"].append(id)
 		pl.combat.cooldowns.erase(id)
 		await _w(0.4)
+		var nd = String(Data.jutsu.get(id, {}).get("need", ""))
+		if nd.begins_with("weapon:"):
+			var wid = nd.substr(7)
+			Gear.grant(Game.profile, wid, String(Gear.item(wid).get("slot", "silah")))
+			if pl.has_method("refresh_look"):
+				pl.refresh_look()
 		var md = pl.combat.get("modes")
 		if md and md.get("sage") != null:
 			md.sage = true

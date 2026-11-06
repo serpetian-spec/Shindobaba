@@ -2682,13 +2682,29 @@ func p_tekkosen(c: Node3D, t: Node3D) -> void:
 	var fd = fwd(c, t)
 	busy(c, 0.6)
 	var mesh = cached("tekkosen", func():
+		# gerçek tessen: kesintisiz yelpaze yaprağı (dar dilimler, aralıksız, hafif körük katlı), ince koyu demir kaburgalar,
+		# dış kenarda kırmızı şerit + metal çerçeve, menteşe pimi (eski hali: arası açık kalın kalaslar + uçlarda altın topuzlar)
 		var b = MB.new()
-		for k in 11:
-			var a = deg_to_rad(-80.0 + k * 16.0)
-			b.add_grad("box", Vector3(sin(a) * 2.2, cos(a) * 2.2, 0), Vector3(0.55, 4.4, 0.08), Color(0.42, 0.42, 0.46), Color(0.2, 0.2, 0.24), Vector3(0, 0, -rad_to_deg(a)))
-			b.add("sphere", Vector3(sin(a) * 4.4, cos(a) * 4.4, 0), Vector3(0.28, 0.28, 0.12), Color(0.85, 0.7, 0.25), Vector3.ZERO, 6)
-		b.add("cyl", Vector3(0, 0, 0), Vector3(0.6, 0.25, 0.6), Color(0.8, 0.65, 0.25), Vector3(90, 0, 0), 12)
-		b.add("box", Vector3(0, 1.8, -0.06), Vector3(5.6, 0.18, 0.04), Color(0.7, 0.12, 0.12))
+		var A0 = -78.0; var A1 = 78.0
+		var NS = 40
+		for k in NS:
+			var a = deg_to_rad(lerpf(A0, A1, (k + 0.5) / NS))
+			var da = deg_to_rad((A1 - A0) / NS)
+			var fold = 0.04 if k % 2 == 0 else -0.04   # körük katı
+			for band in 3:
+				var r0 = 1.0 + band * 1.15
+				var r1 = r0 + 1.15
+				var rm = (r0 + r1) * 0.5
+				var col = Color(0.36, 0.37, 0.42).darkened(0.08 * (k % 2)) if band < 2 else Color(0.62, 0.12, 0.12).darkened(0.08 * (k % 2))
+				b.add("box", Vector3(sin(a) * rm, cos(a) * rm, fold), Vector3(rm * da * 1.08, r1 - r0 + 0.02, 0.03), col, Vector3(0, 0, -rad_to_deg(a)))
+		for k in 13:   # kaburgalar (önde ve arkada)
+			var a = deg_to_rad(lerpf(A0, A1, k / 12.0))
+			for z in [0.05, -0.05]:
+				b.add("box", Vector3(sin(a) * 2.3, cos(a) * 2.3, z), Vector3(0.07, 4.6, 0.03), Color(0.14, 0.13, 0.15), Vector3(0, 0, -rad_to_deg(a)))
+		for k in 30:   # dış metal çerçeve
+			var a = deg_to_rad(lerpf(A0, A1, (k + 0.5) / 30.0))
+			b.add("box", Vector3(sin(a) * 4.47, cos(a) * 4.47, 0), Vector3(4.47 * deg_to_rad((A1 - A0) / 30.0) * 1.05, 0.08, 0.07), Color(0.55, 0.55, 0.58), Vector3(0, 0, -rad_to_deg(a)))
+		b.add("cyl", Vector3(0, 0, 0), Vector3(0.32, 0.2, 0.32), Color(0.75, 0.62, 0.3), Vector3(90, 0, 0), 12)   # menteşe pimi
 		return b)
 	var fan = mi_of(mesh)
 	fan.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
