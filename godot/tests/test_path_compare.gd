@@ -41,6 +41,8 @@ func _ready() -> void:
 	var plan = {}
 	for id in OS.get_environment("CMP_IDS").split(",", false):
 		plan[id] = [-0.25, 0.4, 1.2]
+		if OS.get_environment("CMP_T") != "":
+			plan[id] = Array(OS.get_environment("CMP_T").split(",")).map(func(x): return float(x))
 	var n = 0
 	for id in plan:
 		var b0 = base + Vector3(60.0 * n, 0, 0)

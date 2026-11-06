@@ -2911,6 +2911,7 @@ func p_bashosen_kaze_no_maki(c: Node3D, t: Node3D) -> void:
 		var tor = Node3D.new()   # hortumun görünmez merkezi; görüntü akım çizgisi girdabı + toz
 		var start = gp(c.global_position + d * 4.0)
 		scene_add(tor, start + Vector3.UP * 13.0)
+		WindFX.gust(c.global_position + Vector3.UP * 1.2, d, 16.0, 5.0)
 		Sfx.play("wind", start, 0.6)
 		shake(0.6)
 		var hits = {}
@@ -2921,8 +2922,14 @@ func p_bashosen_kaze_no_maki(c: Node3D, t: Node3D) -> void:
 			tor.global_position = p
 			tor.rotate_y(0.6)
 			var base = p - Vector3.UP * 12.0
-			if i % 9 == 0:
-				WindFX.swirl(base, 3.5, 20.0, 0.35, 9, Color(0.88, 1.0, 0.94, 0.85), i % 18 == 0)
+			if i % 4 == 0:   # gövde: iç içe üç katman (dar hızlı + geniş yavaş), arada toz
+				WindFX.swirl(base, 3.0, 20.0, 0.45, 10, Color(0.88, 1.0, 0.94, 0.9), i % 16 == 0)
+				WindFX.swirl(base + Vector3.UP * 4.0, 5.0, 14.0, 0.6, 12, Color(0.8, 0.95, 1.0, 0.7), false)
+			if i % 6 == 0:   # tabandan kıvrılarak çıkan uzun akım çizgileri (anime: yelpaze rüzgârının sarmal hatları)
+				var ph = randf() * TAU
+				var bp = base
+				WindFX.streak(func(q: float) -> Vector3: return bp + Vector3(cos(ph + q * 7.0) * (2.0 + q * 4.0), q * 16.0, sin(ph + q * 7.0) * (2.0 + q * 4.0)),
+					0.7, 0.12, Color(0.92, 1.0, 0.96), 0.0, 28)
 			for e in enemies_near(c, base, 6.5):
 				if live(e):
 					e.global_position = e.global_position.lerp(base + Vector3.UP * minf(10.0, 2.0 + hits.get(e, 0) * 0.4), 0.15)
@@ -31270,29 +31277,58 @@ func p_ryoken_bunshin(c: Node3D, t: Node3D) -> void:
 	Sfx.play("growl", c.global_position, 1.0)
 
 
-## Mühür Çözme: Shuriken — parşömen açılır, içinden yüzlerce shuriken ve kunai art arda fırlar
+## Metal shuriken (4 sivri kanat, ortada delik halkası) — kaifūjutsu/enbu yağmurları için
+func _steel_star(sz := 1.0) -> MB:
+	var b = MB.new()
+	for k in 4:
+		var a = k * 90.0
+		var d = Vector3(cos(deg_to_rad(a)), 0, sin(deg_to_rad(a)))
+		b.add("cone", d * 0.1 * sz, Vector3(0.09 * sz, 0.2 * sz, 0.012), Color(0.62, 0.63, 0.68), Vector3(90, -a + 90, 0), 3)
+	b.add("cyl", Vector3.ZERO, Vector3(0.09 * sz, 0.02, 0.09 * sz), Color(0.3, 0.3, 0.34), Vector3.ZERO, 8)
+	return b
+
+
+## Mühür Çözme: Shuriken (ref: mühür kâğıdını öne uzatır, kâğıttan patlayan duman halkası içinden onlarca shuriken
+## yelpaze gibi fırlar). Hazırlıkta parşömen iki elde açılır; bırakışta kâğıt yüzünden mühür ışığı + dalga dalga shuriken
+func form_kaifujutsu_shuriken(c: Node3D, rt: float) -> void:
+	c.set_meta("pj_scroll", hold_scroll(c, rt + 1.1, 0.42, 0.6))
+
+
 func p_kaifujutsu_shuriken(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 24.0)
 	busy(c, 1.2)
-	var o = c.global_position + Vector3.UP * 1.3 + c.face_dir() * 0.8
-	var scroll = MB.new()
-	scroll.add("cyl", Vector3.ZERO, Vector3(0.18, 1.2, 0.18), Color(0.92, 0.88, 0.75), Vector3(0, 0, 90), 10)
-	var sm = mesh_of(scroll)
-	scene_add(sm, o)
-	fade_free(sm, 1.2, 0.2)
-	for k in 18:
-		after(0.2 + k * 0.05, func():
-			if not live(c):
-				return
-			var dir = aim_at(c, tt, o).rotated(Vector3.UP, randf_range(-0.25, 0.25))
-			var b = MB.new()
-			if k % 2 == 0:
-				b.add("box", Vector3.ZERO, Vector3(0.3, 0.02, 0.3), Color(0.45, 0.45, 0.5), Vector3(0, 45, 0))
-			else:
-				b.add("cone", Vector3(0, 0, 0.2), Vector3(0.05, 0.4, 0.02), Color(0.5, 0.5, 0.55), Vector3(90, 0, 0), 4)
-			var pr = shot(c, o, dir, 36.0, mesh_of(b), inf(c, "kaifujutsu_shuriken", 0.15, {"knock": 1.0, "kind": "light", "bleed": 1.0}), null, false, 0.9)
-			if pr and k % 2 == 0:
-				pr.spin = Vector3(0, 30.0, 0))
+	var sc = _held(c)
+	var fd: Vector3 = c.face_dir()
+	fd.y = 0
+	fd = fd.normalized()
+	var o = (sc.global_position if sc else c.global_position + Vector3.UP * 1.3) + fd * 0.25
+	if sc:
+		fade_free(sc, 1.05, 0.2)
+	# mühür açılışı: kâğıt yüzünde kara yazı halkası + kısa beyaz parlama (duman bulutu yok)
+	FX.ring(o, Color(0.1, 0.08, 0.06), 1.2, 0.3, false)
+	VFX.star(o, Color(1.0, 0.97, 0.85), 1.0)
+	Sfx.play("poof", o, 1.4, 0.4)
+	var side = fd.cross(Vector3.UP).normalized()
+	for wave in 4:   # dört dalga, her dalga yelpaze (sol→sağ) 9 shuriken + 3 kunai
+		for k in 12:
+			after(0.06 + wave * 0.2 + k * 0.012, func():
+				if not live(c):
+					return
+				var f = (k / 11.0) - 0.5
+				var aim = aim_at(c, tt, o)
+				var dir = (aim + side * f * 0.7 + Vector3.UP * randf_range(-0.05, 0.12)).normalized()
+				var from = o + side * f * 0.4
+				var is_kunai = k % 4 == 3
+				var b: MB
+				if is_kunai:
+					b = MB.new()
+					b.add("cone", Vector3(0, 0, 0.16), Vector3(0.05, 0.3, 0.02), Color(0.55, 0.56, 0.6), Vector3(90, 0, 0), 4)
+					b.add("cyl", Vector3(0, 0, -0.04), Vector3(0.025, 0.14, 0.025), Color(0.2, 0.18, 0.16), Vector3(90, 0, 0), 6)
+				else:
+					b = _steel_star(1.7)
+				var pr = shot(c, from, dir, 38.0, mesh_of(b), inf(c, "kaifujutsu_shuriken", 0.12, {"knock": 1.0, "kind": "light", "bleed": 1.0}), tt if wave % 2 == 0 else null, false, 0.9)
+				if pr and not is_kunai:
+					pr.spin = Vector3(0, 32.0, 0))
 	Sfx.play("kunai", c.global_position, 1.3)
 
 
@@ -31317,22 +31353,69 @@ func p_genei_taju_shuriken(c: Node3D, t: Node3D) -> void:
 	Sfx.play("kunai", c.global_position, 1.2)
 
 
-## Enbu: Ni no Dan — havaya sıçrayıp dönerek iki parşömenden çift sarmal halinde silah fırtınası
+## Enbu: Ni no Dan (ref: dönen beyaz hortumun içinden dışa savrulan silahlar). Sıçrayıp kendi ekseninde döner;
+## bedeni saran çok katlı rüzgâr hortumu (akım çizgileri) yükselir, hortumda sarmal çizerek dönen kunai/shuriken
+## halkası oluşur, sonra hepsi hortumdan dışa (hedefe) savrulur
 func p_enbu_ni_no_dan(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 22.0)
 	busy(c, 1.4)
 	if c.get("velocity") != null:
 		c.velocity.y = 12.0
-	for k in 20:
-		after(0.3 + k * 0.045, func():
+	var gray = Color(0.94, 0.95, 1.0, 0.85)
+	for L in 3:   # hortum: üç kat swirl, gövdeyi takip eder
+		after(L * 0.08, func():
+			if live(c):
+				WindFX.swirl(c.global_position + Vector3.UP * (0.2 + L * 0.6), 1.0 + L * 0.35, 3.6, 1.2, 12, gray, L == 0))
+	for k in 10:   # hortum boyunca yükselen ince sarmal çizgiler
+		var ph = k * TAU / 10.0
+		WindFX.streak(func(q: float) -> Vector3:
+			var cp = c.global_position if is_instance_valid(c) else Vector3.ZERO
+			return cp + Vector3(cos(ph + q * 9.0) * (0.7 + q * 0.9), q * 4.2, sin(ph + q * 9.0) * (0.7 + q * 0.9)),
+			1.1, 0.05, gray, 0.1 + k * 0.03, 22)
+	# hortumda dönen silah halkası
+	var orbit = []
+	for k in 16:
+		var b: MB
+		if k % 2 == 0:
+			b = _steel_star(1.2)
+		else:
+			b = MB.new()
+			b.add("cone", Vector3(0, 0, 0.16), Vector3(0.05, 0.32, 0.02), Color(0.55, 0.56, 0.6), Vector3(90, 0, 0), 4)
+			b.add("cyl", Vector3(0, 0, -0.05), Vector3(0.025, 0.14, 0.025), Color(0.2, 0.18, 0.16), Vector3(90, 0, 0), 6)
+		var m = mesh_of(b)
+		scene_add(m, c.global_position)
+		orbit.append(m)
+	var t0 = Game.now()
+	every(0.75, 1.0 / 60.0, func(_i, _k):
+		if not is_instance_valid(c):
+			return
+		var u = Game.now() - t0
+		for k in orbit.size():
+			var m = orbit[k]
+			if not is_instance_valid(m):
+				continue
+			var a = k * TAU / orbit.size() + u * 11.0
+			var h = 0.5 + fmod(k * 0.37, 1.0) * 2.4
+			m.global_position = c.global_position + Vector3(cos(a), 0, sin(a)) * (1.1 + u * 0.6) + Vector3.UP * h
+			m.look_at(m.global_position + Vector3(-sin(a), 0, cos(a)), Vector3.UP)
+			m.rotate_object_local(Vector3.UP, u * 30.0), func():
+		for k in orbit.size():   # savrulma: her silah bulunduğu yerden hedefe
+			var m = orbit[k]
+			if not is_instance_valid(m):
+				continue
+			var from = m.global_position
+			m.queue_free()
 			if not live(c):
-				return
-			var a = k * 0.7
-			var o = c.global_position + Vector3.UP * 1.0 + Vector3(cos(a), 0, sin(a)) * 0.9
-			var b = MB.new()
-			b.add("cone", Vector3(0, 0, 0.3), Vector3(0.06, 0.6, 0.03), Color(0.55, 0.55, 0.6), Vector3(90, 0, 0), 4)
-			shot(c, o, aim_at(c, tt, o).rotated(Vector3.UP, randf_range(-0.2, 0.2)), 34.0, mesh_of(b), inf(c, "enbu_ni_no_dan", 0.18, {"knock": 1.0, "kind": "light", "bleed": 1.0}), null, false, 0.9))
-	WindFX.swirl(c.global_position, 1.2, 3.0, 1.0, 10, Color(1, 1, 1, 0.8), false)
+				continue
+			var b2: MB = _steel_star(1.2) if k % 2 == 0 else null
+			if b2 == null:
+				b2 = MB.new()
+				b2.add("cone", Vector3(0, 0, 0.16), Vector3(0.05, 0.32, 0.02), Color(0.55, 0.56, 0.6), Vector3(90, 0, 0), 4)
+			var pr = shot(c, from, aim_at(c, tt, from).rotated(Vector3.UP, randf_range(-0.12, 0.12)), 36.0, mesh_of(b2), inf(c, "enbu_ni_no_dan", 0.2, {"knock": 1.0, "kind": "light", "bleed": 1.0}), tt if k % 3 == 0 else null, false, 0.9)
+			if pr and k % 2 == 0:
+				pr.spin = Vector3(0, 30.0, 0)
+		if live(c):
+			WindFX.blast(c.global_position + Vector3.UP, 3.0, 18, gray, false))
 	Sfx.play("whoosh", c.global_position, 1.2)
 
 
