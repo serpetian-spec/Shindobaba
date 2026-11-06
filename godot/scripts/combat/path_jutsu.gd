@@ -3322,16 +3322,67 @@ func p_omote_renge(c: Node3D, t: Node3D) -> void:
 	anim(c, "hook", 1.8)
 	Sfx.play("hit_heavy", c.global_position, 1.1)
 	tt.take_hit(inf(c, "omote_renge", 0.3, {"launch": 14.0, "knock": 0.0, "kind": "heavy"}))
+	# anime: Kage Buyō — havadaki hedefin arkasında belirir; kol sargısı hedefin bedenine sarmal dolanır,
+	# sıkıca kavrayıp ikisi birlikte matkap gibi dönerek başaşağı yere iner
+	after(0.3, func():
+		if not (live(tt) and live(c)):
+			return
+		c.global_position = tt.global_position - fwd(c, tt) * 0.6 + Vector3.DOWN * 0.3   # gölge gibi arkasında
+		anim(c, "air", 1.4)
+		_trail_ghost(c, 0.4, 0.3))
 	after(0.45, func():
 		if not live(tt):
 			return
-		# sargı: hedefle aradaki beyaz bant
+		var coil = Node3D.new()
+		var b = MB.new()
+		var N = 90
+		var hgt: float = float(tt.get("height")) if tt.get("height") != null else 1.8
+		for i in N:   # sargı bandı: bedeni 5 tur saran kesintisiz yassı şerit (dilimler üst üste biner)
+			var a0 = TAU * 5.0 * i / N
+			var p0 = Vector3(cos(a0) * 0.3, -0.45 + hgt * 0.62 * i / N, sin(a0) * 0.3)
+			b.add("box", p0, Vector3(0.14, 0.1, 0.012), Color(0.95, 0.94, 0.9).darkened(0.04 * ((i / 9) % 2)), Vector3(0, -rad_to_deg(a0) - 90.0, 10))
+		var mi = mesh_of(b)
+		coil.add_child(mi)
+		var hip = bone_attach(tt, "Hips")   # bedene bağlı: düşerken/dönerken bedenle birlikte
+		if hip:
+			hip.add_child(coil)
+		else:
+			tt.add_child(coil)
+			coil.position = Vector3.UP * 0.9
+		mi.scale = Vector3(1.0, 0.05, 1.0)
+		mi.create_tween().tween_property(mi, "scale", Vector3.ONE, 0.18)
+		after(1.0, func():
+			if is_instance_valid(coil):
+				coil.queue_free()
+			if hip and is_instance_valid(hip):
+				hip.queue_free())
 		var band = StandardMaterial3D.new()
 		band.albedo_color = Color(0.95, 0.94, 0.9)
-		for j in 3:
-			tether(func(): return c.global_position + Vector3.UP * (1.0 + j * 0.15), func(): return tt.global_position + Vector3.UP * (0.7 + j * 0.3), 0.1, band, 0.5)
-		c.global_position = tt.global_position + Vector3.UP * 0.5
-		anim(c, "air", 1.4))
+		tether(func(): return c.global_position + Vector3.UP * 1.1, func(): return tt.global_position + Vector3.UP * hgt * 0.6, 0.08, band, 0.5)
+		# dönerek dalış: hedef üstte değil — ikisi birlikte yere doğru, başaşağı, hızla dönerek
+		var top = tt.global_position
+		var ground = gp(top)
+		var t0 = Game.now()
+		every(0.5, 1.0 / 60.0, func(_i, _k):
+			if not (live(tt) and live(c)):
+				return
+			var u = clampf((Game.now() - t0) / 0.5, 0.0, 1.0)
+			var y = lerpf(top.y, ground.y + 0.3, u * u)
+			tt.global_position = Vector3(top.x, y, top.z)
+			c.global_position = tt.global_position + Vector3.UP * 1.0
+			var spin = u * 22.0
+			for n in [c, tt]:
+				var md = n.get("model")
+				if md:
+					md.rotation.y += 0.55
+					md.rotation.x = PI * 0.85 * minf(1.0, u * 3.0)   # başaşağı
+			if _i % 3 == 0:
+				WindFX.swirl(tt.global_position + Vector3.UP * 0.5, 1.0, 2.4, 0.25, 6, Color(0.85, 1.0, 0.85, 0.8), false), func():
+			for n in [c, tt]:
+				if is_instance_valid(n):
+					var md = n.get("model")
+					if md:
+						md.rotation.x = 0.0))
 	after(0.95, func():
 		if not live(c):
 			return
@@ -6936,39 +6987,7 @@ func p_kuchiyose_gamaguchi_shibari(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 16.0)
 	var center = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 6.0)
 	summon_circle(c.global_position, 2.0, Color(1, 0.55, 0.15), 0.8)
-	var flesh = VFX.mat_water(Color(0.45, 0.08, 0.12), Color(0.78, 0.3, 0.35), Color(0.95, 0.6, 0.62), Vector3(0, 1, 0), 1.0, 0.25, 0.05)
-	var root = Node3D.new()
-	get_tree().current_scene.add_child(root)
-	root.global_position = center
-	var tube = MeshInstance3D.new()
-	var cm = CylinderMesh.new()
-	cm.top_radius = 6.0; cm.bottom_radius = 7.0; cm.height = 7.0; cm.radial_segments = 28; cm.rings = 8
-	cm.flip_faces = true
-	tube.mesh = cm
-	tube.material_override = flesh
-	tube.position = Vector3.UP * 3.0
-	root.add_child(tube)
-	for k in 10:   # kıvrımlı et katmanları
-		var fold = MeshInstance3D.new()
-		var tm = TorusMesh.new()
-		tm.inner_radius = 5.6 + (k % 2) * 0.3; tm.outer_radius = 7.2; tm.rings = 28; tm.ring_segments = 8
-		fold.mesh = tm
-		fold.material_override = flesh
-		fold.position = Vector3.UP * (0.3 + k * 0.65)
-		fold.scale = Vector3(1, 0.35, 1)
-		root.add_child(fold)
-	var floor_m = MeshInstance3D.new()
-	var fm = CylinderMesh.new()
-	fm.top_radius = 7.0; fm.bottom_radius = 7.0; fm.height = 0.1; fm.radial_segments = 28
-	floor_m.mesh = fm
-	floor_m.material_override = flesh
-	root.add_child(floor_m)
-	root.scale = Vector3(1, 0.05, 1)
-	var tw = root.create_tween()
-	tw.tween_property(root, "scale", Vector3.ONE, 0.5).set_trans(Tween.TRANS_BACK)
-	tw.tween_interval(5.5)
-	tw.tween_property(root, "scale", Vector3(1, 0.05, 1), 0.4)
-	tw.tween_callback(root.queue_free)
+	_stomach_tunnel(center, Color(0.45, 0.08, 0.12), Color(0.78, 0.3, 0.35), Color(0.95, 0.6, 0.62), 5.5, 7.0)
 	shake(0.5)
 	Sfx.play("water", center, 0.5)
 	every(6.0, 0.5, func(_i, _k):
@@ -6977,6 +6996,44 @@ func p_kuchiyose_gamaguchi_shibari(c: Node3D, t: Node3D) -> void:
 			VFX.puffs(e.global_position + Vector3.UP * 0.3, {"amount": 6, "life": 0.6, "size": 0.4, "radius": 0.4, "vmin": 0.5, "vmax": 1.5, "dir": Vector3.UP, "spread": 40.0, "add": false,
 				"colors": [Color(0.8, 0.9, 0.4, 0.7), Color(0.7, 0.8, 0.3, 0)]})
 			e.take_hit(inf(c, "kuchiyose_gamaguchi_shibari", 0.12, {"knock": 0.0, "kind": "light"})), Callable())
+
+
+## Dev hayvan midesi: etli, kıvrımlı (halka katlı) iç yüzeyli tünel yerden açılıp hedefi içine alır, hold sn sonra kapanır
+func _stomach_tunnel(center: Vector3, c_dark: Color, c_mid: Color, c_hi: Color, hold: float, R: float) -> Node3D:
+	var flesh = VFX.mat_water(c_dark, c_mid, c_hi, Vector3(0, 1, 0), 1.0, 0.25, 0.05)
+	var root = Node3D.new()
+	get_tree().current_scene.add_child(root)
+	root.global_position = center
+	var tube = MeshInstance3D.new()
+	var cm = CylinderMesh.new()
+	cm.top_radius = R * 0.86; cm.bottom_radius = R; cm.height = 7.0; cm.radial_segments = 28; cm.rings = 8
+	cm.flip_faces = true
+	tube.mesh = cm
+	tube.material_override = flesh
+	tube.position = Vector3.UP * 3.0
+	root.add_child(tube)
+	for k in 10:   # kıvrımlı et katmanları
+		var fold = MeshInstance3D.new()
+		var tm = TorusMesh.new()
+		tm.inner_radius = R * 0.8 + (k % 2) * 0.3; tm.outer_radius = R * 1.03; tm.rings = 28; tm.ring_segments = 8
+		fold.mesh = tm
+		fold.material_override = flesh
+		fold.position = Vector3.UP * (0.3 + k * 0.65)
+		fold.scale = Vector3(1, 0.35, 1)
+		root.add_child(fold)
+	var floor_m = MeshInstance3D.new()
+	var fm = CylinderMesh.new()
+	fm.top_radius = R; fm.bottom_radius = R; fm.height = 0.1; fm.radial_segments = 28
+	floor_m.mesh = fm
+	floor_m.material_override = flesh
+	root.add_child(floor_m)
+	root.scale = Vector3(1, 0.05, 1)
+	var tw = root.create_tween()
+	tw.tween_property(root, "scale", Vector3.ONE, 0.5).set_trans(Tween.TRANS_BACK)
+	tw.tween_interval(hold)
+	tw.tween_property(root, "scale", Vector3(1, 0.05, 1), 0.4)
+	tw.tween_callback(root.queue_free)
+	return root
 
 
 ## Kurbağa Yağı Alev Bombası: yanında kurbağa belirir, benekli yağ seli fışkırtır; sen ateş üflersin — yağla büyüyen dev alev seli, yanan göl
@@ -30835,19 +30892,8 @@ func p_jaguchi_shibari(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 16.0)
 	busy(c, 1.0)
 	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 7.0)
-	var flesh = Color(0.75, 0.32, 0.38)
-	for k in 10:
-		var a = k * TAU / 10.0
-		var w = MeshInstance3D.new()
-		w.mesh = VFX._sphere(1.0, 10, 8)
-		w.material_override = Props.toon_color(flesh.darkened(randf() * 0.2))
-		scene_add(w, at + Vector3(cos(a) * 2.6, 1.6, sin(a) * 2.6))
-		w.scale = Vector3(0.05, 0.05, 0.05)
-		var tw = w.create_tween()
-		tw.tween_property(w, "scale", Vector3(1.2, 2.2, 0.9), 0.4).set_trans(Tween.TRANS_BACK)
-		tw.tween_interval(4.0)
-		tw.tween_property(w, "scale", Vector3(0.05, 0.05, 0.05), 0.3)
-		tw.tween_callback(w.queue_free)
+	_stomach_tunnel(at, Color(0.35, 0.06, 0.14), Color(0.62, 0.2, 0.32), Color(0.88, 0.5, 0.6), 4.0, 3.6)
+	shake(0.35)
 	every(4.5, 0.5, func(_i, _k):
 		for e in enemies_near(c, at, 2.4):
 			st(e, "bind", 0.6)
