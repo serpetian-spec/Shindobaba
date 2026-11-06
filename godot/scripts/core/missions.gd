@@ -2655,6 +2655,7 @@ func spawn_scroll_thief() -> void:
 	e.setup(a)
 	e.set_meta("scroll_thief", true)
 	get_tree().current_scene.add_child(e)
+	c = open_ground(c, 15.0)   # ağaç/bina içinde doğmasın
 	e.global_position = c
 	e.home = c
 	target_marker = c

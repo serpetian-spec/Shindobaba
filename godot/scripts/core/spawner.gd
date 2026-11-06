@@ -55,6 +55,6 @@ func flush(parent: Node3D) -> void:
 					var e = Enemy.new()
 					e.setup(Enemy.archetype(p[2], i))
 					parent.add_child(e)
-					e.global_position = p[1] + Vector3(randf_range(-18, 18), 0, randf_range(-18, 18))
+					e.global_position = Missions.open_ground(p[1] + Vector3(randf_range(-18, 18), 0, randf_range(-18, 18)), 12.0)   # ağaç/bina/kaya içinde doğmasın
 					e.home = e.global_position
 	pending.clear()

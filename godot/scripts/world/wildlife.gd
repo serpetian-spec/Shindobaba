@@ -53,7 +53,7 @@ class Herd extends Node3D:
 			an.kind = kind
 			an.home = global_position
 			add_child(an)
-			an.global_position = global_position + Vector3(randf_range(-8, 8), 0, randf_range(-8, 8))
+			an.global_position = Missions.open_ground(global_position + Vector3(randf_range(-8, 8), 0, randf_range(-8, 8)), 8.0)   # ağaç gövdesi/kaya içinde doğmasın
 
 
 class Animal extends Node3D:
@@ -208,7 +208,14 @@ class Animal extends Node3D:
 			speed = move_toward(speed, spd, dt * 8.0)
 			var dir = v.normalized()
 			rotation.y = lerp_angle(rotation.y, atan2(-dir.x, -dir.z), minf(1.0, dt * 6.0))
-			p += dir * speed * dt
+			var np = p + dir * speed * dt
+			var veg = Game.world.vegetation if Game.world else null
+			if veg and veg.trunk_near(np.x, np.z, 0.4):
+				# önünde ağaç gövdesi: içinden geçme, yana dön ve yeni hedef seç (hayvanlar ağaçların içinden geçiyordu)
+				goal = p + dir.rotated(Vector3.UP, PI * 0.5 * (1.0 if randf() < 0.5 else -1.0)) * 12.0
+				speed *= 0.5
+			else:
+				p = np
 		p.y = Game.terrain_height(p.x, p.z)
 		global_position = p
 		phase += dt * (2.0 + speed * 2.2)
