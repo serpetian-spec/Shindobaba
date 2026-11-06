@@ -30460,16 +30460,19 @@ const PWOOD := Color(0.52, 0.38, 0.26)
 
 ## Eklemli ahşap kukla gövdesi (kafa, kollar, bacaklar); dark: koyu kumaş örtülü
 func _puppet_mesh(s := 1.0, dark := false) -> Node3D:
-	var b = MB.new()
-	var cloth = Color(0.15, 0.13, 0.14) if dark else Color(0.35, 0.28, 0.22)
-	b.add("box", Vector3(0, 1.1, 0) * s, Vector3(0.55, 0.75, 0.38) * s, cloth)
-	b.add("sphere", Vector3(0, 1.72, 0) * s, Vector3(0.36, 0.42, 0.36) * s, PWOOD.lightened(0.1))
-	b.add("box", Vector3(0, 1.6, 0.17) * s, Vector3(0.24, 0.05, 0.04) * s, Color(0.12, 0.05, 0.05))
-	for sx in [-1.0, 1.0]:
-		b.add("cyl", Vector3(sx * 0.4, 1.12, 0) * s, Vector3(0.09, 0.62, 0.09) * s, PWOOD, Vector3(0, 0, sx * 14), 6)
-		b.add("sphere", Vector3(sx * 0.46, 0.8, 0) * s, Vector3(0.12, 0.12, 0.12) * s, PWOOD.darkened(0.2))
-		b.add("cyl", Vector3(sx * 0.16, 0.38, 0) * s, Vector3(0.1, 0.72, 0.1) * s, PWOOD, Vector3.ZERO, 6)
-	return mesh_of(b)
+	# klan kukla sisteminin ref'ten modellenmiş savaş kuklası (pelerin, eklemli ahşap kollar, üç gözlü / boynuzlu yüz)
+	var cc = ClanConstruct.new()
+	cc.kind = "puppet"
+	cc.slot = 1 if dark else 0
+	var mesh = cc._build_mesh()
+	cc.free()
+	var root = Node3D.new()
+	var mi = MeshInstance3D.new()
+	mi.mesh = mesh
+	mi.rotation.y = PI   # model -Z'ye bakar; çağıranlar +Z ileri varsayar
+	mi.scale = Vector3.ONE * s * 1.15
+	root.add_child(mi)
+	return root
 
 
 ## Sahnede kukla belirt: duman, iplikler; dur sn sonra parşömene geri döner
@@ -30504,16 +30507,74 @@ func _puppet_fighter(c: Node3D, at: Vector3, nm: String, dur: float, pow_k: floa
 	return w
 
 
+## Hiruko zırh kuklası (ref): yere kadar inen koyu, saçaklı pelerinli kambur gövde, öne eğik ahşap yüz (geniş çene, kalın kaş,
+## dağınık kara saç), sırttan kalkıp başın üstünden öne kıvrılan boğumlu ahşap akrep kuyruğu + uçta ok bıçak. +Z ileri.
+func _hiruko_mesh() -> Node3D:
+	var b = MB.new()
+	var cloak = Color(0.12, 0.11, 0.12)
+	var cloak_l = Color(0.2, 0.19, 0.2)
+	var skin = Color(0.62, 0.5, 0.4)
+	var root = Node3D.new()
+	# kambur pelerin: geniş tabandan öne eğik omuza
+	Loft.tube(b, [Vector3(0, 0.05, -0.1), Vector3(0, 0.6, -0.15), Vector3(0, 1.2, -0.05), Vector3(0, 1.55, 0.15)],
+		[Vector2(0.95, 0.9), Vector2(0.9, 0.85), Vector2(0.7, 0.65), Vector2(0.35, 0.32)], cloak, 20, 4, false, true,
+		func(_t: float, a: float, _d: Vector3) -> Color: return cloak_l if fposmod(a * 5.0 + _t * 2.0, 1.0) < 0.12 else cloak)
+	for k in 20:   # yerde saçaklı etek
+		var a = TAU * k / 20.0
+		b.add("cone", Vector3(sin(a) * 0.92, 0.12, cos(a) * 0.87 - 0.1), Vector3(0.22, 0.3, 0.04), cloak, Vector3(180, rad_to_deg(a), 0), 3)
+	# baş: öne eğik, geniş çeneli ahşap yüz
+	var hc = Vector3(0, 1.5, 0.55)
+	b.add("sphere", hc, Vector3(0.48, 0.5, 0.45), skin, Vector3.ZERO, 12)
+	b.add("box", hc + Vector3(0, -0.2, 0.12), Vector3(0.42, 0.18, 0.3), skin.darkened(0.08), Vector3(10, 0, 0))   # geniş çene
+	b.add("box", hc + Vector3(0, -0.13, 0.27), Vector3(0.3, 0.035, 0.02), Color(0.15, 0.05, 0.05))             # ağız yarığı
+	for sx in [-1.0, 1.0]:
+		b.add("box", hc + Vector3(sx * 0.11, 0.1, 0.22), Vector3(0.14, 0.04, 0.03), Color(0.1, 0.08, 0.06), Vector3(0, 0, sx * -12))   # kaş
+		b.add("sphere", hc + Vector3(sx * 0.1, 0.03, 0.22), Vector3(0.07, 0.05, 0.03), Color(0.95, 0.94, 0.9))
+		b.add("sphere", hc + Vector3(sx * 0.1, 0.03, 0.235), Vector3(0.025, 0.03, 0.01), Color(0.1, 0.1, 0.1))
+	for k in 14:   # dağınık kara saç
+		var a = lerpf(-1.6, 1.6, k / 13.0)
+		BeastRig.claw(b, hc + Vector3(sin(a) * 0.2, 0.18, -0.05), Vector3(sin(a) * 0.6, 0.3, -0.8).normalized(), 0.35, 0.06, Color(0.08, 0.08, 0.09))
+	# sırtta kızıl-kahve zırh maske (ref): kamburu örten büyük oval plaka + koyu desen
+	b.add("sphere", Vector3(0, 1.05, -0.74), Vector3(1.1, 1.0, 0.35), Color(0.55, 0.28, 0.18), Vector3(-20, 0, 0), 14)
+	for sx in [-1.0, 1.0]:
+		b.add("sphere", Vector3(sx * 0.22, 1.2, -0.78), Vector3(0.22, 0.12, 0.05), Color(0.2, 0.1, 0.06), Vector3(-20, 0, sx * 15))
+	b.add("box", Vector3(0, 0.85, -0.78), Vector3(0.45, 0.08, 0.04), Color(0.2, 0.1, 0.06), Vector3(-20, 0, 0))
+	var body = mesh_of(b)
+	root.add_child(body)
+	# akrep kuyruğu: sırttan (arkadan) kalkıp başın üstünden öne kıvrılan 14 boğum
+	var tb = MB.new()
+	var pts = []
+	for k in 15:
+		var f = k / 14.0
+		var ang = lerpf(-0.3, PI * 0.78, f)
+		pts.append(Vector3(0.35 * f * f, 1.1 + sin(ang) * 1.4, -0.4 - cos(ang) * 1.0 + f * 0.1))
+	for k in 14:
+		var p0: Vector3 = pts[k]; var p1: Vector3 = pts[k + 1]
+		var r = lerpf(0.15, 0.09, k / 13.0)
+		var dd = (p1 - p0).normalized()
+		var bas = Basis(Quaternion(Vector3.UP, dd))
+		tb.add_xf("box", Transform3D(bas * Basis.from_scale(Vector3(r * 2.2, (p1 - p0).length() * 0.8, r * 1.8)), (p0 + p1) * 0.5), Color(0.8, 0.78, 0.74).darkened(0.06 * (k % 2)))   # kutu omur (ref: açık gri)
+		tb.add("sphere", p1, Vector3.ONE * r * 1.2, Color(0.5, 0.48, 0.46), Vector3.ZERO, 8)
+	var tip: Vector3 = pts[14]
+	var td = (pts[14] - pts[13]).normalized()
+	tb.add_xf("cone", Transform3D(Basis(Quaternion(Vector3.UP, td)) * Basis.from_scale(Vector3(0.26, 0.6, 0.12)), tip + td * 0.3), Color(0.82, 0.82, 0.84), 4)   # ok bıçak
+	var tail = mesh_of(tb)
+	tail.name = "tail"
+	root.add_child(tail)
+	return root
+
+
 ## Hiruko: kambur zırh kuklasının içine girersin (15 sn, ağır zırh, yavaş); kuyruk zehirli darbeyle hedefe uzanır
 func p_kugutsu_hiruko(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 9.0)
 	busy(c, 0.8)
-	var shell = MB.new()
-	shell.add("sphere", Vector3(0, 1.0, -0.15), Vector3(1.5, 1.4, 1.8), Color(0.2, 0.18, 0.2))
-	shell.add("sphere", Vector3(0, 1.55, 0.6), Vector3(0.6, 0.55, 0.55), PWOOD.lightened(0.05))
-	shell.add("box", Vector3(0, 1.45, 0.86), Vector3(0.35, 0.06, 0.04), Color(0.1, 0.05, 0.05))
-	var hm = mesh_of(shell)
-	c.add_child(hm)
+	var hm = _hiruko_mesh()
+	var mdl = c.get("model")
+	if mdl:   # model yönüyle döner (gövde düğümü dönmüyor; yüz arkada kalıyordu)
+		mdl.add_child(hm)
+		hm.rotation.y = PI if mdl.get_meta("fwd_neg_z", true) else 0.0
+	else:
+		c.add_child(hm)
 	FX.smoke_puff(c.global_position + Vector3.UP, 1.0, 12)
 	if c is Player:
 		Buffs.add("hiruko", 15.0, {"armor": 0.65, "speed": 0.7, "_name": "Hiruko", "_desc": "zırh kuklasının içindesin"})
