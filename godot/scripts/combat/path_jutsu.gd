@@ -15408,21 +15408,20 @@ func p_jiongu(c: Node3D, t: Node3D) -> void:
 	if tt and not targets.has(tt):
 		targets.append(tt)
 	var thread = StandardMaterial3D.new()
-	thread.albedo_color = Color(0.08, 0.08, 0.1)
+	thread.albedo_color = Color(0.2, 0.2, 0.23)
 	thread.roughness = 0.8
-	for k in 16:
-		var a = k * TAU / 16.0
-		var tent = _branch(randf_range(3.5, 6.0), 0.18)
-		tent.material_override = thread
-		c.add_child(tent)
-		tent.position = Vector3(0, 1.2, 0)
-		tent.rotation = Vector3(PI * 0.5 + randf_range(-0.5, 0.3), a, 0)
-		tent.scale = Vector3(1, 0.05, 1)
-		var tw = tent.create_tween()
-		tw.tween_property(tent, "scale", Vector3.ONE, 0.25).set_trans(Tween.TRANS_BACK)
-		tw.tween_property(tent, "rotation:z", randf_range(-0.4, 0.4), 0.8)
-		tw.tween_property(tent, "scale", Vector3(1, 0.05, 1), 0.3)
-		tw.tween_callback(tent.queue_free)
+	var t0 = Game.now()
+	for k in 22:   # ref: bedenden her yöne dalgalanarak uzanan kalın kara iplik dokunaçları (koni değil)
+		var a = k * TAU / 22.0 + randf_range(-0.1, 0.1)
+		var L = randf_range(3.5, 6.0)
+		var dir = Vector3(cos(a), randf_range(-0.3, 0.7), sin(a)).normalized()
+		var base_h = randf_range(0.8, 1.6)
+		wavy_tether(func(): return c.global_position + Vector3.UP * base_h if is_instance_valid(c) else Vector3.ZERO,
+			func():
+				var u = Game.now() - t0
+				var ext = clampf(u / 0.25, 0.0, 1.0) * (1.0 - clampf((u - 1.1) / 0.3, 0.0, 1.0))
+				return (c.global_position if is_instance_valid(c) else Vector3.ZERO) + Vector3.UP * base_h + dir * L * maxf(0.05, ext),
+			randf_range(0.12, 0.18), thread, 1.4, randf_range(0.12, 0.25))
 	for e in targets:
 		after(0.25, func():
 			if not (live(c) and live(e)):
@@ -22945,10 +22944,10 @@ func p_jiongu_ito_kirbac(c: Node3D, t: Node3D) -> void:
 	var thread = StandardMaterial3D.new()
 	thread.albedo_color = Color(0.06, 0.06, 0.08)
 	var d = fwd(c, t)
-	for k in 5:
+	for k in 9:   # ref: kolun dikişlerinden fışkıran kıvrımlı kara iplik demeti (düz çubuk değil)
 		var from = hand_pos(c, true)
-		var end = from + d.rotated(Vector3.UP, deg_to_rad((k - 2) * 8.0)) * 12.0 + Vector3.UP * randf_range(-0.5, 0.5)
-		tether(func(): return hand_pos(c, true) if is_instance_valid(c) else from, func(): return end, 0.05, thread, 0.5)
+		var end = (tt.global_position + Vector3.UP + Vector3(randf_range(-0.4, 0.4), randf_range(-0.3, 0.5), randf_range(-0.4, 0.4))) if tt else from + d.rotated(Vector3.UP, deg_to_rad((k - 4) * 5.0)) * 12.0 + Vector3.UP * randf_range(-0.5, 0.5)
+		wavy_tether(func(): return hand_pos(c, true) if is_instance_valid(c) else from, func(): return end, 0.035, thread, 0.55, randf_range(0.12, 0.3))
 	if tt:
 		after(0.2, func():
 			if live(tt) and live(c):
