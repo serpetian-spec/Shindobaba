@@ -94,8 +94,8 @@ static func cast(p: Player, jid: String) -> bool:
 		return true
 	if v == "msbijuu":
 		var ey2: Eyes = m.eyes
-		if ey2 == null or not ey2.active or not Progress.has_eye("mangekyo"):
-			Hud.msg("Bijū Kuchiyose için Mangekyō'nu aç (V).", Color(1, 0.4, 0.4))
+		if ey2 == null or not ey2.active or not ey2.ms_on or not Progress.has_eye("mangekyo"):
+			Hud.msg("Bijū Kuchiyose için Mangekyō'nu aç (V: Sharingan, tekrar V: Mangekyō).", Color(1, 0.4, 0.4))
 			return true
 		if float(p.combat.cooldowns.get(jid, 0.0)) > 0.0:
 			Hud.msg("Canavar henüz dinlenmedi (%.0f sn)" % float(p.combat.cooldowns[jid]), Color(0.9, 0.8, 0.6))
@@ -111,6 +111,9 @@ static func cast(p: Player, jid: String) -> bool:
 		var ey: Eyes = m.eyes
 		if ey == null or not ey.active:
 			Hud.msg("%s için önce gözlerini aç (V)." % String(j["name"]).split(" (")[0], Color(1, 0.55, 0.5))
+			return true
+		if ey.has_ms() and not ey.ms_on:   # kanon: Mangekyō tekniği Mangekyō açılınca
+			Hud.msg("%s için Mangekyō'yu aç (V'ye tekrar bas)." % String(j["name"]).split(" (")[0], Color(1, 0.4, 0.4))
 			return true
 		ey.use_skill(v.substr(4))
 		return true

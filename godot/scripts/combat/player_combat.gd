@@ -1095,6 +1095,9 @@ func begin_cast(jid: String) -> void:
 	if need == "beast" and not in_beast:
 		Hud.msg("%s sadece kuyruklu canavar modunda atılabilir." % String(j["name"]), Color(1, 0.55, 0.3))
 		return
+	if Eyes.ms_tracked(jid) and modes and modes.eyes and not modes.eyes.ms_on:   # kanon: Mangekyō teknikleri ancak Mangekyō açıkken
+		Hud.msg("%s için Mangekyō açık olmalı (V: Sharingan, tekrar V: Mangekyō)." % String(j["name"]), Color(1, 0.4, 0.4))
+		return
 	var cblock = CanonRules.block(p, jid)
 	if cblock != "":
 		Hud.msg("%s: %s" % [String(j["name"]), cblock], Color(1, 0.65, 0.45))

@@ -35,8 +35,11 @@ static func tick(e: Enemy, dt: float) -> void:
 	var eblind = float(e.get_meta("ms_blind", 0.0))
 	if kind == 4 and e.has_meta("ea_susanoo") and is_instance_valid(e.get_meta("ea_susanoo")):
 		_ms_strain(e, dt * 0.004)   # açık Susanoo düşmanın da gözünü yorar (oyuncuyla aynı kural)
+	elif kind == 4 and e.get_meta("ms_open", false):
+		_ms_strain(e, dt * 0.0012)   # açık Mangekyō da yorar (oyuncuyla aynı oran)
 	# Mangekyō: can yarıya inince Susanoo (kör Mangekyō açamaz)
 	if kind in [4, 5] and not e.has_meta("ea_susanoo") and e.hp < e.max_hp * 0.5 and (kind == 5 or eblind < 1.0):
+		ms_open(e)
 		_susanoo(e)
 	var sn = e.get_meta("ea_susanoo") if e.has_meta("ea_susanoo") else null
 	if sn and is_instance_valid(sn):
@@ -78,6 +81,7 @@ static func tick(e: Enemy, dt: float) -> void:
 					_gaze(e, t, 1.2, Color(0.9, 0.05, 0.05), "Genjutsu!")   # kör Mangekyō: yalnız sıradan Sharingan genjutsusu
 					e.set_meta("ea_cd", randf_range(10.0, 14.0))
 				return
+			ms_open(e)
 			if kind == 4:
 				_ms_strain(e, 0.12)
 			if d < 9.0 and randf() < 0.45:
@@ -90,6 +94,21 @@ static func tick(e: Enemy, dt: float) -> void:
 				e.set_meta("ea_cd", randf_range(12.0, 16.0))
 
 
+## Düşman Mangekyō'yu açar (oyuncuyla aynı kural: Mangekyō sahibi önce 3 tomoe Sharingan'la dövüşür, Mangekyō tekniği ya da
+## Susanoo gerektiğinde gözü döner; açık kaldıkça körlük birikir, kör olunca Sharingan'a döner)
+static func ms_open(e: Enemy) -> void:
+	if e.get_meta("ms_open", false) or not e.has_meta("eyes"):
+		return
+	var ey: Dictionary = e.get_meta("eyes")
+	var kind = int(ey.get("kind", 0))
+	if not kind in [4, 5]:
+		return
+	e.set_meta("ms_open", true)
+	if e.get("model") and e.model.has_method("set_dojutsu_eyes"):
+		e.model.set_dojutsu_eyes(kind, int(ey.get("lvl", 3)), kind, int(ey.get("lvl", 3)), false)
+	Combat.popup_text(e.global_position + Vector3.UP * 2.7, "Mangekyō!", Color(0.85, 0.05, 0.08))
+
+
 ## Düşman Mangekyō körlüğü (oyuncuyla aynı kural): dolunca Mangekyō teknikleri ve Susanoo kapanır
 static func _ms_strain(e: Enemy, amount: float) -> void:
 	var b = float(e.get_meta("ms_blind", 0.0))
@@ -97,6 +116,9 @@ static func _ms_strain(e: Enemy, amount: float) -> void:
 	e.set_meta("ms_blind", nb)
 	if b < 1.0 and nb >= 1.0:
 		Combat.popup_text(e.global_position + Vector3.UP * 2.6, "Gözleri karardı!", Color(0.7, 0.2, 0.25))
+		e.set_meta("ms_open", false)
+		if e.get("model") and e.model.has_method("set_dojutsu_eyes"):
+			e.model.set_dojutsu_eyes(1, 3, 1, 3, false)
 		var sn = e.get_meta("ea_susanoo") if e.has_meta("ea_susanoo") else null
 		if sn and is_instance_valid(sn):
 			sn.queue_free()
@@ -126,6 +148,7 @@ static func kamui_phase(e: Enemy) -> bool:
 		return true
 	if now < int(e.get_meta("kamui_next", 0)):
 		return false
+	ms_open(e)
 	e.set_meta("kamui_until", now + 2500)
 	e.set_meta("kamui_next", now + 8500)
 	_ms_strain(e, 0.05)

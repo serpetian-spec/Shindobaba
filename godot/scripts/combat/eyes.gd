@@ -87,6 +87,7 @@ static func ms_tracked(jid: String) -> bool:
 var p: Player
 var c: PlayerCombat
 var active = false
+var ms_on = false          # Mangekyō açık mı (Sharingan açıkken V'ye yeniden basınca); açık kaldıkça göz kararır
 var cd := {"sag": 0.0, "sol": 0.0}
 var strain = 0.0          # Mangekyō yorgunluğu (görüş bulanır)
 var susanoo = false
@@ -117,9 +118,27 @@ func has_eyes() -> bool:
 	return eye("sag") != null or eye("sol") != null
 
 
-func _kind(side: String) -> int:
+## Gözün gerçek türü (Mangekyō kapalıyken de 4/5): körlük, Ebedi iyileşmesi, nakil kuralları bunu kullanır
+func _raw_kind(side: String) -> int:
 	var e = eye(side)
 	return int(e["kind"]) if e != null else 0
+
+
+## Kullanılan tür (kanon): Mangekyō sahibi gözünü önce sıradan 3 tomoe Sharingan olarak açar; Mangekyō ayrı, isteğe bağlı açılır
+## (ms_on). Kapalıyken görünüş, göz teknikleri ve kaçınma Sharingan'ınki; Mangekyō teknikleri/Susanoo/Kamui yalnız ms_on iken.
+func _kind(side: String) -> int:
+	var k = _raw_kind(side)
+	if k in [4, 5] and not ms_on:
+		return 1
+	return k
+
+
+func has_ms() -> bool:
+	return _raw_kind("sag") in [4, 5] or _raw_kind("sol") in [4, 5]
+
+
+func _ems() -> bool:
+	return _raw_kind("sag") == 5 or _raw_kind("sol") == 5
 
 
 func _lvl(side: String) -> int:
@@ -178,7 +197,9 @@ func refresh_visual() -> void:
 	var r = _kind("sag"); var l = _kind("sol")
 	var vr = r if (active or r in ALWAYS_VISIBLE) else 0
 	var vl = l if (active or l in ALWAYS_VISIBLE) else 0
-	p.model.set_dojutsu_eyes(vr, _lvl("sag"), vl, _lvl("sol"), active and (r == 2 or l == 2))
+	var lr = 3 if (vr == 1 and _raw_kind("sag") in [4, 5]) else _lvl("sag")   # Mangekyō sahibinin Sharingan'ı: 3 tomoe
+	var ll = 3 if (vl == 1 and _raw_kind("sol") in [4, 5]) else _lvl("sol")
+	p.model.set_dojutsu_eyes(vr, lr, vl, ll, active and (r == 2 or l == 2))
 	p.model.set_ms_designs(design_for(Game.profile, "sag_goz"), design_for(Game.profile, "sol_goz"))
 	_third_eye(false)   # alında üçüncü göz (Rinne Sharingan / Ōtsutsuki) oyundan kaldırıldı
 
@@ -255,7 +276,10 @@ func handle_input(e: InputEvent) -> bool:
 		var held = v_held
 		v_held = -1.0
 		if held < 0.45:
-			toggle()
+			if active and has_ms() and not ms_on:
+				open_ms()
+			else:
+				toggle()
 		return true
 	if susanoo and is_instance_valid(susanoo_node):
 		# Susanoo vuruşları ağır ve yavaş: her savuruş arası bekleme + chakra (eskiden tıkladıkça seri vuruyordu: her şeyi kesiyordu)
@@ -286,7 +310,7 @@ func handle_input(e: InputEvent) -> bool:
 			susanoo_node.special(p, p.cam_forward())
 			return true
 	# Kamui geçirgenliği (Obito tarzı Mangekyō, gözler açıkken): kaçma tuşunu basılı tut — saldırılar içinden geçer
-	if e.is_action_pressed("substitute") and active and has_style("obito") and blind() < 1.0 and phase_cd <= 0.0:
+	if e.is_action_pressed("substitute") and active and ms_on and has_style("obito") and blind() < 1.0 and phase_cd <= 0.0:
 		_phase_start()
 		return true
 	if e.is_action_released("substitute") and phasing:
@@ -413,9 +437,33 @@ func _eye_buff() -> void:
 	Buffs.add("eyes", 99999.0, mods)
 
 
+## Mangekyō'yu aç (Sharingan açıkken V): desen döner, göz kanar; açık kaldıkça körlük birikir (Ebedi hariç)
+func open_ms() -> void:
+	if not has_ms():
+		return
+	if blind() >= 1.0 and not _ems():
+		Hud.msg("Gözlerin kör: Mangekyō açılmıyor. Ebedi Mangekyō gerek.", Color(1, 0.45, 0.45))
+		return
+	if not active:
+		toggle()
+	ms_on = true
+	Sfx.play("sharingan", null)
+	_eye_closeup(4)
+	FX.ring(p.global_position + Vector3.UP * 1.5, Color(0.8, 0.02, 0.05), 3.2, 0.4, false, -p.face_dir())
+	var sk = []
+	for sd in ["sag", "sol"]:
+		var sn = _skill_name(sd)
+		if sn != "" and not sn in sk:
+			sk.append(sn)
+	Hud.msg("MANGEKYŌ SHARINGAN%s%s" % [("  —  " + ", ".join(sk)) if not sk.is_empty() else "", "" if _ems() else "   (açık kaldıkça gözün kararır — V: kapat)"], Color(1, 0.3, 0.3), 5.0)
+	_eye_buff()
+	refresh_visual()
+
+
 func _close() -> void:
 	Buffs.remove("eyes")
 	active = false
+	ms_on = false
 	Combat.base_time_scale = 1.0
 	Combat.self_slow = false
 	if Game.world:
@@ -655,11 +703,13 @@ func _can_susanoo() -> bool:
 func _start_susanoo() -> void:
 	if not _can_susanoo() or susanoo:
 		return
-	if blind() >= 1.0 and not (_kind("sag") == 5 or _kind("sol") == 5):
+	if blind() >= 1.0 and not _ems():
 		Hud.msg("Gözlerin kör: Susanoo'yu çağıramıyorsun.", Color(1, 0.45, 0.45))
 		return
 	if not active:
 		toggle()
+	if not ms_on:
+		open_ms()   # Susanoo Mangekyō gözüyle çağrılır
 	susanoo = true
 	var sn = Susanoo.new()
 	sn.name = "Susanoo"
@@ -716,7 +766,9 @@ static func give_enemy_eyes(f: Node, kind: int, lvl := 3) -> void:
 	f.set_meta("eyes", {"kind": kind, "lvl": lvl})
 	f.add_to_group("dojutsu_bearers")   # öldükten sonra "fighters"tan çıkar; göz çalma bu grubu tarar
 	if f.get("model") and f.model and f.model.has_method("set_dojutsu_eyes"):
-		f.model.set_dojutsu_eyes(kind, lvl, kind, lvl, kind == 2)
+		var vk = 1 if kind in [4, 5] else kind   # oyuncuyla aynı: Mangekyō ancak kullanınca açılır (EnemyArts.ms_open)
+		var vl = 3 if kind in [4, 5] else lvl
+		f.model.set_dojutsu_eyes(vk, vl, vk, vl, kind == 2)
 
 
 func _steal(f: Node3D) -> void:
@@ -738,7 +790,7 @@ func _steal(f: Node3D) -> void:
 # ------------------------------------------------------------------ Sharingan kopyalama
 var _copy_warned := {}   # kopyalanamayan teknik uyarısı jutsu başına bir kez
 func _on_jutsu_cast(caster: Node, id: String) -> void:
-	if caster == p and ms_tracked(id) and not (_kind("sag") == 5 or _kind("sol") == 5):
+	if caster == p and ms_tracked(id) and not _ems():
 		add_blind(0.03)   # Mangekyō tarzının jutsuları da gözü yıpratır
 	if not active or caster == p or not is_instance_valid(caster):
 		return
@@ -801,7 +853,7 @@ func _process(dt: float) -> void:
 		if Susanoo.max_tier(Game.profile) > before:
 			Hud.banner("SUSANOO USTALIĞI", "Yeni kademe açıldı: %s" % Susanoo.TIER_NAMES[Susanoo.max_tier(Game.profile)], Color(0.8, 0.6, 1.0))
 	if active:
-		var ems = _kind("sag") == 5 or _kind("sol") == 5
+		var ems = _ems()
 		var drain = 2.0 * _transplant_mult() * (0.6 if ems else 1.0) * maxf(0.3, 1.0 + Stats.skill(Game.profile, "eye_cost"))
 		if susanoo and is_instance_valid(susanoo_node):
 			# Susanoo azami chakranın yüzdesini yer (sabit miktar yüksek seviyede yenilenmeye yenik düşüp sonsuz açık kalıyordu):
@@ -979,7 +1031,7 @@ var _evo_cd := 0.0
 
 
 func _both_slots_kind(kind: int) -> bool:
-	return _kind("sag") == kind and _kind("sol") == kind
+	return _raw_kind("sag") == kind and _raw_kind("sol") == kind
 
 
 func _replace_eyes(new_id: String, slots: Array, lvl := 1) -> void:
@@ -1042,9 +1094,9 @@ func blind() -> float:
 
 func add_blind(amount: float) -> void:
 	var pr = Game.profile
-	if _kind("sag") == 5 or _kind("sol") == 5:
+	if _ems():
 		return
-	if not (_kind("sag") == 4 or _kind("sol") == 4):
+	if not (_raw_kind("sag") == 4 or _raw_kind("sol") == 4):
 		return
 	var before = blind()
 	var mult = 1.35 if pr.get("flags", {}).get("hatred", false) else 1.0
@@ -1067,13 +1119,19 @@ var _ems_healed := false
 func _blind_tick(dt: float) -> void:
 	var pr = Game.profile
 	# Ebedi Mangekyō: körlük iyileşir
-	if (_kind("sag") == 5 or _kind("sol") == 5) and blind() > 0.0:
+	if _ems() and blind() > 0.0:
 		pr["ms_blind"] = 0.0
 		Hud.banner("EBEDİ MANGEKYŌ", "Karanlık dağıldı: gözlerin bir daha kararmayacak", Color(0.9, 0.2, 0.25))
-	if susanoo and is_instance_valid(susanoo_node) and not (_kind("sag") == 5 or _kind("sol") == 5):
+	if susanoo and is_instance_valid(susanoo_node) and not _ems():
 		add_blind(dt * 0.0025)   # açık Susanoo da gözü yorar (~6-7 dk sürekli kullanım = körlük)
+	elif active and ms_on and not _ems():
+		add_blind(dt * 0.0012)   # kanon: Mangekyō açık kaldıkça göz yorulur (~14 dk sürekli açık = körlük); kapatınca durur
+		if blind() >= 1.0:
+			ms_on = false
+			_eye_buff()
+			refresh_visual()
 	# görüş kararması: ekran kenarları (yalnız değişince ayarla)
-	var b = blind() if (_kind("sag") == 4 or _kind("sol") == 4) else 0.0
+	var b = blind() if (_raw_kind("sag") == 4 or _raw_kind("sol") == 4) else 0.0
 	if absf(b - _blind_vis) > 0.01 and Game.world and Game.world.env.get("post_mat"):
 		_blind_vis = b
 		Game.world.env.post_mat.set_shader_parameter("vignette", 0.55 + b * 2.5)

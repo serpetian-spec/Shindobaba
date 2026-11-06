@@ -14,7 +14,8 @@ var duel_cd := 0.0
 func _ready() -> void:
 	super._ready()
 	if model and eye_kind > 0:
-		model.set_dojutsu_eyes(eye_kind, eye_lvl, eye_kind, eye_lvl, false)
+		var vk = 1 if eye_kind in [4, 5] else eye_kind   # Mangekyō gündelik hayatta açık durmaz
+		model.set_dojutsu_eyes(vk, 3 if vk != eye_kind else eye_lvl, vk, 3 if vk != eye_kind else eye_lvl, false)
 
 
 func _physics_process(dt: float) -> void:
