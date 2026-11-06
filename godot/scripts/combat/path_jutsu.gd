@@ -6661,40 +6661,75 @@ func p_kebari_senbon(c: Node3D, t: Node3D) -> void:
 				VFX.trail(pr, 0.04, Color(1, 1, 1, 0.8), hair, Color(hair.r, hair.g, hair.b, 0), 8, 0.2))
 
 
-## Aslan Yelesi: saç dev yeleye döner, onlarca kalın tutam hedefe uzanıp onu kozaya sarar ve sıkar
+## Aslan Yelesi (ref refs/gama/Wild_Lion_s_Mane): saç KAFADAN ince teller halinde dalga dalga uzanır, hedefin gövdesine ve bacaklarına
+## farklı açılarda ince halkalarla + sarmal telle dolanıp sıkar; kafadan hedefe birkaç ince tel bağ süresince gerili kalır
 func p_ranjishigami_no_jutsu(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 14.0)
 	busy(c, 1.2)
 	if tt == null:
 		return
 	var hair: Color = c.model.look.get("hair", Color(0.9, 0.9, 0.88)) if c.get("model") else Color(0.9, 0.9, 0.88)
+	var strand = hair.lightened(0.12)
 	var hm = StandardMaterial3D.new()
-	hm.albedo_color = hair
-	for k in 12:
-		var off = Vector3(randf_range(-0.5, 0.5), randf_range(0.2, 1.6), randf_range(-0.5, 0.5))
-		var wob = randf() * TAU
-		tether(func(): return c.global_position + Vector3.UP * 1.75 + Vector3(sin(wob) * 0.2, 0, cos(wob) * 0.2),
-			func(): return tt.global_position + off if live(tt) else c.global_position, 0.14, hm, 2.4)
+	hm.albedo_color = strand
+	var hb = bone_attach(c, "Head")
+	var head_at = func() -> Vector3:
+		return (hb.global_position + Vector3.UP * 0.12) if is_instance_valid(hb) else c.global_position + Vector3.UP * 1.75
+	var h0: Vector3 = head_at.call()
+	var side = (tt.global_position - h0).cross(Vector3.UP).normalized()
+	# uzanma: 16 ince tel kafadan dalga dalga hedefe (her biri kendi dalgası)
+	for k in 16:
+		var off = Vector3(randf_range(-0.35, 0.35), randf_range(0.3, 1.5), randf_range(-0.35, 0.35))
+		var ph = randf() * TAU
+		var amp = randf_range(0.2, 0.5)
+		var end0: Vector3 = tt.global_position + off
+		WindFX.streak(func(q: float) -> Vector3:
+			var p0 = h0.lerp(end0, q)
+			var env = sin(q * PI)
+			return p0 + side * sin(q * 10.0 + ph) * amp * env + Vector3.UP * cos(q * 8.0 + ph) * amp * 0.6 * env,
+			0.45, 0.022, strand, k * 0.012, 26, hm)
 	Sfx.play("whoosh", c.global_position, 0.8)
 	after(0.35, func():
 		if not live(tt):
 			return
+		# sarma: ince halkalar (farklı yükseklik ve eğim) + bedeni dolanan sarmal tel
 		var coc = Node3D.new()
-		for j in 5:
+		var hgt: float = float(tt.get("height")) if tt.get("height") != null else 1.8
+		for j in 9:
 			var ring = MeshInstance3D.new()
 			var tm = TorusMesh.new()
-			tm.inner_radius = 0.42; tm.outer_radius = 0.6; tm.rings = 20; tm.ring_segments = 8
+			var r = randf_range(0.36, 0.5)
+			tm.inner_radius = r
+			tm.outer_radius = r + 0.035
+			tm.rings = 24; tm.ring_segments = 5
 			ring.mesh = tm
 			ring.material_override = hm
-			ring.position = Vector3.UP * (0.3 + j * 0.35)
-			ring.rotation = Vector3(randf_range(-0.3, 0.3), 0, randf_range(-0.3, 0.3))
+			ring.position = Vector3.UP * (0.25 + j * hgt * 0.1)
+			ring.rotation = Vector3(randf_range(-0.6, 0.6), randf() * TAU, randf_range(-0.6, 0.6))
 			coc.add_child(ring)
+		var b = MB.new()   # sarmal tel: bedeni aşağıdan yukarı 4 tur dolanır
+		var N = 48
+		for i in N:
+			var a0 = TAU * 4.0 * i / N
+			var a1 = TAU * 4.0 * (i + 1) / N
+			var p0 = Vector3(cos(a0) * 0.45, 0.2 + hgt * 0.85 * i / N, sin(a0) * 0.45)
+			var p1 = Vector3(cos(a1) * 0.45, 0.2 + hgt * 0.85 * (i + 1) / N, sin(a1) * 0.45)
+			var mid = (p0 + p1) * 0.5
+			var d = p1 - p0
+			b.add("cyl", mid, Vector3(0.03, d.length() + 0.02, 0.03), strand, Vector3(rad_to_deg(acos(clampf(d.normalized().y, -1, 1))), rad_to_deg(atan2(d.x, d.z)), 0), 4)
+		coc.add_child(mesh_of(b))
 		tt.add_child(coc)
-		coc.scale = Vector3.ONE * 1.6
+		coc.scale = Vector3(1.5, 1.0, 1.5)
 		var tw = coc.create_tween()
-		tw.tween_property(coc, "scale", Vector3.ONE, 0.25)
+		tw.tween_property(coc, "scale", Vector3.ONE, 0.25)   # sıkar
 		tw.tween_interval(2.0)
 		tw.tween_callback(coc.queue_free)
+		for k in 5:   # bağ: kafadan hedefe gerili ince teller
+			var off2 = Vector3(randf_range(-0.3, 0.3), randf_range(0.6, 1.3), randf_range(-0.3, 0.3))
+			tether(head_at, func(): return tt.global_position + off2 if live(tt) else head_at.call(), 0.025, hm, 2.3)
+		after(2.4, func():
+			if is_instance_valid(hb):
+				hb.queue_free())
 		st(tt, "bind", 2.4)
 		every(2.0, 0.5, func(_i, _k):
 			if live(tt):

@@ -19,7 +19,9 @@ static func build(kind: String, b: Builder, pid: String, p: Vector2, base: float
 			return _clinic(b, pid, p, base)
 		"paper":
 			return _paper(b, pid, p, base)
-		"toad", "clay", "thread", "thunder", "chidori", "jashin", "octo", "ink", "puppet":
+		"toad":
+			return _toad(b, pid, p, base)
+		"clay", "thread", "thunder", "chidori", "jashin", "octo", "ink", "puppet":
 			return _hall(b, pid, p, base, kind)
 	return 0.0
 
@@ -416,6 +418,100 @@ static func _forge(b: Builder, pid: String, p: Vector2, base: float) -> float:
 	LegendPaths.drill_spots[pid] = {"posts": posts, "center": b.w(Vector3(0, _g(p, base, 0.0, -2.0), -2.0))}
 	LegendPaths._mentor(b, pid, Vector3(-1.5, fy + 0.8, 8.4), PI)
 	b.interact(Vector3(-1.5, fy, 6.0), 6.5, "path_mentor", "[F] Silah ustasıyla konuş", {"path": pid})
+	return 5.0
+
+
+## Yosunlu Kurbağa Tapınağı (Kurbağa Bilgesi Yolu, Şelale Ülkesi): arkada yosunlu kayalıktan dökülen şelale ve gölet (yürünebilir su,
+## nilüfer yaprakları), iki yanda yosun tutmuş dev taş kurbağa heykelleri, kırmızı çatılı küçük tapınak (hokora), kurbağa yağı küpleri,
+## ustanın roman yazdığı alçak yazı masası (parşömen yığını, mürekkep, fener), iğne talimi için saman kuklalar.
+static func _toad(b: Builder, pid: String, p: Vector2, base: float) -> float:
+	var stone = Color(0.5, 0.52, 0.48)
+	var moss = Color(0.3, 0.45, 0.25)
+	var wood = Color(0.42, 0.28, 0.17)
+	var red = Color(0.72, 0.18, 0.14)
+	var toad_c = Color(0.55, 0.6, 0.42)
+	var spots: Dictionary = {}
+	var gy = _g(p, base, 0, 0)
+	var RM = preload("res://scripts/world/road_map.gd")
+	for k in 11:   # avlu + gölet zemini (gölet altında çimen suyun içinden çıkıyordu)
+		var zz = -14.0 + k * 3.5
+		var wa = b.w(Vector3(-14.0, 0, zz)); var wb = b.w(Vector3(14.0, 0, zz))
+		RM.add_lane(Vector2(wa.x, wa.z), Vector2(wb.x, wb.z), 2.0, true)
+	# ---- gölet (arka): kaya halka + yürünebilir su + nilüfer yaprakları + şelale
+	var PN = 14.0
+	var py = _g(p, base, 0, PN)
+	for k in 26:
+		var a = TAU * k / 26.0
+		var rx = cos(a) * 9.0; var rn = PN + sin(a) * 5.5
+		if sin(a) < -0.55 and absf(cos(a)) < 0.5:
+			continue   # ön tarafta giriş boşluğu (göletin kıyısına inilir)
+		b.boulder(Vector3(rx, _g(p, base, rx, rn) + 0.35, rn), Vector3(1.6, 0.9, 1.4), stone.darkened(0.1 * (k % 3)), k, true)
+		b.sphere(Vector3(rx, _g(p, base, rx, rn) + 0.8, rn), Vector3(1.2, 0.25, 1.0), moss, 6)
+	AcademyGrounds._oval_water(b, Vector3(0, py + 0.3, PN), 17.0, 10.0)   # oval su: kaya halkasıyla aynı biçim (dikdörtgenin köşeleri taşıyordu)
+	for k in 7:
+		var lx = randf_range(-6.0, 6.0); var ln = PN + randf_range(-3.0, 3.0)
+		b.cyl(Vector3(lx, py + 0.33, ln), randf_range(0.8, 1.3), 0.03, Color(0.3, 0.55, 0.28), false, 10)
+		if k % 3 == 0:
+			b.sphere(Vector3(lx + 0.2, py + 0.42, ln), Vector3(0.25, 0.18, 0.25), Color(0.95, 0.7, 0.8), 6)   # nilüfer çiçeği
+	# şelale kayalığı (göletin arkasında) + dökülen su
+	for k in 7:
+		b.boulder(Vector3(-7.0 + k * 2.3, py + 3.0 + (k % 2) * 1.5, PN + 6.5), Vector3(3.2, 6.5 + (k % 3), 2.6), stone.darkened(0.15), k + 30, true)
+		b.sphere(Vector3(-7.0 + k * 2.3, py + 6.6 + (k % 2) * 1.5, PN + 6.0), Vector3(2.6, 0.6, 2.0), moss.darkened(0.1), 6)
+	Waterfalls.add(b.w(Vector3(0, py + 0.3, PN + 5.2)), 7.5, 3.4, 0.0)
+	# ---- dev taş kurbağa heykelleri (gölet iki yanında): gövde + baş + yuvarlak gözler + yosun
+	for sx in [-1.0, 1.0]:
+		var tx = 11.0 * sx; var tn = 9.0
+		var ty = _g(p, base, tx, tn)
+		b.box(Vector3(tx, ty + 0.4, tn), Vector3(3.2, 0.8, 3.2), stone, 0.0, true)          # kaide
+		b.sphere(Vector3(tx, ty + 2.0, tn), Vector3(3.0, 2.4, 3.2), toad_c, 10, true)        # gövde
+		b.sphere(Vector3(tx, ty + 3.3, tn - 0.6), Vector3(2.4, 1.4, 2.0), toad_c.lightened(0.05), 10)   # baş
+		for ex in [-1.0, 1.0]:
+			b.sphere(Vector3(tx + ex * 0.75, ty + 4.0, tn - 0.9), Vector3(0.65, 0.65, 0.65), toad_c.lightened(0.1), 8)
+			b.sphere(Vector3(tx + ex * 0.75, ty + 4.05, tn - 1.15), Vector3(0.3, 0.32, 0.2), Color(0.1, 0.08, 0.06), 6)   # göz bebeği
+		b.box(Vector3(tx, ty + 3.05, tn - 1.55), Vector3(1.4, 0.06, 0.1), Color(0.2, 0.18, 0.15), 0.0, false)   # ağız çizgisi
+		for k in 4:   # ön ayaklar + yosun lekeleri
+			b.sphere(Vector3(tx + (k - 1.5) * 0.7, ty + 1.0, tn - 1.5), Vector3(0.5, 0.4, 0.7), toad_c.darkened(0.08), 6)
+		b.sphere(Vector3(tx + 0.6, ty + 3.4, tn + 0.2), Vector3(1.2, 0.35, 1.0), moss, 6)
+	# ---- küçük tapınak (hokora): taş kaide, ahşap gövde, kırmızı çatı, önünde sunu kabı + kurbağa yağı küpleri
+	var hx = -6.0; var hn = 2.0
+	var hy = _g(p, base, hx, hn)
+	b.box(Vector3(hx, hy + 0.5, hn), Vector3(2.4, 1.0, 2.0), stone)
+	b.box(Vector3(hx, hy + 1.6, hn), Vector3(1.8, 1.2, 1.5), wood)
+	b.box(Vector3(hx, hy + 1.6, hn - 0.76), Vector3(0.9, 0.8, 0.04), Color(0.15, 0.1, 0.08), 0.0, false)
+	b.roof(Vector3(hx, hy + 2.3, hn), Vector3(2.8, 1.0, 2.4), red)
+	b.kanji(Vector3(hx, hy + 2.2, hn - 0.9), "蛙", 0.5, Color(0.95, 0.85, 0.5), 180.0)
+	for k in 5:   # kurbağa yağı küpleri (kehribar sırlı)
+		var jx = hx + 2.0 + (k % 3) * 0.75; var jn = hn - 0.6 + (k / 3) * 0.8
+		var jy = _g(p, base, jx, jn)
+		b.cyl(Vector3(jx, jy + 0.4, jn), 0.6, 0.8, Color(0.6, 0.38, 0.15), true, 10)
+		b.cyl(Vector3(jx, jy + 0.82, jn), 0.36, 0.08, Color(0.25, 0.18, 0.1), false, 8)
+	# ---- ustanın yazı masası (sağ önde): alçak masa, parşömen yığını, mürekkep taşı, fener, minder
+	var dx = 6.0; var dn = 2.0
+	var dy = _g(p, base, dx, dn)
+	b.box(Vector3(dx, dy + 0.38, dn), Vector3(1.8, 0.08, 0.9), wood)
+	for q in 4:
+		b.box(Vector3(dx + (0.8 if q % 2 else -0.8), dy + 0.17, dn + (0.38 if q < 2 else -0.38)), Vector3(0.08, 0.34, 0.08), wood.darkened(0.2), 0.0, false)
+	for k in 4:
+		b.cyl(Vector3(dx - 0.55, dy + 0.48 + k * 0.08, dn), 0.08, 0.6, Color(0.9, 0.86, 0.72), false, 6)
+	b.box(Vector3(dx + 0.2, dy + 0.43, dn), Vector3(0.6, 0.01, 0.5), Color(0.95, 0.93, 0.85), 0.0, false)   # yazılan sayfa
+	b.box(Vector3(dx + 0.65, dy + 0.45, dn - 0.2), Vector3(0.18, 0.05, 0.12), Color(0.1, 0.1, 0.12), 0.0, false)   # mürekkep taşı
+	b.box(Vector3(dx, dy + 0.04, dn + 0.9), Vector3(0.9, 0.08, 0.7), Color(0.5, 0.25, 0.2), 0.0, false)   # minder
+	b.lantern(dx + 2.0, dn)
+	b.lantern(hx - 2.0, hn)
+	# ---- iğne talimi: saman kuklalar (önde)
+	var posts: Array = []
+	for k in 3:
+		var kx = -3.0 + k * 3.0; var kn = -9.0
+		var ky = _g(p, base, kx, kn)
+		b.box(Vector3(kx, ky + 0.9, kn), Vector3(0.18, 1.8, 0.18), wood)
+		b.cyl(Vector3(kx, ky + 1.5, kn), 0.6, 1.0, Color(0.85, 0.75, 0.45), false, 10)
+		b.sphere(Vector3(kx, ky + 2.3, kn), Vector3(0.5, 0.5, 0.5), Color(0.88, 0.78, 0.48))
+		posts.append(b.w(Vector3(kx, ky, kn)))
+	spots["posts"] = posts
+	spots["center"] = b.w(Vector3(0, _g(p, base, 0, -3), -3))
+	LegendPaths.drill_spots[pid] = spots
+	LegendPaths._mentor(b, pid, Vector3(dx, dy + 0.05, dn + 0.9), PI)
+	b.interact(Vector3(dx, dy, dn - 1.2), 5.0, "path_mentor", "[F] Kurbağa Bilgesi ile konuş", {"path": pid})
 	return 5.0
 
 

@@ -22,6 +22,10 @@ const DRILLS := {
 	"jagei_jubaku": {"type": "collect", "n": 6, "time": 120.0, "item": "zehir kesesi", "say": "Gölge yılanlar zehirden beslenir. İnin çevresindeki ölü yılanlardan altı zehir kesesi topla, iki dakikan var."},
 	"hebi_bunshin_no_jutsu": {"type": "survive", "n": 20, "time": 0.0, "say": "Deri değiştiren beden zehre dayanır. Şu mor sisin içinde yirmi saniye dur — kaçarsan baştan."},
 	"sen_ei_tajashu": {"type": "survive", "n": 30, "time": 0.0, "say": "Bin yılan kolundan fışkırır; damarların zehri tanımalı. Otuz saniye sisin içinde kal."},
+	# Kurbağa Bilgesi Yolu: kurbağa yağı toplama, saç iğnesi talimi, diken kalkanıyla yağan silaha dayanma (savunma tekniği)
+	"gamayudan": {"type": "collect", "n": 6, "time": 100.0, "item": "yağ kabağı", "color": Color(0.85, 0.55, 0.15), "say": "Kurbağa yağı ateşin canıdır. Göletin çevresine bıraktığım altı yağ kabağını topla — yüz saniye, devirmeden!"},
+	"kebari_senbon": {"type": "hits", "n": 30, "time": 40.0, "say": "Saç, chakrayla sertleşince iğne olur. Şu kuklalara kırk saniyede otuz isabet — saçını savur!"},
+	"hari_jizo": {"type": "survive", "n": 20, "time": 0.0, "rain": true, "say": "Diken Bekçisi kaçmaz, karşılar. Çemberin içinde yirmi saniye dur; yağan kunailere saçınla kalkan ol, çemberden çıkma!"},
 	# Kâğıt Yolu (Konan): kâğıdı anlamak (figür katlama), dağılan kelebekleri toplamak, kanatla zirveye çıkmak, kâğıt mızrak
 	"kami_bunshin": {"type": "tend", "n": 3, "dwell": 4.0, "spots": "mats", "item": "kâğıt figür", "say": "Kâğıt beden, kâğıdı anlamakla başlar. Üç masada birer insan figürü katla — her birine dört saniye chakra ver, elin titremesin."},
 	"kami_chocho": {"type": "collect", "n": 8, "time": 60.0, "item": "kelebek", "look": "butterfly", "say": "Kâğıt kelebeklerim rüzgârla dağıldı. Bir dakikada sekizini yakala; seninle uçmayı öğrensinler."},
@@ -688,17 +692,17 @@ func start_drill(pid: String, jid: String) -> void:
 		# in çevresine dağılmış zehir keseleri (mor parlayan küçük keseler): yaklaşınca toplanır
 		for k in int(D["n"]):
 			var a = TAU * k / float(D["n"]) + randf_range(-0.3, 0.3)
-			var q: Vector3 = center + Vector3(cos(a), 0, sin(a)) * randf_range(9.0, 20.0)
-			q.y = Game.ground_height(q.x, q.z) + 0.3
+			var q: Vector3 = Missions.open_ground(center + Vector3(cos(a), 0, sin(a)) * randf_range(9.0, 20.0), 8.0) + Vector3.UP * 0.3   # kaya/ağaç/yapı içine düşmesin
 			var bag = MeshInstance3D.new()
 			var sm = SphereMesh.new()
 			sm.radius = 0.28
 			sm.height = 0.46
 			bag.mesh = sm
 			var bm = StandardMaterial3D.new()
-			bm.albedo_color = Color(0.6, 0.25, 0.85)
+			var bc: Color = D.get("color", Color(0.6, 0.25, 0.85))   # antrenmana göre renk (zehir kesesi mor, yağ kabağı kehribar)
+			bm.albedo_color = bc
 			bm.emission_enabled = true
-			bm.emission = Color(0.55, 0.2, 0.85)
+			bm.emission = bc.darkened(0.08)
 			bm.emission_energy_multiplier = 1.4
 			bag.material_override = bm
 			get_tree().current_scene.add_child(bag)
