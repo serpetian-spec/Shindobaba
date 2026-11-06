@@ -67,7 +67,7 @@ uniform bool eye_mode = false;     // göz: iris tint, beyaz korunur
 uniform vec4 eye_color : source_color = vec4(0.3, 0.5, 0.9, 1.0);
 uniform int dojutsu = 0;      // 0 yok, 1 sharingan, 2 byakugan, 3 ketsuryugan, 4 mangekyo
 uniform int sage_eyes = 0;    // sennin modu gözü: 1 kurbağa (yatay göz bebeği), 2 yılan (dikey yarık), 3 sümüklü
-uniform int sage_marks = 0;   // sennin yüz izleri: 1 turuncu pigment, 2 mor yılan çizgileri, 3 yeşil çizgiler
+uniform int sage_marks = 0;   // sennin yüz izleri: 1 turuncu pigment, 2 mor yılan çizgileri, 3 yeşil çizgiler, 4 Byakugō mühür çizgileri (beden)
 uniform int tomoe = 3;
 uniform int dojutsu_l = 0;    // sol göz (model +X)
 uniform int tomoe_l = 3;
@@ -297,6 +297,14 @@ void fragment() {
 			if (sage_marks == 1 && length(e) < 1.0 && length(e) > 0.55) c.rgb = mix(c.rgb, vec3(0.95, 0.4, 0.08), 0.85);  // göz çevresi turuncu pigment
 			if (sage_marks == 2 && ax > 0.045 && ax < 0.075 && abs(rest.y - (face_ref.y - 0.012) + (ax - 0.045) * 0.9) < 0.004) c.rgb = vec3(0.45, 0.15, 0.55);  // mor yılan izi
 			if (sage_marks == 3 && ax > 0.03 && ax < 0.06 && rest.y < face_ref.y - 0.02 && abs(fract(ax * 90.0) - 0.5) < 0.12) c.rgb = mix(c.rgb, vec3(0.35, 0.75, 0.4), 0.8);  // yeşil çizgiler
+		}
+		if (slot == 0 && sage_marks == 4) {   // Byakugō / Sōzō Saisei: alında mor elmas + tüm tene yayılan kara mühür çizgileri
+			vec2 dd = vec2(rest.x, rest.y - (face_ref.y + 0.05));
+			if (abs(dd.x) + abs(dd.y) < 0.014 && rest.z > face_ref.z - 0.02) c.rgb = vec3(0.55, 0.15, 0.7);
+			else {
+				float w = sin(rest.y * 120.0 + sin(rest.x * 70.0 + rest.z * 50.0) * 3.0);
+				if (abs(w) < 0.2) c.rgb = mix(c.rgb, vec3(0.08, 0.04, 0.1), 0.92);
+			}
 		}
 		if (slot == 0 && byakugan_veins > 0.0 && rest.y > face_ref.y - 0.05 && rest.y < face_ref.y + 0.06) {
 			float ax = abs(rest.x);

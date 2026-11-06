@@ -80,7 +80,7 @@ func _ready() -> void:
 				cc.global_position = b0 - fwd * 3.6 + side * 1.2 + Vector3.UP * 2.2
 				cc.look_at(b0 + fwd * 2.0 + Vector3.UP * 1.3)
 			elif OS.get_environment("CMP_VIEW") == "front":
-				cc.global_position = b0 + fwd * 5.0 + side * 1.5 + Vector3.UP * 2.5
+				cc.global_position = pl.global_position + fwd * 2.2 + side * 0.6 + Vector3.UP * 1.6
 				cc.look_at(pl.global_position + Vector3.UP * 1.3)
 			elif false:
 				cc.global_position = b0 + side * 20.0 + fwd * 3.0 + Vector3.UP * 7.0

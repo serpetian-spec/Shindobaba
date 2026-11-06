@@ -13,6 +13,7 @@ uniform float hit_flash = 0.0;
 uniform float shade_floor = 0.5;   // karakter gölgesi (dünyadan biraz açık: yüz kararmasın)
 // Byakugan: gözlerin çevresinde, şakaklara uzanan kabarık damarlar (yüz derisi)
 uniform float byakugan_veins = 0.0;
+uniform float seal_marks = 0.0;   // Byakugō / Sōzō Saisei: alında elmas + yanaklarda kara mühür çizgileri
 uniform vec3 eye_c_r = vec3(-0.032, 1.62, 0.08);
 uniform vec3 eye_c_l = vec3(0.032, 1.62, 0.08);
 uniform float iris_r3 = 0.011;
@@ -52,6 +53,20 @@ void fragment() {
 	if (byakugan_veins > 0.0) {
 		float vm = max(vein_mask(lp, eye_c_r, iris_r3, -1.0), vein_mask(lp, eye_c_l, iris_r3, 1.0));
 		c = mix(c, c * vec3(0.55, 0.38, 0.48), vm * byakugan_veins);
+	}
+	if (seal_marks > 0.0) {
+		vec3 ec = (eye_c_r + eye_c_l) * 0.5;
+		vec2 dd = vec2(lp.x - ec.x, lp.y - (ec.y + 0.055));
+		float ax = abs(lp.x - ec.x);
+		float yy = lp.y - ec.y;
+		if (abs(dd.x) + abs(dd.y) < 0.011 && lp.z > ec.z - 0.03) c = vec3(0.55, 0.15, 0.7);
+		else if (ax > 0.012 && ax < 0.065 && yy < -0.014 && yy > -0.075 && lp.z > ec.z - 0.045) {
+			float w = sin((yy + ax * 0.9) * 240.0);
+			if (abs(w) < 0.28) c = mix(c, vec3(0.08, 0.04, 0.1), 0.9 * seal_marks);
+		} else if (ax < 0.07 && yy > 0.02 && yy < 0.09 && lp.z > ec.z - 0.03) {
+			float w2 = sin(ax * 260.0 + yy * 120.0);
+			if (abs(w2) < 0.2) c = mix(c, vec3(0.08, 0.04, 0.1), 0.85 * seal_marks);
+		}
 	}
 	ALBEDO = mix(c, vec3(1.0), hit_flash);
 	ROUGHNESS = 1.0;
