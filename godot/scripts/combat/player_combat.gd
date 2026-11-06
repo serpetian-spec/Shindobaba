@@ -215,7 +215,7 @@ func _start_step() -> void:
 	p.model.overlay.set_pose("kick", 1.0 if c.get("kick", false) else 0.0)
 	_set_two_hand(c.get("two_hand", false), float(c.get("dur", 0.6)), float(c.get("two_off", 0.32)))
 	if c.has("keys"):
-		p.model.overlay.key_mass = KEYED.mass(String(c.get("keyed_id", Gear.equipped(Game.profile, "sag").get("id", ""))))
+		p.model.overlay.key_mass = KEYED.mass(Gear.base_id(String(c.get("keyed_id", Gear.equipped(Game.profile, "sag").get("id", "")))))
 		p.model.overlay.play_keys(c["keys"], float(c.get("key_spd", 1.0)))
 		if c.has("keyed_id"):
 			KEYED.on_start(c["keyed_id"], int(c["keyed_i"]), p)   # sıçrama, Samehada açılıp büyüme vb.
@@ -476,7 +476,7 @@ func _combo_base(i: int) -> Dictionary:
 	var wid = ""
 	var gq = Gear.equipped(Game.profile, "sag")
 	if not gq.is_empty():
-		wid = String(gq.get("id", ""))
+		wid = Gear.base_id(String(gq.get("id", "")))
 	if ID_COMBOS.has(wid):
 		st = ID_COMBOS[wid]
 		c["water"] = st["water"][_ci(i)]

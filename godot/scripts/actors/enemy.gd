@@ -765,9 +765,9 @@ var key_step := {}      # oynayan adım: {hit, len, two, i}
 
 func _keyed_id() -> String:
 	var wid = look.get("weapon_r") if look is Dictionary else null
-	if wid == null or not KEYED.has(String(wid)) or model == null or model.weapons.is_empty() or not model.drawn:
+	if wid == null or not KEYED.has(Gear.base_id(String(wid))) or model == null or model.weapons.is_empty() or not model.drawn:
 		return ""
-	return String(wid)
+	return Gear.base_id(String(wid))
 
 
 ## Silahın kendi kombo adımını oynat (oyuncunun animasyonu): süre ve vuruş anı anahtarlardan; iki elli adımda sol el sapta

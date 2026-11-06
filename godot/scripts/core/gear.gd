@@ -625,6 +625,14 @@ static func random_reward(rank: int) -> String:
 	return pool.pick_random() if not pool.is_empty() else ""
 
 
+## Benzersiz (nadir/efsane "u_…") eşyanın taban kimliği: kombo/animasyon, silah şartlı jutsu, düşman anahtar kombosu
+## tabana göre çalışır (efsane sürüm gelince düz vuruş genel kombosuna dönüyordu)
+static func base_id(id: String) -> String:
+	if id.begins_with("u_"):
+		return String(_custom().get(id, {}).get("base", id))
+	return id
+
+
 static func item(id: String) -> Dictionary:
 	if ITEMS.has(id):
 		return ITEMS[id]
@@ -795,7 +803,7 @@ static func held_ids(p: Dictionary) -> Array:
 	for slot in p.get("equip", {}):
 		var g = find(p, p["equip"][slot])
 		if not g.is_empty():
-			out.append(String(g["id"]))
+			out.append(base_id(String(g["id"])))
 	return out
 
 
