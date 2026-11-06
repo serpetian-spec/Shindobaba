@@ -647,13 +647,14 @@ func _chase(dt: float) -> void:
 			for i in nn:
 				Projectile.tool(self, s, aim.rotated(Vector3.UP, deg_to_rad((i - (nn - 1) * 0.5) * 7.0)), tk, target)
 			return
-	var stop_d = 9.0 if _keyed_id() in KEYED.RANGED else 1.6   # uzun menzil silahı (Fūma/Kyodai/Kuchiyose): uzakta durup atar
+	var kid = _keyed_id()
+	var stop_d = 9.0 if kid in KEYED.RANGED else (FightingStyles.stop_dist(kid) if kid.begins_with("style_") else 1.6)   # uzun menzil silahı / tarz (Aburame böcek, Hōzuki su): uzakta durup atar
 	if d > stop_d:
 		# yakın dövüş sırası yoksa etrafında dolaş
 		var sp: float = arch["speed"]
 		var dir = v.normalized()
 		# orta mesafeden atılma (usta ve saldırgan düşmanlar)
-		if d > 3.5 and d < 11.0 and attack_cd <= 0.0 and (has_token or attack_tokens < _max_tokens()) and randf() < dt * (1.0 + skill * 3.0) * arch["aggr"]:
+		if stop_d < 3.0 and d > 3.5 and d < 11.0 and attack_cd <= 0.0 and (has_token or attack_tokens < _max_tokens()) and randf() < dt * (1.0 + skill * 3.0) * arch["aggr"]:   # uzakçı tarz atılmaz
 			_lunge()
 			return
 		var side_s = 1.0 if int(get_instance_id()) % 2 == 0 else -1.0

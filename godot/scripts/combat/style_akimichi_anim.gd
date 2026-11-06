@@ -6,6 +6,7 @@ extends RefCounted
 ## 6 Bubun Baika: kol + yumruk dev olur, uzak menzilli düz yumruk (fırlatır).
 
 const S = preload("res://scripts/combat/samehada_anim.gd")
+const F = preload("res://scripts/combat/style_legs.gd")   # canlı bacaklar: bükük diz, ağırlık aktarımı, pivot
 
 const R_GUARD := {"RightUpperArm": Vector3(-0.3, -0.75, 0.55), "RightLowerArm": Vector3(0.1, 0.7, 0.7)}
 const L_GUARD := {"LeftUpperArm": Vector3(0.3, -0.75, 0.55), "LeftLowerArm": Vector3(-0.1, 0.7, 0.7)}
@@ -26,11 +27,11 @@ static func _t(t: float, crouch: float, yaw: float, lean: float, r: Dictionary, 
 
 
 static func steps() -> Array:
-	var W = S.LEG_WIDE
+	var W = F.FIGHT
 	var L = S.LEG_LUNGE
 	var LL = S.mirror(S.LEG_LUNGE)
-	var BK = S.LEG_BACK
-	var ST = S.LEG_STEP
+	var BK = F.SHIFT
+	var ST = F.STEPIN
 	return [
 		{"len": 0.65, "hit": 0.32, "keys": [
 			_t(0.0, 0.5, 0, 8, R_GUARD, L_GUARD, W),

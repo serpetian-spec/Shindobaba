@@ -7,8 +7,8 @@ func _w(t: float) -> void:
 
 func _ready() -> void:
 	await get_tree().process_frame
-	var styles = Array(OS.get_environment("STYLES").split(",", false)) if OS.get_environment("STYLES") != "" else ["juken", "akimichi", "inuzuka", "kaguya"]
-	var clan_of = {"juken": "hyuga", "akimichi": "akimichi", "inuzuka": "inuzuka", "kaguya": "kaguya"}
+	var styles = Array(OS.get_environment("STYLES").split(",", false)) if OS.get_environment("STYLES") != "" else ["juken", "akimichi", "inuzuka", "kaguya", "uchiha", "hozuki", "aburame", "jugo"]
+	var clan_of = {"juken": "hyuga", "akimichi": "akimichi", "inuzuka": "inuzuka", "kaguya": "kaguya", "uchiha": "uchiha", "hozuki": "hozuki", "aburame": "aburame", "jugo": "jugo"}
 	main.creator_state = {"slot": 3, "name": "Test", "gender": "m", "clan": clan_of[styles[0]], "element": "katon", "hair_style": "diken",
 		"hair": Color(0.25, 0.2, 0.15), "top": Color(0.85, 0.85, 0.8), "pants": Color(0.2, 0.2, 0.25), "skin": Color(0.96, 0.8, 0.66), "eye": Color(0.2, 0.2, 0.2)}
 	main._start_new_game()
@@ -36,7 +36,7 @@ func _ready() -> void:
 		var e := Enemy.new()
 		e.setup(Enemy.archetype("rogue", 1))
 		main.actors.add_child(e)
-		e.global_position = b0 + Vector3(0, 0, -2.2)
+		e.global_position = b0 + Vector3(0, 0, -FightingStyles.stop_dist("style_" + st) - 0.6)
 		e.max_hp = 1e9; e.hp = 1e9
 		e.set_physics_process(false)
 		await _w(0.5)
@@ -46,7 +46,7 @@ func _ready() -> void:
 			pl.combat.attack()
 			var c = pl.combat._combo(pl.combat.step)
 			var ht = float(c.get("hit", 0.2))
-			await _w(maxf(0.02, ht - 0.02))
+			await _w(maxf(0.02, ht - 0.02) + float(OS.get_environment("LATE")) if OS.get_environment("LATE") != "" else maxf(0.02, ht - 0.02))
 			cc.global_position = pl.global_position + Vector3(3.6, 1.6, -1.2)
 			cc.look_at(pl.global_position + Vector3(0, 1.1, -0.9))
 			cc.current = true

@@ -44,13 +44,18 @@ const TABLE := {
 	"style_akimichi": [preload("res://scripts/combat/style_akimichi_anim.gd"), 0.92],
 	"style_inuzuka": [preload("res://scripts/combat/style_inuzuka_anim.gd"), 1.1],
 	"style_kaguya": [preload("res://scripts/combat/style_kaguya_anim.gd"), 1.0],
+	"style_uchiha": [preload("res://scripts/combat/style_uchiha_anim.gd"), 1.05],
+	"style_hozuki": [preload("res://scripts/combat/style_hozuki_anim.gd"), 1.0],
+	"style_aburame": [preload("res://scripts/combat/style_aburame_anim.gd"), 1.0],
+	"style_jugo": [preload("res://scripts/combat/style_jugo_anim.gd"), 0.92],
 }
 ## uzun menzil silahları: yapay zekâ uzakta durup atar (Enemy._chase)
 const RANGED := ["fuma_shuriken", "kyodai_shuriken", "fuma_makimono", "senbon"]
 ## silah ağırlığı (0 hafif .. 1 ağır): kol/silah yaylanması (PoseOverlay.key_mass) — ağır silah gecikip taşar
 const MASS := {"uc_tirpan": 1.0, "samehada": 0.9, "kabutowari": 0.9, "shibuki": 0.85, "gunbai": 0.8, "raijin": 0.35, "kunai": 0.1,
 	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3, "tonfa": 0.3, "bashosen": 0.35, "kubikiribocho": 0.95, "yagura_sopa": 0.4, "yelpaze": 0.6, "kongo_asa": 0.45, "kama": 0.75, "pence": 0.15, "senbon": 0.05, "hiramekarei": 0.7, "bo": 0.35, "kiba": 0.25, "tanto": 0.1, "wakizashi": 0.25, "nodachi": 0.7, "musta": 0.15,
-	"style_juken": 0.08, "style_akimichi": 0.65, "style_inuzuka": 0.12, "style_kaguya": 0.2}
+	"style_juken": 0.08, "style_akimichi": 0.65, "style_inuzuka": 0.12, "style_kaguya": 0.2,
+	"style_uchiha": 0.1, "style_hozuki": 0.3, "style_aburame": 0.05, "style_jugo": 0.7}
 
 
 static func mass(id: String) -> float:
@@ -104,6 +109,31 @@ static func mods(id: String, i: int) -> Dictionary:
 				2: m.merge({"lunge_mul": 2.3, "knock": 6.0})
 				3: m.merge({"heavy": true, "knock": 4.0})
 				5: m.merge({"lunge_mul": 3.0, "knock": 12.0, "launch": 5.0, "heavy": true})
+			return m
+		"style_uchiha":
+			var m = {"lunge_mul": 1.0, "special": ""}
+			match i:
+				1: m.merge({"knock": 8.0})
+				2: m.merge({"launch": 9.0, "knock": 1.0})
+				3: m.merge({"knock": 3.0, "lunge_mul": 1.6})
+				4: m.merge({"heavy": true, "knock": 6.0, "launch": 0.0, "slam": true})
+				5: m.merge({"lunge_mul": 0.0, "knock": 4.0})
+			return m
+		"style_hozuki":   # orta menzil: atılmaz; su mermisi/kırbacı on_strike'ta (yakındaki yumruk değil)
+			var m = {"lunge_mul": 0.15, "special": ""}
+			if i == 3:
+				m.merge({"lunge_mul": 0.9, "reach_add": 0.9, "knock": 14.0, "heavy": true})
+			return m
+		"style_aburame":   # uzak menzil: hiç atılmaz, el değmez; tüm hasar böcek sürüsünden (on_strike)
+			return {"lunge_mul": 0.0, "special": "", "knock": 1.0}
+		"style_jugo":
+			var m = {"lunge_mul": 0.7, "special": "", "reach_add": 0.4}
+			match i:
+				0, 1: m.merge({"knock": 10.0, "heavy": true})
+				2: m.merge({"lunge_mul": 2.6, "knock": 14.0, "heavy": true})
+				3: m.merge({"heavy": true, "knock": 6.0, "launch": 6.0})
+				4: m.merge({"reach_add": 1.5, "knock": 8.0})
+				5: m.merge({"launch": 12.0, "knock": 4.0, "heavy": true})
 			return m
 		"style_kaguya":
 			var m = {"special": "", "reach_add": 0.5}   # kemik kılıç: yumruktan uzun
@@ -399,6 +429,8 @@ static func on_target(id: String, i: int, who: Node3D, h: Node3D) -> void:
 		_samehada_eat(who, h, i == 5)
 	if bool(m.get("tenketsu", false)):
 		_tenketsu(who, h, i)
+	if bool(m.get("slam", false)) and h is CharacterBody3D:   # Shishi Otoshi: havadaki rakip topukla yere çakılır
+		h.velocity = Vector3(0, -16.0, 0)
 	if bool(m.get("shatter", false)):
 		_shatter(who, h)
 	if bool(m.get("throw_back", false)) and h is CharacterBody3D:
@@ -2209,6 +2241,14 @@ static func _style_start(id: String, i: int, who: Node3D) -> void:
 			_grow_in(who, ov, g, [0.32, 0.36, 0.0, 0.46, 0.5, 0.55][i] / speed(id), tok)
 		"style_inuzuka":
 			ov.fist = {"Right": 0.55, "Left": 0.55}   # pençe
+			if i in [0, 1, 3] and who is CharacterBody3D:   # kanon: vur-kaç — pençeden hemen sonra dört ayak geri sekiş
+				var ht = [0.16, 0.16, 0.0, 0.27][i] / speed(id)
+				who.get_tree().create_timer(ht + 0.06).timeout.connect(func():
+					if is_instance_valid(who):
+						var fb: Vector3 = who.face_dir() if who.has_method("face_dir") else Vector3.FORWARD
+						who.velocity.x = -fb.x * 6.5
+						who.velocity.z = -fb.z * 6.5
+						who.velocity.y = 3.0)
 			if i == 5 and who is CharacterBody3D:   # Gatsūga: kendi ekseninde dönerek hücum
 				var f: Vector3 = who.face_dir() if who.has_method("face_dir") else Vector3.FORWARD
 				who.get_tree().create_timer(0.3 / speed(id)).timeout.connect(func():
@@ -2216,6 +2256,47 @@ static func _style_start(id: String, i: int, who: Node3D) -> void:
 						who.velocity.x = f.x * 17.0
 						who.velocity.z = f.z * 17.0
 						WindFX.swirl(who.global_position + Vector3.UP * 0.4, 0.9, 1.6, 0.5, 8, Color(0.85, 0.82, 0.75, 0.85), true))
+		"style_uchiha":
+			ov.fist = {"Right": 1.0, "Left": 1.0}
+			if i == 3:   # Kage Buyō (kanon, Shishi Rendan): havaya kalkan rakibin hemen arkasında yaprak gölgesi gibi belirir
+				var tgu = _near_foe(who, 7.0)
+				if tgu and who is CharacterBody3D:
+					var away = tgu.global_position - who.global_position
+					away.y = 0
+					away = away.normalized() if away.length() > 0.05 else Vector3.FORWARD
+					var pjk = PathJutsu.get_pinst()
+					if pjk:
+						pjk._trail_ghost(who, 0.45, 0.35)
+					who.global_position = tgu.global_position + away * 0.9 + Vector3.UP * 0.4
+					who.velocity = Vector3(0, 3.0, 0)
+					if who is Player:
+						who.combat.face_to(tgu)
+					elif who.get("facing") != null:
+						who.facing = atan2(-away.x, -away.z) + PI
+		"style_hozuki":
+			ov.fist = {"Right": 0.6, "Left": 0.6}   # parmak tabancası: işaret parmağı açık, diğerleri kıvrık
+			if i == 3:
+				_bulk_in(who, ov, {"RightUpperArm": 2.0, "RightLowerArm": 1.8}, 0.34 / speed(id), tok)
+				ov.fist = {"Right": 1.0, "Left": 0.6}
+				_grow_in(who, ov, {"RightHand": 1.8}, 0.34 / speed(id), tok)
+		"style_aburame":
+			ov.fist = {"Right": -0.6, "Left": -0.6}   # gevşek açık eller (yenlerden sürü)
+		"style_jugo":
+			ov.fist = {"Right": 1.0, "Left": 1.0}
+			var bk = {"RightUpperArm": 1.7, "RightLowerArm": 1.9}
+			var gh = {"RightHand": 1.7}
+			if i == 1:
+				bk = {"LeftUpperArm": 1.7, "LeftLowerArm": 1.9}
+				gh = {"LeftHand": 1.7}
+			elif i == 3:
+				bk = {"RightUpperArm": 1.6, "RightLowerArm": 1.8, "LeftUpperArm": 1.6, "LeftLowerArm": 1.8}
+				gh = {"RightHand": 1.7, "LeftHand": 1.7}
+			elif i == 4:
+				gh = {"RightHand": 1.3, "RightLowerArm": 1.3}
+			_bulk_in(who, ov, bk, [0.3, 0.3, 0.34, 0.46, 0.3, 0.44][i] / speed(id), tok)
+			_grow_in(who, ov, gh, [0.3, 0.3, 0.34, 0.46, 0.3, 0.44][i] / speed(id), tok)
+			if i == 2 or i == 5:   # dirsekten buhar jeti
+				_jet(who, "LeftLowerArm" if i == 1 else "RightLowerArm", [0.3, 0.3, 0.34, 0.46, 0.3, 0.44][i] / speed(id))
 		"style_kaguya":
 			ov.fist = {"Right": 0.9, "Left": 0.15}
 			_bone_blade(who)
@@ -2231,6 +2312,9 @@ static func _style_end(who: Node3D) -> void:
 	if ov:
 		ov.fist = {}
 		ov.grow = {}
+		for b in (who.get_meta("style_bulk", []) as Array):   # yalnız tarzın kalınlaştırdığı kemikler (Gōsuiwan jutsusu ayrı)
+			ov.bulk.erase(b)
+		who.remove_meta("style_bulk")
 	if who.has_meta("bone_blade"):
 		var bb = who.get_meta("bone_blade")
 		who.remove_meta("bone_blade")
@@ -2252,6 +2336,45 @@ static func _grow_in(who: Node3D, ov, g: Dictionary, hit_t: float, tok: int) -> 
 			for b in g:
 				d[b] = lerpf(1.0, float(g[b]), u * u * (3.0 - 2.0 * u))
 			ov.grow = d)
+
+
+## Gōsuiwan / Senninka: kol kasları gerçek kemikle kalınlaşır (PoseOverlay.bulk), vuruştan sonra iner
+static func _bulk_in(who: Node3D, ov, b: Dictionary, hit_t: float, tok: int) -> void:
+	var mine: Array = who.get_meta("style_bulk", [])
+	for k in b:
+		if not k in mine:
+			mine.append(k)
+	who.set_meta("style_bulk", mine)
+	var steps = 8
+	for k in steps + 6:
+		who.get_tree().create_timer(hit_t * float(k) / steps).timeout.connect(func():
+			if not is_instance_valid(who) or int(who.get_meta("style_tok", 0)) != tok:
+				return
+			var u = clampf(float(k) / (steps * 0.7), 0.0, 1.0) if k <= steps else clampf(1.0 - float(k - steps) / 6.0, 0.0, 1.0)
+			for bn in b:
+				ov.bulk[bn] = lerpf(1.0, float(b[bn]), u * u * (3.0 - 2.0 * u)))
+
+
+## Jūgo: dirsekten fışkıran beyaz buhar jeti (yumruğu ivmelendirir)
+static func _jet(who: Node3D, bone: String, at_t: float) -> void:
+	var pj = PathJutsu.get_pinst()
+	if pj == null:
+		return
+	who.get_tree().create_timer(maxf(0.0, at_t - 0.12)).timeout.connect(func():
+		if not is_instance_valid(who):
+			return
+		var ba = pj.bone_attach(who, bone)
+		if ba == null:
+			return
+		var fx = FX.burst(ba.global_position, {"amount": 24, "life": 0.35, "tex": FX.tex_soft, "add": true, "size": 0.35, "radius": 0.05,
+			"vmin": 4.0, "vmax": 7.0, "dir": Vector3.UP, "spread": 12.0, "colors": [Color(1, 1, 1, 0.0), Color(0.95, 0.95, 1.0, 0.7), Color(0.9, 0.9, 0.95, 0)], "parent": ba})
+		if fx:
+			fx.position = Vector3(0, -0.02, 0)
+			fx.rotation_degrees = Vector3(180, 0, 0)   # dirsekten geriye
+		Sfx.play("whoosh", who.global_position, 1.6, 0.6)
+		who.get_tree().create_timer(0.45).timeout.connect(func():
+			if is_instance_valid(ba):
+				ba.queue_free()))
 
 
 static var _bone_mat: StandardMaterial3D
@@ -2359,6 +2482,73 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 			if pj:   # üç pençe izi
 				for k in 3:
 					pj._arc_cut(at + Vector3.UP * (k - 1) * 0.12, f, -50.0, 50.0, Color(0.9, 0.88, 0.8), 1.2)
+		"style_uchiha":
+			if i == 4:   # topuk inişi: yer çatlar
+				var g = who.global_position + f * 1.2
+				g.y = Game.ground_height(g.x, g.z) + 0.05
+				VFX.cracks(g, 2.4)
+				_shake(who, 0.3)
+			elif i == 5:   # Katon: ağızdan kısa ateş seli (orta menzil)
+				var o = who.global_position + Vector3.UP * 1.55 + f * 0.4
+				for k in 6:
+					who.get_tree().create_timer(k * 0.05).timeout.connect(func():
+						if not is_instance_valid(who):
+							return
+						var fb = VFX.fireball(0.6 + k * 0.18)
+						who.get_tree().current_scene.add_child(fb)
+						fb.global_position = o
+						var tw = fb.create_tween()
+						tw.tween_property(fb, "global_position", o + f * (1.5 + k * 0.8) + Vector3.DOWN * 0.3, 0.3)
+						tw.tween_property(fb, "scale", Vector3.ONE * 0.05, 0.25)
+						tw.tween_callback(fb.queue_free))
+				for d in [2.0, 3.8, 5.4]:
+					Combat.hit_sphere(who, who.global_position + Vector3.UP * 1.1 + f * d, 1.4, _kinfo(dmg, 0.55, {"element": "katon", "burn": 2.5, "knock": 4.0, "kind": "heavy", "melee": true}))
+		"style_hozuki":
+			var tg = _near_foe(who, 12.0)
+			var hand = who.global_position + Vector3.UP * 1.35 + f * 0.6
+			if i == 0 or i == 1 or i == 5:   # Mizudeppō: su mermisi (5: iki elle büyük)
+				_water_bullet(who, hand + side * (0.2 if i == 1 else -0.2), tg, dmg * (1.6 if i == 5 else 0.8), 0.22 if i < 5 else 0.5)
+			elif i == 2 or i == 4:   # Mizu Muchi: hedefe uzanan dalgalı su kırbacı
+				_water_whip(who, tg, dmg * 0.9, i == 4)
+		"style_aburame":
+			var tg = _near_foe(who, 16.0)
+			match i:
+				0, 1:
+					_swarm(who, tg, dmg * 0.8, 0.6, side * (0.25 if i == 1 else -0.25))
+				2:
+					_swarm(who, tg, dmg * 0.6, 0.55, side * 0.3)
+					_swarm(who, tg, dmg * 0.6, 0.55, side * -0.3)
+				3:   # böcek sütunu: hedefin altından fışkırır
+					if tg:
+						var p = tg.global_position
+						for k in 3:
+							who.get_tree().create_timer(0.1 + k * 0.12).timeout.connect(func():
+								if is_instance_valid(who):
+									_swarm_cloud(p + Vector3.UP * (0.5 + k * 0.8), 0.9, 0.5))
+						Combat.hit_sphere(who, p + Vector3.UP, 1.6, _kinfo(dmg, 1.0, {"element": "", "knock": 2.0, "launch": 5.0, "kind": "heavy", "kikai": true}))
+						_kikai_drain(who, tg, 0.04)
+				4:   # böcek küresi: yavaş büyük sürü
+					_swarm(who, tg, dmg * 1.4, 1.2, Vector3.ZERO, 14.0)
+				5:   # Kikaichū Kyōshū: hedefi yutan dev sürü
+					if tg:
+						var p2 = tg.global_position
+						for k in 6:
+							who.get_tree().create_timer(k * 0.12).timeout.connect(func():
+								if is_instance_valid(who):
+									_swarm_cloud(p2 + Vector3.UP * 1.0, 1.4, 0.6))
+						Combat.hit_sphere(who, p2 + Vector3.UP, 2.4, _kinfo(dmg, 1.3, {"element": "", "knock": 1.0, "kind": "heavy"}))
+						_kikai_drain(who, tg, 0.14)
+		"style_jugo":
+			if i == 3:   # iki balyoz kol yere: şok
+				var g = who.global_position + f * 1.7
+				g.y = Game.ground_height(g.x, g.z) + 0.05
+				VFX.shockwave(g + Vector3.UP * 0.1, Color(0.7, 0.62, 0.52), 6.5, 0.35, true)
+				VFX.cracks(g, 4.0)
+				Combat.hit_sphere(who, g + Vector3.UP * 0.5, 2.6, _kinfo(dmg, 0.6, {"element": "", "knock": 6.0, "launch": 5.0, "kind": "heavy", "melee": true}))
+				_shake(who, 0.5)
+			elif i == 2 or i == 5:
+				_shake(who, 0.3)
+				FX.hit_spark(at + f * 0.5, Color(1.0, 0.95, 0.85), 1.3)
 		"style_kaguya":
 			if i == 4:   # Teshi Sendan: sol parmak uçlarından üç kemik mermisi
 				var pj = PathJutsu.get_pinst()
@@ -2376,3 +2566,95 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 			elif i == 5:   # Karamatsu: bedenden fışkıran dikenler — çevreye alan hasarı
 				_bone_spikes(who, ["Hips", "Spine", "UpperChest", "RightUpperArm", "LeftUpperArm", "RightUpperLeg", "LeftUpperLeg"], 0.6)
 				Combat.hit_sphere(who, who.global_position + Vector3.UP * 1.0, 2.6, _kinfo(dmg, 0.9, {"element": "", "knock": 14.0, "launch": 6.0, "kind": "heavy", "bleed": 2.0, "melee": true}))
+
+
+## Hōzuki Mizudeppō: parmak ucundan fırlayan su mermisi (hedefe yönelir)
+static func _water_bullet(who: Node3D, from: Vector3, tg: Node3D, dmg: float, size: float) -> void:
+	var pj = PathJutsu.get_pinst()
+	if pj == null:
+		return
+	var f: Vector3 = who.face_dir() if who.has_method("face_dir") else Vector3.FORWARD
+	var dir = ((tg.global_position + Vector3.UP * 1.1) - from).normalized() if tg else f
+	var b = MB.new()
+	b.add("sphere", Vector3(0, 0, 0), Vector3(size, size, size * 2.2), Color(0.6, 0.85, 1.0))
+	b.add("sphere", Vector3(0, 0, -size * 0.9), Vector3(size * 0.6, size * 0.6, size * 1.6), Color(0.75, 0.92, 1.0))
+	var mi = MeshInstance3D.new()
+	mi.mesh = b.build(Props.toon())
+	var pr = pj.shot(who, from, dir, 30.0 if size < 0.4 else 22.0, mi, _kinfo(dmg, 1.0, {"element": "suiton", "knock": 4.0 if size < 0.4 else 12.0, "kind": "light" if size < 0.4 else "heavy"}), tg, false, 0.9)
+	if pr:
+		VFX.trail(pr, 0.12 if size < 0.4 else 0.25, Color(0.75, 0.92, 1.0, 0.7), Color(0.6, 0.85, 1.0, 0.35), Color(0.6, 0.85, 1.0, 0), 10, 0.0)
+	Sfx.play("water", from, 1.4, 0.5)
+
+
+## Hōzuki Mizu Muchi: elden hedefe uzanan dalgalı su kırbacı; ucunda isabet
+static var _water_mat: StandardMaterial3D
+static func _water_whip(who: Node3D, tg: Node3D, dmg: float, twin: bool) -> void:
+	var pj = PathJutsu.get_pinst()
+	if pj == null:
+		return
+	if _water_mat == null:
+		_water_mat = StandardMaterial3D.new()
+		_water_mat.albedo_color = Color(0.6, 0.85, 1.0, 0.85)
+		_water_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		_water_mat.emission_enabled = true
+		_water_mat.emission = Color(0.3, 0.5, 0.7)
+	var f: Vector3 = who.face_dir() if who.has_method("face_dir") else Vector3.FORWARD
+	var end = (tg.global_position + Vector3.UP * 1.0) if tg and tg.global_position.distance_to(who.global_position) < 7.5 else who.global_position + Vector3.UP * 1.0 + f * 6.0
+	for k in (2 if twin else 1):
+		var sd = (-1.0 if k == 0 else 1.0)
+		var hand = func() -> Vector3:
+			return who.global_position + Vector3.UP * 1.3 + f * 0.5 + Vector3.UP.cross(f) * sd * 0.25 if is_instance_valid(who) else end
+		pj.wavy_tether(hand, func(): return end, 0.09, _water_mat, 0.3, 0.35)
+	Combat.hit_sphere(who, end, 1.4, _kinfo(dmg, 1.0, {"element": "suiton", "knock": 7.0, "kind": "heavy"}))
+	FX.hit_spark(end, Color(0.7, 0.9, 1.0), 1.0)
+	Sfx.play("water", end, 1.2, 0.6)
+
+
+## Aburame: böcek sürüsü — titreşen kara benek bulutu, hedefe süzülür; isabette chakra emer
+static func _swarm_mesh(r: float) -> MeshInstance3D:
+	var b = MB.new()
+	for k in int(60 + r * 60):   # dolgun sürü: içi yoğun, kenarı seyrek; tek tek kanatlı benekler
+		var p = Vector3(randf_range(-1, 1), randf_range(-0.7, 0.7), randf_range(-1, 1)).normalized() * r * pow(randf(), 0.7)
+		b.add("sphere", p, Vector3(randf_range(0.05, 0.08), randf_range(0.03, 0.05), randf_range(0.05, 0.08)), Color(0.05, 0.05, 0.04).lightened(randf() * 0.12), Vector3.ZERO, 4)
+	var mi = MeshInstance3D.new()
+	mi.mesh = b.build(Props.toon())
+	return mi
+
+
+static func _swarm(who: Node3D, tg: Node3D, dmg: float, r: float, off: Vector3, speed := 20.0) -> void:
+	var pj = PathJutsu.get_pinst()
+	if pj == null:
+		return
+	var f: Vector3 = who.face_dir() if who.has_method("face_dir") else Vector3.FORWARD
+	var from = who.global_position + Vector3.UP * 1.2 + f * 0.6 + off
+	var dir = ((tg.global_position + Vector3.UP * 1.1) - from).normalized() if tg else f
+	var mi = _swarm_mesh(r)
+	var pr = pj.shot(who, from, dir, speed, mi, _kinfo(dmg, 1.0, {"element": "", "knock": 1.0, "kind": "light", "kikai": true}), tg, false, 1.4, func(_p, h):
+		if h and is_instance_valid(h):
+			_kikai_drain(who, h, 0.03))
+	if pr:
+		mi.create_tween().set_loops().tween_property(mi, "rotation", Vector3(TAU, TAU * 0.7, TAU * 0.4), 0.6).as_relative()
+		pass   # iz yok: sürünün kendisi görünür (düz kara kama izi geometrik duruyordu)
+	Sfx.play("whoosh", from, 0.6, 0.4)
+
+
+static func _swarm_cloud(p: Vector3, r: float, life: float) -> void:
+	var mi = _swarm_mesh(r)
+	var sc = Engine.get_main_loop().current_scene
+	sc.add_child(mi)
+	mi.global_position = p
+	var tw = mi.create_tween()
+	tw.tween_property(mi, "rotation", Vector3(0, TAU, 0), life)
+	tw.parallel().tween_property(mi, "scale", Vector3.ONE * 1.3, life)
+	tw.tween_callback(mi.queue_free)
+
+
+## Kikaichū: isabet eden böcekler rakibin chakrasını emer (sahibine bir kısmı döner) — oyuncu/düşman aynı
+static func _kikai_drain(who: Node3D, h: Node3D, k: float) -> void:
+	if h == null or not is_instance_valid(h) or h.get("chakra") == null:
+		return
+	var mx = float(h.get("max_chakra")) if h.get("max_chakra") != null else 100.0
+	var amt = mx * k
+	h.chakra = maxf(0.0, float(h.chakra) - amt)
+	if is_instance_valid(who) and who.get("chakra") != null and who.get("max_chakra") != null:
+		who.chakra = minf(float(who.max_chakra), float(who.chakra) + amt * 0.5)

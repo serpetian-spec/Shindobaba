@@ -6,6 +6,7 @@ extends RefCounted
 ## hava basıncı fırlatılır (KeyedCombos.on_strike). Her isabet rakibin chakrasını tıkar (on_target).
 
 const S = preload("res://scripts/combat/samehada_anim.gd")
+const F = preload("res://scripts/combat/style_legs.gd")   # canlı bacaklar: bükük diz, ağırlık aktarımı, pivot
 
 const R_STANCE := {"RightUpperArm": Vector3(-0.3, -0.75, -0.55), "RightLowerArm": Vector3(-0.05, 0.55, 0.83)}   # sağ avuç göğüs yanında geride
 const L_STANCE := {"LeftUpperArm": Vector3(0.15, -0.35, 0.92), "LeftLowerArm": Vector3(0.0, 0.15, 1)}         # sol avuç önde uzanık
@@ -27,11 +28,11 @@ static func _t(t: float, crouch: float, yaw: float, lean: float, r: Dictionary, 
 
 
 static func steps() -> Array:
-	var W = S.LEG_WIDE
+	var W = F.LOW
 	var L = S.LEG_LUNGE
 	var LL = S.mirror(S.LEG_LUNGE)
-	var BK = S.LEG_BACK
-	var ST = S.LEG_STEP
+	var BK = F.SHIFT
+	var ST = F.STEPIN
 	return [
 		{"len": 0.45, "hit": 0.17, "keys": [
 			_t(0.0, 0.62, -28, 8, R_STANCE, L_STANCE, W),

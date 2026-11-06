@@ -942,14 +942,27 @@ static func _arrow_row(title: String, labels: Array, idx: int, on_pick: Callable
 	tl.custom_minimum_size = Vector2(110, 0)
 	tl.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	row.add_child(tl)
-	row.add_child(_arrow_btn("◀", func(): on_pick.call(posmod(idx - 1, n))))
+	# satır kendi yazısını günceller (sekme yeniden çizilmese de seçim görünür)
+	var cur = [idx]
+	var name_l = UI.label(String(labels[idx]) if n > 0 else "-", 17, UI.CREAM, HORIZONTAL_ALIGNMENT_CENTER, true)
+	var cnt_l = UI.label("%d / %d" % [idx + 1, n], 12, UI.MUTED, HORIZONTAL_ALIGNMENT_CENTER)
+	var go = func(d: int) -> void:
+		if n <= 0:
+			return
+		cur[0] = posmod(cur[0] + d, n)
+		if is_instance_valid(name_l):
+			name_l.text = String(labels[cur[0]])
+		if is_instance_valid(cnt_l):
+			cnt_l.text = "%d / %d" % [cur[0] + 1, n]
+		on_pick.call(cur[0])
+	row.add_child(_arrow_btn("◀", func(): go.call(-1)))
 	var mid = UI.vbox(2)
 	mid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	mid.custom_minimum_size = Vector2(200, 0)
-	mid.add_child(UI.label(String(labels[idx]) if n > 0 else "-", 17, UI.CREAM, HORIZONTAL_ALIGNMENT_CENTER, true))
-	mid.add_child(UI.label("%d / %d" % [idx + 1, n], 12, UI.MUTED, HORIZONTAL_ALIGNMENT_CENTER))
+	mid.add_child(name_l)
+	mid.add_child(cnt_l)
 	row.add_child(mid)
-	row.add_child(_arrow_btn("▶", func(): on_pick.call(posmod(idx + 1, n))))
+	row.add_child(_arrow_btn("▶", func(): go.call(1)))
 	return row
 
 
@@ -2302,7 +2315,7 @@ static func _tab_skills(_main: Node, body: Control) -> void:
 	var cur = String(pr.get("fight_style", ""))
 	var ci = maxi(0, styles.find(cur))
 	var sdesc = func(id: String) -> String:
-		return ("Silahsız temel yumruk-tekme kombosu. Klanın, yolun ya da bijūn yeni tarzlar açar." if id == "" or not FightingStyles.STYLES.has(id) else String(FightingStyles.STYLES[id]["desc"])) + "  (Silah kuşanınca silahın kendi kombosu geçerli.)"
+		return ("Silahsız temel yumruk-tekme kombosu. Klanın, yolun ya da bijūn yeni tarzlar açar." if id == "" or not FightingStyles.STYLES.has(id) else "Menzil: %s.  %s" % [String(FightingStyles.STYLES[id].get("range", "yakın")), String(FightingStyles.STYLES[id]["desc"])]) + "  (Silah kuşanınca silahın kendi kombosu geçerli.)"
 	var sdl = UI.label(sdesc.call(cur), 14, UI.MUTED)
 	sdl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	sdl.custom_minimum_size = Vector2(1200, 0)

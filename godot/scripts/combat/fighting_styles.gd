@@ -4,16 +4,37 @@ extends RefCounted
 ## Oyuncu Ustalık sekmesinde ◀ ▶ ile seçer (profile "fight_style"); düşman/NPC klanının tarzıyla dövüşür (aynı kombo, aynı etkiler).
 ## Kaynak: "clan:<id>" (o klandan olmak), ileride "path:<id>" (yolda ilerlemek), "jin:<bijū>" (jinchūriki).
 
+## range: "yakın" / "orta" / "uzak" (animeye göre); stop: düşmanın rakibe yanaştığı mesafe (uzakçı yanaşmaz, oradan atar)
 const STYLES := {
-	"juken": {"name": "Jūken — Yumuşak Yumruk", "key": "style_juken", "src": "clan:hyuga",
+	"juken": {"name": "Jūken — Yumuşak Yumruk", "key": "style_juken", "src": "clan:hyuga", "range": "yakın", "stop": 1.6,
 		"desc": "Açık avuç darbeleri ve tenketsu dürtüşleri: hasarı orta, her isabet rakibin chakrasını tıkar; bitiriş Hakke Kūshō hava basıncı."},
-	"akimichi": {"name": "Baika Kenpō — Akimichi", "key": "style_akimichi", "src": "clan:akimichi",
+	"akimichi": {"name": "Baika Kenpō — Akimichi", "key": "style_akimichi", "src": "clan:akimichi", "range": "yakın (uzun kol)", "stop": 2.4,
 		"desc": "Ağır ve yavaş: vuruş anında yumruk/avuç devleşir (Bubun Baika, Chō Harite); menzil ve savurma büyük, kurulum uzun."},
-	"inuzuka": {"name": "Shikyaku — Dört Ayak", "key": "style_inuzuka", "src": "clan:inuzuka",
+	"inuzuka": {"name": "Shikyaku — Dört Ayak", "key": "style_inuzuka", "src": "clan:inuzuka", "range": "yakın", "stop": 1.6,
 		"desc": "Çömelik vahşi pençe tırmıkları, atılış ve dönen pençe; bitiriş Gatsūga matkap hücumu. Hızlı, yakın."},
-	"kaguya": {"name": "Shikotsumyaku Dansları — Kaguya", "key": "style_kaguya", "src": "clan:kaguya",
+	"kaguya": {"name": "Shikotsumyaku Dansları — Kaguya", "key": "style_kaguya", "src": "clan:kaguya", "range": "yakın + kemik mermisi", "stop": 2.0,
 		"desc": "Avuçtan çıkan kemik kılıç (Tsubaki), dikenli dönüş (Yanagi), parmak kemiği mermileri (Teshi Sendan), bedenden diken fışkırması (Karamatsu)."},
+	"uchiha": {"name": "Uchiha-ryū — Shishi Rendan", "key": "style_uchiha", "src": "clan:uchiha", "range": "yakın + ateş", "stop": 1.8,
+		"desc": "Sharingan ile okunan tekme kombosu: yan tekme, havaya kaldıran ön tekme, peşinden sıçrayış, topuk inişi; bitiriş mühür + ağızdan Katon seli."},
+	"hozuki": {"name": "Suika — Hōzuki", "key": "style_hozuki", "src": "clan:hozuki", "range": "orta", "stop": 4.5,
+		"desc": "Orta mesafe: parmaktan su mermisi (Mizudeppō), su kırbacı; yakına gelene suyla şişen dev kol (Gōsuiwan). Hasarı orta, menzili geniş."},
+	"aburame": {"name": "Kikaichū — Aburame", "key": "style_aburame", "src": "clan:aburame", "range": "uzak", "stop": 8.0,
+		"desc": "Uzaktan: yenlerden fırlayan böcek sürüleri, böcek sütunu, böcek küresi; isabette chakra emer. Yakın dövüşte zayıf, rakibe yanaşmaz."},
+	"jugo": {"name": "Senninka — Jūgo", "key": "style_jugo", "src": "clan:jugo", "range": "yakın (ağır)", "stop": 1.8,
+		"desc": "Kol taş gibi dev balyoza dönüşür; dirsekten buhar jetiyle atılan yumruklar, yere çakış, dikenli kol saplaması, jetli aparkat. Yavaş ama çok sert."},
 }
+
+
+## Düşmanın bu tarzla yanaştığı mesafe (uzakçı yaklaşmaz)
+static func stop_dist(key: String) -> float:
+	for id in STYLES:
+		if String(STYLES[id]["key"]) == key:
+			return float(STYLES[id].get("stop", 1.6))
+	return 1.6
+
+
+static func is_ranged(key: String) -> bool:
+	return stop_dist(key) >= 4.0
 
 
 static func _has_src(p: Dictionary, src: String) -> bool:

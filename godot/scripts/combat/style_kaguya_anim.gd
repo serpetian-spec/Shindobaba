@@ -7,6 +7,7 @@ extends RefCounted
 ## 6 Karamatsu no Mai: çömelip tüm bedenden dikenler fışkırır (alan).
 
 const S = preload("res://scripts/combat/samehada_anim.gd")
+const F = preload("res://scripts/combat/style_legs.gd")   # canlı bacaklar: bükük diz, ağırlık aktarımı, pivot
 
 const R_REST := {"RightUpperArm": Vector3(-0.35, -0.9, 0.2), "RightLowerArm": Vector3(-0.1, -0.5, 0.85)}      # kılıç aşağı-önde
 const L_REST := {"LeftUpperArm": Vector3(0.3, -0.9, 0.2), "LeftLowerArm": Vector3(0.2, -0.6, 0.75)}
@@ -26,11 +27,11 @@ static func _t(t: float, crouch: float, yaw: float, lean: float, r: Dictionary, 
 
 
 static func steps() -> Array:
-	var W = S.LEG_WIDE
+	var W = F.FIGHT
 	var L = S.LEG_LUNGE
 	var LL = S.mirror(S.LEG_LUNGE)
-	var BK = S.LEG_BACK
-	var ST = S.LEG_STEP
+	var BK = F.SHIFT
+	var ST = F.STEPIN
 	var CR = S.LEG_CROSS
 	return [
 		{"len": 0.45, "hit": 0.18, "keys": [
