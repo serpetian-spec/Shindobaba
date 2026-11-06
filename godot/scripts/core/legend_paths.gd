@@ -22,6 +22,10 @@ const DRILLS := {
 	"jagei_jubaku": {"type": "collect", "n": 6, "time": 120.0, "item": "zehir kesesi", "say": "Gölge yılanlar zehirden beslenir. İnin çevresindeki ölü yılanlardan altı zehir kesesi topla, iki dakikan var."},
 	"hebi_bunshin_no_jutsu": {"type": "survive", "n": 20, "time": 0.0, "say": "Deri değiştiren beden zehre dayanır. Şu mor sisin içinde yirmi saniye dur — kaçarsan baştan."},
 	"sen_ei_tajashu": {"type": "survive", "n": 30, "time": 0.0, "say": "Bin yılan kolundan fışkırır; damarların zehri tanımalı. Otuz saniye sisin içinde kal."},
+	# Şifacı Yolu (kanon: Mistik Avuç ölmek üzere olan balıkla öğrenilir — Sakura/Tsunade; zehir çekme yaralı başında; chakra neşteri hassas kesik)
+	"shousen": {"type": "tend", "n": 3, "dwell": 4.0, "spots": "basins", "item": "balık", "say": "Mistik Avuç sabır ister. Leğenlerdeki üç balık ölmek üzere; avucunu üstlerinde tutup her birini dört saniye chakranla besle. Kıpırdarsan chakran dağılır, baştan başlarsın."},
+	"saikan_chushutsu_no_jutsu": {"type": "tend", "n": 4, "dwell": 3.0, "spots": "patients", "item": "hasta", "say": "Koğuştaki dört yaralı zehirlendi. Her birinin başında dur, zehri chakranla dışarı çek — üç saniye ayrılma."},
+	"chakura_no_mesu": {"type": "hits", "n": 30, "time": 45.0, "say": "Chakra neşteri kası keser, deriyi değil. Şu kuklalara kırk beş saniyede otuz hassas vuruş — yalnız yakından."},
 	# Silah Yolu (kanon: Tenten'in hedef talimi, parşömene geri mühürlenen silahlar, yağan silahları okuyan göz)
 	"buki_kuchiyose": {"type": "throws", "n": 24, "time": 60.0, "min_d": 8.0, "say": "Parşömenden çıkan silah, onu yönlendiren el kadar isabetlidir. Sekiz adım geriden şu dört hedefe bir dakikada yirmi dört atış isabet ettir! Kılıçla vurmak sayılmaz."},
 	"tesso_kusari": {"type": "collect", "n": 8, "time": 90.0, "item": "silah", "look": "weapon", "say": "Dünkü talimin silahları avluya saplı kaldı. Sekizini topla ve parşömene geri mühürle — doksan saniye. Bir ninja silahını yerde bırakmaz."},
@@ -618,6 +622,27 @@ func start_drill(pid: String, jid: String) -> void:
 			w.rotation_degrees = Vector3(-90 + randf_range(-25, 25), randf() * 360.0, randf_range(-20, 20))   # ucu toprakta
 			w.scale = Vector3.ONE * 2.0
 			drill["dummies"].append(w)
+	elif D["type"] == "tend":
+		# her hedefin çevresinde yeşil halka: içinde durdukça dolar (çıkarsan sıfırlanır), dolunca şifa parıltısı + halka altın olur
+		drill["tend"] = []
+		for q in sp.get(String(D.get("spots", "")), []):
+			var ring = MeshInstance3D.new()
+			var tm3 = TorusMesh.new()
+			tm3.inner_radius = 0.72
+			tm3.outer_radius = 0.86   # yan yana sedirlerde halkalar iç içe geçmesin
+			ring.mesh = tm3
+			var rm3 = StandardMaterial3D.new()
+			rm3.albedo_color = Color(0.45, 1.0, 0.6)
+			rm3.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			ring.material_override = rm3
+			get_tree().current_scene.add_child(ring)
+			ring.global_position = (q as Vector3) + Vector3.UP * 0.08
+			drill["dummies"].append(ring)
+			drill["tend"].append({"pos": q, "t": 0.0, "done": false, "ring": ring, "mat": rm3})
+		drill["dwell"] = float(D.get("dwell", 3.0))
+		drill["n"] = mini(int(D["n"]), (drill["tend"] as Array).size())
+		if drill.has("center") and not (drill["tend"] as Array).is_empty():
+			drill["center"] = drill["tend"][0]["pos"]
 	elif D["type"] == "collect":
 		# in çevresine dağılmış zehir keseleri (mor parlayan küçük keseler): yaklaşınca toplanır
 		for k in int(D["n"]):
@@ -697,7 +722,7 @@ func start_drill(pid: String, jid: String) -> void:
 
 
 func _drill_text() -> String:
-	var unit = {"hits": "vuruş", "throws": "isabet", "laps": "tur", "collect": String(DRILLS.get(String(drill["jid"]), {}).get("item", "parça")), "survive": "sn"}.get(String(drill["type"]), "")
+	var unit = {"hits": "vuruş", "throws": "isabet", "tend": String(DRILLS.get(String(drill["jid"]), {}).get("item", "")), "laps": "tur", "collect": String(DRILLS.get(String(drill["jid"]), {}).get("item", "parça")), "survive": "sn"}.get(String(drill["type"]), "")
 	var tl = (" — %d sn" % int(maxf(0.0, float(drill["time"]) - float(drill["t"])))) if float(drill["time"]) > 0.0 else ""
 	return "%d / %d %s%s" % [int(drill["c"]), int(drill["n"]), unit, tl]
 
@@ -746,6 +771,33 @@ func _drill_tick(dt: float) -> void:
 			Hud.objective_progress(_drill_text())
 			if laps >= int(drill["n"]):
 				end_drill(true)
+	elif drill["type"] == "tend":
+		for td in drill["tend"]:
+			if td["done"]:
+				continue
+			var q: Vector3 = td["pos"]
+			if Vector2(pp.x - q.x, pp.z - q.z).length() < 1.1:
+				td["t"] = float(td["t"]) + dt
+				(td["mat"] as StandardMaterial3D).albedo_color = Color(0.45, 1.0, 0.6).lerp(Color(1.0, 0.95, 0.5), clampf(float(td["t"]) / float(drill["dwell"]), 0.0, 1.0))
+				if int(float(td["t"]) * 4.0) != int((float(td["t"]) - dt) * 4.0):
+					FX.burst(q + Vector3.UP * 0.9, {"amount": 6, "life": 0.7, "size": 0.18, "radius": 0.3, "vmin": 0.4, "vmax": 1.0, "dir": Vector3.UP, "spread": 30.0,
+						"colors": [Color(0.5, 1.0, 0.6, 1.0), Color(0.4, 0.9, 0.5, 0.0)]})   # avuçtan yeşil chakra
+				Hud.objective_progress("%s  —  %d%%" % [_drill_text(), int(100.0 * float(td["t"]) / float(drill["dwell"]))])
+				if float(td["t"]) >= float(drill["dwell"]):
+					td["done"] = true
+					(td["mat"] as StandardMaterial3D).albedo_color = Color(1.0, 0.85, 0.35)
+					FX.burst(q + Vector3.UP, {"amount": 30, "life": 1.0, "size": 0.3, "radius": 0.5, "vmin": 1.0, "vmax": 3.0, "dir": Vector3.UP, "spread": 50.0,
+						"colors": [Color(0.6, 1.0, 0.7, 1.0), Color(0.4, 0.9, 0.5, 0.0)]})
+					Sfx.play("heal", q, 1.1, 0.6)
+					drill["c"] = int(drill["c"]) + 1
+					Hud.objective_progress(_drill_text())
+					if int(drill["c"]) >= int(drill["n"]):
+						end_drill(true)
+						return
+			elif float(td["t"]) > 0.0:
+				td["t"] = 0.0   # ayrıldın: chakra dağıldı, baştan
+				(td["mat"] as StandardMaterial3D).albedo_color = Color(0.45, 1.0, 0.6)
+				Hud.msg("Ayrıldın — chakran dağıldı, baştan.", Color(1, 0.7, 0.5))
 	elif drill["type"] == "collect":
 		for bag in drill["dummies"]:
 			if is_instance_valid(bag) and bag.visible and bag.global_position.distance_to(pp + Vector3.UP * 0.5) < 1.6:

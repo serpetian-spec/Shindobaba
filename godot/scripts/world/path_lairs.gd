@@ -15,7 +15,9 @@ static func build(kind: String, b: Builder, pid: String, p: Vector2, base: float
 			return _forge(b, pid, p, base)
 		"dojo":
 			return _dojo(b, pid, p, base)
-		"clinic", "paper", "toad", "clay", "thread", "thunder", "chidori", "jashin", "octo", "ink", "puppet":
+		"clinic":
+			return _clinic(b, pid, p, base)
+		"paper", "toad", "clay", "thread", "thunder", "chidori", "jashin", "octo", "ink", "puppet":
 			return _hall(b, pid, p, base, kind)
 	return 0.0
 
@@ -412,6 +414,138 @@ static func _forge(b: Builder, pid: String, p: Vector2, base: float) -> float:
 	LegendPaths.drill_spots[pid] = {"posts": posts, "center": b.w(Vector3(0, _g(p, base, 0.0, -2.0), -2.0))}
 	LegendPaths._mentor(b, pid, Vector3(-1.5, fy + 0.8, 8.4), PI)
 	b.interact(Vector3(-1.5, fy, 6.0), 6.5, "path_mentor", "[F] Silah ustasıyla konuş", {"path": pid})
+	return 5.0
+
+
+## Yuge Şifa Tapınağı (Şifacı Yolu): yeşil kiremitli açık cepheli tapınak (ilaç rafları, muayene sedi), iki yanda buharı tüten
+## şifa havuzları (yürünebilir su), solda beyaz tenteli yaralı koğuşu (sedirlerde yatan hastalar), sağda balık leğenleri (kanon:
+## Mistik Avuç ölmek üzere olan balıkla çalışılır), önde şifalı ot tarhları + kurutma askısı, yanda chakra neşteri kuklaları.
+## Antrenman noktaları LegendPaths.drill_spots'a yazılır.
+static func _clinic(b: Builder, pid: String, p: Vector2, base: float) -> float:
+	var wood = Color(0.46, 0.32, 0.2)
+	var dark = Color(0.26, 0.18, 0.11)
+	var plaster = Color(0.95, 0.94, 0.9)
+	var stone = Color(0.56, 0.55, 0.52)
+	var green_t = Color(0.2, 0.45, 0.33)
+	var cloth = Color(0.95, 0.95, 0.92)
+	var skin = Color(0.93, 0.78, 0.64)
+	var spots: Dictionary = {}
+	var fy = maxf(_g(p, base, -8, 14), _g(p, base, 8, 14))
+	# avlu: toprak (otsuz)
+	var RM = preload("res://scripts/world/road_map.gd")
+	for k in 8:
+		var zz = -16.0 + k * 4.0
+		var wa = b.w(Vector3(-17.0, 0, zz)); var wb = b.w(Vector3(17.0, 0, zz))
+		RM.add_lane(Vector2(wa.x, wa.z), Vector2(wb.x, wb.z), 2.4, true)
+	# ---- tapınak (kuzey): taş kaide, ahşap zemin, açık ön cephe, yeşil çatı, "癒" levhası
+	b.box(Vector3(0, fy + 0.4, 14), Vector3(16, 0.8, 10), stone)
+	b.box(Vector3(0, fy + 0.84, 14), Vector3(15.4, 0.1, 9.4), Color(0.66, 0.5, 0.32))
+	for k in 3:
+		b.box(Vector3(0, fy + 0.62 - k * 0.2, 8.6 - k * 0.42), Vector3(5.0, 0.2, 0.45), wood)
+	for x in [-7.4, -2.5, 2.5, 7.4]:
+		b.box(Vector3(x, fy + 3.0, 9.4), Vector3(0.42, 4.2, 0.42), dark)
+	b.box(Vector3(0, fy + 3.0, 18.8), Vector3(15.4, 4.2, 0.32), plaster)
+	for sx in [-1.0, 1.0]:
+		b.box(Vector3(7.6 * sx, fy + 3.0, 14), Vector3(0.32, 4.2, 9.4), plaster)
+	b.box(Vector3(0, fy + 5.1, 9.4), Vector3(15.8, 0.4, 0.45), dark)
+	b.roof(Vector3(0, fy + 5.3, 14), Vector3(18.0, 3.0, 12.4), green_t)
+	b.kanji(Vector3(0, fy + 4.4, 9.1), "癒", 1.4, Color(0.95, 0.9, 0.7), 180.0)
+	# ilaç rafları (arka duvar): raflar + yeşil/amber kavanozlar
+	for sx in [-1.0, 1.0]:
+		var rx = 4.5 * sx
+		b.box(Vector3(rx, fy + 2.0, 18.3), Vector3(4.6, 2.4, 0.5), wood)
+		for r in 3:
+			b.box(Vector3(rx, fy + 1.15 + r * 0.75, 18.0), Vector3(4.4, 0.06, 0.45), dark, 0.0, false)
+			for q in 6:
+				var jc = [Color(0.45, 0.8, 0.55), Color(0.85, 0.65, 0.3), Color(0.6, 0.75, 0.85)][(q + r) % 3]
+				b.cyl(Vector3(rx - 1.8 + q * 0.72, fy + 1.4 + r * 0.75, 17.95), 0.32, 0.42, jc, false, 8)
+	# muayene sedi + ot havanı
+	b.box(Vector3(-2.0, fy + 1.3, 13.5), Vector3(2.2, 0.15, 1.0), cloth)
+	for q in 4:
+		b.box(Vector3(-2.0 + (0.95 if q % 2 else -0.95), fy + 1.08, 13.5 + (0.38 if q < 2 else -0.38)), Vector3(0.1, 0.42, 0.1), dark, 0.0, false)
+	b.cyl(Vector3(2.5, fy + 1.1, 13.0), 0.5, 0.4, stone.darkened(0.2), false, 10)
+	light(b, b.w(Vector3(0, fy + 4.0, 14.0)), Color(1.0, 0.9, 0.7), 1.4, 12.0)
+	# içeride: iki yanda hasta sedirleri, tavandan sarkan fenerler, duvarda "医" parşömeni
+	for sx in [-1.0, 1.0]:
+		var ix = 5.6 * sx
+		b.box(Vector3(ix, fy + 1.3, 12.5), Vector3(1.0, 0.1, 2.2), wood)
+		for q in 4:
+			b.box(Vector3(ix + (0.42 if q % 2 else -0.42), fy + 1.08, 12.5 + (0.95 if q < 2 else -0.95)), Vector3(0.08, 0.42, 0.08), dark, 0.0, false)
+		b.box(Vector3(ix, fy + 1.4, 12.5), Vector3(0.9, 0.1, 2.05), cloth)
+		b.sphere(Vector3(ix, fy + 1.56, 12.2), Vector3(0.62, 0.32, 1.3), Color(0.55, 0.62, 0.55), 8)
+		b.sphere(Vector3(ix, fy + 1.58, 13.3), Vector3(0.3, 0.28, 0.32), skin, 8)
+		b.box(Vector3(ix * 0.6, fy + 4.2, 13.0), Vector3(0.03, 0.6, 0.03), dark, 0.0, false)
+		b.sphere(Vector3(ix * 0.6, fy + 3.75, 13.0), Vector3(0.5, 0.6, 0.5), Color(1.0, 0.92, 0.75), 8)
+	b.box(Vector3(0, fy + 3.0, 18.6), Vector3(1.4, 2.2, 0.04), Color(0.96, 0.94, 0.86), 0.0, false)
+	b.kanji(Vector3(0, fy + 3.0, 18.55), "医", 0.9, Color(0.12, 0.1, 0.1), 180.0)
+	# ---- şifa havuzları (iki yanda): kaya halka + yürünebilir su + buhar
+	for sx in [-1.0, 1.0]:
+		var hx = 12.5 * sx; var hn = 9.0
+		var hy = _g(p, base, hx, hn)
+		for k in 14:
+			var a = TAU * k / 14.0
+			b.boulder(Vector3(hx + cos(a) * 3.4, hy + 0.3, hn + sin(a) * 2.8), Vector3(1.2, 0.8, 1.0), stone.darkened(0.08 * (k % 3)), k, true)
+		VillageStyles.water(b, Vector3(hx, hy + 0.35, hn), Vector2(6.2, 5.0))
+		Steam.add(b.w(Vector3(hx, hy + 0.6, hn)))
+	# ---- yaralı koğuşu (sol önde): direkler + beyaz tente + 4 sedir, her sedirde yatan hasta
+	var wx = -11.0; var wn = -6.0
+	var wy = _g(p, base, wx, wn)
+	for q in 6:
+		b.box(Vector3(wx - 4.0 + (q % 3) * 4.0, wy + 1.6, wn + (2.6 if q < 3 else -2.6)), Vector3(0.16, 3.2, 0.16), dark)
+	b.box(Vector3(wx, wy + 3.2, wn), Vector3(8.6, 0.06, 5.8), cloth, 0.0, false)
+	b.box(Vector3(wx, wy + 3.0, wn + 2.9), Vector3(8.6, 0.4, 0.04), Color(0.3, 0.6, 0.4), 0.0, false)   # yeşil saçak
+	var pats: Array = []
+	for k in 4:
+		var cx = wx - 3.0 + k * 2.0
+		var cy = _g(p, base, cx, wn)
+		b.box(Vector3(cx, cy + 0.45, wn), Vector3(1.0, 0.1, 2.2), wood)                 # sedir
+		for q in 4:
+			b.box(Vector3(cx + (0.42 if q % 2 else -0.42), cy + 0.2, wn + (0.95 if q < 2 else -0.95)), Vector3(0.08, 0.4, 0.08), dark, 0.0, false)
+		b.box(Vector3(cx, cy + 0.56, wn), Vector3(0.9, 0.1, 2.05), cloth)                 # şilte
+		b.sphere(Vector3(cx, cy + 0.72, wn - 0.3), Vector3(0.62, 0.32, 1.3), [Color(0.55, 0.6, 0.7), Color(0.6, 0.5, 0.45), Color(0.5, 0.58, 0.5)][k % 3], 8)   # battaniyeli beden
+		b.sphere(Vector3(cx, cy + 0.74, wn + 0.78), Vector3(0.3, 0.28, 0.32), skin, 8)    # baş
+		b.box(Vector3(cx, cy + 0.8, wn + 0.78), Vector3(0.32, 0.07, 0.34), cloth, 0.0, false)   # alın sargısı
+		pats.append(b.w(Vector3(cx + 0.9, cy, wn)))
+	spots["patients"] = pats
+	# ---- balık leğenleri (sağ önde): ahşap leğen + su + yan yatmış balık
+	var basins: Array = []
+	for k in 3:
+		var bxx = 8.0 + k * 3.0; var bnn = -6.0
+		var by = _g(p, base, bxx, bnn)
+		b.cyl(Vector3(bxx, by + 0.4, bnn), 1.4, 0.8, wood.darkened(0.1), true, 12)
+		b.cyl(Vector3(bxx, by + 0.79, bnn), 1.2, 0.04, Color(0.25, 0.45, 0.6), false, 12)
+		b.sphere(Vector3(bxx, by + 0.83, bnn), Vector3(0.55, 0.12, 0.2), Color(0.75, 0.75, 0.8), 6)   # balık
+		b.cone(Vector3(bxx + 0.33, by + 0.83, bnn), 0.14, 0.2, Color(0.7, 0.7, 0.76))
+		basins.append(b.w(Vector3(bxx, by, bnn - 1.3)))
+	spots["basins"] = basins
+	# ---- şifalı ot tarhları + kurutma askısı (önde ortada)
+	for r in 3:
+		for k in 8:
+			var gx = -4.2 + k * 1.2; var gn = -12.0 - r * 1.6
+			var gy = _g(p, base, gx, gn)
+			b.sphere(Vector3(gx, gy + 0.3, gn), Vector3(0.7, 0.55, 0.7), [Color(0.3, 0.6, 0.3), Color(0.4, 0.62, 0.32), Color(0.35, 0.55, 0.4)][(k + r) % 3], 6)
+	var rgy = _g(p, base, 0, -17.5)
+	for sx in [-1.0, 1.0]:
+		b.box(Vector3(3.0 * sx, rgy + 1.2, -17.5), Vector3(0.12, 2.4, 0.12), dark)
+	b.box(Vector3(0, rgy + 2.3, -17.5), Vector3(6.2, 0.08, 0.08), dark, 0.0, false)
+	for k in 9:
+		b.box(Vector3(-2.6 + k * 0.65, rgy + 1.95, -17.5), Vector3(0.18, 0.6, 0.06), Color(0.45, 0.55, 0.3).darkened((k % 3) * 0.1), 0.0, false)
+	# ---- chakra neşteri kuklaları (sağ arka)
+	var posts: Array = []
+	for k in 3:
+		var dx = 10.0 + k * 3.0; var dn = -14.0
+		var dy = _g(p, base, dx, dn)
+		b.box(Vector3(dx, dy + 0.9, dn), Vector3(0.18, 1.8, 0.18), wood)
+		b.cyl(Vector3(dx, dy + 1.5, dn), 0.6, 1.0, Color(0.85, 0.78, 0.6), false, 10)
+		b.sphere(Vector3(dx, dy + 2.3, dn), Vector3(0.5, 0.5, 0.5), Color(0.88, 0.8, 0.62))
+		posts.append(b.w(Vector3(dx, dy, dn)))
+	spots["posts"] = posts
+	spots["center"] = b.w(Vector3(0, _g(p, base, 0, -4), -4))
+	LegendPaths.drill_spots[pid] = spots
+	b.lantern(-4.0, 6.0)
+	b.lantern(4.0, 6.0)
+	LegendPaths._mentor(b, pid, Vector3(0, fy + 0.9, 12.0), PI)
+	b.interact(Vector3(0, fy, 9.0), 6.0, "path_mentor", "[F] Şifacı Usta ile konuş", {"path": pid})
 	return 5.0
 
 
