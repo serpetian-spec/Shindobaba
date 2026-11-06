@@ -1569,7 +1569,7 @@ static func clay_blast(pos: Vector3, s := 1.0) -> void:
 	# büyük patlamada topak sayısı ve yayılım büyür, topak boyu yavaş büyür (ekranı kaplayan dev kaya gibi topaklar olmasın)
 	var z = sqrt(s)
 	var n = minf(s, 4.0)
-	star(pos, Color(1, 1, 0.95), 3.5 * s, 0.16)
+	star(pos, Color(1, 1, 0.95), 4.5 * s, 0.22)   # ref (Deidara): patlamanın ana görüntüsü parlak beyaz-sarı flaş kubbesi
 	FX.light(pos, Color(1.0, 0.8, 0.45), 9.0 * s, 18.0 * s, 0.45)
 	FX.burst(pos, {"amount": int(6 * s) + 3, "life": 0.16, "size": 3.0 * s, "radius": 0.2 * s, "vmin": 0.5, "vmax": 2.0, "dir": Vector3.UP, "spread": 180.0, "add": true, "cel": false,
 		"tex": FX.tex_soft, "colors": [Color(1, 1, 0.96, 1), Color(1.0, 0.95, 0.8, 0.5), Color(1.0, 0.9, 0.7, 0)]})
@@ -1580,9 +1580,9 @@ static func clay_blast(pos: Vector3, s := 1.0) -> void:
 	# gri duman: ateşin çevresinden dışa ve yukarı taşan karnabahar bulut (ateş söndükçe görünür)
 	var at = pos
 	scene().get_tree().create_timer(0.12).timeout.connect(func():
-		puffs(at, {"amount": int(30 * n) + 10, "life": 2.0 + 0.3 * z, "size": 1.65 * pow(s, 0.75), "radius": 1.1 * s, "vmin": 2.5 * z, "vmax": 6.0 * z, "dir": Vector3.UP, "spread": 110.0, "damp": 3.0,
+		puffs(at, {"amount": int(12 * n) + 5, "life": 1.1 + 0.2 * z, "size": 1.3 * pow(s, 0.7), "radius": 1.0 * s, "vmin": 2.5 * z, "vmax": 6.0 * z, "dir": Vector3.UP, "spread": 110.0, "damp": 3.0,
 			"gravity": Vector3(0, 0.8, 0), "spin": 15.0, "rough": 0.22, "outline": 0.035, "outline_col": Color(0.28, 0.27, 0.29), "shade": 0.3,
-			"colors": [Color(0.58, 0.57, 0.58, 0.0), Color(0.58, 0.57, 0.58, 1), Color(0.48, 0.47, 0.49, 0.95), Color(0.38, 0.37, 0.39, 0.0)]}))
+			"colors": [Color(0.62, 0.61, 0.62, 0.0), Color(0.62, 0.61, 0.62, 0.75), Color(0.5, 0.49, 0.51, 0.55), Color(0.38, 0.37, 0.39, 0.0)]}))   # duman ince ve kısa: ekranı gri topaklarla doldurmasın (duman kuralı)
 	embers(pos, Color(1.0, 0.6, 0.15), int(18 * n), 16.0 * z, 0.7)
 	var g = Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z) + 0.1, pos.z)
 	var near = pos.y - g.y < 3.5 * s
@@ -1591,7 +1591,7 @@ static func clay_blast(pos: Vector3, s := 1.0) -> void:
 	if near:
 		cracks(g, 4.5 * s, Color(0.08, 0.06, 0.05, 0.92), 8.0)
 		FX.dust(g, 1.6 * z)
-		puffs(g + Vector3.UP * 0.3, {"amount": int(14 * n) + 6, "life": 1.4, "size": 1.3 * z, "radius": 0.6 * s, "vmin": 6.0 * z, "vmax": 10.0 * z, "dir": Vector3.UP, "spread": 88.0, "damp": 4.0,
+		puffs(g + Vector3.UP * 0.3, {"amount": int(6 * n) + 3, "life": 1.0, "size": 1.3 * z, "radius": 0.6 * s, "vmin": 6.0 * z, "vmax": 10.0 * z, "dir": Vector3.UP, "spread": 88.0, "damp": 4.0,
 			"gravity": Vector3(0, -1.0, 0), "rough": 0.22, "outline": 0.035, "outline_col": Color(0.32, 0.27, 0.22),
 			"colors": [Color(0.55, 0.47, 0.38, 0.0), Color(0.55, 0.47, 0.38, 0.9), Color(0.5, 0.43, 0.35, 0.0)]})
 	if Game.world:
