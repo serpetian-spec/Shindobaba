@@ -3221,10 +3221,10 @@ func p_sozo_saisei(c: Node3D, _t: Node3D) -> void:
 	Sfx.play("heal", c.global_position, 0.8)
 	heal(c, c.max_hp)
 	if c is Player:
-		Buffs.add("sozo_saisei", 20.0, {"armor": 0.85, "_name": "Yaradılış Yenilenmesi", "_desc": "tam iyileşme + her sn canın %6'sı yenilenir"})
-	every(20.0, 1.0, func(_i, _k):
+		Buffs.add("sozo_saisei", 10.0, {"armor": 0.92, "_name": "Yaradılış Yenilenmesi", "_desc": "tam iyileşme + 10 sn her sn canın %2'si yenilenir (ömürden yer)"})
+	every(10.0, 1.0, func(_i, _k):   # denge: 20 sn x %6 + %15 zırh bedelsizdi
 		if live(c):
-			heal(c, c.max_hp * 0.06), func():
+			heal(c, c.max_hp * 0.02), func():
 		for pp in parts:
 			if is_instance_valid(pp):
 				pp.queue_free())
@@ -15728,15 +15728,39 @@ func p_kisho_tensei(c: Node3D, _t: Node3D) -> void:
 			after(1.6, func():
 				if is_instance_valid(ba):
 					ba.queue_free())
+	# kanon (Chiyo): kendi yaşam gücünü verip yakında düşen BİR dostu diriltir — kendini iyileştirmez (eskiden tam iyileşme + chakra veriyordu)
+	var now = Time.get_ticks_msec() / 1000.0
+	var tgt = null
+	for f in Enemy.fallen:
+		if String(f["team"]) == String(c.team) and now - float(f["t"]) < 120.0 and (f["pos"] as Vector3).distance_to(c.global_position) < 70.0:
+			tgt = f
+			break
+	if tgt == null:
+		if c is Player:
+			Hud.msg("Diriltecek düşmüş bir dost yok.", Color(1, 0.7, 0.5))
+			c.combat.cooldowns.erase("kisho_tensei")   # boşa harcanmasın
+		return
 	after(1.4, func():
 		if not live(c):
 			return
 		VFX.star(c.global_position + Vector3.UP * 1.2, green, 3.0)
-		heal(c, c.max_hp)
-		chakra_gain(c, 100.0)
-		if c is Player:
-			c.hp = maxf(1.0, c.hp - c.max_hp * 0.2)
-			Buffs.add("kisho_tensei", 12.0, {"armor": 0.8, "_name": "Yeniden Doğuş", "_desc": "can bedeliyle tam yenilenme; hasar azalır"}))
+		var e = Enemy.new()
+		e.setup(tgt["arch"])
+		e.team = tgt["team"]
+		e.set_meta("respawn", false)
+		if tgt["teammate"]:
+			e.set_meta("teammate", true)
+			if String(tgt["friend_id"]) != "":
+				e.set_meta("friend_id", tgt["friend_id"])
+		get_tree().current_scene.add_child(e)
+		e.global_position = gp(tgt["pos"])
+		Combat.popup_text(e.global_position + Vector3.UP * 2.6, "Dirildi", green)
+		Enemy.fallen.erase(tgt)
+		if c is Player:   # bedel: yaşam gücü verildi
+			c.hp = 1.0
+			Buffs.add("rinne_bedel", 60.0, {"speed": 0.7, "melee": 0.7, "no_heal": 1.0, "_name": "Yaşam Bedeli", "_desc": "yaşam gücünü verdin: iyileşemezsin"})
+		else:
+			c.hp = 1.0)
 	Sfx.play("heal", c.global_position, 0.5)
 
 
@@ -17853,9 +17877,15 @@ func p_shiki_fujin(c: Node3D, t: Node3D) -> void:
 		tw2.tween_property(soul, "global_position", at + Vector3.UP * 5.0, 0.4)
 		tw2.tween_callback(soul.queue_free)
 		st(tt, "stun", 3.0)
-		tt.take_hit(inf(c, "shiki_fujin", 6.0, {"knock": 0.0, "kind": "heavy", "chakra_drain": 60.0, "hitstop": 0.2}))
+		if tt is Boss:
+			tt.take_hit(inf(c, "shiki_fujin", 6.0, {"knock": 0.0, "kind": "heavy", "chakra_drain": 60.0, "hitstop": 0.2}))
+		else:   # kanon: Ölüm Tanrısı ruhu mühürler
+			tt.take_hit({"dmg": 99999.0, "kind": "heavy", "knock": 0.0, "attacker": c})
+			Combat.popup_text(tt.global_position + Vector3.UP * 2.4, "Ruhu mühürlendi", Color(0.8, 0.85, 1.0))
+		# bedel: kanonda kullanıcı ölür — oyunda can 1'e iner ve 90 sn iyileşemez (eskiden yalnız %40 can)
+		c.hp = 1.0
 		if c is Player:
-			c.hp = maxf(1.0, c.hp - c.max_hp * 0.4))
+			Buffs.add("rinne_bedel", 90.0, {"speed": 0.6, "melee": 0.6, "no_heal": 1.0, "_name": "Ölüm Tanrısının Bedeli", "_desc": "ruhunun bir parçası mühürlendi: iyileşemezsin"}))
 	Sfx.play("genjutsu", c.global_position, 0.4)
 
 

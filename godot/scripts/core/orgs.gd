@@ -556,6 +556,11 @@ func _rogue_job(rk: String) -> Dictionary:
 
 
 ## Yasak teknikler: yalnız "kinjutsu" öğrenme türü (karakter imzaları/yollar hariç), seviye ve rütbeye göre
+## Simsarın satmadığı yasaklar: soy/göz/kişiye özgü (Gedō Rinne Tensei = Rinnegan, Chi no Juin ve Fushi Tensei = Orochimaru,
+## Shihōhappō = sennin modlu Rasenshuriken)
+const BROKER_NO := ["gedo_rinne_tensei_no_jutsu", "chi_no_juin", "fushi_tensei", "shihohappo_shuriken"]
+
+
 func _kinjutsu_dialog() -> void:
 	var pr = p()
 	var r = rogue_rank()
@@ -564,6 +569,8 @@ func _kinjutsu_dialog() -> void:
 		var j = Data.jutsu[jid]
 		if not j is Dictionary or String(j.get("learn", "")) != "kinjutsu" or jid in pr["learned"] or Progress.element_block(jid) != "":
 			continue
+		if jid in BROKER_NO:
+			continue   # kanonda parşömenden öğrenilemez (Rinnegan, Orochimaru'nun mührü/ritüeli, Naruto'nun Rasenshuriken'i)
 		var lv = int(j.get("level", 10))
 		if lv > int(pr["level"]) + r * 2:
 			continue
