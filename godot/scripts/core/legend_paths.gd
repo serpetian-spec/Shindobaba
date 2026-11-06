@@ -22,6 +22,11 @@ const DRILLS := {
 	"jagei_jubaku": {"type": "collect", "n": 6, "time": 120.0, "item": "zehir kesesi", "say": "Gölge yılanlar zehirden beslenir. İnin çevresindeki ölü yılanlardan altı zehir kesesi topla, iki dakikan var."},
 	"hebi_bunshin_no_jutsu": {"type": "survive", "n": 20, "time": 0.0, "say": "Deri değiştiren beden zehre dayanır. Şu mor sisin içinde yirmi saniye dur — kaçarsan baştan."},
 	"sen_ei_tajashu": {"type": "survive", "n": 30, "time": 0.0, "say": "Bin yılan kolundan fışkırır; damarların zehri tanımalı. Otuz saniye sisin içinde kal."},
+	# Kâğıt Yolu (Konan): kâğıdı anlamak (figür katlama), dağılan kelebekleri toplamak, kanatla zirveye çıkmak, kâğıt mızrak
+	"kami_bunshin": {"type": "tend", "n": 3, "dwell": 4.0, "spots": "mats", "item": "kâğıt figür", "say": "Kâğıt beden, kâğıdı anlamakla başlar. Üç masada birer insan figürü katla — her birine dört saniye chakra ver, elin titremesin."},
+	"kami_chocho": {"type": "collect", "n": 8, "time": 60.0, "item": "kelebek", "look": "butterfly", "say": "Kâğıt kelebeklerim rüzgârla dağıldı. Bir dakikada sekizini yakala; seninle uçmayı öğrensinler."},
+	"kami_tsubasa": {"type": "tend", "n": 1, "dwell": 2.0, "spots": "top", "item": "zirve", "time": 90.0, "say": "Kanat, yükseklikten korkmayana açılır. Kulenin tepesindeki çiçeğe çık — kat çıkıntılarından zıpla, duvarlardan koş. Doksan saniye."},
+	"kami_yari": {"type": "hits", "n": 30, "time": 40.0, "say": "Kâğıt mızrak sertleşmiş chakradır. Şu kuklalara kırk saniyede otuz darbe."},
 	# Şifacı Yolu (kanon: Mistik Avuç ölmek üzere olan balıkla öğrenilir — Sakura/Tsunade; zehir çekme yaralı başında; chakra neşteri hassas kesik)
 	"shousen": {"type": "tend", "n": 3, "dwell": 4.0, "spots": "basins", "item": "balık", "say": "Mistik Avuç sabır ister. Leğenlerdeki üç balık ölmek üzere; avucunu üstlerinde tutup her birini dört saniye chakranla besle. Kıpırdarsan chakran dağılır, baştan başlarsın."},
 	"saikan_chushutsu_no_jutsu": {"type": "tend", "n": 4, "dwell": 3.0, "spots": "patients", "item": "hasta", "say": "Koğuştaki dört yaralı zehirlendi. Her birinin başında dur, zehri chakranla dışarı çek — üç saniye ayrılma."},
@@ -643,6 +648,42 @@ func start_drill(pid: String, jid: String) -> void:
 		drill["n"] = mini(int(D["n"]), (drill["tend"] as Array).size())
 		if drill.has("center") and not (drill["tend"] as Array).is_empty():
 			drill["center"] = drill["tend"][0]["pos"]
+	elif D["type"] == "collect" and String(D.get("look", "")) == "butterfly":
+		# rüzgârla dağılmış kâğıt kelebekler: avluda daireler çizip süzülür, kanat çırpar; yaklaşınca yakalanır
+		for k in int(D["n"]):
+			var a = TAU * k / float(D["n"])
+			var q: Vector3 = center + Vector3(cos(a), 0, sin(a)) * randf_range(4.0, 12.0)
+			q.y = Game.ground_height(q.x, q.z) + randf_range(0.9, 1.8)
+			var bf = Node3D.new()
+			for sd in [-1.0, 1.0]:
+				var wing = MeshInstance3D.new()
+				var qm = QuadMesh.new()
+				qm.size = Vector2(0.32, 0.26)
+				wing.mesh = qm
+				var wm = StandardMaterial3D.new()
+				wm.albedo_color = [Color(0.97, 0.96, 0.92), Color(0.75, 0.65, 0.95), Color(0.95, 0.75, 0.8)][k % 3]
+				wm.cull_mode = BaseMaterial3D.CULL_DISABLED
+				wm.emission_enabled = true
+				wm.emission = wm.albedo_color * 0.4
+				wing.material_override = wm
+				wing.rotation_degrees = Vector3(-90, 0, 0)
+				var hinge = Node3D.new()
+				hinge.add_child(wing)
+				wing.position = Vector3(sd * 0.16, 0, 0)
+				bf.add_child(hinge)
+				var ft = hinge.create_tween().set_loops()
+				ft.tween_property(hinge, "rotation_degrees:z", sd * 55.0, 0.12)
+				ft.tween_property(hinge, "rotation_degrees:z", -sd * 15.0, 0.12)
+			get_tree().current_scene.add_child(bf)
+			bf.global_position = q
+			var ph = randf() * TAU
+			var rr = randf_range(1.5, 3.0)
+			var mt = bf.create_tween().set_loops()
+			mt.tween_method(func(v: float):
+				if is_instance_valid(bf):
+					bf.global_position = q + Vector3(cos(v + ph) * rr, sin(v * 2.0) * 0.4, sin(v + ph) * rr)
+					bf.rotation.y = -(v + ph), 0.0, TAU, randf_range(5.0, 8.0))
+			drill["dummies"].append(bf)
 	elif D["type"] == "collect":
 		# in çevresine dağılmış zehir keseleri (mor parlayan küçük keseler): yaklaşınca toplanır
 		for k in int(D["n"]):

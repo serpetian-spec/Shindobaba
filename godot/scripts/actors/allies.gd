@@ -22,7 +22,8 @@ func vanish() -> void:
 	if dead:
 		return
 	dead = true
-	FX.smoke_puff(global_position + Vector3.UP, 0.9, 14)
+	if not has_meta("no_smoke"):   # kâğıt klon (Kami Bunshin) kâğıda dağılır, duman çıkarmaz
+		FX.smoke_puff(global_position + Vector3.UP, 0.9, 14)
 	queue_free()
 
 

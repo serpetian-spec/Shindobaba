@@ -17,7 +17,9 @@ static func build(kind: String, b: Builder, pid: String, p: Vector2, base: float
 			return _dojo(b, pid, p, base)
 		"clinic":
 			return _clinic(b, pid, p, base)
-		"paper", "toad", "clay", "thread", "thunder", "chidori", "jashin", "octo", "ink", "puppet":
+		"paper":
+			return _paper(b, pid, p, base)
+		"toad", "clay", "thread", "thunder", "chidori", "jashin", "octo", "ink", "puppet":
 			return _hall(b, pid, p, base, kind)
 	return 0.0
 
@@ -414,6 +416,108 @@ static func _forge(b: Builder, pid: String, p: Vector2, base: float) -> float:
 	LegendPaths.drill_spots[pid] = {"posts": posts, "center": b.w(Vector3(0, _g(p, base, 0.0, -2.0), -2.0))}
 	LegendPaths._mentor(b, pid, Vector3(-1.5, fy + 0.8, 8.4), PI)
 	b.interact(Vector3(-1.5, fy, 6.0), 6.5, "path_mentor", "[F] Silah ustasıyla konuş", {"path": pid})
+	return 5.0
+
+
+## Kâğıt Çiçek Kulesi (Kâğıt Yolu, Yağmur Ülkesi): Amegakure tarzı koyu metal 4 katlı kule (dış borular, 0.9 m kat çıkıntıları:
+## çift zıplamayla kat kat tepeye çıkılır), tepede dev beyaz kâğıt çiçek; ıslak taş avlu, iplere asılı origami turnalar,
+## kâğıt fenerler, katlama masaları (kâğıt yığınları), kâğıt mızrak kuklaları. Antrenman noktaları LegendPaths.drill_spots'a.
+static func _paper(b: Builder, pid: String, p: Vector2, base: float) -> float:
+	var metal = Color(0.3, 0.31, 0.34)
+	var metal_d = Color(0.2, 0.21, 0.24)
+	var pipe = Color(0.4, 0.38, 0.36)
+	var paper = Color(0.96, 0.95, 0.92)
+	var wood = Color(0.38, 0.27, 0.18)
+	var spots: Dictionary = {}
+	var gy = _g(p, base, 0, 8)
+	var RM = preload("res://scripts/world/road_map.gd")
+	for k in 9:
+		var zz = -16.0 + k * 4.0
+		var wa = b.w(Vector3(-17.0, 0, zz)); var wb = b.w(Vector3(17.0, 0, zz))
+		RM.add_lane(Vector2(wa.x, wa.z), Vector2(wb.x, wb.z), 2.4, true)
+	# ---- kule: 4 kat, her kat 0.9 m içeri çekilir (çıkıntı), her katın üstüne dış rampa
+	var TX = 0.0; var TN = 10.0
+	var w = 9.0
+	var y = gy
+	var tiers = [4.6, 4.4, 4.2, 4.0]
+	for i in tiers.size():
+		var h: float = tiers[i]
+		b.box(Vector3(TX, y + h * 0.5, TN), Vector3(w, h, w), metal if i % 2 == 0 else metal.darkened(0.08))
+		b.box(Vector3(TX, y + h + 0.1, TN), Vector3(w + 0.4, 0.2, w + 0.4), metal_d, 0.0, false)   # kat saçağı: görsel (çarpışmalı olunca tırmanırken kafa çarpıyordu)
+		for sx in [-1.0, 1.0]:   # dış borular
+			b.cyl(Vector3(TX + sx * (w * 0.5 + 0.12), y + h * 0.5, TN - w * 0.3), 0.22, h, pipe, false, 8)
+			b.cyl(Vector3(TX + sx * (w * 0.5 + 0.12), y + h * 0.5, TN + w * 0.3), 0.22, h, pipe, false, 8)
+		for k in 3:   # karanlık pencereler + yeşilimsi ışık
+			b.box(Vector3(TX - w * 0.3 + k * w * 0.3, y + h * 0.6, TN - w * 0.5 - 0.02), Vector3(0.7, 0.9, 0.05), Color(0.55, 0.75, 0.6), 0.0, false)
+		# katlar 4-4.6 m, çıkıntılar 0.9 m: çift zıplamayla (~6.5 m) kat kat tepeye çıkılır (ninja parkuru; rampa yok)
+		y += h
+		w -= 1.8
+	# tepe platformu + korkuluk + dev kâğıt çiçek
+	var top_y = y - 0.13   # platform üstü = en üst kat tavanı (+0.02): korkuluk/çiçek havada kalmasın
+	b.box(Vector3(TX, top_y, TN), Vector3(w + 3.0, 0.3, w + 3.0), metal_d, 0.0, false)   # görsel; zemin en üst katın tavanı (saçak gibi kafa çarpmasın)
+	for k in 16:
+		var a = TAU * k / 16.0
+		b.cyl(Vector3(TX + cos(a) * (w * 0.5 + 1.3), top_y + 0.6, TN + sin(a) * (w * 0.5 + 1.3)), 0.08, 1.0, metal, false, 5)
+	for k in 8:   # taç yapraklar (iki halka), ortada sarı göbek
+		var a2 = TAU * k / 8.0
+		b.sphere(Vector3(TX + cos(a2) * 1.2, top_y + 1.4, TN + sin(a2) * 1.2), Vector3(1.6, 0.25, 0.9), paper, 8)
+		var a3 = a2 + PI / 8.0
+		b.sphere(Vector3(TX + cos(a3) * 0.8, top_y + 1.8, TN + sin(a3) * 0.8), Vector3(1.0, 0.3, 0.6), paper.darkened(0.04), 8)
+	b.sphere(Vector3(TX, top_y + 1.9, TN), Vector3(0.6, 0.4, 0.6), Color(0.95, 0.85, 0.5), 8)
+	b.cyl(Vector3(TX, top_y + 0.8, TN), 0.25, 1.2, Color(0.35, 0.55, 0.35), false, 6)   # sap
+	spots["top"] = [b.w(Vector3(TX + w * 0.5 + 0.6, top_y + 0.15, TN))]
+	spots["tower"] = b.w(Vector3(TX, gy, TN))
+	# ---- avlu: ıslak taş levhalar (parlak su birikintileri), kâğıt fenerler
+	for k in 14:
+		var px = randf_range(-12, 12); var pn = randf_range(-14, 2)
+		var py = _g(p, base, px, pn)
+		b.box(Vector3(px, py + 0.02, pn), Vector3(randf_range(1.0, 2.4), 0.02, randf_range(0.8, 1.8)), Color(0.35, 0.42, 0.5), randf() * 90.0, false)
+	for sx in [-1.0, 1.0]:
+		for k in 3:
+			b.lantern(sx * 6.0, -2.0 - k * 5.0)
+	# iplere asılı origami turnalar (giriş yolu üstünde)
+	for r in 2:
+		var ry = _g(p, base, 0, -6.0 - r * 6.0) + 4.2
+		var zz = -6.0 - r * 6.0
+		b.box(Vector3(-5.0, ry - 2.1, zz), Vector3(0.15, 4.2, 0.15), metal_d)
+		b.box(Vector3(5.0, ry - 2.1, zz), Vector3(0.15, 4.2, 0.15), metal_d)
+		b.box(Vector3(0, ry, zz), Vector3(10.0, 0.04, 0.04), Color(0.2, 0.2, 0.2), 0.0, false)
+		for k in 9:
+			var cx = -4.0 + k * 1.0
+			var cl = 0.6 + (k % 3) * 0.35
+			b.box(Vector3(cx, ry - cl * 0.5, zz), Vector3(0.01, cl, 0.01), Color(0.9, 0.9, 0.9), 0.0, false)
+			var ccol = [paper, Color(0.85, 0.3, 0.3), Color(0.55, 0.45, 0.8)][k % 3]
+			b.box(Vector3(cx, ry - cl - 0.05, zz), Vector3(0.28, 0.04, 0.12), ccol, 35.0, false)   # kanatlar
+			b.box(Vector3(cx, ry - cl, zz), Vector3(0.06, 0.12, 0.3), ccol, 0.0, false)        # gövde
+	# ---- katlama masaları (Kami Bunshin): alçak masa + kâğıt yığını + yarım katlanmış figür, önünde minder
+	var mats: Array = []
+	for k in 3:
+		var mx = -10.0 + k * 3.2; var mn = 2.0
+		var my = _g(p, base, mx, mn)
+		b.box(Vector3(mx, my + 0.35, mn), Vector3(1.6, 0.08, 0.9), wood)
+		for q in 4:
+			b.box(Vector3(mx + (0.7 if q % 2 else -0.7), my + 0.16, mn + (0.35 if q < 2 else -0.35)), Vector3(0.08, 0.32, 0.08), wood.darkened(0.2), 0.0, false)
+		for h2 in 5:
+			b.box(Vector3(mx - 0.4, my + 0.42 + h2 * 0.012, mn), Vector3(0.5, 0.01, 0.38), paper.darkened(0.02 * h2), 0.0, false)
+		b.box(Vector3(mx + 0.35, my + 0.5, mn), Vector3(0.22, 0.25, 0.08), paper, 0.0, false)   # katlanan figür
+		b.sphere(Vector3(mx + 0.35, my + 0.68, mn), Vector3(0.12, 0.12, 0.08), paper, 6)
+		b.box(Vector3(mx, my + 0.04, mn - 1.0), Vector3(0.9, 0.08, 0.7), Color(0.3, 0.3, 0.45), 0.0, false)   # minder
+		mats.append(b.w(Vector3(mx, my, mn - 1.0)))
+	spots["mats"] = mats
+	# ---- kâğıt mızrak kuklaları
+	var posts: Array = []
+	for k in 3:
+		var dx = 9.0 + k * 3.0; var dn = -10.0
+		var dy = _g(p, base, dx, dn)
+		b.box(Vector3(dx, dy + 0.9, dn), Vector3(0.18, 1.8, 0.18), wood)
+		b.cyl(Vector3(dx, dy + 1.5, dn), 0.6, 1.0, paper.darkened(0.15), false, 10)
+		b.sphere(Vector3(dx, dy + 2.3, dn), Vector3(0.5, 0.5, 0.5), paper.darkened(0.1))
+		posts.append(b.w(Vector3(dx, dy, dn)))
+	spots["posts"] = posts
+	spots["center"] = b.w(Vector3(0, _g(p, base, 0, -6), -6))
+	LegendPaths.drill_spots[pid] = spots
+	LegendPaths._mentor(b, pid, Vector3(0, gy + 0.05, TN - 6.0), PI)
+	b.interact(Vector3(0, gy, TN - 7.5), 5.5, "path_mentor", "[F] Kâğıt Ustası ile konuş", {"path": pid})
 	return 5.0
 
 
