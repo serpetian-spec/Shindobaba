@@ -193,7 +193,7 @@ func _send_guards() -> void:
 		a["power"] = 1.1 + lv * 0.02
 		a["xp"] = 30 + lv * 6
 		a["ryo"] = 0
-		var auto = Enemy.auto_jutsu("genin_rival", String(hi.get("element", "katon")), lv)
+		var auto = Enemy.auto_jutsu("genin_rival", String(hi.get("element", ["katon", "suiton", "fuuton", "doton", "raiton"][absi(hash(String(hi.get("name", "")))) % 5])), lv)
 		if not auto.is_empty():
 			a["jutsu"] = auto
 		var L: Dictionary = a["look"]

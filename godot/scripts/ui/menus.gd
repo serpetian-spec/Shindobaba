@@ -878,6 +878,8 @@ static func _friends_card(main: Node, left: Control) -> void:
 		st_txt = "  •  %s!" % Progress.kage_title(String(f["kage"]))
 	elif stt == "hapiste":
 		st_txt = "  •  HAPİSTE"
+	elif stt == "" and Orgs.is_rogue() and not f.get("rogue", false):
+		st_txt = "  •  Köyde — seni artık kaçak biliyor (dost değil)"
 	elif not Friends.available(f):
 		var mins = ceili((float(f.get("away", 0.0)) - Time.get_unix_time_from_system()) / 60.0)
 		st_txt = ("  •  Hastanede: %s (~%d dk)" % [f["injury"], mins]) if f.has("injury") and float(f.get("inj_away", -1.0)) == float(f.get("away", 0.0)) else "  •  Köyde değil (görev)"
@@ -918,7 +920,7 @@ static func _friends_card(main: Node, left: Control) -> void:
 		fv.add_child(UI.button("Haritada göster", func():
 			Friends.show_on_map(id)
 			main.resume(), 260, "map"))
-	if stt == "":
+	if stt == "" and not (Orgs.is_rogue() and not f.get("rogue", false)):
 		if f.get("party", false):
 			fv.add_child(UI.button("Köyde beklet", func():
 				Friends.set_party(id, false)

@@ -2688,7 +2688,7 @@ func _bb_new(force_rank := "") -> Dictionary:
 	var e = {
 		"id": int(bb["next"]), "name": "%s %s" % [BB_FAMILY.pick_random(), BB_GIVEN.pick_random()], "alias": BB_ALIAS.pick_random(),
 		"village": vid, "rank": rank, "bounty": int(randi_range(int(rd[0]), int(rd[1])) / 50) * 50, "crimes": crimes.slice(0, 2 if rank in ["C", "B"] else 3),
-		"element": BB_ELEM.get(vid, "katon") if randf() < 0.5 else ["katon", "suiton", "fuuton", "doton", "raiton"].pick_random(), "hide": hide, "area": area, "known": 450.0, "status": "alive", "tracked": false,
+		"element": ["katon", "suiton", "fuuton", "doton", "raiton"].pick_random(), "hide": hide, "area": area, "known": 450.0, "status": "alive", "tracked": false,   # element: 5 doğa eşit
 		"level": lv, "hp": 260.0 + lv * 24.0, "power": 1.3 + lv * 0.035, "escorts": int(rd[4]), "escort_kind": rd[5],
 		"look": {"gender": ["m", "m", "f"].pick_random(), "hair_style": ["uzun", "dağınık", "diken", "kısa", "atkuyruğu"].pick_random(),
 			"hair": _hex([Color(0.08, 0.08, 0.1), Color(0.6, 0.6, 0.62), Color(0.55, 0.15, 0.12), Color(0.2, 0.25, 0.4)].pick_random()),
@@ -2717,7 +2717,6 @@ func _bb_host(e: Dictionary, id: String, h: Dictionary) -> void:
 	e["beast"] = id
 	e["name"] = String(h["name"])
 	e["village"] = String(h["village"])
-	e["element"] = BB_ELEM.get(e["village"], e["element"])
 	e["level"] = maxi(int(e["level"]), int(h.get("level", 40)))
 	e["hp"] = 260.0 + int(e["level"]) * 24.0
 	e["power"] = 1.3 + int(e["level"]) * 0.035

@@ -139,7 +139,7 @@ func tree_limbs(m: Mesh, local_pos: Vector3, rot_deg: float, sc: float) -> void:
 	if not is_instance_valid(body) or not (m is ArrayMesh) or not m.has_meta("limbs"):
 		return
 	var base = Transform3D(Basis(Vector3.UP, deg_to_rad(rot_deg)) * Basis.from_scale(Vector3.ONE * sc), w(local_pos))
-	for L in m.get_meta("limbs"):
+	for L in (m.get_meta("limbs") as Array) + (m.get_meta("roots", []) as Array):   # dallar + kökler (kökün gerçek kalınlığı)
 		var a: Vector3 = L[0]
 		var b: Vector3 = L[1]
 		var r = maxf(0.12, float(L[2]))

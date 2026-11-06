@@ -20,11 +20,15 @@ func note_jutsu_dmg(jid: String, dmg: float) -> void:
 	if not _jcast_t.has(jid):
 		return
 	var t0 = float(_jcast_t[jid])
-	if Time.get_ticks_msec() / 1000.0 - t0 > 8.0:
+	if Game.now() - t0 > 8.0:
 		return
 	_jdmg[jid] = float(_jdmg.get(jid, 0.0)) + dmg
 	jcd[jid] = maxf(float(jcd.get(jid, 0.0)), t0 + Combat.dmg_cd(float(_jdmg[jid]), power))
 var jgap := 0.0    # iki jutsu arası en kısa ara
+## Chakra (AI eşitliği): oyuncuyla aynı kural — her jutsu chakra harcar (oyuncunun jutsu_cost formülü, seviyeyle),
+## saniyede 1.5 taban yenilenir; yetmezse jutsu yok, kunai/yakın dövüş. Eskiden düşmanın chakrası yoktu: 3-4 sn'de bir jutsu yağdırıyordu.
+var chakra := 80.0
+var max_chakra := 80.0
 var ranged_cd = 3.0
 var sub_cd = 0.0
 var combo_left = 0
@@ -71,15 +75,17 @@ static func archetype(kind: String, i := 0) -> Dictionary:
 		"oto":
 			L.merge({"top": Color(0.45, 0.4, 0.5), "top2": Color(0.3, 0.25, 0.35), "pants": Color(0.3, 0.28, 0.32), "band": Color(0.3, 0.3, 0.35),
 				"village": "oto", "vest": null, "hair_style": "uzun"}, true)
-			base.merge({"hp": 110.0, "level": 10, "power": 1.5, "element": "fuuton", "jutsu": ["fuuton_daitoppa"], "name": "Ses Ninjası", "xp": 80, "ryo": 50, "guard": 0.25, "sub": 0.1}, true)
+			var oel: String = ["katon", "suiton", "fuuton", "doton", "raiton"].pick_random()   # 5 doğa eşit
+			base.merge({"hp": 110.0, "level": 10, "power": 1.5, "element": oel, "jutsu": [], "name": "Ses Ninjası", "xp": 80, "ryo": 50, "guard": 0.25, "sub": 0.1}, true)
+			base["jutsu"] = {"katon": ["katon_goukakyuu", "katon_housenka"], "fuuton": ["fuuton_shinkuu", "fuuton_daitoppa"], "suiton": ["suiton_suiryuudan", "suiton_suikoudan"], "doton": ["doton_doryuusou", "doton_doryuheki"], "raiton": ["raiton_chidori", "raiton_nagashi"]}[oel]
 		"kumo", "kiri", "iwa", "suna":
 			var vc = {"kumo": [Color(0.85, 0.85, 0.82), Color(0.3, 0.35, 0.4)], "kiri": [Color(0.4, 0.5, 0.45), Color(0.3, 0.38, 0.45)],
 				"iwa": [Color(0.55, 0.25, 0.2), Color(0.4, 0.35, 0.3)], "suna": [Color(0.75, 0.65, 0.45), Color(0.5, 0.45, 0.35)]}[kind]
 			L.merge({"vest": vc[0], "top": vc[1], "top2": vc[1], "pants": vc[1], "village": kind, "band": Color(0.25, 0.25, 0.3)}, true)
-			var el = {"kumo": "raiton", "kiri": "suiton", "iwa": "doton", "suna": "fuuton"}[kind]
+			var el: String = ["katon", "suiton", "fuuton", "doton", "raiton"].pick_random()   # 5 doğa eşit (eskiden köye kilitli: Kumo hep raiton...)
 			base.merge({"hp": 150.0, "level": 15, "power": 1.8, "element": el, "aggr": 0.65, "xp": 120, "ryo": 90, "guard": 0.35, "sub": 0.2,
 				"name": {"kumo": "Kumo Chunin", "kiri": "Kiri Chunin", "iwa": "Iwa Chunin", "suna": "Suna Chunin"}[kind]}, true)
-			base["jutsu"] = {"raiton": ["raiton_chidori", "raiton_nagashi"], "suiton": ["suiton_suiryuudan"], "doton": ["doton_doryuusou", "doton_doryuheki"], "fuuton": ["fuuton_shinkuu", "fuuton_daitoppa"]}[el]
+			base["jutsu"] = {"katon": ["katon_goukakyuu", "katon_housenka"], "fuuton": ["fuuton_shinkuu", "fuuton_daitoppa"], "suiton": ["suiton_suiryuudan", "suiton_suikoudan"], "doton": ["doton_doryuusou", "doton_doryuheki"], "raiton": ["raiton_chidori", "raiton_nagashi"]}[el]
 		"samurai":
 			L.merge({"top": Color(0.3, 0.32, 0.36), "top2": Color(0.5, 0.52, 0.55), "pants": Color(0.25, 0.26, 0.3), "band": null, "vest": Color(0.55, 0.57, 0.6)}, true)
 			base.merge({"hp": 180.0, "level": 18, "power": 2.0, "aggr": 0.8, "name": "Samuray", "xp": 140, "ryo": 100, "guard": 0.5, "tools": false}, true)
@@ -210,6 +216,11 @@ static func auto_jutsu(kind: String, el: String, lv: int) -> Array:
 	return out.slice(0, 3)
 
 
+## Oyuncunun PlayerCombat.jutsu_cost formülü, düşmanın kendi seviyesiyle
+func jutsu_cost(id: String) -> float:
+	return float(Data.jutsu.get(id, {}).get("cost", 0)) * (1.0 + (float(level) - 1.0) * 0.045)
+
+
 func setup(a: Dictionary) -> void:
 	if a.get("no_level", false):
 		set_meta("no_level", true)
@@ -220,6 +231,8 @@ func setup(a: Dictionary) -> void:
 	max_hp = a["hp"]; hp = max_hp
 	power = a["power"]; element = a["element"]
 	level = a["level"]; xp = a["xp"]; ryo = a["ryo"]
+	max_chakra = 80.0 + float(level) * 3.5   # oyuncu: 80 + chakra ustalığı x7 (ustalık ~ Güç/2)
+	chakra = max_chakra
 	# NPC "yetenek ağacı": oyuncunun seviyeyle aldığı yetenek puanlarının karşılığı (can + güç) düşman ninjalara da
 	if k in CLAN_KINDS or k in ["samurai", "jinchuriki", "bandit"]:
 		var lv = float(a["level"])
@@ -266,7 +279,7 @@ func _maybe_clan(a: Dictionary) -> void:
 		c = String(cands.pick_random())
 	a["clan"] = c
 	a["clan_auto"] = true
-	var cj = ClanWorld.clan_jutsu(c, int(a["level"]), 2)
+	var cj = ClanWorld.clan_jutsu(c, int(a["level"]), 2)   # klan teknikleri olduğu gibi (Uchiha katonsa katon kalır)
 	var js: Array = (a.get("jutsu", []) as Array).duplicate()
 	for j in cj:
 		if not j in js:
@@ -354,7 +367,12 @@ func _physics_process(dt: float) -> void:
 	if Game.paused or dead:
 		if dead:
 			step_move(Vector3.ZERO, dt, false)
+			if hp_bar and hp_bar.visible:
+				hp_bar.visible = false   # ölünce can barı kalkar (güncelleme ölüde çalışmıyordu, bar asılı kalıyordu)
+			if nameplate and nameplate.visible:
+				nameplate.visible = false
 		return
+	chakra = minf(max_chakra, chakra + 1.5 * (1.0 + float(level) * 0.01) * dt)   # oyuncuyla aynı yenilenme
 	var pl = Game.player
 	var far = pl == null or global_position.distance_to(pl.global_position) > 170.0
 	if far:
@@ -387,7 +405,7 @@ func _physics_process(dt: float) -> void:
 		model.play("idle" if has_status("bind") else "hit", 0.2, 0.3)
 		# Jūkenhō Ichigekishin (kanon, Neji): bağlanan Hyūga bütün tenketsulardan chakra fışkırtıp bağı kırar — oyuncuyla aynı kural
 		var esc = "jukenho_ichigekishin"
-		var nowe = Time.get_ticks_msec() / 1000.0
+		var nowe = Game.now()
 		if has_status("bind") and not has_status("stun") and esc in arch.get("jutsu", []) and nowe >= float(jcd.get(esc, 0.0)) and randf() < dt * 2.0:
 			jcd[esc] = nowe + Combat.jutsu_cd(Data.jutsu.get(esc, {}))
 			Jutsu.execute(self, esc, target)
@@ -575,7 +593,7 @@ func _chase(dt: float) -> void:
 	if (far_ok or near_ok) and ranged_cd <= 0.0 and randf() < 0.8:
 		ranged_cd = randf_range(1.6, 3.2) / (float(arch["aggr"]) * (1.0 + skill))   # usta ninja daha sık jutsu atar
 		# her jutsu oyuncudakiyle aynı bekleme süresine tabi (aynı dalga jutsusu 15 sn'de 6 kez gelmez)
-		var nowj = Time.get_ticks_msec() / 1000.0
+		var nowj = Game.now()
 		var ready = jl.filter(func(id): return nowj >= float(jcd.get(id, 0.0)))
 		ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("need", "")) != "juin2" or buffs.has("juin2"))   # oyuncuyla aynı şart
 		ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("need", "")) != "raiton_modo" or buffs.has("raiton_chakura_modo"))
@@ -584,8 +602,11 @@ func _chase(dt: float) -> void:
 		ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("need", "")) != "islak_zemin" or (target != null and is_instance_valid(target) and ClanMech.prepared_ground(target.global_position)))   # Jubaku Eisō: oyuncuyla aynı hazırlık şartı
 		if has_status("sealed"):   # tenketsu kapalı: chakra yoğrulamaz, yalnız taijutsu (oyuncuyla aynı kural)
 			ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("category", "")) == "taijutsu")
+		ready = ready.filter(func(id): return Stats.is_taijutsu(Data.jutsu.get(id, {})) or chakra >= jutsu_cost(id))   # chakrası yetmeyen jutsu atılmaz
 		if not ready.is_empty() and nowj >= jgap and randf() < 0.85:
 			var pick = String(ready.pick_random())
+			if not Stats.is_taijutsu(Data.jutsu.get(pick, {})):
+				chakra -= jutsu_cost(pick)
 			jcd[pick] = nowj + Combat.jutsu_cd(Data.jutsu.get(pick, {})) * randf_range(1.0, 1.25)
 			_jdmg[pick] = 0.0
 			_jcast_t[pick] = nowj
@@ -601,7 +622,7 @@ func _chase(dt: float) -> void:
 		elif arch.get("tools", true) and _ready_tools().size() > 0:
 			# aletler sınırsız, ama her aletin kendi 30 sn bekleme süresi var (oyuncuyla aynı); bazı ninjalar senbon kullanır
 			var tk: String = _ready_tools().pick_random()
-			tool_cd[tk] = Time.get_ticks_msec() / 1000.0 + PlayerCombat.TOOL_CD
+			tool_cd[tk] = Game.now() + PlayerCombat.TOOL_CD
 			state = "throw"
 			state_t = 0.0
 			model.play("throw", 0.05, 1.6, true)
@@ -770,7 +791,7 @@ func _swing_keyed(wid: String) -> void:
 
 ## Bekleme süresi dolmuş aletler (düşmanın taşıdıkları: kunai, shuriken; Kiri/Oto/kaçaklar senbon da)
 func _ready_tools() -> Array:
-	var now = Time.get_ticks_msec() / 1000.0
+	var now = Game.now()
 	var kinds = ["kunai", "shuriken"] + (["senbon"] if String(arch.get("kind", "")) in ["kiri", "oto", "rogue"] else [])
 	return kinds.filter(func(k): return now >= float(tool_cd.get(k, 0.0)))
 

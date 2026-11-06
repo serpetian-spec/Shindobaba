@@ -691,12 +691,11 @@ func _village_arch(vid: String, i: int, outfit := "chunin") -> Dictionary:
 	a["look"].merge(Outfits.roll(outfit, vid), true)
 	a["look"]["village"] = vid
 	if vid == "konoha":
-		# Konoha ninjaları hep katon değil (%35), diğer doğalar da var
-		a["element"] = "katon" if randf() < 0.35 else ["fuuton", "doton", "suiton", "raiton"].pick_random()
-		a["jutsu"] = {"katon": ["katon_goukakyuu", "katon_housenka"], "fuuton": ["fuuton_daitoppa"], "doton": ["doton_doryuusou"], "suiton": ["suiton_suikoudan"], "raiton": ["raiton_nagashi"]}[a["element"]]
+		a["element"] = ["katon", "suiton", "fuuton", "doton", "raiton"].pick_random()   # 5 doğa eşit
+		a["jutsu"] = {"katon": ["katon_goukakyuu", "katon_housenka"], "fuuton": ["fuuton_shinkuu", "fuuton_daitoppa"], "suiton": ["suiton_suiryuudan", "suiton_suikoudan"], "doton": ["doton_doryuusou", "doton_doryuheki"], "raiton": ["raiton_chidori", "raiton_nagashi"]}[a["element"]]
 	elif vid == "ame":
-		a["element"] = "suiton"
-		a["jutsu"] = ["suiton_suiryuudan", "suiton_suikoudan"]
+		a["element"] = ["katon", "suiton", "fuuton", "doton", "raiton"].pick_random()   # 5 doğa eşit
+		a["jutsu"] = {"katon": ["katon_goukakyuu", "katon_housenka"], "fuuton": ["fuuton_shinkuu", "fuuton_daitoppa"], "suiton": ["suiton_suiryuudan", "suiton_suikoudan"], "doton": ["doton_doryuusou", "doton_doryuheki"], "raiton": ["raiton_chidori", "raiton_nagashi"]}[a["element"]]
 	a.erase("auto_jutsu")
 	return a
 

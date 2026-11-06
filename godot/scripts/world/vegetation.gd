@@ -107,7 +107,7 @@ func _ready() -> void:
 			var bc = CollisionShape3D.new()
 			bc.shape = BoxShape3D.new()
 			sb.add_child(bc)
-		for q in 6:   # anime ağacı dalları (kapsül): dalların içinden geçilmesin
+		for q in 6 + AnimeTree.MAX_ROOT_COLS:   # anime ağacı dalları + kökleri (kapsül): içlerinden geçilmesin
 			var lc = CollisionShape3D.new()
 			lc.shape = CapsuleShape3D.new()
 			lc.disabled = true
@@ -568,7 +568,7 @@ func _set_limbs(sb: StaticBody3D, t: int, v: int, s: float) -> void:
 	if meshes.has(t) and not (meshes[t] as Array).is_empty():
 		var mm = meshes[t][clampi(v, 0, (meshes[t] as Array).size() - 1)][0]
 		if mm is ArrayMesh and (mm as ArrayMesh).has_meta("limbs"):
-			limbs = (mm as ArrayMesh).get_meta("limbs")
+			limbs = ((mm as ArrayMesh).get_meta("limbs") as Array) + ((mm as ArrayMesh).get_meta("roots", []) as Array)
 	var k = 0
 	for ch in sb.get_children():
 		if not ch.has_meta("limb"):

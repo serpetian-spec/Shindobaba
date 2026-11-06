@@ -112,7 +112,7 @@ static func register_friends() -> void:
 		var nm = _name_of_static(key)
 		var rank = 2 if key == "sensei" else 0
 		fs[id] = {"name": nm, "role": "teacher" if key == "sensei" else "spar", "ninja": true, "look": Friends._ser(lk), "bond": 10 if key == "sensei" else 20,
-			"village": Progress.home(), "party": false, "last_talk": 0.0, "element": String((sq["sensei"] if key == "sensei" else sq["mates"][int(key.substr(1))]).get("element", "katon")),
+			"village": Progress.home(), "party": false, "last_talk": 0.0, "element": String((sq["sensei"] if key == "sensei" else sq["mates"][int(key.substr(1))]).get("element", ELS[absi(hash(key)) % ELS.size()])),
 			"clan": "", "eye": [0, 0], "rank": rank, "family": Friends._family("", female, rank), "status": "", "log": [], "news": "",
 			"title": "Jōnin hocan" if key == "sensei" else "Takım arkadaşın", "squad_key": key}
 

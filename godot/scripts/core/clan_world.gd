@@ -261,7 +261,8 @@ static func make_enemy(c: String, lv: int, opts := {}) -> Dictionary:
 			if not x in js:
 				js.append(x)
 	if js.is_empty():
-		js = Enemy.auto_jutsu("rogue", "katon", lv)
+		a["element"] = ["katon", "suiton", "fuuton", "doton", "raiton"].pick_random()   # tekniksiz kalan: 5 doğa eşit
+		js = Enemy.auto_jutsu("rogue", String(a["element"]), lv)
 	a["jutsu"] = js
 	a.erase("auto_jutsu")
 	a["clan"] = c

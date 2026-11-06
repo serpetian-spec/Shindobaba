@@ -173,7 +173,7 @@ const PANIM := {
 	"sojasosai_no_jutsu": {"base": "sense", "pre": 0.5, "post": 0.8, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "crouch": 0.3}, "rel": {"R": [Vector3(-0.15, -0.1, 0.98), Vector3(0.1, -0.1, 0.99), Vector3(0.0, -0.3, 0.95)], "L": [Vector3(0.15, -0.1, 0.98), Vector3(-0.1, -0.1, 0.99), Vector3(-0.0, -0.3, 0.95)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": 20.0}},
 	"buki_kuchiyose": {"base": "scroll", "pre": 0.3, "post": 0.45, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3]}, "rel": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0, 0, 0, 0, 0], "hips_yaw": -30.0}},
 	"tesso_kusari": {"base": "throw", "pre": 0.3, "post": 0.45, "clip": "idle", "wind": {"R": [Vector3(-0.85, 0.1, -0.5), Vector3(-0.7, 0.1, -0.7), Vector3(-0.6, 0.1, -0.8)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0, 0, 0, 0, 0], "hips_yaw": 50.0}, "rel": {"R": [Vector3(-0.1, 0.1, 0.99), Vector3(0.7, 0.1, 0.7), Vector3(0.8, 0.1, 0.6)], "L": [Vector3(0.35, -0.85, -0.35), Vector3(-0.0, -0.4, 0.9), Vector3(-0.0, 0.2, 0.95)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.45, 1.45, 1.45, 1.45, 0.9], "spine": 12.0, "hips_yaw": -50.0}},
-	"soshoryu": {"base": "scroll", "pre": 0.5, "post": 1.2, "wind": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 40.0, "crouch": 0.9}, "rel": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.15, 0.98, 0.1), Vector3(0.05, 1.0, 0.05), Vector3(-0.0, 1.0, 0.0)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -25.0, "neck": -40.0}},
+	"soshoryu": {"base": "scroll", "pre": 0.5, "post": 2.6, "wind": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, -0.55, 0.8), Vector3(-0.0, -0.85, 0.5), Vector3(-0.0, -0.4, 0.9)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "spine": 40.0, "crouch": 0.9}, "rel": {"R": [Vector3(-0.97, 0.15, 0.1), Vector3(-0.97, 0.12, 0.15), Vector3(-0.95, 0.1, 0.2)], "L": [Vector3(0.97, 0.15, 0.1), Vector3(0.97, 0.12, 0.15), Vector3(0.95, 0.1, 0.2)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [1.2, 1.2, 1.2, 1.2, 0.7], "spine": -6.0}},
 	"tekkosen": {"base": "summon", "pre": 0.45, "post": 0.7, "wind": {"R": [Vector3(-0.3, -0.5, 0.8), Vector3(0.6, 0.7, 0.35), Vector3(0.3, 0.9, 0.3)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [0, 0, 0, 0, 0]}, "rel": {"R": [Vector3(-0.6, 0.6, -0.5), Vector3(-0.2, 0.9, -0.4), Vector3(0.0, 1.0, -0.2)], "L": [Vector3(0.08, 0.05, 1.0), Vector3(-0.0, 0.05, 1.0), Vector3(-0.0, 0.9, 0.45)], "fR": [1.2, 1.2, 1.2, 1.2, 0.7], "fL": [0, 0, 0, 0, 0], "spine": -12.0, "hips_yaw": 30.0}},
 	"ito_buki_arashi": {"base": "scroll", "pre": 0.4, "post": 0.8, "spin": 360.0, "wind": {"R": [Vector3(-0.85, -0.45, 0.1), Vector3(-0.9, -0.3, 0.2), Vector3(-0.9, -0.2, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "crouch": 0.3}, "rel": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0.6, 0.6, 0.6, 0.6, 0.4], "fL": [0.6, 0.6, 0.6, 0.6, 0.4], "spine": -8.0}},
 	"kuchiyose_tetsuzan": {"base": "summon", "pre": 0.5, "post": 0.9, "wind": {"R": [Vector3(-0.3, -0.5, 0.8), Vector3(0.6, 0.7, 0.35), Vector3(0.3, 0.9, 0.3)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9]}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.15, 0.98, 0.1), Vector3(0.05, 1.0, 0.05), Vector3(-0.0, 1.0, 0.0)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0, 0, 0, 0, 0], "spine": 45.0, "crouch": 0.9}},
@@ -1138,6 +1138,22 @@ func hand_pos(c: Node3D, right := true) -> Vector3:
 			return (m.skel.global_transform * m.skel.get_bone_global_pose(bi)).origin
 	var side = c.face_dir().cross(Vector3.UP).normalized()
 	return c.global_position + Vector3.UP * 1.2 + c.face_dir() * 0.4 + side * (0.3 if right else -0.3)
+
+
+## Ekranda görünen el konumu: poz katmanı (overlay) dahil. hand_pos iskeletin katmandan önceki pozunu okur
+## (elde tutulan parşömen kalçada kalıyordu); kemik eki son pozu izler. Ekler modelde saklanır, tekrar kullanılır.
+func live_hand(c: Node3D, right := true) -> Vector3:
+	var m = c.get("model")
+	if m and is_instance_valid(m) and m.skel:
+		var key = "pj_hand_R" if right else "pj_hand_L"
+		var ba = m.get_meta(key) if m.has_meta(key) else null
+		if ba == null or not is_instance_valid(ba):
+			ba = bone_attach(c, "RightHand" if right else "LeftHand")
+			if ba:
+				m.set_meta(key, ba)
+		if ba and is_instance_valid(ba) and ba.is_inside_tree():
+			return ba.global_position
+	return hand_pos(c, right)
 
 
 func bone_attach(c: Node3D, bone: String) -> Node3D:
@@ -2281,8 +2297,10 @@ func throw_weapon(c: Node3D, id: String, kind: String, from: Vector3, to: Vector
 
 
 ## Parşömen: açılmış kâğıt (beyaz, kırmızı kenar) + ahşap rulolar
+## Parşömen (makimono): "paper" düğümü (ön yüz -Z) + iki rulo "ra"/"rb" (yerel X ekseni boyunca, y = ±L/2).
+## scroll_len ile kâğıt boyu değişir (eller ayrıldıkça açılır); rulolar ölçeklenmez.
 func scroll_node(w: float, h: float) -> Node3D:
-	var mesh = cached("scroll2_%d_%d" % [int(w * 100), int(h * 100)], func():
+	var pmesh = cached("scroll3p_%d_%d" % [int(w * 100), int(h * 100)], func():
 		# gerçek makimono: hafif kavisli kâğıt (ön yüz -Z), iki uçta kalın kâğıt rulosu + içinden geçen ahşap çubuk,
 		# çubuk uçlarında kırmızı laka topuz + altın halka; önde kırmızı kenar şeritleri, sütun sütun mürekkep yazı, ortada kırmızı mühür
 		var b = MB.new()
@@ -2317,19 +2335,112 @@ func scroll_node(w: float, h: float) -> Node3D:
 		b.add("cyl", Vector3(0, 0, fz.call(0.0) - 0.006), Vector3(w * 0.165, 0.004, w * 0.165), red, Vector3(90, 0, 0), 20)
 		for st in [[0.0, 0.035, 0.11, 0.018, 0.0], [0.0, -0.005, 0.09, 0.016, 0.0], [-0.012, -0.01, 0.016, 0.12, 0.0], [0.03, -0.04, 0.016, 0.06, 35.0], [-0.032, -0.042, 0.016, 0.055, -35.0]]:
 			b.add("box", Vector3(st[0] * w * 2.0, st[1] * w * 2.0, fz.call(0.0) - 0.008), Vector3(st[2] * w, st[3] * w, 0.004), ink, Vector3(0, 0, st[4]))   # mürekkep "封" benzeri işaret
-		# rulolar: sarılı kâğıt + çubuk + topuzlar
-		for sy in [-1.0, 1.0]:
-			var ry = sy * h * 0.5
-			b.add("cyl", Vector3(0, ry, 0.0), Vector3(0.075, w, 0.075), paper.darkened(0.08), Vector3(0, 0, 90), 14)
-			b.add("cyl", Vector3(0, ry, 0.0), Vector3(0.079, w * 0.1, 0.079), red, Vector3(0, 0, 90), 14)   # rulo bağı
-			b.add("cyl", Vector3(0, ry, 0.0), Vector3(0.032, w + 0.12, 0.032), Color(0.36, 0.2, 0.1), Vector3(0, 0, 90), 10)
-			for sx in [-1.0, 1.0]:
-				b.add("cyl", Vector3(sx * (w * 0.5 + 0.03), ry, 0.0), Vector3(0.05, 0.014, 0.05), Color(0.85, 0.68, 0.25), Vector3(0, 0, 90), 12)
-				b.add("sphere", Vector3(sx * (w * 0.5 + 0.068), ry, 0.0), Vector3(0.058, 0.058, 0.058), Color(0.62, 0.1, 0.1), Vector3.ZERO, 10)
+		return b)
+	var rmesh = cached("scroll3r_%d" % int(w * 100), func():
+		var b = MB.new()
+		var paper = Color(0.96, 0.93, 0.83)
+		var red = Color(0.72, 0.14, 0.13)
+		var ry = 0.0
+		b.add("cyl", Vector3(0, ry, 0.0), Vector3(0.075, w, 0.075), paper.darkened(0.08), Vector3(0, 0, 90), 14)
+		b.add("cyl", Vector3(0, ry, 0.0), Vector3(0.079, w * 0.1, 0.079), red, Vector3(0, 0, 90), 14)   # rulo bağı
+		b.add("cyl", Vector3(0, ry, 0.0), Vector3(0.032, w + 0.12, 0.032), Color(0.36, 0.2, 0.1), Vector3(0, 0, 90), 10)
+		for sx in [-1.0, 1.0]:
+			b.add("cyl", Vector3(sx * (w * 0.5 + 0.03), ry, 0.0), Vector3(0.05, 0.014, 0.05), Color(0.85, 0.68, 0.25), Vector3(0, 0, 90), 12)
+			b.add("sphere", Vector3(sx * (w * 0.5 + 0.068), ry, 0.0), Vector3(0.058, 0.058, 0.058), Color(0.62, 0.1, 0.1), Vector3.ZERO, 10)
+
 		return b)
 	var root = Node3D.new()
-	root.add_child(mi_of(mesh))
+	root.set_meta("h", h)
+	var pm = mi_of(pmesh)
+	pm.name = "paper"
+	root.add_child(pm)
+	for nm in ["ra", "rb"]:
+		var r = mi_of(rmesh)
+		r.name = nm
+		r.position.y = h * 0.5 if nm == "ra" else -h * 0.5
+		root.add_child(r)
 	return root
+
+
+## Kâğıdın açık boyu (rulolar arası)
+func scroll_len(sc: Node3D, L: float) -> void:
+	if not is_instance_valid(sc):
+		return
+	var h = float(sc.get_meta("h", 1.0))
+	sc.get_node("paper").scale.y = maxf(0.001, L / h)
+	sc.get_node("paper").visible = L > 0.02
+	sc.get_node("ra").position.y = L * 0.5
+	sc.get_node("rb").position.y = -L * 0.5
+
+
+## Elde açılan parşömen: rulolar iki elde, kâğıt ellerin arasında (eller ayrıldıkça açılır); dur boyunca ellere bağlı.
+## Rulo ekseni yukarı, yazılı yüz atanın önüne bakar. Atan ölürse/silinirse parşömen de gider.
+func hold_scroll(c: Node3D, dur: float, w := 0.42, h := 0.6) -> Node3D:
+	var sc = scroll_node(w, h)
+	scene_add(sc, live_hand(c, true))
+	scroll_len(sc, 0.0)
+	every(dur, 1.0 / 60.0, func(_i, _k):
+		if not (is_instance_valid(sc) and is_instance_valid(c)):
+			return
+		var a = live_hand(c, false)
+		var b = live_hand(c, true)
+		var d = b - a
+		var L = d.length()
+		var fdir: Vector3 = c.face_dir()
+		var y = d / L if L > 0.01 else fdir.cross(Vector3.UP).normalized()
+		var x = Vector3.UP - y * Vector3.UP.dot(y)
+		x = x.normalized() if x.length() > 0.05 else fdir
+		var z = x.cross(y)
+		if z.dot(fdir) > 0.0:
+			y = -y
+			z = -z
+		sc.global_transform = Transform3D(Basis(x, y, z), (a + b) * 0.5)
+		scroll_len(sc, clampf(L - 0.1, 0.0, h * 2.2)), func():
+		pass)
+	return sc
+
+
+## Kapalı parşömen elde (rulo dik): dur boyunca o ele bağlı
+func hold_closed_scroll(c: Node3D, right: bool, dur: float, w := 0.42) -> Node3D:
+	var sc = scroll_node(w, 0.4)
+	scene_add(sc, live_hand(c, right))
+	scroll_len(sc, 0.0)
+	every(dur, 1.0 / 60.0, func(_i, _k):
+		if is_instance_valid(sc) and is_instance_valid(c):
+			sc.global_position = live_hand(c, right)
+			sc.global_rotation = Vector3(0, 0, PI * 0.5) + Vector3(0, atan2(c.face_dir().x, c.face_dir().z), 0))
+	return sc
+
+
+## Hazırlık kancaları (CastAnim._begin çağırır, release_t = mühür + hazırlık süresi): parşömen hazırlıkta ele gelir
+func form_buki_kuchiyose(c: Node3D, rt: float) -> void:
+	var sc = hold_scroll(c, rt + 1.3, 0.42, 0.7)
+	c.set_meta("pj_scroll", sc)
+	after(rt + 1.35, func():
+		if is_instance_valid(sc):
+			fade_free(sc, 0.0, 0.25))
+
+
+func form_sogu_tensasai(c: Node3D, rt: float) -> void:
+	c.set_meta("pj_scroll", hold_scroll(c, rt + 0.02, 0.42, 0.7))
+
+
+func form_soshoryu(c: Node3D, rt: float) -> void:
+	# eğilip iki kapalı parşömeni yere koyar
+	for r in [true, false]:
+		var sc = hold_closed_scroll(c, r, rt)
+		after(rt, func():
+			if is_instance_valid(sc):
+				sc.queue_free())
+
+
+func _held(c: Node3D) -> Node3D:
+	if c.has_meta("pj_scroll"):
+		var sc = c.get_meta("pj_scroll")
+		c.remove_meta("pj_scroll")
+		if is_instance_valid(sc):
+			return sc
+	return null
 
 
 ## Silah Yağmuru: önünde parşömen açılır, on iki farklı silah art arda fırlar
@@ -2337,14 +2448,10 @@ func p_buki_kuchiyose(c: Node3D, t: Node3D) -> void:
 	var d = Jutsu._aim(c, t)
 	var fd = fwd(c, t)
 	busy(c, 1.2)
-	anim(c, "throw", 1.2)
-	var sc = scroll_node(1.6, 1.0)
-	scene_add(sc, c.global_position + Vector3.UP * 1.3 + fd * 1.1)
-	toward(sc, -fd)
-	sc.scale = Vector3(0.05, 1, 1)
-	var tw = sc.create_tween()
-	tw.tween_property(sc, "scale", Vector3.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	fade_free(sc, 1.3, 0.25)
+	var sc = _held(c)
+	if sc == null:   # koreografisiz çağrı (AI kısa yol): parşömen yine elde açılır
+		sc = hold_scroll(c, 1.3, 0.42, 0.7)
+		fade_free(sc, 1.3, 0.25)
 	Sfx.play("poof", sc.global_position, 1.1)
 	var tt = tg(c, t, 35.0)
 	for k in 12:
@@ -2352,8 +2459,8 @@ func p_buki_kuchiyose(c: Node3D, t: Node3D) -> void:
 		after(0.18 + k * 0.07, func():
 			if not is_instance_valid(sc):
 				return
-			var from = sc.global_position + Vector3(randf_range(-0.5, 0.5), randf_range(-0.3, 0.3), 0) + fd * 0.2
-			FX.smoke_puff(from, 0.25, 4)
+			# kâğıdın üstündeki mühürlerden biri: silah kâğıttan dışarı fırlar
+			var from = sc.global_position + sc.global_basis.y * randf_range(-0.3, 0.3) + sc.global_basis.x * randf_range(-0.15, 0.15) - sc.global_basis.z * 0.15
 			var to = (tt.global_position + Vector3.UP * tt.height * 0.5 + Vector3(randf_range(-0.6, 0.6), randf_range(-0.3, 0.4), randf_range(-0.6, 0.6))) if tt and live(tt) else from + d * 30.0 + Vector3(randf_range(-2, 2), randf_range(-1, 1), randf_range(-2, 2))
 			throw_weapon(c, "buki_kuchiyose", kind, from, to, 48.0, 0.28 if kind not in ["fuma", "ono", "kusari"] else 0.45, tt if tt and live(tt) else null)
 			Sfx.play("kunai", from, randf_range(0.9, 1.3), 0.6))
@@ -2474,14 +2581,16 @@ void fragment() {
 	return _rib_sh
 
 
-## Sōshōryū: iki parşömen ejderha gibi sarmal çizip göğe yükselir; tepede silah yağmuru (60 silah, 10 m yarıçap)
+## Sōshōryū (anime): yere konan iki parşömen ikiz ejderha gibi çift sarmal çizip göğe açılır; atan aralarında 15 m yükselir,
+## kollar iki yana açık havada döner ve dönerken iki elinden sırayla silah fırlatır — silahlar düşmanın tam üstüne yağar.
 func p_soshoryu(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 34.0)
 	var fd = fwd(c, t)
-	var center = gp(Jutsu._aim_ground(c, t, 14.0, 30.0))
-	busy(c, 2.4)
+	var aim0 = gp(Jutsu._aim_ground(c, t, 12.0, 30.0))
+	var tpos = func() -> Vector3: return tt.global_position + Vector3.UP * tt.height * 0.4 if tt and live(tt) else aim0
+	busy(c, 3.2)
 	if c is Player:
-		c.combat.invuln = 1.0
-		c.velocity.y = 22.0
+		c.combat.invuln = 3.2
 	var base = c.global_position
 	VFX.slowmo(0.6, 0.5)
 	Sfx.play("poof", base, 0.8)
@@ -2516,22 +2625,56 @@ func p_soshoryu(c: Node3D, t: Node3D) -> void:
 			for m in mats:
 				m.set_shader_parameter("alpha", v), 1.0, 0.0, 0.5)
 		tw.tween_callback(rib.queue_free)
-	var sky = base + Vector3.UP * 20.0
-	for k in 60:
-		after(0.9 + k * 0.025, func():
-			var kind: String = WEAPON_KINDS[k % WEAPON_KINDS.size()]
-			var land = center + Vector3(randf_range(-10, 10), 0, randf_range(-10, 10))
-			land = gp(land)
-			var from = sky + Vector3(randf_range(-3, 3), randf_range(-1, 2), randf_range(-3, 3))
-			var pr = throw_weapon(c, "soshoryu", kind, from, land + Vector3.UP * 0.1, 55.0, 0.22)
+	# iki elde kunai
+	var held: Array = []
+	for bn in ["RightHand", "LeftHand"]:
+		var at = bone_attach(c, bn)
+		if at:
+			var km = mi_of(weapon_mesh("kunai"))
+			at.add_child(km)
+			km.rotation_degrees = Vector3(90, 0, 0)
+			km.scale = Vector3.ONE * 1.2
+			held.append(at)
+	var TOP = 15.0
+	var spin = {"a": 0.0}
+	# yükseliş (sarmal açılırken ortadan), sonra tepede dönerek atış, sonra serbest düşüş
+	every(2.6, 1.0 / 60.0, func(_i, kk):
+		if not live(c):
+			return
+		var tsec = kk * 2.6
+		var h = TOP * (1.0 - pow(1.0 - clampf(tsec / 0.85, 0.0, 1.0), 3.0)) + sin(tsec * 5.0) * 0.25 * clampf(tsec - 0.85, 0.0, 1.0)
+		c.global_position = base + Vector3.UP * h
+		if "velocity" in c:
+			c.velocity = Vector3.ZERO
+		# dönüş: yükselirken hızlanır, tepede sürekli (anime: kollar açık topaç gibi döner)
+		spin["a"] += (6.0 + 8.0 * clampf(tsec / 0.85, 0.0, 1.0)) / 60.0
+		if "facing" in c:
+			c.facing = spin["a"]
+		elif c.get("model"):
+			c.model.rotation.y = spin["a"], func():
+		if live(c) and "velocity" in c:
+			c.velocity = Vector3(0, -4.0, 0)
+		for at in held:
+			if is_instance_valid(at):
+				at.queue_free())
+	# atışlar: tepeye varınca, dönüşün her yarım turunda öndeki el fırlatır (sağ/sol sırayla)
+	for k in 30:
+		after(0.85 + k * 0.055, func():
+			if not live(c):
+				return
+			var right = k % 2 == 0
+			var from = live_hand(c, right)
+			var to = tpos.call() + Vector3(randf_range(-0.7, 0.7), randf_range(-0.3, 0.3), randf_range(-0.7, 0.7))
+			WindFX.streak(func(q: float) -> Vector3: return from.lerp(to, q), 0.35, 0.07, Color(1, 1, 1))
+			var pr = throw_weapon(c, "soshoryu", WEAPON_KINDS[k % WEAPON_KINDS.size()], from, to, 58.0, 0.2, tt if tt and live(tt) else null)
 			pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
-				hit(c, pos, 1.4, inf(c, "soshoryu", 0.18, {"knock": 2.0, "kind": "light"}))
-				FX.dust(pos, 0.35)
-			if k % 6 == 0:
-				Sfx.play("kunai", from, randf_range(0.8, 1.2), 0.7))
-	after(1.0, func():
-		FX.ring(center + Vector3.UP * 0.1, Color(0.95, 0.9, 0.8), 20.0, 0.6, true)
-		shake(0.5))
+				hit(c, pos, 1.2, inf(c, "soshoryu", 0.2, {"knock": 2.0, "kind": "light"}))
+				FX.dust(pos, 0.3)
+			if k % 4 == 0:
+				Sfx.play("kunai", from, randf_range(0.9, 1.3), 0.7))
+	after(2.55, func():
+		FX.ring(gp(tpos.call()) + Vector3.UP * 0.1, Color(0.95, 0.9, 0.8), 6.0, 0.5, true)
+		shake(0.4))
 
 
 ## Demir Yelpaze: dev demir yelpaze açılır, 6 sn mermileri durdurur; kapanırken savurduğu rüzgar düşmanları uçurur
@@ -30885,26 +31028,35 @@ func p_sogu_tensasai(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 26.0)
 	busy(c, 1.4)
 	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 10.0)
-	# anime: hedefin üstünde açılan parşömenden silahlar parlak beyaz çizgiler halinde sağanak gibi iner
-	var sky = at + Vector3(0, 16.0, 0) - fwd(c, t) * 3.0
-	var scr = scroll_node(0.5, 0.35)
-	scene_add(scr, sky)
-	scr.scale = Vector3.ONE * 6.5
-	scr.rotation_degrees = Vector3(-55, rad_to_deg(atan2(fwd(c, t).x, fwd(c, t).z)), 0)   # kâğıt yüzü aşağı ve atana dönük (aşağıdan okunur)
-	fade_free(scr, 1.6, 0.3)
+	var tpos = func() -> Vector3: return gp(tt.global_position) if tt and live(tt) else at
+	# anime: elde açılan parşömen göğe fırlatılır, düşmanın tam üstünde açık durur; silahlar parlak beyaz çizgilerle düşmana iner
+	var sky = at + Vector3(0, 15.0, 0) - fwd(c, t) * 1.5
+	var scr = _held(c)
+	if scr == null:
+		scr = scroll_node(0.42, 0.7)
+		scene_add(scr, live_hand(c, true))
+		scroll_len(scr, 0.5)
+	var yaw = atan2(fwd(c, t).x, fwd(c, t).z)
+	var goal = Transform3D(Basis.from_euler(Vector3(deg_to_rad(-55), yaw, 0)).scaled(Vector3.ONE * 6.0), sky)   # kâğıt yüzü aşağı, atana dönük
+	var l0 = scr.get_node("paper").scale.y * 0.7
+	var ftw = scr.create_tween().set_parallel()
+	ftw.tween_property(scr, "global_transform", goal, 0.38).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	ftw.tween_method(func(v): scroll_len(scr, v), l0, 0.7, 0.38)
+	Sfx.play("whoosh", hand_pos(c, true), 1.3)
+	fade_free(scr, 1.9, 0.3)
 	for k in 26:
-		after(0.3 + k * 0.035, func():
-			var from = sky + Vector3(randf_range(-2.5, 2.5), randf_range(-0.5, 0.5), randf_range(-2.5, 2.5))
-			var to = gp(at + Vector3(randf_range(-4.5, 4.5), 0, randf_range(-4.5, 4.5))) + Vector3.UP * 0.1
+		after(0.42 + k * 0.035, func():
+			var from = sky + Vector3(randf_range(-2.0, 2.0), randf_range(-0.5, 0.5), randf_range(-2.0, 2.0))
+			var to = tpos.call() + Vector3(randf_range(-0.9, 0.9), 0.1, randf_range(-0.9, 0.9))   # düşmanın tam üstüne
 			WindFX.streak(func(q: float) -> Vector3: return from.lerp(to, q), 0.45, 0.12, Color(1, 1, 1))
-			var pr = throw_weapon(c, "sogu_tensasai", WEAPON_KINDS[k % WEAPON_KINDS.size()], from, to, 60.0, 0.12)
+			var pr = throw_weapon(c, "sogu_tensasai", WEAPON_KINDS[k % WEAPON_KINDS.size()], from, to, 60.0, 0.12, tt if tt and live(tt) else null)
 			pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
 				hit(c, pos, 1.2, inf(c, "sogu_tensasai", 0.12, {"knock": 1.5, "kind": "light"}))
 			if k % 5 == 0:
 				Sfx.play("kunai", from, randf_range(0.8, 1.2), 0.6))
 	for k in 7:
-		after(0.4 + k * 0.1, func():
-			var p = at + Vector3(randf_range(-2.5, 2.5), 0, randf_range(-2.5, 2.5))
+		after(0.5 + k * 0.1, func():
+			var p = tpos.call() + Vector3(randf_range(-1.0, 1.0), 0, randf_range(-1.0, 1.0))
 			var b = MB.new()
 			if k % 2 == 0:
 				b.add("sphere", Vector3.ZERO, Vector3(0.9, 0.9, 0.9), Color(0.35, 0.35, 0.38))

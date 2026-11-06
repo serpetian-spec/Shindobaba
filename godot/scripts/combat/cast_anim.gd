@@ -261,6 +261,8 @@ func _begin() -> void:
 	# jutsuya özel hazırlık görseli (ör. Rasenshuriken başın üstünde oluşur)
 	if Jutsu.has_method("form_" + jid):
 		Jutsu.call("form_" + jid, f, release_t)
+	elif PathJutsu.get_pinst() and PathJutsu.get_pinst().has_method("form_" + jid):
+		PathJutsu.get_pinst().call("form_" + jid, f, release_t)   # Efsane Yolu hazırlığı (ör. parşömen ele gelir)
 	if seals.size() > 0:
 		model.play("idle", 0.08)
 	else:

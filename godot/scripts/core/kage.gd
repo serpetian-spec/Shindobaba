@@ -104,7 +104,9 @@ func _ninja_of(vid: String, i: int, lv: int, team: String, look_ov := {}) -> Ene
 	a["power"] = 1.3 + lv * 0.02
 	a["xp"] = 40 + lv * 8 if team == "enemy" else 0
 	a["ryo"] = 20 + lv * 3 if team == "enemy" else 0
-	var auto = Enemy.auto_jutsu(kind, String(a["element"]) if String(a["element"]) != "" else "katon", lv)
+	if String(a["element"]) == "":
+		a["element"] = ["katon", "suiton", "fuuton", "doton", "raiton"].pick_random()   # 5 doğa eşit
+	var auto = Enemy.auto_jutsu(kind, String(a["element"]), lv)
 	if not auto.is_empty():
 		a["jutsu"] = auto
 	var L: Dictionary = a["look"]

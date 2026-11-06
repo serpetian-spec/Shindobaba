@@ -91,6 +91,8 @@ func _pick_kind(p: Vector3) -> String:
 	if randf() < 0.35:
 		pool.append_array(GENERIC)
 	pool = pool.filter(func(k): return k != last_kind)
+	if Orgs.is_rogue():
+		pool = pool.filter(func(k): return k != "hunter")   # köy izcisi kaçağa "ödül köyden" diye yardım istemez
 	# kaçakken: yolda ateş başında tek başına bir kaçak (tanışırsan sığınağa gelir)
 	if Orgs.is_rogue() and last_kind != "lone_rogue" and randf() < 0.3:
 		return "lone_rogue"
@@ -145,8 +147,14 @@ func _npc(name: String, at: Vector3, look := {}, mode := "idle") -> EncounterNPC
 	return n
 
 
-func _enemy(kind: String, at: Vector3, i := 0, mods := {}) -> Enemy:
-	var a := Enemy.archetype(kind, i)
+## Kaçak oyuncuyu avlayan köy av ekibi (oyuncunun eski köyünün ninjası; LAW grubu -> kaçaklara düşman)
+func _hunter_nin(at: Vector3, i := 0) -> Enemy:
+	var home := Progress.home()
+	return _enemy("", at, i, {"name": "%s Av Ninjası" % String(Game.village(home).get("name", "Köy"))}, Orgs._village_arch(home, i, "chunin"))
+
+
+func _enemy(kind: String, at: Vector3, i := 0, mods := {}, arch := {}) -> Enemy:
+	var a: Dictionary = arch if not arch.is_empty() else Enemy.archetype(kind, i)
 	a["respawn"] = false
 	var lv := Enemy.world_level(at)   # oyuncuya göre değil, bölgeye göre
 	a["level"] = maxi(int(a["level"]), lv) if kind != "bandit" else clampi(lv, 2, 20)
@@ -321,6 +329,9 @@ func _start_duel(c: Vector3) -> void:
 
 
 func _start_wounded(c: Vector3) -> void:
+	if Orgs.is_rogue():
+		_start_wounded_rogue(c)
+		return
 	var w := _npc("Yaralı Ninja", c, Outfits.roll("chunin", Outfits.village_near(c)), "cower")
 	_marker(c, "+", Color(0.6, 1.0, 0.6))
 	FX.burst(c + Vector3.UP * 0.3, {"amount": 10, "life": 2.0, "add": false, "size": 0.4, "vmin": 0.1, "vmax": 0.4, "colors": [Color(0.55, 0.05, 0.05, 0.9), Color(0.4, 0, 0, 0)]})
@@ -398,7 +409,48 @@ func _start_hunter(c: Vector3) -> void:
 			{"label": "Başka işim var", "cb": func(): finish(5.0)}])
 
 
+## Kaçak oyuncu için: av ninjalarının pusuya düşürdüğü yaralı bir kaçak (yardım edersen avcılar geri döner)
+func _start_wounded_rogue(c: Vector3) -> void:
+	var lk := Outfits.roll("rogue", Outfits.village_near(c))
+	lk["band_style"] = "slashed"
+	var w := _npc("Yaralı Kaçak", c, lk, "cower")
+	_marker(c, "+", Color(0.6, 1.0, 0.6))
+	FX.burst(c + Vector3.UP * 0.3, {"amount": 10, "life": 2.0, "add": false, "size": 0.4, "vmin": 0.1, "vmax": 0.4, "colors": [Color(0.55, 0.05, 0.05, 0.9), Color(0.4, 0, 0, 0)]})
+	Hud.msg("%s inleyen birini görüyorsun." % _dir_text(c).capitalize(), Color(0.7, 1, 0.7))
+	w.on_talk = func(n):
+		Hud.dialog(n.display, "Av ninjaları... köyün av ekibi beni buldu. Sen de bizdensin, alnındaki çizik belli... Biraz chakra, yalvarırım.", [
+			{"label": "İlk yardım yap (25 chakra)", "cb": func():
+				if Game.player.chakra < 25.0:
+					Hud.msg("Yeterli chakran yok.", Color(1, 0.5, 0.4))
+					return
+				Game.player.chakra -= 25.0
+				FX.burst(n.global_position + Vector3.UP, {"amount": 30, "life": 1.0, "size": 0.5, "vmin": 0.5, "vmax": 2.0, "gravity": Vector3(0, 2, 0),
+					"colors": [Color(0.5, 1.0, 0.6, 1), Color(0.3, 0.9, 0.5, 0)]})
+				n.mode = "idle"
+				_reward(60 + _lv() * 6, 50 + _lv() * 8, "Yaralı kaçağı iyileştirdin")
+				remember({"k": "contact", "name": "Kaçak " + ["Ibuki", "Sōsuke", "Kagari", "Tōya", "Nagisa", "Yoshino"].pick_random()})
+				if randf() < 0.45:
+					Hud.msg("Av ekibi geri döndü!", Color(1, 0.4, 0.3))
+					var foes := []
+					for i in 2:
+						foes.append(_hunter_nin(_around(n.global_position, 14.0, i, 2), i))
+					cur["foes"] = foes
+					cur["after"] = "ambush"
+				else:
+					finish()},
+			{"label": "Kendi başının çaresine bak", "cb": func(): finish(5.0)}])
+
+
 func _start_patrol(c: Vector3) -> void:
+	if Orgs.is_rogue():
+		# kaçakken devriye seni arayan köy av ekibidir
+		var hs := []
+		for i in randi_range(2, 3):
+			hs.append(_hunter_nin(_around(c, 3.0, i, 3), i))
+		cur["foes"] = hs
+		cur["after"] = "loot"
+		Hud.msg("%s köyünün av ekibi iz sürüyor. Seni arıyorlar." % _dir_text(c).capitalize(), Color(1, 0.6, 0.45))
+		return
 	var foes := []
 	for i in randi_range(2, 3):
 		foes.append(_enemy("rogue", _around(c, 3.0, i, 3), i, {"name": "Kaçak Devriyesi"}))

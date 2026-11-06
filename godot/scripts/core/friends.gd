@@ -96,6 +96,8 @@ static func available(f: Dictionary) -> bool:
 		return false
 	if st == "kaçak":
 		return Orgs.is_rogue() or f.get("rogue", false)   # köyden kaçan dost yalnız sen de kaçakken; bağışladığın kaçak kampında
+	if Orgs.is_rogue() and not f.get("rogue", false):
+		return false   # sen kaçakken köyde kalan dostlar artık dostun değil (çağrılmaz, gelmez, takip listesinde yok)
 	return st == ""
 
 
@@ -819,7 +821,7 @@ static func arch(f: Dictionary) -> Dictionary:
 	else:
 		a = Enemy.archetype("genin_rival", 0)
 		a["no_clan"] = true
-		a["element"] = f.get("element", "katon")
+		a["element"] = f.get("element", ELS[absi(hash(String(f.get("name", "")))) % ELS.size()])   # elementsiz eski kayıt: isimden sabit, eşit dağılım
 		var auto = Enemy.auto_jutsu("genin_rival", String(a["element"]), lv)
 		if not auto.is_empty():
 			a["jutsu"] = auto

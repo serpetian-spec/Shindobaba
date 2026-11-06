@@ -79,6 +79,10 @@ var sl := SurfaceTool.new()   # yaprak kartları
 var nb := 0
 var nl := 0
 var cols: Array = []   # çarpışma dalları [a, b, r] (gövde hariç kalın dallar; yakın kademe)
+var rcols: Array = []  # kök çarpışması [a, b, r]: kökün gerçek (ortalama) kalınlığıyla, toprağa inen kısım dahil
+var _in_root := false
+## Bir ağacın en fazla kök kapsülü (Vegetation havuzu bu kadar yuva açar)
+const MAX_ROOT_COLS := 18
 
 
 func _init() -> void:
@@ -98,6 +102,7 @@ func _commit() -> ArrayMesh:
 		# en kalın 6 dal çarpışma alır (dalların içinden geçiliyordu; üstlerine basılabilir — ağaçtan ağaca parkur)
 		cols.sort_custom(func(x, y): return float(x[2]) * (x[1] - x[0]).length() > float(y[2]) * (y[1] - y[0]).length())
 		m.set_meta("limbs", cols.slice(0, 6))
+		m.set_meta("roots", rcols.slice(0, MAX_ROOT_COLS))
 	return m
 
 
@@ -126,7 +131,7 @@ func limb(a: Vector3, b: Vector3, r0: float, r1: float, seg := 7) -> void:
 	var L := ax.length()
 	if L < 0.01:
 		return
-	if not lod and not trunk and r0 >= 0.13 and L >= 1.0:
+	if not lod and not trunk and r0 >= 0.13 and L >= 1.0 and not _in_root:
 		cols.append([a, b, maxf(r0, r1)])
 	var d := ax / L
 	var u := d.cross(Vector3.UP if absf(d.y) < 0.95 else Vector3.RIGHT).normalized()
@@ -163,9 +168,17 @@ func roots(r: float, n: int, spread: float) -> void:
 		var p1 := d * (r * 0.9 + L * 0.3) + Vector3(0, r * 0.45, 0)
 		var p2 := d * (r * 0.9 + L * 0.75) + Vector3(0, r * 0.12, 0)
 		var p3 := d * (r * 0.9 + L * 1.1) + Vector3(0, -0.2, 0)
+		_in_root = true   # kök dal sayılmaz: eskiden üst parçası kalın-uçlu "dal" kapsülü alıp görünmez tümsek yapıyordu, alt kısmı hiç almıyordu
 		limb(p0, p1, r * 0.55, r * 0.36, 6)
 		limb(p1, p2, r * 0.36, r * 0.2, 6)
 		limb(p2, p3, r * 0.2, r * 0.05, 5)
+		_in_root = false
+		if r >= 1.0:   # yalnız büyük ağaçlar (dev ağaç, Ölüm Ormanı): köy ağaçlarının kökleri küçük, çarpışmasız
+			# yarıçap parçanın İNCE ucunun mesh yarıçapı x0.9 (altıgen kesit): kapsül ucu
+			# komşu ince parçanın üstüne taşıp görünmez tümsek yapmasın (ölçüldü: tests/test_tree_roots.gd)
+			# kök başına 2 kapsül (şekil bütçesi: köylerde binlerce ağaç var; 4'te fizik şekil sınırı aşılıyordu)
+			rcols.append([p0, p1, r * 0.36 * 0.9])
+			rcols.append([p1, p2, r * 0.2 * 0.9])
 
 
 # ------------------------------------------------------------------ yaprak öbekleri

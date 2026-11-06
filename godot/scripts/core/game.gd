@@ -29,6 +29,20 @@ var build_tag := "dev"
 var version := "0.2.0"
 
 
+## Oyun saati (sn): duraklatmada/menüde durur. Düşman bekleme süreleri gerçek saatle tutuluyordu: menüden dönünce
+## düşmanın jutsuları hazır oluyordu (oyuncununki donarken). Bekleme süreleri bununla tutulur.
+var clock := 0.0
+
+
+func now() -> float:
+	return clock
+
+
+func _process(dt: float) -> void:
+	if not paused and not get_tree().paused:
+		clock += dt
+
+
 func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_load_build_info()
