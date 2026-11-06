@@ -335,6 +335,9 @@ func can_learn(jid: String) -> String:
 		return "Bilinmeyen jutsu"
 	if jid in pr["learned"]:
 		return "Zaten biliyorsun"
+	var creq = LegendPaths.canon_req(jid)   # kanon şartı (jinchūriki vb.) — hocalar da öğretemez
+	if creq != "":
+		return creq.capitalize()
 	if Eyes.ms_tracked(jid) and not Eyes.ms_allowed(pr, jid):
 		for st in Eyes.MS_STYLES:
 			if jid in Eyes.MS_STYLES[st]["eyes"]:

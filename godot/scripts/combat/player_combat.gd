@@ -1089,6 +1089,12 @@ func begin_cast(jid: String) -> void:
 	if need == "beast" and not in_beast:
 		Hud.msg("%s sadece kuyruklu canavar modunda atılabilir." % String(j["name"]), Color(1, 0.55, 0.3))
 		return
+	if need == "jin:any" and TailedBeasts.player_jinchuriki() == "":
+		Hud.msg("%s yalnız bir jinchūriki kullanabilir." % String(j["name"]), Color(1, 0.6, 0.45))
+		return
+	if need.begins_with("jin:") and need != "jin:any" and TailedBeasts.player_jinchuriki() != need.substr(4):   # kanon: canavarın kendi tekniği
+		Hud.msg("%s yalnız %s jinchūrikisi kullanabilir." % [String(j["name"]), "Sekiz Kuyruk" if need.substr(4) == "gyuki" else need.substr(4).capitalize()], Color(1, 0.6, 0.45))
+		return
 	if need.begins_with("contract:") and not Contracts.signed(need.substr(9)):   # kanon: çağrı hayvanının tekniği (Enma -> Kongōnyoi)
 		Hud.msg("%s için %s gerekir." % [String(j["name"]), String(Contracts.DEFS.get(need.substr(9), {}).get("name", need.substr(9)))], Color(1, 0.75, 0.45))
 		return

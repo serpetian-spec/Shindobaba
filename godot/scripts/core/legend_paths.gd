@@ -324,17 +324,17 @@ const EXTRA_JUTSU := {
 		"seals": [], "desc": "Jashin'in lütfu: 8 sn canın 1'in altına inmez, aldığın her darbe yakındaki düşmanlara da yansır."},
 	"jashin_kurban": {"name": "Jashin: Ikenie no Gi (Kurban Ayini)", "cost": 55, "cd": 30, "element": "", "level": 26, "rank": 4, "tier": 5, "shape": "aoe", "learn": "path:jashin", "category": "kinjutsu",
 		"seals": [], "desc": "Yere dev kan çemberi çizilir; içindeki düşmanlar her saniye senin aldığın kadar hasar alır."},
-	"hachibi_murekkep": {"name": "Hachibi: Tako Sumi (Mürekkep Perdesi)", "cost": 20, "cd": 10, "element": "", "level": 18, "rank": 2, "tier": 3, "shape": "aoe", "learn": "path:hachibi", "category": "ninjutsu",
+	"hachibi_murekkep": {"need": "jin:gyuki", "name": "Hachibi: Tako Sumi (Mürekkep Perdesi)", "cost": 20, "cd": 10, "element": "", "level": 18, "rank": 2, "tier": 3, "shape": "aoe", "learn": "path:hachibi", "category": "ninjutsu",
 		"seals": [], "desc": "Ağızdan fışkıran kara mürekkep: önündekiler kör olur, yapışkan mürekkep yavaşlatır."},
-	"hachibi_lariat": {"name": "Bijū Rariatto (Kuyruklu Lariat)", "cost": 35, "cd": 12, "element": "raiton", "level": 20, "rank": 3, "tier": 4, "shape": "melee", "learn": "path:hachibi", "category": "taijutsu",
+	"hachibi_lariat": {"need": "jin:gyuki", "name": "Bijū Rariatto (Kuyruklu Lariat)", "cost": 35, "cd": 12, "element": "raiton", "level": 20, "rank": 3, "tier": 4, "shape": "melee", "learn": "path:hachibi", "category": "taijutsu",
 		"seals": [], "desc": "Şimşekli kol ve ahtapot koluyla çift lariat; yolundakiler savrulur."},
-	"hachibi_ahtapot_kollari": {"name": "Takoashi Ude (Ahtapot Kolları)", "cost": 40, "cd": 14, "element": "", "level": 22, "rank": 3, "tier": 4, "shape": "aoe", "learn": "path:hachibi", "category": "ninjutsu",
+	"hachibi_ahtapot_kollari": {"need": "jin:gyuki", "name": "Takoashi Ude (Ahtapot Kolları)", "cost": 40, "cd": 14, "element": "", "level": 22, "rank": 3, "tier": 4, "shape": "aoe", "learn": "path:hachibi", "category": "ninjutsu",
 		"seals": [], "desc": "Sırttan çıkan dev ahtapot kolları yeri döver, yakalayıp sıkar."},
 	"hachibi_yedi_kilic": {"name": "Nanatō Ranbu (Yedi Kılıç Dansı)", "cost": 45, "cd": 16, "element": "", "level": 24, "rank": 3, "tier": 4, "shape": "melee", "learn": "path:hachibi", "category": "kenjutsu",
 		"seals": [], "desc": "Kollar, koltuk altı, ağız: yedi kılıçla dönen kasırga kesik dansı."},
-	"hachibi_kuyruk_zirhi": {"name": "Bijū Koromo (Kuyruk Örtüsü)", "cost": 40, "cd": 40, "element": "", "level": 26, "rank": 4, "tier": 5, "shape": "mode", "learn": "path:hachibi", "category": "ninjutsu",
+	"hachibi_kuyruk_zirhi": {"need": "jin:gyuki", "name": "Bijū Koromo (Kuyruk Örtüsü)", "cost": 40, "cd": 40, "element": "", "level": 26, "rank": 4, "tier": 5, "shape": "mode", "learn": "path:hachibi", "category": "ninjutsu",
 		"seals": [], "desc": "Mor çakra örtüsü ve sekiz kuyruk: 20 sn güç, dayanıklılık, kollar otomatik saldırır."},
-	"hachibi_ahtapot_topu": {"name": "Hachibi: Bijūdama (Sekiz Kuyruk Topu)", "cost": 60, "cd": 30, "element": "", "level": 28, "rank": 4, "tier": 5, "shape": "projectile", "learn": "path:hachibi", "category": "ninjutsu",
+	"hachibi_ahtapot_topu": {"need": "jin:gyuki", "name": "Hachibi: Bijūdama (Sekiz Kuyruk Topu)", "cost": 60, "cd": 30, "element": "", "level": 28, "rank": 4, "tier": 5, "shape": "projectile", "learn": "path:hachibi", "category": "ninjutsu",
 		"seals": [], "desc": "Ağızda siyah-mor canavar topu sıkıştırılır ve fırlatılır: dev patlama."},
 }
 
@@ -559,7 +559,12 @@ static func interact(it: Dictionary) -> void:
 		var qk = String(P["quest"].get(jid, ""))
 		var pc = price(jid)
 		var tag = ("  ⚠ karanlık: köy itibarı -%d" % dark) if dark > 0 else ""
-		if lv < need:
+		var creq = canon_req(jid)
+		if creq != "":   # kanon şartı (ör. yalnız Sekiz Kuyruk jinchūrikisi): usta öğretmez
+			var cr = creq
+			opts.append({"label": "%s — %s" % [nm, cr], "tip": j.get("desc", ""), "cb": func():
+				Hud.msg("\"Bu teknik canavarın chakrasıyla yapılır — %s.\"" % cr, Color(1, 0.7, 0.5))})
+		elif lv < need:
 			opts.append({"label": "%s — Güç %d gerekli" % [nm, need], "tip": j.get("desc", ""), "cb": func():
 				Hud.msg("Bu teknik için Güç %d olmalısın." % need, Color(1, 0.7, 0.4))})
 		elif qk != "":
@@ -943,6 +948,20 @@ func end_drill(ok: bool) -> void:
 	if ok:
 		Hud.banner("ANTRENMAN TAMAM", "Usta gözleri dolu dolu başparmağını kaldırdı!", PATHS[pid]["color"])
 		_teach(pid, jid, false)
+
+
+## Kanon şartı: "jin:<bijū>" — yalnız o kuyruklu canavarın jinchūrikisi öğrenir/kullanır. "" = şart yok ya da karşılanıyor
+static func canon_req(jid: String) -> String:
+	var need = String(Data.jutsu.get(jid, {}).get("need", ""))
+	var jin = TailedBeasts.player_jinchuriki()
+	if need == "jin:any" or need == "beast":   # kuyruklu canavar chakrası: herhangi bir jinchūriki
+		if jin == "":
+			return "yalnız jinchūriki"
+	elif need.begins_with("jin:"):
+		var b = need.substr(4)
+		if jin != b:
+			return "yalnız %s jinchūrikisi" % ("Sekiz Kuyruk" if b == "gyuki" else b.capitalize())
+	return ""
 
 
 static func _teach(pid: String, jid: String, from_quest: bool) -> void:

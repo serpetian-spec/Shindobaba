@@ -3489,6 +3489,7 @@
  },
  "renzoku_bijudama": {
   "id": "renzoku_bijudama",
+  "need": "beast",
   "name": "Renzoku Bijūdama",
   "name_en": "Continuous Tailed Beast Balls",
   "cost": 84,
@@ -12827,6 +12828,7 @@
  },
  "cho_mini_bijudama": {
   "id": "cho_mini_bijudama",
+  "need": "beast",
   "name": "Chō Mini Bijūdama",
   "name_en": "Super Mini-Tailed Beast Ball",
   "cost": 60,
@@ -13006,6 +13008,7 @@
  },
  "bijudama": {
   "id": "bijudama",
+  "need": "beast",
   "name": "Bijūdama",
   "name_en": "Tailed Beast Ball",
   "cost": 84,
@@ -13033,6 +13036,7 @@
  },
  "tailed_beast_telepathy": {
   "id": "tailed_beast_telepathy",
+  "need": "jin:any",
   "name": "Tailed Beast Telepathy",
   "name_en": "Tailed Beast Telepathy",
   "cost": 36,
