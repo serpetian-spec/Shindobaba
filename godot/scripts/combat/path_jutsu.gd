@@ -1435,7 +1435,6 @@ func p_jagei_jubaku(c: Node3D, t: Node3D) -> void:
 func p_hebi_bunshin_no_jutsu(c: Node3D, t: Node3D) -> void:
 	var d = fwd(c, t)
 	var at = c.global_position
-	FX.smoke_puff(at + Vector3.UP, 0.8, 10)
 	decoy(c, at, 12.0, func(pos: Vector3):
 		FX.burst(pos + Vector3.UP, {"amount": 20, "life": 0.5, "size": 0.6, "vmin": 2, "vmax": 6, "colors": [Color(0.6, 0.5, 0.7), Color(0.3, 0.25, 0.35, 0)]})
 		var near = enemies_near(c, pos, 11.0)
@@ -1447,10 +1446,13 @@ func p_hebi_bunshin_no_jutsu(c: Node3D, t: Node3D) -> void:
 				if e and live(e):
 					poison(c, e, "hebi_bunshin_no_jutsu", 0.25, 3.0))
 			fade_free(head, 0.8, 0.2))
+	# yılan gibi yere yatıp geriye kayar: kıvrılan iz + toz
+	var from_p = at
 	c.global_position = gp(at - d * 6.0)
 	if c is Player:
 		c.combat.invuln = 0.4
-	FX.smoke_puff(c.global_position + Vector3.UP, 0.6, 8)
+	var side = d.cross(Vector3.UP).normalized()
+	WindFX.streak(func(q: float) -> Vector3: return gp(from_p - d * 6.0 * q) + Vector3.UP * 0.15 + side * sin(q * 12.0) * 0.4, 0.4, 0.1, Color(0.55, 0.5, 0.45), 0.0, 20)
 
 
 ## Sen'ei Tajashu: Sen'ei Jashu'nun çok yılanlı hâli (anime: iki yenden yılan sürüsü) — her yılan menzildeki 6 düşmandan birine uzanıp sarılır
@@ -1463,7 +1465,7 @@ func p_sen_ei_tajashu(c: Node3D, t: Node3D) -> void:
 	var snakes = []
 	for k in n:
 		var right = k % 2 == 0
-		var e = victims[k % victims.size()] if not victims.is_empty() else null
+		var e = victims[k % victims.size()] if not victims.is_empty() and k < victims.size() * 2 else null
 		var ang = deg_to_rad(-55.0 + 110.0 * float(k) / (n - 1))
 		var sn = sleeve_snake(c, right, e, k / 2, n / 2, d.rotated(Vector3.UP, ang) * 18.0)
 		sn.radius = 0.075
@@ -1660,7 +1662,7 @@ func p_gogyo_fuin(c: Node3D, t: Node3D) -> void:
 	if tt == null:
 		Hud.msg("Gogyō Fūin: hedef en fazla 9 metrede olmalı", Color(0.85, 0.75, 1.0))
 		return
-	var cols = [Color(1, 0.4, 0.1), Color(0.3, 0.6, 1.0), Color(0.6, 1.0, 0.7), Color(0.75, 0.55, 0.3), Color(1.0, 1.0, 0.4)]
+	var cols = [Color(0.7, 0.35, 1.0), Color(0.6, 0.3, 0.95), Color(0.75, 0.45, 1.0), Color(0.65, 0.3, 0.9), Color(0.8, 0.5, 1.0)]   # ref: beş parmak ucunda mor alev
 	var hp_ = hand_pos(c, true)
 	var dots = []
 	for k in 5:
@@ -1668,6 +1670,12 @@ func p_gogyo_fuin(c: Node3D, t: Node3D) -> void:
 		s.mesh = VFX._sphere(0.09, 10, 6)
 		s.material_override = glow(cols[k])
 		scene_add(s, hp_ + Vector3(cos(k * 1.256) * 0.18, sin(k * 1.256) * 0.18 + 0.05, 0))
+		s.scale = Vector3.ONE * 0.6
+		var fl = FX.burst(s.global_position, {"amount": 14, "life": 0.45, "tex": FX.tex_flame, "add": true, "size": 0.22, "radius": 0.03,
+			"vmin": 0.3, "vmax": 0.8, "dir": Vector3.UP, "spread": 10.0, "colors": [Color(0.8, 0.5, 1.0, 0.0), Color(0.75, 0.4, 1.0, 0.9), Color(0.45, 0.15, 0.7, 0)], "parent": s})
+		if fl:
+			fl.one_shot = false
+			fl.position = Vector3.ZERO
 		dots.append(s)
 	busy(c, 0.8)
 	after(0.35, func():
@@ -1725,6 +1733,25 @@ func p_sen_ei_ranjashu(c: Node3D, t: Node3D) -> void:
 	Sfx.play("earth", c.global_position, 0.8)
 
 
+## Tene çizilen desen (shader): beden toon sage_marks=kind, yüz vroid param=1; dur sonra temizlenir
+func skin_marks(c: Node3D, kind: int, face_param: String, dur: float) -> void:
+	var m = c.get("model")
+	if m == null:
+		return
+	var bm = m.get("body_mesh")
+	var smat = bm.get_surface_override_material(0) if bm else null
+	if smat is ShaderMaterial:
+		smat.set_shader_parameter("sage_marks", kind)
+	var fmat = m.get("face_skin_mat")
+	if fmat is ShaderMaterial and face_param != "":
+		fmat.set_shader_parameter(face_param, 1.0)
+	after(dur, func():
+		if smat is ShaderMaterial and is_instance_valid(smat) and int(smat.get_shader_parameter("sage_marks")) == kind:
+			smat.set_shader_parameter("sage_marks", 0)
+		if fmat is ShaderMaterial and is_instance_valid(fmat) and face_param != "":
+			fmat.set_shader_parameter(face_param, 0.0))
+
+
 ## Lanetli mühür desenleri: boyun mühüründen bedene yayılan kara alev dilleri
 func juin_marks(c: Node3D, col: Color, dur: float, spread: float) -> Array:
 	var out = []
@@ -1760,7 +1787,7 @@ func p_ten_no_juin(c: Node3D, _t: Node3D) -> void:
 			Hud.msg("Lanet mührü Fūja Hōin ile bastırılmış — şimdilik uyanmıyor.", Color(0.85, 0.3, 0.3))
 		return
 	var dur = 22.0
-	juin_marks(c, Color(0.04, 0.02, 0.05), dur, 1.0)
+	skin_marks(c, 5, "juin_marks", dur)   # desen tene çizilir (eski kemik dikenleri kıyafetin dışında havada duruyordu)
 	var a = FX.aura(c, Color(0.35, 0.08, 0.45), 1.3, Vector3(0, 0.9, 0), 0.0)
 	Sfx.play("genjutsu", c.global_position, 0.5)
 	VFX.shockwave(c.global_position + Vector3.UP, Color(0.4, 0.1, 0.5), 6.0, 0.35, true)
@@ -1893,7 +1920,7 @@ func p_juin_ni_no_dankai(c: Node3D, _t: Node3D) -> void:
 			Hud.msg("Lanet mührü Fūja Hōin ile bastırılmış — şimdilik uyanmıyor.", Color(0.85, 0.3, 0.3))
 		return
 	var dur = 18.0
-	juin_marks(c, Color(0.02, 0.0, 0.03), dur, 1.6)
+	skin_marks(c, 5, "juin_marks", dur)
 	var a = FX.aura(c, Color(0.25, 0.05, 0.35), 1.8, Vector3(0, 0.9, 0), 0.0)
 	VFX.slowmo(0.4, 0.5)
 	shake(0.8)
@@ -3366,8 +3393,7 @@ func p_hachimon_tonko_no_jin(c: Node3D, _t: Node3D) -> void:
 	FX.ring(c.global_position + Vector3.UP * 0.2, GATE_GREEN, 10.0, 0.5)
 	VFX.shockwave(c.global_position + Vector3.UP * 1.0, GATE_GREEN, 12.0, 0.6, false)
 	VFX.cracks(gp(c.global_position), 6.0)
-	VFX.debris(gp(c.global_position), EARTH, 40, 12.0, 0.6)
-	VFX.smoke_ring(gp(c.global_position) + Vector3.UP * 0.1, 8.0, Color(0.7, 1.0, 0.7))
+	VFX.debris(gp(c.global_position), EARTH, 24, 10.0, 0.5)
 	if c is Player:
 		VFX.screen_lines(0.5, 1.0, GATE_GREEN)
 	var a = FX.aura(c, GATE_GREEN, 1.6, Vector3(0, 0.9, 0), 0.0)
@@ -3385,8 +3411,8 @@ func p_hachimon_tonko_no_jin(c: Node3D, _t: Node3D) -> void:
 		if live(c):
 			if c is Player:
 				c.hp = maxf(1.0, c.hp - c.max_hp * 0.006)
-			VFX.puffs(c.global_position + Vector3.UP * 1.2, {"amount": 3, "life": 0.8, "size": 0.6, "radius": 0.4, "vmin": 1, "vmax": 3, "dir": Vector3.UP, "spread": 30.0,
-				"colors": [Color(0.75, 1, 0.75, 0.6), Color(0.6, 0.9, 0.6, 0)]}), func():
+			FX.burst(c.global_position + Vector3.UP * 1.1, {"amount": 4, "life": 0.9, "tex": FX.tex_soft, "add": true, "size": 0.35, "radius": 0.35,
+				"vmin": 1, "vmax": 2.5, "dir": Vector3.UP, "spread": 20.0, "colors": [Color(0.75, 1, 0.75, 0.0), Color(0.75, 1, 0.75, 0.3), Color(0.6, 0.9, 0.6, 0)]}), func():
 		if is_instance_valid(a):
 			a.emitting = false
 		if m and is_instance_valid(m):

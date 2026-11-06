@@ -13,7 +13,8 @@ uniform float hit_flash = 0.0;
 uniform float shade_floor = 0.5;   // karakter gölgesi (dünyadan biraz açık: yüz kararmasın)
 // Byakugan: gözlerin çevresinde, şakaklara uzanan kabarık damarlar (yüz derisi)
 uniform float byakugan_veins = 0.0;
-uniform float seal_marks = 0.0;   // Byakugō / Sōzō Saisei: alında elmas + yanaklarda kara mühür çizgileri
+uniform float seal_marks = 0.0;
+uniform float juin_marks = 0.0;   // lanet mührü: yüze yayılan kara alev lekeleri   // Byakugō / Sōzō Saisei: alında elmas + yanaklarda kara mühür çizgileri
 uniform vec3 eye_c_r = vec3(-0.032, 1.62, 0.08);
 uniform vec3 eye_c_l = vec3(0.032, 1.62, 0.08);
 uniform float iris_r3 = 0.011;
@@ -53,6 +54,12 @@ void fragment() {
 	if (byakugan_veins > 0.0) {
 		float vm = max(vein_mask(lp, eye_c_r, iris_r3, -1.0), vein_mask(lp, eye_c_l, iris_r3, 1.0));
 		c = mix(c, c * vec3(0.55, 0.38, 0.48), vm * byakugan_veins);
+	}
+	if (juin_marks > 0.0) {
+		vec3 ec2 = (eye_c_r + eye_c_l) * 0.5;
+		float j = fract(sin(dot(floor(lp.xy * 70.0), vec2(12.9898, 78.233))) * 43758.5453);
+		float band = sin(lp.x * 120.0 + lp.y * 40.0) * 0.5 + 0.5;
+		if (lp.y < ec2.y + 0.02 && abs(lp.x - ec2.x) > 0.02 && band > 0.55 && j > 0.25 && lp.z > ec2.z - 0.06) c = mix(c, vec3(0.04, 0.02, 0.05), juin_marks);
 	}
 	if (seal_marks > 0.0) {
 		vec3 ec = (eye_c_r + eye_c_l) * 0.5;
