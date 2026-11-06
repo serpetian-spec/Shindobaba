@@ -455,7 +455,7 @@ func _physics_process(dt: float) -> void:
 	chakra = minf(max_chakra, chakra + regen * dt)
 	# stamina: nefeslenince dolar; harcadıktan 1.5 sn sonra hızlanır, dayanıklılık ustalığı hızlandırır
 	_stam_rest += dt
-	var sreg = (6.0 if _stam_rest < 1.5 else 16.0) * (1.0 + Mastery.get_v(Game.profile, "dayaniklilik") * 0.015)
+	var sreg = (3.0 if _stam_rest < 2.0 else 7.0) * (1.0 + Mastery.get_v(Game.profile, "dayaniklilik") * 0.015)   # dolum 6/16 idi: taijutsu bedava kalıyordu (ölçüldü)
 	stamina = minf(max_stamina, stamina + sreg * dt)
 	if hp > 0.0 and not Buffs.has("rinne_bedel"):   # Rinne Tensei bedeli: iyileşme yok
 		var hreg = 0.5 * (1.0 + Stats.skill(Game.profile, "regen_hp"))

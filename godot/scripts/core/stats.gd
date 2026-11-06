@@ -170,6 +170,13 @@ static func max_stamina(p: Dictionary) -> float:
 	return 100.0 + Mastery.get_v(p, "dayaniklilik") * 6.0 + Mastery.get_v(p, "taijutsu") * 2.0 + Gear.stat(p, "stamina")
 
 
+## Taijutsu stamina bedeli (oyuncu + NPC ortak): verideki maliyet x2.5 — eskiden 14-22 stamina, 5-7 sn beklemede
+## stamina tamamen doluyordu (neredeyse bedava). Dolu barla art arda 2-3 teknik.
+const TAI_STAMINA := 2.5
+static func tai_stamina_cost(j: Dictionary) -> float:
+	return float(j.get("cost", 0)) * TAI_STAMINA
+
+
 static func is_taijutsu(j: Dictionary) -> bool:
 	return String(j.get("category", "")) == "taijutsu"
 

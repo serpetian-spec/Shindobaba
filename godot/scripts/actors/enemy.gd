@@ -29,6 +29,8 @@ var jgap := 0.0    # iki jutsu arası en kısa ara
 ## saniyede 1.5 taban yenilenir; yetmezse jutsu yok, kunai/yakın dövüş. Eskiden düşmanın chakrası yoktu: 3-4 sn'de bir jutsu yağdırıyordu.
 var chakra := 80.0
 var max_chakra := 80.0
+var stamina := 100.0      # taijutsu bedeli (oyuncuyla aynı: Stats.tai_stamina_cost, aynı dolum)
+var _stam_rest := 9.0
 var ranged_cd = 3.0
 var sub_cd = 0.0
 var combo_left = 0
@@ -373,6 +375,8 @@ func _physics_process(dt: float) -> void:
 				nameplate.visible = false
 		return
 	chakra = minf(max_chakra, chakra + 1.5 * (1.0 + float(level) * 0.01) * dt)   # oyuncuyla aynı yenilenme
+	_stam_rest += dt
+	stamina = minf(100.0, stamina + (3.0 if _stam_rest < 2.0 else 7.0) * dt)
 	var pl = Game.player
 	var far = pl == null or global_position.distance_to(pl.global_position) > 170.0
 	if far:
@@ -602,10 +606,13 @@ func _chase(dt: float) -> void:
 		ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("need", "")) != "islak_zemin" or (target != null and is_instance_valid(target) and ClanMech.prepared_ground(target.global_position)))   # Jubaku Eisō: oyuncuyla aynı hazırlık şartı
 		if has_status("sealed"):   # tenketsu kapalı: chakra yoğrulamaz, yalnız taijutsu (oyuncuyla aynı kural)
 			ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("category", "")) == "taijutsu")
-		ready = ready.filter(func(id): return Stats.is_taijutsu(Data.jutsu.get(id, {})) or chakra >= jutsu_cost(id))   # chakrası yetmeyen jutsu atılmaz
+		ready = ready.filter(func(id): return (stamina >= Stats.tai_stamina_cost(Data.jutsu.get(id, {}))) if Stats.is_taijutsu(Data.jutsu.get(id, {})) else chakra >= jutsu_cost(id))   # chakrası/staminası yetmeyen teknik atılmaz
 		if not ready.is_empty() and nowj >= jgap and randf() < 0.85:
 			var pick = String(ready.pick_random())
-			if not Stats.is_taijutsu(Data.jutsu.get(pick, {})):
+			if Stats.is_taijutsu(Data.jutsu.get(pick, {})):
+				stamina -= Stats.tai_stamina_cost(Data.jutsu.get(pick, {}))
+				_stam_rest = 0.0
+			else:
 				chakra -= jutsu_cost(pick)
 			jcd[pick] = nowj + Combat.jutsu_cd(Data.jutsu.get(pick, {})) * randf_range(1.0, 1.25)
 			_jdmg[pick] = 0.0

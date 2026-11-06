@@ -1146,7 +1146,7 @@ func begin_cast(jid: String) -> void:
 		return
 	var tai = Stats.is_taijutsu(j)   # taijutsu chakra değil stamina harcar
 	if tai and not Game.has_meta("sandbox"):
-		cost = float(j.get("cost", 0))   # stamina bedeli seviyeyle şişmez (büyüyen şey stamina barı: dayanıklılık/taijutsu ustalığı)
+		cost = Stats.tai_stamina_cost(j)   # stamina bedeli seviyeyle şişmez (büyüyen şey stamina barı: dayanıklılık/taijutsu ustalığı)
 	if tai and p.stamina < cost:
 		Hud.msg("Nefesin tükendi! Biraz soluklan (stamina)", Color(1, 0.75, 0.35))
 		return
