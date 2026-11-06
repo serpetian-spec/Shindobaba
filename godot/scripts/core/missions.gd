@@ -927,7 +927,7 @@ func _begin_step() -> void:
 				pk.item = s["item"]
 				root.add_child(pk)
 				var q = c + Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)) * float(s.get("spread", 20))
-				pk.global_position = Vector3(q.x, Game.ground_height(q.x, q.z), q.z)
+				pk.global_position = open_ground(q, 12.0)   # ağaç gövdesi/kökü, bina, kaya içine düşmesin (eskiden hiç bakılmıyordu)
 				step_nodes.append(pk)
 			var g: Dictionary = s.get("guard", {})
 			if not g.is_empty():
@@ -1107,35 +1107,46 @@ static func _make_og_q() -> PhysicsShapeQueryParameters3D:
 static func open_ground(p: Vector3, max_r := 60.0) -> Vector3:
 	p = Game.out_of_wall(p)
 	var space = Game.world.get_world_3d().direct_space_state if Game.world and Game.world.is_inside_tree() else null
+	# halka halka sık arama: her 1.5 m'de 12 yön (eskiden 12 m'de toplam 9 nokta vardı; dev ağaç gövdesi / sık binalar
+	# hepsini kapatınca İÇERİDEKİ ilk nokta dönüyordu -> eşyalar ağacın/binanın içine düşüyordu). Bulunamazsa menzil 3 katına kadar büyür.
 	var r = 0.0
-	var a = 0.0
-	while r <= max_r:
-		var q = p + Vector3(cos(a) * r, 0, sin(a) * r)
-		var gh = Game.ground_height(q.x, q.z)
-		var ok = not Game.in_village_wall(q.x, q.z)  # Suna/Kiri kayalık suru: içine/üstüne görev noktası düşmesin
-		if ok and Game.world and Game.world.vegetation and Game.world.vegetation.trunk_near(q.x, q.z, 2.5):
-			ok = false   # ağaç gövdesinin içine görev / düşman / NPC konmasın
-		if ok and space:
-			# yukarıdan aşağı ışın: zeminden yüksek bir şeye çarparsa (bina, çatı, duvar) burası dolu
-			var hit = space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(q.x, gh + 60.0, q.z), Vector3(q.x, gh - 1.0, q.z), 1))
-			# üstte 25 m'ye kadar bir şey varsa dolu (bina, kubbe ev, çatı, kaya); içi boş binalarda gövde testi
-			# çakışma bulamaz, o yüzden yüksek kubbe çatılar (Suna 12-18 m) da dolu sayılır
-			if not hit.is_empty() and float(hit["position"].y) > gh + 1.0 and float(hit["position"].y) < gh + 25.0:
-				ok = false
-			if ok:
-				# gövde boyunda çakışma (yandan değen kaya/duvar, ışının ıskaladığı içbükey kaya)
-				for hy in [0.7, 1.5]:
-					_og_q.transform = Transform3D(Basis.IDENTITY, Vector3(q.x, gh + hy, q.z))
-					if not space.intersect_shape(_og_q, 1).is_empty():
-						ok = false
-						break
-		if ok:
-			q.y = gh
-			return q
-		a += 0.9
+	var lim = max_r * 3.0
+	while r <= lim:
+		var n = 1 if r == 0.0 else 12
+		var off = randf() * TAU
+		for i in n:
+			var a = off + TAU * i / n
+			var q = p + Vector3(cos(a) * r, 0, sin(a) * r)
+			if _og_ok(q, space):
+				q.y = Game.ground_height(q.x, q.z)
+				return q
 		r += 1.5
 	p.y = Game.ground_height(p.x, p.z)
 	return p
+
+
+## Bu nokta boş zemin mi: köy suru, ağaç gövdesi/kökü, bina/çatı/kaya (ışın + gövde boyu çakışma)
+static func _og_ok(q: Vector3, space) -> bool:
+	var gh = Game.ground_height(q.x, q.z)
+	if Game.in_village_wall(q.x, q.z):  # Suna/Kiri kayalık suru: içine/üstüne görev noktası düşmesin
+		return false
+	if Game.world and Game.world.vegetation and Game.world.vegetation.trunk_near(q.x, q.z, 2.5):
+		return false   # ağaç gövdesinin içine görev / düşman / NPC / eşya konmasın
+	if space == null:
+		return true
+	# yukarıdan aşağı ışın: zeminden yüksek bir şeye çarparsa (bina, çatı, duvar) burası dolu
+	var hit = space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(q.x, gh + 60.0, q.z), Vector3(q.x, gh - 1.0, q.z), 1))
+	# üstte 25 m'ye kadar bir şey varsa dolu (bina, kubbe ev, çatı, kaya); içi boş binalarda gövde testi
+	# çakışma bulamaz, o yüzden yüksek kubbe çatılar (Suna 12-18 m) da dolu sayılır
+	if not hit.is_empty() and float(hit["position"].y) > gh + 1.0 and float(hit["position"].y) < gh + 25.0:
+		return false
+	# gövde boyunda çakışma (yandan değen kaya/duvar/ağaç gövdesi, ışının ıskaladığı içbükey kaya)
+	for hy in [0.7, 1.5]:
+		_og_q.transform = Transform3D(Basis.IDENTITY, Vector3(q.x, gh + hy, q.z))
+		for h in space.intersect_shape(_og_q, 4):
+			if not (h["collider"] is CharacterBody3D):   # oyuncu/NPC'nin yanı "dolu" sayılmaz
+				return false
+	return true
 
 
 func _make_npc(spec: Dictionary, pos: Vector3) -> QuestNPC:
@@ -1194,14 +1205,16 @@ func _spawn(kind: String, at: Vector3, n: int, spread: float, nm := "", solo := 
 	var cnt = n
 	if solo and n > 1:
 		cnt = 1
+	if not kind in ["bandit", "genin_rival", "wolf", "bear", "boar", "animal"]:   # zayıflar (haydut, genin) kalabalık gelebilir
+		cnt = mini(cnt, Combat.foe_count(cnt))   # ninja grubu takımın kadar (yalnızken 1); eksik kalan güç tek tek düşmana biner
 	for i in cnt:
 		var e = Enemy.new()
 		var a = Enemy.archetype(kind, i)
 		a["respawn"] = false
 		if nm != "":
 			a["name"] = nm
-		if cnt == 1 and n > 1:
-			Enemy.toughen(a, n, String(active().get("rank", "C")) if not active().is_empty() else "C")
+		if cnt < n:
+			Enemy.toughen(a, ceili(float(n) / cnt), String(active().get("rank", "C")) if not active().is_empty() else "C")
 		_rank_scale(a, rk)
 		e.setup(a)
 		e.set_meta("mission", true)
@@ -2214,6 +2227,11 @@ func _process_steps(dt: float) -> void:
 			for pk in step_nodes:
 				if is_instance_valid(pk) and pk is Pickup:
 					var d: float = pk.global_position.distance_to(pl.global_position)
+					if d < 120.0 and not pk.has_meta("og"):
+						# yakında binaların/ağaçların çarpışması yüklü: yerleşimi bir kez daha doğrula
+						pk.set_meta("og", true)
+						pk.global_position = open_ground(pk.global_position, 12.0)
+						d = pk.global_position.distance_to(pl.global_position)
 					if d < best:
 						best = d; target_marker = pk.global_position
 		"escort":

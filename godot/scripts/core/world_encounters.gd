@@ -368,7 +368,7 @@ func _hint_bounty(n: Node) -> void:
 func _ambushers(at: Vector3) -> void:
 	Hud.msg("Saldırganlar geri döndü!", Color(1, 0.4, 0.3))
 	var foes := []
-	for i in 2:
+	for i in Combat.foe_count(2):
 		foes.append(_enemy("rogue", _around(at, 14.0, i, 2), i))
 	cur["foes"] = foes
 	cur["after"] = "ambush"
@@ -432,7 +432,7 @@ func _start_wounded_rogue(c: Vector3) -> void:
 				if randf() < 0.45:
 					Hud.msg("Av ekibi geri döndü!", Color(1, 0.4, 0.3))
 					var foes := []
-					for i in 2:
+					for i in Combat.foe_count(2):
 						foes.append(_hunter_nin(_around(n.global_position, 14.0, i, 2), i))
 					cur["foes"] = foes
 					cur["after"] = "ambush"
@@ -445,14 +445,14 @@ func _start_patrol(c: Vector3) -> void:
 	if Orgs.is_rogue():
 		# kaçakken devriye seni arayan köy av ekibidir
 		var hs := []
-		for i in randi_range(2, 3):
+		for i in Combat.foe_count(3):   # takımın kadar
 			hs.append(_hunter_nin(_around(c, 3.0, i, 3), i))
 		cur["foes"] = hs
 		cur["after"] = "loot"
 		Hud.msg("%s köyünün av ekibi iz sürüyor. Seni arıyorlar." % _dir_text(c).capitalize(), Color(1, 0.6, 0.45))
 		return
 	var foes := []
-	for i in randi_range(2, 3):
+	for i in Combat.foe_count(3):   # takımın kadar
 		foes.append(_enemy("rogue", _around(c, 3.0, i, 3), i, {"name": "Kaçak Devriyesi"}))
 	cur["foes"] = foes
 	cur["after"] = "loot"
@@ -732,7 +732,7 @@ func _start_sandstorm(c: Vector3) -> void:
 		Game.world.env.region_weather = "kum fırtınası"
 		Game.world.env.weather_t = 70.0
 	var foes := []
-	for i in 3:
+	for i in Combat.foe_count(3):
 		var e := _enemy("rogue", _around(Game.player.global_position, 16.0, i, 3), i, {"name": "Kum Akıncısı", "element": "fuuton", "jutsu": Enemy.auto_jutsu("rogue", "fuuton", Enemy.region_level(Game.player.global_position))})
 		e.look["mask"] = "cloth"
 		foes.append(e)
@@ -746,7 +746,7 @@ func _start_mist(c: Vector3) -> void:
 		Game.world.env.region_weather = "sis"
 		Game.world.env.weather_t = 70.0
 	var foes := []
-	var n := randi_range(3, 4)
+	var n := Combat.foe_count(4)
 	for i in n:
 		var js: Array = ["kirigakure_no_jutsu"] + Enemy.auto_jutsu("rogue", "suiton", Enemy.region_level(Game.player.global_position)).slice(0, 2)
 		var e := _enemy("rogue", _around(Game.player.global_position, 13.0, i, n), i, {"name": "Sis Suikastçısı", "element": "suiton", "jutsu": js, "sub": 0.35})
@@ -764,7 +764,7 @@ func _start_storm(c: Vector3) -> void:
 	cur["storm_t"] = 40.0
 	cur["bolt_t"] = 2.0
 	var foes := []
-	for i in 2:
+	for i in Combat.foe_count(2):
 		foes.append(_enemy("rogue", _around(Game.player.global_position, 18.0, i, 2), i, {"name": "Fırtına Avcısı", "element": "raiton",
 			"jutsu": Enemy.auto_jutsu("rogue", "raiton", Enemy.region_level(Game.player.global_position))}))
 	cur["foes"] = foes

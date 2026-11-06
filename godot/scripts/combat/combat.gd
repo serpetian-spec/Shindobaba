@@ -150,6 +150,29 @@ func knocks_down(info: Dictionary) -> bool:
 	return float(info.get("launch", 0.0)) >= 3.0 or float(info.get("knock", 0.0)) >= 14.0
 
 
+## Oyuncunun yanındaki savaşan kişi sayısı (oyuncu dahil): 40 m içinde yaşayan takım arkadaşı / dost / görev müttefiki.
+## Klon, çağrı, yapı sayılmaz. Ninja düşman grupları bu kadar kişi gelir (yalnızken 1, bir dostla 2 ...): 3-4 kişinin
+## yalnız oyuncuyu sersemletip kilitlemesi (stunlock) adil değildi.
+func party_size() -> int:
+	var pl = Game.player
+	if pl == null:
+		return 1
+	var n = 1
+	for f in get_tree().get_nodes_in_group("fighters"):
+		if f == pl or not is_instance_valid(f) or f.get("team") != "player":
+			continue
+		if f is ShadowClone or f is Summon or f is ClanConstruct or f.is_dead():
+			continue
+		if (f as Node3D).global_position.distance_to(pl.global_position) < 40.0:
+			n += 1
+	return n
+
+
+## Ninja grubunun boyu: takım sayısı kadar, en çok "cap" (olayın eski üst sınırı)
+func foe_count(cap: int) -> int:
+	return clampi(party_size(), 1, maxi(1, cap))
+
+
 func hostile(a: Node, b: Node) -> bool:
 	if a == b or b == null or a == null:
 		return false

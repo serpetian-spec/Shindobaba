@@ -339,9 +339,10 @@ func trunk_near(x: float, z: float, pad := 2.0) -> bool:
 				trees = _trunk_cache[key]
 			for tr in trees:
 				var t: int = int(tr[5])
-				var r: float = float(radii.get(t, 0.0)) * (float(tr[3]) if t != 9 else 1.0)
+				var r0: float = float(radii.get(t, 0.0))
+				var r: float = r0 * float(tr[3])   # çarpışma silindiriyle aynı: yarıçap x ölçek (dev ağaçta ölçeksiz alınıyordu -> eşyalar gövdeye düşüyordu)
 				if t in [9, 5]:
-					r = r * 3.2 + 1.5   # dev ağaç kökleri gövdeden dışarı yayılır
+					r = maxf(r * 1.6, r0 * 3.2) + 1.5   # dev ağaç kökleri gövdeden dışarı yayılır
 				if Vector2(float(tr[0]) - x, float(tr[2]) - z).length() < r + pad:
 					return true
 	return false

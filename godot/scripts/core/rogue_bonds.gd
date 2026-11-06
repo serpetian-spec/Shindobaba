@@ -237,7 +237,7 @@ static func _job(id: String, kind: String) -> void:
 					"hostage": {"id": "rehine", "name": "Tutsak Kaçak", "kind": "hostage"}, "text": "Karakol muhafızlarını yen, tutsağı çöz."}]}
 		"avci":
 			m = {"title": "Av Gecesi", "brief": "Av ninjaları %s'in izini buldu." % f["name"],
-				"steps": [{"kind": "kill", "at": near, "enemy": hunters, "ename": "Av Ninjası", "n": 3, "text": "Av ninjalarını püskürt."}]}
+				"steps": [{"kind": "kill", "at": near, "enemy": hunters, "ename": "Av Ninjası", "n": Combat.foe_count(3), "text": "Av ninjalarını püskürt."}]}
 		"parsomen":
 			m = {"title": "Yasak Parşömen", "brief": "Karakoldaki mühür parşömenini fark edilmeden al.",
 				"steps": [{"kind": "goto", "at": Missions._near_spot(near, 70, 90), "r": 10.0, "name": "Karakol yakını", "night": true, "text": "Gece karakolun yakınına git."},

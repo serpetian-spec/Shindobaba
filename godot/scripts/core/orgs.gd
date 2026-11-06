@@ -502,10 +502,7 @@ func broker_dialog() -> void:
 			opts.append({"label": "[%s] %s" % [rk, job["title"]], "tip": job["brief"], "cb": func(): Missions.accept(job)})
 	else:
 		opts.append({"label": "(Önce elindeki işi bitir)", "cb": func(): pass})
-	# kaçak köy eğitmenlerine/parşömencisine gidemez: jutsuyu yeraltından öğrenir, rütbe arttıkça daha çok ve daha üst seviye
-	var sc = Progress.scroll_shop_items(6 + r * 3, r * 3)
-	if not sc.is_empty():
-		opts.append({"label": "Kara pazar parşömenleri (%d)" % sc.size(), "tip": "Rütben arttıkça daha fazla ve daha üst seviye element parşömeni.", "cb": func(): Hud.shop("Kara Pazar — Parşömenler", sc)})
+	# parşömenler mağaradaki Kara Parşömenci tezgâhında (simsarda ikinci bir parşömen seçeneği yok)
 	if r >= 2:
 		opts.append({"label": "Yasak teknikler (kinjutsu)", "tip": "Kara Listede ve üstü: köylerin yasakladığı teknikleri ryō karşılığı öğret.", "cb": _kinjutsu_dialog})
 	else:
@@ -803,7 +800,9 @@ func _hunter_tick(dt: float) -> void:
 	var kind = vid if vid in ["kumo", "kiri", "iwa", "suna"] else "rogue"
 	var pp = Game.player.global_position
 	Hud.banner("AV-NİNJALARI", "%s seni buldu!" % Game.village(vid).get("name", vid), Color(0.9, 0.3, 0.3))
-	for i in (2 if rogue_rank() < 2 else 3):
+	var base_n = 2 if rogue_rank() < 2 else 3
+	var hn = Combat.foe_count(base_n)
+	for i in hn:   # takımın kadar: yalnızken tek av-ninjası (eksik kalan güç ona biner: aşırı kolay olmasın)
 		var e = Enemy.new()
 		var a = Enemy.archetype(kind, i)
 		a["name"] = "Av-Ninjası"
@@ -813,12 +812,13 @@ func _hunter_tick(dt: float) -> void:
 		a["power"] = 1.8 + a["level"] * 0.02
 		a["look"]["face_style"] = ["anbu_kedi", "anbu_kurt", "anbu_kus"][i]
 		a["look"]["village"] = vid
+		if hn < base_n:
+			Enemy.toughen(a, ceili(float(base_n) / hn), "B")
 		e.setup(a)
 		e.set_meta("hunter_nin", true)
 		e.set_meta("faction", "hunter")
 		get_tree().current_scene.add_child(e)
-		var q = pp + Vector3(cos(i * 2.1), 0, sin(i * 2.1)) * 30.0
-		q.y = Game.ground_height(q.x, q.z)
+		var q = Missions.open_ground(pp + Vector3(cos(i * 2.1), 0, sin(i * 2.1)) * 30.0, 15.0)   # ağaç/bina içinde doğmasın
 		e.global_position = q
 		e.home = q
 		_spawned.append(e)

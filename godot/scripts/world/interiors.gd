@@ -368,7 +368,7 @@ func _spawn_npc(req: Dictionary) -> void:
 				continue
 		if true:
 			it["npc"] = vg
-			it["radius"] = 3.4   # yalnız kişiye bağlı: masanın karşısından da yetişilir (masa noktası yok)
+			it["radius"] = maxf(3.4, float(it["radius"]))   # kişiye bağlı: masanın karşısından da yetişilir; odada daha geniş verildiyse (kürsüdeki simsar) o kalır
 
 
 ## Ahşap zemin, sıvalı duvarlar + ahşap dikmeler, tavan kirişleri, kapı + çıkış, shoji pencereler
@@ -1501,36 +1501,246 @@ func _snake_lab() -> void:
 
 ## Kaçak sığınağı (mağara): ortada ateş çukuru ve yer yatakları; duvar oyuklarında kara pazar tezgâhları (fenerli),
 ## dipte simsarın masası (harita, Bingo Kitabı sayfaları); çalıntı sandıklar, kurutulan av, su küpü. Kaçaklar ateş başında.
+## Kaçak Sığınağı (büyük mağara): dar giriş tüneli -> geniş kaya salonu (doğal sütunlar, sarkıtlar, iplerle sarkan fenerler),
+## ortada gerçek alevli kamp ateşi + kütük banklar, sol duvarda tenteli kara pazar tezgâhları, sağda yatakhane + erzak,
+## dipte yükseltilmiş kürsüde Yeraltı Simsarı (bacaklı masa, Bingo panosu). Kaya süsleri duvarın DIŞINA konur (en çok ~1.7 m taşar),
+## NPC/tezgâhlar duvardan en az 3 m içeride: kimse kayanın içinde durmaz.
+const CAVE_W := 30.0
+const CAVE_D := 52.0
+const CAVE_H := 13.0
 func _rogue_hideout() -> void:
-	_lair(false)
-	var W = 20.0
-	# kara pazar: sağ/sol duvar oyukları (tahta tezgâh + fener + mal) — Orgs.ROGUE_STALLS ile aynı işler
+	var W = CAVE_W; var D = CAVE_D; var H = CAVE_H
+	var rock = Color(0.33, 0.31, 0.3)
+	var rock_d = Color(0.24, 0.22, 0.22)
+	var wood = Color(0.42, 0.29, 0.18)
+	var wood_d = Color(0.3, 0.2, 0.12)
+	var cloth = [Color(0.45, 0.16, 0.16), Color(0.2, 0.25, 0.35), Color(0.32, 0.3, 0.22), Color(0.3, 0.18, 0.32)]
+	# ---- zemin, duvar ve tavan çarpışması
+	bx(0, -0.1, D * 0.5, W + 4.0, 0.2, D + 4.0, Color(0.27, 0.25, 0.23), true)
+	for i in 70:   # zeminde açık/koyu toprak lekeleri
+		bx(rng.randf_range(-W * 0.45, W * 0.45), 0.003, rng.randf_range(1.0, D - 1.0), rng.randf_range(1.5, 4.0), 0.006, rng.randf_range(1.5, 4.0),
+			Color(0.27, 0.25, 0.23).lightened(rng.randf_range(-0.05, 0.04)), false, Vector3(0, rng.randf_range(0, 90), 0))
+	bx(-W * 0.5 - 0.5, H * 0.5, D * 0.5, 1.0, H, D + 2.0, rock, true)
+	bx(W * 0.5 + 0.5, H * 0.5, D * 0.5, 1.0, H, D + 2.0, rock, true)
+	bx(0, H * 0.5, D + 0.5, W + 2.0, H, 1.0, rock, true)
+	bx(0, H * 0.5, -0.6, W + 2.0, H, 1.0, rock, true)
+	bx(0, H + 0.5, D * 0.5, W + 2.0, 1.0, D + 2.0, rock_d, true)
+	# ---- giriş tüneli: ilk 8 m yalnız 8 m genişlik (iki yanda kaya kütlesi, çarpışmalı)
+	for side in [-1.0, 1.0]:
+		bx(side * (4.0 + (W * 0.5 - 4.0) * 0.5), H * 0.5, 4.0, W * 0.5 - 4.0, H, 8.0, rock, true)
+		for k in 26:   # tünel duvarı kaya yumrularıyla kaplı (düz kutu görünmesin)
+			var ts = rng.randf_range(1.8, 3.2)
+			sp(side * (4.0 + ts * 0.5 - rng.randf_range(0.5, 0.9)), rng.randf_range(0.4, 5.6), rng.randf_range(0.0, 8.0), Vector3(ts, ts * rng.randf_range(0.8, 1.3), ts), rock.darkened(rng.randf() * 0.25), 7)
+		sp(side * 9.0, 4.0, 8.3, Vector3(9.0, 9.0, 1.4), rock.darkened(0.1), 7)   # tünel ağzının salon tarafı
+	bx(0, 5.8, 4.0, 8.0, 0.6, 8.0, rock_d, true)   # tünel tavanı (salon tavanından alçak)
+	for k in 6:
+		sp(rng.randf_range(-3.5, 3.5), 5.4, rng.randf_range(0.5, 7.5), Vector3(rng.randf_range(1.2, 2.2), 0.8, rng.randf_range(1.2, 2.2)), rock_d, 6)
+	gl("box", 0, 1.8, -0.05, Vector3(4.2, 3.6, 0.05), Color(0.95, 0.9, 0.75))   # dışarıdan gün ışığı
+	act(0, 0.9, 1.8, "exit", "[F] Dışarı çık")
+	# ---- salon duvarları: kaya yumruları duvarın dışında merkezli (içeri en çok ~1.7 m taşar)
+	for i in 150:
+		var side = -1.0 if i % 2 == 0 else 1.0
+		var s = rng.randf_range(2.4, 4.4)
+		sp(side * (W * 0.5 + s * 0.5 - rng.randf_range(0.6, 1.7)), rng.randf_range(0.6, H - 0.5), rng.randf_range(8.0, D), Vector3(s, s * rng.randf_range(0.8, 1.4), s), rock.darkened(rng.randf() * 0.3), 7)
+	for i in 50:   # arka duvar
+		var s2 = rng.randf_range(2.4, 4.2)
+		sp(rng.randf_range(-W * 0.5, W * 0.5), rng.randf_range(0.6, H - 0.5), D + s2 * 0.5 - rng.randf_range(0.6, 1.4), Vector3.ONE * s2, rock.darkened(rng.randf() * 0.3), 7)
+	# ---- tavan: kubbe kayaları + sarkıtlar
+	for i in 40:
+		sp(rng.randf_range(-W * 0.5, W * 0.5), H - rng.randf_range(0.0, 0.8), rng.randf_range(8.0, D), Vector3(rng.randf_range(3.0, 6.0), 2.0, rng.randf_range(3.0, 6.0)), rock_d.darkened(rng.randf() * 0.2), 7)
+	for i in 34:
+		var tx = rng.randf_range(-W * 0.45, W * 0.45)
+		var tz = rng.randf_range(10.0, D - 2.0)
+		var tl = rng.randf_range(1.2, 3.4)
+		sp(tx, H - 0.4 - tl * 0.5, tz, Vector3(rng.randf_range(0.35, 0.7), tl, rng.randf_range(0.35, 0.7)), rock.darkened(0.15), 5)   # sarkıt
+		sp(tx, H - 0.5 - tl, tz, Vector3(0.15, 0.4, 0.15), rock.lightened(0.05), 4)   # sivri uç
+	# ---- doğal taş sütunlar (çarpışmalı)
+	for c in [[-4.6, 16.0], [6.2, 19.0], [-4.6, 37.0], [6.6, 39.5]]:   # pazar koridorunu (x<-7) ve ateş çemberini kapatmasın
+		var px: float = c[0]; var pz: float = c[1]
+		for k in 6:
+			var yy = k * H / 5.0
+			var w2 = 1.6 + absf(k - 2.5) * 0.45   # ortası ince, tavana ve zemine doğru genişler
+			sp(px + rng.randf_range(-0.2, 0.2), yy, pz + rng.randf_range(-0.2, 0.2), Vector3(w2, H / 4.0, w2), rock.darkened(rng.randf() * 0.2), 7)
+		var cc = CollisionShape3D.new()
+		var csh = CylinderShape3D.new()
+		csh.radius = 0.95
+		csh.height = H
+		cc.shape = csh
+		cc.position = L(px, H * 0.5, pz)
+		body.add_child(cc)
+	# ---- iplerle sarkan kâğıt fenerler (koridor boyunca)
+	for k in 7:
+		for sx in [-1.0, 1.0]:
+			var fx = sx * 3.2
+			var fz = 10.0 + k * 5.5
+			var fy = rng.randf_range(4.0, 5.0)
+			bx(fx, (fy + H) * 0.5 + 0.3, fz, 0.03, H - fy - 0.6, 0.03, Color(0.25, 0.2, 0.15))
+			paper_lantern(fx, fy, fz, Color(1.0, 0.6, 0.28) if (k + int(sx)) % 3 else Color(1.0, 0.35, 0.25))
+	# ---- kamp ateşi (salonun ortası)
+	var FZ = 23.0
+	for k in 10:
+		var a = TAU * k / 10.0
+		sp(cos(a) * 1.25, 0.18, FZ + sin(a) * 1.25, Vector3(0.6, 0.38, 0.55), Color(0.42, 0.4, 0.38).darkened(rng.randf() * 0.2), 6)
+	bx(0, 0.03, FZ, 1.9, 0.05, 1.9, Color(0.12, 0.1, 0.09))   # kül
+	for k in 4:   # çapraz yığılmış kütükler
+		cy(0, 0.28 + k * 0.05, FZ, 0.24, 1.7, Color(0.36, 0.24, 0.14).darkened(k * 0.05), 7, Vector3(0, k * 45.0, 75.0 + k * 8.0))
+	gl("sphere", 0, 0.2, FZ, Vector3(1.2, 0.25, 1.2), Color(1.0, 0.42, 0.1))   # kor yatağı
+	_cave_fire(0, 0.3, FZ, 1.0)
+	lamp(0, 1.6, FZ, Color(1.0, 0.55, 0.22), 2.6, 16.0)
+	for k in 4:   # banklar: ateşin çevresinde teğet duran yontma kalas + iki kütük ayak
+		var a2 = TAU * k / 4.0 + 0.4
+		var lx = cos(a2) * 3.4
+		var lz = FZ + sin(a2) * 3.4
+		var yaw = rad_to_deg(a2) + 180.0   # kalasın uzun ekseni (yerel z) çembere teğet
+		bx(lx, 0.42, lz, 0.5, 0.12, 2.2, wood, true, Vector3(0, yaw, 0))
+		for e in [-0.75, 0.75]:
+			cy(lx - sin(a2) * e, 0.18, lz + cos(a2) * e, 0.36, 0.36, wood_d, 8)
+	for k in 2:   # iki kaçak banka oturmuş, ateşe bakıyor
+		var a3 = TAU * k / 4.0 + 0.4
+		person("sitter", cos(a3) * 3.4, FZ + sin(a3) * 3.4, rad_to_deg(a3) + 90.0, "Kaçak", ["Burada kimse geçmişini sormaz.", "Sığınakta ateş küçük yanar; duman ele verir.", "Av ninjaları bu mağarayı hâlâ bulamadı."])
+	# ---- kara pazar: sol duvarda tenteli tezgâhlar (Orgs.ROGUE_STALLS)
 	var stalls: Array = Orgs.ROGUE_STALLS
 	for i in stalls.size():
 		var st: Array = stalls[i]
-		var side = -1.0 if i % 2 == 0 else 1.0
-		var d = 7.0 + i * 5.0
-		var x = side * (W * 0.5 - 2.2)
-		bx(x, 0.5, d, 1.0, 1.0, 2.6, Color(0.42, 0.3, 0.19), true)
-		bx(x, 1.03, d, 1.2, 0.06, 2.8, Color(0.52, 0.38, 0.24))
+		var sz = 12.5 + i * 7.0
+		var cx = -W * 0.5 + 5.6         # tezgâh (duvardan 5.6 m)
+		var kx = cx - 1.0               # satıcı tezgâhın hemen arkasında: etkileşim satıcıya bağlanır, önden (≈1.9 m) konuşulabilsin
+		var tone: Color = cloth[i % cloth.size()]
+		# bacaklı tezgâh: üst tabla + ön pano + 4 bacak
+		bx(cx, 1.0, sz, 1.1, 0.08, 3.4, wood, true)
+		bx(cx + 0.5, 0.55, sz, 0.06, 0.8, 3.3, wood_d)
 		for q in 4:
-			var gc = [Color(0.6, 0.55, 0.45), Color(0.45, 0.45, 0.5), Color(0.75, 0.68, 0.5), Color(0.35, 0.25, 0.3)][(q + i) % 4]
-			bx(x, 1.18, d - 0.9 + q * 0.6, 0.4, 0.26, 0.4, gc)
-		paper_lantern(x + side * -0.6, 2.4, d, Color(1.0, 0.62, 0.3))
-		person("keeper", x + side * 1.2, d, 90.0 * side, ["Kara Terzi", "Kara Silahçı", "Kara Parşömenci", "Sözleşme Ustası", "Kara Cerrah"][i % 5],
+			cy(cx + (0.45 if q % 2 else -0.45), 0.48, sz + (1.55 if q < 2 else -1.55), 0.1, 0.96, wood_d, 6)
+		# tente: arka iki direk + öne eğik kumaş çatı + noren şeritleri
+		for q in 2:
+			cy(kx - 1.0, 1.5, sz + (1.7 if q else -1.7), 0.14, 3.0, wood_d, 6)
+			cy(cx + 0.9, 1.25, sz + (1.7 if q else -1.7), 0.1, 2.5, wood_d, 6)
+		bx((kx - 1.0 + cx + 0.9) * 0.5, 2.85, sz, 3.4, 0.06, 3.8, tone, false, Vector3(0, 0, -12))
+		for q in 5:
+			bx(cx + 1.0, 2.25, sz - 1.4 + q * 0.7, 0.03, 0.75, 0.55, tone.lightened(0.15) if q % 2 else tone)
+		paper_lantern(cx + 1.0, 2.0, sz + 1.95, Color(1.0, 0.62, 0.3))
+		lamp(cx + 0.5, 2.2, sz, Color(1.0, 0.65, 0.35), 1.0, 7.0)
+		_stall_goods(String(st[0]), cx, sz)
+		# satıcının arkasında mal sandıkları
+		for q in 3:
+			bx(kx - 1.3, 0.35 + (q % 2) * 0.7, sz - 1.0 + q * 0.9, 0.7, 0.7, 0.8, wood.darkened(0.1 * q), true)
+		person("keeper", kx, sz, -90.0, ["Kara Terzi", "Kara Silahçı", "Kara Parşömenci", "Sözleşme Ustası", "Kara Cerrah"][i % 5],
 			["Para peşin, soru yok.", "Ne arıyorsan bende var... fiyatı da var.", "Av-ninjası görürsen bilmiyorum de."])
-		act(x - side * 1.1, d, 1.8, String(st[0]), String(st[1]))
-	# simsar: dipte masa, harita, Bingo sayfaları
-	bx(0, 0.8, 29.0, 3.2, 0.12, 1.6, Color(0.38, 0.26, 0.16), true)
-	bx(0, 0.87, 29.0, 2.4, 0.02, 1.1, Color(0.86, 0.8, 0.64))
+		act(cx + 1.4, sz, 2.6, String(st[0]), String(st[1]))
+	# ---- yatakhane (sağ duvar): palet üstünde şilte + yastık + battaniye, aralarında perde bölmeler
+	for k in 5:
+		var bz = 12.0 + k * 3.0
+		var bxx = W * 0.5 - 3.6
+		bx(bxx, 0.12, bz, 2.4, 0.24, 1.3, wood_d, true)                       # palet
+		bx(bxx, 0.3, bz, 2.2, 0.14, 1.1, Color(0.86, 0.82, 0.72))           # şilte
+		bx(bxx + 0.85, 0.42, bz, 0.4, 0.12, 0.8, Color(0.92, 0.9, 0.85))    # yastık
+		bx(bxx - 0.35, 0.39, bz, 1.4, 0.06, 1.12, cloth[(k + 1) % cloth.size()])   # battaniye
+		if k < 4:
+			bx(bxx, 1.0, bz + 1.5, 2.6, 2.0, 0.04, Color(0.5, 0.42, 0.32))   # perde bölme
+			cy(bxx - 1.3, 1.1, bz + 1.5, 0.08, 2.2, wood_d, 5)
+	lamp(W * 0.5 - 4.0, 2.4, 18.0, Color(1.0, 0.6, 0.3), 0.8, 7.0)
+	# ---- erzak: sandık + fıçı yığınları, silah askısı
+	for k in 7:
+		var ez = 30.0 + (k % 4) * 1.1
+		bx(W * 0.5 - 3.2 - (k / 4) * 1.1, 0.45, ez, 0.95, 0.9, 0.95, wood.darkened(rng.randf() * 0.2), true, Vector3(0, rng.randf_range(-8, 8), 0))
+	for k in 3:
+		cy(W * 0.5 - 5.6, 0.55, 30.5 + k * 1.2, 0.9, 1.1, Color(0.4, 0.27, 0.16), 10)
+		cy(W * 0.5 - 5.6, 0.85, 30.5 + k * 1.2, 0.95, 0.06, Color(0.2, 0.2, 0.22), 10)
+	bx(W * 0.5 - 3.4, 1.2, 37.5, 0.2, 2.4, 2.6, wood_d)   # silah askısı
 	for k in 4:
-		bx(-1.2 + k * 0.8, 0.9, 28.6, 0.5, 0.02, 0.4, Color(0.95, 0.92, 0.8))
-	lamp(0, 2.2, 29.0, Color(1.0, 0.6, 0.3), 1.3, 7.0)
-	person("keeper", 0, 30.4, 180.0, "Yeraltı Simsarı", ["Kaçaklar için iş hep vardır.", "Ödülü yüksek olanın riski de yüksek.", "Bandını çizdiysen, geri dönüş yok."])
-	act(0, 27.6, 2.2, "rogue_broker", "[F] Yeraltı Simsarı (kaçak işleri, rütbe, dinlen)")
-	# ateş başında iki kaçak
-	for k in 2:
-		person("sitter", -1.6 + k * 3.2, 14.5 + k * 1.6, 90.0 - k * 180.0, "Kaçak", ["Burada kimse geçmişini sormaz.", "Sığınakta ateş küçük yanar; duman ele verir."], {"floor_sit": true})
+		bx(W * 0.5 - 3.25, 1.3, 36.6 + k * 0.6, 0.04, 1.9, 0.06, Color(0.75, 0.76, 0.8), false, Vector3(0, 0, 8))
+	# ---- Yeraltı Simsarı: dipte yükseltilmiş kürsü
+	var BZ = 46.0
+	bx(0, 0.25, BZ + 1.5, 11.0, 0.5, 8.0, wood_d, true)
+	# kürsüye rampa (oyuncu basamak çıkamaz): 14° eğimli ahşap rampa, üstünde basamak çizgileri
+	bx(0, 0.14, BZ - 3.5, 4.0, 0.2, 2.15, wood, true, Vector3(14, 0, 0))
+	for k in 3:
+		bx(0, 0.1 + k * 0.125 + 0.13, BZ - 4.2 + k * 0.6, 4.02, 0.02, 0.06, wood_d, false, Vector3(14, 0, 0))
+	# masa (bacaklı) + üstünde harita, mum, Bingo kâğıtları
+	bx(0, 1.28, BZ, 3.0, 0.1, 1.4, wood, true)
+	for q in 4:
+		cy((1.35 if q % 2 else -1.35), 0.89, BZ + (0.6 if q < 2 else -0.6), 0.12, 0.78, wood_d, 6)
+	bx(0, 1.34, BZ, 1.8, 0.02, 1.0, Color(0.86, 0.8, 0.64))
+	for k in 3:
+		bx(-1.1 + k * 0.5, 1.345, BZ - 0.35, 0.36, 0.01, 0.28, Color(0.95, 0.92, 0.82))
+	cy(1.2, 1.45, BZ + 0.4, 0.08, 0.2, Color(0.95, 0.93, 0.85), 6)
+	gl("sphere", 1.2, 1.6, BZ + 0.4, Vector3(0.05, 0.09, 0.05), Color(1.0, 0.75, 0.3))
+	# sandalye
+	bx(0, 0.95, BZ + 1.4, 0.8, 0.08, 0.7, wood)
+	bx(0, 1.45, BZ + 1.72, 0.8, 1.0, 0.07, wood)
+	for q in 4:
+		cy((0.33 if q % 2 else -0.33), 0.72, BZ + 1.4 + (0.28 if q < 2 else -0.28), 0.07, 0.45, wood_d, 5)
+	# arkada Bingo panosu: çerçeve + iğnelenmiş aranan kâğıtları (bazılarının üstü kırmızı çarpı)
+	var PZ = D - 0.9
+	bx(0, 3.0, PZ, 5.6, 3.2, 0.12, wood_d)
+	bx(0, 3.0, PZ - 0.07, 5.2, 2.8, 0.02, Color(0.55, 0.45, 0.32))
+	for r in 2:
+		for c2 in 5:
+			var px2 = -2.0 + c2 * 1.0
+			var py2 = 3.7 - r * 1.35
+			bx(px2, py2, PZ - 0.09, 0.8, 1.05, 0.01, Color(0.93, 0.9, 0.8))
+			bx(px2, py2 + 0.15, PZ - 0.1, 0.5, 0.45, 0.01, Color(0.35, 0.3, 0.28))   # yüz resmi
+			if (r * 5 + c2) % 3 == 0:
+				bx(px2, py2, PZ - 0.11, 0.9, 0.06, 0.01, Color(0.8, 0.1, 0.1), false, Vector3(0, 0, 45))
+				bx(px2, py2, PZ - 0.11, 0.9, 0.06, 0.01, Color(0.8, 0.1, 0.1), false, Vector3(0, 0, -45))
+	for sx in [-1.0, 1.0]:
+		paper_lantern(sx * 3.6, 3.2, BZ + 2.5, Color(1.0, 0.55, 0.25))
+		bx(sx * 4.6, 2.2, BZ + 3.8, 1.0, 3.6, 0.04, Color(0.4, 0.12, 0.12))   # sancak
+	lamp(0, 2.6, BZ, Color(1.0, 0.6, 0.3), 1.4, 9.0)
+	person("keeper", 0, BZ + 1.3, 180.0, "Yeraltı Simsarı", ["Kaçaklar için iş hep vardır.", "Ödülü yüksek olanın riski de yüksek.", "Bandını çizdiysen, geri dönüş yok."], {"y": 0.5})
+	act(0, BZ - 1.2, 4.2, "rogue_broker", "[F] Yeraltı Simsarı (kaçak işleri, rütbe, dinlen)")
+	lamp(0, 6.0, 12.0, Color(0.9, 0.6, 0.4), 0.7, 14.0)   # giriş tarafı genel ışık
+
+
+## Tezgâhın malı (işine göre)
+func _stall_goods(kind: String, cx: float, sz: float) -> void:
+	match kind:
+		"rogue_tailor":   # katlanmış kumaş yığınları + askıda yelek
+			for q in 4:
+				for h in 3:
+					bx(cx, 1.1 + h * 0.09, sz - 1.2 + q * 0.75, 0.6, 0.08, 0.5, [Color(0.2, 0.2, 0.25), Color(0.5, 0.15, 0.15), Color(0.3, 0.35, 0.28), Color(0.6, 0.55, 0.45)][(q + h) % 4])
+			bx(cx - 1.4, 2.0, sz + 1.2, 0.08, 0.9, 0.6, Color(0.38, 0.45, 0.32))
+		"rogue_weapons":   # kunai tablası + duvara dayalı kılıçlar
+			bx(cx, 1.07, sz - 0.6, 0.7, 0.04, 1.2, Color(0.2, 0.15, 0.1))
+			for q in 6:
+				bx(cx - 0.15 + (q % 2) * 0.3, 1.1, sz - 1.05 + (q / 2) * 0.4, 0.06, 0.02, 0.3, Color(0.7, 0.72, 0.76))
+			for q in 3:
+				bx(cx - 0.2, 1.4, sz + 0.5 + q * 0.35, 0.05, 0.8, 0.05, Color(0.78, 0.8, 0.84), false, Vector3(0, 0, 15))
+				bx(cx - 0.2, 1.02 + 0.06, sz + 0.5 + q * 0.35, 0.08, 0.2, 0.08, Color(0.15, 0.12, 0.12))
+		"rogue_scrolls":   # dikey parşömen rafı + tablada açık parşömenler
+			for q in 3:
+				for h in 3:
+					cy(cx - 0.1, 1.12 + h * 0.13, sz - 1.0 + q * 0.4, 0.12, 0.55, [Color(0.9, 0.85, 0.7), Color(0.75, 0.6, 0.4), Color(0.85, 0.3, 0.25)][(q + h) % 3], 8, Vector3(0, 0, 90))
+			bx(cx, 1.05, sz + 0.9, 0.7, 0.01, 0.9, Color(0.93, 0.9, 0.78))
+		"rogue_summoner":   # sözleşme parşömenleri: yatay rulolar + açık büyük parşömen
+			for q in 4:
+				cy(cx, 1.12, sz - 1.2 + q * 0.32, 0.14, 0.7, Color(0.85, 0.8, 0.65), 8, Vector3(0, 0, 90))
+			bx(cx, 1.05, sz + 0.8, 0.8, 0.01, 1.0, Color(0.92, 0.88, 0.75))
+			bx(cx, 1.06, sz + 0.8, 0.4, 0.01, 0.4, Color(0.6, 0.1, 0.1))
+		"rogue_surgeon":   # kavanozlar + alet tablası
+			for q in 5:
+				gl("cyl", cx - 0.1, 1.2, sz - 1.2 + q * 0.4, Vector3(0.22, 0.3, 0.22), Color(0.45, 0.8, 0.6, 0.85))
+				cy(cx - 0.1, 1.37, sz - 1.2 + q * 0.4, 0.24, 0.04, Color(0.3, 0.25, 0.2), 8)
+			bx(cx + 0.1, 1.06, sz + 0.9, 0.6, 0.02, 0.8, Color(0.85, 0.85, 0.82))
+		_:
+			for q in 4:
+				bx(cx, 1.18, sz - 0.9 + q * 0.6, 0.4, 0.26, 0.4, Color(0.6, 0.55, 0.45))
+
+
+## Sürekli yanan kamp ateşi: alev dilleri (eklemeli, sarı->turuncu->kırmızı, yukarı süzülür) + kıvılcımlar. Odaya bağlı (çıkınca silinir)
+func _cave_fire(x: float, y: float, d: float, s: float) -> void:
+	var p = L(x, y, d)
+	var fl = FX.burst(p, {"amount": 36, "life": 0.9, "explosive": 0.0, "tex": FX.tex_flame, "size": 0.95 * s, "radius": 0.35 * s,
+		"vmin": 0.6, "vmax": 1.4, "dir": Vector3.UP, "spread": 12.0, "gravity": Vector3(0, 1.2, 0), "damp": 0.5, "smin": 0.6, "smax": 1.1,
+		"angle_min": -12.0, "angle_max": 12.0, "scale_curve": [[0.0, 0.5], [0.3, 1.0], [1.0, 0.15]],
+		"colors": [Color(1.0, 0.95, 0.6, 0.0), Color(1.0, 0.8, 0.3, 0.95), Color(1.0, 0.45, 0.1, 0.8), Color(0.8, 0.15, 0.05, 0.0)], "parent": room})
+	var sk = FX.burst(p + Vector3.UP * 0.3, {"amount": 14, "life": 1.6, "explosive": 0.0, "tex": FX.tex_spark, "size": 0.12 * s, "radius": 0.3 * s,
+		"vmin": 1.0, "vmax": 2.6, "dir": Vector3.UP, "spread": 25.0, "gravity": Vector3(0, 0.6, 0), "damp": 0.3,
+		"colors": [Color(1.0, 0.85, 0.4, 1.0), Color(1.0, 0.5, 0.1, 0.0)], "parent": room})
+	for e in [fl, sk]:
+		if e:
+			e.one_shot = false
+			e.global_position = p
 
 
 ## Naka Tapınağı (kanon): Uchiha'nın koruyucu tanrısının tapınağı. Ana salonda sağdan yedinci tataminin altında,
