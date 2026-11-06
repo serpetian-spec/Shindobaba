@@ -76,7 +76,7 @@ static func skill_block(p: Dictionary, sid: String) -> String:
 	var need: Dictionary = n.get("need", {})
 	if need.get("clanless", false) and String(p.get("clan", "none")) != "none":
 		return "Yalnızca klansız ninjalar"
-	if need.has("rank") and int(p.get("rank", 0)) < int(need["rank"]):
+	if need.has("rank") and Gear.eff_rank(p) < int(need["rank"]):
 		return "%s rütbesi gerekli" % Data.RANKS[mini(int(need["rank"]), Data.RANKS.size() - 1)]
 	if need.get("eye", false) and p.get("look", {}).get("eye_r") == null and p.get("look", {}).get("eye_l") == null:
 		return "Bir dōjutsu gözü gerekli"

@@ -220,7 +220,7 @@ func clan_unlocks(announce := true) -> void:
 		elif lp == "sage:any":
 			ok = "sage" in pr.get("skills", [])
 		# göz teknikleri gözle gelir: rütbe şartı aranmaz (Rinnegan takılıyken teknikleri hiç açılmıyordu)
-		if ok and lv >= int(j.get("level", 1)) and (lp.begins_with("eye:") or int(pr.get("rank", 0)) >= int(j.get("rank", 0))) and element_block(jid) == "":
+		if ok and lv >= int(j.get("level", 1)) and (lp.begins_with("eye:") or Gear.eff_rank(pr) >= int(j.get("rank", 0))) and element_block(jid) == "":
 			learn(jid, announce)
 	# aile öğretisi: gizli tekniği olmayan klanlar, ünlü üyesinin kanon tekniklerini evde öğrenir (Güç şartı; rütbe aranmaz)
 	var fam: Array = Data.clans.get(String(pr.get("clan", "")), {}).get("family_arts", [])
@@ -343,7 +343,7 @@ func can_learn(jid: String) -> String:
 				return "%s Mangekyō'su gerekir" % Eyes.MS_STYLES[st]["name"]
 	if int(pr["level"]) < int(j.get("level", 1)):
 		return "Ustalık gücü %d gerekli (ninjutsu, dövüş, chakra, dayanıklılık)" % int(j.get("level", 1))
-	if int(pr.get("rank", 0)) < int(j.get("rank", 0)):
+	if Gear.eff_rank(pr) < int(j.get("rank", 0)):
 		return "%s rütbesi gerekli" % Data.RANKS[int(j.get("rank", 0))]
 	for el in j.get("elements", []):
 		if not has_nature(el):

@@ -431,6 +431,15 @@ func _greeting() -> String:
 	var rank = int(Game.profile.get("rank", 0))
 	var t = Game.world.env.time_of_day if Game.world else 0.5
 	var hello = "Günaydın" if t < 0.42 else ("İyi akşamlar" if t > 0.72 else "Merhaba")
+	if Orgs.is_rogue():   # kaçak: köy rütbesiyle selam yok — Bingo Kitabı sınıfına göre tedirginlik/korku
+		var rr = Orgs.rogue_rank()
+		if role in ["kid", "ball"]:
+			return ["Anne! Alın bandı çizik bir ninja!", "O... kaçak ninja mı?", "Babam senden uzak durmamı söyledi!"][randi() % 3]
+		if rr >= 3:
+			return ["B-Bingo Kitabı'ndaki S-rank kaçak... (geri çekilir)", "Kimse bakmasın ona... S-rank bir katil...", "Lütfen... burada kimse sana dokunmadı."][randi() % 3]
+		if rr == 2:
+			return ["Aranan bir kaçak... başına büyük ödül konmuş.", "Muhafızları mı çağırsam... (fısıltı)"][randi() % 2]
+		return ["Çizik alın bandı... kaçak bir ninja.", "Sorun çıkarma da git, kaçak.", "Hm. Bir nukenin."][randi() % 3]
 	if role in ["kid", "ball"]:
 		if rank > 0:
 			return ["Vay, gerçek bir ninja!", "Bana bir jutsu göster!", "Alın koruyucun çok havalı!"][randi() % 3]

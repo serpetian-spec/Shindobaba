@@ -258,18 +258,32 @@ func start(kind: String) -> void:
 ## yerleşir (Friends site "hideout_N"), bir dahakine orada bulursun. Düşman değil: tanışılır, dost olunur, takıma alınır.
 func _start_lone_rogue(c: Vector3) -> void:
 	var vg = Villager.new()
-	vg.role = "spar"
+	vg.role = "sitter"   # "spar" idi: ateşten uzakta dövüş duruşunda dikiliyordu ("oturuyor" deniyor, kimse oturmuyor)
+	vg.stay = true
+	vg.fixed_face = true
 	vg.set_meta("rogue_npc", true)
-	vg.wander_r = 1.5
+	vg.wander_r = 0.0
 	var vlist = ["konoha", "suna", "kiri", "kumo", "iwa", "ame", "taki", "kusa"]
 	vg.look_extra = {"band_style": "slashed", "band": Color(0.25, 0.25, 0.28), "village": vlist.pick_random(), "vest": null,
 		"top": [Color(0.2, 0.2, 0.24), Color(0.35, 0.15, 0.15), Color(0.25, 0.3, 0.25), Color(0.4, 0.35, 0.3)].pick_random(), "age": "adult"}
 	vg.lines_override = ["Yolun açık olsun... ya da değil. Bana fark etmez.", "Bandımı çizeli çok oldu. Sen de mi?", "Bu yollarda av-ninjası çok. Ateşi küçük tut."]
 	var at = Missions.open_ground(c, 15.0)
 	at.y = Game.ground_height(at.x, at.z)
+	var fire_at = at + Vector3(1.6, 0, 0)
+	fire_at.y = Game.ground_height(fire_at.x, fire_at.z)
+	# oturduğu kütük
+	var lb = MB.new()
+	lb.add("cyl", Vector3(0, 0.2, 0), Vector3(0.4, 1.3, 0.4), Color(0.36, 0.25, 0.15), Vector3(90, 0, 0), 8)
+	var log_m = MeshInstance3D.new()
+	log_m.mesh = lb.build(Props.toon())
+	get_tree().current_scene.add_child(log_m)
+	log_m.global_position = at
+	cur["nodes"].append(log_m)
 	get_tree().current_scene.add_child(vg)
-	vg.global_position = at
-	vg.home = at
+	vg.global_position = at + Vector3.UP * 0.05
+	vg.home = vg.global_position
+	vg.facing = atan2(-(fire_at.x - at.x), -(fire_at.z - at.z))
+	vg.stand_face = vg.facing
 	cur["nodes"].append(vg)
 	cur["rogue"] = vg
 	var fb = MB.new()
@@ -278,8 +292,19 @@ func _start_lone_rogue(c: Vector3) -> void:
 	var fm = MeshInstance3D.new()
 	fm.mesh = fb.build(Props.toon())
 	get_tree().current_scene.add_child(fm)
-	fm.global_position = at + Vector3(1.6, 0, 0)
+	fm.global_position = fire_at
 	cur["nodes"].append(fm)
+	# yanan ateş: alev + kıvılcım (sönük odun yığını değil)
+	var flame = FX.burst(fire_at + Vector3.UP * 0.2, {"amount": 30, "life": 0.9, "explosive": 0.0, "tex": FX.tex_flame, "size": 0.7, "radius": 0.25,
+		"vmin": 0.5, "vmax": 1.2, "dir": Vector3.UP, "spread": 12.0, "gravity": Vector3(0, 1.2, 0), "damp": 0.5, "smin": 0.6, "smax": 1.1,
+		"scale_curve": [[0.0, 0.5], [0.3, 1.0], [1.0, 0.15]],
+		"colors": [Color(1.0, 0.95, 0.6, 0.0), Color(1.0, 0.8, 0.3, 0.95), Color(1.0, 0.45, 0.1, 0.8), Color(0.8, 0.15, 0.05, 0.0)], "parent": fm})
+	var spark = FX.burst(fire_at + Vector3.UP * 0.4, {"amount": 10, "life": 1.5, "explosive": 0.0, "tex": FX.tex_spark, "size": 0.1, "radius": 0.2,
+		"vmin": 1.0, "vmax": 2.4, "dir": Vector3.UP, "spread": 25.0, "gravity": Vector3(0, 0.6, 0), "damp": 0.3,
+		"colors": [Color(1.0, 0.85, 0.4, 1.0), Color(1.0, 0.5, 0.1, 0.0)], "parent": fm})
+	for e in [flame, spark]:
+		if e:
+			e.one_shot = false
 	var fl = OmniLight3D.new()
 	fl.light_color = Color(1.0, 0.6, 0.3)
 	fl.light_energy = 1.4

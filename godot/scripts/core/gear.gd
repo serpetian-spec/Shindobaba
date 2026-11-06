@@ -819,11 +819,19 @@ static func owned_for(p: Dictionary, slot: String) -> Array:
 	return out
 
 
+## Geçerli rütbe: kaçakta köy rütbesi donmuş kalır, Bingo Kitabı sınıfı eşdeğer sayılır (C→Genin, B→Chunin, A/S→Jonin)
+static func eff_rank(p: Dictionary) -> int:
+	var r = int(p.get("rank", 0))
+	if Orgs.is_rogue() and (Game.profile.is_empty() or p == Game.profile):
+		r = maxi(r, [1, 2, 3, 3, 3][clampi(Orgs.rogue_rank(), 0, 4)])
+	return r
+
+
 ## Takma şartı karşılanmıyorsa nedenini döndürür ("Chunin rütbesi gerekli"); karşılanıyorsa ""
 static func req_text(id: String, p: Dictionary) -> String:
 	var it = item(id)
 	var need = int(it.get("rank", 0))
-	if need > int(p.get("rank", 0)):
+	if need > eff_rank(p):
 		return "%s rütbesi gerekli" % Data.RANKS[mini(need, Data.RANKS.size() - 1)]
 	var cl = String(it.get("clan", ""))
 	if cl != "" and cl != String(p.get("clan", "")):
