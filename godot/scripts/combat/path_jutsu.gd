@@ -23,7 +23,7 @@ const PSTYLE := {
 	"omote_renge": "rush", "ura_renge": "rush", "hachimon_tonko_no_jin": "power", "asakujaku": "rush", "hirudora": "two_palm",
 	"sekizo": "charge", "yagai": "power",
 	# Kâğıt Yolu
-	"kami_bunshin": "palm", "kami_chocho": "palm", "kami_tsubasa": "power", "shikigami_no_mai": "two_palm", "kami_yari": "ground",   # kâğıt sanatı: duman çıkaran clone/spin stilleri değil
+	"kami_bunshin": "palm", "kami_chocho": "palm", "kami_tsubasa": "two_palm", "shikigami_no_mai": "two_palm", "kami_yari": "two_palm",   # kâğıt sanatı: duman çıkaran clone/spin stilleri değil
 	"kami_no_shisha_no_jutsu": "summon", "kami_shuriken": "throw",
 	# Akademi / genel
 	"gofu_kekkai": "seal", "mizu_bunshin_no_jutsu": "clone", "nan_no_kaizo": "power", "narikawari_no_jutsu": "clone", "sanzengarasu_no_jutsu": "sense", "sly_mind_affect_technique": "sense", "sosai_no_ne": "palm", "soshujin": "throw", "suiken": "rush", "suiton_homatsu_rappa": "breath", "suiton_kokuu_no_jutsu": "breath", "suiton_mizu_shibari": "palm", "suiton_mizu_shuriken": "throw", "suiton_mizuame_nabara": "breath", "suiton_mizurappa": "breath", "suiton_suiben": "palm", "suiton_suidan_no_jutsu": "breath", "suiton_suisandan": "breath", "suiton_takitsubo_no_jutsu": "ground", "suiton_teppodama": "breath", "tsukikage": "rush", "tsutenkyaku": "rush", "uchi_naru_sakura": "power", "water_release_wild_water_wave": "breath", "zankukyokuha": "two_palm", "zessenbaku": "palm", "zessenzan": "palm",
@@ -127,9 +127,9 @@ const PANIM := {
 	"zessenzan": {"base": "breath", "pre": 0.2, "post": 0.4, "wind": {"R": [Vector3(-0.85, -0.45, 0.1), Vector3(-0.9, -0.3, 0.2), Vector3(-0.9, -0.2, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "crouch": 0.4}, "rel": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 10.0, "neck": 8.0, "hips_yaw": -40.0}},
 	"kami_bunshin": {"base": "palm", "pre": 0.3, "post": 0.35, "spin": 180.0, "wind": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": -6.0}, "rel": {"R": [Vector3(-0.1, 0.45, 0.88), Vector3(0.0, 0.5, 0.86), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 6.0}},
 	"kami_chocho": {"base": "palm", "pre": 0.35, "post": 0.5, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "neck": -6.0}, "rel": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -10.0, "neck": -14.0}},
-	"kami_tsubasa": {"base": "power", "pre": 0.45, "post": 0.6, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 15.0, "crouch": 0.35}, "rel": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -18.0, "neck": -25.0}},
+	"kami_tsubasa": {"base": "two_palm", "pre": 0.45, "post": 0.6, "wind": {"R": [Vector3(-0.25, -0.8, 0.5), Vector3(0.6, 0.2, 0.75), Vector3(0.5, 0.3, 0.8)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3], "spine": 15.0, "crouch": 0.35}, "rel": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.9, 0.4, 0.15), Vector3(0.9, 0.35, 0.2), Vector3(0.9, 0.3, 0.2)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -18.0, "neck": -25.0}},
 	"shikigami_no_mai": {"base": "two_palm", "pre": 0.4, "post": 0.6, "spin": 360.0, "wind": {"R": [Vector3(-0.85, -0.45, 0.1), Vector3(-0.9, -0.3, 0.2), Vector3(-0.9, -0.2, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0.15, 0.15, 0.15, 0.15, 0.3]}, "rel": {"R": [Vector3(-0.2, 0.8, 0.55), Vector3(-0.1, 0.85, 0.5), Vector3(0.0, 0.9, 0.4)], "L": [Vector3(0.2, 0.8, 0.55), Vector3(0.1, 0.85, 0.5), Vector3(-0.0, 0.9, 0.4)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -10.0}},
-	"kami_yari": {"base": "ground", "pre": 0.32, "post": 0.5, "wind": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0, 0, 0, 0, 0], "spine": -10.0}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.35, -0.85, -0.35), Vector3(-0.0, -0.4, 0.9), Vector3(-0.0, 0.2, 0.95)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 45.0, "crouch": 0.9}},
+	"kami_yari": {"base": "two_palm", "pre": 0.32, "post": 0.5, "wind": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.25, -0.8, 0.5), Vector3(-0.6, 0.2, 0.75), Vector3(-0.5, 0.3, 0.8)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0, 0, 0, 0, 0], "spine": -10.0}, "rel": {"R": [Vector3(-0.15, -0.55, 0.8), Vector3(0.0, -0.85, 0.5), Vector3(0.0, -0.4, 0.9)], "L": [Vector3(0.35, -0.85, -0.35), Vector3(-0.0, -0.4, 0.9), Vector3(-0.0, 0.2, 0.95)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 45.0, "crouch": 0.9}},
 	"kami_no_shisha_no_jutsu": {"base": "summon", "pre": 0.7, "post": 1.0, "wind": {"R": [Vector3(-0.2, -0.4, 0.9), Vector3(0.5, 0.75, 0.4), Vector3(0.2, 0.95, 0.2)], "L": [Vector3(0.2, -0.4, 0.9), Vector3(-0.5, 0.75, 0.4), Vector3(-0.2, 0.95, 0.2)], "fR": [0.0, 0.0, 1.5, 1.5, 0.9], "fL": [0.0, 0.0, 1.5, 1.5, 0.9], "neck": -10.0}, "rel": {"R": [Vector3(-0.15, 0.98, 0.1), Vector3(-0.05, 1.0, 0.05), Vector3(0.0, 1.0, 0.0)], "L": [Vector3(0.15, 0.98, 0.1), Vector3(0.05, 1.0, 0.05), Vector3(-0.0, 1.0, 0.0)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": -20.0, "neck": -35.0}},
 	"kami_shuriken": {"base": "throw", "pre": 0.2, "post": 0.35, "clip": "idle", "wind": {"R": [Vector3(-0.1, -0.6, 0.8), Vector3(0.8, -0.2, 0.55), Vector3(0.9, -0.1, 0.4)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0, 0, 0, 0, 0], "hips_yaw": -30.0}, "rel": {"R": [Vector3(-0.9, 0.4, 0.15), Vector3(-0.9, 0.35, 0.2), Vector3(-0.9, 0.3, 0.2)], "L": [Vector3(0.25, -0.96, -0.05), Vector3(0.1, -0.97, 0.2), Vector3(-0.0, -1.0, 0.1)], "fR": [0.15, 0.15, 0.15, 0.15, 0.3], "fL": [0, 0, 0, 0, 0], "hips_yaw": 35.0}},
 	"gamayudan": {"base": "breath", "pre": 0.35, "post": 0.5, "wind": {"R": [Vector3(-0.25, -0.55, 0.8), Vector3(0.75, 0.6, 0.25), Vector3(0.5, 0.8, 0.3)], "L": [Vector3(0.25, -0.55, 0.8), Vector3(-0.75, 0.6, 0.25), Vector3(-0.5, 0.8, 0.3)], "fR": [0.9, 1.4, 1.4, 1.4, 0.9], "fL": [0.9, 1.4, 1.4, 1.4, 0.9], "spine": -22.0, "neck": -15.0, "crouch": 0.2}, "rel": {"R": [Vector3(-0.85, -0.45, 0.1), Vector3(-0.9, -0.3, 0.2), Vector3(-0.9, -0.2, 0.3)], "L": [Vector3(0.85, -0.45, 0.1), Vector3(0.9, -0.3, 0.2), Vector3(0.9, -0.2, 0.3)], "fR": [0, 0, 0, 0, 0], "fL": [0, 0, 0, 0, 0], "spine": 28.0, "neck": 14.0, "crouch": 0.35}},
@@ -3729,15 +3729,15 @@ func _paper_wing(b: MB, sx: float) -> void:
 	var rng = RandomNumberGenerator.new()
 	rng.seed = 77 if sx > 0 else 78
 	var arm := func(u: float) -> Vector3:   # kemer (ikinci derece bezier): kök → yukarı → dış tepe
-		var p0 = Vector2(0.0, 0.0); var p1 = Vector2(0.55, 0.12); var p2 = Vector2(1.0, 0.8)   # omuz hizasında dışa, uçta yukarı kemer
+		var p0 = Vector2(0.0, 0.0); var p1 = Vector2(0.35, 0.75); var p2 = Vector2(1.05, 0.95)   # ref: sırttan yukarı kalkıp başın üstünde dışa kıvrılan kemer
 		var q = p0.lerp(p1, u).lerp(p1.lerp(p2, u), u)
-		return Vector3(q.x * sx, q.y, -0.05 - q.x * 0.12)
-	var cols = 15
+		return Vector3(q.x * sx * 1.6, q.y * 1.1, -0.05 - q.x * 0.15)   # ref: kanat açıklığı gövde boyu kadar
+	var cols = 22
 	for ci in cols:
 		var u = 0.12 + 0.88 * (ci + 0.5) / cols   # kökte (sırtta) tüy yok
 		var top: Vector3 = arm.call(u)
-		var L = 0.35 + 1.75 * pow(u, 1.3)                        # dışa doğru uzayan tüyler (dizlere iner)
-		var dir = Vector3(sx * (0.1 + 0.3 * u), -1.0, -0.05).normalized()
+		var L = 0.5 + 1.6 * pow(u, 1.2) + rng.randf_range(-0.12, 0.12) * u   # dışa doğru uzayan, uçları düzensiz tüy sıraları (dizlere iner)
+		var dir = Vector3(sx * (0.15 + 0.45 * u), -1.0, -0.05).normalized()
 		var n = int(L / 0.075)
 		for k in n:
 			var f = float(k) / maxf(1.0, n - 1)
@@ -6468,7 +6468,41 @@ func p_kami_bunshin(c: Node3D, t: Node3D) -> void:
 			Buffs.add("stealth_kami", 2.5, {"_name": "Kâğıt Klon", "_desc": "düşmanlar klona yöneldi"}))
 
 
-## Kâğıt Kelebekler: kollardan kanat çırpan kâğıt kelebek sürüsü kopar, mor ışıltıyla düşmanların yüzüne kapanır
+## Kâğıt Kelebekler (ref: Konan): kolların ucundan kâğıt kelebekler kopar (iki çift kanat, mor kenarlı), sürü halinde
+## hedefe süzülür, başının çevresinde çırpınarak döner ve gözünü kapatır (sersem); sonra yaprağa dönüp dağılır
+func _paper_butterfly(k: int) -> Node3D:
+	var bf = Node3D.new()
+	var tint = PAPER if k % 3 else PAPER.lerp(PAPER_V, 0.55)
+	for sx in [-1.0, 1.0]:
+		var hinge = Node3D.new()
+		bf.add_child(hinge)
+		for j in 2:   # üst büyük kanat + alt küçük kanat
+			var w = MeshInstance3D.new()
+			var qm = QuadMesh.new()
+			qm.size = Vector2(0.24, 0.2) if j == 0 else Vector2(0.17, 0.14)
+			w.mesh = qm
+			var m = StandardMaterial3D.new()
+			m.albedo_color = tint if j == 0 else tint.darkened(0.06)
+			m.cull_mode = BaseMaterial3D.CULL_DISABLED
+			m.emission_enabled = true
+			m.emission = PAPER_V * 0.18
+			w.material_override = m
+			w.rotation = Vector3(-PI * 0.5, (0.35 if j == 0 else -0.5) * sx, 0)
+			w.position = Vector3(sx * (0.12 if j == 0 else 0.08), 0, -0.07 if j == 0 else 0.08)
+			hinge.add_child(w)
+		var fl = hinge.create_tween().set_loops()
+		var sp = randf_range(0.07, 0.1)
+		fl.tween_property(hinge, "rotation:z", sx * 1.0, sp)
+		fl.tween_property(hinge, "rotation:z", -sx * 0.25, sp)
+	var body = MeshInstance3D.new()
+	var bm = BoxMesh.new()
+	bm.size = Vector3(0.03, 0.03, 0.2)
+	body.mesh = bm
+	body.material_override = Props.toon_color(PAPER_V.darkened(0.3))
+	bf.add_child(body)
+	return bf
+
+
 func p_kami_chocho(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.8)
 	var foes = enemies_near(c, c.global_position + fwd(c, t) * 8.0, 9.0)
@@ -6476,30 +6510,48 @@ func p_kami_chocho(c: Node3D, t: Node3D) -> void:
 	if tt and not tt in foes:
 		foes.append(tt)
 	Sfx.play("wind", c.global_position, 1.8, 0.5)
+	# kollardan kopan yapraklar (beden kâğıda açılıyor)
+	for r in [true, false]:
+		paper_storm(hand_pos(c, r), hand_pos(c, r) + Vector3(randf_range(-1, 1), 1.2, randf_range(-1, 1)), 10, 0.5, 0.8, 0.14, PAPER)
 	for e in foes.slice(0, 5):
-		for k in 14:
-			var bf = Node3D.new()
-			for sx in [-1.0, 1.0]:
-				var w = _sheet(0.28, PAPER if k % 3 else PAPER_V)   # 0.16 uzaktan seçilmiyordu
-				w.rotation = Vector3(PI * 0.5, 0, 0)
-				w.position = Vector3(sx * 0.14, 0, 0)
-				bf.add_child(w)
-				var fl = w.create_tween().set_loops()
-				fl.tween_property(w, "rotation:z", sx * 1.1, 0.08)
-				fl.tween_property(w, "rotation:z", -sx * 0.2, 0.08)
+		for k in 18:
+			var bf = _paper_butterfly(k)
 			get_tree().current_scene.add_child(bf)
 			var from = hand_pos(c, k % 2 == 0) + Vector3(randf_range(-0.3, 0.3), randf_range(-0.2, 0.4), randf_range(-0.3, 0.3))
 			bf.global_position = from
 			var mid = from.lerp(e.global_position, 0.5) + Vector3(randf_range(-2, 2), randf_range(1, 3), randf_range(-2, 2))
-			var tw = bf.create_tween()
-			tw.tween_property(bf, "global_position", mid, 0.35)
-			tw.tween_property(bf, "global_position", e.global_position + Vector3.UP * e.height * 0.8 + Vector3(randf_range(-0.3, 0.3), randf_range(-0.2, 0.2), randf_range(-0.3, 0.3)), 0.3)
-			tw.tween_interval(2.6)
-			tw.tween_callback(bf.queue_free)
+			var ph = randf() * TAU
+			var rr = randf_range(0.35, 0.75)
+			var hh = randf_range(-0.25, 0.35)
+			var spd = randf_range(5.0, 8.0) * (1.0 if k % 2 else -1.0)
+			var t_in = 0.55 + randf() * 0.15
+			var life = 3.2
+			var t0 = Game.now()
+			var last = [from]
+			every(t_in + life, 1.0 / 30.0, func(_i, _k):
+				if not is_instance_valid(bf):
+					return
+				var u = Game.now() - t0
+				var p: Vector3
+				if u < t_in:   # yayla hedefe süzülüş
+					var f = u / t_in
+					var goal = e.global_position + Vector3.UP * 1.6 if live(e) else mid
+					p = from.lerp(mid, f).lerp(mid.lerp(goal, f), f)
+				else:   # başın etrafında çırpınarak dönen sürü
+					var ctr = (e.global_position if is_instance_valid(e) else mid) + Vector3.UP * (1.55 + hh)
+					var a = ph + (u - t_in) * spd
+					p = ctr + Vector3(cos(a) * rr, sin(u * 9.0 + ph) * 0.08, sin(a) * rr)
+				var d = p - last[0]
+				if d.length() > 0.001:
+					bf.look_at(p + d, Vector3.UP)
+				bf.global_position = p
+				last[0] = p, func():
+				if is_instance_valid(bf):
+					paper_storm(bf.global_position, bf.global_position + Vector3(randf_range(-1, 1), -1.5, randf_range(-1, 1)), 2, 0.7, 0.6, 0.1, PAPER)
+					bf.queue_free())
 		after(0.65, func():
 			if live(e):
 				st(e, "stun", 3.0)
-				VFX.star(e.global_position + Vector3.UP * e.height * 0.8, PAPER_V, 1.4)
 				e.take_hit(inf(c, "kami_chocho", 0.4, {"knock": 0.0, "kind": "light"}))
 				Combat.popup_text(e.global_position + Vector3.UP * 2.4, "Görüşü kapandı!", PAPER_V))
 
@@ -6540,35 +6592,47 @@ func p_shikigami_no_mai(c: Node3D, t: Node3D) -> void:
 		Sfx.play("whoosh", c.global_position, 1.3))
 
 
-## Kâğıt Mızrak Ormanı: avuç yere — zemin kâğıt dalgasıyla kabarır, hedefin altından keskin kâğıt mızraklar fışkırır
+## Kâğıt Mızrak Ormanı (ref: Shikigami no Mai: Batsu): kollardan akan kâğıt seli hedefin çevresine yağar ve zeminden
+## katlanmış ince kâğıt mızraklar (dört yüzlü sivri, katmanlı yaprak kılıf) birbiri ardına fışkırır; sonra yaprağa çözülür
+func _paper_spear(h: float) -> MB:
+	var b = MB.new()
+	var w = randf_range(0.07, 0.11)
+	b.add("cone", Vector3(0, h * 0.5, 0), Vector3(w, h, w), PAPER, Vector3.ZERO, 4)   # ince sivri gövde
+	b.add("box", Vector3(0, h * 0.42, 0), Vector3(w * 0.5, h * 0.8, 0.004), PAPER.darkened(0.14), Vector3(0, 45, 0))   # kat sırtı
+	for j in 4:   # tabanda katmanlı yaprak kılıf (yaprak yaprak sarılmış)
+		var y = 0.08 + j * 0.12
+		b.add("box", Vector3(0, y, 0), Vector3(w * 2.4 - j * 0.03, 0.18, 0.006), PAPER.darkened(0.04 * j), Vector3(randf_range(-15, 15), j * 47.0, randf_range(-10, 10)))
+	return b
+
+
 func p_kami_yari(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.8)
 	var tt = tg(c, t, 24.0)
 	var center = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 10.0)
-	paper_storm(hand_pos(c, true), center, 40, 0.35, 0.6, 0.25)
-	VFX.shockwave(center + Vector3.UP * 0.1, PAPER, 6.0, 0.4, true)
-	for k in 22:
-		after(0.2 + k * 0.025, func():
+	for r in [true, false]:
+		paper_storm(hand_pos(c, r), center, 24, 0.3, 0.8, 0.2)
+	for k in 46:
+		after(0.2 + k * 0.012, func():
 			var a = randf() * TAU
-			var r = sqrt(randf()) * 4.5
-			var q = gp(center + Vector3(cos(a) * r, 0, sin(a) * r))
-			var b = MB.new()
-			var h = randf_range(1.8, 3.4)
-			b.add("cone", Vector3(0, h * 0.5, 0), Vector3(0.3, h, 0.3), PAPER, Vector3(randf_range(-12, 12), 0, randf_range(-12, 12)), 4)
-			for j in 3:
-				b.add("box", Vector3(0, h * (0.2 + j * 0.2), 0), Vector3(0.34, 0.01, 0.34), PAPER.darkened(0.12), Vector3(0, j * 30.0, 0))   # kat çizgileri
-			var sp = mesh_of(b)
+			var r = 0.6 + sqrt(randf()) * 4.2
+			var q = gp(center + Vector3(cos(a), 0, sin(a)) * r)
+			var h = randf_range(1.6, 3.2) * (1.15 - r / 8.0)
+			var sp = mesh_of(_paper_spear(h))
 			get_tree().current_scene.add_child(sp)
+			# merkeze doğru hafif eğik (kafes gibi kapanır)
+			var tilt = Vector3(-sin(a), 0, cos(a)).normalized()
+			sp.global_basis = Basis(tilt, -deg_to_rad(randf_range(8.0, 24.0))) * Basis(Vector3.UP, randf() * TAU)
 			sp.global_position = q - Vector3.UP * h
 			var tw = sp.create_tween()
-			tw.tween_property(sp, "global_position", q, 0.08)
-			tw.tween_interval(1.4)
-			tw.tween_property(sp, "scale", Vector3(1, 0.05, 1), 0.25)
-			tw.tween_callback(sp.queue_free))
+			tw.tween_property(sp, "global_position", q, 0.07).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+			tw.tween_interval(1.3)
+			tw.tween_callback(func():
+				if is_instance_valid(sp):
+					paper_storm(sp.global_position + Vector3.UP * h * 0.5, sp.global_position + Vector3(randf_range(-1.2, 1.2), 0.2, randf_range(-1.2, 1.2)), 3, 0.6, 0.5, 0.14)
+					sp.queue_free()))
 	after(0.22, func():
-		VFX.star(center + Vector3.UP, PAPER, 2.0)
-		Sfx.play("earth", center, 1.6)
-		shake(0.4)
+		Sfx.play("whoosh", center, 1.6)
+		shake(0.35)
 		mhit(c, center + Vector3.UP, 4.8, inf(c, "kami_yari", 1.3, {"launch": 10.0, "knock": 3.0, "kind": "heavy", "bleed": 2.0})))
 
 
@@ -30679,53 +30743,109 @@ func p_satsui_no_shisen(c: Node3D, _t: Node3D) -> void:
 	Sfx.play("genjutsu", c.global_position, 0.3)
 
 
-# ------------------------------------------------------------------ Konan
-## Kâğıt Yağmuru: binlerce kâğıt yaprağı bulut olup hedefin üstüne jilet gibi yağar
+## Kâğıt Sağanağı (ref: Paper Drizzle): kollar yukarı — hedefin üstünde kâğıt bulutu toplanır, oradan yassı katlanmış
+## kâğıt bıçaklar eğik yağmur gibi iner ve zemine saplanır, sonra küçülüp kaybolur
 func p_kami_shigure(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 24.0)
 	busy(c, 1.0)
 	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 10.0)
-	every(1.6, 0.06, func(_i, _k):
-		for k in 3:
-			var p = at + Vector3(randf_range(-3, 3), 7.0, randf_range(-3, 3))
-			var g = p - Vector3.UP * 7.5 + Vector3(randf_range(-1, 1), 0, randf_range(-1, 1))
-			WindFX.streak(func(q: float) -> Vector3: return p.lerp(g, q), 0.25, 0.12, Color(0.97, 0.96, 0.92), 0.0, 4)
+	var sky = at + Vector3.UP * 7.0
+	for r in [true, false]:
+		paper_storm(hand_pos(c, r), sky, 18, 0.45, 1.5, 0.22)
+	var slant = (at - c.global_position)
+	slant.y = 0
+	slant = slant.normalized() * 2.0 if slant.length() > 0.1 else Vector3.ZERO
+	every(1.6, 0.05, func(_i, _k):
+		for k in 5:
+			var p = sky + Vector3(randf_range(-3, 3), randf_range(-0.5, 0.5), randf_range(-3, 3)) - slant
+			var g = gp(p + slant + Vector3(randf_range(-0.6, 0.6), 0, randf_range(-0.6, 0.6)))
+			var b = MB.new()
+			b.add("cone", Vector3(0, 0, -0.32), Vector3(0.14, 0.65, 0.016), PAPER, Vector3(-90, 0, 0), 3)   # yassı kâğıt bıçak (uç -Z)
+			b.add("box", Vector3(0, 0.01, -0.3), Vector3(0.012, 0.006, 0.58), PAPER.darkened(0.25))     # kat çizgisi
+			var kn = mesh_of(b)
+			get_tree().current_scene.add_child(kn)
+			kn.global_position = p
+			kn.look_at(g, Vector3.UP if absf((g - p).normalized().y) < 0.99 else Vector3.FORWARD)
+			kn.rotate_object_local(Vector3.FORWARD, randf() * TAU)
+			var tw = kn.create_tween()
+			tw.tween_property(kn, "global_position", g + (g - p).normalized() * 0.15, 0.22)   # saplanır
+			tw.tween_interval(0.5)
+			tw.tween_property(kn, "scale", Vector3(0.01, 0.01, 0.01), 0.15)
+			tw.tween_callback(kn.queue_free)
 		if _i % 3 == 0:
 			for e in enemies_near(c, at, 3.5):
 				e.take_hit(inf(c, "kami_shigure", 0.15, {"knock": 0.0, "kind": "light", "bleed": 1.0})))
 	Sfx.play("whoosh", at, 1.4)
 
 
-## Kâğıt Çakram: başının üstünde halka şeklinde katlanan kâğıt fırlatılır, dönerek keser ve geri döner
+## Kâğıt Çakram (ref: Paper Chakram): kollar havada — başın üstünde yapraklar dönerek iç içe bir halka (dişli dış kenar,
+## çift sıra kat) örer; bırakışta dönerek hedefe fırlar, keser ve sahibine döner
+func _paper_ring() -> Node3D:
+	var ring = Node3D.new()
+	var b = MB.new()
+	for k in 40:
+		var a = k * TAU / 40.0
+		for r in 2:
+			var rad = 0.75 + r * 0.22
+			b.add("box", Vector3(cos(a) * rad, r * 0.01, sin(a) * rad), Vector3(0.24, 0.012, 0.16), PAPER.darkened(0.05 * r + 0.03 * (k % 2)), Vector3(0, -rad_to_deg(a) + 12.0 * r, 6.0 * (k % 2)))
+		b.add("cone", Vector3(cos(a) * 1.08, 0.0, sin(a) * 1.08), Vector3(0.1, 0.16, 0.01), PAPER, Vector3(90, -rad_to_deg(a) - 60.0, 0), 3)   # testere dişi
+	ring.add_child(mesh_of(b))
+	return ring
+
+
+func form_kami_chakuramu(c: Node3D, rt: float) -> void:
+	var ring = _paper_ring()
+	scene_add(ring, c.global_position + Vector3.UP * 2.5)
+	ring.scale = Vector3.ONE * 0.05
+	c.set_meta("pj_ring", ring)
+	# yapraklar ellerden yukarı dönerek akıp halkayı örer
+	for r in [true, false]:
+		paper_storm(hand_pos(c, r), c.global_position + Vector3.UP * 2.5, 14, maxf(0.2, rt * 0.8), 0.9, 0.18)
+	var t0 = Game.now()
+	every(rt + 0.05, 1.0 / 30.0, func(_i, _k):
+		if is_instance_valid(ring) and is_instance_valid(c):
+			var f = clampf((Game.now() - t0) / maxf(0.1, rt), 0.0, 1.0)
+			ring.scale = Vector3.ONE * lerpf(0.05, 1.0, f)
+			ring.global_position = c.global_position + Vector3.UP * 2.5
+			ring.rotation.y += 0.35, Callable())
+	after(rt + 1.0, func():
+		if is_instance_valid(ring) and is_instance_valid(c) and c.has_meta("pj_ring") and c.get_meta("pj_ring") == ring:
+			c.remove_meta("pj_ring")
+			ring.queue_free())
+
+
 func p_kami_chakuramu(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 22.0)
 	busy(c, 0.8)
-	var ring = Node3D.new()
-	for k in 16:
-		var a = k * TAU / 16.0
-		var sh = MeshInstance3D.new()
-		var bm = BoxMesh.new()
-		bm.size = Vector3(0.35, 0.02, 0.18)
-		sh.mesh = bm
-		sh.material_override = Props.toon_color(Color(0.97, 0.96, 0.92))
-		ring.add_child(sh)
-		sh.position = Vector3(cos(a) * 0.9, 0, sin(a) * 0.9)
-		sh.rotation.y = -a
-	var o = c.global_position + Vector3.UP * 2.6
-	scene_add(ring, o)
+	var ring: Node3D = null
+	if c.has_meta("pj_ring") and is_instance_valid(c.get_meta("pj_ring")):
+		ring = c.get_meta("pj_ring")
+		c.remove_meta("pj_ring")
+		ring.scale = Vector3.ONE
+	else:
+		ring = _paper_ring()
+		scene_add(ring, c.global_position + Vector3.UP * 2.5)
+	var o = c.global_position + Vector3.UP * 2.5
+	ring.global_position = o
 	var dest = (tt.global_position + Vector3.UP if is_instance_valid(tt) else o + fwd(c, t) * 18.0)
 	var hit_ids = []
 	var tw = ring.create_tween()
-	tw.tween_property(ring, "global_position", dest, 0.45).set_delay(0.2)
-	tw.tween_property(ring, "global_position", o, 0.45)
-	tw.tween_callback(ring.queue_free)
-	every(1.1, 0.05, func(_i, _k):
+	tw.tween_property(ring, "global_position", dest, 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(ring, "global_position", o, 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_callback(func():
 		if is_instance_valid(ring):
-			ring.rotation.y += 0.8
-			for e in enemies_near(c, ring.global_position, 1.4):
-				if not e in hit_ids:
-					hit_ids.append(e)
-					e.take_hit(inf(c, "kami_chakuramu", 1.1, {"knock": 6.0, "kind": "heavy", "bleed": 2.0})))
+			paper_storm(ring.global_position, ring.global_position + Vector3.DOWN * 1.2, 12, 0.35, 0.5, 0.18)
+			ring.queue_free())
+	every(1.0, 1.0 / 30.0, func(_i, _k):
+		if is_instance_valid(ring):
+			ring.rotation.y += 0.55
+			ring.rotation.z = 0.25   # hafif yatık dönüş
+			if _i % 2 == 0:
+				for e in enemies_near(c, ring.global_position, 1.5):
+					if not e in hit_ids:
+						hit_ids.append(e)
+						VFX.star(e.global_position + Vector3.UP, PAPER, 1.0)
+						e.take_hit(inf(c, "kami_chakuramu", 1.1, {"knock": 6.0, "kind": "heavy", "bleed": 2.0})))
 	Sfx.play("whoosh", c.global_position, 1.1)
 
 

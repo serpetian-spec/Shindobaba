@@ -658,7 +658,8 @@ func start_flight(src: String, cfg := {}) -> void:
 		_end_rope()
 	grounded = false
 	velocity.y = maxf(velocity.y, 6.0)
-	FX.smoke_puff(global_position + Vector3.UP * 0.3, 0.8, 10)
+	if String(src) != "kami":   # kâğıt kanat havalanışı dumansız (kâğıt savrulur)
+		FX.smoke_puff(global_position + Vector3.UP * 0.3, 0.8, 10)
 	Hud.msg("%s: Space yüksel, Ctrl alçal, Shift hızlan" % String(cfg.get("name", "Uçuş")), Color(0.8, 0.9, 1.0), 2.5)
 
 
