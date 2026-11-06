@@ -58,7 +58,7 @@ static func steps() -> Array:
 			_t(1.0, 0.3, 0, 4, RDY, R_READY, L_GUARD, W),
 		]},
 		# 4 Senpū Giri: açık shuriken elde, gövde iki tur döner (yakın çevre biçmesi, çoklu vuruş)
-		{"len": 0.9, "hit": 0.3, "extra": [0.42, 0.56], "extra_r": 2.0, "keys": [
+		{"len": 0.9, "hit": 0.3, "extra_hits": [0.42, 0.56], "extra_radius": 2.0, "keys": [
 			_t(0.0, 0.3, 0, 4, RDY, R_READY, L_GUARD, W),
 			_t(0.14, 0.44, 30, 4, Vector3(0.9, 0, 0.3), R_SIDE, L_WIDE, CR),
 			_t(0.3, 0.46, -40, 6, Vector3(-0.9, 0, 0.3), R_WIDE, L_WIDE, W),

@@ -56,7 +56,7 @@ static func steps() -> Array:
 			_t(1.25, 0.3, 0, 4, RDY, R_READY, L_GUARD, W),
 		]},
 		# 4 Ni Kiri: eldeki kunaiyle ileri saplama + ters kesik
-		{"len": 0.75, "hit": 0.22, "extra": [0.44], "extra_r": 1.3, "keys": [
+		{"len": 0.75, "hit": 0.22, "extra_hits": [0.44], "extra_radius": 1.3, "keys": [
 			_t(0.0, 0.3, 0, 4, RDY, R_READY, L_GUARD, W),
 			_t(0.12, 0.4, -10, -4, Vector3(0, 0.1, 1), R_PULL, L_POINT, BK),
 			_t(0.22, 0.46, 12, 16, Vector3(0, 0.1, 1), R_REACH, L_GUARD, L),

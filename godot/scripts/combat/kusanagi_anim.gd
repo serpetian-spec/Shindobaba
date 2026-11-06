@@ -71,7 +71,7 @@ static func steps() -> Array:
 			_t(0.55, 0.34, 0, 4, RDY, R_READY, L_GUARD, W),
 		]},
 		# 5 Ranbu: art arda dört hızlı kesik (çapraz-yatay-çapraz-yatay), sonunda kılıç elden uçup hedefin çevresinde döner
-		{"len": 1.15, "hit": 0.2, "extra": [0.34, 0.48, 0.62, 0.8], "extra_r": 1.6, "keys": [
+		{"len": 1.15, "hit": 0.2, "extra_hits": [0.34, 0.48, 0.62, 0.8], "extra_radius": 1.6, "keys": [
 			_t(0.0, 0.34, 0, 4, RDY, R_READY, L_GUARD, W),
 			_t(0.1, 0.4, -18, -6, Vector3(-0.2, 0.8, -0.5), R_HIGH, L_GUARD, BK),
 			_t(0.2, 0.46, 16, 16, Vector3(0.6, -0.6, 0.5), R_LOWEND, L_GUARD, ST),

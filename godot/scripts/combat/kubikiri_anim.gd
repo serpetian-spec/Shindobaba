@@ -64,7 +64,7 @@ static func steps() -> Array:
 			_t(0.95, 0.36, 0, 4, RST, R_REST, L_GUARD, W),
 		]},
 		# 4 Kaiten Giri: ağız yana açık, gövde tam tur döner (iki ağır yatay biçme)
-		{"len": 1.2, "hit": 0.36, "extra": [0.7], "extra_r": 2.8, "keys": [
+		{"len": 1.2, "hit": 0.36, "extra_hits": [0.7], "extra_radius": 2.8, "keys": [
 			_t(0.0, 0.36, 0, 4, RST, R_REST, L_GUARD, W),
 			_t(0.18, 0.46, -30, 4, Vector3(-0.9, 0.1, 0.3), R_WIDE, L_GUARD, BK),
 			_t(0.36, 0.48, 70, 8, Vector3(-0.9, 0.1, 0.3), R_WIDE, L_GUARD, CR),

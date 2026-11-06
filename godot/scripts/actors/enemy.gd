@@ -773,6 +773,8 @@ var key_step := {}      # oynayan adım: {hit, len, two, i}
 
 func _keyed_id() -> String:
 	var wid = look.get("weapon_r") if look is Dictionary else null
+	if (wid == null or String(wid) == "") and model != null and arch is Dictionary:
+		return FightingStyles.npc_key(String(arch.get("clan", "")))   # silahsız klanlı düşman: klanın dövüş tarzı (oyuncuyla aynı kombo)
 	if wid == null or not KEYED.has(Gear.base_id(String(wid))) or model == null or model.weapons.is_empty() or not model.drawn:
 		return ""
 	return Gear.base_id(String(wid))
@@ -791,7 +793,7 @@ func _swing_keyed(wid: String) -> void:
 	key_step = {"hit": float(ks["hit"]) / spd, "len": float(ks["len"]) / spd, "two": bool(ks.get("two", false)), "i": i, "id": wid,
 		"extra": (ks.get("extra_hits", []) as Array).map(func(x): return float(x) / spd), "extra_r": float(ks.get("extra_radius", 2.5)), "extra_done": 0}
 	var rig: WeaponRig = model.rig
-	if rig:
+	if rig and not model.weapons.is_empty():
 		var wn: Node3D = model.weapons[0]["node"]
 		rig.two_hand_node = wn
 		rig.two_hand_off = KEYED.two_off(wid)

@@ -1,0 +1,55 @@
+class_name FightingStyles
+extends RefCounted
+## Dövüş tarzları: silahsızken düz vuruş kombosu klan/yol/bijūya göre değişir (KeyedCombos anahtar kombosu "style_<id>").
+## Oyuncu Ustalık sekmesinde ◀ ▶ ile seçer (profile "fight_style"); düşman/NPC klanının tarzıyla dövüşür (aynı kombo, aynı etkiler).
+## Kaynak: "clan:<id>" (o klandan olmak), ileride "path:<id>" (yolda ilerlemek), "jin:<bijū>" (jinchūriki).
+
+const STYLES := {
+	"juken": {"name": "Jūken — Yumuşak Yumruk", "key": "style_juken", "src": "clan:hyuga",
+		"desc": "Açık avuç darbeleri ve tenketsu dürtüşleri: hasarı orta, her isabet rakibin chakrasını tıkar; bitiriş Hakke Kūshō hava basıncı."},
+	"akimichi": {"name": "Baika Kenpō — Akimichi", "key": "style_akimichi", "src": "clan:akimichi",
+		"desc": "Ağır ve yavaş: vuruş anında yumruk/avuç devleşir (Bubun Baika, Chō Harite); menzil ve savurma büyük, kurulum uzun."},
+	"inuzuka": {"name": "Shikyaku — Dört Ayak", "key": "style_inuzuka", "src": "clan:inuzuka",
+		"desc": "Çömelik vahşi pençe tırmıkları, atılış ve dönen pençe; bitiriş Gatsūga matkap hücumu. Hızlı, yakın."},
+	"kaguya": {"name": "Shikotsumyaku Dansları — Kaguya", "key": "style_kaguya", "src": "clan:kaguya",
+		"desc": "Avuçtan çıkan kemik kılıç (Tsubaki), dikenli dönüş (Yanagi), parmak kemiği mermileri (Teshi Sendan), bedenden diken fışkırması (Karamatsu)."},
+}
+
+
+static func _has_src(p: Dictionary, src: String) -> bool:
+	if src.begins_with("clan:"):
+		return String(p.get("clan", "none")) == src.substr(5)
+	if src.begins_with("path:"):
+		return src.substr(5) in (p.get("paths", {}) as Dictionary) if p.get("paths") is Dictionary else false
+	if src.begins_with("jin:"):
+		return TailedBeasts.player_jinchuriki() == src.substr(4)
+	return false
+
+
+## Oyuncunun seçebileceği tarzlar ("" = temel taijutsu her zaman ilk)
+static func available(p: Dictionary) -> Array:
+	var out = [""]
+	for id in STYLES:
+		if _has_src(p, String(STYLES[id]["src"])):
+			out.append(id)
+	return out
+
+
+static func name_of(id: String) -> String:
+	return "Temel Taijutsu" if id == "" else String(STYLES.get(id, {}).get("name", id))
+
+
+## Oyuncunun düz vuruş kombo anahtarı (silahsızken); seçili tarz artık uygun değilse temel
+static func player_key(p: Dictionary) -> String:
+	var sel = String(p.get("fight_style", ""))
+	if sel == "" or not STYLES.has(sel) or not sel in available(p):
+		return ""
+	return String(STYLES[sel]["key"])
+
+
+## NPC/düşman: klanının tarzı (oyuncuyla aynı kombo)
+static func npc_key(clan: String) -> String:
+	for id in STYLES:
+		if String(STYLES[id]["src"]) == "clan:" + clan:
+			return String(STYLES[id]["key"])
+	return ""

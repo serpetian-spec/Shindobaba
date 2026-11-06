@@ -61,7 +61,7 @@ static func steps() -> Array:
 			_t(1.3, 0.36, -4, 4, RDY, R_READY, W),
 		]},
 		# 4 Kaiten Barai: asa yana açık, gövde tam tur döner; asa uzayıp geniş süpürür (çoklu)
-		{"len": 1.1, "hit": 0.36, "two": true, "extra": [0.62], "extra_r": 3.6, "keys": [
+		{"len": 1.1, "hit": 0.36, "two": true, "extra_hits": [0.62], "extra_radius": 3.6, "keys": [
 			_t(0.0, 0.36, -4, 4, RDY, R_READY, W),
 			_t(0.18, 0.46, -30, 4, Vector3(-0.9, 0.05, 0.3), R_WIDE, BK),
 			_t(0.36, 0.48, 70, 8, Vector3(-0.9, 0.05, 0.3), R_WIDE, CR),

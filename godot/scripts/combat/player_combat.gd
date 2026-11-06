@@ -477,6 +477,10 @@ func _combo_base(i: int) -> Dictionary:
 	var gq = Gear.equipped(Game.profile, "sag")
 	if not gq.is_empty():
 		wid = Gear.base_id(String(gq.get("id", "")))
+	if wid == "" or not Gear.item(String(gq.get("id", ""))).has("weapon"):
+		var sk = FightingStyles.player_key(Game.profile)   # silahsız: seçili dövüş tarzı
+		if sk != "":
+			wid = sk
 	if ID_COMBOS.has(wid):
 		st = ID_COMBOS[wid]
 		c["water"] = st["water"][_ci(i)]
@@ -486,6 +490,8 @@ func _combo_base(i: int) -> Dictionary:
 		c["flash"] = st.get("flash", [false, false, false, false, false])[_ci(i)]
 		if st.has("lunge"):
 			c["lunge"] = float(c.get("lunge", 1.0)) * float(st["lunge"][_ci(i)])
+	if st.is_empty() and KEYED.has(wid):   # silahsız dövüş tarzı: yumrukta stil verisi yok — anahtar kombo yine de oynar
+		st = {"anims": ["", "", "", "", ""], "speed": 1.0, "dur": 1.0, "knock": 1.0, "fx": Color(1.0, 0.95, 0.85), "snd": "hit"}
 	if st.is_empty():
 		return c
 	var an: String = st["anims"][_ci(i)]

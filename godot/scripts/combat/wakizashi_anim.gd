@@ -54,7 +54,7 @@ static func steps() -> Array:
 			_t(0.62, 0.56, 26, 22, Vector3(0.65, -0.65, 0.4), R_DOWN, L_BACK, L),
 			_t(0.8, 0.38, 0, 6, RDY, R_READY, L_GUARD, W),
 		]},
-		{"len": 0.75, "hit": 0.22, "extra": [0.42], "extra_r": 1.6, "keys": [
+		{"len": 0.75, "hit": 0.22, "extra_hits": [0.42], "extra_radius": 1.6, "keys": [
 			_t(0.0, 0.38, 0, 6, RDY, R_READY, L_GUARD, W),
 			_t(0.12, 0.44, -14, -4, Vector3(0, 0.05, 1), R_CHAMBER, L_GUARD, BK),
 			_t(0.22, 0.52, 10, 22, Vector3(0, 0.0, 1), R_STAB, L_BACK, L),
@@ -71,7 +71,7 @@ static func steps() -> Array:
 			_t(0.52, 0.48, 360, 12, Vector3(-0.95, 0.05, 0.3), R_WIDE, L_BACK, ST),
 			_t(0.75, 0.38, 360, 6, RDY, R_READY, L_GUARD, W),
 		]},
-		{"len": 0.8, "hit": 0.26, "extra": [0.5], "extra_r": 1.8, "keys": [
+		{"len": 0.8, "hit": 0.26, "extra_hits": [0.5], "extra_radius": 1.8, "keys": [
 			_t(0.0, 0.38, 0, 6, RDY, R_READY, L_GUARD, W),
 			_t(0.12, 0.5, 40, 10, RDY, R_READY, L_SHOULDER, BK),
 			_t(0.26, 0.54, 50, 26, RDY, R_LEFT, L_SHOULDER, L),
@@ -80,7 +80,7 @@ static func steps() -> Array:
 			_t(0.62, 0.46, -28, 14, Vector3(-0.95, 0.05, 0.3), R_WIDE, L_BACK, W),
 			_t(0.8, 0.38, 0, 6, RDY, R_READY, L_GUARD, W),
 		]},
-		{"len": 1.3, "hit": 0.42, "extra": [0.78], "extra_r": 2.0, "keys": [
+		{"len": 1.3, "hit": 0.42, "extra_hits": [0.78], "extra_radius": 2.0, "keys": [
 			_t(0.0, 0.38, 0, 6, RDY, R_READY, L_GUARD, W),
 			_t(0.2, 0.4, 0, -12, Vector3(0, 0.95, -0.2), R_HIGH, L_GUARD, BK),
 			_t(0.36, 0.42, 0, -14, Vector3(0, 0.95, -0.2), R_HIGH, L_GUARD, BK),

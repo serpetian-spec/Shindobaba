@@ -41,7 +41,7 @@ static func steps() -> Array:
 			_t(0.7, 0.34, -6, 4, F, R_READY, L_AIM, W),
 		]},
 		# 2 Nui Tsuki: iki ardışık saplama, iğne öndekinden arkasındakine geçer (delip geçen hat)
-		{"len": 0.85, "hit": 0.24, "extra": [0.5], "extra_r": 1.2, "keys": [
+		{"len": 0.85, "hit": 0.24, "extra_hits": [0.5], "extra_radius": 1.2, "keys": [
 			_t(0.0, 0.34, -6, 4, F, R_READY, L_AIM, W),
 			_t(0.14, 0.42, -18, -6, F, R_DRAW, L_AIM, BK),
 			_t(0.24, 0.5, 8, 18, F, R_THRUST, L_BACK, ST),

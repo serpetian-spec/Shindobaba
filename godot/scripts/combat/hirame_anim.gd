@@ -56,7 +56,7 @@ static func steps() -> Array:
 			_t(0.54, 0.48, 0, 14, Vector3(0.8, 0.1, 0.5), R_IN, L_IN, L),
 			_t(0.8, 0.4, 0, 6, RDY, R_READY, L_READY, W),
 		]},
-		{"len": 1.05, "hit": 0.32, "extra": [0.56, 0.78], "extra_r": 2.4, "keys": [
+		{"len": 1.05, "hit": 0.32, "extra_hits": [0.56, 0.78], "extra_radius": 2.4, "keys": [
 			_t(0.0, 0.4, 0, 6, RDY, R_READY, L_READY, W),
 			_t(0.18, 0.46, -30, 4, Vector3(-0.9, 0.1, 0.3), R_WIDE, L_WIDE, BK),
 			_t(0.38, 0.48, 90, 8, Vector3(-0.9, 0.1, 0.3), R_WIDE, L_WIDE, CR),

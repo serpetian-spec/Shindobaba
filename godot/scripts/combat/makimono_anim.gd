@@ -38,7 +38,7 @@ static func steps() -> Array:
 			_t(1.0, 0.32, 0, 4, RDY, R_READY, L_READY, W),
 		]},
 		# 2 Kaiten: çıkanlar ustanın çevresinde döner (yakına çarpar) -> iki kol öne, hedefe salınırlar
-		{"len": 1.25, "hit": 0.36, "extra": [0.5, 0.66], "extra_r": 2.4, "keys": [
+		{"len": 1.25, "hit": 0.36, "extra_hits": [0.5, 0.66], "extra_radius": 2.4, "keys": [
 			_t(0.0, 0.32, 0, 4, RDY, R_READY, L_READY, W),
 			_t(0.2, 0.42, 0, -10, RDY, R_OPEN, L_OPEN, W),
 			_t(0.5, 0.44, 20, -6, RDY, R_OPEN, L_OPEN, W),

@@ -2297,6 +2297,20 @@ static func _tab_skills(_main: Node, body: Control) -> void:
 	v.set_anchors_preset(Control.PRESET_FULL_RECT)
 	body.add_child(v)
 	v.add_child(UI.label("Güç %d  —  seviye yok: yaptıkça gelişirsin" % int(pr.get("level", 1)), 24, UI.CREAM, HORIZONTAL_ALIGNMENT_LEFT, true))
+	# dövüş tarzı: silahsız düz vuruş kombosu (klan/yol/bijū ile açılır); silah kuşanınca silahın kombosu geçerli
+	var styles: Array = FightingStyles.available(pr)
+	var cur = String(pr.get("fight_style", ""))
+	var ci = maxi(0, styles.find(cur))
+	var sdesc = func(id: String) -> String:
+		return ("Silahsız temel yumruk-tekme kombosu. Klanın, yolun ya da bijūn yeni tarzlar açar." if id == "" or not FightingStyles.STYLES.has(id) else String(FightingStyles.STYLES[id]["desc"])) + "  (Silah kuşanınca silahın kendi kombosu geçerli.)"
+	var sdl = UI.label(sdesc.call(cur), 14, UI.MUTED)
+	sdl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	sdl.custom_minimum_size = Vector2(1200, 0)
+	v.add_child(_arrow_row("Dövüş Tarzı", styles.map(func(x): return FightingStyles.name_of(String(x))), ci, func(i):
+		pr["fight_style"] = String(styles[i])
+		sdl.text = sdesc.call(String(styles[i]))
+		Hud.msg("Dövüş tarzı: %s" % FightingStyles.name_of(String(styles[i])), Color(0.95, 0.85, 0.55))))
+	v.add_child(sdl)
 	var how = {"ninjutsu": "Jutsu attıkça (mühür bozulsa da biraz). Yüksek rütbe teknikler için gerekli; mühür hızı.",
 		"taijutsu": "Yumrukla vurdukça; antrenman kuklası 2 kat.", "kenjutsu": "Silahla vurdukça; antrenman kuklası 2 kat.",
 		"chakra": "Jutsu attıkça, [C] meditasyon, duvar/ağaç tırmanma, su üstünde yürüme.", "dayaniklilik": "Hasar aldıkça.", "hiz": "Koştukça.",

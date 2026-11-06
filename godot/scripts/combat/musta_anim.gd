@@ -55,7 +55,7 @@ static func steps() -> Array:
 			_t(0.38, 0.24, 8, -14, R_UPP1, L_GUARD, L),
 			_t(0.6, 0.46, 0, 10, R_GUARD, L_GUARD, W),
 		]},
-		{"len": 0.65, "hit": 0.2, "extra": [0.4], "extra_r": 1.5, "keys": [
+		{"len": 0.65, "hit": 0.2, "extra_hits": [0.4], "extra_radius": 1.5, "keys": [
 			_t(0.0, 0.46, 0, 10, R_GUARD, L_GUARD, W),
 			_t(0.1, 0.6, -10, 18, R_CHAMBER, L_GUARD, BK),
 			_t(0.2, 0.64, 14, 26, R_BODY, L_GUARD, L),
@@ -64,7 +64,7 @@ static func steps() -> Array:
 			_t(0.5, 0.48, -34, 8, R_BACKSL, L_GUARD, BK),
 			_t(0.65, 0.46, 0, 10, R_GUARD, L_GUARD, W),
 		]},
-		{"len": 0.85, "hit": 0.14, "extra": [0.26, 0.38, 0.5, 0.62], "extra_r": 1.4, "keys": [
+		{"len": 0.85, "hit": 0.14, "extra_hits": [0.26, 0.38, 0.5, 0.62], "extra_radius": 1.4, "keys": [
 			_t(0.0, 0.46, 0, 10, R_GUARD, L_GUARD, W),
 			_t(0.08, 0.5, -10, 12, R_CHAMBER, L_GUARD, ST),
 			_t(0.14, 0.52, 10, 18, R_JAB, L_GUARD, L),

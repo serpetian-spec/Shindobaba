@@ -41,7 +41,7 @@ static func steps() -> Array:
 			_t(1.3, 0.36, 0, 4, RDY, R_READY, L_READY, W),
 		]},
 		# 2 Senkai Nage: tam tur döner (shuriken kolun ucunda geniş çember), dönüşün sonunda bırakır -> geniş yay çizer
-		{"len": 1.35, "hit": 0.66, "extra": [0.3, 0.48], "extra_r": 2.6, "keys": [
+		{"len": 1.35, "hit": 0.66, "extra_hits": [0.3, 0.48], "extra_radius": 2.6, "keys": [
 			_t(0.0, 0.36, 0, 4, RDY, R_READY, L_READY, W),
 			_t(0.16, 0.44, 40, 6, Vector3(-0.9, 0.1, 0.3), R_WIDE, L_WIDE, CR),
 			_t(0.34, 0.46, -60, 6, Vector3(-0.9, 0.1, 0.3), R_WIDE, L_WIDE, W),

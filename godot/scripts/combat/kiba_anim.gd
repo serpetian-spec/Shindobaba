@@ -53,7 +53,7 @@ static func steps() -> Array:
 			_t(0.7, 0.4, 0, 6, RDY, R_GUARD, L_GUARD, W),
 		]},
 		# 2 Renga: sağ saplama, hemen sol saplama (kalça yer değiştirir)
-		{"len": 0.75, "hit": 0.22, "extra": [0.44], "extra_r": 1.6, "keys": [
+		{"len": 0.75, "hit": 0.22, "extra_hits": [0.44], "extra_radius": 1.6, "keys": [
 			_t(0.0, 0.4, 0, 6, RDY, R_GUARD, L_GUARD, W),
 			_t(0.12, 0.44, -20, -4, Vector3(0, 0.05, 1), R_CHAMBER, L_GUARD, BK),
 			_t(0.22, 0.5, 18, 20, Vector3(0, 0.0, 1), R_STAB, L_CHAMBER, L),
@@ -73,7 +73,7 @@ static func steps() -> Array:
 			_t(0.85, 0.4, 0, 6, RDY, R_GUARD, L_GUARD, W),
 		]},
 		# 4 Raijin Senpū: kollar iki yana açık, tam tur dönüş (elektrik halkası)
-		{"len": 0.95, "hit": 0.3, "extra": [0.52, 0.72], "extra_r": 2.4, "keys": [
+		{"len": 0.95, "hit": 0.3, "extra_hits": [0.52, 0.72], "extra_radius": 2.4, "keys": [
 			_t(0.0, 0.4, 0, 6, RDY, R_GUARD, L_GUARD, W),
 			_t(0.14, 0.48, -30, 4, Vector3(-0.9, 0.1, 0.3), R_WIDE, L_WIDE, BK),
 			_t(0.34, 0.5, 90, 8, Vector3(-0.9, 0.1, 0.3), R_WIDE, L_WIDE, CR),

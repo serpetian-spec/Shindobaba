@@ -39,12 +39,18 @@ const TABLE := {
 	"wakizashi": [preload("res://scripts/combat/wakizashi_anim.gd"), 1.0],
 	"nodachi": [preload("res://scripts/combat/nodachi_anim.gd"), 0.95],
 	"musta": [preload("res://scripts/combat/musta_anim.gd"), 1.05],
+	# dövüş tarzları (silahsız düz vuruş; FightingStyles)
+	"style_juken": [preload("res://scripts/combat/style_juken_anim.gd"), 1.05],
+	"style_akimichi": [preload("res://scripts/combat/style_akimichi_anim.gd"), 0.92],
+	"style_inuzuka": [preload("res://scripts/combat/style_inuzuka_anim.gd"), 1.1],
+	"style_kaguya": [preload("res://scripts/combat/style_kaguya_anim.gd"), 1.0],
 }
 ## uzun menzil silahları: yapay zekâ uzakta durup atar (Enemy._chase)
 const RANGED := ["fuma_shuriken", "kyodai_shuriken", "fuma_makimono", "senbon"]
 ## silah ağırlığı (0 hafif .. 1 ağır): kol/silah yaylanması (PoseOverlay.key_mass) — ağır silah gecikip taşar
 const MASS := {"uc_tirpan": 1.0, "samehada": 0.9, "kabutowari": 0.9, "shibuki": 0.85, "gunbai": 0.8, "raijin": 0.35, "kunai": 0.1,
-	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3, "tonfa": 0.3, "bashosen": 0.35, "kubikiribocho": 0.95, "yagura_sopa": 0.4, "yelpaze": 0.6, "kongo_asa": 0.45, "kama": 0.75, "pence": 0.15, "senbon": 0.05, "hiramekarei": 0.7, "bo": 0.35, "kiba": 0.25, "tanto": 0.1, "wakizashi": 0.25, "nodachi": 0.7, "musta": 0.15}
+	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3, "tonfa": 0.3, "bashosen": 0.35, "kubikiribocho": 0.95, "yagura_sopa": 0.4, "yelpaze": 0.6, "kongo_asa": 0.45, "kama": 0.75, "pence": 0.15, "senbon": 0.05, "hiramekarei": 0.7, "bo": 0.35, "kiba": 0.25, "tanto": 0.1, "wakizashi": 0.25, "nodachi": 0.7, "musta": 0.15,
+	"style_juken": 0.08, "style_akimichi": 0.65, "style_inuzuka": 0.12, "style_kaguya": 0.2}
 
 
 static func mass(id: String) -> float:
@@ -75,6 +81,38 @@ static func two_off(id: String) -> float:
 ## lunge_mul (kurulurken kayma), special (silah özelliğini ez: "" = yok). Görsel/alan etkileri on_strike'ta.
 static func mods(id: String, i: int) -> Dictionary:
 	match id:
+		"style_juken":
+			var m = {"lunge_mul": 0.9, "tenketsu": true, "special": ""}
+			match i:
+				2: m.merge({"launch": 6.0, "knock": 2.0})
+				4: m.merge({"knock": 1.0})
+				5: m.merge({"knock": 18.0, "heavy": true, "reach_add": 0.6})
+			return m
+		"style_akimichi":
+			var m = {"lunge_mul": 0.6, "special": ""}
+			match i:
+				0: m.merge({"reach_add": 0.5, "knock": 9.0})
+				1: m.merge({"heavy": true, "knock": 5.0, "reach_add": 0.4})
+				2: m.merge({"knock": 13.0})
+				3: m.merge({"reach_add": 1.2, "knock": 17.0, "heavy": true})
+				4: m.merge({"heavy": true, "knock": 6.0, "launch": 6.0, "reach_add": 0.6})
+				5: m.merge({"reach_add": 2.6, "launch": 9.0, "knock": 15.0, "heavy": true})
+			return m
+		"style_inuzuka":
+			var m = {"lunge_mul": 1.25, "special": ""}
+			match i:
+				2: m.merge({"lunge_mul": 2.3, "knock": 6.0})
+				3: m.merge({"heavy": true, "knock": 4.0})
+				5: m.merge({"lunge_mul": 3.0, "knock": 12.0, "launch": 5.0, "heavy": true})
+			return m
+		"style_kaguya":
+			var m = {"special": "", "reach_add": 0.5}   # kemik kılıç: yumruktan uzun
+			match i:
+				2: m.merge({"reach_add": 1.3, "knock": 6.0})
+				3: m.merge({"knock": 4.0})
+				4: m.merge({"lunge_mul": 0.0})
+				5: m.merge({"heavy": true, "knock": 14.0, "launch": 6.0, "lunge_mul": 0.0})
+			return m
 		"uc_tirpan":
 			var m = {"lunge_mul": 0.5}
 			match i:
@@ -359,6 +397,8 @@ static func on_target(id: String, i: int, who: Node3D, h: Node3D) -> void:
 		_kg_drag(who, h)   # kusarigama kancası: mesafeye göre çeker, önünde durur (içinden geçmez)
 	if bool(m.get("eat", false)):
 		_samehada_eat(who, h, i == 5)
+	if bool(m.get("tenketsu", false)):
+		_tenketsu(who, h, i)
 	if bool(m.get("shatter", false)):
 		_shatter(who, h)
 	if bool(m.get("throw_back", false)) and h is CharacterBody3D:
@@ -380,6 +420,9 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 		var q = who.global_position + f * d + side * s
 		q.y = Game.ground_height(q.x, q.z) + 0.05
 		return q
+	if id.begins_with("style_"):
+		_style_strike(id, i, who, dmg, f, side)
+		return
 	match id:
 		"fuma_shuriken":
 			var o = {"mesh": "fuma_shuriken", "radius": 0.6, "spin": 3.2, "wind": true}
@@ -890,6 +933,9 @@ static func _fly_tag(who: Node3D, from: Vector3, to: Vector3, dur: float, dmg: f
 ## Adım başlarken (oyuncu _start_step / düşman _swing_keyed): sıçrama, Samehada'nın sargısını açıp büyümesi vb.
 static func on_start(id: String, i: int, who: Node3D) -> void:
 	if who == null or not is_instance_valid(who):
+		return
+	if id.begins_with("style_"):
+		_style_start(id, i, who)
 		return
 	match id:
 		"zincirli_kunai":
@@ -2129,3 +2175,204 @@ static func _kiba_strike(who: Node3D, i: int, dmg: float, f: Vector3, side: Vect
 			_shake(who, 0.8)
 			Sfx.play("zap", q, 1.6, 0.5)
 
+
+# ================================================================== DÖVÜŞ TARZLARI (FightingStyles) — oyuncu ve düşman aynı
+static func _ov(who: Node3D):
+	var m = who.get("model")
+	return m.overlay if m and m.get("overlay") else null
+
+
+## Eller (açık avuç / yumruk / pençe), uzuv büyümesi, kemik kılıç; kombo bitince (1.4 sn adım gelmezse) her şey geri alınır
+static func _style_start(id: String, i: int, who: Node3D) -> void:
+	var ov = _ov(who)
+	if ov == null:
+		return
+	var tok = Time.get_ticks_msec()
+	who.set_meta("style_tok", tok)
+	ov.grow = {}
+	match id:
+		"style_juken":
+			ov.fist = {"Right": -1.0, "Left": -1.0}   # açık avuç (negatif = parmaklar düz açılır)
+			if i == 4:
+				ov.fist = {"Right": 0.55, "Left": 0.55}   # iki parmak dürtüşü: parmaklar yarı kıvrık
+		"style_akimichi":
+			ov.fist = {"Right": 1.0, "Left": 1.0}
+			var g = {}
+			match i:
+				0: g = {"RightLowerArm": 1.35, "RightHand": 3.0}
+				1: g = {"LeftLowerArm": 1.35, "LeftHand": 3.0}
+				3:
+					g = {"RightLowerArm": 1.5, "RightHand": 3.8}
+					ov.fist = {"Right": -1.0, "Left": 1.0}   # Chō Harite: açık dev avuç
+				4: g = {"RightLowerArm": 1.3, "LeftLowerArm": 1.3, "RightHand": 2.8, "LeftHand": 2.8}
+				5: g = {"RightUpperArm": 1.3, "RightLowerArm": 1.8, "RightHand": 4.2}
+			_grow_in(who, ov, g, [0.32, 0.36, 0.0, 0.46, 0.5, 0.55][i] / speed(id), tok)
+		"style_inuzuka":
+			ov.fist = {"Right": 0.55, "Left": 0.55}   # pençe
+			if i == 5 and who is CharacterBody3D:   # Gatsūga: kendi ekseninde dönerek hücum
+				var f: Vector3 = who.face_dir() if who.has_method("face_dir") else Vector3.FORWARD
+				who.get_tree().create_timer(0.3 / speed(id)).timeout.connect(func():
+					if is_instance_valid(who):
+						who.velocity.x = f.x * 17.0
+						who.velocity.z = f.z * 17.0
+						WindFX.swirl(who.global_position + Vector3.UP * 0.4, 0.9, 1.6, 0.5, 8, Color(0.85, 0.82, 0.75, 0.85), true))
+		"style_kaguya":
+			ov.fist = {"Right": 0.9, "Left": 0.15}
+			_bone_blade(who)
+			if i == 3:
+				_bone_spikes(who, ["RightUpperArm", "LeftUpperArm", "RightLowerArm", "LeftLowerArm", "UpperChest"], 0.75 / speed(id))
+	who.get_tree().create_timer(1.5).timeout.connect(func():
+		if is_instance_valid(who) and int(who.get_meta("style_tok", 0)) == tok:
+			_style_end(who))
+
+
+static func _style_end(who: Node3D) -> void:
+	var ov = _ov(who)
+	if ov:
+		ov.fist = {}
+		ov.grow = {}
+	if who.has_meta("bone_blade"):
+		var bb = who.get_meta("bone_blade")
+		who.remove_meta("bone_blade")
+		if is_instance_valid(bb):
+			bb.queue_free()
+
+
+## Bubun Baika: vuruş anına doğru büyür, vuruştan sonra küçülür (gerçek kemik büyümesi — PoseOverlay.grow)
+static func _grow_in(who: Node3D, ov, g: Dictionary, hit_t: float, tok: int) -> void:
+	if g.is_empty():
+		return
+	var steps = 8
+	for k in steps + 6:
+		who.get_tree().create_timer(hit_t * float(k) / steps).timeout.connect(func():
+			if not is_instance_valid(who) or int(who.get_meta("style_tok", 0)) != tok:
+				return
+			var u = clampf(float(k) / (steps * 0.7), 0.0, 1.0) if k <= steps else clampf(1.0 - float(k - steps) / 6.0, 0.0, 1.0)   # vuruştan önce doruğa: vuruş boyunca dev
+			var d = {}
+			for b in g:
+				d[b] = lerpf(1.0, float(g[b]), u * u * (3.0 - 2.0 * u))
+			ov.grow = d)
+
+
+static var _bone_mat: StandardMaterial3D
+static func _bone_material() -> StandardMaterial3D:
+	if _bone_mat == null:
+		_bone_mat = StandardMaterial3D.new()
+		_bone_mat.albedo_color = Color(0.93, 0.92, 0.86)
+		_bone_mat.roughness = 0.6
+	return _bone_mat
+
+
+## Tsubaki: sağ avuçtan çıkan kemik kılıç (ele bağlı, kombo boyunca)
+static func _bone_blade(who: Node3D) -> void:
+	if who.has_meta("bone_blade") and is_instance_valid(who.get_meta("bone_blade")):
+		return
+	var pj = PathJutsu.get_pinst()
+	if pj == null:
+		return
+	var ba = pj.bone_attach(who, "RightLowerArm")   # kemik +Y = ön kol doğrultusu: kılıç bileğin ötesine kolun devamı olarak uzanır
+	if ba == null:
+		return
+	var b = MB.new()
+	b.add("cyl", Vector3(0, 0.3, 0.0), Vector3(0.045, 0.1, 0.045), Color(0.9, 0.88, 0.82), Vector3.ZERO, 8)   # avuçtan çıkan kemik kökü
+	b.add("cone", Vector3(0, 0.66, 0.0), Vector3(0.075, 0.7, 0.028), Color(0.95, 0.94, 0.88), Vector3.ZERO, 4)   # yassı sivri kemik kılıç
+	b.add("box", Vector3(0, 0.6, 0.0), Vector3(0.012, 0.5, 0.012), Color(0.75, 0.72, 0.66))   # sırt çizgisi
+	var mi = MeshInstance3D.new()
+	mi.mesh = b.build(Props.toon())
+	ba.add_child(mi)
+	who.set_meta("bone_blade", ba)
+
+
+## Yanagi / Karamatsu: kemiklerden fışkıran sivri kemik dikenleri (kısa süre)
+static func _bone_spikes(who: Node3D, bones: Array, dur: float) -> void:
+	var pj = PathJutsu.get_pinst()
+	if pj == null:
+		return
+	for bn in bones:
+		var ba = pj.bone_attach(who, bn)
+		if ba == null:
+			continue
+		var b = MB.new()
+		for k in 4:
+			var a = k * TAU / 4.0 + 0.4
+			var d = Vector3(cos(a), 0.3, sin(a)).normalized()
+			b.add_xf("cone", Transform3D(Basis(Quaternion(Vector3.UP, d)) * Basis.from_scale(Vector3(0.05, 0.32, 0.05)), Vector3(0, 0.08 + k * 0.05, 0) + d * 0.2), Color(0.94, 0.93, 0.87), 5)
+		var mi = MeshInstance3D.new()
+		mi.mesh = b.build(Props.toon())
+		ba.add_child(mi)
+		mi.scale = Vector3.ONE * 0.05
+		var tw = mi.create_tween()
+		tw.tween_property(mi, "scale", Vector3.ONE, 0.08)
+		tw.tween_interval(dur)
+		tw.tween_property(mi, "scale", Vector3.ONE * 0.05, 0.12)
+		tw.tween_callback(ba.queue_free)
+
+
+static func _near_foe(who: Node3D, r: float) -> Node3D:
+	var best: Node3D = null
+	var bd = r
+	for f in who.get_tree().get_nodes_in_group("fighters"):
+		if f == who or not Combat.hostile(who, f) or f.is_dead():
+			continue
+		var d = f.global_position.distance_to(who.global_position)
+		if d < bd:
+			bd = d
+			best = f
+	return best
+
+
+## Jūken: her isabet tenketsuya chakra akıtıp kapatır — rakibin chakrası tıkanır (oyuncu/düşman aynı)
+static func _tenketsu(who: Node3D, h: Node3D, i: int) -> void:
+	if h == null or not is_instance_valid(h) or h.get("chakra") == null:
+		return
+	var mx = float(h.get("max_chakra")) if h.get("max_chakra") != null else 100.0
+	var k = 0.07 if i == 4 else 0.035
+	h.chakra = maxf(0.0, float(h.chakra) - mx * k)
+	FX.hit_spark(h.global_position + Vector3.UP * 1.1, Color(0.7, 0.85, 1.0), 0.6)
+	if i == 4 and h.has_method("apply_status"):
+		h.apply_status("slow", 1.2)   # chakra noktaları kapanınca beden ağırlaşır
+
+
+## Vuruş anı görselleri + alan/mermi (isabetten bağımsız)
+static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector3, side: Vector3) -> void:
+	var at = who.global_position + Vector3.UP * 1.1 + f * 1.1
+	match id:
+		"style_juken":
+			FX.hit_spark(at, Color(0.75, 0.88, 1.0), 0.7)   # avuçtan çıkan chakra
+			if i == 5:   # Hakke Kūshō: çift avuçtan ileri giden hava basıncı
+				WindFX.gust(who.global_position + Vector3.UP * 1.1, f, 7.0, 2.2, {})
+				for d in [2.5, 4.5]:
+					Combat.hit_sphere(who, who.global_position + Vector3.UP * 1.0 + f * d, 1.6, _kinfo(dmg, 0.7, {"element": "", "knock": 16.0, "kind": "heavy", "melee": true}))
+		"style_akimichi":
+			if i == 4:   # iki dev yumruk yere: şok dalgası
+				var g = who.global_position + f * 1.6
+				g.y = Game.ground_height(g.x, g.z) + 0.05
+				VFX.shockwave(g + Vector3.UP * 0.1, Color(0.75, 0.68, 0.55), 6.0, 0.35, true)
+				VFX.cracks(g, 3.5)
+				Combat.hit_sphere(who, g + Vector3.UP * 0.5, 2.6, _kinfo(dmg, 0.6, {"element": "", "knock": 6.0, "launch": 5.0, "kind": "heavy", "melee": true}))
+				_shake(who, 0.4)
+			elif i == 3 or i == 5:
+				_shake(who, 0.25)
+				FX.hit_spark(at + f * 0.8, Color(1.0, 0.95, 0.85), 1.2)
+		"style_inuzuka":
+			var pj = PathJutsu.get_pinst()
+			if pj:   # üç pençe izi
+				for k in 3:
+					pj._arc_cut(at + Vector3.UP * (k - 1) * 0.12, f, -50.0, 50.0, Color(0.9, 0.88, 0.8), 1.2)
+		"style_kaguya":
+			if i == 4:   # Teshi Sendan: sol parmak uçlarından üç kemik mermisi
+				var pj = PathJutsu.get_pinst()
+				var tg = _near_foe(who, 20.0)
+				for k in 3:
+					var b = MB.new()
+					b.add("cone", Vector3(0, 0, 0.08), Vector3(0.05, 0.18, 0.05), Color(0.95, 0.94, 0.88), Vector3(90, 0, 0), 5)
+					var mi = MeshInstance3D.new()
+					mi.mesh = b.build(Props.toon())
+					var dir = (f + side * (k - 1) * 0.06).normalized()
+					if tg:
+						dir = ((tg.global_position + Vector3.UP) - (who.global_position + Vector3.UP * 1.3)).normalized()
+					if pj:
+						pj.shot(who, who.global_position + Vector3.UP * 1.3 + f * 0.6 + side * (k - 1) * 0.08, dir, 42.0, mi, _kinfo(dmg, 0.55, {"element": "", "knock": 2.0, "kind": "light", "bleed": 1.0}), tg, false, 0.8)
+			elif i == 5:   # Karamatsu: bedenden fışkıran dikenler — çevreye alan hasarı
+				_bone_spikes(who, ["Hips", "Spine", "UpperChest", "RightUpperArm", "LeftUpperArm", "RightUpperLeg", "LeftUpperLeg"], 0.6)
+				Combat.hit_sphere(who, who.global_position + Vector3.UP * 1.0, 2.6, _kinfo(dmg, 0.9, {"element": "", "knock": 14.0, "launch": 6.0, "kind": "heavy", "bleed": 2.0, "melee": true}))

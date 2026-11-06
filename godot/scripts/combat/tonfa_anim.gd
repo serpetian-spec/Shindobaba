@@ -52,7 +52,7 @@ static func steps() -> Array:
 			_t(0.62, 0.4, 0, 4, R_GUARD, L_GUARD, W),
 		]},
 		# 2 Sōkō: sol kanca -> hemen sağ kanca (kalça iki yöne burulur), tonfa gövdeleri yay çizer
-		{"len": 0.72, "hit": 0.26, "extra": [0.48], "extra_r": 1.5, "keys": [
+		{"len": 0.72, "hit": 0.26, "extra_hits": [0.48], "extra_radius": 1.5, "keys": [
 			_t(0.0, 0.4, 0, 4, R_GUARD, L_GUARD, W),
 			_t(0.12, 0.45, 30, -6, R_GUARD, L_COCK, BKL),
 			_t(0.26, 0.5, -24, 14, R_GUARD, L_HOOK_END, LL),
@@ -61,7 +61,7 @@ static func steps() -> Array:
 			_t(0.72, 0.4, 0, 4, R_GUARD, L_GUARD, W),
 		]},
 		# 3 Hiji Ate: dönen kalçayla sağ dirsek öne (tonfa ucu dirsekten çıkıp göğse saplanır) -> geri kol
-		{"len": 0.8, "hit": 0.32, "extra": [0.56], "extra_r": 1.6, "keys": [
+		{"len": 0.8, "hit": 0.32, "extra_hits": [0.56], "extra_radius": 1.6, "keys": [
 			_t(0.0, 0.4, 0, 4, R_GUARD, L_GUARD, W),
 			_t(0.16, 0.46, -28, -6, R_COCK, L_GUARD, BK),
 			_t(0.32, 0.52, 22, 20, R_ELBOW, L_GUARD, L),

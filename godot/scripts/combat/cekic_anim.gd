@@ -49,7 +49,7 @@ static func steps() -> Array:
 			_t(1.3, 0.4, 0, 4, RDY, R_READY, W),
 		]},
 		# 3 Tatsumaki: kafa yana açık, gövde iki tam tur döner (kafa geniş çember çizer, çoklu vuruş)
-		{"len": 1.4, "hit": 0.36, "two": true, "extra": [0.6, 0.86], "extra_r": 2.8, "keys": [
+		{"len": 1.4, "hit": 0.36, "two": true, "extra_hits": [0.6, 0.86], "extra_radius": 2.8, "keys": [
 			_t(0.0, 0.4, 0, 4, RDY, R_READY, W),
 			_t(0.2, 0.48, -30, 4, Vector3(-0.9, 0.05, 0.3), R_WIDE, BK),
 			_t(0.42, 0.5, 60, 8, Vector3(-0.9, 0.05, 0.3), R_WIDE, CR),
@@ -68,7 +68,7 @@ static func steps() -> Array:
 			_t(1.05, 0.4, 0, 4, RDY, R_READY, W),
 		]},
 		# 5 Tsuki: sap ucuyla kısa dürtme (kafa geride), ardından kafa öne yarım savuruş
-		{"len": 0.85, "hit": 0.26, "two": true, "extra": [0.48], "extra_r": 1.6, "keys": [
+		{"len": 0.85, "hit": 0.26, "two": true, "extra_hits": [0.48], "extra_radius": 1.6, "keys": [
 			_t(0.0, 0.4, 0, 4, RDY, R_READY, W),
 			_t(0.14, 0.44, -10, -6, Vector3(0, 0.3, -0.95), R_JAB, BK),
 			_t(0.26, 0.48, 10, 16, Vector3(0, 0.3, -0.95), R_JAB, L),

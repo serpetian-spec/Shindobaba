@@ -53,7 +53,7 @@ static func steps() -> Array:
 			_t(0.95, 0.34, 0, 4, RDY, R_READY, L_GUARD, W),
 		]},
 		# 3 Uzu Giri: uç yana açık, gövde iki tam tur döner (ağır uç geniş çember çizer, su halkası)
-		{"len": 1.25, "hit": 0.36, "extra": [0.62, 0.88], "extra_r": 2.8, "keys": [
+		{"len": 1.25, "hit": 0.36, "extra_hits": [0.62, 0.88], "extra_radius": 2.8, "keys": [
 			_t(0.0, 0.34, 0, 4, RDY, R_READY, L_GUARD, W),
 			_t(0.18, 0.46, -30, 4, Vector3(-0.9, 0.1, 0.3), R_WIDE, L_GUARD, BK),
 			_t(0.4, 0.48, 70, 8, Vector3(-0.9, 0.1, 0.3), R_WIDE, L_GUARD, CR),
