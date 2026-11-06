@@ -37,6 +37,20 @@ func active() -> Dictionary:
 	return Game.profile.get("active_mission", {})
 
 
+## KURAL: oyuncu bir işin ortasındayken (görev, yol antrenmanı, sınav, boss) dünya araya kimseyi sokmaz —
+## av-ninjaları, Akatsuki çifti, yol olayları, tanıyan köy takımları, köy baskını bekler
+func quiet() -> bool:
+	if Game.profile.is_empty():
+		return false
+	if not active().is_empty() or (is_instance_valid(LegendPaths._node) and not LegendPaths._node.drill.is_empty()):
+		return true
+	if int(ChuninExam.stage) != 0 or Exams.cur != "":
+		return true
+	if not _bb_spawned.is_empty():   # Bingo Kitabı hedefi (jinchūriki dahil) sahnede: av sürüyor
+		return true
+	return Hud.boss != null and is_instance_valid(Hud.boss)
+
+
 func _vpos(id: String, dx := 0.0, dy := 0.0) -> Vector3:
 	var v = Game.village(id)
 	return Game.from_map(Vector2(float(v["x"]) + dx, float(v["y"]) + dy))

@@ -28,7 +28,7 @@ func _process(dt: float) -> void:
 	# takımları yürüt: lider hedefe, diğerleri liderin arkasında üçgen dizilişte
 	for tm in teams.duplicate():
 		var ns: Array = tm["nodes"].filter(func(n): return is_instance_valid(n) and not n.dead)
-		if Orgs.is_rogue() and not ns.is_empty() and ns[0].global_position.distance_to(pp) < 22.0 and not tm.get("hostile", false):
+		if Orgs.is_rogue() and not Missions.quiet() and not ns.is_empty() and ns[0].global_position.distance_to(pp) < 22.0 and not tm.get("hostile", false):
 			Hud.msg("«Kaçak! Bu o — alnındaki çizik!» Köyün takımı seni tanıdı.", Color(1, 0.45, 0.35))
 			_team_attack(tm, false)
 			continue
@@ -52,7 +52,7 @@ func _process(dt: float) -> void:
 	if t > 0.0:
 		return
 	t = randf_range(50.0, 90.0)
-	if teams.size() >= MAX_TEAMS or not _outdoors(pp) or int(ChuninExam.stage) != 0 or Exams.cur != "":
+	if teams.size() >= MAX_TEAMS or not _outdoors(pp) or Missions.quiet():
 		return   # sınav sürerken gezen takım çıkmaz
 	_spawn(pp)
 

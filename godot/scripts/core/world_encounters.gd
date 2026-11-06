@@ -58,7 +58,7 @@ func _process(dt: float) -> void:
 func _can_start(p: Vector3) -> bool:
 	if int(ChuninExam.stage) != 0 or Exams.cur != "":
 		return false   # sınav sürerken yol karşılaşması (haydut, haraççı...) yok
-	if not (Game.profile.get("active_mission", {}) as Dictionary).is_empty():
+	if Missions.quiet():
 		return false   # görevdeyken intikamcı / takipçi / haydut çıkmaz (görevin önüne geçiyordu)
 	if not ClanWorld._village_here(p).is_empty():
 		return false

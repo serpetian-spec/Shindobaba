@@ -78,7 +78,7 @@ func _raid_tick(dt: float) -> void:
 	if _raid_t > 0.0:
 		return
 	_raid_t = randf_range(600.0, 1100.0)
-	if Orgs.is_rogue() or Missions.active().get("rank", "") == "S" or Exams.cur != "":
+	if Orgs.is_rogue() or Missions.quiet():
 		return
 	var home = Progress.home()
 	var v = Game.village(home)

@@ -787,6 +787,8 @@ func on_player_defeated() -> void:
 func _hunter_tick(dt: float) -> void:
 	if not is_rogue() or Game.player == null or _pardon_active():
 		return   # Kefaret görevinde av-ninjaları gelmez (köy affı bekliyor)
+	if Missions.quiet():
+		return   # görev/antrenman ortasında av ekibi gelmez (sayaç da işlemez)
 	_hunter_t += dt
 	if _hunter_t < _hunter_next:
 		return
@@ -1008,7 +1010,7 @@ func _process(dt: float) -> void:
 		_t = 0.0
 		_events_tick()
 	# Akatsuki avı sürerken: vahşi doğada ara sıra bir çift belirir
-	if is_hunting() and int(p()["rank"]) >= 3 and not is_akatsuki():
+	if is_hunting() and int(p()["rank"]) >= 3 and not is_akatsuki() and not Missions.quiet():
 		_hunt_t += dt
 		if _hunt_t > 600.0:
 			_hunt_t = 0.0
