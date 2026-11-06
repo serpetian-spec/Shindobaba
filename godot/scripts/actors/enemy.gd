@@ -600,6 +600,7 @@ func _chase(dt: float) -> void:
 		var nowj = Game.now()
 		var ready = jl.filter(func(id): return nowj >= float(jcd.get(id, 0.0)))
 		ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("need", "")) != "juin2" or buffs.has("juin2"))   # oyuncuyla aynı şart
+		ready = ready.filter(func(id): return PathJutsu.gate_ok(self, String(id)) and CanonRules.block(self, String(id)) == "")   # kapı, Hiraishin işareti, Kirin fırtınası   # Sekiz Kapı: oyuncuyla aynı kapı şartı
 		ready = ready.filter(func(id):   # kuyruklu canavar teknikleri: yalnız jinchūriki düşman (oyuncuyla aynı kanon şartı)
 			var nd = String(Data.jutsu.get(id, {}).get("need", ""))
 			if nd == "jin:any" or nd == "beast":

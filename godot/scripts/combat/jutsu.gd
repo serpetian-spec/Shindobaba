@@ -127,6 +127,8 @@ signal jutsu_cast(caster: Node, id: String)
 func execute(caster: Node3D, id: String, target: Node3D) -> void:
 	jutsu_cast.emit(caster, id)
 	caster.set_meta("jid", id)   # hasar dengesi: bu jutsunun isabetleri ölçülmüş çarpanla
+	if String(Data.jutsu.get(id, {}).get("element", "")) == "katon":
+		caster.set_meta("katon_t", Game.now())   # Kirin: Katon ile ısınan gök fırtına bulutu toplar
 	caster.set_meta("jid_t", Time.get_ticks_msec() / 1000.0)
 	# Kurama kekkei genkai (kanon, Yakumo): genjutsusu bedeni gerçekten yaralar — yakalanan (sersem/korku/bağ/uyku) düşman gerçek hasar alır.
 	# Oyuncu ve düşman Kurama aynı kural.

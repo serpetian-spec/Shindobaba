@@ -1089,6 +1089,15 @@ func begin_cast(jid: String) -> void:
 	if need == "beast" and not in_beast:
 		Hud.msg("%s sadece kuyruklu canavar modunda atılabilir." % String(j["name"]), Color(1, 0.55, 0.3))
 		return
+	var cblock = CanonRules.block(p, jid)
+	if cblock != "":
+		Hud.msg("%s: %s" % [String(j["name"]), cblock], Color(1, 0.65, 0.45))
+		return
+	if CanonRules.dmg_mult(p, jid) < 1.0:
+		Hud.msg("Yakında su yok — suyu kendi chakrandan üretiyorsun: yarı güç.", Color(0.6, 0.8, 1.0))
+	if not PathJutsu.gate_ok(p, jid):
+		Hud.msg("%s için en az %d. kapı açık olmalı — Hachimon Tonkō ile kapıları aç." % [String(j["name"]), int(PathJutsu.GATE_REQ[jid])], Color(1, 0.6, 0.45))
+		return
 	if need == "jin:any" and TailedBeasts.player_jinchuriki() == "":
 		Hud.msg("%s yalnız bir jinchūriki kullanabilir." % String(j["name"]), Color(1, 0.6, 0.45))
 		return

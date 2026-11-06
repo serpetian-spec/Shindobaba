@@ -3304,9 +3304,32 @@ func p_sozo_saisei(c: Node3D, _t: Node3D) -> void:
 const GATE_GREEN := Color(0.45, 1.0, 0.45)
 
 
+## Kanon (Sekiz Kapı): teknik, gerekli kapı açıkken yapılır. Kapıları Hachimon Tonkō açar; bedeli (can) açık kapılar zamanla öder.
+const GATE_REQ := {"omote_renge": 1, "ura_renge": 3, "asakujaku": 6, "hirudora": 7, "sekizo": 8, "yagai": 8}
+const GATE_NAMES := ["", "Açılış", "Dinlenme", "Yaşam", "Acı", "Sınır", "Görüş", "Hayret", "Ölüm"]
+
+
+static func gate_level(c: Node) -> int:
+	if c == null or not is_instance_valid(c) or not c.has_meta("gates"):
+		return 0
+	if Game.now() > float(c.get_meta("gates_until", 0.0)):
+		return 0
+	return int(c.get_meta("gates"))
+
+
+## Teknik atılabilir mi (oyuncu + düşman aynı şart). Omote Renge 1. kapıyı kendisi zorla açar (kanon: Lee'nin ilk Lotus'u).
+static func gate_ok(c: Node, jid: String) -> bool:
+	var need = int(GATE_REQ.get(jid, 0))
+	return need <= 1 or gate_level(c) >= need
+
+
 func _gate_cost(c: Node3D, frac: float) -> void:
-	if c is Player:
-		c.hp = maxf(1.0, c.hp - c.max_hp * frac)
+	# kapı zaten açıksa teknik ayrıca can yakmaz (bedel açık kapıların akışı); kapalıyken (yalnız Omote Renge) 1. kapı zorla açılır
+	if gate_level(c) < 1:
+		if c is Player:
+			c.hp = maxf(1.0, c.hp - c.max_hp * frac)
+		c.set_meta("gates", 1)
+		c.set_meta("gates_until", Game.now() + 8.0)
 	FX.aura(c, GATE_GREEN, 1.0, Vector3(0, 0.9, 0), 0.8)
 
 
@@ -3432,11 +3455,49 @@ func p_ura_renge(c: Node3D, t: Node3D) -> void:
 		VFX.debris(p, EARTH, 40, 12.0, 0.6)
 		shake(1.3)
 		Sfx.play("boom", p, 0.6)
-		hit(c, p + Vector3.UP * 0.6, 4.0, inf(c, "ura_renge", 1.8, {"knock": 12.0, "kind": "heavy"})))
+		hit(c, p + Vector3.UP * 0.6, 4.0, inf(c, "ura_renge", 1.8, {"knock": 12.0, "kind": "heavy"}), [tt] if live(tt) else [])
+		if live(tt):   # hedefe kilitli: yere çakılan hedef kaymış olsa da son darbe onu bulur
+			tt.take_hit(inf(c, "ura_renge", 1.8, {"knock": 12.0, "kind": "heavy"})))
+
+
+## Kapı yükseltme anı: buhar patlaması, zemin çatlağı; 8. kapı (Ölüm) kızıl buhar ve sonunda beden tükenir
+func _gate_burst(c: Node3D, g: int) -> void:
+	var col = Color(1.0, 0.25, 0.18) if g >= 8 else (Color(0.95, 0.55, 0.3) if g >= 6 else GATE_GREEN)
+	shake(0.5 + g * 0.08)
+	VFX.shockwave(c.global_position + Vector3.UP * 1.0, col, 6.0 + g * 1.5, 0.5, false)
+	VFX.cracks(gp(c.global_position), 3.0 + g * 0.6)
+	FX.aura(c, col, 1.3 + g * 0.1, Vector3(0, 0.9, 0), 1.2)
+	Sfx.play("roar", c.global_position, 1.0, 0.5)
+	Combat.popup_text(c.global_position + Vector3.UP * 2.6, "%d. Kapı: %s Kapısı açıldı!" % [g, GATE_NAMES[g]], col)
+	if g >= 8:
+		var until = float(c.get_meta("gates_until", 0.0))
+		after(maxf(0.5, until - Game.now()), func():
+			if live(c):   # Ölüm Kapısı kapanınca beden tükenir (kanon: kullanıcı ölür; oyunda can 1, uzun yavaşlık)
+				c.hp = 1.0
+				st(c, "slow", 15.0)
+				Combat.popup_text(c.global_position + Vector3.UP * 2.4, "Ölüm Kapısı'nın bedeli: beden tükendi", Color(1, 0.4, 0.35)))
 
 
 ## Sekiz Kapı Açılışı: yeşil buhar fışkırır, ten kızarır; 25 sn büyük güç ve hız, can yavaşça erir
 func p_hachimon_tonko_no_jin(c: Node3D, _t: Node3D) -> void:
+	# kanon: kapılar sırayla açılır. İlk açılış Yaşam Kapısı'na (3) kadar; açıkken tekrar: 6. (Görüş), 7. (Hayret), 8. (Ölüm)
+	var cur = gate_level(c)
+	var nxt = 3 if cur < 3 else (6 if cur < 6 else (7 if cur < 7 else 8))
+	if cur >= 8:
+		return
+	if cur > 0:   # kapı yükseltme: kısa bekleme, aynı akış devam eder
+		c.set_meta("gates", nxt)
+		c.set_meta("gates_until", maxf(float(c.get_meta("gates_until", 0.0)), Game.now() + (14.0 if nxt == 8 else 10.0)))
+		_gate_burst(c, nxt)
+		if c is Player:
+			c.combat.cooldowns["hachimon_tonko_no_jin"] = 1.5
+		elif c.get("jcd") is Dictionary:
+			c.jcd["hachimon_tonko_no_jin"] = Game.now() + 1.5
+		return
+	c.set_meta("gates", nxt)
+	c.set_meta("gates_until", Game.now() + 25.0)
+	if c is Player:
+		Combat.popup_text(c.global_position + Vector3.UP * 2.6, "%d. Kapı: %s Kapısı açıldı!" % [nxt, GATE_NAMES[nxt]], GATE_GREEN)
 	busy(c, 0.8)
 	anim(c, "cast", 1.0)
 	shake(0.8)
@@ -3460,8 +3521,12 @@ func p_hachimon_tonko_no_jin(c: Node3D, _t: Node3D) -> void:
 		Buffs.add("hachimon", 25.0, {"melee": 1.55, "speed": 1.25, "_name": "Sekiz Kapı Açık", "_desc": "her sn canın %1.5'i erir"})
 	every(25.0, 0.4, func(_i, _k):
 		if live(c):
-			if c is Player:
-				c.hp = maxf(1.0, c.hp - c.max_hp * 0.006)
+			var gl = gate_level(c)
+			if gl == 0:
+				return
+			# açık kapı başına can akışı (8. kapı: ölüm kapısı, hızla yakar)
+			var drain = 0.0015 * gl + (0.01 if gl >= 8 else 0.0)
+			c.hp = maxf(1.0, c.hp - c.max_hp * drain)
 			FX.burst(c.global_position + Vector3.UP * 1.1, {"amount": 4, "life": 0.9, "tex": FX.tex_soft, "add": true, "size": 0.35, "radius": 0.35,
 				"vmin": 1, "vmax": 2.5, "dir": Vector3.UP, "spread": 20.0, "colors": [Color(0.75, 1, 0.75, 0.0), Color(0.75, 1, 0.75, 0.3), Color(0.6, 0.9, 0.6, 0)]}), func():
 		if is_instance_valid(a):
@@ -3533,8 +3598,8 @@ func p_hirudora(c: Node3D, t: Node3D) -> void:
 		var from = c.global_position + Vector3.UP * 1.4 + d * 1.6
 		var node = _tiger_head(1.4)
 		VFX.gather(from, Color(0.7, 0.85, 1.0), 2.0)
-		var pr = shot(c, from, d, 24.0, node, inf(c, "hirudora", 2.2, {"knock": 22.0, "launch": 6.0, "kind": "heavy", "hitstop": 0.1}), null, true, 1.5)
-		pr.radius = 2.4
+		var pr = shot(c, from, d, 24.0, node, inf(c, "hirudora", 2.2, {"knock": 22.0, "launch": 6.0, "kind": "heavy", "hitstop": 0.1}), tg(c, t, 30.0), true, 1.5)
+		pr.radius = 3.6   # kanon: göl dalgasını yaran dev hava basıncı — dar mermi değil
 		node.scale = Vector3.ONE * 0.2
 		node.create_tween().tween_property(node, "scale", Vector3.ONE, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		WindFX.bullet(pr, 3.0)   # yele: arkaya akan hava çizgileri
@@ -23180,6 +23245,14 @@ func p_hiraishin_kunai(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 30.0)
 	var from = hand_pos(c, true)
 	var pr = shot(c, from, aim_at(c, tt, from), 40.0, _hira_kunai(), inf(c, "hiraishin_kunai", 0.6, {"knock": 2.0, "kind": "light"}), tt, false, 1.2, func(p, _h):
+		# kanon: kunainin mühür formülü işarettir — vurduğu hedef işaretlenir, ıskalarsa saplandığı yer işaret kalır
+		if _h and is_instance_valid(_h) and _h.has_method("apply_status"):
+			_h.apply_status("marked", 20.0)
+			_h.set_meta("hiraishin_by", c.get_instance_id())
+		var mk: Array = c.get_meta("hira_marks", [])
+		mk = mk.filter(func(m): return Game.now() < float(m["until"]))
+		mk.append({"pos": gp(p), "until": Game.now() + 30.0})
+		c.set_meta("hira_marks", mk.slice(maxi(0, mk.size() - 5)))
 		after(0.3, func():
 			if not live(c):
 				return
