@@ -50,6 +50,9 @@ func face_dir() -> Vector3:
 func take_hit(info: Dictionary) -> void:
 	if dead:
 		return
+	if has_meta("drill_throw") and not info.has("tool"):
+		Combat.popup_text(global_position + Vector3.UP * 1.2, "Yalnız atış! [R]", Color(1, 0.8, 0.4))
+		return
 	if has_meta("throw_only"):
 		# atış hedefi: yalnız kunai/shuriken; tek isabet yeter
 		if not info.has("tool"):

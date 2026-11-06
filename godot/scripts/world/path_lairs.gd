@@ -397,6 +397,19 @@ static func _forge(b: Builder, pid: String, p: Vector2, base: float) -> float:
 	b.lantern(-4.0, 4.0)
 	b.lantern(4.0, 4.0)
 	fog(b, b.w(Vector3(5.0, fy + 1.0, 12.0)), 4.0, Color(0.7, 0.68, 0.66, 0.18), 6)   # ocak dumanı tavanda
+	# avlu: talimle aşınmış toprak (otsuz; çimen yol haritasından okur)
+	var RM = preload("res://scripts/world/road_map.gd")
+	for k in 6:
+		var zz = -15.0 + k * 4.0
+		var wa = b.w(Vector3(-15.0, 0, zz))
+		var wb = b.w(Vector3(15.0, 0, zz))
+		RM.add_lane(Vector2(wa.x, wa.z), Vector2(wb.x, wb.z), 2.4, true)
+	# antrenman: dört hedef tahtası (atış talimi) + avlu merkezi (silah toplama, silah yağmuru çemberi)
+	var posts: Array = []
+	for k in 4:
+		var tx2 = -7.5 + k * 5.0
+		posts.append(b.w(Vector3(tx2, _g(p, base, tx2, -11.0), -11.0)))
+	LegendPaths.drill_spots[pid] = {"posts": posts, "center": b.w(Vector3(0, _g(p, base, 0.0, -2.0), -2.0))}
 	LegendPaths._mentor(b, pid, Vector3(-1.5, fy + 0.8, 8.4), PI)
 	b.interact(Vector3(-1.5, fy, 6.0), 6.5, "path_mentor", "[F] Silah ustasıyla konuş", {"path": pid})
 	return 5.0

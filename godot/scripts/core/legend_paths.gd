@@ -22,6 +22,10 @@ const DRILLS := {
 	"jagei_jubaku": {"type": "collect", "n": 6, "time": 120.0, "item": "zehir kesesi", "say": "Gölge yılanlar zehirden beslenir. İnin çevresindeki ölü yılanlardan altı zehir kesesi topla, iki dakikan var."},
 	"hebi_bunshin_no_jutsu": {"type": "survive", "n": 20, "time": 0.0, "say": "Deri değiştiren beden zehre dayanır. Şu mor sisin içinde yirmi saniye dur — kaçarsan baştan."},
 	"sen_ei_tajashu": {"type": "survive", "n": 30, "time": 0.0, "say": "Bin yılan kolundan fışkırır; damarların zehri tanımalı. Otuz saniye sisin içinde kal."},
+	# Silah Yolu (kanon: Tenten'in hedef talimi, parşömene geri mühürlenen silahlar, yağan silahları okuyan göz)
+	"buki_kuchiyose": {"type": "throws", "n": 24, "time": 60.0, "min_d": 8.0, "say": "Parşömenden çıkan silah, onu yönlendiren el kadar isabetlidir. Sekiz adım geriden şu dört hedefe bir dakikada yirmi dört atış isabet ettir! Kılıçla vurmak sayılmaz."},
+	"tesso_kusari": {"type": "collect", "n": 8, "time": 90.0, "item": "silah", "look": "weapon", "say": "Dünkü talimin silahları avluya saplı kaldı. Sekizini topla ve parşömene geri mühürle — doksan saniye. Bir ninja silahını yerde bırakmaz."},
+	"tekkosen": {"type": "survive", "n": 20, "time": 0.0, "rain": true, "say": "Demir yelpaze ancak gelen silahı gören göze yarar. Şu çemberin içinde yirmi saniye dur; yağdıracağım kunailerden kaçarken çemberden çıkma!"},
 }
 var drill := {}   # aktif antrenman: {pid, jid, type, n, c, t, time, center, ang, dummies}
 
@@ -596,10 +600,25 @@ func start_drill(pid: String, jid: String) -> void:
 		center += q
 	center /= maxf(1.0, posts.size())
 	drill["center"] = center + Vector3(0, 0, 4.0)
-	if D["type"] in ["collect", "survive"]:
+	if D["type"] in ["collect", "survive", "throws"]:
 		center = sp.get("center", Game.player.global_position)
 		drill["center"] = center
-	if D["type"] == "collect":
+	drill["rain"] = bool(D.get("rain", false))
+	drill["min_d"] = float(D.get("min_d", 0.0))
+	if D["type"] == "collect" and String(D.get("look", "")) == "weapon":
+		# talimden kalan silahlar avluya eğik saplanmış: yaklaşınca toplanır (parşömene mühürlenir)
+		var pj = PathJutsu.get_pinst()
+		for k in int(D["n"]):
+			var a = TAU * k / float(D["n"]) + randf_range(-0.3, 0.3)
+			var q: Vector3 = center + Vector3(cos(a), 0, sin(a)) * randf_range(4.0, 11.0)
+			q.y = Game.ground_height(q.x, q.z)
+			var w = pj.mi_of(pj.weapon_mesh(PathJutsu.WEAPON_KINDS[k % PathJutsu.WEAPON_KINDS.size()]))
+			get_tree().current_scene.add_child(w)
+			w.global_position = q + Vector3.UP * 0.6
+			w.rotation_degrees = Vector3(-90 + randf_range(-25, 25), randf() * 360.0, randf_range(-20, 20))   # ucu toprakta
+			w.scale = Vector3.ONE * 2.0
+			drill["dummies"].append(w)
+	elif D["type"] == "collect":
 		# in çevresine dağılmış zehir keseleri (mor parlayan küçük keseler): yaklaşınca toplanır
 		for k in int(D["n"]):
 			var a = TAU * k / float(D["n"]) + randf_range(-0.3, 0.3)
@@ -622,6 +641,21 @@ func start_drill(pid: String, jid: String) -> void:
 			bt.tween_property(bag, "position:y", q.y + 0.25, 0.8).set_trans(Tween.TRANS_SINE)
 			bt.tween_property(bag, "position:y", q.y, 0.8).set_trans(Tween.TRANS_SINE)
 			drill["dummies"].append(bag)
+	elif D["type"] == "survive" and drill["rain"]:
+		# silah yağmuru çemberi: yerde turuncu halka; kunailer _rain_tick ile gökten düşer
+		var ring2 = MeshInstance3D.new()
+		var tm2 = TorusMesh.new()
+		tm2.inner_radius = 6.6
+		tm2.outer_radius = 7.0
+		ring2.mesh = tm2
+		var rmat2 = StandardMaterial3D.new()
+		rmat2.albedo_color = Color(0.95, 0.6, 0.3)
+		rmat2.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		ring2.material_override = rmat2
+		get_tree().current_scene.add_child(ring2)
+		ring2.global_position = center + Vector3.UP * 0.1
+		drill["dummies"].append(ring2)
+		drill["rain_t"] = 1.0
 	elif D["type"] == "survive":
 		# zehirli mor sis alanı (yerde halka + yükselen zehir zerreleri); içinde durdukça can erir
 		var ring = MeshInstance3D.new()
@@ -641,14 +675,16 @@ func start_drill(pid: String, jid: String) -> void:
 		if mist:
 			mist.one_shot = false
 			drill["dummies"].append(mist)
-	if D["type"] == "hits":
+	if D["type"] in ["hits", "throws"]:
 		for q in posts:
 			var d = TrainingDummy.new()
 			d.set_meta("drill", true)
+			if D["type"] == "throws":
+				d.set_meta("drill_throw", true)   # hedef tahtası: yalnız atış sayılır
 			d.max_hp = 1e9
 			d.hp = 1e9
 			get_tree().current_scene.add_child(d)
-			d.global_position = (q as Vector3) + Vector3(0, 0, 1.0)
+			d.global_position = (q as Vector3) + (Vector3(0, 1.3, 0) if D["type"] == "throws" else Vector3(0, 0, 1.0))
 			d.vis.visible = false
 			drill["dummies"].append(d)
 	else:
@@ -661,15 +697,20 @@ func start_drill(pid: String, jid: String) -> void:
 
 
 func _drill_text() -> String:
-	var unit = {"hits": "vuruş", "laps": "tur", "collect": String(DRILLS.get(String(drill["jid"]), {}).get("item", "parça")), "survive": "sn"}.get(String(drill["type"]), "")
+	var unit = {"hits": "vuruş", "throws": "isabet", "laps": "tur", "collect": String(DRILLS.get(String(drill["jid"]), {}).get("item", "parça")), "survive": "sn"}.get(String(drill["type"]), "")
 	var tl = (" — %d sn" % int(maxf(0.0, float(drill["time"]) - float(drill["t"])))) if float(drill["time"]) > 0.0 else ""
 	return "%d / %d %s%s" % [int(drill["c"]), int(drill["n"]), unit, tl]
 
 
 ## Kukla vuruşu (Progress.on_dummy_hit çağırır)
 func on_drill_hit(d: Node) -> void:
-	if drill.is_empty() or not d.has_meta("drill") or drill["type"] != "hits":
+	if drill.is_empty() or not d.has_meta("drill") or not drill["type"] in ["hits", "throws"]:
 		return
+	if float(drill.get("min_d", 0.0)) > 0.0 and Game.player:
+		var dd = Game.player.global_position - (d as Node3D).global_position
+		if Vector2(dd.x, dd.z).length() < float(drill["min_d"]):
+			Combat.popup_text((d as Node3D).global_position + Vector3.UP * 2.4, "Çok yakın! Geri çekil", Color(1, 0.7, 0.4))
+			return
 	drill["c"] = int(drill["c"]) + 1
 	Hud.objective_progress(_drill_text())
 	if int(drill["c"]) >= int(drill["n"]):
@@ -724,7 +765,10 @@ func _drill_tick(dt: float) -> void:
 			drill["acc"] = 0.0
 		else:
 			drill["acc"] = float(drill["acc"]) + dt
-			Game.player.hp = maxf(1.0, Game.player.hp - Game.player.max_hp * 0.012 * dt * (1.0 - passive(pr(), "poison_resist")))   # zehir yavaşça yakar (asla öldürmez)
+			if drill.get("rain", false):
+				_rain_tick(dt, c, pp)
+			else:
+				Game.player.hp = maxf(1.0, Game.player.hp - Game.player.max_hp * 0.012 * dt * (1.0 - passive(pr(), "poison_resist")))   # zehir yavaşça yakar (asla öldürmez)
 			if int(drill["acc"]) != int(drill["c"]):
 				drill["c"] = int(drill["acc"])
 				Hud.objective_progress(_drill_text())
@@ -734,8 +778,58 @@ func _drill_tick(dt: float) -> void:
 				return
 	if drill.is_empty():
 		return
-	if drill["type"] == "hits" and int(drill["t"] * 4.0) % 4 == 0:
+	if drill["type"] in ["hits", "throws"] and int(drill["t"] * 4.0) % 4 == 0:
 		Hud.objective_progress(_drill_text())
+
+
+## Tekkōsen antrenmanı: usta çemberin içine kunai yağdırır. Düşüş noktası yerde kırmızı işaretle 0.45 sn önceden görünür
+## (gelen silahı okuyan göz); işaretin üstünde kalan isabet alır (öldürmez). Saplanan kunailer biraz kalır.
+func _rain_tick(dt: float, c: Vector3, pp: Vector3) -> void:
+	drill["rain_t"] = float(drill.get("rain_t", 0.0)) - dt
+	if float(drill["rain_t"]) > 0.0:
+		return
+	drill["rain_t"] = randf_range(0.28, 0.45)
+	# yarısı oyuncunun ayağına, yarısı çemberde rastgele
+	var q: Vector3
+	if randf() < 0.5:
+		q = pp + Vector3(randf_range(-1.0, 1.0), 0, randf_range(-1.0, 1.0))
+	else:
+		var a = randf() * TAU
+		q = c + Vector3(cos(a), 0, sin(a)) * randf_range(0.0, 6.5)
+	q.y = Game.ground_height(q.x, q.z)
+	var mark = MeshInstance3D.new()
+	var cm = CylinderMesh.new()
+	cm.top_radius = 0.75
+	cm.bottom_radius = 0.75
+	cm.height = 0.02
+	mark.mesh = cm
+	var mm = StandardMaterial3D.new()
+	mm.albedo_color = Color(1.0, 0.25, 0.15, 0.55)
+	mm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	mm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mark.material_override = mm
+	get_tree().current_scene.add_child(mark)
+	mark.global_position = q + Vector3.UP * 0.05
+	var pj = PathJutsu.get_pinst()
+	var k = pj.mi_of(pj.weapon_mesh("kunai"))
+	get_tree().current_scene.add_child(k)
+	k.scale = Vector3.ONE * 1.4
+	k.global_position = q + Vector3(randf_range(-2, 2), 14.0, randf_range(-2, 2))
+	k.rotation_degrees = Vector3(-90, randf() * 360.0, 0)   # uç aşağı
+	var tw = k.create_tween()
+	tw.tween_interval(0.45)
+	tw.tween_property(k, "global_position", q + Vector3.UP * 0.3, 0.18).set_ease(Tween.EASE_IN)
+	tw.tween_callback(func():
+		if is_instance_valid(mark):
+			mark.queue_free()
+		Sfx.play("hit", q, randf_range(1.3, 1.6), 0.35)
+		FX.dust(q, 0.25)
+		var pl = Game.player
+		if pl and not drill.is_empty() and Vector2(pl.global_position.x - q.x, pl.global_position.z - q.z).length() < 0.9:
+			pl.hp = maxf(1.0, pl.hp - pl.max_hp * 0.06)   # antrenman: acıtır ama öldürmez
+			Combat.popup_text(pl.global_position + Vector3.UP * 2.2, "Gelen silahı gör!", Color(1, 0.5, 0.35)))
+	tw.tween_interval(1.6)
+	tw.tween_callback(k.queue_free)
 
 
 func end_drill(ok: bool) -> void:
