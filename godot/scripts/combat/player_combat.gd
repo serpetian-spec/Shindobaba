@@ -779,7 +779,7 @@ func _charge_seal_pose() -> Dictionary:
 func _update_charge(dt: float) -> void:
 	var want = Input.is_action_pressed("charge") and p.grounded and (action == "" or action == "charge") and not Game.ui_open
 	if want and action == "charge":
-		Mastery.gain(Game.profile, "chakra", dt * 0.01)   # meditasyon / chakra toplama antrenmanı
+		Mastery.gain(Game.profile, "chakra", dt * 0.06)   # meditasyon / chakra toplama antrenmanı (0.01 idi)
 	if want:
 		if action != "charge":
 			action = "charge"
@@ -1009,7 +1009,7 @@ func throw_tool() -> void:
 		n += 2  # Silah Yağmuru
 	for i in n:
 		var dir = aim.rotated(Vector3.UP, deg_to_rad((i - (n - 1) * 0.5) * 8.0))
-		Mastery.gain(Game.profile, "shurikenjutsu", 0.01)   # atış: shurikenjutsu
+		Mastery.gain(Game.profile, "shurikenjutsu", 0.2)   # atış: shurikenjutsu (0.01 idi: aletler 30 sn beklemeli, 1 puan ~2.5 saat)
 		Projectile.tool(p, start, dir, tool, tgt)
 
 
@@ -1211,7 +1211,7 @@ func _do_cast(dt: float) -> bool:
 		Mastery.gain(Game.profile, br, 0.3 * (1.0 + int(jd.get("tier", 2)) * 0.35))   # temel teknikler (Henge) de hissedilir ilerletir: ~20 Henge -> Bunshin
 		if br != "ninjutsu" and br != "taijutsu" and br != "kenjutsu":
 			Mastery.gain(Game.profile, "ninjutsu", 0.06)   # chakra şekillendirme ortak temel
-		Mastery.gain(Game.profile, "chakra", jutsu_cost(jd) / 360.0)
+		Mastery.gain(Game.profile, "chakra", jutsu_cost(jd) / 60.0)   # /360 idi: ninjutsudan ~7 kat yavaştı
 		Jutsu.execute(p, cast_jutsu, tg)
 		Progress.on_technique_used(cast_jutsu)
 	return true

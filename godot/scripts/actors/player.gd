@@ -511,7 +511,7 @@ func _ground_air_move(dt: float) -> void:
 	else:
 		var spd_mul = Buffs.mod("speed") * (1.0 + Stats.skill(Game.profile, "speed") + Mastery.get_v(Game.profile, "hiz") * 0.003) * (1.0 + Gear.stat(Game.profile, "speed") + Stats.clan_bonus(Game.profile, "speed")) * status_speed()
 		if sprint and wish.length() > 0.1:
-			Mastery.gain(Game.profile, "hiz", dt * 0.005)   # koştukça hız
+			Mastery.gain(Game.profile, "hiz", dt * 0.025)   # koştukça hız (0.005 idi: sürekli koşsan 1 puan ~20 dk)
 		var target = wish * ((DASH * 1.35 if turbo else DASH) if sprint else (WALK if walking else RUN)) * spd_mul   # tam hız (5 sn Shift) 2x; Caps Lock: yürüyüş
 		if swimming:
 			target *= 0.35
@@ -558,7 +558,7 @@ func _ground_air_move(dt: float) -> void:
 	if on_water and not swimming:
 		ground = wl
 		chakra -= 1.5 * maxf(0.1, 1.0 + Stats.skill(Game.profile, "water_cost")) * dt  # su üstünde durmak chakra ister
-		Mastery.gain(Game.profile, "chakra", dt * 0.005)   # su üstünde yürüme: chakra kontrolü antrenmanı
+		Mastery.gain(Game.profile, "chakra", dt * 0.03)   # su üstünde yürüme: chakra kontrolü antrenmanı (0.005 idi: 1 puan ~20 dk, neredeyse gelişmiyordu)
 		if chakra <= 0.0 and wl - terr > 1.0:   # sığ suda (dere, gölet) yüzülmez: dibe basılır
 			swimming = true
 			leaping = false
@@ -791,7 +791,7 @@ func _terrain_wall_move(dt: float) -> void:
 	var up_amt = wish.dot(-n)
 	var side_amt = wish.dot(side)
 	var spd = WALL_SPEED * (1.4 if Input.is_action_pressed("dash") else 1.0) * (1.0 + Stats.skill(Game.profile, "wall_run"))
-	Mastery.gain(Game.profile, "chakra", dt * 0.004)   # ağaç/duvar tırmanma: chakra kontrolü antrenmanı
+	Mastery.gain(Game.profile, "chakra", dt * 0.02)   # ağaç/duvar tırmanma: chakra kontrolü antrenmanı (0.004 idi)
 	if wall_boost_t > 0.0:
 		wall_boost_t -= dt
 		spd *= 2.3
