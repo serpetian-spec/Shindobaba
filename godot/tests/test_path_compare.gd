@@ -55,6 +55,9 @@ func _ready() -> void:
 		Game.profile["learned"].append(id)
 		pl.combat.cooldowns.erase(id)
 		await _w(0.4)
+		var md = pl.combat.get("modes")
+		if md and md.get("sage") != null:
+			md.sage = true
 		pl.combat.begin_cast(id)
 		var rt = pl.combat.cast_time
 		print("ANM %s release_t=%.2f" % [id, rt])
