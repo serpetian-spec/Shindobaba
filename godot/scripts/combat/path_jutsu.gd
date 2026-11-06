@@ -2282,15 +2282,50 @@ func throw_weapon(c: Node3D, id: String, kind: String, from: Vector3, to: Vector
 
 ## Parşömen: açılmış kâğıt (beyaz, kırmızı kenar) + ahşap rulolar
 func scroll_node(w: float, h: float) -> Node3D:
-	var mesh = cached("scroll_%d_%d" % [int(w * 10), int(h * 10)], func():
+	var mesh = cached("scroll2_%d_%d" % [int(w * 100), int(h * 100)], func():
+		# gerçek makimono: hafif kavisli kâğıt (ön yüz -Z), iki uçta kalın kâğıt rulosu + içinden geçen ahşap çubuk,
+		# çubuk uçlarında kırmızı laka topuz + altın halka; önde kırmızı kenar şeritleri, sütun sütun mürekkep yazı, ortada kırmızı mühür
 		var b = MB.new()
-		b.add("box", Vector3(0, 0, 0), Vector3(w, h, 0.02), Color(0.96, 0.94, 0.86))
-		b.add("box", Vector3(0, h * 0.5 - 0.06, -0.012), Vector3(w, 0.1, 0.02), Color(0.75, 0.12, 0.12))
-		b.add("box", Vector3(0, -h * 0.5 + 0.06, -0.012), Vector3(w, 0.1, 0.02), Color(0.75, 0.12, 0.12))
-		for k in 5:
-			b.add("box", Vector3(-w * 0.35 + k * w * 0.17, 0, -0.014), Vector3(0.05, h * 0.55, 0.01), Color(0.1, 0.08, 0.08))
+		var paper = Color(0.96, 0.93, 0.83)
+		var red = Color(0.72, 0.14, 0.13)
+		var ink = Color(0.12, 0.09, 0.08)
+		var bow = func(y: float) -> float: return 0.035 * cos(y / (h * 0.5) * PI * 0.5)   # ortası geriye kavisli
+		var N = 10
+		for i in N:
+			var y0 = -h * 0.5 + h * (i + 0.5) / N
+			b.add("box", Vector3(0, y0, bow.call(y0)), Vector3(w * 0.96, h / N + 0.004, 0.008), paper)
+		var fz = func(y: float) -> float: return bow.call(y) - 0.006
 		for sy in [-1.0, 1.0]:
-			b.add("cyl", Vector3(0, sy * h * 0.5, 0), Vector3(0.14, w + 0.3, 0.14), Color(0.45, 0.28, 0.15), Vector3(0, 0, 90), 8)
+			var by = sy * (h * 0.5 - h * 0.17)
+			b.add("box", Vector3(0, by, fz.call(by)), Vector3(w * 0.96, h * 0.07, 0.004), red)
+			b.add("box", Vector3(0, by - sy * h * 0.06, fz.call(by)), Vector3(w * 0.9, h * 0.012, 0.004), ink)
+		# dikey yazı sütunları (kısa fırça darbeleri)
+		for col in 6:
+			var x = -w * 0.38 + col * w * 0.152
+			if absf(x) < w * 0.12:
+				continue   # mühre yer
+			var yy = h * 0.25
+			var k = 0
+			while yy > -h * 0.27:
+				var L = h * (0.025 + 0.035 * float((col * 7 + k * 3) % 4) / 3.0)
+				b.add("box", Vector3(x, yy - L * 0.5, fz.call(yy)), Vector3(w * 0.035, L, 0.004), ink)
+				yy -= L + h * 0.022
+				k += 1
+		# ortada kırmızı mühür (daire) + içinde mürekkep işaret
+		b.add("cyl", Vector3(0, 0, fz.call(0.0) - 0.002), Vector3(w * 0.22, 0.004, w * 0.22), red, Vector3(90, 0, 0), 20)
+		b.add("cyl", Vector3(0, 0, fz.call(0.0) - 0.004), Vector3(w * 0.18, 0.004, w * 0.18), paper, Vector3(90, 0, 0), 20)   # hanko: içte ince halka
+		b.add("cyl", Vector3(0, 0, fz.call(0.0) - 0.006), Vector3(w * 0.165, 0.004, w * 0.165), red, Vector3(90, 0, 0), 20)
+		for st in [[0.0, 0.035, 0.11, 0.018, 0.0], [0.0, -0.005, 0.09, 0.016, 0.0], [-0.012, -0.01, 0.016, 0.12, 0.0], [0.03, -0.04, 0.016, 0.06, 35.0], [-0.032, -0.042, 0.016, 0.055, -35.0]]:
+			b.add("box", Vector3(st[0] * w * 2.0, st[1] * w * 2.0, fz.call(0.0) - 0.008), Vector3(st[2] * w, st[3] * w, 0.004), ink, Vector3(0, 0, st[4]))   # mürekkep "封" benzeri işaret
+		# rulolar: sarılı kâğıt + çubuk + topuzlar
+		for sy in [-1.0, 1.0]:
+			var ry = sy * h * 0.5
+			b.add("cyl", Vector3(0, ry, 0.0), Vector3(0.075, w, 0.075), paper.darkened(0.08), Vector3(0, 0, 90), 14)
+			b.add("cyl", Vector3(0, ry, 0.0), Vector3(0.079, w * 0.1, 0.079), red, Vector3(0, 0, 90), 14)   # rulo bağı
+			b.add("cyl", Vector3(0, ry, 0.0), Vector3(0.032, w + 0.12, 0.032), Color(0.36, 0.2, 0.1), Vector3(0, 0, 90), 10)
+			for sx in [-1.0, 1.0]:
+				b.add("cyl", Vector3(sx * (w * 0.5 + 0.03), ry, 0.0), Vector3(0.05, 0.014, 0.05), Color(0.85, 0.68, 0.25), Vector3(0, 0, 90), 12)
+				b.add("sphere", Vector3(sx * (w * 0.5 + 0.068), ry, 0.0), Vector3(0.058, 0.058, 0.058), Color(0.62, 0.1, 0.1), Vector3.ZERO, 10)
 		return b)
 	var root = Node3D.new()
 	root.add_child(mi_of(mesh))
@@ -2374,6 +2409,71 @@ func p_tesso_kusari(c: Node3D, t: Node3D) -> void:
 					claw.queue_free()))
 
 
+const HELIX_R := 3.4
+const HELIX_H := 21.0
+const HELIX_TURNS := 1.7
+
+
+## Sōshōryū sarmalı: s (0..1) boyunca nokta (yerel, taban merkezli); off: yarıçapa ek (dış/iç yüz)
+func _helix_pt(s: float, phase: float, off: float) -> Vector3:
+	var a = s * TAU * HELIX_TURNS + phase
+	var r = HELIX_R + s * 1.2 + off
+	return Vector3(cos(a) * r, 0.4 + s * HELIX_H, sin(a) * r)
+
+
+## Sarmal parşömen şeridi: genişlik silindir yüzeyinde, yola dik (anime: geniş kağıt bant); UV.x = uzunluk, UV.y = en
+func _helix_ribbon(phase: float, off: float) -> ArrayMesh:
+	var key = "helix_%d_%d" % [int(phase * 100), int(off * 1000)]
+	if _mcache.has(key):
+		return _mcache[key]
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var N = 120
+	var W = 1.5
+	var prev: Array = []
+	for i in N + 1:
+		var s = float(i) / N
+		var p = _helix_pt(s, phase, off)
+		var tg = (_helix_pt(minf(1.0, s + 0.005), phase, off) - _helix_pt(maxf(0.0, s - 0.005), phase, off)).normalized()
+		var rad = Vector3(p.x, 0, p.z).normalized()
+		var wv = tg.cross(rad).normalized() * W * 0.5
+		var cur = [p - wv, p + wv, s]
+		if not prev.is_empty():
+			for v in [[prev[0], prev[2], 0.0], [prev[1], prev[2], 1.0], [cur[1], s, 1.0], [prev[0], prev[2], 0.0], [cur[1], s, 1.0], [cur[0], s, 0.0]]:
+				st.set_uv(Vector2(v[1], v[2]))
+				st.set_normal(rad)
+				st.add_vertex(v[0])
+		prev = cur
+	_mcache[key] = st.commit()
+	return _mcache[key]
+
+
+static var _rib_sh: Shader
+func _ribbon_shader() -> Shader:
+	if _rib_sh == null:
+		_rib_sh = Shader.new()
+		_rib_sh.code = """
+shader_type spatial;
+render_mode cull_disabled, unshaded, depth_draw_opaque;
+uniform bool outer = true;
+uniform float reveal = 0.0;
+uniform float alpha = 1.0;
+uniform vec3 red : source_color = vec3(0.76, 0.32, 0.38);
+uniform vec3 yellow : source_color = vec3(0.98, 0.92, 0.55);
+uniform vec3 paper : source_color = vec3(0.97, 0.95, 0.9);
+uniform vec3 ink : source_color = vec3(0.22, 0.12, 0.12);
+void fragment() {
+	if (UV.x > reveal) discard;
+	float e = abs(UV.y - 0.5);
+	vec3 c = outer ? (e < 0.13 ? yellow : red) : paper;
+	if (e > 0.45) c = ink;   // anime kenar çizgisi
+	ALBEDO = c;
+	ALPHA = alpha;
+}
+"""
+	return _rib_sh
+
+
 ## Sōshōryū: iki parşömen ejderha gibi sarmal çizip göğe yükselir; tepede silah yağmuru (60 silah, 10 m yarıçap)
 func p_soshoryu(c: Node3D, t: Node3D) -> void:
 	var fd = fwd(c, t)
@@ -2385,19 +2485,37 @@ func p_soshoryu(c: Node3D, t: Node3D) -> void:
 	var base = c.global_position
 	VFX.slowmo(0.6, 0.5)
 	Sfx.play("poof", base, 0.8)
+	# anime: iki dev parşömen (dışı kırmızı + sarı orta çizgi, içi beyaz) çift sarmal çizerek göğe açılır; ucunda rulo döner
 	for k in 2:
-		var head = Node3D.new()
+		var rib = Node3D.new()
+		scene_add(rib, base)
+		var mats: Array = []
+		for outer in [true, false]:
+			var m = ShaderMaterial.new()
+			m.shader = _ribbon_shader()
+			m.set_shader_parameter("outer", outer)
+			var mi = mi_of(_helix_ribbon(k * PI, 0.035 if outer else -0.035), m)
+			rib.add_child(mi)
+			mats.append(m)
+		var head = scroll_node(0.5, 0.35)
 		scene_add(head, base)
-		var sc = scroll_node(0.5, 0.35)
-		head.add_child(sc)
-		VFX.trail(head, 0.9, Color(1, 1, 0.97), Color(0.97, 0.94, 0.85), Color(0.85, 0.2, 0.2, 0.0), 26)
+		head.scale = Vector3.ONE * 3.0
 		every(1.0, 1.0 / 40.0, func(_i, kk):
-			if not is_instance_valid(head):
-				return
-			var a = kk * TAU * 2.2 + k * PI
-			head.global_position = base + Vector3(cos(a) * (2.5 + kk * 2.0), 1.0 + kk * 19.0, sin(a) * (2.5 + kk * 2.0))
-			head.rotate_y(0.3), Callable())
-		fade_free(head, 2.6, 0.3)
+			var rv = 1.0 - pow(1.0 - kk, 2.0)   # hızlı açılır, tepede yavaşlar
+			for m in mats:
+				m.set_shader_parameter("reveal", rv)
+			if is_instance_valid(head):
+				head.global_position = base + _helix_pt(rv, k * PI, 0.0)
+				head.look_at(base + _helix_pt(minf(1.0, rv + 0.02), k * PI, 0.0) + Vector3(0.001, 0, 0), Vector3.UP)
+				head.rotate_object_local(Vector3.RIGHT, kk * 40.0), func():
+			if is_instance_valid(head):
+				head.queue_free())
+		var tw = rib.create_tween()
+		tw.tween_interval(2.2)
+		tw.tween_method(func(v):
+			for m in mats:
+				m.set_shader_parameter("alpha", v), 1.0, 0.0, 0.5)
+		tw.tween_callback(rib.queue_free)
 	var sky = base + Vector3.UP * 20.0
 	for k in 60:
 		after(0.9 + k * 0.025, func():
@@ -30767,6 +30885,23 @@ func p_sogu_tensasai(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 26.0)
 	busy(c, 1.4)
 	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 10.0)
+	# anime: hedefin üstünde açılan parşömenden silahlar parlak beyaz çizgiler halinde sağanak gibi iner
+	var sky = at + Vector3(0, 16.0, 0) - fwd(c, t) * 3.0
+	var scr = scroll_node(0.5, 0.35)
+	scene_add(scr, sky)
+	scr.scale = Vector3.ONE * 6.5
+	scr.rotation_degrees = Vector3(-55, rad_to_deg(atan2(fwd(c, t).x, fwd(c, t).z)), 0)   # kâğıt yüzü aşağı ve atana dönük (aşağıdan okunur)
+	fade_free(scr, 1.6, 0.3)
+	for k in 26:
+		after(0.3 + k * 0.035, func():
+			var from = sky + Vector3(randf_range(-2.5, 2.5), randf_range(-0.5, 0.5), randf_range(-2.5, 2.5))
+			var to = gp(at + Vector3(randf_range(-4.5, 4.5), 0, randf_range(-4.5, 4.5))) + Vector3.UP * 0.1
+			WindFX.streak(func(q: float) -> Vector3: return from.lerp(to, q), 0.45, 0.12, Color(1, 1, 1))
+			var pr = throw_weapon(c, "sogu_tensasai", WEAPON_KINDS[k % WEAPON_KINDS.size()], from, to, 60.0, 0.12)
+			pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
+				hit(c, pos, 1.2, inf(c, "sogu_tensasai", 0.12, {"knock": 1.5, "kind": "light"}))
+			if k % 5 == 0:
+				Sfx.play("kunai", from, randf_range(0.8, 1.2), 0.6))
 	for k in 7:
 		after(0.4 + k * 0.1, func():
 			var p = at + Vector3(randf_range(-2.5, 2.5), 0, randf_range(-2.5, 2.5))
@@ -30779,7 +30914,7 @@ func p_sogu_tensasai(c: Node3D, t: Node3D) -> void:
 				b.add("box", Vector3.ZERO, Vector3(0.12, 2.4, 0.4), Color(0.6, 0.6, 0.65))
 			var w = mesh_of(b)
 			scene_add(w, p + Vector3.UP * 14.0)
-			var src = c.global_position + Vector3.UP * 2.0
+			var src = sky
 			tether(func(): return src, func(): return w.global_position if is_instance_valid(w) else src, 0.03, Props.toon_color(Color(0.4, 0.4, 0.42)), 0.6)
 			var tw = w.create_tween()
 			tw.tween_property(w, "global_position", p + Vector3.UP * 0.4, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
