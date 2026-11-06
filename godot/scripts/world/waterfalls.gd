@@ -308,7 +308,7 @@ func add_epic(base: Vector3, height: float, width: float, opts := {}) -> Node3D:
 		_mist(root, Vector3(float(tr[0]), 1.0, 0.0), Vector3(float(tr[1]), 0.5, 2.0), 6, 3.0, Vector2(1, 3), Vector2(4, 8), 0.35, 0.3)
 	# dip: köpük halkaları + kabaran sis + ince serpinti + perde ortasından savrulan buğu
 	var hit_z = throw - back
-	_flat(root, Vector2(width * 1.7, width * 1.1), Vector3(0, 0.25, hit_z + width * 0.42), _epic_mat("pool", POOL_SH))
+	Game.add_water_mesh(_flat(root, Vector2(width * 1.7, width * 1.1), Vector3(0, 0.25, hit_z + width * 0.42), _epic_mat("pool", POOL_SH)), Vector2(width * 1.7, width * 1.1))
 	_mist(root, Vector3(0, 3.0, hit_z + 4.0), Vector3(width * 0.45, 2.0, 6.0), 34, 7.0, Vector2(3, 9), Vector2(18, 34), 0.55, 0.6)
 	_mist(root, Vector3(0, 1.0, hit_z + 2.0), Vector3(width * 0.45, 1.0, 3.0), 70, 1.8, Vector2(9, 20), Vector2(2.5, 5), 0.8, 0.35, -14.0)
 	_mist(root, Vector3(0, height * 0.35, hit_z), Vector3(width * 0.4, height * 0.2, 2.0), 14, 6.0, Vector2(1, 3), Vector2(14, 24), 0.25, 1.0)
@@ -327,7 +327,8 @@ func add_epic(base: Vector3, height: float, width: float, opts := {}) -> Node3D:
 		rm.set_shader_parameter("flow", 0.45)
 		rm.set_shader_parameter("foam_start", 0.0)   # PlaneMesh UV.y=0 -z ucunda = şelale tarafı
 		rm.set_shader_parameter("dir", 1.0)
-		_flat(root, Vector2(float(opts.get("river_w", width * 1.2)), rl), Vector3(0, 0.18, hit_z + rl * 0.5), rm)
+		var rsz = Vector2(float(opts.get("river_w", width * 1.2)), rl)
+		Game.add_water_mesh(_flat(root, rsz, Vector3(0, 0.18, hit_z + rl * 0.5), rm), rsz)
 	var ul = float(opts.get("upper_len", 0.0))
 	if ul > 0.0:
 		var um: ShaderMaterial = _epic_mat("river", RIVER_SH).duplicate()
@@ -335,7 +336,8 @@ func add_epic(base: Vector3, height: float, width: float, opts := {}) -> Node3D:
 		um.set_shader_parameter("foam_start", 1.0)   # +z ucu (UV.y=1) kenarda
 		um.set_shader_parameter("dir", 1.0)
 		um.set_shader_parameter("base_alpha", 0.95)
-		_flat(root, Vector2(float(opts.get("upper_w", width)), ul), Vector3(0, height - 1.2, -back - ul * 0.5), um)
+		var usz = Vector2(float(opts.get("upper_w", width)), ul)
+		Game.add_water_mesh(_flat(root, usz, Vector3(0, height - 1.2, -back - ul * 0.5), um), usz)
 	# uğultu (döngüsel sentez gürültü)
 	if opts.get("sound", true) and ResourceLoader.exists("res://assets/sfx/waterfall.wav"):
 		var s: AudioStreamWAV = load("res://assets/sfx/waterfall.wav").duplicate()

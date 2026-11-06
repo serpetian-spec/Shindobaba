@@ -232,10 +232,67 @@ func terrain_normal(x: float, z: float) -> Vector3:
 	return Vector3(-hx, 2.0 * e, -hz).normalized()
 
 
-## Yürünebilir zemin: deniz/nehir yüzeyi (y=0) ninja için zemindir (su üstünde yürüme).
+## Yürünebilir zemin: deniz/nehir yüzeyi (y=0) ve kayıtlı su yüzeyleri (gölet, kanal, Sonun Vadisi) ninja için zemindir.
 func ground_height(x: float, z: float, on_water := true) -> float:
 	var h := terrain_height(x, z)
-	return maxf(h, 0.0) if on_water else h
+	if not on_water:
+		return h
+	return maxf(h, water_level(x, z, h))
+
+
+# ------------------------------------------------------------------ su yüzeyleri
+## Arazinin üstüne/altına konan su meshleri (köy göleti, kanal, şelale havuzu) burada kayıtlıdır; deniz/nehir y=0.
+## Kayıt mesh'e bağlı: mesh silinince (yapı boşaltılınca) kayıt da düşer.
+const WATER_CELL := 32.0
+var _water_grid := {}   # Vector2i -> [[mesh, merkez(Vector2), yarı boyut(Vector2), yaw, y, oval]]
+var water_list: Array = []   # aynı kayıtlar sırayla (köy pişirme önbelleği dilimler: VillageBake)
+
+
+## Düz su yüzeyi kaydı: c dünya xz merkezi, size tam boyut, yaw (radyan, mesh rotation.y), y yüzey yüksekliği
+func add_water(owner: Node, c: Vector2, size: Vector2, yaw: float, y: float, oval := false) -> void:
+	var e = [owner, c, size * 0.5, yaw, y, oval]
+	water_list.append(e)
+	var r = size.length() * 0.5
+	for i in range(floori((c.x - r) / WATER_CELL), floori((c.x + r) / WATER_CELL) + 1):
+		for j in range(floori((c.y - r) / WATER_CELL), floori((c.y + r) / WATER_CELL) + 1):
+			var k = Vector2i(i, j)
+			if not _water_grid.has(k):
+				_water_grid[k] = []
+			_water_grid[k].append(e)
+
+
+## PlaneMesh/QuadMesh-yatay mesh: global dönüşümünden kaydet (ölçek dahil)
+func add_water_mesh(mi: MeshInstance3D, size: Vector2, oval := false) -> void:
+	if not mi.is_inside_tree():
+		mi.tree_entered.connect(add_water_mesh.bind(mi, size, oval), CONNECT_ONE_SHOT)
+		return
+	var t = mi.global_transform
+	var sc = Vector2(t.basis.x.length(), t.basis.z.length())
+	add_water(mi, Vector2(t.origin.x, t.origin.z), size * sc, mi.global_rotation.y, t.origin.y, oval)
+
+
+## Bu noktadaki su yüzeyi: kayıtlı yüzey varsa onun y'si; yoksa arazi suyun altındaysa deniz (0); değilse -INF
+func water_level(x: float, z: float, terr := NAN) -> float:
+	var k = Vector2i(floori(x / WATER_CELL), floori(z / WATER_CELL))
+	var best := -INF
+	var lst = _water_grid.get(k)
+	if lst:
+		var i := 0
+		while i < lst.size():
+			var e = lst[i]
+			if not is_instance_valid(e[0]):
+				lst.remove_at(i)
+				continue
+			i += 1
+			var d = Vector2(x, z) - e[1]
+			d = d.rotated(e[3])
+			var hs: Vector2 = e[2]
+			var inside = (d.x / hs.x) * (d.x / hs.x) + (d.y / hs.y) * (d.y / hs.y) <= 1.0 if e[5] else absf(d.x) <= hs.x and absf(d.y) <= hs.y
+			if inside:
+				best = maxf(best, e[4])
+	if is_nan(terr):
+		terr = terrain_height(x, z)
+	return maxf(best, 0.0) if terr < 0.0 else best   # deniz düzlemi (y=0) arazi suyun altındaysa her yeri kaplar
 
 
 ## Jutsu/efekt zemini: iç mekândayken (mağara, dükkân — dünyanın 1500 m üstünde) oda zemini, yoksa arazi.

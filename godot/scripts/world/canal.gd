@@ -43,6 +43,7 @@ static func build(b: Builder, pts: Array, width: float, road_fn: Callable, rng: 
 	var st = SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var along := 0.0
+	var segs: Array = []   # su üstü yürüme kaydı: [merkez, boyut, yaw, y]
 	for i in smp.size() - 1:
 		var p0: Vector2 = smp[i]
 		var p1: Vector2 = smp[i + 1]
@@ -59,6 +60,9 @@ static func build(b: Builder, pts: Array, width: float, road_fn: Callable, rng: 
 			var pp: Vector2 = v[0]
 			st.add_vertex(b.w(Vector3(pp.x, v[1], pp.y)))   # kök düğüm dünya merkezinde
 		along += L
+		var w0 = b.w(Vector3(p0.x, y0, p0.y))
+		var w1 = b.w(Vector3(p1.x, y1, p1.y))
+		segs.append([Vector2(w0.x + w1.x, w0.z + w1.z) * 0.5, Vector2(width, L + 0.4), atan2(w1.x - w0.x, w1.z - w0.z), (w0.y + w1.y) * 0.5])
 		# kanal tabanı (koyu taş, suyun altında)
 		var m = (p0 + p1) * 0.5
 		var yaw = rad_to_deg(atan2(dir.x, dir.y))
@@ -92,6 +96,8 @@ static func build(b: Builder, pts: Array, width: float, road_fn: Callable, rng: 
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	mi.visibility_range_end = b.view_dist
 	b.root.add_child(mi)
+	for sg in segs:
+		Game.add_water(mi, sg[0], sg[1], sg[2], sg[3])
 	# kıyı süsleri: söğüt, fener, suya inen basamak (köprülerden uzak)
 	for i in range(6, smp.size() - 6, 9):
 		if bridge[i] or bridge[maxi(0, i - 4)] or bridge[mini(smp.size() - 1, i + 4)]:

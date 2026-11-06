@@ -552,18 +552,22 @@ func _ground_air_move(dt: float) -> void:
 	# arazi + su yüzeyi
 	var p = global_position
 	var terr = Game.terrain_height(p.x, p.z)
-	on_water = terr < -0.3
+	var wl = Game.water_level(p.x, p.z, terr)   # deniz 0, gölet/kanal/vadi kendi yüzeyi
+	on_water = wl > terr + 0.1
 	var ground = terr
 	if on_water and not swimming:
-		ground = 0.0
+		ground = wl
 		chakra -= 1.5 * maxf(0.1, 1.0 + Stats.skill(Game.profile, "water_cost")) * dt  # su üstünde durmak chakra ister
 		Mastery.gain(Game.profile, "chakra", dt * 0.005)   # su üstünde yürüme: chakra kontrolü antrenmanı
-		if chakra <= 0.0:
+		if chakra <= 0.0 and wl - terr > 1.0:   # sığ suda (dere, gölet) yüzülmez: dibe basılır
 			swimming = true
 			leaping = false
 			model.overlay.set_pose("leap", 0.0)
+		elif chakra <= 0.0:
+			chakra = 0.0
+			ground = terr
 	if swimming:
-		ground = -1.3
+		ground = maxf(terr, wl - 1.3)
 		if not on_water or chakra > 25.0 and Input.is_action_just_pressed("jump"):
 			swimming = false
 	# yokuş aşağı: yerdeyken arazi hızla alçalıyorsa havaya kalkma, zemine yapış

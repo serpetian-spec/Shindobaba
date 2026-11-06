@@ -138,6 +138,7 @@ static func _water_plane(b: Builder, decor: Node3D, p: Vector3, size: Vector2, y
 	decor.add_child(mi)
 	mi.global_position = b.w(p)
 	mi.rotation.y = deg_to_rad(-yaw)
+	Game.add_water_mesh(mi, size)
 
 
 # ------------------------------------------------------------------ dere + kırmızı kemerli köprü + basamak taşları

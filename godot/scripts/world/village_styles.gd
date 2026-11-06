@@ -296,6 +296,7 @@ static func water(b: Builder, p: Vector3, size: Vector2, yaw := 0.0) -> void:
 	b.root.add_child(mi)
 	mi.global_position = b.w(p)
 	mi.rotation.y = deg_to_rad(-yaw)
+	Game.add_water_mesh(mi, size)
 
 
 ## ---------------------------------------------------------------- asma köprü: tahta + iki ip korkuluk (a -> b, yerel)

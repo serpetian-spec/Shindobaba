@@ -368,6 +368,8 @@ static func _oval_water(b: Builder, p: Vector3, wdt: float, dep: float) -> void:
 	b.root.add_child(mi)
 	mi.global_position = b.w(p) - Vector3(0, 0.15, 0)
 	mi.scale = Vector3(wdt, 1.0, dep)
+	var wp = b.w(p)
+	Game.add_water(mi, Vector2(wp.x, wp.z), Vector2(wdt, dep), mi.global_rotation.y, wp.y, true)
 	# koyu taban (derinlik hissi)
 	var bp = b.w(p - Vector3(0, 0.1, 0))
 	b._mb(bp).add("cyl", bp, Vector3(wdt + 0.3, 0.06, dep + 0.3), Color(0.2, 0.28, 0.26), Vector3.ZERO, 24)

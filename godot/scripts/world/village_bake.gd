@@ -38,7 +38,7 @@ static func _path(vid: String, ext: String) -> String:
 
 
 static func snapshot(vid: String) -> Dictionary:
-	return {"inter": Interact.items.size(), "lights": Lights.points.size(), "leaf": Builder.leaf_spots.size(), "spawn": Spawner.pending.size(), "lanes": RM.lanes.size()}
+	return {"inter": Interact.items.size(), "lights": Lights.points.size(), "leaf": Builder.leaf_spots.size(), "spawn": Spawner.pending.size(), "lanes": RM.lanes.size(), "water": Game.water_list.size()}
 
 
 ## Kurulmuş köyü kaydet (root: köyün kök düğümü, snap: kurulumdan önceki snapshot)
@@ -57,6 +57,7 @@ static func save(root: Node3D, vid: String, snap: Dictionary) -> void:
 		"leaf": Builder.leaf_spots.slice(int(snap["leaf"])),
 		"spawn": Spawner.pending.slice(int(snap["spawn"])),
 		"lanes": RM.lanes.slice(int(snap.get("lanes", 0))),   # ara sokak patikaları (çimen maskesi)
+		"water": Game.water_list.slice(int(snap.get("water", 0))).map(func(e): return [e[1], e[2] * 2.0, e[3], e[4], e[5]]),   # su üstü yürüme yüzeyleri
 		"sites": VL.sites.get(vid, []), "doors": VL.doors.get(vid, []),
 		"roofs": Builder.roof_points.get(lk, []),
 		"lots": CityInfill.lots_by.get(vid, []), "lots_done": CityInfill.done.has(vid),
@@ -103,6 +104,8 @@ static func try_load(parent: Node3D, vid: String) -> Node3D:
 	if data.has("lanes") and not (data["lanes"] as Array).is_empty():
 		RM.lanes.append_array(data["lanes"])
 		RM.lanes_dirty = true
+	for w in data.get("water", []):
+		Game.add_water(root, w[0], w[1], w[2], w[3], w[4])   # köy kökü boşaltılınca kayıt düşer
 	VL.sites[vid] = data["sites"]
 	VL.doors[vid] = data["doors"]
 	Builder.roof_points[vid.to_lower()] = data["roofs"]
