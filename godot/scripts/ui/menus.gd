@@ -1534,6 +1534,14 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 	if _eq_slot in ["sag_goz", "sol_goz"]:
 		_eye_panel(main, dv, pr)
 		return
+	if _eq_slot in Gear.HIDE_SLOTS:
+		# görünüşü gizle: eşya takılı kalır, statları sayılır, yalnız karakterde görünmez
+		var hid = Gear.look_hidden(pr, _eq_slot)
+		dv.add_child(_arrow_row("Görünüş", ["Göster", "Gizle (statlar sayılır)"], 1 if hid else 0, func(i):
+			if not pr.has("hide_look"):
+				pr["hide_look"] = {}
+			pr["hide_look"][_eq_slot] = i == 1
+			refresh.call()))
 	var list = Gear.owned_for(pr, _eq_slot)
 	if list.is_empty():
 		dv.add_child(UI.label("Bu yuvaya uygun eşyan yok. Dükkânlardan alabilir, görevlerden kazanabilirsin.", 15, UI.MUTED))

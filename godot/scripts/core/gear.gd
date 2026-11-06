@@ -961,6 +961,14 @@ static func _ensure_eyes(p: Dictionary) -> bool:
 
 
 ## Takılı parçalardan görünüm sözlüğünü yeniden kurar
+## Görünüşü gizlenebilen yuvalar: eşya takılı kalır, statları sayılır; yalnız modelde çizilmez (profil "hide_look")
+const HIDE_SLOTS := ["sirt"]
+
+
+static func look_hidden(p: Dictionary, slot: String) -> bool:
+	return slot in HIDE_SLOTS and bool((p.get("hide_look", {}) as Dictionary).get(slot, false))
+
+
 static func apply_look(p: Dictionary) -> void:
 	for g0 in p.get("gear", []):   # oyundan kaldırılan Dev Shuriken: eldeki kopyalar Kyodai Shuriken'e döner
 		if String(g0.get("id", "")) == "el_shuriken":
@@ -1017,6 +1025,8 @@ static func apply_look(p: Dictionary) -> void:
 		else:
 			wear.append([s[0], it0, Color.html(g0["c1"]), Color.html(g0["c2"]), g0])
 	for wr in wear:
+		if look_hidden(p, String(wr[0])):
+			continue   # görünüş gizli: model çizmez (statlar Gear.stat ile ayrıca sayılır)
 		var s = [wr[0]]
 		var it: Dictionary = wr[1]
 		var g: Dictionary = wr[4]
