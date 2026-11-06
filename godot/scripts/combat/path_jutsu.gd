@@ -22135,29 +22135,69 @@ func p_shirogane_doku_kiri(c: Node3D, t: Node3D) -> void:
 	Sfx.play("smoke", c.global_position, 0.8)
 
 
-## Mürekkep canlı: düz kara siluet + beyaz çizgiler
+## Mürekkep canlı (ref: Chōjū Giga — fırçayla çizilmiş kara hayvanlar, gövdede beyaz fırça çizgileri):
+## kaplan/aslan (yeleli baş, sivrilen bacaklar, pençe, kıvrık kuyruk), kuş (uzun boyun, gaga, katmanlı tüy kanatlar,
+## yelpaze kuyruk), ejder (sivrilen yılan gövde, boynuzlu çeneli baş, bıyık). +Z ileri.
 func _ink_beast(kind: String, s: float) -> Node3D:
 	var b = MB.new()
 	var ink = Color(0.04, 0.04, 0.05)
+	var hi = Color(0.92, 0.92, 0.95)   # fırça vurgusu
 	match kind:
 		"dragon":
-			b.add("sphere", Vector3(0, 0, 0.7), Vector3(0.6, 0.5, 1.0), ink)
-			for k in 7:
-				b.add("sphere", Vector3(0, sin(k * 0.9) * 0.3, -0.2 - k * 0.45), Vector3(0.45 - k * 0.04, 0.42 - k * 0.04, 0.55), ink)
+			var N = 14
+			for k in N:   # sivrilen, S çizen gövde
+				var f = float(k) / N
+				var p = Vector3(sin(f * 5.0) * 0.35, sin(f * 3.5) * 0.25, 0.3 - k * 0.32)
+				var r = lerpf(0.42, 0.1, f)
+				b.add("sphere", p, Vector3(r * 2.0, r * 1.8, 0.5), ink)
+				if k % 2 == 0:   # sırt yüzgeci + beyaz pul çizgisi
+					b.add("cone", p + Vector3(0, r * 0.9, 0), Vector3(0.06, r * 0.9, 0.18), ink, Vector3(-30, 0, 0), 3)
+					b.add("box", p + Vector3(r * 0.55, 0.05, 0), Vector3(0.02, r * 0.6, 0.22), hi, Vector3(0, 0, -20))
+			b.add("sphere", Vector3(0, 0.05, 0.75), Vector3(0.6, 0.45, 0.75), ink)          # baş
+			b.add("box", Vector3(0, -0.12, 1.05), Vector3(0.42, 0.12, 0.5), ink, Vector3(14, 0, 0))   # alt çene (açık ağız)
+			b.add("box", Vector3(0, 0.1, 1.1), Vector3(0.4, 0.14, 0.45), ink, Vector3(-8, 0, 0))     # üst çene
 			for sx in [-1.0, 1.0]:
-				b.add("cone", Vector3(sx * 0.2, 0.35, 0.5), Vector3(0.07, 0.4, 0.07), ink, Vector3(-50, 0, sx * 15), 4)
+				b.add("cone", Vector3(sx * 0.18, 0.35, 0.55), Vector3(0.07, 0.55, 0.07), ink, Vector3(-60, 0, sx * 20), 4)   # boynuz
+				b.add("cyl", Vector3(sx * 0.32, 0.0, 1.15), Vector3(0.025, 0.7, 0.025), ink, Vector3(80, sx * 40, 0), 4)     # bıyık
+				b.add("box", Vector3(sx * 0.2, 0.15, 0.95), Vector3(0.1, 0.035, 0.02), hi, Vector3(0, sx * 25, 0))           # göz çizgisi
 		"tiger":
-			b.add("sphere", Vector3(0, 0.6, 0), Vector3(0.8, 0.7, 1.5), ink)
-			b.add("sphere", Vector3(0, 0.9, 0.85), Vector3(0.6, 0.55, 0.55), ink)
+			b.add("sphere", Vector3(0, 0.75, -0.1), Vector3(0.75, 0.62, 1.5), ink)       # gövde
+			b.add("sphere", Vector3(0, 0.85, 0.55), Vector3(0.8, 0.75, 0.75), ink)      # göğüs
+			b.add("sphere", Vector3(0, 1.1, 0.95), Vector3(0.62, 0.55, 0.6), ink)       # baş
+			b.add("box", Vector3(0, 0.98, 1.25), Vector3(0.36, 0.26, 0.3), ink)        # burun
+			for k in 7:   # yele / ense fırça püskülleri
+				var a = -1.2 + k * 0.4
+				b.add("cone", Vector3(sin(a) * 0.38, 1.15 + cos(a) * 0.3, 0.75), Vector3(0.12, 0.42, 0.1), ink, Vector3(-30, 0, -rad_to_deg(a)), 4)
 			for sx in [-1.0, 1.0]:
-				for fz in [-0.5, 0.5]:
-					b.add("cyl", Vector3(sx * 0.3, 0.2, fz), Vector3(0.15, 0.5, 0.15), ink, Vector3.ZERO, 6)
-			b.add("cyl", Vector3(0, 0.8, -0.95), Vector3(0.06, 0.7, 0.06), ink, Vector3(-50, 0, 0), 5)
-		_:
-			b.add("sphere", Vector3(0, 0, 0), Vector3(0.9, 0.5, 1.6), ink)
+				b.add("cone", Vector3(sx * 0.22, 1.42, 0.9), Vector3(0.12, 0.2, 0.08), ink, Vector3.ZERO, 3)      # kulak
+				b.add("box", Vector3(sx * 0.16, 1.15, 1.22), Vector3(0.12, 0.03, 0.02), hi, Vector3(0, 0, sx * -15))   # göz
+				b.add("cone", Vector3(sx * 0.09, 0.9, 1.4), Vector3(0.04, 0.14, 0.04), hi, Vector3(180, 0, 0), 3)    # diş
+				for fz in [-0.65, 0.55]:   # sivrilen bacak + pençe
+					b.add("cyl", Vector3(sx * 0.3, 0.35, fz), Vector3(0.2, 0.7, 0.2), ink, Vector3(8 if fz > 0 else -8, 0, 0), 6)
+					b.add("sphere", Vector3(sx * 0.3, 0.05, fz + 0.08), Vector3(0.24, 0.12, 0.3), ink)
+				for k in 3:   # gövde yanında beyaz kaplan çizgileri (fırça)
+					b.add("box", Vector3(sx * 0.37, 0.8, -0.5 + k * 0.35), Vector3(0.02, 0.45, 0.06), hi, Vector3(15, 0, sx * 10))
+			for k in 6:   # kıvrık kuyruk
+				var f = k / 5.0
+				b.add("sphere", Vector3(0, 0.85 + f * 0.7 + sin(f * 3.0) * 0.15, -0.85 - f * 0.55), Vector3(0.14 - f * 0.05, 0.14 - f * 0.05, 0.3), ink)
+		_:   # kuş
+			b.add("sphere", Vector3(0, 0, 0), Vector3(0.7, 0.55, 1.3), ink)              # gövde
+			for k in 4:   # boyun + baş
+				b.add("sphere", Vector3(0, 0.15 + k * 0.12, 0.6 + k * 0.15), Vector3(0.3 - k * 0.03, 0.3 - k * 0.03, 0.3), ink)
+			b.add("sphere", Vector3(0, 0.6, 1.2), Vector3(0.36, 0.32, 0.42), ink)
+			b.add("cone", Vector3(0, 0.55, 1.55), Vector3(0.12, 0.42, 0.1), ink, Vector3(90, 0, 0), 4)   # gaga
 			for sx in [-1.0, 1.0]:
-				b.add("box", Vector3(sx * 1.6, 0.05, 0), Vector3(2.6, 0.05, 1.0), ink, Vector3(0, 0, sx * 10))
-	var m = mesh_of(b, _flat_glow(ink))
+				b.add("box", Vector3(sx * 0.1, 0.66, 1.33), Vector3(0.1, 0.03, 0.02), hi, Vector3(0, sx * 30, 0))   # göz
+				for k in 7:   # katmanlı tüy kanat: içten dışa uzayan, uçları geriye kıvrılan tüyler
+					var L = 0.9 + k * 0.28
+					var x = sx * (0.45 + k * 0.32)
+					b.add("box", Vector3(x, 0.1 + k * 0.03, -0.1 - k * 0.07), Vector3(0.34, 0.04, L), ink, Vector3(0, sx * (8 + k * 4), sx * (6 + k * 2)))
+					if k % 2 == 1:
+						b.add("box", Vector3(x, 0.13 + k * 0.03, -0.1 - k * 0.07), Vector3(0.02, 0.02, L * 0.7), hi, Vector3(0, sx * (8 + k * 4), 0))
+			for k in 5:   # yelpaze kuyruk
+				var a = (k - 2) * 0.3
+				b.add("box", Vector3(sin(a) * 0.3, 0.05, -0.95 - cos(a) * 0.3), Vector3(0.2, 0.03, 0.8), ink, Vector3(0, rad_to_deg(a), 0))
+	var m = mesh_of(b)   # köşe renkli: kara gövde + beyaz fırça çizgileri birlikte görünür
 	m.scale = Vector3.ONE * s
 	return m
 
