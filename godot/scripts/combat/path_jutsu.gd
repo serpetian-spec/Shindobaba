@@ -2666,9 +2666,9 @@ func p_soshoryu(c: Node3D, t: Node3D) -> void:
 			var from = live_hand(c, right)
 			var to = tpos.call() + Vector3(randf_range(-0.7, 0.7), randf_range(-0.3, 0.3), randf_range(-0.7, 0.7))
 			WindFX.streak(func(q: float) -> Vector3: return from.lerp(to, q), 0.35, 0.07, Color(1, 1, 1))
-			var pr = throw_weapon(c, "soshoryu", WEAPON_KINDS[k % WEAPON_KINDS.size()], from, to, 58.0, 0.2, tt if tt and live(tt) else null)
+			var pr = throw_weapon(c, "soshoryu", WEAPON_KINDS[k % WEAPON_KINDS.size()], from, to, 58.0, 0.1, tt if tt and live(tt) else null)
 			pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
-				hit(c, pos, 1.2, inf(c, "soshoryu", 0.2, {"knock": 2.0, "kind": "light"}))
+				hit(c, pos, 1.2, inf(c, "soshoryu", 0.1, {"knock": 2.0, "kind": "light"}))
 				FX.dust(pos, 0.3)
 			if k % 4 == 0:
 				Sfx.play("kunai", from, randf_range(0.9, 1.3), 0.7))
@@ -19757,6 +19757,7 @@ func p_akahigi_hyakki_no_soen(c: Node3D, _t: Node3D) -> void:
 	if list is Array:
 		for u in list:
 			u.global_position += Vector3(randf_range(-3, 3), 0, randf_range(-3, 3))
+			u.dmg *= 0.3   # denge: 6 kukla aynı rütbenin ~10 katı vuruyordu (ölçüldü) -> ~3 kat
 		_chakra_strings(c, list, 20.0)
 	Hud.msg("Yüz Kukla Gösterisi!", Color(0.9, 0.45, 0.45))
 	Sfx.play("clink", c.global_position, 0.5)
@@ -31049,9 +31050,9 @@ func p_sogu_tensasai(c: Node3D, t: Node3D) -> void:
 			var from = sky + Vector3(randf_range(-2.0, 2.0), randf_range(-0.5, 0.5), randf_range(-2.0, 2.0))
 			var to = tpos.call() + Vector3(randf_range(-0.9, 0.9), 0.1, randf_range(-0.9, 0.9))   # düşmanın tam üstüne
 			WindFX.streak(func(q: float) -> Vector3: return from.lerp(to, q), 0.45, 0.12, Color(1, 1, 1))
-			var pr = throw_weapon(c, "sogu_tensasai", WEAPON_KINDS[k % WEAPON_KINDS.size()], from, to, 60.0, 0.12, tt if tt and live(tt) else null)
+			var pr = throw_weapon(c, "sogu_tensasai", WEAPON_KINDS[k % WEAPON_KINDS.size()], from, to, 60.0, 0.04, tt if tt and live(tt) else null)
 			pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
-				hit(c, pos, 1.2, inf(c, "sogu_tensasai", 0.12, {"knock": 1.5, "kind": "light"}))
+				hit(c, pos, 1.2, inf(c, "sogu_tensasai", 0.04, {"knock": 1.5, "kind": "light"}))
 			if k % 5 == 0:
 				Sfx.play("kunai", from, randf_range(0.8, 1.2), 0.6))
 	for k in 7:
@@ -31073,7 +31074,7 @@ func p_sogu_tensasai(c: Node3D, t: Node3D) -> void:
 			tw.tween_callback(func():
 				VFX.cracks(p, 1.6)
 				WindFX.soft_dust(p, {"amount": 8, "size": 0.6, "radius": 0.6, "life": 0.6}, WindFX.dust_col(p))
-				mhit(c, p + Vector3.UP, 1.6, inf(c, "sogu_tensasai", 0.6, {"knock": 8.0, "kind": "heavy"})))
+				mhit(c, p + Vector3.UP, 1.6, inf(c, "sogu_tensasai", 0.25, {"knock": 8.0, "kind": "heavy"})))
 			tw.tween_interval(0.8)
 			tw.tween_callback(w.queue_free))
 	Sfx.play("earth", at, 1.0)
