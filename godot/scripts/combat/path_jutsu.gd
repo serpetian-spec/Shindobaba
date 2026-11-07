@@ -9147,15 +9147,11 @@ func p_kuchiyose_doton_tsuiga_no_jutsu(c: Node3D, t: Node3D) -> void:
 		var q = at + Vector3(cos(a), 0, sin(a)) * 1.2
 		after(0.3 + k * 0.05, func():
 			_earth_burst(q, 0.9)
-			var b = MB.new()
-			b.add("sphere", Vector3(0, 0.4, 0), Vector3(0.4, 0.4, 0.8), Color(0.55, 0.45, 0.35))
-			b.add("sphere", Vector3(0, 0.55, 0.45), Vector3(0.3, 0.3, 0.35), Color(0.6, 0.5, 0.4))
-			b.add("cone", Vector3(0, 0.5, 0.68), Vector3(0.12, 0.15, 0.12), Color(0.2, 0.15, 0.1), Vector3(90, 0, 0), 5)
-			var dog = mesh_of(b)
+			# oyunun gerçek ninken modeli (Hatake Tsuiga ve köpek sözleşmesiyle aynı: SummonModels "dog_pack"; ilki küçük Pakkun)
+			var dog: Node3D = SummonModels.build("dog_small" if k == 0 else "dog_pack", 0.45 if k == 0 else 0.66, 1.0)["root"]
 			get_tree().current_scene.add_child(dog)
 			dog.global_position = q - Vector3.UP * 0.8
-			dog.look_at(at + Vector3.UP * 0.4, Vector3.UP)
-			dog.rotate_y(PI)
+			dog.look_at(Vector3(at.x, dog.global_position.y, at.z), Vector3.UP)   # model -Z'ye (başa) bakar
 			var tw = dog.create_tween()
 			tw.tween_property(dog, "global_position", q + (at - q) * 0.5 + Vector3.UP * 0.2, 0.2)
 			tw.tween_interval(2.5)
@@ -9242,14 +9238,13 @@ func p_kuchiyose_yatai_kuzushi_no_jutsu(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 26.0)
 	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 10.0)
 	summon_circle(c.global_position, 1.6, Color(1, 0.55, 0.15), 0.6)
-	var b = MB.new()
-	b.add("sphere", Vector3(0, 2.4, 0), Vector3(7.0, 4.8, 7.0), Color(0.75, 0.55, 0.3))
-	b.add("sphere", Vector3(0, 2.0, 0.6), Vector3(5.0, 3.0, 5.4), Color(0.85, 0.75, 0.55))
-	for sx in [-1.0, 1.0]:
-		b.add("sphere", Vector3(sx * 1.6, 4.6, 2.2), Vector3(1.2, 1.2, 1.2), Color(0.95, 0.85, 0.3))
-		b.add("sphere", Vector3(sx * 3.0, 0.6, 2.0), Vector3(1.8, 1.0, 2.6), Color(0.7, 0.5, 0.28))
-	var toad = mesh_of(b)
+	# oyunun gerçek dev kurbağa modeli (Kurbağa sözleşmesinin en büyüğüyle aynı: SummonModels "toad_boss")
+	var toad: Node3D = SummonModels.build("toad_boss", 9.0, 9.0)["root"]
 	get_tree().current_scene.add_child(toad)
+	var tf = c.global_position - at
+	tf.y = 0
+	if tf.length() > 0.1:
+		toad.rotation.y = atan2(-tf.x, -tf.z)   # çağırana dönük düşer
 	toad.global_position = at + Vector3.UP * 30.0
 	FX.smoke_puff(at + Vector3.UP * 30.0, 4.0, 30)
 	var tw = toad.create_tween()
@@ -9498,36 +9493,101 @@ func p_masakari(c: Node3D, t: Node3D) -> void:
 
 
 ## Şeytani Flüt: Yanılsama Savaşçıları — flüt ezgisiyle duman içinden iki iblis savaşçı belirir, hedefe saldırır
+## Mateki: Genbu Sōkyoku (kanon, Tayuya): flütle çağrılan üç Doki (Gürzlü, Pençeli, Sargılı) — yalnız Tayuya'nın ezgisiyle
+## hareket eder; ezgi sürdükçe rakibe yürür, gürzle ezer, kemik bıçaklarla tırmıklar, ağızlardan ruh solucanları salar.
+## Gerçek modeller: Doki (scripts/actors/doki.gd, ~5 m). Çağıranın elinde Mateki flütü belirir (oyuncu/düşman aynı).
 func p_mateki_genbu_sokyoku(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 20.0)
-	busy(c, 0.8)
+	var tt = tg(c, t, 26.0)
+	var dur = 8.0
+	busy(c, 1.0)
+	var m = c.get("model")
+	if m and m.has_method("hold_temp"):
+		m.hold_temp("mateki", dur, "Right", 1.0)
+	var d = fwd(c, t)
+	var side = d.cross(Vector3.UP)
 	for k in 3:
 		after(k * 0.15, func():
 			if live(c):
 				VFX.shockwave(_mouth_pos(c), Color(0.85, 0.8, 1.0), 2.0 + k * 1.5, 0.3, false))
-	for sx in [-1.0, 1.0]:
-		var at = gp(c.global_position + c.face_dir() * 2.0 + c.face_dir().cross(Vector3.UP) * sx * 2.0)
-		FX.smoke_puff(at + Vector3.UP, 1.6, 20)
-		var b = MB.new()
-		b.add("sphere", Vector3(0, 1.6, 0), Vector3(1.4, 2.4, 1.0), Color(0.55, 0.45, 0.4))
-		b.add("sphere", Vector3(0, 3.1, 0.1), Vector3(0.8, 0.8, 0.8), Color(0.6, 0.5, 0.42))
-		for hx in [-1.0, 1.0]:
-			b.add("cone", Vector3(hx * 0.3, 3.6, 0.1), Vector3(0.15, 0.5, 0.15), Color(0.9, 0.88, 0.8), Vector3(0, 0, -hx * 20), 5)
-			b.add("sphere", Vector3(hx * 1.0, 1.9, 0.2), Vector3(0.5, 1.4, 0.5), Color(0.55, 0.45, 0.4), Vector3(0, 0, hx * 20))
-		var demon = mesh_of(b)
-		get_tree().current_scene.add_child(demon)
-		demon.global_position = at
-		var tw = demon.create_tween()
-		if tt:
-			tw.tween_interval(0.4)
-			tw.tween_property(demon, "global_position", gp(tt.global_position + c.face_dir().cross(Vector3.UP) * sx * 1.4), 0.4)
-			tw.tween_callback(func():
-				if live(tt):
-					melee_fx(c, tt.global_position + Vector3.UP, Color(0.9, 0.8, 0.7), 1.3)
-					tt.take_hit(inf(c, "mateki_genbu_sokyoku", 0.9, {"knock": 10.0, "kind": "heavy"})))
-		tw.tween_interval(1.0)
-		tw.tween_callback(func(): FX.smoke_puff(demon.global_position + Vector3.UP, 1.4, 16))
-		tw.tween_callback(demon.queue_free)
+	var dokis = []
+	for k in 3:
+		var at = gp(c.global_position - d * 1.5 + side * (k - 1) * 4.2)
+		FX.smoke_puff(at + Vector3.UP * 2.5, 2.6, 26)
+		var dk = Doki.spawn(get_tree().current_scene, at, atan2(-d.x, -d.z), k)
+		dokis.append(dk)
+	Sfx.play("poof", c.global_position, 0.6)
+	# ezgi sürerken her Doki sırayla saldırır (ritim: 1.1 sn); hedefe doğru ağır adımlarla yürür
+	var beat = {"n": 0}
+	every(dur, 0.1, func(_i, _k):
+		if not live(c):
+			return
+		var cur = tt if live(tt) else tg(c, null, 26.0)
+		for j in dokis.size():
+			var dk: Doki = dokis[j]
+			if not is_instance_valid(dk) or cur == null:
+				continue
+			var want = cur.global_position + side * (j - 1) * 3.0 - (cur.global_position - c.global_position).normalized() * 2.8
+			var v = want - dk.global_position
+			v.y = 0
+			if v.length() > 0.6:
+				dk.global_position += v.normalized() * minf(v.length(), 0.45)
+				dk.global_position.y = gp(dk.global_position).y
+			var fl = cur.global_position - dk.global_position
+			fl.y = 0
+			if fl.length() > 0.1:
+				dk.rotation.y = lerp_angle(dk.rotation.y, atan2(-fl.x, -fl.z), 0.3), Callable())
+	every(dur - 0.6, 1.1, func(_i, _k):
+		if not live(c):
+			return
+		var cur = tt if live(tt) else tg(c, null, 26.0)
+		if cur == null:
+			return
+		var j = beat["n"] % 3
+		beat["n"] += 1
+		var dk: Doki = dokis[j]
+		if not is_instance_valid(dk):
+			return
+		match j:
+			0:   # Gürzlü: kaldır, indir
+				dk.set_pose("raise", 0.25)
+				after(0.3, func():
+					if is_instance_valid(dk):
+						dk.set_pose("smash", 0.16))
+				after(0.46, func():
+					if not is_instance_valid(dk) or not live(c):
+						return
+					var g = gp(dk.weapon.to_global(Vector3(0, 4.5, 0)) if dk.weapon else cur.global_position)
+					VFX.cracks(g, 3.0)
+					VFX.shockwave(g + Vector3.UP * 0.1, Color(0.7, 0.62, 0.52), 5.0, 0.3, true)
+					shake(0.4)
+					hit(c, g + Vector3.UP * 0.8, 2.4, inf(c, "mateki_genbu_sokyoku", 0.7, {"knock": 8.0, "launch": 5.0, "kind": "heavy"})))
+			1:   # Pençeli: kemik bıçaklarla tırmık
+				dk.set_pose("swipe", 0.2)
+				after(0.22, func():
+					if not is_instance_valid(dk) or not live(c):
+						return
+					var hpos = dk.hand_pos(true)
+					for q in 3:
+						_arc_cut(hpos + Vector3.UP * (q - 1) * 0.3, (cur.global_position - dk.global_position).normalized() if live(cur) else d, -60.0, 60.0, Color(0.95, 0.9, 0.75), 1.8)
+					hit(c, hpos, 2.6, inf(c, "mateki_genbu_sokyoku", 0.6, {"knock": 10.0, "kind": "heavy", "bleed": 3.0})))
+			2:   # Sargılı: ağzını açıp ruh solucanları salar (ref "Doki Attack")
+				dk.set_pose("roar", 0.25)
+				for q in 3:
+					after(0.2 + q * 0.12, func():
+						if not is_instance_valid(dk) or not live(cur) or not live(c):
+							return
+						Doki.spirit_worm(get_tree().current_scene, dk.mouth_pos(), cur.global_position + Vector3.UP * 1.0, 0.6, func(p: Vector3):
+							VFX.puffs(p, {"amount": 12, "life": 0.5, "size": 0.4, "radius": 0.5, "vmin": 1, "vmax": 3, "spread": 180.0, "add": false, "colors": [Color(0.55, 0.45, 0.7, 0.9), Color(0.3, 0.25, 0.4, 0)]})
+							if live(c):
+								hit(c, p, 1.6, inf(c, "mateki_genbu_sokyoku", 0.35, {"knock": 3.0, "kind": "light", "chakra_drain": 6.0}))))
+		after(0.8, func():
+			if is_instance_valid(dk):
+				dk.set_pose("stand", 0.3)), Callable())
+	after(dur, func():
+		for dk in dokis:
+			if is_instance_valid(dk):
+				FX.smoke_puff(dk.global_position + Vector3.UP * 2.5, 2.4, 22)
+				dk.queue_free())
 	Sfx.play("genjutsu", c.global_position, 1.4)
 
 
@@ -16045,12 +16105,8 @@ func p_katsuyu_daibunretsu(c: Node3D, _t: Node3D) -> void:
 	FX.smoke_puff(at + Vector3.UP * 1.5, 3.0, 30)
 	var slugs = []
 	for k in 24:
-		var b = MB.new()
-		b.add("sphere", Vector3(0, 0.18, 0), Vector3(0.32, 0.3, 0.6), Color(0.95, 0.96, 1.0))
-		b.add("box", Vector3(0, 0.3, 0), Vector3(0.12, 0.04, 0.4), Color(0.25, 0.45, 0.85))
-		for sx in [-1.0, 1.0]:
-			b.add("cyl", Vector3(sx * 0.06, 0.38, 0.22), Vector3(0.025, 0.18, 0.025), Color(0.95, 0.96, 1.0), Vector3(-20, 0, 0), 5)
-		var s = mesh_of(b)
+		# oyunun gerçek Katsuyu parçası modeli (Sümüklüböcek sözleşmesi Kuchiyose'siyle aynı: SummonModels "slug_frag")
+		var s: Node3D = SummonModels.build("slug_frag", 0.4, 0.8)["root"]
 		get_tree().current_scene.add_child(s)
 		var a = randf() * TAU
 		var r = randf_range(1.0, 9.0)
@@ -21982,17 +22038,15 @@ func p_sarutobi_enma_kongonyoi(c: Node3D, t: Node3D) -> void:
 	# kanon: önce Enma çağrılır (kuchiyose mührü, duman), sonra Henge: Kongōnyoi — elinde siyah, uçları altın halkalı asa
 	summon_circle(gp(c.global_position + d * 0.8), 2.0, Color(0.75, 0.55, 0.3), 1.0)
 	FX.smoke_puff(c.global_position + Vector3.UP * 1.2, 1.2, 14)
-	var sb = MB.new()
-	sb.add("cyl", Vector3.ZERO, Vector3(0.24, 1.0, 0.24), Color(0.12, 0.11, 0.1), Vector3.ZERO, 10)
-	for e in [-0.47, 0.47]:
-		sb.add("cyl", Vector3(0, e, 0), Vector3(0.3, 0.06, 0.3), Color(0.85, 0.66, 0.2), Vector3.ZERO, 10)   # altın halka
-	var staff = mesh_of(sb)
-	c.add_child(staff)
-	staff.position = Vector3(0.3, 1.2, 0.5)
-	staff.rotation.x = PI * 0.5
+	# oyunun gerçek Kongōnyoi modeli (Elmas Asa silahıyla aynı: CharacterModel.weapon_mesh "kongo_asa", sap +Z boyunca ~1.25 m)
+	var staff = MeshInstance3D.new()
+	staff.mesh = CharacterModel.weapon_mesh("kongo_asa")
+	get_tree().current_scene.add_child(staff)
+	var sp0 = c.global_position + Vector3.UP * 1.2 + d * 0.3 + d.cross(Vector3.UP) * 0.3
+	staff.global_position = sp0
+	staff.look_at(sp0 - d, Vector3.UP)   # look_at -Z'yi çevirir; asa +Z boyunca: nişan yönüne uzanır
 	var tw = staff.create_tween()
-	tw.tween_property(staff, "scale", Vector3(1, 14.0, 1), 0.18)
-	tw.parallel().tween_property(staff, "position", Vector3(0.3, 1.2, 7.5), 0.18)
+	tw.tween_property(staff, "scale", Vector3(1.6, 1.6, 12.0), 0.18)
 	tw.tween_callback(func():
 		Combat.hit_zone(c, c.global_position, d, 15.0, 8.0, 1.5, inf(c, "sarutobi_enma_kongonyoi", 1.6, {"knock": 18.0, "kind": "heavy", "hitstop": 0.1}))
 		impact_fx("doton", EARTH, c.global_position + Vector3.UP * 1.2 + d * 14.0, 1.4))

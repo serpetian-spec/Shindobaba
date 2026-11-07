@@ -531,6 +531,7 @@ const ITEMS := {
 	"hakko_chakura_to": {"name": "Hakkō Chakura Tō", "skin": true, "slot": "el", "price": 1400, "rank": 1, "clan": "hatake", "base": "tanto",
 		"desc": "Beyaz Işık Chakra Kılıcı — Hatake ailesinin (Sakumo, Kakashi) düz bıçaklı tantōsu, küçük yuvarlak siperlik. Savrulunca beyaz chakra izi bırakır. Hakkō Chakura Tō tekniği bununla yapılır.",
 		"stats": {"melee": 0.06, "chakra": 10}, "weapon": {"hit": 5, "dmg": 1.5, "reach": 0.4, "style": "blade"}, "c1": Color(0.92, 0.94, 0.98)},
+	"mateki": {"name": "Mateki", "slot": "sag", "price": 650, "rank": 1, "desc": "Şeytani Flüt — Otogakure'nin genjutsu flütü (Tayuya). Yakında flütle vurur; ezgisi ses halkası, ses zincirleri ve ruh solucanları doğurur, bitirişte Doki'yi çağırır. Mateki tekniklerinin aracı.", "stats": {"chakra": 20}, "weapon": {"hit": 4.4, "dmg": 1.15, "reach": 0.35, "style": "blade"}, "c1": Color(0.88, 0.86, 0.94)},
 	"tanto": {"name": "Tantō", "slot": "el", "price": 320, "rank": 1, "desc": "Kısa kılıç. Hızlı ve keskin.", "stats": {}, "weapon": {"hit": 5, "dmg": 1.35, "reach": 0.35, "style": "blade"}, "c1": Color(0.75, 0.77, 0.8)},
 	"ikiz_hancer": {"removed": true, "name": "Hançer", "slot": "el", "price": 240, "rank": 0, "desc": "Çift taşınmak için dengelenmiş kısa hançer.", "stats": {"speed": 0.02}, "weapon": {"hit": 5, "dmg": 1.25, "reach": 0.25, "style": "dual"}, "c1": Color(0.7, 0.72, 0.76)},
 	"kama": {"name": "Ō-Kama (Orak)", "slot": "sag", "price": 1400, "rank": 2, "desc": "Uzun saplı kızıl-siyah tırpan orak. İki elle savrulur: hilal bıçak rakibi kancalayıp biçer.", "stats": {"melee": 0.05}, "weapon": {"hit": 6.5, "dmg": 1.75, "reach": 1.3, "style": "heavy"}, "c1": Color(0.7, 0.72, 0.76)},
@@ -607,7 +608,7 @@ const SHOP_CLOTHES := ["uchiha_yakali", "uchiha_uzun", "uchiha_beyaz", "uchiha_p
 	"zincir_yelek", "kayis_kosum", "deri_pul_zirh", "gogus_plakasi", "ame_yelek", "jonin_koyu",
 	"panco", "yirtik_pelerin", "jinbaori", "kesis_cubbesi", "kesa", "bantli_palto", "mino", "gece_pelerini",
 	"omuz_zirhi", "dizlik", "agir_zirh", "uzun_sargi_eldiven", "tespih", "sirt_sepeti", "bel_parsomenleri", "bel_cantasi", "sashimono", "ip_kangali"]
-const SHOP_WEAPONS := ["sai", "kunai", "senbon", "tonfa", "bo", "tanto", "kama", "zincirli_kunai", "pence", "musta",
+const SHOP_WEAPONS := ["mateki", "sai", "kunai", "senbon", "tonfa", "bo", "tanto", "kama", "zincirli_kunai", "pence", "musta",
 	"wakizashi", "katana", "yelpaze", "kusarigama", "savas_cekici", "chakra_bicak", "nodachi", "kyodai_shuriken", "fuma_makimono"]
 ## Sadece görev ödülü olarak düşen (dükkânda satılmayan) parçalar dahil ödül havuzu
 const REWARD_POOL := ["kafa_bandaji", "gozluk", "kasa", "kapuson", "atki", "kol_sargisi", "eldiven", "kolluk", "bacak_koruma", "tabi", "hakama",

@@ -4374,7 +4374,7 @@ func _attachments() -> void:
 ## Silah kını yeri: pouch = kunai çantası/kılıfı (görünmez), hip = sol kalçada kınlı kılıç (çapraz çekiş),
 ## back = sırtta çapraz (dev kılıçlar, sopalar), low_back = belin arkasında yatay, belt = yan kalçada asılı
 const SHEATH_OF := {"blade": "pouch", "dual": "pouch", "claw": "pouch", "sickle": "belt", "sword": "hip", "heavy": "back", "staff": "back", "chain": "belt", "fan": "back"}
-const SHEATH_ID := {"raijin": "belt", "tanto": "low_back", "ikiz_hancer": "low_back", "tonfa": "belt", "bashosen": "back", "yagura_sopa": "back", "kama": "back", "sai": "belt", "kiba": "back", "nodachi": "back", "kusanagi": "hip", "hiraishin_kunai": "belt", "kusarigama": "back", "fuma_shuriken": "back", "kyodai_shuriken": "back", "fuma_makimono": "back"}
+const SHEATH_ID := {"mateki": "belt", "raijin": "belt", "tanto": "low_back", "ikiz_hancer": "low_back", "tonfa": "belt", "bashosen": "back", "yagura_sopa": "back", "kama": "back", "sai": "belt", "kiba": "back", "nodachi": "back", "kusanagi": "hip", "hiraishin_kunai": "belt", "kusarigama": "back", "fuma_shuriken": "back", "kyodai_shuriken": "back", "fuma_makimono": "back"}
 ## Kınlı kılıçlar: [kın başı z, kın ucu z, kalınlık, genişlik] (silah uzayında, kabza 0, namlu +Z)
 const SAYA := {"katana": [0.075, 0.84, 0.042, 0.06], "wakizashi": [0.05, 0.6, 0.04, 0.055], "nodachi": [0.1, 1.38, 0.05, 0.11],
 	"tanto": [0.06, 0.4, 0.045, 0.045], "chokuto": [0.13, 0.9, 0.05, 0.05]}
@@ -5723,6 +5723,19 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			_w_tsuka(b, -0.13, 0.02, 0.015, Color(0.32, 0.06, 0.07))
 			_w_tsuba(b, 0.03, 0.028, Color(0.1, 0.1, 0.11))
 			_w_blade(b, 0.035, 0.3, 0.026, 0.003, steel)
+		"mateki":
+			# Mateki (ref _tmp/dokiref/doki_3 "Demonic Flute"): uzun ince beyaz-lavanta yan flüt (~48 cm), iki ucunda kalın metal
+			# halka, üfleme deliği + yedi parmak deliği (koyu), açık uç ağzı. Tutuş flütün ortasında (z=0): çalarken üfleme ucu
+			# (-Z) elin solundan ağzın önüne gelir, gövde sağa uzanır (yan flüt gibi). Flüt -0.2..+0.28
+			var fl = Color(0.88, 0.86, 0.94)
+			var ring = Color(0.62, 0.6, 0.68)
+			b.add("cyl", Vector3(0, 0, 0.04), Vector3(0.03, 0.48, 0.03), fl, Vector3(90, 0, 0), 14)
+			for z in [-0.195, 0.275]:
+				b.add("cyl", Vector3(0, 0, z), Vector3(0.036, 0.025, 0.036), ring, Vector3(90, 0, 0), 14)
+			b.add("cyl", Vector3(0, 0, 0.28), Vector3(0.022, 0.01, 0.022), Color(0.15, 0.14, 0.18), Vector3(90, 0, 0), 12)   # açık uç
+			b.add("sphere", Vector3(0, 0.015, -0.15), Vector3(0.012, 0.006, 0.016), Color(0.12, 0.1, 0.14), Vector3.ZERO, 6)   # üfleme deliği
+			for k in 7:
+				b.add("sphere", Vector3(0, 0.015, -0.06 + k * 0.042), Vector3(0.01, 0.005, 0.01), Color(0.15, 0.13, 0.18), Vector3.ZERO, 6)
 		"hakko_chakura_to":
 			# Hakkō Chakura Tō (ref refs/weapons/hakko_*.png, Narutopedia: "düz bıçaklı tantō, küçük yuvarlak siperlik"):
 			# düz siyah sap (sargı görünmez), kalın küçük yuvarlak grimsi-lavanta tsuba, aynı renkte kutu habaki,

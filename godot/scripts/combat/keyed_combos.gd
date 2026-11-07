@@ -36,6 +36,7 @@ const TABLE := {
 	"bo": [preload("res://scripts/combat/bo_anim.gd"), 1.05],
 	"kiba": [preload("res://scripts/combat/kiba_anim.gd"), 1.0],
 	"tanto": [preload("res://scripts/combat/tanto_anim.gd"), 1.05],
+	"mateki": [preload("res://scripts/combat/mateki_anim.gd"), 1.0],   # Tayuya flütü
 	"hakko_chakura_to": [preload("res://scripts/combat/hakko_anim.gd"), 1.15],   # Hatake beyaz ışık tantōsu: kendi kombosu
 	"wakizashi": [preload("res://scripts/combat/wakizashi_anim.gd"), 1.0],
 	"nodachi": [preload("res://scripts/combat/nodachi_anim.gd"), 0.95],
@@ -56,10 +57,10 @@ const TABLE := {
 	"style_kamizuru": [preload("res://scripts/combat/style_kamizuru_anim.gd"), 1.0],
 }
 ## uzun menzil silahları: yapay zekâ uzakta durup atar (Enemy._chase)
-const RANGED := ["fuma_shuriken", "kyodai_shuriken", "fuma_makimono", "senbon"]
+const RANGED := ["fuma_shuriken", "kyodai_shuriken", "fuma_makimono", "senbon", "mateki"]   # mateki: genjutsu flütü, uzakta durup çalar
 ## silah ağırlığı (0 hafif .. 1 ağır): kol/silah yaylanması (PoseOverlay.key_mass) — ağır silah gecikip taşar
 const MASS := {"uc_tirpan": 1.0, "samehada": 0.9, "kabutowari": 0.9, "shibuki": 0.85, "gunbai": 0.8, "raijin": 0.35, "kunai": 0.1,
-	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3, "tonfa": 0.3, "bashosen": 0.35, "kubikiribocho": 0.95, "yagura_sopa": 0.4, "yelpaze": 0.6, "kongo_asa": 0.45, "kama": 0.75, "pence": 0.15, "senbon": 0.05, "hiramekarei": 0.7, "bo": 0.35, "kiba": 0.25, "tanto": 0.1, "hakko_chakura_to": 0.08, "wakizashi": 0.25, "nodachi": 0.7, "musta": 0.15,
+	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3, "tonfa": 0.3, "bashosen": 0.35, "kubikiribocho": 0.95, "yagura_sopa": 0.4, "yelpaze": 0.6, "kongo_asa": 0.45, "kama": 0.75, "pence": 0.15, "senbon": 0.05, "hiramekarei": 0.7, "bo": 0.35, "kiba": 0.25, "tanto": 0.1, "hakko_chakura_to": 0.08, "mateki": 0.06, "wakizashi": 0.25, "nodachi": 0.7, "musta": 0.15,
 	"style_juken": 0.08, "style_akimichi": 0.65, "style_inuzuka": 0.12, "style_kaguya": 0.2,
 	"style_uchiha": 0.1, "style_hozuki": 0.3, "style_aburame": 0.05, "style_jugo": 0.7,
 	"style_yuki": 0.05, "style_sabaku": 0.05, "style_uzumaki": 0.1, "style_yotsuki": 0.3, "style_kamizuru": 0.05}
@@ -235,6 +236,11 @@ static func mods(id: String, i: int) -> Dictionary:
 				3: m.merge({"launch": 10.0, "knock": 1.0})
 				4: m.merge({"knock": 8.0})
 				5: m.merge({"heavy": true, "knock": 15.0, "lunge_mul": 0.9, "reach_add": 1.5})
+			return m
+		"mateki":   # yakın iki vuruş, sonra ezgiler: atılmaz (genjutsu ustası mesafede kalır)
+			var m = {"lunge_mul": 0.8 if i < 2 else 0.0, "knock": 2.0}
+			if i >= 2:
+				m.merge({"special": ""})
 			return m
 		"hakko_chakura_to":
 			var m = {"lunge_mul": 1.0, "knock": 1.5}
@@ -578,6 +584,8 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 				_spin_throw(who, dmg * 0.6, "circle", {"mesh": "kama", "radius": 1.0, "spin": 2.6, "turns": 3.0, "orbit": 1.6, "dur": 1.0, "knock": 8.0})
 		"kiba":
 			_kiba_strike(who, i, dmg, f, side)
+		"mateki":
+			_mateki_strike(who, i, dmg, f, side)
 		"hakko_chakura_to":
 			_hakko_strike(who, i, dmg, f, side)
 		"tanto":
@@ -3394,3 +3402,81 @@ static func _hakko_dash(who: Node3D) -> void:
 		dmg = float(who.combat._combo(2).get("dmg", 6.0)) if who.combat.has_method("_combo") else 6.0
 	for k in 3:
 		Combat.hit_sphere(who, o.lerp(e, 0.25 + k * 0.25), 1.0, _kinfo(dmg, 0.5, {"element": "", "knock": 3.0, "kind": "light", "melee": true, "blade": true, "bleed": 2.0}))
+
+
+# ------------------------------------------------------------------ Mateki (Tayuya'nın şeytani flütü)
+const MATEKI_RED := Color(0.9, 0.2, 0.25)
+
+## Flütün ucu (dünya): ses ve ruhlar buradan çıkar
+static func _flute_tip(who: Node3D) -> Vector3:
+	var n = _weapon_node(who)
+	if n != null:
+		return n.to_global(Vector3(0, 0, 0.45))
+	return who.global_position + Vector3.UP * 1.5
+
+
+static func _mateki_strike(who: Node3D, i: int, dmg: float, f: Vector3, side: Vector3) -> void:
+	var tg = _near_foe(who, 14.0)
+	var at = who.global_position + Vector3.UP * 1.2 + f * 1.0
+	match i:
+		0, 1:
+			FX.hit_spark(at, Color(0.95, 0.93, 1.0), 0.6)
+		2:   # Onpa: keskin nota — önde ses halkaları, iter
+			var o = who.global_position + Vector3.UP * 1.5
+			for k in 3:
+				who.get_tree().create_timer(k * 0.06).timeout.connect(func():
+					if is_instance_valid(who):
+						VFX.shockwave(o + f * (0.8 + k * 1.1), Color(0.85, 0.8, 1.0), 1.4 + k * 0.9, 0.25, false, f))
+			for d in [1.6, 3.2]:
+				Combat.hit_sphere(who, o + f * d, 1.4, _kinfo(dmg, 0.6, {"element": "", "knock": 9.0, "kind": "light", "melee": false}))
+		3:   # Mugen Onsa: kırmızı ses dalgaları, rakibi ses zincirleri bağlar
+			var o2 = who.global_position + Vector3.UP * 1.5
+			for k in 3:
+				who.get_tree().create_timer(k * 0.1).timeout.connect(func():
+					if is_instance_valid(who):
+						VFX.shockwave(o2, MATEKI_RED, 3.0 + k * 2.5, 0.35, false))
+			if tg and is_instance_valid(tg):
+				var pj = PathJutsu.get_pinst()
+				if pj:
+					for j in 3:
+						var a = j * TAU / 3.0
+						pj.tether(func(): return tg.global_position + Vector3(cos(a) * 1.4, 2.4, sin(a) * 1.4) if is_instance_valid(tg) else Vector3.ZERO, func(): return tg.global_position + Vector3.UP if is_instance_valid(tg) else Vector3.ZERO, 0.04, VFX.mat_bolt(MATEKI_RED, 1.4), 1.2)
+				if tg.has_method("apply_status"):
+					tg.apply_status("bind", 1.0)
+				tg.take_hit(_kinfo(dmg, 0.5, {"element": "", "knock": 0.0, "kind": "light", "attacker": who}))
+				Combat.popup_text(tg.global_position + Vector3.UP * 2.4, "Ses zinciri!", MATEKI_RED)
+		4:   # Reigeki: flütten ruh solucanı rakibe dalar, chakra yer
+			if tg and is_instance_valid(tg):
+				var from = _flute_tip(who)
+				var to = tg.global_position + Vector3.UP * 1.0
+				Doki.spirit_worm(who.get_tree().current_scene, from, to, 0.55, func(p: Vector3):
+					VFX.puffs(p, {"amount": 14, "life": 0.5, "size": 0.35, "radius": 0.4, "vmin": 1, "vmax": 3, "spread": 180.0, "add": false, "colors": [Color(0.55, 0.45, 0.7, 0.9), Color(0.3, 0.25, 0.4, 0)]})
+					if is_instance_valid(who):
+						for h in Combat.hit_sphere(who, p, 1.4, _kinfo(dmg, 1.0, {"element": "", "knock": 3.0, "kind": "heavy"})):
+							_kikai_drain(who, h, 0.05))
+		5:   # Doki no Tsuchi: Gürzlü Doki arkadan dumanla belirir, gürzünü rakibin üstüne indirir
+			var tp = tg.global_position if tg and is_instance_valid(tg) else who.global_position + f * 5.0
+			var dp = who.global_position - f * 2.2
+			dp.y = Game.ground_height(dp.x, dp.z)
+			FX.smoke_puff(dp + Vector3.UP * 2.0, 1.2, 12)
+			var dk = Doki.spawn(who.get_tree().current_scene, dp, 0.0, 0)
+			var fl = tp - dp
+			fl.y = 0
+			dk.rotation.y = atan2(-fl.x, -fl.z)
+			dk.set_pose("raise", 0.0)
+			who.get_tree().create_timer(0.35).timeout.connect(func():
+				if is_instance_valid(dk):
+					dk.set_pose("smash", 0.18))
+			who.get_tree().create_timer(0.53).timeout.connect(func():
+				if not is_instance_valid(who) or not is_instance_valid(dk):
+					return
+				var g = dk.weapon.to_global(Vector3(0, 4.5, 0)) if dk.weapon else tp
+				g.y = Game.ground_height(g.x, g.z)
+				VFX.cracks(g, 3.0)
+				VFX.shockwave(g + Vector3.UP * 0.1, Color(0.7, 0.62, 0.52), 5.0, 0.3, true)
+				_shake(who, 0.4)
+				Combat.hit_sphere(who, g + Vector3.UP * 0.8, 2.4, _kinfo(dmg, 2.2, {"element": "", "knock": 6.0, "launch": 6.0, "kind": "heavy"})))
+			who.get_tree().create_timer(1.5).timeout.connect(func():
+				if is_instance_valid(dk):
+					FX.smoke_puff(dk.global_position + Vector3.UP * 2.5, 2.2, 20)
+					dk.queue_free())
