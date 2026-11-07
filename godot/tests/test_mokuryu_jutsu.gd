@@ -26,6 +26,8 @@ func _ready() -> void:
 	e.set_physics_process(false)
 	await _w(0.3)
 	var hp0 = e.hp
+	var ch0 = e.chakra
+	var sealed_seen = {"v": false}
 	Jutsu.execute(pl, "mokuton_mokuryu_no_jutsu", e)
 	var cc = Camera3D.new()
 	cc.far = 4000.0
@@ -38,6 +40,10 @@ func _ready() -> void:
 		cc.current = true
 		await _w(0.05)
 		await main.shot("mokuryu_j%d" % k)
-	await _w(4.0)
+	for q in 40:
+		await _w(0.1)
+		if e.has_status("sealed"):
+			sealed_seen["v"] = true
+	print("MRJ chakra %.0f->%.0f sealed=%s" % [ch0, e.chakra, str(sealed_seen["v"])])
 	print("MRJ dmg=%.1f dokis_left=%d" % [hp0 - e.hp, get_tree().current_scene.find_children("*", "Doki", true, false).size()])
 	get_tree().quit()

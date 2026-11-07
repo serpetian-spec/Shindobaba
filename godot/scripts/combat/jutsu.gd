@@ -3620,14 +3620,27 @@ func j_mokuton_mokuryu_no_jutsu(c: Node3D, t: Node3D) -> void:
 			var jt = jaw.create_tween()
 			jt.tween_property(jaw, "rotation:x", 0.0, 0.12)
 			Sfx.play("bite", tg.global_position, 0.8))
-	# ısırık: chakra emme (kanon) + az hasar
+	# ısırık (kanon, Naruto 608/656): ejder ısırarak chakrayı vampir gibi emer, rakip yavaş yavaş jutsu yapamaz hale gelir.
+	# Karşı koyma (kanon: başı yok etmek emmeyi bitirir): bağdan kurtulan (Kawarimi/kaçış) rakipte emme kesilir.
 	var drain = func():
 		for k in 6:
 			get_tree().create_timer(k * 0.35).timeout.connect(func():
-				if tg and is_instance_valid(tg) and not tg.is_dead():
-					tg.take_hit(_inf(c, "mokuton_mokuryu_no_jutsu", 0.12, {"knock": 0.0, "kind": "light", "chakra_drain": 8.0}))
-					if tg.get("chakra") != null and c.get("chakra") != null and c.get("max_chakra") != null:
-						c.chakra = minf(float(c.max_chakra), float(c.chakra) + 4.0))
+				if not (tg and is_instance_valid(tg)) or tg.is_dead():
+					return
+				if tg.has_method("has_status") and not tg.has_status("bind"):
+					return   # kurtuldu: ejderin dişleri boşa kapandı
+				var before = float(tg.get("chakra")) if tg.get("chakra") != null else 0.0
+				tg.take_hit(_inf(c, "mokuton_mokuryu_no_jutsu", 0.12, {"knock": 0.0, "kind": "light", "chakra_drain": 12.0}))
+				if c.get("chakra") != null and c.get("max_chakra") != null:
+					c.chakra = minf(float(c.max_chakra), float(c.chakra) + 6.0)
+				var mx = float(tg.get("max_chakra")) if tg.get("max_chakra") != null else 100.0
+				var now = float(tg.get("chakra")) if tg.get("chakra") != null else 0.0
+				FX.hit_spark(tg.global_position + Vector3.UP * 1.2, Color(0.55, 0.85, 0.5), 0.6)   # emilen chakra
+				if k == 5 or now <= mx * 0.15:
+					tg.apply_status("sealed", 3.0)   # chakrası çekildi: jutsu yapamaz
+					Combat.popup_text(tg.global_position + Vector3.UP * 2.8, "Chakra emildi — jutsu yapamaz!", Color(0.6, 0.9, 0.5))
+				elif before > now:
+					Combat.popup_text(tg.global_position + Vector3.UP * 2.4, "-%d chakra" % int(before - now), Color(0.55, 0.85, 0.5)))
 	tw.tween_callback(drain)
 	tw.tween_interval(2.3)
 	tw.tween_callback(func():
