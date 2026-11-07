@@ -3553,62 +3553,83 @@ func j_jinton_genkai_hakuri_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 ## Mokuryū: yerden yükselen tahta ejderha hedefe atılır, sarılıp sıkar
 func j_mokuton_mokuryu_no_jutsu(c: Node3D, t: Node3D) -> void:
+	# kanon (Hashirama): dev yılansı tahta ejder topraktan çıkar, rakibe dalar, onu sarmal sarıp bağlar ve ısırarak chakrasını
+	# emer (vampir gibi). Baş: Mokuryu.head (ref: uzun burun, tırtıklı dişli açık çene, parlayan gözler, kabuk yele, ön pençeler)
 	var fd = _aim_flat(c, t)
-	var base = _ground(c.global_position + fd * 3.0)
-	var wood = Props.toon_color(Color(0.5, 0.36, 0.22))
+	var base = _ground(c.global_position + fd * 4.0)
+	var wood = Props.toon_color(Mokuryu.WOOD)
 	var head = Node3D.new()
 	get_tree().current_scene.add_child(head)
-	head.global_position = base - Vector3.UP * 2.0
-	var hn = VfxSerpent.dragon_head(wood, 2.8, Color(1, 0.85, 0.2))
+	head.global_position = base - Vector3.UP * 4.0
+	var hn = Mokuryu.head(3.4)
 	head.add_child(hn)
-	# dallanan tahta boynuzlar + yanak kökleri + sakal kökleri
-	var ab = MB.new()
-	for sx in [-1.0, 1.0]:
-		ab.add("cyl", Vector3(0.32 * sx, 0.75, 0.55), Vector3(0.12, 1.1, 0.12), Color(0.42, 0.3, 0.18), Vector3(-50, 0, -25 * sx), 6)
-		ab.add("cyl", Vector3(0.55 * sx, 1.15, 0.85), Vector3(0.08, 0.6, 0.08), Color(0.42, 0.3, 0.18), Vector3(-20, 0, -60 * sx), 5)
-		ab.add("cyl", Vector3(0.25 * sx, 1.25, 1.05), Vector3(0.07, 0.55, 0.07), Color(0.42, 0.3, 0.18), Vector3(-70, 0, 10 * sx), 5)
-		ab.add("cone", Vector3(0.5 * sx, -0.25, -0.2), Vector3(0.12, 0.7, 0.12), Color(0.38, 0.27, 0.16), Vector3(150, 0, 30 * sx), 5)
-		ab.add("sphere", Vector3(0.62 * sx, 0.55, 0.9), Vector3(0.35, 0.25, 0.3), Color(0.32, 0.55, 0.22), Vector3.ZERO, 6)   # yaprak tutamı
-	var am = MeshInstance3D.new()
-	am.mesh = ab.build(Props.toon())
-	am.scale = Vector3.ONE * 2.8
-	head.add_child(am)
+	var jaw: Node3D = hn.get_node("jaw")
 	var body = VfxSerpent.new()
 	body.style = "wood"
 	body.seed_id = "mokuton_mokuryu_no_jutsu"
 	body.head = head
-	body.count = 18
-	body.spacing = 1.15
-	body.radius = 1.3
+	body.count = 26
+	body.spacing = 2.0
+	body.radius = 2.2
 	body.mat = wood
-	body.ring_mat = Props.toon_color(Color(0.32, 0.22, 0.13))   # gövde halkaları (kabuk boğumları)
-	body.fin_mat = Props.toon_color(Color(0.3, 0.55, 0.22))   # sırtta yapraklı filizler
+	body.ring_mat = Props.toon_color(Mokuryu.DARK)   # kabuk boğumları
+	body.fin_mat = Props.toon_color(Mokuryu.DARK.lightened(0.1))   # sırt dikenleri
 	get_tree().current_scene.add_child(body)
-	VFX.cracks(base, 5.0)
-	VFX.debris(base, Color(0.45, 0.35, 0.25), 16, 12.0, 0.45)
+	VFX.cracks(base, 9.0)
+	VFX.debris(base, Color(0.45, 0.35, 0.25), 24, 16.0, 0.6)
 	Sfx.play("earth", base)
-	var tg = _tg(c, t, 30.0)
+	var tg = _tg(c, t, 40.0)
 	var tw = head.create_tween()
-	var top = base + Vector3.UP * 7.0
-	tw.tween_method(func(k: float):
-		var p = (base - Vector3.UP * 2.0).lerp(top, k) + fd.cross(Vector3.UP) * sin(k * TAU) * 2.5
-		var nx = (base - Vector3.UP * 2.0).lerp(top, minf(1.0, k + 0.03)) + fd.cross(Vector3.UP) * sin(minf(1.0, k + 0.03) * TAU) * 2.5
+	var top = base + Vector3.UP * 9.0 + fd * 4.0
+	var side = fd.cross(Vector3.UP)
+	tw.tween_method(func(k: float):   # yükseliş: kıvrılarak gökyüzüne
+		var p = (base - Vector3.UP * 4.0).lerp(top, k) + side * sin(k * TAU) * 4.0
+		var nx = (base - Vector3.UP * 4.0).lerp(top, minf(1.0, k + 0.03)) + side * sin(minf(1.0, k + 0.03) * TAU) * 4.0
 		head.global_position = p
-		head.look_at(nx, Vector3.RIGHT if absf((nx - p).normalized().y) > 0.98 else Vector3.UP), 0.0, 1.0, 0.6)
-	tw.tween_method(func(k: float):
-		var goal = (tg.global_position + Vector3.UP if tg and is_instance_valid(tg) else c.global_position + fd * 20.0)
+		head.look_at(nx, Vector3.RIGHT if absf((nx - p).normalized().y) > 0.98 else Vector3.UP), 0.0, 1.0, 0.7)
+	tw.tween_method(func(k: float):   # dalış
+		var goal = (tg.global_position + Vector3.UP * 1.5 if tg and is_instance_valid(tg) else c.global_position + fd * 26.0)
 		var p = top.lerp(goal, k * k)
 		if p.distance_to(head.global_position) > 0.01:
 			head.look_at(p, Vector3.UP)
 		head.global_position = p, 0.0, 1.0, 0.45)
 	tw.tween_callback(func():
 		var p = head.global_position
-		VFX.debris(p, Color(0.5, 0.36, 0.22), 18, 12.0, 0.5)
-		VFX.star(p, Color(0.9, 0.8, 0.5), 4.0, 0.18)
-		FX.dust(_ground(p), 1.6)
-		Combat.hit_sphere(c, p, 4.0, _inf(c, "mokuton_mokuryu_no_jutsu", 1.6, {"stun": 1.6}))
+		VFX.debris(p, Color(0.5, 0.4, 0.3), 18, 12.0, 0.5)
+		FX.dust(_ground(p), 2.0)
+		Combat.hit_sphere(c, p, 4.5, _inf(c, "mokuton_mokuryu_no_jutsu", 0.6, {"knock": 0.0}))
 		if tg and is_instance_valid(tg):
-			tg.apply_status("bind", 2.0)
+			tg.apply_status("bind", 3.6)
+			Combat.popup_text(tg.global_position + Vector3.UP * 2.6, "Mokuryū sardı!", Color(0.8, 0.75, 0.5))
 		if Game.world: Game.world.env.add_shake(0.8))
-	tw.tween_interval(1.4)
-	tw.tween_callback(head.queue_free)
+	# sarma: baş rakibin çevresinde iki tur yükselerek döner, gövde sarmal halka olur; sonra ısırır
+	var ctr = {"p": Vector3.ZERO}
+	tw.tween_method(func(k: float):
+		var cp = tg.global_position if tg and is_instance_valid(tg) else ctr["p"]
+		if ctr["p"] == Vector3.ZERO:
+			ctr["p"] = cp
+		var a = k * TAU * 2.0
+		var r = 3.6
+		var p = cp + Vector3(cos(a) * r, 0.6 + k * 4.0, sin(a) * r)
+		var nx = cp + Vector3(cos(a + 0.3) * r, 0.6 + k * 4.0 + 0.1, sin(a + 0.3) * r)
+		head.global_position = p
+		head.look_at(nx, Vector3.UP), 0.0, 1.0, 1.1)
+	tw.tween_callback(func():
+		if tg and is_instance_valid(tg):
+			head.look_at(tg.global_position + Vector3.UP * 1.2, Vector3.UP)
+			var jt = jaw.create_tween()
+			jt.tween_property(jaw, "rotation:x", 0.0, 0.12)
+			Sfx.play("bite", tg.global_position, 0.8))
+	# ısırık: chakra emme (kanon) + az hasar
+	var drain = func():
+		for k in 6:
+			get_tree().create_timer(k * 0.35).timeout.connect(func():
+				if tg and is_instance_valid(tg) and not tg.is_dead():
+					tg.take_hit(_inf(c, "mokuton_mokuryu_no_jutsu", 0.12, {"knock": 0.0, "kind": "light", "chakra_drain": 8.0}))
+					if tg.get("chakra") != null and c.get("chakra") != null and c.get("max_chakra") != null:
+						c.chakra = minf(float(c.max_chakra), float(c.chakra) + 4.0))
+	tw.tween_callback(drain)
+	tw.tween_interval(2.3)
+	tw.tween_callback(func():
+		VFX.debris(head.global_position, Color(0.5, 0.4, 0.3), 20, 10.0, 0.5)
+		head.queue_free())
