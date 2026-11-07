@@ -258,7 +258,7 @@ static func small_talk(v: Node) -> Array:
 		Game.profile["waypoint"] = [p.x, p.y, p.z, "Yemek / konaklama"]
 		Game.profile["track"] = "waypoint"
 		Hud.dialog(nm, "Şuradan dümdüz git, %d adım kadar. Haritana işaretledim." % int(bd), [])})
-	opts.append({"label": "Kolay gelsin.", "cb": func(): Hud.dialog(nm, ["Sana da ninja! Dikkatli ol.", "Sağ ol evlat.", "Köyümüzü koruduğunuz için teşekkürler."].pick_random(), [])})
+	opts.append({"label": "Kolay gelsin.", "cb": func(): Hud.dialog(nm, (["...Sağ ol. Sen buralı değilsin, değil mi?", "Alnındaki çizik... Ben bir şey görmedim, tamam mı?", "Kolay gelsin. Muhafızlar dolaşıyor, bilesin."] if Orgs.is_rogue() else ["Sana da ninja! Dikkatli ol.", "Sağ ol evlat.", "Köyümüzü koruduğunuz için teşekkürler."]).pick_random(), [])})   # kaçağa "köyümüzü koruduğun için" denmez
 	return opts
 
 
@@ -829,9 +829,7 @@ static func arch(f: Dictionary) -> Dictionary:
 			a["auto_lv"] = lv
 	a["name"] = "%s (%s)" % [f["name"], rank_label(f)]
 	a["respawn"] = false
-	a["hp"] = 240.0 + lv * 16.0
-	a["level"] = lv
-	a["power"] = 0.9 + lv * 0.011
+	Stats.npc_ninja(a, lv)   # tanıdık ninja: ortak eğri
 	if f.has("taught"):   # hocasının öğrettiği teknikler önce
 		var js: Array = (a.get("jutsu", []) as Array).duplicate()
 		for jid in f["taught"]:
@@ -969,10 +967,14 @@ func _defect(id: String) -> void:
 	e["name"] = String(f["name"])
 	e["alias"] = ["Dönek", "Kayıp Gölge", "Kırık Bant", "Yalnız Kurt"].pick_random()
 	e["village"] = String(f.get("village", Progress.home()))
+	# kimliği (yüz, saç, ten, cinsiyet) kendisinin; kıyafeti artık kaçak kıyafeti (_bb_new'in rogue seti) — chūnin yeleğiyle gezmez
 	var lk = look_of(f)
-	for k in lk:
-		e["look"][k] = Missions._hex(lk[k]) if lk[k] is Color else lk[k]
+	for k in ["gender", "hair", "hair_style", "skin", "eye", "face", "face_id", "beard", "age", "face_mark", "eye_kind"]:
+		if lk.has(k):
+			e["look"][k] = Missions._hex(lk[k]) if lk[k] is Color else lk[k]
+	e["look"]["vest"] = null
 	e["look"]["band_style"] = "slashed"
+	f["look"] = _ser(Missions._bb_look(e))   # dost kaydındaki görünüş de kaçak kıyafeti (karşılaşmada aynı görünsün)
 	e["look"]["village"] = e["village"]
 	if String(f.get("clan", "")) != "":
 		e["clan"] = f["clan"]
@@ -1736,8 +1738,16 @@ func _dest_for(kind: String) -> Dictionary:
 					bd2 = w.distance_to(pp)
 					best = {"pos": Missions.open_ground(w + Vector3(0, 0, 6), 15.0), "type": "inn_poi", "name": String(p.get("name", "Yol hanı"))}
 		"train":
-			var tp = Exams.find_point(["training"])
-			best = {"pos": tp, "type": "train", "name": "Antrenman Alanı"}
+			if Orgs.is_rogue():
+				# kaçağın köy antrenman alanı yok: sığınak yakınsa onun önü, değilse bulunduğun yerin yakınında ıssız bir açıklık
+				var hp: Vector3 = Orgs.hideout_spawn()
+				var tq: Vector3 = hp + Vector3(8, 0, 0) if hp.distance_to(pp) < 400.0 else pp + Game.player.face_dir() * 30.0
+				tq = Missions.open_ground(tq, 25.0)
+				tq.y = Game.ground_height(tq.x, tq.z)
+				best = {"pos": tq, "type": "train", "name": "Sığınak önü" if hp.distance_to(pp) < 400.0 else "Issız açıklık"}
+			else:
+				var tp = Exams.find_point(["training"])
+				best = {"pos": tp, "type": "train", "name": "Antrenman Alanı"}
 		"walk":
 			var lp = Exams.find_point(["lookout"])
 			if lp.distance_to(pp) > 900.0:

@@ -19,12 +19,13 @@ func _ready() -> void:
 	var cc = Camera3D.new()
 	get_tree().current_scene.add_child(cc)
 	Jutsu.execute(pl, "kuchiyose_kirikiri_mai", null)
-	await _w(0.3)
-	cc.global_position = pl.global_position + rt * 2.0 + fw * 6.0 + Vector3.UP * 2.6
-	cc.look_at(pl.global_position + rt * 2.0 + Vector3.UP * 2.0)
+	await _w(0.5)
+	cc.global_position = pl.global_position + rt * 7.0 + fw * 7.0 + Vector3.UP * 2.0
+	cc.look_at(pl.global_position + fw * 7.0 + Vector3.UP * 1.6)
 	cc.current = true
 	await _w(0.05)
 	await main.shot("kamatari2")
+	get_tree().quit()
 	pl.cam.current = true
 	await _w(2.0)
 	Jutsu.execute(pl, "tesso_kusari", null)

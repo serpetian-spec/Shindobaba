@@ -246,9 +246,7 @@ static func make_enemy(c: String, lv: int, opts := {}) -> Dictionary:
 	var el: String = MAIN_EL.get(c, "")   # doğa jutsusu olmayan klanlar (Nara, Hyūga...) yalnız klan teknikleriyle savaşır
 	var female: bool = opts.get("female", randf() < 0.35)
 	a["element"] = el
-	a["level"] = lv
-	a["hp"] = 130.0 + lv * 16.0
-	a["power"] = 1.25 + lv * 0.032
+	Stats.npc_ninja(a, lv)   # klan ninjası: ortak eğri
 	a["xp"] = 40 + lv * 22
 	a["ryo"] = 30 + lv * 6
 	a["guard"] = 0.3 + (0.15 if c in ["uchiha", "hyuga"] else 0.0)

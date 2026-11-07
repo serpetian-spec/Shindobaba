@@ -20,6 +20,11 @@ uniform sampler2D leaf_tex : filter_linear_mipmap, repeat_enable;   // yaprak/i�
 uniform float leaf_tex_amt = 0.0;
 uniform bool detail_brown_only = false;   // ağaçlar: doku yalnız kahverengi (gövde) köşelere, yapraklara değil
 uniform float sway = 0.0;
+uniform float trample = 0.0;   // >0: içinden geçen dövüşçüler (push0-3) bitkiyi dışa doğru yatırır (çiçek öbekleri)
+global uniform vec4 push0;
+global uniform vec4 push1;
+global uniform vec4 push2;
+global uniform vec4 push3;
 uniform bool cloth_mode = false;
 uniform bool hide_masked = false;  // vertex alfa=1 olan bölgeler çizilmez (kıyafet altı)   // doku (ten) + vertex rengi (kıyafet, alfa = maske)
 uniform bool palette_mode = false;  // vertex COLOR.r = renk yuvası*0.1 (0 = ten dokusu)
@@ -102,6 +107,22 @@ void vertex() {
 		VERTEX.x += s + fl;
 		VERTEX.z += s * 0.7 - fl * 0.6;
 		VERTEX.y += fl * 0.5;
+	}
+	if (trample > 0.0) {
+		vec3 w2 = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+		vec3 root2 = (MODEL_MATRIX * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+		float hy = clamp((w2.y - root2.y) / 0.6, 0.0, 1.0);   // dip sabit, uç yatar
+		vec3 off = vec3(0.0);
+		vec4 ps[4] = vec4[4](push0, push1, push2, push3);
+		for (int i = 0; i < 4; i++) {
+			vec2 dv = w2.xz - ps[i].xz;
+			float dl = length(dv);
+			float k = clamp(1.0 - dl / max(ps[i].w, 0.01), 0.0, 1.0) * step(abs(root2.y - ps[i].y), 2.5);
+			k *= k;
+			off.xz += (dl > 0.001 ? dv / dl : vec2(0.0)) * k * 0.55 * trample;
+			off.y -= k * 0.35 * trample;
+		}
+		VERTEX += inverse(mat3(MODEL_MATRIX)) * (off * hy);
 	}
 	wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	rest = CUSTOM0.xyz;

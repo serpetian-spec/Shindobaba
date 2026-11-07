@@ -161,6 +161,9 @@ static func sign(id: String) -> void:
 	if Data.jutsu.has("zofuku_kuchiyose_no_jutsu") and int(pr["level"]) >= 18 and not "zofuku_kuchiyose_no_jutsu" in pr["learned"]:
 		Progress.learn("zofuku_kuchiyose_no_jutsu", false)
 	Hud.banner("SÖZLEŞME İMZALANDI", "%s — Kuchiyose no Jutsu öğrenildi" % DEFS[id]["name"], DEFS[id]["color"])
+	if id == "gelincik" and not (pr.get("gear", []) as Array).any(func(g): return String(g.get("id", "")) == "temari_ogi"):
+		Gear.grant(pr, "temari_ogi")   # kanon: Kamatari dev yelpazeyle çağrılır (Kirikiri Mai'nin aracı)
+		Hud.msg("Sözleşme ustası sana dev bir katlanır yelpaze verdi: Temari no Ōōgi.", Color(0.93, 0.87, 0.74))
 	teach_contract_arts(id)
 	Sfx.play("seal", null, 0.7)
 	Game.save_game()

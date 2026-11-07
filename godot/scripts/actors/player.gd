@@ -1112,6 +1112,7 @@ func _leave_wall() -> void:
 
 
 var _step_ph := -1.0
+var _ripple_t := 0.0
 
 
 ## Ayak sesi: animasyonda ayağın yere bastığı anda (ölçülen temas fazları), zemine göre
@@ -1119,9 +1120,17 @@ func _footstep(_sp: float, sprint: bool) -> void:
 	if not grounded or swimming:
 		_step_ph = -1.0
 		return
+	var wl = Game.water_level(global_position.x, global_position.z, Game.terrain_height(global_position.x, global_position.z)) if on_water else 0.0
 	if model.footstep_cross(_step_ph):
 		Sfx.play(Game.step_sound(global_position), global_position, randf_range(0.92, 1.08), 0.32 if sprint else 0.26)
+		GroundMarks.step(self, on_water, wl)   # suda halka dalga, kumda/karda ayak izi
 	_step_ph = model.anim_progress() if model.current in CharacterModel.FOOT_PHASES else -1.0
+	# suyun üstünde dururken de ayak altından ara ara halka yayılır
+	if on_water and Vector2(velocity.x, velocity.z).length() < 0.5:
+		_ripple_t -= get_physics_process_delta_time()
+		if _ripple_t <= 0.0:
+			_ripple_t = 1.3
+			GroundMarks.ripple(Vector3(global_position.x, wl + 0.03, global_position.z), 1.2)
 
 
 func _animate(sp: float, sprint: bool) -> void:

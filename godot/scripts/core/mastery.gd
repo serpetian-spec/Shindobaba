@@ -76,7 +76,7 @@ static func total(p: Dictionary) -> float:
 static func power(p: Dictionary) -> int:
 	var fight = maxf(get_v(p, "taijutsu"), get_v(p, "kenjutsu"))
 	var avg = (get_v(p, "ninjutsu") + fight + get_v(p, "chakra") + get_v(p, "dayaniklilik")) / 4.0
-	# eğri: başta hızlı yükselir (ustalık ort. 10 -> güç ~20, 32 -> 45 Jōnin, 54 -> 65 ANBU, 86 -> 90 Kage)
+	# eğri: başta hızlı yükselir (ustalık ort. 10 -> güç ~20, 50 -> ~62); dünya ölçeği: köy jōnin'i ~60-85, ANBU ~80-100, Bingo S 110-200, efsaneler 200+
 	return maxi(1, int(round(100.0 * pow(avg / 100.0, 0.7))))   # üst sınır yok
 
 

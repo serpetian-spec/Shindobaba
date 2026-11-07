@@ -673,9 +673,9 @@ func rogue_job_done(m: Dictionary, ok: bool) -> void:
 ## Kaçak büyük gizli köye girerse köy düşman olur: muhafızlar dalga dalga saldırır (Chūnin → Jōnin → ANBU → en son Kage).
 ## Köyden çıkıp uzak durunca alarm söner. Kefaret görevinin son adımında (köye kanıtla dönüş) alarm çalmaz.
 const RAID_WAVES := [
-	{"title": "Köy Muhafızları", "kind": "chunin", "n": 3, "lv": 0, "hp": 1.0},
-	{"title": "Jōnin Takımı", "kind": "chunin", "n": 3, "lv": 6, "hp": 1.6},
-	{"title": "ANBU Birliği", "kind": "anbu", "n": 4, "lv": 10, "hp": 2.0},
+	{"title": "Köy Muhafızları", "kind": "chunin", "n": 3, "lv": 0, "hp": 1.1},
+	{"title": "Jōnin Takımı", "kind": "chunin", "n": 3, "lv": 6, "hp": 1.2},
+	{"title": "ANBU Birliği", "kind": "anbu", "n": 4, "lv": 9, "hp": 1.35},
 ]
 
 
@@ -754,9 +754,8 @@ func _raid_wave(vid: String, wd: Dictionary) -> void:
 		var a = _village_arch(vid, i, "chunin" if int(wd["lv"]) == 0 else "jonin")
 		a["respawn"] = false
 		a["name"] = "%s %s" % [vname, "ANBU" if wd["kind"] == "anbu" else ("Jōnin" if int(wd["lv"]) > 0 else "Muhafızı")]
-		a["level"] = randi_range(22, 30) + int(wd["lv"]) * 6 + rogue_rank() * 3
-		a["hp"] = (260.0 + a["level"] * 18.0) * float(wd["hp"])
-		a["power"] = 1.5 + a["level"] * 0.02
+		# köy ninjaları yoldaki aynı rütbeyle aynı eğride (muhafız chūnin ~16-22, jōnin ~28-36, ANBU ~34-42); kaçak ünü biraz yükseltir
+		Stats.npc_ninja(a, randi_range(35, 45) + int(wd["lv"]) * 5 + rogue_rank() * 3, float(wd["hp"]))   # muhafız ~35-55, jōnin ~65-85, ANBU ~80-100
 		if wd["kind"] == "anbu":
 			a["look"]["face_style"] = ["anbu_kedi", "anbu_kurt", "anbu_kus", "anbu_kedi"][i % 4]
 		var e = Enemy.new()
@@ -858,9 +857,7 @@ func _hunter_tick(dt: float) -> void:
 		var a = Enemy.archetype(kind, i)
 		a["name"] = "Av-Ninjası"
 		a["respawn"] = false
-		a["level"] = randi_range(26, 34) + rogue_rank() * 6
-		a["hp"] = 300.0 + a["level"] * 20.0
-		a["power"] = 1.8 + a["level"] * 0.02
+		Stats.npc_ninja(a, randi_range(70, 85) + rogue_rank() * 4, 1.35)   # av-ninjası: ANBU dengi   # av-ninjası: ANBU eğrisi (eskiden +6/rütbe ile S'de kesilemiyordu)
 		a["look"]["face_style"] = ["anbu_kedi", "anbu_kurt", "anbu_kus"][i]
 		a["look"]["village"] = vid
 		if hn < base_n:

@@ -159,6 +159,22 @@ static func ninja_hp(lv: float) -> float:
 	return (180.0 + lv * 18.0) * (0.75 + lv * 0.004)
 
 
+## NPC ninja eğrisi (TEK KAYNAK): Güç L olan bir ninjanın canı ve gücü. Rol çarpanı yalnız elitler için küçük pay
+## (köy muhafızı 1.1, köy jōnin takımı 1.2, ANBU/av-ninjası 1.35). Eskiden her kaynak kendi formülünü kullanıyordu:
+## aynı rütbedeki yol jōnin'i ile köy jōnin'i arasında 3-4 kat fark vardı (biri çok kolay, öteki kesilemiyordu).
+## Can: Enemy.setup ninja türlerinde ayrıca x(0.75 + L*0.004) uygular (oyuncunun ninja_hp'siyle aynı eğri).
+static func npc_ninja(a: Dictionary, lv: int, role := 1.0) -> void:
+	a["level"] = lv
+	a["hp"] = (180.0 + lv * 18.0) * role
+	a["power"] = (1.3 + lv * 0.035) * lerpf(1.0, role, 0.5)
+
+
+## [C] chakra toplama hızı (/sn): chakra ustalığıyla büyür — eskiden hep 32/sn (ustalık 50'de havuz 430: 13 sn); şimdi
+## ustalık 50'de 80/sn (~5 sn), havuz büyüdükçe doldurma süresi kısalır (gelişim hissedilsin)
+static func charge_rate(p: Dictionary) -> float:
+	return 32.0 * (1.0 + Mastery.get_v(p, "chakra") * 0.03)
+
+
 static func max_hp(p: Dictionary) -> float:
 	var v = ninja_hp(float(Mastery.power(p))) + Mastery.get_v(p, "dayaniklilik") * 8.0   # Güç tabanı (NPC ile aynı) + dayanıklılık idmanı
 	return v + Gear.stat(p, "hp") + clan_bonus(p, "hp") + skill(p, "hp")
@@ -189,7 +205,9 @@ static func max_chakra(p: Dictionary) -> float:
 static func melee_mult(p: Dictionary) -> float:
 	# yumruk taijutsu, silah kenjutsu ustalığı
 	var armed = String(Gear.weapon(p).get("style", "fist")) != "fist" and bool(p.get("weapon_drawn", false))
-	var m = 1.0 + Mastery.get_v(p, "kenjutsu" if armed else "taijutsu") * 0.025
+	# ustalık başına %4.5: aynı Güç'teki NPC'nin vuruş eğrisiyle (1.3 + Güç x 0.035) eşit — eskiden %2.5 ile aynı Güç'teki
+	# NPC oyuncudan %50 sert vuruyordu, ustalık kasmak hissedilmiyordu (ustalık 50 -> x3.25, NPC Güç 62 -> x3.47)
+	var m = 1.0 + Mastery.get_v(p, "kenjutsu" if armed else "taijutsu") * 0.045
 	m += skill(p, "melee")
 	m += clan_bonus(p, "melee")
 	m *= Buffs.mod("melee") * (1.0 + Gear.stat(p, "melee") * 0.6)
@@ -201,7 +219,7 @@ static func jutsu_mult(p: Dictionary, branch := "ninjutsu") -> float:
 	var mv = Mastery.get_v(p, "ninjutsu")
 	if branch != "ninjutsu":
 		mv = maxf(Mastery.get_v(p, branch), mv * 0.5)
-	var m = 1.0 + mv * 0.03
+	var m = 1.0 + mv * 0.045   # yakın dövüşle aynı eğri (NPC gücüyle eşit)
 	m += skill(p, "jutsu")
 	m += clan_bonus(p, "jutsu")
 	m *= Buffs.mod("jutsu")

@@ -134,7 +134,7 @@ static func region_level(pos: Vector3) -> int:
 	for v in Game.world_info.get("villages", []):
 		var d = m.distance_to(Vector2(float(v["x"]), float(v["y"]))) - float(v.get("r", 500.0))
 		best = minf(best, d)
-	return int(6.0 + maxf(0.0, best) / 180.0)
+	return int(8.0 + maxf(0.0, best) / 110.0)   # dünya ölçeği: Güç 60 civarı oyunun başı-ortası (köy jōnin'i dengi)
 
 
 static func world_level(pos: Vector3) -> int:
@@ -248,10 +248,12 @@ func setup(a: Dictionary) -> void:
 		power *= 1.0 + lv * 0.003
 	size = a.get("size", 1.0)
 	display_name = a["name"]
-	skill = clampf(float(a.get("skill", (float(a["power"]) - 1.0) / 2.2)), 0.05, 0.98)
-	# zorluk = davranış (can/güç değil): ninjalar seviyeleriyle ustalaşır — daha çok blok, kawarimi, kaçış, karşı saldırı
-	if not String(a.get("kind", "")) in ["bandit"] and not a.has("skill"):
-		skill = maxf(skill, clampf(0.18 + int(a["level"]) * 0.009, 0.0, 0.85))
+	# zorluk = davranış: ustalık (blok, kawarimi, kaçış, karşı saldırı) SEVİYEDEN gelir, güçten değil — eskiden güçten
+	# türüyordu: güç 3.7 olan ANBU/köy jōnin'i 0.98 ustalıkla neredeyse hiç vurulamıyordu (köy takımı "kesilemiyordu")
+	var lv_skill = clampf(0.12 + int(a["level"]) * 0.006, 0.05, 0.85)   # Güç 60: 0.48, 90: 0.66, 120+: 0.84
+	if String(a.get("kind", "")) == "bandit" and not a.has("skill"):
+		lv_skill = clampf(0.05 + int(a["level"]) * 0.006, 0.05, 0.35)   # haydut: kaba kuvvet, az teknik
+	skill = clampf(float(a.get("skill", lv_skill)), 0.05, 0.95)
 	# görev seviyeyi değiştirdiyse ve jutsu elle verilmediyse yeni seviyeye göre yeniden seç
 	if a.has("auto_jutsu") and a["jutsu"] == a["auto_jutsu"] and int(a["level"]) != int(a.get("auto_lv", 0)):
 		var auto = auto_jutsu(String(a["kind"]), String(a["element"]), int(a["level"]))
@@ -805,6 +807,7 @@ func _footsteps(_dt: float) -> void:
 		return
 	if model.footstep_cross(_step_ph):
 		Sfx.play(Game.step_sound(global_position), global_position, randf_range(0.88, 1.05), 0.2)
+		GroundMarks.step(self, false)   # kumda/karda iz (oyuncuyla aynı)
 	_step_ph = model.anim_progress() if model.current in CharacterModel.FOOT_PHASES else -1.0
 
 

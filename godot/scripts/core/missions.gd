@@ -1613,18 +1613,18 @@ func lair_room(origin: Vector3) -> void:
 	var s = _cur()
 	if s.is_empty() or s.get("kind", "") != "kill" or not String(st.get("lair", "")) in ["cave", "lab"]:
 		return
-	var at = origin + Vector3(0, 0.1, -26.0)
+	var at = origin + Vector3(0, 0.1, -42.0)   # büyük salonun dibi
 	var alive = step_nodes.filter(func(e): return is_instance_valid(e) and e is Enemy and not e.dead)
 	if st.get("lair_spawned", false):
 		for e in alive:
-			e.global_position = at + Vector3(randf_range(-3, 3), 0, 0)
+			e.global_position = at + Vector3(randf_range(-6, 6), 0, randf_range(-3, 3))
 			e.home = e.global_position
 			e.wander_to = e.global_position
 		return
 	st["lair_spawned"] = true
 	var es = _spawn_kill(s, at)
 	for e in es:
-		e.global_position = at + Vector3(randf_range(-3, 3), 0, 0)
+		e.global_position = at + Vector3(randf_range(-6, 6), 0, randf_range(-3, 3))
 		e.home = e.global_position
 		e.wander_to = e.global_position
 	target_marker = at
@@ -1797,7 +1797,10 @@ func _cone_mesh() -> MeshInstance3D:
 func _cleanup_nodes() -> void:
 	for x in step_nodes:
 		if is_instance_valid(x):
-			x.queue_free()
+			if x is Fighter and x.dead:
+				_corpse_later(x)   # ceset görev bitince hemen kalkmaz: bir süre yerde kalır, uzaklaşınca/süre dolunca kaybolur
+			else:
+				x.queue_free()
 	step_nodes.clear()
 	var drop = []
 	for it in Interact.items:
@@ -1805,6 +1808,18 @@ func _cleanup_nodes() -> void:
 			drop.append(it)
 	for it in drop:
 		Interact.items.erase(it)
+
+
+## Ceset: 90 sn yerde kalır (oyuncu 120 m'den uzaklaşırsa daha erken temizlenir)
+func _corpse_later(x: Node3D) -> void:
+	var t := 0.0
+	while t < 90.0 and is_instance_valid(x):
+		await get_tree().create_timer(3.0).timeout
+		t += 3.0
+		if is_instance_valid(x) and Game.player and x.global_position.distance_to(Game.player.global_position) > 120.0:
+			break
+	if is_instance_valid(x):
+		x.queue_free()
 
 
 func _cleanup() -> void:
@@ -2687,7 +2702,7 @@ const BB_ALIAS := ["Kızıl Tilki", "Sessiz Çekiç", "Sis Hayaleti", "Kemik Kı
 const BB_CRIMES := ["Köy hazinesini soydu", "Daimyo kervanına pusu kurdu", "Yasak bir parşömen çaldı", "Sınır karakolunu yaktı",
 	"Üç Chunin'i öldürdü", "Köyünden kaçıp gizli teknikleri sattı", "Kaçakçılık çetesi yönetiyor", "Tüccarları fidye için kaçırıyor",
 	"Kuyu sularını zehirledi", "Bir tapınağı yağmaladı", "Bir Kage muhafızını yaraladı", "Sahte görev ilanlarıyla genin'leri tuzağa düşürüyor"]
-const BB_RANKS := {"C": [800, 1500, 8, 14, 2, "bandit"], "B": [2500, 5000, 18, 30, 3, "rogue"], "A": [8000, 15000, 35, 60, 3, "rogue"], "S": [30000, 60000, 60, 120, 4, "rogue"]}   # güç üst sınırı yok: S-rank'ın bir kısmı efsanevi (_bb_new)
+const BB_RANKS := {"C": [800, 1500, 15, 30, 2, "bandit"], "B": [2500, 5000, 35, 60, 3, "rogue"], "A": [8000, 15000, 70, 110, 3, "rogue"], "S": [30000, 60000, 110, 200, 4, "rogue"]}   # dünya ölçeği: Güç 60 oyunun başı-ortası   # güç üst sınırı yok: S-rank'ın bir kısmı efsanevi (_bb_new)
 const BB_VILLAGES := ["konoha", "suna", "kiri", "kumo", "iwa", "ame", "kusa", "taki", "oto"]
 const BB_ELEM := {"konoha": "katon", "suna": "fuuton", "kiri": "suiton", "kumo": "raiton", "iwa": "doton", "ame": "suiton", "kusa": "doton", "taki": "suiton", "oto": "fuuton"}
 var _bb_spawned := {}   # id -> [boss, escorts..., camp]
@@ -2717,7 +2732,7 @@ func _bb_new(force_rank := "") -> Dictionary:
 	crimes.shuffle()
 	var lv = randi_range(int(rd[2]), int(rd[3]))
 	if rank == "S" and randf() < 0.15:
-		lv = randi_range(120, 220)   # efsanevi kaçak: oyuncu gücünden bağımsız, çok güçlü
+		lv = randi_range(200, 350)   # efsanevi kaçak: oyuncu gücünden bağımsız, çok güçlü
 	var e = {
 		"id": int(bb["next"]), "name": "%s %s" % [BB_FAMILY.pick_random(), BB_GIVEN.pick_random()], "alias": BB_ALIAS.pick_random(),
 		"village": vid, "rank": rank, "bounty": int(randi_range(int(rd[0]), int(rd[1])) / 50) * 50, "crimes": crimes.slice(0, 2 if rank in ["C", "B"] else 3),
@@ -2916,9 +2931,7 @@ func _bb_spawn(e: Dictionary, at: Vector3) -> void:
 	var a = Enemy.archetype("rogue", 0)
 	a["respawn"] = false
 	a["name"] = "«%s» %s" % [e["alias"], e["name"]]
-	a["hp"] = float(e["hp"]) * 1.25   # kaçak elit: aynı seviyedeki yol ninjasından dayanıklı (eskiden 0.6 ile kırpılıyordu)
-	a["level"] = int(e["level"])
-	a["power"] = float(e["power"])
+	Stats.npc_ninja(a, int(e["level"]), {"C": 1.15, "B": 1.3, "A": 1.5, "S": 1.8}.get(String(e.get("rank", "B")), 1.3))   # Bingo kaçağı = elit: rütbe çarpanı (S en ağır)
 	a["guard"] = 0.55
 	a["sub"] = 0.4
 	a["xp"] = int(e["level"]) * 30
@@ -2930,12 +2943,12 @@ func _bb_spawn(e: Dictionary, at: Vector3) -> void:
 	for jid in Enemy.auto_jutsu("rogue", String(e["element"]), int(e["level"])):
 		if not jid in a["jutsu"]:
 			a["jutsu"].append(jid)
-	a["skill"] = clampf(0.3 + int(e["level"]) * 0.011, 0.35, 0.95)   # elit: yol ninjasından usta (kawarimi, blok, karşı saldırı)
+	a["skill"] = clampf(0.18 + int(e["level"]) * 0.0045, 0.3, 0.85)   # elit: aynı seviyedeki yol ninjasından biraz usta (A ~0.6, S ~0.8)
 	a["look"] = _bb_look(e)
 	if e.has("beast"):
 		a["beast"] = e["beast"]
 		a["name"] = "«%s» %s — Jinchūriki" % [e["alias"], e["name"]]
-		a["hp"] = float(e["hp"]) * 1.6
+		a["hp"] = (180.0 + int(e["level"]) * 18.0) * 1.8
 	if e.has("mist_sword"):
 		# Sis'in kılıç ustası: kılıcı elinde, kılıca özgü tekniklerle (Swordsmen.tick)
 		BossStyles.dress(a, String(e.get("rank", "A")), int(e["id"]) * 7919, "kenjutsu")

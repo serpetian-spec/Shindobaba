@@ -447,9 +447,10 @@ func shell(W: float, D: float, H: float, wall := Color(0.93, 0.88, 0.76), floor_
 ## Mağara / deney ini: kaya duvarlar, meşaleler; sığınakta yatak, sandık, çalıntı mal; inde ameliyat masaları,
 ## yeşil ışıklı tüpler, kafeslerde kaçırılmış köylüler. Düşman odanın dibinde (Missions.lair_room).
 func _lair(lab: bool) -> void:
-	var W = 20.0
-	var D = 34.0
-	var H = 7.0
+	# büyük mağara salonu (eskiden 20x34x7: duvar kayalarıyla ~16 m genişlik, dövüşte kamera tavana/duvara gömülüyordu)
+	var W = 36.0
+	var D = 56.0
+	var H = 13.0
 	var rock = Color(0.32, 0.3, 0.29)
 	var floor_c = Color(0.27, 0.25, 0.23)
 	bx(0, -0.1, D * 0.5, W + 2.0, 0.2, D + 2.0, floor_c, true)
@@ -459,25 +460,28 @@ func _lair(lab: bool) -> void:
 	bx(0, H * 0.5, D + 0.5, W + 2.0, H, 1.0, rock, true)
 	bx(0, H * 0.5, -0.6, W + 2.0, H, 1.0, rock, true)
 	bx(0, H + 0.5, D * 0.5, W + 2.0, 1.0, D + 2.0, rock.darkened(0.3), true)
-	for i in 46:
+	for i in 90:
 		var side = -1.0 if i % 2 == 0 else 1.0
 		var d = rng.randf_range(0.0, D)
 		sp(side * (W * 0.5 - rng.randf_range(0.0, 1.2)), rng.randf_range(0.5, H - 0.5), d, Vector3.ONE * rng.randf_range(2.0, 4.0), rock.darkened(rng.randf() * 0.3), 7)
-	for i in 18:
+	for i in 34:   # arka duvar da kaya yumrularıyla kaplı (düz kutu görünmesin)
+		var s3 = rng.randf_range(2.4, 4.4)
+		sp(rng.randf_range(-W * 0.5, W * 0.5), rng.randf_range(0.5, H - 0.5), D + s3 * 0.5 - rng.randf_range(0.6, 1.4), Vector3.ONE * s3, rock.darkened(rng.randf() * 0.3), 7)
+	for i in 36:
 		sp(rng.randf_range(-W * 0.5, W * 0.5), H - rng.randf_range(0.0, 0.8), rng.randf_range(0.0, D), Vector3(rng.randf_range(2.0, 4.0), 1.5, rng.randf_range(2.0, 4.0)), rock.darkened(0.35), 7)
-		sp(rng.randf_range(-W * 0.4, W * 0.4), H - 1.2, rng.randf_range(2.0, D), Vector3(0.3, 1.6, 0.3), rock.darkened(0.2), 5)   # sarkıt
-	for i in 12:
+		sp(rng.randf_range(-W * 0.4, W * 0.4), H - 1.6, rng.randf_range(2.0, D), Vector3(0.45, 2.6, 0.45), rock.darkened(0.2), 5)   # sarkıt
+	for i in 24:
 		sp(rng.randf_range(-W * 0.45, W * 0.45), 0.1, rng.randf_range(3.0, D - 2.0), Vector3(rng.randf_range(0.5, 1.4), 0.4, rng.randf_range(0.5, 1.4)), rock.darkened(0.1), 6)
 	# girişte gün ışığı
 	gl("box", 0, 1.6, -0.05, Vector3(3.6, 3.2, 0.05), Color(0.95, 0.9, 0.75))
 	act(0, 0.9, 1.8, "exit", "[F] Dışarı çık")
 	var fire = Color(1.0, 0.55, 0.15) if not lab else Color(0.45, 1.0, 0.55)
-	for k in 5:
-		var d = 4.0 + k * 6.5
+	for k in 8:
+		var d = 4.0 + k * 7.0
 		for side in [-1.0, 1.0]:
 			bx(side * (W * 0.5 - 0.6), 2.0, d, 0.12, 0.9, 0.12, Color(0.35, 0.25, 0.15), false, Vector3(0, 0, side * 20))
 			gl("cone", side * (W * 0.5 - 0.75), 2.6, d, Vector3(0.25, 0.45, 0.25), fire)
-		lamp(0, 3.5, d, fire, 1.2, 11.0)
+		lamp(0, 5.0, d, fire, 1.4, 15.0)
 	if not lab:
 		# sığınak: yer yatakları, çalıntı sandıklar, kamp ateşi, harita masası
 		for k in 4:
@@ -1602,12 +1606,12 @@ func _rogue_hideout() -> void:
 		var lx = cos(a2) * 3.4
 		var lz = FZ + sin(a2) * 3.4
 		var yaw = rad_to_deg(a2) + 180.0   # kalasın uzun ekseni (yerel z) çembere teğet
-		bx(lx, 0.42, lz, 0.5, 0.12, 2.2, wood, true, Vector3(0, yaw, 0))
+		bx(lx, 0.42, lz, 0.5, 0.12, 2.2, wood, false, Vector3(0, yaw, 0))   # çarpışmasız: oturan kişiyi tepesine itip havada oturtuyordu
 		for e in [-0.75, 0.75]:
 			cy(lx - sin(a2) * e, 0.18, lz + cos(a2) * e, 0.36, 0.36, wood_d, 8)
 	for k in 2:   # iki kaçak banka oturmuş, ateşe bakıyor
 		var a3 = TAU * k / 4.0 + 0.4
-		person("sitter", cos(a3) * 3.4, FZ + sin(a3) * 3.4, rad_to_deg(a3) + 90.0, "Kaçak", ["Burada kimse geçmişini sormaz.", "Sığınakta ateş küçük yanar; duman ele verir.", "Av ninjaları bu mağarayı hâlâ bulamadı."])
+		person("sitter", cos(a3) * 3.1, FZ + sin(a3) * 3.1, rad_to_deg(a3) - 90.0, "Kaçak", ["Burada kimse geçmişini sormaz.", "Sığınakta ateş küçük yanar; duman ele verir.", "Av ninjaları bu mağarayı hâlâ bulamadı."])
 	# ---- kara pazar: sol duvarda tenteli tezgâhlar (Orgs.ROGUE_STALLS)
 	var stalls: Array = Orgs.ROGUE_STALLS
 	for i in stalls.size():
@@ -1634,7 +1638,7 @@ func _rogue_hideout() -> void:
 		# satıcının arkasında mal sandıkları
 		for q in 3:
 			bx(kx - 1.3, 0.35 + (q % 2) * 0.7, sz - 1.0 + q * 0.9, 0.7, 0.7, 0.8, wood.darkened(0.1 * q), true)
-		person("keeper", kx, sz, -90.0, ["Kara Terzi", "Kara Silahçı", "Kara Parşömenci", "Sözleşme Ustası", "Kara Cerrah"][i % 5],
+		person("keeper", kx, sz, 90.0, ["Kara Terzi", "Kara Silahçı", "Kara Parşömenci", "Sözleşme Ustası", "Kara Cerrah"][i % 5],
 			["Para peşin, soru yok.", "Ne arıyorsan bende var... fiyatı da var.", "Av-ninjası görürsen bilmiyorum de."])
 		act(cx + 1.4, sz, 2.6, String(st[0]), String(st[1]))
 	# ---- yatakhane (sağ duvar): palet üstünde şilte + yastık + battaniye, aralarında perde bölmeler
@@ -1697,7 +1701,7 @@ func _rogue_hideout() -> void:
 		paper_lantern(sx * 3.6, 3.2, BZ + 2.5, Color(1.0, 0.55, 0.25))
 		bx(sx * 4.6, 2.2, BZ + 3.8, 1.0, 3.6, 0.04, Color(0.4, 0.12, 0.12))   # sancak
 	lamp(0, 2.6, BZ, Color(1.0, 0.6, 0.3), 1.4, 9.0)
-	person("keeper", 0, BZ + 1.3, 180.0, "Yeraltı Simsarı", ["Kaçaklar için iş hep vardır.", "Ödülü yüksek olanın riski de yüksek.", "Bandını çizdiysen, geri dönüş yok."], {"y": 0.5})
+	person("keeper", 0, BZ + 1.3, 0.0, "Yeraltı Simsarı", ["Kaçaklar için iş hep vardır.", "Ödülü yüksek olanın riski de yüksek.", "Bandını çizdiysen, geri dönüş yok."], {"y": 0.5})
 	act(0, BZ - 1.2, 4.2, "rogue_broker", "[F] Yeraltı Simsarı (kaçak işleri, rütbe, dinlen)")
 	lamp(0, 6.0, 12.0, Color(0.9, 0.6, 0.4), 0.7, 14.0)   # giriş tarafı genel ışık
 

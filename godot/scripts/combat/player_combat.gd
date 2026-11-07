@@ -817,7 +817,7 @@ func _update_charge(dt: float) -> void:
 				aura = FX.chakra_aura(p, Color(0.3, 0.62, 1.0), p.model.age_scale if p.model and p.model.get("age_scale") else 1.0)
 			_chg_fx = 0.0
 			Sfx.play("wind", p.global_position, 0.8, 0.6)
-		p.chakra = minf(p.max_chakra, p.chakra + 32.0 * dt)
+		p.chakra = minf(p.max_chakra, p.chakra + Stats.charge_rate(Game.profile) * dt)   # chakra ustalığıyla hızlanır
 		if action == "charge":
 			p.model.overlay.cast_pose = _charge_seal_pose()   # her kare IK: animasyonla oynayan omuzlara rağmen eller tam birleşik
 		# ayak dibinde chakra basıncı: dışa açılan rüzgâr halkası, kalkan toz ve küçük taşlar (anime)

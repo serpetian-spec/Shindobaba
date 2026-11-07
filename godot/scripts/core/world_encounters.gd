@@ -158,8 +158,11 @@ func _enemy(kind: String, at: Vector3, i := 0, mods := {}, arch := {}) -> Enemy:
 	a["respawn"] = false
 	var lv := Enemy.world_level(at)   # oyuncuya göre değil, bölgeye göre
 	a["level"] = maxi(int(a["level"]), lv) if kind != "bandit" else clampi(lv, 2, 20)
-	a["hp"] = float(a["hp"]) * (1.0 + a["level"] * 0.04)
-	a["power"] = float(a["power"]) * (1.0 + a["level"] * 0.015)
+	if kind == "bandit":
+		a["hp"] = float(a["hp"]) * (1.0 + a["level"] * 0.04)
+		a["power"] = float(a["power"]) * (1.0 + a["level"] * 0.015)
+	else:
+		Stats.npc_ninja(a, int(a["level"]))   # yol ninjası: ortak eğri (eskiden 70 x (1 + L*0.04): Güç 30'da 154 can, kâğıt gibi)
 	a.merge(mods, true)
 	var e := Enemy.new()
 	e.setup(a)

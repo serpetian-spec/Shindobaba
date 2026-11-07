@@ -71,6 +71,29 @@ func _tuft_mesh() -> ArrayMesh:
 	return st.commit()
 
 
+## Çimen/çiçek eğilmesi: oyuncu + en yakın 3 dövüşçü (global shader değişkenleri push0..3)
+var _push_t := 0.0
+var _push_list: Array = []
+func _update_pushers(p: Vector3) -> void:
+	_push_t -= get_process_delta_time()
+	if _push_t <= 0.0:
+		_push_t = 0.25
+		var c = []
+		for f in get_tree().get_nodes_in_group("fighters"):
+			if f != Game.player and is_instance_valid(f) and f is Node3D and not f.get("dead") and (f as Node3D).global_position.distance_to(p) < 30.0:
+				c.append(f)
+		c.sort_custom(func(a, b): return a.global_position.distance_to(p) < b.global_position.distance_to(p))
+		_push_list = c.slice(0, 3)
+	var r = 1.2 if Game.player.get("grounded") else 0.0
+	RenderingServer.global_shader_parameter_set("push0", Vector4(p.x, p.y, p.z, r))
+	for i in 3:
+		var v = Vector4(0, -10000, 0, 0)
+		if i < _push_list.size() and is_instance_valid(_push_list[i]):
+			var q: Vector3 = _push_list[i].global_position
+			v = Vector4(q.x, q.y, q.z, 1.1 * float(_push_list[i].get("size") if _push_list[i].get("size") != null else 1.0))
+		RenderingServer.global_shader_parameter_set("push%d" % (i + 1), v)
+
+
 func _process(_dt: float) -> void:
 	if Game.player == null:
 		visible = false
@@ -79,6 +102,7 @@ func _process(_dt: float) -> void:
 	var p = Game.player.global_position
 	global_position = Vector3(floor(p.x / snap) * snap, 0, floor(p.z / snap) * snap)
 	mat.set_shader_parameter("player_pos", p)
+	_update_pushers(p)
 	var rm = Game.world.get("road_map") if Game.world else null
 	if rm and rm.version != _road_ver:
 		_road_ver = rm.version

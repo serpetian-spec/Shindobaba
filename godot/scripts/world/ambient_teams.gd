@@ -237,8 +237,7 @@ func _team_attack(tm: Dictionary, crime: bool) -> void:
 		a["name"] = String(n.display)
 		a["respawn"] = false
 		a["no_clan"] = true
-		a["level"] = [8, 16, 30][clampi(rank, 0, 2)] + randi_range(0, 4)
-		a["hp"] = 140.0 + float(a["level"]) * 16.0
+		Stats.npc_ninja(a, [15, 35, 60][clampi(rank, 0, 2)] + randi_range(0, 10))   # genin ~15, chūnin ~35, jōnin ~60   # ortak NPC eğrisi (köy jōnin'iyle aynı)
 		a["look"] = (n.look as Dictionary).duplicate()
 		var e := Enemy.new()
 		e.setup(a)
@@ -266,7 +265,7 @@ func _spar(n: Node, person: Dictionary, vid: String) -> void:
 	a["name"] = "%s (düello)" % String(person["name"])
 	a["respawn"] = false
 	a["no_clan"] = true
-	a["level"] = [8, 16, 30][clampi(rank, 0, 2)]
+	Stats.npc_ninja(a, [15, 35, 60][clampi(rank, 0, 2)])
 	a["look"] = (n.look as Dictionary).duplicate()
 	var at: Vector3 = n.global_position
 	n.visible = false

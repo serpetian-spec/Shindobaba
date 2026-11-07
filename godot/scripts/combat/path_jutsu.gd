@@ -9266,19 +9266,32 @@ func p_kuchiyose_kirikiri_mai(c: Node3D, t: Node3D) -> void:
 	var side = d.cross(Vector3.UP)
 	var at = gp(c.global_position + side * 2.0) + Vector3.UP * 2.0
 	summon_circle(c.global_position, 1.4, WIND, 0.5)
-	jutsu_weapon(c, "tessen", 1.0)
-	FX.smoke_puff(at, 0.6, 8)   # küçük çağırma dumanı: Kamatari görünsün
-	# oyunun gerçek Kamatari modeli (Gelincik sözleşmesi: göz bandı, sırtta dev orak — SummonModels "weasel_trio")
-	var weasel: Node3D = SummonModels.build("weasel_trio", 1.1, 1.0)["root"]
-	get_tree().current_scene.add_child(weasel)
-	weasel.global_position = at
-	weasel.look_at(at + d, Vector3.UP)   # model -Z'ye bakar
-	var tw = weasel.create_tween()
-	tw.tween_property(weasel, "rotation:z", -0.6, 0.25)
-	tw.tween_property(weasel, "rotation:z", 0.8, 0.15)
-	tw.tween_interval(0.6)
-	tw.tween_callback(func(): FX.smoke_puff(weasel.global_position, 1.2, 14))
-	tw.tween_callback(weasel.queue_free)
+	# kanon: dev yelpaze üçüncü aya kadar açılır, savuruşla Kamatari gelir. Elinde Temari no Ōōgi varsa o açılır;
+	# yoksa (yalnız NPC — oyuncu yelpazesiz atamaz) geçici yelpaze belirir
+	var m = c.get("model")
+	var own = m != null and m.get("weapons") != null and (m.weapons as Array).any(func(w): return String(w["id"]) == "temari_ogi")
+	if own:
+		preload("res://scripts/combat/keyed_combos.gd")._ogi_stage(c, 3, 1.1)
+		anim(c, "throw", 1.0)
+	else:
+		jutsu_weapon(c, "tessen", 1.0)
+	FX.smoke_puff(at, 0.35, 5)   # küçük çağırma dumanı
+	# Kamatari (anime): KÜÇÜK orak gelincik (~0,6 m; göz bandı, dev orak) yelpazenin rüzgârına binip fırıl fırıl dönerek
+	# ileri uçar, orağıyla yolundaki her şeyi biçer, rüzgârla birlikte kaybolur. Model: SummonModels "weasel_trio"
+	var fly = Node3D.new()   # uçuş yolu (rüzgâr yönü)
+	get_tree().current_scene.add_child(fly)
+	fly.global_position = at + d * 0.8
+	fly.look_at(fly.global_position + d, Vector3.UP)
+	var weasel: Node3D = SummonModels.build("weasel_trio", 0.55, 1.0)["root"]
+	fly.add_child(weasel)
+	weasel.position = Vector3(0, -0.2, 0)
+	var tw = fly.create_tween()
+	tw.tween_interval(0.3)
+	tw.tween_property(fly, "global_position", at + d * 20.0 + Vector3.UP * 0.6, 0.65).set_ease(Tween.EASE_IN)
+	tw.tween_callback(func(): FX.smoke_puff(fly.global_position, 0.4, 5))
+	tw.tween_callback(fly.queue_free)
+	var spin = weasel.create_tween()
+	spin.tween_property(weasel, "rotation:z", TAU * 7.0, 0.95)   # rüzgâr ekseninde dönerek (Kirikiri Mai: "biçme dansı")
 	after(0.4, func():
 		stream_fx(at, d, 22.0, 6.0, _windmat(0.6), 0.4)
 		_arc_cut(at, d, -60.0, 60.0, Color(0.9, 1, 0.95), 4.0)

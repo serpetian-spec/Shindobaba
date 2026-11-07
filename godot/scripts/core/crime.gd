@@ -185,17 +185,15 @@ func _send_guards() -> void:
 	if Game.player == null:
 		return
 	var hi = Progress.home_info()
-	var lv = randi_range(24, 34)   # köy muhafızı: köyün kendi gücü (oyuncuya göre değil)
+	var lv = randi_range(40, 55)   # köy muhafızı: köyün kendi gücü (oyuncuya göre değil)
 	var gn = Combat.foe_count(3)   # takımın kadar muhafız (yalnızsan 1, güçlü); eksik güç kalana biner
 	for i in gn:
 		var a = Enemy.archetype("genin_rival", i)
 		a["name"] = "Köy Muhafızı"
 		a["respawn"] = false
-		a["level"] = lv
-		a["hp"] = 260.0 + lv * 18.0
+		Stats.npc_ninja(a, lv, 1.1)   # köy muhafızı: ortak eğri
 		if gn < 3:
 			Enemy.toughen(a, ceili(3.0 / gn), "B")   # tek muhafız üç kişinin gücünün bir kısmını taşır
-		a["power"] = 1.1 + lv * 0.02
 		a["xp"] = 30 + lv * 6
 		a["ryo"] = 0
 		a["element"] = ["katon", "suiton", "fuuton", "doton", "raiton"].pick_random()   # 5 doğa eşit (köyün elementine kilitliydi: Konoha muhafızları hep katon)

@@ -202,6 +202,15 @@ static func village_tree_mesh(v: int) -> ArrayMesh:
 
 ## Çiçek öbekleri (6 tür, ~2 m): 0 lale, 1 papatya, 2 ortanca, 3 lavanta, 4 higanbana (kızıl örümcek zambağı), 5 karışık kır çiçeği
 const FLOWER_KINDS := 6
+static var _flower_mat: ShaderMaterial
+## Çiçek malzemesi: yaprak malzemesiyle aynı + içinden geçince yatma (trample)
+static func flower_mat() -> ShaderMaterial:
+	if _flower_mat == null:
+		_flower_mat = foliage().duplicate()
+		_flower_mat.set_shader_parameter("trample", 1.0)
+	return _flower_mat
+
+
 static func flower_mesh(v: int) -> ArrayMesh:
 	var b = MB.new()
 	var rng = RandomNumberGenerator.new()
@@ -253,7 +262,7 @@ static func flower_mesh(v: int) -> ArrayMesh:
 			for i in 30:
 				var p = Vector3(rng.randf_range(-0.9, 0.9), 0.16 + rng.randf_range(0.0, 0.1), rng.randf_range(-0.8, 0.8))
 				b.add("sphere", p, Vector3(0.17, 0.09, 0.17), wc[rng.randi() % wc.size()], Vector3.ZERO, 5)
-	return b.build(foliage())
+	return b.build(flower_mat())   # içinden geçince yatar
 
 
 ## Anime ağaçları (AnimeTree, ref tree1..10): orman/geniş yapraklı/Ölüm Ormanı/çalı

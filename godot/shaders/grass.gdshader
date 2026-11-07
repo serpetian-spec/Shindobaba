@@ -9,6 +9,10 @@ uniform vec4 road_rect;
 uniform vec4 villages[16];
 uniform int village_count = 0;
 uniform vec3 player_pos;
+global uniform vec4 push0;   // oyuncu + yakındaki dövüşçüler (xyz konum, w yarıçap): çimen dışa yatar
+global uniform vec4 push1;
+global uniform vec4 push2;
+global uniform vec4 push3;
 uniform float radius = 58.0;
 
 varying float tip;
@@ -74,6 +78,16 @@ void vertex() {
 	local.x += w * tip * tip;
 	local.z += w * 0.6 * tip * tip;
 	local.y -= w * w * tip * 0.6;   // eğilen uç biraz alçalsın (uzamasın)
+	// içinden geçen dövüşçü: tutam dışa doğru yatar (ezilir), geçince rüzgârla doğrulur
+	vec4 ps[4] = vec4[4](push0, push1, push2, push3);
+	for (int i = 0; i < 4; i++) {
+		vec2 dv = root.xz - ps[i].xz;
+		float dl = length(dv);
+		float k = clamp(1.0 - dl / max(ps[i].w, 0.01), 0.0, 1.0) * step(abs(h - ps[i].y), 2.5);
+		k *= k;
+		local.xz += (dl > 0.001 ? dv / dl : vec2(0.0)) * k * 0.6 * tip;
+		local.y -= k * 0.55 * tip * local.y;
+	}
 	VERTEX = vec3(root.x, h - 0.05, root.z) + local;
 	base_col = texture(albedo_map, ruv).rgb;
 }

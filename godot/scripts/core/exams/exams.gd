@@ -103,7 +103,7 @@ func spawn_teammates(at: Vector3, n := 2, level := 8) -> Array:
 		a["name"] = "%s (takım)" % nm[0]
 		a["respawn"] = false
 		a["no_level"] = true
-		a["hp"] = 220.0 + level * 12.0
+		a["hp"] = (180.0 + level * 18.0)   # ortak NPC eğrisi (güç rakiplerle aynı ayar, aşağıda)
 		a["level"] = level
 		# takım arkadaşı = rakip genin ile aynı ayar (eskiden sabit 0.9: rakipler 1.3-1.55 vururken arkadaşlar hiçbir şey yapamıyordu)
 		var rp = 0.0

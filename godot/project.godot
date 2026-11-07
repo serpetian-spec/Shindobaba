@@ -49,6 +49,26 @@ Encounters="*res://scripts/core/world_encounters.gd"
 
 [shader_globals]
 
+push0={
+"type": "vec4",
+"value": Vector4(0, -10000, 0, 0)
+}
+
+push1={
+"type": "vec4",
+"value": Vector4(0, -10000, 0, 0)
+}
+
+push2={
+"type": "vec4",
+"value": Vector4(0, -10000, 0, 0)
+}
+
+push3={
+"type": "vec4",
+"value": Vector4(0, -10000, 0, 0)
+}
+
 g_night={
 "type": "float",
 "value": 0.0

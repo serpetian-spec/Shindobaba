@@ -99,9 +99,7 @@ func _ninja_of(vid: String, i: int, lv: int, team: String, look_ov := {}) -> Ene
 	var kind = vid if vid in ["kumo", "kiri", "iwa", "suna"] else "rogue"
 	var a = Enemy.archetype(kind, i)
 	a["respawn"] = false
-	a["level"] = lv
-	a["hp"] = 160.0 + lv * 15.0
-	a["power"] = 1.3 + lv * 0.02
+	Stats.npc_ninja(a, lv)
 	a["xp"] = 40 + lv * 8 if team == "enemy" else 0
 	a["ryo"] = 20 + lv * 3 if team == "enemy" else 0
 	if String(a["element"]) == "":

@@ -28,6 +28,7 @@ const TABLE := {
 	"kubikiribocho": [preload("res://scripts/combat/kubikiri_anim.gd"), 0.95],
 	"yagura_sopa": [preload("res://scripts/combat/yagura_anim.gd"), 1.0],
 	"yelpaze": [preload("res://scripts/combat/tessen_anim.gd"), 1.0],
+	"temari_ogi": [preload("res://scripts/combat/temari_anim.gd"), 1.0],   # Temari'nin dev yelpazesi: ay mekaniği
 	"kongo_asa": [preload("res://scripts/combat/kongo_anim.gd"), 1.0],
 	"kama": [preload("res://scripts/combat/orak_anim.gd"), 1.0],
 	"pence": [preload("res://scripts/combat/pence_anim.gd"), 1.05],
@@ -59,7 +60,7 @@ const TABLE := {
 ## uzun menzil silahları: yapay zekâ uzakta durup atar (Enemy._chase)
 const RANGED := ["fuma_shuriken", "kyodai_shuriken", "fuma_makimono", "senbon", "mateki"]   # mateki: genjutsu flütü, uzakta durup çalar
 ## silah ağırlığı (0 hafif .. 1 ağır): kol/silah yaylanması (PoseOverlay.key_mass) — ağır silah gecikip taşar
-const MASS := {"uc_tirpan": 1.0, "samehada": 0.9, "kabutowari": 0.9, "shibuki": 0.85, "gunbai": 0.8, "raijin": 0.35, "kunai": 0.1,
+const MASS := {"temari_ogi": 0.65, "uc_tirpan": 1.0, "samehada": 0.9, "kabutowari": 0.9, "shibuki": 0.85, "gunbai": 0.8, "raijin": 0.35, "kunai": 0.1,
 	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3, "tonfa": 0.3, "bashosen": 0.35, "kubikiribocho": 0.95, "yagura_sopa": 0.4, "yelpaze": 0.6, "kongo_asa": 0.45, "kama": 0.75, "pence": 0.15, "senbon": 0.05, "hiramekarei": 0.7, "bo": 0.35, "kiba": 0.25, "tanto": 0.1, "hakko_chakura_to": 0.08, "mateki": 0.06, "wakizashi": 0.25, "nodachi": 0.7, "musta": 0.15,
 	"style_juken": 0.08, "style_akimichi": 0.65, "style_inuzuka": 0.12, "style_kaguya": 0.2,
 	"style_uchiha": 0.1, "style_hozuki": 0.3, "style_aburame": 0.05, "style_jugo": 0.7,
@@ -313,6 +314,15 @@ static func mods(id: String, i: int) -> Dictionary:
 				2: m.merge({"knock": 9.0, "reach_add": 1.0})
 				3: m.merge({"heavy": true, "knock": 3.0})
 				5: m.merge({"heavy": true, "knock": 12.0})
+			return m
+		"temari_ogi":
+			var m = {"lunge_mul": 0.4, "knock": 5.0, "reach_add": 0.5}
+			match i:
+				0: m.merge({"heavy": true, "knock": 4.0})
+				2: m.merge({"knock": 14.0, "lunge_mul": 0.2})
+				3: m.merge({"knock": 2.0, "launch": 7.0})
+				4: m.merge({"heavy": true, "knock": 6.0})
+				5: m.merge({"knock": 16.0, "lunge_mul": 0.0})
 			return m
 		"yelpaze":
 			var m = {"lunge_mul": 0.4, "knock": 5.0}
@@ -676,6 +686,46 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 				var q = gp.call(1.8)
 				VFX.cracks(q, 1.8)
 				VFX.debris(q, Color(0.5, 0.45, 0.4), 6, 4.0, 0.25)
+		"temari_ogi":
+			# ay arttıkça rüzgâr büyür: ince kesici bıçak çizgileri (kamaitachi) + toz; her ay menzili ve gücü artırır
+			var moon = [0, 1, 2, 2, 2, 3][clampi(i, 0, 5)]
+			var mk = 1.0 + 0.35 * moon
+			var blades2 = func(nb: int, length: float, spread: float, h: float, mul: float):
+				for k in nb:
+					var off = (float(k) / maxf(nb - 1, 1) - 0.5) * spread
+					var d = (f + side * off).normalized()
+					var o = who.global_position + Vector3.UP * (h + randf_range(-0.3, 0.3))
+					WindFX.streak(func(t: float) -> Vector3: return o + d * (0.8 + t * length) + side * sin(t * 6.0 + k) * 0.15, 0.22, 0.035, Color(0.9, 0.97, 1.0, 0.95), k * 0.03, 10)
+					Combat.hit_sphere(who, o + d * length * 0.6, 1.1, {"dmg": dmg * mul, "knock": 4.0 * mk, "kind": "light", "hitstop": 0.02, "melee": false, "element": "wind", "bleed": 2.0})
+			match i:
+				0:
+					var q0 = gp.call(1.4)
+					VFX.debris(q0, Color(0.6, 0.55, 0.45), 6, 3.0, 0.2)
+				1: blades2.call(4, 8.0, 0.6, 1.2, 0.3)   # Birinci Ay: kısa kamaitachi
+				2:   # İkinci Ay: rüzgâr duvarı — önündeki her şeyi geri savurur, mermileri dağıtır
+					WindFX.gust(who.global_position + Vector3.UP * 1.0 + f, f, 8.0, 4.5, {"n": 16})
+					WindFX.wake(gp.call(1.0), f, 7.0, 5.0, Color(0.85, 0.82, 0.72, 0.5), 0.7)
+					Combat.hit_zone(who, who.global_position, f, 7.0, 40.0, 3.0, {"dmg": dmg * 0.55, "knock": 16.0, "kind": "light", "melee": false, "element": "wind"})
+					for pj in who.get_tree().get_nodes_in_group("projectiles"):
+						if is_instance_valid(pj) and pj.global_position.distance_to(who.global_position + f * 3.0) < 4.0 and pj.get("shooter") != who:
+							pj.queue_free()
+				3:   # kasırga: önündeki rakibi havaya kaldırır
+					var q3 = gp.call(2.2)
+					WindFX.gust(q3, Vector3.UP, 5.0, 2.0, {"n": 14})
+					VFX.debris(q3, Color(0.65, 0.6, 0.5), 10, 6.0, 0.3)
+					Combat.hit_sphere(who, q3 + Vector3.UP * 0.8, 2.4, {"dmg": dmg * 0.5, "knock": 2.0, "launch": 9.0, "kind": "heavy", "hitstop": 0.03, "melee": false, "element": "wind"})
+				4:   # havadan aşağı: yere çarpan rüzgâr halkası
+					var q4 = gp.call(1.8)
+					VFX.cracks(q4, 1.6)
+					VFX.debris(q4, Color(0.65, 0.58, 0.45), 12, 5.0, 0.3)
+					WindFX.wake(q4, f, 5.0, 4.0, Color(0.75, 0.68, 0.55, 0.6), 0.8)
+					Combat.hit_sphere(who, q4 + Vector3.UP * 0.4, 3.4, {"dmg": dmg * 0.65, "knock": 9.0, "launch": 4.0, "kind": "heavy", "hitstop": 0.04, "melee": false, "element": "wind"})
+					_shake(who, 0.35)
+				5:   # Üçüncü Ay — Daikamaitachi: uzun, geniş kesici fırtına
+					blades2.call(11, 20.0, 1.4, 1.3, 0.4)
+					WindFX.gust(who.global_position + Vector3.UP * 1.2 + f, f, 18.0, 6.0, {"n": 24})
+					Dangle.gust(who.global_position + f * 8.0, f * 45.0, 14.0, 1.2)
+					_shake(who, 0.6)
 		"yelpaze":
 			# kesici rüzgâr bıçakları (kamaitachi): ince keskin çizgiler + toz; Bashōsen'in yumuşak dalgalarından farklı
 			var blades = func(n: int, length: float, spread: float, h: float):
@@ -1030,6 +1080,11 @@ static func on_start(id: String, i: int, who: Node3D) -> void:
 		_style_start(id, i, who)
 		return
 	match id:
+		"temari_ogi":
+			# ay mekaniği: adıma göre yelpaze kaçıncı aya kadar açılır (kapalı / 1 / 2 / 3)
+			_ogi_stage(who, [0, 1, 2, 2, 2, 3][clampi(i, 0, 5)], [0.85, 0.95, 0.95, 1.0, 1.05, 1.45][clampi(i, 0, 5)])
+			if i == 4 and who is CharacterBody3D:
+				who.velocity.y = 8.0   # Ōgi Tobi: yelpazeye sıçrayıp havadan savurur
 		"zincirli_kunai":
 			if i == 5:
 				_kg_weight(who, 0.0, "wrap")
@@ -1117,6 +1172,21 @@ static func on_start(id: String, i: int, who: Node3D) -> void:
 			if i == 5:   # Ziyafet: sargı açılır (pullu canlı hali), kılıç büyür; bitince sarılıp küçülür
 				_unwrap(who, 1.6)
 				_swell(who, 1.3, 0.25, 1.2)
+
+
+## Temari yelpazesinin açıklığı (0 kapalı, 1-3 açık ay sayısı); adım bitince yeniden kapanır
+static func _ogi_stage(who: Node3D, stage: int, dur: float) -> void:
+	var n = _weapon_node(who)
+	if n == null or not (n is MeshInstance3D):
+		return
+	(n as MeshInstance3D).mesh = CharacterModel.weapon_mesh("temari_ogi_%d" % stage if stage > 0 else "temari_ogi")
+	if stage > 0:
+		Sfx.play("whoosh", who.global_position, 1.3, 0.4)   # yelpaze açılma sesi
+	var tok = int(who.get_meta("ogi_tok", 0)) + 1
+	who.set_meta("ogi_tok", tok)
+	who.get_tree().create_timer(dur + 0.25).timeout.connect(func():
+		if is_instance_valid(who) and int(who.get_meta("ogi_tok", 0)) == tok and is_instance_valid(n):
+			(n as MeshInstance3D).mesh = CharacterModel.weapon_mesh("temari_ogi"))
 
 
 static func _weapon_node(who: Node3D) -> Node3D:

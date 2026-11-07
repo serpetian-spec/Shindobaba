@@ -4448,7 +4448,7 @@ func _attachments() -> void:
 ## Silah kını yeri: pouch = kunai çantası/kılıfı (görünmez), hip = sol kalçada kınlı kılıç (çapraz çekiş),
 ## back = sırtta çapraz (dev kılıçlar, sopalar), low_back = belin arkasında yatay, belt = yan kalçada asılı
 const SHEATH_OF := {"blade": "pouch", "dual": "pouch", "claw": "pouch", "sickle": "belt", "sword": "hip", "heavy": "back", "staff": "back", "chain": "belt", "fan": "back"}
-const SHEATH_ID := {"mateki": "belt", "raijin": "belt", "tanto": "low_back", "ikiz_hancer": "low_back", "tonfa": "belt", "bashosen": "back", "yagura_sopa": "back", "kama": "back", "sai": "belt", "kiba": "back", "nodachi": "back", "kusanagi": "hip", "hiraishin_kunai": "belt", "kusarigama": "back", "fuma_shuriken": "back", "kyodai_shuriken": "back", "fuma_makimono": "back"}
+const SHEATH_ID := {"temari_ogi": "back", "mateki": "belt", "raijin": "belt", "tanto": "low_back", "ikiz_hancer": "low_back", "tonfa": "belt", "bashosen": "back", "yagura_sopa": "back", "kama": "back", "sai": "belt", "kiba": "back", "nodachi": "back", "kusanagi": "hip", "hiraishin_kunai": "belt", "kusarigama": "back", "fuma_shuriken": "back", "kyodai_shuriken": "back", "fuma_makimono": "back"}
 ## Kınlı kılıçlar: [kın başı z, kın ucu z, kalınlık, genişlik] (silah uzayında, kabza 0, namlu +Z)
 const SAYA := {"katana": [0.075, 0.84, 0.042, 0.06], "wakizashi": [0.05, 0.6, 0.04, 0.055], "nodachi": [0.1, 1.38, 0.05, 0.11],
 	"tanto": [0.06, 0.4, 0.045, 0.045], "chokuto": [0.13, 0.9, 0.05, 0.05]}
@@ -5782,6 +5782,63 @@ static func _w_star(b: MB, c: Vector3, R: float, w: float, n: int, steel: Color,
 	b.add("torus", c, Vector3(r_in * 0.42, r_in * 0.42, r_in * 0.42), hub, Vector3(90, 0, 0), 12)
 
 
+## Temari'nin Dev Yelpazesi (ref _tmp/temariref: "Giant Folding Fan", "Temari Riding Fan"): bej kâğıt, tırtıklı üst kenar,
+## ince koyu kaburga çizgileri, alt kısımda açıkta kalan koyu kaburgalar, iki kenarda kalın siyah koruma çubuğu, kâğıtta üç
+## büyük mor daire (ay). stage 0 kapalı (siyah kalın çubuk, ucunda bej kâğıt kenarı); 1/2/3 = birinci/ikinci/üçüncü aya kadar
+## açık. Mafsal tutuşun hemen arkasında; sabit çubuk +Z boyunca, yelpaze +Y yönüne açılır (yüz ±X). Boy ~1.6 m.
+static func _temari_fan(b: MB, stage: int) -> void:
+	var P := Vector3(0, 0, -0.12)
+	var R := 1.45
+	var r0 := 0.52
+	var blk := Color(0.08, 0.07, 0.07)
+	var paper := Color(0.93, 0.87, 0.74)
+	var rib := Color(0.36, 0.28, 0.22)
+	var moon := Color(0.42, 0.18, 0.56)
+	b.add("cyl", P, Vector3(0.09, 0.16, 0.09), Color(0.55, 0.52, 0.5), Vector3(0, 0, 90), 10)   # mafsal perçini
+	if stage <= 0:
+		b.add("box", P + Vector3(0, 0.0, 0.73), Vector3(0.12, 0.17, 1.66), blk)   # kapalı demet (koruma çubukları)
+		b.add("box", P + Vector3(0, 0.0, 1.5), Vector3(0.1, 0.15, 0.1), paper.darkened(0.1))   # uçta görünen kâğıt kenarı
+		for k in 4:
+			b.add("box", P + Vector3(0.061, -0.06 + k * 0.04, 0.95), Vector3(0.004, 0.006, 1.0), Color(0.18, 0.16, 0.15))   # kaburga çizgileri
+		return
+	var A: float = deg_to_rad([0.0, 62.0, 118.0, 168.0][clampi(stage, 1, 3)])
+	var dirf = func(a: float) -> Vector3: return Vector3(0, sin(a), cos(a))
+	var pr = func(a: float, r: float) -> Vector2: return Vector2(sin(a) * r, P.z + cos(a) * r)   # profil (y, z)
+	var n := maxi(3, int(rad_to_deg(A) / 11.0))
+	# kâğıt: iç yay (r0) + tırtıklı dış kenar (her panelin ortası hafif içe)
+	var o := PackedVector2Array()
+	for k in n + 1:
+		o.append(pr.call(A * k / n, r0))
+	for k in range(n, 0, -1):
+		for j in 4:
+			var t := j / 4.0
+			var a := A * (k - t) / n
+			o.append(pr.call(a, R - 0.05 * sin(t * PI)))
+	o.append(pr.call(0.0, R))
+	b.add_slab(o, 0.024, paper, Transform3D.IDENTITY, Callable(), paper.darkened(0.25))
+	# alt kısım: kâğıtsız koyu kaburga bölgesi
+	var o2 := PackedVector2Array()
+	for k in n + 1:
+		o2.append(pr.call(A * k / n, 0.1))
+	for k in range(n, -1, -1):
+		o2.append(pr.call(A * k / n, r0 + 0.01))
+	b.add_slab(o2, 0.04, blk, Transform3D.IDENTITY, Callable(), blk)
+	# ince kaburga çizgileri (iki yüzde)
+	for k in range(1, n):
+		var a := A * k / n
+		var c: Vector3 = P + dirf.call(a) * ((r0 + R - 0.06) * 0.5)
+		for sx in [-1.0, 1.0]:
+			b.add("box", c + Vector3(sx * 0.0135, 0, 0), Vector3(0.003, 0.012, R - 0.06 - r0), rib, Vector3(-rad_to_deg(a), 0, 0))
+	# kalın siyah koruma çubukları (iki kenar)
+	for a in [0.0, A]:
+		var L := R + 0.14
+		b.add("box", P + dirf.call(a) * (L * 0.5 - 0.12), Vector3(0.075, 0.075, L), blk, Vector3(-rad_to_deg(a), 0, 0))
+	# mor aylar: açılan kısımda görünenler (birinci, ikinci, üçüncü ay)
+	for ma in [30.0, 86.0, 140.0]:
+		if deg_to_rad(ma + 9.0) <= A:
+			b.add("cyl", P + dirf.call(deg_to_rad(ma)) * 1.0, Vector3(0.34, 0.032, 0.34), moon, Vector3(0, 0, 90), 18)
+
+
 static func weapon_mesh(id: String) -> ArrayMesh:
 	if _weapon_cache.has(id):
 		return _weapon_cache[id]
@@ -5811,6 +5868,8 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			b.add("sphere", Vector3(0, 0.015, -0.15), Vector3(0.012, 0.006, 0.016), Color(0.12, 0.1, 0.14), Vector3.ZERO, 6)   # üfleme deliği
 			for k in 7:
 				b.add("sphere", Vector3(0, 0.015, -0.06 + k * 0.042), Vector3(0.01, 0.005, 0.01), Color(0.15, 0.13, 0.18), Vector3.ZERO, 6)
+		"temari_ogi", "temari_ogi_1", "temari_ogi_2", "temari_ogi_3":
+			_temari_fan(b, int(id.substr(11)) if id.length() > 10 else 0)
 		"hakko_chakura_to":
 			# Hakkō Chakura Tō (ref refs/weapons/hakko_*.png, Narutopedia: "düz bıçaklı tantō, küçük yuvarlak siperlik"):
 			# düz siyah sap (sargı görünmez), kalın küçük yuvarlak grimsi-lavanta tsuba, aynı renkte kutu habaki,
@@ -6447,7 +6506,7 @@ func _rest_tilt(on: bool, dt: float) -> void:
 
 
 ## anahtar animasyonlu silahlar: [tutuş kaydırma (yumruk sap boyunca ileri), iz başı z, iz ucu z, elden uca boy]
-const KEY_WEAPON := {"samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45], "kabutowari": [0.0, 0.3, 0.82, 0.85], "ruzgar_bicak": [0.0, 0.1, 0.6, 0.62], "hiraishin_kunai": [0.0, 0.14, 0.47, 0.48], "homatsu_kiseru": [0.1, 0.5, 0.72, 0.72], "kusanagi": [0.0, 0.21, 1.08, 1.09], "kusarigama": [0.0, 0.3, 0.8, 0.85], "fuma_shuriken": [0.0, 0.05, 0.6, 0.62], "kyodai_shuriken": [0.0, 0.1, 1.3, 1.3], "fuma_makimono": [0.0, 0.05, 0.25, 0.26], "nuibari": [0.0, 0.1, 1.62, 1.62], "savas_cekici": [0.0, 1.1, 1.58, 1.58], "zincirli_kunai": [0.0, 0.06, 0.38, 0.38], "bashosen": [0.0, 0.55, 1.4, 1.45], "kubikiribocho": [0.0, 0.3, 1.9, 1.9], "yagura_sopa": [0.0, 0.87, 1.77, 1.8], "kongo_asa": [0.0, 0.6, 1.25, 1.26], "yelpaze": [0.0, 0.2, 0.6, 0.62], "kama": [0.0, 1.0, 1.62, 1.64], "pence": [0.0, 0.1, 0.48, 0.48], "senbon": [0.0, 0.05, 0.22, 0.22], "hiramekarei": [0.0, 0.3, 1.3, 1.33], "bo": [0.0, 0.4, 0.95, 0.95], "kiba": [0.0, 0.2, 1.11, 1.15]}   # uzunluklar silahın kendi ölçeğiyle çarpılır
+const KEY_WEAPON := {"temari_ogi": [0.0, 0.3, 1.4, 1.45], "samehada": [0.58, 0.45, 1.9, 1.95], "gunbai": [0.0, 0.85, 2.3, 2.4], "kunai": [0.0, 0.08, 0.3, 0.3], "raijin": [0.0, 0.1, 1.5, 1.5], "uc_tirpan": [0.0, 1.1, 1.95, 1.92], "shibuki": [0.0, 0.45, 1.3, 1.45], "kabutowari": [0.0, 0.3, 0.82, 0.85], "ruzgar_bicak": [0.0, 0.1, 0.6, 0.62], "hiraishin_kunai": [0.0, 0.14, 0.47, 0.48], "homatsu_kiseru": [0.1, 0.5, 0.72, 0.72], "kusanagi": [0.0, 0.21, 1.08, 1.09], "kusarigama": [0.0, 0.3, 0.8, 0.85], "fuma_shuriken": [0.0, 0.05, 0.6, 0.62], "kyodai_shuriken": [0.0, 0.1, 1.3, 1.3], "fuma_makimono": [0.0, 0.05, 0.25, 0.26], "nuibari": [0.0, 0.1, 1.62, 1.62], "savas_cekici": [0.0, 1.1, 1.58, 1.58], "zincirli_kunai": [0.0, 0.06, 0.38, 0.38], "bashosen": [0.0, 0.55, 1.4, 1.45], "kubikiribocho": [0.0, 0.3, 1.9, 1.9], "yagura_sopa": [0.0, 0.87, 1.77, 1.8], "kongo_asa": [0.0, 0.6, 1.25, 1.26], "yelpaze": [0.0, 0.2, 0.6, 0.62], "kama": [0.0, 1.0, 1.62, 1.64], "pence": [0.0, 0.1, 0.48, 0.48], "senbon": [0.0, 0.05, 0.22, 0.22], "hiramekarei": [0.0, 0.3, 1.3, 1.33], "bo": [0.0, 0.4, 0.95, 0.95], "kiba": [0.0, 0.2, 1.11, 1.15]}   # uzunluklar silahın kendi ölçeğiyle çarpılır
 
 
 static var _kp_cache := {}
