@@ -1150,6 +1150,19 @@ static func uzushio(parent: Node3D, v: Dictionary) -> void:
 		var o = Builder.rot(0, 4 + t * 14, a)
 		b.box(Vector3(o.x, 1.3, o.y), Vector3(2.4, 0.3, 1.2), Color(0.85, 0.82, 0.75), a, false)
 	b.interact(Vector3(0, 0, 0), 10, "ruins", "[F] Harabeleri incele")
+	# Uzumaki maske tapınağı (kanon: Uzumaki klanının maske iblisi odası — Shinigami maskesi burada saklanır)
+	var sx = 60.0
+	var wood = Color(0.42, 0.18, 0.14)
+	b.box(Vector3(sx, 0.4, 0), Vector3(14, 0.8, 12), Color(0.5, 0.47, 0.42))
+	b.box(Vector3(sx, 3.6, 1.5), Vector3(11, 5.6, 8), Color(0.62, 0.3, 0.26))
+	b.box(Vector3(sx, 6.9, 1.5), Vector3(13.5, 0.8, 10.5), Color(0.25, 0.22, 0.24))
+	b.box(Vector3(sx, 7.6, 1.5), Vector3(9, 0.7, 6), Color(0.25, 0.22, 0.24))
+	for tx in [-3.2, 3.2]:   # kırmızı torii
+		b.box(Vector3(sx + tx, 3.5, -7.5), Vector3(0.6, 7, 0.6), wood)
+	b.box(Vector3(sx, 7.2, -7.5), Vector3(9, 0.6, 0.8), wood)
+	b.box(Vector3(sx, 6.2, -7.5), Vector3(7.5, 0.4, 0.5), wood)
+	b.cyl(Vector3(sx, 4.2, -2.55), 1.4, 0.15, Color(0.6, 0.25, 0.22), false, 20)   # kapının üstünde Uzumaki sarmalı arması
+	b.interact(Vector3(sx, 0, -4), 4, "uzumaki_shrine", "[F] Uzumaki maske tapınağı")
 	b.finish()
 
 

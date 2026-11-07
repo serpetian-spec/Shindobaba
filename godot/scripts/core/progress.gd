@@ -366,7 +366,11 @@ func can_learn(jid: String) -> String:
 		return "%s jinchūriki'si olmalısın" % String(BeastModels.INFO.get(lp.substr(6), {}).get("name", lp.substr(6))).split(" —")[0]
 	if lp.begins_with("contract:"):
 		return "%s gerekli" % String(Contracts.DEFS.get(lp.substr(9), {}).get("name", "Çağırma sözleşmesi"))
-	if lp in ["kinjutsu", "quest:signature", "quest:hiden", "quest:contract"]:
+	if lp == "kinjutsu":
+		return "Yasak teknik: Yeraltı Simsarı'ndan parşömenin izini al, saklandığı yerden çıkar"
+	if lp == "shrine:uzumaki":
+		return "Uzushio harabesindeki Uzumaki maske tapınağı (Uzumaki klanı ya da Kage)"
+	if lp in ["quest:signature", "quest:hiden", "quest:contract"]:
 		return "Özel görevle öğrenilir"
 	if lp.begins_with("path:"):
 		return "Efsane Yolu: %s ustası öğretir" % LegendPaths.PATHS.get(lp.substr(5), {}).get("name", "bir yolun")
@@ -801,6 +805,8 @@ func interact(it: Dictionary) -> void:
 				{"label": "Akşam yemeği ye (30 Ryō) — can + chakra", "cb": func(): _eat(30, "Pirinç, miso çorbası ve ızgara balık... Karnın doydu!", "Han Sahibi")},
 				{"label": "Oda tut ve uyu (40 Ryō) — sabaha kadar, kaydet", "cb": func(): _sleep(40, "Han odasında rahat bir gece geçirdin. Sabah oldu! (Oyun kaydedildi)")},
 			])
+		"uzumaki_shrine":
+			_uzumaki_shrine()
 		"naka_tatami", "naka_up", "naka_tablet":
 			UchihaLife.interact(kind)
 		"shrine":
@@ -1203,3 +1209,34 @@ func _kage_greet(it: Dictionary, home_v: bool) -> String:
 		_:
 			lines = ["%s, hoş geldin. Köyün geleceği senin gibilerin omzunda." % nm]
 	return lines.pick_random()
+
+
+## Uzumaki maske tapınağı (kanon: Shiki Fūjin bir Uzumaki mühür tekniği; Shinigami maskesi klanın maske iblisi odasında
+## saklanır). Yalnız Uzumaki klanı ya da bir Kage tekniği burada öğrenebilir; güç şartı jutsunun seviyesi.
+func _uzumaki_shrine() -> void:
+	var pr = p()
+	var jd: Dictionary = Data.jutsu.get("shiki_fujin", {})
+	if "shiki_fujin" in pr["learned"]:
+		Hud.dialog("Uzumaki Maske Tapınağı", "Duvarlardaki iblis maskeleri sessiz. Shinigami maskesinin boş çivisi, onunla yaptığın anlaşmayı hatırlatıyor.", [])
+		return
+	var ok_blood = String(pr.get("clan", "")) == "uzumaki" or Kage.is_kage()
+	if not ok_blood:
+		Hud.dialog("Uzumaki Maske Tapınağı", "Kapı Uzumaki mühürleriyle kapalı. Sarmal arma, kanı ya da bir Kage'nin yetkisi olmayanlara açılmıyor.", [])
+		return
+	if int(pr["level"]) < int(jd.get("level", 28)):
+		Hud.dialog("Uzumaki Maske Tapınağı", "Mühürler açıldı ama maskelerin önündeki chakra seni geri itiyor. (Güç %d gerekli)" % int(jd.get("level", 28)), [])
+		return
+	Hud.dialog("Uzumaki Maske Tapınağı", "Loş odada duvar boyu iblis maskeleri asılı. En ortadaki — boynuzlu, ağzında bıçak tutan — Ölüm Tanrısı'nın maskesi. Onu takan, Shinigami ile ruhu üzerine anlaşma yapar.", [
+		{"label": "Shinigami maskesini tak", "cb": func():
+			if Game.player:
+				var pl = Game.player
+				var sg = Shinigami.spawn(pl.get_tree().current_scene, pl.global_position - pl.face_dir() * 1.4, atan2(-pl.face_dir().x, -pl.face_dir().z))
+				sg.fade(0.6, 0.8)
+				pl.get_tree().create_timer(3.0).timeout.connect(func():
+					if is_instance_valid(sg):
+						sg.fade(0.0, 0.6)
+						pl.get_tree().create_timer(0.7).timeout.connect(func(): if is_instance_valid(sg): sg.queue_free()))
+			learn("shiki_fujin")
+			Hud.banner("SHİKİ FŪJİN", "Ölüm Tanrısı arkanda belirdi. Bedeli biliyorsun: kullandığın gün ruhun da yutulacak.", Color(0.7, 0.6, 0.85))
+			Journal.add("Uzumaki tapınağında Shinigami maskesini taktım: Shiki Fūjin.", "milestone")},
+		{"label": "Dokunma", "cb": func(): pass}])

@@ -299,6 +299,16 @@ func pardon_done(_m: Dictionary, ok: bool) -> void:
 	Hud.banner("AFFEDİLDİN", "Köyüne yeniden hoş geldin. İtibarın sıfırdan başlıyor.", Color(0.6, 1, 0.7))
 
 
+## Bingo Kitabı sınıfın: kaçak rütbenin harfi (Nukenin C … Yami no Tehaisha/Densetsu S) ile eski köy rütben (Jōnin+ = S,
+## Chūnin = A) arasından yükseği — eskiden yalnız köy rütbesine bakıyordu, S kaçak rütbesindeyken A görünüyordu
+func _own_bingo_rank() -> String:
+	var order = ["C", "B", "A", "S"]
+	var rk = int(p().get("rank", 0))
+	var village_l = "S" if rk >= 3 else ("A" if rk >= 2 else "B")
+	var rogue_l = String(ROGUE_RANKS[rogue_rank()][2])
+	return order[maxi(order.find(village_l), order.find(rogue_l))]
+
+
 ## Bingo Kitabı'nda kendi kaydın (kaçaksan)
 func own_bingo_entry() -> Dictionary:
 	if not is_rogue():
@@ -307,7 +317,7 @@ func own_bingo_entry() -> Dictionary:
 	var L: Dictionary = (pr.get("look", {}) as Dictionary).duplicate(true)
 	var vid = String(flags().get("rogue_from", Progress.home()))
 	return {"id": -1, "self": true, "name": pr["name"], "alias": "Kaçak " + String(Game.village(vid).get("name", vid)), "village": vid,
-		"village_name": Game.village(vid).get("name", vid), "rank": "S" if int(pr["rank"]) >= 3 else ("A" if int(pr["rank"]) >= 2 else "B"),
+		"village_name": Game.village(vid).get("name", vid), "rank": _own_bingo_rank(),
 		"bounty": int(state().get("bounty", 5000)), "crimes": ["Köyünü terk etti", "Av-ninjalarına direndi (%d)" % int(flags().get("hunters_beaten", 0))],
 		"element": (pr["elements"] as Array)[0], "status": "alive", "tracked": false, "level": int(pr["level"]), "look": L,
 		"region": Game.region_name(Game.player.global_position) if Game.player else "", "area": [0, 0], "hide": [0, 0], "known": 0.0}
@@ -504,7 +514,7 @@ func broker_dialog() -> void:
 		opts.append({"label": "(Önce elindeki işi bitir)", "cb": func(): pass})
 	# parşömenler mağaradaki Kara Parşömenci tezgâhında (simsarda ikinci bir parşömen seçeneği yok)
 	if r >= 2:
-		opts.append({"label": "Yasak teknikler (kinjutsu)", "tip": "Kara Listede ve üstü: köylerin yasakladığı teknikleri ryō karşılığı öğret.", "cb": _kinjutsu_dialog})
+		opts.append({"label": "Yasak teknikler (kinjutsu)", "tip": "Kara Listede ve üstü: yasak parşömenlerin nerede saklandığını satar (çıkarmak sana kalmış).", "cb": _kinjutsu_dialog})
 	else:
 		opts.append({"label": "(Yasak teknikler: «Kara Listede» rütbesinde açılır)", "cb": func(): pass})
 	# Akatsuki: «Aranan Gölge» ve üstü kaçaklara davet
@@ -562,9 +572,15 @@ const BROKER_NO := ["gedo_rinne_tensei_no_jutsu", "chi_no_juin", "fushi_tensei",
 
 
 func _kinjutsu_dialog() -> void:
+	# yasak teknik parayla ÖĞRETİLMEZ: simsar yalnız mühürlü parşömenin nerede saklandığını satar. Parşömen eski bir harabede,
+	# onu bekleyen güçlü bekçilerle durur — oraya gidip bekçileri yenmeden ve parşömeni açmadan teknik öğrenilmez.
 	var pr = p()
 	var r = rogue_rank()
 	var opts = []
+	var active = String(flags().get("kinjutsu_lead", ""))
+	if active != "":
+		Hud.dialog("Yeraltı Simsarı", "\"Sana zaten bir iz sattım: %s. Önce onu çıkar.\"" % String(Data.jutsu.get(active, {}).get("name", active)), [])
+		return
 	for jid in Data.jutsu:
 		var j = Data.jutsu[jid]
 		if not j is Dictionary or String(j.get("learn", "")) != "kinjutsu" or jid in pr["learned"] or Progress.element_block(jid) != "":
@@ -574,18 +590,44 @@ func _kinjutsu_dialog() -> void:
 		var lv = int(j.get("level", 10))
 		if lv > int(pr["level"]) + r * 2:
 			continue
-		var price = 1500 + lv * 220
-		opts.append({"label": "%s  (Güç %d) — %d Ryō" % [j.get("name", jid), lv, price], "tip": String(j.get("desc", "")), "cb": func():
+		var price = 600 + lv * 60
+		opts.append({"label": "İz: %s  (Güç %d) — %d Ryō" % [j.get("name", jid), lv, price], "tip": "Parşömenin saklandığı harabenin yeri. Bekçileri yenip parşömeni kendin çıkarmalısın.", "cb": func():
 			if int(pr["ryo"]) < price:
 				Hud.msg("Yeterli ryō yok.", Color(1, 0.6, 0.5))
 				return
 			pr["ryo"] = int(pr["ryo"]) - price
-			Progress.learn(jid)
-			add_infamy(30)})
+			flags()["kinjutsu_lead"] = jid
+			Missions.accept(_kinjutsu_quest(jid))})
 	if opts.is_empty():
-		Hud.dialog("Yeraltı Simsarı", "\"Şimdilik sana uygun yasak bir parşömen yok. Gücün ya da adın büyüsün, gel.\"", [])
+		Hud.dialog("Yeraltı Simsarı", "\"Şimdilik sana uygun yasak bir parşömenin izi yok. Gücün ya da adın büyüsün, gel.\"", [])
 		return
-	Hud.dialog("Yeraltı Simsarı — Yasak Teknikler", "Simsar sandığından mühürlü parşömenler çıkarıyor: \"Bunları köyler yakar... ben satarım.\"", opts)
+	Hud.dialog("Yeraltı Simsarı — Yasak Parşömenlerin İzi", "Simsar haritaya eğiliyor: \"Bunları köyler yakmaya kıyamadı, gömdü. Nerede olduklarını bilirim — çıkarmak sana kalmış.\"", opts)
+
+
+## Yasak parşömen görevi: uzak bir harabe, parşömen bekçileri (güçlü kaçaklar + lider), mühürlü parşömeni aç
+func _kinjutsu_quest(jid: String) -> Dictionary:
+	var j: Dictionary = Data.jutsu.get(jid, {})
+	var h: Array = flags().get("hideout", [0, 0])
+	var at = Missions._near_spot(h, 1400.0, 2600.0)
+	var lv = maxi(int(p()["level"]), int(j.get("level", 10)) + 4)
+	var nm = String(j.get("name", jid))
+	return {"title": "Yasak Parşömen: %s" % nm, "rank": "S" if int(j.get("level", 10)) >= 25 else "A", "village": "kacak", "giver": "Yeraltı Simsarı",
+		"hook": "Orgs.kinjutsu_found", "jid": jid,
+		"brief": "%s tekniğinin mühürlü parşömeni eski bir harabede saklı. Onu yıllardır bekleyen kaçaklar var." % nm,
+		"steps": [{"kind": "kill", "at": at, "enemy": "rogue", "n": 4, "camp": true, "night": true,
+				"boss": {"name": "Parşömen Bekçisi", "hp": 600.0 + lv * 28.0, "level": lv, "power": 2.6}, "text": "Parşömenin bekçilerini yen."},
+			{"kind": "points", "at": at, "n": 1, "spread": 4, "label": "[F] Mühürlü parşömeni aç", "fx": "tag", "text": "Mühürlü parşömeni bul ve aç."}]}
+
+
+func kinjutsu_found(m: Dictionary, ok: bool) -> void:
+	var jid = String(m.get("jid", flags().get("kinjutsu_lead", "")))
+	flags().erase("kinjutsu_lead")
+	if not ok or jid == "" or not Data.jutsu.has(jid):
+		return
+	Progress.learn(jid)
+	add_infamy(60)
+	Hud.banner("YASAK TEKNİK", "Mühürlü parşömeni açtın: %s" % String(Data.jutsu[jid].get("name", jid)), Color(0.75, 0.2, 0.3))
+	Journal.add("Yasak parşömenden %s tekniğini öğrendim." % String(Data.jutsu[jid].get("name", jid)), "milestone")
 
 
 func _akatsuki_invite() -> void:

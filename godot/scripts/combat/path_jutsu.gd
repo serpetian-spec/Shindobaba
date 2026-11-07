@@ -17090,18 +17090,20 @@ func p_mokuton_hotei_no_jutsu(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.0)
 	var tt = tg(c, t, 30.0)
 	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 10.0)
-	var big = 1.0
+	# kanon (Databook): her el bir kuyruklu canavar büyüklüğünde — insan hedefe karşı da dev (~25 m), dev hedefte daha da büyür
+	var big = 6.0
 	if tt and tt.get("height") != null:
-		big = clampf(float(tt.get("height")) / 2.0, 1.0, 6.0)
+		big = clampf(float(tt.get("height")) / 2.0, 6.0, 14.0)
 	# zeminde sarmal ahşap halka (ellerin çıktığı yer)
 	var sb = MB.new()
 	var sp = []
 	var sr = []
-	for i in 26:
-		var a = i * 0.5
-		sp.append(Vector3(cos(a), 0.0, sin(a)) * (4.2 - i * 0.12) * big + Vector3.UP * 0.12 * big)
-		sr.append(Vector2(0.42, 0.22) * big)
-	Loft.tube(sb, sp, sr, WOOD_C.darkened(0.12), 10, 3, true, true, _bark_fn(WOOD_C.darkened(0.12)))
+	var floor_c = Color(0.3, 0.36, 0.3)   # ref: koyu yeşil-gri iç içe halkalı dev sarmal zemin
+	for i in 60:
+		var a = i * 0.42
+		sp.append(Vector3(cos(a), 0.0, sin(a)) * (6.0 - i * 0.092) * big + Vector3.UP * 0.1 * big)
+		sr.append(Vector2(0.95, 0.16) * big)
+	Loft.tube(sb, sp, sr, floor_c, 10, 3, true, true, _bark_fn(floor_c))
 	var coil = mesh_of(sb, Props.bark_toon())
 	scene_add(coil, at)
 	coil.scale = Vector3(1, 0.05, 1)
@@ -17114,7 +17116,7 @@ func p_mokuton_hotei_no_jutsu(c: Node3D, t: Node3D) -> void:
 	for k in n:
 		var a = TAU * k / n + randf() * 0.2
 		var hand = _wood_hand(big * randf_range(0.9, 1.1))
-		var base = at + Vector3(cos(a), 0, sin(a)) * (2.9 * big)
+		var base = at + Vector3(cos(a), 0, sin(a)) * (3.8 * big)
 		scene_add(hand, base + Vector3.DOWN * 5.0 * big)
 		hand.look_at_from_position(hand.global_position, Vector3(at.x, hand.global_position.y, at.z), Vector3.UP)   # yalnız yatay yön (dik dursun)
 		hand.rotate_y(PI)   # avuç (+z) hedefe dönük
@@ -17952,53 +17954,51 @@ func p_senpo_jiton_rasengan(c: Node3D, t: Node3D) -> void:
 	Sfx.play("wind", c.global_position, 1.0)
 
 
-## Bilge Sanatı Ahşap Gerçek Bin Ellik: arkada yelpaze gibi binlerce kollu devasa ahşap Buda yükselir — elleri hedef alanı dövüp geçer
+## Senpō Mokuton: Shin Sūsenju (kanon, Hashirama, Sennin Modu): Kurama'yı ve tam beden Susanoo'yu cüce bırakan ~450 m bin kollu
+## tahta heykel çağıranın ardında yükselir; Chōjō Kebutsu — kuyruğundaki kollar kopup hedef alana yağmur gibi iner. Sonra gömülür.
+## Gerçek model: ShinSusenju (actors/shin_susenju.gd, 800 kol MultiMesh).
 func p_senpo_mokuton_shin_susenju(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.8)
-	var tt = tg(c, t, 34.0)
-	var fd = c.face_dir()
-	var side = fd.cross(Vector3.UP).normalized()
-	var at = gp(c.global_position - fd * 2.0 + side * 12.0)
-	var b = MB.new()
-	b.add("sphere", Vector3(0, 9.0, 0), Vector3(5.0, 12.0, 4.0), WOOD)
-	b.add("sphere", Vector3(0, 17.0, 0.4), Vector3(3.6, 4.0, 3.4), WOOD.lightened(0.1))
-	for k in 46:
-		var a = lerpf(-PI * 0.9, PI * 0.9, k / 45.0)
-		var r = 12.0 + (k % 4) * 1.2
-		b.add("cyl", Vector3(sin(a) * r * 0.5, 12.0 + cos(a) * r * 0.5, -1.2 - (k % 4) * 0.3), Vector3(0.55, r, 0.55), WOOD.lightened(0.04 * (k % 4)), Vector3(0, 0, -rad_to_deg(a)), 6)
-		b.add("box", Vector3(sin(a) * r, 12.0 + cos(a) * r, -1.2 - (k % 4) * 0.3), Vector3(1.0, 1.4, 0.4), WOOD.lightened(0.15), Vector3(0, 0, -rad_to_deg(a)))
-	var buddha = mesh_of(b, _wood_mat())
-	get_tree().current_scene.add_child(buddha)
-	buddha.global_position = at - Vector3.UP * 26.0
-	buddha.rotation.y = atan2(fd.x, fd.z)
-	_earth_burst(at, 3.0)
-	shake(1.4)
-	var tw = buddha.create_tween()
-	tw.tween_property(buddha, "global_position", at, 0.8).set_trans(Tween.TRANS_BACK)
+	var tt = tg(c, t, 80.0)
+	var fd = fwd(c, t)
+	var goal0 = gp(tt.global_position if tt else c.global_position + fd * 40.0)
+	var at = gp(c.global_position - fd * 260.0)
+	var ss = ShinSusenju.spawn(get_tree().current_scene, at - Vector3.UP * 480.0, atan2(fd.x, fd.z))   # ön -Z: hedefe bakar
+	for k in 10:
+		_earth_burst(at + Vector3(cos(k * 0.63) * 70.0, 0, sin(k * 0.63) * 70.0), 6.0)
+	shake(2.0)
+	Sfx.play("earth", at, 0.3)
+	var tw = ss.create_tween()
+	tw.tween_property(ss, "global_position", at, 2.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tw.tween_callback(func():
-		var goal = gp(tt.global_position if tt and live(tt) else c.global_position + fd * 18.0)
-		for k in 22:
-			after(k * 0.06, func():
-				var q = goal + Vector3(randf_range(-6, 6), 0, randf_range(-6, 6))
-				var palm = _branch(18.0, 1.6)
-				get_tree().current_scene.add_child(palm)
-				var src = at + Vector3.UP * 14.0 + side * randf_range(-6, 6)
-				palm.global_position = src
-				palm.look_at(q + Vector3(0.001, 0, 0), Vector3.UP)
-				palm.rotate_object_local(Vector3.RIGHT, -PI * 0.5)
-				var tw2 = palm.create_tween()
-				tw2.tween_property(palm, "global_position", src.lerp(q, 0.55), 0.14)
+		for k in 36:   # Chōjō Kebutsu: eller kuyruktan kopup hedef alana iner
+			after(k * 0.07, func():
+				if not is_instance_valid(ss):
+					return
+				var goal = gp(tt.global_position if tt and live(tt) else goal0)
+				var q = goal + Vector3(randf_range(-10, 10), 0, randf_range(-10, 10))
+				var src = ss.random_hand_world()
+				var hand = MeshInstance3D.new()
+				hand.mesh = ShinSusenju.arm_mesh()
+				get_tree().current_scene.add_child(hand)
+				hand.global_position = src
+				hand.look_at(q + Vector3(0.001, 0, 0), Vector3.UP)
+				hand.rotate_object_local(Vector3.RIGHT, -PI * 0.5)   # kol (+Y) hedefe uzanır
+				hand.scale = Vector3.ONE * 45.0
+				var tw2 = hand.create_tween()
+				var dur = clampf(src.distance_to(q) / 420.0, 0.35, 0.8)
+				tw2.tween_property(hand, "global_position", q - (q - src).normalized() * 42.0, dur).set_ease(Tween.EASE_IN)
 				tw2.tween_callback(func():
-					impact_fx("doton", EARTH, q + Vector3.UP * 0.4, 1.6)
-					hit(c, q + Vector3.UP, 3.5, inf(c, "senpo_mokuton_shin_susenju", 0.55, {"knock": 12.0, "kind": "heavy", "element": "mokuton"})))
-				tw2.tween_interval(0.3)
-				tw2.tween_property(palm, "scale", Vector3.ONE * 0.02, 0.2)
-				tw2.tween_callback(palm.queue_free))
-		shake(2.0))
-	tw.tween_interval(2.6)
-	tw.tween_property(buddha, "global_position", at - Vector3.UP * 26.0, 0.9)
-	tw.tween_callback(buddha.queue_free)
-	Sfx.play("earth", at, 0.35)
+					impact_fx("doton", EARTH, q + Vector3.UP * 1.0, 3.0)
+					VFX.cracks(q, 9.0)
+					hit(c, q + Vector3.UP, 7.0, inf(c, "senpo_mokuton_shin_susenju", 0.35, {"knock": 14.0, "kind": "heavy", "element": "mokuton"}))
+					shake(0.6))
+				tw2.tween_interval(0.5)
+				tw2.tween_property(hand, "scale", Vector3.ONE * 0.5, 0.3)
+				tw2.tween_callback(hand.queue_free)))
+	tw.tween_interval(4.2)
+	tw.tween_property(ss, "global_position", at - Vector3.UP * 480.0, 2.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_callback(ss.queue_free)
 
 
 ## Bilge Sanatı İnorganik Yeniden Doğuş: dokunulan zeminden taşlar canlı yılan-ejderlere dönüşüp hedefe saldırır
@@ -18300,60 +18300,85 @@ func p_shi_suri(c: Node3D, t: Node3D) -> void:
 	Sfx.play("boom", c.global_position, 1.2)
 
 
-## Ölü İblis Tüketen Mühür: arkada bıçak dişli, beyaz saçlı ölüm meleği belirir — kolu hedefin içinden geçip ruhunu söker; kullanıcı da can öder
+## Shiki Fūjin (kanon, Hiruzen/Minato; Narutopedia "Dead Demon Consuming Seal"): mühürlerle çağıranın ruhu bedeninden kısmen ayrılır,
+## ardında Shinigami belirir (gerçek model: actors/shinigami.gd — beyaz kimono, beyaz saç, kırmızı boynuz, mor yüz, ağzında tantō,
+## sol elde tespih). Koluna lanet işaretleri yayılır, kolu çağıranın bedeninden çıkıp hedefin ruhunu kavrar: hedef kıpırdayamaz ve
+## jutsu yapamaz. Çağıranın chakrası yeterse ruh söküp mühürlenir (hedef ölür); yetmezse (Orochimaru gibi) yalnız ruhunun
+## kolları kesilip mühürlenir — kolları felç, uzun süre mühür yapamaz. BEDEL (kanon): Shinigami çağıranın ruhunu da yutar —
+## çağıran yarım kalan işlerini bitirecek kadar (12 sn) yaşar, sonra ölür. Oyuncu ve düşman aynı.
 func p_shiki_fujin(c: Node3D, t: Node3D) -> void:
-	var tt = tg(c, t, 18.0)
-	busy(c, 1.8)
-	var at = c.global_position - c.face_dir() * 0.8
-	var ghost = MB.new()
-	var pale = Color(0.75, 0.78, 0.85)
-	ghost.add("sphere", Vector3(0, 3.0, 0), Vector3(2.2, 3.4, 1.6), pale)
-	ghost.add("sphere", Vector3(0, 5.2, 0.2), Vector3(1.4, 1.6, 1.3), pale.lightened(0.1))
-	ghost.add("cone", Vector3(0, 6.4, 0), Vector3(1.8, 1.4, 1.6), Color(0.9, 0.92, 0.95), Vector3.ZERO, 10)
-	for sx in [-1.0, 1.0]:
-		ghost.add("cone", Vector3(sx * 0.4, 5.9, 0.6), Vector3(0.18, 0.6, 0.18), Color(0.9, 0.85, 0.7), Vector3(-30, 0, 0), 5)
-		ghost.add("sphere", Vector3(sx * 0.35, 5.3, 0.8), Vector3(0.18, 0.12, 0.08), Color(0.9, 0.3, 0.2))
-	ghost.add("box", Vector3(0, 4.8, 0.85), Vector3(0.8, 0.12, 0.08), Color(0.15, 0.15, 0.15))
-	var g = mesh_of(ghost, VFX.mat_spiral(Color(0.85, 0.88, 0.95), Color(0.45, 0.5, 0.65), 1.5, 1.0, 3.0, 0.65, Vector3.UP))
-	get_tree().current_scene.add_child(g)
-	g.global_position = at
-	g.rotation.y = atan2(c.face_dir().x, c.face_dir().z)
-	g.scale = Vector3.ONE * 0.05
-	var tw = g.create_tween()
-	tw.tween_property(g, "scale", Vector3.ONE, 0.5)
-	tw.tween_interval(1.4)
-	tw.tween_property(g, "scale", Vector3.ONE * 0.05, 0.4)
-	tw.tween_callback(g.queue_free)
+	var tt = tg(c, t, 7.0)   # kanon: Hiruzen hedefe yanaşmak zorundaydı
+	busy(c, 2.4)
+	if c is Player:
+		c.input_locked = 2.2
+		Hud.msg("KİNJUTSU — Shiki Fūjin: Ölüm Tanrısı ruhunu da yutacak.", Color(0.85, 0.75, 1.0), 4.0)
+	var d = fwd(c, t)
+	var sg = Shinigami.spawn(get_tree().current_scene, c.global_position - d * 1.4, atan2(-d.x, -d.z))
+	sg.fade(0.72, 0.6)
+	_trail_ghost(c, 0.5, 2.2)   # çağıranın ruhu bedeninden yarı ayrılır
+	after(0.8, func():
+		if is_instance_valid(sg):
+			sg.show_seal(true))   # lanet işaretleri kola yayılır
 	if tt == null:
+		after(2.6, func():
+			if is_instance_valid(sg):
+				sg.fade(0.0, 0.5)
+				after(0.55, func(): if is_instance_valid(sg): sg.queue_free()))
 		return
-	after(0.7, func():
+	var purple = VFX.mat_spiral(Color(0.5, 0.38, 0.58), Color(0.25, 0.18, 0.3), 1.2, 1.0, 2.0, 0.75, Vector3.UP)
+	after(1.0, func():   # kol çağıranın bedeninden çıkıp hedefin ruhunu kavrar
 		if not (live(c) and live(tt)):
 			return
-		tether(func(): return c.global_position + Vector3.UP * 1.3 if is_instance_valid(c) else Vector3.ZERO, func(): return tt.global_position + Vector3.UP if is_instance_valid(tt) else Vector3.ZERO, 0.3, VFX.mat_spiral(Color(0.85, 0.88, 0.95), Color(0.45, 0.5, 0.65), 1.5, 1.0, 3.0, 0.6, Vector3.UP), 0.9)
-		st(tt, "bind", 1.2))
-	after(1.5, func():
-		if not (live(c) and live(tt)):
+		if c.global_position.distance_to(tt.global_position) > 9.0:   # mühür bitmeden uzaklaştı: kol boşa uzandı
+			Combat.popup_text(tt.global_position + Vector3.UP * 2.4, "Kaçtı!", Color(0.8, 0.75, 1.0))
+			tt.set_meta("shiki_escaped", true)
 			return
+		tether(func(): return c.global_position + Vector3.UP * 1.2 if is_instance_valid(c) else Vector3.ZERO, func(): return tt.global_position + Vector3.UP * 1.1 if is_instance_valid(tt) else Vector3.ZERO, 0.22, purple, 1.4)
+		st(tt, "bind", 2.0)
+		st(tt, "sealed", 2.0)   # ruhu tutulurken jutsu yapamaz (kanon)
+		Combat.popup_text(tt.global_position + Vector3.UP * 2.6, "Ruhu yakalandı!", Color(0.8, 0.75, 1.0)))
+	after(2.0, func():
+		if not (live(c) and live(tt)) or tt.has_meta("shiki_escaped"):
+			if is_instance_valid(tt) and tt.has_meta("shiki_escaped"):
+				tt.remove_meta("shiki_escaped")
+			return   # ruh yakalanmadı: mühür (ve bedel) gerçekleşmez
+		# kanon: sökülebilen ruh, çağıranın chakrasının hedefinkine oranına bağlı — tam söküm için o anki chakrada belirgin üstünlük
+		var tc = float(tt.get("chakra")) if tt.get("chakra") != null else 100.0
+		var full = float(c.get("chakra")) >= tc * 1.5 and not (tt is Boss) and not (tt is TailedBeast)
+		_trail_ghost(tt, 0.65, 0.5)   # sökülen ruh
 		var soul = MeshInstance3D.new()
 		var cap = CapsuleMesh.new()
-		cap.radius = 0.3; cap.height = 1.5
+		cap.radius = 0.32; cap.height = 1.6
 		soul.mesh = cap
-		soul.material_override = VFX.mat_spiral(Color(0.8, 0.9, 1.0), Color(0.4, 0.55, 1.0), 2.0, 1.0, 4.0, 0.6, Vector3.UP)
+		soul.material_override = VFX.mat_spiral(Color(0.85, 0.9, 1.0), Color(0.45, 0.55, 1.0), 2.0, 1.0, 4.0, 0.6, Vector3.UP)
 		get_tree().current_scene.add_child(soul)
 		soul.global_position = tt.global_position + Vector3.UP
 		var tw2 = soul.create_tween()
-		tw2.tween_property(soul, "global_position", at + Vector3.UP * 5.0, 0.4)
+		tw2.tween_property(soul, "global_position", sg.belly() if is_instance_valid(sg) else c.global_position + Vector3.UP * 3.0, 0.45)
+		tw2.tween_property(soul, "scale", Vector3.ONE * 0.05, 0.25)
 		tw2.tween_callback(soul.queue_free)
-		st(tt, "stun", 3.0)
-		if tt is Boss:
-			tt.take_hit(inf(c, "shiki_fujin", 6.0, {"knock": 0.0, "kind": "heavy", "chakra_drain": 60.0, "hitstop": 0.2}))
-		else:   # kanon: Ölüm Tanrısı ruhu mühürler
-			tt.take_hit({"dmg": 99999.0, "kind": "heavy", "knock": 0.0, "attacker": c})
-			Combat.popup_text(tt.global_position + Vector3.UP * 2.4, "Ruhu mühürlendi", Color(0.8, 0.85, 1.0))
-		# bedel: kanonda kullanıcı ölür — oyunda can 1'e iner ve 90 sn iyileşemez (eskiden yalnız %40 can)
-		c.hp = 1.0
+		if full:
+			Combat.popup_text(tt.global_position + Vector3.UP * 2.6, "Ruhu mühürlendi", Color(0.85, 0.85, 1.0))
+			tt.take_hit({"dmg": 999999.0, "kind": "heavy", "knock": 0.0, "attacker": c, "execute": true, "pierce_guard": true})
+		else:   # gücü yetmedi: yalnız ruhunun kolları kesilip mühürlenir (Orochimaru) — kolları felç, mühür yapamaz
+			st(tt, "sealed", 25.0)
+			tt.take_hit(inf(c, "shiki_fujin", 2.0, {"knock": 0.0, "kind": "heavy", "chakra_drain": 60.0, "hitstop": 0.2}))
+			Combat.popup_text(tt.global_position + Vector3.UP * 2.8, "Kolları mühürlendi — mühür yapamaz!", Color(0.85, 0.75, 1.0))
+		# bedel: Ölüm Tanrısı çağıranın ruhunu da yutar — 12 sn sonra ölür (kanon)
 		if c is Player:
-			Buffs.add("rinne_bedel", 90.0, {"speed": 0.6, "melee": 0.6, "no_heal": 1.0, "_name": "Ölüm Tanrısının Bedeli", "_desc": "ruhunun bir parçası mühürlendi: iyileşemezsin"}))
+			Hud.banner("ÖLÜM TANRISININ MİDESİ", "Ruhun mühürle birlikte yutuluyor. Son işlerini bitirmek için birkaç saniyen var.", Color(0.7, 0.6, 0.85))
+			Buffs.add("rinne_bedel", 12.0, {"speed": 0.7, "no_heal": 1.0, "_name": "Ölüm Tanrısının Midesi", "_desc": "ruhun yutuluyor: 12 sn sonra öleceksin"})
+		after(12.0, func():
+			if live(c):
+				Combat.popup_text(c.global_position + Vector3.UP * 2.4, "Ruhu yutuldu", Color(0.7, 0.6, 0.85))
+				if c is Player:
+					c.hp = 0.0
+				elif c.has_method("die"):
+					c.die({"execute": true, "sealed": true})))
+	after(3.2, func():
+		if is_instance_valid(sg):
+			sg.fade(0.0, 0.6)
+			after(0.65, func(): if is_instance_valid(sg): sg.queue_free()))
 	Sfx.play("genjutsu", c.global_position, 0.4)
 
 
