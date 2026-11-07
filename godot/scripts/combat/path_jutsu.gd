@@ -10293,7 +10293,10 @@ func _lion_shroud(c: Node3D, bone: String, dur: float) -> Node3D:
 	var grow = [0.15]
 	var gt = root.create_tween()
 	gt.tween_method(func(x: float): grow[0] = x, 0.15, 1.0, 0.3).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	# her kare eli izle, yüzü bakış yönüne çevir
+	# kanon: aslan başı yumruğu SARAR — kılıfın merkezi el; yumruk ileri gidince aslan da onunla fırlar (yumrukla atılır),
+	# hızlı ileri vuruşta baş bir an öne uzayıp ısırır, sonra yumruğa geri döner
+	var prev = [Vector3.INF]
+	var lunge = [0.0]
 	var follow = func():
 		if not is_instance_valid(root):
 			return
@@ -10302,9 +10305,17 @@ func _lion_shroud(c: Node3D, bone: String, dur: float) -> Node3D:
 			return
 		var hp: Vector3 = m.skel.global_transform * m.skel.get_bone_global_pose(bi).origin
 		var fd: Vector3 = c.face_dir() if c.has_method("face_dir") else Vector3.FORWARD
-		# iki aslan gövdenin iki yanında (referans: kollar yanda, kılıflar gövdeyi kapatmaz)
-		var out = fd.cross(Vector3.UP).normalized() * (0.42 if bone.begins_with("Right") else -0.42)
-		root.global_transform = Transform3D(Basis.looking_at(-fd, Vector3.UP).scaled(Vector3.ONE * grow[0]), hp + Vector3.UP * 0.22 + fd * 0.05 + out)
+		var dt = maxf(get_process_delta_time(), 0.001)
+		if prev[0] != Vector3.INF:
+			var vf = (hp - prev[0]).dot(fd) / dt - (c.velocity.dot(fd) if c.get("velocity") != null else 0.0)
+			if vf > 3.0:
+				lunge[0] = minf(1.0, lunge[0] + dt * 9.0)   # yumruk ileri savruluyor: aslan öne atılır
+			else:
+				lunge[0] = maxf(0.0, lunge[0] - dt * 3.5)
+		prev[0] = hp
+		var bite = sin(lunge[0] * PI * 0.5)
+		var sc = grow[0] * (1.0 + 0.18 * bite)
+		root.global_transform = Transform3D(Basis.looking_at(-fd, Vector3.UP).scaled(Vector3(sc, sc, sc * (1.0 + 0.35 * bite))), hp + Vector3.UP * 0.05 + fd * (0.1 + 0.75 * bite))
 	get_tree().process_frame.connect(follow)
 	follow.call()
 	after(dur, func():

@@ -833,6 +833,14 @@ static func find(p: Dictionary, uid) -> Dictionary:
 	return {}
 
 
+## Bu eşya bir yuvada takılı mı? (kayıttan gelen uid'ler float olur: `int in [float]` Godot'ta false döner)
+static func is_equipped(p: Dictionary, g: Dictionary) -> bool:
+	for s in p.get("equip", {}):
+		if int(p["equip"][s]) == int(g.get("uid", -1)):
+			return true
+	return false
+
+
 static func equipped(p: Dictionary, slot: String) -> Dictionary:
 	return find(p, p.get("equip", {}).get(slot, -1))
 

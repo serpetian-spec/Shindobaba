@@ -44,7 +44,7 @@ static func options(kind: String) -> Array:
 	var s: Dictionary = surgeons(pr)[kind]
 	var opts = []
 	for g in pr.get("gear", []):
-		if Gear.item(g["id"]).get("slot", "") != "goz" or int(g["uid"]) in pr["equip"].values():
+		if Gear.item(g["id"]).get("slot", "") != "goz" or Gear.is_equipped(pr, g):
 			continue
 		if String(g.get("origin", "dogustan")) == "dogustan" and bool(g.get("own", false)):
 			continue   # kendi çıkardığın göz: menüden geri takılır, nakil gerekmez

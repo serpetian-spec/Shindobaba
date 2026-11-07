@@ -212,6 +212,9 @@ func _physics_process(_dt: float) -> void:
 	for f in get_tree().get_nodes_in_group("fighters"):
 		if not is_instance_valid(f) or not f is CharacterBody3D or f.is_queued_for_deletion():
 			continue
+		if f == Game.player and TailedBeasts.mind != null:
+			_safe.erase(f.get_instance_id())   # zihin dünyasındayken oyuncu odada değil: geri çekme (mağaradan X ile zihne gidilemiyordu)
+			continue
 		var p: Vector3 = f.global_position
 		if Vector2(p.x - origin.x, p.z - origin.z).length() > 90.0 or absf(p.y - origin.y) > 40.0:
 			continue   # bu odada değil
@@ -243,6 +246,8 @@ func _physics_process(_dt: float) -> void:
 func _process(_dt: float) -> void:
 	if inside == "" or Game.player == null:
 		return
+	if TailedBeasts.mind != null:
+		return   # zihin dünyası (y=7000): güvenlik ağı oyuncuyu odaya geri ışınlıyordu — mağaradan X ile zihne gidilemiyordu
 	# güvenlik ağı (son çare): oda dışına düşen oyuncu dışarı ATILMAZ — girişe geri konur (sınavda/görevde kapıdan atılıyordu)
 	var pp: Vector3 = Game.player.global_position
 	if not busy and (pp.y < origin.y - 6.0 or pp.y > origin.y + 18.0 or Vector2(pp.x - origin.x, pp.z - origin.z).length() > 60.0):

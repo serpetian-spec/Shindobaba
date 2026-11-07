@@ -46,7 +46,7 @@ func transplant_options(price: int, done_msg: String) -> Array:
 	var pr = Game.profile
 	var opts = []
 	for g in pr.get("gear", []):
-		if Gear.item(g["id"]).get("slot", "") == "goz" and not int(g["uid"]) in pr["equip"].values():
+		if Gear.item(g["id"]).get("slot", "") == "goz" and not Gear.is_equipped(pr, g):
 			for sl in [["sag_goz", "sağ"], ["sol_goz", "sol"]]:
 				var uid = int(g["uid"])
 				var slot = sl[0]
@@ -344,6 +344,10 @@ func can_learn(jid: String) -> String:
 				return "Göz tekniği (%s, sağ/sol göz yuvası)" % Eyes.MS_STYLES[st]["name"]
 			if jid in Eyes.MS_STYLES[st]["jutsu"]:
 				return "%s Mangekyō'su gerekir" % Eyes.MS_STYLES[st]["name"]
+	# başka klanın hiden tekniği: seviyeden önce (Sharingan "Ustalık" eksikliğini aşar, klanı aşamaz)
+	var jc = String(j.get("clan", ""))
+	if jc != "" and jc != String(pr.get("clan", "")) and (String(j.get("learn", "")) == "clan" or String(j.get("category", "")) == "hiden"):
+		return "Klan tekniği (%s)" % String(Data.clans.get(jc, {}).get("name", jc.capitalize()))
 	if int(pr["level"]) < int(j.get("level", 1)):
 		return "Ustalık gücü %d gerekli (ninjutsu, dövüş, chakra, dayanıklılık)" % int(j.get("level", 1))
 	if Gear.eff_rank(pr) < int(j.get("rank", 0)):

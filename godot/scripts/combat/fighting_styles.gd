@@ -30,6 +30,20 @@ const STYLES := {
 		"desc": "Gövdeden çıkan chakra zincirleri: kırbaç, mızrak gibi saplanan zincir, rakibi sarıp chakrasını mühürleyen bağ, çevreyi süpüren zincirler; bitiriş zincirle kaldırıp yere çarpma."},
 	"yotsuki": {"name": "Raiton Nintai — Yotsuki", "key": "style_yotsuki", "src": "clan:yotsuki", "range": "yakın (atılış)", "stop": 1.6,
 		"desc": "Raiton Chakra zırhıyla ezici hız ve güç: şimşekli yumruk, omuz dalışı, Lariat, Raigyaku Suihei el kılıcı, seri şimşek yumruklar; bitiriş Liger Bomb (kavra, kaldır, yere çak)."},
+	"yilan": {"name": "Sen'eijashu — Yılan", "key": "style_yilan", "src": "path:yilan", "range": "orta", "stop": 4.0,
+		"desc": "Orochimaru'nun yolu: kolun yeninden fırlayıp ısıran ve sarıp bağlayan yılanlar (zehir), ağızdan uzayıp saplanan Kusanagi, esneyen bedenle yılan atılışı; bitiriş yerden fışkıran yılan sürüsü hedefi yutar (Mandara)."},
+	"gama": {"name": "Gama Sennin — Kurbağa", "key": "style_gama", "src": "path:gama", "range": "yakın-orta", "stop": 3.0,
+		"desc": "Jiraiya'nın yolu: saç iğneleri yağmuru, hedefe zıplayıp ezen savaş kurbağası, ağızdan kurbağa yağı (kaygan, yavaşlatır) ve ardından onu tutuşturan alev seli (yağ varsa büyük), saç kalkanıyla çevreye iğne halkası; bitiriş Ōdama Rasengan."},
+	"kagit": {"name": "Shikigami no Mai — Kâğıt", "key": "style_kagit", "src": "path:kagit", "range": "orta", "stop": 6.0,
+		"desc": "Konan'ın kâğıt sanatı: kesen kâğıt shurikenler, hedefi saran kelebek sürüsü (kör eder), yerden fırlayan kâğıt mızraklar, kâğıt kanat çırpışıyla kesici fırtına; bitiriş hedefin çevresinde patlayıcı kâğıt halkası."},
+	"sumi": {"name": "Chōjū Giga — Sumi", "key": "style_sumi", "src": "path:sumi", "range": "orta-uzak", "stop": 6.5,
+		"desc": "Sai'nin fırçası: sayfadan fırlayan mürekkep aslanlar, dolanıp bağlayan mürekkep ejder, aslan sürüsü, görüşü kapayan mürekkep sisi; bitiriş dev mürekkep kaplan ve ejder birden. Rakibe yanaşmaz."},
+	"akasuna": {"name": "Kugutsu no Jutsu — Akasuna", "key": "style_akasuna", "src": "path:akasuna", "range": "orta", "stop": 5.0,
+		"desc": "Sasori'nin kukla sanatı: parmaklardan uzanan chakra iplikleriyle yönetilen savaş kuklası atılıp keser, ağzından zehirli iğneler fırlatır, bıçaklı kollarıyla döner; iplikler rakibi çeker, kukla zehir gazı salar; bitiriş hedefin çevresinde dört kukla birden (Akahigi). Kuklacı rakibe yanaşmaz."},
+	"kil": {"name": "Bakuton Geijutsu — Patlayıcı Kil", "key": "style_kil", "src": "path:kil", "range": "orta-uzak", "stop": 7.0,
+		"desc": "Deidara'nın sanatı: avuç ağızlarından yapışıp patlayan kil örümcekler, süzülüp dalan kil kuşlar, hedefin altına gömülen kil mayın; bitiriş \"Katsu!\" — gökten düşen dev kil bebeğin patlaması. Yakında zayıf, rakibe yanaşmaz."},
+	"kapi": {"name": "Gōken — Sekiz Kapı", "key": "style_kapi", "src": "path:kapi", "range": "yakın", "stop": 1.6,
+		"desc": "Gai ve Lee'nin sert yumruğu: döner Konoha Senpū, alçak Reppū, rakibi havaya kaldıran Shōfū, peşinden sıçrayıp topuk inişi (Kage Buyō); kapılar açılınca alevli yumruk yağmuru (Asakujaku) ve bitiriş kaplan başı hava basıncı (Hirudora)."},
 	"nara": {"name": "Kagemane-ryū — Nara", "key": "style_nara", "src": "clan:nara", "range": "orta (kontrol)", "stop": 5.0,
 		"desc": "Gölge tarzı: uzanan gölge kırbaçları, kısa Kagemane bağı, yerden fırlayan gölge iğneleri (Kage Nui), bedene tırmanıp boğan gölge eller (Kage Kubi Shibari); bitiriş bağla + iğne yağmuru. Hasarı orta, kontrolü güçlü; yakında zayıf, rakibe yanaşmaz."},
 	"hatake": {"name": "Hatake-ryū — Hatake", "key": "style_hatake", "src": "clan:hatake", "range": "yakın + raiton", "stop": 1.8,
@@ -67,8 +81,9 @@ static func _has_src(p: Dictionary, src: String) -> bool:
 		if src == "clan:uchiha" and Progress.has_eye("sharingan"):
 			return true
 		return String(p.get("clan", "none")) == src.substr(5)
-	if src.begins_with("path:"):
-		return src.substr(5) in (p.get("paths", {}) as Dictionary) if p.get("paths") is Dictionary else false
+	if src.begins_with("path:"):   # yolda olmak (LegendPaths durum 4 = JOINED)
+		var pd = (p.get("paths", {}) as Dictionary).get(src.substr(5), {}) if p.get("paths") is Dictionary else {}
+		return pd is Dictionary and int(pd.get("s", 0)) >= 4
 	if src.begins_with("jin:"):
 		return TailedBeasts.player_jinchuriki() == src.substr(4)
 	return false

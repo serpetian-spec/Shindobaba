@@ -314,10 +314,16 @@ static func _eye_panel(main: Node, dv: VBoxContainer, pr: Dictionary) -> void:
 					_eye_remove(pr, slot_now)
 					ninja_menu(main, "eyes")},
 				{"label": "Vazgeç", "cb": func(): ninja_menu(main, "eyes")}]), 380, "close"))
+		dv.add_child(UI.button("Gözü yok et", func():
+			Hud.dialog("Gözü Yok Et", "%s %s gözünden çıkarılıp tamamen yok edilecek. Geri dönüşü yok. Emin misin?" % [title, side.to_lower()], [
+				{"label": "Evet, yok et", "cb": func():
+					_eye_destroy(pr, int(Gear.equipped(pr, slot_now).get("uid", -1)))
+					ninja_menu(main, "eyes")},
+				{"label": "Vazgeç", "cb": func(): ninja_menu(main, "eyes")}]), 380, "close"))
 	# saklanan gözler (kavanozda)
 	var jars = []
 	for g in pr.get("gear", []):
-		if Gear.item(g["id"]).get("slot", "") == "goz" and not int(g["uid"]) in pr["equip"].values():
+		if Gear.item(g["id"]).get("slot", "") == "goz" and not Gear.is_equipped(pr, g):
 			jars.append(g)
 	dv.add_child(HSeparator.new())
 	dv.add_child(UI.label("SAKLANAN GÖZLER (%d)" % jars.size(), 16, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
@@ -336,6 +342,13 @@ static func _eye_panel(main: Node, dv: VBoxContainer, pr: Dictionary) -> void:
 			dv.add_child(UI.button("Bu göze geri tak", func():
 				_eye_insert(pr, uid, slot_here)
 				ninja_menu(main, "eyes"), 300, "eye"))
+		var juid = int(g["uid"])
+		dv.add_child(UI.button("Yok et", func():
+			Hud.dialog("Gözü Yok Et", "%s kavanozdan atılıp yok edilecek. Emin misin?" % gname, [
+				{"label": "Evet, yok et", "cb": func():
+					_eye_destroy(pr, juid)
+					ninja_menu(main, "eyes")},
+				{"label": "Vazgeç", "cb": func(): ninja_menu(main, "eyes")}]), 200, "close"))
 	if not EyeSurgery.options("self").is_empty():
 		if EyeSurgery.can_self(pr):
 			dv.add_child(UI.button("Kendi tıbbi ninjutsunla nakil yap (tutma %%%d)" % int(round(EyeSurgery.self_chance(pr) * 100.0)), func():
@@ -359,6 +372,19 @@ static func _eye_remove(pr: Dictionary, slot: String) -> void:
 	pr["equip"].erase(slot)
 	_eye_refresh(pr)
 	Hud.msg("Göz çıkarıldı ve kavanoza kondu.", Color(1, 0.8, 0.6))
+
+
+## Gözü tamamen yok eder (takılıysa önce yuvası boşalır = normal göz)
+static func _eye_destroy(pr: Dictionary, uid: int) -> void:
+	var g = Gear.find(pr, uid)
+	if g.is_empty():
+		return
+	for s in pr["equip"].keys():
+		if int(pr["equip"][s]) == uid:
+			pr["equip"].erase(s)
+	pr["gear"].erase(g)
+	_eye_refresh(pr)
+	Hud.msg("Göz yok edildi.", Color(1, 0.7, 0.6))
 
 
 static func _eye_insert(pr: Dictionary, uid: int, slot: String) -> void:

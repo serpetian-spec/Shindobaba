@@ -9,7 +9,7 @@ func _ready() -> void:
 	await get_tree().process_frame
 	var styles = Array(OS.get_environment("STYLES").split(",", false)) if OS.get_environment("STYLES") != "" else ["juken", "akimichi", "inuzuka", "kaguya", "uchiha", "hozuki", "aburame", "jugo"]
 	var clan_of = {"juken": "hyuga", "akimichi": "akimichi", "inuzuka": "inuzuka", "kaguya": "kaguya", "uchiha": "uchiha", "hozuki": "hozuki", "aburame": "aburame", "jugo": "jugo", "yuki": "yuki", "sabaku": "sabaku", "uzumaki": "uzumaki", "yotsuki": "yotsuki", "kamizuru": "kamizuru", "iburi": "iburi", "kurosuki": "kurosuki", "senju": "senju", "sarutobi": "sarutobi", "hatake": "hatake", "nara": "nara"}
-	main.creator_state = {"slot": 3, "name": "Test", "gender": "m", "clan": clan_of[styles[0]], "element": "katon", "hair_style": "diken",
+	main.creator_state = {"slot": 3, "name": "Test", "gender": "m", "clan": clan_of.get(styles[0], "none"), "element": "katon", "hair_style": "diken",
 		"hair": Color(0.25, 0.2, 0.15), "top": Color(0.85, 0.85, 0.8), "pants": Color(0.2, 0.2, 0.25), "skin": Color(0.96, 0.8, 0.66), "eye": Color(0.2, 0.2, 0.2)}
 	main._start_new_game()
 	var pl: Player = main.player
@@ -25,7 +25,11 @@ func _ready() -> void:
 	get_tree().current_scene.add_child(cc)
 	var n = 0
 	for st in styles:
-		Game.profile["clan"] = clan_of[st]
+		Game.profile["clan"] = clan_of.get(st, "none")
+		if not clan_of.has(st):   # yol tarzı: o yolda ol
+			if not Game.profile.has("paths"):
+				Game.profile["paths"] = {}
+			Game.profile["paths"][st] = {"s": 4}
 		Game.profile["fight_style"] = st
 		Game.profile["equip"]["sag"] = 0   # tarz silahsız oynar (klan yadigârı silahı kaldır: Hatake tantōsu vb.)
 		Gear.apply_look(Game.profile)
@@ -44,6 +48,9 @@ func _ready() -> void:
 		e.max_hp = 1e9; e.hp = 1e9
 		e.set_physics_process(false)
 		await _w(0.5)
+		if OS.get_environment("JUHO") != "":
+			Jutsu.execute(pl, "juho_soshiken", e)
+			await _w(1.2)
 		for k in 6:
 			pl.global_position = b0
 			pl.facing = 0.0

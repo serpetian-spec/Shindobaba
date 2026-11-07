@@ -47,7 +47,7 @@ static func ms_style_of(g: Dictionary) -> String:
 		return ""
 	if not MS_STYLES.has(String(g.get("ms_style", ""))):
 		var keys = MS_STYLES.keys()
-		g["ms_style"] = keys[absi(hash(int(g.get("uid", 0)) * 7919 + 13)) % keys.size()]
+		g["ms_style"] = keys[randi() % keys.size()]   # gerçekten rastgele (uid'den türetmek her yeni Uchiha'ya aynı tarzı veriyordu)
 	return String(g["ms_style"])
 
 
@@ -781,8 +781,11 @@ func _steal(f: Node3D) -> void:
 	Crime.on_eyes_taken(f)   # köy ninjasının gözü: suç
 	var id = {1: "goz_sharingan", 2: "goz_byakugan", 3: "goz_ketsuryugan", 4: "goz_mangekyo", 5: "goz_ems", 6: "goz_rinnegan", 7: "goz_tenseigan", 8: "goz_jogan"}.get(int(e["kind"]), "goz_sharingan")
 	var n_eyes = 1 if f.has_meta("eye_share") else 2
+	var extra = {"lvl": int(e.get("lvl", 3)), "origin": "nakil"}
+	if id in ["goz_mangekyo", "goz_ems"]:
+		extra["ms_style"] = MS_STYLES.keys()[randi() % MS_STYLES.size()]   # sahibinin tarzı: iki göz aynı, kişiden kişiye rastgele
 	for i in n_eyes:
-		Gear.grant(Game.profile, id, "", null, null, {"lvl": int(e.get("lvl", 3)), "origin": "nakil"})
+		Gear.grant(Game.profile, id, "", null, null, extra.duplicate())
 	Game.profile["flags"]["goz_hirsizi"] = int(Game.profile["flags"].get("goz_hirsizi", 0)) + 1
 	if n_eyes == 1:
 		Hud.dialog(String(f.get_meta("eye_share")), "Dur! Diğer göz bana lazım. Yardım ettiğin için bölüşelim: biri senin, biri benim.", [])
@@ -954,13 +957,13 @@ func on_ally_died(ally: Node3D) -> void:
 func _awaken_mangekyo() -> bool:
 	var pr = Game.profile
 	var ok = false
+	var style = MS_STYLES.keys()[randi() % MS_STYLES.size()]   # iki göz aynı acıyla, aynı tarzda uyanır
 	for slot in ["sag_goz", "sol_goz"]:
 		var g = Gear.equipped(pr, slot)
 		if not g.is_empty() and g["id"] == "goz_sharingan" and int(g.get("lvl", 1)) >= 3:
 			g["id"] = "goz_mangekyo"
 			g.erase("design")
-			g.erase("ms_style")
-			ms_style_of(g)   # rastgele tarz
+			g["ms_style"] = style
 			ok = true
 	if ok:
 		var sts = ms_styles(pr)
@@ -982,7 +985,8 @@ static func transplant(pr: Dictionary, uid: int, slot: String) -> void:
 		return
 	# Mangekyō sahibine başka bir Mangekyō nakli = Ebedi Mangekyō
 	var cur = Gear.equipped(pr, slot)
-	if not cur.is_empty() and cur["id"] == "goz_mangekyo" and g["id"] == "goz_mangekyo":
+	# kanon (Sasuke–Itachi): kendi uyandırdığın Mangekyō'nun yerine başka bir Uchiha'nın Mangekyō'su; nakil MS üstüne nakil MS olmaz
+	if not cur.is_empty() and cur["id"] == "goz_mangekyo" and g["id"] == "goz_mangekyo" and String(cur.get("origin", "dogustan")) == "dogustan" and String(g.get("origin", "nakil")) == "nakil":
 		g["id"] = "goz_ems"
 		g["origin"] = "dogustan"
 		g.erase("design")
