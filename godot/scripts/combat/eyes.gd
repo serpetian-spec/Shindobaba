@@ -98,6 +98,7 @@ var v_held = -1.0
 var markers := {}
 var marker_t = 0.0
 var steal_target: Node3D = null
+var cell_target: Node3D = null   # yerde yatan Senju: F ile hücre (Madara Hashirama'yı ısırıp etini yarasına koydu)
 var predict_t := 0.0      # Sharingan Öngörü süresi
 
 
@@ -195,8 +196,8 @@ static func design_for(pr: Dictionary, slot: String) -> Dictionary:
 func _never_closes(side: String) -> bool:
 	if String(Game.profile.get("clan", "")) == "uchiha":
 		return false
-	var ee = eye(side)
-	return ee != null and String(ee.get("origin", "dogustan")) == "nakil" and _raw_kind(side) in [1, 4, 5]
+	# Uchiha olmayan bedende her Sharingan türü sonradan takılmıştır (EMS nakli origin'i "dogustan" yazar ama beden yine yabancı)
+	return eye(side) != null and _raw_kind(side) in [1, 4, 5]
 
 
 ## Göz dokusunu güncelle (model yeniden kurulunca da çağrılır)
@@ -285,8 +286,10 @@ func handle_input(e: InputEvent) -> bool:
 		var held = v_held
 		v_held = -1.0
 		if held < 0.45:
-			if not active and _ems():   # Ebedi Mangekyō: 3 tomoe aşaması yok, V doğrudan Ebedi'yi açar (diğer göz — Byakugan vb. — birlikte açık kalır)
+			if not active and _ems():   # Ebedi Mangekyō: V doğrudan Ebedi'yi açar (diğer göz — Byakugan vb. — birlikte açık kalır)
 				open_ms()
+			elif active and ms_on and _ems() and not (_never_closes("sag") or _never_closes("sol")):   # kanon (Sasuke): Ebedi sahibi 3 tomoe Sharingan'a döner — sonraki V kapatır (nakil gözde kapanınca zaten 3 tomoe kalır: ara adım yok)
+				drop_ms()
 			elif active and has_ms() and not ms_on and (blind() < 1.0 or _ems()):   # kör göz Mangekyō'ya geçemez: V doğrudan kapatır
 				open_ms()
 			else:
@@ -332,6 +335,9 @@ func handle_input(e: InputEvent) -> bool:
 		return true
 	if e.is_action_pressed("interact") and steal_target != null:
 		_steal(steal_target)
+		return true
+	if e.is_action_pressed("interact") and cell_target != null:
+		_take_cells(cell_target)
 		return true
 	return false
 
@@ -467,6 +473,17 @@ func open_ms() -> void:
 		if sn != "" and not sn in sk:
 			sk.append(sn)
 	Hud.msg("MANGEKYŌ SHARINGAN%s%s" % [("  —  " + ", ".join(sk)) if not sk.is_empty() else "", "" if _ems() else "   (açık kaldıkça gözün kararır — V: kapat)"], Color(1, 0.3, 0.3), 5.0)
+	_eye_buff()
+	refresh_visual()
+
+
+## Mangekyō'yu kapatıp 3 tomoe Sharingan'da kal (göz açık kalır; Mangekyō teknikleri/Susanoo kapanır)
+func drop_ms() -> void:
+	ms_on = false
+	if susanoo:
+		_end_susanoo()
+	Sfx.play("sharingan", null, 1.2)
+	Hud.msg("Sharingan (3 tomoe)  —  V: kapat", Color(1, 0.4, 0.4), 3.0)
 	_eye_buff()
 	refresh_visual()
 
@@ -783,6 +800,18 @@ static func give_enemy_eyes(f: Node, kind: int, lvl := 3) -> void:
 		f.model.set_dojutsu_eyes(vk, vl, vk, vl, kind == 2)
 
 
+## Senju hücresi al: düşmüş Senju'nun etinden doku kavanoza (nakil sonra: kendi tıbbi ninjutsun / takım tıbbi ninjası / Kara Cerrah)
+func _take_cells(f: Node3D) -> void:
+	f.set_meta("cells_taken", true)
+	cell_target = null
+	Crime.on_eyes_taken(f)   # köy ninjasının bedenine dokunmak: aynı suç
+	var fl: Dictionary = Game.profile["flags"]
+	fl["senju_jar"] = int(fl.get("senju_jar", 0)) + 1
+	VFX.debris(f.global_position + Vector3.UP * 0.6, Color(0.6, 0.05, 0.05), 6, 2.0, 0.15)
+	Hud.banner("SENJU HÜCRESİ", "Doku kavanoza kondu (%d) — nakli Tab > Gözler'den, takımının tıbbi ninjasından ya da Kara Cerrah'tan" % int(fl["senju_jar"]), Color(0.55, 0.9, 0.5))
+	Sfx.play("seal", p.global_position, 0.7)
+
+
 func _steal(f: Node3D) -> void:
 	var e: Dictionary = f.get_meta("eyes")
 	f.set_meta("eyes_taken", true)
@@ -892,7 +921,7 @@ func _process(dt: float) -> void:
 		var open_n = 0
 		for sd in ["sag", "sol"]:
 			var ee = eye(sd)
-			if ee != null and String(ee.get("origin", "dogustan")) == "nakil" and _kind(sd) in [1, 4, 5]:
+			if ee != null and _raw_kind(sd) in [1, 4, 5]:
 				open_n += 1
 		if open_n > 0 and p.chakra > 0.0:
 			p.chakra = maxf(0.0, p.chakra - 0.5 * open_n * dt)
@@ -905,6 +934,15 @@ func _process(dt: float) -> void:
 				f.set_meta("eye_prompt", true)
 				Combat.popup_text(f.global_position + Vector3.UP * 1.5, "[F] Gözleri al", Color(1, 0.4, 0.4))
 			break
+	cell_target = null
+	if steal_target == null:
+		for f in get_tree().get_nodes_in_group("senju_bearers"):
+			if f != p and not f.has_meta("cells_taken") and f.has_method("is_dead") and f.is_dead() and f.global_position.distance_to(p.global_position) < 4.5:
+				cell_target = f
+				if not f.has_meta("cell_prompt"):
+					f.set_meta("cell_prompt", true)
+					Combat.popup_text(f.global_position + Vector3.UP * 1.5, "[F] Senju hücresi al", Color(0.55, 0.9, 0.5))
+				break
 
 
 # ------------------------------------------------------------------ uyanış ve gelişim (gözler eşya değil)
@@ -1046,6 +1084,14 @@ var _night_t := 0.0
 var _evo_cd := 0.0
 
 
+const RINNE_NEED := 900.0   # EMS açıkken geçen saniye (15 dk): hücreler gözlerde kök salar
+
+
+## Bedende Senju (Ashura) DNA'sı: Senju kanı ya da nakledilmiş Senju hücresi
+static func has_senju_dna(pr: Dictionary) -> bool:
+	return String(pr.get("clan", "")) == "senju" or bool(pr.get("flags", {}).get("senju_cells", false))
+
+
 func _both_slots_kind(kind: int) -> bool:
 	return _raw_kind("sag") == kind and _raw_kind("sol") == kind
 
@@ -1083,11 +1129,17 @@ func evolve_tick(dt: float) -> void:
 		return
 	_evo_cd = 2.0
 	# 3) Rinnegan: Ebedi Mangekyō + (Senju gücü ve Sv.45) ya da Sv.60; ölümün eşiğinde dövüşürken uyanır
-	if _both_slots_kind(5) and p.hp < p.max_hp * 0.2 and not _enemies_in(25.0).is_empty():
-		var senju = Progress.has_nature("mokuton") or String(pr.get("clan", "")) == "senju"
-		if (senju and lv >= 45) or lv >= 60:
+	# kanon (Madara): Ebedi Mangekyō + Senju hücresi (Ashura chakrası) — Rinnegan zamanla uyanır. Senju hücresi olmadan ASLA.
+	if _both_slots_kind(5) and has_senju_dna(pr) and lv >= 100:   # Güç 100: Altı Yolun gözü taşıyacak beden
+		var fl2: Dictionary = pr["flags"]
+		if active and ms_on:
+			fl2["rinne_xp"] = float(fl2.get("rinne_xp", 0.0)) + 2.0   # bu blok 2 sn'de bir çalışır
+			var need = RINNE_NEED
+			if int(float(fl2["rinne_xp"]) / 60.0) != int((float(fl2["rinne_xp"]) - 2.0) / 60.0) and float(fl2["rinne_xp"]) < need:
+				Hud.msg("Gözlerinde Ashura'nın chakrası kımıldıyor... (%d / %d dk)" % [int(float(fl2["rinne_xp"]) / 60.0), int(need / 60.0)], Color(0.75, 0.65, 1.0), 3.0)
+		if float(fl2.get("rinne_xp", 0.0)) >= RINNE_NEED:
+			fl2.erase("rinne_xp")
 			_replace_eyes("goz_rinnegan", ["sag_goz", "sol_goz"], 3)
-			p.hp = p.max_hp * 0.6
 			Hud.banner("RINNEGAN", "Indra ile Ashura'nın chakrası birleşti: Altı Yolun gözü uyandı", Color(0.7, 0.55, 0.95))
 			Sfx.play("roar", p.global_position, 0.6, 0.5)
 			VFX.shockwave(p.global_position + Vector3.UP, Color(0.7, 0.55, 0.95), 16.0, 0.6, false)

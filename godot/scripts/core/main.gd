@@ -392,6 +392,8 @@ func _route(e: InputEvent) -> void:
 		var qn = Missions.talk_target_near(player.global_position, 4.0)
 		if ey and ey.steal_target != null and is_instance_valid(ey.steal_target):
 			ey._steal(ey.steal_target)
+		elif ey and ey.cell_target != null and is_instance_valid(ey.cell_target):
+			ey._take_cells(ey.cell_target)
 		elif qn != null:
 			qn.talk()
 		elif not it.is_empty():

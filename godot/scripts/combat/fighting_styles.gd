@@ -42,12 +42,18 @@ const STYLES := {
 		"desc": "Tıbbi ninjanın dövüşü: parmak uçlarından Chakra Neşteri ile görünmez kesikler (kas kesilir, yavaşlar), sinirleri karıştıran Ranshinshō (sersem), ağızdan zehir akışı, rakibin chakrasını çekip seni onaran Shōsen avucu; bitiriş yumrukta toplanan chakra ile yeri yaran Ōkashō."},
 	"kakuzu": {"name": "Jiongu — Toprak Kini", "key": "style_kakuzu", "src": "path:kakuzu", "range": "orta", "stop": 3.5,
 		"desc": "Kakuzu'nun yolu: koldan fışkıran kara iplik kırbacı, ipliklerle fırlayıp rakibi yakalayıp çeken kol, Domu ile taşlaşan ezici yumruk, sırttan kopan maske canavarlarının Katon (Zukokku) ve Fūton (Atsugai) saldırıları; bitiriş iki maske birden — rüzgâr alevi büyütür."},
-	"jashin": {"name": "Jashin Ayini", "key": "style_jashin", "src": "path:jashin", "range": "yakın-orta", "stop": 3.0,
+	"jashin": {"name": "Jashin Ayini", "key": "style_jashin", "src": "path:jashin", "need_item": "uc_tirpan", "range": "yakın-orta", "stop": 3.0,
 		"desc": "Hidan'ın yolu: kabloyla fırlayıp geri dönen üç bıçaklı tırpan ve kara mızrak rakibin kanını alır, tırpan savuruşu çevreyi biçer; kan aldıysan ayağınla Jashin çemberini çizersin — çemberdeyken kendi bacağına ve kalbine sapladığın mızrağın yarasını lanetli rakip alır (kendi canından bedel)."},
 	"hachibi": {"name": "Hachibi — Ritim ve Mürekkep", "key": "style_hachibi", "src": "path:hachibi", "range": "yakın-orta", "stop": 2.6,
 		"desc": "Killer B'nin yolu: Gyūki'nin ahtapot dokunacıyla kırbaç, kollar ve ağızdaki yedi kılıçla dönüş, kör eden mürekkep tükürüğü, şimşekli Lariat atılışı, iki dokunaçla kavrayıp yere çarpma; bitiriş küçük Sekiz Kuyruk topu."},
 	"silah": {"name": "Buki Kuchiyose — Silah Ustası", "key": "style_silah", "src": "path:silah", "range": "orta-uzak", "stop": 6.0,
 		"desc": "Tenten'in yolu: iki el arasında açılan parşömenden kunai ve shuriken salvoları, zincirli orakla hedefi çekme, gökten karışık silah yağmuru, parşömenden çekilen dev balta; bitiriş gökten inen dev demir topuz."},
+	"jin_shukaku": {"name": "Shukaku — Kum Canavarı", "key": "style_jin_shukaku", "src": "jin:shukaku", "range": "yakın-orta", "stop": 2.8,
+		"desc": "Bir Kuyruk'un jinchūriki'si: kısmi dönüşümle kumla kaplanıp büyüyen pençe kol, kavrayıp kuma gömme, karından Fūton: Renkūdan hava mermisi, önden Sabaku Taisō kum dalgası, kısa kum kalkanı; bitiriş dev kum pençe yere çarpar ve büyük Renkūdan."},
+	"jin_matatabi": {"name": "Matatabi — Mavi Alev Kedisi", "key": "style_jin_matatabi", "src": "jin:matatabi", "range": "yakın", "stop": 1.8,
+		"desc": "İki Kuyruk'un jinchūriki'si: parmak uçlarından uzayan mavi alev tırnaklarla pençe izleri, yay çizen kedi sıçrayışı, mavi ateş topları, yerde yanan mavi alev şeridi; bitiriş çapraz çift pençe."},
+	"jin_isobu": {"name": "Isobu — Mercan ve Sis", "key": "style_jin_isobu", "src": "jin:isobu", "range": "orta", "stop": 4.0,
+		"desc": "Üç Kuyruk'un jinchūriki'si: hedefin altından fışkıran mercan diken, su avucu itişi, bağlayan mercan tarlası, dikenli kabuğa çekilip yuvarlanış, yanılsama sisi; bitiriş hedefi çevreleyen mercan halkası kapanır."},
 	"kagit": {"name": "Shikigami no Mai — Kâğıt", "key": "style_kagit", "src": "path:kagit", "range": "orta", "stop": 6.0,
 		"desc": "Konan'ın kâğıt sanatı: kesen kâğıt shurikenler, hedefi saran kelebek sürüsü (kör eder), yerden fırlayan kâğıt mızraklar, kâğıt kanat çırpışıyla kesici fırtına; bitiriş hedefin çevresinde patlayıcı kâğıt halkası."},
 	"sumi": {"name": "Chōjū Giga — Sumi", "key": "style_sumi", "src": "path:sumi", "range": "orta-uzak", "stop": 6.5,
@@ -108,6 +114,8 @@ static func available(p: Dictionary) -> Array:
 	var out = [""]
 	for id in STYLES:
 		if _has_src(p, String(STYLES[id]["src"])):
+			if STYLES[id].has("need_item") and not String(STYLES[id]["need_item"]) in Gear.owned_ids(p):
+				continue   # kanon silahı olmadan bu tarz olmaz (Jashin = üç bıçaklı tırpan)
 			out.append(id)
 	return out
 

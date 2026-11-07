@@ -54,6 +54,11 @@ static func options(kind: String) -> Array:
 			var price = int(s["price"])
 			var lbl = "%s → %s göz  (tutma %%%d%s)" % [Gear.item(g["id"])["name"], sl[1], int(round(float(s["chance"]) * 100.0)), (", %d Ryō" % price) if price > 0 else ""]
 			opts.append({"label": lbl, "cb": func(): operate(uid, slot, kind)})
+	# Senju hücresi nakli (Yamato / Danzō / Madara): kavanozda doku varsa ve beden henüz taşımıyorsa
+	if int(pr.get("flags", {}).get("senju_jar", 0)) > 0 and not Eyes.has_senju_dna(pr):
+		var c2 = clampf(float(s["chance"]) - 0.25, 0.1, 0.9)   # kanon: hücre çoğu bedeni öldürür — gözden çok daha riskli
+		var price2 = int(s["price"]) * 2
+		opts.append({"label": "Senju hücresi nakli  (tutma %%%d%s)" % [int(round(c2 * 100.0)), (", %d Ryō" % price2) if price2 > 0 else ""], "cb": func(): operate(-1, "senju", kind)})
 	return opts
 
 
@@ -64,7 +69,8 @@ static func operate(uid: int, slot: String, kind: String) -> void:
 	if p == null or not is_instance_valid(p):
 		return
 	var s: Dictionary = surgeons(pr)[kind]
-	if int(pr.get("ryo", 0)) < int(s["price"]):
+	var cells = slot == "senju"
+	if int(pr.get("ryo", 0)) < int(s["price"]) * (2 if cells else 1):
 		Hud.msg("Yeterli Ryō yok.", Color(1, 0.5, 0.4))
 		return
 	for f in p.get_tree().get_nodes_in_group("fighters"):
@@ -72,10 +78,11 @@ static func operate(uid: int, slot: String, kind: String) -> void:
 			Hud.msg("Düşman yakındayken göz nakli yapılmaz — önce güvenli bir yere çekil.", Color(1, 0.6, 0.4))
 			return
 	if int(s["price"]) > 0:
-		Progress.add_ryo(-int(s["price"]))
-	var g = Gear.find(pr, uid)
-	if g.is_empty():
-		return
+		Progress.add_ryo(-int(s["price"]) * (2 if cells else 1))
+	if not cells:
+		var g = Gear.find(pr, uid)
+		if g.is_empty():
+			return
 	# olay: otur, yeşil şifa chakrası gözünde (kendi ameliyatında senin ellerin, diğerlerinde cerrahın)
 	p.velocity = Vector3.ZERO
 	p.model.play("idle", 0.3)
@@ -128,6 +135,9 @@ static func _finish(uid: int, slot: String, kind: String) -> void:
 	var pr = Game.profile
 	var p = Game.player
 	var s: Dictionary = surgeons(pr)[kind]
+	if slot == "senju":
+		_finish_cells(kind)
+		return
 	var g = Gear.find(pr, uid)
 	if g.is_empty() or p == null:
 		return
@@ -147,6 +157,33 @@ static func _finish(uid: int, slot: String, kind: String) -> void:
 	Hud.dialog("Göz Nakli", txt, [])
 	if kind == "self":
 		Mastery.gain(pr, "chakra", 0.5)
+
+
+## Senju hücresi naklinin sonucu: tutarsa Mokuton + Ashura chakrası (EMS ile Rinnegan yolu); tutmazsa doku ölür, beden ağır yıpranır
+static func _finish_cells(kind: String) -> void:
+	var pr = Game.profile
+	var p = Game.player
+	if p == null:
+		return
+	var s: Dictionary = surgeons(pr)[kind]
+	var fl: Dictionary = pr["flags"]
+	fl["senju_jar"] = maxi(0, int(fl.get("senju_jar", 0)) - 1)
+	var chance = clampf(float(s["chance"]) - 0.25, 0.1, 0.9)
+	if randf() > chance:
+		p.hp = maxf(1.0, p.hp - p.max_hp * 0.5)
+		Buffs.add("nakil", float(s["recover"]), {"speed": 0.8, "melee": 0.8})
+		Hud.banner("HÜCRE REDDEDİLDİ", "Beden Senju dokusunu reddetti — doku öldü, sen zor kurtuldun", Color(0.8, 0.3, 0.3))
+		return
+	p.hp = maxf(1.0, p.hp - p.max_hp * float(s["hp"]))
+	Buffs.add("nakil", float(s["recover"]), {"speed": 0.85, "melee": 0.85})
+	fl["senju_cells"] = true
+	if not Progress.has_nature("mokuton"):
+		Progress.awaken_nature("mokuton")
+	var txt = "Senju hücreleri bedeninde kök saldı. Mokuton artık senin — bedelini chakranla ödeyeceksin."
+	var ey = p.combat.modes.eyes if p.combat and p.combat.modes else null
+	if ey and ey._both_slots_kind(5):
+		txt += "\nEbedi Mangekyō'n Ashura'nın chakrasını hissediyor: açık tuttukça Rinnegan uyanacak."
+	Hud.dialog("Hücre Nakli", txt, [])
 
 
 ## Oyuncunun göz hizası (baş kemiğinden; yoksa çömelme yüksekliği)

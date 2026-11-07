@@ -26,10 +26,14 @@ func _ready() -> void:
 	var n = 0
 	for st in styles:
 		Game.profile["clan"] = clan_of.get(st, "none")
-		if not clan_of.has(st):   # yol tarzı: o yolda ol
+		if st.begins_with("jin_"):   # jinchūriki tarzı
+			Game.profile["jinchuriki"] = st.substr(4)
+		elif not clan_of.has(st):   # yol tarzı: o yolda ol
 			if not Game.profile.has("paths"):
 				Game.profile["paths"] = {}
 			Game.profile["paths"][st] = {"s": 4}
+		if st == "jashin" and not "uc_tirpan" in Gear.owned_ids(Game.profile):
+			Gear.grant(Game.profile, "uc_tirpan")
 		Game.profile["fight_style"] = st
 		Game.profile["equip"]["sag"] = 0   # tarz silahsız oynar (klan yadigârı silahı kaldır: Hatake tantōsu vb.)
 		Gear.apply_look(Game.profile)

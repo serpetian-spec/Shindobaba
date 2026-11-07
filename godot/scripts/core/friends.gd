@@ -134,6 +134,7 @@ static func _ser(look: Dictionary) -> Dictionary:
 
 static func look_of(f: Dictionary) -> Dictionary:
 	var o = _look_raw(f)
+	o["keep_hair"] = true   # tanıdık: saçı her görünüşte aynı (NPC saç ikamesi yok)
 	if int(f.get("rank", 0)) < 1:
 		o["vest"] = null   # genin chūnin yeleği giymez (yelekli kaynaktan tanışılmış olsa da)
 	return o
@@ -872,6 +873,7 @@ static func arch(f: Dictionary) -> Dictionary:
 	a["ryo"] = 0
 	var L: Dictionary = a["look"]
 	L.merge(look_of(f), true)
+	L["keep_hair"] = true   # tanıdık: yanındaki saçı portresindeki / ilk tanıştığın saçla aynı (rastgele saç ikamesi yok)
 	var hi = Progress.home_info()
 	L["band"] = hi["band"]
 	L["band_style"] = "head"
@@ -1165,6 +1167,7 @@ func _spawn_npc(id: String, at: Vector3, walk: bool) -> Villager:
 	var lk = look_of(f)
 	if int(f.get("rank", 0)) >= 1:
 		lk["vest"] = Progress.home_info()["vest"]
+	lk["keep_hair"] = true
 	vg.look_extra = lk
 	vg.display_override = String(f["name"])
 	vg.set_meta("friend_id", id)
@@ -1733,7 +1736,15 @@ static func begin_activity(id: String, kind: String) -> void:
 	if orig:
 		orig.visible = false
 		orig.remove_from_group("talkers")
-	me.act = {"id": id, "kind": kind, "dest": dest, "node": comp, "orig": orig, "t": 0.0, "stage": "go"}
+	# takımdaki (seninle yürüyen) aynı dost: etkinlik süresince gizlenir — yoksa aynı kişi iki tane görünüyordu (sake/yemek)
+	var mates: Array = []
+	for n in me.get_tree().get_nodes_in_group("fighters"):
+		if n != comp and n.has_meta("teammate") and bool(n.get_meta("teammate")) and String(n.get_meta("friend_id", "")) == id and n.visible:
+			n.visible = false
+			n.set_physics_process(false)
+			n.set_process(false)
+			mates.append(n)
+	me.act = {"id": id, "kind": kind, "dest": dest, "node": comp, "orig": orig, "mates": mates, "t": 0.0, "stage": "go"}
 	var lbl = String(dest["name"])
 	Game.profile["waypoint"] = [dest["pos"].x, dest["pos"].y, dest["pos"].z, "%s ile: %s" % [f["name"], lbl]]
 	Game.profile["track"] = "waypoint"
@@ -1993,6 +2004,13 @@ func _act_end(msg: String) -> void:
 	if is_instance_valid(orig):
 		orig.visible = true
 		orig.add_to_group("talkers")
+	for m in act.get("mates", []):   # takımdaki dost yeniden yanında
+		if is_instance_valid(m):
+			if Game.player:
+				m.global_position = Game.player.global_position + Vector3(1.5, 0, 1.5)
+			m.visible = true
+			m.set_physics_process(true)
+			m.set_process(true)
 	if Game.player:
 		Game.player.input_locked = 0.0
 	act = {}

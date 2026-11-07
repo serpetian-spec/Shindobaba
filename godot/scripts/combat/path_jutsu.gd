@@ -23494,13 +23494,13 @@ func p_chidori_jinrai(c: Node3D, t: Node3D) -> void:
 
 
 ## Üç bıçaklı kızıl tırpan (kabloya bağlı)
+## Üç bıçaklı tırpan: oyunun gerçek silah modeli (kuşanılan "uc_tirpan" ile aynı) — sap +Z, bıçaklar +Y
 func _tri_scythe() -> Node3D:
-	var b = MB.new()
-	b.add("cyl", Vector3(0, 0, -0.4), Vector3(0.05, 0.9, 0.05), PDARK, Vector3(90, 0, 0), 6)
-	for k in 3:
-		b.add("box", Vector3(0.25, 0, 0.1 + k * 0.18), Vector3(0.5, 0.03, 0.08), JASHIN_RED, Vector3(0, 0, 0))
-		b.add("cone", Vector3(0.52, 0, 0.12 + k * 0.18), Vector3(0.06, 0.18, 0.03), JASHIN_RED, Vector3(0, 0, -90), 4)
-	return mesh_of(b)
+	var holder = Node3D.new()
+	var n = preload("res://scripts/combat/keyed_combos.gd")._scythe_node()
+	holder.add_child(n)
+	n.position = Vector3(0, 0, -0.9)   # dönüş merkezi sapın ortası (fırlatılınca kendi çevresinde döner)
+	return holder
 
 
 func p_jashin_sanjin_kama(c: Node3D, t: Node3D) -> void:

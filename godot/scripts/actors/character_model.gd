@@ -484,7 +484,7 @@ func _face_and_hair() -> void:
 			_skull_cache[sk_key] = [skull_c, skull_r, band_ring]
 	# saç: VRoid saç mesh'i + gerekirse prosedürel tutam eklentisi (diken, topuz, at kuyruğu...)
 	var hd: Array = HAIR_DONORS.get(look.get("hair_style", "diken"), HAIR_DONORS["diken"])
-	if hd.size() > 2 and hd[2] != "" and head_ab.size.x > 0.05 and look.get("npc", false):
+	if hd.size() > 2 and hd[2] != "" and head_ab.size.x > 0.05 and look.get("npc", false) and not look.get("keep_hair", false):   # keep_hair: kimliği olan karakter (dost, Bingo kaçağı, takım) saçını asla değiştirmez
 		# köylü: bu yüz için hesaplanmamış saç tutamı ~140 ms donma demek. Yakın zamanda yeni hesap yapıldıysa
 		# bu yüzde hazır (önbellekte) ya da tutamsız bir saç stili seç; çeşitlilik zamanla artar, donma olmaz
 		var hk0 = "vroid|%s|%s|%s|%s" % [hd[2], look["gender"], donor, look.get("age", "adult")]

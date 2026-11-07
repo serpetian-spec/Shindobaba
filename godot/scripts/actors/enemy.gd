@@ -231,6 +231,8 @@ func setup(a: Dictionary) -> void:
 	if a.get("no_level", false):
 		set_meta("no_level", true)
 	arch = a
+	if String(a.get("clan", "")) == "senju":
+		add_to_group("senju_bearers")   # Senju hücresi (Madara yolu): ölünce F ile eti alınır
 	var k = String(a.get("kind", ""))
 	set_meta("faction", String(a.get("faction", k if k in ["konoha", "suna", "kiri", "kumo", "iwa", "ame", "samurai", "bandit"] else ("rogue" if k in ["rogue", "jinchuriki", "oto"] else k))))
 	look = a["look"]
@@ -641,6 +643,8 @@ func _chase(dt: float) -> void:
 				return arch.has("beast")
 			if nd.begins_with("jin:"):
 				return String(arch.get("beast", "")) == nd.substr(4)
+			if nd.begins_with("weapon:"):   # silaha özgü teknik: oyuncuyla aynı — o silahı taşımalı
+				return String(look.get("weapon_r", "") if look is Dictionary else "") == nd.substr(7)
 			return true)
 		ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("need", "")) != "raiton_modo" or buffs.has("raiton_chakura_modo"))
 		ready = ready.filter(func(id): return (String(Data.jutsu.get(id, {}).get("need", "")) != "senninka" or buffs.has("jugo_senninka") or buffs.has("jugo_senninka2")) and (String(Data.jutsu.get(id, {}).get("need", "")) != "senninka2" or buffs.has("jugo_senninka2")))   # Jūgo: oyuncuyla aynı şart

@@ -225,6 +225,7 @@ static func mate_arch(i: int, level: int) -> Dictionary:
 		a["auto_jutsu"] = auto.duplicate()
 		a["auto_lv"] = level
 	var L: Dictionary = a["look"]
+	L["keep_hair"] = true   # takım arkadaşı: her çağrıda aynı saç
 	L["gender"] = m["gender"]
 	L["hair_style"] = m["hair_style"]
 	L["hair"] = _c(m["hair"])
@@ -257,6 +258,7 @@ static func sensei_arch(level: int) -> Dictionary:
 	if not own.is_empty():
 		a["jutsu"] = own.slice(maxi(0, own.size() - 4))   # savaşta kendi tekniklerini kullanır (öğrettikleri gözünün önünde)
 	var L: Dictionary = a["look"]
+	L["keep_hair"] = true   # takım arkadaşı: her çağrıda aynı saç
 	L["gender"] = String(s.get("gender", "m"))
 	L["hair"] = _c(s["hair"])
 	L["hair_style"] = s["hair_style"]

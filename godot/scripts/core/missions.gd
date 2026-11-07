@@ -2920,6 +2920,7 @@ func _bb_look(e: Dictionary) -> Dictionary:
 	for k in e["look"]:
 		var v = e["look"][k]
 		lk[k] = Color.html(v) if v is String and v.length() == 6 and v.is_valid_hex_number() else v
+	lk["keep_hair"] = true   # Bingo portresiyle sahadaki kişi aynı saçta
 	return lk
 
 

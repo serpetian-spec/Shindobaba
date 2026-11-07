@@ -3653,6 +3653,7 @@
   "meaning": "Karga Klonu"
  },
  "jujutsu_shiji_hyoketsu": {
+  "need": "weapon:uc_tirpan",
   "id": "jujutsu_shiji_hyoketsu",
   "name": "Jujutsu: Shiji Hyōketsu",
   "name_en": "Curse Technique: Death Controlling Possessed Blood",

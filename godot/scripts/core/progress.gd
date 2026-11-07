@@ -620,6 +620,8 @@ func _check_rinnegan_path(dt: float) -> void:
 	_rinne_t = 8.0
 	var pr = p()
 	var f: Dictionary = pr.get("flags", {})
+	if true:   # kanon dışı kısayol kapatıldı: Rinnegan yalnız Ebedi Mangekyō + Senju hücresi + Güç 100 (Eyes, zamanla uyanır)
+		return
 	if f.get("rinne_offer", false) or int(pr.get("level", 1)) < 70 or not Missions.active().is_empty():
 		return
 	for slot in ["sag_goz", "sol_goz"]:
