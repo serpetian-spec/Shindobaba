@@ -17159,54 +17159,44 @@ func _wood_hand(s: float) -> Node3D:
 	return root
 
 
-## Ahşap Dev Savaşçı: yanında zırhlı dev ahşap savaşçı yükselir — iki büyük yumruk indirir
+## Mokuton: Mokujin no Jutsu (kanon, Hashirama): ~110 m tahta dev (oni yüzü, diken yelesi, gövdesine sarılı ejder) topraktan
+## yükselir, rakibin üstüne iki dev yumruk indirir, sonra toprağa geri gömülür. Gerçek model: Mokujin (actors/mokujin.gd).
 func p_mokuton_mokujin_no_jutsu(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.4)
-	var tt = tg(c, t, 26.0)
-	var side = c.face_dir().cross(Vector3.UP).normalized()
-	var at = gp(c.global_position + side * 6.0 + c.face_dir() * 1.0)
-	var b = MB.new()
-	var w = WOOD
-	b.add("box", Vector3(0, 5.0, 0), Vector3(3.2, 4.0, 2.0), w)
-	b.add("box", Vector3(0, 7.6, 0), Vector3(1.6, 1.6, 1.6), w.lightened(0.1))
-	b.add("box", Vector3(0, 8.6, 0), Vector3(2.0, 0.4, 2.0), w.darkened(0.3))
-	b.add("box", Vector3(0, 7.7, 0.82), Vector3(1.2, 0.2, 0.05), Color(0.1, 0.06, 0.03))
-	for sx in [-1.0, 1.0]:
-		b.add("box", Vector3(sx * 2.2, 6.4, 0), Vector3(1.4, 0.8, 1.4), w.darkened(0.2))
-		b.add("box", Vector3(sx * 2.4, 4.6, 0.3), Vector3(0.9, 3.0, 0.9), w)
-		b.add("box", Vector3(sx * 1.0, 1.6, 0), Vector3(1.1, 3.2, 1.1), w)
-	b.add("box", Vector3(0, 2.8, 0), Vector3(3.0, 0.8, 1.8), w.darkened(0.2))
-	var giant = mesh_of(b, _wood_mat())
-	get_tree().current_scene.add_child(giant)
-	giant.global_position = at - Vector3.UP * 10.0
-	giant.rotation.y = atan2(c.face_dir().x, c.face_dir().z)
-	_earth_burst(at, 1.8)
-	var tw = giant.create_tween()
-	tw.tween_property(giant, "global_position", at, 0.6).set_trans(Tween.TRANS_BACK)
+	var tt = tg(c, t, 60.0)
+	var d = fwd(c, t)
+	var goal0 = gp(tt.global_position if tt else c.global_position + d * 30.0)
+	var at = gp(c.global_position - d * 22.0)
+	var yaw = atan2(-(goal0 - at).x, -(goal0 - at).z)
+	var mj = Mokujin.spawn(get_tree().current_scene, at - Vector3.UP * 120.0, yaw)
+	mj.set_pose("rise", 0.0)
+	for k in 6:
+		_earth_burst(at + Vector3(cos(k) * 18.0, 0, sin(k) * 18.0), 3.0)
+	VFX.cracks(at, 30.0)
+	shake(1.2)
+	Sfx.play("earth", at, 0.4)
+	var tw = mj.create_tween()
+	tw.tween_property(mj, "global_position", at, 1.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_callback(func(): mj.set_pose("stand", 0.4))
 	for k in 2:
-		tw.tween_callback(func():
-			var goal = gp(tt.global_position if tt and live(tt) else at + c.face_dir() * 10.0)
-			var fist = _branch(10.0, 1.4)
-			get_tree().current_scene.add_child(fist)
-			var src = at + Vector3.UP * 6.0 + side * (k * 2.0 - 1.0) * 2.4
-			fist.global_position = src
-			fist.look_at(goal + Vector3(0.001, 0, 0), Vector3.UP)
-			fist.rotate_object_local(Vector3.RIGHT, -PI * 0.5)
-			var tw2 = fist.create_tween()
-			tw2.tween_property(fist, "global_position", src.lerp(goal, 0.5), 0.18)
-			tw2.tween_callback(func():
-				impact_fx("doton", EARTH, goal + Vector3.UP * 0.5, 2.0)
-				VFX.cracks(goal, 6.0)
-				hit(c, goal + Vector3.UP, 4.0, inf(c, "mokuton_mokujin_no_jutsu", 1.4, {"knock": 18.0, "launch": 5.0, "kind": "heavy", "element": "mokuton"}))
-				shake(0.8))
-			tw2.tween_interval(0.4)
-			tw2.tween_property(fist, "scale", Vector3.ONE * 0.02, 0.2)
-			tw2.tween_callback(fist.queue_free))
+		var right = k == 0
+		tw.tween_interval(0.35)
+		tw.tween_callback(func(): mj.set_pose("pull_r" if right else "pull_l", 0.45))
 		tw.tween_interval(0.5)
-	tw.tween_interval(1.0)
-	tw.tween_property(giant, "global_position", at - Vector3.UP * 10.0, 0.6)
-	tw.tween_callback(giant.queue_free)
-	Sfx.play("earth", at, 0.5)
+		tw.tween_callback(func(): mj.set_pose("punch_r" if right else "punch_l", 0.3))
+		tw.tween_interval(0.3)
+		tw.tween_callback(func():
+			var goal = gp(tt.global_position if tt and live(tt) else goal0)
+			impact_fx("doton", EARTH, goal + Vector3.UP * 1.0, 4.0)
+			VFX.cracks(goal, 14.0)
+			VFX.shockwave(goal + Vector3.UP * 0.3, Color(0.6, 0.55, 0.4), 18.0, 0.4, true)
+			hit(c, goal + Vector3.UP, 9.0, inf(c, "mokuton_mokujin_no_jutsu", 1.4, {"knock": 20.0, "launch": 6.0, "kind": "heavy", "element": "mokuton", "hitstop": 0.12}))
+			shake(1.4))
+	tw.tween_interval(0.8)
+	tw.tween_callback(func(): mj.set_pose("stand", 0.4))
+	tw.tween_interval(0.4)
+	tw.tween_property(mj, "global_position", at - Vector3.UP * 120.0, 1.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_callback(mj.queue_free)
 
 
 ## Sonsuz Tsukuyomi: göğe dev beyaz ay yükselir, üzerinde Rinne-Sharingan deseni açılır — beyaz ışık her şeyi örter, menzildeki herkes rüyaya düşer, kökler sarar
