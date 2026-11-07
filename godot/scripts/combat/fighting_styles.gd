@@ -30,6 +30,8 @@ const STYLES := {
 		"desc": "Gövdeden çıkan chakra zincirleri: kırbaç, mızrak gibi saplanan zincir, rakibi sarıp chakrasını mühürleyen bağ, çevreyi süpüren zincirler; bitiriş zincirle kaldırıp yere çarpma."},
 	"yotsuki": {"name": "Raiton Nintai — Yotsuki", "key": "style_yotsuki", "src": "clan:yotsuki", "range": "yakın (atılış)", "stop": 1.6,
 		"desc": "Raiton Chakra zırhıyla ezici hız ve güç: şimşekli yumruk, omuz dalışı, Lariat, Raigyaku Suihei el kılıcı, seri şimşek yumruklar; bitiriş Liger Bomb (kavra, kaldır, yere çak)."},
+	"senju": {"name": "Senju-ryū — Senju", "key": "style_senju", "src": "clan:senju", "range": "yakın-orta", "stop": 2.2,
+		"desc": "Senju kanının canavar gücü ve Mokuton: ağır yumruklar, koldan fışkırıp saplanan dallar, hedefin altından tahta sütunlar, yere yumruk Ōkashō (zemin sivri kayalarla kalkar); bitiriş sıçrayıp topuk inişi Tsūtenkyaku (krater)."},
 	"kurosuki": {"name": "Raikō — Kurosuki", "key": "style_kurosuki", "src": "clan:kurosuki", "range": "yakın + gök şimşeği", "stop": 2.2,
 		"desc": "Raiga'nın ailesi: şimşekli el kılıçları, sise karışıp yanında belirme, çapraz düz şimşek çizgileri (Kuroi Jūji), göğe kalkan elle hedefe yıldırım (Rakurai); bitiriş hedefin çevresine şimşek yağmuru (Ikazuchi no Utage). İsabetler kısa sersemletir."},
 	"iburi": {"name": "Kemuri Kenpō — Iburi", "key": "style_iburi", "src": "clan:iburi", "range": "orta", "stop": 3.5,

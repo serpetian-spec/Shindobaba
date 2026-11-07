@@ -96,8 +96,9 @@ static func available(f: Dictionary) -> bool:
 		return false
 	if st == "kaçak":
 		return Orgs.is_rogue() or f.get("rogue", false)   # köyden kaçan dost yalnız sen de kaçakken; bağışladığın kaçak kampında
-	if Orgs.is_rogue() and not f.get("rogue", false):
+	if Orgs.is_rogue() and not is_rogue(f):
 		return false   # sen kaçakken köyde kalan dostlar artık dostun değil (çağrılmaz, gelmez, takip listesinde yok)
+	# (kaçak tanıdıklar: rogue bayrağı olmasa da çizik bantlı / "kaçak" durumlu herkes — eskiden sığınaktakiler "köyde değil" diyordu)
 	return st == ""
 
 
@@ -406,7 +407,7 @@ static func trait_known(f: Dictionary) -> bool:
 
 ## Oyuncunun rütbesi (0 Akademi, 1 Genin, 2 Chūnin, 3 Jōnin...) dostun rütbesinden düşükse takıma girmez
 static func rank_ok(f: Dictionary) -> bool:
-	return int(pr().get("rank", 0)) >= int(f.get("rank", 0))
+	return Gear.eff_rank(pr()) >= int(f.get("rank", 0))   # kaçakta Bingo sınıfı eşdeğer rütbe
 
 
 static func _friend_opts(id: String, v: Node) -> Array:
@@ -778,7 +779,12 @@ static func set_party(id: String, on: bool) -> bool:
 		return false
 	if on:
 		if not available(f):
-			Hud.msg("%s şu an köyde değil." % f["name"], Color(1, 0.7, 0.4))
+			var why = "şu an köyde değil"
+			if Orgs.is_rogue() and not is_rogue(f):
+				why = "kaçak birinin takımına girmez (köyüne bağlı)"
+			elif Time.get_unix_time_from_system() < float(f.get("away", 0.0)):
+				why = "şu an uzakta (görevde ya da yaralı)"
+			Hud.msg("%s %s." % [f["name"], why], Color(1, 0.7, 0.4))
 			return false
 		if party_ids().size() >= party_max():
 			Hud.msg("Takımın dolu (en fazla %d kişi). Önce birini köyde beklet." % party_max(), Color(1, 0.7, 0.4))

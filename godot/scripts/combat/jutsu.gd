@@ -1458,7 +1458,21 @@ func j_kaiten(c: Node3D, _t: Node3D) -> void:
 				var p2 = ph + u * 0.12
 				return o + Vector3(cos(a) * cos(p2), sin(p2) * 0.8, sin(a) * cos(p2)) * rr, 0.35, 0.22, kcol, randf() * 0.05, 12)
 	swirl.call()
-	# anime: Neji kollarını açıp topuğu üstünde hızla döner (kubbe onun dönüşünden doğar) — beden 3 tur döner
+	# anime: Neji kollarını iki yana açar (avuçlar açık, hafif çömelik), topuğu üstünde hızla döner — kubbe dönüşten doğar
+	var mdl = c.get("model")
+	if mdl and mdl.get("overlay"):
+		var S = preload("res://scripts/combat/samehada_anim.gd")
+		var F = preload("res://scripts/combat/style_legs.gd")
+		var R_OUT = {"RightUpperArm": Vector3(-0.97, 0.12, 0.2), "RightLowerArm": Vector3(-0.95, 0.15, 0.25)}
+		var L_OUT = {"LeftUpperArm": Vector3(0.97, 0.12, 0.2), "LeftLowerArm": Vector3(0.95, 0.15, 0.25)}
+		var R_IN = {"RightUpperArm": Vector3(-0.35, -0.85, 0.35), "RightLowerArm": Vector3(0.1, 0.3, 0.95)}
+		var L_IN = {"LeftUpperArm": Vector3(0.35, -0.85, 0.35), "LeftLowerArm": Vector3(-0.1, 0.3, 0.95)}
+		mdl.overlay.fist = {"Right": -1.0, "Left": -1.0}
+		mdl.overlay.play_keys({"len": 1.35, "hit": 0.1, "keys": [
+			S._k(0.0, 0.35, 0, 4, Vector3(0, 0, 1), S._a(R_IN, L_IN), F.FIGHT),
+			S._k(0.1, 0.45, 0, 2, Vector3(0, 0, 1), S._a(R_OUT, L_OUT), F.LOW),
+			S._k(1.1, 0.45, 0, 2, Vector3(0, 0, 1), S._a(R_OUT, L_OUT), F.LOW),
+			S._k(1.35, 0.35, 0, 4, Vector3(0, 0, 1), S._a(R_IN, L_IN), F.FIGHT)]}, 1.0)
 	var f0 = float(c.get("facing")) if c.get("facing") != null else 0.0
 	_ticks(44, 0.025, func(i):
 		if is_instance_valid(c) and c.get("facing") != null:

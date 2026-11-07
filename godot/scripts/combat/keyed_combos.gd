@@ -58,6 +58,7 @@ const TABLE := {
 	"style_kamizuru": [preload("res://scripts/combat/style_kamizuru_anim.gd"), 1.0],
 	"style_iburi": [preload("res://scripts/combat/style_iburi_anim.gd"), 1.05],
 	"style_kurosuki": [preload("res://scripts/combat/style_kurosuki_anim.gd"), 1.05],
+	"style_senju": [preload("res://scripts/combat/style_senju_anim.gd"), 1.0],
 }
 ## uzun menzil silahları: yapay zekâ uzakta durup atar (Enemy._chase)
 const RANGED := ["fuma_shuriken", "kyodai_shuriken", "fuma_makimono", "senbon", "mateki"]   # mateki: genjutsu flütü, uzakta durup çalar
@@ -66,7 +67,7 @@ const MASS := {"temari_ogi": 0.65, "uc_tirpan": 1.0, "samehada": 0.9, "kabutowar
 	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3, "tonfa": 0.3, "bashosen": 0.35, "kubikiribocho": 0.95, "yagura_sopa": 0.4, "yelpaze": 0.6, "kongo_asa": 0.45, "kama": 0.75, "pence": 0.15, "senbon": 0.05, "hiramekarei": 0.7, "bo": 0.35, "kiba": 0.25, "tanto": 0.1, "hakko_chakura_to": 0.08, "mateki": 0.06, "wakizashi": 0.25, "nodachi": 0.7, "musta": 0.15,
 	"style_juken": 0.08, "style_akimichi": 0.65, "style_inuzuka": 0.12, "style_kaguya": 0.2,
 	"style_uchiha": 0.1, "style_hozuki": 0.3, "style_aburame": 0.05, "style_jugo": 0.7,
-	"style_yuki": 0.05, "style_sabaku": 0.05, "style_uzumaki": 0.1, "style_yotsuki": 0.3, "style_kamizuru": 0.05, "style_iburi": 0.05, "style_kurosuki": 0.15}
+	"style_yuki": 0.05, "style_sabaku": 0.05, "style_uzumaki": 0.1, "style_yotsuki": 0.3, "style_kamizuru": 0.05, "style_iburi": 0.05, "style_kurosuki": 0.15, "style_senju": 0.45}
 
 
 static func mass(id: String) -> float:
@@ -139,6 +140,14 @@ static func mods(id: String, i: int) -> Dictionary:
 			return {"lunge_mul": 0.0, "special": "", "knock": 1.0}
 		"style_kamizuru":   # orta-uzak: atılmaz; tüm hasar arılardan (on_strike)
 			return {"lunge_mul": 0.0, "special": "", "knock": 1.0}
+		"style_senju":   # yakın yumruk + orta menzil ahşap; Senju kanının ağır vuruşu
+			var m = {"lunge_mul": 0.6, "special": "", "knock": 6.0}
+			match i:
+				0, 1: m.merge({"knock": 7.0})
+				2, 3: m.merge({"lunge_mul": 0.0, "reach_add": -9.0})   # dallar / sütunlar on_strike
+				4: m.merge({"lunge_mul": 0.3, "reach_add": -9.0})      # Ōkashō zemin dalgası on_strike
+				5: m.merge({"lunge_mul": 0.0, "reach_add": -9.0})      # topuk krateri on_strike
+			return m
 		"style_kurosuki":   # yakın el kılıcı + gök şimşeği (5-6 uzaktan)
 			var m = {"lunge_mul": 0.5, "special": "", "knock": 4.0}
 			match i:
@@ -2508,6 +2517,10 @@ static func _style_start(id: String, i: int, who: Node3D) -> void:
 				_grow_in(who, ov, {"RightHand": 1.8}, 0.34 / speed(id), tok)
 		"style_aburame":
 			ov.fist = {"Right": -0.6, "Left": -0.6}   # gevşek açık eller (yenlerden sürü)
+		"style_senju":
+			ov.fist = {"Right": 1.0, "Left": 1.0} if i in [0, 1, 4] else {"Right": -0.7, "Left": -0.7}
+			if i == 5 and who is CharacterBody3D:
+				who.velocity.y = 9.0   # Tsūtenkyaku: sıçrar, topukla iner
 		"style_kurosuki":
 			ov.fist = {"Right": -1.0, "Left": -1.0}   # el kılıcı: düz açık avuç
 			if i == 2:   # Kirigakure: sise karışıp rakibin yanında belir
@@ -2914,6 +2927,48 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 									_swarm_cloud(p2 + Vector3.UP * 1.0, 1.4, 0.6))
 						Combat.hit_sphere(who, p2 + Vector3.UP, 2.4, _kinfo(dmg, 1.3, {"element": "", "knock": 1.0, "kind": "heavy"}))
 						_kikai_drain(who, tg, 0.14)
+		"style_senju":
+			var tg = _near_foe(who, 9.0)
+			var pj = PathJutsu.get_pinst()
+			var gcol = Color(0.55, 0.47, 0.38)
+			match i:
+				0, 1:   # Senju kanı: yumruğun ardında hava patlaması
+					Combat.hit_sphere(who, at + f * 0.3, 1.1, _kinfo(dmg, 1.0, {"element": "", "knock": 7.0, "kind": "heavy", "melee": true}))
+					VFX.shockwave(at + f * 0.6, Color(1.0, 0.95, 0.85), 1.6, 0.18, false, f)
+				2:   # Mokuton Kesme: koldan rakibe dallar fışkırıp saplanır (ref senju_2/3)
+					var hand = who.global_position + Vector3.UP * 1.3 + f * 0.6
+					var to = tg.global_position + Vector3.UP * 1.0 if tg and tg.global_position.distance_to(who.global_position) < 6.5 else hand + f * 5.0
+					if pj:
+						var gh = Vector3(hand.x, Game.jutsu_floor(hand.x, hand.z), hand.z)   # _wood_trunk tabanı yere indirir: elden çıksın diye sonra ele taşınır
+						for k in 3:
+							var tip = to + side * (k - 1) * 0.35 + Vector3.UP * (k % 2) * 0.3
+							var br: Node3D = pj._wood_trunk(hand, gh + (tip - hand), 0.07, 0.5, k * 0.04, 0.3)
+							br.global_position = hand
+					Combat.hit_sphere(who, to, 1.0, _kinfo(dmg, 1.2, {"element": "", "knock": 3.0, "kind": "heavy", "bleed": 2.0, "bind": 0.5}))
+				3:   # avuçlar yere: hedefin altından tahta sütunlar fışkırıp kaldırır
+					var p = tg.global_position if tg else who.global_position + f * 4.0
+					if pj:
+						for k in 3:
+							var q = p + Vector3(randf_range(-0.7, 0.7), 0, randf_range(-0.7, 0.7))
+							q.y = Game.ground_height(q.x, q.z)
+							pj._wood_trunk(q, q + Vector3.UP * 3.2 + Vector3(randf_range(-0.4, 0.4), 0, randf_range(-0.4, 0.4)), 0.32, 0.6, k * 0.06, 0.2)
+					Combat.hit_sphere(who, p + Vector3.UP, 1.6, _kinfo(dmg, 1.15, {"element": "", "knock": 2.0, "launch": 8.0, "kind": "heavy"}))
+				4:   # Ōkashō: yumruk yere — önündeki zemin sivri kayalarla kalkar (ref senju_0)
+					var g = who.global_position + f * 1.8
+					g.y = Game.ground_height(g.x, g.z)
+					VFX.cracks(g, 4.0)
+					VFX.debris(g + Vector3.UP * 0.3, gcol, 14, 7.0, 0.35)
+					JutsuEngine._spikes_ring(who, g + f * 1.2, 2.6, gcol, "doton", {}, 1)
+					Combat.hit_zone(who, who.global_position, f, 5.0, 45.0, 2.5, _kinfo(dmg, 1.3, {"element": "", "knock": 6.0, "launch": 6.0, "kind": "heavy"}))
+					_shake(who, 0.6)
+				5:   # Tsūtenkyaku: topuk inişi — yuvarlak krater, çatlak, moloz patlaması (ref senju_1)
+					var g2 = who.global_position + f * 0.8
+					g2.y = Game.ground_height(g2.x, g2.z)
+					VFX.cracks(g2, 5.5)
+					VFX.shockwave(g2 + Vector3.UP * 0.1, gcol.lightened(0.2), 9.0, 0.4, true)
+					VFX.debris(g2 + Vector3.UP * 0.4, gcol, 22, 9.0, 0.4)
+					Combat.hit_sphere(who, g2 + Vector3.UP * 0.6, 4.2, _kinfo(dmg, 1.5, {"element": "", "knock": 9.0, "launch": 7.0, "kind": "heavy"}))
+					_shake(who, 0.8)
 		"style_kurosuki":
 			var tg = _near_foe(who, 12.0)
 			var col = Color(0.82, 0.92, 1.0)
