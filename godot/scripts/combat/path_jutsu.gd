@@ -9165,39 +9165,64 @@ func p_kuchiyose_doton_tsuiga_no_jutsu(c: Node3D, t: Node3D) -> void:
 	Sfx.play("earth", at, 1.0)
 
 
-## Kurbağa Dükkânı: duman patlamasıyla önünde kurbağa çatılı sağlam bir dükkân evi belirir — kalkan olur
+## Kuchiyose: Gama Mise no Jutsu (kanon, Jiraiya): dükkân kurbağası masum bir dükkâna dönüşür, yakındakiler içeri çekilir;
+## mühürle yapı birkaç saniyede kurbağaya döner, içindekiler midesinde hapsolur (bağlı, görünmez, mide asidi), sonra kurbağa
+## küçülüp onları tükürür. Gerçek model: GamaMise (actors/gama_mise.gd). Dev hedefler (bijū, dev çağrı) sığmaz.
 func p_kuchiyose_gama_mise_no_jutsu(c: Node3D, t: Node3D) -> void:
-	busy(c, 0.7)
+	busy(c, 0.8)
 	var d = fwd(c, t)
-	var at = gp(c.global_position + d * 2.6)
+	var tt = tg(c, t, 14.0)
+	var at = gp((tt.global_position if tt else c.global_position + d * 6.0) + d * 1.8)   # kapı hedefin önüne gelir
 	summon_circle(c.global_position, 1.4, Color(1, 0.55, 0.15), 0.5)
-	var b = MB.new()
-	b.add("box", Vector3(0, 1.4, 0), Vector3(4.2, 2.8, 2.6), Color(0.88, 0.82, 0.68))
-	b.add("box", Vector3(0, 3.1, 0), Vector3(4.8, 0.3, 3.2), Color(0.3, 0.32, 0.4))
-	b.add("cone", Vector3(0, 3.8, 0), Vector3(5.0, 1.2, 3.4), Color(0.32, 0.34, 0.42), Vector3.ZERO, 4)
-	b.add("box", Vector3(0, 1.0, 1.31), Vector3(0.9, 1.8, 0.02), Color(0.45, 0.3, 0.2))
-	for sx in [-1.0, 1.0]:
-		b.add("box", Vector3(sx * 1.4, 1.8, 1.31), Vector3(0.7, 0.6, 0.02), Color(0.6, 0.75, 0.85))
-		b.add("sphere", Vector3(sx * 0.9, 4.3, 0.6), Vector3(0.5, 0.4, 0.4), Color(0.45, 0.6, 0.3))   # çatıda kurbağa gözleri
-	var house = mesh_of(b)
-	get_tree().current_scene.add_child(house)
-	house.global_position = at
-	house.rotation.y = atan2(d.x, d.z)
-	house.scale = Vector3.ONE * 0.05
-	var tw = house.create_tween()
-	tw.tween_property(house, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_BACK)
-	tw.tween_interval(6.0)
-	tw.tween_callback(func(): FX.smoke_puff(at + Vector3.UP * 2.0, 2.4, 24))
-	tw.tween_callback(house.queue_free)
-	FX.smoke_puff(at + Vector3.UP * 2.0, 2.4, 30)
-	every(6.2, 0.1, func(_i, _k):
-		for p in get_tree().get_nodes_in_group("projectiles"):
-			if p.get("shooter") != c and p.global_position.distance_to(at + Vector3.UP * 1.5) < 3.0:
-				VFX.debris(p.global_position, Color(0.85, 0.8, 0.65), 4, 5.0)
-				p.queue_free(), Callable())
-	if c is Player:
-		Buffs.add("gama_mise", 6.0, {"armor": 0.4, "_name": "Kurbağa Dükkânı", "_desc": "dükkânın arkasında güvendesin"})
-	Sfx.play("poof", at, 0.7)
+	FX.smoke_puff(at + Vector3.UP * 2.5, 3.2, 28)
+	var shop = GamaMise.spawn(get_tree().current_scene, at, atan2(d.x, d.z))   # kapı çağırana bakar (ön -Z)
+	Sfx.play("poof", at, 0.6)
+	var caught = []
+	after(1.0, func():   # içeri çekilme: kapının önündeki 6 m
+		if not is_instance_valid(shop):
+			return
+		var door = at - d * 2.0
+		for e in enemies_near(c, door, 6.0):
+			if not live(e) or ClanJutsu.body_scale(e) > 1.5:
+				continue
+			caught.append(e)
+			var p0: Vector3 = e.global_position
+			var tw = e.create_tween()
+			tw.tween_method(func(q: float):
+				if is_instance_valid(e):
+					e.global_position = p0.lerp(at, q), 0.0, 1.0, 0.35)
+			tw.tween_callback(func():
+				if is_instance_valid(e):
+					var m = e.get("model")
+					if m:
+						m.visible = false)
+			st(e, "bind", 4.0)
+		after(0.45, func():
+			if is_instance_valid(shop):
+				shop.morph(0.6)
+				Sfx.play("poof", at, 0.9)
+				if not caught.is_empty():
+					Combat.popup_text(at + Vector3.UP * 4.0, "Kurbağanın midesinde!", Color(1, 0.7, 0.3))))
+	every(4.5, 0.5, func(i, _k):   # mide asidi
+		if i < 4:
+			return
+		for e in caught:
+			if live(e):
+				e.take_hit(inf(c, "kuchiyose_gama_mise_no_jutsu", 0.22, {"knock": 0.0, "kind": "light", "attacker": c})), Callable())
+	after(5.2, func():
+		if is_instance_valid(shop):
+			shop.shrink(0.6)
+		after(0.55, func():
+			for e in caught:
+				if is_instance_valid(e):
+					var m = e.get("model")
+					if m:
+						m.visible = true
+					if live(e):
+						e.take_hit(inf(c, "kuchiyose_gama_mise_no_jutsu", 0.6, {"knock": 9.0, "launch": 4.0, "kind": "heavy", "dir": d, "attacker": c}))
+			if is_instance_valid(shop):
+				FX.smoke_puff(at + Vector3.UP, 1.2, 12)
+				shop.queue_free()))
 
 
 ## Hızlı Başkesme: dev orak gelincik çağrılır, orağıyla dev kesici rüzgâr savurur
