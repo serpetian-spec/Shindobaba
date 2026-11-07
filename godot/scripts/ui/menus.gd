@@ -231,16 +231,37 @@ static func _tab_summons(main: Node, body: Control) -> void:
 
 static func _tab_eyes(main: Node, body: Control) -> void:
 	var pr = Game.profile
+	# 1600 px tasarım genişliğinde iki kart + yan sütun ekrandan taşıyordu: tuşlar artık kartların üstünde yatay şerit
+	var outer = UI.vbox(12)
+	outer.set_anchors_preset(Control.PRESET_FULL_RECT)
+	body.add_child(outer)
+	var strip = HFlowContainer.new()
+	strip.add_theme_constant_override("h_separation", 22)
+	strip.add_theme_constant_override("v_separation", 6)
+	outer.add_child(strip)
+	for k in [["V", "Gözleri aç / kapat"], ["K", "Göz teknikleri jutsu yuvalarına"], ["V (basılı)", "Susanoo (iki göz Mangekyō)"], ["F", "Düşmüş dōjutsu sahibinin gözlerini al"]]:
+		var r = UI.hbox(8)
+		r.add_child(UI.key_badge(k[0], 13))
+		r.add_child(UI.label(k[1], 14, UI.TEXT))
+		strip.add_child(r)
+	if Susanoo.max_tier(pr) > 0:
+		var sr = UI.hbox(10)
+		sr.add_child(UI.label("Susanoo: Kademe %d" % Susanoo.cur_tier(pr), 15, Color(0.75, 0.6, 1.0)))
+		sr.add_child(UI.button("Susanoo'yu Özelleştir", func():
+			_eq_slot = "susanoo"
+			ninja_menu(main, "wardrobe"), 240))
+		strip.add_child(sr)
 	var h = UI.hbox(22)
-	h.set_anchors_preset(Control.PRESET_FULL_RECT)
-	body.add_child(h)
+	h.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	outer.add_child(h)
 	for sl in ["sag_goz", "sol_goz"]:
 		var card = UI.card()
 		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		h.add_child(card)
 		var sc = ScrollContainer.new()
 		sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-		sc.custom_minimum_size = Vector2(420, 560)
+		sc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		sc.custom_minimum_size = Vector2(420, 480)
 		card.add_child(sc)
 		var v = UI.vbox(10)
 		v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -249,23 +270,6 @@ static func _tab_eyes(main: Node, body: Control) -> void:
 		_eq_slot = sl
 		_eye_panel(main, v, pr)
 	_eq_slot = "set"
-	var side = UI.card()
-	side.custom_minimum_size = Vector2(320, 0)
-	h.add_child(side)
-	var sv = UI.vbox(10)
-	side.add_child(sv)
-	sv.add_child(UI.label("TUŞLAR", 18, UI.GOLD, HORIZONTAL_ALIGNMENT_LEFT, true))
-	for k in [["V", "Gözleri aç / kapat"], ["K", "Göz tekniklerini jutsu yuvalarına koy (göz açıkken çalışır)"], ["V (basılı)", "Susanoo (iki göz Mangekyō)"], ["F", "Düşmüş dōjutsu sahibinin gözlerini al"]]:
-		var r = UI.hbox(8)
-		r.add_child(UI.key_badge(k[0], 13))
-		r.add_child(UI.label(k[1], 14, UI.TEXT))
-		sv.add_child(r)
-	if Susanoo.max_tier(pr) > 0:
-		sv.add_child(HSeparator.new())
-		sv.add_child(UI.label("Susanoo: Kademe %d" % Susanoo.cur_tier(pr), 16, Color(0.75, 0.6, 1.0), HORIZONTAL_ALIGNMENT_LEFT, true))
-		sv.add_child(UI.button("Susanoo'yu Özelleştir", func():
-			_eq_slot = "susanoo"
-			ninja_menu(main, "wardrobe"), 280))
 
 
 ## Gözler eşya değil, bedenin parçası: durum, uyanış ilerlemesi, saklanan gözler (nakil hastanede)
@@ -1689,7 +1693,7 @@ static func _ms_editor_fill(box: VBoxContainer, d: Dictionary) -> void:
 	var row = UI.hbox(18)
 	box.add_child(row)
 	var pv = ColorRect.new()
-	pv.custom_minimum_size = Vector2(180, 180)
+	pv.custom_minimum_size = Vector2(160, 160)
 	var sm = ShaderMaterial.new()
 	sm.shader = load("res://shaders/ms_preview.gdshader")
 	pv.material = sm
@@ -1710,7 +1714,7 @@ static func _ms_editor_fill(box: VBoxContainer, d: Dictionary) -> void:
 	sl0.custom_minimum_size = Vector2(92, 0)
 	sr.add_child(sl0)
 	var name_l = UI.label("", 15, UI.TEXT, HORIZONTAL_ALIGNMENT_CENTER, true)
-	name_l.custom_minimum_size = Vector2(190, 0)
+	name_l.custom_minimum_size = Vector2(150, 0)
 	var upd_name = func() -> void:
 		var st = int(d.get("style", 0)) % MS_STYLES.size()
 		name_l.text = "%s  (%d/%d)" % [MS_STYLES[st], st + 1, MS_STYLES.size()]

@@ -276,7 +276,7 @@ func handle_input(e: InputEvent) -> bool:
 		var held = v_held
 		v_held = -1.0
 		if held < 0.45:
-			if active and has_ms() and not ms_on:
+			if active and has_ms() and not ms_on and (blind() < 1.0 or _ems()):   # kör göz Mangekyō'ya geçemez: V doğrudan kapatır
 				open_ms()
 			else:
 				toggle()
