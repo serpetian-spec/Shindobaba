@@ -44,7 +44,8 @@ static func weapon(id: String) -> Texture2D:
 	sun.light_energy = 1.4
 	vp.add_child(sun)
 	var mi = MeshInstance3D.new()
-	mi.mesh = CharacterModel.weapon_mesh(Gear.visual_id(id))   # benzersiz eşya: taban modeli
+	var sk = Gear.skin_id(id)
+	mi.mesh = CharacterModel.weapon_mesh(sk if sk != "" else Gear.visual_id(id))   # benzersiz eşya: taban modeli; özel silah: kendi modeli
 	vp.add_child(mi)
 	var ab: AABB = mi.mesh.get_aabb() if mi.mesh else AABB(Vector3(-0.1, -0.1, -0.1), Vector3(0.2, 0.2, 0.2))
 	# en uzun ekseni çapraz yerleştir

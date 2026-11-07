@@ -98,6 +98,8 @@ static func info(c: Node3D, d: Dictionary, mul := 1.0, extra := {}) -> Dictionar
 		inf["slow"] = 1.0 + t * 0.3   # beden suyu çekilir
 	if el in ["raiton", "ranton"] and t >= 2:
 		inf["stun"] = 0.3 + t * 0.12
+	if String(d.get("clan", "")) == "aburame":
+		inf["kikai"] = true   # kikaichū: isabette kuklanın chakra iplerini yer (ClanConstruct.eat_strings)
 	inf.merge(extra, true)
 	return inf
 
@@ -960,12 +962,18 @@ static func _dome(c: Node3D, d: Dictionary) -> void:
 	Sfx.play(_snd(d), c.global_position)
 
 
+## Menzil hedefin gövde kenarına göre: kuyruklu canavar / dev çağrının merkezi 60 m ötede olsa da gövdesi yanı başında olabilir
+static func edge_dist(c: Node3D, t: Node3D) -> float:
+	var r = float(t.get("radius")) if t.get("radius") != null else 0.0
+	return maxf(0.0, t.global_position.distance_to(c.global_position) - (r if r > 1.0 else 0.0))
+
+
 static func _target_in_range(c: Node3D, t: Node3D, rng: float) -> Node3D:
-	if t and is_instance_valid(t) and not t.is_dead() and t.global_position.distance_to(c.global_position) < rng:
+	if t and is_instance_valid(t) and not t.is_dead() and edge_dist(c, t) < rng:
 		return t
 	if c is Player:   # oyuncu: rastgele en yakın düşman değil, nişangâhın üstündeki düşman
 		var st = J().soft_target(c)
-		return st if st and st.global_position.distance_to(c.global_position) < rng else null
+		return st if st and edge_dist(c, st) < rng else null
 	var dir: Vector3 = J()._aim_flat(c, t)
 	return Combat.nearest_enemy(c, rng, dir, 0.4)
 
@@ -1079,6 +1087,7 @@ static func _genjutsu(c: Node3D, d: Dictionary, t: Node3D) -> void:
 		VFX.shockwave(tg.global_position + Vector3.UP * 1.6, col, 3.5, 0.6, false)
 		var ring = VFX.rasengan(1.6, Color(col.r, col.g, col.b), col.lightened(0.5))
 		tg.add_child(ring)
+		ClanJutsu.fit_body(tg, ring)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 		ring.position = Vector3(0, 1.0, 0)
 		var twg = ring.create_tween()
 		twg.tween_interval(1.2)

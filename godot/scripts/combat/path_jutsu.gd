@@ -3573,7 +3573,12 @@ func p_asakujaku(c: Node3D, t: Node3D) -> void:
 				return
 			anim(c, "jab" if k % 2 == 0 else "cross", 2.8)
 			var from = c.global_position + Vector3.UP * 1.3 + (fans[k] as Vector3) * 0.6
-			var target = aim_at + right * randf_range(-1.6, 1.6) + Vector3.UP * randf_range(-0.8, 1.2)
+			# her yumruk atıldığı an hedefin ŞİMDİKİ yerine + kaçış yönüne nişan alır (başta bir kez alınan nişan kaçanı ıskalıyordu)
+			var aim_now = aim_at
+			if live(tt):
+				var tv: Vector3 = tt.velocity if "velocity" in tt else Vector3.ZERO
+				aim_now = tt.global_position + Vector3.UP * 1.0 + Vector3(tv.x, 0, tv.z) * (from.distance_to(tt.global_position) / 44.0)
+			var target = aim_now + right * randf_range(-0.9, 0.9) + Vector3.UP * randf_range(-0.5, 0.8)
 			var pr = shot(c, from, (target - from).normalized(), 44.0, VFX.fireball(0.55), inf(c, "asakujaku", 0.16, {"element": "katon", "burn": 1.5, "knock": 2.0, "kind": "light"}), null, false, 0.6, func(hp, _h):
 				FX.burst(hp, {"amount": 14, "life": 0.3, "tex": FX.tex_spark, "size": 0.35, "radius": 0.3, "vmin": 4.0, "vmax": 9.0, "spread": 180.0,
 					"colors": [Color(1, 0.95, 0.6, 1), Color(1, 0.5, 0.1, 0.8), Color(1, 0.3, 0.05, 0)]})
@@ -5871,6 +5876,7 @@ func p_chakura_kontororu_baku(c: Node3D, t: Node3D) -> void:
 			return
 		var root = Node3D.new()
 		tt.add_child(root)
+		fit_body(tt, root)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 		for k in 6:
 			var band = MeshInstance3D.new()
 			var tm = TorusMesh.new()
@@ -6018,6 +6024,7 @@ func p_kaeru_kaeru_no_jutsu(c: Node3D, t: Node3D) -> void:
 			b.add("sphere", Vector3(ex * 0.25, 0.08, -0.1), Vector3(0.18, 0.12, 0.3), Color(0.38, 0.6, 0.28))
 		var frog = mesh_of(b)
 		tt.add_child(frog)
+		fit_body(tt, frog)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 		if body:
 			body.visible = false
 		st(tt, "stun", 4.0)
@@ -6389,6 +6396,7 @@ func p_sly_mind_affect_technique(c: Node3D, t: Node3D) -> void:
 	sw.mesh = tm
 	sw.material_override = VFX.mat_spiral(Color(0.9, 1, 0.9), col, 4.0, 2.0, 3.0, 1.2, Vector3.UP)
 	tt.add_child(sw)
+	fit_body(tt, sw)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 	sw.position = Vector3.UP * 0.05
 	sw.scale = Vector3(1, 0.05, 1)
 	var tw = sw.create_tween()
@@ -6559,6 +6567,7 @@ func p_zessenbaku(c: Node3D, t: Node3D) -> void:
 		coil.material_override = _tongue_mat()
 		coil.position = Vector3.UP * 1.0
 		tt.add_child(coil)
+		fit_body(tt, coil)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 		var tw = coil.create_tween()
 		tw.tween_interval(0.8)
 		tw.tween_callback(coil.queue_free)
@@ -9420,6 +9429,7 @@ func p_kusari(c: Node3D, t: Node3D) -> void:
 			return
 		var root = Node3D.new()
 		tt.add_child(root)
+		fit_body(tt, root)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 		for j in 4:
 			var ring = MeshInstance3D.new()
 			var tm = TorusMesh.new()
@@ -9674,6 +9684,7 @@ func p_nunoshibari_no_jutsu(c: Node3D, t: Node3D) -> void:
 			b.add("cyl", Vector3(0, 0.2 + j * 0.35, 0), Vector3(1.25 - absf(j - 2.5) * 0.12, 0.05, 1.25 - absf(j - 2.5) * 0.12), Color(0.15, 0.12, 0.1), Vector3.ZERO, 16)
 		var coc = mesh_of(b)
 		tt.add_child(coc)
+		fit_body(tt, coc)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 		coc.scale = Vector3(1.6, 0.05, 1.6)
 		var tw = coc.create_tween()
 		tw.tween_property(coc, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_BACK)
@@ -11731,6 +11742,7 @@ func p_jigyaku_no_jutsu(c: Node3D, t: Node3D) -> void:
 		ring.mesh = tm
 		ring.material_override = VFX.mat_bolt(col, 1.6)
 		tt.add_child(ring)
+		fit_body(tt, ring)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 		ring.position = Vector3.UP * 1.6
 		ring.rotation.x = PI * 0.5
 		var tw = ring.create_tween()
@@ -11759,6 +11771,7 @@ func p_jitetsu_ryufusho(c: Node3D, t: Node3D) -> void:
 		shell.mesh = sm
 		shell.material_override = iron
 		tt.add_child(shell)
+		fit_body(tt, shell)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 		shell.position = Vector3.UP * 1.0
 		shell.scale = Vector3.ONE * 1.5
 		var tw = shell.create_tween()
@@ -12590,6 +12603,7 @@ func p_mokuton_mokusatsu_shibari_no_jutsu(c: Node3D, t: Node3D) -> void:
 			ring.rotation = Vector3(randf_range(-0.3, 0.3), 0, randf_range(-0.3, 0.3))
 			coil.add_child(ring)
 		tt.add_child(coil)
+		fit_body(tt, coil)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 		get_tree().create_timer(2.8).timeout.connect(func():
 			if is_instance_valid(coil):
 				coil.queue_free())
@@ -13020,6 +13034,7 @@ func p_sangosho(c: Node3D, t: Node3D) -> void:
 		b.add("sphere", Vector3(0, 1.0, 0), Vector3(1.4, 2.0, 1.4), coral)
 		var cr = mesh_of(b)
 		tt.add_child(cr)
+		fit_body(tt, cr)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 		cr.scale = Vector3.ONE * 0.1
 		var tw = cr.create_tween()
 		tw.tween_property(cr, "scale", Vector3.ONE, 0.4).set_trans(Tween.TRANS_BACK)
@@ -13639,6 +13654,7 @@ func p_yoton_sekkaigyo_no_jutsu(c: Node3D, t: Node3D) -> void:
 			shell.mesh = sm
 			shell.material_override = lime
 			tt.add_child(shell)
+			fit_body(tt, shell)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 			shell.position = Vector3.UP
 			var tw = shell.create_tween()
 			tw.tween_interval(3.0)
@@ -13937,6 +13953,7 @@ func p_biju_fuin(c: Node3D, t: Node3D) -> void:
 		ring.mesh = tm
 		ring.material_override = VFX.mat_bolt(green, 1.8)
 		tt.add_child(ring)
+		fit_body(tt, ring)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 		ring.position = Vector3.UP * (0.4 + k * 0.5)
 		ring.rotation = Vector3(randf_range(-0.5, 0.5), 0, randf_range(-0.5, 0.5))
 		ring.scale = Vector3.ONE * 2.0
@@ -14588,6 +14605,7 @@ func p_fuinjutsu_genryu_kyufujin(c: Node3D, t: Node3D) -> void:
 			ring.mesh = tm
 			ring.material_override = VFX.mat_bolt(blue, 1.8)
 			tt.add_child(ring)
+			fit_body(tt, ring)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 			ring.position = Vector3.UP * 1.0
 			var tw = ring.create_tween()
 			tw.tween_property(ring, "rotation:y", TAU * 4.0, 3.5)
@@ -16185,6 +16203,7 @@ func p_kotoamatsukami(c: Node3D, t: Node3D) -> void:
 		tt.set_meta("koto_mark", true)
 		var mark = _sharingan_disc(0.18)
 		tt.add_child(mark)
+		fit_body(tt, mark)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 		mark.position = Vector3.UP * (float(tt.get("height")) + 0.5 if tt.get("height") != null else 2.3)
 		var spin = mark.create_tween().set_loops()
 		spin.tween_property(mark, "rotation:y", TAU, 2.0).as_relative()
@@ -17160,6 +17179,7 @@ func p_mugen_tsukuyomi(c: Node3D, _t: Node3D) -> void:
 			for j in 3:
 				var root = _branch(3.0, 0.15)
 				e.add_child(root)
+				fit_body(e, root)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 				root.position = Vector3(cos(j * 2.1) * 0.35, 0.6 + j * 0.4, sin(j * 2.1) * 0.35)
 				root.rotation = Vector3(randf_range(-1, 1), randf() * TAU, randf_range(-1, 1))
 				get_tree().create_timer(6.0).timeout.connect(root.queue_free)
@@ -17484,6 +17504,7 @@ func p_rikudo_no_in_no_chikara(c: Node3D, t: Node3D) -> void:
 			ring.mesh = tm
 			ring.material_override = VFX.mat_bolt(Color(0.7, 0.7, 1.0), 1.4)
 			tt.add_child(ring)
+			fit_body(tt, ring)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 			ring.position = Vector3.UP * (0.5 + k * 0.5)
 			get_tree().create_timer(3.0).timeout.connect(ring.queue_free)
 		st(tt, "stun", 3.0)
@@ -17998,6 +18019,7 @@ func p_senpo_ryosei_no_jutsu(c: Node3D, t: Node3D) -> void:
 		var s0 = tt.scale
 		var toad = mesh_of(_elder_toad(false))
 		tt.add_child(toad)
+		fit_body(tt, toad)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 		toad.scale = Vector3.ONE * 1.0
 		var m = tt.get("model")
 		if m:
@@ -18292,6 +18314,7 @@ func p_shin_jukai_kotan(c: Node3D, t: Node3D) -> void:
 			coc.mesh = CapsuleMesh.new()
 			coc.material_override = pale
 			e.add_child(coc)
+			fit_body(e, coc)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 			coc.position = Vector3.UP * 1.0
 			coc.scale = Vector3(1.6, 1.2, 1.6)
 			get_tree().create_timer(4.0).timeout.connect(coc.queue_free)
@@ -18330,6 +18353,7 @@ func p_shisho_fuin(c: Node3D, t: Node3D) -> void:
 		seal.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 		seal.position = Vector3(0, 1.0, 0.3)
 		tt.add_child(seal)
+		fit_body(tt, seal)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 		get_tree().create_timer(6.0).timeout.connect(seal.queue_free)
 		for k in 4:
 			var a = k * TAU / 4.0
@@ -18922,7 +18946,7 @@ func p_shinten_kugutsu_juin_no_jutsu(c: Node3D, t: Node3D) -> void:
 				lb.modulate = Color(0.6, 0.05, 0.05)
 				lb.position = Vector3(0, 0, 0.002)
 				tag.add_child(lb)
-				attach(tt, tag, 6.0, Vector3(0, tt.height * 0.62 if tt.get("height") else 1.1, 0.28)))
+				attach(tt, tag, 6.0, Vector3(0, tt.height * 0.62 if tt.get("height") else 1.1, 0.28), 2))
 
 
 ## Zihin Klon Değişimi: mavi çakra seli kullanıcıdan hedefe akar (referanstaki gibi kristalimsi akım)
@@ -19491,6 +19515,7 @@ func _bone_shards(pos: Vector3, n := 10, speed := 8.0) -> void:
 func _script_ring(t: Node3D, r: float, dur: float, col := Color(0.08, 0.06, 0.05)) -> void:
 	var root = Node3D.new()
 	t.add_child(root)
+	fit_body(t, root)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 	root.position = Vector3.UP * 1.0
 	var paper = StandardMaterial3D.new()
 	paper.albedo_color = Color(0.95, 0.92, 0.82)
@@ -22645,9 +22670,12 @@ func p_aburame_mushi_hashira(c: Node3D, t: Node3D) -> void:
 			return
 		var col = MeshInstance3D.new()
 		var cm = CylinderMesh.new()
-		cm.top_radius = 1.9
-		cm.bottom_radius = 1.2
-		cm.height = 7.0
+		# hedefin gerçek boyutu (kuyruklu canavar/dev çağrı): hortum bedeni sarar, içinde kaybolmaz
+		var tr = float(tt.get("radius")) if tt.get("radius") != null else 0.38
+		var th = float(tt.get("height")) if tt.get("height") != null else 1.8
+		cm.top_radius = maxf(1.9, tr * 1.5)
+		cm.bottom_radius = maxf(1.2, tr * 1.2)
+		cm.height = maxf(7.0, th * 1.15)
 		cm.radial_segments = 24
 		cm.rings = 12
 		col.mesh = cm
@@ -22658,7 +22686,7 @@ func p_aburame_mushi_hashira(c: Node3D, t: Node3D) -> void:
 		m.set_shader_parameter("cover", 0.8)   # puslu, taneli gri hortum (referans)
 		col.material_override = m
 		col.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		attach(tt, col, 3.0, Vector3.UP * 3.3)
+		attach(tt, col, 3.0, Vector3.UP * cm.height * 0.47, 0)   # ölçü yukarıda hedefe göre verildi
 		var tw = col.create_tween()
 		tw.tween_method(func(v): m.set_shader_parameter("fade", v), 0.0, 1.0, 0.3)
 		tw.tween_interval(2.2)
@@ -22668,7 +22696,7 @@ func p_aburame_mushi_hashira(c: Node3D, t: Node3D) -> void:
 			if live(tt):
 				tt.take_hit(inf(c, "aburame_mushi_hashira", 0.28, {"knock": 0.0, "kind": "light", "chakra_drain": 9.0}))
 				chakra_gain(c, 2.0)
-				_bug_cloud(tt.global_position + Vector3.UP * randf_range(0.5, 5.5), 1.4, 16, Vector3.UP, 2.0), Callable()))
+				_bug_cloud(tt.global_position + Vector3.UP * randf_range(0.5, 5.5) * body_scale(tt), 1.4 * body_scale(tt), 16, Vector3.UP, 2.0), Callable()))
 	Sfx.play("wind", c.global_position, 2.0, 0.6)
 
 
@@ -25047,6 +25075,7 @@ func _yh_daze(e: Node3D, dur: float) -> void:
 	r.mesh = tm
 	r.material_override = VFX.mat_spiral(Color(1.0, 0.7, 0.8), YUHI, 4.0, 2.0, 5.0, 1.2, Vector3.UP)
 	e.add_child(r)
+	fit_body(e, r)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 	r.position = Vector3.UP * 2.3
 	var tw = r.create_tween().set_loops(int(dur / 0.6) + 1)
 	tw.tween_property(r, "rotation:y", TAU, 0.6).as_relative()
@@ -25727,7 +25756,7 @@ func p_gufu_boha(c: Node3D, t: Node3D) -> void:
 			if live(e):
 				var v = (e.global_position - at)
 				v.y = 0
-				hit(c, e.global_position + Vector3.UP, e.radius + 0.3, inf(c, "gufu_boha", 0.12, {"knock": 9.0, "kind": "light", "element": "fuuton", "dir": v.normalized()}))
+				hit(c, e.global_position + Vector3.UP, e.radius + 0.3, inf(c, "gufu_boha", 0.3, {"knock": 9.0, "kind": "light", "element": "fuuton", "dir": v.normalized()}))
 		for pr in c.get_tree().get_nodes_in_group("projectiles"):
 			if is_instance_valid(pr) and pr.get("shooter") != c and pr.global_position.distance_to(at + Vector3.UP) < 4.0:
 				pr.vel = (pr.global_position - at).normalized() * pr.vel.length(), Callable())
@@ -26471,6 +26500,7 @@ func p_kuroi_chidori(c: Node3D, t: Node3D) -> void:
 				if live(e):
 					var bf = VFX.black_flames(0.9)
 					e.add_child(bf)
+					fit_body(e, bf)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 					bf.position = Vector3.UP * 1.0
 					fade_free(bf, 5.0, 0.6)
 			impact_fx("raiton", Color(0.45, 0.25, 0.7), at, 1.4)
@@ -26918,6 +26948,7 @@ func p_obore_awa(c: Node3D, t: Node3D) -> void:
 		var b = _bubble(2.6, Color(0.4, 0.7, 1.0))
 		b.material_override.albedo_color = Color(0.4, 0.7, 1.0, 0.35)
 		tt.add_child(b)
+		fit_body(tt, b)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 		b.position = Vector3.UP * 1.0
 		if tt.has_method("apply_status"):
 			tt.apply_status("bind", 2.5)
@@ -30221,6 +30252,7 @@ func p_yoton_gomudama(c: Node3D, t: Node3D) -> void:
 		ball.mesh = VFX._sphere(1.6, 16, 10)
 		ball.material_override = Props.toon_color(RUBBER)
 		tt.add_child(ball)
+		fit_body(tt, ball)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
 		ball.position = Vector3.UP * 1.0
 		ball.scale = Vector3.ONE * 0.1
 		var tw = ball.create_tween()
@@ -31258,25 +31290,26 @@ func p_soma_no_ko(c: Node3D, t: Node3D) -> void:
 func p_kuchiyose_ibuse_dokukami(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.2)
 	var d = fwd(c, t)
-	var at = gp(c.global_position + d * 4.0)
-	summon_circle(at, 3.0, Color(0.35, 0.3, 0.45), 1.0)
-	var b = MB.new()
-	b.add("sphere", Vector3(0, 1.2, 0), Vector3(3.0, 1.8, 6.0), Color(0.25, 0.22, 0.3))
-	b.add("sphere", Vector3(0, 1.6, 3.2), Vector3(2.0, 1.2, 1.8), Color(0.28, 0.25, 0.33))
-	b.add("cone", Vector3(0, 0.9, -4.5), Vector3(0.8, 4.0, 0.8), Color(0.25, 0.22, 0.3), Vector3(-90, 0, 0), 6)
-	for sx in [-1.0, 1.0]:
-		b.add("sphere", Vector3(sx * 0.7, 2.0, 3.9), Vector3(0.35, 0.35, 0.35), Color(0.9, 0.85, 0.3))
-	var ib = mesh_of(b)
+	var at = gp(c.global_position + d * 15.0)   # 26 m'lik semender çağıranın önünde belirir (kuyruğu çağırana uzanır)
+	summon_circle(at, 6.0, Color(0.35, 0.3, 0.45), 1.0)
+	# oyunun gerçek Ibuse modeli (Semender sözleşmesi Kuchiyose'siyle aynı: SummonModels "salamander", 6 m boy, 26 m uzunluk)
+	var parts = SummonModels.build("salamander", 6.0, 26.0)
+	var ib: Node3D = parts["root"]
 	scene_add(ib, at)
-	ib.look_at(at + d, Vector3.UP)
-	FX.smoke_puff(at + Vector3.UP * 2.0, 3.0, 26)
+	ib.look_at(ib.global_position + d, Vector3.UP)   # model -Z'ye (başa) bakar
+	ib.scale = Vector3.ONE * 0.05
+	ib.create_tween().tween_property(ib, "scale", Vector3.ONE, 0.35).set_trans(Tween.TRANS_BACK)
+	FX.smoke_puff(at + Vector3.UP * 3.0, 4.0, 26)
 	after(0.6, func():
-		var mouth = at + Vector3.UP * 1.8 + d * 4.0
+		if not is_instance_valid(ib):
+			return
+		var mouth = ib.global_transform * (parts.get("mouth", Vector3(0, 5.7, -9.7)) as Vector3)
 		for k in 8:
 			after(k * 0.12, func():
 				VFX.puffs(mouth + d * (2.0 + k * 1.6), {"amount": 16, "life": 3.5, "size": 2.4, "radius": 1.0 + k * 0.5, "vmin": 1, "vmax": 3, "dir": d, "spread": 50.0, "add": false,
 					"colors": [Color(0.5, 0.3, 0.55, 0.85), Color(0.35, 0.2, 0.4, 0.5), Color(0.3, 0.15, 0.35, 0)]}))
-		var zc = at + d * 12.0
+		var zc = mouth + d * 9.0
+		zc.y = at.y
 		every(8.0, 0.5, func(_i, _k):
 			for e in enemies_near(c, zc, 9.0):
 				st(e, "slow", 0.6)

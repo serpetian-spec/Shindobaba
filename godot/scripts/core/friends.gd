@@ -1200,6 +1200,25 @@ func _find_tick() -> void:
 ## ---------------------------------------------------------------- dinamik işler, yerler, olaylar
 ## İş: nöbet (köy kapısı), antrenman (köyün antrenman yeri), evde (yaşadığı yer), görev (köy dışında: yolda karşılaşılabilir)
 const JOBS := [["nöbet", 25], ["antrenman", 25], ["evde", 30], ["görev", 20]]
+## Aile/arkadaş satırlarında kısa yer bilgisi (nerede olduğunu menüden bilmek için)
+static func where_text(id: String) -> String:
+	var f: Dictionary = all().get(id, {})
+	if f.is_empty():
+		return "?"
+	var st = String(f.get("status", ""))
+	if st == "öldü":
+		return "öldü"
+	if st == "kaçak":
+		return "kaçak"
+	if st == "hapiste":
+		return "hapiste"
+	if f.get("party", false):
+		return "takımında, yanında"
+	if not available(f):
+		return "hastanede" if f.has("injury") else "köy dışında (görev)"
+	return String(JOB_NAMES.get(job_of(f), "Evde")).to_lower() + "  (tıkla: haritada göster)"
+
+
 const JOB_NAMES := {"nöbet": "Kapıda nöbette", "antrenman": "Antrenmanda", "evde": "Evde", "görev": "Görevde (köy dışında)"}
 var present := {}   # id -> köylü düğümü (işinin başında duran dost)
 var fights: Array = []   # [{fid, foes, ally, at, t, title}]

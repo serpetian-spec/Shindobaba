@@ -1376,6 +1376,16 @@ func _home(player_home: bool) -> void:
 		plant(W * 0.5 - 0.5, D - 0.6)
 		act(W * 0.5 - 1.2, 3.4, 1.6, "bed", "[F] Uyu (sabaha kadar, kaydet)")
 		act(-W * 0.5 + 1.2, D - 2.4, 1.4, "home_note", "[F] Masadaki notlara bak")
+		# akademiye başlamamış çocukların evde yaşar (mezun olunca dost kaydına geçip köyde gezerler)
+		var ki = 0
+		for kid in Game.profile.get("children", []):
+			if kid.get("grad", false):
+				continue
+			var fem = String(kid.get("gender", "m")) == "f"
+			person("kid", -1.4 + ki * 1.1, 3.2 + (ki % 2) * 0.8, 0.0, String(kid["name"]),
+				["%s! Bugün ne yaptın? Bana da shuriken atmayı öğret!" % ("Anne" if String(Game.profile.get("gender", "m")) == "f" else "Baba"),
+				"Büyüyünce senin gibi ninja olacağım!", "Akademiye ne zaman başlayacağım?" if not fem else "Saçımı senin gibi yapar mısın?"], {"wander_r": 1.2})
+			ki += 1
 	else:
 		var fam = rng.randi_range(1, 3)
 		person("sitter", 0.95, D * 0.5 + 0.5, 90.0, "Ev Sahibi", ["Hoş geldin! Çay ister misin?", "Ninjalar köyü koruduğu için huzurluyuz.", "Oğlum da akademiye gidiyor."], {"floor_sit": true})

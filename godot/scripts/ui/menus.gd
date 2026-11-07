@@ -815,12 +815,34 @@ static func _tab_relations(main: Node, body: Control) -> void:
 		var av = UI.vbox(6)
 		ac.add_child(av)
 		av.add_child(UI.icon_label("heart", "AİLEN", 15, Color(1, 0.65, 0.78)))
-		if Friends.spouse_id() != "" and fs.has(Friends.spouse_id()):
-			av.add_child(UI.label("Eşin: %s" % fs[Friends.spouse_id()]["name"], 14, UI.TEXT))
+		# her aile üyesi tıklanır: dost kaydı olanlar (eş, mezun çocuk) arkadaş kartında açılır + haritada işaretlenir;
+		# küçük çocuklar evinde yaşar, evin işaretlenir
+		var fids = fs.keys()
+		var sid = Friends.spouse_id()
+		if sid != "" and fs.has(sid):
+			av.add_child(_family_row("Eşin: %s  —  %s" % [fs[sid]["name"], Friends.where_text(sid)], func():
+				_friend_i = fids.find(sid)
+				Friends.show_on_map(sid)
+				ninja_menu(main, "relations")))
 		for k in kids:
 			var cl: Array = k.get("clans", [])
 			var mix = ("  [%s melezi]" % " × ".join(cl.map(func(c): return ClanWorld.clan_name(c)))) if cl.size() >= 2 and cl[0] != cl[1] else ""
-			av.add_child(UI.label("%s: %s%s" % ["Kızın" if k["gender"] == "f" else "Oğlun", k["name"], mix], 14, UI.TEXT))
+			var rel = "Kızın" if k["gender"] == "f" else "Oğlun"
+			var kname = String(k["name"])
+			var kfid = ""
+			if k.get("grad", false):
+				for id in fids:
+					if String(fs[id]["name"]) == kname:
+						kfid = String(id)
+			if kfid != "":
+				av.add_child(_family_row("%s: %s%s  —  %s" % [rel, kname, mix, Friends.where_text(kfid)], func():
+					_friend_i = fids.find(kfid)
+					Friends.show_on_map(kfid)
+					ninja_menu(main, "relations")))
+			else:
+				av.add_child(_family_row("%s: %s%s  —  evinde (akademi yaşına gelmedi)" % [rel, kname, mix], func():
+					_mark_home()
+					main.resume()))
 		if float(pr.get("baby_due", 0.0)) > 0.0:
 			av.add_child(UI.label("Bir bebek yolda ♥", 13, Color(1, 0.75, 0.8)))
 	var vc = UI.card(UI.GOLD)
@@ -845,6 +867,26 @@ static func _tab_relations(main: Node, body: Control) -> void:
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	note.custom_minimum_size = Vector2(520, 0)
 	vv.add_child(note)
+
+
+## AİLEN kartı satırı: sola yaslı, tıklanır
+static func _family_row(text: String, cb: Callable) -> Button:
+	var b = UI.chip(text, false, cb)
+	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	b.add_theme_color_override("font_color", Color(1, 0.82, 0.88))
+	return b
+
+
+## Oyuncunun evinin kapısını haritada işaretle (küçük çocuklar orada yaşar)
+static func _mark_home() -> void:
+	for it in Interact.items:
+		if String(it.get("room", "")) == "home_player":
+			var p: Vector3 = it["pos"]
+			Game.profile["waypoint"] = [p.x, p.y, p.z, "Evin"]
+			Game.profile["track"] = "waypoint"
+			Hud.msg("Evin haritada işaretlendi: çocukların orada.", Color(1, 0.8, 0.88))
+			return
+	Hud.msg("Evin kendi köyünde; çocukların orada seni bekliyor.", Color(1, 0.8, 0.88))
 
 
 static var _friend_i := 0

@@ -2464,28 +2464,39 @@ func j_chakra_chains(c: Node3D, t: Node3D) -> void:
 
 
 # ---------------------------------------------------------------- Hozuki
+## Hōzuki su bedeni görünüşü: tenin üstünde yarı saydam akan su (kapsül değil) + süzülen damlalar. dur sn sonra çözülür.
+## Kendiliğinden sıvılaşmada kısa (darbe yeri suya döner), Suika no Jutsu'da uzun. Oyuncu ve düşman aynı.
+func water_body(c: Node3D, dur: float, drops := true) -> void:
+	var mm = c.get("model")
+	if mm == null or not is_instance_valid(mm):
+		return
+	var wm = VFX.mat_water(Color(0.45, 0.68, 0.92), Color(0.72, 0.88, 1.0), Color(0.97, 1.0, 1.0), Vector3.DOWN, 0.78, 0.9, 0.03)
+	var meshes = mm.find_children("*", "MeshInstance3D", true, false)
+	for mi in meshes:
+		(mi as MeshInstance3D).material_overlay = wm
+	var n = maxi(1, int(dur / 0.5))
+	_ticks(n, minf(0.5, dur), func(_i):
+		if drops and is_instance_valid(c):
+			WaterArt.drops(c.global_position + Vector3(randf_range(-0.25, 0.25), randf_range(0.8, 1.7), randf_range(-0.25, 0.25)), 2, 0.4, 1.0, Vector3.DOWN, 0.3), func():
+		for mi in meshes:
+			if is_instance_valid(mi) and (mi as MeshInstance3D).material_overlay == wm:
+				(mi as MeshInstance3D).material_overlay = null)
+
+
 func j_suika(c: Node3D, _t: Node3D) -> void:
+	# referans (Suika karesi): bedenin KENDİSİ suya döner. Oyuncu: Buff; düşman: aynı kural meta "suika_until" (Enemy.take_hit)
 	if c is Player:
 		Buffs.add("suika", 15.0, {"_desc": "Hafif darbeler içinden geçer (chakra yer), ağır darbe yarı hasar; Raiton 2x hasar ve bedeni dağıtır"})
-		var a = FX.aura(c, Color(0.35, 0.65, 1.0), 1.0, Vector3(0, 0.9, 0), 0.0)
-		# referans (Suika karesi): bedenin KENDİSİ suya döner — kapsül değil; tenin üstünde yarı saydam su, damlalar süzülür
-		var wm = VFX.mat_water(Color(0.45, 0.68, 0.92), Color(0.72, 0.88, 1.0), Color(0.97, 1.0, 1.0), Vector3.DOWN, 0.78, 0.9, 0.03)   # belirgin (referans: yüz-saç suya döner)
-		var mm = c.get("model")
-		var meshes = mm.find_children("*", "MeshInstance3D", true, false) if mm else []
-		for mi in meshes:
-			(mi as MeshInstance3D).material_overlay = wm
-		_ticks(30, 0.5, func(_i):
-			if is_instance_valid(c):
-				WaterArt.drops(c.global_position + Vector3(randf_range(-0.25, 0.25), randf_range(0.8, 1.7), randf_range(-0.25, 0.25)), 2, 0.4, 1.0, Vector3.DOWN, 0.3), func():
-			for mi in meshes:
-				if is_instance_valid(mi) and (mi as MeshInstance3D).material_overlay == wm:
-					(mi as MeshInstance3D).material_overlay = null)
-		get_tree().create_timer(15.0).timeout.connect(func():
-			if is_instance_valid(a):
-				a.emitting = false
-				get_tree().create_timer(1.0).timeout.connect(a.queue_free))
+		Hud.msg("Suika no Jutsu: 15 sn hafif darbeler içinden geçer (chakra harcar). Raiton'a karşı çok zayıf!", Color(0.5, 0.75, 1))
+	else:
+		c.set_meta("suika_until", Time.get_ticks_msec() / 1000.0 + 15.0)
+	var a = FX.aura(c, Color(0.35, 0.65, 1.0), 1.0, Vector3(0, 0.9, 0), 0.0)
+	water_body(c, 15.0)
+	get_tree().create_timer(15.0).timeout.connect(func():
+		if is_instance_valid(a):
+			a.emitting = false
+			get_tree().create_timer(1.0).timeout.connect(a.queue_free))
 	Sfx.play("water", c.global_position, 1.2)
-	Hud.msg("Suika no Jutsu: 15 sn hafif darbeler içinden geçer (chakra harcar). Raiton'a karşı çok zayıf!", Color(0.5, 0.75, 1))
 
 
 func j_water_gun(c: Node3D, t: Node3D) -> void:

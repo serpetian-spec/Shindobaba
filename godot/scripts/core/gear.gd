@@ -528,8 +528,8 @@ const ITEMS := {
 	"patlayici_kunai": {"removed": true, "name": "Etiketli Kunai", "slot": "el", "price": 260, "rank": 1, "desc": "Sapına patlayıcı etiket sarılı kunai. Darbeler sert.", "stats": {}, "weapon": {"hit": 5, "dmg": 1.3, "reach": 0.15, "style": "blade"}, "c1": Color(0.6, 0.62, 0.66)},
 	"zincirli_kunai": {"name": "Zincirli Kunai", "slot": "el", "price": 300, "rank": 1, "desc": "Halkasına zincir bağlı kunai: menzil uzar.", "stats": {}, "weapon": {"hit": 5, "dmg": 1.2, "reach": 0.6, "style": "blade"}, "c1": Color(0.6, 0.62, 0.66)},
 	"senbon": {"name": "Senbon İğneleri", "slot": "el", "price": 120, "rank": 0, "desc": "Parmak aralarında yelpaze gibi tutulan ince iğneler (iki elde). UZUN MENZİL: iğne yağmuru, kesin noktalara atış.", "stats": {"speed": 0.02}, "weapon": {"hit": 4.5, "dmg": 1.1, "reach": 0.1, "style": "dual", "ranged": true}, "c1": Color(0.75, 0.77, 0.8)},
-	"hakko_chakura_to": {"name": "Hakkō Chakura Tō (Beyaz Işık Chakra Kılıcı)", "slot": "el", "price": 1400, "rank": 1, "clan": "hatake", "base": "tanto",
-		"desc": "Hatake ailesinin düz bıçaklı tantōsu, küçük yuvarlak siperlik. Savrulunca beyaz chakra izi bırakır. Hakkō Chakura Tō tekniği bununla yapılır.",
+	"hakko_chakura_to": {"name": "Hakkō Chakura Tō", "skin": true, "slot": "el", "price": 1400, "rank": 1, "clan": "hatake", "base": "tanto",
+		"desc": "Beyaz Işık Chakra Kılıcı — Hatake ailesinin (Sakumo, Kakashi) düz bıçaklı tantōsu, küçük yuvarlak siperlik. Savrulunca beyaz chakra izi bırakır. Hakkō Chakura Tō tekniği bununla yapılır.",
 		"stats": {"melee": 0.06, "chakra": 10}, "weapon": {"hit": 5, "dmg": 1.5, "reach": 0.4, "style": "blade"}, "c1": Color(0.92, 0.94, 0.98)},
 	"tanto": {"name": "Tantō", "slot": "el", "price": 320, "rank": 1, "desc": "Kısa kılıç. Hızlı ve keskin.", "stats": {}, "weapon": {"hit": 5, "dmg": 1.35, "reach": 0.35, "style": "blade"}, "c1": Color(0.75, 0.77, 0.8)},
 	"ikiz_hancer": {"removed": true, "name": "Hançer", "slot": "el", "price": 240, "rank": 0, "desc": "Çift taşınmak için dengelenmiş kısa hançer.", "stats": {"speed": 0.02}, "weapon": {"hit": 5, "dmg": 1.25, "reach": 0.25, "style": "dual"}, "c1": Color(0.7, 0.72, 0.76)},
@@ -607,7 +607,7 @@ const SHOP_CLOTHES := ["uchiha_yakali", "uchiha_uzun", "uchiha_beyaz", "uchiha_p
 	"zincir_yelek", "kayis_kosum", "deri_pul_zirh", "gogus_plakasi", "ame_yelek", "jonin_koyu",
 	"panco", "yirtik_pelerin", "jinbaori", "kesis_cubbesi", "kesa", "bantli_palto", "mino", "gece_pelerini",
 	"omuz_zirhi", "dizlik", "agir_zirh", "uzun_sargi_eldiven", "tespih", "sirt_sepeti", "bel_parsomenleri", "bel_cantasi", "sashimono", "ip_kangali"]
-const SHOP_WEAPONS := ["hakko_chakura_to", "sai", "kunai", "senbon", "tonfa", "bo", "tanto", "kama", "zincirli_kunai", "pence", "musta",
+const SHOP_WEAPONS := ["sai", "kunai", "senbon", "tonfa", "bo", "tanto", "kama", "zincirli_kunai", "pence", "musta",
 	"wakizashi", "katana", "yelpaze", "kusarigama", "savas_cekici", "chakra_bicak", "nodachi", "kyodai_shuriken", "fuma_makimono"]
 ## Sadece görev ödülü olarak düşen (dükkânda satılmayan) parçalar dahil ödül havuzu
 const REWARD_POOL := ["kafa_bandaji", "gozluk", "kasa", "kapuson", "atki", "kol_sargisi", "eldiven", "kolluk", "bacak_koruma", "tabi", "hakama",
@@ -643,6 +643,20 @@ static func item(id: String) -> Dictionary:
 	return {}
 
 
+## Kendi modeli olan özel silah ("skin": true, ör. Hakkō Chakura Tō): kombo/kın/tutuş tabanınki (tantō), yalnız görünen model kendisi.
+## Benzersiz sürümü ("Kan Kızılı Hakkō Chakura Tō" = u_…) de aynı modeli taşır. Yoksa "".
+static func skin_id(id: String) -> String:
+	var cur = id
+	for _k in 3:
+		if ITEMS.has(cur) and bool(ITEMS[cur].get("skin", false)):
+			return cur
+		var it: Dictionary = item(cur)
+		if not it.has("base") or String(it["base"]) == cur:
+			return ""
+		cur = String(it["base"])
+	return ""
+
+
 ## Görünüm/kın için taban eşya: benzersiz eşyalar ("Ay Işığı Katana" = u_...) modeli bulunamayıp kısa bıçağa düşüyordu.
 ## Eski kayıtlarda taban kaydı yoksa addan bulunur (ön ek + taban adı) ve saklanır.
 static func visual_id(id: String) -> String:
@@ -650,7 +664,7 @@ static func visual_id(id: String) -> String:
 		return String(ITEMS.get(id, {}).get("base", id))   # özel silah: taban modelin görünüşü (Hakkō Chakura Tō = tantō)
 	var it: Dictionary = item(id)
 	if it.has("base"):
-		return String(it["base"])
+		return visual_id(String(it["base"])) if ITEMS.has(String(it["base"])) else String(it["base"])   # taban da özel silahsa onun tabanı (Hakkō -> tantō); eskiden model bulunamayıp düz kutu çıkıyordu
 	var best = ""
 	for k in ITEMS:
 		var nm = String(ITEMS[k].get("name", ""))
@@ -678,6 +692,9 @@ static func _custom() -> Dictionary:
 			for ck in ["c1", "c2"]:
 				if it.get(ck) is String:
 					it[ck] = Color.html(it[ck])
+			if String(it.get("name", "")).contains(" (Beyaz Işık Chakra Kılıcı)"):   # eski uzun ad UI'da taşıyordu (romaji kuralı)
+				it["name"] = String(it["name"]).replace(" (Beyaz Işık Chakra Kılıcı)", "")
+				cm[k]["name"] = it["name"]
 			_ccache[k] = it
 	return _ccache
 
@@ -881,6 +898,11 @@ static func ensure(p: Dictionary) -> void:
 	# silahsız başlanır (kunai silah dükkânında); Shiranui ailesi senbon iğneleriyle (Genma)
 	if String(p.get("clan", "")) == "shiranui":
 		grant(p, "senbon", "sag")
+	# Hatake: Hakkō Chakura Tō aile yadigârı (kanon: Sakumo'dan Kakashi'ye) — başlangıçta verilir, dükkânda satılmaz
+	if String(p.get("clan", "")) == "hatake":
+		grant(p, "hakko_chakura_to", "sag")
+	p["flags"] = p.get("flags", {})
+	p["flags"]["hatake_kit"] = true
 	if L.get("band") != null:
 		grant(p, "alin_koruyucu", "kafa", L["band"])
 		grant(p, "alin_boyun", "", L["band"])
@@ -1087,8 +1109,10 @@ static func apply_look(p: Dictionary) -> void:
 				L["eye_r" if s[0] == "sag_goz" else "eye_l"] = {"kind": int(it["eye"]["kind"]), "lvl": int(g.get("lvl", 3)), "id": g["id"], "origin": g.get("origin", "dogustan")}
 			"sag":
 				L["weapon_r"] = visual_id(g["id"])
+				L["weapon_skin_r"] = skin_id(g["id"])
 			"sol":
 				L["weapon_l"] = visual_id(g["id"])
+				L["weapon_skin_l"] = skin_id(g["id"])
 	# kaçak ninja: alın bandının sembolü çizik
 	if p.get("flags", {}).get("rogue", false) and L.get("band") != null and String(L.get("band_style", "none")) != "none":
 		L["band_style"] = "slashed"

@@ -152,6 +152,14 @@ static func lava_mat(kind := "molten", world := false) -> ShaderMaterial:
 		m.set_shader_parameter("line_col", Color(0.32, 0.18, 0.04))
 		m.set_shader_parameter("spot_thresh", 0.6)
 		m.set_shader_parameter("flow", 0.6)
+	elif kind == "honey":   # Kamizuru balı (ref kamizuru_2/3): parlak turuncu, iri yapışkan öbekler, açık turuncu benekler
+		m.set_shader_parameter("base_col", Color(1.0, 0.52, 0.1))
+		m.set_shader_parameter("spot_col", Color(1.0, 0.68, 0.28))
+		m.set_shader_parameter("hot_col", Color(1.0, 0.86, 0.55))
+		m.set_shader_parameter("rim_col", Color(1.0, 0.76, 0.4))
+		m.set_shader_parameter("line_col", Color(0.6, 0.26, 0.04))
+		m.set_shader_parameter("spot_thresh", 0.62)
+		m.set_shader_parameter("flow", 0.4)
 	elif kind == "rock":
 		m.set_shader_parameter("base_col", Color(1.0, 0.58, 0.14))
 		m.set_shader_parameter("spot_col", Color(0.42, 0.12, 0.04))

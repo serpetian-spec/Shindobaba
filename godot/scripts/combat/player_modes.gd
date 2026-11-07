@@ -666,6 +666,7 @@ func on_player_hit(info: Dictionary) -> bool:
 		if hel == "" and float(pr.get("su", ClanMech.SU_MAX)) >= ClanMech.SUIKA_HIT_COST and not info.get("sealed", false):
 			pr["su"] = float(pr.get("su", ClanMech.SU_MAX)) - ClanMech.SUIKA_HIT_COST
 			VFX.splash(p.global_position + Vector3.UP * 1.1, 1.2)
+			Jutsu.water_body(p, 0.45, false)   # darbe yeri suya döner (anime)
 			Combat.popup_text(p.global_position + Vector3.UP * 2.2, "Suika", Color(0.5, 0.8, 1))
 			Sfx.play("water", p.global_position, 1.5, 0.5)
 			return true

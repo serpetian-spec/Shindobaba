@@ -495,7 +495,18 @@ func learn(jid: String, announce := true) -> bool:
 ## Eski kayıt: rütbe alındığı halde rütbe kıyafeti hiç verilmemiş (set yuvasına geçişten önce terfi edenler) — bir kez verilir
 ## Klanın başlangıç silahı (eski kayıtlara bir kez): Shiranui = Senbon İğneleri (silah yuvası; yeni oyunda Gear.ensure verir)
 func clan_starter_kit(pr: Dictionary) -> void:
-	if pr.is_empty() or pr.get("flags", {}).get("clan_kit", false):
+	if pr.is_empty():
+		return
+	if not pr.has("flags"):
+		pr["flags"] = {}
+	# Hatake yadigârı (eski kayıtlara bir kez): Hakkō Chakura Tō
+	if not pr["flags"].get("hatake_kit", false):
+		pr["flags"]["hatake_kit"] = true
+		if String(pr.get("clan", "")) == "hatake" and not "hakko_chakura_to" in Gear.owned_ids(pr):
+			Gear.grant(pr, "hakko_chakura_to", "sag" if Gear.equipped(pr, "sag").is_empty() else "")
+			Gear.apply_look(pr)
+			Hud.msg("Aile yadigârı: Hakkō Chakura Tō (babandan kalan tantō)  [Tab > Ekipman]", Color(0.85, 0.9, 1.0), 6.0)
+	if pr.get("flags", {}).get("clan_kit", false):
 		return
 	if not pr.has("flags"):
 		pr["flags"] = {}

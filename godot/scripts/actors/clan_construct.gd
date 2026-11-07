@@ -383,6 +383,10 @@ func take_hit(info: Dictionary) -> void:
 	if kind in ["bee", "beetle"] and String(info.get("element", "")) in ["katon", "yoton", "enton"]:
 		d *= 3.0
 		Combat.popup_text(global_position + Vector3.UP * (height + 0.6), "Yanıyor!", Color(1, 0.55, 0.2))
+	# kanon (Shino–Kankurō): kikaichū kuklanın chakra iplerini yer — kukla 4 sn çöker
+	if kind == "puppet" and info.get("kikai", false):
+		limp_t = 4.0
+		Combat.popup_text(global_position + Vector3.UP * (height + 0.6), "Böcekler ipleri yedi!", Color(0.7, 0.85, 1.0))
 	# kanon: kesici darbe kuklanın chakra iplerini koparabilir — kukla 3 sn çöker
 	if kind == "puppet" and info.get("blade", false) and randf() < 0.5:
 		limp_t = 3.0
@@ -391,6 +395,19 @@ func take_hit(info: Dictionary) -> void:
 	Combat.damage_number(global_position + Vector3.UP * (height + 0.3), d, Color(1, 0.6, 0.5))
 	if hp <= 0.0:
 		vanish()
+
+
+## Kikaichū kuklacıya isabet etti: ipler boyunca yürüyen böcekler sahibinin bütün kuklalarının iplerini yer (oyuncu/düşman aynı)
+static func eat_strings(owner: Node3D) -> void:
+	if owner == null or not is_instance_valid(owner):
+		return
+	var n = 0
+	for cc in owner.get_tree().get_nodes_in_group("clan_construct"):
+		if cc is ClanConstruct and cc.kind == "puppet" and cc.owner_f == owner and not cc.dead:
+			cc.limp_t = 4.0
+			n += 1
+	if n > 0:
+		Combat.popup_text(owner.global_position + Vector3.UP * 2.3, "Böcekler chakra iplerini yedi!", Color(0.7, 0.85, 1.0))
 
 
 func vanish() -> void:

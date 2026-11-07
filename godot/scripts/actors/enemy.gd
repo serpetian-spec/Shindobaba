@@ -670,6 +670,13 @@ func _chase(dt: float) -> void:
 		step_move(dir * sp, dt, false)
 		model.play("run" if sp > 6 else "walk", 0.15, 1.1)
 		model.rotation.y = facing
+	elif stop_d >= 4.0 and d < stop_d * 0.55 and state == "chase":
+		# uzakçı tarz (Aburame, Kamizuru, Sabaku, Hōzuki...): rakip dibine girince geri çekilip menzilini açar (animede yakına girmezler)
+		var back = -v.normalized()
+		back.y = 0.0
+		step_move(back * float(arch["speed"]) * 0.8, dt, false)
+		model.play("run", 0.15, 1.1)
+		model.rotation.y = facing
 	else:
 		step_move(Vector3.ZERO, dt, false)
 		model.play("idle", 0.2)
@@ -776,6 +783,9 @@ func _keyed_id() -> String:
 	var wid = look.get("weapon_r") if look is Dictionary else null
 	if (wid == null or String(wid) == "") and model != null and arch is Dictionary:
 		return FightingStyles.npc_key(String(arch.get("clan", "")))   # silahsız klanlı düşman: klanın dövüş tarzı (oyuncuyla aynı kombo)
+	var skin = String(look.get("weapon_skin_r", "")) if look is Dictionary else ""
+	if skin != "" and KEYED.has(skin) and model != null and not model.weapons.is_empty() and model.drawn:
+		return skin   # kendi kombosu olan özel silah (Hakkō Chakura Tō): oyuncuyla aynı kombo
 	if wid == null or not KEYED.has(Gear.base_id(String(wid))) or model == null or model.weapons.is_empty() or not model.drawn:
 		return ""
 	return Gear.base_id(String(wid))
@@ -974,6 +984,8 @@ func threat_color() -> Color:
 
 
 func take_hit(info: Dictionary) -> void:
+	if info.get("kikai", false):
+		ClanConstruct.eat_strings(self)   # kikaichū ipler boyunca kuklalara yürür
 	if info.get("blade", false) or float(info.get("bleed", 0.0)) > 0.0:
 		set_meta("last_wound", Time.get_ticks_msec())   # Ketsuryūgan kan kontrolü: kanına chakra karışabilecek yara
 	Combat.larch_counter(self, info)
@@ -986,14 +998,30 @@ func take_hit(info: Dictionary) -> void:
 		return
 	if String(arch.get("clan", "")) == "kaguya" and String(info.get("element", "")) == "":
 		info["dmg"] = float(info.get("dmg", 0.0)) * 0.8   # Shikotsumyaku: çelikten sert kemik (oyuncuyla aynı)
+	# Suika no Jutsu açık (oyuncunun Buff'ıyla aynı kural): raiton 2x + beden dağılır + sersemler; hafif darbe geçer; ağır yarı
+	var suika_on = has_meta("suika_until") and float(get_meta("suika_until")) > Time.get_ticks_msec() / 1000.0
+	if suika_on and not dead:
+		var sel = String(info.get("element", ""))
+		if sel in ["raiton", "ranton", "jinton"]:
+			info["dmg"] = float(info.get("dmg", 0.0)) * 2.0
+			remove_meta("suika_until")
+			Combat.popup_text(global_position + Vector3.UP * (height + 0.5), "Su beden elektriklendi!", Color(1, 1, 0.4))
+			if has_method("apply_status"):
+				apply_status("stun", 1.2)
+		elif info.get("kind", "light") == "heavy":
+			info["dmg"] = float(info.get("dmg", 0.0)) * 0.5
+		else:
+			VFX.splash(global_position + Vector3.UP * 1.0, 1.0)
+			return
 	# Hōzuki (oyuncuyla aynı kural): fiziksel darbe kendiliğinden sıvılaşan bedenden geçer (su harcar); raiton 1.5x
-	if String(arch.get("clan", "")) == "hozuki" and not dead:
+	if String(arch.get("clan", "")) == "hozuki" and not dead and not suika_on:   # oyuncu gibi: Suika açıkken klan kuralı ayrıca uygulanmaz
 		var hel = String(info.get("element", ""))
 		if hel in ["raiton", "ranton", "jinton"]:
 			info["dmg"] = float(info.get("dmg", 0.0)) * 1.5
 		elif hel == "" and float(get_meta("su", ClanMech.SU_MAX)) >= ClanMech.SUIKA_HIT_COST:
 			set_meta("su", float(get_meta("su", ClanMech.SU_MAX)) - ClanMech.SUIKA_HIT_COST)
 			VFX.splash(global_position + Vector3.UP * 1.0, 1.2)
+			Jutsu.water_body(self, 0.45, false)   # darbe yeri suya döner (anime)
 			Combat.popup_text(global_position + Vector3.UP * (height + 0.5), "Suika", Color(0.6, 0.85, 1.0))
 			return
 	if dead:

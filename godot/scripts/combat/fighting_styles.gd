@@ -30,6 +30,8 @@ const STYLES := {
 		"desc": "Gövdeden çıkan chakra zincirleri: kırbaç, mızrak gibi saplanan zincir, rakibi sarıp chakrasını mühürleyen bağ, çevreyi süpüren zincirler; bitiriş zincirle kaldırıp yere çarpma."},
 	"yotsuki": {"name": "Raiton Nintai — Yotsuki", "key": "style_yotsuki", "src": "clan:yotsuki", "range": "yakın (atılış)", "stop": 1.6,
 		"desc": "Raiton Chakra zırhıyla ezici hız ve güç: şimşekli yumruk, omuz dalışı, Lariat, Raigyaku Suihei el kılıcı, seri şimşek yumruklar; bitiriş Liger Bomb (kavra, kaldır, yere çak)."},
+	"kamizuru": {"name": "Hachi Tsukai — Kamizuru", "key": "style_kamizuru", "src": "clan:kamizuru", "range": "orta-uzak", "stop": 6.5,
+		"desc": "Arı ustası: yenden salınan eşek arıları zehirli iğne fırlatır (Hachi Senbon), bal arıları hedefte yapışkan bala patlar (Hachi Mitsu), başparmak-avuç mührüyle yerden arı sütunu, patlayıcı kâğıt taşıyan arılar (Hachi Bakudan); bitiriş sürü yelpazesi, zehir uyutur. Yakında zayıf."},
 }
 
 

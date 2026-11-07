@@ -1188,6 +1188,8 @@ func is_dead() -> bool:
 
 
 func take_hit(info: Dictionary) -> void:
+	if info.get("kikai", false):
+		ClanConstruct.eat_strings(self)   # kikaichū ipler boyunca kuklalara yürür (düşmanla aynı)
 	if Buffs.has("henge"):
 		Jutsu.end_henge(self)
 	# ekipman savunması: her puan ~%1.2 azaltır (en fazla %50)

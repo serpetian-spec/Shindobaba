@@ -36,6 +36,7 @@ const TABLE := {
 	"bo": [preload("res://scripts/combat/bo_anim.gd"), 1.05],
 	"kiba": [preload("res://scripts/combat/kiba_anim.gd"), 1.0],
 	"tanto": [preload("res://scripts/combat/tanto_anim.gd"), 1.05],
+	"hakko_chakura_to": [preload("res://scripts/combat/hakko_anim.gd"), 1.15],   # Hatake beyaz ışık tantōsu: kendi kombosu
 	"wakizashi": [preload("res://scripts/combat/wakizashi_anim.gd"), 1.0],
 	"nodachi": [preload("res://scripts/combat/nodachi_anim.gd"), 0.95],
 	"musta": [preload("res://scripts/combat/musta_anim.gd"), 1.05],
@@ -52,15 +53,16 @@ const TABLE := {
 	"style_sabaku": [preload("res://scripts/combat/style_sabaku_anim.gd"), 0.95],
 	"style_uzumaki": [preload("res://scripts/combat/style_uzumaki_anim.gd"), 1.0],
 	"style_yotsuki": [preload("res://scripts/combat/style_yotsuki_anim.gd"), 1.15],
+	"style_kamizuru": [preload("res://scripts/combat/style_kamizuru_anim.gd"), 1.0],
 }
 ## uzun menzil silahları: yapay zekâ uzakta durup atar (Enemy._chase)
 const RANGED := ["fuma_shuriken", "kyodai_shuriken", "fuma_makimono", "senbon"]
 ## silah ağırlığı (0 hafif .. 1 ağır): kol/silah yaylanması (PoseOverlay.key_mass) — ağır silah gecikip taşar
 const MASS := {"uc_tirpan": 1.0, "samehada": 0.9, "kabutowari": 0.9, "shibuki": 0.85, "gunbai": 0.8, "raijin": 0.35, "kunai": 0.1,
-	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3, "tonfa": 0.3, "bashosen": 0.35, "kubikiribocho": 0.95, "yagura_sopa": 0.4, "yelpaze": 0.6, "kongo_asa": 0.45, "kama": 0.75, "pence": 0.15, "senbon": 0.05, "hiramekarei": 0.7, "bo": 0.35, "kiba": 0.25, "tanto": 0.1, "wakizashi": 0.25, "nodachi": 0.7, "musta": 0.15,
+	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3, "tonfa": 0.3, "bashosen": 0.35, "kubikiribocho": 0.95, "yagura_sopa": 0.4, "yelpaze": 0.6, "kongo_asa": 0.45, "kama": 0.75, "pence": 0.15, "senbon": 0.05, "hiramekarei": 0.7, "bo": 0.35, "kiba": 0.25, "tanto": 0.1, "hakko_chakura_to": 0.08, "wakizashi": 0.25, "nodachi": 0.7, "musta": 0.15,
 	"style_juken": 0.08, "style_akimichi": 0.65, "style_inuzuka": 0.12, "style_kaguya": 0.2,
 	"style_uchiha": 0.1, "style_hozuki": 0.3, "style_aburame": 0.05, "style_jugo": 0.7,
-	"style_yuki": 0.05, "style_sabaku": 0.05, "style_uzumaki": 0.1, "style_yotsuki": 0.3}
+	"style_yuki": 0.05, "style_sabaku": 0.05, "style_uzumaki": 0.1, "style_yotsuki": 0.3, "style_kamizuru": 0.05}
 
 
 static func mass(id: String) -> float:
@@ -130,6 +132,8 @@ static func mods(id: String, i: int) -> Dictionary:
 				m.merge({"lunge_mul": 0.9, "reach_add": 0.9, "knock": 14.0, "heavy": true})
 			return m
 		"style_aburame":   # uzak menzil: hiç atılmaz, el değmez; tüm hasar böcek sürüsünden (on_strike)
+			return {"lunge_mul": 0.0, "special": "", "knock": 1.0}
+		"style_kamizuru":   # orta-uzak: atılmaz; tüm hasar arılardan (on_strike)
 			return {"lunge_mul": 0.0, "special": "", "knock": 1.0}
 		"style_jugo":
 			var m = {"lunge_mul": 0.7, "special": "", "reach_add": 0.4}
@@ -231,6 +235,14 @@ static func mods(id: String, i: int) -> Dictionary:
 				3: m.merge({"launch": 10.0, "knock": 1.0})
 				4: m.merge({"knock": 8.0})
 				5: m.merge({"heavy": true, "knock": 15.0, "lunge_mul": 0.9, "reach_add": 1.5})
+			return m
+		"hakko_chakura_to":
+			var m = {"lunge_mul": 1.0, "knock": 1.5}
+			match i:
+				2: m.merge({"lunge_mul": 0.0, "knock": 4.0, "bleed": 2.0})   # Shiroi Kiba: atılış on_start'ta (rakibin içinden geçer)
+				3: m.merge({"knock": 1.0, "launch": -6.0, "stun": 0.4})      # dikey kesik yere indirir
+				4: m.merge({"knock": 7.0, "lunge_mul": 0.4})
+				5: m.merge({"lunge_mul": 0.6, "knock": 10.0, "heavy": true, "pierce_guard": true})
 			return m
 		"tanto":
 			var m = {"lunge_mul": 0.8, "knock": 1.0}
@@ -566,15 +578,16 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 				_spin_throw(who, dmg * 0.6, "circle", {"mesh": "kama", "radius": 1.0, "spin": 2.6, "turns": 3.0, "orbit": 1.6, "dur": 1.0, "knock": 8.0})
 		"kiba":
 			_kiba_strike(who, i, dmg, f, side)
+		"hakko_chakura_to":
+			_hakko_strike(who, i, dmg, f, side)
 		"tanto":
 			if i == 2:   # Ashi Kiri: baldır kesilir, yavaşlar
 				for h in Combat.hit_sphere(who, gp.call(1.0) + Vector3.UP * 0.3, 1.4, {"dmg": dmg * 0.2, "knock": 0.0, "kind": "light", "melee": false}):
 					if is_instance_valid(h) and h.has_method("apply_status"):
 						h.apply_status("slow", 2.0)
-			elif i == 5:   # Hakkō Tsuki: ağızdan ileri beyaz ışık çizgisi
+			elif i == 5:   # Shunshin Tsuki: göz açıp kapayana kadar uzun saplama (beyaz chakra izi yalnız Hakkō Chakura Tō'da)
 				var o = who.global_position + Vector3.UP * 1.15
-				WindFX.streak(func(t: float) -> Vector3: return o - f * 1.5 + f * t * 5.5, 0.3, 0.07, Color(1, 1, 0.97, 0.95), 0.0, 12)
-				FX.hit_spark(o + f * 2.0, Color(1, 1, 1), 1.2)
+				WindFX.streak(func(t: float) -> Vector3: return o - f * 1.5 + f * t * 5.5, 0.25, 0.05, Color(0.7, 0.74, 0.8, 0.7), 0.0, 10)
 				VFX.slowmo(0.3, 0.2)
 		"wakizashi":
 			if i == 5:   # Jūmonji: havada kalan artı izi gecikmeyle patlar
@@ -1034,8 +1047,27 @@ static func on_start(id: String, i: int, who: Node3D) -> void:
 		"kubikiribocho":
 			if i == 5:
 				_kirigakure(who)
+		"hakko_chakura_to":
+			if i == 2:   # Shiroi Kiba: şunşin — rakibin içinden geçip arkasında belirir, geride beyaz çizgi
+				_hakko_dash(who)
+			elif i == 3:   # Furimuki: arkasında belirdiği rakibe dönüp keser (kamera yönüne değil)
+				var tf = _near_foe(who, 5.0)
+				if tf:
+					if who is Player:
+						who.combat.face_to(tf)
+					elif who.get("facing") != null:
+						var dd = tf.global_position - who.global_position
+						who.facing = atan2(-dd.x, -dd.z)
+			elif i == 5:   # Hakkō Zan: ağız beyaz chakra ile dolar (kurulum boyunca)
+				var n2 = _weapon_node(who)
+				if n2 != null:
+					for k in 7:
+						who.get_tree().create_timer(k * 0.09).timeout.connect(func():
+							if is_instance_valid(n2):
+								for q in 3:
+									FX.hit_spark(n2.to_global(Vector3(0, 0, 0.08 + q * 0.1)), Color(1, 1, 1), 0.45))
 		"tanto":
-			if i == 5:   # Hakkō: ağız beyaz chakra ile parlar (kurulum boyunca)
+			if i == 5 and false:   # (beyaz chakra parlaması Hakkō Chakura Tō'ya taşındı)
 				var n = _weapon_node(who)
 				if n != null:
 					for k in 6:
@@ -2320,6 +2352,11 @@ static func _style_start(id: String, i: int, who: Node3D) -> void:
 				_grow_in(who, ov, {"RightHand": 1.8}, 0.34 / speed(id), tok)
 		"style_aburame":
 			ov.fist = {"Right": -0.6, "Left": -0.6}   # gevşek açık eller (yenlerden sürü)
+		"style_kamizuru":
+			ov.fist = {"Right": -0.8, "Left": -0.8}   # açık avuç (arıları salar); mühürde sol avuç açık, sağ başparmak bastırır
+			if i == 3:
+				ov.fist = {"Right": 0.7, "Left": -1.0}
+			_bee_escort(who, [0.5, 0.5, 0.6, 0.7, 0.75, 1.0][i] / speed(id))   # tarz açıkken çevresinde uçuşan birkaç arı
 		"style_jugo":   # ref jugo_*.png: ten boz-griye döner, boyundan kara lanet lekeleri yayılır; ön kol jet delikli taş balyoza dönüşür
 			ov.fist = {"Right": 1.0, "Left": 1.0}
 			_senninka_look(who)
@@ -2693,6 +2730,31 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 									_swarm_cloud(p2 + Vector3.UP * 1.0, 1.4, 0.6))
 						Combat.hit_sphere(who, p2 + Vector3.UP, 2.4, _kinfo(dmg, 1.3, {"element": "", "knock": 1.0, "kind": "heavy"}))
 						_kikai_drain(who, tg, 0.14)
+		"style_kamizuru":
+			var tg = _near_foe(who, 16.0)
+			var hand = who.global_position + Vector3.UP * 1.3 + f * 0.6
+			match i:
+				0, 1:   # Hachi Senbon: yenden üç arı çıkar, hedefe dalarken iğne fırlatır
+					for k in 3:
+						_bee_dart(who, hand + side * ((0.3 if i == 1 else -0.3) + (k - 1) * 0.15) + Vector3.UP * (k % 2) * 0.2, tg, dmg * 0.4, k * 0.05, false)
+				2:   # Hachi Mitsu: bal dolu arılar hedefte patlar, bal yapıştırır
+					for k in 2:
+						_bee_dart(who, hand + side * (k - 0.5) * 0.5, tg, dmg * 0.7, k * 0.08, true)
+				3:   # mühür: hedefin altından arı sütunu yükselir, havaya kaldırır
+					if tg:
+						var p = tg.global_position
+						for k in 4:
+							who.get_tree().create_timer(0.08 + k * 0.08).timeout.connect(func():
+								if is_instance_valid(who):
+									_bee_rise(p + Vector3(randf_range(-0.6, 0.6), 0.0, randf_range(-0.6, 0.6)), 2.6))
+						Combat.hit_sphere(who, p + Vector3.UP, 1.6, _kinfo(dmg, 1.0, {"element": "", "knock": 2.0, "launch": 6.0, "kind": "heavy", "slow": 1.0}))
+				4:   # Hachi Bakudan: patlayıcı kâğıt taşıyan arılar kavisle dalıp patlar
+					for k in 3:
+						_bee_bomb(who, hand + Vector3.UP * 0.4 + side * (k - 1) * 0.35, tg, dmg * 0.7, k * 0.1)
+				5:   # Senbon Fubuki: sürü yelpaze gibi açılıp hedefte birleşir; zehir uyutur
+					for k in 10:
+						var a = lerpf(-1.1, 1.1, k / 9.0)
+						_bee_dart(who, who.global_position + Vector3.UP * (1.2 + (k % 3) * 0.3) + side * sin(a) * 1.6 + f * 0.3, tg, dmg * 0.22, 0.04 * k, false, k == 9)
 		"style_jugo":
 			if i == 3:   # iki balyoz kol yere: şok
 				var g = who.global_position + f * 1.7
@@ -3115,3 +3177,220 @@ static func _rai_armor(who: Node3D) -> void:
 	root.add_child(arcs)
 	arcs.position = Vector3(0, 1, 0)
 	who.set_meta("rai_armor", root)
+
+
+# ------------------------------------------------------------------ Kamizuru arıları (ref refs/styles/kamizuru_*.png)
+## Arı modeli: dev arı çağrısının (ClanConstruct "bee") aynısı, küçük (ClanJutsu._kz_bee)
+static func _bee_node(sc: float) -> Node3D:
+	var cj = ClanJutsu.get_inst()
+	if cj:
+		return cj._kz_bee(sc)
+	return Node3D.new()
+
+
+static var _sting_mat: StandardMaterial3D
+## Arı iğnesi: ref 0'daki ince açık mor-beyaz çizgi
+static func _sting_mesh() -> MeshInstance3D:
+	if _sting_mat == null:
+		_sting_mat = StandardMaterial3D.new()
+		_sting_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_sting_mat.albedo_color = Color(0.86, 0.8, 1.0)
+	var mi = MeshInstance3D.new()
+	var bm = BoxMesh.new()
+	bm.size = Vector3(0.02, 0.02, 0.55)
+	mi.mesh = bm
+	mi.material_override = _sting_mat
+	return mi
+
+
+## Arı dalışı: arı yenden çıkıp hedefe uçar, yarı yolda iğnesini fırlatır (ref 0). honey: bal arısı — isabette bala patlar,
+## hedefi kısa yapıştırır (ref 2-3). sleep: zehir uyutur (kanon: Kamizuru sokması kurbanı saniyeler içinde uyutur)
+static func _bee_dart(who: Node3D, from: Vector3, tg: Node3D, dmg: float, delay: float, honey: bool, sleep := false) -> void:
+	who.get_tree().create_timer(maxf(0.001, delay)).timeout.connect(func():
+		if not is_instance_valid(who):
+			return
+		var pj = PathJutsu.get_pinst()
+		if pj == null:
+			return
+		var f: Vector3 = who.face_dir() if who.has_method("face_dir") else Vector3.FORWARD
+		var to = (tg.global_position + Vector3.UP * 1.1) if tg and is_instance_valid(tg) else from + f * 12.0
+		var dir = (to - from).normalized()
+		var bee = _bee_node(0.4 if honey else 0.32)
+		var extra = {"element": "", "knock": 1.0, "kind": "light", "slow": 1.2}
+		pj.shot(who, from, dir, 18.0, bee, _kinfo(dmg * (1.0 if honey else 0.5), 1.0, extra), tg, false, 1.3, func(p, h):
+			if honey:
+				_honey_burst(p, 0.8)
+				if h and is_instance_valid(h) and h.has_method("apply_status"):
+					h.apply_status("bind", 0.9)
+			else:
+				VFX.puffs(p, {"amount": 6, "life": 0.4, "size": 0.08, "radius": 0.2, "vmin": 1.0, "vmax": 3.0, "spread": 180.0, "add": false,
+					"colors": [Color(1.0, 0.6, 0.1, 1.0), Color(0.1, 0.06, 0.02, 0)]}))
+		if honey:
+			return
+		# yarı yolda iğne: arıdan ayrılan hızlı ince iğne (asıl zehir)
+		who.get_tree().create_timer(0.18).timeout.connect(func():
+			if not is_instance_valid(who) or not is_instance_valid(bee):
+				return
+			var sp = bee.global_position
+			var to2 = (tg.global_position + Vector3.UP * 1.1) if tg and is_instance_valid(tg) else sp + dir * 10.0
+			pj.shot(who, sp, (to2 - sp).normalized(), 46.0, _sting_mesh(), _kinfo(dmg * 0.5, 1.0, {"element": "", "knock": 0.3, "kind": "light", "slow": 1.5}), tg, false, 0.6, func(_p2, h2):
+				if sleep and h2 and is_instance_valid(h2) and h2.has_method("apply_status"):
+					h2.apply_status("stun", 1.6)
+					Combat.popup_text(h2.global_position + Vector3.UP * 2.3, "Zehir: uyudu!", Color(0.85, 0.7, 1.0)))))
+
+
+## Bal patlaması: iri turuncu yapışkan bal öbekleri (lava_mat "honey" — yapışkan sıvı sistemi), yere yapışır
+static func _honey_burst(p: Vector3, s: float) -> void:
+	VFX.goo_drops(p, "honey", int(6 * s) + 3, 1.1 * s, 4.5)
+
+
+## Arı sütunu: yerden dönerek yükselen arılar (mühürle hedefin altından)
+static func _bee_rise(p: Vector3, h: float) -> void:
+	var sc = Engine.get_main_loop().current_scene
+	var g = Vector3(p.x, Game.ground_height(p.x, p.z) + 0.2, p.z)
+	for k in 5:
+		var b = _bee_node(0.3)
+		sc.add_child(b)
+		var a0 = randf() * TAU
+		var r = randf_range(0.3, 0.8)
+		var tw = b.create_tween()
+		tw.tween_method(func(t: float):
+			if is_instance_valid(b):
+				var a = a0 + t * TAU * 1.5
+				b.global_position = g + Vector3(cos(a) * r, t * h, sin(a) * r)
+				b.rotation.y = -a, 0.0, 1.0, 0.55 + k * 0.04)
+		tw.tween_callback(b.queue_free)
+
+
+## Hachi Bakudan (ref 1): arı altında sallanan patlayıcı kâğıtla kavis çizip hedefe dalar, varınca patlar
+static func _bee_bomb(who: Node3D, from: Vector3, tg: Node3D, dmg: float, delay: float) -> void:
+	who.get_tree().create_timer(maxf(0.001, delay)).timeout.connect(func():
+		if not is_instance_valid(who):
+			return
+		var f: Vector3 = who.face_dir() if who.has_method("face_dir") else Vector3.FORWARD
+		var to = tg.global_position + Vector3.UP * 0.9 if tg and is_instance_valid(tg) else from + f * 10.0
+		var b = _bee_node(0.4)
+		if _tag_fly_mat == null:
+			_tag_fly_mat = StandardMaterial3D.new()
+			_tag_fly_mat.albedo_texture = load("res://assets/weapons/shibuki_tag.png")
+			_tag_fly_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+			_tag_fly_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+			_tag_fly_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		var q = MeshInstance3D.new()
+		var qm = QuadMesh.new()
+		qm.size = Vector2(0.12, 0.3)
+		q.mesh = qm
+		q.material_override = _tag_fly_mat
+		b.add_child(q)
+		q.position = Vector3(0, -0.22, 0)
+		who.get_tree().current_scene.add_child(b)
+		b.global_position = from
+		var side = f.cross(Vector3.UP).normalized() * randf_range(-1.5, 1.5)
+		var dur = clampf(from.distance_to(to) / 14.0, 0.45, 1.1)
+		var tw = b.create_tween()
+		tw.tween_method(func(t: float):
+			if not is_instance_valid(b):
+				return
+			var live_to = tg.global_position + Vector3.UP * 0.9 if tg and is_instance_valid(tg) else to
+			var p = from.lerp(live_to, t) + Vector3.UP * sin(t * PI) * 2.2 + side * sin(t * PI)
+			var fl = live_to - p
+			fl.y = 0.0
+			if fl.length() > 0.05:
+				b.rotation.y = atan2(-fl.x, -fl.z)
+			b.global_position = p
+			q.rotation.z = sin(t * 30.0) * 0.4, 0.0, 1.0, dur)   # kâğıt arının altında sallanır
+		tw.tween_callback(func():
+			var at = b.global_position if is_instance_valid(b) else to
+			if is_instance_valid(b):
+				b.queue_free()
+			_boom(who, at, 0.55, dmg, 1.5, 0.0, 3.0)))
+
+
+## Tarz açıkken çevresinde uçuşan birkaç arı (Kamizuru'nun yanında hep sürü olur); adım süresince
+static func _bee_escort(who: Node3D, dur: float) -> void:
+	if not is_instance_valid(who):
+		return
+	for k in 3:
+		var b = _bee_node(0.22)
+		who.add_child(b)
+		var a0 = k * TAU / 3.0
+		var tw = b.create_tween()
+		tw.tween_method(func(t: float):
+			if is_instance_valid(b):
+				var a = a0 + t * TAU * 2.0
+				b.position = Vector3(cos(a) * 0.8, 1.5 + sin(t * 9.0 + k) * 0.15, sin(a) * 0.8)
+				b.rotation.y = -a, 0.0, 1.0, dur)
+		tw.tween_callback(b.queue_free)
+
+
+# ------------------------------------------------------------------ Hakkō Chakura Tō (Hatake beyaz ışık tantōsu)
+const HAKKO_WHITE := Color(1.0, 1.0, 0.97, 0.95)
+
+## Her kesik beyaz chakra yayı bırakır (kanon: "savrulunca beyaz chakra çizgisi"); bitiriş ileri uzanan ışık hilali
+static func _hakko_strike(who: Node3D, i: int, dmg: float, f: Vector3, side: Vector3) -> void:
+	var pj = PathJutsu.get_pinst()
+	var at = who.global_position + Vector3.UP * 1.1 + f * 0.9
+	match i:
+		0:
+			if pj:
+				pj._arc_cut(at, f, -70.0, 70.0, HAKKO_WHITE, 1.3)
+		1:
+			if pj:
+				pj._arc_cut(at + Vector3.UP * 0.2, (f + Vector3.UP * 0.6).normalized(), 60.0, -60.0, HAKKO_WHITE, 1.3)
+		2:
+			pass   # çizgi atılışta (_hakko_dash)
+		3:
+			if pj:
+				pj._arc_cut(at, (f - Vector3.UP * 0.2).normalized(), 90.0, -20.0, HAKKO_WHITE, 1.4)
+			FX.hit_spark(at + Vector3.DOWN * 0.4, Color(1, 1, 1), 0.9)
+		4:   # tam tur: çevresinde beyaz halka, yakındaki herkese
+			if pj:
+				for k in 3:
+					pj._arc_cut(who.global_position + Vector3.UP * 1.0, f.rotated(Vector3.UP, k * TAU / 3.0), -70.0, 70.0, HAKKO_WHITE, 1.6)
+			Combat.hit_sphere(who, who.global_position + Vector3.UP * 1.0, 2.2, _kinfo(dmg, 0.6, {"element": "", "knock": 6.0, "kind": "light", "melee": true, "blade": true}))
+		5:   # Hakkō Zan: ağızdan ileri uzanan beyaz ışık hilali (orta menzil ~6 m)
+			var o = who.global_position + Vector3.UP * 1.1
+			for k in 4:
+				who.get_tree().create_timer(k * 0.04).timeout.connect(func():
+					if is_instance_valid(who) and pj:
+						pj._arc_cut(o + f * (1.2 + k * 1.4), f, -55.0, 55.0, HAKKO_WHITE, 1.4 + k * 0.25))
+			WindFX.streak(func(t: float) -> Vector3: return o + f * t * 6.5, 0.3, 0.08, HAKKO_WHITE, 0.0, 12)
+			for d in [2.5, 4.2, 5.8]:
+				Combat.hit_sphere(who, o + f * d, 1.3, _kinfo(dmg, 0.55, {"element": "", "knock": 9.0, "kind": "heavy", "melee": true, "blade": true, "bleed": 2.0}))
+
+
+## Shiroi Kiba atılışı: en yakın rakibin içinden geçip 1.6 m arkasında belirir; geçtiği yolda beyaz çizgi, yol üstündekiler kesilir
+static func _hakko_dash(who: Node3D) -> void:
+	var tg = _near_foe(who, 7.0)
+	var f: Vector3 = who.face_dir() if who.has_method("face_dir") else Vector3.FORWARD
+	var from = who.global_position
+	var to: Vector3
+	if tg:
+		var d = tg.global_position - from
+		d.y = 0
+		var dn = d.normalized() if d.length() > 0.05 else f
+		to = tg.global_position + dn * 1.6
+		f = dn
+	else:
+		to = from + f * 4.5
+	to.y = Game.ground_height(to.x, to.z)
+	var pj = PathJutsu.get_pinst()
+	if pj:
+		pj._trail_ghost(who, 0.4, 0.3)
+	var o = from + Vector3.UP * 1.1
+	var e = to + Vector3.UP * 1.1
+	WindFX.streak(func(t: float) -> Vector3: return o.lerp(e, t), 0.35, 0.09, HAKKO_WHITE, 0.0, 12)
+	if who is CharacterBody3D:
+		who.global_position = to
+		who.velocity = Vector3.ZERO
+		if who is Player:
+			if tg:
+				who.combat.face_to(tg)
+		elif who.get("facing") != null and tg:
+			var back = tg.global_position - to
+			who.facing = atan2(-back.x, -back.z)
+	var dmg = 6.0
+	if who is Player:
+		dmg = float(who.combat._combo(2).get("dmg", 6.0)) if who.combat.has_method("_combo") else 6.0
+	for k in 3:
+		Combat.hit_sphere(who, o.lerp(e, 0.25 + k * 0.25), 1.0, _kinfo(dmg, 0.5, {"element": "", "knock": 3.0, "kind": "light", "melee": true, "blade": true, "bleed": 2.0}))

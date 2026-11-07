@@ -257,12 +257,40 @@ func seal_points(t: Node3D, dur: float, col := Color(0.55, 0.8, 1.0)) -> void:
 
 
 ## Hedefin üstüne iliştirilmiş, süre sonunda kaybolan görsel
-func attach(t: Node3D, n: Node3D, dur: float, offset := Vector3.ZERO) -> void:
+## Hedefin insan boyuna (1.8 m) göre büyüklük oranı: kuyruklu canavar / dev çağrı / büyümüş (Baika) hedefte saran efektler
+## onun içinde kaybolmasın (kullanıcı: "hortum kuyruklunun içinde görünüyor, attım mı belli değil"). İnsan boyunda 1.
+static func body_scale(t: Node3D) -> float:
+	if t == null or not is_instance_valid(t):
+		return 1.0
+	var h = float(t.get("height")) if t.get("height") != null else 1.8
+	var r = float(t.get("radius")) if t.get("radius") != null else 0.38
+	return maxf(1.0, maxf(h / 1.8, r / 0.5))
+
+
+## Hedefe doğrudan eklenen saran efekt (sargı, koza, halka, kabuk, top...): kare sonunda (konumu da atandıktan sonra) hedef boyuna
+## göre büyütülür — kuyruklu canavarın/dev çağrının içinde kaybolmasın. İnsan boyunda bir şey değişmez.
+static func fit_body(t: Node3D, n: Node3D) -> void:
+	var s = body_scale(t)
+	if s <= 1.01 or n == null:
+		return
+	var f = func():
+		if is_instance_valid(n):
+			n.position *= s
+			n.scale *= s
+	f.call_deferred()
+
+
+## Hedefe yapışan efekt. fit: 1 = efekt ve ofset hedef boyuna göre büyür (sabit ofsetli saran efektler),
+## 2 = yalnız efekt büyür (ofseti zaten t.height'tan hesaplananlar), 0 = olduğu gibi
+func attach(t: Node3D, n: Node3D, dur: float, offset := Vector3.ZERO, fit := 1) -> void:
 	if not is_instance_valid(t):
 		n.queue_free()
 		return
+	var s = body_scale(t) if fit > 0 else 1.0
 	t.add_child(n)
-	n.position = offset
+	n.position = offset * (s if fit == 1 else 1.0)
+	if s > 1.01:
+		n.scale *= s
 	after(dur, func():
 		if is_instance_valid(n):
 			n.queue_free())
@@ -922,7 +950,7 @@ func c_shinranshin_no_jutsu(c: Node3D, t: Node3D) -> void:
 	tt.target = null
 	_mind_orb(c, tt, func(): if is_instance_valid(tt): _mind_halo(tt, 6.0))
 	var halo = Node3D.new()
-	attach(tt, halo, 6.0, Vector3.UP * (tt.height + 0.4))
+	attach(tt, halo, 6.0, Vector3.UP * (tt.height + 0.4), 2)
 	Combat.popup_text(tt.global_position + Vector3.UP * 2.6, "Zihni karıştı!", Color(0.85, 0.6, 1))
 	Sfx.play("genjutsu", tt.global_position, 1.3)
 	every(6.0, 0.5, func(_i, _k):
@@ -947,7 +975,7 @@ func c_shindenshin_no_jutsu(c: Node3D, _t: Node3D) -> void:
 		var b = MB.new()
 		b.add("cone", Vector3.ZERO, Vector3(0.4, 0.6, 0.4), Color.WHITE, Vector3(180, 0, 0), 4)
 		var arrow = mesh_of(b, glow(Color(0.85, 0.55, 1.0)))
-		attach(e, arrow, 15.0, Vector3.UP * (e.height + 0.9))
+		attach(e, arrow, 15.0, Vector3.UP * (e.height + 0.9), 2)
 	Hud.msg("Zihin ağı: düşmanların yerini görüyorsun", Color(0.85, 0.7, 1.0))
 	Sfx.play("genjutsu", c.global_position, 1.5)
 
@@ -1027,7 +1055,7 @@ func c_kanchi_denden(c: Node3D, _t: Node3D) -> void:
 		var b = MB.new()
 		b.add("cone", Vector3.ZERO, Vector3(0.5, 0.8, 0.5), Color.WHITE, Vector3(180, 0, 0), 4)
 		var arrow = mesh_of(b, glow(Color(1.0, 0.4, 0.3)))
-		attach(e, arrow, 10.0, Vector3.UP * (e.height + 0.9))
+		attach(e, arrow, 10.0, Vector3.UP * (e.height + 0.9), 2)
 	Sfx.play("genjutsu", c.global_position, 1.8)
 
 
@@ -1343,7 +1371,7 @@ func swarm_body(e: Node3D, dur: float, cover := 1.0, grow := 0.06) -> void:
 		cm.height = e.height * 1.05
 		cmi.mesh = cm
 		cmi.material_override = m
-		attach(e, cmi, dur, Vector3.UP * e.height * 0.5)
+		attach(e, cmi, dur, Vector3.UP * e.height * 0.5, 2)
 	var tw = e.create_tween()
 	tw.tween_method(func(v): m.set_shader_parameter("fade", v), 0.0, 1.0, 0.35)
 	tw.tween_interval(maxf(0.1, dur - 0.8))
@@ -2013,7 +2041,7 @@ func _seal_glyph(t: Node3D, col: Color, dur: float, size := 0.9) -> void:
 		bar.material_override = m
 		bar.rotation.z = k * PI / 4.0
 		root.add_child(bar)
-	attach(t, root, dur, Vector3(0, t.height * 0.55, -t.radius - 0.05))
+	attach(t, root, dur, Vector3(0, t.height * 0.55, -t.radius - 0.05), 2)
 
 
 ## Parmak Oyma Mühürü: hedefe dokunup karnına mühür kazırsın: 10 sn jutsu yapamaz ve yavaşlar
@@ -2546,7 +2574,7 @@ func c_chinoike_ketsuryugan(c: Node3D, t: Node3D) -> void:
 			red.mesh = VFX._sphere(0.5, 12, 6)
 			red.material_override = glow(Color(0.8, 0.0, 0.05), 0.35)
 			red.scale = Vector3.ONE * (e.height + 0.4)
-			attach(e, red, 2.2, Vector3.UP * e.height * 0.5)
+			attach(e, red, 2.2, Vector3.UP * e.height * 0.5, 2)
 	Sfx.play("genjutsu", c.global_position, 0.7)
 
 
@@ -2846,7 +2874,7 @@ func c_kurama_kokuangyo(c: Node3D, _t: Node3D) -> void:
 		dark.mesh = VFX._sphere(0.5, 14, 8)
 		dark.material_override = flat_mat(Color(0.0, 0.0, 0.02, 0.85))
 		dark.scale = Vector3.ONE * 1.4
-		attach(e, dark, 6.0, Vector3.UP * (e.height - 0.3))
+		attach(e, dark, 6.0, Vector3.UP * (e.height - 0.3), 2)
 	VFX.shockwave(c.global_position + Vector3.UP, Color(0.1, 0.05, 0.15), 30.0, 0.6, true)
 	Sfx.play("genjutsu", c.global_position, 0.5)
 
@@ -3172,7 +3200,7 @@ func c_suna_bunshin(c: Node3D, _t: Node3D) -> void:
 			shell.mesh = VFX._sphere(0.5, 14, 8)
 			shell.material_override = Props.toon_color(Color(0.82, 0.68, 0.45))
 			shell.scale = Vector3(e.radius * 3.0, e.height * 0.9, e.radius * 3.0)
-			attach(e, shell, 2.5, Vector3.UP * e.height * 0.4))
+			attach(e, shell, 2.5, Vector3.UP * e.height * 0.4, 2))
 	VFX.puffs(c.global_position, {"amount": 20, "life": 0.6, "size": 0.8, "radius": 0.8, "vmin": 2, "vmax": 4, "colors": [Color(0.92, 0.8, 0.58), Color(0.8, 0.65, 0.4, 0)]})
 
 
@@ -4074,7 +4102,7 @@ func c_doton_kajugan_no_jutsu(c: Node3D, t: Node3D) -> void:
 		var b = MB.new()
 		b.add("cone", Vector3.ZERO, Vector3(0.3, 0.5, 0.3), Color.WHITE, Vector3(180, 0, 0), 4)
 		var arrow = mesh_of(b, glow(Color(0.85, 0.75, 0.5)))
-		attach(tt, arrow, 8.0, Vector3((k - 1) * 0.4, tt.height + 0.6, 0))
+		attach(tt, arrow, 8.0, Vector3((k - 1) * 0.4, tt.height + 0.6, 0), 2)
 		var tw = arrow.create_tween().set_loops()
 		tw.tween_property(arrow, "position:y", tt.height + 0.2, 0.4)
 		tw.tween_property(arrow, "position:y", tt.height + 0.6, 0.01)
@@ -4145,7 +4173,7 @@ func c_bakuha_kibaku_te(c: Node3D, t: Node3D) -> void:
 	if tt == null:
 		return
 	var blob = _clay(0.5)
-	attach(tt, blob, 2.0, Vector3(0, tt.height * 0.55, -tt.radius))
+	attach(tt, blob, 2.0, Vector3(0, tt.height * 0.55, -tt.radius), 2)
 	var tw = blob.create_tween().set_loops()
 	tw.tween_property(blob, "scale", Vector3.ONE * 0.65, 0.2)
 	tw.tween_property(blob, "scale", Vector3.ONE * 0.45, 0.2)

@@ -4446,10 +4446,11 @@ func _weapons() -> void:
 		var id = String(wid)
 		if skel.find_bone(side + "Hand") < 0:
 			continue
-		var node: Node3D = SFProps.weapon_node(id)  # hayran modeli varsa (yoksa prosedürel)
+		var skin = String(look.get("weapon_skin_" + ("r" if side == "Right" else "l"), ""))   # kendi modeli olan özel silah (Hakkō Chakura Tō)
+		var node: Node3D = null if skin != "" else SFProps.weapon_node(id)  # hayran modeli varsa (yoksa prosedürel)
 		if node == null:
 			var mi = MeshInstance3D.new()
-			mi.mesh = weapon_mesh(id)
+			mi.mesh = weapon_mesh(skin if skin != "" else id)
 			node = mi
 		if id in HAND_FRAME and side == "Right":
 			# tutuş çerçevesi sağ elde z etrafında 180° dönük: yönü ele göre olan silahlar (tonfa gövdesi dirseğe,
@@ -5722,6 +5723,20 @@ static func weapon_mesh(id: String) -> ArrayMesh:
 			_w_tsuka(b, -0.13, 0.02, 0.015, Color(0.32, 0.06, 0.07))
 			_w_tsuba(b, 0.03, 0.028, Color(0.1, 0.1, 0.11))
 			_w_blade(b, 0.035, 0.3, 0.026, 0.003, steel)
+		"hakko_chakura_to":
+			# Hakkō Chakura Tō (ref refs/weapons/hakko_*.png, Narutopedia: "düz bıçaklı tantō, küçük yuvarlak siperlik"):
+			# düz siyah sap (sargı görünmez), kalın küçük yuvarlak grimsi-lavanta tsuba, aynı renkte kutu habaki,
+			# düz tek ağızlı parlak gümüş bıçak (~32 cm), koyu metal kashira
+			var lav = Color(0.56, 0.53, 0.62)
+			var blk = Color(0.07, 0.07, 0.08)
+			b.add("cyl", Vector3(0, 0, -0.055), Vector3(0.032, 0.15, 0.03), blk, Vector3(90, 0, 0), 12)          # sap (hafif oval)
+			for k in 4:   # sapta belli belirsiz sargı çıkıntıları (çizimde düz siyah: çok koyu)
+				b.add("cyl", Vector3(0, 0, -0.115 + k * 0.035), Vector3(0.034, 0.006, 0.032), Color(0.12, 0.12, 0.13), Vector3(90, 0, 0), 12)
+			b.add("cyl", Vector3(0, 0, -0.135), Vector3(0.036, 0.016, 0.034), Color(0.2, 0.2, 0.22), Vector3(90, 0, 0), 12)   # kashira
+			b.add("cyl", Vector3(0, 0, 0.027), Vector3(0.066, 0.014, 0.066), lav, Vector3(90, 0, 0), 20)          # yuvarlak kalın tsuba
+			b.add("torus", Vector3(0, 0, 0.027), Vector3(0.068, 0.016, 0.068), lav.darkened(0.25), Vector3(90, 0, 0), 20)
+			b.add("box", Vector3(0, 0, 0.043), Vector3(0.012, 0.03, 0.022), lav.lightened(0.1))                   # habaki (bıçak bileziği)
+			_w_blade(b, 0.035, 0.32, 0.024, 0.0, Color(0.86, 0.88, 0.94))                                           # düz parlak bıçak
 		"katana":
 			_w_tsuka(b, -0.2, 0.05, 0.017, dark)
 			_w_tsuba(b, 0.065, 0.045, Color(0.2, 0.18, 0.16))
