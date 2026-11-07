@@ -190,13 +190,22 @@ static func design_for(pr: Dictionary, slot: String) -> Dictionary:
 	return g["design"]
 
 
+## Kanon (Kakashi): Uchiha kanı olmayan bedene takılmış Sharingan kapanmaz — göz kapalı modda da kırmızı tomoe görünür
+## (teknikler kapalıdır, chakrayı yavaşça emer: _process)
+func _never_closes(side: String) -> bool:
+	if String(Game.profile.get("clan", "")) == "uchiha":
+		return false
+	var ee = eye(side)
+	return ee != null and String(ee.get("origin", "dogustan")) == "nakil" and _raw_kind(side) in [1, 4, 5]
+
+
 ## Göz dokusunu güncelle (model yeniden kurulunca da çağrılır)
 func refresh_visual() -> void:
 	if p == null or p.model == null:
 		return
 	var r = _kind("sag"); var l = _kind("sol")
-	var vr = r if (active or r in ALWAYS_VISIBLE) else 0
-	var vl = l if (active or l in ALWAYS_VISIBLE) else 0
+	var vr = r if (active or r in ALWAYS_VISIBLE) else (1 if _never_closes("sag") else 0)
+	var vl = l if (active or l in ALWAYS_VISIBLE) else (1 if _never_closes("sol") else 0)
 	var lr = 3 if (vr == 1 and _raw_kind("sag") in [4, 5]) else _lvl("sag")   # Mangekyō sahibinin Sharingan'ı: 3 tomoe
 	var ll = 3 if (vl == 1 and _raw_kind("sol") in [4, 5]) else _lvl("sol")
 	p.model.set_dojutsu_eyes(vr, lr, vl, ll, active and (r == 2 or l == 2))

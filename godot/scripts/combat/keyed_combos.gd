@@ -72,6 +72,11 @@ const TABLE := {
 	"style_gama": [preload("res://scripts/combat/style_gama_anim.gd"), 1.0],
 	"style_chidori": [preload("res://scripts/combat/style_chidori_anim.gd"), 1.05],
 	"style_hiraishin": [preload("res://scripts/combat/style_hiraishin_anim.gd"), 1.15],
+	"style_tip": [preload("res://scripts/combat/style_tip_anim.gd"), 1.1],
+	"style_kakuzu": [preload("res://scripts/combat/style_kakuzu_anim.gd"), 0.95],
+	"style_jashin": [preload("res://scripts/combat/style_jashin_anim.gd"), 1.0],
+	"style_hachibi": [preload("res://scripts/combat/style_hachibi_anim.gd"), 1.0],
+	"style_silah": [preload("res://scripts/combat/style_silah_anim.gd"), 1.1],
 }
 ## uzun menzil silahları: yapay zekâ uzakta durup atar (Enemy._chase)
 const RANGED := ["fuma_shuriken", "kyodai_shuriken", "fuma_makimono", "senbon", "mateki"]   # mateki: genjutsu flütü, uzakta durup çalar
@@ -80,7 +85,7 @@ const MASS := {"temari_ogi": 0.65, "uc_tirpan": 1.0, "samehada": 0.9, "kabutowar
 	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3, "tonfa": 0.3, "bashosen": 0.35, "kubikiribocho": 0.95, "yagura_sopa": 0.4, "yelpaze": 0.6, "kongo_asa": 0.45, "kama": 0.75, "pence": 0.15, "senbon": 0.05, "hiramekarei": 0.7, "bo": 0.35, "kiba": 0.25, "tanto": 0.1, "hakko_chakura_to": 0.08, "mateki": 0.06, "wakizashi": 0.25, "nodachi": 0.7, "musta": 0.15,
 	"style_juken": 0.08, "style_akimichi": 0.65, "style_inuzuka": 0.12, "style_kaguya": 0.2,
 	"style_uchiha": 0.1, "style_hozuki": 0.3, "style_aburame": 0.05, "style_jugo": 0.7,
-	"style_yuki": 0.05, "style_sabaku": 0.05, "style_uzumaki": 0.1, "style_yotsuki": 0.3, "style_kamizuru": 0.05, "style_iburi": 0.05, "style_kurosuki": 0.15, "style_senju": 0.45, "style_sarutobi": 0.12, "style_hatake": 0.1, "style_nara": 0.05, "style_kapi": 0.15, "style_kil": 0.05, "style_akasuna": 0.05, "style_kagit": 0.05, "style_sumi": 0.05, "style_yilan": 0.1, "style_gama": 0.2, "style_chidori": 0.1, "style_hiraishin": 0.05}
+	"style_yuki": 0.05, "style_sabaku": 0.05, "style_uzumaki": 0.1, "style_yotsuki": 0.3, "style_kamizuru": 0.05, "style_iburi": 0.05, "style_kurosuki": 0.15, "style_senju": 0.45, "style_sarutobi": 0.12, "style_hatake": 0.1, "style_nara": 0.05, "style_kapi": 0.15, "style_kil": 0.05, "style_akasuna": 0.05, "style_kagit": 0.05, "style_sumi": 0.05, "style_yilan": 0.1, "style_gama": 0.2, "style_chidori": 0.1, "style_hiraishin": 0.05, "style_tip": 0.12, "style_kakuzu": 0.3, "style_jashin": 0.5, "style_hachibi": 0.35, "style_silah": 0.1}
 
 
 static func mass(id: String) -> float:
@@ -160,6 +165,20 @@ static func mods(id: String, i: int) -> Dictionary:
 			if i in [1, 2, 3, 4, 5]:
 				m.merge({"lunge_mul": 0.0, "reach_add": -9.0})
 			return m
+		"style_tip":   # yakın: neşter/avuç/yumruk; zehir sisi orta
+			var m = {"lunge_mul": 0.7, "special": "", "knock": 2.0, "reach_add": 0.3}
+			if i == 3:
+				m.merge({"lunge_mul": 0.0, "reach_add": -9.0})
+			if i == 5:
+				m.merge({"lunge_mul": 0.5, "reach_add": -9.0})
+			return m
+		"style_kakuzu":   # iplikler/maskeler orta; Domu yumruğu yakın
+			var m = {"lunge_mul": 0.0, "special": "", "knock": 1.0, "reach_add": -9.0}
+			if i == 2:
+				m = {"lunge_mul": 0.9, "special": "", "knock": 10.0, "reach_add": 0.5, "heavy": true}
+			return m
+		"style_jashin", "style_hachibi", "style_silah":   # tüm vuruşlar kendi sanatından (on_strike): yürüyerek atılmaz
+			return {"lunge_mul": 0.0, "special": "", "knock": 1.0, "reach_add": -9.0}
 		"style_hiraishin":   # ışınlanır, yürüyerek yanaşmaz: tüm vuruşlar kunai/flaş sanatından (on_strike)
 			return {"lunge_mul": 0.0, "special": "", "knock": 1.0, "reach_add": -9.0}
 		"style_kagit", "style_sumi":   # orta-uzak: el değmez, tüm hasar kâğıt / mürekkepten (on_strike)
@@ -2829,6 +2848,46 @@ static func _style_start(id: String, i: int, who: Node3D) -> void:
 					if not is_instance_valid(who) or int(who.get_meta("style_tok", 0)) != tok:
 						return
 					_chidori_run(who, 0.36 / speed(id)))
+		"style_tip":
+			ov.fist = {"Right": -1.0, "Left": -1.0} if i != 5 else {"Right": 1.0, "Left": 0.6}
+			if i in [0, 1]:   # Chakra Neşteri: parmak uçlarından mavi bıçak (kurulum + kesik boyunca)
+				_scalpel(who, i == 0, 0.45 / speed(id))
+			if i == 5:   # Ōkashō: chakra yumrukta toplanır
+				_tip_fist(who, 0.62 / speed(id))
+		"style_kakuzu":
+			ov.fist = {"Right": -0.6, "Left": -0.6} if i != 2 else {"Right": 1.0, "Left": 1.0}
+			if i == 2:   # Domu: ten taşlaşır, kısa kalkan
+				var pjd = PathJutsu.get_pinst()
+				if pjd:
+					pjd._stone_skin(who, 0.8 / speed(id), Color(0.18, 0.17, 0.17))
+				if who is Player:
+					who.combat.invuln = maxf(who.combat.invuln, 0.5 / speed(id))
+		"style_jashin":
+			ov.fist = {"Right": 1.0, "Left": -0.5}
+			if i in [1, 4, 5]:   # elde kara mızrak (geri çekilebilir)
+				_jashin_spike(who, (0.5 if i == 1 else 0.75) / speed(id))
+		"style_hachibi":
+			ov.fist = {"Right": 1.0, "Left": 1.0} if i != 2 else {"Right": 0.6, "Left": 0.6}
+			if i == 3:   # Lariat: Raiton örtüsü + atılış
+				var pjl = PathJutsu.get_pinst()
+				if pjl:
+					pjl._rai_cloak(who, 0.55 / speed(id))
+				who.get_tree().create_timer(0.14 / speed(id)).timeout.connect(func():
+					if is_instance_valid(who) and int(who.get_meta("style_tok", 0)) == tok and who is CharacterBody3D:
+						var tgl = _near_foe(who, 9.0)
+						var dl = who.face_dir()
+						if tgl:
+							dl = tgl.global_position - who.global_position
+							dl.y = 0
+							dl = dl.normalized()
+						who.velocity = dl * 15.0 + Vector3(0, who.velocity.y, 0))
+		"style_silah":
+			ov.fist = {"Right": 0.8, "Left": 0.8}
+			if i in [0, 1, 4]:   # parşömen iki el arasında açılır (mühürden mühüre silah)
+				var pjs = PathJutsu.get_pinst()
+				if pjs:
+					var sc = pjs.hold_scroll(who, 0.55 / speed(id), 0.36, 0.55)
+					pjs.fade_free(sc, 0.55 / speed(id), 0.15)
 		"style_hiraishin":
 			ov.fist = {"Right": -1.0, "Left": -0.3} if i in [1, 4] else {"Right": 0.5, "Left": -0.3}
 			var tgh = _hira_target(who)
@@ -3231,6 +3290,116 @@ static func _chidori_run(who: Node3D, dur: float) -> void:
 	tw.tween_property(who, "global_position", to, dur).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 
 
+## Chakra Neşteri: parmak uçlarından titreşen mavi bıçak (p_chakura_no_mesu ile aynı yapı), dur sn sonra söner
+static func _scalpel(who: Node3D, right: bool, dur: float) -> void:
+	var pj = PathJutsu.get_pinst()
+	if pj == null:
+		return
+	var ba = pj.bone_attach(who, "RightHand" if right else "LeftHand")
+	if ba == null:
+		return
+	var mi = MeshInstance3D.new()
+	var bm = BoxMesh.new()
+	bm.size = Vector3(0.012, 0.22, 0.05)
+	mi.mesh = bm
+	mi.position = Vector3(0, 0.15, 0.02)
+	mi.material_override = VFX.mat_bolt(Color(0.6, 0.9, 1.0), 1.2)
+	ba.add_child(mi)
+	pj._hand_glow(ba, "blade", Color(0.35, 0.65, 1.0))
+	who.get_tree().create_timer(dur).timeout.connect(func():
+		if is_instance_valid(ba):
+			ba.queue_free())
+
+
+## Ōkashō: yumrukta toplanan chakra (beyaz-mavi parıltı), dur sn
+static func _tip_fist(who: Node3D, dur: float) -> void:
+	var pj = PathJutsu.get_pinst()
+	if pj == null:
+		return
+	var ba = pj.bone_attach(who, "RightHand")
+	if ba == null:
+		return
+	pj._hand_glow(ba, "palm", Color(0.55, 0.85, 1.0))
+	who.get_tree().create_timer(dur).timeout.connect(func():
+		if is_instance_valid(ba):
+			ba.queue_free())
+
+
+## Jashin kara mızrağı: elde geri çekilebilir siyah sivri mızrak (p_jashin_kazik ile aynı biçim), dur sn
+static func _jashin_spike(who: Node3D, dur: float) -> void:
+	var pj = PathJutsu.get_pinst()
+	if pj == null:
+		return
+	var ba = pj.bone_attach(who, "RightHand")
+	if ba == null:
+		return
+	var spike = MeshInstance3D.new()
+	var cm = CylinderMesh.new()
+	cm.top_radius = 0.0
+	cm.bottom_radius = 0.035
+	cm.height = 1.2
+	spike.mesh = cm
+	var m = StandardMaterial3D.new()
+	m.albedo_color = Color(0.08, 0.08, 0.1)
+	m.metallic = 0.6
+	m.roughness = 0.3
+	spike.material_override = m
+	spike.position = Vector3(0, 0.45, 0.02)
+	ba.add_child(spike)
+	spike.scale = Vector3(1, 0.05, 1)
+	spike.create_tween().tween_property(spike, "scale", Vector3.ONE, 0.12)   # geri çekilmiş halden uzar
+	who.get_tree().create_timer(dur).timeout.connect(func():
+		if is_instance_valid(ba):
+			ba.queue_free())
+
+
+## Jashin çemberi: kan rengi daire + içinde üçgen (p_jashin_kurban'ın küçüğü), dur sn yerde kalır
+static func _jashin_circle(who: Node3D, at: Vector3, dur: float) -> void:
+	var red = Color(0.75, 0.1, 0.12)
+	var b = MB.new()
+	b.add("cyl", Vector3(0, 0.02, 0), Vector3(2.4, 0.02, 2.4), red, Vector3.ZERO, 32)
+	b.add("cyl", Vector3(0, 0.03, 0), Vector3(2.1, 0.02, 2.1), Color(0.5, 0.45, 0.4), Vector3.ZERO, 32)
+	for k in 3:
+		var a1 = k * TAU / 3.0 + PI * 0.5
+		var a2 = (k + 1) * TAU / 3.0 + PI * 0.5
+		var p1 = Vector3(cos(a1), 0, sin(a1)) * 1.0
+		var p2 = Vector3(cos(a2), 0, sin(a2)) * 1.0
+		b.add("box", (p1 + p2) * 0.5 + Vector3.UP * 0.04, Vector3(0.08, 0.02, p1.distance_to(p2)), red, Vector3(0, rad_to_deg(atan2((p2 - p1).x, (p2 - p1).z)), 0))
+	var mi = MeshInstance3D.new()
+	var mat = StandardMaterial3D.new()
+	mat.vertex_color_use_as_albedo = true
+	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	mi.mesh = b.build(mat)
+	who.get_tree().current_scene.add_child(mi)
+	mi.global_position = at + Vector3.UP * 0.05
+	mi.scale = Vector3(0.05, 1, 0.05)
+	var tw = mi.create_tween()
+	tw.tween_property(mi, "scale", Vector3.ONE, 0.3)
+	tw.tween_interval(dur)
+	tw.tween_property(mi, "scale", Vector3(0.05, 1, 0.05), 0.3)
+	tw.tween_callback(mi.queue_free)
+
+
+## Jashin lanet bağı: kendine saplarsın — bağlıysa (çemberdeyken) rakip aynı yarayı alır. Bedel: kendi canının bir kısmı.
+static func _jashin_self(who: Node3D, dmg: float, mul: float, cost: float, txt: String) -> bool:
+	var ln = who.get_meta("jashin_link", [])
+	var now = Time.get_ticks_msec() / 1000.0
+	if ln.is_empty() or now > float(ln[1]) or (who.global_position - (ln[2] as Vector3)).length() > 1.8:
+		return false
+	var e = instance_from_id(int(ln[0]))
+	if e == null or not is_instance_valid(e) or e.is_dead():
+		return false
+	if who.get("hp") != null and who.get("max_hp") != null:
+		who.hp = maxf(1.0, who.hp - who.max_hp * cost)
+	var blood = Color(0.7, 0.05, 0.05)
+	FX.hit_spark(who.global_position + Vector3.UP * 1.0, blood, 0.6)
+	FX.hit_spark(e.global_position + Vector3.UP * 1.1, blood, 1.0)
+	e.take_hit({"dmg": dmg * mul, "knock": 0.0, "kind": "heavy", "attacker": who, "pierce_guard": true, "true_dmg": true, "hitstop": 0.1})
+	Combat.popup_text(e.global_position + Vector3.UP * 2.4, txt, Color(0.85, 0.15, 0.15))
+	_shake(who, 0.35)
+	return true
+
+
 ## Hiraishin işaretleri (yere saplı kunailer): [{pos, until, node}]
 static func _hira_marks(who: Node3D) -> Array:
 	var now = Time.get_ticks_msec() / 1000.0
@@ -3618,6 +3787,370 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 					VFX.star(up0 + Vector3.UP * 0.4, Color(0.92, 0.97, 1.0), 2.8, 0.18)
 					Combat.hit_sphere(who, up0 + Vector3.UP * 0.3, 1.8, _kinfo(dmg, 2.3, {"element": "raiton", "knock": 4.0, "launch": 9.0, "kind": "heavy", "stun": 0.8, "pierce_guard": true}))
 					_shake(who, 0.55)
+		"style_tip":
+			var tg = _near_foe(who, 10.0)
+			var pjt = PathJutsu.get_pinst()
+			if pjt == null:
+				return
+			var blue = Color(0.6, 0.9, 1.0)
+			var med = Color(0.45, 0.95, 0.6)
+			match i:
+				0, 1:   # neşter kesiği: görünmez yara — kas kesilir (yavaşlar), kanama
+					pjt._arc_cut(who.global_position + Vector3.UP * 1.15, f, 70.0 if i == 0 else -70.0, -70.0 if i == 0 else 70.0, blue, 1.8)
+					Combat.hit_zone(who, who.global_position, f, 2.4, 50.0, 2.2, _kinfo(dmg, 0.9, {"element": "", "knock": 1.0, "kind": "light", "melee": true, "slow": 2.0, "bleed": 1.5}))
+				2:   # Ranshinshō: yeşil şimşekli avuç — sinirler karışır
+					var pt = who.global_position + Vector3.UP * 1.2 + f * 0.8
+					for k in 5:
+						VFX.bolt(pt, pt + Vector3(randf_range(-0.8, 0.8), randf_range(-0.5, 0.8), randf_range(-0.8, 0.8)) + f * 0.4, Color(0.5, 1.0, 0.6), 0.07, 0.22, 1)
+					FX.hit_spark(pt, Color(0.6, 1.0, 0.7), 0.8)
+					Combat.hit_zone(who, who.global_position, f, 2.6, 35.0, 2.2, _kinfo(dmg, 0.8, {"element": "", "knock": 1.0, "kind": "light", "melee": true, "stun": 1.2}))
+					Sfx.play("chidori", pt, 1.6, 0.35)
+				3:   # Dokugiri: ağızdan mor zehir akışı (sis bulutu değil: akışın kendisi)
+					var mouth = who.global_position + Vector3.UP * 1.55 + f * 0.35
+					var dz = (f - Vector3.UP * 0.12).normalized()
+					FX.burst(mouth, {"amount": 60, "life": 0.7, "tex": FX.tex_soft, "add": false, "size": 0.5, "radius": 0.15, "vmin": 6.0, "vmax": 10.0, "dir": dz, "spread": 16.0, "damp": 4.0,
+						"smin": 0.6, "smax": 1.6, "colors": [Color(0.62, 0.3, 0.75, 0.75), Color(0.45, 0.18, 0.55, 0.45), Color(0.35, 0.12, 0.45, 0.0)]})
+					Combat.hit_zone(who, who.global_position, f, 7.0, 25.0, 2.4, _kinfo(dmg, 0.5, {"element": "", "knock": 0.0, "kind": "light", "poison": 4.0, "slow": 1.5}))
+					Sfx.play("wind", mouth, 1.3, 0.5)
+				4:   # Shōsen emişi: avuç değer, rakibin chakrası seni onarır (kanon Kabuto: tıbbi chakra hem keser hem onarır)
+					var pt2 = who.global_position + Vector3.UP * 1.15 + f * 0.8
+					FX.hit_spark(pt2, med, 0.8)
+					var hits = Combat.hit_zone(who, who.global_position, f, 2.4, 40.0, 2.2, _kinfo(dmg, 1.0, {"element": "", "knock": 3.0, "kind": "light", "melee": true}))
+					if hits is Array and not hits.is_empty() or (tg and tg.global_position.distance_to(who.global_position) < 2.6):
+						pjt.heal(who, who.max_hp * 0.04)
+						if who.get("chakra") != null and who.get("max_chakra") != null:
+							who.chakra = minf(who.max_chakra, who.chakra + 6.0)
+						if tg:
+							pjt.tether(func(): return tg.global_position + Vector3.UP * 1.1 if is_instance_valid(tg) else pt2, func(): return who.global_position + Vector3.UP * 1.1 if is_instance_valid(who) else pt2, 0.04, VFX.mat_bolt(med, 1.2), 0.35)
+				5:   # Ōkashō: yere yumruk — yer yarılır, kaya parçaları, çevre havaya
+					var g = who.global_position + f * 1.0
+					g.y = Game.ground_height(g.x, g.z)
+					VFX.cracks(g, 6.0)
+					VFX.debris(g + Vector3.UP * 0.2, Color(0.55, 0.5, 0.42), 18, 8.0, 0.4)
+					VFX.shockwave(g + Vector3.UP * 0.15, Color(0.75, 0.68, 0.55), 7.0, 0.35, true)
+					Combat.hit_sphere(who, g + Vector3.UP * 0.6, 3.6, _kinfo(dmg, 2.3, {"element": "", "knock": 8.0, "launch": 8.0, "kind": "heavy", "stun": 0.6}))
+					_shake(who, 0.8)
+					Sfx.play("boom", g, 0.8)
+		"style_kakuzu":
+			var tg = _near_foe(who, 18.0)
+			var pjz = PathJutsu.get_pinst()
+			if pjz == null:
+				return
+			var thread = StandardMaterial3D.new()
+			thread.albedo_color = Color(0.06, 0.06, 0.08)
+			var handz = who.global_position + Vector3.UP * 1.2 + f * 0.5
+			var aimz = (tg.global_position + Vector3.UP) if tg else handz + f * 9.0
+			match i:
+				0:   # iplik kırbacı: koldan fışkıran kıvrımlı kara iplik demeti yatay savrulur
+					for k in 7:
+						var end = aimz + side * (k - 3) * 0.45 + Vector3.UP * randf_range(-0.4, 0.4)
+						pjz.wavy_tether(func(): return (who.global_position + Vector3.UP * 1.2 + who.face_dir() * 0.4) if is_instance_valid(who) else handz, func(): return end, 0.03, thread, 0.4, randf_range(0.12, 0.3))
+					Combat.hit_zone(who, who.global_position, f, 9.0, 30.0, 2.4, _kinfo(dmg, 1.0, {"element": "", "knock": 3.0, "kind": "heavy", "bleed": 2.0}))
+				1:   # iplik kancası: kara iplik demeti hedefi sarar (gövdesine dolanır), sonra önüne çeker
+					if tg and tg.global_position.distance_to(who.global_position) < 14.0:
+						var tgt = tg
+						for k in 8:
+							var a0 = TAU * k / 8.0
+							var off = Vector3(cos(a0) * 0.35, 0.6 + (k % 4) * 0.25, sin(a0) * 0.35)
+							pjz.wavy_tether(func(): return (who.global_position + Vector3.UP * 1.2 + who.face_dir() * 0.4) if is_instance_valid(who) else handz,
+								func(): return (tgt.global_position + off) if is_instance_valid(tgt) else handz, 0.028, thread, 0.65, 0.12)
+						who.get_tree().create_timer(0.15).timeout.connect(func():
+							if is_instance_valid(who) and is_instance_valid(tgt):
+								Combat.hit_sphere(who, tgt.global_position + Vector3.UP, 1.0, _kinfo(dmg, 0.9, {"element": "", "knock": 0.0, "kind": "heavy", "stun": 0.5, "bind": 0.4}))
+								var to = who.global_position + who.face_dir() * 1.6
+								to.y = Game.ground_height(to.x, to.z)
+								tgt.create_tween().tween_property(tgt, "global_position", to, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN))
+				2:   # Domu yumruğu: taş yumruk, kısa yarık
+					var g2 = who.global_position + f * 1.3
+					g2.y = Game.ground_height(g2.x, g2.z)
+					VFX.cracks(g2, 1.6)
+					FX.hit_spark(who.global_position + Vector3.UP * 1.2 + f * 1.1, Color(0.6, 0.55, 0.5), 0.9)
+					_shake(who, 0.35)
+				3:   # Katon maskesi: Zukokku — maske ağzından dev alev küresi
+					var mb = pjz._mask_beast(who, 1.0, Color(1.0, 0.5, 0.12))
+					who.get_tree().create_timer(0.25).timeout.connect(func():
+						if not (is_instance_valid(who) and is_instance_valid(mb)):
+							return
+						var from = mb.global_position + who.face_dir() * 0.6
+						var to = (tg.global_position + Vector3.UP) if is_instance_valid(tg) else from + who.face_dir() * 14.0
+						var fb = VFX.fireball(1.8)
+						who.get_tree().current_scene.add_child(fb)
+						fb.global_position = from
+						var tw2 = fb.create_tween()
+						tw2.tween_property(fb, "global_position", to, from.distance_to(to) / 30.0)
+						tw2.tween_callback(func():
+							VFX.explosion(to, 2.2)
+							if is_instance_valid(who):
+								Combat.hit_sphere(who, to, 2.6, _kinfo(dmg, 1.6, {"element": "katon", "knock": 9.0, "launch": 3.0, "kind": "heavy", "burn": 3.0}))
+							fb.queue_free()))
+					who.get_tree().create_timer(1.4).timeout.connect(func():
+						if is_instance_valid(mb):
+							pjz._beast_out(mb))
+				4:   # Fūton maskesi: Atsugai — basınçlı rüzgâr akışı
+					var mb2 = pjz._mask_beast(who, -1.0, Color(0.6, 0.85, 0.7))
+					who.get_tree().create_timer(0.3).timeout.connect(func():
+						if not (is_instance_valid(who) and is_instance_valid(mb2)):
+							return
+						var d = who.face_dir()
+						pjz.stream_fx(mb2.global_position + d * 0.5, d, 14.0, 2.6, VFX.mat_wind(Color(0.85, 0.95, 0.9), 10.0, 7.0, Vector3(0, 0, 1), 0.65), 0.5)
+						Combat.hit_zone(who, who.global_position, d, 14.0, 26.0, 4.0, _kinfo(dmg, 1.4, {"element": "fuuton", "knock": 16.0, "launch": 3.0, "kind": "heavy", "bleed": 1.5})))
+					who.get_tree().create_timer(1.4).timeout.connect(func():
+						if is_instance_valid(mb2):
+							pjz._beast_out(mb2))
+				5:   # bitiriş: Atsugai + Zukokku — rüzgâr alevi büyütür, geniş alev fırtınası
+					var mf = pjz._mask_beast(who, 1.0, Color(1.0, 0.5, 0.12))
+					var mw = pjz._mask_beast(who, -1.0, Color(0.6, 0.85, 0.7))
+					who.get_tree().create_timer(0.3).timeout.connect(func():
+						if not is_instance_valid(who):
+							return
+						var d = who.face_dir()
+						var o = who.global_position + Vector3.UP * 2.0 + d * 1.2
+						if is_instance_valid(mw):
+							pjz.stream_fx(mw.global_position + d * 0.5, (d + Vector3.UP * -0.05).normalized(), 16.0, 3.0, VFX.mat_wind(Color(0.85, 0.95, 0.9), 10.0, 7.0, Vector3(0, 0, 1), 0.5), 0.6)
+						pjz.fire_stream(o, d, 16.0, 4.2, 12)
+						for k in 4:
+							VFX.linger(Vector3(o.x, Game.ground_height(o.x, o.z), o.z) + d * (5.0 + k * 3.0), "katon", Color(1.0, 0.5, 0.12), 2.0, 3.0)
+						Combat.hit_zone(who, who.global_position, d, 16.0, 30.0, 4.0, _kinfo(dmg, 2.6, {"element": "katon", "knock": 14.0, "launch": 4.0, "kind": "heavy", "burn": 4.0}))
+						_shake(who, 0.7))
+					who.get_tree().create_timer(1.6).timeout.connect(func():
+						for b in [mf, mw]:
+							if is_instance_valid(b):
+								pjz._beast_out(b))
+		"style_jashin":
+			var tg = _near_foe(who, 20.0)
+			var pjj = PathJutsu.get_pinst()
+			if pjj == null:
+				return
+			var blood = Color(0.6, 0.05, 0.05)
+			var red = Color(0.75, 0.1, 0.12)
+			var handj = who.global_position + Vector3.UP * 1.3 + f * 0.5
+			match i:
+				0:   # tırpan kabloyla fırlar, kanı alır, geri gelir
+					var to = (tg.global_position + Vector3.UP) if tg and tg.global_position.distance_to(who.global_position) < 16.0 else handj + f * 10.0
+					var sc = pjj._tri_scythe()
+					who.get_tree().current_scene.add_child(sc)
+					sc.global_position = handj
+					var cable = StandardMaterial3D.new()
+					cable.albedo_color = Color(0.25, 0.25, 0.28)
+					pjj.tether(func(): return (who.global_position + Vector3.UP * 1.3) if is_instance_valid(who) else handj, func(): return sc.global_position if is_instance_valid(sc) else handj, 0.02, cable, 0.75)
+					var tw = sc.create_tween()
+					tw.tween_property(sc, "global_position", to, 0.22)
+					tw.parallel().tween_property(sc, "rotation:z", TAU * 3.0, 0.22)
+					tw.tween_callback(func():
+						if not is_instance_valid(who):
+							return
+						VFX.debris(to, blood, 10, 5.0, 0.2)
+						for h in Combat.hit_sphere(who, to, 1.4, _kinfo(dmg, 1.1, {"element": "", "knock": 3.0, "kind": "heavy", "bleed": 3.0})):
+							h.set_meta("jashin_kan", Time.get_ticks_msec()))
+					tw.tween_method(func(u: float):
+						if is_instance_valid(sc) and is_instance_valid(who):
+							sc.global_position = to.lerp(who.global_position + Vector3.UP * 1.3, u), 0.0, 1.0, 0.3)
+					tw.tween_callback(sc.queue_free)
+				1:   # kara mızrak dürtüşü: kan alır
+					var hits1 = Combat.hit_zone(who, who.global_position, f, 3.0, 25.0, 2.2, _kinfo(dmg, 1.0, {"element": "", "knock": 3.0, "kind": "heavy", "melee": true, "bleed": 2.5}))
+					for h in hits1:
+						h.set_meta("jashin_kan", Time.get_ticks_msec())
+						VFX.debris(h.global_position + Vector3.UP, blood, 8, 4.0, 0.2)
+				2:   # tırpan savuruşu: çevreyi biçer
+					var sc2 = pjj._tri_scythe()
+					who.add_child(sc2)
+					sc2.position = Vector3(0, 1.1, -1.4)
+					var piv = Node3D.new()
+					who.add_child(piv)
+					sc2.reparent(piv, true)
+					var tw2 = piv.create_tween()
+					tw2.tween_property(piv, "rotation:y", -TAU, 0.3)
+					tw2.tween_callback(piv.queue_free)
+					pjj._arc_cut(who.global_position + Vector3.UP * 1.1, f, -180.0, 180.0, Color(0.85, 0.85, 0.9), 2.6)
+					for h in Combat.hit_sphere(who, who.global_position + Vector3.UP, 2.8, _kinfo(dmg, 1.0, {"element": "", "knock": 6.0, "kind": "heavy", "bleed": 2.0})):
+						h.set_meta("jashin_kan", Time.get_ticks_msec())
+				3:   # Jashin çemberi: ayakla çizilir; yakında kanını aldığın biri varsa lanet bağı kurulur
+					var atj = Vector3(who.global_position.x, Game.ground_height(who.global_position.x, who.global_position.z), who.global_position.z)
+					_jashin_circle(who, atj, 6.0)
+					var cursed: Node3D = null
+					for e in who.get_tree().get_nodes_in_group("fighters"):
+						if e != who and Combat.hostile(who, e) and not e.is_dead() and e.has_meta("jashin_kan") and Time.get_ticks_msec() - int(e.get_meta("jashin_kan")) < 20000 and e.global_position.distance_to(who.global_position) < 30.0:
+							cursed = e
+							break
+					if cursed:
+						who.set_meta("jashin_link", [cursed.get_instance_id(), Time.get_ticks_msec() / 1000.0 + 6.0, atj])
+						Combat.popup_text(cursed.global_position + Vector3.UP * 2.4, "Lanet bağı!", red)
+						FX.aura(who, Color(0.08, 0.08, 0.1), 1.2, Vector3(0, 0.9, 0), 6.0)   # beden kara-ak ölüm desenine bürünür (aura)
+					else:
+						Combat.popup_text(who.global_position + Vector3.UP * 2.4, "Kan yok...", Color(0.7, 0.6, 0.6))
+				4:   # bacağına sapla: bağlı rakip aynı yarayı alır (kendi canından küçük bedel)
+					_jashin_self(who, dmg, 1.4, 0.03, "Bacağa!")
+				5:   # kalbe sapla: bağlı rakibe ağır yara; bağ yoksa tırpanı yere çakar
+					if not _jashin_self(who, dmg, 3.2, 0.06, "Jashin-sama!"):
+						var g = who.global_position + f * 1.5
+						g.y = Game.ground_height(g.x, g.z)
+						VFX.cracks(g, 3.0)
+						VFX.debris(g, Color(0.5, 0.45, 0.4), 12, 6.0, 0.3)
+						Combat.hit_sphere(who, g + Vector3.UP * 0.6, 2.2, _kinfo(dmg, 1.6, {"element": "", "knock": 6.0, "launch": 4.0, "kind": "heavy", "bleed": 2.0}))
+						_shake(who, 0.4)
+		"style_hachibi":
+			var tg = _near_foe(who, 14.0)
+			var pjb = PathJutsu.get_pinst()
+			if pjb == null:
+				return
+			var octo = Color(0.75, 0.4, 0.62)
+			var aimb = tg.global_position if tg else who.global_position + f * 7.0
+			match i:
+				0:   # dokunaç kırbacı (Gyūki'nin gerçek Takoashi Ude dokunacı, insan ölçeği)
+					BijuuArts._tako_ude(who, {"s": 0.45, "dmg": dmg * 1.1, "aim": aimb, "tgt": tg, "base_h": 1.6})
+				1:   # yedi kılıç dönüşü (kollar/koltuk altı/ağız)
+					var root = Node3D.new()
+					who.add_child(root)
+					root.position = Vector3.UP * 1.2
+					for k in 7:
+						var a = k * TAU / 7.0
+						var b = MB.new()
+						b.add("box", Vector3(0, 0, 0.6), Vector3(0.04, 0.12, 1.2), Color(0.8, 0.82, 0.86))
+						b.add("cyl", Vector3(0, 0, -0.05), Vector3(0.04, 0.15, 0.04), Color(0.15, 0.12, 0.1), Vector3(90, 0, 0), 6)
+						var sw = MeshInstance3D.new()
+						sw.mesh = b.build(Props.toon())
+						root.add_child(sw)
+						sw.rotation.y = a
+						sw.position = Vector3(cos(a), (k % 3 - 1) * 0.3, sin(a)) * 0.4
+					var tw = root.create_tween()
+					tw.tween_property(root, "rotation:y", TAU * 2.0, 0.4)
+					tw.tween_callback(root.queue_free)
+					Combat.hit_sphere(who, who.global_position + Vector3.UP, 2.6, _kinfo(dmg, 1.2, {"element": "", "knock": 5.0, "kind": "heavy", "bleed": 1.5}))
+				2:   # mürekkep tükürüğü: kara mürekkep seli — kör eder, yavaşlatır
+					var mouth = who.global_position + Vector3.UP * 1.55 + f * 0.35
+					var di = (f - Vector3.UP * 0.08).normalized()
+					FX.burst(mouth, {"amount": 70, "life": 0.6, "tex": FX.tex_soft, "add": false, "size": 0.45, "radius": 0.1, "vmin": 9.0, "vmax": 14.0, "dir": di, "spread": 10.0, "damp": 3.0,
+						"gravity": Vector3(0, -6, 0), "smin": 0.5, "smax": 1.4, "colors": [Color(0.03, 0.03, 0.05, 0.95), Color(0.06, 0.05, 0.08, 0.8), Color(0.05, 0.05, 0.07, 0.0)]})
+					var pe = who.global_position + di * 7.0
+					pjb._ink_splash(Vector3(pe.x, Game.ground_height(pe.x, pe.z) + 0.05, pe.z), 14)
+					Combat.hit_zone(who, who.global_position, f, 8.0, 22.0, 2.4, _kinfo(dmg, 0.5, {"element": "suiton", "knock": 1.0, "kind": "light", "blind": 2.0, "slow": 2.0}))
+				3:   # Lariat: şimşekli sol kol çarpar
+					var lp = who.global_position + Vector3.UP * 1.3 + f * 0.8
+					VFX.shockwave(lp, Color(0.95, 0.95, 1.0), 4.0, 0.25, false, f)
+					for k in 4:
+						VFX.bolt(lp, lp + Vector3(randf_range(-1.2, 1.2), randf_range(-0.6, 1.0), randf_range(-1.2, 1.2)), Color(0.85, 0.9, 1.0), 0.12, 0.2, 1)
+					Combat.hit_zone(who, who.global_position, f, 2.8, 70.0, 2.4, _kinfo(dmg, 1.6, {"element": "raiton", "knock": 14.0, "launch": 6.0, "kind": "heavy", "melee": true, "hitstop": 0.1}))
+					_shake(who, 0.45)
+				4:   # dokunaçla kavrayıp yere çarpma (iki dokunaç)
+					for k in 2:
+						var off = f.cross(Vector3.UP) * (k - 0.5) * 1.2
+						who.get_tree().create_timer(k * 0.12).timeout.connect(func():
+							if is_instance_valid(who):
+								BijuuArts._tako_ude(who, {"s": 0.5, "dmg": dmg * 1.0, "aim": aimb + off, "tgt": tg, "base_h": 1.7 + k * 0.15}))
+				5:   # Sekiz Kuyruk topu (küçük): ağızda toplanır, fırlar, mor kubbe patlar
+					var from = who.global_position + Vector3.UP * 1.5 + f * 1.0
+					var ball = pjb._bijuball(0.55)
+					who.get_tree().current_scene.add_child(ball)
+					ball.global_position = from
+					var to2 = (tg.global_position + Vector3.UP) if tg else from + f * 12.0
+					var tw5 = ball.create_tween()
+					tw5.tween_property(ball, "global_position", to2, from.distance_to(to2) / 34.0)
+					tw5.tween_callback(func():
+						ball.queue_free()
+						var dome = MeshInstance3D.new()
+						dome.mesh = SphereMesh.new()
+						dome.material_override = VFX.mat_spiral(Color(1, 0.9, 1.0), Color(0.55, 0.2, 0.7), 4.0, 2.0, 5.0, 2.0, Vector3.UP)
+						who.get_tree().current_scene.add_child(dome)
+						dome.global_position = to2
+						var tw6 = dome.create_tween()
+						tw6.tween_property(dome, "scale", Vector3.ONE * 5.0, 0.25)
+						tw6.tween_property(dome, "scale", Vector3.ONE * 0.1, 0.2)
+						tw6.tween_callback(dome.queue_free)
+						if is_instance_valid(who):
+							Combat.hit_sphere(who, to2, 2.8, _kinfo(dmg, 2.4, {"element": "", "knock": 18.0, "launch": 6.0, "kind": "heavy", "hitstop": 0.12}))
+							_shake(who, 0.7))
+		"style_silah":
+			var tg = _near_foe(who, 20.0)
+			var pjw = PathJutsu.get_pinst()
+			if pjw == null:
+				return
+			var from0 = who.global_position + Vector3.UP * 1.3 + f * 0.6
+			var aimw = (tg.global_position + Vector3.UP) if tg else from0 + f * 14.0
+			match i:
+				0, 1:   # parşömenden salvo: 0 kunai, 1 shuriken + fuma
+					var kinds = ["kunai", "kunai", "kunai", "senbon"] if i == 0 else ["shuriken", "shuriken", "fuma"]
+					for k in kinds.size():
+						var kd: String = kinds[k]
+						var to = aimw + side * (k - (kinds.size() - 1) * 0.5) * 0.45
+						who.get_tree().create_timer(k * 0.05).timeout.connect(func():
+							if is_instance_valid(who):
+								pjw.throw_weapon(who, "buki_kuchiyose", kd, from0 + side * randf_range(-0.2, 0.2), to, 46.0, 0.3, tg, {"dmg": dmg * (0.32 if i == 0 else 0.42)}))
+				2:   # kusarigama zinciri: kancalı orak hedefe, zincirle çeker
+					if tg and tg.global_position.distance_to(who.global_position) < 15.0:
+						var kama = pjw.mi_of(pjw.weapon_mesh("kama"))
+						who.get_tree().current_scene.add_child(kama)
+						kama.global_position = from0
+						var chain = StandardMaterial3D.new()
+						chain.albedo_color = Color(0.45, 0.45, 0.5)
+						pjw.tether(func(): return (who.global_position + Vector3.UP * 1.3) if is_instance_valid(who) else from0, func(): return kama.global_position if is_instance_valid(kama) else from0, 0.025, chain, 0.7)
+						var tgt = tg
+						var tw = kama.create_tween()
+						tw.tween_method(func(u: float):
+							if is_instance_valid(kama) and is_instance_valid(tgt):
+								kama.global_position = from0.lerp(tgt.global_position + Vector3.UP, u)
+								kama.rotation.x = u * TAU * 3.0, 0.0, 1.0, 0.18)
+						tw.tween_callback(func():
+							if is_instance_valid(who) and is_instance_valid(tgt):
+								Combat.hit_sphere(who, tgt.global_position + Vector3.UP, 1.0, _kinfo(dmg, 1.0, {"element": "", "knock": 0.0, "kind": "heavy", "bleed": 2.0, "stun": 0.4}))
+								var to3 = who.global_position + who.face_dir() * 1.8
+								to3.y = Game.ground_height(to3.x, to3.z)
+								tgt.create_tween().tween_property(tgt, "global_position", to3, 0.3))
+						tw.tween_method(func(u: float):
+							if is_instance_valid(kama) and is_instance_valid(who):
+								kama.global_position = kama.global_position.lerp(who.global_position + Vector3.UP * 1.3, u), 0.0, 1.0, 0.3)
+						tw.tween_callback(kama.queue_free)
+				3:   # havadan silah yağmuru: hedefin üstünden karışık silahlar düşer (Sōshōryū küçük)
+					var c0 = tg.global_position if tg and tg.global_position.distance_to(who.global_position) < 18.0 else who.global_position + f * 7.0
+					for k in 10:
+						var kd2: String = ["kunai", "katana", "sai", "yari", "kama", "shuriken", "kunai", "chakram", "senbon", "ono"][k]
+						var land = c0 + Vector3(randf_range(-1.8, 1.8), 0, randf_range(-1.8, 1.8))
+						land.y = Game.ground_height(land.x, land.z) + 0.2
+						var sky = land + Vector3(randf_range(-2.0, 2.0), 9.0, randf_range(-2.0, 2.0))
+						who.get_tree().create_timer(k * 0.04).timeout.connect(func():
+							if is_instance_valid(who):
+								pjw.throw_weapon(who, "soshoryu", kd2, sky, land, 40.0, 0.3, null, {"dmg": dmg * 0.3}))
+					who.get_tree().create_timer(0.35).timeout.connect(func():
+						if is_instance_valid(who):
+							Combat.hit_sphere(who, c0 + Vector3.UP * 0.6, 2.4, _kinfo(dmg, 0.8, {"element": "", "knock": 2.0, "kind": "light", "bleed": 2.0})))
+				4:   # dev balta: parşömenden çekilip tepeden indirilir
+					var ono = pjw.mi_of(pjw.weapon_mesh("ono"))
+					who.get_tree().current_scene.add_child(ono)
+					ono.scale = Vector3.ONE * 3.0
+					var g = who.global_position + f * 2.0
+					g.y = Game.ground_height(g.x, g.z)
+					ono.global_position = g + Vector3.UP * 4.0
+					ono.look_at(g + f * 3.0 + Vector3.UP * 4.0, Vector3.UP)
+					var tw4 = ono.create_tween()
+					tw4.tween_property(ono, "global_position", g + Vector3.UP * 0.8, 0.12).set_ease(Tween.EASE_IN)
+					tw4.parallel().tween_property(ono, "rotation:x", ono.rotation.x - 1.4, 0.12)
+					tw4.tween_callback(func():
+						VFX.cracks(g, 2.4)
+						VFX.debris(g, Color(0.5, 0.45, 0.4), 10, 5.0, 0.3)
+						if is_instance_valid(who):
+							Combat.hit_sphere(who, g + Vector3.UP * 0.6, 2.0, _kinfo(dmg, 1.6, {"element": "", "knock": 8.0, "kind": "heavy", "stun": 0.5})))
+					tw4.tween_interval(0.5)
+					tw4.tween_property(ono, "scale", Vector3.ONE * 0.05, 0.15)
+					tw4.tween_callback(ono.queue_free)
+				5:   # dev demir topuz gökten iner (kuchiyose mührü avuçla yere)
+					var center = tg.global_position if tg and tg.global_position.distance_to(who.global_position) < 18.0 else who.global_position + f * 8.0
+					center.y = Game.ground_height(center.x, center.z)
+					var ball = pjw.mi_of(pjw._tetsuzan_mesh())
+					who.get_tree().current_scene.add_child(ball)
+					ball.scale = Vector3.ONE * 0.4
+					ball.global_position = center + Vector3.UP * 16.0
+					var tw5 = ball.create_tween()
+					tw5.tween_property(ball, "global_position", center + Vector3.UP * 1.3, 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+					tw5.tween_callback(func():
+						VFX.cracks(center, 6.0)
+						VFX.debris(center, Color(0.45, 0.38, 0.3), 16, 9.0, 0.5)
+						VFX.shockwave(center + Vector3.UP * 0.3, Color(0.85, 0.75, 0.6), 9.0, 0.4, true)
+						if is_instance_valid(who):
+							Combat.hit_sphere(who, center + Vector3.UP, 3.2, _kinfo(dmg, 2.4, {"element": "", "knock": 12.0, "launch": 7.0, "kind": "heavy", "hitstop": 0.12}))
+							_shake(who, 0.8)
+						Sfx.play("boom", center, 0.8))
+					tw5.tween_interval(1.0)
+					tw5.tween_property(ball, "scale", Vector3.ONE * 0.02, 0.25)
+					tw5.tween_callback(ball.queue_free)
 		"style_hiraishin":
 			var tg = _hira_target(who)
 			var pjh = PathJutsu.get_pinst()

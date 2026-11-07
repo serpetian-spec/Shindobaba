@@ -2887,16 +2887,9 @@ func p_ito_buki_arashi(c: Node3D, _t: Node3D) -> void:
 				w["n"].queue_free())
 
 
-## Dev Demir Topuz: gökte çağırma çemberi açılır, çivili dev topuz düşüp krater açar
-func p_kuchiyose_tetsuzan(c: Node3D, t: Node3D) -> void:
-	var center = gp(Jutsu._aim_ground(c, t, 14.0, 32.0))
-	busy(c, 0.8)
-	var sky = center + Vector3.UP * 28.0
-	summon_circle(gp(c.global_position + c.face_dir() * 1.2), 3.0, Color(0.85, 0.3, 0.25), 1.0)   # kanon kuchiyose mührü: avuç yere
-	ground_disc(sky, 6.0, Color(0.85, 0.3, 0.25), 1.0, 2, 12).global_position = sky
-	ground_disc(center, 8.0, Color(1.0, 0.4, 0.3), 1.0, 1, 0)
-	Sfx.play("poof", sky, 0.6)
-	var mesh = cached("tetsuzan", func():
+## Dev demir topuz gövdesi (Tenten): koyu demir küre + köşeli dikenler + halka (önbellekli)
+func _tetsuzan_mesh() -> ArrayMesh:
+	return cached("tetsuzan", func():
 		var b = MB.new()
 		# ref (Tenten "Gigantic Iron Ball"): neredeyse siyah dev demir top, her yanında kalın kısa köşeli dikenler (aynı koyu demir)
 		b.add_grad("sphere", Vector3.ZERO, Vector3(7.0, 7.0, 7.0), Color(0.2, 0.2, 0.22), Color(0.1, 0.1, 0.11), Vector3.ZERO, 16)
@@ -2911,6 +2904,18 @@ func p_kuchiyose_tetsuzan(c: Node3D, t: Node3D) -> void:
 		b.add("box", Vector3(0, 3.6, 0), Vector3(0.6, 1.4, 0.6), Color(0.3, 0.28, 0.3))
 		b.add("torus", Vector3(0, 4.5, 0), Vector3(1.4, 1.4, 1.4), Color(0.3, 0.28, 0.3), Vector3(90, 0, 0), 10)
 		return b)
+
+
+## Dev Demir Topuz: gökte çağırma çemberi açılır, çivili dev topuz düşüp krater açar
+func p_kuchiyose_tetsuzan(c: Node3D, t: Node3D) -> void:
+	var center = gp(Jutsu._aim_ground(c, t, 14.0, 32.0))
+	busy(c, 0.8)
+	var sky = center + Vector3.UP * 28.0
+	summon_circle(gp(c.global_position + c.face_dir() * 1.2), 3.0, Color(0.85, 0.3, 0.25), 1.0)   # kanon kuchiyose mührü: avuç yere
+	ground_disc(sky, 6.0, Color(0.85, 0.3, 0.25), 1.0, 2, 12).global_position = sky
+	ground_disc(center, 8.0, Color(1.0, 0.4, 0.3), 1.0, 1, 0)
+	Sfx.play("poof", sky, 0.6)
+	var mesh = _tetsuzan_mesh()
 	var ball = mi_of(mesh)
 	ball.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 	scene_add(ball, sky)
