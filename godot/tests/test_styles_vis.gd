@@ -27,6 +27,10 @@ func _ready() -> void:
 	for st in styles:
 		Game.profile["clan"] = clan_of[st]
 		Game.profile["fight_style"] = st
+		Game.profile["equip"]["sag"] = 0   # tarz silahsız oynar (klan yadigârı silahı kaldır: Hatake tantōsu vb.)
+		Gear.apply_look(Game.profile)
+		pl.rebuild_model()
+		await _w(0.6)
 		print("STY %s key=%s avail=%s" % [st, FightingStyles.player_key(Game.profile), str(FightingStyles.available(Game.profile))])
 		var b0 = base + Vector3(40.0 * n, 0, 0)
 		n += 1

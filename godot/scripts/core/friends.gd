@@ -773,6 +773,31 @@ static func add_person(given: String, look: Dictionary, rank: int, role: String,
 	return id
 
 
+## Unut (İlişkiler > Unut): unutulamayacak biri ise sebebi döner
+static func forget_block(id: String) -> String:
+	var f: Dictionary = all().get(id, {})
+	if f.is_empty():
+		return "Bu kişi zaten listende yok."
+	if romance_of(id) == "eş":
+		return "Eşini unutamazsın."
+	if f.get("pupil", false):
+		return "Öğrencini unutamazsın (öğrenci takımından ayrılınca)."
+	if String(f.get("squad_key", "")) == "sensei" or String(f.get("role", "")) == "teacher":
+		return "Takım hocanı unutamazsın."
+	return ""
+
+
+static func forget(id: String) -> void:
+	if forget_block(id) != "" or not all().has(id):
+		return
+	var nm = String(all()[id].get("name", ""))
+	all().erase(id)
+	for n in Engine.get_main_loop().get_nodes_in_group("talkers") if Engine.get_main_loop() else []:
+		if is_instance_valid(n) and String(n.get_meta("friend_id", "")) == id:
+			n.remove_meta("friend_id")
+	Hud.msg("%s ilişkiler listenden silindi." % nm, Color(0.8, 0.8, 0.85))
+
+
 static func set_party(id: String, on: bool) -> bool:
 	var f: Dictionary = all().get(id, {})
 	if f.is_empty():
@@ -874,6 +899,8 @@ func _life_event() -> void:
 		var teacher = String(f.get("role", "")) == "teacher"
 		if teacher:
 			defect_p = 0.0   # takım hocası köyünü bırakıp kaçmaz
+		if Orgs.is_rogue() and not is_rogue(f):
+			defect_p = 0.0   # sen kaçınca köydeki tanıdıkların da birer birer kaçmasın (kullanıcı: "buna hiç gerek yok")
 		if not teacher and int(f.get("loyalty", 50)) < 30 and b < 70 and randf() < 0.3:
 			_betrayal_event(id)
 		elif r < defect_p:

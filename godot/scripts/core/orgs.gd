@@ -699,6 +699,18 @@ func _village_ban(dt: float) -> void:
 			inside = ""   # Kefaret: kanıtla dönüşte köy saldırmaz
 	if _raid.is_empty():
 		if inside == "":
+			_sneak_t = 0.0
+			_sneak_note = false
+			return
+		# gizlice girdin: biri seni görmedikçe alarm yok (görüş mesafesi, görüş hattı, gece, gizlilik, Henge)
+		if not _sneak_note:
+			_sneak_note = true
+			Hud.msg("%s'e gizlice girdin. Biri seni görürse alarm çalar." % Game.village(inside).get("name", inside), Color(0.85, 0.8, 0.6))
+		if _spotted_by(inside):
+			_sneak_t += dt
+		else:
+			_sneak_t = maxf(0.0, _sneak_t - dt * 0.5)
+		if _sneak_t < 1.2:
 			return
 		_raid = {"vid": inside, "wave": 0, "t": 2.0, "out_t": 0.0, "nodes": [], "kage": false}
 		Hud.banner("KAÇAK KÖYDE!", "%s alarmda: muhafızlar sana saldıracak. Kaldıkça daha güçlüleri gelir — en sonunda Kage." % Game.village(inside).get("name", inside), Color(0.95, 0.25, 0.2))
@@ -713,7 +725,7 @@ func _village_ban(dt: float) -> void:
 		return
 	_raid["out_t"] = 0.0
 	_raid["t"] = float(_raid["t"]) - dt
-	if float(_raid["t"]) > 0.0 or (_raid["nodes"] as Array).size() > 1:
+	if float(_raid["t"]) > 0.0 or (_raid["nodes"] as Array).size() > 0:   # yeni dalga ancak öncekinin hepsi yenilince
 		return
 	var w = int(_raid["wave"])
 	if w < RAID_WAVES.size():
@@ -729,6 +741,32 @@ func _village_ban(dt: float) -> void:
 		_raid["kage"] = false
 		_raid["t"] = 90.0
 		add_infamy(400)
+
+
+var _sneak_t := 0.0
+var _sneak_note := false
+## Kaçak köydeyken onu gören var mı: köylü/NPC görüş mesafesinde, önündeki yarım daire içinde ve görüş hattı açık
+func _spotted_by(_vid: String) -> bool:
+	var pl = Game.player
+	if pl == null or Buffs.has("henge"):
+		return false
+	var tod = Game.world.get_time_of_day() if Game.world else 0.5
+	var night = tod < 0.22 or tod > 0.8
+	var reach = 16.0 * (0.55 if night else 1.0) * maxf(0.35, 1.0 - Stats.skill(Game.profile, "stealth"))
+	var space = pl.get_world_3d().direct_space_state
+	for n in get_tree().get_nodes_in_group("talkers"):
+		if not (n is Node3D) or not is_instance_valid(n) or n.get("dead"):
+			continue
+		var d: Vector3 = pl.global_position - n.global_position
+		if d.length() > reach:
+			continue
+		var fd: Vector3 = n.face_dir() if n.has_method("face_dir") else Vector3.ZERO
+		if fd != Vector3.ZERO and d.length() > 3.0 and Vector2(fd.x, fd.z).normalized().dot(Vector2(d.x, d.z).normalized()) < 0.1:
+			continue   # arkası dönük (yanına sokulursan yine fark eder)
+		var q = PhysicsRayQueryParameters3D.create(n.global_position + Vector3.UP * 1.5, pl.global_position + Vector3.UP * 1.2, 1)
+		if space.intersect_ray(q).is_empty():
+			return true
+	return false
 
 
 ## Köyün ninja arketipi (Konoha/Ame için Kumo şablonu + köyün kıyafeti ve doğası)
@@ -774,17 +812,33 @@ func _raid_kage(vid: String) -> void:
 	var title = Progress.kage_title(vid) if Progress.has_method("kage_title") else "Kage"
 	var a = _village_arch(vid, 0, "jonin")
 	a["respawn"] = false
-	a["name"] = "%s — köyünü koruyor" % title
-	a["level"] = randi_range(85, 100)   # Kage: köyün en güçlüsü, oyuncuya göre küçülmez
-	a["hp"] = 4000.0 + a["level"] * 60.0
-	a["power"] = 3.0 + a["level"] * 0.02
+	# köyün GERÇEK Kage'si (Kage.reign: adı, görünüşü, klanı) — eskiden isimsiz şablondu: 2 temel jutsu, ölünce haber yok
+	var kname = Kage.kage_name(vid)
+	a["name"] = "%s — köyünü koruyor" % kname
+	var lv = randi_range(130, 170)   # dünya ölçeği: Kage, Bingo S-rank dengi
+	Stats.npc_ninja(a, lv, 2.6)
 	a["guard"] = 0.5
 	a["sub"] = 0.35
+	a["skill"] = 0.8
+	var per = Kage.kage_persona(vid)
+	for k in per:
+		a["look"][k] = per[k]
+	var kc = Kage.kage_clan(vid)
+	var js: Array = []
+	if kc != "":
+		a["clan"] = kc
+		js.append_array(ClanWorld.clan_jutsu(kc, lv, 4))   # klanın en üst teknikleri (Yuki Kage -> Hyōton'un son seviyesi)
+	for j in Enemy.auto_jutsu("rogue", String(a.get("element", "katon")), lv):
+		if not j in js:
+			js.append(j)
+	a["jutsu"] = js.slice(0, 7)
+	a["no_clan"] = true
 	BossStyles.dress(a, "S", hash(vid) % 100000, "")
 	var e = Enemy.new()
 	e.setup(a)
 	e.set_meta("village_guard", vid)
 	e.set_meta("faction", vid)
+	e.set_meta("kage_of", vid)   # ölünce Kage.kage_killed: haber + halef
 	get_tree().current_scene.add_child(e)
 	var q = Missions.open_ground(Game.player.global_position + Vector3(0, 0, -28), 15.0)
 	e.global_position = q

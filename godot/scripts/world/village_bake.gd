@@ -79,6 +79,64 @@ static func save(root: Node3D, vid: String, snap: Dictionary) -> void:
 	print("Pişirildi %s: %d ms" % [vid, Time.get_ticks_msec() - t0])
 
 
+## Çok şekilli statik gövdeleri parçala: Jolt bir gövdedeki alt şekil kimlik bitlerini aşınca gövdeyi HİÇ kurmuyor
+## (Konoha'nın pişmiş çarpışması: duvarların içinden geçiliyordu). Her gövde en fazla MAX_SHAPES şekil taşır.
+const MAX_SHAPES := 200
+static func split_bodies(root: Node, into: Node = null) -> int:
+	if root == null or not is_instance_valid(root):
+		return 0
+	var _t0 = Time.get_ticks_msec()
+	var made = 0
+	var list: Array = [root] if root is StaticBody3D else root.find_children("*", "StaticBody3D", true, false)
+	for sb in list:
+		var par: Node = into if into != null else sb.get_parent()
+		# üçgen-mesh şekilleri (ConcavePolygon) bileşikte çok bit yer: her biri kendi gövdesinde (158 bin üçgenlik Konoha zemini)
+		var meshes = sb.get_children().filter(func(ch): return ch is CollisionShape3D and ch.shape is ConcavePolygonShape3D)
+		if sb.get_children().filter(func(ch): return ch is CollisionShape3D or ch is CollisionPolygon3D).size() > 1:
+			for s in meshes:
+				var mb = StaticBody3D.new()
+				mb.collision_layer = sb.collision_layer
+				mb.collision_mask = sb.collision_mask
+				mb.physics_material_override = sb.physics_material_override
+				mb.transform = sb.transform
+				for g in sb.get_groups():
+					mb.add_to_group(g)
+				sb.remove_child(s)
+				mb.add_child(s)   # şekil gövde ağaca girmeden taşınır (ağaçtaki gövdeye her ekleme bileşiği baştan kurar)
+				par.add_child(mb)
+				mb.owner = sb.owner
+				s.owner = sb.owner
+				made += 1
+		var shapes = sb.get_children().filter(func(ch): return ch is CollisionShape3D or ch is CollisionPolygon3D)
+		if shapes.size() <= MAX_SHAPES:
+			continue
+		# SONDAN sök: ortadan/baştan remove_child her seferinde dizi kaydırır (77 bin şekilde 97 sn sürüyordu); sondan O(1)
+		var nb: StaticBody3D = null
+		var cnt = 0
+		for idx in range(shapes.size() - 1, MAX_SHAPES - 1, -1):
+			if nb == null:
+				nb = StaticBody3D.new()
+				nb.collision_layer = sb.collision_layer
+				nb.collision_mask = sb.collision_mask
+				nb.physics_material_override = sb.physics_material_override
+				nb.transform = sb.transform
+				for g in sb.get_groups():
+					nb.add_to_group(g)
+			var s = shapes[idx]
+			sb.remove_child(s)
+			nb.add_child(s)
+			cnt += 1
+			if cnt >= MAX_SHAPES or idx == MAX_SHAPES:
+				par.add_child(nb)
+				nb.owner = sb.owner
+				for ch in nb.get_children():
+					ch.owner = sb.owner
+				made += 1
+				nb = null
+				cnt = 0
+	return made
+
+
 ## Önbellekten yükle; yoksa false (normal kurulum yapılır)
 static func try_load(parent: Node3D, vid: String) -> Node3D:
 	if OS.get_environment("NO_BAKE") != "":
@@ -94,6 +152,7 @@ static func try_load(parent: Node3D, vid: String) -> Node3D:
 	if not ps is PackedScene or not data is Dictionary:
 		return null
 	var root: Node3D = ps.instantiate()
+	split_bodies(root)   # çarpışma: tek gövdede binlerce şekil Jolt'ta kurulamıyordu ("Compound hierarchy is too deep") -> duvarlardan geçiliyordu
 	parent.add_child(root)
 	for it in data["inter"]:
 		Interact.items.append(it)

@@ -324,7 +324,32 @@ func force_successor(vid: String, fid: String, reason: String) -> void:
 		change_relation(vid, 20 if int(f["bond"]) >= 30 else (-25 if int(f["bond"]) <= -30 else 0))
 
 
-func succeed(vid: String) -> void:
+## Kage'nin klanı (reign kaydı; eski kayıtlarda adın soyadından)
+func kage_clan(vid: String) -> String:
+	var r = reign(vid)
+	if r.has("clan"):
+		return String(r["clan"])
+	var nm = String(r.get("name", KAGE_NAMES.get(vid, "")))
+	for c in Data.clans:
+		if c != "none" and ClanWorld.clan_name(c) != "" and nm.begins_with(ClanWorld.clan_name(c)):
+			return c
+	return ""
+
+
+## Kage savaşta öldü (baskında oyuncu öldürdü): herkese haber, köy yas tutar, halef seçilir
+func kage_killed(vid: String, by_player: bool) -> void:
+	var old = kage_name(vid)
+	var vn = String(Game.village(vid).get("name", vid))
+	Hud.banner("%s ÖLDÜ" % old.to_upper(), "%s'in lideri %s." % [vn, "senin elinden düştü" if by_player else "savaşta düştü"], Color(0.9, 0.2, 0.2))
+	Journal.add("%s'i öldürdüm." % old if by_player else "%s öldü." % old, "milestone")
+	TailedBeasts._news("HABER", "%s öldü! %s yasta." % [old, vn])
+	if by_player:
+		Orgs.add_infamy(800)
+		change_relation(vid, -60)
+	succeed(vid, "savaşta öldürüldü")
+
+
+func succeed(vid: String, why := "") -> void:
 	if not p().has("reigns"):
 		p()["reigns"] = {}
 	var old = kage_name(vid)
@@ -354,13 +379,19 @@ func succeed(vid: String) -> void:
 			if c != "none" and vid in Data.clans[c].get("villages", []) and not c in Progress.UNPLAYABLE_CLANS:
 				clans.append(c)
 		var fem = randf() < 0.3
-		who = ClanWorld.person_name(clans.pick_random(), fem) if not clans.is_empty() else "%s %s" % [String(Missions.BB_FAMILY.pick_random()), (ClanWorld.GIVEN_F if fem else ClanWorld.GIVEN_M).pick_random()]
+		var kclan = String(clans.pick_random()) if not clans.is_empty() else ""
+		who = ClanWorld.person_name(kclan, fem) if kclan != "" else "%s %s" % [String(Missions.BB_FAMILY.pick_random()), (ClanWorld.GIVEN_F if fem else ClanWorld.GIVEN_M).pick_random()]
 		var hc = [Color(0.1, 0.1, 0.12), Color(0.82, 0.82, 0.84), Color(0.35, 0.22, 0.12), Color(0.6, 0.2, 0.15), Color(0.85, 0.8, 0.5)].pick_random()
 		persona = {"gender": "f" if fem else "m", "hair": [hc.r, hc.g, hc.b], "hair_style": ["geriye", "kısa", "uzun", "diken", "topuz", "savas_yelesi", "bilge_yelesi"].pick_random(),
 			"beard": not fem and randf() < 0.5}
 	p()["reigns"][vid] = {"name": who, "gen": gen, "persona": persona, "friend": fid}
+	if fid == "" and who != "":
+		for c2 in Data.clans:
+			if c2 != "none" and ClanWorld.clan_name(c2) != "" and who.begins_with(ClanWorld.clan_name(c2)):
+				p()["reigns"][vid]["clan"] = c2   # Kage'nin klanı: baskında klanının en güçlü teknikleriyle dövüşür
+				break
 	var vn = String(Game.village(vid).get("name", vid))
-	Hud.banner("YENİ %s: %s" % [title.to_upper(), who.to_upper()], "%s %s. %s'in %d. %s'i yemin etti." % [old, REIGN_REASONS.pick_random(), vn, gen, title], Color(1, 0.8, 0.45))
+	Hud.banner("YENİ %s: %s" % [title.to_upper(), who.to_upper()], "%s %s. %s'in %d. %s'i yemin etti." % [old, why if why != "" else REIGN_REASONS.pick_random(), vn, gen, title], Color(1, 0.8, 0.45))
 	if is_kage():
 		add_log("%s: %s yeni %s oldu." % [vn, who, title])
 	# yeni liderin sana bakışı köyler arası ilişkiyi kaydırır

@@ -199,7 +199,10 @@ func talk() -> void:
 	var line = _lines().pick_random()
 	if fid != "" and Friends.all().has(fid):
 		line = Friends.greeting(fid)
-	Hud.dialog(display, line, Friends.options_for(self) + (Friends.small_talk(self) if fid == "" else []) + Crime.attack_option(self))
+	var extra = []
+	if has_meta("jinchuriki_of"):   # köyün jinchūriki'si: saldırılabilir; yenilince canavar bedeninden fışkırır (mühürle / salıver)
+		extra.append({"label": "Saldır! (içindeki canavarı al — köyde suç)", "cb": func(): TailedBeasts.attack_host(self)})
+	Hud.dialog(display, line, Friends.options_for(self) + (Friends.small_talk(self) if fid == "" else []) + extra + ([] if has_meta("jinchuriki_of") else Crime.attack_option(self)))
 
 
 ## Kafanın üstünde kısa konuşma balonu

@@ -35,7 +35,7 @@ static func _ramp(b: Builder, x: float, n0: float, y0: float, n1: float, y1: flo
 	sh.size = Vector3(wd, 0.4, L)
 	cs.shape = sh
 	cs.transform = Transform3D(basis, mid - basis.y * 0.2)
-	b.body.add_child(cs)
+	b.add_shape(cs)
 
 
 static func _site(vid: String, d: Dictionary) -> void:

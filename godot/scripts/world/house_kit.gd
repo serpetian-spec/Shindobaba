@@ -470,6 +470,19 @@ class Placer:
 	var dets := {}
 	var body: StaticBody3D
 	var view := 1500.0
+	var old_bodies: Array = []   # dolan gövdeler (her biri <= 200 şekil; Jolt tek gövdede binlerce şekli kuramıyor)
+
+	## Yeni ev başlamadan: gövde doluysa yenisine geç (ağaca girmemiş gövdeler finish()'te eklenir)
+	func _rot() -> void:
+		if is_instance_valid(body) and body.get_child_count() >= 200:
+			if body.is_inside_tree():
+				body = StaticBody3D.new()
+				body.collision_layer = 1
+				parent.add_child(body)
+			else:
+				old_bodies.append(body)
+				body = StaticBody3D.new()
+				body.collision_layer = 1
 
 	func _init(p: Node3D, k: String) -> void:
 		parent = p
@@ -494,6 +507,7 @@ class Placer:
 				if not pack_items.has(e[0]):
 					pack_items[e[0]] = []
 				pack_items[e[0]].append(xf2)
+				_rot()
 				var cs2 = CollisionShape3D.new()
 				var sh2 = BoxShape3D.new()
 				sh2.size = Vector3(sz.x * 0.9, sz.y, sz.z * 0.9) * scale
@@ -520,6 +534,7 @@ class Placer:
 			force_ti = -1
 		var t: Dictionary = HouseKit.templates[ti]
 		var xf = Transform3D(Basis(Vector3.UP, deg_to_rad(-yaw) + PI).scaled(Vector3.ONE * scale), pos)
+		_rot()
 		var rec = {"pos": pos, "basis": xf.basis, "ti": ti, "scale": scale, "wall": wall_col, "roof": roof_col, "body": body, "mm": [], "shapes": []}
 		recs.append(rec)
 		for pair in [[walls, wall_col], [roofs, roof_col], [dets, Color(1, 1, 1)]]:
@@ -571,6 +586,10 @@ class Placer:
 		return t
 
 	func finish() -> void:
+		for ob in old_bodies:
+			if is_instance_valid(ob) and ob.get_parent() == null and is_instance_valid(parent):
+				parent.add_child(ob)
+		old_bodies.clear()
 		if is_instance_valid(body) and body.get_parent() == null and is_instance_valid(parent):
 			parent.add_child(body)
 		for pm in pack_items:

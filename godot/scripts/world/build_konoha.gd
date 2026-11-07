@@ -791,7 +791,7 @@ static func _relief_head(b: Builder, fx: float, fy: float, cliff_n: float, H: fl
 	if is_instance_valid(b.body):
 		var cs = CollisionShape3D.new()
 		cs.shape = mesh.create_trimesh_shape()
-		b.body.add_child(cs)
+		b.add_shape(cs)
 		cs.global_transform = Transform3D.IDENTITY if cs.is_inside_tree() else Transform3D.IDENTITY
 
 

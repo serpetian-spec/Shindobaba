@@ -54,6 +54,10 @@ func _init(parent: Node3D, map_x: float, map_y: float, base_h: float, name := "Y
 	# gövde sahneye finish()'te eklenir: ağaçtaki bir gövdeye her şekil eklemek fizik sunucusunda tüm şekilleri
 	# yeniden kurar (O(n²)); Konoha'nın ~20 bin kutusu açılışı ~40 sn uzatıyordu
 	root.tree_exiting.connect(func(): if is_instance_valid(body) and body.get_parent() == null: body.free())
+	root.tree_exiting.connect(func():
+		for eb in extra_bodies:
+			if is_instance_valid(eb) and eb.get_parent() == null:
+				eb.free())
 
 
 ## yerel (x, y, n) -> Godot dünya
@@ -110,6 +114,40 @@ static func _msz(v: Vector3) -> float:
 	return maxf(absf(v.x), maxf(absf(v.y), absf(v.z)))
 
 
+## Çarpışma şekli ekle: gövde başına en fazla BODY_MAX şekil, üçgen-mesh (ConcavePolygon) kendi gövdesinde. Jolt tek gövdede
+## binlerce şekli / dev mesh içeren bileşiği kuramıyor ("Compound hierarchy is too deep") ve o gövde HİÇ çarpışmıyordu:
+## Konoha'nın ~77 bin şekli tek gövdedeydi -> duvarların içinden geçiliyordu.
+const BODY_MAX := 200
+var extra_bodies: Array = []
+var _body_n := 0
+func add_shape(cs: CollisionShape3D) -> void:
+	if not is_instance_valid(body):
+		return
+	if cs.shape is ConcavePolygonShape3D:
+		var mb = _new_body()
+		mb.add_child(cs)
+		extra_bodies.append(mb)
+		if body.is_inside_tree():
+			root.add_child(mb)
+		return
+	if _body_n >= BODY_MAX:
+		if body.is_inside_tree():
+			body = _new_body()
+			root.add_child(body)
+		else:
+			extra_bodies.append(body)
+			body = _new_body()
+		_body_n = 0
+	body.add_child(cs)
+	_body_n += 1
+
+
+func _new_body() -> StaticBody3D:
+	var b = StaticBody3D.new()
+	b.collision_layer = 1
+	return b
+
+
 func _collide(center: Vector3, size: Vector3, yaw_deg: float) -> void:
 	if not is_instance_valid(body):
 		return  # akışla kurulan yer yarıda silindi
@@ -118,7 +156,7 @@ func _collide(center: Vector3, size: Vector3, yaw_deg: float) -> void:
 	sh.size = size
 	cs.shape = sh
 	cs.transform = Transform3D(Basis(Vector3.UP, deg_to_rad(yaw_deg)), center)
-	body.add_child(cs)
+	add_shape(cs)
 	add_solid(center, size.x * 0.5, size.z * 0.5, deg_to_rad(yaw_deg))
 
 
@@ -130,7 +168,7 @@ func _collide_convex(center: Vector3, pts: PackedVector3Array, r: float) -> void
 	sh.points = pts
 	cs.shape = sh
 	cs.position = center
-	body.add_child(cs)
+	add_shape(cs)
 	add_solid(center, r, r, 0.0)
 
 
@@ -150,7 +188,7 @@ func tree_limbs(m: Mesh, local_pos: Vector3, rot_deg: float, sc: float) -> void:
 		cs.shape = cap
 		var lx = AnimeTree.limb_xf(a, b)
 		cs.transform = Transform3D(base.basis.orthonormalized() * lx.basis, base * lx.origin)
-		body.add_child(cs)
+		add_shape(cs)
 
 
 func _collide_cyl(center: Vector3, r: float, h: float) -> void:
@@ -162,7 +200,7 @@ func _collide_cyl(center: Vector3, r: float, h: float) -> void:
 	sh.height = h
 	cs.shape = sh
 	cs.position = center
-	body.add_child(cs)
+	add_shape(cs)
 	add_solid(center, r, r, 0.0)
 
 
@@ -371,6 +409,9 @@ func interact(p: Vector3, radius: float, kind: String, label: String, data := {}
 func finish() -> void:
 	if not is_instance_valid(root):
 		return
+	for eb in extra_bodies:
+		if is_instance_valid(eb) and eb.get_parent() == null:
+			root.add_child(eb)
 	if is_instance_valid(body) and body.get_parent() == null:
 		root.add_child(body)
 	if landscape and landscape_on and houses.size() >= 12 and not key.begins_with("yolkenari"):
@@ -440,7 +481,7 @@ func finish() -> void:
 		root.add_child(mi)
 	cells.clear()
 	cap_ranges(root, view_dist)
-	cap_ranges.call_deferred(root, view_dist)   # finish()'ten hemen sonra eklenenler (yol ustaları, heykeller)
+	cap_ranges.call_deferred(root, view_dist)
 
 
 ## Görünürlük mesafesi verilmemiş geometri (taş Hokage kafaları / Sonun Vadisi heykelleri = CharacterModel, şehir süsleri,

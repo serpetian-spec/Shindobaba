@@ -650,7 +650,7 @@ func _chase(dt: float) -> void:
 			ready = ready.filter(func(id): return String(Data.jutsu.get(id, {}).get("category", "")) == "taijutsu")
 		ready = ready.filter(func(id): return (stamina >= Stats.tai_stamina_cost(Data.jutsu.get(id, {}))) if Stats.is_taijutsu(Data.jutsu.get(id, {})) else chakra >= jutsu_cost(id))   # chakrası/staminası yetmeyen teknik atılmaz
 		if not ready.is_empty() and nowj >= jgap and randf() < 0.85:
-			var pick = String(ready.pick_random())
+			var pick = _pick_jutsu(ready)
 			if Stats.is_taijutsu(Data.jutsu.get(pick, {})):
 				stamina -= Stats.tai_stamina_cost(Data.jutsu.get(pick, {}))
 				_stam_rest = 0.0
@@ -723,6 +723,24 @@ func _chase(dt: float) -> void:
 			Eyes.warn_attack(self)   # açık Sharingan hamleyi önceden görür (kırmızı iz)
 			state_t = 0.0
 			_swing()
+
+
+## Teknik seçimi: rütbe ağırlıklı (S/A teknikleri, ustalık arttıkça daha sık) — eskiden düz rastgeleydi: Kage/S-rank
+## en güçlü klan tekniğini bilse de zayıfları aynı sıklıkla atıyordu. Bekleme süreleri yine geçerli (aynı teknik art arda gelmez).
+func _pick_jutsu(ready: Array) -> String:
+	var total = 0.0
+	var ws = []
+	for id in ready:
+		var r = float(RANK_I.get(String(Data.jutsu.get(id, {}).get("canon_rank", "C")), 2))
+		var w = pow(1.0 + r, 1.0 + skill * 2.0)   # usta: S tekniği (r=5) zayıfa göre çok daha olası
+		ws.append(w)
+		total += w
+	var x = randf() * total
+	for i in ready.size():
+		x -= ws[i]
+		if x <= 0.0:
+			return String(ready[i])
+	return String(ready.back())
 
 
 func _is_ninja() -> bool:
@@ -1248,6 +1266,14 @@ func die(info: Dictionary) -> void:
 	if not info.get("execute", false) and PathJutsu.izanagi_rewrite(self):
 		return   # açık İzanagi: ölüm yanılsamaydı
 	PathJutsu.ura_shisho_trigger(self)   # Ura Shishō Fūin: ölünce kara küre (oyuncuyla aynı)
+	if has_meta("kage_of"):   # köyün Kage'si düştü: haber + halef
+		Kage.kage_killed(String(get_meta("kage_of")), info.get("attacker") == Game.player or Game.player != null and global_position.distance_to(Game.player.global_position) < 60.0)
+		remove_meta("kage_of")
+	if has_meta("host_beast"):   # köyün jinchūriki'si yenildi: canavar bedeninden fışkırır (mühürle / salıver)
+		var bid = String(get_meta("host_beast"))
+		var at0 = global_position
+		remove_meta("host_beast")
+		get_tree().create_timer(2.5).timeout.connect(func(): TailedBeasts.release_from_host(bid, at0))
 	if has_token:
 		has_token = false
 		attack_tokens = maxi(0, attack_tokens - 1)

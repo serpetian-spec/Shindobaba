@@ -977,6 +977,17 @@ static func _friends_card(main: Node, left: Control) -> void:
 				ninja_menu(main, "relations"), 260, "person"))
 		else:
 			fv.add_child(UI.label("Takıma katılması için bağ %d olmalı: köyde rastlayınca sohbet et, hediye ver, dostça düello yap." % Friends.JOIN_BOND, 13, UI.MUTED))
+	# Unut: ilişkiler listesinden kaldır (onay ister; eş, öğrenci ve takım hocası unutulmaz)
+	fv.add_child(UI.button("Unut", func():
+		var why = Friends.forget_block(id)
+		if why != "":
+			Hud.msg(why, Color(1, 0.7, 0.45))
+			return
+		Hud.dialog("Unut", "%s ilişkiler listenden silinsin mi? Geri alınamaz." % String(f["name"]), [
+			{"label": "Evet, unut", "cb": func():
+				Friends.forget(id)
+				ninja_menu(main, "relations")},
+			{"label": "Vazgeç", "cb": func(): pass}]), 260, "person"))
 
 
 ## Başlık + ◀ Ad (n/N) ▶ satırı; on_pick(yeni_indeks). Seçenekler hep böyle oklarla gezilir, tek tek dizilmez

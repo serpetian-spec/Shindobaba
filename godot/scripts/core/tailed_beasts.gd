@@ -662,6 +662,44 @@ func _host_npcs() -> void:
 			host_npcs.erase(id)
 
 
+## Köydeki jinchūriki'ye saldırı: köylü NPC gerçek jinchūriki düşmanına döner (canavarının teknikleri, pelerin aşamaları —
+## Bingo kaçak jinchūriki'siyle aynı kurulum). Yenilince release_from_host: canavar fışkırır, mühürle ya da salıver [F].
+func attack_host(vg: Node3D) -> void:
+	if vg == null or not is_instance_valid(vg):
+		return
+	var id = String(vg.get_meta("jinchuriki_of", ""))
+	var h: Dictionary = host_of(id)
+	if id == "" or h.is_empty():
+		return
+	var at = vg.global_position
+	var vid = String(h.get("village", "konoha"))
+	var a = Enemy.archetype("jinchuriki", 0)
+	var lv = int(h.get("level", 90 + LAIRS.keys().find(id) * 8))
+	Stats.npc_ninja(a, lv, 1.6)
+	a["name"] = "%s (%s jinchūriki)" % [String(h.get("name", "Jinchūriki")), _bname(id)]
+	a["beast"] = id
+	a["respawn"] = false
+	a["no_clan"] = true
+	a["skill"] = clampf(0.25 + lv * 0.005, 0.3, 0.85)
+	a["look"]["gender"] = String(h.get("gender", "m"))
+	a["look"]["village"] = vid
+	var e = Enemy.new()
+	e.setup(a)
+	e.adopt_model(vg)
+	get_tree().current_scene.add_child(e)
+	e.global_position = at
+	e.home = at
+	e.team = "enemy"
+	e.target = Game.player
+	e.state = "chase"
+	e.set_meta("host_beast", id)
+	host_npcs.erase(id)
+	vg.queue_free()
+	Hud.banner("JINCHŪRIKI", "%s içindeki %s'in gücünü serbest bırakıyor!" % [String(h.get("name", "")), _bname(id)], BeastModels.INFO.get(id, {}).get("chakra", Color(1, 0.6, 0.3)))
+	if not Orgs.is_rogue():
+		Crime.commit(Crime.ATTACK, "Köyün jinchūriki'sine saldırdın", at, vid)
+
+
 ## Dünya haritası listesi: [ad, canavar, köy adı, köy id] (yalnız köyünde yaşayan taşıyıcılar)
 func host_list() -> Array:
 	var out = []

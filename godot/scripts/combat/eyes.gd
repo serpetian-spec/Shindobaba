@@ -276,7 +276,9 @@ func handle_input(e: InputEvent) -> bool:
 		var held = v_held
 		v_held = -1.0
 		if held < 0.45:
-			if active and has_ms() and not ms_on and (blind() < 1.0 or _ems()):   # kör göz Mangekyō'ya geçemez: V doğrudan kapatır
+			if not active and _ems():   # Ebedi Mangekyō: 3 tomoe aşaması yok, V doğrudan Ebedi'yi açar (diğer göz — Byakugan vb. — birlikte açık kalır)
+				open_ms()
+			elif active and has_ms() and not ms_on and (blind() < 1.0 or _ems()):   # kör göz Mangekyō'ya geçemez: V doğrudan kapatır
 				open_ms()
 			else:
 				toggle()
@@ -444,9 +446,9 @@ func open_ms() -> void:
 	if blind() >= 1.0 and not _ems():
 		Hud.msg("Gözlerin kör: Mangekyō açılmıyor. Ebedi Mangekyō gerek.", Color(1, 0.45, 0.45))
 		return
+	ms_on = true   # toggle'dan önce: açılış mesajı ve görünüş doğrudan Mangekyō/Ebedi olsun
 	if not active:
 		toggle()
-	ms_on = true
 	Sfx.play("sharingan", null)
 	_eye_closeup(4)
 	FX.ring(p.global_position + Vector3.UP * 1.5, Color(0.8, 0.02, 0.05), 3.2, 0.4, false, -p.face_dir())
@@ -617,8 +619,9 @@ func _genjutsu_gaze(t: Node3D, stun: float, dmg: float) -> void:
 		Hud.msg("Göz göze gelecek hedef yok.", Color(0.8, 0.8, 0.8))
 		return
 	var gm = 1.0 + Stats.skill(Game.profile, "gen_power")
-	t.apply_status("stun", stun * gm)
-	dmg *= gm
+	var gmas = Mastery.get_v(Game.profile, "genjutsu")   # genjutsu ustalığı göz genjutsusunu da büyütür (hasar + süre)
+	t.apply_status("stun", stun * gm * (1.0 + minf(gmas * 0.01, 0.8)))
+	dmg *= gm * (1.0 + gmas * 0.045)
 	if dmg > 0.0:
 		t.take_hit({"dmg": (dmg) * _eye_pow(), "knock": 0.0, "kind": "light", "dir": p.face_dir(), "element": ""})
 	FX.ring(t.global_position + Vector3.UP * 1.6, Color(0.9, 0.05, 0.05), 1.6, 0.6, false, (p.global_position - t.global_position).normalized())

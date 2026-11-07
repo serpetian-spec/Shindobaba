@@ -57,6 +57,7 @@ class VillageStream extends Node3D:
 			for ch in node.get_children():
 				ch.reparent(bake_root, false)
 			node.add_child(bake_root)
+			VillageBake.split_bodies(bake_root)
 			VillageBake.save(bake_root, id, snap)
 		rec["done"] = true
 
