@@ -80,6 +80,12 @@ const TABLE := {
 	"style_jin_shukaku": [preload("res://scripts/combat/style_jin_shukaku_anim.gd"), 0.95],
 	"style_jin_matatabi": [preload("res://scripts/combat/style_jin_matatabi_anim.gd"), 1.15],
 	"style_jin_isobu": [preload("res://scripts/combat/style_jin_isobu_anim.gd"), 1.0],
+	"style_jin_son_goku": [preload("res://scripts/combat/style_jin_son_goku_anim.gd"), 0.95],
+	"style_jin_kokuo": [preload("res://scripts/combat/style_jin_kokuo_anim.gd"), 1.05],
+	"style_jin_saiken": [preload("res://scripts/combat/style_jin_saiken_anim.gd"), 1.0],
+	"style_jin_chomei": [preload("res://scripts/combat/style_jin_chomei_anim.gd"), 1.1],
+	"style_jin_gyuki": [preload("res://scripts/combat/style_jin_gyuki_anim.gd"), 1.0],
+	"style_jin_kurama": [preload("res://scripts/combat/style_jin_kurama_anim.gd"), 1.1],
 }
 ## uzun menzil silahları: yapay zekâ uzakta durup atar (Enemy._chase)
 const RANGED := ["fuma_shuriken", "kyodai_shuriken", "fuma_makimono", "senbon", "mateki"]   # mateki: genjutsu flütü, uzakta durup çalar
@@ -88,7 +94,7 @@ const MASS := {"temari_ogi": 0.65, "uc_tirpan": 1.0, "samehada": 0.9, "kabutowar
 	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3, "tonfa": 0.3, "bashosen": 0.35, "kubikiribocho": 0.95, "yagura_sopa": 0.4, "yelpaze": 0.6, "kongo_asa": 0.45, "kama": 0.75, "pence": 0.15, "senbon": 0.05, "hiramekarei": 0.7, "bo": 0.35, "kiba": 0.25, "tanto": 0.1, "hakko_chakura_to": 0.08, "mateki": 0.06, "wakizashi": 0.25, "nodachi": 0.7, "musta": 0.15,
 	"style_juken": 0.08, "style_akimichi": 0.65, "style_inuzuka": 0.12, "style_kaguya": 0.2,
 	"style_uchiha": 0.1, "style_hozuki": 0.3, "style_aburame": 0.05, "style_jugo": 0.7,
-	"style_yuki": 0.05, "style_sabaku": 0.05, "style_uzumaki": 0.1, "style_yotsuki": 0.3, "style_kamizuru": 0.05, "style_iburi": 0.05, "style_kurosuki": 0.15, "style_senju": 0.45, "style_sarutobi": 0.12, "style_hatake": 0.1, "style_nara": 0.05, "style_kapi": 0.15, "style_kil": 0.05, "style_akasuna": 0.05, "style_kagit": 0.05, "style_sumi": 0.05, "style_yilan": 0.1, "style_gama": 0.2, "style_chidori": 0.1, "style_hiraishin": 0.05, "style_tip": 0.12, "style_kakuzu": 0.3, "style_jashin": 0.5, "style_hachibi": 0.35, "style_silah": 0.1, "style_jin_shukaku": 0.5, "style_jin_matatabi": 0.15, "style_jin_isobu": 0.3}
+	"style_yuki": 0.05, "style_sabaku": 0.05, "style_uzumaki": 0.1, "style_yotsuki": 0.3, "style_kamizuru": 0.05, "style_iburi": 0.05, "style_kurosuki": 0.15, "style_senju": 0.45, "style_sarutobi": 0.12, "style_hatake": 0.1, "style_nara": 0.05, "style_kapi": 0.15, "style_kil": 0.05, "style_akasuna": 0.05, "style_kagit": 0.05, "style_sumi": 0.05, "style_yilan": 0.1, "style_gama": 0.2, "style_chidori": 0.1, "style_hiraishin": 0.05, "style_tip": 0.12, "style_kakuzu": 0.3, "style_jashin": 0.5, "style_hachibi": 0.35, "style_silah": 0.1, "style_jin_shukaku": 0.5, "style_jin_matatabi": 0.15, "style_jin_isobu": 0.3, "style_jin_son_goku": 0.45, "style_jin_kokuo": 0.3, "style_jin_saiken": 0.1, "style_jin_chomei": 0.1, "style_jin_gyuki": 0.4, "style_jin_kurama": 0.3}
 
 
 static func mass(id: String) -> float:
@@ -190,8 +196,23 @@ static func mods(id: String, i: int) -> Dictionary:
 			if i in [2, 3]:
 				m["lunge_mul"] = 0.0
 			return m
-		"style_jin_isobu":
+		"style_jin_kurama":   # pençeler yakın (atılır), kollar/kükreme/top orta
+			var m = {"lunge_mul": 0.9, "special": "", "knock": 1.0, "reach_add": -9.0}
+			if i >= 2:
+				m["lunge_mul"] = 0.0
+			return m
+		"style_jin_isobu", "style_jin_saiken", "style_jin_chomei", "style_jin_gyuki":
 			return {"lunge_mul": 0.0, "special": "", "knock": 1.0, "reach_add": -9.0}
+		"style_jin_son_goku":   # lav yumrukları yakın (atılır); lav kayası/fışkırma orta
+			var m = {"lunge_mul": 0.8, "special": "", "knock": 1.0, "reach_add": -9.0}
+			if i in [2, 3, 4]:
+				m["lunge_mul"] = 0.0
+			return m
+		"style_jin_kokuo":   # tekmeci: yakın, atılgan; hücum ve roket tekme kendi hareketiyle
+			var m = {"lunge_mul": 0.9, "special": "", "knock": 1.0, "reach_add": -9.0}
+			if i in [2, 3, 4, 5]:
+				m["lunge_mul"] = 0.0
+			return m
 		"style_jashin", "style_hachibi", "style_silah":   # tüm vuruşlar kendi sanatından (on_strike): yürüyerek atılmaz
 			return {"lunge_mul": 0.0, "special": "", "knock": 1.0, "reach_add": -9.0}
 		"style_hiraishin":   # ışınlanır, yürüyerek yanaşmaz: tüm vuruşlar kunai/flaş sanatından (on_strike)
@@ -2889,6 +2910,34 @@ static func _style_start(id: String, i: int, who: Node3D) -> void:
 				_blue_claws(who, i != 1, i != 0, 0.45 / speed(id))
 		"style_jin_isobu":
 			ov.fist = {"Right": -0.8, "Left": -0.8}
+		"style_jin_son_goku":
+			ov.fist = {"Right": 1.0, "Left": 1.0}
+			if i in [0, 5]:
+				_lava_fist(who, "RightHand", (0.24 if i == 0 else 0.64) / speed(id) + 0.2)
+			elif i == 1:
+				_lava_fist(who, "LeftHand", 0.24 / speed(id) + 0.2)
+		"style_jin_kokuo":
+			ov.fist = {"Right": 1.0, "Left": 1.0}
+			if i == 5:   # Kōjōki: sırttaki kazandan buhar fışkırır, roket gibi öne
+				who.get_tree().create_timer(0.5 / speed(id)).timeout.connect(func():
+					if is_instance_valid(who) and int(who.get_meta("style_tok", 0)) == tok:
+						_steam_rocket(who, 0.22))
+		"style_jin_saiken":
+			ov.fist = {"Right": -0.8, "Left": -0.8}
+		"style_jin_chomei":
+			ov.fist = {"Right": -0.8, "Left": -0.8}
+			if i in [0, 1, 4, 5]:   # sırttan şeffaf böcek kanatları açılır
+				_bug_wings(who, (0.5 if i < 2 else 0.85) / speed(id))
+			if i == 4 and who is CharacterBody3D:   # kanatla sıçra
+				who.velocity.y = 8.0
+		"style_jin_gyuki":
+			ov.fist = {"Right": 1.0, "Left": 1.0}
+			FX.aura(who, Color(0.65, 0.35, 0.75), 1.1, Vector3(0, 0.9, 0), 0.6 / speed(id))   # Gyūki'nin mor chakra örtüsü
+		"style_jin_kurama":
+			ov.fist = {"Right": -0.4, "Left": -0.4}
+			FX.aura(who, Color(1.0, 0.55, 0.15), 1.1, Vector3(0, 0.9, 0), 0.6 / speed(id))   # Kurama'nın turuncu chakra örtüsü
+			if i == 5:
+				_rasen_hand(who, 0.68 / speed(id))
 		"style_jashin":
 			ov.fist = {"Right": 1.0, "Left": -0.5}
 			if i in [1, 4, 5]:   # elde kara mızrak (geri çekilebilir)
@@ -3369,7 +3418,7 @@ static func _sand_arm(who: Node3D, dur: float) -> void:
 
 
 ## Kedi pençesi izi: üç paralel mavi alev kesiği (çapraz; right = sağ üstten sol alta)
-static func _cat_claw(who: Node3D, at: Vector3, f: Vector3, right: bool, r: float) -> void:
+static func _cat_claw(who: Node3D, at: Vector3, f: Vector3, right: bool, r: float, col := Color(0.25, 0.5, 1.0, 0.85)) -> void:
 	var pj = PathJutsu.get_pinst()
 	if pj == null:
 		return
@@ -3383,9 +3432,9 @@ static func _cat_claw(who: Node3D, at: Vector3, f: Vector3, right: bool, r: floa
 	mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-	mat.albedo_color = Color(0.25, 0.5, 1.0, 0.85)
+	mat.albedo_color = col
 	mat.emission_enabled = true
-	mat.emission = Color(0.1, 0.25, 0.9)
+	mat.emission = Color(col.r * 0.4, col.g * 0.4, col.b * 0.9)
 	mat.emission_energy_multiplier = 0.6
 	for k in 3:
 		var arc = MeshInstance3D.new()
@@ -3401,6 +3450,93 @@ static func _cat_claw(who: Node3D, at: Vector3, f: Vector3, right: bool, r: floa
 		tw.tween_interval(k * 0.03)
 		tw.tween_property(arc, "scale", Vector3(r * 0.8, r * 0.25, r * 1.1), 0.3).set_trans(Tween.TRANS_QUAD)
 		tw.tween_callback(arc.queue_free)
+
+
+## Rōshi: yumruğu saran erimiş lav (kemiğe bağlı pürüzlü lav kütlesi + damlalar), dur sn
+static func _lava_fist(who: Node3D, bone: String, dur: float) -> void:
+	var pj = PathJutsu.get_pinst()
+	if pj == null:
+		return
+	var ba = pj.bone_attach(who, bone)
+	if ba == null:
+		return
+	var lb = MB.new()
+	lb.add("boulder", Vector3.ZERO, Vector3.ONE, Color.WHITE, Vector3.ZERO, 2)
+	var mi = MeshInstance3D.new()
+	mi.mesh = lb.build(null)
+	mi.material_override = VFX.lava_mat("molten")
+	mi.position = Vector3(0, 0.08, 0.02)
+	mi.scale = Vector3(0.085, 0.1, 0.085)
+	ba.add_child(mi)
+	who.get_tree().create_timer(dur).timeout.connect(func():
+		if is_instance_valid(ba):
+			ba.queue_free())
+
+
+## Han: Kōjōki — sırttan buhar jeti, kısa roket atılış (en yakın rakibe)
+static func _steam_rocket(who: Node3D, dur: float) -> void:
+	var tg = _near_foe(who, 10.0)
+	var from = who.global_position
+	var f = who.face_dir() if who.has_method("face_dir") else Vector3.FORWARD
+	var to = (tg.global_position - (tg.global_position - from).normalized() * 1.0) if tg else from + f * 6.0
+	to.y = Game.ground_height(to.x, to.z)
+	for k in 4:
+		who.get_tree().create_timer(dur * k / 4.0).timeout.connect(func():
+			if is_instance_valid(who):
+				BijuuArts._steam_cloud(who.global_position + Vector3.UP * 1.2 - who.face_dir() * 0.6, 0.25, 0.7, 0.7))
+	FX.speed_lines(from + Vector3.UP, (to - from).normalized())
+	who.create_tween().tween_property(who, "global_position", to, dur).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
+
+## Utakata: hedefi içine alan köpük balon (Saiken baloncuğu malzemesi), dur sn bağlı kalır, sonra patlar
+static func _bubble_trap(who: Node3D, tg: Node3D, dur: float) -> void:
+	var bub = MeshInstance3D.new()
+	bub.mesh = VFX._sphere(0.5, 20, 10)
+	bub.material_override = BijuuArts._glass(Color(0.85, 1.0, 0.95), 0.4, 0.25)
+	tg.add_child(bub)
+	var h = float(tg.get("height")) if tg.get("height") != null else 1.8
+	bub.position = Vector3.UP * h * 0.5
+	bub.scale = Vector3.ONE * 0.2
+	var tw = bub.create_tween()
+	tw.tween_property(bub, "scale", Vector3.ONE * h * 1.3, 0.25).set_trans(Tween.TRANS_BACK)
+	tw.tween_interval(dur)
+	tw.tween_callback(func():
+		if is_instance_valid(bub):
+			VFX.puffs(bub.global_position, {"amount": 14, "life": 0.6, "size": 0.6, "radius": 0.6, "vmin": 3, "vmax": 7, "gravity": Vector3(0, -10, 0), "colors": [Color(0.95, 1, 1, 1), Color(0.75, 0.95, 0.9, 0)]})
+			bub.queue_free())
+	if tg.has_method("apply_status"):
+		tg.apply_status("bind", dur)
+	Combat.popup_text(tg.global_position + Vector3.UP * (h + 0.8), "KÖPÜĞE HAPSOLDU!", Color(0.75, 0.95, 0.9))
+
+
+## Fū: sırttan dört şeffaf böcek kanadı (Chōmei kanat malzemesi), hızla çırpar, dur sn
+static func _bug_wings(who: Node3D, dur: float) -> void:
+	var mat = BijuuArts._glass(Color(0.55, 0.85, 1.0), 0.45, 0.6)
+	var wings = []
+	for k in 4:
+		var piv = Node3D.new()
+		who.add_child(piv)
+		piv.position = Vector3(0, 1.35 - (k / 2) * 0.25, 0.18)
+		piv.rotation.y = (who.get("facing") if who.get("facing") != null else 0.0)
+		var wing = MeshInstance3D.new()
+		wing.mesh = VFX._sphere(0.5, 10, 5)
+		wing.material_override = mat
+		var sx = -1.0 if k % 2 == 0 else 1.0
+		wing.position = Vector3(sx * 0.6, 0.12, 0.15)
+		wing.scale = Vector3(1.1, 0.04, 0.4) * (1.0 - (k / 2) * 0.25)
+		piv.add_child(wing)
+		wings.append(piv)
+	var n = int(dur / 0.04)
+	for t in n:
+		who.get_tree().create_timer(t * 0.04).timeout.connect(func():
+			for i in wings.size():
+				var w: Node3D = wings[i]
+				if is_instance_valid(w):
+					w.rotation.z = (0.35 + sin(t * 1.1 + i) * 0.45) * (1.0 if i % 2 == 0 else -1.0))
+	who.get_tree().create_timer(dur).timeout.connect(func():
+		for w in wings:
+			if is_instance_valid(w):
+				w.queue_free())
 
 
 ## Matatabi tırnakları: parmak uçlarında mavi alev (oyunun "blue" ateş malzemesi), dur sn
@@ -4089,6 +4225,161 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 					VFX.shockwave(o, Color(0.45, 0.65, 1.0), 4.5, 0.3, false, f)
 					Combat.hit_zone(who, who.global_position, f, 3.6, 60.0, 2.6, _kinfo(dmg, 2.2, {"element": "katon", "knock": 14.0, "launch": 4.0, "kind": "heavy", "burn": 4.0, "hitstop": 0.1}))
 					_shake(who, 0.5)
+		"style_jin_son_goku":
+			var tg = _near_foe(who, 16.0)
+			var aim = tg.global_position if tg else who.global_position + f * 8.0
+			match i:
+				0, 1:   # lav yumruğu: çarpınca lav sıçrar, yakar
+					var hp = who.global_position + Vector3.UP * 1.25 + f * 1.0 + side * (0.2 if i == 0 else -0.2)
+					VFX.lava_splash(hp, 0.2)
+					Combat.hit_zone(who, who.global_position, f, 2.6, 40.0, 2.4, _kinfo(dmg, 1.2, {"element": "yoton", "knock": 6.0, "kind": "heavy", "melee": true, "burn": 2.0}))
+				2:   # Yōton: Kakōgan (küçük lav kayaları)
+					BijuuArts._kakogan(who, {"s": 0.22, "from": who.global_position + Vector3.UP * 1.4 + f * 0.6, "aim": aim, "dmg": dmg * 1.4, "tgt": tg})
+				3:   # Funkatsu: hedefin altından lav fışkırır
+					BijuuArts._funkatsu(who, {"s": 0.28, "aim": aim, "dmg": dmg * 1.5, "tgt": tg})
+				4:   # lav kabuğu sarsıntısı: çevreye lav damlası + sarsma
+					var c0 = who.global_position + Vector3.UP
+					VFX.goo_drops(c0, "molten", 5, 0.35, 5.0)
+					VFX.shockwave(Vector3(c0.x, Game.ground_height(c0.x, c0.z) + 0.1, c0.z), BijuuArts.LAVA, 5.0, 0.35, true)
+					for h in Combat.hit_sphere(who, c0, 2.8, _kinfo(dmg, 1.0, {"element": "yoton", "knock": 9.0, "kind": "heavy", "burn": 3.0})):
+						pass
+				5:   # lav yumruğu yere: erimiş yarık + lav gölü
+					var g = who.global_position + f * 1.6
+					g.y = Game.ground_height(g.x, g.z)
+					VFX.cracks(g, 4.5, Color(1.0, 0.45, 0.05, 0.95), 3.0)
+					VFX.debris(g, Color(0.25, 0.12, 0.08), 10, 6.0, 0.25)
+					BijuuArts._lava_pool(who, g, 0.28, dmg * 0.3, 4.0)
+					Combat.hit_sphere(who, g + Vector3.UP * 0.6, 2.8, _kinfo(dmg, 2.2, {"element": "yoton", "knock": 8.0, "launch": 7.0, "kind": "heavy", "burn": 4.0}))
+					_shake(who, 0.6)
+		"style_jin_kokuo":
+			var tg = _near_foe(who, 16.0)
+			var aim = tg.global_position if tg else who.global_position + f * 8.0
+			var back = who.global_position + Vector3.UP * 1.3 - f * 0.4
+			match i:
+				0, 1:   # buharlı tekme: sırttan buhar fışkırır, tekme hızlanır
+					BijuuArts._steam_cloud(back, 0.22, 0.6, 0.6)
+					Combat.hit_zone(who, who.global_position, f, 2.6, 60.0, 2.4 if i == 0 else 1.2, _kinfo(dmg, 1.2, {"element": "futton", "knock": 8.0 if i == 0 else 2.0, "kind": "heavy", "melee": true, "stun": 0.0 if i == 0 else 0.5}))
+				2:   # boynuz atılışı (kısa hücum)
+					BijuuArts._horn_ram(who, {"s": 0.22, "aim": aim, "dmg": dmg * 1.5, "tgt": tg})
+				3:   # haşlama buharı: hedefin üstünde kaynar sis
+					BijuuArts._futton_boil(who, {"s": 0.22, "aim": aim, "dmg": dmg * 1.2, "tgt": tg})
+				4:   # buhar patlaması
+					BijuuArts._steam_burst(who, {"s": 0.22, "dmg": dmg * 1.3})
+				5:   # roket tekmenin çarpışı
+					var kp = who.global_position + Vector3.UP * 1.0 + f * 1.0
+					VFX.star(kp, BijuuArts.STEAM, 2.4, 0.15)
+					BijuuArts._steam_cloud(kp, 0.22, 0.6, 0.6)
+					Combat.hit_zone(who, who.global_position, f, 3.0, 50.0, 2.4, _kinfo(dmg, 2.3, {"element": "futton", "knock": 18.0, "launch": 5.0, "kind": "heavy", "hitstop": 0.1}))
+					_shake(who, 0.55)
+		"style_jin_chomei":
+			var tg = _near_foe(who, 18.0)
+			var aim = (tg.global_position + Vector3.UP) if tg else who.global_position + Vector3.UP + f * 9.0
+			var hand = who.global_position + Vector3.UP * 1.4 + f * 0.5
+			match i:
+				0, 1:   # kanat çırpışı: iki ince rüzgâr bıçağı ileri
+					var sx = 1.0 if i == 0 else -1.0
+					var o = who.global_position + Vector3.UP * 1.3
+					for k in 2:
+						WindFX.streak(func(t: float) -> Vector3: return o + Vector3.UP * (k - 0.5) * 0.3 + f * (0.6 + t * 6.0) + side * sin(t * PI) * 0.5 * sx, 0.2, 0.1, Color(0.85, 1.0, 0.75, 0.95), k * 0.03, 12)
+					Combat.hit_zone(who, who.global_position, f, 6.5, 22.0, 2.4, _kinfo(dmg, 1.0, {"element": "fuuton", "knock": 4.0, "kind": "light", "bleed": 1.0}))
+				2:   # böcek sürüsü: chakra emer
+					BijuuArts._mushi_swarm(who, {"s": 0.4, "from": hand, "aim": aim, "dmg": dmg * 1.6, "tgt": tg})
+				3:   # pul tozu parlaması: kör eder
+					BijuuArts._rinpun(who, {"s": 0.32, "from": hand, "aim": aim, "dmg": dmg * 1.3})
+				4:   # havadan dalış tekmesi
+					var kp = who.global_position + Vector3.UP * 0.8 + f * 1.0
+					VFX.shockwave(Vector3(kp.x, Game.ground_height(kp.x, kp.z) + 0.1, kp.z), BijuuArts.SCALE, 3.5, 0.3, true)
+					Combat.hit_sphere(who, kp, 1.8, _kinfo(dmg, 1.5, {"element": "fuuton", "knock": 8.0, "launch": 3.0, "kind": "heavy", "melee": true}))
+				5:   # kanatlar açılır: pul tozu + rüzgâr fırtınası
+					BijuuArts._rinpun(who, {"s": 0.4, "from": hand, "aim": aim, "dmg": dmg * 1.2})
+					var o5 = who.global_position + Vector3.UP * 1.2
+					for k in 5:
+						var dd = f.rotated(Vector3.UP, deg_to_rad((k - 2) * 12.0))
+						WindFX.streak(func(t: float) -> Vector3: return o5 + dd * (0.5 + t * 8.0) + Vector3.UP * sin(t * PI * 2.0 + k) * 0.3, 0.24, 0.12, Color(0.85, 1.0, 0.75, 0.95), k * 0.02, 12)
+					Combat.hit_zone(who, who.global_position, f, 8.0, 35.0, 3.0, _kinfo(dmg, 1.6, {"element": "fuuton", "knock": 12.0, "launch": 3.0, "kind": "heavy", "bleed": 1.5}))
+					_shake(who, 0.4)
+		"style_jin_gyuki":
+			var tg = _near_foe(who, 16.0)
+			var aim = tg.global_position if tg else who.global_position + f * 8.0
+			var purple = Color(0.65, 0.35, 0.75)
+			match i:
+				0, 1:   # örtüden chakra kolu darbesi
+					BijuuArts._chakra_kaina(who, {"s": 0.35, "aim": aim, "dmg": dmg * 1.4, "tgt": tg, "col": purple})
+				2:   # iki dokunaç kavrayıp çarpar
+					for k in 2:
+						var off = f.cross(Vector3.UP) * (k - 0.5) * 1.2
+						who.get_tree().create_timer(k * 0.1).timeout.connect(func():
+							if is_instance_valid(who):
+								BijuuArts._tako_ude(who, {"s": 0.5, "dmg": dmg * 1.0, "aim": aim + off, "tgt": tg, "base_h": 1.7 + k * 0.15}))
+				3:   # Tako Bunshin: mürekkep bulutu, ahtapot klonları, geri kaçış
+					BijuuArts._tako_bunshin(who, {"s": 0.3})
+				4:   # dokunaç süpürmesi
+					for k in 3:
+						var a = TAU * k / 3.0
+						var q = who.global_position + Vector3(cos(a), 0, sin(a)) * 3.0
+						who.get_tree().create_timer(k * 0.06).timeout.connect(func():
+							if is_instance_valid(who):
+								BijuuArts._tako_ude(who, {"s": 0.4, "dmg": dmg * 0.7, "aim": q, "tgt": null, "base_h": 1.6}))
+				5:   # küçük Bijūdama
+					BijuuArts._bijudama_rasengan(who, {"s": 0.3, "from": who.global_position + Vector3.UP * 1.5 + f * 0.8, "aim": aim + Vector3.UP, "dmg": dmg * 2.6, "col": purple})
+					_shake(who, 0.4)
+		"style_jin_kurama":
+			var tg = _near_foe(who, 16.0)
+			var aim = tg.global_position if tg else who.global_position + f * 8.0
+			var fox = Color(1.0, 0.5, 0.12)
+			match i:
+				0, 1:   # chakra pençesi: turuncu tilki ateşi izleri
+					_cat_claw(who, who.global_position + Vector3.UP * 1.15, f, i == 0, 2.2, Color(1.0, 0.5, 0.12, 0.85))
+					Combat.hit_zone(who, who.global_position, f, 3.0, 50.0, 2.4, _kinfo(dmg, 1.2, {"element": "katon", "knock": 5.0, "kind": "heavy", "melee": true, "burn": 1.5}))
+				2:   # chakra kolu kavrar, yere çarpar
+					BijuuArts._chakra_kaina(who, {"s": 0.38, "aim": aim, "dmg": dmg * 1.6, "tgt": tg, "col": fox})
+				3:   # Bijū Hōkō: kükreme dalgası
+					BijuuArts._biju_hoko(who, {"s": 0.3, "from": who.global_position + Vector3.UP * 1.5 + f * 0.5, "aim": aim + Vector3.UP, "dmg": dmg * 1.4, "col": fox})
+				4:   # iki chakra kolu birden (çapraz)
+					for k in 2:
+						var off = f.cross(Vector3.UP) * (k - 0.5) * 2.0
+						who.get_tree().create_timer(k * 0.08).timeout.connect(func():
+							if is_instance_valid(who):
+								BijuuArts._chakra_kaina(who, {"s": 0.3, "aim": aim + off, "dmg": dmg * 0.9, "tgt": tg if k == 0 else null, "col": fox}))
+				5:   # Bijūdama Rasengan (küçük)
+					BijuuArts._bijudama_rasengan(who, {"s": 0.3, "from": who.global_position + Vector3.UP * 1.3 + f * 0.9, "aim": aim + Vector3.UP, "dmg": dmg * 2.6, "col": fox})
+					_shake(who, 0.5)
+		"style_jin_saiken":
+			var tg = _near_foe(who, 18.0)
+			var aim = (tg.global_position + Vector3.UP) if tg else who.global_position + Vector3.UP + f * 9.0
+			var hand = who.global_position + Vector3.UP * 1.3 + f * 0.6
+			match i:
+				0, 1:   # köpük-asit baloncukları (Saiken'in gerçek baloncuğu; küçük)
+					BijuuArts._fukuso(who, {"s": 0.32, "from": hand + side * (0.25 if i == 0 else -0.25), "aim": aim, "dmg": dmg * 0.9})
+				2:   # asit sisi
+					BijuuArts._acid_mist(who, {"s": 0.3, "aim": aim, "dmg": dmg * 1.1})
+				3:   # sümük gölü: saplar, yavaşlatır
+					BijuuArts._slime(who, {"s": 0.3, "aim": Vector3(aim.x, Game.ground_height(aim.x, aim.z), aim.z), "dmg": dmg})
+				4:   # baloncuk hapsi: hedef köpük balonun içinde kalır
+					if tg and tg.global_position.distance_to(who.global_position) < 12.0:
+						_bubble_trap(who, tg, 1.6)
+						Combat.hit_sphere(who, tg.global_position + Vector3.UP, 1.0, _kinfo(dmg, 0.6, {"element": "suiton", "knock": 0.0, "kind": "light"}))
+				5:   # baloncuk halkası art arda patlar
+					var c0 = Vector3(aim.x, Game.ground_height(aim.x, aim.z), aim.z)
+					for k in 6:
+						var a = TAU * k / 6.0
+						var q = c0 + Vector3(cos(a) * 1.3, 0.9 + (k % 2) * 0.5, sin(a) * 1.3)
+						var bub = MeshInstance3D.new()
+						bub.mesh = VFX._sphere(0.5, 16, 8)
+						bub.material_override = BijuuArts._glass(Color(0.85, 1.0, 0.9), 0.45, 0.3)
+						who.get_tree().current_scene.add_child(bub)
+						bub.global_position = q
+						bub.scale = Vector3.ONE * 0.1
+						var tw = bub.create_tween()
+						tw.tween_property(bub, "scale", Vector3.ONE * 0.7, 0.2).set_trans(Tween.TRANS_BACK)
+						tw.tween_interval(0.15 + k * 0.07)
+						tw.tween_callback(func():
+							VFX.puffs(q, {"amount": 10, "life": 0.5, "size": 0.4, "radius": 0.3, "vmin": 3, "vmax": 6, "gravity": Vector3(0, -10, 0), "colors": [Color(0.95, 1, 0.9, 1), BijuuArts.ACID, Color(0.4, 0.8, 0.2, 0)]})
+							if is_instance_valid(who):
+								for h in Combat.hit_sphere(who, q, 1.4, _kinfo(dmg, 0.45, {"element": "suiton", "knock": 3.0, "kind": "light"})):
+									BijuuArts._corrode(h, 3.0, dmg * 0.05, BijuuArts.ACID)
+							bub.queue_free())
+					_shake(who, 0.3)
 		"style_jin_isobu":
 			var tg = _near_foe(who, 16.0)
 			var aim = tg.global_position if tg else who.global_position + f * 8.0
@@ -4249,20 +4540,13 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 					var ball = pjb._bijuball(0.55)
 					who.get_tree().current_scene.add_child(ball)
 					ball.global_position = from
+					BijudamaFX.launch(from, f, 0.55, ball)
 					var to2 = (tg.global_position + Vector3.UP) if tg else from + f * 12.0
 					var tw5 = ball.create_tween()
 					tw5.tween_property(ball, "global_position", to2, from.distance_to(to2) / 34.0)
 					tw5.tween_callback(func():
 						ball.queue_free()
-						var dome = MeshInstance3D.new()
-						dome.mesh = SphereMesh.new()
-						dome.material_override = VFX.mat_spiral(Color(1, 0.9, 1.0), Color(0.55, 0.2, 0.7), 4.0, 2.0, 5.0, 2.0, Vector3.UP)
-						who.get_tree().current_scene.add_child(dome)
-						dome.global_position = to2
-						var tw6 = dome.create_tween()
-						tw6.tween_property(dome, "scale", Vector3.ONE * 5.0, 0.25)
-						tw6.tween_property(dome, "scale", Vector3.ONE * 0.1, 0.2)
-						tw6.tween_callback(dome.queue_free)
+						BijudamaFX.explode(to2, 2.8)
 						if is_instance_valid(who):
 							Combat.hit_sphere(who, to2, 2.8, _kinfo(dmg, 2.4, {"element": "", "knock": 18.0, "launch": 6.0, "kind": "heavy", "hitstop": 0.12}))
 							_shake(who, 0.7))

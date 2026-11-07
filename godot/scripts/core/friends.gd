@@ -2039,6 +2039,15 @@ func _funeral_tick() -> void:
 		var f: Dictionary = all()[id]
 		if String(f.get("status", "")) != "öldü" or f.get("buried", false):
 			continue
+		if not f.has("died_t") and is_rogue(f):
+			# kaçak: köyü onu terk etmiş sayar — köy cenazesi, Kage konuşması, mezarlıkta adlı taş yok
+			f["died_t"] = now
+			f["buried"] = true
+			f["party"] = false
+			log_event(f, "Kaçak olarak öldü; köyü ona tören yapmadı")
+			if int(f.get("bond", 0)) >= 0:
+				Hud.msg("%s öldü. Kaçak olduğu için köyü cenaze töreni yapmayacak; adı kayıtlardan silindi." % String(f["name"]), Color(0.8, 0.8, 0.85), 6.0)
+			continue
 		if not f.has("died_t"):
 			f["died_t"] = now
 			f["funeral_t"] = now + 240.0

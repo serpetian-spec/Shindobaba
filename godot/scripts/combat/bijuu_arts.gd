@@ -485,7 +485,7 @@ class Reach extends Node3D:
 			e = 1.0 - ease((t - out_t - hold_t) / back_t, 1.8)
 		else:
 			if on_back.is_valid():
-				on_back.call(grabbed)
+				on_back.call(grabbed if is_instance_valid(grabbed) else null)   # yakalanan yok olduysa (öldü/silindi) serbest bırakılmış nesne geçmesin
 			queue_free()
 			return
 		var tip = base.lerp(goal, e)
@@ -1495,33 +1495,22 @@ static func _bijudama_rasengan(user: Node3D, c: Dictionary) -> void:
 	var dir = (c["aim"] - from).normalized()
 	var dmg: float = c["dmg"]
 	var col: Color = c.get("col", FOX)
-	var vis = VFX.rasengan(1.6 * s, Color(0.1, 0.02, 0.15), col)
-	var halo = Projectile.energy_mesh(Color(0.25, 0.05, 0.3), Color(0.0, 0.0, 0.02), 2.4 * s, 16.0, 0.0, 1.8)
-	vis.add_child(halo)
+	# Bijūdama'nın koyu topu + çevresinde canavar chakrası renginde dönen Rasengan halkası (Naruto: Bijūdama Rasengan)
+	var vis = BijudamaFX.ball(1.6 * s)
+	var ring = VFX.rasengan(2.3 * s, col.darkened(0.2), col.lightened(0.5))
+	ring.scale = Vector3(1.0, 0.35, 1.0)
+	vis.add_child(ring)
 	Sfx.play("rasengan", from, 0.5)
-	VFX.gather(from, col, 2.0 * s)
+	BijudamaFX.gather(from, 1.6 * s, 0.35)
 	var boom = func(pos: Vector3, _t: Node3D) -> void:
-			var dome = Projectile.energy_mesh(Color(0.45, 0.15, 0.5), Color(0.05, 0.0, 0.08), 1.0, 10.0, 0.0, 1.6)
-			VFX.scene().add_child(dome)
-			dome.global_position = pos
 			var R = 9.0 * s
-			var tw = dome.create_tween()
-			tw.tween_property(dome, "scale", Vector3.ONE * R * 2.0, 0.35).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-			tw.tween_interval(0.6)
-			tw.tween_property(dome, "scale", Vector3.ONE * R * 2.4, 0.3)
-			tw.parallel().tween_property(dome, "transparency", 1.0, 0.3)
-			tw.tween_callback(dome.queue_free)
-			VFX.shockwave(_gp(pos) + Vector3.UP * 0.2, col, R * 3.0, 0.7)
-			VFX.cracks(_gp(pos), R * 1.2, Color(0.08, 0.02, 0.06, 0.95), 10.0)
-			Sfx.play("boom", pos, 0.45)
-			_shake(1.6)
-			if Game.world:
-				Game.world.env.screen_flash(0.3)
+			BijudamaFX.explode(pos, R)
 			for k in 3:
 				VFX.tree().create_timer(0.15 * k).timeout.connect(func():
 					if is_instance_valid(user):
 						_hit(user, pos, R, {"dmg": dmg * 0.35, "knock": 30.0 + k * 10.0, "launch": 10.0, "kind": "heavy"}))
-	_shot(user, from + dir * 1.5 * s, dir * 55.0, 1.0 * s, {"dmg": dmg * 0.5, "knock": 20.0, "kind": "heavy"}, vis, boom, 0.0, 4.0)
+	var prb = _shot(user, from + dir * 1.5 * s, dir * 55.0, 1.0 * s, {"dmg": dmg * 0.5, "knock": 20.0, "kind": "heavy"}, vis, boom, 0.0, 4.0)
+	BijudamaFX.launch(from + dir * 1.5 * s, dir, 1.6 * s, prb)
 
 
 # ================================================================== canavara özgü pençe / vuruş

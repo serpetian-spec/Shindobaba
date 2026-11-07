@@ -13803,21 +13803,7 @@ const BARYON := Color(1.0, 0.3, 0.35)
 
 ## Siyah-mor kuyruklu canavar topu (çekirdek + mor hale)
 func _bijuball(s: float) -> Node3D:
-	var root = Node3D.new()
-	var core = MeshInstance3D.new()
-	core.mesh = SphereMesh.new()
-	var m = StandardMaterial3D.new()
-	m.albedo_color = Color(0.03, 0.02, 0.05)
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	core.material_override = m
-	core.scale = Vector3.ONE * s
-	root.add_child(core)
-	var halo = MeshInstance3D.new()
-	halo.mesh = SphereMesh.new()
-	halo.material_override = VFX.mat_spiral(Color(0.85, 0.6, 1.0), Color(0.35, 0.1, 0.55), 5.0, 3.0, 8.0, 1.6, Vector3.UP)
-	halo.scale = Vector3.ONE * s * 1.25
-	root.add_child(halo)
-	return root
+	return BijudamaFX.ball(s)   # anime Bijūdama görseli (tek kaynak)
 
 
 ## Kavurucu Ejder Kayası: ağızdan art arda erimiş, kor saçan kaya mermileri
@@ -14121,10 +14107,7 @@ func p_bijudama(c: Node3D, t: Node3D) -> void:
 	get_tree().current_scene.add_child(ball)
 	ball.global_position = from
 	ball.scale = Vector3.ONE * 0.05
-	for k in 10:
-		after(k * 0.05, func():
-			var q = from + Vector3(randf_range(-4, 4), randf_range(-2, 3), randf_range(-4, 4))
-			VFX.bolt(q, from, Color(0.65, 0.4, 0.9), 0.1, 0.2, 1))
+	BijudamaFX.gather(from, 2.5, 0.6)
 	var tw = ball.create_tween()
 	tw.tween_property(ball, "scale", Vector3.ONE, 0.6)
 	tw.tween_property(ball, "scale", Vector3.ONE * 0.5, 0.15)
@@ -14133,21 +14116,10 @@ func p_bijudama(c: Node3D, t: Node3D) -> void:
 		if not live(c):
 			return
 		var pr = shot(c, from, aim_at(c, tt, from), 34.0, _bijuball(1.3), inf(c, "bijudama", 3.5, {"knock": 30.0, "launch": 10.0, "kind": "heavy", "hitstop": 0.15}), null, false, 1.6, func(p, _h):
-			var dome = MeshInstance3D.new()
-			dome.mesh = SphereMesh.new()
-			dome.material_override = VFX.mat_spiral(Color(1, 0.9, 1.0), Color(0.55, 0.2, 0.8), 4.0, 2.0, 5.0, 2.0, Vector3.UP)
-			get_tree().current_scene.add_child(dome)
-			dome.global_position = p
-			var tw2 = dome.create_tween()
-			tw2.tween_property(dome, "scale", Vector3.ONE * 22.0, 0.5).set_trans(Tween.TRANS_QUAD)
-			tw2.tween_property(dome, "scale", Vector3.ONE * 24.0, 0.3)
-			tw2.tween_callback(dome.queue_free)
-			impact_fx("bakuton", Color(0.75, 0.5, 1.0), p, 3.0)
-			VFX.cracks(gp(p), 14.0)
-			hit(c, p, 11.0, inf(c, "bijudama", 1.5, {"knock": 26.0, "launch": 10.0, "kind": "heavy"}))
-			shake(2.0))
+			BijudamaFX.explode(p, 11.0)
+			hit(c, p, 11.0, inf(c, "bijudama", 1.5, {"knock": 26.0, "launch": 10.0, "kind": "heavy"})))
 		pr.radius = 1.2
-		_etrail(pr, "", Color(0.55, 0.25, 0.8), 2.0))
+		BijudamaFX.launch(from, aim_at(c, tt, from), 1.3, pr))
 	Sfx.play("roar", c.global_position, 0.6)
 
 

@@ -355,8 +355,7 @@ func _bomb() -> void:
 				var d3 = (p.aim_point() - f3).normalized()
 				TailedBeasts.fire_ball(p, f3, d3, size * 0.6, chakra_col(), dmg * 0.45, 90.0))
 		return
-	FX.burst(from, {"amount": 50, "life": delay, "tex": FX.tex_spark, "add": true, "size": size, "vmin": -6, "vmax": -2, "gravity": Vector3.ZERO,
-		"colors": [Color(0.7, 0.4, 1.0, 0.9), Color(0.1, 0.0, 0.2, 0.0)]})
+	BijudamaFX.gather(from, size, delay)
 	get_tree().create_timer(delay).timeout.connect(func():
 		var f2 = rig.mouth_pos() if (level == 6 and is_instance_valid(rig)) else from
 		TailedBeasts.fire_ball(p, f2, dir, size, chakra_col(), dmg, 80.0))

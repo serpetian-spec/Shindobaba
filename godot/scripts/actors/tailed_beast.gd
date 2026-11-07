@@ -508,12 +508,10 @@ func _field(c: Vector3, r: float, col: Color, dur: float, dps: float, el: String
 func _ball_start() -> void:
 	ball = Node3D.new()
 	rig.mouth.add_child(ball)
-	ball.add_child(Projectile.energy_mesh(Color(0.25, 0.1, 0.35), Color(0.02, 0.0, 0.05), 3.0, 14.0, 0.0, 1.6))
+	ball.add_child(BijudamaFX.ball(3.0))
 	ball.scale = Vector3.ONE * 0.05
-	Sfx.play("rasengan", rig.mouth_pos(), 0.4)
 	Combat.popup_text(rig.mouth_pos() + Vector3.UP * 4.0, "Kuyruklu Canavar Topu!", Color(0.8, 0.5, 1.0))
-	FX.burst(rig.mouth_pos(), {"amount": 80, "life": 2.5, "tex": FX.tex_spark, "add": true, "size": height * 0.03, "vmin": -10, "vmax": -4, "gravity": Vector3.ZERO,
-		"colors": [Color(0.7, 0.4, 1.0, 0.9), Color(0.2, 0.0, 0.4, 0.0)]})
+	BijudamaFX.gather(rig.mouth_pos(), height * 0.07, 0.8)   # mavi + kırmızı chakra küreleri ağız önünde sıkışır
 
 
 func _ball_tick(k: float) -> void:

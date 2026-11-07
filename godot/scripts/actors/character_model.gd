@@ -2640,7 +2640,7 @@ func _accessories() -> void:
 	if sf_head and look.get("head_style") in ["kasa", "kage"]:
 		hair_mask_plane(Vector3.UP, Vector3(0, htop - 0.06, 0))
 	if not sf_head and look.get("head_style") == "kage":
-		KageAttire.hat(self, String(look.get("village", "konoha")))
+		KageAttire.hat(self, String(look.get("kage_vid") if look.get("kage_vid") != null else look.get("village", "konoha")))
 	match (null if sf_head else look.get("head_style")):
 		"kasa":
 			var m = MB.new()

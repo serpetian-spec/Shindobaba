@@ -111,7 +111,30 @@ const SETS := {
 	"set_kage": {"name": "Kage Shōzoku", "slot": "set", "price": 0, "rank": 6, "desc": "Köyün liderinin beyaz cübbesi.",
 		"stats": {"def": 16, "chakra": 50, "hp": 30}, "c1": Color(0.95, 0.95, 0.92), "c2": Color(0.8, 0.2, 0.15),
 		"parts": [["uzun_gomlek", Color(0.15, 0.2, 0.33), Color(0.12, 0.12, 0.14)], ["ninja_pant", Color(0.15, 0.2, 0.33), null], ["kage_cubbesi", Color(0.95, 0.95, 0.92), Color(0.8, 0.2, 0.15)], ["sandalet", Color(0.12, 0.12, 0.14), Color(0.92, 0.92, 0.9)]]},
+	"set_hokage": {"name": "Hokage Shōzoku", "slot": "set", "price": 4000, "rank": 0, "desc": "Ateş Ülkesi liderinin tören giysisi: köy renginde kimono üstü, beyaz hakama, eteği Hokage renkli bantlı beyaz Kage cübbesi, hasır zori. Şapkası ayrıca: Kage Şapkası.",
+		"stats": {"def": 16, "chakra": 50, "hp": 30}, "c1": Color(0.95, 0.95, 0.92), "c2": Color(0.80, 0.14, 0.12),
+		"parts": [["kimono_ust", Color(0.56, 0.10, 0.08), Color(0.80, 0.14, 0.12)], ["hakama", Color(0.93, 0.93, 0.9), null], ["kage_cubbesi", Color(0.97, 0.96, 0.93), Color(0.80, 0.14, 0.12)], ["zori", Color(0.25, 0.2, 0.16), Color(0.92, 0.92, 0.9)]]},
+	"set_kazekage": {"name": "Kazekage Shōzoku", "slot": "set", "price": 4000, "rank": 0, "desc": "Rüzgâr Ülkesi liderinin tören giysisi: köy renginde kimono üstü, beyaz hakama, eteği Kazekage renkli bantlı beyaz Kage cübbesi, hasır zori. Şapkası ayrıca: Kage Şapkası.",
+		"stats": {"def": 16, "chakra": 50, "hp": 30}, "c1": Color(0.95, 0.95, 0.92), "c2": Color(0.16, 0.45, 0.38),
+		"parts": [["kimono_ust", Color(0.11, 0.32, 0.27), Color(0.16, 0.45, 0.38)], ["hakama", Color(0.93, 0.93, 0.9), null], ["kage_cubbesi", Color(0.97, 0.96, 0.93), Color(0.16, 0.45, 0.38)], ["zori", Color(0.25, 0.2, 0.16), Color(0.92, 0.92, 0.9)]]},
+	"set_mizukage": {"name": "Mizukage Shōzoku", "slot": "set", "price": 4000, "rank": 0, "desc": "Su Ülkesi liderinin tören giysisi: köy renginde kimono üstü, beyaz hakama, eteği Mizukage renkli bantlı beyaz Kage cübbesi, hasır zori. Şapkası ayrıca: Kage Şapkası.",
+		"stats": {"def": 16, "chakra": 50, "hp": 30}, "c1": Color(0.95, 0.95, 0.92), "c2": Color(0.18, 0.38, 0.75),
+		"parts": [["kimono_ust", Color(0.13, 0.27, 0.52), Color(0.18, 0.38, 0.75)], ["hakama", Color(0.93, 0.93, 0.9), null], ["kage_cubbesi", Color(0.97, 0.96, 0.93), Color(0.18, 0.38, 0.75)], ["zori", Color(0.25, 0.2, 0.16), Color(0.92, 0.92, 0.9)]]},
+	"set_raikage": {"name": "Raikage Shōzoku", "slot": "set", "price": 4000, "rank": 0, "desc": "Yıldırım Ülkesi liderinin tören giysisi: köy renginde kimono üstü, beyaz hakama, eteği Raikage renkli bantlı beyaz Kage cübbesi, hasır zori. Şapkası ayrıca: Kage Şapkası.",
+		"stats": {"def": 16, "chakra": 50, "hp": 30}, "c1": Color(0.95, 0.95, 0.92), "c2": Color(0.95, 0.78, 0.16),
+		"parts": [["kimono_ust", Color(0.66, 0.55, 0.11), Color(0.95, 0.78, 0.16)], ["hakama", Color(0.93, 0.93, 0.9), null], ["kage_cubbesi", Color(0.97, 0.96, 0.93), Color(0.95, 0.78, 0.16)], ["zori", Color(0.25, 0.2, 0.16), Color(0.92, 0.92, 0.9)]]},
+	"set_tsuchikage": {"name": "Tsuchikage Shōzoku", "slot": "set", "price": 4000, "rank": 0, "desc": "Toprak Ülkesi liderinin tören giysisi: köy renginde kimono üstü, beyaz hakama, eteği Tsuchikage renkli bantlı beyaz Kage cübbesi, hasır zori. Şapkası ayrıca: Kage Şapkası.",
+		"stats": {"def": 16, "chakra": 50, "hp": 30}, "c1": Color(0.95, 0.95, 0.92), "c2": Color(0.50, 0.30, 0.20),
+		"parts": [["kimono_ust", Color(0.35, 0.21, 0.14), Color(0.50, 0.30, 0.20)], ["hakama", Color(0.93, 0.93, 0.9), null], ["kage_cubbesi", Color(0.97, 0.96, 0.93), Color(0.50, 0.30, 0.20)], ["zori", Color(0.25, 0.2, 0.16), Color(0.92, 0.92, 0.9)]]},
+	"set_anbu_konoha": {"name": "ANBU Shōzoku: Gece", "slot": "set", "price": 3200, "rank": 0, "desc": "ANBU'nun klasik gece takımı: kolsuz siyah üst, gri metal göğüs plakası, kol koruyucular, siyah tabi. Maskesi ayrıca (ANBU maskeleri).",
+		"stats": {"def": 18, "speed": 0.05, "melee": 0.05}, "c1": Color(0.1, 0.1, 0.12), "c2": Color(0.82, 0.82, 0.8),
+		"parts": [["kolsuz_yakali", Color(0.1, 0.1, 0.12), Color(0.1, 0.1, 0.12)], ["ninja_pant", Color(0.1, 0.1, 0.12), null], ["anbu_zirh", Color(0.82, 0.82, 0.8), null], ["kolluk", Color(0.85, 0.85, 0.83), null], ["tabi", Color(0.1, 0.1, 0.12), null]]},
+	"set_anbu_kaptan": {"name": "ANBU Shōzoku: Kaptan", "slot": "set", "price": 3800, "rank": 0, "desc": "ANBU takım kaptanının takımı: uzun kollu koyu gömlek, metal göğüs plakası, kol sargısı, sırtta pelerin.",
+		"stats": {"def": 20, "speed": 0.04, "chakra": 30}, "c1": Color(0.12, 0.12, 0.14), "c2": Color(0.85, 0.85, 0.82),
+		"parts": [["uzun_gomlek", Color(0.12, 0.12, 0.14), Color(0.12, 0.12, 0.14)], ["ninja_pant", Color(0.12, 0.12, 0.14), null], ["anbu_zirh", Color(0.85, 0.85, 0.82), null], ["kol_sargisi", Color(0.9, 0.9, 0.88), null], ["kisa_pelerin", Color(0.16, 0.16, 0.18), Color(0.3, 0.3, 0.32)], ["sandalet", Color(0.12, 0.12, 0.14), Color(0.92, 0.92, 0.9)]]},
 }
+const KAGE_SETS := ["set_hokage", "set_kazekage", "set_mizukage", "set_raikage", "set_tsuchikage"]
+const ANBU_SETS := ["set_anbu_konoha", "set_anbu_kaptan"]
 const SHOP_SETS := ["set_goken", "set_genin", "set_shinobi", "set_chunin", "set_suna_chunin", "set_kiri_chunin", "set_kumo_chunin", "set_iwa_chunin", "set_uchiha", "set_suna", "set_tabibito", "set_iryonin", "set_kenpo", "set_kenshi", "set_samurai", "set_sengoku", "set_kage_no", "set_ame", "set_soryo", "set_ronin", "set_yuki_tabi", "set_matsuri", "set_kurenai_kenpo", "set_ne", "set_sennin_shugyo"]
 ## Boş bırakılamayan yuvalar (çıplak kalınmaz)
 const REQUIRED := ["govde", "bacak", "ayak"]
@@ -173,7 +196,7 @@ const ITEMS := {
 	"deri_yelek": {"name": "Deri Yelek", "slot": "zirh", "price": 350, "rank": 1, "desc": "Paralı askerlerin sevdiği kalın yelek.", "stats": {"def": 6}, "look": {"vest_style": 0}, "c1": Color(0.4, 0.3, 0.2)},
 	# --- dış giysi
 	"kage_cubbesi": {"name": "Kage Cübbesi", "slot": "dis", "price": 0, "rank": 6, "desc": "Köyün liderinin beyaz cübbesi; eteğinde köyün rengi ve Kage yazısı.", "stats": {"def": 10, "chakra": 60, "hp": 40}, "look": {"outer_style": "palto"}, "c1": Color(0.96, 0.95, 0.92)},
-	"kage_sapkasi": {"name": "Kage Şapkası", "slot": "kafa", "price": 0, "rank": 6, "desc": "Geniş kenarlı tören şapkası. Önünde köyün kanjisi.", "stats": {"def": 4, "chakra": 30}, "look": {"head_style": "kage"}, "c1": Color(0.95, 0.94, 0.9)},
+	"kage_sapkasi": {"name": "Kage Şapkası", "slot": "kafa", "price": 1500, "rank": 0, "desc": "Geniş kenarlı tören şapkası. Önünde köyün kanjisi.", "stats": {"def": 4, "chakra": 30}, "look": {"head_style": "kage"}, "c1": Color(0.95, 0.94, 0.9)},
 	"jonin_komutan_paltosu": {"name": "Jōnin Komutanı Haorisi", "slot": "dis", "price": 0, "rank": 3, "desc": "Jōnin komutanlarına verilen yeşil-gri haori.", "stats": {"def": 6, "chakra": 25}, "look": {"outer_style": "haori"}, "c1": Color(0.3, 0.38, 0.3)},
 	"kok_maskesi": {"name": "Kök Birliği Maskesi", "slot": "yuz", "price": 0, "rank": 4, "desc": "Kök (Ne) biriminin ifadesiz beyaz maskesi. Varlığı resmî kayıtlarda yok.", "stats": {"def": 6, "speed": 0.04}, "look": {"face_style": "anbu_kus"}, "c1": Color(0.88, 0.88, 0.86)},
 	"seyahat_pelerini": {"name": "Seyahat Pelerini", "slot": "dis", "price": 280, "rank": 0, "desc": "Dizlere inen kalın yolcu pelerini.", "stats": {"def": 3, "hp": 15}, "look": {"outer_style": "pelerin"}, "c1": Color(0.4, 0.32, 0.24)},
@@ -756,6 +779,10 @@ static func shop_stock(kind: String, vid: String) -> Array:
 		var j = rng.randi() % (i + 1)
 		var t = picks[i]; picks[i] = picks[j]; picks[j] = t
 	var out = picks.slice(0, mini(picks.size(), 10 if kind == "w" else 16))
+	if kind == "c":   # Kage ve ANBU setleri + Kage şapkası her terzide sürekli (rastgele stok dışı)
+		for sid in KAGE_SETS + ANBU_SETS + ["kage_sapkasi"]:
+			if not sid in out:
+				out.append(sid)
 	var bought: Array = Game.profile.get("unique_bought", [])
 	for u in 2:
 		var uid = make_unique(String(picks[(u * 7 + 3) % picks.size()]), kind, int(rng.randi()))
@@ -1029,6 +1056,8 @@ static func apply_look(p: Dictionary) -> void:
 		elif String(g0.get("id", "")) == "mizrak":   # oyundan kaldırıldı: bo sopasına döner
 			g0["id"] = "bo"
 	var L: Dictionary = p["look"]
+	# Kage seti giyiliyse şapka o köyün renginde/kanjisinde (Kazekage seti -> yeşil şapka, rüzgâr)
+	L["kage_vid"] = {"set_hokage": "konoha", "set_kazekage": "suna", "set_mizukage": "kiri", "set_raikage": "kumo", "set_tsuchikage": "iwa"}.get(String(equipped(p, "set").get("id", "")), null)
 	for k in ["band", "vest", "mask", "weapon_r", "weapon_l", "head_style", "face_style", "outer_style", "back_item", "guards", "eye_r", "eye_l", "hood", "crest", "leg_warmers", "neck_warmer"]:
 		L[k] = null
 	L["band_style"] = "none"

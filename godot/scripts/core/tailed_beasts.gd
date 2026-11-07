@@ -425,23 +425,16 @@ func fire_ball(owner_f: Node3D, from: Vector3, dir: Vector3, size: float, col: C
 	pr.life = 5.0
 	pr.blockable = false
 	pr.info = {"dmg": dmg, "knock": 40.0, "launch": 14.0, "kind": "heavy", "hitstop": 0.15}
-	var core = Projectile.energy_mesh(Color(0.2, 0.08, 0.3), Color(0.0, 0.0, 0.02), maxf(2.0, size * 2.2), 16.0, 0.0, 1.8)
-	pr.add_child(core)
-	var halo = Projectile.energy_mesh(col.lightened(0.3), col, maxf(2.6, size * 2.8), 8.0, 0.0, 1.2)
-	pr.add_child(halo)
-	var boom = maxf(8.0, size * 6.0)
+	# anime Bijūdama (BijudamaFX): koyu girdaplı top, atışta şok halkaları + iz, çarpınca parlama + kubbe + dev zemin halkası
+	var vis = BijudamaFX.ball(maxf(1.0, size * 2.0))
+	pr.add_child(vis)
+	var boom = maxf(5.0, size * 6.0)
 	pr.on_hit = func(pos: Vector3, _t: Node3D) -> void:
-		FX.explosion(pos, boom * 0.1, Color(0.5, 0.25, 0.9))
-		FX.ring(pos, col, boom * 2.2, 0.8)
-		FX.ring(pos + Vector3.UP, Color(0.15, 0.05, 0.25), boom * 1.6, 1.0, false, Vector3.UP)
-		FX.burst(pos, {"amount": 120, "life": 2.0, "tex": FX.tex_smoke, "add": false, "size": boom * 0.4, "vmin": 6, "vmax": 20, "gravity": Vector3(0, 2, 0),
-			"colors": [Color(0.5, 0.4, 0.55, 0.9), Color(0.4, 0.35, 0.4, 0.0)]})
+		BijudamaFX.explode(pos, boom)
 		Combat.hit_sphere(owner_f, pos, boom, {"dmg": dmg * 0.6, "knock": 44.0, "launch": 16.0, "kind": "heavy"}, pr.hit_list)
-		Sfx.play("boom", pos, 0.4)
-		if Game.world:
-			Game.world.env.add_shake(2.0)
 	get_tree().current_scene.add_child(pr)
 	pr.global_position = from
+	BijudamaFX.launch(from, dir.normalized(), maxf(1.0, size * 2.0), pr)
 	Sfx.play("roar", from, 0.7)
 	return pr
 
