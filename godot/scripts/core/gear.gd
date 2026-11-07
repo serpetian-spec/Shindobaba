@@ -845,11 +845,12 @@ static func owned_for(p: Dictionary, slot: String) -> Array:
 	return out
 
 
-## Geçerli rütbe: kaçakta köy rütbesi donmuş kalır, Bingo Kitabı sınıfı eşdeğer sayılır (C→Genin, B→Chunin, A/S→Jonin)
+## Geçerli rütbe: kaçakta köy rütbesi donmuş kalır, Bingo Kitabı sınıfı eşdeğer sayılır (C→Genin, B→Chunin, A→Jonin, S→Kage:
+## S-rank kaçak Kage seviyesinde sayılır, ANBU/Kage eşyalarını takabilir)
 static func eff_rank(p: Dictionary) -> int:
 	var r = int(p.get("rank", 0))
 	if Orgs.is_rogue() and (Game.profile.is_empty() or p == Game.profile):
-		r = maxi(r, [1, 2, 3, 3, 3][clampi(Orgs.rogue_rank(), 0, 4)])
+		r = maxi(r, [1, 2, 3, 6, 6][clampi(Orgs.rogue_rank(), 0, 4)])
 	return r
 
 

@@ -56,6 +56,8 @@ var hit_times: Array = []     # son darbelerin zamanı (kombodan sıyrılma)
 var dodge_dir := Vector3.ZERO
 var _saw_busy := false
 var leap_cd := 2.0
+var _climb_on := false        # yükseğe çıkış sıçrayışı (duvara tutunup tırmanır)
+var _climb_land := Vector3.ZERO
 var tool_cd := {}       # alet -> bir sonraki kullanım zamanı (sn): oyuncuyla aynı kural, sınırsız + alete özel 30 sn
 var maki := 1           # makibishi: kaçarken bir kez ayağının dibine saçar       # ninja sıçrayışı (oyuncunun Ctrl'i gibi): kaçan hedefi kovalar   # oyuncunun saldırısı başına tek okuma zarı
 
@@ -434,13 +436,32 @@ func _physics_process(dt: float) -> void:
 		"leap":
 			# sıçrayış havada: hız korunur, yerçekimi; inince kovalamaya döner
 			velocity.y -= 32.0 * dt
+			if _climb_on and state_t > 6.0:
+				_climb_on = false   # tırmanamadı (çıkıntı/ağaç tepesi): düşüp başka yol dener
+			if _climb_on:
+				# yükseğe çıkış: kenarın altındayken duvara yapışıp yukarı tırmanır (ninja duvarda koşar), kenarı aşınca üstüne geçer
+				var hz = _climb_land - global_position
+				hz.y = 0.0
+				if global_position.y > _climb_land.y + 0.25:
+					var hs = minf(hz.length() * 4.0, 12.0)
+					velocity.x = hz.normalized().x * hs
+					velocity.z = hz.normalized().z * hs
+				else:
+					if is_on_wall() and velocity.y < 4.0:
+						velocity.y = 9.0 if _is_ninja() else 5.0
+						model.play("run" if _is_ninja() else "walk", 0.1, 1.4)
+					velocity.x = hz.normalized().x * 2.0
+					velocity.z = hz.normalized().z * 2.0
 			move_and_slide()
 			var g = Game.ground_height(global_position.x, global_position.z)
 			if global_position.y < g:
 				global_position.y = g
-			if state_t > 0.25 and global_position.y <= g + 0.05:
+			if state_t > 0.25 and (global_position.y <= g + 0.05 or (is_on_floor() and velocity.y <= 0.0)):   # çatıya/kayaya/dala da konar
 				FX.dust(global_position, 0.6)
 				model.overlay.set_pose("leap", 0.0)
+				grounded = true
+				velocity = Vector3.ZERO
+				_climb_on = false
 				state = "chase"
 		"attack":
 			_attack(dt)
@@ -584,15 +605,24 @@ func _chase(dt: float) -> void:
 		ranged_cd = randf_range(3.5, 6.0) / arch["aggr"]
 		_beast_tech(d)
 		return
-	# hedef uzaklaşıyorsa ninja sıçrayışıyla kovala (oyuncu Ctrl ile kaçınca hiç yetişemiyorlardı)
+	# hedef yüksekte (çatı, kaya, duvar üstü, dal): altında beklemez, sıçrayıp yanına konar (oyuncu tırmanınca gelemiyorlardı)
 	leap_cd -= dt
+	var up_dy = target.global_position.y - global_position.y
+	# uzakçı (jutsu/alet hazır): aşağıdan atar; hazır değilse ya da yakıncıysa zıplayıp yanına çıkar
+	var elevated = up_dy > 1.8
+	var nowr = Game.now()
+	var ranged_ready = ranged_cd <= 0.0 and ((nowr >= jgap and (arch.get("jutsu", []) as Array).any(func(id): return nowr >= float(jcd.get(id, 0.0)) and chakra >= jutsu_cost(id))) or (arch.get("tools", true) and _ready_tools().size() > 0))
+	if elevated and d < 30.0 and leap_cd <= 0.0 and grounded and not ranged_ready and not arch.has("beast") and float(arch.get("size", 1.0)) < 2.0:
+		_climb_leap(minf(up_dy, 40.0))
+		return
+	# hedef uzaklaşıyorsa ninja sıçrayışıyla kovala (oyuncu Ctrl ile kaçınca hiç yetişemiyorlardı)
 	if d > 16.0 and leap_cd <= 0.0 and _is_ninja() and global_position.y - Game.ground_height(global_position.x, global_position.z) < 0.5:
 		_ninja_leap(v.normalized(), d)
 		return
 	# menzilli: jutsu ya da kunai
 	# jutsu kullanan düşman: uzaktan ve sık atar, yakında da arada bir (eskiden 5-24 m, %30)
 	var jl: Array = arch.get("jutsu", [])
-	var far_ok = d > 4.0 and d < 42.0
+	var far_ok = (d > 4.0 or elevated) and d < 42.0   # yüksekteki hedefe dibinden de atar
 	var near_ok = d <= 4.0 and not jl.is_empty() and randf() < 0.15
 	if (far_ok or near_ok) and ranged_cd <= 0.0 and randf() < 0.8:
 		ranged_cd = randf_range(1.6, 3.2) / (float(arch["aggr"]) * (1.0 + skill))   # usta ninja daha sık jutsu atar
@@ -699,12 +729,41 @@ func _ninja_leap(dir: Vector3, d: float) -> void:
 	leap_cd = randf_range(1.8, 3.2) / maxf(0.4, float(arch.get("aggr", 0.5)) + skill * 0.5)
 	var k = clampf(d / 60.0, 0.3, 1.0)
 	velocity = dir * lerpf(24.0, 44.0, k) + Vector3.UP * lerpf(10.0, 15.0, k)
+	_climb_on = false
 	state = "leap"
 	state_t = 0.0
 	model.play("jump", 0.05, 1.5, true)
 	model.overlay.set_pose("leap", 1.0)
 	FX.dust(global_position, 0.8)
 	Sfx.play("whoosh", global_position, 0.9, 0.6)
+
+
+## Yükseğe sıçrama: hedefin yanına (biraz önüne) konacak balistik atlayış. Ninja tek sıçrayışta çıkar; haydut/samuray
+## daha alçak zıplar (çok yüksekse duvara/kayaya tutunup ikinci kez dener — her denemede biraz daha yükselir).
+func _climb_leap(dy: float) -> void:
+	var ninja = _is_ninja()
+	leap_cd = randf_range(0.8, 1.6) if ninja else randf_range(1.6, 2.6)
+	var land = target.global_position - (target.global_position - global_position).normalized() * (target.radius + radius + 0.6)
+	land.y = target.global_position.y
+	var reach = dy + 1.2 if ninja else minf(dy + 1.0, 6.0)
+	var g := 32.0
+	var vy = sqrt(2.0 * g * reach)
+	var fall = maxf(0.0, reach - dy)
+	var t = vy / g + sqrt(2.0 * fall / g)
+	var hz = land - global_position
+	hz.y = 0.0
+	velocity = hz / maxf(0.35, t) + Vector3.UP * vy
+	_climb_on = true
+	_climb_land = land
+	state = "leap"
+	state_t = 0.0
+	grounded = false
+	facing = atan2(-hz.x, -hz.z) if hz.length() > 0.1 else facing
+	model.rotation.y = facing
+	model.play("jump", 0.05, 1.5, true)
+	model.overlay.set_pose("leap", 1.0)
+	FX.dust(global_position, 0.6)
+	Sfx.play("whoosh", global_position, 0.8, 0.5)
 
 
 ## Aynı anda yakın dövüşe girebilen düşman sayısı (eskiden 2: kalabalık bile sırayla bekliyordu)

@@ -167,6 +167,13 @@ func every(dur: float, dt: float, fn: Callable, done := Callable()) -> void:
 				done.call())
 
 
+## Efekt silme: çağırandan bağımsız (after() çağıran öldüyse işi atlar; silinmesi gereken efekt dünyada/hedefte kalıyordu)
+func free_after(sec: float, n: Node) -> void:
+	get_tree().create_timer(sec).timeout.connect(func():
+		if is_instance_valid(n):
+			n.queue_free())
+
+
 func after(sec: float, fn: Callable) -> void:
 	var ep = VFX.epic
 	var own = _own()
@@ -291,7 +298,9 @@ func attach(t: Node3D, n: Node3D, dur: float, offset := Vector3.ZERO, fit := 1) 
 	n.position = offset * (s if fit == 1 else 1.0)
 	if s > 1.01:
 		n.scale *= s
-	after(dur, func():
+	# temizlik çağırandan bağımsız: after() çağıran öldüyse işi atlıyordu, hedefte iz kalıyordu
+	# (Yamanaka ölünce Shindenshin işaret oku oyuncunun başında sonsuza dek kaldı)
+	get_tree().create_timer(dur).timeout.connect(func():
 		if is_instance_valid(n):
 			n.queue_free())
 
@@ -470,7 +479,7 @@ func _byakugan_on(c: Node3D, dur: float) -> void:
 			ba.bone_name = side
 			c.model.skel.add_child(ba)
 			ba.add_child(fx)
-			after(dur, func(): if is_instance_valid(ba): ba.queue_free())
+			free_after(dur, ba)
 
 
 ## Parlayan chakra avucu izi: vuruş noktasında açılıp sönen mavi el silueti
@@ -1299,9 +1308,7 @@ func c_choharite(c: Node3D, t: Node3D) -> void:
 			if is_instance_valid(ba):
 				FX.burst(ba.global_position, {"amount": 4, "life": 0.35, "tex": FX.tex_soft, "size": 0.55, "radius": 0.6, "vmin": 0.4, "vmax": 1.4,
 					"spread": 180.0, "colors": [Color(0.55, 0.85, 1.0, 0.0), Color(0.45, 0.75, 1.0, 0.7), Color(0.4, 0.7, 1.0, 0.0)]}), Callable())
-		after(1.1, func():
-			if is_instance_valid(ba):
-				ba.queue_free())
+		free_after(1.1, ba)
 	after(0.42, func():
 		if not live(c):
 			return
@@ -3708,9 +3715,7 @@ func _lightning_limb(c: Node3D, dur: float) -> void:
 	arcs.radius = 0.6
 	c.add_child(arcs)
 	arcs.position = Vector3(0.4, 1.2, -0.3)
-	after(dur, func():
-		if is_instance_valid(arcs):
-			arcs.queue_free())
+	free_after(dur, arcs)
 
 
 ## Liger Bombası: hedefi yakala, birlikte havalan, yıldırımla yere çak

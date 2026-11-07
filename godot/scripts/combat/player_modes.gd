@@ -134,7 +134,7 @@ func _finish_seals() -> void:
 
 func _can_discover(j: Dictionary) -> bool:
 	var pr = Game.profile
-	if int(pr["level"]) < int(j.get("level", 1)) or int(pr["rank"]) < int(j.get("rank", 0)):
+	if int(pr["level"]) < int(j.get("level", 1)) or Gear.eff_rank(pr) < int(j.get("rank", 0)):   # kaçakta Bingo sınıfı eşdeğer (S = Kage)
 		return false
 	if j.get("clan", "") != "" and j["clan"] != pr.get("clan", ""):
 		return false

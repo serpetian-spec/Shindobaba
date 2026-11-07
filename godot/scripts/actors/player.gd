@@ -786,6 +786,8 @@ func _steep_block(pre: Vector3) -> Vector3:
 ## Arazi uçurumunda duvar koşusu: yüzeye yapışık yukarı/yana hareket, düz zemine varınca tepeye fırla
 var terrain_wall := false
 func _terrain_wall_move(dt: float) -> void:
+	if combat:
+		combat.climb_tick(dt)
 	var n = wall_n
 	var side = Vector3(n.z, 0, -n.x)
 	var wish = wish_dir()
@@ -798,6 +800,9 @@ func _terrain_wall_move(dt: float) -> void:
 		spd *= 2.3
 		if up_amt < 0.2 and absf(side_amt) < 0.2:
 			up_amt = 1.0
+	if combat and combat.action == "charge":   # chakra toplarken yapışık kalır
+		up_amt = 0.0
+		side_amt = 0.0
 	var p = global_position + (Vector3.UP * up_amt + side * side_amt) * spd * dt
 	# yüzeye yapış: n yönünde (dışarı) arazinin p.y yüksekliğine indiği noktayı bul
 	var found = false
@@ -866,6 +871,8 @@ func _wall_move(dt: float) -> void:
 	if terrain_wall:
 		_terrain_wall_move(dt)
 		return
+	if combat:
+		combat.climb_tick(dt)
 	var n = wall_n
 	var side = Vector3(n.z, 0, -n.x)
 	var wish = wish_dir()
@@ -880,6 +887,9 @@ func _wall_move(dt: float) -> void:
 		if Engine.get_process_frames() % 3 == 0:
 			FX.burst(global_position + Vector3.UP * 0.9, {"amount": 3, "life": 0.35, "size": 0.35, "vmin": 1, "vmax": 3, "add": true,
 				"colors": [Color(0.5, 0.85, 1.0, 0.9), Color(0.4, 0.7, 1.0, 0)]})
+	if combat and combat.action == "charge":   # chakra toplarken olduğu yerde yapışık kalır (tırmanmaz/kaymaz)
+		up_amt = 0.0
+		side_amt = 0.0
 	var move = Vector3.UP * up_amt * spd + side * side_amt * spd
 	velocity = move - n * 3.0  # duvara bastır
 	var pre = global_position

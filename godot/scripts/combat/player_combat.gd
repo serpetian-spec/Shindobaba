@@ -279,6 +279,18 @@ func _air_attack() -> void:
 	p.model.overlay.set_pose("kick", 1.0)
 
 
+## Duvar/ağaç tırmanışında (move_override çağrılmaz): bekleme süreleri işlesin ve C ile chakra toplanabilsin
+## (eskiden tırmanırken cooldown'lar donuyor, chakra toplanamıyordu)
+func climb_tick(dt: float) -> void:
+	for k in tool_cd.keys():
+		tool_cd[k] = maxf(0.0, float(tool_cd[k]) - dt)
+	for k in cooldowns.keys():
+		cooldowns[k] -= dt
+	jutsu_gcd -= dt
+	sub_bars = minf(4.0, sub_bars + dt / 6.0)
+	_update_charge(dt)
+
+
 ## Player'ın hareket fizik koduna çağrılır; true dönerse normal hareket atlanır
 func move_override(dt: float) -> bool:
 	t += dt
@@ -783,7 +795,9 @@ func _charge_seal_pose() -> Dictionary:
 		arms.append([side + "Hand", inv * (Vector3.UP * 0.98 + fd * 0.12).normalized()])   # parmaklar dik
 	return {"arms": arms, "fL": [0.0, 0.0, 1.5, 1.5, 0.1], "fR": [0.0, 0.0, 1.5, 1.5, 0.1], "spine": 3.0, "neck": 8.0, "crouch": 0.15}
 func _update_charge(dt: float) -> void:
-	var want = Input.is_action_pressed("charge") and p.grounded and (action == "" or action == "charge") and not Game.ui_open
+	# yerde ya da ağaca/duvara chakrayla yapışıkken (kanon: ayaklarla chakra tutunması) toplanabilir; duvarda olduğu yerde tutunur
+	var on_wall = p.wall_n != Vector3.ZERO
+	var want = Input.is_action_pressed("charge") and (p.grounded or on_wall) and (action == "" or action == "charge") and not Game.ui_open
 	if want and action == "charge":
 		Mastery.gain(Game.profile, "chakra", dt * 0.06)   # meditasyon / chakra toplama antrenmanı (0.01 idi)
 	if want:
@@ -798,7 +812,7 @@ func _update_charge(dt: float) -> void:
 			sp["crouch"] = 0.15
 			p.model.overlay.cast_pose = sp
 			p.model.overlay.set_pose("cast", 1.0)
-			p.model.overlay.set_pose("plant", 1.0)
+			p.model.overlay.set_pose("plant", 0.0 if on_wall else 1.0)   # duvarda yere basma pozu yok
 			if aura == null:
 				aura = FX.chakra_aura(p, Color(0.3, 0.62, 1.0), p.model.age_scale if p.model and p.model.get("age_scale") else 1.0)
 			_chg_fx = 0.0
@@ -808,7 +822,7 @@ func _update_charge(dt: float) -> void:
 			p.model.overlay.cast_pose = _charge_seal_pose()   # her kare IK: animasyonla oynayan omuzlara rağmen eller tam birleşik
 		# ayak dibinde chakra basıncı: dışa açılan rüzgâr halkası, kalkan toz ve küçük taşlar (anime)
 		_chg_fx -= dt
-		if action == "charge" and _chg_fx <= 0.0:
+		if action == "charge" and _chg_fx <= 0.0 and not on_wall:
 			_chg_fx = 0.45
 			var gp = p.global_position + Vector3.UP * 0.05
 			FX.ring(gp, Color(0.55, 0.8, 1.0), 2.4, 0.45)

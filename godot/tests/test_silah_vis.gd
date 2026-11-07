@@ -76,7 +76,7 @@ func _ready() -> void:
 	for f in foes:
 		f.global_position = base + fwd * 60.0 + side * 30.0
 		f.set_physics_process(false)
-	var plan = {"sogu_tensasai": [0.6, 1.0]}
+	var plan = {"tekkosen": [0.7, 2.0], "kuchiyose_tetsuzan": [0.5, 1.0], "buki_kuchiyose": [0.5, 0.9]}
 	var b0 = base
 	for id in plan.keys():
 		base = b0 + side * 45.0 * plan.keys().find(id)
@@ -96,7 +96,7 @@ func _ready() -> void:
 		for k in plan[id].size():
 			await _wait(float(plan[id][k]) - tsum)
 			tsum = float(plan[id][k])
-			cc.global_position = pl.global_position + side * 9.0 + fwd * 3.0 + Vector3.UP * 3.0 if id != "kuchiyose_tetsuzan" else pl.global_position + fwd * 2.0 + side * 16.0 + Vector3.UP * 8.0
+			cc.global_position = pl.global_position + side * 9.0 + fwd * 3.0 + Vector3.UP * 3.0 if id != "kuchiyose_tetsuzan" else pl.global_position + fwd * 1.0 + side * 13.0 + Vector3.UP * 5.0
 			cc.look_at(pl.global_position + fwd * 3.0 + Vector3.UP * 1.5 if id != "kuchiyose_tetsuzan" else pl.global_position + fwd * 5.0 + Vector3.UP * 3.0)
 			if id == "sogu_tensasai":
 				cc.global_position = base - fwd * 5.0 + side * 2.0 + Vector3.UP * 1.5

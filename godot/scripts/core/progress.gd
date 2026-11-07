@@ -1123,9 +1123,9 @@ func _training_ground() -> void:
 		Journal.add("Chakra kâğıdı doğanı gösterdi: %s." % el.capitalize(), "milestone")
 		return
 	var opts = [respec_option()]
-	if int(pr["rank"]) >= 2 and int(pr["level"]) >= 25 and "raiton" in pr["elements"] and not "raiton_chidori" in pr["learned"]:
+	if Gear.eff_rank(pr) >= 2 and int(pr["level"]) >= 25 and "raiton" in pr["elements"] and not "raiton_chidori" in pr["learned"]:
 		opts.append({"label": "Chidori eğitimi (800 Ryō)", "cb": func(): _buy_learn("raiton_chidori", 800)})
-	if int(pr["rank"]) >= 2 and int(pr["level"]) >= 30 and "katon" in pr["elements"] and not "katon_karyuu" in pr["learned"]:
+	if Gear.eff_rank(pr) >= 2 and int(pr["level"]) >= 30 and "katon" in pr["elements"] and not "katon_karyuu" in pr["learned"]:
 		opts.append({"label": "Karyuu Endan eğitimi (1200 Ryō)", "cb": func(): _buy_learn("katon_karyuu", 1200)})
 	opts.append_array(village_trainer_options(home()))
 	Hud.dialog("Antrenman Alanı 3", "Kuklalarla kombolarını çalışabilirsin. Chakra şarjı [C], blok [Sağ tık], Kawarimi [Q].", opts)
@@ -1134,11 +1134,11 @@ func _training_ground() -> void:
 func _sage_falls() -> void:
 	var pr = p()
 	var opts = []
-	if int(pr["rank"]) >= 2 and int(pr["level"]) >= 25 and not "rasengan" in pr["learned"]:
+	if Gear.eff_rank(pr) >= 2 and int(pr["level"]) >= 25 and not "rasengan" in pr["learned"]:
 		opts.append({"label": "Rasengan eğitimi (3 aşama)", "cb": func(): RasenganTraining.start()})
-	if int(pr["rank"]) >= 2 and int(pr["level"]) >= 22 and not "kuchiyose" in pr["learned"]:
+	if Gear.eff_rank(pr) >= 2 and int(pr["level"]) >= 22 and not "kuchiyose" in pr["learned"]:
 		opts.append({"label": "Kurbağa sözleşmesini imzala", "cb": func(): Contracts.sign("kurbağa")})
-	if int(pr["rank"]) >= 2 and int(pr["level"]) >= 40 and not "sage" in pr["skills"]:
+	if Gear.eff_rank(pr) >= 2 and int(pr["level"]) >= 40 and not "sage" in pr["skills"]:
 		opts.append({"label": "Sennin eğitimi (doğa enerjisi meditasyonu)", "cb": func():
 			if Game.player and Game.player.combat and Game.player.combat.modes:
 				Game.player.combat.modes.start_sage_training("kurbağa")})

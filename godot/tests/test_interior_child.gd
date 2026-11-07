@@ -16,7 +16,7 @@ func _report(tag: String, pl) -> void:
 		if v.model and v.global_position.distance_to(pl.global_position) < 25.0:
 			npcs.append("%s:%.2f sc=%.2f as=%.2f ov=%.2f/%.2f/%.2f anim=%s" % [String(v.look.get("age", "?")), _head_y(v.model), v.model.scale.x, v.model.age_scale, v.model.overlay.head_scale, v.model.overlay.limb_scale, v.model.overlay.leg_len, v.model.current])
 	print("PL ov=%.2f/%.2f/%.2f anim=%s gender=%s" % [m.overlay.head_scale, m.overlay.limb_scale, m.overlay.leg_len, m.current, m.look.get("gender", "")])
-	print("CHILD %s scale=%.3f age_scale=%.3f age=%s head_y=%.2f cam_dist=%.2f cam_h=%.2f npcs=%s" % [tag, m.scale.x, m.age_scale, m.look.get("age", "?"), _head_y(m), pl.cam_dist, pl.cam.global_position.y - pl.global_position.y, npcs.slice(0, 6)])
+	print("CHILD %s scale=%.3f age_scale=%.3f age=%s head_y=%.2f cam_dist=%.2f cur=%.2f cam_h=%.2f npcs=%s" % [tag, m.scale.x, m.age_scale, m.look.get("age", "?"), _head_y(m), pl.cam_dist, pl.cam_cur_dist, pl.cam.global_position.y - pl.global_position.y, npcs.slice(0, 6)])
 
 
 func _ready() -> void:
@@ -35,7 +35,7 @@ func _ready() -> void:
 		var room = String(it.get("room", ""))
 		if it.get("kind", "") != "enter" or room == "" or done.has(room) or Vector2(it["pos"].x - c.x, it["pos"].z - c.z).length() > float(v["r"]) * 1.3:
 			continue
-		if not room in ["academy"]:
+		if not room in ["academy", "ramen", "home", "hospital", "shop", "mission_hall", "kage", "teahouse", "inn"]:
 			continue
 		done[room] = true
 		pl.respawn(it["pos"] + Vector3(0, 0.3, 0))

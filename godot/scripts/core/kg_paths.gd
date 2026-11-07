@@ -117,14 +117,14 @@ static func interact_site(it: Dictionary) -> void:
 		for n in JINTON:
 			if need == "" and not knows(n):
 				need = "Üç doğayı bilmelisin: Fūton, Katon ve Doton."
-		if need == "" and int(p.get("rank", 0)) < 3:
+		if need == "" and Gear.eff_rank(p) < 3:
 			need = "Bu sır yalnızca Jōnin ve üstüne açılır."
 		if need == "" and int(p["missions_done"].get("S", 0)) < 1:
 			need = "En az bir S-rank görevi başarmış olmalısın."
 	elif kind == "lab":
 		if String(p.get("clan", "")) == "senju":
 			need = "Senju kanı zaten bu hücreleri taşıyor."
-		elif int(p.get("rank", 0)) < 2:
+		elif Gear.eff_rank(p) < 2:
 			need = "Kayıtlara bakılırsa denekler en az Chūnin seviyesindeymiş. Bedenin henüz dayanamaz."
 	if need == "" and int(p.get("level", 1)) < int(s["level"]):
 		need = "Henüz hazır değilsin (Güç %d gerekli)." % int(s["level"])

@@ -48,6 +48,9 @@ func _ready() -> void:
 		print("SF strong_target=%s dead=%s sealed=%s caster_hp=%.0f" % [str(strong), str(not is_instance_valid(e) or e.dead), str(is_instance_valid(e) and e.has_status("sealed")), pl.hp])
 		if is_instance_valid(e) and not e.dead:
 			e.queue_free()
-	await _w(12.0)
+	var p0 = pl.global_position
+	await _w(10.5)
 	print("SF after 12s caster_hp=%.0f" % pl.hp)
+	await _w(6.0)
+	print("SF later caster_hp=%.0f moved=%.0f (yeniden doğdu mu)" % [pl.hp, pl.global_position.distance_to(p0)])
 	get_tree().quit()
