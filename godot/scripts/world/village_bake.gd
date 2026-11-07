@@ -45,6 +45,11 @@ static func snapshot(vid: String) -> Dictionary:
 static func save(root: Node3D, vid: String, snap: Dictionary) -> void:
 	if OS.get_environment("NO_BAKE") != "" or not is_instance_valid(root):
 		return
+	# ekransız (headless) çalışmada çizim sunucusu sahte: MultiMesh tamponları SIFIR okunur -> pişmiş köyde bütün evler
+	# görünmez olur (testler oyunla aynı user:// klasörünü paylaşıyor; bozuk önbelleği oyun yüklüyordu)
+	if DisplayServer.get_name() == "headless" or not _mm_ok(root):
+		push_warning("VillageBake: %s pişirilmedi (headless ya da boş MultiMesh)" % vid)
+		return
 	var t0 = Time.get_ticks_msec()
 	DirAccess.make_dir_recursive_absolute(DIR)
 	for f in DirAccess.get_files_at(DIR):   # aynı köyün eski sürümleri
@@ -137,6 +142,21 @@ static func split_bodies(root: Node, into: Node = null) -> int:
 	return made
 
 
+## Köydeki örnekli (MultiMesh) geometrinin tamponu dolu mu? İlk 40 MultiMesh'in çoğu sıfır sınır kutusuysa bozuk.
+static func _mm_ok(root: Node) -> bool:
+	var n = 0
+	var bad = 0
+	for m in root.find_children("*", "MultiMeshInstance3D", true, false):
+		if m.multimesh == null or m.multimesh.instance_count == 0:
+			continue
+		n += 1
+		if m.multimesh.get_aabb().size.length() < 0.001:
+			bad += 1
+		if n >= 40:
+			break
+	return n == 0 or bad * 2 < n
+
+
 ## Önbellekten yükle; yoksa false (normal kurulum yapılır)
 static func try_load(parent: Node3D, vid: String) -> Node3D:
 	if OS.get_environment("NO_BAKE") != "":
@@ -152,6 +172,12 @@ static func try_load(parent: Node3D, vid: String) -> Node3D:
 	if not ps is PackedScene or not data is Dictionary:
 		return null
 	var root: Node3D = ps.instantiate()
+	if DisplayServer.get_name() != "headless" and not _mm_ok(root):   # bozuk önbellek (sıfır tamponlu evler): sil, normal kur
+		push_warning("VillageBake: %s önbelleği bozuk, yeniden kurulacak" % vid)
+		root.free()
+		DirAccess.remove_absolute(sp)
+		DirAccess.remove_absolute(dp)
+		return null
 	split_bodies(root)   # çarpışma: tek gövdede binlerce şekil Jolt'ta kurulamıyordu ("Compound hierarchy is too deep") -> duvarlardan geçiliyordu
 	parent.add_child(root)
 	for it in data["inter"]:

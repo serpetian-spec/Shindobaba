@@ -70,6 +70,8 @@ const TABLE := {
 	"style_sumi": [preload("res://scripts/combat/style_sumi_anim.gd"), 1.0],
 	"style_yilan": [preload("res://scripts/combat/style_yilan_anim.gd"), 1.0],
 	"style_gama": [preload("res://scripts/combat/style_gama_anim.gd"), 1.0],
+	"style_chidori": [preload("res://scripts/combat/style_chidori_anim.gd"), 1.05],
+	"style_hiraishin": [preload("res://scripts/combat/style_hiraishin_anim.gd"), 1.15],
 }
 ## uzun menzil silahları: yapay zekâ uzakta durup atar (Enemy._chase)
 const RANGED := ["fuma_shuriken", "kyodai_shuriken", "fuma_makimono", "senbon", "mateki"]   # mateki: genjutsu flütü, uzakta durup çalar
@@ -78,7 +80,7 @@ const MASS := {"temari_ogi": 0.65, "uc_tirpan": 1.0, "samehada": 0.9, "kabutowar
 	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3, "tonfa": 0.3, "bashosen": 0.35, "kubikiribocho": 0.95, "yagura_sopa": 0.4, "yelpaze": 0.6, "kongo_asa": 0.45, "kama": 0.75, "pence": 0.15, "senbon": 0.05, "hiramekarei": 0.7, "bo": 0.35, "kiba": 0.25, "tanto": 0.1, "hakko_chakura_to": 0.08, "mateki": 0.06, "wakizashi": 0.25, "nodachi": 0.7, "musta": 0.15,
 	"style_juken": 0.08, "style_akimichi": 0.65, "style_inuzuka": 0.12, "style_kaguya": 0.2,
 	"style_uchiha": 0.1, "style_hozuki": 0.3, "style_aburame": 0.05, "style_jugo": 0.7,
-	"style_yuki": 0.05, "style_sabaku": 0.05, "style_uzumaki": 0.1, "style_yotsuki": 0.3, "style_kamizuru": 0.05, "style_iburi": 0.05, "style_kurosuki": 0.15, "style_senju": 0.45, "style_sarutobi": 0.12, "style_hatake": 0.1, "style_nara": 0.05, "style_kapi": 0.15, "style_kil": 0.05, "style_akasuna": 0.05, "style_kagit": 0.05, "style_sumi": 0.05, "style_yilan": 0.1, "style_gama": 0.2}
+	"style_yuki": 0.05, "style_sabaku": 0.05, "style_uzumaki": 0.1, "style_yotsuki": 0.3, "style_kamizuru": 0.05, "style_iburi": 0.05, "style_kurosuki": 0.15, "style_senju": 0.45, "style_sarutobi": 0.12, "style_hatake": 0.1, "style_nara": 0.05, "style_kapi": 0.15, "style_kil": 0.05, "style_akasuna": 0.05, "style_kagit": 0.05, "style_sumi": 0.05, "style_yilan": 0.1, "style_gama": 0.2, "style_chidori": 0.1, "style_hiraishin": 0.05}
 
 
 static func mass(id: String) -> float:
@@ -153,6 +155,13 @@ static func mods(id: String, i: int) -> Dictionary:
 			return {"lunge_mul": 0.0, "special": "", "knock": 1.0}
 		"style_yilan", "style_gama":   # yakın-orta: tüm vuruşlar yılan / kurbağa sanatından (on_strike)
 			return {"lunge_mul": 0.25, "special": "", "knock": 1.0, "reach_add": -9.0}
+		"style_chidori":   # yakın Chidori darbeleri + orta senbon/mızrak/iğne; bitiriş koşu kendi içinde
+			var m = {"lunge_mul": 0.6, "special": "", "knock": 4.0, "reach_add": 0.4}
+			if i in [1, 2, 3, 4, 5]:
+				m.merge({"lunge_mul": 0.0, "reach_add": -9.0})
+			return m
+		"style_hiraishin":   # ışınlanır, yürüyerek yanaşmaz: tüm vuruşlar kunai/flaş sanatından (on_strike)
+			return {"lunge_mul": 0.0, "special": "", "knock": 1.0, "reach_add": -9.0}
 		"style_kagit", "style_sumi":   # orta-uzak: el değmez, tüm hasar kâğıt / mürekkepten (on_strike)
 			return {"lunge_mul": 0.0, "special": "", "knock": 1.0, "reach_add": -9.0}
 		"style_akasuna":   # orta: kuklacı yanaşmaz; tüm hasar kuklalardan (on_strike)
@@ -2808,6 +2817,52 @@ static func _style_start(id: String, i: int, who: Node3D) -> void:
 			ov.fist = {"Right": -0.8, "Left": -0.8} if i == 5 else {"Right": 0.5, "Left": 0.5}
 			if i == 5:   # Ōdama Rasengan: avuçta büyüyen küre (kurulum boyunca)
 				_rasen_hand(who, 0.62 / speed(id))
+		"style_chidori":
+			ov.fist = {"Right": -0.7, "Left": 0.6} if i != 4 else {"Right": 0.6, "Left": 0.6}   # Chidori: pençe gibi açık avuç
+			if i == 1:
+				ov.fist = {"Right": 0.6, "Left": -0.9}
+			if i in [0, 2, 5]:   # elde bin kuş: şimşek küresi kurulumdan vuruşa kadar
+				_rai_hand(who, (0.75 if i == 5 else 0.4) / speed(id), i == 5)
+				Sfx.play("chidori", who.global_position + Vector3.UP, 1.3 if i != 5 else 1.0, 0.5)
+			if i == 5:   # Chidori koşusu: el yere sürtülür, toprak yarılır (hendek), hedefin dibine kadar
+				who.get_tree().create_timer(0.22 / speed(id)).timeout.connect(func():
+					if not is_instance_valid(who) or int(who.get_meta("style_tok", 0)) != tok:
+						return
+					_chidori_run(who, 0.36 / speed(id)))
+		"style_hiraishin":
+			ov.fist = {"Right": -1.0, "Left": -0.3} if i in [1, 4] else {"Right": 0.5, "Left": -0.3}
+			var tgh = _hira_target(who)
+			match i:
+				1:   # en yakın kunaiye (hedefin yanındaki) ışınlan
+					who.get_tree().create_timer(0.08 / speed(id)).timeout.connect(func():
+						if is_instance_valid(who) and int(who.get_meta("style_tok", 0)) == tok:
+							var kp = _hira_mark_near(who, tgh.global_position if tgh else who.global_position + who.face_dir() * 4.0)
+							if kp != Vector3.INF:
+								_hira_hop(who, kp, tgh)
+							elif tgh and tgh.global_position.distance_to(who.global_position) < 10.0:
+								_hira_hop(who, tgh.global_position - (tgh.global_position - who.global_position).normalized() * 1.3, tgh))
+				2:   # Ni no Dan: işaretli rakibin ARKASINDA belir
+					who.get_tree().create_timer(0.1 / speed(id)).timeout.connect(func():
+						if is_instance_valid(who) and int(who.get_meta("style_tok", 0)) == tok and is_instance_valid(tgh) and tgh.global_position.distance_to(who.global_position) < 14.0:
+							var away = tgh.global_position - who.global_position
+							away.y = 0
+							_hira_hop(who, tgh.global_position + away.normalized() * 1.1, tgh))
+				3:   # kunai hedefin üstüne atılır, havada yakalanır: yukarıdan iniş
+					if tgh and tgh.global_position.distance_to(who.global_position) < 14.0:
+						var top = tgh.global_position + Vector3.UP * 3.2
+						_hira_throw(who, who.global_position + Vector3.UP * 1.5, top, 0.12, false)
+						who.get_tree().create_timer(0.14 / speed(id)).timeout.connect(func():
+							if is_instance_valid(who) and int(who.get_meta("style_tok", 0)) == tok and is_instance_valid(tgh):
+								_hira_hop(who, top - (tgh.global_position - who.global_position).normalized() * 0.4, tgh, false)
+								if who is CharacterBody3D:
+									who.velocity = Vector3(0, -14.0, 0))
+				5:   # Rasengan yoğrulur; vuruştan hemen önce hedefin arkasında sarı flaş
+					_rasen_hand(who, 0.6 / speed(id))
+					who.get_tree().create_timer(0.48 / speed(id)).timeout.connect(func():
+						if is_instance_valid(who) and int(who.get_meta("style_tok", 0)) == tok and is_instance_valid(tgh) and tgh.global_position.distance_to(who.global_position) < 16.0:
+							var away2 = tgh.global_position - who.global_position
+							away2.y = 0
+							_hira_hop(who, tgh.global_position + away2.normalized() * 1.0, tgh))
 		"style_kagit":
 			ov.fist = {"Right": -0.8, "Left": -0.8}
 			if i == 4:   # kâğıt kanatlar sırttan açılır (kısa)
@@ -3150,6 +3205,112 @@ static func _bone_spikes(who: Node3D, bones: Array, dur: float) -> void:
 		tw.tween_callback(ba.queue_free)
 
 
+## Chidori koşusu: el yere sürtülerek hedefin dibine atılış; ardında şimşekli hendek (zemin yarığı + toz)
+static func _chidori_run(who: Node3D, dur: float) -> void:
+	var tg = _near_foe(who, 12.0)
+	var from = who.global_position
+	var f = who.face_dir() if who.has_method("face_dir") else Vector3.FORWARD
+	var to = (tg.global_position - (tg.global_position - from).normalized() * 0.9) if tg else from + f * 7.0
+	to.y = Game.ground_height(to.x, to.z)
+	if tg and who.has_method("face_dir") and "facing" in who:
+		var d = tg.global_position - from
+		who.facing = atan2(-d.x, -d.z)
+	var rai = Color(0.68, 0.86, 1.0)
+	var n = 6
+	for k in n:
+		who.get_tree().create_timer(dur * k / n).timeout.connect(func():
+			if not is_instance_valid(who):
+				return
+			var q = from.lerp(to, float(k) / n) + (to - from).normalized().cross(Vector3.UP) * 0.35
+			q.y = Game.ground_height(q.x, q.z)
+			VFX.cracks(q, 1.0, Color(0.12, 0.12, 0.16, 0.85), 2.0)
+			VFX.debris(q, Color(0.55, 0.5, 0.42), 4, 3.5, 0.18)
+			VFX.bolt(q + Vector3.UP * 0.1, q + Vector3(randf_range(-0.8, 0.8), randf_range(0.3, 1.0), randf_range(-0.8, 0.8)), rai, 0.1, 0.2, 1))
+	FX.speed_lines(from + Vector3.UP, (to - from).normalized())
+	var tw = who.create_tween()
+	tw.tween_property(who, "global_position", to, dur).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
+
+## Hiraishin işaretleri (yere saplı kunailer): [{pos, until, node}]
+static func _hira_marks(who: Node3D) -> Array:
+	var now = Time.get_ticks_msec() / 1000.0
+	var mk: Array = who.get_meta("style_kunai", [])
+	mk = mk.filter(func(m): return now < float(m["until"]))
+	who.set_meta("style_kunai", mk)
+	return mk
+
+
+static func _hira_mark_near(who: Node3D, p: Vector3) -> Vector3:
+	var best = Vector3.INF
+	var bd = 6.0
+	for m in _hira_marks(who):
+		var d = (m["pos"] as Vector3).distance_to(p)
+		if d < bd:
+			bd = d
+			best = m["pos"]
+	return best
+
+
+## Üç uçlu kunai fırlatır; stick: yere saplanıp 8 sn işaret olarak kalır
+static func _hira_throw(who: Node3D, from: Vector3, to: Vector3, dur: float, stick: bool) -> void:
+	var pj = PathJutsu.get_pinst()
+	if pj == null:
+		return
+	var k = pj._hira_kunai()
+	who.get_tree().current_scene.add_child(k)
+	k.global_position = from
+	if from.distance_to(to) > 0.05:
+		k.look_at(to, Vector3.UP if absf((to - from).normalized().y) < 0.95 else Vector3.FORWARD)
+		k.rotate_object_local(Vector3.UP, PI)   # bıçak ucu (+Z) gidiş yönünde
+	var tw = k.create_tween()
+	tw.tween_property(k, "global_position", to, dur)
+	if stick:
+		var mk: Array = who.get_meta("style_kunai", [])
+		mk.append({"pos": Vector3(to.x, to.y - 0.15, to.z), "until": Time.get_ticks_msec() / 1000.0 + 8.0})
+		who.set_meta("style_kunai", mk.slice(maxi(0, mk.size() - 6)))
+		tw.tween_callback(func(): FX.hit_spark(to, Color(1.0, 0.9, 0.5), 0.3))
+		tw.tween_interval(8.0)
+	else:
+		tw.tween_interval(0.25)
+	tw.tween_callback(k.queue_free)
+
+
+## Sarı flaşla bir noktaya ışınlan (yerde ya da havada); tg verilirse ona dön
+static func _hira_hop(who: Node3D, p: Vector3, tg: Node3D, ground := true) -> void:
+	var pj = PathJutsu.get_pinst()
+	if pj:
+		pj._yellow_flash(who.global_position + Vector3.UP)
+	var to = p
+	if ground:
+		to.y = Game.ground_height(to.x, to.z)
+	who.global_position = to
+	if who is CharacterBody3D:
+		who.velocity = Vector3.ZERO
+	if pj:
+		pj._yellow_flash(to + Vector3.UP)
+	if tg and is_instance_valid(tg) and "facing" in who:
+		var d = tg.global_position - to
+		d.y = 0
+		if d.length() > 0.01:
+			who.facing = atan2(-d.x, -d.z)
+			if who.get("model"):
+				who.model.rotation.y = who.facing
+	Sfx.play("whoosh", to, 1.6, 0.5)
+
+
+static func _near_foe_at(who: Node3D, p: Vector3, r: float) -> Node3D:
+	var best: Node3D = null
+	var bd = r
+	for e in who.get_tree().get_nodes_in_group("fighters"):
+		if e == who or not Combat.hostile(who, e) or e.is_dead():
+			continue
+		var d = e.global_position.distance_to(p)
+		if d < bd:
+			bd = d
+			best = e
+	return best
+
+
 static func _near_foe(who: Node3D, r: float) -> Node3D:
 	var best: Node3D = null
 	var bd = r
@@ -3394,6 +3555,133 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 					var to2 = (tg.global_position + Vector3.UP) if tg and tg.global_position.distance_to(who.global_position) < 5.0 else who.global_position + Vector3.UP + f * 1.6
 					VFX.shockwave(to2, Color(0.6, 0.85, 1.0), 4.0, 0.3, false, f)
 					Combat.hit_sphere(who, to2, 1.8, _kinfo(dmg, 2.4, {"element": "", "knock": 16.0, "launch": 4.0, "kind": "heavy"}))
+					_shake(who, 0.6)
+		"style_chidori":
+			var tg = _near_foe(who, 16.0)
+			var rai = Color(0.68, 0.86, 1.0)
+			var hand = who.global_position + Vector3.UP * 1.2 + f * 0.7
+			var aimc = (tg.global_position + Vector3.UP) if tg else hand + f * 10.0
+			match i:
+				0:   # Chidori darbesi: avuçtan öne dallanan kısa şimşek
+					for k in 3:
+						VFX.bolt(hand, hand + f * 2.6 + Vector3(randf_range(-0.5, 0.5), randf_range(-0.4, 0.5), randf_range(-0.5, 0.5)), rai, 0.14, 0.2, 2)
+					VFX.star(hand + f * 0.6, Color(0.9, 0.96, 1.0), 1.6, 0.12)
+					Combat.hit_zone(who, who.global_position, f, 3.0, 30.0, 2.2, _kinfo(dmg, 1.2, {"element": "raiton", "knock": 5.0, "kind": "heavy", "melee": true, "stun": 0.3}))
+				1:   # Chidori Senbon: sol elden şimşek iğne yelpazesi
+					var lh = who.global_position + Vector3.UP * 1.3 - side * 0.3 + f * 0.5
+					var dv = (aimc - lh).normalized()
+					for k in 7:
+						var dd = dv.rotated(Vector3.UP, deg_to_rad((k - 3) * 5.0))
+						who.get_tree().create_timer(k * 0.012).timeout.connect(func():
+							VFX.bolt(lh, lh + dd * 11.0, Color(0.85, 0.94, 1.0), 0.04, 0.16, 0))
+					Combat.hit_zone(who, who.global_position, dv, 11.0, 18.0, 2.4, _kinfo(dmg, 0.8, {"element": "raiton", "knock": 1.0, "kind": "light", "stun": 0.4}))
+				2:   # Chidori Eisō: avuçtaki şimşek mızrağa uzar, delip geçer
+					var end = hand + (aimc - hand).normalized() * 10.0
+					var spear = MeshInstance3D.new()
+					var cm = CylinderMesh.new()
+					cm.top_radius = 0.0
+					cm.bottom_radius = 0.1
+					cm.height = 10.0
+					spear.mesh = cm
+					spear.material_override = VFX.mat_bolt(rai, 2.6)
+					who.get_tree().current_scene.add_child(spear)
+					spear.global_position = (hand + end) * 0.5
+					spear.look_at(end, Vector3.UP)
+					spear.rotate_object_local(Vector3.RIGHT, -PI * 0.5)
+					spear.scale = Vector3(1, 0.05, 1)
+					var tw = spear.create_tween()
+					tw.tween_property(spear, "scale", Vector3.ONE, 0.07)
+					tw.tween_interval(0.22)
+					tw.tween_property(spear, "scale", Vector3(0.01, 1, 0.01), 0.12)
+					tw.tween_callback(spear.queue_free)
+					VFX.bolt(hand, end, rai, 0.16, 0.25, 3)
+					Combat.hit_zone(who, who.global_position, (aimc - hand).normalized(), 10.0, 6.0, 2.4, _kinfo(dmg, 1.5, {"element": "raiton", "knock": 7.0, "kind": "heavy", "stun": 0.6, "pierce_guard": true}))
+				3:   # Chidori Nagashi: bedenden her yöne akım
+					var c0 = who.global_position + Vector3.UP
+					for k in 10:
+						var a = TAU * k / 10.0 + randf_range(-0.2, 0.2)
+						VFX.bolt(c0 + Vector3.UP * randf_range(-0.4, 0.6), who.global_position + Vector3(cos(a) * 3.8, randf_range(0.1, 1.8), sin(a) * 3.8), rai, 0.12, 0.25, 2)
+					VFX.shockwave(c0, rai, 7.0, 0.3, true)
+					VFX.cracks(Vector3(who.global_position.x, Game.ground_height(who.global_position.x, who.global_position.z), who.global_position.z), 2.6, Color(0.1, 0.12, 0.2, 0.8), 3.0)
+					Combat.hit_sphere(who, c0, 3.8, _kinfo(dmg, 1.1, {"element": "raiton", "knock": 7.0, "kind": "heavy", "stun": 1.2}))
+					Sfx.play("chidori", c0, 0.9)
+				4:   # Chidori Tōshi: işaret parmağından ince, uzun delici şimşek
+					var tip = who.global_position + Vector3.UP * 1.4 + f * 0.9
+					var dt = (aimc - tip).normalized()
+					VFX.bolt(tip, tip + dt * 16.0, Color(0.9, 0.97, 1.0), 0.07, 0.3, 1)
+					FX.hit_spark(tip, Color(0.9, 0.97, 1.0), 0.5)
+					Combat.hit_zone(who, who.global_position, dt, 16.0, 4.0, 2.4, _kinfo(dmg, 1.0, {"element": "raiton", "knock": 3.0, "kind": "light", "stun": 0.5, "pierce_guard": true}))
+				5:   # koşunun sonu: hendekten yukarı saplanış — hedef havaya
+					var up0 = who.global_position + Vector3.UP * 1.0 + f * 0.8
+					for k in 5:
+						VFX.bolt(up0, up0 + Vector3(randf_range(-1.2, 1.2), randf_range(2.0, 4.0), randf_range(-1.2, 1.2)), rai, 0.16, 0.3, 2)
+					VFX.star(up0 + Vector3.UP * 0.4, Color(0.92, 0.97, 1.0), 2.8, 0.18)
+					Combat.hit_sphere(who, up0 + Vector3.UP * 0.3, 1.8, _kinfo(dmg, 2.3, {"element": "raiton", "knock": 4.0, "launch": 9.0, "kind": "heavy", "stun": 0.8, "pierce_guard": true}))
+					_shake(who, 0.55)
+		"style_hiraishin":
+			var tg = _hira_target(who)
+			var pjh = PathJutsu.get_pinst()
+			if pjh == null:
+				return
+			var yel = Color(1.0, 0.9, 0.4)
+			match i:
+				0:   # üç kunai yelpazesi: hedefin çevresine saplanır, her biri işaret
+					var aim0 = tg.global_position if tg and tg.global_position.distance_to(who.global_position) < 18.0 else who.global_position + f * 8.0
+					var from = who.global_position + Vector3.UP * 1.5 + f * 0.4
+					for k in 3:
+						var land = aim0 + side * (k - 1) * 1.6 - f * (0.6 if k != 1 else 0.0)
+						land.y = Game.ground_height(land.x, land.z) + 0.15
+						_hira_throw(who, from, land, 0.16 + k * 0.03, true)
+					if tg:
+						who.get_tree().create_timer(0.2).timeout.connect(func():
+							if is_instance_valid(who) and is_instance_valid(tg) and tg.global_position.distance_to(aim0) < 1.8:
+								Combat.hit_sphere(who, tg.global_position + Vector3.UP, 0.9, _kinfo(dmg, 0.7, {"element": "", "knock": 1.5, "kind": "light", "bleed": 1.0}))
+								if tg.has_method("apply_status"):
+									tg.apply_status("marked", 20.0)
+									tg.set_meta("hiraishin_by", who.get_instance_id()))
+				1:   # ışınlandığı kunainin yanında el kılıcı (yatay)
+					pjh._arc_cut(who.global_position + Vector3.UP * 1.15, who.face_dir(), -80.0, 80.0, yel, 2.0)
+					Combat.hit_zone(who, who.global_position, who.face_dir(), 2.6, 60.0, 2.2, _kinfo(dmg, 1.1, {"element": "", "knock": 6.0, "kind": "heavy", "melee": true}))
+				2:   # Ni no Dan: arkadan yukarı tekme
+					var kp = who.global_position + Vector3.UP * 1.0 + who.face_dir() * 0.9
+					VFX.star(kp, yel, 1.8, 0.12)
+					Combat.hit_sphere(who, kp, 1.4, _kinfo(dmg, 1.3, {"element": "", "knock": 3.0, "launch": 8.0, "kind": "heavy", "melee": true}))
+				3:   # yukarıdan iniş darbesi: yere çarpar
+					var g3 = who.global_position + who.face_dir() * 0.6
+					g3.y = Game.ground_height(g3.x, g3.z)
+					VFX.shockwave(g3 + Vector3.UP * 0.1, yel, 4.0, 0.25, true)
+					VFX.cracks(g3, 2.2)
+					Combat.hit_sphere(who, g3 + Vector3.UP * 0.6, 2.0, _kinfo(dmg, 1.4, {"element": "", "knock": 5.0, "kind": "heavy", "melee": true, "stun": 0.5}))
+					_shake(who, 0.35)
+				4:   # kunailer arası zincir kesik: her işarette bir flaş, yakınındakiler kesilir, başa dön
+					var start = who.global_position
+					var marks = _hira_marks(who).filter(func(m): return (m["pos"] as Vector3).distance_to(start) < 18.0).slice(0, 3)
+					if marks.is_empty() and tg:
+						marks = [{"pos": tg.global_position - (tg.global_position - start).normalized() * 1.2}]
+					for k in marks.size():
+						var mp: Vector3 = marks[k]["pos"]
+						who.get_tree().create_timer(k * 0.09).timeout.connect(func():
+							if not is_instance_valid(who):
+								return
+							var prev = who.global_position
+							_hira_hop(who, mp, _near_foe_at(who, mp, 3.0))
+							VFX.bolt(prev + Vector3.UP, who.global_position + Vector3.UP, yel, 0.08, 0.15, 0)
+							pjh._arc_cut(who.global_position + Vector3.UP * 1.1, who.face_dir(), -90.0, 90.0, yel, 2.2)
+							Combat.hit_sphere(who, who.global_position + Vector3.UP, 2.4, _kinfo(dmg, 0.8, {"element": "", "knock": 5.0, "kind": "heavy", "bleed": 1.5})))
+					who.get_tree().create_timer(marks.size() * 0.09 + 0.12).timeout.connect(func():
+						if is_instance_valid(who):
+							_hira_hop(who, start, null))
+				5:   # arkadan Rasengan
+					var at5 = who.global_position + Vector3.UP * 1.1 + who.face_dir() * 0.9
+					var dome = VFX.rasengan(0.8)
+					who.get_tree().current_scene.add_child(dome)
+					dome.global_position = at5
+					var tw5 = dome.create_tween()
+					tw5.tween_property(dome, "scale", Vector3.ONE * 2.4, 0.2)
+					tw5.tween_property(dome, "scale", Vector3.ONE * 0.05, 0.15)
+					tw5.tween_callback(dome.queue_free)
+					VFX.shockwave(at5, Color(0.6, 0.85, 1.0), 3.6, 0.3, false, who.face_dir())
+					Combat.hit_sphere(who, at5, 1.7, _kinfo(dmg, 2.4, {"element": "", "knock": 18.0, "launch": 4.0, "kind": "heavy", "hitstop": 0.12}))
 					_shake(who, 0.6)
 		"style_kagit":
 			var tg = _near_foe(who, 16.0)
