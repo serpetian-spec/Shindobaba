@@ -109,7 +109,7 @@ func attack(v: Node) -> void:
 	if v is ClanResident:
 		var rank = int(Friends.all().get(fid, {}).get("rank", 1))
 		e = ClanWorld.spawn_enemy(String(v.clan), 6 + rank * 9 + randi_range(0, 4), at, {"outfit": "chunin", "village": String(v.vid), "name": String(v.given),
-			"female": v.look.get("gender", "m") == "f", "eye": int(v.eye_kind), "look": v.look})
+			"female": v.look.get("gender", "m") == "f", "eye": int(v.eye_kind), "look": v.look, "adopt": v})
 		if e == null:
 			return
 		if int(v.eye_kind) > 0:
@@ -129,6 +129,7 @@ func attack(v: Node) -> void:
 		a["look"] = v.look.duplicate()
 		e = Enemy.new()
 		e.setup(a)
+		e.adopt_model(v)   # köylünün modeli düşmana geçer (yeniden kurulmaz)
 		get_tree().current_scene.add_child(e)
 		at.y = Game.ground_height(at.x, at.z)
 		e.global_position = at

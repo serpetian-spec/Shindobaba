@@ -47,6 +47,10 @@ func _physics_process(dt: float) -> void:
 		return
 	# savaşçılar (alt adımlarla)
 	var n = maxi(1, int(step.length() / maxf(radius, 0.3)) + 1)
+	if shooter is Player:   # yoldaki köy takımına kunai/jutsu: takım saldırır (tarafsız NPC'ler dövüşçü grubunda değil)
+		for an in get_tree().get_nodes_in_group("ambient_team"):
+			if is_instance_valid(an) and not an.dead and Combat.capsule_hit(to, an, radius + 0.3):
+				Combat.provoke(an)
 	for i in n:
 		var pt = from.lerp(to, float(i + 1) / n)
 		for f in get_tree().get_nodes_in_group("fighters"):

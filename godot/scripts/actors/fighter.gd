@@ -45,11 +45,32 @@ func _build_body() -> void:
 	add_child(cs)
 	radius *= size
 	height *= size
-	if model == null and look != null:
+	if model != null and model.get_parent() == null:
+		add_child(model)   # adopt_model ile devralınan hazır model
+		model.position = Vector3.ZERO
+		model.scale = Vector3.ONE * size * float(model.age_scale)
+	elif model == null and look != null:
 		model = CharacterModel.new()
 		add_child(model)
 		model.setup(look)
 		model.scale = Vector3.ONE * size * float(model.age_scale)   # çocuk klon çocuk boyunda (ölçek yaşı eziyordu)
+
+
+## NPC düşmana/dövüşçüye dönüşürken onun hazır modelini devralır (add_child'dan ÖNCE çağrılır). Model yeniden kurulmaz:
+## köy takımı saldırınca 3-4 model aynı karede sıfırdan kuruluyor, oyun yarım saniye donuyordu.
+func adopt_model(src: Node) -> void:
+	var m = src.get("model") if src != null and is_instance_valid(src) else null
+	if m == null or not is_instance_valid(m) or not (m is CharacterModel) or m.is_queued_for_deletion():
+		return
+	var y = m.rotation.y
+	m.get_parent().remove_child(m)
+	m.rotation.y = y
+	m.visible = true
+	model = m
+	src.set_process(false)   # kaynak bu karede silinecek: modelsiz kalan kaynağın kare işleri çalışmasın
+	src.set_physics_process(false)
+	if src.get("model") != null:
+		src.set("model", null)
 
 
 func is_dead() -> bool:

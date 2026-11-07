@@ -112,6 +112,8 @@ static func archetype(kind: String, i := 0) -> Dictionary:
 		oarch = "jonin"
 	if oarch != "":
 		L.merge(Outfits.roll(oarch, String(L.get("village", "konoha"))), true)
+	L["npc"] = true
+	L["npc_strict"] = true   # rastgele düşman: o yüz için hesaplanmamış saç tutamı yakın zamanda hesaplandıysa hazır bir saç seçilir (140+ ms donma olmasın)
 	base["look"] = L
 	# jutsu seviyeye ve tipe göre seçilir: haydut jutsu atmaz, düşük seviye kaçak ninja köpekbalığı fırlatmaz
 	if kind in JUTSU_CAP:

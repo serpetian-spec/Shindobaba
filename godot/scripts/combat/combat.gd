@@ -217,6 +217,10 @@ func hit_sphere(attacker: Node3D, center: Vector3, radius: float, info: Dictiona
 			hits.append(f)
 			if inf.get("melee", false):
 				_lion_drain(attacker, f)
+	if attacker is Player:
+		for n in get_tree().get_nodes_in_group("ambient_team"):
+			if is_instance_valid(n) and not n.dead and capsule_hit(center, n, radius):
+				provoke(n)
 	if not hits.is_empty() and info.get("hitstop", 0.0) > 0.0:
 		hitstop(info["hitstop"])
 	return hits
@@ -256,6 +260,16 @@ func _lion_drain(attacker: Node3D, f: Node3D) -> void:
 		"colors": [Color(0.75, 0.9, 1.0, 1), Color(0.35, 0.65, 1.0, 0)]})
 
 
+## Oyuncu yolda yürüyen köy takımından birine vurdu (tarafsız NPC'ye darbe geçmez): takım saldırıya geçer.
+## Kaçaksan zaten avcın — suç sayılmaz; köylüysen "köy takımına saldırı" suçu.
+func provoke(n: Node) -> void:
+	if not n.is_in_group("ambient_team"):
+		return
+	var at = get_tree().current_scene.find_child("AmbientTeams", true, false)
+	if at != null and at.has_method("provoke"):
+		at.provoke(n)
+
+
 ## Dev saldırı alanı: origin (yerde) önündeki yelpaze dilimine giren HER düşmana vurur — boy farkı önemsiz
 ## (Susanoo, kuyruklu canavar, dev çağrılar: küre isabeti yerdeki küçük hedefi ıskalıyordu).
 ## half_deg: yelpazenin yarım açısı; reach: yatay menzil; height: origin'den yukarı kapsanan yükseklik.
@@ -265,6 +279,10 @@ func hit_zone(attacker: Node3D, origin: Vector3, dir: Vector3, reach: float, hal
 	dir = dir.normalized() if dir.length() > 0.01 else Vector3.ZERO
 	WorldDamage.impact(origin + dir * reach * 0.55, reach * 0.45, info)
 	var cmin = cos(deg_to_rad(half_deg))
+	if attacker is Player:
+		for n in get_tree().get_nodes_in_group("ambient_team"):
+			if is_instance_valid(n) and not n.dead and (n.global_position - origin).length() < reach + 1.0:
+				provoke(n)
 	for f in get_tree().get_nodes_in_group("fighters"):
 		if f in exclude or not hostile(attacker, f) or f.is_dead():
 			continue

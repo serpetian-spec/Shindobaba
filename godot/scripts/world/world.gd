@@ -40,6 +40,7 @@ func build(progress: Callable = Callable()) -> void:
 	LegendPaths.build_all(sites)  # Efsane Yolları: ustaların inleri (yılan ini, demirhane...)
 	_p(progress, 0.85, "Köyler")
 	await get_tree().process_frame
+	await CharacterModel.prewarm_looks(self, func(f: float, _l: String): _p(progress, 0.85 + f * 0.08, "Ninjalar hazırlanıyor"))   # giysi önbellekleri: dövüşte ilk NPC donması olmasın
 	stream = preload("res://scripts/world/world_stream.gd").new()
 	stream.name = "WorldStream"
 	add_child(stream)

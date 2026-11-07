@@ -108,6 +108,7 @@ func _spawn(pp: Vector3) -> void:
 		look["age"] = "adult" if rank >= 1 else "teen"
 		if rank >= 1:
 			look["vest"] = hi["vest"]
+		await CharacterModel.build_turn(self)   # takım üyeleri ayrı karelerde kurulur (donma olmasın)
 		var n = EncounterNPC.new()
 		n.team = "neutral"
 		var nm = String(f.get("name", person["name"])) if not f.is_empty() else String(person["name"])
@@ -119,6 +120,7 @@ func _spawn(pp: Vector3) -> void:
 		n.look = lk
 		n.line = String((SENSEI_LINES if rank >= 2 else LINES).pick_random())
 		n.set_meta("vt", [vid, ti, pi])
+		n.add_to_group("ambient_team")   # doğrudan vurulunca takım saldırıya geçer (Combat.provoke)
 		n.on_talk = _talk
 		get_tree().current_scene.add_child(n)
 		var q = start + Vector3(randf_range(-2, 2), 0, randf_range(-2, 2))
@@ -212,6 +214,15 @@ func _talk(n: Node) -> void:
 
 ## Takım gerçek savaşçıya döner: her üye rütbesine göre köy ninjası (jōnin hoca güçlü, geninler zayıf ve kalabalık).
 ## crime: oyuncu saldırdıysa köyde suç; kaçağı tanıyıp saldırdılarsa suç yok.
+## Oyuncu takımdan birine doğrudan vurdu (Combat.provoke): tüm takım düşmana dönüşür
+func provoke(n: Node) -> void:
+	for tm in teams:
+		if n in tm["nodes"] and not tm.get("hostile", false):
+			Hud.msg("«Saldırı! Hepiniz, düzene girin!»", Color(1, 0.45, 0.35))
+			_team_attack(tm, not Orgs.is_rogue())   # kaçak zaten aranıyor: ek suç yok
+			return
+
+
 func _team_attack(tm: Dictionary, crime: bool) -> void:
 	tm["hostile"] = true
 	var at0 := Vector3.ZERO
@@ -231,6 +242,7 @@ func _team_attack(tm: Dictionary, crime: bool) -> void:
 		a["look"] = (n.look as Dictionary).duplicate()
 		var e := Enemy.new()
 		e.setup(a)
+		e.adopt_model(n)   # yürüyen NPC'nin modeli düşmana geçer (yeniden kurulmaz: 3-4 model aynı karede donduruyordu)
 		get_tree().current_scene.add_child(e)
 		var at: Vector3 = Missions.open_ground(n.global_position, 6.0)
 		e.global_position = at

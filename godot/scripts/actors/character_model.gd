@@ -120,6 +120,52 @@ static func _scene(n: String) -> PackedScene:
 	return _scenes[n]
 
 
+static var _build_frame := -1
+
+
+## Ortam NPC'leri (yolcu, gezgin takım) için model kurma sırası: karede en fazla bir model kurulur, gerisi sonraki karelere
+## kayar (bir karede 3-4 model = 300-650 ms donma). Kullanım: await CharacterModel.build_turn(self); sonra is_instance_valid kontrol.
+static func build_turn(n: Node) -> void:
+	while Engine.get_process_frames() == _build_frame and is_instance_valid(n) and n.is_inside_tree():
+		await n.get_tree().process_frame
+	_build_frame = Engine.get_process_frames()
+
+
+## Yükleme ekranında her kıyafet türü × cinsiyet için birer deneme modeli kurup siler: giysi/halka/saç/bant önbellekleri dolar.
+## Önbellekte olmayan bir giysiyi giyen ilk NPC'nin kurulumu 100-250 ms sürüyordu (dövüşe katılan takımda donma);
+## önceden ısınınca aynı kurulum ~15 ms.
+const WARM_ARCHES := ["genin", "chunin", "jonin", "rogue", "bandit", "samurai", "traveler", "merchant", "farmer", "monk", "elder", "medic", "noble", "worker", "sennin", "kid", "student"]
+static var warmed := false
+
+
+static func prewarm_looks(parent: Node, progress: Callable = Callable()) -> void:
+	if warmed:
+		return
+	warmed = true
+	var holder = Node3D.new()
+	parent.add_child(holder)
+	holder.position = Vector3(0, -900, 0)
+	holder.visible = false
+	var vs = ["konoha", "suna", "kiri", "kumo", "iwa"]
+	var i = 0
+	var total = WARM_ARCHES.size() * 2
+	for a in WARM_ARCHES:
+		for gd in ["m", "f"]:
+			var lk = default_look()
+			lk.merge(Outfits.roll(a, vs[i % vs.size()]), true)
+			lk["gender"] = gd
+			var cm = CharacterModel.new()
+			holder.add_child(cm)
+			cm.setup(lk)
+			cm.free()
+			i += 1
+			if i % 4 == 0:
+				if progress.is_valid():
+					progress.call(float(i) / total, "")
+				await parent.get_tree().process_frame
+	holder.queue_free()
+
+
 static var _prewarm := {}
 ## Oyun açılınca tüm VRoid saç/yüz/gövde modellerini arka planda yükle: köylü ilk kez o saçla kurulurken
 ## ana iş parçacığında ~230 ms dosya yükleme donması olmasın
@@ -443,7 +489,7 @@ func _face_and_hair() -> void:
 		# bu yüzde hazır (önbellekte) ya da tutamsız bir saç stili seç; çeşitlilik zamanla artar, donma olmaz
 		var hk0 = "vroid|%s|%s|%s|%s" % [hd[2], look["gender"], donor, look.get("age", "adult")]
 		var now = Time.get_ticks_msec()
-		if not _hair_cache.has(hk0) and now - _hair_new_ms < 6000:
+		if not _hair_cache.has(hk0) and (now - _hair_new_ms < 6000 or look.get("npc_strict", false)):   # strict: rastgele düşman/yolcu hiç yeni tutam hesaplatmaz
 			var opts = []
 			for st in HAIR_DONORS:
 				var h2: Array = HAIR_DONORS[st]
@@ -496,7 +542,7 @@ func _face_and_hair() -> void:
 			var vxf = hair_mi.transform
 			var vk = "%s|%s|%s|%s|%s" % [hd[0], hd[1], donor, look["gender"], look.get("age", "adult")]   # saç stili adı gereksizdi (aynı VRoid saçı tekrar hesaplanıyordu)
 			var vnow = Time.get_ticks_msec()
-			if not _vhair_dyn.has(vk) and look.get("npc", false) and vnow - _hair_new_ms < 6000:
+			if not _vhair_dyn.has(vk) and look.get("npc", false) and (vnow - _hair_new_ms < 6000 or look.get("npc_strict", false)):
 				pass   # köylü: art arda yeni saç sallanma hesabı (~200 ms) yapma; bu köylünün saçı sabit kalır
 			elif not _vhair_dyn.has(vk):
 				if look.get("npc", false):
@@ -588,6 +634,34 @@ func setup(l: Dictionary) -> void:
 	apply_age(look.get("age", "adult"))
 	stance = _stance_for_look()
 	play("idle", 0.0)
+	_queue_shadow_trim()
+
+
+## Performans: küçük parçalar (kıyafet ayrıntısı, aksesuar, küçük silah) gölge düşürmez. Güneş gölgesi 4 kademeli olduğundan
+## her gölgeli parça 4 kata kadar yeniden çiziliyordu (düşman başına ~170 çizim; 3+ kişide FPS çöküyordu). Gövde, yüz, saç,
+## kıyafet kabuğu ve büyük parçalar (pelerin, dev silah) gölgede kalır: gölge silueti aynı görünür.
+const SHADOW_KEEP := ["Body", "VHair", "HairDangle", "Cloth"]
+var _trim_queued := false
+
+
+func _queue_shadow_trim() -> void:
+	if not _trim_queued:
+		_trim_queued = true
+		call_deferred("_shadow_trim")
+
+
+func _shadow_trim() -> void:
+	_trim_queued = false
+	var npc = not (get_parent() is Player)
+	for mi in find_children("*", "MeshInstance3D", true, false):
+		if mi.mesh == null or String(mi.name) in SHADOW_KEEP:
+			continue
+		var sz: Vector3 = mi.get_aabb().size * mi.global_basis.get_scale()
+		var big = maxf(sz.x, maxf(sz.y, sz.z))
+		if big < 0.9:
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		if npc and big < 0.35 and String(mi.name) != "VFace" and mi.visibility_range_end <= 0.0:
+			mi.visibility_range_end = 40.0   # uzak NPC'de minik ayrıntı (düğme, kemer tokası, küçük alet) çizilmez
 
 
 func _add_libs() -> void:
@@ -4698,6 +4772,7 @@ func _register_forearm_lock() -> void:
 
 ## Silahları duruma göre ele ya da kına yerleştir
 func _place_weapons() -> void:
+	_queue_shadow_trim()
 	var in_hand = drawn and not _stowed
 	if rig:
 		rig.hold = {"Left": 0.0, "Right": 0.0}

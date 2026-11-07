@@ -284,6 +284,8 @@ func spawn_enemy(c: String, lv: int, at: Vector3, opts := {}) -> Enemy:
 	e.setup(a)
 	if opts.has("team"):
 		e.team = opts["team"]
+	if opts.get("adopt") != null:
+		e.adopt_model(opts["adopt"])   # sakinin/köylünün hazır modeli (aynı görünüş): yeniden kurulmaz
 	get_tree().current_scene.add_child(e)
 	at.y = Game.ground_height(at.x, at.z)
 	e.global_position = at

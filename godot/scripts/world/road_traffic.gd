@@ -93,6 +93,9 @@ class TravelGroup extends Node3D:
 				display = "Gezgin Ninja"
 				speed = 4.2
 		for i in n:
+			await CharacterModel.build_turn(self)   # kafile üyeleri ayrı karelerde kurulur (donma olmasın)
+			if not is_inside_tree():
+				return
 			var cm = CharacterModel.new()
 			add_child(cm)
 			cm.setup(_look(i))
@@ -115,6 +118,8 @@ class TravelGroup extends Node3D:
 		# yol kalabalığı: hacılar keşiş, ninja kafilesi köy üniforması, kervan tüccar/gezgin/çiftçi kıyafeti
 		var oa: String = {"hacı": "monk", "ninja": "chunin"}.get(kind, ["traveler", "merchant", "farmer", "traveler"][i % 4])
 		lk.merge(Outfits.roll(oa, Outfits.village_near()), true)
+		lk["npc"] = true   # saç tutamı donması önlemi (köylülerle aynı)
+		lk["npc_strict"] = true
 		return lk
 
 	func _add_ox_cart() -> void:
