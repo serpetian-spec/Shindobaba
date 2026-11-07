@@ -56,6 +56,8 @@ const TABLE := {
 	"style_uzumaki": [preload("res://scripts/combat/style_uzumaki_anim.gd"), 1.0],
 	"style_yotsuki": [preload("res://scripts/combat/style_yotsuki_anim.gd"), 1.15],
 	"style_kamizuru": [preload("res://scripts/combat/style_kamizuru_anim.gd"), 1.0],
+	"style_iburi": [preload("res://scripts/combat/style_iburi_anim.gd"), 1.05],
+	"style_kurosuki": [preload("res://scripts/combat/style_kurosuki_anim.gd"), 1.05],
 }
 ## uzun menzil silahları: yapay zekâ uzakta durup atar (Enemy._chase)
 const RANGED := ["fuma_shuriken", "kyodai_shuriken", "fuma_makimono", "senbon", "mateki"]   # mateki: genjutsu flütü, uzakta durup çalar
@@ -64,7 +66,7 @@ const MASS := {"temari_ogi": 0.65, "uc_tirpan": 1.0, "samehada": 0.9, "kabutowar
 	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3, "tonfa": 0.3, "bashosen": 0.35, "kubikiribocho": 0.95, "yagura_sopa": 0.4, "yelpaze": 0.6, "kongo_asa": 0.45, "kama": 0.75, "pence": 0.15, "senbon": 0.05, "hiramekarei": 0.7, "bo": 0.35, "kiba": 0.25, "tanto": 0.1, "hakko_chakura_to": 0.08, "mateki": 0.06, "wakizashi": 0.25, "nodachi": 0.7, "musta": 0.15,
 	"style_juken": 0.08, "style_akimichi": 0.65, "style_inuzuka": 0.12, "style_kaguya": 0.2,
 	"style_uchiha": 0.1, "style_hozuki": 0.3, "style_aburame": 0.05, "style_jugo": 0.7,
-	"style_yuki": 0.05, "style_sabaku": 0.05, "style_uzumaki": 0.1, "style_yotsuki": 0.3, "style_kamizuru": 0.05}
+	"style_yuki": 0.05, "style_sabaku": 0.05, "style_uzumaki": 0.1, "style_yotsuki": 0.3, "style_kamizuru": 0.05, "style_iburi": 0.05, "style_kurosuki": 0.15}
 
 
 static func mass(id: String) -> float:
@@ -137,6 +139,15 @@ static func mods(id: String, i: int) -> Dictionary:
 			return {"lunge_mul": 0.0, "special": "", "knock": 1.0}
 		"style_kamizuru":   # orta-uzak: atılmaz; tüm hasar arılardan (on_strike)
 			return {"lunge_mul": 0.0, "special": "", "knock": 1.0}
+		"style_kurosuki":   # yakın el kılıcı + gök şimşeği (5-6 uzaktan)
+			var m = {"lunge_mul": 0.5, "special": "", "knock": 4.0}
+			match i:
+				2: m.merge({"lunge_mul": 0.0, "reach_add": -9.0})   # Kirigakure darbesi on_strike'ta (ışınlanma sonrası)
+				3: m.merge({"lunge_mul": 0.0, "reach_add": -9.0})   # çapraz şimşek çizgileri on_strike
+				4, 5: m.merge({"lunge_mul": 0.0, "reach_add": -9.0})   # gök şimşeği
+			return m
+		"style_iburi":   # orta: duman kol uzanır; tüm vuruşlar on_strike'ta (duman kol, Utsuri ters eli, Iaigiri)
+			return {"lunge_mul": 0.0, "special": "", "knock": 1.0, "reach_add": -9.0}
 		"style_jugo":
 			var m = {"lunge_mul": 0.7, "special": "", "reach_add": 0.4}
 			match i:
@@ -1370,6 +1381,73 @@ static func _hira_target(who: Node3D) -> Node3D:
 
 
 ## Sarı flaş ışınlanma: eski yerde ve yeni yerde sarı parlama + kıvılcım, hedefin yanına (off) ışınlan, ona dön
+# ------------------------------------------------------------------ Iburi dumanı (PathJutsu._smoke görünüşü: açık mavi-gri kabarık)
+static func _smoke_puff_at(p: Vector3, r: float, n: int, dir := Vector3.UP, col := Color(0.62, 0.64, 0.7, 0.9)) -> void:
+	VFX.puffs(p, {"amount": n, "life": 0.9, "size": 0.9, "radius": r, "vmin": 0.4, "vmax": 1.2, "dir": dir, "spread": 50.0, "add": false,
+		"colors": [col, Color(col.r * 0.7, col.g * 0.7, col.b * 0.75, 0.0)]})
+
+
+## Duman şeridi: elden hedefe akan kabarık duman (ref iburi_2)
+static func _smoke_line(a: Vector3, b: Vector3, r: float, col := Color(0.62, 0.64, 0.7, 0.9)) -> void:
+	var n = maxi(4, int(a.distance_to(b) / 0.45))
+	var tree = Engine.get_main_loop() as SceneTree
+	for k in n:
+		var q = a.lerp(b, float(k + 1) / n)
+		tree.create_timer(k * 0.015).timeout.connect(func(): _smoke_puff_at(q, r, 3, (b - a).normalized(), col))
+
+
+## Beden dumana çözülür: çevresinden duman yükselir (eller katı kalır)
+static func _smoke_body(who: Node3D, dur: float) -> void:
+	for k in int(dur / 0.08):
+		who.get_tree().create_timer(k * 0.08).timeout.connect(func():
+			if is_instance_valid(who):
+				_smoke_puff_at(who.global_position + Vector3.UP * randf_range(0.3, 1.6), 0.45, 3))
+
+
+## Kemuri Utsuri: dumana dağıl, rakibin arkasında katılaş (kısa dokunulmazlık)
+static func _smoke_shift(who: Node3D, tg: Node3D) -> void:
+	var from = who.global_position
+	var m = who.get("model")
+	if m:
+		m.visible = false
+	_smoke_puff_at(from + Vector3.UP, 0.6, 14)
+	var back = tg.global_position - from
+	back.y = 0
+	back = back.normalized() if back.length() > 0.01 else Vector3.FORWARD
+	_smoke_line(from + Vector3.UP, tg.global_position + back * 1.2 + Vector3.UP, 0.35)
+	if who is Player:
+		who.combat.invuln = maxf(who.combat.invuln, 0.3)
+	who.get_tree().create_timer(0.12).timeout.connect(func():
+		if not is_instance_valid(who):
+			return
+		if who.get("model"):
+			who.model.visible = true
+		if not is_instance_valid(tg):
+			return
+		var to = tg.global_position + back * 1.2
+		to.y = Game.ground_height(to.x, to.z)
+		who.global_position = to
+		var d = tg.global_position - to
+		d.y = 0
+		if d.length() > 0.01 and "facing" in who:
+			who.facing = atan2(-d.x, -d.z)
+		_smoke_puff_at(to + Vector3.UP, 0.6, 14)
+		Sfx.play("whoosh", to, 1.2, 0.5))
+
+
+## Efektsiz yer değiştirme (sis/duman tarzları kendi efektini koyar): hedefin yanına geç, hedefe dön
+static func _blink_plain(who: Node3D, tg: Node3D, off: Vector3) -> void:
+	var to = tg.global_position + off
+	to.y = Game.ground_height(to.x, to.z)
+	who.global_position = to
+	if who is CharacterBody3D:
+		who.velocity = Vector3.ZERO
+	var d = tg.global_position - to
+	d.y = 0
+	if d.length() > 0.01 and "facing" in who:
+		who.facing = atan2(-d.x, -d.z)
+
+
 static func _blink(who: Node3D, tg: Node3D, off: Vector3) -> void:
 	var yel = Color(1.0, 0.88, 0.3)
 	var from = who.global_position + Vector3.UP
@@ -2430,6 +2508,34 @@ static func _style_start(id: String, i: int, who: Node3D) -> void:
 				_grow_in(who, ov, {"RightHand": 1.8}, 0.34 / speed(id), tok)
 		"style_aburame":
 			ov.fist = {"Right": -0.6, "Left": -0.6}   # gevşek açık eller (yenlerden sürü)
+		"style_kurosuki":
+			ov.fist = {"Right": -1.0, "Left": -1.0}   # el kılıcı: düz açık avuç
+			if i == 2:   # Kirigakure: sise karışıp rakibin yanında belir
+				var tg3 = _near_foe(who, 10.0)
+				if tg3:
+					for k in 6:
+						var a3 = TAU * k / 6.0
+						_smoke_puff_at(who.global_position + Vector3(cos(a3), 0.5, sin(a3)) * 1.4, 0.8, 6, Vector3.UP, Color(0.92, 0.95, 1.0, 0.85))
+					who.get_tree().create_timer(0.28 / speed(id)).timeout.connect(func():
+						if is_instance_valid(who) and is_instance_valid(tg3):
+							var sd = (tg3.global_position - who.global_position).cross(Vector3.UP).normalized()
+							_smoke_puff_at(who.global_position + Vector3.UP, 0.7, 8, Vector3.UP, Color(0.92, 0.95, 1.0, 0.85))
+							_blink_plain(who, tg3, sd * 1.3)
+							_smoke_puff_at(who.global_position + Vector3.UP, 0.7, 8, Vector3.UP, Color(0.92, 0.95, 1.0, 0.85)))
+			elif i == 5:   # bedene doğal şimşek çekilir (ref kurosuki_0): göğe uzanan sütun
+				var top = who.global_position + Vector3.UP * 18.0
+				VFX.bolt(top, who.global_position + Vector3.UP * 1.8, Color(0.85, 0.93, 1.0), 0.5, 0.35, 4)
+				FX.aura(who, Color(0.7, 0.85, 1.0), 0.9, Vector3(0, 0.9, 0), 1.0)
+		"style_iburi":
+			ov.fist = {"Right": 1.0, "Left": 1.0} if i in [0, 1] else {"Right": -0.6, "Left": -0.6}
+			if i == 2:   # Kemuri Utsuri: dumana dağılıp rakibin arkasında katılaşır
+				var tg2 = _near_foe(who, 9.0)
+				if tg2:
+					who.get_tree().create_timer(0.16 / speed(id)).timeout.connect(func():
+						if is_instance_valid(who) and is_instance_valid(tg2):
+							_smoke_shift(who, tg2))
+			elif i == 5:   # Tatsumaki: beden kısmen dumana döner (eller katı) — ref iburi_4
+				_smoke_body(who, 1.0 / speed(id))
 		"style_kamizuru":
 			ov.fist = {"Right": -0.8, "Left": -0.8}   # açık avuç (arıları salar); mühürde sol avuç açık, sağ başparmak bastırır
 			if i == 3:
@@ -2808,6 +2914,76 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 									_swarm_cloud(p2 + Vector3.UP * 1.0, 1.4, 0.6))
 						Combat.hit_sphere(who, p2 + Vector3.UP, 2.4, _kinfo(dmg, 1.3, {"element": "", "knock": 1.0, "kind": "heavy"}))
 						_kikai_drain(who, tg, 0.14)
+		"style_kurosuki":
+			var tg = _near_foe(who, 12.0)
+			var col = Color(0.82, 0.92, 1.0)
+			match i:
+				0, 1:   # el kılıcı ağzı boyunca şimşek (kısa kesik)
+					var sx = 1.0 if i == 0 else -1.0
+					var a0 = who.global_position + Vector3.UP * 1.7 + side * sx * 0.5 + f * 0.4
+					var b0 = who.global_position + Vector3.UP * 0.8 - side * sx * 0.4 + f * 1.9
+					VFX.bolt(a0, b0, col, 0.18, 0.18, 2)
+					Combat.hit_zone(who, who.global_position, f, 2.4, 55.0, 2.2, _kinfo(dmg, 0.9, {"element": "raiton", "knock": 4.0, "kind": "light", "melee": true, "stun": 0.25}))
+				2:   # yanından şimşekli dürtüş: sersemletir
+					Combat.hit_sphere(who, at + f * 0.3, 1.1, _kinfo(dmg, 1.15, {"element": "raiton", "knock": 7.0, "kind": "heavy", "melee": true, "stun": 0.6}))
+					VFX.bolt(at, at + f * 1.4, col, 0.2, 0.2, 2)
+				3:   # Kuroi Jūji: çapraz düz şimşek çizgileri (ref kurosuki_1) — öne 6 m
+					for sx2 in [-1.0, 1.0]:
+						var p0 = who.global_position + Vector3.UP * 1.3 + side * sx2 * 1.2
+						var p1 = who.global_position + Vector3.UP * 1.1 - side * sx2 * 1.4 + f * 6.0
+						VFX.bolt(p0, p1, col, 0.22, 0.25, 1)
+					Combat.hit_zone(who, who.global_position, f, 6.0, 22.0, 2.4, _kinfo(dmg, 1.1, {"element": "raiton", "knock": 6.0, "kind": "heavy", "stun": 0.4}))
+				4:   # Rakurai: hedefe gök şimşeği
+					var p = tg.global_position if tg else who.global_position + f * 7.0
+					VFX.bolt(p + Vector3.UP * 22.0, p, col, 0.45, 0.3, 4)
+					VFX.cracks(Vector3(p.x, Game.ground_height(p.x, p.z) + 0.05, p.z), 1.6)
+					Combat.hit_sphere(who, p + Vector3.UP, 1.6, _kinfo(dmg, 1.3, {"element": "raiton", "knock": 3.0, "kind": "heavy", "stun": 0.8}))
+					Sfx.play("zap", p, 1.0, 0.7)
+				5:   # Ikazuchi no Utage: hedefin çevresine şimşek yağmuru + büyük şimşek
+					var c = tg.global_position if tg else who.global_position + f * 6.0
+					for k in 6:
+						var q = c + Vector3(randf_range(-3.0, 3.0), 0, randf_range(-3.0, 3.0))
+						who.get_tree().create_timer(k * 0.07).timeout.connect(func():
+							if is_instance_valid(who):
+								VFX.bolt(q + Vector3.UP * 20.0, q, col, 0.3, 0.22, 3)
+								Combat.hit_sphere(who, q + Vector3.UP, 1.5, _kinfo(dmg, 0.35, {"element": "raiton", "knock": 2.0, "kind": "light", "stun": 0.3})))
+					who.get_tree().create_timer(0.5).timeout.connect(func():
+						if is_instance_valid(who):
+							VFX.bolt(c + Vector3.UP * 24.0, c, Color(0.95, 0.97, 1.0), 0.7, 0.4, 5)
+							VFX.shockwave(c + Vector3.UP * 0.1, col, 6.0, 0.35, true)
+							Combat.hit_sphere(who, c + Vector3.UP, 2.6, _kinfo(dmg, 1.2, {"element": "raiton", "knock": 8.0, "launch": 4.0, "kind": "heavy", "stun": 0.6}))
+							_shake(who, 0.5)
+							Sfx.play("zap", c, 0.8, 0.9))
+		"style_iburi":
+			var tg = _near_foe(who, 10.0)
+			var hand = who.global_position + Vector3.UP * 1.35 + f * 0.5
+			match i:
+				0, 1:   # Kemuri Ken: kol dumana çözülüp uzanır, ucunda katı yumruk
+					var to = tg.global_position + Vector3.UP * 1.1 if tg and tg.global_position.distance_to(who.global_position) < 6.0 else hand + f * 4.5
+					_smoke_line(hand + side * (0.25 if i == 0 else -0.25), to, 0.22)
+					Combat.hit_sphere(who, to, 0.9, _kinfo(dmg, 0.9, {"element": "", "knock": 4.0, "kind": "light", "melee": true}))
+					FX.hit_spark(to, Color(0.85, 0.88, 0.95), 0.7)
+				2:   # Utsuri ters eli: arkasında belirdiği rakibe
+					Combat.hit_sphere(who, at + f * 0.2, 1.1, _kinfo(dmg, 1.2, {"element": "", "knock": 9.0, "kind": "heavy", "melee": true}))
+				3:   # Kemuri Iaigiri: dumandan bıçakla geniş yatay kesik
+					for k in 9:
+						var a = lerpf(1.1, -1.1, k / 8.0)
+						var q = who.global_position + Vector3.UP * 1.15 + (f * cos(a) - side * sin(a)) * 2.6
+						who.get_tree().create_timer(k * 0.012).timeout.connect(func(): _smoke_puff_at(q, 0.28, 3, f))
+					Combat.hit_zone(who, who.global_position, f, 4.2, 70.0, 2.4, _kinfo(dmg, 1.1, {"element": "", "knock": 6.0, "kind": "heavy", "bleed": 2.0, "melee": true}))
+				4:   # Ibushimi Iki: oksitleyici kızıl-gri duman yüze, içeriden yakar + yavaşlatır
+					var mouth = who.global_position + Vector3.UP * 1.6 + f * 0.3
+					var to2 = tg.global_position + Vector3.UP * 1.6 if tg and tg.global_position.distance_to(who.global_position) < 7.0 else mouth + f * 5.0
+					_smoke_line(mouth, to2, 0.3, Color(0.72, 0.55, 0.55, 0.85))
+					Combat.hit_sphere(who, to2, 1.2, _kinfo(dmg, 0.6, {"element": "katon", "knock": 0.0, "kind": "light", "burn": 3.0, "slow": 2.0}))
+				5:   # Kemuri Tatsumaki: çevrede yükselen duman hortumu, yakındakileri kaldırır
+					for k in 14:
+						var a2 = k * 0.75
+						var kk = k
+						who.get_tree().create_timer(k * 0.035).timeout.connect(func():
+							if is_instance_valid(who):
+								_smoke_puff_at(who.global_position + Vector3(cos(a2), 0, sin(a2)) * 2.2 + Vector3.UP * (0.2 + kk * 0.22), 0.5, 5, Vector3.UP))
+					Combat.hit_sphere(who, who.global_position + Vector3.UP, 4.4, _kinfo(dmg, 1.3, {"element": "", "knock": 4.0, "launch": 8.0, "kind": "heavy"}))
 		"style_kamizuru":
 			var tg = _near_foe(who, 16.0)
 			var hand = who.global_position + Vector3.UP * 1.3 + f * 0.6

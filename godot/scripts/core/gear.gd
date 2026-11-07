@@ -1003,7 +1003,7 @@ static func _ensure_eyes(p: Dictionary) -> bool:
 
 ## Takılı parçalardan görünüm sözlüğünü yeniden kurar
 ## Görünüşü gizlenebilen yuvalar: eşya takılı kalır, statları sayılır; yalnız modelde çizilmez (profil "hide_look")
-const HIDE_SLOTS := ["sirt"]
+const HIDE_SLOTS := ["sirt", "kafa"]   # görünüşü gizlenebilen yuvalar (kafa: alın koruyucu/bant — statlar sayılır)
 
 
 static func look_hidden(p: Dictionary, slot: String) -> bool:

@@ -308,10 +308,10 @@ func _ai(dt: float) -> void:
 		if v.length() > radius + tgt.radius + 1.5 + height * 0.25:
 			wish = v.normalized() * spd
 		elif cd <= 0.0:
-			cd = clampf(1.2 + height * 0.08, 1.2, 3.0)
+			cd = _attack_cd()
 			_attack()
 		if special_cd <= 0.0 and v.length() < 30.0 + height:
-			special_cd = 7.0 + height * 0.2
+			special_cd = _special_cd()
 			_special()
 	elif cmd == "bekle" and hold_pos != Vector3.INF:
 		var v = hold_pos - global_position
@@ -413,6 +413,15 @@ func _front(d := 0.0) -> Vector3:
 var attack_anim_t = 0.0
 
 
+## Vuruş aralığı: küçük çağrı ~2 sn, dev çağrı ~4 sn (eskiden 1.2-3 sn: "her saniye vuruyor")
+func _attack_cd() -> float:
+	return clampf(2.0 + height * 0.12, 2.0, 4.0)
+
+
+func _special_cd() -> float:
+	return 12.0 + height * 0.3
+
+
 func _attack() -> void:
 	attack_anim_t = 0.7   # prosedürel modeller de saldırı pozunu kullanır (şahin pençeleri vb.)
 	if parts.get("player") and parts["player"].has_animation(parts["anims"]["attack"]):
@@ -421,7 +430,8 @@ func _attack() -> void:
 		sa.bite()
 	# denge: çağrılar tek başına kuyruklu canavar kesiyordu — seviye çarpanı ve taban düşürüldü, dev hedeflere yarı hasar
 	# çağrılan, oyuncunun jutsu gücüyle yarı oranda büyür (yüksek seviyede işe yaramaz kalmasın, tek başına da savaşı bitirmesin)
-	var dmg: float = def.get("dmg", 20.0) * 0.5 * (1.0 + float(Game.profile.get("level", 1)) * 0.025) * (1.0 + Stats.skill(Game.profile, "summon_power") + Stats.skill(Game.profile, "squad") + Mastery.get_v(Game.profile, "kuchiyose") * 0.01)
+	# sürü çağrıları (gelincik üçlüsü, köpek sürüsü): üye başına hasar sürü büyüklüğünün kareköküne bölünür
+	var dmg: float = def.get("dmg", 20.0) * 0.4 / sqrt(maxf(1.0, float(def.get("count", 1)))) * (1.0 + float(Game.profile.get("level", 1)) * 0.025) * (1.0 + Stats.skill(Game.profile, "summon_power") + Stats.skill(Game.profile, "squad") + Mastery.get_v(Game.profile, "kuchiyose") * 0.01)
 	if tgt != null and is_instance_valid(tgt) and (tgt.has_method("hit_test") or tgt.get("arch") is Dictionary and (tgt.arch as Dictionary).has("style")):
 		dmg *= 0.5
 	var model: String = def.get("model", "")
@@ -887,14 +897,20 @@ func _unhandled_input(e: InputEvent) -> void:
 			say(def["lines"].pick_random(), 2.5)
 			get_viewport().set_input_as_handled()
 	elif mounted and e.is_action_pressed("attack"):
-		cd = 0.0
+		get_viewport().set_input_as_handled()
+		if cd > 0.0:   # binerken de bekleme süresi geçerli (eskiden her tık cd'yi sıfırlıyordu: sınırsız vuruş)
+			return
+		cd = _attack_cd() * 0.8
 		tgt = Combat.nearest_enemy(self, 30.0 + height * 2.0, owner_f.cam_forward(), 0.3)
 		_attack()
-		get_viewport().set_input_as_handled()
 	elif mounted and e.is_action_pressed("guard"):
+		get_viewport().set_input_as_handled()
+		if special_cd > 0.0:   # imza tekniği beklemesiz atılıyordu (spam)
+			Hud.msg("%s: imza tekniği %.0f sn sonra hazır." % [def.get("name", "Çağrı"), special_cd], Color(0.85, 0.85, 0.8))
+			return
+		special_cd = _special_cd()
 		tgt = Combat.nearest_enemy(self, 40.0 + height * 2.0, owner_f.cam_forward(), 0.3)
 		_special()
-		get_viewport().set_input_as_handled()
 
 
 func _dismount() -> void:

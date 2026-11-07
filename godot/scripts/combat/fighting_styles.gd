@@ -30,6 +30,10 @@ const STYLES := {
 		"desc": "Gövdeden çıkan chakra zincirleri: kırbaç, mızrak gibi saplanan zincir, rakibi sarıp chakrasını mühürleyen bağ, çevreyi süpüren zincirler; bitiriş zincirle kaldırıp yere çarpma."},
 	"yotsuki": {"name": "Raiton Nintai — Yotsuki", "key": "style_yotsuki", "src": "clan:yotsuki", "range": "yakın (atılış)", "stop": 1.6,
 		"desc": "Raiton Chakra zırhıyla ezici hız ve güç: şimşekli yumruk, omuz dalışı, Lariat, Raigyaku Suihei el kılıcı, seri şimşek yumruklar; bitiriş Liger Bomb (kavra, kaldır, yere çak)."},
+	"kurosuki": {"name": "Raikō — Kurosuki", "key": "style_kurosuki", "src": "clan:kurosuki", "range": "yakın + gök şimşeği", "stop": 2.2,
+		"desc": "Raiga'nın ailesi: şimşekli el kılıçları, sise karışıp yanında belirme, çapraz düz şimşek çizgileri (Kuroi Jūji), göğe kalkan elle hedefe yıldırım (Rakurai); bitiriş hedefin çevresine şimşek yağmuru (Ikazuchi no Utage). İsabetler kısa sersemletir."},
+	"iburi": {"name": "Kemuri Kenpō — Iburi", "key": "style_iburi", "src": "clan:iburi", "range": "orta", "stop": 3.5,
+		"desc": "Duman beden: kol dumana çözülüp uzanır ve katı yumrukla vurur, beden dağılıp rakibin arkasında belirir, dumandan bıçakla kesik, yüze üflenen oksitleyici duman içeriden yakar; bitiriş duman hortumu. Rüzgâra (Fūton) karşı zayıf."},
 	"kamizuru": {"name": "Hachi Tsukai — Kamizuru", "key": "style_kamizuru", "src": "clan:kamizuru", "range": "orta-uzak", "stop": 6.5,
 		"desc": "Arı ustası: yenden salınan eşek arıları zehirli iğne fırlatır (Hachi Senbon), bal arıları hedefte yapışkan bala patlar (Hachi Mitsu), başparmak-avuç mührüyle yerden arı sütunu, patlayıcı kâğıt taşıyan arılar (Hachi Bakudan); bitiriş sürü yelpazesi, zehir uyutur. Yakında zayıf."},
 }
@@ -49,6 +53,11 @@ static func is_ranged(key: String) -> bool:
 
 static func _has_src(p: Dictionary, src: String) -> bool:
 	if src.begins_with("clan:"):
+		# göz tarzı: nakledilmiş Byakugan Jūken'i, Sharingan Uchiha tarzını açar (klandan olmasan da — Kakashi gibi)
+		if src == "clan:hyuga" and Progress.has_eye("byakugan"):
+			return true
+		if src == "clan:uchiha" and Progress.has_eye("sharingan"):
+			return true
 		return String(p.get("clan", "none")) == src.substr(5)
 	if src.begins_with("path:"):
 		return src.substr(5) in (p.get("paths", {}) as Dictionary) if p.get("paths") is Dictionary else false

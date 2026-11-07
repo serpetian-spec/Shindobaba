@@ -1458,6 +1458,13 @@ func j_kaiten(c: Node3D, _t: Node3D) -> void:
 				var p2 = ph + u * 0.12
 				return o + Vector3(cos(a) * cos(p2), sin(p2) * 0.8, sin(a) * cos(p2)) * rr, 0.35, 0.22, kcol, randf() * 0.05, 12)
 	swirl.call()
+	# anime: Neji kollarını açıp topuğu üstünde hızla döner (kubbe onun dönüşünden doğar) — beden 3 tur döner
+	var f0 = float(c.get("facing")) if c.get("facing") != null else 0.0
+	_ticks(44, 0.025, func(i):
+		if is_instance_valid(c) and c.get("facing") != null:
+			c.facing = f0 + TAU * 3.0 * float(i + 1) / 44.0
+			if c.get("model") and not c is Player:
+				c.model.rotation.y = c.facing)
 	VFX.shockwave(c.global_position + Vector3.UP * 0.1, Color(0.7, 0.85, 1.0), 12.0, 0.5)
 	FX.dust(c.global_position, 1.5)
 	if c is Player:

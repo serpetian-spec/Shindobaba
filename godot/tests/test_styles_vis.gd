@@ -8,7 +8,7 @@ func _w(t: float) -> void:
 func _ready() -> void:
 	await get_tree().process_frame
 	var styles = Array(OS.get_environment("STYLES").split(",", false)) if OS.get_environment("STYLES") != "" else ["juken", "akimichi", "inuzuka", "kaguya", "uchiha", "hozuki", "aburame", "jugo"]
-	var clan_of = {"juken": "hyuga", "akimichi": "akimichi", "inuzuka": "inuzuka", "kaguya": "kaguya", "uchiha": "uchiha", "hozuki": "hozuki", "aburame": "aburame", "jugo": "jugo", "yuki": "yuki", "sabaku": "sabaku", "uzumaki": "uzumaki", "yotsuki": "yotsuki", "kamizuru": "kamizuru"}
+	var clan_of = {"juken": "hyuga", "akimichi": "akimichi", "inuzuka": "inuzuka", "kaguya": "kaguya", "uchiha": "uchiha", "hozuki": "hozuki", "aburame": "aburame", "jugo": "jugo", "yuki": "yuki", "sabaku": "sabaku", "uzumaki": "uzumaki", "yotsuki": "yotsuki", "kamizuru": "kamizuru", "iburi": "iburi", "kurosuki": "kurosuki", "senju": "senju", "sarutobi": "sarutobi", "hatake": "hatake", "nara": "nara"}
 	main.creator_state = {"slot": 3, "name": "Test", "gender": "m", "clan": clan_of[styles[0]], "element": "katon", "hair_style": "diken",
 		"hair": Color(0.25, 0.2, 0.15), "top": Color(0.85, 0.85, 0.8), "pants": Color(0.2, 0.2, 0.25), "skin": Color(0.96, 0.8, 0.66), "eye": Color(0.2, 0.2, 0.2)}
 	main._start_new_game()
