@@ -412,7 +412,12 @@ static func trail(parent: Node3D, cols: Array, size: float, amount := 40, life :
 		var hot = c.s > 0.5 and c.v > 0.7
 		# anime kuyruğu: ince, kendi renginde kontur, pürüzsüz kenar, daha küçük (kalın koyu konturlu dev topaklar "aşırı efekt" duruyordu)
 		q.size = Vector2.ONE * size * 0.75
-		q.material = VFX.mat_puff(1.1 if hot else 1.0, 0.25 if hot and c.r > c.b else 0.0, Color.from_hsv(c.h, minf(1.0, c.s + 0.15), c.v * 0.6), 0.18, 0.25, 1.0, 0.035)
+		# 3B yumuşak topak izi (konturlu düz kart yerine; kullanıcı: 2D efekt yok)
+		pm.scale_min = size * 0.45; pm.scale_max = size * 0.8
+		p.draw_pass_1 = FX.blob_mesh(hot and c.r > c.b)
+		parent.add_child(p)
+		p.emitting = true
+		return p
 	else:
 		q.material = FX._draw_mat(tex if tex else FX.tex_soft, add)
 	p.draw_pass_1 = q

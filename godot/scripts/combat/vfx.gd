@@ -666,8 +666,17 @@ static func puffs(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 		cfg["vmax"] = float(cfg.get("vmax", 3.0)) * sqrt(epic)
 	if cfg.get("water", false):
 		return water_chunks(pos, cfg)
-	cfg["cel"] = true
-	return FX.burst(pos, cfg)
+	# 3B topaklar (kullanıcı: "2D efektler iğrenç", 282 çağrı tek yerden): ateş = ışıyan alev topakları (Storm: beyaz-sarı çekirdek ->
+	# turuncu -> kızıl -> koyu duman), duman/toz = yumuşak toon topaklar. Düz cel kart + kahverengi kontur yok.
+	var cols: Array = cfg.get("colors", [Color.WHITE, Color(1, 1, 1, 0)])
+	var c0: Color = cols[0]
+	var fire = float(cfg.get("hot", 0.0)) > 0.0 or (c0.r > c0.b + 0.3 and c0.g > 0.25 and c0.r > 0.7)
+	var c3 = cfg.duplicate()
+	c3["size"] = float(cfg.get("size", 1.0)) * 0.75
+	c3["colors"] = cols
+	c3["emit"] = fire
+	c3["grow"] = 1.8 if fire else 1.6
+	return FX.puff3d(pos, c3)
 
 
 ## Storm su parçaları: tırtıklı soluk camgöbeği su dokusu (FX.tex_water), kontur yok; renk rampası yalnız alfa/parlaklık taşır
@@ -876,33 +885,56 @@ static func trail(target: Node3D, width: float, head: Color, mid: Color, tail: C
 	return t
 
 
+## 3B topak izi: hedefin arkasında küçülerek sönen yumuşak küreler (kurdele yok). Karakterse kısa sürede durur.
+static func blob_trail(target: Node3D, width: float, head: Color, mid: Color, tail: Color) -> void:
+	if target == null or not is_instance_valid(target):
+		return
+	width *= epic
+	var p = GPUParticles3D.new()
+	p.amount = 28
+	p.lifetime = 0.4
+	p.local_coords = false
+	var pm = ParticleProcessMaterial.new()
+	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+	pm.emission_sphere_radius = width * 0.25
+	pm.spread = 180.0
+	pm.initial_velocity_min = 0.2; pm.initial_velocity_max = 1.0
+	pm.damping_min = 1.0; pm.damping_max = 2.0
+	pm.scale_min = width * 0.4; pm.scale_max = width * 0.75
+	pm.color_ramp = FX._gradient([Color(head.r, head.g, head.b, 0.9), Color(mid.r, mid.g, mid.b, 0.6), Color(tail.r, tail.g, tail.b, 0.0)])
+	pm.scale_curve = FX._curve([[0.0, 1.0], [1.0, 0.15]])
+	p.process_material = pm
+	var hot = mid.s > 0.5 and mid.v > 0.7 and mid.r > mid.b
+	p.draw_pass_1 = FX.blob_mesh(hot)
+	target.add_child(p)
+	p.emitting = true
+	if target is CharacterBody3D:
+		target.get_tree().create_timer(0.9).timeout.connect(func(): if is_instance_valid(p): p.emitting = false)
+		target.get_tree().create_timer(1.5).timeout.connect(func(): if is_instance_valid(p): p.queue_free())
+
+
 ## Element imzalı iz
 static func element_trail(target: Node3D, el: String, col: Color, width: float) -> VfxTrail:
+	# düz kurdele izler arkada geometrik kama gibi görünüyordu (kullanıcı): 3B yumuşak topak izi; rüzgâr/şimşek izsiz
+	# (rüzgâr = akım çizgileri, beyaz topak duman gibi duruyor; şimşek = kıvılcım/ark)
 	match el:
 		"katon":
-			return trail(target, width, Color(1, 0.85, 0.3), Color(1, 0.45, 0.06), Color(0.75, 0.12, 0.03), 16, 0.3)
-		"yoton":   # lav kayası izi: kızıl erimiş çizgi koyu dumana döner (ateş sarısı değil)
-			return trail(target, width * 0.8, Color(1.0, 0.35, 0.12), Color(0.7, 0.07, 0.04), Color(0.25, 0.2, 0.2), 16, 0.0)
+			blob_trail(target, width * 0.8, Color(1, 0.85, 0.3), Color(1, 0.45, 0.06), Color(0.4, 0.12, 0.05))
+		"yoton":
+			blob_trail(target, width * 0.7, Color(1.0, 0.45, 0.12), Color(0.7, 0.07, 0.04), Color(0.25, 0.2, 0.2))
 		"shakuton":
-			return trail(target, width, Color(1, 0.98, 0.96), Color(1.0, 0.55, 0.58), Color(1.0, 0.32, 0.38), 16, 0.0)
+			blob_trail(target, width * 0.7, Color(1, 0.98, 0.96), Color(1.0, 0.55, 0.58), Color(1.0, 0.32, 0.38))
 		"bakuton":
-			return trail(target, width * 0.8, Color(1, 1, 0.97), Color(0.95, 0.93, 0.88), Color(0.85, 0.83, 0.8), 14, 0.0)
+			blob_trail(target, width * 0.6, Color(1, 1, 0.97), Color(0.9, 0.88, 0.84), Color(0.7, 0.68, 0.66))
 		"suiton":
-			WaterArt.drop_trail(target, width)   # düz şerit yerine 3B su damlası izi
-			return null
-		"futton":
-			return trail(target, width, Color(1, 1, 1), Color(0.9, 0.87, 0.93), Color(0.78, 0.74, 0.82), 16, 0.0)
+			WaterArt.drop_trail(target, width)
 		"hyoton":
-			return trail(target, width * 0.7, Color(1, 1, 1), Color(0.82, 0.94, 1.0), Color(0.6, 0.82, 1.0), 12, 0.0)
-		"fuuton":
-			return trail(target, width * 0.7, Color(1, 1, 1), Color(0.85, 1.0, 0.92), Color(0.6, 0.95, 0.8), 14, 0.0)
-		"jinton":
-			return trail(target, width * 0.6, Color(1, 1, 1), Color(0.95, 0.97, 1.0), Color(0.88, 0.92, 1.0), 12, 0.0)
-		"raiton":
-			return trail(target, width * 0.6, Color(1, 1, 1), col.lightened(0.4), col, 12, 0.8)
-		"ranton":
-			return trail(target, width * 0.8, Color(1, 1, 1), Color(0.75, 0.9, 1.0), Color(0.45, 0.7, 1.0), 14, 0.0)
-	return trail(target, width, col.lightened(0.6), col, col.darkened(0.3), 14, 0.2)
+			blob_trail(target, width * 0.4, Color(1, 1, 1), Color(0.82, 0.94, 1.0), Color(0.6, 0.82, 1.0))
+		"fuuton", "futton", "jinton", "raiton", "ranton":
+			pass
+		_:
+			blob_trail(target, width * 0.6, col.lightened(0.6), col, col.darkened(0.3))
+	return null
 
 
 ## Ekran kenarından hız çizgileri (ağır vuruş, atılma)

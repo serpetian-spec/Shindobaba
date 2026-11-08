@@ -196,6 +196,14 @@ func _auto_outline(cfg: Dictionary) -> Color:
 
 ## Genel amaçlı tek seferlik parçacık patlaması
 func burst(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
+	# cel bulut topakları (konturlu düz kart) -> 3B yumuşak topak (kullanıcı: 2D efekt yok). Kıvılcım/doku sprite'ları aynen kalır.
+	if cfg.get("cel", false) and (cfg.get("tex", null) == null or cfg.get("tex") == tex_smoke) and not cfg.get("local", false):
+		var cols: Array = cfg.get("colors", [Color.WHITE, Color(1, 1, 1, 0)])
+		var c0: Color = cols[0]
+		var c3 = cfg.duplicate()
+		c3["size"] = float(cfg.get("size", 1.0)) * 0.75
+		c3["emit"] = float(cfg.get("hot", 0.0)) > 0.0 or (c0.r > c0.b + 0.3 and c0.g > 0.25 and c0.r > 0.7)
+		return puff3d(pos, c3)
 	var p = GPUParticles3D.new()
 	p.one_shot = true
 	p.explosiveness = cfg.get("explosive", 0.95)
@@ -427,21 +435,34 @@ func smoke_puff(pos: Vector3, s := 1.0, n := 14) -> void:
 ## 3B yumuşak bulut topakları: düşük poligonlu küre parçacıklar, yumuşak toon gölge, büyüyüp saydamlaşarak söner
 var _puff_mesh: SphereMesh
 var _puff_mats := {}
+## 3B yumuşak topak mesh'i (iz/parçacık çizimi için): küre + vfx_fireblob (emit: ışıyan alev, değilse toon duman)
+func blob_mesh(emit := false) -> Mesh:
+	if _puff_mesh == null:
+		_puff_mesh = SphereMesh.new()
+		_puff_mesh.radius = 0.5; _puff_mesh.height = 1.0; _puff_mesh.radial_segments = 10; _puff_mesh.rings = 6
+	var key = "emit" if emit else "toon"
+	if not _puff_mats.has(key):
+		var m = ShaderMaterial.new()
+		m.shader = load("res://shaders/vfx_fireblob.gdshader")
+		m.set_shader_parameter("hot", 1.0 if emit else 0.0)
+		_puff_mats[key] = m
+	var mesh = _puff_mesh.duplicate()
+	mesh.material = _puff_mats[key]
+	return mesh
+
+
 func puff3d(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 	if _puff_mesh == null:
 		_puff_mesh = SphereMesh.new()
 		_puff_mesh.radius = 0.5; _puff_mesh.height = 1.0; _puff_mesh.radial_segments = 10; _puff_mesh.rings = 6
 	var col: Color = cfg.get("col", Color.WHITE)
-	var key = col.to_html()
+	var emit: bool = cfg.get("emit", false)   # ateş: ışıyan, gölgesiz (unshaded) — duman/toz: yumuşak toon
+	var key = "emit" if emit else "toon"
 	if not _puff_mats.has(key):
-		var m = StandardMaterial3D.new()
-		m.vertex_color_use_as_albedo = true
-		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-		m.albedo_color = Color.WHITE
-		m.diffuse_mode = BaseMaterial3D.DIFFUSE_TOON
-		m.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
-		m.rim_enabled = true
-		m.rim = 0.6
+		# ateş: merkez parlak, kenar yumuşak saydam hacimli alev; duman/toz: aynı yumuşak kenarlı hacim, ışımasız (sert gri top değil)
+		var m = ShaderMaterial.new()
+		m.shader = load("res://shaders/vfx_fireblob.gdshader")
+		m.set_shader_parameter("hot", 1.0 if emit else 0.0)
 		_puff_mats[key] = m
 	var p = GPUParticles3D.new()
 	p.one_shot = true
@@ -462,15 +483,25 @@ func puff3d(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 	var g = float(cfg.get("grow", 1.6))
 	pm.scale_curve = _curve([[0.0, 0.35], [0.25, 0.8], [1.0, minf(1.0, 0.8 * g / 1.6)]])
 	var gr = Gradient.new()
-	gr.set_color(0, Color(col.r, col.g, col.b, 0.95))
-	gr.set_color(1, Color(col.r, col.g, col.b, 0.0))
-	gr.add_point(0.55, Color(col.r, col.g, col.b, 0.8))
+	var cols: Array = cfg.get("colors", [])
+	if cols.size() >= 2:   # verilen renk rampası (ateş: beyaz-sarı -> turuncu -> kızıl -> koyu duman)
+		gr.set_color(0, cols[0])
+		gr.set_color(1, cols[-1])
+		for k in range(1, cols.size() - 1):
+			gr.add_point(float(k) / (cols.size() - 1), cols[k])
+	else:
+		gr.set_color(0, Color(col.r, col.g, col.b, 0.95))
+		gr.set_color(1, Color(col.r, col.g, col.b, 0.0))
+		gr.add_point(0.55, Color(col.r, col.g, col.b, 0.8))
 	var gt = GradientTexture1D.new()
 	gt.gradient = gr
 	pm.color_ramp = gt
 	p.process_material = pm
 	var mesh = _puff_mesh.duplicate()
 	mesh.material = _puff_mats[key]
+	if float(cfg.get("stretch", 1.0)) > 1.05:   # hız yönünde uzayan alev dili
+		pm.particle_flag_align_y = true
+		mesh.height = float(cfg.get("stretch", 1.0))
 	p.draw_pass_1 = mesh
 	p.visibility_aabb = AABB(Vector3(-10, -10, -10), Vector3(20, 20, 20))
 	p.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF

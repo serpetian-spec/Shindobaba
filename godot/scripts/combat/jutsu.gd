@@ -235,21 +235,16 @@ func j_katon_goukakyuu(c: Node3D, t: Node3D) -> void:
 	pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
 		var ge = VFX.epic
 		VFX.explosion(pos, 1.3, Color(1.0, 0.5, 0.1))
-		# göğe yükselen ateş sütunu + kalıcı alevler
+		# Storm Gōkakyū çarpması: geometrik ateş sütunu yerine her yöne kabaran ışıyan alev kütlesi -> kara duman + toprak/moloz
 		var gp = Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z), pos.z)
-		var cm = CylinderMesh.new()
-		cm.top_radius = 0.35; cm.bottom_radius = 0.5; cm.height = 1.0; cm.radial_segments = 20; cm.rings = 6
-		cm.cap_top = false; cm.cap_bottom = false
-		var fm = VFX.mat_fire("fire", 4.0, 1.6, 0.45, 1.15, 0.2, Vector3.UP, true)
-		var colm = VFX._mi(cm, fm)
-		get_tree().current_scene.add_child(colm)
-		colm.global_position = gp
-		colm.scale = Vector3(2.4 * ge, 0.5, 2.4 * ge)
-		var ct = colm.create_tween()
-		ct.tween_property(colm, "scale", Vector3(2.1 * ge, 6.5 * ge, 2.1 * ge), 0.35).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-		ct.parallel().tween_property(colm, "global_position:y", gp.y + 3.2 * ge, 0.35).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-		ct.tween_method(func(x: float): fm.set_shader_parameter("alpha_cut", x), 0.0, 1.1, 1.1)
-		ct.tween_callback(colm.queue_free)
+		var fire_ramp = [Color(1, 0.98, 0.85, 1), Color(1, 0.8, 0.25, 1), Color(1, 0.45, 0.08, 0.9), Color(0.6, 0.12, 0.04, 0.0)]
+		FX.puff3d(pos, {"amount": 22, "life": 0.75, "size": 2.4 * ge, "radius": 1.2 * ge, "vmin": 3.0, "vmax": 9.0 * ge, "dir": Vector3.UP, "spread": 120.0,
+			"damp": 3.5, "gravity": Vector3(0, 2.5, 0), "colors": fire_ramp, "emit": true, "grow": 1.9})
+		get_tree().create_timer(0.22).timeout.connect(func():
+			FX.puff3d(pos + Vector3.UP * 0.6, {"amount": 14, "life": 1.4, "size": 2.0 * ge, "radius": 1.5 * ge, "vmin": 1.0, "vmax": 3.5, "dir": Vector3.UP, "spread": 70.0,
+				"damp": 1.5, "gravity": Vector3(0, 2.0, 0), "colors": [Color(0.32, 0.28, 0.26, 0.85), Color(0.25, 0.23, 0.22, 0.6), Color(0.2, 0.19, 0.19, 0.0)], "grow": 1.8}))
+		VFX.debris(gp + Vector3.UP * 0.3, Color(0.42, 0.35, 0.28), 18, 9.0 * ge, 0.35)
+		VFX.cracks(gp, 3.0 * ge)
 		VFX.linger(pos, "katon", Color(1, 0.5, 0.1), ge * 1.2, 4.0)
 		VFX.screen_lines(0.5, 0.8, Color(1, 0.85, 0.6))
 		if Game.world:

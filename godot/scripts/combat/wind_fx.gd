@@ -280,10 +280,10 @@ static func _bullet_build(parent: Node3D, size: float, col: Color) -> void:
 	for k in 2:
 		var core = MeshInstance3D.new()
 		var q = QuadMesh.new()
-		q.size = Vector2.ONE * size * (1.4 if k == 0 else 0.7)
+		q.size = Vector2.ONE * size * (0.9 if k == 0 else 0.45)
 		var m = StandardMaterial3D.new()
 		m.albedo_texture = FX.tex_soft
-		m.albedo_color = Color(0.85, 0.95, 1.0, 0.45) if k == 0 else Color(1, 1, 1, 0.6)
+		m.albedo_color = Color(0.85, 0.95, 1.0, 0.12) if k == 0 else Color(1, 1, 1, 0.2)   # soluk: beyaz top duman gibi duruyordu
 		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		m.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED

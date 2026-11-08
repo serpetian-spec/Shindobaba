@@ -4703,7 +4703,7 @@ func _etrail(pr: Projectile, el: String, col: Color, size: float) -> void:
 		"suiton":
 			pass   # sprite duman izi yok: element_trail 3B damla izini zaten ekledi
 		"fuuton":
-			Projectile.trail(pr, [Color(1, 1, 1, 0.6), Color(0.8, 1, 0.92, 0.35), Color(0.7, 0.95, 0.85, 0)], size * 1.0, 24, 0.4, FX.tex_smoke, false)
+			pass   # rüzgâr: beyaz topak izi duman gibi duruyordu; mermi akım çizgileri yeter
 		"raiton":
 			Projectile.trail(pr, [Color(1, 1, 1, 1), col.lightened(0.4), Color(col.r, col.g, col.b, 0)], size * 0.4, 30, 0.3, null, true)
 
@@ -5270,18 +5270,54 @@ func p_kamaitachi_no_jutsu(c: Node3D, t: Node3D) -> void:
 	jutsu_weapon(c, "tessen", 1.0)
 	VFX.gather(c.global_position + Vector3.UP * 1.3 + d, WIND, 1.3)
 	after(0.12, func():
-		stream_fx(c.global_position + Vector3.UP * 1.2, d, 22.0, 6.0, _windmat(0.55), 0.35)
-		for k in 12:
-			after(k * 0.04, func():
-				var q = c.global_position + d * (3.0 + k * 1.8) + d.cross(Vector3.UP) * randf_range(-4.0, 4.0)
-				var cp = q + Vector3.UP * randf_range(0.4, 2.6)
-				var sd2 = d.cross(Vector3.UP).normalized().rotated(d, randf_range(-0.8, 0.8))
-				var bw = randf_range(0.4, 0.9)
-				WindFX.streak(func(u: float) -> Vector3: return cp + sd2 * lerpf(-1.8, 1.8, u) + d * sin(u * PI) * bw, 0.12, 0.05, Color(1, 1, 1, 0.95), 0.0, 10)
-				VFX.cracks(gp(q), 1.5, Color(0.15, 0.12, 0.1, 0.8), 5.0))
+		# (Storm 4 ref 6:51 / 7:09) yelpaze savrulunca etrafında dev beyaz hilal yaylar, sonra ileri yürüyen kesici kasırga
+		var o = c.global_position + Vector3.UP * 1.1
+		var sdv = d.cross(Vector3.UP).normalized()
+		for k in 4:
+			var tilt = randf_range(-0.5, 0.5)
+			var ax = sdv.rotated(d, tilt)
+			var upx = d.cross(ax).normalized() * -1.0
+			var rr = randf_range(2.4, 3.6)
+			var a0 = randf_range(-0.4, 0.4)
+			WindFX.streak(func(u: float) -> Vector3:
+				var aa = a0 + lerpf(-1.9, 1.9, u)
+				return o + d * (cos(aa) * rr * 0.55 + 0.6) + ax * sin(aa) * rr + upx * cos(aa) * 0.3, 0.3, 0.22, Color(1, 1, 1, 0.95), k * 0.05, 18)
+		for k in 9:
+			after(0.1 + k * 0.11, func():
+				if not is_instance_valid(c):
+					return
+				var q = gp(c.global_position + d * (3.0 + k * 2.2))
+				_funnel(q, 6.0, 0.5, 2.4)
+				# yerde kasırganın etrafında yatay hilal savrulmalar
+				var ga = randf() * TAU
+				WindFX.streak(func(u: float) -> Vector3:
+					var aa = ga + u * 2.6
+					return q + Vector3(cos(aa), 0, sin(aa)) * lerpf(1.8, 3.4, u) + Vector3.UP * 0.35, 0.3, 0.14, Color(1, 1, 1, 0.9), 0.0, 14)
+				if k % 2 == 0:
+					VFX.cracks(q, 1.5, Color(0.15, 0.12, 0.1, 0.8), 5.0))
 		Combat.hit_zone(c, c.global_position, d, 24.0, 30.0, 4.0, inf(c, "kamaitachi_no_jutsu", 1.3, {"knock": 18.0, "launch": 4.0, "kind": "heavy", "element": "fuuton", "bleed": 4.0, "dir": d}))
 		shake(0.6))
 	Sfx.play("wind", c.global_position, 0.5)
+
+
+## Kasırga hunisi (Storm 4 Kamatari kasırgası): dipte dar, tepede geniş; yumuşak gri-beyaz dönen perdeler + birkaç ince çizgi,
+## dipte yerden kalkan kum tozu. Tek kare: çağıran her adımda yenisini koyar (ileri yürüyen kasırga).
+func _funnel(at: Vector3, h: float, r0: float, r1: float) -> void:
+	for i in 8:
+		var a0 = randf() * TAU
+		var h0 = randf_range(0.0, h * 0.4)
+		var hh = randf_range(h * 0.4, h * 0.6)
+		var pth = func(u: float) -> Vector3:
+			var y = h0 + hh * u
+			var r = lerpf(r0, r1, y / h)
+			var aa = a0 + u * TAU * 1.2
+			return at + Vector3(cos(aa) * r, y, sin(aa) * r)
+		if i < 5:
+			WindFX.sheet(pth, 0.45, 0.7 + 0.2 * i, Color(0.88, 0.9, 0.92), randf() * 0.05, 0.62)
+		else:
+			WindFX.streak(pth, 0.4, 0.06, Color(1, 1, 1, 0.85), randf() * 0.05, 26)
+	WindFX.soft_dust(at + Vector3.UP * 0.2, {"amount": 4, "life": 0.8, "size": 0.7, "radius": r0 * 1.5, "vmin": 1.0, "vmax": 3.0,
+		"dir": Vector3.UP, "spread": 25.0, "tangent": 14.0}, WindFX.dust_col(at))
 
 
 ## Canavar Yırtan Avuç: dönerek kendi etrafında rüzgâr hortumu (rüzgâr dokulu dönen huni) — içine giren savrulur
@@ -8136,7 +8172,7 @@ func p_futon_shinku_taigyoku(c: Node3D, t: Node3D) -> void:
 		var from = _mouth_pos(c) + c.face_dir() * 1.2
 		var core = Node3D.new()
 		WindFX.bullet(core, 3.2)
-		for q in 3:
+		for q in 0:   # düz halka kartları geometrik disk gibi duruyordu (kullanıcı)
 			var rg = MeshInstance3D.new()
 			var qm = QuadMesh.new()
 			qm.size = Vector2.ONE * (5.4 - q * 1.2)
