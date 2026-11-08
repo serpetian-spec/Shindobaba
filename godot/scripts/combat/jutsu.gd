@@ -237,11 +237,11 @@ func j_katon_goukakyuu(c: Node3D, t: Node3D) -> void:
 		VFX.explosion(pos, 1.3, Color(1.0, 0.5, 0.1))
 		# Storm Gōkakyū çarpması: geometrik ateş sütunu yerine her yöne kabaran ışıyan alev kütlesi -> kara duman + toprak/moloz
 		var gp = Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z), pos.z)
-		var fire_ramp = [Color(1, 0.98, 0.85, 1), Color(1, 0.8, 0.25, 1), Color(1, 0.45, 0.08, 0.9), Color(0.6, 0.12, 0.04, 0.0)]
-		FX.puff3d(pos, {"amount": 22, "life": 0.75, "size": 2.4 * ge, "radius": 1.2 * ge, "vmin": 3.0, "vmax": 9.0 * ge, "dir": Vector3.UP, "spread": 120.0,
+		var fire_ramp = [Color(1, 0.88, 0.35, 1), Color(1, 0.55, 0.1, 1), Color(0.9, 0.25, 0.05, 0.85), Color(0.35, 0.12, 0.06, 0.0)]
+		FX.puff3d(pos, {"amount": 20, "life": 0.7, "size": 1.7 * ge, "radius": 1.2 * ge, "vmin": 3.0, "vmax": 9.0 * ge, "dir": Vector3.UP, "spread": 120.0,
 			"damp": 3.5, "gravity": Vector3(0, 2.5, 0), "colors": fire_ramp, "emit": true, "grow": 1.9})
 		get_tree().create_timer(0.22).timeout.connect(func():
-			FX.puff3d(pos + Vector3.UP * 0.6, {"amount": 14, "life": 1.4, "size": 2.0 * ge, "radius": 1.5 * ge, "vmin": 1.0, "vmax": 3.5, "dir": Vector3.UP, "spread": 70.0,
+			FX.puff3d(pos + Vector3.UP * 0.6, {"amount": 10, "life": 1.3, "size": 1.4 * ge, "radius": 1.5 * ge, "vmin": 1.0, "vmax": 3.5, "dir": Vector3.UP, "spread": 70.0,
 				"damp": 1.5, "gravity": Vector3(0, 2.0, 0), "colors": [Color(0.32, 0.28, 0.26, 0.85), Color(0.25, 0.23, 0.22, 0.6), Color(0.2, 0.19, 0.19, 0.0)], "grow": 1.8}))
 		VFX.debris(gp + Vector3.UP * 0.3, Color(0.42, 0.35, 0.28), 18, 9.0 * ge, 0.35)
 		VFX.cracks(gp, 3.0 * ge)

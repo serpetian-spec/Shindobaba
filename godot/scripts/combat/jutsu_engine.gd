@@ -1541,16 +1541,9 @@ static func _counter(c: Node3D, d: Dictionary) -> void:
 			var dd = f.global_position - c.global_position
 			dd.y = 0
 			f.take_hit(info(c, d, 0.7, {"knock": 14.0, "dir": dd.normalized(), "attacker": c}))
-	var dm = VFX._mi(VFX._sphere(0.5, 28, 14), VFX.mat_spiral(Color(1, 1, 1), col, 6.0, 1.5, 14.0, 1.4))
-	c.add_child(dm)
-	dm.position = Vector3(0, 0.8, 0)
-	dm.scale = Vector3.ONE * 0.5
-	var twd = dm.create_tween()
-	twd.tween_property(dm, "scale", Vector3(7, 5, 7), 0.15).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
-	twd.tween_interval(0.4)
-	twd.tween_property(dm, "scale", Vector3.ONE * 0.1, 0.2)
-	twd.tween_callback(dm.queue_free)
-	VFX.shockwave(c.global_position + Vector3.UP * 0.1, col, 9.0, 0.4)
+	# spiral kubbe yok (geometrik kabuk; Kawarimi'de dev mavi küre gibi duruyordu): elementliyse yerde basınç dalgası
+	if String(d.get("element", "")) != "":
+		VFX.shockwave(c.global_position + Vector3.UP * 0.1, col, 9.0, 0.4)
 	FX.dust(c.global_position, 1.5)
 	Sfx.play("block", c.global_position, 0.8)
 

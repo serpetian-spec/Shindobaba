@@ -427,8 +427,19 @@ func dust(pos: Vector3, s := 1.0) -> void:
 
 ## Anime "puf" bulutu (Kawarimi, çağırma, gölge klon): 3B kabarık beyaz topaklar (eskiden düz cel sprite + yıldız kartı)
 func smoke_puff(pos: Vector3, s := 1.0, n := 14) -> void:
-	puff3d(pos, {"amount": n, "life": 0.85, "size": 1.0 * s, "radius": 0.55 * s, "vmin": 1.5, "vmax": 4.0 * s,
-		"damp": 4.0, "gravity": Vector3(0, 1.5, 0), "col": Color(0.97, 0.97, 0.99), "grow": 1.6})
+	# katmanlı sis (kullanıcı: daha gerçekçi): ani kabaran yoğun çekirdek, yerde dışa yayılan alçak sis halkası,
+	# yavaşça yükselip aşınan ince tutamlar. Renk: üstü beyaz, altı hafif mavi-gri (toon gölge shader'da).
+	var mist = [Color(0.98, 0.98, 1.0, 1.0), Color(0.93, 0.94, 0.97, 0.85), Color(0.86, 0.88, 0.92, 0.55), Color(0.82, 0.84, 0.9, 0.0)]
+	puff3d(pos, {"amount": n, "life": 0.9, "size": 1.3 * s, "radius": 0.45 * s, "vmin": 2.0, "vmax": 3.5 * s, "spread": 180.0,
+		"damp": 6.0, "gravity": Vector3(0, 0.6, 0), "colors": mist, "grow": 1.7, "mist": true})
+	var g = Vector3(pos.x, pos.y - 0.85 * s, pos.z)
+	if Game.has_method("jutsu_floor"):
+		g.y = maxf(g.y, Game.jutsu_floor(pos.x, pos.z) + 0.15)
+	puff3d(g, {"amount": int(n * 0.8), "life": 1.4, "size": 0.9 * s, "radius": 0.6 * s, "vmin": 3.0 * s, "vmax": 4.0 * s, "dir": Vector3.UP,
+		"spread": 88.0, "damp": 3.5, "gravity": Vector3(0, -0.2, 0), "colors": mist, "grow": 1.8, "mist": true})
+	puff3d(pos + Vector3.UP * 0.4 * s, {"amount": int(n * 0.5), "life": 2.0, "size": 0.6 * s, "radius": 0.8 * s, "vmin": 0.5, "vmax": 1.5,
+		"dir": Vector3.UP, "spread": 40.0, "damp": 1.0, "gravity": Vector3(0, 0.8, 0),
+		"colors": [Color(0.96, 0.96, 0.99, 0.8), Color(0.9, 0.91, 0.95, 0.6), Color(0.85, 0.87, 0.92, 0.0)], "grow": 2.2, "mist": true})
 	Sfx.play("poof", pos)
 
 
@@ -457,12 +468,14 @@ func puff3d(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 		_puff_mesh.radius = 0.5; _puff_mesh.height = 1.0; _puff_mesh.radial_segments = 10; _puff_mesh.rings = 6
 	var col: Color = cfg.get("col", Color.WHITE)
 	var emit: bool = cfg.get("emit", false)   # ateş: ışıyan, gölgesiz (unshaded) — duman/toz: yumuşak toon
-	var key = "emit" if emit else "toon"
+	var mist: bool = cfg.get("mist", false)
+	var key = "emit" if emit else ("mist" if mist else "toon")
 	if not _puff_mats.has(key):
 		# ateş: merkez parlak, kenar yumuşak saydam hacimli alev; duman/toz: aynı yumuşak kenarlı hacim, ışımasız (sert gri top değil)
 		var m = ShaderMaterial.new()
 		m.shader = load("res://shaders/vfx_fireblob.gdshader")
 		m.set_shader_parameter("hot", 1.0 if emit else 0.0)
+		m.set_shader_parameter("soft", 1.0 if mist else 0.0)
 		_puff_mats[key] = m
 	var p = GPUParticles3D.new()
 	p.one_shot = true

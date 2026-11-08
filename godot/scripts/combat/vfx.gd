@@ -510,10 +510,10 @@ static func lightning_ball(size := 1.0, col := Color(0.45, 0.7, 1.0)) -> Node3D:
 	for k in 2:
 		var g = MeshInstance3D.new()
 		var q = QuadMesh.new()
-		q.size = Vector2.ONE * size * (0.9 if k == 0 else 2.6)
+		q.size = Vector2.ONE * size * (0.6 if k == 0 else 1.6)   # küçük: büyük toplamalı parıltı gündüz beyaz-sarı güneş gibi taşıyordu
 		var m = StandardMaterial3D.new()
 		m.albedo_texture = FX.tex_soft
-		m.albedo_color = Color(1, 1, 1, 0.95) if k == 0 else Color(col.r, col.g, col.b, 0.55)
+		m.albedo_color = Color(0.9, 0.97, 1, 0.8) if k == 0 else Color(col.r * 0.5, col.g * 0.8, col.b, 0.35)
 		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
 		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -533,8 +533,8 @@ static func lightning_ball(size := 1.0, col := Color(0.45, 0.7, 1.0)) -> Node3D:
 	var arcs = Arcs.new()
 	arcs.color = col
 	arcs.radius = size * 1.3
-	arcs.count = 8
-	arcs.width = 0.06 * maxf(1.0, size)
+	arcs.count = 10
+	arcs.width = 0.09 * maxf(1.0, size)
 	root.add_child(arcs)
 	return root
 
@@ -856,7 +856,7 @@ static func _smoke_ring(pos: Vector3, size := 3.0, col := Color(0.3, 0.27, 0.25)
 
 ## Kalın şimşek: from→to dallanan, titreyen şerit (gökten düşen yıldırım, ışın)
 static func bolt(from: Vector3, to: Vector3, col := Color(0.5, 0.75, 1.0), width := 0.25, dur := 0.25, branches := 3) -> Arcs:
-	width *= epic
+	width = minf(width, 0.4) * epic   # çok kalın şimşek düz şerit/levha gibi duruyordu
 	var a = Arcs.new()
 	a.color = col
 	a.to_point = to - from

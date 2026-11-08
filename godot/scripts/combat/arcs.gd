@@ -93,16 +93,21 @@ static func _glow_mat(c: Color) -> StandardMaterial3D:
 	m.no_depth_test = false
 	m.depth_draw_mode = BaseMaterial3D.DEPTH_DRAW_DISABLED
 	m.albedo_texture = _glow_tex
-	m.albedo_color = Color(lerpf(c.r, 1.0, 0.25), lerpf(c.g, 1.0, 0.25), lerpf(c.b, 1.0, 0.25), 0.45)
+	m.albedo_color = Color(c.r * 0.6, c.g * 0.9, minf(1.0, c.b * 1.1), 0.22)   # doygun, soluk hale (beyaz sis değil)
 	_glow_mats[key] = m
 	return m
 
 
 func _path(a: Vector3, b: Vector3, n: int, jitter: float) -> Array:
 	var out = [a]
+	# düzensiz kırılım: iki kat nokta, çoğu küçük sapma, arada büyük kıvrım (eşit zikzak geometrik duruyordu)
+	n *= 2
+	var drift = Vector3.ZERO
 	for s in range(1, n):
 		var k = float(s) / n
-		out.append(a.lerp(b, k) + Vector3(randf_range(-1, 1), randf_range(-1, 1), randf_range(-1, 1)) * jitter)
+		var r = randf()
+		drift = drift * 0.55 + Vector3(randf_range(-1, 1), randf_range(-1, 1), randf_range(-1, 1)) * jitter * (0.25 + r * r * 1.1)
+		out.append(a.lerp(b, k) + drift * sin(k * PI) * 1.4)
 	out.append(b)
 	return out
 
@@ -124,8 +129,9 @@ func _strip(pts: Array, w: float, cl: Vector3) -> void:
 			im.surface_set_uv(Vector2(float(i) / n, v[1]))
 			im.surface_add_vertex(v[0])
 		if _gmi:
-			var g0 = s0 * glow
-			var g1 = s1 * glow
+			# hale: ince şimşekte geniş, kalında çekirdeğin hemen dışında (kalın şimşekte 4 m'lik düz levhalar oluyordu)
+			var g0 = s0.normalized() * minf(s0.length() * glow, s0.length() + 0.22)
+			var g1 = s1.normalized() * minf(s1.length() * glow, s1.length() + 0.22)
 			for v in [[p0 + g0, 0.0], [p1 + g1, 0.0], [p1 - g1, 1.0], [p0 + g0, 0.0], [p1 - g1, 1.0], [p0 - g0, 1.0]]:
 				_gim.surface_set_uv(Vector2(float(i) / n, v[1]))
 				_gim.surface_add_vertex(v[0])
