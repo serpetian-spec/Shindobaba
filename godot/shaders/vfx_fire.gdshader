@@ -32,8 +32,13 @@ float vn(vec3 p) {
 
 uniform float tongue = 0.0;   // >0: üst yarı sivri, titreyen alev dillerine çekilir (Amaterasu, meşale)
 
+varying float pfade;
+varying float pseed;
 void vertex() {
 	lp = VERTEX;
+	// parçacık olarak kullanıldığında (patlama/alev parçaları): örnek başına farklı desen + ömür sonunda aşınarak söner
+	pfade = 1.0 - clamp(COLOR.a, 0.0, 1.0);
+	pseed = float(INSTANCE_ID);
 	float w = vn(VERTEX * 3.1 - flow * TIME * speed * 1.4) - 0.5;
 	VERTEX += NORMAL * w * wobble * 2.0;
 	if (tongue > 0.0) {
@@ -46,7 +51,7 @@ void vertex() {
 
 void fragment() {
 	float fres = (1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0)) * fres_k;
-	vec3 p = lp * scale;
+	vec3 p = lp * scale + vec3(pseed * 3.7, 0.0, pseed * 1.9);
 	float a = TIME * swirl;
 	p.xz = mat2(vec2(cos(a), sin(a)), vec2(-sin(a), cos(a))) * p.xz;
 	if (streak > 0.0) {
@@ -57,7 +62,7 @@ void fragment() {
 	p -= flow * TIME * speed;
 	float n = vn(p) * 0.55 + vn(p * 2.3 + vec3(3.1, 7.7, 1.3)) * 0.3 + vn(p * 5.2) * 0.15;
 	float v = fres * 0.95 + (n - 0.5) * 1.0;
-	if (fres + (n - 0.5) * erode * 2.2 > 0.97 - alpha_cut) discard;
+	if (fres + (n - 0.5) * erode * 2.2 > 0.97 - max(alpha_cut, pfade * 1.1)) discard;
 	// yumuşak geçişli bantlar (anime kademesi korunur ama keskin yapay disk görünmez); parlak çekirdek küçük
 	float e = 0.018;   // Storm: sert bantlar
 	vec3 col = c_core.rgb;

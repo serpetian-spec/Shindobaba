@@ -4926,11 +4926,11 @@ func stream_fx(from: Vector3, d: Vector3, length: float, radius: float, mat: Mat
 		var sd = dn2.cross(Vector3.UP).normalized()
 		var n2 = clampi(int(radius * 1.5), 2, 5)
 		var mc: Color = mat.get_shader_parameter("c_mid")
-		var oily = mc.r > mc.b + 0.2   # kurbağa yağı / çamur: mavi su sıçraması ve mavi gölcük bırakmasın
+		var oily = mc.r > mc.b + 0.15   # kurbağa yağı / çamur: mavi su sıçraması ve mavi gölcük bırakmasın (çamur 0.2 sınırında kalıp su çiziliyordu)
 		if oily:
 			# lav seli (kızıl) / Mei'nin bej aşındırıcı çamuru / kurbağa yağı: kalın, kesintisiz, ağır yapışkan sıvı tüpleri,
 			# yay çizip düşer, gövdeden ağır parçalar kopar (ateş/duman partikülü yok), uçta sıvının kendisi sıçrar
-			var gkind = "molten" if mc.g < 0.6 else ("mei" if mc.b > 0.4 else "oil")
+			var gkind = "mud" if (mc.r < 0.55 and mc.g < 0.45) else ("molten" if mc.g < 0.6 else ("mei" if mc.b > 0.4 else "oil"))
 			# lav seli (anime Mei'nin lav duvarı / lav seli): kalın, kesintisiz, kızıl tabanlı sarı erimiş hücreli tüpler;
 			# ağırlıkla yay çizip düşer, damlalar, kor, beyaz buhar
 			var ln = clampi(int(radius * 1.2), 2, 4)

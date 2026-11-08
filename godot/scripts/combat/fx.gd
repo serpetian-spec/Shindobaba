@@ -202,7 +202,7 @@ func burst(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 		var c0: Color = cols[0]
 		var c3 = cfg.duplicate()
 		c3["size"] = float(cfg.get("size", 1.0)) * 0.75
-		c3["emit"] = float(cfg.get("hot", 0.0)) > 0.0 or (c0.r > c0.b + 0.3 and c0.g > 0.25 and c0.r > 0.7)
+		c3["emit"] = float(cfg.get("hot", 0.0)) > 0.35 or (c0.r > c0.b + 0.3 and c0.g > 0.25 and c0.r > 0.7)
 		return puff3d(pos, c3)
 	var p = GPUParticles3D.new()
 	p.one_shot = true
@@ -469,6 +469,10 @@ func puff3d(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 	var col: Color = cfg.get("col", Color.WHITE)
 	var emit: bool = cfg.get("emit", false)   # ateş: ışıyan, gölgesiz (unshaded) — duman/toz: yumuşak toon
 	var mist: bool = cfg.get("mist", false)
+	if not emit and not cfg.has("mist"):
+		# açık renkli toz/kum/buhar = yumuşak yarı saydam bulut (Storm Doton tozu); koyu duman dolu topak kalır (aşınarak söner)
+		var c0: Color = (cfg["colors"][0] if cfg.has("colors") and (cfg["colors"] as Array).size() > 0 else col)
+		mist = c0.get_luminance() > 0.55
 	var key = "emit" if emit else ("mist" if mist else "toon")
 	if not _puff_mats.has(key):
 		# ateş: merkez parlak, kenar yumuşak saydam hacimli alev; duman/toz: aynı yumuşak kenarlı hacim, ışımasız (sert gri top değil)
@@ -512,7 +516,36 @@ func puff3d(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 	p.process_material = pm
 	var mesh = _puff_mesh.duplicate()
 	mesh.material = _puff_mats[key]
-	if float(cfg.get("stretch", 1.0)) > 1.05:   # hız yönünde uzayan alev dili
+	if emit:
+		# ateş parçaları ateş topunun KENDİ malzemesiyle (kullanıcı: "skille aynı yap", soluk/farklı renk olmasın)
+		var fc: Color = (cfg["colors"][mini(1, (cfg["colors"] as Array).size() - 1)] if cfg.has("colors") else col)
+		var fkey = "fp_" + VFX.fire_preset_for(fc)
+		if not _puff_mats.has(fkey):
+			# kabarık, kenarı hafif yırtık alev bulutu (sivri dil / düzgün top değil)
+			_puff_mats[fkey] = VFX.mat_fire(VFX.fire_preset_for(fc), 2.4, 2.4, 0.55, 1.3, 0.2, Vector3.UP, true)
+		mesh.material = _puff_mats[fkey]
+		# kullanıcı: küçük ve duman gibi dağılsın — çok sayıda küçük topak, yavaş fışkırıp duman gibi yükselir, yuvarlanır,
+		# biraz kabarıp sonra küçülerek söner
+		pm.particle_flag_align_y = false
+		p.amount = int(p.amount * 1.8) + 3
+		sz *= 0.5
+		pm.scale_min = sz * 0.5; pm.scale_max = sz * 1.3
+		pm.initial_velocity_min *= 0.5; pm.initial_velocity_max *= 0.55
+		pm.damping_min = maxf(pm.damping_min, 3.0); pm.damping_max = pm.damping_min * 1.5
+		pm.gravity = Vector3(0, 3.5, 0)
+		pm.turbulence_enabled = true
+		pm.turbulence_noise_strength = 1.2
+		pm.turbulence_noise_scale = 2.5
+		pm.turbulence_influence_min = 0.1; pm.turbulence_influence_max = 0.25
+		pm.scale_curve = _curve([[0.0, 0.4], [0.3, 1.0], [0.7, 0.9], [1.0, 0.25]])
+		p.lifetime *= 1.2
+		p.explosiveness = 0.7
+		p.randomness = 0.5
+	if emit:
+		pm.particle_flag_align_y = true   # alev dili gidiş yönüne (yukarı yalayan / dışa fışkıran) bakar
+		if pm.gravity.y < 1.0 and pm.initial_velocity_max < 2.0:
+			pm.gravity = pm.gravity + Vector3(0, 3.0, 0)   # durağan alev de yukarı yalar
+	if float(cfg.get("stretch", 1.0)) > 1.05 and not emit:   # hız yönünde uzayan dil (ateşte yok: kullanıcı üçgen dağılmasın)
 		pm.particle_flag_align_y = true
 		mesh.height = float(cfg.get("stretch", 1.0))
 	p.draw_pass_1 = mesh

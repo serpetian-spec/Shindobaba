@@ -160,6 +160,14 @@ static func lava_mat(kind := "molten", world := false) -> ShaderMaterial:
 		m.set_shader_parameter("line_col", Color(0.6, 0.26, 0.04))
 		m.set_shader_parameter("spot_thresh", 0.62)
 		m.set_shader_parameter("flow", 0.4)
+	elif kind == "mud":   # Doton çamuru: koyu kahve, ıslak parlak tepe, ışımasız (su gibi beyaz kenar / mavi damla yok)
+		m.set_shader_parameter("base_col", Color(0.34, 0.23, 0.14))
+		m.set_shader_parameter("spot_col", Color(0.48, 0.35, 0.22))
+		m.set_shader_parameter("hot_col", Color(0.6, 0.48, 0.34))
+		m.set_shader_parameter("rim_col", Color(0.56, 0.44, 0.3))
+		m.set_shader_parameter("line_col", Color(0.16, 0.1, 0.06))
+		m.set_shader_parameter("spot_thresh", 0.62)
+		m.set_shader_parameter("flow", 0.5)
 	elif kind == "rock":
 		m.set_shader_parameter("base_col", Color(1.0, 0.58, 0.14))
 		m.set_shader_parameter("spot_col", Color(0.42, 0.12, 0.04))
@@ -670,7 +678,7 @@ static func puffs(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 	# turuncu -> kızıl -> koyu duman), duman/toz = yumuşak toon topaklar. Düz cel kart + kahverengi kontur yok.
 	var cols: Array = cfg.get("colors", [Color.WHITE, Color(1, 1, 1, 0)])
 	var c0: Color = cols[0]
-	var fire = float(cfg.get("hot", 0.0)) > 0.0 or (c0.r > c0.b + 0.3 and c0.g > 0.25 and c0.r > 0.7)
+	var fire = float(cfg.get("hot", 0.0)) > 0.35 or (c0.r > c0.b + 0.3 and c0.g > 0.25 and c0.r > 0.7)
 	var c3 = cfg.duplicate()
 	c3["size"] = float(cfg.get("size", 1.0)) * 0.75
 	c3["colors"] = cols

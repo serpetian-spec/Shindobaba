@@ -287,7 +287,7 @@ func _style_fx(pts: Array, dt: float) -> void:
 			var gk = "molten"
 			if mat is ShaderMaterial and mat.get_shader_parameter("base_col") != null:
 				var bc: Color = mat.get_shader_parameter("base_col")
-				gk = "mei" if bc.g > 0.65 else ("oil" if bc.g > 0.4 and bc.r < 0.8 else "molten")
+				gk = "mud" if (bc.r < 0.45 and bc.g < 0.35) else "mei" if bc.g > 0.65 else ("oil" if bc.g > 0.4 and bc.r < 0.8 else "molten")
 			if gk == "molten" and randf() < 0.4:
 				VFX.debris(p, Color(0.22, 0.12, 0.08), 2, 3.0, 0.2)   # akıştan kopan kırık kaya
 			VFX.goo_drops(p, gk, 1, maxf(0.8, radius * 0.6), 1.5)

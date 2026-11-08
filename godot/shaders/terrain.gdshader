@@ -12,14 +12,14 @@ uniform vec4 villages[16];                                      // x, z, yarıç
 uniform int village_count = 0;
 uniform vec4 hokage_rock = vec4(0.0);   // x0, x1, yüz hattı (dünya z), tepe yüksekliği: altın-toprak kaya dağı
 uniform float level_eps = 0.0;
-uniform sampler2D tex_cobble : filter_linear_mipmap, repeat_enable;   // köy döşemesi (parke taşı)
-uniform sampler2D tex_stone : filter_linear_mipmap, repeat_enable;    // cadde iri taş
-uniform sampler2D tex_rock : filter_linear_mipmap, repeat_enable;     // yarlar / kayalıklar
-uniform sampler2D tex_sand : filter_linear_mipmap, repeat_enable;     // çöl, kumsal
-uniform sampler2D tex_forest : filter_linear_mipmap, repeat_enable;   // orman zemini
-uniform sampler2D tex_dirt : filter_linear_mipmap, repeat_enable;     // köy dışı toprak yollar
-uniform sampler2D tex_grass : filter_linear_mipmap, repeat_enable;    // çimenli zemin
-uniform sampler2D tex_snow : filter_linear_mipmap, repeat_enable;     // kar: rüzgârla dalgalanmış kar yüzeyi
+uniform sampler2D tex_cobble : filter_linear_mipmap_anisotropic, repeat_enable;   // köy döşemesi (parke taşı)
+uniform sampler2D tex_stone : filter_linear_mipmap_anisotropic, repeat_enable;    // cadde iri taş
+uniform sampler2D tex_rock : filter_linear_mipmap_anisotropic, repeat_enable;     // yarlar / kayalıklar
+uniform sampler2D tex_sand : filter_linear_mipmap_anisotropic, repeat_enable;     // çöl, kumsal
+uniform sampler2D tex_forest : filter_linear_mipmap_anisotropic, repeat_enable;   // orman zemini
+uniform sampler2D tex_dirt : filter_linear_mipmap_anisotropic, repeat_enable;     // köy dışı toprak yollar
+uniform sampler2D tex_grass : filter_linear_mipmap_anisotropic, repeat_enable;    // çimenli zemin
+uniform sampler2D tex_snow : filter_linear_mipmap_anisotropic, repeat_enable;     // kar: rüzgârla dalgalanmış kar yüzeyi
 uniform float texel = 4.0;
 
 varying vec3 wpos;
@@ -29,16 +29,25 @@ void vertex() {
 	vec3 w = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	float e = max(texel, 1.5);
 	float h = world_height(w.xz);
-	float hx = world_height(w.xz + vec2(e, 0.0)) - world_height(w.xz - vec2(e, 0.0));
-	float hz = world_height(w.xz + vec2(0.0, e)) - world_height(w.xz - vec2(0.0, e));
-	vec3 n = normalize(vec3(-hx, 2.0 * e, -hz));
+	// yumuşak normal (kullanıcı: yol "köşeli köşeli"): yükseklik haritası iki doğrusal örneklendiği için tek ölçekli farkta
+	// eğim her hücre sınırında sıçrıyor -> düz toprakta köşeli ışık yamaları. Çapraz komşularda ve iki ölçekte ortalama.
+	vec2 g = vec2(0.0);
+	for (int i = 0; i < 5; i++) {
+		vec2 o = (i == 0) ? vec2(0.0) : vec2((i == 1 || i == 2) ? e : -e, (i == 1 || i == 3) ? e : -e) * 0.75;
+		float ee = e * 1.5;
+		g.x += world_height(w.xz + o + vec2(ee, 0.0)) - world_height(w.xz + o - vec2(ee, 0.0));
+		g.y += world_height(w.xz + o + vec2(0.0, ee)) - world_height(w.xz + o - vec2(0.0, ee));
+	}
+	g /= 5.0;
+	vec3 n = normalize(vec3(-g.x, 3.0 * e, -g.y));
 	VERTEX.y = h - level_eps;
 	NORMAL = n;
 	wpos = vec3(w.x, h, w.z);
 	slope = 1.0 - n.y;
 }
 
-float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+// sinüssüz hash (Hoskins): sin() büyük dünya koordinatlarında GPU'da hassasiyet kaybedip toprakta dikdörtgen ton blokları yapıyordu
+float hash(vec2 p) { vec3 p3 = fract(vec3(p.xyx) * 0.1031); p3 += dot(p3, p3.yzx + 33.33); return fract((p3.x + p3.y) * p3.z); }
 float vnoise(vec2 p) {
 	vec2 i = floor(p), f = fract(p);
 	vec2 u = f * f * (3.0 - 2.0 * f);
@@ -125,14 +134,20 @@ void fragment() {
 	vec2 ruv = (wpos.xz - road_rect.xy) / max(road_rect.z, 1.0);
 	float rmask;
 	if (road_rect.z > 0.0 && ruv.x > 0.01 && ruv.y > 0.01 && ruv.x < 0.99 && ruv.y < 0.99) {
-		rmask = texture(road_tex, ruv).r;
+		// 2 m/piksel maske: tek örnek + keskin eşik dikdörtgen ton blokları yapıyordu (kullanıcı: "köşeli köşeli") -> 9 noktalı yumuşatma
+		vec2 tx = 1.0 / vec2(textureSize(road_tex, 0));
+		rmask = texture(road_tex, ruv).r * 0.25;
+		rmask += (texture(road_tex, ruv + vec2(tx.x, 0.0)).r + texture(road_tex, ruv - vec2(tx.x, 0.0)).r
+			+ texture(road_tex, ruv + vec2(0.0, tx.y)).r + texture(road_tex, ruv - vec2(0.0, tx.y)).r) * 0.125;
+		rmask += (texture(road_tex, ruv + tx).r + texture(road_tex, ruv - tx).r
+			+ texture(road_tex, ruv + vec2(tx.x, -tx.y)).r + texture(road_tex, ruv + vec2(-tx.x, tx.y)).r) * 0.0625;
 	} else {
 		rmask = smoothstep(0.55, 0.9, bio.g) * 0.8;
 	}
 	// toprak yol (ref toprakyol.png): kenar dalgalı ve düzensiz (genişlik yol boyunca değişir), çim öbekleri kenara taşar
 	float ew = vnoise(wpos.xz * 0.07) * 0.55 + vnoise(wpos.xz * 0.3) * 0.3 + vnoise(wpos.xz * 1.3) * 0.15;
 	float rm2 = rmask + (ew - 0.5) * 0.6;
-	float road = smoothstep(0.42, 0.5, rm2);
+	float road = smoothstep(0.36, 0.52, rm2);
 	road *= smoothstep(-0.6, 0.1, wpos.y);   // su altında (deniz seviyesi 0) yol boyanmaz
 	// lekeli toprak: büyük açık/koyu alanlar + küçük koyu benekler (çiğnenmiş toprak), ortası daha açık (yürüme izi)
 	// (yol dokusu 2 m/piksel: tonu ona bağlamak kare kare desen yapıyordu -> yalnız yumuşak dünya gürültüsü)
@@ -144,7 +159,12 @@ void fragment() {
 	dirt = pow(dirt, vec3(2.2));   // tonlar sRGB'de seçildi (lineer verilince soluk bej görünüyordu)
 	if (b == 14 || b == 15) dirt = vec3(0.62, 0.6, 0.56) * (0.88 + n3 * 0.16);
 	if (b == 8 || b == 9) dirt = vec3(0.52, 0.47, 0.42) * (0.88 + n3 * 0.18);  // karlı/dağ yolu: ıslak çakıl
-	if (b != 11) dirt *= 1.0 + (texture(tex_dirt, wpos.xz * 0.2).r - 0.5) * 0.8;   // köy dışı toprak yol
+	// toprak dokusu her yerde iki ölçekte (kullanıcı: "aşırı bulanık"; köy içinde hiç ince doku yoktu) + küçük çakıl benekleri
+	float td = texture(tex_dirt, wpos.xz * 0.35).r * 0.6 + texture(tex_dirt, wpos.xz * 0.09 + 0.31).r * 0.4;
+	dirt *= 1.0 + (td - 0.5) * (b != 11 ? 0.9 : 0.75);
+	float peb = vnoise(wpos.xz * 6.0);
+	dirt = mix(dirt, dirt * 1.25, smoothstep(0.82, 0.9, peb) * 0.6);
+	dirt = mix(dirt, dirt * 0.7, smoothstep(0.85, 0.93, vnoise(wpos.xz * 5.0 + 17.0)) * 0.5);
 	// kenar: toprağın hemen dışında koyu çim kuşağı (çim öbeklerinin gölgesi, anime boyama gibi)
 	float rim = smoothstep(0.3, 0.42, rm2) * (1.0 - road);
 	base *= 1.0 - rim * 0.28;
