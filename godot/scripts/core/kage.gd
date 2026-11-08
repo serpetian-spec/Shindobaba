@@ -46,6 +46,13 @@ func kage_name(vid: String) -> String:
 	if is_kage() and vid == Progress.home():
 		return "%s %s" % [Progress.kage_title(vid), String(p().get("name", ""))]
 	var r = reign(vid)
+	if not r.is_empty() and RogueBonds.generic_name(String(r.get("name", ""))):
+		# eski kayıt: unvanla Kage olmuş ("Av-Ninjası") -> gerçek ad (dost kaydı da)
+		var nn = "%s %s" % [String(Missions.BB_FAMILY.pick_random()), ClanWorld.GIVEN_M.pick_random()]
+		r["name"] = nn
+		var fid = String(r.get("friend", ""))
+		if fid != "" and Friends.all().has(fid):
+			Friends.all()[fid]["name"] = nn
 	if not r.is_empty():
 		return "%s %s" % [Progress.kage_title(vid), String(r["name"])]
 	return KAGE_NAMES.get(vid, Progress.kage_title(vid))

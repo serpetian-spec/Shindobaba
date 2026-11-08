@@ -813,7 +813,7 @@ func _raid_kage(vid: String) -> void:
 	# köyün GERÇEK Kage'si (Kage.reign: adı, görünüşü, klanı) — eskiden isimsiz şablondu: 2 temel jutsu, ölünce haber yok
 	var kname = Kage.kage_name(vid)
 	a["name"] = "%s — köyünü koruyor" % kname
-	var lv = randi_range(130, 170)   # dünya ölçeği: Kage, Bingo S-rank dengi
+	var lv = randi_range(185, 215)   # Kage = köyün en güçlüsü: Güç ~200 (eskiden 130-170, Güç 75 oyuncu kıpırdamadan eritiyordu)
 	Stats.npc_ninja(a, lv, 2.6)
 	a["guard"] = 0.5
 	a["sub"] = 0.35
@@ -831,10 +831,12 @@ func _raid_kage(vid: String) -> void:
 	if kc != "":
 		a["clan"] = kc
 		js.append_array(ClanWorld.clan_jutsu(kc, lv, 4))   # klanın en üst teknikleri (Yuki Kage -> Hyōton'un son seviyesi)
-	for j in Enemy.auto_jutsu("rogue", String(a.get("element", "katon")), lv):
+	# köyün doğasının A/S teknikleri (eskiden kaçak otomatik listesi: B-rank tavanı, "güçlü jutsuları yok")
+	a["element"] = String(KageArts.VILLAGE_ELEMENTS.get(vid, ["katon"])[0])
+	for j in KageArts.village_jutsu(vid, 5):
 		if not j in js:
 			js.append(j)
-	a["jutsu"] = js.slice(0, 7)
+	a["jutsu"] = js.slice(0, 8)
 	a["no_clan"] = true
 	BossStyles.dress(a, "S", hash(vid) % 100000, "")
 	var e = Enemy.new()
@@ -912,7 +914,9 @@ func _hunter_tick(dt: float) -> void:
 	for i in hn:   # takımın kadar: yalnızken tek av-ninjası (eksik kalan güç ona biner: aşırı kolay olmasın)
 		var e = Enemy.new()
 		var a = Enemy.archetype(kind, i)
-		a["name"] = "Av-Ninjası"
+		# kişisel ad (eskiden yalnız "Av-Ninjası": bağışlanıp dost olan, sonra Kage seçilen "Av-Ninjası Hokage" oluyordu)
+		var fem_h = randf() < 0.3
+		a["name"] = "%s — Av-Ninjası" % (ClanWorld.GIVEN_F if fem_h else ClanWorld.GIVEN_M).pick_random()
 		a["respawn"] = false
 		Stats.npc_ninja(a, randi_range(70, 85) + rogue_rank() * 4, 1.35)   # av-ninjası: ANBU dengi   # av-ninjası: ANBU eğrisi (eskiden +6/rütbe ile S'de kesilemiyordu)
 		a["look"]["face_style"] = ["anbu_kedi", "anbu_kurt", "anbu_kus"][i]
@@ -920,6 +924,8 @@ func _hunter_tick(dt: float) -> void:
 		if hn < base_n:
 			Enemy.toughen(a, ceili(float(base_n) / hn), "B")
 		e.setup(a)
+		if not e.display_name.contains(" ") or e.display_name.begins_with(String(a["name"]).split(" — ")[0]):
+			e.display_name = "%s %s" % [String(Missions.BB_FAMILY.pick_random()), e.display_name]   # klansızsa soyadı
 		e.set_meta("hunter_nin", true)
 		e.set_meta("faction", "hunter")
 		get_tree().current_scene.add_child(e)

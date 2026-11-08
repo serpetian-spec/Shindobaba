@@ -70,6 +70,14 @@ static func yield_to(e: Enemy) -> void:
 	Hud.dialog(nm, "Beni öldürecek misin? ...Ya da beni o ödül kâğıdı için teslim mi edeceksin?", opts)
 
 
+## Ad değil unvan mı ("Av-Ninjası", "Konohagakure ANBU", "Kumo Chunin"...): kişi adı yerine geçmesin
+static func generic_name(nm: String) -> bool:
+	for w in ["Ninjası", "Ninja", "ANBU", "Muhafız", "Jōnin", "Jonin", "Chunin", "Chūnin", "Genin", "Haydut", "Samuray", "gakure"]:
+		if nm.contains(w):
+			return true
+	return false
+
+
 ## Bağışlandı: sana borçlu bir kaçak dost olur (güven 25'ten başlar)
 static func spare(e: Enemy) -> void:
 	var fs = Friends.all()
@@ -82,7 +90,7 @@ static func spare(e: Enemy) -> void:
 	for pre in ["Kaçak Ninja ", "Kaçak "]:   # unvan değil gerçek ad
 		if nm.begins_with(pre):
 			nm = nm.substr(pre.length())
-	if nm == "" or nm == "Kaçak Ninja" or not " " in nm:
+	if nm == "" or nm == "Kaçak Ninja" or not " " in nm or RogueBonds.generic_name(nm):
 		nm = "%s %s" % [Missions.BB_FAMILY.pick_random(), nm if nm != "" and nm != "Kaçak Ninja" else (ClanWorld.GIVEN_F if String((e.look as Dictionary).get("gender", "m")) == "f" else ClanWorld.GIVEN_M).pick_random()]
 	var lk: Dictionary = (e.look as Dictionary).duplicate() if e.look is Dictionary else {}
 	lk.erase("age")

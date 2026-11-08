@@ -112,6 +112,8 @@ static func _has_src(p: Dictionary, src: String) -> bool:
 			return true
 		if src == "clan:uchiha" and Progress.has_eye("sharingan"):
 			return true
+		if src == "clan:senju" and Eyes.has_senju_dna(p):   # nakledilmiş Senju hücresi (Yamato/Danzō/Madara) Senju tarzını açar
+			return true
 		return String(p.get("clan", "none")) == src.substr(5)
 	if src.begins_with("path:"):   # yolda olmak (LegendPaths durum 4 = JOINED)
 		var pd = (p.get("paths", {}) as Dictionary).get(src.substr(5), {}) if p.get("paths") is Dictionary else {}
