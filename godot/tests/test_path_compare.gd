@@ -63,6 +63,14 @@ func _ready() -> void:
 			Gear.grant(Game.profile, wid, String(Gear.item(wid).get("slot", "silah")))
 			if pl.has_method("refresh_look"):
 				pl.refresh_look()
+		if nd.begins_with("beast:"):
+			var clk = pl.combat.modes.cloak
+			if clk.level > 0:
+				clk.deactivate()
+				await _w(0.3)
+			Game.profile["jinchuriki"] = nd.substr(6)
+			clk._tap()
+			await _w(0.6)
 		if nd == "juin2" or nd == "juin1":
 			Buffs.add(nd, 30.0, {})
 		var md = pl.combat.get("modes")

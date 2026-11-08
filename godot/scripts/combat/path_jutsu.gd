@@ -32966,3 +32966,212 @@ func p_sanbo_kyukai(c: Node3D, t: Node3D) -> void:
 			VFX.puffs(cen + Vector3.UP, {"amount": 30, "life": 0.8, "size": 1.0, "radius": 1.2, "vmin": 4, "vmax": 9, "dir": back, "spread": 30.0,
 				"colors": [Color(0.85, 0.8, 0.72), Color(0.6, 0.55, 0.5, 0)]})
 			shake(0.6)))
+
+
+# ================================================================== Eksik kanon jutsuları — Naruto (Narutopedia ref, 2026-11-08)
+const KURAMA_O := Color(1.0, 0.6, 0.15)
+
+
+## Kuyruklu Canavar Rasengan'ı (kanon: Kurama modunda kara-ak chakra 8:2; ağır, bastırılmış Bijūdama elle hedefe bastırılır)
+func p_biju_rasengan(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 14.0)
+	busy(c, 1.2)
+	anim(c, "cast", 0.9)
+	var ball = BijudamaFX.ball(0.9)
+	scene_add(ball, hand_pos(c, true) + c.face_dir() * 0.5)
+	every(0.6, 1.0 / 30.0, func(_i, _k):
+		if live(c) and is_instance_valid(ball):
+			ball.global_position = hand_pos(c, true) + c.face_dir() * 0.55, Callable())
+	BijudamaFX.gather(hand_pos(c, true), 0.9, 0.5)
+	Sfx.play("rasengan", c.global_position, 0.7)
+	after(0.6, func():
+		if not live(c):
+			if is_instance_valid(ball):
+				ball.queue_free()
+			return
+		if tt and live(tt):
+			_jump_at(c, tt, 0.0, 14.0)
+		var hits = []
+		every(0.4, 1.0 / 30.0, func(_i, _k):
+			if not live(c) or not is_instance_valid(ball):
+				return
+			ball.global_position = hand_pos(c, true) + c.face_dir() * 0.6
+			if hits.is_empty():
+				for h in hit(c, ball.global_position, 1.6, inf(c, "biju_rasengan", 0.2, {"knock": 0.0, "kind": "light"}), hits):
+					hits.append(h), func():
+			var p = ball.global_position if is_instance_valid(ball) else c.global_position + c.face_dir() * 1.5
+			if is_instance_valid(ball):
+				ball.queue_free()
+			BijudamaFX.explode(p, 7.0)
+			for h in hit(c, p, 6.0, inf(c, "biju_rasengan", 2.4, {"knock": 22.0, "launch": 7.0, "kind": "heavy", "pierce_guard": true, "hitstop": 0.12})):
+				pass
+			shake(1.0)))
+
+
+## Rüzgâr: Ard Arda Rasenshuriken (ref: iki elde birer Rasenshuriken; biri yakında kılıç gibi keser, sonra fırlatılır)
+func p_futon_rasenrenshuriken(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 34.0)
+	busy(c, 1.3)
+	anim(c, "cast", 0.9)
+	var bodies = []
+	for k in 2:
+		var b = Jutsu.rasenshuriken_body(2.4)
+		scene_add(b, hand_pos(c, k == 0) + Vector3.UP * 0.6)
+		bodies.append(b)
+	every(0.7, 1.0 / 30.0, func(_i, _k):
+		for k in 2:
+			if live(c) and is_instance_valid(bodies[k]):
+				bodies[k].global_position = hand_pos(c, k == 0) + Vector3.UP * 0.7 + c.face_dir() * 0.3, Callable())
+	Sfx.play("wind", c.global_position, 0.6)
+	# 1) yakında savuruş: soldaki kılıç gibi keser (kuyrukları kesecek kadar keskin)
+	after(0.45, func():
+		if live(c):
+			anim(c, "slash_c", 1.3)
+			var at = c.global_position + Vector3.UP * 1.2 + c.face_dir() * 2.2
+			WindFX.blast(at, 2.6, 14)
+			hit(c, at, 2.6, inf(c, "futon_rasenrenshuriken", 0.6, {"knock": 8.0, "kind": "heavy", "bleed": 3.0})))
+	# 2) ikisi ard arda fırlatılır
+	for k in 2:
+		after(0.75 + k * 0.25, func():
+			if not live(c) or not is_instance_valid(bodies[k]):
+				return
+			var b = bodies[k]
+			var from = b.global_position
+			b.queue_free()
+			var body = Jutsu.rasenshuriken_body(2.4)
+			var pr = shot(c, from, aim_at(c, tt, from), 30.0, body, inf(c, "futon_rasenrenshuriken", 0.2, {"knock": 2.0, "kind": "light"}), tt, false, 2.0, func(p, _h):
+				Jutsu._rasen_burst(c, p, _mult_of(c) * 0.9, 6.5, true, 1.0))
+			Sfx.play("whoosh", from, 0.8))
+
+
+func _mult_of(c: Node3D) -> float:
+	return Jutsu._mult(c) * Jutsu._elem_bonus(c, "fuuton")
+
+
+## Bilge Sanatı: Mürekkep Saçan Rasenshuriken (Gyūki'nin mürekkebi: kara Rasenshuriken, patlayınca yapışkan mürekkep)
+func p_senpo_sumisan_rasenshuriken(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 34.0)
+	busy(c, 1.0)
+	anim(c, "cast", 0.9)
+	var body = Jutsu.rasenshuriken_body(2.6, Color(0.18, 0.16, 0.22))
+	scene_add(body, hand_pos(c, true) + Vector3.UP * 0.8)
+	Sfx.play("th_ink", c.global_position, 0.8)
+	after(0.55, func():
+		if not live(c):
+			body.queue_free()
+			return
+		var from = body.global_position
+		body.queue_free()
+		var b2 = Jutsu.rasenshuriken_body(2.6, Color(0.18, 0.16, 0.22))
+		shot(c, from, aim_at(c, tt, from), 28.0, b2, inf(c, "senpo_sumisan_rasenshuriken", 0.2, {"knock": 2.0, "kind": "light"}), tt, false, 2.0, func(p, _h):
+			Jutsu._rasen_burst(c, p, _mult_of(c) * 0.8, 6.0, true, 0.9)
+			# mürekkep saçılması: yere kara mürekkep lekeleri, içindekiler yapışır ve görmez
+			VFX.puffs(p, {"amount": 40, "life": 0.9, "size": 0.6, "radius": 1.5, "vmin": 4, "vmax": 10, "spread": 180.0, "gravity": Vector3(0, -12, 0),
+				"colors": [Color(0.08, 0.07, 0.1, 1), Color(0.05, 0.05, 0.07, 0.8), Color(0.05, 0.05, 0.07, 0)]})
+			VFX.goo_drops(p, "mud", 14, 1.2, 9.0)
+			for e in enemies_near(c, p, 6.5):
+				st(e, "slow", 4.0)
+				st(e, "fear", 1.5)   # mürekkep gözü kapatır: kısa panik
+				Combat.popup_text(e.global_position + Vector3.UP * 2.3, "Mürekkep!", Color(0.6, 0.6, 0.7)))
+		Sfx.play("whoosh", from, 0.8))
+
+
+## Tayfun Su Girdabı (ref: Rasengan su akıntısını yutar; yoğun buhar girdabı katı bariyer olur, görüşü kapatır)
+func p_gufu_suika_no_jutsu(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 24.0)
+	busy(c, 1.0)
+	anim(c, "push", 1.1)
+	var at = gp(tt.global_position if tt else c.global_position + c.face_dir() * 9.0)
+	var from = hand_pos(c, true)
+	var core = VFX.rasengan(0.7)
+	var pr = shot(c, from, (at + Vector3.UP - from).normalized(), 22.0, core, inf(c, "gufu_suika_no_jutsu", 0.3, {"knock": 3.0, "kind": "light"}), null, false, 1.2, Callable())
+	WaterArt.jet(c.global_position + Vector3.UP * 1.0 + c.face_dir() * 0.8, at + Vector3.UP * 0.8, 0.35, 0.25)
+	Sfx.play("water", c.global_position, 0.8)
+	after(0.5, func():
+		Sfx.play("th_steam", at, 0.7)
+		var dur = 6.0
+		WindFX.swirl(at, 5.0, 6.0, dur, 12, Color(0.9, 0.95, 1.0, 0.9))
+		var mist = [Color(0.95, 0.97, 1.0, 1.0), Color(0.9, 0.93, 0.97, 0.85), Color(0.86, 0.9, 0.95, 0.5), Color(0.85, 0.88, 0.92, 0.0)]
+		every(dur, 0.3, func(_i, _k):
+			FX.puff3d(at + Vector3(randf_range(-4, 4), randf_range(0.5, 3.5), randf_range(-4, 4)), {"amount": 5, "life": 1.6, "size": 2.6, "radius": 1.5,
+				"vmin": 0.5, "vmax": 2.0, "spread": 180.0, "tangent": 8.0, "colors": mist, "mist": true, "grow": 1.6})
+			for e in enemies_near(c, at, 6.0):
+				st(e, "slow", 0.6)
+				if randf() < 0.15:
+					e.take_hit(inf(c, "gufu_suika_no_jutsu", 0.08, {"knock": 2.0, "kind": "light", "element": "suiton"})), Callable()))
+
+
+## Naruto Bölge Kombosu (ref: Kurama chakralı klon ordusu her yönden kuşatır, "U-ZU-MA-KI" ile yukarı savurur, birlikte bitirir)
+func p_naruto_ittai_rendan(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 16.0)
+	busy(c, 2.0)
+	if tt == null:
+		return
+	var at = tt.global_position
+	var clones = []
+	for k in 10:
+		var a = k * TAU / 10.0
+		var q = gp(at + Vector3(cos(a), 0, sin(a)) * 2.2)
+		FX.smoke_puff(q + Vector3.UP, 0.8, 8)
+		var d = decoy(c, q, 2.4)
+		if d:
+			FX.aura(d, KURAMA_O, 0.9, Vector3(0, 0.9, 0), 2.4)
+			clones.append(d)
+	var words = ["U", "ZU", "MA", "KI"]
+	for k in 4:
+		after(0.25 + k * 0.18, func():
+			if live(tt):
+				Combat.popup_text(tt.global_position + Vector3.UP * (2.0 + k * 0.6), words[k] + "!", KURAMA_O)
+				melee_fx(c, tt.global_position + Vector3.UP, KURAMA_O, 1.0)
+				tt.take_hit(inf(c, "naruto_ittai_rendan", 0.35, {"knock": 0.0, "launch": 6.0 if k < 3 else 16.0, "kind": "heavy" if k == 3 else "light"}))
+				Sfx.play("punch", tt.global_position, 0.9 + k * 0.1))
+	# havada her yönden yumruk yağmuru
+	every(0.6, 0.06, func(i, _k):
+		if live(tt) and i > 1:
+			var hp = tt.global_position + Vector3.UP
+			melee_fx(c, hp + Vector3(randf_range(-0.7, 0.7), randf_range(-0.5, 0.7), randf_range(-0.7, 0.7)), KURAMA_O, 0.7)
+			tt.take_hit(inf(c, "naruto_ittai_rendan", 0.06, {"knock": 0.0, "launch": 0.6, "kind": "light"})), Callable())
+	after(1.55, func():
+		if not live(c) or not live(tt):
+			return
+		c.global_position = tt.global_position + Vector3.UP * 1.4
+		_kick_pose(c, 0.3)
+		Combat.popup_text(c.global_position + Vector3.UP * 2.0, "Naruto Ittai Rendan!", KURAMA_O)
+		tt.take_hit(inf(c, "naruto_ittai_rendan", 1.6, {"knock": 6.0, "launch": -26.0, "kind": "heavy", "pierce_guard": true}))
+		after(0.3, func():
+			if live(tt):
+				melee_fx(c, tt.global_position + Vector3.UP * 0.3, KURAMA_O, 2.0, true)
+				_tai_impact(c, tt.global_position + Vector3.UP * 0.3, 2.0)
+				shake(0.9)))
+
+
+## Paraşüt (ref: yumrukla havaya savurur, 2-4 klon havada rakibi bastırır, Naruto üstüne dizle iner)
+func p_rakkasan(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 5.0)
+	busy(c, 1.3)
+	if tt == null:
+		return
+	anim(c, "hook", 1.4)
+	tt.take_hit(inf(c, "rakkasan", 0.4, {"knock": 0.0, "launch": 14.0, "kind": "heavy"}))
+	melee_fx(c, tt.global_position + Vector3.UP, Color(1, 0.85, 0.5), 1.0)
+	Sfx.play("punch", tt.global_position, 0.9)
+	after(0.35, func():
+		if not live(tt):
+			return
+		var top = tt.global_position + Vector3.UP * 0.8
+		for k in 3:
+			var a = k * TAU / 3.0
+			var q = top + Vector3(cos(a), 0.2, sin(a)) * 0.9
+			FX.smoke_puff(q, 0.5, 6)
+			decoy(c, gp(q), 0.9)
+		Combat.popup_text(top + Vector3.UP, "Rakkasan!", Color(1, 0.6, 0.2)))
+	after(0.7, func():
+		if not live(c) or not live(tt):
+			return
+		c.global_position = tt.global_position + Vector3.UP * 1.6
+		_kick_pose(c, 0.4)
+		tt.take_hit(inf(c, "rakkasan", 1.1, {"knock": 2.0, "launch": -20.0, "kind": "heavy"}))
+		after(0.3, func():
+			if live(tt):
+				_tai_impact(c, tt.global_position + Vector3.UP * 0.2, 1.4)
+				Sfx.play("hit_heavy", tt.global_position, 0.8)))
