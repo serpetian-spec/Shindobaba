@@ -2877,6 +2877,7 @@ func _bingo_tick(dt: float) -> void:
 	Swordsmen.world_tick(dt)
 	WH.state()   # efsane silah sahipleri (oyun başına bir kez üretilir)
 	var lst: Array = bb["list"]
+	_bb_spared_fix(lst)
 	var alive = lst.filter(func(x): return x["status"] == "alive")
 	bb["refresh"] = float(bb.get("refresh", 900.0)) - dt
 	if alive.size() < 6 or float(bb["refresh"]) <= 0.0:
@@ -2913,6 +2914,21 @@ func _bingo_tick(dt: float) -> void:
 				if e.get("tracked", false):
 					e["area"] = [Game.to_map(boss.global_position).x, Game.to_map(boss.global_position).y]
 					e["known"] = 20.0
+
+
+## Bağışlanıp dost olan kaçak (kampı olan dost kaydı) Bingo'da "alive" kalmışsa (eski kayıt): "spared" yap,
+## sahadaki düşman kopyasını sil — aynı kişinin dost + düşman iki kopyası olmasın
+func _bb_spared_fix(lst: Array) -> void:
+	for x in lst:
+		var fid = String(x.get("friend_id", ""))
+		if x["status"] != "alive" or fid == "" or not Friends.all().get(fid, {}).has("lair"):
+			continue
+		x["status"] = "spared"
+		x["tracked"] = false
+		for n in _bb_spawned.get(int(x["id"]), []):
+			if is_instance_valid(n):
+				n.queue_free()
+		_bb_spawned.erase(int(x["id"]))
 
 
 func _bb_look(e: Dictionary) -> Dictionary:

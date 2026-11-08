@@ -53,6 +53,7 @@ func _ready() -> void:
 	var t0 = Time.get_ticks_msec()
 	while e.hp >= 1e9 - 1.0 and Time.get_ticks_msec() - t0 < 2500:
 		await get_tree().process_frame
+	await main.shot("bd_3a_flash")
 	await _w(0.08)
 	await main.shot("bd_3_boom")
 	await _w(0.3)

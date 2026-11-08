@@ -945,7 +945,7 @@ static func _friends_card(main: Node, left: Control) -> void:
 	if stt == "öldü":
 		st_txt = "  •  ÖLDÜ"
 	elif stt == "kaçak":
-		st_txt = "  •  KAÇAK (Bingo Kitabı)" if Friends.bingo_status(id) != "dead" else "  •  Kaçak — yakalandı/öldü"
+		st_txt = "  •  Kaçak — sana borçlu" if Friends.bingo_status(id) == "spared" else ("  •  KAÇAK (Bingo Kitabı)" if Friends.bingo_status(id) != "dead" else "  •  Kaçak — yakalandı/öldü")
 	elif String(f.get("kage", "")) != "":
 		st_txt = "  •  %s!" % Progress.kage_title(String(f["kage"]))
 	elif stt == "hapiste":
@@ -2976,7 +2976,7 @@ static func bingo_book(main: Node = null) -> void:
 	al.position = Vector2(0, 456)
 	al.size = Vector2(592, 24)
 	lp.add_child(al)
-	var stampw = mk.call("YAKALANDI" if dead else "ARANIYOR", 40, Color(red, 0.85), true, HORIZONTAL_ALIGNMENT_CENTER)
+	var stampw = mk.call(("BAĞIŞLANDI" if e.get("status", "") == "spared" else "YAKALANDI") if dead else "ARANIYOR", 40, Color(red, 0.85), true, HORIZONTAL_ALIGNMENT_CENTER)
 	stampw.position = Vector2(150, 500)
 	stampw.size = Vector2(292, 50)
 	stampw.rotation = deg_to_rad(-6)

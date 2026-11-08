@@ -559,10 +559,13 @@ static func _renkudan(user: Node3D, c: Dictionary) -> void:
 		VFX.shockwave(pos, Color(1, 1, 1), 6.0 * s, 0.25, false)
 		VFX.puffs(_gp(pos) + Vector3.UP * s, {"amount": 26, "life": 1.2, "size": 1.6 * s, "radius": 2.0 * s, "vmin": 6, "vmax": 14, "dir": Vector3.UP, "spread": 80.0,
 			"gravity": Vector3(0, -3, 0), "colors": [Color(0.92, 0.84, 0.64, 0.95), Color(0.8, 0.68, 0.48, 0)]})
-		_hit(user, pos, 6.0 * s, {"dmg": dmg * 0.6, "element": "fuuton", "knock": 42.0, "launch": 10.0, "kind": "heavy"})
+		# patlama doğrudan vurulanı ikinci kez vurmaz (eskiden mermi + patlama aynı hedefe x1.6)
+		var ex = st["pr"].hit_list if st.has("pr") and is_instance_valid(st["pr"]) else []
+		_hit(user, pos, 6.0 * s, {"dmg": dmg * 0.5, "element": "fuuton", "knock": 42.0, "launch": 10.0, "kind": "heavy"}, ex)
 		Sfx.play("boom", pos, 0.8)
 		_shake(0.5 + s * 0.1)
 	var pr = _shot(user, from + dir * s, dir * 75.0, 0.7 * s, info, vis, boom)
+	st["pr"] = pr
 	# arkasında hava basıncı halkaları
 	pr.on_tick = func(p: Projectile, dt: float) -> void:
 		st["r"] += dt
@@ -837,7 +840,7 @@ static func _sango(user: Node3D, c: Dictionary) -> void:
 			_coral(p + Vector3.DOWN * 0.3 * s, randf_range(2.2, 4.2) * s, 8.0, CORAL if i % 3 else CORAL2))
 	VFX.puffs(center + Vector3.UP * s, {"amount": 20, "life": 0.9, "size": 1.0 * s, "radius": R * 0.6, "vmin": 3, "vmax": 9, "dir": Vector3.UP, "spread": 50.0,
 		"gravity": Vector3(0, -16, 0), "colors": [Color(0.9, 1, 1, 1), Color(0.5, 0.85, 1, 1), Color(0.3, 0.6, 1, 0)]})
-	var hits = _hit(user, center + Vector3.UP * s, R, {"dmg": dmg, "element": "suiton", "knock": 3.0, "launch": 6.0, "kind": "heavy"})
+	var hits = _hit(user, center + Vector3.UP * s, R, {"dmg": dmg * 0.75, "element": "suiton", "knock": 3.0, "launch": 6.0, "kind": "heavy"})
 	for f in hits:
 		_bind(f, 3.0)
 		if not _is_giant(f):
@@ -1089,7 +1092,7 @@ static func _steam_burst(user: Node3D, c: Dictionary) -> void:
 	for k in 3:
 		VFX.tree().create_timer(0.08 * k).timeout.connect(func(): _steam_cloud(o, s * (1.0 + k * 0.3), R * (0.4 + k * 0.3), 1.6))
 	Sfx.play("boom", o, 1.3)
-	for f in _hit(user, o, R, {"dmg": dmg, "element": "futton", "knock": 38.0, "launch": 9.0, "kind": "heavy", "hitstop": 0.08}):
+	for f in _hit(user, o, R, {"dmg": dmg * 0.7, "element": "futton", "knock": 38.0, "launch": 9.0, "kind": "heavy", "hitstop": 0.08}):
 		_corrode(f, 3.0, dmg * 0.04, Color(1.0, 0.75, 0.6), "HAŞLANDI!")
 	_shake(0.6)
 
@@ -1370,7 +1373,7 @@ static func _tako_ude(user: Node3D, c: Dictionary) -> void:
 	var tip_to: Vector3 = c["aim"] if tgt == null else tgt.global_position
 	Sfx.play("whoosh", user.global_position, 0.6)
 	var grab = func(tip: Vector3) -> Node3D:
-			var hits = _hit(user, tip, 2.2 * s, {"dmg": dmg * 0.4, "element": "raiton", "knock": 0.0, "kind": "light"})
+			var hits = _hit(user, tip, 2.2 * s, {"dmg": dmg * 0.25, "element": "raiton", "knock": 0.0, "kind": "light"})
 			FX.hit_spark(tip, Color(1, 0.8, 0.9), 1.2 * s)
 			for f in hits:
 				if not _is_giant(f):
@@ -1387,7 +1390,7 @@ static func _tako_ude(user: Node3D, c: Dictionary) -> void:
 			VFX.shockwave(_gp(p) + Vector3.UP * 0.1, Color(0.85, 0.7, 1.0), 8.0 * s, 0.4)
 			VFX.cracks(_gp(p), 4.0 * s)
 			VFX.debris(_gp(p), Color(0.45, 0.38, 0.3), 12, 12.0, 0.4 * s)
-			_hit(user, p + Vector3.UP * s, 3.5 * s, {"dmg": dmg, "element": "raiton", "knock": 26.0, "launch": 14.0, "kind": "heavy", "hitstop": 0.12})
+			_hit(user, p + Vector3.UP * s, 3.5 * s, {"dmg": dmg * 0.5, "element": "raiton", "knock": 26.0, "launch": 14.0, "kind": "heavy", "hitstop": 0.12})
 			Combat.popup_text(p + Vector3.UP * 3.0 * s, "LARIAT!", Color(0.9, 0.6, 1.0))
 			Sfx.play("hit_heavy", p, 0.7)
 			_shake(0.7)
@@ -1448,7 +1451,7 @@ static func _chakra_kaina(user: Node3D, c: Dictionary) -> void:
 	var tip_to: Vector3 = c["aim"] if tgt == null else tgt.global_position
 	Sfx.play("rasengan", user.global_position, 0.5, 0.6)
 	var grab = func(tip: Vector3) -> Node3D:
-			var hits = _hit(user, tip, 2.4 * s, {"dmg": dmg * 0.4, "element": "katon", "knock": 0.0, "kind": "light"})
+			var hits = _hit(user, tip, 2.4 * s, {"dmg": dmg * 0.25, "element": "katon", "knock": 0.0, "kind": "light"})
 			VFX.star(tip, col.lightened(0.4), 2.5 * s, 0.15)
 			for f in hits:
 				if not _is_giant(f):
@@ -1462,7 +1465,7 @@ static func _chakra_kaina(user: Node3D, c: Dictionary) -> void:
 				var p = g.global_position
 				VFX.shockwave(_gp(p) + Vector3.UP * 0.1, col, 9.0 * s, 0.4)
 				VFX.cracks(_gp(p), 4.5 * s, Color(0.15, 0.06, 0.02, 0.9))
-				_hit(user, p + Vector3.UP * s, 3.5 * s, {"dmg": dmg, "element": "katon", "burn": 2.0, "knock": 20.0, "launch": 12.0, "kind": "heavy", "hitstop": 0.12})
+				_hit(user, p + Vector3.UP * s, 3.5 * s, {"dmg": dmg * 0.65, "element": "katon", "burn": 2.0, "knock": 20.0, "launch": 12.0, "kind": "heavy", "hitstop": 0.12})
 				Sfx.play("hit_heavy", p, 0.6)
 				_shake(0.7)
 	_reach(user, base_fn, tgt, tip_to, 0.6 * s, mat, grab, slam, 3, _toon(col.lightened(0.35)))

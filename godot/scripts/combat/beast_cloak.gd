@@ -285,7 +285,7 @@ func _full_transform() -> void:
 	p.cam_lift = h * 0.8
 	p.cam_giant = true
 	p.cam.far = maxf(p.cam.far, 6000.0)
-	Buffs.add("beast", 9999.0, {"melee": 2.25, "speed": 1.5, "armor": 0.6, "jutsu": 1.4})
+	Buffs.add("beast", 9999.0, {"melee": 1.5, "speed": 1.5, "armor": 0.6, "jutsu": 1.2})
 	FX.smoke_puff(p.global_position + Vector3.UP * h * 0.4, h * 0.25, 30)
 	Hud.banner("KUYRUKLU CANAVAR", "%s ile tam dönüşüm!  Sol tık: pençe  •  Sağ tık / X: Kuyruklu Canavar Topu" % BeastModels.INFO[id]["name"].split(" — ")[0], chakra_col())
 
@@ -315,9 +315,9 @@ func _giant_swipe() -> void:
 	var id = beast_id()
 	get_tree().create_timer(0.35).timeout.connect(func():
 		var pt = p.global_position + dir * h * 0.5 + Vector3.UP * h * 0.2
-		var got = BijuuArts.melee(p, id, pt, h * 0.3, 90.0 * Stats.melee_mult(Game.profile), dir)
+		var got = BijuuArts.melee(p, id, pt, h * 0.3, 60.0 * Stats.melee_mult(Game.profile), dir)
 		# pençenin önündeki yelpaze alan: ayak dibindeki küçük düşmanlar da ezilir
-		Combat.hit_zone(p, p.global_position, dir, h * 0.85, 60.0, h * 1.1, {"dmg": 90.0 * Stats.melee_mult(Game.profile), "knock": 30.0, "launch": 6.0, "kind": "heavy", "dir": dir}, got)
+		Combat.hit_zone(p, p.global_position, dir, h * 0.85, 60.0, h * 1.1, {"dmg": 60.0 * Stats.melee_mult(Game.profile), "knock": 30.0, "launch": 6.0, "kind": "heavy", "dir": dir}, got)
 		Sfx.play("whoosh", pt, 0.5))
 
 
@@ -344,15 +344,19 @@ func _bomb() -> void:
 	else:
 		from = p.global_position + Vector3.UP * 1.6 + p.face_dir() * 1.2
 		size = 0.6 + level * 0.25
-	var dir = (p.aim_point() - from).normalized()
-	var dmg = (70.0 + level * 35.0) * Stats.melee_mult(Game.profile)
+	var aim_b = p.aim_point()
+	var lt = c.lock_target
+	if lt and is_instance_valid(lt) and not lt.is_dead():
+		aim_b = lt.global_position + Vector3.UP * float(lt.height) * 0.5   # kilitliyse hedefe (teknikler gibi)
+	var dir = (aim_b - from).normalized()
+	var dmg = (40.0 + level * 15.0) * Stats.jutsu_mult(Game.profile)
 	var delay = 0.9 if level == 6 else 0.4
 	if beast_id() == "gyuki":
 		# Gyūki: Renzoku Bijūdama — art arda dört küçük top
 		for i in 4:
 			get_tree().create_timer(delay + i * 0.28).timeout.connect(func():
 				var f3 = rig.mouth_pos() if (level == 6 and is_instance_valid(rig)) else p.global_position + Vector3.UP * 1.6 + p.face_dir() * 1.2
-				var d3 = (p.aim_point() - f3).normalized()
+				var d3 = (aim_b - f3).normalized()
 				TailedBeasts.fire_ball(p, f3, d3, size * 0.6, chakra_col(), dmg * 0.45, 90.0))
 		return
 	BijudamaFX.gather(from, size, delay)
@@ -413,7 +417,7 @@ func _tech(i: int) -> void:
 			"renkudan": "ball", "bijudama_rasengan": "ball"}.get(key, ["swipe_l", "swipe_r"].pick_random()), 1.0)
 	else:
 		p.model.play("throw", 0.05, 1.6, true)
-	var dmg = (45.0 + level * 14.0) * Stats.jutsu_mult(Game.profile) * (2.4 if giant else 1.0)
+	var dmg = (30.0 + level * 8.0) * Stats.jutsu_mult(Game.profile) * (1.3 if giant else 1.0)
 	var ctx = {"s": s, "dmg": dmg, "from": from, "aim": aim, "tgt": c.lock_target, "col": chakra_col()}
 	if giant:
 		ctx["base_h"] = rig.height_m * 0.45

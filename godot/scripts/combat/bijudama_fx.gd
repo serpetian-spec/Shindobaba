@@ -13,8 +13,8 @@ const BLUE := Color(0.35, 0.6, 1.0)
 const RED := Color(0.75, 0.08, 0.12)
 
 
-static func _mat(light := false, alpha := 1.0) -> ShaderMaterial:
-	var key = "bijudama_%s_%.2f" % [light, alpha]
+static func _mat(light := false, alpha := 1.0, hot := false) -> ShaderMaterial:
+	var key = "bijudama_%s_%.2f_%s" % [light, alpha, hot]
 	if VFX._cache.has(key):
 		return VFX._cache[key]
 	var m = ShaderMaterial.new()
@@ -24,6 +24,16 @@ static func _mat(light := false, alpha := 1.0) -> ShaderMaterial:
 		m.set_shader_parameter("swirl_col", Color(0.92, 0.82, 1.0))
 		m.set_shader_parameter("rim_col", Color(1.0, 0.97, 1.0))
 		m.set_shader_parameter("speed", 2.6)
+	if hot:
+		# derinlik yazan kopya: ekran çizgisi (outline) içindeki kaya/kaktüs kenarlarını beyaz ışığın üstüne çizmesin
+		var sh = Shader.new()
+		sh.code = m.shader.code.replace("depth_draw_opaque", "depth_draw_always")
+		m.shader = sh
+	if hot:   # patlamanın ilk anı: kör edici beyaz-altın ışık (ref: Naruto vs Kurama — ekranı kaplayan beyaz patlama)
+		m.set_shader_parameter("deep", Color(1.0, 0.98, 0.9))
+		m.set_shader_parameter("swirl_col", Color(1.0, 1.0, 0.95))
+		m.set_shader_parameter("rim_col", Color(1.0, 0.9, 0.6))
+		m.set_shader_parameter("speed", 4.0)
 	m.set_shader_parameter("alpha", alpha)
 	if alpha < 0.999:
 		m.render_priority = 1
@@ -82,10 +92,20 @@ static func gather(at: Vector3, s: float, dur: float) -> void:
 
 ## Atış anı: ağız önünde iç içe şok halkaları (yön boyunca) + kısa parlama; topa parlak iz bağlar
 static func launch(at: Vector3, dir: Vector3, s: float, proj: Node3D = null) -> void:
-	for k in 3:
-		VFX.tree().create_timer(k * 0.05).timeout.connect(func():
-			VFX.shockwave(at + dir * (k * s * 0.8), Color(0.9, 0.8, 1.0), s * (2.0 + k * 0.8) + 1.5, 0.3, false, dir))
-	VFX.star(at, Color(0.92, 0.85, 1.0), s * 2.0 + 1.0, 0.16)
+	# ref (Kurama atışı): ağız önünde sert basınç patlaması — iç içe parlak halkalar, koyu menekşe flaş, altta toz/moloz savrulması
+	for k in 4:
+		VFX.tree().create_timer(k * 0.06).timeout.connect(func():
+			VFX.shockwave(at + dir * (k * s * 0.9), Color(1.0, 0.95, 1.0) if k % 2 == 0 else Color(0.62, 0.4, 0.95), s * (3.0 + k * 1.1) + 2.0, 0.5, false, dir))
+	VFX.star(at, Color(0.55, 0.3, 0.9), s * 3.2 + 1.5, 0.28)
+	VFX.star(at, Color(1.0, 0.97, 1.0), s * 2.0 + 1.0, 0.18)
+	FX.light(at, Color(0.75, 0.6, 1.0), 10.0, s * 8.0 + 6.0, 0.35)
+	var g = Vector3(at.x, Game.ground_height(at.x, at.z), at.z)
+	if at.y - g.y < s * 5.0 + 4.0:
+		# geri tepme: zeminde savrulan halka + yukarı fırlayan moloz
+		VFX.shockwave(g + Vector3.UP * 0.15, Color(0.8, 0.7, 0.95), s * 5.0 + 4.0, 0.55, true)
+		VFX.debris(g + Vector3.UP * 0.3, Color(0.42, 0.36, 0.3), 12, 8.0 + s * 2.0, 0.12 * s + 0.15)
+	if Game.world:
+		Game.world.env.add_shake(clampf(0.3 + s * 0.1, 0.3, 1.2))
 	if proj and is_instance_valid(proj):
 		VFX.trail(proj, s * 0.45 + 0.15, Color(1, 0.95, 1, 1), Color(0.6, 0.35, 0.9), Color(0.3, 0.1, 0.5, 0), 14, 0.5)
 
@@ -93,17 +113,33 @@ static func launch(at: Vector3, dir: Vector3, s: float, proj: Node3D = null) -> 
 ## Patlama (R = etki yarıçapı): beyaz-lavanta parlama -> genişleyen canavar chakrası kubbesi -> zemin halkası, çatlak, moloz
 static func explode(pos: Vector3, R: float) -> void:
 	var tree = VFX.tree()
-	VFX.star(pos, Color(1, 0.97, 1), R * 1.2, 0.2)
-	FX.light(pos, Color(0.85, 0.7, 1.0), 16.0, R * 5.0, 0.8)
+	VFX.star(pos, Color(1, 0.95, 0.75), R * 2.2, 0.3)
+	VFX.star(pos, Color(1, 1, 1), R * 1.4, 0.2)
+	FX.light(pos, Color(1.0, 0.92, 0.75), 24.0, R * 6.0, 0.9)
+	# ilk an: beyaz-altın sıcak küre hızla büyür ve söner (lavanta kubbe ardından gelir)
+	var hot = MeshInstance3D.new()
+	hot.mesh = VFX._sphere(0.5, 28, 14)
+	hot.material_override = _mat(false, 1.0, true)
+	hot.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	VFX.scene().add_child(hot)
+	hot.global_position = pos
+	hot.scale = Vector3.ONE * R * 0.3
+	var th = hot.create_tween()
+	th.tween_property(hot, "scale", Vector3.ONE * R * 1.7, 0.16).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	th.tween_property(hot, "transparency", 1.0, 0.22)
+	th.tween_callback(hot.queue_free)
 	var flash = MeshInstance3D.new()
 	flash.mesh = VFX._sphere(0.5, 28, 14)
 	flash.material_override = _mat(true, 0.92)
 	flash.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	VFX.scene().add_child(flash)
 	flash.global_position = pos
-	flash.scale = Vector3.ONE * R * 0.2
+	flash.scale = Vector3.ONE * R * 1.2
+	flash.visible = false   # beyaz flaş önce: kubbe onun ardından açılır (yoksa beyaz küre kubbenin içinde kalıyordu)
 	var tw = flash.create_tween()
-	tw.tween_property(flash, "scale", Vector3.ONE * R * 2.0, 0.28).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(0.14)
+	tw.tween_callback(func(): flash.visible = true)
+	tw.tween_property(flash, "scale", Vector3.ONE * R * 2.0, 0.22).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
 	tw.tween_interval(0.25)
 	tw.tween_property(flash, "scale", Vector3.ONE * R * 2.3, 0.45)
 	tw.parallel().tween_property(flash, "transparency", 1.0, 0.45)
@@ -126,6 +162,7 @@ static func explode(pos: Vector3, R: float) -> void:
 		tree.create_timer(0.12).timeout.connect(func(): VFX.shockwave(g + Vector3.UP * 0.15, Color(0.55, 0.45, 0.6), R * 4.2, 0.9, true))
 		VFX.cracks(g, R * 1.3, Color(0.08, 0.03, 0.08, 0.95), 10.0)
 		VFX.debris(g + Vector3.UP * 0.5, Color(0.42, 0.36, 0.3), 26, R * 1.6, maxf(0.3, R * 0.08))
+		VFX.debris(g + Vector3.UP * 0.5, Color(0.25, 0.22, 0.2), 14, R * 2.4, maxf(0.2, R * 0.05))   # hızlı küçük kıymıklar (ref: dağılan keskin parçalar)
 	Sfx.play("boom", pos, 0.4)
 	if Game.world:
 		Game.world.env.screen_flash(0.35)

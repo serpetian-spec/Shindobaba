@@ -98,6 +98,8 @@ static func spare(e: Enemy) -> void:
 			if int(be["id"]) == int(e.get_meta("bingo_id")):
 				be["friend_id"] = id
 				be["tracked"] = false
+				be["status"] = "spared"   # artık dost: Bingo'dan düşman olarak bir daha doğmaz (eskiden "alive" kalıp yanında ikinci kopyası doğuyordu)
+		Missions._bb_spawned.erase(int(e.get_meta("bingo_id")))
 	Friends.log_event(fs[id], "Onu öldürebilecekken bağışladın")
 	Combat.popup_text(e.global_position + Vector3.UP * 2.4, "Bunu unutmayacağım.", Color(0.8, 1.0, 0.8))
 	Hud.banner("BORÇLU KAÇAK", "%s sana hayatını borçlu. Kampı haritada işaretli (İlişkiler)." % nm, Color(0.75, 0.9, 0.7))
