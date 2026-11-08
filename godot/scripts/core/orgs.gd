@@ -789,13 +789,11 @@ func _raid_wave(vid: String, wd: Dictionary) -> void:
 	var vname = String(Game.village(vid).get("name", vid))
 	Hud.banner(String(wd["title"]).to_upper(), "%s seni kuşatıyor!" % vname, Color(0.9, 0.35, 0.3))
 	for i in int(wd["n"]):
-		var a = _village_arch(vid, i, "chunin" if int(wd["lv"]) == 0 else "jonin")
+		var a = _village_arch(vid, i, "anbu" if wd["kind"] == "anbu" else ("chunin" if int(wd["lv"]) == 0 else "jonin"))   # ANBU kendi kıyafetiyle (koyu takım, metal plaka, maske)
 		a["respawn"] = false
 		a["name"] = "%s %s" % [vname, "ANBU" if wd["kind"] == "anbu" else ("Jōnin" if int(wd["lv"]) > 0 else "Muhafızı")]
 		# köy ninjaları yoldaki aynı rütbeyle aynı eğride (muhafız chūnin ~16-22, jōnin ~28-36, ANBU ~34-42); kaçak ünü biraz yükseltir
 		Stats.npc_ninja(a, randi_range(35, 45) + int(wd["lv"]) * 5 + rogue_rank() * 3, float(wd["hp"]))   # muhafız ~35-55, jōnin ~65-85, ANBU ~80-100
-		if wd["kind"] == "anbu":
-			a["look"]["face_style"] = ["anbu_kedi", "anbu_kurt", "anbu_kus", "anbu_kedi"][i % 4]
 		var e = Enemy.new()
 		e.setup(a)
 		e.set_meta("village_guard", vid)
@@ -823,6 +821,11 @@ func _raid_kage(vid: String) -> void:
 	var per = Kage.kage_persona(vid)
 	for k in per:
 		a["look"][k] = per[k]
+	# savaşta da Kage kıyafeti: beyaz Kage cübbesi, köy renginde iç giysi, köy renkli Kage şapkası (eskiden jōnin yeleğiyle çıkıyordu)
+	a["look"].merge(KageAttire.look(vid), true)
+	a["look"]["head_style"] = "kage"
+	a["look"]["kage_vid"] = vid
+	a["look"]["village"] = vid
 	var kc = Kage.kage_clan(vid)
 	var js: Array = []
 	if kc != "":

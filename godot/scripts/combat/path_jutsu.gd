@@ -11963,6 +11963,67 @@ const LIONBLUE := Color(0.35, 0.65, 1.0)
 
 
 ## Ağaç gövdesi/dal (uç sivri)
+## Mokuton dalı: kabuk desenli, hafif kıvrık, uca doğru incelen organik ahşap (konik silindir değil) + iki küçük filiz.
+## _branch ile aynı yerleşim: merkez orijinde, -L/2 .. +L/2 boyunca +Y, uç +Y'de (çağıranlar aynı şekilde büyütür).
+func _wood_branch(L: float, r: float) -> MeshInstance3D:
+	var key = "wood_branch_%d_%d_%d" % [int(L * 2.0), int(r * 20.0), randi() % 3]
+	if not VFX._cache.has(key):
+		var b = MB.new()
+		var ph = randf() * TAU
+		var s1 = Vector3(cos(ph), 0, sin(ph))
+		var s2 = Vector3(-sin(ph), 0, cos(ph))
+		var pts = []
+		var rad = []
+		for i in 6:
+			var t = i / 5.0
+			pts.append(Vector3.UP * (-L * 0.5 + L * t) + s1 * sin(t * PI) * L * 0.07 + s2 * sin(t * PI * 2.0) * L * 0.025)
+			rad.append(r * lerpf(1.0, 0.12, t))
+		Loft.tube(b, pts, rad, WOOD_C, 8, 3, true, true, _bark_fn(WOOD_C))
+		for k in 2:
+			var t0 = 0.4 + k * 0.25
+			var o = (s2 if k == 0 else -s2) + s1 * 0.3
+			var bp = Vector3.UP * (-L * 0.5 + L * t0) + s1 * sin(t0 * PI) * L * 0.07
+			Loft.tube(b, [bp, bp + o * L * 0.1 + Vector3.UP * L * 0.06, bp + o * L * 0.17 + Vector3.UP * L * 0.14], [r * 0.4, r * 0.22, r * 0.05], WOOD_C.darkened(0.05), 6, 2, false, true)
+		VFX._cache[key] = b.build(Props.bark_toon())
+	var mi = MeshInstance3D.new()
+	mi.mesh = VFX._cache[key]
+	return mi
+
+
+## Yerde sürünen kök (Jukai Shinshoku): from'dan dir yönüne kıvrılarak uzar, toprağa yarı gömülü; tabandan uca büyür, sonra batar
+func _creep_root(from: Vector3, dir: Vector3, L: float, r: float, delay: float, dur: float) -> Node3D:
+	var root = Node3D.new()
+	var base = gp(from)
+	scene_add(root, base)
+	var side = dir.cross(Vector3.UP).normalized()
+	var ph = randf() * TAU
+	var fq = randf_range(2.0, 3.6)
+	var pts = []
+	var rad = []
+	for i in 9:
+		var t = i / 8.0
+		var p = dir * L * t + side * sin(ph + t * fq * PI) * L * 0.12
+		var w = gp(base + Vector3(p.x, 0, p.z))
+		p.y = w.y - base.y + r * 0.35 + sin(t * PI * 3.0 + ph) * r * 0.5
+		pts.append(p)
+		rad.append(r * lerpf(1.0, 0.18, t))
+	var b = MB.new()
+	Loft.tube(b, pts, rad, WOOD_C, 8, 3, true, true, _bark_fn(WOOD_C))
+	var mi = MeshInstance3D.new()
+	mi.mesh = b.build(Props.bark_toon())
+	root.add_child(mi)
+	root.scale = Vector3.ONE * 0.02
+	root.visible = false
+	var tw = root.create_tween()
+	tw.tween_interval(delay)
+	tw.tween_callback(func(): root.visible = true)
+	tw.tween_property(root, "scale", Vector3.ONE, 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(dur)
+	tw.tween_property(root, "position", base - Vector3.UP * r * 2.5, 0.6).set_ease(Tween.EASE_IN)
+	tw.tween_callback(root.queue_free)
+	return root
+
+
 func _branch(L: float, r: float) -> MeshInstance3D:
 	var mi = MeshInstance3D.new()
 	var cm = CylinderMesh.new()
@@ -12472,24 +12533,46 @@ func p_mini_rasenshuriken(c: Node3D, t: Node3D) -> void:
 ## Ahşap Klon: bedenden ahşap tomurcuk filizlenip kopyana dönüşür — sağlam, kırılınca ahşaba döner
 func p_moku_bunshin_no_jutsu(c: Node3D, _t: Node3D) -> void:
 	busy(c, 0.6)
-	var at = gp(c.global_position + c.face_dir().cross(Vector3.UP) * 2.5)
-	for k in 5:
-		var br = _branch(randf_range(1.0, 2.0), 0.12)
+	var sd = c.face_dir().cross(Vector3.UP)
+	var at = gp(c.global_position + sd * 2.5)
+	for k in 5:   # bedenin yanından klona doğru uzanan ahşap filizler
+		var br = _wood_branch(randf_range(1.2, 2.0), 0.12)
 		get_tree().current_scene.add_child(br)
-		br.global_position = at + Vector3(randf_range(-0.4, 0.4), 0.6, randf_range(-0.4, 0.4))
-		br.rotation = Vector3(randf_range(-0.4, 0.4), 0, randf_range(-0.4, 0.4))
+		br.global_position = c.global_position + sd * 0.7 + Vector3(0, randf_range(0.6, 1.5), randf_range(-0.2, 0.2))
+		br.look_at(br.global_position + sd + Vector3(0, randf_range(-0.3, 0.3), 0), Vector3.UP)
+		br.rotate_object_local(Vector3.RIGHT, -PI * 0.5)
 		br.scale = Vector3(1, 0.05, 1)
 		var tw = br.create_tween()
 		tw.tween_property(br, "scale", Vector3.ONE, 0.3)
 		tw.tween_interval(0.2)
 		tw.tween_property(br, "scale", Vector3(1, 0.05, 1), 0.2)
 		tw.tween_callback(br.queue_free)
-	after(0.45, func():
-		if live(c):
-			var d = decoy(c, at, 14.0, func(pos):
-				VFX.debris(pos + Vector3.UP, WOOD, 24, 7.0, 0.4))
-			if d:
-				d.set("max_hp", 4.0))
+	# ref (Yamato/Hashirama): klon kullanıcının bedeninden ahşap olarak filizlenip ayrılır, sonra ona dönüşür (duman yok)
+	after(0.2, func():
+		if not live(c):
+			return
+		var d = decoy(c, c.global_position, 14.0, func(pos):
+			VFX.debris(pos + Vector3.UP, WOOD, 24, 7.0, 0.4))
+		if d == null:
+			return
+		d.set("max_hp", 4.0)
+		d.set_meta("no_smoke", true)
+		var wm = StandardMaterial3D.new()
+		wm.albedo_color = WOOD_C
+		wm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		wm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		after(0.05, func():
+			if is_instance_valid(d) and d.get("model"):
+				for mi in d.model.find_children("*", "MeshInstance3D", true, false):
+					mi.material_overlay = wm)
+		var tw = d.create_tween()
+		tw.tween_property(d, "global_position", at, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_interval(0.25)
+		tw.tween_method(func(a: float): wm.albedo_color.a = a, 1.0, 0.0, 0.6)
+		tw.tween_callback(func():
+			if is_instance_valid(d) and d.get("model"):
+				for mi in d.model.find_children("*", "MeshInstance3D", true, false):
+					mi.material_overlay = null))
 	Sfx.play("earth", at, 1.2)
 
 
@@ -13502,39 +13585,17 @@ func p_spontaneous_tree_summoning(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 20.0)
 	busy(c, 0.8)
 	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 8.0)
-	FX.smoke_puff(at + Vector3.UP, 2.0, 24)
-	var tree = Node3D.new()
-	var trunk = MeshInstance3D.new()
-	var cm = CylinderMesh.new()
-	cm.top_radius = 0.7; cm.bottom_radius = 1.4; cm.height = 9.0
-	trunk.mesh = cm
-	trunk.material_override = _wood_mat()
-	trunk.position = Vector3.UP * 4.5
-	tree.add_child(trunk)
-	for k in 5:
-		var br = _branch(4.0, 0.3)
-		br.material_override = _wood_mat()
-		br.position = Vector3(0, 6.0 + k * 0.5, 0)
-		br.rotation = Vector3(0.9, k * 1.25, 0)
+	# ref: hedefin dibinden kıvrık ağaç gövdesi fışkırır, dalları onu sarar (duman ve yeşil top taç yok)
+	var tree = _wood_trunk(at, at + Vector3.UP * 9.0 + Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)), 0.85, 4.6, 0.0, 0.45)
+	for k in 6:
+		var br = _wood_branch(randf_range(3.0, 4.5), 0.3)
+		br.position = Vector3(0, 3.5 + k * 0.9, 0)
+		br.rotation = Vector3(randf_range(0.7, 1.1), k * 1.1 + randf() * 0.4, 0)
+		br.translate_object_local(Vector3.UP * 1.8)
 		tree.add_child(br)
-	var crown = MeshInstance3D.new()
-	crown.mesh = SphereMesh.new()
-	var lm = StandardMaterial3D.new()
-	lm.albedo_color = Color(0.3, 0.6, 0.25)
-	lm.emission_enabled = true
-	lm.emission = Color(0.1, 0.25, 0.08)
-	crown.material_override = lm
-	crown.scale = Vector3.ONE * 6.0
-	crown.position = Vector3.UP * 9.0
-	tree.add_child(crown)
-	get_tree().current_scene.add_child(tree)
-	tree.global_position = at
-	tree.scale = Vector3(1, 0.02, 1)
-	var tw = tree.create_tween()
-	tw.tween_property(tree, "scale", Vector3.ONE, 0.35).set_trans(Tween.TRANS_BACK)
-	tw.tween_interval(5.0)
-	tw.tween_callback(func(): FX.smoke_puff(at + Vector3.UP * 3.0, 2.4, 24))
-	tw.tween_callback(tree.queue_free)
+	for k in 3:   # gövdeyi saran kökler
+		var a = k * TAU / 3.0
+		_creep_root(at + Vector3(cos(a), 0, sin(a)) * 0.6, Vector3(cos(a), 0, sin(a)), 3.5, 0.3, 0.1, 4.4)
 	_earth_burst(at, 2.0)
 	if tt and live(tt):
 		st(tt, "bind", 4.0)
@@ -15042,29 +15103,40 @@ func p_hokage_shiki_jijun_jutsu_kakuan_nitten_suishu(c: Node3D, t: Node3D) -> vo
 	var tt = tg(c, t, 24.0)
 	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 10.0)
 	_earth_burst(at, 1.6)
+	# ref: direklerin oturduğu dev kesik kütük zemini yerden yükselir
+	var pb = MB.new()   # düz kesik kütük: yan kabuk + açık renk kesit (Loft kapağı yarım küre yapıyordu)
+	pb.add("cyl", Vector3.UP * -0.2, Vector3(10.0, 1.2, 10.0), WOOD_C, Vector3.ZERO, 28)
+	pb.add("cyl", Vector3.UP * 0.41, Vector3(9.4, 0.02, 9.4), WOOD_C.lightened(0.18), Vector3.ZERO, 28)
+	pb.add("cyl", Vector3.UP * 0.42, Vector3(6.0, 0.02, 6.0), WOOD_C.lightened(0.08), Vector3.ZERO, 28)
+	pb.add("cyl", Vector3.UP * 0.43, Vector3(2.6, 0.02, 2.6), WOOD_C.lightened(0.16), Vector3.ZERO, 20)
+	var plat = MeshInstance3D.new()
+	plat.mesh = pb.build(Props.bark_toon())
+	scene_add(plat, at - Vector3.UP * 1.4)
+	var tp = plat.create_tween()
+	tp.tween_property(plat, "global_position", at, 0.25).set_trans(Tween.TRANS_BACK)
+	tp.tween_interval(4.2)
+	tp.tween_property(plat, "global_position", at - Vector3.UP * 1.4, 0.5)
+	tp.tween_callback(plat.queue_free)
 	for k in 10:
 		var a = k * TAU / 10.0
 		var q = at + Vector3(cos(a), 0, sin(a)) * 5.0
 		var post = MeshInstance3D.new()
-		var bm = BoxMesh.new()
-		bm.size = Vector3(0.8, 5.0, 0.8)
-		post.mesh = bm
-		post.material_override = _wood_mat()
+		post.mesh = _wood_tube_mesh(Vector3.UP * 5.0, 0.42, 0.12, 2)   # kabuklu yuvarlak direk (kutu değil)
 		get_tree().current_scene.add_child(post)
-		post.global_position = q - Vector3.UP * 3.0
-		var hand = _branch(4.5, 0.35)
+		post.global_position = q - Vector3.UP * 5.2
+		var hand = _wood_branch(4.5, 0.35)
 		post.add_child(hand)
-		hand.position = Vector3(0, 1.6, 0)
+		hand.position = Vector3(0, 4.1, 0)
 		hand.rotation.x = PI * 0.5
 		hand.scale = Vector3.ONE * 0.05
 		post.look_at(Vector3(at.x, post.global_position.y, at.z) + Vector3(0.001, 0, 0), Vector3.UP)
 		var tw = post.create_tween()
 		tw.tween_interval(k * 0.04)
-		tw.tween_property(post, "global_position", q + Vector3.UP * 2.3, 0.3).set_trans(Tween.TRANS_BACK)
+		tw.tween_property(post, "global_position", q - Vector3.UP * 0.2, 0.3).set_trans(Tween.TRANS_BACK)
 		tw.tween_callback(func(): VFX.debris(q, EARTH, 6, 7.0, 0.4))
 		tw.tween_property(hand, "scale", Vector3.ONE, 0.3)
 		tw.tween_interval(3.5)
-		tw.tween_property(post, "global_position", q - Vector3.UP * 3.0, 0.5)
+		tw.tween_property(post, "global_position", q - Vector3.UP * 5.2, 0.5)
 		tw.tween_callback(post.queue_free)
 	after(0.6, func():
 		for e in enemies_near(c, at, 5.5):
@@ -15681,20 +15753,17 @@ func p_jujutsu_shiji_hyoketsu(c: Node3D, t: Node3D) -> void:
 func p_jukai_shinshoku(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.0)
 	var at = gp(c.global_position + fwd(c, t) * 7.0)
-	_earth_burst(at, 1.8)
-	for k in 40:
-		after(randf() * 0.6, func():
-			var q = gp(at + Vector3(randf_range(-11, 11), 0, randf_range(-11, 11)))
-			var br = _branch(randf_range(4.0, 8.0), randf_range(0.25, 0.5))
-			get_tree().current_scene.add_child(br)
-			br.global_position = q
-			br.rotation = Vector3(randf_range(0.9, 1.4) * (1 if randf() < 0.5 else -1), randf() * TAU, 0)
-			br.scale = Vector3(1, 0.05, 1)
-			var tw = br.create_tween()
-			tw.tween_property(br, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_BACK)
-			tw.tween_interval(3.5)
-			tw.tween_property(br, "scale", Vector3(1, 0.02, 1), 0.5)
-			tw.tween_callback(br.queue_free))
+	# ref: kullanıcının önünden yere yayılan, birbirine dolanan kalın kökler (sivri kazık değil)
+	var d0 = fwd(c, t)
+	var o = gp(c.global_position + d0 * 1.5)
+	for k in 22:
+		var dir = d0.rotated(Vector3.UP, randf_range(-1.1, 1.1))
+		var L = randf_range(9.0, 16.0)
+		_creep_root(o + dir.cross(Vector3.UP) * randf_range(-1.0, 1.0), dir, L, randf_range(0.35, 0.7), randf() * 0.35, 3.4)
+		if k % 3 == 0:   # dallanan ikincil kök
+			var mid = o + dir * L * randf_range(0.4, 0.6)
+			_creep_root(mid, dir.rotated(Vector3.UP, randf_range(-0.9, 0.9)), L * 0.5, 0.3, 0.3 + randf() * 0.2, 3.1)
+	VFX.cracks(o, 3.0)
 	every(3.5, 0.5, func(_i, k):
 		if not live(c):
 			return
