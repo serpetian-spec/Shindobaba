@@ -246,7 +246,7 @@ static func mods(id: String, i: int) -> Dictionary:
 				m.merge({"lunge_mul": 0.0, "reach_add": -9.0})
 			return m
 		"style_senju":   # yakın yumruk + orta menzil ahşap; Senju kanının ağır vuruşu
-			var m = {"lunge_mul": 0.6, "special": "", "knock": 6.0}
+			var m = {"lunge_mul": 0.6, "special": "", "knock": 6.0, "snd": "earth"}   # kullanıcı: düz vuruşta tınlayan yumruk değil, Mokuton toprak sesi
 			match i:
 				0, 1: m.merge({"knock": 7.0})
 				2, 3: m.merge({"lunge_mul": 0.0, "reach_add": -9.0})   # dallar / sütunlar on_strike

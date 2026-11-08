@@ -14,6 +14,27 @@ const CC := ["stun", "bind", "frozen", "fear", "sleep", "paralyze"]
 const CC_MAX := 3.0
 
 
+## Silahsız vuruşta eller sıkılı yumruk (kullanıcı: yumruklar parmak ucuyla atılıyordu). Avuç/parmakla vurulan tarzlar açık kalır:
+## Jūken (Hakke), tıbbi chakra neşteri, kâğıt, mürekkep, kil, kukla ipleri. Oyuncu ve düşman aynı (AI eşitliği).
+const PALM_STYLES := ["style_juken", "style_tip", "style_kagit", "style_sumi", "style_kil", "style_akasuna"]
+func punch_fist(model, style_id: String, armed: bool, dur: float) -> void:
+	if model == null or not is_instance_valid(model) or model.get("overlay") == null:
+		return
+	var ov = model.overlay
+	if armed or style_id in PALM_STYLES:
+		return
+	var tok = randi()
+	ov.set_meta("fist_tok", tok)
+	ov.fist["Right"] = 1.0
+	ov.fist["Left"] = 1.0
+	get_tree().create_timer(maxf(0.2, dur)).timeout.connect(func():
+		if is_instance_valid(ov) and int(ov.get_meta("fist_tok", -1)) == tok:
+			if float(ov.fist.get("Right", 0.0)) == 1.0:
+				ov.fist.erase("Right")
+			if float(ov.fist.get("Left", 0.0)) == 1.0:
+				ov.fist.erase("Left"))
+
+
 func cc_dur(n: Node, kind: String, d: float) -> float:
 	if not kind in CC or d <= 0.0:
 		return d

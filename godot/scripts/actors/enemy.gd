@@ -962,6 +962,7 @@ func _attack(dt: float) -> void:
 					h.apply_status("slow", 1.5)
 		var armed = look is Dictionary and look.get("weapon_r") != null and String(look.get("weapon_r", "")) != ""
 		Sfx.play("swing_sword" if armed else "whoosh", global_position + Vector3.UP, randf_range(0.92, 1.1), 0.6)
+		Combat.punch_fist(model, "style_juken" if String(arch.get("clan", "")) == "hyuga" else "", armed, 0.5)   # düşman da yumruk sıkar (Hyūga avuç)
 		if not hits.is_empty():
 			FX.hit_spark(pt, Color(1, 0.6, 0.4), 0.8)
 			Sfx.play("hit_sword" if armed else "punch", pt, randf_range(0.92, 1.08))

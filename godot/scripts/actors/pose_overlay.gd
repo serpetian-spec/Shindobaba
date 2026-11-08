@@ -220,12 +220,19 @@ func _process_modification() -> void:
 	for fs in fist.keys():
 		var fv = clampf(float(fist[fs]), -1.0, 1.0)
 		var sgn = 1.0 if String(fs) == "Left" else -1.0
-		if fv > 0.001:   # yumruk: parmaklar avuca kıvrılır
+		if fv > 0.001:   # yumruk: parmaklar MUTLAK yumruk açısına (dinlenme pozu x kıvrım) — eklemeli kıvrım kıvrık animasyonda taşıp parmağı düzlüyordu
+			var segang := {"Proximal": 1.35, "Intermediate": 1.45, "Distal": 0.95}
 			for i in 4:
 				for seg in FINGER_SEG:
-					_add_local(sk, String(fs) + FINGERS[i] + seg, Vector3(1.45 * sgn, 0, 0), fv)
+					var fi = sk.find_bone(String(fs) + FINGERS[i] + seg)
+					if fi >= 0:
+						var tq = sk.get_bone_rest(fi).basis.get_rotation_quaternion() * Quaternion(Vector3.RIGHT, -float(segang[seg]) * sgn)
+						sk.set_bone_pose_rotation(fi, sk.get_bone_pose_rotation(fi).slerp(tq, fv))
 			for seg in THUMB_SEG:
-				_add_local(sk, String(fs) + "Thumb" + seg, Vector3(0.7 * sgn, 0, -0.5), fv)
+				var ti = sk.find_bone(String(fs) + "Thumb" + seg)
+				if ti >= 0:
+					var tq2 = sk.get_bone_rest(ti).basis.get_rotation_quaternion() * Quaternion.from_euler(Vector3(-0.55 * sgn, 0, -0.4))
+					sk.set_bone_pose_rotation(ti, sk.get_bone_pose_rotation(ti).slerp(tq2, fv))
 		elif fv < -0.001:   # açık avuç: animasyonun kıvırdığı parmaklar dinlenme pozuna (düz) açılır
 			for i in 4:
 				for seg in FINGER_SEG:

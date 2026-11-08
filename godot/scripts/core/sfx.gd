@@ -13,7 +13,7 @@ var music_name = ""
 ## Rahatsız edici savuruş/rüzgâr sesleri arka planda kısık çalar
 const QUIET := {"whoosh": 0.3, "wind": 0.35, "jutsu_cast": 0.35, "leap": 0.35, "seal": 0.6, "sharingan": 0.4}   # kullanıcı: jutsu atma ve Ctrl sıçrama sesi diğerlerine göre aşırı
 ## Dosyası olmayan eski adlar -> var olan ses
-const ALIAS := {"smoke": "poof"}
+const ALIAS := {"smoke": "poof", "hit": "punch"}   # hit: temel yumruk sesi (kullanıcı: en güzeli o)
 
 
 func _ready() -> void:

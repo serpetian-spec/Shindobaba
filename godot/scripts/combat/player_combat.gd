@@ -213,6 +213,8 @@ func _start_step() -> void:
 	p.model.overlay.snap("guard", 0.0)
 	p.model.play(c["anim"], 0.05, c["speed"], true)
 	p.model.overlay.set_pose("kick", 1.0 if c.get("kick", false) else 0.0)
+	var armed_now = not Gear.weapon(Game.profile).is_empty() and bool(Game.profile.get("weapon_drawn", false))
+	Combat.punch_fist(p.model, String(c.get("keyed_id", "")), armed_now, float(c.get("dur", 0.6)) + 0.1)   # silahsız vuruş: sıkılı yumruk
 	_set_two_hand(c.get("two_hand", false), float(c.get("dur", 0.6)), float(c.get("two_off", 0.32)))
 	if c.has("keys"):
 		p.model.overlay.key_mass = KEYED.mass(Gear.base_id(String(c.get("keyed_id", Gear.equipped(Game.profile, "sag").get("id", "")))))
@@ -568,7 +570,7 @@ func _combo_base(i: int) -> Dictionary:
 			c["keyed_id"] = wid
 			c["keyed_i"] = i
 			c["lunge"] = float(c["lunge"]) * float(km.get("lunge_mul", 1.0))
-			for mk in ["heavy", "knock", "launch", "stun", "special", "element"]:
+			for mk in ["heavy", "knock", "launch", "stun", "special", "element", "snd"]:
 				if km.has(mk):
 					c[mk] = km[mk]
 			c["reach"] = float(c["reach"]) + float(km.get("reach_add", 0.0))
