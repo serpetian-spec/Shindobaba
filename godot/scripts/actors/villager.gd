@@ -188,6 +188,8 @@ func _lines() -> Array:
 
 
 func talk() -> void:
+	if Orgs.rogue_confront(self):
+		return   # kaçaksın: köy ninjası konuşmaz, saldırır
 	if Game.player:
 		var to = Game.player.global_position - global_position
 		facing = atan2(-to.x, -to.z)

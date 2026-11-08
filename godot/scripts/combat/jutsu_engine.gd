@@ -76,15 +76,27 @@ static func base_dmg(c: Node3D, d: Dictionary) -> float:
 	return DMG[clampi(int(d.get("tier", 2)), 0, 5)] * float(d.get("dmg_k", 1.0)) * power(c, d) * (LEGEND_MULT if is_legend(d) else 1.0)
 
 
-## EFSANE kademe (S'nin üstü): animede savaşı bitiren, zaten kanon bedeli/şartı olan S-rank teknikler — Mangekyō/EMS/Rinnegan
-## gözü (körlük), Sennin Mōdo, bijū, yasak jutsu, efsane yol bitirişi (Kirin, Sekizō...). Eskiden sıradan S-rank Katon'la aynı
-## tavandaydı (eşit rakibin canının ~%38'i); şimdi ~%66. Oyuncu ve AI aynı kural.
+## EFSANE kademe (S'nin üstü): animede savaşı tek başına bitiren HASAR teknikleri — elle seçildi (2026-11-08, kullanıcı:
+## "animeye göre aşırı OP olanları efsane yap"). Hasar vermeyen göz yetenekleri / modlar / mühürler listede yok (çarpan anlamsız).
+## Hepsinin kanon bedeli/şartı zaten var (Mangekyō körlüğü, Rinnegan, sage modu, bijū, Sekiz Kapı, Rasenshuriken kol hasarı...).
+## Eskiden sıradan S-rank Katon'la aynı tavandaydı (eşit rakibin canının ~%38'i); şimdi ~%66. Oyuncu ve AI aynı kural.
 const LEGEND_MULT := 1.75
+const LEGEND_IDS := [
+	# Uchiha / Rinnegan / Ōtsutsuki
+	"amaterasu", "enton_kagutsuchi", "enton_kagutsuchi_no_tsurugi", "enton_yasaka_no_magatama", "yasaka_no_magatama",
+	"indora_no_ya", "susanoo_kagutsuchi_no_yumiya", "susanoo_chidori", "kyoso_enbu", "totsuka_no_tsurugi",
+	"shinra_tensei", "tendo", "chibaku_tensei", "tengai_shinsei", "rinbo_hengoku", "yasogami_kugeki",
+	# bijū ve Rasenshuriken ailesi
+	"bijudama", "renzoku_bijudama", "kakazan", "bijudama_rasenshuriken", "chooodama_rasenshuriken", "senpo_cho_biju_rasenshuriken",
+	"rikudo_chooodama_rasenshuriken", "fuuton_rasenshuriken", "odama_rasenshuriken", "senpo_futon_rasenshuriken", "senpo_yoton_rasenshuriken",
+	"gudodama", "bocho_gudodama", "oyako_rasengan",
+	# Senju / Hokage / sage
+	"issai_kaiku", "senpo_mokuton_shin_susenju", "kanzeon_renge_o", "chojo_kebutsu", "mokuton_hijutsu_jukai_kotan", "senpo_goemon",
+	# Kage / efsane ninjalar
+	"kirin", "jinton_genkai_hakuri_no_jutsu", "jinton_ensui", "jinton_ento", "yagai", "sekizo", "shi_o", "shi_fo",
+]
 static func is_legend(d: Dictionary) -> bool:
-	if int(d.get("tier", 0)) < 5:
-		return false
-	var lr = String(d.get("learn", ""))
-	return lr.begins_with("eye") or lr.begins_with("sage") or lr.begins_with("beast") or lr.begins_with("kinjutsu") or lr.begins_with("path")
+	return String(d.get("id", "")) in LEGEND_IDS
 
 
 static func glow_mat(col: Color, alpha := 1.0) -> StandardMaterial3D:

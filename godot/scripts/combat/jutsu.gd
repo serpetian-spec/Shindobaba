@@ -768,14 +768,17 @@ func j_fuuton_rasenshuriken(c: Node3D, t: Node3D) -> void:
 	pr.life = 3.0
 	pr.homing = t
 	pr.homing_turn = 2.0
-	pr.info = {"dmg": 20.0 * m, "element": "fuuton", "knock": 4.0, "kind": "heavy", "hitstop": 0.05}
+	# ortak hasar (rütbe + efsane kademe + ustalık): %25 çarpma, %75 genişleyen kürenin 9 hücre kesiği (eskiden sabit 20+9x8: S-rank'ın yarısı)
+	var total = JutsuEngine.base_dmg(c, Data.jutsu.get("fuuton_rasenshuriken", {})) * _elem_bonus(c, "fuuton")
+	pr.info = {"dmg": total * 0.2, "element": "fuuton", "knock": 4.0, "kind": "heavy", "hitstop": 0.05}
+	var mb = total * 1.6 / 72.0   # _rasen_burst: 9 x 8 x m — kesiklerin ~yarısı tutuyor (ölçüldü), asıl hasar kürede
 	var rb = rasenshuriken_body(2.8 * VFX.epic)
 	rb.rotation.x = 0.5   # uçuşta disk hafif eğik (yandan bakınca bıçaklar görünür)
 	pr.add_child(rb)
 	WindFX.bullet(pr, 2.2)   # çevresinde çığlık atan akım çizgileri
 	Sfx.play("rasengan", c.global_position, 1.4)
 	pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
-		_rasen_burst(c, pos, m)
+		_rasen_burst(c, pos, mb)
 	get_tree().current_scene.add_child(pr)
 	pr.global_position = start
 	VFX.element_trail(pr, "fuuton", Color(0.7, 0.9, 1), 2.0)

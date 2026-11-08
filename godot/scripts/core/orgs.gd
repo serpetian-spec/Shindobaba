@@ -690,7 +690,7 @@ func _village_ban(dt: float) -> void:
 		var v = Game.village(vid)
 		if v.is_empty():
 			continue
-		if m.distance_to(Vector2(v["x"], v["y"])) < float(v["r"]) * 0.95:
+		if m.distance_to(Vector2(v["x"], v["y"])) < float(v["r"]) * 1.08:   # kapı ve nöbetçileri de köyün içi (eskiden 0.95: kapı nöbetçisi görmüyordu)
 			inside = vid
 			break
 	if inside != "" and _pardon_active() and inside == String(flags().get("rogue_from", "")):
@@ -706,7 +706,10 @@ func _village_ban(dt: float) -> void:
 		if not _sneak_note:
 			_sneak_note = true
 			Hud.msg("%s'e gizlice girdin. Biri seni görürse alarm çalar." % Game.village(inside).get("name", inside), Color(0.85, 0.8, 0.6))
-		if _spotted_by(inside):
+		var sp = _spotted_by(inside)
+		if sp == 2:
+			_sneak_t = 1.2   # köy ninjası gördü: anında alarm (sivil önce bakakalır, sonra haber verir)
+		elif sp == 1:
 			_sneak_t += dt
 		else:
 			_sneak_t = maxf(0.0, _sneak_t - dt * 0.5)
@@ -748,14 +751,16 @@ func _village_ban(dt: float) -> void:
 var _sneak_t := 0.0
 var _sneak_note := false
 ## Kaçak köydeyken onu gören var mı: köylü/NPC görüş mesafesinde, önündeki yarım daire içinde ve görüş hattı açık
-func _spotted_by(_vid: String) -> bool:
+## 0 = görülmedin, 1 = sivil gördü, 2 = köy ninjası gördü (anında alarm)
+func _spotted_by(_vid: String) -> int:
 	var pl = Game.player
 	if pl == null or Buffs.has("henge"):
-		return false
+		return 0
 	var tod = Game.world.get_time_of_day() if Game.world else 0.5
 	var night = tod < 0.22 or tod > 0.8
 	var reach = 16.0 * (0.55 if night else 1.0) * maxf(0.35, 1.0 - Stats.skill(Game.profile, "stealth"))
 	var space = pl.get_world_3d().direct_space_state
+	var seen = 0
 	for n in get_tree().get_nodes_in_group("talkers"):
 		if not (n is Node3D) or not is_instance_valid(n) or n.get("dead"):
 			continue
@@ -767,8 +772,10 @@ func _spotted_by(_vid: String) -> bool:
 			continue   # arkası dönük (yanına sokulursan yine fark eder)
 		var q = PhysicsRayQueryParameters3D.create(n.global_position + Vector3.UP * 1.5, pl.global_position + Vector3.UP * 1.2, 1)
 		if space.intersect_ray(q).is_empty():
-			return true
-	return false
+			if (n is Villager or n is ClanResident) and Friends.is_ninja(n) and not n.has_meta("friend_id"):
+				return 2
+			seen = 1
+	return seen
 
 
 ## Köyün ninja arketipi (Konoha/Ame için Kumo şablonu + köyün kıyafeti ve doğası)
@@ -784,6 +791,27 @@ func _village_arch(vid: String, i: int, outfit := "chunin") -> Dictionary:
 		a["jutsu"] = {"katon": ["katon_goukakyuu", "katon_housenka"], "fuuton": ["fuuton_shinkuu", "fuuton_daitoppa"], "suiton": ["suiton_suiryuudan", "suiton_suikoudan"], "doton": ["doton_doryuusou", "doton_doryuheki"], "raiton": ["raiton_chidori", "raiton_nagashi"]}[a["element"]]
 	a.erase("auto_jutsu")
 	return a
+
+
+## Kaçak köy ninjasıyla konuşmaya kalkarsa: konuşma yok — "Kaçak!" diye saldırır ve köy alarma geçer (dostların hariç)
+func rogue_confront(v: Node) -> bool:
+	if not is_rogue() or Game.player == null or v.has_meta("friend_id") or not Friends.is_ninja(v):
+		return false
+	var m = Game.to_map(Game.player.global_position)
+	var inside = ""
+	for vid in ROGUE_BANNED:
+		var vv = Game.village(vid)
+		if not vv.is_empty() and m.distance_to(Vector2(vv["x"], vv["y"])) < float(vv["r"]) * 1.08:
+			inside = vid
+			break
+	if inside == "" or (_pardon_active() and inside == String(flags().get("rogue_from", ""))):
+		return false
+	Combat.popup_text(v.global_position + Vector3.UP * 2.3, "Sen... kaçak ninja! Alarm!", Color(1, 0.35, 0.3))
+	if _raid.is_empty():
+		_raid = {"vid": inside, "wave": 0, "t": 2.0, "out_t": 0.0, "nodes": [], "kage": false}
+		Hud.banner("KAÇAK KÖYDE!", "%s alarmda: muhafızlar sana saldıracak. Kaldıkça daha güçlüleri gelir — en sonunda Kage." % Game.village(inside).get("name", inside), Color(0.95, 0.25, 0.2))
+	Crime.inst().attack(v, true)
+	return true
 
 
 ## Alarm: köyün sokaktaki ninjaları (devriye, nöbetçi, çatıdaki, antrenmandaki, hoca) kaçağı görünce saldırıya katılır
