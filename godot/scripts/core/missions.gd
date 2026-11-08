@@ -1203,7 +1203,8 @@ func _rank_scale(a: Dictionary, rank: String) -> void:
 	var kf = 0.75 if String(a.get("kind", "")) == "bandit" else 1.0   # haydut ninjadan biraz zayıf
 	a["level"] = maxi(int(a.get("level", 1)), lv)
 	a["hp"] = maxf(float(a.get("hp", 70.0)), (180.0 + lv * 18.0) * kf)   # Enemy.setup ayrıca x(0.75 + lv x 0.004)
-	a["power"] = maxf(float(a.get("power", 1.0)), (1.3 + lv * 0.035) * kf * 0.85)   # grup üyesi: birlikte vurdukları için %15 hafif (boss değil)
+	a["power"] = maxf(float(a.get("power", 1.0)), Stats.npc_power(lv) * kf * 0.85)
+	a["npc_curve"] = true   # grup üyesi: birlikte vurdukları için %15 hafif (boss değil)
 	a["guard"] = maxf(float(a.get("guard", 0.15)), 0.3)
 	a["sub"] = maxf(float(a.get("sub", 0.0)), 0.2)
 	a["xp"] = int(float(a.get("xp", 20)) * (1.0 + lv * 0.05))
@@ -1260,7 +1261,8 @@ func _spawn_boss(b: Dictionary, kind: String, at: Vector3) -> Enemy:
 		var blv = int(RANK_LV[rk]) + 6
 		a["level"] = maxi(int(a["level"]), blv)
 		a["hp"] = maxf(float(a["hp"]), (180.0 + blv * 18.0) * 2.5)
-		a["power"] = maxf(float(a["power"]), (1.3 + blv * 0.035) * 1.15)
+		a["power"] = maxf(float(a["power"]), Stats.npc_power(blv) * 1.15)
+		a["npc_curve"] = true
 	a["xp"] = int(b.get("level", 20)) * 25
 	a["ryo"] = int(b.get("level", 20)) * 20
 	if b.has("look"):
@@ -2737,7 +2739,7 @@ func _bb_new(force_rank := "") -> Dictionary:
 		"id": int(bb["next"]), "name": "%s %s" % [BB_FAMILY.pick_random(), BB_GIVEN.pick_random()], "alias": BB_ALIAS.pick_random(),
 		"village": vid, "rank": rank, "bounty": int(randi_range(int(rd[0]), int(rd[1])) / 50) * 50, "crimes": crimes.slice(0, 2 if rank in ["C", "B"] else 3),
 		"element": ["katon", "suiton", "fuuton", "doton", "raiton"].pick_random(), "hide": hide, "area": area, "known": 450.0, "status": "alive", "tracked": false,   # element: 5 doğa eşit
-		"level": lv, "hp": 260.0 + lv * 24.0, "power": 1.3 + lv * 0.035, "escorts": int(rd[4]), "escort_kind": rd[5],
+		"level": lv, "hp": 260.0 + lv * 24.0, "power": Stats.npc_power(lv), "escorts": int(rd[4]), "escort_kind": rd[5],
 		"look": {"gender": ["m", "m", "f"].pick_random(), "hair_style": ["uzun", "dağınık", "diken", "kısa", "atkuyruğu"].pick_random(),
 			"hair": _hex([Color(0.08, 0.08, 0.1), Color(0.6, 0.6, 0.62), Color(0.55, 0.15, 0.12), Color(0.2, 0.25, 0.4)].pick_random()),
 			"top": _hex([Color(0.2, 0.2, 0.24), Color(0.35, 0.15, 0.15), Color(0.25, 0.3, 0.25), Color(0.4, 0.35, 0.3)].pick_random()),
@@ -2767,7 +2769,7 @@ func _bb_host(e: Dictionary, id: String, h: Dictionary) -> void:
 	e["village"] = String(h["village"])
 	e["level"] = maxi(int(e["level"]), int(h.get("level", 40)))
 	e["hp"] = 260.0 + int(e["level"]) * 24.0
-	e["power"] = 1.3 + int(e["level"]) * 0.035
+	e["power"] = Stats.npc_power(int(e["level"]))
 	e["look"]["gender"] = String(h.get("gender", "m"))
 	e["look"]["village"] = e["village"]
 	e["crimes"].append("İçinde bir Kuyruklu Canavar taşıyor (%s)" % String(BeastModels.INFO[id]["name"]).split(" — ")[0])

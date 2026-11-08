@@ -73,7 +73,18 @@ static func power(c: Node3D, d: Dictionary) -> float:
 static func base_dmg(c: Node3D, d: Dictionary) -> float:
 	# dmg_k: jutsuya özgü hasar çarpanı (jutsu.json) — aynı rütbedeki teknikler aynı vurmasın (taijutsu animedeki etkisine göre elle,
 	# diğerleri aynı kategori+rütbe içinde chakra bedeli ve bekleme süresine göre)
-	return DMG[clampi(int(d.get("tier", 2)), 0, 5)] * float(d.get("dmg_k", 1.0)) * power(c, d)
+	return DMG[clampi(int(d.get("tier", 2)), 0, 5)] * float(d.get("dmg_k", 1.0)) * power(c, d) * (LEGEND_MULT if is_legend(d) else 1.0)
+
+
+## EFSANE kademe (S'nin üstü): animede savaşı bitiren, zaten kanon bedeli/şartı olan S-rank teknikler — Mangekyō/EMS/Rinnegan
+## gözü (körlük), Sennin Mōdo, bijū, yasak jutsu, efsane yol bitirişi (Kirin, Sekizō...). Eskiden sıradan S-rank Katon'la aynı
+## tavandaydı (eşit rakibin canının ~%38'i); şimdi ~%66. Oyuncu ve AI aynı kural.
+const LEGEND_MULT := 1.75
+static func is_legend(d: Dictionary) -> bool:
+	if int(d.get("tier", 0)) < 5:
+		return false
+	var lr = String(d.get("learn", ""))
+	return lr.begins_with("eye") or lr.begins_with("sage") or lr.begins_with("beast") or lr.begins_with("kinjutsu") or lr.begins_with("path")
 
 
 static func glow_mat(col: Color, alpha := 1.0) -> StandardMaterial3D:

@@ -245,7 +245,8 @@ func setup(a: Dictionary) -> void:
 		# oyuncu yakın dövüşü %40 kısıldı: can da buna göre (öldürme süresi eskisi gibi kalsın)
 		max_hp *= 0.75 + lv * 0.004
 		hp = max_hp
-		power *= 1.0 + lv * 0.003
+		if not a.get("npc_curve", false):   # Stats.npc_ninja eğrisi zaten oyuncu çarpanının aynısı
+			power *= 1.0 + lv * 0.003
 	size = a.get("size", 1.0)
 	display_name = a["name"]
 	# zorluk = davranış: ustalık (blok, kawarimi, kaçış, karşı saldırı) SEVİYEDEN gelir, güçten değil — eskiden güçten

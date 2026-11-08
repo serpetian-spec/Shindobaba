@@ -839,6 +839,9 @@ func _raid_kage(vid: String) -> void:
 	a["name"] = "%s — köyünü koruyor" % kname
 	var lv = randi_range(185, 215)   # Kage = köyün en güçlüsü: Güç ~200 (eskiden 130-170, Güç 75 oyuncu kıpırdamadan eritiyordu)
 	Stats.npc_ninja(a, lv, 2.6)
+	# kopuk kural: rol çarpanı (2.6 = Kage dayanıklılığı) cana olduğu kadar vuruşa da biniyordu -> Güç 200 Kage, Güç ~500 gibi
+	# vuruyordu (Güç 75 oyuncuyu tek atıyordu). Rol yalnız cana: vuruş, aynı Güç'teki ninjanın eğrisi (Stats.npc_ninja rol 1)
+	a["power"] = Stats.npc_power(lv)   # rol (2.6) yalnız cana; vuruş aynı Güç'teki oyuncununki
 	a["guard"] = 0.5
 	a["sub"] = 0.35
 	a["skill"] = 0.8

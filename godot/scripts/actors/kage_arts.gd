@@ -12,17 +12,17 @@ const STRONG := {"konoha": ["senju", "uchiha", "hyuga", "uzumaki", "namikaze", "
 	"kiri": ["terumi", "yuki", "kaguya", "hozuki", "karatachi"], "kumo": ["yotsuki", "chinoike"], "iwa": ["kamizuru", "jugo"]}
 ## klan modu: göz (EnemyArts), açılışta atılan klan jutsuları, buff, aura rengi, ad
 const CLAN_MODE := {
-	"uchiha": {"name": "Mangekyō Sharingan — Susanoo", "eye": 4, "susanoo": true, "mods": {"armor": 0.75}, "col": Color(0.85, 0.1, 0.12)},
-	"hyuga": {"name": "Byakugan — Jūken", "eye": 2, "mods": {"melee": 1.4, "armor": 0.8}, "col": Color(0.75, 0.85, 1.0)},
-	"chinoike": {"name": "Ketsuryūgan", "eye": 3, "mods": {"jutsu": 1.3, "armor": 0.8}, "col": Color(0.8, 0.1, 0.15)},
-	"senju": {"name": "Senpō: Sennin Mōdo", "mods": {"armor": 0.6, "melee": 1.35, "jutsu": 1.35, "speed": 1.15}, "col": Color(1.0, 0.6, 0.2),
+	"uchiha": {"name": "Mangekyō Sharingan — Susanoo", "eye": 4, "susanoo": true, "mods": {"armor": 0.88}, "col": Color(0.85, 0.1, 0.12)},
+	"hyuga": {"name": "Byakugan — Jūken", "eye": 2, "mods": {"melee": 1.4, "armor": 0.9}, "col": Color(0.75, 0.85, 1.0)},
+	"chinoike": {"name": "Ketsuryūgan", "eye": 3, "mods": {"jutsu": 1.3, "armor": 0.9}, "col": Color(0.8, 0.1, 0.15)},
+	"senju": {"name": "Senpō: Sennin Mōdo", "mods": {"armor": 0.8, "melee": 1.35, "jutsu": 1.35, "speed": 1.15}, "col": Color(1.0, 0.6, 0.2),
 		"add": ["mokuton_jukai_kotan", "mokuton_mokuryu_no_jutsu", "mokuton_daijurin_no_jutsu", "mokuton_mokujoheki"]},
-	"sabaku": {"name": "Suna no Yoroi", "cast": ["suna_no_yoroi", "sabaku_fuyu"], "mods": {"armor": 0.55}, "col": Color(0.85, 0.72, 0.45)},
-	"jugo": {"name": "Senninka (Jūgo öfkesi)", "cast": ["jugo_ofke"], "mods": {"melee": 1.3, "armor": 0.7}, "col": Color(0.95, 0.55, 0.2)},
-	"hozuki": {"name": "Gōsuiwan", "cast": ["suiton_gosuiwan_no_jutsu"], "mods": {"armor": 0.7, "melee": 1.25}, "col": Color(0.5, 0.75, 1.0)},
-	"yotsuki": {"name": "Raiton no Yoroi", "cast": ["raiton_armor"], "mods": {"speed": 1.35, "armor": 0.65, "melee": 1.3}, "col": Color(0.55, 0.8, 1.0)},
-	"shirogane": {"name": "Chikamatsu Jikki", "cast": ["shirohigi_jikki_chikamatsu_no_shu"], "mods": {"armor": 0.8}, "col": Color(0.75, 0.75, 0.85)},
-	"kamizuru": {"name": "Kamizuru Hachi", "cast": ["kamizuru_hachi"], "mods": {"armor": 0.8}, "col": Color(0.95, 0.8, 0.3)},
+	"sabaku": {"name": "Suna no Yoroi", "cast": ["suna_no_yoroi", "sabaku_fuyu"], "mods": {"armor": 0.78}, "col": Color(0.85, 0.72, 0.45)},
+	"jugo": {"name": "Senninka (Jūgo öfkesi)", "cast": ["jugo_ofke"], "mods": {"melee": 1.3, "armor": 0.85}, "col": Color(0.95, 0.55, 0.2)},
+	"hozuki": {"name": "Gōsuiwan", "cast": ["suiton_gosuiwan_no_jutsu"], "mods": {"armor": 0.85, "melee": 1.25}, "col": Color(0.5, 0.75, 1.0)},
+	"yotsuki": {"name": "Raiton no Yoroi", "cast": ["raiton_armor"], "mods": {"speed": 1.35, "armor": 0.82, "melee": 1.3}, "col": Color(0.55, 0.8, 1.0)},
+	"shirogane": {"name": "Chikamatsu Jikki", "cast": ["shirohigi_jikki_chikamatsu_no_shu"], "mods": {"armor": 0.9}, "col": Color(0.75, 0.75, 0.85)},
+	"kamizuru": {"name": "Kamizuru Hachi", "cast": ["kamizuru_hachi"], "mods": {"armor": 0.9}, "col": Color(0.95, 0.8, 0.3)},
 }
 
 
@@ -77,7 +77,7 @@ static func tick(e: Enemy, _dt: float) -> void:
 static func _open_mode(e: Enemy, t: Node3D) -> void:
 	e.set_meta("kage_mode", true)
 	var clan = String(e.arch.get("clan", ""))
-	var m: Dictionary = CLAN_MODE.get(clan, {"name": "", "mods": {"armor": 0.75, "melee": 1.2, "jutsu": 1.2}, "col": Color(1, 0.85, 0.5)})
+	var m: Dictionary = CLAN_MODE.get(clan, {"name": "", "mods": {"armor": 0.88, "melee": 1.2, "jutsu": 1.2}, "col": Color(1, 0.85, 0.5)})
 	for jid in m.get("cast", []):
 		if Data.jutsu.has(jid):
 			Jutsu.execute(e, jid, t)   # klanın kendi mod tekniği (oyuncudakiyle aynı görünüş)
@@ -97,7 +97,7 @@ static func _open_mode(e: Enemy, t: Node3D) -> void:
 ## Can yarıda: Kage pes etmez — ikinci güçlenme, saldırganlık artar, en ağır jutsu hemen
 static func _resolve(e: Enemy, t: Node3D) -> void:
 	e.set_meta("kage_resolve", true)
-	e.add_buff("kage_resolve", 9999.0, {"armor": 0.8, "melee": 1.2, "jutsu": 1.2, "speed": 1.1})
+	e.add_buff("kage_resolve", 9999.0, {"armor": 0.9, "melee": 1.2, "jutsu": 1.2, "speed": 1.1})
 	e.arch["aggr"] = float(e.arch.get("aggr", 0.7)) * 1.4
 	e.skill = minf(0.98, e.skill + 0.08)
 	Hud.banner(e.display_name.split(" — ")[0], "Köyümü sana bırakmayacağım!", Color(1, 0.45, 0.3))

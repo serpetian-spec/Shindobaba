@@ -17,7 +17,7 @@ static func branch_of(j: Dictionary) -> String:
 const SP_PER := 4.0   # her 4 toplam ustalık puanında 1 yetenek puanı
 ## Gelişme hızı (kullanıcı 2026-11-05: "30-40 dk'da rahat jōnin oluyorsun, en az 3-4 saat sürmeli"): bütün kazanımlar x0.17 (~6 kat yavaş;
 ## dv/dt = miktar x _rate(v) olduğundan aynı ustalığa varış süresi tam 1/0.17 katı uzar)
-const SPEED := 0.17
+const SPEED := 0.155   # 2026-11-08: eğri yumuşadı (aşağıda), jōnin ~3.5 sa aynı kalsın diye hafif düşürüldü
 
 
 static func get_v(p: Dictionary, key: String) -> float:
@@ -60,9 +60,11 @@ static func gain(p: Dictionary, key: String, amount: float) -> void:
 		Progress.on_power_changed()
 
 
-## kazanım hızı: 0'da tam, 50'de ~%40, 100'de ~%14, 200'de ~%4 (eski eğriyle 60'a kadar benzer, sonra durmak yerine yavaşlar)
+## kazanım hızı: 0'da tam, 50'de ~%67, 100'de %50, 200'de ~%33 — azalan ama ezmeyen getiri.
+## Kullanıcı 2026-11-08: eski eğriyle (1/(1+(v/45)^2.2)) Güç 200 ~245 saatti ("OHA"). Şimdi yaklaşık oyun süresi:
+## Güç 60 ~3.5 sa (aynı), 75 ~5 sa, 100 ~9 sa, 150 ~20 sa, 200 ~37 sa
 static func _rate(v: float) -> float:
-	return 1.0 / (1.0 + pow(v / 45.0, 2.2))
+	return 1.0 / (1.0 + v / 100.0)
 
 
 static func total(p: Dictionary) -> float:

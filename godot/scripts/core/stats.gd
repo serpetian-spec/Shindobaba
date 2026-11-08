@@ -166,7 +166,16 @@ static func ninja_hp(lv: float) -> float:
 static func npc_ninja(a: Dictionary, lv: int, role := 1.0) -> void:
 	a["level"] = lv
 	a["hp"] = (180.0 + lv * 18.0) * role
-	a["power"] = (1.3 + lv * 0.035) * lerpf(1.0, role, 0.5)
+	a["power"] = npc_power(lv) * lerpf(1.0, role, 0.5)
+	a["npc_curve"] = true   # Enemy.setup ayrıca seviye çarpanı uygulamaz (oyuncuda karşılığı yok)
+
+
+## Aynı Güç = aynı vuruş: Güç L'deki oyuncunun ustalık ortalaması (Mastery.power'ın tersi) -> oyuncunun hasar çarpanı
+## (1 + ustalık x 0.045). Eskiden NPC Güç'le doğrusal (1.3 + L x 0.035) ve üstüne x(1 + L x 0.003) "yetenek ağacı"
+## çarpanı alıyordu; oyuncunun yetenek puanları hasara bir şey katmadığı için aynı Güç'te NPC %27 (Güç 60) .. %13 (Güç 100) sert vuruyordu.
+static func npc_power(lv: float) -> float:
+	var avg = 100.0 * pow(maxf(lv, 1.0) / 100.0, 1.0 / 0.7)
+	return 1.0 + avg * 0.045
 
 
 ## [C] chakra toplama hızı (/sn): chakra ustalığıyla büyür — eskiden hep 32/sn (ustalık 50'de havuz 430: 13 sn); şimdi

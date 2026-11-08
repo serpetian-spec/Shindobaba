@@ -9070,17 +9070,18 @@ func p_kessho_rokkaku_shuriken_ranbu(c: Node3D, t: Node3D) -> void:
 		after(0.15 + k * 0.05, func():
 			if not live(c):
 				return
-			var star = Node3D.new()
-			var m = VFX.mat_bolt(CRYSTAL, 1.4)
+			# ref: kar tanesi gibi altı kollu kristal shuriken — her kolda yan dişler, yüzlü kristal malzeme (eskiden minik parlak noktalardı)
+			var sb = MB.new()
 			for j in 6:
-				var arm = MeshInstance3D.new()
-				var pm = PrismMesh.new()
-				pm.size = Vector3(0.12, 0.45, 0.04)
-				arm.mesh = pm
-				arm.material_override = m
-				arm.rotation = Vector3(PI * 0.5, j * PI / 3.0, 0)
-				arm.position = Vector3(cos(j * PI / 3.0), 0, sin(j * PI / 3.0)) * 0.22
-				star.add_child(arm)
+				var a = j * PI / 3.0
+				var dv = Vector3(cos(a), 0, sin(a))
+				sb.add("cone", dv * 0.3, Vector3(0.14, 0.6, 0.05), CRYSTAL, Vector3(90, -rad_to_deg(a) + 90, 0), 4)
+				for sd in [-1.0, 1.0]:
+					var a2 = a + sd * 0.5
+					sb.add("cone", dv * 0.32 + Vector3(cos(a2), 0, sin(a2)) * 0.12, Vector3(0.06, 0.22, 0.04), CRYSTAL.lightened(0.2), Vector3(90, -rad_to_deg(a2) + 90, 0), 4)
+			sb.add("sphere", Vector3.ZERO, Vector3(0.18, 0.06, 0.18), CRYSTAL, Vector3.ZERO, 6)
+			var star = Node3D.new()
+			star.add_child(mesh_of(sb, _crystal_mat(CRYSTAL)))
 			var q = from + c.face_dir().cross(Vector3.UP) * randf_range(-2.0, 2.0) + Vector3.UP * randf_range(-0.4, 1.0)
 			var pr = shot(c, q, aim_at(c, tt, q), 36.0, star, inf(c, "kessho_rokkaku_shuriken_ranbu", 0.15, {"knock": 1.5, "kind": "light", "bleed": 2.0}), tt, false, 1.2, func(p, _h):
 				FX.burst(p, {"amount": 10, "life": 0.4, "tex": FX.tex_spark, "add": true, "size": 0.2, "vmin": 2, "vmax": 5, "colors": [Color(1, 1, 1, 1), CRYSTAL, Color(CRYSTAL.r, CRYSTAL.g, CRYSTAL.b, 0)]}))
@@ -10386,10 +10387,13 @@ func p_shoton_suishoto(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.8)
 	var ba = bone_attach(c, "RightHand")
 	if ba:
+		# ref (Guren): ön koldan ileri uzanan geniş, yüzlü kristal kılıç + kenarında küçük kristal dişler
 		var b = MB.new()
-		b.add("cone", Vector3(0, 0, 0.55), Vector3(0.12, 1.1, 0.05), PINKCRYSTAL, Vector3(90, 0, 0), 6)
+		b.add("cone", Vector3(0, 0, 0.75), Vector3(0.26, 1.5, 0.08), PINKCRYSTAL, Vector3(90, 0, 0), 4)
+		b.add("cone", Vector3(0.06, 0, 0.35), Vector3(0.12, 0.6, 0.06), PINKCRYSTAL.lightened(0.2), Vector3(90, 0, -20), 4)
+		b.add("cone", Vector3(-0.06, 0, 0.3), Vector3(0.1, 0.5, 0.06), PINKCRYSTAL.lightened(0.1), Vector3(90, 0, 20), 4)
 		ba.add_child(mesh_of(b, _crystal_mat(PINKCRYSTAL)))
-		free_after(0.8, ba)
+		free_after(1.3, ba)
 	after(0.25, func():
 		if not live(c):
 			return
@@ -12267,8 +12271,14 @@ func p_kessho_no_yoroi(c: Node3D, _t: Node3D) -> void:
 		var ba = bone_attach(c, bone)
 		if ba == null:
 			continue
+		# ref (Guren): yumruğu ve ön kolu saran, dışa doğru yüzlü kristal plakalar (kutu değil)
 		var b = MB.new()
-		b.add("box", Vector3(0, 0.1, 0), Vector3(0.26, 0.3, 0.24) * (1.5 if bone == "UpperChest" else 1.0), PINKCRYSTAL, Vector3(randf_range(-15, 15), randf_range(0, 90), 0))
+		var big = bone == "UpperChest"
+		var n = 5 if bone in ["LeftHand", "RightHand", "LeftLowerArm", "RightLowerArm"] else 3
+		for k in n:
+			var a = k * TAU / n + randf() * 0.4
+			var o = Vector3(cos(a), 0, sin(a)) * (0.13 if big else 0.07)
+			b.add("cone", o + Vector3(0, 0.08 + k * 0.03, 0), Vector3(0.14, 0.28, 0.1) * (1.6 if big else 1.0), PINKCRYSTAL.lightened(randf() * 0.2), Vector3(randf_range(-30, 30), -rad_to_deg(a), rad_to_deg(atan2(o.x, 0.2)) * 0.8), 4)
 		var mi = mesh_of(b, _crystal_mat(PINKCRYSTAL))
 		ba.add_child(mi)
 		mi.scale = Vector3.ONE * 0.1
@@ -18172,13 +18182,27 @@ func p_senpo_yoton_rasenshuriken(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 34.0)
 	var from = hand_pos(c, true) + Vector3.UP * 0.4
 	VFX.gather(from, LAVA, 1.6)
-	after(0.5, func():
+	# ref: lav çekirdekli Rasenshuriken avuçta oluşur, beyaz rüzgâr diski döner — fırlatmadan önce elde görünür (eskiden 0.25 sn'de çarpıyordu)
+	busy(c, 1.8)
+	var held = _rsh_big(0.7, Color(1.0, 0.55, 0.2))
+	held.add_child(VFX.element_core("yoton", LAVA, 0.9))
+	scene_add(held, from)
+	held.scale = Vector3.ONE * 0.1
+	var ht = held.create_tween()
+	ht.tween_method(func(u: float):
+		if is_instance_valid(held) and live(c):
+			held.global_position = hand_pos(c, true) + Vector3.UP * 0.9
+			held.scale = Vector3.ONE * lerpf(0.1, 1.0, minf(1.0, u * 1.6)), 0.0, 1.0, 1.0)
+	ht.tween_callback(held.queue_free)
+	from = hand_pos(c, true) + Vector3.UP * 0.9
+	after(1.0, func():
 		if not live(c):
 			return
+		from = hand_pos(c, true) + Vector3.UP * 0.9
 		var core = _rsh_big(0.7, Color(1.0, 0.55, 0.2))
 		var lava = VFX.element_core("yoton", LAVA, 0.9)
 		core.add_child(lava)
-		var pr = shot(c, from, aim_at(c, tt, from), 28.0, core, inf(c, "senpo_yoton_rasenshuriken", 2.0, {"knock": 10.0, "kind": "heavy", "element": "yoton", "burn": 4.0}), tt, false, 1.8, func(p, _h):
+		var pr = shot(c, from, aim_at(c, tt, from), 20.0, core, inf(c, "senpo_yoton_rasenshuriken", 2.0, {"knock": 10.0, "kind": "heavy", "element": "yoton", "burn": 4.0}), tt, false, 1.8, func(p, _h):
 			# lav patlaması (ateş kubbesi değil): her yöne fışkıran yapışkan lav selleri, düşen lav parçaları, kırık kaya, buhar
 			var lw = VFX.mat_water(Color(0.45, 0.08, 0.02), Color(1.0, 0.45, 0.1), Color(1.0, 0.85, 0.4), Vector3.UP, 1.0, 0.7, 0.15)
 			for k in 6:
@@ -18894,6 +18918,22 @@ func p_yoton_chakura_modo(c: Node3D, _t: Node3D) -> void:
 	c.add_child(tails)
 	tails.position = Vector3(0, 0.95, -0.15)
 	# (anime Rōshi: lav kuyruğu yok — beden lav örtüsüyle kaplı)
+	# ref: bedeni saran, kenarları alev gibi dalgalanan parlak lav chakrası (jinchūriki pelerin shader'ı, kulak/kuyruk yok)
+	var m = c.get("model")
+	if m and m.get("body_mesh") and m.body_mesh and m.skel:
+		var mt = ShaderMaterial.new()
+		mt.shader = load("res://shaders/beast_cloak.gdshader")
+		mt.set_shader_parameter("col", Color(1.0, 0.45, 0.08))
+		mt.set_shader_parameter("grow", 0.07)
+		var cm = MeshInstance3D.new()
+		cm.mesh = m.body_mesh.mesh
+		m.skel.add_child(cm)
+		cm.skin = m.body_mesh.skin
+		cm.skeleton = cm.get_path_to(m.skel)
+		cm.material_override = mt
+		cm.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		tails.set_meta("cloak", cm)
+		tails.tree_exiting.connect(func(): if is_instance_valid(cm): cm.queue_free())
 	if c is Player:
 		Buffs.add("yoton_chakura", 20.0, {"melee": 1.35, "armor": 0.75, "_name": "Lav Çakra Modu", "_desc": "lav örtüsü: dokunan yanar, güç artar"})
 	every(20.0, 0.5, func(_i, _k):
@@ -23048,13 +23088,19 @@ func p_kako_yoton_kazan(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 24.0)
 	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 8.0)
 	VFX.cracks(at, 4.0)
-	var cone = MeshInstance3D.new()
-	var cm = CylinderMesh.new()
-	cm.top_radius = 0.5; cm.bottom_radius = 2.0; cm.height = 1.8; cm.radial_segments = 10
-	cone.mesh = cm
-	var m = StandardMaterial3D.new()
-	m.albedo_color = Color(0.25, 0.18, 0.15)
-	cone.material_override = m
+	# yerden kabaran pürüzlü kara kaya höyüğü, tepesinde kaynayan lav ağzı (düz koni silindir değil — organik kural)
+	var rb = MB.new()
+	for k in 7:
+		var a = k * TAU / 7.0 + randf() * 0.3
+		rb.add("boulder", Vector3(cos(a) * 1.3, 0.5, sin(a) * 1.3), Vector3(1.4, 1.3, 1.2), Color(0.22, 0.17, 0.15), Vector3(0, rad_to_deg(a), 0), k)
+	for k in 4:
+		var a2 = k * TAU / 4.0 + 0.4
+		rb.add("boulder", Vector3(cos(a2) * 0.7, 1.15, sin(a2) * 0.7), Vector3(0.9, 0.9, 0.8), Color(0.28, 0.2, 0.16), Vector3(0, rad_to_deg(a2), 0), k + 7)
+	var cone = mesh_of(rb)
+	var lb = MB.new()
+	lb.add("sphere", Vector3(0, 1.55, 0), Vector3(1.1, 0.35, 1.1), Color.WHITE, Vector3.ZERO, 14)
+	var pool = mesh_of(lb, VFX.lava_mat("molten"))
+	cone.add_child(pool)
 	get_tree().current_scene.add_child(cone)
 	cone.global_position = at - Vector3.UP * 1.0
 	var tw = cone.create_tween()
@@ -30375,9 +30421,14 @@ func p_yoton_gomu_heki(c: Node3D, t: Node3D) -> void:
 	var at = gp(c.global_position + d * 3.0)
 	var wall = MeshInstance3D.new()
 	var b = MB.new()
-	for k in 7:   # dalgalı lastik perde: üst üste yuvarlak kabarcıklar
-		var x = (k - 3) * 1.1
-		b.add("sphere", Vector3(x, 1.4 + sin(k * 1.3) * 0.3, 0), Vector3(1.6, 3.0, 0.9), RUBBER)
+	# ref: tek parça, eriyip akan lastik perde — sık iç içe geçmiş kütle + tepede parmak gibi uzanan sarkıntılar, yerde yayılan taban
+	for k in 13:
+		var x = (k - 6) * 0.55
+		b.add("sphere", Vector3(x, 1.3 + sin(k * 1.7) * 0.18, 0), Vector3(1.0, 2.7, 0.75), RUBBER)
+	for k in 6:
+		var x2 = (k - 2.5) * 1.15 + randf_range(-0.2, 0.2)
+		b.add("sphere", Vector3(x2, 2.75 + randf_range(0.0, 0.5), randf_range(-0.1, 0.15)), Vector3(0.45, 1.1, 0.4), RUBBER)
+	b.add("sphere", Vector3(0, 0.1, 0.25), Vector3(8.0, 0.4, 1.8), RUBBER)
 	wall = mesh_of(b)
 	scene_add(wall, at)
 	wall.look_at(at + d, Vector3.UP)
