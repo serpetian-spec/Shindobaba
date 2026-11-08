@@ -17,6 +17,7 @@ uniform vec3 flow = vec3(0.0, 0.0, 1.0);
 uniform float alpha = 0.88;
 uniform float foam = 0.5;
 uniform float wobble = 0.06;
+uniform float hi_amt = 0.7;   // üst parlak (yassı su örtüsünde düşük: beyaz leke olmasın)
 uniform sampler2D screen_tex : hint_screen_texture, filter_linear_mipmap;
 
 varying vec3 lp;
@@ -38,42 +39,26 @@ void vertex() {
 }
 
 void fragment() {
+	// NARUTO STORM SUYU (ref: Storm 4 Suiton videosu, su duvarı 0:32, ejder 5:28): açık camgöbeği, yarı saydam, hafif ışıyan;
+	// yüzeyde yumuşak, iri koyu camgöbeği lekeler (akışla kayar), siluete doğru yumuşakça beyaza dönen kenar, üstte parlak vurgu.
+	// Sert koyu kontur / ince gürültü şeridi YOK.
+	vec3 wn = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);
 	float ndv = clamp(dot(NORMAL, VIEW), 0.0, 1.0);
 	float fres = 1.0 - ndv;
-	vec3 p = lp * scale;
-	vec3 fl = flow * TIME * speed;
-	float n = fbm(p + fl);
-	float n2 = fbm(p * 1.7 - fl * 1.3 + 5.0);
-	// cel tonları: açık / orta / derin — sert sınırlar, sınırlar akışla dalgalanır
-	// (ref suiton*.png) açık camgöbeği su: koyu ton yalnız en dış kenarda, köşeli yüzeyler koyu bloklara bölünmesin
-	float shade = fres * 0.75 + (n - 0.5) * 0.4;
+	vec3 fl = flow * TIME * speed * 0.5;
+	float big = fbm(lp * scale * 0.45 + fl);          // iri lekeler
+	float big2 = fbm(lp * scale * 0.9 - fl * 1.3 + 4.0);
 	vec3 col = c_light.rgb;
-	col = mix(col, c_mid.rgb, step(0.42, shade));
-	col = mix(col, c_deep.rgb, step(0.74, shade));
-	// koyu mavi dış hat (Storm'daki net su silueti)
-	float edge = step(0.86, fres + (n2 - 0.5) * 0.12);
-	col = mix(col, c_deep.rgb * 0.7, edge);
-	// akım şeritleri: akış yönünde hızla kayan keskin beyaz çizgiler (iki frekans)
-	float along = dot(lp, normalize(flow + vec3(1e-4)));
-	// akış çizgileri: ref su duvarı/dalga gibi uzun beyaz yollar (akışa dik yönde ince, akış boyunca uzun)
-	vec3 fln = normalize(flow + vec3(1e-4));
-	vec3 perp = lp - fln * along;
-	float lanes = vn(perp * scale * 2.2 + vec3(0.0, 0.0, 0.0) - fln * TIME * speed * 0.2);
-	float s1 = step(0.8, sin(along * 3.0 * scale - TIME * speed * 5.0 + n * 6.0) * 0.5 + 0.5) * step(0.4, n2);
-	float s2 = step(0.72, lanes) * step(0.35, vn(p * 0.6 + fl * 0.5));   // uzun beyaz akış şeritleri
-	s2 *= 1.0 - step(0.8, lanes) * 0.6;
-	float streak = max(s1, s2) * (1.0 - edge);
-	// köpük: yırtık beyaz lekeler (kabaran tepelerde ve kenara yakın)
-	float fm = step(0.7, n + fres * 0.35 * foam) * foam * (1.0 - edge);
-	// parlama: küçük keskin beyaz nokta
-	vec3 h = normalize(vec3(-0.4, 0.8, 0.45));
-	float spec = step(0.95, dot(NORMAL, (VIEW_MATRIX * vec4(h, 0.0)).xyz)) * step(0.4, n);
-	col = mix(col, c_foam.rgb, max(streak, max(fm * 0.95, spec)));
-	// çok hafif kırılma: yalnız ortada arkası sezilir (boyanmış su, cam değil)
-	vec2 off = (vec2(n, n2) - 0.5) * 0.03;
-	vec3 behind = textureLod(screen_tex, SCREEN_UV + off, 1.0).rgb;
-	float see = (1.0 - smoothstep(0.0, 0.5, fres)) * 0.42 * (1.0 - streak) * (1.0 - fm);   // yarı saydam (ref: arkası seçilir)
-	col = mix(col, behind, see);
+	col = mix(col, c_mid.rgb, smoothstep(0.5, 0.56, big));                    // orta camgöbeği leke (yumuşak sınır)
+	col = mix(col, c_deep.rgb, smoothstep(0.66, 0.7, big) * 0.8);             // koyu leke çekirdeği
+	float lit = dot(wn, normalize(vec3(-0.3, 1.0, 0.35))) * 0.5 + 0.5;
+	col = mix(col, c_foam.rgb, smoothstep(0.82, 0.92, lit) * hi_amt);         // ışığa bakan üst parlak
+	col = mix(col, c_foam.rgb, smoothstep(0.55, 0.95, fres));                 // kenar yumuşakça beyaz
+	// akış boyunca kayan beyaz köpük izleri (iri, yumuşak — ince çizgi değil)
+	float foamp = smoothstep(0.62, 0.7, big2) * foam;
+	col = mix(col, c_foam.rgb, foamp * 0.85);
 	ALBEDO = col;
-	ALPHA = clamp(0.9 + fres * 0.1, 0.0, 1.0) * clamp(alpha / 0.88, 0.0, 1.0);
+	EMISSION = col * 0.18;   // hafif içten ışıma
+	// gövde ortası daha saydam, kenarlar dolu (Storm suyu yarı saydam)
+	ALPHA = clamp(mix(0.72, 1.0, smoothstep(0.2, 0.8, fres)) * (alpha / 0.88), 0.0, 1.0);
 }

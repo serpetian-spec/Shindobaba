@@ -568,16 +568,22 @@ func j_suiton_suikoudan(c: Node3D, t: Node3D) -> void:
 	var m = _mult(c) * _elem_bonus(c, "suiton")
 	var pr = Projectile.new()
 	pr.shooter = c
-	pr.vel = _aim(c, t) * 26.0
+	pr.vel = _aim(c, t) * 15.0   # anime Kisame: köpekbalığı görünür hızla yüzerek gelir (eskiden 26 m/sn: 0.27 sn'de çarpıyordu)
 	pr.radius = 1.2
 	pr.life = 3.0
 	pr.homing = t
 	pr.homing_turn = 5.0
 	pr.info = {"dmg": 34.0 * m, "element": "suiton", "knock": 14.0, "launch": 5.0, "kind": "heavy", "hitstop": 0.07}
-	pr.add_child(JutsuEngine.shape_mesh("shark", Color(0.2, 0.55, 1.0), 1.6, "suiton"))
-	# su izi (Storm tarzı): yumuşak soluk su sisi + arkada saçılan minik damlalar (düz kurdele şerit üçgen görünüyordu)
-	Projectile.trail(pr, [Color(0.95, 0.98, 1, 0.55), Color(0.7, 0.88, 1, 0.35), Color(0.6, 0.82, 1, 0)], 0.9, 30, 0.45, FX.tex_smoke, false)
-	Projectile.trail(pr, [Color(1, 1, 1, 1), Color(0.85, 0.95, 1, 0.9), Color(0.7, 0.88, 1, 0)], 0.12, 40, 0.5, FX.tex_soft, false)
+	# gerçek su köpekbalığı modeli (SharkArt: dişli açık ağız, sırt/göğüs yüzgeci, sallanan hilal kuyruk) — genel "şekil" değil
+	var sk = SharkArt.shark(2.3)   # ref: insan boyunun ~iki katı
+	pr.add_child(sk)
+	# su izi: 2D duman/sprite değil, arkasından saçılan 3B su damlaları
+	var tr_t = {"t": 0.0}
+	pr.on_tick = func(p: Projectile, dt: float) -> void:
+		tr_t["t"] += dt
+		if tr_t["t"] > 0.08:
+			tr_t["t"] = 0.0
+			WaterArt.spray(p.global_position - p.vel.normalized() * 2.4, 0.35, -p.vel.normalized() + Vector3.UP * 0.5, 45.0, 0.45)
 	pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
 		VFX.splash(pos, 2.4)
 		VFX.star(pos, Color(0.6, 0.85, 1.0), 3.0, 0.16)

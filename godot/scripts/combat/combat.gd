@@ -85,8 +85,12 @@ func jutsu_factor(info: Dictionary) -> float:
 	return float(_bal.get(String(a.get_meta("jid")), 1.0))
 
 
-## Hasara göre bekleme (oyuncu ve AI aynı kural): jutsu isabetinin hasarı, atanın o jutsu beklemesini uzatır
+## Hasara göre bekleme KALDIRILDI (kullanıcı 2026-11-08: "güce dayalı cooldown'u kaldır" — alan jutsusu/efsane kademe/modlarla
+## beklemeler dakikalara uzuyordu). Bekleme yalnız rütbe süresi (jutsu_cd). Oyuncu ve AI aynı kural.
+const DMG_CD := false
 func note_jutsu_dmg(atk, info: Dictionary, dmg: float) -> void:
+	if not DMG_CD:
+		return
 	if info.get("melee", false) or atk == null or not is_instance_valid(atk) or not atk.has_meta("jid") or dmg <= 0.0:
 		return
 	var jid = String(atk.get_meta("jid"))

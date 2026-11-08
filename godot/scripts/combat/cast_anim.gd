@@ -489,7 +489,7 @@ func _on_release() -> void:
 			FX.dust(f.global_position, 0.6)
 			Sfx.play("poof", f.global_position, 0.9, 0.6)
 		"spin", "clone":
-			if not jid.contains("moku") and not jid.contains("suisho"):   # ahşap / kristal klon: duman yok   # ahşap klon bedenden filizlenir, duman yok (ref)
+			if not jid.contains("moku") and not jid.contains("suisho") and not jid.contains("mizu"):   # ahşap / kristal / su klonu: duman yok   # ahşap / kristal klon: duman yok   # ahşap klon bedenden filizlenir, duman yok (ref)
 				FX.smoke_puff(f.global_position + Vector3.UP, 0.9, 12)
 		"power":   # güç açılışı: halka + kükreme (ayak dibinde duman topu yok — duman kuralı)
 			FX.ring(f.global_position + Vector3.UP * 0.1, Color(1, 0.95, 0.8), 4.0, 0.4)

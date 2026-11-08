@@ -27,31 +27,77 @@ static func crown_mesh(n := 9, seed_ := 0) -> ArrayMesh:
 static var _crowns: Array = []
 
 
-## Sıçrama (kaynak: Kisame Storm videosu): yoğun beyaz-soluk camgöbeği SPREY — yukarı fışkırıp düşen ince su çizgileri
-## ve minik damlalar; altta yarı saydam soluk su tacı; yerde kısa süren yarı saydam su halkası. Kalın topak/parça yok.
+## Sıçrama — Naruto Storm 4 videosu (su duvarı 0:32, ejder 5:28): (1) yerde hızla yayılıp sönen düz su örtüsü (kenarı beyaz),
+## (2) yukarı fırlayıp kendi ağırlığıyla çöken 2-4 iri su sütunu, (3) az sayıda 3B damla. Sivri yaprak / sprite / duman yok.
 static func splash(pos: Vector3, s := 1.0) -> void:
 	if VFX.busy():
 		return
 	var g = Game.jutsu_floor(pos.x, pos.z)
 	var base = Vector3(pos.x, maxf(g, pos.y - s * 0.6), pos.z)
-	spray(base + Vector3.UP * 0.2, s, Vector3.UP, 35.0, 1.0, true)
-	if _crowns.is_empty():
-		for i in 3:
-			_crowns.append(crown_mesh(9 + i, 77 + i))
+	if pos.y - g < 1.5 + s:
+		sheet(Vector3(pos.x, g + 0.04, pos.z), s * 1.6, 1.1)
+	for k in 2 + int(s > 1.4) + int(s > 2.4):
+		var tilt = Vector3(randf_range(-0.35, 0.35), 0, randf_range(-0.35, 0.35))
+		column(base + Vector3(randf_range(-0.4, 0.4), 0, randf_range(-0.4, 0.4)) * s, s * randf_range(0.9, 1.5), s * randf_range(0.28, 0.42), tilt, k * 0.04)
+	spray(base + Vector3.UP * 0.4 * s, s * 0.55, Vector3.UP, 40.0, 0.9)
+
+
+static var _disc: Mesh
+## Yerde yayılan düz su örtüsü (Storm: kütlenin dibinde açılan açık camgöbeği tabaka): hızla genişler, kısa durur, söner
+static func sheet(g: Vector3, r: float, dur := 1.0) -> void:
+	if _disc == null:
+		var b = MB.new()
+		b.add("sphere", Vector3.ZERO, Vector3(2.0, 0.12, 2.0), Color.WHITE, Vector3.ZERO, 28)
+		_disc = b.build(null)
 	var mi = MeshInstance3D.new()
-	mi.mesh = _crowns[randi() % _crowns.size()]
-	mi.material_override = sheet_mat()
+	mi.mesh = _disc
+	var m: ShaderMaterial = sheet_mat().duplicate()
+	m.set_shader_parameter("c_light", Color(0.55, 0.82, 0.95))   # camgöbeği örtü: yalnız kenarı beyaz (düz beyaz leke değil)
+	m.set_shader_parameter("hi_amt", 0.1)
+	mi.material_override = m
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	VFX.scene().add_child(mi)
-	mi.global_position = base
+	mi.global_position = g
 	mi.rotation.y = randf() * TAU
-	mi.scale = Vector3(s * 0.5, 0.05, s * 0.5)
+	r *= 0.7
+	mi.scale = Vector3(r * 0.25, 1.0, r * 0.25)
 	var tw = mi.create_tween()
-	tw.tween_property(mi, "scale", Vector3(s * 0.85, s * 0.9, s * 0.85), 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.tween_property(mi, "scale", Vector3(s * 1.3, s * 0.1, s * 1.3), 0.4).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_property(mi, "scale", Vector3(r, 1.0, r), 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(dur * 0.35)
+	tw.tween_property(mi, "scale", Vector3(r * 1.25, 0.4, r * 1.25), dur * 0.65).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_method(func(a: float): m.set_shader_parameter("alpha", a), 0.88, 0.0, dur * 0.65)
 	tw.tween_callback(mi.queue_free)
-	if pos.y - g < 1.5 + s:
-		ripple(Vector3(pos.x, g, pos.z), s * 1.4)
+
+
+static var _col_mesh: Mesh
+static var _col_mat: ShaderMaterial
+## İri su sütunu: dipten fışkırır (dikine akan su), tepede kabarır, sonra kendi ağırlığıyla çöküp söner
+static func column(at: Vector3, h: float, r: float, tilt := Vector3.ZERO, delay := 0.0) -> void:
+	if _col_mesh == null:
+		var b = MB.new()
+		# yuvarlak, şişkin su sütunu: dipte geniş, gövdede hafif boğumlu, tepede yuvarlak kabarık baş (köşeli kalıp değil)
+		Loft.tube(b, [Vector3.ZERO, Vector3.UP * 0.25, Vector3.UP * 0.5, Vector3.UP * 0.75, Vector3.UP * 0.9, Vector3.UP * 1.0], [0.6, 0.4, 0.46, 0.36, 0.3, 0.05], Color.WHITE, 20, 4, false, true)
+		b.add("sphere", Vector3.UP * 0.86, Vector3(0.62, 0.42, 0.62), Color.WHITE, Vector3.ZERO, 16)
+		_col_mesh = b.build(null)
+		_col_mat = VFX.mat_water(Color(0.3, 0.62, 0.86), Color(0.52, 0.8, 0.95), Color(0.85, 0.96, 1.0), Vector3.UP, 0.88, 1.0, 0.1)
+	var mi = MeshInstance3D.new()
+	mi.mesh = _col_mesh
+	var m: ShaderMaterial = _col_mat.duplicate()
+	mi.material_override = m
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	VFX.scene().add_child(mi)
+	mi.global_position = at
+	mi.rotation = tilt
+	mi.scale = Vector3(r * 0.6, 0.02, r * 0.6)
+	mi.visible = delay <= 0.0
+	var tw = mi.create_tween()
+	tw.tween_interval(delay)
+	tw.tween_callback(func(): mi.visible = true)
+	tw.tween_property(mi, "scale", Vector3(r, h, r), 0.2).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(mi, "scale", Vector3(r * 1.35, h * 1.05, r * 1.35), 0.15)
+	tw.tween_property(mi, "scale", Vector3(r * 1.6, h * 0.2, r * 1.6), 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_method(func(a: float): m.set_shader_parameter("alpha", a), 0.88, 0.0, 0.45)
+	tw.tween_callback(mi.queue_free)
 
 
 ## Soluk, yarı saydam su yüzeyi malzemesi (taç, halka): videodaki gibi mat çelik-camgöbeği, beyaz akış çizgili
@@ -62,21 +108,49 @@ static func sheet_mat() -> ShaderMaterial:
 	return _sheet
 
 
-## İnce su spreyi: hızla fışkırıp yerçekimiyle düşen beyaz/camgöbeği su çizgileri + minik damla noktaları + hafif su sisi
-static func spray(pos: Vector3, s := 1.0, dir := Vector3.UP, spread := 35.0, speed := 1.0, mist := false) -> void:
+## Su spreyi (kullanıcı 2026-11-08: "png gibi damla, duman gibi bir şey — berbat"): sprite çizgi/nokta ve duman dokusu YOK.
+## Gerçek 3B su damlaları: su malzemesinden küçük gövdeler, hız yönünde uzar (iz gibi), yerçekimiyle düşüp küçülür.
+static var _drop_mesh: SphereMesh
+static var _drop_mat: ShaderMaterial
+static func spray(pos: Vector3, s := 1.0, dir := Vector3.UP, spread := 35.0, speed := 1.0, _mist := false) -> void:
 	if VFX.busy():
 		return
+	if _drop_mesh == null:
+		_drop_mesh = SphereMesh.new()
+		_drop_mesh.radius = 0.5; _drop_mesh.height = 1.0; _drop_mesh.radial_segments = 8; _drop_mesh.rings = 4
+		_drop_mat = VFX.mat_water(Color(0.12, 0.42, 0.85), Color(0.35, 0.7, 1.0), Color(0.85, 0.96, 1.0), Vector3.UP, 0.95, 0.4, 0.0)
+		_drop_mesh.material = _drop_mat
 	var v = (7.0 + s * 3.0) * speed
-	FX.burst(pos, {"amount": int(26 + s * 22), "life": 0.75, "tex": FX.tex_spark, "add": false, "cel": false, "size": 0.55 + s * 0.12, "radius": 0.25 * s,
-		"vmin": v * 0.5, "vmax": v, "dir": dir, "spread": spread, "gravity": Vector3(0, -20, 0), "damp": 0.4,
-		"colors": [Color(1, 1, 1, 1), Color(0.86, 0.95, 1.0, 0.95), Color(0.7, 0.87, 0.97, 0.0)]})
-	FX.burst(pos, {"amount": int(30 + s * 30), "life": 0.85, "tex": FX.tex_soft, "add": false, "cel": false, "size": 0.09 + s * 0.02, "radius": 0.35 * s,
-		"vmin": v * 0.35, "vmax": v * 1.1, "dir": dir, "spread": spread + 15.0, "gravity": Vector3(0, -20, 0), "damp": 0.3, "smin": 0.4, "smax": 1.0,
-		"colors": [Color(1, 1, 1, 1), Color(0.9, 0.97, 1.0, 1), Color(0.75, 0.9, 1.0, 0.0)]})
-	if not mist:
-		return
-	FX.burst(pos + Vector3.UP * 0.3 * s, {"amount": int(3 + s * 2), "life": 0.8, "tex": FX.tex_smoke, "add": false, "cel": false, "size": 1.0 * s + 0.5, "radius": 0.4 * s,
-		"vmin": 0.8, "vmax": 2.0, "dir": dir, "spread": 60.0, "damp": 2.0, "colors": [Color(0.92, 0.97, 1.0, 0.0), Color(0.9, 0.96, 1.0, 0.35), Color(0.9, 0.96, 1.0, 0.0)]})
+	for layer in 2:   # 0: iri damlalar, 1: ince sprey damlacıkları
+		var p = GPUParticles3D.new()
+		p.one_shot = true
+		p.explosiveness = 0.85
+		p.amount = int((10 + s * 8) if layer == 0 else (22 + s * 18))
+		p.lifetime = 0.8 if layer == 0 else 0.6
+		var pm = ParticleProcessMaterial.new()
+		pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+		pm.emission_sphere_radius = 0.3 * s
+		pm.direction = dir.normalized()
+		pm.spread = spread
+		pm.initial_velocity_min = v * (0.55 if layer == 0 else 0.4)
+		pm.initial_velocity_max = v * (1.0 if layer == 0 else 1.15)
+		pm.gravity = Vector3(0, -20, 0)
+		pm.damping_min = 0.3; pm.damping_max = 0.6
+		pm.particle_flag_align_y = true   # damla hız yönünde uzar
+		var sz = (0.13 + s * 0.04) if layer == 0 else (0.06 + s * 0.02)
+		pm.scale_min = sz * 0.7; pm.scale_max = sz * 1.2
+		pm.scale_curve = FX._curve([[0.0, 0.6], [0.2, 1.0], [1.0, 0.0]])
+		p.process_material = pm
+		var dm = _drop_mesh.duplicate()
+		dm.height = 2.6   # dikine uzun damla
+		dm.material = _drop_mat
+		p.draw_pass_1 = dm
+		p.visibility_aabb = AABB(Vector3(-12, -12, -12), Vector3(24, 24, 24))
+		p.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		VFX.scene().add_child(p)
+		p.global_position = pos
+		p.emitting = true
+		p.finished.connect(p.queue_free)
 
 
 ## Yerde kısa süren yarı saydam su halkası (sıçrayan suyun yayılması); ~1 sn'de söner

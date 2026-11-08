@@ -20963,6 +20963,27 @@ func p_raiton_nagashi(c: Node3D, t: Node3D) -> void:
 func p_raiton_armor(c: Node3D, t: Node3D) -> void:
 	Jutsu.j_raiton_armor(c, t)
 	_rai_cloak(c, 20.0)
+	_body_cloak(c, Color(0.55, 0.8, 1.0), 20.0, 0.06)   # ref (Raikage): bedeni saran parlak mavi şimşek zırhı
+
+
+## Bedeni saran parlak chakra örtüsü (jinchūriki pelerin shader'ı, kulak/kuyruk yok): Raiton no Yoroi, Yōton Chakra Modu...
+func _body_cloak(c: Node3D, col: Color, dur: float, grow := 0.07) -> MeshInstance3D:
+	var m = c.get("model")
+	if m == null or not m.get("body_mesh") or m.body_mesh == null or m.skel == null:
+		return null
+	var mt = ShaderMaterial.new()
+	mt.shader = load("res://shaders/beast_cloak.gdshader")
+	mt.set_shader_parameter("col", col)
+	mt.set_shader_parameter("grow", grow)
+	var cm = MeshInstance3D.new()
+	cm.mesh = m.body_mesh.mesh
+	m.skel.add_child(cm)
+	cm.skin = m.body_mesh.skin
+	cm.skeleton = cm.get_path_to(m.skel)
+	cm.material_override = mt
+	cm.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	free_after(dur, cm)
+	return cm
 
 
 ## Şifa Avucu: avuçlarda yeşil çakra parıltısı
@@ -26332,6 +26353,7 @@ func p_raiton_chakura_modo(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.6)
 	VFX.gather(c.global_position + Vector3.UP, RAI, 1.6)
 	_rai_cloak(c, 15.0)
+	_body_cloak(c, Color(0.55, 0.8, 1.0), 15.0, 0.06)   # ref: bedeni saran mavi şimşek chakrası
 	var arcs = Arcs.new()
 	arcs.color = Color(0.7, 0.88, 1.0)
 	arcs.radius = 1.4
@@ -26360,6 +26382,7 @@ func p_raiton_chakura_modo(c: Node3D, t: Node3D) -> void:
 func p_raigeki_no_yoroi(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.5)
 	var col = Color(0.95, 0.95, 0.6)
+	_body_cloak(c, Color(1.0, 0.98, 0.75), 12.0, 0.08)   # ref: bedeni saran beyaz-sarı şimşek zırhı
 	var arcs = Arcs.new()
 	arcs.color = col
 	arcs.radius = 1.1

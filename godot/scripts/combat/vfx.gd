@@ -188,11 +188,13 @@ static func mat_water(deep := Color(0.05, 0.28, 0.78), mid := Color(0.2, 0.55, 0
 		return _cache[key]
 	var m = ShaderMaterial.new()
 	m.shader = load("res://shaders/vfx_water.gdshader")
-	# Naruto Storm su paleti: mavi su ise doygun koyu mavi yerine soluk camgöbeği (lav/yağ/çamur renklerine dokunma)
+	# anime su paleti (kullanıcı 2026-11-08: "anime tarzı su"): doygun orta mavi gövde, koyu mavi gölge, açık mavi tepe
+	# (eskiden soluk camgöbeğine %75 çekiliyordu: çölde silik, "çöp" görünüyordu). Lav/yağ/çamur renklerine dokunma.
 	if mid.b > mid.r + 0.2:
-		deep = deep.lerp(Color(0.36, 0.62, 0.84), 0.75)
-		mid = mid.lerp(Color(0.55, 0.8, 0.95), 0.75)
-		light = light.lerp(Color(0.84, 0.95, 1.0), 0.75)
+		# Storm paleti (video ref): açık camgöbeği gövde, orta/koyu camgöbeği lekeler, beyaz köpük
+		deep = deep.lerp(Color(0.3, 0.62, 0.86), 0.7)
+		mid = mid.lerp(Color(0.52, 0.8, 0.95), 0.7)
+		light = light.lerp(Color(0.78, 0.94, 1.0), 0.7)
 	m.set_shader_parameter("c_deep", deep)
 	m.set_shader_parameter("c_mid", mid)
 	m.set_shader_parameter("c_light", light)
@@ -768,11 +770,7 @@ static func _splash(pos: Vector3, size := 2.0) -> void:
 	# Naruto Storm su sıçraması: 3B kıvrık yapraklı su tacı + yay çizip düşen gövdeli damlalar + ince su sisi
 	if busy():
 		return
-	WaterArt.splash(pos, size * 0.8)
-	var g = Game.jutsu_floor(pos.x, pos.z)
-	FX.burst(Vector3(pos.x, maxf(g, pos.y - size), pos.z) + Vector3.UP * 0.4, {"amount": int(3 * size) + 2, "life": 0.9, "tex": FX.tex_smoke, "add": false, "cel": false, "size": 1.2 * size, "radius": size * 0.5,
-		"vmin": 0.8, "vmax": 2.2, "dir": Vector3.UP, "spread": 80.0, "damp": 2.0,
-		"colors": [Color(0.85, 0.94, 1.0, 0.0), Color(0.85, 0.94, 1.0, 0.35), Color(0.85, 0.94, 1.0, 0.0)]})
+	WaterArt.splash(pos, size * 0.8)   # yalnız 3B su (taç + gövdeli damlalar); 2D duman/sis sprite'ı yok (kullanıcı: "2D efektler iğrenç")
 
 
 ## Yapışkan damla / parça (lav, Mei çamuru, kurbağa yağı): malzemeli ağır topaklar yay çizip düşer, yere değince yassılaşıp

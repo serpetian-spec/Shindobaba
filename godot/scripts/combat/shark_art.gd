@@ -15,7 +15,8 @@ static func mat() -> ShaderMaterial:
 	# referans (Gōshokuzame/Daikōdan kareleri): köpekbalıkları SUDAN — yarı saydam soluk mavi-ak, akan köpük çizgili
 	# (eskiden opak koyu mavi toon balık: oyuncak gibi duruyordu)
 	if _mat == null:
-		_mat = VFX.mat_water(Color(0.32, 0.58, 0.85), Color(0.62, 0.84, 0.97), Color(0.95, 1.0, 1.0), Vector3(0, 0, 1), 0.74, 0.95, 0.05)
+		# opak boyanmış su (yarı saydamda dişler/ağız içi gövdeden röntgen gibi görünüyordu)
+		_mat = VFX.mat_water(Color(0.32, 0.58, 0.85), Color(0.62, 0.84, 0.97), Color(0.95, 1.0, 1.0), Vector3(0, 0, 1), 0.88, 0.95, 0.04)
 	return _mat
 
 
@@ -53,7 +54,7 @@ static func shark(s := 1.0) -> Node3D:
 		for q in 3:   # solungaç çizgileri
 			b.add("box", Vector3(sx * 0.255, 0.0, 0.42 - q * 0.07) * s, Vector3(0.012, 0.16, 0.015) * s, TOP.darkened(0.45), Vector3(0, 0, sx * 8.0))
 		# göğüs yüzgeci: geriye ve aşağı süpürülmüş
-		Loft.tube(b, ClayArt._sc([Vector3(sx * 0.2, -0.12, 0.35), Vector3(sx * 0.42, -0.24, 0.15), Vector3(sx * 0.58, -0.32, -0.05)], s), ClayArt._sc([Vector2(0.12, 0.025), Vector2(0.09, 0.02), Vector2(0.02, 0.01)], s), TOP, 8, 3)
+		Loft.tube(b, ClayArt._sc([Vector3(sx * 0.2, -0.12, 0.35), Vector3(sx * 0.4, -0.22, 0.17), Vector3(sx * 0.56, -0.3, -0.02)], s), ClayArt._sc([Vector2(0.2, 0.05), Vector2(0.15, 0.04), Vector2(0.04, 0.015)], s), TOP, 8, 3)   # geniş, yassı göğüs yüzgeci
 	# yüksek sırt yüzgeci (geriye eğik)
 	Loft.tube(b, ClayArt._sc([Vector3(0, 0.25, 0.25), Vector3(0, 0.45, 0.08), Vector3(0, 0.62, -0.1)], s), ClayArt._sc([Vector2(0.025, 0.16), Vector2(0.02, 0.1), Vector2(0.008, 0.02)], s), TOP, 8, 3)
 	root.add_child(_mi(b))
