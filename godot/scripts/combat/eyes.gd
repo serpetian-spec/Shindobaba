@@ -1092,6 +1092,22 @@ static func has_senju_dna(pr: Dictionary) -> bool:
 	return String(pr.get("clan", "")) == "senju" or bool(pr.get("flags", {}).get("senju_cells", false))
 
 
+## Rinnegan uyanışı: EMS olan göz(ler) Rinnegan olur (tek göz EMS ise tek göz — Sasuke)
+func _awaken_rinnegan() -> void:
+	var rs = []
+	if _raw_kind("sag") == 5:
+		rs.append("sag_goz")
+	if _raw_kind("sol") == 5:
+		rs.append("sol_goz")
+	if rs.is_empty():
+		return
+	_replace_eyes("goz_rinnegan", rs, 3)
+	Hud.banner("RINNEGAN", "Indra ile Ashura'nın chakrası birleşti: Altı Yolun gözü uyandı", Color(0.7, 0.55, 0.95))
+	if p:
+		Sfx.play("roar", p.global_position, 0.6, 0.5)
+		VFX.shockwave(p.global_position + Vector3.UP, Color(0.7, 0.55, 0.95), 16.0, 0.6, false)
+
+
 func _both_slots_kind(kind: int) -> bool:
 	return _raw_kind("sag") == kind and _raw_kind("sol") == kind
 
@@ -1137,18 +1153,13 @@ func evolve_tick(dt: float) -> void:
 			var need = RINNE_NEED
 			if int(float(fl2["rinne_xp"]) / 60.0) != int((float(fl2["rinne_xp"]) - 2.0) / 60.0) and float(fl2["rinne_xp"]) < need:
 				Hud.msg("Gözlerinde Ashura'nın chakrası kımıldıyor... (%d / %d dk)" % [int(float(fl2["rinne_xp"]) / 60.0), int(need / 60.0)], Color(0.75, 0.65, 1.0), 3.0)
-		if float(fl2.get("rinne_xp", 0.0)) >= RINNE_NEED:
-			fl2.erase("rinne_xp")
-			# kanon: Rinnegan EMS olan gözde uyanır — tek göz EMS ise tek göz Rinnegan (Sasuke), öbürü Mangekyō kalır
-			var rs = []
-			if _raw_kind("sag") == 5:
-				rs.append("sag_goz")
-			if _raw_kind("sol") == 5:
-				rs.append("sol_goz")
-			_replace_eyes("goz_rinnegan", rs, 3)
-			Hud.banner("RINNEGAN", "Indra ile Ashura'nın chakrası birleşti: Altı Yolun gözü uyandı", Color(0.7, 0.55, 0.95))
-			Sfx.play("roar", p.global_position, 0.6, 0.5)
-			VFX.shockwave(p.global_position + Vector3.UP, Color(0.7, 0.55, 0.95), 16.0, 0.6, false)
+		if float(fl2.get("rinne_xp", 0.0)) >= RINNE_NEED and not Hud.dialog_open():
+			# kullanıcı: 15 dk sonra sorsun — Evet: EMS göz Rinnegan olur; Hayır: EMS kalır, 15 dk daha EMS açık kalırsa yine sorar
+			fl2["rinne_xp"] = 0.0
+			Hud.dialog("Rinnegan", "Gözlerinde Indra ile Ashura'nın chakrası birleşmek üzere. Ebedi Mangekyō gözün Rinnegan'a dönüşsün mü?
+(Hayır dersen EMS kalır; EMS 15 dakika daha açık kalırsa yeniden sorulur.)", [
+				{"label": "Evet, Rinnegan uyansın", "cb": func(): _awaken_rinnegan()},
+				{"label": "Hayır, EMS kalsın", "cb": func(): Hud.msg("Ebedi Mangekyō olduğu gibi kaldı.", Color(0.85, 0.3, 0.3))}])
 	# 4) Rinne-Sharingan (alında üçüncü göz) kaldırıldı
 	# 5) Jōgan: Uzumaki soyunda nadir, Sv.20+ her 2 sn'de çok düşük olasılık (yalnız gözsüz sağ yuva)
 	if false and String(pr.get("clan", "")) == "uzumaki" and lv >= 20 and not pr.get("flags", {}).get("jogan_rolled_%d" % lv, false):   # Jōgan Ōtsutsuki bölümüne kadar kapalı
