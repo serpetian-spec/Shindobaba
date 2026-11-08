@@ -8,7 +8,7 @@ const COL := {"itachi": Color(1.0, 0.3, 0.25), "sasuke": Color(0.6, 0.35, 1.0), 
 	"shisui": Color(0.3, 0.95, 0.5), "kakashi": Color(0.25, 0.95, 0.95)}
 
 const IDS := ["totsuka_no_tsurugi", "yata_no_kagami", "magen_karasu_bunshin", "susanoo_kagutsuchi_no_yumiya",
-	"enton_kagutsuchi_no_tsurugi", "susanoo_chidori", "susanoo", "susanoo_kobushi", "yasaka_no_magatama", "enton_yasaka_no_magatama",
+	"enton_kagutsuchi_no_tsurugi", "susanoo_chidori", "susanoo", "susanoo_kobushi", "susanoo_kai", "yasaka_no_magatama", "enton_yasaka_no_magatama",
 	"indora_no_ya", "susanoo_gokakyu", "susanoo_hozan", "susanoo_tsukumo", "kamui_shuriken", "kyoso_enbu"]   # yalnız kanon (uydurma tarz teknikleri silindi; Kamui/Shisui güçleri artık göz yeteneği)
 
 
@@ -1407,3 +1407,55 @@ static func m_kyoso_enbu(c: Node3D, t: Node3D) -> void:
 				o["sw"].global_basis = Basis(Vector3.UP, x * TAU * 4.0) * Basis(Vector3.RIGHT, -PI * 0.5) * Basis.from_scale(Vector3.ONE * S * 1.2), 0.0, 1.0, go)
 		tw.tween_callback(sw.queue_free)
 		Sfx.play("blade", from, 0.6))
+
+
+# ------------------------------------------------------------------ Susanoo: Kai (ref Narutopedia "Susanoo: Crush")
+## Susanoo'nun eli rakibe uzanır, onu kavrar ve yumruğunun içinde ezer; sonra yere fırlatır
+static func m_susanoo_kai(c: Node3D, t: Node3D) -> void:
+	var sn = Susanoo.of(c, "susanoo_kai")
+	if sn == null:
+		return
+	var H = sn.h()
+	var S = H / 1.8
+	var col = sn.color()
+	var tg = Jutsu._tg(c, t, 6.0 + H * 1.2)
+	if tg == null:
+		if c is Player:
+			Hud.msg("Hedef yok.", Color(0.8, 0.8, 0.8))
+		return
+	var aim = _aim_fn(c, tg, 4.0 + H * 0.45)
+	var d = _turn(c, aim.call())
+	_pj().busy(c, 1.4)
+	_anim(c, "push", 1.0)
+	# uzan: el rakibe açık uzanır
+	var ad = (aim.call() - sn.bone_at("RightUpperArm")).normalized()
+	sn.pose({"arms": Susanoo.arm(true, ad, ad, ad), "spine": 10.0}, 0.9)
+	Sfx.play("whoosh", c.global_position, 0.6, 0.7)
+	_later(0.35, func():
+		if not (is_instance_valid(c) and is_instance_valid(sn) and is_instance_valid(tg)) or tg.is_dead():
+			return
+		# kavra: hedef yumruğun içine alınır, havaya kaldırılır
+		if tg.has_method("apply_status"):
+			tg.apply_status("bind", 1.6)
+		var hold = sn.hand(true)
+		sn.pose({"arms": Susanoo.arm(true, (d + Vector3.UP * 0.6).normalized(), (d + Vector3.UP * 0.9).normalized(), Vector3.UP), "spine": 4.0}, 1.0)
+		for k in 4:
+			_later(0.15 + k * 0.25, func():
+				if is_instance_valid(sn) and is_instance_valid(tg) and not tg.is_dead():
+					tg.global_position = sn.hand(true) - Vector3.UP * 0.9
+					if tg is CharacterBody3D:
+						tg.velocity = Vector3.ZERO
+					tg.take_hit(Jutsu._inf(c, "susanoo_kai", 0.45, {"knock": 0.0, "launch": 0.0, "kind": "crush", "pierce_guard": true}))
+					VFX.shockwave(sn.hand(true), col.lightened(0.3), S * 0.5 + 1.2, 0.2, false)
+					Sfx.play("hit_heavy", tg.global_position, 0.7, 0.6))
+		Combat.popup_text(hold + Vector3.UP * 1.5, "Susanoo: Kai!", col.lightened(0.3)))
+	# fırlat: el aşağı savrulur, hedef yere çarpar
+	_later(1.4, func():
+		if not (is_instance_valid(c) and is_instance_valid(sn) and is_instance_valid(tg)) or tg.is_dead():
+			return
+		sn.pose({"arms": Susanoo.arm(true, (d - Vector3.UP * 0.5).normalized(), d, d)}, 0.5, true)
+		tg.take_hit(Jutsu._inf(c, "susanoo_kai", 1.2, {"knock": 18.0, "launch": -10.0, "kind": "heavy", "dir": d, "hitstop": 0.1}))
+		var g = Jutsu._ground(tg.global_position)
+		VFX.cracks(g, S * 0.6 + 3.0)
+		VFX.debris(g + Vector3.UP * 0.4, Color(0.5, 0.42, 0.32), 12, 7.0, 0.35)
+		_shake(0.6))

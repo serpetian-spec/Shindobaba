@@ -33175,3 +33175,125 @@ func p_rakkasan(c: Node3D, t: Node3D) -> void:
 			if live(tt):
 				_tai_impact(c, tt.global_position + Vector3.UP * 0.2, 1.4)
 				Sfx.play("hit_heavy", tt.global_position, 0.8)))
+
+
+# ================================================================== Eksik kanon jutsuları — Obito (Narutopedia ref, 2026-11-08)
+## Arayış: Kurtaran Işık (ref: arayış topu fırlar, hedefte ışıyıp şişer ve patlar, top sahibine döner)
+func p_gudo_jiu_hikari(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.0)
+	var tt = tg(c, t, 32.0)
+	var bb = _black_ball(0.7)
+	c.add_child(bb)
+	bb.position = Vector3(0, 1.8, 0.6)
+	Sfx.play("chakra", c.global_position, 0.5)
+	after(0.35, func():
+		if not live(c) or not is_instance_valid(bb):
+			return
+		var from = bb.global_position
+		bb.queue_free()
+		var proj = _black_ball(1.0)
+		shot(c, from, aim_at(c, tt, from), 30.0, proj, inf(c, "gudo_jiu_hikari", 0.4, {"knock": 4.0, "kind": "heavy"}), tt, false, 1.4, func(p, _h):
+			# ışıma + şişme: kara top beyaz ışığa döner, büyüyüp patlar
+			var glow = _black_ball(1.0)
+			scene_add(glow, p)
+			var tw = glow.create_tween()
+			tw.tween_property(glow, "scale", Vector3.ONE * 5.0, 0.35).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+			tw.tween_callback(func():
+				FX.light(p, Color(1, 1, 0.92), 10.0, 22.0, 0.4)
+				VFX.shockwave(p, Color(1, 1, 0.95), 9.0, 0.35, false)
+				VFX.debris(gp(p), Color(0.4, 0.36, 0.32), 18, 8.0, 0.4)
+				VFX.cracks(gp(p), 5.0, Color(0.1, 0.08, 0.06, 0.85), 6.0)
+				for h in hit(c, p, 7.0, inf(c, "gudo_jiu_hikari", 2.2, {"knock": 20.0, "launch": 6.0, "kind": "heavy", "pierce_guard": true, "hitstop": 0.1})):
+					pass
+				shake(0.9)
+				Sfx.play("boom", p, 0.7)
+				# top sahibine geri döner
+				var back = _black_ball(0.7)
+				scene_add(back, p)
+				glow.queue_free()
+				var tw2 = back.create_tween()
+				tw2.tween_method(func(u: float):
+					if is_instance_valid(back) and live(c):
+						back.global_position = p.lerp(c.global_position + Vector3.UP * 1.8, u), 0.0, 1.0, 0.5)
+				tw2.tween_callback(back.queue_free))))
+
+
+## Sabah Ayı (ref: saldırırken rakibe arayış topu yerleştirir, top üzerinde büyüyüp büyük patlama yaratır)
+func p_zangetsu(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 10.0)
+	busy(c, 1.2)
+	if tt == null:
+		return
+	_jump_at(c, tt, 0.0, 12.0)
+	anim(c, "cross", 1.3)
+	after(0.25, func():
+		if not live(c) or not live(tt):
+			return
+		melee_fx(c, tt.global_position + Vector3.UP, Color(0.85, 0.85, 0.9), 1.1)
+		tt.take_hit(inf(c, "zangetsu", 0.5, {"knock": 2.0, "kind": "heavy"}))
+		var ball = _black_ball(0.45)
+		var ba = bone_attach(tt, "Chest")
+		if ba:
+			ba.add_child(ball)
+			ball.position = Vector3(0, 0, 0.25)
+		else:
+			tt.add_child(ball)
+			ball.position = Vector3(0, 1.2, 0.3)
+		Combat.popup_text(tt.global_position + Vector3.UP * 2.4, "Arayış topu yerleşti!", Color(0.85, 0.85, 0.95))
+		var tw = ball.create_tween()
+		tw.tween_property(ball, "scale", Vector3.ONE * 4.5, 0.9).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tw.tween_callback(func():
+			var p = ball.global_position
+			ball.queue_free()
+			if ba:
+				ba.queue_free()
+			FX.light(p, Color(1, 1, 0.92), 9.0, 20.0, 0.35)
+			VFX.shockwave(p, Color(1, 1, 0.95), 8.0, 0.35, false)
+			VFX.debris(gp(p), Color(0.4, 0.36, 0.32), 16, 7.0, 0.35)
+			hit(c, p, 6.0, inf(c, "zangetsu", 2.0, {"knock": 18.0, "launch": 5.0, "kind": "heavy", "pierce_guard": true, "hitstop": 0.1}))
+			shake(0.8)
+			Sfx.play("boom", p, 0.8)))
+
+
+## Alev Elleri (ref: cinchūriki dönüşümünün alevleri dev ellere şekillenir, rakibi kavrar ve yere çarpar)
+func p_hono_no_te(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 16.0)
+	busy(c, 1.1)
+	anim(c, "push", 1.1)
+	var d = fwd(c, tt)
+	var sd = d.cross(Vector3.UP).normalized()
+	var fire = [Color(1.0, 0.92, 0.55), Color(1.0, 0.55, 0.12), Color(0.85, 0.2, 0.05, 0.85), Color(0.3, 0.08, 0.03, 0.0)]
+	var goal = (tt.global_position + Vector3.UP * 1.0) if tt else c.global_position + Vector3.UP * 1.2 + d * 10.0
+	for k in 2:
+		var sx = 1.0 if k == 0 else -1.0
+		var head = Node3D.new()
+		scene_add(head, c.global_position + Vector3.UP * 1.4 + sd * sx * 0.8)
+		var start = head.global_position
+		var mid = start.lerp(goal, 0.5) + Vector3.UP * 2.2 + sd * sx * 1.6
+		var tw = head.create_tween()
+		tw.tween_method(func(u: float):
+			if is_instance_valid(head):
+				head.global_position = start.lerp(mid, u).lerp(mid.lerp(goal, u), u), 0.0, 1.0, 0.35)
+		tw.tween_interval(0.25)
+		tw.tween_callback(head.queue_free)
+		every(0.6, 0.04, func(_i, _k):
+			if is_instance_valid(head):
+				FX.puff3d(head.global_position, {"amount": 7, "life": 0.55, "size": 1.6, "radius": 0.6, "vmin": 0.5, "vmax": 2.0, "spread": 180.0, "emit": true, "colors": fire}), Callable())
+	Sfx.play("fire", c.global_position, 0.8)
+	after(0.4, func():
+		if not live(c) or tt == null or not live(tt):
+			return
+		# kavra: hedef havaya kaldırılır, sonra yere çarpılır
+		FX.puff3d(tt.global_position + Vector3.UP, {"amount": 22, "life": 0.6, "size": 1.3, "radius": 1.0, "vmin": 1, "vmax": 4, "spread": 180.0, "emit": true, "colors": fire})
+		st(tt, "bind", 0.8)
+		var a0 = tt.global_position
+		var tw = tt.create_tween()
+		tw.tween_property(tt, "global_position", a0 + Vector3.UP * 3.0, 0.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tw.tween_property(tt, "global_position", gp(a0), 0.18).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tw.tween_callback(func():
+			if live(tt):
+				tt.take_hit(inf(c, "hono_no_te", 1.6, {"knock": 6.0, "launch": 2.0, "kind": "heavy", "burn": 4.0, "element": "katon", "hitstop": 0.1}))
+				VFX.cracks(gp(a0), 3.0, Color(0.15, 0.08, 0.05, 0.85), 5.0)
+				VFX.debris(gp(a0), Color(0.45, 0.38, 0.3), 12, 6.0, 0.3)
+				shake(0.7)
+				Sfx.play("hit_heavy", a0, 0.75)))

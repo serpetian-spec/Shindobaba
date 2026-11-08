@@ -63,6 +63,18 @@ func _ready() -> void:
 			Gear.grant(Game.profile, wid, String(Gear.item(wid).get("slot", "silah")))
 			if pl.has_method("refresh_look"):
 				pl.refresh_look()
+		if id.begins_with("susanoo"):
+			for sl in ["sag_goz", "sol_goz"]:
+				Gear.grant(Game.profile, "goz_ems", sl, null, null, {"lvl": 3, "origin": "dogustan"})
+			Gear.apply_look(Game.profile)
+			pl.rebuild_model()
+			await _w(0.5)
+			var ey = pl.combat.modes.eyes
+			ey.active = true
+			ey.ms_on = true
+			await _w(0.3)
+		if nd == "beast":
+			nd = "beast:kurama"
 		if nd.begins_with("beast:"):
 			var clk = pl.combat.modes.cloak
 			if clk.level > 0:
