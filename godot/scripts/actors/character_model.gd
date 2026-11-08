@@ -44,6 +44,7 @@ static var FLIP := Transform3D.IDENTITY
 const FACE_DONORS_M := ["masc_vroid", "AvatarSample_C", "HairSample_Male", "Sakurada_Fumiriya"]
 const FACE_DONORS_F := ["fem_vroid", "AvatarSample_A", "AvatarSample_B", "Sendagaya_Shibu", "Darkness_Shibu", "HairSample_Female"]
 ## saç stili -> [VRoid modeli, mesh adı] (saç kafaya sabitlenir, renk oyuncunun saç rengi)
+const AnimeHair = preload("res://scripts/actors/anime_hair.gd")   # sıfırdan anime saçı
 const HAIR_DONORS := {
 	# taban her zaman gerçek bir VRoid saçı (eski düz "buzz" başlık kel gibi görünüyordu); tutam eklentisi üstüne gelir
 	"kısa": ["Sakurada_Fumiriya", "Hair001", ""], "diken": ["HairSample_Male", "Hair001", "diken"], "dağınık": ["HairSample_Male", "Hair001", "dağınık"],
@@ -65,6 +66,8 @@ const HAIR_DONORS := {
 	"golge": ["Darkness_Shibu", "Hair001", ""], "cerceve": ["AvatarSample_B", "Hair001", "cerceve"],
 	"yan_orgu": ["Sendagaya_Shibu", "Hair001", "yan_orgu"], "bagli_uzun": ["AvatarSample_B", "Hair001", "bagli_uzun"],
 	"tepe_diken": ["Sakurada_Fumiriya", "Hair001", "tepe_diken"], "yan_topuz": ["Sendagaya_Shibu", "Hair001", "yan_topuz"],
+	# sıfırdan anime saçları (AnimeHair): VRoid tabanı yok
+	"s2": ["", "", "s2"],
 }
 const VROID_SKIN := Color(0.99, 0.89, 0.82)  # VRoid doku ten rengi (oyuncu teni bununla oranlanır)
 static var _scenes := {}
@@ -504,9 +507,16 @@ func _face_and_hair() -> void:
 	if hd.size() > 2 and hd[2] != "" and head_ab.size.x > 0.05:
 		# önbellek anahtarı kafa ölçüsüne bağlı (yaş/cinsiyet/yüz değişince saç kafada kalsın)
 		var hk = "vroid|%s|%s|%s|%s" % [hd[2], look["gender"], donor, look.get("age", "adult")]
+		var banded = look.get("band") != null and String(look.get("band_style", "none")) in ["head", "slashed"]
+		if AnimeHair.has(hd[2]) and banded:
+			hk += "|band"   # alın bandı takılı: kâkül bandın altında, bandın üstünden dik tutamlar (saçak gibi raf olmasın)
 		if not _hair_cache.has(hk):
-			_hair_cache[hk] = _hair_clumps(hd[2], skull_c, skull_r)
-			_hair_dyn[hk] = _clump_dangle(_hair_cache[hk])
+			if AnimeHair.has(hd[2]):   # sıfırdan anime saçı (VRoid tabanı yok)
+				_hair_cache[hk] = AnimeHair.build(hd[2], skull_c, skull_r, banded)
+				_hair_dyn[hk] = {}
+			else:
+				_hair_cache[hk] = _hair_clumps(hd[2], skull_c, skull_r)
+				_hair_dyn[hk] = _clump_dangle(_hair_cache[hk])
 		var cm = ShaderMaterial.new()
 		cm.shader = load("res://shaders/toon.gdshader")
 		cm.set_shader_parameter("tint", look["hair"])
@@ -514,6 +524,9 @@ func _face_and_hair() -> void:
 		materials.append(cm)
 		# tutamlar kafaya göre biraz küçültülür (kafa merkezi etrafında)
 		var cs = Transform3D(Basis.IDENTITY, skull_c) * Transform3D(Basis.from_scale(Vector3.ONE * CLUMP_SCALE), Vector3.ZERO) * Transform3D(Basis.IDENTITY, -skull_c)
+		if AnimeHair.has(hd[2]):
+			cs = Transform3D.IDENTITY
+			_anime_hair_vs = (_hair_cache[hk] as ArrayMesh).surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
 		# uzun tutamlar ikincil hareketli (kafa kemiğine takılı küçük iskelet); sallanacak tutam yoksa sabit mesh
 		_hair_mats.append([cm, cs])
 		var hdn = add_dangle("Head", _hair_dyn.get(hk, {}), cm, cs, "HairDangle") if not _hair_dyn.get(hk, {}).is_empty() else null
@@ -2230,9 +2243,10 @@ func _vest_kit(src: ArrayMesh, g: Dictionary) -> void:
 			var pt = ch + 0.035   # plakanın üst kenarı (koltuk altı hizası; üstü shader ile kesik)
 			_sk_strip(0.0, pt, bot_y + 0.06, 0.006, 0.004, vc.darkened(0.45), 30)
 			_sk_ring(1, bot_y + 0.035, 0.05, 0.01, vc.darkened(0.04), -PI, PI, 48, 0.0)
-			_sk_ring(1, pt + 0.004, 0.014, 0.008, vc.darkened(0.12), -PI, PI, 40, 0.0)
+			_sk_ring(1, pt + 0.004, 0.014, 0.008, vc.darkened(0.12), -PI, PI, 40, 0.0, 0.0, 0.0, absf(sh_x) * 0.95)   # kol köşeleri halkaya girmesin
 			for sx in [-1.0, 1.0]:
-				_sk_ring(0, 0.1 * sx, 0.05, 0.016, vc.darkened(0.06), -1.75, 1.75, 24, 0.0, sx)   # askı: önden omuz üstünden arkaya
+				# askı: yelek kabuğunun omuz kesitinden, kabuğun gövdeden açıklığı kadar içeri çekilir (omuzda havada durmasın)
+				_sk_ring(0, 0.1 * sx, 0.05, 0.014, vc.darkened(0.06), -1.75, 1.75, 24, -0.038, sx)
 				_sk_plate(0.1 * sx, pt + 0.012, 0.05, 0.022, 0.016, vc.darkened(0.15))   # askı tokası (ön)
 	var vmi = _sk_end(g)
 	_vest_kit_cache[ck] = vmi.mesh if vmi else null
@@ -2921,15 +2935,10 @@ const HAIR_FILES := {
 	"geriye": "Hair_Buzzed", "orgu": "Hair_Buzzed", "mohikan": "Hair_Buzzed", "kel": "", "kirpik": "Hair_Buzzed", "kisa_kakul": "Hair_Buzzed",
 }
 ## Saç stilleri (arayüzde gösterilen adlar)
-const HAIR_STYLES := {"diken": "Dikenli", "dağınık": "Dağınık", "kase": "Kâse", "kısa": "Kısa", "uzun": "Uzun", "atkuyruğu": "At Kuyruğu",
-	"ananas": "Ananas Topuz", "topuz": "Topuz", "ikiz_topuz": "İkiz Topuz", "yele": "Uzun Yele", "kakul": "Tek Göz Kâkül", "geriye": "Geriye Taranmış",
-	"kirpik": "Kısa Kirpi"}
+const HAIR_STYLES := {"kısa": "Kısa", "kase": "Kâse", "uzun": "Uzun", "s2": "Dikenli Taç"}
 ## Kaldırılan saç modelleri (kullanıcı: 14 ve 16–43) -> en yakın kalan model (eski kayıtlar, NPC'ler)
-const HAIR_ALIAS := {"orgu": "uzun", "mohikan": "kirpik", "kisa_kakul": "kısa", "dalgali": "uzun", "savas_yelesi": "yele", "bilge_yelesi": "yele",
-	"yuksek_kuyruk": "atkuyruğu", "yan_kuyruk": "atkuyruğu", "ikiz_kuyruk": "atkuyruğu", "ikiz_orgu": "uzun", "samuray": "topuz",
-	"savasci_kuyruk": "atkuyruğu", "alev": "diken", "geriye_diken": "geriye", "yan_tarama": "kısa", "perde": "uzun", "kabarik": "dağınık",
-	"ruzgar": "dağınık", "yabani": "yele", "ense_kuyruk": "atkuyruğu", "alcak_topuz": "topuz", "kazinmis": "kirpik", "yan_kazinmis": "kirpik",
-	"golge": "kakul", "cerceve": "uzun", "yan_orgu": "uzun", "bagli_uzun": "atkuyruğu", "tepe_diken": "diken", "yan_topuz": "topuz", "kel": "kirpik"}
+## VRoid tabanı + tutam eklentili saçlar kaldırıldı (kullanıcı 2026-11-09: "iki saç üst üste gibi"); sıfırdan saçlar gelene kadar kalan modele düşer
+const HAIR_ALIAS := {"orgu": "uzun", "mohikan": "kısa", "kisa_kakul": "kısa", "dalgali": "uzun", "savas_yelesi": "uzun", "bilge_yelesi": "uzun", "yuksek_kuyruk": "uzun", "yan_kuyruk": "uzun", "ikiz_kuyruk": "uzun", "ikiz_orgu": "uzun", "samuray": "uzun", "savasci_kuyruk": "uzun", "alev": "kısa", "geriye_diken": "kısa", "yan_tarama": "kısa", "perde": "uzun", "kabarik": "kısa", "ruzgar": "kısa", "yabani": "uzun", "ense_kuyruk": "uzun", "alcak_topuz": "uzun", "kazinmis": "kısa", "yan_kazinmis": "kısa", "golge": "uzun", "cerceve": "uzun", "yan_orgu": "uzun", "bagli_uzun": "uzun", "tepe_diken": "kısa", "yan_topuz": "uzun", "kel": "kısa", "diken": "kısa", "dağınık": "kısa", "atkuyruğu": "uzun", "kakul": "uzun", "geriye": "kısa", "ananas": "kısa", "topuz": "uzun", "ikiz_topuz": "uzun", "yele": "uzun", "kirpik": "kısa"}
 static var _scalp_cache := {}
 static var _hair_cache := {}
 static var _hair_new_ms := -100000   # köylü için son yeni saç tutamı hesabı (art arda donma olmasın)
@@ -3499,12 +3508,45 @@ func dangle_strip(bone: String, model_root: Vector3, dir: Vector3, length: float
 ## Alın koruyucu (kafa) — referans: _tmp/ref_band (Kotetsu/Izumo): kumaş bant saçın ÜSTÜNDEN kafayı sarar
 ## (saç maskesi bandın içinde kalan saçı keser, bant saçı bastırmış görünür), alında kafaya uyan kavisli metal plaka
 ## (pahlı kenar, dört köşe perçini, kazınmış köy arması), arkada düğüm + iki kısa sarkan uç (ikincil hareket).
+var _anime_hair_vs := PackedVector3Array()   # sıfırdan saçın köşeleri (model uzayı): bant saç kütlesinin üstüne oturur
+
+
+## Sıfırdan saç varsa bant halkası saç KÜTLESİNİN dış yüzeyine genişler (bant saçı sarar; deriye göre kurulunca
+## saç bant hizasında yatay dilimle kesiliyordu). Uzun dikenler (kütleden 4.5 cm dışarı) sayılmaz: onlar bandın altından geçer.
+func _hair_wrapped_ring(by: float) -> PackedFloat32Array:
+	var rad: PackedFloat32Array = (band_ring[1] as PackedFloat32Array).duplicate()
+	if _anime_hair_vs.is_empty():
+		return rad
+	var bins = rad.size()
+	var hr = PackedFloat32Array()
+	hr.resize(bins)
+	for q in _anime_hair_vs:
+		if absf(q.y - by) > 0.016:
+			continue
+		var d = Vector2(q.x - skull_c.x, q.z - skull_c.z)
+		var k = int(floor((atan2(d.y, d.x) + PI) / TAU * bins)) % bins
+		var r = d.length()
+		if r < rad[k] + 0.045:
+			hr[k] = maxf(hr[k], r)
+	for k in bins:
+		rad[k] = maxf(rad[k], hr[k] + 0.004)
+	for it in 2:   # yumuşat (bant pürüzsüz dönsün)
+		var sm = rad.duplicate()
+		for k in bins:
+			sm[k] = maxf(rad[k], (rad[(k + bins - 1) % bins] + rad[k] * 2.0 + rad[(k + 1) % bins]) * 0.25)
+		rad = sm
+	return rad
+
+
 func _hitai_head(bc: Color) -> void:
 	_band_ring_full()
 	var by: float = band_ring[0] + 0.01   # göz kapağını kapatmasın
+	var keep = band_ring
+	band_ring = [band_ring[0], _hair_wrapped_ring(by)]
 	_hitai("Head", Vector3(skull_c.x, by, skull_c.z), band_ring[1], bc, 0.036, 0.037, 0.6, 0.008, Vector3(0.22, -1.0, -0.62))
 	# saç maskesi: bant yüksekliğinde (öndeki eğim dahil) bandın dışına taşan saç kesilir -> bant saçın üstünde
 	hair_mask_band(by - 0.004, 0.046, 0.008)
+	band_ring = keep
 
 
 ## Boyun alın koruyucusu (Hinata tarzı): boynu saran bant, gırtlağın önünde kavisli plaka, ensede düğüm + iki kısa uç

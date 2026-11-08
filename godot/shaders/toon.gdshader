@@ -310,7 +310,7 @@ void fragment() {
 				if (!(s1 || s2 || rest.y < rig_b.x + 0.1)) discard;
 			}
 			if (vest_style == 11 && rest.y < rig_b.w - 0.24) discard;
-			if (vest_style == 12 && rest.y > rig_b.w + 0.035) discard;   // ANBU plakası: üstü açık (askılar 3B)
+			if (vest_style == 12 && rest.y > rig_b.w + 0.035) discard;   // ANBU plakası: üstü açık (askılar OutfitParts loft katmanı)
 			slot = 5;
 		} else if (layer == 1 && slot == 0) discard;
 		if (slot == 0 && sage_marks > 0 && rest.y > face_ref.y - 0.07 && rest.y < face_ref.y + 0.05 && rest.z > face_ref.z - 0.05) {

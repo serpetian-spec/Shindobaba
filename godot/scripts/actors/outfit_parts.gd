@@ -124,10 +124,10 @@ static func _anbu_parts(m: CharacterModel, g: Dictionary) -> void:
 					func(t, _a): return 0.006 + (1.0 - t) * 0.004, 7, null, -99.0, 18))
 				m._garment("anbu_plaka_u%d" % int(sx), func(): return m._loft(g, 0, (el - 0.035) * sx, (ha - 0.02) * sx, 9, af,
 					func(t, _a): return 0.024 + sin(t * PI) * 0.006, 9, outer, -99.0, 20))
-				for q in [0.3, 0.75]:   # plakayı kola bağlayan iki kayış
+				for q in [0.3, 0.62]:   # plakayı kola bağlayan iki kayış (bileğe yakın değil: el ağırlığı alıp halka gibi açılıyordu)
 					var x0 = lerpf(el - 0.02, ha - 0.03, q)
 					m._garment("anbu_kayis%d_%d" % [int(sx), int(q * 100)], func(): return m._loft(g, 0, (x0 - 0.009) * sx, (x0 + 0.009) * sx, 2, af,
-						func(_t, _a): return 0.03, 9, null, -99.0, 18))
+						func(_t, a): return 0.03 if absf(a) < 1.1 else 0.009, 9, null, -99.0, 18))   # plakanın üstünde kalın, iç yüzde kola sıkı
 				if L.get("anbu_band") == 2 or (L.get("anbu_band") == 1 and sx > 0.0):
 					var bx = lerpf(ua, el, 0.47)
 					m._garment("anbu_bant%d" % int(sx), func(): return m._loft(g, 0, (bx - 0.026) * sx, (bx + 0.026) * sx, 4, af,
@@ -138,26 +138,26 @@ static func _anbu_parts(m: CharacterModel, g: Dictionary) -> void:
 					func(_t, _a): return 0.01, 7, null, -99.0, 18))
 				m._garment("anbu_plaka_k%d" % int(sx), func(): return m._loft(g, 0, (el - 0.02) * sx, (ha - 0.035) * sx, 8, af,
 					func(t, _a): return 0.026 + sin(t * PI) * 0.006, 9, outer, -99.0, 20))
-				for q in [0.15, 0.85]:
+				for q in [0.2, 0.6]:
 					var x1 = lerpf(el, ha - 0.04, q)
 					m._garment("anbu_kkayis%d_%d" % [int(sx), int(q * 100)], func(): return m._loft(g, 0, (x1 - 0.008) * sx, (x1 + 0.008) * sx, 2, af,
-						func(_t, _a): return 0.031, 9, null, -99.0, 18))
+						func(_t, a): return 0.031 if absf(a) < 1.1 else 0.012, 9, null, -99.0, 18))
 	var leg = L.get("anbu_leg")
 	if leg != null:
 		for sx in [-1.0, 1.0]:
 			var kx = m._bp(("Left" if sx > 0.0 else "Right") + "LowerLeg").x
 			var lf = func(p: Vector3) -> bool: return signf(p.x) == sx and absf(p.x - kx) < 0.095
 			if leg == "diz":
-				# siyah bacak ısıtıcı: dizin altından bileğe, alta doğru hafif bol
+				# siyah bacak ısıtıcı: dizin altından bileğe, alta doğru hafif bol; iç yüz ince (öbür bacağın ağırlığını alıp yürürken uzamasın)
 				m._garment("anbu_bacak%d" % int(sx), func(): return m._loft(g, 1, knee - 0.035, ank + 0.035, 12, lf,
-					func(t, _a): return 0.016 + t * 0.008, 7, null, -99.0, 20))
+					func(t, a): return (0.016 + t * 0.008) * (1.0 if cos(a) * sx > -0.3 else 0.3), 7, null, -99.0, 20))
 				if sx < 0.0:   # sağ dizde beyaz sargı (ref: tek diz)
 					m._garment("anbu_diz", func(): return m._loft(g, 1, knee + 0.05, knee - 0.04, 6, lf,
-						func(t, _a): return 0.032 + 0.005 * absf(sin(t * PI * 3.0)), 4, null, -99.0, 20))
+						func(t, a): return (0.032 + 0.005 * absf(sin(t * PI * 3.0))) * (1.0 if cos(a) * sx > -0.3 else 0.3), 4, null, -99.0, 20))
 			elif leg == "bant":
 				# boğum boğum bantlı tozluk: dizin altından bileğe halka halka
 				m._garment("anbu_bantli%d" % int(sx), func(): return m._loft(g, 1, knee - 0.06, ank + 0.03, 24, lf,
-					func(t, _a): return 0.014 + (0.012 if fposmod(t * 5.0, 1.0) < 0.4 else 0.0), 7, null, -99.0, 20))
+					func(t, a): return (0.014 + (0.012 if fposmod(t * 5.0, 1.0) < 0.4 else 0.0)) * (1.0 if cos(a) * sx > -0.3 else 0.35), 7, null, -99.0, 20))
 	if L.get("anbu_tasset", false) and L.get("outer") is Color:
 		# belin arkasından dizlere sarkan peştamal (ref anbu2.png: bacak arasından görünür), ikincil hareket
 		var hy = m._bp("Hips").y

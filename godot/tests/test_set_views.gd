@@ -5,7 +5,7 @@ func _w(t: float) -> void:
 	await get_tree().create_timer(t).timeout
 func _ready() -> void:
 	await get_tree().process_frame
-	main.creator_state = {"slot": 3, "name": "Test", "gender": OS.get_environment("SV_G") if OS.get_environment("SV_G") != "" else "m", "clan": "none", "element": "katon", "village": "konoha", "hair_style": "diken", "hair": Color(0.1, 0.1, 0.12), "top": Color(0.2, 0.2, 0.3), "pants": Color(0.15, 0.15, 0.17), "skin": Color(0.96, 0.8, 0.66), "eye": Color(0.2, 0.2, 0.2)}
+	main.creator_state = {"slot": 3, "name": "Test", "gender": OS.get_environment("SV_G") if OS.get_environment("SV_G") != "" else "m", "clan": "none", "element": "katon", "village": "konoha", "hair_style": OS.get_environment("SV_H") if OS.get_environment("SV_H") != "" else "diken", "hair": Color(0.1, 0.1, 0.12), "top": Color(0.2, 0.2, 0.3), "pants": Color(0.15, 0.15, 0.17), "skin": Color(0.96, 0.8, 0.66), "eye": Color(0.2, 0.2, 0.2)}
 	main._start_new_game()
 	await _w(2.5)
 	Hud.close_dialog()
@@ -37,8 +37,8 @@ func _ready() -> void:
 				nd.queue_free()
 		var p = pl.model.global_position
 		print("SV pos ", p, " pl ", pl.global_position)
-		var views = [Vector3(0, 1.0, -3.2), Vector3(0, 1.0, 3.2), Vector3(-3.2, 1.0, 0.0), Vector3(-1.9, 1.3, -1.9), Vector3(0, 1.3, -1.2), Vector3(0, 0.5, -1.4), Vector3(-1.1, 1.0, -0.6), Vector3(1.1, 1.0, -0.6)]
-		var looks = [0.95, 0.95, 0.95, 0.95, 1.3, 0.45, 1.0, 1.0]
+		var views = [Vector3(0, 1.0, -3.2), Vector3(0, 1.0, 3.2), Vector3(-3.2, 1.0, 0.0), Vector3(-1.9, 1.3, -1.9), Vector3(0, 1.3, -1.2), Vector3(0, 0.5, -1.4), Vector3(-1.1, 1.0, -0.6), Vector3(1.1, 1.0, -0.6), Vector3(-0.35, 1.45, -0.75), Vector3(-0.8, 1.45, 0.05)]
+		var looks = [0.95, 0.95, 0.95, 0.95, 1.3, 0.45, 1.0, 1.0, 1.28, 1.28]
 		for k in views.size():
 			cam.global_position = p + views[k]
 			cam.look_at(p + Vector3(0, looks[k], 0))
