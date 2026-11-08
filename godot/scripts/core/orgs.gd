@@ -717,6 +717,8 @@ func _village_ban(dt: float) -> void:
 		Sfx.play("roar", null, 0.7, 0.5)
 	var vid: String = _raid["vid"]
 	_raid["nodes"] = (_raid["nodes"] as Array).filter(func(n): return is_instance_valid(n) and not n.dead)
+	if inside == vid:
+		_alarm_ninjas(dt)
 	if inside != vid:
 		_raid["out_t"] = float(_raid["out_t"]) + dt
 		if float(_raid["out_t"]) > 25.0:
@@ -784,6 +786,28 @@ func _village_arch(vid: String, i: int, outfit := "chunin") -> Dictionary:
 	return a
 
 
+## Alarm: köyün sokaktaki ninjaları (devriye, nöbetçi, çatıdaki, antrenmandaki, hoca) kaçağı görünce saldırıya katılır
+## (eskiden yalnız baskın dalgaları saldırıyordu, devriyeler yanından geçip gidiyordu). Dostların katılmaz.
+var _alarm_t := 0.0
+func _alarm_ninjas(dt: float) -> void:
+	_alarm_t -= dt
+	if _alarm_t > 0.0 or Game.player == null:
+		return
+	_alarm_t = 1.0
+	var pp = Game.player.global_position
+	var n = 0
+	for v in get_tree().get_nodes_in_group("talkers"):
+		if n >= 3:
+			break
+		if not is_instance_valid(v) or not (v is Villager or v is ClanResident) or v.has_meta("friend_id") or not Friends.is_ninja(v):
+			continue
+		if v.global_position.distance_to(pp) > 32.0:
+			continue
+		n += 1
+		Combat.popup_text(v.global_position + Vector3.UP * 2.3, "Kaçak! Durdurun onu!", Color(1, 0.4, 0.35))
+		Crime.inst().attack(v, true)
+
+
 func _raid_wave(vid: String, wd: Dictionary) -> void:
 	var pp = Game.player.global_position
 	var vname = String(Game.village(vid).get("name", vid))
@@ -827,6 +851,15 @@ func _raid_kage(vid: String) -> void:
 	a["look"]["kage_vid"] = vid
 	a["look"]["village"] = vid
 	var kc = Kage.kage_clan(vid)
+	var strong: Array = KageArts.STRONG.get(vid, [])
+	if not kc in strong and not strong.is_empty():
+		# eski kayıt: zayıf klandan / klansız Kage -> köyün güçlü klanından yeni lider (kullanıcı: Kage hep güçlü klandan)
+		kc = String(strong.pick_random())
+		var r = Kage.reign(vid)
+		if not r.is_empty() and String(r.get("friend", "")) == "":
+			r["clan"] = kc
+			r["name"] = ClanWorld.person_name(kc, String(r.get("persona", {}).get("gender", "m")) == "f")
+			a["name"] = "%s — köyünü koruyor" % Kage.kage_name(vid)
 	var js: Array = []
 	if kc != "":
 		a["clan"] = kc
@@ -845,6 +878,7 @@ func _raid_kage(vid: String) -> void:
 	e.set_meta("faction", vid)
 	e.set_meta("kage_of", vid)   # ölünce Kage.kage_killed: haber + halef
 	get_tree().current_scene.add_child(e)
+	KageArts.prepare(e, kc)   # klan modunun gözü / ek teknikleri (Uchiha Mangekyō, Senju Mokuton...)
 	var q = Missions.open_ground(Game.player.global_position + Vector3(0, 0, -28), 15.0)
 	e.global_position = q
 	e.home = q

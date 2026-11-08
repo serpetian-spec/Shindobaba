@@ -97,8 +97,9 @@ static func on_struck(v: Node) -> void:
 		c.attack(v)
 
 
-## Köylü / klan üyesi -> gerçek düşman savaşçı (aynı yerde, aynı görünüşle)
-func attack(v: Node) -> void:
+## Köylü / klan üyesi -> gerçek düşman savaşçı (aynı yerde, aynı görünüşle).
+## alarm: kaçak köydeyken alarm çaldı, köyün ninjası kendiliğinden saldırıya katılıyor (suç kaydı / dostluk cezası yok)
+func attack(v: Node, alarm := false) -> void:
 	if not is_instance_valid(v):
 		return
 	var at: Vector3 = v.global_position
@@ -107,8 +108,9 @@ func attack(v: Node) -> void:
 	var plv = int(Game.profile.get("level", 1))
 	var e: Enemy
 	if v is ClanResident:
-		var rank = int(Friends.all().get(fid, {}).get("rank", 1))
-		e = ClanWorld.spawn_enemy(String(v.clan), 6 + rank * 9 + randi_range(0, 4), at, {"outfit": "chunin", "village": String(v.vid), "name": String(v.given),
+		var rank = clampi(int(Friends.all().get(fid, {}).get("rank", 1)), 0, 3)
+		# rütbe eğrisi (baskın dalgalarıyla aynı): genin ~20, chūnin ~40, jōnin ~70, elit ~90 (eskiden 6+rütbe*9: jōnin bile Güç 33)
+		e = ClanWorld.spawn_enemy(String(v.clan), [20, 40, 70, 90][rank] + randi_range(0, 8), at, {"outfit": "chunin", "village": String(v.vid), "name": String(v.given),
 			"female": v.look.get("gender", "m") == "f", "eye": int(v.eye_kind), "look": v.look, "adopt": v})
 		if e == null:
 			return
@@ -121,6 +123,13 @@ func attack(v: Node) -> void:
 		a["respawn"] = false
 		a["level"] = randi_range(2, 5) if civ else randi_range(12, 22)
 		a["hp"] = 90.0 + a["level"] * (4.0 if civ else 14.0)
+		if not civ:
+			# köy ninjası (devriye/nöbetçi/çatı/hoca): rütbesinin gücüyle (eskiden "genin rakibi" Güç 12-22 — aşırı ezik)
+			var lv_n = {"teacher": randi_range(60, 75), "spar": randi_range(30, 45)}.get(String(v.role), randi_range(35, 55) if randf() < 0.75 else randi_range(65, 85))
+			Stats.npc_ninja(a, lv_n, 1.1)
+			a["element"] = ["katon", "suiton", "fuuton", "doton", "raiton"].pick_random()
+			a["jutsu"] = Enemy.auto_jutsu("rogue", String(a["element"]), lv_n)
+			a["skill"] = clampf(0.25 + lv_n * 0.005, 0.3, 0.7)
 		a["xp"] = 0 if civ else 20
 		a["ryo"] = 10
 		if civ:
@@ -139,6 +148,8 @@ func attack(v: Node) -> void:
 	victims.append({"node": e, "vid": _village_at(at), "fid": fid, "civ": civ, "dead": false})
 	var who = String(v.display)
 	v.queue_free()
+	if alarm:
+		return
 	if fid != "":
 		var f: Dictionary = Friends.all()[fid]
 		f["bond"] = -100

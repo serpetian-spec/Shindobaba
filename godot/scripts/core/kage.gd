@@ -367,7 +367,8 @@ func succeed(vid: String, why := "") -> void:
 	var fid = ""
 	# o köyün Elit Jōnin dostları önce düşünülür
 	var fs: Dictionary = Friends.all()
-	var elite = fs.keys().filter(func(k): return String(fs[k].get("village", "")) == vid and int(fs[k].get("rank", 0)) >= 3 and Friends.available(fs[k]))
+	var strong: Array = KageArts.STRONG.get(vid, [])
+	var elite = fs.keys().filter(func(k): return String(fs[k].get("village", "")) == vid and int(fs[k].get("rank", 0)) >= 3 and Friends.available(fs[k]) and String(fs[k].get("clan", "")) in strong)   # Kage hep güçlü klandan
 	if not elite.is_empty() and randf() < 0.6:
 		fid = String(elite.pick_random())
 		var f: Dictionary = fs[fid]
@@ -381,10 +382,7 @@ func succeed(vid: String, why := "") -> void:
 		Friends.log_event(f, "%s oldu!" % title)
 		f["news"] = "İnanabiliyor musun? Artık %s benim. Kapım sana her zaman açık." % title
 	else:
-		var clans: Array = []
-		for c in Data.clans:
-			if c != "none" and vid in Data.clans[c].get("villages", []) and not c in Progress.UNPLAYABLE_CLANS:
-				clans.append(c)
+		var clans: Array = (KageArts.STRONG.get(vid, []) as Array).filter(func(c): return Data.clans.has(c))   # Kage hep köyün güçlü klanlarından
 		var fem = randf() < 0.3
 		var kclan = String(clans.pick_random()) if not clans.is_empty() else ""
 		who = ClanWorld.person_name(kclan, fem) if kclan != "" else "%s %s" % [String(Missions.BB_FAMILY.pick_random()), (ClanWorld.GIVEN_F if fem else ClanWorld.GIVEN_M).pick_random()]
@@ -392,6 +390,8 @@ func succeed(vid: String, why := "") -> void:
 		persona = {"gender": "f" if fem else "m", "hair": [hc.r, hc.g, hc.b], "hair_style": ["geriye", "kısa", "uzun", "diken", "topuz", "savas_yelesi", "bilge_yelesi"].pick_random(),
 			"beard": not fem and randf() < 0.5}
 	p()["reigns"][vid] = {"name": who, "gen": gen, "persona": persona, "friend": fid}
+	if fid != "":
+		p()["reigns"][vid]["clan"] = String(fs[fid].get("clan", ""))
 	if fid == "" and who != "":
 		for c2 in Data.clans:
 			if c2 != "none" and ClanWorld.clan_name(c2) != "" and who.begins_with(ClanWorld.clan_name(c2)):
