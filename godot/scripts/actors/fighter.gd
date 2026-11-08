@@ -250,7 +250,7 @@ func die(_info: Dictionary) -> void:
 	remove_from_group("fighters")
 	var tw = create_tween()
 	# dōjutsu sahibi (göz alınabilsin) ve üstü aranabilir ceset (ganimet) bir süre yerde kalır
-	tw.tween_interval(90.0 if has_meta("loot") else (45.0 if has_meta("eyes") else 3.0))
+	tw.tween_interval(90.0 if has_meta("loot") else (45.0 if (has_meta("eyes") or is_in_group("senju_bearers")) else 3.0))   # Senju cesedi: hücre alınabilsin
 	tw.tween_callback(func(): FX.smoke_puff(global_position + Vector3.UP * 0.5, 0.8, 10))
 	tw.tween_property(self, "scale", Vector3.ONE * 0.01, 0.3)
 	tw.tween_callback(queue_free)

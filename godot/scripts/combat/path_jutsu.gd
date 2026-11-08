@@ -11990,6 +11990,32 @@ func _wood_branch(L: float, r: float) -> MeshInstance3D:
 	return mi
 
 
+## Mokuton ormanı: oyunun gerçek anime ağacı (AnimeTree: kabuklu gövde, dal, yaprak öbekleri) yerden fışkırarak büyür,
+## dur sn durur, toprağa geri çekilir. Ölçek: h metre boy (yaklaşık). Ref: Jukai Kōtan — alanı kaplayan sık orman.
+func _wood_grow_tree(q: Vector3, h: float, delay: float, dur: float, kind := "") -> Node3D:
+	var tree = MeshInstance3D.new()
+	if kind == "":
+		kind = ["broad", "oak", "forest", "slender"].pick_random()
+	tree.mesh = AnimeTree.mesh(kind, "forest", randi() % 4)
+	var ab: AABB = tree.mesh.get_aabb()
+	var k = h / maxf(ab.size.y, 1.0)
+	scene_add(tree, gp(q))
+	tree.rotation.y = randf() * TAU
+	tree.scale = Vector3(k * 0.3, 0.02, k * 0.3)
+	tree.visible = false
+	var tw = tree.create_tween()
+	tw.tween_interval(delay)
+	tw.tween_callback(func():
+		tree.visible = true
+		VFX.debris(gp(q), EARTH, 6, 7.0, 0.35)
+		VFX.cracks(gp(q), 1.4 + h * 0.08))
+	tw.tween_property(tree, "scale", Vector3.ONE * k, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(dur)
+	tw.tween_property(tree, "scale", Vector3(k * 0.4, 0.02, k * 0.4), 0.6).set_ease(Tween.EASE_IN)
+	tw.tween_callback(tree.queue_free)
+	return tree
+
+
 ## Yerde sürünen kök (Jukai Shinshoku): from'dan dir yönüne kıvrılarak uzar, toprağa yarı gömülü; tabandan uca büyür, sonra batar
 func _creep_root(from: Vector3, dir: Vector3, L: float, r: float, delay: float, dur: float) -> Node3D:
 	var root = Node3D.new()
@@ -12659,38 +12685,9 @@ func p_mokuton_jukai_kotan(c: Node3D, _t: Node3D) -> void:
 			var a = randf() * TAU
 			var r = randf_range(3.0, 14.0)
 			var q = gp(at + Vector3(cos(a) * r, 0, sin(a) * r)) if k < 26 else (gp(targets[k - 26].global_position) if live(targets[k - 26]) else at)
-			var tree = Node3D.new()
-			var trunk = MeshInstance3D.new()
-			var cm = CylinderMesh.new()
-			var h = randf_range(5.0, 10.0)
-			cm.top_radius = 0.3; cm.bottom_radius = 0.7; cm.height = h
-			trunk.mesh = cm
-			var m = StandardMaterial3D.new()
-			m.albedo_color = WOOD.lightened(0.15)
-			m.emission_enabled = true
-			m.emission = WOOD * 0.35
-			trunk.material_override = m
-			trunk.position = Vector3.UP * h * 0.5
-			tree.add_child(trunk)
-			var crown = MeshInstance3D.new()
-			crown.mesh = SphereMesh.new()
-			var lm = StandardMaterial3D.new()
-			lm.albedo_color = Color(0.3, 0.6, 0.25)
-			lm.emission_enabled = true
-			lm.emission = Color(0.1, 0.25, 0.08)
-			crown.material_override = lm
-			crown.scale = Vector3.ONE * randf_range(2.5, 4.0)
-			crown.position = Vector3.UP * h
-			tree.add_child(crown)
-			get_tree().current_scene.add_child(tree)
-			tree.global_position = q
-			tree.scale = Vector3(1, 0.02, 1)
-			var tw = tree.create_tween()
-			tw.tween_property(tree, "scale", Vector3.ONE, 0.35).set_trans(Tween.TRANS_BACK)
-			tw.tween_interval(6.0)
-			tw.tween_property(tree, "scale", Vector3(1, 0.02, 1), 0.6)
-			tw.tween_callback(tree.queue_free)
-			_earth_burst(q, 0.8)
+			_wood_grow_tree(q, randf_range(7.0, 13.0), 0.0, 6.0)
+			if k % 3 == 0:   # ağaçların arasında kıvrılan kökler
+				_creep_root(q, Vector3(cos(a), 0, sin(a)), randf_range(4.0, 7.0), 0.35, 0.1, 5.8)
 			for e in hit(c, q + Vector3.UP, 2.4, inf(c, "mokuton_jukai_kotan", 0.6, {"knock": 8.0, "launch": 9.0, "kind": "heavy", "element": "mokuton"})):
 				st(e, "bind", 2.0))
 	shake(1.0)
@@ -12780,30 +12777,13 @@ func p_mokuton_mokusatsu_shibari_no_jutsu(c: Node3D, t: Node3D) -> void:
 	if tt == null:
 		return
 	var at = gp(tt.global_position)
-	var wm = _wood_mat()
-	for k in 5:
-		var a = k * TAU / 5.0
-		var base = at + Vector3(cos(a), 0, sin(a)) * 2.0
-		_earth_burst(base, 0.7)
-		tether(func(): return base, func(): return tt.global_position + Vector3.UP * (0.4 + k * 0.3) if live(tt) else base, 0.22, wm, 3.0)
+	# ref: yerden fışkıran ahşap halatlar hedefin çevresinde sarmal çizip onu sıkıca sarar (hedef boyunda)
+	var th = float(tt.get("height")) if tt.get("height") != null else 1.8
+	var tr = float(tt.get("radius")) if tt.get("radius") != null else 0.4
+	_wood_wrap(at, th * 1.05, maxf(0.32, tr * 0.9), 2.6)
 	after(0.2, func():
 		if not live(tt):
 			return
-		var coil = Node3D.new()
-		for j in 4:
-			var ring = MeshInstance3D.new()
-			var tm = TorusMesh.new()
-			tm.inner_radius = 0.42; tm.outer_radius = 0.6; tm.rings = 20; tm.ring_segments = 8
-			ring.mesh = tm
-			ring.material_override = wm
-			ring.position = Vector3.UP * (0.3 + j * 0.45)
-			ring.rotation = Vector3(randf_range(-0.3, 0.3), 0, randf_range(-0.3, 0.3))
-			coil.add_child(ring)
-		tt.add_child(coil)
-		fit_body(tt, coil)   # hedef boyunda (kuyruklu/dev hedefte küçük kalmasın)
-		get_tree().create_timer(2.8).timeout.connect(func():
-			if is_instance_valid(coil):
-				coil.queue_free())
 		st(tt, "bind", 2.8)
 		every(2.8, 0.5, func(_i, _k):
 			if live(tt):
@@ -16996,17 +16976,20 @@ func p_mokuton_daijurin_no_jutsu(c: Node3D, t: Node3D) -> void:
 		after(0.3 + k * 0.05, func():
 			if not live(c):
 				return
-			var off = side * randf_range(-2.2, 2.2) + Vector3.UP * randf_range(-0.4, 1.6)
-			var trunk = _branch(randf_range(14.0, 22.0), randf_range(0.6, 1.0))
-			get_tree().current_scene.add_child(trunk)
-			trunk.global_position = from + off * 0.2
-			trunk.look_at(from + d * 20.0 + off * 1.6 + Vector3(0.001, 0, 0), Vector3.UP)
-			trunk.rotate_object_local(Vector3.RIGHT, -PI * 0.5)
-			trunk.scale = Vector3(1, 0.02, 1)
+			# ref (Yamato): kol, ileri doğru kıvrılarak çoğalan kalın ahşap dallara dönüşür (kazık değil)
+			var off = side * randf_range(-2.4, 2.4) + Vector3.UP * randf_range(-0.6, 1.8)
+			var hp = hand_pos(c, true)
+			var to = hp + d * randf_range(14.0, 22.0) + off * 1.8
+			var trunk = Node3D.new()
+			scene_add(trunk, hp)
+			var mi = MeshInstance3D.new()
+			mi.mesh = _wood_tube_mesh(to - hp, randf_range(0.28, 0.45), 0.9, 0)
+			trunk.add_child(mi)
+			trunk.scale = Vector3.ONE * 0.02
 			var tw = trunk.create_tween()
-			tw.tween_property(trunk, "scale", Vector3.ONE, 0.45).set_trans(Tween.TRANS_QUAD)
+			tw.tween_property(trunk, "scale", Vector3.ONE, 0.45).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 			tw.tween_interval(1.6)
-			tw.tween_property(trunk, "scale", Vector3(0.3, 0.02, 0.3), 0.5)
+			tw.tween_property(trunk, "scale", Vector3(0.02, 0.02, 0.02), 0.5).set_ease(Tween.EASE_IN)
 			tw.tween_callback(trunk.queue_free))
 	after(0.6, func():
 		if not live(c):
@@ -17027,24 +17010,10 @@ func p_mokuton_hijutsu_jukai_kotan(c: Node3D, t: Node3D) -> void:
 	for k in 16:
 		after(randf() * 0.5, func():
 			var q = gp(at + Vector3(randf_range(-13, 13), 0, randf_range(-13, 13)))
-			var tree = Node3D.new()
-			get_tree().current_scene.add_child(tree)
-			tree.global_position = q
-			var trunk = _branch(randf_range(10.0, 16.0), randf_range(0.8, 1.4))
-			tree.add_child(trunk)
-			trunk.position = Vector3.UP * 5.0
-			for j in 4:
-				var br = _branch(randf_range(3.0, 5.0), 0.35)
-				trunk.add_child(br)
-				br.position = Vector3(0, randf_range(-1, 4), 0)
-				br.rotation = Vector3(randf_range(0.6, 1.2), j * TAU / 4.0 + randf(), 0)
-			tree.scale = Vector3(1, 0.02, 1)
-			VFX.debris(q, EARTH, 6, 8.0, 0.5)
-			var tw = tree.create_tween()
-			tw.tween_property(tree, "scale", Vector3.ONE, 0.4).set_trans(Tween.TRANS_BACK)
-			tw.tween_interval(5.0)
-			tw.tween_property(tree, "scale", Vector3(1, 0.02, 1), 0.6)
-			tw.tween_callback(tree.queue_free))
+			# gizli sanat: dev ağaçlar (giant) + aralarında kalın kökler
+			_wood_grow_tree(q, randf_range(14.0, 22.0), 0.0, 5.0, ["giant", "forest", "oak"].pick_random())
+			var ra = randf() * TAU
+			_creep_root(q, Vector3(cos(ra), 0, sin(ra)), randf_range(6.0, 10.0), 0.55, 0.15, 4.8))
 	hit(c, at + Vector3.UP, 13.0, inf(c, "mokuton_hijutsu_jukai_kotan", 1.6, {"knock": 6.0, "launch": 8.0, "kind": "heavy", "element": "mokuton"}))
 	every(5.0, 0.5, func(_i, _k):
 		for e in enemies_near(c, at, 13.0):
@@ -21650,18 +21619,26 @@ func p_kaifu_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 
 func p_mokuton_henge(c: Node3D, t: Node3D) -> void:
-	for k in 6:
-		var br = _branch(2.5, 0.2)
-		c.add_child(br)
-		br.position = Vector3(0, 0.6 + k * 0.25, 0)
-		br.rotation = Vector3(randf_range(0.6, 1.2), k * TAU / 6.0, 0)
-		br.scale = Vector3(1, 0.05, 1)
-		var tw = br.create_tween()
-		tw.tween_property(br, "scale", Vector3.ONE, 0.3)
-		tw.tween_interval(1.0)
-		tw.tween_property(br, "scale", Vector3(1, 0.05, 1), 0.3)
-		tw.tween_callback(br.queue_free)
-	_gen(c, "mokuton_henge", t)
+	# ref (Yamato): bedenin çevresinde ahşap şeritler sarmal çizerek yükselir, onu sarar ve ağaca çevirir
+	_wood_wrap(gp(c.global_position), 2.2, 0.45, 0.9)
+	if not c is Player:
+		_gen(c, "mokuton_henge", t)
+		return
+	# oyuncu: sargı kapanınca beden gerçek bir ağaca dönüşür (köylü kılığı + duman değil); saldırınca bozulur (end_henge)
+	after(0.45, func():
+		if not live(c):
+			return
+		if c.get_node_or_null("Disguise"):
+			Jutsu.end_henge(c)
+		var tree = MeshInstance3D.new()
+		tree.name = "Disguise"
+		tree.mesh = AnimeTree.mesh("slender", "forest", randi() % 4)
+		var k = 4.0 / maxf(tree.mesh.get_aabb().size.y, 1.0)
+		tree.scale = Vector3.ONE * k
+		c.add_child(tree)
+		c.model.visible = false
+		Buffs.add("henge", 25.0, {"stealth": 1.0})
+		Hud.msg("Mokuton Henge: ağaca dönüştün. Saldırırsan bozulur.", Color(0.8, 0.9, 0.65)))
 
 
 func p_gentoshin_no_jutsu(c: Node3D, t: Node3D) -> void:
@@ -21671,10 +21648,12 @@ func p_gentoshin_no_jutsu(c: Node3D, t: Node3D) -> void:
 
 ## Isı Pusu: beden çevresinde dalgalı hava
 func p_kagero(c: Node3D, t: Node3D) -> void:
-	for k in 4:
-		after(k * 0.1, func():
-			if live(c):
-				VFX.shockwave(c.global_position + Vector3.UP, Color(1.0, 0.85, 0.6), 1.5 + k * 0.6, 0.35, false))
+	# kanon (Kagerō): kullanıcı ağaç/zemin yüzeyine kaynaşıp içine gömülür — kabuk pulları dökülür, zemin dalgalanır (ısı pusu değil)
+	var at = gp(c.global_position)
+	VFX.debris(at + Vector3.UP * 1.0, WOOD_C.lightened(0.1), 14, 3.5, 0.18)
+	VFX.cracks(at, 1.2)
+	for k in 2:
+		after(k * 0.12, func(): VFX.shockwave(at + Vector3.UP * 0.05, WOOD_C.lightened(0.25), 1.6 + k * 0.8, 0.4, true))
 	_gen(c, "kagero", t)
 
 

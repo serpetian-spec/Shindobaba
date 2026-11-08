@@ -1398,6 +1398,19 @@ static func _stealth(c: Node3D, d: Dictionary) -> void:
 	for f in tree().get_nodes_in_group("fighters"):
 		if Combat.hostile(c, f) and f.global_position.distance_to(c.global_position) < 30 and f.has_method("lose_target"):
 			f.lose_target(dur * 0.5)
+	if String(d.get("id", "")) == "kagero" and c.get("model"):
+		# Kagerō (kanon): duman yok — beden zemine/yüzeye kaynaşarak içine gömülür, süre bitince geri çıkar
+		var m = c.model
+		var y0 = m.position.y
+		var tw = m.create_tween()
+		tw.tween_property(m, "position:y", y0 - 2.0, 0.45).set_ease(Tween.EASE_IN)
+		tw.tween_callback(func(): m.visible = false)
+		tree().create_timer(minf(dur, 4.0)).timeout.connect(func():
+			if is_instance_valid(m):
+				m.visible = true
+				var tb = m.create_tween()
+				tb.tween_property(m, "position:y", y0, 0.4).set_ease(Tween.EASE_OUT))
+		return
 	FX.smoke_puff(c.global_position + Vector3.UP, 1.2, 18)
 	if c.get("model"):
 		c.model.visible = false

@@ -231,8 +231,6 @@ func setup(a: Dictionary) -> void:
 	if a.get("no_level", false):
 		set_meta("no_level", true)
 	arch = a
-	if String(a.get("clan", "")) == "senju":
-		add_to_group("senju_bearers")   # Senju hücresi (Madara yolu): ölünce F ile eti alınır
 	var k = String(a.get("kind", ""))
 	set_meta("faction", String(a.get("faction", k if k in ["konoha", "suna", "kiri", "kumo", "iwa", "ame", "samurai", "bandit"] else ("rogue" if k in ["rogue", "jinchuriki", "oto"] else k))))
 	look = a["look"]
@@ -262,6 +260,10 @@ func setup(a: Dictionary) -> void:
 		if not auto.is_empty():
 			a["jutsu"] = auto
 	_maybe_clan(a)
+	# Senju hücresi (Madara yolu): ölünce F ile eti alınır — rastgele klan zarından SONRA (eskiden önce bakılıyordu:
+	# sonradan Senju çıkan düşman gruba hiç girmiyordu, F seçeneği çıkmıyordu)
+	if String(a.get("clan", "")) == "senju":
+		add_to_group("senju_bearers")
 	# Shiranui (Genma'nın ailesi) senbon iğneleriyle savaşır — oyuncunun başlangıç silahıyla aynı (AI eşitliği)
 	if String(a.get("clan", "")) == "shiranui" and look is Dictionary and String(look.get("weapon_r", "") if look.get("weapon_r") != null else "") == "":
 		look["weapon_r"] = "senbon"
