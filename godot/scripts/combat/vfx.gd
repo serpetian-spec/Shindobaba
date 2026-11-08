@@ -678,7 +678,7 @@ static func puffs(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 	# turuncu -> kızıl -> koyu duman), duman/toz = yumuşak toon topaklar. Düz cel kart + kahverengi kontur yok.
 	var cols: Array = cfg.get("colors", [Color.WHITE, Color(1, 1, 1, 0)])
 	var c0: Color = cols[0]
-	var fire = float(cfg.get("hot", 0.0)) > 0.35 or (c0.r > c0.b + 0.3 and c0.g > 0.25 and c0.r > 0.7)
+	var fire = float(cfg.get("hot", 0.0)) > 0.35 or FX.warm_ramp(cols)
 	var c3 = cfg.duplicate()
 	c3["size"] = float(cfg.get("size", 1.0)) * 0.75
 	c3["colors"] = cols

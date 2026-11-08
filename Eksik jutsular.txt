@@ -1,0 +1,599 @@
+EKSİK JUTSU ARAŞTIRMASI — Narutopedia (Category:Jutsu, 3032 sayfa) ile godot/data/jutsu.json (995 kayıt), 2026-11-08
+Eşleştirme romaji/İngilizce ada göre otomatik (uzatma işaretleri, 'no Jutsu' yok sayılır); bizde farklı adla olup burada görünen birkaç tane olabilir. İsimsiz teknikler hariç.
+
+=== KANON — Naruto dönemi (manga): 62 eksik (toplam 669, bizde 572) ===
+  [Ninjutsu] (28)
+    - Sabaku Sōtaisō Fūin (Desert Layered Imperial Funeral Seal) [A] — Gaara, Shukaku
+    - Shisekiyōjin (Four Red Yang Formation) [A] — Hashirama Senju, Hiruzen Sarutobi, Minato Namikaze, Tobirama Senju
+    - Shishienjin (Four Violet Flames Formation) [B] — Jirōbō, Kidōmaru, Sakon and Ukon, Tasuki, Tayuya
+    - Honō no Te (Hands of Flame) — Obito Uchiha
+    - Chikatsu Saisei no Jutsu (Healing Resuscitation Regeneration Technique) [A] — Kitō, Mogusa, Shizune, Sakura Haruno, Azure Fang
+    - Naruto Ittai Rendan (Naruto Region Combo) [A] — Naruto Uzumaki
+    - Uzumaki Naruto Nisen Rendan (Naruto Uzumaki Two Thousand Combo) [A] — Naruto Uzumaki
+    - Rakkasan (Parachute) — Naruto Uzumaki
+    - Kisei Bunshin (Parasite Clone) — White Zetsu
+    - Possession — Black Zetsu
+    - Kugutsu: Chichi to Haha (Puppet: Father and Mother) — Chiyo~ and Father
+    - Kugutsu: Haruchūgeki (Puppet: Spring Punishing Strike) — Chiyo~ Haruno, Sakura Haruno~
+    - Sōen: Hitomi Gokū (Puppet Performance: Skilful Achievement with a Human Body) [A] — Chiyo, Kankurō, Sasori, Mukade (movie)
+    - Amagumo (Rain of Spiders) [B] — Kidōmaru, Kyodaigumo
+    - Makyō no Ran (Revolt of the Demon World) [B] — Tayuya~, Kabuto Yakushi
+    - Sabaku Rō (Sand Binding Prison) [B] — Gaara
+    - Suna Arare (Sand Hail) — Gaara
+    - Saisei Kekkai (Self-Repairing Barrier) — 
+    - Oiroke Gyaku Hāremu no Jutsu (Sexy Reverse Harem Technique) [D] — Naruto Uzumaki, Sai, Sasuke Uchiha,
+    - Shōten no Jutsu (Shapeshifting Technique) — Nagato~ Path
+    - Rikudō: Kunitsukami (Six Paths: Kunitsukami) — Asura Ōtsutsuki
+    - Rasen Senkō Chō Rinbukō Sanshiki (Spiralling Flash Super Round Dance Howl Style Three) — Minato Namikaze
+    - Rendan Suna Shigure (Successive Shots Sand Drizzle) — Gaara,
+    - Kuchiyose: Gojū Rashōmon (Summoning: Quintuple Rashōmon) [A] — Hashirama Senju
+    - Bijū Sōshingeki (Tailed Beast Full Charge) — Chōmei, Gaara, Gyūki, Isobu, Killer B, Kokuō, Kurama, Matatabi, Naruto Uzumaki, Saiken, Shukaku, Son
+    - Bijū Rasengan (Tailed Beast Rasengan) — Naruto Uzumaki
+    - Tenpenchii (Tenpenchii) — Ten-Tails, Hagoromo Ōtsutsuki, Obito Uchiha
+    - Gamadaira — Kageayatsuri no Jutsu (Toad Flatness — Shadow Manipulation Technique) [B] — Jiraiya
+  [Kekkei Genkai] (7)
+    - Shippū Jinrai — Isō no Hitotachi (Hurricane Thunderclap — Majestic Attire Sword Stroke) — Naruto Uzumaki~ Uchiha, Sasuke Uchiha~ Uzumaki,
+    - Tarenkyaku (Multiple Connected Feet) — Sakon and Ukon
+    - Tarenken (Multiple Connected Fists) — Sakon and Ukon,
+    - Kisei Kikai no Jutsu (Parasite Demon Demolition Technique) — Sakon and Ukon
+    - Den'ien'ei (Strange Transmission Distant Shadow) — Kabuto Yakushi
+    - Kuchiyose Rinnegan (Summoning Rinnegan) — Nagato, Obito Uchiha
+    - Susanoo: Kai (Susanoo: Crush) — Sasuke Uchiha
+  [Taijutsu] (5)
+    - Makitsuki (Coiling Around) — Aoda, Manda, Manda II, Garaga
+    - Sōtenkyaku (Heavenly Spear Foot) — Tsunade
+    - Ninpō: Shinken Shirahadori (Ninja Art: Bare-Handed Blade Block) — Naruto Uzumaki, Shikamaru Nara, Rock Lee
+    - Kagenade (Shadow Stroke) — Yagura Karatachi, Isobu, Rin Nohara
+    - Ai no Muchi (Whip of Love) — Gama, Gamariki, Gamabunta
+  [Fire Release] (4)
+    - Zangetsu (Morning Moon) — Obito Uchiha
+    - Shakuton: Kōrin Shippū Shikkoku no Ya Zeroshiki (Scorch Release: Halo Hurricane Jet Black Arrow Style Zero) — Naruto Uzumaki~ Uchiha, Sasuke Uchiha~ Uzumaki
+    - Gudō jiù Hikari (Truth-Seeking: Saving Light) — Obito Uchiha
+  [Bukijutsu] (3)
+    - Kusari: Sōgazan (Chains: Twin Fangs Slash) — Izumo Kamizuki~ Hagane, Kotetsu Hagane~ Kamizuki
+    - Sōgazan (Twin Fangs Slash) — Izumo Kamizuki~ Hagane, Kotetsu Hagane~ Kamizuki
+    - Yosakugiri (Yosaku Cut) — Sabu,
+  [Yin Release] (3)
+    - Magen: Kijō no Rōkaku (Demonic Illusion: Steaming Multistoried Building) [B] — Gengetsu Hōzuki~ Clam, Giant Clam~ Hōzuki
+    - Fōmēshon Ino–Shika–Chō (Formation Ino–Shika–Chō) — Chōchō Akimichi, Chōji Akimichi, Chōza Akimichi, Ino Yamanaka, Inoichi Yamanaka, Inojin Yamanaka, Sh
+    - Nikudan Yōyō (Human Bullet Yo-Yo) — Chōji Akimichi~ Yamanaka and Shikamaru Nara, Ino Yamanaka~ Akimichi and Shikamaru Nara, Shikamaru Na
+  [Fūinjutsu] (3)
+    - Shikokumujin (Four Black Fogs Formation) [B] — Jirōbō, Kidōmaru, Tayuya, Sakon and Ukon
+    - Tekkō Fūin (Iron Armour Seal) — 
+    - Sanbō Kyūkai (Three Jewels Suction Crushing) [B] — Chiyo~ Puppet Collection of Chikamatsu, Monzaemon Chikamatsu~ Puppet Collection of Chikamatsu
+  [Wind Release] (3)
+    - Senpō: Sumisan Rasenshuriken (Sage Art: Ink-Splatter Rasenshuriken) — Naruto Uzumaki
+    - Gufū Suika no Jutsu (Typhoon Water Vortex Technique) [B] — Naruto Uzumaki~, Yamato~ Uzumaki, Gamakichi Uzumaki
+    - Fūton: Rasenrenshuriken (Wind Release: Repeated Rasenshuriken) — Naruto Uzumaki
+  [Hiden] (2)
+    - Kumonendo (Spider Sticking Spit) — Kidōmaru,
+    - Kumosōkai (Spider Web Unrolling) — Kabuto Yakushi, Kidōmaru
+  [Storm Release] (1)
+    - Shinobi Rengōgun no Jutsu (Allied Shinobi Forces Technique) — Allied Shinobi Forces
+  [Boil Release] (1)
+    - Fungōkyaku (Erupting Strong Foot) — Han
+  [Magnet Release] (1)
+    - Jiton: Rasen Shikkoku (Magnet Release: Spiral Jet Black) — Naruto Uzumaki~ Uchiha, Sasuke Uchiha~ Uzumaki
+  [?] (1)
+    - Saisei Nōryoku (Regeneration Ability) — Danzō Shimura, Hashirama Senju, Madara Uchiha, Naruto Uzumaki, Obito Uchiha, Orochimaru, Tobi (Zetsu
+  [General skill] (1)
+    - Suimen Hokō no Gyō (Water Surface Walking Practice) — 
+
+=== KANON — Ōtsutsuki / Boruto mangası (yol haritasında en sona): 63 eksik (toplam 170, bizde 96) ===
+  [Kekkei Genkai] (11)
+    - Kurokatsuchi (Black Holy Hammer) — Isshiki Ōtsutsuki
+    - Daihakoten (Daihakoten) — Isshiki Ōtsutsuki, Kawaki
+    - Daikokuten (Daikokuten) — Isshiki Ōtsutsuki, Kawaki
+    - Daikokuten: Collapse — Kawaki
+    - Daikokuten: Divine Descent — Isshiki Ōtsutsuki, Kawaki
+    - Daikokuten: Insei (Daikokuten: Falling Star) — Isshiki Ōtsutsuki
+    - Urushikuruizaki (Lacquer Bloom) — Isshiki Ōtsutsuki, Kawaki
+    - Sukunahikona (Sukunahikona) — Isshiki Ōtsutsuki, Kawaki
+    - Sukunahikona: Shungen (Sukunahikona: Instant Appearance) — Isshiki Ōtsutsuki, Kawaki
+    - Sukunahikona: Yatsugibaya (Sukunahikona: Rapid Succession) — Isshiki Ōtsutsuki, Kawaki
+    - Takamimusubinokami (Takamimusubinokami) — Momoshiki Ōtsutsuki
+  [Ninjutsu] (10)
+    - Yoroigui (Armour-Eater) — Log, Mitsuki
+    - Arataketōshi (Furious Smelting) — Kinshiki Ōtsutsuki, Momoshiki Ōtsutsuki, Urashiki Ōtsutsuki
+    - Hari Jizō (Needle Jizō) [B] — Jiraiya, Koji Kashin
+    - Ōdachinagi (Ōdachi Mow Down) — Kinshiki Ōtsutsuki
+    - Fūinjutsu: Kawazunomi (Sealing Technique: Frog Suppression) — Koji Kashin
+    - Jiko Saiseijutsu (Self-Healing Technique) — Boro, Victor, Orochimaru
+    - Oiroke: Otokonoko Dōshi no Jutsu (Sexy: Boy on Boy Technique) [D] — Konohamaru Sarutobi
+    - Oiroke: Onnanoko Dōshi no Jutsu (Sexy: Girl on Girl Technique) [D] — Konohamaru Sarutobi
+    - Rasendan (Spiralling Bullet) — Momoshiki Ōtsutsuki
+    - Bijū Jūhō (Tailed Beast Heavy Cannon) — Gyūki, Kurama, Ten-Tails, Killer B, Naruto Uzumaki, Kaguya Ōtsutsuki, Minato Namikaze
+  [Scientific Ninja Tool Techniques] (10)
+    - Kuroi Moya (Dark Cloud) — Boro
+    - Hakai Kōsen (Destruction Beam) — Delta
+    - Daikaisō (Great Crushing Funeral) — Delta
+    - Gekirin (Reverse Scale) — Code, Delta, Kawaki
+    - Senjinmai (Revolving Blade Dance) — Kawaki
+    - Raijingusōn (Rising Thorn) — Delta
+    - Ran'u-ei Būsutā (Runway Booster) — Delta
+    - Rinhen (Scale Fragment) — Kawaki, Delta
+    - Jibaku (Self-Destruction) — Delta
+    - Thorn Explosion — Kawaki
+  [Shinjutsu] (9)
+    - Tsumeato (Claw Mark) — Code, Hidari, Jura, Mamushi, Matsuri (God Tree), Ryū, Shibai Ōtsutsuki
+    - Kāma (Kāma) — Boruto Uzumaki, Code, Jigen, Kawaki
+    - Kāma: Hōshutsu (Kāma: Discharge) — Kawaki
+    - Kāma: Daisōha (Kāma: Great Burial Wave) — Kawaki
+    - Zennō (Omnipotence) — Ada, Shibai Ōtsutsuki
+    - Rasengan: "Tsurane" (Rasengan: "Unison") — Boruto Uzumaki~~ Kawaki, Kawaki~~ Boruto Uzumaki
+    - Hansha (Reflection) — Daemon, Shibai Ōtsutsuki
+    - Jippō (Ten Directions) — Koji Kashin, Shibai Ōtsutsuki
+    - Tracking Crimson Bullet — Kawaki
+  [Kekkei Mōra] (4)
+    - Amenominaka (Amenominaka) — Kaguya Ōtsutsuki
+    - Shin: Jukai Kōtan (God: Nativity of a World of Trees) — Kaguya Ōtsutsuki, Madara Uchiha
+    - Togebari (Rabbit Hair Needle) — Kaguya Ōtsutsuki
+    - Yomotsu Hirasaka (Yomotsu Hirasaka) — Black Zetsu, Kaguya Ōtsutsuki, Momoshiki Ōtsutsuki, Urashiki Ōtsutsuki
+  [Fire Release] (3)
+    - Katon: Engeki (Fire Release: Flame Attack) — Koji Kashin, Benga, Kiseru Gankubi
+    - Katon Dan: "Homura" (Fire Release Bullet: "Blaze") — Momoshiki Ōtsutsuki
+    - Zanmai no Shinka (True Fire of Samadhi) — Koji Kashin
+  [Water Release] (3)
+    - Raiton: Jinraikanha (Lightning Release: Thunderclap Wave) — Boruto Uzumaki
+    - Kagaku Ningu: Oruka: Ibuki (Scientific Ninja Tool: Orca and Powerful Breath) — Boruto Uzumaki~ Shinobi Gauntlet
+    - Suiton Dan: Oruka (Water Release Bullet: Orca) — Momoshiki Ōtsutsuki
+  [Magnet Release] (2)
+    - Jiton: Jakuhō no Sōjin (Magnet Release: Conserving Bee Twin Blades) — Toroi
+    - Jitetsu Ryūfūjin (Magnetic Iron Sand Sealing Blade) — Araya~, Shinki~
+  [Taijutsu] (2)
+    - Sensōkyaku (Piercing Funeral Foot) — Isshiki Ōtsutsuki
+    - Hōka Ranbu (Surging Fire Wild Dance) — Sasuke Uchiha, Boruto Uzumaki, Kakashi Hatake
+  [Wind Release] (2)
+    - Fūton: Sajin Toppa (Wind Release: Sand Cloud Breakthrough) — Araya
+    - Fūton: Rasen Shōheki (Wind Release: Spiralling Barrier) — Konohamaru Sarutobi
+  [Hiden] (1)
+    - Jujutsu: Kuji Sōketsu (Curse Technique: Body Controlling Manipulated Blood) — Ryūki
+  [Shurikenjutsu] (1)
+    - Haya Ugachi (Flash Slice) — Momoshiki Ōtsutsuki
+  [Yin Release] (1)
+    - Mugen Tsukuyomi (Infinite Tsukuyomi) — Obito Uchiha, Madara Uchiha, Kaguya Ōtsutsuki
+  [Lava Release] (1)
+    - Yōton: Rakuseiha (Lava Release: Planet-Branding Blast) — Boro
+  [Lightning Release] (1)
+    - Raiton Dan: Ibuki (Lightning Release Bullet: Powerful Breath) — Momoshiki Ōtsutsuki, Boruto Uzumaki,
+  [Earth Release] (1)
+    - Saruiwa (Monkey Rock) — Momoshiki Ōtsutsuki
+  [Space–Time Ninjutsu] (1)
+    - Kuchiyose: Kaenzan no Shinka (Summoning: True Fire of the Flaming Mountain) — Koji Kashin
+
+=== YALNIZ ANİME (filler): 175 eksik (toplam 427, bizde 167) ===
+  [Ninjutsu] (81)
+    - Zanzō Bunshin (Afterimage Clone) — Shisui Uchiha,
+    - Amenomihashira (Amenomihashira) — Asura Ōtsutsuki
+    - Kagerō Ninpō: Utakata (Antlion Ninja Arts: Ephemeral) — Kagerō
+    - Shinra Banshō Dōka no Jutsu (Assimilate All Creation Technique) — Nagare, White Zetsu Army
+    - Kōmori Seichū (Bat Controlling) — Rinji
+    - Enmaku Rō (Binding Smoke Prison) — Kigiri
+    - Purin Purin no Jutsu (Bouncy Bouncy Technique) — Konohamaru Sarutobi~ and Udon, Moegi Kazamatsuri~ and Udon, Udon Ise~ and Moegi
+    - Shisha Kugutsu (Casualty Puppet) — Arashi, Nurari, Orochimaru
+    - Saibō no Kasseijutsu (Cell Activation Technique) — Tsunade
+    - Chakura no Hari (Chakra Needle) — Hinoko
+    - Jibakujutsu (Character Bind Technique) — Shiranami
+    - Kurōn Hebi (Clone Snakes) — Kabuto Yakushi
+    - Bunshin Kaiten Kakato Otoshi (Clone Spinning Heel Drop) — Naruto Uzumaki
+    - Kokūn (Cocoon) — Fū, Chōmei
+    - Shiki Tenshin (Colour Course Change) — Fūka
+    - Makigai Hō (Conch Cannon) — Conch King, Kandachi
+    - Makigai Ben (Conch Whip) — Conch King, Kandachi,
+    - Tsuchi Kurenai (Crimson Earth) — Toki (Shinobazu)
+    - Noroi no Suna Ningyō no Jutsu (Cursed Sand Puppet Technique) — Saya
+    - Maengan (Dark Smoke Sphere) — Kihō
+    - Messhū Enrō (Destroying Smell Smoke Prison) — Kigiri
+    - Hōriki: Kage Hōshi (Dharma Power: Silhouette) — Hōichi
+    - Utsusemi no Jutsu (Empty Cicada Shell Technique) — Jigumo
+    - Kaihi no Jutsu (Evasion Technique) — Yome
+    - Shikei Seppun (Execution by Kiss) — Fūka
+    - Bakuretsuchū (Exploding Insect) — 
+    - Fierce Attack Wind Sphere — Asura Ōtsutsuki
+    - Hitei Mushō (Flying Nail Mist Soaring) — Gosunkugi
+    - Kizuna no Te (Hands of Bonds) — Asura Ōtsutsuki
+    - Nunogakure no Jutsu (Hiding in Cloth Technique) — Maki
+    - Hyaku Kugutsu Tamashibari (Hundred Puppet Soul Binding) — Kokuyō (puppeteer)
+    - Shippū Jinrai (Hurricane Thunderclap) — Akaboshi, Benten, Chūshin, Nangō
+    - Shogyō Mujō (Impermanence of Worldly Things) — Akaboshi, Benten, Chūshin, Nangō
+    - Mugen Hōyō (Infinite Embrace) — Shiranami, Akaboshi, Benten, Nangō, Chūshin
+    - Sumi Nagashi (Ink Flush) — Sai
+    - Jishaku Ninpō: Denji Genmu (Magnet Ninja Art: Electromagnetic Vision) — Jiga
+    - Jishaku Ninpō: Mugen Inseki (Magnet Ninja Art: Infinite Meteors) — Jiga
+    - Sōgu: Baku Ryūsei (Manipulated Tools: Binding Meteor) — Tenten
+    - Samidare Kekka (May Rain Blood River) — Shura
+    - Karakuri Hakke no Jin (Mechanical Eight Trigrams Formation) — Tsunade
+    - Tajū Mugen Hōyō (Multiple Infinite Embraces) — Akaboshi, Benten, Chūshin, Nangō
+    - Ayametori (Murderous Grasp) — Monju
+    - Nadeshiko-Ryū Shinku Enbu (Nadeshiko-Style Deep Crimson Dance Performance) — Shizuka
+    - Naruto to Shion no Chō Chakura Rasengan (Naruto and Shion's Super Chakra Rasengan) — Naruto Uzumaki~, Shion~ Uzumaki
+    - Hari Jigoku (Needle Hell) — Jiraiya
+    - Kyūbi Chakura Bomu (Nine-Tails Chakra Bomb) — Mecha-Naruto
+    - Ningu Kekkai: Gyakuuroku no Jin (Ninja Tools Barrier: Reverse Fish Scales Formation) — Hōki (Takumi), Kujaku, Ryūgan
+    - Pachinko no Jutsu (Pachinko Technique) — Naruto Uzumaki~ Uchiha, Sasuke Uchiha~ Uzumaki
+    - Shishō Tenketsu (Pressure Points of Harm and Death) — Guren
+    - Kugutsu Modoki no Jutsu (Puppet Imitation Technique) — Saya
+    - Rensha (Rapid Fire) — Kusune
+    - Ura Shirohigi: Jikki Uematsu no Shū (Reverse White Secret Technique: The Uematsu Collection of Ten Puppets) — Chiyo
+    - Ribāshiburu no Jutsu (Reversible Technique) — Orochimaru
+    - Kawara Shuriken (Roof Tile Shuriken) — Hiruzen Sarutobi
+    - Rough Sea Barrier — Isobu, Yagura Karatachi
+    - Chibitama Rasengan (Runt Ball Rasengan) — Naruto Uzumaki
+    - Suna Moji (Sand Characters) — Sajin (Genin), Gaara
+    - Sunagoromo no Jutsu (Sand Cloak Technique) — Sana,
+    - Oiroke no Jutsu: Pōrudansu ando Naisu Bodī (Sexy Technique: Pole Dance and Nice Body) — Konohamaru Sarutobi, Naruto Uzumaki
+    - Eikesō: I (Sharp Hair Spear: Might) — Fuguki Suikazan
+    - Sumerudama (Smell Sphere) — Burami
+    - Enryū (Smoke Dragon) — Kihō
+    - Hebi Kuchi Shibari (Snake Mouth Bind) — Orochimaru
+    - Konshin Betsuri no Jutsu (Soul–Body Separation Technique) — Sabiru
+    - Jikūjutsu Shiki: Yomi Tenshin (Space–Time Technique Formula: Underworld Turnover) — Jirōbō, Kidōmaru, Orochimaru, Sakon and Ukon, Tayuya
+    - Kuchiyose: Aian Meiden (Summoning: Iron Maiden) — Ibiki Morino
+    - Kuchiyose: Usuimon (Summoning: Rainwater Gate) — Ajisai
+    - Kuchiyose: Gōmon Heya (Summoning: Torture Chamber) — Ibiki Morino
+    - Gyoraishin (Torpedo Nails) — Gosunkugi
+    - Saikō Zettai Kōgeki: Shukaku no Hoko (Ultimately Hard Absolute Attack: Spear of Shukaku) — Gaara
+    - Yunaito (Unite) — Mecha-Naruto~ Uzumaki, Mecha-Kurama
+    - Kaifūjutsu: Kamifubuki (Unsealing Technique: Paper Snowstorm) — Ajisai
+    - Uzumaki no Jin (Uzumaki Formation) — Naruto Uzumaki
+    - Raigō: Senjusatsu (Welcoming Approach: Thousand-Armed Murder) — Asuma Sarutobi, Chiriku
+    - Shirohigi Ōgi: Mugen no Shū (White Secret Technique Secret Art: Collection of Illusions) — Chiyo
+    - Kaze Gaeshi (Wind Return) — Kujaku
+    - Kazegumo no Jutsu (Wind Spider Technique) — Jigumo
+    - Maki Kemuri no Jutsu (Winding Smoke Technique) — Heiji
+    - Kago no Me (Wire Cage) — Monju
+    - Mokujin Hyōi Tenshin Sōjutsu (Wooden Men Possession Turnover Manipulation Technique) — Genshō Ryūdōin,
+    - Mokujin Sōjutsu (Wooden Puppet Manipulation Technique) — Agira Ryūdōin, Genshō Ryūdōin, Iō, Jakō Ryūdōin, Rokkaku Ryūdōin
+  [Taijutsu] (20)
+    - Kuro Tatsumaki (Black Tornado) — 
+    - Kakuyoku no Jin (Crane Wing Formation) — Akino, Bisuke, Guruko, Shiba, Ūhei, Urushi (summon)
+    - Inukabe no Jin (Dog Wall Formation) — Akino, Bisuke, Bull, Guruko, Pakkun, Shiba, Ūhei, Urushi (summon)
+    - Dainamikku Akushyon (Dynamic Action) — Might Guy
+    - Furious Tail Strike — Kinkaku
+    - Kōsahō (Intersection Method) — Genshō Ryūdōin, Might Guy
+    - Tetsunabe Mōgeki (Iron Pan Furious Attack) — Kosuke Maruboshi
+    - Ninken Ninpō: Sajin no Mai (Ninken Ninja Art: Dance of the Dust Cloud) — Akino, Bisuke, Bull, Guruko, Pakkun, Shiba, Ūhei, Urushi (summon)
+    - Dachō Seikūzan (Ostrich Aerial) — Condor
+    - Dachō Ryūseibaku (Ostrich Meteor Blast) — Condor
+    - Dachō Shōryūdan (Ostrich Rising Dragon Bullet) — Condor
+    - Dachō Senpūgeki (Ostrich Whirlwind Attack) — Condor
+    - Iwa Nadare no Jin (Rock Avalanche Formation) — 
+    - Funeyoi Kobushi (Seasickness Fist) — Rock Lee, Might Guy
+    - Shainingu Dachō Kikku (Shining Ostrich Kick) — Condor
+    - Muon no Ken (Silent Fist) — Shira
+    - Sūpā Ekuserento Haipā Atakku (Super Excellent Hyper Attack) — Mondai, Potcha
+    - Tail Sweep — Kinkaku
+    - Bijū Senkōdan (Tailed Beast Flash Bullet) — Naruto Uzumaki
+    - Seishun Furu Pawā (Youth Full Power) — Rock Lee
+  [Hiden] (16)
+    - Hachi Bakudan no Jutsu (Bee Bomb Technique) — Jibachi, Suzumebachi
+    - Hachimitsu no Jutsu (Bee Honey Technique) — Beekeeper, Suzumebachi
+    - Chakura no Ito (Chakra Threads (Fūma)) — Kagerō
+    - Jubaku Mandara (Curse Mandala) — Arashi
+    - Kao Utsushi no Jutsu (Face Copying Technique) — Agari Kaisen
+    - Hana Ninpō (Flower Ninja Art) — Kikunojō, Yurinojō
+    - Hana Ninpō: Hyakkasaihō (Flower Ninja Art: Many Releasing Flowers) — Kikunojō
+    - Hana Shuriken: Hikarakuyō (Flower Shuriken: Falling Blossoms and Scattering Leaves) — Kikunojō, Yurinojō
+    - Mushi Nawa no Jutsu (Insect Rope Technique) — Shino Aburame
+    - Kodoku no Jutsu (Jar of Poison Technique) — Torune Aburame
+    - Shinran Enbu no Jutsu (Mind Disturbance Dance Performance Technique) — Inoichi Yamanaka
+    - Kujaku Myōhō (Mysterious Peacock Method) — Akahoshi, Hokuto, Hotarubi, Natsuhi, Shisō, Sumaru, Yotaka
+    - Dokujin no Jutsu (Poison Cloud Technique) — Torune Aburame
+    - Hijutsu: Mushiyose (Secret Technique: Insect Gathering) — Shino Aburame
+    - Hiden Jutsu: Kuchi no In no Jutsu (Secret Technique: Mouth Seal Technique) — Baji
+    - Bōsui no Jin (Spindle Formation) — Shino Aburame
+  [Water Release] (10)
+    - Kibakuhō (Explosive Bubble) — Utakata
+    - Kugutsu Suiton: Yōu no Mai (Puppet Water Release: Dance of Mystic Rain) — Suna Assassin Captain,
+    - Hijutsu: Kirisame (Secret Technique: Mist Rain) — 
+    - Suiton Genjutsu: Mugen Marō (Water Release Genjutsu: Demonic Phantom Fog Prison) — Conch King, Kandachi,
+    - Water Release: Bubbles Technique — Ink — Utakata
+    - Suiton: Kirisamegakure no Jutsu (Water Release: Hiding in Drizzle Technique) — Suiren
+    - Suiton: Taihōdan (Water Release: Large Projectile) — Isaribi, Amachi
+    - Suiton: Suiten Hōfutsu (Water Release: Water–Heavens Convergence) — Ruiga
+  [Earth Release] (8)
+    - Dōka: Iwafubuki (Assimilation: Rock Blizzard) — Nagare,
+    - Dōka: Ganseki Sensha (Assimilation: Rock Tank) — Nagare,
+    - Doton: Dangan no Jutsu (Earth Release: Bullet Rock Technique) — Fudō, Ōnoki,
+    - Doton: Doryūha (Earth Release: Earth Flow Wave) — Iwabee Yuino, Sekiei (spectator), Shamo
+    - Doton: Tsuchi Nami no Jutsu (Earth Release: Earth Wave Technique) — Kakashi Hatake, Mei Terumī
+    - Doton: Daichi Ganshō (Earth Release: Ground Bedrock) — Iwazō, Fudō
+    - Doton: Ganseki Kuzushi (Earth Release: Rock Collapse) — 
+    - Doton: Iwadeppō no Jutsu (Earth Release: Rock Gun Technique) — Mugino
+  [Fire Release] (7)
+    - Enton: Honoikazuchi (Blaze Release: Honoikazuchi) — Sasuke Uchiha
+    - Katon Renkeijutsu: Karura (Fire Release Cooperation Technique: Garuda) — 
+    - Katon: Kasumi Enbu no Jutsu (Fire Release: Mist Blaze Dance Technique) — Kagerō
+    - Hana Ninpō: Hyakkaryōran (Flower Ninja Art: Many Blooming Flowers) — Kikunojō, Yurinojō
+    - Hinokagutsuchi (Hinokagutsuchi) — Indra Ōtsutsuki
+    - En'en Hōka (Monkey Flame Arson) — Rōshi, Son Gokū
+    - Yin–Yang Release (jutsu) — Obito Uchiha
+  [Yin Release] (4)
+    - Kuro Higanbana (Black Spider Lily) — Shikaku Nara
+    - Saboten no Genjutsu (Cactus Genjutsu) — Sen
+    - Magen: Kowaku no Kangen (Demonic Illusion: Cajolery of Glamour) — Gengo
+    - Hana Ninpō: Kyōkasui (Flower Ninja Art: Mirror Flower Water) — Kikunojō
+  [Kekkei Genkai] (4)
+    - Ketsuryū Shōten (Blood Dragon Ascension) — Chino
+    - Hakke Banshō (Eight Trigrams Grid Palm) — 
+    - Jūhō Rasen Sōshiken (Gentle Phoenix Spiralling Twin Lion Fists) — Hinata Hyūga~ Uzumaki, Naruto Uzumaki~ Hyūga
+    - Tarensenpū (Multiple Connected Whirlwinds) — Sakon and Ukon
+  [Bukijutsu] (4)
+    - Bunmawashi (Bunmawashi) — Suguro
+    - Hissatsu Hōguryūsei (Certain-Kill Treasured Tool Meteor) — Matsuri
+    - Furai Pan Atakku (Frying Pan Attack) — Mebuki Haruno, Yoshino Nara, Kosuke Maruboshi, Kushina Uzumaki
+    - Mitama Kari (Soul Hunting) — Hidan
+  [Lightning Release] (4)
+    - Destructive Jinrai — Indra Ōtsutsuki, Hagoromo Ōtsutsuki
+    - Raiton Renkei: Sandābomu (Lightning Release Co-Operation: Thunder Bomb) — Omoi~ and the Thundercloud Unit, Yukai~ and the Thundercloud Unit
+    - Iwa Nadare (Rock Avalanche) — Raiga Kurosuki
+    - Denpō Sekka (Telegram Flash) — Akaboshi, Benten, Chūshin, Nangō
+  [Wind Release] (4)
+    - Gōkūhō (Great Vacuum Cannon) — Seimei
+    - Senmōfū (Rotating Ferocious Wind) — Kujaku, Seimei
+    - Fūton: Tatsu no Ōshigoto (Wind Release: Great Task of the Dragon) — Shikadai Nara, Temari, Urashiki Ōtsutsuki‎,
+    - Fūton: Gama Teppō (Wind Release: Toad Gun) — Naruto Uzumaki~, Gamatatsu~ Uzumaki
+  [Kenjutsu] (3)
+    - Bakutō Jutsu: Happa Rokujūshi (Blastsword Technique: Blasting Bridle Repeating Death) — Jinpachi Munashi
+    - Chōtō Ninpō: Gyakusatsu Hōjin (Longsword Ninja Art: Massacre Method Formation) — Hebiichigo, Kushimaru Kuriarare
+    - Hiken: Tsukikage (Secret Sword: Moonlight) — Hayate Gekkō
+  [Fighting Style] (2)
+    - Hōen no Jin (Circular Formation) — Akino, Bisuke, Bull, Guruko, Pakkun, Shiba, Ūhei, Urushi (summon)
+    - Jishaku Ninpō (Magnet Ninja Art) — Jiga
+  [?] (2)
+    - Bakuryūgeki (Exploding Dragon Strike) — Tenten
+    - Shichi Tenkohō (Seven Heavens Breathing Method) — Shira
+  [Fūinjutsu] (2)
+    - Kekkai Shihō Fūjin (Four-Corner Sealing Barrier) — Hinata Hyūga, Ino Yamanaka, Sakura Haruno, Shizune, Tsunade
+    - Fūbaku Hōjin (Sealed Binding Formation) — Iruka Umino
+  [Yang Release] (1)
+    - Mizudan Suisha (Ballistic Waterwheel) — Chōji Akimichi
+  [Crystal Release] (1)
+    - Kesshō: Kyodai Rokkaku Shuriken (Crystal: Giant Hexagonal Shuriken) — Guren
+  [Space–Time Ninjutsu] (1)
+    - Otogakure Yoninshū: Kuchiyose: Shijū Hōi no Jin (Sound Four: Summoning: Four Beasts Encirclement Formation) — Jirōbō, Kidōmaru, Sakon and Ukon, Tayuya
+  [Shurikenjutsu] (1)
+    - Wild Boar Spin — Obito Uchiha
+
+=== BORUTO: 66 eksik (toplam 132, bizde 31) ===
+  [Ninjutsu] (16)
+    - Kongō Fūin: En'yō Fūsatsu (Adamantine Seal: Monkey Yang Suppression) — Enra~ Sarutobi, Konohamaru Sarutobi~
+    - Amenosubaruboshinomikoto: Ryūgū (Amenosubaruboshinomikoto: Ryūgū) — Urashiki Ōtsutsuki
+    - Baryon Rasengan (Baryon Rasengan) — Naruto Uzumaki
+    - Namida Sanjō no Jutsu (Calling on Tears Technique) — Namida Suzumeno
+    - Senkō Shōken (Crimson Flash Colliding Fist) — Naruto Uzumaki
+    - Shinku Rasen (Deep Crimson Spiral) — Momoshiki Ōtsutsuki
+    - Flaming Fang: Petrification Poison — Garaga
+    - Kasumi Ninpō: Kinjutsu: Kakuriyo Kaimon (Haze Ninja Art: Forbidden Technique: Afterlife Opening Gate) — Yoruga
+    - Kasumi Ninpō: Kinjutsu: Jigoku Messatsu (Haze Ninja Art: Forbidden Technique: Hellish Obliteration) — Hiruga
+    - Kasumi Ninpō: Kinjutsu: Higanbana (Haze Ninja Art: Forbidden Technique: Red Spider Lily) — Asaka
+    - Kurama Wangeki (Kurama Arm Attack) — Naruto Uzumaki
+    - Insei Rasengan (Meteorite Rasengan) — Momoshiki Ōtsutsuki
+    - Shadanheki (Quarantine Wall) — Renga Kokubō
+    - Fūinjutsu: Sanpō Fūin (Sealing Technique: Three Directions Seal) — Hiruzen Sarutobi, Konohamaru Sarutobi,
+    - Shitei: Rasengan (Student and Teacher: Rasengan) — Boruto Uzumaki~ Sarutobi, Konohamaru Sarutobi~ Uzumaki, Naruto Uzumaki~, Jiraiya~ Uzumaki, Kakashi H
+    - Gama Kemuri no Jutsu (Toad Smoke Technique) — Koji Kashin
+  [Water Release] (9)
+    - Hanamizuki (Nose Water Tree) — Udon Ise
+    - Suiton: Meikyō Shisui (Water Release: Clear Mirror Still Water) — Kagura Karatachi
+    - Suiton: Dogō Tatsumaki (Water Release: Furious Roaring Tornado) — Funamushi
+    - Suiton: Teppunokyū (Water Release: Imminent Danger) — Funamushi
+    - Suiton: Mizu Kamikiri (Water Release: Rising Water Slicer) — Inori's Brother, Shizuku
+    - Suiton: Gekiryūdan (Water Release: Torrent Bullet) — Momoshiki Ōtsutsuki, Mei Terumī
+    - Suiton: Suiryūkyō (Water Release: Water Current Bridge) — 
+    - Suiton: Mizu Arare (Water Release: Water Hail) — Moegi Kazamatsuri, Suigetsu Hōzuki, Udon Ise
+    - Suiton: Itomimizu (Water Release: Water Snake Threads) — Anaguma
+  [Earth Release] (8)
+    - Akuta (Akuta) — Kū, Ōnoki
+    - Ankorodō Hiden Ninjutsu: Mochiton: Mugen Shiratama (Ankorodō Hiden Ninjutsu: Mochi Release: Infinite Dumplings) — Ankorodō Shop Owner
+    - Bunshin Torappu (Clone Trap) — Hidari (missing-nin)
+    - Doton: Dorōn (Earth Release: Drone) — Kū, Sekki
+    - Doton: Sajinarashi (Earth Release: Dust Storm) — Victor
+    - Doton: Tsuchi Kairō (Earth Release: Earth Corridor) — Urashiki Ōtsutsuki, Gitai, Iwabee Yuino
+    - Doton: Tōjinbō (Earth Release: Fighting Blade Rod) — Hōki Taketori
+    - Doton: Gagankon (Earth Release: Rock Brick Cane) — Iwabee Yuino
+  [Lightning Release] (7)
+    - Raigyo (Lightning Fish) — Buntan Kurosuki
+    - Raiton: Erekiteru (Lightning Release: Elekiter) — Denki Kaminarimon
+    - Raiton: Raihazan (Lightning Release: Lightning Slash) — Denki Kaminarimon
+    - Raiton: Ōbādoraibu (Lightning Release: Overdrive) — Denki Kaminarimon, Toroi (Genin),
+    - Raiton: Kanasaibō (Lightning Release: Pulverising Lightning Rod) — Gatai
+    - Raiton: Kaminari no Kusabi (Lightning Release: Thunder Wedge) — Ōga
+    - Raiton: Muchimōmai (Lightning Release: Whip Dance of Fools) — 
+  [Wind Release] (6)
+    - Boruto Sutorīmu (Boruto Stream) — Boruto Uzumaki, Sarada Uchiha~ Uzumaki, Mitsuki~ Uzumaki,
+    - Fūton: Hanaarashi (Wind Release: Flower Storm) — Hana Kaka
+    - Fūton: Hikōkaze (Wind Release: Flying Locust Wind) — Batta
+    - Fūton: Gōfūsen (Wind Release: Great Balloon) — Victor
+    - Fūton: Kokuan Shirin (Wind Release: Obscuring Paper) — Hana Kaka
+    - Fūton: Hikarakuyō (Wind Release: Scattering Blossoms) — Hana Kaka
+  [Hiden] (6)
+    - Nekokaburi (Cat Covering) — Wasabi Izuno
+    - Nekogami Hyōi: Bakeneko Maneki no Jutsu (Cat God Possession: Monster Cat Beckoning Technique) — Wasabi Izuno
+    - Nekodamashi (Cat Surprise) — Wasabi Izuno
+    - Gozu Tennō (Gozu Tennō) — Sumire Kakei, Tanuki Shigaraki
+    - Sen'ei Jasō (Hidden Shadow Snake Burial) — Mitsuki
+    - Hijutsu: Juketsu Kekkai (Secret Technique: Tree Blood Barrier) — Jujumaru, Kurobane
+  [Kinjutsu] (3)
+    - Asshuku Rasengan (Compression Rasengan) — Boruto Uzumaki
+    - Kasumi Ninpō: Kinjutsu: Kagerō Ichigo (Haze Ninja Art: Forbidden Technique: Ephemeral Life) — Yūga
+    - Chōkō Asshuku Rasengan (Super Compression Rasengan) — Boruto Uzumaki~ and Sarada Uchiha, Mitsuki~ Uchiha and Boruto Uzumaki, Sarada Uchiha~ Uzumaki and Mi
+  [Kekkei Genkai] (3)
+    - Daikokuten: Gōen (Daikokuten: Karma Flame) — Isshiki Ōtsutsuki
+    - Daikokuten: Sukunahikona: Sōgeki (Daikokuten: Sukunahikona: Twin Crash) — Isshiki Ōtsutsuki
+    - Sukunahikona: Samidare (Sukunahikona: Rain of Early Summer) — Isshiki Ōtsutsuki
+  [Fire Release] (3)
+    - Katon: Rakka Rōseki (Fire Release: Chaotic Petals) — Hana Kaka
+    - Katon: Kitsunebi (Fire Release: Fox Fire) — Oko
+    - Kijigari (Pheasant Hunter) — Momoshiki Ōtsutsuki
+  [Taijutsu] (2)
+    - Instant Earth Burial — Isshiki Ōtsutsuki
+    - Sekichū Messai (Stone Pillar Destruction) — Sakura Haruno
+  [Yang Release] (1)
+    - Kara no Dōn (Empty Crash) — Chōchō Akimichi
+  [Yin Release] (1)
+    - Ninpō: Mugen Kairō (Ninja Art: Infinite Sea Watchtower) — Kurobane
+  [Scientific Ninja Tool Techniques] (1)
+    - Bōwan (Violent Arm) — Kawaki
+
+=== YALNIZ FİLM: 60 eksik (toplam 102, bizde 7) ===
+  [Ninjutsu] (27)
+    - Kurohigi Kiki Nihatsu (Black Secret Technique Machine Two Shot) — Kankurō~
+    - Kimera no Jutsu (Chimera Technique) — Hiruko (missing-nin), Ichi, Ni, San
+    - Bunshin Hiya (Clone Flying Arrow) — Naruto Uzumaki
+    - Mikazuki Rasengan (Crescent Moon Rasengan) — Naruto Uzumaki
+    - Ankoku Ijutsu (Dark Medicine) — Kusuna
+    - Feather Bombardment — San's Bird
+    - Dai Rasenringu (Great Spiralling Ring) — Menma Uzumaki
+    - Dokonjō Rasengan (Guts Rasengan) — Naruto Uzumaki
+    - Midoru Ējido Atakku (Middle-Aged Attack) — 
+    - Kumenjū (Nine Masked Beasts) — Menma Uzumaki
+    - Kujaku Myōō (Peacock Wisdom Queen) — Mukade (movie)
+    - Kugutsu: Kaisengeki (Puppet: Rotation Attack) — Mukade (movie)
+    - Kugutsu no Noroi (Puppet Curse) — Hiruko (missing-nin)
+    - Sakura Fubuki no Jutsu (Sakura Blizzard Technique) — Sakura Haruno
+    - Suna Raishin (Sand Lightning Needles) — Gaara
+    - Masui Sejutsu (Secret Anaesthesia) — Kusuna
+    - Nanairo no Rasengan (Seven-Coloured Rasengan) — Naruto Uzumaki
+    - Kage Kagami Shinten no Hō (Shadow Mirror Body Changing Method) — Taruho
+    - Dakōmō (Snake Steel Net) — Ichi
+    - Jasenshi (Spinning Snake Thorn) — Ichi
+    - Rasenringu (Spiralling Ring) — Menma Uzumaki
+    - Kyōka Shohō: Chakura Chūnyū (Strengthening Prescription: Chakra Injection) — Kusuna, Yomi
+    - Kuchiyose: Sōtōja (Summoning: Dual-Headed Snakes) — Ichi
+    - Taikyoku Rasengan (Supreme Ultimate Rasengan) — Naruto Uzumaki~ Namikaze, Minato Namikaze~ Uzumaki,
+    - Jigen Shiki no Jutsu (Time-Release Technique) — Tsunade
+    - Tatsumaki Rasengan (Tornado Rasengan) — Naruto Uzumaki
+    - Chōsoku Saisei no Jutsu (Ultra-Fast Regeneration Technique) — Mukade (movie)
+  [Fire Release] (6)
+    - Katon: Onidōrō (Fire Release: Demon Lantern) — Muku, Ryūzetsu
+    - Katon: Gōka Tenrō (Fire Release: Great Fire Heavenly Prison) — Mui
+    - Katon: Hibashiri (Fire Release: Running Fire) — Gitai, Shizuku
+    - Tenrō Kaken (Heavenly Prison Fire Sword) — Mui,
+    - Ryūmyaku: Gōryūka (Ryūmyaku: Great Dragon Fire) — Mukade (movie)
+    - Ryūmyaku: Chō Gōryūka no Jutsu (Ryūmyaku: Super Great Dragon Fire Technique) — Mukade (movie)
+  [Ice Release] (6)
+    - Hyōrō no Jutsu (Ice Prison Technique) — Fubuki Kakuyoku, Haku
+    - Hyōton: Kokuryū Bōfūsetsu (Ice Release: Black Dragon Blizzard) — Dotō Kazahana
+    - Hyōton: Ikkaku Hakugei (Ice Release: One Horned White Whale) — Nadare Rōga, Kakashi Hatake
+    - Hyōton: Haryū Mōko (Ice Release: Tearing Dragon Fierce Tiger) — Nadare Rōga
+    - Hyōton: Sōryū Bōfūsetsu (Ice Release: Twin Dragon Blizzard) — Dotō Kazahana
+    - Hyōton: Rōga Nadare no Jutsu (Ice Release: Wolf Fang Avalanche Technique) — Nadare Rōga
+  [Kekkei Genkai] (3)
+    - Ryūmei Tensei (Dragon Life Reincarnation) — Ryūzetsu
+    - Jūfū Rasen Sōshiken: Shirayuki (Gentle Wind Spiralling Twin Lion Fists: Snow White) — Hinata Hyūga~ Uzumaki, Naruto Uzumaki~ Hyūga
+    - Kinbō Tensei Baku (Localised Reincarnation Explosion) — Toneri Ōtsutsuki
+  [Gelel Techniques] (3)
+    - Purazuma Bōru (Plasma Ball) — Ranke
+    - Smokescreen — Kamira
+    - Sandā Sāburu (Thunder Sabre) — Ranke
+  [Water Release] (3)
+    - Suishū Gorugon (Water Attacking Gorgon) — Shizuku
+    - Suiton: Teppōuo (Water Release: Archerfish) — Maroi
+    - Mizu Kawarimi (Water Replacement) — Shizuku
+  [Wind Release] (3)
+    - Fūton: Kami Oroshi (Wind Release: Divine Mountain Wind) — Setsuna
+    - Fūton: Kamikaze (Wind Release: Divine Wind) — Setsuna
+    - Fūton: Kaiten Shuriken (Wind Release: Rotating Shuriken) — Setsuna
+  [Taijutsu] (2)
+    - Kusakage-Ryū Happa Shō (Grass Shadow-Style Emit Destroy Palm) — Mui
+    - Konoha Senshū (Leaf Flash Kick) — Rock Lee
+  [Dark Release] (1)
+    - Meiton: Jajimento (Dark Release: Judgment) — Hiruko (missing-nin)
+  [Yin Release] (1)
+    - Hundred Blooming Flowers Technique — Karenbana
+  [Hiden] (1)
+    - Mushi Damashi no Jutsu (Insect Deception Technique) — Shibi Aburame
+  [Lightning Release] (1)
+    - Raiton: Denkō Noroshi (Lightning Release: Lightning Signal Fire) — Maroi
+  [Fūinjutsu] (1)
+    - Yashiro no Fūin (Shrine Seal) — Miroku, Shion
+  [Storm Release] (1)
+    - Ranton Ōgi: Rankiryū (Storm Release Secret Technique: Demon Dragon Storm) — Hiruko (missing-nin)
+  [Swift Release] (1)
+    - Jinton: Mueishō (Swift Release: Shadowless Flight) — Hiruko (missing-nin)
+
+=== YALNIZ ROMAN: 34 eksik (toplam 46, bizde 1) ===
+  [Water Release] (6)
+    - Takigakure-Ryū: Mizukiri no Yaiba (Takigakure Style: Watercutting Sword) — Shibuki, Suien
+    - Suiton: Doku Ame (Water Release: Angry Bitter Rain) — Kiiro
+    - Water Release: Hail Barrage — Murasame,
+    - Suiton: Renkō Danretsu (Water Release: Lotus Light Rupture) — Hisen
+    - Suiton: Raibenjin no Jutsu (Water Release: Rapid Thunder Whip Technique) — Hisame, Kirisame
+    - Water Release: Transform-at-Will — Suien
+  [Ninjutsu] (5)
+    - Nekoesa Bunshin (Cat Food Clone) — Momo (ninneko)
+    - Kodama no Jutsu (Echo Technique) — Suien
+    - Ninpou: Nomi Shuriken (Flea Shuriken) — Momo (ninneko)
+    - Meikyū Kekkai (Labyrinth Barrier) — Suien,
+    - Sunajō Rōkaku (Sand Castle Wolf Horn) — Gaara
+  [Ice Release] (4)
+    - Hyōton: Jisarenhyō (Ice Release: Earthen Consecutive Chains of Ice) — Kahyō‎‎
+    - Hyōton: Saihyōzuchi (Ice Release: Ice-Breaking Sledgehammer) — Rahyō‎‎
+    - Saihyōken (Ice-Breaking Fist) — Rahyō‎‎
+    - Hyōken no Jutsu (Ice Sword Technique) — Hakuhyō, Kahyō‎‎
+  [Mud Release] (4)
+    - Deiton: Deiteimu (Mud Release: Bottomless Mud Hole) — Ameyuki
+    - Deiton: Jiban Deika (Mud Release: Landslide) — Ameyuki
+    - Deiton: Doro Ningyō (Mud Release: Mud Doll) — Ameyuki
+    - Deiton: Deisuiheki (Mud Release: Muddy Water Wall) — Ameyuki
+  [Fire Release] (3)
+    - Katon: En'yari (Fire Release: Flame Spear) — 
+    - Katon: Enmaku Reppū (Fire Release: Smokescreen Gale) — 
+    - Katon: Mizukiri (Fire Release: Water Mist) — Kakashi Hatake
+  [Lightning Release] (3)
+    - Raiton: Kanden Haribari (Lightning Release: Electric Shock Needles) — Kodaka
+    - Raiton: Torabasami (Lightning Release: Tiger Scissors) — Kido Tsumiki,
+    - Rōrentsugan (Lorentz Gun) — Sasuke Uchiha, Sarada Uchiha, Mitsuki
+  [Earth Release] (2)
+    - Doton: Dosekiei no Jutsu (Earth Release: Earth Quartz Technique) — Kakashi Hatake, Sasuke Uchiha
+    - Rasenrō no Jutsu (Spiralling Tower Technique) — Yamato, Kakashi Hatake~, Gaara~, Kurotsuchi~
+  [Yin Release] (2)
+    - Saigenjutsu: Korō Tsūshin (Hypnotic Genjutsu: Wild Beast Communication) — Tenma Kodon, Reishi Kodon
+    - Kagenkyū no Jutsu (Scent of Illusionary Flowers Technique) — 
+  [Wind Release] (2)
+    - Fūton: Senkō Hanabi (Wind Release: Flashing Fireworks) — Temari,
+    - Fūton: Yae Hayate (Wind Release: Multi-Layered Gale) — Gaara
+  [Kekkei Genkai] (1)
+    - Hakke Jūroku Shō (Eight Trigrams Sixteen Palms) — Mukai Kohinata
+  [Magnet Release] (1)
+    - Jiton: Raijinga (Magnet Release: Lightning God Self) — Kajūra
+  [Hiden] (1)
+    - Fūinjutsu: Rōen Kodon (Sealing Technique: Rōen Kodon) — Reishi Kodon, Tenma Kodon
+
+=== YALNIZ OYUN (Storm/Blazing vb.) — yalnız sayılar: 1012 eksik (toplam 1276, bizde 215) ===
+  [Ninjutsu] (229)
+  [Taijutsu] (159)
+  [Fire Release] (103)
+  [Kekkei Genkai] (92)
+  [Water Release] (63)
+  [Lightning Release] (59)
+  [Yin Release] (48)
+  [Wood Release] (43)
+  [Wind Release] (31)
+  [Kenjutsu] (30)
+  [Hiden] (25)
+  [Earth Release] (23)
+  [Bukijutsu] (13)
+  [Kinjutsu] (13)
+  [Magnet Release] (13)
+  [Explosion Release] (9)
+  [Ice Release] (7)
+  [Boil Release] (7)
+  [Kekkei Mōra] (6)
+  [Lava Release] (6)
+  [Scientific Ninja Tool Techniques] (4)
+  [Yang Release] (4)
+  [Shinjutsu] (4)
+  [?] (3)
+  [Senjutsu] (3)
+  [Shurikenjutsu] (3)
+  [Space–Time Ninjutsu] (3)
+  [Fūinjutsu] (3)
+  [Storm Release] (2)
+  [Juinjutsu] (1)
+  [Dust Release] (1)
+  [Collaboration Techniques] (1)
+  [Cooperation Ninjutsu] (1)
+
+=== DİĞER: 0 eksik (toplam 3, bizde 1) ===

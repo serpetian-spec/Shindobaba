@@ -194,6 +194,14 @@ func _auto_outline(cfg: Dictionary) -> Color:
 	return Color.from_hsv(c.h, minf(1.0, c.s + 0.2), c.v * 0.28)
 
 
+## Renk rampası ateş mi: rampadaki renklerden biri doygun sıcak renk (soluk kum/toz/ten ateş sayılmaz — kum tozu ateş topu oluyordu)
+func warm_ramp(cols: Array) -> bool:
+	for c in cols:
+		if c is Color and c.r > c.b + 0.3 and c.r > 0.7 and c.g > 0.2 and c.s > 0.55:
+			return true
+	return false
+
+
 ## Genel amaçlı tek seferlik parçacık patlaması
 func burst(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 	# cel bulut topakları (konturlu düz kart) -> 3B yumuşak topak (kullanıcı: 2D efekt yok). Kıvılcım/doku sprite'ları aynen kalır.
@@ -202,7 +210,7 @@ func burst(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
 		var c0: Color = cols[0]
 		var c3 = cfg.duplicate()
 		c3["size"] = float(cfg.get("size", 1.0)) * 0.75
-		c3["emit"] = float(cfg.get("hot", 0.0)) > 0.35 or (c0.r > c0.b + 0.3 and c0.g > 0.25 and c0.r > 0.7)
+		c3["emit"] = float(cfg.get("hot", 0.0)) > 0.35 or FX.warm_ramp(cols)
 		return puff3d(pos, c3)
 	var p = GPUParticles3D.new()
 	p.one_shot = true

@@ -53,7 +53,7 @@ func _ready() -> void:
 		pl.yaw = 0.0
 		var fwd = Vector3(0, 0, -1)
 		var side = Vector3(1, 0, 0)
-		var e = _enemy(b0 + fwd * 6.5)
+		var e = _enemy(b0 + fwd * (float(OS.get_environment("CMP_DIST")) if OS.get_environment("CMP_DIST") != "" else 6.5))
 		Game.profile["learned"].append(id)
 		pl.combat.cooldowns.erase(id)
 		await _w(0.4)
@@ -63,6 +63,8 @@ func _ready() -> void:
 			Gear.grant(Game.profile, wid, String(Gear.item(wid).get("slot", "silah")))
 			if pl.has_method("refresh_look"):
 				pl.refresh_look()
+		if nd == "juin2" or nd == "juin1":
+			Buffs.add(nd, 30.0, {})
 		var md = pl.combat.get("modes")
 		if md and md.get("sage") != null:
 			md.sage = true

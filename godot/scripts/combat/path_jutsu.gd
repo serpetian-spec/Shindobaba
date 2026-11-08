@@ -32202,3 +32202,622 @@ func _scorch_hit(at: Vector3, s := 1.0, h: Node3D = null) -> void:
 func _scorch_trail(pr: Node3D, w := 0.5) -> void:
 	if pr:
 		Projectile.trail(pr, [Color(1, 0.97, 0.95, 0.9), Color(1.0, 0.3, 0.32, 0.6), Color(1.0, 0.2, 0.25, 0)], w, 30, 0.35, null, true)
+
+
+# ================================================================== Eksik kanon jutsuları (Narutopedia karşılaştırması, 2026-11-08) — Gaara kumu
+const SAND_L := Color(0.93, 0.8, 0.56)
+const SAND_M := Color(0.84, 0.68, 0.44)
+const SAND_D := Color(0.66, 0.5, 0.3)
+
+
+## Hedefin boyu (bijū/dev hedefte kum yapıları büyür)
+func _tgt_fit(tt: Node3D, base := 1.8, mx := 6.0) -> float:
+	var h = 1.8
+	if tt.has_method("body_height"):
+		h = float(tt.body_height())
+	elif tt.get("model") and tt.model.get("age_scale"):
+		h = 1.8 * float(tt.model.age_scale)
+	if tt.has_meta("giant_h"):
+		h = float(tt.get_meta("giant_h"))
+	return clampf(h / base, 1.0, mx)
+
+
+## Kum Bağlayan Hapishane (ref: her yönden kalkan kum dilleri hedefin etrafında kapanıp hava geçirmez küre olur; havadaki hedefi de yakalar)
+func p_sabaku_ro(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 26.0)
+	busy(c, 0.7)
+	if tt == null:
+		if c is Player:
+			Hud.msg("Hedef yok.", Color(0.8, 0.8, 0.8))
+		return
+	anim(c, "push", 1.2)
+	var fit = _tgt_fit(tt)
+	var cen = tt.global_position + Vector3.UP * 0.9 * fit
+	var g = gp(tt.global_position)
+	Sfx.play("th_sand", g, 0.9)
+	_sand_gust(g + Vector3.UP * 0.2, 2.0 * fit, 40, Vector3.UP)
+	# 1) yerden ve yanlardan kıvrılarak kalkan 7 kum dili, hedefin üstünde buluşur
+	var petals = []
+	for k in 7:
+		var a = TAU * k / 7.0 + randf_range(-0.2, 0.2)
+		var o = Vector3(cos(a), 0, sin(a))
+		var r0 = 4.2 * fit
+		var b = MB.new()
+		var pts = []
+		var rads = []
+		for s in 7:
+			var u = float(s) / 6.0
+			var ang = u * PI * 0.92
+			pts.append(o * (r0 * cos(ang * 0.55) * (1.0 - u * 0.75)) + Vector3.UP * (sin(ang) * 2.4 * fit + u * 0.8 * fit) - Vector3.UP * 0.9 * fit)
+			rads.append(Vector2(lerpf(0.75, 0.25, u), lerpf(0.55, 0.2, u)) * fit)
+		Loft.tube(b, pts, rads, [SAND_D, SAND_M, SAND_L, SAND_L, SAND_M, SAND_M, SAND_L], 12, 4, false, true)
+		var mi = place(b, cen)
+		mi.scale = Vector3(1, 0.05, 1)
+		var tw = mi.create_tween()
+		tw.tween_interval(k * 0.03)
+		tw.tween_property(mi, "scale", Vector3.ONE, 0.32).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		petals.append(mi)
+	# 2) diller kapanınca pürüzlü kum küresi: hedef içinde bağlı (havadaysa havada kalır)
+	after(0.4, func():
+		if not live(tt):
+			for pm in petals:
+				fade_free(pm, 0.0, 0.3)
+			return
+		st(tt, "bind", 3.2)
+		if tt is CharacterBody3D:
+			tt.velocity = Vector3.ZERO
+		var b2 = MB.new()
+		b2.add("sphere", Vector3.ZERO, Vector3.ONE * 2.6 * fit, SAND_M, Vector3.ZERO, 18)
+		for i in 26:
+			var dv = Vector3(randf_range(-1, 1), randf_range(-1, 1), randf_range(-1, 1)).normalized()
+			b2.add("boulder", dv * 1.25 * fit, Vector3.ONE * randf_range(0.5, 0.9) * fit, SAND_L.lerp(SAND_D, randf() * 0.6), Vector3(randf() * 90, randf() * 360, 0), i % 7)
+		var ball = place(b2, cen)
+		ball.scale = Vector3.ONE * 0.6
+		ball.create_tween().tween_property(ball, "scale", Vector3.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		for pm in petals:
+			fade_free(pm, 0.05, 0.25)
+		shake(0.4)
+		Sfx.play("earth", cen, 0.8)
+		# içeride sıkıştırma: her 0.6 sn ezme hasarı; hedef kürenin içinde tutulur
+		every(3.0, 0.6, func(_i, _k):
+			if live(tt):
+				tt.global_position = cen - Vector3.UP * 0.9 * fit
+				if tt is CharacterBody3D:
+					tt.velocity = Vector3.ZERO
+				tt.take_hit(inf(c, "sabaku_ro", 0.18, {"knock": 0.0, "launch": 0.0, "kind": "crush", "pierce_guard": true}))
+				if is_instance_valid(ball):
+					var sq = ball.create_tween()
+					sq.tween_property(ball, "scale", Vector3.ONE * 0.93, 0.08)
+					sq.tween_property(ball, "scale", Vector3.ONE, 0.2), func():
+			# dağılış: küre kum yağmuru olarak dökülür
+			VFX.puffs(cen, {"amount": 40, "life": 1.0, "size": 0.9 * fit, "radius": 1.5 * fit, "vmin": 1, "vmax": 4, "dir": Vector3.DOWN, "spread": 70.0, "gravity": Vector3(0, -9, 0),
+				"colors": [SAND_L, Color(SAND_M.r, SAND_M.g, SAND_M.b, 0)]})
+			VFX.debris(cen, SAND_M, 14, 5.0 * fit, 0.35)
+			if is_instance_valid(ball):
+				fade_free(ball, 0.0, 0.35)))
+
+
+## Kum Dolusu (ref: kaya iriliğinde yuvarlak kum topakları gökten yağar, geniş alan)
+func p_suna_arare(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.8)
+	anim(c, "cast", 1.2)
+	var tt = tg(c, t, 34.0)
+	var at = gp(tt.global_position if tt else c.global_position + c.face_dir() * 14.0)
+	Sfx.play("th_sand", c.global_position, 0.8)
+	_sand_gust(gp(c.global_position) + Vector3.UP * 0.3, 2.5, 30, Vector3.UP)
+	var hits = []
+	for k in 16:
+		after(0.35 + k * 0.08, func():
+			var off = Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)).normalized() * randf_range(0.0, 7.0)
+			if k < 3 and tt and live(tt):
+				off = Vector3(randf_range(-0.8, 0.8), 0, randf_range(-0.8, 0.8))   # ilk birkaçı hedefin tepesine
+			var land = gp(at + off)
+			var r = randf_range(0.55, 1.25)
+			var b = MB.new()
+			b.add("sphere", Vector3.ZERO, Vector3.ONE * r * 2.0, SAND_M, Vector3.ZERO, 14)
+			for i in 5:
+				var dv = Vector3(randf_range(-1, 1), randf_range(-1, 1), randf_range(-1, 1)).normalized()
+				b.add("boulder", dv * r * 0.7, Vector3.ONE * r * 0.7, SAND_L.lerp(SAND_D, randf() * 0.5), Vector3(randf() * 90, randf() * 360, 0), i)
+			var ball = place(b, land + Vector3.UP * 16.0 + Vector3(randf_range(-2, 2), 0, randf_range(-2, 2)))
+			var tw = ball.create_tween()
+			tw.tween_property(ball, "global_position", land + Vector3.UP * r, 0.55).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+			tw.parallel().tween_property(ball, "rotation", Vector3(randf() * 3, randf() * 3, 0), 0.55)
+			tw.tween_callback(func():
+				if k % 4 == 0:
+					hits.clear()   # her dört topakta bir aynı hedef yeniden vurulabilir
+				for h in hit(c, land + Vector3.UP * 0.8, 1.6 + r, inf(c, "suna_arare", 0.22, {"knock": 7.0, "launch": 2.0, "kind": "heavy", "hitstop": 0.04}), hits):
+					hits.append(h)
+					st(h, "slow", 1.5)
+				VFX.puffs(land + Vector3.UP * 0.4, {"amount": 14, "life": 0.8, "size": 0.9 * r, "radius": r, "vmin": 2, "vmax": 5, "dir": Vector3.UP, "spread": 75.0,
+					"colors": [SAND_L, Color(SAND_M.r, SAND_M.g, SAND_M.b, 0)]})
+				VFX.debris(land, SAND_M, 6, 4.0, 0.25)
+				VFX.cracks(land, 1.2 + r, Color(0.45, 0.35, 0.22, 0.7), 4.0)
+				Sfx.play("earth", land, randf_range(0.9, 1.15), 0.6)
+				var tw2 = ball.create_tween()
+				tw2.tween_property(ball, "scale", Vector3(1.3, 0.25, 1.3), 0.35).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+				tw2.tween_callback(ball.queue_free)))
+	shake(0.4)
+
+
+## Art Arda Kum Çiseleme (ref: Gaara'nın etrafında kıvrılan kum akıntısından uzun damla kum mermileri art arda fırlar)
+func p_rendan_suna_shigure(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.9)
+	var tt = tg(c, t, 34.0)
+	Sfx.play("th_sand", c.global_position, 1.1)
+	# çevrede dönen kum halkası (yay şeklinde kum akıntısı)
+	var ring = Node3D.new()
+	scene_add(ring, c.global_position + Vector3.UP * 1.2)
+	var b = MB.new()
+	var pts = []
+	var rads = []
+	for s in 14:
+		var a = s / 13.0 * TAU * 0.85
+		pts.append(Vector3(cos(a) * 1.6, sin(s * 0.7) * 0.25, sin(a) * 1.6))
+		rads.append(Vector2(0.28, 0.2) * (0.6 + 0.4 * sin(s / 13.0 * PI)))
+	Loft.tube(b, pts, rads, SAND_M, 10, 4, true, true)
+	ring.add_child(mesh_of(b))
+	var rt = ring.create_tween().set_loops()
+	rt.tween_property(ring, "rotation:y", TAU, 0.6).from(0.0)
+	var info = inf(c, "rendan_suna_shigure", 0.1, {"knock": 2.5, "kind": "light", "hitstop": 0.02})
+	for k in 14:
+		after(0.12 + k * 0.05, func():
+			if not live(c):
+				return
+			var a = randf() * TAU
+			var from = c.global_position + Vector3.UP * (1.0 + randf() * 0.6) + Vector3(cos(a), 0, sin(a)) * 1.6
+			var aim = c.face_dir()
+			if tt and live(tt):
+				aim = (tt.global_position + Vector3.UP * 1.0 - from).normalized()
+			aim = (aim + Vector3(randf_range(-0.05, 0.05), randf_range(-0.03, 0.05), randf_range(-0.05, 0.05))).normalized()
+			var bm = MB.new()
+			Loft.tube(bm, [Vector3(0, 0, 0.55), Vector3(0, 0, 0.15), Vector3(0, 0, -0.35), Vector3(0, 0, -0.75)],
+				[Vector2(0.02, 0.02), Vector2(0.17, 0.17), Vector2(0.11, 0.11), Vector2(0.02, 0.02)], [SAND_L, SAND_L, SAND_M, SAND_D], 8, 3, true, true)
+			shot(c, from, aim, 46.0, mesh_of(bm), info, null, false, 1.2, func(p, _h):
+				VFX.puffs(p, {"amount": 6, "life": 0.4, "size": 0.35, "radius": 0.2, "vmin": 1, "vmax": 3, "dir": Vector3.UP, "spread": 90.0,
+					"colors": [SAND_L, Color(SAND_M.r, SAND_M.g, SAND_M.b, 0)]}))
+			Sfx.play("whoosh", from, 1.5, 0.3))
+	fade_free(ring, 0.95, 0.3)
+
+
+## Çöl Katmanlı İmparatorluk Cenaze Mührü (ref: kat kat kum hedefi örter, basamaklı dev piramide sıkışır, mühür çizgileri)
+func p_sabaku_sotaiso_fuin(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 30.0)
+	busy(c, 1.4)
+	if tt == null:
+		if c is Player:
+			Hud.msg("Hedef yok.", Color(0.8, 0.8, 0.8))
+		return
+	anim(c, "seal", 1.0)
+	var fit = _tgt_fit(tt, 1.8, 8.0)
+	var g = gp(tt.global_position)
+	st(tt, "bind", 1.6)
+	Sfx.play("th_sand", g, 0.7)
+	_sand_wrap(c, tt, 0.4)
+	_sand_gust(g + Vector3.UP * 0.2, 4.0 * fit, 50, Vector3.UP)
+	# ref: tek parça, eğimli yüzlü dev kum piramidi; yüzlerde yatay kat bantları + ortada dikey mühür çizgisi ve mühür dairesi
+	var tiers = 4 if fit > 2.0 else 3
+	var w0 = 8.0 * fit
+	var hgt = 7.5 * fit
+	var hstep = hgt / tiers
+	var root = Node3D.new()
+	scene_add(root, g)
+	var line = Color(0.22, 0.16, 0.11)
+	# kare kesitli gövde (Loft, 4 kenar): kat sınırlarında ince koyu mühür bantları yüzeye işli (taşan parça yok)
+	var b = MB.new()
+	var pts = []
+	var rads = []
+	var cols = []
+	for i in tiers:
+		for e in [[0.0, false], [0.94, false], [0.94, true], [1.0, true]]:
+			var y = hstep * (i + float(e[0]))
+			var hw = w0 * 0.5 * (1.0 - y / hgt) * 1.414
+			pts.append(Vector3(0, y, 0))
+			rads.append(Vector2(maxf(0.01, hw), maxf(0.01, hw)))
+			cols.append(line if e[1] and i < tiers - 1 else SAND_M.lerp(SAND_L, float(i) / tiers))
+	pts.append(Vector3(0, hgt, 0))
+	rads.append(Vector2(0.01, 0.01))
+	cols.append(SAND_L)
+	Loft.tube(b, pts, rads, cols, 4, 1, true, false)
+	var pyr = mesh_of(b)
+	root.add_child(pyr)
+	pyr.rotation.y = PI * 0.25
+	pyr.scale = Vector3(1.15, 0.02, 1.15)
+	var rise = 0.35 + tiers * 0.25
+	var tw = pyr.create_tween()
+	tw.tween_interval(0.3)
+	tw.tween_property(pyr, "scale", Vector3.ONE, rise).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	for i in tiers:
+		var lvl = i
+		after(0.3 + rise * float(i + 1) / tiers, func():
+			Sfx.play("earth", g + Vector3.UP * hstep * lvl, 0.85, 0.7)
+			VFX.puffs(g + Vector3.UP * hstep * (lvl + 0.3), {"amount": 16, "life": 0.9, "size": 1.2 * fit, "radius": w0 * 0.45 * (1.0 - float(lvl) / tiers), "vmin": 1, "vmax": 3, "dir": Vector3.UP, "spread": 80.0,
+				"colors": [SAND_L, Color(SAND_M.r, SAND_M.g, SAND_M.b, 0)]})
+			shake(0.25))
+	# mühür: hedef piramidin içinde; bağlı, chakrası emilir, ağır hasar
+	var lock_t = 6.0
+	after(0.3 + rise, func():
+		if not live(tt):
+			fade_free(root, 1.0, 0.6)
+			return
+		st(tt, "bind", lock_t)
+		Combat.popup_text(g + Vector3.UP * hgt, "Mühürlendi!", Color(0.95, 0.85, 0.55))
+		every(lock_t, 1.0, func(_i, _k):
+			if live(tt):
+				tt.global_position = g
+				if tt is CharacterBody3D:
+					tt.velocity = Vector3.ZERO
+				tt.take_hit(inf(c, "sabaku_sotaiso_fuin", 0.3, {"knock": 0.0, "kind": "crush", "pierce_guard": true}))
+				if "chakra" in tt:
+					tt.chakra = maxf(0.0, float(tt.chakra) - 12.0), func():   # mühür chakrayı söndürür
+			# çözülme: piramit kum olarak çöker
+			VFX.puffs(g + Vector3.UP * hgt * 0.3, {"amount": 60, "life": 1.4, "size": 1.6 * fit, "radius": w0 * 0.4, "vmin": 1, "vmax": 4, "dir": Vector3.UP, "spread": 60.0,
+				"colors": [SAND_L, Color(SAND_M.r, SAND_M.g, SAND_M.b, 0)]})
+			if is_instance_valid(root):
+				var ct = root.create_tween()
+				ct.tween_property(root, "scale", Vector3(1.08, 0.02, 1.08), 0.7).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+				ct.tween_callback(root.queue_free)))
+	shake(0.6)
+
+
+# ================================================================== Eksik kanon jutsuları — Ses Dörtlüsü (Narutopedia ref, 2026-11-08)
+const S4_PURPLE := Color(0.62, 0.32, 0.9)
+const SKIN_S4 := Color(0.93, 0.78, 0.66)
+
+
+## Dört Mor Alev Düzeni (ref: dört köşe arasında mor alevden saydam ızgaralı küp; değen alevle sarılır, kimse çıkamaz)
+func p_shishienjin(c: Node3D, _t: Node3D) -> void:
+	busy(c, 0.8)
+	anim(c, "seal", 1.0)
+	var cen = gp(c.global_position)
+	var half = 9.0
+	var hgt = 9.0
+	var dur = 12.0
+	var root = Node3D.new()
+	scene_add(root, cen)
+	var wm = StandardMaterial3D.new()
+	wm.albedo_color = Color(S4_PURPLE.r, S4_PURPLE.g, S4_PURPLE.b, 0.22)
+	wm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	wm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	wm.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var lm = StandardMaterial3D.new()
+	lm.albedo_color = Color(0.85, 0.6, 1.0, 0.75)
+	lm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	lm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	for f in 5:
+		var q = MeshInstance3D.new()
+		var pm = QuadMesh.new()
+		pm.size = Vector2(half * 2.0, hgt) if f < 4 else Vector2(half * 2.0, half * 2.0)
+		q.mesh = pm
+		q.material_override = wm
+		q.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		root.add_child(q)
+		if f < 4:
+			var yaw = f * PI * 0.5
+			q.rotation.y = yaw
+			q.position = Vector3(sin(yaw), 0, cos(yaw)) * half + Vector3.UP * hgt * 0.5
+		else:
+			q.rotation.x = -PI * 0.5
+			q.position = Vector3.UP * hgt
+		# ızgara: ince mor çizgiler (ref: bariyer yüzeyindeki ağ deseni)
+		if f < 4:
+			for k in 7:
+				for vert in [true, false]:
+					var ln = MeshInstance3D.new()
+					var bm = BoxMesh.new()
+					bm.size = Vector3(0.05, hgt, 0.02) if vert else Vector3(half * 2.0, 0.05, 0.02)
+					ln.mesh = bm
+					ln.material_override = lm
+					ln.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+					q.add_child(ln)
+					ln.position = Vector3(-half + k * half / 3.0, 0, 0.01) if vert else Vector3(0, -hgt * 0.5 + k * hgt / 6.0, 0.01)
+	root.scale = Vector3(1, 0.02, 1)
+	root.create_tween().tween_property(root, "scale", Vector3.ONE, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	Sfx.play("fire", cen, 0.7)
+	Combat.popup_text(cen + Vector3.UP * 3.0, "Shishienjin!", S4_PURPLE.lightened(0.3))
+	# duvar diplerinde mor alev dilleri (ateş topu malzemesiyle mor alev)
+	every(dur, 0.35, func(_i, _k):
+		var side = randi() % 4
+		var yaw = side * PI * 0.5
+		var along = randf_range(-half, half)
+		var p = cen + Vector3(sin(yaw), 0, cos(yaw)) * half + Vector3(cos(yaw), 0, -sin(yaw)) * along
+		FX.puff3d(p + Vector3.UP * 0.3, {"amount": 5, "life": 0.8, "size": 0.9, "radius": 0.6, "vmin": 1, "vmax": 3, "dir": Vector3.UP, "spread": 20.0,
+			"emit": true, "colors": [Color(0.95, 0.85, 1.0), S4_PURPLE, Color(0.35, 0.1, 0.55, 0.8), Color(0.15, 0.05, 0.25, 0)]})
+		# içerideki düşman duvarı geçemez: değerse mor alev sarar, içeri itilir
+		for f2 in get_tree().get_nodes_in_group("fighters"):
+			if not Combat.hostile(c, f2) or f2.is_dead():
+				continue
+			var lp = f2.global_position - cen
+			if absf(lp.x) < half + 2.0 and absf(lp.z) < half + 2.0 and (absf(lp.x) > half - 0.8 or absf(lp.z) > half - 0.8):
+				var inward = Vector3(-signf(lp.x) if absf(lp.x) > half - 0.8 else 0.0, 0, -signf(lp.z) if absf(lp.z) > half - 0.8 else 0.0).normalized()
+				f2.global_position = cen + Vector3(clampf(lp.x, -half + 1.0, half - 1.0), lp.y, clampf(lp.z, -half + 1.0, half - 1.0))
+				f2.take_hit(inf(c, "shishienjin", 0.12, {"knock": 6.0, "dir": inward, "kind": "light", "burn": 2.0, "element": "katon"}))
+				Combat.popup_text(f2.global_position + Vector3.UP * 2.3, "Mor alev!", S4_PURPLE.lightened(0.3)), func():
+		if is_instance_valid(root):
+			var tw = root.create_tween()
+			tw.tween_property(root, "scale", Vector3(1, 0.02, 1), 0.5)
+			tw.tween_callback(root.queue_free))
+
+
+## Dört Kara Sis Düzeni (ref: hedefin üstünde yoğun koyu mor sis oluşur, çöküp onu sarar, mor şimşekler; dış dünyadan mühürlenir)
+func p_shikokumujin(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 22.0)
+	busy(c, 0.8)
+	anim(c, "seal", 1.0)
+	if tt == null:
+		if c is Player:
+			Hud.msg("Hedef yok.", Color(0.8, 0.8, 0.8))
+		return
+	var fit = _tgt_fit(tt)
+	var top = tt.global_position + Vector3.UP * 7.0 * fit
+	var fog = [Color(0.2, 0.12, 0.26, 1.0), Color(0.13, 0.07, 0.18, 0.9), Color(0.08, 0.04, 0.12, 0.6), Color(0.05, 0.02, 0.08, 0.0)]
+	FX.puff3d(top, {"amount": 26, "life": 1.0, "size": 2.4 * fit, "radius": 1.6 * fit, "vmin": 0.5, "vmax": 2.0, "dir": Vector3.UP, "spread": 180.0, "colors": fog, "mist": true, "grow": 1.8})
+	Sfx.play("th_shadow", tt.global_position, 0.8)
+	after(0.45, func():
+		if not live(tt):
+			return
+		var dur = 4.5
+		st(tt, "bind", dur)
+		st(tt, "sealed", dur)
+		Combat.popup_text(tt.global_position + Vector3.UP * 2.6, "Mühürlendi!", S4_PURPLE.lightened(0.3))
+		every(dur, 0.25, func(i, _k):
+			if not live(tt):
+				return
+			var p = tt.global_position + Vector3.UP * (1.2 * fit)
+			FX.puff3d(p + Vector3(randf_range(-1, 1), randf_range(0, 2.5), randf_range(-1, 1)) * fit, {"amount": 4, "life": 1.2, "size": 2.0 * fit, "radius": 0.8 * fit,
+				"vmin": 0.2, "vmax": 0.8, "dir": Vector3.DOWN, "spread": 60.0, "colors": fog, "mist": true, "grow": 1.6})
+			if i % 3 == 0:
+				var a = randf() * TAU
+				VFX.bolt(p + Vector3(cos(a), 2.0, sin(a)) * 1.6 * fit, p + Vector3(cos(a + 2.0), -0.8, sin(a + 2.0)) * 1.4 * fit, S4_PURPLE, 0.12, 0.15, 2)
+			if "chakra" in tt:
+				tt.chakra = maxf(0.0, float(tt.chakra) - 1.5)
+			if i % 4 == 0:
+				tt.take_hit(inf(c, "shikokumujin", 0.08, {"knock": 0.0, "kind": "light", "pierce_guard": true})), Callable()))
+
+
+## Örümcek Yağmuru (ref: hedefin üstünde dev ağ + yavru kesesi; yüzlerce yavru örümcek iplik saçarak yağar, bölgedekileri sarar)
+func p_amagumo(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.8)
+	anim(c, "seal", 1.0)
+	var tt = tg(c, t, 26.0)
+	var at = gp(tt.global_position if tt else c.global_position + c.face_dir() * 10.0)
+	var top = at + Vector3.UP * 11.0
+	FX.smoke_puff(top, 1.6, 16)
+	var web = _web(6.0)
+	scene_add(web, top)
+	web.rotation.x = PI * 0.5
+	var sac = _spider(1.6)
+	scene_add(sac, top + Vector3.UP * 0.6)
+	sac.rotation.x = PI
+	Sfx.play("th_bugs", at, 0.7)
+	var hits = []
+	for k in 40:
+		after(0.4 + k * 0.03, func():
+			var land = gp(at + Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)).normalized() * randf_range(0.0, 6.0))
+			var sp = _spider(0.22)
+			scene_add(sp, top + Vector3(randf_range(-2, 2), -0.5, randf_range(-2, 2)))
+			var start = sp.global_position
+			var tw = sp.create_tween()
+			tw.tween_property(sp, "global_position", land + Vector3.UP * 0.15, randf_range(0.5, 0.8)).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+			tw.tween_interval(0.8)
+			tw.tween_property(sp, "scale", Vector3.ONE * 0.01, 0.3)
+			tw.tween_callback(sp.queue_free)
+			# her yavru iplik bırakarak düşer
+			tether(func(): return start, func(): return sp.global_position if is_instance_valid(sp) else start, 0.012, _silk_mat(), 1.4)
+			if k % 3 == 0:
+				after(0.55, func():
+					for h in hit(c, land + Vector3.UP * 0.6, 1.8, inf(c, "amagumo", 0.06, {"knock": 0.0, "kind": "light"}), hits):
+						hits.append(h)
+						st(h, "bind", 2.8)
+						Combat.popup_text(h.global_position + Vector3.UP * 2.3, "İplere sarıldı!", Color(0.95, 0.95, 0.9))))
+	after(2.6, func():
+		fade_free(web, 0.0, 0.5)
+		fade_free(sac, 0.0, 0.4))
+
+
+## Örümcek Ağı Açılışı (ref: ip yumağı fırlar, hedefte dev, delikli beyaz ağa açılır ve hedefi asılı tutar)
+func p_kumosokai(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 22.0)
+	busy(c, 0.5)
+	anim(c, "throw", 1.3)
+	var from = hand_pos(c, true)
+	var ball = Node3D.new()
+	var bb = MB.new()
+	bb.add("sphere", Vector3.ZERO, Vector3.ONE * 0.45, Color(0.95, 0.95, 0.9), Vector3.ZERO, 10)
+	ball.add_child(mesh_of(bb))
+	shot(c, from, aim_at(c, tt, from), 28.0, ball, inf(c, "kumosokai", 0.2, {"knock": 0.0, "kind": "light"}), tt, false, 1.0, func(p, h):
+		var w = _web(3.2)
+		get_tree().current_scene.add_child(w)
+		w.global_position = p
+		w.look_at(p + (p - c.global_position).normalized(), Vector3.UP)
+		w.scale = Vector3.ONE * 0.1
+		var tw = w.create_tween()
+		tw.tween_property(w, "scale", Vector3.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw.tween_interval(3.2)
+		tw.tween_property(w, "scale", Vector3.ONE * 0.01, 0.3)
+		tw.tween_callback(w.queue_free)
+		for e in enemies_near(c, p, 3.0):
+			st(e, "bind", 3.4)
+			if e is CharacterBody3D:
+				e.velocity = Vector3.ZERO
+			Combat.popup_text(e.global_position + Vector3.UP * 2.3, "Ağa asıldı!", Color(0.95, 0.95, 0.9)))
+	Sfx.play("whoosh", from, 1.4, 0.5)
+
+
+## Örümcek Yapışkan Tükürüğü (ref: ağızdan kalın, örgülü ağ halatı; hedefe yapışır, hedef savrulup yere çarpılır)
+func p_kumonendo(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 18.0)
+	busy(c, 0.9)
+	var mo = _mouth_pos(c)
+	var ball = Node3D.new()
+	var bb = MB.new()
+	bb.add("sphere", Vector3.ZERO, Vector3.ONE * 0.3, Color(0.95, 0.95, 0.88), Vector3.ZERO, 8)
+	ball.add_child(mesh_of(bb))
+	var pr = shot(c, mo, aim_at(c, tt, mo), 34.0, ball, inf(c, "kumonendo", 0.25, {"knock": 0.0, "kind": "light"}), tt, false, 0.8, func(p, h):
+		if h == null or not live(h) or not live(c):
+			return
+		st(h, "bind", 1.2)
+		# halat: ağızdan hedefe kalın örgülü ip
+		tether(func(): return _mouth_pos(c) if live(c) else p, func(): return h.global_position + Vector3.UP * 1.1 if live(h) else p, 0.06, _silk_mat(), 1.3)
+		after(0.35, func():
+			if not live(h) or not live(c):
+				return
+			# savur: yana yay çizerek kaldır, yere çarp
+			var side = c.face_dir().cross(Vector3.UP).normalized() * (1.0 if randf() < 0.5 else -1.0)
+			var a0 = h.global_position
+			var land = gp(c.global_position + side * 4.0 + c.face_dir() * 2.0)
+			var tw = h.create_tween()
+			tw.tween_method(func(u: float):
+				if live(h):
+					h.global_position = a0.lerp(land, u) + Vector3.UP * sin(u * PI) * 5.0, 0.0, 1.0, 0.5).set_trans(Tween.TRANS_SINE)
+			tw.tween_callback(func():
+				if live(h):
+					h.take_hit(inf(c, "kumonendo", 0.55, {"knock": 4.0, "launch": 3.0, "kind": "heavy", "hitstop": 0.06}))
+					VFX.debris(land, Color(0.5, 0.42, 0.32), 10, 4.0, 0.3)
+					VFX.cracks(land, 2.0, Color(0.3, 0.24, 0.18, 0.8), 4.0)
+					shake(0.4))))
+	VFX.trail(pr, 0.12, Color(1, 1, 0.97, 0.9), Color(0.92, 0.92, 0.86, 0.5), Color(0.9, 0.9, 0.85, 0), 14, 0.0)
+	Sfx.play("th_ink", mo, 0.8, 0.6)
+
+
+## İblis Dünyasının İsyanı (ref: flütün finali; Doki'lerin ağızlarından çok ağızlı ruh solucanları çıkar, dans ederek hedeflerin içinden geçer, fiziksel enerjiyi ısırır)
+func p_makyo_no_ran(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.4)
+	anim(c, "cast", 1.0)
+	var dokis = []
+	var fw = c.face_dir()
+	var sd = fw.cross(Vector3.UP).normalized()
+	for k in 3:
+		var dp = gp(c.global_position - fw * 2.5 + sd * (k - 1) * 3.0)
+		FX.smoke_puff(dp + Vector3.UP * 2.0, 1.2, 12)
+		var dk = Doki.spawn(get_tree().current_scene, dp, atan2(-fw.x, -fw.z), k)
+		dokis.append(dk)
+	Sfx.play("genjutsu", c.global_position, 0.8)
+	after(0.6, func():
+		var foes = enemies_near(c, c.global_position, 26.0)
+		if foes.is_empty() and t and live(t):
+			foes = [t]
+		for k in 9:
+			after(k * 0.12, func():
+				if foes.is_empty():
+					return
+				var dk = dokis[k % dokis.size()]
+				var tgt = foes[k % foes.size()]
+				if not is_instance_valid(dk) or not live(tgt) or not live(c):
+					return
+				Doki.spirit_worm(get_tree().current_scene, dk.mouth_pos(), tgt.global_position + Vector3.UP * 1.0 + Vector3(randf_range(-1, 1), randf_range(0, 1), randf_range(-1, 1)), 0.7, func(p: Vector3):
+					VFX.puffs(p, {"amount": 12, "life": 0.5, "size": 0.4, "radius": 0.5, "vmin": 1, "vmax": 3, "spread": 180.0, "add": false,
+						"colors": [Color(0.75, 0.5, 0.75, 0.9), Color(0.35, 0.22, 0.4, 0)]})
+					if live(c):
+						for h in hit(c, p, 1.6, inf(c, "makyo_no_ran", 0.2, {"knock": 2.0, "kind": "light", "pierce_guard": true})):
+							st(h, "slow", 2.0)   # fiziksel enerjisi ısırılan beden ağırlaşır
+							Combat.popup_text(h.global_position + Vector3.UP * 2.3, "Ruh ısırığı!", Color(0.85, 0.55, 0.85)))))
+	after(3.0, func():
+		for dk in dokis:
+			if is_instance_valid(dk):
+				FX.smoke_puff(dk.global_position + Vector3.UP * 2.5, 2.0, 18)
+				dk.queue_free())
+
+
+## Ek uzuvlar (Sakon–Ukon): ön kol/baldır kemiğine bağlı iki uzuv kemik boyunca fışkırır, yumruğun/ayağın ötesine uzanır ve uzvu izler
+func _extra_limbs(c: Node3D, bone: String, leg: bool, dur: float) -> void:
+	var ba = bone_attach(c, bone)
+	if ba == null:
+		return
+	for k in 2:
+		var sx = 1.0 if k == 0 else -1.0
+		var b = MB.new()
+		var L = 0.62 if not leg else 0.8
+		# kemik +Y boyunca (dirsekten bileğe): kol gövdesi + yumruk / bacak + ayak
+		Loft.tube(b, [Vector3(0, 0.05, 0), Vector3(0, L * 0.55, 0), Vector3(0, L, 0)], [Vector2(0.055, 0.055), Vector2(0.05, 0.05), Vector2(0.045, 0.045)], SKIN_S4, 8, 2, false, false)
+		if leg:
+			b.add("box", Vector3(0, L + 0.06, 0.06), Vector3(0.11, 0.1, 0.24), Color(0.22, 0.2, 0.24), Vector3.ZERO, 1)
+		else:
+			b.add("sphere", Vector3(0, L + 0.07, 0), Vector3(0.13, 0.15, 0.12), SKIN_S4.darkened(0.05), Vector3.ZERO, 8)
+		var mi = mesh_of(b)
+		var holder = Node3D.new()
+		ba.add_child(holder)
+		holder.add_child(mi)
+		holder.position = Vector3(sx * 0.09, 0.0, (0.05 if not leg else -0.04) * sx)
+		holder.rotation = Vector3(0, 0, -sx * 0.18)
+		holder.scale = Vector3(1, 0.05, 1)
+		var tw = holder.create_tween()
+		tw.tween_interval(k * 0.05)
+		tw.tween_property(holder, "scale", Vector3(1, 1.5, 1), 0.08).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+		tw.tween_interval(dur)
+		tw.tween_property(holder, "scale", Vector3(1, 0.05, 1), 0.12)
+		tw.tween_callback(holder.queue_free)
+	free_after(dur + 0.5, ba)
+
+
+## Çok Bağlı Yumruklar (ref: Sakon'un yumruğuyla birlikte kolundan Ukon'un iki kolu fışkırır; üç yumruk birden)
+func p_tarenken(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.55)
+	var tt = tg(c, t, 4.0)
+	if tt and "facing" in c:
+		var dd = tt.global_position - c.global_position
+		c.facing = atan2(-dd.x, -dd.z)
+	anim(c, "cross", 1.4)
+	after(0.12, func():
+		if not live(c):
+			return
+		_extra_limbs(c, "RightLowerArm", false, 0.3)
+		Sfx.play("punch", c.global_position, 0.85)
+		var at = c.global_position + Vector3.UP * 1.2 + c.face_dir() * 1.3
+		hit(c, at, 1.4, inf(c, "tarenken", 0.55, {"knock": 9.0, "kind": "heavy", "hitstop": 0.08}))
+		FX.hit_spark(at, Color(1.0, 0.85, 0.6), 1.2))
+
+
+## Çok Bağlı Tekmeler (ref: tekmeyle birlikte bacaktan Ukon'un iki bacağı fışkırır; aralıklı üç tekme hedefi savurur)
+func p_tarenkyaku(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.75)
+	anim(c, "kick", 1.3)
+	for k in 3:
+		after(0.1 + k * 0.12, func():
+			if not live(c):
+				return
+			if k == 0:
+				_extra_limbs(c, "RightLowerLeg", true, 0.4)
+			Sfx.play("hit_heavy" if k == 2 else "punch", c.global_position, 0.9 + k * 0.05)
+			var at = c.global_position + Vector3.UP * 0.9 + c.face_dir() * 1.4
+			hit(c, at, 1.5, inf(c, "tarenkyaku", 0.25 if k < 2 else 0.4, {"knock": 3.0 if k < 2 else 13.0, "launch": 0.0 if k < 2 else 5.0, "kind": "light" if k < 2 else "heavy", "hitstop": 0.05}))
+			FX.hit_spark(at, Color(1.0, 0.85, 0.6), 0.9 + k * 0.2))
+
+
+## Asalak İblis Yıkım Tekniği (ref: lanet mührü 2'de beden hücrelere ayrılıp hedefe girer; omzunda yüz belirir, hücreleri içeriden yıkılır)
+func p_kisei_kikai_no_jutsu(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 6.0)
+	busy(c, 0.6)
+	if tt == null:
+		if c is Player:
+			Hud.msg("Bitişikteki hedef yok (dokunarak girer).", Color(0.8, 0.8, 0.8))
+		return
+	# kullanıcı hücrelere ayrılır: kırmızımsı et parçaları hedefe akar
+	VFX.puffs(c.global_position + Vector3.UP, {"amount": 26, "life": 0.5, "size": 0.25, "radius": 0.6, "vmin": 3, "vmax": 7, "dir": (tt.global_position - c.global_position).normalized(), "spread": 25.0, "add": false,
+		"colors": [Color(0.75, 0.4, 0.38, 1), Color(0.5, 0.2, 0.2, 0)]})
+	Sfx.play("th_flesh", tt.global_position, 0.8)
+	if c.get("model"):
+		c.model.visible = false
+		after(5.2, func():
+			if live(c) and c.get("model"):
+				c.model.visible = true
+				FX.smoke_puff(c.global_position + Vector3.UP, 0.8, 8))
+	if c is Player and c.get("combat"):
+		c.combat.invuln = 5.0
+	# hedefin omzunda Ukon'un yüzü (ref): kemiğe iliştirilmiş kırmızımsı yüz çıkıntısı
+	var ba = bone_attach(tt, "LeftShoulder")
+	if ba:
+		var b = MB.new()
+		b.add("sphere", Vector3(0, 0.12, -0.05), Vector3(0.28, 0.32, 0.26), Color(0.82, 0.45, 0.38), Vector3.ZERO, 10)
+		b.add("cone", Vector3(0, 0.34, -0.02), Vector3(0.07, 0.16, 0.07), Color(0.82, 0.45, 0.38), Vector3(-20, 0, 0), 6)
+		b.add("box", Vector3(0, 0.06, -0.17), Vector3(0.14, 0.03, 0.03), Color(0.95, 0.95, 0.9), Vector3.ZERO, 1)
+		var face = mesh_of(b)
+		ba.add_child(face)
+		face.scale = Vector3.ONE * 0.05
+		face.create_tween().tween_property(face, "scale", Vector3.ONE, 0.3).set_trans(Tween.TRANS_BACK)
+		free_after(5.0, ba)
+	st(tt, "slow", 5.0)
+	every(5.0, 0.5, func(_i, _k):
+		if live(tt):
+			tt.take_hit(inf(c, "kisei_kikai_no_jutsu", 0.16, {"knock": 0.0, "kind": "light", "pierce_guard": true}))
+			if randf() < 0.4:
+				Combat.popup_text(tt.global_position + Vector3.UP * 2.3, "Hücreler yıkılıyor!", Color(0.85, 0.35, 0.35)), Callable())
