@@ -1,0 +1,7 @@
+Ses efektleri (*_vN.ogg) — hepsi CC0 (kamu malı, atıf gerekmez, ticari kullanım serbest)
+- Kenney: Impact Sounds, RPG Audio, Interface Sounds (kenney.nl)
+- OpenGameArt CC0: 80 CC0 RPG SFX, 100 CC0 SFX, 100 CC0 SFX 2, 150 Combat Sound Effects, 40 CC0 Water/Splash/Slime SFX,
+  80 CC0 Creature SFX, Swishes Sound Pack, 20 Sword Sound Effects (attacks/clashes), 10 Impact/Shield Blocks,
+  RPG Sound Pack, Fantasy Weapons & Apparel SFX Library, Electricity Game Sound Pack
+- heartbeat_v*.ogg: oyun içinde sentezlendi
+İşleme: _tmp/snd (indirme) -> sessizlik kırpma, süre sınırı, sönümleme, RMS -18 dBFS eşitleme (numpy/soundfile)

@@ -331,6 +331,8 @@ func step_sound(p: Vector3) -> String:
 	var b = biome_at(p.x, p.z)   # 2 orman, 4 yağmur, 6 pirinç, 7 çimen, 10 bataklık | 5 kaya, 9 dağ, 14 taş köy
 	if b in [2, 4, 6, 7, 10]:
 		return "step_grass%d" % v
+	if b in [8, 15]:
+		return "step_snow"   # karlı dağ/köy: gerçek kar adımı (CC0 varyantlı)
 	if b in [5, 9, 14]:
 		return "step_stone%d" % v
 	return "step_dirt%d" % v

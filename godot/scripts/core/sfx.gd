@@ -2,6 +2,9 @@ extends Node
 ## Ses (autoload "Sfx"): sentezlenmiş efektler (3D konumlu) + müzik geçişleri.
 
 var streams = {}
+## Gerçek ses varyantları (CC0 paketlerinden, assets/sfx/<ad>_vN.ogg): aynı olay her seferinde farklı varyantla çalar
+var variants := {}
+var _last := {}
 var pool: Array[AudioStreamPlayer3D] = []
 var pool2d: Array[AudioStreamPlayer] = []
 var music_a: AudioStreamPlayer
@@ -9,6 +12,8 @@ var music_b: AudioStreamPlayer
 var music_name = ""
 ## Rahatsız edici savuruş/rüzgâr sesleri arka planda kısık çalar
 const QUIET := {"whoosh": 0.3, "wind": 0.35}
+## Dosyası olmayan eski adlar -> var olan ses
+const ALIAS := {"smoke": "poof"}
 
 
 func _ready() -> void:
@@ -28,6 +33,22 @@ func _ready() -> void:
 					if st is AudioStreamMP3:
 						st.loop = false
 					streams[base] = st
+	var vd = DirAccess.open("res://assets/sfx")
+	if vd:
+		for f in vd.get_files():
+			var fn = f.replace(".import", "")
+			if not fn.ends_with(".ogg"):
+				continue
+			var base = fn.get_basename()
+			var k = base.rfind("_v")
+			if k < 0 or not base.substr(k + 2).is_valid_int():
+				continue
+			var key = base.substr(0, k)
+			if not variants.has(key):
+				variants[key] = []
+			var st = load("res://assets/sfx/" + fn)
+			if st and not (variants[key] as Array).has(st):
+				(variants[key] as Array).append(st)
 	for i in 24:
 		var p = AudioStreamPlayer3D.new()
 		p.unit_size = 12.0
@@ -42,8 +63,32 @@ func _ready() -> void:
 	music_b = AudioStreamPlayer.new(); add_child(music_b)
 
 
+## Varyantlı ses seçimi: "step_dirt2" gibi numaralı eski adlar da kök ada ("step_dirt") düşer; son çalınanı tekrarlamaz
+func _pick(name: String):
+	var key = name
+	if not variants.has(key):
+		var i = key.length()
+		while i > 0 and key[i - 1] >= "0" and key[i - 1] <= "9":
+			i -= 1
+		key = key.substr(0, i)
+	if not variants.has(key):
+		key = String(ALIAS.get(key, key))
+		if variants.has(key):
+			return (variants[key] as Array).pick_random()
+		return streams.get(name, streams.get(key, null))
+	var arr: Array = variants[key]
+	if arr.size() == 1:
+		return arr[0]
+	var j = randi() % arr.size()
+	if j == int(_last.get(key, -1)):
+		j = (j + 1) % arr.size()
+	_last[key] = j
+	return arr[j]
+
+
 func play(name: String, pos = null, pitch := 1.0, vol := 1.0) -> void:
-	if not streams.has(name):
+	var stream = _pick(name)
+	if stream == null:
 		return
 	var v = float(Game.settings["sfx"]) * vol * float(QUIET.get(name, 1.0))
 	if v <= 0.01:
@@ -51,12 +96,12 @@ func play(name: String, pos = null, pitch := 1.0, vol := 1.0) -> void:
 	if pos == null:
 		for p in pool2d:
 			if not p.playing:
-				p.stream = streams[name]; p.pitch_scale = pitch; p.volume_db = linear_to_db(v); p.play()
+				p.stream = stream; p.pitch_scale = pitch; p.volume_db = linear_to_db(v); p.play()
 				return
 		return
 	for p in pool:
 		if not p.playing:
-			p.stream = streams[name]
+			p.stream = stream
 			p.global_position = pos
 			p.pitch_scale = pitch * randf_range(0.95, 1.05)
 			p.volume_db = linear_to_db(v)
