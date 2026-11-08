@@ -14,4 +14,19 @@ func _ready() -> void:
 		if Sfx._pick(n) == null:
 			miss.append(n)
 	print("SFX unresolved: ", miss)
+	var bad = []
+	for k in Sfx.STYLE_TH:
+		if Sfx._pick(String(Sfx.STYLE_TH[k][0])) == null:
+			bad.append(k)
+	var themed = 0
+	var by = {}
+	for id in Data.jutsu:
+		var th = Sfx.theme_for_jutsu(id)
+		if th != "":
+			themed += 1
+			by[th] = int(by.get(th, 0)) + 1
+			if Sfx._pick(th) == null:
+				bad.append(id)
+	print("SFX style/theme unresolved: ", bad)
+	print("SFX themed jutsu=%d %s" % [themed, str(by)])
 	get_tree().quit()

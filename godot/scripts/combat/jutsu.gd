@@ -147,6 +147,7 @@ func execute(caster: Node3D, id: String, target: Node3D) -> void:
 			Sfx.play("jutsu_cast", null, 1.0, 0.8)
 		else:
 			Sfx.play("jutsu_cast", caster.global_position, 1.0, 0.45)
+	Sfx.play_jutsu_theme(id, caster.global_position)   # klan / doğa / jutsu temasına özel ses (Aburame böcek, Sabaku kum, Kaguya kemik...)
 	var own_id = id   # klan/kekkei genkai jutsularının kendi uygulaması (ClanJutsu) önceliklidir
 	id = String(Data.jutsu.get(id, {}).get("impl", id))  # klan jutsuları ortak uygulamayı kullanabilir
 	var jd: Dictionary = Data.jutsu.get(id, {})

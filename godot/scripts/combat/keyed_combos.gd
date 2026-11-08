@@ -3764,6 +3764,7 @@ static func _tenketsu(who: Node3D, h: Node3D, i: int) -> void:
 ## Vuruş anı görselleri + alan/mermi (isabetten bağımsız)
 static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector3, side: Vector3) -> void:
 	var at = who.global_position + Vector3.UP * 1.1 + f * 1.1
+	Sfx.play_style(id, i, at)   # dövüş tarzının kendi sesi (böcek, kum, kemik, Mokuton toprağı, kâğıt...)
 	match id:
 		"style_juken":
 			FX.hit_spark(at, Color(0.75, 0.88, 1.0), 0.7)   # avuçtan çıkan chakra

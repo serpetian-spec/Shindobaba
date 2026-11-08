@@ -109,6 +109,64 @@ func play(name: String, pos = null, pitch := 1.0, vol := 1.0) -> void:
 			return
 
 
+## Tema sesleri (kullanıcı: "animedeki değişik şeylerin hepsine özel ses"): klan / doğa / jutsu adına göre (th_<tema>_vN.ogg)
+const CLAN_TH := {"aburame": "th_bugs", "kamizuru": "th_bees", "sabaku": "th_sand", "inuzuka": "th_dog", "akimichi": "th_growth",
+	"hyuga": "th_palm", "nara": "th_shadow", "yamanaka": "th_shadow", "kaguya": "th_bone", "iburi": "th_smoke", "yuki": "th_ice",
+	"jugo": "growl", "shirogane": "th_puppet", "chinoike": "th_flesh"}
+const ELEM_TH := {"hyoton": "th_ice", "futton": "th_steam", "yoton": "th_lava", "bakuton": "th_clay", "jiton": "th_sand", "shoton": "th_ice", "mokuton": "earth"}
+const ID_TH := [["mushi", "th_bugs"], ["kikai", "th_bugs"], ["hachi", "th_bees"], ["suna", "th_sand"], ["sabaku", "th_sand"], ["satetsu", "th_sand"],
+	["sawarabi", "th_bone"], ["hone", "th_bone"], ["teshi_sendan", "th_bone"], ["yanagi", "th_bone"], ["tsubaki", "th_bone"], ["karamatsu", "th_bone"], ["tessenka", "th_bone"],
+	["shikigami", "th_paper"], ["kami_", "th_paper"], ["choju_giga", "th_ink"], ["chojugiga", "th_ink"], ["sumi", "th_ink"], ["nendo", "th_clay"], ["kibaku", "th_clay"],
+	["kugutsu", "th_puppet"], ["chikamatsu", "th_puppet"], ["akahigi", "th_puppet"], ["shirohigi", "th_puppet"], ["kurohigi", "th_puppet"],
+	["gatsuga", "th_dog"], ["tsuga", "th_dog"], ["garoga", "th_dog"], ["gama", "th_frog"], ["kawazu", "th_frog"],
+	["hebi", "th_snake"], ["jahaku", "th_snake"], ["senei_ta", "th_snake"], ["senei_ja", "th_snake"], ["manda", "th_snake"], ["yamata", "th_snake"],
+	["karasu", "th_crow"], ["kage_mane", "th_shadow"], ["kagemane", "th_shadow"], ["kage_kubi", "th_shadow"], ["kage_nui", "th_shadow"], ["kage_shibari", "th_shadow"],
+	["hiraishin", "th_teleport"], ["baika", "th_growth"], ["nikudan", "th_growth"], ["chodan", "th_growth"],
+	["kaiten", "th_palm"], ["hakke", "th_palm"], ["juken", "th_palm"], ["kusho", "th_palm"], ["kemuri", "th_smoke"], ["hanachiri", "th_leaves"], ["konoha", "th_leaves"],
+	["hyoton", "th_ice"], ["futton", "th_steam"], ["yoton", "th_lava"]]
+## Dövüş tarzı vuruş sesi: [tema, perde] — her adımda hafif, bitirişte (5) tam
+const STYLE_TH := {"style_aburame": ["th_bugs", 1.0], "style_kamizuru": ["th_bees", 1.0], "style_sabaku": ["th_sand", 1.0], "style_jin_shukaku": ["th_sand", 0.85],
+	"style_inuzuka": ["th_dog", 1.0], "style_akimichi": ["th_growth", 1.0], "style_juken": ["th_palm", 1.0], "style_nara": ["th_shadow", 1.1],
+	"style_kaguya": ["th_bone", 1.0], "style_iburi": ["th_smoke", 1.0], "style_yuki": ["th_ice", 1.0], "style_jugo": ["growl", 1.0],
+	"style_akasuna": ["th_puppet", 1.0], "style_kagit": ["th_paper", 1.0], "style_sumi": ["th_ink", 1.0], "style_kil": ["th_clay", 1.0],
+	"style_senju": ["earth", 1.0], "style_gama": ["th_frog", 1.0], "style_yilan": ["th_snake", 1.0], "style_hiraishin": ["th_teleport", 1.2],
+	"style_chidori": ["zap", 1.1], "style_hatake": ["zap", 1.2], "style_kurosuki": ["zap", 1.0], "style_yotsuki": ["zap", 0.9],
+	"style_jashin": ["th_flesh", 1.0], "style_kakuzu": ["th_flesh", 0.9], "style_uzumaki": ["chain", 1.0], "style_hozuki": ["water", 1.1],
+	"style_uchiha": ["fire", 1.2], "style_sarutobi": ["fire", 1.0], "style_tip": ["heal", 1.2], "style_kunai": ["blade", 1.1], "style_silah": ["blade", 1.0],
+	"style_bulk": ["hit_heavy", 0.9], "style_kapi": ["wind", 0.9], "style_tok": ["punch", 1.0], "style_hachibi": ["roar", 1.1],
+	"style_jin_matatabi": ["fire", 0.9], "style_jin_isobu": ["water", 0.8], "style_jin_son_goku": ["th_lava", 1.0], "style_jin_kokuo": ["th_steam", 1.0],
+	"style_jin_saiken": ["th_ink", 0.8], "style_jin_chomei": ["th_bugs", 0.8], "style_jin_gyuki": ["roar", 1.0], "style_jin_kurama": ["roar", 0.9]}
+
+
+func theme_for_jutsu(id: String) -> String:
+	var jv = Data.jutsu.get(id, {})
+	var j: Dictionary = jv if jv is Dictionary else {}
+	var cl = String(j.get("clan", ""))
+	if CLAN_TH.has(cl):
+		return CLAN_TH[cl]
+	var el = String(j.get("element", ""))
+	if ELEM_TH.has(el):
+		return ELEM_TH[el]
+	for kv in ID_TH:
+		if id.contains(kv[0]):
+			return kv[1]
+	return ""
+
+
+func play_jutsu_theme(id: String, pos: Vector3) -> void:
+	var th = theme_for_jutsu(id)
+	if th != "":
+		play(th, pos, randf_range(0.95, 1.05), 0.75)
+
+
+func play_style(id: String, step: int, pos: Vector3) -> void:
+	var st: Array = STYLE_TH.get(id, [])
+	if st.is_empty():
+		return
+	var fin = step >= 5
+	play(String(st[0]), pos, float(st[1]) * (0.88 if fin else randf_range(0.97, 1.1)), 0.9 if fin else 0.5)
+
+
 func music(name: String) -> void:
 	if name == music_name or not streams.has(name):
 		return

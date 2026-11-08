@@ -1130,7 +1130,7 @@ func evolve_tick(dt: float) -> void:
 	_evo_cd = 2.0
 	# 3) Rinnegan: Ebedi Mangekyō + (Senju gücü ve Sv.45) ya da Sv.60; ölümün eşiğinde dövüşürken uyanır
 	# kanon (Madara): Ebedi Mangekyō + Senju hücresi (Ashura chakrası) — Rinnegan zamanla uyanır. Senju hücresi olmadan ASLA.
-	if _both_slots_kind(5) and has_senju_dna(pr) and lv >= 100:   # Güç 100: Altı Yolun gözü taşıyacak beden
+	if (_raw_kind("sag") == 5 or _raw_kind("sol") == 5) and has_senju_dna(pr) and lv >= 100:   # en az bir göz EMS (nakil göz başına: tek göz EMS de olur; kullanıcı) + Güç 100
 		var fl2: Dictionary = pr["flags"]
 		if active and ms_on:
 			fl2["rinne_xp"] = float(fl2.get("rinne_xp", 0.0)) + 2.0   # bu blok 2 sn'de bir çalışır
@@ -1139,7 +1139,13 @@ func evolve_tick(dt: float) -> void:
 				Hud.msg("Gözlerinde Ashura'nın chakrası kımıldıyor... (%d / %d dk)" % [int(float(fl2["rinne_xp"]) / 60.0), int(need / 60.0)], Color(0.75, 0.65, 1.0), 3.0)
 		if float(fl2.get("rinne_xp", 0.0)) >= RINNE_NEED:
 			fl2.erase("rinne_xp")
-			_replace_eyes("goz_rinnegan", ["sag_goz", "sol_goz"], 3)
+			# kanon: Rinnegan EMS olan gözde uyanır — tek göz EMS ise tek göz Rinnegan (Sasuke), öbürü Mangekyō kalır
+			var rs = []
+			if _raw_kind("sag") == 5:
+				rs.append("sag_goz")
+			if _raw_kind("sol") == 5:
+				rs.append("sol_goz")
+			_replace_eyes("goz_rinnegan", rs, 3)
 			Hud.banner("RINNEGAN", "Indra ile Ashura'nın chakrası birleşti: Altı Yolun gözü uyandı", Color(0.7, 0.55, 0.95))
 			Sfx.play("roar", p.global_position, 0.6, 0.5)
 			VFX.shockwave(p.global_position + Vector3.UP, Color(0.7, 0.55, 0.95), 16.0, 0.6, false)
