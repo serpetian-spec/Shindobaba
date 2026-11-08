@@ -132,9 +132,22 @@ const SETS := {
 	"set_anbu_kaptan": {"name": "ANBU Shōzoku: Kaptan", "slot": "set", "price": 3800, "rank": 0, "desc": "ANBU takım kaptanının takımı: uzun kollu koyu gömlek, metal göğüs plakası, kol sargısı, sırtta pelerin.",
 		"stats": {"def": 20, "speed": 0.04, "chakra": 30}, "c1": Color(0.12, 0.12, 0.14), "c2": Color(0.85, 0.85, 0.82),
 		"parts": [["uzun_gomlek", Color(0.12, 0.12, 0.14), Color(0.12, 0.12, 0.14)], ["ninja_pant", Color(0.12, 0.12, 0.14), null], ["anbu_zirh", Color(0.85, 0.85, 0.82), null], ["kol_sargisi", Color(0.9, 0.9, 0.88), null], ["kisa_pelerin", Color(0.16, 0.16, 0.18), Color(0.3, 0.3, 0.32)], ["sandalet", Color(0.12, 0.12, 0.14), Color(0.92, 0.92, 0.9)]]},
+	"set_anbu_yami": {"name": "ANBU Shōzoku: Yami", "slot": "set", "price": 3400, "rank": 0, "desc": "Kolsuz boğazlı siyah üst, düz gri ANBU göğüs plakası (omuz askılı), dirseği aşan siyah kol ısıtıcı + dış kolda metal plaka, sol kolda beyaz bant, diz sargısı, siyah bacak ısıtıcı. Maskesi ayrıca.",
+		"stats": {"def": 18, "speed": 0.06, "melee": 0.05}, "c1": Color(0.08, 0.08, 0.1), "c2": Color(0.08, 0.08, 0.1),
+		"parts": [["kolsuz_yakali", Color(0.08, 0.08, 0.1), Color(0.08, 0.08, 0.1)], ["sivil_pant", Color(0.08, 0.08, 0.1), null], ["anbu_plaka", Color(0.74, 0.72, 0.78), null], ["anbu_kol_uzun", Color(0.74, 0.72, 0.78), null], ["anbu_ayak_diz", Color(0.08, 0.08, 0.1), Color(0.93, 0.93, 0.92)]]},
+	"set_anbu_kasumi": {"name": "ANBU Shōzoku: Kasumi", "slot": "set", "price": 3600, "rank": 0, "desc": "Koyu mor kolsuz üst, gri ANBU plakası, uzun kol ısıtıcı + plaka, iki kolda beyaz bant, boyunda deniz yeşili atkı, belin arkasından sarkan deniz yeşili peştamal, boğumlu bacak bantları.",
+		"stats": {"def": 17, "speed": 0.07, "chakra": 25}, "c1": Color(0.13, 0.11, 0.18), "c2": Color(0.16, 0.14, 0.22),
+		"parts": [["kolsuz_yakali", Color(0.13, 0.11, 0.18), Color(0.13, 0.11, 0.18)], ["sivil_pant", Color(0.16, 0.14, 0.22), null], ["anbu_plaka", Color(0.72, 0.7, 0.76), null], ["anbu_kol_uzun_cift", Color(0.72, 0.7, 0.76), null], ["anbu_atki", Color(0.2, 0.42, 0.45), null], ["anbu_ayak_bant", Color(0.14, 0.12, 0.2), Color(0.93, 0.93, 0.92)]]},
+	"set_anbu_wakate": {"name": "ANBU Shōzoku: Wakate", "slot": "set", "price": 3000, "rank": 0, "desc": "Genç ANBU takımı: kısa kollu boğazlı koyu mor üst, gri ANBU plakası, kısa kolluk (siyah sargı üstünde plaka), baldırda beyaz sargı, sandalet.",
+		"stats": {"def": 15, "speed": 0.08, "melee": 0.04}, "c1": Color(0.18, 0.15, 0.24), "c2": Color(0.2, 0.17, 0.27),
+		"parts": [["yakali", Color(0.18, 0.15, 0.24), Color(0.18, 0.15, 0.24)], ["ninja_pant", Color(0.2, 0.17, 0.27), null], ["anbu_plaka", Color(0.72, 0.7, 0.76), null], ["anbu_kol_kisa", Color(0.72, 0.7, 0.76), null], ["anbu_ayak_sargi", Color(0.15, 0.13, 0.2), Color(0.93, 0.93, 0.92)]]},
+	"set_anbu_byakue": {"name": "ANBU Shōzoku: Byakue", "slot": "set", "price": 3600, "rank": 0, "desc": "Beyaz uzun ANBU paltosu: kapüşon gibi bol yaka, geniş kollar, önü kapalı; altında boğazlı siyah üst, koyu pantolon, baldırda koyu sargı, sandalet.",
+		"stats": {"def": 16, "chakra": 40, "speed": 0.04}, "c1": Color(0.08, 0.08, 0.1), "c2": Color(0.12, 0.12, 0.18),
+		"parts": [["uzun_gomlek", Color(0.08, 0.08, 0.1), Color(0.08, 0.08, 0.1)], ["ninja_pant", Color(0.12, 0.12, 0.18), null], ["anbu_beyaz_palto", Color(0.9, 0.88, 0.84), null], ["anbu_ayak_sargi", Color(0.1, 0.1, 0.14), Color(0.13, 0.12, 0.2)]]},
 }
+
 const KAGE_SETS := ["set_hokage", "set_kazekage", "set_mizukage", "set_raikage", "set_tsuchikage"]
-const ANBU_SETS := ["set_anbu_konoha", "set_anbu_kaptan"]
+const ANBU_SETS := ["set_anbu_konoha", "set_anbu_kaptan", "set_anbu_yami", "set_anbu_kasumi", "set_anbu_wakate", "set_anbu_byakue"]
 const SHOP_SETS := ["set_goken", "set_genin", "set_shinobi", "set_chunin", "set_suna_chunin", "set_kiri_chunin", "set_kumo_chunin", "set_iwa_chunin", "set_uchiha", "set_suna", "set_tabibito", "set_iryonin", "set_kenpo", "set_kenshi", "set_samurai", "set_sengoku", "set_kage_no", "set_ame", "set_soryo", "set_ronin", "set_yuki_tabi", "set_matsuri", "set_kurenai_kenpo", "set_ne", "set_sennin_shugyo"]
 ## Boş bırakılamayan yuvalar (çıplak kalınmaz)
 const REQUIRED := ["govde", "bacak", "ayak"]
@@ -187,6 +200,15 @@ const ITEMS := {
 	"kiri_yelek": {"name": "Sis Köyü Yeleği", "slot": "zirh", "price": 850, "rank": 2, "desc": "Yatay dikişli, sudan etkilenmeyen yelek.", "stats": {"def": 9, "chakra": 20}, "look": {"vest_style": 2}, "c1": Color(0.45, 0.52, 0.46)},
 	"kumo_yelek": {"name": "Bulut Köyü Yeleği", "slot": "zirh", "price": 850, "rank": 2, "desc": "Tek omuz askılı hafif yelek.", "stats": {"def": 8, "melee": 0.06}, "look": {"vest_style": 3}, "c1": Color(0.85, 0.85, 0.82)},
 	"iwa_yelek": {"name": "Kaya Köyü Yeleği", "slot": "zirh", "price": 850, "rank": 2, "desc": "Kırmızı yelek, tek kolu zırhlı.", "stats": {"def": 12, "speed": -0.02}, "look": {"vest_style": 4}, "c1": Color(0.62, 0.18, 0.15)},
+	"anbu_plaka": {"name": "ANBU Göğüs Plakası", "slot": "zirh", "price": 0, "rank": 4, "desc": "Düz, hafif metal göğüs plakası; omuz askılarıyla bağlanır.", "stats": {"def": 12, "speed": 0.04}, "look": {"vest_style": 12}, "c1": Color(0.74, 0.72, 0.78)},
+	"anbu_kol_uzun": {"name": "ANBU Uzun Kolluk", "slot": "kol", "price": 0, "rank": 4, "desc": "Dirseği aşan siyah kol ısıtıcı, dış kolda metal plaka; sol kolda beyaz bant.", "stats": {"def": 4}, "look": {"anbu_arm": "uzun", "anbu_band": 1}, "c1": Color(0.74, 0.72, 0.78)},
+	"anbu_kol_uzun_cift": {"name": "ANBU Uzun Kolluk (Bantlı)", "slot": "kol", "price": 0, "rank": 4, "desc": "Dirseği aşan siyah kol ısıtıcı ve plaka; iki kolda beyaz bant.", "stats": {"def": 4}, "look": {"anbu_arm": "uzun", "anbu_band": 2}, "c1": Color(0.72, 0.7, 0.76)},
+	"anbu_kol_kisa": {"name": "ANBU Kısa Kolluk", "slot": "kol", "price": 0, "rank": 4, "desc": "Ön kolda siyah sargı üstünde metal plaka.", "stats": {"def": 3}, "look": {"anbu_arm": "kisa"}, "c1": Color(0.72, 0.7, 0.76)},
+	"anbu_atki": {"name": "ANBU Atkı ve Peştamal", "slot": "dis", "price": 0, "rank": 4, "desc": "Boyna sarılı atkı; belin arkasından aynı renk peştamal sarkar.", "stats": {"speed": 0.02}, "look": {"outer_style": "atki", "anbu_tasset": true}, "c1": Color(0.2, 0.42, 0.45)},
+	"anbu_beyaz_palto": {"name": "ANBU Beyaz Paltosu", "slot": "dis", "price": 0, "rank": 4, "desc": "Önü kapalı beyaz uzun palto, bol kapüşon yaka, geniş kollar.", "stats": {"def": 6, "chakra": 30}, "look": {"outer_style": "anbu_palto"}, "c1": Color(0.9, 0.88, 0.84)},
+	"anbu_ayak_diz": {"name": "ANBU Bacak Isıtıcı", "slot": "ayak", "price": 0, "rank": 4, "desc": "Dizden bileğe siyah ısıtıcı, sağ dizde beyaz sargı, açık parmaklı shinobi sandaleti.", "stats": {"speed": 0.05}, "look": {"foot_style": "shinobi", "anbu_leg": "diz"}, "c1": Color(0.08, 0.08, 0.1), "c2": Color(0.93, 0.93, 0.92)},
+	"anbu_ayak_bant": {"name": "ANBU Bantlı Tozluk", "slot": "ayak", "price": 0, "rank": 4, "desc": "Baldırı saran boğum boğum bantlı koyu tozluk ve kapalı ayakkabı.", "stats": {"speed": 0.05}, "look": {"foot_style": "tabi", "anbu_leg": "bant"}, "c1": Color(0.14, 0.12, 0.2), "c2": Color(0.93, 0.93, 0.92)},
+	"anbu_ayak_sargi": {"name": "ANBU Sargılı Sandalet", "slot": "ayak", "price": 0, "rank": 4, "desc": "Baldırı saran sargı ve shinobi sandaleti.", "stats": {"speed": 0.05}, "look": {"foot_style": "shinobi"}, "c1": Color(0.12, 0.12, 0.16), "c2": Color(0.93, 0.93, 0.92)},
 	"anbu_zirh": {"name": "ANBU Zırhı", "slot": "zirh", "price": 0, "rank": 4, "desc": "Hafif metal göğüs plakası ve omuz koruması.", "stats": {"def": 14, "speed": 0.03}, "look": {"vest_style": 5}, "c1": Color(0.75, 0.75, 0.78)},
 	"samuray_zirh": {"name": "Hafif Samuray Zırhı", "slot": "zirh", "price": 1400, "rank": 3, "desc": "Lamel plakalı göğüslük ve omuzluklar. Ağır ama sağlam.", "stats": {"def": 18, "hp": 40, "speed": -0.05}, "look": {"vest_style": 6}, "c1": Color(0.35, 0.2, 0.18)},
 	"sengoku_kizil": {"name": "Sengoku Yoroi: Akane", "slot": "zirh", "price": 2600, "rank": 3, "desc": "Savaşan Devletler döneminin kat kat lamel zırhı: geniş omuzluklar, plaka etek, kol koruması. Yangın görmüş kızıl lake.", "stats": {"def": 24, "hp": 60, "speed": -0.06}, "look": {"vest_style": 6, "armor_style": "sengoku"}, "c1": Color(0.55, 0.14, 0.11)},
@@ -1058,7 +1080,7 @@ static func apply_look(p: Dictionary) -> void:
 	var L: Dictionary = p["look"]
 	# Kage seti giyiliyse şapka o köyün renginde/kanjisinde (Kazekage seti -> yeşil şapka, rüzgâr)
 	L["kage_vid"] = {"set_hokage": "konoha", "set_kazekage": "suna", "set_mizukage": "kiri", "set_raikage": "kumo", "set_tsuchikage": "iwa"}.get(String(equipped(p, "set").get("id", "")), null)
-	for k in ["band", "vest", "mask", "weapon_r", "weapon_l", "head_style", "face_style", "outer_style", "back_item", "guards", "eye_r", "eye_l", "hood", "crest", "leg_warmers", "neck_warmer"]:
+	for k in ["band", "vest", "mask", "weapon_r", "weapon_l", "head_style", "face_style", "outer_style", "back_item", "guards", "eye_r", "eye_l", "hood", "crest", "leg_warmers", "neck_warmer", "anbu_arm", "anbu_band", "anbu_leg", "anbu_tasset"]:
 		L[k] = null
 	L["band_style"] = "none"
 	L["gloves"] = false

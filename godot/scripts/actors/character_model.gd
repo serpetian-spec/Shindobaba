@@ -1061,7 +1061,7 @@ func _paint_body() -> void:
 	if look["vest"] != null:
 		vest_mat = _cloth_mat(2)
 		_add_shell(_shell_cache[key + "|vest"], vest_mat)
-		if int(look.get("vest_style", 0)) in [0, 1, 2, 3, 4]:
+		if int(look.get("vest_style", 0)) in [0, 1, 2, 3, 4, 12]:
 			_vest_kit(_shell_cache[key + "|vest"], g)
 		if int(look.get("vest_style", 0)) == 2 and _sk_begin(_shell_cache[key]):
 			# Kiri önlüğü: kalça önünde, kumaş kabuğuna yaslı, aşağı doğru daralan plaka şerit
@@ -1599,7 +1599,7 @@ func _garment(key: String, build: Callable) -> void:
 ## Etekli dış giysiler: kalçanın altındaki kumaş dilim zincirleriyle sallanır (koşuda arkaya açılır, dönüşte savrulur,
 ## bacak/diz küreleri kumaşı iter: bacak kumaşın içinden çıkmaz). Zincir kemikleri karakter iskeletine eklenir.
 const DYN_GARMENTS := {"pelerin": 0.26, "palto": 0.3, "haori": 0.34, "org_pelerin": 0.24, "panco": 0.3, "yirtik": 0.2, "jinbaori": 0.3,
-	"cuppe": 0.26, "haori_uzun": 0.28, "mino": 0.36, "hakama": 0.32}   # anahtar -> şekil sertliği
+	"cuppe": 0.26, "haori_uzun": 0.28, "mino": 0.36, "hakama": 0.32, "anbu_palto": 0.3}   # anahtar -> şekil sertliği
 static var _gdyn_cache := {}
 
 
@@ -2226,6 +2226,14 @@ func _vest_kit(src: ArrayMesh, g: Dictionary) -> void:
 			_sk_plate(0.0, ch - 0.16, 0.21, 0.018, 0.03, dk.darkened(0.15))   # cep kapağı
 			_sk_ring(1, top_y + 0.003, 0.07, 0.018, vc.darkened(0.05), -PI, PI, 48, 0.004, 0.0, 0.035, 0.115)
 			_sk_ring(1, bot_y + 0.02, 0.035, 0.008, dk, -PI, PI, 40, 0.0)
+		12:   # ANBU düz plaka (anbu.png): önde boydan dikiş, belde kalın kabarık etek bandı, omuzdan geçen iki askı + tokalar
+			var pt = ch + 0.035   # plakanın üst kenarı (koltuk altı hizası; üstü shader ile kesik)
+			_sk_strip(0.0, pt, bot_y + 0.06, 0.006, 0.004, vc.darkened(0.45), 30)
+			_sk_ring(1, bot_y + 0.035, 0.05, 0.01, vc.darkened(0.04), -PI, PI, 48, 0.0)
+			_sk_ring(1, pt + 0.004, 0.014, 0.008, vc.darkened(0.12), -PI, PI, 40, 0.0)
+			for sx in [-1.0, 1.0]:
+				_sk_ring(0, 0.1 * sx, 0.05, 0.016, vc.darkened(0.06), -1.75, 1.75, 24, 0.0, sx)   # askı: önden omuz üstünden arkaya
+				_sk_plate(0.1 * sx, pt + 0.012, 0.05, 0.022, 0.016, vc.darkened(0.15))   # askı tokası (ön)
 	var vmi = _sk_end(g)
 	_vest_kit_cache[ck] = vmi.mesh if vmi else null
 
@@ -4421,7 +4429,7 @@ func _attachments() -> void:
 			0:   # Konoha: _vest_kit (yüzeye oturan derili cep/fermuar/yaka/omuzluk)
 				pass
 
-			1, 2, 3, 4:   # Suna / Kiri / Kumo / Iwa: _vest_kit (yüzeye oturan derili parçalar)
+			1, 2, 3, 4, 12:   # Suna / Kiri / Kumo / Iwa / ANBU plaka: _vest_kit (yüzeye oturan derili parçalar)
 				pass
 			_:
 				for sx in [-1.0, 1.0]:
@@ -4436,7 +4444,8 @@ func _attachments() -> void:
 	var hip = _grest(skel.find_bone("Hips")).origin
 	var pouch = MB.new()
 	pouch.add("box", Vector3.ZERO, Vector3(0.14, 0.09, 0.07), Color(0.42, 0.33, 0.22))
-	_mesh_on("Hips", pouch.build(Props.toon()), Transform3D(Basis.IDENTITY, hip + Vector3(0.0, 0.02, -0.14)))
+	if look.get("outer_style") != "anbu_palto":   # kapalı palto: bel çantası paltonun üstünde görünmesin
+		_mesh_on("Hips", pouch.build(Props.toon()), Transform3D(Basis.IDENTITY, hip + Vector3(0.0, 0.02, -0.14)))
 	_thigh_holster()
 	if look.get("leg_warmers") is Color:
 		_leg_warmers(look["leg_warmers"])

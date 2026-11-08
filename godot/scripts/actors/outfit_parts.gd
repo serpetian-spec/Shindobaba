@@ -5,7 +5,7 @@ extends RefCounted
 ## bol paça, gi kuşağı, başlıklar (hachimaki, haydut bandanası, sarık, jingasa, kabuto, tengai), yüz (mempo, göz bandı,
 ## peçe, yeni ANBU hayvanları), omuz/diz zırhı, sırt eşyaları (tespih, sepet, bel parşömenleri, sashimono bayrağı...), çizme.
 
-const OUTER_SLEEVES := ["palto", "haori", "org_pelerin", "cuppe", "haori_uzun", "mino"]
+const OUTER_SLEEVES := ["palto", "haori", "org_pelerin", "cuppe", "haori_uzun", "mino", "anbu_palto"]
 const FOOT_KIND := {"sandal": 0, "zori": 0, "tabi": 1, "cizme": 2, "yuksek_sandal": 3, "bilek_bot": 4, "diz_cizme": 5, "sargili_bot": 6, "zirhli_tozluk": 7, "shinobi": 8}
 
 
@@ -14,7 +14,7 @@ static func _hem(m: CharacterModel) -> float:
 	var knee = m._bp("LeftLowerLeg").y; var hips = m._bp("Hips").y; var ank = m._bp("LeftFoot").y; var chest = m._bp("UpperChest").y
 	return {"palto": knee + 0.02, "pelerin": knee - 0.06, "haori": hips - 0.16, "kisa": chest - 0.3, "org_pelerin": ank + 0.12,
 		"panco": hips - 0.04, "yirtik": knee - 0.12, "jinbaori": knee + 0.08, "cuppe": ank + 0.1, "mino": knee - 0.02,
-		"haori_uzun": knee - 0.04, "kesa": hips - 0.05}.get(str(m.look.get("outer_style", "")), knee)
+		"haori_uzun": knee - 0.04, "kesa": hips - 0.05, "anbu_palto": knee + 0.07}.get(str(m.look.get("outer_style", "")), knee)
 
 
 ## Kumaş shader'ına yeni parametreler
@@ -73,6 +73,17 @@ static func garments(m: CharacterModel, g: Dictionary) -> void:
 				func(t, ang): return t > 0.04 and front.call(ang) < 0.24, hips - 0.06))
 		"mino":
 			m._garment("mino", func(): return m._loft(g, 1, neck + 0.02, knee - 0.02, 18, torso, func(t, _a): return 0.07 + t * 0.15, 8, null, hips - 0.06))
+		"anbu_palto":
+			# ANBU beyaz paltosu (ref gozusaymasadecevicutanbu.png): önü kapalı, dize yakın; bol, kıvrımlı kapüşon yaka; geniş kollar
+			m._garment("anbu_palto", func(): return m._loft(g, 1, neck - 0.01, knee + 0.07, 30, torso, func(t, _a): return 0.062 + t * 0.065, 8, null, hips - 0.06))
+			m._garment("anbu_kapuson_yaka", func(): return m._loft(g, 1, neck - 0.07, neck + 0.055, 8, neck_f,
+				func(t, ang): return 0.05 + sin(t * PI) * 0.035 + 0.008 * sin(ang * 6.0 + t * 3.0) + (0.02 if front.call(ang) > 2.0 else 0.0), 8,
+				func(t, ang): return t > 0.45 and front.call(ang) < 0.32, -99.0, 28))
+			var ha2 = m._bp("LeftHand").x
+			var la2 = m._bp("LeftLowerArm").x
+			for sx in [-1.0, 1.0]:
+				m._garment("anbu_kol%d" % int(sx), func(): return m._loft(g, 0, (la2 - 0.06) * sx, (ha2 - 0.01) * sx, 10, func(p): return signf(p.x) == sx and p.y > neck - 0.4,
+					func(t, _a): return 0.03 + t * 0.035, 8, null, -99.0, 18))
 		"kesa":
 			# tek omuzdan kalçaya çapraz inen keşiş örtüsü
 			m._garment("kesa", func(): return m._loft(g, 1, neck - 0.02, hips - 0.08, 30, torso, func(_t, _a): return 0.035, 8,
@@ -88,11 +99,70 @@ static func garments(m: CharacterModel, g: Dictionary) -> void:
 			m._garment("bol%d" % int(sx), func(): return m._loft(g, 1, knee + 0.1, ank + 0.035, 10, func(p): return signf(p.x) == sx and absf(p.x) < 0.35,
 				# iç tarafta şişkinlik az: öbür bacağa değip ona bağlanmasın
 				func(t, a): return 0.012 + sin(t * PI * 0.92) * (0.038 if cos(a) * sx > -0.2 else 0.008), 3, null, -99.0, 18))
+	_anbu_parts(m, g)
 	var gd = m.look.get("guards")
 	if gd in ["dizlik", "agir"]:
 		for sx in [-1.0, 1.0]:
 			m._garment("dizlik%d" % int(sx), func(): return m._loft(g, 1, knee + 0.05, knee - 0.06, 5, func(p): return signf(p.x) == sx and absf(p.x) < 0.35,
 				func(_t, ang): return 0.028 if front.call(ang) < 1.1 else 0.012, 9, null, -99.0, 16))
+
+
+## ANBU takım parçaları (ref anbu.png / anbu2.png / anbu3.png): kumaş kabuğuna derili loft katmanları, dirsekle bükülür.
+## Yuva renkleri: 7 = koyu (ısıtıcı), 9 = kolluk rengi (metal plaka), 4 = sargı rengi (beyaz bant/sargı)
+static func _anbu_parts(m: CharacterModel, g: Dictionary) -> void:
+	var L = m.look
+	var neck = m._bp("Neck").y; var knee = m._bp("LeftLowerLeg").y; var ank = m._bp("LeftFoot").y
+	var ua = m._bp("LeftUpperArm").x; var el = m._bp("LeftLowerArm").x; var ha = m._bp("LeftHand").x
+	var arm = L.get("anbu_arm")
+	if arm != null:
+		for sx in [-1.0, 1.0]:
+			var af = func(p: Vector3) -> bool: return signf(p.x) == sx and p.y > neck - 0.32
+			var outer = func(_t: float, ang: float) -> bool: return absf(ang) > 1.0   # plaka yalnız dış yüzde (kol inince yana bakar)
+			if arm == "uzun":
+				# siyah ısıtıcı: üst kolun ortasından elin sırtına
+				m._garment("anbu_isitici%d" % int(sx), func(): return m._loft(g, 0, lerpf(ua, el, 0.4) * sx, (ha + 0.035) * sx, 16, af,
+					func(t, _a): return 0.006 + (1.0 - t) * 0.004, 7, null, -99.0, 18))
+				m._garment("anbu_plaka_u%d" % int(sx), func(): return m._loft(g, 0, (el - 0.035) * sx, (ha - 0.02) * sx, 9, af,
+					func(t, _a): return 0.024 + sin(t * PI) * 0.006, 9, outer, -99.0, 20))
+				for q in [0.3, 0.75]:   # plakayı kola bağlayan iki kayış
+					var x0 = lerpf(el - 0.02, ha - 0.03, q)
+					m._garment("anbu_kayis%d_%d" % [int(sx), int(q * 100)], func(): return m._loft(g, 0, (x0 - 0.009) * sx, (x0 + 0.009) * sx, 2, af,
+						func(_t, _a): return 0.03, 9, null, -99.0, 18))
+				if L.get("anbu_band") == 2 or (L.get("anbu_band") == 1 and sx > 0.0):
+					var bx = lerpf(ua, el, 0.47)
+					m._garment("anbu_bant%d" % int(sx), func(): return m._loft(g, 0, (bx - 0.026) * sx, (bx + 0.026) * sx, 4, af,
+						func(_t, _a): return 0.014, 4, null, -99.0, 18))
+			else:
+				# kısa kolluk: ön kolda koyu sargı + üstünde plaka (dirseği az aşar)
+				m._garment("anbu_kisa_alt%d" % int(sx), func(): return m._loft(g, 0, (el + 0.03) * sx, (ha - 0.025) * sx, 8, af,
+					func(_t, _a): return 0.01, 7, null, -99.0, 18))
+				m._garment("anbu_plaka_k%d" % int(sx), func(): return m._loft(g, 0, (el - 0.02) * sx, (ha - 0.035) * sx, 8, af,
+					func(t, _a): return 0.026 + sin(t * PI) * 0.006, 9, outer, -99.0, 20))
+				for q in [0.15, 0.85]:
+					var x1 = lerpf(el, ha - 0.04, q)
+					m._garment("anbu_kkayis%d_%d" % [int(sx), int(q * 100)], func(): return m._loft(g, 0, (x1 - 0.008) * sx, (x1 + 0.008) * sx, 2, af,
+						func(_t, _a): return 0.031, 9, null, -99.0, 18))
+	var leg = L.get("anbu_leg")
+	if leg != null:
+		for sx in [-1.0, 1.0]:
+			var kx = m._bp(("Left" if sx > 0.0 else "Right") + "LowerLeg").x
+			var lf = func(p: Vector3) -> bool: return signf(p.x) == sx and absf(p.x - kx) < 0.095
+			if leg == "diz":
+				# siyah bacak ısıtıcı: dizin altından bileğe, alta doğru hafif bol
+				m._garment("anbu_bacak%d" % int(sx), func(): return m._loft(g, 1, knee - 0.035, ank + 0.035, 12, lf,
+					func(t, _a): return 0.016 + t * 0.008, 7, null, -99.0, 20))
+				if sx < 0.0:   # sağ dizde beyaz sargı (ref: tek diz)
+					m._garment("anbu_diz", func(): return m._loft(g, 1, knee + 0.05, knee - 0.04, 6, lf,
+						func(t, _a): return 0.032 + 0.005 * absf(sin(t * PI * 3.0)), 4, null, -99.0, 20))
+			elif leg == "bant":
+				# boğum boğum bantlı tozluk: dizin altından bileğe halka halka
+				m._garment("anbu_bantli%d" % int(sx), func(): return m._loft(g, 1, knee - 0.06, ank + 0.03, 24, lf,
+					func(t, _a): return 0.014 + (0.012 if fposmod(t * 5.0, 1.0) < 0.4 else 0.0), 7, null, -99.0, 20))
+	if L.get("anbu_tasset", false) and L.get("outer") is Color:
+		# belin arkasından dizlere sarkan peştamal (ref anbu2.png: bacak arasından görünür), ikincil hareket
+		var hy = m._bp("Hips").y
+		var bz = m._back_z(hy + 0.02)
+		m.dangle_strip("Hips", Vector3(0, hy + 0.02, bz - 0.02), Vector3(0, -1.0, -0.12), 0.46, 0.2, L["outer"], 0.22, Vector3(1, 0, 0), 0.006)
 
 
 ## Sert aksesuarlar: CharacterModel._accessories sonunda çağrılır

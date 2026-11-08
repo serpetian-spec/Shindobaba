@@ -63,6 +63,8 @@ func _ready() -> void:
 			Gear.grant(Game.profile, wid, String(Gear.item(wid).get("slot", "silah")))
 			if pl.has_method("refresh_look"):
 				pl.refresh_look()
+		if OS.get_environment("CMP_CLAN") != "":
+			Game.profile["clan"] = OS.get_environment("CMP_CLAN")
 		if id.begins_with("susanoo"):
 			for sl in ["sag_goz", "sol_goz"]:
 				Gear.grant(Game.profile, "goz_ems", sl, null, null, {"lvl": 3, "origin": "dogustan"})

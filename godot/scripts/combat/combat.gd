@@ -14,6 +14,29 @@ const CC := ["stun", "bind", "frozen", "fear", "sleep", "paralyze"]
 const CC_MAX := 3.0
 
 
+## Shinken Shirahadori (kanon: çıplak avuçlarla bıçağı yakalama): pencere açıkken gelen silahlı yakın darbe boşa çıkar,
+## saldıran sersemler. Oyuncu ve düşman aynı (take_hit başında çağrılır). true = darbe yakalandı.
+func shirahadori_catch(target: Node, info: Dictionary) -> bool:
+	if not is_instance_valid(target) or float(target.get_meta("shirahadori_t", 0.0)) < Game.now() or not bool(info.get("melee", false)):
+		return false
+	var atk = info.get("attacker")
+	var armed = bool(info.get("blade", false))
+	if not armed and atk is Enemy:
+		var lk = atk.get("look")
+		armed = lk is Dictionary and String(lk.get("weapon_r", "")) != ""
+	if not armed and atk is Player:
+		armed = not Gear.weapon(Game.profile).is_empty() and bool(Game.profile.get("weapon_drawn", false))
+	if not armed:
+		return false
+	target.remove_meta("shirahadori_t")
+	popup_text(target.global_position + Vector3.UP * 2.4, "Shirahadori!", Color(1.0, 0.9, 0.6))
+	FX.hit_spark(target.global_position + Vector3.UP * 1.3, Color(1.0, 0.95, 0.8), 1.2)
+	Sfx.play("clash", target.global_position, 1.1)
+	if is_instance_valid(atk) and atk.has_method("apply_status"):
+		atk.apply_status("stun", 1.3)
+	return true
+
+
 ## Silahsız vuruşta eller sıkılı yumruk (kullanıcı: yumruklar parmak ucuyla atılıyordu). Avuç/parmakla vurulan tarzlar açık kalır:
 ## Jūken (Hakke), tıbbi chakra neşteri, kâğıt, mürekkep, kil, kukla ipleri. Oyuncu ve düşman aynı (AI eşitliği).
 const PALM_STYLES := ["style_juken", "style_tip", "style_kagit", "style_sumi", "style_kil", "style_akasuna"]

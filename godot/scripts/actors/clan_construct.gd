@@ -37,7 +37,7 @@ static func spawn(c: Node3D, k: String, n: int, d: Dictionary) -> Array:
 		u.owner_f = c
 		u.team = c.team
 		u.slot = i
-		u.dmg = base * {"puppet": 0.45, "ink": 0.35, "golem": 0.9, "bee": 0.25, "beetle": 0.3}.get(k, 0.4)
+		u.dmg = base * {"puppet": 0.45, "ink": 0.35, "golem": 0.9, "bee": 0.25, "beetle": 0.3, "clam": 0.0}.get(k, 0.4)
 		u.life = 18.0 + tier * 3.0
 		c.get_tree().current_scene.add_child(u)
 		var off = side * ((i - (n - 1) * 0.5) * 2.4) + fd * (2.5 + (2.0 if k == "golem" else 0.0))
@@ -64,6 +64,8 @@ func _ready() -> void:
 			radius = 0.6; height = 1.4; max_hp = 70.0; speed = 16.0
 		"beetle":
 			radius = 0.7; height = 1.0; max_hp = 90.0; speed = 12.0
+		"clam":   # Gengetsu'nun dev istiridyesi: kıpırdamaz, saldırmaz; buhar yanılsamasının kaynağı (ölünce yanılsama biter)
+			radius = 1.3; height = 1.3; max_hp = 160.0; speed = 0.0
 		_:
 			max_hp = 150.0
 	hp = max_hp
@@ -97,6 +99,15 @@ func _ready() -> void:
 func _build_mesh() -> ArrayMesh:
 	var b = MB.new()
 	match kind:
+		"clam":
+			var shellc = Color(0.75, 0.68, 0.6)
+			b.add("sphere", Vector3(0, 0.45, 0), Vector3(2.6, 0.9, 2.2), shellc, Vector3.ZERO, 14)
+			b.add("sphere", Vector3(0, 0.95, -0.2), Vector3(2.5, 0.7, 2.1), shellc.lightened(0.1), Vector3(-12, 0, 0), 14)
+			for k in 7:   # kabuk çizgileri
+				var a = (k - 3) * 0.32
+				b.add("box", Vector3(sin(a) * 0.9, 1.05, -0.2 + cos(a) * 0.2), Vector3(0.06, 0.05, 1.6), shellc.darkened(0.25), Vector3(0, rad_to_deg(a), 0), 1)
+			b.add("sphere", Vector3(0, 0.62, 0.95), Vector3(1.6, 0.25, 0.4), Color(0.92, 0.75, 0.72), Vector3.ZERO, 10)   # aralık: pembe et
+			return b.build(null)
 		"puppet":
 			# savaş kuklası (REFERANS: anime savaş kuklaları): gövdeyi saran geniş yırtık gri pelerin, pelerinden çıkan açık renk eklemli
 			# ahşap kollar (yuvarlak eklem topları, segment çizgileri, yumruk eller), ince eklemli bacaklar; iki tip (slot'a göre):
@@ -436,6 +447,10 @@ func _physics_process(dt: float) -> void:
 	cd -= dt
 	if life <= 0.0 or owner_f == null or not is_instance_valid(owner_f):
 		vanish()
+		return
+	if kind == "clam":   # yerinde durur, yalnız yerçekimi
+		velocity = Vector3(0, velocity.y - 30.0 * dt, 0)
+		move_and_slide()
 		return
 	# kanon: kukla kuklacının chakra ipleriyle yürür — ip menzili (30 m) aşılır, ipler koparsa ya da kuklacı
 	# sersemler/bağlanır/tenketsusu kapanırsa kukla yere çöker (oyuncu ve düşman kuklacı aynı)
