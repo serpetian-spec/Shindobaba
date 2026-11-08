@@ -216,3 +216,114 @@ static func dome(g: Vector3, r := 4.0) -> void:
 		VFX.scene().get_tree().create_timer(k * 0.08).timeout.connect(func():
 			spray(g + Vector3(randf_range(-1, 1), 0.3, randf_range(-1, 1)) * r * 0.4, 1.8, Vector3.UP, 45.0, 1.3, k == 0))
 	ripple(g, r * 1.2)
+
+
+## ---- 2D sprite efektlerin su karşılıkları (Suiton jutsularında VFX.gather / VFX.puffs / VFX.shockwave yerine; aynı imzalar)
+## Toplanma: çevreden ele/ağıza doğru akıp birleşen küçük 3B su damlaları (sprite kıvılcım değil)
+static func gather(pos: Vector3, _col: Color, g: float) -> void:
+	if VFX.busy():
+		return
+	if _drop_mesh == null:
+		spray(pos, 0.01, Vector3.UP, 1.0, 0.01)   # damla mesh/malzemesini hazırla
+	var n = int(8 + 4 * g)
+	for k in n:
+		var mi = MeshInstance3D.new()
+		mi.mesh = _drop_mesh
+		mi.material_override = _drop_mat
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		VFX.scene().add_child(mi)
+		var a = randf() * TAU
+		var from = pos + Vector3(cos(a), randf_range(-0.6, 0.8), sin(a)) * (1.2 + g * 0.6)
+		mi.global_position = from
+		var sz = randf_range(0.1, 0.18) * (0.8 + g * 0.2)
+		mi.scale = Vector3.ONE * sz
+		var tw = mi.create_tween()
+		tw.tween_interval(randf() * 0.15)
+		tw.tween_property(mi, "global_position", pos, randf_range(0.25, 0.4)).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		tw.parallel().tween_property(mi, "scale", Vector3.ONE * sz * 0.3, 0.35)
+		tw.tween_callback(mi.queue_free)
+
+
+## Bulut/puf yerine: aynı yönde 3B su spreyi (cfg: amount, size, dir, vmax gibi VFX.puffs anahtarları)
+static func puffs(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
+	var sz = clampf(float(cfg.get("size", 1.0)) * 0.6, 0.3, 2.5)
+	var d: Vector3 = cfg.get("dir", Vector3.UP)
+	spray(pos, sz, d if d != Vector3.ZERO else Vector3.UP, float(cfg.get("spread", 45.0)), clampf(float(cfg.get("vmax", 6.0)) / 8.0, 0.5, 1.8))
+	return null
+
+
+## Halka kartı yerine: yerde (düz) su örtüsü; dik halka ise küçük sprey
+static func ring(pos: Vector3, _col: Color, size := 6.0, dur := 0.4, flat := true, normal := Vector3.UP) -> void:
+	if flat and normal.y > 0.7:
+		sheet(Vector3(pos.x, Game.jutsu_floor(pos.x, pos.z) + 0.04, pos.z), size * 0.5, maxf(0.6, dur * 2.0))
+	else:
+		spray(pos, clampf(size * 0.15, 0.3, 1.5), normal, 60.0, 0.8)
+
+
+## ---- İzler: düz şerit kurdele / sprite duman izi yerine 3B su damlası izi (hedefin arkasından saçılır)
+class _DropTrail extends Node3D:
+	var size := 0.4
+	var t := 0.0
+	var life := 3.0
+	var last := Vector3.ZERO
+	func _process(dt: float) -> void:
+		t += dt
+		life -= dt
+		if life <= 0.0:
+			queue_free()
+			return
+		var p = global_position
+		if t > 0.07:
+			t = 0.0
+			var v = p - last
+			if v.length() > 0.05:
+				WaterArt.spray(p, clampf(size, 0.2, 1.2), (-v.normalized() + Vector3.UP * 0.4).normalized(), 40.0, 0.4)
+			last = p
+
+
+static func drop_trail(target: Node3D, size := 0.4, life := 3.0) -> Node3D:
+	if target == null or not is_instance_valid(target):
+		return null
+	var dt = _DropTrail.new()
+	dt.size = size
+	dt.life = life
+	target.add_child(dt)
+	dt.last = target.global_position
+	return dt
+
+
+## VFX.trail ile aynı imza (Suiton jutsularında yer değiştirir)
+static func trail(target: Node3D, width: float, _h := Color.WHITE, _m := Color.WHITE, _t := Color.WHITE, _len := 18, _add := 0.0) -> Node3D:
+	return drop_trail(target, clampf(width * 2.5, 0.2, 1.0))
+
+
+## Projectile.trail ile aynı imza
+static func ptrail(pr: Node3D, _cols: Array, size: float, _n := 30, _life := 0.5, _tex = null, _add := false) -> Node3D:
+	return drop_trail(pr, clampf(size * 0.6, 0.2, 1.0))
+
+
+## WindFX.streak yerine: yol boyunca uzanan ince 3B su akıntısı (tüp), kısa sürede incelip söner
+static func streak(path_fn: Callable, w := 0.1, dur := 0.2, _col := Color.WHITE, _a := 0.0, n := 6) -> void:
+	var pts = []
+	var rad = []
+	for k in n + 1:
+		var q = float(k) / n
+		pts.append(path_fn.call(q))
+		rad.append(maxf(0.04, w * (1.2 - 0.6 * absf(q - 0.5) * 2.0)))
+	var b = MB.new()
+	var o: Vector3 = pts[0]
+	var lp = []
+	for p in pts:
+		lp.append(p - o)
+	Loft.tube(b, lp, rad, Color.WHITE, 10, 2, true, true)
+	var mi = MeshInstance3D.new()
+	mi.mesh = b.build(null)
+	var m: ShaderMaterial = VFX.mat_water(Color(0.3, 0.62, 0.86), Color(0.52, 0.8, 0.95), Color(0.85, 0.96, 1.0), (pts[-1] - pts[0]).normalized(), 0.88, 1.0, 0.03).duplicate()
+	mi.material_override = m
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	VFX.scene().add_child(mi)
+	mi.global_position = o
+	var tw = mi.create_tween()
+	tw.tween_interval(maxf(0.05, dur * 0.5))
+	tw.tween_method(func(a: float): m.set_shader_parameter("alpha", a), 0.88, 0.0, maxf(0.15, dur))
+	tw.tween_callback(mi.queue_free)

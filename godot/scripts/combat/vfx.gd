@@ -888,7 +888,8 @@ static func element_trail(target: Node3D, el: String, col: Color, width: float) 
 		"bakuton":
 			return trail(target, width * 0.8, Color(1, 1, 0.97), Color(0.95, 0.93, 0.88), Color(0.85, 0.83, 0.8), 14, 0.0)
 		"suiton":
-			return trail(target, width, Color(0.95, 0.99, 1), Color(0.45, 0.75, 1.0), Color(0.12, 0.38, 0.9), 18, 0.1)
+			WaterArt.drop_trail(target, width)   # düz şerit yerine 3B su damlası izi
+			return null
 		"futton":
 			return trail(target, width, Color(1, 1, 1), Color(0.9, 0.87, 0.93), Color(0.78, 0.74, 0.82), 16, 0.0)
 		"hyoton":

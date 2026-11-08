@@ -4701,7 +4701,7 @@ func _etrail(pr: Projectile, el: String, col: Color, size: float) -> void:
 		"katon":
 			Projectile.trail(pr, [Color(1, 0.85, 0.35, 0.9), Color(1, 0.4, 0.05, 0.6), Color(0.25, 0.12, 0.08, 0)], size * 0.8, 30, 0.5, FX.tex_smoke, false)
 		"suiton":
-			Projectile.trail(pr, [Color(0.97, 0.99, 1, 1), Color(0.55, 0.82, 1, 0.9), Color(0.15, 0.4, 0.95, 0)], size * 0.9, 34, 0.5, FX.tex_smoke, false)
+			pass   # sprite duman izi yok: element_trail 3B damla izini zaten ekledi
 		"fuuton":
 			Projectile.trail(pr, [Color(1, 1, 1, 0.6), Color(0.8, 1, 0.92, 0.35), Color(0.7, 0.95, 0.85, 0)], size * 1.0, 24, 0.4, FX.tex_smoke, false)
 		"raiton":
@@ -4827,7 +4827,7 @@ func p_suiton_teppodama(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.8)
 	# Teppōdama: ağızda toplanan iri, ağır su küresi top gibi fırlar, çarpınca dev su patlaması
 	var from = _mouth_pos(c) + c.face_dir() * 1.1
-	VFX.gather(from, WATER, 0.6)
+	WaterArt.gather(from, WATER, 0.6)
 	_water_jet_fx(c, _mouth_pos(c), c.face_dir(), 3.0, 1.5, 0.2, 1.0)
 	eshot(c, "suiton_teppodama", "suiton", Color(0.3, 0.6, 1.0), tg(c, t, 26.0), from, 3.0, 22.0, 1.8, {"knock": 20.0, "launch": 3.0}, 2.0, 0.3)
 	shake(0.3)
@@ -5084,7 +5084,7 @@ func p_suiton_mizu_shuriken(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 24.0)
 	busy(c, 0.5)
 	var from = hand_pos(c, true)
-	VFX.gather(from, WATER, 1.0)
+	WaterArt.gather(from, WATER, 1.0)
 	for k in 4:
 		after(0.12 + k * 0.08, func():
 			if not live(c):
@@ -5100,8 +5100,7 @@ func p_suiton_mizu_shuriken(c: Node3D, t: Node3D) -> void:
 				bl.position = Vector3(cos(j * PI * 0.5), 0, sin(j * PI * 0.5)) * 0.22
 				star.add_child(bl)
 			var pr = shot(c, from, aim_at(c, tt, from).rotated(Vector3.UP, (k - 1.5) * 0.06), 34.0, star, inf(c, "suiton_mizu_shuriken", 0.3, {"knock": 2.0, "kind": "light", "element": "suiton", "bleed": 1.0}), tt, false, 1.3, func(p, _h):
-				VFX.splash(p, 1.2)
-				VFX.star(p, Color(0.8, 0.95, 1.0), 1.2))
+				VFX.splash(p, 1.2))
 			pr.spin = Vector3(0, 28, 0)
 			_etrail(pr, "suiton", WATER, 0.5))
 	Sfx.play("water", from, 1.6)
@@ -5112,7 +5111,7 @@ func p_suiton_mizurappa(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.0)
 	var d = fwd(c, t)
 	var from = _mouth_pos(c)
-	VFX.gather(from, WATER, 1.0)
+	WaterArt.gather(from, WATER, 1.0)
 	# Mizurappa (kaynak: Kisame Storm): ağızdan fışkıran su önde soluk, tırtıklı tepeli dev bir dalgaya dönüşüp ilerler
 	WaterArt.spray(from + d * 0.5, 1.2, d, 20.0, 1.6)
 	JutsuEngine._water_wave(c, Jutsu._jd("suiton_mizurappa"), gp(c.global_position + d * 2.0), d, 7.0, 2.2, 16.0, inf(c, "suiton_mizurappa", 0.9, {"knock": 14.0, "kind": "heavy", "element": "suiton", "dir": d}))
@@ -5155,7 +5154,7 @@ func p_suiton_homatsu_rappa(c: Node3D, t: Node3D) -> void:
 				var bb = _bubble(randf_range(0.25, 0.55))
 				scene_add(bb, q + Vector3(randf_range(-1, 1), randf_range(0, 1.2), randf_range(-1, 1)))
 				fade_free(bb, randf_range(0.8, 1.6), 0.2)
-			VFX.puffs(q, {"amount": 8, "life": 1.4, "size": 0.4, "radius": 1.2, "vmin": 0.3, "vmax": 1.2, "dir": Vector3.UP, "spread": 60.0, "outline": 0.025, "rough": 0.12,
+			WaterArt.puffs(q, {"amount": 8, "life": 1.4, "size": 0.4, "radius": 1.2, "vmin": 0.3, "vmax": 1.2, "dir": Vector3.UP, "spread": 60.0, "outline": 0.025, "rough": 0.12,
 				"outline_col": Color(0.7, 0.85, 1.0), "colors": [Color(1, 1, 1, 0.95), Color(0.88, 0.95, 1.0, 0.7), Color(0.85, 0.93, 1.0, 0)]})
 			for e in hit(c, q, 2.0, inf(c, "suiton_homatsu_rappa", 0.15, {"knock": 6.0, "kind": "light", "element": "suiton", "dir": d})):
 				st(e, "slow", 3.0))
@@ -5167,7 +5166,7 @@ func p_suiton_takitsubo_no_jutsu(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.8)
 	anim(c, "crouch", 1.4)
 	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 8.0)
-	VFX.shockwave(at + Vector3.UP * 0.1, WATER, 5.0, 0.4, true)
+	WaterArt.ring(at + Vector3.UP * 0.1, WATER, 5.0, 0.4, true)
 	VFX.cracks(at, 3.0, Color(0.1, 0.15, 0.25, 0.8), 5.0)
 	after(0.25, func():
 		var col = MeshInstance3D.new()
@@ -5836,13 +5835,13 @@ func p_bubble_clone_technique(c: Node3D, _t: Node3D) -> void:
 	bub.global_position = gp(at)
 	bub.scale = Vector3.ONE * 0.05
 	bub.create_tween().tween_property(bub, "scale", Vector3.ONE, 0.4).set_trans(Tween.TRANS_BACK)
-	VFX.puffs(at + Vector3.UP, {"amount": 50, "life": 1.2, "size": 0.25, "radius": 1.0, "vmin": 1, "vmax": 3, "dir": Vector3.UP, "spread": 90.0, "add": false,
+	WaterArt.puffs(at + Vector3.UP, {"amount": 50, "life": 1.2, "size": 0.25, "radius": 1.0, "vmin": 1, "vmax": 3, "dir": Vector3.UP, "spread": 90.0, "add": false,
 		"colors": [Color(0.9, 0.95, 1.0, 0.8), Color(0.85, 0.8, 1.0, 0.5), Color(0.8, 0.9, 1.0, 0)]})
 	var d = decoy(c, at, 8.0, func(pos):
 		if is_instance_valid(bub):
 			bub.queue_free()
 		VFX.splash(pos + Vector3.UP, 2.4)
-		VFX.puffs(pos + Vector3.UP, {"amount": 70, "life": 0.8, "size": 0.35, "radius": 1.0, "vmin": 4, "vmax": 9, "dir": Vector3.UP, "spread": 180.0, "add": false,
+		WaterArt.puffs(pos + Vector3.UP, {"amount": 70, "life": 0.8, "size": 0.35, "radius": 1.0, "vmin": 4, "vmax": 9, "dir": Vector3.UP, "spread": 180.0, "add": false,
 			"colors": [Color(0.9, 0.95, 1.0, 0.9), Color(0.85, 0.8, 1.0, 0)]})
 		for e in hit(c, pos + Vector3.UP, 3.5, inf(c, "bubble_clone_technique", 0.5, {"knock": 6.0, "kind": "heavy", "element": "suiton"})):
 			st(e, "stun", 1.5)
@@ -6279,7 +6278,7 @@ func p_mizuame_teppo(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 20.0)
 	busy(c, 0.7)
 	var from = _mouth_pos(c)
-	VFX.gather(from, SYRUP, 0.9)
+	WaterArt.gather(from, SYRUP, 0.9)
 	for k in 3:
 		after(0.12 + k * 0.14, func():
 			if not live(c):
@@ -10486,7 +10485,7 @@ func p_suiton_amefuribari(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.7)
 	var tt = tg(c, t, 26.0)
 	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 10.0)
-	VFX.puffs(at + Vector3.UP * 12.0, {"amount": 30, "life": 2.0, "size": 3.0, "radius": 4.0, "vmin": 0.1, "vmax": 0.4, "dir": Vector3.UP, "spread": 60.0, "add": false,
+	WaterArt.puffs(at + Vector3.UP * 12.0, {"amount": 30, "life": 2.0, "size": 3.0, "radius": 4.0, "vmin": 0.1, "vmax": 0.4, "dir": Vector3.UP, "spread": 60.0, "add": false,
 		"colors": [Color(0.4, 0.45, 0.55, 0.85), Color(0.45, 0.5, 0.6, 0)]})
 	for k in 50:
 		after(0.3 + randf() * 1.2, func():
@@ -10501,7 +10500,7 @@ func p_suiton_amefuribari(c: Node3D, t: Node3D) -> void:
 			nd.rotation.x = PI
 			var pr = shot(c, q, (gp(q) + Vector3.UP * 0.8 - q).normalized(), 40.0, nd, inf(c, "suiton_amefuribari", 0.05, {"knock": 0.3, "kind": "light", "element": "suiton", "bleed": 1.0}), null, false, 0.4)
 			if k % 5 == 0:
-				VFX.trail(pr, 0.04, Color(1, 1, 1, 0.8), Color(0.6, 0.85, 1.0, 0.3), Color(0.5, 0.75, 1.0, 0), 8, 0.2))
+				WaterArt.trail(pr, 0.04, Color(1, 1, 1, 0.8), Color(0.6, 0.85, 1.0, 0.3), Color(0.5, 0.75, 1.0, 0), 8, 0.2))
 	Sfx.play("water", at, 1.4)
 
 
@@ -10509,7 +10508,7 @@ func p_suiton_amefuribari(c: Node3D, t: Node3D) -> void:
 func p_suiton_bakusui_shoha(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.6)
 	var d = fwd(c, t)
-	VFX.gather(_mouth_pos(c), WATER, 2.0)
+	WaterArt.gather(_mouth_pos(c), WATER, 2.0)
 	after(0.3, func():
 		stream_fx(_mouth_pos(c), (d - Vector3.UP * 0.25).normalized(), 18.0, 7.0, _wmat(), 1.1, func(end):
 			VFX.splash(gp(end), 4.0))
@@ -10540,7 +10539,7 @@ func p_suiton_hahonryu(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.7)
 	var tt = tg(c, t, 24.0)
 	var from = hand_pos(c, true)
-	VFX.gather(from, WATER, 1.2)
+	WaterArt.gather(from, WATER, 1.2)
 	after(0.25, func():
 		if not live(c):
 			return
@@ -10627,7 +10626,7 @@ func p_suiton_suigadan(c: Node3D, t: Node3D) -> void:
 	for k in 6:
 		var a = k * TAU / 6.0
 		var q = at + Vector3(cos(a), 0, sin(a)) * 3.0
-		VFX.shockwave(q + Vector3.UP * 0.05, WATER, 1.6, 0.3, true)
+		WaterArt.ring(q + Vector3.UP * 0.05, WATER, 1.6, 0.3, true)
 		after(0.2 + k * 0.03, func():
 			var sp = MeshInstance3D.new()
 			var cm = CylinderMesh.new()
@@ -10654,7 +10653,7 @@ func p_suiton_suijinchu(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 20.0)
 	busy(c, 0.8)
 	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 8.0)
-	VFX.shockwave(at + Vector3.UP * 0.05, WATER, 4.0, 0.3, true)
+	WaterArt.ring(at + Vector3.UP * 0.05, WATER, 4.0, 0.3, true)
 	after(0.2, func():
 		var col = MeshInstance3D.new()
 		var cm = CylinderMesh.new()
@@ -10785,7 +10784,7 @@ func p_tenkyu(c: Node3D, t: Node3D) -> void:
 	holder.add_child(arc)
 	var pr = shot(c, from, aim_at(c, tt, from), 80.0, holder, inf(c, "tenkyu", 1.2, {"knock": 2.0, "kind": "heavy", "element": "suiton", "bleed": 3.0, "hitstop": 0.06}), null, true, 0.6, func(p, _h):
 		_pop(p, 1.0, WATER))
-	VFX.trail(pr, 0.07, Color(1, 1, 1, 1), Color(0.6, 0.85, 1.0, 0.6), Color(0.5, 0.75, 1.0, 0), 16, 0.6)
+	WaterArt.trail(pr, 0.07, Color(1, 1, 1, 1), Color(0.6, 0.85, 1.0, 0.6), Color(0.5, 0.75, 1.0, 0), 16, 0.6)
 	Sfx.play("whoosh", from, 2.2, 0.4)
 
 
@@ -13686,10 +13685,10 @@ func p_suiton_suidanha(c: Node3D, t: Node3D) -> void:
 		var dd = d.rotated(Vector3.UP, ang["a"])
 		var from = _mouth_pos(c)
 		var end = from + dd * 20.0
-		WindFX.streak(func(q: float) -> Vector3: return from.lerp(end, q), 0.08, 0.14, Color(0.92, 0.98, 1.0), 0.0, 6)
-		WindFX.streak(func(q: float) -> Vector3: return from.lerp(end, q) + Vector3.UP * 0.05, 0.08, 0.3, Color(0.35, 0.65, 1.0), 0.0, 6)
+		WaterArt.streak(func(q: float) -> Vector3: return from.lerp(end, q), 0.08, 0.14, Color(0.92, 0.98, 1.0), 0.0, 6)
+		WaterArt.streak(func(q: float) -> Vector3: return from.lerp(end, q) + Vector3.UP * 0.05, 0.08, 0.3, Color(0.35, 0.65, 1.0), 0.0, 6)
 		if i % 2 == 0:
-			VFX.puffs(from + dd * randf_range(1.0, 18.0), {"amount": 3, "life": 0.4, "size": 0.35, "radius": 0.3, "vmin": 1.0, "vmax": 3.0, "dir": Vector3.UP, "spread": 70.0,
+			WaterArt.puffs(from + dd * randf_range(1.0, 18.0), {"amount": 3, "life": 0.4, "size": 0.35, "radius": 0.3, "vmin": 1.0, "vmax": 3.0, "dir": Vector3.UP, "spread": 70.0,
 				"gravity": Vector3(0, -14, 0), "glow": 1.05, "water": true, "outline_col": Color(0.05, 0.25, 0.7), "outline": 0.045,
 				"colors": [Color(0.8, 0.95, 1.0, 1), Color(0.35, 0.68, 1.0, 1), Color(0.25, 0.55, 1.0, 0.0)]})
 		if i % 4 == 0:
@@ -18763,7 +18762,7 @@ func p_ukojizai_no_jutsu(c: Node3D, t: Node3D) -> void:
 				var top = e.global_position + Vector3.UP * 10.0
 				var head = Node3D.new()
 				scene_add(head, top)
-				VFX.trail(head, 0.08, Color(1, 1, 1, 1), Color(0.6, 0.85, 1.0, 0.7), Color(0.5, 0.75, 1.0, 0.0), 10, 0.0)
+				WaterArt.trail(head, 0.08, Color(1, 1, 1, 1), Color(0.6, 0.85, 1.0, 0.7), Color(0.5, 0.75, 1.0, 0.0), 10, 0.0)
 				var tw = head.create_tween()
 				tw.tween_property(head, "global_position", e.global_position + Vector3.UP * 1.2, 0.18).set_ease(Tween.EASE_IN)
 				tw.tween_callback(func():
@@ -19899,7 +19898,7 @@ func p_mizudeppo_nicho(c: Node3D, t: Node3D) -> void:
 		after(k * 0.12, func():
 			if live(c):
 				var p = hand_pos(c, k % 2 == 0)
-				VFX.shockwave(p + c.face_dir() * 0.3, Color(0.6, 0.85, 1.0), 1.0, 0.15, false, c.face_dir())
+				WaterArt.ring(p + c.face_dir() * 0.3, Color(0.6, 0.85, 1.0), 1.0, 0.15, false, c.face_dir())
 				VFX.splash(p + c.face_dir() * 0.4, 0.3))
 
 
@@ -20134,7 +20133,7 @@ func p_hoshigaki_same(c: Node3D, t: Node3D) -> void:
 ## Büyük Köpekbalığı Mermisi: ağızdan dev diş halkası ve su girdabı
 func p_suiton_daikodan_no_jutsu(c: Node3D, t: Node3D) -> void:
 	var d = fwd(c, t)
-	VFX.gather(c.global_position + Vector3.UP * 1.3 + d, WATER, 1.6)
+	WaterArt.gather(c.global_position + Vector3.UP * 1.3 + d, WATER, 1.6)
 	_shark_jaw(c.global_position + Vector3.UP * 1.4 + d * 2.0, d, 1.6)
 	stream_fx(c.global_position + Vector3.UP * 1.2 + d, d, 6.0, 1.8, _wmat(), 0.4)
 	c_suiton_daikodan_no_jutsu(c, t)
@@ -20152,7 +20151,7 @@ func p_suiton_senshokuko(c: Node3D, t: Node3D) -> void:
 
 func p_suiro_sameodori_no_jutsu(c: Node3D, t: Node3D) -> void:
 	VFX.splash(c.global_position + Vector3.UP, 4.0)
-	VFX.shockwave(gp(c.global_position) + Vector3.UP * 0.2, WATER, 30.0, 0.8, true)
+	WaterArt.ring(gp(c.global_position) + Vector3.UP * 0.2, WATER, 30.0, 0.8, true)
 	c_suiro_sameodori_no_jutsu(c, t)
 
 
@@ -20936,7 +20935,7 @@ func p_raiton_chidori(c: Node3D, t: Node3D) -> void:
 ## Büyük Köpekbalığı Mermisi: köpekbalığı ağzında diş halkası
 func p_suiton_suikoudan(c: Node3D, t: Node3D) -> void:
 	var d = fwd(c, t)
-	VFX.gather(c.global_position + Vector3.UP * 1.3 + d, WATER, 1.2)
+	WaterArt.gather(c.global_position + Vector3.UP * 1.3 + d, WATER, 1.2)
 	Jutsu.j_suiton_suikoudan(c, t)
 
 
@@ -21975,7 +21974,7 @@ func p_hozuki_mizu_muchi(c: Node3D, t: Node3D) -> void:
 func p_hoshigaki_bakusui_shoha(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.4)
 	var at = c.global_position
-	VFX.gather(_mouth_pos(c), WATER, 1.4)
+	WaterArt.gather(_mouth_pos(c), WATER, 1.4)
 	after(0.4, func():
 		var sea = MeshInstance3D.new()
 		var cm = CylinderMesh.new()
@@ -27206,7 +27205,7 @@ func p_sekken_awa(c: Node3D, t: Node3D) -> void:
 	var tt = tg(c, t, 20.0)
 	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 8.0)
 	every(5.0, 0.3, func(i, _k):
-		VFX.puffs(at + Vector3(randf_range(-3, 3), 0.2, randf_range(-3, 3)), {"amount": 5, "life": 1.2, "size": 0.6, "radius": 1.0, "vmin": 0.2, "vmax": 0.8, "dir": Vector3.UP,
+		WaterArt.puffs(at + Vector3(randf_range(-3, 3), 0.2, randf_range(-3, 3)), {"amount": 5, "life": 1.2, "size": 0.6, "radius": 1.0, "vmin": 0.2, "vmax": 0.8, "dir": Vector3.UP,
 			"spread": 30.0, "outline": 0.025, "rough": 0.12, "outline_col": Color(0.7, 0.8, 0.95), "colors": [Color(1, 1, 1, 0), Color(0.95, 0.97, 1.0, 0.9), Color(0.9, 0.95, 1.0, 0)]})
 		for e in enemies_near(c, at, 4.0):
 			if live(e) and e.has_method("apply_status"):
@@ -27304,7 +27303,7 @@ func p_nensuikai(c: Node3D, t: Node3D) -> void:
 		var holder = Node3D.new()
 		holder.add_child(disc)
 		var pr = shot(c, from, aim_at(c, tt, from), 20.0, holder, inf(c, "nensuikai", 0.6, {"knock": 1.0, "kind": "heavy", "element": "suiton"}), tt, false, 1.4, func(p, h):
-			VFX.puffs(gp(p) + Vector3.UP * 0.2, {"amount": 10, "life": 4.0, "size": 1.2, "radius": 1.0, "vmin": 0.0, "vmax": 0.3, "gravity": Vector3.ZERO, "outline": 0.03, "rough": 0.12,
+			WaterArt.puffs(gp(p) + Vector3.UP * 0.2, {"amount": 10, "life": 4.0, "size": 1.2, "radius": 1.0, "vmin": 0.0, "vmax": 0.3, "gravity": Vector3.ZERO, "outline": 0.03, "rough": 0.12,
 				"outline_col": Color(0.3, 0.5, 0.8), "colors": [Color(0.6, 0.8, 1.0, 0), Color(0.55, 0.78, 1.0, 0.85), Color(0.5, 0.75, 1.0, 0)]})
 			if h and live(h) and h.has_method("apply_status"):
 				h.apply_status("bind", 2.0)

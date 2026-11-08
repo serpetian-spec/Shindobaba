@@ -2216,7 +2216,7 @@ func c_suiton_gosuiwan_no_jutsu(c: Node3D, t: Node3D) -> void:
 		after(k * 0.02, func():
 			if live(c):
 				var to = Jutsu._hand(c) + Vector3.UP * 0.25
-				WindFX.streak(func(u: float) -> Vector3: return (c.global_position + q).lerp(to, u), 0.25, 0.05, Color(0.6, 0.85, 1.0), 0.0, 8))
+				WaterArt.streak(func(u: float) -> Vector3: return (c.global_position + q).lerp(to, u), 0.25, 0.05, Color(0.6, 0.85, 1.0), 0.0, 8))
 	busy(c, 0.55)
 	anim(c, "crouch", 2.0)
 	after(0.3, func():
@@ -2225,7 +2225,7 @@ func c_suiton_gosuiwan_no_jutsu(c: Node3D, t: Node3D) -> void:
 		anim(c, "cross", 1.5)
 		var d = fwd(c, t)
 		var p = c.global_position + Vector3.UP * 1.1 + d * 1.6
-		VFX.shockwave(p, Color(0.9, 0.92, 0.95), 4.0, 0.25, false, d)   # referans: su değil, kaslı yumruğun darbesi
+		WaterArt.ring(p, Color(0.9, 0.92, 0.95), 4.0, 0.25, false, d)   # referans: su değil, kaslı yumruğun darbesi
 		hit(c, p, 1.8, inf(c, "suiton_gosuiwan_no_jutsu", 1.8, {"knock": 18.0, "launch": 3.0, "kind": "heavy", "hitstop": 0.1}))
 		Sfx.play("punch", p, 0.7))
 
@@ -2662,7 +2662,7 @@ func c_hoshigaki_same(c: Node3D, t: Node3D) -> void:
 		var d = (Jutsu._aim(c, t)).rotated(Vector3.UP, (k - 3) * 0.28)
 		var shark = JutsuEngine.shape_mesh("shark", Color(0.35, 0.65, 1.0), 1.2, "suiton")
 		var pr = shot(c, c.global_position + Vector3.UP * 1.2 + d, d, 22.0, shark, inf(c, "hoshigaki_same", 0.5, {"knock": 8.0, "kind": "heavy"}), target, false, 3.0)
-		Projectile.trail(pr, [Color(0.8, 0.95, 1), Color(0.3, 0.6, 1.0), Color(0.2, 0.4, 0.9, 0)], 0.8, 30, 0.4)
+		WaterArt.ptrail(pr, [Color(0.8, 0.95, 1), Color(0.3, 0.6, 1.0), Color(0.2, 0.4, 0.9, 0)], 0.8, 30, 0.4)
 	Sfx.play("water", c.global_position, 0.8)
 
 
@@ -2672,7 +2672,7 @@ func c_suiton_daikodan_no_jutsu(c: Node3D, t: Node3D) -> void:
 	var shark = SharkArt.shark(3.2)   # referans: tek, dev, çenesi açık SU köpekbalığı (ortak su malzemesi)
 	var pr = shot(c, c.global_position + Vector3.UP * 1.6 + d * 2.0, d, 20.0, shark, inf(c, "suiton_daikodan_no_jutsu", 1.8, {"knock": 18.0, "launch": 4.0, "kind": "heavy"}), tg(c, t, 40.0), false, 3.0, func(pos, _tg):
 		VFX.splash(pos, 4.0)
-		VFX.shockwave(pos, Color(0.5, 0.8, 1.0), 10.0, 0.4, false))
+		WaterArt.ring(pos, Color(0.5, 0.8, 1.0), 10.0, 0.4, false))
 	pr.radius = 1.8
 	pr.on_tick = func(p, _dt):
 		for n in get_tree().current_scene.get_children():

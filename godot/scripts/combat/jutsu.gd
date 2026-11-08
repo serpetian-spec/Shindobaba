@@ -463,11 +463,10 @@ func j_suiton_suiryuudan(c: Node3D, t: Node3D) -> void:
 			p.vel = p.vel.lerp(_aim(c, null) * 26.0, 0.05)
 		p.vel = p.vel.normalized() * minf(30.0, p.vel.length() + 0.6)
 	# gövdeden saçılan köpük
-	Projectile.trail(pr, [Color(0.97, 0.99, 1, 1), Color(0.55, 0.82, 1, 0.9), Color(0.15, 0.4, 0.95, 0)], 1.4, 50, 0.6, FX.tex_smoke, false)
+	WaterArt.ptrail(pr, [Color(0.97, 0.99, 1, 1), Color(0.55, 0.82, 1, 0.9), Color(0.15, 0.4, 0.95, 0)], 1.4, 50, 0.6, FX.tex_smoke, false)
 	pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
 		VFX.splash(pos, 3.2)
 		WaterArt.drops(pos, 18, 2.5, 12.0)
-		VFX.star(pos, Color(0.6, 0.85, 1.0), 4.0, 0.18)
 		Combat.hit_sphere(c, pos, 4.5, {"dmg": 12.0 * m, "element": "suiton", "knock": 14.0, "launch": 6.0, "kind": "heavy"}, pr.hit_list)
 		Sfx.play("water", pos, 0.8)
 		if Game.world: Game.world.env.add_shake(0.6)
@@ -533,7 +532,7 @@ func j_suiton_suijinheki(c: Node3D, _t: Node3D) -> void:
 	for q in 8:
 		get_tree().create_timer(q * 0.28).timeout.connect(func():
 			if is_instance_valid(c):
-				VFX.puffs(c.global_position + Vector3.UP * randf_range(0.5, 5.0), {"amount": 10, "life": 0.6, "size": 0.6, "radius": 2.4, "vmin": 2.0, "vmax": 5.0, "dir": Vector3.UP, "spread": 70.0,
+				WaterArt.puffs(c.global_position + Vector3.UP * randf_range(0.5, 5.0), {"amount": 10, "life": 0.6, "size": 0.6, "radius": 2.4, "vmin": 2.0, "vmax": 5.0, "dir": Vector3.UP, "spread": 70.0,
 					"gravity": Vector3(0, -14, 0), "glow": 1.05, "water": true, "outline_col": Color(0.05, 0.25, 0.7), "outline": 0.045, "rough": 0.12,
 					"colors": [Color(0.7, 0.9, 1.0, 1), Color(0.3, 0.62, 1.0, 1), Color(0.2, 0.5, 0.95, 0.0)]}))
 	var dome = Node3D.new()
@@ -586,7 +585,6 @@ func j_suiton_suikoudan(c: Node3D, t: Node3D) -> void:
 			WaterArt.spray(p.global_position - p.vel.normalized() * 2.4, 0.35, -p.vel.normalized() + Vector3.UP * 0.5, 45.0, 0.45)
 	pr.on_hit = func(pos: Vector3, _tg: Node3D) -> void:
 		VFX.splash(pos, 2.4)
-		VFX.star(pos, Color(0.6, 0.85, 1.0), 3.0, 0.16)
 		Sfx.play("water", pos)
 	get_tree().current_scene.add_child(pr)
 	pr.global_position = _hand(c)
@@ -2722,11 +2720,11 @@ func j_suiton_daibakufu_no_jutsu(c: Node3D, t: Node3D) -> void:
 	var wm = VFX.mat_water(Color(0.04, 0.25, 0.75), Color(0.18, 0.52, 0.98), Color(0.65, 0.9, 1.0), Vector3.UP, 0.92, 0.9, 0.15)
 	# yükselen dev su sütunu (silindir mesh yok): yerden fışkıran mavi su topakları + tepede beyaz köpük, sonra çöker
 	_ticks(12, 0.06, func(i):
-		VFX.puffs(start + Vector3.UP * (1.0 + i * 1.6), {"amount": 14, "life": 0.7, "size": 3.0, "radius": 4.5, "vmin": 10.0, "vmax": 18.0, "dir": Vector3.UP, "spread": 18.0,
+		WaterArt.puffs(start + Vector3.UP * (1.0 + i * 1.6), {"amount": 14, "life": 0.7, "size": 3.0, "radius": 4.5, "vmin": 10.0, "vmax": 18.0, "dir": Vector3.UP, "spread": 18.0,
 			"gravity": Vector3(0, -16, 0), "damp": 0.8, "glow": 1.06, "hot": 0.3, "water": true, "outline_col": Color(0.04, 0.2, 0.62), "outline": 0.045, "rough": 0.14, "shade": 0.3,
 			"colors": [Color(0.55, 0.82, 1.0, 1), Color(0.22, 0.55, 0.98, 1), Color(0.14, 0.42, 0.9, 0.9), Color(0.1, 0.35, 0.85, 0.0)]})
 		if i > 8:
-			VFX.puffs(start + Vector3.UP * 20.0, {"amount": 10, "life": 0.6, "size": 2.0, "radius": 5.0, "vmin": 3.0, "vmax": 7.0, "spread": 120.0, "gravity": Vector3(0, -16, 0),
+			WaterArt.puffs(start + Vector3.UP * 20.0, {"amount": 10, "life": 0.6, "size": 2.0, "radius": 5.0, "vmin": 3.0, "vmax": 7.0, "spread": 120.0, "gravity": Vector3(0, -16, 0),
 				"glow": 1.05, "water": true, "outline_col": Color(0.3, 0.55, 0.9), "outline": 0.03, "colors": [Color(0.95, 0.99, 1, 1), Color(0.75, 0.9, 1, 0.9), Color(0.6, 0.82, 1, 0)]}), Callable())
 	# ardından yıkıcı dev dalga
 	get_tree().create_timer(0.8).timeout.connect(func():
