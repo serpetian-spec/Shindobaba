@@ -10420,12 +10420,25 @@ func p_suisho_bunshin_no_jutsu(c: Node3D, _t: Node3D) -> void:
 	var jade = Color(0.55, 0.95, 0.6)
 	for sx in [-1.0, 1.0]:
 		var at = gp(c.global_position + c.face_dir().cross(Vector3.UP) * 2.5 * sx)
-		var cl = _crystal_cluster(0.9, jade)
+		# ref (Guren): klon, yeşim kristalden altıgen bir kafesin içinde belirir (dikey kenarlar + üst/alt çerçeve), kafes kırılır
+		var cb = MB.new()
+		for k in 6:
+			var a = k * TAU / 6.0
+			var a2 = (k + 1) * TAU / 6.0
+			var p0 = Vector3(cos(a), 0, sin(a)) * 0.9
+			var p1 = Vector3(cos(a2), 0, sin(a2)) * 0.9
+			cb.add("box", p0 + Vector3.UP * 1.1, Vector3(0.09, 2.3, 0.09), jade, Vector3.ZERO)
+			for y in [0.05, 2.2]:
+				var mid = (p0 + p1) * 0.5 + Vector3.UP * y
+				cb.add("box", mid, Vector3(p0.distance_to(p1), 0.08, 0.08), jade, Vector3(0, -rad_to_deg(atan2(p1.z - p0.z, p1.x - p0.x)), 0))
+		var cl = mesh_of(cb, _crystal_mat(jade))
 		get_tree().current_scene.add_child(cl)
 		cl.global_position = at
 		var tw = cl.create_tween()
-		tw.tween_interval(0.35)
-		tw.tween_callback(func(): FX.burst(at + Vector3.UP, {"amount": 24, "life": 0.5, "tex": FX.tex_spark, "add": true, "size": 0.25, "vmin": 3, "vmax": 7, "colors": [Color(1, 1, 1, 1), jade, Color(jade.r, jade.g, jade.b, 0)]}))
+		tw.tween_interval(0.9)
+		tw.tween_callback(func():
+			FX.burst(at + Vector3.UP, {"amount": 24, "life": 0.5, "tex": FX.tex_spark, "add": true, "size": 0.25, "vmin": 3, "vmax": 7, "colors": [Color(1, 1, 1, 1), jade, Color(jade.r, jade.g, jade.b, 0)]})
+			_crystal_shatter(at + Vector3.UP, 0.8, jade))
 		tw.tween_callback(cl.queue_free)
 		after(0.35, func():
 			if live(c):
@@ -30134,12 +30147,15 @@ func p_shoton_suisho_meikyu(c: Node3D, t: Node3D) -> void:
 		if is_instance_valid(flower):
 			flower.queue_free()
 		_crystal_shatter(at + Vector3.UP, 1.5, Color(0.9, 0.3, 0.35))
-		for k in 39:   # kubbe: halka halka içe eğik kristal kümeleri
-			var ring = k / 13
-			var a = (k % 13) * TAU / 13.0 + ring * 0.25
-			var r = 6.5 - ring * 1.8
-			var p = gp(at + Vector3(cos(a) * r, 0, sin(a) * r))
-			_grow_crystal(p + Vector3.UP * ring * 1.6, 0.75 - ring * 0.15, 6.0, Color(0.85, 0.25, 0.32), Vector3(0, 0, 0) + Vector3(cos(a), 0, sin(a)).cross(Vector3.UP) * (35.0 + ring * 25.0))
+		# ref: alanı kapatan kızıl kristal kubbe — halkalar yükseldikçe daralır ve içe eğilir, en üstte kapanır
+		for ring in 5:
+			var cnt = [22, 18, 14, 9, 4][ring]
+			var r = [6.6, 5.9, 4.8, 3.3, 1.5][ring]
+			var y = [0.0, 1.7, 3.3, 4.5, 5.2][ring]
+			for k in cnt:
+				var a = k * TAU / cnt + ring * 0.2
+				var p = gp(at + Vector3(cos(a) * r, 0, sin(a) * r))
+				_grow_crystal(p + Vector3.UP * y, [0.95, 0.85, 0.75, 0.62, 0.5][ring], 6.0, Color(0.85, 0.25, 0.32), Vector3(cos(a), 0, sin(a)).cross(Vector3.UP) * (20.0 + ring * 18.0))
 		every(6.0, 0.5, func(_i, _k):
 			for e in enemies_near(c, at, 7.0):
 				st(e, "slow", 0.6)
@@ -30168,7 +30184,25 @@ func p_shoton_kurenai_no_kajitsu(c: Node3D, t: Node3D) -> void:
 			for k in 8:
 				var a = k * TAU / 8.0
 				_grow_crystal(gp(pp + Vector3(cos(a), 0, sin(a)) * 2.0), 0.4, 1.5, Color(0.95, 0.55, 0.65), Vector3(cos(a) * 40.0, 0, sin(a) * 40.0))
-			mhit(c, pp, 3.5, inf(c, "shoton_kurenai_no_kajitsu", 1.4, {"knock": 12.0, "kind": "heavy", "bleed": 3.0}))))
+			var hs = mhit(c, pp, 3.5, inf(c, "shoton_kurenai_no_kajitsu", 1.4, {"knock": 0.0, "kind": "heavy", "bleed": 3.0}))
+			# ref: vurulan, yüzlü pembe kristal bir kabuğun içinde donar (görünür kalır)
+			for h in hs:
+				if not live(h):
+					continue
+				var hh = float(h.get("height")) if h.get("height") != null else 1.8
+				var shell = MeshInstance3D.new()
+				var sm = SphereMesh.new()
+				sm.radius = 0.5; sm.height = 1.0; sm.radial_segments = 7; sm.rings = 4
+				shell.mesh = sm
+				shell.material_override = _crystal_mat(Color(0.95, 0.55, 0.65))
+				scene_add(shell, gp(h.global_position) + Vector3.UP * hh * 0.5)
+				shell.scale = Vector3(hh * 0.75, hh * 1.25, hh * 0.75) * 0.1
+				var tws = shell.create_tween()
+				tws.tween_property(shell, "scale", Vector3(hh * 0.75, hh * 1.25, hh * 0.75), 0.25).set_trans(Tween.TRANS_BACK)
+				tws.tween_interval(2.6)
+				tws.tween_callback(func(): _crystal_shatter(shell.global_position, 1.2, Color(0.95, 0.5, 0.6)))
+				tws.tween_callback(shell.queue_free)
+				st(h, "bind", 2.8)))
 	Sfx.play("clink", c.global_position, 1.3)
 
 
@@ -30270,9 +30304,9 @@ func p_shoton_suisho_hari(c: Node3D, t: Node3D) -> void:
 			var o = hand_pos(c)
 			var dir = aim_at(c, tt, o).rotated(Vector3.UP, randf_range(-0.15, 0.15))
 			var b = MB.new()
-			b.add("cone", Vector3(0, 0, 0.3), Vector3(0.05, 0.6, 0.05), PINKCRYSTAL, Vector3(90, 0, 0), 5)
+			b.add("cone", Vector3(0, 0, 0.6), Vector3(0.14, 1.2, 0.12), PINKCRYSTAL, Vector3(90, 0, 0), 4)   # ref: iri yüzlü kristal iğne
 			shot(c, o, dir, 40.0, mesh_of(b, _crystal_mat(PINKCRYSTAL)), inf(c, "shoton_suisho_hari", 0.22, {"knock": 2.0, "kind": "light", "bleed": 1.0}), null, false, 0.9, func(pp, _h):
-				_grow_crystal(gp(pp), 0.3, 1.8, PINKCRYSTAL, Vector3(randf_range(-30, 30), 0, randf_range(-30, 30)))))
+				_grow_crystal(gp(pp), 0.6, 1.8, PINKCRYSTAL, Vector3(randf_range(-30, 30), 0, randf_range(-30, 30)))))
 	Sfx.play("whoosh", c.global_position, 1.6)
 
 
@@ -30290,10 +30324,18 @@ func p_shoton_hasho_koryu(c: Node3D, t: Node3D) -> void:
 	var body = VfxSerpent.new()
 	body.thin = 0.8
 	body.head = head
-	body.count = 14
-	body.spacing = 0.75
-	body.radius = 0.55
+	body.count = 18
+	body.spacing = 0.8
+	body.radius = 0.75
 	body.mat = _crystal_mat(PINKCRYSTAL)
+	# ref (Guren): ejderin sırtı ve yanları sivri pembe kristal pullarla kaplı (pürüzsüz tüp değil)
+	if not VFX._cache.has("crystal_dragon_spines"):
+		var spb = MB.new()
+		for k in 5:
+			var a2 = -0.9 + k * 0.45
+			spb.add("cone", Vector3(sin(a2) * 0.85, cos(a2) * 0.85, 0), Vector3(0.32, 1.1 - absf(a2) * 0.3, 0.26), PINKCRYSTAL.lightened(0.15 * (k % 2)), Vector3(-30, 0, -rad_to_deg(a2)), 4)
+		VFX._cache["crystal_dragon_spines"] = spb.build(_crystal_mat(PINKCRYSTAL))
+	body.spines = VFX._cache["crystal_dragon_spines"]
 	get_tree().current_scene.add_child(body)
 	after(0.3, func():
 		slither(head, a + Vector3.UP * 3.0, b2, 1.0, 2.2, func():
@@ -30320,9 +30362,9 @@ func p_shoton_suisho_sharin(c: Node3D, t: Node3D) -> void:
 	wheel.look_at(wheel.global_position + d, Vector3.UP)
 	for k in 10:
 		var a = k * TAU / 10.0
-		var sh = _crystal_cluster(0.22, Color(0.9, 0.95, 1.0))
+		var sh = _crystal_cluster(0.42, Color(0.9, 0.95, 1.0))   # ref: insan boyunda kesen kristal çark
 		wheel.add_child(sh)
-		sh.position = Vector3(cos(a) * 1.3, sin(a) * 1.3, 0)
+		sh.position = Vector3(cos(a) * 1.9, sin(a) * 1.9, 0)
 		sh.rotation = Vector3(0, 0, a - PI * 0.5)
 	var hit_ids = []
 	var tw = wheel.create_tween().set_parallel()
