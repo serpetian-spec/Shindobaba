@@ -32821,3 +32821,148 @@ func p_kisei_kikai_no_jutsu(c: Node3D, t: Node3D) -> void:
 			tt.take_hit(inf(c, "kisei_kikai_no_jutsu", 0.16, {"knock": 0.0, "kind": "light", "pierce_guard": true}))
 			if randf() < 0.4:
 				Combat.popup_text(tt.global_position + Vector3.UP * 2.3, "Hücreler yıkılıyor!", Color(0.85, 0.35, 0.35)), Callable())
+
+
+# ================================================================== Eksik kanon jutsuları — Chiyo kuklaları (Narutopedia ref, 2026-11-08)
+const RAZOR := Color(1.0, 0.72, 0.85)
+
+
+## Yakındaki müttefik (kukla gösterisi için): oyuncunun dostu/çağrısı/klonu; yoksa kullanıcının kendisi
+func _ally_for(c: Node3D, r := 16.0) -> Node3D:
+	var best = null
+	var bd = r
+	for f in get_tree().get_nodes_in_group("fighters"):
+		if f == c or not is_instance_valid(f) or f.is_dead() or Combat.hostile(c, f):
+			continue
+		var d = f.global_position.distance_to(c.global_position)
+		if d < bd:
+			bd = d
+			best = f
+	return best if best else c
+
+
+## Kukla: Baba ve Anne (ref: iki kukla el ele, aralarından çıkan pembe-beyaz jilet teller kıvrılarak keser)
+func p_kugutsu_chichi_to_haha(c: Node3D, t: Node3D) -> void:
+	busy(c, 0.8)
+	anim(c, "cast", 1.1)
+	var tt = tg(c, t, 22.0)
+	FX.smoke_puff(c.global_position + c.face_dir() * 1.5 + Vector3.UP, 1.3, 14)
+	var list = ClanConstruct.spawn(c, "puppet", 2, Jutsu._jd("kugutsu_chichi_to_haha"))
+	_chakra_strings(c, list if list is Array else [], 14.0)
+	Sfx.play("th_puppet", c.global_position, 0.9)
+	var at = tt.global_position if tt else c.global_position + c.face_dir() * 8.0
+	var hits = []
+	# jilet teller: kuklaların ellerinden hedef bölgeye savrulan ince parlak teller (her dalgada yeniden keser)
+	for w in 6:
+		after(0.45 + w * 0.16, func():
+			if not live(c):
+				return
+			var a = list[w % maxi(1, list.size())] if list is Array and not list.is_empty() and is_instance_valid(list[w % list.size()]) else c
+			var from = a.global_position + Vector3.UP * 1.3
+			var sd = (at - from).normalized().cross(Vector3.UP).normalized()
+			for q in 3:
+				var off = sd * randf_range(-2.5, 2.5) + Vector3.UP * randf_range(-0.6, 1.2)
+				var to = at + Vector3.UP * 1.0 + off
+				tether(func(): return from, func(): return to, 0.03, VFX.mat_bolt(RAZOR, 2.2), 0.3)
+			hits.clear()
+			for h in hit(c, at + Vector3.UP, 2.6, inf(c, "kugutsu_chichi_to_haha", 0.12, {"knock": 1.0, "kind": "light", "bleed": 2.0, "hitstop": 0.02}), hits):
+				hits.append(h)
+			Sfx.play("slash", at, randf_range(1.0, 1.2), 0.5))
+
+
+## Kukla: Bahar Cezası Darbesi (ref: Chiyo ipleriyle Sakura'yı havaya fırlatır, Sakura chakralı yumrukla Hiruko'yu parçalar)
+func p_kugutsu_haruchugeki(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 22.0)
+	busy(c, 1.0)
+	anim(c, "cast", 1.1)
+	if tt == null:
+		if c is Player:
+			Hud.msg("Hedef yok.", Color(0.8, 0.8, 0.8))
+		return
+	var actor = _ally_for(c)
+	if actor != c:
+		_chakra_strings(c, [actor], 1.6)
+	Sfx.play("th_puppet", c.global_position, 1.0)
+	var a0 = actor.global_position
+	var land = gp(tt.global_position)
+	if actor is CharacterBody3D:
+		actor.velocity = Vector3.ZERO
+	if actor.get("model"):
+		actor.model.play("jump", 0.05, 1.0, true)
+	var tw = actor.create_tween()
+	tw.tween_method(func(u: float):
+		if live(actor):
+			actor.global_position = a0.lerp(land - (land - a0).normalized() * 0.8, u) + Vector3.UP * sin(u * PI) * 9.0, 0.0, 1.0, 0.75).set_trans(Tween.TRANS_SINE)
+	tw.tween_callback(func():
+		if not live(c):
+			return
+		if actor.get("model"):
+			actor.model.play("cross", 0.05, 1.4, true)
+		VFX.cracks(land, 3.5, Color(0.25, 0.2, 0.16, 0.85), 6.0)
+		VFX.debris(land, Color(0.5, 0.42, 0.34), 22, 7.0, 0.4)
+		VFX.puffs(land + Vector3.UP * 0.3, {"amount": 22, "life": 0.9, "size": 1.3, "radius": 1.5, "vmin": 2, "vmax": 6, "dir": Vector3.UP, "spread": 70.0,
+			"colors": [Color(0.8, 0.72, 0.6), Color(0.6, 0.52, 0.44, 0)]})
+		FX.hit_spark(land + Vector3.UP, Color(0.6, 0.85, 1.0), 2.0)
+		for h in hit(c, land + Vector3.UP, 2.4, inf(c, "kugutsu_haruchugeki", 1.4, {"knock": 14.0, "launch": 5.0, "kind": "heavy", "armor_break": true, "pierce_guard": true, "hitstop": 0.12})):
+			if h.has_method("apply_status"):
+				h.apply_status("armor_break", 4.0)
+		Sfx.play("hit_heavy", land, 0.75)
+		shake(0.8))
+
+
+## Kukla Gösterisi: İnsan Bedeniyle Ustalık (ref: baş, gövde, iki kol, iki bacağa bağlı mavi chakra ipleri; kuklacı bedeni yönetir)
+func p_soen_hitomi_goku(c: Node3D, _t: Node3D) -> void:
+	busy(c, 0.6)
+	anim(c, "cast", 1.0)
+	var actor = _ally_for(c)
+	var dur = 18.0
+	var pts = [Vector3(0, 1.75, 0), Vector3(0, 1.25, 0), Vector3(0.45, 1.3, 0), Vector3(-0.45, 1.3, 0), Vector3(0.18, 0.4, 0), Vector3(-0.18, 0.4, 0)]
+	for k in pts.size():
+		var off: Vector3 = pts[k]
+		var side = k % 2 == 0
+		tether(func(): return hand_pos(c, side) if live(c) else Vector3.ZERO,
+			func(): return (actor.global_position + off) if live(actor) else (hand_pos(c, side) if live(c) else Vector3.ZERO), 0.012, VFX.mat_bolt(CSTRING, 2.0), dur)
+	var mods = {"speed": 1.2, "melee": 1.25, "armor": 0.85}
+	if actor is Player:
+		Buffs.add("soen_hitomi_goku", dur, mods)
+	elif actor.has_method("add_buff"):
+		actor.add_buff("soen_hitomi_goku", dur, mods)
+	Combat.popup_text(actor.global_position + Vector3.UP * 2.4, "Kukla gösterisi!", CSTRING.lightened(0.3))
+	Sfx.play("th_puppet", actor.global_position, 1.1)
+
+
+## Üç Mücevher Emip Ezme (ref: üç Chikamatsu kuklası üçgen dizilir, göğüs mekanizmalarını açar; kasırga hedefleri merkeze emer, ezer, arkadan fırlatır)
+func p_sanbo_kyukai(c: Node3D, t: Node3D) -> void:
+	busy(c, 1.0)
+	anim(c, "cast", 1.0)
+	var tt = tg(c, t, 22.0)
+	var cen = gp(tt.global_position if tt else c.global_position + c.face_dir() * 8.0)
+	var list = ClanConstruct.spawn(c, "puppet", 3, Jutsu._jd("sanbo_kyukai"))
+	var units: Array = list if list is Array else []
+	for k in units.size():
+		var a = TAU * k / 3.0
+		if is_instance_valid(units[k]):
+			units[k].global_position = gp(cen + Vector3(cos(a), 0, sin(a)) * 4.5)
+			FX.smoke_puff(units[k].global_position + Vector3.UP * 1.2, 0.9, 8)
+	_chakra_strings(c, units, 4.0)
+	Sfx.play("wind", cen, 0.6)
+	var dur = 2.6
+	after(0.4, func():
+		WindFX.swirl(cen, 3.0, 5.0, dur, 12, Color(0.85, 0.82, 0.75, 0.9))
+		every(dur, 0.1, func(_i, _k):
+			for e in enemies_near(c, cen, 9.0):
+				var dd = cen - e.global_position
+				dd.y = 0
+				if dd.length() > 0.6 and e is CharacterBody3D:
+					e.velocity = dd.normalized() * minf(14.0, dd.length() * 4.0) + Vector3.UP * 1.5
+				if dd.length() < 1.6 and randf() < 0.25:
+					e.take_hit(inf(c, "sanbo_kyukai", 0.12, {"knock": 0.0, "kind": "crush", "pierce_guard": true})), func():
+			# ezilen her şey arkadan fırlatılır
+			var back = (cen - c.global_position)
+			back.y = 0
+			back = back.normalized()
+			for e in enemies_near(c, cen, 3.0):
+				e.take_hit(inf(c, "sanbo_kyukai", 0.8, {"knock": 18.0, "launch": 6.0, "dir": back, "kind": "heavy", "hitstop": 0.08}))
+			VFX.puffs(cen + Vector3.UP, {"amount": 30, "life": 0.8, "size": 1.0, "radius": 1.2, "vmin": 4, "vmax": 9, "dir": back, "spread": 30.0,
+				"colors": [Color(0.85, 0.8, 0.72), Color(0.6, 0.55, 0.5, 0)]})
+			shake(0.6)))
