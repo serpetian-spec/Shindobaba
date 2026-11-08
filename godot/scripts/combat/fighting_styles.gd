@@ -66,6 +66,8 @@ const STYLES := {
 		"desc": "Sekiz Kuyruk'un jinchūriki'si (yol tarzından ayrı, canavarın kendi chakrası): mor örtüden uzanan chakra kolları, kavrayıp çarpan dokunaçlar, mürekkep bulutuyla Tako Bunshin kaçışı, çevreyi süpüren dokunaçlar; bitiriş küçük Bijūdama."},
 	"jin_kurama": {"name": "Kurama — Tilki Örtüsü", "key": "style_jin_kurama", "src": "jin:kurama", "range": "yakın-orta", "stop": 2.4,
 		"desc": "Dokuz Kuyruk'un jinchūriki'si: turuncu chakra örtüsünde tilki ateşi pençeleri, örtüden uzanıp kavrayan ve yere çarpan chakra kolu, Bijū Hōkō kükreme dalgası, iki chakra kolu birden; bitiriş Bijūdama Rasengan."},
+	"rinnegan": {"name": "Rikudō — Rinnegan", "key": "style_rinnegan", "src": "eye:rinnegan", "range": "yakın-orta", "stop": 3.0,
+		"desc": "Altı Yolun dövüşü (Pain–Nagato): yenden çıkan kara chakra alıcısıyla saplama (chakra akışı bozulur), Banshō Ten'in ile rakibi çekip çubuğa saplama, Asura Yolu'nun roket kolu, kısa Shinra Tensei itişi, Gakidō avucuyla chakra emme; bitiriş büyük Shinra Tensei."},
 	"kagit": {"name": "Shikigami no Mai — Kâğıt", "key": "style_kagit", "src": "path:kagit", "range": "orta", "stop": 6.0,
 		"desc": "Konan'ın kâğıt sanatı: kesen kâğıt shurikenler, hedefi saran kelebek sürüsü (kör eder), yerden fırlayan kâğıt mızraklar, kâğıt kanat çırpışıyla kesici fırtına; bitiriş hedefin çevresinde patlayıcı kâğıt halkası."},
 	"sumi": {"name": "Chōjū Giga — Sumi", "key": "style_sumi", "src": "path:sumi", "range": "orta-uzak", "stop": 6.5,
@@ -120,6 +122,8 @@ static func _has_src(p: Dictionary, src: String) -> bool:
 		return pd is Dictionary and int(pd.get("s", 0)) >= 4
 	if src.begins_with("jin:"):
 		return TailedBeasts.player_jinchuriki() == src.substr(4)
+	if src.begins_with("eye:"):   # göz tarzı: o göze sahip olmak (Rinnegan — tek göz de yeter)
+		return Progress.has_eye(src.substr(4))
 	return false
 
 

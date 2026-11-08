@@ -32,6 +32,8 @@ func _ready() -> void:
 			if not Game.profile.has("paths"):
 				Game.profile["paths"] = {}
 			Game.profile["paths"][st] = {"s": 4}
+		if st == "rinnegan":   # göz tarzı: Rinnegan tak
+			Gear.grant(Game.profile, "goz_rinnegan", "sag_goz", null, null, {"lvl": 3, "origin": "uyanis"})
 		if st == "jashin" and not "uc_tirpan" in Gear.owned_ids(Game.profile):
 			Gear.grant(Game.profile, "uc_tirpan")
 		Game.profile["fight_style"] = st

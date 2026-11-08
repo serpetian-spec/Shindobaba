@@ -32468,74 +32468,9 @@ const SKIN_S4 := Color(0.93, 0.78, 0.66)
 func p_shishienjin(c: Node3D, _t: Node3D) -> void:
 	busy(c, 0.8)
 	anim(c, "seal", 1.0)
-	var cen = gp(c.global_position)
-	var half = 9.0
-	var hgt = 9.0
-	var dur = 12.0
-	var root = Node3D.new()
-	scene_add(root, cen)
-	var wm = StandardMaterial3D.new()
-	wm.albedo_color = Color(S4_PURPLE.r, S4_PURPLE.g, S4_PURPLE.b, 0.22)
-	wm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	wm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	wm.cull_mode = BaseMaterial3D.CULL_DISABLED
-	var lm = StandardMaterial3D.new()
-	lm.albedo_color = Color(0.85, 0.6, 1.0, 0.75)
-	lm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	lm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	for f in 5:
-		var q = MeshInstance3D.new()
-		var pm = QuadMesh.new()
-		pm.size = Vector2(half * 2.0, hgt) if f < 4 else Vector2(half * 2.0, half * 2.0)
-		q.mesh = pm
-		q.material_override = wm
-		q.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		root.add_child(q)
-		if f < 4:
-			var yaw = f * PI * 0.5
-			q.rotation.y = yaw
-			q.position = Vector3(sin(yaw), 0, cos(yaw)) * half + Vector3.UP * hgt * 0.5
-		else:
-			q.rotation.x = -PI * 0.5
-			q.position = Vector3.UP * hgt
-		# ızgara: ince mor çizgiler (ref: bariyer yüzeyindeki ağ deseni)
-		if f < 4:
-			for k in 7:
-				for vert in [true, false]:
-					var ln = MeshInstance3D.new()
-					var bm = BoxMesh.new()
-					bm.size = Vector3(0.05, hgt, 0.02) if vert else Vector3(half * 2.0, 0.05, 0.02)
-					ln.mesh = bm
-					ln.material_override = lm
-					ln.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-					q.add_child(ln)
-					ln.position = Vector3(-half + k * half / 3.0, 0, 0.01) if vert else Vector3(0, -hgt * 0.5 + k * hgt / 6.0, 0.01)
-	root.scale = Vector3(1, 0.02, 1)
-	root.create_tween().tween_property(root, "scale", Vector3.ONE, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	Sfx.play("fire", cen, 0.7)
-	Combat.popup_text(cen + Vector3.UP * 3.0, "Shishienjin!", S4_PURPLE.lightened(0.3))
-	# duvar diplerinde mor alev dilleri (ateş topu malzemesiyle mor alev)
-	every(dur, 0.35, func(_i, _k):
-		var side = randi() % 4
-		var yaw = side * PI * 0.5
-		var along = randf_range(-half, half)
-		var p = cen + Vector3(sin(yaw), 0, cos(yaw)) * half + Vector3(cos(yaw), 0, -sin(yaw)) * along
-		FX.puff3d(p + Vector3.UP * 0.3, {"amount": 5, "life": 0.8, "size": 0.9, "radius": 0.6, "vmin": 1, "vmax": 3, "dir": Vector3.UP, "spread": 20.0,
-			"emit": true, "colors": [Color(0.95, 0.85, 1.0), S4_PURPLE, Color(0.35, 0.1, 0.55, 0.8), Color(0.15, 0.05, 0.25, 0)]})
-		# içerideki düşman duvarı geçemez: değerse mor alev sarar, içeri itilir
-		for f2 in get_tree().get_nodes_in_group("fighters"):
-			if not Combat.hostile(c, f2) or f2.is_dead():
-				continue
-			var lp = f2.global_position - cen
-			if absf(lp.x) < half + 2.0 and absf(lp.z) < half + 2.0 and (absf(lp.x) > half - 0.8 or absf(lp.z) > half - 0.8):
-				var inward = Vector3(-signf(lp.x) if absf(lp.x) > half - 0.8 else 0.0, 0, -signf(lp.z) if absf(lp.z) > half - 0.8 else 0.0).normalized()
-				f2.global_position = cen + Vector3(clampf(lp.x, -half + 1.0, half - 1.0), lp.y, clampf(lp.z, -half + 1.0, half - 1.0))
-				f2.take_hit(inf(c, "shishienjin", 0.12, {"knock": 6.0, "dir": inward, "kind": "light", "burn": 2.0, "element": "katon"}))
-				Combat.popup_text(f2.global_position + Vector3.UP * 2.3, "Mor alev!", S4_PURPLE.lightened(0.3)), func():
-		if is_instance_valid(root):
-			var tw = root.create_tween()
-			tw.tween_property(root, "scale", Vector3(1, 0.02, 1), 0.5)
-			tw.tween_callback(root.queue_free))
+	_square_barrier(c, "shishienjin", S4_PURPLE, 9.0, 9.0, 12.0, false)   # içeridekini hapseder, değeni mor alev yakar
+	Sfx.play("fire", c.global_position, 0.7)
+	Combat.popup_text(c.global_position + Vector3.UP * 3.0, "Shishienjin!", S4_PURPLE.lightened(0.3))
 
 
 ## Dört Kara Sis Düzeni (ref: hedefin üstünde yoğun koyu mor sis oluşur, çöküp onu sarar, mor şimşekler; dış dünyadan mühürlenir)
@@ -33297,3 +33232,214 @@ func p_hono_no_te(c: Node3D, t: Node3D) -> void:
 				VFX.debris(gp(a0), Color(0.45, 0.38, 0.3), 12, 6.0, 0.3)
 				shake(0.7)
 				Sfx.play("hit_heavy", a0, 0.75)))
+
+
+# ================================================================== Eksik kanon jutsuları — Hashirama / Hokage'ler / Tsunade / Han / Minato (2026-11-08)
+## Çağırma: Beşli Rashōmon (ref: mühürsüz anında beş kapı; saldırının yönünü bile değiştirir)
+func p_kuchiyose_goju_rashomon(c: Node3D, t: Node3D) -> void:
+	var d = fwd(c, t)
+	var sd = d.cross(Vector3.UP).normalized()
+	busy(c, 0.5)
+	summon_circle(c.global_position + d * 6.0, 8.0, Color(0.85, 0.25, 0.2), 0.8)
+	# kademeli yay: ortada önde, yanlarda biraz geride (saptırma açısı)
+	var offs = [[0.0, 5.0], [-1.0, 6.5], [1.0, 6.5], [-2.0, 8.5], [2.0, 8.5]]
+	for k in 5:
+		var o = offs[k]
+		var pos = c.global_position + d * float(o[1]) + sd * float(o[0]) * 3.4
+		var dir = (d + sd * float(o[0]) * 0.18).normalized()
+		after(0.05 * k, func(): rashomon_gate(c, pos, dir, 1.15 + 0.05 * k, 10.0, "kuchiyose_goju_rashomon"))
+	Sfx.play("earth", c.global_position, 0.5)
+	shake(0.6)
+
+
+## Kare bariyer (Shishienjin / Shisekiyōjin ortak): renk, yarıçap, süre; protect: dışarıdakini sokmaz + gelen mermiyi siler
+func _square_barrier(c: Node3D, id: String, col: Color, half: float, hgt: float, dur: float, protect: bool) -> void:
+	var cen = gp(c.global_position)
+	var root = Node3D.new()
+	scene_add(root, cen)
+	var wm = StandardMaterial3D.new()
+	wm.albedo_color = Color(col.r, col.g, col.b, 0.24)
+	wm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	wm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	wm.cull_mode = BaseMaterial3D.CULL_DISABLED
+	var lm = StandardMaterial3D.new()
+	lm.albedo_color = Color(lerpf(col.r, 1.0, 0.3), lerpf(col.g, 1.0, 0.3), lerpf(col.b, 1.0, 0.3), 0.75)
+	lm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	lm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	for f in 5:
+		var q = MeshInstance3D.new()
+		var pm = QuadMesh.new()
+		pm.size = Vector2(half * 2.0, hgt) if f < 4 else Vector2(half * 2.0, half * 2.0)
+		q.mesh = pm
+		q.material_override = wm
+		q.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		root.add_child(q)
+		if f < 4:
+			var yaw = f * PI * 0.5
+			q.rotation.y = yaw
+			q.position = Vector3(sin(yaw), 0, cos(yaw)) * half + Vector3.UP * hgt * 0.5
+			for k in 7:
+				for vert in [true, false]:
+					var ln = MeshInstance3D.new()
+					var bm = BoxMesh.new()
+					bm.size = Vector3(0.05, hgt, 0.02) if vert else Vector3(half * 2.0, 0.05, 0.02)
+					ln.mesh = bm
+					ln.material_override = lm
+					ln.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+					q.add_child(ln)
+					ln.position = Vector3(-half + k * half / 3.0, 0, 0.01) if vert else Vector3(0, -hgt * 0.5 + k * hgt / 6.0, 0.01)
+		else:
+			q.rotation.x = -PI * 0.5
+			q.position = Vector3.UP * hgt
+	root.scale = Vector3(1, 0.02, 1)
+	root.create_tween().tween_property(root, "scale", Vector3.ONE, 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	var fire = [Color(1.0, 0.95, 0.9), col, col.darkened(0.5), Color(col.r * 0.2, col.g * 0.1, col.b * 0.2, 0)]
+	every(dur, 0.3, func(_i, _k):
+		var side = randi() % 4
+		var yaw = side * PI * 0.5
+		var p = cen + Vector3(sin(yaw), 0, cos(yaw)) * half + Vector3(cos(yaw), 0, -sin(yaw)) * randf_range(-half, half)
+		FX.puff3d(p + Vector3.UP * 0.3, {"amount": 5, "life": 0.8, "size": 0.9, "radius": 0.6, "vmin": 1, "vmax": 3, "dir": Vector3.UP, "spread": 20.0, "emit": true, "colors": fire})
+		for f2 in get_tree().get_nodes_in_group("fighters"):
+			if not Combat.hostile(c, f2) or f2.is_dead():
+				continue
+			var lp = f2.global_position - cen
+			var near_wall = absf(lp.x) < half + 2.0 and absf(lp.z) < half + 2.0 and (absf(lp.x) > half - 0.8 or absf(lp.z) > half - 0.8)
+			if not near_wall:
+				continue
+			var inside = absf(lp.x) < half and absf(lp.z) < half
+			var push = Vector3(signf(lp.x) if absf(lp.x) > half - 0.8 else 0.0, 0, signf(lp.z) if absf(lp.z) > half - 0.8 else 0.0).normalized()
+			if protect and not inside:
+				# koruyucu: dışarıdaki giremez, sekerek geri savrulur
+				f2.global_position += push * 1.2
+				f2.take_hit(inf(c, id, 0.1, {"knock": 9.0, "dir": push, "kind": "light"}))
+			elif not protect:
+				f2.global_position = cen + Vector3(clampf(lp.x, -half + 1.0, half - 1.0), lp.y, clampf(lp.z, -half + 1.0, half - 1.0))
+				f2.take_hit(inf(c, id, 0.12, {"knock": 6.0, "dir": -push, "kind": "light", "burn": 2.0, "element": "katon"}))
+				Combat.popup_text(f2.global_position + Vector3.UP * 2.3, "Alev duvarı!", col.lightened(0.3))
+		if protect:
+			for pr in get_tree().get_nodes_in_group("projectiles"):
+				if not is_instance_valid(pr) or pr.get("shooter") == null or not is_instance_valid(pr.shooter) or not Combat.hostile(c, pr.shooter):
+					continue
+				var lp2 = pr.global_position - cen
+				if absf(lp2.x) < half + 1.0 and absf(lp2.z) < half + 1.0 and lp2.y < hgt + 1.0:
+					VFX.shockwave(pr.global_position, col.lightened(0.3), 2.5, 0.2, false)
+					pr.queue_free(), func():
+		if is_instance_valid(root):
+			var tw = root.create_tween()
+			tw.tween_property(root, "scale", Vector3(1, 0.02, 1), 0.5)
+			tw.tween_callback(root.queue_free))
+
+
+## Dört Kızıl Yang Düzeni (ref: Kage seviyesi kızıl, esnek bariyer; dışarıdan gelen her şeyi sektirir)
+func p_shisekiyojin(c: Node3D, _t: Node3D) -> void:
+	busy(c, 0.9)
+	anim(c, "seal", 1.0)
+	_square_barrier(c, "shisekiyojin", Color(0.95, 0.22, 0.18), 11.0, 12.0, 15.0, true)
+	Combat.popup_text(c.global_position + Vector3.UP * 3.0, "Shisekiyōjin!", Color(1.0, 0.5, 0.45))
+	Sfx.play("th_shadow", c.global_position, 1.3)
+	shake(0.5)
+
+
+## Gök Mızrağı Tekmesi (ref: çok yükseğe sıçrar, topukla rakibin üstüne çakılır)
+func p_sotenkyaku(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 14.0)
+	busy(c, 1.2)
+	var a0 = c.global_position
+	var land = gp(tt.global_position if tt else a0 + c.face_dir() * 6.0)
+	anim(c, "jump", 1.0)
+	var tw = c.create_tween()
+	tw.tween_method(func(u: float):
+		if live(c):
+			c.global_position = a0.lerp(land, u) + Vector3.UP * sin(u * PI) * 12.0
+			if c is CharacterBody3D:
+				c.velocity = Vector3.ZERO, 0.0, 1.0, 0.9).set_trans(Tween.TRANS_SINE)
+	after(0.55, func():
+		if live(c):
+			_kick_pose(c, 0.4))
+	tw.tween_callback(func():
+		if not live(c):
+			return
+		_tai_impact(c, land + Vector3.UP * 0.3, 2.4)
+		VFX.cracks(land, 6.0, Color(0.18, 0.13, 0.1, 0.9), 7.0)
+		VFX.debris(land, Color(0.5, 0.42, 0.34), 26, 10.0, 0.45)
+		for h in hit(c, land + Vector3.UP, 4.0, inf(c, "sotenkyaku", 2.0, {"knock": 16.0, "launch": 6.0, "kind": "heavy", "armor_break": true, "hitstop": 0.12})):
+			if h.has_method("apply_status"):
+				h.apply_status("armor_break", 4.0)
+		Sfx.play("boom", land, 0.8)
+		shake(1.0))
+
+
+## Fışkıran Güçlü Ayak (ref: chakra kaynama noktasında; buhar zırhından fışkıran buharla güçlenen tekme)
+func p_fungokyaku(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 6.0)
+	busy(c, 0.6)
+	if tt:
+		_jump_at(c, tt, 0.0, 8.0)
+	var steam = [Color(0.98, 0.98, 1.0, 1.0), Color(0.92, 0.94, 0.97, 0.8), Color(0.88, 0.9, 0.95, 0.4), Color(0.85, 0.88, 0.92, 0)]
+	FX.puff3d(c.global_position + Vector3.UP, {"amount": 18, "life": 0.9, "size": 1.2, "radius": 0.8, "vmin": 2, "vmax": 5, "spread": 180.0, "colors": steam, "mist": true})
+	Sfx.play("th_steam", c.global_position, 0.9)
+	after(0.18, func():
+		if not live(c):
+			return
+		_kick_pose(c, 0.3)
+		var at = c.global_position + Vector3.UP * 1.0 + c.face_dir() * 1.4
+		FX.puff3d(at, {"amount": 14, "life": 0.7, "size": 1.0, "radius": 0.5, "vmin": 4, "vmax": 9, "dir": c.face_dir(), "spread": 30.0, "colors": steam, "mist": true})
+		hit(c, at, 1.8, inf(c, "fungokyaku", 1.3, {"knock": 20.0, "launch": 3.0, "kind": "heavy", "burn": 2.0, "hitstop": 0.1}))
+		Sfx.play("hit_heavy", at, 0.85))
+
+
+## Sarmal Şimşek Süper Halka Dansı Uluma Üçüncü Biçim (ref: daire hâlinde altı Hiraishin kunaisi; kunaiden kunaiye ışınlanıp vurur, şimşek parlaması)
+func p_rasen_senko_cho_rinbuko_sanshiki(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 22.0)
+	busy(c, 1.8)
+	var cen = gp(tt.global_position if tt else c.global_position + c.face_dir() * 8.0)
+	var gold = Color(1.0, 0.9, 0.35)
+	var spots = []
+	for k in 6:
+		var a = TAU * k / 6.0
+		spots.append(gp(cen + Vector3(cos(a), 0, sin(a)) * 5.0))
+	anim(c, "throw", 1.4)
+	for k in 6:
+		var sp: Vector3 = spots[k]
+		var pr_from = c.global_position + Vector3.UP * 1.3
+		var kun = Node3D.new()
+		scene_add(kun, pr_from)
+		var b = MB.new()
+		b.add("cone", Vector3(0, 0, -0.25), Vector3(0.08, 0.5, 0.08), Color(0.75, 0.78, 0.85), Vector3(-90, 0, 0), 6)
+		kun.add_child(mesh_of(b))
+		var tw = kun.create_tween()
+		tw.tween_property(kun, "global_position", sp + Vector3.UP * 0.2, 0.25 + k * 0.03)
+		tw.tween_interval(1.6)
+		tw.tween_callback(kun.queue_free)
+	Sfx.play("whoosh", c.global_position, 1.3)
+	var hits = {}
+	for k in 6:
+		after(0.4 + k * 0.17, func():
+			if not live(c):
+				return
+			var sp: Vector3 = spots[k]
+			VFX.star(c.global_position + Vector3.UP, gold, 1.6)
+			c.global_position = sp
+			VFX.star(sp + Vector3.UP, gold, 1.8)
+			if "facing" in c:
+				var dd = cen - sp
+				c.facing = atan2(-dd.x, -dd.z)
+			var orb = VFX.rasengan(0.5)
+			scene_add(orb, sp + Vector3.UP * 1.1 + (cen - sp).normalized() * 0.8)
+			free_after(0.2, orb)
+			for h in hit(c, sp + Vector3.UP + (cen - sp).normalized() * 2.0, 3.0, inf(c, "rasen_senko_cho_rinbuko_sanshiki", 0.35, {"knock": 4.0, "kind": "heavy", "hitstop": 0.03})):
+				hits[h] = true
+			Sfx.play("th_teleport", sp, 1.2, 0.5))
+	after(0.4 + 6 * 0.17, func():
+		if not live(c):
+			return
+		FX.light(cen + Vector3.UP, gold, 9.0, 18.0, 0.3)
+		VFX.shockwave(cen + Vector3.UP, gold, 11.0, 0.35, false)
+		for k in 5:
+			var a = randf() * TAU
+			VFX.bolt(cen + Vector3.UP * 1.0, cen + Vector3(cos(a) * 6.0, randf_range(0.5, 3.0), sin(a) * 6.0), gold, 0.18, 0.2, 2)
+		for e in enemies_near(c, cen, 7.0):
+			var away = (e.global_position - cen)
+			away.y = 0
+			e.take_hit(inf(c, "rasen_senko_cho_rinbuko_sanshiki", 1.0, {"knock": 18.0, "launch": 5.0, "dir": away.normalized(), "kind": "heavy", "hitstop": 0.08}))
+		shake(0.7))

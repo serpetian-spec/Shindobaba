@@ -72,6 +72,7 @@ const TABLE := {
 	"style_gama": [preload("res://scripts/combat/style_gama_anim.gd"), 1.0],
 	"style_chidori": [preload("res://scripts/combat/style_chidori_anim.gd"), 1.05],
 	"style_hiraishin": [preload("res://scripts/combat/style_hiraishin_anim.gd"), 1.15],
+	"style_rinnegan": [preload("res://scripts/combat/style_rinnegan_anim.gd"), 1.0],
 	"style_tip": [preload("res://scripts/combat/style_tip_anim.gd"), 1.1],
 	"style_kakuzu": [preload("res://scripts/combat/style_kakuzu_anim.gd"), 0.95],
 	"style_jashin": [preload("res://scripts/combat/style_jashin_anim.gd"), 1.0],
@@ -94,7 +95,7 @@ const MASS := {"temari_ogi": 0.65, "uc_tirpan": 1.0, "samehada": 0.9, "kabutowar
 	"sai": 0.2, "chakra_bicak": 0.25, "ruzgar_bicak": 0.1, "hiraishin_kunai": 0.15, "homatsu_kiseru": 0.3, "kusanagi": 0.35, "kusarigama": 0.55, "fuma_shuriken": 0.4, "kyodai_shuriken": 1.0, "fuma_makimono": 0.15, "nuibari": 0.25, "savas_cekici": 1.0, "zincirli_kunai": 0.3, "tonfa": 0.3, "bashosen": 0.35, "kubikiribocho": 0.95, "yagura_sopa": 0.4, "yelpaze": 0.6, "kongo_asa": 0.45, "kama": 0.75, "pence": 0.15, "senbon": 0.05, "hiramekarei": 0.7, "bo": 0.35, "kiba": 0.25, "tanto": 0.1, "hakko_chakura_to": 0.08, "mateki": 0.06, "wakizashi": 0.25, "nodachi": 0.7, "musta": 0.15,
 	"style_juken": 0.08, "style_akimichi": 0.65, "style_inuzuka": 0.12, "style_kaguya": 0.2,
 	"style_uchiha": 0.1, "style_hozuki": 0.3, "style_aburame": 0.05, "style_jugo": 0.7,
-	"style_yuki": 0.05, "style_sabaku": 0.05, "style_uzumaki": 0.1, "style_yotsuki": 0.3, "style_kamizuru": 0.05, "style_iburi": 0.05, "style_kurosuki": 0.15, "style_senju": 0.45, "style_sarutobi": 0.12, "style_hatake": 0.1, "style_nara": 0.05, "style_kapi": 0.15, "style_kil": 0.05, "style_akasuna": 0.05, "style_kagit": 0.05, "style_sumi": 0.05, "style_yilan": 0.1, "style_gama": 0.2, "style_chidori": 0.1, "style_hiraishin": 0.05, "style_tip": 0.12, "style_kakuzu": 0.3, "style_jashin": 0.5, "style_hachibi": 0.35, "style_silah": 0.1, "style_jin_shukaku": 0.5, "style_jin_matatabi": 0.15, "style_jin_isobu": 0.3, "style_jin_son_goku": 0.45, "style_jin_kokuo": 0.3, "style_jin_saiken": 0.1, "style_jin_chomei": 0.1, "style_jin_gyuki": 0.4, "style_jin_kurama": 0.3}
+	"style_yuki": 0.05, "style_sabaku": 0.05, "style_uzumaki": 0.1, "style_yotsuki": 0.3, "style_kamizuru": 0.05, "style_iburi": 0.05, "style_kurosuki": 0.15, "style_senju": 0.45, "style_sarutobi": 0.12, "style_hatake": 0.1, "style_nara": 0.05, "style_kapi": 0.15, "style_kil": 0.05, "style_akasuna": 0.05, "style_kagit": 0.05, "style_sumi": 0.05, "style_yilan": 0.1, "style_gama": 0.2, "style_chidori": 0.1, "style_hiraishin": 0.05, "style_rinnegan": 0.1, "style_tip": 0.12, "style_kakuzu": 0.3, "style_jashin": 0.5, "style_hachibi": 0.35, "style_silah": 0.1, "style_jin_shukaku": 0.5, "style_jin_matatabi": 0.15, "style_jin_isobu": 0.3, "style_jin_son_goku": 0.45, "style_jin_kokuo": 0.3, "style_jin_saiken": 0.1, "style_jin_chomei": 0.1, "style_jin_gyuki": 0.4, "style_jin_kurama": 0.3}
 
 
 static func mass(id: String) -> float:
@@ -215,6 +216,11 @@ static func mods(id: String, i: int) -> Dictionary:
 			return m
 		"style_jashin", "style_hachibi", "style_silah":   # tüm vuruşlar kendi sanatından (on_strike): yürüyerek atılmaz
 			return {"lunge_mul": 0.0, "special": "", "knock": 1.0, "reach_add": -9.0}
+		"style_rinnegan":   # Altı Yol: 1 ve 5 yakın (çubuk/avuç), diğerleri kendi sanatından (on_strike)
+			var m = {"lunge_mul": 0.0, "special": "", "knock": 1.0, "reach_add": -9.0}
+			if i in [0, 4]:
+				m = {"lunge_mul": 0.6, "special": "", "knock": 3.0, "reach_add": -9.0}
+			return m
 		"style_hiraishin":   # ışınlanır, yürüyerek yanaşmaz: tüm vuruşlar kunai/flaş sanatından (on_strike)
 			return {"lunge_mul": 0.0, "special": "", "knock": 1.0, "reach_add": -9.0}
 		"style_kagit", "style_sumi":   # orta-uzak: el değmez, tüm hasar kâğıt / mürekkepten (on_strike)
@@ -3766,6 +3772,68 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 	var at = who.global_position + Vector3.UP * 1.1 + f * 1.1
 	Sfx.play_style(id, i, at)   # dövüş tarzının kendi sesi (böcek, kum, kemik, Mokuton toprağı, kâğıt...)
 	match id:
+		"style_rinnegan":
+			var pjr = PathJutsu.get_pinst()
+			if pjr == null:
+				return
+			var violet = Color(0.72, 0.62, 0.95)
+			match i:
+				0:   # kara chakra alıcısı yenden çıkar, saplanır: chakra akışı bozulur
+					var rod = pjr._receiver_rod(1.4)
+					who.get_tree().current_scene.add_child(rod)
+					rod.global_position = who.global_position + Vector3.UP * 1.25 + f * 0.6
+					rod.look_at(rod.global_position + f, Vector3.UP)
+					var tw = rod.create_tween()
+					tw.tween_property(rod, "global_position", rod.global_position + f * 1.0, 0.08)
+					tw.tween_interval(0.15)
+					tw.tween_property(rod, "scale", Vector3.ONE * 0.02, 0.12)
+					tw.tween_callback(rod.queue_free)
+					for h in Combat.hit_sphere(who, who.global_position + Vector3.UP * 1.2 + f * 1.6, 1.3, _kinfo(dmg, 0.9, {"element": "", "knock": 3.0, "kind": "light", "melee": true, "bleed": 1.0})):
+						pjr._receiver_pierce(who, h, 1.6)
+				1:   # Banshō Ten'in: rakip çekilir, önünde çubuğa saplanır
+					var tg1 = _near_foe(who, 14.0)
+					if tg1:
+						var start = tg1.global_position + Vector3.UP
+						for q in 4:
+							var off = Vector3(randf_range(-0.6, 0.6), randf_range(-0.4, 0.7), randf_range(-0.6, 0.6))
+							WindFX.streak(func(u: float) -> Vector3: return (start + off).lerp(who.global_position + Vector3.UP + off * 0.3, u), 0.3, 0.05, Color(0.85, 0.97, 0.9, 0.7), q * 0.03, 10)
+						var dest = who.global_position + f * 1.3
+						var ptw = tg1.create_tween()
+						ptw.tween_property(tg1, "global_position", Vector3(dest.x, tg1.global_position.y, dest.z), 0.16).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+						ptw.tween_callback(func():
+							if is_instance_valid(tg1) and not tg1.is_dead() and is_instance_valid(who):
+								tg1.take_hit(_kinfo(dmg, 1.2, {"element": "", "knock": 5.0, "kind": "heavy", "melee": true, "attacker": who}))
+								pjr._receiver_pierce(who, tg1, 1.8))
+				2:   # Asura Yolu: ön kol roket olup fırlar, çarpınca patlar
+					var b = MB.new()
+					b.add("cyl", Vector3.ZERO, Vector3(0.14, 0.7, 0.14), Color(0.45, 0.45, 0.5), Vector3(90, 0, 0), 8)
+					b.add("sphere", Vector3(0, 0, -0.42), Vector3(0.22, 0.2, 0.24), Color(0.55, 0.55, 0.6), Vector3.ZERO, 8)
+					b.add("cone", Vector3(0, 0, 0.45), Vector3(0.1, 0.25, 0.1), Color(1.0, 0.6, 0.25), Vector3(-90, 0, 0), 6)
+					var arm = pjr.mesh_of(b)
+					var tg2 = _near_foe(who, 18.0)
+					var from = who.global_position + Vector3.UP * 1.3 + f * 0.5
+					var aim2 = (tg2.global_position + Vector3.UP - from).normalized() if tg2 else f
+					pjr.shot(who, from, aim2, 32.0, arm, _kinfo(dmg, 0.6, {"element": "", "knock": 6.0, "kind": "heavy"}), tg2, false, 1.0, func(p, _h):
+						FX.explosion(p, 0.5)
+						if is_instance_valid(who):
+							Combat.hit_sphere(who, p, 2.0, _kinfo(dmg, 0.8, {"element": "", "knock": 8.0, "launch": 2.0, "kind": "heavy", "burn": 1.0})))
+				3:   # kısa Shinra Tensei: çevredekileri iter
+					Jutsu.shinra_core(who, who.global_position + Vector3.UP, 5.0, 0.55)
+				4:   # Gakidō: avuçla kavrar, chakrasını emer, kendini onarır
+					for h in Combat.hit_sphere(who, who.global_position + Vector3.UP * 1.2 + f * 1.3, 1.4, _kinfo(dmg, 0.7, {"element": "", "knock": 1.0, "kind": "light", "melee": true})):
+						if "chakra" in h:
+							h.chakra = maxf(0.0, float(h.chakra) - 14.0)
+						if "chakra" in who and "max_chakra" in who:
+							who.chakra = minf(float(who.max_chakra), float(who.chakra) + 10.0)
+						if h.has_method("apply_status"):
+							h.apply_status("slow", 1.2)
+						VFX.puffs(h.global_position + Vector3.UP, {"amount": 14, "life": 0.5, "size": 0.25, "radius": 0.5, "vmin": 2, "vmax": 4, "dir": (who.global_position - h.global_position).normalized(), "spread": 25.0,
+							"colors": [Color(0.75, 0.9, 1.0, 1), Color(0.5, 0.7, 1.0, 0)]})
+						Combat.popup_text(h.global_position + Vector3.UP * 2.3, "Chakra emildi", violet)
+				5:   # bitiriş: büyük Shinra Tensei
+					Jutsu.shinra_core(who, who.global_position + Vector3.UP, 9.0, 1.0)
+					Combat.popup_text(who.global_position + Vector3.UP * 2.6, "Shinra Tensei!", violet)
+					_shake(who, 0.8)
 		"style_juken":
 			FX.hit_spark(at, Color(0.75, 0.88, 1.0), 0.7)   # avuçtan çıkan chakra
 			if i == 5:   # Hakke Kūshō: çift avuçtan ileri giden hava basıncı

@@ -129,7 +129,7 @@ const STYLE_TH := {"style_aburame": ["th_bugs", 1.0], "style_kamizuru": ["th_bee
 	"style_inuzuka": ["th_dog", 1.0], "style_akimichi": ["th_growth", 1.0], "style_juken": ["th_palm", 1.0], "style_nara": ["th_shadow", 1.1],
 	"style_kaguya": ["th_bone", 1.0], "style_iburi": ["th_smoke", 1.0], "style_yuki": ["th_ice", 1.0], "style_jugo": ["growl", 1.0],
 	"style_akasuna": ["th_puppet", 1.0], "style_kagit": ["th_paper", 1.0], "style_sumi": ["th_ink", 1.0], "style_kil": ["th_clay", 1.0],
-	"style_senju": ["earth", 1.0], "style_gama": ["th_frog", 1.0], "style_yilan": ["th_snake", 1.0], "style_hiraishin": ["th_teleport", 1.2],
+	"style_senju": ["earth", 1.0], "style_gama": ["th_frog", 1.0], "style_yilan": ["th_snake", 1.0], "style_hiraishin": ["th_teleport", 1.2], "style_rinnegan": ["th_shadow", 1.25],
 	"style_chidori": ["zap", 1.1], "style_hatake": ["zap", 1.2], "style_kurosuki": ["zap", 1.0], "style_yotsuki": ["zap", 0.9],
 	"style_jashin": ["th_flesh", 1.0], "style_kakuzu": ["th_flesh", 0.9], "style_uzumaki": ["chain", 1.0], "style_hozuki": ["water", 1.1],
 	"style_uchiha": ["fire", 1.2], "style_sarutobi": ["fire", 1.0], "style_tip": ["heal", 1.2], "style_kunai": ["blade", 1.1], "style_silah": ["blade", 1.0],
