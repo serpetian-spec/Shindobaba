@@ -182,11 +182,13 @@ static func wave_mesh(w := 8.0, h := 2.5) -> ArrayMesh:
 	var rng = RandomNumberGenerator.new()
 	rng.randomize()
 	var b = MB.new()
-	var n = int(w / 0.55) + 2
+	# sık ve kalın diller birbirine kaynar: tek parça kıvrılan dalga kütlesi (seyrek diller ızgara/çit gibi duruyordu)
+	var n = int(w / 0.28) + 3
+	var ph = rng.randf() * TAU
 	for k in n:
 		var x = -w * 0.5 + w * k / float(n - 1)
-		var hh = h * rng.randf_range(0.55, 1.1) * (1.0 - 0.45 * pow(absf(x) / (w * 0.5), 2.0))
-		var th = rng.randf_range(0.5, 0.75)
+		var hh = h * (0.82 + 0.18 * sin(ph + x * 0.9) + rng.randf_range(-0.05, 0.05)) * (1.0 - 0.45 * pow(absf(x) / (w * 0.5), 2.0))
+		var th = rng.randf_range(0.8, 0.95)
 		var pts = [Vector3(x, 0, 0.3), Vector3(x, hh * 0.45, 0.05), Vector3(x + rng.randf_range(-0.1, 0.1), hh * 0.85, -0.25), Vector3(x, hh, -0.65), Vector3(x, hh * 0.85, -0.95)]
 		Loft.tube(b, pts, [Vector2(th, 0.45), Vector2(th * 0.9, 0.38), Vector2(th * 0.7, 0.28), Vector2(th * 0.45, 0.16), Vector2(0.04, 0.04)], Color.WHITE, 8, 3, true, true, Callable(), Vector3.FORWARD)
 	Loft.tube(b, [Vector3(-w * 0.55, 0.1, 0.6), Vector3(w * 0.55, 0.1, 0.6)], [Vector2(0.5, 0.25), Vector2(0.5, 0.25)], Color.WHITE, 8, 2)

@@ -411,23 +411,74 @@ func blood_pool(corpse: Node3D, r := 1.3) -> void:
 
 
 func dust(pos: Vector3, s := 1.0) -> void:
-	# anime tozu: yumuşak kenarlı, açık ve ince konturlu, az (kalın kahverengi konturlu kaba topaklar fazla duruyordu)
-	burst(pos + Vector3.UP * 0.15, {"cel": true, "amount": int(5 * s) + 3, "life": 0.7, "size": 0.95 * s, "radius": 0.45 * s,
-		"vmin": 1.5, "vmax": 4.0 * s, "dir": Vector3.UP, "spread": 80.0, "damp": 4.5, "gravity": Vector3(0, -0.5, 0), "spin": 40.0,
-		"glow": 1.0, "outline_col": Color(0.66, 0.58, 0.47), "rough": 0.15, "shade": 0.18, "outline": 0.03,
-		"colors": [Color(0.9, 0.84, 0.72, 0.85), Color(0.84, 0.78, 0.66, 0.6), Color(0.78, 0.72, 0.62, 0.0)],
-		"scale_curve": [[0.0, 0.45], [0.3, 1.0], [1.0, 1.15]]})
+	# 3B toz (kullanıcı: "2D efektler iğrenç"): yerden yana yayılıp büyüyen, sönen yumuşak toz topakları (sprite kart değil)
+	puff3d(pos + Vector3.UP * 0.15, {"amount": int(5 * s) + 3, "life": 0.7, "size": 0.55 * s, "radius": 0.45 * s, "vmin": 1.5, "vmax": 4.0 * s,
+		"dir": Vector3.UP, "spread": 80.0, "damp": 4.5, "gravity": Vector3(0, -0.5, 0),
+		"col": Color(0.86, 0.8, 0.68), "grow": 1.8})
 
 
-## Anime "puf" bulutu (Kawarimi, çağırma, gölge klon): beyaz kabarık cel topaklar + gri gölge + kontur
+## Anime "puf" bulutu (Kawarimi, çağırma, gölge klon): 3B kabarık beyaz topaklar (eskiden düz cel sprite + yıldız kartı)
 func smoke_puff(pos: Vector3, s := 1.0, n := 14) -> void:
-	burst(pos, {"cel": true, "amount": n, "life": 0.85, "size": 1.9 * s, "radius": 0.55 * s, "vmin": 1.5, "vmax": 4.0 * s,
-		"damp": 4.0, "gravity": Vector3(0, 1.5, 0), "spin": 80.0, "glow": 1.0, "shade": 0.22, "rough": 0.3,
-		"outline_col": Color(0.35, 0.36, 0.42),
-		"colors": [Color(1, 1, 1, 1), Color(0.96, 0.96, 0.98, 1), Color(0.9, 0.9, 0.93, 0.6), Color(0.88, 0.88, 0.92, 0.0)],
-		"scale_curve": [[0.0, 0.35], [0.2, 1.0], [1.0, 1.2]]})
-	VFX.star(pos, Color(1, 1, 1), 1.6 * s, 0.12)
+	puff3d(pos, {"amount": n, "life": 0.85, "size": 1.0 * s, "radius": 0.55 * s, "vmin": 1.5, "vmax": 4.0 * s,
+		"damp": 4.0, "gravity": Vector3(0, 1.5, 0), "col": Color(0.97, 0.97, 0.99), "grow": 1.6})
 	Sfx.play("poof", pos)
+
+
+## 3B yumuşak bulut topakları: düşük poligonlu küre parçacıklar, yumuşak toon gölge, büyüyüp saydamlaşarak söner
+var _puff_mesh: SphereMesh
+var _puff_mats := {}
+func puff3d(pos: Vector3, cfg: Dictionary) -> GPUParticles3D:
+	if _puff_mesh == null:
+		_puff_mesh = SphereMesh.new()
+		_puff_mesh.radius = 0.5; _puff_mesh.height = 1.0; _puff_mesh.radial_segments = 10; _puff_mesh.rings = 6
+	var col: Color = cfg.get("col", Color.WHITE)
+	var key = col.to_html()
+	if not _puff_mats.has(key):
+		var m = StandardMaterial3D.new()
+		m.vertex_color_use_as_albedo = true
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		m.albedo_color = Color.WHITE
+		m.diffuse_mode = BaseMaterial3D.DIFFUSE_TOON
+		m.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
+		m.rim_enabled = true
+		m.rim = 0.6
+		_puff_mats[key] = m
+	var p = GPUParticles3D.new()
+	p.one_shot = true
+	p.explosiveness = 0.9
+	p.amount = maxi(1, int(cfg.get("amount", 8)))
+	p.lifetime = float(cfg.get("life", 0.7))
+	var pm = ParticleProcessMaterial.new()
+	pm.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_SPHERE
+	pm.emission_sphere_radius = float(cfg.get("radius", 0.4))
+	pm.direction = cfg.get("dir", Vector3.UP)
+	pm.spread = float(cfg.get("spread", 80.0))
+	pm.initial_velocity_min = float(cfg.get("vmin", 1.5))
+	pm.initial_velocity_max = float(cfg.get("vmax", 4.0))
+	pm.gravity = cfg.get("gravity", Vector3.ZERO)
+	pm.damping_min = float(cfg.get("damp", 3.0)); pm.damping_max = pm.damping_min
+	var sz = float(cfg.get("size", 0.6))
+	pm.scale_min = sz * 0.7; pm.scale_max = sz * 1.2
+	var g = float(cfg.get("grow", 1.6))
+	pm.scale_curve = _curve([[0.0, 0.35], [0.25, 0.8], [1.0, minf(1.0, 0.8 * g / 1.6)]])
+	var gr = Gradient.new()
+	gr.set_color(0, Color(col.r, col.g, col.b, 0.95))
+	gr.set_color(1, Color(col.r, col.g, col.b, 0.0))
+	gr.add_point(0.55, Color(col.r, col.g, col.b, 0.8))
+	var gt = GradientTexture1D.new()
+	gt.gradient = gr
+	pm.color_ramp = gt
+	p.process_material = pm
+	var mesh = _puff_mesh.duplicate()
+	mesh.material = _puff_mats[key]
+	p.draw_pass_1 = mesh
+	p.visibility_aabb = AABB(Vector3(-10, -10, -10), Vector3(20, 20, 20))
+	p.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	VFX.scene().add_child(p)
+	p.global_position = pos
+	p.emitting = true
+	p.finished.connect(p.queue_free)
+	return p
 
 
 func speed_lines(pos: Vector3, dir: Vector3) -> void:

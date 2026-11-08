@@ -438,7 +438,7 @@ func j_suiton_suiryuudan(c: Node3D, t: Node3D) -> void:
 	pr.homing = t
 	pr.homing_turn = 3.0
 	pr.info = {"dmg": 30.0 * m, "element": "suiton", "knock": 16.0, "launch": 9.0, "kind": "heavy", "hitstop": 0.08}
-	var wm = VFX.mat_water(Color(0.04, 0.25, 0.75), Color(0.18, 0.52, 0.98), Color(0.6, 0.87, 1.0), Vector3(0, 0, 1), 0.92, 0.7, 0.08)
+	var wm = VFX.mat_water(Color(0.3, 0.62, 0.86), Color(0.52, 0.8, 0.95), Color(0.85, 0.96, 1.0), Vector3(0, 0, 1), 0.92, 0.9, 0.1)   # Storm su ejderi: açık camgöbeği
 	var head = VfxSerpent.dragon_head(wm, 4.0)
 	pr.add_child(head)
 	# ejderha gövdesi: başın izini takip eden kıvrılan su halkaları + sırt yüzgeçleri
@@ -450,7 +450,7 @@ func j_suiton_suiryuudan(c: Node3D, t: Node3D) -> void:
 	body.spacing = 1.9
 	body.radius = 2.6
 	body.mat = wm
-	body.fin_mat = VFX.mat_water(Color(0.5, 0.8, 1.0), Color(0.75, 0.93, 1.0), Color(0.95, 1.0, 1.0), Vector3.UP, 0.95, 0.2, 0.0)
+	body.thin = 0.62   # Storm: kalın, akışkan tek parça gövde (ince tüp + sert yüzgeç kartları kaba/buz gibi duruyordu)
 	get_tree().current_scene.add_child(body)
 	var age = {"t": 0.0}
 	pr.on_tick = func(p: Projectile, dt: float) -> void:
