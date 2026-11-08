@@ -100,6 +100,36 @@ static func column(at: Vector3, h: float, r: float, tilt := Vector3.ZERO, delay 
 	tw.tween_callback(mi.queue_free)
 
 
+## Su hortumu (Yagura kancası vb.): from'dan to'ya uzanan kalın, yuvarlak uçlu su gövdesi; hızla uzanır, kısa tutar, geri çekilip söner
+static func jet(from: Vector3, to: Vector3, r := 0.22, hold := 0.15) -> void:
+	if _col_mesh == null:
+		column(Vector3(0, -9999, 0), 0.01, 0.01)   # mesh/malzeme önbelleği (görünmez, hemen söner)
+	var d = to - from
+	var L = d.length()
+	if L < 0.2:
+		return
+	var mi = MeshInstance3D.new()
+	mi.mesh = _col_mesh
+	var m: ShaderMaterial = _col_mat.duplicate()
+	mi.material_override = m
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	VFX.scene().add_child(mi)
+	mi.global_position = from
+	var q = Quaternion(Vector3.UP, d / L)
+	var base = Basis(q)
+	var setlen = func(k: float, w: float):
+		if is_instance_valid(mi):
+			mi.global_transform.basis = base * Basis.from_scale(Vector3(r * w, maxf(0.02, L * k), r * w))   # yerel eksende ölçek
+	setlen.call(0.02, 1.0)
+	var tw = mi.create_tween()
+	tw.tween_method(func(k: float): setlen.call(k, 1.0), 0.02, 1.0, 0.14).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_interval(hold)
+	tw.tween_method(func(k: float): setlen.call(k, 1.0 + (1.0 - k) * 0.6), 1.0, 0.05, 0.22).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_method(func(a: float): m.set_shader_parameter("alpha", a), 0.88, 0.2, 0.22)
+	tw.tween_callback(mi.queue_free)
+	spray(to, 0.7, -d / L + Vector3.UP * 0.5, 50.0, 0.8)
+
+
 ## Soluk, yarı saydam su yüzeyi malzemesi (taç, halka): videodaki gibi mat çelik-camgöbeği, beyaz akış çizgili
 static var _sheet: ShaderMaterial
 static func sheet_mat() -> ShaderMaterial:

@@ -900,6 +900,7 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 			var hp = who.global_position + Vector3.UP * 1.1 + f * 1.8
 			match i:
 				0:   # kanca çekişi: kanca suyla hedefe uzanır, çekerken su kuyruğu
+					WaterArt.jet(tip, hp + f * 1.6 + Vector3.DOWN * 0.2, 0.3)   # kancadan hedefe su hortumu (3B serpinti tek başına görünmüyordu)
 					WaterArt.spray(tip, 0.9, f, 25.0, 1.4)
 					WaterArt.drops(hp, 8, 0.8, 5.0, -f, 0.5)
 				1:   # iki uçla: her vuruşta yandan su yayı
@@ -921,7 +922,8 @@ static func on_strike(id: String, i: int, who: Node3D, dmg: float) -> void:
 					WaterArt.ripple(q, 2.0)
 					WaterArt.spray(q, 1.4, Vector3.UP, 15.0, 1.8)
 					WaterArt.splash(q, 1.2)
-				4:   # su kalkanı + itme: önde su duvarı, ardından su dalgası öne
+				4:   # kancayla yakalama (pull) + su kalkanı + itme: önde su duvarı, ardından su dalgası öne
+					WaterArt.jet(tip, hp + f * 1.8, 0.32, 0.2)   # kanca su hortumuyla hedefi yakalar
 					var q = gp.call(1.2)
 					WaterArt.splash(q, 1.6)
 					WaterArt.spray(q + Vector3.UP * 0.3, 1.6, f, 30.0, 1.6, true)
