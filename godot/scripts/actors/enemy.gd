@@ -634,7 +634,7 @@ func _chase(dt: float) -> void:
 	# jutsu kullanan düşman: uzaktan ve sık atar, yakında da arada bir (eskiden 5-24 m, %30)
 	var jl: Array = arch.get("jutsu", [])
 	var far_ok = (d > 4.0 or elevated) and d < 42.0   # yüksekteki hedefe dibinden de atar
-	var near_ok = d <= 4.0 and not jl.is_empty() and randf() < (0.55 if has_meta("kage_of") else 0.15)   # Kage dibinde de jutsu atar
+	var near_ok = d <= 4.0 and not jl.is_empty() and randf() < (0.55 if (has_meta("kage_of") or has_meta("elite_boss")) else 0.15)   # Kage dibinde de jutsu atar
 	if (far_ok or near_ok) and ranged_cd <= 0.0 and randf() < 0.8:
 		ranged_cd = randf_range(1.6, 3.2) / (float(arch["aggr"]) * (1.0 + skill))   # usta ninja daha sık jutsu atar
 		# her jutsu oyuncudakiyle aynı bekleme süresine tabi (aynı dalga jutsusu 15 sn'de 6 kez gelmez)

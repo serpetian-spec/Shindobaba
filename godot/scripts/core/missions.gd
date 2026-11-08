@@ -2704,7 +2704,7 @@ const BB_ALIAS := ["Kızıl Tilki", "Sessiz Çekiç", "Sis Hayaleti", "Kemik Kı
 const BB_CRIMES := ["Köy hazinesini soydu", "Daimyo kervanına pusu kurdu", "Yasak bir parşömen çaldı", "Sınır karakolunu yaktı",
 	"Üç Chunin'i öldürdü", "Köyünden kaçıp gizli teknikleri sattı", "Kaçakçılık çetesi yönetiyor", "Tüccarları fidye için kaçırıyor",
 	"Kuyu sularını zehirledi", "Bir tapınağı yağmaladı", "Bir Kage muhafızını yaraladı", "Sahte görev ilanlarıyla genin'leri tuzağa düşürüyor"]
-const BB_RANKS := {"C": [800, 1500, 15, 30, 2, "bandit"], "B": [2500, 5000, 35, 60, 3, "rogue"], "A": [8000, 15000, 70, 110, 3, "rogue"], "S": [30000, 60000, 110, 200, 4, "rogue"]}   # dünya ölçeği: Güç 60 oyunun başı-ortası   # güç üst sınırı yok: S-rank'ın bir kısmı efsanevi (_bb_new)
+const BB_RANKS := {"C": [1200, 2200, 35, 60, 2, "bandit"], "B": [4000, 8000, 70, 110, 3, "rogue"], "A": [14000, 26000, 120, 160, 3, "rogue"], "S": [50000, 90000, 180, 220, 4, "rogue"]}   # 2026-11-08 kullanıcı: "Bingo ezik" — S = Kage seviyesi, A/B/C buna göre   # dünya ölçeği: Güç 60 oyunun başı-ortası   # güç üst sınırı yok: S-rank'ın bir kısmı efsanevi (_bb_new)
 const BB_VILLAGES := ["konoha", "suna", "kiri", "kumo", "iwa", "ame", "kusa", "taki", "oto"]
 const BB_ELEM := {"konoha": "katon", "suna": "fuuton", "kiri": "suiton", "kumo": "raiton", "iwa": "doton", "ame": "suiton", "kusa": "doton", "taki": "suiton", "oto": "fuuton"}
 var _bb_spawned := {}   # id -> [boss, escorts..., camp]
@@ -2950,7 +2950,15 @@ func _bb_spawn(e: Dictionary, at: Vector3) -> void:
 	var a = Enemy.archetype("rogue", 0)
 	a["respawn"] = false
 	a["name"] = "«%s» %s" % [e["alias"], e["name"]]
-	Stats.npc_ninja(a, int(e["level"]), {"C": 1.15, "B": 1.3, "A": 1.5, "S": 1.8}.get(String(e.get("rank", "B")), 1.3))   # Bingo kaçağı = elit: rütbe çarpanı (S en ağır)
+	var bb_rank = String(e.get("rank", "B"))
+	# eski kayıt: yeni rütbe aralığının altında kalan kaçak, rütbesinin gücüne çekilir (efsanevi S'ler zaten üstünde)
+	var rr: Array = BB_RANKS.get(bb_rank, [])
+	if not rr.is_empty() and int(e["level"]) < int(rr[2]):
+		e["level"] = randi_range(int(rr[2]), int(rr[3]))
+		a["xp"] = int(e["level"]) * 30
+	Stats.npc_ninja(a, int(e["level"]), {"C": 1.3, "B": 1.6, "A": 2.0, "S": 2.6}.get(bb_rank, 1.6))   # Bingo kaçağı = elit: rütbe çarpanı (S = Kage canı)
+	if bb_rank in ["S", "A"]:
+		a["power"] = Stats.npc_power(int(e["level"]))   # Kage gibi: rol yalnız cana, vuruş aynı Güç'teki ninjanınki (yoksa A, S'den sert vuruyordu)
 	a["guard"] = 0.55
 	a["sub"] = 0.4
 	a["xp"] = int(e["level"]) * 30
@@ -2999,6 +3007,13 @@ func _bb_spawn(e: Dictionary, at: Vector3) -> void:
 	var b = Enemy.new()
 	b.setup(a)
 	b.set_meta("bingo_id", int(e["id"]))
+	if String(e.get("rank", "")) in ["S", "A"]:
+		b.set_meta("elite_boss", String(e.get("rank", "")))   # KageArts: klan modu + yarı canda kararlılık; S jutsu yağmurunda kilitlenmez
+		if not e.has("beast") and not e.has("mist_sword") and not e.has("legend_weapon"):
+			var vj = KageArts.village_jutsu(String(e.get("village", "konoha")), 4 if String(e["rank"]) == "S" else 2)
+			for j in vj:
+				if not j in b.arch["jutsu"]:
+					(b.arch["jutsu"] as Array).push_front(j)
 	root.add_child(b)
 	var p = open_ground(at, 30.0)
 	b.global_position = p

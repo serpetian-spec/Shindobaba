@@ -169,7 +169,7 @@ func take_hit(info: Dictionary) -> void:
 		info["melee"] = true
 	if poise > 0.0 and not heavy:
 		return
-	if has_meta("kage_of"):
+	if has_meta("kage_of") or get_meta("elite_boss", "") == "S":
 		# Kage jutsu yağmurunda kilitlenmez (kök sebep: her jutsu sersemletiyordu -> mod açamıyor, jutsu atamıyor, eriyordu);
 		# yalnız her 3. ağır/jutsu darbesinde sersemler ya da düşer, diğerlerinde irkilip devam eder
 		var hc = int(get_meta("kage_hits", 0)) + 1

@@ -27,7 +27,7 @@ const CLAN_MODE := {
 
 
 static func wants(e: Enemy) -> bool:
-	return e.has_meta("kage_of")
+	return e.has_meta("kage_of") or e.has_meta("elite_boss")   # Kage + S/A-rank Bingo kaçakları
 
 
 ## Kage'nin jutsu listesi: köy doğasının en üst (A/S) genel teknikleri (hocadan öğrenilen, özel şartı olmayan, saldırı biçimli)
@@ -100,7 +100,7 @@ static func _resolve(e: Enemy, t: Node3D) -> void:
 	e.add_buff("kage_resolve", 9999.0, {"armor": 0.9, "melee": 1.2, "jutsu": 1.2, "speed": 1.1})
 	e.arch["aggr"] = float(e.arch.get("aggr", 0.7)) * 1.4
 	e.skill = minf(0.98, e.skill + 0.08)
-	Hud.banner(e.display_name.split(" — ")[0], "Köyümü sana bırakmayacağım!", Color(1, 0.45, 0.3))
+	Hud.banner(e.display_name.split(" — ")[0], "Köyümü sana bırakmayacağım!" if e.has_meta("kage_of") else "Başımdaki ödülü sen mi alacaksın? Hiç sanmam!", Color(1, 0.45, 0.3))
 	var js: Array = e.arch.get("jutsu", [])
 	var best = ""
 	for id in js:

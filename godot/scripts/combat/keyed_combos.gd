@@ -5101,7 +5101,14 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 					g.y = Game.ground_height(g.x, g.z)
 					VFX.cracks(g, 4.0)
 					VFX.debris(g + Vector3.UP * 0.3, gcol, 14, 7.0, 0.35)
-					JutsuEngine._spikes_ring(who, g + f * 1.2, 2.6, gcol, "doton", {}, 1)
+					# Senju: önündeki zeminden sivri ahşap kazıklar fırlar (toprak dikeni değil — Mokuton kanı)
+					if pj:
+						for k in 7:
+							var off = side * randf_range(-1.6, 1.6) + f * (1.0 + k * 0.45)
+							var q2 = g + off
+							q2.y = Game.ground_height(q2.x, q2.z)
+							var lean = (f * 0.6 + side * randf_range(-0.4, 0.4)) * 0.6
+							pj._wood_trunk(q2, q2 + Vector3.UP * randf_range(1.4, 2.2) + lean, randf_range(0.14, 0.22), 0.7, k * 0.03, 0.2)
 					Combat.hit_zone(who, who.global_position, f, 5.0, 45.0, 2.5, _kinfo(dmg, 1.3, {"element": "", "knock": 6.0, "launch": 6.0, "kind": "heavy"}))
 					_shake(who, 0.6)
 				5:   # Tsūtenkyaku: topuk inişi — yuvarlak krater, çatlak, moloz patlaması (ref senju_1)
@@ -5110,6 +5117,13 @@ static func _style_strike(id: String, i: int, who: Node3D, dmg: float, f: Vector
 					VFX.cracks(g2, 5.5)
 					VFX.shockwave(g2 + Vector3.UP * 0.1, gcol.lightened(0.2), 9.0, 0.4, true)
 					VFX.debris(g2 + Vector3.UP * 0.4, gcol, 22, 9.0, 0.4)
+					# son ağır darbe: inişin çevresinden ağaçlar fışkırır (Mokuton ormanının gerçek ağaçları) + kökler
+					if pj:
+						for k in 5:
+							var a5 = k * TAU / 5.0 + randf() * 0.4
+							var q5 = g2 + Vector3(cos(a5), 0, sin(a5)) * randf_range(2.6, 3.8)
+							pj._wood_grow_tree(q5, randf_range(5.0, 7.5), k * 0.05, 2.4)
+							pj._creep_root(g2, Vector3(cos(a5), 0, sin(a5)), 3.0, 0.25, 0.05, 2.2)
 					Combat.hit_sphere(who, g2 + Vector3.UP * 0.6, 4.2, _kinfo(dmg, 1.5, {"element": "", "knock": 9.0, "launch": 7.0, "kind": "heavy"}))
 					_shake(who, 0.8)
 		"style_kurosuki":

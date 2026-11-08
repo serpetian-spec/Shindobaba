@@ -12727,7 +12727,11 @@ func _wood_mat() -> Material:
 
 
 func _iron_mat() -> Material:
-	return VFX.mat_water(Color(0.04, 0.04, 0.06), Color(0.15, 0.15, 0.2), Color(0.38, 0.38, 0.45), Vector3(0, 1, 0), 1.0, 0.3, 0.05)
+	# ref (Sandaime Kazekage): mat kara demir kumu, hafif gri parıltı (eskiden açık parlak: gümüş görünüyordu)
+	# su malzemesi beyaz köpük şeritleri çiziyordu (siyah-beyaz zebra) -> mat kara toon (ref: koyu, kumlu demir)
+	if not VFX._cache.has("iron_sand_mat"):
+		VFX._cache["iron_sand_mat"] = Props.toon_color(Color(0.09, 0.09, 0.11))
+	return VFX._cache["iron_sand_mat"]
 
 
 ## Elde Rasengan (dur sn), s boyut
@@ -13253,16 +13257,17 @@ func p_satetsu_kesshu(c: Node3D, t: Node3D) -> void:
 	get_tree().current_scene.add_child(spike)
 	spike.global_position = at + Vector3.UP * 12.0
 	spike.scale = Vector3.ONE * 0.1
+	spike.set_meta("big", 1.8)   # ref: dev dikenli demir kum yapısı (eskiden insan boyundaydı)
 	VFX.puffs(c.global_position + Vector3.UP * 2.0, {"amount": 60, "life": 1.0, "size": 0.4, "radius": 2.0, "vmin": 2, "vmax": 6, "dir": Vector3.UP, "spread": 70.0, "add": false,
 		"colors": [Color(0.1, 0.1, 0.12, 0.9), Color(0.1, 0.1, 0.12, 0)]})
 	var tw = spike.create_tween()
-	tw.tween_property(spike, "scale", Vector3.ONE, 0.5)
-	tw.tween_property(spike, "global_position", at + Vector3.UP * 2.0, 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_property(spike, "scale", Vector3.ONE * 1.8, 0.5)
+	tw.tween_property(spike, "global_position", at + Vector3.UP * 3.4, 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tw.tween_callback(func():
 		impact_fx("doton", Color(0.3, 0.3, 0.35), at + Vector3.UP, 2.0)
 		hit(c, at + Vector3.UP, 4.5, inf(c, "satetsu_kesshu", 2.2, {"knock": 14.0, "kind": "heavy", "element": "jiton", "bleed": 3.0, "hitstop": 0.1}))
 		shake(1.0))
-	tw.tween_interval(1.0)
+	tw.tween_interval(2.0)
 	tw.tween_property(spike, "scale", Vector3.ONE * 0.05, 0.5)
 	tw.tween_callback(spike.queue_free)
 	Sfx.play("earth", at, 0.6)
@@ -13313,16 +13318,17 @@ func p_satetsu_shigure(c: Node3D, t: Node3D) -> void:
 	busy(c, 0.9)
 	var tt = tg(c, t, 24.0)
 	var at = gp(tt.global_position if tt else c.global_position + fwd(c, t) * 10.0)
-	VFX.puffs(at + Vector3.UP * 8.0, {"amount": 60, "life": 1.6, "size": 0.8, "radius": 3.5, "vmin": 0.2, "vmax": 0.8, "dir": Vector3.UP, "spread": 70.0, "add": false,
-		"colors": [Color(0.1, 0.1, 0.12, 0.9), Color(0.12, 0.12, 0.15, 0)]})
-	for k in 45:
+	# ref: hedefin üstünde yoğun kara demir kumu bulutu toplanır, oradan kalın kara iğneler yağar
+	VFX.puffs(at + Vector3.UP * 8.0, {"amount": 110, "life": 1.9, "size": 1.4, "radius": 4.0, "vmin": 0.2, "vmax": 0.8, "dir": Vector3.UP, "spread": 70.0, "add": false,
+		"colors": [Color(0.05, 0.05, 0.06, 0.95), Color(0.07, 0.07, 0.09, 0)]})
+	for k in 80:
 		after(0.4 + randf() * 1.0, func():
 			var r = 1.2 if k % 2 == 0 else 3.5
 			var base = tt.global_position if (tt and live(tt) and k % 2 == 0) else at
 			var q = Vector3(base.x, at.y + 8.0, base.z) + Vector3(randf_range(-r, r), 0, randf_range(-r, r))
 			var nd = MeshInstance3D.new()
 			var cm = CylinderMesh.new()
-			cm.top_radius = 0.0; cm.bottom_radius = 0.04; cm.height = 0.5
+			cm.top_radius = 0.0; cm.bottom_radius = 0.09; cm.height = 1.4
 			nd.mesh = cm
 			nd.material_override = _iron_mat()
 			nd.rotation.x = PI
@@ -18018,6 +18024,21 @@ func p_senpo_jiton_rasengan(c: Node3D, t: Node3D) -> void:
 	busy(c, 1.1)
 	_ras_hand(c, 0.9, 0.5)
 	VFX.gather(hand_pos(c, true), SAGE, 1.2)
+	# ref (Naruto, Altı Yol): mavi Rasengan'ın çevresinde dönen kara mıknatıs (demir) küreleri
+	var orb_ba = bone_attach(c, "RightHand")
+	if orb_ba:
+		var ring = Node3D.new()
+		orb_ba.add_child(ring)
+		for k in 5:
+			var o = MeshInstance3D.new()
+			o.mesh = VFX._sphere(0.5, 12, 8)
+			o.material_override = _iron_mat()
+			o.scale = Vector3.ONE * 0.22
+			var a = k * TAU / 5.0
+			o.position = Vector3(cos(a) * 0.62, sin(a * 2.0) * 0.12, sin(a) * 0.62)
+			ring.add_child(o)
+		ring.create_tween().tween_property(ring, "rotation:y", TAU * 3.0, 1.0)
+		free_after(1.0, orb_ba)
 	after(0.45, func():
 		if not live(c):
 			return
