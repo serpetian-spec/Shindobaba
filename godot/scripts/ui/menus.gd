@@ -1641,6 +1641,16 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 				pr["hide_look"] = {}
 			pr["hide_look"][_eq_slot] = i == 1
 			refresh.call()))
+	if _eq_slot == "kafa" and String(Gear.item(String(cur.get("id", ""))).get("look", {}).get("band_style", "none")) in ["head", "slashed"]:
+		# tek alın koruyucu, takılış tarzı oyuncunun seçimi (anime: Kakashi göze eğik, Zabuza yana, Sakura saç bandı, Hinata boyun...)
+		var wears: Array = CharacterModel.BAND_WEARS
+		var wl = []
+		for w in wears:
+			wl.append(CharacterModel.BAND_WEAR_NAMES[w])
+		dv.add_child(_arrow_row("Takılış", wl, maxi(0, wears.find(String(pr.get("band_wear", "alin")))), func(i):
+			pr["band_wear"] = wears[i]
+			Gear.apply_look(pr)
+			refresh.call()))
 	var list = Gear.owned_for(pr, _eq_slot)
 	if list.is_empty():
 		dv.add_child(UI.label("Bu yuvaya uygun eşyan yok. Dükkânlardan alabilir, görevlerden kazanabilirsin.", 15, UI.MUTED))

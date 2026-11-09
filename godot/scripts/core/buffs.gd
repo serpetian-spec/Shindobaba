@@ -28,6 +28,13 @@ func clear_modes(keep: String = "") -> void:
 			active.erase(k)
 
 
+## Kayıt değişince (yükle / yeni oyun / menü) önceki karakterin buff'ları silinir: autoload kayıtlar arasında taşıyordu
+## (bir kayıttaki Nefretin Laneti vb. diğer kayıtta da görünüyordu). Kalıcı olanlar (lanet, göz) profil bayrağından yeniden eklenir.
+func reset() -> void:
+	active.clear()
+	caster = null
+
+
 func remove(name: String) -> void:
 	active.erase(name)
 

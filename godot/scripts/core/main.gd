@@ -168,6 +168,7 @@ func _spawn_villagers() -> void:
 func to_main_menu() -> void:
 	if player:
 		Game.save_game()
+		Buffs.reset()
 		player.queue_free()
 		player = null
 		Game.player = null
@@ -277,6 +278,7 @@ func _start_new_game() -> void:
 	Game.profile = Progress.new_profile({"slot": s["slot"], "name": s["name"], "gender": s["gender"], "clan": s["clan"], "soy": s.get("soy", "") if s["clan"] == "none" else "",
 		"element": s["element"], "look": _creator_look(), "village": s.get("village", "konoha")})
 	Game.profile["pos"] = null
+	Buffs.reset()
 	Progress.refresh_story()
 	_begin_game(Progress.home_spawn())
 	var vname = String(Game.village(Progress.home()).get("name", "Konoha"))

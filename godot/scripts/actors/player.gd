@@ -269,8 +269,7 @@ func _jump() -> void:
 		if d.length() > 0.1:
 			var hs = maxf(Vector2(velocity.x, velocity.z).length(), RUN)
 			velocity.x = d.x * hs; velocity.z = d.z * hs
-		FX.smoke_puff(global_position + Vector3.UP * 0.3, 0.5, 6)
-		# ses yok (kullanıcı: ikinci zıplamadaki "pat" sesi kaldırıldı)
+		# ses yok: duman bulutu (FX.smoke_puff) kendi "poof" sesini çalıyordu = ikinci zıplamadaki "küt" (kullanıcı 2 kez söyledi)
 		# havada ikinci zıplama: tüm vücut top gibi toplanıp öne takla atar (eskiden yer yuvarlanması oynuyordu: süzülme pozu
 		# bacakları tuttuğu için yalnız üst gövde dönüyordu)
 		model.play("air", 0.05)

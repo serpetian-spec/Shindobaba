@@ -764,6 +764,7 @@ func load_game(slot: int) -> bool:
 		return false
 	profile = d
 	profile["slot"] = slot
+	Buffs.reset()   # önceki kaydın buff'ları bu kayda taşınmasın
 	if int(profile.get("world_ver", 1)) != WORLD_VERSION:
 		profile["pos"] = null  # dünya ölçeği değişti: eski konum anlamsız, köyde başla
 		profile["world_ver"] = WORLD_VERSION

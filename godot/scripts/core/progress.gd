@@ -561,7 +561,6 @@ func promote(rank: int) -> void:
 	match rank:
 		1:
 			Gear.grant(pr, "alin_koruyucu", "kafa", hi["band"])
-			Gear.grant(pr, "alin_boyun", "", hi["band"])
 			Hud.msg("Yeni ekipman: Alın Koruyucu  [Tab > Ekipman]", Color(0.6, 0.9, 1.0))
 		2:
 			GeninSquad.disband()

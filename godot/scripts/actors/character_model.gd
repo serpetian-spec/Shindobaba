@@ -2083,6 +2083,8 @@ func _sk_end(g: Dictionary) -> MeshInstance3D:
 	arr[Mesh.ARRAY_BONES] = _sk["ob"]
 	arr[Mesh.ARRAY_WEIGHTS] = _sk["ow"]
 	arr[Mesh.ARRAY_INDEX] = _sk["oi"]
+	if _sk.has("ouv") and (_sk["ouv"] as PackedVector2Array).size() == (_sk["ov"] as PackedVector3Array).size():
+		arr[Mesh.ARRAY_TEX_UV] = _sk["ouv"]
 	var m = ArrayMesh.new()
 	m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr, [], {}, Mesh.ARRAY_FLAG_USE_8_BONE_WEIGHTS if int(_sk["per"]) == 8 else 0)
 	var mi = MeshInstance3D.new()
@@ -4219,6 +4221,207 @@ func _hitai_head(bc: Color) -> void:
 	band_ring = keep
 
 
+## ------------------------------------------------------------------ alın koruyucu takılış tarzları (anime ref: refs/bands)
+## Tek eşya (Alın Koruyucu), takılış oyuncunun seçimi: look["band_wear"]
+const BAND_WEARS := ["alin", "kakashi", "zabuza", "sakura", "boyun", "bel", "kol", "kusak", "bandana"]
+const BAND_WEAR_NAMES := {"alin": "Alında", "kakashi": "Göze Eğik", "zabuza": "Yana Yatık", "sakura": "Saç Bandı", "boyun": "Boyunda",
+	"bel": "Belde", "kol": "Kolda", "kusak": "Göğüs Kuşağı", "bandana": "Bandana"}
+
+
+## Eğik düzlemde kafa (+ saç) çevresi: B yerel X/Z düzlemi bant düzlemi, Y normali; bins açı (yerel atan2(z, x) + PI)
+func _plane_ring_head(p0: Vector3, B: Basis, bins := 48) -> PackedFloat32Array:
+	AnimeHair._c = skull_c; AnimeHair._r = skull_r; AnimeHair._grid = _head_radial(); AnimeHair._band_y = -INF
+	var rad = PackedFloat32Array()
+	rad.resize(bins)
+	for k in bins:
+		var ang = (k + 0.5) / bins * TAU - PI
+		var d = B * Vector3(cos(ang), 0, sin(ang))
+		var lo = 0.0; var hi = 0.3
+		for it in 22:   # yüzeyi ikili arama (içeride: kafa merkezine uzaklık < o yöndeki kafa yarıçapı)
+			var t = (lo + hi) * 0.5
+			var q = p0 + d * t
+			var v = q - skull_c
+			var inside = v.length() < AnimeHair._real_r(v.normalized())
+			if inside:
+				lo = t
+			else:
+				hi = t
+		rad[k] = lo
+	var nrm = B.y.normalized()
+	for q in _anime_hair_vs:   # saç kütlesi: bant saçın üstünden geçer
+		var v = q - p0
+		if absf(v.dot(nrm)) > 0.01:
+			continue
+		var lx = v.dot(B.x.normalized()); var lz = v.dot(B.z.normalized())
+		var l = Vector2(lx, lz).length()
+		if l > 0.3:
+			continue
+		var k = int(floor((atan2(lz, lx) + PI) / TAU * bins)) % bins
+		rad[k] = maxf(rad[k], l)
+	var sm = rad.duplicate()
+	for k in bins:   # kıl/diken uçları bandı tırtıklı yapmasın: yumuşat
+		sm[k] = maxf(rad[k] * 0.6, (rad[(k + bins - 1) % bins] + rad[k] * 2.0 + rad[(k + 1) % bins]) * 0.25)
+	return sm
+
+
+## Gövdede eğik düzlem çevresi (bel, kol, kuşak): düzleme yakın gövde köşeleri, p0'dan rmax içi
+func _plane_ring_body(p0: Vector3, B: Basis, rmax: float, pad: float, bins := 36, xlim := 9.0) -> PackedFloat32Array:
+	var rad = PackedFloat32Array()
+	rad.resize(bins)
+	var nrm = B.y.normalized(); var bx = B.x.normalized(); var bz = B.z.normalized()
+	var vs: PackedVector3Array = _body_vs()
+	for c in find_children("*", "MeshInstance3D", true, false):   # giysi kabukları + yaka/kemiğe takılı parçalar (yüksek yakada bant içeride kalıyordu)
+		var nm = String(c.name)
+		if not (c.mesh is ArrayMesh) or not c.visible or "Hair" in nm or "Face" in nm or "Eye" in nm or "Brow" in nm or nm == "Body" or c.get_parent() is Dangle:
+			continue
+		var xf = Transform3D.IDENTITY
+		if c.skin == null:   # kemiğe takılı: model uzayına taşı (kemik dinlenme pozu)
+			var n: Node = c
+			while n != null and n != self:
+				if n is Node3D:
+					xf = (n as Node3D).transform * xf
+				n = n.get_parent()
+		vs = vs.duplicate()
+		for si in c.mesh.get_surface_count():
+			for q in c.mesh.surface_get_arrays(si)[Mesh.ARRAY_VERTEX]:
+				var w = xf * q
+				if absf((w - p0).dot(nrm)) < 0.02:
+					vs.append(w)
+	for q in vs:
+		if absf(q.x - p0.x) > xlim:
+			continue   # kuşak: kollar halkaya girmesin (omuzda dışarı fırlıyordu)
+		var v = q - p0
+		if absf(v.dot(nrm)) > 0.014:
+			continue
+		var lx = v.dot(bx); var lz = v.dot(bz)
+		var l = Vector2(lx, lz).length()
+		if l > rmax:
+			continue
+		var k = int(floor((atan2(lz, lx) + PI) / TAU * bins)) % bins
+		rad[k] = maxf(rad[k], l)
+	for it in 6:
+		for k in bins:
+			if rad[k] <= 0.0:
+				rad[k] = maxf(rad[(k + 1) % bins], rad[(k + bins - 1) % bins])
+	for k in bins:
+		rad[k] = maxf(rad[k], rmax * 0.3) + pad
+	return rad
+
+
+## Gövdedeki alın koruyucu (boyun, bel, kol, kuşak): kıyafet tekniğiyle (SurfaceKit) beden kabuğuna DERİLİ bant + plaka + arma;
+## her köşe en yakın kabuk köşesinin kemik ağırlıklarını taşır -> vücutla birlikte bükülür, kemiğe çakılı katı halka değil
+func _band_skinned(p0: Vector3, B: Basis, ring: PackedFloat32Array, bc: Color, h: float, a_half: float, tails := Vector3.ZERO, tail_bone := "") -> void:
+	var src: ArrayMesh = _shell_cache.get(look["gender"])
+	if src == null or not _sk_begin(src):
+		return
+	var bins = ring.size()
+	var r_at = func(ang: float) -> float: return ring[int(floor((wrapf(ang, -PI, PI) + PI) / TAU * bins)) % bins]
+	var wd = B.y.normalized()
+	var pts = []; var outs = []
+	var n = 48
+	for k in n:
+		var ang = float(k) / n * TAU - PI
+		var o = (B * Vector3(cos(ang), 0, sin(ang))).normalized()
+		pts.append(p0 + o * r_at.call(ang))
+		outs.append(o)
+	_sk_band(pts, outs, wd, h, 0.005, bc, true)
+	# metal plaka: ön yayı izleyen pahlı parçalar (kutu dizisi)
+	var steel = Color(0.78, 0.8, 0.85)
+	var front = PI * 0.5
+	var m = 8
+	for k in m:
+		var a0 = front - a_half + 2.0 * a_half * k / m
+		var a1 = front - a_half + 2.0 * a_half * (k + 1) / m
+		var o0 = (B * Vector3(cos(a0), 0, sin(a0))).normalized(); var o1 = (B * Vector3(cos(a1), 0, sin(a1))).normalized()
+		var q0 = p0 + o0 * (r_at.call(a0) + 0.007); var q1 = p0 + o1 * (r_at.call(a1) + 0.007)
+		var om = (o0 + o1).normalized()
+		_sk_box((q0 + q1) * 0.5, (q1 - q0) * 0.5, wd * h * 0.52, om * 0.0035, steel if k > 0 and k < m - 1 else steel.darkened(0.15))
+	var plate_mi = _sk_end({})
+	# arma: plakanın önünde dokulu, derili şerit
+	if _sk_begin(src):
+		_sk["ouv"] = PackedVector2Array()
+		var sa = a_half * 0.62
+		var sh = h * 0.62
+		var base = 0
+		for k in 11:
+			var u = float(k) / 10.0
+			var ang = front + sa - 2.0 * sa * u
+			var o = (B * Vector3(cos(ang), 0, sin(ang))).normalized()
+			var q = p0 + o * (r_at.call(ang) + 0.0115)
+			for sy in [-1.0, 1.0]:
+				var pp = q + wd * sh * 0.5 * sy
+				_sk["ov"].append(pp); _sk["on"].append(o); _sk["oc"].append(Color.WHITE)
+				_sk["ouv"].append(Vector2(u, 0.0 if sy > 0 else 1.0))
+				var j = _sk_nearest(q)
+				_sk["ob"].append_array(_sk["b"][j]); _sk["ow"].append_array(_sk["w"][j])
+		for k in 10:
+			var a = k * 2
+			_sk["oi"].append_array(PackedInt32Array([a, a + 2, a + 3, a, a + 3, a + 1]))
+		var smi = _sk_end({})
+		if smi:
+			var sm = StandardMaterial3D.new()
+			sm.albedo_texture = symbol_texture(look["village"], look["band_style"] == "slashed")
+			sm.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+			sm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			sm.cull_mode = BaseMaterial3D.CULL_DISABLED
+			smi.material_override = sm
+	# arkada düğüm + iki sarkan uç (ikincil hareket)
+	if tails != Vector3.ZERO and tail_bone != "":
+		var back = -PI * 0.5
+		var ob = (B * Vector3(cos(back), 0, sin(back))).normalized()
+		var kp = p0 + ob * (r_at.call(back) + 0.012)
+		var rv = MB.new()
+		rv.add("sphere", kp, Vector3(0.026, 0.024, 0.016), bc.darkened(0.08), Vector3.ZERO, 7)
+		_mesh_on(tail_bone, rv.build(Props.toon()), Transform3D.IDENTITY)
+		for sx in [-1.0, 1.0]:
+			dangle_strip(tail_bone, kp + Vector3(0.006 * sx, -0.004, 0) + ob * 0.004, Vector3(tails.x * sx, tails.y, tails.z), 0.14, 0.028, bc, 0.16, Vector3(1, 0, 0), 0.003)
+
+
+func _band_wear(bc: Color, wear: String) -> void:
+	match wear:
+		"boyun":   # ref Hinata: boynu saran bant, plaka gırtlakta, ensede düğüm
+			var nk = _bp("Neck")
+			var p0 = Vector3(nk.x, nk.y + 0.035, nk.z)
+			_band_skinned(p0, Basis.IDENTITY, _plane_ring_body(p0, Basis.IDENTITY, 0.12, 0.006), bc, 0.032, 0.75, Vector3(0.25, -1.0, -0.5), "Neck")
+		"bandana":
+			_hitai_bandana(bc)
+		"kakashi", "zabuza", "sakura":
+			_band_ring_full()
+			var B: Basis
+			var p0: Vector3
+			var ph = 0.037
+			match wear:
+				"kakashi":   # ref kakashi_4/5: sol gözü örten, sola doğru inen eğik bant; plaka gözün üstüne kaymış
+					B = Basis(Vector3.UP, deg_to_rad(-22.0)) * Basis(Vector3(0, 0, 1), deg_to_rad(20.0))
+					p0 = Vector3(skull_c.x, eye_center_model.y + 0.012, skull_c.z)
+				"zabuza":   # ref zabuza_3/5: başın yanına yatık takılmış; plaka şakakta, bant karşı tarafta yukarı çıkar
+					B = Basis(Vector3.UP, deg_to_rad(-75.0)) * Basis(Vector3(1, 0, 0), deg_to_rad(-24.0))
+					p0 = Vector3(skull_c.x, band_ring[0] + 0.02, skull_c.z)
+				"sakura":   # ref sakura_0/2/4: saç bandı gibi tepeden geçer, plaka tepe-önde, arkada saçın altından enseye iner
+					B = Basis(Vector3(1, 0, 0), deg_to_rad(-58.0))
+					p0 = skull_c + Vector3(0, 0.0, -0.005)
+			var ring = _plane_ring_head(p0, B)
+			_hitai("Head", p0, ring, bc, 0.036, ph, 0.6, 0.0, Vector3(0.22, -1.0, -0.62), true, 0.15 if wear != "sakura" else 0.1, 0.03, 0.004, 0.0, B)
+		"bel":   # ref Ino / Gai: belde kemer gibi, plaka önde
+			var hp = _bp("Hips")
+			var sp = _bp("Spine")
+			var p0 = hp.lerp(sp, 0.55)
+			_band_skinned(p0, Basis.IDENTITY, _plane_ring_body(p0, Basis.IDENTITY, 0.3, 0.008), bc, 0.04, 0.42, Vector3(0.25, -1.0, -0.4), "Hips")
+		"kol":   # ref Shikamaru: sol üst kolda, plaka dışa bakar
+			var a = _bp("LeftUpperArm"); var b = _bp("LeftLowerArm")
+			var ax = (b - a).normalized()
+			var outv = (Vector3(1, 0, 0) - ax * ax.x).normalized()
+			var B = Basis(ax.cross(outv).normalized(), ax, outv)
+			var p0 = a.lerp(b, 0.42)
+			_band_skinned(p0, B, _plane_ring_body(p0, B, 0.09, 0.006), bc, 0.032, 0.8)
+		"kusak":   # Gaara tarzı: sağ omuzdan sol kalçaya çapraz kuşak, plaka göğüste
+			var ch = _bp("Chest")
+			var B = Basis(Vector3(0, 0, 1), deg_to_rad(38.0))
+			_band_skinned(ch, B, _plane_ring_body(ch, B, 0.4, 0.01, 36, 0.17), bc, 0.042, 0.3)
+		_:
+			_hitai_head(bc)
+
+
 ## Boyun alın koruyucusu (Hinata tarzı): boynu saran bant, gırtlağın önünde kavisli plaka, ensede düğüm + iki kısa uç
 func _hitai_neck(bc: Color) -> void:
 	var ny = _bp("Neck").y + 0.035
@@ -4813,11 +5016,11 @@ func head_cap(cc: Color, edge_y: float, back_drop: float, puff := 0.04, pad := 0
 
 ## Ortak alın koruyucu kurucusu (kafa/boyun): cen merkezli rad[] halkası üstüne kumaş bant (içe kalın), önde kavisli plaka
 ## (pahlı kenar, perçinler, kazınmış arma), arkada düğüm + iki sarkan uç. tilt: önde aşağı eğim.
-func _hitai(bone: String, cen: Vector3, rad: PackedFloat32Array, bc: Color, bh: float, ph: float, a_half: float, tilt_amt: float, tail_dir: Vector3, plate := true, tail_len := 0.15, tail_w := 0.03, rpad := 0.011, back_drop := 0.0) -> void:
+func _hitai(bone: String, cen: Vector3, rad: PackedFloat32Array, bc: Color, bh: float, ph: float, a_half: float, tilt_amt: float, tail_dir: Vector3, plate := true, tail_len := 0.15, tail_w := 0.03, rpad := 0.011, back_drop := 0.0, pb := Basis.IDENTITY) -> void:
 	var bins = rad.size()
 	var r_at = func(ang: float) -> float: return rad[int(floor((wrapf(ang, -PI, PI) + PI) / TAU * bins)) % bins]
 	var tilt = func(ang: float) -> float: return -tilt_amt * maxf(0.0, sin(ang)) - back_drop * (1.0 - sin(ang)) * 0.5   # önde hafif aşağı (+Z = sin); back_drop: arkaya doğru iner (gerçek alın bandı)
-	var p_of = func(ang: float, r: float, dy: float) -> Vector3: return cen + Vector3(cos(ang) * r, dy + tilt.call(ang), sin(ang) * r)
+	var p_of = func(ang: float, r: float, dy: float) -> Vector3: return cen + pb * Vector3(cos(ang) * r, dy + tilt.call(ang), sin(ang) * r)   # pb: eğik takılış (Kakashi/Zabuza/saç bandı/kol)
 	# --- kumaş bant: kalınlıklı halka (dış yüz + üst/alt kenar), saçın üstünde
 	var st = SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -4917,7 +5120,7 @@ func _hitai(bone: String, cen: Vector3, rad: PackedFloat32Array, bc: Color, bh: 
 		smi.material_override = sm
 	# iki kısa bağ ucu: düğümden enseye sarkar (ikincil hareket)
 	for sx in ([-1.0, 1.0] if tail_len > 0.0 else []):
-		dangle_strip(bone, kp + Vector3(0.006 * sx, -0.004, -0.012), Vector3(tail_dir.x * sx, tail_dir.y, tail_dir.z), tail_len, tail_w, cloth, 0.16, Vector3(1, 0, 0), 0.003)
+		dangle_strip(bone, kp + pb * Vector3(0.006 * sx, -0.004, -0.012), Vector3(tail_dir.x * sx, tail_dir.y, tail_dir.z), tail_len, tail_w, cloth, 0.16, pb * Vector3(1, 0, 0), 0.003)
 
 
 ## Kafanın arkası yüz mesh'inde yok: bant halkasına gövde mesh'inin (model uzayına çevrilmiş) kafa köşeleri de katılır
@@ -5158,8 +5361,11 @@ func _attachments() -> void:
 	if look["band"] != null and look["band_style"] != "none":
 		var band = MB.new()
 		var bc: Color = look["band"]
+		var wear = String(look.get("band_wear", "alin")) if look.get("band_wear") != null else "alin"
 		if look["band_style"] == "neck":
-			_hitai_neck(bc)
+			wear = "boyun"
+		if wear != "alin" and not band_ring.is_empty():
+			_band_wear(bc, wear)
 		else:
 			if band_ring.is_empty():
 				band.add("cyl", Vector3.ZERO, Vector3(0.2, 0.034, 0.21), bc, Vector3.ZERO, 22)

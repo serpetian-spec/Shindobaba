@@ -982,8 +982,7 @@ static func ensure(p: Dictionary) -> void:
 	p["flags"] = p.get("flags", {})
 	p["flags"]["hatake_kit"] = true
 	if L.get("band") != null:
-		grant(p, "alin_koruyucu", "kafa", L["band"])
-		grant(p, "alin_boyun", "", L["band"])
+		grant(p, "alin_koruyucu", "kafa", L["band"])   # boyunda takmak artık takılış seçeneği (tek eşya)
 	_ensure_eyes(p)
 	apply_look(p)
 
@@ -1101,6 +1100,7 @@ static func apply_look(p: Dictionary) -> void:
 	for k in ["band", "vest", "mask", "weapon_r", "weapon_l", "head_style", "face_style", "outer_style", "back_item", "guards", "eye_r", "eye_l", "hood", "crest", "leg_warmers", "neck_warmer", "anbu_arm", "anbu_band", "anbu_leg", "anbu_tasset"]:
 		L[k] = null
 	L["band_style"] = "none"
+	L["band_wear"] = null
 	L["gloves"] = false
 	L["arm_wraps"] = false
 	L["top_pattern"] = 0
@@ -1159,6 +1159,7 @@ static func apply_look(p: Dictionary) -> void:
 			"kafa":
 				if it["look"].get("band_style", "none") != "none":
 					L["band"] = c1
+					L["band_wear"] = String(p.get("band_wear", "alin"))   # oyuncunun seçtiği takılış (ekipman > kafa > Takılış)
 				if it["look"].has("head_style"):
 					L["headgear"] = c1
 					if it["look"]["head_style"] == "bandana":

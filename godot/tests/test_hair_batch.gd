@@ -10,7 +10,8 @@ func _ready() -> void:
 	Hud.close_dialog()
 	Hud.visible = false
 	var heads = OS.get_environment("HB_HEAD") != ""
-	var items = (OS.get_environment("HB_HEAD") if heads else OS.get_environment("HB_H")).split(",", false)
+	var bands = OS.get_environment("HB_BAND") != ""
+	var items = (OS.get_environment("HB_BAND") if bands else (OS.get_environment("HB_HEAD") if heads else OS.get_environment("HB_H"))).split(",", false)
 	var base: Vector3 = main.player.global_position + Vector3(0, 0, -6)
 	main.player.visible = false
 	main.player.set_physics_process(false)
@@ -26,7 +27,13 @@ func _ready() -> void:
 		lk["age"] = "adult"
 		lk["own_hair"] = true
 		lk["hair"] = Color(0.32, 0.22, 0.16)
-		if heads:
+		if bands:   # HB_BAND="takılış:cinsiyet:saç"
+			lk["hair_style"] = a[2] if a.size() > 2 else ("f2" if lk["gender"] == "f" else "s2")
+			lk["head_style"] = null
+			lk["band"] = Color(0.15, 0.2, 0.45)
+			lk["band_style"] = "head"
+			lk["band_wear"] = a[0]
+		elif heads:
 			lk["hair_style"] = "f2" if lk["gender"] == "f" else "s2"
 			lk["head_style"] = a[0]
 			lk["headgear"] = Color(a[2]) if a.size() > 2 else Color(0.25, 0.25, 0.3)
@@ -34,6 +41,9 @@ func _ready() -> void:
 			lk["hair_style"] = a[0]
 			lk["head_style"] = null
 		lk["face_style"] = null
+		if OS.get_environment("HB_NOMASK") != "":
+			lk["mask"] = null
+			lk["top_style"] = "tisort"
 		var m = CharacterModel.new()
 		get_tree().current_scene.add_child(m)
 		m.setup(lk)
@@ -43,12 +53,16 @@ func _ready() -> void:
 		await get_tree().create_timer(0.6).timeout
 		var hb = m.skel.find_bone("Head")
 		var c: Vector3 = (m.skel.global_transform * m.skel.get_bone_global_pose(hb)).origin + Vector3(0, 0.02, 0)
+		var dist = 1.6
+		if bands and a[0] in ["bel", "kol", "kusak", "boyun"]:
+			c += Vector3(0, -0.45 if a[0] != "boyun" else -0.15, 0)
+			dist = 2.6 if a[0] != "boyun" else 1.8
 		for vi in views.size():
 			var dv: Vector3 = views[vi].normalized()
-			cam.global_position = c + dv * 1.6
+			cam.global_position = c + dv * dist * (float(OS.get_environment("HB_ZOOM")) if OS.get_environment("HB_ZOOM") != "" else 1.0)
 			cam.look_at(c, Vector3.UP)
 			await get_tree().create_timer(0.2).timeout
-			await main.shot("hb_%s_%d" % [a[0], vi])
+			await main.shot("hb_%s%s_%d" % [a[0], ("_" + a[2]) if bands and a.size() > 2 else "", vi])
 		m.queue_free()
 		await get_tree().process_frame
 	get_tree().quit()
