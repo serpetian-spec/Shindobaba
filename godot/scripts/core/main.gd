@@ -225,7 +225,9 @@ func _update_preview() -> void:
 		preview.queue_free()
 	preview = CharacterModel.new()
 	add_child(preview)
-	preview.setup(_creator_look())
+	var cl = _creator_look()
+	cl["own_hair"] = true
+	preview.setup(cl)
 	# arka plan: seçilen köyün renklerinde shinobi evi (gökte kurulan oda)
 	var base: Vector3
 	if Interiors.inst:

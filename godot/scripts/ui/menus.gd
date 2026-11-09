@@ -2009,7 +2009,9 @@ static func _model_preview(look: Dictionary, cam_pos := Vector3(0, 1.0, -4.4), t
 	sv.add_child(rim)
 	var m = CharacterModel.new()
 	sv.add_child(m)
-	m.setup(look)
+	var lk2 = look.duplicate()
+	lk2["own_hair"] = true   # berber/görünüm önizlemesi: seçilen saç aynen
+	m.setup(lk2)
 	m.play("idle")
 	m.scale = Vector3.ONE
 	var cam = Camera3D.new()

@@ -270,7 +270,7 @@ func _jump() -> void:
 			var hs = maxf(Vector2(velocity.x, velocity.z).length(), RUN)
 			velocity.x = d.x * hs; velocity.z = d.z * hs
 		FX.smoke_puff(global_position + Vector3.UP * 0.3, 0.5, 6)
-		Sfx.play("whoosh", global_position)
+		# ses yok (kullanıcı: ikinci zıplamadaki "pat" sesi kaldırıldı)
 		# havada ikinci zıplama: tüm vücut top gibi toplanıp öne takla atar (eskiden yer yuvarlanması oynuyordu: süzülme pozu
 		# bacakları tuttuğu için yalnız üst gövde dönüyordu)
 		model.play("air", 0.05)
@@ -1301,6 +1301,7 @@ static func age_for_rank(rank: int) -> String:
 func _look_with_age() -> Dictionary:
 	var look: Dictionary = (Game.profile.get("look", {}) if not Game.profile.is_empty() else {}).duplicate()
 	look["age"] = age_for_rank(int(Game.profile.get("rank", 0)))
+	look["own_hair"] = true   # oyuncunun seçtiği saç (NPC saç eşlemesi uygulanmaz)
 	return look
 
 

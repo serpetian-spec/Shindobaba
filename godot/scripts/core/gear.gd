@@ -219,6 +219,16 @@ const ITEMS := {
 	# --- dış giysi
 	"kage_cubbesi": {"name": "Kage Cübbesi", "slot": "dis", "price": 0, "rank": 6, "desc": "Köyün liderinin beyaz cübbesi; eteğinde köyün rengi ve Kage yazısı.", "stats": {"def": 10, "chakra": 60, "hp": 40}, "look": {"outer_style": "palto"}, "c1": Color(0.96, 0.95, 0.92)},
 	"kage_sapkasi": {"name": "Kage Şapkası", "slot": "kafa", "price": 1500, "rank": 0, "desc": "Geniş kenarlı tören şapkası. Önünde köyün kanjisi.", "stats": {"def": 4, "chakra": 30}, "look": {"head_style": "kage"}, "c1": Color(0.95, 0.94, 0.9)},
+	"akatsuki_sapkasi": {"name": "Akatsuki Şapkası", "slot": "kafa", "price": 900, "rank": 0, "desc": "Hasır sivri şapka; kenarından yüzü gizleyen beyaz kâğıt şeritler ve çan sarkar.", "stats": {"def": 3, "speed": 0.02}, "look": {"head_style": "akatsuki"}, "c1": Color(0.78, 0.63, 0.46)},
+	"hiruzen_migferi": {"name": "Savaş Miğferi (Hiruzen)", "slot": "kafa", "price": 1400, "rank": 0, "desc": "Beyaz savaş miğferi; alında metal plaka, iki yanda zincirli zırh plakaları.", "stats": {"def": 9, "hp": 25, "speed": -0.02}, "look": {"head_style": "miğfer"}, "c1": Color(0.93, 0.93, 0.92)},
+	"orgu_bere": {"name": "Örgü Bere", "slot": "kafa", "price": 80, "rank": 0, "desc": "Kafayı saran yumuşak örgü bere.", "stats": {"hp": 10}, "look": {"head_style": "bere"}, "c1": Color(0.25, 0.22, 0.22)},
+	"ichiraku_kepi": {"name": "Ichiraku Kepi", "slot": "kafa", "price": 60, "rank": 0, "desc": "Ramen ustasının düz tepeli siyah kepi; önünde kırmızı 一楽.", "stats": {"chakra": 10}, "look": {"head_style": "teuchi"}, "c1": Color(0.08, 0.08, 0.12)},
+	"bas_ortusu": {"name": "Baş Örtüsü", "slot": "kafa", "price": 60, "rank": 0, "desc": "Başın tepesini saran, ensede bağlanan bez örtü.", "stats": {"hp": 8}, "look": {"head_style": "basortusu"}, "c1": Color(0.12, 0.13, 0.22)},
+	"hokage_sapkasi": {"name": "Hokage Şapkası", "slot": "kafa", "price": 1500, "rank": 0, "desc": "Kırmızı Hokage şapkası; önünde beyaz kama üstünde 火, arkada omuza inen beyaz örtü.", "stats": {"def": 4, "chakra": 30}, "look": {"head_style": "kage", "kage_vid": "konoha"}, "c1": Color(0.95, 0.94, 0.9)},
+	"kazekage_sapkasi": {"name": "Kazekage Şapkası", "slot": "kafa", "price": 1500, "rank": 0, "desc": "Yeşil Kazekage şapkası; önünde 風, arkada beyaz örtü.", "stats": {"def": 4, "chakra": 30}, "look": {"head_style": "kage", "kage_vid": "suna"}, "c1": Color(0.95, 0.94, 0.9)},
+	"mizukage_sapkasi": {"name": "Mizukage Şapkası", "slot": "kafa", "price": 1500, "rank": 0, "desc": "Lacivert Mizukage şapkası; önünde 水, arkada beyaz örtü.", "stats": {"def": 4, "chakra": 30}, "look": {"head_style": "kage", "kage_vid": "kiri"}, "c1": Color(0.95, 0.94, 0.9)},
+	"raikage_sapkasi": {"name": "Raikage Şapkası", "slot": "kafa", "price": 1500, "rank": 0, "desc": "Hardal sarısı Raikage şapkası; önünde 雷, arkada beyaz örtü.", "stats": {"def": 4, "chakra": 30}, "look": {"head_style": "kage", "kage_vid": "kumo"}, "c1": Color(0.95, 0.94, 0.9)},
+	"tsuchikage_sapkasi": {"name": "Tsuchikage Şapkası", "slot": "kafa", "price": 1500, "rank": 0, "desc": "Kahverengi Tsuchikage şapkası; önünde 土, arkada beyaz örtü.", "stats": {"def": 4, "chakra": 30}, "look": {"head_style": "kage", "kage_vid": "iwa"}, "c1": Color(0.95, 0.94, 0.9)},
 	"jonin_komutan_paltosu": {"name": "Jōnin Komutanı Haorisi", "slot": "dis", "price": 0, "rank": 3, "desc": "Jōnin komutanlarına verilen yeşil-gri haori.", "stats": {"def": 6, "chakra": 25}, "look": {"outer_style": "haori"}, "c1": Color(0.3, 0.38, 0.3)},
 	"kok_maskesi": {"name": "Kök Birliği Maskesi", "slot": "yuz", "price": 0, "rank": 4, "desc": "Kök (Ne) biriminin ifadesiz beyaz maskesi. Varlığı resmî kayıtlarda yok.", "stats": {"def": 6, "speed": 0.04}, "look": {"face_style": "anbu_kus"}, "c1": Color(0.88, 0.88, 0.86)},
 	"seyahat_pelerini": {"name": "Seyahat Pelerini", "slot": "dis", "price": 280, "rank": 0, "desc": "Dizlere inen kalın yolcu pelerini.", "stats": {"def": 3, "hp": 15}, "look": {"outer_style": "pelerin"}, "c1": Color(0.4, 0.32, 0.24)},
@@ -802,7 +812,7 @@ static func shop_stock(kind: String, vid: String) -> Array:
 		var t = picks[i]; picks[i] = picks[j]; picks[j] = t
 	var out = picks.slice(0, mini(picks.size(), 10 if kind == "w" else 16))
 	if kind == "c":   # Kage ve ANBU setleri + Kage şapkası her terzide sürekli (rastgele stok dışı)
-		for sid in KAGE_SETS + ANBU_SETS + ["kage_sapkasi"]:
+		for sid in KAGE_SETS + ANBU_SETS + ["kage_sapkasi", "hokage_sapkasi", "kazekage_sapkasi", "mizukage_sapkasi", "raikage_sapkasi", "tsuchikage_sapkasi"]:
 			if not sid in out:
 				out.append(sid)
 	var bought: Array = Game.profile.get("unique_bought", [])

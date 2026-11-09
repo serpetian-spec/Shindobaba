@@ -579,16 +579,18 @@ func _face_and_hair() -> void:
 		# bu yüzde hazır (önbellekte) ya da tutamsız bir saç stili seç; çeşitlilik zamanla artar, donma olmaz
 		var hk0 = "vroid|%s|%s|%s|%s" % [hd[2], look["gender"], donor, look.get("age", "adult")]
 		var now = Time.get_ticks_msec()
-		if not _hair_cache.has(hk0) and (now - _hair_new_ms < 6000 or look.get("npc_strict", false)):   # strict: rastgele düşman/yolcu hiç yeni tutam hesaplatmaz
+		# anime saçı ~35 ms (eski tutam 140 ms): pencere 1.2 sn; yerine yalnız bu cinsiyetin HAZIR anime saçlarından seçilir
+		# (eski düz VRoid saçına düşmez); hiç hazır yoksa istenen saç yine kurulur
+		if not _hair_cache.has(hk0) and (now - _hair_new_ms < 1200 or look.get("npc_strict", false)):
 			var opts = []
-			for st in HAIR_DONORS:
-				var h2: Array = HAIR_DONORS[st]
-				if h2.size() <= 2 or h2[2] == "" or _hair_cache.has("vroid|%s|%s|%s|%s" % [h2[2], look["gender"], donor, look.get("age", "adult")]):
-					if st != "kel":
-						opts.append(st)
+			for st in hair_styles_for(String(look["gender"])):
+				if AnimeHair.has(st) and _hair_cache.has("vroid|%s|%s|%s|%s" % [st, look["gender"], donor, look.get("age", "adult")]):
+					opts.append(st)
 			if not opts.is_empty():
 				look["hair_style"] = opts.pick_random()
 				hd = HAIR_DONORS[look["hair_style"]]
+			else:
+				_hair_new_ms = now
 		elif not _hair_cache.has(hk0):
 			_hair_new_ms = now
 	if hd.size() > 2 and hd[2] != "" and head_ab.size.x > 0.05:
@@ -686,8 +688,10 @@ func setup(l: Dictionary) -> void:
 	look = default_look()
 	look.merge(l, true)
 	look["hair_style"] = HAIR_ALIAS.get(look.get("hair_style", "diken"), look.get("hair_style", "diken"))
+	if not look.get("own_hair", false) and not AnimeHair.has(String(look["hair_style"])) and String(look["hair_style"]) != "kel":
+		look["hair_style"] = npc_hair(look)   # NPC'ler de anime saçlarını kullanır (kullanıcı 2026-11-10); eski saç adları eşlenir
 	if String(HAIR_GENDER.get(look["hair_style"], "")) not in ["", String(look.get("gender", "m"))]:
-		look["hair_style"] = "kısa"   # karşı cinsin saçı: unisex saça düş
+		look["hair_style"] = "kısa" if look.get("own_hair", false) else npc_hair(look)   # karşı cinsin saçı: NPC kendi cinsinin anime saçına, oyuncu düz saça
 	if look.get("face_style") == null and look.get("mask") != null:
 		look["face_style"] = {"anbu": "anbu_kedi", "cloth": "cloth"}.get(look["mask"], null)
 	if look.get("outer_style") == null and look.get("cloak") != null:
@@ -2729,6 +2733,35 @@ func _sf_acc(id: String, ref: Vector3) -> bool:
 	return true
 
 
+## Konik hasır şapka: düz renk + ışınsal çizgi şeritleri + koyu tepe (Akatsuki şapkası)
+func _cone_hat(cen: Vector3, R: float, H: float, col: Color, line: Color, lines: int, tip: Color) -> MeshInstance3D:
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var NA = lines * 4
+	for i in NA:
+		var a0 = TAU * i / NA; var a1 = TAU * (i + 1) / NA
+		for k in 8:
+			var t0 = k / 8.0; var t1 = (k + 1) / 8.0
+			var p = func(a: float, t: float) -> Vector3: return cen + Vector3(sin(a) * R * t, H * (1.0 - t), cos(a) * R * t)
+			var cl = tip if t1 <= 0.13 else (line if i % 4 == 0 else col)
+			var q = [p.call(a0, t0), p.call(a1, t0), p.call(a1, t1), p.call(a0, t1)]
+			for idx in [0, 1, 2, 0, 2, 3]:
+				st.set_color(cl)
+				st.add_vertex(q[idx])
+		var e0 = cen + Vector3(sin(a0) * R, 0, cos(a0) * R); var e1 = cen + Vector3(sin(a1) * R, 0, cos(a1) * R)
+		var q2 = [e0, e1, e1 + Vector3(0, -0.008, 0), e0 + Vector3(0, -0.008, 0)]
+		for idx in [0, 1, 2, 0, 2, 3]:
+			st.set_color(col.darkened(0.2))
+			st.add_vertex(q2[idx])
+	st.generate_normals()
+	var mi = _mesh_on("Head", st.commit(), Transform3D.IDENTITY)
+	var mat = ShaderMaterial.new()
+	mat.shader = load("res://shaders/toon.gdshader")
+	mat.set_shader_parameter("rim_amount", 0.15)
+	mi.material_override = mat
+	return mi
+
+
 ## Sert (kemiğe sabit) aksesuarlar: şapka, maske detayları, sırt eşyaları, yelek kayışları, eldiven plakaları, kemer
 func _accessories() -> void:
 	var hc = _head_center()
@@ -2767,6 +2800,62 @@ func _accessories() -> void:
 				_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, Vector3(hcen.x, hc.y - 0.005, hcen.z)))
 			else:
 				_hitai_bandana(hg)
+		"akatsuki":   # Striker "Akatsuki Hat": hasır sivri koni, ince ışınsal çizgiler, uçta koyu tepe, kenardan sarkan beyaz kâğıt şeritler (önü açık)
+			_band_ring_full()
+			var R = hw * 1.35
+			var H = R * 0.55
+			var by0 = htop - hh * 0.3   # kenar alın üstünde (havada durmasın)
+			var mi = _cone_hat(Vector3(hcen.x, by0, hcen.z - 0.01), R, H, Color(0.78, 0.63, 0.46), Color(0.55, 0.42, 0.3), 36, Color(0.12, 0.1, 0.1))
+			hair_mask_plane(Vector3.UP, Vector3(0, by0 + 0.01, 0))
+			for k in 22:
+				var a = deg_to_rad(lerpf(36.0, 324.0, (k + 0.5) / 22.0))
+				var out = Vector3(sin(a), 0, cos(a))
+				dangle_strip("Head", Vector3(hcen.x, by0 - 0.004, hcen.z - 0.01) + out * R * 0.8, (Vector3.DOWN + out * 0.1).normalized(), hh * (1.05 + 0.15 * (k % 2)), 0.085, Color(0.92, 0.93, 0.95), 0.35, out.cross(Vector3.UP).normalized(), 0.003)
+		"miğfer":   # Hiruzen'in savaş miğferi: beyaz yuvarlak kask, alında metal plaka, iki yanda zincirli zeytin plaka sırası
+			_band_ring_full()
+			var by = band_ring[0]
+			head_cap(Color(0.93, 0.93, 0.92), by + 0.025, 0.06, 0.03, 0.016, 0.02)
+			var mb = MB.new()
+			var fz = skull_c.z + float((band_ring[1] as PackedFloat32Array)[int(floor((PI * 0.5 + PI) / TAU * (band_ring[1] as PackedFloat32Array).size())) % (band_ring[1] as PackedFloat32Array).size()]) + 0.02
+			mb.add("box", Vector3(skull_c.x, by + 0.03, fz), Vector3(hw * 0.78, 0.045, 0.01), Color(0.72, 0.74, 0.78))
+			mb.add("box", Vector3(skull_c.x, by + 0.03, fz + 0.006), Vector3(0.004, 0.03, 0.004), Color(0.25, 0.25, 0.28))
+			for sx in [-1.0, 1.0]:
+				for q in 4:
+					var py = by + 0.0 - q * 0.042
+					mb.add("box", Vector3(skull_c.x + sx * (hw * 0.56 + q * 0.004), py, skull_c.z - 0.005), Vector3(0.014, 0.036, 0.06), Color(0.42, 0.42, 0.3), Vector3(0, 0, sx * 6.0))
+					mb.add("box", Vector3(skull_c.x + sx * (hw * 0.57 + q * 0.004), py + 0.018, skull_c.z - 0.005), Vector3(0.016, 0.006, 0.05), Color(0.2, 0.2, 0.18))
+			_mesh_on("Head", mb.build(Props.toon()), Transform3D.IDENTITY)
+		"bere":   # örgü bere: kafayı kaşın üstüne kadar saran yumuşak kabarık kep, altta kıvrık kenar
+			_band_ring_full()
+			var by = band_ring[0]
+			head_cap(hg, by + 0.03, 0.08, 0.055, 0.02, 0.025)
+			cloth_band(hg.darkened(0.12), 0.034, 0.03, 0.0, 0.0, 0.016)
+		"teuchi":   # Teuchi: düz tepeli silindir aşçı kepi, önde kırmızı 一楽
+			_band_ring_full()
+			var by = band_ring[0]
+			head_cap(Color(0.08, 0.08, 0.12), by + 0.03, 0.04, 0.0, 0.014, 0.004)
+			var mt = MB.new()
+			var top = htop - hh * 0.05
+			mt.add("cyl", Vector3(skull_c.x, top + hh * 0.12, skull_c.z), Vector3(hw * 1.06, hh * 0.32, hd * 0.98), Color(0.08, 0.08, 0.12), Vector3.ZERO, 24)
+			var tmi = _mesh_on("Head", mt.build(Props.toon()), Transform3D.IDENTITY)
+			var l = Label3D.new()
+			l.text = "一楽"
+			l.font = KageAttire._font()
+			l.font_size = 64
+			l.pixel_size = 0.0011
+			l.modulate = Color(0.8, 0.15, 0.12)
+			l.shaded = false
+			l.alpha_cut = Label3D.ALPHA_CUT_DISCARD
+			var fr = float((band_ring[1] as PackedFloat32Array)[int(floor((PI * 0.5 + PI) / TAU * (band_ring[1] as PackedFloat32Array).size())) % (band_ring[1] as PackedFloat32Array).size()])
+			l.position = Vector3(skull_c.x, top + hh * 0.12, skull_c.z + hd * 0.49 + 0.003)   # silindirin ön yüzünde
+			tmi.add_child(l)
+		"basortusu":   # Ayame: başın tepesini saran bez, ensede düğüm ve iki sarkan uç; saç alttan görünür
+			_band_ring_full()
+			var by = band_ring[0]
+			head_cap(hg, by + 0.045, 0.1, 0.03, 0.014, 0.014)
+			var kp = Vector3(skull_c.x, by - 0.02, skull_c.z - hd * 0.55)
+			for sx in [-1.0, 1.0]:
+				dangle_strip("Head", kp + Vector3(0.012 * sx, 0, 0), Vector3(0.35 * sx, -1.0, -0.4), 0.11, 0.05, hg, 0.2, Vector3(1, 0, 0), 0.004)
 		"bandaj":
 			# alnı saran sargı: iki kat (biri hafif eğik), ensede kısa sarkan uç
 			var ybj = cloth_band(hg, 0.004, 0.034, 0.1, 0.026, 0.004)
@@ -3027,6 +3116,16 @@ const HAIR_FILES := {
 const HAIR_STYLES := {"kısa": "Kısa", "kase": "Kâse", "uzun": "Uzun", "s1": "Dağınık Diken", "s2": "Dikenli Taç", "s3": "Yatık Diken", "s4": "Alev Yelpaze", "s5": "Düz Kuyruk", "s6": "Örtük Kâkül", "s7": "Yan Alev", "s8": "Ananas Kuyruk", "s9": "Kâse Kesim", "s10": "Dikenli Yele", "s11": "Düz Kısa", "s12": "Sık Diken", "s13": "Kısa Kirpi", "s14": "Geri Diken", "s15": "Uzun Perde", "s16": "Ördek Kuyruğu", "s17": "Yan Tarama", "s18": "Dik Fırça", "s19": "Savruk Diken", "s20": "Katlı Uç", "s21": "Tepe Kuyruk", "s22": "Geri Tarama", "s23": "Kısa Geri", "s24": "Dağınık Kısa", "f1": "Yan Ayrık Kısa", "f2": "Uzun Düz", "f3": "Uzun Dağınık", "f4": "Prenses Kâkül", "f5": "Dalgalı Uzun", "f6": "Dikenli Kuyruk", "f7": "Yan Kâkül Kuyruk", "f8": "Çift Topuz", "f9": "Dörtlü Kuyruk", "f10": "Kabarık Bere", "f11": "Düz Kesik Kısa", "f12": "Kısa Prenses", "f13": "Bantlı Kısa", "f14": "Açık Alın Kısa", "f15": "Topuz Kâkül", "f16": "Uzun Ayrık", "f17": "Örtük Kısa", "f18": "Küçük Prenses", "f19": "Uzun Kuyruk", "f20": "Alçak Kuyruk", "f21": "Kâküllü Kısa", "f22": "Arka Topuz", "f23": "Yana Kısa", "f24": "Tepe Topuz", "d0": "Yele Diken", "d1": "Uzun Yılan", "d2": "Çift Alçak Kuyruk", "d3": "Dev Yele", "d4": "Dağınık Kirpi", "d5": "Uzun Orman", "d6": "Dik Geri", "d8": "Sarı Şimşek", "d9": "Sert Kısa", "d10": "Topuz Perde", "d11": "Uzun Açık", "d14": "Gezgin Kâkül", "d15": "Geri Uzun", "d16": "Örtük Kuyruk", "d17": "Parlak Kâse", "d18": "Topuz Örtük", "d20": "Kabarık Kısa", "d22": "Hokage Dikeni", "d23": "Uzun Ayrık Düz", "d24": "Açık Alın Uzun", "d25": "Kıvırcık Kısa", "d26": "Dik Kısa", "d27": "Sivri Kâkül", "d28": "Savaş Sonrası Bob", "d29": "Asimetrik Bob", "d30": "Omuz Düz", "d32": "Alçak Kuyruk Uzun", "d33": "Kadim Diken", "d34": "Altı Yol Yelesi", "d35": "Dört Tutam", "d36": "Genç Dik", "d37": "Çift Uzun Kuyruk", "d39": "Görev Uzun", "d40": "Yere Uzun", "d41": "Kıvrık Tepe", "d42": "Savruk Dağınık", "d43": "Kukla Bob", "d44": "Yan Geri", "d45": "Dağınık Örtük"}
 ## Saç cinsiyeti (kullanıcı 2026-11-09: kadın saçı kadınlara, erkek saçı erkeklere; yazılmayan = unisex)
 const HAIR_GENDER := {"s1": "m", "s2": "m", "s3": "m", "s4": "m", "s5": "m", "s6": "m", "s7": "m", "s8": "m", "s9": "m", "s10": "m", "s11": "m", "s12": "m", "s13": "m", "s14": "m", "s15": "m", "s16": "m", "s17": "m", "s18": "m", "s19": "m", "s20": "m", "s21": "m", "s22": "m", "s23": "m", "s24": "m", "f1": "f", "f2": "f", "f3": "f", "f4": "f", "f5": "f", "f6": "f", "f7": "f", "f8": "f", "f9": "f", "f10": "f", "f11": "f", "f12": "f", "f13": "f", "f14": "f", "f15": "f", "f16": "f", "f17": "f", "f18": "f", "f19": "f", "f20": "f", "f21": "f", "f22": "f", "f23": "f", "f24": "f", "d0": "m", "d1": "m", "d2": "f", "d3": "m", "d4": "m", "d5": "m", "d6": "m", "d8": "m", "d9": "m", "d14": "m", "d15": "m", "d16": "m", "d17": "m", "d18": "f", "d20": "m", "d22": "m", "d23": "m", "d24": "m", "d25": "m", "d26": "m", "d27": "m", "d28": "f", "d29": "f", "d30": "m", "d32": "m", "d33": "m", "d34": "m", "d35": "f", "d36": "m", "d37": "f", "d39": "f", "d40": "f", "d41": "m", "d42": "m", "d43": "m", "d44": "m", "d45": "m"}
+
+## NPC saçı: cinsiyete uygun anime saçlarından, görünüşe göre SABİT seçim (aynı kişi her kurulumda aynı saç)
+static func npc_hair(lk: Dictionary) -> String:
+	var g = String(lk.get("gender", "m"))
+	var opts = hair_styles_for(g).filter(func(h): return AnimeHair.has(h))
+	if opts.is_empty():
+		return "kısa"
+	var key = "%s|%s|%s|%s" % [String(lk.get("hair_style", "")), str(lk.get("hair", "")), str(lk.get("top", "")), str(lk.get("skin", ""))]
+	return String(opts[absi(hash(key)) % opts.size()])
+
 
 static func hair_styles_for(g: String) -> Array:
 	return HAIR_STYLES.keys().filter(func(h): return String(HAIR_GENDER.get(h, "")) in ["", g])

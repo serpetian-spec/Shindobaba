@@ -4,7 +4,7 @@ extends RefCounted
 ## önde köyün kanjisi, arkada beyaz örtü). Kage NPC'leri (ofis, tören) bunu kullanır.
 
 const KANJI := {"konoha": "火", "suna": "風", "kiri": "水", "kumo": "雷", "iwa": "土"}
-const COLOR := {"konoha": Color(0.8, 0.14, 0.12), "suna": Color(0.16, 0.45, 0.38), "kiri": Color(0.18, 0.38, 0.75),
+const COLOR := {"konoha": Color(0.8, 0.14, 0.12), "suna": Color(0.12, 0.42, 0.22), "kiri": Color(0.18, 0.38, 0.75),
 	"kumo": Color(0.95, 0.78, 0.16), "iwa": Color(0.5, 0.3, 0.2)}
 ## Kage kişilikleri (kanon dışı): saç, sakal, yaş havası
 const PERSONA := {
@@ -32,6 +32,9 @@ static func look(vid: String) -> Dictionary:
 ## Şapka: model iskeletinin kafasına takılır
 static func hat(model: Node, vid: String) -> void:
 	if model == null or not model.has_method("_mesh_on"):
+		return
+	if vid in STRIKER_HATS:
+		_hat_striker(model, vid)   # Striker ref'li (Hokage/Raikage/Mizukage/Tsuchikage); Kazekage ref yok -> eski şapka
 		return
 	var c: Color = COLOR.get(vid, COLOR["konoha"])
 	var white = Color(0.97, 0.96, 0.93)
@@ -78,6 +81,85 @@ static func hat(model: Node, vid: String) -> void:
 	var nrm = Basis(Vector3.RIGHT, l.rotation.x) * Vector3(0, 0, 1)
 	l.position = Vector3(0, fy, fz) + nrm * 0.011
 	mi.add_child(l)
+
+
+## Striker şapka tonları (ref ekran görüntülerinden; cüppe rengi COLOR ayrı)
+const HAT_COLOR := {"konoha": Color(0.55, 0.08, 0.08), "kumo": Color(0.78, 0.6, 0.22), "kiri": Color(0.08, 0.13, 0.36), "iwa": Color(0.3, 0.17, 0.12), "suna": Color(0.08, 0.38, 0.2)}
+const STRIKER_HATS := ["konoha", "kumo", "kiri", "iwa", "suna"]   # Kazekage: refs/hair_dlc/Kazekage_Hat.jpg
+
+
+## Striker Kage şapkası (refs/hair_dlc/*_Hat.jpg): geniş, alçak koni tamamı köy renginde; önde tepeye doğru sivrilen
+## beyaz üçgen kama içinde köy rengi kanji; ince beyaz kenar; kenarın altından yanları ve arkayı saran, omuza inen
+## sert beyaz örtü (önü açık). Şapka alnı örter, kenar kaş hizasında.
+static func _hat_striker(model: Node, vid: String) -> void:
+	var c: Color = HAT_COLOR.get(vid, COLOR["konoha"])
+	var white = Color(0.96, 0.96, 0.95)
+	var hc: Vector3 = model._head_center()
+	var ab: AABB = model.head_ab
+	var hw = clampf(ab.size.x, 0.16, 0.26) if ab.size.x > 0.05 else 0.2
+	var hh = clampf(ab.size.y, 0.12, 0.26) if ab.size.y > 0.05 else 0.2
+	var R = hw * 1.25   # kenar yarıçapı (ref: kenar kafanın ~2.5 katı genişlikte)
+	var H = R * 0.62    # koni yüksekliği
+	var brim_y = hc.y + hh * 0.06   # kenar alın/kaş üstünde (ref: şapka alnı örter)
+	var apex = Vector3(hc.x, brim_y + H, hc.z - 0.01)
+	var cen = Vector3(hc.x, brim_y, hc.z - 0.01)
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var NA = 120; var NT = 24   # sık: beyaz kama kenarı merdiven olmasın
+	var pt = func(a: float, t: float, off: float) -> Vector3:
+		var r = R * t + off
+		return Vector3(cen.x + sin(a) * r, apex.y - H * t + off * 0.6, cen.z + cos(a) * r)
+	var col_at = func(a: float, t: float) -> Color:
+		var aa = absf(wrapf(a, -PI, PI))
+		return white if (t > 0.3 and aa < deg_to_rad(30.0) * smoothstep(0.3, 1.0, t)) else c
+	for i in NA:
+		var a0 = TAU * i / NA - PI; var a1 = TAU * (i + 1) / NA - PI
+		for k in NT:
+			var t0 = float(k) / NT; var t1 = float(k + 1) / NT
+			var q = [pt.call(a0, t0, 0.0), pt.call(a1, t0, 0.0), pt.call(a1, t1, 0.0), pt.call(a0, t1, 0.0)]
+			var cl = col_at.call((a0 + a1) * 0.5, (t0 + t1) * 0.5)
+			for idx in [0, 1, 2, 0, 2, 3]:   # tek yüz (çift yüz aynı yerde z-çakışıp leke yapıyordu)
+				st.set_color(cl if idx < 4 else cl)
+				st.add_vertex(q[idx])
+		# kenar şeridi: beyaz, hafif kalın
+		var e = [pt.call(a0, 1.0, 0.0), pt.call(a1, 1.0, 0.0), pt.call(a1, 1.0, 0.0) + Vector3(0, -0.012, 0), pt.call(a0, 1.0, 0.0) + Vector3(0, -0.012, 0)]
+		for idx in [0, 1, 2, 0, 2, 3]:
+			st.set_color(white)
+			st.add_vertex(e[idx])
+	st.generate_normals()
+	var mi = model._mesh_on("Head", st.commit(), Transform3D.IDENTITY)
+	var mat = ShaderMaterial.new()
+	mat.shader = load("res://shaders/toon.gdshader")
+	mat.set_shader_parameter("rim_amount", 0.15)
+	mat.set_shader_parameter("detail_tex_amt", 0.0)   # düz lake (sıva dokusu şapkada leke gibi duruyordu)
+	mat.set_shader_parameter("detail_noise", 0.0)
+	mi.material_override = mat
+	# kanji: beyaz kamanın üstünde, yüzey normali boyunca önde
+	var tk = 0.72
+	var kp = pt.call(0.0, tk, 0.0)
+	var slope = rad_to_deg(atan2(H, R))
+	var l = Label3D.new()
+	l.text = KANJI.get(vid, "影")
+	l.font = _font()
+	l.font_size = 64
+	l.pixel_size = 0.0017
+	l.modulate = c.darkened(0.15)
+	l.outline_size = 0
+	l.shaded = false
+	l.double_sided = false
+	l.alpha_cut = Label3D.ALPHA_CUT_DISCARD
+	l.rotation = Vector3(deg_to_rad(-(90.0 - slope)), 0, 0)
+	var nrm = Basis(Vector3.RIGHT, l.rotation.x) * Vector3(0, 0, 1)
+	l.position = kp + nrm * 0.006
+	mi.add_child(l)
+	# örtü: kenarın içinden yanları ve arkayı saran, omuza inen sert beyaz panel (ikincil hareket)
+	var nst = 9
+	for k in nst:
+		var a = deg_to_rad(lerpf(72.0, 288.0, (k + 0.5) / nst))
+		var out = Vector3(sin(a), 0, cos(a))
+		var r0 = R * 0.62
+		model.dangle_strip("Head", cen + out * r0 + Vector3(0, -0.005, 0), (Vector3.DOWN + out * 0.45).normalized(), hh * 0.95, TAU * r0 / nst * 1.25, white.darkened(0.02), 0.5, out.cross(Vector3.UP).normalized(), 0.004)
+	model.hair_mask_plane(Vector3.UP, Vector3(0, brim_y + 0.01, 0))   # şapkanın içinde kalan saç kesilir
 
 
 static var _f: SystemFont
