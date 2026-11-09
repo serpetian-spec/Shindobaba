@@ -18,6 +18,9 @@ uniform float juin_marks = 0.0;   // lanet mührü: yüze yayılan kara alev lek
 uniform vec3 eye_c_r = vec3(-0.032, 1.62, 0.08);
 uniform vec3 eye_c_l = vec3(0.032, 1.62, 0.08);
 uniform float iris_r3 = 0.011;
+// yüz boyası: Striker desen maskesi (alfa), göz merkezlerine göre önden yansıtılır (512 px: gözler 176/336, y 200)
+uniform sampler2D paint_tex : hint_default_transparent, filter_linear;
+uniform vec4 paint_col = vec4(0.0);
 varying vec3 lp;
 
 void vertex() {
@@ -51,6 +54,15 @@ void fragment() {
 		c = tx.rgb;
 	}
 	if (use_alpha && tx.a < alpha_cut) discard;
+	if (paint_col.a > 0.0) {
+		vec3 pe = (eye_c_r + eye_c_l) * 0.5;
+		float ped = max(length(eye_c_l - eye_c_r), 0.01);
+		vec2 puv = vec2(256.0 + (lp.x - pe.x) / ped * 160.0, 200.0 - (lp.y - pe.y) / ped * 160.0) / 512.0;
+		if (puv.x > 0.0 && puv.x < 1.0 && puv.y > 0.0 && puv.y < 1.0) {
+			float pa = texture(paint_tex, puv).a;
+			c = mix(c, paint_col.rgb, pa * paint_col.a);
+		}
+	}
 	if (byakugan_veins > 0.0) {
 		float vm = max(vein_mask(lp, eye_c_r, iris_r3, -1.0), vein_mask(lp, eye_c_l, iris_r3, 1.0));
 		c = mix(c, c * vec3(0.55, 0.38, 0.48), vm * byakugan_veins);

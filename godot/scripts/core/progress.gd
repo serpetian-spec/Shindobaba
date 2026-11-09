@@ -776,9 +776,9 @@ func _note_line() -> String:
 func _check_story_levels() -> void:
 	var lv = int(p()["level"])
 	var rk = int(p()["rank"])
-	if story() >= Journal.FREE and rk == 1 and lv == 15:
+	if story() >= Journal.FREE and rk == 1 and lv == 30:
 		Hud.msg("Chūnin Sınavı'na başvurabilirsin (Stadyum ya da %s Kulesi) — istersen." % home_info()["kage"], Color(1, 0.8, 0.4))
-	if rk == 2 and lv >= 45 and int(p()["missions_done"].get("A", 0)) >= 4 and int(p()["missions_done"].get("B", 0)) >= 6:
+	if rk == 2 and lv >= 90 and int(p()["missions_done"].get("A", 0)) >= 4 and int(p()["missions_done"].get("B", 0)) >= 6:
 		Hud.msg("Jōnin terfi değerlendirmesine başvurabilirsin (%s Kulesi)." % home_info()["kage"], Color(1, 0.8, 0.4))
 
 
@@ -1164,13 +1164,13 @@ func _mission_board(it: Dictionary) -> void:
 				{"label": "Görev panosuna bak", "cb": func(): Missions.open_board(it)}])
 			return
 		var opts = []
-		if rk == 2 and int(pr["level"]) >= 45:
+		if rk == 2 and int(pr["level"]) >= 90:
 			opts.append({"label": "Jōnin terfi değerlendirmesi", "cb": func(): Exams.jonin_offer()})
-		if rk >= 2 and int(pr["level"]) >= 35 and String(pr.get("specialty", "")) == "":
+		if rk >= 2 and int(pr["level"]) >= 70 and String(pr.get("specialty", "")) == "":
 			opts.append({"label": "Tokubetsu Jōnin uzmanlığı seç", "cb": func(): Exams.specialty_offer()})
-		if rk in [3, 4] and int(pr["level"]) >= 90:
+		if rk in [3, 4] and int(pr["level"]) >= 180:
 			opts.append({"label": "%s adaylığı" % home_info()["kage"], "cb": func(): Kage.offer_candidacy()})
-		if s >= Journal.FREE and int(pr["level"]) >= 15 and rk == 1:
+		if s >= Journal.FREE and int(pr["level"]) >= 30 and rk == 1:
 			opts.append({"label": "Chūnin Sınavına başvur", "cb": func(): ChuninExam.apply()})
 		if it.get("kage_office", false):
 			opts.append_array(Friends._kage_teach_opts())   # isteğe bağlı öğretmenlik / genin takımı

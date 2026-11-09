@@ -557,6 +557,11 @@ func _face_and_hair() -> void:
 					sm.set_shader_parameter("eye_c_l", ic4[1])
 					sm.set_shader_parameter("iris_r3", ic4[2])
 				sm.set_shader_parameter("tint", ratio)
+				var fpid = String(look.get("face_paint", "yok")) if look.get("face_paint") != null else "yok"
+				if fpid != "yok" and ResourceLoader.exists("res://assets/facepaint/%s.png" % fpid):
+					sm.set_shader_parameter("paint_tex", load("res://assets/facepaint/%s.png" % fpid))
+					var pc = face_paint_color(look)
+					sm.set_shader_parameter("paint_col", Color(pc.r, pc.g, pc.b, 1.0))
 				face_mi.set_surface_override_material(si, sm)
 				materials.append(sm)
 			elif mname.contains("EyeWhite") and tex != null:
@@ -911,6 +916,22 @@ const FACES := {
 	"köşeli": [0.012, 0.004, 0.0, 0.002, 0.004], "ince": [-0.01, -0.004, -0.006, 0.0, -0.002], "iri burun": [0.004, 0.0, 0.002, 0.009, 0.003],
 }
 const FACE_MARKS := {"yok": 0, "burun yarası": 1, "yanak çizgisi": 2, "çil": 3, "kırışık": 4}
+## Yüz boyası (Shinobi Striker Face Paint 1-35, refs/facepaint): desen maskesi Striker görsellerinden çıkarıldı (assets/facepaint),
+## yüze göz arası mesafeye göre önden yansıtılır; renk Striker'daki gibi seçilebilir ("Doğal" = görseldeki renk)
+const FACE_PAINTS := {"yok": "Yok", "fp1": "Akimichi Sarmalı (Chōji)", "fp2": "Inuzuka Dişleri (Kiba)", "fp3": "Mor Yanak Çizgileri (Rin)", "fp4": "Burun Yarası (Iruka)", "fp5": "Bıyık İzleri (Naruto)", "fp6": "Alın Damlası", "fp7": "Senju Çizgileri (Tobirama)", "fp8": "Kara Kaş ve Burun", "fp9": "Göz Altı Yarası (Yagura)", "fp10": "Kabuki Boyası (Kankurō)", "fp11": "Göz Çizgileri (Genç Jiraiya)", "fp12": "Ai Kanjisi (Gaara)", "fp13": "Kaguya Noktaları (Kimimaro)", "fp14": "Alın ve Çene Mührü", "fp15": "Sennin Kızılı (Jiraiya)", "fp16": "Yılan Göz Çizgisi (Orochimaru)", "fp17": "Bıyık İzleri (Boruto)", "fp19": "Göz Kalemi", "fp20": "Çift Yanak Çizgisi", "fp21": "Yanak Çizgisi (Kagura)", "fp22": "Yıldız Yara", "fp23": "Kesik Yara", "fp24": "Çapraz Kesik", "fp25": "Pençe İzleri", "fp26": "Dikişli Yara", "fp27": "Bıyık Boyası", "fp28": "Gölge Lekesi", "fp29": "Dikiş ve Damla", "fp30": "Yanak Noktaları (Konohamaru)", "fp31": "Göz Çizgileri (Itachi)", "fp32": "Göz Yarası (Kakashi)", "fp33": "Boynuz İzi (Killer Bee)", "fp34": "Yılan Pulları (Kabuto)", "fp35": "Kaplan Boyası"}
+const FACE_PAINT_NATURAL := {"fp1": Color(0.43, 0.41, 0.44), "fp2": Color(0.44, 0.14, 0.18), "fp3": Color(0.33, 0.25, 0.45), "fp4": Color(0.68, 0.55, 0.56), "fp5": Color(0.50, 0.45, 0.45), "fp6": Color(0.32, 0.29, 0.31), "fp7": Color(0.42, 0.17, 0.20), "fp8": Color(0.31, 0.28, 0.29), "fp9": Color(0.31, 0.35, 0.44), "fp10": Color(0.48, 0.11, 0.16), "fp11": Color(0.45, 0.23, 0.25), "fp12": Color(0.55, 0.44, 0.46), "fp13": Color(0.42, 0.22, 0.25), "fp14": Color(0.47, 0.22, 0.25), "fp15": Color(0.44, 0.20, 0.22), "fp16": Color(0.24, 0.22, 0.26), "fp17": Color(0.48, 0.44, 0.44), "fp19": Color(0.38, 0.49, 0.67), "fp20": Color(0.68, 0.65, 0.24), "fp21": Color(0.51, 0.49, 0.50), "fp22": Color(0.32, 0.24, 0.24), "fp23": Color(0.69, 0.50, 0.39), "fp24": Color(0.73, 0.49, 0.33), "fp25": Color(0.21, 0.19, 0.29), "fp26": Color(0.68, 0.54, 0.55), "fp27": Color(0.72, 0.50, 0.36), "fp28": Color(0.08, 0.09, 0.18), "fp29": Color(0.45, 0.39, 0.39), "fp30": Color(0.45, 0.13, 0.18), "fp31": Color(0.52, 0.50, 0.50), "fp32": Color(0.60, 0.49, 0.49), "fp33": Color(0.29, 0.28, 0.41), "fp34": Color(0.45, 0.41, 0.42), "fp35": Color(0.33, 0.31, 0.31)}
+const FACE_PAINT_COLORS := {"Doğal": Color(0, 0, 0, 0), "Kırmızı": Color(0.72, 0.1, 0.12), "Siyah": Color(0.07, 0.07, 0.09), "Mor": Color(0.45, 0.2, 0.62),
+	"Mavi": Color(0.18, 0.32, 0.75), "Pembe": Color(0.92, 0.45, 0.62), "Yeşil": Color(0.2, 0.55, 0.28), "Camgöbeği": Color(0.25, 0.75, 0.82), "Beyaz": Color(0.95, 0.95, 0.95), "Haki": Color(0.6, 0.55, 0.38)}
+## Klanın kanon boyası (Inuzuka kırmızı dişler, Akimichi sarmal, Kaguya kırmızı noktalar, Karatachi yara)
+const CLAN_FACE_PAINT := {"inuzuka": "fp2", "akimichi": "fp1", "kaguya": "fp13", "karatachi": "fp9"}
+
+
+static func face_paint_color(look_d: Dictionary) -> Color:
+	var id = String(look_d.get("face_paint", "yok")) if look_d.get("face_paint") != null else "yok"
+	var c = look_d.get("face_paint_col")
+	if c is Color and (c as Color).a > 0.0:
+		return c
+	return FACE_PAINT_NATURAL.get(id, Color(0.7, 0.1, 0.1))
 
 
 static func random_face() -> Array:
@@ -2765,13 +2786,13 @@ func _sf_acc(id: String, ref: Vector3) -> bool:
 
 ## Pürüzsüz miğfer kabuğu: kafa derisinin her yönde en dış noktasına + pay ile oturan, ızgarası yumuşatılmış kubbe.
 ## Ön kenar front_edge_y'de, arkaya doğru back_drop kadar iner (ense korunur).
-func _helmet_shell(col: Color, front_edge_y: float, back_drop: float, pad := 0.016, flat_top := 0.0) -> MeshInstance3D:
+func _helmet_shell(col: Color, front_edge_y: float, back_drop: float, pad := 0.016, flat_top := 0.0, side_drop := 0.0) -> MeshInstance3D:
 	# kafa derisinin gerçek yüzeyi (saçlarla aynı ölçüm: _head_radial ızgarası, AnimeHair._real_r)
 	AnimeHair._c = skull_c; AnimeHair._r = skull_r; AnimeHair._grid = _head_radial(); AnimeHair._band_y = -INF
 	var NA = 64; var NP = 22
 	var edge_at = func(a: float) -> float:   # a: yaw (0 = ön +Z)
 		var back = maxf(0.0, -cos(a))
-		return front_edge_y - back_drop * back * back
+		return front_edge_y - back_drop * back * back - side_drop * smoothstep(0.5, 0.92, absf(sin(a)))   # side_drop: kapüşon yüzü açık bırakıp yanaklardan iner
 	# yarıçap ızgarası: ölç -> genişlet (max 3x3, çıkıntılar dışarıda kalsın) -> 6 tur yumuşat (buruşuk değil pürüzsüz kask)
 	var pmaxs = []
 	for k in NA:
@@ -2972,44 +2993,7 @@ func _accessories() -> void:
 				var rr = R * 0.74 + (0.003 if k % 2 == 0 else 0.0)
 				dangle_strip("Head", Vector3(hcen.x, by0 - 0.006, hcen.z - 0.01) + out * rr, (Vector3.DOWN + out * 0.04).normalized(), L, w, Color(0.93, 0.94, 0.96).darkened(0.04 * (k % 2)), 0.4, out.cross(Vector3.UP).normalized(), 0.002, null, 0.0)
 		"miğfer":   # Hiruzen savaş miğferi (Striker Hiruzen_Helmet + anime refs/hats): kafaya oturan pürüzsüz beyaz kask (ön kenar
-			# alın ortası, arkada enseye iner), alında KÖYÜN sembollü alın koruyucu plakası, kulak hizasından yanaklara yapışık
-			# inen, halkalarla bağlı 4 zeytin zırh plakası
-			_band_ring_full()
-			var by = band_ring[0]
-			var white: Color = hg   # miğfer rengi eşya renginden (boyanabilir; varsayılan beyaz)
-			_helmet_shell(white, by + 0.03, 0.11)
-			hair_mask_plane(Vector3.UP, Vector3(0, by - 0.02, 0))
-			_hitai("Head", Vector3(skull_c.x, by + 0.014, skull_c.z), band_ring[1], white.darkened(0.06), 0.04, 0.042, 0.64, 0.004, Vector3.ZERO, true, 0.0, 0.0, 0.014)
-			var st = SurfaceTool.new()
-			st.begin(Mesh.PRIMITIVE_TRIANGLES)
-			var olive = Color(0.46, 0.45, 0.3)
-			var iron = Color(0.16, 0.16, 0.15)
-			var bvs = _body_vs()
-			for sx in [1.0, -1.0]:
-				var px = 0.0
-				var pz_sum = 0.0; var pz_n = 0
-				for q in bvs:   # kulak hizasında yanağın dış yüzü (plaka deriye yapışsın)
-					if absf(q.y - (by - 0.05)) < 0.02 and signf(q.x - skull_c.x) == sx and q.z > skull_c.z - 0.03 and q.z < skull_c.z + 0.04:
-						px = maxf(px, absf(q.x - skull_c.x)); pz_sum += q.z; pz_n += 1
-				if px <= 0.0:
-					px = hw * 0.5
-				var pz = pz_sum / maxf(1.0, pz_n)
-				var b = Basis(Vector3(0, 0, -sx), Vector3.UP, Vector3(sx, 0, 0))
-				_box_basis(st, Vector3(skull_c.x + sx * (px + 0.012), by + 0.012, pz), b, Vector3(0.05, 0.03, 0.01), white.darkened(0.12))   # miğfer kulak kanadı
-				for q in 4:
-					var y = by - 0.022 - q * 0.046
-					var c = Vector3(skull_c.x + sx * (px + 0.016 + q * 0.003), y, pz + 0.004)
-					var bq = b.rotated(Vector3(0, 0, 1), sx * deg_to_rad(4.0 + q * 2.0))
-					_box_basis(st, c, bq, Vector3(0.062, 0.042, 0.009), olive)
-					_box_basis(st, c + bq.z * 0.0055 + bq.y * 0.015, bq, Vector3(0.058, 0.005, 0.002), olive.darkened(0.25))
-					for t in [-1.0, 1.0]:
-						_box_basis(st, c + bq.x * (t * 0.02) + bq.y * 0.024 + bq.z * 0.005, bq, Vector3(0.007, 0.012, 0.009), iron)
-			st.generate_normals()
-			var hm = _mesh_on("Head", st.commit(), Transform3D.IDENTITY)
-			var mat = ShaderMaterial.new()
-			mat.shader = load("res://shaders/toon.gdshader")
-			mat.set_shader_parameter("rim_amount", 0.2)
-			hm.material_override = mat
+			_hiruzen_helmet(hg)
 		"bere":   # örgü bere (Striker Naruto Knitted Cap): kafayı kaşa kadar saran yumuşak pürüzsüz kep, altta kıvrık kenar (manşet)
 			_band_ring_full()
 			var by = band_ring[0]
@@ -4223,9 +4207,13 @@ func _hitai_head(bc: Color) -> void:
 
 ## ------------------------------------------------------------------ alın koruyucu takılış tarzları (anime ref: refs/bands)
 ## Tek eşya (Alın Koruyucu), takılış oyuncunun seçimi: look["band_wear"]
-const BAND_WEARS := ["alin", "kakashi", "zabuza", "sakura", "boyun", "bel", "kol", "kusak", "bandana"]
+const BAND_WEARS := ["alin", "kakashi", "zabuza", "sakura", "boyun", "bel", "kol", "kusak", "bandana", "yamato", "tobirama", "jiraiya", "kisame", "hiruzen", "kankuro", "kakuzu", "baki", "neji", "choji"]
+var _band_kanji := ""
 const BAND_WEAR_NAMES := {"alin": "Alında", "kakashi": "Göze Eğik", "zabuza": "Yana Yatık", "sakura": "Saç Bandı", "boyun": "Boyunda",
-	"bel": "Belde", "kol": "Kolda", "kusak": "Göğüs Kuşağı", "bandana": "Bandana"}
+	"bel": "Belde", "kol": "Kolda", "kusak": "Göğüs Kuşağı", "bandana": "Bandana",
+	"yamato": "Yanak Korumalı (Yamato/Hashirama)", "tobirama": "Geniş Plaka (Tobirama)", "jiraiya": "Boynuzlu 油 (Jiraiya)", "kisame": "Yukarı Bakan (Kisame)",
+	"hiruzen": "Savaş Miğferi (Hiruzen)", "kankuro": "Kulaklı Başlık (Kankurō)", "kakuzu": "Başlık + Maske (Kakuzu)", "baki": "Yarım Peçe (Baki)",
+	"neji": "Uzun Bağlı (Neji)", "choji": "Kulak Bezli (Chōji)"}
 
 
 ## Eğik düzlemde kafa (+ saç) çevresi: B yerel X/Z düzlemi bant düzlemi, Y normali; bins açı (yerel atan2(z, x) + PI)
@@ -4247,20 +4235,28 @@ func _plane_ring_head(p0: Vector3, B: Basis, bins := 48) -> PackedFloat32Array:
 			else:
 				hi = t
 		rad[k] = lo
+	# bant KAFANIN şeklini izler (kullanıcı: "kafayı değil saçı baz almış"); saç kütlesi yalnız TEK, düzgün bir pay verir
+	# (saçın kökteki kalınlığı ~ köklere yakın saç köşelerinin kafa yüzeyinden uzaklığının alt-orta değeri)
 	var nrm = B.y.normalized()
-	for q in _anime_hair_vs:   # saç kütlesi: bant saçın üstünden geçer
+	var offs = []
+	for q in _anime_hair_vs:
 		var v = q - p0
 		if absf(v.dot(nrm)) > 0.01:
 			continue
 		var lx = v.dot(B.x.normalized()); var lz = v.dot(B.z.normalized())
 		var l = Vector2(lx, lz).length()
-		if l > 0.3:
-			continue
 		var k = int(floor((atan2(lz, lx) + PI) / TAU * bins)) % bins
-		rad[k] = maxf(rad[k], l)
-	var sm = rad.duplicate()
-	for k in bins:   # kıl/diken uçları bandı tırtıklı yapmasın: yumuşat
-		sm[k] = maxf(rad[k] * 0.6, (rad[(k + bins - 1) % bins] + rad[k] * 2.0 + rad[(k + 1) % bins]) * 0.25)
+		var o = l - rad[k]
+		if o > 0.0 and o < 0.06:
+			offs.append(o)
+	var pad = 0.006
+	if offs.size() > 8:
+		offs.sort()
+		pad = clampf(float(offs[int(offs.size() * 0.35)]) + 0.004, 0.006, 0.022)
+	var sm = PackedFloat32Array()
+	sm.resize(bins)
+	for k in bins:
+		sm[k] = (rad[(k + bins - 1) % bins] + rad[k] * 2.0 + rad[(k + 1) % bins]) * 0.25 + pad
 	return sm
 
 
@@ -4377,7 +4373,51 @@ func _band_skinned(p0: Vector3, B: Basis, ring: PackedFloat32Array, bc: Color, h
 			dangle_strip(tail_bone, kp + Vector3(0.006 * sx, -0.004, 0) + ob * 0.004, Vector3(tails.x * sx, tails.y, tails.z), 0.14, 0.028, bc, 0.16, Vector3(1, 0, 0), 0.003)
 
 
+## Hiruzen savaş miğferi (Striker Hiruzen_Helmet + anime): renk = eşya ya da alın koruyucu rengi
+func _hiruzen_helmet(hg: Color) -> void:
+	var hw = clampf(head_ab.size.x, 0.16, 0.26) if head_ab.size.x > 0.05 else 0.2
+	# alın ortası, arkada enseye iner), alında KÖYÜN sembollü alın koruyucu plakası, kulak hizasından yanaklara yapışık
+	# inen, halkalarla bağlı 4 zeytin zırh plakası
+	_band_ring_full()
+	var by = band_ring[0]
+	var white: Color = hg   # miğfer rengi eşya renginden (boyanabilir; varsayılan beyaz)
+	_helmet_shell(white, by + 0.03, 0.11)
+	hair_mask_plane(Vector3.UP, Vector3(0, by - 0.02, 0))
+	_hitai("Head", Vector3(skull_c.x, by + 0.014, skull_c.z), band_ring[1], white.darkened(0.06), 0.04, 0.042, 0.64, 0.004, Vector3.ZERO, true, 0.0, 0.0, 0.014)
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var olive = Color(0.46, 0.45, 0.3)
+	var iron = Color(0.16, 0.16, 0.15)
+	var bvs = _body_vs()
+	for sx in [1.0, -1.0]:
+		var px = 0.0
+		var pz_sum = 0.0; var pz_n = 0
+		for q in bvs:   # kulak hizasında yanağın dış yüzü (plaka deriye yapışsın)
+			if absf(q.y - (by - 0.05)) < 0.02 and signf(q.x - skull_c.x) == sx and q.z > skull_c.z - 0.03 and q.z < skull_c.z + 0.04:
+				px = maxf(px, absf(q.x - skull_c.x)); pz_sum += q.z; pz_n += 1
+		if px <= 0.0:
+			px = hw * 0.5
+		var pz = pz_sum / maxf(1.0, pz_n)
+		var b = Basis(Vector3(0, 0, -sx), Vector3.UP, Vector3(sx, 0, 0))
+		_box_basis(st, Vector3(skull_c.x + sx * (px + 0.012), by + 0.012, pz), b, Vector3(0.05, 0.03, 0.01), white.darkened(0.12))   # miğfer kulak kanadı
+		for q in 4:
+			var y = by - 0.022 - q * 0.046
+			var c = Vector3(skull_c.x + sx * (px + 0.016 + q * 0.003), y, pz + 0.004)
+			var bq = b.rotated(Vector3(0, 0, 1), sx * deg_to_rad(4.0 + q * 2.0))
+			_box_basis(st, c, bq, Vector3(0.062, 0.042, 0.009), olive)
+			_box_basis(st, c + bq.z * 0.0055 + bq.y * 0.015, bq, Vector3(0.058, 0.005, 0.002), olive.darkened(0.25))
+			for t in [-1.0, 1.0]:
+				_box_basis(st, c + bq.x * (t * 0.02) + bq.y * 0.024 + bq.z * 0.005, bq, Vector3(0.007, 0.012, 0.009), iron)
+	st.generate_normals()
+	var hm = _mesh_on("Head", st.commit(), Transform3D.IDENTITY)
+	var mat = ShaderMaterial.new()
+	mat.shader = load("res://shaders/toon.gdshader")
+	mat.set_shader_parameter("rim_amount", 0.2)
+	hm.material_override = mat
+
+
 func _band_wear(bc: Color, wear: String) -> void:
+	var hw = clampf(head_ab.size.x, 0.16, 0.26) if head_ab.size.x > 0.05 else 0.2
 	match wear:
 		"boyun":   # ref Hinata: boynu saran bant, plaka gırtlakta, ensede düğüm
 			var nk = _bp("Neck")
@@ -4406,18 +4446,111 @@ func _band_wear(bc: Color, wear: String) -> void:
 			var hp = _bp("Hips")
 			var sp = _bp("Spine")
 			var p0 = hp.lerp(sp, 0.55)
-			_band_skinned(p0, Basis.IDENTITY, _plane_ring_body(p0, Basis.IDENTITY, 0.3, 0.008), bc, 0.04, 0.42, Vector3(0.25, -1.0, -0.4), "Hips")
+			_band_skinned(p0, Basis.IDENTITY, _plane_ring_body(p0, Basis.IDENTITY, 0.3, 0.02), bc, 0.04, 0.42, Vector3(0.25, -1.0, -0.4), "Hips")   # 2 cm: üst giysinin eteği/kıvrımlarının üstünde
 		"kol":   # ref Shikamaru: sol üst kolda, plaka dışa bakar
 			var a = _bp("LeftUpperArm"); var b = _bp("LeftLowerArm")
-			var ax = (b - a).normalized()
-			var outv = (Vector3(1, 0, 0) - ax * ax.x).normalized()
-			var B = Basis(ax.cross(outv).normalized(), ax, outv)
+			var ax = (a - b).normalized()   # dirsekten omuza: arma dik okunur (eskiden ters duruyordu)
+			var side = Vector3(signf(a.x - _bp("Chest").x), 0, 0)   # kolun dış yanı (eskiden hep +X: sol kolda plaka gövdeye bakıyordu)
+			var outv = (side - ax * ax.dot(side)).normalized()
+			var B = Basis(ax.cross(outv).normalized(), ax, outv).orthonormalized()
 			var p0 = a.lerp(b, 0.42)
 			_band_skinned(p0, B, _plane_ring_body(p0, B, 0.09, 0.006), bc, 0.032, 0.8)
 		"kusak":   # Gaara tarzı: sağ omuzdan sol kalçaya çapraz kuşak, plaka göğüste
 			var ch = _bp("Chest")
 			var B = Basis(Vector3(0, 0, 1), deg_to_rad(38.0))
 			_band_skinned(ch, B, _plane_ring_body(ch, B, 0.4, 0.01, 36, 0.17), bc, 0.042, 0.3)
+		"yamato":   # ref yamato_0/2/4 (Hashirama'nınkiyle aynı): plaka + iki yanda şakaktan çeneye inen metal yanak koruması, başı saran koyu başlık
+			_band_ring_full()
+			var by = band_ring[0]
+			_helmet_shell(bc.darkened(0.45), by + 0.02, 0.12, 0.012)
+			hair_mask_plane(Vector3.UP, Vector3(0, by, 0))
+			_hitai_head(bc)
+			var st = SurfaceTool.new()
+			st.begin(Mesh.PRIMITIVE_TRIANGLES)
+			var steel = Color(0.76, 0.78, 0.83)
+			var bvs = _body_vs()
+			for sx in [1.0, -1.0]:
+				var px = 0.0; var pz = 0.0; var pn = 0
+				for q in bvs:
+					if absf(q.y - (by - 0.06)) < 0.025 and signf(q.x - skull_c.x) == sx and q.z > skull_c.z + 0.03 and q.z < skull_c.z + 0.08:   # şakak-yanak (kulağın önü)
+						px = maxf(px, absf(q.x - skull_c.x)); pz += q.z; pn += 1
+				if px <= 0.0:
+					px = hw * 0.5
+				pz /= maxf(1.0, pn)
+				var b = Basis(Vector3(0, 0, -sx), Vector3.UP, Vector3(sx, 0, 0)).rotated(Vector3(0, 0, 1), sx * deg_to_rad(5.0))
+				_box_basis(st, Vector3(skull_c.x + sx * (px + 0.008), by - 0.065, pz + 0.006), b, Vector3(0.05, 0.12, 0.006), steel)
+				_box_basis(st, Vector3(skull_c.x + sx * (px + 0.012), by - 0.065, pz + 0.006), b, Vector3(0.04, 0.008, 0.003), steel.darkened(0.25))
+			st.generate_normals()
+			var cm = st.commit()
+			cm.surface_set_material(0, Props.toon())
+			_mesh_on("Head", cm, Transform3D.IDENTITY)
+		"tobirama":   # ref tobirama_3/4/5: alnı şakaklara kadar saran geniş, uzun plaka
+			_band_ring_full()
+			var by: float = band_ring[0] + 0.01
+			_hitai("Head", Vector3(skull_c.x, by, skull_c.z), _tilted_ring(by, BAND_DROP) if not _anime_hair_vs.is_empty() else band_ring[1], bc, 0.04, 0.046, 1.15, 0.0, Vector3(0.22, -1.0, -0.62), true, 0.15, 0.03, 0.011, BAND_DROP if not _anime_hair_vs.is_empty() else 0.0)
+		"jiraiya":   # ref jiraiya_2/3/4: büyük plaka, ortada 油, tepede iki küçük boynuz
+			_band_ring_full()
+			var by: float = band_ring[0] + 0.012
+			_band_kanji = "油"
+			_hitai("Head", Vector3(skull_c.x, by, skull_c.z), _tilted_ring(by, BAND_DROP) if not _anime_hair_vs.is_empty() else band_ring[1], bc, 0.04, 0.056, 0.62, 0.0, Vector3(0.22, -1.0, -0.62), true, 0.15, 0.03, 0.011, BAND_DROP if not _anime_hair_vs.is_empty() else 0.0)
+			_band_kanji = ""
+			var fr = _ring_r_at(PI * 0.5)
+			var mk = MB.new()
+			for sx in [-1.0, 1.0]:
+				var hp = Vector3(skull_c.x + sx * 0.04, by + 0.045, skull_c.z + fr + 0.004)
+				mk.add("cone", hp, Vector3(0.034, 0.05, 0.026), Color(0.78, 0.8, 0.85), Vector3(-8, 0, -sx * 18.0), 8)
+			_mesh_on("Head", mk.build(Props.toon()), Transform3D.IDENTITY)
+		"kisame":   # ref kisame_4: plaka alında yukarı bakar (öne-yukarı eğik), bant arkaya doğru iner
+			_band_ring_full()
+			var B = Basis(Vector3(1, 0, 0), deg_to_rad(-16.0))
+			var p0 = Vector3(skull_c.x, band_ring[0] + 0.012, skull_c.z)
+			_hitai("Head", p0, _plane_ring_head(p0, B), bc, 0.036, 0.04, 0.62, 0.0, Vector3(0.22, -1.0, -0.62), true, 0.15, 0.03, 0.004, 0.0, B)
+		"hiruzen":
+			_hiruzen_helmet(bc)
+		"kankuro":   # ref kankuro: başı ve yanakları saran siyah kapüşon, tepede iki kedi kulağı, alında plaka
+			_band_ring_full()
+			var by = band_ring[0]
+			_helmet_shell(Color(0.09, 0.09, 0.11), by + 0.02, 0.24, 0.02, 0.0, 0.16)
+			hair_mask_plane(Vector3.UP, Vector3(0, by, 0))
+			_hitai("Head", Vector3(skull_c.x, by + 0.012, skull_c.z), band_ring[1], bc, 0.036, 0.037, 0.6, 0.0, Vector3.ZERO, true, 0.0, 0.0, 0.03)
+			var tp = by
+			for q in _body_vs():
+				if absf(q.x - skull_c.x) < 0.05 and q.y > tp:
+					tp = q.y
+			var mk = MB.new()
+			for sx in [-1.0, 1.0]:
+				mk.add("cone", Vector3(skull_c.x + sx * hw * 0.42, tp + 0.03, skull_c.z - 0.01), Vector3(0.06, 0.07, 0.03), Color(0.09, 0.09, 0.11), Vector3(0, 0, -sx * 14.0), 4)
+			_mesh_on("Head", mk.build(Props.toon()), Transform3D.IDENTITY)
+		"kakuzu":   # ref kakuzu_2/4: başı saran koyu başlık, gözlerin altından boynu örten maske, alında plaka
+			_band_ring_full()
+			var by = band_ring[0]
+			_helmet_shell(Color(0.2, 0.2, 0.22), by + 0.02, 0.26, 0.02, 0.0, 0.17)
+			hair_mask_plane(Vector3.UP, Vector3(0, by, 0))
+			_hitai("Head", Vector3(skull_c.x, by + 0.012, skull_c.z), band_ring[1], bc, 0.036, 0.037, 0.6, 0.0, Vector3.ZERO, true, 0.0, 0.0, 0.03)
+			var fr = _ring_r_at(PI * 0.5)
+			var mk = MB.new()
+			mk.add("sphere", Vector3(skull_c.x, eye_center_model.y - 0.085, skull_c.z + fr * 0.5), Vector3(hw * 0.78, 0.12, fr * 1.0), Color(0.08, 0.08, 0.09), Vector3.ZERO, 14)   # burun kökünden çeneye maske
+			_mesh_on("Head", mk.build(Props.toon()), Transform3D.IDENTITY)
+		"baki":   # ref baki_0/1: başın üstünü saran beyaz bez, alında plaka, bandın sol yanından yüzün yarısını örten peçe
+			_band_ring_full()
+			var by = band_ring[0]
+			_helmet_shell(Color(0.9, 0.89, 0.85), by + 0.012, 0.08, 0.02)
+			hair_mask_plane(Vector3.UP, Vector3(0, by, 0))
+			_hitai("Head", Vector3(skull_c.x, by + 0.012, skull_c.z), band_ring[1], bc, 0.036, 0.037, 0.6, 0.0, Vector3(0.22, -1.0, -0.62), true, 0.12, 0.03, 0.03)
+			var fr = _ring_r_at(PI * 0.5)
+			for k in 3:
+				dangle_strip("Head", Vector3(skull_c.x + 0.02 + k * 0.022, by - 0.012, skull_c.z + fr + 0.02 - k * 0.012), Vector3(0.05, -1.0, 0.12), 0.16, 0.03, Color(0.92, 0.91, 0.87).darkened(0.03 * k), 0.4, Vector3(1, 0, 0), 0.003, null, 0.0)
+		"neji":   # ref neji_0/3: alında, arkada belden aşağı uzun sarkan iki bağ
+			_band_ring_full()
+			var by: float = band_ring[0] + 0.01
+			_hitai("Head", Vector3(skull_c.x, by, skull_c.z), _tilted_ring(by, BAND_DROP) if not _anime_hair_vs.is_empty() else band_ring[1], bc, 0.036, 0.037, 0.6, 0.0, Vector3(0.12, -1.0, -0.3), true, 0.34, 0.03, 0.011, BAND_DROP if not _anime_hair_vs.is_empty() else 0.0)
+		"choji":   # ref choji_0/1 (Part 1): alında plaka, şakaklardan kulakları örterek sarkan iki uzun bez
+			_hitai_head(bc)
+			_band_ring_full()
+			var by = band_ring[0]
+			for sx in [-1.0, 1.0]:
+				var r = _ring_r_at(PI if sx < 0 else 0.0)
+				dangle_strip("Head", Vector3(skull_c.x + sx * (r + 0.012), by + 0.005, skull_c.z - 0.005), Vector3(sx * 0.1, -1.0, 0.0), 0.16, 0.055, bc, 0.3, Vector3(0, 0, 1), 0.004, null, 0.0)
 		_:
 			_hitai_head(bc)
 
@@ -5094,7 +5227,20 @@ func _hitai(bone: String, cen: Vector3, rad: PackedFloat32Array, bc: Color, bh: 
 	if tail_len > 0.0:
 		rv.add("sphere", kp, Vector3(0.026, 0.024, 0.016), cloth.darkened(0.08), Vector3.ZERO, 7)
 	_mesh_on(bone, rv.build(Props.toon()), Transform3D.IDENTITY)
-	if plate:
+	if plate and _band_kanji != "":   # Jiraiya: köy arması yerine 油
+		var kl = Label3D.new()
+		kl.text = _band_kanji
+		kl.font = KageAttire._font()
+		kl.font_size = 64
+		kl.pixel_size = ph * 0.011
+		kl.modulate = Color(0.12, 0.12, 0.14)
+		kl.shaded = false
+		kl.alpha_cut = Label3D.ALPHA_CUT_DISCARD
+		var kp0 = p_of.call(front, rp.call(front) + 0.0056, 0.0)
+		var kdir = (pb * Vector3(0, 0, 1)).normalized()
+		kl.transform = Transform3D(Basis.looking_at(-kdir, pb * Vector3.UP), kp0)
+		_mesh_on(bone, ArrayMesh.new(), Transform3D.IDENTITY).add_child(kl)
+	elif plate:
 		# kazınmış arma: plakanın kavsine oturan dokulu şerit
 		var ss = SurfaceTool.new()
 		ss.begin(Mesh.PRIMITIVE_TRIANGLES)
@@ -5362,6 +5508,8 @@ func _attachments() -> void:
 		var band = MB.new()
 		var bc: Color = look["band"]
 		var wear = String(look.get("band_wear", "alin")) if look.get("band_wear") != null else "alin"
+		if wear == "sakura" and look.get("gender") == "m" and not look.get("own_hair", false):
+			wear = "alin"   # NPC erkek: saç bandı (Sakura/Ino tarzı) kadınlarda
 		if look["band_style"] == "neck":
 			wear = "boyun"
 		if wear != "alin" and not band_ring.is_empty():

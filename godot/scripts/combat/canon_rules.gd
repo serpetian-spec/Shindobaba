@@ -58,8 +58,33 @@ static func hoshigaki(c: Node3D) -> bool:
 	return c.get("arch") is Dictionary and String(c.arch.get("clan", "")) == "hoshigaki"
 
 
+## Kanon silah şartı: yelpaze jutsuları elde yelpaze olmadan atılamaz (kullanıcı: "Kamaitachi yelpazesizken atılabiliyor")
+const FAN := ["kamaitachi_no_jutsu", "daikamaitachi_no_jutsu", "kyodai_sensu"]   # herhangi bir savaş yelpazesi
+const WEAPON_ONLY := {"kuchiyose_kirikiri_mai": ["temari_ogi"], "bashosen_kaze_no_maki": ["bashosen"], "bashosen_hi_no_maki": ["bashosen"],
+	"bashosen_rai_no_maki": ["bashosen"], "bashosen_mizu_no_maki": ["bashosen"]}
+const FAN_IDS := ["temari_ogi", "yelpaze", "bashosen", "gunbai"]
+
+static func weapon_ids(c: Node3D) -> Array:
+	var out = []
+	if c is Player:
+		for s in ["sag", "sol"]:
+			var g = Gear.equipped(Game.profile, s)
+			if not g.is_empty():
+				out.append(String(g.get("id", "")))
+	elif c != null and c.get("look") is Dictionary:
+		for k in ["weapon_r", "weapon_l"]:
+			if c.look.get(k) != null:
+				out.append(String(c.look[k]))
+	return out
+
+
 ## Atılabilir mi? "" = evet
 static func block(c: Node3D, jid: String) -> String:
+	if jid in FAN or WEAPON_ONLY.has(jid):
+		var ws = weapon_ids(c)
+		var need: Array = WEAPON_ONLY.get(jid, FAN_IDS)
+		if not ws.any(func(w): return w in need):
+			return "Elinde %s yok — bu teknik onunla savrulur." % ("Temari no Ōōgi" if need == ["temari_ogi"] else ("Bashōsen" if need == ["bashosen"] else "savaş yelpazesi"))
 	if jid in HIRA_TP and not hira_mark_ok(c):
 		return "Işınlanacak işaret yok — önce Hiraishin kunaisi at ya da hedefe vurup işaretle."
 	if jid in STORM and not storm_ok(c):

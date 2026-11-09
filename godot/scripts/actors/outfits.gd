@@ -332,10 +332,40 @@ static func roll(arch: String, village := "") -> Dictionary:
 		Gear.preview_set_look(L, sid)
 		L["set_id"] = sid   # set bonusları (element güç/direnç) AI'da da
 		L["thigh_holster"] = true
+	_npc_band_wear(L, arch, village)
 	L["sleeves"] = not L.get("top_style", "uzun") in ["tisort", "kolsuz", "atlet"]
 	if L.get("top_style", "") in ["kimono"] and L["top_pattern"] == 0 and _ch(0.3):
 		L["top_pattern"] = 6
 	return L
+
+
+## NPC alın koruyucusunun takılışı: çoğu alında; kalanı köyün/rütbenin anime tarzlarından (oyuncunun Takılış seçenekleriyle aynı)
+## Suna: Kankurō kapüşonu, Baki peçesi, Gaara kuşağı; Kiri: Zabuza, Kisame; Konoha: Yamato, Neji, Chōji, Shikamaru kolu, Ino beli;
+## kaçak: Kakashi eğik, Zabuza, Kisame, Kakuzu; kadınlarda saç bandı/bel; nadir: Tobirama, Jiraiya, Hiruzen miğferi (yalnız jōnin+)
+static func _npc_band_wear(L: Dictionary, arch: String, village: String) -> void:
+	if L.get("band") == null or not String(L.get("band_style", "none")) in ["head", "slashed"]:
+		return
+	if _ch(0.68):
+		L["band_wear"] = "alin"
+		return
+	var pool = ["kakashi", "kol", "neji", "sakura", "sakura", "bel", "choji"]   # cinsiyet burada bilinmez: erkekte saç bandı CharacterModel'de alına döner
+	if String(L.get("band_style")) == "slashed":
+		pool = ["kakashi", "zabuza", "zabuza", "kisame", "kakuzu", "kol"]
+	else:
+		match village:
+			"suna":
+				pool.append_array(["kankuro", "kankuro", "baki", "baki", "kusak", "kusak"])
+			"kiri":
+				pool.append_array(["zabuza", "zabuza", "kisame", "kisame"])
+			"konoha":
+				pool.append_array(["yamato", "neji", "choji", "kol"])
+			"kumo", "iwa":
+				pool.append_array(["kol", "bel", "kusak"])
+		if arch in ["jonin", "hunter"]:
+			pool.append_array(["tobirama", "yamato"] if village == "konoha" else ["tobirama"])
+			if _ch(0.08):
+				pool = ["jiraiya", "hiruzen"] if village == "konoha" else ["hiruzen"]
+	L["band_wear"] = _p(pool)
 
 
 ## Kayda (JSON) girecek görünümler için: renkler html dizesi

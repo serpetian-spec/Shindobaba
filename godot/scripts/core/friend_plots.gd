@@ -92,9 +92,12 @@ static func pr() -> Dictionary:
 static func pick(f: Dictionary) -> Dictionary:
 	var loyal = int(f.get("loyalty", 50))
 	var amb = String(f.get("ambition", ""))
-	var c = SCENARIOS.filter(func(s): return amb in s["amb"] and (s["good"] == (loyal >= 45)))
+	# Kage'yi devirme / Kage adaylığı yalnız jōnin ve üstü için (kullanıcı: "geninler niye darbe planlıyor"; genin küçük planlar kurabilir)
+	var senior = int(f.get("rank", 0)) >= 2
+	var ok_kind = func(s: Dictionary) -> bool: return senior or not String(s["kind"]) in ["coup", "kage_bid"]
+	var c = SCENARIOS.filter(func(s): return amb in s["amb"] and (s["good"] == (loyal >= 45)) and ok_kind.call(s))
 	if c.is_empty():
-		c = SCENARIOS.filter(func(s): return s["good"] == (loyal >= 45))
+		c = SCENARIOS.filter(func(s): return s["good"] == (loyal >= 45) and ok_kind.call(s))
 	return c.pick_random() if not c.is_empty() else {}
 
 
@@ -124,6 +127,9 @@ static func option(fid: String) -> Array:
 		return []
 	var sc = scenario(String(p["id"]))
 	if sc.is_empty():
+		return []
+	if String(sc["kind"]) in ["coup", "kage_bid"] and int(f.get("rank", 0)) < 2:   # eski kayıtta genin darbe planı: düşer
+		f.erase("plot")
 		return []
 	return [{"label": "★ \"Seninle konuşmam gereken bir şey var...\"", "cb": func():
 		var ch = [{"label": "Katılıyorum", "cb": func(): _resolve(fid, "join")},

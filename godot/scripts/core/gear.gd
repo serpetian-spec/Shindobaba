@@ -1036,6 +1036,23 @@ static func _starter_set(p: Dictionary) -> String:
 static func _migrate_sets(p: Dictionary) -> bool:
 	var eq: Dictionary = p.get("equip", {})
 	var had = false
+	# "Alın Koruyucu (Boyunda)" artık ayrı eşya değil, takılış seçeneği: takılıysa alın koruyucuya çevrilip takılış boyun olur,
+	# takılı değilse çantadan kalkar (ikinci bir alın koruyucu olmasın)
+	var gl: Array = p.get("gear", [])
+	for gi in range(gl.size() - 1, -1, -1):
+		var g: Dictionary = gl[gi]
+		if String(g.get("id", "")) != "alin_boyun":
+			continue
+		had = true
+		if eq.has("kafa") and int(eq["kafa"]) == int(g.get("uid", -1)):
+			g["id"] = "alin_koruyucu"
+			p["band_wear"] = "boyun"
+			for gj in range(gl.size() - 1, -1, -1):   # diğer (takılı olmayan) alın koruyucu kopyası silinir
+				if gj != gi and String(gl[gj].get("id", "")) == "alin_koruyucu":
+					gl.remove_at(gj)
+					break
+		else:
+			gl.remove_at(gi)
 	if eq.has("yuz"):   # yüz yuvası kaldırıldı: kafa boşsa oraya taşınır
 		if not eq.has("kafa"):
 			eq["kafa"] = eq["yuz"]

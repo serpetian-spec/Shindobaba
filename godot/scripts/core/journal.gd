@@ -9,10 +9,10 @@ const MAX_LOG := 200
 
 ## Seçilebilir kişisel hedefler (hepsi isteğe bağlı; birden fazla seçilebilir)
 const GOALS := {
-	"chunin": {"name": "Chūnin ol", "desc": "Güç 15, 8 D-rank ve 4 C-rank görevle Chūnin Seçme Sınavı'na başvur ve jüriyi etkile.", "icon": "star"},
-	"jonin": {"name": "Jōnin ol", "desc": "Chūnin'ken Güç 45, 6 B-rank + 4 A-rank görev ve ikinci doğa ile Kage Kulesi'nde terfi değerlendirmesi.", "icon": "star"},
-	"anbu": {"name": "ANBU'ya katıl", "desc": "Jōnin + Güç 65 + 8 A-rank ve 2 S-rank görevle ANBU seçmelerine çağrılırsın.", "icon": "mask"},
-	"kage": {"name": "Köyün Kage'si ol", "desc": "Güç 90, 5 S-rank görev ve köyde itibarla adaylık, Güç 100'de seçim. Köyün kaderi senin elinde olur.", "icon": "crown"},
+	"chunin": {"name": "Chūnin ol", "desc": "Güç 30, 8 D-rank ve 4 C-rank görevle Chūnin Seçme Sınavı'na başvur ve jüriyi etkile.", "icon": "star"},
+	"jonin": {"name": "Jōnin ol", "desc": "Chūnin'ken Güç 90, 6 B-rank + 4 A-rank görev ve ikinci doğa ile Kage Kulesi'nde terfi değerlendirmesi.", "icon": "star"},
+	"anbu": {"name": "ANBU'ya katıl", "desc": "Jōnin + Güç 130 + 8 A-rank ve 2 S-rank görevle ANBU seçmelerine çağrılırsın.", "icon": "mask"},
+	"kage": {"name": "Köyün Kage'si ol", "desc": "Güç 180, 5 S-rank görev ve köyde itibarla adaylık, Güç 200'de seçim. Köyün kaderi senin elinde olur.", "icon": "crown"},
 	"legend": {"name": "Bir Efsane Yolu'na katıl", "desc": "Söylentileri takip et; gizli bir ustayı bul ve sınavını geç.", "icon": "scroll"},
 	"beast": {"name": "Bir Kuyruklu Canavarla bağ kur", "desc": "Bir canavarı mühürle ya da onunla anlaş. Bedeli ağır olabilir.", "icon": "flame"},
 	"summon": {"name": "Bir çağırma sözleşmesi imzala", "desc": "Sözleşme ustalarını ve gizli diyarları bul.", "icon": "scroll"},
@@ -117,10 +117,10 @@ static func goal_done(id: String) -> bool:
 static func goal_progress(id: String) -> String:
 	var p = pr()
 	match id:
-		"chunin": return "Güç %d/15 • D-rank %d/8 • C-rank %d/4" % [int(p["level"]), int(p["missions_done"].get("D", 0)), int(p["missions_done"].get("C", 0))]
-		"jonin": return "Güç %d/45 • B-rank %d/6 • A-rank %d/4" % [int(p["level"]), int(p["missions_done"].get("B", 0)), int(p["missions_done"].get("A", 0))]
-		"anbu": return "Güç %d/65 • A-rank %d/8 • S-rank %d/2" % [int(p["level"]), int(p["missions_done"].get("A", 0)), int(p["missions_done"].get("S", 0))]
-		"kage": return "Güç %d/90 • S-rank %d/5 (adaylık)" % [int(p["level"]), int(p["missions_done"].get("S", 0))]
+		"chunin": return "Güç %d/30 • D-rank %d/8 • C-rank %d/4" % [int(p["level"]), int(p["missions_done"].get("D", 0)), int(p["missions_done"].get("C", 0))]
+		"jonin": return "Güç %d/90 • B-rank %d/6 • A-rank %d/4" % [int(p["level"]), int(p["missions_done"].get("B", 0)), int(p["missions_done"].get("A", 0))]
+		"anbu": return "Güç %d/130 • A-rank %d/8 • S-rank %d/2" % [int(p["level"]), int(p["missions_done"].get("A", 0)), int(p["missions_done"].get("S", 0))]
+		"kage": return "Güç %d/180 • S-rank %d/5 (adaylık)" % [int(p["level"]), int(p["missions_done"].get("S", 0))]
 		"explore":
 			var n = 0
 			for v in ["konoha", "suna", "kiri", "kumo", "iwa"]:

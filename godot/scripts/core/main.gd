@@ -218,6 +218,8 @@ func _creator_look() -> Dictionary:
 	Gear.preview_set_look(L, String(L["start_set"]))   # seçilen set önizlemede giyili
 	L["top"] = s["top"]   # üst rengi: setin üst giysisi
 	L["pants"] = s.get("pants", L.get("pants", Color(0.15, 0.15, 0.17)))   # alt rengi: pantolon
+	L["face_paint"] = String(s.get("face_paint", CharacterModel.CLAN_FACE_PAINT.get(String(s["clan"]), "yok")))
+	L["face_paint_col"] = CharacterModel.FACE_PAINT_COLORS.get(String(s.get("face_paint_col_name", "Doğal")), Color(0, 0, 0, 0))
 	return L
 
 
@@ -311,6 +313,9 @@ func _begin_game(pos: Vector3) -> void:
 	for k in look.keys():
 		if look[k] is String and String(look[k]).begins_with("("):
 			look[k] = str_to_var("Color" + look[k])
+	# eski kayıtlar: yüz boyası alanı yoksa klanın kanon boyası (Inuzuka dişleri vb.)
+	if not look.has("face_paint"):
+		look["face_paint"] = CharacterModel.CLAN_FACE_PAINT.get(String(Game.profile.get("clan", "none")), "yok")
 	# eski kayıtlar: köy/itibar alanları yoksa Konoha
 	if not Game.profile.has("village"):
 		Game.profile["village"] = "konoha"

@@ -626,12 +626,12 @@ func rep(vid: String) -> int:
 func board_limits(vid: String) -> Dictionary:
 	var ranks: Array = RANK_FOR[int(Game.profile["rank"])].duplicate()
 	var note = ""
-	# chūnin: jōnin terfisi 6 B-rank + 4 A-rank görev ister; Sv.30'dan itibaren panoda A-rank görevler de çıkar
+	# chūnin: jōnin terfisi 6 B-rank + 4 A-rank görev ister; Güç 60'tan itibaren panoda A-rank görevler de çıkar
 	if int(Game.profile["rank"]) == 2:
-		if int(Game.profile.get("level", 1)) >= 30:
+		if int(Game.profile.get("level", 1)) >= 60:
 			ranks.append("A")
 		else:
-			note = "A-rank görevler Güç 30'da açılır (jōnin terfisi için 6 B-rank + 4 A-rank gerekli)."
+			note = "A-rank görevler Güç 60'ta açılır (jōnin terfisi için Güç 90 + 6 B-rank + 4 A-rank gerekli)."
 	# genin takımı olan hoca: takımına D/C görevleri de verilir (kanon: Kakashi ve Takım 7)
 	if int(Game.profile["rank"]) >= 3 and String(Game.profile.get("pupils", {}).get("state", "")) == "active":
 		for r in ["C", "D"]:
@@ -1187,7 +1187,8 @@ func _make_npc(spec: Dictionary, pos: Vector3) -> QuestNPC:
 ## Rütbeye göre düşman (B ve üstü): kanonda B rütbe chūnin, A jōnin, S kage seviyesi rakip ister. Eskiden görev rütbesi düşmanı
 ## hiç etkilemiyordu (B rütbe haydut = 70 can, seviye 2) ve gruplar tek düşmana indirgeniyordu: "bir haydut çıktı, tek attım".
 ## Seviye rütbeden; can/güç NPC eğrisinden (Stats.ninja_hp, missions güç eğrisi 1.3 + lv x 0.035). En az B 3, A 4, S 5 düşman.
-const RANK_LV := {"B": 24, "A": 36, "S": 50}
+const RANK_LV := {"B": 55, "A": 95, "S": 150}   # 2026-11-10 yeni güç sistemi (Kage 200, jōnin 90): "S rank bile çok basit" -> B chūnin, A jōnin, S Kage yolunun dengi
+const C_LV := 28   # C-rank: genin/chūnin arası rakip (eskiden ölçeksizdi)
 const RANK_MIN_N := {"B": 3, "A": 3, "S": 4}
 const RANK_MAX_N := {"B": 4, "A": 4, "S": 5}   # 8 kişilik S grupları 7 sn'de öldürüyordu
 
@@ -1197,9 +1198,10 @@ func _mission_rank() -> String:
 
 
 func _rank_scale(a: Dictionary, rank: String) -> void:
-	if not RANK_LV.has(rank):
+	if not RANK_LV.has(rank) and rank != "C":
 		return
-	var lv = int(RANK_LV[rank]) + randi_range(-3, 3)
+	var base = int(RANK_LV[rank]) if RANK_LV.has(rank) else C_LV
+	var lv = base + randi_range(-base / 12, base / 12)
 	var kf = 0.75 if String(a.get("kind", "")) == "bandit" else 1.0   # haydut ninjadan biraz zayıf
 	a["level"] = maxi(int(a.get("level", 1)), lv)
 	a["hp"] = maxf(float(a.get("hp", 70.0)), (180.0 + lv * 18.0) * kf)   # Enemy.setup ayrıca x(0.75 + lv x 0.004)
@@ -1258,7 +1260,7 @@ func _spawn_boss(b: Dictionary, kind: String, at: Vector3) -> Enemy:
 	a["sub"] = 0.3
 	var rk = _mission_rank()
 	if RANK_LV.has(rk):   # B+ boss: rütbesinin adamlarından belirgin güçlü (taban)
-		var blv = int(RANK_LV[rk]) + 6
+		var blv = int(round(int(RANK_LV[rk]) * 1.12))   # boss: grubunun %12 üstü
 		a["level"] = maxi(int(a["level"]), blv)
 		a["hp"] = maxf(float(a["hp"]), (180.0 + blv * 18.0) * 2.5)
 		a["power"] = maxf(float(a["power"]), Stats.npc_power(blv) * 1.15)

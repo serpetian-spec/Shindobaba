@@ -458,8 +458,8 @@ func candidacy_ready() -> String:
 	var pr = p()
 	if int(pr["rank"]) < 3:
 		return "En az Jōnin olmalısın."
-	if int(pr["level"]) < 90:
-		return "Kage adaylığı için Güç 90 gerekli (şu an %d)." % int(pr["level"])
+	if int(pr["level"]) < 180:
+		return "Kage adaylığı için Güç 180 gerekli (şu an %d)." % int(pr["level"])
 	if Missions.rep(Progress.home()) < 150:
 		return "Köyünde 150 itibar gerekli (şu an %d)." % Missions.rep(Progress.home())
 	if int(pr["missions_done"].get("S", 0)) < 5:
@@ -530,11 +530,11 @@ func selection_done(m: Dictionary, ok: bool) -> void:
 		return
 	var votes = int(m.get("flags", {}).get("votes", 0)) + int(Missions.rep(Progress.home()) / 100)
 	if votes >= 6:
-		if int(p()["level"]) >= 100:
+		if int(p()["level"]) >= 200:
 			inaugurate()
 		else:
 			Exams.flags()["kage_elect"] = true
-			Hud.dialog("Köy Konseyi", "Konsey oybirliğiyle seni seçti! Ancak gelenek gereği yemin, ancak ninjalığın zirvesinde (Güç 100) edilebilir. O güne kadar Seçilmiş %s olarak köyün en önemli görevlerini üstleneceksin." % kt, [])
+			Hud.dialog("Köy Konseyi", "Konsey oybirliğiyle seni seçti! Ancak gelenek gereği yemin, ancak ninjalığın zirvesinde (Güç 200) edilebilir. O güne kadar Seçilmiş %s olarak köyün en önemli görevlerini üstleneceksin." % kt, [])
 			return
 	else:
 		Progress.promote(3)
@@ -978,7 +978,7 @@ func _process(dt: float) -> void:
 	_reign_tick(dt)
 	_raid_tick(dt)
 	if not is_kage():
-		if Exams.flags().get("kage_elect", false) and int(p().get("level", 1)) >= 100:
+		if Exams.flags().get("kage_elect", false) and int(p().get("level", 1)) >= 200:
 			Exams.flags().erase("kage_elect")
 			inaugurate()
 		return

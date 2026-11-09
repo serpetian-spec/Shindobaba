@@ -623,6 +623,8 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 		state[key] = val
 		if key == "village" and Progress.HOME_VILLAGES.has(val):
 			state["element"] = Progress.HOME_VILLAGES[val]["element"]
+		if key == "clan":
+			state["face_paint"] = CharacterModel.CLAN_FACE_PAINT.get(val, "yok")   # klanın kanon yüz boyası (değiştirilebilir)
 		if key == "clan" and String(ClanWorld.MAIN_EL.get(val, "")) in ["katon", "suiton", "fuuton", "doton", "raiton"]:
 			state["element"] = ClanWorld.MAIN_EL[val]   # klan teknikleri bu doğayı ister
 		on_change.call()
@@ -754,6 +756,14 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 				swatches.call("Ten", "skin", ClanWorld.HOSHIGAKI_SKINS)
 			else:
 				swatches.call("Ten", "skin", [Color(0.98, 0.88, 0.8), Color(0.96, 0.8, 0.66), Color(0.86, 0.68, 0.52), Color(0.68, 0.5, 0.36), Color(0.5, 0.36, 0.26)])
+			# yüz boyası (Striker Face Paint): klanın kanon boyası varsayılan
+			if not state.has("face_paint"):
+				state["face_paint"] = CharacterModel.CLAN_FACE_PAINT.get(state["clan"], "yok")
+			var fpk: Array = CharacterModel.FACE_PAINTS.keys()
+			carousel.call("Yüz Boyası", "face_paint", fpk, fpk.map(func(k): return CharacterModel.FACE_PAINTS[k]))
+			if String(state.get("face_paint", "yok")) != "yok":
+				var pck: Array = CharacterModel.FACE_PAINT_COLORS.keys()
+				carousel.call("Boya Rengi", "face_paint_col_name", pck, pck)
 			if not state["clan"] in ["uchiha", "hyuga", "aburame"]:
 				swatches.call("Göz Rengi", "eye", [Color(0.25, 0.45, 0.8), Color(0.3, 0.2, 0.12), Color(0.25, 0.55, 0.3), Color(0.1, 0.1, 0.1), Color(0.6, 0.4, 0.15), Color(0.55, 0.55, 0.6), Color(0.6, 0.25, 0.55)])
 		"kiyafet":
@@ -1979,6 +1989,20 @@ static func _hair_panel(v: VBoxContainer, look: Dictionary, refresh: Callable) -
 	var keys = CharacterModel.hair_styles_for(String(look.get("gender", "m")))
 	v.add_child(_arrow_row("Saç Stili", keys.map(func(h): return CharacterModel.HAIR_STYLES[h]), maxi(0, keys.find(look.get("hair_style", ""))), func(i):
 		look["hair_style"] = keys[i]
+		refresh.call()))
+	# yüz boyası (Striker Face Paint): berberde de değiştirilebilir
+	var fpk: Array = CharacterModel.FACE_PAINTS.keys()
+	v.add_child(_arrow_row("Yüz Boyası", fpk.map(func(k): return CharacterModel.FACE_PAINTS[k]), maxi(0, fpk.find(String(look.get("face_paint", "yok")))), func(i):
+		look["face_paint"] = fpk[i]
+		refresh.call()))
+	var pck: Array = CharacterModel.FACE_PAINT_COLORS.keys()
+	var cur_pc = look.get("face_paint_col")
+	var pci = 0
+	for k in pck.size():
+		if cur_pc is Color and (CharacterModel.FACE_PAINT_COLORS[pck[k]] as Color).is_equal_approx(cur_pc):
+			pci = k
+	v.add_child(_arrow_row("Boya Rengi", pck, pci, func(i):
+		look["face_paint_col"] = CharacterModel.FACE_PAINT_COLORS[pck[i]]
 		refresh.call()))
 	v.add_child(UI.label("Renk", 14, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))
 	var cg = HFlowContainer.new()

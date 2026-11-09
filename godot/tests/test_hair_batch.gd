@@ -27,7 +27,13 @@ func _ready() -> void:
 		lk["age"] = "adult"
 		lk["own_hair"] = true
 		lk["hair"] = Color(0.32, 0.22, 0.16)
-		if bands:   # HB_BAND="takılış:cinsiyet:saç"
+		if OS.get_environment("HB_FP") != "":   # yüz boyası: HB_FP=1, öğeler "fpN:cinsiyet"
+			lk["hair_style"] = "s23" if lk["gender"] == "m" else "f14"
+			lk["head_style"] = null
+			lk["face_paint"] = a[0]
+			lk["mask"] = null
+			lk["face_style"] = null
+		elif bands:   # HB_BAND="takılış:cinsiyet:saç"
 			lk["hair_style"] = a[2] if a.size() > 2 else ("f2" if lk["gender"] == "f" else "s2")
 			lk["head_style"] = null
 			lk["band"] = Color(0.15, 0.2, 0.45)
@@ -40,8 +46,9 @@ func _ready() -> void:
 		else:
 			lk["hair_style"] = a[0]
 			lk["head_style"] = null
-		lk["face_style"] = null
-		if OS.get_environment("HB_NOMASK") != "":
+		if OS.get_environment("HB_FP") == "":
+			lk["face_style"] = null
+		if OS.get_environment("HB_NOMASK") != "" or OS.get_environment("HB_FP") != "":
 			lk["mask"] = null
 			lk["top_style"] = "tisort"
 		var m = CharacterModel.new()

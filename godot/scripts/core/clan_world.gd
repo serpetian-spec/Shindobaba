@@ -197,6 +197,8 @@ const HOSHIGAKI_SKINS := [Color(0.5, 0.64, 0.8), Color(0.42, 0.56, 0.74), Color(
 static func clan_look(c: String, arch: String, vid: String, female := false, age := "adult") -> Dictionary:
 	var lk := CharacterModel.default_look()
 	lk.merge(Outfits.roll(arch, vid), true)
+	if CharacterModel.CLAN_FACE_PAINT.has(c):
+		lk["face_paint"] = CharacterModel.CLAN_FACE_PAINT[c]   # kanon: klanın herkesi (Inuzuka dişleri, Akimichi sarmalı, Kaguya noktaları)
 	var L: Dictionary = LOOK.get(c, {})
 	lk["gender"] = "f" if female else "m"
 	lk["age"] = age

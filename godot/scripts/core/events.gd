@@ -101,9 +101,9 @@ func apply() -> void:
 	var md: Dictionary = pr.get("missions_done", {})
 	var nd = int(md.get("D", 0))
 	var nc = int(md.get("C", 0))
-	if int(pr["level"]) < 15 or Progress.story() < Journal.FREE or nd < 8 or nc < 4:
+	if int(pr["level"]) < 30 or Progress.story() < Journal.FREE or nd < 8 or nc < 4:
 		# rütbe yalnız Güç kasarak gelmez: görev tecrübesi şart (kullanıcı: "hiç görev yapmadan rütbe alıyorum")
-		Hud.dialog("Sınav Gözetmeni", "Chūnin Sınavı için: Güç 15 (%d), 8 D-rank görev (%d) ve 4 C-rank görev (%d) gerekli. Hocan seni ancak sahada kendini kanıtlayınca önerir." % [int(pr["level"]), nd, nc], [])
+		Hud.dialog("Sınav Gözetmeni", "Chūnin Sınavı için: Güç 30 (%d), 8 D-rank görev (%d) ve 4 C-rank görev (%d) gerekli. Hocan seni ancak sahada kendini kanıtlayınca önerir." % [int(pr["level"]), nd, nc], [])
 		return
 	host = current_host()
 	var hn = String(Game.village(host).get("name", host))
