@@ -115,6 +115,45 @@ const HAIR_DONORS := {
 	"f22": ["", "", "f22"],
 	"f23": ["", "", "f23"],
 	"f24": ["", "", "f24"],
+	"d0": ["", "", "d0"],
+	"d1": ["", "", "d1"],
+	"d2": ["", "", "d2"],
+	"d3": ["", "", "d3"],
+	"d4": ["", "", "d4"],
+	"d5": ["", "", "d5"],
+	"d6": ["", "", "d6"],
+	"d8": ["", "", "d8"],
+	"d9": ["", "", "d9"],
+	"d10": ["", "", "d10"],
+	"d11": ["", "", "d11"],
+	"d14": ["", "", "d14"],
+	"d15": ["", "", "d15"],
+	"d16": ["", "", "d16"],
+	"d17": ["", "", "d17"],
+	"d18": ["", "", "d18"],
+	"d20": ["", "", "d20"],
+	"d22": ["", "", "d22"],
+	"d23": ["", "", "d23"],
+	"d24": ["", "", "d24"],
+	"d25": ["", "", "d25"],
+	"d26": ["", "", "d26"],
+	"d27": ["", "", "d27"],
+	"d28": ["", "", "d28"],
+	"d29": ["", "", "d29"],
+	"d30": ["", "", "d30"],
+	"d32": ["", "", "d32"],
+	"d33": ["", "", "d33"],
+	"d34": ["", "", "d34"],
+	"d35": ["", "", "d35"],
+	"d36": ["", "", "d36"],
+	"d37": ["", "", "d37"],
+	"d39": ["", "", "d39"],
+	"d40": ["", "", "d40"],
+	"d41": ["", "", "d41"],
+	"d42": ["", "", "d42"],
+	"d43": ["", "", "d43"],
+	"d44": ["", "", "d44"],
+	"d45": ["", "", "d45"],
 }
 const VROID_SKIN := Color(0.99, 0.89, 0.82)  # VRoid doku ten rengi (oyuncu teni bununla oranlanır)
 static var _scenes := {}
@@ -2985,9 +3024,9 @@ const HAIR_FILES := {
 	"geriye": "Hair_Buzzed", "orgu": "Hair_Buzzed", "mohikan": "Hair_Buzzed", "kel": "", "kirpik": "Hair_Buzzed", "kisa_kakul": "Hair_Buzzed",
 }
 ## Saç stilleri (arayüzde gösterilen adlar)
-const HAIR_STYLES := {"kısa": "Kısa", "kase": "Kâse", "uzun": "Uzun", "s1": "Dağınık Diken", "s2": "Dikenli Taç", "s3": "Yatık Diken", "s4": "Alev Yelpaze", "s5": "Düz Kuyruk", "s6": "Örtük Kâkül", "s7": "Yan Alev", "s8": "Ananas Kuyruk", "s9": "Kâse Kesim", "s10": "Dikenli Yele", "s11": "Düz Kısa", "s12": "Sık Diken", "s13": "Kısa Kirpi", "s14": "Geri Diken", "s15": "Uzun Perde", "s16": "Ördek Kuyruğu", "s17": "Yan Tarama", "s18": "Dik Fırça", "s19": "Savruk Diken", "s20": "Katlı Uç", "s21": "Tepe Kuyruk", "s22": "Geri Tarama", "s23": "Kısa Geri", "s24": "Dağınık Kısa", "f1": "Yan Ayrık Kısa", "f2": "Uzun Düz", "f3": "Uzun Dağınık", "f4": "Prenses Kâkül", "f5": "Dalgalı Uzun", "f6": "Dikenli Kuyruk", "f7": "Yan Kâkül Kuyruk", "f8": "Çift Topuz", "f9": "Dörtlü Kuyruk", "f10": "Kabarık Bere", "f11": "Düz Kesik Kısa", "f12": "Kısa Prenses", "f13": "Bantlı Kısa", "f14": "Açık Alın Kısa", "f15": "Topuz Kâkül", "f16": "Uzun Ayrık", "f17": "Örtük Kısa", "f18": "Küçük Prenses", "f19": "Uzun Kuyruk", "f20": "Alçak Kuyruk", "f21": "Kâküllü Kısa", "f22": "Arka Topuz", "f23": "Yana Kısa", "f24": "Tepe Topuz"}
+const HAIR_STYLES := {"kısa": "Kısa", "kase": "Kâse", "uzun": "Uzun", "s1": "Dağınık Diken", "s2": "Dikenli Taç", "s3": "Yatık Diken", "s4": "Alev Yelpaze", "s5": "Düz Kuyruk", "s6": "Örtük Kâkül", "s7": "Yan Alev", "s8": "Ananas Kuyruk", "s9": "Kâse Kesim", "s10": "Dikenli Yele", "s11": "Düz Kısa", "s12": "Sık Diken", "s13": "Kısa Kirpi", "s14": "Geri Diken", "s15": "Uzun Perde", "s16": "Ördek Kuyruğu", "s17": "Yan Tarama", "s18": "Dik Fırça", "s19": "Savruk Diken", "s20": "Katlı Uç", "s21": "Tepe Kuyruk", "s22": "Geri Tarama", "s23": "Kısa Geri", "s24": "Dağınık Kısa", "f1": "Yan Ayrık Kısa", "f2": "Uzun Düz", "f3": "Uzun Dağınık", "f4": "Prenses Kâkül", "f5": "Dalgalı Uzun", "f6": "Dikenli Kuyruk", "f7": "Yan Kâkül Kuyruk", "f8": "Çift Topuz", "f9": "Dörtlü Kuyruk", "f10": "Kabarık Bere", "f11": "Düz Kesik Kısa", "f12": "Kısa Prenses", "f13": "Bantlı Kısa", "f14": "Açık Alın Kısa", "f15": "Topuz Kâkül", "f16": "Uzun Ayrık", "f17": "Örtük Kısa", "f18": "Küçük Prenses", "f19": "Uzun Kuyruk", "f20": "Alçak Kuyruk", "f21": "Kâküllü Kısa", "f22": "Arka Topuz", "f23": "Yana Kısa", "f24": "Tepe Topuz", "d0": "Yele Diken", "d1": "Uzun Yılan", "d2": "Çift Alçak Kuyruk", "d3": "Dev Yele", "d4": "Dağınık Kirpi", "d5": "Uzun Orman", "d6": "Dik Geri", "d8": "Sarı Şimşek", "d9": "Sert Kısa", "d10": "Topuz Perde", "d11": "Uzun Açık", "d14": "Gezgin Kâkül", "d15": "Geri Uzun", "d16": "Örtük Kuyruk", "d17": "Parlak Kâse", "d18": "Topuz Örtük", "d20": "Kabarık Kısa", "d22": "Hokage Dikeni", "d23": "Uzun Ayrık Düz", "d24": "Açık Alın Uzun", "d25": "Kıvırcık Kısa", "d26": "Dik Kısa", "d27": "Sivri Kâkül", "d28": "Savaş Sonrası Bob", "d29": "Asimetrik Bob", "d30": "Omuz Düz", "d32": "Alçak Kuyruk Uzun", "d33": "Kadim Diken", "d34": "Altı Yol Yelesi", "d35": "Dört Tutam", "d36": "Genç Dik", "d37": "Çift Uzun Kuyruk", "d39": "Görev Uzun", "d40": "Yere Uzun", "d41": "Kıvrık Tepe", "d42": "Savruk Dağınık", "d43": "Kukla Bob", "d44": "Yan Geri", "d45": "Dağınık Örtük"}
 ## Saç cinsiyeti (kullanıcı 2026-11-09: kadın saçı kadınlara, erkek saçı erkeklere; yazılmayan = unisex)
-const HAIR_GENDER := {"s1": "m", "s2": "m", "s3": "m", "s4": "m", "s5": "m", "s6": "m", "s7": "m", "s8": "m", "s9": "m", "s10": "m", "s11": "m", "s12": "m", "s13": "m", "s14": "m", "s15": "m", "s16": "m", "s17": "m", "s18": "m", "s19": "m", "s20": "m", "s21": "m", "s22": "m", "s23": "m", "s24": "m", "f1": "f", "f2": "f", "f3": "f", "f4": "f", "f5": "f", "f6": "f", "f7": "f", "f8": "f", "f9": "f", "f10": "f", "f11": "f", "f12": "f", "f13": "f", "f14": "f", "f15": "f", "f16": "f", "f17": "f", "f18": "f", "f19": "f", "f20": "f", "f21": "f", "f22": "f", "f23": "f", "f24": "f"}
+const HAIR_GENDER := {"s1": "m", "s2": "m", "s3": "m", "s4": "m", "s5": "m", "s6": "m", "s7": "m", "s8": "m", "s9": "m", "s10": "m", "s11": "m", "s12": "m", "s13": "m", "s14": "m", "s15": "m", "s16": "m", "s17": "m", "s18": "m", "s19": "m", "s20": "m", "s21": "m", "s22": "m", "s23": "m", "s24": "m", "f1": "f", "f2": "f", "f3": "f", "f4": "f", "f5": "f", "f6": "f", "f7": "f", "f8": "f", "f9": "f", "f10": "f", "f11": "f", "f12": "f", "f13": "f", "f14": "f", "f15": "f", "f16": "f", "f17": "f", "f18": "f", "f19": "f", "f20": "f", "f21": "f", "f22": "f", "f23": "f", "f24": "f", "d0": "m", "d1": "m", "d2": "f", "d3": "m", "d4": "m", "d5": "m", "d6": "m", "d8": "m", "d9": "m", "d14": "m", "d15": "m", "d16": "m", "d17": "m", "d18": "f", "d20": "m", "d22": "m", "d23": "m", "d24": "m", "d25": "m", "d26": "m", "d27": "m", "d28": "f", "d29": "f", "d30": "m", "d32": "m", "d33": "m", "d34": "m", "d35": "f", "d36": "m", "d37": "f", "d39": "f", "d40": "f", "d41": "m", "d42": "m", "d43": "m", "d44": "m", "d45": "m"}
 
 static func hair_styles_for(g: String) -> Array:
 	return HAIR_STYLES.keys().filter(func(h): return String(HAIR_GENDER.get(h, "")) in ["", g])
