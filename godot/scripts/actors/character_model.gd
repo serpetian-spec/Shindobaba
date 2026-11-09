@@ -512,7 +512,7 @@ func _face_and_hair() -> void:
 			hk += "|band"   # alın bandı takılı: kâkül bandın altında, bandın üstünden dik tutamlar (saçak gibi raf olmasın)
 		if not _hair_cache.has(hk):
 			if AnimeHair.has(hd[2]):   # sıfırdan anime saçı (VRoid tabanı yok)
-				_hair_cache[hk] = AnimeHair.build(hd[2], skull_c, skull_r, banded)
+				_hair_cache[hk] = AnimeHair.build(hd[2], skull_c, skull_r, banded, (band_ring[0] + 0.01) if (banded and not band_ring.is_empty()) else -INF, _head_radial(), BAND_DROP)
 				_hair_dyn[hk] = {}
 			else:
 				_hair_cache[hk] = _hair_clumps(hd[2], skull_c, skull_r)
@@ -599,6 +599,8 @@ func setup(l: Dictionary) -> void:
 	look = default_look()
 	look.merge(l, true)
 	look["hair_style"] = HAIR_ALIAS.get(look.get("hair_style", "diken"), look.get("hair_style", "diken"))
+	if String(HAIR_GENDER.get(look["hair_style"], "")) not in ["", String(look.get("gender", "m"))]:
+		look["hair_style"] = "kısa"   # karşı cinsin saçı: unisex saça düş
 	if look.get("face_style") == null and look.get("mask") != null:
 		look["face_style"] = {"anbu": "anbu_kedi", "cloth": "cloth"}.get(look["mask"], null)
 	if look.get("outer_style") == null and look.get("cloak") != null:
@@ -2936,6 +2938,12 @@ const HAIR_FILES := {
 }
 ## Saç stilleri (arayüzde gösterilen adlar)
 const HAIR_STYLES := {"kısa": "Kısa", "kase": "Kâse", "uzun": "Uzun", "s2": "Dikenli Taç"}
+## Saç cinsiyeti (kullanıcı 2026-11-09: kadın saçı kadınlara, erkek saçı erkeklere; yazılmayan = unisex)
+const HAIR_GENDER := {"s1": "m", "s2": "m"}
+
+static func hair_styles_for(g: String) -> Array:
+	return HAIR_STYLES.keys().filter(func(h): return String(HAIR_GENDER.get(h, "")) in ["", g])
+
 ## Kaldırılan saç modelleri (kullanıcı: 14 ve 16–43) -> en yakın kalan model (eski kayıtlar, NPC'ler)
 ## VRoid tabanı + tutam eklentili saçlar kaldırıldı (kullanıcı 2026-11-09: "iki saç üst üste gibi"); sıfırdan saçlar gelene kadar kalan modele düşer
 const HAIR_ALIAS := {"orgu": "uzun", "mohikan": "kısa", "kisa_kakul": "kısa", "dalgali": "uzun", "savas_yelesi": "uzun", "bilge_yelesi": "uzun", "yuksek_kuyruk": "uzun", "yan_kuyruk": "uzun", "ikiz_kuyruk": "uzun", "ikiz_orgu": "uzun", "samuray": "uzun", "savasci_kuyruk": "uzun", "alev": "kısa", "geriye_diken": "kısa", "yan_tarama": "kısa", "perde": "uzun", "kabarik": "kısa", "ruzgar": "kısa", "yabani": "uzun", "ense_kuyruk": "uzun", "alcak_topuz": "uzun", "kazinmis": "kısa", "yan_kazinmis": "kısa", "golge": "uzun", "cerceve": "uzun", "yan_orgu": "uzun", "bagli_uzun": "uzun", "tepe_diken": "kısa", "yan_topuz": "uzun", "kel": "kısa", "diken": "kısa", "dağınık": "kısa", "atkuyruğu": "uzun", "kakul": "uzun", "geriye": "kısa", "ananas": "kısa", "topuz": "uzun", "ikiz_topuz": "uzun", "yele": "uzun", "kirpik": "kısa"}
@@ -3513,6 +3521,32 @@ var _anime_hair_vs := PackedVector3Array()   # sıfırdan saçın köşeleri (mo
 
 ## Sıfırdan saç varsa bant halkası saç KÜTLESİNİN dış yüzeyine genişler (bant saçı sarar; deriye göre kurulunca
 ## saç bant hizasında yatay dilimle kesiliyordu). Uzun dikenler (kütleden 4.5 cm dışarı) sayılmaz: onlar bandın altından geçer.
+## Kafa yüzeyi yön ızgarası (yaw 10° x pitch 10°): skull_c'den o yöndeki en dış deri (gövde mesh'inin kafası + yüz).
+## Elipsoit yalnız yüzün derinliğini ölçer; kafatasının arkası çok daha geride -> saç oraya göre oturur (arka dikenler gömülmez)
+func _head_radial() -> PackedFloat32Array:
+	var NY = 36; var NPT = 19
+	var g = PackedFloat32Array()
+	g.resize(NY * NPT)
+	var src = []
+	var geo = _geo_for(look["gender"])   # çizilen gövde (ham VRoid mesh'i değil): kafatası arkası buradan
+	src.append(geo["arrays"][Mesh.ARRAY_VERTEX])
+	var ey = eye_center_model.y
+	for vv in src:
+		for q in vv:
+			if q.y < ey - 0.06:
+				continue
+			var d: Vector3 = q - skull_c
+			var l = d.length()
+			if l > 0.3 or l < 0.01:
+				continue
+			var dn = d / l
+			var yw = rad_to_deg(atan2(dn.x, dn.z)); var pt = rad_to_deg(acos(clampf(dn.y, -1.0, 1.0)))
+			var iy = int(floor((yw + 180.0) / 10.0)) % NY
+			var ip = mini(int(floor(pt / 10.0)), NPT - 1)
+			g[ip * NY + iy] = maxf(g[ip * NY + iy], l)
+	return g
+
+
 func _hair_wrapped_ring(by: float) -> PackedFloat32Array:
 	var rad: PackedFloat32Array = (band_ring[1] as PackedFloat32Array).duplicate()
 	if _anime_hair_vs.is_empty():
@@ -3538,10 +3572,50 @@ func _hair_wrapped_ring(by: float) -> PackedFloat32Array:
 	return rad
 
 
+const BAND_DROP := 0.045   # alın bandı: önden arkaya iniş (m)
+
+
+## Eğik bant halkası: her yönde bandın o yöndeki yüksekliğinde (by - drop*(1-sin)/2) en dış deri (yüz + gövde kafası)
+func _tilted_ring(by: float, drop: float) -> PackedFloat32Array:
+	var base: PackedFloat32Array = band_ring[1]
+	var bins = base.size()
+	var rad = PackedFloat32Array()
+	rad.resize(bins)
+	var ny = _bp("Neck").y + 0.03
+	var srcs = [_geo_for(look["gender"])["arrays"][Mesh.ARRAY_VERTEX]]
+	for vv in srcs:
+		for q in vv:
+			if q.y < ny:
+				continue
+			var d = Vector2(q.x - skull_c.x, q.z - skull_c.z)
+			var l = d.length()
+			if l < 0.01 or l > 0.25:
+				continue
+			var ty = by - drop * (1.0 - d.y / l) * 0.5
+			if absf(q.y - ty) > 0.012:
+				continue
+			var k = int(floor((atan2(d.y, d.x) + PI) / TAU * bins)) % bins
+			rad[k] = maxf(rad[k], l)
+	for k in bins:
+		var ang = (k + 0.5) / bins * TAU - PI
+		if sin(ang) > 0.35 or rad[k] <= 0.0:
+			rad[k] = maxf(rad[k], base[k]) if sin(ang) > 0.35 else base[k]   # ön (alın): yüz mesh'i ölçüsü
+	var sm = rad.duplicate()
+	for k in bins:
+		sm[k] = maxf(rad[k], (rad[(k + bins - 1) % bins] + rad[k] * 2.0 + rad[(k + 1) % bins]) * 0.25)
+	return sm
+
+
 func _hitai_head(bc: Color) -> void:
 	_band_ring_full()
 	var by: float = band_ring[0] + 0.01   # göz kapağını kapatmasın
 	var keep = band_ring
+	if not _anime_hair_vs.is_empty():
+		# anime saçı: bant alında başlar, arkaya doğru iner (kulak üstünden ense çıkıntısına); yatay halka büyük
+		# kafatasının arkasında tepeden geçip "taç/kap" gibi duruyordu. Saç bu şeritte zaten kafaya bastırılı (maske yok)
+		var ring = _tilted_ring(by, BAND_DROP)
+		_hitai("Head", Vector3(skull_c.x, by, skull_c.z), ring, bc, 0.036, 0.037, 0.6, 0.0, Vector3(0.22, -1.0, -0.62), true, 0.15, 0.03, 0.011, BAND_DROP)
+		return
 	band_ring = [band_ring[0], _hair_wrapped_ring(by)]
 	_hitai("Head", Vector3(skull_c.x, by, skull_c.z), band_ring[1], bc, 0.036, 0.037, 0.6, 0.008, Vector3(0.22, -1.0, -0.62))
 	# saç maskesi: bant yüksekliğinde (öndeki eğim dahil) bandın dışına taşan saç kesilir -> bant saçın üstünde
@@ -4143,10 +4217,10 @@ func head_cap(cc: Color, edge_y: float, back_drop: float, puff := 0.04, pad := 0
 
 ## Ortak alın koruyucu kurucusu (kafa/boyun): cen merkezli rad[] halkası üstüne kumaş bant (içe kalın), önde kavisli plaka
 ## (pahlı kenar, perçinler, kazınmış arma), arkada düğüm + iki sarkan uç. tilt: önde aşağı eğim.
-func _hitai(bone: String, cen: Vector3, rad: PackedFloat32Array, bc: Color, bh: float, ph: float, a_half: float, tilt_amt: float, tail_dir: Vector3, plate := true, tail_len := 0.15, tail_w := 0.03, rpad := 0.011) -> void:
+func _hitai(bone: String, cen: Vector3, rad: PackedFloat32Array, bc: Color, bh: float, ph: float, a_half: float, tilt_amt: float, tail_dir: Vector3, plate := true, tail_len := 0.15, tail_w := 0.03, rpad := 0.011, back_drop := 0.0) -> void:
 	var bins = rad.size()
 	var r_at = func(ang: float) -> float: return rad[int(floor((wrapf(ang, -PI, PI) + PI) / TAU * bins)) % bins]
-	var tilt = func(ang: float) -> float: return -tilt_amt * maxf(0.0, sin(ang))   # önde hafif aşağı (+Z = sin)
+	var tilt = func(ang: float) -> float: return -tilt_amt * maxf(0.0, sin(ang)) - back_drop * (1.0 - sin(ang)) * 0.5   # önde hafif aşağı (+Z = sin); back_drop: arkaya doğru iner (gerçek alın bandı)
 	var p_of = func(ang: float, r: float, dy: float) -> Vector3: return cen + Vector3(cos(ang) * r, dy + tilt.call(ang), sin(ang) * r)
 	# --- kumaş bant: kalınlıklı halka (dış yüz + üst/alt kenar), saçın üstünde
 	var st = SurfaceTool.new()
@@ -4156,8 +4230,11 @@ func _hitai(bone: String, cen: Vector3, rad: PackedFloat32Array, bc: Color, bh: 
 	for k in n:
 		var a0 = float(k) / n * TAU - PI
 		var a1 = float(k + 1) / n * TAU - PI
-		var ro0 = r_at.call(a0) + rpad; var ro1 = r_at.call(a1) + rpad
-		var ri0 = ro0 - 0.045; var ri1 = ro1 - 0.045   # içe kalın: kesilen saçın yerinde boşluk görünmesin
+		var thin = not _anime_hair_vs.is_empty()   # anime saçı bandın altında kafaya bastırılır: bant ince kumaş (kullanıcı: kalın bant = "kap")
+		var pad = 0.004 if thin else rpad
+		var ro0 = r_at.call(a0) + pad; var ro1 = r_at.call(a1) + pad
+		var depth = 0.004 if thin else 0.045   # eski saçlarda içe kalın: kesilen saçın yerinde boşluk görünmesin
+		var ri0 = ro0 - depth; var ri1 = ro1 - depth
 		var quads = [
 			[p_of.call(a0, ro0, -bh * 0.5), p_of.call(a1, ro1, -bh * 0.5), p_of.call(a1, ro1, bh * 0.5), p_of.call(a0, ro0, bh * 0.5), cloth],
 			[p_of.call(a0, ro0, bh * 0.5), p_of.call(a1, ro1, bh * 0.5), p_of.call(a1, ri1, bh * 0.5), p_of.call(a0, ri0, bh * 0.5), cloth.darkened(0.12)],
@@ -4171,7 +4248,8 @@ func _hitai(bone: String, cen: Vector3, rad: PackedFloat32Array, bc: Color, bh: 
 	bmi.material_override = Props.toon()
 	var rv = MB.new()
 	var front = PI * 0.5
-	var rp = func(ang: float) -> float: return r_at.call(ang) + 0.013
+	var plate_off = 0.0055 if not _anime_hair_vs.is_empty() else 0.013   # ince bantta plaka bandın yüzüne yapışık (kalın banttaki 1.3 cm havada kalıyordu)
+	var rp = func(ang: float) -> float: return r_at.call(ang) + plate_off
 	if plate:
 		# --- metal plaka: alnın kavsini izleyen yay (önde ±0.5 rad), pahlı kenar
 		var steel = Color(0.78, 0.8, 0.85)

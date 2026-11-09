@@ -37,6 +37,14 @@ func _ready() -> void:
 	cam.current = true
 	cam.fov = 30.0
 	await _w(0.5)
+	if OS.get_environment("SV_LIST") != "":
+		for mi in pl.model.find_children("*", "MeshInstance3D", true, false):
+			var ab = mi.get_aabb()
+			print("MI ", mi.get_path(), " vis=", mi.is_visible_in_tree(), " ab=", ab)
+	if OS.get_environment("SV_HIDE") != "":
+		for mi in pl.model.find_children("*", "MeshInstance3D", true, false):
+			if String(mi.name) in OS.get_environment("SV_HIDE").split(","):
+				mi.visible = false
 	var hb = pl.model.skel.find_bone("Head")
 	var hp: Vector3 = (pl.model.skel.global_transform * pl.model.skel.get_bone_global_pose(hb)).origin + Vector3(0, 0.08, 0)
 	print("HAIR head ", hp)

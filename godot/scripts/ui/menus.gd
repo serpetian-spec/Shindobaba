@@ -741,7 +741,10 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 					parts.append("%s (%d teknik)" % [el_names[e], need[e]])
 				note.call(ec, "⚠ Bu doğayla bazı klan teknikleri kilitli kalır: " + ", ".join(parts) + ". O doğayı ikinci doğa olarak alınca açılır.", Color(1, 0.7, 0.4))
 		"gorunum":
-			carousel.call("Saç Stili", "hair_style", CharacterModel.HAIR_STYLES.keys(), CharacterModel.HAIR_STYLES.values())
+			var hks = CharacterModel.hair_styles_for(String(state["gender"]))
+			if not hks.has(state["hair_style"]):
+				state["hair_style"] = hks[0]
+			carousel.call("Saç Stili", "hair_style", hks, hks.map(func(h): return CharacterModel.HAIR_STYLES[h]))
 			swatches.call("Saç Rengi", "hair", [Color(0.3, 0.2, 0.12), Color(0.08, 0.08, 0.1), Color(0.18, 0.12, 0.1), Color(0.95, 0.8, 0.25), Color(0.98, 0.92, 0.6), Color(0.75, 0.25, 0.15),
 				Color(0.95, 0.4, 0.15), Color(0.9, 0.9, 0.92), Color(0.6, 0.6, 0.65), Color(0.2, 0.3, 0.6), Color(0.15, 0.18, 0.35), Color(0.9, 0.55, 0.7), Color(0.55, 0.3, 0.6), Color(0.25, 0.45, 0.25)])
 			if state["clan"] == "hoshigaki":
@@ -1076,7 +1079,7 @@ static func _arrow_btn(text: String, cb: Callable) -> Button:
 ## Rastgele görünüm (köy/klan/doğa korunur)
 static func _creator_random(state: Dictionary) -> void:
 	state["gender"] = ["m", "f"].pick_random()
-	state["hair_style"] = CharacterModel.HAIR_STYLES.keys().filter(func(h): return h != "kel").pick_random()
+	state["hair_style"] = CharacterModel.hair_styles_for(state["gender"]).filter(func(h): return h != "kel").pick_random()
 	state["hair"] = [Color(0.3, 0.2, 0.12), Color(0.08, 0.08, 0.1), Color(0.95, 0.8, 0.25), Color(0.75, 0.25, 0.15), Color(0.9, 0.9, 0.92), Color(0.2, 0.3, 0.6), Color(0.9, 0.55, 0.7), Color(0.95, 0.4, 0.15)].pick_random()
 	state["skin"] = [Color(0.98, 0.88, 0.8), Color(0.96, 0.8, 0.66), Color(0.86, 0.68, 0.52), Color(0.68, 0.5, 0.36)].pick_random()
 	state["eye"] = [Color(0.25, 0.45, 0.8), Color(0.3, 0.2, 0.12), Color(0.25, 0.55, 0.3), Color(0.1, 0.1, 0.1)].pick_random()
@@ -1963,8 +1966,8 @@ static func _susanoo_panel(main: Node, v: VBoxContainer, _h) -> void:
 
 static func _hair_panel(v: VBoxContainer, look: Dictionary, refresh: Callable) -> void:
 	v.add_child(UI.label("Berber ücretsiz", 14, UI.MUTED))
-	var keys = CharacterModel.HAIR_STYLES.keys()
-	v.add_child(_arrow_row("Saç Stili", CharacterModel.HAIR_STYLES.values(), maxi(0, keys.find(look.get("hair_style", ""))), func(i):
+	var keys = CharacterModel.hair_styles_for(String(look.get("gender", "m")))
+	v.add_child(_arrow_row("Saç Stili", keys.map(func(h): return CharacterModel.HAIR_STYLES[h]), maxi(0, keys.find(look.get("hair_style", ""))), func(i):
 		look["hair_style"] = keys[i]
 		refresh.call()))
 	v.add_child(UI.label("Renk", 14, UI.MUTED, HORIZONTAL_ALIGNMENT_LEFT, true))

@@ -13,6 +13,9 @@ static var _c: Vector3
 static var _r: Vector3
 static var _rng: RandomNumberGenerator
 static var _banded := false
+static var _grid := PackedFloat32Array()   # kafa yüzeyi ızgarası (CharacterModel._head_radial): yaw 10° x pitch 10°
+static var _band_y := -INF
+static var _band_drop := 0.0   # bant arkaya doğru iner (CharacterModel.BAND_DROP)   # model uzayı bant yüksekliği (takılıysa): o şeritteki saç kafaya sıkışır, bant ince kalır
 
 
 static func has(style: String) -> bool:
@@ -28,7 +31,32 @@ static func _dir(yaw_deg: float, pitch_deg: float) -> Vector3:
 ## Kafatası yarıçapı o yönde: alın elipsten düz ve öndedir (yüz parçası) — önde dışa şişirilir, yoksa ön saç alnın içinde kalır
 static func _rr(d: Vector3) -> Vector3:
 	var front = smoothstep(0.25, 0.85, d.z) * smoothstep(0.75, 0.2, d.y)
-	return _r * (1.0 + 0.11 * front)
+	var e = _r * (1.0 + 0.11 * front)
+	var m = _grid_r(d)
+	var el = (d * e).length()
+	if m > el:
+		e *= m / el   # gerçek kafa elipsoitten dışarıda (kafatası arkası): saç gerçek yüzeye oturur
+	return e
+
+
+## Izgaradan o yöndeki deri yarıçapı (komşu hücrelerle yumuşatılmış; boş hücre = 0)
+static func _grid_r(d: Vector3) -> float:
+	if _grid.is_empty():
+		return 0.0
+	var yw = rad_to_deg(atan2(d.x, d.z)); var pt = rad_to_deg(acos(clampf(d.y, -1.0, 1.0)))
+	var fy = (yw + 180.0) / 10.0 - 0.5; var fp = pt / 10.0 - 0.5
+	var y0 = int(floor(fy)); var p0 = int(floor(fp))
+	var ty = fy - y0; var tp = fp - p0
+	var acc = 0.0; var wsum = 0.0
+	for a in 2:
+		for b in 2:
+			var iy = posmod(y0 + a, 36); var ip = clampi(p0 + b, 0, 18)
+			var v = _grid[ip * 36 + iy]
+			if v <= 0.0:
+				continue
+			var w = (ty if a == 1 else 1.0 - ty) * (tp if b == 1 else 1.0 - tp) + 0.001
+			acc += v * w; wsum += w
+	return acc / wsum if wsum > 0.0 else 0.0
 
 
 static func _surf(yaw_deg: float, pitch_deg: float, k := 1.0) -> Vector3:
@@ -36,9 +64,12 @@ static func _surf(yaw_deg: float, pitch_deg: float, k := 1.0) -> Vector3:
 	return _c + d * _rr(d) * k
 
 
-static func build(style: String, c: Vector3, r: Vector3, banded := false) -> ArrayMesh:
+static func build(style: String, c: Vector3, r: Vector3, banded := false, band_y := -INF, grid := PackedFloat32Array(), band_drop := 0.0) -> ArrayMesh:
 	_c = c; _r = r
+	_band_drop = band_drop
+	_grid = grid
 	_banded = banded
+	_band_y = band_y if banded else -INF
 	_rng = RandomNumberGenerator.new()
 	_rng.seed = hash("anime|" + style)
 	_st = SurfaceTool.new()
@@ -54,7 +85,7 @@ static func build(style: String, c: Vector3, r: Vector3, banded := false) -> Arr
 # ---------------------------------------------------------------- kütle
 ## Saç kütlesi: hairline(yaw) -> o yöndeki en alt pitch (saç çizgisi). off: kafatasından dışarı kalınlık
 static func _mass(hairline: Callable, off: float, zig_deg := 4.0, zig_n := 26) -> void:
-	var NY = 72; var NP = 16
+	var NY = 96; var NP = 36   # bant kenarında düzgün çizgi için sık ızgara
 	var outer = []; var inner = []
 	for i in NY + 1:
 		var yw = lerpf(-180.0, 180.0, float(i) / NY)
@@ -68,8 +99,17 @@ static func _mass(hairline: Callable, off: float, zig_deg := 4.0, zig_n := 26) -
 			var edge = float(j) / NP
 			# kenara doğru kütle incelir (kalın kapak gibi değil, saç uçlarına iner)
 			var o = off * (1.0 - 0.55 * pow(edge, 3.0))
+			var oi = o * 0.25
+			var py = (_c + d * _rr(d)).y
+			var bh = _band_at(d)
+			if _band_y > -INF:
+				var dy = py - bh
+				# bant şeridi: saç bandın içinde (alında elipsoit deriden dışarıda -> iyice içe). Üst kenardan HEMEN çıkar
+				# (geç çıkarsa alında çıplak deri, erken çıkarsa bandın üstüne diş diş biner)
+				var tb = (1.0 - smoothstep(0.006, 0.02, dy)) if dy > 0.0 else (1.0 - smoothstep(0.012, 0.028, -dy))
+				o = lerpf(o, -0.025, tb); oi = lerpf(oi, -0.03, tb)   # elipsoit alında gerçek deriden dışarıda: iyice içe al
 			ro.append(_c + d * (_rr(d) + Vector3.ONE * o))
-			ri.append(_c + d * (_rr(d) + Vector3.ONE * (o * 0.25)))
+			ri.append(_c + d * (_rr(d) + Vector3.ONE * oi))
 		outer.append(ro); inner.append(ri)
 	for i in NY:
 		for j in NP:
@@ -147,7 +187,7 @@ static func _flow(yaw0: float, pitch0: float, yaw1: float, pitch1: float, width:
 
 
 ## Noktalar boyunca baklava kesitli, sivrilen şerit (tutam gövdesi)
-static func _ribbon(pts: Array, width: float, thick: float) -> void:
+static func _ribbon(pts: Array, width: float, thick: float, side_ref := Vector3.ZERO) -> void:
 	var N = pts.size() - 1
 	var rings = []
 	var prev_side = Vector3.ZERO
@@ -157,12 +197,16 @@ static func _ribbon(pts: Array, width: float, thick: float) -> void:
 		var tg: Vector3 = (pts[mini(k + 1, N)] - pts[maxi(k - 1, 0)]).normalized()
 		var rad = (p - _c).normalized()
 		var side = tg.cross(rad)
+		if side_ref != Vector3.ZERO:
+			side = side_ref - tg * side_ref.dot(tg)   # diken: genişlik verilen yönde (önden/yandan yassı yüzü görünsün)
 		if side.length() < 0.01:
 			side = prev_side if prev_side != Vector3.ZERO else tg.cross(Vector3.UP)
 		side = side.normalized()
-		prev_side = side
 		var up = side.cross(tg).normalized()
-		var w = width * (1.0 - pow(u, 1.6)) * (0.85 + 0.15 * sin(minf(u * 3.0, 1.0) * PI * 0.5))
+		if up.dot(rad) < 0.0:   # dış yüz hep kafadan dışarı: yoksa sarım ters döner, yüzler arkadan kesilir (görünmez diken)
+			side = -side; up = -up
+		prev_side = side
+		var w = width * (1.0 - u)   # doğrusal: anime ucu iğne gibi sivri (eski pow eğrisi küt "kürek" yapıyordu)
 		var t = w * thick
 		if k == N:
 			rings.append([p, p, p, p])
@@ -178,68 +222,116 @@ static func _ribbon(pts: Array, width: float, thick: float) -> void:
 	_st.add_vertex(R0[0]); _st.add_vertex(R0[3]); _st.add_vertex(R0[2])
 
 
+## Diken (anime "shard"): kafatasının içinden çıkan, geniş tabanlı, YASSI, doğrusal sivrilen üçgen; ucu hafif kıvrık.
+## Komşu dikenlerin tabanları üst üste biner -> tek parça tırtıklı saç kütlesi okunur (tek tek tüp değil).
+## ln/width kafa yarıçapı (R) oranı; thick = kalınlık/genişlik
+static func _shard(yaw: float, pitch: float, dir: Vector3, ln: float, width: float, thick := 0.4, bend := Vector3.ZERO) -> void:
+	var R = (_r.x + _r.z) * 0.5
+	var p0 = _surf(yaw, pitch, 0.9)
+	var d = dir.normalized()
+	var pts = []
+	for k in 9:
+		var u = k / 8.0
+		pts.append(p0 + d * ln * R * u + bend * R * u * u)
+	# genişlik meridyen yönünde (tepe->ense/yan): önden bakınca taç, yandan bakınca testere dişi okunur
+	var mer = _dir(yaw, pitch + 2.0) - _dir(yaw, pitch - 2.0)
+	if mer.length() < 0.001:
+		mer = Vector3(cos(deg_to_rad(yaw)), 0, -sin(deg_to_rad(yaw)))
+	_ribbon(pts, width * R, thick, mer.normalized())
+
+
+## Tutam köküne bant şeridi denk geliyorsa (bant takılı) atla: bant çevresindeki saç bastırılmış kalmalı
+static func _in_band(yaw: float, pitch: float, pad_lo := 0.04, pad_hi := 0.06) -> bool:   # pad_hi: geniş diken tabanı bandın üst kenarından taşmasın
+	if _band_y == -INF:
+		return false
+	var y = _surf(yaw, pitch).y
+	var bh = _band_at(_dir(yaw, pitch))
+	return y > bh - pad_lo and y < bh + pad_hi
+
+
+## Taç dikeni kökü bandın üst kenarının altında mı (bant takılı; içinde VEYA altında -> yukarı kaydırılmalı)
+static func _under_band_top(yaw: float, pitch: float) -> bool:
+	if _band_y == -INF:
+		return false
+	return _surf(yaw, pitch).y < _band_at(_dir(yaw, pitch)) + 0.075   # geniş diken tabanı (±4 cm) bandın üst kenarına diş gibi binmesin
+
+
+## Bandın o yöndeki yüksekliği: önde _band_y, arkaya doğru _band_drop kadar iner
+static func _band_at(d: Vector3) -> float:
+	var h = Vector2(d.x, d.z)
+	var zn = h.y / h.length() if h.length() > 0.001 else 0.0
+	return _band_y - _band_drop * (1.0 - zn) * 0.5
+
+
 # ---------------------------------------------------------------- stiller
-## Striker 2 (refs/hair_ss/2.jpg): tepeden her yöne fışkıran iri sivri dikenler (taç), yanlarda dışa/arkaya
-## çıkan dikenler, ensede aşağı-arkaya dikenler; alında bandın altından görünen kısa sivri kâküller.
+## Saç 2 — Naruto tabanlı (wiki: "Hairstyle 2 (Based on Naruto Uzumaki)").
+## Kaynaklar: refs/hair_ss/2.jpg (Striker, ön), refs/hair_naruto (anime yan/arka: n3, from_side #17/#19). Ortak tasarım:
+##  - saç kafatasından en fazla ~0.6–0.7 R taşar (eski sürüm 1.5 R tepe = "kalın, uzun" reddi)
+##  - geniş tabanlı, yassı, doğrusal sivrilen dikenler; önden güneş ışını gibi her yöne, yandan arkaya yatık
+##  - ense: kısa, aşağı-arkaya; kulak önü kısa favori; bantsız: alna inen 3 büyük sivri kâkül
+##  - bant: bant şeridindeki saç kafaya bastırılır, dikenler bandın HEMEN üstünden kalkar (bant ince kalır)
 static func _s2() -> void:
-	# saç çizgisi: alında kaşların biraz üstü (kâküller kaşa iner), yanlarda kulak üstü, ensede boyun
 	var hl = func(yw: float) -> float:
 		var a = absf(yw)
 		if a < 45.0:
-			return 96.0
+			return 88.0
 		if a < 95.0:
-			return lerpf(96.0, 100.0, (a - 45.0) / 50.0)
-		return lerpf(100.0, 112.0, clampf((a - 95.0) / 60.0, 0.0, 1.0))
-	_mass(hl, 0.022)
+			return lerpf(88.0, 98.0, (a - 45.0) / 50.0)
+		return lerpf(98.0, 112.0, clampf((a - 95.0) / 60.0, 0.0, 1.0))
+	_mass(hl, 0.012, 3.0)
 	var j = func(a: float) -> float: return _rng.randf_range(-a, a)
-	# TAÇ (ref 2.jpg): önden bakınca kafanın çevresinde güneş ışını gibi açılan iri, yassı, düzenli dikenler.
-	# Taç düzlemi kulakların hafif arkası; ortadaki dik, yanlara doğru yataylaşır. İki sıra: ön sıra + arka sıra (hacim)
-	for layer in [[0.0, 13, 0.15], [-0.35, 10, 0.13]]:
-		var n_sp: int = layer[1]
+	var back = Vector3(0, 0, -1)
+	# sıralar: [pitch, adet, uzunluk(R), genişlik(R), geriye yatma, yukarı eğilim]
+	for row in [[6.0, 6, 0.72, 0.9, 0.4, 0.2], [28.0, 10, 0.82, 0.95, 0.3, 0.2], [52.0, 12, 0.95, 0.95, 0.12, 0.15], [74.0, 13, 0.88, 0.9, 0.08, 0.1]]:
+		var n_sp: int = row[1]
+		var off = _rng.randf_range(0.0, 360.0 / n_sp)
 		for k in n_sp:
-			var th = lerpf(-98.0, 98.0, (k + 0.5) / n_sp) + j.call(3)   # 0 = tepe, ±90 = yan
-			var thr = deg_to_rad(th)
-			# kökün kafadaki yeri: taç düzleminde (x-y), biraz arkada
-			var rd = Vector3(sin(thr), cos(thr), layer[0] - 0.15).normalized()
-			var yw = rad_to_deg(atan2(rd.x, rd.z)); var pt = rad_to_deg(acos(clampf(rd.y, -1.0, 1.0)))
-			var dir = Vector3(sin(thr) * 0.9, cos(thr) + 0.35, -0.22 + layer[0] * 0.5).normalized()
-			var ln = layer[2] * (1.0 - 0.3 * absf(th) / 98.0) * _rng.randf_range(0.92, 1.08)
-			_lock(yw, pt, dir, ln, 0.085, Vector3(sin(thr) * 0.01, -0.008, -0.01), 0.28)
-	# arka: kat kat aşağı-arkaya bakan dikenler (üst kat kısa ve dışa, alt kat uzun ve aşağı)
-	for row in [[60.0, 7, 0.11, 0.3], [84.0, 8, 0.1, 0.6], [102.0, 7, 0.09, 0.85]]:
-		for k in row[1]:
-			var yw = lerpf(105.0, 255.0, (k + 0.5) / row[1]) + row[0] * 0.4 + j.call(5)
-			var wy = wrapf(yw, -180.0, 180.0)
-			var pt = row[0] + j.call(4)
-			var n = _dir(wy, pt)
-			var dir = (n + Vector3(0, -row[3], 0) + Vector3(0, 0, -0.1)).normalized()
-			_lock(wy, pt, dir, row[2] * _rng.randf_range(0.9, 1.1), 0.095, Vector3(0, -0.015, -0.008), 0.3)
-	# yan örtü: kulak üstünü kaplayan, aşağı-arkaya akan yatık tutamlar
-	for sx in [-1.0, 1.0]:
-		for k in 4:
-			var yw = sx * (58.0 + k * 14.0)
-			_flow(yw, 55.0, yw + sx * 8.0, 104.0 + j.call(3), 0.085, 0.14)
-		# favori: kulağın önünden çeneye inen sivri tutam (ref: sağda belirgin)
-		_flow(sx * 70.0, 90.0, sx * 72.0, 125.0, 0.045, 0.04, 0.3)
-	if _banded:
-		# alın bandı takılı (ref 2.jpg): bandın hemen üstünden yukarı-öne kalkan dikenler; kâkül bandın altında kalır
-		for k in 7:
-			var u = (k + 0.5) / 7.0
-			var yw = lerpf(-50.0, 50.0, u) + j.call(3)
-			var pt = 62.0 + j.call(3)
+			var yw = wrapf(off + k * 360.0 / n_sp + j.call(6), -180.0, 180.0)
+			var pt: float = row[0] + j.call(4)
+			var front = absf(yw) < 40.0
+			if row[0] >= 76.0 and absf(yw) < 50.0:
+				continue   # alın: bantsızda kâkül, bantlıda bandın üstü sırası (aşağıda)
+			while _under_band_top(yw, pt) and pt > 20.0:
+				pt -= 3.0   # bant şeridine denk gelen kök bandın hemen üstüne çıkar (sıra atlanmaz, arka kel kalmaz)
 			var n = _dir(yw, pt)
-			var dir = (n * 0.5 + Vector3(signf(yw) * 0.15, 1.0, 0.25)).normalized()
-			_lock(yw, pt, dir, 0.09 * _rng.randf_range(0.9, 1.1), 0.085, Vector3(0, -0.005, -0.01), 0.28)
-		for k in 4:   # bandın altından kaşa sarkan kısa uçlar
-			var yw = lerpf(-30.0, 30.0, (k + 0.5) / 4.0)
-			_flow(yw, 92.0, yw, 104.0 + j.call(2), 0.06, 0.02, 0.28)
+			var dir = n + back * float(row[4]) + Vector3.UP * float(row[5])
+			var ln: float = row[2]
+			if front:
+				dir = n + Vector3.UP * 0.45   # önde: yukarı-öne kalkar (yüzün üstüne yatmaz)
+			var bk = smoothstep(95.0, 150.0, absf(yw))   # arka: kafatası zaten büyük -> dikenler kafaya yatar (dışa fışkırırsa "uzaylı kafası")
+			if bk > 0.0 and pt > 20.0:
+				dir = dir.normalized().lerp((n * 0.6 + back * 0.5 + Vector3.UP * 0.25).normalized(), bk)   # arkaya-hafif yukarı: bandın üstünden aşağı sarkmaz
+				ln *= lerpf(1.0, 0.6, bk)
+			_shard(yw, pt, dir, ln * _rng.randf_range(0.9, 1.1), row[3], 0.4, Vector3(0, -0.06, -0.05))
+	# yanlar (ref 2.jpg önden: bant hizasında yüzün iki yanına dışa açılan dikenler -> geniş güneş silueti)
+	for sx in [-1.0, 1.0]:
+		for k in 3:
+			var yw = sx * (68.0 + k * 22.0 + j.call(4))
+			var pt = 86.0 + j.call(3)
+			while _under_band_top(yw, pt) and pt > 30.0:
+				pt -= 3.0
+			var n = _dir(yw, pt)
+			_shard(yw, pt, n + Vector3(0, 0.3 - k * 0.08, 0) + back * 0.1, 1.0 * _rng.randf_range(0.9, 1.1), 0.9, 0.4, Vector3(0, -0.08, 0))
+	# ense: kafaya yatık, aşağı inen kısa sivri uçlar (etek gibi dışa açılmaz)
+	for k in 9:
+		var yw = wrapf(lerpf(115.0, 245.0, (k + 0.5) / 9.0) + j.call(4), -180.0, 180.0)
+		var p0 = 100.0 if not _in_band(yw, 100.0, 0.02, 0.02) else 108.0
+		_flow(yw, p0, yw + j.call(4), 124.0 + j.call(3), 0.035, 0.03, 0.3)
+	# favori: kulak önünde aşağı inen kısa sivri tutam
+	for sx in [-1.0, 1.0]:
+		_flow(sx * 72.0, 86.0, sx * 74.0, 118.0, 0.045, 0.04, 0.3)
+	if _banded:
+		# bandın hemen üstü: önde dik kalkan dikenler (ref 2.jpg: bandın üst kenarından taç başlar)
+		for k in 7:
+			var yw = lerpf(-60.0, 60.0, (k + 0.5) / 7.0) + j.call(3)
+			var pt = 60.0
+			while _under_band_top(yw, pt) and pt > 30.0:
+				pt -= 3.0
+			_shard(yw, pt, _dir(yw, pt) * 0.6 + Vector3(signf(yw) * 0.1, 1.0, 0.15), 0.6 * _rng.randf_range(0.9, 1.1), 0.5, 0.4, Vector3(0, 0, -0.05))
 		return
-	# kâkül: alnı örten, kaşa kadar inen geniş üçgenler (ortada uzun), arkasında ikinci kat
-	for k in 6:
-		var u = (k + 0.5) / 6.0
-		var yw = lerpf(-44.0, 44.0, u) + j.call(3)
-		var end_p = 103.0 - absf(u - 0.5) * 12.0 + j.call(2)
-		_flow(yw, 50.0, yw * 1.08, end_p, 0.09, 0.06, 0.28)
+	# bantsız: alna inen büyük sivri kâküller (anime: 3 ana uç + aralarda küçükler)
 	for k in 5:
-		var yw = lerpf(-36.0, 36.0, (k + 0.5) / 5.0)
-		_flow(yw, 40.0, yw * 1.12, 97.0 + j.call(3), 0.085, 0.1, 0.28)
+		var u = (k + 0.5) / 5.0
+		var yw = lerpf(-40.0, 40.0, u) + j.call(2)
+		var big = k % 2 == 0
+		_flow(yw, 52.0, yw * 1.15, (104.0 if big else 96.0) + j.call(2), 0.12 if big else 0.09, 0.08, 0.32)
