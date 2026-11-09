@@ -1,0 +1,224 @@
+[
+ {
+  "key": "e0",
+  "file": "Shikadai Hair.jpg",
+  "label": "Shikadai",
+  "path": "refs/hair_ev/e0.jpg"
+ },
+ {
+  "key": "e1",
+  "file": "Iwabe_Cap.jpg",
+  "label": "Iwabe's Cap",
+  "path": "refs/hair_ev/e1.jpg"
+ },
+ {
+  "key": "e2",
+  "file": "Sumire.jpg",
+  "label": "Sumire (Ninja School Version)",
+  "path": "refs/hair_ev/e2.jpg"
+ },
+ {
+  "key": "e3",
+  "file": "Itachi_Anbu_Hair.jpg",
+  "label": "Itachi Anbu Era Ver.",
+  "path": "refs/hair_ev/e3.jpg"
+ },
+ {
+  "key": "e4",
+  "file": "Young_Naruto.jpg",
+  "label": "Young Naruto Vers.",
+  "path": "refs/hair_ev/e4.jpg"
+ },
+ {
+  "key": "e5",
+  "file": "Young_Sasuke.jpg",
+  "label": "Young Sasuke Vers.",
+  "path": "refs/hair_ev/e5.jpg"
+ },
+ {
+  "key": "e6",
+  "file": "Slicked_Back.jpg",
+  "label": "Slicked Back (Male only)",
+  "path": "refs/hair_ev/e6.jpg"
+ },
+ {
+  "key": "e7",
+  "file": "Bun.jpg",
+  "label": "Bun (Female only)",
+  "path": "refs/hair_ev/e7.jpg"
+ },
+ {
+  "key": "e8",
+  "file": "Tayuya.jpg",
+  "label": "Tayuya",
+  "path": "refs/hair_ev/e8.jpg"
+ },
+ {
+  "key": "e9",
+  "file": "Kimimaro.jpg",
+  "label": "Kimimaro",
+  "path": "refs/hair_ev/e9.jpg"
+ },
+ {
+  "key": "e10",
+  "file": "Kagemasa.jpg",
+  "label": "Kagemasa",
+  "path": "refs/hair_ev/e10.jpg"
+ },
+ {
+  "key": "e11",
+  "file": "Sumire Genin.jpg",
+  "label": "Sumire (Genin Ver.)",
+  "path": "refs/hair_ev/e11.jpg"
+ },
+ {
+  "key": "e12",
+  "file": "Hanabi_Boruto.jpg",
+  "label": "Hanabi (Boruto)",
+  "path": "refs/hair_ev/e12.jpg"
+ },
+ {
+  "key": "e13",
+  "file": "Kakashi_Gaiden.jpg",
+  "label": "Kakashi: Gaiden Vers.",
+  "path": "refs/hair_ev/e13.jpg"
+ },
+ {
+  "key": "e14",
+  "file": "Neji.jpg",
+  "label": "Neji (Young Ver.)",
+  "path": "refs/hair_ev/e14.jpg"
+ },
+ {
+  "key": "e15",
+  "file": "Himawari.jpg",
+  "label": "Himawari",
+  "path": "refs/hair_ev/e15.jpg"
+ },
+ {
+  "key": "e16",
+  "file": "Naruto_Nightcap.jpg",
+  "label": "Naruto's Nightcap",
+  "path": "refs/hair_ev/e16.jpg"
+ },
+ {
+  "key": "e17",
+  "file": "Samurai_Sasuke.jpg",
+  "label": "Sasuke's Forehead Protector (Male only)",
+  "path": "refs/hair_ev/e17.jpg"
+ },
+ {
+  "key": "e18",
+  "file": "Samurai_Sakura.jpg",
+  "label": "Sakura's Forehead Protector (Female only)",
+  "path": "refs/hair_ev/e18.jpg"
+ },
+ {
+  "key": "e19",
+  "file": "Frog_Head.jpg",
+  "label": "Frog Head",
+  "path": "refs/hair_ev/e19.jpg"
+ },
+ {
+  "key": "e20",
+  "file": "Han Hat.jpg",
+  "label": "Han Hat",
+  "path": "refs/hair_ev/e20.jpg"
+ },
+ {
+  "key": "e21",
+  "file": "Kazekage Hat.jpg",
+  "label": "Kazekage Hat",
+  "path": "refs/hair_ev/e21.jpg"
+ },
+ {
+  "key": "e22",
+  "file": "Sakura Young Hair.jpg",
+  "label": "Sakura (Young Ver.)",
+  "path": "refs/hair_ev/e22.jpg"
+ },
+ {
+  "key": "e23",
+  "file": "Chocho Hair.png",
+  "label": "Cho-Cho",
+  "path": "refs/hair_ev/e23.png"
+ },
+ {
+  "key": "e24",
+  "file": "Snowman Head.png",
+  "label": "Snowman",
+  "path": "refs/hair_ev/e24.png"
+ },
+ {
+  "key": "e25",
+  "file": "Wedding Veil.png",
+  "label": "Wedding Veil",
+  "path": "refs/hair_ev/e25.png"
+ },
+ {
+  "key": "e26",
+  "file": "Wasabi Hair.png",
+  "label": "Wasabi",
+  "path": "refs/hair_ev/e26.png"
+ },
+ {
+  "key": "e27",
+  "file": "Metal Lee Hair.png",
+  "label": "Metal Lee",
+  "path": "refs/hair_ev/e27.png"
+ },
+ {
+  "key": "e28",
+  "file": "Denki Hair.png",
+  "label": "Denki",
+  "path": "refs/hair_ev/e28.png"
+ },
+ {
+  "key": "e29",
+  "file": "Tsubaki Hair.png",
+  "label": "Tsubaki",
+  "path": "refs/hair_ev/e29.png"
+ },
+ {
+  "key": "e30",
+  "file": "Eida Hair.png",
+  "label": "Eida",
+  "path": "refs/hair_ev/e30.png"
+ },
+ {
+  "key": "e31",
+  "file": "Merz Hair.png",
+  "label": "Merz",
+  "path": "refs/hair_ev/e31.png"
+ },
+ {
+  "key": "e32",
+  "file": "Daemon Hair.png",
+  "label": "Daemon",
+  "path": "refs/hair_ev/e32.png"
+ },
+ {
+  "key": "e33",
+  "file": "Deidara Hair.png",
+  "label": "Deidara",
+  "path": "refs/hair_ev/e33.png"
+ },
+ {
+  "key": "e34",
+  "file": "Deidara No Headband.png",
+  "label": "Deidara (No Headband)",
+  "path": "refs/hair_ev/e34.png"
+ },
+ {
+  "key": "e35",
+  "file": "Utakata Hair.png",
+  "label": "Utakata",
+  "path": "refs/hair_ev/e35.png"
+ },
+ {
+  "key": "e36",
+  "file": "Shizune Hair.png",
+  "label": "Shizune",
+  "path": "refs/hair_ev/e36.png"
+ }
+]

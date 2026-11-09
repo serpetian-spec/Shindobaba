@@ -154,6 +154,34 @@ const HAIR_DONORS := {
 	"d43": ["", "", "d43"],
 	"d44": ["", "", "d44"],
 	"d45": ["", "", "d45"],
+	"e0": ["", "", "e0"],
+	"e2": ["", "", "e2"],
+	"e3": ["", "", "e3"],
+	"e4": ["", "", "e4"],
+	"e5": ["", "", "e5"],
+	"e6": ["", "", "e6"],
+	"e7": ["", "", "e7"],
+	"e8": ["", "", "e8"],
+	"e9": ["", "", "e9"],
+	"e10": ["", "", "e10"],
+	"e11": ["", "", "e11"],
+	"e12": ["", "", "e12"],
+	"e13": ["", "", "e13"],
+	"e14": ["", "", "e14"],
+	"e15": ["", "", "e15"],
+	"e22": ["", "", "e22"],
+	"e23": ["", "", "e23"],
+	"e26": ["", "", "e26"],
+	"e27": ["", "", "e27"],
+	"e28": ["", "", "e28"],
+	"e29": ["", "", "e29"],
+	"e30": ["", "", "e30"],
+	"e31": ["", "", "e31"],
+	"e32": ["", "", "e32"],
+	"e33": ["", "", "e33"],
+	"e34": ["", "", "e34"],
+	"e35": ["", "", "e35"],
+	"e36": ["", "", "e36"],
 }
 const VROID_SKIN := Color(0.99, 0.89, 0.82)  # VRoid doku ten rengi (oyuncu teni bununla oranlanır)
 static var _scenes := {}
@@ -3020,6 +3048,135 @@ func _accessories() -> void:
 			_mesh_on("Head", mk.build(Props.toon()), Transform3D.IDENTITY)
 			for sx in [-1.0, 1.0]:
 				dangle_strip("Head", kp + Vector3(0.012 * sx, -0.005, -0.005), Vector3(0.55 * sx + 0.25, -1.0, -0.35), 0.12, 0.06, hg, 0.25, Vector3(1, 0, 0), 0.004, null, 0.6)
+		"iwabe":   # Iwabe kepi (Striker Iwabe's Cap): kafayı saran beyaz sargı kep, tepede bez düğümü, çapraz koyu bağ, yanda sarkan iki ip
+			_band_ring_full()
+			var by = band_ring[0]
+			_helmet_shell(hg, by - 0.012, 0.06, 0.03)
+			hair_mask_plane(Vector3.UP, Vector3(0, by - 0.03, 0))
+			var tp = by
+			for q in _body_vs():
+				if absf(q.x - skull_c.x) < 0.05 and q.y > tp:
+					tp = q.y
+			var mk = MB.new()
+			mk.add("sphere", Vector3(skull_c.x + 0.01, tp + 0.04, skull_c.z - 0.01), Vector3(0.07, 0.04, 0.06), hg.lightened(0.05), Vector3(0, 0, 12), 10)
+			_mesh_on("Head", mk.build(Props.toon()), Transform3D.IDENTITY)
+			var dk = Color(0.1, 0.11, 0.16)
+			_skull_band(dk, by + 0.035, 0.022, 0.05, 0.018)
+			_skull_band(dk, by + 0.008, 0.02, 0.05, -0.014)
+			for q in 2:
+				dangle_strip("Head", Vector3(skull_c.x + hw * 0.6, by + 0.005, skull_c.z - 0.02), Vector3(0.2 + q * 0.15, -1.0, -0.2), 0.16 + q * 0.03, 0.007, dk, 0.2, Vector3(0, 0, 1), 0.004, null, 0.0)
+		"uyku":   # Naruto'nun uyku kepi (Striker Naruto's Nightcap): koyu lacivert kep, beyaz kıvrık manşet, önde çizgi film gözleri + burun
+			_band_ring_full()
+			var by = band_ring[0]
+			var cap = _helmet_shell(hg, by - 0.01, 0.06, 0.03)
+			hair_mask_plane(Vector3.UP, Vector3(0, by - 0.03, 0))
+			_skull_band(Color(0.93, 0.93, 0.92), by - 0.002, 0.04, 0.04)
+			var fr = _ring_r_at(PI * 0.5)
+			var mk = MB.new()
+			for sx in [-1.0, 1.0]:
+				var ep = Vector3(skull_c.x + sx * 0.042, by + 0.075, skull_c.z + fr + 0.02)
+				mk.add("sphere", ep, Vector3(0.042, 0.03, 0.01), Color(0.95, 0.95, 0.95), Vector3(-20, 0, 0), 12)
+				mk.add("sphere", ep + Vector3(0, 0, 0.004), Vector3(0.018, 0.016, 0.008), Color(0.06, 0.06, 0.08), Vector3(-20, 0, 0), 10)
+			mk.add("sphere", Vector3(skull_c.x, by + 0.02, skull_c.z + fr + 0.034), Vector3(0.026, 0.022, 0.014), Color(0.05, 0.05, 0.07), Vector3.ZERO, 10)
+			_mesh_on("Head", mk.build(Props.toon()), Transform3D.IDENTITY)
+		"samuray_s":   # Sasuke alın koruyucusu (Striker Samurai Sasuke): kafatasına oturan siyah başlık, alında Uchiha arması,
+			# şakaktan çeneye inen mor kordon (çene altında düğüm, iki püskül), yanlarda kısa sarkan kanatlar
+			_band_ring_full()
+			var by = band_ring[0]
+			_helmet_shell(hg, by + 0.004, 0.1, 0.012)
+			hair_mask_plane(Vector3.UP, Vector3(0, by - 0.01, 0))
+			var fr = _ring_r_at(PI * 0.5)
+			var mk = MB.new()
+			var cp = Vector3(skull_c.x, by + 0.045, skull_c.z + fr + 0.016)
+			mk.add("cyl", cp, Vector3(0.036, 0.004, 0.026), Color(0.8, 0.1, 0.1), Vector3(76, 0, 0), 16)
+			mk.add("box", cp + Vector3(0, -0.022, 0.004), Vector3(0.008, 0.022, 0.004), Color(0.93, 0.93, 0.92), Vector3(-14, 0, 0))
+			var chin = Vector3(skull_c.x, eye_center_model.y - 0.11, skull_c.z + fr * 0.55)
+			var lav = Color(0.62, 0.55, 0.78)
+			for sx in [-1.0, 1.0]:
+				var tmp = Vector3(skull_c.x + sx * (hw * 0.52), by - 0.02, skull_c.z + 0.01)
+				for q in 6:
+					var t0 = q / 6.0; var t1 = (q + 1) / 6.0
+					var a = tmp.lerp(chin, t0) + Vector3(sx * 0.012 * sin(t0 * PI), 0, 0.01 * sin(t0 * PI))
+					var b = tmp.lerp(chin, t1) + Vector3(sx * 0.012 * sin(t1 * PI), 0, 0.01 * sin(t1 * PI))
+					mk.add("cyl", (a + b) * 0.5, Vector3(0.006, a.distance_to(b) + 0.002, 0.006), lav, Vector3(rad_to_deg(atan2((b - a).z, -(b - a).y)), 0, -rad_to_deg(atan2((b - a).x, -(b - a).y))), 6)
+				dangle_strip("Head", Vector3(skull_c.x + sx * (hw * 0.56), by - 0.005, skull_c.z - 0.03), Vector3(sx * 0.6, -1.0, -0.4), 0.09, 0.05, hg, 0.3, Vector3(0, 0, 1), 0.004)
+			mk.add("sphere", chin, Vector3(0.016, 0.014, 0.014), lav, Vector3.ZERO, 8)
+			_mesh_on("Head", mk.build(Props.toon()), Transform3D.IDENTITY)
+			for sx in [-1.0, 1.0]:
+				dangle_strip("Head", chin + Vector3(sx * 0.008, -0.006, 0.004), Vector3(sx * 0.15, -1.0, 0.1), 0.1, 0.014, lav, 0.15, Vector3(1, 0, 0), 0.006, null, 0.0)
+		"samuray_k":   # Sakura alın koruyucusu (Striker Samurai Sakura): alnı örten koyu lacivert geniş bant (metal kenarlı), ensede beyaz bez bağ
+			_band_ring_full()
+			_hitai("Head", Vector3(skull_c.x, band_ring[0] + 0.012, skull_c.z), band_ring[1], hg, 0.052, 0.0, 0.0, 0.004, Vector3(0.25, -1.0, -0.6), false, 0.0, 0.0, 0.009)
+			hair_mask_band(band_ring[0] - 0.012, 0.06, 0.008)
+			for k in 3:
+				dangle_strip("Head", Vector3(skull_c.x + 0.02, band_ring[0] - 0.01, skull_c.z - _ring_r_at(-PI * 0.5) - 0.012), Vector3(0.3 + k * 0.15, -1.0, -0.5), 0.14 + k * 0.02, 0.05, Color(0.94, 0.94, 0.95), 0.25, Vector3(1, 0, 0), 0.004)
+		"kurbaga":   # Kurbağa başlığı (Striker Frog Head): yüzü açık bırakan koca yuvarlak kurbağa kapüşonu, tepede iki göz, yanaklarda pembe daire
+			_band_ring_full()
+			var by = band_ring[0]
+			_helmet_shell(hg, by + 0.012, 0.24, 0.05)   # önde alın kenarı (yüz açık), yan/arkada çeneye iner
+			hair_mask_plane(Vector3.UP, Vector3(0, by - 0.01, 0))
+			var tp = by
+			for q in _body_vs():
+				if absf(q.x - skull_c.x) < 0.05 and q.y > tp:
+					tp = q.y
+			var mk = MB.new()
+			for sx in [-1.0, 1.0]:
+				var ep = Vector3(skull_c.x + sx * hw * 0.48, tp + 0.03, skull_c.z + 0.02)
+				mk.add("sphere", ep, Vector3(0.075, 0.07, 0.07), hg, Vector3.ZERO, 12)
+				mk.add("sphere", ep + Vector3(0, 0.005, 0.034), Vector3(0.03, 0.03, 0.012), Color(0.06, 0.06, 0.08), Vector3.ZERO, 10)
+				mk.add("sphere", Vector3(skull_c.x + sx * (hw * 0.62 + 0.04), eye_center_model.y - 0.02, skull_c.z + 0.05), Vector3(0.012, 0.04, 0.06), Color(0.98, 0.62, 0.6), Vector3.ZERO, 12)
+			mk.add("sphere", Vector3(skull_c.x, eye_center_model.y - 0.13, skull_c.z - 0.02), Vector3(hw * 1.5, 0.08, hw * 1.25), hg, Vector3.ZERO, 14)
+			_mesh_on("Head", mk.build(Props.toon()), Transform3D.IDENTITY)
+		"han":   # Han şapkası (Striker Han Hat): geniş gri hasır koni, alın bandı, kulakları ve çeneyi örten mor bez sarkıtlar
+			_band_ring_full()
+			var R = hw * 1.75
+			var by0 = eye_center_model.y + 0.05
+			var top_need = 0.0
+			for q in _body_vs():
+				if absf(q.x - hcen.x) < 0.05 and q.y > hcen.y:
+					top_need = maxf(top_need, q.y)
+			var H = maxf(R * 0.42, (top_need + 0.02 - by0) / 0.55)
+			_cone_hat(Vector3(hcen.x, by0, hcen.z - 0.01), R, H, Color(0.74, 0.75, 0.78), Color(0.5, 0.52, 0.56), 40, Color(0.22, 0.16, 0.12))
+			hair_mask_plane(Vector3.UP, Vector3(0, by0 + 0.01, 0))
+			var pur = Color(0.48, 0.42, 0.66)
+			for k in 9:
+				var deg = lerpf(55.0, 305.0, (k + 0.5) / 9.0)
+				var a = deg_to_rad(deg)
+				var out = Vector3(sin(a), 0, cos(a))
+				dangle_strip("Head", Vector3(hcen.x, by0 - 0.02, hcen.z - 0.01) + out * (hw * 0.62), (Vector3.DOWN + out * 0.15).normalized(), hh * 1.4, 0.075, pur.darkened(0.05 * (k % 2)), 0.35, out.cross(Vector3.UP).normalized(), 0.004, null, 0.0)
+		"kardan":   # Kardan adam (Striker Snowman): başı tümüyle örten beyaz kar topu yüz, kömür gözler + gülüş, havuç burun, sarı kova
+			_band_ring_full()
+			var hcm = Vector3(skull_c.x, eye_center_model.y - 0.01, skull_c.z + 0.01)
+			var rr = hh * 0.85 + 0.03
+			var mk = MB.new()
+			mk.add("sphere", hcm, Vector3(rr * 2.1, rr * 2.0, rr * 2.0), Color(0.97, 0.97, 0.98), Vector3.ZERO, 18)
+			var fz = rr * 0.98
+			for sx in [-1.0, 1.0]:
+				mk.add("sphere", hcm + Vector3(sx * rr * 0.38, rr * 0.25, fz * 0.92), Vector3(0.045, 0.05, 0.02), Color(0.05, 0.05, 0.06), Vector3.ZERO, 10)
+			mk.add("sphere", hcm + Vector3(0, 0, fz + 0.01), Vector3(0.05, 0.045, 0.05), Color(0.95, 0.35, 0.12), Vector3.ZERO, 10)
+			for k in 7:
+				var t = (k - 3) / 3.0
+				mk.add("sphere", hcm + Vector3(t * rr * 0.5, -rr * 0.35 - 0.05 * (1.0 - t * t) * 0.6, fz * (0.86 + 0.06 * (1.0 - absf(t)))), Vector3(0.024, 0.024, 0.014), Color(0.05, 0.05, 0.06), Vector3.ZERO, 8)
+			mk.add("cyl", hcm + Vector3(0.03, rr * 1.05, -0.02), Vector3(rr * 0.85, rr * 0.75, rr * 0.85), Color(0.92, 0.78, 0.25), Vector3(0, 0, -14), 14)
+			_mesh_on("Head", mk.build(Props.toon()), Transform3D.IDENTITY)
+			hair_mask_plane(Vector3.UP, Vector3(0, -10.0, 0))   # saç tümüyle top içinde
+		"gelin":   # Gelin duvağı (Striker Wedding Veil): başa oturan yeşil örgü kep + başı ve sırtı örten, bele inen bej kapüşonlu duvak
+			_band_ring_full()
+			var by = band_ring[0]
+			_helmet_shell(Color(0.2, 0.3, 0.24), by + 0.02, 0.07, 0.026)
+			hair_mask_plane(Vector3.UP, Vector3(0, by, 0))
+			var tp = by
+			for q in _body_vs():
+				if absf(q.x - skull_c.x) < 0.05 and q.y > tp:
+					tp = q.y
+			var nst = 26
+			for k in nst:
+				var deg = lerpf(40.0, 320.0, (k + 0.5) / nst)
+				var a = deg_to_rad(deg)
+				var out = Vector3(sin(a), 0, cos(a))
+				var back = maxf(0.0, -cos(a))
+				var root = Vector3(skull_c.x, tp - 0.02 - (1.0 - back) * 0.05, skull_c.z - 0.01) + out * (hw * 0.62 + 0.035)
+				dangle_strip("Head", root, (Vector3.DOWN + out * 0.07).normalized(), 0.42 + back * 0.2, TAU * hw * 0.7 / nst * 1.35, hg.darkened(0.04 * (k % 2)), 0.35, out.cross(Vector3.UP).normalized(), 0.003, null, 0.0)
 		"bandaj":
 			# alnı saran sargı: iki kat (biri hafif eğik), ensede kısa sarkan uç
 			var ybj = cloth_band(hg, 0.004, 0.034, 0.1, 0.026, 0.004)
@@ -3277,9 +3434,9 @@ const HAIR_FILES := {
 	"geriye": "Hair_Buzzed", "orgu": "Hair_Buzzed", "mohikan": "Hair_Buzzed", "kel": "", "kirpik": "Hair_Buzzed", "kisa_kakul": "Hair_Buzzed",
 }
 ## Saç stilleri (arayüzde gösterilen adlar)
-const HAIR_STYLES := {"kısa": "Kısa", "kase": "Kâse", "uzun": "Uzun", "s1": "Dağınık Diken", "s2": "Dikenli Taç", "s3": "Yatık Diken", "s4": "Alev Yelpaze", "s5": "Düz Kuyruk", "s6": "Örtük Kâkül", "s7": "Yan Alev", "s8": "Ananas Kuyruk", "s9": "Kâse Kesim", "s10": "Dikenli Yele", "s11": "Düz Kısa", "s12": "Sık Diken", "s13": "Kısa Kirpi", "s14": "Geri Diken", "s15": "Uzun Perde", "s16": "Ördek Kuyruğu", "s17": "Yan Tarama", "s18": "Dik Fırça", "s19": "Savruk Diken", "s20": "Katlı Uç", "s21": "Tepe Kuyruk", "s22": "Geri Tarama", "s23": "Kısa Geri", "s24": "Dağınık Kısa", "f1": "Yan Ayrık Kısa", "f2": "Uzun Düz", "f3": "Uzun Dağınık", "f4": "Prenses Kâkül", "f5": "Dalgalı Uzun", "f6": "Dikenli Kuyruk", "f7": "Yan Kâkül Kuyruk", "f8": "Çift Topuz", "f9": "Dörtlü Kuyruk", "f10": "Kabarık Bere", "f11": "Düz Kesik Kısa", "f12": "Kısa Prenses", "f13": "Bantlı Kısa", "f14": "Açık Alın Kısa", "f15": "Topuz Kâkül", "f16": "Uzun Ayrık", "f17": "Örtük Kısa", "f18": "Küçük Prenses", "f19": "Uzun Kuyruk", "f20": "Alçak Kuyruk", "f21": "Kâküllü Kısa", "f22": "Arka Topuz", "f23": "Yana Kısa", "f24": "Tepe Topuz", "d0": "Yele Diken", "d1": "Uzun Yılan", "d2": "Çift Alçak Kuyruk", "d3": "Dev Yele", "d4": "Dağınık Kirpi", "d5": "Uzun Orman", "d6": "Dik Geri", "d8": "Sarı Şimşek", "d9": "Sert Kısa", "d10": "Topuz Perde", "d11": "Uzun Açık", "d14": "Gezgin Kâkül", "d15": "Geri Uzun", "d16": "Örtük Kuyruk", "d17": "Parlak Kâse", "d18": "Topuz Örtük", "d20": "Kabarık Kısa", "d22": "Hokage Dikeni", "d23": "Uzun Ayrık Düz", "d24": "Açık Alın Uzun", "d25": "Kıvırcık Kısa", "d26": "Dik Kısa", "d27": "Sivri Kâkül", "d28": "Savaş Sonrası Bob", "d29": "Asimetrik Bob", "d30": "Omuz Düz", "d32": "Alçak Kuyruk Uzun", "d33": "Kadim Diken", "d34": "Altı Yol Yelesi", "d35": "Dört Tutam", "d36": "Genç Dik", "d37": "Çift Uzun Kuyruk", "d39": "Görev Uzun", "d40": "Yere Uzun", "d41": "Kıvrık Tepe", "d42": "Savruk Dağınık", "d43": "Kukla Bob", "d44": "Yan Geri", "d45": "Dağınık Örtük"}
+const HAIR_STYLES := {"kısa": "Kısa", "kase": "Kâse", "uzun": "Uzun", "s1": "Dağınık Diken", "s2": "Dikenli Taç", "s3": "Yatık Diken", "s4": "Alev Yelpaze", "s5": "Düz Kuyruk", "s6": "Örtük Kâkül", "s7": "Yan Alev", "s8": "Ananas Kuyruk", "s9": "Kâse Kesim", "s10": "Dikenli Yele", "s11": "Düz Kısa", "s12": "Sık Diken", "s13": "Kısa Kirpi", "s14": "Geri Diken", "s15": "Uzun Perde", "s16": "Ördek Kuyruğu", "s17": "Yan Tarama", "s18": "Dik Fırça", "s19": "Savruk Diken", "s20": "Katlı Uç", "s21": "Tepe Kuyruk", "s22": "Geri Tarama", "s23": "Kısa Geri", "s24": "Dağınık Kısa", "f1": "Yan Ayrık Kısa", "f2": "Uzun Düz", "f3": "Uzun Dağınık", "f4": "Prenses Kâkül", "f5": "Dalgalı Uzun", "f6": "Dikenli Kuyruk", "f7": "Yan Kâkül Kuyruk", "f8": "Çift Topuz", "f9": "Dörtlü Kuyruk", "f10": "Kabarık Bere", "f11": "Düz Kesik Kısa", "f12": "Kısa Prenses", "f13": "Bantlı Kısa", "f14": "Açık Alın Kısa", "f15": "Topuz Kâkül", "f16": "Uzun Ayrık", "f17": "Örtük Kısa", "f18": "Küçük Prenses", "f19": "Uzun Kuyruk", "f20": "Alçak Kuyruk", "f21": "Kâküllü Kısa", "f22": "Arka Topuz", "f23": "Yana Kısa", "f24": "Tepe Topuz", "d0": "Yele Diken", "d1": "Uzun Yılan", "d2": "Çift Alçak Kuyruk", "d3": "Dev Yele", "d4": "Dağınık Kirpi", "d5": "Uzun Orman", "d6": "Dik Geri", "d8": "Sarı Şimşek", "d9": "Sert Kısa", "d10": "Topuz Perde", "d11": "Uzun Açık", "d14": "Gezgin Kâkül", "d15": "Geri Uzun", "d16": "Örtük Kuyruk", "d17": "Parlak Kâse", "d18": "Topuz Örtük", "d20": "Kabarık Kısa", "d22": "Hokage Dikeni", "d23": "Uzun Ayrık Düz", "d24": "Açık Alın Uzun", "d25": "Kıvırcık Kısa", "d26": "Dik Kısa", "d27": "Sivri Kâkül", "d28": "Savaş Sonrası Bob", "d29": "Asimetrik Bob", "d30": "Omuz Düz", "d32": "Alçak Kuyruk Uzun", "d33": "Kadim Diken", "d34": "Altı Yol Yelesi", "d35": "Dört Tutam", "d36": "Genç Dik", "d37": "Çift Uzun Kuyruk", "d39": "Görev Uzun", "d40": "Yere Uzun", "d41": "Kıvrık Tepe", "d42": "Savruk Dağınık", "d43": "Kukla Bob", "d44": "Yan Geri", "d45": "Dağınık Örtük", "e0": "Ananas Topuz", "e2": "Akademi Düz", "e3": "ANBU Tutam", "e4": "Genç Diken", "e5": "Ördek Kuyruğu", "e6": "Geriye Taralı", "e7": "Topuz", "e8": "Uzun Ayrık Perde", "e9": "Kemik Ayrık", "e10": "Vahşi Diken", "e11": "Genin Düz", "e12": "Yan Kâkül Uzun", "e13": "Genç Yan Alev", "e14": "Genç Uzun", "e15": "Küçük Bob", "e22": "Geniş Alın Uzun", "e23": "Kabarık Örtük", "e26": "Kabarık Kısa Kâkül", "e27": "Kabarık Kâse", "e28": "Kâkül Kuyruk", "e29": "Yüksek Kuyruk", "e30": "Uzun Prenses", "e31": "Omuz Ayrık", "e32": "Kedi Kâse", "e33": "Patlayıcı Kuyruk", "e34": "Patlayıcı Tutam", "e35": "Köpük Örtük", "e36": "Dağınık Kısa"}
 ## Saç cinsiyeti: Striker görselindeki MODELİN cinsiyeti (saçın sahibi karakterin adı değil — "Tsunade/Kaguya" erkek modelde). (kullanıcı 2026-11-09: kadın saçı kadınlara, erkek saçı erkeklere; yazılmayan = unisex)
-const HAIR_GENDER := {"s1": "m", "s2": "m", "s3": "m", "s4": "m", "s5": "m", "s6": "m", "s7": "m", "s8": "m", "s9": "m", "s10": "m", "s11": "m", "s12": "m", "s13": "m", "s14": "m", "s15": "m", "s16": "m", "s17": "m", "s18": "m", "s19": "m", "s20": "m", "s21": "m", "s22": "m", "s23": "m", "s24": "m", "f1": "f", "f2": "f", "f3": "f", "f4": "f", "f5": "f", "f6": "f", "f7": "f", "f8": "f", "f9": "f", "f10": "f", "f11": "f", "f12": "f", "f13": "f", "f14": "f", "f15": "f", "f16": "f", "f17": "f", "f18": "f", "f19": "f", "f20": "f", "f21": "f", "f22": "f", "f23": "f", "f24": "f", "d0": "m", "d1": "m", "d2": "m", "d3": "m", "d4": "m", "d5": "m", "d6": "m", "d8": "m", "d9": "m", "d14": "m", "d15": "m", "d16": "m", "d17": "m", "d18": "m", "d20": "m", "d22": "m", "d23": "m", "d24": "m", "d25": "m", "d26": "m", "d27": "m", "d28": "m", "d29": "m", "d30": "m", "d32": "m", "d33": "m", "d34": "m", "d35": "f", "d36": "m", "d37": "f", "d39": "m", "d40": "m", "d41": "m", "d42": "m", "d43": "m", "d44": "m", "d45": "m", "d10": "m", "d11": "m"}
+const HAIR_GENDER := {"s1": "m", "s2": "m", "s3": "m", "s4": "m", "s5": "m", "s6": "m", "s7": "m", "s8": "m", "s9": "m", "s10": "m", "s11": "m", "s12": "m", "s13": "m", "s14": "m", "s15": "m", "s16": "m", "s17": "m", "s18": "m", "s19": "m", "s20": "m", "s21": "m", "s22": "m", "s23": "m", "s24": "m", "f1": "f", "f2": "f", "f3": "f", "f4": "f", "f5": "f", "f6": "f", "f7": "f", "f8": "f", "f9": "f", "f10": "f", "f11": "f", "f12": "f", "f13": "f", "f14": "f", "f15": "f", "f16": "f", "f17": "f", "f18": "f", "f19": "f", "f20": "f", "f21": "f", "f22": "f", "f23": "f", "f24": "f", "d0": "m", "d1": "m", "d2": "m", "d3": "m", "d4": "m", "d5": "m", "d6": "m", "d8": "m", "d9": "m", "d14": "m", "d15": "m", "d16": "m", "d17": "m", "d18": "m", "d20": "m", "d22": "m", "d23": "m", "d24": "m", "d25": "m", "d26": "m", "d27": "m", "d28": "m", "d29": "m", "d30": "m", "d32": "m", "d33": "m", "d34": "m", "d35": "f", "d36": "m", "d37": "f", "d39": "m", "d40": "m", "d41": "m", "d42": "m", "d43": "m", "d44": "m", "d45": "m", "e0": "m", "e2": "f", "e3": "m", "e4": "m", "e5": "m", "e6": "m", "e7": "f", "e8": "m", "e9": "m", "e10": "m", "e11": "f", "e12": "f", "e13": "m", "e14": "m", "e15": "f", "e22": "f", "e23": "m", "e26": "m", "e27": "m", "e28": "m", "e29": "m", "e30": "m", "e31": "m", "e32": "m", "e33": "m", "e34": "m", "e35": "m", "e36": "m", "d10": "m", "d11": "m"}
 
 ## NPC saçı: cinsiyete uygun anime saçlarından, görünüşe göre SABİT seçim (aynı kişi her kurulumda aynı saç)
 static func npc_hair(lk: Dictionary) -> String:
@@ -4770,6 +4927,51 @@ var _sk_key := ""
 static var _ringfull_cache := {}   # yüz/cinsiyet/yaş -> tam bant halkası (gövde taraması her NPC'de tekrarlanmasın)
 static var _top_cache := {}
 static var _fmap_cache := {}
+## Başın gerçek yüzeyini (kask kabuğuyla aynı ölçüm) saran bez şerit: y yüksekliğinde, h kalın, pad dışarı; tilt: yana eğim
+func _skull_band(col: Color, y: float, h: float, pad: float, tilt := 0.0) -> MeshInstance3D:
+	AnimeHair._c = skull_c; AnimeHair._r = skull_r; AnimeHair._grid = _head_radial(); AnimeHair._band_y = -INF
+	var NA = 56
+	var pts = []
+	for k in NA + 1:
+		var yw = float(k % NA) / NA * 360.0 - 180.0
+		var yy = y + tilt * sin(deg_to_rad(yw))
+		var rad = 0.08
+		var pp = 0.0
+		while pp < 150.0:
+			var dd = AnimeHair._dir(yw, pp)
+			var q = skull_c + dd * AnimeHair._real_r(dd)
+			if q.y < yy:
+				rad = Vector2(q.x - skull_c.x, q.z - skull_c.z).length()
+				break
+			pp += 2.0
+		var dh = AnimeHair._dir(yw, 90.0)
+		dh.y = 0.0
+		dh = dh.normalized()
+		pts.append([Vector3(skull_c.x, yy, skull_c.z) + dh * (rad + pad), dh])
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	st.set_color(col)
+	for k in NA:
+		var a0: Vector3 = pts[k][0]; var a1: Vector3 = pts[k + 1][0]
+		var u = Vector3(0, h * 0.5, 0)
+		var o = [a0 - u, a1 - u, a1 + u, a0 + u]
+		for idx in [0, 2, 1, 0, 3, 2, 0, 1, 2, 0, 2, 3]:
+			st.add_vertex(o[idx])
+	st.generate_normals()
+	var bm = st.commit()
+	bm.surface_set_material(0, Props.toon())   # köşe rengi (varsayılan malzeme beyaz çiziyordu)
+	return _mesh_on("Head", bm, Transform3D.IDENTITY)
+
+
+## Alın bandı halkasının a açısındaki yarıçapı (a: PI*0.5 = ön, -PI*0.5 = arka; teuchi ile aynı dizinleme)
+func _ring_r_at(a: float) -> float:
+	_band_ring_full()
+	if band_ring.is_empty():
+		return 0.1
+	var rr: PackedFloat32Array = band_ring[1]
+	return float(rr[int(floor(wrapf(a + PI, 0.0, TAU) / TAU * rr.size())) % rr.size()])
+
+
 func _band_ring_full() -> void:
 	if _ring_full or band_ring.is_empty() or body_mesh == null or body_mesh.mesh == null:
 		return

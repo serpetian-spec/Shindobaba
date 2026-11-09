@@ -6,7 +6,7 @@ extends RefCounted
 ## kalır: iki ayrı saç üst üste değil, tek bir saç kütlesi gibi okunur. Model uzayında üretilir (Head kemiğine bağlanır).
 ## Açı kuralı: yaw 0 = yüz (+Z), pitch 0 = tepe; c/r = kafatası elipsoidi (CharacterModel._measure_skull).
 
-const STYLES := {"s1": "Dağınık Diken", "s2": "Dikenli Taç", "s3": "Yatık Diken", "s4": "Alev Yelpaze", "s5": "Düz Kuyruk", "s6": "Örtük Kâkül", "s7": "Yan Alev", "s8": "Ananas Kuyruk", "s9": "Kâse Kesim", "s10": "Dikenli Yele", "s11": "Düz Kısa", "s12": "Sık Diken", "s13": "Kısa Kirpi", "s14": "Geri Diken", "s15": "Uzun Perde", "s16": "Ördek Kuyruğu", "s17": "Yan Tarama", "s18": "Dik Fırça", "s19": "Savruk Diken", "s20": "Katlı Uç", "s21": "Tepe Kuyruk", "s22": "Geri Tarama", "s23": "Kısa Geri", "s24": "Dağınık Kısa", "f1": "Yan Ayrık Kısa", "f2": "Uzun Düz", "f3": "Uzun Dağınık", "f4": "Prenses Kâkül", "f5": "Dalgalı Uzun", "f6": "Dikenli Kuyruk", "f7": "Yan Kâkül Kuyruk", "f8": "Çift Topuz", "f9": "Dörtlü Kuyruk", "f10": "Kabarık Bere", "f11": "Düz Kesik Kısa", "f12": "Kısa Prenses", "f13": "Bantlı Kısa", "f14": "Açık Alın Kısa", "f15": "Topuz Kâkül", "f16": "Uzun Ayrık", "f17": "Örtük Kısa", "f18": "Küçük Prenses", "f19": "Uzun Kuyruk", "f20": "Alçak Kuyruk", "f21": "Kâküllü Kısa", "f22": "Arka Topuz", "f23": "Yana Kısa", "f24": "Tepe Topuz", "d0": "Yele Diken", "d1": "Uzun Yılan", "d2": "Çift Alçak Kuyruk", "d3": "Dev Yele", "d4": "Dağınık Kirpi", "d5": "Uzun Orman", "d6": "Dik Geri", "d8": "Sarı Şimşek", "d9": "Sert Kısa", "d10": "Topuz Perde", "d11": "Uzun Açık", "d14": "Gezgin Kâkül", "d15": "Geri Uzun", "d16": "Örtük Kuyruk", "d17": "Parlak Kâse", "d18": "Topuz Örtük", "d20": "Kabarık Kısa", "d22": "Hokage Dikeni", "d23": "Uzun Ayrık Düz", "d24": "Açık Alın Uzun", "d25": "Kıvırcık Kısa", "d26": "Dik Kısa", "d27": "Sivri Kâkül", "d28": "Savaş Sonrası Bob", "d29": "Asimetrik Bob", "d30": "Omuz Düz", "d32": "Alçak Kuyruk Uzun", "d33": "Kadim Diken", "d34": "Altı Yol Yelesi", "d35": "Dört Tutam", "d36": "Genç Dik", "d37": "Çift Uzun Kuyruk", "d39": "Görev Uzun", "d40": "Yere Uzun", "d41": "Kıvrık Tepe", "d42": "Savruk Dağınık", "d43": "Kukla Bob", "d44": "Yan Geri", "d45": "Dağınık Örtük"}
+const STYLES := {"s1": "Dağınık Diken", "s2": "Dikenli Taç", "s3": "Yatık Diken", "s4": "Alev Yelpaze", "s5": "Düz Kuyruk", "s6": "Örtük Kâkül", "s7": "Yan Alev", "s8": "Ananas Kuyruk", "s9": "Kâse Kesim", "s10": "Dikenli Yele", "s11": "Düz Kısa", "s12": "Sık Diken", "s13": "Kısa Kirpi", "s14": "Geri Diken", "s15": "Uzun Perde", "s16": "Ördek Kuyruğu", "s17": "Yan Tarama", "s18": "Dik Fırça", "s19": "Savruk Diken", "s20": "Katlı Uç", "s21": "Tepe Kuyruk", "s22": "Geri Tarama", "s23": "Kısa Geri", "s24": "Dağınık Kısa", "f1": "Yan Ayrık Kısa", "f2": "Uzun Düz", "f3": "Uzun Dağınık", "f4": "Prenses Kâkül", "f5": "Dalgalı Uzun", "f6": "Dikenli Kuyruk", "f7": "Yan Kâkül Kuyruk", "f8": "Çift Topuz", "f9": "Dörtlü Kuyruk", "f10": "Kabarık Bere", "f11": "Düz Kesik Kısa", "f12": "Kısa Prenses", "f13": "Bantlı Kısa", "f14": "Açık Alın Kısa", "f15": "Topuz Kâkül", "f16": "Uzun Ayrık", "f17": "Örtük Kısa", "f18": "Küçük Prenses", "f19": "Uzun Kuyruk", "f20": "Alçak Kuyruk", "f21": "Kâküllü Kısa", "f22": "Arka Topuz", "f23": "Yana Kısa", "f24": "Tepe Topuz", "d0": "Yele Diken", "d1": "Uzun Yılan", "d2": "Çift Alçak Kuyruk", "d3": "Dev Yele", "d4": "Dağınık Kirpi", "d5": "Uzun Orman", "d6": "Dik Geri", "d8": "Sarı Şimşek", "d9": "Sert Kısa", "d10": "Topuz Perde", "d11": "Uzun Açık", "d14": "Gezgin Kâkül", "d15": "Geri Uzun", "d16": "Örtük Kuyruk", "d17": "Parlak Kâse", "d18": "Topuz Örtük", "d20": "Kabarık Kısa", "d22": "Hokage Dikeni", "d23": "Uzun Ayrık Düz", "d24": "Açık Alın Uzun", "d25": "Kıvırcık Kısa", "d26": "Dik Kısa", "d27": "Sivri Kâkül", "d28": "Savaş Sonrası Bob", "d29": "Asimetrik Bob", "d30": "Omuz Düz", "d32": "Alçak Kuyruk Uzun", "d33": "Kadim Diken", "d34": "Altı Yol Yelesi", "d35": "Dört Tutam", "d36": "Genç Dik", "d37": "Çift Uzun Kuyruk", "d39": "Görev Uzun", "d40": "Yere Uzun", "d41": "Kıvrık Tepe", "d42": "Savruk Dağınık", "d43": "Kukla Bob", "d44": "Yan Geri", "d45": "Dağınık Örtük", "e0": "Ananas Topuz", "e2": "Akademi Düz", "e3": "ANBU Tutam", "e4": "Genç Diken", "e5": "Ördek Kuyruğu", "e6": "Geriye Taralı", "e7": "Topuz", "e8": "Uzun Ayrık Perde", "e9": "Kemik Ayrık", "e10": "Vahşi Diken", "e11": "Genin Düz", "e12": "Yan Kâkül Uzun", "e13": "Genç Yan Alev", "e14": "Genç Uzun", "e15": "Küçük Bob", "e22": "Geniş Alın Uzun", "e23": "Kabarık Örtük", "e26": "Kabarık Kısa Kâkül", "e27": "Kabarık Kâse", "e28": "Kâkül Kuyruk", "e29": "Yüksek Kuyruk", "e30": "Uzun Prenses", "e31": "Omuz Ayrık", "e32": "Kedi Kâse", "e33": "Patlayıcı Kuyruk", "e34": "Patlayıcı Tutam", "e35": "Köpük Örtük", "e36": "Dağınık Kısa"}
 
 static var _st: SurfaceTool
 static var _c: Vector3
@@ -268,6 +268,62 @@ static func build(style: String, c: Vector3, r: Vector3, banded := false, band_y
 			_d44()
 		"d45":
 			_d45()
+		"e0":
+			_e0()
+		"e2":
+			_e2()
+		"e3":
+			_e3()
+		"e4":
+			_e4()
+		"e5":
+			_e5()
+		"e6":
+			_e6()
+		"e7":
+			_e7()
+		"e8":
+			_e8()
+		"e9":
+			_e9()
+		"e10":
+			_e10()
+		"e11":
+			_e11()
+		"e12":
+			_e12()
+		"e13":
+			_e13()
+		"e14":
+			_e14()
+		"e15":
+			_e15()
+		"e22":
+			_e22()
+		"e23":
+			_e23()
+		"e26":
+			_e26()
+		"e27":
+			_e27()
+		"e28":
+			_e28()
+		"e29":
+			_e29()
+		"e30":
+			_e30()
+		"e31":
+			_e31()
+		"e32":
+			_e32()
+		"e33":
+			_e33()
+		"e34":
+			_e34()
+		"e35":
+			_e35()
+		"e36":
+			_e36()
 	_st.generate_normals()
 	return _st.commit()
 
@@ -2415,4 +2471,139 @@ static func _d44() -> void:   # Amado: kısa, yandan ayrık, geriye-yana taranm�
 
 static func _d45() -> void:   # Kagami: kısa dağınık, göze kâkül, yan tutamlar
 	_spiky({"L": 0.5, "up": 0.3, "splay": 0.35, "jit": 0.3, "face": 136.0, "bang": "spiky", "bang_len": 112.0})
+
+
+# ------------------------------------------------------------------ Online etkinlik ödülü saçları (refs/hair_ev, v1)
+static func _e0() -> void:   # Shikadai: kısa yanlar, tepede yukarı dikilen dikenli ananas topuzu, iki yan tutam
+	_bob({"front": 74.0, "side": 104.0, "back": 102.0, "curtain": 0.0, "bang": "none"})
+	var tie = _c + _dir(180.0, 22.0) * (_real_r(_dir(180.0, 22.0)) + 0.01)
+	for k in 9:
+		var a = TAU * k / 9.0
+		var dir = (Vector3.UP * 1.0 + Vector3(0, 0, -0.35) + Vector3(cos(a), 0, sin(a)) * 0.55).normalized()
+		var pts = []
+		for q in 9:
+			pts.append(tie + dir * 0.11 * q / 8.0)
+		_ribbon(pts, 0.05, 0.42)
+	for sx in [-1.0, 1.0]:
+		_flow(sx * 60.0, 70.0, sx * 64.0, 118.0, 0.05, 0.1, 0.3)
+
+
+static func _e2() -> void:   # Sumire (Akademi): uzun düz, düz kesik kâkül, yüz çerçevesi
+	_long({"front": 70.0, "side": 154.0, "back": 150.0, "curtain": 96.0, "bang": "hime", "bang_len": 112.0, "face": 154.0, "drop": 0.3, "front_drop": 0.2})
+
+
+static func _e3() -> void:   # Itachi (ANBU): orta boy, ortadan ayrık uzun yüz tutamları, ensede kısa kuyruk
+	_long({"front": 66.0, "side": 146.0, "back": 120.0, "curtain": 96.0, "bang": "center", "bang_len": 118.0, "face": 150.0})
+	_ponytail(180.0, 100.0, 0.2, 0.03, 4)
+
+
+static func _e4() -> void:   # Naruto (genç): kısa sivri dikenler her yöne, sivri kâkül
+	_spiky({"L": 0.62, "up": 0.6, "splay": 0.5, "jit": 0.2, "bang": "spiky", "bang_len": 100.0})
+
+
+static func _e5() -> void:   # Sasuke (genç): arkada yukarı kalkık ördek kuyruğu dikenleri, çeneye inen iki uzun yüz tutamı
+	_spiky({"L": 0.62, "up": 0.35, "back": 0.75, "splay": 0.25, "face": 146.0, "bang": "spiky", "bang_len": 112.0})
+
+
+static func _e6() -> void:   # Geriye taranmış (erkek): kısa, alın açık, tepeden enseye yatık
+	_bob({"front": 58.0, "side": 102.0, "back": 112.0, "curtain": 0.0, "bang": "none", "ragged": 3.0})
+
+
+static func _e7() -> void:   # Topuz (kadın): başın arkasında yüksek topuz, iki ince yüz tutamı
+	_bob({"front": 66.0, "side": 108.0, "back": 104.0, "curtain": 0.0, "bang": "none"})
+	_bun(180.0, 40.0, 0.06)
+	for sx in [-1.0, 1.0]:
+		_flow(sx * 38.0, 60.0, sx * 44.0, 140.0, 0.04, 0.05, 0.25)
+
+
+static func _e8() -> void:   # Tayuya: uzun düz, ortadan ayrık, omuzdan sarkan perde
+	_long({"front": 64.0, "side": 156.0, "back": 150.0, "curtain": 94.0, "bang": "center", "bang_len": 108.0, "face": 156.0, "drop": 0.32, "front_drop": 0.22})
+
+
+static func _e9() -> void:   # Kimimaro: omuz boyu düz, ortadan ayrık, çeneye inen kâkül tutamları
+	_long({"front": 60.0, "side": 152.0, "back": 140.0, "curtain": 94.0, "bang": "center", "bang_len": 130.0, "face": 154.0, "drop": 0.14})
+
+
+static func _e10() -> void:   # Kagemasa: iri, dağınık, yana ve arkaya fırlayan büyük dikenler, göze kâkül
+	_spiky({"L": 1.0, "up": 0.4, "back": 0.5, "splay": 0.6, "jit": 0.3, "face": 140.0, "bang": "spiky", "bang_len": 116.0})
+
+
+static func _e11() -> void:   # Sumire (genin): uzun düz, ortadan ayrık kâkül, yüz çerçevesi
+	_long({"front": 66.0, "side": 154.0, "back": 150.0, "curtain": 94.0, "bang": "center", "bang_len": 110.0, "face": 154.0, "drop": 0.3, "front_drop": 0.16})
+
+
+static func _e12() -> void:   # Hanabi (Boruto): uzun, gözün yanından inen yan kâkül, uzun yüz tutamları
+	_long({"front": 62.0, "side": 156.0, "back": 150.0, "curtain": 94.0, "bang": "side", "bang_len": 126.0, "part": -24.0, "face": 158.0, "drop": 0.36, "front_drop": 0.24})
+
+
+static func _e13() -> void:   # Kakashi (Gaiden): genç, sola yatık büyük dikenler, alına sivri kâkül
+	_spiky({"L": 0.85, "up": 0.6, "lean": Vector3(0.3, 0, 0), "splay": 0.45, "jit": 0.25, "bang": "spiky", "bang_len": 106.0})
+
+
+static func _e14() -> void:   # Neji (genç): uzun düz, ortadan ayrık, yüz çerçevesi, ensede bağlı
+	_long({"front": 62.0, "side": 154.0, "back": 140.0, "curtain": 94.0, "bang": "center", "bang_len": 108.0, "face": 154.0, "drop": 0.22})
+
+
+static func _e15() -> void:   # Himawari: çene boyu bob, düz kesik kâkül, tepede iki kalkık tutam
+	_bob({"bang": "hime", "bang_len": 106.0, "side": 128.0, "back": 120.0, "face": 132.0})
+	_shard(0.0, 14.0, Vector3.UP + Vector3(0, 0, 0.3), 0.45, 0.35, 0.4)
+	_shard(20.0, 18.0, Vector3.UP + Vector3(0.2, 0, 0.2), 0.35, 0.3, 0.4)
+
+
+static func _e22() -> void:   # Sakura (genç): uzun düz, geniş alın, ortadan ayrık uzun yüz tutamları
+	_long({"front": 58.0, "side": 154.0, "back": 150.0, "curtain": 94.0, "bang": "center", "bang_len": 104.0, "face": 156.0, "drop": 0.3, "front_drop": 0.2})
+
+
+static func _e23() -> void:   # Cho-Chō: iri kabarık dikenli tepe, bir gözü örten uzun yan kâkül, uzun arka
+	_spiky({"L": 0.9, "up": 0.55, "back": 0.4, "splay": 0.55, "hang": 1.3, "cover": 1.0})
+
+
+static func _e26() -> void:   # Wasabi: kısa kabarık, alnı örten kâkül, yanlardan kıvrık uçlar
+	_bob({"front": 80.0, "side": 116.0, "back": 112.0, "curtain": 0.0, "bang": "spiky", "bang_len": 100.0, "ragged": 6.0})
+
+
+static func _e27() -> void:   # Metal Lee: kabarık kâse kesim
+	_s9()
+
+
+static func _e28() -> void:   # Denki: kısa, alnı örten düz kâkül, ensede sivri kuyruk
+	_bob({"front": 78.0, "side": 118.0, "back": 116.0, "curtain": 0.0, "bang": "hime", "bang_len": 104.0})
+	_ponytail(180.0, 70.0, 0.22, 0.04, 5)
+
+
+static func _e29() -> void:   # Tsubaki: düz kesik kâkül, yüz tutamları, tepeden yüksek uzun kuyruk
+	_bob({"front": 76.0, "side": 128.0, "back": 112.0, "curtain": 0.0, "bang": "hime", "bang_len": 106.0, "face": 140.0})
+	_ponytail(180.0, 30.0, 0.42, 0.05, 7)
+
+
+static func _e30() -> void:   # Eida: çok uzun düz, düz kesik kâkül, uzun yüz tutamları
+	_long({"front": 70.0, "side": 156.0, "back": 150.0, "curtain": 94.0, "bang": "hime", "bang_len": 110.0, "face": 158.0, "drop": 0.45, "front_drop": 0.3})
+
+
+static func _e31() -> void:   # Merz: uzun düz, ortadan ayrık, omuzlara dökülen
+	_long({"front": 66.0, "side": 154.0, "back": 150.0, "curtain": 94.0, "bang": "center", "bang_len": 114.0, "face": 154.0, "drop": 0.3, "front_drop": 0.2})
+
+
+static func _e32() -> void:   # Daemon: kâse kesim, alnı örten kâkül, yanlarda kalkık kedi kulağı uçlar
+	_bob({"front": 80.0, "side": 120.0, "back": 116.0, "curtain": 0.0, "bang": "hime", "bang_len": 104.0})
+	for sx in [-1.0, 1.0]:
+		_shard(sx * 70.0, 34.0, (Vector3.UP + Vector3(sx * 0.6, 0, 0)).normalized(), 0.5, 0.5, 0.4)
+
+
+static func _e33() -> void:   # Deidara: tepede yüksek at kuyruğu, bir gözü örten uzun yan kâkül, uzun yüz tutamı
+	_long({"front": 68.0, "side": 150.0, "back": 112.0, "curtain": 0.0, "bang": "side", "bang_len": 136.0, "part": 30.0, "face": 154.0, "front_drop": 0.2})
+	_ponytail(180.0, 28.0, 0.42, 0.05, 7)
+
+
+static func _e34() -> void:   # Deidara (bantsız): aynı kesim, tepede tutam belirgin
+	_e33()
+	_bun(180.0, 26.0, 0.035)
+
+
+static func _e35() -> void:   # Utakata: orta boy dağınık, bir gözü örten uzun kâkül, arkada sivri uçlar
+	_bob({"front": 72.0, "side": 134.0, "back": 126.0, "bang": "side", "bang_len": 132.0, "part": -26.0, "face": 140.0, "ragged": 6.0})
+
+
+static func _e36() -> void:   # Shizune: kısa dağınık, yanlara savrulan uçlar, alına kâkül
+	_bob({"front": 76.0, "side": 120.0, "back": 114.0, "curtain": 0.0, "bang": "spiky", "bang_len": 104.0, "ragged": 8.0})
 
