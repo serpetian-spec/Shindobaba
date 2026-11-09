@@ -1209,6 +1209,7 @@ func is_dead() -> bool:
 func take_hit(info: Dictionary) -> void:
 	if Combat.shirahadori_catch(self, info):   # çıplak avuçla bıçak yakalama (Shinken Shirahadori)
 		return
+	info = Combat.cap_one_shot(self, info)   # tek atan darbe: hedef güçlüyse kırpılır (AI eşitliği)
 	if float(info.get("chakra_drain", 0.0)) > 0.0:   # chakra emen teknikler — düşmanla aynı
 		chakra = maxf(0.0, chakra - float(info["chakra_drain"]))
 	if info.get("kikai", false):

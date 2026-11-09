@@ -1078,6 +1078,7 @@ func threat_color() -> Color:
 func take_hit(info: Dictionary) -> void:
 	if Combat.shirahadori_catch(self, info):   # çıplak avuçla bıçak yakalama (Shinken Shirahadori)
 		return
+	info = Combat.cap_one_shot(self, info)   # tek atan darbe: hedef güçlüyse kırpılır (AI eşitliği)
 	if float(info.get("chakra_drain", 0.0)) > 0.0:   # chakra emen teknikler (Mokuryū, kikaichū, ruh solucanı...) — oyuncuyla aynı
 		chakra = maxf(0.0, chakra - float(info["chakra_drain"]))
 	if info.get("kikai", false):
@@ -1270,6 +1271,9 @@ static var fallen: Array = []
 
 
 func die(info: Dictionary) -> void:
+	if info.get("execute", false) and not Combat.execute_ok(info.get("attacker"), self):
+		take_hit(info)   # hedef saldırandan güçlü: anında ölüm yerine kırpılmış darbe (cap_one_shot)
+		return
 	if not info.get("execute", false) or true:
 		fallen.append({"arch": arch, "pos": global_position, "team": String(team), "teammate": bool(get_meta("teammate", false)), "friend_id": String(get_meta("friend_id", "")),
 			"t": Time.get_ticks_msec() / 1000.0, "name": display_name, "size": size})

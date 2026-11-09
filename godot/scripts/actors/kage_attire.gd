@@ -71,8 +71,12 @@ static func hat(model: Node, vid: String) -> void:
 	l.outline_size = 0
 	l.shaded = false
 	l.double_sided = false
-	l.position = Vector3(0, fy, fz + 0.005)
+	l.alpha_cut = Label3D.ALPHA_CUT_DISCARD   # saydam sıralama yok (şapkayla sıra kavgası = bir görünüp bir kaybolma)
 	l.rotation = Vector3(deg_to_rad(-(90.0 - slope)), 0, 0)
+	# yüzey eğik (~55°): yalnız z'de 5 mm kaydırmak normal boyunca ~3 mm = kutunun yarı kalınlığı -> kanji kutunun içinde
+	# kalıp derinlik çakışmasıyla titriyordu. Normal boyunca kutu yüzünün 8 mm önüne
+	var nrm = Basis(Vector3.RIGHT, l.rotation.x) * Vector3(0, 0, 1)
+	l.position = Vector3(0, fy, fz) + nrm * 0.011
 	mi.add_child(l)
 
 

@@ -23,7 +23,7 @@ func _ready() -> void:
 	cam.fov = 30
 	for i in styles.size():
 		var c = main.player.global_position + Vector3(i * 6.0, 1.5, -4)
-		for v in [["on", Vector3(0, 0.2, 2.6)], ["yan", Vector3(2.4, 0.2, 0.8)]]:
+		for v in [["on", Vector3(0, 0.2, 2.6)], ["yan", Vector3(2.4, 0.2, 0.8)], ["uzak", Vector3(1.0, 1.5, 9.0)], ["cokuzak", Vector3(2.0, 3.0, 18.0)]]:
 			cam.global_position = c + v[1]
 			cam.look_at(c)
 			cam.current = true

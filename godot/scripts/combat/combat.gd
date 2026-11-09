@@ -14,6 +14,45 @@ const CC := ["stun", "bind", "frozen", "fear", "sleep", "paralyze"]
 const CC_MAX := 3.0
 
 
+## ---------------------------------------------------------------- tek atma (one-shot) güce göre
+## Kullanıcı 2026-11-09: "Jigokudō gibi tek atan skilleri güce göre dengeleyelim; adam benden güçlüyse tek atmasın".
+## Ortak kural (oyuncu = düşman, AI eşitliği): tek vuruşta canın %60'ından fazlasını götüren darbe ya da execute
+## (Kamui, mühür, ruh sökme...) yalnız hedef saldırandan güçsüz/eşitse tam işler. Hedef güçlüyse darbe can oranına
+## kırpılır: güç oranı r = saldıran/hedef -> en fazla max_hp * 0.6 * r² (en az %8). Güç: oyuncu Mastery.power, NPC level.
+func power_of(n: Node) -> float:
+	if n is Player:
+		return float(Mastery.power(Game.profile)) if not Game.profile.is_empty() else 1.0
+	var lv = n.get("level") if is_instance_valid(n) else null
+	return float(lv) if lv != null else 1.0
+
+
+func execute_ok(atk: Node, target: Node) -> bool:
+	if not is_instance_valid(atk) or not is_instance_valid(target) or atk == target:
+		return true
+	return power_of(target) <= power_of(atk)
+
+
+## take_hit başında: tek atan darbeyi güce göre kırpar (gerekirse kopya döndürür)
+func cap_one_shot(target: Node, info: Dictionary) -> Dictionary:
+	var atk = info.get("attacker")
+	var mx = float(target.get("max_hp")) if target.get("max_hp") != null else 0.0
+	if mx <= 0.0 or not is_instance_valid(atk) or atk == target:
+		return info
+	var dmg = float(info.get("dmg", 0.0))
+	if dmg < mx * 0.6 and not bool(info.get("execute", false)):
+		return info
+	if execute_ok(atk, target):
+		return info
+	var r = power_of(atk) / maxf(power_of(target), 1.0)
+	var out = info.duplicate()
+	out["dmg"] = minf(maxf(dmg, mx * 0.6), mx * maxf(0.6 * r * r, 0.08))
+	out.erase("execute")
+	if float(target.get_meta("_os_pop", 0.0)) < Game.now():
+		target.set_meta("_os_pop", Game.now() + 2.0)
+		popup_text(target.global_position + Vector3.UP * 2.4, "Direndi!", Color(1.0, 0.8, 0.4))
+	return out
+
+
 ## Shinken Shirahadori (kanon: çıplak avuçlarla bıçağı yakalama): pencere açıkken gelen silahlı yakın darbe boşa çıkar,
 ## saldıran sersemler. Oyuncu ve düşman aynı (take_hit başında çağrılır). true = darbe yakalandı.
 func shirahadori_catch(target: Node, info: Dictionary) -> bool:

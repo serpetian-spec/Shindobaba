@@ -136,6 +136,9 @@ func take_hit(info: Dictionary) -> void:
 
 
 func die(info: Dictionary) -> void:
+	if info.get("execute", false) and not Combat.execute_ok(info.get("attacker"), self):
+		take_hit(info)   # güçlü boss tek gitmez (Combat.cap_one_shot)
+		return
 	super.die(info)
 	Hud.boss_bar(null)
 	if kind == "raiju":   # Raijū bir çağrı canavarı: mühürlenmez (yalnız kuyruklu canavarlar mühürlenir), yenilince dağılır

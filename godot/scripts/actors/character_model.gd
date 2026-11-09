@@ -2939,7 +2939,7 @@ const HAIR_FILES := {
 	"geriye": "Hair_Buzzed", "orgu": "Hair_Buzzed", "mohikan": "Hair_Buzzed", "kel": "", "kirpik": "Hair_Buzzed", "kisa_kakul": "Hair_Buzzed",
 }
 ## Saç stilleri (arayüzde gösterilen adlar)
-const HAIR_STYLES := {"kısa": "Kısa", "kase": "Kâse", "uzun": "Uzun", "s2": "Dikenli Taç"}   # s1 (Kiba) yapım aşamasında: menüye eklenmedi
+const HAIR_STYLES := {"kısa": "Kısa", "kase": "Kâse", "uzun": "Uzun", "s1": "Dağınık Diken", "s2": "Dikenli Taç"}
 ## Saç cinsiyeti (kullanıcı 2026-11-09: kadın saçı kadınlara, erkek saçı erkeklere; yazılmayan = unisex)
 const HAIR_GENDER := {"s1": "m", "s2": "m"}
 

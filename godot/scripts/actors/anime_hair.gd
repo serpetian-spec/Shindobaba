@@ -383,37 +383,49 @@ static func _s1() -> void:
 			return 86.0
 		if a < 95.0:
 			return lerpf(86.0, 100.0, (a - 45.0) / 50.0)
-		return lerpf(100.0, 118.0, clampf((a - 95.0) / 60.0, 0.0, 1.0))
-	_mass(hl, 0.016, 3.0, 34)
+		return lerpf(100.0, 116.0, clampf((a - 95.0) / 60.0, 0.0, 1.0))
+	_mass(hl, 0.012, 3.0, 34)
 	var j = func(a: float) -> float: return _rng.randf_range(-a, a)
 	var back = Vector3(0, 0, -1)
-	# dağınık taç: [pitch, adet, uzunluk(R), genişlik(R)]
-	for row in [[5.0, 7, 0.45, 0.6], [24.0, 13, 0.5, 0.62], [44.0, 16, 0.5, 0.6], [64.0, 17, 0.46, 0.58], [82.0, 14, 0.42, 0.55]]:
+	# dağınık taç: [pitch, adet, uzunluk(R), genişlik(R)] — Naruto'dan kısa (0.6–0.7 R), sayıca çok, yönleri düzensiz
+	for row in [[6.0, 7, 0.6, 0.7], [26.0, 12, 0.68, 0.72], [46.0, 14, 0.7, 0.7], [66.0, 15, 0.66, 0.66], [84.0, 12, 0.6, 0.62]]:
 		var n_sp: int = row[1]
 		var off = _rng.randf_range(0.0, 360.0 / n_sp)
 		for k in n_sp:
 			var yw = wrapf(off + k * 360.0 / n_sp + j.call(10), -180.0, 180.0)
 			var pt: float = row[0] + j.call(7)
-			if row[0] >= 64.0 and absf(yw) < 45.0:
+			if row[0] >= 66.0 and absf(yw) < 45.0:
 				continue   # alın: kâkül / bant üstü sırası aşağıda
 			while _under_band_top(yw, pt) and pt > 15.0:
 				pt -= 3.0
 			var n = _dir(yw, pt)
-			# düzensiz yön: dışa + rastgele yana/yukarı sapma; arkada kafaya yatkın
-			var dir = n + Vector3(j.call(0.35), 0.2 + j.call(0.2), j.call(0.35)) + back * 0.15
+			var dir = n + Vector3(j.call(0.35), 0.15 + j.call(0.2), j.call(0.35)) + back * 0.15   # dağınık
 			var bk = smoothstep(95.0, 150.0, absf(yw))
 			if bk > 0.0 and pt > 20.0:
-				dir = dir.normalized().lerp((n * 0.6 + back * 0.5 + Vector3.UP * 0.15).normalized(), bk)
+				dir = dir.normalized().lerp((n * 0.75 + back * 0.5 + Vector3.UP * 0.15).normalized(), bk)   # arkaya-dışa, tam boy
+			if pt < 40.0:
+				var hz = Vector3(sin(deg_to_rad(yw)), 0, cos(deg_to_rad(yw)))
+				dir = hz * 0.85 + Vector3.UP * 0.45 + back * 0.2 + Vector3(j.call(0.2), 0, j.call(0.2))   # tepe: yıldız (tepeden bakış)
 			_shard(yw, pt, dir, row[2] * _rng.randf_range(0.8, 1.2), row[3] * _rng.randf_range(0.85, 1.1), 0.4, Vector3(j.call(0.05), -0.05, -0.03))
-	# favori: şakaktan kulak önüne
+	# arka ek sıra: ense üstüne kadar dikenli
+	for k in 9:
+		var yw = wrapf(lerpf(100.0, 260.0, (k + 0.5) / 9.0) + j.call(8), -180.0, 180.0)
+		var pt = 70.0 + j.call(8)
+		while _under_band_top(yw, pt) and pt > 20.0:
+			pt -= 3.0
+		var n = _dir(yw, pt)
+		_shard(yw, pt, n * 0.75 + back * 0.5 + Vector3(j.call(0.2), 0.05, 0), 0.72 * _rng.randf_range(0.85, 1.15), 0.75, 0.4, Vector3(0, -0.05, -0.03))
+	# favori: şakaktan kulak önüne (deriye yatık)
 	for sx in [-1.0, 1.0]:
-		_flow(sx * 70.0, 84.0, sx * 73.0, 114.0, 0.04, 0.03, 0.3)
-		_flow(sx * 80.0, 86.0, sx * 84.0, 108.0, 0.035, 0.03, 0.3)
-	# ense: kulak arkasından boyuna inen kısa sivri tutamlar (Naruto'dan uzun, dolu)
-	for k in 12:
-		var yw = wrapf(lerpf(100.0, 260.0, (k + 0.5) / 12.0) + j.call(4), -180.0, 180.0)
-		var p0 = 98.0 if not _in_band(yw, 98.0, 0.02, 0.02) else 106.0
-		_flow(yw, p0, yw + j.call(6), 132.0 + j.call(4), 0.04, 0.035, 0.3)
+		_flow(sx * 70.0, 84.0, sx * 73.0, 114.0, 0.04, 0.0, 0.3)
+		_flow(sx * 80.0, 86.0, sx * 84.0, 108.0, 0.035, 0.0, 0.3)
+	# ense: boyları karışık sivri uçlar yakaya kadar (eşit sıra = yaka/etek)
+	for k in 7:
+		var yw = wrapf(lerpf(118.0, 242.0, (k + 0.5) / 7.0) + j.call(5), -180.0, 180.0)
+		var p0 = 98.0
+		while _in_band(yw, p0, 0.02, 0.02) and p0 < 120.0:
+			p0 += 3.0
+		_flow(yw, p0, yw + j.call(5), (140.0 if k % 2 == 0 else 128.0) + j.call(4), 0.055, 0.0, 0.3)
 	if _banded:
 		# bandın hemen üstü: kısa dağınık dikenler (yukarı, hafif öne/yana)
 		for k in 9:
@@ -421,11 +433,10 @@ static func _s1() -> void:
 			var pt = 62.0
 			while _under_band_top(yw, pt) and pt > 25.0:
 				pt -= 3.0
-			_shard(yw, pt, _dir(yw, pt) * 0.7 + Vector3(j.call(0.3), 1.0, 0.1), 0.42 * _rng.randf_range(0.85, 1.15), 0.55, 0.4, Vector3(0, 0, -0.04))
+			_shard(yw, pt, _dir(yw, pt) * 0.7 + Vector3(j.call(0.3), 1.0, 0.1), 0.58 * _rng.randf_range(0.85, 1.15), 0.6, 0.4, Vector3(0, 0, -0.04))
 		return
-	# bantsız: alnın ortasına inen kısa dağınık kâküller
+	# bantsız: alnın ortasına inen kısa dağınık kâküller (deriye yatık)
 	for k in 7:
 		var u = (k + 0.5) / 7.0
 		var yw = lerpf(-42.0, 42.0, u) + j.call(3)
-		_flow(yw, 55.0, yw * 1.1 + j.call(6), 92.0 + j.call(5), 0.075, 0.08, 0.32)
-
+		_flow(yw, 55.0, yw * 1.1 + j.call(6), 92.0 + j.call(5), 0.075, 0.02, 0.32)
