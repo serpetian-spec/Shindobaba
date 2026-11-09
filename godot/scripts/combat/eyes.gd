@@ -1409,7 +1409,7 @@ func _kamui_absorb(t: Node3D) -> void:
 				tg.model.visible = false
 		else:
 			if tg.get("model"):
-				tg.model.create_tween().tween_property(tg.model, "scale", Vector3.ONE, 0.2).set_trans(Tween.TRANS_BACK)
+				tg.model.create_tween().tween_property(tg.model, "scale", Vector3.ONE * (float(tg.model.age_scale) if "age_scale" in tg.model else 1.0), 0.2).set_trans(Tween.TRANS_BACK)
 			Combat.popup_text(at + Vector3.UP, "Direndi!", Color(1, 0.6, 0.5))
 			tg.take_hit({"dmg": float(tg.get("max_hp")) * 0.25 * _eye_pow(), "kind": "heavy", "knock": 10.0, "attacker": p, "dir": (tg.global_position - p.global_position).normalized()})
 			VFX.star(at, Color(0.6, 0.45, 0.9), 2.4, 0.15))

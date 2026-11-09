@@ -12,6 +12,7 @@ var body: StaticBody3D
 var view_dist = 1400.0
 var interactables: Array = []
 var key := ""
+const TREELESS := ["suna", "iwa", "kumo"]   # çöl ve kayalık köyler: köy içinde ağaç yok
 var stream_vid := ""   # akış köyü kimliği (Koy_<id> altında kurulduysa)
 var placer = null  # HouseKit.Placer (Japon tarzı detaylı evler)
 var house_ti := -1   # >= 0: bir sonraki şablon ev bu şablon olsun (bitişik dizilimde genişlik önceden bilinir)
@@ -148,16 +149,28 @@ func _new_body() -> StaticBody3D:
 	return b
 
 
-func _collide(center: Vector3, size: Vector3, yaw_deg: float) -> void:
+## rot: görüntüdeki eğim/devrilme (derece, MB.add ile AYNI euler: x, yaw+y, z). Eskiden çarpışma eğimi yok sayıp kutuyu dik
+## kuruyordu -> eğik duvar/kütük/kaya her yerde "görünmez yapı" (kullanıcı 2026-11-10: köyde, ormanda, her yerde takılıyorum)
+func _collide(center: Vector3, size: Vector3, yaw_deg: float, rot := Vector3.ZERO) -> void:
 	if not is_instance_valid(body):
 		return  # akışla kurulan yer yarıda silindi
 	var cs = CollisionShape3D.new()
 	var sh = BoxShape3D.new()
 	sh.size = size
 	cs.shape = sh
-	cs.transform = Transform3D(Basis(Vector3.UP, deg_to_rad(yaw_deg)), center)
+	var bas = Basis(Vector3.UP, deg_to_rad(yaw_deg))
+	if rot != Vector3.ZERO:
+		bas = Basis.from_euler(Vector3(deg_to_rad(rot.x), deg_to_rad(yaw_deg + rot.y), deg_to_rad(rot.z)))
+	cs.transform = Transform3D(bas, center)
 	add_shape(cs)
-	add_solid(center, size.x * 0.5, size.z * 0.5, deg_to_rad(yaw_deg))
+	if rot == Vector3.ZERO:
+		add_solid(center, size.x * 0.5, size.z * 0.5, deg_to_rad(yaw_deg))
+	else:
+		# NPC yürüme izi: dönmüş kutunun yatay izdüşümü (eksene hizalı yarı genişlikler)
+		var hx = 0.0; var hz = 0.0
+		for ax in [bas.x * size.x * 0.5, bas.y * size.y * 0.5, bas.z * size.z * 0.5]:
+			hx += absf(ax.x); hz += absf(ax.z)
+		add_solid(center, hx, hz, 0.0)
 
 
 func _collide_convex(center: Vector3, pts: PackedVector3Array, r: float) -> void:
@@ -204,6 +217,31 @@ func _collide_cyl(center: Vector3, r: float, h: float) -> void:
 	add_solid(center, r, r, 0.0)
 
 
+## Görünen pürüzlü kaya mesh'inin üçgenleri (ConcavePolygon): çarpışma görüntüyle birebir
+func _collide_hull(kind: String, mv: int, center: Vector3, size: Vector3, yaw: float) -> void:
+	if not is_instance_valid(body):
+		return
+	var arr: Array = MB._prim_arrays(kind, mv)
+	var verts: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
+	var idx = arr[Mesh.ARRAY_INDEX]
+	var xf = Basis.from_euler(Vector3(0, deg_to_rad(yaw), 0)) * Basis.from_scale(size)
+	var pts = PackedVector3Array()
+	if idx != null and (idx as PackedInt32Array).size() > 0:
+		for i in idx:
+			pts.append(xf * verts[i])
+	else:
+		for v in verts:
+			pts.append(xf * v)
+	var sh = ConcavePolygonShape3D.new()   # üçgenlerin kendisi: dış kabuk (convex) katman girintilerini doldurup görünmez çıkıntı yapıyordu
+	sh.backface_collision = true
+	sh.set_faces(pts)
+	var cs = CollisionShape3D.new()
+	cs.shape = sh
+	cs.position = center
+	add_shape(cs)
+	add_solid(center, size.x * 0.5, size.z * 0.5, 0.0)
+
+
 ## Çakışma ızgarasına dönmüş dikdörtgen ekle (dünya merkezi, yarı boyutlar, Godot y açısı)
 func add_solid(center: Vector3, hx: float, hz: float, ang: float) -> void:
 	var e = maxf(hx, hz) * 1.415
@@ -244,7 +282,7 @@ func box(p: Vector3, size: Vector3, col: Color, yaw := 0.0, collide := true, rot
 	var wp = w(p)
 	_mb(wp, _msz(size)).add("box", wp, size, col, Vector3(rot.x, -yaw + rot.y, rot.z))
 	if collide:
-		_collide(wp, size, -yaw)
+		_collide(wp, size, -yaw, rot)
 	# yere döşenmiş yassı yüzey (avlu taşı, kaldırım, meydan, platform): altından çimen çıkmasın
 	# (yere gömülü kalın döşemeler de: ölçüt kalınlık değil, üst yüzeyin zemin hizasında olması)
 	if rot == Vector3.ZERO and size.y <= 2.5 and maxf(size.x, size.z) >= 1.5 and minf(size.x, size.z) >= 0.9:
@@ -333,7 +371,7 @@ func crag(p: Vector3, d: float, h: float, col: Color, variant := 0, collide := t
 	var wp = w(p)
 	_mb(wp, maxf(d, h)).add("crag", wp + Vector3(0, h * 0.5, 0), Vector3(d, h, d), col, Vector3(0, yaw, 0), (100 + variant % 16) if variant >= 100 else variant % 16)
 	if collide:
-		_collide_cyl(wp + Vector3(0, h * 0.5, 0), d * 0.38, h)
+		_collide_hull("crag", (100 + variant % 16) if variant >= 100 else variant % 16, wp + Vector3(0, h * 0.5, 0), Vector3(d, h, d), yaw)   # görünen kayanın kendisi: tek kalın silindir daralan/eğik tepede görünmez duvardı
 
 
 ## Düzensiz kaya. p: merkez
@@ -341,7 +379,7 @@ func boulder(p: Vector3, size: Vector3, col: Color, variant := 0, collide := fal
 	var wp = w(p)
 	_mb(wp, _msz(size)).add("boulder", wp, size, col, Vector3(0, yaw, 0), variant % 16)
 	if collide:
-		_collide(wp, size * 0.8, yaw)
+		_collide_hull("boulder", variant % 16, wp, size, yaw)   # kutu köşeleri yuvarlak kayanın dışına taşıyordu
 
 
 ## Yukarı daralan silindir (kule gövdesi). p: merkez
@@ -806,6 +844,8 @@ func village_gate(ang: float, r: float, half_open: float, height: float, post_co
 
 
 func tree(x: float, n: float, s: float, rng: RandomNumberGenerator, y := 0.0) -> void:
+	if key in TREELESS:
+		return   # kanonda ağaçsız köy (kullanıcı 2026-11-10: lore'a göre ağaç yok)
 	# prosedürel ağaç (hazır paket ağaçları doğal durmuyordu; kullanıcı eskisini tercih etti)
 	if _tree_meshes.is_empty():
 		for v in Props.VILLAGE_TREE_W.size():
@@ -835,7 +875,19 @@ func tree(x: float, n: float, s: float, rng: RandomNumberGenerator, y := 0.0) ->
 		tree_limbs(tm, Vector3(x, y, n), rot, sc)
 		leaf_spots.append([w(Vector3(x, y + Props.VILLAGE_TREE_TOP[vi] * sc, n)), Props.VILLAGE_TREE_LEAF[vi], 3.0 * sc])
 		add_solid(w(Vector3(x, 0, n)), 2.6 * s, 2.6 * s, 0.0)   # yerleşim için taç genişliği (gövde değil): sonradan konan evlerin içinden ağaç geçmesin
-		_collide_cyl(w(Vector3(x, y + 2.6 * s, n)), 0.35 * s, 5.2 * s)
+		if tm is ArrayMesh and tm.has_meta("trunk") and is_instance_valid(body):   # gövdenin kendisi (ince/eğik gövdede kalın dik silindir boşluğa çarpıyordu)
+			var T: Array = tm.get_meta("trunk")
+			var tb = Transform3D(Basis(Vector3.UP, deg_to_rad(rot)) * Basis.from_scale(Vector3.ONE * sc), w(Vector3(x, y, n)))
+			var tcs = CollisionShape3D.new()
+			var cap = CapsuleShape3D.new()
+			cap.radius = float(T[2]) * sc
+			cap.height = maxf(cap.radius * 2.0 + 0.01, ((T[1] as Vector3) - (T[0] as Vector3)).length() * sc + cap.radius * 2.0)
+			tcs.shape = cap
+			var lx = AnimeTree.limb_xf(T[0], T[1])
+			tcs.transform = Transform3D(tb.basis.orthonormalized() * lx.basis, tb * lx.origin)
+			add_shape(tcs)
+		else:
+			_collide_cyl(w(Vector3(x, y + 2.6 * s, n)), 0.35 * s, 5.2 * s)
 		return
 	cyl(Vector3(x, y + 2.6 * s, n), 0.7 * s, 5.2 * s, Color(0.42, 0.29, 0.18), true, 7)
 	var g = Color(0.28, 0.55, 0.22).lightened(rng.randf_range(-0.05, 0.08))

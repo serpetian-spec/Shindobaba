@@ -33,7 +33,7 @@ static func look(vid: String) -> Dictionary:
 static func hat(model: Node, vid: String) -> void:
 	if model == null or not model.has_method("_mesh_on"):
 		return
-	if vid in STRIKER_HATS:
+	if true:   # her köy/eşya yeni tek parça örtülü şapka (eski 5 şeritli yol parçalı görünüyordu); tanımsız köy kendi rengi/kanjisi ya da Konoha
 		_hat_striker(model, vid)
 		return
 

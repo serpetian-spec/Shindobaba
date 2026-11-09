@@ -79,6 +79,7 @@ var sl := SurfaceTool.new()   # yaprak kartları
 var nb := 0
 var nl := 0
 var cols: Array = []   # çarpışma dalları [a, b, r] (gövde hariç kalın dallar; yakın kademe)
+var tcol: Array = []   # gövde çarpışması [a, b, r]
 var rcols: Array = []  # kök çarpışması [a, b, r]: kökün gerçek (ortalama) kalınlığıyla, toprağa inen kısım dahil
 var _in_root := false
 ## Bir ağacın en fazla kök kapsülü (Vegetation havuzu bu kadar yuva açar)
@@ -103,6 +104,8 @@ func _commit() -> ArrayMesh:
 		cols.sort_custom(func(x, y): return float(x[2]) * (x[1] - x[0]).length() > float(y[2]) * (y[1] - y[0]).length())
 		m.set_meta("limbs", cols.slice(0, 6))
 		m.set_meta("roots", rcols.slice(0, MAX_ROOT_COLS))
+		if not tcol.is_empty():
+			m.set_meta("trunk", tcol)
 	return m
 
 
@@ -131,6 +134,8 @@ func limb(a: Vector3, b: Vector3, r0: float, r1: float, seg := 7) -> void:
 	var L := ax.length()
 	if L < 0.01:
 		return
+	if not lod and trunk and not _in_root and tcol.is_empty():
+		tcol = [a, b, minf(r0, r1)]   # gövdenin gerçek ekseni/kalınlığı (Builder gövde çarpışması)
 	if not lod and not trunk and r0 >= 0.13 and L >= 1.0 and not _in_root:
 		cols.append([a, b, maxf(r0, r1)])
 	var d := ax / L

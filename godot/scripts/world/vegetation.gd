@@ -28,7 +28,7 @@ var meshes = {}
 var lods = {}
 var fars = {}   # anime ağaçları: çok uzak kademe
 ## görünen gövde yarıçapları (çarpışma görselle birebir olsun: ayak havada kalmasın)
-var radii = {0: 0.38, 1: 0.36, 2: 0.3, 3: 0.36, 4: 1.0, 5: 3.2, 6: 0.0, 7: 0.25, 8: 0.0, 9: Props.FOREST_TRUNK_R, 10: 0.0, 11: 1.0, 12: 0.0,
+var radii = {0: 0.38, 1: 0.36, 2: 0.3, 3: 0.36, 4: 1.0, 5: 3.2, 6: 0.0, 7: 0.25, 8: 0.0, 9: 0.8, 10: 0.0, 11: 1.0, 12: 0.0,
 	13: 0.0, 14: 0.0, 15: 0.0, 16: 0.0, 17: 0.0, 18: 0.0, 19: 0.0, 20: 0.0}
 var convex = {}
 var var_count = {}     # tip -> varyant sayısı (iş parçacıkları okur)
@@ -552,10 +552,16 @@ func _physics_process(_dt: float) -> void:
 		sh.radius = radii[t] * s
 		sh.height = h
 		trunk.position = Vector3(0, h * 0.5, 0)
+		# eski sabit dal kutuları (Props.FOREST_BRANCHES) yalnız kendi dal verisi OLMAYAN dev ağaçta: AnimeTree "forest" dallarını
+		# limbs kapsülleriyle zaten getiriyor; eski kutular görüntüsü olmayan dallar = ormanda görünmez yapı (kullanıcı 2026-11-10)
+		var has_limbs = false
+		var mm0 = meshes[t][clampi(int(tr[6]) if tr.size() > 6 else 0, 0, (meshes[t] as Array).size() - 1)][0] if meshes.has(t) else null
+		if mm0 is ArrayMesh and (mm0 as ArrayMesh).has_meta("limbs"):
+			has_limbs = true
 		for b in Props.FOREST_BRANCHES.size():
 			var bc: CollisionShape3D = sb.get_child(b + 1)
-			bc.disabled = t != 9
-			if t == 9:
+			bc.disabled = t != 9 or has_limbs
+			if t == 9 and not has_limbs:
 				var br: Array = Props.FOREST_BRANCHES[b]
 				var a = deg_to_rad(br[1])
 				var L: float = br[2]

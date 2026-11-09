@@ -785,7 +785,9 @@ func _collapse(rec: Dictionary, from: Vector3, burnt: bool) -> void:
 			t4.tween_property(r2, "position:y", r2.position.y - 0.6, 0.45)
 			t4.chain().tween_callback(func(): r2.visible = false)
 	)
-	# moloz çarpışması (üstüne çıkılabilir)
+	# moloz çarpışması (üstüne çıkılabilir) — yalnız moloz görüntüsü kurulabiliyorsa (yoksa görünmez moloz duvarı)
+	if not is_instance_valid(root):
+		return
 	var cs = CollisionShape3D.new()
 	var bs = BoxShape3D.new()
 	bs.size = Vector3(w * 0.85, 1.6, d * 0.85) * sc

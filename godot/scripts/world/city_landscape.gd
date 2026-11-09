@@ -33,10 +33,10 @@ const KITS := {
 		"bamboo": true, "sakura": true, "pond": true, "street_tree": [0, 0, 0], "ring": STONE},
 	"mist": {"tree": [1, 1, 0], "bush": 18, "planter": true, "hedge": Color(0.28, 0.5, 0.3), "pots": true, "well": true, "laundry": true,
 		"bamboo": true, "sakura": false, "pond": true, "street_tree": [1, 0], "ring": Color(0.55, 0.6, 0.64)},
-	"rock": {"tree": [1, 1, 0], "bush": 18, "planter": false, "hedge": Color(0.3, 0.5, 0.26), "pots": true, "well": true, "laundry": true,
-		"bamboo": false, "sakura": false, "pond": false, "street_tree": [1], "ring": Color(0.55, 0.47, 0.38), "rocks": true},
-	"desert": {"tree": [7, 7, 3], "bush": 17, "planter": false, "hedge": Color(0.45, 0.55, 0.3), "pots": false, "well": true, "laundry": true,
-		"bamboo": false, "sakura": false, "pond": false, "street_tree": [7], "ring": Color(0.78, 0.66, 0.48), "jars": true},
+	"rock": {"tree": [], "bush": 18, "planter": false, "hedge": Color(0.3, 0.5, 0.26), "pots": true, "well": true, "laundry": true,
+		"bamboo": false, "sakura": false, "pond": false, "street_tree": [], "ring": Color(0.55, 0.47, 0.38), "rocks": true},   # Iwa/Kumo: kanonda köy içinde ağaç yok (kayalık)
+	"desert": {"tree": [], "bush": 17, "planter": false, "hedge": Color(0.45, 0.55, 0.3), "pots": false, "well": true, "laundry": true,
+		"bamboo": false, "sakura": false, "pond": false, "street_tree": [], "ring": Color(0.78, 0.66, 0.48), "jars": true},   # Suna: kanonda ağaç yok (çöl)
 	"rain": {"tree": [1, 0], "bush": 18, "planter": true, "hedge": Color(0.26, 0.46, 0.3), "pots": true, "well": false, "laundry": false,
 		"bamboo": true, "sakura": false, "pond": false, "street_tree": [1], "ring": Color(0.42, 0.44, 0.47)},
 	"snow": {"tree": [1, 1], "bush": 18, "planter": false, "hedge": Color(0.3, 0.45, 0.32), "pots": false, "well": true, "laundry": false,
@@ -873,7 +873,7 @@ static func _yard(c: Ctx, h: Array) -> void:
 	# yan bahçe: ağaç / çalı / bambu / kuyu / çamaşır ipi (sağ veya sol)
 	var side = 1.0 if rng.randf() < 0.5 else -1.0
 	var r_tree = rng.randf()
-	if r_tree < 0.5:
+	if r_tree < 0.5 and not (kit["tree"] as Array).is_empty():
 		var q = at.call(side * (hw + 2.4), rng.randf_range(-hd * 0.3, hd * 0.5))
 		if c.open(q.x, q.y, 1.8, 10.5):
 			var tt: int = kit["tree"][rng.randi() % kit["tree"].size()]
@@ -927,6 +927,8 @@ static func _street_trees(c: Ctx, rad: float) -> void:
 	var cen = Vector2(b.origin.x, -b.origin.z)  # harita koordinatı
 	var ring_m = mesh("ring_" + Color(c.kit["ring"]).to_html(false))
 	var types: Array = c.kit["street_tree"]
+	if types.is_empty():
+		return   # ağaçsız köy (Suna, Iwa, Kumo)
 	var segs: Array = Game.road_segments_near(cen, rad)
 	var spacing = 21.0
 	for e in segs:
@@ -1121,7 +1123,7 @@ static func _park(c: Ctx, px: float, pn: float, r: float) -> void:
 			var s = rng.randf_range(0.85, 1.05)
 			c.put(mesh("sakura"), tx, tn, rng.randf() * 360.0, Vector3.ONE * s, 900.0, true, -0.1)
 			c.solid_cyl(tx, tn, 0.35 * s, 4.5 * s)
-		else:
+		elif not (kit["tree"] as Array).is_empty():
 			var tt: int = kit["tree"][rng.randi() % kit["tree"].size()]
 			var s = rng.randf_range(1.2, 1.8)
 			c.put(veg(tt), tx, tn, rng.randf() * 360.0, Vector3.ONE * s, 900.0, true, -0.1)

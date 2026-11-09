@@ -5003,7 +5003,7 @@ func _attachments() -> void:
 	var hip = _grest(skel.find_bone("Hips")).origin
 	var pouch = MB.new()
 	pouch.add("box", Vector3.ZERO, Vector3(0.14, 0.09, 0.07), Color(0.42, 0.33, 0.22))
-	if look.get("outer_style") != "anbu_palto":   # kapalı palto: bel çantası paltonun üstünde görünmesin
+	if not look.get("outer_style") in ["anbu_palto", "palto", "cuppe", "haori", "haori_uzun", "pelerin", "org_pelerin", "panco", "jinbaori", "mino", "yirtik"]:   # beli örten dış giysi: bel çantası giysinin üstünde kahverengi kare gibi duruyordu (Kage cübbesi)
 		_mesh_on("Hips", pouch.build(Props.toon()), Transform3D(Basis.IDENTITY, hip + Vector3(0.0, 0.02, -0.14)))
 	_thigh_holster()
 	if look.get("leg_warmers") is Color:

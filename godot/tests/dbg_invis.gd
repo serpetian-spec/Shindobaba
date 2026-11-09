@@ -20,11 +20,18 @@ func _ready() -> void:
 			continue
 		var c = Game.from_map(Vector2(v["x"], v["y"]))
 		var R = minf(float(v.get("r", 300.0)), 600.0)
+		if OS.get_environment("VOFF") != "":   # köy dışı: merkezden kaydır (orman / çevre)
+			var o = OS.get_environment("VOFF").split(",")
+			c += Vector3(float(o[0]), 0, float(o[1]))
+			c.y = Game.terrain_height(c.x, c.z)
+		if OS.get_environment("VR") != "":
+			R = float(OS.get_environment("VR"))
 		pl.respawn(c)
 		await get_tree().create_timer(4.0).timeout
 		pl.set_physics_process(false)
 		# görünen geometri -> katman 20
 		var faces = PackedVector3Array()
+		var parts = []   # [küresel AABB, dönüşüm, yerel yüzler]: şüpheli noktayı yerel geometriyle yeniden doğrulamak için
 		var nmesh = 0
 		for mi in get_tree().root.find_children("*", "GeometryInstance3D", true, false):
 			if not mi.is_visible_in_tree():
@@ -39,6 +46,7 @@ func _ready() -> void:
 				var xf = mi.global_transform
 				for q in fx:
 					faces.append(xf * q)
+				parts.append([ab, xf, fx])
 				nmesh += 1
 			elif mi is MultiMeshInstance3D and mi.multimesh != null and mi.multimesh.mesh != null:
 				var mm: MultiMesh = mi.multimesh
@@ -50,6 +58,7 @@ func _ready() -> void:
 						continue
 					for q in fx:
 						faces.append(xf * q)
+					parts.append([xf * mm.mesh.get_aabb(), xf, fx])
 				nmesh += 1
 		var sb = StaticBody3D.new()
 		sb.collision_layer = VIS_LAYER
@@ -90,8 +99,8 @@ func _ready() -> void:
 							if col is CollisionObject3D:
 								var ow = col.shape_find_owner(int(h1["shape"]))
 								shp = col.shape_owner_get_shape(ow, 0) if ow >= 0 else null
-							if shp is CylinderShape3D or shp is CapsuleShape3D or shp is SphereShape3D:
-								continue   # ağaç gövdesi vb. (görünür; silindir çarpışma gövdeden biraz kalın)
+							if (shp is CylinderShape3D or shp is CapsuleShape3D or shp is SphereShape3D) and OS.get_environment("CYL") == "":
+								continue   # ağaç gövdesi vb. (CYL=1 ile bunlar da denetlenir)
 							var q2 = PhysicsRayQueryParameters3D.create(o, o + dd * 4.6, VIS_LAYER)
 							var h2 = space.intersect_ray(q2)
 							var d1 = o.distance_to(h1["position"])
@@ -103,11 +112,49 @@ func _ready() -> void:
 								if not bad.has(key):
 									var nm = String(col.name) if col else "?"
 									var par = String(col.get_parent().name) if col and col.get_parent() else ""
-									bad[key] = [hp, nm + "/" + par + " " + (shp.get_class() if shp else "?") + ((" %s" % str((shp as BoxShape3D).size)) if shp is BoxShape3D else ""), 0]
+									bad[key] = [hp, nm + "/" + par + " " + (shp.get_class() if shp else "?") + ((" %s" % str((shp as BoxShape3D).size)) if shp is BoxShape3D else ""), 0, o, dd, d1]
 								bad[key][2] += 1
 				gz += step
 			gx += step
-		print("INVIS ", vid, " meshes=", nmesh, " faces=", faces.size() / 3, " rays=", nray, " bad_cells=", bad.size())
+		# yerel doğrulama: dev tek ConcavePolygon (milyonlarca üçgen) ince gövdelerde ışın kaçırabiliyor -> şüpheli her hücreyi
+		# yalnız çevresindeki görünür parçalardan kurulan küçük şekille yeniden dene; görünen yüzey yakınsa yanlış alarm
+		var raw = bad.size()
+		for key in bad.keys():
+			var e = bad[key]
+			var o: Vector3 = e[3]
+			var lf = PackedVector3Array()
+			for pt in parts:
+				if (pt[0] as AABB).grow(1.0).intersects(AABB(o - Vector3(5, 5, 5), Vector3(10, 10, 10))):
+					for q in pt[2]:
+						lf.append(pt[1] * q)
+			var ok = false
+			if not lf.is_empty():
+				var lb = StaticBody3D.new()
+				lb.collision_layer = 1 << 20
+				lb.collision_mask = 0
+				var lcs = CollisionShape3D.new()
+				var lsh = ConcavePolygonShape3D.new()
+				lsh.backface_collision = true
+				lsh.set_faces(lf)
+				lcs.shape = lsh
+				lb.add_child(lcs)
+				add_child(lb)
+				await get_tree().physics_frame
+				space = get_viewport().world_3d.direct_space_state
+				var h3 = space.intersect_ray(PhysicsRayQueryParameters3D.create(o, o + (e[4] as Vector3) * 4.6, 1 << 20))
+				ok = not h3.is_empty() and o.distance_to(h3["position"]) <= float(e[5]) + 0.6
+				if not ok:   # sıyırma ışını (gövde kenarı): çarpılan noktanın 0.3 m yakınında görünen yüzey varsa görünmez duvar değildir
+					var sq = PhysicsShapeQueryParameters3D.new()
+					var sph = SphereShape3D.new()
+					sph.radius = 0.3
+					sq.shape = sph
+					sq.transform = Transform3D(Basis.IDENTITY, e[0])
+					sq.collision_mask = 1 << 20
+					ok = not space.intersect_shape(sq, 1).is_empty()
+				lb.free()
+			if ok:
+				bad.erase(key)
+		print("INVIS ", vid, " raw=", raw, " meshes=", nmesh, " faces=", faces.size() / 3, " rays=", nray, " bad_cells=", bad.size())
 		var lst = bad.values()
 		lst.sort_custom(func(a, b): return a[2] > b[2])
 		for i in mini(25, lst.size()):

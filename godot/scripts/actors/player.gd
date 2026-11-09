@@ -855,7 +855,7 @@ func _terrain_wall_move(dt: float) -> void:
 	if right.length() < 0.1:
 		right = side
 	fwd = up.cross(right).normalized()
-	model.global_transform = Transform3D(Basis(right, up, -fwd), center - wall_n * (radius - 0.02))
+	model.global_transform = Transform3D(Basis(right, up, -fwd).scaled(Vector3.ONE * model.age_scale), center - wall_n * (radius - 0.02))   # yaş ölçeği korunur (çocuk karakter büyüyordu)
 	model.play("run" if move.length() > 0.5 else "idle", 0.12, clampf(move.length() / 10.0, 0.6, 1.5))
 	model.overlay.set_pose("ninja_run", 1.0 if move.length() > 0.5 else 0.0)
 
@@ -945,7 +945,7 @@ func _wall_move(dt: float) -> void:
 		right = side
 	fwd = up.cross(right).normalized()
 	var basis = Basis(right, up, -fwd)
-	model.global_transform = Transform3D(basis, center - wall_n * (radius - 0.02))
+	model.global_transform = Transform3D(basis.scaled(Vector3.ONE * model.age_scale), center - wall_n * (radius - 0.02))
 	model.play("run" if move.length() > 0.5 else "idle", 0.12, clampf(move.length() / 10.0, 0.6, 1.5))
 	model.overlay.set_pose("ninja_run", 1.0 if move.length() > 0.5 else 0.0)
 
@@ -1108,7 +1108,7 @@ func _leave_wall() -> void:
 	terrain_wall = false
 	wall_n = Vector3.ZERO
 	wall_cd = 0.25
-	model.transform = Transform3D(Basis(Vector3.UP, facing), Vector3.ZERO)
+	model.transform = Transform3D(Basis(Vector3.UP, facing).scaled(Vector3.ONE * model.age_scale), Vector3.ZERO)
 
 
 var _step_ph := -1.0
@@ -1278,7 +1278,7 @@ func respawn(pos: Vector3) -> void:
 	flip_t = -1.0
 	if combat:
 		combat.action = ""
-	model.transform = Transform3D.IDENTITY
+	model.transform = Transform3D(Basis.IDENTITY.scaled(Vector3.ONE * model.age_scale), Vector3.ZERO)   # IDENTITY yaş ölçeğini siliyordu: akademide/ışınlanınca çocuk büyüyordu
 	model.play("idle", 0.0)
 	reset_physics_interpolation()
 	cam_pivot.global_position = global_position + Vector3.UP * 1.6

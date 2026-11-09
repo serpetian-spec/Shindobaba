@@ -33842,7 +33842,7 @@ func p_gamadaira_kageayatsuri(c: Node3D, t: Node3D) -> void:
 				tt.team = "enemy"
 		if live(c) and c.get("model"):
 			c.model.visible = true
-			c.model.scale = Vector3.ONE
+			c.model.scale = Vector3.ONE * (float(c.model.age_scale) if "age_scale" in c.model else 1.0)
 			FX.smoke_puff(c.global_position + Vector3.UP, 0.7, 8)
 			Combat.popup_text(c.global_position + Vector3.UP * 2.3, "Nefes bitti!", Color(0.85, 0.85, 0.95)))
 
