@@ -67,6 +67,7 @@ const HAIR_DONORS := {
 	"yan_orgu": ["Sendagaya_Shibu", "Hair001", "yan_orgu"], "bagli_uzun": ["AvatarSample_B", "Hair001", "bagli_uzun"],
 	"tepe_diken": ["Sakurada_Fumiriya", "Hair001", "tepe_diken"], "yan_topuz": ["Sendagaya_Shibu", "Hair001", "yan_topuz"],
 	# sıfırdan anime saçları (AnimeHair): VRoid tabanı yok
+	"s1": ["", "", "s1"],
 	"s2": ["", "", "s2"],
 }
 const VROID_SKIN := Color(0.99, 0.89, 0.82)  # VRoid doku ten rengi (oyuncu teni bununla oranlanır)
@@ -477,6 +478,7 @@ func _face_and_hair() -> void:
 		var fa: AABB = fd["aabb"]
 		head_ab = AABB(place * fa.position, Vector3.ZERO).expand(place * fa.end)
 		head_ab = head_ab.abs()
+		_face_src = [fd["mesh"], place]   # saç tutamları gerçek alın/yüz yüzeyini izlesin (_head_radial)
 		var sk_key = "%s|%s|%s" % [look["gender"], donor, look.get("age", "adult")]
 		_sk_key = sk_key
 		if _skull_cache.has(sk_key):
@@ -513,7 +515,7 @@ func _face_and_hair() -> void:
 		if not _hair_cache.has(hk):
 			if AnimeHair.has(hd[2]):   # sıfırdan anime saçı (VRoid tabanı yok)
 				_hair_cache[hk] = AnimeHair.build(hd[2], skull_c, skull_r, banded, (band_ring[0] + 0.01) if (banded and not band_ring.is_empty()) else -INF, _head_radial(), BAND_DROP)
-				_hair_dyn[hk] = {}
+				_hair_dyn[hk] = _anime_dangle(_hair_cache[hk], AnimeHair.strands)   # kâkül/ense/favori salınır, dikenler hafif yaylanır
 			else:
 				_hair_cache[hk] = _hair_clumps(hd[2], skull_c, skull_r)
 				_hair_dyn[hk] = _clump_dangle(_hair_cache[hk])
@@ -2937,7 +2939,7 @@ const HAIR_FILES := {
 	"geriye": "Hair_Buzzed", "orgu": "Hair_Buzzed", "mohikan": "Hair_Buzzed", "kel": "", "kirpik": "Hair_Buzzed", "kisa_kakul": "Hair_Buzzed",
 }
 ## Saç stilleri (arayüzde gösterilen adlar)
-const HAIR_STYLES := {"kısa": "Kısa", "kase": "Kâse", "uzun": "Uzun", "s2": "Dikenli Taç"}
+const HAIR_STYLES := {"kısa": "Kısa", "kase": "Kâse", "uzun": "Uzun", "s2": "Dikenli Taç"}   # s1 (Kiba) yapım aşamasında: menüye eklenmedi
 ## Saç cinsiyeti (kullanıcı 2026-11-09: kadın saçı kadınlara, erkek saçı erkeklere; yazılmayan = unisex)
 const HAIR_GENDER := {"s1": "m", "s2": "m"}
 
@@ -3464,6 +3466,64 @@ static func _clump_dangle(mesh: ArrayMesh) -> Dictionary:
 	return Dangle.build(mesh, defs, assign)
 
 
+## Anime saçı ikincil hareketi (kural: secondary-motion, hair_profile): akan tutamlar (kâkül, ense, favori) kendi
+## zinciri; dikenler kafa bölgelerine (8 yön x tepe/yan) toplanır, sert profille hafif yaylanır. Kütle sabit.
+func _anime_dangle(mesh: ArrayMesh, st: Array) -> Dictionary:
+	var defs = []
+	var of = {}
+	var sectors = {}
+	for i in st.size():
+		var pts: PackedVector3Array = st[i]["pts"]
+		if pts.size() < 3:
+			continue
+		var L = 0.0
+		for k in range(1, pts.size()):
+			L += pts[k].distance_to(pts[k - 1])
+		if st[i]["kind"] == "flow":
+			if defs.size() >= 30:
+				continue
+			var cp = PackedVector3Array()
+			for f in [0.0, 0.25, 0.5, 0.75, 1.0]:
+				cp.append(pts[int(round(f * (pts.size() - 1)))])
+			var hp = hair_profile(L)
+			hp["pts"] = cp
+			of[i] = defs.size()
+			defs.append(hp)
+		else:
+			var d = pts[0] - skull_c
+			var sec = int(floor((atan2(d.x, d.z) + PI) / TAU * 8.0)) % 8 + (8 if d.y > skull_r.y * 0.6 else 0)
+			if not sectors.has(sec):
+				sectors[sec] = []
+			sectors[sec].append(i)
+	for sec in sectors:
+		var ids: Array = sectors[sec]
+		var cp = PackedVector3Array()
+		var L = 0.0
+		for f in [0.0, 0.5, 1.0]:
+			var acc = Vector3.ZERO
+			for i in ids:
+				var pts: PackedVector3Array = st[i]["pts"]
+				acc += pts[int(round(f * (pts.size() - 1)))]
+			cp.append(acc / ids.size())
+		L = cp[0].distance_to(cp[2])
+		var hp = hair_profile(L, true)   # diken: yukarı/dışa bakan, sert
+		hp["pts"] = cp
+		var ci = defs.size()
+		defs.append(hp)
+		for i in ids:
+			of[i] = ci
+	if defs.is_empty():
+		return {}
+	var uv2: PackedVector2Array = mesh.surface_get_arrays(0)[Mesh.ARRAY_TEX_UV2]
+	var assign = func(vi: int, v: Vector3, _si: int) -> Array:
+		var sid = int(round(uv2[vi].x))
+		if sid < 0 or not of.has(sid):
+			return []
+		var ci: int = of[sid]
+		return [[ci, Dangle.project(defs[ci]["pts"], v)[0], 1.0]]
+	return Dangle.build(mesh, defs, assign)
+
+
 ## Saçın TEK hareket profili (tutam + VRoid saç aynı): fark yalnız boydan gelir — kısa parça az, uzun parça çok oynar,
 ## hiçbiri kazık gibi sabit ya da yay gibi zıplayan olmaz (güçlü sönüm, kök başı izler).
 static func hair_profile(L: float, upward := false) -> Dictionary:
@@ -3516,6 +3576,7 @@ func dangle_strip(bone: String, model_root: Vector3, dir: Vector3, length: float
 ## Alın koruyucu (kafa) — referans: _tmp/ref_band (Kotetsu/Izumo): kumaş bant saçın ÜSTÜNDEN kafayı sarar
 ## (saç maskesi bandın içinde kalan saçı keser, bant saçı bastırmış görünür), alında kafaya uyan kavisli metal plaka
 ## (pahlı kenar, dört köşe perçini, kazınmış köy arması), arkada düğüm + iki kısa sarkan uç (ikincil hareket).
+var _face_src: Array = []   # [yüz mesh, model yerleşimi]
 var _anime_hair_vs := PackedVector3Array()   # sıfırdan saçın köşeleri (model uzayı): bant saç kütlesinin üstüne oturur
 
 
@@ -3530,10 +3591,18 @@ func _head_radial() -> PackedFloat32Array:
 	var src = []
 	var geo = _geo_for(look["gender"])   # çizilen gövde (ham VRoid mesh'i değil): kafatası arkası buradan
 	src.append(geo["arrays"][Mesh.ARRAY_VERTEX])
-	var ey = eye_center_model.y
+	if not _face_src.is_empty():
+		var fm: ArrayMesh = _face_src[0]
+		var fx: Transform3D = _face_src[1]
+		var fv = PackedVector3Array()
+		for si in fm.get_surface_count():
+			for q in (fm.surface_get_arrays(si)[Mesh.ARRAY_VERTEX] as PackedVector3Array):
+				fv.append(fx * q)
+		src.append(fv)
+	var ny = _bp("Neck").y
 	for vv in src:
 		for q in vv:
-			if q.y < ey - 0.06:
+			if q.y < ny:   # boyun dahil: ense tutamları boyun derisini izler (havada kalmaz)
 				continue
 			var d: Vector3 = q - skull_c
 			var l = d.length()

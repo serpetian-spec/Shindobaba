@@ -6,7 +6,7 @@ func _w(t: float) -> void:
 func _ready() -> void:
 	await get_tree().process_frame
 	var g = OS.get_environment("SV_G") if OS.get_environment("SV_G") != "" else "m"
-	main.creator_state = {"slot": 3, "name": "Test", "gender": g, "clan": "none", "element": "katon", "village": "konoha", "hair_style": OS.get_environment("SV_H"), "hair": Color(0.32, 0.22, 0.16), "top": Color(0.2, 0.2, 0.3), "pants": Color(0.15, 0.15, 0.17), "skin": Color(0.96, 0.8, 0.66), "eye": Color(0.2, 0.2, 0.2)}
+	main.creator_state = {"slot": 3, "age": OS.get_environment("SV_AGE") if OS.get_environment("SV_AGE") != "" else "adult", "name": "Test", "gender": g, "clan": "none", "element": "katon", "village": "konoha", "hair_style": OS.get_environment("SV_H"), "hair": Color(0.85, 0.87, 0.92) if OS.get_environment("SV_WHITE") != "" else Color(0.32, 0.22, 0.16), "top": Color(0.2, 0.2, 0.3), "pants": Color(0.15, 0.15, 0.17), "skin": Color(0.96, 0.8, 0.66), "eye": Color(0.2, 0.2, 0.2)}
 	main._start_new_game()
 	await _w(2.5)
 	Hud.close_dialog()
@@ -48,7 +48,7 @@ func _ready() -> void:
 	var hb = pl.model.skel.find_bone("Head")
 	var hp: Vector3 = (pl.model.skel.global_transform * pl.model.skel.get_bone_global_pose(hb)).origin + Vector3(0, 0.08, 0)
 	print("HAIR head ", hp)
-	var views = [Vector3(0, 0.05, 1), Vector3(0.7, 0.1, 0.7), Vector3(1, 0.05, 0), Vector3(0, 0.05, -1), Vector3(-0.6, 0.15, -0.75), Vector3(0.3, 1.0, 0.25)]
+	var views = [Vector3(0, 0.05, 1), Vector3(0.7, 0.1, 0.7), Vector3(1, 0.05, 0), Vector3(0, 0.05, -1), Vector3(-0.6, 0.15, -0.75), Vector3(0.05, 1.0, -0.15), Vector3(0, 0.9, -0.9)]   # 5: tam tepe, 6: oyun kamerası (arkadan yukarıdan)
 	var tag = OS.get_environment("SV_TAG")
 	for k in views.size():
 		var dv: Vector3 = views[k].normalized()
