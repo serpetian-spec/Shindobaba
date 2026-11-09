@@ -5,7 +5,7 @@ func _w(t: float) -> void:
 	await get_tree().create_timer(t).timeout
 func _ready() -> void:
 	await get_tree().process_frame
-	main.creator_state = {"slot": 3, "name": "Test", "gender": "m", "age": "adult", "clan": "none", "element": "katon", "village": "konoha", "hair_style": OS.get_environment("SV_H"), "hair": Color(0.85, 0.87, 0.92), "top": Color(0.2, 0.2, 0.3), "pants": Color(0.15, 0.15, 0.17), "skin": Color(0.96, 0.8, 0.66), "eye": Color(0.2, 0.2, 0.2)}
+	main.creator_state = {"slot": 3, "name": "Test", "gender": OS.get_environment("SV_G") if OS.get_environment("SV_G") != "" else "m", "age": "adult", "clan": "none", "element": "katon", "village": "konoha", "hair_style": OS.get_environment("SV_H"), "hair": Color(0.85, 0.87, 0.92), "top": Color(0.2, 0.2, 0.3), "pants": Color(0.15, 0.15, 0.17), "skin": Color(0.96, 0.8, 0.66), "eye": Color(0.2, 0.2, 0.2)}
 	main._start_new_game()
 	await _w(3.0)
 	var pl = main.player

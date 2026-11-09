@@ -69,6 +69,52 @@ const HAIR_DONORS := {
 	# sıfırdan anime saçları (AnimeHair): VRoid tabanı yok
 	"s1": ["", "", "s1"],
 	"s2": ["", "", "s2"],
+	"s3": ["", "", "s3"],
+	"s4": ["", "", "s4"],
+	"s5": ["", "", "s5"],
+	"s6": ["", "", "s6"],
+	"s7": ["", "", "s7"],
+	"s8": ["", "", "s8"],
+	"s9": ["", "", "s9"],
+	"s10": ["", "", "s10"],
+	"s11": ["", "", "s11"],
+	"s12": ["", "", "s12"],
+	"s13": ["", "", "s13"],
+	"s14": ["", "", "s14"],
+	"s15": ["", "", "s15"],
+	"s16": ["", "", "s16"],
+	"s17": ["", "", "s17"],
+	"s18": ["", "", "s18"],
+	"s19": ["", "", "s19"],
+	"s20": ["", "", "s20"],
+	"s21": ["", "", "s21"],
+	"s22": ["", "", "s22"],
+	"s23": ["", "", "s23"],
+	"s24": ["", "", "s24"],
+	"f1": ["", "", "f1"],
+	"f2": ["", "", "f2"],
+	"f3": ["", "", "f3"],
+	"f4": ["", "", "f4"],
+	"f5": ["", "", "f5"],
+	"f6": ["", "", "f6"],
+	"f7": ["", "", "f7"],
+	"f8": ["", "", "f8"],
+	"f9": ["", "", "f9"],
+	"f10": ["", "", "f10"],
+	"f11": ["", "", "f11"],
+	"f12": ["", "", "f12"],
+	"f13": ["", "", "f13"],
+	"f14": ["", "", "f14"],
+	"f15": ["", "", "f15"],
+	"f16": ["", "", "f16"],
+	"f17": ["", "", "f17"],
+	"f18": ["", "", "f18"],
+	"f19": ["", "", "f19"],
+	"f20": ["", "", "f20"],
+	"f21": ["", "", "f21"],
+	"f22": ["", "", "f22"],
+	"f23": ["", "", "f23"],
+	"f24": ["", "", "f24"],
 }
 const VROID_SKIN := Color(0.99, 0.89, 0.82)  # VRoid doku ten rengi (oyuncu teni bununla oranlanır)
 static var _scenes := {}
@@ -2939,9 +2985,9 @@ const HAIR_FILES := {
 	"geriye": "Hair_Buzzed", "orgu": "Hair_Buzzed", "mohikan": "Hair_Buzzed", "kel": "", "kirpik": "Hair_Buzzed", "kisa_kakul": "Hair_Buzzed",
 }
 ## Saç stilleri (arayüzde gösterilen adlar)
-const HAIR_STYLES := {"kısa": "Kısa", "kase": "Kâse", "uzun": "Uzun", "s1": "Dağınık Diken", "s2": "Dikenli Taç"}
+const HAIR_STYLES := {"kısa": "Kısa", "kase": "Kâse", "uzun": "Uzun", "s1": "Dağınık Diken", "s2": "Dikenli Taç", "s3": "Yatık Diken", "s4": "Alev Yelpaze", "s5": "Düz Kuyruk", "s6": "Örtük Kâkül", "s7": "Yan Alev", "s8": "Ananas Kuyruk", "s9": "Kâse Kesim", "s10": "Dikenli Yele", "s11": "Düz Kısa", "s12": "Sık Diken", "s13": "Kısa Kirpi", "s14": "Geri Diken", "s15": "Uzun Perde", "s16": "Ördek Kuyruğu", "s17": "Yan Tarama", "s18": "Dik Fırça", "s19": "Savruk Diken", "s20": "Katlı Uç", "s21": "Tepe Kuyruk", "s22": "Geri Tarama", "s23": "Kısa Geri", "s24": "Dağınık Kısa", "f1": "Yan Ayrık Kısa", "f2": "Uzun Düz", "f3": "Uzun Dağınık", "f4": "Prenses Kâkül", "f5": "Dalgalı Uzun", "f6": "Dikenli Kuyruk", "f7": "Yan Kâkül Kuyruk", "f8": "Çift Topuz", "f9": "Dörtlü Kuyruk", "f10": "Kabarık Bere", "f11": "Düz Kesik Kısa", "f12": "Kısa Prenses", "f13": "Bantlı Kısa", "f14": "Açık Alın Kısa", "f15": "Topuz Kâkül", "f16": "Uzun Ayrık", "f17": "Örtük Kısa", "f18": "Küçük Prenses", "f19": "Uzun Kuyruk", "f20": "Alçak Kuyruk", "f21": "Kâküllü Kısa", "f22": "Arka Topuz", "f23": "Yana Kısa", "f24": "Tepe Topuz"}
 ## Saç cinsiyeti (kullanıcı 2026-11-09: kadın saçı kadınlara, erkek saçı erkeklere; yazılmayan = unisex)
-const HAIR_GENDER := {"s1": "m", "s2": "m"}
+const HAIR_GENDER := {"s1": "m", "s2": "m", "s3": "m", "s4": "m", "s5": "m", "s6": "m", "s7": "m", "s8": "m", "s9": "m", "s10": "m", "s11": "m", "s12": "m", "s13": "m", "s14": "m", "s15": "m", "s16": "m", "s17": "m", "s18": "m", "s19": "m", "s20": "m", "s21": "m", "s22": "m", "s23": "m", "s24": "m", "f1": "f", "f2": "f", "f3": "f", "f4": "f", "f5": "f", "f6": "f", "f7": "f", "f8": "f", "f9": "f", "f10": "f", "f11": "f", "f12": "f", "f13": "f", "f14": "f", "f15": "f", "f16": "f", "f17": "f", "f18": "f", "f19": "f", "f20": "f", "f21": "f", "f22": "f", "f23": "f", "f24": "f"}
 
 static func hair_styles_for(g: String) -> Array:
 	return HAIR_STYLES.keys().filter(func(h): return String(HAIR_GENDER.get(h, "")) in ["", g])
@@ -3479,6 +3525,8 @@ func _anime_dangle(mesh: ArrayMesh, st: Array) -> Dictionary:
 		var L = 0.0
 		for k in range(1, pts.size()):
 			L += pts[k].distance_to(pts[k - 1])
+		if st[i]["kind"] == "lie":
+			continue   # kafaya taranmış tutam: sabit (salınırsa kafadan kalkar)
 		if st[i]["kind"] == "flow":
 			if defs.size() >= 30:
 				continue
@@ -3613,6 +3661,26 @@ func _head_radial() -> PackedFloat32Array:
 			var iy = int(floor((yw + 180.0) / 10.0)) % NY
 			var ip = mini(int(floor(pt / 10.0)), NPT - 1)
 			g[ip * NY + iy] = maxf(g[ip * NY + iy], l)
+	# ince çıkıntılar (kulak, burun) yüzey sayılmasın: hücre, 3x3 komşularının medyanından 1 cm'den fazla dışarıdaysa medyana çekilir
+	# (yoksa kulağın üstünden geçen tutam dışa fırlıyordu — "örümcek bacağı")
+	var g2 = g.duplicate()
+	for ip in NPT:
+		for iy in NY:
+			var v = g[ip * NY + iy]
+			var yaw_c = (iy + 0.5) * 10.0 - 180.0
+			if v <= 0.0 or absf(yaw_c) < 50.0 or absf(yaw_c) > 130.0:
+				continue   # yalnız kulak bölgesi (alın tümseği kırpılırsa ince saç derinin altında kalıp alın görünüyordu)
+			var nb = []
+			for dp in [-1, 0, 1]:
+				for dy in [-1, 0, 1]:
+					var q = g[clampi(ip + dp, 0, NPT - 1) * NY + posmod(iy + dy, NY)]
+					if q > 0.0:
+						nb.append(q)
+			nb.sort()
+			var med = nb[nb.size() / 2]
+			if v > med + 0.01:
+				g2[ip * NY + iy] = med + 0.01
+	g = g2
 	return g
 
 
