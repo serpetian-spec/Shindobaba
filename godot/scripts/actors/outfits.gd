@@ -333,6 +333,7 @@ static func roll(arch: String, village := "") -> Dictionary:
 		L["set_id"] = sid   # set bonusları (element güç/direnç) AI'da da
 		L["thigh_holster"] = true
 	_npc_band_wear(L, arch, village)
+	_npc_face_paint(L, arch)
 	L["sleeves"] = not L.get("top_style", "uzun") in ["tisort", "kolsuz", "atlet"]
 	if L.get("top_style", "") in ["kimono"] and L["top_pattern"] == 0 and _ch(0.3):
 		L["top_pattern"] = 6
@@ -342,6 +343,17 @@ static func roll(arch: String, village := "") -> Dictionary:
 ## NPC alın koruyucusunun takılışı: çoğu alında; kalanı köyün/rütbenin anime tarzlarından (oyuncunun Takılış seçenekleriyle aynı)
 ## Suna: Kankurō kapüşonu, Baki peçesi, Gaara kuşağı; Kiri: Zabuza, Kisame; Konoha: Yamato, Neji, Chōji, Shikamaru kolu, Ino beli;
 ## kaçak: Kakashi eğik, Zabuza, Kisame, Kakuzu; kadınlarda saç bandı/bel; nadir: Tobirama, Jiraiya, Hiruzen miğferi (yalnız jōnin+)
+## Sıradan NPC nadiren yüz boyası taşır (klanınki ClanWorld.clan_look'ta: Inuzuka dişleri, Akimichi sarmalı...).
+## Klan boyaları ve kostüm gibi yüzü kaplayanlar (İblis, Uçurtma, Balkabağı, Kahraman maskesi) sıradan NPC'de çıkmaz.
+const NPC_PAINT_SKIP := ["fp1", "fp2", "fp13", "fp9", "x20", "x46", "x40", "x22", "x19", "x6", "x5", "x37", "x38", "x41", "x7", "x68"]
+static func _npc_face_paint(L: Dictionary, arch: String) -> void:
+	var p = 0.05 if arch in ["genin", "chunin", "jonin", "hunter", "guard", "rogue", "kid", "student"] else 0.025
+	if not _ch(p):
+		return
+	var pool = CharacterModel.FACE_PAINTS.keys().filter(func(k): return k != "yok" and not k in NPC_PAINT_SKIP)
+	L["face_paint"] = _p(pool)
+
+
 static func _npc_band_wear(L: Dictionary, arch: String, village: String) -> void:
 	if L.get("band") == null or not String(L.get("band_style", "none")) in ["head", "slashed"]:
 		return
@@ -366,6 +378,25 @@ static func _npc_band_wear(L: Dictionary, arch: String, village: String) -> void
 			if _ch(0.08):
 				pool = ["jiraiya", "hiruzen"] if village == "konoha" else ["hiruzen"]
 	L["band_wear"] = _p(pool)
+
+
+## Köy ninjasına köyünün GERÇEK chūnin/jōnin setini giydirir (yelek modeli, üst/alt, koruyucular).
+## Eskiden birçok yer yalnız L["vest"] = köy rengi yazıyordu: model Konoha yeleği kalıyordu (kullanıcı: "Kumo chūnini Konoha kıyafeti").
+static func village_set(L: Dictionary, vid := "", jonin := false) -> void:
+	if vid == "":
+		vid = String(L.get("village", Progress.home()))
+	var vk = {"konoha": "", "suna": "suna_", "kiri": "kiri_", "kumo": "kumo_", "iwa": "iwa_"}
+	if vk.has(vid):
+		var keep = {}
+		for k in ["hair", "hair_style", "gender", "skin", "eye", "age", "face_paint", "face_paint_col", "keep_hair", "own_hair"]:
+			if L.has(k):
+				keep[k] = L[k]
+		var sid = "set_%s%s" % [vk[vid], "jonin" if jonin else "chunin"]
+		Gear.preview_set_look(L, sid)
+		L.merge(keep, true)
+		L["set_id"] = sid
+	else:
+		L["vest"] = Progress.HOME_VILLAGES.get(vid, Progress.HOME_VILLAGES["konoha"])["vest"]
 
 
 ## Kayda (JSON) girecek görünümler için: renkler html dizesi

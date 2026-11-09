@@ -107,7 +107,8 @@ func _spawn(pp: Vector3) -> void:
 		look["village"] = vid
 		look["age"] = "adult" if rank >= 1 else "teen"
 		if rank >= 1:
-			look["vest"] = hi["vest"]
+			# köyün kendi chūnin/jōnin seti (yelek modeli, üst/alt, koruyucular): eskiden yalnız yelek RENGİ köyün, modeli Konoha'nındı
+			Outfits.village_set(look, vid, rank >= 2)
 		await CharacterModel.build_turn(self)   # takım üyeleri ayrı karelerde kurulur (donma olmasın)
 		var n = EncounterNPC.new()
 		n.team = "neutral"
@@ -135,6 +136,20 @@ func _spawn(pp: Vector3) -> void:
 
 
 ## Köyün kalıcı takımları (ilk görüldüğünde üretilir, kayda yazılır): 4 genin takımı (jōnin hoca + 3 genin) ve 1 chūnin üçlüsü
+## Köy takımları için tekrar etmeyen isim: önce kısa genin listesi, tükenince geniş isim havuzu (ClanWorld), en son ek
+static func _unique_name(female: bool, used: Dictionary) -> String:
+	var pools = [GENIN_F if female else GENIN_M, ClanWorld.GIVEN_F if female else ClanWorld.GIVEN_M]
+	for pool in pools:
+		var free = (pool as Array).filter(func(x): return not used.has(x))
+		if not free.is_empty():
+			return free.pick_random()
+	var base = String(((GENIN_F if female else GENIN_M) as Array).pick_random())
+	var k = 2
+	while used.has("%s %d" % [base, k]):
+		k += 1
+	return "%s %d" % [base, k]
+
+
 static func roster(vid: String) -> Array:
 	var p = Game.profile
 	if not p.has("vteams"):
@@ -145,6 +160,20 @@ static func roster(vid: String) -> Array:
 				if String(pe["name"]) in CANON:
 					var fem = String((pe.get("look", {}) as Dictionary).get("gender", "m")) == "f"
 					pe["name"] = ((GENIN_F if fem else GENIN_M) as Array).pick_random()
+		# eski kayıt onarımı: aynı köy takımlarında tekrar eden isim (isim havuzu tükenince chūnin üçlüsünün hepsi "Kenji" oluyordu)
+		var seen = {}
+		for tm in p["vteams"][vid]:
+			for pe in tm["people"]:
+				var nm0 = String(pe["name"])
+				if seen.has(nm0):
+					var fem2 = String((pe.get("look", {}) as Dictionary).get("gender", "m")) == "f"
+					var nn = _unique_name(fem2, seen)
+					pe["name"] = nn
+					var fid0 = String(pe.get("fid", ""))
+					if fid0 != "" and Friends.all().has(fid0):
+						Friends.all()[fid0]["name"] = nn
+						Friends.all()[fid0]["title"] = "%s takımı" % String(tm["people"][0]["name"])
+				seen[String(pe["name"])] = true
 		return p["vteams"][vid]
 	var out = []
 	var used = {}
@@ -153,11 +182,7 @@ static func roster(vid: String) -> Array:
 		var people = []
 		for i in (3 if chunin else 4):
 			var female = randf() < 0.45
-			var nm = ""
-			for tries in 20:
-				nm = ((GENIN_F if female else GENIN_M) as Array).pick_random()
-				if not used.has(nm):
-					break
+			var nm = _unique_name(female, used)
 			used[nm] = true
 			var rank = 1 if chunin else (2 if i == 0 else 0)
 			var look = {"gender": "f" if female else "m", "hair_style": ["kısa", "uzun", "kase", "dağınık", "topuz", "diken", "atkuyruğu"].pick_random(),

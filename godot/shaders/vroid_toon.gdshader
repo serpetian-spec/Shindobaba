@@ -19,8 +19,9 @@ uniform vec3 eye_c_r = vec3(-0.032, 1.62, 0.08);
 uniform vec3 eye_c_l = vec3(0.032, 1.62, 0.08);
 uniform float iris_r3 = 0.011;
 // yüz boyası: Striker desen maskesi (alfa), göz merkezlerine göre önden yansıtılır (512 px: gözler 176/336, y 200)
-uniform sampler2D paint_tex : hint_default_transparent, filter_linear;
+uniform sampler2D paint_tex : source_color, hint_default_transparent, filter_linear;
 uniform vec4 paint_col = vec4(0.0);
+uniform bool paint_natural = false;   // true: dokunun kendi renkleri (çok renkli desenler)
 varying vec3 lp;
 
 void vertex() {
@@ -59,8 +60,8 @@ void fragment() {
 		float ped = max(length(eye_c_l - eye_c_r), 0.01);
 		vec2 puv = vec2(256.0 + (lp.x - pe.x) / ped * 160.0, 200.0 - (lp.y - pe.y) / ped * 160.0) / 512.0;
 		if (puv.x > 0.0 && puv.x < 1.0 && puv.y > 0.0 && puv.y < 1.0) {
-			float pa = texture(paint_tex, puv).a;
-			c = mix(c, paint_col.rgb, pa * paint_col.a);
+			vec4 pt = texture(paint_tex, puv);
+			c = mix(c, paint_natural ? pt.rgb : paint_col.rgb, pt.a * paint_col.a);
 		}
 	}
 	if (byakugan_veins > 0.0) {

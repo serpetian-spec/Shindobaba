@@ -879,7 +879,7 @@ static func arch(f: Dictionary) -> Dictionary:
 	L["band_style"] = "head"
 	L["village"] = Progress.home()
 	if int(f.get("rank", 0)) >= 1:
-		L["vest"] = hi["vest"]
+		Outfits.village_set(L, Progress.home(), int(f.get("rank", 0)) >= 2)
 	return a
 
 
@@ -1166,7 +1166,7 @@ func _spawn_npc(id: String, at: Vector3, walk: bool) -> Villager:
 	vg.role = "nurse"
 	var lk = look_of(f)
 	if int(f.get("rank", 0)) >= 1:
-		lk["vest"] = Progress.home_info()["vest"]
+		Outfits.village_set(lk, Progress.home(), int(f.get("rank", 0)) >= 2)
 	lk["keep_hair"] = true
 	vg.look_extra = lk
 	vg.display_override = String(f["name"])

@@ -370,6 +370,9 @@ func _route(e: InputEvent) -> void:
 			preview.rotation.y = PI + preview_yaw   # kurulumla aynı (klan/saç değişince model ters dönüyordu)
 	if mode != "game":
 		return
+	if e is InputEventKey and e.pressed and not e.echo and e.keycode == KEY_F9 and player != null:   # görünmez yapı teşhisi (oyuncu raporu)
+		preload("res://scripts/core/inv_check.gd").run(get_tree(), player.global_position)
+		return
 	if e.is_action_pressed("pause"):
 		if Hud.dialog_open() and not Game.paused:
 			Hud.close_dialog()

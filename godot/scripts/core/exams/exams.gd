@@ -477,8 +477,8 @@ func bell_start() -> void:
 	a["ryo"] = 0
 	a["look"]["band_style"] = "head"
 	a["look"]["band"] = hi["band"]
-	a["look"]["vest"] = hi["vest"]
 	a["look"]["village"] = Progress.home()
+	Outfits.village_set(a["look"], Progress.home())
 	GeninSquad.dress_sensei(a["look"])
 	s.setup(a)
 	s.set_meta("bell_sensei", true)

@@ -212,7 +212,7 @@ func _send_guards() -> void:
 		if not auto.is_empty():
 			a["jutsu"] = auto
 		var L: Dictionary = a["look"]
-		L["vest"] = hi["vest"]
+		Outfits.village_set(L, Progress.home())   # köyün kendi seti (yalnız renk değil)
 		L["band"] = hi["band"]
 		L["band_style"] = "head"
 		L["village"] = Progress.home()

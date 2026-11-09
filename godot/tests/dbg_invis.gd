@@ -8,7 +8,11 @@ const VIS_LAYER := 1 << 19
 func _ready() -> void:
 	await get_tree().process_frame
 	main.creator_state = {"slot": 3, "name": "Test", "gender": "m", "clan": "none", "element": "katon", "hair_style": "diken", "hair": Color(0.2, 0.15, 0.1), "top": Color(0.2, 0.3, 0.5), "pants": Color(0.15, 0.15, 0.17), "skin": Color(0.96, 0.8, 0.66), "eye": Color(0.25, 0.45, 0.8)}
-	main._start_new_game()
+	if OS.get_environment("LOAD") != "":   # oyuncunun kaydıyla (kopyası) tara: kendi önbelleği ve dünya durumu
+		main.load_slot(int(OS.get_environment("LOAD")))
+		await get_tree().create_timer(6.0).timeout
+	else:
+		main._start_new_game()
 	await get_tree().create_timer(2.0).timeout
 	var pl = main.player
 	var vids = OS.get_environment("VIDS").split(",", false)

@@ -264,8 +264,8 @@ static func sensei_arch(level: int) -> Dictionary:
 	L["hair_style"] = s["hair_style"]
 	L["band_style"] = "head"
 	L["band"] = hi["band"]
-	L["vest"] = hi["vest"]
 	L["village"] = Progress.home()
+	Outfits.village_set(L, Progress.home())
 	return a
 
 

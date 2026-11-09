@@ -1562,7 +1562,9 @@ static func _tab_wardrobe(main: Node, body: Control) -> void:
 	if _eq_slot == "susanoo":
 		preview = _susanoo_preview(pr)
 	else:
-		preview = _model_preview(Game.player._look_with_age() if Game.player else pr["look"])
+		var plk: Dictionary = (Game.player._look_with_age() if Game.player else pr["look"]).duplicate()
+		plk["own_hair"] = true
+		preview = _model_preview(plk)
 	preview.position = Vector2(250, 0)
 	preview.size = Vector2(360, 700)
 	preview.custom_minimum_size = Vector2(360, 700)
@@ -2044,7 +2046,7 @@ static func _model_preview(look: Dictionary, cam_pos := Vector3(0, 1.0, -4.4), t
 	var m = CharacterModel.new()
 	sv.add_child(m)
 	var lk2 = look.duplicate()
-	lk2["own_hair"] = true   # berber/görünüm önizlemesi: seçilen saç aynen
+	lk2["own_hair"] = bool(look.get("own_hair", false))   # oyuncu (own_hair) seçtiği saçla; NPC (Bingo, konuşma portresi) dünyadaki gibi anime saçına eşlenir
 	m.setup(lk2)
 	m.play("idle")
 	m.scale = Vector3.ONE

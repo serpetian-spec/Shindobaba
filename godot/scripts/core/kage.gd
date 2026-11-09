@@ -120,7 +120,7 @@ func _ninja_of(vid: String, i: int, lv: int, team: String, look_ov := {}) -> Ene
 	if vid == Progress.home():
 		var hi = Progress.home_info()
 		L["band"] = hi["band"]
-		L["vest"] = hi["vest"]
+	Outfits.village_set(L, vid)
 	a["name"] = "%s %s" % [String(Game.village(vid).get("name", vid)).trim_suffix("gakure"), "Akıncısı" if team == "enemy" else "Muhafızı"]
 	if not look_ov.is_empty():
 		a["look"] = look_ov.duplicate(true)   # savaşa katılan köy ninjası: kendi görünüşüyle
