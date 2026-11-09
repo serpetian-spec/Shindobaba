@@ -2733,6 +2733,126 @@ func _sf_acc(id: String, ref: Vector3) -> bool:
 	return true
 
 
+## Pürüzsüz miğfer kabuğu: kafa derisinin her yönde en dış noktasına + pay ile oturan, ızgarası yumuşatılmış kubbe.
+## Ön kenar front_edge_y'de, arkaya doğru back_drop kadar iner (ense korunur).
+func _helmet_shell(col: Color, front_edge_y: float, back_drop: float, pad := 0.016, flat_top := 0.0) -> MeshInstance3D:
+	# kafa derisinin gerçek yüzeyi (saçlarla aynı ölçüm: _head_radial ızgarası, AnimeHair._real_r)
+	AnimeHair._c = skull_c; AnimeHair._r = skull_r; AnimeHair._grid = _head_radial(); AnimeHair._band_y = -INF
+	var NA = 64; var NP = 22
+	var edge_at = func(a: float) -> float:   # a: yaw (0 = ön +Z)
+		var back = maxf(0.0, -cos(a))
+		return front_edge_y - back_drop * back * back
+	# yarıçap ızgarası: ölç -> genişlet (max 3x3, çıkıntılar dışarıda kalsın) -> 6 tur yumuşat (buruşuk değil pürüzsüz kask)
+	var pmaxs = []
+	for k in NA:
+		var yw = float(k) / NA * 360.0 - 180.0
+		var pmax = 30.0
+		while pmax < 140.0:
+			var dd = AnimeHair._dir(yw, pmax)
+			if (skull_c + dd * AnimeHair._real_r(dd)).y < edge_at.call(deg_to_rad(yw)):
+				break
+			pmax += 2.0
+		pmaxs.append(pmax)
+	for it in 3:   # kenar çizgisi de yumuşak
+		var sm = pmaxs.duplicate()
+		for k in NA:
+			sm[k] = (pmaxs[(k + NA - 1) % NA] + pmaxs[k] * 2.0 + pmaxs[(k + 1) % NA]) * 0.25
+		pmaxs = sm
+	var RG = []
+	for k in NA:
+		var row = []
+		for jj in NP + 1:
+			var yw = float(k) / NA * 360.0 - 180.0
+			var d = AnimeHair._dir(yw, lerpf(0.0, pmaxs[k], float(jj) / NP))
+			row.append(AnimeHair._real_r(d))
+		RG.append(row)
+	var dil = []
+	for k in NA:
+		var row = []
+		for jj in NP + 1:
+			var m = 0.0
+			for dk in [-1, 0, 1]:
+				for dj in [-1, 0, 1]:
+					m = maxf(m, RG[(k + dk + NA) % NA][clampi(jj + dj, 0, NP)])
+			row.append(m)
+		dil.append(row)
+	RG = dil
+	for it in 6:
+		var sm = []
+		for k in NA:
+			var row = []
+			for jj in NP + 1:
+				var a = 0.0
+				for dk in [-1, 0, 1]:
+					for dj in [-1, 0, 1]:
+						a += RG[(k + dk + NA) % NA][clampi(jj + dj, 0, NP)]
+				row.append(a / 9.0)
+			sm.append(row)
+		RG = sm
+	var top_r = 0.0
+	for k in NA:
+		top_r += RG[k][0]
+	top_r /= NA
+	var p_at = func(k: int, j: int, off: float) -> Vector3:
+		var kk = k % NA
+		var yw = float(kk) / NA * 360.0 - 180.0
+		var d = AnimeHair._dir(yw, lerpf(0.0, pmaxs[kk], float(j) / NP))
+		var r = top_r if j == 0 else RG[kk][j]
+		var pnt = skull_c + d * (r + pad + off)
+		if flat_top > 0.0:   # silindir kep: yan duvar dik, tepe düz
+			var hzv = Vector2(pnt.x - skull_c.x, pnt.z - skull_c.z)
+			var rmax = RG[kk][NP] + pad
+			if float(j) / NP < 0.55:
+				var fy = flat_top + off   # iç yüz düz tepede 3 mm aşağıda (z-çakışma lekesi olmasın)
+				pnt = Vector3(skull_c.x + hzv.normalized().x * (rmax + off) * (float(j) / NP / 0.55), fy, skull_c.z + hzv.normalized().y * (rmax + off) * (float(j) / NP / 0.55)) if hzv.length() > 0.0001 else Vector3(skull_c.x, fy, skull_c.z)
+			else:
+				var ee = (float(j) / NP - 0.55) / 0.45
+				var e2 = AnimeHair._dir(float(kk) / NA * 360.0 - 180.0, pmaxs[kk])
+				var bot = skull_c + e2 * (RG[kk][NP] + pad)
+				var hb = Vector2(bot.x - skull_c.x, bot.z - skull_c.z)
+				var hbn = hb.normalized() * (hb.length() + off)
+				pnt = Vector3(skull_c.x + hbn.x, lerpf(flat_top + off, bot.y, ee), skull_c.z + hbn.y)
+		return pnt
+	var st = SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for k in NA:
+		for j in NP:
+			var q = [p_at.call(k, j, 0.0), p_at.call(k + 1, j, 0.0), p_at.call(k + 1, j + 1, 0.0), p_at.call(k, j + 1, 0.0)]
+			var qi = [p_at.call(k, j, -0.003), p_at.call(k + 1, j, -0.003), p_at.call(k + 1, j + 1, -0.003), p_at.call(k, j + 1, -0.003)]
+			for idx in [0, 2, 1, 0, 3, 2]:
+				st.set_color(col)
+				st.add_vertex(q[idx])
+			for idx in [0, 1, 2, 0, 2, 3]:   # karşı yön (3 mm içte): sarım hangi bölgede ters olursa olsun kubbe dolu
+				st.set_color(col)
+				st.add_vertex(qi[idx])
+		var e = [p_at.call(k, NP, 0.0), p_at.call(k + 1, NP, 0.0), p_at.call(k + 1, NP, -0.012), p_at.call(k, NP, -0.012)]
+		for idx in [0, 1, 2, 0, 2, 3, 0, 2, 1, 0, 3, 2]:
+			st.set_color(col.darkened(0.1))
+			st.add_vertex(e[idx])
+	st.generate_normals()
+	var mi = _mesh_on("Head", st.commit(), Transform3D.IDENTITY)
+	var mat = ShaderMaterial.new()
+	mat.shader = load("res://shaders/toon.gdshader")
+	mat.set_shader_parameter("rim_amount", 0.2)
+	mi.material_override = mat
+	return mi
+
+
+## Yönlü kutu (merkez, eksenler, tam boyut) — vertex renkli
+static func _box_basis(st: SurfaceTool, c: Vector3, b: Basis, size: Vector3, col: Color) -> void:
+	var h = size * 0.5
+	var corners = []
+	for z in [-1.0, 1.0]:
+		for y in [-1.0, 1.0]:
+			for x in [-1.0, 1.0]:
+				corners.append(c + b.x * h.x * x + b.y * h.y * y + b.z * h.z * z)
+	var faces = [[0, 1, 3, 2], [4, 6, 7, 5], [0, 4, 5, 1], [2, 3, 7, 6], [0, 2, 6, 4], [1, 5, 7, 3]]
+	for f in faces:
+		for idx in [0, 1, 2, 0, 2, 3]:
+			st.set_color(col)
+			st.add_vertex(corners[f[idx]])
+
+
 ## Konik hasır şapka: düz renk + ışınsal çizgi şeritleri + koyu tepe (Akatsuki şapkası)
 func _cone_hat(cen: Vector3, R: float, H: float, col: Color, line: Color, lines: int, tip: Color) -> MeshInstance3D:
 	var st = SurfaceTool.new()
@@ -2800,44 +2920,81 @@ func _accessories() -> void:
 				_mesh_on("Head", m.build(Props.toon()), Transform3D(Basis.IDENTITY, Vector3(hcen.x, hc.y - 0.005, hcen.z)))
 			else:
 				_hitai_bandana(hg)
-		"akatsuki":   # Striker "Akatsuki Hat": hasır sivri koni, ince ışınsal çizgiler, uçta koyu tepe, kenardan sarkan beyaz kâğıt şeritler (önü açık)
+		"akatsuki":   # Striker "Akatsuki Hat" + anime (refs/hats): hasır sivri koni, ışınsal çizgiler, koyu tepe; kenarın altından
+			# yüzü ve başı çevreleyen SIK, bitişik beyaz kâğıt şeritler (önde ortada yüz için dar aralık) — kumaş gibi salınır
 			_band_ring_full()
-			var R = hw * 1.35
-			var H = R * 0.55
-			var by0 = htop - hh * 0.3   # kenar alın üstünde (havada durmasın)
-			var mi = _cone_hat(Vector3(hcen.x, by0, hcen.z - 0.01), R, H, Color(0.78, 0.63, 0.46), Color(0.55, 0.42, 0.3), 36, Color(0.12, 0.1, 0.1))
+			var R = hw * 1.45
+			var by0 = eye_center_model.y + 0.045   # kenar alın hizası (ref: yüz görünür)
+			var top_need = 0.0
+			for q in _body_vs():
+				if absf(q.x - hcen.x) < 0.05 and q.y > hcen.y:
+					top_need = maxf(top_need, q.y)
+			var H = maxf(R * 0.62, (top_need + 0.02 - by0) / 0.62)
+			_cone_hat(Vector3(hcen.x, by0, hcen.z - 0.01), R, H, Color(0.78, 0.63, 0.46), Color(0.55, 0.42, 0.3), 36, Color(0.12, 0.1, 0.1))
 			hair_mask_plane(Vector3.UP, Vector3(0, by0 + 0.01, 0))
-			for k in 22:
-				var a = deg_to_rad(lerpf(36.0, 324.0, (k + 0.5) / 22.0))
+			var nst = 40
+			for k in nst:
+				var deg = lerpf(34.0, 326.0, (k + 0.5) / nst)   # önde yüz açıklığı (ref: yüz ortadan görünür)
+				var a = deg_to_rad(deg)
 				var out = Vector3(sin(a), 0, cos(a))
-				dangle_strip("Head", Vector3(hcen.x, by0 - 0.004, hcen.z - 0.01) + out * R * 0.8, (Vector3.DOWN + out * 0.1).normalized(), hh * (1.05 + 0.15 * (k % 2)), 0.085, Color(0.92, 0.93, 0.95), 0.35, out.cross(Vector3.UP).normalized(), 0.003)
-		"miğfer":   # Hiruzen'in savaş miğferi: beyaz yuvarlak kask, alında metal plaka, iki yanda zincirli zeytin plaka sırası
+				var L = hh * (1.25 + 0.18 * float((k * 7) % 3) / 2.0)
+				var w = TAU * R * 0.74 * (292.0 / 360.0) / nst * 1.25
+				var rr = R * 0.74 + (0.003 if k % 2 == 0 else 0.0)
+				dangle_strip("Head", Vector3(hcen.x, by0 - 0.006, hcen.z - 0.01) + out * rr, (Vector3.DOWN + out * 0.04).normalized(), L, w, Color(0.93, 0.94, 0.96).darkened(0.04 * (k % 2)), 0.4, out.cross(Vector3.UP).normalized(), 0.002, null, 0.0)
+		"miğfer":   # Hiruzen savaş miğferi (Striker Hiruzen_Helmet + anime refs/hats): kafaya oturan pürüzsüz beyaz kask (ön kenar
+			# alın ortası, arkada enseye iner), alında KÖYÜN sembollü alın koruyucu plakası, kulak hizasından yanaklara yapışık
+			# inen, halkalarla bağlı 4 zeytin zırh plakası
 			_band_ring_full()
 			var by = band_ring[0]
-			head_cap(Color(0.93, 0.93, 0.92), by + 0.025, 0.06, 0.03, 0.016, 0.02)
-			var mb = MB.new()
-			var fz = skull_c.z + float((band_ring[1] as PackedFloat32Array)[int(floor((PI * 0.5 + PI) / TAU * (band_ring[1] as PackedFloat32Array).size())) % (band_ring[1] as PackedFloat32Array).size()]) + 0.02
-			mb.add("box", Vector3(skull_c.x, by + 0.03, fz), Vector3(hw * 0.78, 0.045, 0.01), Color(0.72, 0.74, 0.78))
-			mb.add("box", Vector3(skull_c.x, by + 0.03, fz + 0.006), Vector3(0.004, 0.03, 0.004), Color(0.25, 0.25, 0.28))
-			for sx in [-1.0, 1.0]:
+			var white: Color = hg   # miğfer rengi eşya renginden (boyanabilir; varsayılan beyaz)
+			_helmet_shell(white, by + 0.03, 0.11)
+			hair_mask_plane(Vector3.UP, Vector3(0, by - 0.02, 0))
+			_hitai("Head", Vector3(skull_c.x, by + 0.014, skull_c.z), band_ring[1], white.darkened(0.06), 0.04, 0.042, 0.64, 0.004, Vector3.ZERO, true, 0.0, 0.0, 0.014)
+			var st = SurfaceTool.new()
+			st.begin(Mesh.PRIMITIVE_TRIANGLES)
+			var olive = Color(0.46, 0.45, 0.3)
+			var iron = Color(0.16, 0.16, 0.15)
+			var bvs = _body_vs()
+			for sx in [1.0, -1.0]:
+				var px = 0.0
+				var pz_sum = 0.0; var pz_n = 0
+				for q in bvs:   # kulak hizasında yanağın dış yüzü (plaka deriye yapışsın)
+					if absf(q.y - (by - 0.05)) < 0.02 and signf(q.x - skull_c.x) == sx and q.z > skull_c.z - 0.03 and q.z < skull_c.z + 0.04:
+						px = maxf(px, absf(q.x - skull_c.x)); pz_sum += q.z; pz_n += 1
+				if px <= 0.0:
+					px = hw * 0.5
+				var pz = pz_sum / maxf(1.0, pz_n)
+				var b = Basis(Vector3(0, 0, -sx), Vector3.UP, Vector3(sx, 0, 0))
+				_box_basis(st, Vector3(skull_c.x + sx * (px + 0.012), by + 0.012, pz), b, Vector3(0.05, 0.03, 0.01), white.darkened(0.12))   # miğfer kulak kanadı
 				for q in 4:
-					var py = by + 0.0 - q * 0.042
-					mb.add("box", Vector3(skull_c.x + sx * (hw * 0.56 + q * 0.004), py, skull_c.z - 0.005), Vector3(0.014, 0.036, 0.06), Color(0.42, 0.42, 0.3), Vector3(0, 0, sx * 6.0))
-					mb.add("box", Vector3(skull_c.x + sx * (hw * 0.57 + q * 0.004), py + 0.018, skull_c.z - 0.005), Vector3(0.016, 0.006, 0.05), Color(0.2, 0.2, 0.18))
-			_mesh_on("Head", mb.build(Props.toon()), Transform3D.IDENTITY)
-		"bere":   # örgü bere: kafayı kaşın üstüne kadar saran yumuşak kabarık kep, altta kıvrık kenar
+					var y = by - 0.022 - q * 0.046
+					var c = Vector3(skull_c.x + sx * (px + 0.016 + q * 0.003), y, pz + 0.004)
+					var bq = b.rotated(Vector3(0, 0, 1), sx * deg_to_rad(4.0 + q * 2.0))
+					_box_basis(st, c, bq, Vector3(0.062, 0.042, 0.009), olive)
+					_box_basis(st, c + bq.z * 0.0055 + bq.y * 0.015, bq, Vector3(0.058, 0.005, 0.002), olive.darkened(0.25))
+					for t in [-1.0, 1.0]:
+						_box_basis(st, c + bq.x * (t * 0.02) + bq.y * 0.024 + bq.z * 0.005, bq, Vector3(0.007, 0.012, 0.009), iron)
+			st.generate_normals()
+			var hm = _mesh_on("Head", st.commit(), Transform3D.IDENTITY)
+			var mat = ShaderMaterial.new()
+			mat.shader = load("res://shaders/toon.gdshader")
+			mat.set_shader_parameter("rim_amount", 0.2)
+			hm.material_override = mat
+		"bere":   # örgü bere (Striker Naruto Knitted Cap): kafayı kaşa kadar saran yumuşak pürüzsüz kep, altta kıvrık kenar (manşet)
 			_band_ring_full()
 			var by = band_ring[0]
-			head_cap(hg, by + 0.03, 0.08, 0.055, 0.02, 0.025)
-			cloth_band(hg.darkened(0.12), 0.034, 0.03, 0.0, 0.0, 0.016)
-		"teuchi":   # Teuchi: düz tepeli silindir aşçı kepi, önde kırmızı 一楽
+			_helmet_shell(hg, by - 0.006, 0.07, 0.024)
+			hair_mask_plane(Vector3.UP, Vector3(0, by - 0.03, 0))
+		"teuchi":   # Ichiraku kepi (Striker Teuchi): alnı örten, düz tepeli dik silindir siyah kep; önde kırmızı 一楽
 			_band_ring_full()
 			var by = band_ring[0]
-			head_cap(Color(0.08, 0.08, 0.12), by + 0.03, 0.04, 0.0, 0.014, 0.004)
-			var mt = MB.new()
-			var top = htop - hh * 0.05
-			mt.add("cyl", Vector3(skull_c.x, top + hh * 0.12, skull_c.z), Vector3(hw * 1.06, hh * 0.32, hd * 0.98), Color(0.08, 0.08, 0.12), Vector3.ZERO, 24)
-			var tmi = _mesh_on("Head", mt.build(Props.toon()), Transform3D.IDENTITY)
+			var top = by
+			for q in _body_vs():
+				if absf(q.x - skull_c.x) < 0.05 and q.y > top:
+					top = q.y
+			var tmi = _helmet_shell(hg, by - 0.004, 0.03, 0.016, top + 0.012)   # ref: tepe kafanın hemen üstünde, alçak silindir
+			hair_mask_plane(Vector3.UP, Vector3(0, by - 0.02, 0))
+			var fr = float((band_ring[1] as PackedFloat32Array)[int(floor((PI * 0.5 + PI) / TAU * (band_ring[1] as PackedFloat32Array).size())) % (band_ring[1] as PackedFloat32Array).size()])
 			var l = Label3D.new()
 			l.text = "一楽"
 			l.font = KageAttire._font()
@@ -2846,16 +3003,23 @@ func _accessories() -> void:
 			l.modulate = Color(0.8, 0.15, 0.12)
 			l.shaded = false
 			l.alpha_cut = Label3D.ALPHA_CUT_DISCARD
-			var fr = float((band_ring[1] as PackedFloat32Array)[int(floor((PI * 0.5 + PI) / TAU * (band_ring[1] as PackedFloat32Array).size())) % (band_ring[1] as PackedFloat32Array).size()])
-			l.position = Vector3(skull_c.x, top + hh * 0.12, skull_c.z + hd * 0.49 + 0.003)   # silindirin ön yüzünde
+			l.position = Vector3(skull_c.x, by + 0.035, skull_c.z + fr + 0.03)
 			tmi.add_child(l)
-		"basortusu":   # Ayame: başın tepesini saran bez, ensede düğüm ve iki sarkan uç; saç alttan görünür
+		"basortusu":   # Ayame baş örtüsü (Striker Ayame): başın tepesini saran bez (ön kenar saç çizgisi), ensede düğüm, iki geniş sarkan uç
 			_band_ring_full()
 			var by = band_ring[0]
-			head_cap(hg, by + 0.045, 0.1, 0.03, 0.014, 0.014)
-			var kp = Vector3(skull_c.x, by - 0.02, skull_c.z - hd * 0.55)
+			_helmet_shell(hg, by + 0.012, 0.11, 0.02)
+			hair_mask_plane(Vector3.UP, Vector3(0, by - 0.005, 0))
+			var bk = 0.0
+			for q in _body_vs():
+				if absf(q.y - (by - 0.07)) < 0.02 and absf(q.x - skull_c.x) < 0.04 and q.z < skull_c.z:
+					bk = minf(bk, q.z - skull_c.z)
+			var kp = Vector3(skull_c.x + 0.02, by - 0.075, skull_c.z + bk - 0.03)
+			var mk = MB.new()
+			mk.add("sphere", kp, Vector3(0.035, 0.03, 0.025), hg.darkened(0.08), Vector3.ZERO, 8)
+			_mesh_on("Head", mk.build(Props.toon()), Transform3D.IDENTITY)
 			for sx in [-1.0, 1.0]:
-				dangle_strip("Head", kp + Vector3(0.012 * sx, 0, 0), Vector3(0.35 * sx, -1.0, -0.4), 0.11, 0.05, hg, 0.2, Vector3(1, 0, 0), 0.004)
+				dangle_strip("Head", kp + Vector3(0.012 * sx, -0.005, -0.005), Vector3(0.55 * sx + 0.25, -1.0, -0.35), 0.12, 0.06, hg, 0.25, Vector3(1, 0, 0), 0.004, null, 0.6)
 		"bandaj":
 			# alnı saran sargı: iki kat (biri hafif eğik), ensede kısa sarkan uç
 			var ybj = cloth_band(hg, 0.004, 0.034, 0.1, 0.026, 0.004)
@@ -3720,7 +3884,7 @@ static func hair_profile(L: float, upward := false) -> Dictionary:
 
 ## Sarkan kumaş şeridi (bant/başlık bağı, kuşak ucu...): kökten dir yönünde uzanan, ikincil hareketli yassı şerit.
 ## model_root/dir model uzayında; bone'a takılır. Uçta hafif sivrilir.
-func dangle_strip(bone: String, model_root: Vector3, dir: Vector3, length: float, width: float, col: Color, stiff := 0.2, side := Vector3.ZERO, thick := 0.004, parent: Node3D = null) -> Dangle:
+func dangle_strip(bone: String, model_root: Vector3, dir: Vector3, length: float, width: float, col: Color, stiff := 0.2, side := Vector3.ZERO, thick := 0.004, parent: Node3D = null, taper := 0.35) -> Dangle:
 	if parent == null and (skel == null or skel.find_bone(bone) < 0):
 		return null
 	var dn = dir.normalized()
@@ -3735,7 +3899,7 @@ func dangle_strip(bone: String, model_root: Vector3, dir: Vector3, length: float
 		var t = float(k) / n
 		var c = model_root + dn * length * t
 		pts.append(c)
-		var w = width * (1.0 - 0.35 * t) * 0.5
+		var w = width * (1.0 - taper * t) * 0.5
 		ring.append([c - sd * w - nrm * thick, c + sd * w - nrm * thick, c + sd * w + nrm * thick, c - sd * w + nrm * thick])
 	for k in n:
 		var a = ring[k]; var b = ring[k + 1]
