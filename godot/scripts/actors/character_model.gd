@@ -2979,6 +2979,14 @@ func _boyun_atki_kit(g: Dictionary) -> void:
 		var ax = lerpf(absf(_bp("LeftUpperArm").x), absf(_bp("LeftLowerArm").x), 0.4)
 		var asd = float(look.get("armband_side", 1.0))
 		_sk_ring(0, ax * asd, 0.05, 0.007, look["armband"], -PI, PI, 24, 0.008 if look.get("outer_style") == null else 0.04, asd)
+		if look.get("armband_plate") == true:   # ref shikadai_outfit: kol bandında metal alın koruyucu plakası (kolun dış yüzü)
+			var V3: PackedVector3Array = _sk["v"]
+			var top3 = Vector3.ZERO; var by3 = -9.0
+			for q in V3:
+				if signf(q.x) == asd and absf(absf(q.x) - ax) < 0.015 and absf(q.z) < 0.03 and q.y > by3:
+					by3 = q.y; top3 = q
+			if by3 > -8.0:
+				_sk_box(top3 + Vector3(0, 0.014, 0), Vector3(0.028, 0, 0), Vector3(0, 0.003, 0), Vector3(0, 0, 0.02), Color(0.72, 0.74, 0.78))
 		_sk_end(g)
 
 

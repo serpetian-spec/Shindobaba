@@ -646,6 +646,7 @@ const ITEMS := {
 	"capraz_kayis": {"name": "Çapraz Kayış ve Kese", "slot": "kol", "price": 70, "rank": 0, "desc": "Sol omuzdan sağ kalçaya çapraz koyu kayış, bel kayışı ve yan kese.", "stats": {"def": 1}, "look": {"cross_strap": Color(0.22, 0.2, 0.22)}, "c1": Color(0.22, 0.2, 0.22)},
 	"kol_askisi": {"name": "Beyaz Kol Askısı", "slot": "kol", "price": 20, "rank": 0, "desc": "Omuzdan çapraz geçen beyaz bez askı.", "stats": {}, "look": {"cross_strap": Color(0.92, 0.92, 0.9)}, "c1": Color(0.92, 0.92, 0.9)},
 	"cizgili_kapri": {"name": "Dikey Çizgili Bol Kapri", "slot": "bacak", "price": 110, "rank": 0, "desc": "Baldırda büzgülü bol kapri; dikey renkli çizgiler.", "stats": {"speed": 0.03}, "look": {"pants_style": "kapri", "pants_pattern": 29}, "c1": Color(0.96, 0.92, 0.92), "c2": Color(0.86, 0.5, 0.58)},
+	"kol_alin_bandi": {"name": "Kolda Alın Koruyucu", "slot": "kol", "price": 40, "rank": 0, "desc": "Sol üst kola bağlı koyu bez bant ve metal plaka.", "stats": {"def": 1}, "look": {"armband": Color(0.2, 0.2, 0.24), "armband_plate": true}, "c1": Color(0.2, 0.2, 0.24)},
 	"cepli_gomlek": {"name": "Cepli İş Gömleği ve Fular", "slot": "govde", "price": 140, "rank": 0, "desc": "Kısa kollu, kapaklı iki göğüs cepli gömlek; boyunda açık mavi fular, siyah kemer.", "stats": {"def": 2, "chakra": 10}, "look": {"top_style": "yakali", "chest_pockets": true, "neck_scarf": Color(0.55, 0.78, 0.92), "waist_belt": Color(0.12, 0.1, 0.1)}, "c1": Color(0.2, 0.35, 0.72), "c2": Color(0.2, 0.35, 0.72)},
 	"kabarik_bluz": {"name": "Dik Boğazlı Kabarık Bluz", "slot": "dis", "price": 320, "rank": 0, "desc": "Uzun dik boğazlı, bele kadar bol beyaz bluz; balon kollar, bileklerde üçer mavi bilezik.", "stats": {"chakra": 30}, "look": {"outer_style": "kabarik_bluz", "outer_pattern": 0, "holster": false}, "c1": Color(0.96, 0.96, 0.97), "c2": Color(0.96, 0.96, 0.97)},
 	"gezegen_sort": {"name": "Gezegen Baskılı Yüksek Bel Şort", "slot": "bacak", "price": 120, "rank": 0, "desc": "Siyah yüksek bel kısa şort; yeşil gezegen, yıldız ve hilal baskılı.", "stats": {"speed": 0.04}, "look": {"pants_style": "kisa_sort", "pants_pattern": 30}, "c1": Color(0.16, 0.16, 0.18), "c2": Color(0.4, 0.75, 0.65)},
@@ -1470,6 +1471,7 @@ static func apply_look(p: Dictionary) -> void:
 	L["tunic_long"] = null
 	L["rope_cross"] = null
 	L["cross_strap"] = null
+	L["armband_plate"] = null
 	L["skirt_wrap"] = null
 	L["skirt_y"] = null
 	L["skirt_under"] = null
