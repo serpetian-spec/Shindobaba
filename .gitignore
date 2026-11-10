@@ -9,7 +9,8 @@ godot/.godot/
 *.import.bak
 .claude/settings.local.json
 .sketchfab_token
-godot/assets/sketchfab/
+godot/assets/sketchfab/*
+!godot/assets/sketchfab/valley_of_end/
 tools/godot_export_templates/
 _tmp/
 Ekran görüntüleri/
