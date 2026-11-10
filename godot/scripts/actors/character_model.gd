@@ -1154,7 +1154,7 @@ func _cloth_mat(layer: int) -> ShaderMaterial:
 	mat.set_shader_parameter("vest_style", int(look.get("vest_style", 0)))
 	mat.set_shader_parameter("gloves", bool(look.get("gloves", false)))
 	mat.set_shader_parameter("arm_wraps", bool(look.get("arm_wraps", false)))
-	mat.set_shader_parameter("no_wraps", bool(look.get("no_wraps", false)))
+	mat.set_shader_parameter("no_wraps", look.get("no_wraps") == true)
 	var os_ = String(look.get("outer_style", "")) if look.get("outer_style") != null else ""
 	# yelek dış giysinin altında: önü açık giysilerde (haori, palto, jinbaori) yalnız açıklık kadarı görünür, kapalı pelerinde gizli
 	const OPEN_GAP := {"haori": 0.031, "haori_uzun": 0.029, "jinbaori": 0.038, "palto": 0.025, "acik_ceket": 0.045, "sisme_yelek": 0.06, "uzun_ceket": 0.02, "hirka": 0.04, "esofman_ceket": 0.03, "kisa_haori": 0.05, "hinata_ceket": 0.0, "hinata_ceket_acik": 0.05, "kisa_bolero": 0.042, "kuyruklu_ceket": 0.03, "uzun_trench": 0.05, "yirtik_esofman": 0.035, "uzun_robe": 0.03}
@@ -1988,6 +1988,8 @@ static var _gdyn_cache := {}
 func _dyn_garment(shell: MeshInstance3D, key: String) -> void:
 	if shell == null or not DYN_GARMENTS.has(key) or body_mesh == null or body_mesh.skin == null:
 		return
+	if key.begins_with("etek_") and look.get("outer_style") != null and not String(look.get("outer_style")) in ["atki", "kisa", "kesa"]:
+		return   # dış giysinin altındaki etek sallanmasın: salınınca paltonun içinden taşıyordu (Anko)
 	var hb = skel.find_bone("Hips")
 	if hb < 0:
 		return
@@ -4505,7 +4507,7 @@ func _garments(g: Dictionary) -> void:
 			_garment("takim_yelek", func(): return _cut_spec(g, neck - 0.02, hips - 0.05, 16, {"w": [[0.0, 0.8], [0.12, 0.9], [1.0, 0.9]], "d": [[0.0, 0.1], [1.0, 0.12]], "n": 2.6}, 8, -99.0, 0.035, func(t, ang): return t < 0.2 and absf(wrapf(ang - PI * 0.5, -PI, PI)) < 0.3 - t * 1.4))   # KESİM: code_outfit — oturan yelek
 		"uzun_trench":
 			# uzun trençkot (Striker Anko): boyundan dize, önü boydan boya açık, bol
-			_garment("uzun_trench", func(): return _cut_loft(g, 1, neck + 0.0, knee - 0.02, 26, torso, func(t): return Vector4(absf(ua) * (lerpf(0.82, 1.02, smoothstep(0.0, 0.12, t)) + 0.1 * t), lerpf(0.11, 0.15, t), 0.24 + 0.12 * t, 3.0), 8, hips - 0.04, 56, 0.03))   # KESİM: 6 foto anko_outfit; mini etek payı
+			_garment("uzun_trench", func(): return _cut_loft(g, 1, neck + 0.0, knee - 0.02, 26, torso, func(t): return Vector4(absf(ua) * (lerpf(0.82, 1.02, smoothstep(0.0, 0.12, t)) + 0.1 * t), lerpf(0.11, 0.15, t), 0.36 + 0.16 * t, 3.0), 8, hips - 0.04, 56, 0.03))   # KESİM: 6 foto anko_outfit; mini etek payı
 		"rikudo_cubbe":
 			# Rikudō cübbesi (Striker Asura): yüksek yakalı, bileğe inen geniş beyaz cübbe; çok geniş uzun kollar
 			_garment("rikudo_cubbe", func(): return _cut_loft(g, 1, neck + 0.02, ank + 0.05, 32, torso, func(t): return Vector4(absf(ua) * (lerpf(0.8, 1.0, smoothstep(0.0, 0.1, t)) + 0.75 * maxf(0.0, t - 0.32)), lerpf(0.11, 0.27, t), 0.0, 2.6), 8, hips - 0.05, 56, 0.03))   # KESİM: asura_outfit
