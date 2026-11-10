@@ -2548,6 +2548,33 @@ func _hirka_kit(g: Dictionary) -> void:
 	var oc: Color = _lc("outer", Color(0.9, 0.9, 0.92))
 	var hk: Dictionary = look.get("hk") if look.get("hk") is Dictionary else {}
 	if not hk.get("rib", true):
+		var tc = look.get("outer2")
+		if tc is Color:
+			# ref minato_outfit_genin_ver: ön kenar, etek ve kol ağzında koyu lacivert biye
+			var hm2 = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "hirka", 0.0])
+			if hm2 != null and _sk_begin(hm2):
+				_sk_edge_band(0.022, 0.005, tc)
+				var V2: PackedVector3Array = _sk["v"]
+				var yb2 = 9.0
+				for q in V2:
+					yb2 = minf(yb2, q.y)
+				var hy = yb2
+				var hd = 9.0
+				for q in V2:
+					if absf(q.y - (yb2 + 0.015)) < hd:
+						hd = absf(q.y - (yb2 + 0.015)); hy = q.y
+				_sk_ring(1, hy, 0.025, 0.005, tc, -PI, PI, 56, 0.004)
+				_sk_end(g)
+			var hx = absf(_bp("LeftHand").x)
+			for sx in [1.0, -1.0]:
+				var km = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "hirka_kol%d" % int(sx), 0.0])
+				if km != null and _sk_begin(km):
+					var KV: PackedVector3Array = _sk["v"]
+					var xe = 0.0
+					for q in KV:
+						xe = maxf(xe, absf(q.x))
+					_sk_ring(0, (xe - 0.015) * sx, 0.03, 0.005, tc, -PI, PI, 24, 0.004, sx)
+					_sk_end(g)
 		return
 	var rc: Color = hk.get("rib_col", oc.darkened(0.1))
 	var lc: Color = rc.darkened(0.18)
