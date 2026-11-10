@@ -6,7 +6,7 @@ extends RefCounted
 ## peçe, yeni ANBU hayvanları), omuz/diz zırhı, sırt eşyaları (tespih, sepet, bel parşömenleri, sashimono bayrağı...), çizme.
 
 const OUTER_SLEEVES := ["palto", "haori", "org_pelerin", "cuppe", "haori_uzun", "mino", "anbu_palto"]
-const FOOT_KIND := {"sandal": 0, "zori": 0, "tabi": 1, "cizme": 2, "yuksek_sandal": 3, "bilek_bot": 4, "diz_cizme": 5, "sargili_bot": 6, "zirhli_tozluk": 7, "shinobi": 8}
+const FOOT_KIND := {"sandal": 0, "zori": 0, "tabi": 1, "cizme": 2, "yuksek_sandal": 3, "bilek_bot": 4, "diz_cizme": 5, "sargili_bot": 6, "zirhli_tozluk": 7, "shinobi": 8, "terlik": 9}
 
 
 ## Etek ucu yüksekliği (desen bandı için): dış giysinin bittiği dinlenme pozu y
@@ -14,7 +14,7 @@ static func _hem(m: CharacterModel) -> float:
 	var knee = m._bp("LeftLowerLeg").y; var hips = m._bp("Hips").y; var ank = m._bp("LeftFoot").y; var chest = m._bp("UpperChest").y
 	return {"palto": knee + 0.02, "pelerin": knee - 0.06, "haori": hips - 0.16, "kisa": chest - 0.3, "org_pelerin": ank + 0.12,
 		"panco": hips - 0.04, "yirtik": knee - 0.12, "jinbaori": knee + 0.08, "cuppe": ank + 0.1, "mino": knee - 0.02,
-		"haori_uzun": knee - 0.04, "kesa": hips - 0.05, "anbu_palto": knee + 0.07, "acik_ceket": hips + 0.035, "kiri_tunik": hips - 0.15, "bulut_etek": knee - 0.03, "kaya_gi": hips - 0.13}.get(str(m.look.get("outer_style", "")), knee)
+		"haori_uzun": knee - 0.04, "kesa": hips - 0.05, "anbu_palto": knee + 0.07, "acik_ceket": hips + 0.035, "kiri_tunik": hips - 0.15, "bulut_etek": knee - 0.03, "kaya_gi": hips - 0.13, "suna_tunik": hips - 0.12, "sisme_yelek": hips + 0.02, "flamingo_elbise": hips - 0.27, "kapusonlu": hips - 0.06, "omuz_kazak": hips + 0.08, "uzun_ceket": knee - 0.06, "hirka": hips - 0.1, "onluk": hips - 0.22, "esofman_ceket": hips - 0.04, "kisa_haori": hips - 0.1, "kizil_palto": knee - 0.22, "hinata_ceket": hips - 0.08, "kirpik_kapusonlu": hips + 0.15, "yirtmacli_etek": hips - 0.27, "sargi_etek_uzun": ank + 0.16, "yilan_cubbe": ank + 0.03, "algi_ceket": hips - 0.13, "sargi_elbise": hips - 0.2, "onluk_elbise": ank + 0.17, "iki_ton_kimono": hips - 0.2, "turuncu_ceket": hips - 0.03, "kisa_bolero": hips + 0.13, "panel_etek": hips - 0.19, "uzun_panel_ust": hips - 0.21, "bel_ortusu": knee + 0.02, "kolsuz_palto": hips - 0.16, "kuyruklu_ceket": knee - 0.04, "kisa_kimono": hips - 0.22, "gunes_kimono": knee - 0.1, "genis_gomlek": hips - 0.06, "uzun_trench": knee - 0.02, "rikudo_cubbe": ank + 0.05, "yirtik_esofman": hips - 0.06, "kutlama_kimono": ank + 0.2, "kolsuz_kimono": hips - 0.02, "takim_yelek": hips - 0.05, "seytan_kapuson": hips + 0.12, "danzo_ortu": hips - 0.24, "delta_elbise": hips - 0.18, "kabarik_bluz": hips + 0.05, "kurbaga_kigurumi": ank + 0.01, "uzun_robe": ank + 0.03, "buyuk_kapusonlu": hips - 0.12, "kisa_kollu_kazak": hips + 0.05}.get(str(m.look.get("outer_style", "")), knee)
 
 
 ## Kumaş shader'ına yeni parametreler
@@ -154,6 +154,32 @@ static func _anbu_parts(m: CharacterModel, g: Dictionary) -> void:
 				if sx < 0.0:   # sağ dizde beyaz sargı (ref: tek diz)
 					m._garment("anbu_diz", func(): return m._loft(g, 1, knee + 0.05, knee - 0.04, 6, lf,
 						func(t, a): return (0.032 + 0.005 * absf(sin(t * PI * 3.0))) * (1.0 if cos(a) * sx > -0.3 else 0.3), 4, null, -99.0, 20))
+			elif leg == "isitici":
+				# açık burunlu bot konçu (Striker Wonder): kapri paçasının altından bileğe düz ısıtıcı; ayakkabı renginde (desen konçu boyar)
+				m._garment("bot_konc%d" % int(sx), func(): return m._loft(g, 1, knee - 0.07, ank + 0.02, 10, lf,
+					func(t, a): return (0.012 + t * 0.006) * (1.0 if cos(a) * sx > -0.3 else 0.3), 6, null, -99.0, 20))
+			elif leg == "corap":
+				# diz üstü ince çorap (Striker Adorable): uyluktan bileğe deriye yapışık; ağızda kalın lastik, bilekte kıvrılmış katlar
+				# (tek loft: ayrı halka parçaları koşarken bacaktan kopuyordu)
+				m._garment("corap%d" % int(sx), func(): return m._loft(g, 1, knee + 0.19, ank + 0.02, 28, lf,
+					func(t, a): return (0.008 + 0.006 * (1.0 - smoothstep(0.03, 0.07, t)) + 0.014 * smoothstep(0.78, 0.83, t) * (1.0 - smoothstep(0.93, 0.97, t))) * (1.0 if cos(a) * sx > -0.3 else 0.6), 6, null, -99.0, 20))
+			elif leg == "corap_dz":
+				# diz üstü düz çorap (kıvrıksız, ağzı desenle çizgili): uyluktan bileğe
+				m._garment("corap%d" % int(sx), func(): return m._loft(g, 1, knee + 0.1, ank + 0.02, 16, lf,
+					func(_t, a): return 0.008 * (1.0 if cos(a) * sx > -0.3 else 0.6), 6, null, -99.0, 20))
+			elif leg == "corap_kisa":
+				# baldır ortasına kısa tabi çorabı (hakama altı)
+				m._garment("corap_k%d" % int(sx), func(): return m._loft(g, 1, knee - 0.06, ank + 0.02, 10, lf,
+					func(_t, a): return 0.008 * (1.0 if cos(a) * sx > -0.3 else 0.6), 6, null, -99.0, 20))
+			elif leg == "diz_konc":
+				# diz boyu açık burunlu çizme konçu (Striker Hinata 2): dizin altından bileğe, ağzı hafif geniş
+				m._garment("diz_konc%d" % int(sx), func(): return m._loft(g, 1, knee + 0.01, ank + 0.02, 14, lf, func(t, a): return (0.022 - t * 0.008) * (1.0 if cos(a) * sx > -0.3 else 0.4), 6, null, -99.0, 20))
+			elif leg == "bilek_konc":
+				# bilek boyu açık bot konçu (Striker Ino): bileği saran kalın katlı ağız
+				m._garment("bilek_konc%d" % int(sx), func(): return m._loft(g, 1, ank + 0.11, ank + 0.02, 6, lf, func(t, a): return (0.02 - t * 0.006) * (1.0 if cos(a) * sx > -0.3 else 0.5), 6, null, -99.0, 20))
+			elif leg == "cizme_ust":
+				# uyluğa çıkan uzun çizme (Striker Delta): pantolon kabuğunun dışında, ağzı hafif geniş
+				m._garment("cizme_ust%d" % int(sx), func(): return m._loft(g, 1, knee + 0.12, ank + 0.02, 18, lf, func(t, a): return (0.038 - t * 0.012) * (1.0 if cos(a) * sx > -0.3 else 0.6), 6, null, -99.0, 20))
 			elif leg == "bant":
 				# boğum boğum bantlı tozluk: dizin altından bileğe halka halka
 				m._garment("anbu_bantli%d" % int(sx), func(): return m._loft(g, 1, knee - 0.06, ank + 0.03, 24, lf,

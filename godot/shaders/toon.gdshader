@@ -35,6 +35,7 @@ uniform vec4 rig_b = vec4(0.95, 0.54, 0.09, 1.31);  // kalça y, diz y, ayak bil
 uniform int top_style = 1;    // 0 tişört, 1 uzun kollu, 2 ceket, 3 yüksek yakalı, 4 kolsuz, 5 kimono, 6 gi, 7 uzun kollu yüksek yaka, 8 atlet, 9 tek kollu
 uniform int pants_style = 0;  // 0 ninja pantolonu, 1 şort, 2 sivil uzun pantolon, 3 sargılı, 4 bol paça, 5 kapri, 6 kısa şort
 uniform int layer = 0;        // 0 vücut, 1 kumaş kabuğu, 2 yelek
+uniform vec4 inner_col = vec4(0.0);   // gi V yakasında iç giysi rengi (a=0 yok)
 uniform bool leg_fishnet = false;   // baldırda file çorap (Rock Striker): dizden bileğe tende koyu ağ
 uniform int pants_pattern = 0;  // 1 yan şerit 2 dizlik 3 kamuflaj 4 dama 5 ince çizgi 6 diz altı iki renk 7 paça bandı 8 yamalı 9 kargo cep 10 sarmal sargı 11 alev paça 12 puantiye
 uniform vec4 pants_accent : source_color = vec4(0.1, 0.1, 0.12, 1.0);
@@ -49,6 +50,9 @@ uniform int outer_pattern = 0; // dış giysi: 1 etek bandı, 2 alev etek, 3 hil
 uniform vec4 outer_accent : source_color = vec4(0.75, 0.12, 0.12, 1.0);
 uniform float outer_hem = 0.5;  // dış giysinin etek ucu (dinlenme pozu y)
 uniform bool gloves = false;
+uniform bool sleeve_roll = false;
+uniform bool guard_net = false;
+uniform bool vest_open = false;   // taktik yeleğin fermuarı açık (önde ortası boş)   // aksesuar halkaları file dirsek/dizlik (ten aradan görünür, uçlarda bant)   // kollar ön kol ortasına kadar kıvrık (köy üniforması tulumu)
 uniform bool arm_wraps = false;
 uniform float outer_top = 1.45;   // dış giysinin yaka dibi (boyun) y — desen yerleşimi
 uniform float sleeve_end = 0.6;   // kol ağzı (bilek) |x| — çan kol astarı
@@ -153,6 +157,7 @@ float fold_h(vec3 p, int slot) {
 	float n = vnoise(p.xz * 40.0 + p.y * 13.0);
 	if (slot == 4) return 0.5 + 0.5 * sin(p.y * 260.0 + p.x * 40.0 + p.z * 25.0);
 	if (slot == 9) return 0.0;   // koruyucular (kaval/kolluk) sert malzeme: pantolon kıvrımı almaz
+	if (slot == 6 && (foot_pattern == 11 || foot_pattern == 12)) return 0.0;   // ince çorap: deriye yapışık, pantolon kıvrımı almaz
 	bool arm = ax > rig_a.x * 0.9 && p.y > rig_a.w - 0.32;
 	if (arm) {
 		float e = exp(-pow((ax - rig_a.y) / 0.06, 2.0));
@@ -178,8 +183,10 @@ int cloth_slot(vec3 p) {
 		// Iwa yeleği artık kola uzanmıyor (rockset.png: sol kol tamamen kırmızı kol)
 		float sleeve = rig_a.z - 0.035;
 		if (top_style == 0 || top_style == 3) sleeve = mix(rig_a.x, rig_a.y, 0.5);
-		else if (top_style == 4 || top_style == 8 || (top_style == 9 && p.x < 0.0)) sleeve = rig_a.x * 0.9;
+		if (sleeve_roll && (top_style == 1 || top_style == 7)) sleeve = mix(rig_a.y, rig_a.z, 0.42);
+		else if (top_style == 4 || top_style == 8 || top_style == 10 || (top_style == 9 && p.x < 0.0)) sleeve = rig_a.x * 0.9;   // 10: üst yok
 		else if (top_style == 6) sleeve = rig_a.y + 0.05;
+		if ((top_style == 4 || top_style == 8) && p.y < rig_a.w - 0.1 && ax < rig_a.x * 1.08) return 1;   // kolsuzda koltuk altı göğüs yanı kumaş (kadın gövdesinde delik kalıyordu)
 		if (ax < sleeve) return (top_style == 2 && ax < rig_a.x + 0.07) ? 2 : 1;
 		if ((top_style == 3 || arm_wraps) && ax > rig_a.y - 0.02) return 4;
 		return 0;
@@ -190,6 +197,10 @@ int cloth_slot(vec3 p) {
 	}
 	float waist = rig_b.x + 0.035;
 	if (p.y > waist) {
+		if (top_pattern == 37 && p.z > 0.0 && p.y > rig_b.w - 0.12 && ax < (p.y - (rig_b.w - 0.12)) * 0.55) return 0;   // derin V yaka
+		if (top_pattern == 40 && p.y < rig_b.w - 0.155) return 0;
+		if (top_pattern == 43 && p.y < rig_b.w - 0.12) return 0;   // file sütyen: göğüs altı ten   // file bantlı kısa üst: bandın altı ten
+		if ((top_pattern == 32 || top_pattern == 33) && p.y < rig_b.w - 0.15 - (top_pattern == 33 ? max(0.0, 0.06 - abs(p.x)) * 0.6 : 0.0)) return 0;   // kısa üst: göbek açık
 		if (top_style == 2 && p.y > rig_a.w - 0.1) return 2;
 		// kimono: çapraz (sol üstte) yaka bandı
 		if ((top_style == 5 || top_style == 6) && p.z > -0.02 && p.y > rig_b.w - 0.22 && abs(p.x + (p.y - rig_a.w) * 0.55) < 0.022) return 2;
@@ -197,18 +208,20 @@ int cloth_slot(vec3 p) {
 		if (top_style == 6 && p.z > 0.0 && p.y > rig_b.w - 0.12 && ax < (p.y - (rig_b.w - 0.12)) * 0.5) return 0;
 		// atlet: omuzlar açık, ince askı
 		if (top_style == 8 && p.y > rig_b.w - 0.04 && (ax > rig_a.x * 0.62 || (ax < 0.07 && p.z > 0.0))) return 0;
+		if (top_style == 10) return 0;   // üst yok (çıplak gövde)
 		return 1;
 	}
 	if (foot_kind == 8 && p.y < rig_b.z + 0.07) return (p.z > foot_toe_z && p.y < rig_b.z - 0.035) ? 0 : 6;   // shinobi sandaleti
-	if (p.y < rig_b.z + 0.03) return (foot_cover || foot_kind == 1 || foot_kind == 2 || (foot_kind >= 4 && foot_kind != 8)) ? 6 : 0;
+	if (p.y < rig_b.z + 0.03) return (foot_cover || foot_kind == 1 || foot_kind == 2 || (foot_kind >= 4 && foot_kind != 8 && foot_kind != 9)) ? 6 : 0;
 	if (foot_kind == 2 && p.y < rig_b.z + 0.2) return 6;   // çizme konçu
 	if (foot_kind == 4 && p.y < rig_b.z + 0.09) return 6;   // bilek botu
 	if ((foot_kind == 5 || foot_kind == 7) && p.y < rig_b.y - 0.01) return 6;   // diz çizmesi / zırhlı tozluk
 	if (foot_kind == 6 && p.y < rig_b.z + 0.12) return 6;   // sargılı bot: alt kısım deri
 	float cut = pants_style == 0 ? rig_b.y - 0.17 : (pants_style == 1 ? rig_b.y - 0.05 : (pants_style == 3 ? rig_b.y + 0.1 : rig_b.z + 0.04));
 	if (pants_style == 5) cut = mix(rig_b.y, rig_b.z, 0.45);
-	if (pants_style == 6) cut = rig_b.y + 0.12;
+	if (pants_style == 6) cut = pants_pattern == 23 ? rig_b.x - 0.15 : rig_b.y + 0.12;   // pilili etek altında yalnız etek boyu iç şort
 	if (p.y > cut) return 3;
+	if (foot_kind == 9 || foot_pattern == 11 || foot_pattern == 12) return 0;   // parmak arası terlik / çoraplı ayakkabı: baldır sargısı yok
 	float wrap_top = (pants_style == 0 || pants_style == 3) ? cut + 0.02 : rig_b.y - 0.16;
 	if (pants_style == 5) wrap_top = rig_b.z + 0.06;
 	if (foot_kind == 3 || foot_kind == 6) wrap_top = max(wrap_top, rig_b.y + 0.02);
@@ -313,6 +326,7 @@ void fragment() {
 				if (!(s1 || s2 || rest.y < rig_b.x + 0.1)) discard;
 			}
 			if (vest_style == 11 && rest.y < rig_b.w - 0.24) discard;
+			if (vest_open && rest.z > 0.0 && abs(rest.x) < 0.045 && rest.y < rig_a.w + 0.02) discard;   // açık yelek
 			if (vest_style == 12 && rest.y > rig_b.w + 0.035) discard;   // ANBU plakası: üstü açık (askılar OutfitParts loft katmanı)
 			slot = 5;
 		} else if (layer == 1 && slot == 0) discard;
@@ -349,7 +363,13 @@ void fragment() {
 			if (mk == 4 && p.y > ey + 0.035 && p.y < ey + 0.075 && fract(p.y * 110.0) < 0.12 && ax < 0.05 && p.z > ez - 0.02) c.rgb *= 0.82;
 		}
 		if (slot == 0 && skin_tint.a > 0.0) c.rgb = mix(c.rgb, c.rgb * skin_tint.rgb * 1.6, skin_tint.a);
-		if (slot == 0 && leg_fishnet && rest.y < rig_b.y - 0.01 && rest.y > rig_b.z + 0.03 && abs(rest.x) > 0.03) {   // file çorap: çapraz ağ
+		if (slot == 0 && inner_col.a > 0.5 && top_style == 6 && rest.z > 0.0 && rest.y > rig_b.w - 0.13 && rest.y < rig_a.w + 0.01 && abs(rest.x) < (rest.y - (rig_b.w - 0.12)) * 0.5 + 0.006) {
+			// keiko-gi: V yakanın içi; dar iç V renkli iç giysi, kenarlar gi'nin beyaz yaka katı
+			float vin = (rest.y - (rig_b.w + 0.045)) * 0.7;
+			c.rgb = abs(rest.x) < vin ? inner_col.rgb : pal[1].rgb * 0.96;
+			if (abs(abs(rest.x) - vin) < 0.003) c.rgb *= 0.6;
+		}
+		if (slot == 0 && leg_fishnet && rest.y < (pants_style == 6 ? rig_b.x - 0.1 : rig_b.y - 0.01) && rest.y > rig_b.z + 0.03 && abs(rest.x) > 0.03) {   // file çorap: çapraz ağ
 			vec2 nq = vec2((abs(rest.x) + rest.z) * 70.0, rest.y * 70.0);
 			if (abs(fract((nq.x + nq.y) * 0.5) - 0.5) < 0.12 || abs(fract((nq.x - nq.y) * 0.5) - 0.5) < 0.12) c.rgb = vec3(0.12, 0.12, 0.14);
 		}
@@ -357,6 +377,14 @@ void fragment() {
 			float n = vnoise(UV * 90.0) * 0.5 + vnoise(UV * 23.0) * 0.5;
 			vec3 skin_c = c.rgb;
 			c.rgb = pal[slot].rgb * (0.94 + n * 0.12);
+			if (slot == 9 && guard_net) {
+				vec2 q = vec2(rest.x + rest.z, rest.y) * 110.0;
+				float net = max(step(0.8, fract(q.x + q.y)), step(0.8, fract(q.x - q.y)));
+				c.rgb = mix(skin_c * 0.9, pal[9].rgb, net);
+				bool armn = abs(rest.x) > rig_a.x * 0.9 && rest.y > rig_a.w - 0.32;
+				float e = armn ? abs(abs(rest.x) - rig_a.y) : abs(rest.y - rig_b.y);
+				if (e > 0.05) c.rgb = fract(e * 70.0) < 0.5 ? pal[9].rgb : pal[1].rgb;   // uçlarda gri-mor şeritli bant
+			}
 			// ağ/zincir örgü: ten aradan görünür
 			if (slot == 1 && top_pattern == 1 && slot_ov < 0.5) {
 				vec2 q = vec2(rest.x + rest.z, rest.y) * 90.0;
@@ -457,6 +485,56 @@ void fragment() {
 					float rr = length(f);
 					if (mod(rr * 5.0, 1.0) < 0.35 && rr < 0.9) c.rgb = pal[2].rgb;
 				}
+				if (top_pattern == 36 && rest.z > 0.02 && torso) {   // kolsuz üstte çapraz fermuar: yakadan sola kıvrılıp bele iner
+					float zx = (rest.y > rig_b.w - 0.04) ? 0.0 : clamp((rig_b.w - 0.04 - rest.y) * 0.45, 0.0, 0.055);
+					if (abs(rest.x - zx) < 0.0035) c.rgb = vec3(0.85, 0.85, 0.88);
+				}
+				if (top_pattern == 35 && rest.z > 0.02 && torso && abs(rest.x) < 0.004) c.rgb = pal[1].rgb * 0.45;   // önde fermuar
+				if (top_pattern == 43) { vec2 q = vec2(rest.x + rest.z, rest.y) * 80.0; float net = max(step(0.78, fract(q.x + q.y)), step(0.78, fract(q.x - q.y))); c.rgb = mix(skin_c * 0.85, vec3(0.08, 0.08, 0.1), net); }   // file sütyen
+				if (top_pattern == 40 && rest.y < rig_b.w - 0.095) { vec2 q = vec2(rest.x + rest.z, rest.y) * 90.0; float net = max(step(0.8, fract(q.x + q.y)), step(0.8, fract(q.x - q.y))); c.rgb = mix(skin_c * 0.85, vec3(0.1, 0.1, 0.12), net * 0.9 + 0.1); }   // file bant
+				if (top_pattern == 41 && !torso && ax > mix(rig_a.x, rig_a.y, 0.38) && ax < mix(rig_a.x, rig_a.y, 0.5)) { vec2 q = vec2(rest.y, rest.z) * 120.0; float net = max(step(0.78, fract(q.x + q.y)), step(0.78, fract(q.x - q.y))); c.rgb = mix(skin_c * 0.85, vec3(0.75, 0.75, 0.78), net); }   // kol ağzında file bant
+				if (top_pattern == 39) {   // ışıklı hat tulum (Custom Type Two): yakada çapraz, omuzda kısa çizgi, ön kolda koruyucu kenarı
+					vec3 glow = vec3(1.0, 0.86, 0.95);
+					if (torso && rest.z > 0.0 && ny > -0.08 && abs(abs(rest.x) - (ny + 0.08) * 0.9) < 0.004) c.rgb = glow;
+					if (!torso && abs(ax - rig_a.x * 1.12) < 0.006 && rest.y > rig_a.w - 0.1) c.rgb = glow;
+					if (!torso && ax > rig_a.y + 0.02 && ax < rig_a.z - 0.06 && abs(rest.z - 0.03) < 0.003) c.rgb = glow;
+				}
+				if (top_pattern == 34 && torso) {   // gövde file iç giysi (kollar düz: tek kırmızı kol)
+					vec2 q = vec2(rest.x + rest.z, rest.y) * 90.0;
+					float net = max(step(0.82, fract(q.x + q.y)), step(0.82, fract(q.x - q.y)));
+					c.rgb = mix(skin_c * 0.85, vec3(0.12, 0.12, 0.14), net);
+				}
+				if (top_pattern == 30 && ny > -0.035 && rest.z > -0.06 && torso) c.rgb = pal[2].rgb;   // yaka ağzında koyu biye
+				if (top_pattern == 31 && rest.z > 0.02 && torso) {   // göğüste daire içinde 食 (Shoku) amblemi
+					vec2 q = vec2(rest.x, ny + 0.1);
+					float r = length(q);
+					float lw = 0.0042;
+					bool ink = abs(r - 0.075) < lw;
+					ink = ink || (abs(q.y - 0.045 + abs(q.x) * 0.9) < lw && abs(q.x) < 0.045);   // çatı
+					ink = ink || (abs(q.x + 0.025) < lw && q.y < 0.02 && q.y > -0.045);   // sol dikme
+					ink = ink || (abs(q.y - 0.02) < lw && q.x > -0.025 && q.x < 0.02) || (abs(q.y + 0.005) < lw && q.x > -0.025 && q.x < 0.02) || (abs(q.y + 0.03) < lw && q.x > -0.025 && q.x < 0.02);
+					ink = ink || (abs(q.x - 0.02) < lw && q.y < 0.02 && q.y > -0.005);
+					ink = ink || (abs(q.x - 0.0 - (q.y + 0.03) * -0.8) < lw && q.y < -0.03 && q.y > -0.055);   // alt sağa çapraz
+					if (ink) c.rgb = pal[2].rgb;
+				}
+				if (top_pattern == 32 && rest.z > 0.02 && torso && abs(rest.x) < 0.006 && fract(ny * 22.0) < 0.35) c.rgb = pal[1].rgb * 0.5;   // düğme sırası
+				if (top_pattern == 33 && rest.z > 0.02 && torso && ny > -0.05 && abs(rest.x) < (ny + 0.05) * 0.6) c.rgb = pal[1].rgb * 0.55;   // yarık dik yaka
+				if (top_pattern == 28 && rest.z > 0.02 && torso && abs(ny + 0.05) < 0.03) {   // göğüste boncuk dizisi (Wonder)
+					float bxq = rest.x * 15.0;
+					vec2 f = vec2(fract(bxq) - 0.5, (ny + 0.05 + 0.008 * sin(floor(bxq) * 2.3)) * 15.0);
+					float h = hash(vec2(floor(bxq), 3.0));
+					if (length(f / vec2(0.42, 0.3 + 0.12 * h)) < 1.0) c.rgb = h < 0.33 ? vec3(0.08, 0.12, 0.3) : (h < 0.66 ? vec3(0.95, 0.97, 0.98) : vec3(0.25, 0.75, 0.85));
+				}
+				if (top_pattern == 29 && rest.z > 0.02 && torso) {   // göğüste iki çizgi yıldız + bağlayan çizgi (Wonder Star)
+					for (int k = 0; k < 2; k++) {
+						vec2 q = vec2(rest.x + 0.03 - float(k) * 0.03, ny + 0.02 + float(k) * 0.1);
+						float a2 = atan(q.x, q.y); float rr = length(q);
+						float st = 0.032 * (0.5 + 0.5 * pow(abs(cos(a2 * 2.5)), 2.0));
+						if (abs(rr - st) < 0.004) c.rgb = pal[2].rgb;
+					}
+					float lx = rest.x + 0.03 + (ny + 0.02) / 0.1 * 0.03;
+					if (abs(lx) < 0.003 && ny < -0.05 && ny > -0.07) c.rgb = pal[2].rgb;
+				}
 				if (top_pattern == 6 && (rest.y < rig_b.x + 0.09 || (ax > rig_a.x * 0.9 && ax > rig_a.z - 0.075))) c.rgb = pal[2].rgb;
 			}
 			// alt kıyafet desenleri (1..12): rig_b.x kalça, rig_b.y diz, rig_b.z ayak bileği
@@ -468,8 +546,24 @@ void fragment() {
 				if (foot_pattern == 2 && rest.z > 0.0 && fy > 0.02 && abs(fract(fy * 22.0 + abs(rest.x - sign(rest.x) * 0.1) * 30.0) - 0.5) < 0.12) c.rgb = acc2;   // çapraz bağcık
 				if (foot_pattern == 3 && (fy > 0.0) && (foot_kind == 5 || foot_kind == 7 ? rest.y > rig_b.y - 0.06 : (foot_kind == 2 ? fy > 0.15 : fy > 0.05))) c.rgb = acc2;   // konç bandı
 				if (foot_pattern == 4 && fract(fy * 14.0) > 0.75) c.rgb = acc2;   // yatay şerit
+				if (foot_pattern == 9 && fy > 0.04 && fract(fy * 6.5) > 0.8) c.rgb = acc2;   // seyrek kayışlar (kayışlı uzun çizme)
 				if (foot_pattern == 5 && rest.z > 0.02 && fy > 0.06) c.rgb = mix(vec3(0.55, 0.57, 0.62), vec3(0.85, 0.87, 0.9), smoothstep(0.0, 0.03, rest.z - 0.02));   // metal kaval plakası
 				if (foot_pattern == 6 && ((foot_kind == 5 || foot_kind == 7) ? rest.y > rig_b.y - 0.05 : fy > 0.06)) c.rgb = vec3(0.9, 0.88, 0.84) * (0.85 + 0.3 * hash(floor(rest.xz * 300.0)));   // kürk kenar
+				if (foot_pattern == 12) {   // tabi + zōri (Training): tabi beyaz (ana renk), parmak arası altın kayış, renkli taban; çorap ağzında iki koyu çizgi
+					if (rest.y < -5.0) c.rgb = vec3(0.92, 0.7, 0.25);   // bilek bağı: altın kordon
+					else if (fy < -0.06) c.rgb = acc2;
+					else if (rest.z > 0.02 && fy > -0.05 && fy < -0.02 && abs(abs(rest.x) - 0.1) < 0.03) c.rgb = vec3(0.92, 0.7, 0.25);
+					float ty = rest.y - rig_b.y;
+					if ((ty > 0.068 && ty < 0.076) || (ty > 0.083 && ty < 0.091)) c.rgb = vec3(0.25, 0.1, 0.14);
+				}
+				if (foot_pattern == 11) {   // ince çorap + açık burunlu ayakkabı (Adorable): bilekten yukarısı çorap rengi, parmak üstünde kayış, kontrast taban yok
+					if (fy > 0.04) c.rgb = acc2;
+					else if (rest.z > 0.035 && fy > -0.04 && fy < -0.005) c.rgb = acc2;
+				}
+				if (foot_pattern == 10) {   // açık burunlu bot (Wonder Star): parmak bandı beyaz + siyah yıldızlar, taban ikinci renk
+					if (fy < -0.06) c.rgb = acc2;
+					else if (rest.z > 0.03 && fy < 0.035) { c.rgb = vec3(0.94, 0.95, 0.96); if (length(fract(vec2(rest.x * 45.0, fy * 45.0)) - 0.5) < 0.2) c.rgb = vec3(0.08); }
+				}
 				if (foot_pattern == 7 && fy < -0.065) c.rgb = acc2;   // kontrast taban
 				if (foot_pattern == 8 && rest.z > 0.02 && fy > 0.04 && length(fract(vec2(rest.x * 40.0, fy * 22.0)) - 0.5) < 0.18) c.rgb = vec3(0.7, 0.72, 0.76);   // perçinler
 			}
@@ -495,6 +589,81 @@ void fragment() {
 					float t = clamp((rig_b.x - 0.02 - rest.y) / max(rig_b.x - rig_b.y - 0.06, 0.05), 0.0, 1.0);
 					float w = mix(0.085, 0.03, t);
 					if (rest.y < rig_b.x - 0.01 && rest.y > rig_b.y + 0.04 && abs(lx - 0.095) < w) c.rgb = (pants_pipe.a > 0.5 && abs(lx - 0.095) > w - 0.007) ? pants_pipe.rgb : acc;
+				}
+				if (pants_pattern == 27 && rest.z > 0.0) {   // ışıklı hat pantolon: dizde V, incikte dikey çizgi
+					vec3 glow = vec3(1.0, 0.86, 0.95);
+					float lx2 = abs(rest.x) - 0.09;
+					if (abs(rest.y - rig_b.y - abs(lx2) * 1.0) < 0.005 && abs(lx2) < 0.03) c.rgb = glow;
+					if (abs(lx2) < 0.004 && rest.y < rig_b.y - 0.06 && rest.y > rig_b.z + 0.08) c.rgb = glow;
+				}
+				if (pants_pattern == 28 && abs(rest.z) < 0.012 && abs(rest.x) > 0.08 && fract(rest.y * 50.0) < 0.35) c.rgb = vec3(0.82, 0.82, 0.86);   // yan dikişte çivi sırası
+				if (pants_pattern == 29 && fract((rest.x + rest.z) * 22.0) < 0.5) c.rgb = acc;   // dikey çizgili çorap-tayt
+				if (pants_pattern == 30) {   // yeşil gezegen, yıldız ve hilal baskı
+					vec2 pq = vec2(atan(rest.z, rest.x - sign(rest.x) * 0.09) * 0.065 + sign(rest.x) * 0.5, rest.y) * 9.0;
+					vec2 cell = floor(pq); vec2 f = fract(pq) - 0.5;
+					float h = hash(cell);
+					float a2 = atan(f.x, f.y); float rr = length(f);
+					if (h < 0.4) { if (rr < 0.26 * (0.45 + 0.55 * pow(abs(cos(a2 * 2.5)), 3.0))) c.rgb = acc; }
+					else if (h < 0.7) { if (rr < 0.2 && length(f - vec2(0.08, 0.05)) > 0.17) c.rgb = acc; }
+					else if (h < 0.85) { if (rr < 0.15 || (abs(f.y + f.x * 0.3) < 0.03 && abs(f.x) < 0.3)) c.rgb = acc; }
+				}
+				if (pants_pattern == 26 && rest.y < rig_b.z + 0.3) {   // eteğin altında gümüş bulut girdapları
+					vec2 q = vec2((rest.x + rest.z) * 14.0, rest.y * 14.0);
+					vec2 f = fract(q) - 0.5;
+					float r = length(f);
+					if (abs(r - 0.32) < 0.06 && atan(f.y, f.x) > -1.5) c.rgb = vec3(0.78, 0.8, 0.86);
+				}
+				if (pants_pattern == 25) { float ph = mix(rig_b.y, rig_b.z, 0.45); if (rest.y > ph + 0.01 && rest.y < ph + 0.075 && fract((rest.y - ph) * 30.0) < 0.42) c.rgb = acc; }   // paçada iki kırmızı bant
+				if (pants_pattern == 24 && rest.z > 0.03 && rest.y > rig_b.x - 0.16 && abs(rest.x) < 0.035 - (rig_b.x - rest.y) * 0.08) c.rgb = acc;   // şortun önünde kahve kapak + püskül
+				if (pants_pattern == 22 && rest.y < rig_b.z + 0.24 && rest.y > rig_b.z + 0.185) c.rgb = acc;   // hakama paçasında beyaz bant (Training)
+				if (pants_pattern == 23 && rest.y < rig_b.x - 0.155 && rest.y > rig_b.x - 0.18) c.rgb = acc;   // pilili etek ucunda beyaz bant (WTNY)
+				if (pants_pattern == 21) {   // yıldız baskı (Wonder Star)
+					vec2 pq = vec2(atan(rest.z, rest.x - sign(rest.x) * 0.09) * 0.065 + sign(rest.x) * 0.5, rest.y) * 8.0;   // bacak çevresi yay uzunluğu: yanda yıldız uzamasın
+					vec2 cell = floor(pq); vec2 f = fract(pq) - 0.5 + (vec2(hash(cell), hash(cell + 7.0)) - 0.5) * 0.12;
+					float a2 = atan(f.x, f.y) + hash(cell + 3.0) * 1.2; float rr = length(f);
+					float st = (0.24 + 0.1 * hash(cell + 1.0)) * (0.45 + 0.55 * pow(abs(cos(a2 * 2.5)), 3.0));
+					if (rr < st) c.rgb = acc;
+					else if (rr < st + 0.025) c.rgb = mix(c.rgb, vec3(0.1), 0.5);
+				}
+				if (pants_pattern == 20) {   // ekose
+					vec2 pq = vec2((rest.x + rest.z) * 16.0, rest.y * 16.0);
+					if (fract(pq.x) < 0.1 || fract(pq.y) < 0.1) c.rgb = mix(c.rgb, acc, 0.45);
+					if (fract(pq.x * 0.5 + 0.25) < 0.03 || fract(pq.y * 0.5 + 0.25) < 0.03) c.rgb = mix(c.rgb, vec3(0.85, 0.85, 0.9), 0.25);
+				}
+				if (pants_pattern == 18 && rest.y > rig_b.y - 0.05) {   // baklava (argyle) iki sıra, ön yüz
+					vec2 aq = vec2((rest.x + rest.z) * 14.0, rest.y * 14.0);
+					vec2 f = fract(aq) - 0.5;
+					if (abs(f.x) + abs(f.y) < 0.32 && rest.z > -0.02 && mod(floor(aq.x), 2.0) < 0.5) c.rgb = acc;
+				}
+				if (pants_pattern == 19) {   // kedi: üst gri bölüm dişli kenarla biter, dizde beyaz bıyıklı kedi yüzü
+					float edge = rig_b.y + 0.12 + 0.02 * step(0.5, fract((rest.x + rest.z) * 18.0));
+					if (rest.y > edge) c.rgb = acc;
+					vec2 kp = vec2(abs(rest.x) - 0.1, rest.y - (rig_b.y + 0.04));
+					if (rest.z > 0.0 && abs(kp.y) < 0.004 && abs(kp.x) < 0.04 && abs(kp.x) > 0.012) c.rgb = vec3(0.92, 0.92, 0.9);
+					if (rest.z > 0.0 && length(kp - vec2(-0.01, 0.012)) < 0.004 || length(kp - vec2(0.01, 0.012)) < 0.004) c.rgb = vec3(0.92, 0.92, 0.9);
+				}
+				if (pants_pattern == 15) {   // hibiskus: beyaz zemin, pembe/mor çiçekler + yeşil yapraklar
+					vec2 hq = vec2((rest.x + rest.z) * 7.0, rest.y * 7.0);
+					vec2 cell = floor(hq); vec2 f = fract(hq) - 0.5;
+					float an = atan(f.y, f.x); float r = length(f);
+					if (hash(cell) > 0.35 && r < 0.2 + 0.12 * abs(sin(an * 2.5))) c.rgb = hash(cell + 2.0) > 0.5 ? vec3(0.85, 0.55, 0.9) : vec3(0.95, 0.45, 0.6);
+					else if (hash(cell + 4.0) > 0.4 && length(f - vec2(0.3, -0.25)) < 0.18) c.rgb = vec3(0.2, 0.55, 0.25);
+					if (r < 0.05 && hash(cell) > 0.35) c.rgb = vec3(0.98, 0.85, 0.2);
+				}
+				if (pants_pattern == 16 && fract((rest.x + rest.z) * 9.0) > 0.5) c.rgb = acc;   // geniş dikey şerit
+				if (pants_pattern == 17) {   // gökyüzü + karpuz dilimleri
+					c.rgb = mix(vec3(0.3, 0.6, 0.9), vec3(0.95, 0.97, 1.0), smoothstep(0.55, 0.75, vnoise(vec2(rest.x + rest.z, rest.y) * 9.0)));
+					vec2 wq = vec2((rest.x + rest.z) * 9.0, rest.y * 9.0);
+					vec2 cell = floor(wq); vec2 f = fract(wq);
+					if (hash(cell) > 0.55 && f.y < 0.5 && abs(f.x - 0.5) < (0.5 - f.y) * 0.8) c.rgb = f.y < 0.08 ? vec3(0.2, 0.6, 0.3) : vec3(0.9, 0.2, 0.25);
+				}
+				if (pants_pattern == 14 && rest.y < rig_b.x - 0.15 && rest.y > rig_b.x - 0.27) {   // uyluk bandında balon sırası + zikzak ip (Sand Balloons)
+					float bx = (rest.x + rest.z) * 22.0;
+					float yy = (rest.y - (rig_b.x - 0.21)) * 22.0;
+					float zz = abs(fract(bx * 0.5) - 0.5) * 2.0 - 0.5;
+					if (abs(yy - zz * 0.8) < 0.12) c.rgb = vec3(0.92, 0.92, 0.9);
+					vec2 bf = vec2(fract(bx) - 0.5, yy - 0.5);
+					if (length(bf) < 0.3) c.rgb = acc;
 				}
 				if (pants_pattern == 12) { vec2 g = fract(vec2(rest.x + rest.z, rest.y) * 15.0) - 0.5; if (length(g) < 0.18) c.rgb = acc; }   // puantiye
 			}
@@ -563,6 +732,252 @@ void fragment() {
 						}
 						if (length((f - vec2(0.0, 0.4)) / vec2(0.06, 0.13)) < 1.0) on = true;   // uç yaprak
 						if (on) c.rgb = outer_accent.rgb;
+					}
+				}
+				if (outer_pattern == 41) {   // kutlama kimonosu: ön açıklık, etek ucu ve kol ağzında mavi kenar; altın-turuncu alev desenleri
+					float t2 = clamp((outer_top - rest.y) / max(outer_top - outer_hem, 0.1), 0.0, 1.0);
+					if (rest.y < outer_hem + 0.035) c.rgb = outer_accent.rgb;
+					if (rest.z > 0.0 && abs(rest.x) < 0.035 + max(0.0, t2 - 0.4) * 0.14 && abs(rest.x) > 0.005 + max(0.0, t2 - 0.4) * 0.14 && t2 > 0.38) c.rgb = outer_accent.rgb;
+					float fn = vnoise(vec2(rest.x * 9.0 + rest.z * 6.0, rest.y * 5.0 - rest.x * 3.0));
+					float band = abs(fract(rest.y * 6.0 + fn * 1.5 + rest.x * 3.0) - 0.5);
+					if (rest.y < rig_b.x - 0.05 && rest.x < -0.02 && band < 0.08) c.rgb = mix(vec3(1.0, 0.75, 0.2), vec3(0.95, 0.4, 0.1), band * 10.0);
+					bool armr = abs(rest.x) > rig_a.x * 1.02 && rest.y > rig_a.w - 0.25;
+					if (armr && abs(rest.x) > rig_a.z - 0.1) c.rgb = outer_accent.rgb;
+				}
+				if (outer_pattern == 42 && rest.z > 0.0 && rest.x > 0.015 && rest.x < 0.055) c.rgb = outer_accent.rgb;   // takım yeleği: solda dikey lila şerit
+				if (outer_pattern == 39) {   // Rikudō cübbesi: göğüste iki yay halinde 6 tomoe, sırtta 9 tomoe halkası; yanlar lila gölge
+					vec2 tq[6] = vec2[6](vec2(-0.11, -0.03), vec2(-0.075, -0.06), vec2(-0.045, -0.08), vec2(0.045, -0.08), vec2(0.075, -0.06), vec2(0.11, -0.03));
+					float ny2 = rest.y - rig_b.w;
+					if (rest.z > 0.02) {
+						for (int k = 0; k < 6; k++) {
+							vec2 d = vec2(rest.x, ny2) - tq[k];
+							if (length(d) < 0.011) c.rgb = vec3(0.06);
+							if (length(d - vec2(0.008, 0.009)) < 0.006 && length(d) < 0.02) c.rgb = vec3(0.06);
+						}
+					}
+					if (rest.z < -0.02) {
+						vec2 q = vec2(rest.x, ny2 + 0.08);
+						float a2 = atan(q.y, q.x);
+						float r = length(q);
+						float sec = floor((a2 + 3.14159) / 6.28318 * 9.0);
+						float ca = (sec + 0.5) / 9.0 * 6.28318 - 3.14159;
+						vec2 cpos = vec2(cos(ca), sin(ca)) * 0.09;
+						if (length(q - cpos) < 0.011) c.rgb = vec3(0.06);
+						if (r < 0.035 && abs(r - 0.025) < 0.005) c.rgb = vec3(0.06);
+					}
+					if (abs(rest.x) > 0.13 && abs(rest.x) < rig_a.x * 1.02) c.rgb = mix(c.rgb, vec3(0.78, 0.74, 0.9), 0.35);
+				}
+				if (outer_pattern == 40) {   // yırtık eşofman: kolda üç kırmızı bant
+					bool armr = abs(rest.x) > rig_a.x * 1.02 && rest.y > rig_a.w - 0.25;
+					if (armr) { float u = (abs(rest.x) - rig_a.x) / max(rig_a.z - rig_a.x, 0.1); if (u > 0.22 && u < 0.42 && fract(u * 15.0) < 0.45) c.rgb = outer_accent.rgb; }
+				}
+				if (outer_pattern == 38) {   // güneş kimonosu: göğüste alevli güneş (beyaz disk + kızıl alev halesi), çapraz kenarda desenli şerit, etek ucunda bant
+					vec2 q = vec2(rest.x - 0.03, rest.y - (rig_b.w - 0.1));
+					float r = length(q);
+					float fl = 0.055 + 0.025 * pow(abs(sin(atan(q.y, q.x) * 5.0 + r * 30.0)), 2.0);
+					if (rest.z > 0.0 && r < fl) c.rgb = mix(vec3(0.9, 0.25, 0.1), vec3(1.0, 0.7, 0.2), smoothstep(fl, 0.03, r));
+					if (rest.z > 0.0 && r < 0.03) c.rgb = vec3(0.98, 0.97, 0.94);
+					float ex = -0.12 + (rig_a.w - rest.y) * 0.75;   // çapraz üst kenar (sağ omuzdan sol bele)
+					if (rest.y > rig_b.x + 0.1 && abs(rest.x - ex) < 0.02) c.rgb = mix(outer_accent.rgb, c.rgb, step(0.5, fract(rest.y * 40.0)) * 0.4);
+					if (rest.y < outer_hem + 0.03) c.rgb = outer_accent.rgb;
+				}
+				if (outer_pattern == 37 && rest.z > 0.0) {   // kısa kimono: sol omuzdan sağa inen kruvaze yaka çizgisi (kat kenarı)
+					float lx = 0.07 - (rig_a.w - rest.y) * 0.55;
+					if (abs(rest.x - lx) < 0.004 && rest.y > rig_b.x + 0.02) c.rgb *= 0.55;
+				}
+				if (outer_pattern == 36) {   // yırtmaçlı uzun üst: S kıvrımlı fermuar, etek kenarında beyaz biye, sırtta Uchiha yelpazesi
+					float zx = (rest.y > rig_b.w - 0.06) ? 0.0 : clamp((rig_b.w - 0.06 - rest.y) * 0.5, 0.0, 0.05);
+					if (rest.z > 0.0 && abs(rest.x - zx) < 0.004 && rest.y > rig_b.x - 0.05) c.rgb = vec3(0.85, 0.85, 0.88);
+					if (rest.y < outer_hem + 0.015) c.rgb = vec3(0.95, 0.94, 0.92);
+					if (rest.z < -0.02) {
+						vec2 q = vec2(rest.x, rest.y - (rig_b.w - 0.06));
+						float r = length(q * vec2(1.0, 1.08));
+						if (r < 0.06) c.rgb = q.y > -0.003 ? vec3(0.82, 0.08, 0.08) : vec3(0.97, 0.96, 0.94);
+						if (r > 0.06 && r < 0.066) c.rgb = vec3(0.05, 0.05, 0.06);
+						if (abs(q.x) < 0.01 && q.y < -0.06 && q.y > -0.12) c.rgb = vec3(0.97, 0.96, 0.94);
+					}
+				}
+				if (outer_pattern == 34) {   // iki tonlu kimono: sağ yarı (−x) ve sağ kol beyaz, sağ omuzdan sol bele inen beyaz yaka bandı
+					bool armr = abs(rest.x) > rig_a.x * 1.02 && rest.y > rig_a.w - 0.25;
+					float cx = 0.05 - (rig_a.w - rest.y) * 0.35;
+					if (rest.x < (armr ? 0.0 : cx)) c.rgb = outer_accent.rgb;
+					if (!armr && rest.z > 0.0 && abs(rest.x - cx) < 0.018 && rest.y > rig_b.x + 0.05) c.rgb = outer_accent.rgb * 1.05;
+				}
+				if (outer_pattern == 35) {   // kapalı eşofman: göğüs altından bele ön/yan turuncu, omuzlar/kollar/sırt üstü ikinci renk; sırtta girdap
+					bool armr = abs(rest.x) > rig_a.x * 1.02 && rest.y > rig_a.w - 0.25;
+					if (armr || rest.y > rig_b.w - 0.04) c.rgb = outer_accent.rgb;
+					if (!armr && rest.z < -0.02) {
+						vec2 q = vec2(rest.x, rest.y - (rig_b.w - 0.12));
+						float r = length(q);
+						float a2 = atan(q.y, q.x);
+						if (r < 0.06 && step(0.6, fract(a2 / 6.28318 + r * 16.0)) > 0.5) c.rgb = vec3(0.78, 0.14, 0.12);
+						if (r > 0.06 && r < 0.068) c.rgb = vec3(0.78, 0.14, 0.12);
+					}
+				}
+				if (outer_pattern == 31) {   // kapüşonlu ceket: kollar + yaka beyaz (vurgu), bilekte ana renk kat
+					bool armr = abs(rest.x) > rig_a.x * 1.02 && rest.y > rig_a.w - 0.25;   // gövde yanı kol sayılmasın
+					if (armr) { if (abs(rest.x) < rig_a.z - 0.075) c.rgb = outer_accent.rgb; }
+					else if (rest.y > rig_a.w - 0.06) c.rgb = outer_accent.rgb;
+				}
+				if (outer_pattern == 32 && rest.z > 0.0) {   // kısa kapüşonlu: sağ omuzdan inen kruvaze kat çizgisi + yan dikiş
+					float lx = -0.06 + (rig_a.w - rest.y) * 0.25;
+					if (abs(rest.x - lx) < 0.004 && rest.y < rig_a.w - 0.02) c.rgb *= 0.55;
+				}
+				if (outer_pattern == 33 && rest.z > 0.0) {   // uzun sargı etek: önde kruvaze kat (soldan sağa inen kenar) + kenar dikişi
+					float lx = 0.05 + (rig_b.x - rest.y) * 0.06;
+					if (abs(rest.x - lx) < 0.004) c.rgb *= 0.5;
+				}
+				if (outer_pattern == 30) {   // eşofman: kolun dış yüzünde boydan renkli şerit, sırtta girdap arması
+					bool armr = abs(rest.x) > rig_a.x * 0.9 && rest.y > rig_a.w - 0.32;
+					if (armr && abs(rest.z) < 0.011 && rest.y > outer_top - 0.08) c.rgb = outer_accent.rgb;
+					if (!armr && rest.z < -0.02) {
+						vec2 q = vec2(rest.x, rest.y - (rig_b.w - 0.07));
+						float r = length(q);
+						float a2 = atan(q.y, q.x);
+						if (r < 0.06 && step(0.6, fract(a2 / 6.28318 + r * 16.0)) > 0.5) c.rgb = vec3(0.75, 0.12, 0.16);
+						if (r > 0.06 && r < 0.068) c.rgb = vec3(0.75, 0.12, 0.16);
+					}
+				}
+				if (outer_pattern == 28 || outer_pattern == 29) {
+					// hemşire önlüğü: önde çift sıra panelin biye çizgisi (yakadan V, iki dikey hat), sol yanda astarlı yırtmaç,
+					// sırtta baskı (28: kırmızı 医, 29: tavşan)
+					float ny2 = rest.y - rig_b.w;
+					float ax2 = abs(rest.x);
+					float pw = 0.062;
+					vec3 pipe = outer_accent.rgb;
+					if (rest.z > 0.0) {
+						float vy = rig_a.w - 0.03 - (ax2 / pw) * 0.07;
+						bool vline = ax2 < pw && abs(rest.y - vy) < 0.0035;
+						bool sline = abs(ax2 - pw) < 0.0035 && rest.y < rig_a.w - 0.1;
+						if (vline || sline) c.rgb = pipe;
+						if (rest.x > pw + 0.004 && rest.x < pw + 0.04 && rest.y < rig_b.x - 0.1 - (rest.x - pw) * 2.0) c.rgb = pipe;   // yırtmaç astarı
+					}
+					if (rest.z < -0.02 && ny2 < 0.0 && ny2 > -0.16) {
+						vec2 q = vec2(rest.x, ny2 + 0.05);
+						bool ink = false;
+						if (outer_pattern == 28) {
+							float lw = 0.0045;
+							ink = ink || (abs(q.y - 0.04) < lw && q.x > -0.04 && q.x < 0.04);
+							ink = ink || (abs(q.x + 0.04) < lw && abs(q.y) < 0.04);
+							ink = ink || (abs(q.y + 0.04) < lw && q.x > -0.04 && q.x < 0.045);
+							ink = ink || (abs(q.y - 0.02) < lw && q.x > -0.022 && q.x < 0.012);
+							ink = ink || (abs(q.x + 0.016 + (q.y - 0.02) * 0.4) < lw && q.y > 0.02 && q.y < 0.032);
+							ink = ink || (abs(q.y) < lw && q.x > -0.026 && q.x < 0.03);
+							ink = ink || (abs(q.x) < lw && q.y > 0.0 && q.y < 0.032);
+							ink = ink || (abs(q.x + q.y * 0.8) < lw && q.y < 0.0 && q.y > -0.032);
+							ink = ink || (abs(q.x - q.y * -0.8) < lw && q.y < 0.0 && q.y > -0.032 && q.x > 0.0);
+							if (ink) c.rgb = vec3(0.78, 0.1, 0.12);
+						} else {
+							ink = length(q / vec2(0.032, 0.026)) < 1.0;
+							ink = ink || length((q - vec2(-0.014, 0.045)) / vec2(0.009, 0.026)) < 1.0;
+							ink = ink || length((q - vec2(0.014, 0.045)) / vec2(0.009, 0.026)) < 1.0;
+							if (ink) c.rgb = vec3(0.2, 0.62, 0.6);
+							if (length(q - vec2(-0.011, 0.004)) < 0.004 || length(q - vec2(0.011, 0.004)) < 0.004) c.rgb = vec3(0.05);
+							if (length(q - vec2(0.0, -0.006)) < 0.004) c.rgb = vec3(0.95, 0.5, 0.6);
+						}
+					}
+				}
+				if (outer_pattern >= 25 && outer_pattern <= 27) {
+					// uzun ceket: göğüste V omuz dikişi (25 düz; 26 Air: üst bölüm ve kollar kahve, açılım kenarında sarı çimen işi;
+					// 27 Springtime: kollar/omuz beyaz, eteğe yakın renkli toplar); açılımın kenarında astar rengi (vurgu)
+					float vy = rig_b.w + 0.04 - abs(rest.x) * 0.45;
+					bool yoke = rest.y > vy;
+					if (abs(rest.y - vy) < 0.004) c.rgb *= 0.6;
+					if (outer_pattern == 26 && yoke) c.rgb = vec3(0.62, 0.5, 0.42);
+					if (outer_pattern == 27 && yoke) c.rgb = vec3(0.93, 0.95, 0.96);
+					float tt = clamp((outer_top - rest.y) / max(outer_top - outer_hem, 0.1), 0.0, 1.0);
+					if (rest.z > 0.0 && tt > 0.42) {
+						float ga = abs(atan(rest.x, rest.z));
+						float gw = (tt - 0.42) * 1.5;
+						if (ga < gw + 0.3) c.rgb = outer_accent.rgb;   // astar kanadı
+						if (outer_pattern == 26 && abs(ga - gw - 0.3) < 0.03 + 0.02 * sin(rest.y * 120.0)) c.rgb = vec3(0.95, 0.78, 0.2);
+					}
+					if (outer_pattern == 27 && dh > 0.15 && dh < 0.3) {
+						vec2 bq = vec2(oa * 2.5, rest.y * 12.0);
+						vec2 f = fract(bq) - 0.5;
+						if (length(f) < 0.32 && mod(floor(bq.x), 2.0) < 0.5) c.rgb = hash(floor(bq)) > 0.5 ? vec3(0.95, 0.85, 0.3) : vec3(0.6, 0.85, 0.75);
+					}
+				}
+				if (outer_pattern == 23 && rest.z > 0.0 && abs(rest.x) < 0.09 && abs(rest.x) < sleeve_end - 0.2) {   // Argyle: önde baklava paneli
+					vec2 aq = vec2(rest.x * 16.0 + 0.5, rest.y * 11.0);
+					vec2 f = fract(aq) - 0.5;
+					float dd = abs(f.x) + abs(f.y);
+					if (dd < 0.45) c.rgb = mod(floor(aq.x) + floor(aq.y), 2.0) < 0.5 ? vec3(0.95, 0.94, 0.92) : vec3(0.88, 0.62, 0.5);
+					if (abs(abs(f.x) - abs(f.y)) < 0.04) c.rgb = vec3(0.98);
+				}
+				if (outer_pattern == 24) {   // örgü bantları: yatay örgü desen şeritleri
+					float kb = fract(rest.y * 14.0);
+					if (kb < 0.18) c.rgb *= 1.0 - 0.25 * step(0.5, fract((rest.x + rest.z) * 40.0 + rest.y * 10.0));
+					if (abs(kb - 0.6) < 0.04) c.rgb = mix(c.rgb, vec3(0.75, 0.8, 0.95), 0.18);
+				}
+				if (outer_pattern == 20 || outer_pattern == 21 || outer_pattern == 22) {
+					// 20 kutup ayısı: önde sağ altta ayı yüzü, solda pati; altta beyaz dalgalı etek. 21 kedi: göğüs altında sarı-siyah şerit +
+					// beyaz fisto, altta iki pati. 22 ruh: sırtta ateş topu.
+					bool front = rest.z > 0.0;
+					if (outer_pattern == 20) {
+						if (dh < 0.05 + 0.012 * sin(oa * 30.0)) c.rgb = vec3(0.95, 0.97, 1.0);
+						vec2 fp = vec2(rest.x + 0.08, rest.y - (outer_hem + 0.13));
+						if (front && length(fp) < 0.035) c.rgb = vec3(0.97, 0.98, 1.0);
+						if (front && (length(fp - vec2(-0.028, 0.03)) < 0.013 || length(fp - vec2(0.028, 0.03)) < 0.013)) c.rgb = vec3(0.97, 0.98, 1.0);
+						vec2 pp = vec2(rest.x - 0.09, rest.y - (outer_hem + 0.12));
+						if (front && (length(pp) < 0.022 || length(pp - vec2(-0.022, 0.026)) < 0.008 || length(pp - vec2(0.0, 0.032)) < 0.008 || length(pp - vec2(0.022, 0.026)) < 0.008)) c.rgb = vec3(0.97, 0.98, 1.0);
+					}
+					if (outer_pattern == 21) {
+						float hy = rest.y - (outer_hem + 0.17);
+						if (abs(hy) < 0.012) c.rgb = vec3(0.95, 0.82, 0.2);
+						else if (abs(hy - 0.02) < 0.008 || abs(hy + 0.02) < 0.008) c.rgb = vec3(0.08, 0.08, 0.1);
+						if (hy < -0.028 && hy > -0.05 + 0.01 * sin(oa * 40.0)) c.rgb = vec3(0.96, 0.96, 0.95);
+						for (int sx = -1; sx <= 1; sx += 2) {
+							vec2 pp = vec2(rest.x - float(sx) * 0.09, rest.y - (outer_hem + 0.07));
+							if (front && (length(pp) < 0.026 || length(pp - vec2(-0.025, 0.03)) < 0.009 || length(pp - vec2(0.0, 0.037)) < 0.009 || length(pp - vec2(0.025, 0.03)) < 0.009)) c.rgb = vec3(0.06, 0.06, 0.08);
+						}
+					}
+					if (outer_pattern == 22 && !front) {
+						vec2 fb = vec2(rest.x, rest.y - (outer_hem + 0.2));
+						float r = length(fb * vec2(1.0, 0.8));
+						float fl = 0.06 + 0.03 * sin(atan(fb.y, fb.x) * 7.0) * step(0.0, fb.y);
+						if (r < fl) c.rgb = r < fl * 0.55 ? vec3(0.98, 0.85, 0.2) : vec3(0.92, 0.3, 0.12);
+					}
+				}
+				if (outer_pattern == 19) {   // Flamingo: beyaz zemin, pembe flamingolar; fırfır katı koyu kırmızı-pembe bantlar
+					if (rest.y < rig_b.x - 0.15) {
+						float rb = fract((rig_b.x - 0.15 - rest.y) * 30.0);
+						c.rgb = rb < 0.5 ? vec3(0.62, 0.12, 0.2) : vec3(0.95, 0.6, 0.7);
+					} else {
+						vec2 fq = vec2(oa * 1.5, rest.y * 6.0);
+						vec2 cell = floor(fq); vec2 f = fract(fq) - 0.5;
+						if (mod(cell.x + cell.y, 2.0) < 0.5) {
+							bool fl = length((f - vec2(0.0, -0.02)) / vec2(0.3, 0.15)) < 1.0;                 // gövde
+							fl = fl || (abs(f.x - 0.2 + (f.y - 0.1) * 0.25) < 0.035 && f.y > 0.0 && f.y < 0.36);                // boyun
+							fl = fl || length(f - vec2(0.15, 0.38)) < 0.07;                                   // baş
+							fl = fl || (abs(f.x + 0.02) < 0.02 && f.y < -0.12 && f.y > -0.48);               // bacak
+							if (fl) c.rgb = vec3(0.9, 0.32, 0.48);
+						}
+					}
+				}
+				if (outer_pattern == 17) {   // Maritime: kırmızı-beyaz-mavi bantlar (omuz mavi, göğüs beyaz, ortada kırmızı bant)
+					float hy = outer_top - rest.y;
+					if (hy < 0.08) c.rgb = vec3(0.12, 0.25, 0.7); else if (abs(hy - 0.2) < 0.045) c.rgb = vec3(0.85, 0.15, 0.15);
+				}
+				if (outer_pattern == 18) {   // Sky Blue: üst yarı sarı, alt yarı beyaz
+					if (rest.y > rig_b.w - 0.08) c.rgb = vec3(0.98, 0.82, 0.15); else c.rgb = vec3(0.96, 0.96, 0.95);
+				}
+				if (outer_pattern == 15) {
+					// su balonu baskısı (Sand Balloons): renkli yuvarlak balonlar, parlama + bağ ipi, seyrek
+					vec2 bq = vec2(oa * 1.6, rest.y * 7.0);
+					vec2 cell = floor(bq);
+					vec2 f = fract(bq) - vec2(0.5, 0.55);
+					if (hash(cell) > 0.45) {
+						vec3 bcol = hash(cell + 1.7) > 0.66 ? vec3(0.92, 0.25, 0.25) : (hash(cell + 1.7) > 0.33 ? vec3(0.95, 0.75, 0.2) : vec3(0.25, 0.75, 0.85));
+						if (length(f) < 0.26) c.rgb = length(f - vec2(-0.08, 0.08)) < 0.06 ? vec3(0.98) : bcol;
+						if (abs(f.x) < 0.012 && f.y > 0.26 && f.y < 0.5) c.rgb = vec3(0.95, 0.95, 0.95);
+					}
+				}
+				if (outer_pattern == 16) {
+					// Tribal: etek ucunda sarı üçgen dişli bant (uçları aşağı)
+					if (dh < 0.06) {
+						float tx = abs(fract(oa * 7.0) - 0.5);
+						if (dh < 0.012 || dh < 0.06 - tx * 0.1) c.rgb = outer_accent.rgb;
 					}
 				}
 				if (outer_pattern == 14) {

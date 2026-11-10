@@ -909,7 +909,7 @@ func anim_progress() -> float:
 ## Renk yuvaları (vertex COLOR.r = yuva * 0.1, toon shader palette_mode): 0 ten, 1 üst, 2 üst-vurgu, 3 alt, 4 sargı, 5 yelek
 ## Sıra shader'daki top_style / pants_style numaralarıyla aynı (sona ekle)
 const TOP_STYLES := {"tisort": "Kısa Kollu Tişört", "uzun": "Uzun Kollu Ninja Gömleği", "ceket": "Fermuarlı Ceket", "yakali": "Yüksek Yakalı Gömlek", "kolsuz": "Kolsuz Yakalı", "kimono": "Kimono Üstü",
-	"gi": "Dövüş Gi'si", "yakali_uzun": "Uzun Kollu Yüksek Yaka", "atlet": "Atlet", "tek_kol": "Tek Kollu Üst"}
+	"gi": "Dövüş Gi'si", "yakali_uzun": "Uzun Kollu Yüksek Yaka", "atlet": "Atlet", "tek_kol": "Tek Kollu Üst", "yok": "Üst Yok"}
 const PANTS_STYLES := {"ninja": "Ninja Pantolonu", "sort": "Diz Altı Şort", "sivil": "Uzun Pantolon", "sargi": "Sargılı Pantolon", "bol": "Bol Paçalı Pantolon", "kapri": "Kapri", "kisa_sort": "Kısa Şort"}
 
 ## Yüz tipi: [çene genişliği, çene ucu, elmacık, burun, kaş çıkıntısı, işaret]
@@ -1146,16 +1146,21 @@ func _cloth_mat(layer: int) -> ShaderMaterial:
 	mat.set_shader_parameter("pants_pattern", int(look.get("pants_pattern", 0)))
 	mat.set_shader_parameter("pants_accent", look.get("pants2", Color(look.get("pants", Color(0.2, 0.2, 0.22))).darkened(0.45)))
 	mat.set_shader_parameter("leg_fishnet", bool(look.get("leg_fishnet", false)))
+	mat.set_shader_parameter("guard_net", bool(look.get("net_pads", false)))
+	mat.set_shader_parameter("vest_open", bool(look.get("vest_open", false)))
+	var kgd = look.get("kg") if look.get("kg") is Dictionary else {}
+	mat.set_shader_parameter("inner_col", kgd["inner"] if kgd.get("inner") is Color else Color(0, 0, 0, 0))   # gi V yakasında iç giysi
 	mat.set_shader_parameter("pants_pipe", look.get("pants_pipe") if look.get("pants_pipe") is Color else Color(0, 0, 0, 0))
 	mat.set_shader_parameter("vest_style", int(look.get("vest_style", 0)))
 	mat.set_shader_parameter("gloves", bool(look.get("gloves", false)))
 	mat.set_shader_parameter("arm_wraps", bool(look.get("arm_wraps", false)))
 	var os_ = String(look.get("outer_style", "")) if look.get("outer_style") != null else ""
 	# yelek dış giysinin altında: önü açık giysilerde (haori, palto, jinbaori) yalnız açıklık kadarı görünür, kapalı pelerinde gizli
-	const OPEN_GAP := {"haori": 0.031, "haori_uzun": 0.029, "jinbaori": 0.038, "palto": 0.025, "acik_ceket": 0.045}
+	const OPEN_GAP := {"haori": 0.031, "haori_uzun": 0.029, "jinbaori": 0.038, "palto": 0.025, "acik_ceket": 0.045, "sisme_yelek": 0.06, "uzun_ceket": 0.02, "hirka": 0.04, "esofman_ceket": 0.03, "kisa_haori": 0.05, "hinata_ceket": 0.0, "hinata_ceket_acik": 0.05, "kisa_bolero": 0.042, "kuyruklu_ceket": 0.03, "uzun_trench": 0.05, "yirtik_esofman": 0.035, "uzun_robe": 0.03}
 	mat.set_shader_parameter("outer_cover", 0 if os_ in ["", "atki", "kisa", "kesa"] else (1 if OPEN_GAP.has(os_) else 2))
 	mat.set_shader_parameter("outer_gap", float(OPEN_GAP.get(os_, 0.075)))
-	mat.set_shader_parameter("outer_sleeves", 1 if look.get("outer_style") in ["palto", "haori", "org_pelerin", "acik_ceket"] else 0)
+	mat.set_shader_parameter("sleeve_roll", bool(look.get("sleeve_roll", false)))
+	mat.set_shader_parameter("outer_sleeves", 1 if look.get("outer_style") in ["palto", "haori", "org_pelerin", "acik_ceket", "omuz_kazak", "uzun_ceket", "hirka", "esofman_ceket", "kizil_palto", "hinata_ceket", "algi_ceket", "turuncu_ceket", "kisa_bolero", "uzun_trench", "yirtik_esofman", "seytan_kapuson", "buyuk_kapusonlu"] else 0)
 	mat.set_shader_parameter("foot_cover", look.get("foot_style", "sandal") == "tabi")
 	var fz = 0.12
 	var fy = _grest(skel.find_bone("LeftFoot")).origin.y
@@ -1240,14 +1245,21 @@ func _cloth_rings(g: Dictionary, mat: ShaderMaterial, vest_mat) -> void:
 	var neck = bp.call("Neck").y; var hips = bp.call("Hips").y; var knee = bp.call("LeftLowerLeg").y; var ank = bp.call("LeftFoot").y
 	var ts = top_style(); var ps = pants_style()
 	var short_sleeve = ts in ["tisort", "yakali", "gi"]
+	if ts == "yok":
+		return   # çıplak gövde: kol ağzı / etek halkası çizilmez
 	var sleeve = (el + 0.05 if ts == "gi" else lerpf(ua, el, 0.5)) if short_sleeve else ha - 0.035
+	var roll = bool(look.get("sleeve_roll", false)) and ts in ["uzun", "yakali_uzun"]
+	if roll:
+		sleeve = lerpf(el, ha, 0.42)   # kıvrık kol: ön kol ortasında kalın katlı manşet
 	var cut = {"ninja": knee - 0.17, "sort": knee - 0.05, "kapri": lerpf(knee, ank, 0.45), "kisa_sort": knee + 0.12}.get(ps, ank + 0.04)
+	if ps == "kisa_sort" and look.get("pleat_skirt", false):
+		cut = hips - 0.15   # pilili etek altındaki iç şort (gölgelendiricideki kesimle aynı)
 	var rings = []
 	for sx in [-1.0, 1.0]:
 		var side = "Left" if sx > 0 else "Right"
-		rings.append([0, sleeve * sx, sx, side + ("UpperArm" if short_sleeve else "LowerArm"), 0.016, 0.011, Vector3(-0.012 * sx, 0, 0), mat, neck])
+		rings.append([0, sleeve * sx, sx, side + ("UpperArm" if short_sleeve else "LowerArm"), 0.03 if roll else 0.016, 0.016 if roll else 0.011, Vector3(-0.012 * sx, 0, 0), mat, neck])
 		if not look.get("guards") in ["bacak", "ikisi"]:
-			rings.append([1, cut, sx, side + "LowerLeg", 0.02 if ps == "ninja" else 0.014, 0.013, Vector3(0, 0.012, 0), mat, neck])
+			rings.append([1, cut, sx, side + ("UpperLeg" if cut > knee else "LowerLeg"), 0.02 if ps == "ninja" else 0.014, 0.013, Vector3(0, 0.012, 0), mat, neck])
 	# üst / yelek etek halkaları kaldırıldı: kalça kemiğine yapışık katı tüplerdi (kumaştan 3 / 5.8 cm dışarı), gövde eğilince
 	# kumaşın içine giriyor, belde/karında kalın kap gibi duruyordu. Üstün etek kenarı artık gövde kabuğuna derili ince bant;
 	# yelek etek bandı yelek ayrıntısında (_vest_kit) yüzeye derili.
@@ -1756,10 +1768,25 @@ func _garment(key: String, build: Callable) -> void:
 		_dyn_garment(_add_shell(_garment_cache[k], cloth_shell_mat), key)
 
 
+## Kendi rengi olan giysi parçası: başlık yuvası (10) bu kabuğa özel paletle boyanır; aynı yuvayı kullanan diğer giysilerle
+## (eldiven/aksesuar/başlık) renk çakışmaz. build -> ArrayMesh (slot 10 ile loft)
+func _garment_tinted(key: String, col: Color, build: Callable) -> void:
+	var k = "%s|%s|%.3f" % [look["gender"], key, 0.0]
+	if not _garment_cache.has(k):
+		_garment_cache[k] = build.call()
+	if _garment_cache[k] == null:
+		return
+	var smat: ShaderMaterial = cloth_shell_mat.duplicate()
+	var spl: Array = Array(_palette())
+	spl[10] = col
+	smat.set_shader_parameter("pal", PackedColorArray(spl))
+	_add_shell(_garment_cache[k], smat)
+
+
 ## Etekli dış giysiler: kalçanın altındaki kumaş dilim zincirleriyle sallanır (koşuda arkaya açılır, dönüşte savrulur,
 ## bacak/diz küreleri kumaşı iter: bacak kumaşın içinden çıkmaz). Zincir kemikleri karakter iskeletine eklenir.
 const DYN_GARMENTS := {"pelerin": 0.26, "palto": 0.3, "haori": 0.34, "org_pelerin": 0.24, "panco": 0.3, "yirtik": 0.2, "jinbaori": 0.3,
-	"cuppe": 0.26, "bulut_etek": 0.32, "haori_uzun": 0.28, "mino": 0.36, "hakama": 0.32, "anbu_palto": 0.3, "etek_1": 0.4, "etek_2": 0.34, "etek_3": 0.3}   # anahtar -> şekil sertliği
+	"cuppe": 0.26, "bulut_etek": 0.32, "uzun_ceket": 0.3, "onluk": 0.3, "kizil_palto": 0.3, "yirtmacli_etek": 0.3, "ic_etek": 0.3, "sargi_etek_uzun": 0.32, "yilan_cubbe": 0.32, "algi_ceket": 0.25, "sargi_elbise": 0.25, "onluk_elbise": 0.32, "iki_ton_kimono": 0.28, "panel_etek": 0.32, "uzun_panel_ust": 0.3, "bel_ortusu": 0.3, "kolsuz_palto": 0.26, "kuyruklu_ceket": 0.28, "kisa_kimono": 0.3, "gunes_kimono": 0.3, "uzun_trench": 0.3, "rikudo_cubbe": 0.32, "kutlama_kimono": 0.32, "danzo_ortu": 0.3, "delta_elbise": 0.3, "uzun_robe": 0.32, "yaprak_etek_alt": 0.4, "cizgili_uzun_etek": 0.32, "pilili_etek": 0.3, "hakama_ust": 0.2, "flamingo_firfir": 0.4, "haori_uzun": 0.28, "mino": 0.36, "hakama": 0.32, "anbu_palto": 0.3, "etek_1": 0.4, "etek_2": 0.34, "etek_3": 0.3}   # anahtar -> şekil sertliği
 static var _gdyn_cache := {}
 
 
@@ -2105,6 +2132,1522 @@ func _kaya_gi_kit(g: Dictionary) -> void:
 	_sk_end(g)
 
 
+## Suna tuniği ayrıntıları (ref refs/outfits_ss/full/sand_striker_1..3.jpg): kalın atkı (Tribal: sarı üçgen kenarlı), sol omuzdan sağ kalçaya
+## kılıflık kayışı + omuzda fişeklik bölmeleri, geniş kemer (şeritli / baklavalı varyant) ve toka — kabuklara derili
+func _suna_tunik_kit(g: Dictionary) -> void:
+	var st: Dictionary = look.get("st") if look.get("st") is Dictionary else {}
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var chest = _bp("UpperChest").y
+	var tm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "suna_tunik", 0.0])
+	if tm != null and _sk_begin(tm):
+		var sc: Color = st.get("strap", Color(0.45, 0.42, 0.4))
+		var a = Vector2(0.1, chest + 0.1)    # sol omuz (+x)
+		var b = Vector2(-0.15, hips + 0.02)  # sağ kalça
+		var pts = []; var outs = []
+		for k in 17:
+			var q = a.lerp(b, k / 16.0)
+			var hit = _sk_hit(q.x, q.y, true, 0.025)
+			if not hit.is_empty():
+				pts.append(Vector3(q.x, q.y, hit[0].z + 0.003)); outs.append(hit[1])
+		for it in 2:
+			var sm = pts.duplicate()
+			for i in range(1, pts.size() - 1):
+				sm[i] = Vector3(pts[i].x, pts[i].y, maxf(pts[i].z, (pts[i - 1].z + pts[i + 1].z) * 0.5))
+			pts = sm
+		if pts.size() > 1:
+			var dir = (Vector3(b.x, b.y, 0) - Vector3(a.x, a.y, 0)).normalized()
+			_sk_band(pts, outs, Vector3.BACK.cross(dir).normalized(), 0.042, 0.007, sc)
+			for k in 3:   # omuz tarafında fişeklik bölmeleri (kayışa dik kısa çubuklar)
+				var q2 = a.lerp(b, 0.1 + k * 0.06)
+				_sk_plate(q2.x, q2.y, 0.05, 0.01, 0.005, st.get("loops", sc.darkened(0.25)), 0.012, true)
+			if st.get("strap_dots") is Color:   # kayışta noktalar (Balloons)
+				for k in 8:
+					var q3 = a.lerp(b, 0.3 + k * 0.08)
+					_sk_plate(q3.x, q3.y, 0.012, 0.012, 0.003, st["strap_dots"], 0.012, true)
+		var V: PackedVector3Array = _sk["v"]
+		var by = hips + 0.06
+		var bd = 9.0
+		for q in V:
+			if absf(q.y - (hips + 0.06)) < bd:
+				bd = absf(q.y - (hips + 0.06)); by = q.y
+		var bc: Color = st.get("belt", Color(0.5, 0.48, 0.46))
+		_sk_ring(1, by, 0.05, 0.008, bc, -PI, PI, 48, 0.003, 0.0, 0.0, 0.32)
+		if st.get("belt_stripe") is Color:
+			_sk_ring(1, by, 0.014, 0.004, st["belt_stripe"], -PI, PI, 48, 0.011, 0.0, 0.0, 0.34)
+		if st.get("belt_diamond") is Color:
+			for k in 11:
+				var bx = -0.2 + k * 0.04
+				if absf(bx) > 0.03:
+					_sk_plate(bx, by, 0.018, 0.026, 0.003, st["belt_diamond"], 0.012, true)
+		_sk_plate(0.02, by, 0.03, 0.05, 0.006, st.get("buckle", bc.darkened(0.2)), 0.011, true)   # toka
+		_sk_end(g)
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var sf: Color = st.get("scarf", Color(0.92, 0.92, 0.9))
+	_sk_ring(1, neck - 0.04, 0.055, 0.032, sf, -PI, PI, 40, 0.01, 0.0, 0.0, 0.15)
+	_sk_ring(1, neck + 0.005, 0.045, 0.026, sf.darkened(0.05), -PI, PI, 40, 0.006, 0.0, 0.0, 0.1)
+	if st.get("scarf_trim") is Color:   # Tribal: atkının üst kenarında sarı üçgenler
+		for k in 12:
+			var an = TAU * k / 12.0
+			var p = Vector3(sin(an) * 0.075, neck + 0.03, cos(an) * 0.075)
+			_sk_box(p, Vector3(cos(an), 0, -sin(an)) * 0.01, Vector3(0, 0.012, 0), Vector3(sin(an), 0, cos(an)) * 0.003, st["scarf_trim"])
+	_sk_end(g)
+
+
+## Şişme yelek ayrıntıları (ref refs/outfits_ss/full/beach_1..3, sky_blue.jpg): dik yaka, dolgu dikişleri, Maritime: önde balıklı iki cep +
+## sırtta çapa; Sky Blue: sırta düşen kapüşon — kabuğa derili. Şortun önünde bağcık (iki ip + düğüm).
+func _sisme_yelek_kit(g: Dictionary) -> void:
+	var oc: Color = look.get("outer", Color(0.95, 0.55, 0.2))
+	var by: Dictionary = look.get("by") if look.get("by") is Dictionary else {}
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var chest = _bp("UpperChest").y
+	var vm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "sisme_yelek", 0.0])
+	if vm != null and _sk_begin(vm):
+		_sk_ring(1, neck - 0.02, 0.06, 0.016, by.get("collar", oc), 0.55, TAU - 0.55, 40, 0.006, 0.0, 0.02, 0.13)   # dik yaka (önü açık)
+		if by.get("pockets") is Color:
+			for sx in [-1.0, 1.0]:
+				if _sk_plate(0.12 * sx, hips + 0.06, 0.08, 0.06, 0.02, by["pockets"], 0.004, true):
+					_sk_plate(0.12 * sx, hips + 0.06, 0.03, 0.014, 0.003, Color(0.95, 0.95, 0.95), 0.025, true)   # balık
+		if by.get("anchor") is Color:   # sırtta çapa: dikey gövde + üst halka + alt kavis
+			_sk_plate(0.0, chest - 0.02, 0.012, 0.09, 0.004, by["anchor"], 0.004, false)
+			_sk_plate(0.0, chest + 0.03, 0.04, 0.01, 0.004, by["anchor"], 0.004, false)
+			_sk_plate(0.0, chest - 0.065, 0.07, 0.012, 0.004, by["anchor"], 0.004, false)
+		if by.get("hood") is Color:   # sırta düşmüş kapüşon: ensede kalın kavis
+			_sk_plate(0.0, neck - 0.04, 0.17, 0.12, 0.05, by["hood"], 0.004, false)
+			_sk_plate(0.0, neck - 0.1, 0.12, 0.03, 0.02, by["hood"].darkened(0.12), 0.05, false)
+		_sk_end(g)
+	if by.get("drawstring") is Color and _sk_begin(_shell_cache.get(look["gender"])):
+		var sc: Color = by["drawstring"]
+		_sk_plate(0.0, hips + 0.04, 0.03, 0.01, 0.004, sc, 0.004, true)   # düğüm
+		for sx in [-1.0, 1.0]:
+			_sk_plate(0.012 * sx, hips - 0.0, 0.005, 0.07, 0.003, sc, 0.004, true)   # sarkan uçlar
+		_sk_end(g)
+
+
+## Flamingo elbisesi ayrıntıları (ref refs/outfits_ss/full/flamingo.jpg): omzu açık çizgili bant (kolların üstünden geçen iki renkli şerit)
+func _flamingo_kit(g: Dictionary) -> void:
+	var fe: Dictionary = look.get("fe") if look.get("fe") is Dictionary else {}
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var sh = _bp("UpperChest").y + 0.085
+	var a: Color = fe.get("band_a", Color(0.85, 0.3, 0.4))
+	var b: Color = fe.get("band_b", Color(0.97, 0.9, 0.92))
+	for k in 4:   # göğüs çevresi (yalnız gövde: T pozunda omuz hizasındaki kollar halkaya girip kol boyunca şerit oluyordu)
+		_sk_ring(1, sh - k * 0.014, 0.012, 0.006, a if k % 2 == 0 else b, -PI, PI, 56, 0.006, 0.0, 0.0, 0.17)
+	_sk_end(g)
+
+
+## Kapüşonlu ayrıntıları (ref refs/outfits_ss/full/youth_1..3, cat_breeder_m.jpg): ensede düşük kapüşon, önde iki bağcık + uç düğümleri,
+## kanguru cep yarıkları (biyeli varyant), ribanalı etek bandı, sağ bilekte bileklik, sol omuzda yuvarlak arma — kabuklara derili
+func _kapusonlu_kit(g: Dictionary) -> void:
+	var oc: Color = look.get("outer", Color(0.12, 0.12, 0.14))
+	var yh: Dictionary = look.get("yh") if look.get("yh") is Dictionary else {}
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var hm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "kapusonlu", 0.0])
+	if hm != null and _sk_begin(hm):
+		var hc: Color = yh.get("hood", oc)
+		_sk_ring(1, neck - 0.012, 0.055, 0.022, hc, -PI, PI, 40, 0.012, 0.0, 0.0, 0.14)   # kapüşonun boyun çevresi (önde boyun kapalı)
+		_sk_plate(0.0, neck - 0.05, 0.16, 0.11, 0.045, hc, 0.006, false)                              # sırta düşmüş kapüşon
+		_sk_plate(0.0, neck - 0.1, 0.1, 0.025, 0.02, hc.darkened(0.15), 0.045, false)
+		var dc: Color = yh.get("cord", Color(0.85, 0.85, 0.85))
+		for sx in [-1.0, 1.0]:   # bağcıklar
+			_sk_plate(0.03 * sx, neck - 0.075, 0.005, 0.09, 0.003, dc, 0.004, true)
+			_sk_plate(0.03 * sx, neck - 0.125, 0.012, 0.012, 0.004, dc.darkened(0.2), 0.005, true)
+		var V: PackedVector3Array = _sk["v"]
+		var ybot = 9.0
+		for q in V:
+			ybot = minf(ybot, q.y)
+		_sk_ring(1, ybot + 0.022, 0.04, 0.006, yh.get("rib", oc.darkened(0.12)), -PI, PI, 44, 0.002, 0.0, 0.0, 0.3)   # ribana etek bandı
+		if yh.get("pocket_trim") is Color:   # kanguru cep yarıkları (iki eğik biye)
+			for sx in [-1.0, 1.0]:
+				_sk_plate(0.085 * sx, hips + 0.1, 0.008, 0.08, 0.003, yh["pocket_trim"], 0.003, true)
+		_sk_end(g)
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var ha = absf(_bp("LeftHand").x)
+	if yh.get("wristband") is Color:   # sağ bilekte bileklik
+		_sk_ring(0, -(ha - 0.09), 0.05, 0.008, yh["wristband"], -PI, PI, 24, 0.004, -1.0)
+	if yh.get("logo") is Color:   # sol omuzda yuvarlak arma
+		var ax = lerpf(absf(_bp("LeftUpperArm").x), absf(_bp("LeftLowerArm").x), 0.15)
+		var V2: PackedVector3Array = _sk["v"]
+		var top = Vector3.ZERO; var by = -9.0
+		for q in V2:
+			if q.x > 0.0 and absf(q.x - ax) < 0.015 and absf(q.z) < 0.03 and q.y > by:
+				by = q.y; top = q
+		if by > -8.0:
+			for k in 10:
+				var a0 = TAU * k / 10.0
+				_sk_box(top + Vector3(cos(a0) * 0.012, 0.012, sin(a0) * 0.012), Vector3(0.012, 0, 0).rotated(Vector3.UP, -a0), Vector3(0, 0.002, 0), Vector3(0, 0, 0.012).rotated(Vector3.UP, -a0), yh["logo"])
+	_sk_end(g)
+
+
+## Omzu açık kazak ayrıntıları (ref refs/outfits_ss/full/sweet_1..3.jpg): üst kenarda ribana bant (omuzlardan geçer), etek ribanası
+func _omuz_kazak_kit(g: Dictionary) -> void:
+	var oc: Color = look.get("outer", Color(0.95, 0.93, 0.9))
+	var sw: Dictionary = look.get("sw") if look.get("sw") is Dictionary else {}
+	var km = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "omuz_kazak", 0.0])
+	if km == null or not _sk_begin(km):
+		return
+	var V: PackedVector3Array = _sk["v"]
+	var ytop = -9.0; var ybot = 9.0
+	for q in V:
+		ytop = maxf(ytop, q.y); ybot = minf(ybot, q.y)
+	var rc: Color = sw.get("rib", oc.darkened(0.06))
+	_sk_ring(1, ytop - 0.012, 0.028, 0.006, rc, -PI, PI, 56, 0.002, 0.0, 0.0, 0.26)
+	_sk_ring(1, ybot + 0.016, 0.03, 0.006, rc, -PI, PI, 48, 0.002, 0.0, 0.0, 0.26)
+	_sk_end(g)
+
+
+## Uzun ceket ayrıntıları (ref refs/outfits_ss/full/swanky_*.jpg): dik yaka, boyundan bele fermuar, bel bandı (Springtime)
+func _uzun_ceket_kit(g: Dictionary) -> void:
+	var oc: Color = look.get("outer", Color(0.1, 0.1, 0.12))
+	var uc: Dictionary = look.get("uc") if look.get("uc") is Dictionary else {}
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var cm2 = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "uzun_ceket", 0.0])
+	if cm2 == null or not _sk_begin(cm2):
+		return
+	_sk_ring(1, neck + 0.0, 0.07, 0.012, uc.get("collar", oc), -PI, PI, 40, 0.004, 0.0, 0.0, 0.12)   # dik yaka
+	_sk_strip(0.0, neck - 0.03, hips + 0.02, 0.008, 0.004, uc.get("zip", Color(0.75, 0.72, 0.6)), 30)   # fermuar
+	if uc.get("waist") is Color:
+		var V: PackedVector3Array = _sk["v"]
+		var by = hips + 0.06
+		var bd = 9.0
+		for q in V:
+			if absf(q.y - (hips + 0.06)) < bd:
+				bd = absf(q.y - (hips + 0.06)); by = q.y
+		_sk_ring(1, by, 0.04, 0.005, uc["waist"], -PI, PI, 48, 0.002, 0.0, 0.0, 0.3)
+	_sk_end(g)
+
+
+## Hırka ayrıntıları (ref refs/outfits_ss/full/wonder_1.jpg, wonder_4.jpg): önde boydan boya geniş ribana pervaz (yatay örgü
+## çizgili), etekte ribana bant, bilekte kalın ribana manşet; Star varyantında ribana yok (düz kenar)
+func _hirka_kit(g: Dictionary) -> void:
+	var oc: Color = look.get("outer", Color(0.9, 0.9, 0.92))
+	var hk: Dictionary = look.get("hk") if look.get("hk") is Dictionary else {}
+	if not hk.get("rib", true):
+		return
+	var rc: Color = hk.get("rib_col", oc.darkened(0.1))
+	var lc: Color = rc.darkened(0.18)
+	var neck = _bp("Neck").y
+	var hm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "hirka", 0.0])
+	if hm != null and _sk_begin(hm):
+		var V: PackedVector3Array = _sk["v"]
+		var ybot = 9.0
+		for q in V:
+			ybot = minf(ybot, q.y)
+		# ön kenar: göğüs altında önde açıklığa en yakın köşe
+		for sx in [1.0, -1.0]:
+			var ex = 9.0
+			for q in V:
+				if q.z > 0.0 and signf(q.x) == sx and absf(q.y - (neck - 0.25)) < 0.03:
+					ex = minf(ex, absf(q.x))
+			if ex > 8.0:
+				continue
+			var bx = (ex + 0.02) * sx
+			_sk_strip(bx, neck - 0.04, ybot + 0.01, 0.04, 0.007, rc, 36)
+			_sk_strip(bx + 0.021 * sx, neck - 0.04, ybot + 0.01, 0.003, 0.009, lc, 36)   # pervazın iç dikişi
+		_sk_ring(1, ybot + 0.018, 0.034, 0.007, rc, 0.68, TAU - 0.68, 56, 0.003, 0.0, 0.0, 0.3)
+		for k in 3:
+			_sk_ring(1, ybot + 0.008 + k * 0.011, 0.002, 0.002, lc, 0.68, TAU - 0.68, 56, 0.0105, 0.0, 0.0, 0.3)
+		_sk_end(g)
+	var hx = absf(_bp("LeftHand").x)
+	for sx in [1.0, -1.0]:
+		var km = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "hirka_kol%d" % int(sx), 0.0])
+		if km == null or not _sk_begin(km):
+			continue
+		_sk_ring(0, (hx - 0.07) * sx, 0.05, 0.008, rc, -PI, PI, 28, 0.003, sx)
+		for k in 5:
+			_sk_ring(0, (hx - 0.09 + k * 0.01) * sx, 0.002, 0.002, lc, -PI, PI, 28, 0.011, sx)
+		_sk_end(g)
+
+
+## Hemşire önlüğü ayrıntıları (ref refs/outfits_ss/full/adorable_*.jpg): dik yaka (önde ince yarık), çift sıra 2x3 düğme,
+## yanlardan arkaya dolanan kemer + arkada fiyonk, bilekte iki renkli manşet (Springtime: kalpli)
+func _onluk_kit(g: Dictionary) -> void:
+	var oc: Color = look.get("outer", Color(0.95, 0.95, 0.96))
+	var nd: Dictionary = look.get("nd") if look.get("nd") is Dictionary else {}
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var chest = _bp("UpperChest").y
+	var om = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "onluk", 0.0])
+	if om != null and _sk_begin(om):
+		_sk_ring(1, neck + 0.005, 0.065, 0.01, oc.darkened(0.03), 0.12, TAU - 0.12, 40, 0.004, 0.0, 0.0, 0.12)   # dik yaka, önde yarık
+		var bc: Color = nd.get("btn", Color(0.72, 0.73, 0.76))
+		for r in 3:
+			for sx in [-1.0, 1.0]:
+				var h = _sk_hit(0.038 * sx, chest - 0.06 - r * 0.075, true, 0.02)
+				if h.is_empty():
+					continue
+				var c0: Vector3 = h[0] + (h[1] as Vector3) * 0.004
+				var n: Vector3 = h[1]
+				var u = n.cross(Vector3.UP).normalized()
+				var v = u.cross(n).normalized()
+				for k in 8:   # yuvarlak düğme: dilimlerden disk + koyu kenar
+					var a0 = TAU * k / 8.0
+					var d = (u * cos(a0) + v * sin(a0))
+					_sk_box(c0 + d * 0.006, u * 0.0045, v * 0.0045, n * 0.002, bc if k % 2 == 0 else bc.darkened(0.08))
+					_sk_box(c0 + d * 0.0095, (d.cross(n)) * 0.003, d * 0.0018, n * 0.0025, bc.darkened(0.35))
+		# kemer: önde panelin kenarından yanlara ve arkaya dolanır
+		var V: PackedVector3Array = _sk["v"]
+		var wy = hips + 0.1
+		var bd = 9.0
+		var by = wy
+		for q in V:
+			if absf(q.y - wy) < bd:
+				bd = absf(q.y - wy); by = q.y
+		var belt: Color = nd.get("belt", Color(0.75, 0.12, 0.14))
+		_sk_ring(1, by, 0.03, 0.006, belt, 0.55, TAU - 0.55, 48, 0.003, 0.0, 0.0, 0.3)
+		if nd.get("belt_edge") is Color:
+			for e in [-1.0, 1.0]:
+				_sk_ring(1, by + e * 0.015, 0.005, 0.004, nd["belt_edge"], 0.55, TAU - 0.55, 48, 0.0075, 0.0, 0.0, 0.3)
+		var hb = _sk_hit(0.0, by, false, 0.03)
+		if not hb.is_empty():   # arkada fiyonk: iki kanat + düğüm + iki sarkan uç
+			var p0: Vector3 = hb[0] + Vector3(0, 0, -0.012)
+			for sx in [-1.0, 1.0]:
+				_sk_box(p0 + Vector3(0.03 * sx, 0.006, -0.004), Vector3(0.026, 0.012 * sx, 0), Vector3(-0.006 * sx, 0.02, 0), Vector3(0, 0, -0.006), belt)
+				_sk_box(p0 + Vector3(0.012 * sx, -0.05, 0.0), Vector3(0.01, 0, 0), Vector3(0.008 * sx, 0.045, 0), Vector3(0, 0, -0.004), belt.darkened(0.06))
+			_sk_box(p0 + Vector3(0, 0, -0.006), Vector3(0.01, 0, 0), Vector3(0, 0.013, 0), Vector3(0, 0, -0.009), belt.darkened(0.12))
+		_sk_end(g)
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var ha = absf(_bp("LeftHand").x)
+	var cw: Color = nd.get("cuff", Color(0.96, 0.96, 0.97))
+	var cl: Color = nd.get("cuff_line", Color(0.75, 0.12, 0.14))
+	for sx in [1.0, -1.0]:
+		_sk_ring(0, (ha - 0.07) * sx, 0.05, 0.011, cw, -PI, PI, 28, 0.006, sx)   # geniş manşet
+		_sk_ring(0, (ha - 0.094) * sx, 0.007, 0.004, cl, -PI, PI, 28, 0.016, sx)   # manşetin dirsek kenarında renk şeridi
+		if nd.get("hearts", false):
+			for k in 8:
+				var a0 = TAU * k / 8.0
+				_sk_ring(0, (ha - 0.066) * sx, 0.012, 0.003, cl, a0 - 0.18, a0 + 0.18, 6, 0.017, sx)
+	_sk_end(g)
+
+
+## Antrenman kıyafeti ayrıntıları (ref refs/outfits_ss/full/new_year_greeting.jpg, wtny.jpg):
+## gi'nin V yakasında renkli iç yaka, omuzları saran ve sırtta çaprazlanan sarı tasuki, hakama bel bağları / etek fiyonku
+func _keiko_kit(g: Dictionary) -> void:
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var chest = _bp("UpperChest").y
+	var kg: Dictionary = look.get("kg") if look.get("kg") is Dictionary else {}
+	if _sk_begin(_shell_cache.get(look["gender"])):
+		var tc: Color = kg.get("tasuki", Color(0.95, 0.75, 0.15))
+		var V: PackedVector3Array = _sk["v"]
+		var N: PackedVector3Array = _sk["n"]
+		var cy = chest - 0.02
+		for sx in [-1.0, 1.0]:
+			# omuz halkası: x = ±0.12 kesitinde kabuğun dış konturu (önde koltuk altından omuz üstüne, sırtta aşağı)
+			var x0 = 0.12 * sx
+			var bins := {}
+			for i in V.size():
+				var q = V[i]
+				if absf(q.x - x0) < 0.012 and q.y > chest - 0.2:
+					var a = atan2(q.y - cy, q.z)   # 0 ön, PI/2 üst, PI arka
+					var k = int(floor(a / 0.1))
+					var r = Vector2(q.z, q.y - cy).length()
+					if not bins.has(k) or r > bins[k][0]:
+						bins[k] = [r, i]
+			var ks = bins.keys()
+			ks.sort()
+			var pts = []; var outs = []
+			for k in ks:
+				var a = k * 0.1
+				if a < -0.9 or a > PI + 0.9:
+					continue
+				var i = bins[k][1]
+				pts.append(Vector3(x0, V[i].y, V[i].z) + N[i] * 0.004); outs.append(N[i])
+			if pts.size() > 2:
+				_sk_band(pts, outs, Vector3.RIGHT, 0.026, 0.006, tc)
+			# sırtta çapraz: omuz arkasından karşı bel yanına
+			var a2 = Vector2(0.12 * sx, chest - 0.08)
+			var b2 = Vector2(-0.13 * sx, hips + 0.16)
+			var p2 = []; var o2 = []
+			for k in 15:
+				var qq = a2.lerp(b2, k / 14.0)
+				var hit = _sk_hit(qq.x, qq.y, false, 0.025)
+				if not hit.is_empty():
+					p2.append(Vector3(qq.x, qq.y, hit[0].z - 0.004 - 0.002 * sx)); o2.append(hit[1])
+			if p2.size() > 1:
+				var dir = (Vector3(b2.x, b2.y, 0) - Vector3(a2.x, a2.y, 0)).normalized()
+				_sk_band(p2, o2, Vector3.BACK.cross(dir).normalized(), 0.026, 0.006, tc)
+		_sk_end(g)
+	var hm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "hakama_ust", 0.0])
+	if look.get("hakama_cut") == "genis" and hm != null and _sk_begin(hm):
+		var pc: Color = look.get("pants", Color(0.15, 0.25, 0.7))
+		var V2: PackedVector3Array = _sk["v"]
+		var ytop = -9.0
+		for q in V2:
+			ytop = maxf(ytop, q.y)
+		_sk_ring(1, ytop - 0.03, 0.05, 0.008, pc.darkened(0.3), -PI, PI, 48, 0.003, 0.0, 0.0, 0.3)   # bel bağı (himo) sargısı
+		for sx in [-1.0, 1.0]:   # önde çapraz bağlar
+			var p3 = []; var o3 = []
+			var a3 = Vector2(-0.12 * sx, ytop - 0.012)
+			var b3 = Vector2(0.06 * sx, ytop - 0.055)
+			for k in 9:
+				var qq = a3.lerp(b3, k / 8.0)
+				var hit = _sk_hit(qq.x, qq.y, true, 0.03)
+				if not hit.is_empty():
+					p3.append(Vector3(qq.x, qq.y, hit[0].z + 0.01)); o3.append(hit[1])
+			if p3.size() > 1:
+				var dir = (Vector3(b3.x, b3.y, 0) - Vector3(a3.x, a3.y, 0)).normalized()
+				_sk_band(p3, o3, Vector3.BACK.cross(dir).normalized(), 0.02, 0.006, pc.darkened(0.45))
+		_sk_plate(0.0, ytop - 0.034, 0.05, 0.03, 0.006, pc.darkened(0.25), 0.016, true)   # düğüm
+		_sk_plate(0.0, ytop - 0.034, 0.03, 0.016, 0.004, pc.darkened(0.05), 0.024, true)
+		_sk_plate(0.0, ytop - 0.03, 0.14, 0.07, 0.008, pc.darkened(0.08), 0.008, false)   # sırtta koshi-ita
+		_sk_end(g)
+	var em = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "pilili_etek", 0.0])
+	if look.get("pleat_skirt", false) and em != null and _sk_begin(em):
+		var pc2: Color = look.get("pants", Color(0.7, 0.1, 0.12))
+		var V3: PackedVector3Array = _sk["v"]
+		var yt = -9.0
+		for q in V3:
+			yt = maxf(yt, q.y)
+		_sk_ring(1, yt - 0.02, 0.04, 0.006, pc2.darkened(0.1), -PI, PI, 48, 0.003, 0.0, 0.0, 0.3)   # bel bandı
+		var hit = _sk_hit(0.0, yt - 0.03, true, 0.03)
+		if not hit.is_empty():   # önde büyük fiyonk: iki kanat, düğüm, iki uzun sarkan uç
+			var p0: Vector3 = hit[0] + Vector3(0, 0, 0.012)
+			for sx in [-1.0, 1.0]:
+				_sk_box(p0 + Vector3(0.04 * sx, 0.008, 0.0), Vector3(0.036, 0.016 * sx, 0), Vector3(-0.008 * sx, 0.028, 0), Vector3(0, 0, 0.008), pc2.darkened(0.05))
+				_sk_box(p0 + Vector3(0.018 * sx, -0.075, 0.004), Vector3(0.014, 0, 0), Vector3(0.012 * sx, 0.07, 0), Vector3(0, 0, 0.005), pc2.darkened(0.15))
+			_sk_box(p0 + Vector3(0, 0, 0.006), Vector3(0.013, 0, 0), Vector3(0, 0.018, 0), Vector3(0, 0, 0.011), pc2.darkened(0.2))
+		_sk_end(g)
+
+
+## Eşofman ceketi ayrıntıları (ref refs/outfits_ss/boruto_outfit.png): dik yaka (dışı ceket rengi, ağzında renkli kenar),
+## açık fermuarın iki gümüş dişli kenarı, belde ribana bant, bilekte ribana manşet
+func _esofman_kit(g: Dictionary) -> void:
+	var oc: Color = look.get("outer", Color(0.1, 0.1, 0.12))
+	var ac: Color = look.get("outer_accent", Color(0.85, 0.3, 0.42)) if look.get("outer_accent") is Color else Color(0.85, 0.3, 0.42)
+	var neck = _bp("Neck").y
+	var jm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "esofman_ceket", 0.0])
+	if jm != null and _sk_begin(jm):
+		var V: PackedVector3Array = _sk["v"]
+		var ybot = 9.0
+		for q in V:
+			ybot = minf(ybot, q.y)
+		_sk_ring(1, neck + 0.0, 0.06, 0.009, oc, 0.3, TAU - 0.3, 40, 0.004, 0.0, 0.0, 0.12)   # dik yaka
+		_sk_ring(1, neck + 0.032, 0.012, 0.011, ac, 0.3, TAU - 0.3, 40, 0.005, 0.0, 0.0, 0.12)   # yaka ağzı renkli
+		_sk_ring(1, ybot + 0.022, 0.04, 0.007, oc.darkened(0.15), 0.3, TAU - 0.3, 48, 0.003, 0.0, 0.0, 0.3)   # bel ribanası
+		for sx in [-1.0, 1.0]:   # fermuar dişleri: açıklığın iki kenarında
+			var ex = 9.0
+			for q in V:
+				if q.z > 0.0 and signf(q.x) == sx and absf(q.y - (neck - 0.2)) < 0.03:
+					ex = minf(ex, absf(q.x))
+			if ex < 8.0:
+				_sk_strip((ex + 0.006) * sx, neck - 0.02, ybot + 0.04, 0.008, 0.004, Color(0.72, 0.73, 0.76), 30)
+		_sk_end(g)
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var ha = absf(_bp("LeftHand").x)
+	for sx in [1.0, -1.0]:
+		_sk_ring(0, (ha - 0.065) * sx, 0.04, 0.009, oc.darkened(0.15), -PI, PI, 24, 0.006, sx)
+	_sk_end(g)
+
+
+## Kısa geniş kollu ceket ayrıntıları (ref refs/outfits_ss/choji_outfit.png): önde boydan boya yaka bandı, kol ağzında kat
+func _kisa_haori_kit(g: Dictionary) -> void:
+	var oc: Color = look.get("outer", Color(0.15, 0.42, 0.2))
+	var neck = _bp("Neck").y
+	var jm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "kisa_haori", 0.0])
+	if jm != null and _sk_begin(jm):
+		var V: PackedVector3Array = _sk["v"]
+		var ybot = 9.0
+		for q in V:
+			ybot = minf(ybot, q.y)
+		for sx in [-1.0, 1.0]:
+			var ex = 9.0
+			for q in V:
+				if q.z > 0.0 and signf(q.x) == sx and absf(q.y - (neck - 0.22)) < 0.03:
+					ex = minf(ex, absf(q.x))
+			if ex < 8.0:
+				_sk_strip((ex + 0.018) * sx, neck + 0.01, ybot + 0.005, 0.034, 0.006, oc.darkened(0.08), 34)   # yaka bandı (eri)
+		_sk_end(g)
+	var el = absf(_bp("LeftLowerArm").x)
+	for sx in [1.0, -1.0]:
+		var km = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "haori_kol%d" % int(sx), 0.0])
+		if km != null and _sk_begin(km):
+			_sk_ring(0, (el + 0.1) * sx, 0.02, 0.005, oc.darkened(0.1), -PI, PI, 24, 0.002, sx)
+			_sk_end(g)
+
+
+## Kemer + gümüş plaka (ref choji_outfit.png): gövde kabuğunda belde renkli kemer, önde yuvarlatılmış gümüş tokalı plaka
+func _waist_belt_kit(g: Dictionary) -> void:
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var hips = _bp("Hips").y
+	var bc: Color = look["waist_belt"]
+	_sk_ring(1, hips + 0.05, 0.04, 0.008, bc, -PI, PI, 48, 0.004, 0.0, 0.0, 0.3)
+	_sk_plate(0.0, hips + 0.05, 0.1, 0.034, 0.006, Color(0.78, 0.8, 0.84), 0.012, true)
+	_sk_plate(0.0, hips + 0.05, 0.082, 0.02, 0.004, Color(0.88, 0.9, 0.93), 0.018, true)
+	_sk_end(g)
+
+
+## Kızıl kruvaze palto ayrıntıları (ref refs/outfits_ss/gaara_outfit.png): dik yaka, çift sıra 2x4 siyah düğme + yakada çapraz
+## iki düğme, kruvaze kapak çizgisi, belde iki kahve kemer (gümüş toka), bilekte siyah şerit
+func _kizil_palto_kit(g: Dictionary) -> void:
+	var oc: Color = look.get("outer", Color(0.55, 0.1, 0.16))
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var chest = _bp("UpperChest").y
+	var pm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "kizil_palto", 0.0])
+	if pm != null and _sk_begin(pm):
+		_sk_ring(1, neck + 0.005, 0.06, 0.009, oc.darkened(0.05), -PI, PI, 40, 0.004, 0.0, 0.0, 0.12)   # dik yaka
+		var btn := Color(0.06, 0.06, 0.07)
+		var pts = [Vector2(-0.065, neck - 0.05), Vector2(-0.03, neck - 0.08)]
+		for r in 4:
+			for xx in [-0.035, 0.055]:
+				pts.append(Vector2(xx, chest - 0.02 - r * 0.07))
+		for q in pts:
+			var h = _sk_hit(q.x, q.y, true, 0.02)
+			if h.is_empty():
+				continue
+			var n: Vector3 = h[1]
+			var u = n.cross(Vector3.UP).normalized()
+			var v = u.cross(n).normalized()
+			var c0: Vector3 = h[0] + n * 0.003
+			for k in 6:
+				var a0 = TAU * k / 6.0
+				var d = u * cos(a0) + v * sin(a0)
+				_sk_box(c0 + d * 0.005, u * 0.004, v * 0.004, n * 0.003, btn)
+		_sk_strip(-0.075, neck - 0.04, hips - 0.02, 0.004, 0.003, oc.darkened(0.35), 24)   # kruvaze kapak kenarı
+		var V: PackedVector3Array = _sk["v"]
+		for b in [[hips + 0.08, 0.04], [hips - 0.01, -0.02]]:
+			var by = b[0]
+			var bd = 9.0
+			for q in V:
+				if absf(q.y - b[0]) < bd:
+					bd = absf(q.y - b[0]); by = q.y
+			_sk_ring(1, by, 0.034, 0.008, Color(0.5, 0.34, 0.2), -PI, PI, 48, 0.004, 0.0, 0.0, 0.32)
+			_sk_plate(b[1], by, 0.042, 0.038, 0.004, Color(0.72, 0.74, 0.78), 0.016, true)   # gümüş toka
+			_sk_plate(b[1], by, 0.026, 0.024, 0.004, Color(0.5, 0.34, 0.2), 0.02, true)
+		_sk_end(g)
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var ha = absf(_bp("LeftHand").x)
+	for sx in [1.0, -1.0]:
+		_sk_ring(0, (ha - 0.1) * sx, 0.02, 0.006, Color(0.07, 0.07, 0.09), -PI, PI, 24, 0.006, sx)   # bilekte siyah şerit
+	_sk_end(g)
+
+
+## Kapüşonlu ceket ayrıntıları (ref refs/outfits_ss/hinata_outfit.png): boyunda dolgun kapüşon yakası, ortada fermuar,
+## bilekte iki renkli kat
+func _hinata_ceket_kit(g: Dictionary) -> void:
+	var oc: Color = look.get("outer", Color(0.62, 0.58, 0.85))
+	var neck = _bp("Neck").y
+	var jm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "hinata_ceket_acik" if look.get("hc_open", false) else "hinata_ceket", 0.0])
+	if jm != null and _sk_begin(jm):
+		var V: PackedVector3Array = _sk["v"]
+		var ybot = 9.0
+		for q in V:
+			ybot = minf(ybot, q.y)
+		if not look.get("hc_open", false):
+			_sk_strip(0.0, neck - 0.12, ybot + 0.01, 0.007, 0.004, oc.darkened(0.3), 28)   # fermuar
+		_sk_ring(1, ybot + 0.012, 0.022, 0.006, oc.darkened(0.1), -PI, PI, 48, 0.003, 0.0, 0.0, 0.32)   # etek kenarı
+		_sk_end(g)
+
+
+## Kısa kapüşonlu ayrıntıları (ref refs/outfits_ss/hinata_outfit_2.png): önde iki büzgü ipi + ponpon, kapüşon katı, belde
+## alttaki lavanta iç giysinin bandı (gövde kabuğuna)
+func _kirpik_kapusonlu_kit(g: Dictionary) -> void:
+	var oc: Color = look.get("outer", Color(0.9, 0.78, 0.9))
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var km = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "kirpik_kapusonlu", 0.0])
+	if km != null and _sk_begin(km):
+		var V: PackedVector3Array = _sk["v"]
+		var ybot = 9.0
+		for q in V:
+			ybot = minf(ybot, q.y)
+		_sk_ring(1, ybot + 0.014, 0.026, 0.007, oc.darkened(0.06), -PI, PI, 48, 0.003, 0.0, 0.0, 0.3)   # etek ribanası
+		for sx in [-1.0, 1.0]:   # büzgü ipleri + ponpon
+			var x0 = -0.03 + 0.022 * sx
+			_sk_strip(x0, neck - 0.04, neck - 0.17, 0.005, 0.004, Color(0.25, 0.18, 0.28), 12)
+			_sk_plate(x0, neck - 0.18, 0.02, 0.02, 0.012, Color(0.96, 0.94, 0.96), 0.01, true)
+		_sk_end(g)
+	if look.get("under_band") is Color and _sk_begin(_shell_cache.get(look["gender"])):
+		_sk_ring(1, hips + 0.13, 0.045, 0.006, look["under_band"], -PI, PI, 48, 0.004, 0.0, 0.0, 0.3)
+		_sk_end(g)
+
+
+## Kapüşonlu uzun cübbe ayrıntıları (ref refs/outfits_ss/kabuto_robe.png): önde boydan boya beyaz şerit, çan kolların
+## ağzında gri-yeşil astar katı
+func _yilan_cubbe_kit(g: Dictionary) -> void:
+	var oc: Color = look.get("outer", Color(0.4, 0.08, 0.12))
+	var lc: Color = look.get("lining", Color(0.55, 0.6, 0.55)) if look.get("lining") is Color else Color(0.55, 0.6, 0.55)
+	var neck = _bp("Neck").y
+	var cm2 = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "yilan_cubbe", 0.0])
+	if cm2 != null and _sk_begin(cm2):
+		var V: PackedVector3Array = _sk["v"]
+		var ybot = 9.0
+		for q in V:
+			ybot = minf(ybot, q.y)
+		_sk_strip(0.0, neck - 0.06, ybot + 0.01, 0.008, 0.004, Color(0.9, 0.9, 0.88), 44)
+		_sk_end(g)
+	var hx = absf(_bp("LeftHand").x)
+	for sx in [1.0, -1.0]:
+		var km = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "cubbe_kol%d" % int(sx), 0.0])
+		if km != null and _sk_begin(km):
+			_sk_ring(0, (hx - 0.07) * sx, 0.016, 0.004, lc, -PI, PI, 28, 0.001, sx)
+			_sk_end(g)
+
+
+## Uzun ceket ayrıntıları (ref refs/outfits_ss/karin_outfit.png): dik yaka, belde açılan fermuar, gri kemer + toka, sırtta
+## kemere takılı gri çanta
+func _algi_ceket_kit(g: Dictionary) -> void:
+	var oc: Color = look.get("outer", Color(0.72, 0.62, 0.85))
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var jm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "algi_ceket", 0.0])
+	if jm == null or not _sk_begin(jm):
+		return
+	var V: PackedVector3Array = _sk["v"]
+	_sk_ring(1, neck + 0.0, 0.055, 0.008, oc.darkened(0.05), 0.15, TAU - 0.15, 40, 0.004, 0.0, 0.0, 0.12)   # dik yaka
+	_sk_strip(0.0, neck - 0.02, hips + 0.14, 0.006, 0.004, oc.darkened(0.35), 26)   # fermuar
+	var by = hips + 0.1
+	var bd = 9.0
+	for q in V:
+		if absf(q.y - (hips + 0.1)) < bd:
+			bd = absf(q.y - (hips + 0.1)); by = q.y
+	var gc := Color(0.62, 0.68, 0.66)
+	_sk_ring(1, by, 0.03, 0.007, gc, -PI, PI, 48, 0.004, 0.0, 0.0, 0.3)
+	_sk_plate(0.04, by, 0.03, 0.036, 0.004, gc.darkened(0.25), 0.014, true)   # toka
+	_sk_plate(0.0, by - 0.035, 0.15, 0.07, 0.03, gc.darkened(0.1), 0.012, false)   # sırt çantası
+	_sk_end(g)
+
+
+## Boyun atkısı + kol bandı (ref refs/outfits_ss/konohamaru_outfit.png): boyunda sarılı mavi atkı, solda düğüm ve iki uç;
+## sol üst kolda kırmızı bant
+func _boyun_atki_kit(g: Dictionary) -> void:
+	var neck = _bp("Neck").y
+	if look.get("neck_scarf") is Color:
+		var am = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "boyun_atki", 0.0])
+		if am != null and _sk_begin(am):
+			var sc: Color = look["neck_scarf"]
+			var h = _sk_hit(0.06, neck - 0.0, true, 0.03)
+			if not h.is_empty():
+				var p0: Vector3 = h[0] + Vector3(0, 0, 0.008)
+				_sk_box(p0, Vector3(0.02, 0, 0), Vector3(0, 0.02, 0), Vector3(0, 0, 0.012), sc.darkened(0.1))   # düğüm
+				_sk_box(p0 + Vector3(0.035, -0.02, 0.0), Vector3(0.03, -0.012, 0), Vector3(0.01, 0.026, 0), Vector3(0, 0, 0.006), sc)   # uç 1
+				_sk_box(p0 + Vector3(0.02, -0.045, 0.004), Vector3(0.016, -0.02, 0), Vector3(0.014, 0.02, 0), Vector3(0, 0, 0.006), sc.darkened(0.05))   # uç 2
+			_sk_end(g)
+	if look.get("armband") is Color and _sk_begin(_shell_cache.get(look["gender"])):
+		var ax = lerpf(absf(_bp("LeftUpperArm").x), absf(_bp("LeftLowerArm").x), 0.4)
+		var asd = float(look.get("armband_side", 1.0))
+		_sk_ring(0, ax * asd, 0.05, 0.007, look["armband"], -PI, PI, 24, 0.008, asd)
+		_sk_end(g)
+
+
+## Sargı elbise ayrıntıları (ref refs/outfits_ss/kurenai_outfit.png): gövdeyi çapraz saran kalın sargı bantları (önde ve
+## arkada zıt yönlerde), her bandın alt kenarında koyu dikenli şerit
+func _sargi_elbise_kit(g: Dictionary) -> void:
+	var wc: Color = look.get("outer", Color(0.95, 0.95, 0.94))
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var em = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "sargi_elbise", 0.0])
+	if em == null or not _sk_begin(em):
+		return
+	var dark := Color(0.1, 0.08, 0.1)
+	var bands = []
+	for k in 5:
+		var y0 = neck - 0.1 - k * 0.075
+		bands.append([Vector2(-0.16, y0), Vector2(0.16, y0 - 0.16), true])
+		bands.append([Vector2(0.16, y0 - 0.03), Vector2(-0.16, y0 - 0.19), false])
+	for bnd in bands:
+		var a: Vector2 = bnd[0]
+		var b: Vector2 = bnd[1]
+		var pts = []; var outs = []; var pd = []; var od = []
+		for k in 13:
+			var q = a.lerp(b, k / 12.0)
+			if q.y < hips - 0.2:
+				continue
+			var hit = _sk_hit(q.x, q.y, bnd[2], 0.03)
+			if hit.is_empty():
+				continue
+			var z = hit[0].z + (0.006 if bnd[2] else -0.006)
+			pts.append(Vector3(q.x, q.y, z)); outs.append(hit[1])
+			pd.append(Vector3(q.x, q.y - 0.024, z + (0.003 if bnd[2] else -0.003))); od.append(hit[1])
+		if pts.size() > 1:
+			var dir = (Vector3(b.x, b.y, 0) - Vector3(a.x, a.y, 0)).normalized()
+			var wd = Vector3.BACK.cross(dir).normalized()
+			_sk_band(pts, outs, wd, 0.05, 0.006, wc.darkened(0.03))
+			_sk_band(pd, od, wd, 0.006, 0.007, dark)
+	_sk_end(g)
+
+
+## İki tonlu kimono ayrıntıları (ref refs/outfits_ss/mitsuki_outfit.png): geniş kahve kuşak + hilal plakası, sırtta çanta
+func _iki_ton_kimono_kit(g: Dictionary) -> void:
+	var hips = _bp("Hips").y
+	var km = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "iki_ton_kimono", 0.0])
+	if km == null or not _sk_begin(km):
+		return
+	var V: PackedVector3Array = _sk["v"]
+	var by = hips + 0.1
+	var bd = 9.0
+	for q in V:
+		if absf(q.y - (hips + 0.1)) < bd:
+			bd = absf(q.y - (hips + 0.1)); by = q.y
+	var bc := Color(0.55, 0.45, 0.36)
+	_sk_ring(1, by, 0.075, 0.01, bc, -PI, PI, 56, 0.004, 0.0, 0.0, 0.32)
+	_sk_ring(1, by + 0.03, 0.006, 0.004, bc.darkened(0.3), -PI, PI, 56, 0.012, 0.0, 0.0, 0.32)
+	_sk_ring(1, by - 0.03, 0.006, 0.004, bc.darkened(0.3), -PI, PI, 56, 0.012, 0.0, 0.0, 0.32)
+	_sk_plate(0.07, by, 0.05, 0.06, 0.004, bc.darkened(0.2), 0.014, true)   # toka plakası
+	_sk_plate(0.072, by, 0.016, 0.034, 0.004, Color(0.95, 0.95, 0.94), 0.018, true)   # hilal
+	_sk_plate(0.0, by - 0.02, 0.16, 0.07, 0.03, bc.darkened(0.1), 0.012, false)   # sırt çantası
+	_sk_end(g)
+
+
+## Kapalı eşofman ceketi ayrıntıları (ref refs/outfits_ss/naruto_outfit.png): dik siyah yaka, ortada fermuar, sol omuzda arma
+## yaması, bel ribanası
+func _turuncu_ceket_kit(g: Dictionary) -> void:
+	var c2: Color = look.get("outer_accent", Color(0.12, 0.12, 0.16)) if look.get("outer_accent") is Color else Color(0.12, 0.12, 0.16)
+	var neck = _bp("Neck").y
+	var jm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "turuncu_ceket", 0.0])
+	if jm != null and _sk_begin(jm):
+		var V: PackedVector3Array = _sk["v"]
+		var ybot = 9.0
+		for q in V:
+			ybot = minf(ybot, q.y)
+		_sk_ring(1, neck + 0.005, 0.07, 0.01, c2, -PI, PI, 40, 0.004, 0.0, 0.0, 0.12)   # dik yaka
+		_sk_strip(0.0, neck + 0.06, ybot + 0.01, 0.007, 0.004, Color(0.78, 0.78, 0.8), 34)   # fermuar
+		_sk_ring(1, ybot + 0.02, 0.04, 0.007, c2, -PI, PI, 48, 0.003, 0.0, 0.0, 0.32)   # bel ribanası
+		_sk_end(g)
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var ha = absf(_bp("LeftHand").x)
+	for sx in [1.0, -1.0]:
+		_sk_ring(0, (ha - 0.065) * sx, 0.04, 0.009, c2.darkened(0.1), -PI, PI, 24, 0.006, sx)
+	# sol üst kolda arma yaması: kolun dış yüzü (T pozu +Y)
+	var ax = lerpf(absf(_bp("LeftUpperArm").x), absf(_bp("LeftLowerArm").x), 0.3)
+	var V2: PackedVector3Array = _sk["v"]
+	var top = Vector3.ZERO; var by = -9.0
+	for q in V2:
+		if q.x > 0.0 and absf(q.x - ax) < 0.015 and absf(q.z) < 0.03 and q.y > by:
+			by = q.y; top = q
+	if by > -8.0:
+		_sk_box(top + Vector3(0, 0.006, 0), Vector3(0.026, 0, 0), Vector3(0, 0.003, 0), Vector3(0, 0, 0.03), Color(0.28, 0.28, 0.32))
+	_sk_end(g)
+
+
+## Kısa bolero ayrıntıları (ref refs/outfits_ss/sai_outfit.png): önde omuzlarda iki kırmızı şerit, belde beyaz-kırmızı kemer +
+## toka, kalçada asılı kırmızı-altın parşömen
+func _kisa_bolero_kit(g: Dictionary) -> void:
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var bm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "kisa_bolero", 0.0])
+	if bm != null and _sk_begin(bm):
+		for sx in [-1.0, 1.0]:
+			_sk_strip(0.115 * sx, neck - 0.0, neck - 0.11, 0.022, 0.005, Color(0.72, 0.12, 0.14), 10)
+		_sk_end(g)
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var red := Color(0.72, 0.12, 0.14)
+	_sk_ring(1, hips + 0.07, 0.034, 0.008, Color(0.94, 0.94, 0.92), -PI, PI, 48, 0.006, 0.0, 0.0, 0.3)
+	for e in [-1.0, 1.0]:
+		_sk_ring(1, hips + 0.07 + e * 0.011, 0.005, 0.004, red, -PI, PI, 48, 0.013, 0.0, 0.0, 0.3)
+	_sk_plate(0.0, hips + 0.07, 0.04, 0.04, 0.005, Color(0.82, 0.82, 0.86), 0.016, true)
+	# parşömen: kalçanın arkasında yatay rulo (kırmızı gövde, altın uçlar), kemere asılı
+	var h = _sk_hit(0.0, hips - 0.04, false, 0.04)
+	if not h.is_empty():
+		var c0: Vector3 = h[0] + Vector3(0, 0, -0.04)
+		for k in 8:
+			var a0 = TAU * k / 8.0
+			var d = Vector3(0, cos(a0), sin(a0)) * 0.03
+			_sk_box(c0 + d, Vector3(0.13, 0, 0), Vector3(0, -sin(a0), cos(a0)) * 0.012, d.normalized() * 0.006, red)
+			for sx in [-1.0, 1.0]:
+				_sk_box(c0 + Vector3(0.15 * sx, 0, 0) + d * 1.1, Vector3(0.022, 0, 0), Vector3(0, -sin(a0), cos(a0)) * 0.013, d.normalized() * 0.006, Color(0.88, 0.7, 0.25))
+	_sk_end(g)
+
+
+## Bilezik (ref kushina_outfit.png): sol bilekte siyah halka
+func _bangle_kit(g: Dictionary) -> void:
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var ha = absf(_bp("LeftHand").x)
+	_sk_ring(0, ha - 0.06, 0.012, 0.009, look["bangle"], -PI, PI, 24, 0.008, 1.0)
+	_sk_end(g)
+
+
+## Kalın burgu ip (shimenawa) parçası: noktalar boyunca kısa eğik dilimler (burgulu görünüm), etkin SurfaceKit kaynağına derili
+func _sk_rope(pts: Array, r: float, col: Color) -> void:
+	for i in range(pts.size() - 1):
+		var a: Vector3 = pts[i]
+		var b: Vector3 = pts[i + 1]
+		var d = b - a
+		var n = d.length()
+		if n < 0.001:
+			continue
+		var f = d / n
+		var side = f.cross(Vector3.BACK)
+		if side.length() < 0.1:
+			side = f.cross(Vector3.UP)
+		side = side.normalized()
+		var up = side.cross(f).normalized()
+		var segs = maxi(1, int(n / (r * 1.6)))
+		for k in segs:
+			var c = a + d * ((k + 0.5) / segs)
+			var tw = (side * cos(0.6) + up * sin(0.6)) * r
+			_sk_box(c, f * (n / segs) * 0.62, tw, up.cross(f).normalized() * r if k % 2 == 0 else side * r, col if k % 2 == 0 else col.darkened(0.12))
+
+
+## Bel örtüsü + ip kuşak ayrıntıları (ref refs/outfits_ss/sasuke_outfit.png): belde mor burgu ip halkası, önde solda sarkan
+## iki uzun ip ilmeği; bilekte lacivert ter bandı (gövde kabuğu)
+func _bel_ortusu_kit(g: Dictionary) -> void:
+	var hips = _bp("Hips").y
+	var knee = _bp("LeftLowerLeg").y
+	var bm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "bel_ortusu", 0.0])
+	var rc: Color = look.get("rope", Color(0.55, 0.45, 0.82)) if look.get("rope") is Color else Color(0.55, 0.45, 0.82)
+	if bm != null and _sk_begin(bm):
+		var V: PackedVector3Array = _sk["v"]
+		var ytop = -9.0
+		for q in V:
+			ytop = maxf(ytop, q.y)
+		var yb = ytop - 0.03
+		var ring = []
+		for k in 33:
+			var a = TAU * k / 32.0
+			var best = Vector3.ZERO; var br = -1.0
+			for q in V:
+				if absf(q.y - yb) < 0.02:
+					var aq = atan2(q.z, q.x)
+					if absf(wrapf(aq - a, -PI, PI)) < 0.12:
+						var rr = Vector2(q.x, q.z).length()
+						if rr > br:
+							br = rr; best = q
+			if br > 0.0:
+				ring.append(best + Vector3(best.x, 0, best.z).normalized() * 0.022)
+		_sk_rope(ring, 0.02, rc)
+		# önde solda sarkan iki ilmek
+		var hit = _sk_hit(0.08, yb, true, 0.04)
+		if not hit.is_empty():
+			var p0: Vector3 = hit[0] + Vector3(0, 0, 0.03)
+			for lo in [[0.0, 0.0], [0.035, 0.025]]:
+				var lp = []
+				var depth = (yb - (knee + 0.02)) * (1.0 if lo[0] == 0.0 else 0.82)
+				for k in 13:
+					var t = k / 12.0
+					lp.append(p0 + Vector3(lo[0] + 0.04 * sin(t * PI), -depth * sin(t * PI * 0.5) * (1.0 if t < 0.5 else 1.0) * (1.0 - absf(t - 0.5) * 0.0), lo[1] + 0.01 * sin(t * TAU)) + (Vector3(0.05, 0, 0) * t))
+				_sk_rope(lp, 0.017, rc.darkened(0.04))
+		_sk_end(g)
+	if look.get("wristband") is Color and _sk_begin(_shell_cache.get(look["gender"])):
+		var ha = absf(_bp("LeftHand").x)
+		for sx in [1.0, -1.0]:
+			_sk_ring(0, (ha - 0.075) * sx, 0.05, 0.01, look["wristband"], -PI, PI, 24, 0.008, sx)
+		_sk_end(g)
+
+
+## Kolsuz palto ayrıntıları (ref refs/outfits_ss/sasuke_outfit_2.png): sol omuzdan sağ kalçaya inen ince koyu kayış
+func _kolsuz_palto_kit(g: Dictionary) -> void:
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var pm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "kolsuz_palto", 0.0])
+	if pm == null or not _sk_begin(pm):
+		return
+	var a = Vector2(0.13, neck - 0.04)
+	var b = Vector2(-0.14, hips + 0.04)
+	var pts = []; var outs = []
+	for k in 17:
+		var q = a.lerp(b, k / 16.0)
+		var hit = _sk_hit(q.x, q.y, true, 0.03)
+		if not hit.is_empty():
+			pts.append(Vector3(q.x, q.y, hit[0].z + 0.004)); outs.append(hit[1])
+	if pts.size() > 1:
+		var dir = (Vector3(b.x, b.y, 0) - Vector3(a.x, a.y, 0)).normalized()
+		_sk_band(pts, outs, Vector3.BACK.cross(dir).normalized(), 0.012, 0.005, Color(0.2, 0.2, 0.26))
+	_sk_end(g)
+
+
+## Kuyruklu ceket ayrıntıları (ref refs/outfits_ss/shikamaru_outfit.png): önü açık dik yaka (kıvrık), kolye (gövde kabuğu)
+func _kuyruklu_ceket_kit(g: Dictionary) -> void:
+	var oc: Color = look.get("outer", Color(0.9, 0.82, 0.55))
+	var neck = _bp("Neck").y
+	var jm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "kuyruklu_ceket", 0.0])
+	if jm != null and _sk_begin(jm):
+		_sk_ring(1, neck + 0.01, 0.075, 0.01, oc.darkened(0.04), 0.55, TAU - 0.55, 40, 0.008, 0.0, 0.0, 0.12)   # dik açık yaka
+		_sk_end(g)
+
+
+## Kolye (ref shikamaru_outfit.png): boynu saran ince zincir + göğüste halka
+func _necklace_kit(g: Dictionary) -> void:
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var neck = _bp("Neck").y
+	var nc: Color = look["necklace"]
+	_sk_ring(1, neck + 0.02, 0.004, 0.003, nc, -PI, PI, 40, 0.006, 0.0, 0.0, 0.1)
+	var h = _sk_hit(0.0, neck - 0.09, true, 0.03)
+	if not h.is_empty():
+		var c0: Vector3 = h[0] + Vector3(0, 0, 0.006)
+		for k in 10:
+			var a0 = TAU * k / 10.0
+			var d = Vector3(cos(a0), sin(a0), 0)
+			_sk_box(c0 + d * 0.014, d.cross(Vector3.BACK) * 0.0055, d * 0.0018, Vector3(0, 0, 0.002), nc)
+		for k in 6:   # zincirden halkaya iki ince kol
+			var t = k / 5.0
+			for sx in [-1.0, 1.0]:
+				var hh = _sk_hit(0.04 * sx * (1.0 - t), lerpf(neck + 0.0, neck - 0.075, t), true, 0.03)
+				if not hh.is_empty():
+					_sk_box(hh[0] + Vector3(0, 0, 0.004), Vector3(0.0015, 0, 0), Vector3(0.006 * sx, 0.009, 0), Vector3(0, 0, 0.0015), nc)
+	_sk_end(g)
+
+
+## Kısa kimono ayrıntıları (ref refs/outfits_ss/temari_outfit.png): geniş koyu obi + açık çizgiler, pembe ip
+func _kisa_kimono_kit(g: Dictionary) -> void:
+	var hips = _bp("Hips").y
+	var km = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "kisa_kimono", 0.0])
+	if km == null or not _sk_begin(km):
+		return
+	var V: PackedVector3Array = _sk["v"]
+	var by = hips + 0.13
+	var bd = 9.0
+	for q in V:
+		if absf(q.y - (hips + 0.13)) < bd:
+			bd = absf(q.y - (hips + 0.13)); by = q.y
+	var kk: Dictionary = look.get("kk") if look.get("kk") is Dictionary else {}
+	var oc: Color = kk.get("obi", Color(0.1, 0.12, 0.3))
+	_sk_ring(1, by, 0.095, 0.01, oc, -PI, PI, 56, 0.004, 0.0, 0.0, 0.32)
+	if kk.is_empty():
+		for e in [-1.0, 1.0]:
+			_sk_ring(1, by + e * 0.006, 0.004, 0.003, Color(0.85, 0.82, 0.9), -PI, PI, 56, 0.012, 0.0, 0.0, 0.32)
+		_sk_ring(1, by - 0.03, 0.006, 0.006, Color(0.95, 0.72, 0.8), -PI, PI, 56, 0.014, 0.0, 0.0, 0.32)   # pembe ip (obijime)
+	if kk.get("collar") is Color:   # yakadan bele inen iki beyaz yaka bandı (kruvaze)
+		var neck = _bp("Neck").y
+		for sx in [-1.0, 1.0]:
+			var a = Vector2(0.065 * sx, neck + 0.0)
+			var b = Vector2(0.012 * sx, by + 0.04)
+			var pts = []; var outs = []
+			for k in 13:
+				var q = a.lerp(b, k / 12.0)
+				var hit = _sk_hit(q.x, q.y, true, 0.03)
+				if not hit.is_empty():
+					pts.append(Vector3(q.x, q.y, hit[0].z + 0.004 + (0.004 if sx < 0.0 else 0.0))); outs.append(hit[1])
+			if pts.size() > 1:
+				var dir = (Vector3(b.x, b.y, 0) - Vector3(a.x, a.y, 0)).normalized()
+				_sk_band(pts, outs, Vector3.BACK.cross(dir).normalized(), 0.028, 0.005, kk["collar"])
+	_sk_end(g)
+	if (look.get("kk") if look.get("kk") is Dictionary else {}).get("sleeve") is Color:   # kol ağzında beyaz bant
+		var tel = absf(_bp("LeftLowerArm").x)
+		for sx in [1.0, -1.0]:
+			var km2 = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "kimono_kol%d" % int(sx), 0.0])
+			if km2 != null and _sk_begin(km2):
+				_sk_ring(0, (tel + 0.1) * sx, 0.03, 0.005, look["kk"]["sleeve"], -PI, PI, 28, 0.002, sx)
+				_sk_end(g)
+
+
+## Çin tarzı üst ayrıntıları (ref refs/outfits_ss/tenten_outfit.png): dik yaka, yakadan sağ koltuğa ve aşağı inen kırmızı biye,
+## kırmızı düğüm düğmeler, kırmızı etek bandı ve kıvrık kırmızı manşetler, bilekte mavi bilezik (gövde kabuğu)
+func _cin_ust_kit(g: Dictionary) -> void:
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var chest = _bp("UpperChest").y
+	var rc: Color = look["cin_ust"]
+	_sk_ring(1, neck + 0.03, 0.05, 0.008, Color(0.96, 0.96, 0.95), -PI, PI, 40, 0.006, 0.0, 0.0, 0.1)   # dik yaka
+	_sk_ring(1, neck + 0.055, 0.006, 0.006, rc, -PI, PI, 40, 0.011, 0.0, 0.0, 0.1)
+	# biye: yakadan (x=0) sağa (−x) kıvrılıp koltuk altından bele
+	var path = []
+	for k in 9:
+		var t = k / 8.0
+		path.append(Vector2(-0.1 * sin(t * PI * 0.5), lerpf(neck + 0.0, chest - 0.08, t)))
+	for k in 1:
+		path.append(Vector2(-0.1, hips + 0.14))
+	var pts = []; var outs = []
+	for i in range(path.size() - 1):
+		var a: Vector2 = path[i]
+		var b: Vector2 = path[i + 1]
+		for k in 4:
+			var q = a.lerp(b, k / 4.0)
+			var hit = _sk_hit(q.x, q.y, true, 0.025)
+			if not hit.is_empty():
+				pts.append(Vector3(q.x, q.y, hit[0].z + 0.005)); outs.append(hit[1])
+	if pts.size() > 1:
+		_sk_band(pts, outs, Vector3.RIGHT, 0.012, 0.005, rc)
+	for k in 3:   # düğüm düğmeler
+		var q = path[2 + k * 2]
+		_sk_plate(q.x - 0.018, q.y, 0.03, 0.008, 0.004, rc, 0.01, true)
+	_sk_ring(1, hips + 0.12, 0.022, 0.007, rc, -PI, PI, 48, 0.008, 0.0, 0.0, 0.3)   # etek bandı
+	var ha = absf(_bp("LeftHand").x)
+	for sx in [1.0, -1.0]:
+		_sk_ring(0, (ha - 0.11) * sx, 0.035, 0.011, rc, -PI, PI, 24, 0.008, sx)   # kıvrık manşet
+		_sk_ring(0, (ha - 0.055) * sx, 0.012, 0.008, Color(0.2, 0.25, 0.6), -PI, PI, 24, 0.007, sx)   # bilezik
+	_sk_end(g)
+
+
+## Güneş kimonosu ayrıntıları (ref refs/outfits_ss/15_million_user_celebration_outfits.png): siyah kuşak, kuşaktan sarkan
+## 9 parlak magatama, sol yanda sarkan renkli bez, sağ omuzda bez düğüm
+func _gunes_kimono_kit(g: Dictionary) -> void:
+	var gk: Dictionary = look.get("gk") if look.get("gk") is Dictionary else {}
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var km = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "gunes_kimono", 0.0])
+	if km == null or not _sk_begin(km):
+		return
+	var V: PackedVector3Array = _sk["v"]
+	var by = hips + 0.08
+	var bd = 9.0
+	for q in V:
+		if absf(q.y - (hips + 0.08)) < bd:
+			bd = absf(q.y - (hips + 0.08)); by = q.y
+	_sk_ring(1, by, 0.05, 0.01, Color(0.12, 0.08, 0.08), -PI, PI, 56, 0.005, 0.0, 0.0, 0.34)   # kuşak
+	var mc: Color = gk.get("magatama", Color(1.0, 0.86, 0.25))
+	for k in 9:   # magatama dizisi: kuşağın önünde soldan sağa
+		var x = -0.02 + k * 0.016
+		var h = _sk_hit(x, by - 0.02, true, 0.03)
+		if h.is_empty():
+			continue
+		var p0: Vector3 = h[0] + Vector3(0, -0.015, 0.012)
+		_sk_box(p0, Vector3(0.007, 0, 0), Vector3(0.002, -0.016, 0), Vector3(0, 0, 0.006), mc)
+		_sk_box(p0 + Vector3(0.0, -0.016, 0.0), Vector3(0.005, 0, 0), Vector3(0.004, -0.008, 0), Vector3(0, 0, 0.005), mc)
+	var cc: Color = gk.get("cloth", Color(0.8, 0.12, 0.12))
+	var hc = _sk_hit(0.15, by, true, 0.04)
+	if not hc.is_empty():   # sol yanda sarkan bez (iki kat)
+		var p1: Vector3 = hc[0] + Vector3(0, 0, 0.015)
+		_sk_box(p1 + Vector3(0, -0.11, 0), Vector3(0.05, 0, 0.0), Vector3(0.012, 0.11, 0.0), Vector3(0, 0, 0.006), cc)
+		_sk_box(p1 + Vector3(0.025, -0.08, 0.01), Vector3(0.035, 0, 0), Vector3(0.02, 0.08, 0), Vector3(0, 0, 0.005), cc.lightened(0.2))
+	var hs = _sk_hit(-0.1, neck - 0.02, true, 0.04)
+	if not hs.is_empty():   # sağ omuzda bez düğüm
+		var p2: Vector3 = hs[0] + Vector3(0, 0.01, 0.012)
+		var kc: Color = gk.get("knot", Color(0.96, 0.95, 0.9))
+		_sk_box(p2, Vector3(0.018, 0, 0), Vector3(0, 0.018, 0), Vector3(0, 0, 0.014), kc)
+		_sk_box(p2 + Vector3(-0.004, -0.035, 0.0), Vector3(0.012, 0, 0), Vector3(0.004, 0.03, 0), Vector3(0, 0, 0.008), kc.darkened(0.05))
+	_sk_end(g)
+
+
+## Bol gömlek ayrıntıları (ref refs/outfits_ss/amado_outfit.png): geniş açık yaka, ince altın zincir kolye (gövde kabuğu)
+func _genis_gomlek_kit(g: Dictionary) -> void:
+	var oc: Color = look.get("outer", Color(0.1, 0.1, 0.12))
+	var neck = _bp("Neck").y
+	var gm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "genis_gomlek", 0.0])
+	if gm != null and _sk_begin(gm):
+		_sk_ring(1, neck + 0.01, 0.06, 0.008, oc.darkened(0.05), 0.5, TAU - 0.5, 40, 0.01, 0.0, 0.0, 0.13)   # geniş açık yaka
+		_sk_end(g)
+	if _sk_begin(_shell_cache.get(look["gender"])):
+		_sk_ring(1, neck + 0.015, 0.006, 0.005, Color(0.92, 0.75, 0.25), -PI, PI, 40, 0.008, 0.0, 0.0, 0.1)
+		_sk_end(g)
+
+
+## Uzun trençkot ayrıntıları (ref refs/outfits_ss/anko_outfit.png): açık dik yaka, kalçada iki büyük torba cep, bilekte geniş
+## katlı manşet (gövde kabuğu)
+func _uzun_trench_kit(g: Dictionary) -> void:
+	var oc: Color = look.get("outer", Color(0.85, 0.75, 0.58))
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var tm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "uzun_trench", 0.0])
+	if tm != null and _sk_begin(tm):
+		_sk_ring(1, neck + 0.01, 0.06, 0.008, oc.darkened(0.04), 0.5, TAU - 0.5, 40, 0.008, 0.0, 0.0, 0.13)
+		for sx in [-1.0, 1.0]:
+			_sk_plate(0.13 * sx, hips - 0.1, 0.1, 0.11, 0.005, oc.darkened(0.05), 0.004, true)   # torba cep
+			_sk_plate(0.13 * sx, hips - 0.05, 0.104, 0.02, 0.006, oc.darkened(0.12), 0.008, true)   # cep kapağı
+		_sk_end(g)
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var ha = absf(_bp("LeftHand").x)
+	for sx in [1.0, -1.0]:
+		_sk_ring(0, (ha - 0.09) * sx, 0.07, 0.016, oc.darkened(0.06), -PI, PI, 24, 0.012, sx)
+	_sk_end(g)
+
+
+## Jōnin aksesuarları (ref refs/outfits_ss/asuma_outfit.png): üst kolda iki beyaz sargı bandı + omuzda kırmızı girdap, belde
+## önden sarkan üçgen açık mavi bez (ortada kırmızı 火 işareti), iki bilekte mavi bilezik — gövde kabuğuna derili
+func _jonin_aks_kit(g: Dictionary) -> void:
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var hips = _bp("Hips").y
+	var ua = absf(_bp("LeftUpperArm").x)
+	var el = absf(_bp("LeftLowerArm").x)
+	var ha = absf(_bp("LeftHand").x)
+	var wc: Color = look["jonin_aks"]
+	for sx in [1.0, -1.0]:
+		for k in 2:
+			_sk_ring(0, lerpf(ua, el, 0.62 + k * 0.12) * sx, 0.016, 0.006, wc, -PI, PI, 24, 0.008, sx)
+		_sk_ring(0, (ha - 0.07) * sx, 0.012, 0.009, Color(0.2, 0.3, 0.7), -PI, PI, 24, 0.008, sx)   # bilezik
+		# omuzda kırmızı girdap: kolun dış (+Y) yüzünde disk
+		var ax = lerpf(ua, el, 0.25)
+		var V: PackedVector3Array = _sk["v"]
+		var top = Vector3.ZERO; var by = -9.0
+		for q in V:
+			if signf(q.x) == sx and absf(absf(q.x) - ax) < 0.015 and absf(q.z) < 0.03 and q.y > by:
+				by = q.y; top = q
+		if by > -8.0:
+			for k in 8:
+				var a0 = TAU * k / 8.0
+				_sk_box(top + Vector3(cos(a0) * 0.011, 0.004, sin(a0) * 0.011), Vector3(0.011, 0, 0).rotated(Vector3.UP, -a0), Vector3(0, 0.002, 0), Vector3(0, 0, 0.011).rotated(Vector3.UP, -a0), Color(0.75, 0.12, 0.14) if k % 2 == 0 else Color(0.55, 0.08, 0.1))
+	var h = _sk_hit(0.0, hips + 0.02, true, 0.04)
+	if not h.is_empty():   # üçgen bez: üst kenar geniş, aşağı sivrilen dilimler
+		var p0: Vector3 = h[0] + Vector3(0, 0, 0.03)
+		var sc: Color = look.get("fire_sash", Color(0.75, 0.85, 0.95)) if look.get("fire_sash") is Color else Color(0.75, 0.85, 0.95)
+		for k in 6:
+			var w = 0.075 * (1.0 - k / 6.0)
+			_sk_box(p0 + Vector3(0, -k * 0.022, 0.002), Vector3(w, 0, 0), Vector3(0, 0.011, 0), Vector3(0, 0, 0.004), sc)
+		_sk_box(p0 + Vector3(0, -0.04, 0.008), Vector3(0.016, 0, 0), Vector3(0, 0.016, 0), Vector3(0, 0, 0.002), Color(0.75, 0.12, 0.14))
+	_sk_end(g)
+
+
+## Rikudō cübbesi ayrıntıları (ref refs/outfits_ss/asura_outfit.png): uzun dik yaka (önde kruvaze), geniş lacivert obi
+func _rikudo_cubbe_kit(g: Dictionary) -> void:
+	var oc: Color = look.get("outer", Color(0.93, 0.93, 0.95))
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var rm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "rikudo_cubbe", 0.0])
+	if rm == null or not _sk_begin(rm):
+		return
+	_sk_ring(1, neck + 0.02, 0.1, 0.01, oc.darkened(0.03), 0.25, TAU - 0.25, 40, 0.012, 0.0, 0.0, 0.13)   # uzun dik yaka
+	var V: PackedVector3Array = _sk["v"]
+	var by = hips + 0.1
+	var bd = 9.0
+	for q in V:
+		if absf(q.y - (hips + 0.1)) < bd:
+			bd = absf(q.y - (hips + 0.1)); by = q.y
+	_sk_ring(1, by, 0.08, 0.01, Color(0.14, 0.16, 0.36), -PI, PI, 56, 0.004, 0.0, 0.0, 0.34)
+	_sk_end(g)
+
+
+## Kutlama kimonosu ayrıntıları (ref refs/outfits_ss/celebratory_outfits.png): siyah kuşak + bej ip kuşak ve ortada mavi
+## boncuk, sol kalçada sarkan bej ip ilmeği, sol omuzda gümüş-bej katmanlı omuzluk, boyundan sarkan mavi boncuklu beyaz püsküller
+func _kutlama_kit(g: Dictionary) -> void:
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var knee = _bp("LeftLowerLeg").y
+	var km = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "kutlama_kimono", 0.0])
+	if km != null and _sk_begin(km):
+		var V: PackedVector3Array = _sk["v"]
+		var by = hips + 0.1
+		var bd = 9.0
+		for q in V:
+			if absf(q.y - (hips + 0.1)) < bd:
+				bd = absf(q.y - (hips + 0.1)); by = q.y
+		_sk_ring(1, by, 0.05, 0.01, Color(0.1, 0.08, 0.08), -PI, PI, 56, 0.004, 0.0, 0.0, 0.34)
+		_sk_ring(1, by + 0.0, 0.012, 0.01, Color(0.85, 0.72, 0.52), -PI, PI, 56, 0.014, 0.0, 0.0, 0.34)
+		var hb = _sk_hit(0.0, by, true, 0.03)
+		if not hb.is_empty():
+			_sk_box(hb[0] + Vector3(0, 0, 0.024), Vector3(0.012, 0, 0), Vector3(0, 0.012, 0), Vector3(0, 0, 0.01), Color(0.2, 0.7, 0.85))
+		var hr = _sk_hit(0.15, by - 0.02, true, 0.05)
+		if not hr.is_empty():   # sol kalçada sarkan kalın ip ilmeği
+			var p0: Vector3 = hr[0] + Vector3(0, 0, 0.02)
+			var lp = []
+			for k in 15:
+				var t = k / 14.0
+				lp.append(p0 + Vector3(0.03 * sin(t * TAU), -(by - knee) * 0.85 * sin(t * PI), 0.02 * cos(t * TAU)))
+			_sk_rope(lp, 0.016, Color(0.85, 0.72, 0.52))
+		_sk_end(g)
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	# sol omuzluk: üst kolun dış yüzünde aşağı doğru üst üste binen üç plaka
+	var ua = absf(_bp("LeftUpperArm").x)
+	var el = absf(_bp("LeftLowerArm").x)
+	for k in 3:
+		var ax = lerpf(ua * 0.9, el, 0.12 + k * 0.2)
+		var V2: PackedVector3Array = _sk["v"]
+		var top = Vector3.ZERO; var bytop = -9.0
+		for q in V2:
+			if q.x > 0.0 and absf(q.x - ax) < 0.02 and absf(q.z) < 0.04 and q.y > bytop:
+				bytop = q.y; top = q
+		if bytop > -8.0:
+			var pc = Color(0.78, 0.78, 0.8) if k % 2 == 0 else Color(0.82, 0.74, 0.6)
+			_sk_box(top + Vector3(0.0, 0.028, 0), Vector3(0.05, -0.01, 0), Vector3(0, 0.006, 0), Vector3(0, 0, 0.065), pc)
+	# boyundan sarkan iki beyaz püskül + mavi boncuk
+	for sx in [-1.0, 1.0]:
+		var h = _sk_hit(0.08 * sx, neck - 0.1, true, 0.04)
+		if h.is_empty():
+			continue
+		var c0: Vector3 = h[0] + Vector3(0, 0, 0.03)
+		_sk_box(c0, Vector3(0.016, 0, 0), Vector3(0, 0.016, 0), Vector3(0, 0, 0.014), Color(0.2, 0.7, 0.85))
+		_sk_box(c0 + Vector3(0, -0.06, 0), Vector3(0.012, 0, 0), Vector3(0.004, 0.045, 0), Vector3(0, 0, 0.008), Color(0.94, 0.94, 0.92))
+	_sk_end(g)
+
+
+## Kolsuz kimono üst ayrıntıları (ref refs/outfits_ss/cho_cho_outfit.png): geniş turuncu obi + önde büyük fiyonk düğüm, üstünde
+## ince kahve kemer, sırtta sarı çanta
+func _kolsuz_kimono_kit(g: Dictionary) -> void:
+	var hips = _bp("Hips").y
+	var km = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "kolsuz_kimono", 0.0])
+	if km == null or not _sk_begin(km):
+		return
+	var V: PackedVector3Array = _sk["v"]
+	var by = hips + 0.06
+	var bd = 9.0
+	for q in V:
+		if absf(q.y - (hips + 0.06)) < bd:
+			bd = absf(q.y - (hips + 0.06)); by = q.y
+	var oc := Color(0.95, 0.62, 0.15)
+	_sk_ring(1, by, 0.08, 0.012, oc, -PI, PI, 56, 0.004, 0.0, 0.0, 0.34)
+	_sk_ring(1, by - 0.03, 0.014, 0.006, Color(0.42, 0.28, 0.16), -PI, PI, 56, 0.016, 0.0, 0.0, 0.34)
+	var h = _sk_hit(0.0, by, true, 0.03)
+	if not h.is_empty():
+		var p0: Vector3 = h[0] + Vector3(0, 0, 0.02)
+		for sx in [-1.0, 1.0]:
+			_sk_box(p0 + Vector3(0.045 * sx, 0.008, 0.0), Vector3(0.042, 0.018 * sx, 0), Vector3(-0.01 * sx, 0.03, 0), Vector3(0, 0, 0.012), oc.darkened(0.05))
+		_sk_box(p0 + Vector3(0, 0, 0.008), Vector3(0.02, 0, 0), Vector3(0, 0.026, 0), Vector3(0, 0, 0.016), oc.darkened(0.15))
+	_sk_plate(0.0, by - 0.01, 0.13, 0.06, 0.03, Color(0.95, 0.85, 0.3), 0.016, false)   # sırtta sarı çanta
+	_sk_end(g)
+
+
+## Takım yeleği ayrıntıları (ref refs/outfits_ss/code_outfit.png): boyunda katlı beyaz kravat
+func _takim_yelek_kit(g: Dictionary) -> void:
+	var neck = _bp("Neck").y
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var h = _sk_hit(0.0, neck - 0.02, true, 0.04)
+	if not h.is_empty():
+		var p0: Vector3 = h[0] + Vector3(0, 0, 0.03)
+		var wc := Color(0.92, 0.9, 0.96)
+		_sk_box(p0, Vector3(0.022, 0, 0), Vector3(0, 0.014, 0), Vector3(0, 0, 0.012), wc)
+		for sx in [-1.0, 1.0]:
+			_sk_box(p0 + Vector3(0.016 * sx, -0.045, 0.004), Vector3(0.02, 0, 0), Vector3(-0.012 * sx, 0.045, 0), Vector3(0, 0, 0.006), wc.darkened(0.04))
+	_sk_end(g)
+
+
+## Shimenawa fiyonku (ref refs/outfits_ss/custom_ninja_outfit_type_three.png): zırhın önünde kalın beyaz burgu ipten iki büyük
+## ilmekli fiyonk + aşağı sarkan iki uç (gövde kabuğundan zırh kalınlığı kadar dışarıda)
+func _shimenawa_kit(g: Dictionary) -> void:
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var hips = _bp("Hips").y
+	var chest = _bp("UpperChest").y
+	var wc: Color = look["shimenawa"]
+	var h = _sk_hit(0.0, chest - 0.1, true, 0.04)
+	if not h.is_empty():
+		var c0: Vector3 = h[0] + Vector3(0, 0, 0.1)
+		for sx in [-1.0, 1.0]:
+			var lp = []
+			for k in 17:
+				var a = TAU * k / 16.0
+				lp.append(c0 + Vector3(sx * (0.08 + 0.07 * cos(a + PI)), 0.045 * sin(a), 0.0))
+			_sk_rope(lp, 0.016, wc)
+			var tp = []
+			for k in 9:
+				var t = k / 8.0
+				tp.append(c0 + Vector3(0.02 * sx + 0.015 * sx * t, -0.02 - t * 0.2, 0.004))
+			_sk_rope(tp, 0.016, wc.darkened(0.04))
+		_sk_box(c0, Vector3(0.022, 0, 0), Vector3(0, 0.026, 0), Vector3(0, 0, 0.02), wc.darkened(0.08))
+	_sk_end(g)
+
+
+## Çivili kısa kapüşonlu ayrıntıları (ref refs/outfits_ss/daemon_outfit.png): önde iki sıra gümüş çivi, fermuar + yıldız
+## çekme ucu, belde gri kemer, sağ kalçadan sarkan zincir
+func _seytan_kapuson_kit(g: Dictionary) -> void:
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var km = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "seytan_kapuson", 0.0])
+	if km != null and _sk_begin(km):
+		var V: PackedVector3Array = _sk["v"]
+		var ybot = 9.0
+		for q in V:
+			ybot = minf(ybot, q.y)
+		for sx in [-1.0, 1.0]:
+			var y = neck - 0.04
+			while y > ybot + 0.02:
+				_sk_plate(0.12 * sx, y, 0.008, 0.008, 0.005, Color(0.82, 0.82, 0.86), 0.006, true)
+				y -= 0.02
+		_sk_strip(0.0, neck + 0.0, ybot + 0.01, 0.006, 0.004, Color(0.75, 0.75, 0.78), 24)
+		var h = _sk_hit(0.0, neck - 0.04, true, 0.03)
+		if not h.is_empty():   # yıldız çekme ucu
+			var c0: Vector3 = h[0] + Vector3(0, 0, 0.008)
+			for k in 5:
+				var a0 = TAU * k / 5.0 + PI * 0.5
+				var d = Vector3(cos(a0), sin(a0), 0)
+				_sk_box(c0 + d * 0.008, d * 0.008, d.cross(Vector3.BACK) * 0.004, Vector3(0, 0, 0.003), Color(0.85, 0.85, 0.9))
+		_sk_end(g)
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	_sk_ring(1, hips + 0.05, 0.035, 0.008, Color(0.55, 0.55, 0.6), -PI, PI, 48, 0.008, 0.0, 0.0, 0.3)
+	for e in [-1.0, 1.0]:
+		_sk_ring(1, hips + 0.05 + e * 0.009, 0.004, 0.004, Color(0.92, 0.92, 0.94), -PI, PI, 48, 0.014, 0.0, 0.0, 0.3)
+	var hc = _sk_hit(-0.1, hips + 0.04, true, 0.04)
+	if not hc.is_empty():   # sarkan zincir: sağ kalçadan öne doğru sarkan yay
+		var p0: Vector3 = hc[0] + Vector3(0, 0, 0.02)
+		var lp = []
+		for k in 13:
+			var t = k / 12.0
+			lp.append(p0 + Vector3(0.14 * t, -0.09 * sin(t * PI), 0.01 * sin(t * PI)))
+		_sk_rope(lp, 0.006, Color(0.7, 0.7, 0.74))
+	_sk_end(g)
+
+
+## Kök reisi ayrıntıları (ref refs/outfits_ss/danzo_outfit.png): sağ kol baştan sona sargılı (gövde kabuğu halkaları), bilekte
+## altın halka, mor kuşağın önde sarkan iki ucu
+func _kok_reisi_kit(g: Dictionary) -> void:
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var hips = _bp("Hips").y
+	var ua = absf(_bp("LeftUpperArm").x)
+	var ha = absf(_bp("LeftHand").x)
+	var wc := Color(0.92, 0.9, 0.86)
+	var x = ua + 0.02
+	var k = 0
+	while x < ha - 0.02:
+		_sk_ring(0, -x, 0.016, 0.006, wc if k % 2 == 0 else wc.darkened(0.08), -PI, PI, 24, 0.006 + 0.002 * (k % 2), -1.0)
+		x += 0.014
+		k += 1
+	_sk_ring(0, -(ha - 0.05), 0.012, 0.01, Color(0.92, 0.75, 0.3), -PI, PI, 24, 0.012, -1.0)   # altın halka
+	var pc: Color = look["kok_reisi"]
+	var h = _sk_hit(-0.06, hips + 0.08, true, 0.04)
+	if not h.is_empty():
+		var p0: Vector3 = h[0] + Vector3(0, 0, 0.03)
+		_sk_box(p0 + Vector3(0, -0.1, 0), Vector3(0.022, 0, 0), Vector3(0.005, 0.1, 0), Vector3(0, 0, 0.005), pc)
+		_sk_box(p0 + Vector3(0.03, -0.12, 0.004), Vector3(0.022, 0, 0), Vector3(-0.004, 0.12, 0), Vector3(0, 0, 0.005), pc.darkened(0.06))
+	_sk_end(g)
+
+
+## Delta elbisesi ayrıntıları (ref refs/outfits_ss/delta_outfit.png): balon kolların ucunda geniş beyaz manşet, sırtta pembe
+## üçgen implant
+func _delta_kit(g: Dictionary) -> void:
+	var neck = _bp("Neck").y
+	var hx = absf(_bp("LeftHand").x)
+	for sx in [1.0, -1.0]:
+		var km = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "delta_kol%d" % int(sx), 0.0])
+		if km != null and _sk_begin(km):
+			_sk_ring(0, (hx - 0.08) * sx, 0.07, 0.008, Color(0.95, 0.95, 0.96), -PI, PI, 28, 0.004, sx)
+			_sk_end(g)
+	var dm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "delta_elbise", 0.0])
+	if dm != null and _sk_begin(dm):
+		var h = _sk_hit(0.0, neck - 0.1, false, 0.04)
+		if not h.is_empty():
+			var c0: Vector3 = h[0] + Vector3(0, 0, -0.006)
+			_sk_box(c0, Vector3(0.026, 0, 0), Vector3(0, 0.02, 0), Vector3(0, 0, -0.008), Color(0.95, 0.5, 0.65))
+			_sk_box(c0 + Vector3(0, -0.025, 0), Vector3(0.012, 0, 0), Vector3(0, 0.012, 0), Vector3(0, 0, -0.008), Color(0.95, 0.5, 0.65))
+		_sk_end(g)
+
+
+## Göğüs cepleri (ref refs/outfits_ss/denki_outfit_genin_ver.png): gövde kabuğunda iki kapaklı göğüs cebi + düğme
+func _chest_pockets_kit(g: Dictionary) -> void:
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var chest = _bp("UpperChest").y
+	var tc: Color = look.get("top", Color(0.2, 0.35, 0.72))
+	for sx in [-1.0, 1.0]:
+		_sk_plate(0.075 * sx, chest - 0.06, 0.07, 0.065, 0.004, tc.darkened(0.06), 0.004, true)
+		_sk_plate(0.075 * sx, chest - 0.03, 0.074, 0.022, 0.005, tc.darkened(0.16), 0.008, true)
+		_sk_plate(0.075 * sx, chest - 0.038, 0.01, 0.01, 0.004, tc.darkened(0.35), 0.013, true)
+	_sk_end(g)
+
+
+## Kabarık bluz ayrıntıları (ref refs/outfits_ss/eida_outfit.png): bileklerde üçer ince mavi bilezik (gövde kabuğu)
+func _kabarik_bluz_kit(g: Dictionary) -> void:
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var ha = absf(_bp("LeftHand").x)
+	for sx in [1.0, -1.0]:
+		for k in 3:
+			_sk_ring(0, (ha - 0.05 - k * 0.012) * sx, 0.006, 0.006, Color(0.15, 0.55, 0.65), -PI, PI, 24, 0.01 + k * 0.002, sx)
+	_sk_end(g)
+
+
+## Omuzdan sarkan uzun şal (ref refs/outfits_ss/gaara_outfit_young_ver.png): sağ omuzdan öne çapraz inip sol bele sarılan,
+## önde dize kadar sarkan kırık beyaz şal — gövde kabuğuna derili kalın bant
+func _drape_sash_kit(g: Dictionary) -> void:
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var knee = _bp("LeftLowerLeg").y
+	var sc: Color = look["drape_sash"]
+	var paths = [[Vector2(-0.12, neck - 0.02), Vector2(0.14, hips + 0.08)], [Vector2(0.02, hips + 0.12), Vector2(0.06, knee - 0.02)]]
+	for pth in paths:
+		var a: Vector2 = pth[0]
+		var b: Vector2 = pth[1]
+		var pts = []; var outs = []
+		for k in 17:
+			var q = a.lerp(b, k / 16.0)
+			var hit = _sk_hit(q.x, q.y, true, 0.04)
+			if not hit.is_empty():
+				pts.append(Vector3(q.x, q.y, hit[0].z + 0.012 + 0.006 * sin(k * 1.3))); outs.append(hit[1])
+		for it in 2:
+			var sm = pts.duplicate()
+			for i in range(1, pts.size() - 1):
+				sm[i] = Vector3(pts[i].x, pts[i].y, maxf(pts[i].z, (pts[i - 1].z + pts[i + 1].z) * 0.5))
+			pts = sm
+		if pts.size() > 1:
+			var dir = (Vector3(b.x, b.y, 0) - Vector3(a.x, a.y, 0)).normalized()
+			_sk_band(pts, outs, Vector3.BACK.cross(dir).normalized(), 0.085, 0.008, sc)
+			_sk_band(pts, outs, Vector3.BACK.cross(dir).normalized(), 0.012, 0.011, sc.darkened(0.12), false, 0.03)
+	_sk_end(g)
+
+
+## Gi yelek (ref refs/outfits_ss/han_outfit.png): kendi renkli kolsuz yeleğin önünde siyah kruvaze yaka bandı ve bel bağı
+func _gi_yelek_kit(g: Dictionary) -> void:
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var gm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "gi_yelek", 0.0])
+	if gm == null or not _sk_begin(gm):
+		return
+	var dark := Color(0.1, 0.1, 0.14)
+	for sx in [-1.0, 1.0]:
+		var a = Vector2(0.075 * sx, neck - 0.02)
+		var b = Vector2(0.012 * sx, hips + 0.12)
+		var pts = []; var outs = []
+		for k in 13:
+			var q = a.lerp(b, k / 12.0)
+			var hit = _sk_hit(q.x, q.y, true, 0.03)
+			if not hit.is_empty():
+				pts.append(Vector3(q.x, q.y, hit[0].z + 0.004 + (0.004 if sx < 0.0 else 0.0))); outs.append(hit[1])
+		if pts.size() > 1:
+			var dir = (Vector3(b.x, b.y, 0) - Vector3(a.x, a.y, 0)).normalized()
+			_sk_band(pts, outs, Vector3.BACK.cross(dir).normalized(), 0.03, 0.005, dark)
+	var V: PackedVector3Array = _sk["v"]
+	var by = hips + 0.1
+	var bd = 9.0
+	for q in V:
+		if absf(q.y - (hips + 0.1)) < bd:
+			bd = absf(q.y - (hips + 0.1)); by = q.y
+	_sk_ring(1, by, 0.03, 0.006, dark, -PI, PI, 48, 0.004, 0.0, 0.0, 0.32)
+	_sk_end(g)
+
+
+## Ön fiyonk (ref refs/outfits_ss/hanabi_outfit.png): kuşağın önünde iki kanatlı fiyonk + iki sarkan uç (gövde kabuğu)
+func _front_bow_kit(g: Dictionary) -> void:
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var hips = _bp("Hips").y
+	var bc: Color = look["front_bow"]
+	var h = _sk_hit(0.0, hips + 0.14, true, 0.04)
+	if not h.is_empty():
+		var p0: Vector3 = h[0] + Vector3(0, 0, 0.03)
+		for sx in [-1.0, 1.0]:
+			_sk_box(p0 + Vector3(0.035 * sx, 0.006, 0), Vector3(0.032, 0.014 * sx, 0), Vector3(-0.008 * sx, 0.024, 0), Vector3(0, 0, 0.01), bc)
+			_sk_box(p0 + Vector3(0.016 * sx, -0.045, 0.004), Vector3(0.012, 0, 0), Vector3(0.012 * sx, 0.04, 0), Vector3(0, 0, 0.005), bc.darkened(0.06))
+		_sk_box(p0 + Vector3(0, 0, 0.006), Vector3(0.012, 0, 0), Vector3(0, 0.016, 0), Vector3(0, 0, 0.012), bc.darkened(0.12))
+	_sk_ring(1, hips + 0.14, 0.03, 0.008, bc, -PI, PI, 48, 0.02, 0.0, 0.0, 0.32)   # kuşak bandı
+	_sk_end(g)
+
+
+## Sırtta büyük parşömen (ref refs/outfits_ss/hashirama_outfit.png): göğüs hizasında sırta yatay bağlı, iki yana taşan dev rulo
+func _back_scroll_kit(g: Dictionary) -> void:
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var chest = _bp("UpperChest").y
+	var h = _sk_hit(0.0, chest - 0.14, false, 0.05)
+	if not h.is_empty():
+		var c0: Vector3 = h[0] + Vector3(0, 0, -0.1)
+		for k in 12:
+			var a0 = TAU * k / 12.0
+			var d = Vector3(0, cos(a0), sin(a0)) * 0.075
+			var tg = Vector3(0, -sin(a0), cos(a0)) * 0.021
+			_sk_box(c0 + d, Vector3(0.27, 0, 0), tg, d.normalized() * 0.006, Color(0.94, 0.94, 0.96) if k % 3 != 0 else Color(0.72, 0.68, 0.84))
+			for sx in [-1.0, 1.0]:
+				_sk_box(c0 + Vector3(0.29 * sx, 0, 0) + d * 1.08, Vector3(0.022, 0, 0), tg * 1.08, d.normalized() * 0.006, Color(0.85, 0.85, 0.88))
+		for sx in [-1.0, 1.0]:   # uç kapakları
+			_sk_box(c0 + Vector3(0.315 * sx, 0, 0), Vector3(0.006, 0, 0), Vector3(0, 0.05, 0), Vector3(0, 0, 0.05), Color(0.2, 0.2, 0.22))
+	_sk_end(g)
+
+
+## Zırh önlüğü + ip kuşak (ref refs/outfits_ss/hashirama_outfit_young_ver.png): belden dize inen bağcıklı zırh önlüğü, bej ip kuşak
+func _armor_apron_kit(g: Dictionary) -> void:
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var hips = _bp("Hips").y
+	var knee = _bp("LeftLowerLeg").y
+	var ac: Color = look["armor_apron"]
+	var h = _sk_hit(0.0, hips + 0.04, true, 0.05)
+	if not h.is_empty():
+		var p0: Vector3 = h[0] + Vector3(0, 0, 0.05)
+		var ln = hips + 0.04 - (knee - 0.02)
+		_sk_box(p0 + Vector3(0, -ln * 0.5, 0.0), Vector3(0.12, 0, 0), Vector3(0, ln * 0.5, 0), Vector3(0, 0, 0.01), ac)
+		for k in 3:   # bağcık çizgileri
+			var y = -ln * (0.2 + k * 0.3)
+			_sk_box(p0 + Vector3(0, y, 0.012), Vector3(0.07, 0, 0), Vector3(0, 0.003, 0), Vector3(0, 0, 0.002), ac.darkened(0.45))
+	_sk_ring(1, hips + 0.06, 0.03, 0.014, Color(0.88, 0.8, 0.6), -PI, PI, 48, 0.07, 0.0, 0.0, 0.34)
+	_sk_end(g)
+
+
+## Uzun açık cübbe ayrıntıları (ref refs/outfits_ss/hiashi_outfit.png): ön kenarlarda koyu yaka bandı
+func _uzun_robe_kit(g: Dictionary) -> void:
+	var oc: Color = look.get("outer", Color(0.1, 0.16, 0.12))
+	var neck = _bp("Neck").y
+	var rm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "uzun_robe", 0.0])
+	if rm == null or not _sk_begin(rm):
+		return
+	var V: PackedVector3Array = _sk["v"]
+	var ybot = 9.0
+	for q in V:
+		ybot = minf(ybot, q.y)
+	for sx in [-1.0, 1.0]:
+		var ex = 9.0
+		for q in V:
+			if q.z > 0.0 and signf(q.x) == sx and absf(q.y - (neck - 0.3)) < 0.03:
+				ex = minf(ex, absf(q.x))
+		if ex < 8.0:
+			_sk_strip((ex + 0.02) * sx, neck + 0.02, ybot + 0.01, 0.04, 0.006, oc.darkened(0.25), 44)
+	_sk_end(g)
+
+
+## Bol kapüşonlu ayrıntıları (ref refs/outfits_ss/himawari_outfit.png): büzgü ipleri, önde kanguru cebi, bilekte ribana
+func _buyuk_kapusonlu_kit(g: Dictionary) -> void:
+	var oc: Color = look.get("outer", Color(0.96, 0.82, 0.4))
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var km = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "buyuk_kapusonlu", 0.0])
+	if km != null and _sk_begin(km):
+		for sx in [-1.0, 1.0]:
+			_sk_strip(0.03 * sx, neck - 0.02, neck - 0.16, 0.005, 0.004, oc.darkened(0.35), 12)
+		_sk_plate(0.0, hips + 0.0, 0.17, 0.09, 0.006, oc.darkened(0.06), 0.006, true)   # kanguru cebi
+		_sk_plate(0.0, hips + 0.045, 0.17, 0.008, 0.004, oc.darkened(0.2), 0.012, true)
+		_sk_end(g)
+	if _sk_begin(_shell_cache.get(look["gender"])):
+		var ha = absf(_bp("LeftHand").x)
+		for sx in [1.0, -1.0]:
+			_sk_ring(0, (ha - 0.065) * sx, 0.04, 0.012, oc.darkened(0.08), -PI, PI, 24, 0.016, sx)
+		_sk_end(g)
+
+
+## Kısa kollu kazak ayrıntıları (ref refs/outfits_ss/hinata_outfit_5.png): kol ağzında ve etekte beyaz şerit, geniş yaka
+func _kisa_kollu_kazak_kit(g: Dictionary) -> void:
+	var neck = _bp("Neck").y
+	var km = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "kisa_kollu_kazak", 0.0])
+	var wc := Color(0.97, 0.96, 0.96)
+	if km != null and _sk_begin(km):
+		var V: PackedVector3Array = _sk["v"]
+		var ybot = 9.0
+		for q in V:
+			ybot = minf(ybot, q.y)
+		_sk_ring(1, ybot + 0.02, 0.026, 0.006, wc, -PI, PI, 48, 0.003, 0.0, 0.0, 0.3)
+		_sk_ring(1, neck + 0.0, 0.02, 0.008, look.get("outer", wc).darkened(0.1), -PI, PI, 40, 0.006, 0.0, 0.0, 0.14)
+		_sk_end(g)
+	var kel = absf(_bp("LeftLowerArm").x)
+	for sx in [1.0, -1.0]:
+		var sm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "kazak_kisa_kol%d" % int(sx), 0.0])
+		if sm != null and _sk_begin(sm):
+			for k in 2:
+				_sk_ring(0, (kel - 0.06 - k * 0.022) * sx, 0.007, 0.004, wc, -PI, PI, 24, 0.002, sx)
+			_sk_end(g)
+
+
+## Geniş obi kuşak (ref refs/outfits_ss/hinata_outfit_4.png): belde geniş koyu mor kuşak + yanda sarkan mürdüm bez
+func _wide_obi_kit(g: Dictionary) -> void:
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var hips = _bp("Hips").y
+	var oc: Color = look["wide_obi"]
+	_sk_ring(1, hips + 0.12, 0.09, 0.01, oc, -PI, PI, 56, 0.008, 0.0, 0.0, 0.32)
+	var h = _sk_hit(0.12, hips + 0.1, true, 0.05)
+	if not h.is_empty():
+		_sk_box(h[0] + Vector3(0, -0.06, 0.02), Vector3(0.022, 0, 0), Vector3(0.004, 0.06, 0), Vector3(0, 0, 0.006), oc.lightened(0.15))
+	_sk_end(g)
+
+
+## Pembe çizgili uzun etek (ref hinata_outfit_5.png): kendi renkli etek parçasının üstünde ince pembe çizgiler
+func _stripe_skirt_kit(g: Dictionary) -> void:
+	var em = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "cizgili_uzun_etek", 0.0])
+	if em == null or not _sk_begin(em):
+		return
+	var V: PackedVector3Array = _sk["v"]
+	var ybot = 9.0; var ytop = -9.0
+	for q in V:
+		ybot = minf(ybot, q.y); ytop = maxf(ytop, q.y)
+	for f in [0.06, 0.2, 0.55]:
+		var y = lerpf(ybot, ytop, f)
+		var by = y
+		var bd = 9.0
+		for q in V:
+			if absf(q.y - y) < bd:
+				bd = absf(q.y - y); by = q.y
+		_sk_ring(1, by, 0.006, 0.003, Color(0.88, 0.5, 0.62), -PI, PI, 56, 0.002, 0.0, 0.0, 0.5)
+	_sk_end(g)
+
+
 ## Görünümdeki giysi katmanlarını kur
 func _garments(g: Dictionary) -> void:
 	var neck = _bp("Neck").y; var hips = _bp("Hips").y; var knee = _bp("LeftLowerLeg").y; var ank = _bp("LeftFoot").y
@@ -2130,6 +3673,227 @@ func _garments(g: Dictionary) -> void:
 			_garment("atki", func(): return _loft(g, 1, neck - 0.06, neck + 0.04, 5, func(p): return absf(p.x) < 0.16, flat.call(0.03), 8))
 		"atki":
 			_garment("atki", func(): return _loft(g, 1, neck - 0.06, neck + 0.04, 5, func(p): return absf(p.x) < 0.16, flat.call(0.03), 8))
+		"buyuk_kapusonlu":
+			# bol kapüşonlu (Striker Himawari): boyundan uyluk üstüne bol; arkada katlı kapüşon
+			_garment("buyuk_kapusonlu", func(): return _loft(g, 1, neck + 0.0, hips - 0.12, 15, torso, func(t, _a): return 0.056 + t * 0.022, 8, null, hips - 0.04))
+			_garment("buyuk_kapuson_kat", func(): return _loft(g, 1, neck - 0.08, neck + 0.06, 7, func(p): return absf(p.x) < 0.18, func(t, a): return (0.075 - t * 0.03) if sin(a) < 0.3 else 0.045 - t * 0.015, 8))
+		"kisa_kollu_kazak":
+			# kısa kollu kazak (Striker Hinata 5): geniş yakalı, bele kadar; dirseğin üstüne kısa geniş kollar
+			_garment("kisa_kollu_kazak", func(): return _loft(g, 1, neck - 0.01, hips + 0.05, 12, torso, func(t, _a): return 0.042 + t * 0.012, 8))
+			for sx in [1.0, -1.0]:
+				var kzel = absf(_bp("LeftLowerArm").x)
+				_garment("kazak_kisa_kol%d" % int(sx), func(): return _loft(g, 0, (absf(ua) * 0.86) * sx, (kzel - 0.04) * sx, 8, func(p): return signf(p.x) == sx and p.y > neck - 0.35 and absf(p.x) > absf(ua) * 0.84 and absf(p.x) < kzel - 0.02, func(t, _a): return 0.026 + t * 0.016, 8, null, -99.0, 24))
+		"uzun_robe":
+			# önü açık uzun cübbe (Striker Hiashi): boyundan bileğe, önü boydan boya açık; çok geniş uzun kollar
+			_garment("uzun_robe", func(): return _loft(g, 1, neck + 0.01, ank + 0.03, 26, torso, func(t, _a): return 0.05 + t * 0.07, 8, front_gap.call(0.32, -1.0), hips - 0.05))
+			for sx in [1.0, -1.0]:
+				var rrhx = absf(_bp("LeftHand").x)
+				_garment("robe_kol%d" % int(sx), func(): return _loft(g, 0, (absf(ua) * 0.86) * sx, (rrhx - 0.05) * sx, 14, func(p): return signf(p.x) == sx and p.y > neck - 0.35 and absf(p.x) > absf(ua) * 0.84 and absf(p.x) < rrhx - 0.03, func(t, _a): return 0.032 + t * 0.07, 8, null, -99.0, 24))
+		"kabarik_bluz":
+			# kabarık bluz (Striker Eida): uzun dik boğazlı, bele kadar bol; balon kollar bilekte toplanır
+			_garment("kabarik_bluz", func(): return _loft(g, 1, neck + 0.0, hips + 0.05, 13, torso, func(t, _a): return 0.05 + 0.02 * sin(t * PI), 8))
+			_garment("kabarik_yaka", func(): return _loft(g, 1, neck - 0.03, neck + 0.11, 7, func(p): return absf(p.x) < 0.14, func(t, _a): return 0.055 - t * 0.01, 8))
+			for sx in [1.0, -1.0]:
+				var ehx = absf(_bp("LeftHand").x)
+				_garment("bluz_kol%d" % int(sx), func(): return _loft(g, 0, (absf(ua) * 0.86) * sx, (ehx - 0.05) * sx, 14, func(p): return signf(p.x) == sx and p.y > neck - 0.35 and absf(p.x) > absf(ua) * 0.84 and absf(p.x) < ehx - 0.03, func(t, _a): return 0.025 + 0.05 * sin(clampf(t * 1.08, 0.0, 1.0) * PI), 8, null, -99.0, 24))
+		"kurbaga_kigurumi":
+			# kurbağa kostümü (Striker Frog): boğazdan bileğe tüm vücudu saran kabarık tulum; kollar ve bacaklar ayrı şişkin tüpler
+			_garment("kurbaga_govde", func(): return _loft(g, 1, neck + 0.05, hips - 0.12, 15, torso, func(t, _a): return 0.04 + 0.025 * sin(t * PI), 8))
+			for sx in [1.0, -1.0]:
+				var fhx = absf(_bp("LeftHand").x)
+				_garment("kurbaga_kol%d" % int(sx), func(): return _loft(g, 0, (absf(ua) * 0.86) * sx, (fhx - 0.03) * sx, 14, func(p): return signf(p.x) == sx and p.y > neck - 0.35 and absf(p.x) > absf(ua) * 0.84 and absf(p.x) < fhx - 0.01, func(t, _a): return 0.024 + 0.014 * sin(t * PI), 8, null, -99.0, 24))
+				var fkx = _bp(("Left" if sx > 0.0 else "Right") + "LowerLeg").x
+				_garment("kurbaga_bacak%d" % int(sx), func(): return _loft(g, 1, hips - 0.06, ank + 0.01, 18, func(p): return signf(p.x) == sx and absf(p.x - fkx) < 0.12, func(t, a): return (0.028 + 0.012 * sin(t * PI)) * (1.0 if cos(a) * sx > -0.4 else 0.5), 8, null, -99.0, 24))
+		"seytan_kapuson":
+			# çivili kısa kapüşonlu (Striker Daemon): boyundan belin üstüne kısa, fermuarlı; arkada katlı kapüşon
+			_garment("seytan_kapuson", func(): return _loft(g, 1, neck + 0.0, hips + 0.12, 11, torso, func(t, _a): return 0.044 + t * 0.012, 8))
+			_garment("seytan_kapuson_kat", func(): return _loft(g, 1, neck - 0.08, neck + 0.05, 6, func(p): return absf(p.x) < 0.18, func(t, a): return (0.06 - t * 0.025) if sin(a) < 0.3 else 0.035 - t * 0.012, 8))
+		"danzo_ortu":
+			# bej örtü (Striker Danzō): belin önünde soldan sağa çapraz sarılı büyük bez; önde ve solda uyluğa sarkar
+			_garment("danzo_ortu", func(): return _loft(g, 1, hips + 0.2, hips - 0.24, 14, torso, func(t, a): return 0.07 + t * 0.05 + 0.01 * sin(a * 4.0 + t * 3.0), 8,
+				func(t, ang): return sin(ang) < -0.25 or (cos(ang) < -0.2 - t * 0.6) or (t < 0.4 and cos(ang) < 0.3 - t * 1.5), hips - 0.05, 40))
+		"delta_elbise":
+			# Delta mini elbisesi (Striker Delta): dik yakadan uyluk üstüne; göğüste anahtar deliği oyuğu, omuzlar açık (kollar ayrı balon)
+			_garment("delta_elbise", func(): return _loft(g, 1, neck + 0.04, hips - 0.18, 18, torso, func(t, _a): return 0.03 + maxf(0.0, t - 0.55) * 0.08, 8,
+				func(t, ang): return t > 0.07 and t < 0.3 and absf(wrapf(ang - PI * 0.5, -PI, PI)) < 0.22 * sin((t - 0.07) / 0.23 * PI), hips - 0.06))
+			for sx in [1.0, -1.0]:
+				var dhx = absf(_bp("LeftHand").x)
+				_garment("delta_kol%d" % int(sx), func(): return _loft(g, 0, (absf(ua) + 0.05) * sx, (dhx - 0.05) * sx, 14, func(p): return signf(p.x) == sx and p.y > neck - 0.35 and absf(p.x) > absf(ua) + 0.03 and absf(p.x) < dhx - 0.03, func(t, _a): return 0.02 + 0.045 * sin(clampf(t * 1.1, 0.0, 1.0) * PI), 8, null, -99.0, 24))
+		"kutlama_kimono":
+			# kutlama kimonosu (Striker Celebratory): boyundan baldır ortasına; belden aşağı önde açılır, çok geniş uzun kollar
+			_garment("kutlama_kimono", func(): return _loft(g, 1, neck + 0.0, ank + 0.2, 26, torso, func(t, _a): return 0.042 + maxf(0.0, t - 0.3) * 0.11, 8,
+				func(t, ang): return t > 0.4 and absf(wrapf(ang - PI * 0.5, -PI, PI)) < 0.1 + (t - 0.4) * 0.9, hips - 0.05, 48))
+			for sx in [1.0, -1.0]:
+				var khx2 = absf(_bp("LeftHand").x)
+				_garment("kutlama_kol%d" % int(sx), func(): return _loft(g, 0, (absf(ua) * 0.86) * sx, (khx2 - 0.06) * sx, 14, func(p): return signf(p.x) == sx and p.y > neck - 0.35 and absf(p.x) > absf(ua) * 0.84 and absf(p.x) < khx2 - 0.04, func(t, _a): return 0.03 + t * 0.085, 8, null, -99.0, 24))
+		"kolsuz_kimono":
+			# kolsuz kimono üst (Striker Chōchō): boyundan belin altına kruvaze, kolsuz (omuzlar file iç)
+			_garment("kolsuz_kimono", func(): return _loft(g, 1, neck - 0.02, hips - 0.02, 12, torso, func(t, _a): return 0.046 + t * 0.008, 8))
+		"takim_yelek":
+			# takım yeleği (Striker Code): boyundan belin altına kolsuz, önde küçük V
+			_garment("takim_yelek", func(): return _loft(g, 1, neck - 0.02, hips - 0.05, 13, torso, func(t, _a): return 0.034 + t * 0.012, 8,
+				func(t, ang): return t < 0.2 and absf(wrapf(ang - PI * 0.5, -PI, PI)) < 0.3 - t * 1.4))
+		"uzun_trench":
+			# uzun trençkot (Striker Anko): boyundan dize, önü boydan boya açık, bol
+			_garment("uzun_trench", func(): return _loft(g, 1, neck + 0.0, knee - 0.02, 24, torso, func(t, _a): return 0.046 + t * 0.035, 8, front_gap.call(0.42, -1.0), hips - 0.04))
+		"rikudo_cubbe":
+			# Rikudō cübbesi (Striker Asura): yüksek yakalı, bileğe inen geniş beyaz cübbe; çok geniş uzun kollar
+			_garment("rikudo_cubbe", func(): return _loft(g, 1, neck + 0.02, ank + 0.05, 26, torso, func(t, _a): return 0.046 + t * 0.12, 8, null, hips - 0.05))
+			for sx in [1.0, -1.0]:
+				var rhx = absf(_bp("LeftHand").x)
+				_garment("rikudo_kol%d" % int(sx), func(): return _loft(g, 0, (absf(ua) * 0.86) * sx, (rhx - 0.05) * sx, 14, func(p): return signf(p.x) == sx and p.y > neck - 0.35 and absf(p.x) > absf(ua) * 0.84 and absf(p.x) < rhx - 0.03, func(t, _a): return 0.03 + t * t * 0.08, 8, null, -99.0, 24))
+		"yirtik_esofman":
+			# yırtık eşofman ceketi (Striker Boruto Prologue): önü açık, etek ucu dişli yırtık
+			_garment("yirtik_esofman", func(): return _loft(g, 1, neck + 0.0, hips - 0.06, 16, torso, func(t, _a): return 0.048 + t * 0.012, 8,
+				func(t, ang): return (absf(wrapf(ang - PI * 0.5, -PI, PI)) < 0.34) or (t > 0.8 and fposmod(ang * 3.3, 1.0) < (t - 0.8) * 3.5), hips - 0.02, 48))
+		"gunes_kimono":
+			# güneş kimonosu (Striker 15 Milyon / 20. yıl): üstte sağ omuzdan sol bele çapraz sarılı (sol omuz ve kol açık),
+			# belden aşağı dizin altına bol sarma; yalnız sağda kısa kıvrık geniş kol
+			_garment("gunes_kimono", func(): return _loft(g, 1, neck + 0.0, knee - 0.1, 26, torso, func(t, _a): return 0.035 + maxf(0.0, t - 0.35) * 0.16, 8,
+				func(t, ang): return (t < 0.36 and cos(ang) > -0.25 + t * 3.4) or (t > 0.5 and absf(wrapf(ang - PI * 0.5, -PI, PI)) < (t - 0.5) * 1.6), hips - 0.06, 48))   # alt önde açılır (bol pantolon görünür)
+			var gel = absf(_bp("LeftLowerArm").x)
+			_garment("gunes_kol", func(): return _loft(g, 0, -(absf(ua) * 0.86), -(gel + 0.0), 9, func(p): return p.x < 0.0 and p.y > neck - 0.35 and absf(p.x) > absf(ua) * 0.84 and absf(p.x) < gel + 0.02, func(t, _a): return 0.03 + t * 0.03, 8, null, -99.0, 24))
+		"genis_gomlek":
+			# bol geniş yakalı gömlek (Striker Amado): boyundan kalçaya bol, önde V yaka; ön kol ortasına bol kollar
+			_garment("genis_gomlek", func(): return _loft(g, 1, neck + 0.0, hips - 0.06, 15, torso, func(t, _a): return 0.052 + t * 0.02, 8,
+				func(t, ang): return t < 0.16 and absf(wrapf(ang - PI * 0.5, -PI, PI)) < 0.4 - t * 2.2, hips - 0.02))
+			for sx in [1.0, -1.0]:
+				var ahx = absf(_bp("LeftHand").x)
+				_garment("genis_kol%d" % int(sx), func(): return _loft(g, 0, (absf(ua) * 0.86) * sx, (ahx - 0.11) * sx, 12, func(p): return signf(p.x) == sx and p.y > neck - 0.35 and absf(p.x) > absf(ua) * 0.84 and absf(p.x) < ahx - 0.09, func(t, _a): return 0.034 + t * 0.012, 8, null, -99.0, 24))
+		"kuyruklu_ceket":
+			# kuyruklu ceket (Striker Shikamaru): önde bele kadar açık, arkada ve yanlarda dize inen etek; dirsek boyu kollar
+			_garment("kuyruklu_ceket", func(): return _loft(g, 1, neck + 0.0, knee - 0.04, 34, torso, func(t, _a): return 0.044 + t * 0.03, 8,
+				func(t, ang): return absf(wrapf(ang - PI * 0.5, -PI, PI)) < 0.3 + pow(maxf(0.0, t - 0.3), 0.7) * 2.2, hips - 0.04, 56))
+			for sx in [1.0, -1.0]:
+				var qel = absf(_bp("LeftLowerArm").x)
+				_garment("kuyruk_kol%d" % int(sx), func(): return _loft(g, 0, (absf(ua) * 0.86) * sx, (qel + 0.03) * sx, 9, func(p): return signf(p.x) == sx and p.y > neck - 0.35 and absf(p.x) > absf(ua) * 0.84 and absf(p.x) < qel + 0.05, func(t, _a): return 0.026 + t * 0.016, 8, null, -99.0, 24))
+		"kisa_kimono":
+			# kısa kimono (Striker Temari): boyundan uyluk ortasına; dirseğin altına geniş kimono kolları
+			_garment("kisa_kimono", func(): return _loft(g, 1, neck + 0.0, hips - 0.22, 18, torso, func(t, _a): return 0.036 + t * 0.03, 8, null, hips - 0.05))
+			for sx in [1.0, -1.0]:
+				var tel = absf(_bp("LeftLowerArm").x)
+				_garment("kimono_kol%d" % int(sx), func(): return _loft(g, 0, (absf(ua) * 0.86) * sx, (tel + 0.12) * sx, 11, func(p): return signf(p.x) == sx and p.y > neck - 0.35 and absf(p.x) > absf(ua) * 0.84 and absf(p.x) < tel + 0.14, func(t, _a): return 0.028 + t * 0.055, 8, null, -99.0, 24))
+		"panel_etek":
+			# iki panelli kısa etek (Striker Sakura): belden uyluk ortasına; iki yanda yırtmaç (önde ve arkada ayrı panel)
+			_garment("panel_etek", func(): return _loft(g, 1, hips + 0.06, hips - 0.19, 12, torso, func(t, _a): return 0.026 + t * 0.04, 8,
+				func(t, ang): return t > 0.12 and (absf(wrapf(ang, -PI, PI)) < 0.22 or absf(wrapf(ang - PI, -PI, PI)) < 0.22), hips - 0.06))
+		"uzun_panel_ust":
+			# yırtmaçlı uzun üst (Striker Sarada): boyundan uyluk ortasına kolsuz; kalçadan aşağı iki yanda yırtmaç
+			_garment("uzun_panel_ust", func(): return _loft(g, 1, neck + 0.0, hips - 0.21, 18, torso, func(t, _a): return 0.032 + maxf(0.0, t - 0.5) * 0.06, 8,
+				func(t, ang): return t > 0.55 and (absf(wrapf(ang, -PI, PI)) < 0.28 or absf(wrapf(ang - PI, -PI, PI)) < 0.28), hips - 0.05))
+		"bel_ortusu":
+			# bel örtüsü (Striker Sasuke): belden dizin üstüne sarılı lacivert kumaş; önü ve arkası kat kat
+			_garment("bel_ortusu", func(): return _loft(g, 1, hips + 0.1, knee + 0.02, 14, torso, func(t, a): return 0.04 + t * 0.06 + 0.012 * absf(sin(a * 3.0)) * t, 8, null, hips - 0.06))
+		"kolsuz_palto":
+			# kolsuz palto (Striker Sasuke 2): boyundan uyluğa, göğüs altından önde açılan yırtmaç
+			_garment("kolsuz_palto", func(): return _loft(g, 1, neck - 0.01, hips - 0.16, 16, torso, func(t, _a): return 0.046 + t * 0.022, 8,
+				func(t, ang): return t > 0.45 and absf(wrapf(ang - PI * 0.5, -PI, PI)) < 0.08 + (t - 0.45) * 0.4, hips - 0.04))
+		"onluk_elbise":
+			# uzun önlük elbise (Striker Kushina): kolsuz; göğüste oval yaka oyuntusu, baldıra inen hafif çan etek
+			_garment("onluk_elbise", func(): return _loft(g, 1, neck - 0.07, ank + 0.17, 24, torso, func(t, _a): return 0.04 + maxf(0.0, t - 0.3) * 0.1, 8,
+				func(t, ang): return t < 0.045 and absf(wrapf(ang - PI * 0.5, -PI, PI)) < 0.6, hips - 0.05))
+		"iki_ton_kimono":
+			# iki tonlu kimono üst (Striker Mitsuki): boyundan uyluğa; çok geniş kimono kolları bileğin üstüne
+			_garment("iki_ton_kimono", func(): return _loft(g, 1, neck + 0.0, hips - 0.2, 18, torso, func(t, _a): return 0.042 + t * 0.03, 8, null, hips - 0.04))
+			for sx in [1.0, -1.0]:
+				var khx = absf(_bp("LeftHand").x)
+				_garment("kimono_genis%d" % int(sx), func(): return _loft(g, 0, (absf(ua) * 0.86) * sx, (khx - 0.1) * sx, 12, func(p): return signf(p.x) == sx and p.y > neck - 0.35 and absf(p.x) > absf(ua) * 0.84 and absf(p.x) < khx - 0.08, func(t, _a): return 0.03 + t * 0.07, 8, null, -99.0, 24))
+		"turuncu_ceket":
+			# kapalı eşofman ceketi (Striker Naruto): boyundan belin altına, fermuarı kapalı
+			_garment("turuncu_ceket", func(): return _loft(g, 1, neck + 0.0, hips - 0.03, 13, torso, func(t, _a): return 0.044 + t * 0.012, 8))
+		"kisa_bolero":
+			# kısa bolero ceket (Striker Sai): boyundan göbek üstüne, önü açık
+			_garment("kisa_bolero", func(): return _loft(g, 1, neck + 0.0, hips + 0.13, 10, torso, func(t, _a): return 0.04 + t * 0.01, 8, front_gap.call(0.42, -1.0)))
+		"yilan_cubbe":
+			# kapüşonlu uzun cübbe (Striker Kabuto): boyundan bileğe çan; kapüşon boyunda toplu, çok geniş çan kollar
+			_garment("yilan_cubbe", func(): return _loft(g, 1, neck + 0.0, ank + 0.03, 26, torso, func(t, _a): return 0.05 + t * 0.12, 8, null, hips - 0.05))
+			_garment("yilan_kapuson", func(): return _loft(g, 1, neck - 0.07, neck + 0.07, 7, func(p): return absf(p.x) < 0.17, func(t, a): return (0.07 - t * 0.02) if sin(a) < 0.2 else (0.045 - t * 0.015), 8))
+			for sx in [1.0, -1.0]:
+				var chx = absf(_bp("LeftHand").x)
+				_garment("cubbe_kol%d" % int(sx), func(): return _loft(g, 0, (absf(ua) * 0.86) * sx, (chx - 0.06) * sx, 14, func(p): return signf(p.x) == sx and p.y > neck - 0.35 and absf(p.x) > absf(ua) * 0.84 and absf(p.x) < chx - 0.04, func(t, _a): return 0.03 + t * t * 0.09, 8, null, -99.0, 24))
+		"algi_ceket":
+			# uzun dar ceket (Striker Karin): boyundan uyluk üstüne; kemerden aşağı önde ters V açılır
+			_garment("algi_ceket", func(): return _loft(g, 1, neck + 0.0, hips - 0.13, 16, torso, func(t, _a): return 0.04 + t * 0.022, 8,
+				func(t, ang): return t > 0.62 and absf(wrapf(ang - PI * 0.5, -PI, PI)) < (t - 0.62) * 2.2, hips - 0.03))
+		"sargi_elbise":
+			# sargı elbise (Striker Kurenai): göğüs üstünden uyluk ortasına gövdeyi saran beyaz sargı kumaş (bantlar ayrıntıda)
+			_garment("sargi_elbise", func(): return _loft(g, 1, chest + 0.06, hips - 0.2, 16, torso, func(t, _a): return 0.03 + t * 0.03, 8, null, hips - 0.06))
+		"hinata_ceket":
+			# bol kapüşonlu ceket (Striker Hinata): boyundan kalçanın altına hafif çan; önde boyunda küçük V (iç file görünür),
+			# geniş uzun kollar (bilekte açılır), boynu saran dolgun kapüşon yakası
+			if look.get("hc_open", false):   # fermuarı açık (Striker Hinata 3): ön boydan boya açık
+				_garment("hinata_ceket_acik", func(): return _loft(g, 1, neck + 0.0, hips - 0.08, 15, torso, func(t, _a): return 0.05 + t * 0.03, 8, front_gap.call(0.5, -1.0), hips - 0.03))
+			else:
+				_garment("hinata_ceket", func(): return _loft(g, 1, neck + 0.0, hips - 0.08, 15, torso, func(t, _a): return 0.05 + t * 0.03, 8,
+					func(t, ang): return t < 0.16 and absf(wrapf(ang - PI * 0.5, -PI, PI)) < 0.32 - t * 1.6, hips - 0.03))
+			_garment("hinata_yaka", func(): return _loft(g, 1, neck - 0.045, neck + 0.05, 7, func(p): return absf(p.x) < 0.15, func(t, a): return 0.05 - t * 0.022 + (0.018 if sin(a) < -0.2 else 0.0), 8,
+				func(_t, ang): return absf(wrapf(ang - PI * 0.5, -PI, PI)) < 0.3))
+			for sx in [1.0, -1.0]:
+				var hhx = absf(_bp("LeftHand").x)
+				_garment("hinata_kol%d" % int(sx), func(): return _loft(g, 0, (absf(ua) * 0.86) * sx, (hhx - 0.03) * sx, 14, func(p): return signf(p.x) == sx and p.y > neck - 0.35 and absf(p.x) > absf(ua) * 0.84 and absf(p.x) < hhx - 0.02, func(t, _a): return 0.022 + t * t * 0.045, 8, null, -99.0, 24))
+		"kirpik_kapusonlu":
+			# kısa kapüşonlu (Striker Hinata 2): boyundan belin üstüne kısa; kısa kollar dirseğe kadar; arkada katlı kapüşon
+			_garment("kirpik_kapusonlu", func(): return _loft(g, 1, neck + 0.0, hips + 0.15, 11, torso, func(t, _a): return 0.042 + t * 0.012, 8))
+			_garment("kirpik_kapuson", func(): return _loft(g, 1, neck - 0.08, neck + 0.04, 6, func(p): return absf(p.x) < 0.18, func(t, a): return (0.05 - t * 0.02) if sin(a) < 0.3 else 0.03 - t * 0.012, 8))
+			for sx in [1.0, -1.0]:
+				var kel = absf(_bp("LeftLowerArm").x)
+				_garment("kirpik_kol%d" % int(sx), func(): return _loft(g, 0, (absf(ua) * 0.86) * sx, (kel + 0.01) * sx, 8, func(p): return signf(p.x) == sx and p.y > neck - 0.35 and absf(p.x) > absf(ua) * 0.84 and absf(p.x) < kel + 0.03, func(t, _a): return 0.024 + t * 0.012, 8, null, -99.0, 24))
+		"yirtmacli_etek":
+			# yırtmaçlı diz üstü etek (Striker Ino): belden uyluk ortasına, önde ortada yırtmaç; içinde gri iç etek (pantolon rengi)
+			_garment("yirtmacli_etek", func(): return _loft(g, 1, hips + 0.07, hips - 0.27, 14, torso, func(t, _a): return 0.024 + t * 0.045, 8,
+				func(t, ang): return t > 0.08 and absf(wrapf(ang - PI * 0.5, -PI, PI)) < 0.2 + t * 0.12, hips - 0.08))
+			_garment("ic_etek", func(): return _loft(g, 1, hips + 0.02, hips - 0.22, 10, torso, func(t, _a): return 0.012 + t * 0.026, 3, null, hips - 0.08))
+		"sargi_etek_uzun":
+			# uzun sargı etek (Striker Ino 2): belden baldır ortasına düz-hafif çan; önde kruvaze kat çizgisi (desen)
+			_garment("sargi_etek_uzun", func(): return _loft(g, 1, hips + 0.07, ank + 0.16, 22, torso, func(t, _a): return 0.024 + t * 0.075, 8, null, hips - 0.08))
+		"esofman_ceket":
+			# önü açık eşofman ceketi (Striker Boruto): boyundan belin altına, gövdeye yakın; fermuar açık (dar ön açıklık)
+			_garment("esofman_ceket", func(): return _loft(g, 1, neck + 0.0, hips - 0.04, 13, torso, func(t, _a): return 0.046 + t * 0.01, 8, front_gap.call(0.32, -1.0)))
+		"kisa_haori":
+			# kısa geniş kollu ceket (Striker Choji): boyundan kalçanın altına, önü açık; kollar dirseğin altına geniş ağızlı
+			_garment("kisa_haori", func(): return _loft(g, 1, neck + 0.01, hips - 0.1, 14, torso, func(t, _a): return 0.05 + t * 0.022, 8, front_gap.call(0.55, -1.0), hips - 0.03))
+			for sx in [1.0, -1.0]:
+				var hel = absf(_bp("LeftLowerArm").x)
+				_garment("haori_kol%d" % int(sx), func(): return _loft(g, 0, (absf(ua) * 0.86) * sx, (hel + 0.11) * sx, 11, func(p): return signf(p.x) == sx and p.y > neck - 0.35 and absf(p.x) > absf(ua) * 0.84 and absf(p.x) < hel + 0.13, func(t, _a): return 0.024 + t * 0.04, 8, null, -99.0, 24))
+		"kizil_palto":
+			# kızıl kruvaze palto (Striker Gaara): dik yakalı, baldıra iner; belden aşağı önde düz yırtmaç (pantolon görünür)
+			_garment("kizil_palto", func(): return _loft(g, 1, neck + 0.0, knee - 0.22, 24, torso, func(t, _a): return 0.042 + t * 0.032, 8,
+				func(t, ang): return t > 0.38 and absf(wrapf(ang - PI * 0.5, -PI, PI)) < 0.22 + (t - 0.38) * 0.4, hips - 0.05))
+		"onluk":
+			# kolsuz hemşire önlüğü (Striker Adorable): boyundan uyluk ortasına; gövdede dar, belden sonra A kesim açılır
+			_garment("onluk", func(): return _loft(g, 1, neck + 0.0, hips - 0.22, 18, torso, func(t, _a): return 0.05 + pow(maxf(0.0, t - 0.5), 1.25) * 0.2, 8, null, hips - 0.05))
+		"hirka":
+			# önü açık hırka (Striker Wonder): boyundan kalçanın altına bol düz gövde; ön açıklık boydan boya,
+			# kollar omuzdan bileğe ayrı bol "piskopos" kol (dirsekten sonra şişer, bilekte manşete toplanır)
+			_garment("hirka", func(): return _loft(g, 1, neck - 0.01, hips - 0.17, 17, torso, func(t, _a): return 0.05 + t * 0.018, 8, front_gap.call(0.68, -1.0), hips - 0.03))
+			for sx in [1.0, -1.0]:
+				var hua = absf(_bp("LeftUpperArm").x)
+				var hx = absf(_bp("LeftHand").x)
+				_garment("hirka_kol%d" % int(sx), func(): return _loft(g, 0, (hua + 0.02) * sx, (hx - 0.045) * sx, 12, func(p): return signf(p.x) == sx and p.y > neck - 0.35 and absf(p.x) > hua and absf(p.x) < hx - 0.02, func(t, _a): return 0.026 + 0.052 * pow(sin(clampf(t * 1.12, 0.0, 1.0) * PI * 0.9), 1.5) * smoothstep(0.05, 0.55, t) - 0.016 * smoothstep(0.86, 1.0, t), 8))
+		"uzun_ceket":
+			# uzun ceket (Striker Swanky): dik yakalı, dize inen; belden aşağı önde ters V açılır (sivri uçlu iki kanat)
+			_garment("uzun_ceket", func(): return _loft(g, 1, neck + 0.0, knee - 0.06, 22, torso, func(t, _a): return 0.036 + t * t * 0.07, 8,
+				func(t, ang): return t > 0.42 and absf(wrapf(ang - PI * 0.5, -PI, PI)) < (t - 0.42) * 1.5, hips - 0.06))
+		"omuz_kazak":
+			# omzu açık kısa kazak (Striker Sweet): göğüs üstünden (omuz hattı) belin üstüne; kollar dış giysi renginde, bilekte çan gibi açılır
+			_garment("omuz_kazak", func(): return _loft(g, 1, chest + 0.07, hips + 0.08, 12, torso, func(t, _a): return 0.034 + t * 0.012, 8))
+			for sx in [1.0, -1.0]:
+				var el = absf(_bp("LeftLowerArm").x)
+				var hx = absf(_bp("LeftHand").x)
+				_garment("kazak_kol%d" % int(sx), func(): return _loft(g, 0, el * sx, (hx - 0.03) * sx, 8, func(p): return signf(p.x) == sx and p.y > neck - 0.35 and absf(p.x) > el - 0.02 and absf(p.x) < hx - 0.02, func(t, _a): return 0.014 + t * t * 0.07, 8))
+		"kapusonlu":
+			# kapüşonlu (Striker Youth): boyundan kalçaya bol, kapalı gövde; kollar alttaki dirsek boyu kollu üstten (reglan renk ayrı)
+			_garment("kapusonlu", func(): return _loft(g, 1, neck - 0.02, hips - 0.06, 15, torso, func(t, _a): return 0.042 + t * 0.022, 8, null, hips - 0.02))
+		"flamingo_elbise":
+			# omzu açık kısa elbise (Striker Beach Flamingo): göğüs üstünden uyluk ortasına; dar korse, kalçadan sonra açılan etek + fırfır katı
+			_garment("flamingo_elbise", func(): return _loft(g, 1, chest + 0.06, hips - 0.2, 16, torso, func(t, _a): return 0.018 + pow(maxf(0.0, t - 0.55), 1.6) * 0.32, 8, null, hips - 0.08))
+			_garment("flamingo_firfir", func(): return _loft(g, 1, hips - 0.17, hips - 0.27, 6, torso, func(t, _a): return 0.055 + t * 0.1, 8, null, hips - 0.08))
+		"sisme_yelek":
+			# şişme yelek (Striker Beach): boyundan belin hemen üstüne kolsuz, önü açık; yatay dolgu dilimleri (kalınlık y boyunca dalgalı)
+			_garment("sisme_yelek", func(): return _loft(g, 1, neck - 0.02, hips + 0.02, 24, torso, func(t, _a): return 0.045 + 0.034 * pow(absf(sin(t * PI * 4.5)), 0.6), 8, front_gap.call(0.5, -1.0)))
+		"suna_tunik":
+			# Suna tuniği (Striker Sand Striker): boyundan kalçanın altına bol, kolsuz tunik
+			_garment("suna_tunik", func(): return _loft(g, 1, neck - 0.03, hips - 0.12, 15, torso, func(t, _a): return 0.04 + t * 0.03, 8, null, hips - 0.04))
 		"kaya_gi":
 			# Kaya gi (Striker Rock Striker): boyundan kalçanın altına kolsuz çapraz bağlı gi; kollar alttaki tek kollu üstten
 			_garment("kaya_gi", func(): return _loft(g, 1, neck - 0.03, hips - 0.13, 15, torso, func(t, _a): return 0.034 + t * 0.03, 8, null, hips - 0.04))
@@ -2153,6 +3917,102 @@ func _garments(g: Dictionary) -> void:
 		_bulut_etek_kit(g)
 	if look.get("outer_style") == "kaya_gi":
 		_kaya_gi_kit(g)
+	if look.get("outer_style") == "suna_tunik":
+		_suna_tunik_kit(g)
+	if look.get("outer_style") == "sisme_yelek":
+		_sisme_yelek_kit(g)
+	if look.get("outer_style") == "flamingo_elbise":
+		_flamingo_kit(g)
+	if look.get("outer_style") == "kapusonlu":
+		_kapusonlu_kit(g)
+	if look.get("outer_style") == "omuz_kazak":
+		_omuz_kazak_kit(g)
+	if look.get("outer_style") == "uzun_ceket":
+		_uzun_ceket_kit(g)
+	if look.get("outer_style") == "hirka":
+		_hirka_kit(g)
+	if look.get("outer_style") == "onluk":
+		_onluk_kit(g)
+	if look.get("outer_style") == "esofman_ceket":
+		_esofman_kit(g)
+	if look.get("outer_style") == "hinata_ceket":
+		_hinata_ceket_kit(g)
+	if look.get("outer_style") == "yilan_cubbe":
+		_yilan_cubbe_kit(g)
+	if look.get("outer_style") == "iki_ton_kimono":
+		_iki_ton_kimono_kit(g)
+	if look.get("outer_style") == "bel_ortusu":
+		_bel_ortusu_kit(g)
+	if look.get("outer_style") == "kuyruklu_ceket":
+		_kuyruklu_ceket_kit(g)
+	if look.get("outer_style") == "gunes_kimono":
+		_gunes_kimono_kit(g)
+	if look.get("outer_style") == "uzun_trench":
+		_uzun_trench_kit(g)
+	if look.get("outer_style") == "kutlama_kimono":
+		_kutlama_kit(g)
+	if look.get("outer_style") == "seytan_kapuson":
+		_seytan_kapuson_kit(g)
+	if look.get("outer_style") == "kabarik_bluz":
+		_kabarik_bluz_kit(g)
+	if look.get("outer_style") == "uzun_robe":
+		_uzun_robe_kit(g)
+	if look.get("outer_style") == "buyuk_kapusonlu":
+		_buyuk_kapusonlu_kit(g)
+	if look.get("outer_style") == "kisa_kollu_kazak":
+		_kisa_kollu_kazak_kit(g)
+	if look.get("wide_obi") is Color:
+		_wide_obi_kit(g)
+	if look.get("front_bow") is Color:
+		_front_bow_kit(g)
+	if look.get("back_scroll", false):
+		_back_scroll_kit(g)
+	if look.get("armor_apron") is Color:
+		_armor_apron_kit(g)
+	if look.get("chest_pockets", false):
+		_chest_pockets_kit(g)
+	if look.get("outer_style") == "delta_elbise":
+		_delta_kit(g)
+	if look.get("kok_reisi") is Color:
+		_kok_reisi_kit(g)
+	if look.get("outer_style") == "kolsuz_kimono":
+		_kolsuz_kimono_kit(g)
+	if look.get("outer_style") == "takim_yelek":
+		_takim_yelek_kit(g)
+	if look.get("shimenawa") is Color:
+		_shimenawa_kit(g)
+	if look.get("outer_style") == "rikudo_cubbe":
+		_rikudo_cubbe_kit(g)
+	if look.get("jonin_aks") is Color:
+		_jonin_aks_kit(g)
+	if look.get("outer_style") == "genis_gomlek":
+		_genis_gomlek_kit(g)
+	if look.get("outer_style") == "kisa_kimono":
+		_kisa_kimono_kit(g)
+	if look.get("necklace") is Color:
+		_necklace_kit(g)
+	if look.get("cin_ust") is Color:
+		_cin_ust_kit(g)
+	if look.get("outer_style") == "kolsuz_palto":
+		_kolsuz_palto_kit(g)
+	if look.get("outer_style") == "turuncu_ceket":
+		_turuncu_ceket_kit(g)
+	if look.get("outer_style") == "kisa_bolero":
+		_kisa_bolero_kit(g)
+	if look.get("bangle") is Color:
+		_bangle_kit(g)
+	if look.get("outer_style") == "algi_ceket":
+		_algi_ceket_kit(g)
+	if look.get("outer_style") == "sargi_elbise":
+		_sargi_elbise_kit(g)
+	if look.get("outer_style") == "kirpik_kapusonlu":
+		_kirpik_kapusonlu_kit(g)
+	if look.get("outer_style") == "kisa_haori":
+		_kisa_haori_kit(g)
+	if look.get("outer_style") == "kizil_palto":
+		_kizil_palto_kit(g)
+	if look.get("waist_belt") is Color:
+		_waist_belt_kit(g)
 	if look.get("outer_style") in ["atki", "kisa"] and look.get("outer") is Color:
 		# atkı: ense arkasındaki düğümden sırta sarkan, rüzgârda uçuşan iki uç (ikincil hareket)
 		var nk = _bp("Neck")
@@ -2167,9 +4027,29 @@ func _garments(g: Dictionary) -> void:
 		var sy1 = [0.0, hips - (hips - knee) * 0.45, knee - 0.02, ank + 0.08][sk]
 		var fl = [0.0, 0.045, 0.06, 0.08][sk]
 		_garment("etek_%d" % sk, func(): return _loft(g, 1, hips + 0.05, sy1, 12 + sk * 4, torso, func(t, _a): return 0.022 + t * fl, 3, null, hips - 0.1, 26))
-	if look.get("hakama", false):
+	if look.get("hakama", false) and look.get("hakama_cut") == "genis":
+		# geniş paçalı antrenman hakaması (Striker Training Clothes): yüksek bel (obiyi örter), apış altında iki ayrı bol paça, baldır ortası
+		_garment("hakama_ust", func(): return _loft(g, 1, hips + 0.17, hips - 0.1, 10, torso, func(t, _a): return 0.034 + t * 0.03, 3, null, -99.0, 32))
+		for sx in [-1.0, 1.0]:
+			var kx = _bp(("Left" if sx > 0.0 else "Right") + "LowerLeg").x
+			_garment("hakama_paca%d" % int(sx), func(): return _loft(g, 1, hips - 0.06, ank + 0.15, 16, func(p): return signf(p.x) == sx and absf(p.x - kx) < 0.1,
+				func(t, a): return (0.032 + t * 0.07) * (1.0 if cos(a) * sx > -0.4 else 0.3), 3, null, -99.0, 24))
+	elif look.get("hakama", false):
 		# hakama: belden bileğe geniş, pilili etek-pantolon (bacakların ortak kesitinden)
 		_garment("hakama", func(): return _loft(g, 1, hips + 0.06, ank + 0.06, 22, torso, func(t, _a): return 0.03 + t * 0.06, 3, null, hips - 0.12, 28))
+	if look.get("pleat_skirt", false):
+		# yüksek belli pilili kısa etek (Striker WTNY): göğüs altından uyluk ortasına; kat kat pli (açıya göre zikzak kalınlık)
+		_garment("pilili_etek", func(): return _loft(g, 1, hips + 0.15, hips - 0.21, 14, torso, func(t, a): return 0.03 + t * 0.09 + 0.012 * t * absf(sin(a * 12.0)), 3, null, hips - 0.08, 72))
+	if look.get("wide_sleeve_long", false):
+		# uzun geniş kimono kolu: omuzdan bileğe, ağzı çok geniş sarkan kol (üst renginde)
+		for sx in [1.0, -1.0]:
+			var whx = absf(_bp("LeftHand").x)
+			_garment("genis_uzun_kol%d" % int(sx), func(): return _loft(g, 0, (absf(ua) * 0.86) * sx, (whx - 0.05) * sx, 14, func(p): return signf(p.x) == sx and p.y > neck - 0.35 and absf(p.x) > absf(ua) * 0.84 and absf(p.x) < whx - 0.03, func(t, _a): return 0.026 + t * 0.075, 1, null, -99.0, 24))
+	if look.get("wide_sleeve", false):
+		# geniş kısa kimono kolu: omuzdan dirseğin biraz altına, ağzı açılan bol kol (gi kolunun dışında)
+		for sx in [1.0, -1.0]:
+			var el = absf(_bp("LeftLowerArm").x)
+			_garment("genis_kol%d" % int(sx), func(): return _loft(g, 0, (absf(ua) + 0.02) * sx, (el + 0.08) * sx, 9, func(p): return signf(p.x) == sx and p.y > neck - 0.35 and absf(p.x) > absf(ua) and absf(p.x) < el + 0.1, func(t, _a): return 0.022 + t * 0.035, 1, null, -99.0, 24))
 	var hs = look.get("head_style")
 	if hs == "kapuson":
 		# kapüşonun omuz etek kısmı (gövdeye derili): boyundan omuz başına açılan kumaş; kafa kısmı hood()
@@ -2179,14 +4059,61 @@ func _garments(g: Dictionary) -> void:
 	var fs = look.get("face_style")
 	if fs in []:   # bez/gaz maske artık yüz kabuğu (face_item)
 		_garment("maske", func(): return _loft(g, 1, ey - 0.038, neck - 0.03, 10, func(p): return p.y > neck - 0.08 and absf(p.x) < 0.13, flat.call(0.009), 11))
+	if look.get("neck_scarf") is Color:
+		# boyun atkısı (Striker Konohamaru): yelek yakasının dışında boynu saran kalın bez; kendi rengi için başlık yuvası (10)
+		# bu kabuğa özel paletle boyanır (başka giysiyle renk çakışmasın)
+		_garment_tinted("boyun_atki", look["neck_scarf"], func(): return _loft(g, 1, neck - 0.05, neck + 0.07, 8, func(p): return absf(p.x) < 0.15, func(t, a): return 0.07 - t * 0.032 + (0.012 if sin(a) > 0.3 else 0.0), 10))
+	if look.get("sweater_hem") is Color:
+		# uzun kazağın eteği (Striker Han): belden uyluk ortasına yatay kaburgalı kalın örgü
+		_garment_tinted("kazak_etek", look["sweater_hem"], func(): return _loft(g, 1, hips + 0.08, hips - 0.22, 16, torso, func(t, _a): return 0.036 + t * 0.03 + 0.006 * absf(sin(t * PI * 9.0)), 10, null, hips - 0.06))
+	if look.get("petal_skirt") is Dictionary:
+		# iki katlı yaprak etek (Striker Himawari): üst kat açık mavi sivri dişli, alt kat pembe-kırmızı fırfır
+		var pk: Dictionary = look["petal_skirt"]
+		_garment_tinted("yaprak_etek_alt", pk.get("b", Color(0.95, 0.55, 0.62)), func(): return _loft(g, 1, hips + 0.02, hips - 0.21, 10, torso, func(t, a): return 0.03 + t * 0.07 + 0.01 * absf(sin(a * 6.0)) * t, 10, null, hips - 0.06, 48))
+		_garment_tinted("yaprak_etek_ust", pk.get("a", Color(0.75, 0.88, 0.95)), func(): return _loft(g, 1, hips + 0.04, hips - 0.08, 6, torso, func(t, _a): return 0.04 + t * 0.06, 10, func(t, ang): return t > 0.5 and fposmod(ang * 4.0, 1.0) < (t - 0.5) * 1.6, hips - 0.06, 48))
+	if look.get("long_skirt") is Color:
+		# A kesim uzun etek (Striker Hinata 5): belden baldır ortasına; altındaki pantolon paçası görünür
+		_garment_tinted("cizgili_uzun_etek", look["long_skirt"], func(): return _loft(g, 1, hips + 0.06, knee - 0.18, 18, torso, func(t, _a): return 0.042 + t * 0.1, 10, null, hips - 0.08, 40))
+	if look.get("gi_yelek") is Color:
+		# kolsuz gi yelek (Striker Han): göğüsten belin altına, omuz ve etek kenarı yırtık dişli
+		_garment_tinted("gi_yelek", look["gi_yelek"], func(): return _loft(g, 1, neck - 0.01, hips - 0.03, 14, torso, func(t, _a): return 0.062 + t * 0.012, 10, func(t, ang): return (t < 0.12 and fposmod(ang * 3.0, 1.0) < 0.3) or (t > 0.9 and fposmod(ang * 4.0, 1.0) < (t - 0.9) * 6.0), -99.0, 48))
+	if look.get("fur_scarf") is Color:
+		# kalın kürk atkı (Striker Celebratory): boynu ve omuzları saran kabarık beyaz kürk (açıya göre tüylü dalga)
+		_garment_tinted("kurk_atki", look["fur_scarf"], func(): return _loft(g, 1, neck - 0.09, neck + 0.05, 9, func(p): return absf(p.x) < 0.2, func(t, a): return 0.075 - t * 0.03 + 0.012 * absf(sin(a * 9.0 + t * 7.0)), 10, func(t, ang): return t > 0.4 and absf(wrapf(ang - PI * 0.5, -PI, PI)) < 0.25))
+	if look.get("bell_cuffs") is Color:
+		# çan manşet ve paçalar (Striker Code): bilekte açılan geniş manşet, baldır altında açılan geniş paça
+		var bhx = absf(_bp("LeftHand").x)
+		for sx in [-1.0, 1.0]:
+			_garment_tinted("can_manset%d" % int(sx), look["bell_cuffs"], func(): return _loft(g, 0, (bhx - 0.2) * sx, (bhx - 0.035) * sx, 9, func(p): return signf(p.x) == sx and p.y > neck - 0.32, func(t, _a): return 0.016 + t * t * 0.05, 10, null, -99.0, 20))
+			var bkx = _bp(("Left" if sx > 0.0 else "Right") + "LowerLeg").x
+			_garment_tinted("can_paca%d" % int(sx), look["bell_cuffs"], func(): return _loft(g, 1, knee - 0.16, ank + 0.02, 9, func(p): return signf(p.x) == sx and absf(p.x - bkx) < 0.095, func(t, a): return (0.03 + t * 0.03) * (1.0 if cos(a) * sx > -0.3 else 0.5), 10, null, -99.0, 20))
+	if look.get("elbow_pads") is Color:
+		var pel = absf(_bp("LeftLowerArm").x)
+		for sx in [-1.0, 1.0]:
+			_garment_tinted("dirseklik%d" % int(sx), look["elbow_pads"], func(): return _loft(g, 0, (pel - 0.09) * sx, (pel + 0.07) * sx, 8, func(p): return signf(p.x) == sx and p.y > neck - 0.32, flat.call(0.014), 10, null, -99.0, 20))
+	if look.get("net_pads", false):
+		var nel = absf(_bp("LeftLowerArm").x)
+		for sx in [-1.0, 1.0]:
+			_garment("file_dirsek%d" % int(sx), func(): return _loft(g, 0, (nel - 0.07) * sx, (nel + 0.06) * sx, 8, func(p): return signf(p.x) == sx and p.y > neck - 0.32, flat.call(0.008), 9, null, -99.0, 20))
+			_garment("file_diz%d" % int(sx), func(): return _loft(g, 1, knee + 0.08, knee - 0.08, 8, func(p): return signf(p.x) == sx and absf(p.x) < 0.3, flat.call(0.009), 9, null, -99.0, 20))
 	var gd = look.get("guards")
 	if gd in ["kol", "ikisi"]:
 		for sx in [-1.0, 1.0]:
-			_garment("kolluk%d" % int(sx), func(): return _loft(g, 0, (ha - 0.17) * sx, (ha - 0.05) * sx, 6, func(p): return signf(p.x) == sx and p.y > neck - 0.32, flat.call(0.018), 9, null, -99.0, 16))
+			_garment("kolluk%d_%d" % [int(sx), int(look.get("guard_long", false))], func(): return _loft(g, 0, ((absf(_bp("LeftLowerArm").x) + 0.03) if look.get("guard_long", false) else (ha - 0.17)) * sx, (ha - 0.05) * sx, 10 if look.get("guard_long", false) else 6, func(p): return signf(p.x) == sx and p.y > neck - 0.32, flat.call(0.018), 9, null, -99.0, 16))
 	if gd in ["bacak", "ikisi"]:
 		for sx in [-1.0, 1.0]:
 			_garment("kaval%d" % int(sx), func(): return _loft(g, 1, knee - 0.05, ank + 0.08, 8, func(p): return signf(p.x) == sx and absf(p.x) < 0.35,
 				func(_t, ang): return 0.046 if absf(wrapf(ang - PI * 0.5, -PI, PI)) < 1.3 else 0.036, 9, null, -99.0, 16))   # paça kıvrımı taşmasın
+	if look.get("long_skirt") is Color:
+		_stripe_skirt_kit(g)
+	if look.get("gi_yelek") is Color:
+		_gi_yelek_kit(g)
+	if look.get("drape_sash") is Color:
+		_drape_sash_kit(g)
+	if look.get("neck_scarf") is Color or look.get("armband") is Color:
+		_boyun_atki_kit(g)
+	if look.get("kg") is Dictionary or look.get("pleat_skirt", false):   # hakama/etek kurulduktan sonra (bağlar onların kabuğuna derilir)
+		_keiko_kit(g)
 	OutfitParts.garments(self, g)
 	_outer_pad = 0.0
 	_gdata = g   # sırt silahı kayışı silahlar kurulurken loft edilir
@@ -2600,7 +4527,11 @@ func _vest_kit(src: ArrayMesh, g: Dictionary) -> void:
 	var sh_x = _bp("LeftUpperArm").x * 0.82
 	match vs:
 		0:   # Konoha (set1.png): fermuar, 2x2 parşömen cebi, dik yaka, etek bandı, yassı omuzluk
-			_sk_strip(0.0, top_y + 0.02, bot_y + 0.01, 0.012, 0.006, zipc, 34)
+			if look.get("vest_open", false):   # fermuarı açık: ortası boş, iki kenarda fermuar dişi
+				for zsx in [-1.0, 1.0]:
+					_sk_strip(0.05 * zsx, top_y + 0.02, bot_y + 0.01, 0.008, 0.006, zipc, 34)
+			else:
+				_sk_strip(0.0, top_y + 0.02, bot_y + 0.01, 0.012, 0.006, zipc, 34)
 			for sx in [-1.0, 1.0]:
 				for row in [[ch - 0.075, 0.1, 0.075], [ch - 0.18, 0.115, 0.095]]:
 					_sk_pocket(0.09 * sx, row[0], row[1], row[2], vc, dk)
@@ -5826,7 +7757,7 @@ func _attachments() -> void:
 	# --- çanta + kunai kılıfı
 	# bel çantası: kalça kemiğine yapışık katı kutu kumaşın/eteğin/paltonun içine giriyordu -> gövde kabuğunun arka yüzeyine
 	# derili ince kapaklı çanta (kumaşla eğilir); beli/kalçayı örten giysi, etek ya da hakama varsa hiç takılmaz
-	if not look.get("outer_style") in ["anbu_palto", "palto", "cuppe", "haori", "haori_uzun", "pelerin", "org_pelerin", "panco", "jinbaori", "mino", "yirtik", "kisa", "acik_ceket", "kiri_tunik", "bulut_etek", "kaya_gi"] 			and int(look.get("skirt", 0)) == 0 and not look.get("hakama", false) and _sk_begin(_shell_cache.get(look["gender"])):
+	if not look.get("outer_style") in ["anbu_palto", "palto", "cuppe", "haori", "haori_uzun", "pelerin", "org_pelerin", "panco", "jinbaori", "mino", "yirtik", "kisa", "acik_ceket", "kiri_tunik", "bulut_etek", "kaya_gi", "suna_tunik", "sisme_yelek", "flamingo_elbise", "kapusonlu", "omuz_kazak", "uzun_ceket", "hirka", "onluk", "esofman_ceket", "kisa_haori", "kizil_palto", "hinata_ceket", "kirpik_kapusonlu", "yirtmacli_etek", "sargi_etek_uzun", "yilan_cubbe", "algi_ceket", "sargi_elbise", "onluk_elbise", "iki_ton_kimono", "turuncu_ceket", "kisa_bolero", "panel_etek", "uzun_panel_ust", "bel_ortusu", "kolsuz_palto", "kuyruklu_ceket", "kisa_kimono", "gunes_kimono", "genis_gomlek", "uzun_trench", "rikudo_cubbe", "yirtik_esofman", "kutlama_kimono", "kolsuz_kimono", "takim_yelek", "seytan_kapuson", "danzo_ortu", "delta_elbise", "kabarik_bluz", "kurbaga_kigurumi", "uzun_robe", "buyuk_kapusonlu", "kisa_kollu_kazak"] 			and int(look.get("skirt", 0)) == 0 and not look.get("hakama", false) and not look.get("pleat_skirt", false) and _sk_begin(_shell_cache.get(look["gender"])):
 		var hy = _bp("Hips").y + 0.035
 		var bc = Color(0.42, 0.33, 0.22)
 		if _sk_plate(0.0, hy, 0.12, 0.075, 0.022, bc, 0.002, false):
