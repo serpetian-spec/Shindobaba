@@ -54,6 +54,7 @@ uniform bool sleeve_roll = false;
 uniform bool guard_net = false;
 uniform bool vest_open = false;   // taktik yeleğin fermuarı açık (önde ortası boş)   // aksesuar halkaları file dirsek/dizlik (ten aradan görünür, uçlarda bant)   // kollar ön kol ortasına kadar kıvrık (köy üniforması tulumu)
 uniform bool arm_wraps = false;
+uniform bool no_wraps = false;   // yüksek yakalı gömlekte bilek sargısı olmasın (Striker kimono setleri)
 uniform float outer_top = 1.45;   // dış giysinin yaka dibi (boyun) y — desen yerleşimi
 uniform float sleeve_end = 0.6;   // kol ağzı (bilek) |x| — çan kol astarı
 uniform int outer_sleeves = 0; // 1: dış giysi kolları (palto/haori)
@@ -188,7 +189,7 @@ int cloth_slot(vec3 p) {
 		else if (top_style == 6) sleeve = rig_a.y + 0.05;
 		if ((top_style == 4 || top_style == 8) && p.y < rig_a.w - 0.1 && ax < rig_a.x * 1.08) return 1;   // kolsuzda koltuk altı göğüs yanı kumaş (kadın gövdesinde delik kalıyordu)
 		if (ax < sleeve) return (top_style == 2 && ax < rig_a.x + 0.07) ? 2 : 1;
-		if ((top_style == 3 || arm_wraps) && ax > rig_a.y - 0.02) return 4;
+		if (((top_style == 3 && !no_wraps) || arm_wraps) && ax > rig_a.y - 0.02) return 4;
 		return 0;
 	}
 	if (p.y > rig_a.w) {

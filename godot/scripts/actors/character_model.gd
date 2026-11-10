@@ -1154,6 +1154,7 @@ func _cloth_mat(layer: int) -> ShaderMaterial:
 	mat.set_shader_parameter("vest_style", int(look.get("vest_style", 0)))
 	mat.set_shader_parameter("gloves", bool(look.get("gloves", false)))
 	mat.set_shader_parameter("arm_wraps", bool(look.get("arm_wraps", false)))
+	mat.set_shader_parameter("no_wraps", bool(look.get("no_wraps", false)))
 	var os_ = String(look.get("outer_style", "")) if look.get("outer_style") != null else ""
 	# yelek dış giysinin altında: önü açık giysilerde (haori, palto, jinbaori) yalnız açıklık kadarı görünür, kapalı pelerinde gizli
 	const OPEN_GAP := {"haori": 0.031, "haori_uzun": 0.029, "jinbaori": 0.038, "palto": 0.025, "acik_ceket": 0.045, "sisme_yelek": 0.06, "uzun_ceket": 0.02, "hirka": 0.04, "esofman_ceket": 0.03, "kisa_haori": 0.05, "hinata_ceket": 0.0, "hinata_ceket_acik": 0.05, "kisa_bolero": 0.042, "kuyruklu_ceket": 0.03, "uzun_trench": 0.05, "yirtik_esofman": 0.035, "uzun_robe": 0.03}
