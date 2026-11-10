@@ -4191,7 +4191,7 @@ func _haku_yukata_kit(g: Dictionary) -> void:
 		if absf(q.y - (hips + 0.12)) < bd:
 			bd = absf(q.y - (hips + 0.12)); by = q.y
 	var rc: Color = look.get("outer2", Color(0.85, 0.35, 0.35))
-	var steps = 40
+	var steps = 90
 	for i in steps + 1:
 		var t = float(i) / steps
 		var y = lerpf(neck - 0.02, ybot + 0.02, t)
@@ -4200,7 +4200,7 @@ func _haku_yukata_kit(g: Dictionary) -> void:
 		if h.is_empty():
 			continue
 		var n: Vector3 = (h[1] as Vector3).normalized()
-		_sk_box(Vector3(x, y, (h[0] as Vector3).z) + n * 0.005, Vector3(0.018, 0, 0), Vector3(0, (neck - ybot) / steps * 0.7, 0), n * 0.003, rc)
+		_sk_box(Vector3(x, y, (h[0] as Vector3).z) + n * 0.005, Vector3(0.018, 0, 0), Vector3(0, (neck - ybot) / steps * 1.3, 0), n * 0.003, rc)
 	_sk_ring(1, by, 0.1, 0.008, Color(0.9, 0.9, 0.86), -PI, PI, 56, 0.006)
 	var dots = [[0.1, 0.5], [-0.12, 0.62], [0.06, 0.8], [-0.1, 0.9], [0.13, 0.95], [0.0, 0.7]]
 	for d in dots:
