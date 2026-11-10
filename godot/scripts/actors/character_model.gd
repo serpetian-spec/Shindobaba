@@ -4549,13 +4549,31 @@ func _sarada_elbise_kit(g: Dictionary) -> void:
 	for q in V:
 		if absf(q.y - (hips + 0.02)) < bd:
 			bd = absf(q.y - (hips + 0.02)); by = q.y
+	if look.get("sailor") is Color:
+		# denizci yaka (ref all/sumire_outfit_ninja_school_version): V kenarlarında beyaz yaka şeridi, sırtta kare beyaz yaka kapağı, V ucunda mor fular
+		var wc: Color = look["sailor"]
+		var vy = maxf(neck - 0.02 - 0.31 * ((neck - 0.02) - (hips - 0.2)), neck - 0.17)
+		for sx in [1.0, -1.0]:
+			_sk_path(Vector2(0.085 * sx, neck - 0.0), Vector2(0.008 * sx, vy + 0.01), 0.034, 0.005, wc, true, 0.006, 24, 0.04)
+		for i in 10:
+			var x = lerpf(-0.1, 0.1, (i + 0.5) / 10.0)
+			_sk_path(Vector2(x, neck - 0.045), Vector2(x, neck - 0.17), 0.022, 0.005, wc, false, 0.006, 12, 0.04)
+		_sk_path(Vector2(-0.1, neck - 0.17), Vector2(0.1, neck - 0.17), 0.008, 0.004, wc.darkened(0.25), false, 0.009, 16, 0.04)
+		var nc: Color = _lc("sailor_tie", Color(0.45, 0.2, 0.55))
+		var hv = _sk_hit(0.0, vy + 0.01, true, 0.04)
+		if not hv.is_empty():
+			var z = (hv[0] as Vector3).z + 0.012
+			_sk_box(Vector3(0, vy + 0.015, z), Vector3(0.02, 0, 0), Vector3(0, 0.018, 0), Vector3(0, 0, 0.008), nc)   # düğüm
+			for sx in [1.0, -1.0]:
+				_sk_box(Vector3(0.045 * sx, vy + 0.03, z - 0.004), Vector3(0.03, -0.022 * sx, 0), Vector3(0.008 * sx, 0.012, 0), Vector3(0, 0, 0.004), nc)   # V kenarına dayanan fular kolu
+				_sk_box(Vector3(0.022 * sx, vy - 0.06, z - 0.004), Vector3(0.016, 0, 0), Vector3(0.014 * sx, 0.06, 0), Vector3(0, 0, 0.003), nc.darkened(0.1))   # sarkan geniş uçlar
 	if look.get("robe_obi") is Color:
 		var oy = hips + 0.12
 		var od = 9.0
 		for q in V:
 			if absf(q.y - (hips + 0.12)) < od:
 				od = absf(q.y - (hips + 0.12)); oy = q.y
-		_sk_ring(1, oy, 0.1, 0.008, look["robe_obi"], -PI, PI, 56, 0.005)
+		_sk_ring(1, oy + (0.01 if look.get("sailor") is Color else 0.0), 0.065 if look.get("sailor") is Color else 0.1, 0.008, look["robe_obi"], -PI, PI, 56, 0.006 if look.get("sailor") is Color else 0.005)
 		_sk_end(g)
 		return
 	_sk_ring(1, by, 0.022, 0.006, Color(0.92, 0.92, 0.94), -PI, PI, 56, 0.004)
@@ -4827,6 +4845,20 @@ func _trim_kit(g: Dictionary) -> void:
 	_sk_ring(1, hips - 0.025, 0.03, 0.006, tc, -PI, PI, 48, 0.004)
 	for sx in [1.0, -1.0]:
 		_sk_ring(0, (ha - 0.05) * sx, 0.035, 0.006, tc, -PI, PI, 20, 0.005, sx)
+	_sk_end(g)
+
+
+## Fermuarlı kolsuz üst (ref all/sumire_outfit_genin_ver): boyunda beyaz katlı dik yaka (önde iki kanat), önde koyu ince fermuar
+func _zip_collar_kit(g: Dictionary) -> void:
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var wc: Color = look["zip_collar"]
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	_sk_ring(1, neck - 0.005, 0.05, 0.008, wc, -PI, PI, 40, 0.006, 0.0, 0.0, 0.12)   # dik yaka
+	for sx in [1.0, -1.0]:
+		_sk_path(Vector2(0.025 * sx, neck - 0.03), Vector2(0.11 * sx, neck - 0.045), 0.04, 0.005, wc, true, 0.01, 12, 0.04)   # katlı yaka kanadı
+	_sk_path(Vector2(-0.006, neck - 0.04), Vector2(-0.006, hips + 0.05), 0.008, 0.004, wc.darkened(0.55), true, 0.005, 30, 0.03)   # fermuar
 	_sk_end(g)
 
 
@@ -5611,6 +5643,8 @@ func _garments(g: Dictionary) -> void:
 		_belly_wraps_kit(g)
 	if look.get("waist_belt") is Color:
 		_waist_belt_kit(g)
+	if look.get("zip_collar") is Color:
+		_zip_collar_kit(g)
 	if look.get("outer_style") in ["atki", "kisa"] and look.get("outer") is Color:
 		# atkı: ense arkasındaki düğümden sırta sarkan, rüzgârda uçuşan iki uç (ikincil hareket)
 		var nk = _bp("Neck")

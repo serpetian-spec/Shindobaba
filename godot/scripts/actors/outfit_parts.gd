@@ -406,6 +406,7 @@ static func _sengoku(m: CharacterModel, L: Dictionary, ch: Vector3, hip: Vector3
 	var c: Color = L.get("vest") if L.get("vest") != null else Color(0.55, 0.16, 0.12)
 	var trim: Color = L.get("armor_trim") if L.get("armor_trim") != null else c.darkened(0.45)
 	var cord = Color(0.85, 0.7, 0.3) if c.r > c.b else Color(0.75, 0.75, 0.8)
+	var pc: Color = L.get("armor_plates") if L.get("armor_plates") is Color else c   # omuzluk/kol/etek plakaları ayrı renk (ref special_outfits: kızıl göğüs, koyu kafes plakalar)
 	var sh = absf(m._bp("LeftUpperArm").x)
 	var tw = sh * 1.85          # gövde genişliği
 	var td = sh * 1.25          # gövde derinliği
@@ -425,9 +426,15 @@ static func _sengoku(m: CharacterModel, L: Dictionary, ch: Vector3, hip: Vector3
 	for k in 3:
 		lo.add("cyl", Vector3(0, -k * 0.065, 0), Vector3(tw * (0.9 + k * 0.03), 0.06, td * (0.98 + k * 0.03)), c.darkened(0.04 * (k % 2)), Vector3.ZERO, 18)
 		lo.add("cyl", Vector3(0, -k * 0.065 - 0.03, 0), Vector3(tw * (0.91 + k * 0.03), 0.01, td * (0.99 + k * 0.03)), trim, Vector3.ZERO, 18)
-	lo.add("cyl", Vector3(0, -0.2, 0), Vector3(tw * 1.0, 0.05, td * 1.08), Color(0.12, 0.1, 0.1), Vector3.ZERO, 18)   # kuşak
+	if L.get("armor_frill") is Color:
+		var fc: Color = L["armor_frill"]   # bel altında kalın büzgülü kumaş halka (ref special_outfits mor fırfır)
+		for k in 2:
+			lo.add("cyl", Vector3(0, -0.25 - k * 0.045, 0), Vector3(tw * (1.1 + k * 0.03), 0.05, td * (1.25 + k * 0.03)), fc.darkened(0.08 * k), Vector3.ZERO, 22)
+	else:
+		lo.add("cyl", Vector3(0, -0.2, 0), Vector3(tw * 1.0, 0.05, td * 1.08), Color(0.12, 0.1, 0.1), Vector3.ZERO, 18)   # kuşak
 	m._mesh_on("Hips", lo.build(toon), Transform3D(Basis.IDENTITY, hip + Vector3(0, 0.22, 0)))
 	var po = 0.06 if (L.get("outer_style") != null or L.get("hakama") == true) else 0.0   # cübbe üstünde: plaka etek kumaşın dışına (ref madara_outfit: cübbenin önünde dize inen plaka)
+	var ptrim: Color = pc.lightened(0.12) if L.get("armor_plates") is Color else trim
 	# omuzluklar (sode): kolun üstünde, omuzdan dirseğe doğru 5 kat binen geniş plaka
 	for side in ["Left", "Right"]:
 		var ua = m._bp(side + "UpperArm")
@@ -435,16 +442,16 @@ static func _sengoku(m: CharacterModel, L: Dictionary, ch: Vector3, hip: Vector3
 		var sb = MB.new()
 		for k in 5:
 			var t = 0.03 + k * 0.045
-			sb.add("box", Vector3(sx * t, 0.06 - k * 0.006, 0), Vector3(0.05, 0.022, 0.2 + k * 0.012), c.lightened(0.05 * (k % 2)), Vector3(0, 0, -sx * (14 + k * 3)))
-			sb.add("box", Vector3(sx * (t + 0.022), 0.05 - k * 0.006, 0), Vector3(0.006, 0.024, 0.2 + k * 0.012), trim, Vector3(0, 0, -sx * (14 + k * 3)))
+			sb.add("box", Vector3(sx * t, 0.06 - k * 0.006, 0), Vector3(0.05, 0.022, 0.2 + k * 0.012), pc.lightened(0.05 * (k % 2)), Vector3(0, 0, -sx * (14 + k * 3)))
+			sb.add("box", Vector3(sx * (t + 0.022), 0.05 - k * 0.006, 0), Vector3(0.006, 0.024, 0.2 + k * 0.012), ptrim, Vector3(0, 0, -sx * (14 + k * 3)))
 		sb.add("box", Vector3(sx * 0.02, 0.07, 0.0), Vector3(0.012, 0.012, 0.18), cord)
 		m._mesh_on(side + "UpperArm", sb.build(toon), Transform3D(Basis.IDENTITY, ua))
 		# ön kol plakası (kote)
 		var la = m._bp(side + "LowerArm")
 		var kb = MB.new()
-		kb.add("cyl", Vector3(sx * 0.11, 0, 0), Vector3(0.075, 0.2, 0.08), c.darkened(0.1), Vector3(0, 0, 90), 10)
+		kb.add("cyl", Vector3(sx * 0.11, 0, 0), Vector3(0.075, 0.2, 0.08), pc.darkened(0.1), Vector3(0, 0, 90), 10)
 		for k in 3:
-			kb.add("cyl", Vector3(sx * (0.05 + k * 0.06), 0, 0), Vector3(0.082, 0.012, 0.087), trim, Vector3(0, 0, 90), 10)
+			kb.add("cyl", Vector3(sx * (0.05 + k * 0.06), 0, 0), Vector3(0.082, 0.012, 0.087), ptrim, Vector3(0, 0, 90), 10)
 		m._mesh_on(side + "LowerArm", kb.build(toon), Transform3D(Basis.IDENTITY, la))
 		# uyluk plakaları (kusazuri): önde ve dışta, kalçadan dize 4 sıra
 		var ul = m._bp(side + "UpperLeg")
@@ -452,11 +459,11 @@ static func _sengoku(m: CharacterModel, L: Dictionary, ch: Vector3, hip: Vector3
 		for k in 5:
 			var y = -0.02 - k * 0.065
 			if po == 0.0:
-				kz.add("box", Vector3(0.0, y, 0.085), Vector3(0.15, 0.06, 0.02), c.lightened(0.04 * (k % 2)), Vector3(-6, 0, 0))
-			kz.add("box", Vector3(sx * (0.085 + po), y, 0.0), Vector3(0.02, 0.06, 0.15), c.lightened(0.04 * (k % 2)), Vector3(0, 0, sx * 6))
+				kz.add("box", Vector3(0.0, y, 0.085), Vector3(0.15, 0.06, 0.02), pc.lightened(0.04 * (k % 2)), Vector3(-6, 0, 0))
+			kz.add("box", Vector3(sx * (0.085 + po), y, 0.0), Vector3(0.02, 0.06, 0.15), pc.lightened(0.04 * (k % 2)), Vector3(0, 0, sx * 6))
 			if po == 0.0:
-				kz.add("box", Vector3(0.0, y - 0.03, 0.096), Vector3(0.15, 0.008, 0.006), trim)
-			kz.add("box", Vector3(sx * (0.096 + po), y - 0.03, 0.0), Vector3(0.006, 0.008, 0.15), trim)
+				kz.add("box", Vector3(0.0, y - 0.03, 0.096), Vector3(0.15, 0.008, 0.006), ptrim)
+			kz.add("box", Vector3(sx * (0.096 + po), y - 0.03, 0.0), Vector3(0.006, 0.008, 0.15), ptrim)
 
 		m._mesh_on(side + "UpperLeg", kz.build(toon), Transform3D(Basis.IDENTITY, ul))
 	if po > 0.0:
@@ -465,8 +472,8 @@ static func _sengoku(m: CharacterModel, L: Dictionary, ch: Vector3, hip: Vector3
 		var z0 = td * 0.5 + 0.06
 		for k in 5:
 			var y = -0.05 - k * 0.075
-			ap.add("box", Vector3(0, y, z0 + k * 0.012), Vector3(tw * 0.85, 0.07, 0.018), c.lightened(0.04 * (k % 2)), Vector3(-8, 0, 0))
-			ap.add("box", Vector3(0, y - 0.035, z0 + k * 0.012 + 0.006), Vector3(tw * 0.86, 0.008, 0.008), trim)
+			ap.add("box", Vector3(0, y, z0 + k * 0.012), Vector3(tw * 0.85, 0.07, 0.018), pc.lightened(0.04 * (k % 2)), Vector3(-8, 0, 0))
+			ap.add("box", Vector3(0, y - 0.035, z0 + k * 0.012 + 0.006), Vector3(tw * 0.86, 0.008, 0.008), ptrim)
 			for j in 2:
 				ap.add("box", Vector3((j - 0.5) * tw * 0.3, y + 0.012, z0 + k * 0.012 + 0.012), Vector3(0.01, 0.035, 0.006), cord)
 		m._mesh_on("Hips", ap.build(toon), Transform3D(Basis.IDENTITY, hip))
