@@ -4904,6 +4904,13 @@ func _garments(g: Dictionary) -> void:
 		var bz = _back_z(neck - 0.02)
 		for sx in [-1.0, 1.0]:
 			dangle_strip("UpperChest", Vector3(nk.x + 0.025 * sx, neck - 0.02, bz - 0.03), Vector3(0.12 * sx, -1.0, -0.25), 0.34, 0.07, look["outer"], 0.18, Vector3(1, 0, 0), 0.006)
+		if look.get("scarf_front_tail", false):
+			# önden göğse sarkan tek uç (Striker Zabuza): boynun sağ önünden karın üstüne düz iner
+			var fz = 0.0
+			for v in _body_vs():
+				if absf(v.x + 0.07) < 0.03 and absf(v.y - (neck - 0.1)) < 0.04 and v.z > fz:
+					fz = v.z
+			dangle_strip("UpperChest", Vector3(-0.07, neck - 0.05, fz + 0.035), Vector3(0.0, -1.0, 0.05), 0.3, 0.06, look["outer"], 0.6, Vector3(1, 0, 0), 0.008)
 	var hs = look.get("head_style")
 	if hs == "kapuson":
 		# kapüşonun omuz etek kısmı (gövdeye derili): boyundan omuz başına açılan kumaş; kafa kısmı hood()
@@ -4945,9 +4952,13 @@ func _garments(g: Dictionary) -> void:
 	var gd = look.get("guards")
 	if gd in ["kol", "ikisi"]:
 		for sx in [-1.0, 1.0]:
-			_garment("kolluk%d_%d" % [int(sx), int(look.get("guard_long", false))], func(): return _loft(g, 0, ((absf(_bp("LeftLowerArm").x) + 0.03) if look.get("guard_long", false) else (ha - 0.17)) * sx, (ha - 0.05) * sx, 10 if look.get("guard_long", false) else 6, func(p): return signf(p.x) == sx and p.y > neck - 0.32, flat.call(0.018), 9, null, -99.0, 16))
+			_garment("kolluk%d_%d%s" % [int(sx), int(look.get("guard_long", false)), "a" if look.get("guard_ankle", false) else ""], func(): return _loft(g, 0, ((absf(_bp("LeftLowerArm").x) + 0.03) if look.get("guard_long", false) else (ha - 0.17)) * sx, (ha + (0.01 if look.get("guard_ankle", false) else -0.05)) * sx, 10 if look.get("guard_long", false) else 6, func(p): return signf(p.x) == sx and p.y > neck - 0.32, flat.call(0.018), 9, null, -99.0, 16))
 	if gd in ["bacak", "ikisi"]:
 		for sx in [-1.0, 1.0]:
+			if look.get("guard_ankle", false):
+				# bilek tozluğu (Striker Zabuza): bileği ve baldırın altını saran kalın örgü ısıtıcı
+				_garment("tozluk%d" % int(sx), func(): return _loft(g, 1, ank + 0.2, ank + 0.02, 7, func(p): return signf(p.x) == sx and absf(p.x) < 0.35, func(t, _a): return 0.03 + 0.006 * sin(t * PI), 9, null, -99.0, 16))
+				continue
 			_garment("kaval%d" % int(sx), func(): return _loft(g, 1, knee - 0.05, ank + 0.08, 8, func(p): return signf(p.x) == sx and absf(p.x) < 0.35,
 				func(_t, ang): return 0.046 if absf(wrapf(ang - PI * 0.5, -PI, PI)) < 1.3 else 0.036, 9, null, -99.0, 16))   # paça kıvrımı taşmasın
 	if look.get("long_skirt") is Color:
@@ -5716,10 +5727,11 @@ func _outfit_extras() -> void:
 	# koruyucu çizgileri: koruyucu kabuğunun kendisinden (derili, kabukla eğilir; havada kalmaz)
 	if stripe != null:
 		for sx in [1.0, -1.0]:
-			for part in [["kaval", gd in ["bacak", "ikisi"]], ["kolluk", gd in ["kol", "ikisi"]]]:
+			var lk = "kolluk%d_%d%s" % [int(sx), int(look.get("guard_long", false)), "a" if look.get("guard_ankle", false) else ""]
+			for part in [["tozluk" if look.get("guard_ankle", false) else "kaval", gd in ["bacak", "ikisi"]], ["kolluk", gd in ["kol", "ikisi"]]]:
 				if not part[1]:
 					continue
-				var src = gk.call("%s%d" % [part[0], int(sx)])
+				var src = gk.call(lk) if part[0] == "kolluk" else gk.call("%s%d" % [part[0], int(sx)])
 				if src == null or not _sk_begin(src):
 					continue
 				var V: PackedVector3Array = _sk["v"]
@@ -5731,8 +5743,8 @@ func _outfit_extras() -> void:
 				for q in V:   # koruyucunun orta yükseklikteki en ön noktası: çizgiler tam önde
 					if absf(q.y - ym) < 0.03 and q.z > bz:
 						bz = q.z; cx = q.x
-				var spread = 0.02 if part[0] == "kaval" else 0.014
-				var cnt = 3 if part[0] == "kaval" else 2
+				var spread = 0.02 if part[0] != "kolluk" else 0.014
+				var cnt = (5 if look.get("guard_ankle", false) else 3) if part[0] != "kolluk" else (4 if look.get("guard_ankle", false) else 2)
 				for k in cnt:
 					var x = cx + (k - (cnt - 1) * 0.5) * spread
 					_sk_strip(x, y1 - 0.025, y0 + 0.025, 0.007, 0.005, stripe, 18)
