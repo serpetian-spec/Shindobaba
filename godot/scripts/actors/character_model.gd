@@ -1912,6 +1912,21 @@ func _skinned_mesh(g: Dictionary, verts: PackedVector3Array, custom: PackedFloat
 			if not put:
 				wb.sort_custom(func(x, y): return x[1] < y[1])
 				wb[0] = [hips_bi, blend + wb[0][1]]
+			if hips_full and blend > 0.5:
+				# kalıp etek/cübbe: o yandaki uyluğu kısmen izlesin -> duruşta/yürürken öne çıkan bacak kumaşı da açar, içinden çıkmaz
+				var leg_bi = _bind_index("LeftUpperLeg" if verts[i].x > 0.0 else "RightUpperLeg")
+				var share = (0.8 if verts[i].z > 0.02 else 0.45) * clampf(absf(verts[i].x) / 0.06, 0.0, 1.0) * clampf((skirt_y - verts[i].y) / 0.2, 0.0, 1.0)
+				if leg_bi >= 0 and share > 0.0:
+					for e in wb:
+						e[1] = e[1] * (1.0 - share)
+					wb.sort_custom(func(x, y): return x[1] < y[1])
+					var lput = false
+					for e in wb:
+						if e[0] == leg_bi:
+							e[1] += share
+							lput = true
+					if not lput:
+						wb[0] = [leg_bi, share + wb[0][1]]
 		var tot = 0.0
 		for e in wb:
 			tot += e[1]
@@ -1980,8 +1995,7 @@ func _garment_tinted(key: String, col: Color, build: Callable) -> void:
 
 ## Etekli dış giysiler: kalçanın altındaki kumaş dilim zincirleriyle sallanır (koşuda arkaya açılır, dönüşte savrulur,
 ## bacak/diz küreleri kumaşı iter: bacak kumaşın içinden çıkmaz). Zincir kemikleri karakter iskeletine eklenir.
-const DYN_GARMENTS := {"pelerin": 0.26, "palto": 0.3, "haori": 0.34, "org_pelerin": 0.24, "panco": 0.3, "yirtik": 0.2, "jinbaori": 0.3,
-	"cuppe": 0.26, "bulut_etek": 0.32, "uzun_ceket": 0.3, "onluk": 0.3, "kizil_palto": 0.3, "sargi_etek_uzun": 0.32, "algi_ceket": 0.25, "sargi_elbise": 0.25, "yilan_cubbe": 0.32, "iki_ton_kimono": 0.28, "panel_etek": 0.32, "uzun_panel_ust": 0.3, "bel_ortusu": 0.3, "kolsuz_palto": 0.26, "kuyruklu_ceket": 0.28, "kisa_kimono": 0.3, "gunes_kimono": 0.3, "rikudo_cubbe": 0.32, "kutlama_kimono": 0.32, "danzo_ortu": 0.3, "delta_elbise": 0.3, "yaprak_etek_alt": 0.4, "cizgili_uzun_etek": 0.32, "pilili_etek": 0.3, "hakama_ust": 0.2, "flamingo_firfir": 0.4, "haori_uzun": 0.28, "mino": 0.36, "hakama": 0.32, "anbu_palto": 0.3, "etek_1": 0.4, "etek_2": 0.34, "etek_3": 0.3}   # anahtar -> şekil sertliği
+const DYN_GARMENTS := {"pelerin": 0.26, "org_pelerin": 0.24, "panco": 0.3, "yirtik": 0.2, "jinbaori": 0.3, "danzo_ortu": 0.3, "yaprak_etek_alt": 0.4, "pilili_etek": 0.3, "hakama_ust": 0.2, "flamingo_firfir": 0.4, "mino": 0.36, "hakama": 0.32, "etek_1": 0.4, "etek_2": 0.34, "etek_3": 0.3}   # anahtar -> şekil sertliği
 static var _gdyn_cache := {}
 
 
