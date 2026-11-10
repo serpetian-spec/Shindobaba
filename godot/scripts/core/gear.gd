@@ -28,10 +28,10 @@ const SETS := {
 		"stats": {"def": 18, "speed": 0.05, "melee": 0.05}, "c1": Color(0.12, 0.12, 0.14), "c2": Color(0.85, 0.85, 0.82),
 		"parts": [["uzun_gomlek", Color(0.12, 0.12, 0.14), Color(0.12, 0.12, 0.14)], ["ninja_pant", Color(0.12, 0.12, 0.14), null], ["anbu_zirh", Color(0.85, 0.85, 0.82), null], ["kol_sargisi", Color(0.9, 0.9, 0.88), null], ["sandalet", Color(0.12, 0.12, 0.14), Color(0.92, 0.92, 0.9)]]},
 	# --- köy chūnin / jōnin setleri (kaynak: set1.png Konoha, sunaset.png Suna, mistset.png Kiri)
-	"set_chunin": {"name": "Konoha Chūnin Shōzoku", "slot": "set", "price": 600, "rank": 2, "desc": "Lacivert yüksek yakalı gömlek ve pantolon, omuzluklu yeşil taktik yelek, baldır sargıları.",
+	"set_chunin": {"name": "Konoha Chūnin Shōzoku", "slot": "set", "price": 600, "rank": 2, "village": "konoha", "desc": "Lacivert yüksek yakalı gömlek ve pantolon, omuzluklu yeşil taktik yelek, baldır sargıları.",
 		"stats": {"def": 14, "hp": 25, "speed": 0.03}, "c1": Color(0.12, 0.15, 0.3), "c2": Color(0.12, 0.15, 0.3),
 		"parts": [["uzun_gomlek", Color(0.12, 0.15, 0.3), Color(0.12, 0.15, 0.3)], ["ninja_pant", Color(0.12, 0.15, 0.3), null], ["chunin_yelek", Color(0.46, 0.56, 0.44), null], ["sandalet", Color(0.12, 0.15, 0.3), Color(0.92, 0.92, 0.9)]]},
-	"set_jonin": {"name": "Konoha Jōnin Shōzoku", "slot": "set", "price": 0, "rank": 3, "desc": "Chūnin takımının üstüne parmaksız eldiven; yelek daha koyu yeşil. Katon jutsuları %10 güçlü, Katon'dan alınan hasar %10 az.",
+	"set_jonin": {"name": "Konoha Jōnin Shōzoku", "slot": "set", "price": 0, "rank": 3, "village": "konoha", "desc": "Chūnin takımının üstüne parmaksız eldiven; yelek daha koyu yeşil. Katon jutsuları %10 güçlü, Katon'dan alınan hasar %10 az.",
 		"boost": {"katon": 0.10}, "resist": {"katon": 0.10}, "stats": {"def": 17, "hp": 30, "chakra": 25, "melee": 0.04}, "c1": Color(0.12, 0.15, 0.3), "c2": Color(0.12, 0.15, 0.3),
 		"parts": [["uzun_gomlek", Color(0.12, 0.15, 0.3), Color(0.12, 0.15, 0.3)], ["ninja_pant", Color(0.12, 0.15, 0.3), null], ["chunin_yelek", Color(0.38, 0.48, 0.36), null], ["eldiven", Color(0.1, 0.12, 0.22), null], ["sandalet", Color(0.12, 0.15, 0.3), Color(0.92, 0.92, 0.9)]]},
 	"set_suna_chunin": {"name": "Suna Chūnin Shōzoku", "slot": "set", "price": 600, "rank": 2, "village": "suna", "desc": "Koyu gömlek ve pantolon, geniş omuzluklu kahverengi taktik yelek.",
@@ -469,6 +469,9 @@ const ITEMS := {
 	"kapri": {"name": "Kapri", "slot": "bacak", "price": 70, "rank": 0, "desc": "Baldır ortasında biten hafif pantolon.", "stats": {"speed": 0.03}, "look": {"pants_style": "kapri"}, "c1": Color(0.3, 0.3, 0.33)},
 	"kisa_sort": {"name": "Kısa Şort", "slot": "bacak", "price": 50, "rank": 0, "desc": "Diz üstü şort. Bacaklar serbest.", "stats": {"speed": 0.05}, "look": {"pants_style": "kisa_sort"}, "c1": Color(0.18, 0.18, 0.2)},
 	"yamali_pant": {"name": "Yamalı Pantolon", "slot": "bacak", "price": 15, "rank": 0, "desc": "Dizleri yamalı, eskimiş pantolon.", "stats": {}, "look": {"pants_style": "sivil"}, "c1": Color(0.38, 0.32, 0.25)},
+	"kot_panelli_pant": {"name": "Kot Panelli Bol Pantolon", "slot": "bacak", "price": 220, "rank": 0, "desc": "Baldırda büzgülü bol pantolon; önünde kalçadan dize daralan açık kot paneli.", "stats": {"speed": 0.03}, "look": {"pants_style": "bol", "pants_pattern": 13}, "c1": Color(0.12, 0.17, 0.4), "c2": Color(0.36, 0.52, 0.78)},
+	"kot_panelli_pant_biye": {"name": "Biyeli Kot Panelli Pantolon", "slot": "bacak", "price": 260, "rank": 1, "desc": "Bol pantolon; önünde kenarı altın biyeli kot paneli.", "stats": {"melee": 0.03}, "look": {"pants_style": "bol", "pants_pattern": 13, "pants_pipe": Color(0.88, 0.7, 0.2)}, "c1": Color(0.1, 0.1, 0.12), "c2": Color(0.75, 0.12, 0.12)},
+	"bol_serit": {"name": "Yan Şeritli Bol Pantolon", "slot": "bacak", "price": 160, "rank": 0, "desc": "Baldırda büzgülü bol pantolon; iki yanında boydan şerit.", "stats": {"speed": 0.03}, "look": {"pants_style": "bol", "pants_pattern": 1}, "c1": Color(0.92, 0.92, 0.9), "c2": Color(0.1, 0.1, 0.12)},
 	"etek_mini": {"name": "Kısa Etek", "slot": "bacak", "price": 180, "rank": 0, "desc": "Uyluk ortasında biten A kesim etek.", "stats": {"speed": 0.03}, "look": {"pants_style": "sort", "skirt": 1}, "c1": Color(0.7, 0.2, 0.25)},
 	"etek_diz": {"name": "Diz Boyu Etek", "slot": "bacak", "price": 200, "rank": 0, "desc": "Dize inen pilili etek.", "stats": {"chakra": 10}, "look": {"pants_style": "sort", "skirt": 2}, "c1": Color(0.3, 0.32, 0.5)},
 	"etek_uzun": {"name": "Uzun Etek", "slot": "bacak", "price": 240, "rank": 0, "desc": "Bileğe inen geniş etek.", "stats": {"chakra": 15}, "look": {"pants_style": "sivil", "skirt": 3}, "c1": Color(0.85, 0.85, 0.82)},
@@ -529,6 +532,19 @@ const ITEMS := {
 	"ame_yelek": {"name": "Yağmur Köyü Yeleği", "slot": "zirh", "price": 700, "rank": 2, "desc": "Gri, nem tutmayan dikişli yelek.", "stats": {"def": 8, "chakra": 15}, "look": {"vest_style": 2}, "c1": Color(0.45, 0.48, 0.52)},
 	"jonin_koyu": {"name": "Gece Taktik Yeleği", "slot": "zirh", "price": 900, "rank": 2, "desc": "Koyu zeytin rengi, parşömen cepli yelek.", "stats": {"def": 10, "speed": 0.02}, "look": {"vest_style": 0}, "c1": Color(0.2, 0.26, 0.18)},
 	# --- dış giysi
+	"kaya_gi": {"name": "Kaya Gi", "slot": "dis", "price": 450, "rank": 0, "desc": "Kolsuz çapraz bağlı kızıl gi; beyaz biyeler, sarı etek bandı, koyu şal yaka, geniş kuşak, kuşaktan sarkan iki çanta.", "stats": {"melee": 0.04, "def": 3}, "look": {"outer_style": "kaya_gi", "outer_pattern": 14, "rg": {"shawl": Color(0.14, 0.11, 0.1), "obi": Color(0.1, 0.1, 0.12), "pouch": Color(0.36, 0.27, 0.18)}}, "c1": Color(0.45, 0.1, 0.14), "c2": Color(0.92, 0.72, 0.12)},
+	"kaya_gi_kurtarici": {"name": "Kaya Gi: Kurtarıcı", "slot": "dis", "price": 520, "rank": 1, "desc": "Turuncu-beyaz gi; koyu şal yaka, siyah kuşak üstünde beyaz şerit, beyaz çantalar, sol kolda ok şeritleri ve beyaz kol bandı.", "stats": {"hp": 25}, "look": {"outer_style": "kaya_gi", "outer_pattern": 14, "rg": {"shawl": Color(0.12, 0.12, 0.13), "obi": Color(0.1, 0.1, 0.12), "obi_band": Color(0.95, 0.95, 0.93), "pouch": Color(0.92, 0.92, 0.9), "chevron": Color(0.9, 0.45, 0.15), "armband": Color(0.95, 0.95, 0.93)}}, "c1": Color(0.92, 0.38, 0.12), "c2": Color(0.92, 0.38, 0.12)},
+	"kaya_gi_postaci": {"name": "Kaya Gi: Postacı", "slot": "dis", "price": 520, "rank": 1, "desc": "Mavi gi; beyaz şal yaka, siyah kuşak, etiketli mavi-sarı çantalar.", "stats": {"speed": 0.05}, "look": {"outer_style": "kaya_gi", "outer_pattern": 14, "rg": {"shawl": Color(0.92, 0.92, 0.92), "obi": Color(0.1, 0.1, 0.12), "pouch": Color(0.15, 0.3, 0.7), "tags": true}}, "c1": Color(0.15, 0.36, 0.8), "c2": Color(0.15, 0.36, 0.8)},
+	"file_corapli_kapri": {"name": "File Çoraplı Diz Altı Pantolon", "slot": "bacak", "price": 180, "rank": 0, "desc": "Dizin hemen altında biten pantolon; baldırda file çorap.", "stats": {"speed": 0.04}, "look": {"pants_style": "sort", "leg_fishnet": true, "holster": true}, "c1": Color(0.6, 0.15, 0.2)},
+	"bulut_etek": {"name": "Bulut Sargı Eteği", "slot": "dis", "price": 420, "rank": 0, "desc": "Göğüs altından dize inen yüksek belli kırmızı sargı etek; beyaz biyeler, gri-beyaz kuşak, kırık beyaz atkı.", "stats": {"speed": 0.03, "chakra": 10}, "look": {"outer_style": "bulut_etek", "outer_pattern": 11, "bk": {"scarf": Color(0.9, 0.9, 0.87), "belt": Color(0.88, 0.88, 0.86), "trim": Color(0.96, 0.96, 0.94)}}, "c1": Color(0.66, 0.12, 0.12), "c2": Color(0.96, 0.96, 0.94)},
+	"bulut_etek_toprak": {"name": "Bulut Sargı Eteği: Toprak", "slot": "dis", "price": 480, "rank": 1, "desc": "Siyah sargı etek; ucunda yeşil zikzak bant, geometrik desenli yeşil kuşak, kırık beyaz atkı.", "stats": {"hp": 20}, "look": {"outer_style": "bulut_etek", "outer_pattern": 13, "bk": {"scarf": Color(0.88, 0.88, 0.86), "belt": Color(0.12, 0.45, 0.38), "belt_pattern": Color(0.85, 0.9, 0.88), "top_trim": false, "wrist_mark": Color(0.2, 0.6, 0.5)}}, "c1": Color(0.14, 0.11, 0.1), "c2": Color(0.2, 0.6, 0.5)},
+	"bulut_etek_yildiz": {"name": "Bulut Sargı Eteği: Takımyıldız", "slot": "dis", "price": 480, "rank": 1, "desc": "Lacivert sargı etek; altında takımyıldız baskısı, mavi kuşak, yıldız işli mavi atkı.", "stats": {"chakra": 25}, "look": {"outer_style": "bulut_etek", "outer_pattern": 12, "bk": {"scarf": Color(0.25, 0.65, 0.85), "scarf_star": Color(0.92, 0.95, 1.0), "belt": Color(0.45, 0.72, 0.9), "top_trim": false}}, "c1": Color(0.12, 0.18, 0.55), "c2": Color(0.8, 0.9, 1.0)},
+	"kiri_tunik": {"name": "Sis Tuniği", "slot": "dis", "price": 480, "rank": 0, "desc": "Kalçayı geçen dikey dikişli mor tunik; iki çıtçıtlı atkı yaka, çapraz yeşil kayış, tokalı kemer, sol kalçada çanta.", "stats": {"speed": 0.04, "def": 3}, "look": {"outer_style": "kiri_tunik", "outer_pattern": 9, "kt": {"strap": Color(0.48, 0.66, 0.2), "belt": Color(0.48, 0.66, 0.2), "pouch": Color(0.24, 0.19, 0.36)}}, "c1": Color(0.66, 0.6, 0.82), "c2": Color(0.16, 0.13, 0.26)},
+	"kiri_tunik_beyaz": {"name": "Sis Tuniği: Beyaz", "slot": "dis", "price": 560, "rank": 1, "desc": "Beyaz-gri iki renkli tunik; sarı biyeli ön panel, etekte satranç taşı kesikleri, beyaz atkı yaka, siyah kayış, sarı tokalar, damalı çanta.", "stats": {"def": 5}, "look": {"outer_style": "kiri_tunik", "outer_pattern": 10, "kt": {"collar": Color(0.9, 0.9, 0.9), "snap": Color(0.3, 0.3, 0.32), "strap": Color(0.12, 0.12, 0.14), "buckle": Color(0.92, 0.78, 0.15), "belt": Color(0.92, 0.92, 0.9), "pouch": Color(0.9, 0.9, 0.9), "checker": Color(0.1, 0.1, 0.12)}}, "c1": Color(0.92, 0.92, 0.9), "c2": Color(0.6, 0.6, 0.62)},
+	"kiri_tunik_siyah": {"name": "Sis Tuniği: Siyah", "slot": "dis", "price": 560, "rank": 1, "desc": "Siyah-gri iki renkli tunik; sarı biyeli ön panel, etekte satranç taşı kesikleri, siyah atkı yaka, siyah kayış, sarı tokalar, damalı çanta.", "stats": {"melee": 0.04, "def": 3}, "look": {"outer_style": "kiri_tunik", "outer_pattern": 10, "kt": {"collar": Color(0.1, 0.1, 0.12), "strap": Color(0.1, 0.1, 0.12), "buckle": Color(0.92, 0.78, 0.15), "belt": Color(0.92, 0.92, 0.9), "pouch": Color(0.9, 0.9, 0.9), "checker": Color(0.1, 0.1, 0.12)}}, "c1": Color(0.12, 0.12, 0.14), "c2": Color(0.6, 0.6, 0.62)},
+	"acik_ceket": {"name": "Yaprak Desenli Kısa Ceket", "slot": "dis", "price": 450, "rank": 0, "desc": "Önü açık, bele kadar kısa ceket; dik yaka, kıvrık manşet, yaprak dalı baskısı, sol kolda kırmızı arma; gri gömlek, beyaz kemer, yeşil bel çantası.", "stats": {"speed": 0.03, "def": 3}, "look": {"outer_style": "acik_ceket", "outer_pattern": 7, "jk": {"patch": Color(0.72, 0.12, 0.12), "shirt": Color(0.62, 0.63, 0.66), "belt": Color(0.94, 0.94, 0.92), "plate": Color(0.92, 0.92, 0.9), "bag": Color(0.18, 0.3, 0.2)}}, "c1": Color(0.72, 0.84, 0.78), "c2": Color(0.24, 0.42, 0.3)},
+	"acik_ceket_matador": {"name": "Matador Kısa Ceketi", "slot": "dis", "price": 520, "rank": 1, "desc": "Siyah kısa ceket; manşetlerde üç altın şerit, omuzda altın arma; siyah gömlek, plakalı altın kemer, altın bantlı bot.", "stats": {"melee": 0.04, "def": 3}, "look": {"outer_style": "acik_ceket", "outer_pattern": 0, "jk": {"patch": Color(0.88, 0.7, 0.2), "cuff_stripes": Color(0.88, 0.7, 0.2), "shirt": Color(0.1, 0.1, 0.12), "belt": Color(0.88, 0.7, 0.2), "belt_plates": Color(0.7, 0.52, 0.12), "buckle": Color(0.7, 0.52, 0.12), "plate": Color(0.72, 0.12, 0.12), "bag": Color(0.12, 0.12, 0.14), "boot_band": Color(0.88, 0.7, 0.2)}}, "c1": Color(0.1, 0.1, 0.12), "c2": Color(0.1, 0.1, 0.12)},
+	"acik_ceket_kot": {"name": "Kovboy Kot Ceketi", "slot": "dis", "price": 520, "rank": 1, "desc": "Kapaklı göğüs cepli, dikişli kısa kot ceket; sarı gömlek, kahve kemer, yıldızlı çanta, perçinli bot.", "stats": {"hp": 20, "def": 3}, "look": {"outer_style": "acik_ceket", "outer_pattern": 0, "jk": {"patch": Color(0.72, 0.12, 0.12), "pockets": true, "shirt": Color(0.9, 0.78, 0.2), "belt": Color(0.4, 0.24, 0.14), "buckle": Color(0.62, 0.58, 0.5), "plate": Color(0.4, 0.24, 0.14), "bag": Color(0.45, 0.3, 0.16), "bag_star": Color(0.95, 0.95, 0.92), "boot_studs": Color(0.78, 0.72, 0.55)}}, "c1": Color(0.18, 0.35, 0.72), "c2": Color(0.18, 0.35, 0.72)},
 	"akatsuki_pelerini": {"name": "Kızıl Bulut Pelerini", "slot": "dis", "price": 0, "rank": 3, "desc": "Akatsuki üyelerinin dik yakalı siyah pelerini; beyaz kenarlı kızıl bulutlar.", "stats": {"def": 10, "chakra": 50, "hp": 40}, "look": {"outer_style": "org_pelerin", "outer_pattern": 6}, "c1": Color(0.13, 0.14, 0.26), "c2": Color(0.72, 0.07, 0.14)},
 	# köye özel Jōnin kıyafetleri (terfide verilir)
 	"konoha_jonin": {"name": "Konoha Jōnin Haorisi", "slot": "dis", "price": 0, "rank": 3, "desc": "Konoha jōninlerinin kısa yeşil-gri haorisi, sırtında girdap arması.", "stats": {"def": 6, "chakra": 30, "speed": 0.02}, "look": {"outer_style": "haori", "outer_pattern": 1}, "c1": Color(0.32, 0.4, 0.28), "c2": Color(0.75, 0.2, 0.15)},
@@ -833,10 +849,10 @@ static func make_unique(base_id: String, kind: String, seed_v: int) -> String:
 	return id
 
 
-## Dükkân stoku: her 30 dakikada (gerçek zaman) köye göre değişen rastgele seçim + 2 benzersiz eşya
+## Dükkân stoku: her 10 dakikada (gerçek zaman) köye göre değişen rastgele seçim + 2 benzersiz eşya
 static func shop_stock(kind: String, vid: String) -> Array:
 	var pool: Array = SHOP_WEAPONS if kind == "w" else SHOP_CLOTHES.filter(func(i): return not String(item(i).get("slot", "")) in OLD_CLOTH_SLOTS) + SHOP_SETS + STRIKER.SHOP.filter(func(i): return sex_ok(i, String(Game.profile.get("look", {}).get("gender", "m"))))
-	var period = int(Time.get_unix_time_from_system() / 1800.0)
+	var period = int(Time.get_unix_time_from_system() / 600.0)   # 10 dakikada bir yeni stok (30 dk boyunca hep aynı mallar görünüyordu)
 	var rng = RandomNumberGenerator.new()
 	rng.seed = hash("%s|%s|%d|%s" % [kind, vid, period, String(Game.profile.get("name", ""))])
 	var picks = pool.duplicate()
@@ -845,7 +861,7 @@ static func shop_stock(kind: String, vid: String) -> Array:
 		var t = picks[i]; picks[i] = picks[j]; picks[j] = t
 	var out = picks.slice(0, mini(picks.size(), 10 if kind == "w" else 16))
 	if kind == "c":   # ANBU setleri yalnız ANBU'ya, Kage seti/şapkası yalnız o köyün Kage'sine (rütbesiz satılıyordu)
-		out = out.filter(func(i): return rank_gear_ok(i))
+		out = out.filter(func(i): return rank_gear_ok(i) and (String(item(i).get("village", "")) == "" or String(item(i).get("village", "")) == Progress.home()))   # başka köyün üniforması satılmaz
 		for sid in KAGE_SETS + ANBU_SETS + KAGE_HATS:
 			if rank_gear_ok(sid) and not sid in out:
 				out.append(sid)
@@ -962,6 +978,9 @@ static func req_text(id: String, p: Dictionary) -> String:
 	var need = int(it.get("rank", 0))
 	if need > eff_rank(p):
 		return "%s rütbesi gerekli" % Data.RANKS[mini(need, Data.RANKS.size() - 1)]
+	var iv = String(it.get("village", ""))   # köy üniforması (chūnin/jōnin yeleği vb.): yalnız o köyün ninjaları
+	if iv != "" and iv != String(p.get("village", "konoha")):
+		return "Yalnızca %s ninjaları giyebilir" % String(Game.village(iv).get("name", iv))
 	if KAGE_VID.has(id) and String(KAGE_VID[id]) != String(p.get("village", "konoha")):
 		return "Yalnızca %s Kage'si giyebilir" % String(Game.village(String(KAGE_VID[id])).get("name", KAGE_VID[id]))
 	var cl = String(it.get("clan", ""))
@@ -1162,6 +1181,12 @@ static func apply_look(p: Dictionary) -> void:
 	L["top_pattern"] = 0
 	L["hakama"] = false
 	L["skirt"] = 0
+	L["jk"] = null
+	L["kt"] = null
+	L["bk"] = null
+	L["rg"] = null
+	L["leg_fishnet"] = false
+	L["pants_pipe"] = null
 	L["vest_style"] = 0
 	L["foot_style"] = "sandal"
 	L["outer_pattern"] = 0

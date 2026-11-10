@@ -35,8 +35,10 @@ uniform vec4 rig_b = vec4(0.95, 0.54, 0.09, 1.31);  // kalça y, diz y, ayak bil
 uniform int top_style = 1;    // 0 tişört, 1 uzun kollu, 2 ceket, 3 yüksek yakalı, 4 kolsuz, 5 kimono, 6 gi, 7 uzun kollu yüksek yaka, 8 atlet, 9 tek kollu
 uniform int pants_style = 0;  // 0 ninja pantolonu, 1 şort, 2 sivil uzun pantolon, 3 sargılı, 4 bol paça, 5 kapri, 6 kısa şort
 uniform int layer = 0;        // 0 vücut, 1 kumaş kabuğu, 2 yelek
+uniform bool leg_fishnet = false;   // baldırda file çorap (Rock Striker): dizden bileğe tende koyu ağ
 uniform int pants_pattern = 0;  // 1 yan şerit 2 dizlik 3 kamuflaj 4 dama 5 ince çizgi 6 diz altı iki renk 7 paça bandı 8 yamalı 9 kargo cep 10 sarmal sargı 11 alev paça 12 puantiye
 uniform vec4 pants_accent : source_color = vec4(0.1, 0.1, 0.12, 1.0);
+uniform vec4 pants_pipe : source_color = vec4(0.0);   // a>0: kot paneli kenar biyesi (Matador altın)
 uniform int top_pattern = 0;  // 1 zincir örgü/ağ, 2 yatay çizgili, 3 yan panelli, 4 yamalı/eskimiş, 5 sırtta arma, 6 kenar biyeli, 7 Uchiha yelpazesi, 8..27 (bkz. Gear üst desenleri)
 uniform int vest_style = 0;   // 0 Konoha, 1 Suna, 2 Kiri (yatay dikiş), 3 Kumo (tek askı), 4 Iwa (tek kol), 5 ANBU plaka, 6 samuray lamel,
                               // 7 Kök (dikey dikiş), 8 zincir yelek, 9 kayış koşum, 10 deri pullu zırh, 11 göğüs plakası
@@ -210,6 +212,7 @@ int cloth_slot(vec3 p) {
 	float wrap_top = (pants_style == 0 || pants_style == 3) ? cut + 0.02 : rig_b.y - 0.16;
 	if (pants_style == 5) wrap_top = rig_b.z + 0.06;
 	if (foot_kind == 3 || foot_kind == 6) wrap_top = max(wrap_top, rig_b.y + 0.02);
+	if (leg_fishnet) return 0;   // file çorap: baldır sargısız (ağ tende çizilir)
 	return p.y < wrap_top ? 4 : 0;
 }
 
@@ -346,6 +349,10 @@ void fragment() {
 			if (mk == 4 && p.y > ey + 0.035 && p.y < ey + 0.075 && fract(p.y * 110.0) < 0.12 && ax < 0.05 && p.z > ez - 0.02) c.rgb *= 0.82;
 		}
 		if (slot == 0 && skin_tint.a > 0.0) c.rgb = mix(c.rgb, c.rgb * skin_tint.rgb * 1.6, skin_tint.a);
+		if (slot == 0 && leg_fishnet && rest.y < rig_b.y - 0.01 && rest.y > rig_b.z + 0.03 && abs(rest.x) > 0.03) {   // file çorap: çapraz ağ
+			vec2 nq = vec2((abs(rest.x) + rest.z) * 70.0, rest.y * 70.0);
+			if (abs(fract((nq.x + nq.y) * 0.5) - 0.5) < 0.12 || abs(fract((nq.x - nq.y) * 0.5) - 0.5) < 0.12) c.rgb = vec3(0.12, 0.12, 0.14);
+		}
 		if (slot > 0) {
 			float n = vnoise(UV * 90.0) * 0.5 + vnoise(UV * 23.0) * 0.5;
 			vec3 skin_c = c.rgb;
@@ -484,6 +491,11 @@ void fragment() {
 				if (pants_pattern == 9 && lx > 0.1 && abs(rest.z) < 0.05 && rest.y < rig_b.x - 0.1 && rest.y > rig_b.x - 0.25) c.rgb = mix(c.rgb, acc, 0.9);   // kargo cep
 				if (pants_pattern == 10 && fract(rest.y * 18.0 + atan(rest.z, rest.x - sign(rest.x) * 0.1) * 0.6) < 0.35 && rest.y < rig_b.y + 0.05) c.rgb = acc;   // sarmal sargı
 				if (pants_pattern == 11) { float fh = rig_b.z + 0.1 + 0.12 * pow(abs(sin((rest.x + rest.z) * 25.0)), 3.0); if (rest.y < fh) c.rgb = mix(vec3(1.0, 0.35, 0.05), vec3(1.0, 0.8, 0.2), clamp((fh - rest.y) * 10.0, 0.0, 1.0)); }   // alev paça
+				if (pants_pattern == 13 && rest.z > 0.0) {   // ön uyluk kot paneli (Leaf Striker): kalçadan dize daralan açık panel
+					float t = clamp((rig_b.x - 0.02 - rest.y) / max(rig_b.x - rig_b.y - 0.06, 0.05), 0.0, 1.0);
+					float w = mix(0.085, 0.03, t);
+					if (rest.y < rig_b.x - 0.01 && rest.y > rig_b.y + 0.04 && abs(lx - 0.095) < w) c.rgb = (pants_pipe.a > 0.5 && abs(lx - 0.095) > w - 0.007) ? pants_pipe.rgb : acc;
+				}
 				if (pants_pattern == 12) { vec2 g = fract(vec2(rest.x + rest.z, rest.y) * 15.0) - 0.5; if (length(g) < 0.18) c.rgb = acc; }   // puantiye
 			}
 			if (slot == 8 && outer_pattern > 0) {
@@ -530,6 +542,88 @@ void fragment() {
 					else if (cd < ow) c.rgb = vec3(0.95, 0.94, 0.92);
 					if (rest.z > 0.0 && abs(rest.x) < 0.007 && rest.y < outer_top + 0.2) c.rgb = outer_accent.rgb;   // ön kapanış çizgisi
 					if (lining > 0.5) c.rgb = outer_accent.rgb * 0.85;   // astar + kol ağzı
+				}
+				if (outer_pattern == 7) {
+					// yaprak dalı baskısı (Striker Leaf Striker): seyrek, eğik dallar; ortada sap, iki yanda karşılıklı 3 çift yaprak (gövde + kollar)
+					vec2 q = vec2(rest.x + rest.z * 0.8, rest.y) * 9.0;
+					vec2 cell = floor(q);
+					vec2 f = fract(q) - 0.5;
+					if (hash(cell) > 0.35) {
+						float ang = 0.35 + (hash(cell + 7.3) - 0.5) * 0.9;
+						f = mat2(vec2(cos(ang), sin(ang)), vec2(-sin(ang), cos(ang))) * f;
+						bool on = abs(f.x) < 0.02 && f.y > -0.4 && f.y < 0.34;
+						for (int k = 0; k < 3; k++) {
+							float y0 = -0.24 + float(k) * 0.2;
+							for (int sgn = -1; sgn <= 1; sgn += 2) {
+								vec2 lp = f - vec2(float(sgn) * 0.11, y0 + 0.06);
+								float la = float(sgn) * 0.75;
+								lp = mat2(vec2(cos(la), sin(la)), vec2(-sin(la), cos(la))) * lp;
+								if (length(lp / vec2(0.055, 0.13)) < 1.0) on = true;
+							}
+						}
+						if (length((f - vec2(0.0, 0.4)) / vec2(0.06, 0.13)) < 1.0) on = true;   // uç yaprak
+						if (on) c.rgb = outer_accent.rgb;
+					}
+				}
+				if (outer_pattern == 14) {
+					// Kaya gi: önde çapraz bindirme (sağ kanat sola biner): bindirme çizgisi ve yaka kenarı beyaz biye; etek ucunda vurgu rengi bant
+					if (dh < 0.022) c.rgb = outer_accent.rgb;
+					else if (dh < 0.028) c.rgb = vec3(0.95, 0.95, 0.93);
+					if (rest.z > 0.0) {
+						float yy = (outer_top - rest.y);
+						float lx = -0.03 + yy * 0.42;   // bindirme çizgisi: boyundan aşağı sağa iner
+						if (rest.y > rig_b.x + 0.06 && abs(rest.x - min(lx, 0.11)) < 0.006) c.rgb = vec3(0.95, 0.95, 0.93);
+						if (rest.y <= rig_b.x + 0.06 && abs(rest.x - 0.11) < 0.006) c.rgb = vec3(0.95, 0.95, 0.93);
+						float lx2 = 0.03 - yy * 0.42;  // altta kalan kanadın yaka kenarı
+						if (rest.y > rig_b.x + 0.12 && abs(rest.x - lx2) < 0.005 && lx2 > -0.1) c.rgb = vec3(0.95, 0.95, 0.93) * 0.9;
+					}
+				}
+				if (outer_pattern == 11 || outer_pattern == 12 || outer_pattern == 13) {
+					// Bulut sargı eteği: 11 beyaz biye (etek ucu + önde çapraz bindirme çizgisi + iç panel çizgisi); 12 takımyıldız baskısı (altta);
+					// 13 etek ucunda zikzak bant (Earth)
+					float tt = clamp((rest.y - outer_hem) / max(rig_b.x - outer_hem, 0.05), 0.0, 1.0);
+					if (outer_pattern == 11) {
+						if (dh < 0.016) c.rgb = outer_accent.rgb;
+						if (rest.z > 0.0 && rest.y < rig_b.x) {
+							if (abs(rest.x - mix(-0.12, 0.11, tt)) < 0.006) c.rgb = outer_accent.rgb;
+							if (abs(rest.x - mix(0.02, 0.13, tt)) < 0.005 && tt < 0.55) c.rgb = outer_accent.rgb;
+						}
+					}
+					if (outer_pattern == 12 && dh < 0.32) {
+						vec2 sq = vec2(oa * 1.3, rest.y * 9.0);
+						vec2 cell = floor(sq);
+						vec2 f = fract(sq);
+						vec2 p1 = vec2(hash(cell), hash(cell + 3.1)) * 0.7 + 0.15;
+						vec2 p2 = vec2(hash(cell + 5.7), hash(cell + 9.3)) * 0.7 + 0.15;
+						vec2 d = p2 - p1;
+						float tl = clamp(dot(f - p1, d) / dot(d, d), 0.0, 1.0);
+						if (length(f - (p1 + d * tl)) < 0.014) c.rgb = mix(c.rgb, outer_accent.rgb, 0.85);
+						if (length(f - p1) < 0.045 || length(f - p2) < 0.04) c.rgb = outer_accent.rgb;
+					}
+					if (outer_pattern == 13 && dh < 0.07 && dh > 0.02) {
+						float zz = abs(fract(oa * 6.0) - 0.5) * 0.06;
+						if (abs(dh - 0.045 - zz + 0.015) < 0.006) c.rgb = outer_accent.rgb;
+					}
+				}
+				if (outer_pattern == 9 || outer_pattern == 10) {
+					// Kiri tuniği: boydan boya dikey dikiş çizgileri (her ~4 cm); 10: iki renkli (ön orta panel vurgu rengi, panel kenarında
+					// sarı biye) + eteğin açık panellerinde satranç taşı kesikleri (Mist Striker Beyaz/Siyah)
+					float ua2 = rest.z >= 0.0 ? atan(rest.x, rest.z) : atan(-rest.x, -rest.z);
+					float arcx = ua2 * 0.16;
+					if (abs(fract(arcx * 25.0) - 0.5) > 0.44) c.rgb *= 0.78;
+					if (rest.y > outer_top - 0.085) c.rgb = (outer_pattern == 9 ? outer_accent.rgb : pal[8].rgb);   // atkı yaka
+					if (outer_pattern == 10 && abs(rest.x) < sleeve_end - 0.12) {
+						bool mid = abs(arcx) < 0.055;
+						if (mid) c.rgb = outer_accent.rgb * (abs(fract(arcx * 25.0) - 0.5) > 0.44 ? 0.8 : 1.0);
+						if (abs(abs(arcx) - 0.055) < 0.004) c.rgb = vec3(0.92, 0.78, 0.15);
+						if (!mid && dh < 0.1 && dh > 0.015) {
+							float cx2 = fract(arcx * 14.0) - 0.5;
+							float py = (dh - 0.015) / 0.085;
+							// satranç taşı silueti: yuvarlak baş + daralan gövde + geniş taban
+							bool piece = (length(vec2(cx2, (py - 0.78) * 0.9)) < 0.13) || (py > 0.18 && py < 0.7 && abs(cx2) < 0.06 + 0.06 * (0.7 - py)) || (py < 0.18 && abs(cx2) < 0.17);
+							if (piece) c.rgb = vec3(0.08, 0.08, 0.1);
+						}
+					}
 				}
 				if (outer_pattern == 4) c.rgb *= 0.8 + 0.32 * step(0.45, fract(oa * 22.0 + vnoise(rest.xy * 30.0) * 0.6));
 				if (outer_pattern == 5) c.rgb *= 1.0 - 0.35 * smoothstep(0.25, 0.0, dh) * vnoise(rest.xz * 40.0) - 0.15 * smoothstep(0.55, 0.8, vnoise(rest.xy * 9.0));

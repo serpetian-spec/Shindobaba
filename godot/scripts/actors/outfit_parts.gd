@@ -14,7 +14,7 @@ static func _hem(m: CharacterModel) -> float:
 	var knee = m._bp("LeftLowerLeg").y; var hips = m._bp("Hips").y; var ank = m._bp("LeftFoot").y; var chest = m._bp("UpperChest").y
 	return {"palto": knee + 0.02, "pelerin": knee - 0.06, "haori": hips - 0.16, "kisa": chest - 0.3, "org_pelerin": ank + 0.12,
 		"panco": hips - 0.04, "yirtik": knee - 0.12, "jinbaori": knee + 0.08, "cuppe": ank + 0.1, "mino": knee - 0.02,
-		"haori_uzun": knee - 0.04, "kesa": hips - 0.05, "anbu_palto": knee + 0.07}.get(str(m.look.get("outer_style", "")), knee)
+		"haori_uzun": knee - 0.04, "kesa": hips - 0.05, "anbu_palto": knee + 0.07, "acik_ceket": hips + 0.035, "kiri_tunik": hips - 0.15, "bulut_etek": knee - 0.03, "kaya_gi": hips - 0.13}.get(str(m.look.get("outer_style", "")), knee)
 
 
 ## Kumaş shader'ına yeni parametreler

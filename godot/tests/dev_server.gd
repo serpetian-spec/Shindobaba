@@ -24,6 +24,16 @@ func _ready() -> void:
 		if src.strip_edges() == "quit":
 			get_tree().quit()
 			return
+		# "#reload: res://a.gd, res://b.gd" satırı: o betikler diskten açık oyuna yeniden yüklenir (Godot'yu baştan açmadan kod değişikliği)
+		for line in src.split("
+"):
+			if line.begins_with("#reload:"):
+				for path in line.substr(8).split(",", false):
+					var sp = path.strip_edges()
+					var scr: GDScript = load(sp)
+					scr.source_code = FileAccess.get_file_as_string(sp)
+					var rerr = scr.reload(true)
+					print("DEV reload %s -> %d" % [sp, rerr])
 		var sc = GDScript.new()
 		sc.source_code = src
 		var err = sc.reload()

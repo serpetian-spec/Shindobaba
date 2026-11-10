@@ -34,7 +34,9 @@ D = [
  (16, 'kutlama', 'Shukuen Kimono', 'Alev desenli kırmızı kimono, mavi kenarlar, beyaz kürk atkı.', 'c', [('biyeli_kimono', 'c0302a', '2a4a9a'), ('hakama', '2a3060', None), ('atki', 'f4f2ee', None), ('zori', '6b4a2b', 'e8d6a8')]),
  (17, 'kimono_etek', 'Shiro Kimono Hakama', 'Beyaz kimono üst ve etek, file iç, kahve kemer, uzun siyah çorap.', 'h', [('kimono_ust', 'f2f0ea', '8a5a2a'), ('etek_diz', 'f2f0ea', None), ('ayak_009', '1c1c20', '1c1c20')]),
  (18, 'yemek', 'Shoku Haori', 'Krem tişört üstüne yeşil ceket, koyu kırmızı pantolon.', 'h', [('tisort', 'e8e0cc', 'e8e0cc'), ('haori', '2e6a3a', None), ('ninja_pant', '5a1e22', None), (S, '1c1c20', 'eeeeea')]),
- (19, 'bulut_striker', 'Kumo Striker', 'Gri tişört, kırık beyaz atkı ve sargılar, beyaz biyeli kırmızı etek.', 's', [('tisort', 'a8aaae', 'a8aaae'), ('etek_diz', 'b0282a', None), ('atki', 'e8e4da', None), ('kol_sargisi', 'e8e4da', None), (S, '2a2a30', 'e8e4da')]),
+ (19, 'bulut_striker', 'Kumo Striker', 'Gri tişört, kırık beyaz atkı, beyaz biyeli yüksek belli kırmızı sargı etek, gri-beyaz kuşak, beyaz bilek ve bacak sargıları, mavi pantolon, kırmızı-siyah sandalet.', 's', [('tisort', 'a8aaae', 'a8aaae'), ('kapri', '2a3a6a', None), ('bulut_etek', 'a8222a', 'f2f2ee'), ('kol_sargisi', 'e8e8e4', None), ('sandalet', 'b0242a', 'e8e8e4')]),
+ (19, 'bulut_striker_toprak', 'Kumo Striker: Toprak', 'Yeşil tişört, siyah sargı etek ve yeşil zikzak bant, desenli yeşil kuşak, kırık beyaz atkı, kahve sargılar, kahve pantolon.', 'h', [('ust_044', '1e8a6a', 'e8e8e4'), ('kapri', '4a3022', None), ('bulut_etek_toprak', '231c1a', '2a9a80'), ('kol_sargisi', '5a3a22', None), ('sandalet', '2a6a5a', '5a3a22')]),
+ (19, 'bulut_striker_yildiz', 'Kumo Striker: Takımyıldız', 'Açık mavi tişört, takımyıldız baskılı lacivert sargı etek, mavi kuşak, yıldızlı mavi atkı, lacivert sargılar, açık mavi pantolon.', 'c', [('tisort', 'a8d8ec', 'a8d8ec'), ('kapri', '9ac8e8', None), ('bulut_etek_yildiz', '1e2e8a', 'd8e8ff'), ('kol_sargisi', '1e2e8a', None), ('sandalet', '2a4ab8', '1e2e8a')]),
  (20, 'kod', 'Kokuin Shōzoku', 'Lila yakalı koyu takım, bol mor paçalı pantolon.', 'm', [('yakali', '2a2a34', '9a7ac0'), ('bol_pantolon', '6a4a8a', None), ('eldiven', '1c1c20', None), (S, '1c1c20', '9a7ac0')]),
  (21, 'samuray_kuro', 'Kurogane Yoroi', 'Siyah samuray zırhı, beyaz ip kuşak, kırmızı kenarlar.', 'd', [('golge_ust', '1c1c22', '1c1c22'), ('hakama', '1c1c22', None), ('sengoku_kara', '1c1c22', None), ('ayak_012', '2a2a30', 'c0302a')]),
  (22, 'siyah_tulum', 'Kurokawa', 'Göğsü kayışlı simsiyah tulum, bileklik ve kaval koruyucu.', 's', [('golge_ust', '141418', '141418'), ('siyah_pant', '141418', None), ('kayis_kosum', '2a2a30', None), ('bacak_koruma', '5a5a60', None), ('siyah_tabi', '141418', '141418')]),
@@ -103,7 +105,9 @@ D = [
  (85, 'yeni_nesil2', 'Shinsedai Haori', 'Siyah biyeli gri-yeşil ceket, kahve pantolon, uzun mavi atkı.', 'h', [('panel_ceket', '9aa898', '1c1c20'), ('ninja_pant', '6a4a2a', None), ('atki', '2a7ac0', None), (S, '1c1c20', 'eeeeea')]),
  (86, 'genjutsu_sargi', 'Gensō Hōtai', 'Tek kırmızı kol, beyaz-siyah sargı elbise, file iç.', 'c', [('sargili_kolsuz', 'f2f0ea', 'a82228'), ('etek_diz', 'f2f0ea', None), ('kol_sargisi', 'f2f0ea', None), (S, '1c1c20', 'eeeeea')]),
  (87, 'onluk', 'Daidokoro Shōzoku', 'Beyaz fermuarlı gömlek üstüne yeşil önlük, gri bot.', 'h', [('yakali', 'f2f0ea', 'f2f0ea'), ('etek_uzun', '2e5a3a', None), ('ayak_004', '8a8a90', '8a8a90')]),
- (88, 'yaprak_striker', 'Konoha Striker', 'Dal desenli soluk yeşil ceket, sol omuzda girdap.', 'h', [('ceket', 'a8c89a', '2e5a3a'), ('ninja_pant', '2a3a2e', None), (S, '1c1c20', 'eeeeea')]),
+ (88, 'yaprak_striker', 'Konoha Striker', 'Önü açık yaprak desenli kısa ceket, gri gömlek üstüne lacivert yelek, tokalı beyaz kemer, kot panelli bol pantolon, yeşil bel çantası, siyah bot.', 'h', [('tisort', '1a2244', '1a2244'), ('kot_panelli_pant', '1a2652', '5a7ab0'), ('acik_ceket', 'a6cdb8', '3c6e4c'), ('sandalet', '16161a', '16161a')]),
+ (88, 'yaprak_striker_matador', 'Konoha Striker: Matador', 'Siyah kısa ceket, altın manşet şeritleri ve arma, siyah gömlek üstüne beyaz yelek, plakalı altın kemer, altın biyeli kırmızı kot paneli, altın bantlı kırmızı bot.', 'm', [('tisort', 'eeeeea', 'eeeeea'), ('kot_panelli_pant_biye', '141416', 'b0222a'), ('acik_ceket_matador', '18181c', '18181c'), ('sandalet', 'b0222a', 'b0222a')]),
+ (88, 'yaprak_striker_kovboy', 'Konoha Striker: Kovboy', 'Cepli kot ceket, sarı gömlek üstüne beyaz yelek, kahve kemer, kahve bacaklık ve mavi kot, yıldızlı çanta, perçinli koyu kahve bot.', 'h', [('tisort', 'eeeeea', 'eeeeea'), ('kot_panelli_pant', '6a3a22', '3a62b0'), ('acik_ceket_kot', '2e5ab8', '2e5ab8'), ('sandalet', '3a2618', '3a2618')]),
  (89, 'genc_canavar', 'Wakai Midori', 'Koyu yeşil tulum, turuncu atkı ve tozluk, beyaz kol sargısı.', 'm', [('golge_ust', '1e4a2a', '1e4a2a'), ('ninja_pant', '1e4a2a', None), ('turuncu_boyunluk', 'e8842a', None), ('agirlikli_tozluk', 'e8842a', None), (S, '1c1c20', 'eeeeea')]),
  (90, 'simsek_kiyafet', 'Raimei Shōzoku', 'Sarı şimşek desenli gri-beyaz takım, yeşil kuşak.', 's', [('tunik', 'c8c8cc', 'e8e830'), ('sivil_pant', 'c8c8cc', None), ('kol_sargisi', 'e8e830', None), ('ayak_017', '2a2a30', 'e8e830')]),
  (91, 'savas_reisi', 'Shura Yoroi', 'Koyu mor pelerin, çatlak kırmızı zırh.', 'd', [('golge_ust', '2a1e3a', '2a1e3a'), ('ninja_pant', '2a1e3a', None), ('sengoku_kizil', '9a1e22', None), ('gece_pelerini', '2a1e3a', None), (S, '1c1c20', 'eeeeea')]),
@@ -115,7 +119,9 @@ D = [
  (97, 'metal_canavar', 'Hagane Midori', 'Yeşil tulum, turuncu atkı ve tozluk, siyah kemer.', 'm', [('golge_ust', '2e6a3a', '2e6a3a'), ('ninja_pant', '2e6a3a', None), ('turuncu_boyunluk', 'e8842a', None), ('agirlikli_tozluk', 'e8842a', None), (S, '1c1c20', 'eeeeea')]),
  (98, 'sari_simsek', 'Kōsen Haori', 'Konoha takımı üstüne alev etekli beyaz haori.', 's', [('uzun_gomlek', '1e2a48', '1e2a48'), ('ninja_pant', '1e2a48', None), ('chunin_yelek', '4e6a48', None), ('sennin_haorisi', 'f2f0ea', 'd8302a'), (S, '1e2a48', 'eeeeea')]),
  (99, 'sari_simsek_genc', 'Kōsen Wakate', 'Siyah biyeli gri ceket, file iç, mavi pantolon, uzun bot.', 's', [('panel_ceket', '8a8a90', '1c1c20'), ('ninja_pant', '2a5a9a', None), ('ayak_009', '1c1c20', '1c1c20')]),
- (100, 'sis_striker', 'Kiri Striker', 'Atkılı çok tonlu mor üst, açık mavi kolluk ve tozluk.', 'c', [('denizci_ust', '8a7ab8', '5a4a8a'), ('ninja_pant', '3a3a5a', None), ('kiri_koruma', '9ab8d8', None), (S, '1c1c20', 'eeeeea')]),
+ (100, 'sis_striker', 'Kiri Striker', 'Dikey dikişli mor uzun tunik, atkı yaka, koyu kabarık kısa kollar, açık mavi çizgili kol ve bacak ısıtıcıları, çapraz yeşil kayış ve kemer, bol koyu mor pantolon.', 'c', [('gi_siyah', '2a2244', '2a2244'), ('bol_pantolon', '2a2340', None), ('kiri_tunik', 'a89ad0', '2a2244'), ('kiri_koruma', '9ab4dc', None), ('sandalet', 'a89ad0', 'a89ad0')]),
+ (100, 'sis_striker_beyaz', 'Kiri Striker: Beyaz', 'Beyaz-gri tunik, satranç taşı kesikleri, sarı biyeler, damalı çanta, gri-beyaz ısıtıcılar, siyah-beyaz bol pantolon.', 'd', [('gi_siyah', '141416', '141416'), ('bol_serit', 'ececea', '141416'), ('kiri_tunik_beyaz', 'ececea', '9a9a9e'), ('kiri_koruma', 'cfd0d4', None), ('sandalet', 'a8a8ac', 'ececea')]),
+ (100, 'sis_striker_siyah', 'Kiri Striker: Siyah', 'Siyah-gri tunik, satranç taşı kesikleri, sarı biyeler, damalı çanta, gri-siyah ısıtıcılar, siyah-beyaz bol pantolon.', 'm', [('gi_siyah', 'ececea', 'ececea'), ('bol_serit', '141416', 'ececea'), ('kiri_tunik_siyah', '1c1c20', '9a9a9e'), ('kiri_koruma', '7a7a80', None), ('sandalet', 'a8a8ac', '1c1c20')]),
  (101, 'yilan_zirh', 'Hebi Yoroi', 'Koyu gri üniforma, göğüs ve sırtta açık gri zırh.', 'd', [('golge_ust', '3a3a40', '3a3a40'), ('siyah_pant', '3a3a40', None), ('anbu_zirh', 'b8b8bc', None), ('ayak_009', '3a3a40', '3a3a40')]),
  (102, 'yilan_kimono', 'Hebi Kimono', 'Beyaz biyeli iki tonlu mavi kimono üst, geniş kahve kuşak.', 'c', [('biyeli_kimono', '3a7ac0', 'f2f0ea'), ('ninja_pant', '2a3a6a', None), (S, '1c1c20', 'eeeeea')]),
  (103, 'kurucu_palto', 'Sōshi Gaitō', 'Ortası kırmızı biyeli dik yakalı siyah palto, gri kuşak.', 'c', [('golge_ust', '1c1c20', '1c1c20'), ('siyah_pant', '1c1c20', None), ('gece_pelerini', '1c1c20', 'a82228'), (S, '1c1c20', 'eeeeea')]),
@@ -138,7 +144,9 @@ D = [
  (120, 'on_kuyruk', 'Jūbi Koromo', 'Göğüste altı tomoe, beyaz beden giysisi, siyah alt.', 'c', [('beyaz_arma', 'd8e4dc', '1c1c20'), ('siyah_pant', '1c1c20', None), ('kesis_cubbesi', 'd8e4dc', '1c1c20'), ('tabi', 'd8e4dc', 'd8e4dc')]),
  (121, 'tas_yaşli', 'Iwa Rōjin', 'Siyah Iwa takımı, soluk yeşil yelek, kızıl pelerin.', 'd', [('uzun_gomlek', '1c1c20', '1c1c20'), ('iwa_pant', '1c1c20', None), ('iwa_yelek', '8a9a7a', None), ('kisa_pelerin', 'a82228', None), (S, '1c1c20', '6a6a70')]),
  (122, 'yilan_sanin', 'Hebi Sannin', 'Siyah balıkçı yaka üstüne kısa kollu krem üst, kalın mor ip kuşak.', 'c', [('kimono_ust', 'e8dcb8', '6a3a9a'), ('ninja_pant', '3a4a6a', None), (S, '1c1c20', 'eeeeea')]),
- (123, 'kaya_striker', 'Iwa Striker', 'Koyu kahve şal, açık sol kollu kızıl gi, kahve kemer.', 'd', [('gi_beyaz', 'a82228', '6a4a2a'), ('ninja_pant', 'a82228', None), ('kisa_pelerin', '5a3a28', None), (S, '1c1c20', 'eeeeea')]),
+ (123, 'kaya_striker', 'Iwa Striker', 'Kolsuz çapraz bağlı kızıl gi, sarı etek bandı, koyu şal yaka, solda soluk kırmızı tek kol, geniş siyah kuşak ve sarkan çantalar, diz altı kırmızı pantolon, sağ uylukta kılıflık, file çorap, koyu bot.', 'm', [('tek_kol_ust', 'a8303a', 'a8303a'), ('file_corapli_kapri', '9a2a34', None), ('kaya_gi', '6a1620', 'e8b820'), ('sandalet', '24201c', '24201c')]),
+ (123, 'kaya_striker_kurtarici', 'Iwa Striker: Kurtarıcı', 'Turuncu gi, ok desenli siyah sol kol ve beyaz kol bandı, kuşakta beyaz şerit, beyaz çantalar, siyah diz altı pantolon, file çorap, siyah-gri bot.', 'h', [('tek_kol_ust', '141416', '141416'), ('file_corapli_kapri', '141416', None), ('kaya_gi_kurtarici', 'e8601e', 'e8601e'), ('sandalet', '1c1c20', 'e8601e')]),
+ (123, 'kaya_striker_postaci', 'Iwa Striker: Postacı', 'Mavi gi, beyaz şal yaka ve beyaz sol kol, siyah kuşak, etiketli mavi çantalar, siyah diz altı pantolon, file çorap.', 's', [('tek_kol_ust', 'ececea', 'ececea'), ('file_corapli_kapri', '141416', None), ('kaya_gi_postaci', '2a5ac8', '2a5ac8'), ('sandalet', '1c1c20', '1c1c20')]),
  (124, 'lav_zirh', 'Yōgan Yoroi', 'Mor kimono takımı, kahve zırh, lacivert kolluk.', 'd', [('kimono_ust', 'a82a8a', 'a82a8a'), ('bol_pantolon', 'a82a8a', None), ('deri_pul_zirh', '6a4a2a', None), ('kolluk', '2a2a5a', None), ('ayak_009', '2a2a5a', '2a2a5a')]),
  (125, 'murekkep_ceket', 'Sumi Uwagi', 'Omuzları kırmızı biyeli lacivert-mor ceket, gri iç.', 'c', [('panel_ceket', '2a2a4a', 'c02a2a'), ('ninja_pant', '2a2a4a', None), ('eldiven', '1c1c20', None), (S, '1c1c20', 'eeeeea')]),
  (126, 'pembe_kunoichi', 'Sakura Kunoichi', 'Kolsuz kırmızı fermuarlı üst, pembe etek, siyah eldiven.', 'h', [('kolsuz_yakali', 'b0242a', 'f2f0ea'), ('etek_mini', 'e8b0c0', None), ('eldiven', '1c1c20', None), ('ayak_009', '1c1c20', '1c1c20')]),
@@ -192,7 +200,13 @@ D = [
  (174, 'iblis', 'Kiri no Oni', 'Arkaya düğmeli kuşaklı siyah tulum, kollarda inek desenli koruma.', 'm', [('golge_ust', '1c1c20', '1c1c20'), ('ninja_pant', '1c1c20', None), ('kiri_koruma', 'b8b8bc', None), (S, '1c1c20', 'eeeeea')]),
 ]
 
-DONE = set()   # ref'e göre modellemesi bitip doğrulanan set kimlikleri
+SEX_FIX = {123: 'M'}
+DONE = {"ss_yaprak_striker", "ss_yaprak_striker_matador", "ss_yaprak_striker_kovboy", "ss_sis_striker", "ss_sis_striker_beyaz", "ss_sis_striker_siyah", "ss_bulut_striker", "ss_bulut_striker_toprak", "ss_bulut_striker_yildiz", "ss_kaya_striker", "ss_kaya_striker_kurtarici", "ss_kaya_striker_postaci"}   # ref'e göre modellemesi bitip doğrulanan set kimlikleri
+
+CHUNIN_PARTS = {'chunin_yelek', 'suna_yelek', 'kiri_yelek', 'kumo_yelek', 'iwa_yelek', 'jonin_koyu'}
+JONIN_PARTS = {'konoha_jonin', 'suna_jonin', 'kiri_jonin', 'kumo_jonin', 'iwa_jonin', 'jonin_komutan_paltosu'}
+VIL_PARTS = {'konoha': {'chunin_yelek', 'konoha_jonin'}, 'suna': {'suna_yelek', 'suna_jonin'}, 'kiri': {'kiri_yelek', 'kiri_jonin', 'kiri_koruma'},
+             'kumo': {'kumo_yelek', 'kumo_jonin', 'kumo_kaval'}, 'iwa': {'iwa_yelek', 'iwa_jonin', 'iwa_pant'}}
 
 FLAV = {'s': {'speed': 0.04}, 'm': {'melee': 0.05}, 'c': {'chakra': 20}, 'h': {'hp': 20}, 'd': {'def': 4}}
 BASE = [{'def': 5, 'hp': 10}, {'def': 8, 'hp': 15}, {'def': 12, 'hp': 25}, {'def': 15, 'hp': 30, 'chakra': 15}]
@@ -214,21 +228,35 @@ start, shop = [], []
 seen = set()
 for (i, sid, name, desc, fl, parts) in D:
     sex, rk, page = lst[i]
+    sex = SEX_FIX.get(i, sex)   # wiki sayfa metni kategoriden farklıysa (Rock Striker: yalnız erkek)
     r = rank_of(rk)
     sid = 'ss_' + re.sub(r'[^a-z0-9_]', '', sid.replace('ş', 's'))
     assert sid not in seen, sid
     seen.add(sid)
+    # rütbe ve köy giysinin kendisinden: taktik yelek = chūnin, jōnin haorisi = jōnin, ANBU parçası = ANBU, Kage cübbesi = Kage
+    pn = [p for (p, a, b) in parts]
+    need = 0
+    vil = ''
+    for p in pn:
+        for v, ks in VIL_PARTS.items():
+            if p in ks:
+                vil = v
+        if p in CHUNIN_PARTS: need = max(need, 2)
+        if p in JONIN_PARTS: need = max(need, 3)
+        if p.startswith('anbu_'): need = max(need, 4)
+        if p == 'kage_cubbesi': need = max(need, 6)
     st = dict(BASE[r])
     for k, v in FLAV[fl].items():
         st[k] = st.get(k, 0) + v
     stats = '{' + ', '.join('"%s": %s' % (k, gd_val(v)) for k, v in st.items()) + '}'
     ps = ', '.join('["%s", %s, %s]' % (p, col(a), col(b)) for (p, a, b) in parts)
     sx = {'F': 'f', 'M': 'm'}.get(sex, '')
-    out.append('\t"%s": {"name": "%s", "slot": "set", "price": %d, "rank": %d, "sex": "%s", "desc": "%s", "stats": %s, "c1": %s, "c2": %s, "parts": [%s]},'
-               % (sid, name, PRICE[r], min(r, 2), sx, desc, stats, col(parts[0][1]), col(parts[0][2] or parts[0][1]), ps))
+    vk = (', "village": "%s"' % vil) if vil else ''
+    out.append('\t"%s": {"name": "%s", "slot": "set", "price": %d, "rank": %d%s, "sex": "%s", "desc": "%s", "stats": %s, "c1": %s, "c2": %s, "parts": [%s]},'
+               % (sid, name, PRICE[r], need, vk, sx, desc, stats, col(parts[0][1]), col(parts[0][2] or parts[0][1]), ps))
     if sid in DONE:   # yalnız gerçekten modellenmiş (ref'e göre yeni 3B parçalı) setler satılır/seçilir
         shop.append(sid)
-        if r == 0:
+        if r == 0 and need == 0:
             start.append(sid)
 out.append('}')
 out.append('')
