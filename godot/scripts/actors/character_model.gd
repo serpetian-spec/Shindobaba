@@ -2600,8 +2600,7 @@ func _hirka_kit(g: Dictionary) -> void:
 		# ön kenar: göğüs altında önde açıklığa en yakın köşe
 		_sk_edge_band(0.04, 0.007, rc)   # ribana pervaz: açılım kenarını izler
 		_sk_ring(1, ybot + 0.018, 0.034, 0.007, rc, 0.68, TAU - 0.68, 56, 0.003, 0.0, 0.0, 0.3)
-		for k in 3:
-			_sk_ring(1, ybot + 0.008 + k * 0.011, 0.002, 0.002, lc, 0.68, TAU - 0.68, 56, 0.0105, 0.0, 0.0, 0.3)
+		# (etek ribanasındaki ince çizgi halkaları kaldırıldı: açılan etekte kalçanın çevresinde havada çember gibi duruyordu, ref wonder_striker)
 		_sk_end(g)
 	var hx = absf(_bp("LeftHand").x)
 	for sx in [1.0, -1.0]:
