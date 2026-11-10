@@ -1226,7 +1226,7 @@ func _paint_body() -> void:
 	if look["vest"] != null:
 		vest_mat = _cloth_mat(2)
 		_add_shell(_shell_cache[key + "|vest"], vest_mat)
-		if int(look.get("vest_style", 0)) in [0, 1, 2, 3, 4, 12]:
+		if int(look.get("vest_style", 0)) in [0, 1, 2, 3, 4, 12, 13]:
 			_vest_kit(_shell_cache[key + "|vest"], g)
 		if int(look.get("vest_style", 0)) == 2 and _sk_begin(_shell_cache[key]):
 			# Kiri önlüğü: kalça önünde, kumaş kabuğuna yaslı, aşağı doğru daralan plaka şerit
@@ -2923,12 +2923,13 @@ func _boyun_atki_kit(g: Dictionary) -> void:
 		var am = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "boyun_atki", 0.0])
 		if am != null and _sk_begin(am):
 			var sc: Color = look["neck_scarf"]
-			var h = _sk_hit(0.06, neck - 0.0, true, 0.03)
+			var ss = -1.0   # ref konohamaru_outfit: düğüm boynun sağında (bakana göre solda), iki uç dışa-yukarı açılır
+			var h = _sk_hit(0.075 * ss, neck + 0.01, true, 0.04)
 			if not h.is_empty():
-				var p0: Vector3 = h[0] + Vector3(0, 0, 0.008)
-				_sk_box(p0, Vector3(0.02, 0, 0), Vector3(0, 0.02, 0), Vector3(0, 0, 0.012), sc.darkened(0.1))   # düğüm
-				_sk_box(p0 + Vector3(0.035, -0.02, 0.0), Vector3(0.03, -0.012, 0), Vector3(0.01, 0.026, 0), Vector3(0, 0, 0.006), sc)   # uç 1
-				_sk_box(p0 + Vector3(0.02, -0.045, 0.004), Vector3(0.016, -0.02, 0), Vector3(0.014, 0.02, 0), Vector3(0, 0, 0.006), sc.darkened(0.05))   # uç 2
+				var p0: Vector3 = h[0] + Vector3(0, 0, 0.01)
+				_sk_box(p0, Vector3(0.022, 0, 0), Vector3(0, 0.022, 0), Vector3(0, 0, 0.014), sc.darkened(0.1))   # düğüm
+				_sk_box(p0 + Vector3(0.05 * ss, 0.012, -0.01), Vector3(0.045 * ss, 0.012, 0), Vector3(-0.008 * ss, 0.03, 0), Vector3(0, 0, 0.006), sc)   # uç 1 (dışa)
+				_sk_box(p0 + Vector3(0.012 * ss, 0.05, -0.006), Vector3(0.012 * ss, 0.035, 0), Vector3(0.022, -0.006 * ss, 0), Vector3(0, 0, 0.006), sc.darkened(0.05))   # uç 2 (yukarı)
 			_sk_end(g)
 	if look.get("armband") is Color and _sk_begin(_shell_cache.get(look["gender"])):
 		var ax = lerpf(absf(_bp("LeftUpperArm").x), absf(_bp("LeftLowerArm").x), 0.4)
@@ -2947,31 +2948,47 @@ func _sargi_elbise_kit(g: Dictionary) -> void:
 	if em == null or not _sk_begin(em):
 		return
 	var dark := Color(0.1, 0.08, 0.1)
-	var bands = []
-	for k in 5:
-		var y0 = neck - 0.1 - k * 0.075
-		bands.append([Vector2(-0.16, y0), Vector2(0.16, y0 - 0.16), true])
-		bands.append([Vector2(0.16, y0 - 0.03), Vector2(-0.16, y0 - 0.19), false])
-	for bnd in bands:
-		var a: Vector2 = bnd[0]
-		var b: Vector2 = bnd[1]
-		var pts = []; var outs = []; var pd = []; var od = []
-		for k in 13:
-			var q = a.lerp(b, k / 12.0)
-			if q.y < hips - 0.2:
-				continue
-			var hit = _sk_hit(q.x, q.y, bnd[2], 0.03)
-			if hit.is_empty():
-				continue
-			var z = hit[0].z + (0.006 if bnd[2] else -0.006)
-			pts.append(Vector3(q.x, q.y, z)); outs.append(hit[1])
-			pd.append(Vector3(q.x, q.y - 0.024, z + (0.003 if bnd[2] else -0.003))); od.append(hit[1])
-		if pts.size() > 1:
-			var dir = (Vector3(b.x, b.y, 0) - Vector3(a.x, a.y, 0)).normalized()
-			var wd = Vector3.BACK.cross(dir).normalized()
-			_sk_band(pts, outs, wd, 0.05, 0.006, wc.darkened(0.03))
-			_sk_band(pd, od, wd, 0.006, 0.007, dark)
+	var V: PackedVector3Array = _sk["v"]
+	var ybot = 9.0
+	var ytop = -9.0
+	for q in V:
+		ybot = minf(ybot, q.y); ytop = maxf(ytop, q.y)
+	# ref kurenai_outfit: önde ve arkada iki yönde çaprazlanan geniş sargı bantları (X), her bandın alt kenarında dikenli koyu şerit
+	for fr in [true, false]:
+		for k in 8:
+			for dirn in [1.0 if k % 2 == 0 else -1.0]:
+				var y0 = ytop - 0.0 - k * 0.062
+				var a2 = Vector2(-0.14 * dirn, y0)
+				var b2 = Vector2(0.14 * dirn, y0 - 0.15)
+				# bant eteğin altına taşmasın: alt uçtan kırp
+				if b2.y < ybot + 0.03:
+					if a2.y < ybot + 0.06:
+						continue
+					b2 = a2.lerp(b2, (a2.y - (ybot + 0.03)) / (a2.y - b2.y))
+				if a2.y > ytop - 0.01:
+					a2 = a2.lerp(b2, (a2.y - (ytop - 0.01)) / (a2.y - b2.y))
+				var lift = 0.006 + (0.006 if dirn > 0.0 else 0.0) + k * 0.0006
+				lift = 0.003
+				var dv = (b2 - a2).normalized()
+				var nn = Vector2(dv.y, -dv.x) if dv.y * dirn < 0.0 else Vector2(-dv.y, dv.x)
+				if nn.y > 0.0:
+					nn = -nn
+				var off = nn * 0.03
+				_sk_path(a2 + off, b2 + off, 0.006, 0.004, dark, fr, lift + 0.004, 18, 0.03)
+				var L = (b2 - a2).length()
+				var nt = int(L / 0.09)
+				for t in nt:
+					var pp = a2.lerp(b2, (t + 0.5) / nt) + off
+					_sk_path(pp, pp - nn * 0.014 + dv * 0.006, 0.007, 0.004, dark, fr, lift + 0.004, 2, 0.03)   # diken
 	_sk_end(g)
+	# omuzlardan dökülen sargı askıları (ref: önde V yaka, file iç görünür)
+	if _sk_begin(_shell_cache.get(look["gender"])):
+		var ch = _bp("UpperChest").y
+		for fr in [true, false]:
+			for sx in [1.0, -1.0]:
+				_sk_path(Vector2(0.1 * sx, neck - 0.0), Vector2(0.025 * sx, ch - 0.02), 0.05, 0.006, wc, fr, 0.014, 14, 0.04)
+				_sk_path(Vector2(0.1 * sx + 0.02 * sx, neck - 0.0), Vector2(0.045 * sx, ch - 0.02), 0.006, 0.004, Color(0.1, 0.08, 0.1), fr, 0.02, 14, 0.04)
+		_sk_end(g)
 
 
 ## İki tonlu kimono ayrıntıları (ref refs/outfits_ss/mitsuki_outfit.png): geniş kahve kuşak + hilal plakası, sırtta çanta
@@ -4570,6 +4587,21 @@ func _kumo_flap_kit(g: Dictionary) -> void:
 	_sk_end(g)
 
 
+## Ceket biyesi (ref all/konohamaru_outfit_2): önde boydan boya koyu kapama bandı, etek ve kol ağzında koyu şerit (gövde kabuğunda)
+func _trim_kit(g: Dictionary) -> void:
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var tc: Color = look["front_trim"]
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var ha = absf(_bp("LeftHand").x)
+	_sk_path(Vector2(0.0, neck - 0.04), Vector2(0.0, hips - 0.03), 0.034, 0.005, tc, true, 0.004, 30, 0.03)
+	_sk_ring(1, hips - 0.025, 0.03, 0.006, tc, -PI, PI, 48, 0.004)
+	for sx in [1.0, -1.0]:
+		_sk_ring(0, (ha - 0.05) * sx, 0.035, 0.006, tc, -PI, PI, 20, 0.005, sx)
+	_sk_end(g)
+
+
 ## Killer Bee takımı (ref all/killer_bee_outfit): boyunda kalın sarılı beyaz atkı (arkadan bacak arasına inen yırtık uç), belde kalın burgulu
 ## kırmızı ip kemer, kemerin altında soldan sağa inen çapraz beyaz yelek eteği, beyaz eldivende kırmızı bilek plakası
 func _bee_kit(g: Dictionary) -> void:
@@ -4782,7 +4814,7 @@ func _garments(g: Dictionary) -> void:
 			_garment("kolsuz_palto", func(): return _cut_spec(g, neck - 0.01, hips - 0.16, 20, {"w": [[0.0, 0.84], [0.12, 1.0], [1.0, 1.04]], "d": [[0.0, 0.11], [1.0, 0.135]], "o": [[0.0, 0.0], [0.45, 0.0], [0.6, 0.16], [1.0, 0.3]], "n": 3.4}, 8, hips - 0.04, 0.03))   # KESİM: sasuke_outfit_2 — düz kolsuz palto, karından yırtmaç
 		"onluk_elbise":
 			# uzun önlük elbise (Striker Kushina): kolsuz; göğüste oval yaka oyuntusu, baldıra inen hafif çan etek
-			_garment("onluk_elbise", func(): return _cut_loft(g, 1, neck - 0.07, ank + 0.17, 28, torso, func(t): return Vector4(absf(ua) * (0.78 + 0.55 * maxf(0.0, t - 0.28)), lerpf(0.1, 0.17, t), 0.0, 2.4), 8, hips - 0.05, 56, func(t): return 0.05))   # KESİM: 6 foto kushina_outfit; göğüs payı
+			_garment("onluk_elbise", func(): return _cut_spec(g, neck - 0.01, ank + 0.17, 30, {"w": [[0.0, 0.8], [0.12, 0.92], [0.3, 0.98], [0.55, 1.3], [1.0, 1.6]], "d": [[0.0, 0.11], [0.3, 0.13], [1.0, 0.18]], "n": 2.6}, 8, hips - 0.05, 0.03, func(t, ang): return t < 0.07 and absf(wrapf(ang - PI * 0.5, -PI, PI)) < 0.55 - t * 2.0))   # KESİM: kushina_outfit — önde U yaka oyuntusu, geniş askı, A etek
 		"iki_ton_kimono":
 			# iki tonlu kimono üst (Striker Mitsuki): boyundan uyluğa; çok geniş kimono kolları bileğin üstüne
 			_garment("iki_ton_kimono", func(): return _cut_spec(g, neck + 0.0, hips - 0.2, 22, {"w": [[0.0, 0.86], [0.1, 1.06], [1.0, 1.1]], "d": [[0.0, 0.12], [1.0, 0.14]], "n": 3.4}, 8, hips - 0.04, 0.035))   # KESİM: mitsuki_outfit — kutu kimono
@@ -5114,6 +5146,8 @@ func _garments(g: Dictionary) -> void:
 		_gelinlik_kit(g)
 	if look.get("bee_kit") is Color:
 		_bee_kit(g)
+	if look.get("front_trim") is Color:
+		_trim_kit(g)
 	if look.get("vest") is Color and int(look.get("vest_style", 0)) == 3 and look.get("outer_style") == null:
 		_kumo_flap_kit(g)
 	if look.get("outer_style") == "koji_ceket":
@@ -5685,6 +5719,22 @@ func _vest_kit(src: ArrayMesh, g: Dictionary) -> void:
 			_sk_ring(1, bot_y + 0.02, 0.035, 0.008, dk, -PI, PI, 40, 0.0)
 			for sx in [-1.0, 1.0]:
 				_sk_ring(0, sh_x * sx, 0.075, 0.012, vc.darkened(0.03), -0.55, 1.0, 16, 0.0, sx)
+		13:   # yeni nesil Konoha (ref all/konohamaru_outfit): yakasız, düz göğüs panelleri + orta dikiş, ayrı perçinli açık omuzluk,
+			# belde açık yatay bant, altında ortası dikişli önlük
+			var bandy = hips + 0.11
+			_sk_path(Vector2(0.0, top_y + 0.01), Vector2(0.0, bandy + 0.03), 0.006, 0.004, dk.darkened(0.3), true, 0.004, 24, 0.03)
+			_sk_path(Vector2(0.0, bandy - 0.03), Vector2(0.0, bot_y - 0.03), 0.006, 0.004, dk.darkened(0.3), true, 0.004, 10, 0.03)
+			_sk_ring(1, bandy, 0.05, 0.012, vc.lightened(0.12), -PI, PI, 48, 0.004)
+			_sk_ring(1, bandy + 0.026, 0.006, 0.013, dk.darkened(0.3), -PI, PI, 48, 0.004)
+			_sk_ring(1, bandy - 0.026, 0.006, 0.013, dk.darkened(0.3), -PI, PI, 48, 0.004)
+			for sx in [-1.0, 1.0]:
+				_sk_plate(0.125 * sx, top_y - 0.035, 0.085, 0.06, 0.012, vc.lightened(0.14), 0.004)   # perçinli omuzluk (önde)
+				_sk_ring(0, sh_x * sx, 0.09, 0.012, vc.lightened(0.14), -0.6, 0.9, 16, 0.002, sx)
+				for rx in [0.1, 0.15]:
+					var hr = _sk_hit(rx * sx, top_y - 0.05, true, 0.04)
+					if not hr.is_empty():
+						var nr: Vector3 = (hr[1] as Vector3).normalized()
+						_sk_disc(hr[0] + nr * 0.017, nr, 0.005, 0.003, dk.darkened(0.4))   # perçin
 		1:   # Suna (sunaset.png): geniş kanat omuzluk (üstünde açık şerit), fermuar, karında iki cep takımı, dik yaka
 			_sk_strip(0.0, top_y + 0.02, bot_y + 0.01, 0.012, 0.006, zipc, 34)
 			for sx in [-1.0, 1.0]:
@@ -8890,7 +8940,7 @@ func _attachments() -> void:
 			0:   # Konoha: _vest_kit (yüzeye oturan derili cep/fermuar/yaka/omuzluk)
 				pass
 
-			1, 2, 3, 4, 12:   # Suna / Kiri / Kumo / Iwa / ANBU plaka: _vest_kit (yüzeye oturan derili parçalar)
+			1, 2, 3, 4, 12, 13:   # Suna / Kiri / Kumo / Iwa / ANBU plaka / yeni nesil: _vest_kit (yüzeye oturan derili parçalar)
 				pass
 			_:
 				for sx in [-1.0, 1.0]:
