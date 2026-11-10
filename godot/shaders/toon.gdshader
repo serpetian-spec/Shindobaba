@@ -495,6 +495,7 @@ void fragment() {
 				if (top_pattern == 40 && rest.y < rig_b.w - 0.095) { vec2 q = vec2(rest.x + rest.z, rest.y) * 90.0; float net = max(step(0.8, fract(q.x + q.y)), step(0.8, fract(q.x - q.y))); c.rgb = mix(skin_c * 0.85, vec3(0.1, 0.1, 0.12), net * 0.9 + 0.1); }   // file bant
 				if (top_pattern == 41 && !torso && ax > mix(rig_a.x, rig_a.y, 0.38) && ax < mix(rig_a.x, rig_a.y, 0.5)) { vec2 q = vec2(rest.y, rest.z) * 120.0; float net = max(step(0.78, fract(q.x + q.y)), step(0.78, fract(q.x - q.y))); c.rgb = mix(skin_c * 0.85, vec3(0.75, 0.75, 0.78), net); }   // kol ağzında file bant
 				if (top_pattern == 44 && !torso) { vec2 q = vec2(rest.y, rest.z) * 120.0; float net = max(step(0.78, fract(q.x + q.y)), step(0.78, fract(q.x - q.y))); c.rgb = mix(skin_c * 0.85, vec3(0.1, 0.1, 0.12), net); }   // gövde düz, kollar file
+				if (top_pattern == 45 && !torso && ax > mix(rig_a.x, rig_a.y, 0.58)) { vec2 q = vec2(rest.y, rest.z) * 120.0; float net = max(step(0.78, fract(q.x + q.y)), step(0.78, fract(q.x - q.y))); c.rgb = mix(skin_c * 0.85, vec3(0.1, 0.1, 0.12), net); }   // üst kol düz, ön kol file (Striker Hiruzen)
 				if (top_pattern == 39) {   // ışıklı hat tulum (Custom Type Two): yakada çapraz, omuzda kısa çizgi, ön kolda koruyucu kenarı
 					vec3 glow = vec3(1.0, 0.86, 0.95);
 					if (torso && rest.z > 0.0 && ny > -0.08 && abs(abs(rest.x) - (ny + 0.08) * 0.9) < 0.004) c.rgb = glow;

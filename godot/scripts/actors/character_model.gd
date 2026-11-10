@@ -4624,8 +4624,8 @@ func _garments(g: Dictionary) -> void:
 				_garment("kirpik_kol%d" % int(sx), func(): return _loft(g, 0, (absf(ua) * 0.86) * sx, (kel + 0.01) * sx, 8, func(p): return signf(p.x) == sx and p.y > neck - 0.35 and absf(p.x) > absf(ua) * 0.84 and absf(p.x) < kel + 0.03, func(t, _a): return 0.024 + t * 0.012, 8, null, -99.0, 24))
 		"yirtmacli_etek":
 			# yırtmaçlı diz üstü etek (Striker Ino): belden uyluk ortasına, önde ortada yırtmaç; içinde gri iç etek (pantolon rengi)
-			_garment("ic_etek", func(): return _loft(g, 1, hips + 0.02, hips - 0.22, 10, torso, func(t, _a): return 0.01 + t * 0.016, 3, null, hips - 0.08))
-			_garment("yirtmacli_etek", func(): return _cut_spec(g, hips + 0.07, hips - 0.27, 14, {"w": [[0.0, 0.86], [1.0, 1.08]], "d": [[0.0, 0.11], [1.0, 0.15]], "n": 3.0}, 8, hips - 0.06, 0.03, func(t, ang): return t > 0.08 and absf(wrapf(ang - PI * 0.5, -PI, PI)) < 0.12 + t * 0.06))   # KESİM: ino_outfit — düz hafif A, önde yırtmaç
+			_garment("ic_etek", func(): return _cut_spec(g, hips + 0.02, hips - 0.22, 10, {"w": [[0.0, 0.95], [1.0, 1.05]], "d": [[0.0, 0.112], [1.0, 0.125]], "n": 2.8}, 3, hips + 0.0, 0.012))   # KESİM: düz iç etek (bacak arasında yarılmaz)
+			_garment("yirtmacli_etek", func(): return _cut_spec(g, hips + 0.07, hips - 0.27, 14, {"w": [[0.0, 0.86], [1.0, 1.08]], "d": [[0.0, 0.11], [1.0, 0.15]], "n": 2.8}, 8, hips - 0.06, 0.004, func(t, ang): return t > 0.08 and absf(wrapf(ang - PI * 0.5, -PI, PI)) < 0.12 + t * 0.06))   # KESİM: ino_outfit (iç etek payı zaten 3.5 cm: ek pay yok) — düz hafif A, önde yırtmaç
 		"sargi_etek_uzun":
 			# uzun sargı etek (Striker Ino 2): belden baldır ortasına düz-hafif çan; önde kruvaze kat çizgisi (desen)
 			_garment("sargi_etek_uzun", func(): return _cut_spec(g, hips + 0.07, ank + 0.16, 22, {"w": [[0.0, 0.86], [1.0, 1.38]], "d": [[0.0, 0.11], [1.0, 0.22]], "n": 2.8}, 8, hips - 0.06, 0.03))   # KESİM: ino_outfit_2 — baldıra A sargı etek
