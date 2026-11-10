@@ -1731,8 +1731,9 @@ func _cut_loft(g: Dictionary, axis: int, v0: float, v1: float, rows: int, filt: 
 		c /= npts
 		c[axis] = val
 		var lpts = []
-		for p in lay:   # iç katmanlar (hakama/etek/iç cübbe): ayrı ölçülür, onlara karşı daha geniş pay (salınımda taşmasın)
-			if absf(p[axis] - val) <= 0.025 and filt.call(p):
+		var low_y = _bp("Neck").y - 0.4
+		for p in lay:   # iç katmanlar (hakama/etek/iç cübbe/şalvar): ayrı ölçülür, onlara karşı daha geniş pay; bel altında genişlik süzgeci yok (bağ pozunda orada kol yok)
+			if absf(p[axis] - val) <= 0.025 and (filt.call(p) or (axis == 1 and p.y < low_y)):
 				lpts.append(p)
 		var rad = PackedFloat32Array(); rad.resize(BB)
 		for p in pts:
