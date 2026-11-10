@@ -222,7 +222,7 @@ int cloth_slot(vec3 p) {
 	if (pants_style == 5) cut = mix(rig_b.y, rig_b.z, 0.45);
 	if (pants_style == 6) cut = pants_pattern == 23 ? rig_b.x - 0.15 : rig_b.y + 0.12;   // pilili etek altında yalnız etek boyu iç şort
 	if (p.y > cut) return 3;
-	if (foot_kind == 9 || foot_pattern == 11 || foot_pattern == 12) return 0;   // parmak arası terlik / çoraplı ayakkabı: baldır sargısı yok
+	if (foot_kind == 9 || foot_pattern == 11 || foot_pattern == 12 || foot_pattern == 13) return 0;   // 13: sargısız alçak ninja sandaleti   // parmak arası terlik / çoraplı ayakkabı: baldır sargısı yok
 	float wrap_top = (pants_style == 0 || pants_style == 3) ? cut + 0.02 : rig_b.y - 0.16;
 	if (pants_style == 5) wrap_top = rig_b.z + 0.06;
 	if (foot_kind == 3 || foot_kind == 6) wrap_top = max(wrap_top, rig_b.y + 0.02);
