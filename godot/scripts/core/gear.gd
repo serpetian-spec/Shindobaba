@@ -1237,6 +1237,8 @@ static func req_summary(id: String) -> String:
 		parts.append("%s Kage'si" % String(Game.village(String(KAGE_VID[id])).get("name", KAGE_VID[id])))
 	elif int(it.get("rank", 0)) > 0:
 		parts.append("%s rütbesi" % Data.RANKS[mini(int(it["rank"]), Data.RANKS.size() - 1)])
+	if not KAGE_VID.has(id) and String(it.get("village", "")) != "":   # köye özel üniforma (Shinsedai Jōnin = Konoha)
+		parts.append(String(Game.village(String(it["village"])).get("name", it["village"])))
 	if String(it.get("clan", "")) != "":
 		parts.append("%s klanı" % Data.clans.get(String(it["clan"]), {}).get("name", String(it["clan"]).capitalize()))
 	if int(it.get("level", 0)) > 0:
