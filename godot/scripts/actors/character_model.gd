@@ -4810,6 +4810,59 @@ func _ceket_alt_kit(g: Dictionary) -> void:
 	_sk_end(g)
 
 
+## Ohnoki pelerini (ref all/ohnoki_outfit): omuzlarda kalın kırmızı yaka-pelerin, önünde sarmal tokalı turuncu bant; omuzdan uyluğa inen
+## turuncu çerçeveli iki yeşil ön panel ve sırtta aynı desenli geniş arka panel
+func _ohnoki_kit(g: Dictionary) -> void:
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var gc: Color = look["ohnoki_cape"]
+	var oc = Color(0.9, 0.58, 0.22)
+	var rc = Color(0.5, 0.1, 0.12)
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var ytop = neck - 0.1
+	var ybot = hips - 0.32
+	for fr in [true, false]:
+		var xs = [0.1, -0.1] if fr else [0.0]
+		for x0 in xs:
+			var w = 0.1 if fr else 0.28
+			var x1 = x0 * 1.25
+			_sk_path(Vector2(x0, ytop), Vector2(x1, ybot), w + 0.03, 0.008, oc, fr, 0.045, 30, 0.06)   # turuncu çerçeve
+			_sk_path(Vector2(x0, ytop - 0.02), Vector2(x1, ybot + 0.03), w - 0.01, 0.006, gc, fr, 0.054, 30, 0.06)   # yeşil iç
+	# kırmızı kalın yaka-pelerin omuzlarda
+	for k in 3:
+		_sk_ring(1, neck - 0.02 - k * 0.035, 0.04, 0.03 - k * 0.004, rc.darkened(0.06 * k), -PI, PI, 48, 0.05 + k * 0.012, 0.0, 0.0, 0.2)
+	_sk_ring(1, neck + 0.02, 0.06, 0.02, rc, 0.5, TAU - 0.5, 36, 0.04, 0.0, 0.0, 0.13)   # dik yaka
+	# önde turuncu bant + sarmal tokalar
+	_sk_path(Vector2(-0.2, neck - 0.13), Vector2(0.2, neck - 0.13), 0.04, 0.01, oc, true, 0.07, 24, 0.06)
+	for sx in [1.0, -1.0]:
+		var h = _sk_hit(0.03 * sx, neck - 0.11, true, 0.05)
+		if not h.is_empty():
+			var n: Vector3 = (h[1] as Vector3).normalized()
+			_sk_disc(h[0] + n * 0.085, n, 0.02, 0.01, oc.lightened(0.08))
+			_sk_disc(h[0] + n * 0.096, n, 0.008, 0.004, oc.darkened(0.3))
+	_sk_end(g)
+
+
+## Yakada magatama dizisi (ref obito_outfit_ten_tails_ver): yaka çevresinde altı siyah magatama
+func _magatama_kit(g: Dictionary) -> void:
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var mc: Color = look["magatama"]
+	var neck = _bp("Neck").y
+	for k in 6:
+		var a = lerpf(-1.1, 1.1, k / 5.0)
+		var x = sin(a) * 0.16
+		var y = neck - 0.13 + (1.0 - cos(a)) * 0.07
+		var h = _sk_hit(x, y, true, 0.05)
+		if h.is_empty():
+			continue
+		var n: Vector3 = (h[1] as Vector3).normalized()
+		_sk_disc(h[0] + n * 0.06, n, 0.016, 0.006, mc)
+		_sk_box((h[0] as Vector3) + n * 0.06 + Vector3(0.01, -0.015, 0), Vector3(0.005, 0, 0), Vector3(0.004, 0.01, 0), n * 0.003, mc)
+	_sk_end(g)
+
+
 ## Killer Bee takımı (ref all/killer_bee_outfit): boyunda kalın sarılı beyaz atkı (arkadan bacak arasına inen yırtık uç), belde kalın burgulu
 ## kırmızı ip kemer, kemerin altında soldan sağa inen çapraz beyaz yelek eteği, beyaz eldivende kırmızı bilek plakası
 func _bee_kit(g: Dictionary) -> void:
@@ -5355,6 +5408,10 @@ func _garments(g: Dictionary) -> void:
 		_gelinlik_kit(g)
 	if look.get("bee_kit") is Color:
 		_bee_kit(g)
+	if look.get("ohnoki_cape") is Color:
+		_ohnoki_kit(g)
+	if look.get("magatama") is Color:
+		_magatama_kit(g)
 	if look.get("jacket_lower") is Color and look.get("outer_style") == "yirtik_esofman":
 		_ceket_alt_kit(g)
 	if look.get("plate_armor") is Color:
