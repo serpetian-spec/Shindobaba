@@ -200,7 +200,7 @@ static func auto_jutsu(kind: String, el: String, lv: int) -> Array:
 		if not j is Dictionary or String(j.get("element", "")) != el or String(j.get("category", "")) != "ninjutsu":
 			continue
 		var lp = String(j.get("learn", "")).split(":")[0]
-		if lp in ["clan", "kg", "eye", "kinjutsu", "quest", "sage", "path"] or id in SIGNATURE or String(id).begins_with("bashosen"):
+		if lp in ["clan", "kg", "eye", "kinjutsu", "quest", "sage", "path", "beast", "contract"] or String(j.get("need", "")) != "" or id in SIGNATURE or String(id).begins_with("bashosen"):   # bijū/sözleşme şartlı (Bijū Rasenshuriken, Gamayu Endan) sıradan havuza girmez
 			continue
 		var r = int(RANK_I.get(String(j.get("canon_rank", "")), -1))
 		if r < 0 or r > cap:

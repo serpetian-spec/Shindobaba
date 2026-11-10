@@ -100,6 +100,9 @@ func _spawn(pp: Vector3) -> void:
 		var f: Dictionary = Friends.all().get(fid, {})
 		if not f.is_empty() and (String(f.get("status", "")) != "" or f.get("party", false)):
 			continue   # ölmüş / kaçmış / senin takımında: bu yürüyüşte yok
+		var wp0 = WorldPeople.get_p(String(person.get("wid", "")))
+		if not wp0.is_empty() and (not WorldPeople.alive(wp0) or WorldPeople.is_rogue(wp0)):
+			continue   # dünyada ölmüş ya da köyünden kaçmış
 		var rank = int(f.get("rank", person["rank"])) if not f.is_empty() else int(person["rank"])
 		var look = Friends.look_of({"look": person["look"], "rank": rank})
 		look["band"] = hi["band"]
@@ -177,9 +180,17 @@ static func roster(vid: String) -> Array:
 		return p["vteams"][vid]
 	var out = []
 	var used = {}
+	var wused = {}
 	for ti in 5:
 		var chunin = ti == 4
 		var people = []
+		# dünyanın gerçek insanlarından takım (Güç'ü, klanı, jutsuları, hayatı WorldPeople'da): yoksa eski üretim
+		for wp in WorldPeople.team_people(vid, chunin, wused):
+			used[String(wp["name"])] = true
+			people.append({"name": String(wp["name"]), "rank": int(wp["rank"]), "look": wp["look"], "fid": "", "wid": String(wp["id"])})
+		if not people.is_empty():
+			out.append({"people": people})
+			continue
 		for i in (3 if chunin else 4):
 			var female = randf() < 0.45
 			var nm = _unique_name(female, used)
@@ -258,16 +269,23 @@ func _team_attack(tm: Dictionary, crime: bool) -> void:
 		var ros: Array = roster(String(vt[0]))
 		var person: Dictionary = ros[int(vt[1])]["people"][int(vt[2])]
 		var rank := int(person["rank"])
-		var a: Dictionary = Orgs._village_arch(String(vt[0]), int(vt[2]), "jonin" if rank >= 2 else "chunin")
+		var wp = WorldPeople.get_p(String(person.get("wid", "")))
+		var a: Dictionary
+		if not wp.is_empty():
+			a = WorldPeople.arch_of(wp, "jonin" if rank >= 2 else "chunin")   # gerçek kişi: kendi Güç'ü, klanı, gözü, jutsuları
+		else:
+			a = Orgs._village_arch(String(vt[0]), int(vt[2]), "jonin" if rank >= 2 else "chunin")
+			a["no_clan"] = true
+			Stats.npc_ninja(a, [15, 35, 60][clampi(rank, 0, 2)] + randi_range(0, 10))   # genin ~15, chūnin ~35, jōnin ~60   # ortak NPC eğrisi (köy jōnin'iyle aynı)
 		a["name"] = String(n.display)
 		a["respawn"] = false
-		a["no_clan"] = true
-		Stats.npc_ninja(a, [15, 35, 60][clampi(rank, 0, 2)] + randi_range(0, 10))   # genin ~15, chūnin ~35, jōnin ~60   # ortak NPC eğrisi (köy jōnin'iyle aynı)
 		a["look"] = (n.look as Dictionary).duplicate()
 		var e := Enemy.new()
 		e.setup(a)
 		e.adopt_model(n)   # yürüyen NPC'nin modeli düşmana geçer (yeniden kurulmaz: 3-4 model aynı karede donduruyordu)
 		get_tree().current_scene.add_child(e)
+		if not wp.is_empty():
+			WorldPeople.after_spawn(e, wp)
 		var at: Vector3 = Missions.open_ground(n.global_position, 6.0)
 		e.global_position = at
 		e.home = at
@@ -286,11 +304,16 @@ func _spar(n: Node, person: Dictionary, vid: String) -> void:
 	if not is_instance_valid(n):
 		return
 	var rank := int(person["rank"])
-	var a: Dictionary = Orgs._village_arch(vid, 0, "jonin" if rank >= 2 else "chunin")
+	var wp = WorldPeople.get_p(String(person.get("wid", "")))
+	var a: Dictionary
+	if not wp.is_empty():
+		a = WorldPeople.arch_of(wp, "jonin" if rank >= 2 else "chunin")
+	else:
+		a = Orgs._village_arch(vid, 0, "jonin" if rank >= 2 else "chunin")
+		a["no_clan"] = true
+		Stats.npc_ninja(a, [15, 35, 60][clampi(rank, 0, 2)])
 	a["name"] = "%s (düello)" % String(person["name"])
 	a["respawn"] = false
-	a["no_clan"] = true
-	Stats.npc_ninja(a, [15, 35, 60][clampi(rank, 0, 2)])
 	a["look"] = (n.look as Dictionary).duplicate()
 	var at: Vector3 = n.global_position
 	n.visible = false
@@ -298,6 +321,8 @@ func _spar(n: Node, person: Dictionary, vid: String) -> void:
 	var e := Enemy.new()
 	e.setup(a)
 	get_tree().current_scene.add_child(e)
+	if not wp.is_empty():
+		WorldPeople.after_spawn(e, wp)
 	e.global_position = at
 	e.home = at
 	e.team = "enemy"

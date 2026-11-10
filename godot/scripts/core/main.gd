@@ -60,6 +60,9 @@ func _ready() -> void:
 	var friends = preload("res://scripts/core/friends.gd").new()
 	friends.name = "Friends"
 	actors.add_child(friends)
+	var wpeople = preload("res://scripts/core/world_people.gd").new()
+	wpeople.name = "WorldPeople"   # dünya nüfusu: kalıcı ninjalar, kendi hayatları, Bingo kaçakları onlardan
+	actors.add_child(wpeople)
 	var crime = preload("res://scripts/core/crime.gd").new()
 	crime.name = "Crime"
 	actors.add_child(crime)

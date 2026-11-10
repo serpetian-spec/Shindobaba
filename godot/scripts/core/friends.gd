@@ -979,7 +979,9 @@ func _life_event() -> void:
 				f["news"] = "%s... bir görevden dönmedi. Bu köy için savaştı. Ben de öyle yapacağım... sanırım." % m["name"]
 				Hud.msg("Haber: %s'in %s bir görevde hayatını kaybetti." % [f["name"], String(m["rel"]).to_lower().trim_suffix("ı").trim_suffix("i")], Color(0.8, 0.8, 0.9), 5.0)
 	# köyden kimi zaman tanımadığın ninjalar da kaçar (Bingo Kitabı'na girer)
-	if randf() < 0.12:
+	if randf() < 0.12 and not WorldPeople.bingo_from_world(Progress.home()).is_empty():
+		pass   # dünyadan gerçek biri kaçtı (haber WorldPeople.defect'te)
+	elif randf() < 0.12:
 		var e: Dictionary = Missions._bb_new(["C", "B", "B", "A"].pick_random())
 		var hv = Progress.home()
 		e["village"] = hv

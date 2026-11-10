@@ -2888,7 +2888,9 @@ func _bingo_tick(dt: float) -> void:
 		if float(bb["refresh"]) <= 0.0:
 			bb["refresh"] = 900.0
 		if alive.size() < 8:
-			lst.append(_bb_new())
+			var we = WorldPeople.bingo_from_world() if randf() < 0.8 else {}   # çoğu yeni ad dünyadan gerçek biri (kaçışı yaşanmış)
+			if we.is_empty():
+				lst.append(_bb_new())
 	if Game.player == null or Game.paused:
 		return
 	_bb_t -= dt
@@ -3000,7 +3002,9 @@ func _bb_spawn(e: Dictionary, at: Vector3) -> void:
 		a["guard"] = 0.45
 	else:
 		ClanWorld.bingo_arch(e, a)   # klan / efsane jutsuları
-		if not e.has("beast") and String(a.get("clan", "")) == "":
+		if e.has("person_id"):
+			a["skill"] = maxf(float(a.get("skill", 0.0)), float(BossStyles.RANK_SKILL.get(String(e.get("rank", "B")), 0.55)))   # dünyadan gerçek biri: kendi öğrendikleriyle dövüşür
+		elif not e.has("beast") and String(a.get("clan", "")) == "":
 			BossStyles.dress(a, String(e.get("rank", "B")), int(e["id"]) * 7919, String(e.get("style", "")))
 		else:
 			a["skill"] = maxf(float(a.get("skill", 0.0)), float(BossStyles.RANK_SKILL.get(String(e.get("rank", "B")), 0.55)))
@@ -3033,6 +3037,7 @@ func _bingo_killed(boss: Node) -> void:
 			e["status"] = "dead"
 			e["tracked"] = false
 			Hud.banner("ARANAN ETKİSİZ", "«%s» %s — %d Ryō ödül" % [e["alias"], e["name"], int(e["bounty"])], Color(1, 0.8, 0.3))
+			WorldPeople.on_bingo_killed(e)
 			if e.has("mist_sword"):   # kılıç ustası yenildi: kılıç oyuncuya geçer
 				Swordsmen.claim(String(e["mist_sword"]))
 			if e.has("legend_weapon"):   # efsane silah sahibi yenildi: silah düşer
