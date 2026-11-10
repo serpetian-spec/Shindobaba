@@ -4366,7 +4366,9 @@ func _garments(g: Dictionary) -> void:
 			_garment("kisa", func(): return _loft(g, 1, neck - 0.03, chest - 0.3, 12, torso, func(t, _a): return 0.05 + t * 0.07, 8, func(_t, ang): return absf(wrapf(ang - PI * 0.5, -PI, PI)) < 1.7))
 			_garment("atki", func(): return _loft(g, 1, neck - 0.06, neck + 0.04, 5, func(p): return absf(p.x) < 0.16, flat.call(0.03), 8))
 		"atki":
-			_garment("atki", func(): return _loft(g, 1, neck - 0.06, neck + 0.04, 5, func(p): return absf(p.x) < 0.16, flat.call(0.03), 8))
+			# yelek varsa atkı yeleğin yakasının dışında kalsın (Killer B: Kumo yeleği üstünde kalın beyaz atkı)
+			var ak = 0.055 if look.get("vest") != null else 0.03
+			_garment("atki", func(): return _loft(g, 1, neck - 0.06, neck + 0.04, 5, func(p): return absf(p.x) < 0.16, flat.call(ak), 8))
 		"buyuk_kapusonlu":
 			# bol kapüşonlu (Striker Himawari): boyundan uyluk üstüne bol; arkada katlı kapüşon
 			_garment("buyuk_kapusonlu", func(): return _cut_spec(g, neck + 0.0, hips - 0.12, 18, {"w": [[0.0, 0.86], [0.1, 1.12], [1.0, 1.12]], "d": [[0.0, 0.13], [1.0, 0.15]], "n": 3.4}, 8, hips - 0.04, 0.04))   # KESİM: himawari_outfit — bol kapüşonlu
