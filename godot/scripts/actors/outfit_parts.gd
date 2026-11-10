@@ -69,8 +69,9 @@ static func garments(m: CharacterModel, g: Dictionary) -> void:
 		"cuppe":
 			m._garment("cuppe", func(): return m._loft(g, 1, neck - 0.01, ank + 0.1, 24, torso, func(t, _a): return 0.045 + t * 0.11, 8, null, hips - 0.06))
 		"haori_uzun":
-			m._garment("haori_uzun", func(): return m._loft(g, 1, neck - 0.01, knee - 0.04, 20, torso, func(t, _a): return 0.045 + t * 0.08, 8,
-				func(t, ang): return t > 0.04 and front.call(ang) < 0.24, hips - 0.06))
+			var wo = m.look.get("open_gap") is float   # geniş açık uzun haori (ref tsunade_outfit): önde kimono ve obi görünür
+			m._garment("haori_uzun_w" if wo else "haori_uzun", func(): return m._loft(g, 1, neck - 0.01, knee - 0.04, 20, torso, func(t, _a): return 0.045 + t * 0.08, 8,
+				func(t, ang): return t > 0.04 and front.call(ang) < (0.62 - 0.25 * clampf(1.0 - t * 4.0, 0.0, 1.0) if wo else 0.24), hips - 0.06))
 		"mino":
 			m._garment("mino", func(): return m._loft(g, 1, neck + 0.02, knee - 0.02, 18, torso, func(t, _a): return 0.07 + t * 0.15, 8, null, hips - 0.06))
 		"anbu_palto":

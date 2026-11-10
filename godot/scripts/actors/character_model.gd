@@ -1160,7 +1160,7 @@ func _cloth_mat(layer: int) -> ShaderMaterial:
 	# yelek dış giysinin altında: önü açık giysilerde (haori, palto, jinbaori) yalnız açıklık kadarı görünür, kapalı pelerinde gizli
 	const OPEN_GAP := {"haori": 0.031, "haori_uzun": 0.029, "jinbaori": 0.038, "palto": 0.025, "acik_ceket": 0.045, "sisme_yelek": 0.06, "uzun_ceket": 0.02, "hirka": 0.04, "esofman_ceket": 0.03, "kisa_haori": 0.05, "hinata_ceket": 0.0, "hinata_ceket_acik": 0.05, "kisa_bolero": 0.042, "kuyruklu_ceket": 0.03, "uzun_trench": 0.05, "yirtik_esofman": 0.035, "uzun_robe": 0.03}
 	mat.set_shader_parameter("outer_cover", 0 if os_ in ["", "atki", "kisa", "kesa"] else (1 if OPEN_GAP.has(os_) else 2))
-	mat.set_shader_parameter("outer_gap", float(OPEN_GAP.get(os_, 0.075)))
+	mat.set_shader_parameter("outer_gap", float(look["open_gap"]) if look.get("open_gap") is float else float(OPEN_GAP.get(os_, 0.075)))   # eşya başına geniş açılım (ref tsunade_outfit)
 	mat.set_shader_parameter("sleeve_roll", bool(look.get("sleeve_roll", false)))
 	mat.set_shader_parameter("outer_sleeves", 1 if look.get("outer_style") in ["palto", "haori", "org_pelerin", "acik_ceket", "omuz_kazak", "uzun_ceket", "hirka", "esofman_ceket", "kizil_palto", "hinata_ceket", "algi_ceket", "turuncu_ceket", "kisa_bolero", "uzun_trench", "yirtik_esofman", "seytan_kapuson", "buyuk_kapusonlu"] else 0)
 	mat.set_shader_parameter("foot_cover", look.get("foot_style", "sandal") == "tabi")
@@ -2683,7 +2683,7 @@ func _keiko_kit(g: Dictionary) -> void:
 	var hips = _bp("Hips").y
 	var chest = _bp("UpperChest").y
 	var kg: Dictionary = look.get("kg") if look.get("kg") is Dictionary else {}
-	if _sk_begin(_shell_cache.get(look["gender"])):
+	if kg.get("no_tasuki") != true and _sk_begin(_shell_cache.get(look["gender"])):
 		var tc: Color = kg.get("tasuki", Color(0.95, 0.75, 0.15))
 		var V: PackedVector3Array = _sk["v"]
 		var N: PackedVector3Array = _sk["n"]
@@ -3893,6 +3893,8 @@ func _front_bow_kit(g: Dictionary) -> void:
 			_sk_box(p0 + Vector3(0.016 * sx, -0.045, 0.004), Vector3(0.012, 0, 0), Vector3(0.012 * sx, 0.04, 0), Vector3(0, 0, 0.005), bc.darkened(0.06))
 		_sk_box(p0 + Vector3(0, 0, 0.006), Vector3(0.012, 0, 0), Vector3(0, 0.016, 0), Vector3(0, 0, 0.012), bc.darkened(0.12))
 	_sk_ring(1, hips + 0.14, 0.03, 0.008, bc, -PI, PI, 48, 0.02, 0.0, 0.0, 0.32)   # kuşak bandı
+	if look.get("top_style") == "gi":   # gi altında yüksek belli hakama beli (ref all/tsubaki_outfit): bel ile gi eteği arası kumaşla kapanır
+		_sk_ring(1, hips + 0.07, 0.12, 0.008, bc.darkened(0.05), -PI, PI, 48, 0.012, 0.0, 0.0, 0.32)
 	_sk_end(g)
 
 
@@ -3984,13 +3986,22 @@ func _uzun_robe_kit(g: Dictionary) -> void:
 			_sk_path(Vector2(-0.1, neck2 - 0.01), Vector2(0.17, hips - 0.04), 0.055, 0.01, bc.darkened(0.05), fr, 0.05, 34, 0.06)
 		_sk_end(g)
 		return
-	_sk_ring(1, oy, 0.075, 0.012, bc.darkened(0.1), -PI, PI, 56, 0.05)
+	var obc: Color = (look["robe_obi_col"] as Color).lightened(0.1) if look.get("robe_obi_col") is Color else bc   # ayrı renk obi (ref utakata_outfit turuncu)
+	var tl = 0.32 if look.get("robe_obi_col") is Color else 0.05   # önde dize inen uzun bağ uçları
+	_sk_ring(1, oy, 0.075, 0.012, obc.darkened(0.1), -PI, PI, 56, 0.05)
 	var hk = _sk_hit(-0.05, oy, true, 0.05)
 	if not hk.is_empty():
 		var p0: Vector3 = hk[0] + Vector3(0, 0, 0.07)
-		_sk_box(p0, Vector3(0.025, 0, 0), Vector3(0, 0.025, 0), Vector3(0, 0, 0.012), bc.darkened(0.2))   # düğüm
-		_sk_box(p0 + Vector3(-0.02, -0.06, 0.0), Vector3(0.018, 0, 0), Vector3(-0.006, 0.05, 0), Vector3(0, 0, 0.006), bc.darkened(0.1))   # sarkan uç
-		_sk_box(p0 + Vector3(0.015, -0.05, 0.003), Vector3(0.016, 0, 0), Vector3(0.008, 0.04, 0), Vector3(0, 0, 0.006), bc.darkened(0.15))
+		_sk_box(p0, Vector3(0.025, 0, 0), Vector3(0, 0.025, 0), Vector3(0, 0, 0.012), obc.darkened(0.2))   # düğüm
+		if tl > 0.1:   # uzun uçlar: parça parça (tek uzun kutu bacak ağırlığıyla üçgen gibi açılıyordu)
+			for k in 6:
+				var yy = -0.04 - (k + 0.5) * tl / 6.0
+				_sk_box(p0 + Vector3(-0.022, yy, 0.0), Vector3(0.017, 0, 0), Vector3(0, tl / 12.0 * 1.05, 0), Vector3(0, 0, 0.005), obc.darkened(0.1))
+				if k < 5:
+					_sk_box(p0 + Vector3(0.016, yy, 0.004), Vector3(0.015, 0, 0), Vector3(0, tl / 12.0 * 1.05, 0), Vector3(0, 0, 0.005), obc.darkened(0.18))
+		else:
+			_sk_box(p0 + Vector3(-0.02, -0.06, 0.0), Vector3(0.018, 0, 0), Vector3(-0.006, 0.05, 0), Vector3(0, 0, 0.006), obc.darkened(0.1))   # sarkan uç
+			_sk_box(p0 + Vector3(0.015, -0.05, 0.003), Vector3(0.016, 0, 0), Vector3(0.008, 0.04, 0), Vector3(0, 0, 0.006), obc.darkened(0.15))
 	_sk_end(g)
 
 
