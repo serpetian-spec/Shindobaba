@@ -617,6 +617,11 @@ const ITEMS := {
 	"acik_kemer": {"name": "Plakalı Açık Kahve Kemer", "slot": "kol", "price": 50, "rank": 0, "desc": "Belde açık kahve kemer, önde gümüş plaka.", "stats": {"def": 1}, "look": {"waist_belt": Color(0.78, 0.7, 0.54)}, "c1": Color(0.78, 0.7, 0.54)},
 	"gri_boyunluk": {"name": "Gri Boyunluk", "slot": "kol", "price": 40, "rank": 0, "desc": "Boynu saran kalın gri boyunluk.", "stats": {}, "look": {"neck_warmer": Color(0.55, 0.55, 0.58)}, "c1": Color(0.55, 0.55, 0.58)},
 	"beyaz_kusak": {"name": "Geniş Beyaz Kuşak", "slot": "kol", "price": 40, "rank": 0, "desc": "Belde geniş beyaz kuşak.", "stats": {"def": 1}, "look": {"waist_belt": Color(0.9, 0.9, 0.9)}, "c1": Color(0.9, 0.9, 0.9)},
+	"capraz_haori": {"name": "Çapraz Yakalı Kısa Kimono Ceket", "slot": "dis", "price": 260, "rank": 0, "desc": "Bele inen kapalı çapraz yakalı siyah kısa ceket; geniş sarı yaka şeridi, dirseğe inen düşük omuzlu geniş kollar.", "stats": {"chakra": 20, "hp": 10}, "look": {"outer_style": "capraz_haori", "outer_pattern": 0, "holster": false}, "c1": Color(0.1, 0.1, 0.12), "c2": Color(0.78, 0.7, 0.2)},
+	"sargi_etek": {"name": "Sargı Bantlı Etek ve Bel Çantası", "slot": "bacak", "price": 220, "rank": 0, "desc": "Uyluk ortasına inen, önde çaprazlanan geniş açık mavi bantlardan sargı etek; önde koyu mavi iç etek, belde mor kapaklı çanta.", "stats": {"chakra": 10, "speed": 0.03}, "look": {"pants_style": "kisa_sort", "skirt": 2, "skirt_y": 0.74, "skirt_wrap": Color(0.08, 0.08, 0.1), "skirt_under": Color(0.1, 0.18, 0.42), "skirt_pouch": Color(0.4, 0.22, 0.32)}, "c1": Color(0.6, 0.72, 0.85)},
+	"diz_alti_corap": {"name": "Diz Altı Çorap ve Sandalet", "slot": "ayak", "price": 90, "rank": 0, "desc": "Dizin hemen altında biten siyah çorap, açık burunlu ninja sandaleti.", "stats": {"speed": 0.04}, "look": {"foot_style": "shinobi", "foot_pattern": 13, "anbu_leg": "corap_diz", "no_wraps": true}, "c1": Color(0.1, 0.1, 0.12), "c2": Color(0.1, 0.1, 0.12)},
+	"koji_ceket": {"name": "Kayış Tokalı Dik Yakalı Ceket", "slot": "dis", "price": 420, "rank": 1, "desc": "Bele inen kapalı ceket; koyu dik yaka, yan kapanma, üç tokalı kayış, üst kolda gri bantlar; kahve kemer, çapraz kalça kemeri, uyluk kayışı ve yan kese, kıvrık gri paça.", "stats": {"def": 4, "chakra": 20}, "look": {"outer_style": "koji_ceket", "outer_pattern": 0, "holster": false}, "c1": Color(0.5, 0.12, 0.16), "c2": Color(0.5, 0.12, 0.16)},
+	"ip_kemer_atki": {"name": "Burgulu İp Kemer ve Sarılı Atkı", "slot": "kol", "price": 160, "rank": 1, "desc": "Belde kalın burgulu kırmızı ip kemer, altında çapraz beyaz etek parçası; boyunda kalın sarılı beyaz atkı, arkadan sarkan yırtık uç; kırmızı bilek plakalı beyaz eldiven.", "stats": {"def": 2, "melee": 0.04}, "look": {"bee_kit": Color(0.58, 0.1, 0.12)}, "c1": Color(0.58, 0.1, 0.12)},
 	"cepli_gomlek": {"name": "Cepli İş Gömleği ve Fular", "slot": "govde", "price": 140, "rank": 0, "desc": "Kısa kollu, kapaklı iki göğüs cepli gömlek; boyunda açık mavi fular, siyah kemer.", "stats": {"def": 2, "chakra": 10}, "look": {"top_style": "yakali", "chest_pockets": true, "neck_scarf": Color(0.55, 0.78, 0.92), "waist_belt": Color(0.12, 0.1, 0.1)}, "c1": Color(0.2, 0.35, 0.72), "c2": Color(0.2, 0.35, 0.72)},
 	"kabarik_bluz": {"name": "Dik Boğazlı Kabarık Bluz", "slot": "dis", "price": 320, "rank": 0, "desc": "Uzun dik boğazlı, bele kadar bol beyaz bluz; balon kollar, bileklerde üçer mavi bilezik.", "stats": {"chakra": 30}, "look": {"outer_style": "kabarik_bluz", "outer_pattern": 0, "holster": false}, "c1": Color(0.96, 0.96, 0.97), "c2": Color(0.96, 0.96, 0.97)},
 	"gezegen_sort": {"name": "Gezegen Baskılı Yüksek Bel Şort", "slot": "bacak", "price": 120, "rank": 0, "desc": "Siyah yüksek bel kısa şort; yeşil gezegen, yıldız ve hilal baskılı.", "stats": {"speed": 0.04}, "look": {"pants_style": "kisa_sort", "pants_pattern": 30}, "c1": Color(0.16, 0.16, 0.18), "c2": Color(0.4, 0.75, 0.65)},
@@ -1250,6 +1255,8 @@ static func preview_set_look(L: Dictionary, sid: String) -> void:
 				L["vest"] = c1
 			"dis":
 				L["outer"] = c1
+				if not c2.is_equal_approx(c1):
+					L["outer2"] = c2
 			"kol":
 				L["acc"] = c1
 
@@ -1416,6 +1423,11 @@ static func apply_look(p: Dictionary) -> void:
 	L["tunic_belt"] = null
 	L["robe_obi"] = null
 	L["sash"] = null
+	L["bee_kit"] = null
+	L["skirt_wrap"] = null
+	L["skirt_y"] = null
+	L["skirt_under"] = null
+	L["skirt_pouch"] = null
 	L["guard_upper"] = null
 	L["no_wraps"] = null
 	L["bol_full"] = null
@@ -1434,6 +1446,7 @@ static func apply_look(p: Dictionary) -> void:
 	L["foot_style"] = "sandal"
 	L["outer_pattern"] = 0
 	L["outer_accent"] = null
+	L["outer2"] = null
 	L["wear"] = 0.0
 	L["rope_belt"] = false
 	L["guard_stripes"] = null
@@ -1507,6 +1520,8 @@ static func apply_look(p: Dictionary) -> void:
 				L["outer"] = c1
 				if it.has("c2"):
 					L["outer_accent"] = c2
+					if not (it["c2"] as Color).is_equal_approx(c1):
+						L["outer2"] = c2
 			"kol":
 				L["acc"] = c1
 			"sirt":

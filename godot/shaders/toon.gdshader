@@ -318,7 +318,13 @@ void fragment() {
 		if (layer == 2) {
 			if (rest.y < rig_b.x + 0.03 || rest.y > rig_a.w - 0.01 || abs(rest.x) > rig_a.x * 1.08) discard;
 			// Kumo: sağ omuz açık (tek askı)
-			if (vest_style == 3 && rest.x < -0.05 && rest.y > rig_b.w - 0.04) discard;
+			if (vest_style == 3) {   // Kumo (ref hidden_cloud_outfit / killer_bee_outfit): sağ omuzdan sol koltuk altına çapraz kesim, sol göğüs açık
+				float yt = rig_b.x + 0.45;
+				float tt = clamp((yt - rest.y) / 0.22, 0.0, 1.0);
+				if (rest.y > yt - 0.22 && rest.x < mix(0.07, -0.15, tt)) discard;
+			}
+
+
 			// koşum: yalnızca çapraz kayışlar + bel kayışı
 			if (vest_style == 9) {
 				float my = rig_b.w - 0.12;
