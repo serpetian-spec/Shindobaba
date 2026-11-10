@@ -4962,6 +4962,24 @@ func _cin_kuyruk_kit(g: Dictionary) -> void:
 	_sk_end(g)
 
 
+## Çapraz omuz kayışı + bel kayışı + yan kese (ref sasuke_outfit_back_in_time_ver): sol omuzdan sağ kalçaya, dış giysinin üstünde
+func _capraz_kayis_kit(g: Dictionary) -> void:
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var sc: Color = look["cross_strap"]
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var lift = 0.045 if look.get("outer_style") != null else 0.008
+	for fr in [true, false]:
+		_sk_path(Vector2(-0.12, neck - 0.04), Vector2(0.15, hips + 0.02), 0.024, 0.005, sc, fr, lift, 30, 0.05)
+	_sk_ring(1, hips + 0.04, 0.02, 0.006, sc, -PI, PI, 48, lift)
+	var h = _sk_hit(0.16, hips - 0.02, true, 0.06)
+	if not h.is_empty():
+		var n: Vector3 = (h[1] as Vector3).normalized()
+		_sk_box((h[0] as Vector3) + n * (lift + 0.02), Vector3(0.035, 0, 0), Vector3(0, 0.045, 0), n * 0.018, sc.lightened(0.05))   # kese
+	_sk_end(g)
+
+
 ## Killer Bee takımı (ref all/killer_bee_outfit): boyunda kalın sarılı beyaz atkı (arkadan bacak arasına inen yırtık uç), belde kalın burgulu
 ## kırmızı ip kemer, kemerin altında soldan sağa inen çapraz beyaz yelek eteği, beyaz eldivende kırmızı bilek plakası
 func _bee_kit(g: Dictionary) -> void:
@@ -5511,6 +5529,8 @@ func _garments(g: Dictionary) -> void:
 		_gelinlik_kit(g)
 	if look.get("bee_kit") is Color:
 		_bee_kit(g)
+	if look.get("cross_strap") is Color:
+		_capraz_kayis_kit(g)
 	if look.get("outer_style") == "cin_kuyruk":
 		_cin_kuyruk_kit(g)
 	if look.get("ohnoki_cape") is Color:

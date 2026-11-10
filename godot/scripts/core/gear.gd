@@ -609,7 +609,7 @@ const ITEMS := {
 	"salvar": {"name": "Şalvar", "slot": "bacak", "price": 140, "rank": 0, "desc": "Uyluktan bileğe bol, baldırda toplanan geniş pantolon.", "stats": {"speed": 0.03, "def": 2}, "look": {"pants_style": "bol", "bol_full": true}, "c1": Color(0.88, 0.58, 0.14)},
 	"yakali_sade": {"name": "Yüksek Yakalı Kısa Kollu Gömlek", "slot": "govde", "price": 160, "rank": 0, "desc": "Dik yakalı, kısa kollu düz gömlek.", "stats": {"def": 2, "chakra": 10}, "look": {"top_style": "yakali", "no_wraps": true}, "c1": Color(0.15, 0.15, 0.22), "c2": Color(0.15, 0.15, 0.22)},
 	"alcak_sandalet": {"name": "Sargısız Ninja Sandaleti", "slot": "ayak", "price": 50, "rank": 0, "desc": "Açık burunlu alçak ninja sandaleti; baldır çıplak.", "stats": {"speed": 0.04}, "look": {"foot_style": "sandal", "foot_pattern": 13}, "c1": Color(0.12, 0.12, 0.14), "c2": Color(0.12, 0.12, 0.14)},
-	"bilek_bot_kisa": {"name": "Açık Burunlu Kısa Bilek Botu", "slot": "ayak", "price": 110, "rank": 0, "desc": "Bileği saran kalın katlı açık burunlu kısa bot; baldır çıplak.", "stats": {"speed": 0.04}, "look": {"foot_style": "shinobi", "anbu_leg": "bilek_konc", "foot_pattern": 13}, "c1": Color(0.12, 0.12, 0.14), "c2": Color(0.12, 0.12, 0.14)},
+	"bilek_bot_kisa": {"name": "Açık Burunlu Kısa Bilek Botu", "slot": "ayak", "price": 110, "rank": 0, "desc": "Bileği saran kalın katlı açık burunlu kısa bot; baldır çıplak.", "stats": {"speed": 0.04}, "look": {"foot_style": "shinobi", "anbu_leg": "bilek_konc", "foot_pattern": 13, "no_wraps": true}, "c1": Color(0.12, 0.12, 0.14), "c2": Color(0.12, 0.12, 0.14)},
 	"uzun_kolluk_duz": {"name": "Uzun Düz Kolluk", "slot": "kol", "price": 80, "rank": 0, "desc": "Dirsek üstünden bileğe uzanan düz kumaş kolluk.", "stats": {"def": 2, "speed": 0.02}, "look": {"guards": "kol", "guard_long": true, "guard_upper": true}, "c1": Color(0.95, 0.95, 0.95)},
 	"plakali_kemer": {"name": "Plakalı Kırmızı Kemer", "slot": "kol", "price": 60, "rank": 0, "desc": "Belde kırmızı bez kemer, önde gümüş plaka.", "stats": {"def": 1}, "look": {"waist_belt": Color(0.66, 0.12, 0.14)}, "c1": Color(0.66, 0.12, 0.14)},
 	"zori_sade": {"name": "Sargısız Zōri", "slot": "ayak", "price": 30, "rank": 0, "desc": "Parmak arası zōri; baldır çıplak.", "stats": {}, "look": {"foot_style": "zori", "foot_pattern": 13}, "c1": Color(0.42, 0.29, 0.17), "c2": Color(0.42, 0.29, 0.17)},
@@ -643,6 +643,7 @@ const ITEMS := {
 	"burgu_ip_kusak": {"name": "Kalın Burgu İp Kuşak", "slot": "kol", "price": 80, "rank": 0, "desc": "Bele sarılı kalın burgulu mor ip; tuniğin ön ve arka eteği dize iner.", "stats": {"def": 1, "chakra": 10}, "look": {"rope_belt": Color(0.48, 0.32, 0.72), "tunic_long": true}, "c1": Color(0.48, 0.32, 0.72)},
 	"cin_kuyruk": {"name": "Kuyruklu Kolsuz Çin Üstü", "slot": "dis", "price": 320, "rank": 0, "desc": "Kolsuz dik yakalı çin üstü; belden aşağı önde açılıp yanlarda ve arkada dize inen kuyruk, çapraz beyaz biye, çin düğmeleri.", "stats": {"speed": 0.04, "chakra": 15}, "look": {"outer_style": "cin_kuyruk", "outer_pattern": 0, "holster": false}, "c1": Color(0.56, 0.1, 0.16), "c2": Color(0.56, 0.1, 0.16)},
 	"sarashi_bant": {"name": "Sarashi Bel Sargısı", "slot": "kol", "price": 40, "rank": 0, "desc": "Karnı saran gri sarashi bandajı.", "stats": {"def": 1}, "look": {"wide_obi": Color(0.6, 0.6, 0.63)}, "c1": Color(0.6, 0.6, 0.63)},
+	"capraz_kayis": {"name": "Çapraz Kayış ve Kese", "slot": "kol", "price": 70, "rank": 0, "desc": "Sol omuzdan sağ kalçaya çapraz koyu kayış, bel kayışı ve yan kese.", "stats": {"def": 1}, "look": {"cross_strap": Color(0.22, 0.2, 0.22)}, "c1": Color(0.22, 0.2, 0.22)},
 	"cepli_gomlek": {"name": "Cepli İş Gömleği ve Fular", "slot": "govde", "price": 140, "rank": 0, "desc": "Kısa kollu, kapaklı iki göğüs cepli gömlek; boyunda açık mavi fular, siyah kemer.", "stats": {"def": 2, "chakra": 10}, "look": {"top_style": "yakali", "chest_pockets": true, "neck_scarf": Color(0.55, 0.78, 0.92), "waist_belt": Color(0.12, 0.1, 0.1)}, "c1": Color(0.2, 0.35, 0.72), "c2": Color(0.2, 0.35, 0.72)},
 	"kabarik_bluz": {"name": "Dik Boğazlı Kabarık Bluz", "slot": "dis", "price": 320, "rank": 0, "desc": "Uzun dik boğazlı, bele kadar bol beyaz bluz; balon kollar, bileklerde üçer mavi bilezik.", "stats": {"chakra": 30}, "look": {"outer_style": "kabarik_bluz", "outer_pattern": 0, "holster": false}, "c1": Color(0.96, 0.96, 0.97), "c2": Color(0.96, 0.96, 0.97)},
 	"gezegen_sort": {"name": "Gezegen Baskılı Yüksek Bel Şort", "slot": "bacak", "price": 120, "rank": 0, "desc": "Siyah yüksek bel kısa şort; yeşil gezegen, yıldız ve hilal baskılı.", "stats": {"speed": 0.04}, "look": {"pants_style": "kisa_sort", "pants_pattern": 30}, "c1": Color(0.16, 0.16, 0.18), "c2": Color(0.4, 0.75, 0.65)},
@@ -1466,6 +1467,7 @@ static func apply_look(p: Dictionary) -> void:
 	L["rope_belt"] = null
 	L["tunic_long"] = null
 	L["rope_cross"] = null
+	L["cross_strap"] = null
 	L["skirt_wrap"] = null
 	L["skirt_y"] = null
 	L["skirt_under"] = null
