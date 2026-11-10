@@ -110,8 +110,8 @@ static func pants_layers(m: CharacterModel, g: Dictionary) -> void:
 	if m.pants_style() == "bol" and m.look.get("bol_full", false):
 		# şalvar (Striker 15 Milyon): uyluktan bileğe bol, baldırda toplanan paça
 		for sx in [-1.0, 1.0]:
-			m._garment("salvar%d" % int(sx), func(): return m._loft(g, 1, hips - 0.08, ank + 0.04, 16, func(p): return signf(p.x) == sx and absf(p.x) < 0.35,
-				func(t, a): return 0.016 + pow(sin(clampf(t * 1.04, 0.0, 1.0) * PI * 0.96), 0.6) * (0.095 if cos(a) * sx > -0.3 else 0.03), 3, null, -99.0, 22))
+			m._garment("salvar%d" % int(sx), func(): return m._loft(g, 1, hips - 0.13, ank + 0.04, 16, func(p): return signf(p.x) == sx and absf(p.x) < 0.35,
+				func(t, a): return 0.016 + pow(sin(clampf(t * 1.04, 0.0, 1.0) * PI * 0.96), 0.6) * (0.095 if cos(a) * sx > -0.1 else 0.018), 3, null, -99.0, 22))
 	elif m.pants_style() == "bol":
 		for sx in [-1.0, 1.0]:
 			m._garment("bol%d" % int(sx), func(): return m._loft(g, 1, knee + 0.1, ank + 0.035, 10, func(p): return signf(p.x) == sx and absf(p.x) < 0.35,
