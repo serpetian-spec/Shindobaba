@@ -600,6 +600,8 @@ const ITEMS := {
 	"gezgin_palto": {"name": "Dik Yakalı Gezgin Paltosu", "slot": "dis", "price": 420, "rank": 1, "desc": "Dize inen önü kapalı gri palto; dik yaka, dar uzun kollar, altta kısa yırtmaç.", "stats": {"def": 4, "speed": 0.03}, "look": {"outer_style": "gezgin_palto", "outer_pattern": 0, "holster": false}, "c1": Color(0.3, 0.3, 0.32), "c2": Color(0.3, 0.3, 0.32)},
 	"bel_ortusu_mikoshi": {"name": "Bayram Bel Örtüsü ve Altın İp", "slot": "dis", "price": 320, "rank": 0, "desc": "Belden dize sarılı kızıl örtü; belde kalın altın burgu ip.", "stats": {"melee": 0.05, "def": 3}, "look": {"outer_style": "bel_ortusu", "outer_pattern": 0, "holster": false, "rope": Color(0.85, 0.65, 0.25), "wristband": Color(0.1, 0.1, 0.12)}, "c1": Color(0.7, 0.12, 0.12), "c2": Color(0.7, 0.12, 0.12)},
 	"kolsuz_mini_obi_kizil": {"name": "Kruvaze Tunik Elbise ve Kızıl Kuşak", "slot": "dis", "price": 220, "rank": 0, "desc": "Uyluk ortasına inen kruvaze soluk pembe tunik elbise; belde kızıl kuşak.", "stats": {"speed": 0.04}, "look": {"outer_style": "sarada_elbise", "outer_pattern": 0, "holster": true, "robe_obi": Color(0.7, 0.2, 0.22)}, "c1": Color(0.92, 0.82, 0.86), "c2": Color(0.92, 0.82, 0.86)},
+	"yagura_ortu": {"name": "Başlık ve Sargı Bel Örtüsü", "slot": "dis", "price": 650, "rank": 2, "desc": "Omuzlara dökülen kalın yosun yeşili başlık ve belden dize inen bindirmeli sargı örtü; sarkan uçlu turkuaz kuşak, göğüste çapraz kayış ve plaka.", "stats": {"chakra": 35, "def": 4}, "look": {"outer_style": "yagura_ortu", "outer_pattern": 0, "holster": false, "sash": Color(0.2, 0.5, 0.42)}, "c1": Color(0.36, 0.42, 0.2), "c2": Color(0.36, 0.42, 0.2)},
+	"tisort_file_kol": {"name": "File Kollu Tişört", "slot": "govde", "price": 90, "rank": 0, "desc": "Gövdesi düz, kısa kolları file örgü tişört.", "stats": {"speed": 0.03}, "look": {"top_style": "tisort", "top_pattern": 44}, "c1": Color(0.3, 0.3, 0.42), "c2": Color(0.3, 0.3, 0.42)},
 	"cepli_gomlek": {"name": "Cepli İş Gömleği ve Fular", "slot": "govde", "price": 140, "rank": 0, "desc": "Kısa kollu, kapaklı iki göğüs cepli gömlek; boyunda açık mavi fular, siyah kemer.", "stats": {"def": 2, "chakra": 10}, "look": {"top_style": "yakali", "chest_pockets": true, "neck_scarf": Color(0.55, 0.78, 0.92), "waist_belt": Color(0.12, 0.1, 0.1)}, "c1": Color(0.2, 0.35, 0.72), "c2": Color(0.2, 0.35, 0.72)},
 	"kabarik_bluz": {"name": "Dik Boğazlı Kabarık Bluz", "slot": "dis", "price": 320, "rank": 0, "desc": "Uzun dik boğazlı, bele kadar bol beyaz bluz; balon kollar, bileklerde üçer mavi bilezik.", "stats": {"chakra": 30}, "look": {"outer_style": "kabarik_bluz", "outer_pattern": 0, "holster": false}, "c1": Color(0.96, 0.96, 0.97), "c2": Color(0.96, 0.96, 0.97)},
 	"gezegen_sort": {"name": "Gezegen Baskılı Yüksek Bel Şort", "slot": "bacak", "price": 120, "rank": 0, "desc": "Siyah yüksek bel kısa şort; yeşil gezegen, yıldız ve hilal baskılı.", "stats": {"speed": 0.04}, "look": {"pants_style": "kisa_sort", "pants_pattern": 30}, "c1": Color(0.16, 0.16, 0.18), "c2": Color(0.4, 0.75, 0.65)},
@@ -1398,6 +1400,7 @@ static func apply_look(p: Dictionary) -> void:
 	L["belly_wraps"] = null
 	L["tunic_belt"] = null
 	L["robe_obi"] = null
+	L["sash"] = null
 	L["robe_stripe"] = null
 	L["drape_sash"] = null
 	L["kk"] = null
