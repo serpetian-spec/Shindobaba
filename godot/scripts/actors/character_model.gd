@@ -4186,6 +4186,40 @@ func _haku_yukata_kit(g: Dictionary) -> void:
 	_sk_end(g)
 
 
+## Savaş cübbesi (ref all/madara_outfit*): istenirse belde geniş obi (robe_obi), yüksek dik yaka
+func _savas_cubbe_kit(g: Dictionary) -> void:
+	var hips = _bp("Hips").y
+	var cm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "savas_cubbe", 0.0])
+	if cm == null or not _sk_begin(cm):
+		return
+	var V: PackedVector3Array = _sk["v"]
+	if look.get("robe_obi") is Color:
+		var by = hips + 0.12
+		var bd = 9.0
+		for q in V:
+			if absf(q.y - (hips + 0.12)) < bd:
+				bd = absf(q.y - (hips + 0.12)); by = q.y
+		_sk_ring(1, by, 0.11, 0.008, look["robe_obi"], -PI, PI, 56, 0.006)
+		_sk_ring(1, by, 0.025, 0.006, (look["robe_obi"] as Color).darkened(0.3), -PI, PI, 56, 0.014)
+	_sk_end(g)
+
+
+## Mei elbisesi (ref all/mei_outfit): belde açık sarı ince kemer
+func _mei_elbise_kit(g: Dictionary) -> void:
+	var hips = _bp("Hips").y
+	var em = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "mei_elbise", 0.0])
+	if em == null or not _sk_begin(em):
+		return
+	var V: PackedVector3Array = _sk["v"]
+	var by = hips + 0.14
+	var bd = 9.0
+	for q in V:
+		if absf(q.y - (hips + 0.14)) < bd:
+			bd = absf(q.y - (hips + 0.14)); by = q.y
+	_sk_ring(1, by, 0.022, 0.006, Color(0.9, 0.85, 0.6), -PI, PI, 56, 0.004)
+	_sk_end(g)
+
+
 ## Görünümdeki giysi katmanlarını kur
 func _garments(g: Dictionary) -> void:
 	_layer_meshes = []
@@ -4472,6 +4506,16 @@ func _garments(g: Dictionary) -> void:
 			# diz altına inen yukata (Striker Haku First Encounter; foto all/haku_outfit_first_encounter_vers): kapalı çapraz yaka, belden aşağı hafif A, dirsek altı geniş kol
 			_garment("haku_yukata", func(): return _cut_spec(g, neck + 0.0, knee - 0.08, 26, {"w": [[0.0, 0.88], [0.1, 1.04], [0.35, 1.06], [1.0, 1.42]], "d": [[0.0, 0.12], [1.0, 0.17]], "n": 2.8}, 8, hips - 0.05, 0.035))
 			_cut_sleeve(g, "haku_kol", [[0.0, 0.065], [1.0, 0.09]], absf(_bp("LeftHand").x) - lerpf(absf(_bp("LeftLowerArm").x), absf(_bp("LeftHand").x), 0.3), 8, 2.8)
+		"savas_cubbe":
+			# savaş cübbesi (Striker Madara / Madara Battle / Madara Young; foto all/madara_outfit*): baldıra inen, kalçadan aşağı önden açılan hafif A;
+			# yüksek dik yaka; dirsekten çan gibi açılan geniş kollar
+			_garment("savas_cubbe", func(): return _cut_spec(g, neck + 0.0, ank + 0.14, 28, {"w": [[0.0, 0.9], [0.1, 1.06], [0.35, 1.08], [1.0, 1.5]], "d": [[0.0, 0.13], [1.0, 0.19]], "o": [[0.0, 0.0], [0.45, 0.0], [0.55, 0.2], [1.0, 0.5]], "n": 2.8}, 8, hips - 0.05, 0.035))
+			_garment("savas_yaka", func(): return _loft(g, 1, neck - 0.05, neck + 0.1, 8, func(p): return absf(p.x) < 0.17, func(t, _a): return 0.05 - t * 0.012, 8))
+			_cut_sleeve(g, "savas_kol", [[0.0, 0.068], [0.5, 0.085], [1.0, 0.13]], 0.03, 8, 2.6)
+		"mei_elbise":
+			# uzun elbise (Striker Mei; foto all/mei_outfit): omuzları açık, göğüsten bileğe hafif A; sağ bacakta uyluğa çıkan yırtmaç; çan kollar ayrı
+			_garment("mei_elbise", func(): return _cut_spec(g, neck - 0.14, ank + 0.12, 28, {"w": [[0.0, 0.9], [0.3, 0.98], [1.0, 1.3]], "d": [[0.0, 0.12], [1.0, 0.16]], "n": 2.6}, 8, hips - 0.05, 0.03, func(t, ang): return t > 0.5 and absf(wrapf(ang - 0.35, -PI, PI)) < 0.22))
+			_cut_sleeve(g, "mei_kol", [[0.0, 0.058], [0.6, 0.07], [1.0, 0.11]], 0.0, 8, 2.4)
 		"gelinlik":
 			# gelinlik (Striker Hinata Bridal; foto all/hinata_outfit_bridal_ver): boyundan bağlı kolsuz oturan üst, belden yere geniş A
 			_garment("gelinlik", func(): return _cut_spec(g, neck - 0.02, ank + 0.01, 30, {"w": [[0.0, 0.62], [0.1, 0.82], [0.35, 0.8], [1.0, 3.1]], "d": [[0.0, 0.09], [0.35, 0.11], [1.0, 0.27]], "n": 2.4}, 8, hips - 0.05, 0.045))
@@ -4643,6 +4687,10 @@ func _garments(g: Dictionary) -> void:
 		_kizil_palto_kit(g)
 	if look.get("outer_style") == "gelinlik":
 		_gelinlik_kit(g)
+	if look.get("outer_style") == "savas_cubbe":
+		_savas_cubbe_kit(g)
+	if look.get("outer_style") == "mei_elbise":
+		_mei_elbise_kit(g)
 	if look.get("outer_style") == "haku_yukata":
 		_haku_yukata_kit(g)
 	if look.get("outer_style") == "kaguya_cubbe":
@@ -8378,7 +8426,7 @@ func _attachments() -> void:
 	# --- çanta + kunai kılıfı
 	# bel çantası: kalça kemiğine yapışık katı kutu kumaşın/eteğin/paltonun içine giriyordu -> gövde kabuğunun arka yüzeyine
 	# derili ince kapaklı çanta (kumaşla eğilir); beli/kalçayı örten giysi, etek ya da hakama varsa hiç takılmaz
-	if not look.get("outer_style") in ["anbu_palto", "palto", "cuppe", "haori", "haori_uzun", "pelerin", "org_pelerin", "panco", "jinbaori", "mino", "yirtik", "kisa", "acik_ceket", "kiri_tunik", "bulut_etek", "kaya_gi", "suna_tunik", "sisme_yelek", "flamingo_elbise", "kapusonlu", "omuz_kazak", "uzun_ceket", "hirka", "onluk", "esofman_ceket", "kisa_haori", "kizil_palto", "hinata_ceket", "kirpik_kapusonlu", "yirtmacli_etek", "sargi_etek_uzun", "yilan_cubbe", "algi_ceket", "sargi_elbise", "onluk_elbise", "iki_ton_kimono", "turuncu_ceket", "kisa_bolero", "panel_etek", "uzun_panel_ust", "bel_ortusu", "kolsuz_palto", "kuyruklu_ceket", "kisa_kimono", "gunes_kimono", "genis_gomlek", "uzun_trench", "rikudo_cubbe", "yirtik_esofman", "kutlama_kimono", "kolsuz_kimono", "takim_yelek", "seytan_kapuson", "danzo_ortu", "delta_elbise", "kabarik_bluz", "kurbaga_kigurumi", "uzun_robe", "buyuk_kapusonlu", "kisa_kollu_kazak", "gelinlik", "sarma_mini", "inojin_ceket", "isshiki_palto", "itachi_tunik", "edo_cubbe", "kolsuz_trench", "jigen_cubbe", "sennin_yelek", "kaguya_kimono", "rokudaime_cubbe", "kawaki_palto", "kawaki_okul", "kawaki_ruro", "kukla_onluk", "kaguya_cubbe", "haku_yukata"] 			and int(look.get("skirt", 0)) == 0 and not look.get("hakama", false) and not look.get("pleat_skirt", false) and _sk_begin(_shell_cache.get(look["gender"])):
+	if not look.get("outer_style") in ["anbu_palto", "palto", "cuppe", "haori", "haori_uzun", "pelerin", "org_pelerin", "panco", "jinbaori", "mino", "yirtik", "kisa", "acik_ceket", "kiri_tunik", "bulut_etek", "kaya_gi", "suna_tunik", "sisme_yelek", "flamingo_elbise", "kapusonlu", "omuz_kazak", "uzun_ceket", "hirka", "onluk", "esofman_ceket", "kisa_haori", "kizil_palto", "hinata_ceket", "kirpik_kapusonlu", "yirtmacli_etek", "sargi_etek_uzun", "yilan_cubbe", "algi_ceket", "sargi_elbise", "onluk_elbise", "iki_ton_kimono", "turuncu_ceket", "kisa_bolero", "panel_etek", "uzun_panel_ust", "bel_ortusu", "kolsuz_palto", "kuyruklu_ceket", "kisa_kimono", "gunes_kimono", "genis_gomlek", "uzun_trench", "rikudo_cubbe", "yirtik_esofman", "kutlama_kimono", "kolsuz_kimono", "takim_yelek", "seytan_kapuson", "danzo_ortu", "delta_elbise", "kabarik_bluz", "kurbaga_kigurumi", "uzun_robe", "buyuk_kapusonlu", "kisa_kollu_kazak", "gelinlik", "sarma_mini", "inojin_ceket", "isshiki_palto", "itachi_tunik", "edo_cubbe", "kolsuz_trench", "jigen_cubbe", "sennin_yelek", "kaguya_kimono", "rokudaime_cubbe", "kawaki_palto", "kawaki_okul", "kawaki_ruro", "kukla_onluk", "kaguya_cubbe", "haku_yukata", "savas_cubbe", "mei_elbise"] 			and int(look.get("skirt", 0)) == 0 and not look.get("hakama", false) and not look.get("pleat_skirt", false) and _sk_begin(_shell_cache.get(look["gender"])):
 		var hy = _bp("Hips").y + 0.035
 		var bc = Color(0.42, 0.33, 0.22)
 		if _sk_plate(0.0, hy, 0.12, 0.075, 0.022, bc, 0.002, false):
