@@ -2,7 +2,8 @@ class_name FightingStyles
 extends RefCounted
 ## Dövüş tarzları: silahsızken düz vuruş kombosu klan/yol/bijūya göre değişir (KeyedCombos anahtar kombosu "style_<id>").
 ## Oyuncu Ustalık sekmesinde ◀ ▶ ile seçer (profile "fight_style"); düşman/NPC klanının tarzıyla dövüşür (aynı kombo, aynı etkiler).
-## Kaynak: "clan:<id>" (o klandan olmak), ileride "path:<id>" (yolda ilerlemek), "jin:<bijū>" (jinchūriki).
+## Kaynak: "clan:<id>" (o klandan olmak), "path:<id>" (yolda ilerlemek), "jin:<bijū>" (jinchūriki), "eye:<göz>",
+## "kg:<doğa>" (klansız kekkei genkai: kan soyu, Jinton usta-çırak, Mokuton hücre nakli — doğa bedende uyanmışsa).
 
 ## range: "yakın" / "orta" / "uzak" (animeye göre); stop: düşmanın rakibe yanaştığı mesafe (uzakçı yanaşmaz, oradan atar)
 const STYLES := {
@@ -92,6 +93,21 @@ const STYLES := {
 		"desc": "Duman beden: kol dumana çözülüp uzanır ve katı yumrukla vurur, beden dağılıp rakibin arkasında belirir, dumandan bıçakla kesik, yüze üflenen oksitleyici duman içeriden yakar; bitiriş duman hortumu. Rüzgâra (Fūton) karşı zayıf."},
 	"kamizuru": {"name": "Hachi Tsukai — Kamizuru", "key": "style_kamizuru", "src": "clan:kamizuru", "range": "orta-uzak", "stop": 6.5,
 		"desc": "Arı ustası: yenden salınan eşek arıları zehirli iğne fırlatır (Hachi Senbon), bal arıları hedefte yapışkan bala patlar (Hachi Mitsu), başparmak-avuç mührüyle yerden arı sütunu, patlayıcı kâğıt taşıyan arılar (Hachi Bakudan); bitiriş sürü yelpazesi, zehir uyutur. Yakında zayıf."},
+	# klansız kekkei genkai (kan soyu / usta-çırak / hücre nakli): "kg:<doğa>" — o doğa bedeninde uyanmışsa
+	"ranton": {"name": "Ranton — Fırtına Işını", "key": "style_ranton", "src": "kg:ranton", "range": "orta-uzak (ışın)", "stop": 6.0,
+		"desc": "Darui gibi rakibe koşmazsın: avuçtan düz lazer, yerde zikzak koşan ışık tazısı (Kōga, sersemletir), iki avuç birleşip kara şimşek hattı (Kuroi Kaminari), kıvrılıp hedefe bükülen beş ışın (Reizā Sākasu); bitiriş avuçtan fırlayan kara şimşek panteri (Kuro Pansā, felç). Işın odaklanmak için mesafe ister: 2.5 m içinde hasarı düşer."},
+	"yoton": {"name": "Yōton — Lav ve Kireç", "key": "style_yoton", "src": "kg:yoton", "range": "yakın-orta", "stop": 2.6,
+		"desc": "Kurotsuchi ve Rōshi'nin kanı: lav sarılı yumruklar yapışkan lav sıçratıp yakar, ağızdan kireç seli (Sekkaigyō) yavaşlatır ve kireçlenen rakibe avuç değince kireç taşa döner (bağlar), ağızdan erimiş kayalar (Shakugaryūgan); bitiriş kireçle hapset, atılıp lav yumruğuyla kabuğu kır (Shakugaikoken). Ağır ve biraz yavaş."},
+	"bakuton": {"name": "Bakuton — Jiraiken", "key": "style_bakuton", "src": "kg:bakuton", "range": "yakın", "stop": 1.7,
+		"desc": "Gari ve Iwa Patlama Birliği: chakran değdiği yerde patlar — mayın yumrukları, yere vurulan avuçtan hedefe koşan patlama zinciri, rakibe yapışıp bir an sonra patlayan avuç, iki avuçla savuran Shōgeki; bitiriş sıçrayıp tam güç Jiraiken (büyük patlama, kendin de geri savrulursun). Çok sert ama yalnız dokunarak: menzili yok."},
+	"shakuton": {"name": "Shakuton — Kavurucu Küreler", "key": "style_shakuton", "src": "kg:shakuton", "range": "orta", "stop": 4.5,
+		"desc": "Pakura'nın kanı: avuçtan süzülen kızıl-beyaz küreler alev değil, yapıştığı bedenin suyunu buharlaştırır (yavaşlatır, yakar); çevrende dönen küreler yaklaşanı kavurur, iki yandan kapanan küreler, hedefe yapışıp suyunu çeken küre; bitiriş Kajōsatsu — hedefin çevresine dizilen beş küre kapanıp kurutur. Yakında hasarı düşük."},
+	"shoton": {"name": "Shōton — Kristal Kılıç", "key": "style_shoton", "src": "kg:shoton", "range": "yakın-orta", "stop": 2.4,
+		"desc": "Guren'in kanı: ön koldan büyüyen pembe kristal kılıçla kanatan kesikler, altıgen kristal shurikenler, yerden hedefe uzanan kristal diken sırası, avuçlardan kristal iğne yelpazesi; bitiriş Kesshō Gokakuro — rakip beşgen kristale hapsolur, kristal yumrukla hapis içindekiyle birlikte kırılır."},
+	"jinton": {"name": "Jinton — Toz Küpü", "key": "style_jinton", "src": "kg:jinton", "range": "uzak", "stop": 8.0,
+		"desc": "Ōnoki ve Mū'nün yasak tekniği (kekkei tōta): avuçlar arasında kurulan saydam küp hedefte genişleyip içindekini toza ayırır, ince toz konisi hattı deler, Keijūgan ile hafifleyip geri süzülürsün, Kajūgan avucuyla rakip ağırlaşıp yere çakılır; bitiriş Genkai Hakuri — dev küp. Her vuruş çok güçlü ama kurulumu uzun ve chakra yer: chakra yetmezse küp küçük kalır; dibindeki rakibe küpü tam açamazsın."},
+	"mokuton": {"name": "Mokuton — Yamato Tarzı", "key": "style_mokuton", "src": "kg:mokuton", "range": "orta (kontrol)", "stop": 4.0,
+		"desc": "Yamato'nun Mokuton'u (Senju yumruğu değil, yakalayıp hapseden ağaç): avuçtan kazıklar (Kui, yavaşlatır), ağaca dönüp uzanan kol rakibi yakalayıp çeker, ön koldan dal saplaması, hedefin çevresinden fışkıran dört sütunlu kafes (Shichūrō, bağlar), yaklaşanı iten ahşap kubbe (Mokujōheki); bitiriş Daijurin — kolundan öne fışkıran ağaç kütlesi. Hasarı orta, kontrolü güçlü; hücre nakliyle gelen ağaç chakrayı çok yer."},
 }
 
 
@@ -124,6 +140,11 @@ static func _has_src(p: Dictionary, src: String) -> bool:
 		return TailedBeasts.player_jinchuriki() == src.substr(4)
 	if src.begins_with("eye:"):   # göz tarzı: o göze sahip olmak (Rinnegan — tek göz de yeter)
 		return Progress.has_eye(src.substr(4))
+	if src.begins_with("kg:"):   # kan soyu / usta-çırak (Jinton) / hücre nakli (Mokuton): doğa bedeninde uyanmış olmalı
+		var n = src.substr(3)
+		if n in p.get("natures", []) or n in p.get("elements", []):
+			return true
+		return n == "mokuton" and bool((p.get("flags", {}) as Dictionary).get("senju_cells", false))   # Kök laboratuvarı nakli (Yamato)
 	return false
 
 
@@ -155,4 +176,18 @@ static func npc_key(clan: String) -> String:
 	for id in STYLES:
 		if String(STYLES[id]["src"]) == "clan:" + clan:
 			return String(STYLES[id]["key"])
+	return ""
+
+
+## NPC/düşman: klanı tarz vermiyorsa kekkei genkai doğasının tarzı (Ranton/Yōton/Bakuton/Shakuton/Shōton/Jinton/Mokuton) —
+## oyuncu soyla aynı kombo. Doğa: düşmanın elementi ya da bildiği jutsulardan biri o doğadansa.
+static func npc_kg_key(element: String, jutsu: Array = []) -> String:
+	var nats = [element]
+	for jid in jutsu:
+		var jv = Data.jutsu.get(String(jid), {})
+		if jv is Dictionary:
+			nats.append(String(jv.get("element", "")))
+	for n in nats:
+		if n != "" and STYLES.has(n) and String(STYLES[n]["src"]) == "kg:" + n:
+			return String(STYLES[n]["key"])
 	return ""

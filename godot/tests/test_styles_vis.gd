@@ -28,6 +28,11 @@ func _ready() -> void:
 		Game.profile["clan"] = clan_of.get(st, "none")
 		if st.begins_with("jin_"):   # jinchūriki tarzı
 			Game.profile["jinchuriki"] = st.substr(4)
+		elif String(FightingStyles.STYLES.get(st, {}).get("src", "")).begins_with("kg:"):   # kan soyu tarzı: doğa bedende uyanmış
+			if not Game.profile.has("natures"):
+				Game.profile["natures"] = []
+			if not st in Game.profile["natures"]:
+				Game.profile["natures"].append(st)
 		elif not clan_of.has(st):   # yol tarzı: o yolda ol
 			if not Game.profile.has("paths"):
 				Game.profile["paths"] = {}

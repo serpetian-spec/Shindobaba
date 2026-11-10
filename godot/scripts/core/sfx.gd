@@ -135,7 +135,9 @@ const STYLE_TH := {"style_aburame": ["th_bugs", 1.0], "style_kamizuru": ["th_bee
 	"style_uchiha": ["fire", 1.2], "style_sarutobi": ["fire", 1.0], "style_tip": ["heal", 1.2], "style_kunai": ["blade", 1.1], "style_silah": ["blade", 1.0],
 	"style_bulk": ["hit_heavy", 0.9], "style_kapi": ["wind", 0.9], "style_tok": ["punch", 1.0], "style_hachibi": ["roar", 1.1],
 	"style_jin_matatabi": ["fire", 0.9], "style_jin_isobu": ["water", 0.8], "style_jin_son_goku": ["th_lava", 1.0], "style_jin_kokuo": ["th_steam", 1.0],
-	"style_jin_saiken": ["th_ink", 0.8], "style_jin_chomei": ["th_bugs", 0.8], "style_jin_gyuki": ["roar", 1.0], "style_jin_kurama": ["roar", 0.9]}
+	"style_jin_saiken": ["th_ink", 0.8], "style_jin_chomei": ["th_bugs", 0.8], "style_jin_gyuki": ["roar", 1.0], "style_jin_kurama": ["roar", 0.9],
+	"style_ranton": ["chidori", 1.5], "style_yoton": ["th_lava", 1.1], "style_bakuton": ["boom", 1.25], "style_shakuton": ["wind", 1.3], "style_shoton": ["clink", 1.0],
+	"style_jinton": ["rasengan", 1.5], "style_mokuton": ["earth", 0.95]}
 
 
 func theme_for_jutsu(id: String) -> String:

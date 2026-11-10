@@ -873,7 +873,10 @@ var key_step := {}      # oynayan adım: {hit, len, two, i}
 func _keyed_id() -> String:
 	var wid = look.get("weapon_r") if look is Dictionary else null
 	if (wid == null or String(wid) == "") and model != null and arch is Dictionary:
-		return FightingStyles.npc_key(String(arch.get("clan", "")))   # silahsız klanlı düşman: klanın dövüş tarzı (oyuncuyla aynı kombo)
+		var ck = FightingStyles.npc_key(String(arch.get("clan", "")))   # silahsız klanlı düşman: klanın dövüş tarzı (oyuncuyla aynı kombo)
+		if ck == "":   # klansız kekkei genkai (Ranton/Yōton/Bakuton/Shakuton/Shōton/Jinton/Mokuton): oyuncu soyuyla aynı tarz
+			ck = FightingStyles.npc_kg_key(String(element), arch.get("jutsu", []) if arch.get("jutsu") is Array else [])
+		return ck
 	var skin = String(look.get("weapon_skin_r", "")) if look is Dictionary else ""
 	if skin != "" and KEYED.has(skin) and model != null and not model.weapons.is_empty() and model.drawn:
 		return skin   # kendi kombosu olan özel silah (Hakkō Chakura Tō): oyuncuyla aynı kombo

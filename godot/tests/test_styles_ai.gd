@@ -18,4 +18,16 @@ func _ready() -> void:
 		await get_tree().process_frame
 		print("AI %s clan=%s keyed=%s" % [cl, str(e.arch.get("clan", "")), e._keyed_id()])
 		e.queue_free()
+	# klansız kekkei genkai: elementi / jutsusu o doğadan olan silahsız düşman aynı kan soyu tarzıyla dövüşür
+	for nat in ["ranton", "yoton", "bakuton", "shakuton", "shoton", "jinton", "mokuton"]:
+		var e2 := Enemy.new()
+		e2.setup(Enemy.archetype("rogue", 2))
+		e2.look["weapon_r"] = null
+		e2.arch["clan"] = "none"
+		e2.element = nat
+		main.actors.add_child(e2)
+		e2.global_position = main.player.global_position + Vector3(0, 0, -6)
+		await get_tree().process_frame
+		print("AI kg %s keyed=%s stop=%s" % [nat, e2._keyed_id(), str(FightingStyles.stop_dist(e2._keyed_id()))])
+		e2.queue_free()
 	get_tree().quit()
