@@ -768,8 +768,11 @@ static func creator(main: Node, state: Dictionary, on_change: Callable, on_start
 				swatches.call("Göz Rengi", "eye", [Color(0.25, 0.45, 0.8), Color(0.3, 0.2, 0.12), Color(0.25, 0.55, 0.3), Color(0.1, 0.1, 0.1), Color(0.6, 0.4, 0.15), Color(0.55, 0.55, 0.6), Color(0.6, 0.25, 0.55)])
 		"kiyafet":
 			# kıyafet artık set olarak giyilir (parçalar iç içe geçmesin)
-			var sl = Gear.START_SETS.map(func(x): return String(Gear.item(x).get("name", x)))
-			carousel.call("Kıyafet Seti", "start_set", Gear.START_SETS, sl)
+			var ss = Gear.start_sets(String(state.get("gender", "m")))
+			if state.has("start_set") and not String(state["start_set"]) in ss:
+				state["start_set"] = ss[0]   # cinsiyet değişince karşı cinsin seti seçili kalmasın
+			var sl = ss.map(func(x): return String(Gear.item(x).get("name", x)))
+			carousel.call("Kıyafet Seti", "start_set", ss, sl)
 			var outfit_cols = [Color(0.15, 0.2, 0.33), Color(0.15, 0.15, 0.17), Color(0.45, 0.15, 0.15), Color(0.95, 0.5, 0.12), Color(0.2, 0.38, 0.22), Color(0.35, 0.25, 0.45), Color(0.85, 0.82, 0.75), Color(0.15, 0.4, 0.45)]
 			swatches.call("Üst Rengi", "top", outfit_cols)
 			swatches.call("Alt Rengi", "pants", outfit_cols)

@@ -37,6 +37,14 @@ func _ready() -> void:
 				nd.queue_free()
 		var p = pl.model.global_position
 		print("SV pos ", p, " pl ", pl.global_position)
+		if OS.get_environment("SV_WAIST") != "":
+			var wv = [Vector3(0, 0.95, -1.3), Vector3(1.3, 0.95, 0), Vector3(0, 0.95, 1.3), Vector3(-0.9, 0.95, 0.9)]
+			for k in wv.size():
+				cam.global_position = p + wv[k]
+				cam.look_at(p + Vector3(0, 0.85, 0))
+				await _w(0.25)
+				await main.shot("sw_%s_%d" % [sid, k])
+			continue
 		var views = [Vector3(0, 1.0, -3.2), Vector3(0, 1.0, 3.2), Vector3(-3.2, 1.0, 0.0), Vector3(-1.9, 1.3, -1.9), Vector3(0, 1.3, -1.2), Vector3(0, 0.5, -1.4), Vector3(-1.1, 1.0, -0.6), Vector3(1.1, 1.0, -0.6), Vector3(-0.35, 1.45, -0.75), Vector3(-0.8, 1.45, 0.05)]
 		var looks = [0.95, 0.95, 0.95, 0.95, 1.3, 0.45, 1.0, 1.0, 1.28, 1.28]
 		for k in views.size():

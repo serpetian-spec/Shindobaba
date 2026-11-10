@@ -1246,9 +1246,10 @@ func _cloth_rings(g: Dictionary, mat: ShaderMaterial, vest_mat) -> void:
 		rings.append([0, sleeve * sx, sx, side + ("UpperArm" if short_sleeve else "LowerArm"), 0.016, 0.011, Vector3(-0.012 * sx, 0, 0), mat, neck])
 		if not look.get("guards") in ["bacak", "ikisi"]:
 			rings.append([1, cut, sx, side + "LowerLeg", 0.02 if ps == "ninja" else 0.014, 0.013, Vector3(0, 0.012, 0), mat, neck])
-	rings.append([1, hips + 0.03, 0.0, "Hips", 0.03, 0.012, Vector3(0, 0.015, 0), mat, neck])
-	if vest_mat != null:
-		rings.append([1, hips + 0.04, 0.0, "Hips", 0.058, 0.01, Vector3(0, 0.03, 0), vest_mat, neck])
+	# üst / yelek etek halkaları kaldırıldı: kalça kemiğine yapışık katı tüplerdi (kumaştan 3 / 5.8 cm dışarı), gövde eğilince
+	# kumaşın içine giriyor, belde/karında kalın kap gibi duruyordu. Üstün etek kenarı artık gövde kabuğuna derili ince bant;
+	# yelek etek bandı yelek ayrıntısında (_vest_kit) yüzeye derili.
+
 	for r in rings:
 		var key = "%s|%d|%.3f|%.1f|%.3f|%.3f" % [look["gender"], r[0], r[1], r[2], r[4], r[5]]
 		if not _ring_cache.has(key):
@@ -1756,7 +1757,7 @@ func _garment(key: String, build: Callable) -> void:
 ## Etekli dış giysiler: kalçanın altındaki kumaş dilim zincirleriyle sallanır (koşuda arkaya açılır, dönüşte savrulur,
 ## bacak/diz küreleri kumaşı iter: bacak kumaşın içinden çıkmaz). Zincir kemikleri karakter iskeletine eklenir.
 const DYN_GARMENTS := {"pelerin": 0.26, "palto": 0.3, "haori": 0.34, "org_pelerin": 0.24, "panco": 0.3, "yirtik": 0.2, "jinbaori": 0.3,
-	"cuppe": 0.26, "haori_uzun": 0.28, "mino": 0.36, "hakama": 0.32, "anbu_palto": 0.3}   # anahtar -> şekil sertliği
+	"cuppe": 0.26, "haori_uzun": 0.28, "mino": 0.36, "hakama": 0.32, "anbu_palto": 0.3, "etek_1": 0.4, "etek_2": 0.34, "etek_3": 0.3}   # anahtar -> şekil sertliği
 static var _gdyn_cache := {}
 
 
@@ -1897,6 +1898,12 @@ func _garments(g: Dictionary) -> void:
 			dangle_strip("UpperChest", Vector3(nk.x + 0.025 * sx, neck - 0.02, bz - 0.03), Vector3(0.12 * sx, -1.0, -0.25), 0.34, 0.07, look["outer"], 0.18, Vector3(1, 0, 0), 0.006)
 	if top_style() == "kimono":
 		_garment("obi", func(): return _loft(g, 1, hips + 0.03, hips + 0.15, 5, torso, flat.call(0.03), 2))
+	var sk = int(look.get("skirt", 0))
+	if sk > 0 and not look.get("hakama", false):
+		# etek (Striker kunoichi kıyafetleri): belden 1 mini (uyluk ortası), 2 diz, 3 uzun (bilek); A kesim, bacakların ortak kesitinden
+		var sy1 = [0.0, hips - (hips - knee) * 0.45, knee - 0.02, ank + 0.08][sk]
+		var fl = [0.0, 0.045, 0.06, 0.08][sk]
+		_garment("etek_%d" % sk, func(): return _loft(g, 1, hips + 0.05, sy1, 12 + sk * 4, torso, func(t, _a): return 0.022 + t * fl, 3, null, hips - 0.1, 26))
 	if look.get("hakama", false):
 		# hakama: belden bileğe geniş, pilili etek-pantolon (bacakların ortak kesitinden)
 		_garment("hakama", func(): return _loft(g, 1, hips + 0.06, ank + 0.06, 22, torso, func(t, _a): return 0.03 + t * 0.06, 3, null, hips - 0.12, 28))
@@ -3360,13 +3367,9 @@ func _cloth_details() -> void:
 			var z = MB.new()
 			z.add("box", Vector3(0, -0.12, 0.13), Vector3(0.012, 0.42, 0.01), Color(0.85, 0.85, 0.85), Vector3(-6, 0, 0))
 			_mesh_on("UpperChest", z.build(Props.toon()), Transform3D(Basis.IDENTITY, cp))
-	# bel bağı (pantolon kemeri)
-	var hb = skel.find_bone("Hips")
-	if hb >= 0:
-		var hp = _grest(hb).origin
-		var w = MB.new()
-		w.add("cyl", Vector3(0, 0.07, 0.0), Vector3(0.33, 0.07, 0.24), Color(look["pants"]).darkened(0.3), Vector3.ZERO, 16)
-		_mesh_on("Hips", w.build(Props.toon()), Transform3D(Basis.IDENTITY, hp))
+	# bel bağı (pantolon kemeri): kalça kemiğine yapışık 33x7 cm katı silindir belin/göbeğin çevresinde kalın halka gibi
+	# duruyor, eğilince kıyafetlerin içinden çıkıyordu -> gövde kabuğuna derili ince bant (kumaşla eğilir, dış giysinin altında kalır)
+	pass   # bel bağı kaldırıldı (gömlek/pantolon geçişi kumaşın kendisinde)
 
 
 # ------------------------------------------------------------------ eklentiler (saç, bant, göz, çanta)
@@ -5558,11 +5561,14 @@ func _attachments() -> void:
 	# --- eldeki silahlar (ekipman: sağ el / sol el) ve kınları
 	_weapons()
 	# --- çanta + kunai kılıfı
-	var hip = _grest(skel.find_bone("Hips")).origin
-	var pouch = MB.new()
-	pouch.add("box", Vector3.ZERO, Vector3(0.14, 0.09, 0.07), Color(0.42, 0.33, 0.22))
-	if not look.get("outer_style") in ["anbu_palto", "palto", "cuppe", "haori", "haori_uzun", "pelerin", "org_pelerin", "panco", "jinbaori", "mino", "yirtik"]:   # beli örten dış giysi: bel çantası giysinin üstünde kahverengi kare gibi duruyordu (Kage cübbesi)
-		_mesh_on("Hips", pouch.build(Props.toon()), Transform3D(Basis.IDENTITY, hip + Vector3(0.0, 0.02, -0.14)))
+	# bel çantası: kalça kemiğine yapışık katı kutu kumaşın/eteğin/paltonun içine giriyordu -> gövde kabuğunun arka yüzeyine
+	# derili ince kapaklı çanta (kumaşla eğilir); beli/kalçayı örten giysi, etek ya da hakama varsa hiç takılmaz
+	if not look.get("outer_style") in ["anbu_palto", "palto", "cuppe", "haori", "haori_uzun", "pelerin", "org_pelerin", "panco", "jinbaori", "mino", "yirtik", "kisa", "acik_ceket"] 			and int(look.get("skirt", 0)) == 0 and not look.get("hakama", false) and _sk_begin(_shell_cache.get(look["gender"])):
+		var hy = _bp("Hips").y + 0.035
+		var bc = Color(0.42, 0.33, 0.22)
+		if _sk_plate(0.0, hy, 0.12, 0.075, 0.022, bc, 0.002, false):
+			_sk_plate(0.0, hy + 0.028, 0.124, 0.024, 0.008, bc.darkened(0.18), 0.024, false)   # kapak
+		_sk_end(_geo_for(look["gender"]))
 	_thigh_holster()
 	if look.get("leg_warmers") is Color:
 		_leg_warmers(look["leg_warmers"])
