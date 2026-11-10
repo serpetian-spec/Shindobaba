@@ -1227,7 +1227,7 @@ func _paint_body() -> void:
 	if look["vest"] != null:
 		vest_mat = _cloth_mat(2)
 		_add_shell(_shell_cache[key + "|vest"], vest_mat)
-		if int(look.get("vest_style", 0)) in [0, 1, 2, 3, 4, 12, 13]:
+		if int(look.get("vest_style", 0)) in [0, 1, 2, 3, 4, 12, 13, 14]:
 			_vest_kit(_shell_cache[key + "|vest"], g)
 		if int(look.get("vest_style", 0)) == 2 and _sk_begin(_shell_cache[key]):
 			# Kiri önlüğü: kalça önünde, kumaş kabuğuna yaslı, aşağı doğru daralan plaka şerit
@@ -3061,12 +3061,24 @@ func _turuncu_ceket_kit(g: Dictionary) -> void:
 		_sk_ring(1, neck + 0.005, 0.07, 0.01, c2, -PI, PI, 40, 0.004, 0.0, 0.0, 0.12)   # dik yaka
 		_sk_strip(0.0, neck + 0.06, ybot + 0.01, 0.007, 0.004, Color(0.78, 0.78, 0.8), 34)   # fermuar
 		_sk_ring(1, ybot + 0.02, 0.04, 0.007, c2, -PI, PI, 48, 0.003, 0.0, 0.0, 0.32)   # bel ribanası
+		if look.get("jacket_stripes") is Color:   # ref naruto_outfit_2: etekte iki ince siyah şerit
+			for k in 2:
+				var sy = ybot + 0.05 + k * 0.03
+				var sd = 9.0
+				var syy = sy
+				for q in V:
+					if absf(q.y - sy) < sd:
+						sd = absf(q.y - sy); syy = q.y
+				_sk_ring(1, syy, 0.012, 0.005, look["jacket_stripes"], -PI, PI, 48, 0.004, 0.0, 0.0, 0.32)
 		_sk_end(g)
 	if not _sk_begin(_shell_cache.get(look["gender"])):
 		return
 	var ha = absf(_bp("LeftHand").x)
 	for sx in [1.0, -1.0]:
 		_sk_ring(0, (ha - 0.065) * sx, 0.04, 0.009, c2.darkened(0.1), -PI, PI, 24, 0.006, sx)
+		if look.get("jacket_stripes") is Color:   # kol ağzına yakın üç siyah şerit
+			for k in 3:
+				_sk_ring(0, (ha - 0.1 - k * 0.028) * sx, 0.012, 0.007, look["jacket_stripes"], -PI, PI, 24, 0.006, sx)
 	# sol üst kolda arma yaması: kolun dış yüzü (T pozu +Y)
 	var ax = lerpf(absf(_bp("LeftUpperArm").x), absf(_bp("LeftLowerArm").x), 0.3)
 	var V2: PackedVector3Array = _sk["v"]
@@ -5868,6 +5880,10 @@ func _vest_kit(src: ArrayMesh, g: Dictionary) -> void:
 			_sk_ring(1, bot_y + 0.02, 0.035, 0.008, dk, -PI, PI, 40, 0.0)
 			for sx in [-1.0, 1.0]:
 				_sk_ring(0, sh_x * sx, 0.075, 0.012, vc.darkened(0.03), -0.55, 1.0, 16, 0.0, sx)
+		14:   # cepsiz düz yelek (ref naruto_outfit_everlasting_summer_ver): boydan fermuar, dik yaka, etek bandı
+			_sk_strip(0.0, top_y + 0.02, bot_y + 0.01, 0.01, 0.005, zipc, 34)
+			_sk_ring(1, top_y + 0.003, 0.085, 0.018, vc.darkened(0.04), -PI, PI, 48, 0.004, 0.0, 0.04, 0.115)
+			_sk_ring(1, bot_y + 0.02, 0.03, 0.008, vc.darkened(0.12), -PI, PI, 40, 0.0)
 		13:   # yeni nesil Konoha (ref all/konohamaru_outfit): yakasız, düz göğüs panelleri + orta dikiş, ayrı perçinli açık omuzluk,
 			# belde açık yatay bant, altında ortası dikişli önlük
 			var bandy = hips + 0.11
@@ -9089,7 +9105,7 @@ func _attachments() -> void:
 			0:   # Konoha: _vest_kit (yüzeye oturan derili cep/fermuar/yaka/omuzluk)
 				pass
 
-			1, 2, 3, 4, 12, 13:   # Suna / Kiri / Kumo / Iwa / ANBU plaka / yeni nesil: _vest_kit (yüzeye oturan derili parçalar)
+			1, 2, 3, 4, 12, 13, 14:   # Suna / Kiri / Kumo / Iwa / ANBU plaka / yeni nesil / düz: _vest_kit (yüzeye oturan derili parçalar)
 				pass
 			_:
 				for sx in [-1.0, 1.0]:
