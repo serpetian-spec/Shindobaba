@@ -4044,13 +4044,14 @@ func _kisa_kollu_kazak_kit(g: Dictionary) -> void:
 		var ybot = 9.0
 		for q in V:
 			ybot = minf(ybot, q.y)
-		_sk_ring(1, ybot + 0.02, 0.026, 0.006, wc, -PI, PI, 48, 0.003, 0.0, 0.0, 0.3)
+		if look.get("kazak_plain") != true:
+			_sk_ring(1, ybot + 0.02, 0.026, 0.006, wc, -PI, PI, 48, 0.003, 0.0, 0.0, 0.3)
 		_sk_ring(1, neck + 0.0, 0.02, 0.008, look.get("outer", wc).darkened(0.1), -PI, PI, 40, 0.006, 0.0, 0.0, 0.14)
 		_sk_end(g)
 	var kel = absf(_bp("LeftLowerArm").x)
 	for sx in [1.0, -1.0]:
 		var sm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "kazak_kisa_kol%d" % int(sx), 0.0])
-		if sm != null and _sk_begin(sm):
+		if sm != null and look.get("kazak_plain") != true and _sk_begin(sm):
 			for k in 2:
 				_sk_ring(0, (kel - 0.06 - k * 0.022) * sx, 0.007, 0.004, wc, -PI, PI, 24, 0.002, sx)
 			_sk_end(g)
@@ -4062,7 +4063,7 @@ func _wide_obi_kit(g: Dictionary) -> void:
 		return
 	var hips = _bp("Hips").y
 	var oc: Color = look["wide_obi"]
-	var lf = 0.045 if look.get("vest") != null else 0.0   # zırh/yeleğin üstüne sarılı kuşak (ref temari_outfit_3): yeleğin içinde kalıyordu
+	var lf = 0.045 if (look.get("vest") != null or look.get("outer_style") == "kisa_kollu_kazak") else 0.0   # zırh/yeleğin/ceketin üstüne sarılı kuşak (ref temari_outfit_3): yeleğin içinde kalıyordu
 	_sk_ring(1, hips + 0.12, 0.09, 0.01, oc, -PI, PI, 56, 0.008 + lf, 0.0, 0.0, 0.32)
 	var h = _sk_hit(0.12, hips + 0.1, true, 0.05)
 	if not h.is_empty():
@@ -5708,7 +5709,8 @@ func _garments(g: Dictionary) -> void:
 		_garment_tinted("gi_yelek", look["gi_yelek"], func(): return _loft(g, 1, neck - 0.01, hips - 0.03, 14, torso, func(t, _a): return 0.062 + t * 0.012, 10, func(t, ang): return (t < 0.12 and fposmod(ang * 3.0, 1.0) < 0.3) or (t > 0.9 and fposmod(ang * 4.0, 1.0) < (t - 0.9) * 6.0), -99.0, 48))
 	if look.get("fur_scarf") is Color:
 		# kalın kürk atkı (Striker Celebratory): boynu ve omuzları saran kabarık beyaz kürk (açıya göre tüylü dalga)
-		_garment_tinted("kurk_atki", look["fur_scarf"], func(): return _loft(g, 1, neck - 0.09, neck + 0.05, 9, func(p): return absf(p.x) < 0.2, func(t, a): return 0.075 - t * 0.03 + 0.012 * absf(sin(a * 9.0 + t * 7.0)), 10, func(t, ang): return t > 0.4 and absf(wrapf(ang - PI * 0.5, -PI, PI)) < 0.25))
+		var fl = 0.05 if look.get("vest") != null else 0.0   # zırh üstünde (ref tobirama_outfit): kürk zırhın dışına taşar
+		_garment_tinted("kurk_atki_v" if fl > 0.0 else "kurk_atki", look["fur_scarf"], func(): return _loft(g, 1, neck - (0.06 if fl > 0.0 else 0.09), neck + 0.05, 9, func(p): return absf(p.x) < 0.2, func(t, a): return 0.075 + fl * (1.0 - t) - t * 0.03 + (0.012 + fl * 0.5) * absf(sin(a * 9.0 + t * 7.0)) + fl * 0.6 * absf(cos(a)), 10, func(t, ang): return t > 0.4 and absf(wrapf(ang - PI * 0.5, -PI, PI)) < 0.25))
 	if look.get("bell_cuffs") is Color:
 		# çan manşet ve paçalar (Striker Code): bilekte açılan geniş manşet, baldır altında açılan geniş paça
 		var bhx = absf(_bp("LeftHand").x)

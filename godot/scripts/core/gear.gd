@@ -567,6 +567,7 @@ const ITEMS := {
 	"file_sutyen": {"name": "File Sütyen", "slot": "govde", "price": 90, "rank": 0, "desc": "Göğsü saran file üst; göbek açık.", "stats": {"speed": 0.04}, "look": {"top_style": "kolsuz", "top_pattern": 43}, "c1": Color(0.12, 0.12, 0.14), "c2": Color(0.12, 0.12, 0.14)},
 	"kot_sort": {"name": "Kemerli Kot Şort", "slot": "bacak", "price": 110, "rank": 0, "desc": "Paçası kıvrık mavi kot şort; koyu mavi kemer.", "stats": {"speed": 0.04}, "look": {"pants_style": "kisa_sort", "waist_belt": Color(0.12, 0.16, 0.32)}, "c1": Color(0.22, 0.4, 0.68)},
 	"cizgili_kolsuz": {"name": "Çizgili Kolsuz Üst ve Geniş Obi", "slot": "govde", "price": 160, "rank": 0, "desc": "Dikey çizgili, dik yakalı kolsuz lavanta üst; belde geniş koyu mor obi ve sarkan mürdüm bez.", "stats": {"chakra": 20, "speed": 0.03}, "look": {"top_style": "kolsuz", "top_pattern": 9, "wide_obi": Color(0.24, 0.2, 0.36)}, "c1": Color(0.8, 0.75, 0.92), "c2": Color(0.62, 0.55, 0.8)},
+	"savas_ceketi_kisa_kol": {"name": "Dirsek Kollu Savaş Ceketi", "slot": "dis", "price": 220, "rank": 0, "desc": "Kalçaya inen, dirsek boyu kollu düz koyu savaş ceketi.", "stats": {"def": 3, "hp": 15}, "look": {"outer_style": "kisa_kollu_kazak", "outer_pattern": 0, "holster": false, "kazak_plain": true}, "c1": Color(0.14, 0.14, 0.24), "c2": Color(0.14, 0.14, 0.24)},
 	"kisa_kollu_kazak": {"name": "Kısa Kollu Kazak", "slot": "dis", "price": 200, "rank": 0, "desc": "Geniş yakalı, bele kadar pembe kazak; kısa kollarda ve etekte beyaz şeritler.", "stats": {"hp": 20}, "look": {"outer_style": "kisa_kollu_kazak", "outer_pattern": 0, "holster": false}, "c1": Color(0.95, 0.75, 0.82), "c2": Color(0.95, 0.75, 0.82)},
 	"cizgili_uzun_etek_kapri": {"name": "Çizgili Uzun Etek ve Kapri", "slot": "bacak", "price": 180, "rank": 0, "desc": "Baldıra inen pembe çizgili gri A kesim etek; altında koyu gri kapri.", "stats": {"chakra": 15}, "look": {"pants_style": "kapri", "long_skirt": Color(0.86, 0.85, 0.86)}, "c1": Color(0.24, 0.24, 0.28)},
 	"gelinlik": {"name": "Siyah Gelinlik", "slot": "dis", "price": 900, "rank": 0, "desc": "Boyundan bağlı kolsuz, belde fırfırlı, yere inen iki tonlu siyah gelinlik; önde pli şeritler.", "stats": {"chakra": 40, "hp": 20}, "look": {"outer_style": "gelinlik", "outer_pattern": 0, "holster": false}, "c1": Color(0.14, 0.1, 0.18), "c2": Color(0.14, 0.1, 0.18)},
@@ -650,6 +651,9 @@ const ITEMS := {
 	"burgu_ip_kusak": {"name": "Kalın Burgu İp Kuşak", "slot": "kol", "price": 80, "rank": 0, "desc": "Bele sarılı kalın burgulu mor ip; tuniğin ön ve arka eteği dize iner.", "stats": {"def": 1, "chakra": 10}, "look": {"rope_belt": Color(0.48, 0.32, 0.72), "tunic_long": true}, "c1": Color(0.48, 0.32, 0.72)},
 	"cin_kuyruk": {"name": "Kuyruklu Kolsuz Çin Üstü", "slot": "dis", "price": 320, "rank": 0, "desc": "Kolsuz dik yakalı çin üstü; belden aşağı önde açılıp yanlarda ve arkada dize inen kuyruk, çapraz beyaz biye, çin düğmeleri.", "stats": {"speed": 0.04, "chakra": 15}, "look": {"outer_style": "cin_kuyruk", "outer_pattern": 0, "holster": false}, "c1": Color(0.56, 0.1, 0.16), "c2": Color(0.56, 0.1, 0.16)},
 	"genis_obi_kizil": {"name": "Kızıl Sargı Kuşak", "slot": "kol", "price": 50, "rank": 0, "desc": "Belde iki kat sarılı kızıl geniş kuşak.", "stats": {"def": 1}, "look": {"wide_obi": Color(0.7, 0.2, 0.24)}, "c1": Color(0.7, 0.2, 0.24)},
+	"genis_obi_mor": {"name": "Mor Geniş Kuşak", "slot": "kol", "price": 50, "rank": 0, "desc": "Belde sarılı koyu mor geniş kuşak.", "stats": {"def": 1}, "look": {"wide_obi": Color(0.32, 0.2, 0.36)}, "c1": Color(0.32, 0.2, 0.36)},
+	"kalin_boyun_atki": {"name": "Kalın Boyun Atkısı", "slot": "kol", "price": 60, "rank": 0, "desc": "Çeneye kadar sarılı kalın atkı.", "stats": {"def": 1}, "look": {"neck_scarf": Color(0.16, 0.3, 0.28)}, "c1": Color(0.16, 0.3, 0.28)},
+	"kurk_yaka": {"name": "Kürk Yakalık", "slot": "kol", "price": 120, "rank": 1, "desc": "Omuzlara yayılan kalın beyaz kürk yakalık.", "stats": {"def": 2, "hp": 10}, "look": {"fur_scarf": Color(0.95, 0.95, 0.94)}, "c1": Color(0.95, 0.95, 0.94)},
 	"sarashi_bant": {"name": "Sarashi Bel Sargısı", "slot": "kol", "price": 40, "rank": 0, "desc": "Karnı saran gri sarashi bandajı.", "stats": {"def": 1}, "look": {"wide_obi": Color(0.6, 0.6, 0.63)}, "c1": Color(0.6, 0.6, 0.63)},
 	"capraz_kayis": {"name": "Çapraz Kayış ve Kese", "slot": "kol", "price": 70, "rank": 0, "desc": "Sol omuzdan sağ kalçaya çapraz koyu kayış, bel kayışı ve yan kese.", "stats": {"def": 1}, "look": {"cross_strap": Color(0.22, 0.2, 0.22)}, "c1": Color(0.22, 0.2, 0.22)},
 	"kol_askisi": {"name": "Beyaz Kol Askısı", "slot": "kol", "price": 20, "rank": 0, "desc": "Omuzdan çapraz geçen beyaz bez askı.", "stats": {}, "look": {"cross_strap": Color(0.92, 0.92, 0.9)}, "c1": Color(0.92, 0.92, 0.9)},
@@ -1515,6 +1519,7 @@ static func apply_look(p: Dictionary) -> void:
 	L["armor_style"] = null
 	L["armor_plates"] = null
 	L["sailor"] = null
+	L["kazak_plain"] = null
 	L["no_pads"] = null
 	L["robe_obi2"] = null
 	L["tunic_emblem"] = null
