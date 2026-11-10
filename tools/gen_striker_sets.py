@@ -19,7 +19,7 @@ def rank_of(r):
 
 S = 'sandalet'
 D = [
- (0, 'gunesi', 'Taiyō Kimono', 'Turuncu dik yakalı tulum üstüne sol omzu açık güneş desenli turuncu kimono (siyah kuşak, 9 parlak magatama, kızıl bez), bol turuncu pantolon, zōri.', 'c', [('yakali', 'e8901e', 'e8901e'), ('bol_pantolon', 'e0961e', None), ('gunes_kimono', 'f0b030', 'd86a14'), ('zori', '6b4a2b', 'e8d6a8')]),
+ (0, 'gunesi', 'Taiyō Kimono', 'Turuncu dik yakalı tulum üstüne sol omzu açık güneş desenli turuncu kimono (siyah kuşak, 9 parlak magatama, kızıl bez), bol turuncu pantolon, zōri.', 'c', [('yakali', 'e8801a', 'e8801a'), ('salvar', 'e09a28', None), ('gunes_kimono', 'f2d68a', 'd84a14'), ('zori', '6b4a2b', 'c8302a')]),
  (1, 'iryo_hemsire', 'Iryō Shōzoku', 'Pembe kısa kollu gömlek üstüne kolsuz beyaz hemşire önlüğü: kırmızı biye, çift sıra düğme, fiyonklu kırmızı kemer, sırtta 医; diz üstü beyaz çorap, kırmızı açık ayakkabı.', 's', [('tisort', 'e8b8dc', 'e8b8dc'), ('kisa_sort', 'f2f2f4', None), ('onluk', 'f4f4f6', 'a01822'), ('corap_sandalet', 'b01c22', 'f4f4f6')]),
  (1, 'iryo_hemsire_bahar', 'Iryō Shōzoku: Bahar', 'Beyaz gömlek üstüne mavi-yeşil önlük: sarı biye, beyaz-sarı kemer, sırtta tavşan, kalpli manşet; beyaz çorap, yeşil-beyaz açık ayakkabı.', 'h', [('tisort', 'f4f4f6', 'f4f4f6'), ('kisa_sort', 'f2f2f4', None), ('onluk_bahar', '4aaaa6', 'f0d040'), ('corap_sandalet', '2a9a8a', 'f4f4f6')]),
  (3, 'genis_yaka', 'Kuro Hiroeri', 'Bol geniş yakalı siyah gömlek (altın zincir), krem bol pantolon, yeşil geniş ağızlı açık burunlu bot.', 'm', [('tisort', '18181c', '18181c'), ('bol_pantolon', 'e6dfc8', None), ('genis_gomlek', '18181c', '18181c'), ('bilek_bot_acik', '2e7a48', '2e7a48')]),

@@ -94,11 +94,6 @@ static func garments(m: CharacterModel, g: Dictionary) -> void:
 		m._garment("gi_kusak", func(): return m._loft(g, 1, hips + 0.03, hips + 0.1, 4, torso, func(_t, _a): return 0.032, 7))
 	if m.look.get("rope_belt", false):
 		m._garment("ip_kusak", func(): return m._loft(g, 1, hips + 0.05, hips + 0.1, 4, torso, func(_t, _a): return 0.04, 9))
-	if m.pants_style() == "bol":
-		for sx in [-1.0, 1.0]:
-			m._garment("bol%d" % int(sx), func(): return m._loft(g, 1, knee + 0.1, ank + 0.035, 10, func(p): return signf(p.x) == sx and absf(p.x) < 0.35,
-				# iç tarafta şişkinlik az: öbür bacağa değip ona bağlanmasın
-				func(t, a): return 0.012 + sin(t * PI * 0.92) * (0.038 if cos(a) * sx > -0.2 else 0.008), 3, null, -99.0, 18))
 	_anbu_parts(m, g)
 	var gd = m.look.get("guards")
 	if gd in ["dizlik", "agir"]:
@@ -109,6 +104,21 @@ static func garments(m: CharacterModel, g: Dictionary) -> void:
 
 ## ANBU takım parçaları (ref anbu.png / anbu2.png / anbu3.png): kumaş kabuğuna derili loft katmanları, dirsekle bükülür.
 ## Yuva renkleri: 7 = koyu (ısıtıcı), 9 = kolluk rengi (metal plaka), 4 = sargı rengi (beyaz bant/sargı)
+## Bol paça katmanları (bol / şalvar): dış giysiden ÖNCE kurulur ki kesim kalıbı bunların dışında dursun
+static func pants_layers(m: CharacterModel, g: Dictionary) -> void:
+	var knee = m._bp("LeftLowerLeg").y; var hips = m._bp("Hips").y; var ank = m._bp("LeftFoot").y
+	if m.pants_style() == "bol" and m.look.get("bol_full", false):
+		# şalvar (Striker 15 Milyon): uyluktan bileğe bol, baldırda toplanan paça
+		for sx in [-1.0, 1.0]:
+			m._garment("salvar%d" % int(sx), func(): return m._loft(g, 1, hips - 0.08, ank + 0.04, 16, func(p): return signf(p.x) == sx and absf(p.x) < 0.35,
+				func(t, a): return 0.016 + pow(sin(clampf(t * 1.04, 0.0, 1.0) * PI * 0.96), 0.6) * (0.095 if cos(a) * sx > -0.3 else 0.03), 3, null, -99.0, 22))
+	elif m.pants_style() == "bol":
+		for sx in [-1.0, 1.0]:
+			m._garment("bol%d" % int(sx), func(): return m._loft(g, 1, knee + 0.1, ank + 0.035, 10, func(p): return signf(p.x) == sx and absf(p.x) < 0.35,
+				# iç tarafta şişkinlik az: öbür bacağa değip ona bağlanmasın
+				func(t, a): return 0.012 + sin(t * PI * 0.92) * (0.038 if cos(a) * sx > -0.2 else 0.008), 3, null, -99.0, 18))
+
+
 static func _anbu_parts(m: CharacterModel, g: Dictionary) -> void:
 	var L = m.look
 	var neck = m._bp("Neck").y; var knee = m._bp("LeftLowerLeg").y; var ank = m._bp("LeftFoot").y
