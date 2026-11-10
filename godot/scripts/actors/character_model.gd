@@ -4540,7 +4540,7 @@ func _lc(k: String, d: Color) -> Color:
 func _capraz_haori_kit(g: Dictionary) -> void:
 	var neck = _bp("Neck").y
 	var hips = _bp("Hips").y
-	var jm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "capraz_haori", 0.0])
+	var jm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "capraz_haori_l" if look.get("capraz_long") == true else "capraz_haori", 0.0])
 	if jm == null or not _sk_begin(jm):
 		return
 	var V: PackedVector3Array = _sk["v"]
@@ -4549,6 +4549,15 @@ func _capraz_haori_kit(g: Dictionary) -> void:
 		ybot = minf(ybot, q.y)
 	var bc: Color = _lc("outer2", Color(0.78, 0.7, 0.2))
 	_sk_path(Vector2(-0.075, neck + 0.0), Vector2(-0.005, neck - 0.17), 0.05, 0.006, bc)
+	if look.get("wide_obi") is Color and look.get("capraz_long") == true:
+		var V2: PackedVector3Array = _sk["v"]
+		var oy = hips + 0.09
+		var od = 9.0
+		for q in V2:
+			if absf(q.y - (hips + 0.09)) < od:
+				od = absf(q.y - (hips + 0.09)); oy = q.y
+		_sk_ring(1, oy, 0.06, 0.01, look["wide_obi"], -PI, PI, 56, 0.008)
+		_sk_ring(1, oy, 0.006, 0.004, (look["wide_obi"] as Color).darkened(0.3), -PI, PI, 56, 0.019)
 	_sk_path(Vector2(0.075, neck + 0.0), Vector2(-0.07, ybot + 0.1), 0.055, 0.007, bc, true, 0.006, 26, 0.045)
 	_sk_end(g)
 
@@ -5104,7 +5113,8 @@ func _garments(g: Dictionary) -> void:
 			_garment("yagura_etek", func(): return _cut_spec(g, hips + 0.13, knee + 0.0, 16, {"w": [[0.0, 1.15], [0.3, 1.45], [1.0, 1.75]], "d": [[0.0, 0.15], [0.3, 0.19], [1.0, 0.24]], "n": 2.2}, 8, hips + 0.13, 0.04, func(t, ang): return t > 0.18 and absf(wrapf(ang - PI * 0.5 - 0.35, -PI, PI)) < 0.06 + t * 0.45))
 		"capraz_haori":
 			# kısa çapraz kimono ceket (Striker Konan Young; foto all/konan_outfit_young_ver): bele inen kapalı çapraz yaka, düşük omuzlu dirseğe geniş kol
-			_garment("capraz_haori", func(): return _cut_spec(g, neck + 0.0, hips + 0.04, 16, {"w": [[0.0, 0.9], [0.12, 1.12], [1.0, 1.1]], "d": [[0.0, 0.12], [1.0, 0.135]], "n": 3.0}, 8, -99.0, 0.03))
+			var chl = hips - 0.2 if look.get("capraz_long") == true else hips + 0.04   # Nagato genç: uyluğa iner
+			_garment("capraz_haori_l" if look.get("capraz_long") == true else "capraz_haori", func(): return _cut_spec(g, neck + 0.0, chl, 16, {"w": [[0.0, 0.9], [0.12, 1.12], [1.0, 1.1]], "d": [[0.0, 0.12], [1.0, 0.135]], "n": 3.0}, 8, -99.0, 0.03))
 			_cut_sleeve(g, "capraz_kol", [[0.0, 0.085], [1.0, 0.1]], absf(_bp("LeftHand").x) - lerpf(absf(_bp("LeftLowerArm").x), absf(_bp("LeftHand").x), 0.3), 8, 3.0)
 		"koji_ceket":
 			# kapalı bel boyu ceket (Striker Koji Kashin; foto all/koji_kashin_outfit): gövdeye oturan kutu kesim, koyu dik yaka; kollar alttaki gömlekten
