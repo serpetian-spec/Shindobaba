@@ -33,7 +33,7 @@ func build(progress: Callable = Callable()) -> void:
 	var sites = Node3D.new()
 	sites.name = "Sites"
 	add_child(sites)
-	BuildSites.build_all(sites)
+	await BuildSites.build_all(sites)
 	BuildVillageStory.build_all(sites)  # her büyük köyde hikâye binaları + Aranıyor panosu
 	ContractRealms.build_all(sites)  # gizli sözleşme diyarları (kurbağa/yılan/sümüklüböcek) + köy sözleşme ustaları
 	KgPaths.build_all(sites)  # keşiş kulübesi (Hyōton), volkan krateri (Yōton), toz tapınağı (Jinton)

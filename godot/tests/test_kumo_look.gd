@@ -9,7 +9,7 @@ func _ready() -> void:
 	var v = Game.village("kumo")
 	var c = Game.from_map(Vector2(v["x"], v["y"]))
 	var pl = main.player
-	var offs = [Vector3(0, 0, 0), Vector3(120, 0, 0), Vector3(-120, 0, 60), Vector3(0, 0, 150), Vector3(60, 0, -150)]
+	var offs = [Vector3(-818, 0, 374), Vector3(-689, 0, 665)] if OS.get_environment("KL_USER") != "" else [Vector3(0, 0, 0), Vector3(120, 0, 0), Vector3(-120, 0, 60), Vector3(0, 0, 150), Vector3(60, 0, -150)]
 	var i = 0
 	for o in offs:
 		var p = c + o

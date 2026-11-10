@@ -454,7 +454,27 @@ func finish() -> void:
 		root.add_child(body)
 	if landscape and landscape_on and houses.size() >= 12 and not key.begins_with("yolkenari"):
 		landscape = false
-		CityLandscape.dress(self)
+		# peyzaj kareler boyunca kurulur (await): eskiden beklenmiyordu -> placer.finish() önce çalışıp sonradan eklenen ara arsa
+		# evlerinin görseli HİÇ kurulmuyordu (çarpışma vardı = görünmez ev) ve köy önbelleğe yarım kaydediliyordu (boş arsalar).
+		# Şimdi peyzaj bitince kalan iş yapılır; pişirme Builder.dressing sıfırlanana kadar bekler.
+		dressing += 1
+		_finish_after_dress()
+		return
+	_finish_rest()
+
+
+static var dressing := 0
+func _finish_after_dress() -> void:
+	await CityLandscape.dress(self)
+	dressing -= 1
+	if is_instance_valid(root):
+		_finish_rest()
+
+
+func _finish_rest() -> void:
+	for eb in extra_bodies:   # peyzajın eklediği ayrı gövdeler (üçgen şekiller) de ağaca girsin
+		if is_instance_valid(eb) and eb.get_parent() == null:
+			root.add_child(eb)
 	if placer != null:
 		placer.finish()
 	for pk in packs:

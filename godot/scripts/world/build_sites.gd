@@ -15,6 +15,8 @@ static func build_all(parent: Node3D) -> void:
 			if VillageBake.try_load(parent, "konoha") == null:
 				var snap = VillageBake.snapshot("konoha")
 				BuildKonoha.build(parent, v)
+				while Builder.dressing > 0:   # peyzaj (ara arsa evleri vb.) bitmeden pişirme yok: yarım köy kaydediliyordu
+					await Engine.get_main_loop().process_frame
 				VillageBake.save(parent.get_node_or_null("Konoha"), "konoha", snap)
 	for l in Game.world_info["landmarks"]:
 		match l["id"]:
@@ -50,6 +52,8 @@ class VillageStream extends Node3D:
 			return
 		var snap = VillageBake.snapshot(id)
 		await BuildSites.build_village(node, v, rec)
+		while Builder.dressing > 0 and is_instance_valid(node):   # peyzaj (ara arsa evleri, ağaçlar, sokaklar) bitmeden pişirme: yarım köy kaydediliyordu
+			await Engine.get_main_loop().process_frame
 		if is_instance_valid(node):
 			# pişirme kökü: köy düğümünün çocukları tek bir kökte toplanır
 			var bake_root = Node3D.new()

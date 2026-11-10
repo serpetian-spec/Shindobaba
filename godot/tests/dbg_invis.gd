@@ -31,7 +31,7 @@ func _ready() -> void:
 		if OS.get_environment("VR") != "":
 			R = float(OS.get_environment("VR"))
 		pl.respawn(c)
-		await get_tree().create_timer(4.0).timeout
+		await get_tree().create_timer(float(OS.get_environment("WAIT")) if OS.get_environment("WAIT") != "" else 4.0).timeout   # sıfırdan kurulan köy (peyzaj) için uzun bekle
 		pl.set_physics_process(false)
 		# görünen geometri -> katman 20
 		var faces = PackedVector3Array()

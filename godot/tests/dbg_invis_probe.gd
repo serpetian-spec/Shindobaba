@@ -18,7 +18,11 @@ func _path(n: Node) -> String:
 func _ready() -> void:
 	await get_tree().process_frame
 	main.creator_state = {"slot": 3, "name": "Test", "gender": "m", "clan": "none", "element": "katon", "hair_style": "diken", "hair": Color(0.2, 0.15, 0.1), "top": Color(0.2, 0.3, 0.5), "pants": Color(0.15, 0.15, 0.17), "skin": Color(0.96, 0.8, 0.66), "eye": Color(0.25, 0.45, 0.8)}
-	main._start_new_game()
+	if OS.get_environment("LOAD") != "":
+		main.load_slot(int(OS.get_environment("LOAD")))
+		await get_tree().create_timer(6.0).timeout
+	else:
+		main._start_new_game()
 	await get_tree().create_timer(2.0).timeout
 	var pl = main.player
 	for item in OS.get_environment("PTS").split(";", false):
@@ -28,6 +32,8 @@ func _ready() -> void:
 		var c = Game.from_map(Vector2(v["x"], v["y"]))
 		var p = c + Vector3(float(xz[0]), 0, float(xz[1]))
 		p.y = Game.terrain_height(p.x, p.z)
+		if a.size() > 2:
+			p.y = float(a[2])
 		pl.respawn(p + Vector3(6, 0, 6))
 		await get_tree().create_timer(4.0).timeout
 		print("== ", item, " world=", p)
@@ -35,7 +41,7 @@ func _ready() -> void:
 			if cs.disabled or cs.shape == null:
 				continue
 			var gp: Vector3 = cs.global_position
-			if Vector2(gp.x - p.x, gp.z - p.z).length() > 3.5:
+			if Vector2(gp.x - p.x, gp.z - p.z).length() > 12.0:
 				continue
 			var sh = cs.shape
 			var info = sh.get_class()
