@@ -150,7 +150,7 @@ const SETS := {
 const KAGE_SETS := ["set_hokage", "set_kazekage", "set_mizukage", "set_raikage", "set_tsuchikage"]
 const KAGE_HATS := ["kage_sapkasi", "hokage_sapkasi", "kazekage_sapkasi", "mizukage_sapkasi", "raikage_sapkasi", "tsuchikage_sapkasi"]
 const KAGE_VID := {"set_hokage": "konoha", "set_kazekage": "suna", "set_mizukage": "kiri", "set_raikage": "kumo", "set_tsuchikage": "iwa",
-	"hokage_sapkasi": "konoha", "kazekage_sapkasi": "suna", "mizukage_sapkasi": "kiri", "raikage_sapkasi": "kumo", "tsuchikage_sapkasi": "iwa"}
+	"hokage_sapkasi": "konoha", "ss_sari_simsek": "konoha", "hokage_haori": "konoha", "kazekage_sapkasi": "suna", "mizukage_sapkasi": "kiri", "raikage_sapkasi": "kumo", "tsuchikage_sapkasi": "iwa"}
 
 
 ## Rütbe eşyası satılabilir/takılabilir mi: ANBU setleri ANBU+ ; Kage setleri/şapkaları yalnız Kage, köye özel olanlar yalnız kendi köyünün
@@ -590,8 +590,9 @@ const ITEMS := {
 	"savas_cubbe": {"name": "Dik Yakalı Savaş Cübbesi", "slot": "dis", "price": 900, "rank": 2, "desc": "Baldıra inen, kalçadan aşağı açılan koyu cübbe; yüksek dik yaka, çan gibi açılan geniş kollar.", "stats": {"chakra": 40, "def": 5}, "look": {"outer_style": "savas_cubbe", "outer_pattern": 0, "holster": false}, "c1": Color(0.16, 0.18, 0.38), "c2": Color(0.16, 0.18, 0.38)},
 	"savas_cubbe_obi": {"name": "Obili Genç Savaşçı Cübbesi", "slot": "dis", "price": 700, "rank": 1, "desc": "Baldıra inen mor cübbe; belde geniş gri obi, yüksek dik yaka, geniş kollar.", "stats": {"chakra": 35, "def": 4}, "look": {"outer_style": "savas_cubbe", "outer_pattern": 0, "holster": false, "robe_obi": Color(0.6, 0.58, 0.62)}, "c1": Color(0.4, 0.3, 0.5), "c2": Color(0.4, 0.3, 0.5)},
 	"mei_elbise": {"name": "Yırtmaçlı Uzun Mavi Elbise", "slot": "dis", "price": 800, "rank": 2, "desc": "Omuzları açık, bileğe inen mavi elbise; sağ bacakta yırtmaç, açık sarı ince kemer, çan kollar.", "stats": {"chakra": 40}, "look": {"outer_style": "mei_elbise", "outer_pattern": 0, "holster": false}, "c1": Color(0.12, 0.3, 0.8), "c2": Color(0.12, 0.3, 0.8)},
-	"savas_cubbe_kurucu": {"name": "Kızıl Şeritli Kurucu Cübbesi", "slot": "dis", "price": 900, "rank": 2, "desc": "Baldıra inen dik yakalı siyah cübbe; önden inen ince kızıl şerit, belde gri obi, geniş kollar.", "stats": {"chakra": 45, "def": 4}, "look": {"outer_style": "savas_cubbe", "outer_pattern": 0, "holster": false, "robe_obi": Color(0.55, 0.56, 0.6), "robe_stripe": Color(0.75, 0.1, 0.12)}, "c1": Color(0.08, 0.08, 0.1), "c2": Color(0.08, 0.08, 0.1)},
-	"hokage_haori": {"name": "Alev Etekli Kısa Kollu Haori", "slot": "dis", "price": 1400, "rank": 3, "desc": "Dize inen önü açık beyaz haori; dirseğe inen kısa kollar, eteği kızıl alev desenli.", "stats": {"chakra": 45, "def": 4}, "look": {"outer_style": "hokage_haori", "outer_pattern": 2, "holster": true}, "c1": Color(0.94, 0.93, 0.9), "c2": Color(0.85, 0.18, 0.12)},
+	"savas_cubbe_kurucu": {"name": "Kızıl Şeritli Kurucu Cübbesi", "slot": "dis", "price": 900, "rank": 2, "desc": "Baldıra inen dik yakalı siyah cübbe; önden inen ince kızıl şerit, belde gri obi, geniş kollar.", "stats": {"chakra": 45, "def": 4}, "look": {"outer_style": "savas_cubbe", "outer_pattern": 0, "holster": false, "robe_obi": Color(0.26, 0.28, 0.34), "robe_stripe": Color(0.75, 0.1, 0.12)}, "c1": Color(0.08, 0.08, 0.1), "c2": Color(0.08, 0.08, 0.1)},
+	"hokage_haori": {"name": "Dördüncü Hokage Haorisi", "slot": "dis", "price": 1400, "rank": 6, "desc": "Dize inen önü açık beyaz haori; dirseğe inen kısa kollar, eteği kızıl alev desenli.", "stats": {"chakra": 45, "def": 4}, "look": {"outer_style": "hokage_haori", "outer_pattern": 2, "holster": true}, "c1": Color(0.94, 0.93, 0.9), "c2": Color(0.85, 0.18, 0.12)},
+	"alev_haori": {"name": "Alev Etekli Kısa Kollu Haori", "slot": "dis", "price": 1400, "rank": 3, "desc": "Dize inen önü açık beyaz haori; dirseğe inen kısa kollar, eteği kızıl alev desenli.", "stats": {"chakra": 45, "def": 4}, "look": {"outer_style": "hokage_haori", "outer_pattern": 2, "holster": true}, "c1": Color(0.94, 0.93, 0.9), "c2": Color(0.85, 0.18, 0.12)},
 	"bel_ceket": {"name": "Bele Bağlı Ceket", "slot": "dis", "price": 120, "rank": 0, "desc": "Kollarından bele bağlanmış turuncu eşofman ceketi; önde düğüm ve sarkan kollar.", "stats": {"speed": 0.04}, "look": {"outer_style": "bel_ceket", "outer_pattern": 0, "holster": false}, "c1": Color(0.95, 0.45, 0.2), "c2": Color(0.95, 0.45, 0.2)},
 	"yilan_tunik": {"name": "Kısa Kollu Tunik ve Burgu Kuşak", "slot": "dis", "price": 300, "rank": 0, "desc": "Uyluğa inen kısa kollu krem tunik; belde kalın mor burgu ip kuşak.", "stats": {"chakra": 25}, "look": {"outer_style": "itachi_tunik", "outer_pattern": 0, "holster": false, "tunic_belt": Color(0.45, 0.3, 0.7)}, "c1": Color(0.9, 0.86, 0.74), "c2": Color(0.9, 0.86, 0.74)},
 	"cin_elbise": {"name": "Halkalı Çin Elbisesi", "slot": "dis", "price": 260, "rank": 0, "desc": "Dize inen, iki yanı yırtmaçlı kırmızı çin elbisesi; önde altta beyaz halka, beyaz biye.", "stats": {"speed": 0.04, "hp": 10}, "look": {"outer_style": "cin_elbise", "outer_pattern": 0, "holster": true}, "c1": Color(0.7, 0.1, 0.18), "c2": Color(0.7, 0.1, 0.18)},
@@ -1178,8 +1179,8 @@ static func req_text(id: String, p: Dictionary) -> String:
 	var iv = String(it.get("village", ""))   # köy üniforması (chūnin/jōnin yeleği vb.): yalnız o köyün ninjaları
 	if iv != "" and iv != String(p.get("village", "konoha")):
 		return "Yalnızca %s ninjaları giyebilir" % String(Game.village(iv).get("name", iv))
-	if KAGE_VID.has(id) and String(KAGE_VID[id]) != String(p.get("village", "konoha")):
-		return "Yalnızca %s Kage'si giyebilir" % String(Game.village(String(KAGE_VID[id])).get("name", KAGE_VID[id]))
+	if KAGE_VID.has(id) and (String(KAGE_VID[id]) != String(p.get("village", "konoha")) or int(p.get("rank", 0)) < 6 or Orgs.is_rogue()):
+		return "Yalnızca %s Kage'si giyebilir" % String(Game.village(String(KAGE_VID[id])).get("name", KAGE_VID[id]))   # kaçak S sınıfı Kage sayılmaz: gerçek Kage olmalı
 	var cl = String(it.get("clan", ""))
 	if cl != "" and cl != String(p.get("clan", "")):
 		return "Yalnızca %s klanı giyebilir" % Data.clans.get(cl, {}).get("name", cl.capitalize())
@@ -1193,7 +1194,9 @@ static func req_text(id: String, p: Dictionary) -> String:
 static func req_summary(id: String) -> String:
 	var it = item(id)
 	var parts = []
-	if int(it.get("rank", 0)) > 0:
+	if KAGE_VID.has(id):
+		parts.append("%s Kage'si" % String(Game.village(String(KAGE_VID[id])).get("name", KAGE_VID[id])))
+	elif int(it.get("rank", 0)) > 0:
 		parts.append("%s rütbesi" % Data.RANKS[mini(int(it["rank"]), Data.RANKS.size() - 1)])
 	if String(it.get("clan", "")) != "":
 		parts.append("%s klanı" % Data.clans.get(String(it["clan"]), {}).get("name", String(it["clan"]).capitalize()))

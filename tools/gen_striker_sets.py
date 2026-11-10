@@ -139,7 +139,7 @@ D = [
  (110, 'esofman_turuncu2', 'Daidai Undōgi', 'Beyaz tişört üstüne önü açık somon kapüşonlu ceket, bol koyu gri eşofman altı.', 'h', [('tisort', 'f2f2f0', 'f2f2f0'), ('bol_pantolon', '3a3a40', None), ('hirka_duz', 'e8906a', '1c1c20'), (S, '1c1c20', 'eeeeea')]),
  (111, 'yirtik_esofman', 'Yabureta Daidai', 'File iç üstüne önü açık yırtık siyah eşofman ceketi, yamalı turuncu pantolon, sağ bacakta sargı.', 'h', [('file_atlet', '2a2a30', '2a2a30'), ('yamali_pant', 'e8842a', None), ('yirtik_esofman', '1c1c24', 'a82228'), (S, '1c1c20', 'eeeeea')]),
  (112, 'pijama', 'Nemaki', 'Bol açık gri pijama gömleği ve bol pijama altı, yalınayak terlik.', 'h', [('uzun_gomlek', 'c8c8d8', 'c8c8d8'), ('bol_pantolon', 'c8c8d8', None), ('genis_gomlek', 'c8c8d8', 'c8c8d8'), ('zori', '6b4a2b', 'e8d6a8')]),
- (113, 'bilge_palto', 'Sennin Gaitō', 'Turuncu-siyah eşofman ceketi üstüne dize inen kısa kollu kırmızı haori (eteği siyah alevli), siyah pantolon.', 'c', [('tisort_biye', 'f2f2f2', '18181c'), ('ninja_pant', '1c1c20', None), ('hokage_haori', 'a82228', '1c1c20'), (S, '1c1c20', 'eeeeea')]),
+ (113, 'bilge_palto', 'Sennin Gaitō', 'Turuncu-siyah eşofman ceketi üstüne dize inen kısa kollu kırmızı haori (eteği siyah alevli), siyah pantolon.', 'c', [('tisort_biye', 'f2f2f2', '18181c'), ('ninja_pant', '1c1c20', None), ('alev_haori', 'a82228', '1c1c20'), (S, '1c1c20', 'eeeeea')]),
  (114, 'turuncu_genc', 'Daidai Kodomo', 'Fermuarlı turuncu eşofman ceketi (mavi omuzlar ve bel, beyaz ribana yaka), turuncu eşofman altı.', 'h', [('tisort_biye', 'f2f2f2', '18181c'), ('ninja_pant', 'f08a24', None), ('turuncu_ceket', 'f08a24', '2a4a9a'), (S, '2a4a9a', 'eeeeea')]),
  (115, 'sakaci', 'Itazura Kozō', 'Siyah tişört, bele bağlı turuncu ceket, turuncu pantolon.', 's', [('tisort', '1c1c22', '1c1c22'), ('ninja_pant', 'e8842a', None), ('bel_ceket', 'f07a3a', 'f07a3a'), (S, '1c1c20', 'eeeeea')]),
  (116, 'kader_genc', 'Unmei Wakate', 'Bej kısa kollu ceket, mor şort, sağ kol ve bacakta sargı.', 'c', [('yakali', 'e8e0d0', 'e8e0d0'), ('kisa_sort', '4a3a5a', None), ('kol_sargisi', 'f2f0ea', None), (S, '1c1c20', 'eeeeea')]),
@@ -264,6 +264,8 @@ for (i, sid, name, desc, fl, parts) in D:
         if p in JONIN_PARTS: need = max(need, 3)
         if p.startswith('anbu_'): need = max(need, 4)
         if p == 'kage_cubbesi': need = max(need, 6)
+        if p == 'hokage_haori':   # Hokage haorisi (Minato): yalnız Konoha Kage'si
+            need = max(need, 6); vil = 'konoha'
     st = dict(BASE[r])
     for k, v in FLAV[fl].items():
         st[k] = st.get(k, 0) + v
