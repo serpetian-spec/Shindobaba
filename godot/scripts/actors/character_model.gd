@@ -3158,25 +3158,69 @@ func _bangle_kit(g: Dictionary) -> void:
 
 
 ## Kalın burgu ip (shimenawa) parçası: noktalar boyunca kısa eğik dilimler (burgulu görünüm), etkin SurfaceKit kaynağına derili
+## Gövde kabuğunda y yüksekliğinde dış çevre halkası (ip kemerler için): her açıda en dıştaki köşe + kaldırma
+func _sk_girth(y: float, lift: float, n := 36) -> Array:
+	var V: PackedVector3Array = _sk["v"]
+	var ring = []
+	for k in n + 1:
+		var a = TAU * k / n
+		var best = Vector3.ZERO; var br = -1.0
+		for q in V:
+			if absf(q.y - y) < 0.02:
+				if absf(wrapf(atan2(q.z, q.x) - a, -PI, PI)) < 0.14:
+					var rr = Vector2(q.x, q.z).length()
+					if rr > br:
+						br = rr; best = q
+		if br > 0.0:
+			ring.append(Vector3(best.x, y, best.z) + Vector3(best.x, 0, best.z).normalized() * lift)
+	return ring
+
+
 func _sk_rope(pts: Array, r: float, col: Color) -> void:
+	# burgulu ip: yol boyunca 10 kenarlı tüp; yarıçap burgu açısına göre kabarıp iner (örgü boğumları), iki tonlu
+	if pts.size() < 2:
+		return
+	var sides = 10
+	# yolu sıklaştır (burgu boğumu ~ r*1.4)
+	var P = []
 	for i in range(pts.size() - 1):
-		var a: Vector3 = pts[i]
-		var b: Vector3 = pts[i + 1]
-		var d = b - a
-		var n = d.length()
-		if n < 0.001:
-			continue
-		var f = d / n
-		var side = f.cross(Vector3.BACK)
-		if side.length() < 0.1:
-			side = f.cross(Vector3.UP)
+		var a0: Vector3 = pts[i]
+		var b0: Vector3 = pts[i + 1]
+		var m = maxi(1, int(a0.distance_to(b0) / (r * 0.45)))
+		for k in m:
+			P.append(a0.lerp(b0, float(k) / m))
+	P.append(pts[pts.size() - 1])
+	var base = (_sk["ov"] as PackedVector3Array).size()
+	var acc = 0.0
+	var prev_side = Vector3.ZERO
+	for i in P.size():
+		var p: Vector3 = P[i]
+		var f: Vector3 = ((P[mini(i + 1, P.size() - 1)] as Vector3) - (P[maxi(i - 1, 0)] as Vector3)).normalized()
+		if i > 0:
+			acc += (P[i] as Vector3).distance_to(P[i - 1])
+		var side = f.cross(Vector3.UP) if absf(f.y) < 0.9 else f.cross(Vector3.BACK)
+		if prev_side != Vector3.ZERO and side.dot(prev_side) < 0.0:
+			side = -side
 		side = side.normalized()
+		prev_side = side
 		var up = side.cross(f).normalized()
-		var segs = maxi(1, int(n / (r * 1.6)))
-		for k in segs:
-			var c = a + d * ((k + 0.5) / segs)
-			var tw = (side * cos(0.6) + up * sin(0.6)) * r
-			_sk_box(c, f * (n / segs) * 0.62, tw, up.cross(f).normalized() * r if k % 2 == 0 else side * r, col if k % 2 == 0 else col.darkened(0.12))
+		var j = _sk_nearest(p)
+		for k in sides:
+			var a = TAU * k / sides
+			var ph = a * 2.0 - acc / (r * 1.4) * TAU
+			var rr = r * (0.82 + 0.18 * cos(ph))
+			var dir = side * cos(a) + up * sin(a)
+			_sk["ov"].append(p + dir * rr); _sk["on"].append(dir)
+			_sk["oc"].append(col if cos(ph) > -0.2 else col.darkened(0.22))
+			_sk["ob"].append_array(_sk["b"][j]); _sk["ow"].append_array(_sk["w"][j])
+	for i in P.size() - 1:
+		for k in sides:
+			var a0 = base + i * sides + k
+			var a1 = base + i * sides + (k + 1) % sides
+			var b0 = a0 + sides
+			var b1 = a1 + sides
+			_sk["oi"].append_array(PackedInt32Array([a0, b0, b1, a0, b1, a1]))
+			_sk["oi"].append_array(PackedInt32Array([a0, b1, b0, a0, a1, b1]))
 
 
 ## Bel örtüsü + ip kuşak ayrıntıları (ref refs/outfits_ss/sasuke_outfit.png): belde mor burgu ip halkası, önde solda sarkan
@@ -3204,19 +3248,39 @@ func _bel_ortusu_kit(g: Dictionary) -> void:
 						if rr > br:
 							br = rr; best = q
 			if br > 0.0:
-				ring.append(best + Vector3(best.x, 0, best.z).normalized() * 0.022)
-		_sk_rope(ring, 0.02, rc)
+				ring.append(best + Vector3(best.x, 0, best.z).normalized() * 0.03)
+		var rr0 = 0.016 if look.get("rope_cross") == true else 0.03
+		_sk_rope(ring, rr0, rc)
+		if look.get("rope_cross") != true:
+			var ring2 = []
+			for q2 in ring:
+				ring2.append((q2 as Vector3) + Vector3(0, -0.05, 0) + Vector3(q2.x, 0, q2.z).normalized() * 0.006)
+			_sk_rope(ring2, 0.028, rc.darkened(0.05))   # ikinci tur
 		# önde solda sarkan iki ilmek
-		var hit = _sk_hit(0.08, yb, true, 0.04)
-		if not hit.is_empty():
-			var p0: Vector3 = hit[0] + Vector3(0, 0, 0.03)
-			for lo in [[0.0, 0.0], [0.035, 0.025]]:
-				var lp = []
-				var depth = (yb - (knee + 0.02)) * (1.0 if lo[0] == 0.0 else 0.82)
+		if look.get("rope_cross") == true:   # ref sasuke_outfit_mikoshi: sarkan ilmek yok; örtünün önünde çaprazlanan altın ip kenarlar
+			var yb2 = ytop - 0.33
+			for d in [[-0.17, 0.1], [0.17, -0.1]]:
+				var cp = []
 				for k in 13:
 					var t = k / 12.0
-					lp.append(p0 + Vector3(lo[0] + 0.04 * sin(t * PI), -depth * sin(t * PI * 0.5) * (1.0 if t < 0.5 else 1.0) * (1.0 - absf(t - 0.5) * 0.0), lo[1] + 0.01 * sin(t * TAU)) + (Vector3(0.05, 0, 0) * t))
-				_sk_rope(lp, 0.017, rc.darkened(0.04))
+					var x = lerpf(d[0], d[1], t)
+					var y = lerpf(yb - 0.04, yb2, t) + sin(t * PI) * 0.03
+					var hh = _sk_hit(x, y, true, 0.05)
+					if not hh.is_empty():
+						cp.append((hh[0] as Vector3) + (hh[1] as Vector3).normalized() * 0.02)
+				_sk_rope(cp, 0.02, rc)
+		var hit = _sk_hit(-0.09, yb, true, 0.04) if look.get("rope_cross") != true else []
+		if not hit.is_empty():
+			var p0: Vector3 = hit[0] + Vector3(0, 0, 0.045)
+			var ank = _bp("LeftFoot").y
+			for lo in [[0.0, 0.0, ank + 0.25], [-0.04, 0.03, knee - 0.05]]:   # ref sasuke_outfit: bileğe ve dize inen iki uzun ilmek
+				var lp = []
+				var depth = yb - float(lo[2])
+				for k in 17:
+					var t = k / 16.0
+					var dn = depth * sin(t * PI)
+					lp.append(p0 + Vector3(float(lo[0]) - 0.03 * sin(t * PI) - 0.05 * t, -dn, float(lo[1]) + 0.012 * sin(t * TAU)))
+				_sk_rope(lp, 0.026, rc.darkened(0.04))
 		_sk_end(g)
 	if look.get("wristband") is Color and _sk_begin(_shell_cache.get(look["gender"])):
 		var ha = absf(_bp("LeftHand").x)
@@ -4872,10 +4936,8 @@ func _ip_kusak_kit(g: Dictionary) -> void:
 	var knee = _bp("LeftLowerLeg").y
 	var oc: Color = _lc("outer", Color(0.9, 0.86, 0.72))
 	var by = hips + 0.08
-	for k in 3:
-		_sk_ring(1, by - 0.02 + k * 0.02, 0.026, 0.02, rc.darkened(0.12 * float(k % 2)), -PI, PI, 56, 0.05 + float(k % 2) * 0.004)
-	for dy in [-0.02, 0.0, 0.02]:
-		_sk_ring(1, by + dy, 0.005, 0.004, rc.darkened(0.4), -PI, PI, 56, 0.068)   # burgu oluğu
+	_sk_rope(_sk_girth(by + 0.02, 0.07), 0.032, rc)
+	_sk_rope(_sk_girth(by - 0.035, 0.075), 0.032, rc.darkened(0.05))
 	_sk_end(g)
 
 
@@ -4916,9 +4978,7 @@ func _bee_kit(g: Dictionary) -> void:
 		_sk_ring(1, neck - 0.045 + k * 0.03, 0.036, 0.03 - k * 0.006, wc.darkened(k * 0.03), -PI, PI, 40, 0.012 + (0.01 if k == 0 else 0.0), 0.0, 0.0, 0.13)
 	# burgulu ip kemer
 	var by = hips + 0.06
-	_sk_ring(1, by, 0.05, 0.022, rc, -PI, PI, 56, 0.036)
-	for dy in [-0.016, 0.0, 0.016]:
-		_sk_ring(1, by + dy, 0.006, 0.004, rc.darkened(0.35), -PI, PI, 56, 0.056 - absf(dy) * 0.5)   # burgu oluğu
+	_sk_rope(_sk_girth(by, 0.055), 0.034, rc)
 	# eldiven bilek plakası
 	for sx in [1.0, -1.0]:
 		_sk_ring(0, (ha - 0.05) * sx, 0.04, 0.008, wc, -PI, PI, 20, 0.006, sx)
