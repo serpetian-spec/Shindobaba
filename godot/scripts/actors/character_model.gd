@@ -4738,7 +4738,7 @@ func _garments(g: Dictionary) -> void:
 			# panel (belde daralmaz), kemerin altından önde astarı görünen yırtmaç açılır, etek baldır ortasında hafif çan;
 			# kollar omuz dikişinden bileğe düz geniş tüp. Ölçüler fotoğraftan omuz yarı genişliği (S) cinsinden.
 			var S = absf(ua)
-			var pv1 = knee - 0.22
+			var pv1 = knee - 0.3
 			var tb = (neck - (hips + 0.06)) / (neck - pv1)
 			_garment("kizil_palto", func(): return _cut_loft(g, 1, neck + 0.0, pv1, 30, torso, func(t): return Vector4(S * lerpf(0.78, 1.0, smoothstep(0.0, 0.14, t)) * (1.0 - 0.1 * smoothstep(0.14, tb, t) + 0.16 * smoothstep(tb, 1.0, t)), lerpf(0.105, 0.15, t), 0.0 if t < tb else 0.2 + (t - tb) / (1.0 - tb) * 0.45, 2.8), 8, hips - 0.05, 56))
 			for sx in [1.0, -1.0]:
