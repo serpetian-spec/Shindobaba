@@ -3977,6 +3977,13 @@ func _uzun_robe_kit(g: Dictionary) -> void:
 	if not _sk_begin(_shell_cache.get(look["gender"])):
 		return
 	var oy = hips + 0.08
+	if look.get("robe_sash_diag") == true:
+		# omuzdan karşı kalçaya çapraz geniş kuşak (ref all/toneri_outfit): obi yok
+		var neck2 = _bp("Neck").y
+		for fr in [true, false]:
+			_sk_path(Vector2(-0.1, neck2 - 0.01), Vector2(0.17, hips - 0.04), 0.055, 0.01, bc.darkened(0.05), fr, 0.05, 34, 0.06)
+		_sk_end(g)
+		return
 	_sk_ring(1, oy, 0.075, 0.012, bc.darkened(0.1), -PI, PI, 56, 0.05)
 	var hk = _sk_hit(-0.05, oy, true, 0.05)
 	if not hk.is_empty():

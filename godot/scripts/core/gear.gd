@@ -561,6 +561,7 @@ const ITEMS := {
 	"zirh_onluk": {"name": "Zırh Önlüğü ve İp Kuşak", "slot": "kol", "price": 300, "rank": 1, "desc": "Belden dize inen bağcıklı zeytin yeşili zırh önlüğü; bej ip kuşak.", "stats": {"def": 5}, "look": {"armor_apron": Color(0.45, 0.5, 0.42)}, "c1": Color(0.45, 0.5, 0.42)},
 	"file_ninja_pant": {"name": "File Çoraplı Ninja Pantolonu", "slot": "bacak", "price": 120, "rank": 0, "desc": "Baldırda biten ninja pantolonu; altında file çorap.", "stats": {"def": 2, "speed": 0.02}, "look": {"pants_style": "ninja", "leg_fishnet": true}, "c1": Color(0.15, 0.15, 0.3)},
 	"uzun_robe": {"name": "Önü Açık Uzun Cübbe", "slot": "dis", "price": 520, "rank": 2, "desc": "Bileğe inen, önü boydan boya açık koyu yeşil cübbe; çok geniş uzun kollar, koyu yaka bandı.", "stats": {"chakra": 35, "def": 4}, "look": {"outer_style": "uzun_robe", "outer_pattern": 0, "holster": false}, "c1": Color(0.1, 0.16, 0.12), "c2": Color(0.1, 0.16, 0.12)},
+	"uzun_robe_capraz": {"name": "Çapraz Kuşaklı Önü Açık Uzun Cübbe", "slot": "dis", "price": 520, "rank": 2, "desc": "Bileğe inen, önü açık uzun cübbe; çok geniş uzun kollar, yaka bandı, omuzdan karşı kalçaya çapraz geniş kuşak.", "stats": {"chakra": 35, "def": 4}, "look": {"robe_sash_diag": true, "outer_style": "uzun_robe", "outer_pattern": 0, "holster": false}, "c1": Color(0.1, 0.16, 0.12), "c2": Color(0.1, 0.16, 0.12)},
 	"buyuk_kapusonlu": {"name": "Bol Kapüşonlu", "slot": "dis", "price": 240, "rank": 0, "desc": "Uyluğa inen bol sarı kapüşonlu; büzgü ipleri, kanguru cebi, ribana manşet.", "stats": {"hp": 25}, "look": {"outer_style": "buyuk_kapusonlu", "outer_pattern": 0, "holster": false}, "c1": Color(0.96, 0.82, 0.42), "c2": Color(0.96, 0.82, 0.42)},
 	"yaprak_etek": {"name": "Katlı Yaprak Etek", "slot": "bacak", "price": 160, "rank": 0, "desc": "Üstte açık mavi sivri dişli kat, altta pembe fırfırlı kat; kısa etek.", "stats": {"speed": 0.04}, "look": {"pants_style": "kisa_sort", "petal_skirt": {"a": Color(0.75, 0.88, 0.95), "b": Color(0.95, 0.55, 0.62)}}, "c1": Color(0.15, 0.15, 0.17)},
 	"hinata_ceket_acik": {"name": "Kapüşonlu Bol Ceket (Açık)", "slot": "dis", "price": 300, "rank": 0, "desc": "Fermuarı açık lavanta-beyaz kapüşonlu ceket; dolgun yaka, geniş kollar.", "stats": {"chakra": 20, "speed": 0.03}, "look": {"outer_style": "hinata_ceket", "outer_pattern": 31, "hc_open": true}, "c1": Color(0.62, 0.58, 0.85), "c2": Color(0.95, 0.95, 0.96)},
@@ -1519,6 +1520,7 @@ static func apply_look(p: Dictionary) -> void:
 	L["armor_style"] = null
 	L["armor_plates"] = null
 	L["sailor"] = null
+	L["robe_sash_diag"] = null
 	L["kazak_plain"] = null
 	L["no_pads"] = null
 	L["robe_obi2"] = null
