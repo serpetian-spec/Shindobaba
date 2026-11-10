@@ -674,6 +674,7 @@ const ITEMS := {
 	"onluk_elbise": {"name": "Uzun Önlük Elbise", "slot": "dis", "price": 260, "rank": 0, "desc": "Kolsuz, oval yakalı, baldıra inen yeşil önlük elbise; sol bilekte siyah bilezik.", "stats": {"hp": 30}, "look": {"outer_style": "onluk_elbise", "outer_pattern": 0, "holster": false, "bangle": Color(0.08, 0.08, 0.1)}, "c1": Color(0.15, 0.3, 0.2), "c2": Color(0.15, 0.3, 0.2)},
 	"iki_ton_kimono": {"name": "İki Tonlu Kimono Üst", "slot": "dis", "price": 340, "rank": 0, "desc": "Sağ yarısı beyaz, sol yarısı mavi uyluk boyu kimono üst; çok geniş kollar, beyaz yaka bandı, hilal plakalı geniş kahve kuşak, sırtta çanta.", "stats": {"chakra": 25, "speed": 0.03}, "look": {"outer_style": "iki_ton_kimono", "outer_pattern": 34, "holster": false}, "c1": Color(0.15, 0.45, 0.8), "c2": Color(0.86, 0.9, 0.94)},
 	"turuncu_ceket": {"name": "Turuncu Eşofman Ceketi", "slot": "dis", "price": 280, "rank": 0, "desc": "Fermuarı kapalı turuncu-siyah eşofman ceketi; dik siyah yaka, sırtta girdap, sol omuzda arma yaması.", "stats": {"hp": 20, "speed": 0.04}, "look": {"outer_style": "turuncu_ceket", "outer_pattern": 35, "holster": true}, "c1": Color(0.95, 0.52, 0.12), "c2": Color(0.12, 0.12, 0.16)},
+	"turuncu_ceket_genc": {"name": "Boyunduruklu Turuncu Eşofman Ceketi", "slot": "dis", "price": 280, "rank": 0, "desc": "Fermuarı kapalı turuncu-siyah eşofman ceketi; dik siyah yaka, sırtta girdap, sol omuzda arma yaması.", "stats": {"hp": 20, "speed": 0.04}, "look": {"outer_style": "turuncu_ceket", "jacket_yoke": Color(0.16, 0.3, 0.66), "outer_pattern": 35, "holster": true}, "c1": Color(0.95, 0.52, 0.12), "c2": Color(0.12, 0.12, 0.16)},
 	"turuncu_ceket_serit": {"name": "Şeritli Turuncu Eşofman Ceketi", "slot": "dis", "price": 280, "rank": 0, "desc": "Fermuarı kapalı turuncu-siyah eşofman ceketi; dik siyah yaka, sırtta girdap, sol omuzda arma yaması.", "stats": {"hp": 20, "speed": 0.04}, "look": {"outer_style": "turuncu_ceket", "jacket_stripes": Color(0.08, 0.08, 0.1), "outer_pattern": 35, "holster": true}, "c1": Color(0.95, 0.52, 0.12), "c2": Color(0.12, 0.12, 0.16)},
 	"kisa_bolero": {"name": "Kısa Bolero Ceket", "slot": "dis", "price": 260, "rank": 0, "desc": "Göbek üstünde biten önü açık lacivert-mor ceket; omuzlarda kırmızı şerit, beyaz-kırmızı kemer, kalçada parşömen.", "stats": {"chakra": 20, "speed": 0.04}, "look": {"outer_style": "kisa_bolero", "outer_pattern": 0, "holster": true}, "c1": Color(0.14, 0.14, 0.26), "c2": Color(0.14, 0.14, 0.26)},
 	"fermuarli_gomlek": {"name": "Fermuarlı Dik Yaka Gömlek", "slot": "govde", "price": 110, "rank": 0, "desc": "Uzun kollu, dik yakalı, önü fermuarlı gömlek.", "stats": {"def": 2}, "look": {"top_style": "yakali_uzun", "top_pattern": 35}, "c1": Color(0.95, 0.95, 0.95), "c2": Color(0.95, 0.95, 0.95)},
@@ -1449,6 +1450,7 @@ static func apply_look(p: Dictionary) -> void:
 	L["capraz_long"] = null
 	L["jacket_stripes"] = null
 	L["jacket_lower"] = null
+	L["jacket_yoke"] = null
 	L["skirt_wrap"] = null
 	L["skirt_y"] = null
 	L["skirt_under"] = null

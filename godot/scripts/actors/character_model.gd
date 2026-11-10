@@ -3058,7 +3058,24 @@ func _turuncu_ceket_kit(g: Dictionary) -> void:
 		var ybot = 9.0
 		for q in V:
 			ybot = minf(ybot, q.y)
-		_sk_ring(1, neck + 0.005, 0.07, 0.01, c2, -PI, PI, 40, 0.004, 0.0, 0.0, 0.12)   # dik yaka
+		if look.get("jacket_yoke") is Color:   # ref naruto_outfit_young_vers: yalnız omuz boyunduruğu mavi, beyaz ribanalı yaka, mavi bel
+			var yk: Color = look["jacket_yoke"]
+			var ys2 = {}
+			for q in V:
+				ys2[snappedf(q.y, 0.002)] = true
+			var yl = ys2.keys()
+			yl.sort()
+			for i in yl.size():
+				var y: float = yl[i]
+				if y < neck - 0.14 or y > neck - 0.005:
+					continue
+				var st = (yl[i + 1] - y) if i + 1 < yl.size() else 0.02
+				_sk_ring(1, y, maxf(st * 2.4, 0.03), 0.003, yk, -PI, PI, 56, 0.003)
+			for k in 4:
+				_sk_ring(1, neck - 0.01 + k * 0.016, 0.018, 0.02 - k * 0.003, Color(0.96, 0.96, 0.95).darkened(0.07 * (k % 2)), -PI, PI, 40, 0.008, 0.0, 0.0, 0.13)   # ribanalı beyaz yaka
+			_sk_ring(1, ybot + 0.022, 0.045, 0.008, yk, -PI, PI, 48, 0.009, 0.0, 0.0, 0.32)
+		else:
+			_sk_ring(1, neck + 0.005, 0.07, 0.01, c2, -PI, PI, 40, 0.004, 0.0, 0.0, 0.12)   # dik yaka
 		_sk_strip(0.0, neck + 0.06, ybot + 0.01, 0.007, 0.004, Color(0.78, 0.78, 0.8), 34)   # fermuar
 		_sk_ring(1, ybot + 0.02, 0.04, 0.007, c2, -PI, PI, 48, 0.003, 0.0, 0.0, 0.32)   # bel ribanası
 		if look.get("jacket_stripes") is Color:   # ref naruto_outfit_2: etekte iki ince siyah şerit
