@@ -1259,7 +1259,7 @@ func _cloth_rings(g: Dictionary, mat: ShaderMaterial, vest_mat) -> void:
 	for sx in [-1.0, 1.0]:
 		var side = "Left" if sx > 0 else "Right"
 		rings.append([0, sleeve * sx, sx, side + ("UpperArm" if short_sleeve else "LowerArm"), 0.03 if roll else 0.016, 0.016 if roll else 0.011, Vector3(-0.012 * sx, 0, 0), mat, neck])
-		if not look.get("guards") in ["bacak", "ikisi"]:
+		if not look.get("guards") in ["bacak", "ikisi"] and not (ps == "kisa_sort" and int(look.get("skirt", 0)) > 0):   # etek altındaki şortun kıvrık paçası eteğin altından görünmesin
 			rings.append([1, cut, sx, side + ("UpperLeg" if cut > knee else "LowerLeg"), 0.02 if ps == "ninja" else 0.014, 0.013, Vector3(0, 0.012, 0), mat, neck])
 	# üst / yelek etek halkaları kaldırıldı: kalça kemiğine yapışık katı tüplerdi (kumaştan 3 / 5.8 cm dışarı), gövde eğilince
 	# kumaşın içine giriyor, belde/karında kalın kap gibi duruyordu. Üstün etek kenarı artık gövde kabuğuna derili ince bant;
@@ -1915,7 +1915,7 @@ func _skinned_mesh(g: Dictionary, verts: PackedVector3Array, custom: PackedFloat
 			if hips_full and blend > 0.5:
 				# kalıp etek/cübbe: o yandaki uyluğu kısmen izlesin -> duruşta/yürürken öne çıkan bacak kumaşı da açar, içinden çıkmaz
 				var leg_bi = _bind_index("LeftUpperLeg" if verts[i].x > 0.0 else "RightUpperLeg")
-				var share = (0.8 if verts[i].z > 0.02 else 0.45) * clampf(absf(verts[i].x) / 0.06, 0.0, 1.0) * clampf((skirt_y - verts[i].y) / 0.2, 0.0, 1.0)
+				var share = (0.8 if verts[i].z > 0.02 else 0.45) * clampf(absf(verts[i].x) / 0.06, 0.0, 1.0) * clampf((_bp("LeftLowerLeg").y + 0.15 - verts[i].y) / 0.2, 0.0, 1.0)   # yalnız diz hizası ve altı (kısa etek bacak arasında yarılmasın)
 				if leg_bi >= 0 and share > 0.0:
 					for e in wb:
 						e[1] = e[1] * (1.0 - share)
@@ -1995,7 +1995,7 @@ func _garment_tinted(key: String, col: Color, build: Callable) -> void:
 
 ## Etekli dış giysiler: kalçanın altındaki kumaş dilim zincirleriyle sallanır (koşuda arkaya açılır, dönüşte savrulur,
 ## bacak/diz küreleri kumaşı iter: bacak kumaşın içinden çıkmaz). Zincir kemikleri karakter iskeletine eklenir.
-const DYN_GARMENTS := {"pelerin": 0.26, "org_pelerin": 0.24, "panco": 0.3, "yirtik": 0.2, "jinbaori": 0.3, "danzo_ortu": 0.3, "yaprak_etek_alt": 0.4, "pilili_etek": 0.3, "hakama_ust": 0.2, "flamingo_firfir": 0.4, "mino": 0.36, "hakama": 0.32, "etek_1": 0.4, "etek_2": 0.34, "etek_3": 0.3}   # anahtar -> şekil sertliği
+const DYN_GARMENTS := {"pelerin": 0.26, "org_pelerin": 0.24, "panco": 0.3, "yirtik": 0.2, "jinbaori": 0.3, "danzo_ortu": 0.3, "yaprak_etek_alt": 0.4, "pilili_etek": 0.3, "hakama_ust": 0.2, "flamingo_firfir": 0.4, "mino": 0.36, "hakama": 0.32}   # anahtar -> şekil sertliği
 static var _gdyn_cache := {}
 
 
@@ -4420,9 +4420,10 @@ func _garments(g: Dictionary) -> void:
 	var sk = int(look.get("skirt", 0))
 	if sk > 0 and not look.get("hakama", false):
 		# etek (Striker kunoichi kıyafetleri): belden 1 mini (uyluk ortası), 2 diz, 3 uzun (bilek); A kesim, bacakların ortak kesitinden
-		var sy1 = [0.0, hips - (hips - knee) * 0.45, knee - 0.02, ank + 0.08][sk]
-		var fl = [0.0, 0.045, 0.06, 0.08][sk]
-		_garment("etek_%d" % sk, func(): return _loft(g, 1, hips + 0.05, sy1, 12 + sk * 4, torso, func(t, _a): return 0.022 + t * fl, 3, null, hips - 0.1, 26))
+		var sy1 = [0.0, hips - (hips - knee) * 0.7, knee - 0.02, ank + 0.08][sk]   # mini: altındaki kısa şortu örtsün
+		var fl = [0.0, 0.018, 0.06, 0.08][sk]
+		# KESİM: iki bacağın üstünden düz inen tek parça (bacak arasında yarılmaz); uç genişliği etek boyuna göre
+		_garment("etek_%d" % sk, func(): return _cut_spec(g, hips + 0.05, sy1, 12 + sk * 4, {"w": [[0.0, 1.12], [1.0, [0.0, 1.32, 1.5, 1.75][sk]]], "d": [[0.0, 0.125], [1.0, [0.0, 0.15, 0.17, 0.2][sk]]], "n": 2.6}, 3, hips + 0.02, 0.018))
 	if look.get("hakama", false) and look.get("hakama_cut") == "genis":
 		# geniş paçalı antrenman hakaması (Striker Training Clothes): yüksek bel (obiyi örter), apış altında iki ayrı bol paça, baldır ortası
 		_garment("hakama_ust", func(): return _loft(g, 1, hips + 0.17, hips - 0.1, 10, torso, func(t, _a): return 0.034 + t * 0.03, 3, null, -99.0, 32))
@@ -4991,7 +4992,7 @@ func _garments(g: Dictionary) -> void:
 	var gd = look.get("guards")
 	if gd in ["kol", "ikisi"]:
 		for sx in [-1.0, 1.0]:
-			_garment("kolluk%d_%d%s" % [int(sx), int(look.get("guard_long", false)), "a" if look.get("guard_ankle", false) else ""], func(): return _loft(g, 0, ((absf(_bp("LeftLowerArm").x) + 0.03) if look.get("guard_long", false) else (ha - 0.17)) * sx, (ha + (0.01 if look.get("guard_ankle", false) else -0.05)) * sx, 10 if look.get("guard_long", false) else 6, func(p): return signf(p.x) == sx and p.y > neck - 0.32, flat.call(0.018), 9, null, -99.0, 16))
+			_garment("kolluk%d_%d%s%s" % [int(sx), int(look.get("guard_long", false)), "a" if look.get("guard_ankle", false) else "", "u" if look.get("guard_upper", false) else ""], func(): return _loft(g, 0, ((absf(_bp("LeftLowerArm").x) + (-0.09 if look.get("guard_upper", false) else 0.03)) if look.get("guard_long", false) else (ha - 0.17)) * sx, (ha + (0.01 if look.get("guard_ankle", false) else -0.05)) * sx, 10 if look.get("guard_long", false) else 6, func(p): return signf(p.x) == sx and p.y > neck - 0.32, flat.call(0.018), 9, null, -99.0, 16))
 	if gd in ["bacak", "ikisi"]:
 		for sx in [-1.0, 1.0]:
 			if look.get("guard_ankle", false):
@@ -5766,7 +5767,7 @@ func _outfit_extras() -> void:
 	# koruyucu çizgileri: koruyucu kabuğunun kendisinden (derili, kabukla eğilir; havada kalmaz)
 	if stripe != null:
 		for sx in [1.0, -1.0]:
-			var lk = "kolluk%d_%d%s" % [int(sx), int(look.get("guard_long", false)), "a" if look.get("guard_ankle", false) else ""]
+			var lk = "kolluk%d_%d%s%s" % [int(sx), int(look.get("guard_long", false)), "a" if look.get("guard_ankle", false) else "", "u" if look.get("guard_upper", false) else ""]
 			for part in [["tozluk" if look.get("guard_ankle", false) else "kaval", gd in ["bacak", "ikisi"]], ["kolluk", gd in ["kol", "ikisi"]]]:
 				if not part[1]:
 					continue
