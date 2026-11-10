@@ -180,7 +180,10 @@ static func _learn(p: Dictionary) -> void:
 	var cap = Enemy._lv_cap(lv) + (1 if lv >= 110 else 0)
 	var js: Array = (p.get("jutsu", []) as Array).duplicate()
 	if String(p["clan"]) != "":
-		for j in ClanWorld.clan_jutsu(String(p["clan"]), lv, 2 + int(p["rank"])):
+		var has_eye = int((p.get("eye", [0, 0]) as Array)[0]) > 0
+		for j in ClanWorld.clan_jutsu(String(p["clan"]), lv, 4 + int(p["rank"])):
+			if not has_eye and String(Data.jutsu.get(j, {}).get("learn", "")).begins_with("eye:"):
+				continue   # gözü uyanmamış Uchiha/Hyūga göz tekniği bilmez
 			if not j in js:
 				js.append(j)
 	for n in p.get("nat", []):
@@ -206,6 +209,8 @@ static func _learn(p: Dictionary) -> void:
 		for id in ep.slice(0, 2 + (1 if ek >= 4 else 0)):
 			if not id in js:
 				js.push_front(id)
+	if int((p.get("eye", [0, 0]) as Array)[0]) == 0:
+		js = js.filter(func(j): return not String(Data.jutsu.get(j, {}).get("learn", "")).begins_with("eye:"))
 	# en güçlüler önde, en fazla 7
 	js.sort_custom(func(a, b): return int(Enemy.RANK_I.get(String(Data.jutsu.get(a, {}).get("canon_rank", "")), 0)) > int(Enemy.RANK_I.get(String(Data.jutsu.get(b, {}).get("canon_rank", "")), 0)))
 	p["jutsu"] = js.slice(0, 7)
@@ -599,3 +604,86 @@ static func team_people(vid: String, chunin: bool, used: Dictionary) -> Array:
 		used[String(p["id"])] = true
 		out.append(p)
 	return out
+
+
+# ------------------------------------------------------------------ her düşman kaynağı (yol, görev, köy, örgüt...) dünyadan gerçek biri
+## Enemy.setup başında: adı özelleştirilmemiş sıradan kaçak / köy ninjası kalıbı, dünyada uygun Güç'teki gerçek birine dönüşür
+## (kimliği, klanı, gözü, element(ler)i, kendi jutsuları). Kalıbın Güç'ü ve canı korunur (görev zorluğu bozulmaz).
+const GENERIC_NAMES := ["Kaçak Ninja", "Ses Ninjası", "Kumo Chunin", "Kiri Chunin", "Iwa Chunin", "Suna Chunin"]
+const FILL_P := 0.8
+static var _active := {}   # kişi -> sahadaki düşman (aynı kişi aynı anda iki yerde olmasın)
+
+
+static func fill_enemy(a: Dictionary) -> void:
+	if Game.profile.is_empty() or not data().get("init", false):
+		return
+	if a.has("world_person") or a.get("no_world", false) or a.has("beast") or a.has("legend") or a.has("clan") or a.has("clan_force"):
+		return
+	if not String(a.get("name", "")) in GENERIC_NAMES or randf() > FILL_P:
+		return
+	var k = String(a.get("kind", ""))
+	var rogue = k in ["rogue", "oto"]
+	var vid = String((a.get("look", {}) as Dictionary).get("village", k))
+	if not rogue and not vid in MAJOR + MINOR:
+		return
+	var lv = int(a.get("level", 20))
+	var tol = maxf(15.0, lv * 0.3)
+	var cands = []
+	for id in all():
+		var p: Dictionary = all()[id]
+		if not alive(p) or is_rogue(p) != rogue or absf(int(p["level"]) - lv) > tol:
+			continue
+		if not rogue and String(p["village"]) != vid:
+			continue
+		var on = _active.get(id)
+		if on is WeakRef and on.get_ref() != null:
+			continue
+		cands.append(p)
+	if cands.is_empty():
+		return
+	var p: Dictionary = cands.pick_random()
+	a["name"] = String(p["name"]) + (" (Kaçak)" if rogue else "")
+	var keep_band = (a.get("look", {}) as Dictionary).get("band")
+	a["look"] = look_of(p)
+	if not rogue and keep_band != null:
+		a["look"]["band"] = keep_band
+	a["element"] = String((p["els"] as Array)[0])
+	var js: Array = (p["jutsu"] as Array).filter(func(j): return Data.jutsu.has(j))
+	if not js.is_empty():
+		a["jutsu"] = js.slice(0, 6)
+		a.erase("auto_jutsu")
+	if String(p["clan"]) != "":
+		a["clan"] = String(p["clan"])
+	else:
+		a["no_clan"] = true
+	a["world_person"] = String(p["id"])
+
+
+## Enemy._ready: gözler / klan davranışı, sahada işaretle
+static func on_enemy_ready(e: Node) -> void:
+	var p = get_p(String(e.arch.get("world_person", "")))
+	if p.is_empty():
+		return
+	_active[String(p["id"])] = weakref(e)
+	var eye: Array = p.get("eye", [0, 0])
+	var c = String(p["clan"])
+	if c != "" and (int(eye[0]) > 0 or int(ClanWorld.EYE_KIND.get(c, 0)) == 0) and not e.has_node("ClanTrait"):
+		ClanWorld.after_spawn_enemy(e, c, int(p["level"]), int(eye[0]))   # klan davranışı + kendi gözü (uyanmamışa göz yok)
+	elif int(eye[0]) > 0 and not e.has_meta("eyes"):
+		Eyes.give_enemy_eyes(e, int(eye[0]), int(eye[1]))
+	if e.has_meta("eyes") and int(eye[0]) > 0:
+		e.set_meta("eyes", {"kind": int(eye[0]), "lvl": int(eye[1])})   # Sharingan seviyesi kişininki (klan varsayılanı değil)
+	e.set_meta("world_person", String(p["id"]))
+
+
+## Enemy.die: dünyadaki kişi de ölür (Bingo kaydı varsa o da kapanır); yakını yas tutar, intikam/uyanış zinciri başlar
+static func on_enemy_died(e: Node, info: Dictionary) -> void:
+	var p = get_p(String(e.arch.get("world_person", "")))
+	if p.is_empty() or not alive(p):
+		return
+	var by_player = info.get("attacker") == Game.player
+	_die(p, "%s ile savaşırken öldü" % (String(Game.profile.get("name", "bir ninja")) if by_player else "düşmanları"))
+	var b = bingo_of(p)
+	if not b.is_empty():
+		b["status"] = "dead"
+		b["tracked"] = false

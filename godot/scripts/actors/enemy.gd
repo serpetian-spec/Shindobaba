@@ -228,6 +228,7 @@ func jutsu_cost(id: String) -> float:
 
 
 func setup(a: Dictionary) -> void:
+	WorldPeople.fill_enemy(a)   # sıradan kaçak/köy ninjası kalıbı: dünyadan gerçek biri (kimlik, klan, göz, kendi jutsuları)
 	if a.get("no_level", false):
 		set_meta("no_level", true)
 	arch = a
@@ -310,6 +311,7 @@ func _maybe_clan(a: Dictionary) -> void:
 func _ready() -> void:
 	super._ready()
 	home = global_position
+	WorldPeople.on_enemy_ready(self)
 	nameplate = Label3D.new()
 	nameplate.text = display_name   # seviye yok (ustalık sistemi): isim etiketinde "Sv." yazmaz
 	nameplate.billboard = BaseMaterial3D.BILLBOARD_ENABLED
@@ -1285,6 +1287,7 @@ func die(info: Dictionary) -> void:
 	if not info.get("execute", false) and PathJutsu.izanagi_rewrite(self):
 		return   # açık İzanagi: ölüm yanılsamaydı
 	PathJutsu.ura_shisho_trigger(self)   # Ura Shishō Fūin: ölünce kara küre (oyuncuyla aynı)
+	WorldPeople.on_enemy_died(self, info)
 	if has_meta("kage_of"):   # köyün Kage'si düştü: haber + halef
 		Kage.kage_killed(String(get_meta("kage_of")), info.get("attacker") == Game.player or Game.player != null and global_position.distance_to(Game.player.global_position) < 60.0)
 		remove_meta("kage_of")
