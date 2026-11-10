@@ -640,6 +640,7 @@ const ITEMS := {
 	"beyaz_plakali_kemer": {"name": "Plakalı Beyaz Kemer", "slot": "kol", "price": 50, "rank": 0, "desc": "Belde beyaz bez kemer, önde gümüş plaka.", "stats": {"def": 1}, "look": {"waist_belt": Color(0.92, 0.92, 0.92)}, "c1": Color(0.92, 0.92, 0.92)},
 	"ohnoki_pelerin": {"name": "Çerçeveli Panel Pelerin", "slot": "kol", "price": 900, "rank": 2, "desc": "Omuzlarda kalın kırmızı yaka-pelerin ve sarmal tokalı turuncu bant; omuzdan uyluğa inen turuncu çerçeveli iki yeşil ön panel, sırtta geniş arka panel.", "stats": {"def": 5, "chakra": 30}, "look": {"ohnoki_cape": Color(0.56, 0.68, 0.38)}, "c1": Color(0.56, 0.68, 0.38)},
 	"magatama_dizisi": {"name": "Yaka Magatama Dizisi", "slot": "kol", "price": 400, "rank": 2, "desc": "Yaka çevresinde altı siyah magatama.", "stats": {"chakra": 25}, "look": {"magatama": Color(0.08, 0.08, 0.1)}, "c1": Color(0.08, 0.08, 0.1)},
+	"burgu_ip_kusak": {"name": "Kalın Burgu İp Kuşak", "slot": "kol", "price": 80, "rank": 0, "desc": "Bele sarılı kalın burgulu mor ip; tuniğin ön ve arka eteği dize iner.", "stats": {"def": 1, "chakra": 10}, "look": {"rope_belt": Color(0.48, 0.32, 0.72), "tunic_long": true}, "c1": Color(0.48, 0.32, 0.72)},
 	"cepli_gomlek": {"name": "Cepli İş Gömleği ve Fular", "slot": "govde", "price": 140, "rank": 0, "desc": "Kısa kollu, kapaklı iki göğüs cepli gömlek; boyunda açık mavi fular, siyah kemer.", "stats": {"def": 2, "chakra": 10}, "look": {"top_style": "yakali", "chest_pockets": true, "neck_scarf": Color(0.55, 0.78, 0.92), "waist_belt": Color(0.12, 0.1, 0.1)}, "c1": Color(0.2, 0.35, 0.72), "c2": Color(0.2, 0.35, 0.72)},
 	"kabarik_bluz": {"name": "Dik Boğazlı Kabarık Bluz", "slot": "dis", "price": 320, "rank": 0, "desc": "Uzun dik boğazlı, bele kadar bol beyaz bluz; balon kollar, bileklerde üçer mavi bilezik.", "stats": {"chakra": 30}, "look": {"outer_style": "kabarik_bluz", "outer_pattern": 0, "holster": false}, "c1": Color(0.96, 0.96, 0.97), "c2": Color(0.96, 0.96, 0.97)},
 	"gezegen_sort": {"name": "Gezegen Baskılı Yüksek Bel Şort", "slot": "bacak", "price": 120, "rank": 0, "desc": "Siyah yüksek bel kısa şort; yeşil gezegen, yıldız ve hilal baskılı.", "stats": {"speed": 0.04}, "look": {"pants_style": "kisa_sort", "pants_pattern": 30}, "c1": Color(0.16, 0.16, 0.18), "c2": Color(0.4, 0.75, 0.65)},
@@ -1460,6 +1461,8 @@ static func apply_look(p: Dictionary) -> void:
 	L["hirka_short"] = null
 	L["ohnoki_cape"] = null
 	L["magatama"] = null
+	L["rope_belt"] = null
+	L["tunic_long"] = null
 	L["skirt_wrap"] = null
 	L["skirt_y"] = null
 	L["skirt_under"] = null

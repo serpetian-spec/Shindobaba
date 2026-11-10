@@ -4124,7 +4124,7 @@ func _isshiki_kit(g: Dictionary) -> void:
 ## Tunik kuşağı (ref all/itachi_outfit): tuniğin belinde beyaz kuşak
 func _itachi_tunik_kit(g: Dictionary) -> void:
 	var hips = _bp("Hips").y
-	var tm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "itachi_tunik", 0.0])
+	var tm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "itachi_tunik_l" if look.get("tunic_long") == true else "itachi_tunik", 0.0])
 	if tm == null or not _sk_begin(tm):
 		return
 	var V: PackedVector3Array = _sk["v"]
@@ -4863,6 +4863,22 @@ func _magatama_kit(g: Dictionary) -> void:
 	_sk_end(g)
 
 
+## Kalın burgu ip kuşak + dize inen ön/arka tunik eteği (ref orochimaru_outfit)
+func _ip_kusak_kit(g: Dictionary) -> void:
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var rc: Color = look["rope_belt"]
+	var hips = _bp("Hips").y
+	var knee = _bp("LeftLowerLeg").y
+	var oc: Color = _lc("outer", Color(0.9, 0.86, 0.72))
+	var by = hips + 0.08
+	for k in 3:
+		_sk_ring(1, by - 0.02 + k * 0.02, 0.026, 0.02, rc.darkened(0.12 * float(k % 2)), -PI, PI, 56, 0.05 + float(k % 2) * 0.004)
+	for dy in [-0.02, 0.0, 0.02]:
+		_sk_ring(1, by + dy, 0.005, 0.004, rc.darkened(0.4), -PI, PI, 56, 0.068)   # burgu oluğu
+	_sk_end(g)
+
+
 ## Killer Bee takımı (ref all/killer_bee_outfit): boyunda kalın sarılı beyaz atkı (arkadan bacak arasına inen yırtık uç), belde kalın burgulu
 ## kırmızı ip kemer, kemerin altında soldan sağa inen çapraz beyaz yelek eteği, beyaz eldivende kırmızı bilek plakası
 func _bee_kit(g: Dictionary) -> void:
@@ -5145,7 +5161,10 @@ func _garments(g: Dictionary) -> void:
 			_garment_tinted("isshiki_yaka", Color(0.62, 0.08, 0.14), func(): return _loft(g, 1, neck - 0.04, neck + 0.14, 8, func(p): return absf(p.x) < 0.17, func(t, _a): return 0.04 + t * 0.06, 10, func(_t, ang): return absf(wrapf(ang - PI * 0.5, -PI, PI)) < 0.6))
 		"itachi_tunik":
 			# kısa kollu tunik (Striker Itachi; foto all/itachi_outfit): uyluk ortasına kutu tunik, önde V yaka (file iç görünür)
-			_garment("itachi_tunik", func(): return _cut_spec(g, neck + 0.0, hips - 0.18, 20, {"w": [[0.0, 0.86], [0.1, 1.04], [1.0, 1.08]], "d": [[0.0, 0.12], [1.0, 0.13]], "n": 3.2}, 8, hips - 0.04, 0.035, func(t, ang): return t < 0.14 and absf(wrapf(ang - PI * 0.5, -PI, PI)) < 0.38 - t * 2.6))
+			if look.get("tunic_long") == true:   # ref orochimaru_outfit: dize inen, yanları belden aşağı yırtmaçlı tunik (ön/arka panel)
+				_garment("itachi_tunik_l", func(): return _cut_spec(g, neck + 0.0, knee - 0.06, 28, {"w": [[0.0, 0.86], [0.1, 1.04], [0.4, 1.06], [1.0, 1.0]], "d": [[0.0, 0.12], [0.4, 0.13], [1.0, 0.13]], "n": 3.2}, 8, hips - 0.04, 0.035, func(t, ang): return (t < 0.1 and absf(wrapf(ang - PI * 0.5, -PI, PI)) < 0.38 - t * 2.6) or (t > 0.42 and absf(cos(ang)) > 0.62)))
+			else:
+				_garment("itachi_tunik", func(): return _cut_spec(g, neck + 0.0, hips - 0.18, 20, {"w": [[0.0, 0.86], [0.1, 1.04], [1.0, 1.08]], "d": [[0.0, 0.12], [1.0, 0.13]], "n": 3.2}, 8, hips - 0.04, 0.035, func(t, ang): return t < 0.14 and absf(wrapf(ang - PI * 0.5, -PI, PI)) < 0.38 - t * 2.6))
 			_cut_sleeve(g, "itachi_kol", [[0.0, 0.062], [1.0, 0.066]], absf(_bp("LeftHand").x) - lerpf(absf(ua), absf(_bp("LeftLowerArm").x), 0.75), 8, 2.8)
 		"edo_cubbe":
 			# kapüşonlu cübbe (Striker Itachi Edo; foto all/itachi_outfit_reanimation_ver): baldıra inen hafif A, altta önde yırtmaç
@@ -5412,6 +5431,8 @@ func _garments(g: Dictionary) -> void:
 		_ohnoki_kit(g)
 	if look.get("magatama") is Color:
 		_magatama_kit(g)
+	if look.get("rope_belt") is Color:
+		_ip_kusak_kit(g)
 	if look.get("jacket_lower") is Color and look.get("outer_style") == "yirtik_esofman":
 		_ceket_alt_kit(g)
 	if look.get("plate_armor") is Color:
