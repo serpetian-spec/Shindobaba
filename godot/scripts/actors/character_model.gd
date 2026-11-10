@@ -4710,6 +4710,35 @@ func _trim_kit(g: Dictionary) -> void:
 	_sk_end(g)
 
 
+## Plaka zırh (ref all/mitsuki_battle_garb): iki göğüs plakası (ortada aralık), iki yatay karın bandı, kasığa inen büyük yuvarlak alt plaka,
+## perçinli omuzluklar; gövde kabuğuna yaslı ayrı plakalar
+func _plaka_zirh_kit(g: Dictionary) -> void:
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var pc: Color = look["plate_armor"]
+	var dk = pc.darkened(0.35)
+	var ch = _bp("UpperChest").y
+	var hips = _bp("Hips").y
+	var neck = _bp("Neck").y
+	var top = neck - 0.06
+	for sx in [1.0, -1.0]:
+		_sk_plate(0.064 * sx, top - 0.075, 0.12, 0.16, 0.018, pc, 0.006)   # göğüs plakası
+	for k in 2:
+		_sk_plate(0.0, top - 0.19 - k * 0.065, 0.24, 0.05, 0.018, pc.darkened(0.03 * k), 0.006)   # karın bandı
+	var y0 = top - 0.3
+	_sk_plate(0.0, y0 - 0.06, 0.25, 0.13, 0.02, pc, 0.01)   # alt plaka
+	_sk_plate(0.0, y0 - 0.14, 0.2, 0.035, 0.02, pc, 0.014)
+	_sk_plate(0.0, y0 - 0.17, 0.12, 0.03, 0.02, pc, 0.016)
+	for sx in [1.0, -1.0]:
+		_sk_plate(0.15 * sx, neck - 0.04, 0.1, 0.07, 0.016, pc.lightened(0.05), 0.012)   # omuzluk
+		for rx in [0.125, 0.17]:
+			var h = _sk_hit(rx * sx, neck - 0.04, true, 0.05)
+			if not h.is_empty():
+				var n: Vector3 = (h[1] as Vector3).normalized()
+				_sk_disc(h[0] + n * 0.03, n, 0.005, 0.003, dk)   # perçin
+	_sk_end(g)
+
+
 ## Killer Bee takımı (ref all/killer_bee_outfit): boyunda kalın sarılı beyaz atkı (arkadan bacak arasına inen yırtık uç), belde kalın burgulu
 ## kırmızı ip kemer, kemerin altında soldan sağa inen çapraz beyaz yelek eteği, beyaz eldivende kırmızı bilek plakası
 func _bee_kit(g: Dictionary) -> void:
@@ -5254,6 +5283,8 @@ func _garments(g: Dictionary) -> void:
 		_gelinlik_kit(g)
 	if look.get("bee_kit") is Color:
 		_bee_kit(g)
+	if look.get("plate_armor") is Color:
+		_plaka_zirh_kit(g)
 	if look.get("front_trim") is Color:
 		_trim_kit(g)
 	if look.get("vest") is Color and int(look.get("vest_style", 0)) == 3 and look.get("outer_style") == null:
