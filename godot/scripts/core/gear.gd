@@ -658,6 +658,7 @@ const ITEMS := {
 	"jonin_aks": {"name": "Jōnin Sargıları ve 火 Örtüsü", "slot": "kol", "price": 160, "rank": 3, "desc": "Üst kollarda beyaz sargı bandı ve omuzda kırmızı girdap, belde sarkan 火 işaretli açık mavi üçgen örtü, mavi bilezikler.", "stats": {"chakra": 20, "def": 2}, "look": {"jonin_aks": Color(0.94, 0.94, 0.92), "fire_sash": Color(0.75, 0.85, 0.95)}, "c1": Color(0.94, 0.94, 0.92)},
 	"rikudo_cubbe": {"name": "Rikudō Cübbesi", "slot": "dis", "price": 900, "rank": 2, "desc": "Yüksek yakalı, bileğe inen beyaz cübbe; göğüste altı, sırtta dokuz tomoe, geniş lacivert obi, çok geniş kollar.", "stats": {"chakra": 50, "def": 4}, "look": {"outer_style": "rikudo_cubbe", "outer_pattern": 39, "holster": false}, "c1": Color(0.93, 0.93, 0.95), "c2": Color(0.93, 0.93, 0.95)},
 	"yirtik_esofman": {"name": "Yırtık Eşofman Ceketi", "slot": "dis", "price": 200, "rank": 0, "desc": "Önü açık, eteği dişli yırtık siyah eşofman ceketi; kollarda üç kırmızı bant.", "stats": {"speed": 0.05, "melee": 0.03}, "look": {"outer_style": "yirtik_esofman", "outer_pattern": 40, "holster": false}, "c1": Color(0.12, 0.12, 0.14), "c2": Color(0.78, 0.14, 0.2)},
+	"yirtik_esofman_iki": {"name": "Yırtık İki Tonlu Ceket", "slot": "dis", "price": 200, "rank": 0, "desc": "Önü açık, eteği dişli yırtık siyah eşofman ceketi; üst ve kollar siyah, gövdenin alt yarısı turuncu.", "stats": {"speed": 0.05, "melee": 0.03}, "look": {"outer_style": "yirtik_esofman", "jacket_lower": Color(0.92, 0.52, 0.14), "outer_pattern": 40, "holster": false}, "c1": Color(0.12, 0.12, 0.14), "c2": Color(0.78, 0.14, 0.2)},
 	"esofman_alti_bant": {"name": "Bantlı Eşofman Altı", "slot": "bacak", "price": 90, "rank": 0, "desc": "Baldır altında biten siyah eşofman altı; paçada iki kırmızı bant.", "stats": {"speed": 0.03}, "look": {"pants_style": "kapri", "pants_pattern": 25}, "c1": Color(0.12, 0.12, 0.14), "c2": Color(0.78, 0.14, 0.2)},
 	"gunes_kimono": {"name": "Güneş Kimonosu", "slot": "dis", "price": 640, "rank": 1, "desc": "Sol omzu açık, sağ omuzdan sarılı turuncu kutlama kimonosu; göğüste alevli güneş, desenli kenar, siyah kuşakta 9 parlak magatama, yanda sarkan kızıl bez.", "stats": {"chakra": 40, "hp": 20}, "look": {"outer_style": "gunes_kimono", "outer_pattern": 38, "holster": false, "gk": {"cloth": Color(0.8, 0.12, 0.12)}}, "c1": Color(0.95, 0.68, 0.2), "c2": Color(0.85, 0.42, 0.1)},
 	"gunes_kimono_beyaz": {"name": "Güneş Kimonosu: Yirminci Yıl", "slot": "dis", "price": 640, "rank": 1, "desc": "Sol omzu açık turuncu kimono; göğüste alevli güneş, siyah kuşakta 9 parlak magatama, yanda sarkan beyaz-lila bez, sarı omuz düğümü.", "stats": {"chakra": 30, "speed": 0.04}, "look": {"outer_style": "gunes_kimono", "outer_pattern": 38, "holster": false, "gk": {"cloth": Color(0.92, 0.9, 0.96), "knot": Color(0.95, 0.8, 0.3)}}, "c1": Color(0.92, 0.48, 0.18), "c2": Color(0.75, 0.25, 0.1)},
@@ -1447,6 +1448,7 @@ static func apply_look(p: Dictionary) -> void:
 	L["plate_armor"] = null
 	L["capraz_long"] = null
 	L["jacket_stripes"] = null
+	L["jacket_lower"] = null
 	L["skirt_wrap"] = null
 	L["skirt_y"] = null
 	L["skirt_under"] = null

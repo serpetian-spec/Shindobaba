@@ -2968,7 +2968,7 @@ func _boyun_atki_kit(g: Dictionary) -> void:
 	if look.get("armband") is Color and _sk_begin(_shell_cache.get(look["gender"])):
 		var ax = lerpf(absf(_bp("LeftUpperArm").x), absf(_bp("LeftLowerArm").x), 0.4)
 		var asd = float(look.get("armband_side", 1.0))
-		_sk_ring(0, ax * asd, 0.05, 0.007, look["armband"], -PI, PI, 24, 0.008, asd)
+		_sk_ring(0, ax * asd, 0.05, 0.007, look["armband"], -PI, PI, 24, 0.008 if look.get("outer_style") == null else 0.04, asd)
 		_sk_end(g)
 
 
@@ -4760,6 +4760,29 @@ func _plaka_zirh_kit(g: Dictionary) -> void:
 	_sk_end(g)
 
 
+## İki tonlu yırtık ceket (ref naruto_outfit_last_battle_ver): göğsün altından eteğe kadar ikinci renk panel (kollar ve omuz üstte kalan renk)
+func _ceket_alt_kit(g: Dictionary) -> void:
+	var jm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "yirtik_esofman", 0.0])
+	if jm == null or not _sk_begin(jm):
+		return
+	var lc: Color = look["jacket_lower"]
+	var V: PackedVector3Array = _sk["v"]
+	var ys = {}
+	for q in V:
+		ys[snappedf(q.y, 0.002)] = true
+	var ylist = ys.keys()
+	ylist.sort()
+	var ytop = _bp("UpperChest").y - 0.1
+	var ybot = ylist[0] if ylist.size() > 0 else 0.0
+	for i in ylist.size():
+		var y: float = ylist[i]
+		if y > ytop or y < ybot + 0.035:
+			continue
+		var step = (ylist[i + 1] - y) if i + 1 < ylist.size() else 0.03
+		_sk_ring(1, y, maxf(step * 1.3, 0.02), 0.003, lc, -PI, PI, 56, 0.002)
+	_sk_end(g)
+
+
 ## Killer Bee takımı (ref all/killer_bee_outfit): boyunda kalın sarılı beyaz atkı (arkadan bacak arasına inen yırtık uç), belde kalın burgulu
 ## kırmızı ip kemer, kemerin altında soldan sağa inen çapraz beyaz yelek eteği, beyaz eldivende kırmızı bilek plakası
 func _bee_kit(g: Dictionary) -> void:
@@ -5305,6 +5328,8 @@ func _garments(g: Dictionary) -> void:
 		_gelinlik_kit(g)
 	if look.get("bee_kit") is Color:
 		_bee_kit(g)
+	if look.get("jacket_lower") is Color and look.get("outer_style") == "yirtik_esofman":
+		_ceket_alt_kit(g)
 	if look.get("plate_armor") is Color:
 		_plaka_zirh_kit(g)
 	if look.get("front_trim") is Color:
