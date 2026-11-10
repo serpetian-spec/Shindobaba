@@ -15,6 +15,7 @@ static var _rng: RandomNumberGenerator
 static var _banded := false
 static var _grid := PackedFloat32Array()   # kafa yüzeyi ızgarası (CharacterModel._head_radial): yaw 10° x pitch 10°
 static var _band_y := -INF
+static var last_arrays: Array = []
 static var strands: Array = []   # her tutamın orta çizgisi {pts, kind} — ikincil hareket (UV2.x = tutam no, kütle = -1)
 static var _kind := "shard"
 static var _flow_kind := "flow"
@@ -325,7 +326,10 @@ static func build(style: String, c: Vector3, r: Vector3, banded := false, band_y
 		"e36":
 			_e36()
 	_st.generate_normals()
-	return _st.commit()
+	last_arrays = _st.commit_to_arrays()   # iş parçacığında GPU'dan geri okumadan sallanma paketi kurulsun
+	var m = ArrayMesh.new()
+	m.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, last_arrays)
+	return m
 
 
 # ---------------------------------------------------------------- kütle

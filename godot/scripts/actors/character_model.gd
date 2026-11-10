@@ -238,6 +238,7 @@ static func _scene(n: String) -> PackedScene:
 
 
 static var _build_frame := -1
+static var PROF := false   # TEMP: kurulum adımı süreleri
 
 
 ## Ortam NPC'leri (yolcu, gezgin takım) için model kurma sırası: karede en fazla bir model kurulur, gerisi sonraki karelere
@@ -504,7 +505,9 @@ func _face_and_hair() -> void:
 	var donor = donors[fi % donors.size()]
 	if not female and look.get("age", "adult") in ["child", "teen"]:
 		donor = ["HairSample_Male", "Sakurada_Fumiriya"][fi % 2]
+	var _q0 = Time.get_ticks_usec()
 	var fd = _donor_part(donor, "Face")
+	if PROF: print("PROF  donor_face %s %.0f" % [donor, (Time.get_ticks_usec() - _q0) / 1000.0])
 	var head_bi = skel.find_bone("Head")
 	var head_rest = _grest(head_bi)
 	# bağışçı kafa-yerel -> bizim gövdenin özgün kafa konumu (gövde bağları düzeltilmiş dinlenmeye göre)
@@ -605,38 +608,85 @@ func _face_and_hair() -> void:
 			var sc = _skull_cache[sk_key]
 			skull_c = sc[0]; skull_r = sc[1]; band_ring = sc[2]
 		else:
+			var _q1 = Time.get_ticks_usec()
 			_measure_skull(fd["mesh"], place)
 			_skull_cache[sk_key] = [skull_c, skull_r, band_ring]
+			if PROF: print("PROF  skull %.0f" % [(Time.get_ticks_usec() - _q1) / 1000.0])
 	# saç: VRoid saç mesh'i + gerekirse prosedürel tutam eklentisi (diken, topuz, at kuyruğu...)
 	var hd: Array = HAIR_DONORS.get(look.get("hair_style", "diken"), HAIR_DONORS["diken"])
 	if hd.size() > 2 and hd[2] != "" and head_ab.size.x > 0.05 and look.get("npc", false) and not look.get("keep_hair", false):   # keep_hair: kimliği olan karakter (dost, Bingo kaçağı, takım) saçını asla değiştirmez
 		# köylü: bu yüz için hesaplanmamış saç tutamı ~140 ms donma demek. Yakın zamanda yeni hesap yapıldıysa
 		# bu yüzde hazır (önbellekte) ya da tutamsız bir saç stili seç; çeşitlilik zamanla artar, donma olmaz
 		var hk0 = "vroid|%s|%s|%s|%s" % [hd[2], look["gender"], donor, look.get("age", "adult")]
-		var now = Time.get_ticks_msec()
-		# anime saçı ~35 ms (eski tutam 140 ms): pencere 1.2 sn; yerine yalnız bu cinsiyetin HAZIR anime saçlarından seçilir
-		# (eski düz VRoid saçına düşmez); hiç hazır yoksa istenen saç yine kurulur
-		if not _hair_cache.has(hk0) and (now - _hair_new_ms < 1200 or look.get("npc_strict", false)):
+		var bnd0 = look.get("band") != null and String(look.get("band_style", "none")) in ["head", "slashed"]
+		var sfx = "|band" if (bnd0 and AnimeHair.has(hd[2])) else ""
+		_hair_pump()
+		if AnimeHair.has(hd[2]) and not _hair_cache.has(hk0 + sfx):
+			# köylü: istenen anime saçı arka planda hesaplanır, bu NPC'ye bu yüz/yaş için hazır bir anime saçı takılır (donma yok)
 			var opts = []
 			for st in hair_styles_for(String(look["gender"])):
-				if AnimeHair.has(st) and _hair_cache.has("vroid|%s|%s|%s|%s" % [st, look["gender"], donor, look.get("age", "adult")]):
+				if AnimeHair.has(st) and _hair_cache.has("vroid|%s|%s|%s|%s%s" % [st, look["gender"], donor, look.get("age", "adult"), sfx]):
 					opts.append(st)
+			if _hair_job < 0:
+				var by = (band_ring[0] + 0.01) if (bnd0 and not band_ring.is_empty()) else -INF
+				var args = [hd[2], skull_c, skull_r, bnd0, by, _radial_cached(), BAND_DROP]
+				_hair_job_key = hk0 + sfx
+				_hair_job_res = []
+				_hair_job = WorkerThreadPool.add_task(_hair_job_run.bind(args))   # statik: model (ör. ön ısıtma kopyası) silinse de iş sürer
 			if not opts.is_empty():
 				look["hair_style"] = opts.pick_random()
 				hd = HAIR_DONORS[look["hair_style"]]
 			else:
-				_hair_new_ms = now
+				# bu yüz/yaş için hiç hazır saç yok: aynı cinsiyet+yaşın başka yüz için hesaplanmış anime saçını ödünç al,
+				# kafatası merkez/yarıçap farkına göre taşı-ölçekle (beklemek 100-300 ms donma)
+				var borrowed = false
+				for key in _hair_cache.keys():
+					var ks = String(key).split("|")
+					if ks.size() >= 5 and ks[2] == String(look["gender"]) and ks[4] == String(look.get("age", "adult")) and AnimeHair.has(ks[1]) and (ks.size() == 6) == (sfx != ""):
+						var src = _skull_cache.get("%s|%s|%s" % [ks[2], ks[3], ks[4]])
+						if src == null:
+							continue
+						_hair_borrow = [key, src[0], src[1]]
+						look["hair_style"] = ks[1]
+						hd = HAIR_DONORS[ks[1]]
+						borrowed = true
+						break
+				if not borrowed:
+					_hair_lock()   # hiç hazır saç yok (oyunun ilk köylüleri): işi bekle
 		elif not _hair_cache.has(hk0):
-			_hair_new_ms = now
+			var now = Time.get_ticks_msec()
+			if now - _hair_new_ms < 1200 or look.get("npc_strict", false):
+				var opts2 = []
+				for st in hair_styles_for(String(look["gender"])):
+					if _hair_cache.has("vroid|%s|%s|%s|%s" % [st, look["gender"], donor, look.get("age", "adult")]):
+						opts2.append(st)
+				if not opts2.is_empty():
+					look["hair_style"] = opts2.pick_random()
+					hd = HAIR_DONORS[look["hair_style"]]
+				else:
+					_hair_new_ms = now
+			else:
+				_hair_new_ms = now
 	if hd.size() > 2 and hd[2] != "" and head_ab.size.x > 0.05:
 		# önbellek anahtarı kafa ölçüsüne bağlı (yaş/cinsiyet/yüz değişince saç kafada kalsın)
 		var hk = "vroid|%s|%s|%s|%s" % [hd[2], look["gender"], donor, look.get("age", "adult")]
 		var banded = look.get("band") != null and String(look.get("band_style", "none")) in ["head", "slashed"]
 		if AnimeHair.has(hd[2]) and banded:
 			hk += "|band"   # alın bandı takılı: kâkül bandın altında, bandın üstünden dik tutamlar (saçak gibi raf olmasın)
+		var bxf = Transform3D.IDENTITY
+		if not _hair_borrow.is_empty():   # ödünç saç: kaynak kafatasından bu kafatasına
+			hk = String(_hair_borrow[0])
+			var sc0: Vector3 = _hair_borrow[1]
+			var sr0: Vector3 = _hair_borrow[2]
+			var sv = Vector3(skull_r.x / maxf(sr0.x, 0.01), skull_r.y / maxf(sr0.y, 0.01), skull_r.z / maxf(sr0.z, 0.01)) * 1.05   # ölçüm: ödünç saç yerliden %3-8 dar, kafaya gömülmesin
+			bxf = Transform3D(Basis.IDENTITY, skull_c) * Transform3D(Basis.from_scale(sv), Vector3.ZERO) * Transform3D(Basis.IDENTITY, -sc0)
+			_hair_borrow = []
+		if PROF: print("PROF  hair_cached=%s %s" % [_hair_cache.has(hk), hk])
+		if not _hair_cache.has(hk):
+			_hair_lock()
 		if not _hair_cache.has(hk):
 			if AnimeHair.has(hd[2]):   # sıfırdan anime saçı (VRoid tabanı yok)
-				_hair_cache[hk] = AnimeHair.build(hd[2], skull_c, skull_r, banded, (band_ring[0] + 0.01) if (banded and not band_ring.is_empty()) else -INF, _head_radial(), BAND_DROP)
+				_hair_cache[hk] = AnimeHair.build(hd[2], skull_c, skull_r, banded, (band_ring[0] + 0.01) if (banded and not band_ring.is_empty()) else -INF, _radial_cached(), BAND_DROP)
 				_hair_dyn[hk] = _anime_dangle(_hair_cache[hk], AnimeHair.strands)   # kâkül/ense/favori salınır, dikenler hafif yaylanır
 			else:
 				_hair_cache[hk] = _hair_clumps(hd[2], skull_c, skull_r)
@@ -649,11 +699,16 @@ func _face_and_hair() -> void:
 		# tutamlar kafaya göre biraz küçültülür (kafa merkezi etrafında)
 		var cs = Transform3D(Basis.IDENTITY, skull_c) * Transform3D(Basis.from_scale(Vector3.ONE * CLUMP_SCALE), Vector3.ZERO) * Transform3D(Basis.IDENTITY, -skull_c)
 		if AnimeHair.has(hd[2]):
-			cs = Transform3D.IDENTITY
-			_anime_hair_vs = (_hair_cache[hk] as ArrayMesh).surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+			cs = bxf
+			_anime_hair_vs = _hair_vs_cache.get(hk) if _hair_vs_cache.has(hk) else (_hair_cache[hk] as ArrayMesh).surface_get_arrays(0)[Mesh.ARRAY_VERTEX]
+			_hair_vs_cache[hk] = _anime_hair_vs
+			if bxf != Transform3D.IDENTITY:
+				_anime_hair_vs = bxf * _anime_hair_vs
 		# uzun tutamlar ikincil hareketli (kafa kemiğine takılı küçük iskelet); sallanacak tutam yoksa sabit mesh
 		_hair_mats.append([cm, cs])
+		var _a2 = Time.get_ticks_usec()
 		var hdn = add_dangle("Head", _hair_dyn.get(hk, {}), cm, cs, "HairDangle") if not _hair_dyn.get(hk, {}).is_empty() else null
+		if PROF: print("PROF  add_dangle %.0f" % [(Time.get_ticks_usec() - _a2) / 1000.0])
 		if hdn == null:
 			var cl = _mesh_on("Head", _hair_cache[hk], cs)
 			cl.material_override = cm
@@ -749,12 +804,20 @@ func setup(l: Dictionary) -> void:
 		sec.queue_free()
 	inst.scale = Vector3.ONE * VROID_SCALE  # VRoid ~1.6 m -> ~1.78 m
 	inst.rotation.y = PI  # VRoid kökü +Z'ye çevrildi (glb); biz -Z ileri kullanıyoruz
+	var _t0 = Time.get_ticks_usec()
 	_face_and_hair()
+	var _t1 = Time.get_ticks_usec()
 	_paint_body()
+	var _t2 = Time.get_ticks_usec()
 	_cloth_details()
+	var _t3 = Time.get_ticks_usec()
 	_attachments()
+	var _t4 = Time.get_ticks_usec()
 	_accessories()
+	var _t5 = Time.get_ticks_usec()
 	_apply_hair_mask()
+	if PROF:
+		print("PROF hair=%.0f paint=%.0f cloth=%.0f attach=%.0f acc=%.0f mask=%.0f" % [(_t1 - _t0) / 1000.0, (_t2 - _t1) / 1000.0, (_t3 - _t2) / 1000.0, (_t4 - _t3) / 1000.0, (_t5 - _t4) / 1000.0, (Time.get_ticks_usec() - _t5) / 1000.0])
 	anim = AnimationPlayer.new()
 	anim.name = "Anim"
 	inst.add_child(anim)
@@ -6714,7 +6777,8 @@ func _sf_acc(id: String, ref: Vector3) -> bool:
 ## Ön kenar front_edge_y'de, arkaya doğru back_drop kadar iner (ense korunur).
 func _helmet_shell(col: Color, front_edge_y: float, back_drop: float, pad := 0.016, flat_top := 0.0, side_drop := 0.0) -> MeshInstance3D:
 	# kafa derisinin gerçek yüzeyi (saçlarla aynı ölçüm: _head_radial ızgarası, AnimeHair._real_r)
-	AnimeHair._c = skull_c; AnimeHair._r = skull_r; AnimeHair._grid = _head_radial(); AnimeHair._band_y = -INF
+	_hair_lock()
+	AnimeHair._c = skull_c; AnimeHair._r = skull_r; AnimeHair._grid = _radial_cached(); AnimeHair._band_y = -INF
 	var NA = 64; var NP = 22
 	var edge_at = func(a: float) -> float:   # a: yaw (0 = ön +Z)
 		var back = maxf(0.0, -cos(a))
@@ -7366,6 +7430,60 @@ static var _scalp_cache := {}
 static var _hair_cache := {}
 static var _hair_new_ms := -100000   # köylü için son yeni saç tutamı hesabı (art arda donma olmasın)
 static var _hair_dyn := {}      # saç anahtarı -> Dangle paketi
+## Arka plan saç hesabı (köy takılması kökü, 2026-11-10 ölçüm: yeni anime saçı 180-300 ms): köylüye önbellekteki bir saç takılır,
+## istenen saç iş parçacığında hesaplanıp önbelleğe girer. AnimeHair statik durum kullandığından aynı anda tek iş; ana iş parçacığı
+## AnimeHair'e dokunmadan önce _hair_lock() ile işi bekler.
+static var _hair_job := -1
+static var _hair_job_key := ""
+static var _hair_job_res: Array = []
+static var _radial_cache := {}
+static var _hair_vs_cache := {}   # saç anahtarı -> köşe dizisi (GPU'dan her NPC'de geri okunmasın)
+var _hair_borrow: Array = []
+
+
+static func _hair_job_run(args: Array) -> void:
+	var m = AnimeHair.build(args[0], args[1], args[2], args[3], args[4], args[5], args[6])
+	_hair_job_res = [m, _anime_dangle_s(m, AnimeHair.strands, args[1], args[2], [AnimeHair.last_arrays])]   # sallanma paketi de burada (ana iş parçacığında 100-190 ms)
+
+
+func _hair_pump() -> void:
+	if _hair_job < 0 or not WorkerThreadPool.is_task_completed(_hair_job):
+		return
+	WorkerThreadPool.wait_for_task_completion(_hair_job)
+	_hair_job = -1
+	var _a = Time.get_ticks_usec()
+	if _hair_job_res.size() == 2 and _hair_job_res[0] is ArrayMesh:
+		_hair_cache[_hair_job_key] = _hair_job_res[0]
+		_hair_dyn[_hair_job_key] = _hair_job_res[1]
+	if PROF: print("PROF  pump dangle %.0f" % [(Time.get_ticks_usec() - _a) / 1000.0])
+	_hair_job_res = []
+
+
+static func _hair_lock_static() -> void:   # test yardımcısı: bekleyen işi bitir (sonuç atılır)
+	if _hair_job >= 0:
+		WorkerThreadPool.wait_for_task_completion(_hair_job)
+		_hair_job = -1
+		_hair_job_res = []
+
+
+func _hair_lock() -> void:
+	if _hair_job >= 0:
+		var _a = Time.get_ticks_usec()
+		WorkerThreadPool.wait_for_task_completion(_hair_job)
+		if PROF: print("PROF  lock wait %.0f" % [(Time.get_ticks_usec() - _a) / 1000.0])
+		_hair_job = -1
+		if _hair_job_res.size() == 2 and _hair_job_res[0] is ArrayMesh:
+			_hair_cache[_hair_job_key] = _hair_job_res[0]
+			_hair_dyn[_hair_job_key] = _hair_job_res[1]
+		_hair_job_res = []
+
+
+func _radial_cached() -> PackedFloat32Array:
+	var k = _sk_key + "|" + str(look.get("gender", "m"))
+	if not _radial_cache.has(k):
+		_radial_cache[k] = _head_radial()
+	return _radial_cache[k]
+
 static var _vhair_dyn := {}
 
 
@@ -7882,6 +8000,11 @@ static func _clump_dangle(mesh: ArrayMesh) -> Dictionary:
 ## Anime saçı ikincil hareketi (kural: secondary-motion, hair_profile): akan tutamlar (kâkül, ense, favori) kendi
 ## zinciri; dikenler kafa bölgelerine (8 yön x tepe/yan) toplanır, sert profille hafif yaylanır. Kütle sabit.
 func _anime_dangle(mesh: ArrayMesh, st: Array) -> Dictionary:
+	return _anime_dangle_s(mesh, st, skull_c, skull_r)
+
+
+## İş parçacığında da çağrılabilir (örnek durumuna dokunmaz): kafa merkezi/yarıçapı parametre
+static func _anime_dangle_s(mesh: ArrayMesh, st: Array, skull_c: Vector3, skull_r: Vector3, arrays: Array = []) -> Dictionary:
 	var defs = []
 	var of = {}
 	var sectors = {}
@@ -7929,14 +8052,14 @@ func _anime_dangle(mesh: ArrayMesh, st: Array) -> Dictionary:
 			of[i] = ci
 	if defs.is_empty():
 		return {}
-	var uv2: PackedVector2Array = mesh.surface_get_arrays(0)[Mesh.ARRAY_TEX_UV2]
+	var uv2: PackedVector2Array = (arrays[0] if not arrays.is_empty() else mesh.surface_get_arrays(0))[Mesh.ARRAY_TEX_UV2]
 	var assign = func(vi: int, v: Vector3, _si: int) -> Array:
 		var sid = int(round(uv2[vi].x))
 		if sid < 0 or not of.has(sid):
 			return []
 		var ci: int = of[sid]
 		return [[ci, Dangle.project(defs[ci]["pts"], v)[0], 1.0]]
-	return Dangle.build(mesh, defs, assign)
+	return Dangle.build(mesh, defs, assign, arrays)
 
 
 ## Saçın TEK hareket profili (tutam + VRoid saç aynı): fark yalnız boydan gelir — kısa parça az, uzun parça çok oynar,
@@ -8140,7 +8263,8 @@ const BAND_WEAR_NAMES := {"alin": "Alında", "kakashi": "Göze Eğik", "zabuza":
 
 ## Eğik düzlemde kafa (+ saç) çevresi: B yerel X/Z düzlemi bant düzlemi, Y normali; bins açı (yerel atan2(z, x) + PI)
 func _plane_ring_head(p0: Vector3, B: Basis, bins := 48) -> PackedFloat32Array:
-	AnimeHair._c = skull_c; AnimeHair._r = skull_r; AnimeHair._grid = _head_radial(); AnimeHair._band_y = -INF
+	_hair_lock()
+	AnimeHair._c = skull_c; AnimeHair._r = skull_r; AnimeHair._grid = _radial_cached(); AnimeHair._band_y = -INF
 	var rad = PackedFloat32Array()
 	rad.resize(bins)
 	for k in bins:
@@ -9200,7 +9324,8 @@ static var _top_cache := {}
 static var _fmap_cache := {}
 ## Başın gerçek yüzeyini (kask kabuğuyla aynı ölçüm) saran bez şerit: y yüksekliğinde, h kalın, pad dışarı; tilt: yana eğim
 func _skull_band(col: Color, y: float, h: float, pad: float, tilt := 0.0) -> MeshInstance3D:
-	AnimeHair._c = skull_c; AnimeHair._r = skull_r; AnimeHair._grid = _head_radial(); AnimeHair._band_y = -INF
+	_hair_lock()
+	AnimeHair._c = skull_c; AnimeHair._r = skull_r; AnimeHair._grid = _radial_cached(); AnimeHair._band_y = -INF
 	var NA = 56
 	var pts = []
 	for k in NA + 1:

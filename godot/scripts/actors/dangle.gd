@@ -45,7 +45,7 @@ func _link() -> void:
 ## mesh: sabit ArrayMesh (yerel uzay). chains: [{pts: PackedVector3Array, stiff, damp, grav, drag}]
 ## assign(i, v) -> [[zincir, s], ...] (en çok 2 zincir; s = zincir boyunca kesirli nokta indeksi; boş = sabit kök)
 ## ve w: zincir ağırlığı. Dönüş: {"mesh", "chains", "skin", "nb"}.
-static func build(mesh: ArrayMesh, chain_defs: Array, assign: Callable) -> Dictionary:
+static func build(mesh: ArrayMesh, chain_defs: Array, assign: Callable, arrays: Array = []) -> Dictionary:   # arrays: yüzey dizileri hazırsa (iş parçacığı) GPU'dan okunmaz
 	var out = {"mesh": null, "chains": [], "nb": 1}
 	var b0 = 1
 	for c in chain_defs:
@@ -60,8 +60,8 @@ static func build(mesh: ArrayMesh, chain_defs: Array, assign: Callable) -> Dicti
 	if out["chains"].is_empty():
 		return {}
 	var am = ArrayMesh.new()
-	for si in mesh.get_surface_count():
-		var arr = mesh.surface_get_arrays(si)
+	for si in (arrays.size() if not arrays.is_empty() else mesh.get_surface_count()):
+		var arr = arrays[si] if not arrays.is_empty() else mesh.surface_get_arrays(si)
 		var v: PackedVector3Array = arr[Mesh.ARRAY_VERTEX]
 		var bones = PackedInt32Array(); var weights = PackedFloat32Array()
 		bones.resize(v.size() * 4); weights.resize(v.size() * 4)
@@ -94,12 +94,13 @@ static func build(mesh: ArrayMesh, chain_defs: Array, assign: Callable) -> Dicti
 				weights[i * 4 + k] = (ent[k][1] / maxf(sum, 0.0001)) if k < ent.size() else 0.0
 		arr[Mesh.ARRAY_BONES] = bones
 		arr[Mesh.ARRAY_WEIGHTS] = weights
-		var fmt = mesh.surface_get_format(si)
+		var fmt = 0 if not arrays.is_empty() else mesh.surface_get_format(si)   # dizi verildiyse özel kanal yok (anime saçı)
 		var cmask = 0
 		for c in 4:
 			cmask |= Mesh.ARRAY_FORMAT_CUSTOM_MASK << (Mesh.ARRAY_FORMAT_CUSTOM_BASE + c * Mesh.ARRAY_FORMAT_CUSTOM_BITS)
 		am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr, [], {}, fmt & cmask)
-		am.surface_set_material(si, mesh.surface_get_material(si))
+		if arrays.is_empty():
+			am.surface_set_material(si, mesh.surface_get_material(si))
 	out["mesh"] = am
 	var skin = Skin.new()
 	skin.add_bind(0, Transform3D.IDENTITY)
