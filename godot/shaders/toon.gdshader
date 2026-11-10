@@ -913,7 +913,7 @@ void fragment() {
 					float tt = clamp((outer_top - rest.y) / max(outer_top - outer_hem, 0.1), 0.0, 1.0);
 					if (rest.z > 0.0 && tt > 0.42) {
 						float ga = abs(atan(rest.x, rest.z));
-						float gw = (tt - 0.42) * 1.5;
+						float gw = (tt - 0.42) * 2.4;
 						if (ga < gw + 0.3) c.rgb = outer_accent.rgb;   // astar kanadı
 						if (outer_pattern == 26 && abs(ga - gw - 0.3) < 0.03 + 0.02 * sin(rest.y * 120.0)) c.rgb = vec3(0.95, 0.78, 0.2);
 					}

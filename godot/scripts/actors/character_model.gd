@@ -5433,7 +5433,7 @@ func _garments(g: Dictionary) -> void:
 			_cut_sleeve(g, "hirka_kol", [[0.0, 0.06], [0.35, 0.07], [0.75, 0.085], [0.92, 0.06], [1.0, 0.045]], 0.045)   # KESİM: wonder — dirsekten sonra şişen, manşette toplanan bol kol
 		"uzun_ceket":
 			# uzun ceket (Striker Swanky): dik yakalı, dize inen; belden aşağı önde ters V açılır (sivri uçlu iki kanat)
-			_garment("uzun_ceket", func(): return _cut_spec(g, neck + 0.0, knee - 0.06, 26, {"w": [[0.0, 0.8], [0.1, 0.98], [0.45, 0.94], [1.0, 1.08]], "d": [[0.0, 0.1], [1.0, 0.13]], "o": [[0.0, 0.0], [0.4, 0.0], [0.6, 0.55], [1.0, 1.35]], "n": 2.8}, 8, hips - 0.06, 0.025))   # KESİM: swanky_striker fotoları — dar düz palto, belden ters V
+			_garment("uzun_ceket", func(): return _cut_spec(g, neck + 0.0, knee - 0.06, 26, {"w": [[0.0, 0.8], [0.1, 0.98], [0.45, 0.96], [1.0, 1.2]], "d": [[0.0, 0.1], [1.0, 0.15]], "o": [[0.0, 0.0], [0.42, 0.0], [0.6, 0.7], [1.0, 1.75]], "n": 2.8}, 8, hips - 0.06, 0.025))   # KESİM: swanky_striker fotoları — dar düz palto, belden ters V
 		"omuz_kazak":
 			# omzu açık kısa kazak (Striker Sweet): göğüs üstünden (omuz hattı) belin üstüne; kollar dış giysi renginde, bilekte çan gibi açılır
 			_garment("omuz_kazak", func(): return _cut_spec(g, chest + 0.07, hips + 0.08, 14, {"w": [[0.0, 1.06], [1.0, 1.1]], "d": [[0.0, 0.12], [1.0, 0.13]], "n": 3.4}, 8, -99.0, 0.04))   # KESİM: sweet_striker — omzu açık bol kısa kazak
