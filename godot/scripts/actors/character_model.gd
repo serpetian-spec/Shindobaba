@@ -2802,7 +2802,7 @@ func _kisa_haori_kit(g: Dictionary) -> void:
 		var bc = _lc("outer2", oc)
 		if bc.is_equal_approx(oc):
 			bc = oc.darkened(0.08)
-		_sk_edge_band(0.034, 0.006, bc)   # yaka bandı (eri): açılım kenarı; ikinci renk farklıysa o renkte (Konan genç: sarı)
+		_sk_edge_band(0.034 if bc.is_equal_approx(oc.darkened(0.08)) else 0.05, 0.006, bc)   # yaka bandı (eri): açılım kenarı; ikinci renk farklıysa o renkte (Konan genç: sarı)
 		_sk_end(g)
 	var el = absf(_bp("LeftLowerArm").x)
 	for sx in [1.0, -1.0]:
