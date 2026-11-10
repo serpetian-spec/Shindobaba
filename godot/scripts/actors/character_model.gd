@@ -4969,7 +4969,7 @@ func _capraz_kayis_kit(g: Dictionary) -> void:
 	var sc: Color = look["cross_strap"]
 	var neck = _bp("Neck").y
 	var hips = _bp("Hips").y
-	var lift = 0.045 if look.get("outer_style") != null else 0.008
+	var lift = 0.045 if look.get("outer_style") != null else (0.035 if look.get("vest") != null else 0.008)
 	for fr in [true, false]:
 		_sk_path(Vector2(-0.12, neck - 0.04), Vector2(0.15, hips + 0.02), 0.024, 0.005, sc, fr, lift, 30, 0.05)
 	_sk_ring(1, hips + 0.04, 0.02, 0.006, sc, -PI, PI, 48, lift)
