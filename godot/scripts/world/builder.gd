@@ -369,9 +369,10 @@ func roof(p: Vector3, size: Vector3, col: Color, yaw := 0.0) -> void:
 ## Pürüzlü katmanlı kaya sütunu (Kumo/Iwa kuleleri, krater duvarı). p: taban merkezi
 func crag(p: Vector3, d: float, h: float, col: Color, variant := 0, collide := true, yaw := 0.0) -> void:
 	var wp = w(p)
-	_mb(wp, maxf(d, h)).add("crag", wp + Vector3(0, h * 0.5, 0), Vector3(d, h, d), col, Vector3(0, yaw, 0), (100 + variant % 16) if variant >= 100 else variant % 16)
+	var mv = (200 + variant % 16) if variant >= 200 else ((100 + variant % 16) if variant >= 100 else variant % 16)
+	_mb(wp, maxf(d, h)).add("crag", wp + Vector3(0, h * 0.5, 0), Vector3(d, h, d), col, Vector3(0, yaw, 0), mv)
 	if collide:
-		_collide_hull("crag", (100 + variant % 16) if variant >= 100 else variant % 16, wp + Vector3(0, h * 0.5, 0), Vector3(d, h, d), yaw)   # görünen kayanın kendisi: tek kalın silindir daralan/eğik tepede görünmez duvardı
+		_collide_hull("crag", mv, wp + Vector3(0, h * 0.5, 0), Vector3(d, h, d), yaw)   # görünen kayanın kendisi: tek kalın silindir daralan/eğik tepede görünmez duvardı
 
 
 ## Düzensiz kaya. p: merkez

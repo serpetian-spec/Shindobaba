@@ -52,7 +52,7 @@ static func _rocky(kind: String, variant: int) -> Array:
 	var st := SurfaceTool.new()
 	st.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var sides := 8
-	var rings := 9 if kind == "crag" else 6
+	var rings := (12 if variant >= 200 else 9) if kind == "crag" else 6
 	var pts := []
 	var lean := Vector2(rng.randf_range(-0.08, 0.08), rng.randf_range(-0.08, 0.08))
 	for r in rings + 1:
@@ -63,7 +63,10 @@ static func _rocky(kind: String, variant: int) -> Array:
 		if kind == "crag":
 			y = t - 0.5
 			var top_r := 0.36 if variant >= 100 else 0.2  # 100+: mesa (geniş düz tepe)
-			rr = lerpf(0.5, top_r, pow(t, 1.3)) * (1.0 + (0.12 if r % 2 == 1 else -0.04))  # strata çıkıntıları
+			if variant >= 200:   # 200+: sivri kaya iğnesi (Kumo ref: ucu incelen zirve)
+				rr = lerpf(0.5, 0.025, pow(t, 0.85)) * (1.0 + (0.14 if r % 2 == 1 else -0.05))
+			else:
+				rr = lerpf(0.5, top_r, pow(t, 1.3)) * (1.0 + (0.12 if r % 2 == 1 else -0.04))  # strata çıkıntıları
 		else:
 			var ang := lerpf(-PI * 0.5, PI * 0.5, t)
 			y = sin(ang) * 0.5

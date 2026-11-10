@@ -70,8 +70,16 @@ static func _band(b: Builder, x: float, n: float, y: float, r: float, col: Color
 ## pencereler; üstte renkli (mavi / mor / pembe) geniş başlık bandı, çoğunun tepesinde yeşillik (çatı bahçesi); alçak geniş yuvarlak yapılar da var.
 static func kiri_house(b: Builder, x: float, n: float, wdt: float, dep: float, floors: int, yaw: float, rng: RandomNumberGenerator) -> void:
 	var c = Color(0.74, 0.64, 0.62).lerp(Color(0.68, 0.66, 0.68), rng.randf()).darkened(rng.randf_range(0.0, 0.12))
-	var cap = [Color(0.32, 0.4, 0.66), Color(0.46, 0.36, 0.58), Color(0.74, 0.5, 0.58), Color(0.36, 0.5, 0.6)][rng.randi() % 4]
-	var low = rng.randf() < 0.22
+	# ref (anime/manga Kiri): soluk gri-pembe gövdeler, başlıklar kırık tonlu (gri-mavi / kızıl-kahve), çoğunun tepesi bahçe
+	var cap = [Color(0.42, 0.46, 0.56), Color(0.5, 0.32, 0.32), Color(0.56, 0.5, 0.52), Color(0.4, 0.5, 0.54)][rng.randi() % 4]
+	var roll = rng.randf()
+	if roll < 0.2:
+		_kiri_block(b, x, n, wdt, dep, floors, yaw, rng, c)
+		return
+	if roll < 0.32:
+		_kiri_hut(b, x, n, minf(wdt, dep), yaw, rng, c)
+		return
+	var low = roll < 0.42
 	var d = minf(wdt, dep) * (1.0 if low else rng.randf_range(0.78, 0.95))   # kısa kenar: kule yuvasından taşıp komşusunun içine geçmesin
 	var hgt = 5.0 if low else (floors + rng.randi_range(2, 5)) * 4.0
 	b.cyl(Vector3(x, hgt * 0.5, n), d, hgt, c, true, 18)
@@ -95,13 +103,53 @@ static func kiri_house(b: Builder, x: float, n: float, wdt: float, dep: float, f
 	b.cyl(Vector3(x, hgt + 1.45, n), d + 1.2, 0.2, cap.darkened(0.2), true, 18)
 	if low:
 		b.cyl(Vector3(x, hgt + 1.3, n), d * 0.9, 0.2, Color(0.82, 0.84, 0.86), false, 18)
-	elif rng.randf() < 0.65:
+	elif rng.randf() < 0.85:
 		for k in 5:   # çatı bahçesi: çalı kümeleri
 			var a = rng.randf() * TAU
 			var rr = rng.randf_range(0.0, d * 0.3)
 			b.sphere(Vector3(x + cos(a) * rr, hgt + 2.2 + rng.randf_range(0, 0.6), n + sin(a) * rr), Vector3(d * 0.45, d * 0.3, d * 0.45), Color(0.24, 0.44, 0.24).lightened(rng.randf_range(0, 0.1)), 8)
 	else:
 		b.dome(Vector3(x, hgt + 1.5, n), d + 0.4, d * 0.3, cap.lightened(0.08), 16)
+	var fo = Builder.rot(0, -d * 0.5 - 0.05, yaw)
+	DoorKit.door(b, x + fo.x, n + fo.y, 0.0, yaw, "kiri", rng)
+
+
+## Kiri apartman bloğu (ref: yüksek dikdörtgen kule, yatay pencere şeritleri, düz bahçe çatı)
+static func _kiri_block(b: Builder, x: float, n: float, wdt: float, dep: float, floors: int, yaw: float, rng: RandomNumberGenerator, c: Color) -> void:
+	var w0 = minf(wdt, 18.0) * 0.9
+	var d0 = minf(dep, 14.0) * 0.9
+	var hgt = (floors + rng.randi_range(3, 6)) * 3.6
+	b.box(Vector3(x, hgt * 0.5, n), Vector3(w0, hgt, d0), c, yaw)
+	var y = 3.0
+	while y < hgt - 1.5:
+		for side in [-1.0, 1.0]:   # ön ve arka yüzde yatay pencere şeridi
+			var o = Builder.rot(0, side * (d0 * 0.5 + 0.06), yaw)
+			b.box(Vector3(x + o.x, y, n + o.y), Vector3(w0 * 0.86, 1.1, 0.15), Color(0.2, 0.19, 0.22), yaw, false)
+		for side in [-1.0, 1.0]:
+			var o2 = Builder.rot(side * (w0 * 0.5 + 0.06), 0, yaw)
+			b.box(Vector3(x + o2.x, y, n + o2.y), Vector3(0.15, 1.1, d0 * 0.8), Color(0.2, 0.19, 0.22), yaw, false)
+		y += 3.6
+	b.box(Vector3(x, hgt + 0.4, n), Vector3(w0 + 0.6, 0.8, d0 + 0.6), c.darkened(0.15), yaw)
+	for k in 4:
+		var o3 = Builder.rot(rng.randf_range(-w0, w0) * 0.3, rng.randf_range(-d0, d0) * 0.3, yaw)
+		b.sphere(Vector3(x + o3.x, hgt + 1.6, n + o3.y), Vector3(w0 * 0.4, 2.6, d0 * 0.4), Color(0.26, 0.44, 0.25).lightened(rng.randf() * 0.1), 8)
+	var fo = Builder.rot(0, -d0 * 0.5 - 0.05, yaw)
+	DoorKit.door(b, x + fo.x, n + fo.y, 0.0, yaw, "kiri", rng)
+
+
+## Kiri yuvarlak kulübe (ref: alçak iki kademeli beyaz yuvarlak yapı, koyu bant, basık kubbe)
+static func _kiri_hut(b: Builder, x: float, n: float, d: float, yaw: float, rng: RandomNumberGenerator, c: Color) -> void:
+	var w = Color(0.86, 0.85, 0.82)
+	b.cyl(Vector3(x, 2.4, n), d, 4.8, w, true, 18)
+	b.cyl(Vector3(x, 4.6, n), d + 0.4, 0.8, Color(0.3, 0.28, 0.3), false, 18)
+	b.cyl(Vector3(x, 6.6, n), d * 0.7, 3.6, w.darkened(0.04), true, 18)
+	b.cyl(Vector3(x, 8.3, n), d * 0.7 + 0.3, 0.5, Color(0.3, 0.28, 0.3), false, 18)
+	b.dome(Vector3(x, 8.4, n), d * 0.66, d * 0.16, w.lightened(0.04), 16)
+	var cnt = maxi(4, int(d * 0.6))
+	for k in cnt:
+		var a = yaw + 360.0 * k / cnt
+		var o = Builder.rot(0, d * 0.5 + 0.05, a)
+		b.box(Vector3(x + o.x, 2.8, n + o.y), Vector3(1.2, 1.0, 0.2), Color(0.2, 0.2, 0.24), a, false)
 	var fo = Builder.rot(0, -d * 0.5 - 0.05, yaw)
 	DoorKit.door(b, x + fo.x, n + fo.y, 0.0, yaw, "kiri", rng)
 
@@ -238,9 +286,7 @@ static func snow_house(b: Builder, x: float, n: float, wdt: float, dep: float, f
 
 ## ---------------------------------------------------------------- uçuşan sis / bulut kartları (Kiri sisi, Kumo bulutları)
 static var _mist_mat: StandardMaterial3D
-static func mist(b: Builder, count: int, rmin: float, rmax: float, ymin: float, ymax: float, size: float, rng: RandomNumberGenerator, alpha := 0.32, col := Color(0.92, 0.95, 1.0)) -> void:
-	if not is_instance_valid(b.root):
-		return
+static func _mist_material() -> void:
 	if _mist_mat == null:
 		_mist_mat = StandardMaterial3D.new()
 		_mist_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
@@ -253,6 +299,12 @@ static func mist(b: Builder, count: int, rmin: float, rmax: float, ymin: float, 
 		_mist_mat.distance_fade_min_distance = 10.0
 		_mist_mat.distance_fade_max_distance = 60.0
 		_mist_mat.disable_receive_shadows = true
+
+
+static func mist(b: Builder, count: int, rmin: float, rmax: float, ymin: float, ymax: float, size: float, rng: RandomNumberGenerator, alpha := 0.32, col := Color(0.92, 0.95, 1.0)) -> void:
+	if not is_instance_valid(b.root):
+		return
+	_mist_material()
 	var mm = MultiMesh.new()
 	mm.transform_format = MultiMesh.TRANSFORM_3D
 	mm.use_colors = true
@@ -268,6 +320,70 @@ static func mist(b: Builder, count: int, rmin: float, rmax: float, ymin: float, 
 		var p = b.w(Vector3(r * sin(a), rng.randf_range(ymin, ymax), r * cos(a))) - b.root.global_position
 		mm.set_instance_transform(i, Transform3D(Basis.from_scale(Vector3(s * 1.8, s, s)), p))
 		mm.set_instance_color(i, Color(col.r, col.g, col.b, alpha * rng.randf_range(0.6, 1.0)))
+	var mi = MultiMeshInstance3D.new()
+	mi.multimesh = mm
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mi.visibility_range_end = b.view_dist
+	b.root.add_child(mi)
+
+
+## Belirli noktalara sis kartları (Kumo: kaya iğnelerinin belini saran bulut kuşakları). pts: yerel Vector3 listesi
+static func mist_points(b: Builder, pts: Array, size: float, rng: RandomNumberGenerator, alpha := 0.4, col := Color(0.95, 0.97, 1.0)) -> void:
+	if not is_instance_valid(b.root) or pts.is_empty():
+		return
+	_mist_material()
+	var mm = MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_colors = true
+	var q = QuadMesh.new()
+	q.size = Vector2(1, 1)
+	q.material = _mist_mat
+	mm.mesh = q
+	mm.instance_count = pts.size()
+	for i in pts.size():
+		var s = size * rng.randf_range(0.7, 1.3)
+		var p = b.w(pts[i]) - b.root.global_position
+		mm.set_instance_transform(i, Transform3D(Basis.from_scale(Vector3(s * 2.2, s, s)), p))
+		mm.set_instance_color(i, Color(col.r, col.g, col.b, alpha * rng.randf_range(0.7, 1.0)))
+	var mi = MultiMeshInstance3D.new()
+	mi.multimesh = mm
+	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	mi.visibility_range_end = b.view_dist
+	b.root.add_child(mi)
+
+
+## Işık huzmeleri (Taki ref: dev ağacın tacından göle inen soluk ışık şeritleri): çapraz iki yumuşak kart, eğik
+static var _shaft_mat: StandardMaterial3D
+static func light_shafts(b: Builder, pts: Array, length: float, width: float, rng: RandomNumberGenerator, col := Color(0.85, 1.0, 0.95, 0.16)) -> void:
+	if not is_instance_valid(b.root):
+		return
+	if _shaft_mat == null:
+		_shaft_mat = StandardMaterial3D.new()
+		_shaft_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		_shaft_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		_shaft_mat.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+		_shaft_mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+		_shaft_mat.albedo_texture = FX.tex_soft
+		_shaft_mat.vertex_color_use_as_albedo = true
+		_shaft_mat.disable_receive_shadows = true
+	var mm = MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.use_colors = true
+	var q = QuadMesh.new()
+	q.size = Vector2(1, 1)
+	q.material = _shaft_mat
+	mm.mesh = q
+	mm.instance_count = pts.size() * 2
+	for i in pts.size():
+		var yaw = rng.randf() * TAU
+		var tilt = deg_to_rad(rng.randf_range(12, 22))
+		var L = length * rng.randf_range(0.7, 1.15)
+		var base = Basis(Vector3.UP, yaw) * Basis(Vector3.RIGHT, tilt)
+		var p = b.w(pts[i]) - b.root.global_position
+		for k in 2:
+			var bb = base * Basis(Vector3.UP, PI * 0.5 * k) * Basis.from_scale(Vector3(width, L, 1.0))
+			mm.set_instance_transform(i * 2 + k, Transform3D(bb, p))
+			mm.set_instance_color(i * 2 + k, Color(col.r, col.g, col.b, col.a * rng.randf_range(0.6, 1.0)))
 	var mi = MultiMeshInstance3D.new()
 	mi.multimesh = mm
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
