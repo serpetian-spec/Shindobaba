@@ -2769,7 +2769,7 @@ func _bb_host(e: Dictionary, id: String, h: Dictionary) -> void:
 	e["beast"] = id
 	e["name"] = String(h["name"])
 	e["village"] = String(h["village"])
-	e["level"] = maxi(int(e["level"]), int(h.get("level", 40)))
+	e["level"] = maxi(maxi(int(e["level"]), int(h.get("level", 100))), 100)   # kaçak jinchūriki de en az Güç 100
 	e["hp"] = 260.0 + int(e["level"]) * 24.0
 	e["power"] = Stats.npc_power(int(e["level"]))
 	e["look"]["gender"] = String(h.get("gender", "m"))

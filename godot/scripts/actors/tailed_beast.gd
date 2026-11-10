@@ -42,12 +42,12 @@ func setup(beast_id: String) -> void:
 	height = float(info["height"])
 	radius = height * 0.24
 	size = 1.0
-	# efsanevi canavarlar: Sv. 60 (Shukaku) .. 100 (Kurama); can ve güç seviyeyle (eskiden çok zayıftı)
-	level = 55 + num * 5
+	# efsanevi canavarlar: Güç 100 (Shukaku) .. 180 (Kurama); can ve güç seviyeyle
+	level = 100 + (num - 1) * 10   # kullanıcı: bijūlar aşırı zayıftı -> en zayıfı (Shukaku) Güç 100, Kurama 180
 	display_name = String(info["name"])   # seviye yazısı yok (ustalık sistemi)
 	max_hp = 9000.0 + num * 4200.0 + (14000.0 if id == "kurama" else 0.0)
 	hp = max_hp
-	power = 4.0 + num * 0.7
+	power = Stats.npc_power(level) * 1.2   # aynı Güç'teki ninjadan sert (eskiden Shukaku 4.7 < Güç 100 ninja 5.5)
 	poise = 99.0
 
 

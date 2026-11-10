@@ -20,7 +20,7 @@ const LAIRS := {
 }
 const SPAWN_R := 1800.0
 const DESPAWN_R := 2800.0
-const MIN_LEVEL := 20
+const MIN_LEVEL := 100
 
 var spawned := {}        # id -> TailedBeast
 var warned := {}
@@ -64,7 +64,7 @@ func beasts() -> Dictionary:
 
 # ------------------------------------------------------------------ dinamik jinchūriki (köy taşıyıcıları, kaçaklar)
 func _new_host(id: String, vid: String, rogue := false) -> Dictionary:
-	var lv = randi_range(32, 55)
+	var lv = randi_range(100, 140)   # kullanıcı: jinchūriki aşırı zayıftı (32-55) -> en az Güç 100
 	return {"name": "%s %s" % [HOST_FAMILY.pick_random(), HOST_GIVEN.pick_random()], "village": vid, "rogue": rogue, "level": lv,
 		"gender": ["m", "f"].pick_random()}
 
@@ -643,7 +643,10 @@ func _host_npcs() -> void:
 			vg.display_override = "%s (%s jinchūriki)" % [String(h["name"]), _bname(id)]
 			vg.lines_override = ["İçimdeki %s'i kontrol etmek ömür boyu süren bir antrenman." % _bname(id), "Köyüm beni silah olarak görüyor... ama ben onu korumayı seçtim.",
 				"Bana bakan gözlerden korku okuyorum. Alıştım."]
-			vg.look_extra = {"gender": String(h.get("gender", "m")), "age": "adult"}
+			# kendi köyünün ninja kıyafeti (yalnız cinsiyet/yaş verilince köylü kıyafet kurmuyordu: her köyde varsayılan Konoha yeleği)
+			var jl = Outfits.roll("jonin", vid)
+			jl.merge({"gender": String(h.get("gender", "m")), "age": "adult", "village": vid, "npc": true}, true)
+			vg.look_extra = jl
 			get_tree().current_scene.add_child(vg)
 			vg.global_position = at
 			vg.home = at
@@ -667,7 +670,7 @@ func attack_host(vg: Node3D) -> void:
 	var at = vg.global_position
 	var vid = String(h.get("village", "konoha"))
 	var a = Enemy.archetype("jinchuriki", 0)
-	var lv = int(h.get("level", 90 + LAIRS.keys().find(id) * 8))
+	var lv = maxi(int(h.get("level", 100 + LAIRS.keys().find(id) * 8)), 100)   # eski kayıtların zayıf taşıyıcıları da en az Güç 100
 	Stats.npc_ninja(a, lv, 1.6)
 	a["name"] = "%s (%s jinchūriki)" % [String(h.get("name", "Jinchūriki")), _bname(id)]
 	a["beast"] = id
