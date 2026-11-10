@@ -1450,7 +1450,7 @@ func _sandals() -> void:
 		match look.get("foot_style", "sandal"):
 			"tabi", "shinobi":
 				ring_defs = [[1, fp.y + 0.02, 0.004, 0.006, 99.0]]  # ayak shader'da kapalı, sadece bilek bağı
-			"zori":
+			"zori", "terlik":
 				ring_defs = [[2, fp.z + 0.11, 0.004, 0.006, 0.07]]
 			"cizme", "yuksek_sandal", "bilek_bot", "diz_cizme", "sargili_bot", "zirhli_tozluk":
 				ring_defs = OutfitParts.foot_rings(look["foot_style"], fp)
