@@ -2544,6 +2544,10 @@ func _uzun_ceket_kit(g: Dictionary) -> void:
 
 ## Hırka ayrıntıları (ref refs/outfits_ss/full/wonder_1.jpg, wonder_4.jpg): önde boydan boya geniş ribana pervaz (yatay örgü
 ## çizgili), etekte ribana bant, bilekte kalın ribana manşet; Star varyantında ribana yok (düz kenar)
+func _hirka_key() -> String:
+	return "hirka_k" if look.get("hirka_short") == true else "hirka"
+
+
 func _hirka_kit(g: Dictionary) -> void:
 	var oc: Color = _lc("outer", Color(0.9, 0.9, 0.92))
 	var hk: Dictionary = look.get("hk") if look.get("hk") is Dictionary else {}
@@ -2551,7 +2555,7 @@ func _hirka_kit(g: Dictionary) -> void:
 		var tc = look.get("outer2")
 		if tc is Color:
 			# ref minato_outfit_genin_ver: ön kenar, etek ve kol ağzında koyu lacivert biye
-			var hm2 = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "hirka", 0.0])
+			var hm2 = _garment_cache.get("%s|%s|%.3f" % [look["gender"], _hirka_key(), 0.0])
 			if hm2 != null and _sk_begin(hm2):
 				_sk_edge_band(0.022, 0.005, tc)
 				var V2: PackedVector3Array = _sk["v"]
@@ -2564,6 +2568,12 @@ func _hirka_kit(g: Dictionary) -> void:
 					if absf(q.y - (yb2 + 0.015)) < hd:
 						hd = absf(q.y - (yb2 + 0.015)); hy = q.y
 				_sk_ring(1, hy, 0.025, 0.005, tc, -PI, PI, 56, 0.004)
+				_sk_end(g)
+			if look.get("hirka_short") == true and _sk_begin(_shell_cache.get(look["gender"])):   # ref obito_outfit_gaiden_ver: biyeli geniş dik yaka
+				var nk = _bp("Neck").y
+				var oc2: Color = look["outer"] if look.get("outer") is Color else tc
+				_sk_ring(1, nk + 0.01, 0.09, 0.012, oc2, 0.45, TAU - 0.45, 36, 0.03, 0.0, 0.0, 0.13)
+				_sk_ring(1, nk + 0.055, 0.014, 0.016, tc, 0.45, TAU - 0.45, 36, 0.03, 0.0, 0.0, 0.13)
 				_sk_end(g)
 			var hx = absf(_bp("LeftHand").x)
 			for sx in [1.0, -1.0]:
@@ -2579,7 +2589,7 @@ func _hirka_kit(g: Dictionary) -> void:
 	var rc: Color = hk.get("rib_col", oc.darkened(0.1))
 	var lc: Color = rc.darkened(0.18)
 	var neck = _bp("Neck").y
-	var hm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "hirka", 0.0])
+	var hm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], _hirka_key(), 0.0])
 	if hm != null and _sk_begin(hm):
 		var V: PackedVector3Array = _sk["v"]
 		var ybot = 9.0
@@ -5199,7 +5209,7 @@ func _garments(g: Dictionary) -> void:
 		"hirka":
 			# önü açık hırka (Striker Wonder): boyundan kalçanın altına bol düz gövde; ön açıklık boydan boya,
 			# kollar omuzdan bileğe ayrı bol "piskopos" kol (dirsekten sonra şişer, bilekte manşete toplanır)
-			_garment("hirka", func(): return _cut_spec(g, neck - 0.01, hips - 0.17, 20, {"w": [[0.0, 0.85], [0.1, 1.08], [1.0, 1.1]], "d": [[0.0, 0.12], [1.0, 0.14]], "o": [[0.0, 0.5], [1.0, 0.6]], "n": 3.4}, 8, hips - 0.03, 0.035))   # KESİM: wonder_striker — kutu kesim düşük omuz hırka
+			_garment(_hirka_key(), func(): return _cut_spec(g, neck - 0.01, hips + 0.14 if look.get("hirka_short") == true else hips - 0.17, 20, {"w": [[0.0, 0.85], [0.1, 1.08], [1.0, 1.1]], "d": [[0.0, 0.12], [1.0, 0.14]], "o": [[0.0, 0.5], [1.0, 0.6]], "n": 3.4}, 8, hips - 0.03, 0.035))   # KESİM: wonder_striker — kutu kesim düşük omuz hırka
 			_cut_sleeve(g, "hirka_kol", [[0.0, 0.06], [0.35, 0.07], [0.75, 0.085], [0.92, 0.06], [1.0, 0.045]], 0.045)   # KESİM: wonder — dirsekten sonra şişen, manşette toplanan bol kol
 		"uzun_ceket":
 			# uzun ceket (Striker Swanky): dik yakalı, dize inen; belden aşağı önde ters V açılır (sivri uçlu iki kanat)
