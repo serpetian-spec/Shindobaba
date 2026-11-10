@@ -1152,8 +1152,9 @@ func _cloth_mat(layer: int) -> ShaderMaterial:
 	mat.set_shader_parameter("inner_col", kgd["inner"] if kgd.get("inner") is Color else Color(0, 0, 0, 0))   # gi V yakasında iç giysi
 	mat.set_shader_parameter("pants_pipe", look.get("pants_pipe") if look.get("pants_pipe") is Color else Color(0, 0, 0, 0))
 	mat.set_shader_parameter("vest_style", int(look.get("vest_style", 0)))
-	mat.set_shader_parameter("gloves", bool(look.get("gloves", false)))
-	mat.set_shader_parameter("arm_wraps", bool(look.get("arm_wraps", false)))
+	mat.set_shader_parameter("gloves", look.get("gloves") == true)
+	mat.set_shader_parameter("arm_wraps", look.get("arm_wraps") == true)
+	mat.set_shader_parameter("arm_wraps_full", look.get("arm_wraps_full") == true)
 	mat.set_shader_parameter("no_wraps", look.get("no_wraps") == true)
 	var os_ = String(look.get("outer_style", "")) if look.get("outer_style") != null else ""
 	# yelek dış giysinin altında: önü açık giysilerde (haori, palto, jinbaori) yalnız açıklık kadarı görünür, kapalı pelerinde gizli
@@ -1876,6 +1877,12 @@ func _cut_sleeve(g: Dictionary, key: String, r: Array, end_off := 0.05, slot := 
 ## Normaller + ağırlık aktarımı + iç yüz (çift taraflı) → iskelete bağlanacak mesh
 func _skinned_mesh(g: Dictionary, verts: PackedVector3Array, custom: PackedFloat32Array, idx: PackedInt32Array, skirt_y: float, hips_full := false) -> ArrayMesh:
 	var n = verts.size()
+	# uzun kalıp (dizin altına inen cübbe/elbise): bacak payı uyluk ortasından başlar; kısa etekte yalnız diz hizası (arada yarılmasın)
+	var vmin_y = 9.0
+	if hips_full:
+		for q in verts:
+			vmin_y = minf(vmin_y, q.y)
+	var share_top = 0.38 if vmin_y < _bp("LeftLowerLeg").y - 0.1 else 0.15
 	var nrm = PackedVector3Array()
 	nrm.resize(n)
 	for t in range(0, idx.size(), 3):
@@ -1916,7 +1923,7 @@ func _skinned_mesh(g: Dictionary, verts: PackedVector3Array, custom: PackedFloat
 			if hips_full and blend > 0.5:
 				# kalıp etek/cübbe: o yandaki uyluğu kısmen izlesin -> duruşta/yürürken öne çıkan bacak kumaşı da açar, içinden çıkmaz
 				var leg_bi = _bind_index("LeftUpperLeg" if verts[i].x > 0.0 else "RightUpperLeg")
-				var share = (0.8 if verts[i].z > 0.02 else 0.45) * clampf(absf(verts[i].x) / 0.06, 0.0, 1.0) * clampf((_bp("LeftLowerLeg").y + 0.15 - verts[i].y) / 0.2, 0.0, 1.0)   # yalnız diz hizası ve altı (kısa etek bacak arasında yarılmasın)
+				var share = (0.85 if verts[i].z > 0.02 else 0.75) * clampf(absf(verts[i].x) / 0.04, 0.0, 1.0) * clampf((_bp("LeftLowerLeg").y + share_top - verts[i].y) / 0.3, 0.0, 1.0)   # uyluk ortasından aşağı (kısa etek bacak arasında yarılmasın)
 				if leg_bi >= 0 and share > 0.0:
 					for e in wb:
 						e[1] = e[1] * (1.0 - share)
@@ -3419,7 +3426,24 @@ func _rikudo_cubbe_kit(g: Dictionary) -> void:
 	for q in V:
 		if absf(q.y - (hips + 0.1)) < bd:
 			bd = absf(q.y - (hips + 0.1)); by = q.y
-	_sk_ring(1, by, 0.08, 0.01, Color(0.14, 0.16, 0.36), -PI, PI, 56, 0.004, 0.0, 0.0, 0.34)
+	if look.get("robe_madara") != true:
+		_sk_ring(1, by, 0.08, 0.01, Color(0.14, 0.16, 0.36), -PI, PI, 56, 0.004, 0.0, 0.0, 0.34)
+	else:
+		# Madara Rikudō (ref madara_outfit_2): obi yok; yakanın içi koyu, etek ucunda bir sıra siyah magatama
+		_sk_ring(1, neck + 0.03, 0.08, 0.006, Color(0.16, 0.08, 0.1), 0.6, TAU - 0.6, 30, 0.004, 0.0, 0.0, 0.12)
+		var ybot = 9.0
+		for q in V:
+			ybot = minf(ybot, q.y)
+		var yr = ybot + 0.06
+		for fr in [true, false]:
+			for k in 7:
+				var x = -0.18 + k * 0.06
+				var h = _sk_hit(x, yr, fr, 0.04)
+				if h.is_empty():
+					continue
+				var n: Vector3 = (h[1] as Vector3).normalized()
+				_sk_disc(h[0] + n * 0.004, n, 0.013, 0.003, Color(0.1, 0.1, 0.12))
+				_sk_box((h[0] as Vector3) + n * 0.005 + Vector3(0.008, -0.012, 0), Vector3(0.004, 0, 0), Vector3(0.003, 0.009, 0), n * 0.002, Color(0.1, 0.1, 0.12))   # magatama kuyruğu
 	_sk_end(g)
 
 
@@ -4253,6 +4277,21 @@ func _savas_cubbe_kit(g: Dictionary) -> void:
 		for q in V:
 			yb = minf(yb, q.y)
 		_sk_strip(-0.035, _bp("Neck").y - 0.02, yb + 0.02, 0.008, 0.004, look["robe_stripe"], 44)
+	if look.get("robe_strap") is Color:
+		# Madara savaş kıyafeti (ref madara_outfit_battle_attire_ver): soldan çapraz kahve kayış, belde ince koyu kemer + toka
+		var neck = _bp("Neck").y
+		var sc: Color = look["robe_strap"]
+		_sk_path(Vector2(-0.11, neck - 0.04), Vector2(0.15, hips + 0.1), 0.03, 0.006, sc, true, 0.008, 30, 0.04)
+		_sk_path(Vector2(-0.11, neck - 0.04), Vector2(0.15, hips + 0.1), 0.03, 0.006, sc, false, 0.008, 30, 0.04)
+		var by2 = hips + 0.1
+		var bd2 = 9.0
+		for q in V:
+			if absf(q.y - (hips + 0.1)) < bd2:
+				bd2 = absf(q.y - (hips + 0.1)); by2 = q.y
+		_sk_ring(1, by2, 0.03, 0.007, Color(0.08, 0.08, 0.1), -PI, PI, 56, 0.006)
+		var hb = _sk_hit(0.0, by2, true, 0.04)
+		if not hb.is_empty():
+			_sk_box((hb[0] as Vector3) + Vector3(0, 0, 0.016), Vector3(0.02, 0, 0), Vector3(0, 0.017, 0), Vector3(0, 0, 0.004), Color(0.7, 0.72, 0.75))
 	_sk_end(g)
 
 
@@ -4935,7 +4974,7 @@ func _garments(g: Dictionary) -> void:
 		"savas_cubbe":
 			# savaş cübbesi (Striker Madara / Madara Battle / Madara Young; foto all/madara_outfit*): baldıra inen, kalçadan aşağı önden açılan hafif A;
 			# yüksek dik yaka; dirsekten çan gibi açılan geniş kollar
-			_garment("savas_cubbe", func(): return _cut_spec(g, neck + 0.0, ank + 0.14, 28, {"w": [[0.0, 0.9], [0.1, 1.06], [0.35, 1.08], [1.0, 1.5]], "d": [[0.0, 0.13], [1.0, 0.19]], "o": [[0.0, 0.0], [0.45, 0.0], [0.55, 0.2], [1.0, 0.5]], "n": 2.8}, 8, hips - 0.05, 0.035))
+			_garment("savas_cubbe", func(): return _cut_spec(g, neck + 0.0, ank + 0.2, 28, {"w": [[0.0, 0.9], [0.1, 1.06], [0.35, 1.08], [1.0, 1.5]], "d": [[0.0, 0.13], [1.0, 0.19]], "o": [[0.0, 0.0], [0.45, 0.0], [0.55, 0.2], [1.0, 0.5]], "n": 2.8}, 8, hips - 0.05, 0.035))
 			_garment("savas_yaka", func(): return _loft(g, 1, neck - 0.05, neck + 0.1, 8, func(p): return absf(p.x) < 0.17, func(t, _a): return 0.05 - t * 0.012, 8))
 			_cut_sleeve(g, "savas_kol", [[0.0, 0.068], [0.5, 0.085], [1.0, 0.13]], 0.03, 8, 2.6)
 		"mei_elbise":

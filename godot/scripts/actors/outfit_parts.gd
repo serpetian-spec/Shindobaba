@@ -14,7 +14,7 @@ static func _hem(m: CharacterModel) -> float:
 	var knee = m._bp("LeftLowerLeg").y; var hips = m._bp("Hips").y; var ank = m._bp("LeftFoot").y; var chest = m._bp("UpperChest").y
 	return {"palto": knee + 0.02, "pelerin": knee - 0.06, "haori": hips - 0.16, "kisa": chest - 0.3, "org_pelerin": ank + 0.12,
 		"panco": hips - 0.04, "yirtik": knee - 0.12, "jinbaori": knee + 0.08, "cuppe": ank + 0.1, "mino": knee - 0.02,
-		"haori_uzun": knee - 0.04, "kesa": hips - 0.05, "anbu_palto": knee + 0.07, "acik_ceket": hips + 0.035, "kiri_tunik": hips - 0.15, "bulut_etek": knee - 0.03, "kaya_gi": hips - 0.13, "suna_tunik": hips - 0.12, "sisme_yelek": hips + 0.02, "flamingo_elbise": hips - 0.27, "kapusonlu": hips - 0.06, "omuz_kazak": hips + 0.08, "uzun_ceket": knee - 0.06, "hirka": hips - 0.1, "onluk": hips - 0.22, "esofman_ceket": hips - 0.04, "kisa_haori": hips - 0.1, "kizil_palto": knee - 0.3, "hinata_ceket": hips - 0.08, "kirpik_kapusonlu": hips + 0.15, "yirtmacli_etek": hips - 0.27, "sargi_etek_uzun": ank + 0.16, "yilan_cubbe": ank + 0.03, "algi_ceket": hips - 0.13, "sargi_elbise": hips - 0.2, "onluk_elbise": ank + 0.17, "iki_ton_kimono": hips - 0.2, "turuncu_ceket": hips - 0.03, "kisa_bolero": hips + 0.13, "panel_etek": hips - 0.19, "uzun_panel_ust": hips - 0.21, "bel_ortusu": knee + 0.02, "kolsuz_palto": hips - 0.16, "kuyruklu_ceket": knee - 0.04, "kisa_kimono": hips - 0.22, "gunes_kimono": knee - 0.1, "genis_gomlek": hips - 0.06, "uzun_trench": knee - 0.02, "rikudo_cubbe": ank + 0.05, "yirtik_esofman": hips - 0.06, "kutlama_kimono": ank + 0.2, "kolsuz_kimono": hips + 0.1, "takim_yelek": hips - 0.05, "seytan_kapuson": hips + 0.12, "danzo_ortu": hips - 0.24, "delta_elbise": hips - 0.18, "kabarik_bluz": hips + 0.05, "kurbaga_kigurumi": ank + 0.01, "uzun_robe": ank + 0.03, "buyuk_kapusonlu": hips - 0.12, "kisa_kollu_kazak": hips + 0.05, "gelinlik": ank + 0.01, "sarma_mini": hips - 0.23, "inojin_ceket": chest - 0.2, "isshiki_palto": knee - 0.05, "itachi_tunik": hips - 0.18, "edo_cubbe": ank + 0.12, "kolsuz_trench": knee - 0.12, "jigen_cubbe": ank + 0.1, "sennin_yelek": knee + 0.1, "kaguya_kimono": ank - 0.03, "rokudaime_cubbe": ank + 0.04, "kawaki_palto": knee + 0.02, "kawaki_okul": knee - 0.14, "kawaki_ruro": knee - 0.02, "kukla_onluk": hips - 0.24, "kaguya_cubbe": ank - 0.04, "haku_yukata": knee - 0.08, "savas_cubbe": ank + 0.14, "mei_elbise": ank + 0.12, "hokage_haori": knee - 0.02, "bel_ceket": hips - 0.26, "cin_elbise": knee - 0.02, "sarada_elbise": hips - 0.2, "gezgin_palto": knee - 0.04, "yagura_ortu": knee, "capraz_haori": hips + 0.04, "koji_ceket": hips + 0.03}.get(str(m.look.get("outer_style", "")), knee)
+		"haori_uzun": knee - 0.04, "kesa": hips - 0.05, "anbu_palto": knee + 0.07, "acik_ceket": hips + 0.035, "kiri_tunik": hips - 0.15, "bulut_etek": knee - 0.03, "kaya_gi": hips - 0.13, "suna_tunik": hips - 0.12, "sisme_yelek": hips + 0.02, "flamingo_elbise": hips - 0.27, "kapusonlu": hips - 0.06, "omuz_kazak": hips + 0.08, "uzun_ceket": knee - 0.06, "hirka": hips - 0.1, "onluk": hips - 0.22, "esofman_ceket": hips - 0.04, "kisa_haori": hips - 0.1, "kizil_palto": knee - 0.3, "hinata_ceket": hips - 0.08, "kirpik_kapusonlu": hips + 0.15, "yirtmacli_etek": hips - 0.27, "sargi_etek_uzun": ank + 0.16, "yilan_cubbe": ank + 0.03, "algi_ceket": hips - 0.13, "sargi_elbise": hips - 0.2, "onluk_elbise": ank + 0.17, "iki_ton_kimono": hips - 0.2, "turuncu_ceket": hips - 0.03, "kisa_bolero": hips + 0.13, "panel_etek": hips - 0.19, "uzun_panel_ust": hips - 0.21, "bel_ortusu": knee + 0.02, "kolsuz_palto": hips - 0.16, "kuyruklu_ceket": knee - 0.04, "kisa_kimono": hips - 0.22, "gunes_kimono": knee - 0.1, "genis_gomlek": hips - 0.06, "uzun_trench": knee - 0.02, "rikudo_cubbe": ank + 0.05, "yirtik_esofman": hips - 0.06, "kutlama_kimono": ank + 0.2, "kolsuz_kimono": hips + 0.1, "takim_yelek": hips - 0.05, "seytan_kapuson": hips + 0.12, "danzo_ortu": hips - 0.24, "delta_elbise": hips - 0.18, "kabarik_bluz": hips + 0.05, "kurbaga_kigurumi": ank + 0.01, "uzun_robe": ank + 0.03, "buyuk_kapusonlu": hips - 0.12, "kisa_kollu_kazak": hips + 0.05, "gelinlik": ank + 0.01, "sarma_mini": hips - 0.23, "inojin_ceket": chest - 0.2, "isshiki_palto": knee - 0.05, "itachi_tunik": hips - 0.18, "edo_cubbe": ank + 0.12, "kolsuz_trench": knee - 0.12, "jigen_cubbe": ank + 0.1, "sennin_yelek": knee + 0.1, "kaguya_kimono": ank - 0.03, "rokudaime_cubbe": ank + 0.04, "kawaki_palto": knee + 0.02, "kawaki_okul": knee - 0.14, "kawaki_ruro": knee - 0.02, "kukla_onluk": hips - 0.24, "kaguya_cubbe": ank - 0.04, "haku_yukata": knee - 0.08, "savas_cubbe": ank + 0.2, "mei_elbise": ank + 0.12, "hokage_haori": knee - 0.02, "bel_ceket": hips - 0.26, "cin_elbise": knee - 0.02, "sarada_elbise": hips - 0.2, "gezgin_palto": knee - 0.04, "yagura_ortu": knee, "capraz_haori": hips + 0.04, "koji_ceket": hips + 0.03}.get(str(m.look.get("outer_style", "")), knee)
 
 
 ## Kumaş shader'ına yeni parametreler
@@ -427,6 +427,7 @@ static func _sengoku(m: CharacterModel, L: Dictionary, ch: Vector3, hip: Vector3
 		lo.add("cyl", Vector3(0, -k * 0.065 - 0.03, 0), Vector3(tw * (0.91 + k * 0.03), 0.01, td * (0.99 + k * 0.03)), trim, Vector3.ZERO, 18)
 	lo.add("cyl", Vector3(0, -0.2, 0), Vector3(tw * 1.0, 0.05, td * 1.08), Color(0.12, 0.1, 0.1), Vector3.ZERO, 18)   # kuşak
 	m._mesh_on("Hips", lo.build(toon), Transform3D(Basis.IDENTITY, hip + Vector3(0, 0.22, 0)))
+	var po = 0.06 if (L.get("outer_style") != null or L.get("hakama") == true) else 0.0   # cübbe üstünde: plaka etek kumaşın dışına (ref madara_outfit: cübbenin önünde dize inen plaka)
 	# omuzluklar (sode): kolun üstünde, omuzdan dirseğe doğru 5 kat binen geniş plaka
 	for side in ["Left", "Right"]:
 		var ua = m._bp(side + "UpperArm")
@@ -448,13 +449,27 @@ static func _sengoku(m: CharacterModel, L: Dictionary, ch: Vector3, hip: Vector3
 		# uyluk plakaları (kusazuri): önde ve dışta, kalçadan dize 4 sıra
 		var ul = m._bp(side + "UpperLeg")
 		var kz = MB.new()
-		for k in 4:
+		for k in 5:
 			var y = -0.02 - k * 0.065
-			kz.add("box", Vector3(0.0, y, 0.085), Vector3(0.15, 0.06, 0.02), c.lightened(0.04 * (k % 2)), Vector3(-6, 0, 0))
-			kz.add("box", Vector3(sx * 0.085, y, 0.0), Vector3(0.02, 0.06, 0.15), c.lightened(0.04 * (k % 2)), Vector3(0, 0, sx * 6))
-			kz.add("box", Vector3(0.0, y - 0.03, 0.096), Vector3(0.15, 0.008, 0.006), trim)
-			kz.add("box", Vector3(sx * 0.096, y - 0.03, 0.0), Vector3(0.006, 0.008, 0.15), trim)
+			if po == 0.0:
+				kz.add("box", Vector3(0.0, y, 0.085), Vector3(0.15, 0.06, 0.02), c.lightened(0.04 * (k % 2)), Vector3(-6, 0, 0))
+			kz.add("box", Vector3(sx * (0.085 + po), y, 0.0), Vector3(0.02, 0.06, 0.15), c.lightened(0.04 * (k % 2)), Vector3(0, 0, sx * 6))
+			if po == 0.0:
+				kz.add("box", Vector3(0.0, y - 0.03, 0.096), Vector3(0.15, 0.008, 0.006), trim)
+			kz.add("box", Vector3(sx * (0.096 + po), y - 0.03, 0.0), Vector3(0.006, 0.008, 0.15), trim)
+
 		m._mesh_on(side + "UpperLeg", kz.build(toon), Transform3D(Basis.IDENTITY, ul))
+	if po > 0.0:
+		# cübbe üstünde önde dize inen tek parça plaka önlük (ref madara_outfit): 5 sıra lamel, ortada bağcıklar
+		var ap = MB.new()
+		var z0 = td * 0.5 + 0.06
+		for k in 5:
+			var y = -0.05 - k * 0.075
+			ap.add("box", Vector3(0, y, z0 + k * 0.012), Vector3(tw * 0.85, 0.07, 0.018), c.lightened(0.04 * (k % 2)), Vector3(-8, 0, 0))
+			ap.add("box", Vector3(0, y - 0.035, z0 + k * 0.012 + 0.006), Vector3(tw * 0.86, 0.008, 0.008), trim)
+			for j in 2:
+				ap.add("box", Vector3((j - 0.5) * tw * 0.3, y + 0.012, z0 + k * 0.012 + 0.012), Vector3(0.01, 0.035, 0.006), cord)
+		m._mesh_on("Hips", ap.build(toon), Transform3D(Basis.IDENTITY, hip))
 
 
 ## Sandalet halkaları yerine ayakkabı türüne göre halka tanımı (null = varsayılan)
