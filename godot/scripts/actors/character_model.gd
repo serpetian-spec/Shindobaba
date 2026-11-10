@@ -4062,10 +4062,11 @@ func _wide_obi_kit(g: Dictionary) -> void:
 		return
 	var hips = _bp("Hips").y
 	var oc: Color = look["wide_obi"]
-	_sk_ring(1, hips + 0.12, 0.09, 0.01, oc, -PI, PI, 56, 0.008, 0.0, 0.0, 0.32)
+	var lf = 0.045 if look.get("vest") != null else 0.0   # zırh/yeleğin üstüne sarılı kuşak (ref temari_outfit_3): yeleğin içinde kalıyordu
+	_sk_ring(1, hips + 0.12, 0.09, 0.01, oc, -PI, PI, 56, 0.008 + lf, 0.0, 0.0, 0.32)
 	var h = _sk_hit(0.12, hips + 0.1, true, 0.05)
 	if not h.is_empty():
-		_sk_box(h[0] + Vector3(0, -0.06, 0.02), Vector3(0.022, 0, 0), Vector3(0.004, 0.06, 0), Vector3(0, 0, 0.006), oc.lightened(0.15))
+		_sk_box(h[0] + Vector3(0, -0.06, 0.02 + lf), Vector3(0.022, 0, 0), Vector3(0.004, 0.06, 0), Vector3(0, 0, 0.006), oc.lightened(0.15))
 	_sk_end(g)
 
 
@@ -4598,8 +4599,8 @@ func _sarada_elbise_kit(g: Dictionary) -> void:
 			if absf(q.y - (hips + 0.12)) < od:
 				od = absf(q.y - (hips + 0.12)); oy = q.y
 		if look.get("robe_obi2") is Color:
-			oy += 0.04   # geniş sargının alt kenarı etek açılımına değince dişli görünüyordu
-		_sk_ring(1, oy + (0.01 if look.get("sailor") is Color else 0.0), 0.065 if look.get("sailor") is Color else (0.16 if look.get("robe_obi2") is Color else 0.1), 0.008, look["robe_obi"], -PI, PI, 56, 0.006 if look.get("sailor") is Color else 0.005)
+			oy += 0.04
+		_sk_ring(1, oy + (0.01 if look.get("sailor") is Color else 0.0), 0.065 if look.get("sailor") is Color else (0.16 if look.get("robe_obi2") is Color else 0.075), 0.008, look["robe_obi"], -PI, PI, 56, 0.006 if look.get("sailor") is Color else 0.005)
 		if look.get("robe_obi2") is Color:   # geniş açık sargının ortasında koyu dar obi (ref all/temari_outfit_2)
 			_sk_ring(1, oy - 0.005, 0.05, 0.008, look["robe_obi2"], -PI, PI, 56, 0.014)
 		_sk_end(g)
@@ -7195,8 +7196,8 @@ func _accessories() -> void:
 		var vs = int(look.get("vest_style", 0))
 		var m = MB.new()
 		match vs:
-			5, 6:  # ANBU / samuray: omuzluklar
-				for sx in [-1.0, 1.0]:
+			5, 6:  # ANBU / samuray: omuzluklar (no_pads: omuzluksuz göğüs zırhı, ref all/temari_outfit_3)
+				for sx in ([] if look.get("no_pads") == true else [-1.0, 1.0]):
 					m.add("hemi", Vector3(0.2 * sx, 0.1, 0.0), Vector3(0.15, 0.08, 0.16), vc.darkened(0.1), Vector3(0, 0, -25 * sx), 10)
 					if vs == 6:
 						m.add("box", Vector3(0.22 * sx, 0.03, 0.0), Vector3(0.12, 0.05, 0.16), vc.darkened(0.25), Vector3(0, 0, -30 * sx))

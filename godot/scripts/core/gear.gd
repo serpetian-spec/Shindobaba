@@ -533,6 +533,7 @@ const ITEMS := {
 	"kayis_kosum": {"name": "Kayış Koşum", "slot": "zirh", "price": 90, "rank": 0, "desc": "Göğüste çapraz deri kayışlar ve bel kemeri.", "stats": {"def": 2, "melee": 0.03}, "look": {"vest_style": 9}, "c1": Color(0.35, 0.24, 0.15)},
 	"deri_pul_zirh": {"name": "Deri Pullu Zırh", "slot": "zirh", "price": 720, "rank": 2, "desc": "Sıra sıra deri pullarla kaplı hafif zırh.", "stats": {"def": 11, "hp": 20, "speed": -0.02}, "look": {"vest_style": 10}, "c1": Color(0.42, 0.28, 0.18)},
 	"gogus_plakasi": {"name": "Göğüs Plakası", "slot": "zirh", "price": 480, "rank": 1, "desc": "Yalnızca göğsü saran hafif metal plaka.", "stats": {"def": 7, "speed": 0.01}, "look": {"vest_style": 11}, "c1": Color(0.6, 0.62, 0.66)},
+	"lamel_gogus": {"name": "Omuzluksuz Lamel Göğüs Zırhı", "slot": "zirh", "price": 900, "rank": 2, "desc": "Göğsü ve karnı saran yatay lamelli gri zırh, omuzluksuz.", "stats": {"def": 12, "hp": 25, "speed": -0.02}, "look": {"vest_style": 6, "no_pads": true}, "c1": Color(0.72, 0.72, 0.76)},
 	"lake_zirh": {"name": "Kızıl Lake Zırh", "slot": "zirh", "price": 1800, "rank": 3, "desc": "Kırmızı lakeli lamel zırh, omuzluklarıyla birlikte.", "stats": {"def": 20, "hp": 45, "speed": -0.05}, "look": {"vest_style": 6}, "c1": Color(0.55, 0.1, 0.1)},
 	"ame_yelek": {"name": "Yağmur Köyü Yeleği", "slot": "zirh", "price": 700, "rank": 2, "desc": "Gri, nem tutmayan dikişli yelek.", "stats": {"def": 8, "chakra": 15}, "look": {"vest_style": 2}, "c1": Color(0.45, 0.48, 0.52)},
 	"jonin_koyu": {"name": "Gece Taktik Yeleği", "slot": "zirh", "price": 900, "rank": 2, "desc": "Koyu zeytin rengi, parşömen cepli yelek.", "stats": {"def": 10, "speed": 0.02}, "look": {"vest_style": 0}, "c1": Color(0.2, 0.26, 0.18)},
@@ -648,6 +649,7 @@ const ITEMS := {
 	"magatama_dizisi": {"name": "Yaka Magatama Dizisi", "slot": "kol", "price": 400, "rank": 2, "desc": "Yaka çevresinde altı siyah magatama.", "stats": {"chakra": 25}, "look": {"magatama": Color(0.08, 0.08, 0.1)}, "c1": Color(0.08, 0.08, 0.1)},
 	"burgu_ip_kusak": {"name": "Kalın Burgu İp Kuşak", "slot": "kol", "price": 80, "rank": 0, "desc": "Bele sarılı kalın burgulu mor ip; tuniğin ön ve arka eteği dize iner.", "stats": {"def": 1, "chakra": 10}, "look": {"rope_belt": Color(0.48, 0.32, 0.72), "tunic_long": true}, "c1": Color(0.48, 0.32, 0.72)},
 	"cin_kuyruk": {"name": "Kuyruklu Kolsuz Çin Üstü", "slot": "dis", "price": 320, "rank": 0, "desc": "Kolsuz dik yakalı çin üstü; belden aşağı önde açılıp yanlarda ve arkada dize inen kuyruk, çapraz beyaz biye, çin düğmeleri.", "stats": {"speed": 0.04, "chakra": 15}, "look": {"outer_style": "cin_kuyruk", "outer_pattern": 0, "holster": false}, "c1": Color(0.56, 0.1, 0.16), "c2": Color(0.56, 0.1, 0.16)},
+	"genis_obi_kizil": {"name": "Kızıl Sargı Kuşak", "slot": "kol", "price": 50, "rank": 0, "desc": "Belde iki kat sarılı kızıl geniş kuşak.", "stats": {"def": 1}, "look": {"wide_obi": Color(0.7, 0.2, 0.24)}, "c1": Color(0.7, 0.2, 0.24)},
 	"sarashi_bant": {"name": "Sarashi Bel Sargısı", "slot": "kol", "price": 40, "rank": 0, "desc": "Karnı saran gri sarashi bandajı.", "stats": {"def": 1}, "look": {"wide_obi": Color(0.6, 0.6, 0.63)}, "c1": Color(0.6, 0.6, 0.63)},
 	"capraz_kayis": {"name": "Çapraz Kayış ve Kese", "slot": "kol", "price": 70, "rank": 0, "desc": "Sol omuzdan sağ kalçaya çapraz koyu kayış, bel kayışı ve yan kese.", "stats": {"def": 1}, "look": {"cross_strap": Color(0.22, 0.2, 0.22)}, "c1": Color(0.22, 0.2, 0.22)},
 	"kol_askisi": {"name": "Beyaz Kol Askısı", "slot": "kol", "price": 20, "rank": 0, "desc": "Omuzdan çapraz geçen beyaz bez askı.", "stats": {}, "look": {"cross_strap": Color(0.92, 0.92, 0.9)}, "c1": Color(0.92, 0.92, 0.9)},
@@ -1513,6 +1515,7 @@ static func apply_look(p: Dictionary) -> void:
 	L["armor_style"] = null
 	L["armor_plates"] = null
 	L["sailor"] = null
+	L["no_pads"] = null
 	L["robe_obi2"] = null
 	L["tunic_emblem"] = null
 	L["zip_collar"] = null
