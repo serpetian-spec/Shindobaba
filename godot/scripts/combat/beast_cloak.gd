@@ -306,19 +306,69 @@ func _end_transform() -> void:
 		ears.visible = true
 
 
+## Tam dönüşüm düz vuruş kombosu (kullanıcı 2026-11-11): sol pençe → sağ pençe → ısırık (dört ayaklı) / iki elle yere çakma (dik)
+## → kuyruk savuruşu bitirişi (çevresindeki her şey savrulur). Basış aralığı 1.1 sn'yi geçerse baştan başlar.
+var combo_i := 0
+var combo_t := 0.0
+var combo_busy := 0.0
+
+
 func _giant_swipe() -> void:
+	if not is_instance_valid(rig) or combo_busy > 0.0:
+		return
+	var now = Time.get_ticks_msec() * 0.001
+	if now - combo_t > 1.1:
+		combo_i = 0
+	combo_t = now
+	var step = combo_i
+	combo_i = (combo_i + 1) % 4
+	var h = rig.height_m
+	var lt = c.lock_target
+	var dir = p.cam_forward()
+	if lt and is_instance_valid(lt) and not lt.is_dead():
+		dir = (lt.global_position - p.global_position)
+		dir.y = 0
+		dir = dir.normalized()
+		p.facing = atan2(-dir.x, -dir.z)
+	var id = beast_id()
+	var dmg = 60.0 * Stats.melee_mult(Game.profile)
+	var acts = ["swipe_l", "swipe_r", "bite" if rig.quadruped else "slam", "tail"]
+	var durs = [0.55, 0.55, 0.85, 0.9]
+	var hit_at = [0.25, 0.25, 0.5 if rig.quadruped else 0.55, 0.3]
+	rig.play_action(acts[step], durs[step])
+	combo_busy = durs[step] * 0.7
+	p.input_locked = maxf(p.input_locked, durs[step] * 0.5)
+	get_tree().create_timer(hit_at[step]).timeout.connect(_combo_hit.bind(step, dir, h, id, dmg))
+
+
+func _combo_hit(step: int, dir: Vector3, h: float, id: String, dmg: float) -> void:
 	if not is_instance_valid(rig):
 		return
-	rig.play_action(["swipe_l", "swipe_r"].pick_random(), 0.9)
-	var h = rig.height_m
-	var dir = p.cam_forward()
-	var id = beast_id()
-	get_tree().create_timer(0.35).timeout.connect(func():
-		var pt = p.global_position + dir * h * 0.5 + Vector3.UP * h * 0.2
-		var got = BijuuArts.melee(p, id, pt, h * 0.3, 60.0 * Stats.melee_mult(Game.profile), dir)
-		# pençenin önündeki yelpaze alan: ayak dibindeki küçük düşmanlar da ezilir
-		Combat.hit_zone(p, p.global_position, dir, h * 0.85, 60.0, h * 1.1, {"dmg": 60.0 * Stats.melee_mult(Game.profile), "knock": 30.0, "launch": 6.0, "kind": "heavy", "dir": dir}, got)
-		Sfx.play("whoosh", pt, 0.5))
+	match step:
+		0, 1:
+			var pt = p.global_position + dir * h * 0.5 + Vector3.UP * h * 0.2
+			var got = BijuuArts.melee(p, id, pt, h * 0.3, dmg, dir)
+			Combat.hit_zone(p, p.global_position, dir, h * 0.85, 60.0, h * 1.1, {"dmg": dmg, "knock": 22.0, "launch": 4.0, "kind": "heavy", "dir": dir}, got)
+			Sfx.play("whoosh", pt, 0.5)
+		2:
+			if rig.quadruped:
+				var pt = rig.mouth_pos() + dir * h * 0.15
+				BijuuArts.melee(p, id, pt, h * 0.32, dmg * 1.4, dir)
+				Sfx.play("hit_heavy", pt, 0.6)
+			else:
+				var c2 = p.global_position + dir * h * 0.45
+				c2.y = Game.ground_height(c2.x, c2.z)
+				Combat.hit_sphere(p, c2 + Vector3.UP * 2.0, h * 0.5, {"dmg": dmg * 1.5, "knock": 28.0, "launch": 14.0, "kind": "heavy"})
+				BijuuArts.melee(p, id, c2 + Vector3.UP * h * 0.05, h * 0.35, dmg * 0.3, dir)
+				VFX.cracks(c2, h * 0.25, Color(0.2, 0.15, 0.1, 0.9), 4.0)
+				rig.land_fx()
+		3:
+			# kuyruk savuruşu: 360° — etrafı süpürür, en çok savuran vuruş
+			Combat.hit_sphere(p, p.global_position + Vector3.UP * h * 0.2, h * 0.8, {"dmg": dmg * 1.6, "knock": 45.0, "launch": 10.0, "kind": "heavy"})
+			FX.ring(p.global_position + Vector3.UP * h * 0.2, chakra_col(), h * 1.6, 0.5)
+			Sfx.play("whoosh", p.global_position, 0.35)
+			if Game.world:
+				Game.world.env.add_shake(0.6)
 
 
 ## Kuyruklu Canavar Topu (pelerin seviyesine göre boy/hasar)
@@ -499,4 +549,18 @@ func _process(dt: float) -> void:
 	# tam dönüşüm modeli oyuncuyu izler
 	if level == 6 and is_instance_valid(rig):
 		rig.rotation.y = p.facing
-		rig.move_speed = clampf(Vector2(p.velocity.x, p.velocity.z).length() / 15.0, 0.0, 1.0)
+		var hs = Vector2(p.velocity.x, p.velocity.z).length()
+		rig.move_speed = clampf(hs / 15.0, 0.0, 1.0)
+		rig.run_target = clampf((hs - 16.0) / 14.0, 0.0, 1.0)   # koşarken dörtnal / iri adım
+		var was_air = rig.airborne
+		rig.airborne = not p.is_on_floor()
+		if was_air and not rig.airborne:
+			rig.land_fx()
+		var lt2 = c.lock_target
+		rig.aggro = combo_busy > -2.0 or (lt2 != null and is_instance_valid(lt2))
+		if lt2 and is_instance_valid(lt2):
+			var tv = lt2.global_position - p.global_position
+			rig.look_yaw = wrapf(atan2(-tv.x, -tv.z) - p.facing, -PI, PI)
+		else:
+			rig.look_yaw = 0.0
+		combo_busy -= dt

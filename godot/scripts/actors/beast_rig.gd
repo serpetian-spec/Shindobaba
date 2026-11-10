@@ -23,12 +23,21 @@ var colliders: Array = []
 var glow_mat: StandardMaterial3D
 var t = 0.0
 var move_speed = 0.0      # 0..1 yürüyüş
-var action = ""           # roar, swipe_l, swipe_r, stomp, tail, ball, kneel, charge
+var action = ""           # roar, swipe_l, swipe_r, stomp, tail, ball, kneel, charge, leap, bite, slam
 var action_t = 0.0
 var action_dur = 1.0
 var quadruped = false
 var upright = true
 var hips_base = -1e9
+# hareket durumu (TailedBeast / BeastCloak ayarlar): koşu, savaş duruşu, hedefe bakış, havada
+var run := 0.0            # 0..1 koşu/dörtnal (yumuşatılmış)
+var run_target := 0.0
+var aggro := false        # savaş duruşu: alçak, kamburlaşmış, kuyruk kamçılar, baş hedefe döner
+var stance := 0.0
+var look_yaw := 0.0       # başın hedefe dönüşü (radyan, gövdeye göre)
+var airborne := false     # oyuncu tam dönüşümde zıplarken
+var gp := 0.0             # adım fazı
+var _last_step := 0
 
 
 func design_scale() -> float:
@@ -294,16 +303,62 @@ func _process(dt: float) -> void:
 			action = ""
 	var k = action_k()
 	var s = sin(k * PI)               # 0 → 1 → 0
-	var walk = move_speed
-	var wt = t * (2.2 if not quadruped else 2.8)
-	# nefes
+	var walk: float = move_speed
+	run = move_toward(run, run_target, dt * 2.5)
+	stance = move_toward(stance, 1.0 if aggro else 0.0, dt * 1.5)
+	var air = 0.0
+	if action == "leap":
+		air = clampf(sin(clampf((k - 0.22) / 0.62, 0.0, 1.0) * PI), 0.0, 1.0)
+	if airborne:
+		air = maxf(air, 1.0)
+	# adım fazı: yürüyüşte yavaş, koşuda hızlı (canavara göre ağırlık)
+	var heavy = 0.8 if id in ["isobu", "son_goku", "gyuki", "shukaku"] else 1.0
+	var freq = (1.7 + 1.6 * run) * heavy * (1.25 if quadruped else 1.0)
+	if walk > 0.02 and air < 0.5:
+		gp += dt * freq * (0.6 + 0.4 * walk) * TAU * 0.5
+	var wt = gp
+	var gallop = run if quadruped else 0.0
+	# --- adım tozu + yer sarsıntısı (her adım)
+	if walk > 0.15 and air < 0.3:
+		var stp = int(floor(wt / PI))
+		if stp != _last_step:
+			_last_step = stp
+			_footfall(stp % 2 == 0, 0.6 + 0.8 * run)
+	# nefes: savaşta daha derin
 	if chest:
-		var br = 1.0 + sin(t * 1.3) * 0.025
+		var br = 1.0 + sin(t * (1.3 + stance * 0.8)) * (0.025 + stance * 0.015)
 		chest.scale = Vector3(br, br, br)
-	# gövde: yürüyüş sallanması, tepme zıplaması, diz çökme
+	# --- gövde
 	if hips:
-		var y = abs(sin(wt)) * 0.15 * walk
+		var y = abs(sin(wt)) * (0.15 * walk + 0.35 * run) * heavy
 		var pitch = 0.0
+		var roll = 0.0
+		# savaş duruşu: gövde alçalır, öne eğilir (dört ayaklı pusuya yatar, dik canavar kamburlaşır)
+		y -= stance * (0.45 if quadruped else 0.3)
+		pitch += stance * (0.08 if quadruped else 0.12)
+		# koşu: öne yatma; dörtnalda omurga dalgası
+		pitch += run * (0.1 if quadruped else 0.2) + sin(wt * 2.0) * 0.08 * gallop
+		if upright and not quadruped:
+			roll = sin(wt) * (0.05 + (0.1 if id == "shukaku" else 0.0)) * walk   # dik canavar ağırlığını yandan yana verir (Shukaku paytak)
+		if id == "chomei" and (walk > 0.05 or air > 0.0):
+			y += (1.2 + sin(t * 9.0) * 0.12) * maxf(minf(1.0, walk * 2.0), air)   # kanatlanıp süzülür
+		if id == "saiken":
+			var u = sin(t * 2.4 + wt) * (0.04 + 0.06 * walk)
+			hips.scale = Vector3(1.0 - u * 0.4, 1.0 + u, 1.0 - u * 0.6)   # sümük gövde dalgalanır
+		# sıçrama: çömel → havalan → kon (iniş darbesi)
+		if action == "leap":
+			if k < 0.22:
+				y -= sin(k / 0.22 * PI * 0.5) * 1.0
+				pitch += 0.18 * (k / 0.22)
+			elif k < 0.84:
+				y += air * 2.4
+				pitch += lerpf(-0.2, 0.25, (k - 0.22) / 0.62)
+			else:
+				y -= sin((k - 0.84) / 0.16 * PI) * 0.9
+				pitch += 0.15
+		elif airborne:
+			y += 0.6
+			pitch -= 0.1
 		if action == "stomp":
 			y += (sin(k * PI * 1.0) * 1.4) if k < 0.6 else -0.3 * (1.0 - k)
 			pitch = -0.12 * s
@@ -311,47 +366,78 @@ func _process(dt: float) -> void:
 			y -= minf(1.0, action_t * 1.2) * (2.2 if upright else 1.2)
 			pitch = 0.25 * minf(1.0, action_t)
 		elif action == "charge":
-			pitch = 0.22 * s
+			pitch += 0.22 * s
 		elif action == "ball":
 			pitch = (-0.15 if k < 0.7 else 0.2) * minf(1.0, action_t * 2.0)
-		elif action == "tail":
+		elif action == "bite":
+			pitch += (-0.1 if k < 0.35 else 0.3) * s
+		elif action == "slam":
+			y += (0.9 * sin(k / 0.5 * PI * 0.5)) if k < 0.5 else 0.9 * (1.0 - (k - 0.5) / 0.15) if k < 0.65 else -0.3
+			pitch += -0.25 * s if k < 0.5 else 0.35 * s
+		elif action in ["swipe_l", "swipe_r"]:
+			roll += (0.12 if action == "swipe_l" else -0.12) * s
+		if action == "tail":
 			hips.rotation.y = sin(k * TAU) * 1.2
 		if action != "tail":
 			hips.rotation.y = lerp_angle(hips.rotation.y, 0.0, minf(1.0, dt * 4.0))
 		if hips_base < -1e8:
 			hips_base = hips.position.y
-		hips.position.y = hips_base + y
+		hips.position.y = lerpf(hips.position.y, hips_base + y, minf(1.0, dt * 14.0))
 		hips.rotation.x = lerp_angle(hips.rotation.x, pitch, minf(1.0, dt * 6.0))
-	# baş: etrafa bakma, kükreme, top şarjı
+		hips.rotation.z = lerp_angle(hips.rotation.z, roll, minf(1.0, dt * 6.0))
+	# --- baş: hedefe bakar, kükreme, top şarjı, ısırık
 	if head:
-		var hx = sin(t * 0.4) * 0.05
-		var hy = sin(t * 0.27) * 0.15
+		var hx = sin(t * 0.4) * 0.05 - stance * 0.1
+		var hy = sin(t * 0.27) * 0.15 * (1.0 - stance)
+		if look_yaw != 0.0 or stance > 0.0:
+			hy = lerpf(hy, clampf(look_yaw, -0.7, 0.7), stance)
+		if walk > 0.1:
+			hx += sin(wt * 2.0) * 0.04 * walk   # adımda baş sallanır
 		if action == "roar":
 			hx = -0.55 * s
 		elif action == "ball":
 			hx = -0.2 if k < 0.75 else 0.15
 		elif action == "kneel":
 			hx = 0.35
+		elif action == "bite":
+			hx = (-0.35 * sin(k / 0.35 * PI * 0.5)) if k < 0.35 else 0.4 * s
+		elif action == "leap":
+			hx = -0.2 * air
 		head.rotation.x = lerp_angle(head.rotation.x, hx, minf(1.0, dt * 6.0))
 		head.rotation.y = lerp_angle(head.rotation.y, hy, minf(1.0, dt * 3.0))
+		if action == "bite" and head.has_meta("rest_z") == false:
+			head.set_meta("rest_z", head.position.z)
+		if head.has_meta("rest_z"):
+			var rz0: float = head.get_meta("rest_z")
+			var lunge = (-1.2 * sin(clampf((k - 0.3) / 0.4, 0.0, 1.0) * PI)) if action == "bite" else 0.0
+			head.position.z = lerpf(head.position.z, rz0 + lunge, minf(1.0, dt * 14.0))
 	if jaw:
-		var open = 0.06 + sin(t * 1.3) * 0.03
+		var open = 0.06 + sin(t * 1.3) * 0.03 + stance * 0.06
 		if action == "roar":
 			open = 0.6 * s
 		elif action == "ball":
 			open = 0.5 * minf(1.0, action_t * 2.0)
-		elif action in ["swipe_l", "swipe_r", "charge"]:
+		elif action in ["swipe_l", "swipe_r", "charge", "slam"]:
 			open = 0.25 * s
-		jaw.rotation.x = lerp_angle(jaw.rotation.x, open, minf(1.0, dt * 10.0))
-	# kollar: yürüyüş salınımı + pençe savurma
+		elif action == "bite":
+			open = 0.7 if k < 0.45 else 0.05
+		jaw.rotation.x = lerp_angle(jaw.rotation.x, open, minf(1.0, dt * 12.0))
+	# --- kollar (dört ayaklılarda ön bacak): yürüyüş/dörtnal + pençe + yere çakma
 	for a in arms:
 		var sh: Node3D = a["sh"]
 		var side: float = a["side"]
-		var rx = sin(wt + (0.0 if side > 0 else PI)) * 0.35 * walk
+		var ph = (0.0 if side > 0 else PI) * (1.0 - gallop)   # dörtnalda iki ön ayak birlikte
+		var amp = (0.35 + 0.45 * run) * (1.3 if quadruped else 1.0)
+		var rx = sin(wt + ph) * amp * walk
 		var rz = 0.0
+		rx -= stance * (0.25 if not quadruped else 0.0)   # dik canavar savaşta kollarını kaldırır
+		rz += stance * 0.25 * side * (0.0 if quadruped else 1.0)
 		if (action == "swipe_l" and side > 0) or (action == "swipe_r" and side < 0):
 			rx = -1.6 * sin(minf(1.0, k * 1.6) * PI * 0.5) + (2.2 * maxf(0.0, k - 0.45))
 			rz = -0.6 * side * s
+		elif action == "slam":
+			rx = (-2.4 * sin(minf(1.0, k / 0.5) * PI * 0.5)) if k < 0.5 else lerpf(-2.4, 0.6, minf(1.0, (k - 0.5) / 0.15))
+			rz = 0.2 * side * s
 		elif action == "roar":
 			rx = -0.5 * s
 			rz = 0.5 * side * s
@@ -360,38 +446,91 @@ func _process(dt: float) -> void:
 			rz = -0.25 * side
 		elif action == "kneel":
 			rx = -0.4
-		sh.rotation.x = lerp_angle(sh.rotation.x, rx, minf(1.0, dt * 8.0))
-		sh.rotation.z = lerp_angle(sh.rotation.z, rz, minf(1.0, dt * 8.0))
+		elif action == "leap" or airborne:
+			rx = lerpf(rx, -0.9 if k < 0.84 else 0.3, maxf(air, 0.6 if k >= 0.84 else 0.0))   # havada öne uzanır, inişte yere çakar
+		sh.rotation.x = lerp_angle(sh.rotation.x, rx, minf(1.0, dt * 10.0))
+		sh.rotation.z = lerp_angle(sh.rotation.z, rz, minf(1.0, dt * 10.0))
 		if a.has("el"):
 			var el: Node3D = a["el"]
-			el.rotation.x = lerp_angle(el.rotation.x, -0.25 * walk - (0.6 if action == "kneel" else 0.0), minf(1.0, dt * 6.0))
-	# bacaklar
+			var ex = -0.25 * walk - (0.6 if action == "kneel" else 0.0) - stance * 0.35 - maxf(0.0, -sin(wt + ph)) * 0.5 * run
+			el.rotation.x = lerp_angle(el.rotation.x, ex, minf(1.0, dt * 8.0))
+	# --- bacaklar: yürüyüş / dörtnal (ön ve arka çift birlikte) / sıçrayış toplama
 	for l in legs:
 		var hp: Node3D = l["hip"]
-		var phase = (0.0 if l["side"] > 0 else PI) + (PI if l.get("front", false) else 0.0)
-		var rx2 = sin(wt + phase) * 0.45 * walk
-		if action == "stomp" and l["side"] > 0 and not l.get("front", false):
+		var front = l.get("front", false)
+		var phase = lerpf((0.0 if l["side"] > 0 else PI) + (PI if front else 0.0), (0.0 if front else PI * 0.85), gallop)
+		var lamp = 0.45 + 0.5 * run
+		var rx2 = sin(wt + phase) * lamp * walk
+		rx2 -= stance * (0.15 if not front else -0.1)   # savaş duruşu: dizler kırık, ağırlık önde
+		if action == "stomp" and l["side"] > 0 and not front:
 			rx2 = -1.0 * sin(minf(1.0, k * 1.7) * PI)
 		elif action == "kneel":
 			rx2 = 0.5
-		hp.rotation.x = lerp_angle(hp.rotation.x, rx2, minf(1.0, dt * 8.0))
+		elif action == "leap" or airborne:
+			rx2 = lerpf(rx2, (0.6 if not front else -0.7), air)   # havada arka bacak geriye, ön bacak öne
+		hp.rotation.x = lerp_angle(hp.rotation.x, rx2, minf(1.0, dt * 10.0))
 		if l.has("kn"):
 			var kn: Node3D = l["kn"]
-			kn.rotation.x = lerp_angle(kn.rotation.x, maxf(0.0, -sin(wt + phase)) * 0.6 * walk + (0.9 if action == "kneel" else 0.0), minf(1.0, dt * 8.0))
-	# kuyruklar: yayılı dalga + kuyruk süpürmesinde savrulma
+			var kx = maxf(0.0, -sin(wt + phase)) * (0.6 + 0.5 * run) * walk + (0.9 if action == "kneel" else 0.0) + stance * 0.3 + air * 0.6
+			if action == "leap" and k < 0.22:
+				kx += 0.7 * (k / 0.22)
+			kn.rotation.x = lerp_angle(kn.rotation.x, kx, minf(1.0, dt * 10.0))
+	# --- kuyruklar: dalga; savaşta kamçılar, koşuda arkaya akar, sıçrayışta havada savrulur
 	for i in tails.size():
 		var cfg: Dictionary = tail_cfg[i]
 		var segs: Array = tails[i]
-		var amp: float = cfg["amp"]
+		var amp: float = cfg["amp"] * (1.0 + stance * 0.6 + run * 0.3)
 		var sweep = 0.0
 		if action == "tail":
 			sweep = sin(k * TAU) * 0.5
+		var spd = 1.0 + stance * 0.8 + run * 0.6
 		var root: Node3D = cfg["root"]
-		root.rotation.y = cfg["yaw"] + sin(t * 0.7 + cfg["phase"]) * 0.12 + sweep
-		root.rotation.x = cfg["pitch"] + sin(t * 0.9 + cfg["phase"]) * 0.06 - (0.4 if action == "roar" else 0.0) * s
+		root.rotation.y = cfg["yaw"] + sin(t * 0.7 * spd + cfg["phase"]) * (0.12 + stance * 0.08) + sweep
+		root.rotation.x = cfg["pitch"] + sin(t * 0.9 * spd + cfg["phase"]) * 0.06 - (0.4 if action == "roar" else 0.0) * s - stance * 0.15 + run * 0.25 + air * 0.3
 		for j in range(1, segs.size()):
 			var sg: Node3D = segs[j]
-			sg.rotation.y = sin(t * 1.4 - j * 0.55 + cfg["phase"]) * amp + sweep * 0.25
-			sg.rotation.x = sin(t * 1.1 - j * 0.45 + cfg["phase"] * 1.3) * amp * 0.7 + tail_curl
+			sg.rotation.y = sin(t * 1.4 * spd - j * 0.55 + cfg["phase"]) * amp + sweep * 0.25
+			sg.rotation.x = sin(t * 1.1 * spd - j * 0.45 + cfg["phase"] * 1.3) * amp * 0.7 + tail_curl
 		if cfg["style"] == "wing" and segs.size() > 0:
-			segs[0].rotation.z = sin(t * (14.0 if action == "charge" else 3.0) + cfg["phase"]) * amp
+			var buzz = 14.0 if (action == "charge" or walk > 0.05 or air > 0.0) else 3.0
+			segs[0].rotation.z = sin(t * buzz + cfg["phase"]) * amp
+
+
+## Adım: ayağın altında toz bulutu + yakındaki oyuncuda yer sarsıntısı (canavar ağırlığı hissedilsin)
+func _footfall(right: bool, k: float) -> void:
+	if not is_inside_tree() or Game.player == null:
+		return
+	var lst = legs if not legs.is_empty() else arms
+	if lst.is_empty():
+		return
+	var cand = []
+	for l in lst:
+		if (float(l["side"]) > 0) == right:
+			cand.append(l)
+	if cand.is_empty():
+		cand = lst
+	var lg = cand[_last_step % cand.size()]
+	var node: Node3D = lg.get("kn", lg.get("el", lg.get("hip", lg.get("sh"))))
+	var w = node.global_position
+	w.y = Game.ground_height(w.x, w.z)
+	var dp = w.distance_to(Game.player.global_position)
+	if dp > 500.0:
+		return
+	var H = height_m
+	VFX.puffs(w + Vector3.UP * H * 0.02, {"amount": int(8 * k), "life": 1.1, "size": H * 0.045 * k, "radius": H * 0.035, "vmin": 2, "vmax": 5 * k, "dir": Vector3.UP, "spread": 80.0,
+		"gravity": Vector3(0, -2, 0), "colors": [Color(0.8, 0.72, 0.6, 0.85), Color(0.7, 0.62, 0.5, 0)]})
+	if Game.world and dp < H * 2.5 and get_parent() != Game.player:
+		Game.world.env.add_shake(0.12 * k * clampf(H / 40.0, 0.4, 1.5))
+
+
+## İniş darbesi (sıçrayış sonu, uçuştan konma): halka toz + sarsıntı
+func land_fx() -> void:
+	if Game.player == null:
+		return
+	var w = global_position
+	var H = height_m
+	VFX.puffs(w + Vector3.UP * H * 0.03, {"amount": 40, "life": 1.4, "size": H * 0.08, "radius": H * 0.25, "vmin": 4, "vmax": 12, "dir": Vector3.UP, "spread": 85.0,
+		"gravity": Vector3(0, -3, 0), "colors": [Color(0.8, 0.72, 0.6, 0.9), Color(0.7, 0.62, 0.5, 0)]})
+	VFX.shockwave(w + Vector3.UP * 0.3, Color(0.85, 0.78, 0.65), H * 0.9, 0.5)
+	if Game.world:
+		Game.world.env.add_shake(1.2)

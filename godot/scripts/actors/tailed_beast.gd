@@ -52,6 +52,9 @@ func setup(beast_id: String) -> void:
 
 
 var level := 60
+var atk_stage := 0
+var leap_from := Vector3.ZERO
+var leap_to := Vector3.ZERO
 
 
 func _build_body() -> void:
@@ -210,6 +213,8 @@ func _physics_process(dt: float) -> void:
 			_recover()
 		return
 	if not aggro:
+		rig.aggro = false
+		rig.run_target = 0.0
 		# sakin dolaşma
 		roam_t -= dt
 		if roam_t <= 0.0:
@@ -222,6 +227,8 @@ func _physics_process(dt: float) -> void:
 	if dist > maxf(900.0, height * 10.0) and ally_owner == null:
 		_end_fight()
 		return
+	rig.aggro = true
+	rig.look_yaw = wrapf(atan2(-to.x, -to.z) - facing, -PI, PI)
 	# yöne dön
 	var want = atan2(-to.x, -to.z)
 	facing = lerp_angle(facing, want, minf(1.0, dt * (0.6 if atk == "" else 0.2)))
@@ -248,8 +255,11 @@ func _physics_process(dt: float) -> void:
 		return
 	atk_cd -= dt
 	if dist > height * 0.75:
-		_walk_to(pl.global_position, dt, 1.0)
+		var far = dist > height * 1.6
+		rig.run_target = 1.0 if far else 0.0
+		_walk_to(pl.global_position, dt, 1.9 if far else 1.0)   # uzaktaysa koşar (dört ayaklı dörtnala kalkar)
 	else:
+		rig.run_target = 0.0
 		rig.move_speed = move_toward(rig.move_speed, 0.0, dt * 2.0)
 	if atk_cd <= 0.0:
 		_choose(dist)
@@ -267,15 +277,17 @@ func _walk_to(p: Vector3, dt: float, mul: float) -> void:
 	if not aggro:
 		facing = lerp_angle(facing, atan2(-d.x, -d.z), minf(1.0, dt * 0.8))
 		rig.rotation.y = facing
-	rig.move_speed = move_toward(rig.move_speed, mul, dt * 2.0)
+	rig.move_speed = move_toward(rig.move_speed, minf(mul, 1.0), dt * 2.0)
 
 
 func _choose(dist: float) -> void:
 	var opts = []
 	if dist < height * 0.8:
-		opts += ["stomp", "swipe", "tail", "swipe", "elem"]
+		opts += ["stomp", "combo", "tail", "combo", "elem"]
 	else:
 		opts += ["elem", "elem", "elem", "roar"]
+		if dist < height * 3.5:
+			opts += ["leap", "leap"]   # aradaki mesafeyi bir sıçrayışta kapatır, iniş darbesi
 	if phase >= 2:
 		opts += ["ball", "elem"]
 	if phase >= 3:
@@ -293,6 +305,18 @@ func _begin(a: String, dur: float) -> void:
 			d = 1.5; rig.play_action("stomp", d)
 		"swipe":
 			d = 1.2; rig.play_action(["swipe_l", "swipe_r"].pick_random(), d)
+		"combo":
+			d = 2.3; rig.play_action("swipe_l", 0.55)   # pençe → pençe → bitiriş (canavara göre)
+			atk_stage = 0
+		"leap":
+			d = 1.5; rig.play_action("leap", d)
+			leap_from = global_position
+			var pl0 = _foe()
+			var tgt = pl0.global_position if pl0 else global_position + face_dir() * height
+			var dv = tgt - global_position
+			dv.y = 0
+			leap_to = global_position + dv.normalized() * maxf(dv.length() - height * 0.5, 0.0)
+			Sfx.play("whoosh", global_position, 0.35)
 		"tail":
 			d = 2.0; rig.play_action("tail", d)
 		"roar":
@@ -305,6 +329,14 @@ func _begin(a: String, dur: float) -> void:
 		"minions":
 			d = 1.6; rig.play_action("roar", d)
 	atk_dur = d
+
+
+## Kombo pençesi: canavara özgü iz (kum, mavi alev, lav...) önünde yelpaze
+func _claw_hit(mul: float) -> void:
+	var fwd = face_dir()
+	var pt = global_position + fwd * height * 0.45 + Vector3.UP * height * 0.15
+	BijuuArts.melee(self, id, pt, height * 0.28, _dmg(26.0) * mul, fwd)
+	Sfx.play("whoosh", pt, 0.5)
 
 
 func _dmg(base: float) -> float:
@@ -327,6 +359,49 @@ func _run_attack(_dt: float) -> void:
 				var pt = global_position + fwd * height * 0.45 + Vector3.UP * height * 0.15
 				BijuuArts.melee(self, id, pt, height * 0.28, _dmg(34.0), fwd)   # canavara özgü pençe: kum, mavi alev, lav, asit...
 				Sfx.play("whoosh", pt, 0.5)
+		"combo":
+			# 0-0.55 sn sol pençe, 0.55-1.1 sağ pençe, 1.1-2.3 bitiriş: dört ayaklı ısırık + kuyruk savuruşu, dik canavar iki elle yere çakar
+			var tt = atk_t
+			if atk_stage == 0 and tt > 0.3:
+				atk_stage = 1
+				_claw_hit(0.9)
+			elif atk_stage == 1 and tt > 0.55:
+				atk_stage = 2
+				rig.play_action("swipe_r", 0.55)
+			elif atk_stage == 2 and tt > 0.85:
+				atk_stage = 3
+				_claw_hit(1.0)
+			elif atk_stage == 3 and tt > 1.1:
+				atk_stage = 4
+				rig.play_action("bite" if rig.quadruped else "slam", 1.0)
+			elif atk_stage == 4 and tt > (1.5 if rig.quadruped else 1.65):
+				atk_stage = 5
+				if rig.quadruped:
+					var pt = rig.mouth_pos() + fwd * height * 0.15
+					BijuuArts.melee(self, id, pt, height * 0.3, _dmg(40.0), fwd)
+					Sfx.play("hit_heavy", pt, 0.6)
+				else:
+					var c2 = global_position + fwd * height * 0.4
+					Combat.hit_sphere(self, c2 + Vector3.UP * 2.0, height * 0.5, {"dmg": _dmg(44.0), "knock": 30.0, "launch": 14.0, "kind": "heavy", "element": BijuuArts.MELEE.get(id, BijuuArts.MELEE["kurama"])[0]})
+					BijuuArts.melee(self, id, c2 + Vector3.UP * height * 0.05, height * 0.35, _dmg(10.0), fwd)
+					_shockwave(c2, height * 0.8)
+			elif atk_stage == 5 and tt > 1.75 and rig.quadruped:
+				atk_stage = 6
+				rig.play_action("tail", 0.55)
+				Combat.hit_sphere(self, global_position + Vector3.UP * height * 0.2, height * 0.7, {"dmg": _dmg(26.0), "knock": 38.0, "launch": 8.0, "kind": "heavy"})
+				FX.ring(global_position + Vector3.UP * height * 0.2, info["chakra"], height * 1.4, 0.5)
+		"leap":
+			# sıçrayış yayı: çömelme (0-0.22), uçuş (0.22-0.84), iniş darbesi
+			var u = clampf((k - 0.22) / 0.62, 0.0, 1.0)
+			var p = leap_from.lerp(leap_to, u)
+			p.y = Game.ground_height(p.x, p.z)
+			global_position = p
+			if k >= 0.84 and not atk_hit:
+				atk_hit = true
+				rig.land_fx()
+				Combat.hit_sphere(self, global_position + Vector3.UP * 2.0, height * 0.6, {"dmg": _dmg(36.0), "knock": 34.0, "launch": 12.0, "kind": "heavy", "element": "doton"})
+				_crater(global_position, height * 0.3)
+				Sfx.play("boom", global_position, 0.45)
 		"tail":
 			if k > 0.35 and not atk_hit:
 				atk_hit = true
