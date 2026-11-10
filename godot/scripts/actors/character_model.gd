@@ -3351,14 +3351,19 @@ func _jonin_aks_kit(g: Dictionary) -> void:
 			for k in 8:
 				var a0 = TAU * k / 8.0
 				_sk_box(top + Vector3(cos(a0) * 0.011, 0.004, sin(a0) * 0.011), Vector3(0.011, 0, 0).rotated(Vector3.UP, -a0), Vector3(0, 0.002, 0), Vector3(0, 0, 0.011).rotated(Vector3.UP, -a0), Color(0.75, 0.12, 0.14) if k % 2 == 0 else Color(0.55, 0.08, 0.1))
-	var h = _sk_hit(0.0, hips + 0.02, true, 0.04)
-	if not h.is_empty():   # üçgen bez: üst kenar geniş, aşağı sivrilen dilimler
-		var p0: Vector3 = h[0] + Vector3(0, 0, 0.03)
+	var h = _sk_hit(0.0, hips - 0.01, true, 0.04)
+	if not h.is_empty():   # üçgen bez (ref: kalça genişliğinde, uyluğa sivrilen; ortada kırmızı daire içinde beyaz 火)
+		var p0: Vector3 = h[0] + Vector3(0, 0, 0.045)
 		var sc: Color = look.get("fire_sash", Color(0.75, 0.85, 0.95)) if look.get("fire_sash") is Color else Color(0.75, 0.85, 0.95)
-		for k in 6:
-			var w = 0.075 * (1.0 - k / 6.0)
-			_sk_box(p0 + Vector3(0, -k * 0.022, 0.002), Vector3(w, 0, 0), Vector3(0, 0.011, 0), Vector3(0, 0, 0.004), sc)
-		_sk_box(p0 + Vector3(0, -0.04, 0.008), Vector3(0.016, 0, 0), Vector3(0, 0.016, 0), Vector3(0, 0, 0.002), Color(0.75, 0.12, 0.14))
+		for k in 9:
+			var w = 0.11 * (1.0 - k / 9.0)
+			_sk_box(p0 + Vector3(0, -k * 0.021, 0.002 - k * 0.002), Vector3(w, 0, 0), Vector3(0, 0.011, 0), Vector3(0, 0, 0.004), sc)
+		var ec = p0 + Vector3(0, -0.055, 0.006)
+		_sk_disc(ec, Vector3(0, 0, 1), 0.034, 0.003, Color(0.78, 0.12, 0.16))
+		_sk_box(ec + Vector3(0, 0.0, 0.004), Vector3(0.003, 0, 0), Vector3(0, 0.02, 0), Vector3(0, 0, 0.001), Color(0.95, 0.95, 0.95))
+		for sx in [1.0, -1.0]:
+			_sk_box(ec + Vector3(0.012 * sx, -0.004, 0.004), Vector3(0.003, 0, 0), Vector3(0.004 * sx, 0.012, 0), Vector3(0, 0, 0.001), Color(0.95, 0.95, 0.95))
+			_sk_box(ec + Vector3(0.006 * sx, 0.012, 0.004), Vector3(0.0025, 0, 0), Vector3(0, 0.005, 0), Vector3(0, 0, 0.001), Color(0.95, 0.95, 0.95))
 	_sk_end(g)
 
 
