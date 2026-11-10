@@ -2770,9 +2770,11 @@ func _waist_belt_kit(g: Dictionary) -> void:
 		return
 	var hips = _bp("Hips").y
 	var bc: Color = look["waist_belt"]
-	_sk_ring(1, hips + 0.05, 0.04, 0.008, bc, -PI, PI, 48, 0.004, 0.0, 0.0, 0.3)
-	_sk_plate(0.0, hips + 0.05, 0.1, 0.034, 0.006, Color(0.78, 0.8, 0.84), 0.012, true)
-	_sk_plate(0.0, hips + 0.05, 0.082, 0.02, 0.004, Color(0.88, 0.9, 0.93), 0.018, true)
+	var lf = 0.05 if look.get("vest") != null else 0.0   # yeleğin üstünden bağlı kemer (Striker Guy 3): belde, yeleğin dışında, daha geniş
+	var by = hips + (0.13 if lf > 0.0 else 0.05)
+	_sk_ring(1, by, 0.04 + lf * 0.5, 0.008, bc, -PI, PI, 48, 0.004 + lf, 0.0, 0.0, 0.3)
+	_sk_plate(0.0, by, 0.1, 0.034, 0.006, Color(0.78, 0.8, 0.84), 0.012 + lf, true)
+	_sk_plate(0.0, by, 0.082, 0.02, 0.004, Color(0.88, 0.9, 0.93), 0.018 + lf, true)
 	_sk_end(g)
 
 
