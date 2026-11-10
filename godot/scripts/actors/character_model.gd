@@ -4909,6 +4909,33 @@ func _zip_collar_kit(g: Dictionary) -> void:
 	_sk_end(g)
 
 
+## Motorcu ceketi (ref all/kiba_outfit): sağ yakadan ortaya inen çapraz fermuar, geniş yaka kanatları, iki çapraz fermuarlı cep, gri bel bandı, boyunda file iç
+func _biker_kit(g: Dictionary) -> void:
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var bc: Color = look["biker"]
+	var oc: Color = _lc("top", Color(0.12, 0.12, 0.14))
+	var neck = _bp("Neck").y
+	var hips = _bp("Hips").y
+	var zc := Color(0.78, 0.8, 0.84)
+	_sk_ring(1, hips + 0.05, 0.05, 0.008, bc, -PI, PI, 56, 0.006, 0.0, 0.0, 0.3)   # bel bandı
+	_sk_path(Vector2(-0.1, neck - 0.04), Vector2(0.01, neck - 0.16), 0.007, 0.004, zc, true, 0.006, 16, 0.03)   # çapraz fermuar
+	_sk_path(Vector2(0.01, neck - 0.16), Vector2(0.01, hips + 0.03), 0.007, 0.004, zc, true, 0.006, 22, 0.03)
+	for sx in [1.0, -1.0]:
+		_sk_path(Vector2(0.035 * sx, neck - 0.0), Vector2(0.13 * sx, neck - 0.1), 0.045, 0.006, oc.darkened(0.25), true, 0.008, 12, 0.04)   # yaka kanadı
+		_sk_path(Vector2(0.1 * sx, hips + 0.2), Vector2(0.085 * sx, hips + 0.09), 0.006, 0.004, zc, true, 0.006, 10, 0.03)   # cep fermuarı
+	var hn = _sk_hit(0.0, neck - 0.05, true, 0.04)
+	if not hn.is_empty():   # V açıklıkta file iç
+		var z = (hn[0] as Vector3).z + 0.003
+		for i in 7:
+			for j in 5:
+				var x = -0.03 + i * 0.01
+				var y = neck - 0.015 - j * 0.012
+				if absf(x) < 0.035 - j * 0.004:
+					_sk_box(Vector3(x, y, z), Vector3(0.004, 0.004, 0), Vector3(-0.004, 0.004, 0), Vector3(0, 0, 0.001), Color(0.2, 0.2, 0.22))
+	_sk_end(g)
+
+
 ## Plaka zırh (ref all/mitsuki_battle_garb): iki göğüs plakası (ortada aralık), iki yatay karın bandı, kasığa inen büyük yuvarlak alt plaka,
 ## perçinli omuzluklar; gövde kabuğuna yaslı ayrı plakalar
 func _plaka_zirh_kit(g: Dictionary) -> void:
@@ -5692,6 +5719,8 @@ func _garments(g: Dictionary) -> void:
 		_waist_belt_kit(g)
 	if look.get("zip_collar") is Color:
 		_zip_collar_kit(g)
+	if look.get("biker") is Color:
+		_biker_kit(g)
 	if look.get("outer_style") in ["atki", "kisa"] and look.get("outer") is Color:
 		# atkı: ense arkasındaki düğümden sırta sarkan, rüzgârda uçuşan iki uç (ikincil hareket)
 		var nk = _bp("Neck")

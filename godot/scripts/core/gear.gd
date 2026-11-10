@@ -607,6 +607,7 @@ const ITEMS := {
 	"yakali_fermuar": {"name": "Beyaz Yakalı Fermuarlı Kolsuz Üst", "slot": "govde", "price": 120, "rank": 0, "desc": "Kalçaya inen kolsuz üst; beyaz katlı dik yaka, önde fermuar.", "stats": {"speed": 0.03, "chakra": 10}, "look": {"top_style": "kolsuz", "zip_collar": Color(0.95, 0.95, 0.96)}, "c1": Color(0.78, 0.72, 0.9), "c2": Color(0.78, 0.72, 0.9)},
 	"burgu_ip": {"name": "Burgu İp Kuşak", "slot": "kol", "price": 60, "rank": 0, "desc": "Bele sarılı kalın burgulu mor ip.", "stats": {"def": 1, "chakra": 8}, "look": {"rope_belt": Color(0.48, 0.32, 0.72)}, "c1": Color(0.48, 0.32, 0.72)},
 	"sargili_elbise_obi": {"name": "Sargı Kuşaklı V Yakalı Mini Elbise", "slot": "dis", "price": 260, "rank": 0, "desc": "Uyluk ortasına inen koyu mor kolsuz V yakalı elbise; belde geniş lavanta sargı, ortasında koyu mor obi, yan keseler.", "stats": {"speed": 0.04, "chakra": 15}, "look": {"outer_style": "sarada_elbise", "outer_pattern": 0, "holster": true, "robe_obi": Color(0.78, 0.76, 0.92), "robe_obi2": Color(0.3, 0.12, 0.28)}, "c1": Color(0.2, 0.14, 0.24), "c2": Color(0.2, 0.14, 0.24)},
+	"motorcu_ceket": {"name": "Motorcu Ceketi", "slot": "govde", "price": 260, "rank": 0, "desc": "Bele inen çapraz fermuarlı ceket; geniş yaka kanatları, fermuarlı cepler, gri bel bandı, boyunda file iç.", "stats": {"def": 3, "speed": 0.03}, "look": {"top_style": "uzun", "biker": Color(0.72, 0.73, 0.76)}, "c1": Color(0.12, 0.12, 0.14), "c2": Color(0.12, 0.12, 0.14)},
 	"sarada_elbise": {"name": "V Yakalı Kolsuz Mini Elbise", "slot": "dis", "price": 220, "rank": 0, "desc": "Uyluk ortasına inen kolsuz A elbise; derin V yaka, belde sarkan beyaz kemer.", "stats": {"speed": 0.05}, "look": {"outer_style": "sarada_elbise", "outer_pattern": 0, "holster": true}, "c1": Color(0.3, 0.55, 0.85), "c2": Color(0.3, 0.55, 0.85)},
 	"kolsuz_mini_obi": {"name": "Kolsuz Kruvaze Mini Elbise ve Obi", "slot": "dis", "price": 240, "rank": 0, "desc": "Uyluk ortasına inen kolsuz kızıl kruvaze elbise; belde geniş siyah obi.", "stats": {"speed": 0.04, "melee": 0.03}, "look": {"outer_style": "sarada_elbise", "outer_pattern": 0, "holster": true, "robe_obi": Color(0.08, 0.08, 0.1)}, "c1": Color(0.55, 0.1, 0.14), "c2": Color(0.55, 0.1, 0.14)},
 	"gezgin_palto": {"name": "Dik Yakalı Gezgin Paltosu", "slot": "dis", "price": 420, "rank": 1, "desc": "Dize inen önü kapalı gri palto; dik yaka, dar uzun kollar, altta kısa yırtmaç.", "stats": {"def": 4, "speed": 0.03}, "look": {"outer_style": "gezgin_palto", "outer_pattern": 0, "holster": false}, "c1": Color(0.3, 0.3, 0.32), "c2": Color(0.3, 0.3, 0.32)},
@@ -1525,6 +1526,7 @@ static func apply_look(p: Dictionary) -> void:
 	L["armor_style"] = null
 	L["armor_plates"] = null
 	L["sailor"] = null
+	L["biker"] = null
 	L["robe_obi_col"] = null
 	L["open_gap"] = null
 	L["robe_sash_diag"] = null
