@@ -116,6 +116,7 @@ class VillageStream extends Node3D:
 static func build_village(node: Node3D, v: Dictionary, rec: Dictionary) -> void:
 	Builder.roof_points.erase(String(v["id"]).to_lower())
 	var before = Interact.items.size()
+	var pre_inter = Interact.items.duplicate()   # kurulum sürerken liste kısalabilir: dilim yerine kimlikle ayır
 	match v["id"]:
 		"suna": await suna(node, v)
 		"kiri": await kiri(node, v)
@@ -133,7 +134,7 @@ static func build_village(node: Node3D, v: Dictionary, rec: Dictionary) -> void:
 		"tetsu": await tetsu(node, v)
 	if is_instance_valid(node):
 		_gates(node, v)
-		rec["inter"] = Interact.items.slice(before)
+		rec["inter"] = Interact.items.filter(func(it): return not pre_inter.has(it))
 
 
 ## Yolların köye girdiği yerlere köy tarzında dev giriş kapısı
@@ -614,7 +615,7 @@ static func _crag_ring(b: Builder, r: float, hmin: float, hmax: float, thick: fl
 			# önde alçak kayalar (taban kırığı)
 			if i % 2 == 0:
 				var r2 = rr - thick * 0.55
-				b.crag(Vector3(r2 * sin(rad), -20, r2 * cos(rad)), thick * 0.55, hh * rng.randf_range(0.25, 0.45) + 16, c.lightened(0.05), i + 7, false, rng.randf() * 360.0)
+				b.crag(Vector3(r2 * sin(rad), -20, r2 * cos(rad)), thick * 0.55, hh * rng.randf_range(0.25, 0.45) + 16, c.lightened(0.05), i + 7, true, rng.randf() * 360.0)   # taban kırığı da katı (içinden geçiliyordu)
 			i += 1
 			if i % 12 == 0:
 				await _yield()
@@ -687,7 +688,7 @@ static func kiri(parent: Node3D, v: Dictionary) -> void:
 		var po = Builder.rot(0, prr, pa)
 		var ph = rng.randf_range(220, 480)
 		var pd = ph * rng.randf_range(0.42, 0.6)
-		b.crag(Vector3(po.x, -10, po.y), pd, ph, Color(0.6, 0.64, 0.66).darkened(rng.randf() * 0.12), 200 + k, false, rng.randf() * 360.0)
+		b.crag(Vector3(po.x, -10, po.y), pd, ph, Color(0.6, 0.64, 0.66).darkened(rng.randf() * 0.12), 200 + k, true, rng.randf() * 360.0)   # tırmanılır: çarpışma kayanın kendi yüzeyi
 		for j in 3:
 			var mo = Builder.rot(rng.randf_range(-pd, pd) * 0.5, prr - pd * 0.4, pa)
 			peaks_mist.append(Vector3(mo.x, ph * rng.randf_range(0.2, 0.45), mo.y))
@@ -761,7 +762,7 @@ static func kumo(parent: Node3D, v: Dictionary) -> void:
 		for j in 2:
 			var oa = rng.randf() * 360.0
 			var oo = Builder.rot(0, d * 0.35, oa)
-			b.crag(Vector3(px + oo.x, -6, pn + oo.y), d * 0.45, h * rng.randf_range(0.3, 0.6), c.lightened(0.04), k + 20 + j, false, oa)
+			b.crag(Vector3(px + oo.x, -6, pn + oo.y), d * 0.45, h * rng.randf_range(0.3, 0.6), c.lightened(0.04), k + 20 + j, true, oa)
 		var top_r = d * 0.34   # mesa tepe yarıçapı
 		# tepe: taş platform + 2-4 beyaz kubbeli kule kümesi
 		b.cyl(Vector3(px, h - 0.4, pn), top_r * 2.1, 1.6, Color(0.8, 0.8, 0.77), true, 18)
@@ -851,6 +852,10 @@ static func kumo(parent: Node3D, v: Dictionary) -> void:
 	b.cyl(Vector3(0, sy + 9, 0), 2.2, 18, Color(0.92, 0.92, 0.9), false, 10)
 	b.cone(Vector3(0, sy + 18.5, 0), 7.0, 3.0, Color(0.62, 0.32, 0.22), 12)
 	b.cyl(Vector3(0, sy + 24, 0), 0.5, 9, Color(0.85, 0.75, 0.3), false, 6)
+	# ampulün dibinde platforma açılan kapı (yukarı tırmanan da Raikage ofisine girebilsin)
+	b.box(Vector3(0, 265.0, -17.6), Vector3(5.0, 6.0, 1.2), Color(0.12, 0.16, 0.22), 0, false)
+	b.box(Vector3(0, 268.4, -17.9), Vector3(6.2, 0.8, 1.4), yel, 0, false)
+	KageHall.door(b, 0, -22.0, 261.5, "kumo", "[F] Gir: Raikage Ofisi (Raikage ile görüş, görevler)", 6.0)
 	# kaya dibinde oyma giriş: beyaz revak, mavi saçak, sarı perde
 	b.box(Vector3(0, 6.0, -58.0), Vector3(16.0, 12.0, 8.0), Color(0.9, 0.9, 0.88))
 	b.box(Vector3(0, 12.4, -58.5), Vector3(18.0, 0.8, 9.0), Color(0.22, 0.45, 0.72), 0, false)
@@ -972,7 +977,7 @@ static func iwa(parent: Node3D, v: Dictionary) -> void:
 				near_gate = true
 		if near_gate:
 			continue
-		b.crag(Vector3(po.x, -10, po.y), pd, ph, stone.darkened(rng.randf_range(0.0, 0.16)), (200 + k) if k % 3 != 0 else (100 + k), false, rng.randf() * 360.0)
+		b.crag(Vector3(po.x, -10, po.y), pd, ph, stone.darkened(rng.randf_range(0.0, 0.16)), (200 + k) if k % 3 != 0 else (100 + k), true, rng.randf() * 360.0)   # tırmanılır
 		for j in 2:
 			var mo = Builder.rot(rng.randf_range(-pd, pd) * 0.4, prr - pd * 0.45, pa)
 			wall_mist.append(Vector3(mo.x, ph * rng.randf_range(0.25, 0.5), mo.y))
@@ -982,6 +987,8 @@ static func iwa(parent: Node3D, v: Dictionary) -> void:
 			Waterfalls.add(b.w(Vector3(fo.x, 0, fo.y)), ph * 0.55, 10.0, pa + 180.0)
 	VillageStyles.mist_points(b, wall_mist, 80.0, rng, 0.5)
 	b.box(Vector3(0, 54.5, -30.4), Vector3(8, 9, 1.0), VillageStyles.DARK, 0, false)   # kule kapısı
+	b.box(Vector3(0, 49.5, -36.0), Vector3(16.0, 1.0, 10.0), stone.darkened(0.12))   # kule kapısı önünde taş sahanlık (yamaçtan kayılmasın)
+	KageHall.door(b, 0, -34.0, 50.0, "iwa", "[F] Gir: Tsuchikage Ofisi (Tsuchikage ile görüş, görevler)", 6.0)
 	# taş kapı: kalın sütunlar, kırmızı katlı saçak, kanji
 	for sx in [-1.0, 1.0]:
 		b.box(Vector3(sx * 9.0, 6.0, -68.0), Vector3(3.6, 12.0, 3.6), stone.darkened(0.12))
@@ -1285,7 +1292,7 @@ static func yu(parent: Node3D, v: Dictionary) -> void:
 		for j in 14:
 			var ja = j * 360.0 / 14.0
 			var jo = Builder.rot(0, 13.5, ja)
-			b.boulder(Vector3(o.x + jo.x, 0.4, o.y + jo.y), Vector3(rng.randf_range(2.5, 4.5), rng.randf_range(1.5, 2.6), rng.randf_range(2.5, 4.0)), Color(0.5, 0.48, 0.45).darkened(rng.randf() * 0.15), j, false)
+			b.boulder(Vector3(o.x + jo.x, 0.4, o.y + jo.y), Vector3(rng.randf_range(2.5, 4.5), rng.randf_range(1.5, 2.6), rng.randf_range(2.5, 4.0)), Color(0.5, 0.48, 0.45).darkened(rng.randf() * 0.15), j, true)
 		for sx in [-1.0, 1.0]:
 			var lo = Builder.rot(16 * sx, 0, a)
 			BuildFeatures._build(b, {"t": "lantern", "x": o.x + lo.x, "y": o.y + lo.y, "g": 0.0, "yaw": a}, rng)

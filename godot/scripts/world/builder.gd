@@ -367,7 +367,11 @@ func roof(p: Vector3, size: Vector3, col: Color, yaw := 0.0) -> void:
 
 
 ## Pürüzlü katmanlı kaya sütunu (Kumo/Iwa kuleleri, krater duvarı). p: taban merkezi
+## KURAL (shape-climb): kaya her zaman kendi yüzeyiyle katıdır -> şekline göre yürünür/tırmanılır; yalnız uzak siluette çarpışma yok
+## collide=false yalnız bilinçli boşluk için (ör. in ağzındaki kayalar girişi kapatmasın)
 func crag(p: Vector3, d: float, h: float, col: Color, variant := 0, collide := true, yaw := 0.0) -> void:
+	if key.begins_with("silhouet"):
+		collide = false
 	var wp = w(p)
 	var mv = (200 + variant % 16) if variant >= 200 else ((100 + variant % 16) if variant >= 100 else variant % 16)
 	_mb(wp, maxf(d, h)).add("crag", wp + Vector3(0, h * 0.5, 0), Vector3(d, h, d), col, Vector3(0, yaw, 0), mv)
@@ -376,7 +380,10 @@ func crag(p: Vector3, d: float, h: float, col: Color, variant := 0, collide := t
 
 
 ## Düzensiz kaya. p: merkez
-func boulder(p: Vector3, size: Vector3, col: Color, variant := 0, collide := false, yaw := 0.0) -> void:
+## KURAL (shape-climb): varsayılan katı, kendi yüzeyiyle; küçük çakıl (<1.5 m) ve uzak siluet hariç
+func boulder(p: Vector3, size: Vector3, col: Color, variant := 0, collide := true, yaw := 0.0) -> void:
+	if _msz(size) < 1.5 or key.begins_with("silhouet"):
+		collide = false
 	var wp = w(p)
 	_mb(wp, _msz(size)).add("boulder", wp, size, col, Vector3(0, yaw, 0), variant % 16)
 	if collide:

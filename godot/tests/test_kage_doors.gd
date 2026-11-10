@@ -19,12 +19,32 @@ func _ready() -> void:
 			t += 0.5
 		await get_tree().create_timer(2.0).timeout
 		var door = null
+		var doors = []
 		for it in Interact.items:
 			if it.get("kind", "") == "enter" and String(it.get("room", "")) == "kage" and String(it.get("vid", "")) == vid:
-				door = it
-		if door == null:
+				doors.append(it)
+		if doors.is_empty():
 			print("KAPI %s YOK" % vid)
 			continue
+		for dd in doors:
+			pl.respawn(dd["pos"] + Vector3(0, 0.3, 1.5))
+			await get_tree().create_timer(1.2).timeout
+			var nn = Interact.nearest(pl.global_position)
+			var ev = InputEventAction.new()
+			ev.action = "interact"
+			ev.pressed = true
+			Input.parse_input_event(ev)
+			await get_tree().create_timer(0.1).timeout
+			var ev2 = InputEventAction.new()
+			ev2.action = "interact"
+			ev2.pressed = false
+			Input.parse_input_event(ev2)
+			await get_tree().create_timer(2.0).timeout
+			print("F_KAPI %s y=%.0f en_yakın=%s -> içeride=%s" % [vid, dd["pos"].y, String(nn.get("label", "YOK")).left(28), Interiors.inst.inside])
+			if Interiors.inst.inside != "":
+				Interiors.inst.exit()
+				await get_tree().create_timer(1.5).timeout
+		door = doors[0]
 		var dp: Vector3 = door["pos"]
 		var from = dp + Vector3(0, 1.2, 14.0)
 		from.y = Game.ground_height(from.x, from.z) + 1.2

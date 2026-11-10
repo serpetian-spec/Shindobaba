@@ -162,7 +162,7 @@ static func _snake(b: Builder, pid: String, p: Vector2, base: float) -> float:
 		b.crag(Vector3(x, _g(p, base, x, n) - 1.5, n), 14.0 + (k % 4) * 3.0, 24.0 + (k % 5) * 5.0, rock.lerp(Color(0.24, 0.21, 0.3), (k % 3) * 0.3), k + 3, absf(x) > 9.0)
 	for k in 5:
 		var cx = (k - 2) * 7.0
-		b.crag(Vector3(cx, my + 7.5, mouth_n + 12.0 + absf(k - 2) * 3.0), 13.0, 26.0 - absf(k - 2) * 4.0, rock.darkened(0.1), k + 20, false)
+		b.crag(Vector3(cx, my + 7.5, mouth_n + 12.0 + absf(k - 2) * 3.0), 13.0, 26.0 - absf(k - 2) * 4.0, rock.darkened(0.1), k + 20, true)   # ağzın üstündeki kayalar: girişin üstünde, katı (tırmanılır)
 	# tünel: zemin, yan duvarlar (kaya blokları, içeri doğru kararır), tavan ve karanlık katmanları
 	var tunnel_len = 18.0
 	b.box(Vector3(0, my + 0.02, mouth_n + tunnel_len * 0.5), Vector3(9.5, 0.12, tunnel_len), Color(0.16, 0.14, 0.17), 0.0, false)

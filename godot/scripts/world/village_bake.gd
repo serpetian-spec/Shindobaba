@@ -38,7 +38,7 @@ static func _path(vid: String, ext: String) -> String:
 
 
 static func snapshot(vid: String) -> Dictionary:
-	return {"inter": Interact.items.size(), "lights": Lights.points.size(), "leaf": Builder.leaf_spots.size(), "spawn": Spawner.pending.size(), "lanes": RM.lanes.size(), "water": Game.water_list.size()}
+	return {"inter": Interact.items.size(), "pre_inter": Interact.items.duplicate(), "lights": Lights.points.size(), "leaf": Builder.leaf_spots.size(), "spawn": Spawner.pending.size(), "lanes": RM.lanes.size(), "water": Game.water_list.size()}
 
 
 ## Kurulmuş köyü kaydet (root: köyün kök düğümü, snap: kurulumdan önceki snapshot)
@@ -51,13 +51,18 @@ static func save(root: Node3D, vid: String, snap: Dictionary) -> void:
 		push_warning("VillageBake: %s pişirilmedi (headless ya da boş MultiMesh)" % vid)
 		return
 	var t0 = Time.get_ticks_msec()
+	# çok şekilli gövdeler KAYITTAN ÖNCE bölünür: Konoha'nın peyzaj gövdesi (~16 bin şekil) bölünmeden kaydediliyor,
+	# her açılışta yüklemede bölünüyordu (Konoha yüklemesi 7 sn -> 40 sn + binlerce "owner" uyarısı)
+	split_bodies(root)
 	DirAccess.make_dir_recursive_absolute(DIR)
 	for f in DirAccess.get_files_at(DIR):   # aynı köyün eski sürümleri
 		if f.begins_with(vid + "_") and not f.contains(key()):
 			DirAccess.remove_absolute(DIR.path_join(f))
 	var lk = vid.to_lower()
 	var data = {
-		"inter": Interact.items.slice(int(snap["inter"])),
+		# kimlikle: kurulum boyunca başka sistemler listeden silince dilim kayıyor, köyün ilk eklenen noktaları
+		# (Kage kapısı) önbelleğe girmiyordu -> sonraki açılışlarda Kage binasına girilemiyordu
+		"inter": Interact.items.filter(func(it): return not (snap["pre_inter"] as Array).has(it)) if snap.has("pre_inter") else Interact.items.slice(int(snap["inter"])),
 		"lights": Array(Lights.points).slice(int(snap["lights"])),
 		"leaf": Builder.leaf_spots.slice(int(snap["leaf"])),
 		"spawn": Spawner.pending.slice(int(snap["spawn"])),
