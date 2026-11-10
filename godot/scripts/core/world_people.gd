@@ -17,6 +17,13 @@ const VIL_EL := {"konoha": "katon", "suna": "fuuton", "kiri": "suiton", "kumo": 
 ## rütbe -> Güç aralığı (dünya ölçeği: Güç 60 = başı-ortası, jōnin ~90, Kage 200)
 const RANK_LV := [[12, 40], [35, 75], [75, 125], [120, 175]]
 const RANK_NAMES := ["Genin", "Chūnin", "Jōnin", "Elit Jōnin"]
+## Yollar (LegendPaths): hangi köyde/kimde yetişir, en az Güç; rogue = yalnız kaçaklar (Jashin, Kakuzu'nun kalpleri)
+const PATHS := {"kapi": {"v": ["konoha"], "lv": 60, "name": "Sekiz Kapı"}, "hiraishin": {"v": ["konoha"], "lv": 110, "name": "Hiraishin"},
+	"sumi": {"v": ["konoha"], "lv": 40, "name": "Ninpō Chōjū Giga"}, "gama": {"v": ["konoha"], "lv": 55, "name": "Myōboku kurbağaları"},
+	"yilan": {"v": ["oto", "konoha"], "lv": 70, "name": "Yılan yolu"}, "akasuna": {"v": ["suna"], "lv": 55, "name": "Kukla ustalığı"},
+	"kil": {"v": ["iwa"], "lv": 60, "name": "Patlayıcı kil"}, "kagit": {"v": ["ame"], "lv": 55, "name": "Kâğıt sanatı"},
+	"silah": {"v": [], "lv": 40, "name": "Silah ustalığı"}, "jashin": {"v": [], "lv": 80, "name": "Jashin tarikatı", "rogue": true},
+	"kakuzu": {"v": ["taki"], "lv": 120, "name": "Jiongu (yasak kalpler)", "rogue": true}}
 const BIG_CLANS := {"uchiha": 3.0, "hyuga": 3.0, "nara": 2.0, "akimichi": 2.0, "yamanaka": 2.0, "inuzuka": 2.0, "aburame": 2.0, "sarutobi": 1.5,
 	"hozuki": 2.0, "yuki": 1.5, "kaguya": 1.5, "yotsuki": 2.0, "kamizuru": 1.5, "sabaku": 1.0}
 const ALIAS := ["Kızıl Tilki", "Sessiz Çekiç", "Sis Hayaleti", "Kemik Kıran", "Gece Kargası", "Kum Akrebi", "Fırtına Dişi", "Zehirli Gül",
@@ -191,6 +198,14 @@ static func _learn(p: Dictionary) -> void:
 		for id in Enemy.auto_jutsu("rogue", String(el), lv).slice(0, 2):
 			if not id in js:
 				js.append(id)
+	# gözün kendi teknikleri (Mangekyō: Amaterasu/Kamui/Tsukuyomi..., EMS, Rinnegan, Byakugan)
+	var ek = int((p.get("eye", [0, 0]) as Array)[0])
+	var eye_tags = {1: ["eye:sharingan"], 2: ["eye:byakugan"], 4: ["eye:sharingan", "eye:mangekyo"], 5: ["eye:sharingan", "eye:mangekyo", "eye:ems"], 6: ["eye:rinnegan"]}.get(ek, [])
+	if not eye_tags.is_empty():
+		var ep = _pool(eye_tags, cap + 1)
+		for id in ep.slice(0, 2 + (1 if ek >= 4 else 0)):
+			if not id in js:
+				js.push_front(id)
 	# en güçlüler önde, en fazla 7
 	js.sort_custom(func(a, b): return int(Enemy.RANK_I.get(String(Data.jutsu.get(a, {}).get("canon_rank", "")), 0)) > int(Enemy.RANK_I.get(String(Data.jutsu.get(b, {}).get("canon_rank", "")), 0)))
 	p["jutsu"] = js.slice(0, 7)
@@ -256,6 +271,10 @@ static func _life(p: Dictionary) -> void:
 		_die(p, "Bir görevden dönmedi")
 	elif r < 0.33 + _defect_p(p):
 		defect(p, _defect_reason(p))
+	elif r < 0.37 and _try_path(p):
+		pass
+	elif r < 0.42 and _grow_eye(p):
+		pass
 	elif r < 0.45:
 		log_event(p, ["Bir A-rütbe görevi tamamladı", "Sınırda bir çatışmadan sağ döndü", "Bir daimyo kervanını korudu", "Genin takımı eğitti"][randi() % 4])
 
@@ -296,9 +315,16 @@ static func _die(p: Dictionary, why: String) -> void:
 	c["grief"] = true
 	log_event(c, "Yakını %s'yi kaybetti" % String(p["name"]))
 	var eye: Array = c.get("eye", [0, 0])
-	if int(eye[0]) == 1 and int(eye[1]) >= 3 and randf() < 0.6:
+	if int(eye[0]) == 4 and int((p.get("eye", [0, 0]) as Array)[0]) == 4:
+		# kanon (Madara-Izuna): Mangekyō'lu yakının gözleri nakledilir -> Ebedi Mangekyō, körlük biter
+		c["eye"] = [5, 3]
+		log_event(c, "%s'nin gözlerini nakletti: Ebedi Mangekyō Sharingan" % String(p["name"]))
+		_learn(c)
+		Hud.msg("Söylenti: bir Uchiha, ölen yakınının gözlerini almış...", Color(0.95, 0.35, 0.35), 6.0)
+	elif int(eye[0]) == 1 and int(eye[1]) >= 3 and randf() < 0.6:
 		c["eye"] = [4, 3]
 		log_event(c, "%s'nin ölümüyle Mangekyō Sharingan'ı uyandı" % String(p["name"]))
+		_learn(c)
 		if randf() < 0.5:
 			Hud.msg("Söylenti: %s köyünde bir Uchiha'nın gözleri değişmiş..." % vname(String(c["village"])), Color(0.95, 0.4, 0.4), 6.0)
 
@@ -320,11 +346,102 @@ static func _rogue_life(p: Dictionary, r: float) -> void:
 			if (e["crimes"] as Array).size() > 5:
 				(e["crimes"] as Array).pop_front()
 			_sync_bingo(p, e)
+	elif r < 0.47 and (_try_path(p) or _kinjutsu(p)):
+		var e3 = bingo_of(p)
+		if not e3.is_empty():
+			_sync_bingo(p, e3)
+	elif r < 0.5 and _grow_eye(p):
+		var e4 = bingo_of(p)
+		if not e4.is_empty():
+			_sync_bingo(p, e4)
 	elif r < 0.55:
 		_learn(p)
 		var e2 = bingo_of(p)
 		if not e2.is_empty():
 			_sync_bingo(p, e2)
+
+
+## Bu etiketlerden (learn) şartsız (need boş) ve rütbesi izin verilen jutsular, karışık
+static func _pool(tags: Array, cap: int) -> Array:
+	var out = []
+	for id in Data.jutsu:
+		var j = Data.jutsu[id]
+		if not j is Dictionary or String(j.get("need", "")) != "":
+			continue
+		var l = String(j.get("learn", ""))
+		if l in tags and int(Enemy.RANK_I.get(String(j.get("canon_rank", "")), 2)) <= cap:
+			out.append(id)
+	out.shuffle()
+	return out
+
+
+## Bir yola girer: köyünün yolu (Konoha'da Sekiz Kapı, Suna'da kukla, Iwa'da kil...), kaçaksa karanlık yollar (Jashin, Jiongu)
+static func _try_path(p: Dictionary) -> bool:
+	if p.has("path") or int(p["level"]) < 40:
+		return false
+	var opts = []
+	for k in PATHS:
+		var d: Dictionary = PATHS[k]
+		if int(p["level"]) < int(d["lv"]) or bool(d.get("rogue", false)) != is_rogue(p) and bool(d.get("rogue", false)):
+			continue
+		var vs: Array = d["v"]
+		if not vs.is_empty() and not String(p["village"]) in vs:
+			continue
+		opts.append(k)
+	if opts.is_empty() or randf() > 0.35:
+		return false
+	var k = String(opts.pick_random())
+	var cap = Enemy._lv_cap(int(p["level"])) + 1
+	var got = _pool(["path:" + k], cap).slice(0, 3)
+	if got.is_empty():
+		return false
+	p["path"] = k
+	for id in got:
+		if not id in p["jutsu"]:
+			(p["jutsu"] as Array).push_front(id)
+	p["jutsu"] = (p["jutsu"] as Array).slice(0, 8)
+	log_event(p, "%s yolunu öğrendi" % String(PATHS[k]["name"]))
+	if is_rogue(p):
+		var cr: Array = p.get("crimes", [])
+		cr.append("%s öğrendi" % String(PATHS[k]["name"]))
+		p["crimes"] = cr.slice(maxi(0, cr.size() - 5))
+	return true
+
+
+## Kaçak yasak bir parşömen bulur: kinjutsu (Shikabane Bunshin, Sōzō Saisei...)
+static func _kinjutsu(p: Dictionary) -> bool:
+	if not is_rogue(p) or int(p["level"]) < 70 or randf() > 0.4:
+		return false
+	var got = _pool(["kinjutsu"], Enemy._lv_cap(int(p["level"])) + 1).filter(func(j): return not j in p["jutsu"])
+	if got.is_empty():
+		return false
+	var id = String(got[0])
+	(p["jutsu"] as Array).push_front(id)
+	p["jutsu"] = (p["jutsu"] as Array).slice(0, 8)
+	var nm = String(Data.jutsu[id].get("name", id))
+	log_event(p, "Yasak bir parşömenden %s öğrendi" % nm)
+	var cr: Array = p.get("crimes", [])
+	cr.append("Yasak jutsu kullanıyor: %s" % nm)
+	p["crimes"] = cr.slice(maxi(0, cr.size() - 5))
+	return true
+
+
+## Göz gelişimi: Sharingan antrenmanla tomoe kazanır; çok güçlü bir EMS sahibi Senju hücresi edinirse Rinnegan uyanır (kanon: Madara)
+static func _grow_eye(p: Dictionary) -> bool:
+	var e: Array = p.get("eye", [0, 0])
+	var k = int(e[0])
+	if k == 1 and int(e[1]) < 3 and int(p["level"]) >= 30 + int(e[1]) * 25:
+		p["eye"] = [1, int(e[1]) + 1]
+		log_event(p, "Sharingan'ı %d tomoe oldu" % (int(e[1]) + 1))
+		_learn(p)
+		return true
+	if k == 5 and int(p["level"]) >= 150 and randf() < 0.08:
+		p["eye"] = [6, 3]
+		log_event(p, "Bir Senju'nun hücrelerini edindi: Rinnegan uyandı")
+		_learn(p)
+		Hud.msg("Söylenti: halkalı gözlü biri görülmüş... efsaneler geri mi dönüyor?", Color(0.75, 0.6, 1.0), 7.0)
+		return true
+	return false
 
 
 # ------------------------------------------------------------------ kaçış ve Bingo Kitabı

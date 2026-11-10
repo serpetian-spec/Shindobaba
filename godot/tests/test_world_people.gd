@@ -33,8 +33,25 @@ func _ready() -> void:
 		print("WP ornek %s (%s, %s, Güç %d, klan=%s, soy=%s, el=%s) jutsu=%s" % [p["name"], p["village"], WorldPeople.RANK_NAMES[int(p["rank"])], int(p["level"]), p["clan"], p["nat"], p["els"], p["jutsu"]])
 	var wn = main.actors.get_node("WorldPeople")
 	var bb0 = Missions._bingo()["list"].size()
-	for i in 200:
+	for i in 400:
 		wn.world_tick()
+	var paths = {}
+	var eyes2 = {}
+	var kin = 0
+	for id2 in all:
+		var q = all[id2]
+		if q.has("path"):
+			paths[q["path"]] = int(paths.get(q["path"], 0)) + 1
+		if int(q["eye"][0]) > 0:
+			eyes2[int(q["eye"][0])] = int(eyes2.get(int(q["eye"][0]), 0)) + 1
+		for l in q["log"]:
+			if "Yasak bir parşömenden" in String(l):
+				kin += 1
+	print("WP yollar=", paths, " gozler=", eyes2, " kinjutsu_ogrenen=", kin)
+	for id3 in all:
+		var q2 = all[id3]
+		if int(q2["eye"][0]) >= 4:
+			print("WP goz hayati %s (%d): %s jutsu=%s" % [q2["name"], int(q2["eye"][0]), q2["log"], q2["jutsu"]])
 	var dead = 0
 	var rog = 0
 	var ms = 0
@@ -46,7 +63,7 @@ func _ready() -> void:
 			rog += 1
 		if int(p["eye"][0]) == 4:
 			ms += 1
-	print("WP 200 tur sonra nufus=%d olu=%d kacak=%d mangekyo=%d bingo %d->%d" % [all.size(), dead, rog, ms, bb0, Missions._bingo()["list"].size()])
+	print("WP 400 tur sonra nufus=%d olu=%d kacak=%d mangekyo=%d bingo %d->%d" % [all.size(), dead, rog, ms, bb0, Missions._bingo()["list"].size()])
 	for id in all:
 		var p = all[id]
 		if WorldPeople.is_rogue(p):
