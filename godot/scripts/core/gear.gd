@@ -590,6 +590,8 @@ const ITEMS := {
 	"savas_cubbe": {"name": "Dik Yakalı Savaş Cübbesi", "slot": "dis", "price": 900, "rank": 2, "desc": "Baldıra inen, kalçadan aşağı açılan koyu cübbe; yüksek dik yaka, çan gibi açılan geniş kollar.", "stats": {"chakra": 40, "def": 5}, "look": {"outer_style": "savas_cubbe", "outer_pattern": 0, "holster": false}, "c1": Color(0.16, 0.18, 0.38), "c2": Color(0.16, 0.18, 0.38)},
 	"savas_cubbe_obi": {"name": "Obili Genç Savaşçı Cübbesi", "slot": "dis", "price": 700, "rank": 1, "desc": "Baldıra inen mor cübbe; belde geniş gri obi, yüksek dik yaka, geniş kollar.", "stats": {"chakra": 35, "def": 4}, "look": {"outer_style": "savas_cubbe", "outer_pattern": 0, "holster": false, "robe_obi": Color(0.6, 0.58, 0.62)}, "c1": Color(0.4, 0.3, 0.5), "c2": Color(0.4, 0.3, 0.5)},
 	"mei_elbise": {"name": "Yırtmaçlı Uzun Mavi Elbise", "slot": "dis", "price": 800, "rank": 2, "desc": "Omuzları açık, bileğe inen mavi elbise; sağ bacakta yırtmaç, açık sarı ince kemer, çan kollar.", "stats": {"chakra": 40}, "look": {"outer_style": "mei_elbise", "outer_pattern": 0, "holster": false}, "c1": Color(0.12, 0.3, 0.8), "c2": Color(0.12, 0.3, 0.8)},
+	"savas_cubbe_kurucu": {"name": "Kızıl Şeritli Kurucu Cübbesi", "slot": "dis", "price": 900, "rank": 2, "desc": "Baldıra inen dik yakalı siyah cübbe; önden inen ince kızıl şerit, belde gri obi, geniş kollar.", "stats": {"chakra": 45, "def": 4}, "look": {"outer_style": "savas_cubbe", "outer_pattern": 0, "holster": false, "robe_obi": Color(0.55, 0.56, 0.6), "robe_stripe": Color(0.75, 0.1, 0.12)}, "c1": Color(0.08, 0.08, 0.1), "c2": Color(0.08, 0.08, 0.1)},
+	"hokage_haori": {"name": "Alev Etekli Kısa Kollu Haori", "slot": "dis", "price": 1400, "rank": 3, "desc": "Dize inen önü açık beyaz haori; dirseğe inen kısa kollar, eteği kızıl alev desenli.", "stats": {"chakra": 45, "def": 4}, "look": {"outer_style": "hokage_haori", "outer_pattern": 2, "holster": true}, "c1": Color(0.94, 0.93, 0.9), "c2": Color(0.85, 0.18, 0.12)},
 	"cepli_gomlek": {"name": "Cepli İş Gömleği ve Fular", "slot": "govde", "price": 140, "rank": 0, "desc": "Kısa kollu, kapaklı iki göğüs cepli gömlek; boyunda açık mavi fular, siyah kemer.", "stats": {"def": 2, "chakra": 10}, "look": {"top_style": "yakali", "chest_pockets": true, "neck_scarf": Color(0.55, 0.78, 0.92), "waist_belt": Color(0.12, 0.1, 0.1)}, "c1": Color(0.2, 0.35, 0.72), "c2": Color(0.2, 0.35, 0.72)},
 	"kabarik_bluz": {"name": "Dik Boğazlı Kabarık Bluz", "slot": "dis", "price": 320, "rank": 0, "desc": "Uzun dik boğazlı, bele kadar bol beyaz bluz; balon kollar, bileklerde üçer mavi bilezik.", "stats": {"chakra": 30}, "look": {"outer_style": "kabarik_bluz", "outer_pattern": 0, "holster": false}, "c1": Color(0.96, 0.96, 0.97), "c2": Color(0.96, 0.96, 0.97)},
 	"gezegen_sort": {"name": "Gezegen Baskılı Yüksek Bel Şort", "slot": "bacak", "price": 120, "rank": 0, "desc": "Siyah yüksek bel kısa şort; yeşil gezegen, yıldız ve hilal baskılı.", "stats": {"speed": 0.04}, "look": {"pants_style": "kisa_sort", "pants_pattern": 30}, "c1": Color(0.16, 0.16, 0.18), "c2": Color(0.4, 0.75, 0.65)},
@@ -1388,6 +1390,7 @@ static func apply_look(p: Dictionary) -> void:
 	L["belly_wraps"] = null
 	L["tunic_belt"] = null
 	L["robe_obi"] = null
+	L["robe_stripe"] = null
 	L["drape_sash"] = null
 	L["kk"] = null
 	L["hakama_cut"] = null
