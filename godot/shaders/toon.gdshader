@@ -528,7 +528,21 @@ void fragment() {
 					ink = ink || (abs(q.x - 0.0 - (q.y + 0.03) * -0.8) < lw && q.y < -0.03 && q.y > -0.055);   // alt sağa çapraz
 					if (ink) c.rgb = pal[2].rgb;
 				}
-				if (top_pattern == 32 && rest.z > 0.02 && torso && abs(rest.x) < 0.006 && fract(ny * 22.0) < 0.35) c.rgb = pal[1].rgb * 0.5;   // düğme sırası
+				if (top_pattern == 32 && rest.z > 0.02 && torso && abs(rest.x) < 0.006 && fract(ny * 22.0) < 0.35) c.rgb = pal[1].rgb * 0.5;
+				if (top_pattern == 46) {   // Nindō tişörtü (ref ninja_way_t_shirts): renkli raglan kollar ve etek/yaka biyesi, göğüste girdap baskı
+					if (!torso) c.rgb = pal[2].rgb;
+					if (torso && (ny > 0.115 || rest.y < rig_b.x + 0.03)) c.rgb = pal[2].rgb;
+					if (torso && rest.z > 0.02) {
+						vec2 q = vec2(rest.x + 0.035, ny + 0.09);
+						float r = length(q);
+						float ang = atan(q.y, q.x) / 6.2832;
+						if (r < 0.052 && abs(fract(r * 42.0 - ang) - 0.5) < 0.2) c.rgb = pal[2].rgb;
+						if (abs(r - 0.056) < 0.004) c.rgb = vec3(0.95);
+						vec2 t = vec2(rest.x - 0.03, ny + 0.04);   // yanındaki alev/kurbağa lekesi
+						if (abs(t.x - sin(t.y * 40.0) * 0.012) < 0.012 && t.y > -0.12 && t.y < 0.06) c.rgb = mix(pal[2].rgb, vec3(0.95, 0.75, 0.3), smoothstep(0.06, -0.12, t.y));
+					}
+				}
+				if (top_pattern == 47 && rest.z > 0.02 && torso && abs(rest.x) < 0.04 && ny < 0.05 && ny > -0.3 && fract(ny * 17.0) < 0.22) c.rgb = pal[1].rgb * 0.35;   // çin düğmesi (yatay ilikler; ref neji_outfit_young_vers)   // düğme sırası
 				if (top_pattern == 33 && rest.z > 0.02 && torso && ny > -0.05 && abs(rest.x) < (ny + 0.05) * 0.6) c.rgb = pal[1].rgb * 0.55;   // yarık dik yaka
 				if (top_pattern == 28 && rest.z > 0.02 && torso && abs(ny + 0.05) < 0.03) {   // göğüste boncuk dizisi (Wonder)
 					float bxq = rest.x * 15.0;
