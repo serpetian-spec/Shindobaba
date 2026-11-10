@@ -4364,6 +4364,20 @@ func _yagura_kit(g: Dictionary) -> void:
 		_sk_end(g)
 
 
+## ANBU beyaz paltosu (ref all/anbu_outfit_coat_ver): önden boydan inen dikiş/fermuar çizgisi
+func _anbu_palto_kit(g: Dictionary) -> void:
+	var neck = _bp("Neck").y
+	var pm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "anbu_palto", 0.0])
+	if pm == null or not _sk_begin(pm):
+		return
+	var V: PackedVector3Array = _sk["v"]
+	var yb = 9.0
+	for q in V:
+		yb = minf(yb, q.y)
+	_sk_strip(0.0, neck - 0.05, yb + 0.01, 0.004, 0.003, (look.get("outer", Color(0.85, 0.82, 0.74)) as Color).darkened(0.3), 44)
+	_sk_end(g)
+
+
 ## Görünümdeki giysi katmanlarını kur
 func _garments(g: Dictionary) -> void:
 	_layer_meshes = []
@@ -4857,6 +4871,8 @@ func _garments(g: Dictionary) -> void:
 		_kizil_palto_kit(g)
 	if look.get("outer_style") == "gelinlik":
 		_gelinlik_kit(g)
+	if look.get("outer_style") == "anbu_palto":
+		_anbu_palto_kit(g)
 	if look.get("outer_style") == "yagura_ortu":
 		_yagura_kit(g)
 	if look.get("outer_style") == "cin_elbise":

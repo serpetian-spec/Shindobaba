@@ -75,15 +75,14 @@ static func garments(m: CharacterModel, g: Dictionary) -> void:
 			m._garment("mino", func(): return m._loft(g, 1, neck + 0.02, knee - 0.02, 18, torso, func(t, _a): return 0.07 + t * 0.15, 8, null, hips - 0.06))
 		"anbu_palto":
 			# ANBU beyaz paltosu (ref gozusaymasadecevicutanbu.png): önü kapalı, dize yakın; bol, kıvrımlı kapüşon yaka; geniş kollar
-			m._garment("anbu_palto", func(): return m._loft(g, 1, neck - 0.01, knee + 0.07, 30, torso, func(t, _a): return 0.062 + t * 0.065, 8, null, hips - 0.06))
+			# KESİM (foto all/anbu_outfit_coat_ver): dize inen düz kapalı palto, omuzdan aşağı hafif A
+			m._garment("anbu_palto", func(): return m._cut_spec(g, neck + 0.0, knee + 0.02, 28, {"w": [[0.0, 0.9], [0.1, 1.06], [0.4, 1.08], [1.0, 1.32]], "d": [[0.0, 0.13], [1.0, 0.17]], "n": 2.8}, 8, hips - 0.05, 0.035))
 			m._garment("anbu_kapuson_yaka", func(): return m._loft(g, 1, neck - 0.07, neck + 0.055, 8, neck_f,
-				func(t, ang): return 0.05 + sin(t * PI) * 0.035 + 0.008 * sin(ang * 6.0 + t * 3.0) + (0.02 if front.call(ang) > 2.0 else 0.0), 8,
+				func(t, ang): return 0.075 + sin(t * PI) * 0.05 + 0.012 * sin(ang * 6.0 + t * 3.0) + (0.025 if front.call(ang) > 2.0 else 0.0), 8,
 				func(t, ang): return t > 0.45 and front.call(ang) < 0.32, -99.0, 28))
 			var ha2 = m._bp("LeftHand").x
 			var la2 = m._bp("LeftLowerArm").x
-			for sx in [-1.0, 1.0]:
-				m._garment("anbu_kol%d" % int(sx), func(): return m._loft(g, 0, (la2 - 0.06) * sx, (ha2 - 0.01) * sx, 10, func(p): return signf(p.x) == sx and p.y > neck - 0.4,
-					func(t, _a): return 0.03 + t * 0.035, 8, null, -99.0, 18))
+			m._cut_sleeve(g, "anbu_kol", [[0.0, 0.066], [1.0, 0.072]], 0.02, 8, 2.6)
 		"kesa":
 			# tek omuzdan kalçaya çapraz inen keşiş örtüsü
 			m._garment("kesa", func(): return m._loft(g, 1, neck - 0.02, hips - 0.08, 30, torso, func(_t, _a): return 0.035, 8,
