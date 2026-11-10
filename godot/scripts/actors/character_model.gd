@@ -2515,8 +2515,10 @@ func _omuz_kazak_kit(g: Dictionary) -> void:
 	for q in V:
 		ytop = maxf(ytop, q.y); ybot = minf(ybot, q.y)
 	var rc: Color = sw.get("rib", oc.darkened(0.06))
-	_sk_ring(1, ytop - 0.012, 0.028, 0.006, rc, -PI, PI, 56, 0.002, 0.0, 0.0, 0.26)
-	_sk_ring(1, ybot + 0.016, 0.03, 0.006, rc, -PI, PI, 48, 0.002, 0.0, 0.0, 0.26)
+	# ribanalar yalnız ön ve arka yayda: yan kenarda halka kutuları kolun hizasında yana düz çıta gibi taşıyordu
+	# ribana bantları kaldırıldı: kısa kazak kabuğunda kutu bantlar her denemede yana taşan düz çıta gibi duruyordu (ref'te kenarlar düz örgü)
+	if false:
+		_sk_ring(1, ytop, 0.0, 0.0, rc)
 	_sk_end(g)
 
 
