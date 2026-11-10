@@ -4207,7 +4207,29 @@ func _itachi_tunik_kit(g: Dictionary) -> void:
 	for q in V:
 		if absf(q.y - (hips + 0.08)) < bd:
 			bd = absf(q.y - (hips + 0.08)); by = q.y
-	_sk_ring(1, by, 0.022, 0.006, look["tunic_belt"] if look.get("tunic_belt") is Color else Color(0.92, 0.92, 0.94), -PI, PI, 48, 0.003, 0.0, 0.0, 0.32)
+	if not look.get("rope_belt") is Color:
+		_sk_ring(1, by, 0.022, 0.006, look["tunic_belt"] if look.get("tunic_belt") is Color else Color(0.92, 0.92, 0.94), -PI, PI, 48, 0.003, 0.0, 0.0, 0.32)
+	if look.get("tunic_emblem") is Color:
+		# önde kuşağın altında beyaz daire içinde S kıvrımlı amblem (ref all/tayuya_outfit)
+		var R = 0.04
+		var cy = by - 0.11
+		var hc = _sk_hit(0.0, cy, true, 0.05)
+		if not hc.is_empty():
+			var z = (hc[0] as Vector3).z + 0.006
+			var ec: Color = look["tunic_emblem"]
+			var N = 14
+			var cs = 2.0 * R / N
+			for i in N:
+				for j in N:
+					var x = -R + (i + 0.5) * cs
+					var y = -R + (j + 0.5) * cs
+					var r = Vector2(x, y).length()
+					if r > R:
+						continue
+					var dk = r > R * 0.84
+					dk = dk or (absf(Vector2(x, y - R * 0.45).length() - R * 0.4) < R * 0.1 and x > 0.0)
+					dk = dk or (absf(Vector2(x, y + R * 0.45).length() - R * 0.4) < R * 0.1 and x < 0.0)
+					_sk_box(Vector3(x, cy + y, z), Vector3(cs * 0.55, 0, 0), Vector3(0, cs * 0.55, 0), Vector3(0, 0, 0.002), Color(0.15, 0.13, 0.16) if dk else ec)
 	_sk_end(g)
 
 
@@ -4575,7 +4597,11 @@ func _sarada_elbise_kit(g: Dictionary) -> void:
 		for q in V:
 			if absf(q.y - (hips + 0.12)) < od:
 				od = absf(q.y - (hips + 0.12)); oy = q.y
-		_sk_ring(1, oy + (0.01 if look.get("sailor") is Color else 0.0), 0.065 if look.get("sailor") is Color else 0.1, 0.008, look["robe_obi"], -PI, PI, 56, 0.006 if look.get("sailor") is Color else 0.005)
+		if look.get("robe_obi2") is Color:
+			oy += 0.04   # geniş sargının alt kenarı etek açılımına değince dişli görünüyordu
+		_sk_ring(1, oy + (0.01 if look.get("sailor") is Color else 0.0), 0.065 if look.get("sailor") is Color else (0.16 if look.get("robe_obi2") is Color else 0.1), 0.008, look["robe_obi"], -PI, PI, 56, 0.006 if look.get("sailor") is Color else 0.005)
+		if look.get("robe_obi2") is Color:   # geniş açık sargının ortasında koyu dar obi (ref all/temari_outfit_2)
+			_sk_ring(1, oy - 0.005, 0.05, 0.008, look["robe_obi2"], -PI, PI, 56, 0.014)
 		_sk_end(g)
 		return
 	_sk_ring(1, by, 0.022, 0.006, Color(0.92, 0.92, 0.94), -PI, PI, 56, 0.004)
