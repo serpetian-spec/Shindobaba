@@ -189,6 +189,7 @@ int cloth_slot(vec3 p) {
 		else if (top_style == 4 || top_style == 8 || top_style == 10 || (top_style == 9 && p.x < 0.0)) sleeve = rig_a.x * 0.9;   // 10: üst yok
 		else if (top_style == 6) sleeve = rig_a.y + 0.05;
 		if ((top_style == 4 || top_style == 8) && p.y < rig_a.w - 0.1 && ax < rig_a.x * 1.08) return 1;   // kolsuzda koltuk altı göğüs yanı kumaş (kadın gövdesinde delik kalıyordu)
+		if (arm_wraps && ax > (arm_wraps_full ? rig_a.x * 0.92 : rig_a.y + 0.03)) return 4;   // sargı uzun kolun üstüne de sarılır (ref metal_outfit)
 		if (ax < sleeve) return (top_style == 2 && ax < rig_a.x + 0.07) ? 2 : 1;
 		if (((top_style == 3 && !no_wraps) || arm_wraps) && ax > (arm_wraps_full ? rig_a.x * 0.92 : rig_a.y - 0.02)) return 4;
 		return 0;

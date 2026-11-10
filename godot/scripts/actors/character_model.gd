@@ -3801,7 +3801,49 @@ func _uzun_robe_kit(g: Dictionary) -> void:
 	var rm = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "uzun_robe", 0.0])
 	if rm == null or not _sk_begin(rm):
 		return
-	_sk_edge_band(0.04, 0.006, oc.darkened(0.25))
+	var bc = look.get("outer2")
+	if not bc is Color:
+		_sk_edge_band(0.04, 0.006, oc.darkened(0.25))
+		_sk_end(g)
+		return
+	# ref merz_outfit: gri yaka bandı, etek ucunda geniş gri bant, belde bağlı gri obi
+	var hips = _bp("Hips").y
+	_sk_edge_band(0.045, 0.006, bc, 99.0, hips + 0.2)
+	_sk_ring(1, _bp("Neck").y + 0.0, 0.07, 0.008, bc, 0.7, TAU - 0.7, 32, 0.006, 0.0, 0.0, 0.13)   # gri dik yaka
+	var V: PackedVector3Array = _sk["v"]
+	var ybot = 9.0
+	for q in V:
+		ybot = minf(ybot, q.y)
+	var hy = ybot + 0.05
+	var hd = 9.0
+	for q in V:
+		if absf(q.y - (ybot + 0.05)) < hd:
+			hd = absf(q.y - (ybot + 0.05)); hy = q.y
+	_sk_ring(1, hy, 0.1, 0.006, bc, -PI, PI, 64, 0.004)
+	var by = hips + 0.1
+	var bd = 9.0
+	for q in V:
+		if absf(q.y - by) < bd:
+			bd = absf(q.y - by); by = q.y
+	_sk_end(g)
+	# kol ağzında geniş gri bant
+	var rrhx = absf(_bp("LeftHand").x)
+	for sx in [1.0, -1.0]:
+		var km = _garment_cache.get("%s|%s|%.3f" % [look["gender"], "robe_kol%d" % int(sx), 0.0])
+		if km != null and _sk_begin(km):
+			_sk_ring(0, (rrhx - 0.1) * sx, 0.09, 0.006, bc, -PI, PI, 32, 0.004, sx)
+			_sk_end(g)
+	# obi: gövde kabuğunda, cübbenin dışına taşacak kadar kalkık (önü açık cübbede de belde kesintisiz)
+	if not _sk_begin(_shell_cache.get(look["gender"])):
+		return
+	var oy = hips + 0.08
+	_sk_ring(1, oy, 0.075, 0.012, bc.darkened(0.1), -PI, PI, 56, 0.05)
+	var hk = _sk_hit(-0.05, oy, true, 0.05)
+	if not hk.is_empty():
+		var p0: Vector3 = hk[0] + Vector3(0, 0, 0.07)
+		_sk_box(p0, Vector3(0.025, 0, 0), Vector3(0, 0.025, 0), Vector3(0, 0, 0.012), bc.darkened(0.2))   # düğüm
+		_sk_box(p0 + Vector3(-0.02, -0.06, 0.0), Vector3(0.018, 0, 0), Vector3(-0.006, 0.05, 0), Vector3(0, 0, 0.006), bc.darkened(0.1))   # sarkan uç
+		_sk_box(p0 + Vector3(0.015, -0.05, 0.003), Vector3(0.016, 0, 0), Vector3(0.008, 0.04, 0), Vector3(0, 0, 0.006), bc.darkened(0.15))
 	_sk_end(g)
 
 
@@ -4979,7 +5021,7 @@ func _garments(g: Dictionary) -> void:
 			_cut_sleeve(g, "savas_kol", [[0.0, 0.068], [0.5, 0.085], [1.0, 0.13]], 0.03, 8, 2.6)
 		"mei_elbise":
 			# uzun elbise (Striker Mei; foto all/mei_outfit): omuzları açık, göğüsten bileğe hafif A; sağ bacakta uyluğa çıkan yırtmaç; çan kollar ayrı
-			_garment("mei_elbise", func(): return _cut_spec(g, neck - 0.14, ank + 0.12, 28, {"w": [[0.0, 0.9], [0.3, 0.98], [1.0, 1.3]], "d": [[0.0, 0.12], [1.0, 0.16]], "n": 2.6}, 8, hips - 0.05, 0.03, func(t, ang): return t > 0.5 and absf(wrapf(ang - 0.35, -PI, PI)) < 0.22))
+			_garment("mei_elbise", func(): return _cut_spec(g, neck - 0.14, ank + 0.12, 28, {"w": [[0.0, 0.9], [0.3, 0.98], [1.0, 1.3]], "d": [[0.0, 0.12], [1.0, 0.16]], "n": 2.6}, 8, hips - 0.05, 0.03, func(t, ang): return t > 0.28 and absf(wrapf(ang - (PI * 0.5 + 0.5), -PI, PI)) < 0.15 + (t - 0.28) * 0.8))   # ref mei_outfit: kemerden aşağı önde-solda genişleyen açıklık
 			_cut_sleeve(g, "mei_kol", [[0.0, 0.058], [0.6, 0.07], [1.0, 0.11]], 0.0, 8, 2.4)
 		"hokage_haori":
 			# dize inen önü açık haori (Striker Minato; foto all/minato_outfit): düz kutu panel, dirseğe inen kısa geniş kol, eteği alev desenli (outer_pattern)
