@@ -4978,8 +4978,14 @@ func _capraz_kayis_kit(g: Dictionary) -> void:
 	var neck = _bp("Neck").y
 	var hips = _bp("Hips").y
 	var lift = 0.045 if look.get("outer_style") != null else (0.035 if look.get("vest") != null else 0.008)
+	var sw: float = look["cross_strap_w"] if look.get("cross_strap_w") is float else 0.024
+	var short = look.get("cross_strap_short") == true   # ref shisui_style: omuzdan koltuk altına geniş kısa deri omuzluk, bel kayışı yok
+	var endp = Vector2(0.15, neck - 0.24) if short else Vector2(0.15, hips + 0.02)
 	for fr in [true, false]:
-		_sk_path(Vector2(-0.12, neck - 0.04), Vector2(0.15, hips + 0.02), 0.024, 0.005, sc, fr, lift, 30, 0.05)
+		_sk_path(Vector2(-0.11, neck - 0.02), endp, sw, 0.006, sc, fr, lift, 30, 0.05)
+	if short:
+		_sk_end(g)
+		return
 	_sk_ring(1, hips + 0.04, 0.02, 0.006, sc, -PI, PI, 48, lift)
 	var h = _sk_hit(0.16, hips - 0.02, true, 0.06)
 	if not h.is_empty():
