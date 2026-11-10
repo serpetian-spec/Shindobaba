@@ -27,7 +27,7 @@ var t = 0.0
 var tech_cd := {}            # teknik anahtarı -> kalan bekleme
 const TECH_KEYS := ["throw", "tool_next", "charge"]
 const TECH_LABEL := ["R", "T", "C"]
-const TECH_NEED := [1, 3, 5]
+const TECH_NEED := [1, 3, 5, 6, 6]   # 4-5: Bijū Ōgi epik teknikler yalnız Tam Dönüşümde
 
 
 func setup(combat: PlayerCombat) -> void:
@@ -414,7 +414,8 @@ func _tech(i: int) -> void:
 	if giant:
 		rig.rotation.y = p.facing
 		rig.play_action({"neko_pounce": "charge", "shell_roll": "charge", "horn_ram": "charge", "kaen_breath": "roar", "sumi": "roar", "biju_hoko": "roar",
-			"renkudan": "ball", "bijudama_rasengan": "ball"}.get(key, ["swipe_l", "swipe_r"].pick_random()), 1.0)
+			"renkudan": "ball", "bijudama_rasengan": "ball", "renkudan_rensha": "ball", "bijudama_rendan": "ball", "kazan_u": "roar", "sumi_nami": "roar",
+			"futton_mojo": "roar", "rinpun_kosen": "roar", "ryusa_soso": "roar", "bakeneko_rengeki": "charge", "gokaku_totsugeki": "charge"}.get(key, ["swipe_l", "swipe_r"].pick_random()), 1.0)
 	else:
 		p.model.play("throw", 0.05, 1.6, true)
 	var dmg = (30.0 + level * 8.0) * Stats.jutsu_mult(Game.profile) * (1.3 if giant else 1.0)

@@ -11,46 +11,64 @@ const TECHS := {
 		{"key": "renkudan", "name": "Fūton: Renkūdan", "desc": "Sıkıştırılmış hava mermisi: ağaçları devirir, hedefi savurur", "cd": 6.0, "cost": 18.0},
 		{"key": "sabaku_taiso", "name": "Sabaku Taisō", "desc": "Kum tsunamisi: yolundakileri kuma gömer (hareketsiz)", "cd": 10.0, "cost": 26.0},
 		{"key": "suna_tate", "name": "Suna no Tate", "desc": "Kum kubbesi: gelen mermileri yutar, hasarı yarıya indirir", "cd": 16.0, "cost": 22.0},
+		{"key": "ryusa_soso", "name": "Ryūsa Bakuryū: Sabaku Sōsō", "desc": "Yer kum seline döner: alandaki herkes kuma gömülür, kum sıkışıp ezer; alan uzun süre bataklık kum kalır", "cd": 22.0, "cost": 60.0, "epic": true},
+		{"key": "renkudan_rensha", "name": "Fūton: Renkūdan Rensha", "desc": "Art arda beş dev hava mermisi yelpaze gibi", "cd": 16.0, "cost": 45.0, "epic": true},
 	],
 	"matatabi": [
 		{"key": "neko_pounce", "name": "Bakeneko Sıçrayışı", "desc": "Mavi alevli kedi sıçrayışı + üç pençe yarığı", "cd": 5.0, "cost": 14.0},
 		{"key": "aobi_dama", "name": "Ao-bi Dama", "desc": "Mavi ateş topları: düştüğü yer uzun süre yanar", "cd": 8.0, "cost": 22.0},
 		{"key": "kaen_breath", "name": "Kaen: Mavi Alev Nefesi", "desc": "Sürekli mavi alev akışı, yakar", "cd": 12.0, "cost": 28.0},
+		{"key": "aobi_rinkaku", "name": "Ao-bi Rinkaku", "desc": "Hedefin çevresine kaçış yolu bırakmayan mavi alev halkası; ortası patlar", "cd": 22.0, "cost": 55.0, "epic": true},
+		{"key": "bakeneko_rengeki", "name": "Bakeneko Rengeki", "desc": "Hedefe üç kez art arda mavi alevli sıçrayış, ardında alev izi", "cd": 16.0, "cost": 45.0, "epic": true},
 	],
 	"isobu": [
 		{"key": "sango", "name": "Sango: Mercan Büyütme", "desc": "Yerden mercan fışkırır: hedefi hapseder, mercan duvar olarak kalır", "cd": 9.0, "cost": 22.0},
 		{"key": "shell_roll", "name": "Kabuk Yuvarlanışı", "desc": "Dikenli kabukla yuvarlanarak ezip geçer", "cd": 7.0, "cost": 18.0},
 		{"key": "kiri_genjutsu", "name": "Kiri no Genjutsu", "desc": "Yanılsama sisi: düşmanlar hedef şaşırır, yavaşlar", "cd": 15.0, "cost": 26.0},
+		{"key": "sango_mori", "name": "Sango Mori", "desc": "Sarmal büyüyen mercan ormanı: yakalananlar sıkışır, mercanlar siper olarak kalır", "cd": 22.0, "cost": 55.0, "epic": true},
+		{"key": "suiro_kyudan", "name": "Suirō Kyūdan", "desc": "Hedef dev su küresine hapsolur, nefessiz kalır; küre patlayınca savrulur", "cd": 18.0, "cost": 50.0, "epic": true},
 	],
 	"son_goku": [
 		{"key": "kakogan", "name": "Yōton: Kakōgan", "desc": "Lav kaya mermileri: düştüğü yerde lav gölü kalır", "cd": 6.0, "cost": 18.0},
 		{"key": "funkatsu", "name": "Yōton: Funkatsu", "desc": "Yer patlar, lav fışkırıkları düşmanı havaya fırlatır", "cd": 11.0, "cost": 28.0},
 		{"key": "yoton_yoroi", "name": "Yōton no Yoroi", "desc": "Lav zırhı: hasar azalır, değen düşman yanar", "cd": 18.0, "cost": 24.0},
+		{"key": "kazan_u", "name": "Yōton: Kazan-u", "desc": "Gökten lav kayası yağmuru: düştükleri yer lav gölüne döner", "cd": 22.0, "cost": 60.0, "epic": true},
+		{"key": "yoton_funka", "name": "Yōton: Funka", "desc": "Yer çizgi hâlinde yarılır, art arda lav sütunları fışkırır", "cd": 18.0, "cost": 50.0, "epic": true},
 	],
 	"kokuo": [
 		{"key": "futton_boil", "name": "Futton: Kaishin", "desc": "Kaynar buhar bulutu: içindekiler haşlanır, savunması erir", "cd": 10.0, "cost": 24.0},
 		{"key": "horn_ram", "name": "Boynuz Hücumu", "desc": "Buhar itişli dev hücum: her şeyi savurur", "cd": 6.0, "cost": 16.0},
 		{"key": "steam_burst", "name": "Jōki Bōi: Buhar Patlaması", "desc": "Bedenden çevreye buhar patlaması", "cd": 9.0, "cost": 20.0},
+		{"key": "futton_mojo", "name": "Futton: Mōjō", "desc": "Bedenden dev kaynar buhar fırtınası: yakındakiler haşlanıp savrulur, alan kaynar", "cd": 22.0, "cost": 55.0, "epic": true},
+		{"key": "gokaku_totsugeki", "name": "Gōkaku Totsugeki", "desc": "Buhar itişli üç boynuz hücumu art arda", "cd": 16.0, "cost": 45.0, "epic": true},
 	],
 	"saiken": [
 		{"key": "fukuso", "name": "Fukuso: Asit Baloncukları", "desc": "Süzülen baloncuklar patlayınca aşındırır (zırh erir)", "cd": 7.0, "cost": 18.0},
 		{"key": "slime", "name": "Yapışkan Sümük", "desc": "Geniş sümük gölü: içindekiler saplanıp yavaşlar", "cd": 11.0, "cost": 22.0},
 		{"key": "acid_mist", "name": "Asit Sisi", "desc": "Yakıcı yeşil sis bulutu", "cd": 13.0, "cost": 24.0},
+		{"key": "fukuso_arashi", "name": "Fukuso Arashi", "desc": "Gökyüzünü dolduran asit baloncuğu fırtınası", "cd": 20.0, "cost": 55.0, "epic": true},
+		{"key": "nenko_shinshoku", "name": "Nenkō Shinshoku", "desc": "Öne yayılan sümük seli: yollar yapışır, değen zırh erir", "cd": 18.0, "cost": 50.0, "epic": true},
 	],
 	"chomei": [
 		{"key": "hane_flight", "name": "Hane: Böcek Kanatları", "desc": "Kanatlanıp havada süzül (Boşluk: yüksel)", "cd": 14.0, "cost": 20.0},
 		{"key": "rinpun", "name": "Rinpun Hikōmei", "desc": "Pul tozu + kör eden ışık patlaması", "cd": 10.0, "cost": 22.0},
 		{"key": "mushi_swarm", "name": "Mushi Dama: Böcek Sürüsü", "desc": "Güdümlü böcek sürüsü ısırır, chakra emer", "cd": 8.0, "cost": 18.0},
+		{"key": "rinpun_kosen", "name": "Rinpun Kōsen", "desc": "Alanı pul tozu sisi kaplar, art arda kör eden ışık patlamaları", "cd": 22.0, "cost": 55.0, "epic": true},
+		{"key": "mushi_arashi", "name": "Mushi Arashi", "desc": "Beş güdümlü böcek sürüsü birden", "cd": 18.0, "cost": 50.0, "epic": true},
 	],
 	"gyuki": [
 		{"key": "sumi", "name": "Sumi Fūin: Mürekkep Püskürtme", "desc": "Mürekkep jeti: kör eder, yavaşlatır, zemini kaplar", "cd": 8.0, "cost": 18.0},
 		{"key": "tako_ude", "name": "Tako Ude: Lariat", "desc": "Dokunaç uzanır, yakalar, çekip yere çarpar", "cd": 7.0, "cost": 20.0},
 		{"key": "tako_bunshin", "name": "Tako Bunshin", "desc": "Mürekkep bulutunda klonlar bırakıp kaçış", "cd": 16.0, "cost": 26.0},
+		{"key": "sumi_nami", "name": "Sumi Nami", "desc": "Öne kopan mürekkep tsunamisi: kör eder, yavaşlatır, zemini mürekkebe boğar", "cd": 20.0, "cost": 55.0, "epic": true},
+		{"key": "hachi_ude", "name": "Hachibi Ude Rengeki", "desc": "Sekiz dokunaç hedefin çevresine art arda iner, yeri yarar", "cd": 16.0, "cost": 50.0, "epic": true},
 	],
 	"kurama": [
 		{"key": "chakra_kaina", "name": "Chakra Kolu", "desc": "Dev chakra eli uzanır, yakalar, çekip ezer", "cd": 6.0, "cost": 18.0},
 		{"key": "biju_hoko", "name": "Bijū Hōkō: Kükreme", "desc": "Koni şok dalgası: savurur, sersemletir, ağaçları yatırır", "cd": 9.0, "cost": 20.0},
 		{"key": "bijudama_rasengan", "name": "Bijūdama Rasengan", "desc": "Dönen canavar topu: dev kubbe patlaması, çoklu vuruş", "cd": 14.0, "cost": 36.0},
+		{"key": "kyubi_biso", "name": "Kyūbi Bisō", "desc": "Dokuz kuyruk sırayla yeri döver: önündeki her şey savrulur", "cd": 18.0, "cost": 55.0, "epic": true},
+		{"key": "bijudama_rendan", "name": "Bijūdama Rendan", "desc": "Art arda üç dev Kuyruklu Canavar Topu", "cd": 28.0, "cost": 90.0, "epic": true},
 	],
 }
 
@@ -66,6 +84,7 @@ const MELEE := {
 const SAND := Color(0.86, 0.72, 0.48)
 const MAX_FIELDS := 14
 static var _fields := 0
+static var _epic_t := {}   # canavar türü -> son epik teknik zamanı (ms)
 
 
 static func techs(id: String) -> Array:
@@ -117,6 +136,24 @@ static func use(user: Node3D, id: String, key: String, ctx: Dictionary) -> void:
 		"chakra_kaina": _chakra_kaina(user, c)
 		"biju_hoko": _biju_hoko(user, c)
 		"bijudama_rasengan": _bijudama_rasengan(user, c)
+		"ryusa_soso": _ryusa_soso(user, c)
+		"renkudan_rensha": _renkudan_rensha(user, c)
+		"aobi_rinkaku": _aobi_rinkaku(user, c)
+		"bakeneko_rengeki": _bakeneko_rengeki(user, c)
+		"sango_mori": _sango_mori(user, c)
+		"suiro_kyudan": _suiro_kyudan(user, c)
+		"kazan_u": _kazan_u(user, c)
+		"yoton_funka": _yoton_funka(user, c)
+		"futton_mojo": _futton_mojo(user, c)
+		"gokaku_totsugeki": _gokaku_totsugeki(user, c)
+		"fukuso_arashi": _fukuso_arashi(user, c)
+		"nenko_shinshoku": _nenko_shinshoku(user, c)
+		"rinpun_kosen": _rinpun_kosen(user, c)
+		"mushi_arashi": _mushi_arashi(user, c)
+		"sumi_nami": _sumi_nami(user, c)
+		"hachi_ude": _hachi_ude(user, c)
+		"kyubi_biso": _kyubi_biso(user, c)
+		"bijudama_rendan": _bijudama_rendan(user, c)
 	var t = tech(id, key)
 	if not t.is_empty() and user is Player:
 		Combat.popup_text(user.global_position + Vector3.UP * (2.6 + c["s"]), t["name"], MELEE.get(id, MELEE["kurama"])[1].lightened(0.3))
@@ -1516,6 +1553,407 @@ static func _bijudama_rasengan(user: Node3D, c: Dictionary) -> void:
 	BijudamaFX.launch(from + dir * 1.5 * s, dir, 1.6 * s, prb)
 
 
+# ================================================================== BİJŪ ŌGİ: epik teknikler (tam dönüşüm + vahşi canavar)
+## Kullanıcı (2026-11-11): "bijūların havalı skilleri yok, Shukaku ortalığı kuma gömmüyor; tiplerine göre epik skiller, oyuncu da kullanabilsin".
+## Her canavar kendi tipinde iki büyük teknik: alanı değiştirir (kum çölü, mavi alev halkası, mercan ormanı, lav yağmuru, buhar,
+## asit fırtınası, pul tozu, mürekkep seli, kuyruk darbeleri). Mevcut küçük teknikler büyük ölçekte zincirlenir + kendi alan etkileri.
+static func _c2(c: Dictionary, s_mul: float, aim = null) -> Dictionary:
+	var d = c.duplicate()
+	d["s"] = float(c["s"]) * s_mul
+	if aim != null:
+		d["aim"] = aim
+	return d
+
+
+static func _later(t: float, user: Node3D, fn: Callable) -> void:
+	VFX.tree().create_timer(t).timeout.connect(func():
+		if is_instance_valid(user):
+			fn.call())
+
+
+static func _center(user: Node3D, c: Dictionary, rng: float) -> Vector3:
+	var tgt = _pick(user, c, rng)
+	return _gp(tgt.global_position if tgt else c["aim"])
+
+
+const SAND_PUFF := [Color(0.95, 0.85, 0.62, 1), Color(0.82, 0.68, 0.45, 0)]
+
+
+## --- Shukaku: Ryūsa Bakuryū + Sabaku Sōsō — yer kum seline döner, alandaki herkes kuma gömülür, sonra kum sıkışıp ezer
+static func _ryusa_soso(user: Node3D, c: Dictionary) -> void:
+	var s: float = c["s"]
+	var ctr = _center(user, c, 60.0 * s)
+	var R = 13.0 * s
+	var dmg: float = c["dmg"]
+	var mat = _toon(SAND)
+	Sfx.play("earth", ctr, 0.45)
+	_shake(0.8)
+	for ring in 4:
+		_later(0.12 * ring, user, func():
+			var rr = R * (0.3 + ring * 0.25)
+			var n = 10 + ring * 5
+			for i in n:
+				var a = TAU * i / n + ring * 0.3
+				var p = _gp(ctr + Vector3(cos(a), 0, sin(a)) * rr)
+				var m = _mi(VFX._sphere(0.5, 10, 6), mat)
+				VFX.scene().add_child(m)
+				m.global_position = p + Vector3.DOWN * s
+				m.scale = Vector3(2.4, 0.1, 2.4) * s
+				var tw = m.create_tween()
+				tw.tween_property(m, "scale", Vector3(2.8 * s, 4.5 * s * randf_range(0.7, 1.3), 2.8 * s), 0.2).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+				tw.tween_property(m, "scale", Vector3(3.2 * s, 0.9 * s, 3.2 * s), 0.6)
+				_fade_free(m, 8.0)
+			VFX.puffs(ctr + Vector3.UP * 2.0 * s, {"amount": 30, "life": 1.2, "size": 2.0 * s, "radius": rr, "vmin": 5, "vmax": 12, "dir": Vector3.UP, "spread": 50.0,
+				"gravity": Vector3(0, -14, 0), "colors": SAND_PUFF}))
+	var caught: Array = []
+	_later(0.55, user, func():
+		for f in _hit(user, ctr + Vector3.UP * s, R, {"dmg": dmg * 0.5, "element": "doton", "knock": 2.0, "kind": "light"}):
+			_sand_coffin(f, 4.0, caught.size() < 2)
+			caught.append(f))
+	_later(2.3, user, func():
+		# Sabaku Sōsō: kum sıkışır — gömülenler ezilir
+		VFX.shockwave(ctr + Vector3.UP * 0.2, SAND.lightened(0.2), R * 1.6, 0.5)
+		Sfx.play("boom", ctr, 0.6)
+		_shake(1.0)
+		for f in caught:
+			if is_instance_valid(f) and not f.is_dead():
+				_hit(user, f.global_position + Vector3.UP * float(f.height) * 0.5, 1.2, {"dmg": dmg * 1.4, "element": "doton", "knock": 6.0, "launch": 4.0, "kind": "heavy", "hitstop": 0.12})
+				VFX.puffs(f.global_position + Vector3.UP, {"amount": 26, "life": 0.9, "size": 1.0 * s, "radius": 1.0 * s, "vmin": 5, "vmax": 12, "gravity": Vector3(0, -10, 0), "colors": SAND_PUFF})
+				Combat.popup_text(f.global_position + Vector3.UP * (float(f.height) + 1.0), "SABAKU SŌSŌ!", SAND))
+	# kum çölü: alan uzun süre gevşek kum — içindekiler yavaşlar
+	_later(0.7, user, func():
+		_ticker(ctr, 9.0, 0.5, func(_n: Node3D, _e: float) -> void:
+			for f in _foes(user, ctr + Vector3.UP * 0.5, R):
+				f.apply_status("slow", 0.7)
+				f.apply_status("mud", 0.7)))
+
+
+## --- Shukaku: Renkūdan Rensha — art arda beş dev hava mermisi yelpaze gibi
+static func _renkudan_rensha(user: Node3D, c: Dictionary) -> void:
+	var dir = _flat(c["aim"] - c["from"])
+	var side = dir.cross(Vector3.UP)
+	for k in 5:
+		_later(0.28 * k, user, func():
+			var a = c["aim"] + side * (k - 2) * 4.0 * float(c["s"])
+			var cc = _c2(c, 1.25, a)
+			cc["from"] = _live_from(user, c, float(c["s"]))
+			_renkudan(user, cc))
+
+
+## --- Matatabi: Ao-bi Rinkaku — hedefin çevresine kaçış yolu bırakmayan mavi alev halkası, ortası patlar
+static func _aobi_rinkaku(user: Node3D, c: Dictionary) -> void:
+	var s: float = c["s"]
+	var ctr = _center(user, c, 60.0 * s)
+	var R = 10.0 * s
+	var dmg: float = c["dmg"]
+	Sfx.play("fire", ctr, 0.5)
+	var n = 16
+	for i in n:
+		_later(0.035 * i, user, func():
+			var a = TAU * i / n
+			var p = ctr + Vector3(cos(a), 0, sin(a)) * R
+			VFX.explosion(_gp(p) + Vector3.UP * s, 0.55 * s, BLUE)
+			VFX.linger(_gp(p), "katon", BLUE, 1.2 * s, 9.0))
+	# halka: kenardan geçen yanar (alan sayacını tek tek doldurmasın diye tek ticker)
+	_ticker(ctr, 9.0, 0.5, func(_n: Node3D, _e: float) -> void:
+		for f in _foes(user, ctr + Vector3.UP * s, R + 2.0 * s):
+			var d = Vector2(f.global_position.x - ctr.x, f.global_position.z - ctr.z).length()
+			if absf(d - R) < 2.6 * s:
+				_hit(user, f.global_position + Vector3.UP, 0.8, {"dmg": dmg * 0.12, "element": "katon", "burn": 2.5, "knock": 6.0, "kind": "light"}))
+	_later(0.9, user, func():
+		VFX.explosion(ctr + Vector3.UP * s, 1.6 * s, BLUE)
+		VFX.shockwave(ctr + Vector3.UP * 0.2, BLUE.lightened(0.4), R * 1.5, 0.45)
+		_hit(user, ctr + Vector3.UP * s, R * 0.8, {"dmg": dmg * 1.2, "element": "katon", "burn": 5.0, "knock": 10.0, "launch": 8.0, "kind": "heavy"})
+		_shake(0.8))
+
+
+## --- Matatabi: Bakeneko Rengeki — hedefe üç kez art arda mavi alevli sıçrayış
+static func _bakeneko_rengeki(user: Node3D, c: Dictionary) -> void:
+	for k in 3:
+		_later(0.75 * k, user, func():
+			var cc = _c2(c, 1.15)
+			var t = _pick(user, c, 60.0 * float(c["s"]))
+			if t:
+				cc["aim"] = t.global_position
+			_neko_pounce(user, cc)
+			_blue_patch(user, user.global_position, float(c["s"]), float(c["dmg"]) * 0.15, 5.0))
+
+
+## --- Isobu: Sango Mori — hedefin çevresinde sarmal büyüyen mercan ormanı; yakalananları hapseder, orman siper kalır
+static func _sango_mori(user: Node3D, c: Dictionary) -> void:
+	var s: float = c["s"]
+	var ctr = _center(user, c, 60.0 * s)
+	var dmg: float = c["dmg"]
+	VFX.splash(ctr, 2.5 * s)
+	Sfx.play("earth", ctr, 0.6)
+	var n = 22
+	for i in n:
+		_later(0.05 * i, user, func():
+			var a = i * 2.4
+			var r = (0.8 + i * 0.5) * s
+			var p = _gp(ctr + Vector3(cos(a), 0, sin(a)) * r)
+			_coral(p, randf_range(3.0, 6.0) * s, 10.0, CORAL if i % 2 else CORAL2)
+			VFX.splash(p, 0.8 * s)
+			for f in _hit(user, p + Vector3.UP * s, 2.0 * s, {"dmg": dmg * 0.18, "element": "suiton", "knock": 3.0, "launch": 6.0, "kind": "heavy"}):
+				_bind(f, 2.5)
+				Combat.popup_text(f.global_position + Vector3.UP * (float(f.height) + 1.0), "MERCANA SIKIŞTI!", CORAL))
+
+
+## --- Isobu: Suirō Kyūdan — hedef dev su küresine hapsolur (nefessiz kalır), sonra küre patlar
+static func _suiro_kyudan(user: Node3D, c: Dictionary) -> void:
+	var s: float = c["s"]
+	var ctr = _center(user, c, 60.0 * s)
+	var dmg: float = c["dmg"]
+	var R = 4.5 * s
+	var ball = _mi(VFX._sphere(0.5, 24, 12), _glass(Color(0.35, 0.65, 1.0), 0.45, 0.25))
+	VFX.scene().add_child(ball)
+	ball.global_position = ctr + Vector3.UP * R * 0.6
+	ball.scale = Vector3.ONE * 0.2
+	ball.create_tween().tween_property(ball, "scale", Vector3.ONE * R * 2.0, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	VFX.splash(ctr, 3.0 * s)
+	Sfx.play("water", ctr, 0.5)
+	var held = _foes(user, ball.global_position, R)
+	for f in held:
+		_bind(f, 3.5)
+		Combat.popup_text(f.global_position + Vector3.UP * (float(f.height) + 1.0), "SU HAPSİ!", Color(0.5, 0.8, 1))
+	_ticker(ctr, 3.2, 0.4, func(_n: Node3D, _e: float) -> void:
+		for f in held:
+			if is_instance_valid(f) and not f.is_dead():
+				_hit(user, f.global_position + Vector3.UP, 0.6, {"dmg": dmg * 0.07, "element": "suiton", "knock": 0.0, "kind": "light"}))
+	_later(3.3, user, func():
+		if is_instance_valid(ball):
+			VFX.splash(ball.global_position, 3.5 * s)
+			VFX.shockwave(ball.global_position, Color(0.6, 0.85, 1.0), R * 2.5, 0.4, false)
+			_hit(user, ball.global_position, R * 1.3, {"dmg": dmg * 0.8, "element": "suiton", "knock": 30.0, "launch": 10.0, "kind": "heavy"})
+			ball.queue_free()
+		_shake(0.6))
+
+
+## --- Son Gokū: Yōton Kazan-u — gökten yağan lav kayaları, düştüğü yerler lav gölü
+static func _kazan_u(user: Node3D, c: Dictionary) -> void:
+	var s: float = c["s"]
+	var ctr = _center(user, c, 70.0 * s)
+	var dmg: float = c["dmg"]
+	var R = 14.0 * s
+	Sfx.play("fire", user.global_position, 0.4)
+	VFX.goo_drops(_live_from(user, c, s), "molten", 24, 1.6 * s, 22.0)   # ağızdan göğe lav fışkırması
+	for i in 16:
+		_later(0.6 + 0.11 * i, user, func():
+			var tg = _gp(ctr + Vector3(randf_range(-1, 1), 0, randf_range(-1, 1)) * R)
+			var from = tg + Vector3(randf_range(-6, 6) * s, 34.0 * s, randf_range(-6, 6) * s)
+			var vis = VFX.lava_ball(1.3 * s)
+			var oh = func(pos: Vector3, _t: Node3D) -> void:
+				VFX.lava_splash(pos, 1.1 * s)
+				VFX.debris(pos, Color(0.25, 0.12, 0.08), 8, 10.0, 0.4 * s)
+				if i % 3 == 0:
+					_lava_pool(user, pos, s * 0.9, dmg * 0.14, 8.0)
+				_shake(0.25)
+			_shot(user, from, (tg - from).normalized() * 45.0, 0.8 * s, {"dmg": dmg * 0.4, "element": "yoton", "burn": 3.0, "knock": 12.0, "launch": 5.0, "kind": "heavy"}, vis, oh, 0.0, 3.0))
+
+
+## --- Son Gokū: Yōton Funka — yer çizgi hâlinde yarılır, ucuna kadar art arda lav sütunları fışkırır
+static func _yoton_funka(user: Node3D, c: Dictionary) -> void:
+	var s: float = c["s"]
+	var o = _gp(user.global_position)
+	var dir = _flat(c["aim"] - o)
+	var dmg: float = c["dmg"]
+	for i in 9:
+		var p = _gp(o + dir * (5.0 + i * 4.5) * s)
+		_later(0.09 * i, user, func():
+			VFX.cracks(p, 3.5 * s, Color(1.0, 0.45, 0.05, 0.95), 4.0))
+		_later(0.09 * i + 0.5, user, func():
+			PathJutsu.get_pinst().stream_fx(p, Vector3.UP, 14.0 * s, 1.7 * s, VFX.mat_water(Color(0.45, 0.08, 0.02), Color(1.0, 0.45, 0.1), Color(1.0, 0.85, 0.4), Vector3.UP, 1.0, 0.7, 0.15), 0.6)
+			VFX.debris(p + Vector3.UP, Color(0.22, 0.12, 0.08), 10, 16.0, 0.45 * s)
+			VFX.goo_drops(p + Vector3.UP * 5.0 * s, "molten", 8, 1.5 * s, 10.0)
+			_hit(user, p + Vector3.UP * 2.0 * s, 3.2 * s, {"dmg": dmg * 0.45, "element": "yoton", "burn": 4.0, "knock": 6.0, "launch": 20.0, "kind": "heavy"})
+			if i % 3 == 2:
+				_lava_pool(user, p, s, dmg * 0.12, 7.0)
+			Sfx.play("boom", p, 1.0)
+			_shake(0.3))
+
+
+## --- Kokuō: Futton Mōjō — bedenden dev kaynar buhar fırtınası: yakındakiler haşlanır, savrulur, alan uzun süre kaynar
+static func _futton_mojo(user: Node3D, c: Dictionary) -> void:
+	var s: float = c["s"]
+	var o = _gp(user.global_position)
+	var R = 15.0 * s
+	var dmg: float = c["dmg"]
+	Sfx.play("wind", o, 0.5)
+	for k in 4:
+		_later(0.15 * k, user, func():
+			_steam_cloud(o + Vector3.UP * (1.0 + k) * s, s * (1.2 + k * 0.3), R * (0.4 + k * 0.2), 2.5)
+			VFX.shockwave(o + Vector3.UP * 0.3, STEAM, R * (0.6 + k * 0.4), 0.4))
+	_hit(user, o + Vector3.UP * s, R * 0.7, {"dmg": dmg * 0.9, "element": "futton", "knock": 40.0, "launch": 10.0, "kind": "heavy", "hitstop": 0.1})
+	_shake(1.0)
+	_ticker(o, 7.0, 0.5, func(_n: Node3D, el: float) -> void:
+		if int(el / 0.5) % 2 == 0:
+			_steam_cloud(o + Vector3(randf_range(-1, 1), 0.5, randf_range(-1, 1)) * R * 0.6, s * 0.8, 3.0 * s, 1.5)
+		for f in _hit(user, o + Vector3.UP * s, R, {"dmg": dmg * 0.05, "element": "futton", "knock": 0.0, "kind": "light"}):
+			f.apply_status("slow", 0.6))
+
+
+## --- Kokuō: Gōkaku Totsugeki — buhar itişli üç boynuz hücumu art arda, her seferinde hedefe dönerek
+static func _gokaku_totsugeki(user: Node3D, c: Dictionary) -> void:
+	for k in 3:
+		_later(0.85 * k, user, func():
+			var cc = _c2(c, 1.1)
+			var t = _pick(user, c, 70.0 * float(c["s"]))
+			if t:
+				cc["aim"] = t.global_position
+			_horn_ram(user, cc))
+
+
+## --- Saiken: Fukuso Arashi — gökyüzünü dolduran asit baloncuğu fırtınası
+static func _fukuso_arashi(user: Node3D, c: Dictionary) -> void:
+	var s: float = c["s"]
+	var ctr = _center(user, c, 60.0 * s)
+	for k in 5:
+		_later(0.22 * k, user, func():
+			var a = randf() * TAU
+			var cc = _c2(c, 1.2, ctr + Vector3(cos(a), 0, sin(a)) * randf_range(2.0, 9.0) * s)
+			cc["from"] = _live_from(user, c, s)
+			_fukuso(user, cc))
+
+
+## --- Saiken: Nenkō Shinshoku — öne doğru yayılan sümük seli: yollar yapış yapış, değen zırh erir
+static func _nenko_shinshoku(user: Node3D, c: Dictionary) -> void:
+	var s: float = c["s"]
+	var o = _gp(user.global_position)
+	var dir = _flat(c["aim"] - o)
+	var dmg: float = c["dmg"]
+	VFX.splash(o + dir * 4.0 * s, 3.0 * s)
+	Sfx.play("water", o, 0.4)
+	for k in 3:
+		_later(0.25 * k, user, func():
+			var p = o + dir * (8.0 + k * 11.0) * s
+			_slime(user, _c2(c, 0.85, p))
+			for f in _hit(user, p + Vector3.UP * s, 7.0 * s, {"dmg": dmg * 0.4, "element": "suiton", "knock": 18.0, "launch": 3.0, "kind": "heavy", "dir": dir}):
+				_corrode(f, 6.0, dmg * 0.05, ACID))
+
+
+## --- Chōmei: Rinpun Kōsen — alanı pul tozu sisi kaplar, art arda kör eden ışık patlamaları
+static func _rinpun_kosen(user: Node3D, c: Dictionary) -> void:
+	var s: float = c["s"]
+	var ctr = _center(user, c, 70.0 * s)
+	var dmg: float = c["dmg"]
+	var R = 18.0 * s
+	_fog(ctr, R, SCALE, 0.35, 7.0)
+	for k in 6:
+		_later(0.25 * k, user, func():
+			var a = TAU * k / 6.0
+			var p = ctr + Vector3(cos(a), 0, sin(a)) * R * 0.45 + Vector3.UP * 3.0 * s
+			VFX.star(p, Color(1, 1, 0.85), 6.0 * s, 0.25)
+			FX.light(p, Color(1, 1, 0.8), 12.0, 25.0 * s, 0.3)
+			for f in _hit(user, p, R * 0.4, {"dmg": dmg * 0.25, "element": "fuuton", "knock": 4.0, "kind": "light"}):
+				_blind(f, 3.5))
+	Sfx.play("chidori", ctr, 1.6, 0.6)
+
+
+## --- Chōmei: Mushi Arashi — beş güdümlü böcek sürüsü birden
+static func _mushi_arashi(user: Node3D, c: Dictionary) -> void:
+	for k in 5:
+		_later(0.18 * k, user, func():
+			var cc = _c2(c, 1.1)
+			cc["from"] = _live_from(user, c, float(c["s"]))
+			_mushi_swarm(user, cc))
+
+
+## --- Gyūki: Sumi Nami — öne kopan mürekkep tsunamisi: kör eder, yavaşlatır, zemini mürekkebe boğar
+static func _sumi_nami(user: Node3D, c: Dictionary) -> void:
+	var s: float = c["s"]
+	var o = _gp(user.global_position)
+	var dir = _flat(c["aim"] - o)
+	var side = dir.cross(Vector3.UP)
+	var dmg: float = c["dmg"]
+	var hitlist: Array = [user]
+	Sfx.play("water", o, 0.35)
+	for i in 10:
+		_later(0.06 * i, user, func():
+			var p = o + dir * (4.0 + i * 3.5) * s
+			for k in 3:
+				var q = p + side * (k - 1) * 5.0 * s
+				_ink_puddle(q, s * 1.3, 8.0)
+				VFX.puffs(_gp(q) + Vector3.UP * 2.0 * s, {"amount": 10, "life": 1.0, "size": 1.8 * s, "radius": 2.0 * s, "vmin": 4, "vmax": 10, "dir": Vector3.UP + dir, "spread": 40.0,
+					"gravity": Vector3(0, -14, 0), "colors": [Color(0.12, 0.08, 0.18, 1), Color(0.02, 0.01, 0.03, 0)]})
+			for f in _hit(user, p + Vector3.UP * 2.0 * s, 8.0 * s, {"dmg": dmg * 0.3, "element": "suiton", "knock": 22.0, "launch": 4.0, "kind": "heavy", "dir": dir}, hitlist):
+				hitlist.append(f)
+				_blind(f, 3.0, Color(0, 0, 0, 0.85))
+				f.apply_status("slow", 4.0))
+	_shake(0.7)
+
+
+## --- Gyūki: Hachibi Ude Rengeki — sekiz dokunaç hedefin çevresine art arda iner, yeri yarar
+static func _hachi_ude(user: Node3D, c: Dictionary) -> void:
+	var s: float = c["s"]
+	var ctr = _center(user, c, 50.0 * s)
+	var dmg: float = c["dmg"]
+	var mat = _toon(Color(0.42, 0.22, 0.28))
+	for k in 8:
+		_later(0.16 * k, user, func():
+			var a = k * 2.2
+			var p = _gp(ctr + Vector3(cos(a), 0, sin(a)) * randf_range(0.0, 6.0) * s)
+			var base = user.global_position + Vector3.UP * _body_h(user, c) * 0.35
+			var arm = _mi(_cone(1.4 * s, 0.5 * s, 1.0, 8), mat)
+			VFX.scene().add_child(arm)
+			var L = base.distance_to(p)
+			arm.global_position = base.lerp(p, 0.5)
+			var dv = (p - base).normalized()
+			arm.basis = Basis(Quaternion(Vector3.UP, dv))
+			arm.scale = Vector3(1, L * 0.05, 1)
+			var tw = arm.create_tween()
+			tw.tween_property(arm, "scale", Vector3(1, L, 1), 0.12)
+			tw.tween_interval(0.25)
+			tw.tween_property(arm, "scale", Vector3(0.6, L * 0.05, 0.6), 0.2)
+			tw.tween_callback(arm.queue_free)
+			_later(0.12, user, func():
+				VFX.cracks(p, 3.0 * s, Color(0.15, 0.1, 0.1, 0.9), 3.0)
+				VFX.shockwave(p + Vector3.UP * 0.2, Color(0.9, 0.85, 0.95), 7.0 * s, 0.3)
+				VFX.debris(p, Color(0.35, 0.3, 0.25), 8, 10.0, 0.35 * s)
+				_hit(user, p + Vector3.UP * s, 3.2 * s, {"dmg": dmg * 0.35, "element": "raiton", "knock": 16.0, "launch": 9.0, "kind": "heavy", "hitstop": 0.06})
+				Sfx.play("hit_heavy", p, 0.7)
+				_shake(0.3)))
+
+
+## --- Kurama: Kyūbi Bisō — dokuz kuyruk sırayla yeri döver, önündeki her şey savrulur
+static func _kyubi_biso(user: Node3D, c: Dictionary) -> void:
+	var s: float = c["s"]
+	var o = _gp(user.global_position)
+	var fwd = _flat(c["aim"] - o)
+	var dmg: float = c["dmg"]
+	var col: Color = c.get("col", FOX)
+	for k in 9:
+		_later(0.11 * k, user, func():
+			var a = atan2(fwd.x, fwd.z) + (k - 4) * 0.42
+			var p = _gp(o + Vector3(sin(a), 0, cos(a)) * 11.0 * s)
+			VFX.cracks(p, 4.0 * s, Color(1.0, 0.5, 0.1, 0.9), 3.5)
+			VFX.shockwave(p + Vector3.UP * 0.2, col.lightened(0.3), 9.0 * s, 0.35)
+			VFX.debris(p, Color(0.35, 0.3, 0.25), 10, 14.0, 0.45 * s)
+			_hit(user, p + Vector3.UP * s, 4.0 * s, {"dmg": dmg * 0.4, "element": "katon", "burn": 2.0, "knock": 35.0, "launch": 12.0, "kind": "heavy", "dir": (p - o).normalized()})
+			Sfx.play("boom", p, 0.8)
+			_shake(0.35))
+
+
+## --- Kurama: Bijūdama Rendan — art arda üç dev Bijūdama
+static func _bijudama_rendan(user: Node3D, c: Dictionary) -> void:
+	var s: float = c["s"]
+	for k in 3:
+		_later(0.9 * k, user, func():
+			var from = _live_from(user, c, s)
+			var t = _pick(user, c, 90.0 * s)
+			var aim: Vector3 = (t.global_position + Vector3.UP * float(t.height) * 0.5) if t else c["aim"]
+			var dir = (aim - from).normalized()
+			var vis = BijudamaFX.ball(1.8 * s)
+			BijudamaFX.gather(from, 1.8 * s, 0.4)
+			var boom = func(pos: Vector3, _t: Node3D) -> void:
+				var R = 10.0 * s
+				BijudamaFX.explode(pos, R)
+				_hit(user, pos, R, {"dmg": float(c["dmg"]) * 1.1, "knock": 40.0, "launch": 12.0, "kind": "heavy"})
+				_shake(1.2)
+			var prb = _shot(user, from + dir * 1.5 * s, dir * 60.0, 1.2 * s, {"dmg": float(c["dmg"]) * 0.4, "knock": 20.0, "kind": "heavy"}, vis, boom, 0.0, 4.0)
+			BijudamaFX.launch(from + dir * 1.5 * s, dir, 1.8 * s, prb)
+			Sfx.play("rasengan", from, 0.4))
+
+
 # ================================================================== canavara özgü pençe / vuruş
 ## Tam dönüşüm sol tık ve boss pençesi: element + canavarın izi (kum, mavi alev, mercan, lav, buhar, asit, rüzgar bıçağı, mürekkep, tilki ateşi)
 static func melee(user: Node3D, id: String, pt: Vector3, r: float, dmg: float, dir: Vector3) -> Array:
@@ -1565,6 +2003,12 @@ static func pick_key(id: String, dist: float, s: float) -> String:
 	var l = techs(id)
 	if l.is_empty():
 		return ""
+	var now = Time.get_ticks_msec()
+	var epics = l.filter(func(t): return t.get("epic", false))
+	if not epics.is_empty() and now - int(_epic_t.get(id, -100000)) > 14000 and randf() < 0.45:
+		_epic_t[id] = now
+		return String(epics.pick_random()["key"])
+	l = l.filter(func(t): return not t.get("epic", false))
 	var near_keys = ["neko_pounce", "shell_roll", "horn_ram", "steam_burst", "yoton_yoroi", "suna_tate", "tako_bunshin", "slime", "biju_hoko", "funkatsu"]
 	var opts = []
 	for t in l:

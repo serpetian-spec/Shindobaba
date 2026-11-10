@@ -5,7 +5,7 @@ extends RefCounted
 ## (gözler açık / pelerin seviyesi) yoksa atmaz ve sebebini söyler. Eskiden Z/X ve R/T/C tuşlarına bağlıydı.
 
 const EYE_IDS := ["goz_sag", "goz_sol"]
-const BIJUU_IDS := ["bijuu_t0", "bijuu_t1", "bijuu_t2"]
+const BIJUU_IDS := ["bijuu_t0", "bijuu_t1", "bijuu_t2", "bijuu_t3", "bijuu_t4"]
 const SUS_IDS := ["susanoo_t0", "susanoo_t1", "susanoo_t2"]
 const MS_BIJUU_ID := "ms_bijuu_kuchiyose"
 
@@ -36,7 +36,7 @@ static func refresh(pr: Dictionary) -> Array:
 	else:
 		Data.jutsu.erase("kurama_e")
 	var tl: Array = BijuuArts.techs(bid) if bid != "" else []
-	for i in 3:
+	for i in BIJUU_IDS.size():
 		var id = BIJUU_IDS[i]
 		if i < tl.size():
 			var t: Dictionary = tl[i]
