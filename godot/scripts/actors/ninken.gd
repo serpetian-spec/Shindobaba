@@ -38,7 +38,7 @@ func _ready() -> void:
 	vis = Node3D.new()
 	add_child(vis)
 	# referans (Akamaru, Part II): kabarık krem-beyaz dev köpek, sarkık kahve kulaklar, kısık gözler (InuzukaModels)
-	parts = InuzukaModels.akamaru(dog_h)   # rütbeyle büyür (yavru -> dev köpek)
+	parts = InuzukaModels.akamaru(dog_h, InuzukaModels.player_coat())   # rütbeyle büyür (yavru -> dev köpek)
 	vis.add_child(parts["root"])
 
 

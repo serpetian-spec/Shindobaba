@@ -1036,7 +1036,12 @@ static func transplant(pr: Dictionary, uid: int, slot: String) -> void:
 	if not cur.is_empty() and cur["id"] == "goz_mangekyo" and g["id"] == "goz_mangekyo" and String(cur.get("origin", "dogustan")) == "dogustan" and String(g.get("origin", "nakil")) == "nakil":
 		g["id"] = "goz_ems"
 		g["origin"] = "dogustan"
+		# Ebedi'ye geçişte göz kendi Mangekyō'nun tarzını ve desenini korur (nakledilen gözünkine dönmez)
 		g.erase("design")
+		if cur.has("ms_style"):
+			g["ms_style"] = cur["ms_style"]
+		if cur.has("design"):
+			g["design"] = (cur["design"] as Dictionary).duplicate(true)
 		Hud.banner("EBEDİ MANGEKYŌ", "Gözlerin artık hiç kararmayacak", Color(0.9, 0.2, 0.3))
 	pr["equip"][slot] = uid
 	Buffs.add("nakil", 120.0, {"speed": 0.85, "melee": 0.85})

@@ -387,7 +387,8 @@ func _physics_process(dt: float) -> void:
 			if nameplate and nameplate.visible:
 				nameplate.visible = false
 		return
-	chakra = minf(max_chakra, chakra + 1.5 * (1.0 + float(level) * 0.01) * dt)   # oyuncuyla aynı yenilenme
+	if not has_meta("shoten_copy"):   # Shōten kopyası: aktarılan pay yenilenmez, bitince teknik çözülür
+		chakra = minf(max_chakra, chakra + 1.5 * (1.0 + float(level) * 0.01) * dt)   # oyuncuyla aynı yenilenme
 	_stam_rest += dt
 	stamina = minf(100.0, stamina + (3.0 if _stam_rest < 2.0 else 7.0) * dt)
 	var pl = Game.player

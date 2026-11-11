@@ -15,6 +15,8 @@ func _ready() -> void:
 	Game.profile["level"] = 60
 	Game.profile["rank"] = 3
 	for id in Contracts.DEFS:
+		if OS.get_environment("SK") != "" and not id in OS.get_environment("SK").split(","):
+			continue
 		for tier in Contracts.DEFS[id]["tiers"]:
 			var a = Enemy.archetype("bandit", 0)
 			a["respawn"] = false
@@ -38,7 +40,7 @@ func _ready() -> void:
 			var cd0 = s.special_cd
 			var hp0 = e.hp
 			var st0 = e.has_status("stun") or e.has_status("bind") or e.has_status("slow")
-			var shoot = s.def["model"] in ["toad_mid", "snake_swarm", "crow_flock", "spider", "turtle_giant", "dog_pack"]
+			var shoot = s.def["model"] in ["toad_mid", "snake_swarm", "crow_flock", "spider", "turtle_giant", "dog_pack"] or OS.get_environment("SHOTALL") != ""
 			if shoot:
 				var f = pl.face_dir()
 				var cam = Camera3D.new()
@@ -46,8 +48,29 @@ func _ready() -> void:
 				var sz = maxf(3.0, float(s.def["h"]))
 				cam.global_position = pl.global_position + f * 7.0 + f.cross(Vector3.UP) * (6.0 + sz) + Vector3.UP * (2.5 + sz * 0.6)
 				cam.look_at(pl.global_position + f * 8.0 + Vector3.UP * 1.0)
+				if OS.get_environment("SHOTALL") != "":   # çağrıyı boyuna göre kadraja al
+					var cs = s.global_position + Vector3.UP * sz * 0.5
+					cam.global_position = cs + (f.cross(Vector3.UP) * 1.0 + f * 0.35).normalized() * (4.0 + sz * 2.4) + Vector3.UP * sz * 0.25
+					cam.look_at(cs)
 				cam.current = true
-				await get_tree().create_timer(1.15).timeout
+				if OS.get_environment("SHOTALL") != "":   # teknik duruşunu kare kare çek
+					var sc0 = s.special_cd
+					for w8 in 40:   # tekniğin başladığı anı bekle
+						if not is_instance_valid(s) or s.special_cd > sc0:
+							break
+						await get_tree().create_timer(0.05).timeout
+					for q in 4:
+						await get_tree().create_timer(0.22).timeout
+						if is_instance_valid(s):
+							var hh = float(s.def["h"])
+							var big = maxf(hh, float(s.def.get("len", hh)))
+							var cs2 = s.global_position + Vector3.UP * hh * 0.5
+							cam.global_position = cs2 + (f.cross(Vector3.UP) + f * 0.4).normalized() * (1.5 + big * 1.7) + Vector3.UP * hh * 0.35
+							cam.look_at(cs2)
+						await main.shot("skp_%s_%d" % [s.def["model"], q])
+					await get_tree().create_timer(0.27).timeout
+				else:
+					await get_tree().create_timer(1.15).timeout
 				await main.shot("skill_" + s.def["model"])
 				cam.queue_free()
 				await get_tree().create_timer(1.05).timeout

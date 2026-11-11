@@ -458,7 +458,7 @@ func _physics_process(dt: float) -> void:
 	stamina = minf(max_stamina, stamina + sreg * dt)
 	if hp > 0.0 and not Buffs.has("rinne_bedel"):   # Rinne Tensei bedeli: iyileşme yok
 		var hreg = 0.5 * (1.0 + Stats.skill(Game.profile, "regen_hp"))
-		if clan == "senju":
+		if clan == "senju" or Eyes.has_senju_dna(Game.profile):   # Saisei Nōryoku: Hashirama hücresi taşıyan herkes (nakil dahil) hızlı iyileşir
 			hreg *= 3.0
 		elif clan == "uzumaki":
 			hreg *= 2.0

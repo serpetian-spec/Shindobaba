@@ -411,6 +411,13 @@ func _front(d := 0.0) -> Vector3:
 
 ## Temel saldırı: türe göre
 var attack_anim_t = 0.0
+var skill_anim_t = 0.0   # imza tekniği duruşu
+## Çağrıya özel teknik hareketi: rear = şahlanıp ön ayakla döver · spin = kendi ekseninde fırıl döner (kabuk / orak) · charge = başı eğip yere basarak hücum
+## spit = geri yaslanıp öne püskürtür · howl = başı göğe kaldırıp ulur/çeker · pounce = yere sinip fırlar · slash = yana açılıp geniş savurur
+const SKILL_STYLE = {"toad_small": "spit", "toad_mid": "slash", "toad_boss": "slash", "slug_frag": "howl", "slug_acid": "spit", "slug_queen": "rear",
+	"dog_small": "howl", "dog_pack": "pounce", "dog_giant": "pounce", "wolf_giant": "howl", "wolf3_giant": "howl", "cat_small": "pounce", "cat_giant": "howl",
+	"turtle_small": "spin", "turtle_giant": "rear", "weasel_trio": "spin", "salamander": "spit", "spider": "rear", "baku": "howl",
+	"rin_rhino": "charge", "rin_ox": "charge", "rin_panda": "rear", "rin_chameleon": "spit", "rin_dog": "howl", "rin_centipede": "rear", "rin_crab": "spit"}
 
 
 ## Vuruş aralığı: küçük çağrı ~2 sn, dev çağrı ~4 sn (eskiden 1.2-3 sn: "her saniye vuruyor")
@@ -478,12 +485,15 @@ func _attack() -> void:
 const SIG_NAME := {"toad_small": "Suiton: Kurbağa Tükürüğü", "toad_mid": "Dil Kamçısı", "toad_boss": "Suiton: Teppōdama", "snake_swarm": "Sen'ei Jashu",
 	"snake_giant": "Yılan Sarması", "snake_boss": "Hükümdarın Sarması", "slug_acid": "Zesshi Nensan (Asit Püskürtme)", "slug_queen": "Bölünme: Şifa Dalgası",
 	"hawk_small": "Keskin Göz", "hawk_mount": "Kanat Fırtınası", "hawk_giant": "Gök Kasırgası", "dog_small": "Ninken Takibi", "dog_pack": "Doton: Ninken Tuzağı",
-	"wolf_giant": "Çift Çene Saldırısı", "dog_giant": "Kara Diş: Toprak Yaran Isırık", "monkey_small": "Maymun Atlayışı", "crow_flock": "Karga Yanılsaması", "salamander": "Zehir Sisi",
+	"wolf_giant": "Çift Çene Saldırısı", "dog_giant": "Ninken Isırığı", "baku": "Baku: Her Şeyi Emen Nefes", "monkey_small": "Maymun Atlayışı", "crow_flock": "Karga Yanılsaması", "salamander": "Zehir Sisi",
 	"turtle_small": "Kabuk Kalkanı", "turtle_giant": "Ada Kabuğu: Dönen Kale", "weasel_trio": "Kamaitachi no Jutsu", "cat_small": "Kedi Pençesi",
 	"cat_giant": "Kedi Ruhu Alevi", "spider": "Kumo Shibari (Örümcek Ağı)"}
 
 
 func _special() -> void:
+	skill_anim_t = 1.0
+	for sa in parts["root"].find_children("SnakeAnim*", "", true, false):   # yılan: teknikte de başını geri çekip atılır
+		sa.bite()
 	var model: String = def.get("model", "")
 	var role: String = def.get("role", "")
 	var nm = String(def.get("sig_name", SIG_NAME.get(model, "")))
@@ -569,6 +579,8 @@ func _special() -> void:
 				tgt.apply_status("slow", 2.0)
 		"hawk_mount", "hawk_giant":
 			_gust()
+		"baku":
+			_baku_inhale()
 		"dog_small":
 			if tgt:   # izini sürüp topuğundan ısırır
 				_mark(tgt, Color(1.0, 0.6, 0.3))
@@ -756,6 +768,33 @@ func _split_heal() -> void:
 	if owner_f:
 		owner_f.hp = minf(owner_f.max_hp, owner_f.hp + owner_f.max_hp * 0.25)
 		FX.aura(owner_f, Color(0.5, 1, 0.6), 1.2, Vector3(0, 0.9, 0), 1.5)
+
+
+## Baku (kanon): ağzını açıp önündeki her şeyi içine çeker; çekilenler rüzgârla yıpranır, sonunda ısırılır
+func _baku_inhale() -> void:
+	Sfx.play("wind", global_position, 0.6)
+	var rng_m = 24.0 + height
+	for k in 16:
+		get_tree().create_timer(k * 0.15).timeout.connect(func():
+			if not is_instance_valid(self) or is_dead():
+				return
+			var dir = face_dir()
+			var mouth = global_position + dir * (height * 1.6) + Vector3.UP * height * 0.4
+			FX.speed_lines(mouth + dir * rng_m * 0.5, -dir)
+			if k % 4 == 0:
+				FX.ring(mouth + dir * (rng_m * (1.0 - k / 16.0)), Color(0.85, 0.95, 1.0), 4.0 + height * 0.4, 0.35, false, -dir)
+			for f in get_tree().get_nodes_in_group("fighters"):
+				if not Combat.hostile(self, f) or f.is_dead():
+					continue
+				var to: Vector3 = f.global_position - mouth
+				if to.length() > rng_m or to.normalized().dot(dir) < 0.35:
+					continue
+				var pull = minf(to.length(), 2.4)
+				f.global_position -= to.normalized() * pull
+				if k % 4 == 3:
+					f.take_hit({"dmg": def.get("dmg", 30.0) * 0.18, "knock": 0.0, "kind": "light", "element": "fuuton", "attacker": self})
+				if k == 15 and to.length() < height * 0.9 + 2.0:
+					f.take_hit({"dmg": def.get("dmg", 30.0) * 0.9, "knock": 14.0, "launch": 5.0, "kind": "heavy", "dir": dir, "attacker": self}))
 
 
 func _gust() -> void:
@@ -1036,6 +1075,11 @@ func _animate(dt: float) -> void:
 	var moving = Vector2(velocity.x, velocity.z).length() > 0.5
 	if parts["anim"] != "model":
 		attack_anim_t = maxf(0.0, attack_anim_t - dt)
+	var strike = 0.0   # < 0 geri çekiş, > 0 atılış
+	if attack_anim_t > 0.0 and parts["anim"] != "model":
+		var ap2 = 1.0 - attack_anim_t / 0.7
+		strike = -sin(ap2 / 0.3 * PI) * 0.45 if ap2 < 0.3 else sin((ap2 - 0.3) / 0.7 * PI)
+	var air = hop_t < 0.0 and not def.get("fly", false) and global_position.y - Game.ground_height(global_position.x, global_position.z) > maxf(0.6, height * 0.2)   # gerçekten havada (zeminden yüksekte)
 	match parts["anim"]:
 		"model":  # hazır modelin kendi animasyonları
 			var ap: AnimationPlayer = parts.get("player")
@@ -1063,7 +1107,16 @@ func _animate(dt: float) -> void:
 			elif moving and not mounted:
 				hop_t = 0.0
 			else:
-				root.position.y = sin(anim_t * 2.0) * height * 0.01  # nefes
+				root.position.y = sin(anim_t * 2.0) * height * 0.012  # nefes
+				for i in parts["legs"].size():
+					var hl: Node3D = parts["legs"][i]
+					var want = sin(anim_t * 1.1 + i * 1.9) * 0.05
+					if i % 2 == 0:   # kollar
+						if strike != 0.0:
+							want = -strike * 0.95
+						elif i == 0 and fposmod(anim_t, 10.0) < 1.4:   # ara sıra elini kaldırıp indirir
+							want = -sin(fposmod(anim_t, 10.0) / 1.4 * PI) * 0.7
+					hl.rotation.x = lerpf(hl.rotation.x, want, 0.3)
 		"slither":
 			var segs: Array = parts["segments"]
 			var amp = clampf(height * 0.35, 0.3, 4.0)
@@ -1075,37 +1128,142 @@ func _animate(dt: float) -> void:
 		"crawl":
 			var b: Node3D = parts["segments"][0]
 			var sq = sin(anim_t * (5.0 if moving else 1.2))
-			b.scale = Vector3(1.0 - sq * 0.04, 1.0 + sq * 0.05, 1.0 + sq * 0.06)
+			b.scale = Vector3(1.0 - sq * 0.04 - strike * 0.08, 1.0 + sq * 0.05 - maxf(strike, 0.0) * 0.1, 1.0 + sq * 0.06 + strike * 0.22)   # teknikte büzülüp öne uzar
 			if parts["head"]:
 				parts["head"].rotation.x = sin(anim_t * 1.7) * 0.15
 		"fly":
 			var flap = sin(anim_t * (9.0 if height < 2.0 else 4.0))
 			for i in parts["wings"].size():
 				var w: Node3D = parts["wings"][i]
-				w.rotation.z = flap * 0.6 * (1.0 if i == 0 else -1.0)
+				w.rotation.z = ((flap * 0.6) if moving else (0.55 + flap * 0.4)) * (1.0 if i == 0 else -1.0)
+				w.rotation.y = (0.0 if moving else 0.3) * (1.0 if i == 0 else -1.0)
 			root.position.y = flap * height * 0.05
+			if parts.has("tilt"):
+				var tl: Node3D = parts["tilt"]
+				tl.rotation.x = lerpf(tl.rotation.x, -0.45 * maxf(strike, 0.0) if (moving or strike > 0.0) else 0.75, 0.12)
+				if parts["head"]:   # baş hep karşıya bakar; dururken hafif sağa sola döner
+					(parts["head"] as Node3D).rotation.x = -tl.rotation.x * 0.9
+					(parts["head"] as Node3D).rotation.y = 0.0 if moving else sin(anim_t * 0.7) * 0.35
 			# ayaklar: uçarken geriye toplanır; saldırıda pençeler öne uzanıp açılır, dururken hafif salınır
 			var grab = clampf(attack_anim_t * 2.0, 0.0, 1.0) if "attack_anim_t" in self else 0.0
 			for i in parts["legs"].size():
 				var lg: Node3D = parts["legs"][i]
-				var tuck = 0.9 if moving else 0.25
+				var tuck = 0.9 if moving else -0.6   # dururken pençeler öne uzanır
 				lg.rotation.x = lerpf(tuck, -0.9, grab) + sin(anim_t * 3.0 + i) * 0.08
 		"walk":
 			var sw = sin(anim_t * (9.0 if moving else 0.0))
+			var paw = fposmod(anim_t + 3.0, 9.0)   # dururken ara sıra ön patiyle yeri eşeler
 			for i in parts["legs"].size():
-				parts["legs"][i].rotation.x = sw * 0.5 * (1.0 if i % 2 == 0 else -1.0) * (1.0 if i < 2 else -1.0)
+				var rx = sw * 0.5 * (1.0 if i % 2 == 0 else -1.0) * (1.0 if i < 2 else -1.0)
+				if air:   # sıçrayış: ön bacaklar ileri, arkalar geri
+					rx = -0.75 if i < 2 else 0.75
+				elif strike != 0.0 and i < 2:   # pençe darbesi
+					rx = -strike * (0.85 if i == 0 else 0.5)
+				elif not moving:
+					rx = sin(anim_t * 1.1 + i * 1.7) * 0.03
+					if i == 0 and paw < 1.2:
+						rx = -absf(sin(paw / 1.2 * PI * 3.0)) * 0.45
+				var lgn: Node3D = parts["legs"][i]
+				lgn.rotation.x = lerpf(lgn.rotation.x, rx, 0.4)
 			if parts["tail"]:
-				parts["tail"].rotation.y = sin(anim_t * 3.0) * 0.3
+				parts["tail"].rotation.y = sin(anim_t * (7.0 if moving else 2.2)) * (0.35 if moving else 0.22)
+				parts["tail"].rotation.x = sin(anim_t * 1.3) * 0.08 - maxf(strike, 0.0) * 0.3
+			if not air:
+				root.position.y = absf(sw) * height * 0.025 if moving else sin(anim_t * 1.8) * height * 0.008
 		"biped":
 			var sw = sin(anim_t * (8.0 if moving else 1.0))
+			var scr = fposmod(anim_t + 2.0, 8.0)   # dururken ara sıra göğsünü kaşır
 			for i in parts["legs"].size():
-				parts["legs"][i].rotation.x = sw * 0.6 * (1.0 if i == 0 else -1.0)
-			root.position.y = absf(sw) * height * 0.04 if moving else 0.0
+				var rx = sw * (0.6 if moving else 0.07) * (1.0 if i == 0 else -1.0)
+				if air:
+					rx = -2.3 + i * 0.3
+				elif strike != 0.0:   # bir kol geriden kalkıp öne iner, diğeri dengeler
+					rx = -strike * 1.9 if i == 0 else strike * 0.5
+				elif not moving and i == 1 and scr < 1.3:
+					rx = -1.0 + sin(anim_t * 16.0) * 0.14
+				var arm: Node3D = parts["legs"][i]
+				arm.rotation.x = lerpf(arm.rotation.x, rx, 0.4)
+			if not air:
+				root.position.y = absf(sw) * height * 0.04 if moving else sin(anim_t * 1.6) * height * 0.006
+			if parts["tail"]:
+				parts["tail"].rotation.y = sin(anim_t * 2.0) * 0.3
 		"flock":
 			for i in parts["segments"].size():
 				var n: Node3D = parts["segments"][i]
 				n.position.y = (1.5 + sin(anim_t * 2.0 + i) * 0.6) if def.get("fly", false) else 0.0
-				n.rotation.y = sin(anim_t * 1.5 + i * 1.3) * 0.8
+				n.rotation.y = sin(anim_t * 1.5 + i * 1.3) * 0.8 * (1.0 - maxf(strike, 0.0))   # teknikte hepsi hedefe dönüp dalar
+				n.rotation.x = lerpf(n.rotation.x, -maxf(strike, 0.0) * 0.6, 0.4)
 		"spider":
 			for i in parts["legs"].size():
-				parts["legs"][i].rotation.x = sin(anim_t * (12.0 if moving else 1.0) + i * 0.8) * 0.25
+				var rx = sin(anim_t * (12.0 if moving else 1.3) + i * 0.8) * (0.25 if moving else 0.07)
+				if strike != 0.0 and i < 2:   # ön bacaklar kalkıp saplanır
+					rx = -strike * 0.9
+				elif air:
+					rx = 0.5
+				parts["legs"][i].rotation.x = lerpf(parts["legs"][i].rotation.x, rx, 0.4)
+	# saldırı / teknik: gövde önce geri çekilir, sonra hedefe atılır (hazır model ve yılan gölgelendiricisi kendi hareketini yapar)
+	if parts["anim"] in ["walk", "hop", "biped", "spider", "crawl", "flock"]:
+		var fwd = Vector3(-sin(facing), 0, -cos(facing))
+		var reach = strike * height * (0.1 if parts["anim"] == "biped" else 0.2)
+		root.position.x = lerpf(root.position.x, fwd.x * reach, 0.45)
+		root.position.z = lerpf(root.position.z, fwd.z * reach, 0.45)
+		root.rotation.x = lerpf(root.rotation.x, -strike * (0.12 if parts["anim"] == "biped" else 0.2), 0.45)
+	# imza tekniği: önce toplanıp yükselir (şahlanma / kollar havada / kanatlar ardına kadar açık), sonra tekniği bırakıp iner
+	if skill_anim_t > 0.0 and not parts["anim"] in ["model", "shader", "static"]:
+		skill_anim_t = maxf(0.0, skill_anim_t - dt)
+		var pose = clampf((1.0 - skill_anim_t) / 0.3 if skill_anim_t > 0.7 else skill_anim_t / 0.7, 0.0, 1.0)
+		var heavy = String(def.get("model", "")) in ["turtle_small", "turtle_giant", "rin_rhino", "rin_ox", "rin_panda", "salamander", "toad_boss", "toad_mid", "baku", "dog_giant"]
+		match parts["anim"]:
+			"fly":
+				for i in parts["wings"].size():
+					var w2: Node3D = parts["wings"][i]
+					w2.rotation.z = lerpf(w2.rotation.z, 1.05 * (1.0 if i == 0 else -1.0), pose)
+				if parts.has("tilt"):
+					(parts["tilt"] as Node3D).rotation.x = lerpf((parts["tilt"] as Node3D).rotation.x, 0.95, pose * 0.5)
+			"biped":
+				for i in parts["legs"].size():
+					var a2: Node3D = parts["legs"][i]
+					a2.rotation.x = lerpf(a2.rotation.x, -2.5 + sin(anim_t * 22.0 + i * PI) * 0.25, pose)   # kollar havada, göğüs döver
+				root.rotation.x = lerpf(root.rotation.x, 0.16 * pose, 0.5)
+			"flock":
+				for i in parts["segments"].size():   # uçan sürü yükselir; yerdeki sürü (yılanlar) öne atılır
+					if def.get("fly", false):
+						(parts["segments"][i] as Node3D).position.y += pose * 1.2
+					else:
+						(parts["segments"][i] as Node3D).rotation.x = -pose * 0.35
+			_:
+				var style: String = SKILL_STYLE.get(String(def.get("model", "")), "rear")
+				var rel = clampf((0.7 - skill_anim_t) / 0.25, 0.0, 1.0)   # 0 = toplanma, 1 = bırakış
+				var paw = false
+				match style:
+					"spin":
+						root.rotation.y = facing + (1.0 - skill_anim_t) * TAU * 3.0
+						root.position.y += pose * height * 0.12
+					"charge":
+						root.rotation.x = lerpf(root.rotation.x, -0.24 * pose, 0.5)
+						for i in parts["legs"].size():
+							(parts["legs"][i] as Node3D).rotation.x = sin(anim_t * 20.0 + i * PI * 0.5) * 0.7 * pose
+					"spit":
+						root.rotation.x = lerpf(root.rotation.x, lerpf(0.3, -0.22, rel) * pose, 0.5)
+						root.position.y += (1.0 - rel) * pose * height * 0.05
+					"howl":
+						root.rotation.x = lerpf(root.rotation.x, 0.45 * pose, 0.5)
+					"pounce":
+						root.rotation.x = lerpf(root.rotation.x, lerpf(-0.3, 0.4, rel) * pose, 0.5)
+						root.position.y += lerpf(-0.1, 0.25, rel) * pose * maxf(height, 1.6)
+						paw = rel > 0.5
+					"slash":
+						root.rotation.y = facing + lerpf(0.9, -0.9, rel) * pose
+						root.rotation.x = lerpf(root.rotation.x, -0.12 * pose, 0.5)
+						if parts["legs"].size() > 0:
+							(parts["legs"][0] as Node3D).rotation.x = lerpf((parts["legs"][0] as Node3D).rotation.x, -1.4, pose)
+					_:
+						root.rotation.x = lerpf(root.rotation.x, (0.2 if heavy else 0.32) * pose, 0.5)   # şahlanır
+						root.position.y += pose * height * (0.07 if heavy else 0.03)
+						paw = true
+				if paw:
+					for i in mini(2, parts["legs"].size()):
+						var f2: Node3D = parts["legs"][i]
+						f2.rotation.x = lerpf(f2.rotation.x, -0.95 + sin(anim_t * 14.0 + i * PI) * 0.2, pose)   # ön ayaklar havayı döver
+				if parts["tail"] and style != "spin":
+					(parts["tail"] as Node3D).rotation.x = lerpf((parts["tail"] as Node3D).rotation.x, -0.5, pose)

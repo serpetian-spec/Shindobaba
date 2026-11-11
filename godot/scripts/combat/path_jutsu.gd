@@ -22995,7 +22995,7 @@ func _inuzuka_form(c: Node3D, heads: int) -> void:
 	VFX.shockwave(at + Vector3.UP * 0.2, Color(0.9, 0.9, 0.92), 10.0, 0.5)
 	var wolf = Node3D.new()
 	get_tree().current_scene.add_child(wolf)
-	var parts: Dictionary = InuzukaModels.twin_wolf(heads, 4.4 if heads == 2 else 5.0)   # referans: Double-Headed Wolf karesi
+	var parts: Dictionary = InuzukaModels.twin_wolf(heads, 4.4 if heads == 2 else 5.0, InuzukaModels.player_coat() if c is Player else 0)   # referans: Double-Headed Wolf karesi
 	var mdl: Node3D = parts["root"]
 	wolf.add_child(mdl)
 	var gait = [0.0, Vector3.ZERO]   # yürüyüş evresi, önceki konum
@@ -34146,3 +34146,298 @@ func p_dokujin_no_jutsu(c: Node3D, t: Node3D) -> void:
 						if live(ee):
 							ee.take_hit(inf(c, "dokujin_no_jutsu", 0.14, {"knock": 0.0, "kind": "light", "pierce_guard": true}))
 							st(ee, "slow", 0.6), Callable()), Callable()))
+
+
+# ================================================================== Eksik kanon jutsuları — 11. grup (2026-11-11)
+## Shōten no Jutsu (ref: Pain canlı kurbana chakrasının bir payını aktarır; kurban kullanıcının birebir kopyası olur — Kisame/Itachi
+## kopyaları — onun teknikleriyle dövüşür; chakra tükenince kurban kendi görünüşüne döner ve ölür. Görünür ışın/aura yok.)
+func p_shoten_no_jutsu(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 8.0)
+	var ok = tt != null and tt is Enemy and not (tt is Boss) and live(tt) and tt._is_ninja() and tt.team != c.team and not tt.has_meta("shoten_copy")
+	if ok:
+		ok = float(tt.hp) <= float(tt.max_hp) * 0.35 or tt.has_status("stun") or tt.has_status("bind") or tt.has_status("sleep")
+	var share = float(c.max_chakra) * 0.3
+	if not ok or float(c.chakra) < share:
+		if c is Player:
+			Hud.msg("Shōten: canlı kurban gerek — bağlı, sersemlemiş ya da canı %35 altında bir ninjayı hedefle (8 m)." if not ok else "Shōten: kopyaya aktaracak chakran yok (en fazla chakranın %30'u gerekir).", Color(0.75, 0.65, 1.0))
+		return
+	busy(c, 1.2)
+	anim(c, "seal", 1.0)
+	c.chakra = float(c.chakra) - share
+	var vic: Enemy = tt
+	st(vic, "stun", 1.4)
+	Sfx.play("genjutsu", vic.global_position, 0.8)
+	after(1.0, func():
+		if not live(vic) or not live(c):
+			return
+		var pos = vic.global_position
+		var a: Dictionary = Enemy.archetype("genin_rival", 0)
+		a["no_world"] = true
+		a["no_clan"] = true
+		a["respawn"] = false
+		var lv = int(Game.profile.get("level", 1)) if c is Player else int(c.level)
+		Stats.npc_ninja(a, lv)
+		a["look"] = (c.model.look as Dictionary).duplicate(true) if c.get("model") else a["look"]
+		a["element"] = String(Game.profile.get("element", "")) if c is Player else String(c.element)
+		a["name"] = "%s (Shōten)" % (String(Game.profile.get("name", "Sen")) if c is Player else String(c.display_name))
+		# kopya kullanıcının tekniklerini bilir; chakrası az olduğu için çok pahalı olanları (S sınıfı) kullanamaz
+		var src: Array = (Game.profile.get("slots", []) as Array) if c is Player else (c.arch.get("jutsu", []) as Array)
+		var js = []
+		for id in src:
+			var sid = String(id)
+			if sid == "" or sid == "shoten_no_jutsu" or not Data.jutsu.has(sid):
+				continue
+			var jd: Dictionary = Data.jutsu[sid]
+			if int(jd.get("tier", 1)) >= 5 or float(jd.get("cost", 0)) > share * 0.5:
+				continue
+			js.append(sid)
+		a["jutsu"] = js.slice(0, 5)
+		a.erase("auto_jutsu")
+		a["xp"] = 0
+		a["ryo"] = 0
+		var e = Enemy.new()
+		e.setup(a)
+		e.team = c.team
+		e.set_meta("teammate", true)
+		e.set_meta("respawn", false)
+		e.set_meta("shoten_copy", true)
+		get_tree().current_scene.add_child(e)
+		e.global_position = pos
+		e.home = pos
+		e.max_chakra = share
+		e.chakra = share
+		if e.nameplate:
+			e.nameplate.modulate = Color(0.75, 0.65, 1.0)
+		# kurban sahneden çekilir (kopyanın içinde): hedef alınamaz, işlemez
+		vic.visible = false
+		vic.set_physics_process(false)
+		vic.set_process(false)
+		var lay = vic.collision_layer
+		vic.collision_layer = 0
+		vic.global_position = pos + Vector3.DOWN * 900.0
+		Combat.popup_text(pos + Vector3.UP * 2.5, "Shōten: kurban senin suretine büründü", Color(0.8, 0.7, 1.0))
+		var done = [false]
+		var finish = func():
+			if done[0]:
+				return
+			done[0] = true
+			var p2 = e.global_position if is_instance_valid(e) else pos
+			if is_instance_valid(e):
+				e.queue_free()
+			if is_instance_valid(vic):
+				vic.global_position = gp(p2)
+				vic.collision_layer = lay
+				vic.visible = true
+				vic.set_physics_process(true)
+				vic.set_process(true)
+				Combat.popup_text(p2 + Vector3.UP * 2.4, "Chakra tükendi — kurban öldü", Color(0.75, 0.65, 1.0))
+				vic.die({"attacker": c if live(c) else null})
+		# aktarılan chakra zamanla erir (teknik kullandıkça daha hızlı); bitince ya da kopya yıkılınca teknik çözülür
+		every(60.0, 0.5, func(_i, _k):
+			if done[0]:
+				return
+			if not is_instance_valid(e) or e.is_dead() or float(e.chakra) <= 0.5:
+				finish.call()
+				return
+			e.chakra = maxf(0.0, float(e.chakra) - share / 90.0)
+			# kopya kullanıcının yanında kalır: evi kullanıcıdır, boştayken ona doğru yürür
+			if live(c):
+				e.home = c.global_position
+				if e.target == null and e.global_position.distance_to(c.global_position) > 9.0:
+					e.wander_to = c.global_position - c.face_dir() * 3.0, finish))
+
+
+# ================================================================== Eksik jutsular — 12. grup, kendi görünüşleri (Narutopedia ref, 2026-11-11)
+## Kaya Tüfeği (ref: ağızdan mermi boyu taş parçaları fırlar, uçarken dev kayalara BÜYÜR)
+func p_doton_iwadeppo_no_jutsu(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 30.0)
+	busy(c, 1.0)
+	anim(c, "cast", 1.4)
+	for k in 3:
+		after(0.22 + k * 0.17, func():
+			if not live(c):
+				return
+			var from = _mouth_pos(c)
+			var rk = _rock(1.25)
+			rk.scale = Vector3.ONE * 0.1
+			var d = aim_at(c, tt, from).rotated(Vector3.UP, randf_range(-0.05, 0.05))
+			var pr = shot(c, from, d, 30.0, rk, inf(c, "doton_iwadeppo_no_jutsu", 0.34, {"knock": 6.0, "kind": "heavy", "element": "doton"}), null, false, 1.5, func(p, _h):
+				impact_fx("doton", EARTH, p, 0.8)
+				VFX.debris(p, EARTH, 8, 9.0, 0.35))
+			if pr:
+				pr.radius = 0.25
+				pr.spin = Vector3(6, 2, 0)
+				var tw = pr.create_tween()
+				tw.set_parallel(true)
+				tw.tween_property(rk, "scale", Vector3.ONE, 0.32).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+				tw.tween_property(pr, "radius", 0.95, 0.32)
+			VFX.debris(from, EARTH, 3, 4.0, 0.12)
+			Sfx.play("earth", from, 1.5, 0.5))
+
+
+## Mermi Kaya (ref: Ōnoki — yerden kopan dev kaya havada asılı kalır, sonra rakibe fırlatılıp onu geri savurur)
+func p_doton_dangan_no_jutsu(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 30.0)
+	busy(c, 1.2)
+	anim(c, "cast", 1.0)
+	var g = gp(c.global_position + c.face_dir() * 2.2)
+	var rk = _rock(2.6)
+	get_tree().current_scene.add_child(rk)
+	rk.global_position = g - Vector3.UP * 1.6
+	rk.create_tween().tween_property(rk, "global_position", g + Vector3.UP * 3.0, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_earth_burst(g, 1.6)
+	VFX.debris(g, EARTH, 14, 8.0, 0.4)
+	shake(0.35)
+	Sfx.play("earth", g, 0.9)
+	after(0.75, func():
+		if not is_instance_valid(rk):
+			return
+		var from = rk.global_position
+		rk.queue_free()
+		if not live(c):
+			return
+		anim(c, "push", 1.5)
+		var pr = shot(c, from, aim_at(c, tt, from), 26.0, _rock(2.6), inf(c, "doton_dangan_no_jutsu", 1.0, {"knock": 16.0, "launch": 3.0, "kind": "heavy", "element": "doton"}), null, false, 1.8, func(p, _h):
+			impact_fx("doton", EARTH, p, 1.6)
+			VFX.debris(p, EARTH, 18, 12.0, 0.5)
+			shake(0.5))
+		if pr:
+			pr.radius = 1.5
+			pr.spin = Vector3(3, 1, 0))
+
+
+## Büyük Mermi (ref: ağızdan geniş, güçlü bir su akımı püskürür — tek top değil, kalın kesintisiz hüzme)
+func p_suiton_taihodan(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 18.0)
+	var d = _face(c, tt)
+	busy(c, 1.3)
+	anim(c, "cast", 1.0)
+	after(0.3, func():
+		if not live(c):
+			return
+		var from = _mouth_pos(c)
+		var L = 16.0
+		var to = from + d * L - Vector3.UP * 0.6
+		WaterArt.jet(from, to, 0.75, 0.7)
+		Sfx.play("water", from, 0.9)
+		var seen = []
+		every(0.7, 0.1, func(_i, _k):
+			if not live(c):
+				return
+			WaterArt.spray(to, 1.4, -d + Vector3.UP * 0.6, 50.0)
+			for q in 6:
+				var p = from.lerp(to, (q + 0.5) / 6.0)
+				for e in hit(c, p, 1.3, inf(c, "suiton_taihodan", 0.22, {"knock": 9.0, "kind": "heavy", "element": "suiton", "dir": d}), seen):
+					seen.append(e), func():
+			WaterArt.sheet(gp(to), 3.2, 6.0)
+			_splash(gp(to) + Vector3.UP * 0.4, 2.2)))
+
+
+## Su Dolusu (ref: eller birleşik öne uzanır, avuçtan beyaz parlama; damla biçimli su mermileri yelpaze halinde yağar)
+func p_suiton_mizu_arare(c: Node3D, t: Node3D) -> void:
+	var tt = tg(c, t, 26.0)
+	busy(c, 1.2)
+	anim(c, "push", 1.0)
+	after(0.2, func():
+		if not live(c):
+			return
+		var d0 = _face(c, tt)
+		WaterArt.spray(hand_pos(c, true) + d0 * 0.3, 0.6, d0, 30.0)
+		Sfx.play("water", c.global_position, 1.5)
+		every(0.9, 0.06, func(_i, _k):
+			if not live(c):
+				return
+			var from = (hand_pos(c, true) + hand_pos(c, false)) * 0.5 + d0 * 0.35
+			var b = MB.new()   # damla: önde dolgun baş, arkada incelen kuyruk
+			b.add("sphere", Vector3.ZERO, Vector3(0.17, 0.17, 0.26), WATER)
+			b.add("sphere", Vector3(0, 0, 0.2), Vector3(0.1, 0.1, 0.3), WATER)
+			b.add("sphere", Vector3(0, 0, 0.4), Vector3(0.05, 0.05, 0.24), WATER)
+			var dd = aim_at(c, tt, from).rotated(Vector3.UP, randf_range(-0.14, 0.14)) + Vector3.UP * randf_range(-0.05, 0.07)
+			shot(c, from, dd.normalized(), 36.0, mesh_of(b, _water_mat()), inf(c, "suiton_mizu_arare", 0.085, {"knock": 1.5, "kind": "light", "element": "suiton"}), null, false, 1.0, func(p, _h):
+				WaterArt.drops(p, 5, 0.5, 5.0)), Callable()))
+
+
+## Sel Mermisi (ref: beyaz-mavi, dönen bir su girdabı sütunu hedefe boşalır; taş toprak savurur)
+func p_suiton_gekiryudan(c: Node3D, t: Node3D) -> void:
+	# referans (refs/new/water_release_torrent_bullet_0.png): kalın, dolu bir su sütunu ileri fışkırır — gövdesi beyaz, çevresinde dönen soluk mavi
+	# fırça darbesi sarmalları (matkap gibi döner); geçtiği yerden kayaları söküp yanında sürükler
+	var tt = tg(c, t, 24.0)
+	var d = _face(c, tt)
+	busy(c, 1.5)
+	anim(c, "cast", 1.0)
+	after(0.35, func():
+		if not live(c):
+			return
+		var from = _mouth_pos(c) + d * 0.5
+		var len_m = 20.0
+		var root = Node3D.new()
+		get_tree().current_scene.add_child(root)
+		root.global_position = from
+		root.look_at(from + d, Vector3.UP)
+		var spin = Node3D.new()
+		root.add_child(spin)
+		var white = Color(0.9, 0.95, 0.98)
+		var blue = Color(0.52, 0.72, 0.86)
+		var deep = Color(0.36, 0.58, 0.78)
+		var b = MB.new()
+		var swirl = func(u: float, a: float, _n: Vector3) -> Color:
+			# sarmal fırça darbeleri: kenarları tırtıklı, uzunluk boyunca kayan üç bant
+			var ph = fposmod(a / TAU * 3.0 + u * 9.0 + 0.12 * sin(u * 70.0 + a * 4.0), 1.0)
+			if ph < 0.16:
+				return deep
+			if ph < 0.42:
+				return blue
+			return white
+		Loft.tube(b, [Vector3(0, 0, 0), Vector3(0, 0, -1.2), Vector3(0, 0, -4.0), Vector3(0, 0, -len_m * 0.6), Vector3(0, 0, -len_m + 1.4), Vector3(0, 0, -len_m)],
+			[0.25, 0.75, 1.15, 1.25, 1.2, 0.5], white, 44, 22, true, true, swirl)
+		var mi = MeshInstance3D.new()
+		mi.mesh = b.build(null)
+		var m = StandardMaterial3D.new()
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		m.vertex_color_use_as_albedo = true
+		mi.material_override = m
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		spin.add_child(mi)
+		# sütunun yanında sürüklenen kayalar
+		var rocks = []
+		for k in 9:
+			var rk = _rock(randf_range(0.3, 0.8), Color(0.42, 0.4, 0.4))
+			root.add_child(rk)
+			rk.set_meta("a", randf() * TAU)
+			rk.set_meta("z", randf_range(2.0, len_m - 2.0))
+			rk.set_meta("r", randf_range(1.3, 1.9))
+			rocks.append(rk)
+		root.scale = Vector3(1, 1, 0.05)
+		Sfx.play("water", from, 0.7)
+		shake(0.3)
+		var seen = []
+		every(1.05, 0.03, func(i, k):
+			if not is_instance_valid(root):
+				return
+			var grow = clampf(k / 0.22, 0.05, 1.0)   # ileri fışkırır
+			var thin = 1.0 - smoothstep(0.82, 1.0, k)   # sonunda incelip kesilir
+			root.scale = Vector3(maxf(thin, 0.02), maxf(thin, 0.02), grow)
+			spin.rotation.z -= 0.55
+			for rk in rocks:
+				var a = float(rk.get_meta("a")) - k * 9.0
+				var z = fposmod(float(rk.get_meta("z")) + k * 26.0, len_m)
+				rk.position = Vector3(cos(a), sin(a), 0) * float(rk.get_meta("r")) + Vector3(0, 0, -z)
+				rk.rotation += Vector3(0.3, 0.2, 0.1)
+			var reach = len_m * grow
+			if i % 3 == 0:
+				var tip = from + d * reach
+				WaterArt.spray(tip, 1.6, d + Vector3.UP * 0.3, 60.0)
+				var gt = gp(from + d * randf_range(2.0, reach))
+				VFX.debris(gt, EARTH, 3, 8.0, 0.35)
+				WaterArt.spray(gt + Vector3.UP * 0.3, 1.0, Vector3.UP, 50.0)
+			if live(c) and k < 0.85:
+				var n = int(reach / 2.2)
+				for q in n:
+					for e in hit(c, from + d * (1.2 + q * 2.2), 2.0, inf(c, "suiton_gekiryudan", 1.0, {"knock": 14.0, "launch": 4.0, "kind": "heavy", "element": "suiton", "dir": d}), seen):
+						seen.append(e), func():
+			if is_instance_valid(root):
+				var endp = gp(from + d * len_m)
+				root.queue_free()
+				WaterArt.sheet(endp, 4.0, 7.0)
+				WaterArt.sheet(gp(from + d * len_m * 0.5), 3.0, 6.0)
+				_splash(endp + Vector3.UP * 0.5, 2.6)))
