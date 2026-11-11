@@ -2072,7 +2072,7 @@ static func _bun(yaw: float, pitch: float, rad: float) -> void:
 
 
 ## At kuyruğu: bağ noktasından aşağı-arkaya sarkan, uçları sivri tutam demeti (salınır)
-static func _ponytail(yaw: float, pitch: float, length: float, spread := 0.04, n := 6) -> void:
+static func _ponytail(yaw: float, pitch: float, length: float, spread := 0.04, n := 6, out := 0.0) -> void:
 	var d = _dir(yaw, pitch)
 	var tie = _c + d * (_real_r(d) + 0.012)
 	var hz = Vector3(d.x, 0, d.z).normalized() if Vector2(d.x, d.z).length() > 0.05 else Vector3(0, 0, -1)
@@ -2083,7 +2083,7 @@ static func _ponytail(yaw: float, pitch: float, length: float, spread := 0.04, n
 		var pts = []
 		for q in 9:
 			var u = q / 8.0
-			pts.append(tie + hz * (0.05 * sin(u * PI) + 0.03 * u) + Vector3(0, -L * u, 0) + side * o * spread * u)
+			pts.append(tie + hz * (0.05 * sin(u * PI) + 0.03 * u + out * minf(1.0, u * 3.0)) + Vector3(0, -L * u + out * 0.5 * sin(minf(1.0, u * 3.0) * PI), 0) + side * o * spread * u)
 		_taper = 2.5
 		_kind = "flow"
 		_ribbon(pts, 0.06, 0.35, side)
@@ -2387,8 +2387,10 @@ static func _d14() -> void:   # Sasuke (The Last): orta boy dağınık, göze k�
 
 
 static func _d15() -> void:   # Ino (erkek): geriye taranmış uzun, tek uzun yüz tutamı
-	_long({"front": 56.0, "side": 150.0, "back": 150.0, "curtain": 96.0, "bang": "none", "drop": 0.26})
-	_flow(-30.0, 40.0, -46.0, 150.0, 0.12, 0.35, 0.3)
+	_long({"front": 56.0, "side": 140.0, "back": 112.0, "curtain": 0.0, "bang": "none"})
+	_flow(-30.0, 40.0, -46.0, 162.0, 0.13, 0.35, 0.3)
+	_flow(-22.0, 36.0, -36.0, 150.0, 0.11, 0.4, 0.3)
+	_ponytail(180.0, 38.0, 0.66, 0.08, 9, 0.09)
 
 
 static func _d16() -> void:   # Inojin: kısa, gözü örten yan kâkül, ensede küçük kuyruk
@@ -2427,7 +2429,7 @@ static func _d25() -> void:   # Shisui: kısa kıvırcık dağınık
 
 
 static func _d26() -> void:   # Asura: kısa dik dikenler
-	_spiky({"L": 0.65, "up": 0.95, "back": 0.2, "splay": 0.25, "bang": "up"})
+	_spiky({"L": 0.65, "up": 0.95, "back": 0.2, "splay": 0.25, "bang": "up", "face": 158.0})
 
 
 static func _d27() -> void:   # Kawaki: kısa dağınık, alına sivri kâkül
@@ -2463,10 +2465,10 @@ static func _d35() -> void:   # Temari (Boruto): dört iri dikenli tutam, yana k
 	_long({"front": 72.0, "side": 120.0, "back": 112.0, "curtain": 0.0, "bang": "side", "bang_len": 112.0, "part": 20.0})
 	var back = Vector3(0, 0, -1)
 	for sx in [-1.0, 1.0]:
-		for t in [[110.0, 44.0], [130.0, 84.0]]:
+		for t in [[116.0, 70.0], [138.0, 102.0]]:
 			var d = _dir(sx * float(t[0]), float(t[1]))
 			var tie = _c + d * (_real_r(d) + 0.01)
-			var ax = (d * 0.8 + back * 0.3 + Vector3(sx * 0.4, 0.1, 0)).normalized()
+			var ax = (d * 0.7 + back * 0.4 + Vector3(sx * 0.35, -0.3, 0)).normalized()
 			var s1 = ax.cross(Vector3.UP).normalized()
 			var s2 = ax.cross(s1).normalized()
 			for k in 8:
@@ -2506,7 +2508,7 @@ static func _d42() -> void:   # Boruto (Prolog): dağınık, bir yana savruk
 
 
 static func _d43() -> void:   # Sasori: kısa dağınık bob, dişli uçlar
-	_bob({"bang": "spiky", "bang_len": 108.0, "side": 128.0, "back": 120.0, "ragged": 8.0})
+	_spiky({"L": 0.5, "up": 0.3, "splay": 0.55, "jit": 0.4, "bang": "spiky", "bang_len": 108.0})
 
 
 static func _d44() -> void:   # Amado: kısa, yandan ayrık, geriye-yana taranmış (alın açık)
@@ -2617,7 +2619,7 @@ static func _e28() -> void:   # Denki: kısa, alnı örten düz kâkül, ensede 
 
 static func _e29() -> void:   # Tsubaki: düz kesik kâkül, yüz tutamları, tepeden yüksek uzun kuyruk
 	_bob({"front": 76.0, "side": 128.0, "back": 112.0, "curtain": 0.0, "bang": "hime", "bang_len": 106.0, "face": 140.0})
-	_ponytail(180.0, 30.0, 0.42, 0.05, 7)
+	_ponytail(180.0, 30.0, 0.6, 0.07, 9, 0.09)
 
 
 static func _e30() -> void:   # Eida: çok uzun düz, düz kesik kâkül, uzun yüz tutamları
@@ -2636,7 +2638,9 @@ static func _e32() -> void:   # Daemon: kâse kesim, alnı örten kâkül, yanla
 
 static func _e33() -> void:   # Deidara: tepede yüksek at kuyruğu, bir gözü örten uzun yan kâkül, uzun yüz tutamı
 	_long({"front": 68.0, "side": 150.0, "back": 150.0, "curtain": 94.0, "bang": "side", "bang_len": 136.0, "part": 30.0, "face": 154.0, "front_drop": 0.2, "drop": 0.28})
-	_ponytail(180.0, 28.0, 0.42, 0.05, 7)
+	_ponytail(180.0, 28.0, 0.34, 0.06, 7, 0.08)
+	for k in 5:   # tepe kuyruğunun dik-geri fışkıran dikenli tutamı
+		_shard(180.0 + (k - 2) * 9.0, 26.0, Vector3.UP * 0.8 + Vector3(0, 0, -1) * 0.7 + Vector3((k - 2) * 0.14, 0, 0), 1.7, 0.7, 0.45, Vector3(0, -0.1, 0))
 
 
 static func _e34() -> void:   # Deidara (bantsız): aynı kesim, tepede tutam belirgin
@@ -2649,5 +2653,5 @@ static func _e35() -> void:   # Utakata: orta boy dağınık, bir gözü örten 
 
 
 static func _e36() -> void:   # Shizune: kısa dağınık, yanlara savrulan uçlar, alına kâkül
-	_bob({"front": 76.0, "side": 120.0, "back": 114.0, "curtain": 0.0, "bang": "spiky", "bang_len": 104.0, "ragged": 8.0})
+	_bob({"front": 74.0, "bang": "spiky", "bang_len": 106.0, "side": 138.0, "back": 130.0, "face": 144.0, "ragged": 3.0})
 
