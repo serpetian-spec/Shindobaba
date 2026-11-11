@@ -1991,7 +1991,7 @@ static func _f1() -> void:
 
 ## K2 — Kushina (2-0.jpg): çok uzun düz, ortadan ayrık; yüz çerçevesi göğse, arkada bele doğru perde
 static func _f2() -> void:
-	_long({"front": 64.0, "side": 156.0, "back": 150.0, "curtain": 94.0, "bang": "center", "bang_len": 112.0, "face": 156.0, "drop": 0.38, "front_drop": 0.24})
+	_long({"front": 64.0, "side": 156.0, "back": 150.0, "curtain": 94.0, "bang": "center", "bang_len": 112.0, "face": 156.0, "drop": 1.0, "front_drop": 0.36})
 
 
 ## K3 — Karin (3-0.jpg): uzun, uçlar dişli; sivri dağınık kâkül; omuz altına perde
@@ -2001,7 +2001,7 @@ static func _f3() -> void:
 
 ## K4 — Hinata (4-0.jpg): kaş hizasında dümdüz kesik (hime) kâkül, çeneye yüz çerçevesi, uzun düz perde
 static func _f4() -> void:
-	_long({"front": 74.0, "side": 152.0, "back": 150.0, "curtain": 96.0, "bang": "hime", "bang_len": 106.0, "face": 150.0, "drop": 0.34, "front_drop": 0.2})
+	_long({"front": 74.0, "side": 152.0, "back": 150.0, "curtain": 96.0, "bang": "hime", "bang_len": 106.0, "face": 150.0, "drop": 0.5, "front_drop": 0.2})
 
 
 ## K5 — Kurenai (5-0.jpg): omuz altına dalgalı-dağınık uzun saç, dişli uçlar, sivri kâkül
@@ -2103,7 +2103,7 @@ static func _bob(o: Dictionary) -> void:
 
 static func _f7() -> void:   # Ino: uzun, bir gözü örten yan kâkül, arkada uzun kuyruk
 	_long({"front": 68.0, "side": 146.0, "back": 120.0, "curtain": 98.0, "bang": "side", "bang_len": 132.0, "part": -30.0, "face": 146.0})
-	_ponytail(180.0, 70.0, 0.42, 0.09, 10)
+	_ponytail(180.0, 70.0, 0.62, 0.09, 10)
 
 
 static func _f8() -> void:   # Tenten: tepede iki topuz, kısa kâkül
@@ -2160,7 +2160,7 @@ static func _f15() -> void:   # Konan: kısa, bir gözü örten yan kâkül, tep
 
 
 static func _f16() -> void:   # Hanabi: uzun düz, ortadan ayrık, yüz çerçevesi
-	_long({"front": 62.0, "side": 154.0, "back": 150.0, "curtain": 94.0, "bang": "center", "bang_len": 96.0, "face": 156.0, "drop": 0.3, "front_drop": 0.16})
+	_long({"front": 62.0, "side": 154.0, "back": 150.0, "curtain": 94.0, "bang": "center", "bang_len": 96.0, "face": 156.0, "drop": 0.42, "front_drop": 0.16})
 
 
 static func _f17() -> void:   # Hakui: kısa bob, bir gözü örten büyük yan kâkül
@@ -2173,7 +2173,7 @@ static func _f18() -> void:   # Hinata (genç): kısa, düz kesik kâkül
 
 static func _f19() -> void:   # Ino (Boruto): uzun yan kâkül, yüksek uzun kuyruk
 	_long({"front": 66.0, "side": 138.0, "back": 112.0, "curtain": 0.0, "bang": "side", "bang_len": 130.0, "part": 30.0, "face": 140.0})
-	_ponytail(180.0, 44.0, 0.5, 0.1, 11)
+	_ponytail(180.0, 44.0, 0.72, 0.1, 11)
 
 
 static func _f20() -> void:   # Yugito: yana kâkül, kısa, ensede alçak kuyruk
@@ -2196,7 +2196,7 @@ static func _f23() -> void:   # Sarada: çene boyu, yana süpürülmüş kâkül
 
 
 static func _f24() -> void:   # Mei: tepede topuz, bir gözü örten uzun yan kâkül, uzun yan tutamlar
-	_long({"front": 66.0, "side": 150.0, "back": 112.0, "curtain": 0.0, "bang": "side", "bang_len": 136.0, "part": -32.0, "face": 156.0, "front_drop": 0.18})
+	_long({"front": 66.0, "side": 154.0, "back": 150.0, "curtain": 94.0, "bang": "side", "bang_len": 136.0, "part": -32.0, "face": 156.0, "front_drop": 0.34, "drop": 1.0})
 	_bun(180.0, 18.0, 0.05)
 
 
@@ -2262,6 +2262,46 @@ static func _spiky(o: Dictionary) -> void:
 				var n = _dir(yw, pt)
 				var dn = (_dir(yw, pt + 6.0) - _dir(yw, pt - 6.0)).normalized()
 				_shard(yw, pt, dn * 1.0 + n * 0.4 + back * 0.2, hang * _rng.randf_range(0.85, 1.15), 1.0, 0.4, Vector3(0, -0.05, 0))
+	# bele/kalçaya inen dikenli yele (Madara, Jiraiya): katmanlı, uçları sivri, sırta yayılan uzun tutamlar
+	var mane: float = o.get("mane", 0.0)
+	if mane > 0.0:
+		var mw: float = o.get("mane_w", 0.16)
+		for lay in [[1.0, 13, 118.0, 0.03], [0.82, 12, 104.0, 0.06], [0.62, 11, 90.0, 0.1], [0.42, 10, 78.0, 0.14]]:
+			var nn: int = lay[1]
+			for k in nn:
+				var yw = wrapf(lerpf(84.0, 276.0, (k + 0.5) / nn) + j.call(5), -180.0, 180.0)
+				var pt: float = float(lay[2]) + j.call(4)
+				while _under_band_top(yw, pt) and pt > 20.0:
+					pt -= 3.0
+				var d0 = _dir(yw, pt)
+				var top = _c + d0 * (_real_r(d0) + 0.015)
+				var hz = Vector3(d0.x, 0, d0.z).normalized()
+				var Lm = mane * float(lay[0]) * _rng.randf_range(0.88, 1.12)
+				var outw: float = float(lay[3]) * _rng.randf_range(0.8, 1.2)
+				var pts = []
+				for q in 9:
+					var u = q / 8.0
+					# önce dışa kabarır, sonra aşağı dökülür; uç hafif dışa kıvrık (diken)
+					pts.append(top + Vector3(0, -Lm * u, 0) + hz * outw * (sin(u * PI * 0.6) + 0.35 * u * u) + Vector3(0, 0, -0.05) * u)
+				_taper = 2.2
+				_ribbon(pts, mw * _rng.randf_range(0.85, 1.15), 0.3, Vector3(-hz.z, 0, hz.x))
+				_taper = 1.0
+	var mfd: float = o.get("front_drop", 0.0)
+	if mfd > 0.0 and not _banded:
+		for sx in [-1.0, 1.0]:
+			for k in 3:
+				var yw = sx * (58.0 + k * 10.0)
+				var d0 = _dir(yw, 132.0)
+				var top = _c + d0 * (_real_r(d0) + 0.025)
+				var hz = Vector3(d0.x, 0, d0.z).normalized()
+				var pts = []
+				var Lf = mfd * (1.0 - k * 0.12)
+				for q in 9:
+					var u = q / 8.0
+					pts.append(top + Vector3(0, -Lf * u, 0) + Vector3(0, 0, 0.05) * u * u + hz * 0.04 * u)
+				_taper = 2.5
+				_ribbon(pts, 0.08, 0.28, Vector3(-hz.z, 0, hz.x))
+				_taper = 1.0
 	var face: float = o.get("face", 0.0)
 	if face > 0.0 and not _banded:
 		for sx in [-1.0, 1.0]:
@@ -2296,21 +2336,21 @@ static func _spiky(o: Dictionary) -> void:
 
 
 static func _d0() -> void:   # Jiraiya: uzun dikenli yele arkaya ve aşağı, yüz çerçevesi
-	_spiky({"L": 0.9, "up": 0.4, "back": 0.6, "splay": 0.35, "hang": 1.7, "face": 150.0, "bang": "spiky", "bang_len": 104.0})
+	_spiky({"L": 0.9, "up": 0.4, "back": 0.6, "splay": 0.35, "hang": 1.1, "mane": 0.5, "mane_w": 0.13, "face": 150.0, "bang": "spiky", "bang_len": 104.0})
 
 
 static func _d1() -> void:   # Orochimaru: uzun düz, ortadan ayrık, yüze dökülen uzun kâkül tutamları
-	_long({"front": 60.0, "side": 156.0, "back": 150.0, "curtain": 94.0, "bang": "center", "bang_len": 138.0, "face": 158.0, "drop": 0.36, "front_drop": 0.22})
+	_long({"front": 60.0, "side": 156.0, "back": 150.0, "curtain": 94.0, "bang": "center", "bang_len": 138.0, "face": 158.0, "drop": 0.5, "front_drop": 0.3})
 
 
 static func _d2() -> void:   # Tsunade: uzun, yandan ayrık; arkada iki alçak kuyruk
 	_long({"front": 62.0, "side": 152.0, "back": 120.0, "curtain": 96.0, "bang": "side", "bang_len": 112.0, "part": 20.0, "face": 154.0, "front_drop": 0.14})
 	for sx in [-1.0, 1.0]:
-		_ponytail(sx * 150.0, 104.0, 0.4, 0.05, 6)
+		_ponytail(sx * 150.0, 104.0, 0.52, 0.05, 6)
 
 
 static func _d3() -> void:   # Madara: devasa dikenli yele, bir gözü örten kâkül
-	_spiky({"L": 1.0, "up": 0.35, "back": 0.6, "splay": 0.45, "hang": 2.0, "cover": 1.0})
+	_spiky({"L": 1.0, "up": 0.35, "back": 0.6, "splay": 0.45, "hang": 1.1, "cover": 1.0, "mane": 0.56, "front_drop": 0.3})
 
 
 static func _d4() -> void:   # Obito: kısa dağınık dikenli
@@ -2318,7 +2358,7 @@ static func _d4() -> void:   # Obito: kısa dağınık dikenli
 
 
 static func _d5() -> void:   # Hashirama: uzun düz, ortadan ayrık, yüz çerçevesi
-	_long({"front": 60.0, "side": 156.0, "back": 150.0, "curtain": 94.0, "bang": "center", "bang_len": 104.0, "face": 158.0, "drop": 0.4, "front_drop": 0.2})
+	_long({"front": 60.0, "side": 156.0, "back": 150.0, "curtain": 94.0, "bang": "center", "bang_len": 104.0, "face": 158.0, "drop": 0.52, "front_drop": 0.2})
 
 
 static func _d6() -> void:   # Tobirama: dimdik yukarı, arkaya yatık dikenler
@@ -2361,7 +2401,7 @@ static func _d17() -> void:   # Gai: kâse kesim
 
 
 static func _d18() -> void:   # Mei (DLC): uzun, gözü örten kâkül, tepede uzun topuz
-	_long({"front": 64.0, "side": 154.0, "back": 150.0, "curtain": 94.0, "bang": "side", "bang_len": 136.0, "part": -32.0, "face": 156.0, "drop": 0.4, "front_drop": 0.2})
+	_long({"front": 64.0, "side": 154.0, "back": 150.0, "curtain": 94.0, "bang": "side", "bang_len": 136.0, "part": -32.0, "face": 156.0, "drop": 1.0, "front_drop": 0.36})
 	_bun(180.0, 12.0, 0.045)
 	_shard(180.0, 4.0, Vector3.UP, 0.9, 0.5, 0.6)
 
@@ -2375,11 +2415,11 @@ static func _d22() -> void:   # Kakashi (Hokage): geniş açılan dağınık bü
 
 
 static func _d23() -> void:   # Neji (jōnin): uzun düz, ortadan ayrık
-	_long({"front": 62.0, "side": 154.0, "back": 150.0, "curtain": 94.0, "bang": "center", "bang_len": 112.0, "face": 154.0, "drop": 0.34})
+	_long({"front": 62.0, "side": 154.0, "back": 150.0, "curtain": 94.0, "bang": "center", "bang_len": 112.0, "face": 154.0, "drop": 0.5})
 
 
 static func _d24() -> void:   # Neji (bantsız): uzun düz, açık alın, yüz çerçevesi
-	_long({"front": 56.0, "side": 154.0, "back": 150.0, "curtain": 94.0, "bang": "none", "face": 154.0, "drop": 0.34})
+	_long({"front": 56.0, "side": 154.0, "back": 150.0, "curtain": 94.0, "bang": "none", "face": 154.0, "drop": 0.5})
 
 
 static func _d25() -> void:   # Shisui: kısa kıvırcık dağınık
@@ -2412,11 +2452,11 @@ static func _d32() -> void:   # Itachi (reanimasyon): uzun yüz tutamları, alç
 
 
 static func _d33() -> void:   # Indra: dağınık dikenli, arkada sarkan dikenler, yüz tutamları
-	_spiky({"L": 0.8, "up": 0.45, "splay": 0.5, "jit": 0.3, "hang": 1.3, "face": 150.0, "bang": "spiky", "bang_len": 112.0})
+	_spiky({"L": 0.8, "up": 0.45, "splay": 0.5, "jit": 0.3, "hang": 1.1, "mane": 0.32, "mane_w": 0.13, "face": 150.0, "bang": "spiky", "bang_len": 112.0})
 
 
 static func _d34() -> void:   # Madara (Altı Yol): geriye taranmış alın, arkada devasa dikenli yele
-	_spiky({"front": 66.0, "L": 0.8, "up": 0.3, "back": 0.8, "splay": 0.3, "hang": 2.1, "bang": "none"})
+	_spiky({"front": 66.0, "L": 0.8, "up": 0.3, "back": 0.8, "splay": 0.3, "hang": 1.1, "bang": "none", "mane": 0.6})
 
 
 static func _d35() -> void:   # Temari (Boruto): dört iri dikenli tutam, yana kâkül
@@ -2449,11 +2489,11 @@ static func _d37() -> void:   # Naruto (Oiroke): yüksek iki uzun kuyruk, sivri 
 
 
 static func _d39() -> void:   # Kushina (görev): çok uzun düz, kâkül, uzun yüz tutamları
-	_long({"front": 66.0, "side": 156.0, "back": 150.0, "curtain": 94.0, "bang": "spiky", "bang_len": 112.0, "face": 158.0, "drop": 0.46, "front_drop": 0.3})
+	_long({"front": 66.0, "side": 156.0, "back": 150.0, "curtain": 94.0, "bang": "spiky", "bang_len": 112.0, "face": 158.0, "drop": 1.0, "front_drop": 0.4})
 
 
 static func _d40() -> void:   # Kaguya: yerlere kadar uzun düz saç, ortadan ayrık
-	_long({"front": 60.0, "side": 156.0, "back": 150.0, "curtain": 94.0, "bang": "center", "bang_len": 100.0, "face": 158.0, "drop": 0.75, "front_drop": 0.5})
+	_long({"front": 60.0, "side": 156.0, "back": 150.0, "curtain": 94.0, "bang": "center", "bang_len": 100.0, "face": 158.0, "drop": 1.38, "front_drop": 0.85})
 
 
 static func _d41() -> void:   # Boruto (Karma): dağınık dikenli, tepede kıvrık tutam, alına iri kâkül
@@ -2521,7 +2561,7 @@ static func _e7() -> void:   # Topuz (kadın): başın arkasında yüksek topuz,
 
 
 static func _e8() -> void:   # Tayuya: uzun düz, ortadan ayrık, omuzdan sarkan perde
-	_long({"front": 64.0, "side": 156.0, "back": 150.0, "curtain": 94.0, "bang": "center", "bang_len": 108.0, "face": 156.0, "drop": 0.32, "front_drop": 0.22})
+	_long({"front": 64.0, "side": 156.0, "back": 150.0, "curtain": 94.0, "bang": "center", "bang_len": 108.0, "face": 156.0, "drop": 0.42, "front_drop": 0.22})
 
 
 static func _e9() -> void:   # Kimimaro: omuz boyu düz, ortadan ayrık, çeneye inen kâkül tutamları
@@ -2537,7 +2577,7 @@ static func _e11() -> void:   # Sumire (genin): uzun düz, ortadan ayrık kâkü
 
 
 static func _e12() -> void:   # Hanabi (Boruto): uzun, gözün yanından inen yan kâkül, uzun yüz tutamları
-	_long({"front": 62.0, "side": 156.0, "back": 150.0, "curtain": 94.0, "bang": "side", "bang_len": 126.0, "part": -24.0, "face": 158.0, "drop": 0.36, "front_drop": 0.24})
+	_long({"front": 62.0, "side": 156.0, "back": 150.0, "curtain": 94.0, "bang": "side", "bang_len": 126.0, "part": -24.0, "face": 158.0, "drop": 0.48, "front_drop": 0.24})
 
 
 static func _e13() -> void:   # Kakashi (Gaiden): genç, sola yatık büyük dikenler, alına sivri kâkül
@@ -2545,7 +2585,7 @@ static func _e13() -> void:   # Kakashi (Gaiden): genç, sola yatık büyük dik
 
 
 static func _e14() -> void:   # Neji (genç): uzun düz, ortadan ayrık, yüz çerçevesi, ensede bağlı
-	_long({"front": 62.0, "side": 154.0, "back": 140.0, "curtain": 94.0, "bang": "center", "bang_len": 108.0, "face": 154.0, "drop": 0.22})
+	_long({"front": 62.0, "side": 154.0, "back": 140.0, "curtain": 94.0, "bang": "center", "bang_len": 108.0, "face": 154.0, "drop": 0.46})
 
 
 static func _e15() -> void:   # Himawari: çene boyu bob, düz kesik kâkül, tepede iki kalkık tutam
@@ -2581,7 +2621,7 @@ static func _e29() -> void:   # Tsubaki: düz kesik kâkül, yüz tutamları, te
 
 
 static func _e30() -> void:   # Eida: çok uzun düz, düz kesik kâkül, uzun yüz tutamları
-	_long({"front": 70.0, "side": 156.0, "back": 150.0, "curtain": 94.0, "bang": "hime", "bang_len": 110.0, "face": 158.0, "drop": 0.45, "front_drop": 0.3})
+	_long({"front": 70.0, "side": 156.0, "back": 150.0, "curtain": 94.0, "bang": "hime", "bang_len": 110.0, "face": 158.0, "drop": 1.2, "front_drop": 0.45})
 
 
 static func _e31() -> void:   # Merz: uzun düz, ortadan ayrık, omuzlara dökülen
@@ -2595,7 +2635,7 @@ static func _e32() -> void:   # Daemon: kâse kesim, alnı örten kâkül, yanla
 
 
 static func _e33() -> void:   # Deidara: tepede yüksek at kuyruğu, bir gözü örten uzun yan kâkül, uzun yüz tutamı
-	_long({"front": 68.0, "side": 150.0, "back": 112.0, "curtain": 0.0, "bang": "side", "bang_len": 136.0, "part": 30.0, "face": 154.0, "front_drop": 0.2})
+	_long({"front": 68.0, "side": 150.0, "back": 150.0, "curtain": 94.0, "bang": "side", "bang_len": 136.0, "part": 30.0, "face": 154.0, "front_drop": 0.2, "drop": 0.28})
 	_ponytail(180.0, 28.0, 0.42, 0.05, 7)
 
 

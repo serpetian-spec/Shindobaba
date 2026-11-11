@@ -131,6 +131,7 @@ static func build(r: BeastRig, root: Node3D) -> void:
 		_fang(mj, Vector3(sin(ph) * 1.9, jl_y.call(ph) + 0.08, 0.6 + cos(ph) * 1.5), Vector3(0, 1, 0), 0.42 if i % 2 == 0 else 0.3, 0.14, on)
 	r._mesh(r.jaw, mj)
 	r.mouth = r._pivot(r.head, Vector3(0, -1.1, -2.3), "agiz")
+	r.head.scale = Vector3.ONE * 0.8   # kullanıcı 2026-11-11: baş gövdeye göre çok büyük
 	# --- kollar: yanlardan çıkar, dirsek dışarıda, önkol aşağı; pençeler gövdenin iki yanında yere yakın
 	for sx in [-1.0, 1.0]:
 		var SH = Vector3(3.3 * sx, 7.3, 0.1)

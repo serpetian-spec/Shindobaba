@@ -64,6 +64,9 @@ func _ready() -> void:
 		if bands and a[0] in ["bel", "kol", "kusak", "boyun"]:
 			c += Vector3(0, -0.45 if a[0] != "boyun" else -0.15, 0)
 			dist = 2.6 if a[0] != "boyun" else 1.8
+		if OS.get_environment("HB_BODY") != "":   # boydan: saçın bele/kalçaya göre boyu görünsün
+			c += Vector3(0, -0.42, 0)
+			dist = 3.5
 		for vi in views.size():
 			var dv: Vector3 = views[vi].normalized()
 			cam.global_position = c + dv * dist * (float(OS.get_environment("HB_ZOOM")) if OS.get_environment("HB_ZOOM") != "" else 1.0)
