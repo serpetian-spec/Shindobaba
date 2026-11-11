@@ -56,11 +56,13 @@ func _process(dt: float) -> void:
 		return
 	if Game.paused:
 		return
+	WorldKin.tick(dt)
 	_t -= dt
 	if _t > 0.0:
 		return
 	_t = TICK
 	world_tick()
+	WorldKin.world_tick(TICK)
 
 
 # ------------------------------------------------------------------ nüfus
@@ -280,7 +282,9 @@ static func _life(p: Dictionary) -> void:
 		pass
 	elif r < 0.42 and _grow_eye(p):
 		pass
-	elif r < 0.45:
+	elif r < 0.62:
+		WorldKin.life(p)   # evlilik, çocuk
+	elif r < 0.66:
 		log_event(p, ["Bir A-rütbe görevi tamamladı", "Sınırda bir çatışmadan sağ döndü", "Bir daimyo kervanını korudu", "Genin takımı eğitti"][randi() % 4])
 
 
@@ -312,6 +316,7 @@ static func _defect_reason(p: Dictionary) -> String:
 static func _die(p: Dictionary, why: String) -> void:
 	p["status"] = "öldü"
 	log_event(p, why)
+	WorldKin.on_death(p)   # aile yası, intikam
 	var cid = String(p.get("close", ""))
 	if cid == "" or not all().has(cid):
 		return
@@ -557,6 +562,7 @@ static func on_bingo_killed(e: Dictionary) -> void:
 	var pid = String(e.get("person_id", ""))
 	if pid == "" or not all().has(pid):
 		return
+	all()[pid]["slain_by_player"] = true
 	_die(all()[pid], "Bingo avcısı tarafından öldürüldü")
 
 
@@ -685,6 +691,8 @@ static func on_enemy_died(e: Node, info: Dictionary) -> void:
 	if p.is_empty() or not alive(p):
 		return
 	var by_player = info.get("attacker") == Game.player
+	if by_player:
+		p["slain_by_player"] = true
 	_die(p, "%s ile savaşırken öldü" % (String(Game.profile.get("name", "bir ninja")) if by_player else "düşmanları"))
 	var b = bingo_of(p)
 	if not b.is_empty():

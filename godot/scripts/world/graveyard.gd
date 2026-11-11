@@ -108,6 +108,7 @@ func build(v_id: String) -> void:
 	item = {"pos": center + Vector3(0, 0.4, 7.0), "radius": 7.0, "kind": "graveyard", "label": "[F] Mezarlık", "vid": v_id}
 	Interact.add(item)
 	tree_exiting.connect(func(): Interact.items.erase(item))
+	WorldKin.mourn_at(v_id, self)
 
 
 ## [F] mezarlıkta: yatanlar ve dua
