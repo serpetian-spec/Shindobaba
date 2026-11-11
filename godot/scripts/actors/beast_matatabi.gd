@@ -136,6 +136,7 @@ static func build(r: BeastRig, root: Node3D) -> void:
 			BeastRig.claw(mh, arc[i] + Vector3(-0.06 * sx, -0.03, 0.05), Vector3(0, -1, 0.05), 0.7 if canine else 0.3, 0.13 if canine else 0.08, FANG)
 	mh.add("sphere", Vector3(0, -0.72, -0.75), Vector3(2.6, 0.5, 2.2), Color(0.45, 0.12, 0.2), Vector3.ZERO, 12)   # ağız tavanı
 	r._mesh(r.head, mh)
+	r.head.scale = Vector3.ONE * 0.78
 	r._collider(r.head, Vector3(0, 0, -0.4), Vector3(4.2, 3.2, 3.6))
 	# alt çene: arkadan menteşeli (yerel +Z = ileri; pozitif rotation.x indirir); hırlar gibi yarı açık modellenir
 	r.jaw = r._pivot(r.head, Vector3(0, -0.95, 0.2), "cene")

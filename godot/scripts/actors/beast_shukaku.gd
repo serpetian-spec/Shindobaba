@@ -169,7 +169,7 @@ static func build(r: BeastRig, root: Node3D) -> void:
 			var ph = lerpf(-0.55, 0.55, f / 2.0) + 0.12 * sx
 			_digit(mk2, a + Vector3(sin(ph) * 0.65, -0.15, -0.8 - cos(ph) * 0.3), Vector3(sin(ph), 0, -cos(ph)), 1.25, 0.27, Vector3(0, -0.22, 0))
 		r._mesh(kn, mk2)
-		r.legs.append({"hip": hi, "kn": kn, "side": sx, "front": false})
+		r.legs.append({"hip": hi, "kn": kn, "side": sx, "front": false, "slide": 1.0})
 	_tail(r, Vector3(0, 3.0, 3.7) - HP)
 	BeastModels._particles(r.hips, Vector3(4.5, 4.0, 4.0), [Color(0.78, 0.7, 0.56, 0.8), Color(0.78, 0.7, 0.56, 0.0)], 60, 1.2, Vector3(0, -3, 0), 2.0)
 	r._weak(r.hips, Vector3(0, 6.4, 0.0))

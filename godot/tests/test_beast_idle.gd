@@ -6,6 +6,8 @@ var main: Node
 var pl: Player
 var tag := "a"
 var ids := ["shukaku", "matatabi"]
+var face := 0.78
+var acts := false
 
 
 func _ready() -> void:
@@ -13,6 +15,10 @@ func _ready() -> void:
 	for a in OS.get_cmdline_user_args():
 		if a.begins_with("--tag="):
 			tag = a.substr(6)
+		if a.begins_with("--face="):
+			face = float(a.substr(7))
+		if a == "--acts":
+			acts = true
 		if a.begins_with("--ids="):
 			ids = Array(a.substr(6).split(","))
 	main.creator_state = {"slot": 3, "name": "Test", "gender": "m", "clan": "none", "element": "katon", "hair_style": "diken", "hair": Color(0.3, 0.2, 0.12),
@@ -43,7 +49,7 @@ func _beast(id: String, base: Vector3) -> void:
 	b.global_position = p
 	b.home = p
 	b.set_physics_process(false)
-	b.facing = PI * 0.78
+	b.facing = PI * face
 	b.rig.rotation.y = b.facing
 	pl.global_position = p + Vector3(b.height * 3.0, 0, 0)
 	var cam = Camera3D.new()
@@ -74,6 +80,18 @@ func _beast(id: String, base: Vector3) -> void:
 	await main.shot("bi_%s_%s_3kos_b" % [tag, id])
 	await get_tree().create_timer(0.17).timeout
 	await main.shot("bi_%s_%s_3kos_c" % [tag, id])
+	if acts:
+		r.move_speed = 0.0
+		r.run_target = 0.0
+		await get_tree().create_timer(1.2).timeout
+		for a in [["swipe_r", 1.6, [0.3, 0.5, 0.62]], ["slam", 1.8, [0.4, 0.66]], ["roar", 1.6, [0.5]]]:
+			r.play_action(a[0], a[1])
+			var el := 0.0
+			for q in a[2]:
+				await get_tree().create_timer(a[1] * q - el).timeout
+				el = a[1] * q
+				await main.shot("bi_%s_%s_4%s_%d" % [tag, id, a[0], int(q * 100)])
+			await get_tree().create_timer(a[1] - el + 0.5).timeout
 	cam.queue_free()
 	b.queue_free()
 	await get_tree().create_timer(0.4).timeout

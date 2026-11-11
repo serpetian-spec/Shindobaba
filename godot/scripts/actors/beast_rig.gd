@@ -38,6 +38,7 @@ var look_yaw := 0.0       # başın hedefe dönüşü (radyan, gövdeye göre)
 var airborne := false     # oyuncu tam dönüşümde zıplarken
 var gp := 0.0             # adım fazı
 var _last_step := 0
+var air_s := 0.0           # yumuşatılmış havada olma (0..1)
 # bekleme ara hareketleri (etrafa bakınma, silkinme, hırlama, pençe, esneme)
 var fid := ""
 var fid_t := 0.0
@@ -315,8 +316,8 @@ func _process(dt: float) -> void:
 	var air = 0.0
 	if action == "leap":
 		air = clampf(sin(clampf((k - 0.22) / 0.62, 0.0, 1.0) * PI), 0.0, 1.0)
-	if airborne:
-		air = maxf(air, 1.0)
+	air_s = move_toward(air_s, 1.0 if airborne else 0.0, dt * 4.0)
+	air = maxf(air, air_s)
 	# adım fazı: yürüyüşte yavaş, koşuda hızlı (canavara göre ağırlık)
 	var heavy = 0.8 if id in ["isobu", "son_goku", "gyuki", "shukaku"] else 1.0
 	var freq = (1.7 + 1.6 * run) * heavy * (1.25 if quadruped else 1.0)
@@ -391,9 +392,9 @@ func _process(dt: float) -> void:
 			else:
 				y -= sin((k - 0.84) / 0.16 * PI) * 0.9
 				pitch += 0.15
-		elif airborne:
-			y += 0.6
-			pitch -= 0.1
+		elif air_s > 0.01:
+			y += 0.6 * air_s
+			pitch -= 0.1 * air_s
 		if action == "stomp":
 			y += (sin(k * PI * 1.0) * 1.4) if k < 0.6 else -0.3 * (1.0 - k)
 			pitch = -0.12 * s
@@ -408,9 +409,10 @@ func _process(dt: float) -> void:
 			pitch += (-0.1 if k < 0.35 else 0.3) * s
 		elif action == "slam":
 			y += (0.9 * sin(k / 0.5 * PI * 0.5)) if k < 0.5 else 0.9 * (1.0 - (k - 0.5) / 0.15) if k < 0.65 else -0.3
-			pitch += -0.25 * s if k < 0.5 else 0.35 * s
+			pitch += -0.2 * s if k < 0.5 else 0.38 * s
 		elif action in ["swipe_l", "swipe_r"]:
 			roll += (0.12 if action == "swipe_l" else -0.12) * s
+			pitch += (-0.12 * sin(minf(1.0, k / 0.4) * PI)) if k < 0.4 else 0.3 * sin(clampf((k - 0.4) / 0.6, 0.0, 1.0) * PI)   # geri gerin, sonra yumrukla birlikte öne çök
 		if action == "tail":
 			hips.rotation.y = sin(k * TAU) * 1.2
 		if action != "tail":
@@ -420,7 +422,7 @@ func _process(dt: float) -> void:
 		if hips_base < -1e8:
 			hips_base = hips.position.y
 		hips.position.y = lerpf(hips.position.y, hips_base + y, minf(1.0, dt * 14.0))
-		hips.rotation.x = lerp_angle(hips.rotation.x, pitch, minf(1.0, dt * 6.0))
+		hips.rotation.x = lerp_angle(hips.rotation.x, -pitch, minf(1.0, dt * 6.0))   # pitch > 0 = öne eğil
 		hips.rotation.z = lerp_angle(hips.rotation.z, roll, minf(1.0, dt * 6.0))
 	# --- göğüs: kalçaya karşı döner (yürüyüş), nefesle kabarır, dörtnalda omurga esner
 	if chest:
@@ -433,7 +435,7 @@ func _process(dt: float) -> void:
 			cx += fs * 0.06
 		elif fid == "look":
 			cy += fid_side * 0.12 * fs
-		chest.rotation.x = lerp_angle(chest.rotation.x, cx, minf(1.0, dt * 6.0))
+		chest.rotation.x = lerp_angle(chest.rotation.x, -cx, minf(1.0, dt * 6.0))
 		chest.rotation.y = lerp_angle(chest.rotation.y, cy, minf(1.0, dt * 5.0))
 		chest.rotation.z = lerp_angle(chest.rotation.z, cz, minf(1.0, dt * 5.0))
 	# --- baş: hedefe bakar, kükreme, top şarjı, ısırık
@@ -467,7 +469,7 @@ func _process(dt: float) -> void:
 			hx = (-0.35 * sin(k / 0.35 * PI * 0.5)) if k < 0.35 else 0.4 * s
 		elif action == "leap":
 			hx = -0.2 * air
-		head.rotation.x = lerp_angle(head.rotation.x, hx, minf(1.0, dt * 6.0))
+		head.rotation.x = lerp_angle(head.rotation.x, -hx, minf(1.0, dt * 6.0))   # hx < 0 = baş yukarı
 		head.rotation.y = lerp_angle(head.rotation.y, hy, minf(1.0, dt * 3.0))
 		if action == "bite" and head.has_meta("rest_z") == false:
 			head.set_meta("rest_z", head.position.z)
@@ -498,37 +500,49 @@ func _process(dt: float) -> void:
 		var amp = (0.35 + 0.45 * run) * (1.3 if quadruped else 1.0)
 		var rx = sin(wt + ph) * amp * walk
 		var rz = 0.0
-		rx -= stance * (0.25 if not quadruped else 0.0)   # dik canavar savaşta kollarını kaldırır
+		rx += stance * (0.25 if not quadruped else 0.0)   # dik canavar savaşta kollarını öne kaldırır
 		rz += stance * 0.25 * side * (0.0 if quadruped else 1.0)
 		rx += idle * (sin(t * 0.6 + side * 1.3) * 0.06 + breath * 0.03)   # beklerken kollar hafif salınır
 		rz += idle * breath * 0.035 * side
 		var fex = 0.0
 		if fid == "paw" and side == fid_side and not quadruped:
-			rx -= 0.75 * fs + sin(fid_t * 12.0) * 0.1 * fs   # pençesini kaldırıp tartar
+			rx += 0.75 * fs + sin(fid_t * 12.0) * 0.1 * fs   # pençesini öne kaldırıp tartar
 			fex = -0.7 * fs
 		elif fid == "stretch" and not quadruped:
-			rx -= 0.45 * fs
+			rx += 0.45 * fs
 			rz += 0.55 * side * fs
 		elif fid == "growl" and not quadruped:
 			rz += 0.18 * side * fs
 			fex = -0.25 * fs
 		if (action == "swipe_l" and side > 0) or (action == "swipe_r" and side < 0):
-			rx = -1.6 * sin(minf(1.0, k * 1.6) * PI * 0.5) + (2.2 * maxf(0.0, k - 0.45))
-			rz = -0.6 * side * s
+			# yumruk öne-yukarı kalkar, sonra öne-yere iner (pozitif rotation.x = kol ÖNE)
+			var pk = 1.1 if quadruped else 2.6
+			var lo = -0.15 if quadruped else 0.5
+			if k < 0.4:
+				rx = pk * sin(k / 0.4 * PI * 0.5)
+			elif k < 0.52:
+				rx = lerpf(pk, lo, (k - 0.4) / 0.12)
+			elif k < 0.72:
+				rx = lo
+			else:
+				rx = lerpf(lo, 0.0, smoothstep(0.72, 1.0, k))
+			rz = 0.3 * side * sin(minf(1.0, k / 0.4) * PI)
 		elif action == "slam":
-			rx = (-2.4 * sin(minf(1.0, k / 0.5) * PI * 0.5)) if k < 0.5 else lerpf(-2.4, 0.6, minf(1.0, (k - 0.5) / 0.15))
+			var pk2 = 1.1 if quadruped else 2.7
+			var lo2 = -0.15 if quadruped else 0.5
+			rx = (pk2 * sin(minf(1.0, k / 0.5) * PI * 0.5)) if k < 0.5 else lerpf(pk2, lo2, minf(1.0, (k - 0.5) / 0.13)) * (1.0 - smoothstep(0.8, 1.0, k))
 			rz = 0.2 * side * s
 		elif action == "roar":
-			rx = -0.5 * s
-			rz = 0.5 * side * s
+			rx = -0.35 * s   # kollar geriye-yana açılır, göğüs öne
+			rz = 0.6 * side * s
 		elif action == "ball":
-			rx = -0.7 * minf(1.0, action_t * 2.0)
+			rx = 0.7 * minf(1.0, action_t * 2.0)
 			rz = -0.25 * side
 		elif action == "kneel":
-			rx = -0.4
-		elif action == "leap" or airborne:
-			rx = lerpf(rx, -0.9 if k < 0.84 else 0.3, maxf(air, 0.6 if k >= 0.84 else 0.0))   # havada öne uzanır, inişte yere çakar
-		sh.rotation.x = lerp_angle(sh.rotation.x, rx, minf(1.0, dt * 10.0))
+			rx = 0.4
+		elif action == "leap" or air_s > 0.3:
+			rx = lerpf(rx, 0.9 if (k < 0.84 or action == "") else 0.3, maxf(air, 0.6 if (k >= 0.84 and action == "leap") else 0.0))   # havada öne uzanır, inişte yere çakar
+		sh.rotation.x = lerp_angle(sh.rotation.x, rx, minf(1.0, dt * (22.0 if action in ["swipe_l", "swipe_r", "slam"] else 10.0)))
 		sh.rotation.z = lerp_angle(sh.rotation.z, rz, minf(1.0, dt * 10.0))
 		if a.has("el"):
 			var el: Node3D = a["el"]
@@ -541,6 +555,12 @@ func _process(dt: float) -> void:
 		var phase = lerpf((0.0 if l["side"] > 0 else PI) + (PI if front else 0.0), (0.0 if front else PI * 0.85), gallop)
 		var lamp = 0.45 + 0.5 * run
 		var rx2 = sin(wt + phase) * lamp * walk
+		if l.has("slide"):   # öne uzanmış kısa bacak (Shukaku): döndürünce karna gömülür; bunun yerine ayak kayarak adım atar
+			if not l.has("p0"):
+				l["p0"] = hp.position
+			var stp_v = Vector3(0, maxf(0.0, cos(wt + phase)) * 0.4 * walk, -rx2 * 1.5 * float(l["slide"]))
+			hp.position = hp.position.lerp((l["p0"] as Vector3) + stp_v, minf(1.0, dt * 10.0))
+			rx2 = 0.0
 		rx2 -= stance * (0.15 if not front else -0.1)   # savaş duruşu: dizler kırık, ağırlık önde
 		var fkn = idle * maxf(0.0, sway * float(l["side"])) * 0.07   # yük binen bacak hafif kırılır
 		if quadruped and front:
@@ -568,6 +588,8 @@ func _process(dt: float) -> void:
 			var kx = maxf(0.0, -sin(wt + phase)) * (0.6 + 0.5 * run) * walk + (0.9 if action == "kneel" else 0.0) + stance * 0.3 + air * 0.6 + fkn
 			if action == "leap" and k < 0.22:
 				kx += 0.7 * (k / 0.22)
+			if l.has("slide"):
+				kx *= 0.25
 			kn.rotation.x = lerp_angle(kn.rotation.x, kx, minf(1.0, dt * 10.0))
 	# --- kuyruklar: dalga; savaşta kamçılar, koşuda arkaya akar, sıçrayışta havada savrulur
 	for i in tails.size():

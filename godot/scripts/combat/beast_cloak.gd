@@ -553,7 +553,12 @@ func _process(dt: float) -> void:
 		rig.move_speed = clampf(hs / 15.0, 0.0, 1.0)
 		rig.run_target = clampf((hs - 16.0) / 14.0, 0.0, 1.0)   # koşarken dörtnal / iri adım
 		var was_air = rig.airborne
-		rig.airborne = not p.is_on_floor()
+		# engebeli zeminde is_on_floor anlık kopar: ancak 0.3 sn kesintisiz havadaysa havada say (yoksa yürürken uçar gibi görünür)
+		if p.is_on_floor():
+			set_meta("air_t", 0.0)
+		else:
+			set_meta("air_t", float(get_meta("air_t", 0.0)) + get_process_delta_time())
+		rig.airborne = float(get_meta("air_t", 0.0)) > 0.3
 		if was_air and not rig.airborne:
 			rig.land_fx()
 		var lt2 = c.lock_target

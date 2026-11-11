@@ -52,7 +52,7 @@ static func build(id: String, height_m := -1.0) -> BeastRig:
 		"shukaku": BeastShukaku.build(r, root)
 		"matatabi": BeastMatatabi.build(r, root)
 		"isobu": BeastIsobu.build(r, root)
-		"son_goku": _son_goku(r, root)
+		"son_goku": BeastSonGoku.build(r, root)
 		"kokuo": _kokuo(r, root)
 		"saiken": _saiken(r, root)
 		"chomei": _chomei(r, root)

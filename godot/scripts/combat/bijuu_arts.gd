@@ -915,27 +915,43 @@ static func _shell_roll(user: Node3D, c: Dictionary) -> void:
 	var d = _flat(c["aim"] - user.global_position)
 	var end = _gp(user.global_position + d * 30.0 * s)
 	var dmg: float = c["dmg"]
-	var shell = _spike_shell(VFX.scene(), 1.3 * s, Color(0.4, 0.55, 0.5))
+	# tam dönüşümde (ya da dev canavarın kendisinde) gövde modeli gizlenir, kabuk topu gövde boyunda olur
+	var rig: Node3D = null
+	if user is Player:
+		var cl = user.combat.modes.cloak
+		if cl != null and cl.level == 6 and is_instance_valid(cl.rig):
+			rig = cl.rig
+	elif "rig" in user and is_instance_valid(user.rig):
+		rig = user.rig
+	var R = 1.3 * s
+	if rig != null:
+		R = maxf(R, float(rig.height_m) * 0.42)
+		rig.visible = false
+	var shell = _spike_shell(VFX.scene(), R, Color(0.58, 0.63, 0.72))
 	var hitlist: Array = [user]
 	Sfx.play("whoosh", user.global_position, 0.5)
 	var st = {"n": 0}
+	var mv = true
 	if user is Player:
+		mv = user.model.visible
 		user.model.visible = false
 	var step = func(_k: float, p: Vector3) -> void:
 		if is_instance_valid(shell):
-			shell.global_position = p + Vector3.UP * 1.3 * s
+			shell.global_position = p + Vector3.UP * R
 			shell.rotate(d.cross(Vector3.UP).normalized(), -0.45)
 		st["n"] += 1
 		if int(st["n"]) % 3 == 0:
 			if int(st["n"]) % 9 == 0:
 				VFX.splash(_gp(p - d * 2.0 * s), 0.6 * s)
-			var hits = _hit(user, p + Vector3.UP * s, 2.6 * s, {"dmg": dmg * 0.7, "element": "suiton", "knock": 30.0, "launch": 9.0, "kind": "heavy", "dir": d, "hitstop": 0.05}, hitlist)
+			var hits = _hit(user, p + Vector3.UP * maxf(s, R * 0.6), maxf(2.6 * s, R * 1.3), {"dmg": dmg * 0.7, "element": "suiton", "knock": 30.0, "launch": 9.0, "kind": "heavy", "dir": d, "hitstop": 0.05}, hitlist)
 			hitlist.append_array(hits)
 	var done = func(p: Vector3) -> void:
 		if is_instance_valid(shell):
 			shell.queue_free()
 		if is_instance_valid(user) and user is Player:
-			user.model.visible = true
+			user.model.visible = mv
+		if is_instance_valid(rig):
+			rig.visible = true
 		VFX.splash(_gp(p + d * 2.0 * s), 1.4 * s)
 		_shake(0.4)
 	_move(user, end, 0.9, 0.0, step, done)
